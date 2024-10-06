@@ -5,19 +5,18 @@
 
 #include "CoreMinimal.h"
 
-#include "Data/PCGExAttributeHelpers.h"
 #include "PCGExGraph.h"
 #include "PCGExIntersections.h"
 #include "PCGExPointsProcessor.h"
 #include "PCGExDetails.h"
+#include "PCGExDetailsIntersection.h"
 #include "Data/PCGExData.h"
-#include "Data/Blending/PCGExCompoundBlender.h"
+#include "Data/Blending/PCGExUnionBlender.h"
 #include "Data/Blending/PCGExMetadataBlender.h"
-
 
 namespace PCGExGraph
 {
-	struct /*PCGEXTENDEDTOOLKIT_API*/ FCompoundProcessor : TSharedFromThis<FCompoundProcessor>
+	struct /*PCGEXTENDEDTOOLKIT_API*/ FUnionProcessor : TSharedFromThis<FUnionProcessor>
 	{
 		FPCGExPointsProcessorContext* Context = nullptr;
 
@@ -35,17 +34,17 @@ namespace PCGExGraph
 
 		FPCGExGraphBuilderDetails GraphBuilderDetails;
 
-		TSharedPtr<FCompoundGraph> CompoundGraph;
-		TSharedPtr<PCGExData::FFacade> CompoundFacade;
-		TSharedPtr<PCGExDataBlending::FCompoundBlender> CompoundPointsBlender;
+		TSharedPtr<FUnionGraph> UnionGraph;
+		TSharedPtr<PCGExData::FFacade> UnionFacade;
+		TSharedPtr<PCGExDataBlending::FUnionBlender> UnionPointsBlender;
 
-		explicit FCompoundProcessor(
+		explicit FUnionProcessor(
 			FPCGExPointsProcessorContext* InContext,
 			FPCGExPointPointIntersectionDetails PointPointIntersectionDetails,
 			FPCGExBlendingDetails InDefaultPointsBlending,
 			FPCGExBlendingDetails InDefaultEdgesBlending);
 
-		~FCompoundProcessor();
+		~FUnionProcessor();
 
 		void InitPointEdge(
 			const FPCGExPointEdgeIntersectionDetails& InDetails,
@@ -58,19 +57,20 @@ namespace PCGExGraph
 			const FPCGExBlendingDetails* InOverride = nullptr);
 
 		bool StartExecution(
-			const TSharedPtr<FCompoundGraph>& InCompoundGraph,
-			const TSharedPtr<PCGExData::FFacade>& InCompoundFacade,
+			const TSharedPtr<FUnionGraph>& InUnionGraph,
+			const TSharedPtr<PCGExData::FFacade>& InUnionFacade,
 			const TArray<TSharedPtr<PCGExData::FFacade>>& InFacades,
 			const FPCGExGraphBuilderDetails& InBuilderDetails,
 			const FPCGExCarryOverDetails* InCarryOverDetails);
 
-		void InternalStartExecution();
 		bool Execute();
 
 	protected:
 		bool bRunning = false;
 
 		int32 NewEdgesNum = 0;
+
+		void InternalStartExecution();
 
 		FPCGExBlendingDetails DefaultPointsBlendingDetails;
 		FPCGExBlendingDetails DefaultEdgesBlendingDetails;

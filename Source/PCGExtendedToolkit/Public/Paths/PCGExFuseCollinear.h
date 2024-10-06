@@ -35,7 +35,6 @@ public:
 	//~End UPCGExPointsProcessorSettings
 
 
-public:
 	/** Angular threshold for collinearity. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, Units="Degrees", ClampMin=0, ClampMax=180))
 	double Threshold = 10;
@@ -55,7 +54,7 @@ public:
 	//TObjectPtr<UPCGExSubPointsBlendOperation> Blending;
 };
 
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExFuseCollinearContext final : public FPCGExPathProcessorContext
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExFuseCollinearContext final : FPCGExPathProcessorContext
 {
 	friend class FPCGExFuseCollinearElement;
 

@@ -46,7 +46,6 @@ public:
 	virtual PCGExData::EInit GetMainOutputInitMode() const override;
 	//~End UPCGExPointsProcessorSettings
 
-public:
 	/** Output the Urquhart graph of the Delaunay triangulation (removes the longest edge of each Delaunay cell) */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	bool bUrquhart = false;
@@ -91,7 +90,7 @@ private:
 	friend class FPCGExBuildDelaunayGraph2DElement;
 };
 
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExBuildDelaunayGraph2DContext final : public FPCGExPointsProcessorContext
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExBuildDelaunayGraph2DContext final : FPCGExPointsProcessorContext
 {
 	friend class FPCGExBuildDelaunayGraph2DElement;
 
@@ -143,13 +142,13 @@ namespace PCGExBuildDelaunay2D
 	{
 	public:
 		FOutputDelaunaySites2D(const TSharedPtr<PCGExData::FPointIO>& InPointIO,
-		                       FProcessor* InProcessor) :
+		                       const TSharedPtr<FProcessor>& InProcessor) :
 			FPCGExTask(InPointIO),
 			Processor(InProcessor)
 		{
 		}
 
-		FProcessor* Processor = nullptr;
+		TSharedPtr<FProcessor> Processor;
 
 		virtual bool ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager) override;
 	};
@@ -158,13 +157,13 @@ namespace PCGExBuildDelaunay2D
 	{
 	public:
 		FOutputDelaunayUrquhartSites2D(const TSharedPtr<PCGExData::FPointIO>& InPointIO,
-		                               FProcessor* InProcessor) :
+		                               const TSharedPtr<FProcessor>& InProcessor) :
 			FPCGExTask(InPointIO),
 			Processor(InProcessor)
 		{
 		}
 
-		FProcessor* Processor = nullptr;
+		TSharedPtr<FProcessor> Processor;
 
 		virtual bool ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager) override;
 	};

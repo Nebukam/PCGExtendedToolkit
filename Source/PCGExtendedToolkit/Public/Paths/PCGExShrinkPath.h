@@ -121,7 +121,6 @@ public:
 	PCGEX_NODE_POINT_FILTER(FName("Stop Conditions"), "", PCGExFactories::PointFilters, false)
 	//~End UPCGExPointsProcessorSettings
 
-public:
 	/** TBD */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditConditionHides))
 	EPCGExShrinkEndpoint ShrinkEndpoint = EPCGExShrinkEndpoint::Both;
@@ -161,7 +160,7 @@ public:
 	EPCGExShrinkEndpoint ShrinkFirst = EPCGExShrinkEndpoint::Both;
 };
 
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExShrinkPathContext final : public FPCGExPathProcessorContext
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExShrinkPathContext final : FPCGExPathProcessorContext
 {
 	friend class FPCGExShrinkPathElement;
 

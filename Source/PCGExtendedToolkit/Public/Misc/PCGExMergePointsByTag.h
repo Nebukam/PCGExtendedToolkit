@@ -64,7 +64,7 @@ namespace PCPGExMergePointsByTag
 
 		void Distribute(FPCGExContext* InContext, const TSharedPtr<PCGExData::FPointIO>& IO, const FPCGExNameFiltersDetails& Filters);
 		void AddToReverseMap(TSharedPtr<PCGExData::FPointIO> IO, const TSharedPtr<FTagBucket>& Bucket);
-		void BuildMergeLists(::FPCGExContext* InContext, EPCGExMergeByTagOverlapResolutionMode Mode, TArray<TSharedPtr<FMergeList>>& OutLists, const TArray<FString>& Priorities, const EPCGExSortDirection SortDirection);
+		void BuildMergeLists(FPCGExContext* InContext, EPCGExMergeByTagOverlapResolutionMode Mode, TArray<TSharedPtr<FMergeList>>& OutLists, const TArray<FString>& Priorities, const EPCGExSortDirection SortDirection);
 	};
 }
 
@@ -89,7 +89,6 @@ public:
 	virtual PCGExData::EInit GetMainOutputInitMode() const override;
 	//~End UPCGExPointsProcessorSettings
 
-public:
 	/** TBD */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable))
 	EPCGExMergeByTagOverlapResolutionMode Mode = EPCGExMergeByTagOverlapResolutionMode::Strict;
@@ -115,7 +114,7 @@ public:
 	FPCGExCarryOverDetails CarryOverDetails;
 };
 
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExMergePointsByTagContext final : public FPCGExPointsProcessorContext
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExMergePointsByTagContext final : FPCGExPointsProcessorContext
 {
 	friend class FPCGExMergePointsByTagElement;
 

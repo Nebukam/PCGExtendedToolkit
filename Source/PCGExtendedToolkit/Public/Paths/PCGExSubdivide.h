@@ -14,11 +14,6 @@
 #include "SubPoints/DataBlending/PCGExSubPointsBlendOperation.h"
 #include "PCGExSubdivide.generated.h"
 
-namespace PCGExSubdivide
-{
-	PCGEX_ASYNC_STATE(State_BlendingPoints)
-}
-
 /**
  * 
  */
@@ -43,7 +38,6 @@ public:
 	PCGEX_NODE_POINT_FILTER(PCGExPointFilter::SourcePointFiltersLabel, "Filter which segments will be subdivided.", PCGExFactories::PointFilters, false)
 	//~End UPCGExPointsProcessorSettings
 
-public:
 	/** Reference for computing the blending interpolation point point */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	EPCGExSubdivideMode SubdivideMethod = EPCGExSubdivideMode::Distance;
@@ -79,7 +73,7 @@ public:
 	double DefaultAlpha = 1;
 };
 
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExSubdivideContext final : public FPCGExPathProcessorContext
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExSubdivideContext final : FPCGExPathProcessorContext
 {
 	friend class FPCGExSubdivideElement;
 

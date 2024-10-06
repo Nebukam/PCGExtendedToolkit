@@ -4,6 +4,7 @@
 #include "Graph/PCGExSimplifyClusters.h"
 
 
+#include "Graph/PCGExChain.h"
 #include "Graph/Filters/PCGExClusterFilter.h"
 
 
@@ -35,24 +36,20 @@ bool FPCGExSimplifyClustersElement::ExecuteInternal(FPCGContext* InContext) cons
 
 	PCGEX_CONTEXT_AND_SETTINGS(SimplifyClusters)
 	PCGEX_EXECUTION_CHECK
-
-	if (Context->IsSetup())
+	PCGEX_ON_INITIAL_EXECUTION
 	{
-		if (!Boot(Context)) { return true; }
-
 		if (!Context->StartProcessingClusters<PCGExClusterMT::TBatchWithGraphBuilder<PCGExSimplifyClusters::FProcessor>>(
 			[&](const TSharedPtr<PCGExData::FPointIOTaggedEntries>& Entries) { return true; },
 			[&](const TSharedPtr<PCGExClusterMT::TBatchWithGraphBuilder<PCGExSimplifyClusters::FProcessor>>& NewBatch)
 			{
 			}))
 		{
-			PCGE_LOG(Warning, GraphAndLog, FTEXT("Could not build any clusters."));
-			return true;
+			Context->CancelExecution(TEXT("Could not build any clusters."));
 		}
 	}
 
-	if (!Context->ProcessClusters(PCGExGraph::State_ReadyToCompile)) { return false; }
-	if (!Context->CompileGraphBuilders(true, PCGExMT::State_Done)) { return false; }
+	PCGEX_CLUSTER_BATCH_PROCESSING(PCGExGraph::State_ReadyToCompile)
+	if (!Context->CompileGraphBuilders(true, PCGEx::State_Done)) { return false; }
 
 	Context->MainPoints->StageOutputs();
 
@@ -155,7 +152,7 @@ namespace PCGExSimplifyClusters
 
 		TSet<uint64> NewEdges;
 
-		for (int i = 0; i < Chain->Nodes.Num(); ++i)
+		for (int i = 0; i < Chain->Nodes.Num(); i++)
 		{
 			const int32 CurrentIndex = Chain->Nodes[i];
 

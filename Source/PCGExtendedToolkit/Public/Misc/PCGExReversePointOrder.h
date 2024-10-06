@@ -70,7 +70,7 @@ public:
 	TArray<FPCGExSwapAttributePairDetails> SwapAttributesValues;
 };
 
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExReversePointOrderContext final : public FPCGExPointsProcessorContext
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExReversePointOrderContext final : FPCGExPointsProcessorContext
 {
 	friend class FPCGExReversePointOrderElement;
 };

@@ -32,7 +32,7 @@ void UPCGExHeuristicOperation::PrepareForCluster(const PCGExCluster::FCluster* I
 		else
 		{
 			LocalWeightMultiplier.SetNumZeroed(NumPoints);
-			for (int i = 0; i < NumPoints; ++i) { LocalWeightMultiplier[i] = LocalWeightCache->Read(i); }
+			for (int i = 0; i < NumPoints; i++) { LocalWeightMultiplier[i] = LocalWeightCache->Read(i); }
 		}
 
 		bHasCustomLocalWeightMultiplier = true;

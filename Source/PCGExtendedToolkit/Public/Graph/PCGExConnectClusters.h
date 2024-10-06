@@ -57,11 +57,15 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName="Cluster Output Settings"))
 	FPCGExGraphBuilderDetails GraphBuilderDetails;
 
+	/** If enabled, won't throw a warning if no bridge could be created. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
+	bool bMuteNoBridgeWarning = false;
+
 private:
 	friend class FPCGExConnectClustersElement;
 };
 
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExConnectClustersContext final : public FPCGExEdgesProcessorContext
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExConnectClustersContext final : FPCGExEdgesProcessorContext
 {
 	friend class FPCGExConnectClustersElement;
 	friend class FPCGExCreateBridgeTask;
@@ -118,9 +122,9 @@ namespace PCGExBridgeClusters
 	public:
 		FPCGExCreateBridgeTask(
 			const TSharedPtr<PCGExData::FPointIO>& InPointIO,
-			FProcessorBatch* InBatch,
-			PCGExCluster::FCluster* A,
-			PCGExCluster::FCluster* B) :
+			const TSharedPtr<FProcessorBatch>& InBatch,
+			const TSharedPtr<PCGExCluster::FCluster>& A,
+			const TSharedPtr<PCGExCluster::FCluster>& B) :
 			FPCGExTask(InPointIO),
 			Batch(InBatch),
 			ClusterA(A),
@@ -128,10 +132,10 @@ namespace PCGExBridgeClusters
 		{
 		}
 
-		FProcessorBatch* Batch = nullptr;
+		TSharedPtr<FProcessorBatch> Batch;
 
-		PCGExCluster::FCluster* ClusterA = nullptr;
-		PCGExCluster::FCluster* ClusterB = nullptr;
+		TSharedPtr<PCGExCluster::FCluster> ClusterA;
+		TSharedPtr<PCGExCluster::FCluster> ClusterB;
 
 		virtual bool ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager) override;
 	};

@@ -5,24 +5,25 @@
 
 #include "CoreMinimal.h"
 #include "PCGExPointsProcessor.h"
+
+
+#include "Geometry/PCGExGeo.h"
 #include "Geometry/PCGExGeoDelaunay.h"
-
-
-#include "PCGExBuildConvexHull.generated.h"
+#include "PCGExBuildConvexHull2D.generated.h"
 
 /**
  * 
  */
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Graph")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExBuildConvexHullSettings : public UPCGExPointsProcessorSettings
+class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExBuildConvexHull2DSettings : public UPCGExPointsProcessorSettings
 {
 	GENERATED_BODY()
 
 public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS(BuildConvexHull, "Cluster : Convex Hull 3D", "Create a 3D Convex Hull triangulation for each input dataset.");
-	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->NodeColorClusterGen; }
+	PCGEX_NODE_INFOS(BuildConvexHull2D, "Cluster : Convex Hull 2D", "Create a 2D Convex Hull triangulation for each input dataset. Deprecated as of 5.4; use Find Convex Hull 2D instead.");
+	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->NodeColorCluster; }
 #endif
 	virtual TArray<FPCGPinProperties> OutputPinProperties() const override;
 
@@ -36,22 +37,29 @@ public:
 	virtual PCGExData::EInit GetMainOutputInitMode() const override;
 	//~End UPCGExPointsProcessorSettings
 
-public:
+	/** Projection settings. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
+	FPCGExGeo2DProjectionDetails ProjectionDetails;
+
 	/** Graph & Edges output properties */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName="Cluster Output Settings"))
 	FPCGExGraphBuilderDetails GraphBuilderDetails = FPCGExGraphBuilderDetails();
 
 private:
-	friend class FPCGExBuildConvexHullElement;
+	friend class FPCGExBuildConvexHull2DElement;
 };
 
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExBuildConvexHullContext final : public FPCGExPointsProcessorContext
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExBuildConvexHull2DContext final : FPCGExPointsProcessorContext
 {
-	friend class FPCGExBuildConvexHullElement;
+	friend class FPCGExBuildConvexHull2DElement;
+
+	TSharedPtr<PCGExData::FPointIOCollection> PathsIO;
+
+	void BuildPath(const PCGExGraph::FGraphBuilder* GraphBuilder) const;
 };
 
 
-class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExBuildConvexHullElement final : public FPCGExPointsProcessorElement
+class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExBuildConvexHull2DElement final : public FPCGExPointsProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(
@@ -64,12 +72,14 @@ protected:
 	virtual bool ExecuteInternal(FPCGContext* InContext) const override;
 };
 
-namespace PCGExConvexHull
+namespace PCGExConvexHull2D
 {
-	class FProcessor final : public PCGExPointsMT::TPointsProcessor<FPCGExBuildConvexHullContext, UPCGExBuildConvexHullSettings>
+	class FProcessor final : public PCGExPointsMT::TPointsProcessor<FPCGExBuildConvexHull2DContext, UPCGExBuildConvexHull2DSettings>
 	{
 	protected:
-		TUniquePtr<PCGExGeo::TDelaunay3> Delaunay;
+		FPCGExGeo2DProjectionDetails ProjectionDetails;
+
+		TUniquePtr<PCGExGeo::TDelaunay2> Delaunay;
 		TSharedPtr<PCGExGraph::FGraphBuilder> GraphBuilder;
 
 		TArray<uint64> Edges;

@@ -67,7 +67,7 @@ namespace PCGExData
 			{
 				Out = Context->ManagedObjects->New<UPCGPointData>();
 			}
-			
+
 			return;
 		}
 
@@ -123,7 +123,7 @@ namespace PCGExData
 	{
 		TArray<FPCGPoint>& PointList = Out->GetMutablePoints();
 		InMap.Empty(PointList.Num());
-		for (int i = 0; i < PointList.Num(); ++i)
+		for (int i = 0; i < PointList.Num(); i++)
 		{
 			FPCGPoint& Point = PointList[i];
 			if (Point.MetadataEntry == PCGInvalidEntryKey) { Out->Metadata->InitializeOnSet(Point.MetadataEntry); }
@@ -317,11 +317,11 @@ namespace PCGExData
 		int32 WriteIndex = 0;
 		if (!bUpdateIndices)
 		{
-			for (int32 i = 0; i < MaxPairs; ++i) { if (Pairs[i]) { Pairs[WriteIndex++] = Pairs[i]; } }
+			for (int32 i = 0; i < MaxPairs; i++) { if (Pairs[i]) { Pairs[WriteIndex++] = Pairs[i]; } }
 		}
 		else
 		{
-			for (int32 i = 0; i < MaxPairs; ++i)
+			for (int32 i = 0; i < MaxPairs; i++)
 			{
 				if (Pairs[i])
 				{

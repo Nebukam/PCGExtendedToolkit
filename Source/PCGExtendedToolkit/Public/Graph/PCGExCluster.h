@@ -65,8 +65,6 @@ namespace PCGExCluster
 	const FName OutputNodeFlagLabel = TEXT("Flag");
 	const FName SourceNodeFlagLabel = TEXT("Node Flags");
 
-	PCGEX_ASYNC_STATE(State_ProcessingCluster)
-
 	struct /*PCGEXTENDEDTOOLKIT_API*/ FAdjacencyData
 	{
 		int32 NodeIndex = -1;
@@ -119,7 +117,7 @@ namespace PCGExCluster
 
 	struct FCluster;
 
-	struct /*PCGEXTENDEDTOOLKIT_API*/ FNode : public PCGExGraph::FNode
+	struct /*PCGEXTENDEDTOOLKIT_API*/ FNode : PCGExGraph::FNode
 	{
 		FNode(): PCGExGraph::FNode()
 		{
@@ -332,7 +330,7 @@ namespace PCGExCluster
 		{
 			FNode* Node = (Nodes->GetData() + NodeIndex);
 			PCGEx::InitArray(OutNeighbors, Node->Adjacency.Num());
-			for (int i = 0; i < Node->Adjacency.Num(); ++i)
+			for (int i = 0; i < Node->Adjacency.Num(); i++)
 			{
 				uint32 OtherNodeIndex;
 				uint32 EdgeIndex;
@@ -345,7 +343,7 @@ namespace PCGExCluster
 		void GrabNeighbors(const FNode& Node, TArray<T>& OutNeighbors, const MakeFunc&& Make) const
 		{
 			PCGEx::InitArray(OutNeighbors, Node.Adjacency.Num());
-			for (int i = 0; i < Node.Adjacency.Num(); ++i)
+			for (int i = 0; i < Node.Adjacency.Num(); i++)
 			{
 				uint32 OtherNodeIndex;
 				uint32 EdgeIndex;
@@ -389,7 +387,7 @@ namespace PCGExCluster
 			const int32 NumNeighbors = Node->Adjacency.Num();
 			const FVector Pos = Cluster->GetPos(InNodeIndex);
 			PCGEx::InitArray(Neighbors, NumNeighbors);
-			for (int i = 0; i < Neighbors.Num(); ++i)
+			for (int i = 0; i < Neighbors.Num(); i++)
 			{
 				uint32 NodeIndex;
 				uint32 EdgeIndex;
@@ -446,49 +444,12 @@ namespace PCGExCluster
 		};
 	};
 
-	struct /*PCGEXTENDEDTOOLKIT_API*/ FNodeChain
-	{
-		int32 First = -1;
-		int32 Last = -1;
-		int32 SingleEdge = -1;
-		TArray<int32> Nodes;
-		TArray<int32> Edges;
-
-		FNodeChain()
-		{
-		}
-
-		~FNodeChain() = default;
-
-		uint64 GetUniqueHash() const
-		{
-			if (SingleEdge != -1) { return SingleEdge; }
-
-			if (First > Last)
-			{
-				if (Nodes.Num() == 1) { return HashCombineFast(HashCombineFast(Last, First), Nodes[0]); }
-				return HashCombineFast(HashCombineFast(Last, First), HashCombineFast(Nodes.Last(), Nodes[0]));
-			}
-
-			if (Nodes.Num() == 1) { return HashCombineFast(HashCombineFast(First, Last), Nodes[0]); }
-			return HashCombineFast(HashCombineFast(First, Last), HashCombineFast(Nodes[0], Nodes.Last()));
-
-			/*
-			const uint32 BaseHash = First > Last ? HashCombineFast(GetTypeHash(Last), GetTypeHash(First)) : HashCombineFast(GetTypeHash(First), GetTypeHash(Last));
-			if (SingleEdge != -1) { return BaseHash; }
-			if (Nodes.Num() == 1) { return HashCombineFast(BaseHash, GetTypeHash(Nodes[0])); }
-			const uint32 NodeBaseHash = Nodes[0] > Nodes[1] ? HashCombineFast(GetTypeHash(Nodes[1]), GetTypeHash(Nodes[0])) : HashCombineFast(GetTypeHash(Nodes[0]), GetTypeHash(Nodes[1]));
-			return HashCombineFast(BaseHash, NodeBaseHash);
-			*/
-		}
-	};
-
 	static void GetAdjacencyData(const FCluster* InCluster, FNode& InNode, TArray<FAdjacencyData>& OutData)
 	{
 		const int32 NumAdjacency = InNode.Adjacency.Num();
 		const FVector NodePosition = InCluster->GetPos(InNode);
 		OutData.Reserve(NumAdjacency);
-		for (int i = 0; i < NumAdjacency; ++i)
+		for (int i = 0; i < NumAdjacency; i++)
 		{
 			uint32 NIndex;
 			uint32 EIndex;
@@ -506,144 +467,6 @@ namespace PCGExCluster
 			Data.Length = FVector::Dist(NodePosition, OtherPosition);
 		}
 	}
-}
-
-namespace PCGExClusterTask
-{
-	class /*PCGEXTENDEDTOOLKIT_API*/ FFindNodeChains final : public PCGExMT::FPCGExTask
-	{
-	public:
-		FFindNodeChains(const TSharedPtr<PCGExData::FPointIO>& InPointIO,
-		                const TSharedPtr<PCGExCluster::FCluster>& InCluster,
-		                const TArray<bool>* InBreakpoints,
-		                TArray<TSharedPtr<PCGExCluster::FNodeChain>>* InChains,
-		                const bool InSkipSingleEdgeChains = false,
-		                const bool InDeadEndsOnly = false) :
-			FPCGExTask(InPointIO),
-			Cluster(InCluster),
-			Breakpoints(InBreakpoints),
-			Chains(InChains),
-			bSkipSingleEdgeChains(InSkipSingleEdgeChains),
-			bDeadEndsOnly(InDeadEndsOnly)
-		{
-		}
-
-		TSharedPtr<PCGExCluster::FCluster> Cluster;
-		const TArray<bool>* Breakpoints = nullptr;
-		TArray<TSharedPtr<PCGExCluster::FNodeChain>>* Chains = nullptr;
-
-		const bool bSkipSingleEdgeChains = false;
-		const bool bDeadEndsOnly = false;
-
-		virtual bool ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager) override;
-	};
-
-	class /*PCGEXTENDEDTOOLKIT_API*/ FBuildChain final : public PCGExMT::FPCGExTask
-	{
-	public:
-		FBuildChain(const TSharedPtr<PCGExData::FPointIO>& InPointIO,
-		            const TSharedPtr<const PCGExCluster::FCluster>& InCluster,
-		            const TArray<bool>* InBreakpoints,
-		            TArray<TSharedPtr<PCGExCluster::FNodeChain>>* InChains,
-		            const int32 InStartIndex,
-		            const uint64 InAdjacencyHash) :
-			FPCGExTask(InPointIO),
-			Cluster(InCluster),
-			Breakpoints(InBreakpoints),
-			Chains(InChains),
-			StartIndex(InStartIndex),
-			AdjacencyHash(InAdjacencyHash)
-		{
-		}
-
-		TSharedPtr<const PCGExCluster::FCluster> Cluster;
-		const TArray<bool>* Breakpoints = nullptr;
-		TArray<TSharedPtr<PCGExCluster::FNodeChain>>* Chains = nullptr;
-		int32 StartIndex = 0;
-		uint64 AdjacencyHash = 0;
-
-		virtual bool ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager) override;
-	};
-
-	static void BuildChain(
-		const TSharedPtr<PCGExCluster::FNodeChain>& Chain,
-		const TArray<bool>* Breakpoints,
-		const TSharedPtr<const PCGExCluster::FCluster>& Cluster)
-	{
-		TArray<PCGExCluster::FNode>& Nodes = *Cluster->Nodes;
-
-		const TArray<bool>& Brkpts = *Breakpoints;
-		int32 LastIndex = Chain->First;
-		int32 NextIndex = Chain->Last;
-		Chain->Edges.Add(Nodes[LastIndex].GetEdgeIndex(NextIndex));
-
-		while (NextIndex != -1)
-		{
-			const PCGExCluster::FNode& NextNode = Nodes[NextIndex];
-			if (Brkpts[NextIndex] || NextNode.IsComplex() || NextNode.IsDeadEnd())
-			{
-				LastIndex = NextIndex;
-				break;
-			}
-
-			uint32 OtherIndex;
-			uint32 EdgeIndex;
-			PCGEx::H64(NextNode.Adjacency[0], OtherIndex, EdgeIndex);                                  // Get next node
-			if (OtherIndex == LastIndex) { PCGEx::H64(NextNode.Adjacency[1], OtherIndex, EdgeIndex); } // Get other next
-
-			LastIndex = NextIndex;
-			NextIndex = OtherIndex;
-
-			Chain->Nodes.Add(LastIndex);
-			Chain->Edges.Add(EdgeIndex);
-		}
-
-		Chain->Last = LastIndex;
-	}
-
-	static void DedupeChains(TArray<TSharedPtr<PCGExCluster::FNodeChain>>& InChains)
-	{
-		TSet<uint64> Chains;
-		Chains.Reserve(InChains.Num() / 2);
-
-		for (int i = 0; i < InChains.Num(); ++i)
-		{
-			const TSharedPtr<PCGExCluster::FNodeChain>& Chain = InChains[i];
-			if (!Chain) { continue; }
-
-			bool bAlreadyExists = false;
-			Chains.Add(Chain->GetUniqueHash(), &bAlreadyExists);
-			if (bAlreadyExists) { InChains[i].Reset(); }
-		}
-	}
-
-	class /*PCGEXTENDEDTOOLKIT_API*/ FExpandClusterNodes final : public PCGExMT::FPCGExTask
-	{
-	public:
-		FExpandClusterNodes(const TSharedPtr<PCGExData::FPointIO>& InPointIO, PCGExCluster::FCluster* InCluster, const int32 InNumIterations) :
-			FPCGExTask(InPointIO), Cluster(InCluster), NumIterations(InNumIterations)
-		{
-		}
-
-		PCGExCluster::FCluster* Cluster = nullptr;
-		int32 NumIterations = 0;
-
-		virtual bool ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager) override;
-	};
-
-	class /*PCGEXTENDEDTOOLKIT_API*/ FExpandClusterEdges final : public PCGExMT::FPCGExTask
-	{
-	public:
-		FExpandClusterEdges(const TSharedPtr<PCGExData::FPointIO>& InPointIO, PCGExCluster::FCluster* InCluster, const int32 InNumIterations) :
-			FPCGExTask(InPointIO), Cluster(InCluster), NumIterations(InNumIterations)
-		{
-		}
-
-		PCGExCluster::FCluster* Cluster = nullptr;
-		int32 NumIterations = 0;
-
-		virtual bool ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager) override;
-	};
 }
 
 USTRUCT(BlueprintType)

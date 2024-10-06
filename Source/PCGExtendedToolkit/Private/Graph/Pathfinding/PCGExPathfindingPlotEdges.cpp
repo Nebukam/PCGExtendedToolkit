@@ -46,14 +46,12 @@ void FPCGExPathfindingPlotEdgesContext::TryFindPath(
 
 	const PCGExCluster::FCluster* Cluster = SearchOperation->Cluster;
 
-
-	// TODO : Implement path-scoped extra weight management
 	const TSharedPtr<PCGExHeuristics::FLocalFeedbackHandler> LocalFeedbackHandler = HeuristicsHandler->MakeLocalFeedbackHandler(Cluster);
 	TArray<int32> Path;
 
 	const int32 NumPlots = InPlotPoints->GetNum();
 
-	for (int i = 1; i < NumPlots; ++i)
+	for (int i = 1; i < NumPlots; i++)
 	{
 		FVector SeedPosition = InPlotPoints->GetInPoint(i - 1).Transform.GetLocation();
 		FVector GoalPosition = InPlotPoints->GetInPoint(i).Transform.GetLocation();
@@ -145,7 +143,7 @@ bool FPCGExPathfindingPlotEdgesElement::Boot(FPCGExContext* InContext) const
 	TArray<FPCGTaggedData> Sources = Context->InputData.GetInputsByPin(PCGExGraph::SourcePlotsLabel);
 	Context->Plots->Initialize(Sources, PCGExData::EInit::NoOutput);
 
-	for (int i = 0; i < Context->Plots->Num(); ++i)
+	for (int i = 0; i < Context->Plots->Num(); i++)
 	{
 		const PCGExData::FPointIO* Plot = Context->Plots->Pairs[i].Get();
 		if (Plot->GetNum() < 2)
@@ -171,23 +169,19 @@ bool FPCGExPathfindingPlotEdgesElement::ExecuteInternal(FPCGContext* InContext) 
 
 	PCGEX_CONTEXT_AND_SETTINGS(PathfindingPlotEdges)
 	PCGEX_EXECUTION_CHECK
-
-	if (Context->IsSetup())
+	PCGEX_ON_INITIAL_EXECUTION
 	{
-		if (!Boot(Context)) { return true; }
-
 		if (!Context->StartProcessingClusters<PCGExClusterMT::TBatchWithHeuristics<PCGExPathfindingPlotEdge::FProcessor>>(
 			[](const TSharedPtr<PCGExData::FPointIOTaggedEntries>& Entries) { return true; },
 			[&](const TSharedPtr<PCGExClusterMT::TBatchWithHeuristics<PCGExPathfindingPlotEdge::FProcessor>>& NewBatch)
 			{
 			}))
 		{
-			PCGE_LOG(Warning, GraphAndLog, FTEXT("Could not build any clusters."));
-			return true;
+			return Context->CancelExecution(TEXT("Could not build any clusters."));
 		}
 	}
 
-	if (!Context->ProcessClusters(PCGExMT::State_Done)) { return false; }
+	PCGEX_CLUSTER_BATCH_PROCESSING(PCGEx::State_Done)
 
 	Context->OutputPaths->StageOutputs();
 
@@ -256,7 +250,7 @@ namespace PCGExPathfindingPlotEdge
 		}
 		else
 		{
-			for (int i = 0; i < Context->Plots->Num(); ++i)
+			for (int i = 0; i < Context->Plots->Num(); i++)
 			{
 				AsyncManager->Start<FPCGExPlotClusterPathTask>(i, VtxDataFacade->Source, SearchOperation, Context->Plots.Get(), HeuristicsHandler, false);
 			}

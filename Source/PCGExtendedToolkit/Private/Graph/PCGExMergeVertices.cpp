@@ -19,7 +19,7 @@ void FPCGExMergeVerticesContext::ClusterProcessing_InitialProcessingDone()
 
 	int32 StartOffset = 0;
 
-	for (int i = 0; i < Batches.Num(); ++i)
+	for (int i = 0; i < Batches.Num(); i++)
 	{
 		PCGExClusterMT::TBatch<PCGExMergeVertices::FProcessor>* Batch = static_cast<PCGExClusterMT::TBatch<PCGExMergeVertices::FProcessor>*>(Batches[i].Get());
 		Merger->Append(Batch->VtxDataFacade->Source);
@@ -63,11 +63,8 @@ bool FPCGExMergeVerticesElement::ExecuteInternal(FPCGContext* InContext) const
 
 	PCGEX_CONTEXT_AND_SETTINGS(MergeVertices)
 	PCGEX_EXECUTION_CHECK
-
-	if (Context->IsSetup())
+	PCGEX_ON_INITIAL_EXECUTION
 	{
-		if (!Boot(Context)) { return true; }
-
 		if (!Context->StartProcessingClusters<PCGExClusterMT::TBatch<PCGExMergeVertices::FProcessor>>(
 			[](const TSharedPtr<PCGExData::FPointIOTaggedEntries>& Entries) { return true; },
 			[&](const TSharedPtr<PCGExClusterMT::TBatch<PCGExMergeVertices::FProcessor>>& NewBatch)
@@ -75,12 +72,11 @@ bool FPCGExMergeVerticesElement::ExecuteInternal(FPCGContext* InContext) const
 				NewBatch->bRequiresWriteStep = true;
 			}))
 		{
-			PCGE_LOG(Warning, GraphAndLog, FTEXT("Could not build any clusters."));
-			return true;
+			return Context->CancelExecution(TEXT("Could not build any clusters."));
 		}
 	}
 
-	if (!Context->ProcessClusters(PCGExMT::State_Done)) { return false; }
+	PCGEX_CLUSTER_BATCH_PROCESSING(PCGEx::State_Done)
 
 	Context->CompositeIODataFacade->Source->StageOutput();
 	Context->MainEdges->StageOutputs();

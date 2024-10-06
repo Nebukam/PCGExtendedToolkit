@@ -79,7 +79,7 @@ void UPCGExVtxPropertyEdgeMatch::ProcessNode(const int32 ClusterIdx, const PCGEx
 	FVector NodeDirection = DirCache ? DirCache->Read(Node.PointIndex).GetSafeNormal() : Config.DirectionConstant;
 	if (Config.bTransformDirection) { NodeDirection = Point.Transform.TransformVectorNoScale(NodeDirection); }
 
-	for (int i = 0; i < Adjacency.Num(); ++i)
+	for (int i = 0; i < Adjacency.Num(); i++)
 	{
 		const PCGExCluster::FAdjacencyData& A = Adjacency[i];
 		const double DotA = FVector::DotProduct(NodeDirection, A.Direction);

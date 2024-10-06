@@ -37,7 +37,6 @@ public:
 	virtual PCGExData::EInit GetMainOutputInitMode() const override;
 	//~End UPCGExPointsProcessorSettings
 
-public:
 	/**  */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	FPCGExUVW UVW;
@@ -46,7 +45,7 @@ private:
 	friend class FPCGExMovePivotElement;
 };
 
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExMovePivotContext final : public FPCGExPointsProcessorContext
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExMovePivotContext final : FPCGExPointsProcessorContext
 {
 	friend class FPCGExMovePivotElement;
 };

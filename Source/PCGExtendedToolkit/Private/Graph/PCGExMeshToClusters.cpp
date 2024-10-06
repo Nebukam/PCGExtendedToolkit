@@ -74,67 +74,95 @@ bool FPCGExMeshToClustersElement::ExecuteInternal(
 
 	PCGEX_CONTEXT_AND_SETTINGS(MeshToClusters)
 	PCGEX_EXECUTION_CHECK
-
-	if (Context->IsSetup())
+	PCGEX_ON_INITIAL_EXECUTION
 	{
-		if (!Boot(Context)) { return true; }
-		Context->SetState(PCGExMT::State_ReadyForNextPoints);
-	}
+		Context->AdvancePointsIO();
+		if (Settings->StaticMeshSource == EPCGExFetchType::Constant)
+		{
+			if (!Settings->StaticMeshConstant.ToSoftObjectPath().IsValid())
+			{
+				PCGE_LOG(Error, GraphAndLog, FTEXT("Invalid static mesh constant"));
+				return false;
+			}
 
-	if (Context->IsState(PCGExMT::State_ReadyForNextPoints))
-	{
-		if (!Context->AdvancePointsIO()) { Context->Done(); }
+			const int32 Idx = Context->StaticMeshMap->Find(Settings->StaticMeshConstant.ToSoftObjectPath());
+
+			if (Idx == -1)
+			{
+				PCGE_LOG(Error, GraphAndLog, FTEXT("Static mesh constant could not be loaded."));
+				return false;
+			}
+
+			for (int32& Index : Context->MeshIdx) { Index = Idx; }
+		}
 		else
 		{
-			if (Settings->StaticMeshSource == EPCGExFetchType::Constant)
+			FPCGAttributePropertyInputSelector Selector = FPCGAttributePropertyInputSelector();
+			Selector.SetAttributeName(Settings->StaticMeshAttribute);
+
+			const TUniquePtr<PCGEx::TAttributeBroadcaster<FSoftObjectPath>> PathGetter = MakeUnique<PCGEx::TAttributeBroadcaster<FSoftObjectPath>>();
+			if (!PathGetter->Prepare(Selector, Context->MainPoints->Pairs[0].ToSharedRef()))
 			{
-				if (!Settings->StaticMeshConstant.ToSoftObjectPath().IsValid())
-				{
-					PCGE_LOG(Error, GraphAndLog, FTEXT("Invalid static mesh constant"));
-					return false;
-				}
-
-				const int32 Idx = Context->StaticMeshMap->Find(Settings->StaticMeshConstant.ToSoftObjectPath());
-
-				if (Idx == -1)
-				{
-					PCGE_LOG(Error, GraphAndLog, FTEXT("Static mesh constant could not be loaded."));
-					return false;
-				}
-
-				for (int32& Index : Context->MeshIdx) { Index = Idx; }
+				PCGE_LOG(Error, GraphAndLog, FTEXT("Static mesh attribute does not exists on targets."));
+				return false;
 			}
-			else
-			{
-				FPCGAttributePropertyInputSelector Selector = FPCGAttributePropertyInputSelector();
-				Selector.SetAttributeName(Settings->StaticMeshAttribute);
 
-				const TUniquePtr<PCGEx::TAttributeBroadcaster<FSoftObjectPath>> PathGetter = MakeUnique<PCGEx::TAttributeBroadcaster<FSoftObjectPath>>();
-				if (!PathGetter->Prepare(Selector, Context->MainPoints->Pairs[0].ToSharedRef()))
+			const TArray<FPCGPoint>& TargetPoints = Context->CurrentIO->GetIn()->GetPoints();
+			for (int i = 0; i < TargetPoints.Num(); i++)
+			{
+				FSoftObjectPath Path = PathGetter->SoftGet(i, TargetPoints[i], FSoftObjectPath());
+
+				if (!Path.IsValid())
 				{
-					PCGE_LOG(Error, GraphAndLog, FTEXT("Static mesh attribute does not exists on targets."));
-					return false;
+					if (!Settings->bIgnoreMeshWarnings) { PCGE_LOG(Warning, GraphAndLog, FTEXT("Some targets could not have their mesh loaded.")); }
+					Context->MeshIdx[i] = -1;
+					continue;
 				}
 
-				const TArray<FPCGPoint>& TargetPoints = Context->CurrentIO->GetIn()->GetPoints();
-				for (int i = 0; i < TargetPoints.Num(); ++i)
+				if (Settings->AttributeHandling == EPCGExMeshAttributeHandling::StaticMeshSoftPath)
 				{
-					FSoftObjectPath Path = PathGetter->SoftGet(i, TargetPoints[i], FSoftObjectPath());
+					const int32 Idx = Context->StaticMeshMap->Find(Path);
 
-					if (!Path.IsValid())
+					if (Idx == -1)
 					{
 						if (!Settings->bIgnoreMeshWarnings) { PCGE_LOG(Warning, GraphAndLog, FTEXT("Some targets could not have their mesh loaded.")); }
 						Context->MeshIdx[i] = -1;
-						continue;
+					}
+					else
+					{
+						Context->MeshIdx[i] = Idx;
+					}
+				}
+				else
+				{
+					TArray<UStaticMeshComponent*> SMComponents;
+					if (UObject* FoundObject = FindObject<AActor>(nullptr, *Path.ToString()))
+					{
+						if (AActor* SourceActor = Cast<AActor>(FoundObject))
+						{
+							TArray<UActorComponent*> Components;
+							SourceActor->GetComponents(Components);
+
+							for (UActorComponent* Component : Components)
+							{
+								if (UStaticMeshComponent* StaticMeshComponent = Cast<UStaticMeshComponent>(Component))
+								{
+									SMComponents.Add(StaticMeshComponent);
+								}
+							}
+						}
 					}
 
-					if (Settings->AttributeHandling == EPCGExMeshAttributeHandling::StaticMeshSoftPath)
+					if (SMComponents.IsEmpty())
 					{
-						const int32 Idx = Context->StaticMeshMap->Find(Path);
-
+						Context->MeshIdx[i] = -1;
+					}
+					else
+					{
+						const int32 Idx = Context->StaticMeshMap->Find(TSoftObjectPtr<UStaticMesh>(SMComponents[0]->GetStaticMesh()).ToSoftObjectPath());
 						if (Idx == -1)
 						{
-							if (!Settings->bIgnoreMeshWarnings) { PCGE_LOG(Warning, GraphAndLog, FTEXT("Some targets could not have their mesh loaded.")); }
+							if (!Settings->bIgnoreMeshWarnings) { PCGE_LOG(Warning, GraphAndLog, FTEXT("Some actors have invalid SMCs.")); }
 							Context->MeshIdx[i] = -1;
 						}
 						else
@@ -142,86 +170,43 @@ bool FPCGExMeshToClustersElement::ExecuteInternal(
 							Context->MeshIdx[i] = Idx;
 						}
 					}
-					else
-					{
-						TArray<UStaticMeshComponent*> SMComponents;
-						if (UObject* FoundObject = FindObject<AActor>(nullptr, *Path.ToString()))
-						{
-							if (AActor* SourceActor = Cast<AActor>(FoundObject))
-							{
-								TArray<UActorComponent*> Components;
-								SourceActor->GetComponents(Components);
-
-								for (UActorComponent* Component : Components)
-								{
-									if (UStaticMeshComponent* StaticMeshComponent = Cast<UStaticMeshComponent>(Component))
-									{
-										SMComponents.Add(StaticMeshComponent);
-									}
-								}
-							}
-						}
-
-						if (SMComponents.IsEmpty())
-						{
-							Context->MeshIdx[i] = -1;
-						}
-						else
-						{
-							const int32 Idx = Context->StaticMeshMap->Find(TSoftObjectPtr<UStaticMesh>(SMComponents[0]->GetStaticMesh()).ToSoftObjectPath());
-							if (Idx == -1)
-							{
-								if (!Settings->bIgnoreMeshWarnings) { PCGE_LOG(Warning, GraphAndLog, FTEXT("Some actors have invalid SMCs.")); }
-								Context->MeshIdx[i] = -1;
-							}
-							else
-							{
-								Context->MeshIdx[i] = Idx;
-							}
-						}
-					}
 				}
 			}
-
-			const int32 GSMNums = Context->StaticMeshMap->GSMs.Num();
-			Context->GraphBuilders.SetNum(GSMNums);
-			for (int i = 0; i < GSMNums; ++i) { Context->GraphBuilders[i] = nullptr; }
-
-			for (int i = 0; i < Context->StaticMeshMap->GSMs.Num(); ++i)
-			{
-				const TSharedPtr<PCGExGeo::FGeoStaticMesh> GSM = Context->StaticMeshMap->GSMs[i];
-				Context->GetAsyncManager()->Start<PCGExMeshToCluster::FExtractMeshAndBuildGraph>(i, nullptr, GSM);
-			}
-
-			// Preload all & build local graphs to copy to points later on			
-			Context->SetAsyncState(PCGExGeo::State_ExtractingMesh);
 		}
+
+		const int32 GSMNums = Context->StaticMeshMap->GSMs.Num();
+		Context->GraphBuilders.SetNum(GSMNums);
+		for (int i = 0; i < GSMNums; i++) { Context->GraphBuilders[i] = nullptr; }
+
+		for (int i = 0; i < Context->StaticMeshMap->GSMs.Num(); i++)
+		{
+			const TSharedPtr<PCGExGeo::FGeoStaticMesh> GSM = Context->StaticMeshMap->GSMs[i];
+			Context->GetAsyncManager()->Start<PCGExMeshToCluster::FExtractMeshAndBuildGraph>(i, nullptr, GSM);
+		}
+
+		// Preload all & build local graphs to copy to points later on			
+		Context->SetAsyncState(PCGExGeo::State_ExtractingMesh);
 	}
 
-	if (Context->IsState(PCGExGeo::State_ExtractingMesh))
+	PCGEX_ON_ASYNC_STATE_READY(PCGExGeo::State_ExtractingMesh)
 	{
-		PCGEX_ASYNC_WAIT
-
-		auto ProcessTarget = [&](const int32 TargetIndex)
+		const TArray<FPCGPoint>& Targets = Context->CurrentIO->GetIn()->GetPoints();
+		for (int i = 0; i < Targets.Num(); i++)
 		{
-			const int32 MeshIdx = Context->MeshIdx[TargetIndex];
+			const int32 MeshIdx = Context->MeshIdx[i];
 
-			if (MeshIdx == -1) { return; }
+			if (MeshIdx == -1) { continue; }
 
 			Context->GetAsyncManager()->Start<PCGExGraphTask::FCopyGraphToPoint>(
-				TargetIndex, Context->CurrentIO, Context->GraphBuilders[MeshIdx],
+				i, Context->CurrentIO, Context->GraphBuilders[MeshIdx],
 				Context->VtxChildCollection, Context->EdgeChildCollection, &Context->TransformDetails);
-		};
-
-		if (!Context->Process(ProcessTarget, Context->CurrentIO->GetNum())) { return false; }
+		}
 
 		Context->SetAsyncState(PCGExGraph::State_WritingClusters);
 	}
 
-	if (Context->IsState(PCGExGraph::State_WritingClusters))
+	PCGEX_ON_ASYNC_STATE_READY(PCGExGraph::State_WritingClusters)
 	{
-		PCGEX_ASYNC_WAIT
-
 		Context->VtxChildCollection->StageOutputs();
 		Context->EdgeChildCollection->StageOutputs();
 
@@ -264,7 +249,7 @@ namespace PCGExMeshToCluster
 		const TSharedPtr<PCGExGraph::FGraphBuilder> GraphBuilder = MakeShared<PCGExGraph::FGraphBuilder>(RootVtxFacade, &Context->GraphBuilderDetails);
 		Context->GraphBuilders[TaskIndex] = GraphBuilder;
 
-		for (int i = 0; i < VtxPoints.Num(); ++i)
+		for (int i = 0; i < VtxPoints.Num(); i++)
 		{
 			FPCGPoint& NewVtx = VtxPoints[i];
 			NewVtx.Transform.SetLocation(Mesh->Vertices[i]);

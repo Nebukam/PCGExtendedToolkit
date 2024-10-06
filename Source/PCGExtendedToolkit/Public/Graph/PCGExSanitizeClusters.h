@@ -38,7 +38,7 @@ public:
 	FPCGExGraphBuilderDetails GraphBuilderDetails;
 };
 
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExSanitizeClustersContext final : public FPCGExEdgesProcessorContext
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExSanitizeClustersContext final : FPCGExEdgesProcessorContext
 {
 	friend class UPCGExSanitizeClustersSettings;
 	friend class FPCGExSanitizeClustersElement;

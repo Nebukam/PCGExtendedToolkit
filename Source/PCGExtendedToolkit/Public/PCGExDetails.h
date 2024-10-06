@@ -10,6 +10,7 @@
 #include "PCGEx.h"
 #include "PCGExMath.h"
 #include "PCGExActorSelector.h"
+#include "PCGExContext.h"
 
 #include "PCGExDetails.generated.h"
 
@@ -278,17 +279,17 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExFuseDetailsBase
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bUseLocalTolerance"))
 	FPCGAttributePropertyInputSelector LocalTolerance;
 
-	bool IsWithinTolerance(const double DistSquared) const
+	FORCEINLINE bool IsWithinTolerance(const double DistSquared) const
 	{
 		return FMath::IsWithin<double, double>(DistSquared, 0, Tolerance * Tolerance);
 	}
 
-	bool IsWithinTolerance(const FVector& Source, const FVector& Target) const
+	FORCEINLINE bool IsWithinTolerance(const FVector& Source, const FVector& Target) const
 	{
 		return FMath::IsWithin<double, double>(FVector::DistSquared(Source, Target), 0, Tolerance * Tolerance);
 	}
 
-	bool IsWithinToleranceComponentWise(const FVector& Source, const FVector& Target) const
+	FORCEINLINE bool IsWithinToleranceComponentWise(const FVector& Source, const FVector& Target) const
 	{
 		return (FMath::IsWithin<double, double>(abs(Source.X - Target.X), 0, Tolerances.X) &&
 			FMath::IsWithin<double, double>(abs(Source.Y - Target.Y), 0, Tolerances.Y) &&
@@ -320,17 +321,17 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExSourceFuseDetails : public FPCGExFuseDet
 	EPCGExDistance SourceDistance = EPCGExDistance::Center;
 
 	///
-	double GetSourceDistSquared(const FPCGPoint& SourcePoint, const FVector& SourceCenter, const FVector& TargetCenter) const
+	FORCEINLINE double GetSourceDistSquared(const FPCGPoint& SourcePoint, const FVector& SourceCenter, const FVector& TargetCenter) const
 	{
 		return FVector::DistSquared(PCGExMath::GetSpatializedCenter(SourceDistance, SourcePoint, SourceCenter, TargetCenter), TargetCenter);
 	}
 
-	bool IsWithinTolerance(const FPCGPoint& SourcePoint, const FVector& SourceCenter, const FVector& TargetCenter) const
+	FORCEINLINE bool IsWithinTolerance(const FPCGPoint& SourcePoint, const FVector& SourceCenter, const FVector& TargetCenter) const
 	{
 		return FPCGExFuseDetailsBase::IsWithinTolerance(PCGExMath::GetSpatializedCenter(SourceDistance, SourcePoint, SourceCenter, TargetCenter), TargetCenter);
 	}
 
-	bool IsWithinToleranceComponentWise(const FPCGPoint& SourcePoint, const FVector& SourceCenter, const FVector& TargetCenter) const
+	FORCEINLINE bool IsWithinToleranceComponentWise(const FPCGPoint& SourcePoint, const FVector& SourceCenter, const FVector& TargetCenter) const
 	{
 		return FPCGExFuseDetailsBase::IsWithinToleranceComponentWise(PCGExMath::GetSpatializedCenter(SourceDistance, SourcePoint, SourceCenter, TargetCenter), TargetCenter);
 	}
@@ -427,130 +428,6 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExFuseDetails : public FPCGExSourceFuseDet
 };
 
 USTRUCT(BlueprintType)
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPointPointIntersectionDetails
-{
-	GENERATED_BODY()
-
-	/** Fuse Settings */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ShowOnlyInnerProperties))
-	FPCGExFuseDetails FuseDetails;
-
-	/**  */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Metadata", meta=(PCG_Overridable, InlineEditConditionToggle))
-	bool bWriteCompounded = false;
-
-	/** Name of the attribute to mark point as compounded or not */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Metadata", meta=(PCG_Overridable, EditCondition="bWriteCompounded"))
-	FName CompoundedAttributeName = "bCompounded";
-
-	/**  */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Metadata", meta=(PCG_Overridable, InlineEditConditionToggle))
-	bool bWriteCompoundSize = false;
-
-	/** Name of the attribute to mark the number of fused point held */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Metadata", meta=(PCG_Overridable, EditCondition="bWriteCompoundSize"))
-	FName CompoundSizeAttributeName = "CompoundSize";
-};
-
-USTRUCT(BlueprintType)
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPointEdgeIntersectionDetails
-{
-	GENERATED_BODY()
-
-	/** If disabled, points will only check edges they aren't mapped to. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ClampMin=0))
-	bool bEnableSelfIntersection = true;
-
-	/** Fuse Settings */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ShowOnlyInnerProperties))
-	FPCGExSourceFuseDetails FuseDetails;
-
-	/** When enabled, point will be moved exactly on the edge. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
-	bool bSnapOnEdge = false;
-
-	/**  */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Metadata", meta=(PCG_Overridable, InlineEditConditionToggle))
-	bool bWriteIntersector = false;
-
-	/** Name of the attribute to flag point as intersector (result of an Point/Edge intersection) */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Metadata", meta=(PCG_Overridable, EditCondition="bWriteIntersector"))
-	FName IntersectorAttributeName = "bIntersector";
-
-	void MakeSafeForTolerance(const double FuseTolerance)
-	{
-		FuseDetails.Tolerance = FMath::Clamp(FuseDetails.Tolerance, 0, FuseTolerance * 0.5);
-		FuseDetails.Tolerances.X = FMath::Clamp(FuseDetails.Tolerances.X, 0, FuseTolerance * 0.5);
-		FuseDetails.Tolerances.Y = FMath::Clamp(FuseDetails.Tolerances.Y, 0, FuseTolerance * 0.5);
-		FuseDetails.Tolerances.Z = FMath::Clamp(FuseDetails.Tolerances.Z, 0, FuseTolerance * 0.5);
-	}
-};
-
-USTRUCT(BlueprintType)
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExEdgeEdgeIntersectionDetails
-{
-	GENERATED_BODY()
-
-	/** If disabled, edges will only be checked against other datasets. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ClampMin=0))
-	bool bEnableSelfIntersection = true;
-
-	/** Distance at which two edges are considered intersecting. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ClampMin=0))
-	double Tolerance = 0.001;
-	double ToleranceSquared = 0.001;
-
-	/** . */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, InlineEditConditionToggle))
-	bool bUseMinAngle = true;
-
-	/** Min angle. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bUseMinAngle", Units="Degrees", ClampMin=0, ClampMax=90))
-	double MinAngle = 0;
-	double MinDot = -1;
-
-	/** . */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, InlineEditConditionToggle))
-	bool bUseMaxAngle = true;
-
-	/** Maximum angle. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bUseMaxAngle", Units="Degrees", ClampMin=0, ClampMax=90))
-	double MaxAngle = 90;
-	double MaxDot = 1;
-
-	//
-
-	/**  */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Metadata", meta=(PCG_Overridable, InlineEditConditionToggle))
-	bool bWriteCrossing = false;
-
-	/** Name of the attribute to flag point as crossing (result of an Edge/Edge intersection) */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Metadata", meta=(PCG_Overridable, EditCondition="bWriteCrossing"))
-	FName CrossingAttributeName = "bCrossing";
-
-	/** Will copy the flag values of attributes from the edges onto the point in order to filter them. */
-	//UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Metadata", meta=(PCG_Overridable))
-	bool bFlagCrossing = false;
-
-	/** Name of an int32 flag to fetch from the first edge */
-	//UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Metadata", meta=(PCG_Overridable, EditCondition="bFlagCrossing"))
-	FName FlagA;
-
-	/** Name of an int32 flag to fetch from the second edge */
-	//UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Metadata", meta=(PCG_Overridable, EditCondition="bFlagCrossing"))
-	FName FlagB;
-
-	void Init()
-	{
-		MaxDot = bUseMinAngle ? PCGExMath::DegreesToDot(MinAngle) : 1;
-		MinDot = bUseMaxAngle ? PCGExMath::DegreesToDot(MaxAngle) : -1;
-		ToleranceSquared = Tolerance * Tolerance;
-	}
-
-	FORCEINLINE bool CheckDot(const double InDot) const { return InDot <= MaxDot && InDot >= MinDot; }
-};
-
-USTRUCT(BlueprintType)
 struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExTransformDetails
 {
 	GENERATED_BODY()
@@ -606,43 +483,9 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExCollisionDetails
 	TArray<AActor*> IgnoredActors;
 	UWorld* World = nullptr;
 
-	void Init(FPCGContext* InContext)
-	{
-		World = InContext->SourceComponent->GetWorld();
-
-		if (bIgnoreActors)
-		{
-			const TFunction<bool(const AActor*)> BoundsCheck = [](const AActor*) -> bool { return true; };
-			const TFunction<bool(const AActor*)> SelfIgnoreCheck = [](const AActor*) -> bool { return true; };
-			IgnoredActors = PCGExActorSelector::FindActors(IgnoredActorSelector, InContext->SourceComponent.Get(), BoundsCheck, SelfIgnoreCheck);
-		}
-
-		if (bIgnoreSelf) { IgnoredActors.Add(InContext->SourceComponent->GetOwner()); }
-	}
-
-	void Update(FCollisionQueryParams& InCollisionParams) const
-	{
-		InCollisionParams.bTraceComplex = bTraceComplex;
-		InCollisionParams.AddIgnoredActors(IgnoredActors);
-	}
-
-	bool Linecast(const FVector& From, const FVector& To, FHitResult& HitResult) const
-	{
-		FCollisionQueryParams CollisionParams;
-		Update(CollisionParams);
-
-		switch (CollisionType)
-		{
-		case EPCGExCollisionFilterType::Channel:
-			return World->LineTraceSingleByChannel(HitResult, From, To, CollisionChannel, CollisionParams);
-		case EPCGExCollisionFilterType::ObjectType:
-			return World->LineTraceSingleByObjectType(HitResult, From, To, FCollisionObjectQueryParams(CollisionObjectType), CollisionParams);
-		case EPCGExCollisionFilterType::Profile:
-			return World->LineTraceSingleByProfile(HitResult, From, To, CollisionProfileName, CollisionParams);
-		default:
-			return false;
-		}
-	}
+	void Init(const FPCGExContext* InContext);
+	void Update(FCollisionQueryParams& InCollisionParams) const;
+	bool Linecast(const FVector& From, const FVector& To, FHitResult& HitResult) const;
 };
 
 
@@ -653,21 +496,6 @@ namespace PCGExDetails
 	static FPCGExDistanceDetails GetDistanceDetails(const EPCGExDistance InDistance)
 	{
 		return FPCGExDistanceDetails(InDistance, InDistance);
-	}
-
-	static FPCGExDistanceDetails GetDistanceDetails(const FPCGExPointPointIntersectionDetails& InSettings)
-	{
-		return FPCGExDistanceDetails(InSettings.FuseDetails.SourceDistance, InSettings.FuseDetails.TargetDistance);
-	}
-
-	static FPCGExDistanceDetails GetDistanceDetails(const FPCGExPointEdgeIntersectionDetails& InSettings)
-	{
-		return FPCGExDistanceDetails(InSettings.FuseDetails.SourceDistance, EPCGExDistance::Center);
-	}
-
-	static FPCGExDistanceDetails GetDistanceDetails(const FPCGExEdgeEdgeIntersectionDetails& InSettings)
-	{
-		return FPCGExDistanceDetails(EPCGExDistance::Center, EPCGExDistance::Center);
 	}
 
 #pragma endregion

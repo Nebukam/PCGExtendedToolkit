@@ -8,8 +8,9 @@
 
 #include "PCGExPointsProcessor.h"
 #include "PCGExDetails.h"
+#include "PCGExDetailsIntersection.h"
 #include "Data/PCGExDataFilter.h"
-#include "Data/Blending/PCGExCompoundBlender.h"
+#include "Data/Blending/PCGExUnionBlender.h"
 #include "Data/Blending/PCGExDataBlending.h"
 
 
@@ -20,9 +21,6 @@
 
 namespace PCGExFuse
 {
-	PCGEX_ASYNC_STATE(State_FindingFusePoints)
-	PCGEX_ASYNC_STATE(State_MergingPoints)
-
 	struct /*PCGEXTENDEDTOOLKIT_API*/ FFusedPoint
 	{
 		mutable FRWLock IndicesLock;
@@ -70,10 +68,9 @@ public:
 	virtual PCGExData::EInit GetMainOutputInitMode() const override;
 	//~End UPCGExPointsProcessorSettings
 
-public:
 	/** Fuse Settings */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Point/Point Settings"))
-	FPCGExPointPointIntersectionDetails PointPointIntersectionDetails;
+	FPCGExPointPointIntersectionDetails PointPointIntersectionDetails = FPCGExPointPointIntersectionDetails(false);
 
 	/** Preserve the order of input points */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
@@ -91,7 +88,7 @@ private:
 	friend class FPCGExFusePointsElement;
 };
 
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExFusePointsContext final : public FPCGExPointsProcessorContext
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExFusePointsContext final : FPCGExPointsProcessorContext
 {
 	friend class FPCGExFusePointsElement;
 	FPCGExCarryOverDetails CarryOverDetails;
@@ -114,8 +111,8 @@ namespace PCGExFusePoints
 	class FProcessor final : public PCGExPointsMT::TPointsProcessor<FPCGExFusePointsContext, UPCGExFusePointsSettings>
 	{
 		PCGExGraph::FGraphMetadataDetails GraphMetadataDetails;
-		TUniquePtr<PCGExGraph::FCompoundGraph> CompoundGraph;
-		TUniquePtr<PCGExDataBlending::FCompoundBlender> CompoundPointsBlender;
+		TUniquePtr<PCGExGraph::FUnionGraph> UnionGraph;
+		TUniquePtr<PCGExDataBlending::FUnionBlender> UnionBlender;
 
 	public:
 		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade)

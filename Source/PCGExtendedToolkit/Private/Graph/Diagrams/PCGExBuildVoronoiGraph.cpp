@@ -1,7 +1,7 @@
 ﻿// Copyright Timothé Lapetite 2024
 // Released under the MIT license https://opensource.org/license/MIT/
 
-#include "Graph/PCGExBuildVoronoiGraph2D.h"
+#include "Graph/Diagrams/PCGExBuildVoronoiGraph.h"
 
 #include "PCGExRandom.h"
 
@@ -13,11 +13,16 @@
 #include "Graph/Data/PCGExClusterData.h"
 
 #define LOCTEXT_NAMESPACE "PCGExGraph"
-#define PCGEX_NAMESPACE BuildVoronoiGraph2D
+#define PCGEX_NAMESPACE BuildVoronoiGraph
 
-PCGExData::EInit UPCGExBuildVoronoiGraph2DSettings::GetMainOutputInitMode() const { return PCGExData::EInit::NewOutput; }
+namespace PCGExGeoTask
+{
+	class FLloydRelax3;
+}
 
-TArray<FPCGPinProperties> UPCGExBuildVoronoiGraph2DSettings::OutputPinProperties() const
+PCGExData::EInit UPCGExBuildVoronoiGraphSettings::GetMainOutputInitMode() const { return PCGExData::EInit::NoOutput; }
+
+TArray<FPCGPinProperties> UPCGExBuildVoronoiGraphSettings::OutputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::OutputPinProperties();
 	PCGEX_PIN_POINTS(PCGExGraph::OutputEdgesLabel, "Point data representing edges.", Required, {})
@@ -25,13 +30,13 @@ TArray<FPCGPinProperties> UPCGExBuildVoronoiGraph2DSettings::OutputPinProperties
 	return PinProperties;
 }
 
-PCGEX_INITIALIZE_ELEMENT(BuildVoronoiGraph2D)
+PCGEX_INITIALIZE_ELEMENT(BuildVoronoiGraph)
 
-bool FPCGExBuildVoronoiGraph2DElement::Boot(FPCGExContext* InContext) const
+bool FPCGExBuildVoronoiGraphElement::Boot(FPCGExContext* InContext) const
 {
 	if (!FPCGExPointsProcessorElement::Boot(InContext)) { return false; }
 
-	PCGEX_CONTEXT_AND_SETTINGS(BuildVoronoiGraph2D)
+	PCGEX_CONTEXT_AND_SETTINGS(BuildVoronoiGraph)
 
 	PCGEX_VALIDATE_NAME(Settings->HullAttributeName)
 
@@ -41,24 +46,21 @@ bool FPCGExBuildVoronoiGraph2DElement::Boot(FPCGExContext* InContext) const
 	return true;
 }
 
-bool FPCGExBuildVoronoiGraph2DElement::ExecuteInternal(
+bool FPCGExBuildVoronoiGraphElement::ExecuteInternal(
 	FPCGContext* InContext) const
 {
-	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExBuildVoronoiGraph2DElement::Execute);
+	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExBuildVoronoiGraphElement::Execute);
 
-	PCGEX_CONTEXT_AND_SETTINGS(BuildVoronoiGraph2D)
+	PCGEX_CONTEXT_AND_SETTINGS(BuildVoronoiGraph)
 	PCGEX_EXECUTION_CHECK
-
-	if (Context->IsSetup())
+	PCGEX_ON_INITIAL_EXECUTION
 	{
-		if (!Boot(Context)) { return true; }
-
 		bool bInvalidInputs = false;
 
-		if (!Context->StartBatchProcessingPoints<PCGExPointsMT::TBatch<PCGExBuildVoronoi2D::FProcessor>>(
+		if (!Context->StartBatchProcessingPoints<PCGExPointsMT::TBatch<PCGExBuildVoronoi::FProcessor>>(
 			[&](const TSharedPtr<PCGExData::FPointIO>& Entry)
 			{
-				if (Entry->GetNum() < 3)
+				if (Entry->GetNum() < 4)
 				{
 					bInvalidInputs = true;
 					return false;
@@ -67,22 +69,21 @@ bool FPCGExBuildVoronoiGraph2DElement::ExecuteInternal(
 				Context->SitesOutput->Emplace_GetRef(Entry, PCGExData::EInit::NewOutput);
 				return true;
 			},
-			[&](const TSharedPtr<PCGExPointsMT::TBatch<PCGExBuildVoronoi2D::FProcessor>>& NewBatch)
+			[&](const TSharedPtr<PCGExPointsMT::TBatch<PCGExBuildVoronoi::FProcessor>>& NewBatch)
 			{
 				NewBatch->bRequiresWriteStep = true;
 			}))
 		{
-			PCGE_LOG(Warning, GraphAndLog, FTEXT("Could not find any points to build from."));
-			return true;
+			return Context->CancelExecution(TEXT("Could not find any points to build from."));
 		}
 
 		if (bInvalidInputs)
 		{
-			PCGE_LOG(Warning, GraphAndLog, FTEXT("Some inputs have less than 3 points and won't be processed."));
+			PCGE_LOG(Warning, GraphAndLog, FTEXT("Some inputs have less than 4 points and won't be processed."));
 		}
 	}
 
-	if (!Context->ProcessPointsBatch(PCGExMT::State_Done)) { return false; }
+	PCGEX_POINTS_BATCH_PROCESSING(PCGEx::State_Done)
 
 	Context->MainPoints->StageOutputs();
 	//Context->SitesOutput->OutputToContext();
@@ -90,7 +91,7 @@ bool FPCGExBuildVoronoiGraph2DElement::ExecuteInternal(
 	return Context->TryComplete();
 }
 
-namespace PCGExBuildVoronoi2D
+namespace PCGExBuildVoronoi
 {
 	FProcessor::~FProcessor()
 	{
@@ -98,19 +99,16 @@ namespace PCGExBuildVoronoi2D
 
 	bool FProcessor::Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager)
 	{
-		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExBuildVoronoi2D::Process);
+		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExBuildVoronoi::Process);
 
 		if (!FPointsProcessor::Process(InAsyncManager)) { return false; }
-
-		ProjectionDetails = Settings->ProjectionDetails;
-		ProjectionDetails.Init(ExecutionContext, PointDataFacade);
 
 		// Build voronoi
 
 		TArray<FVector> ActivePositions;
-		PCGExGeo::PointsToPositions(PointDataFacade->GetIn()->GetPoints(), ActivePositions);
+		PCGExGeo::PointsToPositions(PointDataFacade->Source->GetIn()->GetPoints(), ActivePositions);
 
-		Voronoi = MakeUnique<PCGExGeo::TVoronoi2>();
+		Voronoi = MakeUnique<PCGExGeo::TVoronoi3>();
 
 		/*
 		auto ExtractValidSites = [&]()
@@ -118,7 +116,7 @@ namespace PCGExBuildVoronoi2D
 			const PCGExData::FPointIO* SitesIO = Context->SitesOutput->Pairs[BatchIndex];
 			const TArray<FPCGPoint>& OriginalSites = PointIO->GetIn()->GetPoints();
 			TArray<FPCGPoint>& MutableSites = SitesIO->GetOut()->GetMutablePoints();
-			for (int i = 0; i < OriginalSites.Num(); ++i)
+			for (int i = 0; i < OriginalSites.Num(); i++)
 			{
 				if (Voronoi->Delaunay->DelaunayHull.Contains(i)) { continue; }
 				MutableSites.Add(OriginalSites[i]);
@@ -126,19 +124,19 @@ namespace PCGExBuildVoronoi2D
 		};
 		*/
 
-		if (!Voronoi->Process(ActivePositions, ProjectionDetails))
+		if (!Voronoi->Process(ActivePositions))
 		{
-			PCGE_LOG_C(Warning, GraphAndLog, ExecutionContext, FTEXT("Some inputs generated invalid results."));
+			PCGE_LOG_C(Warning, GraphAndLog, ExecutionContext, FTEXT("Some inputs generated invalid results. Are points coplanar? If so, use Voronoi 2D instead."));
 			return false;
 		}
 
 		ActivePositions.Empty();
 
 		PointDataFacade->Source->InitializeOutput<UPCGExClusterNodesData>(Context, PCGExData::EInit::NewOutput);
+		const FBox Bounds = PointDataFacade->Source->GetIn()->GetBounds().ExpandBy(Settings->ExpandBounds);
 
 		if (Settings->Method == EPCGExCellCenter::Circumcenter && Settings->bPruneOutOfBounds)
 		{
-			const FBox Bounds = PointDataFacade->GetIn()->GetBounds().ExpandBy(Settings->ExpandBounds);
 			TArray<FPCGPoint>& Centroids = PointDataFacade->GetOut()->GetMutablePoints();
 
 			const int32 NumSites = Voronoi->Centroids.Num();
@@ -146,9 +144,9 @@ namespace PCGExBuildVoronoi2D
 			RemappedIndices.SetNumUninitialized(NumSites);
 			Centroids.Reserve(NumSites);
 
-			for (int i = 0; i < NumSites; ++i)
+			for (int i = 0; i < NumSites; i++)
 			{
-				const FVector Centroid = Voronoi->Circumcenters[i];
+				const FVector Centroid = Voronoi->Circumspheres[i].Center;
 				if (!Bounds.IsInside(Centroid))
 				{
 					RemappedIndices[i] = -1;
@@ -189,15 +187,15 @@ namespace PCGExBuildVoronoi2D
 
 			if (Settings->Method == EPCGExCellCenter::Circumcenter)
 			{
-				for (int i = 0; i < NumSites; ++i)
+				for (int i = 0; i < NumSites; i++)
 				{
-					Centroids[i].Transform.SetLocation(Voronoi->Circumcenters[i]);
+					Centroids[i].Transform.SetLocation(Voronoi->Circumspheres[i].Center);
 					Centroids[i].Seed = PCGExRandom::ComputeSeed(Centroids[i]);
 				}
 			}
 			else if (Settings->Method == EPCGExCellCenter::Centroid)
 			{
-				for (int i = 0; i < NumSites; ++i)
+				for (int i = 0; i < NumSites; i++)
 				{
 					Centroids[i].Transform.SetLocation(Voronoi->Centroids[i]);
 					Centroids[i].Seed = PCGExRandom::ComputeSeed(Centroids[i]);
@@ -205,10 +203,9 @@ namespace PCGExBuildVoronoi2D
 			}
 			else if (Settings->Method == EPCGExCellCenter::Balanced)
 			{
-				const FBox Bounds = PointDataFacade->GetIn()->GetBounds().ExpandBy(Settings->ExpandBounds);
-				for (int i = 0; i < NumSites; ++i)
+				for (int i = 0; i < NumSites; i++)
 				{
-					FVector Target = Voronoi->Circumcenters[i];
+					FVector Target = Voronoi->Circumspheres[i].Center;
 					if (Bounds.IsInside(Target)) { Centroids[i].Transform.SetLocation(Target); }
 					else { Centroids[i].Transform.SetLocation(Voronoi->Centroids[i]); }
 					Centroids[i].Seed = PCGExRandom::ComputeSeed(Centroids[i]);
@@ -249,6 +246,10 @@ namespace PCGExBuildVoronoi2D
 		PointDataFacade->Write(AsyncManager);
 	}
 }
+
+#undef LOCTEXT_NAMESPACE
+#undef PCGEX_NAMESPACE
+
 
 #undef LOCTEXT_NAMESPACE
 #undef PCGEX_NAMESPACE

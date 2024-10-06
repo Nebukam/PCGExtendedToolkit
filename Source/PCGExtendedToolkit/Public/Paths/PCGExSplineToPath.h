@@ -43,17 +43,15 @@ public:
 
 	virtual TArray<FPCGPinProperties> InputPinProperties() const override;
 
-public:
-
 	/** Point transform */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	FPCGExTransformDetails TransformDetails;
 
-	
+
 	/** Sample inputs.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta=(PCG_Overridable))
 	EPCGExSplineSamplingIncludeMode SampleInputs = EPCGExSplineSamplingIncludeMode::All;
-	
+
 	/** */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, InlineEditConditionToggle))
 	bool bWriteArriveTangent = true;
@@ -94,7 +92,7 @@ public:
 
 	/** ... */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging", meta=(PCG_Overridable, EditCondition="bTagIfClosedLoop"))
-	FString IsClosedLoopTag = TEXT("Closed");
+	FString IsClosedLoopTag = TEXT("ClosedLoop");
 
 	/** */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging", meta=(PCG_Overridable, InlineEditConditionToggle))
@@ -102,28 +100,26 @@ public:
 
 	/** ... */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging", meta=(PCG_Overridable, EditCondition="bTagIfOpenSpline"))
-	FString IsOpenSplineTag = TEXT("Open");
+	FString IsOpenSplineTag = TEXT("OpenPath");
 
 	/** Tags to be forwarded from source splines */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging", meta=(PCG_Overridable))
 	FPCGExNameFiltersDetails TagForwarding;
-	
 };
 
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExSplineToPathContext final : public FPCGExPointsProcessorContext
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExSplineToPathContext final : FPCGExPointsProcessorContext
 {
 	friend class FPCGExSplineToPathElement;
 
 	PCGEX_FOREACH_FIELD_SPLINETOPATH(PCGEX_OUTPUT_DECL_TOGGLE)
 
 	FPCGExNameFiltersDetails TagForwarding;
-	
+
 	TArray<const UPCGSplineData*> Targets;
 	TArray<TArray<FString>> Tags;
 	TArray<FPCGSplineStruct> Splines;
 
 	int64 NumTargets = 0;
-
 };
 
 class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExSplineToPathElement final : public FPCGExPointsProcessorElement
@@ -142,7 +138,7 @@ protected:
 namespace PCGExSplineToPath
 {
 	const FName SourceSplineLabel = TEXT("Splines");
-	
+
 	class /*PCGEXTENDEDTOOLKIT_API*/ FWriteTask final : public PCGExMT::FPCGExTask
 	{
 	public:
@@ -153,7 +149,7 @@ namespace PCGExSplineToPath
 		}
 
 		TSharedPtr<PCGExData::FFacade> PointDataFacade;
-		
+
 		virtual bool ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager) override;
 	};
 }

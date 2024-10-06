@@ -33,7 +33,6 @@ public:
 	virtual PCGExData::EInit GetMainOutputInitMode() const override;
 	//~End UPCGExPointsProcessorSettings
 
-public:
 	/** If the path is not closed, the last point cannot be solidified, thus it's usually preferable to remove it. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	bool bRemoveLastPoint = true;
@@ -110,7 +109,7 @@ public:
 	double RadiusZConstant = 1;
 };
 
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPathSolidifyContext final : public FPCGExPathProcessorContext
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPathSolidifyContext final : FPCGExPathProcessorContext
 {
 	friend class FPCGExPathSolidifyElement;
 };

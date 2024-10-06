@@ -32,8 +32,6 @@ bool UPCGExSearchAStar::FindPath(
 
 	TRACE_CPUPROFILER_EVENT_SCOPE(UPCGExSearchAStar::FindPath);
 
-	// Basic A* implementation TODO:Optimize
-
 	TBitArray<> Visited;
 	Visited.Init(false, NumNodes);
 
@@ -42,7 +40,7 @@ bool UPCGExSearchAStar::FindPath(
 
 	GScore.SetNum(NumNodes);
 	TravelStack.SetNum(NumNodes);
-	for (int i = 0; i < NumNodes; ++i)
+	for (int i = 0; i < NumNodes; i++)
 	{
 		GScore[i] = -1;
 		TravelStack[i] = PCGEx::NH64(-1, -1);
@@ -51,7 +49,7 @@ bool UPCGExSearchAStar::FindPath(
 	double MinGScore = MAX_dbl;
 	double MaxGScore = MIN_dbl;
 
-	for (int i = 0; i < NodesRef.Num(); ++i)
+	for (int i = 0; i < NodesRef.Num(); i++)
 	{
 		const double GS = Heuristics->GetGlobalScore(NodesRef[i], SeedNode, GoalNode);
 		MinGScore = FMath::Min(MinGScore, GS);

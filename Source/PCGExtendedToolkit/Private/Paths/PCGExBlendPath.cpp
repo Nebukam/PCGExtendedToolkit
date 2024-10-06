@@ -35,11 +35,8 @@ bool FPCGExBlendPathElement::ExecuteInternal(FPCGContext* InContext) const
 
 	PCGEX_CONTEXT_AND_SETTINGS(BlendPath)
 	PCGEX_EXECUTION_CHECK
-
-	if (Context->IsSetup())
+	PCGEX_ON_INITIAL_EXECUTION
 	{
-		if (!Boot(Context)) { return true; }
-
 		bool bInvalidInputs = false;
 
 		// TODO : Skip completion
@@ -59,8 +56,7 @@ bool FPCGExBlendPathElement::ExecuteInternal(FPCGContext* InContext) const
 			{
 			}))
 		{
-			PCGE_LOG(Error, GraphAndLog, FTEXT("Could not find any paths to fuse."));
-			return true;
+			return Context->CancelExecution(TEXT("Could not find any paths to blend."));
 		}
 
 		if (bInvalidInputs)
@@ -69,7 +65,7 @@ bool FPCGExBlendPathElement::ExecuteInternal(FPCGContext* InContext) const
 		}
 	}
 
-	if (!Context->ProcessPointsBatch(PCGExMT::State_Done)) { return false; }
+	PCGEX_POINTS_BATCH_PROCESSING(PCGEx::State_Done)
 
 	Context->MainPoints->StageOutputs();
 
@@ -115,7 +111,7 @@ namespace PCGExBlendPath
 		{
 			Metrics = PCGExPaths::FPathMetrics(OutPoints[0].Transform.GetLocation());
 			PCGEx::InitArray(Length, PointDataFacade->GetNum());
-			for (int i = 0; i < PointDataFacade->GetNum(); ++i) { Length[i] = Metrics.Add(OutPoints[i].Transform.GetLocation()); }
+			for (int i = 0; i < PointDataFacade->GetNum(); i++) { Length[i] = Metrics.Add(OutPoints[i].Transform.GetLocation()); }
 		}
 
 		StartParallelLoopForPoints();

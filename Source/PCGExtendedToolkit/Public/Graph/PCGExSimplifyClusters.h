@@ -4,6 +4,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "PCGExChain.h"
 #include "PCGExCluster.h"
 #include "PCGExClusterMT.h"
 #include "PCGExEdgesProcessor.h"
@@ -59,7 +60,7 @@ public:
 	FPCGExGraphBuilderDetails GraphBuilderDetails;
 };
 
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExSimplifyClustersContext : public FPCGExEdgesProcessorContext
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExSimplifyClustersContext : FPCGExEdgesProcessorContext
 {
 	friend class UPCGExSimplifyClustersSettings;
 	friend class FPCGExSimplifyClustersElement;

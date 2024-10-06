@@ -583,20 +583,23 @@ namespace PCGExData
 
 #pragma region Compound
 
-	struct /*PCGEXTENDEDTOOLKIT_API*/ FIdxCompound
+	struct /*PCGEXTENDEDTOOLKIT_API*/ FUnionData
 	{
 	protected:
-		mutable FRWLock CompoundLock;
+		mutable FRWLock UnionLock;
 
 	public:
+		//int32 Index = 0;
 		TSet<int32> IOIndices;
-		TSet<uint64> CompoundedHashSet;
+		TSet<uint64> ItemHashSet;
 
-		FIdxCompound() { CompoundedHashSet.Empty(); }
+		FUnionData()
+		{
+		}
 
-		~FIdxCompound() = default;
+		~FUnionData() = default;
 
-		int32 Num() const { return CompoundedHashSet.Num(); }
+		int32 Num() const { return ItemHashSet.Num(); }
 
 		void ComputeWeights(
 			const TArray<TSharedPtr<FFacade>>& Sources,
@@ -609,40 +612,42 @@ namespace PCGExData
 
 		uint64 Add(const int32 IOIndex, const int32 PointIndex);
 
-		void Clear()
+		void Reset()
 		{
-			IOIndices.Empty();
-			CompoundedHashSet.Empty();
+			IOIndices.Reset();
+			ItemHashSet.Reset();
 		}
 	};
 
-	struct /*PCGEXTENDEDTOOLKIT_API*/ FIdxCompoundList
+	struct /*PCGEXTENDEDTOOLKIT_API*/ FUnionMetadata
 	{
-		TArray<TUniquePtr<FIdxCompound>> Compounds;
+		TArray<TUniquePtr<FUnionData>> Items;
+		bool bIsAbstract = false;
 
-		FIdxCompoundList() { Compounds.Empty(); }
-		~FIdxCompoundList() = default;
+		FUnionMetadata() { Items.Empty(); }
+		~FUnionMetadata() = default;
 
-		int32 Num() const { return Compounds.Num(); }
+		int32 Num() const { return Items.Num(); }
 
-		FORCEINLINE FIdxCompound* New(const int32 IOIndex, const int32 PointIndex)
+		FORCEINLINE FUnionData* New(const int32 IOIndex, const int32 ItemIndex)
 		{
-			FIdxCompound* NewPointCompound = Compounds.Add_GetRef(MakeUnique<FIdxCompound>()).Get();
-			NewPointCompound->IOIndices.Add(IOIndex);
-			const uint64 H = PCGEx::H64(IOIndex, PointIndex);
-			NewPointCompound->CompoundedHashSet.Add(H);
+			FUnionData* NewUnionData = Items.Add_GetRef(MakeUnique<FUnionData>()).Get();
+			//NewUnionData->Index = Items.Num() - 1;
+			NewUnionData->IOIndices.Add(IOIndex);
+			const uint64 H = PCGEx::H64(IOIndex, ItemIndex);
+			NewUnionData->ItemHashSet.Add(H);
 
-			return NewPointCompound;
+			return NewUnionData;
 		}
 
-		FORCEINLINE uint64 Add(const int32 Index, const int32 IOIndex, const int32 PointIndex) { return Compounds[Index]->Add(IOIndex, PointIndex); }
+		FORCEINLINE uint64 Append(const int32 Index, const int32 IOIndex, const int32 ItemIndex) { return Items[Index]->Add(IOIndex, ItemIndex); }
 		FORCEINLINE bool IOIndexOverlap(const int32 InIdx, const TSet<int32>& InIndices)
 		{
-			const TSet<int32> Overlap = Compounds[InIdx]->IOIndices.Intersect(InIndices);
+			const TSet<int32> Overlap = Items[InIdx]->IOIndices.Intersect(InIndices);
 			return Overlap.Num() > 0;
 		}
 
-		FORCEINLINE FIdxCompound* Get(const int32 Index) const { return Compounds[Index].Get(); }
+		FORCEINLINE FUnionData* Get(const int32 Index) const { return Items[Index].Get(); }
 	};
 
 #pragma endregion

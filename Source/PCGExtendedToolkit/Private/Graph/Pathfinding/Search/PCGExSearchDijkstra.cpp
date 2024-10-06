@@ -48,7 +48,7 @@ bool UPCGExSearchDijkstra::FindPath(
 		NumNodes, SeedNode.NodeIndex, 0);
 
 	TravelStack.SetNumUninitialized(NumNodes);
-	for (int i = 0; i < NumNodes; ++i)
+	for (int i = 0; i < NumNodes; i++)
 	{
 		ScoredQueue->Scores[i] = -1;
 		TravelStack[i] = PCGEx::NH64(-1, -1);

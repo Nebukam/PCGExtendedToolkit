@@ -84,11 +84,8 @@ bool FPCGExRefineEdgesElement::ExecuteInternal(
 
 	PCGEX_CONTEXT_AND_SETTINGS(RefineEdges)
 	PCGEX_EXECUTION_CHECK
-
-	if (Context->IsSetup())
+	PCGEX_ON_INITIAL_EXECUTION
 	{
-		if (!Boot(Context)) { return true; }
-
 		if (Settings->bOutputOnlyEdgesAsPoints)
 		{
 			if (!Context->StartProcessingClusters<PCGExClusterMT::TBatch<PCGExRefineEdges::FProcessor>>(
@@ -98,8 +95,7 @@ bool FPCGExRefineEdgesElement::ExecuteInternal(
 					if (Context->Refinement->RequiresHeuristics()) { NewBatch->SetRequiresHeuristics(true); }
 				}))
 			{
-				PCGE_LOG(Warning, GraphAndLog, FTEXT("Could not build any clusters."));
-				return true;
+				return Context->CancelExecution(TEXT("Could not build any clusters."));
 			}
 		}
 		else
@@ -119,10 +115,9 @@ bool FPCGExRefineEdgesElement::ExecuteInternal(
 		}
 	}
 
-	if (!Context->ProcessClusters(Settings->bOutputOnlyEdgesAsPoints ? PCGExMT::State_Done : PCGExGraph::State_ReadyToCompile)) { return false; }
-	if (!Context->CompileGraphBuilders(true, PCGExMT::State_Done)) { return false; }
+	PCGEX_CLUSTER_BATCH_PROCESSING(Settings->bOutputOnlyEdgesAsPoints ? PCGEx::State_Done : PCGExGraph::State_ReadyToCompile)
 
-	//
+	if (!Settings->bOutputOnlyEdgesAsPoints && !Context->CompileGraphBuilders(true, PCGEx::State_Done)) { return false; }
 
 	if (!Settings->bOutputOnlyEdgesAsPoints) { Context->MainPoints->StageOutputs(); }
 	else { Context->MainEdges->StageOutputs(); }
@@ -282,7 +277,7 @@ namespace PCGExRefineEdges
 		const TArray<FPCGPoint>& OriginalEdges = EdgeDataFacade->GetIn()->GetPoints();
 		TArray<FPCGPoint>& MutableEdges = EdgeDataFacade->GetOut()->GetMutablePoints();
 		PCGEx::InitArray(MutableEdges, ValidEdges.Num());
-		for (int i = 0; i < ValidEdges.Num(); ++i) { MutableEdges[i] = OriginalEdges[ValidEdges[i].EdgeIndex]; }
+		for (int i = 0; i < ValidEdges.Num(); i++) { MutableEdges[i] = OriginalEdges[ValidEdges[i].EdgeIndex]; }
 	}
 
 	void FProcessor::CompleteWork()
@@ -303,7 +298,7 @@ namespace PCGExRefineEdges
 
 		if (Processor->Sanitization == EPCGExRefineSanitization::Longest)
 		{
-			for (int i = 0; i < NumIterations; ++i)
+			for (int i = 0; i < NumIterations; i++)
 			{
 				const PCGExCluster::FNode& Node = *(Processor->Cluster->Nodes->GetData() + StartIndex + i);
 
@@ -331,7 +326,7 @@ namespace PCGExRefineEdges
 		}
 		else if (Processor->Sanitization == EPCGExRefineSanitization::Shortest)
 		{
-			for (int i = 0; i < NumIterations; ++i)
+			for (int i = 0; i < NumIterations; i++)
 			{
 				const PCGExCluster::FNode& Node = *(Processor->Cluster->Nodes->GetData() + StartIndex + i);
 

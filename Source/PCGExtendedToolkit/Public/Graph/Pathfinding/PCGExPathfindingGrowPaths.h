@@ -118,12 +118,10 @@ protected:
 public:
 #if WITH_EDITOR
 
-public:
 	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
 #endif
 	//~End UObject interface
 
-public:
 	/** Controls how iterative growth is managed. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Growth")
 	EPCGExGrowthIterationMode GrowthMode = EPCGExGrowthIterationMode::Parallel;
@@ -241,7 +239,7 @@ public:
 };
 
 
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPathfindingGrowPathsContext final : public FPCGExEdgesProcessorContext
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPathfindingGrowPathsContext final : FPCGExEdgesProcessorContext
 {
 	friend class FPCGExPathfindingGrowPathsElement;
 
@@ -303,12 +301,12 @@ namespace PCGExGrowPaths
 	class /*PCGEXTENDEDTOOLKIT_API*/ FGrowTask final : public PCGExMT::FPCGExTask
 	{
 	public:
-		FGrowTask(const TSharedPtr<PCGExData::FPointIO>& InPointIO, FProcessor* InProcessor) :
+		FGrowTask(const TSharedPtr<PCGExData::FPointIO>& InPointIO, const TSharedPtr<FProcessor>& InProcessor) :
 			FPCGExTask(InPointIO), Processor(InProcessor)
 		{
 		}
 
-		FProcessor* Processor = nullptr;
+		TSharedPtr<FProcessor> Processor;
 		virtual bool ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager) override;
 	};
 }

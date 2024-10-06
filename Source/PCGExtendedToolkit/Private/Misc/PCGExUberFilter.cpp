@@ -64,11 +64,8 @@ bool FPCGExUberFilterElement::ExecuteInternal(FPCGContext* InContext) const
 
 	PCGEX_CONTEXT_AND_SETTINGS(UberFilter)
 	PCGEX_EXECUTION_CHECK
-
-	if (Context->IsSetup())
+	PCGEX_ON_INITIAL_EXECUTION
 	{
-		if (!Boot(Context)) { return true; }
-
 		Context->NumPairs = Context->MainPoints->Pairs.Num();
 
 		if (Settings->Mode == EPCGExUberFilterMode::Partition)
@@ -83,12 +80,11 @@ bool FPCGExUberFilterElement::ExecuteInternal(FPCGContext* InContext) const
 			{
 			}))
 		{
-			PCGE_LOG(Error, GraphAndLog, FTEXT("Could not find any points to filter."));
-			return true;
+			return Context->CancelExecution(TEXT("Could not find any points to filter."));
 		}
 	}
 
-	if (!Context->ProcessPointsBatch(PCGExMT::State_Done)) { return false; }
+	PCGEX_POINTS_BATCH_PROCESSING(PCGEx::State_Done)
 
 	if (Settings->Mode == EPCGExUberFilterMode::Write)
 	{
@@ -171,7 +167,7 @@ namespace PCGExUberFilter
 		TArray<int32> Indices;
 		PCGEx::InitArray(Indices, NumPoints);
 
-		for (int i = 0; i < NumPoints; ++i) { Indices[i] = PointFilterCache[i] ? NumInside++ : NumOutside++; }
+		for (int i = 0; i < NumPoints; i++) { Indices[i] = PointFilterCache[i] ? NumInside++ : NumOutside++; }
 
 		if (NumInside == 0 || NumOutside == 0)
 		{
@@ -190,7 +186,7 @@ namespace PCGExUberFilter
 		TArray<FPCGPoint>& OutsidePoints = Outside->GetOut()->GetMutablePoints();
 		PCGEx::InitArray(OutsidePoints, NumOutside);
 
-		for (int i = 0; i < NumPoints; ++i)
+		for (int i = 0; i < NumPoints; i++)
 		{
 			if (PointFilterCache[i]) { InsidePoints[Indices[i]] = OriginalPoints[i]; }
 			else { OutsidePoints[Indices[i]] = OriginalPoints[i]; }

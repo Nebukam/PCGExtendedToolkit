@@ -1,7 +1,7 @@
 ﻿// Copyright Timothé Lapetite 2024
 // Released under the MIT license https://opensource.org/license/MIT/
 
-#include "Graph/PCGExBuildDelaunayGraph.h"
+#include "Graph/Diagrams/PCGExBuildDelaunayGraph.h"
 
 
 #include "Elements/Metadata/PCGMetadataElementCommon.h"
@@ -49,11 +49,8 @@ bool FPCGExBuildDelaunayGraphElement::ExecuteInternal(
 
 	PCGEX_CONTEXT_AND_SETTINGS(BuildDelaunayGraph)
 	PCGEX_EXECUTION_CHECK
-
-	if (Context->IsSetup())
+	PCGEX_ON_INITIAL_EXECUTION
 	{
-		if (!Boot(Context)) { return true; }
-
 		bool bInvalidInputs = false;
 
 		if (!Context->StartBatchProcessingPoints<PCGExPointsMT::TBatch<PCGExBuildDelaunay::FProcessor>>(
@@ -71,8 +68,7 @@ bool FPCGExBuildDelaunayGraphElement::ExecuteInternal(
 				NewBatch->bRequiresWriteStep = true;
 			}))
 		{
-			PCGE_LOG(Warning, GraphAndLog, FTEXT("Could not find any points to build from."));
-			return true;
+			return Context->CancelExecution(TEXT("Could not find any points to build from."));
 		}
 
 		if (bInvalidInputs)
@@ -81,7 +77,7 @@ bool FPCGExBuildDelaunayGraphElement::ExecuteInternal(
 		}
 	}
 
-	if (!Context->ProcessPointsBatch(PCGExMT::State_Done)) { return false; }
+	PCGEX_POINTS_BATCH_PROCESSING(PCGEx::State_Done)
 
 	Context->MainPoints->StageOutputs();
 	if (Context->MainSites)
@@ -126,8 +122,8 @@ namespace PCGExBuildDelaunay
 
 		if (Settings->bOutputSites)
 		{
-			if (Settings->bMergeUrquhartSites) { AsyncManager->Start<FOutputDelaunayUrquhartSites>(BatchIndex, PointDataFacade->Source, this); }
-			else { AsyncManager->Start<FOutputDelaunaySites>(BatchIndex, PointDataFacade->Source, this); }
+			if (Settings->bMergeUrquhartSites) { AsyncManager->Start<FOutputDelaunayUrquhartSites>(BatchIndex, PointDataFacade->Source, SharedThis(this)); }
+			else { AsyncManager->Start<FOutputDelaunaySites>(BatchIndex, PointDataFacade->Source, SharedThis(this)); }
 		}
 
 		GraphBuilder = MakeShared<PCGExGraph::FGraphBuilder>(PointDataFacade, &Settings->GraphBuilderDetails);
@@ -183,7 +179,7 @@ namespace PCGExBuildDelaunay
 		const int32 NumSites = Delaunay->Sites.Num();
 
 		MutablePoints.SetNumUninitialized(NumSites);
-		for (int i = 0; i < NumSites; ++i)
+		for (int i = 0; i < NumSites; i++)
 		{
 			const PCGExGeo::FDelaunaySite3& Site = Delaunay->Sites[i];
 
@@ -203,7 +199,7 @@ namespace PCGExBuildDelaunay
 			HullBuffer->PrepareWrite(false, true, true);
 			{
 				TArray<bool>& OutValues = *HullBuffer->GetOutValues();
-				for (int i = 0; i < NumSites; ++i) { OutValues[i] = Delaunay->Sites[i].bOnHull; }
+				for (int i = 0; i < NumSites; i++) { OutValues[i] = Delaunay->Sites[i].bOnHull; }
 			}
 			Write(AsyncManager, HullBuffer);
 		}
@@ -227,7 +223,7 @@ namespace PCGExBuildDelaunay
 		const int32 NumSites = Delaunay->Sites.Num();
 
 		MutablePoints.SetNumUninitialized(NumSites);
-		for (int i = 0; i < NumSites; ++i)
+		for (int i = 0; i < NumSites; i++)
 		{
 			const PCGExGeo::FDelaunaySite3& Site = Delaunay->Sites[i];
 
@@ -247,7 +243,7 @@ namespace PCGExBuildDelaunay
 			HullBuffer->PrepareWrite(false, true, true);
 			{
 				TArray<bool>& OutValues = *HullBuffer->GetOutValues();
-				for (int i = 0; i < NumSites; ++i) { OutValues[i] = Delaunay->Sites[i].bOnHull; }
+				for (int i = 0; i < NumSites; i++) { OutValues[i] = Delaunay->Sites[i].bOnHull; }
 			}
 			Write(AsyncManager, HullBuffer);
 		}

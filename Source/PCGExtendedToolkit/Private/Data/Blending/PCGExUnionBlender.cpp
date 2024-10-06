@@ -5,7 +5,7 @@
 // Cherry picker merges metadata from varied sources into one.
 // Initially to handle metadata merging for Fuse Clusters
 
-#include "Data/Blending/PCGExCompoundBlender.h"
+#include "Data/Blending/PCGExUnionBlender.h"
 
 #include "Data/PCGExData.h"
 #include "Data/PCGExDataFilter.h"
@@ -15,16 +15,16 @@
 
 namespace PCGExDataBlending
 {
-	FCompoundBlender::FCompoundBlender(const FPCGExBlendingDetails* InBlendingDetails, const FPCGExCarryOverDetails* InCarryOverDetails):
+	FUnionBlender::FUnionBlender(const FPCGExBlendingDetails* InBlendingDetails, const FPCGExCarryOverDetails* InCarryOverDetails):
 		CarryOverDetails(InCarryOverDetails), BlendingDetails(InBlendingDetails)
 	{
 	}
 
-	FCompoundBlender::~FCompoundBlender()
+	FUnionBlender::~FUnionBlender()
 	{
 	}
 
-	void FCompoundBlender::AddSource(const TSharedPtr<PCGExData::FFacade>& InFacade)
+	void FUnionBlender::AddSource(const TSharedPtr<PCGExData::FFacade>& InFacade)
 	{
 		const int32 SourceIdx = Sources.Add(InFacade);
 		const int32 NumSources = Sources.Num();
@@ -65,7 +65,6 @@ namespace PCGExDataBlending
 				if (Identity.UnderlyingType != Map->Identity.UnderlyingType)
 				{
 					// Type mismatch, ignore for this source
-					//TODO : Support broadcasting
 					continue;
 				}
 			}
@@ -74,7 +73,7 @@ namespace PCGExDataBlending
 				Map = AttributeSourceMaps.Add_GetRef(MakeShared<FAttributeSourceMap>(Identity)).Get();
 				Map->SetNum(NumSources);
 
-				Map->DefaultValuesSource = SourceAttribute; // TODO : Find a better way to choose this?
+				Map->DefaultValuesSource = SourceAttribute;
 
 				if (PCGEx::IsPCGExAttribute(Identity.Name)) { Map->TargetBlendOp = CreateOperation(EPCGExDataBlendingType::Copy, Identity); }
 				else { Map->TargetBlendOp = CreateOperation(BlendTypePtr, BlendingDetails->DefaultBlending, Identity); }
@@ -89,16 +88,16 @@ namespace PCGExDataBlending
 		}
 	}
 
-	void FCompoundBlender::AddSources(const TArray<TSharedPtr<PCGExData::FFacade>>& InFacades)
+	void FUnionBlender::AddSources(const TArray<TSharedPtr<PCGExData::FFacade>>& InFacades)
 	{
 		for (TSharedPtr<PCGExData::FFacade> Facade : InFacades) { AddSource(Facade); }
 	}
 
-	void FCompoundBlender::PrepareMerge(
+	void FUnionBlender::PrepareMerge(
 		const TSharedPtr<PCGExData::FFacade>& TargetData,
-		const TSharedPtr<PCGExData::FIdxCompoundList>& CompoundList, const TSet<FName>* IgnoreAttributeSet)
+		const TSharedPtr<PCGExData::FUnionMetadata>& InUnionMetadata, const TSet<FName>* IgnoreAttributeSet)
 	{
-		CurrentCompoundList = CompoundList;
+		CurrentUnionMetadata = InUnionMetadata;
 		CurrentTargetData = TargetData;
 
 		const FPCGExPropertiesBlendingDetails PropertiesBlendingDetails = BlendingDetails->GetPropertiesBlendingDetails();
@@ -128,7 +127,7 @@ namespace PCGExDataBlending
 
 					SrcMap->Writer = Writer;
 
-					for (int i = 0; i < Sources.Num(); ++i)
+					for (int i = 0; i < Sources.Num(); i++)
 					{
 						if (const TSharedPtr<FDataBlendingOperationBase>& SrcOp = SrcMap->BlendOps[i]) { SrcOp->PrepareForData(Writer, Sources[i]); }
 					}
@@ -138,12 +137,12 @@ namespace PCGExDataBlending
 		}
 	}
 
-	void FCompoundBlender::MergeSingle(const int32 CompoundIndex, const FPCGExDistanceDetails& InDistanceDetails)
+	void FUnionBlender::MergeSingle(const int32 UnionIndex, const FPCGExDistanceDetails& InDistanceDetails)
 	{
-		MergeSingle(CompoundIndex, CurrentCompoundList->Get(CompoundIndex), InDistanceDetails);
+		MergeSingle(UnionIndex, CurrentUnionMetadata->Get(UnionIndex), InDistanceDetails);
 	}
 
-	void FCompoundBlender::MergeSingle(const int32 WriteIndex, const PCGExData::FIdxCompound* Compound, const FPCGExDistanceDetails& InDistanceDetails)
+	void FUnionBlender::MergeSingle(const int32 WriteIndex, const PCGExData::FUnionData* InUnionData, const FPCGExDistanceDetails& InDistanceDetails)
 	{
 		TArray<int32> IdxIO;
 		TArray<int32> IdxPt;
@@ -151,14 +150,14 @@ namespace PCGExDataBlending
 
 		FPCGPoint& Target = CurrentTargetData->Source->GetMutablePoint(WriteIndex);
 
-		Compound->ComputeWeights(
+		InUnionData->ComputeWeights(
 			Sources, IOIndices,
 			Target, InDistanceDetails,
 			IdxIO, IdxPt, Weights);
 
-		const int32 NumCompounded = IdxPt.Num();
+		const int32 UnionCount = IdxPt.Num();
 
-		if (NumCompounded == 0) { return; }
+		if (UnionCount == 0) { return; }
 
 		// Blend Properties
 
@@ -172,10 +171,10 @@ namespace PCGExDataBlending
 		{
 			SrcMap->TargetBlendOp->PrepareOperation(WriteIndex);
 
-			int32 ValidCompounds = 0;
+			int32 ValidUnions = 0;
 			double TotalWeight = 0;
 
-			for (int k = 0; k < NumCompounded; ++k)
+			for (int k = 0; k < UnionCount; k++)
 			{
 				const TSharedPtr<FDataBlendingOperationBase>& Operation = SrcMap->BlendOps[IdxIO[k]];
 				if (!Operation) { continue; }
@@ -186,24 +185,24 @@ namespace PCGExDataBlending
 					WriteIndex, Sources[IdxIO[k]]->Source->GetInPoint(IdxPt[k]),
 					WriteIndex, Weight, k == 0);
 
-				ValidCompounds++;
+				ValidUnions++;
 				TotalWeight += Weight;
 			}
 
-			if (ValidCompounds == 0) { continue; } // No valid attribute to merge on any compounded source
+			if (ValidUnions == 0) { continue; } // No valid attribute to merge on any union source
 
-			SrcMap->TargetBlendOp->FinalizeOperation(WriteIndex, ValidCompounds, TotalWeight);
+			SrcMap->TargetBlendOp->FinalizeOperation(WriteIndex, ValidUnions, TotalWeight);
 		}
 	}
 
 	// Soft blending
 
-	void FCompoundBlender::PrepareSoftMerge(
+	void FUnionBlender::PrepareSoftMerge(
 		const TSharedPtr<PCGExData::FFacade>& TargetData,
-		const TSharedPtr<PCGExData::FIdxCompoundList>& CompoundList,
+		const TSharedPtr<PCGExData::FUnionMetadata>& InUnionMetadata,
 		const TSet<FName>* IgnoreAttributeSet)
 	{
-		CurrentCompoundList = CompoundList;
+		CurrentUnionMetadata = InUnionMetadata;
 		CurrentTargetData = TargetData;
 
 		const FPCGExPropertiesBlendingDetails PropertiesBlendingDetails = BlendingDetails->GetPropertiesBlendingDetails();
@@ -222,10 +221,7 @@ namespace PCGExDataBlending
 				static_cast<uint16>(SrcMap->Identity.UnderlyingType), [&](auto DummyValue)
 				{
 					using T = decltype(DummyValue);
-
-					// TODO : Only prepare for data if the matching IO exists
-
-					for (int i = 0; i < Sources.Num(); ++i)
+					for (int i = 0; i < Sources.Num(); i++)
 					{
 						if (const TSharedPtr<FDataBlendingOperationBase>& SrcOp = SrcMap->BlendOps[i]) { SrcOp->SoftPrepareForData(CurrentTargetData, Sources[i]); }
 					}
@@ -249,27 +245,27 @@ namespace PCGExDataBlending
 		}
 	}
 
-	void FCompoundBlender::SoftMergeSingle(const int32 CompoundIndex, const FPCGExDistanceDetails& InDistanceDetails)
+	void FUnionBlender::SoftMergeSingle(const int32 UnionIndex, const FPCGExDistanceDetails& InDistanceDetails)
 	{
-		SoftMergeSingle(CompoundIndex, CurrentCompoundList->Get(CompoundIndex), InDistanceDetails);
+		SoftMergeSingle(UnionIndex, CurrentUnionMetadata->Get(UnionIndex), InDistanceDetails);
 	}
 
-	void FCompoundBlender::SoftMergeSingle(const int32 CompoundIndex, const PCGExData::FIdxCompound* Compound, const FPCGExDistanceDetails& InDistanceDetails)
+	void FUnionBlender::SoftMergeSingle(const int32 UnionIndex, const PCGExData::FUnionData* InUnionData, const FPCGExDistanceDetails& InDistanceDetails)
 	{
 		TArray<int32> IdxIO;
 		TArray<int32> IdxPt;
 		TArray<double> Weights;
 		TArray<bool> InheritedTags;
 
-		FPCGPoint& Target = CurrentTargetData->Source->GetMutablePoint(CompoundIndex);
+		FPCGPoint& Target = CurrentTargetData->Source->GetMutablePoint(UnionIndex);
 
-		Compound->ComputeWeights(
+		InUnionData->ComputeWeights(
 			Sources, IOIndices,
 			Target, InDistanceDetails,
 			IdxIO, IdxPt, Weights);
 
-		const int32 NumCompounded = IdxPt.Num();
-		if (NumCompounded == 0) { return; }
+		const int32 NumUnions = IdxPt.Num();
+		if (NumUnions == 0) { return; }
 
 		InheritedTags.Init(false, TagAttributes.Num());
 
@@ -281,10 +277,10 @@ namespace PCGExDataBlending
 		{
 			SrcMap->TargetBlendOp->PrepareOperation(Target.MetadataEntry);
 
-			int32 ValidCompounds = 0;
+			int32 ValidUnions = 0;
 			double TotalWeight = 0;
 
-			for (int k = 0; k < NumCompounded; ++k)
+			for (int k = 0; k < NumUnions; k++)
 			{
 				const TSharedPtr<FDataBlendingOperationBase>& Operation = SrcMap->BlendOps[IdxIO[k]];
 				if (!Operation) { continue; }
@@ -295,43 +291,43 @@ namespace PCGExDataBlending
 					Target.MetadataEntry, Sources[IdxIO[k]]->Source->GetInPoint(IdxPt[k]).MetadataEntry,
 					Target.MetadataEntry, Weight, k == 0);
 
-				ValidCompounds++;
+				ValidUnions++;
 				TotalWeight += Weight;
 			}
 
-			if (ValidCompounds == 0) { continue; } // No valid attribute to merge on any compounded source
+			if (ValidUnions == 0) { continue; } // No valid attribute to merge on any union source
 
-			SrcMap->TargetBlendOp->FinalizeOperation(Target.MetadataEntry, ValidCompounds, TotalWeight);
+			SrcMap->TargetBlendOp->FinalizeOperation(Target.MetadataEntry, ValidUnions, TotalWeight);
 		}
 
 		// Tag flags
 
 		for (const int32 IOI : IdxIO)
 		{
-			for (int i = 0; i < TagAttributes.Num(); ++i)
+			for (int i = 0; i < TagAttributes.Num(); i++)
 			{
 				if (Sources[IOI]->Source->Tags->IsTagged(UniqueTagsList[i])) { InheritedTags[i] = true; }
 			}
 		}
 
-		for (int i = 0; i < TagAttributes.Num(); ++i) { TagAttributes[i]->SetValue(Target.MetadataEntry, InheritedTags[i]); }
+		for (int i = 0; i < TagAttributes.Num(); i++) { TagAttributes[i]->SetValue(Target.MetadataEntry, InheritedTags[i]); }
 	}
 
-	void FCompoundBlender::BlendProperties(FPCGPoint& TargetPoint, TArray<int32>& IdxIO, TArray<int32>& IdxPt, TArray<double>& Weights)
+	void FUnionBlender::BlendProperties(FPCGPoint& TargetPoint, TArray<int32>& IdxIO, TArray<int32>& IdxPt, TArray<double>& Weights)
 	{
 		if (!PropertiesBlender) { return; }
 
 		PropertiesBlender->PrepareBlending(TargetPoint, TargetPoint);
 
-		const int32 NumCompounded = IdxIO.Num();
+		const int32 NumUnions = IdxIO.Num();
 		double TotalWeight = 0;
-		for (int k = 0; k < NumCompounded; ++k)
+		for (int k = 0; k < NumUnions; k++)
 		{
 			const double Weight = Weights[k];
 			PropertiesBlender->Blend(TargetPoint, Sources[IdxIO[k]]->Source->GetInPoint(IdxPt[k]), TargetPoint, Weight);
 			TotalWeight += Weight;
 		}
 
-		PropertiesBlender->CompleteBlending(TargetPoint, NumCompounded, TotalWeight);
+		PropertiesBlender->CompleteBlending(TargetPoint, NumUnions, TotalWeight);
 	}
 }

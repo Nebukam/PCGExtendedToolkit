@@ -52,15 +52,15 @@ void FPCGExContext::StageOutput(const FName Pin, UPCGData* InData, const bool bM
 		Output.Data = InData;
 	}
 
-	if (bManaged) { ManagedObjects->Add(InData);}
+	if (bManaged) { ManagedObjects->Add(InData); }
 }
 
-void FPCGExContext::StartAsyncWork()
+void FPCGExContext::PauseContext()
 {
 	bIsPaused = true;
 }
 
-void FPCGExContext::StopAsyncWork()
+void FPCGExContext::UnpauseContext()
 {
 	bIsPaused = false;
 }
@@ -90,7 +90,7 @@ FPCGExContext::FPCGExContext()
 FPCGExContext::~FPCGExContext()
 {
 	CancelAssetLoading();
-	
+
 	ManagedObjects->Flush();
 	ManagedObjects.Reset();
 }
@@ -119,6 +119,64 @@ void FPCGExContext::OnComplete()
 		}
 	}
 }
+#pragma region State
+
+
+void FPCGExContext::SetAsyncState(const PCGEx::AsyncState WaitState)
+{
+	if (!bAsyncEnabled)
+	{
+		SetState(WaitState);
+		return;
+	}
+
+	bWaitingForAsyncCompletion = true;
+	SetState(WaitState);
+	//PauseContext();
+}
+
+bool FPCGExContext::ShouldWaitForAsync()
+{
+	if (!bAsyncEnabled)
+	{
+		if (bWaitingForAsyncCompletion) { ResumeExecution(); }
+		return false;
+	}
+
+	return bWaitingForAsyncCompletion;
+}
+
+void FPCGExContext::ReadyForExecution()
+{
+	SetState(PCGEx::State_InitialExecution);
+}
+
+void FPCGExContext::SetState(const PCGEx::AsyncState StateId)
+{
+	if (CurrentState == StateId) { return; }
+	CurrentState = StateId;
+	//UnpauseContext();
+}
+
+void FPCGExContext::Done()
+{
+	SetState(PCGEx::State_Done);
+}
+
+bool FPCGExContext::TryComplete(const bool bForce)
+{
+	if (!bForce && !IsDone()) { return false; }
+	OnComplete();
+	return true;
+}
+
+void FPCGExContext::ResumeExecution()
+{
+	UnpauseContext();
+	bWaitingForAsyncCompletion = false;
+}
+
+#pragma endregion
 
 #pragma region Async resource management
 
@@ -127,6 +185,7 @@ void FPCGExContext::CancelAssetLoading()
 	if (LoadHandle.IsValid() && LoadHandle->IsActive()) { LoadHandle->CancelHandle(); }
 	LoadHandle.Reset();
 	RequiredAssets.Empty();
+	CancelExecution(TEXT("")); // Quiet cancel
 }
 
 void FPCGExContext::RegisterAssetDependencies()
@@ -140,9 +199,10 @@ void FPCGExContext::RegisterAssetRequirement(const FSoftObjectPath& Dependency)
 
 void FPCGExContext::LoadAssets()
 {
-	if (WasAssetLoadRequested()) { return; }
-
+	if (bAssetLoadRequested) { return; }
 	bAssetLoadRequested = true;
+
+	SetAsyncState(PCGEx::State_LoadingAssetDependencies);
 
 	if (RequiredAssets.IsEmpty())
 	{
@@ -152,25 +212,37 @@ void FPCGExContext::LoadAssets()
 
 	if (!bForceSynchronousAssetLoad)
 	{
-		StartAsyncWork();
-
+		PauseContext();
 		LoadHandle = UAssetManager::GetStreamableManager().RequestAsyncLoad(
 			RequiredAssets.Array(), [&]()
 			{
-				StopAsyncWork();
+				UnpauseContext();
 			});
 
 		if (!LoadHandle || !LoadHandle->IsActive())
 		{
 			// Huh
 			bAssetLoadError = true;
-			StopAsyncWork();
+			CancelExecution("Error loading assets.");
 		}
 	}
 	else
 	{
 		LoadHandle = UAssetManager::GetStreamableManager().RequestSyncLoad(RequiredAssets.Array());
 	}
+}
+
+bool FPCGExContext::CanExecute() const
+{
+	return !bExecutionCancelled;
+}
+
+bool FPCGExContext::CancelExecution(const FString& InReason)
+{
+	bExecutionCancelled = true;
+	UnpauseContext();
+	if (!InReason.IsEmpty()) { PCGE_LOG_C(Error, GraphAndLog, this, FTEXT(InReason)); }
+	return true;
 }
 
 #pragma endregion

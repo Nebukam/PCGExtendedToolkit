@@ -71,7 +71,7 @@ struct FPCGExPointPointIntersectionDetails;
 
 namespace PCGExData
 {
-	struct FIdxCompoundList;
+	struct FUnionMetadata;
 }
 
 UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Data Blending Type"))
@@ -307,7 +307,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExBlendingDetails
 	void Filter(TArray<PCGEx::FAttributeIdentity>& Identities) const
 	{
 		if (BlendingFilter == EPCGExAttributeFilter::All) { return; }
-		for (int i = 0; i < Identities.Num(); ++i)
+		for (int i = 0; i < Identities.Num(); i++)
 		{
 			if (!CanBlend(Identities[i].Name))
 			{
@@ -470,7 +470,7 @@ namespace PCGExDataBlending
 
 		FORCEINLINE virtual void PrepareValuesRangeOperation(TArrayView<T>& Values, const int32 StartIndex) const
 		{
-			for (int i = 0; i < Values.Num(); ++i) { SinglePrepare(Values[i]); }
+			for (int i = 0; i < Values.Num(); i++) { SinglePrepare(Values[i]); }
 		}
 
 		FORCEINLINE virtual void DoValuesRangeOperation(const int32 PrimaryReadIndex, const int32 SecondaryReadIndex, TArrayView<T>& Values, const TArrayView<double>& Weights, const bool bFirstOperation) const
@@ -478,13 +478,13 @@ namespace PCGExDataBlending
 			if (!bSupportInterpolation)
 			{
 				const T B = Reader->Read(SecondaryReadIndex);
-				for (int i = 0; i < Values.Num(); ++i) { Values[i] = B; } // Raw copy value
+				for (int i = 0; i < Values.Num(); i++) { Values[i] = B; } // Raw copy value
 			}
 			else
 			{
 				const T A = Writer->GetMutable(PrimaryReadIndex);
 				const T B = Reader->Read(SecondaryReadIndex);
-				for (int i = 0; i < Values.Num(); ++i) { Values[i] = SingleOperation(A, B, Weights[i]); }
+				for (int i = 0; i < Values.Num(); i++) { Values[i] = SingleOperation(A, B, Weights[i]); }
 			}
 		}
 
@@ -498,7 +498,7 @@ namespace PCGExDataBlending
 		FORCEINLINE virtual void FinalizeValuesRangeOperation(const int32 StartIndex, TArrayView<T>& Values, const TArrayView<const int32>& Counts, const TArrayView<double>& Weights) const
 		{
 			if (!bSupportInterpolation) { return; }
-			for (int i = 0; i < Values.Num(); ++i) { SingleFinalize(Values[i], Counts[i], Weights[i]); }
+			for (int i = 0; i < Values.Num(); i++) { SingleFinalize(Values[i], Counts[i], Weights[i]); }
 		}
 
 		FORCEINLINE virtual void PrepareOperation(const PCGMetadataEntryKey WriteKey) const override
@@ -545,13 +545,13 @@ namespace PCGExDataBlending
 			if (bFirstOperation || !this->bSupportInterpolation)
 			{
 				const T B = this->Reader->Read(SecondaryReadIndex);
-				for (int i = 0; i < Values.Num(); ++i) { Values[i] = B; } // Raw copy value
+				for (int i = 0; i < Values.Num(); i++) { Values[i] = B; } // Raw copy value
 			}
 			else
 			{
 				T A = this->Writer->GetMutable(PrimaryReadIndex);
 				const T B = this->Reader->Read(SecondaryReadIndex);
-				for (int i = 0; i < Values.Num(); ++i) { Values[i] = this->SingleOperation(A, B, Weights[i]); }
+				for (int i = 0; i < Values.Num(); i++) { Values[i] = this->SingleOperation(A, B, Weights[i]); }
 			}
 		}
 

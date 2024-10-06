@@ -35,7 +35,7 @@ public:
 		TArray<uint64> TravelStack;
 		TravelStack.SetNum(NumNodes);
 
-		for (int i = 0; i < NumNodes; ++i)
+		for (int i = 0; i < NumNodes; i++)
 		{
 			ScoredQueue->Scores[i] = MAX_dbl;
 			TravelStack[i] = 0;
@@ -72,7 +72,7 @@ public:
 			}
 		}
 
-		for (int32 i = 0; i < NumNodes; ++i)
+		for (int32 i = 0; i < NumNodes; i++)
 		{
 			uint32 NeighborIndex;
 			uint32 EdgeIndex;

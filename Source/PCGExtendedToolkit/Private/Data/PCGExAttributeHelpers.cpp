@@ -40,7 +40,7 @@ namespace PCGEx
 		TArray<EPCGMetadataTypes> Types;
 		InMetadata->GetAttributes(Names, Types);
 		const int32 NumAttributes = Names.Num();
-		for (int i = 0; i < NumAttributes; ++i)
+		for (int i = 0; i < NumAttributes; i++)
 		{
 			OutIdentities.AddUnique(FAttributeIdentity(Names[i], Types[i], InMetadata->GetConstAttribute(Names[i])->AllowsInterpolation()));
 		}
@@ -53,7 +53,7 @@ namespace PCGEx
 		InMetadata->GetAttributes(OutNames, Types);
 		const int32 NumAttributes = OutNames.Num();
 
-		for (int i = 0; i < NumAttributes; ++i)
+		for (int i = 0; i < NumAttributes; i++)
 		{
 			FName Name = OutNames[i];
 			OutIdentities.Add(Name, FAttributeIdentity(Name, Types[i], InMetadata->GetConstAttribute(Name)->AllowsInterpolation()));
@@ -108,7 +108,7 @@ namespace PCGEx
 
 	void FAttributesInfos::Append(const TSharedPtr<FAttributesInfos>& Other, const FPCGExAttributeGatherDetails& InGatherDetails, TSet<FName>& OutTypeMismatch)
 	{
-		for (int i = 0; i < Other->Identities.Num(); ++i)
+		for (int i = 0; i < Other->Identities.Num(); i++)
 		{
 			const FAttributeIdentity& OtherId = Other->Identities[i];
 
@@ -144,7 +144,7 @@ namespace PCGEx
 		FAttributeIdentity::Get(InMetadata, NewInfos->Identities);
 
 		UPCGMetadata* MutableData = const_cast<UPCGMetadata*>(InMetadata);
-		for (int i = 0; i < NewInfos->Identities.Num(); ++i)
+		for (int i = 0; i < NewInfos->Identities.Num(); i++)
 		{
 			const FAttributeIdentity& Identity = NewInfos->Identities[i];
 			NewInfos->Map.Add(Identity.Name, i);

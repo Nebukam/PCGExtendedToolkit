@@ -22,7 +22,7 @@ namespace PCGExData
 
 #pragma endregion
 
-#pragma region FIdxCompound
+#pragma region FIdxUnion
 
 	void FFacade::Write(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager)
 	{
@@ -36,11 +36,11 @@ namespace PCGExData
 		Flush();
 	}
 
-	void FIdxCompound::ComputeWeights(
+	void FUnionData::ComputeWeights(
 		const TArray<TSharedPtr<FFacade>>& Sources, const TMap<uint32, int32>& SourcesIdx, const FPCGPoint& Target,
 		const FPCGExDistanceDetails& InDistanceDetails, TArray<int32>& OutIOIdx, TArray<int32>& OutPointsIdx, TArray<double>& OutWeights) const
 	{
-		const int32 NumHashes = CompoundedHashSet.Num();
+		const int32 NumHashes = ItemHashSet.Num();
 
 		OutPointsIdx.SetNumUninitialized(NumHashes);
 		OutWeights.SetNumUninitialized(NumHashes);
@@ -49,7 +49,7 @@ namespace PCGExData
 		double TotalWeight = 0;
 		int32 Index = 0;
 
-		for (const uint64 Hash : CompoundedHashSet)
+		for (const uint64 Hash : ItemHashSet)
 		{
 			uint32 IOIndex;
 			uint32 PtIndex;
@@ -82,7 +82,7 @@ namespace PCGExData
 
 		if (TotalWeight == 0)
 		{
-			const double StaticWeight = 1 / static_cast<double>(CompoundedHashSet.Num());
+			const double StaticWeight = 1 / static_cast<double>(ItemHashSet.Num());
 			for (double& Weight : OutWeights) { Weight = StaticWeight; }
 			return;
 		}
@@ -90,14 +90,14 @@ namespace PCGExData
 		for (double& Weight : OutWeights) { Weight = 1 - (Weight / TotalWeight); }
 	}
 
-	uint64 FIdxCompound::Add(const int32 IOIndex, const int32 PointIndex)
+	uint64 FUnionData::Add(const int32 IOIndex, const int32 PointIndex)
 	{
 		const uint64 H = PCGEx::H64(IOIndex, PointIndex);
 
 		{
-			FWriteScopeLock WriteScopeLock(CompoundLock);
+			FWriteScopeLock WriteScopeLock(UnionLock);
 			IOIndices.Add(IOIndex);
-			CompoundedHashSet.Add(H);
+			ItemHashSet.Add(H);
 		}
 
 		return H;

@@ -1,7 +1,7 @@
 ﻿// Copyright Timothé Lapetite 2024
 // Released under the MIT license https://opensource.org/license/MIT/
 
-#include "Graph/PCGExBuildConvexHull.h"
+#include "Graph/Diagrams/PCGExBuildConvexHull.h"
 
 
 #include "Elements/Metadata/PCGMetadataElementCommon.h"
@@ -38,11 +38,8 @@ bool FPCGExBuildConvexHullElement::ExecuteInternal(
 
 	PCGEX_CONTEXT_AND_SETTINGS(BuildConvexHull)
 	PCGEX_EXECUTION_CHECK
-
-	if (Context->IsSetup())
+	PCGEX_ON_INITIAL_EXECUTION
 	{
-		if (!Boot(Context)) { return true; }
-
 		bool bInvalidInputs = false;
 
 		if (!Context->StartBatchProcessingPoints<PCGExPointsMT::TBatch<PCGExConvexHull::FProcessor>>(
@@ -60,8 +57,7 @@ bool FPCGExBuildConvexHullElement::ExecuteInternal(
 				NewBatch->bRequiresWriteStep = true;
 			}))
 		{
-			PCGE_LOG(Warning, GraphAndLog, FTEXT("Could not find any points to build from."));
-			return true;
+			return Context->CancelExecution(TEXT("Could not find any points to build from."));
 		}
 
 		if (bInvalidInputs)
@@ -70,7 +66,7 @@ bool FPCGExBuildConvexHullElement::ExecuteInternal(
 		}
 	}
 
-	if (!Context->ProcessPointsBatch(PCGExMT::State_Done)) { return false; }
+	PCGEX_POINTS_BATCH_PROCESSING(PCGEx::State_Done)
 
 	Context->MainPoints->StageOutputs();
 

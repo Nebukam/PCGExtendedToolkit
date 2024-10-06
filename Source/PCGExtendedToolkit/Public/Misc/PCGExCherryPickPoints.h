@@ -40,7 +40,6 @@ public:
 	virtual PCGExData::EInit GetMainOutputInitMode() const override;
 	//~End UPCGExPointsProcessorSettings
 
-public:
 	/** . */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	EPCGExCherryPickSource IndicesSource = EPCGExCherryPickSource::Target;
@@ -54,7 +53,7 @@ public:
 	EPCGExIndexSafety Safety = EPCGExIndexSafety::Ignore;
 };
 
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExCherryPickPointsContext final : public FPCGExPointsProcessorContext
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExCherryPickPointsContext final : FPCGExPointsProcessorContext
 {
 	friend class FPCGExCherryPickPointsElement;
 

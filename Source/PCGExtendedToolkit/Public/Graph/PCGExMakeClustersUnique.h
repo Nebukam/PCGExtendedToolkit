@@ -32,7 +32,7 @@ public:
 	//~End UPCGExEdgesProcessorSettings interface
 };
 
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExMakeClustersUniqueContext final : public FPCGExEdgesProcessorContext
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExMakeClustersUniqueContext final : FPCGExEdgesProcessorContext
 {
 	friend class UPCGExMakeClustersUniqueSettings;
 	friend class FPCGExMakeClustersUniqueElement;

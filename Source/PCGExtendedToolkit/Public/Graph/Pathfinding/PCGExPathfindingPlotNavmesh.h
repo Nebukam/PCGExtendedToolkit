@@ -42,7 +42,6 @@ public:
 	//~End UObject interface
 
 	//~Begin UPCGExPointsProcessorSettings
-public:
 	virtual PCGExData::EInit GetMainOutputInitMode() const override;
 
 	virtual FName GetMainInputLabel() const override { return PCGExGraph::SourcePlotsLabel; }
@@ -50,7 +49,6 @@ public:
 	//~End UPCGExPointsProcessorSettings
 
 
-public:
 	/** Add seed point at the beginning of the path */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
 	bool bAddSeedToPath = true;
@@ -90,7 +88,7 @@ public:
 	bool bOmitCompletePathOnFailedPlot = false;
 };
 
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPathfindingPlotNavmeshContext final : public FPCGExPointsProcessorContext
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPathfindingPlotNavmeshContext final : FPCGExPointsProcessorContext
 {
 	friend class FPCGExPathfindingPlotNavmeshElement;
 

@@ -91,10 +91,8 @@ bool FPCGExAssetStagingElement::ExecuteInternal(FPCGContext* InContext) const
 	PCGEX_CONTEXT_AND_SETTINGS(AssetStaging)
 	PCGEX_EXECUTION_CHECK
 
-	if (Context->IsSetup())
+	PCGEX_ON_INITIAL_EXECUTION
 	{
-		if (!Boot(Context)) { return true; }
-
 		if (!Context->StartBatchProcessingPoints<PCGExPointsMT::TBatch<PCGExAssetStaging::FProcessor>>(
 			[&](const TSharedPtr<PCGExData::FPointIO>& Entry) { return true; },
 			[&](const TSharedPtr<PCGExPointsMT::TBatch<PCGExAssetStaging::FProcessor>>& NewBatch)
@@ -102,12 +100,11 @@ bool FPCGExAssetStagingElement::ExecuteInternal(FPCGContext* InContext) const
 				NewBatch->bRequiresWriteStep = Settings->bPruneEmptyPoints;
 			}))
 		{
-			PCGE_LOG(Error, GraphAndLog, FTEXT("Could not find any points to process."));
-			return true;
+			return Context->CancelExecution(TEXT("Could not find any points to process."));
 		}
 	}
 
-	if (!Context->ProcessPointsBatch(PCGExMT::State_Done)) { return false; }
+	PCGEX_POINTS_BATCH_PROCESSING(PCGEx::State_Done)
 
 	Context->MainPoints->StageOutputs();
 
@@ -259,7 +256,7 @@ namespace PCGExAssetStaging
 		TArray<FPCGPoint>& MutablePoints = PointDataFacade->GetOut()->GetMutablePoints();
 
 		int32 WriteIndex = 0;
-		for (int32 i = 0; i < NumPoints; ++i) { if (MutablePoints[i].MetadataEntry != -2) { MutablePoints[WriteIndex++] = MutablePoints[i]; } }
+		for (int32 i = 0; i < NumPoints; i++) { if (MutablePoints[i].MetadataEntry != -2) { MutablePoints[WriteIndex++] = MutablePoints[i]; } }
 
 		MutablePoints.SetNum(WriteIndex);
 	}

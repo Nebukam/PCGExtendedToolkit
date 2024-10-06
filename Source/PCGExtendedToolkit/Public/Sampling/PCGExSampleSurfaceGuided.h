@@ -66,7 +66,6 @@ public:
 	PCGEX_NODE_POINT_FILTER(PCGExPointFilter::SourcePointFiltersLabel, "Filters", PCGExFactories::PointFilters, false)
 	//~End UPCGExPointsProcessorSettings
 
-public:
 	/** Surface source */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable))
 	EPCGExSurfaceSource SurfaceSource = EPCGExSurfaceSource::ActorReferences;
@@ -183,7 +182,7 @@ public:
 	bool bProcessFilteredOutAsFails = true;
 };
 
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExSampleSurfaceGuidedContext final : public FPCGExPointsProcessorContext
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExSampleSurfaceGuidedContext final : FPCGExPointsProcessorContext
 {
 	friend class FPCGExSampleSurfaceGuidedElement;
 
@@ -222,6 +221,7 @@ namespace PCGExSampleSurfaceGuided
 		PCGEX_FOREACH_FIELD_SURFACEGUIDED(PCGEX_OUTPUT_DECL)
 
 		int8 bAnySuccess = 0;
+		UWorld* World = nullptr;
 
 	public:
 		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade):

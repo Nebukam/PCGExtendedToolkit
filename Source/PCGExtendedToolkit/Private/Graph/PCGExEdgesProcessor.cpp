@@ -64,10 +64,8 @@ bool FPCGExEdgesProcessorContext::AdvancePointsIO(const bool bCleanupKeys)
 
 	if (TaggedEdges)
 	{
-		//ProjectionSettings.Init(CurrentIO); // TODO : Move to FClusterProcessor?
 		if (bBuildEndpointsLookup)
 		{
-			//check(false) // This node needs to be refactored!
 			PCGExGraph::BuildEndpointsLookup(CurrentIO, EndpointsLookup, EndpointsAdjacency);
 		}
 	}
@@ -122,7 +120,7 @@ void FPCGExEdgesProcessorContext::OutputBatches() const
 	for (const TSharedPtr<PCGExClusterMT::FClusterProcessorBatchBase>& Batch : Batches) { Batch->Output(); }
 }
 
-bool FPCGExEdgesProcessorContext::ProcessClusters(const PCGExMT::AsyncState NextStateId, const bool bIsNextStateAsync)
+bool FPCGExEdgesProcessorContext::ProcessClusters(const PCGEx::AsyncState NextStateId, const bool bIsNextStateAsync)
 {
 	if (!bBatchProcessingEnabled) { return true; }
 
@@ -140,36 +138,28 @@ bool FPCGExEdgesProcessorContext::ProcessClusters(const PCGExMT::AsyncState Next
 			return true;
 		}
 
-		if (IsState(PCGExClusterMT::MTState_ClusterProcessing))
+		PCGEX_ON_ASYNC_STATE_READY_INTERNAL(PCGExClusterMT::MTState_ClusterProcessing)
 		{
-			PCGEX_ASYNC_WAIT_INTERNAL
-
 			CurrentBatch->CompleteWork();
 			SetAsyncState(PCGExClusterMT::MTState_ClusterCompletingWork);
 		}
 
-		if (IsState(PCGExClusterMT::MTState_ClusterCompletingWork))
+		PCGEX_ON_ASYNC_STATE_READY_INTERNAL(PCGExClusterMT::MTState_ClusterCompletingWork)
 		{
-			PCGEX_ASYNC_WAIT_INTERNAL
-
 			AdvanceBatch(NextStateId, bIsNextStateAsync);
 		}
 	}
 	else
 	{
-		if (IsState(PCGExClusterMT::MTState_ClusterProcessing))
+		PCGEX_ON_ASYNC_STATE_READY_INTERNAL(PCGExClusterMT::MTState_ClusterProcessing)
 		{
-			PCGEX_ASYNC_WAIT_INTERNAL
-
 			ClusterProcessing_InitialProcessingDone();
 			CompleteBatches(Batches);
 			SetAsyncState(PCGExClusterMT::MTState_ClusterCompletingWork);
 		}
 
-		if (IsState(PCGExClusterMT::MTState_ClusterCompletingWork))
+		PCGEX_ON_ASYNC_STATE_READY_INTERNAL(PCGExClusterMT::MTState_ClusterCompletingWork)
 		{
-			PCGEX_ASYNC_WAIT_INTERNAL
-
 			ClusterProcessing_WorkComplete();
 
 			if (bDoClusterBatchWritingStep)
@@ -180,19 +170,17 @@ bool FPCGExEdgesProcessorContext::ProcessClusters(const PCGExMT::AsyncState Next
 			}
 
 			bBatchProcessingEnabled = false;
-			if (NextStateId == PCGExMT::State_Done) { Done(); }
+			if (NextStateId == PCGEx::State_Done) { Done(); }
 			if (bIsNextStateAsync) { SetAsyncState(NextStateId); }
 			else { SetState(NextStateId); }
 		}
 
-		if (IsState(PCGExClusterMT::MTState_ClusterWriting))
+		PCGEX_ON_ASYNC_STATE_READY_INTERNAL(PCGExClusterMT::MTState_ClusterWriting)
 		{
-			PCGEX_ASYNC_WAIT_INTERNAL
-
 			ClusterProcessing_WritingDone();
 
 			bBatchProcessingEnabled = false;
-			if (NextStateId == PCGExMT::State_Done) { Done(); }
+			if (NextStateId == PCGEx::State_Done) { Done(); }
 			if (bIsNextStateAsync) { SetAsyncState(NextStateId); }
 			else { SetState(NextStateId); }
 		}
@@ -201,19 +189,17 @@ bool FPCGExEdgesProcessorContext::ProcessClusters(const PCGExMT::AsyncState Next
 	return false;
 }
 
-bool FPCGExEdgesProcessorContext::CompileGraphBuilders(const bool bOutputToContext, const PCGExMT::AsyncState NextStateId)
+bool FPCGExEdgesProcessorContext::CompileGraphBuilders(const bool bOutputToContext, const PCGEx::AsyncState NextStateId)
 {
-	if (IsState(PCGExGraph::State_ReadyToCompile))
+	PCGEX_ON_STATE_INTERNAL(PCGExGraph::State_ReadyToCompile)
 	{
 		SetAsyncState(PCGExGraph::State_Compiling);
 		for (const TSharedPtr<PCGExClusterMT::FClusterProcessorBatchBase>& Batch : Batches) { Batch->CompileGraphBuilder(bOutputToContext); }
 		return false;
 	}
 
-	if (IsState(PCGExGraph::State_Compiling))
+	PCGEX_ON_ASYNC_STATE_READY_INTERNAL(PCGExGraph::State_Compiling)
 	{
-		PCGEX_ASYNC_WAIT_INTERNAL
-
 		ClusterProcessing_GraphCompilationDone();
 		SetState(NextStateId);
 	}
@@ -231,14 +217,14 @@ bool FPCGExEdgesProcessorContext::HasValidHeuristics() const
 	return bFoundAny;
 }
 
-void FPCGExEdgesProcessorContext::AdvanceBatch(const PCGExMT::AsyncState NextStateId, const bool bIsNextStateAsync)
+void FPCGExEdgesProcessorContext::AdvanceBatch(const PCGEx::AsyncState NextStateId, const bool bIsNextStateAsync)
 {
 	CurrentBatchIndex++;
 	if (!Batches.IsValidIndex(CurrentBatchIndex))
 	{
 		CurrentBatch = nullptr;
 		bBatchProcessingEnabled = false;
-		if (NextStateId == PCGExMT::State_Done) { Done(); }
+		if (NextStateId == PCGEx::State_Done) { Done(); }
 		if (bIsNextStateAsync) { SetAsyncState(NextStateId); }
 		else { SetState(NextStateId); }
 	}
@@ -287,29 +273,6 @@ bool FPCGExEdgesProcessorElement::Boot(FPCGExContext* InContext) const
 	PCGEX_CONTEXT_AND_SETTINGS(EdgesProcessor)
 
 	Context->bHasValidHeuristics = Context->HasValidHeuristics();
-
-	if (Context->MainEdges->IsEmpty())
-	{
-		PCGE_LOG(Error, GraphAndLog, FTEXT("Missing Edges."));
-		return false;
-	}
-
-	return true;
-}
-
-FPCGContext* FPCGExEdgesProcessorElement::InitializeContext(
-	FPCGExPointsProcessorContext* InContext,
-	const FPCGDataCollection& InputData,
-	TWeakObjectPtr<UPCGComponent> SourceComponent,
-	const UPCGNode* Node) const
-{
-	FPCGExPointsProcessorElement::InitializeContext(InContext, InputData, SourceComponent, Node);
-
-	PCGEX_CONTEXT_AND_SETTINGS(EdgesProcessor)
-
-	Context->bScopedIndexLookupBuild = Settings->bScopedIndexLookupBuild;
-
-	if (!Settings->bEnabled) { return Context; }
 
 	Context->InputDictionary = MakeUnique<PCGExData::FPointIOTaggedDictionary>(PCGExGraph::TagStr_ClusterPair);
 
@@ -412,6 +375,27 @@ FPCGContext* FPCGExEdgesProcessorElement::InitializeContext(
 			PCGE_LOG(Warning, GraphAndLog, FTEXT("Some input edges have no associated vtx."));
 		}
 	}
+
+	if (Context->MainEdges->IsEmpty())
+	{
+		PCGE_LOG(Error, GraphAndLog, FTEXT("Missing Edges."));
+		return false;
+	}
+
+	return true;
+}
+
+FPCGExContext* FPCGExEdgesProcessorElement::InitializeContext(
+	FPCGExPointsProcessorContext* InContext,
+	const FPCGDataCollection& InputData,
+	TWeakObjectPtr<UPCGComponent> SourceComponent,
+	const UPCGNode* Node) const
+{
+	FPCGExPointsProcessorElement::InitializeContext(InContext, InputData, SourceComponent, Node);
+
+	PCGEX_CONTEXT_AND_SETTINGS(EdgesProcessor)
+
+	Context->bScopedIndexLookupBuild = Settings->bScopedIndexLookupBuild;
 
 	return Context;
 }

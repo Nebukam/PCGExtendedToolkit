@@ -46,11 +46,8 @@ bool FPCGExOrientElement::ExecuteInternal(FPCGContext* InContext) const
 
 	PCGEX_CONTEXT(Orient)
 	PCGEX_EXECUTION_CHECK
-
-	if (Context->IsSetup())
+	PCGEX_ON_INITIAL_EXECUTION
 	{
-		if (!Boot(Context)) { return true; }
-
 		bool bInvalidInputs = false;
 
 		if (!Context->StartBatchProcessingPoints<PCGExPointsMT::TBatch<PCGExOrient::FProcessor>>(
@@ -69,8 +66,7 @@ bool FPCGExOrientElement::ExecuteInternal(FPCGContext* InContext) const
 				NewBatch->PrimaryOperation = Context->Orientation;
 			}))
 		{
-			PCGE_LOG(Error, GraphAndLog, FTEXT("Could not find any paths to orient."));
-			return true;
+			Context->CancelExecution(TEXT("Could not find any paths to orient."));
 		}
 
 		if (bInvalidInputs)
@@ -79,7 +75,7 @@ bool FPCGExOrientElement::ExecuteInternal(FPCGContext* InContext) const
 		}
 	}
 
-	if (!Context->ProcessPointsBatch(PCGExMT::State_Done)) { return false; }
+	PCGEX_POINTS_BATCH_PROCESSING(PCGEx::State_Done)
 
 	Context->MainPoints->StageOutputs();
 

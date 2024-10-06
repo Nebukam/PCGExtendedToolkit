@@ -37,7 +37,6 @@ public:
 	//~End UPCGSettings
 
 	//~Begin UPCGExPointsProcessorSettings
-public:
 	virtual PCGExData::EInit GetMainOutputInitMode() const override;
 	virtual FName GetMainInputLabel() const override { return PCGExGraph::SourcePathsLabel; }
 	virtual FName GetMainOutputLabel() const override { return PCGExGraph::OutputPathsLabel; }
@@ -53,7 +52,7 @@ public:
 	FPCGExPathClosedLoopDetails ClosedLoop;
 };
 
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPathProcessorContext : public FPCGExPointsProcessorContext
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPathProcessorContext : FPCGExPointsProcessorContext
 {
 	friend class FPCGExPathProcessorElement;
 

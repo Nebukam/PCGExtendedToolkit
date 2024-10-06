@@ -37,7 +37,7 @@ bool FPCGExSplineToPathElement::Boot(FPCGExContext* InContext) const
 		Context->TagForwarding.Prune(Tags);
 		Context->Tags.Add(Tags);
 	};
-	
+
 	if (!Targets.IsEmpty())
 	{
 		for (const FPCGTaggedData& TaggedData : Targets)
@@ -83,8 +83,7 @@ bool FPCGExSplineToPathElement::Boot(FPCGExContext* InContext) const
 
 	PCGEX_FOREACH_FIELD_SPLINETOPATH(PCGEX_OUTPUT_VALIDATE_NAME)
 
-	
-	
+
 	return true;
 }
 
@@ -94,12 +93,9 @@ bool FPCGExSplineToPathElement::ExecuteInternal(FPCGContext* InContext) const
 
 	PCGEX_CONTEXT_AND_SETTINGS(SplineToPath)
 	PCGEX_EXECUTION_CHECK
-
-	if (Context->IsSetup())
+	PCGEX_ON_INITIAL_EXECUTION
 	{
-		if (!Boot(Context)) { return true; }
-
-		for (int i = 0; i < Context->NumTargets; ++i)
+		for (int i = 0; i < Context->NumTargets; i++)
 		{
 			TSharedPtr<PCGExData::FPointIO> NewOutput = Context->MainPoints->Emplace_GetRef(PCGExData::EInit::NewOutput);
 			TSharedPtr<PCGExData::FFacade> PointDataFacade = MakeShared<PCGExData::FFacade>(NewOutput.ToSharedRef());
@@ -108,16 +104,14 @@ bool FPCGExSplineToPathElement::ExecuteInternal(FPCGContext* InContext) const
 			NewOutput->Tags->Append(Context->Tags[i]);
 		}
 
-		Context->SetAsyncState(PCGExMT::State_WaitingOnAsyncWork);
+		Context->SetAsyncState(PCGEx::State_WaitingOnAsyncWork);
 	}
 
-	if (Context->IsState(PCGExMT::State_WaitingOnAsyncWork))
+	PCGEX_ON_ASYNC_STATE_READY(PCGEx::State_WaitingOnAsyncWork)
 	{
-		PCGEX_ASYNC_WAIT
+		Context->MainPoints->StageOutputs();
 		Context->Done();
 	}
-
-	Context->MainPoints->StageOutputs();
 
 	return Context->TryComplete();
 }
@@ -128,7 +122,7 @@ namespace PCGExSplineToPath
 	{
 		FPCGExSplineToPathContext* Context = AsyncManager->GetContext<FPCGExSplineToPathContext>();
 		PCGEX_SETTINGS(SplineToPath)
-		
+
 		const UPCGSplineData* SplineData = Context->Targets[TaskIndex];
 		check(SplineData)
 		const FPCGSplineStruct& Spline = Context->Splines[TaskIndex];
@@ -169,7 +163,7 @@ namespace PCGExSplineToPath
 			}
 		};
 
-		for (int i = 0; i < NumSegments; ++i)
+		for (int i = 0; i < NumSegments; i++)
 		{
 			const double LengthAtPoint = Spline.GetDistanceAlongSplineAtSplinePoint(i);
 			ApplyTransform(MutablePoints[i], Spline.GetTransformAtDistanceAlongSpline(LengthAtPoint, ESplineCoordinateSpace::Type::World, true));

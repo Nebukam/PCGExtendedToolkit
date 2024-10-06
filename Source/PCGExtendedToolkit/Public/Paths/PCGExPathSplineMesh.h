@@ -98,7 +98,7 @@ public:
 	EPCGExMinimalAxis SplineMeshAxisConstant = EPCGExMinimalAxis::X;
 
 	/** If enabled, will break scaling interpolation across the spline. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bApplyScaleToFit"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	FPCGExScaleToFitDetails ScaleToFit = FPCGExScaleToFitDetails(EPCGExFitMode::None);
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
@@ -121,7 +121,7 @@ public:
 	TArray<FName> PostProcessFunctionNames;
 };
 
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPathSplineMeshContext final : public FPCGExPathProcessorContext
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPathSplineMeshContext final : FPCGExPathProcessorContext
 {
 	friend class FPCGExPathSplineMeshElement;
 
@@ -142,6 +142,8 @@ public:
 
 protected:
 	virtual bool Boot(FPCGExContext* InContext) const override;
+	virtual void PostLoadAssetsDependencies(FPCGExContext* InContext) const override;
+	virtual bool PostBoot(FPCGExContext* InContext) const override;
 	virtual bool ExecuteInternal(FPCGContext* Context) const override;
 };
 

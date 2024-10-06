@@ -67,7 +67,6 @@ public:
 	PCGEX_NODE_POINT_FILTER(PCGExPointFilter::SourcePointFiltersLabel, "Filters", PCGExFactories::PointFilters, false)
 	//~End UPCGExPointsProcessorSettings
 
-public:
 	/** Surface source */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable))
 	EPCGExSurfaceSource SurfaceSource = EPCGExSurfaceSource::ActorReferences;
@@ -182,7 +181,7 @@ public:
 	bool bProcessFilteredOutAsFails = true;
 };
 
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExSampleNearestSurfaceContext final : public FPCGExPointsProcessorContext
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExSampleNearestSurfaceContext final : FPCGExPointsProcessorContext
 {
 	friend class FPCGExSampleNearestSurfaceElement;
 

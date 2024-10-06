@@ -124,11 +124,8 @@ bool FPCGExShrinkPathElement::ExecuteInternal(FPCGContext* InContext) const
 
 	PCGEX_CONTEXT_AND_SETTINGS(ShrinkPath)
 	PCGEX_EXECUTION_CHECK
-
-	if (Context->IsSetup())
+	PCGEX_ON_INITIAL_EXECUTION
 	{
-		if (!Boot(Context)) { return true; }
-
 		bool bInvalidInputs = false;
 
 		if (!Context->StartBatchProcessingPoints<PCGExPointsMT::TBatch<PCGExShrinkPath::FProcessor>>(
@@ -145,8 +142,7 @@ bool FPCGExShrinkPathElement::ExecuteInternal(FPCGContext* InContext) const
 			{
 			}))
 		{
-			PCGE_LOG(Warning, GraphAndLog, FTEXT("Could not find any paths to shrink."));
-			return true;
+			return Context->CancelExecution(TEXT("Could not find any paths to shrink."));
 		}
 
 		if (bInvalidInputs)
@@ -155,7 +151,7 @@ bool FPCGExShrinkPathElement::ExecuteInternal(FPCGContext* InContext) const
 		}
 	}
 
-	if (!Context->ProcessPointsBatch(PCGExMT::State_Done)) { return false; }
+	PCGEX_POINTS_BATCH_PROCESSING(PCGEx::State_Done)
 
 	Context->MainPoints->StageOutputs();
 
@@ -277,12 +273,12 @@ namespace PCGExShrinkPath
 				}
 				break;
 			case EPCGExShrinkEndpoint::Start:
-				for (uint32 i = 0; i < StartAmount; ++i) { ShrinkOnce(1); }
-				if (!MutablePoints.IsEmpty() && EndAmount > 0) { for (uint32 i = 0; i < EndAmount; ++i) { ShrinkOnce(-1); } }
+				for (uint32 i = 0; i < StartAmount; i++) { ShrinkOnce(1); }
+				if (!MutablePoints.IsEmpty() && EndAmount > 0) { for (uint32 i = 0; i < EndAmount; i++) { ShrinkOnce(-1); } }
 				break;
 			case EPCGExShrinkEndpoint::End:
-				for (uint32 i = 0; i < EndAmount; ++i) { ShrinkOnce(-1); }
-				if (!MutablePoints.IsEmpty() && StartAmount > 0) { for (uint32 i = 0; i < StartAmount; ++i) { ShrinkOnce(1); } }
+				for (uint32 i = 0; i < EndAmount; i++) { ShrinkOnce(-1); }
+				if (!MutablePoints.IsEmpty() && StartAmount > 0) { for (uint32 i = 0; i < StartAmount; i++) { ShrinkOnce(1); } }
 				break;
 			}
 		}

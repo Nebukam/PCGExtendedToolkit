@@ -5,10 +5,10 @@
 
 #include "CoreMinimal.h"
 #include "PCGExCluster.h"
-#include "PCGExCompoundHelpers.h"
+#include "PCGExUnionHelpers.h"
 #include "PCGExEdgesProcessor.h"
 #include "PCGExIntersections.h"
-#include "Data/Blending/PCGExCompoundBlender.h"
+#include "Data/Blending/PCGExUnionBlender.h"
 #include "Data/Blending/PCGExDataBlending.h"
 
 #include "PCGExFuseClusters.generated.h"
@@ -93,19 +93,19 @@ public:
 	FPCGExGraphBuilderDetails GraphBuilderDetails;
 };
 
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExFuseClustersContext final : public FPCGExEdgesProcessorContext
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExFuseClustersContext final : FPCGExEdgesProcessorContext
 {
 	friend class UPCGExFuseClustersSettings;
 	friend class FPCGExFuseClustersElement;
 
 	TArray<TSharedPtr<PCGExData::FFacade>> VtxFacades;
-	TSharedPtr<PCGExGraph::FCompoundGraph> CompoundGraph;
-	TSharedPtr<PCGExData::FFacade> CompoundFacade;
+	TSharedPtr<PCGExGraph::FUnionGraph> UnionGraph;
+	TSharedPtr<PCGExData::FFacade> UnionDataFacade;
 
 	FPCGExCarryOverDetails VtxCarryOverDetails;
 	FPCGExCarryOverDetails EdgesCarryOverDetails;
 
-	TSharedPtr<PCGExGraph::FCompoundProcessor> CompoundProcessor;
+	TSharedPtr<PCGExGraph::FUnionProcessor> UnionProcessor;
 };
 
 class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExFuseClustersElement final : public FPCGExEdgesProcessorElement
@@ -132,7 +132,7 @@ namespace PCGExFuseClusters
 
 	public:
 		bool bInvalidEdges = true;
-		TSharedPtr<PCGExGraph::FCompoundGraph> CompoundGraph;
+		TSharedPtr<PCGExGraph::FUnionGraph> UnionGraph;
 
 		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InVtxDataFacade, const TSharedRef<PCGExData::FFacade>& InEdgeDataFacade)
 			: TClusterProcessor(InVtxDataFacade, InEdgeDataFacade)
@@ -152,7 +152,7 @@ namespace PCGExFuseClusters
 		{
 			TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExFusePointsElement::ProcessSingleEdge);
 
-			CompoundGraph->InsertEdge(
+			UnionGraph->InsertEdge(
 				*(InPoints->GetData() + Edge.Start), VtxIOIndex, Edge.Start,
 				*(InPoints->GetData() + Edge.End), VtxIOIndex, Edge.End,
 				EdgesIOIndex, Edge.PointIndex);

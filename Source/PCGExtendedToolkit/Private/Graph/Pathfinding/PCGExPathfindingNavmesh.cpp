@@ -97,14 +97,7 @@ bool FPCGExPathfindingNavmeshElement::ExecuteInternal(FPCGContext* InContext) co
 
 	PCGEX_CONTEXT(PathfindingNavmesh)
 	PCGEX_EXECUTION_CHECK
-
-	if (Context->IsSetup())
-	{
-		if (!Boot(Context)) { return true; }
-		Context->SetState(PCGExMT::State_ProcessingPoints);
-	}
-
-	if (Context->IsState(PCGExMT::State_ProcessingPoints))
+	PCGEX_ON_INITIAL_EXECUTION
 	{
 		auto NavClusterTask = [&](const int32 SeedIndex, const int32 GoalIndex)
 		{
@@ -120,10 +113,8 @@ bool FPCGExPathfindingNavmeshElement::ExecuteInternal(FPCGContext* InContext) co
 		Context->SetAsyncState(PCGExGraph::State_Pathfinding);
 	}
 
-	if (Context->IsState(PCGExGraph::State_Pathfinding))
+	PCGEX_ON_ASYNC_STATE_READY(PCGExGraph::State_Pathfinding)
 	{
-		PCGEX_ASYNC_WAIT
-
 		Context->OutputPaths->StageOutputs();
 		Context->Done();
 	}
@@ -136,7 +127,8 @@ bool FSampleNavmeshTask::ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& As
 	FPCGExPathfindingNavmeshContext* Context = AsyncManager->GetContext<FPCGExPathfindingNavmeshContext>();
 	PCGEX_SETTINGS(PathfindingNavmesh)
 
-	UNavigationSystemV1* NavSys = UNavigationSystemV1::GetCurrent(Context->World);
+	UWorld* World = Context->SourceComponent->GetWorld();
+	UNavigationSystemV1* NavSys = UNavigationSystemV1::GetCurrent(World);
 
 	if (!NavSys || !NavSys->GetDefaultNavDataInstance()) { return false; }
 
@@ -148,7 +140,7 @@ bool FSampleNavmeshTask::ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& As
 	if (!Seed || !Goal) { return false; }
 
 	FPathFindingQuery PathFindingQuery = FPathFindingQuery(
-		Context->World, *NavSys->GetDefaultNavDataInstance(),
+		World, *NavSys->GetDefaultNavDataInstance(),
 		Query->SeedPosition, Query->GoalPosition, nullptr, nullptr,
 		TNumericLimits<FVector::FReal>::Max(),
 		Context->bRequireNavigableEndLocation);
@@ -173,7 +165,7 @@ bool FSampleNavmeshTask::ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& As
 
 	PCGExPaths::FPathMetrics Metrics = PCGExPaths::FPathMetrics(PathLocations[0]);
 	int32 FuseCountReduce = Settings->bAddGoalToPath ? 2 : 1;
-	for (int i = Settings->bAddSeedToPath; i < PathLocations.Num(); ++i)
+	for (int i = Settings->bAddSeedToPath; i < PathLocations.Num(); i++)
 	{
 		FVector CurrentLocation = PathLocations[i];
 		if (i > 0 && i < (PathLocations.Num() - FuseCountReduce))
@@ -202,7 +194,7 @@ bool FSampleNavmeshTask::ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& As
 	MutablePoints.SetNumUninitialized(NumPositions);
 
 	FVector Location;
-	for (int i = 0; i < LastPosition; ++i)
+	for (int i = 0; i < LastPosition; i++)
 	{
 		Location = PathLocations[i];
 		(MutablePoints[i] = *Seed).Transform.SetLocation(Location);

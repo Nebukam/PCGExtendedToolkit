@@ -25,7 +25,7 @@ void UPCGExProbeAnisotropic::ProcessCandidates(const int32 Index, const FPCGPoin
 	double BestDist[16];
 	if (Config.bTransformDirection)
 	{
-		for (int d = 0; d < 16; ++d)
+		for (int d = 0; d < 16; d++)
 		{
 			D[d] = Directions[d];
 			BestDot[d] = 0.92;
@@ -34,7 +34,7 @@ void UPCGExProbeAnisotropic::ProcessCandidates(const int32 Index, const FPCGPoin
 	}
 	else
 	{
-		for (int d = 0; d < 16; ++d)
+		for (int d = 0; d < 16; d++)
 		{
 			D[d] = Point.Transform.TransformVectorNoScale(Directions[d]);
 			BestDot[d] = 0.92;
@@ -42,7 +42,7 @@ void UPCGExProbeAnisotropic::ProcessCandidates(const int32 Index, const FPCGPoin
 		}
 	}
 
-	for (int i = 0; i < Candidates.Num(); ++i)
+	for (int i = 0; i < Candidates.Num(); i++)
 	{
 		const PCGExProbing::FCandidate& C = Candidates[i];
 
@@ -53,7 +53,7 @@ void UPCGExProbeAnisotropic::ProcessCandidates(const int32 Index, const FPCGPoin
 		double BatchBestDist = MAX_dbl;
 		int32 BatchBest = -1;
 
-		for (int d = 0; d < 16; ++d)
+		for (int d = 0; d < 16; d++)
 		{
 			const double TempDot = FVector::DotProduct(D[d], C.Direction);
 			if (TempDot >= BestDot[d]) // 22.5 degree tolerance
@@ -75,7 +75,7 @@ void UPCGExProbeAnisotropic::ProcessCandidates(const int32 Index, const FPCGPoin
 		}
 	}
 
-	for (int d = 0; d < 16; ++d)
+	for (int d = 0; d < 16; d++)
 	{
 		if (BestCandidate[d] == -1) { continue; }
 		const PCGExProbing::FCandidate& C = Candidates[BestCandidate[d]];

@@ -10,6 +10,8 @@
 
 #include "PCGExEdgesProcessor.generated.h"
 
+#define PCGEX_CLUSTER_BATCH_PROCESSING(_STATE) if (!Context->ProcessClusters(_STATE)) { return false; }
+
 UCLASS(Abstract, BlueprintType, ClassGroup = (Procedural))
 class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExEdgesProcessorSettings : public UPCGExPointsProcessorSettings
 {
@@ -43,7 +45,7 @@ public:
 	bool bScopedIndexLookupBuild = false;
 };
 
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExEdgesProcessorContext : public FPCGExPointsProcessorContext
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExEdgesProcessorContext : FPCGExPointsProcessorContext
 {
 	friend class UPCGExEdgesProcessorSettings;
 	friend class FPCGExEdgesProcessorElement;
@@ -85,8 +87,8 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExEdgesProcessorContext : public FPCGExPoi
 	void OutputBatches() const;
 
 protected:
-	virtual bool ProcessClusters(const PCGExMT::AsyncState NextStateId, const bool bIsNextStateAsync = false);
-	virtual bool CompileGraphBuilders(const bool bOutputToContext, const PCGExMT::AsyncState NextStateId);
+	virtual bool ProcessClusters(const PCGEx::AsyncState NextStateId, const bool bIsNextStateAsync = false);
+	virtual bool CompileGraphBuilders(const bool bOutputToContext, const PCGEx::AsyncState NextStateId);
 
 	TArray<TSharedPtr<PCGExClusterMT::FClusterProcessorBatchBase>> Batches;
 
@@ -177,7 +179,7 @@ protected:
 
 	bool HasValidHeuristics() const;
 
-	void AdvanceBatch(const PCGExMT::AsyncState NextStateId, const bool bIsNextStateAsync);
+	void AdvanceBatch(const PCGEx::AsyncState NextStateId, const bool bIsNextStateAsync);
 
 	int32 CurrentEdgesIndex = -1;
 };
@@ -194,7 +196,7 @@ public:
 
 protected:
 	virtual bool Boot(FPCGExContext* InContext) const override;
-	virtual FPCGContext* InitializeContext(
+	virtual FPCGExContext* InitializeContext(
 		FPCGExPointsProcessorContext* InContext,
 		const FPCGDataCollection& InputData,
 		TWeakObjectPtr<UPCGComponent> SourceComponent,

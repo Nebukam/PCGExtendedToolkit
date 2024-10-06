@@ -51,7 +51,6 @@ public:
 	PCGEX_NODE_POINT_FILTER(PCGExSplitPath::SourceSplitFilters, "Filters used to know if a point should be split", PCGExFactories::PointFilters, true)
 	//~End UPCGExPointsProcessorSettings
 
-public:
 	/** When processing closed loop paths, paths that aren't looping anymore will be tagged. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditConditionHides))
 	FPCGExPathClosedLoopUpdateDetails UpdateTags;
@@ -73,7 +72,7 @@ public:
 	bool bOmitSinglePointOutputs = true;
 };
 
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExSplitPathContext final : public FPCGExPathProcessorContext
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExSplitPathContext final : FPCGExPathProcessorContext
 {
 	friend class FPCGExSplitPathElement;
 

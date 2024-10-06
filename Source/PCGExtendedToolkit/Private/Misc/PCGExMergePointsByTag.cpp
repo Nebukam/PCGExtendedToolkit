@@ -233,11 +233,8 @@ bool FPCGExMergePointsByTagElement::ExecuteInternal(FPCGContext* InContext) cons
 
 	PCGEX_CONTEXT_AND_SETTINGS(MergePointsByTag)
 	PCGEX_EXECUTION_CHECK
-
-	if (Context->IsSetup())
+	PCGEX_ON_INITIAL_EXECUTION
 	{
-		if (!Boot(Context)) { return true; }
-
 		if (Settings->Mode == EPCGExMergeByTagOverlapResolutionMode::Flatten)
 		{
 			for (TSharedPtr<PCGExData::FPointIO> IO : Context->MainPoints->Pairs)
@@ -295,18 +292,14 @@ bool FPCGExMergePointsByTagElement::ExecuteInternal(FPCGContext* InContext) cons
 		Context->SetAsyncState(PCGExData::State_MergingData);
 	}
 
-	if (Context->IsState(PCGExData::State_MergingData))
+	PCGEX_ON_ASYNC_STATE_READY(PCGExData::State_MergingData)
 	{
-		PCGEX_ASYNC_WAIT
-
 		for (TSharedPtr<PCPGExMergePointsByTag::FMergeList> List : Context->MergeLists) { List->Write(Context->GetAsyncManager()); }
-		Context->SetAsyncState(PCGExMT::State_Writing);
+		Context->SetAsyncState(PCGEx::State_Writing);
 	}
 
-	if (Context->IsState(PCGExMT::State_Writing))
+	PCGEX_ON_ASYNC_STATE_READY(PCGEx::State_Writing)
 	{
-		PCGEX_ASYNC_WAIT
-
 		Context->MainPoints->StageOutputs();
 		Context->Done();
 	}

@@ -46,9 +46,8 @@ void FPCGExPathSplineMeshContext::RegisterAssetDependencies()
 		MainCollection = GetDefault<UPCGExInternalCollection>()->GetCollectionFromAttributeSet(
 			this, PCGExAssetCollection::SourceAssetCollection,
 			Settings->AttributeSetDetails, false);
+		if (MainCollection) { MainCollection->GetAssetPaths(RequiredAssets, PCGExAssetCollection::ELoadingFlags::Recursive); }
 	}
-
-	if (MainCollection) { MainCollection->GetAssetPaths(RequiredAssets, PCGExAssetCollection::ELoadingFlags::Recursive); }
 }
 
 bool FPCGExPathSplineMeshElement::Boot(FPCGExContext* InContext) const
@@ -63,19 +62,23 @@ bool FPCGExPathSplineMeshElement::Boot(FPCGExContext* InContext) const
 		PCGEX_VALIDATE_NAME(Settings->LeaveTangentAttribute)
 	}
 
-	if (!Context->MainCollection)
+	if (Settings->CollectionSource == EPCGExCollectionSource::Asset)
 	{
-		PCGE_LOG(Error, GraphAndLog, FTEXT("Missing asset collection."));
-		return false;
-	}
+		Context->MainCollection = Settings->AssetCollection.LoadSynchronous();
 
-	if (Settings->CollectionSource == EPCGExCollectionSource::AttributeSet)
+		if (!Context->MainCollection)
+		{
+			PCGE_LOG(Error, GraphAndLog, FTEXT("Missing asset collection."));
+			return false;
+		}
+	}
+	else
 	{
-		// Internal collection, assets have been loaded at this point, rebuilding stage data
-		Context->MainCollection->RebuildStagingData(true);
+		// Only load assets for internal collections since we need them for staging
+		Context->MainCollection = GetDefault<UPCGExInternalCollection>()->GetCollectionFromAttributeSet(
+			Context, PCGExAssetCollection::SourceAssetCollection, Settings->AttributeSetDetails, false);
+		if (Context->MainCollection) { Context->MainCollection->GetAssetPaths(Context->GetRequiredAssets(), PCGExAssetCollection::ELoadingFlags::Recursive); }
 	}
-
-	Context->MainCollection->LoadCache(); // Make sure to load the stuff
 
 	PCGEX_VALIDATE_NAME(Settings->AssetPathAttributeName)
 
@@ -87,17 +90,36 @@ bool FPCGExPathSplineMeshElement::Boot(FPCGExContext* InContext) const
 	return true;
 }
 
+void FPCGExPathSplineMeshElement::PostLoadAssetsDependencies(FPCGExContext* InContext) const
+{
+	PCGEX_CONTEXT_AND_SETTINGS(PathSplineMesh)
+	if (Settings->CollectionSource == EPCGExCollectionSource::AttributeSet)
+	{
+		// Internal collection, assets have been loaded at this point, rebuilding stage data
+		Context->MainCollection->RebuildStagingData(true);
+	}
+
+	FPCGExPathProcessorElement::PostLoadAssetsDependencies(InContext);
+}
+
+bool FPCGExPathSplineMeshElement::PostBoot(FPCGExContext* InContext) const
+{
+	if (!FPCGExPathProcessorElement::PostBoot(InContext)) { return false; }
+
+	PCGEX_CONTEXT(PathSplineMesh)
+
+	Context->MainCollection->LoadCache(); // Make sure to load the stuff
+	return true;
+}
+
 bool FPCGExPathSplineMeshElement::ExecuteInternal(FPCGContext* InContext) const
 {
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExPathSplineMeshElement::Execute);
 
 	PCGEX_CONTEXT_AND_SETTINGS(PathSplineMesh)
 	PCGEX_EXECUTION_CHECK
-
-	if (Context->IsSetup())
+	PCGEX_ON_INITIAL_EXECUTION
 	{
-		if (!Boot(Context)) { return true; }
-
 		bool bInvalidInputs = false;
 
 		if (!Context->StartBatchProcessingPoints<PCGExPointsMT::TBatch<PCGExPathSplineMesh::FProcessor>>(
@@ -115,8 +137,7 @@ bool FPCGExPathSplineMeshElement::ExecuteInternal(FPCGContext* InContext) const
 			{
 			}))
 		{
-			PCGE_LOG(Error, GraphAndLog, FTEXT("Could not find any paths to write tangents to."));
-			return true;
+			return Context->CancelExecution(TEXT("Could not find any paths to write tangents to."));
 		}
 
 		if (bInvalidInputs)
@@ -125,7 +146,7 @@ bool FPCGExPathSplineMeshElement::ExecuteInternal(FPCGContext* InContext) const
 		}
 	}
 
-	if (!Context->ProcessPointsBatch(PCGExMT::State_Done)) { return false; }
+	PCGEX_POINTS_BATCH_PROCESSING(PCGEx::State_Done)
 
 	Context->MainBatch->Output();
 
@@ -388,7 +409,7 @@ namespace PCGExPathSplineMesh
 		}
 
 		/*
-		for (int i = 0; i < SplineMeshComponents.Num(); ++i)
+		for (int i = 0; i < SplineMeshComponents.Num(); i++)
 		{
 			USplineMeshComponent* SMC = SplineMeshComponents[i];
 			if (!SMC) { continue; }

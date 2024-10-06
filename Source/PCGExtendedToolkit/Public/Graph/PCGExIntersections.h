@@ -145,7 +145,7 @@ namespace PCGExGraph
 {
 #pragma region Compound Graph
 
-	struct /*PCGEXTENDEDTOOLKIT_API*/ FCompoundNode
+	struct /*PCGEXTENDEDTOOLKIT_API*/ FUnionNode
 	{
 	protected:
 		mutable FRWLock AdjacencyLock;
@@ -158,7 +158,7 @@ namespace PCGExGraph
 
 		TSet<int32> Adjacency;
 
-		FCompoundNode(const FPCGPoint& InPoint, const FVector& InCenter, const int32 InIndex)
+		FUnionNode(const FPCGPoint& InPoint, const FVector& InCenter, const int32 InIndex)
 			: Point(InPoint),
 			  Center(InCenter),
 			  Index(InIndex)
@@ -167,12 +167,12 @@ namespace PCGExGraph
 			Bounds = FBoxSphereBounds(InPoint.GetLocalBounds().TransformBy(InPoint.Transform));
 		}
 
-		~FCompoundNode()
+		~FUnionNode()
 		{
 			Adjacency.Empty();
 		}
 
-		FVector UpdateCenter(const PCGExData::FIdxCompoundList* PointsCompounds, PCGExData::FPointIOCollection* IOGroup);
+		FVector UpdateCenter(const PCGExData::FUnionMetadata* InUnionMetadata, PCGExData::FPointIOCollection* IOGroup);
 
 		FORCEINLINE void Add(const int32 InAdjacency)
 		{
@@ -191,46 +191,46 @@ namespace PCGExGraph
 
 		using ElementAllocator = TInlineAllocator<MaxElementsPerLeaf>;
 
-		FORCEINLINE static const FBoxSphereBounds& GetBoundingBox(const FCompoundNode* InNode)
+		FORCEINLINE static const FBoxSphereBounds& GetBoundingBox(const FUnionNode* InNode)
 		{
 			return InNode->Bounds;
 		}
 
-		FORCEINLINE static const bool AreElementsEqual(const FCompoundNode* A, const FCompoundNode* B)
+		FORCEINLINE static const bool AreElementsEqual(const FUnionNode* A, const FUnionNode* B)
 		{
 			return A == B;
 		}
 
-		FORCEINLINE static void ApplyOffset(FCompoundNode& InNode)
+		FORCEINLINE static void ApplyOffset(FUnionNode& InNode)
 		{
 			ensureMsgf(false, TEXT("Not implemented"));
 		}
 
-		FORCEINLINE static void SetElementId(const FCompoundNode* Element, FOctreeElementId2 OctreeElementID)
+		FORCEINLINE static void SetElementId(const FUnionNode* Element, FOctreeElementId2 OctreeElementID)
 		{
 		}
 	};
 
-	struct /*PCGEXTENDEDTOOLKIT_API*/ FCompoundGraph
+	struct /*PCGEXTENDEDTOOLKIT_API*/ FUnionGraph
 	{
-		TMap<uint32, FCompoundNode*> GridTree;
+		TMap<uint32, FUnionNode*> GridTree;
 
-		TSharedPtr<PCGExData::FIdxCompoundList> PointsCompounds;
-		TSharedPtr<PCGExData::FIdxCompoundList> EdgesCompounds;
-		TArray<TUniquePtr<FCompoundNode>> Nodes;
+		TSharedPtr<PCGExData::FUnionMetadata> PointsUnion;
+		TSharedPtr<PCGExData::FUnionMetadata> EdgesUnion;
+		TArray<TUniquePtr<FUnionNode>> Nodes;
 		TMap<uint64, FIndexedEdge> Edges;
 
 		FPCGExFuseDetails FuseDetails;
 
 		FBox Bounds;
 
-		using NodeOctree = TOctree2<FCompoundNode*, FCompoundNodeSemantics>;
+		using NodeOctree = TOctree2<FUnionNode*, FCompoundNodeSemantics>;
 		TUniquePtr<NodeOctree> Octree;
 
-		mutable FRWLock CompoundLock;
+		mutable FRWLock UnionLock;
 		mutable FRWLock EdgesLock;
 
-		explicit FCompoundGraph(const FPCGExFuseDetails& InFuseDetails, const FBox& InBounds)
+		explicit FUnionGraph(const FPCGExFuseDetails& InFuseDetails, const FBox& InBounds)
 			: FuseDetails(InFuseDetails),
 			  Bounds(InBounds)
 		{
@@ -239,29 +239,31 @@ namespace PCGExGraph
 
 			FuseDetails.Init();
 
-			PointsCompounds = MakeShared<PCGExData::FIdxCompoundList>();
-			EdgesCompounds = MakeShared<PCGExData::FIdxCompoundList>();
+			PointsUnion = MakeShared<PCGExData::FUnionMetadata>();
+			EdgesUnion = MakeShared<PCGExData::FUnionMetadata>();
 
 			if (InFuseDetails.FuseMethod == EPCGExFuseMethod::Octree) { Octree = MakeUnique<NodeOctree>(Bounds.GetCenter(), Bounds.GetExtent().Length() + 10); }
 		}
 
-		~FCompoundGraph()
+		~FUnionGraph()
 		{
 		}
 
-		int32 NumNodes() const { return PointsCompounds->Num(); }
-		int32 NumEdges() const { return EdgesCompounds->Num(); }
+		int32 NumNodes() const { return PointsUnion->Num(); }
+		int32 NumEdges() const { return EdgesUnion->Num(); }
 
-		FCompoundNode* InsertPoint(const FPCGPoint& Point, const int32 IOIndex, const int32 PointIndex);
-		FCompoundNode* InsertPointUnsafe(const FPCGPoint& Point, const int32 IOIndex, const int32 PointIndex);
-		PCGExData::FIdxCompound* InsertEdge(const FPCGPoint& From, const int32 FromIOIndex, const int32 FromPointIndex,
-		                                    const FPCGPoint& To, const int32 ToIOIndex, const int32 ToPointIndex,
-		                                    const int32 EdgeIOIndex = -1, const int32 EdgePointIndex = -1);
-		PCGExData::FIdxCompound* InsertEdgeUnsafe(const FPCGPoint& From, const int32 FromIOIndex, const int32 FromPointIndex,
-		                                          const FPCGPoint& To, const int32 ToIOIndex, const int32 ToPointIndex,
-		                                          const int32 EdgeIOIndex = -1, const int32 EdgePointIndex = -1);
+		FUnionNode* InsertPoint(const FPCGPoint& Point, const int32 IOIndex, const int32 PointIndex);
+		FUnionNode* InsertPointUnsafe(const FPCGPoint& Point, const int32 IOIndex, const int32 PointIndex);
+		PCGExData::FUnionData* InsertEdge(const FPCGPoint& From, const int32 FromIOIndex, const int32 FromPointIndex,
+		                                  const FPCGPoint& To, const int32 ToIOIndex, const int32 ToPointIndex,
+		                                  const int32 EdgeIOIndex = -1, const int32 EdgePointIndex = -1);
+		PCGExData::FUnionData* InsertEdgeUnsafe(const FPCGPoint& From, const int32 FromIOIndex, const int32 FromPointIndex,
+		                                        const FPCGPoint& To, const int32 ToIOIndex, const int32 ToPointIndex,
+		                                        const int32 EdgeIOIndex = -1, const int32 EdgePointIndex = -1);
 		void GetUniqueEdges(TSet<uint64>& OutEdges);
-		void WriteMetadata(TMap<int32, TUniquePtr<FGraphNodeMetadata>>& OutMetadata);
+		void GetUniqueEdges(TArray<FIndexedEdge>& OutEdges);
+		void WriteNodeMetadata(TMap<int32, FGraphNodeMetadata>& OutMetadata);
+		void WriteEdgeMetadata(TMap<int32, FGraphEdgeMetadata>& OutMetadata);
 	};
 
 #pragma endregion
@@ -347,14 +349,14 @@ namespace PCGExGraph
 		mutable FRWLock InsertionLock;
 		const TSharedPtr<PCGExData::FPointIO> PointIO;
 		TSharedPtr<FGraph> Graph;
-		TSharedPtr<FCompoundGraph> CompoundGraph;
+		TSharedPtr<FUnionGraph> UnionGraph;
 
 		const FPCGExPointEdgeIntersectionDetails* Details;
 		TArray<FPointEdgeProxy> Edges;
 
 		FPointEdgeIntersections(
 			const TSharedPtr<FGraph>& InGraph,
-			const TSharedPtr<FCompoundGraph>& InCompoundGraph,
+			const TSharedPtr<FUnionGraph>& InUnionGraph,
 			const TSharedPtr<PCGExData::FPointIO>& InPointIO,
 			const FPCGExPointEdgeIntersectionDetails* InDetails);
 
@@ -387,8 +389,8 @@ namespace PCGExGraph
 
 		if (!InIntersections->Details->bEnableSelfIntersection)
 		{
-			const int32 RootIndex = FGraphEdgeMetadata::GetRootIndex(Edge.EdgeIndex, InIntersections->Graph->EdgeMetadata);
-			const TSet<int32>& RootIOIndices = InIntersections->CompoundGraph->EdgesCompounds->Compounds[RootIndex]->IOIndices;
+			const int32 RootIndex = InIntersections->Graph->FindEdgeMetadata(Edge.EdgeIndex)->RootIndex;
+			const TSet<int32>& RootIOIndices = InIntersections->UnionGraph->EdgesUnion->Items[RootIndex]->IOIndices;
 
 			auto ProcessPointRef = [&](const FPCGPointRef& PointRef)
 			{
@@ -405,7 +407,7 @@ namespace PCGExGraph
 				if (IEdge.Start == Node.PointIndex || IEdge.End == Node.PointIndex) { return; }
 				if (!Edge.FindSplit(Position, Split)) { return; }
 
-				if (InIntersections->CompoundGraph->PointsCompounds->IOIndexOverlap(Node.NodeIndex, RootIOIndices)) { return; }
+				if (InIntersections->UnionGraph->PointsUnion->IOIndexOverlap(Node.NodeIndex, RootIOIndices)) { return; }
 
 				Split.NodeIndex = Node.NodeIndex;
 				InIntersections->Add(EdgeIndex, Split);
@@ -585,7 +587,7 @@ namespace PCGExGraph
 		mutable FRWLock InsertionLock;
 		const TSharedPtr<PCGExData::FPointIO> PointIO;
 		TSharedPtr<FGraph> Graph;
-		TSharedPtr<FCompoundGraph> CompoundGraph;
+		TSharedPtr<FUnionGraph> UnionGraph;
 
 		const FPCGExEdgeEdgeIntersectionDetails* Details;
 
@@ -598,7 +600,7 @@ namespace PCGExGraph
 
 		FEdgeEdgeIntersections(
 			const TSharedPtr<FGraph>& InGraph,
-			const TSharedPtr<FCompoundGraph>& InCompoundGraph,
+			const TSharedPtr<FUnionGraph>& InUnionGraph,
 			const TSharedPtr<PCGExData::FPointIO>& InPointIO,
 			const FPCGExEdgeEdgeIntersectionDetails* InDetails);
 
@@ -639,7 +641,7 @@ namespace PCGExGraph
 			for (const FEESplit& Split : Splits) { AddUnsafe(Split); }
 		}
 
-		void InsertNodes() const;
+		bool InsertNodes() const;
 		void InsertEdges();
 
 		void BlendIntersection(const int32 Index, const TSharedRef<PCGExDataBlending::FMetadataBlender>& Blender) const;
@@ -660,8 +662,8 @@ namespace PCGExGraph
 
 		if (!InIntersections->Details->bEnableSelfIntersection)
 		{
-			const int32 RootIndex = FGraphEdgeMetadata::GetRootIndex(Edge.EdgeIndex, InIntersections->Graph->EdgeMetadata);
-			const TSet<int32>& RootIOIndices = InIntersections->CompoundGraph->EdgesCompounds->Compounds[RootIndex]->IOIndices;
+			const int32 RootIndex = InIntersections->Graph->FindEdgeMetadata(Edge.EdgeIndex)->RootIndex;
+			const TSet<int32>& RootIOIndices = InIntersections->UnionGraph->EdgesUnion->Items[RootIndex]->IOIndices;
 
 			auto ProcessEdge = [&](const FEdgeEdgeProxy* Proxy)
 			{
@@ -675,9 +677,7 @@ namespace PCGExGraph
 				}
 
 				// Check overlap last as it's the most expensive op
-				if (InIntersections->CompoundGraph->PointsCompounds->IOIndexOverlap(
-					FGraphEdgeMetadata::GetRootIndex(OtherEdge.EdgeIndex, InIntersections->Graph->EdgeMetadata),
-					RootIOIndices)) { return; }
+				if (InIntersections->UnionGraph->PointsUnion->IOIndexOverlap(InIntersections->Graph->FindEdgeMetadata(OtherEdge.EdgeIndex)->RootIndex, RootIOIndices)) { return; }
 
 				if (!Edge.FindSplit(OtherEdge, OutSplits))
 				{

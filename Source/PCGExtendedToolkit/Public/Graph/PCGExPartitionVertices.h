@@ -35,7 +35,7 @@ public:
 	//~End UPCGExEdgesProcessorSettings interface
 };
 
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPartitionVerticesContext final : public FPCGExEdgesProcessorContext
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPartitionVerticesContext final : FPCGExEdgesProcessorContext
 {
 	friend class UPCGExPartitionVerticesSettings;
 	friend class FPCGExPartitionVerticesElement;

@@ -10,20 +10,20 @@
 #include "Geometry/PCGExGeo.h"
 #include "Geometry/PCGExGeoVoronoi.h"
 
-#include "PCGExBuildVoronoiGraph.generated.h"
+#include "PCGExBuildVoronoiGraph2D.generated.h"
 
 /**
  * 
  */
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Graph")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExBuildVoronoiGraphSettings : public UPCGExPointsProcessorSettings
+class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExBuildVoronoiGraph2DSettings : public UPCGExPointsProcessorSettings
 {
 	GENERATED_BODY()
 
 public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS(BuildVoronoiGraph, "Cluster : Voronoi 3D", "Create a 3D Voronoi graph for each input dataset.");
+	PCGEX_NODE_INFOS(BuildVoronoiGraph2D, "Cluster : Voronoi 2D", "Create a 2D Voronoi graph for each input dataset.");
 	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->NodeColorClusterGen; }
 #endif
 	virtual TArray<FPCGPinProperties> OutputPinProperties() const override;
@@ -38,7 +38,6 @@ public:
 	virtual PCGExData::EInit GetMainOutputInitMode() const override;
 	//~End UPCGExPointsProcessorSettings
 
-public:
 	/** Method used to find Voronoi cell location */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	EPCGExCellCenter Method = EPCGExCellCenter::Centroid;
@@ -63,23 +62,39 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	bool bMarkEdgeOnTouch = false;
 
+	/** Projection settings. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
+	FPCGExGeo2DProjectionDetails ProjectionDetails;
+
 	/** Graph & Edges output properties. Only available if bPruneOutsideBounds as it otherwise generates a complete graph. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName="Cluster Output Settings"))
 	FPCGExGraphBuilderDetails GraphBuilderDetails = FPCGExGraphBuilderDetails();
 
+	/** Whether to output updated sites */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Additional Outputs", meta = (PCG_Overridable))
+	bool bOutputSites = true;
+
+	/** If enabled, sites that belong to an removed (out-of-bound) cell will be removed from the output. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Additional Outputs", meta = (PCG_Overridable, EditCondition="bPruneOutOfBounds"))
+	bool bPruneOpenSites = true;
+
+	/** Flag sites belonging to an open cell with a boolean attribute. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Additional Outputs", meta = (PCG_Overridable, EditCondition="bPruneOutOfBounds && !bPruneOpenSites"))
+	FName OpenSiteFlag = "OpenSite";
+
 private:
-	friend class FPCGExBuildVoronoiGraphElement;
+	friend class FPCGExBuildVoronoiGraph2DElement;
 };
 
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExBuildVoronoiGraphContext final : public FPCGExPointsProcessorContext
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExBuildVoronoiGraph2DContext final : FPCGExPointsProcessorContext
 {
-	friend class FPCGExBuildVoronoiGraphElement;
+	friend class FPCGExBuildVoronoiGraph2DElement;
 
 	TSharedPtr<PCGExData::FPointIOCollection> SitesOutput;
 };
 
 
-class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExBuildVoronoiGraphElement final : public FPCGExPointsProcessorElement
+class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExBuildVoronoiGraph2DElement final : public FPCGExPointsProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(
@@ -92,15 +107,27 @@ protected:
 	virtual bool ExecuteInternal(FPCGContext* InContext) const override;
 };
 
-namespace PCGExBuildVoronoi
+namespace PCGExBuildVoronoi2D
 {
-	class FProcessor final : public PCGExPointsMT::TPointsProcessor<FPCGExBuildVoronoiGraphContext, UPCGExBuildVoronoiGraphSettings>
+	class FProcessor final : public PCGExPointsMT::TPointsProcessor<FPCGExBuildVoronoiGraph2DContext, UPCGExBuildVoronoiGraph2DSettings>
 	{
 	protected:
-		TUniquePtr<PCGExGeo::TVoronoi3> Voronoi;
+		FPCGExGeo2DProjectionDetails ProjectionDetails;
+
+		TBitArray<> WithinBounds;
+		TBitArray<> VtxWithinBounds;
+		
+		TArray<FVector> SitesPositions;
+		TArray<FVector> DelaunaySitesLocations;
+		TArray<double> DelaunaySitesInfluenceCount;
+
+		TUniquePtr<PCGExGeo::TVoronoi2> Voronoi;
 		TSharedPtr<PCGExGraph::FGraphBuilder> GraphBuilder;
 
-		PCGExData::TBuffer<bool>* HullMarkPointWriter = nullptr;
+		TSharedPtr<PCGExData::FFacade> SiteDataFacade;
+		TSharedPtr<PCGExData::TBuffer<bool>> HullMarkPointWriter;
+		TSharedPtr<PCGExData::TBuffer<bool>> OpenSiteWriter;
+		
 
 	public:
 		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade):

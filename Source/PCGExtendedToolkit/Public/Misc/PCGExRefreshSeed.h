@@ -35,13 +35,12 @@ public:
 	virtual PCGExData::EInit GetMainOutputInitMode() const override;
 	//~End UPCGExPointsProcessorSettings
 
-public:
 	/** Base seed.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	int32 Base = 0;
 };
 
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExRefreshSeedContext final : public FPCGExPointsProcessorContext
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExRefreshSeedContext final : FPCGExPointsProcessorContext
 {
 	friend class FPCGExRefreshSeedElement;
 };

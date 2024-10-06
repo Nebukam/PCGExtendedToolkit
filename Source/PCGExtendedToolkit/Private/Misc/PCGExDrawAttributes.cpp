@@ -236,41 +236,37 @@ bool FPCGExDrawAttributesElement::ExecuteInternal(FPCGContext* InContext) const
 
 #if WITH_EDITOR
 
-	if (Context->IsSetup())
+	PCGEX_ON_INITIAL_EXECUTION
 	{
-		if (!Boot(Context))
-		{
-			DisabledPassThroughData(Context);
-			return true;
-		}
-		Context->SetState(PCGExMT::State_ReadyForNextPoints);
-		return false;
+		Context->SetState(PCGEx::State_ReadyForNextPoints);
 	}
 
-	if (Context->IsState(PCGExMT::State_ReadyForNextPoints))
+	PCGEX_ON_STATE(PCGEx::State_ReadyForNextPoints)
 	{
 		if (!Context->AdvancePointsIO()) { Context->Done(); }
-		else { Context->SetState(PCGExMT::State_ProcessingPoints); }
+		else { Context->SetState(PCGEx::State_ProcessingPoints); }
 	}
 
-	if (Context->IsState(PCGExMT::State_ProcessingPoints))
+	PCGEX_ON_STATE(PCGEx::State_ProcessingPoints)
 	{
 		for (FPCGExAttributeDebugDraw& DebugInfos : Context->DebugList) { DebugInfos.Bind(Context->CurrentIO.ToSharedRef()); }
 
-		for (int PointIndex = 0; PointIndex < Context->CurrentIO->GetNum(); ++PointIndex)
+		UWorld* World = Context->SourceComponent->GetWorld();
+
+		for (int PointIndex = 0; PointIndex < Context->CurrentIO->GetNum(); PointIndex++)
 		{
 			const PCGExData::FPointRef& Point = Context->CurrentIO->GetInPointRef(PointIndex);
 			const FVector Start = Point.Point->Transform.GetLocation();
-			DrawDebugPoint(Context->World, Start, 1.0f, FColor::White, true);
+			DrawDebugPoint(World, Start, 1.0f, FColor::White, true);
 			for (FPCGExAttributeDebugDraw& Drawer : Context->DebugList)
 			{
 				if (!Drawer.bValid) { continue; }
-				Drawer.Draw(Context->World, Start, Point, Context->CurrentIO->GetIn());
+				Drawer.Draw(World, Start, Point, Context->CurrentIO->GetIn());
 			}
 		}
 
 		Context->CurrentIO->CleanupKeys();
-		Context->SetState(PCGExMT::State_ReadyForNextPoints);
+		Context->SetState(PCGEx::State_ReadyForNextPoints);
 	}
 
 	if (Context->IsDone()) { DisabledPassThroughData(Context); }

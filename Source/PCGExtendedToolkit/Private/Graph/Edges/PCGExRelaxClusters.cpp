@@ -33,11 +33,8 @@ bool FPCGExRelaxClustersElement::ExecuteInternal(FPCGContext* InContext) const
 
 	PCGEX_CONTEXT_AND_SETTINGS(RelaxClusters)
 	PCGEX_EXECUTION_CHECK
-
-	if (Context->IsSetup())
+	PCGEX_ON_INITIAL_EXECUTION
 	{
-		if (!Boot(Context)) { return true; }
-
 		if (!Context->StartProcessingClusters<PCGExClusterMT::TBatch<PCGExRelaxClusters::FProcessor>>(
 			[](const TSharedPtr<PCGExData::FPointIOTaggedEntries>& Entries) { return true; },
 			[&](const TSharedPtr<PCGExClusterMT::TBatch<PCGExRelaxClusters::FProcessor>>& NewBatch)
@@ -45,12 +42,11 @@ bool FPCGExRelaxClustersElement::ExecuteInternal(FPCGContext* InContext) const
 				NewBatch->bRequiresWriteStep = true;
 			}))
 		{
-			PCGE_LOG(Warning, GraphAndLog, FTEXT("Could not build any clusters."));
-			return true;
+			return Context->CancelExecution(TEXT("Could not build any clusters."));
 		}
 	}
 
-	if (!Context->ProcessClusters(PCGExMT::State_Done)) { return false; }
+	PCGEX_CLUSTER_BATCH_PROCESSING(PCGEx::State_Done)
 
 	Context->OutputPointsAndEdges();
 
@@ -91,7 +87,7 @@ namespace PCGExRelaxClusters
 		TArray<FVector>& PBufferRef = (*PrimaryBuffer);
 		TArray<FVector>& SBufferRef = (*SecondaryBuffer);
 
-		for (int i = 0; i < NumNodes; ++i) { PBufferRef[i] = SBufferRef[i] = Cluster->GetPos(i); }
+		for (int i = 0; i < NumNodes; i++) { PBufferRef[i] = SBufferRef[i] = Cluster->GetPos(i); }
 
 		ExpandedNodes = Cluster->ExpandedNodes;
 		Iterations = Settings->Iterations;
@@ -124,7 +120,7 @@ namespace PCGExRelaxClusters
 		IterationGroup->OnCompleteCallback = [&]() { StartRelaxIteration(); };
 		IterationGroup->StartRanges<FRelaxRangeTask>(
 			NumNodes, GetDefault<UPCGExGlobalSettings>()->GetPointsBatchChunkSize(),
-			nullptr, this);
+			nullptr, SharedThis(this));
 	}
 
 	void FProcessor::ProcessSingleRangeIteration(const int32 Iteration, const int32 LoopIdx, const int32 Count)
@@ -185,7 +181,7 @@ namespace PCGExRelaxClusters
 		const int32 StartIndex = PCGEx::H64A(Scope);
 		const int32 NumIterations = PCGEx::H64B(Scope);
 
-		for (int i = 0; i < NumIterations; ++i)
+		for (int i = 0; i < NumIterations; i++)
 		{
 			const int32 Index = StartIndex + i;
 			Processor->ProcessSingleNode(Index, *(Processor->Cluster->Nodes->GetData() + Index), TaskIndex, NumIterations);

@@ -28,11 +28,8 @@ bool FPCGExOffsetPathElement::ExecuteInternal(FPCGContext* InContext) const
 
 	PCGEX_CONTEXT_AND_SETTINGS(OffsetPath)
 	PCGEX_EXECUTION_CHECK
-
-	if (Context->IsSetup())
+	PCGEX_ON_INITIAL_EXECUTION
 	{
-		if (!Boot(Context)) { return true; }
-
 		bool bInvalidInputs = false;
 
 		if (!Context->StartBatchProcessingPoints<PCGExPointsMT::TBatch<PCGExOffsetPath::FProcessor>>(
@@ -50,8 +47,7 @@ bool FPCGExOffsetPathElement::ExecuteInternal(FPCGContext* InContext) const
 				//NewBatch->SetPointsFilterData(&Context->FilterFactories);
 			}))
 		{
-			PCGE_LOG(Warning, GraphAndLog, FTEXT("Could not find any paths to shrink."));
-			return true;
+			Context->CancelExecution(TEXT("Could not find any paths to shrink."));
 		}
 
 		if (bInvalidInputs)
@@ -60,7 +56,7 @@ bool FPCGExOffsetPathElement::ExecuteInternal(FPCGContext* InContext) const
 		}
 	}
 
-	if (!Context->ProcessPointsBatch(PCGExMT::State_Done)) { return false; }
+	PCGEX_POINTS_BATCH_PROCESSING(PCGEx::State_Done)
 
 	Context->MainPoints->StageOutputs();
 
@@ -108,7 +104,7 @@ namespace PCGExOffsetPath
 		Positions.SetNumUninitialized(NumPoints);
 		Normals.SetNumUninitialized(NumPoints);
 
-		for (int i = 0; i < NumPoints; ++i) { Positions[i] = Points[i].Transform.GetLocation(); }
+		for (int i = 0; i < NumPoints; i++) { Positions[i] = Points[i].Transform.GetLocation(); }
 
 		StartParallelLoopForRange(NumPoints - 2); // Compute all normals
 

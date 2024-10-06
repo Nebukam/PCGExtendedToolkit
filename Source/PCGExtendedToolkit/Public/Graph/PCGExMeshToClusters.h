@@ -48,7 +48,6 @@ public:
 	virtual PCGExData::EInit GetMainOutputInitMode() const override;
 	//~End UPCGExPointsProcessorSettings
 
-public:
 	/** Triangulation type */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	EPCGExTriangulationType GraphOutputType = EPCGExTriangulationType::Raw;
@@ -89,7 +88,7 @@ private:
 	friend class FPCGExMeshToClustersElement;
 };
 
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExMeshToClustersContext final : public FPCGExPointsProcessorContext
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExMeshToClustersContext final : FPCGExPointsProcessorContext
 {
 	friend class FPCGExMeshToClustersElement;
 

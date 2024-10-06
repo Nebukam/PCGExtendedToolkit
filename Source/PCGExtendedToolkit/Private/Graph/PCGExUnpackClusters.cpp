@@ -47,23 +47,14 @@ bool FPCGExUnpackClustersElement::ExecuteInternal(
 
 	PCGEX_CONTEXT_AND_SETTINGS(UnpackClusters)
 	PCGEX_EXECUTION_CHECK
-
-	if (Context->IsSetup())
-	{
-		if (!Boot(Context)) { return true; }
-		Context->SetState(PCGExMT::State_ReadyForNextPoints);
-	}
-
-	if (Context->IsState(PCGExMT::State_ReadyForNextPoints))
+	PCGEX_ON_INITIAL_EXECUTION
 	{
 		while (Context->AdvancePointsIO(false)) { Context->GetAsyncManager()->Start<FPCGExUnpackClusterTask>(-1, Context->CurrentIO); }
-		Context->SetAsyncState(PCGExMT::State_WaitingOnAsyncWork);
+		Context->SetAsyncState(PCGEx::State_WaitingOnAsyncWork);
 	}
 
-	if (Context->IsState(PCGExMT::State_WaitingOnAsyncWork))
+	PCGEX_ON_ASYNC_STATE_READY(PCGEx::State_WaitingOnAsyncWork)
 	{
-		PCGEX_ASYNC_WAIT
-
 		Context->OutPoints->StageOutputs();
 		Context->OutEdges->StageOutputs();
 

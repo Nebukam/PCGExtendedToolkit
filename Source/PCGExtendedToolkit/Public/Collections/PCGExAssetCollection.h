@@ -565,7 +565,7 @@ protected:
 
 		TArray<PCGExAssetCollection::FCategory*> TempCategories;
 
-		for (int i = 0; i < NumEntries; ++i)
+		for (int i = 0; i < NumEntries; i++)
 		{
 			T& Entry = InEntries[i];
 			if (!Entry.Validate(this)) { continue; }
@@ -663,7 +663,7 @@ protected:
 
 #define PCGEX_FOREACH_COLLECTION_ENTRY(_TYPE, _NAME, _BODY)\
 		const FPCGMetadataAttribute<_TYPE>* A = Metadata->GetConstTypedAttribute<_TYPE>(_NAME);\
-		for (int i = 0; i < NumEntries; ++i) { _TYPE V = A->GetValueFromItemKey(i); _BODY }
+		for (int i = 0; i < NumEntries; i++) { _TYPE V = A->GetValueFromItemKey(i); _BODY }
 
 
 #if ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION > 3

@@ -19,8 +19,6 @@ namespace PCGExPointsToBounds
 {
 	class FComputeIOBoundsTask;
 
-	PCGEX_ASYNC_STATE(State_ComputeBounds)
-
 	struct /*PCGEXTENDEDTOOLKIT_API*/ FBounds
 	{
 		FBox Bounds = FBox(ForceInit);
@@ -146,7 +144,6 @@ public:
 	virtual PCGExData::EInit GetMainOutputInitMode() const override;
 	//~End UPCGExPointsProcessorSettings
 
-public:
 	/** Overlap overlap test mode */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	EPCGExPointBoundsSource BoundsSource = EPCGExPointBoundsSource::ScaledBounds;
@@ -171,7 +168,7 @@ private:
 	friend class FPCGExPointsToBoundsElement;
 };
 
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPointsToBoundsContext final : public FPCGExPointsProcessorContext
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPointsToBoundsContext final : FPCGExPointsProcessorContext
 {
 	friend class FPCGExPointsToBoundsElement;
 };

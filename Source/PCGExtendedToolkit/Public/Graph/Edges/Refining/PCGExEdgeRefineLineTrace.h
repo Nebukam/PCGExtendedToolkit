@@ -6,23 +6,26 @@
 #include "CoreMinimal.h"
 #include "PCGExEdgeRefineOperation.h"
 #include "Graph/PCGExCluster.h"
-#include "PCGExEdgeRefineRemoveLineTrace.generated.h"
+#include "PCGExEdgeRefineLineTrace.generated.h"
 
 /**
  * 
  */
-UCLASS(MinimalAPI, BlueprintType, meta=(DisplayName="Remove by Collision"))
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExEdgeRemoveLineTrace : public UPCGExEdgeRefineOperation
+UCLASS(MinimalAPI, BlueprintType, meta=(DisplayName="Line Trace"))
+class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExEdgeRefineLineTrace : public UPCGExEdgeRefineOperation
 {
 	GENERATED_BODY()
 
 public:
+	virtual bool GetDefaultEdgeValidity() override { return !bInvert; }
+
 	virtual void CopySettingsFrom(const UPCGExOperation* Other) override
 	{
 		Super::CopySettingsFrom(Other);
-		if (const UPCGExEdgeRemoveLineTrace* TypedOther = Cast<UPCGExEdgeRemoveLineTrace>(Other))
+		if (const UPCGExEdgeRefineLineTrace* TypedOther = Cast<UPCGExEdgeRefineLineTrace>(Other))
 		{
 			bTwoWayCheck = TypedOther->bTwoWayCheck;
+			bInvert = TypedOther->bInvert;
 			InitializedCollisionSettings = TypedOther->CollisionSettings;
 			InitializedCollisionSettings.Init(TypedOther->Context);
 		}
@@ -43,7 +46,7 @@ public:
 			if (!bTwoWayCheck || !InitializedCollisionSettings.Linecast(To, From, HitResult)) { return; }
 		}
 
-		FPlatformAtomics::InterlockedExchange(&Edge.bValid, 0);
+		FPlatformAtomics::InterlockedExchange(&Edge.bValid, bInvert ? 1 : 0);
 	}
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
@@ -52,6 +55,10 @@ public:
 	/** If the first linecast fails, tries the other way around. This is to ensure we don't fail against backfacing, but has high cost.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	bool bTwoWayCheck = true;
+
+	/** */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	bool bInvert = false;
 
 protected:
 	FPCGExCollisionDetails InitializedCollisionSettings;

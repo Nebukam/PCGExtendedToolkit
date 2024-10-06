@@ -29,10 +29,8 @@ bool FPCGExLloydRelax2DElement::ExecuteInternal(FPCGContext* InContext) const
 	PCGEX_CONTEXT_AND_SETTINGS(LloydRelax2D)
 	PCGEX_EXECUTION_CHECK
 
-	if (Context->IsSetup())
+	PCGEX_ON_INITIAL_EXECUTION
 	{
-		if (!Boot(Context)) { return true; }
-
 		bool bInvalidInputs = false;
 
 		if (!Context->StartBatchProcessingPoints<PCGExPointsMT::TBatch<PCGExLloydRelax2D::FProcessor>>(
@@ -50,8 +48,7 @@ bool FPCGExLloydRelax2DElement::ExecuteInternal(FPCGContext* InContext) const
 			{
 			}))
 		{
-			PCGE_LOG(Error, GraphAndLog, FTEXT("Could not find any paths to relax."));
-			return true;
+			Context->CancelExecution(TEXT("Could not find any paths to relax."));
 		}
 
 		if (bInvalidInputs)
@@ -60,7 +57,7 @@ bool FPCGExLloydRelax2DElement::ExecuteInternal(FPCGContext* InContext) const
 		}
 	}
 
-	if (!Context->ProcessPointsBatch(PCGExMT::State_Done)) { return false; }
+	PCGEX_POINTS_BATCH_PROCESSING(PCGEx::State_Done)
 
 	Context->MainPoints->StageOutputs();
 
@@ -84,7 +81,7 @@ namespace PCGExLloydRelax2D
 		PointDataFacade->Source->InitializeOutput(Context, PCGExData::EInit::DuplicateInput);
 		PCGExGeo::PointsToPositions(PointDataFacade->GetIn()->GetPoints(), ActivePositions);
 
-		AsyncManager->Start<FLloydRelaxTask>(0, PointDataFacade->Source, this, &InfluenceDetails, Settings->Iterations);
+		AsyncManager->Start<FLloydRelaxTask>(0, PointDataFacade->Source, SharedThis(this), &InfluenceDetails, Settings->Iterations);
 
 		return true;
 	}
@@ -124,7 +121,7 @@ namespace PCGExLloydRelax2D
 		TArray<double> Counts;
 		Sum.Append(Processor->ActivePositions);
 		Counts.SetNum(NumPoints);
-		for (int i = 0; i < NumPoints; ++i) { Counts[i] = 1; }
+		for (int i = 0; i < NumPoints; i++) { Counts[i] = 1; }
 
 		FVector Centroid;
 		for (const PCGExGeo::FDelaunaySite2& Site : Delaunay->Sites)
@@ -139,7 +136,7 @@ namespace PCGExLloydRelax2D
 
 		if (InfluenceSettings->bProgressiveInfluence)
 		{
-			for (int i = 0; i < NumPoints; ++i) { Positions[i] = FMath::Lerp(Positions[i], Sum[i] / Counts[i], InfluenceSettings->GetInfluence(i)); }
+			for (int i = 0; i < NumPoints; i++) { Positions[i] = FMath::Lerp(Positions[i], Sum[i] / Counts[i], InfluenceSettings->GetInfluence(i)); }
 		}
 
 		Delaunay.Reset();

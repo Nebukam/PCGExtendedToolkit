@@ -4,7 +4,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "PCGExDataDetails.h"
+#include "PCGExDetailsData.h"
 
 
 #include "Graph/PCGExEdgesProcessor.h"
@@ -49,7 +49,7 @@ private:
 	friend class FPCGExRelaxClustersElement;
 };
 
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExRelaxClustersContext final : public FPCGExEdgesProcessorContext
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExRelaxClustersContext final : FPCGExEdgesProcessorContext
 {
 	friend class FPCGExRelaxClustersElement;
 
@@ -108,13 +108,13 @@ namespace PCGExRelaxClusters
 	{
 	public:
 		FRelaxRangeTask(const TSharedPtr<PCGExData::FPointIO>& InPointIO,
-		                FProcessor* InProcessor):
+		                const TSharedPtr<FProcessor>& InProcessor):
 			FPCGExTask(InPointIO),
 			Processor(InProcessor)
 		{
 		}
 
-		FProcessor* Processor = nullptr;
+		TSharedPtr<FProcessor> Processor;
 		uint64 Scope = 0;
 		virtual bool ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager) override;
 	};

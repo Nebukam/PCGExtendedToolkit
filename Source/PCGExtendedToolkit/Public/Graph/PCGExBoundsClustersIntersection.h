@@ -5,7 +5,7 @@
 
 #include "CoreMinimal.h"
 #include "PCGExCluster.h"
-#include "PCGExDataDetails.h"
+#include "PCGExDetailsData.h"
 #include "PCGExEdgesProcessor.h"
 #include "PCGExIntersections.h"
 
@@ -40,7 +40,7 @@ public:
 	FPCGExBoxIntersectionDetails IntersectionDetails;
 };
 
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExBoundsClustersIntersectionContext final : public FPCGExEdgesProcessorContext
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExBoundsClustersIntersectionContext final : FPCGExEdgesProcessorContext
 {
 	friend class UPCGExBoundsClustersIntersectionSettings;
 	friend class FPCGExBoundsClustersIntersectionElement;

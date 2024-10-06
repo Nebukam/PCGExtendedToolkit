@@ -4,7 +4,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "PCGExDataDetails.h"
+#include "PCGExDetailsData.h"
 #include "PCGExGlobalSettings.h"
 
 #include "PCGExPointsProcessor.h"
@@ -36,7 +36,6 @@ public:
 	virtual PCGExData::EInit GetMainOutputInitMode() const override;
 	//~End UPCGExPointsProcessorSettings
 
-public:
 	/** */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, ClampMin=1))
 	int32 Iterations = 5;
@@ -46,7 +45,7 @@ public:
 	FPCGExInfluenceDetails InfluenceDetails;
 };
 
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExLloydRelaxContext final : public FPCGExPointsProcessorContext
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExLloydRelaxContext final : FPCGExPointsProcessorContext
 {
 	friend class FPCGExLloydRelaxElement;
 };

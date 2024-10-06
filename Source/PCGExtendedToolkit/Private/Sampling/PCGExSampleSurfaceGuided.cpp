@@ -59,23 +59,19 @@ bool FPCGExSampleSurfaceGuidedElement::ExecuteInternal(FPCGContext* InContext) c
 
 	PCGEX_CONTEXT_AND_SETTINGS(SampleSurfaceGuided)
 	PCGEX_EXECUTION_CHECK
-
-	if (Context->IsSetup())
+	PCGEX_ON_INITIAL_EXECUTION
 	{
-		if (!Boot(Context)) { return true; }
-
 		if (!Context->StartBatchProcessingPoints<PCGExPointsMT::TBatch<PCGExSampleSurfaceGuided::FProcessor>>(
 			[&](const TSharedPtr<PCGExData::FPointIO>& Entry) { return true; },
 			[&](const TSharedPtr<PCGExPointsMT::TBatch<PCGExSampleSurfaceGuided::FProcessor>>& NewBatch)
 			{
 			}))
 		{
-			PCGE_LOG(Warning, GraphAndLog, FTEXT("Could not find any points to sample."));
-			return true;
+			return Context->CancelExecution(TEXT("Could not find any points to sample."));
 		}
 	}
 
-	if (!Context->ProcessPointsBatch(PCGExMT::State_Done)) { return false; }
+	PCGEX_POINTS_BATCH_PROCESSING(PCGEx::State_Done)
 
 	Context->MainPoints->StageOutputs();
 
@@ -122,6 +118,7 @@ namespace PCGExSampleSurfaceGuided
 			}
 		}
 
+		World = Context->SourceComponent->GetWorld();
 		StartParallelLoopForPoints();
 
 		return true;
@@ -222,7 +219,7 @@ namespace PCGExSampleSurfaceGuided
 		case EPCGExCollisionFilterType::Channel:
 			if (Context->bUseInclude)
 			{
-				if (Context->World->LineTraceMultiByChannel(
+				if (World->LineTraceMultiByChannel(
 					HitResults, Origin, End,
 					Context->CollisionSettings.CollisionChannel, CollisionParams))
 				{
@@ -231,7 +228,7 @@ namespace PCGExSampleSurfaceGuided
 			}
 			else
 			{
-				if (Context->World->LineTraceSingleByChannel(
+				if (World->LineTraceSingleByChannel(
 					HitResult, Origin, End,
 					Context->CollisionSettings.CollisionChannel, CollisionParams))
 				{
@@ -242,7 +239,7 @@ namespace PCGExSampleSurfaceGuided
 		case EPCGExCollisionFilterType::ObjectType:
 			if (Context->bUseInclude)
 			{
-				if (Context->World->LineTraceMultiByObjectType(
+				if (World->LineTraceMultiByObjectType(
 					HitResults, Origin, End,
 					FCollisionObjectQueryParams(Context->CollisionSettings.CollisionObjectType), CollisionParams))
 				{
@@ -251,7 +248,7 @@ namespace PCGExSampleSurfaceGuided
 			}
 			else
 			{
-				if (Context->World->LineTraceSingleByObjectType(
+				if (World->LineTraceSingleByObjectType(
 					HitResult, Origin, End,
 					FCollisionObjectQueryParams(Context->CollisionSettings.CollisionObjectType), CollisionParams)) { ProcessTraceResult(); }
 			}
@@ -259,7 +256,7 @@ namespace PCGExSampleSurfaceGuided
 		case EPCGExCollisionFilterType::Profile:
 			if (Context->bUseInclude)
 			{
-				if (Context->World->LineTraceMultiByProfile(
+				if (World->LineTraceMultiByProfile(
 					HitResults, Origin, End,
 					Context->CollisionSettings.CollisionProfileName, CollisionParams))
 				{
@@ -268,7 +265,7 @@ namespace PCGExSampleSurfaceGuided
 			}
 			else
 			{
-				if (Context->World->LineTraceSingleByProfile(
+				if (World->LineTraceSingleByProfile(
 					HitResult, Origin, End,
 					Context->CollisionSettings.CollisionProfileName, CollisionParams)) { ProcessTraceResult(); }
 			}

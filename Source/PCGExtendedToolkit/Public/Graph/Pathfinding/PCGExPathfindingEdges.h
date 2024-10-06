@@ -44,7 +44,6 @@ public:
 	//~Begin UObject interface
 #if WITH_EDITOR
 
-public:
 	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
 #endif
 	//~End UObject interface
@@ -99,7 +98,7 @@ public:
 };
 
 
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPathfindingEdgesContext final : public FPCGExEdgesProcessorContext
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPathfindingEdgesContext final : FPCGExEdgesProcessorContext
 {
 	friend class FPCGExPathfindingEdgesElement;
 

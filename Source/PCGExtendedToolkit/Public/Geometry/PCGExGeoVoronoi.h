@@ -55,7 +55,69 @@ namespace PCGExGeo
 				GetCircumcenter(Positions, Site.Vtx, Circumcenters[Site.Id]);
 				GetCentroid(Positions, Site.Vtx, Centroids[Site.Id]);
 
-				for (int i = 0; i < 3; ++i)
+				for (int i = 0; i < 3; i++)
+				{
+					const int32 AdjacentIdx = Site.Neighbors[i];
+
+					if (AdjacentIdx == -1) { continue; }
+
+					VoronoiEdges.Add(PCGEx::H64U(Site.Id, AdjacentIdx));
+				}
+			}
+
+			IsValid = true;
+			return IsValid;
+		}
+
+		template <bool bPerVtxCheck>
+		bool Process(const TArrayView<FVector>& Positions, const FPCGExGeo2DProjectionDetails& ProjectionDetails, const FBox& Bounds, TBitArray<>& WithinBounds, TBitArray<>& VtxWithinBounds)
+		{
+			Clear();
+
+			Delaunay = MakeUnique<TDelaunay2>();
+			if (!Delaunay->Process(Positions, ProjectionDetails))
+			{
+				Clear();
+				return IsValid;
+			}
+
+			const int32 NumSites = Delaunay->Sites.Num();
+			PCGEx::InitArray(Circumcenters, NumSites);
+			PCGEx::InitArray(Centroids, NumSites);
+			WithinBounds.Init(true, NumSites);
+
+			if constexpr (bPerVtxCheck)
+			{
+				VtxWithinBounds.Init(true, Positions.Num());
+			}
+
+			for (FDelaunaySite2& Site : Delaunay->Sites)
+			{
+				FVector CC = FVector::ZeroVector;
+
+				GetCircumcenter(Positions, Site.Vtx, CC);
+				Circumcenters[Site.Id] = CC;
+
+				if constexpr (bPerVtxCheck)
+				{
+					if (Bounds.IsInside(CC))
+					{
+						WithinBounds[Site.Id] = true;
+					}
+					else
+					{
+						WithinBounds[Site.Id] = false;
+						for (int i = 0; i < 3; i++) { VtxWithinBounds[Site.Vtx[i]] = false; }
+					}
+				}
+				else
+				{
+					WithinBounds[Site.Id] = Bounds.IsInside(CC);
+				}
+
+				GetCentroid(Positions, Site.Vtx, Centroids[Site.Id]);
+
+				for (int i = 0; i < 3; i++)
 				{
 					const int32 AdjacentIdx = Site.Neighbors[i];
 
@@ -116,7 +178,7 @@ namespace PCGExGeo
 				FindSphereFrom4Points(Positions, Site.Vtx, Circumspheres[Site.Id]);
 				GetCentroid(Positions, Site.Vtx, Centroids[Site.Id]);
 
-				for (int i = 0; i < 4; ++i)
+				for (int i = 0; i < 4; i++)
 				{
 					const int32 AdjacentIdx = Site.Neighbors[i];
 

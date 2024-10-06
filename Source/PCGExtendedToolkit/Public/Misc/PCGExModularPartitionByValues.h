@@ -39,7 +39,6 @@ public:
 	//~End UPCGSettings
 
 	//~Begin UPCGExFactoryProviderSettings
-public:
 	virtual FName GetMainOutputLabel() const override { return FName("PartitionRule"); }
 	virtual UPCGExParamFactoryBase* CreateFactory(FPCGExContext* InContext, UPCGExParamFactoryBase* InFactory) const override;
 

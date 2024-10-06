@@ -31,12 +31,12 @@ void FPCGExPickClosestClustersContext::ClusterProcessing_InitialProcessingDone()
 
 	if (Settings->PickMode == EPCGExClusterClosestPickMode::OnlyBest)
 	{
-		for (int i = 0; i < NumTargets; ++i)
+		for (int i = 0; i < NumTargets; i++)
 		{
 			int32 Pick = -1;
 			double Closest = MAX_dbl;
 
-			for (int j = 0; j < Processors.Num(); ++j)
+			for (int j = 0; j < Processors.Num(); j++)
 			{
 				const double Dist = Processors[j]->Distances[i];
 				if (Closest > Dist)
@@ -52,12 +52,12 @@ void FPCGExPickClosestClustersContext::ClusterProcessing_InitialProcessingDone()
 	}
 	else
 	{
-		for (int i = 0; i < NumTargets; ++i)
+		for (int i = 0; i < NumTargets; i++)
 		{
 			int32 Pick = -1;
 			double Closest = MAX_dbl;
 
-			for (int j = 0; j < Processors.Num(); ++j)
+			for (int j = 0; j < Processors.Num(); j++)
 			{
 				const double Dist = Processors[j]->Distances[i];
 				if (Closest > Dist && Processors[j]->Picker == 0)
@@ -105,26 +105,19 @@ bool FPCGExPickClosestClustersElement::ExecuteInternal(
 
 	PCGEX_CONTEXT_AND_SETTINGS(PickClosestClusters)
 	PCGEX_EXECUTION_CHECK
-
-	if (Context->IsSetup())
+	PCGEX_ON_INITIAL_EXECUTION
 	{
-		if (!Boot(Context))
-		{
-			return true;
-		}
-
 		if (!Context->StartProcessingClusters<PCGExPickClosestClusters::FProcessorBatch>(
 			[](const TSharedPtr<PCGExData::FPointIOTaggedEntries>& Entries) { return true; },
 			[&](const TSharedPtr<PCGExPickClosestClusters::FProcessorBatch>& NewBatch)
 			{
 			}))
 		{
-			PCGE_LOG(Warning, GraphAndLog, FTEXT("Could not build any clusters."));
-			return true;
+			return Context->CancelExecution(TEXT("Could not build any clusters."));
 		}
 	}
 
-	if (!Context->ProcessClusters(PCGExMT::State_Done)) { return false; }
+	PCGEX_CLUSTER_BATCH_PROCESSING(PCGEx::State_Done)
 
 	Context->OutputBatches();
 	Context->OutputPointsAndEdges();
@@ -254,7 +247,7 @@ namespace PCGExPickClosestClusters
 		int32 Picks = 0;
 		const int32 MaxPicks = Processors.Num();
 
-		for (const TSharedPtr<FProcessor>& P : Processors) { if (P->Picker != -1) { Picks++; } }
+		for (const TSharedRef<FProcessor>& P : Processors) { if (P->Picker != -1) { Picks++; } }
 
 		const UPCGExPickClosestClustersSettings* Stg = Processors[0]->Settings;
 		const FPCGExPickClosestClustersContext* Ctx = Processors[0]->Context;

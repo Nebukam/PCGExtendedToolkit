@@ -37,7 +37,6 @@ public:
 	virtual PCGExData::EInit GetMainOutputInitMode() const override;
 	//~End UPCGExPointsProcessorSettings
 
-public:
 	/** Generates a point collections per generated point */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	bool bGeneratePerPointData = false;
@@ -74,7 +73,7 @@ private:
 	friend class FPCGExBoundsToPointsElement;
 };
 
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExBoundsToPointsContext final : public FPCGExPointsProcessorContext
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExBoundsToPointsContext final : FPCGExPointsProcessorContext
 {
 	friend class FPCGExBoundsToPointsElement;
 };

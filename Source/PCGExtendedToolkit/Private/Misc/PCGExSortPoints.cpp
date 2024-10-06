@@ -39,16 +39,12 @@ bool FPCGExSortPointsBaseElement::ExecuteInternal(FPCGContext* InContext) const
 	PCGEX_CONTEXT(PointsProcessor)
 	PCGEX_SETTINGS(SortPointsBase)
 	PCGEX_EXECUTION_CHECK
-
-	if (Context->IsSetup())
+	PCGEX_ON_INITIAL_EXECUTION
 	{
-		if (!Boot(Context)) { return true; }
-
 		TArray<FPCGExSortRuleConfig> RuleConfigs;
 		if (!Settings->GetSortingRules(Context, RuleConfigs))
 		{
-			PCGE_LOG(Error, GraphAndLog, FTEXT("No attributes to sort over."));
-			return true;
+			return Context->CancelExecution(TEXT("No attributes to sort over."));
 		}
 
 		if (!Context->StartBatchProcessingPoints<PCGExPointsMT::TBatch<PCGExSortPoints::FProcessor>>(
@@ -57,12 +53,11 @@ bool FPCGExSortPointsBaseElement::ExecuteInternal(FPCGContext* InContext) const
 			{
 			}))
 		{
-			PCGE_LOG(Error, GraphAndLog, FTEXT("Could not find any points to sort."));
-			return true;
+			Context->CancelExecution(TEXT("Could not find any points to sort."));
 		}
 	}
 
-	if (!Context->ProcessPointsBatch(PCGExMT::State_Done)) { return false; }
+	PCGEX_POINTS_BATCH_PROCESSING(PCGEx::State_Done)
 
 	Context->MainPoints->StageOutputs();
 

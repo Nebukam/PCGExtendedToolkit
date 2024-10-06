@@ -42,7 +42,7 @@ private:
 	friend class FPCGExPackClustersElement;
 };
 
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPackClustersContext final : public FPCGExEdgesProcessorContext
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPackClustersContext final : FPCGExEdgesProcessorContext
 {
 	friend class FPCGExPackClustersElement;
 	friend class FPCGExCreateBridgeTask;

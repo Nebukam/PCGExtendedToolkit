@@ -116,7 +116,6 @@ public:
 	PCGEX_NODE_POINT_FILTER(PCGExPointFilter::SourcePointFiltersLabel, "Filter which points can be considered for overlap.", PCGExFactories::PointFilters, false)
 	//~End UPCGExPointsProcessorSettings
 
-public:
 	/** Overlap overlap test mode */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	EPCGExOverlapTestMode TestMode = EPCGExOverlapTestMode::Precise;
@@ -149,7 +148,7 @@ private:
 	friend class FPCGExDiscardByOverlapElement;
 };
 
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExDiscardByOverlapContext final : public FPCGExPointsProcessorContext
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExDiscardByOverlapContext final : FPCGExPointsProcessorContext
 {
 	friend class FPCGExDiscardByOverlapElement;
 

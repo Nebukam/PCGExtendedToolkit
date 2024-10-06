@@ -41,7 +41,6 @@ public:
 	virtual FName GetMainOutputLabel() const override { return PCGExGraph::OutputVerticesLabel; }
 	//~End UPCGExPointsProcessorSettings
 
-public:
 	/**  */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, InlineEditConditionToggle))
 	bool bPreventCoincidence = true;
@@ -62,7 +61,7 @@ public:
 	FPCGExGraphBuilderDetails GraphBuilderDetails;
 };
 
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExConnectPointsContext final : public FPCGExPointsProcessorContext
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExConnectPointsContext final : FPCGExPointsProcessorContext
 {
 	friend class FPCGExConnectPointsElement;
 

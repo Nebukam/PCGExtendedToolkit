@@ -4,7 +4,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "PCGExDataDetails.h"
+#include "PCGExDetailsData.h"
 #include "PCGExGlobalSettings.h"
 
 #include "PCGExPointsProcessor.h"
@@ -37,7 +37,6 @@ public:
 	virtual PCGExData::EInit GetMainOutputInitMode() const override;
 	//~End UPCGExPointsProcessorSettings
 
-public:
 	/** */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, ClampMin=1))
 	int32 Iterations = 5;
@@ -51,7 +50,7 @@ public:
 	FPCGExGeo2DProjectionDetails ProjectionDetails;
 };
 
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExLloydRelax2DContext final : public FPCGExPointsProcessorContext
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExLloydRelax2DContext final : FPCGExPointsProcessorContext
 {
 	friend class FPCGExLloydRelax2DElement;
 };
@@ -95,7 +94,7 @@ namespace PCGExLloydRelax2D
 	{
 	public:
 		FLloydRelaxTask(const TSharedPtr<PCGExData::FPointIO>& InPointIO,
-		                FProcessor* InProcessor,
+		                const TSharedPtr<FProcessor>& InProcessor,
 		                const FPCGExInfluenceDetails* InInfluenceSettings,
 		                const int32 InNumIterations) :
 			FPCGExTask(InPointIO),
@@ -105,7 +104,7 @@ namespace PCGExLloydRelax2D
 		{
 		}
 
-		FProcessor* Processor = nullptr;
+		TSharedPtr<FProcessor> Processor;
 		const FPCGExInfluenceDetails* InfluenceSettings = nullptr;
 		int32 NumIterations = 0;
 

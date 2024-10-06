@@ -70,11 +70,8 @@ bool FPCGExSampleOverlapStatsElement::ExecuteInternal(FPCGContext* InContext) co
 
 	PCGEX_CONTEXT_AND_SETTINGS(SampleOverlapStats)
 	PCGEX_EXECUTION_CHECK
-
-	if (Context->IsSetup())
+	PCGEX_ON_INITIAL_EXECUTION
 	{
-		if (!Boot(Context)) { return true; }
-
 		if (!Context->StartBatchProcessingPoints<PCGExPointsMT::TBatch<PCGExSampleOverlapStats::FProcessor>>(
 			[&](const TSharedPtr<PCGExData::FPointIO>& Entry) { return true; },
 			[&](const TSharedPtr<PCGExPointsMT::TBatch<PCGExSampleOverlapStats::FProcessor>>& NewBatch)
@@ -82,12 +79,11 @@ bool FPCGExSampleOverlapStatsElement::ExecuteInternal(FPCGContext* InContext) co
 				NewBatch->bRequiresWriteStep = true;
 			}))
 		{
-			PCGE_LOG(Warning, GraphAndLog, FTEXT("Could not find any input to check for overlaps."));
-			return true;
+			return Context->CancelExecution(TEXT("Could not find any input to check for overlaps."));
 		}
 	}
 
-	if (!Context->ProcessPointsBatch(PCGExMT::State_Done)) { return false; }
+	PCGEX_POINTS_BATCH_PROCESSING(PCGEx::State_Done)
 
 	Context->MainPoints->StageOutputs();
 
@@ -132,8 +128,8 @@ namespace PCGExSampleOverlapStats
 		NumPoints = InPoints->Num();
 
 		PCGEx::InitArray(LocalPointBounds, NumPoints);
-		PCGEx::InitArray(OverlapSubCount, NumPoints);
-		PCGEx::InitArray(OverlapCount, NumPoints);
+		OverlapSubCount.Init(0, NumPoints);
+		OverlapCount.Init(0, NumPoints);
 
 		PCGEX_ASYNC_GROUP_CHKD(AsyncManager, BoundsPreparationTask)
 		BoundsPreparationTask->OnCompleteCallback =
@@ -260,17 +256,23 @@ namespace PCGExSampleOverlapStats
 		PreparationTask->OnCompleteCallback =
 			[&]()
 			{
-				PCGEX_ASYNC_GROUP_CHKD_VOID(AsyncManager, SearchTask)
-				SearchTask->OnCompleteCallback =
-					[&]()
+				auto WrapUp = [&]()
+				{
+					for (int i = 0; i < NumPoints; i++)
 					{
-						for (int i = 0; i < NumPoints; ++i)
-						{
-							LocalOverlapSubCountMax = FMath::Max(LocalOverlapSubCountMax, OverlapSubCount[i]);
-							LocalOverlapCountMax = FMath::Max(LocalOverlapCountMax, OverlapCount[i]);
-						}
-					};
+						LocalOverlapSubCountMax = FMath::Max(LocalOverlapSubCountMax, OverlapSubCount[i]);
+						LocalOverlapCountMax = FMath::Max(LocalOverlapCountMax, OverlapCount[i]);
+					}
+				};
 
+				if (ManagedOverlaps.IsEmpty())
+				{
+					WrapUp();
+					return;
+				}
+
+				PCGEX_ASYNC_GROUP_CHKD_VOID(AsyncManager, SearchTask)
+				SearchTask->OnCompleteCallback = WrapUp;
 				SearchTask->OnIterationCallback = [&](const int32 Index, const int32 Count, const int32 LoopIdx) { ResolveOverlap(Index); };
 				SearchTask->StartIterations(ManagedOverlaps.Num(), 8);
 			};

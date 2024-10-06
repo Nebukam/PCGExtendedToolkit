@@ -1,7 +1,7 @@
 ﻿// Copyright Timothé Lapetite 2024
 // Released under the MIT license https://opensource.org/license/MIT/
 
-#include "Graph/PCGExBuildDelaunayGraph2D.h"
+#include "Graph/Diagrams/PCGExBuildDelaunayGraph2D.h"
 
 
 #include "Elements/Metadata/PCGMetadataElementCommon.h"
@@ -55,11 +55,8 @@ bool FPCGExBuildDelaunayGraph2DElement::ExecuteInternal(
 
 	PCGEX_CONTEXT_AND_SETTINGS(BuildDelaunayGraph2D)
 	PCGEX_EXECUTION_CHECK
-
-	if (Context->IsSetup())
+	PCGEX_ON_INITIAL_EXECUTION
 	{
-		if (!Boot(Context)) { return true; }
-
 		bool bInvalidInputs = false;
 
 		if (!Context->StartBatchProcessingPoints<PCGExPointsMT::TBatch<PCGExBuildDelaunay2D::FProcessor>>(
@@ -78,8 +75,7 @@ bool FPCGExBuildDelaunayGraph2DElement::ExecuteInternal(
 				NewBatch->bRequiresWriteStep = true;
 			}))
 		{
-			PCGE_LOG(Warning, GraphAndLog, FTEXT("Could not find any points to build from."));
-			return true;
+			return Context->CancelExecution(TEXT("Could not find any points to build from."));
 		}
 
 		if (bInvalidInputs)
@@ -88,7 +84,7 @@ bool FPCGExBuildDelaunayGraph2DElement::ExecuteInternal(
 		}
 	}
 
-	if (!Context->ProcessPointsBatch(PCGExMT::State_Done)) { return false; }
+	PCGEX_POINTS_BATCH_PROCESSING(PCGEx::State_Done)
 
 	Context->MainPoints->StageOutputs();
 	if (Context->MainSites)
@@ -139,8 +135,8 @@ namespace PCGExBuildDelaunay2D
 
 		if (Settings->bOutputSites)
 		{
-			if (Settings->UrquhartSitesMerge != EPCGExUrquhartSiteMergeMode::None) { AsyncManager->Start<FOutputDelaunayUrquhartSites2D>(BatchIndex, PointDataFacade->Source, this); }
-			else { AsyncManager->Start<FOutputDelaunaySites2D>(BatchIndex, PointDataFacade->Source, this); }
+			if (Settings->UrquhartSitesMerge != EPCGExUrquhartSiteMergeMode::None) { AsyncManager->Start<FOutputDelaunayUrquhartSites2D>(BatchIndex, PointDataFacade->Source, SharedThis(this)); }
+			else { AsyncManager->Start<FOutputDelaunaySites2D>(BatchIndex, PointDataFacade->Source, SharedThis(this)); }
 		}
 
 		GraphBuilder = MakeShared<PCGExGraph::FGraphBuilder>(PointDataFacade, &Settings->GraphBuilderDetails);
@@ -200,12 +196,12 @@ namespace PCGExBuildDelaunay2D
 		const int32 NumSites = Delaunay->Sites.Num();
 
 		MutablePoints.SetNumUninitialized(NumSites);
-		for (int i = 0; i < NumSites; ++i)
+		for (int i = 0; i < NumSites; i++)
 		{
 			const PCGExGeo::FDelaunaySite2& Site = Delaunay->Sites[i];
 
 			FVector Centroid = FVector::ZeroVector;
-			for (int j = 0; j < 3; ++j) { Centroid += (OriginalPoints.GetData() + Site.Vtx[j])->Transform.GetLocation(); }
+			for (int j = 0; j < 3; j++) { Centroid += (OriginalPoints.GetData() + Site.Vtx[j])->Transform.GetLocation(); }
 			Centroid /= 3;
 
 			MutablePoints[i] = *(OriginalPoints.GetData() + Site.Vtx[0]);
@@ -218,7 +214,7 @@ namespace PCGExBuildDelaunay2D
 			HullBuffer->PrepareWrite(false, true, true);
 			{
 				TArray<bool>& OutValues = *HullBuffer->GetOutValues();
-				for (int i = 0; i < NumSites; ++i) { OutValues[i] = Delaunay->Sites[i].bOnHull; }
+				for (int i = 0; i < NumSites; i++) { OutValues[i] = Delaunay->Sites[i].bOnHull; }
 			}
 			Write(AsyncManager, HullBuffer);
 		}
@@ -253,7 +249,7 @@ namespace PCGExBuildDelaunay2D
 		FinalSites.Reserve(NumSites);
 		Hull.Reserve(NumSites / 4);
 
-		for (int i = 0; i < NumSites; ++i)
+		for (int i = 0; i < NumSites; i++)
 		{
 			if (VisitedSites[i]) { continue; }
 			VisitedSites[i] = true;
@@ -278,7 +274,7 @@ namespace PCGExBuildDelaunay2D
 				for (const int32 MergeSiteIndex : Queue)
 				{
 					const PCGExGeo::FDelaunaySite2& MSite = Delaunay->Sites[MergeSiteIndex];
-					for (int j = 0; j < 3; ++j) { Centroid += (OriginalPoints.GetData() + MSite.Vtx[j])->Transform.GetLocation(); }
+					for (int j = 0; j < 3; j++) { Centroid += (OriginalPoints.GetData() + MSite.Vtx[j])->Transform.GetLocation(); }
 
 					if (!bOnHull && Settings->bMarkSiteHull && MSite.bOnHull) { bOnHull = true; }
 				}
@@ -324,7 +320,7 @@ namespace PCGExBuildDelaunay2D
 			HullBuffer->PrepareWrite(false, true, true);
 			{
 				TArray<bool>& OutValues = *HullBuffer->GetOutValues();
-				for (int i = 0; i < Hull.Num(); ++i) { OutValues[i] = Hull[i]; }
+				for (int i = 0; i < Hull.Num(); i++) { OutValues[i] = Hull[i]; }
 			}
 			Write(AsyncManager, HullBuffer);
 		}

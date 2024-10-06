@@ -36,11 +36,8 @@ bool FPCGExSubdivideElement::ExecuteInternal(FPCGContext* InContext) const
 
 	PCGEX_CONTEXT(Subdivide)
 	PCGEX_EXECUTION_CHECK
-
-	if (Context->IsSetup())
+	PCGEX_ON_INITIAL_EXECUTION
 	{
-		if (!Boot(Context)) { return true; }
-
 		bool bInvalidInputs = false;
 
 		if (!Context->StartBatchProcessingPoints<PCGExPointsMT::TBatch<PCGExSubdivide::FProcessor>>(
@@ -60,8 +57,7 @@ bool FPCGExSubdivideElement::ExecuteInternal(FPCGContext* InContext) const
 				NewBatch->bRequiresWriteStep = true;
 			}))
 		{
-			PCGE_LOG(Error, GraphAndLog, FTEXT("Could not find any paths to subdivide."));
-			return true;
+			return Context->CancelExecution(TEXT("Could not find any paths to subdivide."));
 		}
 
 		if (bInvalidInputs)
@@ -70,7 +66,7 @@ bool FPCGExSubdivideElement::ExecuteInternal(FPCGContext* InContext) const
 		}
 	}
 
-	if (!Context->ProcessPointsBatch(PCGExMT::State_Done)) { return false; }
+	PCGEX_POINTS_BATCH_PROCESSING(PCGEx::State_Done)
 
 	Context->MainPoints->StageOutputs();
 
@@ -169,7 +165,7 @@ namespace PCGExSubdivide
 		PCGExPaths::FPathMetrics Metrics = PCGExPaths::FPathMetrics(Sub.Start);
 
 		const int32 SubStart = Sub.OutStart + 1;
-		for (int s = 0; s < Sub.NumSubdivisions; ++s)
+		for (int s = 0; s < Sub.NumSubdivisions; s++)
 		{
 			const int32 Index = SubStart + s;
 
@@ -222,7 +218,7 @@ namespace PCGExSubdivide
 
 		PCGEx::InitArray(MutablePoints, NumPoints);
 
-		for (int i = 0; i < Subdivisions.Num(); ++i)
+		for (int i = 0; i < Subdivisions.Num(); i++)
 		{
 			const FSubdivision& Sub = Subdivisions[i];
 			const FPCGPoint& OriginalPoint = InPoints[i];
@@ -233,7 +229,7 @@ namespace PCGExSubdivide
 
 			const int32 SubStart = Sub.OutStart + 1;
 
-			for (int s = 0; s < Sub.NumSubdivisions; ++s)
+			for (int s = 0; s < Sub.NumSubdivisions; s++)
 			{
 				MutablePoints[SubStart + s] = OriginalPoint;
 				Metadata->InitializeOnSet(MutablePoints[SubStart + s].MetadataEntry);

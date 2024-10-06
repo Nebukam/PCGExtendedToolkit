@@ -33,7 +33,6 @@ public:
 #endif
 	//~End UPCGSettings
 
-public:
 	virtual FName GetMainOutputLabel() const override { return PCGExPointFilter::OutputFilterLabel; }
 	virtual UPCGExParamFactoryBase* CreateFactory(FPCGExContext* InContext, UPCGExParamFactoryBase* InFactory) const override;
 

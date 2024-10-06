@@ -33,7 +33,6 @@ public:
 	virtual PCGExData::EInit GetMainOutputInitMode() const override;
 	//~End UPCGExPointsProcessorSettings
 
-public:
 	/** Target attribute */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	FName FlagAttribute;
@@ -55,7 +54,7 @@ public:
 	int64 Bitmask;
 };
 
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExBitwiseOperationContext final : public FPCGExPointsProcessorContext
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExBitwiseOperationContext final : FPCGExPointsProcessorContext
 {
 	friend class FPCGExBitwiseOperationElement;
 };

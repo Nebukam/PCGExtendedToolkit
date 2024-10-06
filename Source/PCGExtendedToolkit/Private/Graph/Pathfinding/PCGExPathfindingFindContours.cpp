@@ -32,11 +32,11 @@ PCGExData::EInit UPCGExFindContoursSettings::GetMainOutputInitMode() const { ret
 bool FPCGExFindContoursContext::TryFindContours(
 	const TSharedPtr<PCGExData::FPointIO>& PathIO,
 	const int32 SeedIndex,
-	PCGExFindContours::FProcessor* ClusterProcessor)
+	TSharedPtr<PCGExFindContours::FProcessor> ClusterProcessor)
 {
 	const UPCGExFindContoursSettings* Settings = ClusterProcessor->GetSettings();
 
-	PCGExCluster::FCluster* Cluster = ClusterProcessor->Cluster.Get();
+	TSharedPtr<PCGExCluster::FCluster> Cluster = ClusterProcessor->Cluster;
 
 	TSharedPtr<TArray<PCGExCluster::FExpandedNode>> ExpandedNodes = ClusterProcessor->ExpandedNodes;
 	TSharedPtr<TArray<PCGExCluster::FExpandedEdge>> ExpandedEdges = ClusterProcessor->ExpandedEdges;
@@ -202,8 +202,8 @@ bool FPCGExFindContoursContext::TryFindContours(
 	const TArray<FPCGPoint>& OriginPoints = PathIO->GetIn()->GetPoints();
 	MutablePoints.SetNumUninitialized(Path.Num());
 
-	const TArray<int32>& VtxPointIndices = Cluster->GetVtxPointIndices();
-	for (int i = 0; i < Path.Num(); ++i) { MutablePoints[i] = OriginPoints[VtxPointIndices[Path[i]]]; }
+	//const TArray<int32>& VtxPointIndices = Cluster->GetVtxPointIndices();
+	for (int i = 0; i < Path.Num(); i++) { MutablePoints[i] = OriginPoints[(Cluster->Nodes->GetData() + Path[i])->PointIndex]; }
 
 	ClusterProcessor->GetContext()->SeedAttributesToPathTags.Tag(SeedIndex, PathIO);
 	ClusterProcessor->GetContext()->SeedForwardHandler->Forward(SeedIndex, PathDataFacade);
@@ -212,7 +212,7 @@ bool FPCGExFindContoursContext::TryFindContours(
 	{
 		const TSharedPtr<PCGExData::TBuffer<bool>> DeadEndBuffer = PathDataFacade->GetWritable(Settings->DeadEndAttributeName, false, false, true);
 		TArray<bool>& OutValues = *DeadEndBuffer->GetOutValues();
-		for (int i = 0; i < Path.Num(); ++i) { OutValues[i] = (Cluster->Nodes->GetData() + Path[i])->Adjacency.Num() == 1; }
+		for (int i = 0; i < Path.Num(); i++) { OutValues[i] = (Cluster->Nodes->GetData() + Path[i])->Adjacency.Num() == 1; }
 	}
 
 	if (Sign != 0)
@@ -280,11 +280,8 @@ bool FPCGExFindContoursElement::ExecuteInternal(
 
 	PCGEX_CONTEXT_AND_SETTINGS(FindContours)
 	PCGEX_EXECUTION_CHECK
-
-	if (Context->IsSetup())
+	PCGEX_ON_INITIAL_EXECUTION
 	{
-		if (!Boot(Context)) { return true; }
-
 		if (!Context->StartProcessingClusters<PCGExFindContours::FBatch>(
 			[](const TSharedPtr<PCGExData::FPointIOTaggedEntries>& Entries) { return true; },
 			[&](const TSharedPtr<PCGExFindContours::FBatch>& NewBatch)
@@ -296,19 +293,18 @@ bool FPCGExFindContoursElement::ExecuteInternal(
 				}
 			}))
 		{
-			PCGE_LOG(Warning, GraphAndLog, FTEXT("Could not build any clusters."));
-			return true;
+			return Context->CancelExecution(TEXT("Could not build any clusters."));
 		}
 	}
 
-	if (!Context->ProcessClusters(PCGExMT::State_Done)) { return false; }
+	PCGEX_CLUSTER_BATCH_PROCESSING(PCGEx::State_Done)
 
 	if (Settings->bOutputFilteredSeeds)
 	{
 		const TArray<FPCGPoint>& InSeeds = Context->SeedsDataFacade->Source->GetIn()->GetPoints();
 		TArray<FPCGPoint>& GoodSeeds = Context->GoodSeeds->GetOut()->GetMutablePoints();
 		TArray<FPCGPoint>& BadSeeds = Context->BadSeeds->GetOut()->GetMutablePoints();
-		for (int i = 0; i < Context->SeedQuality.Num(); ++i)
+		for (int i = 0; i < Context->SeedQuality.Num(); i++)
 		{
 			if (Context->SeedQuality[i]) { GoodSeeds.Add(InSeeds[i]); }
 			else { BadSeeds.Add(InSeeds[i]); }
@@ -362,16 +358,16 @@ namespace PCGExFindContours
 	{
 		if (IsTrivial())
 		{
-			for (int i = 0; i < Context->SeedsDataFacade->Source->GetNum(); ++i)
+			for (int i = 0; i < Context->SeedsDataFacade->Source->GetNum(); i++)
 			{
-				Context->TryFindContours(Context->Paths->Emplace_GetRef<UPCGPointData>(VtxDataFacade->Source, PCGExData::EInit::NewOutput), i, this);
+				Context->TryFindContours(Context->Paths->Emplace_GetRef<UPCGPointData>(VtxDataFacade->Source, PCGExData::EInit::NewOutput), i, SharedThis(this));
 			}
 		}
 		else
 		{
-			for (int i = 0; i < Context->SeedsDataFacade->Source->GetNum(); ++i)
+			for (int i = 0; i < Context->SeedsDataFacade->Source->GetNum(); i++)
 			{
-				AsyncManager->Start<FPCGExFindContourTask>(i, Context->Paths->Emplace_GetRef<UPCGPointData>(VtxDataFacade->Source, PCGExData::EInit::NewOutput), this);
+				AsyncManager->Start<FPCGExFindContourTask>(i, Context->Paths->Emplace_GetRef<UPCGPointData>(VtxDataFacade->Source, PCGExData::EInit::NewOutput), SharedThis(this));
 			}
 		}
 	}
@@ -403,12 +399,12 @@ namespace PCGExFindContours
 		PCGEx::InitArray(ProjectedPositions, VtxDataFacade->GetNum());
 
 		PCGEX_ASYNC_GROUP_CHKD_VOID(AsyncManager, ProjectionTaskGroup)
-		
+
 		ProjectionTaskGroup->OnIterationCallback = [&](const int32 Index, const int32 Count, const int32 LoopIdx)
 		{
 			ProjectedPositions[Index] = ProjectionDetails.ProjectFlat(VtxDataFacade->Source->GetInPoint(Index).Transform.GetLocation(), Index);
 		};
-		
+
 		ProjectionTaskGroup->StartIterations(VtxDataFacade->GetNum(), GetDefault<UPCGExGlobalSettings>()->GetPointsBatchChunkSize());
 
 		TBatch<FProcessor>::Process();
@@ -423,7 +419,7 @@ namespace PCGExFindContours
 
 	bool FProjectRangeTask::ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager)
 	{
-		for (int i = 0; i < NumIterations; ++i)
+		for (int i = 0; i < NumIterations; i++)
 		{
 			const int32 Index = TaskIndex + i;
 			Batch->ProjectedPositions[Index] = Batch->ProjectionDetails.ProjectFlat(Batch->VtxDataFacade->Source->GetInPoint(Index).Transform.GetLocation(), Index);

@@ -42,7 +42,7 @@ private:
 	friend class FPCGExUnpackClustersElement;
 };
 
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExUnpackClustersContext final : public FPCGExPointsProcessorContext
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExUnpackClustersContext final : FPCGExPointsProcessorContext
 {
 	friend class FPCGExUnpackClustersElement;
 

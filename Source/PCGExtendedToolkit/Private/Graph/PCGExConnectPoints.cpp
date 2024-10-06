@@ -6,7 +6,7 @@
 
 #include "Graph/PCGExGraph.h"
 #include "Graph/Data/PCGExClusterData.h"
-#include "Graph/PCGExCompoundHelpers.h"
+#include "Graph/PCGExUnionHelpers.h"
 #include "Graph/Probes/PCGExProbeFactoryProvider.h"
 #include "Graph/Probes/PCGExProbeOperation.h"
 #include "Graph/Probes/PCGExProbing.h"
@@ -67,11 +67,8 @@ bool FPCGExConnectPointsElement::ExecuteInternal(FPCGContext* InContext) const
 
 	PCGEX_CONTEXT_AND_SETTINGS(ConnectPoints)
 	PCGEX_EXECUTION_CHECK
-
-	if (Context->IsSetup())
+	PCGEX_ON_INITIAL_EXECUTION
 	{
-		if (!Boot(Context)) { return true; }
-
 		if (!Context->StartBatchProcessingPoints<PCGExPointsMT::TBatch<PCGExConnectPoints::FProcessor>>(
 			[&](const TSharedPtr<PCGExData::FPointIO>& Entry) { return Entry->GetNum() >= 2; },
 			[&](const TSharedPtr<PCGExPointsMT::TBatch<PCGExConnectPoints::FProcessor>>& NewBatch)
@@ -79,12 +76,11 @@ bool FPCGExConnectPointsElement::ExecuteInternal(FPCGContext* InContext) const
 				NewBatch->bRequiresWriteStep = true;
 			}))
 		{
-			PCGE_LOG(Warning, GraphAndLog, FTEXT("Could not build any clusters."));
-			return true;
+			return Context->CancelExecution(TEXT("Could not build any clusters."));
 		}
 	}
 
-	if (!Context->ProcessPointsBatch(PCGExMT::State_Done)) { return false; }
+	PCGEX_POINTS_BATCH_PROCESSING(PCGEx::State_Done)
 
 	Context->MainPoints->StageOutputs();
 
@@ -173,7 +169,7 @@ namespace PCGExConnectPoints
 		}
 		else
 		{
-			if (GeneratorsFilter) { for (int i = 0; i < InPoints->Num(); ++i) { CanGenerate[i] = GeneratorsFilter->Test(i); } }
+			if (GeneratorsFilter) { for (int i = 0; i < InPoints->Num(); i++) { CanGenerate[i] = GeneratorsFilter->Test(i); } }
 		}
 
 		PCGEX_ASYNC_GROUP_CHKD(AsyncManager, PrepTask)
@@ -201,7 +197,7 @@ namespace PCGExConnectPoints
 
 			if (bUseProjection)
 			{
-				for (int i = 0; i < NumPoints; ++i)
+				for (int i = 0; i < NumPoints; i++)
 				{
 					CachedTransforms[i] = ProjectionDetails.ProjectFlat(InPointsRef[i].Transform, i);
 
@@ -212,7 +208,7 @@ namespace PCGExConnectPoints
 			}
 			else
 			{
-				for (int i = 0; i < NumPoints; ++i)
+				for (int i = 0; i < NumPoints; i++)
 				{
 					CachedTransforms[i] = InPointsRef[i].Transform;
 
@@ -232,7 +228,7 @@ namespace PCGExConnectPoints
 	void FProcessor::PrepareLoopScopesForPoints(const TArray<uint64>& Loops)
 	{
 		FPointsProcessor::PrepareLoopScopesForPoints(Loops);
-		for (int i = 0; i < Loops.Num(); ++i) { DistributedEdgesSet.Add(MakeShared<TSet<uint64>>()); }
+		for (int i = 0; i < Loops.Num(); i++) { DistributedEdgesSet.Add(MakeShared<TSet<uint64>>()); }
 	}
 
 	void FProcessor::ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const int32 LoopIdx, const int32 Count)
@@ -258,7 +254,7 @@ namespace PCGExConnectPoints
 		if (NumChainedOps > 0)
 		{
 			BestCandidates.SetNum(NumChainedOps);
-			for (int i = 0; i < NumChainedOps; ++i) { ChainProbeOperations[i]->PrepareBestCandidate(Index, PointCopy, BestCandidates[i]); }
+			for (int i = 0; i < NumChainedOps; i++) { ChainProbeOperations[i]->PrepareBestCandidate(Index, PointCopy, BestCandidates[i]); }
 		}
 
 		if (!ProbeOperations.IsEmpty())
@@ -287,12 +283,12 @@ namespace PCGExConnectPoints
 					FVector::DistSquared(Position, Origin),
 					bPreventCoincidence ? PCGEx::I323(Dir, CWCoincidenceTolerance) : FInt32Vector::ZeroValue);
 
-				if (NumChainedOps > 0) { for (int i = 0; i < NumChainedOps; ++i) { ChainProbeOperations[i]->ProcessCandidateChained(i, PointCopy, EmplaceIndex, Candidates[EmplaceIndex], BestCandidates[i]); } }
+				if (NumChainedOps > 0) { for (int i = 0; i < NumChainedOps; i++) { ChainProbeOperations[i]->ProcessCandidateChained(i, PointCopy, EmplaceIndex, Candidates[EmplaceIndex], BestCandidates[i]); } }
 			};
 
 			Octree->FindElementsWithBoundsTest(FBoxCenterAndExtent(Origin, FVector(MaxRadius)), ProcessPoint);
 
-			if (NumChainedOps > 0) { for (int i = 0; i < NumChainedOps; ++i) { ChainProbeOperations[i]->ProcessBestCandidate(Index, PointCopy, BestCandidates[i], Candidates, LocalCoincidence.Get(), CWCoincidenceTolerance, UniqueEdges.Get()); } }
+			if (NumChainedOps > 0) { for (int i = 0; i < NumChainedOps; i++) { ChainProbeOperations[i]->ProcessBestCandidate(Index, PointCopy, BestCandidates[i], Candidates, LocalCoincidence.Get(), CWCoincidenceTolerance, UniqueEdges.Get()); } }
 
 			if (!Candidates.IsEmpty())
 			{

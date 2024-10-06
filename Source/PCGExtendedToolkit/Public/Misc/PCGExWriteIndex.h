@@ -34,7 +34,6 @@ public:
 	virtual PCGExData::EInit GetMainOutputInitMode() const override;
 	//~End UPCGExPointsProcessorSettings
 
-public:
 	/** Whther to write the index as a normalized output value. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	bool bOutputNormalizedIndex = false;
@@ -52,7 +51,7 @@ public:
 	FName CollectionIndexAttributeName = "CollectionIndex";
 };
 
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExWriteIndexContext final : public FPCGExPointsProcessorContext
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExWriteIndexContext final : FPCGExPointsProcessorContext
 {
 	friend class FPCGExWriteIndexElement;
 };

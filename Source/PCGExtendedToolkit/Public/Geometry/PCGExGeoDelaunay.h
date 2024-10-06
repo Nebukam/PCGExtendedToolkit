@@ -12,7 +12,6 @@ namespace PCGExGeo
 {
 	struct FDelaunaySite2
 	{
-	public:
 		int32 Vtx[3];
 		int32 Neighbors[3];
 		int32 Id = -1;
@@ -20,7 +19,7 @@ namespace PCGExGeo
 
 		FDelaunaySite2(const UE::Geometry::FIndex3i& InVtx, const UE::Geometry::FIndex3i& InAdjacency, const int32 InId = -1) : Id(InId)
 		{
-			for (int i = 0; i < 3; ++i)
+			for (int i = 0; i < 3; i++)
 			{
 				Vtx[i] = InVtx[i];
 				Neighbors[i] = InAdjacency[i];
@@ -108,13 +107,13 @@ namespace PCGExGeo
 
 			PCGEx::InitArray(Sites, NumSites);
 
-			for (int i = 0; i < NumSites; ++i)
+			for (int i = 0; i < NumSites; i++)
 			{
 				FDelaunaySite2& Site = Sites[i] = FDelaunaySite2(Triangles[i], Adjacencies[i], i);
 
-				for (int a = 0; a < 3; ++a)
+				for (int a = 0; a < 3; a++)
 				{
-					for (int b = a + 1; b < 3; ++b)
+					for (int b = a + 1; b < 3; b++)
 					{
 						const uint64 H = PCGEx::H64U(Site.Vtx[a], Site.Vtx[b]);
 						DelaunayEdges.Add(H);
@@ -184,7 +183,7 @@ namespace PCGExGeo
 
 				const FDelaunaySite2* Site = (Sites.GetData() + NextIndex);
 
-				for (int i = 0; i < 3; ++i)
+				for (int i = 0; i < 3; i++)
 				{
 					const int32 OtherIndex = Site->Neighbors[i];
 					if (OtherIndex == -1 || VisitedSites[OtherIndex]) { continue; }
@@ -210,7 +209,6 @@ namespace PCGExGeo
 
 	struct FDelaunaySite3
 	{
-	public:
 		uint64 Faces[4];
 		int32 Vtx[4];
 		int32 Neighbors[4];
@@ -219,7 +217,7 @@ namespace PCGExGeo
 
 		explicit FDelaunaySite3(const FIntVector4& InVtx, const int32 InId = -1) : Id(InId)
 		{
-			for (int i = 0; i < 4; ++i)
+			for (int i = 0; i < 4; i++)
 			{
 				Vtx[i] = InVtx[i];
 				Neighbors[i] = -1;
@@ -231,12 +229,12 @@ namespace PCGExGeo
 
 		void ComputeFaces()
 		{
-			for (int i = 0; i < 4; ++i) { Faces[i] = PCGEx::H64S(Vtx[MTX[i][0]], Vtx[MTX[i][1]], Vtx[MTX[i][2]]); }
+			for (int i = 0; i < 4; i++) { Faces[i] = PCGEx::H64S(Vtx[MTX[i][0]], Vtx[MTX[i][1]], Vtx[MTX[i][2]]); }
 		}
 
 		FORCEINLINE void SetAdjacency(const uint64 Face, const int32 Neighbor)
 		{
-			for (int i = 0; i < 4; ++i)
+			for (int i = 0; i < 4; i++)
 			{
 				if (Faces[i] == Face)
 				{
@@ -304,13 +302,13 @@ namespace PCGExGeo
 
 			PCGEx::InitArray(Sites, NumSites);
 
-			for (int i = 0; i < NumSites; ++i)
+			for (int i = 0; i < NumSites; i++)
 			{
 				FDelaunaySite3& Site = Sites[i] = FDelaunaySite3(Tetrahedra[i], i);
 
-				for (int a = 0; a < 4; ++a)
+				for (int a = 0; a < 4; a++)
 				{
-					for (int b = a + 1; b < 4; ++b)
+					for (int b = a + 1; b < 4; b++)
 					{
 						DelaunayEdges.Add(PCGEx::H64U(Site.Vtx[a], Site.Vtx[b]));
 					}
@@ -320,7 +318,7 @@ namespace PCGExGeo
 				{
 					Site.ComputeFaces();
 
-					for (int f = 0; f < 4; ++f)
+					for (int f = 0; f < 4; f++)
 					{
 						const uint64 FH = Site.Faces[f];
 						if (const int32* NeighborId = Faces.Find(FH))
@@ -339,11 +337,11 @@ namespace PCGExGeo
 
 			for (FDelaunaySite3& Site : Sites)
 			{
-				for (int f = 0; f < 4; ++f)
+				for (int f = 0; f < 4; f++)
 				{
 					if (Site.Neighbors[f] == -1)
 					{
-						for (int fi = 0; fi < 3; ++fi) { DelaunayHull.Add(Site.Vtx[MTX[f][fi]]); }
+						for (int fi = 0; fi < 3; fi++) { DelaunayHull.Add(Site.Vtx[MTX[f][fi]]); }
 						Site.bOnHull = true;
 						break;
 					}

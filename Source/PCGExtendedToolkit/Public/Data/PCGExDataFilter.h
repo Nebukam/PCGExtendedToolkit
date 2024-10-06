@@ -190,7 +190,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExCarryOverDetails
 	{
 		if (Attributes.FilterMode == EPCGExAttributeFilter::All) { return; }
 
-		for (int i = 0; i < Identities.Num(); ++i)
+		for (int i = 0; i < Identities.Num(); i++)
 		{
 			if (!Attributes.Test(Identities[i].Name.ToString()))
 			{

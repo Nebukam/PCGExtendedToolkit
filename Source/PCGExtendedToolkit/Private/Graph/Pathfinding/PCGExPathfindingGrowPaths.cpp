@@ -255,23 +255,19 @@ bool FPCGExPathfindingGrowPathsElement::ExecuteInternal(FPCGContext* InContext) 
 
 	PCGEX_CONTEXT_AND_SETTINGS(PathfindingGrowPaths)
 	PCGEX_EXECUTION_CHECK
-
-	if (Context->IsSetup())
+	PCGEX_ON_INITIAL_EXECUTION
 	{
-		if (!Boot(Context)) { return true; }
-
 		if (!Context->StartProcessingClusters<PCGExClusterMT::TBatchWithHeuristics<PCGExGrowPaths::FProcessor>>(
 			[](const TSharedPtr<PCGExData::FPointIOTaggedEntries>& Entries) { return true; },
 			[&](const TSharedPtr<PCGExClusterMT::TBatchWithHeuristics<PCGExGrowPaths::FProcessor>>& NewBatch)
 			{
 			}))
 		{
-			PCGE_LOG(Warning, GraphAndLog, FTEXT("Could not build any clusters."));
-			return true;
+			return Context->CancelExecution(TEXT("Could not build any clusters."));
 		}
 	}
 
-	if (!Context->ProcessClusters(PCGExMT::State_Done)) { return false; }
+	PCGEX_CLUSTER_BATCH_PROCESSING(PCGEx::State_Done)
 
 	Context->OutputPaths->StageOutputs();
 
@@ -318,7 +314,7 @@ namespace PCGExGrowPaths
 
 		// Find all growth points
 		const int32 SeedCount = Context->SeedsDataFacade->Source->GetNum();
-		for (int i = 0; i < SeedCount; ++i)
+		for (int i = 0; i < SeedCount; i++)
 		{
 			const FVector SeedPosition = Context->SeedsDataFacade->Source->GetInPoint(i).Transform.GetLocation();
 			const int32 NodeIndex = Cluster->FindClosestNode(SeedPosition, Settings->SeedPicking.PickingMethod, 1);
@@ -397,7 +393,7 @@ namespace PCGExGrowPaths
 				StartGrowthNumBranches = FMath::Max(1, static_cast<double>(Node.Adjacency.Num()) * StartGrowthNumBranches);
 			}
 
-			for (int j = 0; j < StartGrowthNumBranches; ++j)
+			for (int j = 0; j < StartGrowthNumBranches; j++)
 			{
 				TSharedPtr<FGrowth> NewGrowth = MakeShared<FGrowth>(SharedThis(this), StartNumIterations, Node.NodeIndex, StartGrowthDirection);
 				NewGrowth->MaxDistance = StartGrowthMaxDistance;
@@ -411,7 +407,7 @@ namespace PCGExGrowPaths
 		}
 
 		if (IsTrivial()) { Grow(); }
-		else { AsyncManager->Start<FGrowTask>(BatchIndex, nullptr, this); }
+		else { AsyncManager->Start<FGrowTask>(BatchIndex, nullptr, SharedThis(this)); }
 
 		return true;
 	}
@@ -438,7 +434,7 @@ namespace PCGExGrowPaths
 		{
 			while (!QueuedGrowths.IsEmpty())
 			{
-				for (int i = 0; i < QueuedGrowths.Num(); ++i)
+				for (int i = 0; i < QueuedGrowths.Num(); i++)
 				{
 					const TSharedPtr<FGrowth>& Growth = QueuedGrowths[i];
 

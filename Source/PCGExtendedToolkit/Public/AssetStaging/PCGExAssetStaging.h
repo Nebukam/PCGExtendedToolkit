@@ -38,7 +38,6 @@ public:
 	virtual PCGExData::EInit GetMainOutputInitMode() const override;
 	//~End UPCGExPointsProcessorSettings
 
-public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	EPCGExCollectionSource CollectionSource = EPCGExCollectionSource::Asset;
 
@@ -78,7 +77,7 @@ public:
 	FName WeightAttributeName = "AssetWeight";
 };
 
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExAssetStagingContext final : public FPCGExPointsProcessorContext
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExAssetStagingContext final : FPCGExPointsProcessorContext
 {
 	friend class FPCGExAssetStagingElement;
 

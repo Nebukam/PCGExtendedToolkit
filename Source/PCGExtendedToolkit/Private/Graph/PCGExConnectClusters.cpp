@@ -34,11 +34,8 @@ bool FPCGExConnectClustersElement::ExecuteInternal(FPCGContext* InContext) const
 
 	PCGEX_CONTEXT_AND_SETTINGS(ConnectClusters)
 	PCGEX_EXECUTION_CHECK
-
-	if (Context->IsSetup())
+	PCGEX_ON_INITIAL_EXECUTION
 	{
-		if (!Boot(Context)) { return true; }
-
 		if (!Context->StartProcessingClusters<PCGExBridgeClusters::FProcessorBatch>(
 			[&](const TSharedPtr<PCGExData::FPointIOTaggedEntries>& Entries)
 			{
@@ -57,14 +54,14 @@ bool FPCGExConnectClustersElement::ExecuteInternal(FPCGContext* InContext) const
 				NewBatch->bRequiresWriteStep = true;
 			}))
 		{
-			PCGE_LOG(Warning, GraphAndLog, FTEXT("No bridge was created."));
+			if (!Settings->bMuteNoBridgeWarning) { PCGE_LOG(Warning, GraphAndLog, FTEXT("No bridge was created.")); }
 			Context->OutputPointsAndEdges();
 			return true;
 		}
 	}
 
 
-	if (!Context->ProcessClusters(PCGExMT::State_Done)) { return false; }
+	PCGEX_CLUSTER_BATCH_PROCESSING(PCGEx::State_Done)
 
 	for (const TSharedPtr<PCGExClusterMT::FClusterProcessorBatchBase>& Batch : Context->Batches)
 	{
@@ -163,7 +160,7 @@ namespace PCGExBridgeClusters
 
 		TArray<FBox> Bounds;
 		PCGEx::InitArray(Bounds, NumBounds);
-		for (int i = 0; i < NumBounds; ++i) { Bounds[i] = ValidClusters[i]->Bounds; }
+		for (int i = 0; i < NumBounds; i++) { Bounds[i] = ValidClusters[i]->Bounds; }
 
 		if (SafeMethod == EPCGExBridgeClusterMethod::Delaunay3D)
 		{
@@ -172,7 +169,7 @@ namespace PCGExBridgeClusters
 			TArray<FVector> Positions;
 			Positions.SetNum(NumBounds);
 
-			for (int i = 0; i < NumBounds; ++i) { Positions[i] = Bounds[i].GetCenter(); }
+			for (int i = 0; i < NumBounds; i++) { Positions[i] = Bounds[i].GetCenter(); }
 
 			if (Delaunay->Process(Positions, false)) { Bridges.Append(Delaunay->DelaunayEdges); }
 			else { PCGE_LOG_C(Warning, GraphAndLog, ExecutionContext, FTEXT("Delaunay 3D failed. Are points coplanar? If so, use Delaunay 2D instead.")); }
@@ -186,7 +183,7 @@ namespace PCGExBridgeClusters
 			TArray<FVector> Positions;
 			Positions.SetNum(NumBounds);
 
-			for (int i = 0; i < NumBounds; ++i) { Positions[i] = Bounds[i].GetCenter(); }
+			for (int i = 0; i < NumBounds; i++) { Positions[i] = Bounds[i].GetCenter(); }
 
 			if (Delaunay->Process(Positions, Context->ProjectionDetails)) { Bridges.Append(Delaunay->DelaunayEdges); }
 			else { PCGE_LOG_C(Warning, GraphAndLog, ExecutionContext, FTEXT("Delaunay 2D failed.")); }
@@ -196,13 +193,13 @@ namespace PCGExBridgeClusters
 		else if (SafeMethod == EPCGExBridgeClusterMethod::LeastEdges)
 		{
 			TSet<int32> VisitedEdges;
-			for (int i = 0; i < NumBounds; ++i)
+			for (int i = 0; i < NumBounds; i++)
 			{
 				VisitedEdges.Add(i); // As to not connect to self or already connected
 				double Distance = MAX_dbl;
 				int32 ClosestIndex = -1;
 
-				for (int j = 0; j < NumBounds; ++j)
+				for (int j = 0; j < NumBounds; j++)
 				{
 					if (i == j || VisitedEdges.Contains(j)) { continue; }
 
@@ -221,9 +218,9 @@ namespace PCGExBridgeClusters
 		}
 		else if (SafeMethod == EPCGExBridgeClusterMethod::MostEdges)
 		{
-			for (int i = 0; i < NumBounds; ++i)
+			for (int i = 0; i < NumBounds; i++)
 			{
-				for (int j = 0; j < NumBounds; ++j)
+				for (int j = 0; j < NumBounds; j++)
 				{
 					if (i == j) { continue; }
 					Bridges.Add(PCGEx::H64U(i, j));
@@ -245,7 +242,7 @@ namespace PCGExBridgeClusters
 			uint32 End;
 			PCGEx::H64(Bridge, Start, End);
 
-			AsyncManager->Start<FPCGExCreateBridgeTask>(EdgePointIndex, ConsolidatedEdges, this, ValidClusters[Start], ValidClusters[End]);
+			AsyncManager->Start<FPCGExCreateBridgeTask>(EdgePointIndex, ConsolidatedEdges, SharedThis(this), ValidClusters[Start], ValidClusters[End]);
 		}
 
 		// Force writing cluster ID to Vtx, otherwise we inherit from previous metadata.

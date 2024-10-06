@@ -24,7 +24,7 @@ namespace PCGExGeo
 {
 	class FExtractStaticMeshTask;
 
-	class /*PCGEXTENDEDTOOLKIT_API*/ FGeoMesh
+	class /*PCGEXTENDEDTOOLKIT_API*/ FGeoMesh : public TSharedFromThis<FGeoMesh>
 	{
 	public:
 		bool bIsValid = false;
@@ -49,7 +49,7 @@ namespace PCGExGeo
 
 			Edges.Empty();
 
-			for (int i = 0; i < Triangles.Num(); ++i)
+			for (int i = 0; i < Triangles.Num(); i++)
 			{
 				const FIntVector3& Triangle = Triangles[i];
 				DualPositions[i] = (Vertices[Triangle.X] + Vertices[Triangle.Y] + Vertices[Triangle.Z]) / 3;
@@ -79,7 +79,7 @@ namespace PCGExGeo
 
 			Edges.Empty();
 
-			for (int i = 0; i < Triangles.Num(); ++i)
+			for (int i = 0; i < Triangles.Num(); i++)
 			{
 				const FIntVector3& Triangle = Triangles[i];
 				const int32 E = StartIndex + i;
@@ -135,7 +135,7 @@ namespace PCGExGeo
 			TMap<FVector, int32> IndexedUniquePositions;
 			Edges.Empty();
 
-			//for (int i = 0; i < GSM->Vertices.Num(); ++i) { GSM->Vertices[i] = FVector(VertexBuffer.VertexPosition(i)); }
+			//for (int i = 0; i < GSM->Vertices.Num(); i++) { GSM->Vertices[i] = FVector(VertexBuffer.VertexPosition(i)); }
 
 			int32 Idx = 0;
 			const FIndexArrayView& Indices = LODResources.IndexBuffer.GetArrayView();
@@ -160,11 +160,7 @@ namespace PCGExGeo
 
 			PCGEx::InitArray(Vertices, IndexedUniquePositions.Num());
 
-			TArray<FVector> Keys;
-			IndexedUniquePositions.GetKeys(Keys);
-			for (FVector Key : Keys) { Vertices[IndexedUniquePositions[Key]] = Key; }
-
-			IndexedUniquePositions.Empty();
+			for (const TPair<FVector, int32>& Pair : IndexedUniquePositions) { Vertices[IndexedUniquePositions[Pair.Key]] = Pair.Key; }
 
 			bIsLoaded = true;
 		}
@@ -236,7 +232,7 @@ namespace PCGExGeo
 			int32 ENum = EdgeAdjacency.Num();
 			PCGEx::InitArray(Adjacencies, Triangles.Num());
 
-			for (int j = 0; j < Triangles.Num(); ++j)
+			for (int j = 0; j < Triangles.Num(); j++)
 			{
 				FIntVector3 Triangle = Triangles[j];
 
@@ -254,11 +250,7 @@ namespace PCGExGeo
 
 			PCGEx::InitArray(Vertices, IndexedUniquePositions.Num());
 
-			TArray<FVector> Keys;
-			IndexedUniquePositions.GetKeys(Keys);
-			for (FVector Key : Keys) { Vertices[IndexedUniquePositions[Key]] = Key; }
-
-			IndexedUniquePositions.Empty();
+			for (const TPair<FVector, int32>& Pair : IndexedUniquePositions) { Vertices[IndexedUniquePositions[Pair.Key]] = Pair.Key; }
 
 			bIsLoaded = true;
 		}
@@ -267,7 +259,7 @@ namespace PCGExGeo
 		{
 			if (bIsLoaded) { return; }
 			if (!bIsValid) { return; }
-			AsyncManager->Start<FExtractStaticMeshTask>(-1, nullptr, this);
+			AsyncManager->Start<FExtractStaticMeshTask>(-1, nullptr, SharedThis(this));
 		}
 
 		~FGeoStaticMesh()
@@ -310,12 +302,12 @@ namespace PCGExGeo
 	class /*PCGEXTENDEDTOOLKIT_API*/ FExtractStaticMeshTask final : public PCGExMT::FPCGExTask
 	{
 	public:
-		FExtractStaticMeshTask(const TSharedPtr<PCGExData::FPointIO>& InPointIO, FGeoStaticMesh* InGSM) :
+		FExtractStaticMeshTask(const TSharedPtr<PCGExData::FPointIO>& InPointIO, const TSharedPtr<FGeoStaticMesh>& InGSM) :
 			FPCGExTask(InPointIO), GSM(InGSM)
 		{
 		}
 
-		FGeoStaticMesh* GSM = nullptr;
+		TSharedPtr<FGeoStaticMesh> GSM;
 
 		virtual bool ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager) override
 		{

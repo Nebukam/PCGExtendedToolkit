@@ -162,11 +162,8 @@ bool FPCGExDiscardByOverlapElement::ExecuteInternal(FPCGContext* InContext) cons
 
 	PCGEX_CONTEXT_AND_SETTINGS(DiscardByOverlap)
 	PCGEX_EXECUTION_CHECK
-
-	if (Context->IsSetup())
+	PCGEX_ON_INITIAL_EXECUTION
 	{
-		if (!Boot(Context)) { return true; }
-
 		if (!Context->StartBatchProcessingPoints<PCGExPointsMT::TBatch<PCGExDiscardByOverlap::FProcessor>>(
 			[&](const TSharedPtr<PCGExData::FPointIO>& Entry) { return true; },
 			[&](const TSharedPtr<PCGExPointsMT::TBatch<PCGExDiscardByOverlap::FProcessor>>& NewBatch)
@@ -174,21 +171,20 @@ bool FPCGExDiscardByOverlapElement::ExecuteInternal(FPCGContext* InContext) cons
 				NewBatch->bRequiresWriteStep = true; // Not really but we need the step
 			}))
 		{
-			PCGE_LOG(Warning, GraphAndLog, FTEXT("Could not find any input to check for overlaps."));
-			return true;
+			return Context->CancelExecution(TEXT("Could not find any input to check for overlaps."));
 		}
 	}
 
-	if (!Context->ProcessPointsBatch(PCGExMT::State_Processing)) { return false; }
+	PCGEX_POINTS_BATCH_PROCESSING(PCGEx::State_Processing)
 
-	if (Context->IsState(PCGExMT::State_Processing))
+	if (Context->IsState(PCGEx::State_Processing))
 	{
-		Context->SetAsyncState(PCGExMT::State_Completing);
+		Context->SetAsyncState(PCGEx::State_Completing);
 		Context->GetAsyncManager()->Start<PCGExDiscardByOverlap::FPruneTask>(-1, nullptr);
 		return false;
 	}
 
-	if (Context->IsState(PCGExMT::State_Completing))
+	if (Context->IsState(PCGEx::State_Completing))
 	{
 		PCGEX_ASYNC_WAIT
 		Context->Done();
@@ -397,7 +393,7 @@ namespace PCGExDiscardByOverlap
 		ManagedOverlaps.Empty();
 
 		// Sanitize stats & overlaps
-		for (int i = 0; i < Overlaps.Num(); ++i)
+		for (int i = 0; i < Overlaps.Num(); i++)
 		{
 			const TSharedPtr<FOverlap> Overlap = Overlaps[i];
 

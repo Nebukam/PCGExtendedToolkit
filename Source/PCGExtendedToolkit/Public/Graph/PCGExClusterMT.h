@@ -200,7 +200,7 @@ namespace PCGExClusterMT
 		{
 			PrepareSingleLoopScopeForNodes(StartIndex, Count);
 			TArray<PCGExCluster::FNode>& Nodes = *Cluster->Nodes;
-			for (int i = 0; i < Count; ++i)
+			for (int i = 0; i < Count; i++)
 			{
 				const int32 PtIndex = StartIndex + i;
 				ProcessSingleNode(PtIndex, Nodes[PtIndex], LoopIdx, Count);
@@ -248,7 +248,7 @@ namespace PCGExClusterMT
 		{
 			PrepareSingleLoopScopeForEdges(StartIndex, Count);
 			TArray<PCGExGraph::FIndexedEdge>& ClusterEdges = *Cluster->Edges;
-			for (int i = 0; i < Count; ++i)
+			for (int i = 0; i < Count; i++)
 			{
 				const int32 PtIndex = StartIndex + i;
 				ProcessSingleEdge(PtIndex, ClusterEdges[PtIndex], LoopIdx, Count);
@@ -294,7 +294,7 @@ namespace PCGExClusterMT
 		virtual void ProcessRange(const int32 StartIndex, const int32 Count, const int32 LoopIdx)
 		{
 			PrepareSingleLoopScopeForRange(StartIndex, Count);
-			for (int i = 0; i < Count; ++i) { ProcessSingleRangeIteration(StartIndex + i, LoopIdx, Count); }
+			for (int i = 0; i < Count; i++) { ProcessSingleRangeIteration(StartIndex + i, LoopIdx, Count); }
 		}
 
 		virtual void ProcessSingleRangeIteration(const int32 Iteration, const int32 LoopIdx, const int32 Count)
@@ -380,7 +380,7 @@ namespace PCGExClusterMT
 		TSharedPtr<PCGExGraph::FGraphBuilder> GraphBuilder;
 		FPCGExGraphBuilderDetails GraphBuilderDetails;
 
-		TArray<PCGExCluster::FCluster*> ValidClusters;
+		TArray<TSharedPtr<PCGExCluster::FCluster>> ValidClusters;
 
 		virtual int32 GetNumProcessors() const { return -1; }
 
@@ -531,7 +531,7 @@ namespace PCGExClusterMT
 		TArray<TSharedRef<T>> Processors;
 		TArray<TSharedRef<T>> TrivialProcessors;
 
-		PCGExMT::AsyncState CurrentState = PCGExMT::State_Setup;
+		PCGEx::AsyncState CurrentState = PCGEx::State_InitialExecution;
 
 		virtual int32 GetNumProcessors() const override { return Processors.Num(); }
 
@@ -547,7 +547,7 @@ namespace PCGExClusterMT
 			for (const TSharedPtr<T> P : Processors)
 			{
 				if (!P->Cluster) { continue; }
-				ValidClusters.Add(P->Cluster.Get());
+				ValidClusters.Add(P->Cluster);
 			}
 			return ValidClusters.Num();
 		}
@@ -558,7 +558,7 @@ namespace PCGExClusterMT
 
 			if (VtxDataFacade->GetNum() <= 1) { return; }
 
-			CurrentState = PCGExMT::State_Processing;
+			CurrentState = PCGEx::State_Processing;
 			TSharedPtr<FClusterProcessorBatchBase> SelfPtr = SharedThis(this);
 
 			for (const TSharedPtr<PCGExData::FPointIO>& IO : Edges)
@@ -594,14 +594,14 @@ namespace PCGExClusterMT
 
 		virtual void CompleteWork() override
 		{
-			CurrentState = PCGExMT::State_Completing;
+			CurrentState = PCGEx::State_Completing;
 			PCGEX_ASYNC_MT_LOOP_VALID_PROCESSORS(CompleteWork, bInlineCompletion, { Processor->CompleteWork(); })
 			FClusterProcessorBatchBase::CompleteWork();
 		}
 
 		virtual void Write() override
 		{
-			CurrentState = PCGExMT::State_Writing;
+			CurrentState = PCGEx::State_Writing;
 			PCGEX_ASYNC_MT_LOOP_VALID_PROCESSORS(Write, bInlineWrite, { Processor->Write(); })
 			FClusterProcessorBatchBase::Write();
 		}

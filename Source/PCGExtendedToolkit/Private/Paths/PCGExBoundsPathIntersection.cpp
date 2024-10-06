@@ -42,11 +42,8 @@ bool FPCGExBoundsPathIntersectionElement::ExecuteInternal(FPCGContext* InContext
 
 	PCGEX_CONTEXT_AND_SETTINGS(BoundsPathIntersection)
 	PCGEX_EXECUTION_CHECK
-
-	if (Context->IsSetup())
+	PCGEX_ON_INITIAL_EXECUTION
 	{
-		if (!Boot(Context)) { return true; }
-
 		bool bHasInvalidInputs = false;
 		bool bWritesAny = Settings->OutputSettings.WillWriteAny();
 		if (!Context->StartBatchProcessingPoints<PCGExPointsMT::TBatch<PCGExPathIntersections::FProcessor>>(
@@ -76,8 +73,7 @@ bool FPCGExBoundsPathIntersectionElement::ExecuteInternal(FPCGContext* InContext
 				NewBatch->bRequiresWriteStep = Settings->OutputSettings.WillWriteAny();
 			}))
 		{
-			PCGE_LOG(Warning, GraphAndLog, FTEXT("Could not find any paths to intersect with."));
-			return true;
+			Context->CancelExecution(TEXT("Could not find any paths to intersect with."));
 		}
 
 		if (bHasInvalidInputs)
@@ -86,7 +82,7 @@ bool FPCGExBoundsPathIntersectionElement::ExecuteInternal(FPCGContext* InContext
 		}
 	}
 
-	if (!Context->ProcessPointsBatch(PCGExMT::State_Done)) { return false; }
+	PCGEX_POINTS_BATCH_PROCESSING(PCGEx::State_Done)
 
 	Context->MainPoints->StageOutputs();
 
@@ -157,7 +153,7 @@ namespace PCGExPathIntersections
 	{
 		const TSharedPtr<PCGExGeo::FIntersections> Intersections = Segmentation->IntersectionsList[Index];
 		TArray<FPCGPoint>& MutablePoints = PointDataFacade->GetOut()->GetMutablePoints();
-		for (int i = 0; i < Intersections->Cuts.Num(); ++i)
+		for (int i = 0; i < Intersections->Cuts.Num(); i++)
 		{
 			const int32 Idx = Intersections->Start + i;
 
@@ -209,7 +205,7 @@ namespace PCGExPathIntersections
 
 		int32 Idx = 0;
 
-		for (int i = 0; i < LastIndex; ++i)
+		for (int i = 0; i < LastIndex; i++)
 		{
 			const FPCGPoint& OriginalPoint = OriginalPoints[i];
 			MutablePoints[Idx++] = OriginalPoint;
@@ -217,7 +213,7 @@ namespace PCGExPathIntersections
 			if (const TSharedPtr<PCGExGeo::FIntersections> Intersections = Segmentation->Find(PCGEx::H64U(i, i + 1)))
 			{
 				Intersections->Start = Idx;
-				for (int j = 0; j < Intersections->Cuts.Num(); ++j)
+				for (int j = 0; j < Intersections->Cuts.Num(); j++)
 				{
 					FPCGPoint& NewPoint = MutablePoints[Idx++] = OriginalPoint;
 					NewPoint.MetadataEntry = PCGInvalidEntryKey;
@@ -234,7 +230,7 @@ namespace PCGExPathIntersections
 			if (const TSharedPtr<PCGExGeo::FIntersections> Intersections = Segmentation->Find(PCGEx::H64U(LastIndex, 0)))
 			{
 				Intersections->Start = Idx;
-				for (int j = 0; j < Intersections->Cuts.Num(); ++j)
+				for (int j = 0; j < Intersections->Cuts.Num(); j++)
 				{
 					FPCGPoint& NewPoint = MutablePoints[Idx++] = OriginalPoint;
 					NewPoint.MetadataEntry = PCGInvalidEntryKey;

@@ -104,7 +104,6 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExAttributeDebugDraw
 		Config = nullptr;
 	}
 
-public:
 	FPCGExAttributeDebugDrawConfig* Config;
 
 	TSharedPtr<PCGEx::TAttributeBroadcaster<FVector>> VectorGetter;
@@ -167,7 +166,6 @@ public:
 #endif
 	//~End UObject interface
 
-public:
 	/** Attributes to draw.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(TitleProperty="{TitlePropertyName} as {ExpressedAs}"))
 	TArray<FPCGExAttributeDebugDrawConfig> DebugList;
@@ -183,7 +181,7 @@ private:
 	friend class FPCGExDrawAttributesElement;
 };
 
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExDrawAttributesContext final : public FPCGExPointsProcessorContext
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExDrawAttributesContext final : FPCGExPointsProcessorContext
 {
 	friend class FPCGExWriteIndexElement;
 	TArray<FPCGExAttributeDebugDraw> DebugList;
