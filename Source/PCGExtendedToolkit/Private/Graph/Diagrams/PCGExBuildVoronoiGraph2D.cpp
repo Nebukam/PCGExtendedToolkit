@@ -150,14 +150,10 @@ namespace PCGExBuildVoronoi2D
 
 		ActivePositions.Empty();
 
-		TArray<FVector> SitesPositions;
-		TArray<FVector> DelaunaySitesLocations;
-		TArray<double> DelaunaySitesInfluenceCount;
-
 		SitesPositions.SetNumUninitialized(NumSites);
 
 		using UpdatePositionCallback = std::function<void(const int32, const FVector&)>;
-		UpdatePositionCallback UpdateSitePosition = [&DelaunaySitesLocations, &DelaunaySitesInfluenceCount](const int32 Site, const FVector& InCentroid)
+		UpdatePositionCallback UpdateSitePosition = [](const int32 Site, const FVector& InCentroid)
 		{
 		};
 
@@ -168,7 +164,7 @@ namespace PCGExBuildVoronoi2D
 			DelaunaySitesLocations.Init(FVector::ZeroVector, DelaunaySitesNum);
 			DelaunaySitesInfluenceCount.Init(0, DelaunaySitesNum);
 
-			UpdateSitePosition = [&DelaunaySitesLocations, &DelaunaySitesInfluenceCount](const int32 DelSiteIndex, const FVector& InCentroid)
+			UpdateSitePosition = [&](const int32 DelSiteIndex, const FVector& InCentroid)
 			{
 				DelaunaySitesLocations[DelSiteIndex] += InCentroid;
 				DelaunaySitesInfluenceCount[DelSiteIndex] += 1;
@@ -341,7 +337,7 @@ namespace PCGExBuildVoronoi2D
 		if (Settings->bOutputSites)
 		{
 			PCGEX_ASYNC_GROUP_CHKD(AsyncManager, OutputSites)
-			
+
 			OutputSites->OnIterationCallback = [&](const int32 Index, const int32 Count, const int32 LoopIdx)
 			{
 				const bool bIsWithinBounds = VtxWithinBounds[Index];
@@ -349,7 +345,7 @@ namespace PCGExBuildVoronoi2D
 				if (DelaunaySitesInfluenceCount[Index] == 0) { return; }
 				SiteDataFacade->GetOut()->GetMutablePoints()[Index].Transform.SetLocation(DelaunaySitesLocations[Index] / DelaunaySitesInfluenceCount[Index]);
 			};
-			
+
 			OutputSites->StartIterations(DelaunaySitesNum, GetDefault<UPCGExGlobalSettings>()->GetPointsBatchChunkSize());
 		}
 

@@ -116,6 +116,10 @@ namespace PCGExBuildVoronoi2D
 
 		TBitArray<> WithinBounds;
 		TBitArray<> VtxWithinBounds;
+		
+		TArray<FVector> SitesPositions;
+		TArray<FVector> DelaunaySitesLocations;
+		TArray<double> DelaunaySitesInfluenceCount;
 
 		TUniquePtr<PCGExGeo::TVoronoi2> Voronoi;
 		TSharedPtr<PCGExGraph::FGraphBuilder> GraphBuilder;
@@ -123,6 +127,7 @@ namespace PCGExBuildVoronoi2D
 		TSharedPtr<PCGExData::FFacade> SiteDataFacade;
 		TSharedPtr<PCGExData::TBuffer<bool>> HullMarkPointWriter;
 		TSharedPtr<PCGExData::TBuffer<bool>> OpenSiteWriter;
+		
 
 	public:
 		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade):
