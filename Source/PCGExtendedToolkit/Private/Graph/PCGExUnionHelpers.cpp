@@ -87,9 +87,12 @@ namespace PCGExGraph
 
 				GraphBuilder = MakeShared<FGraphBuilder>(UnionFacade, &InBuilderDetails, 4);
 
-				TSet<uint64> UniqueEdges;
+				//TSet<uint64> UniqueEdges;
+				//UnionGraph->GetUniqueEdges(UniqueEdges);
+				//GraphBuilder->Graph->InsertEdges(UniqueEdges, -1);
+				TArray<FIndexedEdge> UniqueEdges;
 				UnionGraph->GetUniqueEdges(UniqueEdges);
-				GraphBuilder->Graph->InsertEdges(UniqueEdges, -1);
+				GraphBuilder->Graph->InsertEdges(UniqueEdges);
 
 				PCGEX_ASYNC_GROUP_CHKD_VOID(Context->GetAsyncManager(), WriteMetadataTask);
 				WriteMetadataTask->OnCompleteCallback = [&]() { InternalStartExecution(); };

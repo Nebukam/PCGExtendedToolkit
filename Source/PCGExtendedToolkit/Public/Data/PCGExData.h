@@ -589,6 +589,7 @@ namespace PCGExData
 		mutable FRWLock UnionLock;
 
 	public:
+		//int32 Index = 0;
 		TSet<int32> IOIndices;
 		TSet<uint64> ItemHashSet;
 
@@ -631,6 +632,7 @@ namespace PCGExData
 		FORCEINLINE FUnionData* New(const int32 IOIndex, const int32 ItemIndex)
 		{
 			FUnionData* NewUnionData = Items.Add_GetRef(MakeUnique<FUnionData>()).Get();
+			//NewUnionData->Index = Items.Num() - 1;
 			NewUnionData->IOIndices.Add(IOIndex);
 			const uint64 H = PCGEx::H64(IOIndex, ItemIndex);
 			NewUnionData->ItemHashSet.Add(H);

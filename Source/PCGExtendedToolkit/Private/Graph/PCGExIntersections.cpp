@@ -292,6 +292,13 @@ namespace PCGExGraph
 		}
 	}
 
+	void FUnionGraph::GetUniqueEdges(TArray<FIndexedEdge>& OutEdges)
+	{
+		const int32 NumEdges = Edges.Num();
+		OutEdges.SetNumUninitialized(NumEdges);
+		for (const TPair<uint64, FIndexedEdge>& Pair : Edges) { OutEdges[Pair.Value.EdgeIndex] = Pair.Value; }
+	}
+
 	void FUnionGraph::WriteNodeMetadata(TMap<int32, FGraphNodeMetadata>& OutMetadata)
 	{
 		OutMetadata.Reserve(Nodes.Num());
@@ -306,8 +313,16 @@ namespace PCGExGraph
 
 	void FUnionGraph::WriteEdgeMetadata(TMap<int32, FGraphEdgeMetadata>& OutMetadata)
 	{
-		OutMetadata.Reserve(Edges.Num());
+		const int32 NumEdges = Edges.Num();
+		OutMetadata.Reserve(NumEdges);
 
+		for (int i = 0; i < NumEdges; i++)
+		{
+			const TUniquePtr<PCGExData::FUnionData>& UnionData = EdgesUnion->Items[i];
+			FGraphEdgeMetadata& EdgeMetadata = FGraphEdgeMetadata::GetOrCreate(i, nullptr, OutMetadata);
+			EdgeMetadata.UnionSize = UnionData->Num();
+		}
+		/*
 		for (const TPair<uint64, FIndexedEdge>& Pair : Edges)
 		{
 			const int32 Index = Pair.Value.EdgeIndex;
@@ -315,6 +330,7 @@ namespace PCGExGraph
 			FGraphEdgeMetadata& EdgeMetadata = FGraphEdgeMetadata::GetOrCreate(Index, nullptr, OutMetadata);
 			EdgeMetadata.UnionSize = UnionData->Num();
 		}
+		*/
 	}
 
 	FPointEdgeIntersections::FPointEdgeIntersections(

@@ -261,6 +261,7 @@ namespace PCGExGraph
 		                                        const FPCGPoint& To, const int32 ToIOIndex, const int32 ToPointIndex,
 		                                        const int32 EdgeIOIndex = -1, const int32 EdgePointIndex = -1);
 		void GetUniqueEdges(TSet<uint64>& OutEdges);
+		void GetUniqueEdges(TArray<FIndexedEdge>& OutEdges);
 		void WriteNodeMetadata(TMap<int32, FGraphNodeMetadata>& OutMetadata);
 		void WriteEdgeMetadata(TMap<int32, FGraphEdgeMetadata>& OutMetadata);
 	};

@@ -541,7 +541,7 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 			for (const PCGExGraph::FIndexedEdge& E : FlattenedEdges)
 			{
 				const int32 PointIndex = E.EdgeIndex;
-				if (const PCGExGraph::FGraphEdgeMetadata* EdgeMeta = Graph->FindEdgeMetadata(RootEdgeIndices[E.EdgeIndex]))
+				if (const PCGExGraph::FGraphEdgeMetadata* EdgeMeta = Graph->FindRootEdgeMetadata(RootEdgeIndices[E.EdgeIndex]))
 				{
 					PCGEX_FOREACH_EDGE_METADATA(PCGEX_EDGE_METADATA_OUTPUT)
 				}

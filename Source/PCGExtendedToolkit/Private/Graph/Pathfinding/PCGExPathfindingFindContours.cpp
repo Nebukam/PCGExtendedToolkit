@@ -36,7 +36,7 @@ bool FPCGExFindContoursContext::TryFindContours(
 {
 	const UPCGExFindContoursSettings* Settings = ClusterProcessor->GetSettings();
 
-	PCGExCluster::FCluster* Cluster = ClusterProcessor->Cluster.Get();
+	TSharedPtr<PCGExCluster::FCluster> Cluster = ClusterProcessor->Cluster;
 
 	TSharedPtr<TArray<PCGExCluster::FExpandedNode>> ExpandedNodes = ClusterProcessor->ExpandedNodes;
 	TSharedPtr<TArray<PCGExCluster::FExpandedEdge>> ExpandedEdges = ClusterProcessor->ExpandedEdges;
