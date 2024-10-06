@@ -4,6 +4,7 @@
 #include "Graph/PCGExBreakClustersToPaths.h"
 
 
+#include "Graph/PCGExChain.h"
 #include "Graph/Filters/PCGExClusterFilter.h"
 
 #define LOCTEXT_NAMESPACE "PCGExBreakClustersToPaths"
@@ -154,6 +155,9 @@ namespace PCGExBreakClustersToPaths
 		MutablePoints[PointCount++] = PathIO->GetInPoint(StartIdx);
 		for (const int32 NodeIndex : Chain->Nodes) { MutablePoints[PointCount++] = PathIO->GetInPoint(VtxPointsIndicesRef[NodeIndex]); }
 		MutablePoints[PointCount] = PathIO->GetInPoint(EndIdx);
+
+		if (Chain->bClosedLoop && Settings->bTagIfClosedLoop) { PathIO->Tags->Add(Settings->IsClosedLoopTag); }
+		else if (!Chain->bClosedLoop && Settings->bTagIfOpenPath) { PathIO->Tags->Add(Settings->IsOpenPathTag); }
 	}
 
 	void FProcessor::ProcessSingleEdge(const int32 EdgeIndex, PCGExGraph::FIndexedEdge& Edge, const int32 LoopIdx, const int32 Count)

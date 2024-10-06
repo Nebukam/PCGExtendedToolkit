@@ -92,7 +92,7 @@ public:
 
 	/** ... */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging", meta=(PCG_Overridable, EditCondition="bTagIfClosedLoop"))
-	FString IsClosedLoopTag = TEXT("Closed");
+	FString IsClosedLoopTag = TEXT("ClosedLoop");
 
 	/** */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging", meta=(PCG_Overridable, InlineEditConditionToggle))
@@ -100,7 +100,7 @@ public:
 
 	/** ... */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging", meta=(PCG_Overridable, EditCondition="bTagIfOpenSpline"))
-	FString IsOpenSplineTag = TEXT("Open");
+	FString IsOpenSplineTag = TEXT("OpenPath");
 
 	/** Tags to be forwarded from source splines */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging", meta=(PCG_Overridable))
