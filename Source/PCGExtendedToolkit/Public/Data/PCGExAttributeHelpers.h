@@ -322,13 +322,13 @@ namespace PCGEx
 						TArrayView<RawT> RawView(RawValues);
 						InternalAccessor->GetRange(RawView, StartIndex, *PointIO->GetInKeys().Get(), EPCGAttributeAccessorFlags::AllowBroadcast);
 
-						for (int i = 0; i < Count; ++i) { Dump[StartIndex + i] = Convert(RawValues[i]); }
+						for (int i = 0; i < Count; i++) { Dump[StartIndex + i] = Convert(RawValues[i]); }
 					});
 			}
 			else if (Selection == EPCGAttributePropertySelection::PointProperty)
 			{
 				const TArray<FPCGPoint>& InPoints = InData->GetPoints();
-#define PCGEX_GET_BY_ACCESSOR(_ENUM, _ACCESSOR) case _ENUM: for (int i = StartIndex; i < LastIndex; ++i) { Dump[i] = Convert(InPoints[i]._ACCESSOR); } break;
+#define PCGEX_GET_BY_ACCESSOR(_ENUM, _ACCESSOR) case _ENUM: for (int i = StartIndex; i < LastIndex; i++) { Dump[i] = Convert(InPoints[i]._ACCESSOR); } break;
 
 				switch (InternalSelector.GetPointProperty()) { PCGEX_FOREACH_POINTPROPERTY(PCGEX_GET_BY_ACCESSOR) }
 #undef PCGEX_GET_BY_ACCESSOR
@@ -338,7 +338,7 @@ namespace PCGEx
 				switch (InternalSelector.GetExtraProperty())
 				{
 				case EPCGExtraProperties::Index:
-					for (int i = StartIndex; i < LastIndex; ++i) { Dump[i] = Convert(i); }
+					for (int i = StartIndex; i < LastIndex; i++) { Dump[i] = Convert(i); }
 					break;
 				default: ;
 				}
@@ -384,7 +384,7 @@ namespace PCGEx
 
 						if (bCaptureMinMax)
 						{
-							for (int i = 0; i < NumPoints; ++i)
+							for (int i = 0; i < NumPoints; i++)
 							{
 								T V = Convert(RawValues[i]);
 								OutMin = PCGExMath::Min(V, OutMin);
@@ -394,7 +394,7 @@ namespace PCGEx
 						}
 						else
 						{
-							for (int i = 0; i < NumPoints; ++i) { Dump[i] = Convert(RawValues[i]); }
+							for (int i = 0; i < NumPoints; i++) { Dump[i] = Convert(RawValues[i]); }
 						}
 
 						RawValues.Empty();
@@ -405,9 +405,9 @@ namespace PCGEx
 				const TArray<FPCGPoint>& InPoints = InData->GetPoints();
 
 #define PCGEX_GET_BY_ACCESSOR(_ENUM, _ACCESSOR) case _ENUM:\
-				if (bCaptureMinMax) { for (int i = 0; i < NumPoints; ++i) {\
+				if (bCaptureMinMax) { for (int i = 0; i < NumPoints; i++) {\
 						T V = Convert(InPoints[i]._ACCESSOR); OutMin = PCGExMath::Min(V, OutMin); OutMax = PCGExMath::Max(V, OutMax); Dump[i] = V;\
-					} } else { for (int i = 0; i < NumPoints; ++i) { Dump[i] = Convert(InPoints[i]._ACCESSOR); } } break;
+					} } else { for (int i = 0; i < NumPoints; i++) { Dump[i] = Convert(InPoints[i]._ACCESSOR); } } break;
 
 				switch (InternalSelector.GetPointProperty()) { PCGEX_FOREACH_POINTPROPERTY(PCGEX_GET_BY_ACCESSOR) }
 #undef PCGEX_GET_BY_ACCESSOR
@@ -417,7 +417,7 @@ namespace PCGEx
 				switch (InternalSelector.GetExtraProperty())
 				{
 				case EPCGExtraProperties::Index:
-					for (int i = 0; i < NumPoints; ++i) { Dump[i] = Convert(i); }
+					for (int i = 0; i < NumPoints; i++) { Dump[i] = Convert(i); }
 					break;
 				default: ;
 				}
@@ -434,7 +434,7 @@ namespace PCGEx
 			if (!bMinMaxDirty) { return; }
 			ResetMinMax();
 			bMinMaxDirty = false;
-			for (int i = 0; i < Values.Num(); ++i)
+			for (int i = 0; i < Values.Num(); i++)
 			{
 				T V = Values[i];
 				Min = PCGExMath::Min(V, Min);
@@ -448,7 +448,7 @@ namespace PCGEx
 			bNormalized = true;
 			UpdateMinMax();
 			T Range = PCGExMath::Sub(Max, Min);
-			for (int i = 0; i < Values.Num(); ++i) { Values[i] = PCGExMath::Div(Values[i], Range); }
+			for (int i = 0; i < Values.Num(); i++) { Values[i] = PCGExMath::Div(Values[i], Range); }
 		}
 
 		FORCEINLINE T SoftGet(const int32 Index, const FPCGPoint& Point, const T& fallback)
@@ -998,14 +998,14 @@ namespace PCGEx
 
 		if (bKeepSourceMetadataEntry)
 		{
-			for (int i = 0; i < NumIndices; ++i)
+			for (int i = 0; i < NumIndices; i++)
 			{
 				TargetPoints[TargetIndex + i] = SourcePoints[SourceIndices[i]];
 			}
 		}
 		else
 		{
-			for (int i = 0; i < NumIndices; ++i)
+			for (int i = 0; i < NumIndices; i++)
 			{
 				const int32 WriteIndex = TargetIndex + i;
 				const PCGMetadataEntryKey Key = TargetPoints[WriteIndex].MetadataEntry;

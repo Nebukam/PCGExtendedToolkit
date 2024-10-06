@@ -30,5 +30,5 @@ void UPCGExSubPointsBlendInheritStart::BlendSubPoints(
 	InBlender->BlendRangeFromTo(From, To, StartIndex < 0 ? From.Index : StartIndex, Weights);
 
 	// Restore pre-blend position
-	for (int i = 0; i < NumPoints; ++i) { SubPoints[i].Transform.SetLocation(Locations[i]); }
+	for (int i = 0; i < NumPoints; i++) { SubPoints[i].Transform.SetLocation(Locations[i]); }
 }

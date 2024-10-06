@@ -200,7 +200,7 @@ namespace PCGExClusterMT
 		{
 			PrepareSingleLoopScopeForNodes(StartIndex, Count);
 			TArray<PCGExCluster::FNode>& Nodes = *Cluster->Nodes;
-			for (int i = 0; i < Count; ++i)
+			for (int i = 0; i < Count; i++)
 			{
 				const int32 PtIndex = StartIndex + i;
 				ProcessSingleNode(PtIndex, Nodes[PtIndex], LoopIdx, Count);
@@ -248,7 +248,7 @@ namespace PCGExClusterMT
 		{
 			PrepareSingleLoopScopeForEdges(StartIndex, Count);
 			TArray<PCGExGraph::FIndexedEdge>& ClusterEdges = *Cluster->Edges;
-			for (int i = 0; i < Count; ++i)
+			for (int i = 0; i < Count; i++)
 			{
 				const int32 PtIndex = StartIndex + i;
 				ProcessSingleEdge(PtIndex, ClusterEdges[PtIndex], LoopIdx, Count);
@@ -294,7 +294,7 @@ namespace PCGExClusterMT
 		virtual void ProcessRange(const int32 StartIndex, const int32 Count, const int32 LoopIdx)
 		{
 			PrepareSingleLoopScopeForRange(StartIndex, Count);
-			for (int i = 0; i < Count; ++i) { ProcessSingleRangeIteration(StartIndex + i, LoopIdx, Count); }
+			for (int i = 0; i < Count; i++) { ProcessSingleRangeIteration(StartIndex + i, LoopIdx, Count); }
 		}
 
 		virtual void ProcessSingleRangeIteration(const int32 Iteration, const int32 LoopIdx, const int32 Count)

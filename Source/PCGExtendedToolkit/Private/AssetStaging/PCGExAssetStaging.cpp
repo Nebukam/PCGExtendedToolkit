@@ -256,7 +256,7 @@ namespace PCGExAssetStaging
 		TArray<FPCGPoint>& MutablePoints = PointDataFacade->GetOut()->GetMutablePoints();
 
 		int32 WriteIndex = 0;
-		for (int32 i = 0; i < NumPoints; ++i) { if (MutablePoints[i].MetadataEntry != -2) { MutablePoints[WriteIndex++] = MutablePoints[i]; } }
+		for (int32 i = 0; i < NumPoints; i++) { if (MutablePoints[i].MetadataEntry != -2) { MutablePoints[WriteIndex++] = MutablePoints[i]; } }
 
 		MutablePoints.SetNum(WriteIndex);
 	}

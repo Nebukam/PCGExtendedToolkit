@@ -49,7 +49,7 @@ namespace PCGExData
 		PCGEx::InitArray(Writers, NumAttributes);
 
 		// Init forwarded attributes on target		
-		for (int i = 0; i < NumAttributes; ++i)
+		for (int i = 0; i < NumAttributes; i++)
 		{
 			const PCGEx::FAttributeIdentity& Identity = Identities[i];
 
@@ -68,7 +68,7 @@ namespace PCGExData
 	{
 		const int32 NumAttributes = Identities.Num();
 
-		for (int i = 0; i < NumAttributes; ++i)
+		for (int i = 0; i < NumAttributes; i++)
 		{
 			const PCGEx::FAttributeIdentity& Identity = Identities[i];
 

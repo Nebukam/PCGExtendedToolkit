@@ -89,7 +89,7 @@ namespace PCGExWritePathProperties
 			}
 		}
 
-		for (int i = 0; i < NumPoints; ++i)
+		for (int i = 0; i < NumPoints; i++)
 		{
 			Details[i] = {
 				i,
@@ -180,11 +180,11 @@ namespace PCGExWritePathProperties
 
 		// Compute path-wide data
 		double TotalLength = 0;
-		for (int i = 0; i < NumPoints; ++i) { TotalLength += Details[i].Length; }
+		for (int i = 0; i < NumPoints; i++) { TotalLength += Details[i].Length; }
 
 		// Compute path-wide, per-point stuff
 		double TraversedDistance = 0;
-		for (int i = 0; i <= LastIndex; ++i)
+		for (int i = 0; i <= LastIndex; i++)
 		{
 			const int32 PrevIndex = i == 0 ? bClosedLoop ? LastIndex : i : i - 1;
 			const int32 NextIndex = i == LastIndex ? bClosedLoop ? 0 : i : i + 1;
@@ -214,7 +214,7 @@ namespace PCGExWritePathProperties
 
 		if (Settings->bAverageNormals)
 		{
-			for (int i = 0; i <= LastIndex; ++i)
+			for (int i = 0; i <= LastIndex; i++)
 			{
 				const int32 PrevIndex = i == 0 ? bClosedLoop ? LastIndex : i : i - 1;
 				const int32 NextIndex = i == LastIndex ? bClosedLoop ? 0 : i : i + 1;

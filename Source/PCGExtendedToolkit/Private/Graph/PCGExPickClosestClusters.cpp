@@ -31,12 +31,12 @@ void FPCGExPickClosestClustersContext::ClusterProcessing_InitialProcessingDone()
 
 	if (Settings->PickMode == EPCGExClusterClosestPickMode::OnlyBest)
 	{
-		for (int i = 0; i < NumTargets; ++i)
+		for (int i = 0; i < NumTargets; i++)
 		{
 			int32 Pick = -1;
 			double Closest = MAX_dbl;
 
-			for (int j = 0; j < Processors.Num(); ++j)
+			for (int j = 0; j < Processors.Num(); j++)
 			{
 				const double Dist = Processors[j]->Distances[i];
 				if (Closest > Dist)
@@ -52,12 +52,12 @@ void FPCGExPickClosestClustersContext::ClusterProcessing_InitialProcessingDone()
 	}
 	else
 	{
-		for (int i = 0; i < NumTargets; ++i)
+		for (int i = 0; i < NumTargets; i++)
 		{
 			int32 Pick = -1;
 			double Closest = MAX_dbl;
 
-			for (int j = 0; j < Processors.Num(); ++j)
+			for (int j = 0; j < Processors.Num(); j++)
 			{
 				const double Dist = Processors[j]->Distances[i];
 				if (Closest > Dist && Processors[j]->Picker == 0)
@@ -247,7 +247,7 @@ namespace PCGExPickClosestClusters
 		int32 Picks = 0;
 		const int32 MaxPicks = Processors.Num();
 
-		for (const TSharedPtr<FProcessor>& P : Processors) { if (P->Picker != -1) { Picks++; } }
+		for (const TSharedRef<FProcessor>& P : Processors) { if (P->Picker != -1) { Picks++; } }
 
 		const UPCGExPickClosestClustersSettings* Stg = Processors[0]->Settings;
 		const FPCGExPickClosestClustersContext* Ctx = Processors[0]->Context;

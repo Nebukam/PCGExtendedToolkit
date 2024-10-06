@@ -53,7 +53,7 @@ bool FPCGExRefreshSeedTask::ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>&
 	TArray<FPCGPoint>& MutablePoints = PointIO->GetOut()->GetMutablePoints();
 
 	const FVector BaseOffset = FVector(TaskIndex) * 0.001;
-	for (int i = 0; i < PointIO->GetNum(); ++i) { MutablePoints[i].Seed = PCGExRandom::ComputeSeed(MutablePoints[i], BaseOffset); }
+	for (int i = 0; i < PointIO->GetNum(); i++) { MutablePoints[i].Seed = PCGExRandom::ComputeSeed(MutablePoints[i], BaseOffset); }
 
 	return true;
 }

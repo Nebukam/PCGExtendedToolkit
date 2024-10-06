@@ -165,7 +165,7 @@ namespace PCGExGraph
 	{
 		const int32 StartIndex = Nodes.Num();
 		Nodes.SetNum(StartIndex + NumNewNodes);
-		for (int i = 0; i < NumNewNodes; ++i)
+		for (int i = 0; i < NumNewNodes; i++)
 		{
 			FNode& Node = Nodes[StartIndex + i];
 			Node.NodeIndex = Node.PointIndex = StartIndex + i;
@@ -187,7 +187,7 @@ namespace PCGExGraph
 
 		int32 VisitedNum = 0;
 
-		for (int i = 0; i < Nodes.Num(); ++i)
+		for (int i = 0; i < Nodes.Num(); i++)
 		{
 			const FNode& CurrentNode = Nodes[i];
 
@@ -267,14 +267,7 @@ namespace PCGExGraph
 
 	void FGraphBuilder::CompileAsync(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager, const bool bWriteNodeFacade, FGraphMetadataDetails* MetadataDetails)
 	{
-		if (Graph->Nodes.Num() < GetDefault<UPCGExGlobalSettings>()->SmallClusterSize)
-		{
-			Compile(InAsyncManager, bWriteNodeFacade, MetadataDetails);
-		}
-		else
-		{
-			InAsyncManager->Start<PCGExGraphTask::FCompileGraph>(-1, NodeDataFacade->Source, SharedThis(this), bWriteNodeFacade, MetadataDetails);
-		}
+		InAsyncManager->Start<PCGExGraphTask::FCompileGraph>(-1, NodeDataFacade->Source, SharedThis(this), bWriteNodeFacade, MetadataDetails);
 	}
 
 	void FGraphBuilder::Compile(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager, const bool bWriteNodeFacade, FGraphMetadataDetails* MetadataDetails)
@@ -479,7 +472,7 @@ namespace PCGExGraphTask
 			// Copy any existing point properties first
 			UPCGMetadata* Metadata = EdgeIO->GetOut()->Metadata;
 			const TArray<FPCGPoint>& InPoints = EdgeIO->GetIn()->GetPoints();
-			for (int i = 0; i < NumEdges; ++i)
+			for (int i = 0; i < NumEdges; i++)
 			{
 				PCGExGraph::FIndexedEdge& OE = Graph->Edges[EdgeDump[i]];
 				FlattenedEdges[i] = PCGExGraph::FIndexedEdge(i, Graph->Nodes[OE.Start].PointIndex, Graph->Nodes[OE.End].PointIndex, i);
@@ -494,7 +487,7 @@ namespace PCGExGraphTask
 
 			UPCGMetadata* Metadata = EdgeIO->GetOut()->Metadata;
 
-			for (int i = 0; i < NumEdges; ++i)
+			for (int i = 0; i < NumEdges; i++)
 			{
 				PCGExGraph::FIndexedEdge& E = Graph->Edges[EdgeDump[i]];
 				FlattenedEdges[i] = PCGExGraph::FIndexedEdge(i, Graph->Nodes[E.Start].PointIndex, Graph->Nodes[E.End].PointIndex, i);

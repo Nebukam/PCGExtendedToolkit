@@ -74,7 +74,7 @@ namespace PCGExBoundsToPoints
 		if (bGeneratePerPointData)
 		{
 			NewOutputs.SetNum(PointDataFacade->GetNum());
-			for (int i = 0; i < NewOutputs.Num(); ++i)
+			for (int i = 0; i < NewOutputs.Num(); i++)
 			{
 				NewOutputs[i] = Context->MainPoints->Emplace_GetRef(PointDataFacade->Source, PCGExData::EInit::NewOutput);
 			}
@@ -172,7 +172,7 @@ namespace PCGExBoundsToPoints
 		{
 			TArray<FPCGPoint>& MutablePoints = PointDataFacade->GetOut()->GetMutablePoints();
 			UPCGMetadata* Metadata = PointDataFacade->GetOut()->Metadata;
-			for (int i = NumPoints; i < MutablePoints.Num(); ++i) { Metadata->InitializeOnSet(MutablePoints[i].MetadataEntry); }
+			for (int i = NumPoints; i < MutablePoints.Num(); i++) { Metadata->InitializeOnSet(MutablePoints[i].MetadataEntry); }
 		}
 	}
 }

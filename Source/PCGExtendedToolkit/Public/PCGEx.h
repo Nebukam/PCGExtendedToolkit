@@ -171,7 +171,7 @@ namespace PCGEx
 			OutArray.Reserve(_num_);
 			OutArray.SetNum(_num_);
 		}
-		for (int i = 0; i < InNum; ++i) { OutArray[i] = i; }
+		for (int i = 0; i < InNum; i++) { OutArray[i] = i; }
 	}
 
 	FORCEINLINE static FName GetCompoundName(const FName A, const FName B)
@@ -332,7 +332,7 @@ namespace PCGEx
 		int32 LastIndex = StartIndex;
 		int32 Count = 1;
 
-		for (int i = 1; i < InIndicesCopy.Num(); ++i)
+		for (int i = 1; i < InIndicesCopy.Num(); i++)
 		{
 			const int32 NextIndex = InIndicesCopy[i];
 			if (NextIndex == (LastIndex + 1))

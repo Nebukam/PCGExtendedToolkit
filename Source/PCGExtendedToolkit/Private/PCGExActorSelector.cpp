@@ -173,7 +173,7 @@ namespace PCGExActorSelector
 		if (Settings.bIncludeChildren)
 		{
 			const int32 InitialCount = ActorsToCheck.Num();
-			for (int32 i = 0; i < InitialCount; ++i)
+			for (int32 i = 0; i < InitialCount; i++)
 			{
 				ActorsToCheck[i]->GetAttachedActors(ActorsToCheck, /*bResetArray=*/ false, /*bRecursivelyIncludeAttachedActors=*/ true);
 			}

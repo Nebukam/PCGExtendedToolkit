@@ -108,7 +108,7 @@ bool FPCGExMeshToClustersElement::ExecuteInternal(
 			}
 
 			const TArray<FPCGPoint>& TargetPoints = Context->CurrentIO->GetIn()->GetPoints();
-			for (int i = 0; i < TargetPoints.Num(); ++i)
+			for (int i = 0; i < TargetPoints.Num(); i++)
 			{
 				FSoftObjectPath Path = PathGetter->SoftGet(i, TargetPoints[i], FSoftObjectPath());
 
@@ -176,9 +176,9 @@ bool FPCGExMeshToClustersElement::ExecuteInternal(
 
 		const int32 GSMNums = Context->StaticMeshMap->GSMs.Num();
 		Context->GraphBuilders.SetNum(GSMNums);
-		for (int i = 0; i < GSMNums; ++i) { Context->GraphBuilders[i] = nullptr; }
+		for (int i = 0; i < GSMNums; i++) { Context->GraphBuilders[i] = nullptr; }
 
-		for (int i = 0; i < Context->StaticMeshMap->GSMs.Num(); ++i)
+		for (int i = 0; i < Context->StaticMeshMap->GSMs.Num(); i++)
 		{
 			const TSharedPtr<PCGExGeo::FGeoStaticMesh> GSM = Context->StaticMeshMap->GSMs[i];
 			Context->GetAsyncManager()->Start<PCGExMeshToCluster::FExtractMeshAndBuildGraph>(i, nullptr, GSM);
@@ -191,7 +191,7 @@ bool FPCGExMeshToClustersElement::ExecuteInternal(
 	PCGEX_ON_ASYNC_STATE_READY(PCGExGeo::State_ExtractingMesh)
 	{
 		const TArray<FPCGPoint>& Targets = Context->CurrentIO->GetIn()->GetPoints();
-		for (int i = 0; i < Targets.Num(); ++i)
+		for (int i = 0; i < Targets.Num(); i++)
 		{
 			const int32 MeshIdx = Context->MeshIdx[i];
 
@@ -249,7 +249,7 @@ namespace PCGExMeshToCluster
 		const TSharedPtr<PCGExGraph::FGraphBuilder> GraphBuilder = MakeShared<PCGExGraph::FGraphBuilder>(RootVtxFacade, &Context->GraphBuilderDetails);
 		Context->GraphBuilders[TaskIndex] = GraphBuilder;
 
-		for (int i = 0; i < VtxPoints.Num(); ++i)
+		for (int i = 0; i < VtxPoints.Num(); i++)
 		{
 			FPCGPoint& NewVtx = VtxPoints[i];
 			NewVtx.Transform.SetLocation(Mesh->Vertices[i]);

@@ -147,12 +147,12 @@ namespace PCGExSplitPath
 		TArray<FPCGPoint>& MutablePoints = PathIO->GetOut()->GetMutablePoints();
 		PCGEx::InitArray(MutablePoints, NumPathPoints);
 
-		for (int i = 0; i < PathInfos.Count; ++i) { MutablePoints[i] = OriginalPoints[PathInfos.Start + i]; }
+		for (int i = 0; i < PathInfos.Count; i++) { MutablePoints[i] = OriginalPoints[PathInfos.Start + i]; }
 
 		if (bWrapWithStart) // There was a cut somewhere in the closed path.
 		{
 			const FPath& StartPathInfos = Paths[0];
-			for (int i = 0; i < StartPathInfos.Count; ++i) { MutablePoints[PathInfos.Count + i] = OriginalPoints[StartPathInfos.Start + i]; }
+			for (int i = 0; i < StartPathInfos.Count; i++) { MutablePoints[PathInfos.Count + i] = OriginalPoints[StartPathInfos.Start + i]; }
 		}
 	}
 

@@ -253,7 +253,7 @@ bool FPCGExDrawAttributesElement::ExecuteInternal(FPCGContext* InContext) const
 
 		UWorld* World = Context->SourceComponent->GetWorld();
 
-		for (int PointIndex = 0; PointIndex < Context->CurrentIO->GetNum(); ++PointIndex)
+		for (int PointIndex = 0; PointIndex < Context->CurrentIO->GetNum(); PointIndex++)
 		{
 			const PCGExData::FPointRef& Point = Context->CurrentIO->GetInPointRef(PointIndex);
 			const FVector Start = Point.Point->Transform.GetLocation();

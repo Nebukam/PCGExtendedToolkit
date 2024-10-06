@@ -53,7 +53,7 @@ bool UPCGExConditionalActionAttributesOperation::PrepareForData(const FPCGContex
 
 void UPCGExConditionalActionAttributesOperation::OnMatchSuccess(int32 Index, const FPCGPoint& Point)
 {
-	for (int i = 0; i < SuccessAttributes.Num(); ++i)
+	for (int i = 0; i < SuccessAttributes.Num(); i++)
 	{
 		FPCGMetadataAttributeBase* AttributeBase = SuccessAttributes[i];
 		PCGMetadataAttribute::CallbackWithRightType(
@@ -67,7 +67,7 @@ void UPCGExConditionalActionAttributesOperation::OnMatchSuccess(int32 Index, con
 
 void UPCGExConditionalActionAttributesOperation::OnMatchFail(int32 Index, const FPCGPoint& Point)
 {
-	for (int i = 0; i < FailAttributes.Num(); ++i)
+	for (int i = 0; i < FailAttributes.Num(); i++)
 	{
 		FPCGMetadataAttributeBase* AttributeBase = FailAttributes[i];
 		PCGMetadataAttribute::CallbackWithRightType(

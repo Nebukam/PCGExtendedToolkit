@@ -63,7 +63,7 @@ bool FPCGExBevelPathElement::Boot(FPCGExContext* InContext) const
 		const FVector ProjectionNormal = (End - Start).GetSafeNormal(1E-08, FVector::ForwardVector);
 		const FQuat ProjectionQuat = FQuat::FindBetweenNormals(ProjectionNormal, FVector::ForwardVector);
 
-		for (int i = 0; i < ProfilePoints.Num(); ++i)
+		for (int i = 0; i < ProfilePoints.Num(); i++)
 		{
 			Context->CustomProfilePositions[i] = ProjectionQuat.RotateVector((ProfilePoints[i].Transform.GetLocation() - Start) * Factor);
 		}
@@ -220,7 +220,7 @@ namespace PCGExBevelPath
 		PCGEx::InitArray(Subdivisions, SubdivCount);
 
 
-		for (int i = 0; i < SubdivCount; ++i) { Subdivisions[i] = Arrive + Dir * (StepSize + i * StepSize); }
+		for (int i = 0; i < SubdivCount; i++) { Subdivisions[i] = Arrive + Dir * (StepSize + i * StepSize); }
 	}
 
 	void FBevel::SubdivideArc(const double Factor, const double bIsCount)
@@ -239,7 +239,7 @@ namespace PCGExBevelPath
 		const double StepSize = 1 / static_cast<double>(SubdivCount + 1);
 		PCGEx::InitArray(Subdivisions, SubdivCount);
 
-		for (int i = 0; i < SubdivCount; ++i) { Subdivisions[i] = Arc.GetLocationOnArc(StepSize + i * StepSize); }
+		for (int i = 0; i < SubdivCount; i++) { Subdivisions[i] = Arc.GetLocationOnArc(StepSize + i * StepSize); }
 	}
 
 	void FBevel::SubdivideCustom(const FProcessor* InProcessor)
@@ -255,7 +255,7 @@ namespace PCGExBevelPath
 		const FVector ProjectionNormal = (Leave - Arrive).GetSafeNormal(1E-08, FVector::ForwardVector);
 		const FQuat ProjectionQuat = FQuat::FindBetweenNormals(FVector::ForwardVector, ProjectionNormal);
 
-		for (int i = 0; i < SubdivCount; ++i)
+		for (int i = 0; i < SubdivCount; i++)
 		{
 			Subdivisions[i] = Arrive + ProjectionQuat.RotateVector(SourcePos[i + 1] * Factor);
 		}
@@ -313,7 +313,7 @@ namespace PCGExBevelPath
 		const TArray<FPCGPoint>& InPoints = PointDataFacade->GetIn()->GetPoints();
 		const int32 NumPoints = InPoints.Num();
 		PCGEx::InitArray(Lengths, NumPoints);
-		for (int i = 0; i < NumPoints; ++i)
+		for (int i = 0; i < NumPoints; i++)
 		{
 			Lengths[i] = FVector::Distance(InPoints[i].Transform.GetLocation(), InPoints[i + 1 == NumPoints ? 0 : i + 1].Transform.GetLocation());
 		}
@@ -373,7 +373,7 @@ namespace PCGExBevelPath
 			return;
 		}
 
-		for (int i = Bevel->StartOutputIndex; i <= Bevel->EndOutputIndex; ++i)
+		for (int i = Bevel->StartOutputIndex; i <= Bevel->EndOutputIndex; i++)
 		{
 			MutablePoints[i] = OriginalPoint;
 			Metadata->InitializeOnSet(MutablePoints[i].MetadataEntry);
@@ -390,7 +390,7 @@ namespace PCGExBevelPath
 
 		if (Bevel->Subdivisions.IsEmpty()) { return; }
 
-		for (int i = 0; i < Bevel->Subdivisions.Num(); ++i)
+		for (int i = 0; i < Bevel->Subdivisions.Num(); i++)
 		{
 			FPCGPoint& Pt = MutablePoints[Bevel->StartOutputIndex + i + 1];
 			Pt.Transform.SetLocation(Bevel->Subdivisions[i]);
@@ -413,7 +413,7 @@ namespace PCGExBevelPath
 
 		if (EndPointWriter) { EndPointWriter->GetMutable(Bevel->EndOutputIndex) = true; }
 
-		if (SubdivisionWriter) { for (int i = 1; i <= Bevel->Subdivisions.Num(); ++i) { SubdivisionWriter->GetMutable(Bevel->StartOutputIndex + i) = true; } }
+		if (SubdivisionWriter) { for (int i = 1; i <= Bevel->Subdivisions.Num(); i++) { SubdivisionWriter->GetMutable(Bevel->StartOutputIndex + i) = true; } }
 	}
 
 	void FProcessor::CompleteWork()
@@ -425,7 +425,7 @@ namespace PCGExBevelPath
 		int32 NumBevels = 0;
 		int32 NumOutPoints = 0;
 
-		for (int i = 0; i < StartIndices.Num(); ++i)
+		for (int i = 0; i < StartIndices.Num(); i++)
 		{
 			StartIndices[i] = NumOutPoints;
 

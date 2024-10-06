@@ -48,7 +48,7 @@ void FPCGExPointIOMerger::Merge(const TSharedPtr<PCGExMT::FTaskManager>& AsyncMa
 
 	const int32 NumSources = IOSources.Num();
 
-	for (int i = 0; i < NumSources; ++i)
+	for (int i = 0; i < NumSources; i++)
 	{
 		const TSharedPtr<PCGExData::FPointIO> Source = IOSources[i];
 		UnionDataFacade->Source->Tags->Append(Source->Tags.ToSharedRef());
@@ -58,7 +58,7 @@ void FPCGExPointIOMerger::Merge(const TSharedPtr<PCGExMT::FTaskManager>& AsyncMa
 		const uint32 StartIndex = PCGEx::H64A(Scopes[i]);
 
 		// Copy source points -- TODO : could be made async if we split in two steps (merge points then merge attributes)
-		for (int j = 0; j < SourcePoints.Num(); ++j)
+		for (int j = 0; j < SourcePoints.Num(); j++)
 		{
 			const int32 TargetIndex = StartIndex + j;
 			const PCGMetadataEntryKey Key = MutablePoints[TargetIndex].MetadataEntry;
@@ -111,7 +111,7 @@ void FPCGExPointIOMerger::Merge(const TSharedPtr<PCGExMT::FTaskManager>& AsyncMa
 
 	InCarryOverDetails->Filter(&UnionDataFacade->Source.Get());
 
-	for (int i = 0; i < UniqueIdentities.Num(); ++i) { AsyncManager->Start<PCGExPointIOMerger::FCopyAttributeTask>(i, UnionDataFacade->Source, SharedThis(this)); }
+	for (int i = 0; i < UniqueIdentities.Num(); i++) { AsyncManager->Start<PCGExPointIOMerger::FCopyAttributeTask>(i, UnionDataFacade->Source, SharedThis(this)); }
 }
 
 namespace PCGExPointIOMerger
@@ -127,7 +127,7 @@ namespace PCGExPointIOMerger
 				using T = decltype(DummyValue);
 				TSharedPtr<PCGExData::TBuffer<T>> TypedBuffer = StaticCastSharedPtr<PCGExData::TBuffer<T>>(Buffer);
 
-				for (int i = 0; i < Merger->IOSources.Num(); ++i)
+				for (int i = 0; i < Merger->IOSources.Num(); i++)
 				{
 					TSharedPtr<PCGExData::FPointIO> SourceIO = Merger->IOSources[i];
 					const FPCGMetadataAttributeBase* Attribute = SourceIO->GetIn()->Metadata->GetConstAttribute(Identity.Name);

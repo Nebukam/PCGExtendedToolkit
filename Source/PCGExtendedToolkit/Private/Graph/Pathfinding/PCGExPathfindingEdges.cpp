@@ -238,7 +238,7 @@ namespace PCGExPathfindingEdge
 		}
 		else
 		{
-			for (int i = 0; i < Context->PathQueries.Num(); ++i)
+			for (int i = 0; i < Context->PathQueries.Num(); i++)
 			{
 				AsyncManager->Start<FSampleClusterPathTask>(i, VtxDataFacade->Source, SearchOperation, &Context->PathQueries, HeuristicsHandler, false);
 			}

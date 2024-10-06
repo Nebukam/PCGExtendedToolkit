@@ -273,12 +273,12 @@ namespace PCGExShrinkPath
 				}
 				break;
 			case EPCGExShrinkEndpoint::Start:
-				for (uint32 i = 0; i < StartAmount; ++i) { ShrinkOnce(1); }
-				if (!MutablePoints.IsEmpty() && EndAmount > 0) { for (uint32 i = 0; i < EndAmount; ++i) { ShrinkOnce(-1); } }
+				for (uint32 i = 0; i < StartAmount; i++) { ShrinkOnce(1); }
+				if (!MutablePoints.IsEmpty() && EndAmount > 0) { for (uint32 i = 0; i < EndAmount; i++) { ShrinkOnce(-1); } }
 				break;
 			case EPCGExShrinkEndpoint::End:
-				for (uint32 i = 0; i < EndAmount; ++i) { ShrinkOnce(-1); }
-				if (!MutablePoints.IsEmpty() && StartAmount > 0) { for (uint32 i = 0; i < StartAmount; ++i) { ShrinkOnce(1); } }
+				for (uint32 i = 0; i < EndAmount; i++) { ShrinkOnce(-1); }
+				if (!MutablePoints.IsEmpty() && StartAmount > 0) { for (uint32 i = 0; i < StartAmount; i++) { ShrinkOnce(1); } }
 				break;
 			}
 		}

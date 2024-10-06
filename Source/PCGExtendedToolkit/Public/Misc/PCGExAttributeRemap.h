@@ -151,7 +151,7 @@ namespace PCGExAttributeRemap
 
 			PCGExData::TBuffer<T>* Writer = static_cast<PCGExData::TBuffer<T>*>(CacheWriter.Get());
 
-			for (int d = 0; d < Dimensions; ++d)
+			for (int d = 0; d < Dimensions; d++)
 			{
 				FPCGExComponentRemapRule& Rule = Rules[d];
 
@@ -161,7 +161,7 @@ namespace PCGExAttributeRemap
 				{
 					if (Rule.RemapDetails.bPreserveSign)
 					{
-						for (int i = StartIndex; i < StartIndex + Count; ++i)
+						for (int i = StartIndex; i < StartIndex + Count; i++)
 						{
 							T& V = Writer->GetMutable(i);
 							VAL = PCGExMath::GetComponent(V, d);
@@ -173,7 +173,7 @@ namespace PCGExAttributeRemap
 					}
 					else
 					{
-						for (int i = StartIndex; i < StartIndex + Count; ++i)
+						for (int i = StartIndex; i < StartIndex + Count; i++)
 						{
 							T& V = Writer->GetMutable(i);
 							VAL = PCGExMath::GetComponent(V, d);
@@ -188,7 +188,7 @@ namespace PCGExAttributeRemap
 				{
 					if (Rule.RemapDetails.bPreserveSign)
 					{
-						for (int i = StartIndex; i < StartIndex + Count; ++i)
+						for (int i = StartIndex; i < StartIndex + Count; i++)
 						{
 							T& V = Writer->GetMutable(i);
 							VAL = PCGExMath::GetComponent(V, d);
@@ -200,7 +200,7 @@ namespace PCGExAttributeRemap
 					}
 					else
 					{
-						for (int i = StartIndex; i < StartIndex + Count; ++i)
+						for (int i = StartIndex; i < StartIndex + Count; i++)
 						{
 							T& V = Writer->GetMutable(i);
 							VAL = PCGExMath::GetComponent(V, d);

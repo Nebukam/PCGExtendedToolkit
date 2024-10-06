@@ -111,7 +111,7 @@ namespace PCGExBlendPath
 		{
 			Metrics = PCGExPaths::FPathMetrics(OutPoints[0].Transform.GetLocation());
 			PCGEx::InitArray(Length, PointDataFacade->GetNum());
-			for (int i = 0; i < PointDataFacade->GetNum(); ++i) { Length[i] = Metrics.Add(OutPoints[i].Transform.GetLocation()); }
+			for (int i = 0; i < PointDataFacade->GetNum(); i++) { Length[i] = Metrics.Add(OutPoints[i].Transform.GetLocation()); }
 		}
 
 		StartParallelLoopForPoints();

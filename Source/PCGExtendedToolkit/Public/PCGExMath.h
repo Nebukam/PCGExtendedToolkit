@@ -163,7 +163,7 @@ namespace PCGExMath
 		T Max;
 		GetMinMax(Values, Min, Max);
 		T Range = FMath::Max(FMath::Abs(Max), FMath::Abs(Min));
-		for (int i = 0; i < Values.Num(); ++i) { Values[i] = Values[i] / Range; }
+		for (int i = 0; i < Values.Num(); i++) { Values[i] = Values[i] / Range; }
 	}
 
 	template <typename T>
@@ -172,14 +172,14 @@ namespace PCGExMath
 		T Min;
 		T Max;
 		GetMinMax(Values, Min, Max);
-		if (bZeroMin) { for (int i = 0; i < Values.Num(); ++i) { Values[i] = Remap(Values[i], 0, Max, 0, 1) * Range; } }
-		else { for (int i = 0; i < Values.Num(); ++i) { Values[i] = Remap(Values[i], Min, Max, 0, 1) * Range; } }
+		if (bZeroMin) { for (int i = 0; i < Values.Num(); i++) { Values[i] = Remap(Values[i], 0, Max, 0, 1) * Range; } }
+		else { for (int i = 0; i < Values.Num(); i++) { Values[i] = Remap(Values[i], Min, Max, 0, 1) * Range; } }
 	}
 
 	template <typename T>
 	FORCEINLINE static void Remap(TArray<T> Values, T Min, T Max, T Range = 1)
 	{
-		for (int i = 0; i < Values.Num(); ++i) { Values[i] = Remap(Values[i], Min, Max, 0, 1) * Range; }
+		for (int i = 0; i < Values.Num(); i++) { Values[i] = Remap(Values[i], Min, Max, 0, 1) * Range; }
 	}
 
 	template <typename T>

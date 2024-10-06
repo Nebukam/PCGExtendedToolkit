@@ -164,7 +164,7 @@ namespace PCGExMT
 		check(NumSimpleCallbacks > 0);
 
 		GrowNumStarted(NumSimpleCallbacks);
-		for (int i = 0; i < NumSimpleCallbacks; ++i) { InternalStart<FSimpleCallbackTask>(false, i, nullptr); }
+		for (int i = 0; i < NumSimpleCallbacks; i++) { InternalStart<FSimpleCallbackTask>(false, i, nullptr); }
 	}
 
 	void FTaskGroup::GrowNumStarted(const int32 InNumStarted)
@@ -196,7 +196,7 @@ namespace PCGExMT
 	{
 		if (!Manager->IsAvailable()) { return; }
 		PrepareRangeIteration(StartIndex, Count, LoopIdx);
-		for (int i = 0; i < Count; ++i) { OnIterationCallback(StartIndex + i, Count, LoopIdx); }
+		for (int i = 0; i < Count; i++) { OnIterationCallback(StartIndex + i, Count, LoopIdx); }
 	}
 
 	void FPCGExTask::DoWork()

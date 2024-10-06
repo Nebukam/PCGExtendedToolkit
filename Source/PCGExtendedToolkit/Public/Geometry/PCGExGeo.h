@@ -131,7 +131,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExGeo2DProjectionDetails
 
 		if (NormalGetter)
 		{
-			for (int i = 0; i < NumVectors; ++i)
+			for (int i = 0; i < NumVectors; i++)
 			{
 				OutPositions[i] = FQuat::FindBetweenNormals(
 					NormalGetter->Read(i).GetSafeNormal(1E-08, FVector::UpVector),
@@ -140,7 +140,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExGeo2DProjectionDetails
 		}
 		else
 		{
-			for (int i = 0; i < NumVectors; ++i)
+			for (int i = 0; i < NumVectors; i++)
 			{
 				OutPositions[i] = ProjectionQuat.RotateVector(InPositions[i]);
 			}
@@ -151,7 +151,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExGeo2DProjectionDetails
 	{
 		const int32 NumVectors = InPositions.Num();
 		PCGEx::InitArray(OutPositions, NumVectors);
-		for (int i = 0; i < NumVectors; ++i) { OutPositions[i] = ProjectionQuat.RotateVector(InPositions[i]); }
+		for (int i = 0; i < NumVectors; i++) { OutPositions[i] = ProjectionQuat.RotateVector(InPositions[i]); }
 	}
 
 	void Project(const TArray<FVector>& InPositions, TArray<FVector2D>& OutPositions) const
@@ -161,7 +161,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExGeo2DProjectionDetails
 
 		if (NormalGetter)
 		{
-			for (int i = 0; i < NumVectors; ++i)
+			for (int i = 0; i < NumVectors; i++)
 			{
 				OutPositions[i] = FVector2D(
 					FQuat::FindBetweenNormals(
@@ -171,7 +171,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExGeo2DProjectionDetails
 		}
 		else
 		{
-			for (int i = 0; i < NumVectors; ++i)
+			for (int i = 0; i < NumVectors; i++)
 			{
 				OutPositions[i] = FVector2D(ProjectionQuat.RotateVector(InPositions[i]));
 			}
@@ -182,7 +182,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExGeo2DProjectionDetails
 	{
 		const int32 NumVectors = InPositions.Num();
 		PCGEx::InitArray(OutPositions, NumVectors);
-		for (int i = 0; i < NumVectors; ++i) { OutPositions[i] = FVector2D(ProjectionQuat.RotateVector(InPositions[i])); }
+		for (int i = 0; i < NumVectors; i++) { OutPositions[i] = FVector2D(ProjectionQuat.RotateVector(InPositions[i])); }
 	}
 
 	void Project(const TArray<FPCGPoint>& InPoints, TArray<FVector>& OutPositions) const
@@ -192,7 +192,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExGeo2DProjectionDetails
 
 		if (NormalGetter)
 		{
-			for (int i = 0; i < NumVectors; ++i)
+			for (int i = 0; i < NumVectors; i++)
 			{
 				OutPositions[i] = FQuat::FindBetweenNormals(
 					NormalGetter->Read(i).GetSafeNormal(1E-08, FVector::UpVector),
@@ -201,7 +201,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExGeo2DProjectionDetails
 		}
 		else
 		{
-			for (int i = 0; i < NumVectors; ++i) { OutPositions[i] = ProjectionQuat.RotateVector(InPoints[i].Transform.GetLocation()); }
+			for (int i = 0; i < NumVectors; i++) { OutPositions[i] = ProjectionQuat.RotateVector(InPoints[i].Transform.GetLocation()); }
 		}
 	}
 };
@@ -358,23 +358,23 @@ namespace PCGExGeo
 	FORCEINLINE static void GetCentroid(const TArrayView<FVector>& Positions, const int32 (&Vtx)[4], FVector& OutCentroid)
 	{
 		OutCentroid = FVector::Zero();
-		for (int i = 0; i < 4; ++i) { OutCentroid += Positions[Vtx[i]]; }
+		for (int i = 0; i < 4; i++) { OutCentroid += Positions[Vtx[i]]; }
 		OutCentroid /= 4;
 	}
 
 	FORCEINLINE static void GetCentroid(const TArrayView<FVector>& Positions, const int32 (&Vtx)[3], FVector& OutCentroid)
 	{
 		OutCentroid = FVector::Zero();
-		for (int i = 0; i < 3; ++i) { OutCentroid += Positions[Vtx[i]]; }
+		for (int i = 0; i < 3; i++) { OutCentroid += Positions[Vtx[i]]; }
 		OutCentroid /= 3;
 	}
 
 	FORCEINLINE static void GetLongestEdge(const TArrayView<FVector>& Positions, const int32 (&Vtx)[3], uint64& Edge)
 	{
 		double Dist = MIN_dbl;
-		for (int i = 0; i < 3; ++i)
+		for (int i = 0; i < 3; i++)
 		{
-			for (int j = i + 1; j < 3; ++j)
+			for (int j = i + 1; j < 3; j++)
 			{
 				const double LocalDist = FVector::DistSquared(Positions[Vtx[i]], Positions[Vtx[j]]);
 				if (LocalDist > Dist)
@@ -389,9 +389,9 @@ namespace PCGExGeo
 	FORCEINLINE static void GetLongestEdge(const TArrayView<FVector>& Positions, const int32 (&Vtx)[4], uint64& Edge)
 	{
 		double Dist = MIN_dbl;
-		for (int i = 0; i < 4; ++i)
+		for (int i = 0; i < 4; i++)
 		{
-			for (int j = i + 1; j < 4; ++j)
+			for (int j = i + 1; j < 4; j++)
 			{
 				const double LocalDist = FVector::DistSquared(Positions[Vtx[i]], Positions[Vtx[j]]);
 				if (LocalDist > Dist)
@@ -407,7 +407,7 @@ namespace PCGExGeo
 	{
 		const int32 NumPoints = Points.Num();
 		PCGEx::InitArray(OutPositions, NumPoints);
-		for (int i = 0; i < NumPoints; ++i) { OutPositions[i] = Points[i].Transform.GetLocation(); }
+		for (int i = 0; i < NumPoints; i++) { OutPositions[i] = Points[i].Transform.GetLocation(); }
 	}
 
 	FORCEINLINE static FVector GetBarycentricCoordinates(const FVector& Point, const FVector& A, const FVector& B, const FVector& C)

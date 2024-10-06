@@ -189,7 +189,7 @@ namespace PCGExPathToClusters
 		TArray<PCGExGraph::FIndexedEdge> Edges;
 		PCGEx::InitArray(Edges, bClosedLoop ? NumPoints : NumPoints - 1);
 
-		for (int i = 0; i < Edges.Num(); ++i)
+		for (int i = 0; i < Edges.Num(); i++)
 		{
 			Edges[i] = PCGExGraph::FIndexedEdge(i, i, i + 1, PointIO->IOIndex);
 		}

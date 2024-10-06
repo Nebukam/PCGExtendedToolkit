@@ -46,7 +46,7 @@ void UPCGExVtxPropertySpecialNeighbors::ProcessNode(const int32 ClusterIdx, cons
 	double LSmallest = MAX_dbl;
 	int32 ISmallest = -1;
 
-	for (int i = 0; i < Adjacency.Num(); ++i)
+	for (int i = 0; i < Adjacency.Num(); i++)
 	{
 		const PCGExCluster::FAdjacencyData& A = Adjacency[i];
 

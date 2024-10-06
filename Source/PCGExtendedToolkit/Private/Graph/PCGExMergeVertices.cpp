@@ -19,7 +19,7 @@ void FPCGExMergeVerticesContext::ClusterProcessing_InitialProcessingDone()
 
 	int32 StartOffset = 0;
 
-	for (int i = 0; i < Batches.Num(); ++i)
+	for (int i = 0; i < Batches.Num(); i++)
 	{
 		PCGExClusterMT::TBatch<PCGExMergeVertices::FProcessor>* Batch = static_cast<PCGExClusterMT::TBatch<PCGExMergeVertices::FProcessor>*>(Batches[i].Get());
 		Merger->Append(Batch->VtxDataFacade->Source);

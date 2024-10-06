@@ -117,9 +117,7 @@ bool FPCGExRefineEdgesElement::ExecuteInternal(
 
 	PCGEX_CLUSTER_BATCH_PROCESSING(Settings->bOutputOnlyEdgesAsPoints ? PCGEx::State_Done : PCGExGraph::State_ReadyToCompile)
 
-	if (!Context->CompileGraphBuilders(true, PCGEx::State_Done)) { return false; }
-
-	//
+	if (!Settings->bOutputOnlyEdgesAsPoints && !Context->CompileGraphBuilders(true, PCGEx::State_Done)) { return false; }
 
 	if (!Settings->bOutputOnlyEdgesAsPoints) { Context->MainPoints->StageOutputs(); }
 	else { Context->MainEdges->StageOutputs(); }
@@ -279,7 +277,7 @@ namespace PCGExRefineEdges
 		const TArray<FPCGPoint>& OriginalEdges = EdgeDataFacade->GetIn()->GetPoints();
 		TArray<FPCGPoint>& MutableEdges = EdgeDataFacade->GetOut()->GetMutablePoints();
 		PCGEx::InitArray(MutableEdges, ValidEdges.Num());
-		for (int i = 0; i < ValidEdges.Num(); ++i) { MutableEdges[i] = OriginalEdges[ValidEdges[i].EdgeIndex]; }
+		for (int i = 0; i < ValidEdges.Num(); i++) { MutableEdges[i] = OriginalEdges[ValidEdges[i].EdgeIndex]; }
 	}
 
 	void FProcessor::CompleteWork()
@@ -300,7 +298,7 @@ namespace PCGExRefineEdges
 
 		if (Processor->Sanitization == EPCGExRefineSanitization::Longest)
 		{
-			for (int i = 0; i < NumIterations; ++i)
+			for (int i = 0; i < NumIterations; i++)
 			{
 				const PCGExCluster::FNode& Node = *(Processor->Cluster->Nodes->GetData() + StartIndex + i);
 
@@ -328,7 +326,7 @@ namespace PCGExRefineEdges
 		}
 		else if (Processor->Sanitization == EPCGExRefineSanitization::Shortest)
 		{
-			for (int i = 0; i < NumIterations; ++i)
+			for (int i = 0; i < NumIterations; i++)
 			{
 				const PCGExCluster::FNode& Node = *(Processor->Cluster->Nodes->GetData() + StartIndex + i);
 

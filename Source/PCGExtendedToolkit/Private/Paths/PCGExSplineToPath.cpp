@@ -95,7 +95,7 @@ bool FPCGExSplineToPathElement::ExecuteInternal(FPCGContext* InContext) const
 	PCGEX_EXECUTION_CHECK
 	PCGEX_ON_INITIAL_EXECUTION
 	{
-		for (int i = 0; i < Context->NumTargets; ++i)
+		for (int i = 0; i < Context->NumTargets; i++)
 		{
 			TSharedPtr<PCGExData::FPointIO> NewOutput = Context->MainPoints->Emplace_GetRef(PCGExData::EInit::NewOutput);
 			TSharedPtr<PCGExData::FFacade> PointDataFacade = MakeShared<PCGExData::FFacade>(NewOutput.ToSharedRef());
@@ -163,7 +163,7 @@ namespace PCGExSplineToPath
 			}
 		};
 
-		for (int i = 0; i < NumSegments; ++i)
+		for (int i = 0; i < NumSegments; i++)
 		{
 			const double LengthAtPoint = Spline.GetDistanceAlongSplineAtSplinePoint(i);
 			ApplyTransform(MutablePoints[i], Spline.GetTransformAtDistanceAlongSpline(LengthAtPoint, ESplineCoordinateSpace::Type::World, true));

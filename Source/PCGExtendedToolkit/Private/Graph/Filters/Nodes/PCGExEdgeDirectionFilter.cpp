@@ -74,14 +74,14 @@ namespace PCGExNodeAdjacency
 		{
 			if (DotComparison.bUnsignedDot)
 			{
-				for (int i = 0; i < Dots.Num(); ++i)
+				for (int i = 0; i < Dots.Num(); i++)
 				{
 					Dots[i] = FMath::Abs(FVector::DotProduct(RefDir, Cluster->GetDir(Node.NodeIndex, PCGEx::H64A(Node.Adjacency[i]))));
 				}
 			}
 			else
 			{
-				for (int i = 0; i < Dots.Num(); ++i)
+				for (int i = 0; i < Dots.Num(); i++)
 				{
 					Dots[i] = FVector::DotProduct(RefDir, Cluster->GetDir(Node.NodeIndex, PCGEx::H64A(Node.Adjacency[i])));
 				}
@@ -91,14 +91,14 @@ namespace PCGExNodeAdjacency
 		{
 			if (DotComparison.bUnsignedDot)
 			{
-				for (int i = 0; i < Dots.Num(); ++i)
+				for (int i = 0; i < Dots.Num(); i++)
 				{
 					Dots[i] = FMath::Abs(FVector::DotProduct(RefDir, Cluster->GetDir(Node.NodeIndex, PCGEx::H64A(Node.Adjacency[i]))));
 				}
 			}
 			else
 			{
-				for (int i = 0; i < Dots.Num(); ++i)
+				for (int i = 0; i < Dots.Num(); i++)
 				{
 					Dots[i] = FVector::DotProduct(RefDir, Cluster->GetDir(Node.NodeIndex, PCGEx::H64A(Node.Adjacency[i])));
 				}
@@ -171,14 +171,14 @@ namespace PCGExNodeAdjacency
 
 		if (bFromNode)
 		{
-			for (int i = 0; i < Hashes.Num(); ++i)
+			for (int i = 0; i < Hashes.Num(); i++)
 			{
 				Hashes[i] = PCGEx::I323(Cluster->GetDir(Node.NodeIndex, PCGEx::H64A(Node.Adjacency[i])), CWTolerance);
 			}
 		}
 		else
 		{
-			for (int i = 0; i < Hashes.Num(); ++i)
+			for (int i = 0; i < Hashes.Num(); i++)
 			{
 				Hashes[i] = PCGEx::I323(Cluster->GetDir(Node.NodeIndex, PCGEx::H64A(Node.Adjacency[i])), CWTolerance);
 			}

@@ -92,7 +92,7 @@ void UPCGExMeshCollection::GetAssetPaths(TSet<FSoftObjectPath>& OutPaths, const 
 
 		OutPaths.Add(Entry.Descriptor.StaticMesh.ToSoftObjectPath());
 
-		for (int i = 0; i < Entry.Descriptor.OverrideMaterials.Num(); ++i)
+		for (int i = 0; i < Entry.Descriptor.OverrideMaterials.Num(); i++)
 		{
 			if (!Entry.Descriptor.OverrideMaterials[i].IsNull())
 			{
@@ -100,7 +100,7 @@ void UPCGExMeshCollection::GetAssetPaths(TSet<FSoftObjectPath>& OutPaths, const 
 			}
 		}
 
-		for (int i = 0; i < Entry.Descriptor.RuntimeVirtualTextures.Num(); ++i)
+		for (int i = 0; i < Entry.Descriptor.RuntimeVirtualTextures.Num(); i++)
 		{
 			if (!Entry.Descriptor.RuntimeVirtualTextures[i].IsNull())
 			{

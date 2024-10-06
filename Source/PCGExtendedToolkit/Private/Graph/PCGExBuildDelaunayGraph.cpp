@@ -179,7 +179,7 @@ namespace PCGExBuildDelaunay
 		const int32 NumSites = Delaunay->Sites.Num();
 
 		MutablePoints.SetNumUninitialized(NumSites);
-		for (int i = 0; i < NumSites; ++i)
+		for (int i = 0; i < NumSites; i++)
 		{
 			const PCGExGeo::FDelaunaySite3& Site = Delaunay->Sites[i];
 
@@ -199,7 +199,7 @@ namespace PCGExBuildDelaunay
 			HullBuffer->PrepareWrite(false, true, true);
 			{
 				TArray<bool>& OutValues = *HullBuffer->GetOutValues();
-				for (int i = 0; i < NumSites; ++i) { OutValues[i] = Delaunay->Sites[i].bOnHull; }
+				for (int i = 0; i < NumSites; i++) { OutValues[i] = Delaunay->Sites[i].bOnHull; }
 			}
 			Write(AsyncManager, HullBuffer);
 		}
@@ -223,7 +223,7 @@ namespace PCGExBuildDelaunay
 		const int32 NumSites = Delaunay->Sites.Num();
 
 		MutablePoints.SetNumUninitialized(NumSites);
-		for (int i = 0; i < NumSites; ++i)
+		for (int i = 0; i < NumSites; i++)
 		{
 			const PCGExGeo::FDelaunaySite3& Site = Delaunay->Sites[i];
 
@@ -243,7 +243,7 @@ namespace PCGExBuildDelaunay
 			HullBuffer->PrepareWrite(false, true, true);
 			{
 				TArray<bool>& OutValues = *HullBuffer->GetOutValues();
-				for (int i = 0; i < NumSites; ++i) { OutValues[i] = Delaunay->Sites[i].bOnHull; }
+				for (int i = 0; i < NumSites; i++) { OutValues[i] = Delaunay->Sites[i].bOnHull; }
 			}
 			Write(AsyncManager, HullBuffer);
 		}

@@ -56,7 +56,7 @@ public:
 
 		MetadataBlender->PrepareForBlending(Target);
 
-		for (int i = 0; i < Indices.Num(); ++i)
+		for (int i = 0; i < Indices.Num(); i++)
 		{
 			MetadataBlender->Blend(Target, Path->GetInPointRef(Indices[i]), Target, Weights[i]);
 			TotalWeight += Weights[i];

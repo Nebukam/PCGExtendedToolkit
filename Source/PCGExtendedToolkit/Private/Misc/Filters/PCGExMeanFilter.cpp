@@ -39,14 +39,14 @@ void PCGExPointsFilter::TMeanFilter::PostInit()
 	Results.Init(false, NumPoints);
 
 	double SumValue = 0;
-	for (int i = 0; i < NumPoints; ++i) { SumValue += Values[i]; }
+	for (int i = 0; i < NumPoints; i++) { SumValue += Values[i]; }
 
 	if (TypedFilterFactory->Config.Measure == EPCGExMeanMeasure::Relative)
 	{
 		double RelativeMinEdgeLength = MAX_dbl;
 		double RelativeMaxEdgeLength = MIN_dbl;
 		SumValue = 0;
-		for (int i = 0; i < NumPoints; ++i)
+		for (int i = 0; i < NumPoints; i++)
 		{
 			const double Normalized = (Values[i] /= DataMax);
 			RelativeMinEdgeLength = FMath::Min(Normalized, RelativeMinEdgeLength);

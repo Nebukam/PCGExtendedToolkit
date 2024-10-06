@@ -52,7 +52,7 @@ void UPCGExVtxPropertySpecialEdges::ProcessNode(const int32 ClusterIdx, const PC
 	double LAverage = 0;
 	FVector VAverage = FVector::Zero();
 
-	for (int i = 0; i < Adjacency.Num(); ++i)
+	for (int i = 0; i < Adjacency.Num(); i++)
 	{
 		const PCGExCluster::FAdjacencyData& A = Adjacency[i];
 

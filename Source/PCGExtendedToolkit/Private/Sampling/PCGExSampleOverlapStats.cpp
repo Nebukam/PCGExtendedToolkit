@@ -258,7 +258,7 @@ namespace PCGExSampleOverlapStats
 			{
 				auto WrapUp = [&]()
 				{
-					for (int i = 0; i < NumPoints; ++i)
+					for (int i = 0; i < NumPoints; i++)
 					{
 						LocalOverlapSubCountMax = FMath::Max(LocalOverlapSubCountMax, OverlapSubCount[i]);
 						LocalOverlapCountMax = FMath::Max(LocalOverlapCountMax, OverlapCount[i]);

@@ -46,7 +46,7 @@ void UPCGExGoalPickerRandom::GetGoalIndices(const PCGExData::FPointRef& Seed, TA
 
 	Picks = FMath::Min(1, FMath::Min(Picks, MaxGoalIndex));
 
-	for (int i = 0; i < Picks; ++i)
+	for (int i = 0; i < Picks; i++)
 	{
 		int32 Index = static_cast<int32>(PCGExMath::Remap(
 			FMath::PerlinNoise3D(PCGExMath::Tile(Seed.Point->Transform.GetLocation() * 0.001 + i, FVector(-1), FVector(1))),

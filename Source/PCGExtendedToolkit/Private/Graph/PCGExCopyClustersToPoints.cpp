@@ -77,7 +77,7 @@ namespace PCGExCopyClusters
 
 		PCGEx::InitArray(EdgesDupes, NumTargets);
 
-		for (int i = 0; i < NumTargets; ++i)
+		for (int i = 0; i < NumTargets; i++)
 		{
 			// Create an edge copy per target point
 			TSharedPtr<PCGExData::FPointIO> EdgeDupe = Context->MainEdges->Emplace_GetRef(EdgeDataFacade->Source, PCGExData::EInit::DuplicateInput);
@@ -101,7 +101,7 @@ namespace PCGExCopyClusters
 		const TArray<FPCGPoint>& Targets = Context->Targets->GetIn()->GetPoints();
 		const int32 NumTargets = Targets.Num();
 
-		for (int i = 0; i < NumTargets; ++i)
+		for (int i = 0; i < NumTargets; i++)
 		{
 			TSharedPtr<PCGExData::FPointIO> VtxDupe = *(VtxDupes->GetData() + i);
 			TSharedPtr<PCGExData::FPointIO> EdgeDupe = EdgesDupes[i];
@@ -131,7 +131,7 @@ namespace PCGExCopyClusters
 		PCGEx::InitArray(VtxDupes, NumTargets);
 		VtxTag.Reserve(NumTargets);
 
-		for (int i = 0; i < NumTargets; ++i)
+		for (int i = 0; i < NumTargets; i++)
 		{
 			// Create a vtx copy per target point
 			TSharedPtr<PCGExData::FPointIO> VtxDupe = Context->MainPoints->Emplace_GetRef(VtxDataFacade->Source, PCGExData::EInit::DuplicateInput);

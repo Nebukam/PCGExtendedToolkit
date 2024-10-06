@@ -330,7 +330,7 @@ namespace PCGExCluster
 		{
 			FNode* Node = (Nodes->GetData() + NodeIndex);
 			PCGEx::InitArray(OutNeighbors, Node->Adjacency.Num());
-			for (int i = 0; i < Node->Adjacency.Num(); ++i)
+			for (int i = 0; i < Node->Adjacency.Num(); i++)
 			{
 				uint32 OtherNodeIndex;
 				uint32 EdgeIndex;
@@ -343,7 +343,7 @@ namespace PCGExCluster
 		void GrabNeighbors(const FNode& Node, TArray<T>& OutNeighbors, const MakeFunc&& Make) const
 		{
 			PCGEx::InitArray(OutNeighbors, Node.Adjacency.Num());
-			for (int i = 0; i < Node.Adjacency.Num(); ++i)
+			for (int i = 0; i < Node.Adjacency.Num(); i++)
 			{
 				uint32 OtherNodeIndex;
 				uint32 EdgeIndex;
@@ -387,7 +387,7 @@ namespace PCGExCluster
 			const int32 NumNeighbors = Node->Adjacency.Num();
 			const FVector Pos = Cluster->GetPos(InNodeIndex);
 			PCGEx::InitArray(Neighbors, NumNeighbors);
-			for (int i = 0; i < Neighbors.Num(); ++i)
+			for (int i = 0; i < Neighbors.Num(); i++)
 			{
 				uint32 NodeIndex;
 				uint32 EdgeIndex;
@@ -486,7 +486,7 @@ namespace PCGExCluster
 		const int32 NumAdjacency = InNode.Adjacency.Num();
 		const FVector NodePosition = InCluster->GetPos(InNode);
 		OutData.Reserve(NumAdjacency);
-		for (int i = 0; i < NumAdjacency; ++i)
+		for (int i = 0; i < NumAdjacency; i++)
 		{
 			uint32 NIndex;
 			uint32 EIndex;
@@ -604,7 +604,7 @@ namespace PCGExClusterTask
 		TSet<uint64> Chains;
 		Chains.Reserve(InChains.Num() / 2);
 
-		for (int i = 0; i < InChains.Num(); ++i)
+		for (int i = 0; i < InChains.Num(); i++)
 		{
 			const TSharedPtr<PCGExCluster::FNodeChain>& Chain = InChains[i];
 			if (!Chain) { continue; }

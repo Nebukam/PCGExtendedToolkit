@@ -274,7 +274,7 @@ namespace PCGExSampleNearestSpline
 		// First: Sample all possible targets
 		if (RangeMax > 0)
 		{
-			for (int i = 0; i < Context->NumTargets; ++i)
+			for (int i = 0; i < Context->NumTargets; i++)
 			{
 				const FPCGSplineStruct& Line = Context->Splines[i];
 				FTransform SampledTransform;
@@ -285,7 +285,7 @@ namespace PCGExSampleNearestSpline
 		}
 		else
 		{
-			for (int i = 0; i < Context->NumTargets; ++i)
+			for (int i = 0; i < Context->NumTargets; i++)
 			{
 				const FPCGSplineStruct& Line = Context->Splines[i];
 				FTransform SampledTransform;

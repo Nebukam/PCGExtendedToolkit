@@ -29,7 +29,7 @@ namespace PCGExAssetCollection
 		Order.Sort([&](const int32 A, const int32 B) { return Weights[A] < Weights[B]; });
 		Weights.Sort([&](const int32 A, const int32 B) { return A < B; });
 
-		for (int32 i = 0; i < NumEntries; ++i) { Weights[i] = i == 0 ? Weights[i] : Weights[i - 1] + Weights[i]; }
+		for (int32 i = 0; i < NumEntries; i++) { Weights[i] = i == 0 ? Weights[i] : Weights[i - 1] + Weights[i]; }
 	}
 }
 

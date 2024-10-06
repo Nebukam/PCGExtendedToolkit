@@ -196,12 +196,12 @@ namespace PCGExBuildDelaunay2D
 		const int32 NumSites = Delaunay->Sites.Num();
 
 		MutablePoints.SetNumUninitialized(NumSites);
-		for (int i = 0; i < NumSites; ++i)
+		for (int i = 0; i < NumSites; i++)
 		{
 			const PCGExGeo::FDelaunaySite2& Site = Delaunay->Sites[i];
 
 			FVector Centroid = FVector::ZeroVector;
-			for (int j = 0; j < 3; ++j) { Centroid += (OriginalPoints.GetData() + Site.Vtx[j])->Transform.GetLocation(); }
+			for (int j = 0; j < 3; j++) { Centroid += (OriginalPoints.GetData() + Site.Vtx[j])->Transform.GetLocation(); }
 			Centroid /= 3;
 
 			MutablePoints[i] = *(OriginalPoints.GetData() + Site.Vtx[0]);
@@ -214,7 +214,7 @@ namespace PCGExBuildDelaunay2D
 			HullBuffer->PrepareWrite(false, true, true);
 			{
 				TArray<bool>& OutValues = *HullBuffer->GetOutValues();
-				for (int i = 0; i < NumSites; ++i) { OutValues[i] = Delaunay->Sites[i].bOnHull; }
+				for (int i = 0; i < NumSites; i++) { OutValues[i] = Delaunay->Sites[i].bOnHull; }
 			}
 			Write(AsyncManager, HullBuffer);
 		}
@@ -249,7 +249,7 @@ namespace PCGExBuildDelaunay2D
 		FinalSites.Reserve(NumSites);
 		Hull.Reserve(NumSites / 4);
 
-		for (int i = 0; i < NumSites; ++i)
+		for (int i = 0; i < NumSites; i++)
 		{
 			if (VisitedSites[i]) { continue; }
 			VisitedSites[i] = true;
@@ -274,7 +274,7 @@ namespace PCGExBuildDelaunay2D
 				for (const int32 MergeSiteIndex : Queue)
 				{
 					const PCGExGeo::FDelaunaySite2& MSite = Delaunay->Sites[MergeSiteIndex];
-					for (int j = 0; j < 3; ++j) { Centroid += (OriginalPoints.GetData() + MSite.Vtx[j])->Transform.GetLocation(); }
+					for (int j = 0; j < 3; j++) { Centroid += (OriginalPoints.GetData() + MSite.Vtx[j])->Transform.GetLocation(); }
 
 					if (!bOnHull && Settings->bMarkSiteHull && MSite.bOnHull) { bOnHull = true; }
 				}
@@ -320,7 +320,7 @@ namespace PCGExBuildDelaunay2D
 			HullBuffer->PrepareWrite(false, true, true);
 			{
 				TArray<bool>& OutValues = *HullBuffer->GetOutValues();
-				for (int i = 0; i < Hull.Num(); ++i) { OutValues[i] = Hull[i]; }
+				for (int i = 0; i < Hull.Num(); i++) { OutValues[i] = Hull[i]; }
 			}
 			Write(AsyncManager, HullBuffer);
 		}

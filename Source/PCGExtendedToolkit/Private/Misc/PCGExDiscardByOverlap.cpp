@@ -393,7 +393,7 @@ namespace PCGExDiscardByOverlap
 		ManagedOverlaps.Empty();
 
 		// Sanitize stats & overlaps
-		for (int i = 0; i < Overlaps.Num(); ++i)
+		for (int i = 0; i < Overlaps.Num(); i++)
 		{
 			const TSharedPtr<FOverlap> Overlap = Overlaps[i];
 

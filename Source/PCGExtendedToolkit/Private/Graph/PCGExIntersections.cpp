@@ -198,8 +198,6 @@ namespace PCGExGraph
 		StartVtx->Add(EndVtx->Index);
 		EndVtx->Add(StartVtx->Index);
 
-		if (EdgeIOIndex == -1) { return nullptr; } // Skip edge management
-
 		PCGExData::FUnionData* EdgeIdx = nullptr;
 
 		const uint64 H = PCGEx::H64U(StartVtx->Index, EndVtx->Index);

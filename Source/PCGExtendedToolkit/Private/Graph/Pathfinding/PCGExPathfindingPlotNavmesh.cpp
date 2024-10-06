@@ -102,7 +102,7 @@ bool FPCGExPlotNavmeshTask::ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>&
 	FVector LastPosition = FVector::ZeroVector;
 
 	//int32 MaxIterations = Settings->bClosedLoop ? NumPlots : NumPlots - 1;
-	for (int i = 0; i < NumPlots - 1; ++i)
+	for (int i = 0; i < NumPlots - 1; i++)
 	{
 		FPCGPoint SeedPoint;
 		FPCGPoint GoalPoint;
@@ -182,7 +182,7 @@ bool FPCGExPlotNavmeshTask::ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>&
 
 	PCGExPaths::FPathMetrics Metrics = PCGExPaths::FPathMetrics(PathLocations[0].Position);
 	int32 FuseCountReduce = Context->bAddGoalToPath ? 2 : 1;
-	for (int i = Context->bAddSeedToPath; i < PathLocations.Num(); ++i)
+	for (int i = Context->bAddSeedToPath; i < PathLocations.Num(); i++)
 	{
 		PCGExPathfinding::FPlotPoint PPoint = PathLocations[i];
 		FVector CurrentLocation = PPoint.Position;
@@ -220,7 +220,7 @@ bool FPCGExPlotNavmeshTask::ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>&
 
 	MutablePoints.SetNumUninitialized(NumPositions);
 
-	for (int i = 0; i < NumPositions; ++i)
+	for (int i = 0; i < NumPositions; i++)
 	{
 		PCGExPathfinding::FPlotPoint PPoint = PathLocations[i];
 		FPCGPoint& NewPoint = (MutablePoints[i] = PointIO->GetInPoint(PPoint.PlotIndex));
@@ -232,7 +232,7 @@ bool FPCGExPlotNavmeshTask::ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>&
 	TSharedPtr<PCGExDataBlending::FMetadataBlender> TempBlender =
 		Context->Blending->CreateBlender(PathDataFacade.ToSharedRef(), PathDataFacade.ToSharedRef(), PCGExData::ESource::Out);
 
-	for (int i = 0; i < Milestones.Num() - 1; ++i)
+	for (int i = 0; i < Milestones.Num() - 1; i++)
 	{
 		int32 StartIndex = Milestones[i] - 1;
 		int32 EndIndex = Milestones[i + 1] + 1;

@@ -115,7 +115,7 @@ namespace PCGExReversePointOrder
 
 					if (WorkingPair.bMultiplyByMinusOne)
 					{
-						for (int i = 0; i < Count; ++i)
+						for (int i = 0; i < Count; i++)
 						{
 							const int32 Index = StartIndex + i;
 							const RawT FirstValue = FirstWriter->Read(Index);
@@ -125,7 +125,7 @@ namespace PCGExReversePointOrder
 					}
 					else
 					{
-						for (int i = 0; i < Count; ++i)
+						for (int i = 0; i < Count; i++)
 						{
 							const int32 Index = StartIndex + i;
 							const RawT FirstValue = FirstWriter->Read(Index);

@@ -220,7 +220,7 @@ namespace PCGExSampleInsideBoundss
 		else
 		{
 			TargetsInfos.Reserve(Context->NumTargets);
-			for (int i = 0; i < Context->NumTargets; ++i) { SampleTarget(i, *(Context->TargetPoints->GetData() + i)); }
+			for (int i = 0; i < Context->NumTargets; i++) { SampleTarget(i, *(Context->TargetPoints->GetData() + i)); }
 		}
 
 		// Compound never got updated, meaning we couldn't find target in range

@@ -162,7 +162,7 @@ namespace PCGExGraph
 		{
 			int32 EdgeIndex = 0;
 
-			for (int i = 0; i < NumEdges; ++i)
+			for (int i = 0; i < NumEdges; i++)
 			{
 				uint32 A;
 				uint32 B;
@@ -181,7 +181,7 @@ namespace PCGExGraph
 		}
 		else
 		{
-			for (int i = 0; i < NumEdges; ++i)
+			for (int i = 0; i < NumEdges; i++)
 			{
 				uint32 A;
 				uint32 B;
@@ -226,7 +226,7 @@ namespace PCGExGraph
 		{
 			int32 EdgeIndex = 0;
 
-			for (int i = 0; i < NumEdges; ++i)
+			for (int i = 0; i < NumEdges; i++)
 			{
 				uint32 A;
 				uint32 B;
@@ -248,7 +248,7 @@ namespace PCGExGraph
 		}
 		else
 		{
-			for (int i = 0; i < NumEdges; ++i)
+			for (int i = 0; i < NumEdges; i++)
 			{
 				uint32 A;
 				uint32 B;
@@ -457,7 +457,7 @@ namespace PCGExGraph
 
 			PCGEx::InitArray(Nodes, InNumNodes);
 
-			for (int i = 0; i < InNumNodes; ++i)
+			for (int i = 0; i < InNumNodes; i++)
 			{
 				FNode& Node = Nodes[i];
 				Node.NodeIndex = Node.PointIndex = i;
@@ -572,7 +572,7 @@ namespace PCGExGraph
 		const TArray<int64>& Indices = *IndexBuffer->GetInValues().Get();
 
 		OutIndices.Reserve(Indices.Num());
-		for (int i = 0; i < Indices.Num(); ++i)
+		for (int i = 0; i < Indices.Num(); i++)
 		{
 			uint32 A;
 			uint32 B;
@@ -629,7 +629,7 @@ namespace PCGExGraph
 		TSet<int32> UniqueVtx;
 		UniqueVtx.Reserve(OutEdgeNum * 2);
 
-		for (int i = 0; i < OutEdgeNum; ++i)
+		for (int i = 0; i < OutEdgeNum; i++)
 		{
 			uint32 A;
 			uint32 B;

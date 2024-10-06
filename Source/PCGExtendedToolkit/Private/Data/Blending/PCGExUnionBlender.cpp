@@ -128,7 +128,7 @@ namespace PCGExDataBlending
 
 					SrcMap->Writer = Writer;
 
-					for (int i = 0; i < Sources.Num(); ++i)
+					for (int i = 0; i < Sources.Num(); i++)
 					{
 						if (const TSharedPtr<FDataBlendingOperationBase>& SrcOp = SrcMap->BlendOps[i]) { SrcOp->PrepareForData(Writer, Sources[i]); }
 					}
@@ -175,7 +175,7 @@ namespace PCGExDataBlending
 			int32 ValidUnions = 0;
 			double TotalWeight = 0;
 
-			for (int k = 0; k < UnionCount; ++k)
+			for (int k = 0; k < UnionCount; k++)
 			{
 				const TSharedPtr<FDataBlendingOperationBase>& Operation = SrcMap->BlendOps[IdxIO[k]];
 				if (!Operation) { continue; }
@@ -225,7 +225,7 @@ namespace PCGExDataBlending
 
 					// TODO : Only prepare for data if the matching IO exists
 
-					for (int i = 0; i < Sources.Num(); ++i)
+					for (int i = 0; i < Sources.Num(); i++)
 					{
 						if (const TSharedPtr<FDataBlendingOperationBase>& SrcOp = SrcMap->BlendOps[i]) { SrcOp->SoftPrepareForData(CurrentTargetData, Sources[i]); }
 					}
@@ -284,7 +284,7 @@ namespace PCGExDataBlending
 			int32 ValidUnions = 0;
 			double TotalWeight = 0;
 
-			for (int k = 0; k < NumUnions; ++k)
+			for (int k = 0; k < NumUnions; k++)
 			{
 				const TSharedPtr<FDataBlendingOperationBase>& Operation = SrcMap->BlendOps[IdxIO[k]];
 				if (!Operation) { continue; }
@@ -308,13 +308,13 @@ namespace PCGExDataBlending
 
 		for (const int32 IOI : IdxIO)
 		{
-			for (int i = 0; i < TagAttributes.Num(); ++i)
+			for (int i = 0; i < TagAttributes.Num(); i++)
 			{
 				if (Sources[IOI]->Source->Tags->IsTagged(UniqueTagsList[i])) { InheritedTags[i] = true; }
 			}
 		}
 
-		for (int i = 0; i < TagAttributes.Num(); ++i) { TagAttributes[i]->SetValue(Target.MetadataEntry, InheritedTags[i]); }
+		for (int i = 0; i < TagAttributes.Num(); i++) { TagAttributes[i]->SetValue(Target.MetadataEntry, InheritedTags[i]); }
 	}
 
 	void FUnionBlender::BlendProperties(FPCGPoint& TargetPoint, TArray<int32>& IdxIO, TArray<int32>& IdxPt, TArray<double>& Weights)
@@ -325,7 +325,7 @@ namespace PCGExDataBlending
 
 		const int32 NumUnions = IdxIO.Num();
 		double TotalWeight = 0;
-		for (int k = 0; k < NumUnions; ++k)
+		for (int k = 0; k < NumUnions; k++)
 		{
 			const double Weight = Weights[k];
 			PropertiesBlender->Blend(TargetPoint, Sources[IdxIO[k]]->Source->GetInPoint(IdxPt[k]), TargetPoint, Weight);

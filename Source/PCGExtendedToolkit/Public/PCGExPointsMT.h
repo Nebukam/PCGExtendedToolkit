@@ -159,7 +159,7 @@ namespace PCGExPointsMT
 
 			PrepareSingleLoopScopeForPoints(StartIndex, Count);
 			TArray<FPCGPoint>& Points = PointDataFacade->Source->GetMutableData(CurrentProcessingSource)->GetMutablePoints();
-			for (int i = 0; i < Count; ++i)
+			for (int i = 0; i < Count; i++)
 			{
 				const int32 PtIndex = StartIndex + i;
 				ProcessSinglePoint(PtIndex, Points[PtIndex], LoopIdx, Count);
@@ -209,7 +209,7 @@ namespace PCGExPointsMT
 		virtual void ProcessRange(const int32 StartIndex, const int32 Count, const int32 LoopIdx)
 		{
 			PrepareSingleLoopScopeForRange(StartIndex, Count);
-			for (int i = 0; i < Count; ++i) { ProcessSingleRangeIteration(StartIndex + i, LoopIdx, Count); }
+			for (int i = 0; i < Count; i++) { ProcessSingleRangeIteration(StartIndex + i, LoopIdx, Count); }
 		}
 
 		virtual void OnRangeProcessingComplete()
@@ -254,7 +254,7 @@ namespace PCGExPointsMT
 			if (PrimaryFilters)
 			{
 				const int32 MaxIndex = StartIndex + Count;
-				for (int i = StartIndex; i < MaxIndex; ++i) { PointFilterCache[i] = PrimaryFilters->Test(i); }
+				for (int i = StartIndex; i < MaxIndex; i++) { PointFilterCache[i] = PrimaryFilters->Test(i); }
 			}
 		}
 
