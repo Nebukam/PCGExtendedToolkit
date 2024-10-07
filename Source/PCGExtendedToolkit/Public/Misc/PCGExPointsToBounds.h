@@ -94,8 +94,8 @@ namespace PCGExPointsToBounds
 	};
 
 	static void ComputeBounds(
-		PCGExMT::FTaskManager* Manager,
-		PCGExData::FPointIOCollection* IOGroup,
+		const TSharedPtr<PCGExMT::FTaskManager>& Manager,
+		const TSharedPtr<PCGExData::FPointIOCollection>& IOGroup,
 		TArray<TSharedPtr<FBounds>>& OutBounds,
 		const EPCGExPointBoundsSource BoundsSource)
 	{

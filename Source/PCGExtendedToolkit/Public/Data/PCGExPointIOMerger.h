@@ -10,6 +10,8 @@
 #include "PCGExMT.h"
 
 
+
+
 #include "UObject/Object.h"
 
 class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPointIOMerger final : public TSharedFromThis<FPCGExPointIOMerger>
@@ -28,7 +30,7 @@ public:
 
 	void Append(const TSharedPtr<PCGExData::FPointIO>& InData);
 	void Append(const TArray<TSharedPtr<PCGExData::FPointIO>>& InData);
-	void Append(PCGExData::FPointIOCollection* InCollection);
+	void Append(const TSharedRef<PCGExData::FPointIOCollection>& InCollection);
 	void Merge(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager, const FPCGExCarryOverDetails* InCarryOverDetails);
 
 protected:

@@ -7,7 +7,10 @@
 void UPCGExOperation::BindContext(FPCGExContext* InContext)
 {
 	Context = InContext;
+}
 
+void UPCGExOperation::FindSettingsOverrides(FPCGExContext* InContext)
+{
 	TArray<FPCGTaggedData> OverrideParams = Context->InputData.GetParamsByPin(PCGPinConstants::DefaultParamsLabel);
 
 	for (FPCGTaggedData& InTaggedData : OverrideParams)
@@ -24,7 +27,6 @@ void UPCGExOperation::BindContext(FPCGExContext* InContext)
 	}
 
 	ApplyOverrides();
-
 	PossibleOverrides.Empty();
 }
 

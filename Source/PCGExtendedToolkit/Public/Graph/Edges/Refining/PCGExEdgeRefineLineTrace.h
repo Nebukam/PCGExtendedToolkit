@@ -62,4 +62,13 @@ public:
 
 protected:
 	FPCGExCollisionDetails InitializedCollisionSettings;
+	
+	virtual void ApplyOverrides() override
+	{
+		Super::ApplyOverrides();
+		
+		PCGEX_OVERRIDE_OPERATION_PROPERTY(bTwoWayCheck, "Refine/TwoWayCheck")
+		PCGEX_OVERRIDE_OPERATION_PROPERTY(bInvert, "Refine/Invert")
+	}
+	
 };

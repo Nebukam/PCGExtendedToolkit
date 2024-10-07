@@ -196,12 +196,6 @@ namespace PCGExData
 		Initialize(Sources, InitOut);
 	}
 
-	FPointIOCollection::~FPointIOCollection()
-	{
-		PCGEX_LOG_DTR(FPointIOCollection)
-		Flush();
-	}
-
 	void FPointIOCollection::Initialize(
 		TArray<FPCGTaggedData>& Sources,
 		const EInit InitOut)
@@ -281,14 +275,14 @@ namespace PCGExData
 	{
 		Sort();
 		Context->StagedOutputReserve(Pairs.Num());
-		for (const TSharedPtr<FPointIO>& Pair : Pairs) { Pair->StageOutput(); }
+		for (int i = 0; i < Pairs.Num(); i++) { Pairs[i]->StageOutput(); }
 	}
 
 	void FPointIOCollection::StageOutputs(const int32 MinPointCount, const int32 MaxPointCount)
 	{
 		Sort();
 		Context->StagedOutputReserve(Pairs.Num());
-		for (const TSharedPtr<FPointIO>& Pair : Pairs) { Pair->StageOutput(MinPointCount, MaxPointCount); }
+		for (int i = 0; i < Pairs.Num(); i++) { Pairs[i]->StageOutput(MinPointCount, MaxPointCount); }
 	}
 
 	void FPointIOCollection::Sort()

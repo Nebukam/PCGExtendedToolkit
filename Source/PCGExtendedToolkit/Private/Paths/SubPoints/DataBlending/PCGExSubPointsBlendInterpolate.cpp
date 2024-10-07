@@ -4,18 +4,6 @@
 
 #include "Paths/SubPoints/DataBlending/PCGExSubPointsBlendInterpolate.h"
 
-
-EPCGExDataBlendingType UPCGExSubPointsBlendInterpolate::GetDefaultBlending()
-{
-	return EPCGExDataBlendingType::Lerp;
-}
-
-void UPCGExSubPointsBlendInterpolate::ApplyOverrides()
-{
-	Super::ApplyOverrides();
-	PCGEX_OVERRIDE_OP_PROPERTY(Lerp, FName(TEXT("Blending/Weight")), EPCGMetadataTypes::Double);
-}
-
 void UPCGExSubPointsBlendInterpolate::CopySettingsFrom(const UPCGExOperation* Other)
 {
 	Super::CopySettingsFrom(Other);

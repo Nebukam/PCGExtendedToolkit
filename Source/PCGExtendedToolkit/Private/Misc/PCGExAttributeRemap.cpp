@@ -227,7 +227,7 @@ namespace PCGExAttributeRemap
 					});
 			};
 
-		FetchTask->PrepareRangesOnly(PointDataFacade->GetNum(), GetDefault<UPCGExGlobalSettings>()->GetPointsBatchChunkSize());
+		FetchTask->StartRangePrepareOnly(PointDataFacade->GetNum(), GetDefault<UPCGExGlobalSettings>()->GetPointsBatchChunkSize());
 
 		return true;
 	}
@@ -245,7 +245,7 @@ namespace PCGExAttributeRemap
 					});
 			};
 
-		RemapTask->PrepareRangesOnly(PointDataFacade->GetNum(), GetDefault<UPCGExGlobalSettings>()->GetPointsBatchChunkSize());
+		RemapTask->StartRangePrepareOnly(PointDataFacade->GetNum(), GetDefault<UPCGExGlobalSettings>()->GetPointsBatchChunkSize());
 	}
 
 	void FProcessor::CompleteWork()

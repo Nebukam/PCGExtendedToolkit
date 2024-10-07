@@ -11,7 +11,17 @@
 
 #include "PCGExOperation.generated.h"
 
-#define PCGEX_OVERRIDE_OP_PROPERTY(_ACCESSOR, _NAME, _TYPE) _ACCESSOR = this->GetOverrideValue(_NAME, _ACCESSOR, _TYPE);
+#define PCGEX_OVERRIDE_OPERATION_PROPERTY(_ACCESSOR, _NAME) { using T = decltype(_ACCESSOR); T OutValue = T{}; if(GetOverrideValue<T>(FName(TEXT(_NAME)), OutValue)){ _ACCESSOR = OutValue; }}
+#define PCGEX_OVERRIDE_OPERATION_PROPERTY_SELECTOR(_ACCESSOR, _NAME)\
+{\
+	FString OutValue = TEXT("");\
+	if (GetOverrideValue<FString>(FName(TEXT(_NAME)), OutValue))\
+	{\
+		FPCGAttributePropertyInputSelector NewSelector = FPCGAttributePropertyInputSelector();\
+		NewSelector.Update(OutValue);\
+		_ACCESSOR = NewSelector;\
+	}\
+}
 
 namespace PCGExMT
 {
@@ -29,6 +39,7 @@ class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExOperation : public UObject, public IPCGEx
 	//~Begin UPCGExOperation interface
 public:
 	void BindContext(FPCGExContext* InContext);
+	void FindSettingsOverrides(FPCGExContext* InContext);
 
 #if WITH_EDITOR
 	virtual void UpdateUserFacingInfos();
@@ -60,12 +71,13 @@ protected:
 	virtual void ApplyOverrides();
 
 	template <typename T>
-	T GetOverrideValue(const FName Name, const T Fallback, const EPCGMetadataTypes InType)
+	bool GetOverrideValue(const FName Name, T& OutValue)
 	{
 		FPCGMetadataAttributeBase** Att = PossibleOverrides.Find(Name);
-		if (!Att || (*Att)->GetTypeId() != static_cast<int16>(InType)) { return Fallback; }
+		if (!Att || (*Att)->GetTypeId() != static_cast<int16>(PCGEx::GetMetadataType<T>())) { return false; }
 		FPCGMetadataAttribute<T>* TypedAttribute = static_cast<FPCGMetadataAttribute<T>*>(*Att);
-		return TypedAttribute->GetValue(PCGInvalidEntryKey);
+		OutValue = TypedAttribute->GetValue(PCGDefaultValueKey);
+		return true;
 	}
 
 	//~End UPCGExOperation interface

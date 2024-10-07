@@ -246,13 +246,13 @@ namespace PCGExPathfindingPlotEdge
 
 		if (HeuristicsHandler->HasGlobalFeedback())
 		{
-			AsyncManager->Start<FPCGExPlotClusterPathTask>(0, VtxDataFacade->Source, SearchOperation, Context->Plots.Get(), HeuristicsHandler, true);
+			AsyncManager->Start<FPCGExPlotClusterPathTask>(0, VtxDataFacade->Source, SearchOperation, Context->Plots, HeuristicsHandler, true);
 		}
 		else
 		{
 			for (int i = 0; i < Context->Plots->Num(); i++)
 			{
-				AsyncManager->Start<FPCGExPlotClusterPathTask>(i, VtxDataFacade->Source, SearchOperation, Context->Plots.Get(), HeuristicsHandler, false);
+				AsyncManager->Start<FPCGExPlotClusterPathTask>(i, VtxDataFacade->Source, SearchOperation, Context->Plots, HeuristicsHandler, false);
 			}
 		}
 

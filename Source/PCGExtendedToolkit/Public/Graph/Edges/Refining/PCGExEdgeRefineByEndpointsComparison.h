@@ -119,4 +119,14 @@ public:
 	{
 		Super::Cleanup();
 	}
+
+protected:
+	virtual void ApplyOverrides() override
+	{
+		Super::ApplyOverrides();
+		
+		PCGEX_OVERRIDE_OPERATION_PROPERTY_SELECTOR(Attribute, "Refine/Attribute")
+		PCGEX_OVERRIDE_OPERATION_PROPERTY(Tolerance, "Refine/Tolerance")
+		PCGEX_OVERRIDE_OPERATION_PROPERTY(bInvert, "Refine/Invert")
+	}
 };

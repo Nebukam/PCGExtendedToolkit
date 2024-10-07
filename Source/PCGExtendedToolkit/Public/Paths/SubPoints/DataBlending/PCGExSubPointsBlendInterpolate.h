@@ -38,6 +38,12 @@ public:
 	virtual TSharedPtr<PCGExDataBlending::FMetadataBlender> CreateBlender(const TSharedRef<PCGExData::FFacade>& InPrimaryFacade, const TSharedRef<PCGExData::FFacade>& InSecondaryFacade, const PCGExData::ESource SecondarySource, const TSet<FName>* IgnoreAttributeSet) override;
 
 protected:
-	virtual EPCGExDataBlendingType GetDefaultBlending() override;
-	virtual void ApplyOverrides() override;
+	virtual EPCGExDataBlendingType GetDefaultBlending() override { return EPCGExDataBlendingType::Lerp; }
+
+	virtual void ApplyOverrides() override
+	{
+		Super::ApplyOverrides();
+		
+		PCGEX_OVERRIDE_OPERATION_PROPERTY(Lerp, "Blending/Weight");
+	}
 };

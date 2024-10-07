@@ -84,10 +84,12 @@ namespace PCGExGraph
 
 		void FindPointEdgeIntersections();
 		void FindPointEdgeIntersectionsFound();
+		void OnPointEdgeSortingComplete();
 		void OnPointEdgeIntersectionsComplete();
 
 		void FindEdgeEdgeIntersections();
 		void OnEdgeEdgeIntersectionsFound();
+		void OnEdgeEdgeSortingComplete();
 		void OnEdgeEdgeIntersectionsComplete();
 		void WriteClusters();
 	};

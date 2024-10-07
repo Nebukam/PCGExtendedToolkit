@@ -101,21 +101,26 @@ namespace PCGExGraph
 				WriteMetadataTask->StartSimpleCallbacks();
 			};
 
-		ProcessNodesGroup->OnIterationCallback = [&](const int32 Index, const int32 Count, const int32 LoopIdx)
+		ProcessNodesGroup->OnIterationRangeStartCallback = [&](const int32 StartIndex, const int32 Count, const int32 LoopIdx)
 		{
-			FUnionNode* UnionNode = UnionGraph->Nodes[Index].Get();
-			PCGMetadataEntryKey Key = MutablePoints[Index].MetadataEntry;
-			MutablePoints[Index] = UnionNode->Point; // Copy "original" point properties, in case  there's only one
+			TArray<FPCGPoint>& Points = UnionFacade->GetOut()->GetMutablePoints();
+			const int32 MaxIndex = StartIndex + Count;
+			for (int i = StartIndex; i < MaxIndex; i++)
+			{
+				FUnionNode* UnionNode = UnionGraph->Nodes[i].Get();
+				PCGMetadataEntryKey Key = Points[i].MetadataEntry;
+				Points[i] = UnionNode->Point; // Copy "original" point properties, in case  there's only one
 
-			FPCGPoint& Point = MutablePoints[Index];
-			Point.MetadataEntry = Key; // Restore key
+				FPCGPoint& Point = Points[i];
+				Point.MetadataEntry = Key; // Restore key
 
-			Point.Transform.SetLocation(
-				UnionNode->UpdateCenter(UnionGraph->PointsUnion.Get(), Context->MainPoints.Get()));
-			UnionPointsBlender->MergeSingle(Index, PCGExDetails::GetDistanceDetails(PointPointIntersectionDetails));
+				Point.Transform.SetLocation(
+					UnionNode->UpdateCenter(UnionGraph->PointsUnion.Get(), Context->MainPoints));
+				UnionPointsBlender->MergeSingle(i, PCGExDetails::GetDistanceDetails(PointPointIntersectionDetails));
+			}
 		};
 
-		ProcessNodesGroup->StartIterations(NumUnionNodes, GetDefault<UPCGExGlobalSettings>()->ClusterDefaultBatchChunkSize, false, false);
+		ProcessNodesGroup->StartRangePrepareOnly(NumUnionNodes, GetDefault<UPCGExGlobalSettings>()->ClusterDefaultBatchChunkSize, false);
 
 
 		return true;
@@ -183,7 +188,7 @@ namespace PCGExGraph
 		{
 			const FIndexedEdge& Edge = GraphBuilder->Graph->Edges[Index];
 			if (!Edge.bValid) { return; }
-			FindCollinearNodes(PointEdgeIntersections.Get(), Index, UnionFacade->Source->GetOut());
+			FindCollinearNodes(PointEdgeIntersections, Index, UnionFacade->Source->GetOut());
 		};
 		FindPointEdgeGroup->StartIterations(GraphBuilder->Graph->Edges.Num(), GetDefault<UPCGExGlobalSettings>()->ClusterDefaultBatchChunkSize);
 	}
@@ -213,42 +218,53 @@ namespace PCGExGraph
 				}
 			};
 
+		SortCrossingsGroup->OnCompleteCallback = [WeakThis = TWeakPtr<FUnionProcessor>(SharedThis(this))]()
+		{
+			TSharedPtr<FUnionProcessor> This = WeakThis.Pin();
+			if (!This) { return; }
+			This->OnPointEdgeSortingComplete();
+		};
 
-		SortCrossingsGroup->OnCompleteCallback =
-			[&]()
-			{
-				PCGEX_ASYNC_GROUP_CHKD_VOID(Context->GetAsyncManager(), BlendPointEdgeGroup)
-
-				GraphBuilder->Graph->ReserveForEdges(NewEdgesNum);
-				NewEdgesNum = 0;
-
-				PointEdgeIntersections->Insert(); // TODO : Async?
-				UnionFacade->Source->CleanupKeys();
-
-				if (bUseCustomPointEdgeBlending) { MetadataBlender = MakeShared<PCGExDataBlending::FMetadataBlender>(&CustomPointEdgeBlendingDetails); }
-				else { MetadataBlender = MakeShared<PCGExDataBlending::FMetadataBlender>(&DefaultPointsBlendingDetails); }
-
-				MetadataBlender->PrepareForData(UnionFacade.ToSharedRef(), PCGExData::ESource::Out);
-
-				BlendPointEdgeGroup->OnCompleteCallback = [&]() { OnPointEdgeIntersectionsComplete(); };
-				BlendPointEdgeGroup->OnIterationRangeStartCallback =
-					[&](const int32 StartIndex, const int32 Count, const int32 LoopIdx)
-					{
-						if (!MetadataBlender) { return; }
-						const TSharedRef<PCGExDataBlending::FMetadataBlender> Blender = MetadataBlender.ToSharedRef();
-
-						const int32 MaxIndex = StartIndex + Count;
-						for (int i = StartIndex; i < MaxIndex; i++)
-						{
-							// TODO
-						}
-					};
-				BlendPointEdgeGroup->PrepareRangesOnly(PointEdgeIntersections->Edges.Num(), GetDefault<UPCGExGlobalSettings>()->ClusterDefaultBatchChunkSize);
-			};
-
-		SortCrossingsGroup->PrepareRangesOnly(PointEdgeIntersections->Edges.Num(), GetDefault<UPCGExGlobalSettings>()->ClusterDefaultBatchChunkSize);
+		SortCrossingsGroup->StartRangePrepareOnly(PointEdgeIntersections->Edges.Num(), GetDefault<UPCGExGlobalSettings>()->ClusterDefaultBatchChunkSize);
 
 		///
+	}
+
+	void FUnionProcessor::OnPointEdgeSortingComplete()
+	{
+		PCGEX_ASYNC_GROUP_CHKD_VOID(Context->GetAsyncManager(), BlendPointEdgeGroup)
+
+		GraphBuilder->Graph->ReserveForEdges(NewEdgesNum);
+		NewEdgesNum = 0;
+
+		PointEdgeIntersections->Insert(); // TODO : Async?
+		UnionFacade->Source->CleanupKeys();
+
+		if (bUseCustomPointEdgeBlending) { MetadataBlender = MakeShared<PCGExDataBlending::FMetadataBlender>(&CustomPointEdgeBlendingDetails); }
+		else { MetadataBlender = MakeShared<PCGExDataBlending::FMetadataBlender>(&DefaultPointsBlendingDetails); }
+
+		MetadataBlender->PrepareForData(UnionFacade.ToSharedRef(), PCGExData::ESource::Out);
+
+		BlendPointEdgeGroup->OnCompleteCallback = [WeakThis = TWeakPtr<FUnionProcessor>(SharedThis(this))]()
+		{
+			TSharedPtr<FUnionProcessor> This = WeakThis.Pin();
+			if (!This) { return; }
+			This->OnPointEdgeIntersectionsComplete();
+		};
+
+		BlendPointEdgeGroup->OnIterationRangeStartCallback =
+			[&](const int32 StartIndex, const int32 Count, const int32 LoopIdx)
+			{
+				if (!MetadataBlender) { return; }
+				const TSharedRef<PCGExDataBlending::FMetadataBlender> Blender = MetadataBlender.ToSharedRef();
+
+				const int32 MaxIndex = StartIndex + Count;
+				for (int i = StartIndex; i < MaxIndex; i++)
+				{
+					// TODO
+				}
+			};
+		BlendPointEdgeGroup->StartRangePrepareOnly(PointEdgeIntersections->Edges.Num(), GetDefault<UPCGExGlobalSettings>()->ClusterDefaultBatchChunkSize);
 	}
 
 	void FUnionProcessor::OnPointEdgeIntersectionsComplete()
@@ -285,7 +301,7 @@ namespace PCGExGraph
 					FindOverlappingEdges(EEI, i);
 				}
 			};
-		FindEdgeEdgeGroup->PrepareRangesOnly(GraphBuilder->Graph->Edges.Num(), GetDefault<UPCGExGlobalSettings>()->ClusterDefaultBatchChunkSize);
+		FindEdgeEdgeGroup->StartRangePrepareOnly(GraphBuilder->Graph->Edges.Num(), GetDefault<UPCGExGlobalSettings>()->ClusterDefaultBatchChunkSize);
 	}
 
 	void FUnionProcessor::OnEdgeEdgeIntersectionsFound()
@@ -328,44 +344,45 @@ namespace PCGExGraph
 				}
 			};
 
-		SortCrossingsGroup->OnCompleteCallback =
-			[&]()
+		SortCrossingsGroup->OnCompleteCallback = [&]() { OnEdgeEdgeSortingComplete(); };
+
+		SortCrossingsGroup->StartRangePrepareOnly(EdgeEdgeIntersections->Edges.Num(), GetDefault<UPCGExGlobalSettings>()->ClusterDefaultBatchChunkSize);
+	}
+
+	void FUnionProcessor::OnEdgeEdgeSortingComplete()
+	{
+		PCGEX_ASYNC_GROUP_CHKD_VOID(Context->GetAsyncManager(), BlendEdgeEdgeGroup)
+
+		GraphBuilder->Graph->ReserveForEdges(NewEdgesNum);
+		NewEdgesNum = 0;
+
+		// TODO : Multi-thread by reserving the future edges in metadata and others.
+		// Edge count is known and uniqueness is known in advance, we just need the number of edges, which we have.
+		// Do set num instead of reserve, Graph has an InsertEdges that return the starting addition index.
+		// use range prep to cache these and rebuild metadata and everything then.
+
+		EdgeEdgeIntersections->InsertEdges(); // TODO : Async?
+		UnionFacade->Source->CleanupKeys();
+
+		if (bUseCustomEdgeEdgeBlending) { MetadataBlender = MakeShared<PCGExDataBlending::FMetadataBlender>(&CustomEdgeEdgeBlendingDetails); }
+		else { MetadataBlender = MakeShared<PCGExDataBlending::FMetadataBlender>(&DefaultPointsBlendingDetails); }
+
+		MetadataBlender->PrepareForData(UnionFacade.ToSharedRef(), PCGExData::ESource::Out);
+
+		BlendEdgeEdgeGroup->OnCompleteCallback = [&]() { OnEdgeEdgeIntersectionsComplete(); };
+		BlendEdgeEdgeGroup->OnIterationRangeStartCallback =
+			[&](const int32 StartIndex, const int32 Count, const int32 LoopIdx)
 			{
-				PCGEX_ASYNC_GROUP_CHKD_VOID(Context->GetAsyncManager(), BlendEdgeEdgeGroup)
+				if (!MetadataBlender) { return; }
+				const TSharedRef<PCGExDataBlending::FMetadataBlender> Blender = MetadataBlender.ToSharedRef();
 
-				GraphBuilder->Graph->ReserveForEdges(NewEdgesNum);
-				NewEdgesNum = 0;
-
-				// TODO : Multi-thread by reserving the future edges in metadata and others.
-				// Edge count is known and uniqueness is known in advance, we just need the number of edges, which we have.
-				// Do set num instead of reserve, Graph has an InsertEdges that return the starting addition index.
-				// use range prep to cache these and rebuild metadata and everything then.
-
-				EdgeEdgeIntersections->InsertEdges(); // TODO : Async?
-				UnionFacade->Source->CleanupKeys();
-
-				if (bUseCustomEdgeEdgeBlending) { MetadataBlender = MakeShared<PCGExDataBlending::FMetadataBlender>(&CustomEdgeEdgeBlendingDetails); }
-				else { MetadataBlender = MakeShared<PCGExDataBlending::FMetadataBlender>(&DefaultPointsBlendingDetails); }
-
-				MetadataBlender->PrepareForData(UnionFacade.ToSharedRef(), PCGExData::ESource::Out);
-
-				BlendEdgeEdgeGroup->OnCompleteCallback = [&]() { OnEdgeEdgeIntersectionsComplete(); };
-				BlendEdgeEdgeGroup->OnIterationRangeStartCallback =
-					[&](const int32 StartIndex, const int32 Count, const int32 LoopIdx)
-					{
-						if (!MetadataBlender) { return; }
-						const TSharedRef<PCGExDataBlending::FMetadataBlender> Blender = MetadataBlender.ToSharedRef();
-
-						const int32 MaxIndex = StartIndex + Count;
-						for (int i = StartIndex; i < MaxIndex; i++)
-						{
-							EdgeEdgeIntersections->BlendIntersection(i, Blender);
-						}
-					};
-				BlendEdgeEdgeGroup->PrepareRangesOnly(EdgeEdgeIntersections->Crossings.Num(), GetDefault<UPCGExGlobalSettings>()->ClusterDefaultBatchChunkSize);
+				const int32 MaxIndex = StartIndex + Count;
+				for (int i = StartIndex; i < MaxIndex; i++)
+				{
+					EdgeEdgeIntersections->BlendIntersection(i, Blender);
+				}
 			};
-
-		SortCrossingsGroup->PrepareRangesOnly(EdgeEdgeIntersections->Edges.Num(), GetDefault<UPCGExGlobalSettings>()->ClusterDefaultBatchChunkSize);
+		BlendEdgeEdgeGroup->StartRangePrepareOnly(EdgeEdgeIntersections->Crossings.Num(), GetDefault<UPCGExGlobalSettings>()->ClusterDefaultBatchChunkSize);
 	}
 
 	void FUnionProcessor::OnEdgeEdgeIntersectionsComplete()

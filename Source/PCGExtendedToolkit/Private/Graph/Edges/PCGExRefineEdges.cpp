@@ -193,7 +193,7 @@ namespace PCGExRefineEdges
 			EdgeScopeLoop->OnIterationRangeStartCallback =
 				[&](const int32 StartIndex, const int32 Count, const int32 LoopIdx) { PrepareSingleLoopScopeForEdges(StartIndex, Count); };
 
-			EdgeScopeLoop->PrepareRangesOnly(EdgeDataFacade->GetNum(), PLI);
+			EdgeScopeLoop->StartRangePrepareOnly(EdgeDataFacade->GetNum(), PLI);
 		}
 
 		return true;
@@ -253,7 +253,7 @@ namespace PCGExRefineEdges
 					const int32 MaxIndex = StartIndex + Count;
 					for (int i = StartIndex; i < MaxIndex; i++) { if (SanitizationFilterManager->Test(i)) { (Cluster->Edges->GetData() + i)->bValid = true; } }
 				};
-			SanitizeTaskGroup->PrepareRangesOnly(EdgeDataFacade->GetNum(), PLI);
+			SanitizeTaskGroup->StartRangePrepareOnly(EdgeDataFacade->GetNum(), PLI);
 		}
 		else
 		{

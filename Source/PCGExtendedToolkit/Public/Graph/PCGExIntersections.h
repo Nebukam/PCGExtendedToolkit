@@ -172,7 +172,7 @@ namespace PCGExGraph
 			Adjacency.Empty();
 		}
 
-		FVector UpdateCenter(const PCGExData::FUnionMetadata* InUnionMetadata, PCGExData::FPointIOCollection* IOGroup);
+		FVector UpdateCenter(const PCGExData::FUnionMetadata* InUnionMetadata, const TSharedPtr<PCGExData::FPointIOCollection>& IOGroup);
 
 		FORCEINLINE void Add(const int32 InAdjacency)
 		{
@@ -377,7 +377,7 @@ namespace PCGExGraph
 	};
 
 	static void FindCollinearNodes(
-		FPointEdgeIntersections* InIntersections,
+		const TSharedPtr<FPointEdgeIntersections>& InIntersections,
 		const int32 EdgeIndex,
 		const UPCGPointData* PointsData)
 	{

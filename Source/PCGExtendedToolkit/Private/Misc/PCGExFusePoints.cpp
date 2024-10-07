@@ -94,7 +94,7 @@ namespace PCGExFusePoints
 		FPCGPoint& Point = MutablePoints[Iteration];
 		Point.MetadataEntry = Key; // Restore key
 
-		Point.Transform.SetLocation(UnionNode->UpdateCenter(UnionGraph->PointsUnion.Get(), Context->MainPoints.Get()));
+		Point.Transform.SetLocation(UnionNode->UpdateCenter(UnionGraph->PointsUnion.Get(), Context->MainPoints));
 		UnionBlender->MergeSingle(Iteration, PCGExDetails::GetDistanceDetails(Settings->PointPointIntersectionDetails));
 	}
 

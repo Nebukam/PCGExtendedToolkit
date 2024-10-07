@@ -105,7 +105,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPathToClustersContext final : FPCGExPath
 	TSharedPtr<PCGExGraph::FUnionGraph> UnionGraph;
 	TSharedPtr<PCGExData::FFacade> UnionDataFacade;
 
-	TUniquePtr<PCGExGraph::FUnionProcessor> UnionProcessor;
+	TSharedPtr<PCGExGraph::FUnionProcessor> UnionProcessor;
 };
 
 class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPathToClustersElement final : public FPCGExPathProcessorElement

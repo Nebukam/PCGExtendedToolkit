@@ -295,7 +295,7 @@ namespace PCGExWriteEdgeProperties
 					VtxDataFacade->Fetch(StartIndex, Count);
 				};
 
-			FetchVtxTask->PrepareRangesOnly(VtxDataFacade->GetNum(), PLI);
+			FetchVtxTask->StartRangePrepareOnly(VtxDataFacade->GetNum(), PLI);
 		}
 	}
 }

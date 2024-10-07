@@ -134,7 +134,7 @@ namespace PCGExMT
 		}
 	}
 
-	void FTaskGroup::PrepareRangesOnly(const int32 MaxItems, const int32 ChunkSize, const bool bInline)
+	void FTaskGroup::StartRangePrepareOnly(const int32 MaxItems, const int32 ChunkSize, const bool bInline)
 	{
 		if (!Manager->IsAvailable()) { return; }
 

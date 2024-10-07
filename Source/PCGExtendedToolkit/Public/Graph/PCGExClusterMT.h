@@ -185,7 +185,7 @@ namespace PCGExClusterMT
 			ParallelLoopForNodes->OnIterationRangePrepareCallback = [&](const TArray<uint64>& Loops) { PrepareLoopScopesForNodes(Loops); };
 			ParallelLoopForNodes->OnIterationRangeStartCallback =
 				[&](const int32 StartIndex, const int32 Count, const int32 LoopIdx) { ProcessNodes(StartIndex, Count, LoopIdx); };
-			ParallelLoopForNodes->PrepareRangesOnly(NumNodes, PLI, bInlineProcessNodes);
+			ParallelLoopForNodes->StartRangePrepareOnly(NumNodes, PLI, bInlineProcessNodes);
 		}
 
 		virtual void PrepareLoopScopesForNodes(const TArray<uint64>& Loops)
@@ -233,7 +233,7 @@ namespace PCGExClusterMT
 			ParallelLoopForEdges->OnIterationRangePrepareCallback = [&](const TArray<uint64>& Loops) { PrepareLoopScopesForEdges(Loops); };
 			ParallelLoopForEdges->OnIterationRangeStartCallback =
 				[&](const int32 StartIndex, const int32 Count, const int32 LoopIdx) { ProcessEdges(StartIndex, Count, LoopIdx); };
-			ParallelLoopForEdges->PrepareRangesOnly(NumEdges, PLI, bInlineProcessEdges);
+			ParallelLoopForEdges->StartRangePrepareOnly(NumEdges, PLI, bInlineProcessEdges);
 		}
 
 		virtual void PrepareLoopScopesForEdges(const TArray<uint64>& Loops)
@@ -280,7 +280,7 @@ namespace PCGExClusterMT
 			ParallelLoopForRanges->OnIterationRangePrepareCallback = [&](const TArray<uint64>& Loops) { PrepareLoopScopesForRanges(Loops); };
 			ParallelLoopForRanges->OnIterationRangeStartCallback =
 				[&](const int32 StartIndex, const int32 Count, const int32 LoopIdx) { ProcessRange(StartIndex, Count, LoopIdx); };
-			ParallelLoopForRanges->PrepareRangesOnly(NumIterations, PLI, bInlineProcessRange);
+			ParallelLoopForRanges->StartRangePrepareOnly(NumIterations, PLI, bInlineProcessRange);
 		}
 
 		virtual void PrepareLoopScopesForRanges(const TArray<uint64>& Loops)
@@ -472,7 +472,7 @@ namespace PCGExClusterMT
 							ExpectedAdjacency[i] = B;
 						}
 					};
-				BuildEndpointLookupTask->PrepareRangesOnly(VtxDataFacade->GetNum(), 4096);
+				BuildEndpointLookupTask->StartRangePrepareOnly(VtxDataFacade->GetNum(), 4096);
 			}
 		}
 

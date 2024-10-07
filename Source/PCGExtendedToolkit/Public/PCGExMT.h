@@ -263,7 +263,7 @@ namespace PCGExMT
 
 		void StartIterations(const int32 MaxItems, const int32 ChunkSize, const bool bInlined = false, const bool bExecuteSmallSynchronously = true);
 
-		void PrepareRangesOnly(const int32 MaxItems, const int32 ChunkSize, const bool bInline = false);
+		void StartRangePrepareOnly(const int32 MaxItems, const int32 ChunkSize, const bool bInline = false);
 
 		void AddSimpleCallback(SimpleCallback&& InCallback);
 		void StartSimpleCallbacks();

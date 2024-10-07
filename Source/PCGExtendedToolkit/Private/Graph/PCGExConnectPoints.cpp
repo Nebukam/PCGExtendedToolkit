@@ -180,7 +180,7 @@ namespace PCGExConnectPoints
 				PointDataFacade->Fetch(StartIndex, Count);
 			};
 
-		PrepTask->PrepareRangesOnly(NumPoints, GetDefault<UPCGExGlobalSettings>()->GetPointsBatchChunkSize());
+		PrepTask->StartRangePrepareOnly(NumPoints, GetDefault<UPCGExGlobalSettings>()->GetPointsBatchChunkSize());
 
 		return true;
 	}

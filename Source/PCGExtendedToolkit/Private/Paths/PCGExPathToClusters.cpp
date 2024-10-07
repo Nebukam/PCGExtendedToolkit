@@ -42,7 +42,7 @@ bool FPCGExPathToClustersElement::Boot(FPCGExContext* InContext) const
 
 	const_cast<UPCGExPathToClustersSettings*>(Settings)->EdgeEdgeIntersectionDetails.Init();
 
-	Context->UnionProcessor = MakeUnique<PCGExGraph::FUnionProcessor>(
+	Context->UnionProcessor = MakeShared<PCGExGraph::FUnionProcessor>(
 		Context,
 		Settings->PointPointIntersectionDetails,
 		Settings->DefaultPointsBlendingDetails,

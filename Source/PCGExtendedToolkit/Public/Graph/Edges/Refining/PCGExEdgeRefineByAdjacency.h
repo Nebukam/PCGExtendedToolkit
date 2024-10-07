@@ -84,4 +84,14 @@ public:
 	/** */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	bool bInvert = false;
+
+protected:
+	virtual void ApplyOverrides() override
+	{
+		Super::ApplyOverrides();
+		
+		PCGEX_OVERRIDE_OPERATION_PROPERTY(Threshold, "Refine/Threshold")
+		PCGEX_OVERRIDE_OPERATION_PROPERTY(Tolerance, "Refine/Tolerance")
+		PCGEX_OVERRIDE_OPERATION_PROPERTY(bInvert, "Refine/Invert")
+	}
 };

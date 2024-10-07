@@ -68,7 +68,7 @@ bool FPCGExAssetCollectionToSetElement::ExecuteInternal(FPCGContext* Context) co
 
 	UPCGParamData* OutputSet = NewObject<UPCGParamData>();
 
-	auto OutputToPin = [&]()
+	auto OutputToPin = [Context, OutputSet]()
 	{
 		FPCGTaggedData& OutData = Context->OutputData.TaggedData.Emplace_GetRef();
 		OutData.Pin = FName("AttributeSet");

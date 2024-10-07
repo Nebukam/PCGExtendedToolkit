@@ -56,7 +56,7 @@ bool FPCGExMetaFilterElement::ExecuteInternal(FPCGContext* InContext) const
 	{
 		while (Context->AdvancePointsIO())
 		{
-			PCGExData::FPointIOCollection* Target = Context->Filters.Test(Context->CurrentIO->Tags.Get()) ? Context->Inside.Get() : Context->Outside.Get();
+			const TSharedPtr<PCGExData::FPointIOCollection> Target = Context->Filters.Test(Context->CurrentIO->Tags.Get()) ? Context->Inside : Context->Outside;
 			Target->Emplace_GetRef(Context->CurrentIO, PCGExData::EInit::Forward);
 		}
 	}
@@ -64,7 +64,7 @@ bool FPCGExMetaFilterElement::ExecuteInternal(FPCGContext* InContext) const
 	{
 		while (Context->AdvancePointsIO())
 		{
-			PCGExData::FPointIOCollection* Target = Context->Filters.Test(Context->CurrentIO.Get()) ? Context->Inside.Get() : Context->Outside.Get();
+			const TSharedPtr<PCGExData::FPointIOCollection> Target = Context->Filters.Test(Context->CurrentIO.Get()) ? Context->Inside : Context->Outside;
 			Target->Emplace_GetRef(Context->CurrentIO, PCGExData::EInit::Forward);
 		}
 	}
