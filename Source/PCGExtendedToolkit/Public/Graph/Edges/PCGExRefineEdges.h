@@ -101,8 +101,8 @@ namespace PCGExRefineEdges
 		friend class FFilterRangeTask;
 
 	protected:
-		TUniquePtr<PCGExPointFilter::TManager> EdgeFilterManager;
-		TUniquePtr<PCGExPointFilter::TManager> SanitizationFilterManager;
+		TSharedPtr<PCGExPointFilter::TManager> EdgeFilterManager;
+		TSharedPtr<PCGExPointFilter::TManager> SanitizationFilterManager;
 		EPCGExRefineSanitization Sanitization = EPCGExRefineSanitization::None;
 
 		virtual TSharedPtr<PCGExCluster::FCluster> HandleCachedCluster(const TSharedRef<PCGExCluster::FCluster>& InClusterRef) override;

@@ -91,7 +91,7 @@ namespace PCGExAttributeRolling
 		if (!FPointsProcessor::Process(InAsyncManager)) { return false; }
 
 
-		MetadataBlender = MakeUnique<PCGExDataBlending::FMetadataBlender>(&Settings->BlendingSettings);
+		MetadataBlender = MakeShared<PCGExDataBlending::FMetadataBlender>(&Settings->BlendingSettings);
 		MetadataBlender->PrepareForData(PointDataFacade, PCGExData::ESource::In, true, nullptr, true);
 
 		OutMetadata = PointDataFacade->GetOut()->Metadata;

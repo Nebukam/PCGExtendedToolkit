@@ -107,7 +107,7 @@ namespace PCGExSmooth
 		TSharedPtr<PCGExData::TBuffer<double>> Influence;
 		TSharedPtr<PCGExData::TBuffer<double>> Smoothing;
 
-		TUniquePtr<PCGExDataBlending::FMetadataBlender> MetadataBlender;
+		TSharedPtr<PCGExDataBlending::FMetadataBlender> MetadataBlender;
 		UPCGExSmoothingOperation* TypedOperation = nullptr;
 		bool bClosedLoop = false;
 

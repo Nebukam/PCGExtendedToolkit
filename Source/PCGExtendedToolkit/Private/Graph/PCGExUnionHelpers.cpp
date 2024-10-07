@@ -50,6 +50,7 @@ namespace PCGExGraph
 		const FPCGExGraphBuilderDetails& InBuilderDetails,
 		const FPCGExCarryOverDetails* InCarryOverDetails)
 	{
+		BuilderDetails = InBuilderDetails;
 		UnionGraph = InUnionGraph;
 		UnionFacade = InUnionFacade;
 
@@ -60,6 +61,8 @@ namespace PCGExGraph
 			return false;
 		}
 
+		Context->SetAsyncState(State_ProcessingUnion);
+
 		UnionPointsBlender = MakeShared<PCGExDataBlending::FUnionBlender>(&DefaultPointsBlendingDetails, InCarryOverDetails);
 
 		TArray<FPCGPoint>& MutablePoints = UnionFacade->GetOut()->GetMutablePoints();
@@ -68,62 +71,81 @@ namespace PCGExGraph
 		UnionPointsBlender->AddSources(InFacades);
 		UnionPointsBlender->PrepareMerge(UnionFacade, UnionGraph->PointsUnion, nullptr); // TODO : Check if we want to ignore specific attributes // Answer : yes, cluster IDs etc
 
-		Context->SetAsyncState(State_ProcessingUnion);
-
 		PCGEX_ASYNC_GROUP_CHKD(Context->GetAsyncManager(), ProcessNodesGroup)
 		ProcessNodesGroup->OnCompleteCallback =
-			[&]()
+			[WeakThis = TWeakPtr<FUnionProcessor>(SharedThis(this))]()
 			{
-				UnionPointsBlender.Reset();
-
-				UnionFacade->Write(Context->GetAsyncManager());
-				Context->SetAsyncState(PCGEx::State_UnionWriting);
-
-				bRunning = true;
-
-				GraphMetadataDetails.Grab(Context, PointPointIntersectionDetails);
-				GraphMetadataDetails.Grab(Context, PointEdgeIntersectionDetails);
-				GraphMetadataDetails.Grab(Context, EdgeEdgeIntersectionDetails);
-
-				GraphBuilder = MakeShared<FGraphBuilder>(UnionFacade, &InBuilderDetails, 4);
-
-				//TSet<uint64> UniqueEdges;
-				//UnionGraph->GetUniqueEdges(UniqueEdges);
-				//GraphBuilder->Graph->InsertEdges(UniqueEdges, -1);
-				TArray<FIndexedEdge> UniqueEdges;
-				UnionGraph->GetUniqueEdges(UniqueEdges);
-				GraphBuilder->Graph->InsertEdges(UniqueEdges);
-
-				PCGEX_ASYNC_GROUP_CHKD_VOID(Context->GetAsyncManager(), WriteMetadataTask);
-				WriteMetadataTask->OnCompleteCallback = [&]() { InternalStartExecution(); };
-				WriteMetadataTask->AddSimpleCallback([&]() { UnionGraph->WriteNodeMetadata(GraphBuilder->Graph->NodeMetadata); });
-				WriteMetadataTask->AddSimpleCallback([&]() { UnionGraph->WriteEdgeMetadata(GraphBuilder->Graph->EdgeMetadata); });
-				WriteMetadataTask->StartSimpleCallbacks();
+				const TSharedPtr<FUnionProcessor> P = WeakThis.Pin();
+				if (!P) { return; }
+				P->OnNodesProcessingComplete();
 			};
 
-		ProcessNodesGroup->OnIterationRangeStartCallback = [&](const int32 StartIndex, const int32 Count, const int32 LoopIdx)
-		{
-			TArray<FPCGPoint>& Points = UnionFacade->GetOut()->GetMutablePoints();
-			const int32 MaxIndex = StartIndex + Count;
-			for (int i = StartIndex; i < MaxIndex; i++)
+		ProcessNodesGroup->OnIterationRangeStartCallback =
+			[WeakThis = TWeakPtr<FUnionProcessor>(SharedThis(this))](const int32 StartIndex, const int32 Count, const int32 LoopIdx)
 			{
-				FUnionNode* UnionNode = UnionGraph->Nodes[i].Get();
-				PCGMetadataEntryKey Key = Points[i].MetadataEntry;
-				Points[i] = UnionNode->Point; // Copy "original" point properties, in case  there's only one
+				const TSharedPtr<FUnionProcessor> P = WeakThis.Pin();
+				if (!P) { return; }
 
-				FPCGPoint& Point = Points[i];
-				Point.MetadataEntry = Key; // Restore key
+				const TSharedPtr<PCGExData::FUnionMetadata> PointsUnion = P->UnionGraph->PointsUnion;
+				const TSharedPtr<PCGExData::FPointIOCollection> MainPoints = P->Context->MainPoints;
+				const TSharedPtr<PCGExDataBlending::FUnionBlender> Blender = P->UnionPointsBlender;
 
-				Point.Transform.SetLocation(
-					UnionNode->UpdateCenter(UnionGraph->PointsUnion.Get(), Context->MainPoints));
-				UnionPointsBlender->MergeSingle(i, PCGExDetails::GetDistanceDetails(PointPointIntersectionDetails));
-			}
-		};
+				TArray<FPCGPoint>& Points = P->UnionFacade->GetOut()->GetMutablePoints();
+				const int32 MaxIndex = StartIndex + Count;
+				for (int i = StartIndex; i < MaxIndex; i++)
+				{
+					FUnionNode* UnionNode = P->UnionGraph->Nodes[i].Get();
+					PCGMetadataEntryKey Key = Points[i].MetadataEntry;
+					Points[i] = UnionNode->Point; // Copy "original" point properties, in case  there's only one
+
+					FPCGPoint& Point = Points[i];
+					Point.MetadataEntry = Key; // Restore key
+
+					Point.Transform.SetLocation(
+						UnionNode->UpdateCenter(PointsUnion, MainPoints));
+					Blender->MergeSingle(i, PCGExDetails::GetDistanceDetails(P->PointPointIntersectionDetails));
+				}
+			};
 
 		ProcessNodesGroup->StartRangePrepareOnly(NumUnionNodes, GetDefault<UPCGExGlobalSettings>()->ClusterDefaultBatchChunkSize, false);
 
 
 		return true;
+	}
+
+	void FUnionProcessor::OnNodesProcessingComplete()
+	{
+		UnionPointsBlender.Reset();
+
+		//Context->SetAsyncState(PCGEx::State_UnionWriting);
+
+		bRunning = true;
+
+		GraphMetadataDetails.Grab(Context, PointPointIntersectionDetails);
+		GraphMetadataDetails.Grab(Context, PointEdgeIntersectionDetails);
+		GraphMetadataDetails.Grab(Context, EdgeEdgeIntersectionDetails);
+
+		GraphBuilder = MakeShared<FGraphBuilder>(UnionFacade, &BuilderDetails, 4);
+
+		//TSet<uint64> UniqueEdges;
+		//UnionGraph->GetUniqueEdges(UniqueEdges);
+		//GraphBuilder->Graph->InsertEdges(UniqueEdges, -1);
+		TArray<FIndexedEdge> UniqueEdges;
+		UnionGraph->GetUniqueEdges(UniqueEdges);
+		GraphBuilder->Graph->InsertEdges(UniqueEdges);
+
+		PCGEX_ASYNC_GROUP_CHKD_VOID(Context->GetAsyncManager(), WriteMetadataTask);
+		WriteMetadataTask->OnCompleteCallback = [&]()
+		{
+			UnionFacade->Flush();
+			InternalStartExecution();
+		};
+
+		UnionFacade->WriteBuffersAsCallbacks(WriteMetadataTask);
+		WriteMetadataTask->AddSimpleCallback([&]() { UnionGraph->WriteNodeMetadata(GraphBuilder->Graph->NodeMetadata); });
+		WriteMetadataTask->AddSimpleCallback([&]() { UnionGraph->WriteEdgeMetadata(GraphBuilder->Graph->EdgeMetadata); });
+
+		WriteMetadataTask->StartSimpleCallbacks();
 	}
 
 	void FUnionProcessor::InternalStartExecution()
@@ -171,6 +193,7 @@ namespace PCGExGraph
 	}
 
 #pragma region PointEdge
+
 
 	void FUnionProcessor::FindPointEdgeIntersections()
 	{

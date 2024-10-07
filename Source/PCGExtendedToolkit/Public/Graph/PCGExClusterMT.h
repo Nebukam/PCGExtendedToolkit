@@ -587,7 +587,7 @@ namespace PCGExClusterMT
 
 		virtual void StartProcessing()
 		{
-			PCGEX_ASYNC_MT_LOOP_TPL(Process, bInlineProcessing, { Processor->bIsProcessorValid = Processor->Process(AsyncManager); })
+			PCGEX_ASYNC_MT_LOOP_TPL(TBatch<T>, Process, bInlineProcessing, { Processor->bIsProcessorValid = Processor->Process(This->AsyncManager); })
 		}
 
 		virtual bool PrepareSingle(const TSharedPtr<T>& ClusterProcessor) { return true; }
@@ -595,14 +595,14 @@ namespace PCGExClusterMT
 		virtual void CompleteWork() override
 		{
 			CurrentState = PCGEx::State_Completing;
-			PCGEX_ASYNC_MT_LOOP_VALID_PROCESSORS(CompleteWork, bInlineCompletion, { Processor->CompleteWork(); })
+			PCGEX_ASYNC_MT_LOOP_VALID_PROCESSORS(TBatch<T>, CompleteWork, bInlineCompletion, { Processor->CompleteWork(); })
 			FClusterProcessorBatchBase::CompleteWork();
 		}
 
 		virtual void Write() override
 		{
 			CurrentState = PCGEx::State_Writing;
-			PCGEX_ASYNC_MT_LOOP_VALID_PROCESSORS(Write, bInlineWrite, { Processor->Write(); })
+			PCGEX_ASYNC_MT_LOOP_VALID_PROCESSORS(TBatch<T>, Write, bInlineWrite, { Processor->Write(); })
 			FClusterProcessorBatchBase::Write();
 		}
 

@@ -19,26 +19,26 @@ namespace PCGExPointsMT
 	PCGEX_ASYNC_STATE(MTState_PointsCompletingWork)
 	PCGEX_ASYNC_STATE(MTState_PointsWriting)
 
-#define PCGEX_ASYNC_MT_LOOP_TPL(_ID, _INLINE_CONDITION, _BODY)\
+#define PCGEX_ASYNC_MT_LOOP_TPL(_BATCH_TYPE, _ID, _INLINE_CONDITION, _BODY)\
+	TWeakPtr<_BATCH_TYPE> WeakBatch = TWeakPtr<_BATCH_TYPE>(SharedThis(this));\
 	if (_INLINE_CONDITION)  { \
 		PCGEX_ASYNC_GROUP_CHKD_VOID(AsyncManager, _ID##Inlined) \
-		_ID##Inlined->OnIterationCallback = [&](const int32 Index, const int32 Count, const int32 LoopIdx) { \
-		const TSharedRef<T>& Processor = Processors[Index]; _BODY }; \
+		_ID##Inlined->OnIterationCallback = [WeakBatch](const int32 Index, const int32 Count, const int32 LoopIdx) { \
+		if(const TSharedPtr<_BATCH_TYPE> This = WeakBatch.Pin()){ const TSharedRef<T>& Processor = This->Processors[Index]; _BODY } }; \
 		_ID##Inlined->StartIterations( Processors.Num(), 1, true, false);\
 	} else {\
 		PCGEX_ASYNC_GROUP_CHKD_VOID(AsyncManager, _ID##NonTrivial)\
-		_ID##NonTrivial->OnIterationCallback = [&](const int32 Index, const int32 Count, const int32 LoopIdx) {\
-		const TSharedRef<T>& Processor = Processors[Index];\
-		if (Processor->IsTrivial()) { return; } _BODY 	}; \
+		_ID##NonTrivial->OnIterationCallback = [WeakBatch](const int32 Index, const int32 Count, const int32 LoopIdx) {\
+		if(const TSharedPtr<_BATCH_TYPE> This = WeakBatch.Pin()){ const TSharedRef<T>& Processor = This->Processors[Index]; if (Processor->IsTrivial()) { return; } _BODY } }; \
 		_ID##NonTrivial->StartIterations(Processors.Num(), 1, false, false);\
 		if(!TrivialProcessors.IsEmpty()){\
 		PCGEX_ASYNC_GROUP_CHKD_VOID(AsyncManager, _ID##Trivial) \
-		_ID##Trivial->OnIterationCallback =[&](const int32 Index, const int32 Count, const int32 LoopIdx){ \
-		const TSharedRef<T>& Processor = TrivialProcessors[Index]; _BODY }; \
+		_ID##Trivial->OnIterationCallback =[WeakBatch](const int32 Index, const int32 Count, const int32 LoopIdx){ \
+		if(const TSharedPtr<_BATCH_TYPE> This = WeakBatch.Pin()){ const TSharedRef<T>& Processor = This->TrivialProcessors[Index]; _BODY } }; \
 		_ID##Trivial->StartIterations( TrivialProcessors.Num(), 32, false, false); }\
 	}
 
-#define PCGEX_ASYNC_MT_LOOP_VALID_PROCESSORS(_ID, _INLINE_CONDITION, _BODY) PCGEX_ASYNC_MT_LOOP_TPL(_ID, _INLINE_CONDITION, if(Processor->bIsProcessorValid){ _BODY })
+#define PCGEX_ASYNC_MT_LOOP_VALID_PROCESSORS(_BATCH_TYPE, _ID, _INLINE_CONDITION, _BODY) PCGEX_ASYNC_MT_LOOP_TPL(_BATCH_TYPE, _ID, _INLINE_CONDITION, if(Processor->bIsProcessorValid){ _BODY })
 
 	class FPointsProcessorBatchBase;
 
@@ -50,7 +50,7 @@ namespace PCGExPointsMT
 		TSharedPtr<PCGExMT::FTaskManager> AsyncManager;
 		FPCGExContext* ExecutionContext = nullptr;
 
-		TUniquePtr<PCGExPointFilter::TManager> PrimaryFilters;
+		TSharedPtr<PCGExPointFilter::TManager> PrimaryFilters;
 		bool bInlineProcessPoints = false;
 		bool bInlineProcessRange = false;
 
@@ -245,7 +245,7 @@ namespace PCGExPointsMT
 
 			if (InFilterFactories->IsEmpty()) { return true; }
 
-			PrimaryFilters = MakeUnique<PCGExPointFilter::TManager>(PointDataFacade);
+			PrimaryFilters = MakeShared<PCGExPointFilter::TManager>(PointDataFacade);
 			return PrimaryFilters->Init(ExecutionContext, *InFilterFactories);
 		}
 
@@ -420,7 +420,7 @@ namespace PCGExPointsMT
 				if (NewProcessor->IsTrivial()) { TrivialProcessors.Add(NewProcessor.ToSharedRef()); }
 			}
 
-			PCGEX_ASYNC_MT_LOOP_TPL(Process, bInlineProcessing, { Processor->bIsProcessorValid = Processor->Process(AsyncManager); })
+			PCGEX_ASYNC_MT_LOOP_TPL(TBatch<T>, Process, bInlineProcessing, { Processor->bIsProcessorValid = Processor->Process(This->AsyncManager); })
 		}
 
 		virtual bool PrepareSingle(const TSharedPtr<T>& PointsProcessor)
@@ -431,14 +431,14 @@ namespace PCGExPointsMT
 		virtual void CompleteWork() override
 		{
 			CurrentState = PCGEx::State_Completing;
-			PCGEX_ASYNC_MT_LOOP_VALID_PROCESSORS(CompleteWork, bInlineCompletion, { Processor->CompleteWork(); })
+			PCGEX_ASYNC_MT_LOOP_VALID_PROCESSORS(TBatch<T>, CompleteWork, bInlineCompletion, { Processor->CompleteWork(); })
 			FPointsProcessorBatchBase::CompleteWork();
 		}
 
 		virtual void Write() override
 		{
 			CurrentState = PCGEx::State_Writing;
-			PCGEX_ASYNC_MT_LOOP_VALID_PROCESSORS(Write, bInlineWrite, { Processor->Write(); })
+			PCGEX_ASYNC_MT_LOOP_VALID_PROCESSORS(TBatch<T>, Write, bInlineWrite, { Processor->Write(); })
 			FPointsProcessorBatchBase::Write();
 		}
 

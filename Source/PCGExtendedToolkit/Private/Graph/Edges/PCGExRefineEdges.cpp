@@ -156,7 +156,7 @@ namespace PCGExRefineEdges
 
 		if (!Context->EdgeFilterFactories.IsEmpty())
 		{
-			EdgeFilterManager = MakeUnique<PCGExPointFilter::TManager>(EdgeDataFacade);
+			EdgeFilterManager = MakeShared<PCGExPointFilter::TManager>(EdgeDataFacade);
 			if (!EdgeFilterManager->Init(ExecutionContext, Context->EdgeFilterFactories)) { return false; }
 		}
 		else
@@ -169,7 +169,7 @@ namespace PCGExRefineEdges
 		{
 			if (!Context->SanitizationFilterFactories.IsEmpty())
 			{
-				SanitizationFilterManager = MakeUnique<PCGExPointFilter::TManager>(EdgeDataFacade);
+				SanitizationFilterManager = MakeShared<PCGExPointFilter::TManager>(EdgeDataFacade);
 				if (!SanitizationFilterManager->Init(ExecutionContext, Context->SanitizationFilterFactories)) { return false; }
 			}
 		}

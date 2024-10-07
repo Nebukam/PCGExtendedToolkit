@@ -9,7 +9,7 @@
 
 namespace PCGExGraph
 {
-	FVector FUnionNode::UpdateCenter(const PCGExData::FUnionMetadata* InUnionMetadata, const TSharedPtr<PCGExData::FPointIOCollection>& IOGroup)
+	FVector FUnionNode::UpdateCenter(const TSharedPtr<PCGExData::FUnionMetadata>& InUnionMetadata, const TSharedPtr<PCGExData::FPointIOCollection>& IOGroup)
 	{
 		Center = FVector::ZeroVector;
 		PCGExData::FUnionData* UnionData = InUnionMetadata->Get(Index);

@@ -172,7 +172,7 @@ namespace PCGExGraph
 			Adjacency.Empty();
 		}
 
-		FVector UpdateCenter(const PCGExData::FUnionMetadata* InUnionMetadata, const TSharedPtr<PCGExData::FPointIOCollection>& IOGroup);
+		FVector UpdateCenter(const TSharedPtr<PCGExData::FUnionMetadata>& InUnionMetadata, const TSharedPtr<PCGExData::FPointIOCollection>& IOGroup);
 
 		FORCEINLINE void Add(const int32 InAdjacency)
 		{

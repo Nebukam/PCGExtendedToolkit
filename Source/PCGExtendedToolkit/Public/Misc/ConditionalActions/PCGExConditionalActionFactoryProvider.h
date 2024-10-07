@@ -56,7 +56,7 @@ public:
 	virtual void Cleanup() override;
 
 protected:
-	TUniquePtr<PCGExPointFilter::TManager> FilterManager;
+	TSharedPtr<PCGExPointFilter::TManager> FilterManager;
 };
 
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")

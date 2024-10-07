@@ -75,7 +75,7 @@ namespace PCGExFlagNodes
 	{
 		friend class FProcessorBatch;
 		TSharedPtr<TArray<int64>> StateFlags;
-		TUniquePtr<PCGExClusterStates::FStateManager> StateManager;
+		TSharedPtr<PCGExClusterStates::FStateManager> StateManager;
 
 		bool bBuildExpandedNodes = false;
 		TSharedPtr<TArray<PCGExCluster::FExpandedNode>> ExpandedNodes;

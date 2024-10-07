@@ -324,7 +324,7 @@ namespace PCGExSampleNearestPoints
 
 		FVector SafeUpVector = FVector::UpVector;
 
-		TUniquePtr<PCGExDataBlending::FMetadataBlender> Blender;
+		TSharedPtr<PCGExDataBlending::FMetadataBlender> Blender;
 
 		int8 bAnySuccess = 0;
 

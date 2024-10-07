@@ -459,10 +459,36 @@ namespace PCGExMT
 	};
 
 	template <typename T>
+	class /*PCGEXTENDEDTOOLKIT_API*/ FWriteTaskWithManager final : public FPCGExTask
+	{
+	public:
+		FWriteTaskWithManager(const TSharedPtr<PCGExData::FPointIO>& InPointIO,
+		                      const TSharedPtr<T>& InOperation)
+			: FPCGExTask(InPointIO),
+			  Operation(InOperation)
+
+		{
+		}
+
+		TSharedPtr<T> Operation;
+
+		virtual bool ExecuteTask(const TSharedPtr<FTaskManager>& AsyncManager) override
+		{
+			if (!Operation) { return false; }
+			Operation->Write(AsyncManager);
+			return true;
+		}
+	};
+
+	template <typename T, bool bWithManager = false>
 	static void Write(const TSharedPtr<FTaskManager>& AsyncManager, const TSharedPtr<T>& Operation)
 	{
 		if (!Operation) { return; }
 		if (!AsyncManager || !AsyncManager->IsAvailable()) { Operation->Write(); }
-		else { AsyncManager->Start<FWriteTask<T>>(-1, nullptr, Operation); }
+		else
+		{
+			if constexpr (bWithManager) { AsyncManager->Start<FWriteTaskWithManager<T>>(-1, nullptr, Operation); }
+			else { AsyncManager->Start<FWriteTask<T>>(-1, nullptr, Operation); }
+		}
 	}
 }

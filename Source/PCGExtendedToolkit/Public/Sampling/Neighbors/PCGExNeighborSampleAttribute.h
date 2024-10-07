@@ -28,7 +28,7 @@ class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExNeighborSampleAttribute : public UPCGExNe
 	GENERATED_BODY()
 
 public:
-	TUniquePtr<PCGExDataBlending::FMetadataBlender> Blender;
+	TSharedPtr<PCGExDataBlending::FMetadataBlender> Blender;
 
 	TSet<FName> SourceAttributes;
 	EPCGExDataBlendingType Blending = EPCGExDataBlendingType::Average;

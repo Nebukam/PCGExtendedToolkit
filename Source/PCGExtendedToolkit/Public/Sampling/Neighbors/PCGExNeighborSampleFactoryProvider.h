@@ -115,8 +115,8 @@ class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExNeighborSampleOperation : public UPCGExOp
 	GENERATED_BODY()
 
 public:
-	TUniquePtr<PCGExClusterFilter::TManager> PointFilters;
-	TUniquePtr<PCGExClusterFilter::TManager> ValueFilters;
+	TSharedPtr<PCGExClusterFilter::TManager> PointFilters;
+	TSharedPtr<PCGExClusterFilter::TManager> ValueFilters;
 
 	TSharedPtr<PCGExData::FFacade> VtxDataFacade;
 	TSharedPtr<PCGExData::FFacade> EdgeDataFacade;

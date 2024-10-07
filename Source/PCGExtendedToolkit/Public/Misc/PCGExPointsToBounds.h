@@ -205,7 +205,7 @@ namespace PCGExPointsToBounds
 
 	class FProcessor final : public PCGExPointsMT::TPointsProcessor<FPCGExPointsToBoundsContext, UPCGExPointsToBoundsSettings>
 	{
-		TUniquePtr<PCGExDataBlending::FMetadataBlender> MetadataBlender;
+		TSharedPtr<PCGExDataBlending::FMetadataBlender> MetadataBlender;
 		TSharedPtr<FBounds> Bounds;
 
 	public:

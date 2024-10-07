@@ -132,8 +132,8 @@ namespace PCGExConnectPoints
 
 	class FProcessor final : public PCGExPointsMT::TPointsProcessor<FPCGExConnectPointsContext, UPCGExConnectPointsSettings>
 	{
-		TUniquePtr<PCGExPointFilter::TManager> GeneratorsFilter;
-		TUniquePtr<PCGExPointFilter::TManager> ConnectableFilter;
+		TSharedPtr<PCGExPointFilter::TManager> GeneratorsFilter;
+		TSharedPtr<PCGExPointFilter::TManager> ConnectableFilter;
 
 		TSharedPtr<PCGExGraph::FGraphBuilder> GraphBuilder;
 

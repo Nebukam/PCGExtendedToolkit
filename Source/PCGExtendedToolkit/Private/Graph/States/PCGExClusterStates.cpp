@@ -32,7 +32,7 @@ namespace PCGExClusterStates
 
 		if (!TFilter::Init(InContext, InCluster, InPointDataFacade, InEdgeDataFacade)) { return false; }
 
-		Manager = MakeUnique<PCGExClusterFilter::TManager>(InCluster, PointDataFacade, EdgeDataFacade);
+		Manager = MakeShared<PCGExClusterFilter::TManager>(InCluster, PointDataFacade, EdgeDataFacade);
 		Manager->bCacheResults = true;
 		return true;
 	}

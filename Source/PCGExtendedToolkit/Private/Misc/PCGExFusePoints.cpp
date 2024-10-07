@@ -66,7 +66,7 @@ namespace PCGExFusePoints
 
 		if (!FPointsProcessor::Process(InAsyncManager)) { return false; }
 
-		UnionGraph = MakeUnique<PCGExGraph::FUnionGraph>(
+		UnionGraph = MakeShared<PCGExGraph::FUnionGraph>(
 			Settings->PointPointIntersectionDetails.FuseDetails,
 			PointDataFacade->GetIn()->GetBounds().ExpandBy(10));
 
@@ -94,7 +94,7 @@ namespace PCGExFusePoints
 		FPCGPoint& Point = MutablePoints[Iteration];
 		Point.MetadataEntry = Key; // Restore key
 
-		Point.Transform.SetLocation(UnionNode->UpdateCenter(UnionGraph->PointsUnion.Get(), Context->MainPoints));
+		Point.Transform.SetLocation(UnionNode->UpdateCenter(UnionGraph->PointsUnion, Context->MainPoints));
 		UnionBlender->MergeSingle(Iteration, PCGExDetails::GetDistanceDetails(Settings->PointPointIntersectionDetails));
 	}
 
@@ -103,7 +103,7 @@ namespace PCGExFusePoints
 		const int32 NumUnionNodes = UnionGraph->Nodes.Num();
 		PointDataFacade->Source->GetOut()->GetMutablePoints().SetNum(NumUnionNodes);
 
-		UnionBlender = MakeUnique<PCGExDataBlending::FUnionBlender>(const_cast<FPCGExBlendingDetails*>(&Settings->BlendingDetails), &Context->CarryOverDetails);
+		UnionBlender = MakeShared<PCGExDataBlending::FUnionBlender>(const_cast<FPCGExBlendingDetails*>(&Settings->BlendingDetails), &Context->CarryOverDetails);
 		UnionBlender->AddSource(PointDataFacade);
 		UnionBlender->PrepareMerge(PointDataFacade, UnionGraph->PointsUnion);
 

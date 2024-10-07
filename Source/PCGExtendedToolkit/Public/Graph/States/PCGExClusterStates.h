@@ -74,7 +74,7 @@ namespace PCGExClusterStates
 		void ProcessFlags(const bool bSuccess, int64& InFlags) const;
 
 	protected:
-		TUniquePtr<PCGExClusterFilter::TManager> Manager;
+		TSharedPtr<PCGExClusterFilter::TManager> Manager;
 	};
 
 	class /*PCGEXTENDEDTOOLKIT_API*/ FStateManager : public PCGExClusterFilter::TManager

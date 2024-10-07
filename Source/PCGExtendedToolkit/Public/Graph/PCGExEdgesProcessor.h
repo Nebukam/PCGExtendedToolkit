@@ -57,7 +57,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExEdgesProcessorContext : FPCGExPointsProc
 	TSharedPtr<PCGExData::FPointIOCollection> MainEdges;
 	TSharedPtr<PCGExData::FPointIO> CurrentEdges;
 
-	TUniquePtr<PCGExData::FPointIOTaggedDictionary> InputDictionary;
+	TSharedPtr<PCGExData::FPointIOTaggedDictionary> InputDictionary;
 	TSharedPtr<PCGExData::FPointIOTaggedEntries> TaggedEdges;
 	TMap<uint32, int32> EndpointsLookup;
 	TArray<int32> EndpointsAdjacency;

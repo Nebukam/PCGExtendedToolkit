@@ -52,8 +52,8 @@ FPCGExPointsProcessorContext::~FPCGExPointsProcessorContext()
 		}
 	}
 
-	if (MainBatch) { MainBatch->Cleanup(); }
-	MainBatch.Reset();
+	//if (MainBatch) { MainBatch->Cleanup(); }
+	//MainBatch.Reset();
 }
 
 bool FPCGExPointsProcessorContext::AdvancePointsIO(const bool bCleanupKeys)

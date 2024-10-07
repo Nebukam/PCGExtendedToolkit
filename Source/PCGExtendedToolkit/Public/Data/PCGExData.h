@@ -43,7 +43,7 @@ namespace PCGExData
 		return PCGEx::H64(GetTypeHash(FullName), static_cast<int32>(Type));
 	};
 
-	class /*PCGEXTENDEDTOOLKIT_API*/ FBufferBase
+	class /*PCGEXTENDEDTOOLKIT_API*/ FBufferBase : public TSharedFromThis<FBufferBase>
 	{
 		friend class FFacade;
 
@@ -344,7 +344,7 @@ namespace PCGExData
 		}
 	};
 
-	class /*PCGEXTENDEDTOOLKIT_API*/ FFacade
+	class /*PCGEXTENDEDTOOLKIT_API*/ FFacade : public TSharedFromThis<FFacade>
 	{
 		mutable FRWLock PoolLock;
 		mutable FRWLock CloudLock;
@@ -565,6 +565,7 @@ namespace PCGExData
 		}
 
 		void Write(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager);
+		void WriteBuffersAsCallbacks(const TSharedPtr<PCGExMT::FTaskGroup>& TaskGroup);
 
 		void Fetch(const int32 StartIndex, const int32 Count) { for (const TSharedPtr<FBufferBase>& Buffer : Buffers) { Buffer->Fetch(StartIndex, Count); } }
 		void Fetch(const uint64 Scope) { Fetch(PCGEx::H64A(Scope), PCGEx::H64B(Scope)); }

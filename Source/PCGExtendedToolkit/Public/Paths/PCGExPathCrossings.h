@@ -161,8 +161,8 @@ namespace PCGExPathCrossings
 		TArray<TSharedPtr<PCGExPaths::FPathEdge>> Edges;
 		TArray<TSharedPtr<FCrossing>> Crossings;
 
-		TUniquePtr<PCGExPointFilter::TManager> CanCutFilterManager;
-		TUniquePtr<PCGExPointFilter::TManager> CanBeCutFilterManager;
+		TSharedPtr<PCGExPointFilter::TManager> CanCutFilterManager;
+		TSharedPtr<PCGExPointFilter::TManager> CanBeCutFilterManager;
 
 		TArray<bool> CanCut;
 		TArray<bool> CanBeCut;
@@ -172,7 +172,7 @@ namespace PCGExPathCrossings
 
 		TSet<int32> CrossIOIndices;
 		TSharedPtr<PCGExData::FUnionMetadata> UnionMetadata;
-		TUniquePtr<PCGExDataBlending::FUnionBlender> UnionBlender;
+		TSharedPtr<PCGExDataBlending::FUnionBlender> UnionBlender;
 
 		using TEdgeOctree = TOctree2<PCGExPaths::FPathEdge*, PCGExPaths::FPathEdgeSemantics>;
 		TUniquePtr<TEdgeOctree> EdgeOctree;

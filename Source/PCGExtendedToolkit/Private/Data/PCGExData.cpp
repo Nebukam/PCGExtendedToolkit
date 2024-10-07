@@ -26,7 +26,11 @@ namespace PCGExData
 
 	void FFacade::Write(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager)
 	{
-		if (!AsyncManager) { return; }
+		if (!AsyncManager || !AsyncManager->IsAvailable())
+		{
+			Flush();
+			return;
+		}
 
 		for (const TSharedPtr<FBufferBase>& Buffer : Buffers)
 		{
@@ -34,6 +38,22 @@ namespace PCGExData
 		}
 
 		Flush();
+	}
+
+	void FFacade::WriteBuffersAsCallbacks(const TSharedPtr<PCGExMT::FTaskGroup>& TaskGroup)
+	{
+		// !!! Requires manual flush !!!
+
+		if (!TaskGroup)
+		{
+			Flush();
+			return;
+		}
+
+		for (const TSharedPtr<FBufferBase> Buffer : Buffers)
+		{
+			if (Buffer->IsWritable()) { TaskGroup->AddSimpleCallback([BufferRef = Buffer]() { BufferRef->Write(); }); }
+		}
 	}
 
 	void FUnionData::ComputeWeights(

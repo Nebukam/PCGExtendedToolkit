@@ -54,7 +54,7 @@ namespace PCGExDataBlending
 		}
 	};
 
-	class /*PCGEXTENDEDTOOLKIT_API*/ FUnionBlender final
+	class /*PCGEXTENDEDTOOLKIT_API*/ FUnionBlender final : public TSharedFromThis<FUnionBlender>
 	{
 	public:
 		const FPCGExCarryOverDetails* CarryOverDetails;

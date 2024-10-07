@@ -24,7 +24,7 @@ namespace PCGExPointStates
 	{
 		if (!TFilter::Init(InContext, InPointDataFacade)) { return false; }
 
-		Manager = MakeUnique<PCGExPointFilter::TManager>(InPointDataFacade);
+		Manager = MakeShared<PCGExPointFilter::TManager>(InPointDataFacade);
 		Manager->bCacheResults = true;
 		return true;
 	}

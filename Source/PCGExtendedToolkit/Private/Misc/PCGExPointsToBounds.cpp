@@ -124,7 +124,7 @@ namespace PCGExPointsToBounds
 
 		if (Settings->bBlendProperties)
 		{
-			MetadataBlender = MakeUnique<PCGExDataBlending::FMetadataBlender>(&Settings->BlendingSettings);
+			MetadataBlender = MakeShared<PCGExDataBlending::FMetadataBlender>(&Settings->BlendingSettings);
 			MetadataBlender->PrepareForData(PointDataFacade);
 
 			const PCGExData::FPointRef Target = PointDataFacade->Source->GetOutPointRef(0);

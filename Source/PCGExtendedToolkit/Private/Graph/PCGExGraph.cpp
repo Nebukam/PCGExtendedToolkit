@@ -406,26 +406,26 @@ namespace PCGExGraph
 
 		PCGEX_ASYNC_GROUP_CHKD_VOID(AsyncManager, ProcessSubGraphTask)
 		ProcessSubGraphTask->OnCompleteCallback =
-			[&]()
+			[WeakThis = TWeakPtr<FGraphBuilder>(SharedThis(this))]()
 			{
-				if (OnCompilationEndCallback)
+				if (TSharedPtr<FGraphBuilder> Builder = WeakThis.Pin())
 				{
-					const TSharedPtr<FGraphBuilder> SharedPtr = SharedThis(this);
-					OnCompilationEndCallback(SharedPtr.ToSharedRef(), bCompiledSuccessfully);
+					if (Builder->OnCompilationEndCallback) { Builder->OnCompilationEndCallback(Builder.ToSharedRef(), Builder->bCompiledSuccessfully); }
+					if (!Builder->bCompiledSuccessfully) { return; }
+
+					if (Builder->bWriteVtxDataFacadeWithCompile) { Builder->NodeDataFacade->Write(Builder->AsyncManager); }
 				}
-
-				if (!bCompiledSuccessfully) { return; }
-
-				// Schedule facades for writing
-				if (bWriteVtxDataFacadeWithCompile) { NodeDataFacade->Write(AsyncManager); }
-				for (const TSharedPtr<FSubGraph>& SubGraph : Graph->SubGraphs) { SubGraph->EdgesDataFacade->Write(AsyncManager); }
 			};
 
-		ProcessSubGraphTask->OnIterationCallback = [&](const int32 Index, const int32 Count, const int32 LoopIdx)
-		{
-			const TSharedPtr<FSubGraph> SubGraph = Graph->SubGraphs[Index];
-			PCGExGraphTask::WriteSubGraphEdges(AsyncManager, SubGraph, MetadataDetailsPtr);
-		};
+		ProcessSubGraphTask->OnIterationCallback =
+			[WeakThis = TWeakPtr<FGraphBuilder>(SharedThis(this))](const int32 Index, const int32 Count, const int32 LoopIdx)
+			{
+				if (TSharedPtr<FGraphBuilder> Builder = WeakThis.Pin())
+				{
+					const TSharedPtr<FSubGraph> SubGraph = Builder->Graph->SubGraphs[Index];
+					PCGExGraphTask::WriteSubGraphEdges(Builder->AsyncManager, SubGraph, Builder->MetadataDetailsPtr);
+				}
+			};
 
 		ProcessSubGraphTask->StartIterations(Graph->SubGraphs.Num(), 1, false, false);
 	}
@@ -560,6 +560,8 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 				AsyncManager->Start<FWriteSubGraphCluster>(-1, nullptr, SubGraph);
 			}
 		}
+
+		SubGraph->EdgesDataFacade->Write(AsyncManager);
 	}
 
 	bool FWriteSubGraphCluster::ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager)

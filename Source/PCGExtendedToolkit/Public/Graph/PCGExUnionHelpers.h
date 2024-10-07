@@ -16,7 +16,7 @@
 
 namespace PCGExGraph
 {
-	struct /*PCGEXTENDEDTOOLKIT_API*/ FUnionProcessor : TSharedFromThis<FUnionProcessor>
+	struct /*PCGEXTENDEDTOOLKIT_API*/ FUnionProcessor : public TSharedFromThis<FUnionProcessor>
 	{
 		FPCGExPointsProcessorContext* Context = nullptr;
 
@@ -70,8 +70,10 @@ namespace PCGExGraph
 
 		int32 NewEdgesNum = 0;
 
+		void OnNodesProcessingComplete();
 		void InternalStartExecution();
 
+		FPCGExGraphBuilderDetails BuilderDetails;
 		FPCGExBlendingDetails DefaultPointsBlendingDetails;
 		FPCGExBlendingDetails DefaultEdgesBlendingDetails;
 
@@ -82,6 +84,7 @@ namespace PCGExGraph
 		TSharedPtr<FEdgeEdgeIntersections> EdgeEdgeIntersections;
 		TSharedPtr<PCGExDataBlending::FMetadataBlender> MetadataBlender;
 
+		
 		void FindPointEdgeIntersections();
 		void FindPointEdgeIntersectionsFound();
 		void OnPointEdgeSortingComplete();
