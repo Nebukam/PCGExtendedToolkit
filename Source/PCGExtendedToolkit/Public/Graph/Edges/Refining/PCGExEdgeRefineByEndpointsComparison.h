@@ -49,6 +49,10 @@ public:
 		{
 			InVtxFacade->GetBroadcaster<double>(Attribute);
 		}
+		else
+		{
+			InVtxFacade->GetBroadcaster<FString>(Attribute);
+		}
 	}
 
 	virtual void PrepareForCluster(const TSharedPtr<PCGExCluster::FCluster>& InCluster, const TSharedPtr<PCGExHeuristics::THeuristicsHandler>& InHeuristics) override
@@ -61,10 +65,7 @@ public:
 		}
 		else
 		{
-			StringBuffer = MakeShared<PCGEx::TAttributeBroadcaster<FString>>();
-			if (StringBuffer->Prepare(Attribute, InCluster->VtxIO.Pin().ToSharedRef()))
-			{
-			}
+			StringBuffer = PrimaryDataFacade->GetBroadcaster<FString>(Attribute);
 		}
 	}
 
@@ -75,6 +76,14 @@ public:
 		const PCGExCluster::FNode* From = Cluster->Nodes->GetData() + (*Cluster->NodeIndexLookup)[Edge.Start];
 		const PCGExCluster::FNode* To = Cluster->Nodes->GetData() + (*Cluster->NodeIndexLookup)[Edge.End];
 
+		if (CompareAs == EPCGExRefineEdgeComparisonType::Numeric)
+		{
+			PCGExCompare::Compare(NumericComparison, NumericBuffer->Read(Edge.Start), NumericBuffer->Read(Edge.End), Tolerance);
+		}
+		else
+		{
+			PCGExCompare::Compare(StringComparison, StringBuffer->Read(Edge.Start), StringBuffer->Read(Edge.End));
+		}
 
 		FPlatformAtomics::InterlockedExchange(&Edge.bValid, bInvert ? 1 : 0);
 	}
@@ -88,15 +97,15 @@ public:
 	EPCGExRefineEdgeComparisonType CompareAs = EPCGExRefineEdgeComparisonType::Numeric;
 
 	/** Comparison check */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Comparison"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Comparison", EditCondition="CompareAs == EPCGExRefineEdgeComparisonType::Numeric", EditConditionHides))
 	EPCGExComparison NumericComparison = EPCGExComparison::StrictlyGreater;
 
 	/** Rounding mode for approx. comparison modes */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="Comparison==EPCGExComparison::NearlyEqual || Comparison==EPCGExComparison::NearlyNotEqual", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="(Comparison==EPCGExComparison::NearlyEqual || Comparison==EPCGExComparison::NearlyNotEqual) && CompareAs == EPCGExRefineEdgeComparisonType::Numeric", EditConditionHides))
 	double Tolerance = 0.001;
 
 	/** Comparison check */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Comparison"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Comparison", EditCondition="CompareAs == EPCGExRefineEdgeComparisonType::String", EditConditionHides))
 	EPCGExStringComparison StringComparison = EPCGExStringComparison::StrictlyEqual;
 
 	/** */
@@ -104,7 +113,7 @@ public:
 	bool bInvert = false;
 
 	TSharedPtr<PCGExData::TBuffer<double>> NumericBuffer;
-	TSharedPtr<PCGEx::TAttributeBroadcaster<FString>> StringBuffer;
+	TSharedPtr<PCGExData::TBuffer<FString>> StringBuffer;
 
 	virtual void Cleanup() override
 	{
