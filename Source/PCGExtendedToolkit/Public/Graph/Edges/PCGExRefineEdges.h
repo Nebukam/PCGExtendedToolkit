@@ -130,6 +130,17 @@ namespace PCGExRefineEdges
 		UPCGExEdgeRefineOperation* Refinement = nullptr;
 	};
 
+	class FProcessorBatch final : public PCGExClusterMT::TBatch<FProcessor>
+	{
+	public:
+		FProcessorBatch(FPCGExContext* InContext, const TSharedRef<PCGExData::FPointIO>& InVtx, TArrayView<TSharedRef<PCGExData::FPointIO>> InEdges)
+			: PCGExClusterMT::TBatch<FProcessor>(InContext, InVtx, InEdges)
+		{
+		}
+
+		virtual void OnProcessingPreparationComplete() override;
+	};
+
 	class FSanitizeRangeTask : public PCGExMT::FPCGExTask
 	{
 	public:

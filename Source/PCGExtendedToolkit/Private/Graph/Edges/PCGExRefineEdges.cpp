@@ -88,9 +88,9 @@ bool FPCGExRefineEdgesElement::ExecuteInternal(
 	{
 		if (Settings->bOutputOnlyEdgesAsPoints)
 		{
-			if (!Context->StartProcessingClusters<PCGExClusterMT::TBatch<PCGExRefineEdges::FProcessor>>(
+			if (!Context->StartProcessingClusters<PCGExRefineEdges::FProcessorBatch>(
 				[](const TSharedPtr<PCGExData::FPointIOTaggedEntries>& Entries) { return true; },
-				[&](const TSharedPtr<PCGExClusterMT::TBatch<PCGExRefineEdges::FProcessor>>& NewBatch)
+				[&](const TSharedPtr<PCGExRefineEdges::FProcessorBatch>& NewBatch)
 				{
 					if (Context->Refinement->RequiresHeuristics()) { NewBatch->SetRequiresHeuristics(true); }
 				}))
@@ -146,6 +146,9 @@ namespace PCGExRefineEdges
 		Sanitization = Settings->Sanitization;
 
 		Refinement = Context->Refinement->CopyOperation<UPCGExEdgeRefineOperation>();
+		Refinement->PrimaryDataFacade = VtxDataFacade;
+		Refinement->SecondaryDataFacade = EdgeDataFacade;
+		
 		Refinement->PrepareForCluster(Cluster, HeuristicsHandler);
 
 		Refinement->EdgesFilters = &EdgeFilterCache;
@@ -289,6 +292,16 @@ namespace PCGExRefineEdges
 		}
 
 		InsertEdges();
+	}
+
+	void FProcessorBatch::OnProcessingPreparationComplete()
+	{
+		PCGEX_TYPED_CONTEXT_AND_SETTINGS(RefineEdges)
+
+		VtxDataFacade->bSupportsScopedGet = false; // :(
+		Context->Refinement->PrepareVtxFacade(VtxDataFacade);
+
+		TBatch<FProcessor>::OnProcessingPreparationComplete();
 	}
 
 	bool FSanitizeRangeTask::ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager)

@@ -4,6 +4,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "PCGExCompare.h"
 #include "PCGExEdgeRefineOperation.h"
 #include "Graph/PCGExCluster.h"
 
@@ -33,11 +34,13 @@ public:
 		{
 			Threshold = TypedOther->Threshold;
 			Mode = TypedOther->Mode;
+			Comparison = TypedOther->Comparison;
 			bInvert = TypedOther->bInvert;
 		}
 	}
 
-	virtual bool RequiresIndividualEdgeProcessing() override { return !bInvert; }
+	virtual bool RequiresIndividualEdgeProcessing() override { return true; }
+	virtual bool GetDefaultEdgeValidity() override { return !bInvert; }
 
 	virtual void ProcessEdge(PCGExGraph::FIndexedEdge& Edge) override
 	{
@@ -48,15 +51,15 @@ public:
 
 		if (Mode == EPCGExRefineEdgeThresholdMode::Both)
 		{
-			if (From->Adjacency.Num() < Threshold && To->Adjacency.Num() < Threshold) { return; }
+			if (PCGExCompare::Compare(Comparison, From->Adjacency.Num(), Threshold) && PCGExCompare::Compare(Comparison, To->Adjacency.Num(), Threshold, Tolerance)) { return; }
 		}
 		else if (Mode == EPCGExRefineEdgeThresholdMode::Any)
 		{
-			if (From->Adjacency.Num() >= Threshold || To->Adjacency.Num() >= Threshold) { return; }
+			if (PCGExCompare::Compare(Comparison, From->Adjacency.Num(), Threshold) || PCGExCompare::Compare(Comparison, To->Adjacency.Num(), Threshold, Tolerance)) { return; }
 		}
 		else if (Mode == EPCGExRefineEdgeThresholdMode::Sum)
 		{
-			if ((From->Adjacency.Num() + To->Adjacency.Num()) < Threshold) { return; }
+			if (PCGExCompare::Compare(Comparison, (From->Adjacency.Num() + To->Adjacency.Num()), Threshold, Tolerance)) { return; }
 		}
 
 		FPlatformAtomics::InterlockedExchange(&Edge.bValid, bInvert ? 1 : 0);
@@ -69,7 +72,15 @@ public:
 	/** How should we check if the threshold is reached. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	EPCGExRefineEdgeThresholdMode Mode = EPCGExRefineEdgeThresholdMode::Sum;
+	
+	/** Comparison check */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	EPCGExComparison Comparison = EPCGExComparison::StrictlyGreater;
 
+	/** Rounding mode for approx. comparison modes */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="Comparison==EPCGExComparison::NearlyEqual || Comparison==EPCGExComparison::NearlyNotEqual", EditConditionHides))
+	int32 Tolerance = 0;
+	
 	/** */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	bool bInvert = false;
