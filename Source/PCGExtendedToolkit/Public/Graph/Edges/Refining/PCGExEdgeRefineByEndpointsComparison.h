@@ -78,11 +78,11 @@ public:
 
 		if (CompareAs == EPCGExRefineEdgeComparisonType::Numeric)
 		{
-			PCGExCompare::Compare(NumericComparison, NumericBuffer->Read(Edge.Start), NumericBuffer->Read(Edge.End), Tolerance);
+			if (PCGExCompare::Compare(NumericComparison, NumericBuffer->Read(Edge.Start), NumericBuffer->Read(Edge.End), Tolerance)) { return; }
 		}
 		else
 		{
-			PCGExCompare::Compare(StringComparison, StringBuffer->Read(Edge.Start), StringBuffer->Read(Edge.End));
+			if (PCGExCompare::Compare(StringComparison, StringBuffer->Read(Edge.Start), StringBuffer->Read(Edge.End))) { return; }
 		}
 
 		FPlatformAtomics::InterlockedExchange(&Edge.bValid, bInvert ? 1 : 0);
