@@ -20,6 +20,9 @@ namespace PCGExGraph
 	{
 		FPCGExPointsProcessorContext* Context = nullptr;
 
+		TSharedRef<PCGExData::FFacade> UnionDataFacade;
+		TSharedPtr<FUnionGraph> UnionGraph;
+		
 		FPCGExPointPointIntersectionDetails PointPointIntersectionDetails;
 
 		bool bDoPointEdge = false;
@@ -34,8 +37,7 @@ namespace PCGExGraph
 
 		FPCGExGraphBuilderDetails GraphBuilderDetails;
 
-		TSharedRef<PCGExData::FFacade> UnionDataFacade;
-		TSharedPtr<FUnionGraph> UnionGraph;
+		
 		TSharedPtr<PCGExDataBlending::FUnionBlender> UnionPointsBlender;
 
 		explicit FUnionProcessor(
