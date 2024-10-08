@@ -138,6 +138,7 @@ namespace PCGExSampleNearestSpline
 			bOnlyIncrementInsideNumIfClosed = false;
 		}
 
+		SafeUpVector = Settings->LookAtUpConstant;
 
 		{
 			const TSharedRef<PCGExData::FFacade>& OutputFacade = PointDataFacade;
@@ -156,13 +157,9 @@ namespace PCGExSampleNearestSpline
 			if (!RangeMaxGetter) { PCGE_LOG_C(Warning, GraphAndLog, ExecutionContext, FTEXT("RangeMax metadata missing")); }
 		}
 
-		if (Settings->bWriteLookAtTransform)
+		if (Settings->bWriteLookAtTransform && Settings->LookAtUpSelection == EPCGExSampleSource::Source)
 		{
-			if (Settings->LookAtUpSelection == EPCGExSampleSource::Target)
-			{
-			} // 
-			else { LookAtUpGetter = PointDataFacade->GetScopedBroadcaster<FVector>(Settings->LookAtUpSource); }
-
+			LookAtUpGetter = PointDataFacade->GetScopedBroadcaster<FVector>(Settings->LookAtUpSource);
 			if (!LookAtUpGetter) { PCGE_LOG_C(Warning, GraphAndLog, ExecutionContext, FTEXT("LookAtUp is invalid.")); }
 		}
 
@@ -315,7 +312,7 @@ namespace PCGExSampleNearestSpline
 		WeightedTransform.SetScale3D(FVector::ZeroVector);
 
 		FVector WeightedUp = SafeUpVector;
-		if (Settings->LookAtUpSelection == EPCGExSampleSource::Source && LookAtUpGetter) { WeightedUp = LookAtUpGetter->Read(Index); }
+		if (LookAtUpGetter) { WeightedUp = LookAtUpGetter->Read(Index); }
 
 		FVector WeightedSignAxis = FVector::Zero();
 		FVector WeightedAngleAxis = FVector::Zero();

@@ -295,7 +295,7 @@ namespace PCGExData
 		FPointIOCollection(FPCGExContext* InContext, FName InputLabel, EInit InitOut = EInit::NoOutput);
 		FPointIOCollection(FPCGExContext* InContext, TArray<FPCGTaggedData>& Sources, EInit InitOut = EInit::NoOutput);
 
-		~FPointIOCollection() = default;
+		~FPointIOCollection();
 
 		FName DefaultOutputLabel = PCGEx::OutputPointsLabel;
 		TArray<TSharedPtr<FPointIO>> Pairs;

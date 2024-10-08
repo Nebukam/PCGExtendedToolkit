@@ -168,9 +168,19 @@ namespace PCGExCluster
 			Node(InNode), Edge(InEdge), Direction(InDirection)
 		{
 		}
+
+		FExpandedNeighbor():
+			Node(nullptr), Edge(nullptr), Direction(FVector::ZeroVector)
+		{
+		}
+
+		FExpandedNeighbor(const FExpandedNeighbor& Other):
+			Node(Other.Node), Edge(Other.Edge), Direction(Other.Direction)
+		{
+		}
 	};
 
-	struct /*PCGEXTENDEDTOOLKIT_API*/ FCluster
+	struct /*PCGEXTENDEDTOOLKIT_API*/ FCluster : public TSharedFromThis<FCluster>
 	{
 	protected:
 		bool bIsMirror = false;
@@ -378,15 +388,15 @@ namespace PCGExCluster
 
 	struct /*PCGEXTENDEDTOOLKIT_API*/ FExpandedNode
 	{
-		const FNode* Node;
+		const FNode* Node = nullptr;
 		TArray<FExpandedNeighbor> Neighbors;
 
-		FExpandedNode(const FCluster* Cluster, const int32 InNodeIndex):
+		FExpandedNode(const TSharedPtr<FCluster>& Cluster, const int32 InNodeIndex):
 			Node(Cluster->Nodes->GetData() + InNodeIndex)
 		{
 			const int32 NumNeighbors = Node->Adjacency.Num();
 			const FVector Pos = Cluster->GetPos(InNodeIndex);
-			PCGEx::InitArray(Neighbors, NumNeighbors);
+			Neighbors.SetNum(NumNeighbors);
 			for (int i = 0; i < Neighbors.Num(); i++)
 			{
 				uint32 NodeIndex;
@@ -423,6 +433,16 @@ namespace PCGExCluster
 			Start(Cluster->Nodes->GetData() + (*Cluster->NodeIndexLookup)[(Cluster->Edges->GetData() + InEdgeIndex)->Start]),
 			End(Cluster->Nodes->GetData() + (*Cluster->NodeIndexLookup)[(Cluster->Edges->GetData() + InEdgeIndex)->End]),
 			Bounds(FBoxSphereBounds(FSphere(FMath::Lerp(Cluster->GetPos(Start), Cluster->GetPos(End), 0.5), FVector::Dist(Cluster->GetPos(Start), Cluster->GetPos(End)) * 0.5)))
+		{
+		}
+
+		FExpandedEdge():
+			Index(-1), Start(nullptr), End(nullptr), Bounds(FBoxSphereBounds(ForceInit))
+		{
+		}
+
+		FExpandedEdge(const FExpandedEdge& Other):
+			Index(Other.Index), Start(Other.Start), End(Other.End), Bounds(Other.Bounds)
 		{
 		}
 

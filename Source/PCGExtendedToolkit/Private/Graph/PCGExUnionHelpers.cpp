@@ -94,7 +94,7 @@ namespace PCGExGraph
 				const int32 MaxIndex = StartIndex + Count;
 				for (int i = StartIndex; i < MaxIndex; i++)
 				{
-					FUnionNode* UnionNode = P->UnionGraph->Nodes[i].Get();
+					FUnionNode* UnionNode = P->UnionGraph->Nodes[i];
 					PCGMetadataEntryKey Key = Points[i].MetadataEntry;
 					Points[i] = UnionNode->Point; // Copy "original" point properties, in case  there's only one
 
@@ -125,7 +125,7 @@ namespace PCGExGraph
 		GraphMetadataDetails.Grab(Context, PointEdgeIntersectionDetails);
 		GraphMetadataDetails.Grab(Context, EdgeEdgeIntersectionDetails);
 
-		GraphBuilder = MakeShared<FGraphBuilder>(UnionFacade, &BuilderDetails, 4);
+		GraphBuilder = MakeShared<FGraphBuilder>(UnionFacade.ToSharedRef(), &BuilderDetails, 4);
 
 		//TSet<uint64> UniqueEdges;
 		//UnionGraph->GetUniqueEdges(UniqueEdges);

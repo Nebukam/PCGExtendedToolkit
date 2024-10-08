@@ -67,7 +67,6 @@ namespace PCGExDataBlending
 
 		const bool IsFirstOperation = FirstPointOperation[PrimaryIndex];
 		for (const TSharedPtr<FDataBlendingOperationBase>& Op : Operations) { Op->DoRangeOperation(PrimaryIndex, SecondaryIndex, StartIndex, Weights, IsFirstOperation); }
-		for (const TSharedPtr<FDataBlendingOperationBase>& Op : Operations) { Op->DoRangeOperation(PrimaryIndex, SecondaryIndex, StartIndex, Weights, IsFirstOperation); }
 		FirstPointOperation[PrimaryIndex] = false;
 
 		if (bSkipProperties) { return; }

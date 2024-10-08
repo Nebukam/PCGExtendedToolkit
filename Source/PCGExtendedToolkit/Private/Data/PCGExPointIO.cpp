@@ -105,15 +105,15 @@ namespace PCGExData
 		{
 			FWriteScopeLock WriteScopeLock(OutKeysLock);
 			if (OutKeys) { return OutKeys; }
-			const TArrayView<FPCGPoint> View(Out->GetMutablePoints());
+			const TArrayView<FPCGPoint> MutablePoints = MakeArrayView(Out->GetMutablePoints());
 
 			if (bEnsureValidKeys)
 			{
-				UPCGMetadata* Metadata = Out->Metadata;
-				for (FPCGPoint& Pt : View) { if (Pt.MetadataEntry == PCGInvalidEntryKey) { Metadata->InitializeOnSet(Pt.MetadataEntry); } }
+				UPCGMetadata* OutMetadata = Out->Metadata;
+				for (FPCGPoint& Pt : MutablePoints) { OutMetadata->InitializeOnSet(Pt.MetadataEntry); }
 			}
-
-			OutKeys = MakeShared<FPCGAttributeAccessorKeysPoints>(View);
+			
+			OutKeys = MakeShared<FPCGAttributeAccessorKeysPoints>(MutablePoints);
 		}
 
 		return OutKeys;
@@ -194,6 +194,11 @@ namespace PCGExData
 		: FPointIOCollection(InContext)
 	{
 		Initialize(Sources, InitOut);
+	}
+
+	FPointIOCollection::~FPointIOCollection()
+	{
+		PCGEX_LOG_DTR(FPointIOCollection);
 	}
 
 	void FPointIOCollection::Initialize(

@@ -217,7 +217,7 @@ namespace PCGExGraph
 
 		TSharedPtr<PCGExData::FUnionMetadata> PointsUnion;
 		TSharedPtr<PCGExData::FUnionMetadata> EdgesUnion;
-		TArray<TUniquePtr<FUnionNode>> Nodes;
+		TArray<FUnionNode*> Nodes;
 		TMap<uint64, FIndexedEdge> Edges;
 
 		FPCGExFuseDetails FuseDetails;
@@ -247,6 +247,7 @@ namespace PCGExGraph
 
 		~FUnionGraph()
 		{
+			for (const FUnionNode* Node : Nodes) { delete Node; }
 		}
 
 		int32 NumNodes() const { return PointsUnion->Num(); }

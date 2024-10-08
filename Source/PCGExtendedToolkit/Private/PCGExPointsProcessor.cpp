@@ -52,8 +52,8 @@ FPCGExPointsProcessorContext::~FPCGExPointsProcessorContext()
 		}
 	}
 
-	//if (MainBatch) { MainBatch->Cleanup(); }
-	//MainBatch.Reset();
+	if (MainBatch) { MainBatch->Cleanup(); }
+	MainBatch.Reset();
 }
 
 bool FPCGExPointsProcessorContext::AdvancePointsIO(const bool bCleanupKeys)
@@ -87,7 +87,6 @@ bool FPCGExPointsProcessorContext::ProcessPointsBatch(const PCGEx::AsyncState Ne
 	PCGEX_ON_ASYNC_STATE_READY_INTERNAL(PCGExPointsMT::MTState_PointsCompletingWork)
 	{
 		BatchProcessing_WorkComplete();
-
 		if (MainBatch->bRequiresWriteStep)
 		{
 			MainBatch->Write();

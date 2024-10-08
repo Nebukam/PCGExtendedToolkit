@@ -313,10 +313,10 @@ namespace PCGExData
 
 		virtual void Write() override
 		{
-			if (!IsWritable() || !OutAccessor || !OutValues) { return; }
+			if (!IsWritable() || !OutAccessor || !OutValues || !TypedOutAttribute ) { return; }
 
 			TArrayView<const T> View = MakeArrayView(OutValues->GetData(), OutValues->Num());
-			OutAccessor->SetRange(View, 0, *Source->GetOutKeys(true));
+			OutAccessor->SetRange(View, 0, *Source->GetOutKeys(true).Get());
 		}
 
 		virtual void Fetch(const int32 StartIndex, const int32 Count) override

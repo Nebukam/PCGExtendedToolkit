@@ -26,15 +26,14 @@ namespace PCGExData
 
 	void FFacade::Write(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager)
 	{
-		if (!AsyncManager || !AsyncManager->IsAvailable())
-		{
-			Flush();
-			return;
-		}
+		if (!AsyncManager || !AsyncManager->IsAvailable()) { return; }
 
-		for (const TSharedPtr<FBufferBase>& Buffer : Buffers)
+		//UE_LOG(LogTemp, Warning, TEXT("{%lld} Facade -> Write"), AsyncManager->Context->GetInputSettings<UPCGSettings>()->UID)
+		
+		for (const TSharedPtr<FBufferBase> Buffer : Buffers)
 		{
-			if (Buffer->IsWritable()) { PCGExMT::Write(AsyncManager, Buffer); }
+			if (!Buffer.IsValid() || !Buffer->IsWritable()) { continue; }
+			PCGExMT::Write(AsyncManager, Buffer);
 		}
 
 		Flush();

@@ -57,7 +57,7 @@ namespace PCGExGraph
 					return Node;
 				}
 
-				Node = Nodes.Add_GetRef(MakeUnique<FUnionNode>(Point, Origin, Nodes.Num())).Get();
+				Node = Nodes.Add_GetRef(new FUnionNode(Point, Origin, Nodes.Num()));
 				PointsUnion->New(IOIndex, PointIndex);
 				GridTree.Add(GridKey, Node);
 			}
@@ -101,7 +101,7 @@ namespace PCGExGraph
 			if (NodeIndex != -1)
 			{
 				PointsUnion->Append(NodeIndex, IOIndex, PointIndex);
-				return Nodes[NodeIndex].Get();
+				return Nodes[NodeIndex];
 			}
 
 			// Read lock ends
@@ -111,7 +111,7 @@ namespace PCGExGraph
 			// Write lock start
 			FWriteScopeLock WriteScopeLock(UnionLock);
 
-			Node = Nodes.Add_GetRef(MakeUnique<FUnionNode>(Point, Origin, Nodes.Num())).Get();
+			Node = Nodes.Add_GetRef(new FUnionNode(Point, Origin, Nodes.Num()));
 			Octree->AddElement(Node);
 			PointsUnion->New(IOIndex, PointIndex);
 		}
@@ -137,7 +137,7 @@ namespace PCGExGraph
 				return Node;
 			}
 
-			Node = Nodes.Add_GetRef(MakeUnique<FUnionNode>(Point, Origin, Nodes.Num())).Get();
+			Node = Nodes.Add_GetRef(new FUnionNode(Point, Origin, Nodes.Num()));
 			PointsUnion->New(IOIndex, PointIndex);
 			GridTree.Add(GridKey, Node);
 
@@ -176,10 +176,10 @@ namespace PCGExGraph
 		if (NodeIndex != -1)
 		{
 			PointsUnion->Append(NodeIndex, IOIndex, PointIndex);
-			return Nodes[NodeIndex].Get();
+			return Nodes[NodeIndex];
 		}
 
-		Node = Nodes.Add_GetRef(MakeUnique<FUnionNode>(Point, Origin, Nodes.Num())).Get();
+		Node = Nodes.Add_GetRef(new FUnionNode(Point, Origin, Nodes.Num()));
 		Octree->AddElement(Node);
 		PointsUnion->New(IOIndex, PointIndex);
 
@@ -282,7 +282,7 @@ namespace PCGExGraph
 	void FUnionGraph::GetUniqueEdges(TSet<uint64>& OutEdges)
 	{
 		OutEdges.Empty(Nodes.Num() * 4);
-		for (const TUniquePtr<FUnionNode>& Node : Nodes)
+		for (const FUnionNode* Node : Nodes)
 		{
 			for (const int32 OtherNodeIndex : Node->Adjacency)
 			{
@@ -303,7 +303,7 @@ namespace PCGExGraph
 	{
 		OutMetadata.Reserve(Nodes.Num());
 
-		for (const TUniquePtr<FUnionNode>& Node : Nodes)
+		for (const FUnionNode* Node : Nodes)
 		{
 			const TUniquePtr<PCGExData::FUnionData>& UnionData = PointsUnion->Items[Node->Index];
 			FGraphNodeMetadata& NodeMeta = FGraphNodeMetadata::GetOrCreate(Node->Index, OutMetadata);

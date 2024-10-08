@@ -51,9 +51,12 @@ namespace PCGExMT
 
 		FWriteScopeLock WriteLock(ManagerLock);
 
-		for (const TUniquePtr<FAsyncTaskBase>& Task : QueuedTasks)
+		for (const TSharedPtr<FTaskGroup> Group : Groups) { FPlatformAtomics::InterlockedExchange(&Group->bAvailable, 0); }
+
+		for (FAsyncTaskBase* Task : QueuedTasks)
 		{
 			if (Task && !Task->Cancel()) { Task->EnsureCompletion(false); }
+			delete Task;
 		}
 
 		QueuedTasks.Empty();
@@ -104,9 +107,14 @@ namespace PCGExMT
 		}
 	}
 
+	bool FTaskGroup::IsAvailable() const
+	{
+		return bAvailable && Manager->IsAvailable();
+	}
+
 	void FTaskGroup::StartIterations(const int32 MaxItems, const int32 ChunkSize, const bool bInlined, const bool bExecuteSmallSynchronously)
 	{
-		if (!Manager->IsAvailable() || !OnIterationCallback) { return; }
+		if (!IsAvailable() || !OnIterationCallback) { return; }
 
 		check(MaxItems > 0);
 
@@ -136,7 +144,7 @@ namespace PCGExMT
 
 	void FTaskGroup::StartRangePrepareOnly(const int32 MaxItems, const int32 ChunkSize, const bool bInline)
 	{
-		if (!Manager->IsAvailable()) { return; }
+		if (!IsAvailable()) { return; }
 
 		check(MaxItems > 0);
 
@@ -169,32 +177,36 @@ namespace PCGExMT
 
 	void FTaskGroup::GrowNumStarted(const int32 InNumStarted)
 	{
+		FWriteScopeLock WriteScopeLock(GroupLock);
 		FPlatformAtomics::InterlockedAdd(&NumStarted, InNumStarted);
 	}
 
 	void FTaskGroup::GrowNumCompleted()
 	{
-		if (!Manager->IsAvailable()) { return; }
+		if (!IsAvailable()) { return; }
 
-		FPlatformAtomics::InterlockedAdd(&NumCompleted, 1);
-		if (NumCompleted == NumStarted)
 		{
-			NumCompleted = 0;
-			NumStarted = 0;
-			if (OnCompleteCallback) { OnCompleteCallback(); }
-			Manager->GrowNumCompleted();
+			FWriteScopeLock WriteScopeLock(GroupLock);
+			FPlatformAtomics::InterlockedAdd(&NumCompleted, 1);
+			if (NumCompleted == NumStarted)
+			{
+				NumCompleted = 0;
+				NumStarted = 0;
+				if (OnCompleteCallback) { OnCompleteCallback(); }
+				Manager->GrowNumCompleted();
+			}
 		}
 	}
 
 	void FTaskGroup::PrepareRangeIteration(const int32 StartIndex, const int32 Count, const int32 LoopIdx) const
 	{
-		if (!Manager->IsAvailable()) { return; }
+		if (!IsAvailable()) { return; }
 		if (OnIterationRangeStartCallback) { OnIterationRangeStartCallback(StartIndex, Count, LoopIdx); }
 	}
 
 	void FTaskGroup::DoRangeIteration(const int32 StartIndex, const int32 Count, const int32 LoopIdx) const
 	{
-		if (!Manager->IsAvailable()) { return; }
+		if (!IsAvailable()) { return; }
 		PrepareRangeIteration(StartIndex, Count, LoopIdx);
 		for (int i = 0; i < Count; i++) { OnIterationCallback(StartIndex + i, Count, LoopIdx); }
 	}
@@ -208,8 +220,16 @@ namespace PCGExMT
 		{
 			if (!Manager->IsAvailable()) { return; }
 
-			const bool bResult = ExecuteTask(Manager);
-			if (const TSharedPtr<FTaskGroup> Group = GroupPtr.Pin()) { Group->GrowNumCompleted(); }
+			if (const TSharedPtr<FTaskGroup> Group = GroupPtr.Pin())
+			{
+				if (Group->IsAvailable()) { ExecuteTask(Manager); }
+				Group->GrowNumCompleted();
+			}
+			else
+			{
+				ExecuteTask(Manager);
+			}
+
 			Manager->GrowNumCompleted();
 		}
 	}

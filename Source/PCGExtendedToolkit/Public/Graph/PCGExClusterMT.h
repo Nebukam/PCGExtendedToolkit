@@ -83,8 +83,8 @@ namespace PCGExClusterMT
 		TWeakPtr<FClusterProcessorBatchBase> ParentBatch;
 		TSharedPtr<PCGExMT::FTaskManager> GetAsyncManager() { return AsyncManager; }
 
-		const TSharedRef<PCGExData::FFacade> VtxDataFacade;
-		const TSharedRef<PCGExData::FFacade> EdgeDataFacade;
+		TSharedRef<PCGExData::FFacade> VtxDataFacade;
+		TSharedRef<PCGExData::FFacade> EdgeDataFacade;
 
 		bool bAllowEdgesDataFacadeScopedGet = false;
 
@@ -321,6 +321,7 @@ namespace PCGExClusterMT
 
 		virtual void Cleanup()
 		{
+			bIsProcessorValid = false;
 		}
 	};
 
@@ -587,7 +588,7 @@ namespace PCGExClusterMT
 
 		virtual void StartProcessing()
 		{
-			PCGEX_ASYNC_MT_LOOP_TPL(TBatch<T>, Process, bInlineProcessing, { Processor->bIsProcessorValid = Processor->Process(This->AsyncManager); })
+			PCGEX_ASYNC_MT_LOOP_TPL(Process, bInlineProcessing, { Processor->bIsProcessorValid = Processor->Process(AsyncManager); })
 		}
 
 		virtual bool PrepareSingle(const TSharedPtr<T>& ClusterProcessor) { return true; }
@@ -595,14 +596,14 @@ namespace PCGExClusterMT
 		virtual void CompleteWork() override
 		{
 			CurrentState = PCGEx::State_Completing;
-			PCGEX_ASYNC_MT_LOOP_VALID_PROCESSORS(TBatch<T>, CompleteWork, bInlineCompletion, { Processor->CompleteWork(); })
+			PCGEX_ASYNC_MT_LOOP_VALID_PROCESSORS(CompleteWork, bInlineCompletion, { Processor->CompleteWork(); })
 			FClusterProcessorBatchBase::CompleteWork();
 		}
 
 		virtual void Write() override
 		{
 			CurrentState = PCGEx::State_Writing;
-			PCGEX_ASYNC_MT_LOOP_VALID_PROCESSORS(TBatch<T>, Write, bInlineWrite, { Processor->Write(); })
+			PCGEX_ASYNC_MT_LOOP_VALID_PROCESSORS(Write, bInlineWrite, { Processor->Write(); })
 			FClusterProcessorBatchBase::Write();
 		}
 

@@ -517,14 +517,14 @@ namespace PCGExGraph
 
 		TSharedPtr<FGraph> Graph;
 
-		TSharedPtr<PCGExData::FFacade> NodeDataFacade;
+		TSharedRef<PCGExData::FFacade> NodeDataFacade;
 
 		TSharedPtr<PCGExData::FPointIOCollection> EdgesIO;
 		TSharedPtr<PCGExData::FPointIOCollection> SourceEdgesIO;
 
 		bool bCompiledSuccessfully = false;
 
-		FGraphBuilder(const TSharedPtr<PCGExData::FFacade>& InNodeDataFacade, const FPCGExGraphBuilderDetails* InDetails, const int32 NumEdgeReserve = 6, const TSharedPtr<PCGExData::FPointIOCollection>& InSourceEdges = nullptr)
+		FGraphBuilder(const TSharedRef<PCGExData::FFacade>& InNodeDataFacade, const FPCGExGraphBuilderDetails* InDetails, const int32 NumEdgeReserve = 6, const TSharedPtr<PCGExData::FPointIOCollection>& InSourceEdges = nullptr)
 			: OutputDetails(InDetails), NodeDataFacade(InNodeDataFacade), SourceEdgesIO(InSourceEdges)
 		{
 			PCGEX_LOG_CTR(FGraphBuilder)
