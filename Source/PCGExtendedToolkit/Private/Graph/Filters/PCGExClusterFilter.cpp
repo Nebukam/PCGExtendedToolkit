@@ -37,17 +37,17 @@ namespace PCGExClusterFilter
 	}
 
 	TManager::TManager(const TSharedPtr<PCGExCluster::FCluster>& InCluster, const TSharedPtr<PCGExData::FFacade>& InPointDataFacade, const TSharedPtr<PCGExData::FFacade>& InEdgeDataFacade)
-		: PCGExPointFilter::TManager(InPointDataFacade), Cluster(InCluster), EdgeDataCache(InEdgeDataFacade)
+		: PCGExPointFilter::TManager(InPointDataFacade), Cluster(InCluster), EdgeDataFacade(InEdgeDataFacade)
 	{
 	}
 
 	bool TManager::InitFilter(const FPCGContext* InContext, const TSharedPtr<PCGExPointFilter::TFilter>& Filter)
 	{
-		if (Filter->GetFilterType() == PCGExFilters::EType::Point) { return PCGExPointFilter::TManager::InitFilter(InContext, Filter); }
+		if (Filter->GetFilterType() == PCGExFilters::EType::Point) { return Filter->Init(InContext, bUseEdgeAsPrimary ? EdgeDataFacade : PointDataFacade); }
 		if (PCGExFactories::ClusterSpecificFilters.Contains(Filter->Factory->GetFactoryType()))
 		{
 			const TSharedPtr<TFilter> ClusterFilter = StaticCastSharedPtr<TFilter>(Filter);
-			if (!ClusterFilter->Init(InContext, Cluster, PointDataFacade, EdgeDataCache)) { return false; }
+			if (!ClusterFilter->Init(InContext, Cluster, PointDataFacade, EdgeDataFacade)) { return false; }
 			return true;
 		}
 		return false;

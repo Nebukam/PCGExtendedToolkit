@@ -157,6 +157,7 @@ namespace PCGExRefineEdges
 		if (!Context->EdgeFilterFactories.IsEmpty())
 		{
 			EdgeFilterManager = MakeShared<PCGExClusterFilter::TManager>(Cluster, VtxDataFacade, EdgeDataFacade);
+			EdgeFilterManager->bUseEdgeAsPrimary = true;
 			if (!EdgeFilterManager->Init(ExecutionContext, Context->EdgeFilterFactories)) { return false; }
 		}
 		else
@@ -170,6 +171,7 @@ namespace PCGExRefineEdges
 			if (!Context->SanitizationFilterFactories.IsEmpty())
 			{
 				SanitizationFilterManager = MakeShared<PCGExClusterFilter::TManager>(Cluster, VtxDataFacade, EdgeDataFacade);
+				EdgeFilterManager->bUseEdgeAsPrimary = true;
 				if (!SanitizationFilterManager->Init(ExecutionContext, Context->SanitizationFilterFactories)) { return false; }
 			}
 		}

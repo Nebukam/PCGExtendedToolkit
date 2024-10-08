@@ -88,7 +88,8 @@ namespace PCGExClusterFilter
 		TManager(const TSharedPtr<PCGExCluster::FCluster>& InCluster, const TSharedPtr<PCGExData::FFacade>& InPointDataFacade, const TSharedPtr<PCGExData::FFacade>& InEdgeDataFacade);
 
 		TSharedPtr<PCGExCluster::FCluster> Cluster;
-		TSharedPtr<PCGExData::FFacade> EdgeDataCache;
+		TSharedPtr<PCGExData::FFacade> EdgeDataFacade;
+		bool bUseEdgeAsPrimary = false;
 
 		virtual ~TManager() override
 		{
@@ -96,7 +97,6 @@ namespace PCGExClusterFilter
 
 	protected:
 		virtual bool InitFilter(const FPCGContext* InContext, const TSharedPtr<PCGExPointFilter::TFilter>& Filter) override;
-
 		virtual void InitCache() override;
 	};
 }
