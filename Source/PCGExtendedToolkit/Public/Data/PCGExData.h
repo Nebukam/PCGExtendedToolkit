@@ -313,7 +313,7 @@ namespace PCGExData
 
 		virtual void Write() override
 		{
-			if (!IsWritable() || !OutAccessor || !OutValues || !TypedOutAttribute ) { return; }
+			if (!IsWritable() || !OutAccessor || !OutValues || !TypedOutAttribute) { return; }
 
 			TArrayView<const T> View = MakeArrayView(OutValues->GetData(), OutValues->Num());
 			OutAccessor->SetRange(View, 0, *Source->GetOutKeys(true).Get());
@@ -622,33 +622,24 @@ namespace PCGExData
 
 	struct /*PCGEXTENDEDTOOLKIT_API*/ FUnionMetadata
 	{
-		TArray<TUniquePtr<FUnionData>> Items;
+		TArray<FUnionData*> Entries;
 		bool bIsAbstract = false;
 
-		FUnionMetadata() { Items.Empty(); }
-		~FUnionMetadata() = default;
+		FUnionMetadata() { Entries.Empty(); }
 
-		int32 Num() const { return Items.Num(); }
-
-		FORCEINLINE FUnionData* New(const int32 IOIndex, const int32 ItemIndex)
+		~FUnionMetadata()
 		{
-			FUnionData* NewUnionData = Items.Add_GetRef(MakeUnique<FUnionData>()).Get();
-			//NewUnionData->Index = Items.Num() - 1;
-			NewUnionData->IOIndices.Add(IOIndex);
-			const uint64 H = PCGEx::H64(IOIndex, ItemIndex);
-			NewUnionData->ItemHashSet.Add(H);
-
-			return NewUnionData;
+			for (const FUnionData* Entry : Entries) { delete Entry; }
 		}
 
-		FORCEINLINE uint64 Append(const int32 Index, const int32 IOIndex, const int32 ItemIndex) { return Items[Index]->Add(IOIndex, ItemIndex); }
-		FORCEINLINE bool IOIndexOverlap(const int32 InIdx, const TSet<int32>& InIndices)
-		{
-			const TSet<int32> Overlap = Items[InIdx]->IOIndices.Intersect(InIndices);
-			return Overlap.Num() > 0;
-		}
+		int32 Num() const { return Entries.Num(); }
 
-		FORCEINLINE FUnionData* Get(const int32 Index) const { return Items[Index].Get(); }
+		FUnionData* NewEntry(const int32 IOIndex, const int32 ItemIndex);
+
+		uint64 Append(const int32 Index, const int32 IOIndex, const int32 ItemIndex);
+		bool IOIndexOverlap(const int32 InIdx, const TSet<int32>& InIndices);
+
+		FORCEINLINE FUnionData* Get(const int32 Index) const { return Entries[Index]; }
 	};
 
 #pragma endregion

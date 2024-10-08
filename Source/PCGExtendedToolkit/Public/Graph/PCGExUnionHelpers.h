@@ -34,12 +34,14 @@ namespace PCGExGraph
 
 		FPCGExGraphBuilderDetails GraphBuilderDetails;
 
+		TSharedRef<PCGExData::FFacade> UnionDataFacade;
 		TSharedPtr<FUnionGraph> UnionGraph;
-		TSharedPtr<PCGExData::FFacade> UnionFacade;
 		TSharedPtr<PCGExDataBlending::FUnionBlender> UnionPointsBlender;
 
 		explicit FUnionProcessor(
 			FPCGExPointsProcessorContext* InContext,
+			TSharedRef<PCGExData::FFacade> InUnionDataFacade,
+			TSharedRef<FUnionGraph> InUnionGraph,
 			FPCGExPointPointIntersectionDetails PointPointIntersectionDetails,
 			FPCGExBlendingDetails InDefaultPointsBlending,
 			FPCGExBlendingDetails InDefaultEdgesBlending);
@@ -57,9 +59,7 @@ namespace PCGExGraph
 			const FPCGExBlendingDetails* InOverride = nullptr);
 
 		bool StartExecution(
-			const TSharedPtr<FUnionGraph>& InUnionGraph,
-			const TSharedPtr<PCGExData::FFacade>& InUnionFacade,
-			const TArray<TSharedPtr<PCGExData::FFacade>>& InFacades,
+			const TArray<TSharedRef<PCGExData::FFacade>>& InFacades,
 			const FPCGExGraphBuilderDetails& InBuilderDetails,
 			const FPCGExCarryOverDetails* InCarryOverDetails);
 
@@ -84,7 +84,7 @@ namespace PCGExGraph
 		TSharedPtr<FEdgeEdgeIntersections> EdgeEdgeIntersections;
 		TSharedPtr<PCGExDataBlending::FMetadataBlender> MetadataBlender;
 
-		
+
 		void FindPointEdgeIntersections();
 		void FindPointEdgeIntersectionsFound();
 		void OnPointEdgeSortingComplete();
@@ -94,6 +94,6 @@ namespace PCGExGraph
 		void OnEdgeEdgeIntersectionsFound();
 		void OnEdgeEdgeSortingComplete();
 		void OnEdgeEdgeIntersectionsComplete();
-		void WriteClusters();
+		void CompileFinalGraph();
 	};
 }

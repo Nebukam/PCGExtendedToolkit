@@ -7,10 +7,14 @@ namespace PCGExGraph
 {
 	FUnionProcessor::FUnionProcessor(
 		FPCGExPointsProcessorContext* InContext,
+		TSharedRef<PCGExData::FFacade> InUnionDataFacade,
+		TSharedRef<FUnionGraph> InUnionGraph,
 		FPCGExPointPointIntersectionDetails InPointPointIntersectionSettings,
 		FPCGExBlendingDetails InDefaultPointsBlending,
 		FPCGExBlendingDetails InDefaultEdgesBlending):
 		Context(InContext),
+		UnionDataFacade(InUnionDataFacade),
+		UnionGraph(InUnionGraph),
 		PointPointIntersectionDetails(InPointPointIntersectionSettings),
 		DefaultPointsBlendingDetails(InDefaultPointsBlending),
 		DefaultEdgesBlendingDetails(InDefaultEdgesBlending)
@@ -44,15 +48,11 @@ namespace PCGExGraph
 	}
 
 	bool FUnionProcessor::StartExecution(
-		const TSharedPtr<FUnionGraph>& InUnionGraph,
-		const TSharedPtr<PCGExData::FFacade>& InUnionFacade,
-		const TArray<TSharedPtr<PCGExData::FFacade>>& InFacades,
+		const TArray<TSharedRef<PCGExData::FFacade>>& InFacades,
 		const FPCGExGraphBuilderDetails& InBuilderDetails,
 		const FPCGExCarryOverDetails* InCarryOverDetails)
 	{
 		BuilderDetails = InBuilderDetails;
-		UnionGraph = InUnionGraph;
-		UnionFacade = InUnionFacade;
 
 		const int32 NumUnionNodes = UnionGraph->Nodes.Num();
 		if (NumUnionNodes == 0)
@@ -65,19 +65,17 @@ namespace PCGExGraph
 
 		UnionPointsBlender = MakeShared<PCGExDataBlending::FUnionBlender>(&DefaultPointsBlendingDetails, InCarryOverDetails);
 
-		TArray<FPCGPoint>& MutablePoints = UnionFacade->GetOut()->GetMutablePoints();
+		TArray<FPCGPoint>& MutablePoints = UnionDataFacade->GetOut()->GetMutablePoints();
 		MutablePoints.SetNum(NumUnionNodes);
 
 		UnionPointsBlender->AddSources(InFacades);
-		UnionPointsBlender->PrepareMerge(UnionFacade, UnionGraph->PointsUnion, nullptr); // TODO : Check if we want to ignore specific attributes // Answer : yes, cluster IDs etc
+		UnionPointsBlender->PrepareMerge(UnionDataFacade, UnionGraph->PointsUnion, nullptr); // TODO : Check if we want to ignore specific attributes // Answer : yes, cluster IDs etc
 
 		PCGEX_ASYNC_GROUP_CHKD(Context->GetAsyncManager(), ProcessNodesGroup)
 		ProcessNodesGroup->OnCompleteCallback =
 			[WeakThis = TWeakPtr<FUnionProcessor>(SharedThis(this))]()
 			{
-				const TSharedPtr<FUnionProcessor> P = WeakThis.Pin();
-				if (!P) { return; }
-				P->OnNodesProcessingComplete();
+				if (TSharedPtr<FUnionProcessor> This = WeakThis.Pin()) { This->OnNodesProcessingComplete(); }
 			};
 
 		ProcessNodesGroup->OnIterationRangeStartCallback =
@@ -90,7 +88,7 @@ namespace PCGExGraph
 				const TSharedPtr<PCGExData::FPointIOCollection> MainPoints = P->Context->MainPoints;
 				const TSharedPtr<PCGExDataBlending::FUnionBlender> Blender = P->UnionPointsBlender;
 
-				TArray<FPCGPoint>& Points = P->UnionFacade->GetOut()->GetMutablePoints();
+				TArray<FPCGPoint>& Points = P->UnionDataFacade->GetOut()->GetMutablePoints();
 				const int32 MaxIndex = StartIndex + Count;
 				for (int i = StartIndex; i < MaxIndex; i++)
 				{
@@ -125,7 +123,7 @@ namespace PCGExGraph
 		GraphMetadataDetails.Grab(Context, PointEdgeIntersectionDetails);
 		GraphMetadataDetails.Grab(Context, EdgeEdgeIntersectionDetails);
 
-		GraphBuilder = MakeShared<FGraphBuilder>(UnionFacade.ToSharedRef(), &BuilderDetails, 4);
+		GraphBuilder = MakeShared<FGraphBuilder>(UnionDataFacade, &BuilderDetails, 4);
 
 		//TSet<uint64> UniqueEdges;
 		//UnionGraph->GetUniqueEdges(UniqueEdges);
@@ -135,15 +133,18 @@ namespace PCGExGraph
 		GraphBuilder->Graph->InsertEdges(UniqueEdges);
 
 		PCGEX_ASYNC_GROUP_CHKD_VOID(Context->GetAsyncManager(), WriteMetadataTask);
-		WriteMetadataTask->OnCompleteCallback = [&]()
+		WriteMetadataTask->OnCompleteCallback = [WeakThis = TWeakPtr<FUnionProcessor>(SharedThis(this))]()
 		{
-			UnionFacade->Flush();
-			InternalStartExecution();
+			if (TSharedPtr<FUnionProcessor> This = WeakThis.Pin())
+			{
+				This->UnionDataFacade->Flush();
+				This->InternalStartExecution();
+			}
 		};
 
-		UnionFacade->WriteBuffersAsCallbacks(WriteMetadataTask);
-		WriteMetadataTask->AddSimpleCallback([&]() { UnionGraph->WriteNodeMetadata(GraphBuilder->Graph->NodeMetadata); });
-		WriteMetadataTask->AddSimpleCallback([&]() { UnionGraph->WriteEdgeMetadata(GraphBuilder->Graph->EdgeMetadata); });
+		UnionDataFacade->WriteBuffersAsCallbacks(WriteMetadataTask);
+		/*WriteMetadataTask->AddSimpleCallback([&]() {*/ UnionGraph->WriteNodeMetadata(GraphBuilder->Graph->NodeMetadata); // });
+		/*WriteMetadataTask->AddSimpleCallback([&]() {*/ UnionGraph->WriteEdgeMetadata(GraphBuilder->Graph->EdgeMetadata); // });
 
 		WriteMetadataTask->StartSimpleCallbacks();
 	}
@@ -162,7 +163,7 @@ namespace PCGExGraph
 			return;
 		}
 
-		WriteClusters();
+		CompileFinalGraph();
 	}
 
 	bool FUnionProcessor::Execute()
@@ -174,13 +175,13 @@ namespace PCGExGraph
 		PCGEX_ON_ASYNC_STATE_READY(State_ProcessingPointEdgeIntersections)
 		{
 			if (bDoEdgeEdge) { FindEdgeEdgeIntersections(); }
-			else { WriteClusters(); }
+			else { CompileFinalGraph(); }
 			return false;
 		}
 
 		PCGEX_ON_ASYNC_STATE_READY(State_ProcessingEdgeEdgeIntersections)
 		{
-			WriteClusters();
+			CompileFinalGraph();
 			return false;
 		}
 
@@ -202,7 +203,7 @@ namespace PCGExGraph
 		PCGEX_ASYNC_GROUP_CHKD_VOID(Context->GetAsyncManager(), FindPointEdgeGroup)
 
 		PointEdgeIntersections = MakeShared<FPointEdgeIntersections>(
-			GraphBuilder->Graph, UnionGraph, UnionFacade->Source, &PointEdgeIntersectionDetails);
+			GraphBuilder->Graph, UnionGraph, UnionDataFacade->Source, &PointEdgeIntersectionDetails);
 
 		Context->SetAsyncState(State_ProcessingPointEdgeIntersections);
 
@@ -211,7 +212,7 @@ namespace PCGExGraph
 		{
 			const FIndexedEdge& Edge = GraphBuilder->Graph->Edges[Index];
 			if (!Edge.bValid) { return; }
-			FindCollinearNodes(PointEdgeIntersections, Index, UnionFacade->Source->GetOut());
+			FindCollinearNodes(PointEdgeIntersections, Index, UnionDataFacade->Source->GetOut());
 		};
 		FindPointEdgeGroup->StartIterations(GraphBuilder->Graph->Edges.Num(), GetDefault<UPCGExGlobalSettings>()->ClusterDefaultBatchChunkSize);
 	}
@@ -236,16 +237,14 @@ namespace PCGExGraph
 					FPlatformAtomics::InterlockedAdd(&NewEdgesNum, (CollinearNum + 1));
 
 					FIndexedEdge& SplitEdge = GraphBuilder->Graph->Edges[PointEdgeProxy.EdgeIndex];
-					SplitEdge.bValid = false; // Invalidate existing edge
+					FPlatformAtomics::InterlockedExchange(&SplitEdge.bValid, 0); // Invalidate existing edge
 					PointEdgeProxy.CollinearPoints.Sort([](const FPESplit& A, const FPESplit& B) { return A.Time < B.Time; });
 				}
 			};
 
 		SortCrossingsGroup->OnCompleteCallback = [WeakThis = TWeakPtr<FUnionProcessor>(SharedThis(this))]()
 		{
-			TSharedPtr<FUnionProcessor> This = WeakThis.Pin();
-			if (!This) { return; }
-			This->OnPointEdgeSortingComplete();
+			if (TSharedPtr<FUnionProcessor> This = WeakThis.Pin()) { This->OnPointEdgeSortingComplete(); }
 		};
 
 		SortCrossingsGroup->StartRangePrepareOnly(PointEdgeIntersections->Edges.Num(), GetDefault<UPCGExGlobalSettings>()->ClusterDefaultBatchChunkSize);
@@ -261,18 +260,16 @@ namespace PCGExGraph
 		NewEdgesNum = 0;
 
 		PointEdgeIntersections->Insert(); // TODO : Async?
-		UnionFacade->Source->CleanupKeys();
+		UnionDataFacade->Source->CleanupKeys();
 
 		if (bUseCustomPointEdgeBlending) { MetadataBlender = MakeShared<PCGExDataBlending::FMetadataBlender>(&CustomPointEdgeBlendingDetails); }
 		else { MetadataBlender = MakeShared<PCGExDataBlending::FMetadataBlender>(&DefaultPointsBlendingDetails); }
 
-		MetadataBlender->PrepareForData(UnionFacade.ToSharedRef(), PCGExData::ESource::Out);
+		MetadataBlender->PrepareForData(UnionDataFacade, PCGExData::ESource::Out);
 
 		BlendPointEdgeGroup->OnCompleteCallback = [WeakThis = TWeakPtr<FUnionProcessor>(SharedThis(this))]()
 		{
-			TSharedPtr<FUnionProcessor> This = WeakThis.Pin();
-			if (!This) { return; }
-			This->OnPointEdgeIntersectionsComplete();
+			if (TSharedPtr<FUnionProcessor> This = WeakThis.Pin()) { This->OnPointEdgeIntersectionsComplete(); }
 		};
 
 		BlendPointEdgeGroup->OnIterationRangeStartCallback =
@@ -292,7 +289,7 @@ namespace PCGExGraph
 
 	void FUnionProcessor::OnPointEdgeIntersectionsComplete()
 	{
-		if (MetadataBlender) { UnionFacade->Write(Context->GetAsyncManager()); }
+		if (MetadataBlender) { UnionDataFacade->Write(Context->GetAsyncManager()); }
 	}
 
 #pragma endregion
@@ -306,20 +303,22 @@ namespace PCGExGraph
 		PCGEX_ASYNC_GROUP_CHKD_VOID(Context->GetAsyncManager(), FindEdgeEdgeGroup)
 
 		EdgeEdgeIntersections = MakeShared<FEdgeEdgeIntersections>(
-			GraphBuilder->Graph, UnionGraph, UnionFacade->Source, &EdgeEdgeIntersectionDetails);
+			GraphBuilder->Graph, UnionGraph, UnionDataFacade->Source, &EdgeEdgeIntersectionDetails);
 
 		Context->SetAsyncState(State_ProcessingEdgeEdgeIntersections);
 
-		FindEdgeEdgeGroup->OnCompleteCallback = [&]() { OnEdgeEdgeIntersectionsFound(); };
+		FindEdgeEdgeGroup->OnCompleteCallback = [WeakThis = TWeakPtr<FUnionProcessor>(SharedThis(this))]() { if (const TSharedPtr<FUnionProcessor> This = WeakThis.Pin()) { This->OnEdgeEdgeIntersectionsFound(); } };
 		FindEdgeEdgeGroup->OnIterationRangeStartCallback =
-			[&](const int32 StartIndex, const int32 Count, const int32 LoopIdx)
+			[WeakThis = TWeakPtr<FUnionProcessor>(SharedThis(this))](const int32 StartIndex, const int32 Count, const int32 LoopIdx)
 			{
-				if (!EdgeEdgeIntersections) { return; }
-				const TSharedRef<FEdgeEdgeIntersections> EEI = EdgeEdgeIntersections.ToSharedRef();
+				const TSharedPtr<FUnionProcessor> This = WeakThis.Pin();
+				if (!This) { return; }
+				if (!This->EdgeEdgeIntersections) { return; }
+				const TSharedRef<FEdgeEdgeIntersections> EEI = This->EdgeEdgeIntersections.ToSharedRef();
 				const int32 MaxIndex = StartIndex + Count;
 				for (int i = StartIndex; i < MaxIndex; i++)
 				{
-					const FIndexedEdge& Edge = GraphBuilder->Graph->Edges[i];
+					const FIndexedEdge& Edge = This->GraphBuilder->Graph->Edges[i];
 					if (!Edge.bValid) { continue; }
 					FindOverlappingEdges(EEI, i);
 				}
@@ -331,7 +330,7 @@ namespace PCGExGraph
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(FUnionProcessor::OnEdgeEdgeIntersectionsFound);
 
-		if (!EdgeEdgeIntersections.Get()) { return; }
+		if (!EdgeEdgeIntersections) { return; }
 		if (!EdgeEdgeIntersections->InsertNodes())
 		{
 			OnEdgeEdgeIntersectionsComplete();
@@ -343,31 +342,33 @@ namespace PCGExGraph
 		// Insert new nodes
 
 		SortCrossingsGroup->OnIterationRangeStartCallback =
-			[&](const int32 StartIndex, const int32 Count, const int32 LoopIdx)
+			[WeakThis = TWeakPtr<FUnionProcessor>(SharedThis(this))](const int32 StartIndex, const int32 Count, const int32 LoopIdx)
 			{
-				if (!EdgeEdgeIntersections.Get()) { return; }
+				TSharedPtr<FUnionProcessor> This = WeakThis.Pin();
+				if (!This) { return; }
+				if (!This->EdgeEdgeIntersections) { return; }
 
 				const int32 MaxIndex = StartIndex + Count;
 				for (int i = StartIndex; i < MaxIndex; i++)
 				{
-					FEdgeEdgeProxy& EdgeProxy = EdgeEdgeIntersections->Edges[i];
+					FEdgeEdgeProxy& EdgeProxy = This->EdgeEdgeIntersections->Edges[i];
 					const int32 IntersectionsNum = EdgeProxy.Intersections.Num();
 
 					if (!IntersectionsNum) { continue; }
 
-					FPlatformAtomics::InterlockedAdd(&NewEdgesNum, (IntersectionsNum + 1));
+					FPlatformAtomics::InterlockedAdd(&This->NewEdgesNum, (IntersectionsNum + 1));
 
-					GraphBuilder->Graph->Edges[EdgeProxy.EdgeIndex].bValid = false; // Invalidate existing edge
+					This->GraphBuilder->Graph->Edges[EdgeProxy.EdgeIndex].bValid = false; // Invalidate existing edge
 
 					EdgeProxy.Intersections.Sort(
-						[&](const int32& A, const int32& B)
+						[&This, &EdgeProxy](const int32& A, const int32& B)
 						{
-							return EdgeEdgeIntersections->Crossings[A].GetTime(EdgeProxy.EdgeIndex) > EdgeEdgeIntersections->Crossings[B].GetTime(EdgeProxy.EdgeIndex);
+							return This->EdgeEdgeIntersections->Crossings[A].GetTime(EdgeProxy.EdgeIndex) > This->EdgeEdgeIntersections->Crossings[B].GetTime(EdgeProxy.EdgeIndex);
 						});
 				}
 			};
 
-		SortCrossingsGroup->OnCompleteCallback = [&]() { OnEdgeEdgeSortingComplete(); };
+		SortCrossingsGroup->OnCompleteCallback = [WeakThis = TWeakPtr<FUnionProcessor>(SharedThis(this))]() { if (TSharedPtr<FUnionProcessor> This = WeakThis.Pin()) { This->OnEdgeEdgeSortingComplete(); } };
 
 		SortCrossingsGroup->StartRangePrepareOnly(EdgeEdgeIntersections->Edges.Num(), GetDefault<UPCGExGlobalSettings>()->ClusterDefaultBatchChunkSize);
 	}
@@ -385,14 +386,14 @@ namespace PCGExGraph
 		// use range prep to cache these and rebuild metadata and everything then.
 
 		EdgeEdgeIntersections->InsertEdges(); // TODO : Async?
-		UnionFacade->Source->CleanupKeys();
+		UnionDataFacade->Source->CleanupKeys();
 
 		if (bUseCustomEdgeEdgeBlending) { MetadataBlender = MakeShared<PCGExDataBlending::FMetadataBlender>(&CustomEdgeEdgeBlendingDetails); }
 		else { MetadataBlender = MakeShared<PCGExDataBlending::FMetadataBlender>(&DefaultPointsBlendingDetails); }
 
-		MetadataBlender->PrepareForData(UnionFacade.ToSharedRef(), PCGExData::ESource::Out);
+		MetadataBlender->PrepareForData(UnionDataFacade, PCGExData::ESource::Out);
 
-		BlendEdgeEdgeGroup->OnCompleteCallback = [&]() { OnEdgeEdgeIntersectionsComplete(); };
+		BlendEdgeEdgeGroup->OnCompleteCallback = [WeakThis = TWeakPtr<FUnionProcessor>(SharedThis(this))]() { if (TSharedPtr<FUnionProcessor> This = WeakThis.Pin()) { This->OnEdgeEdgeIntersectionsComplete(); } };
 		BlendEdgeEdgeGroup->OnIterationRangeStartCallback =
 			[&](const int32 StartIndex, const int32 Count, const int32 LoopIdx)
 			{
@@ -410,18 +411,21 @@ namespace PCGExGraph
 
 	void FUnionProcessor::OnEdgeEdgeIntersectionsComplete()
 	{
-		UnionFacade->Write(Context->GetAsyncManager());
+		UnionDataFacade->Write(Context->GetAsyncManager());
 	}
 
 #pragma endregion
 
-	void FUnionProcessor::WriteClusters()
+	void FUnionProcessor::CompileFinalGraph()
 	{
 		Context->SetAsyncState(State_WritingClusters);
-		GraphBuilder->OnCompilationEndCallback = [&](const TSharedRef<FGraphBuilder>& InBuilder, const bool bSuccess)
+		GraphBuilder->OnCompilationEndCallback = [WeakThis = TWeakPtr<FUnionProcessor>(SharedThis(this))](const TSharedRef<FGraphBuilder>& InBuilder, const bool bSuccess)
 		{
-			if (!bSuccess) { UnionFacade->Source->InitializeOutput(Context, PCGExData::EInit::NoOutput); }
-			else { GraphBuilder->OutputEdgesToContext(); }
+			if (TSharedPtr<FUnionProcessor> This = WeakThis.Pin())
+			{
+				if (!bSuccess) { This->UnionDataFacade->Source->InitializeOutput(This->Context, PCGExData::EInit::NoOutput); }
+				else { This->GraphBuilder->OutputEdgesToContext(); }
+			}
 		};
 		GraphBuilder->CompileAsync(Context->GetAsyncManager(), true, &GraphMetadataDetails);
 	}

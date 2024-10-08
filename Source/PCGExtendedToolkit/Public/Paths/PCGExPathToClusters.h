@@ -98,7 +98,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPathToClustersContext final : FPCGExPath
 {
 	friend class FPCGExPathToClustersElement;
 
-	TArray<TSharedPtr<PCGExData::FFacade>> PathsFacades;
+	TArray<TSharedRef<PCGExData::FFacade>> PathsFacades;
 
 	FPCGExCarryOverDetails CarryOverDetails;
 

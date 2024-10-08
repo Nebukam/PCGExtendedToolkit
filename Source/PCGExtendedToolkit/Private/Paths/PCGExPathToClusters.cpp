@@ -42,28 +42,6 @@ bool FPCGExPathToClustersElement::Boot(FPCGExContext* InContext) const
 
 	const_cast<UPCGExPathToClustersSettings*>(Settings)->EdgeEdgeIntersectionDetails.Init();
 
-	Context->UnionProcessor = MakeShared<PCGExGraph::FUnionProcessor>(
-		Context,
-		Settings->PointPointIntersectionDetails,
-		Settings->DefaultPointsBlendingDetails,
-		Settings->DefaultEdgesBlendingDetails);
-
-	if (Settings->bFindPointEdgeIntersections)
-	{
-		Context->UnionProcessor->InitPointEdge(
-			Settings->PointEdgeIntersectionDetails,
-			Settings->bUseCustomPointEdgeBlending,
-			&Settings->CustomPointEdgeBlendingDetails);
-	}
-
-	if (Settings->bFindEdgeEdgeIntersections)
-	{
-		Context->UnionProcessor->InitEdgeEdge(
-			Settings->EdgeEdgeIntersectionDetails,
-			Settings->bUseCustomPointEdgeBlending,
-			&Settings->CustomEdgeEdgeBlendingDetails);
-	}
-
 	if (Settings->bFusePaths)
 	{
 		const TSharedPtr<PCGExData::FPointIO> UnionVtxPoints = MakeShared<PCGExData::FPointIO>(Context);
@@ -71,11 +49,37 @@ bool FPCGExPathToClustersElement::Boot(FPCGExContext* InContext) const
 		UnionVtxPoints->InitializeOutput<UPCGExClusterNodesData>(Context, PCGExData::EInit::NewOutput);
 
 		Context->UnionDataFacade = MakeShared<PCGExData::FFacade>(UnionVtxPoints.ToSharedRef());
+
 		Context->UnionGraph = MakeShared<PCGExGraph::FUnionGraph>(
 			Settings->PointPointIntersectionDetails.FuseDetails,
 			Context->MainPoints->GetInBounds().ExpandBy(10));
 
 		Context->UnionGraph->EdgesUnion->bIsAbstract = true; // Because we don't have edge data
+		
+		Context->UnionProcessor = MakeShared<PCGExGraph::FUnionProcessor>(
+		Context,
+		Context->UnionDataFacade.ToSharedRef(),
+		Context->UnionGraph.ToSharedRef(),
+		Settings->PointPointIntersectionDetails,
+		Settings->DefaultPointsBlendingDetails,
+		Settings->DefaultEdgesBlendingDetails);
+
+		if (Settings->bFindPointEdgeIntersections)
+		{
+			Context->UnionProcessor->InitPointEdge(
+				Settings->PointEdgeIntersectionDetails,
+				Settings->bUseCustomPointEdgeBlending,
+				&Settings->CustomPointEdgeBlendingDetails);
+		}
+
+		if (Settings->bFindEdgeEdgeIntersections)
+		{
+			Context->UnionProcessor->InitEdgeEdge(
+				Settings->EdgeEdgeIntersectionDetails,
+				Settings->bUseCustomPointEdgeBlending,
+				&Settings->CustomEdgeEdgeBlendingDetails);
+		}
+		
 	}
 
 
@@ -143,8 +147,6 @@ bool FPCGExPathToClustersElement::ExecuteInternal(FPCGContext* InContext) const
 			Context->MainBatch.Reset();
 
 			if (!Context->UnionProcessor->StartExecution(
-				Context->UnionGraph,
-				Context->UnionDataFacade,
 				Context->PathsFacades,
 				Settings->GraphBuilderDetails,
 				&Settings->CarryOverDetails)) { return true; }

@@ -88,9 +88,9 @@ namespace PCGExDataBlending
 		}
 	}
 
-	void FUnionBlender::AddSources(const TArray<TSharedPtr<PCGExData::FFacade>>& InFacades)
+	void FUnionBlender::AddSources(const TArray<TSharedRef<PCGExData::FFacade>>& InFacades)
 	{
-		for (TSharedPtr<PCGExData::FFacade> Facade : InFacades) { AddSource(Facade); }
+		for (TSharedRef<PCGExData::FFacade> Facade : InFacades) { AddSource(Facade); }
 	}
 
 	void FUnionBlender::PrepareMerge(

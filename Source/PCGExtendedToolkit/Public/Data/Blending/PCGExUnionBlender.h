@@ -63,7 +63,7 @@ namespace PCGExDataBlending
 		~FUnionBlender();
 
 		void AddSource(const TSharedPtr<PCGExData::FFacade>& InFacade);
-		void AddSources(const TArray<TSharedPtr<PCGExData::FFacade>>& InFacades);
+		void AddSources(const TArray<TSharedRef<PCGExData::FFacade>>& InFacades);
 
 		void PrepareMerge(const TSharedPtr<PCGExData::FFacade>& TargetData, const TSharedPtr<PCGExData::FUnionMetadata>& InUnionMetadata, const TSet<FName>* IgnoreAttributeSet = nullptr);
 		void MergeSingle(const int32 UnionIndex, const FPCGExDistanceDetails& InDistanceDetails);

@@ -29,7 +29,7 @@ namespace PCGExData
 		if (!AsyncManager || !AsyncManager->IsAvailable()) { return; }
 
 		//UE_LOG(LogTemp, Warning, TEXT("{%lld} Facade -> Write"), AsyncManager->Context->GetInputSettings<UPCGSettings>()->UID)
-		
+
 		for (const TSharedPtr<FBufferBase> Buffer : Buffers)
 		{
 			if (!Buffer.IsValid() || !Buffer->IsWritable()) { continue; }
@@ -120,6 +120,28 @@ namespace PCGExData
 		}
 
 		return H;
+	}
+
+	FUnionData* FUnionMetadata::NewEntry(const int32 IOIndex, const int32 ItemIndex)
+	{
+		FUnionData* NewUnionData = Entries.Add_GetRef(new FUnionData());
+		//NewUnionData->Index = Items.Num() - 1;
+		NewUnionData->IOIndices.Add(IOIndex);
+		const uint64 H = PCGEx::H64(IOIndex, ItemIndex);
+		NewUnionData->ItemHashSet.Add(H);
+
+		return NewUnionData;
+	}
+
+	uint64 FUnionMetadata::Append(const int32 Index, const int32 IOIndex, const int32 ItemIndex)
+	{
+		return Entries[Index]->Add(IOIndex, ItemIndex);
+	}
+
+	bool FUnionMetadata::IOIndexOverlap(const int32 InIdx, const TSet<int32>& InIndices)
+	{
+		const TSet<int32> Overlap = Entries[InIdx]->IOIndices.Intersect(InIndices);
+		return Overlap.Num() > 0;
 	}
 
 
