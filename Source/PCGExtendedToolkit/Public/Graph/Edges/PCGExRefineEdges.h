@@ -8,6 +8,7 @@
 
 #include "Graph/PCGExClusterMT.h"
 #include "Graph/PCGExEdgesProcessor.h"
+#include "Graph/Filters/PCGExClusterFilter.h"
 #include "Refining/PCGExEdgeRefineOperation.h"
 
 #include "PCGExRefineEdges.generated.h"
@@ -101,8 +102,8 @@ namespace PCGExRefineEdges
 		friend class FFilterRangeTask;
 
 	protected:
-		TSharedPtr<PCGExPointFilter::TManager> EdgeFilterManager;
-		TSharedPtr<PCGExPointFilter::TManager> SanitizationFilterManager;
+		TSharedPtr<PCGExClusterFilter::TManager> EdgeFilterManager;
+		TSharedPtr<PCGExClusterFilter::TManager> SanitizationFilterManager;
 		EPCGExRefineSanitization Sanitization = EPCGExRefineSanitization::None;
 
 		virtual TSharedPtr<PCGExCluster::FCluster> HandleCachedCluster(const TSharedRef<PCGExCluster::FCluster>& InClusterRef) override;

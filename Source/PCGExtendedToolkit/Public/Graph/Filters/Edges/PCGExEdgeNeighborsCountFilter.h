@@ -11,15 +11,15 @@
 #include "Graph/Filters/PCGExClusterFilter.h"
 #include "Misc/Filters/PCGExFilterFactoryProvider.h"
 
-#include "PCGExNeighborsCountFilter.generated.h"
+#include "PCGExEdgeNeighborsCountFilter.generated.h"
 
 
 USTRUCT(BlueprintType)
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExNeighborsCountFilterConfig
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExEdgeNeighborsCountFilterConfig
 {
 	GENERATED_BODY()
 
-	FPCGExNeighborsCountFilterConfig()
+	FPCGExEdgeNeighborsCountFilterConfig()
 	{
 	}
 
@@ -48,27 +48,27 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExNeighborsCountFilterConfig
  * 
  */
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExNeighborsCountFilterFactory : public UPCGExClusterFilterFactoryBase
+class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExEdgeNeighborsCountFilterFactory : public UPCGExNodeFilterFactoryBase
 {
 	GENERATED_BODY()
 
 public:
-	FPCGExNeighborsCountFilterConfig Config;
+	FPCGExEdgeNeighborsCountFilterConfig Config;
 
 	virtual TSharedPtr<PCGExPointFilter::TFilter> CreateFilter() const override;
 };
 
-namespace PCGExNodeNeighborsCount
+namespace PCGExEdgeNeighborsCount
 {
 	class /*PCGEXTENDEDTOOLKIT_API*/ FNeighborsCountFilter final : public PCGExClusterFilter::TFilter
 	{
 	public:
-		explicit FNeighborsCountFilter(const UPCGExNeighborsCountFilterFactory* InFactory)
+		explicit FNeighborsCountFilter(const UPCGExEdgeNeighborsCountFilterFactory* InFactory)
 			: TFilter(InFactory), TypedFilterFactory(InFactory)
 		{
 		}
 
-		const UPCGExNeighborsCountFilterFactory* TypedFilterFactory;
+		const UPCGExEdgeNeighborsCountFilterFactory* TypedFilterFactory;
 
 		TSharedPtr<PCGExData::TBuffer<double>> LocalCount;
 
@@ -84,8 +84,8 @@ namespace PCGExNodeNeighborsCount
 
 
 /** Outputs a single GraphParam to be consumed by other nodes */
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Graph|Params")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExNeighborsCountFilterProviderSettings : public UPCGExFilterProviderSettings
+UCLASS(Abstract, MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Graph|Params")
+class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExEdgeNeighborsCountFilterProviderSettings : public UPCGExFilterProviderSettings
 {
 	GENERATED_BODY()
 
@@ -93,7 +93,7 @@ public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(
-		NodeNeighborsCountFilterFactory, "Cluster Filter : Neighbors Count", "Check against the node' neighbor count.",
+		EdgeNeighborsCountFilterFactory, "Cluster Filter : Neighbors Count (Edge)", "Check against the edge' endpoints neighbor count.",
 		PCGEX_FACTORY_NAME_PRIORITY)
 	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->NodeColorClusterFilter; }
 #endif
@@ -101,7 +101,7 @@ public:
 
 	/** Test Config.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ShowOnlyInnerProperties))
-	FPCGExNeighborsCountFilterConfig Config;
+	FPCGExEdgeNeighborsCountFilterConfig Config;
 
 	virtual UPCGExParamFactoryBase* CreateFactory(FPCGExContext* InContext, UPCGExParamFactoryBase* InFactory) const override;
 

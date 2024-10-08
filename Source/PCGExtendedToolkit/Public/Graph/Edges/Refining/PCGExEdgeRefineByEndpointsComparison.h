@@ -17,6 +17,13 @@ enum class EPCGExRefineEdgeComparisonType : uint8
 	String  = 1 UMETA(DisplayName = "String", Tooltip="String comparison"),
 };
 
+UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Refine Edge Compare Against Mode"))
+enum class EPCGExRefineEdgeCompareAgainstMode : uint8
+{
+	EndEnd = 0 UMETA(DisplayName = "Endpoints", Tooltip="Numeric comparison"),
+	EndEdge  = 1 UMETA(DisplayName = "Endpoints vs Edge", Tooltip="String comparison"),
+};
+
 /**
  * 
  */
@@ -117,6 +124,8 @@ public:
 
 	virtual void Cleanup() override
 	{
+		NumericBuffer.Reset();
+		StringBuffer.Reset();
 		Super::Cleanup();
 	}
 

@@ -32,7 +32,9 @@ public:
 		Super::CopySettingsFrom(Other);
 		if (const UPCGExEdgeRefineByAdjacency* TypedOther = Cast<UPCGExEdgeRefineByAdjacency>(Other))
 		{
-			Threshold = TypedOther->Threshold;
+			ThresholdSource = TypedOther->ThresholdSource;
+			ThresholdConstant = TypedOther->ThresholdConstant;
+			ThresholdAttribute = TypedOther->ThresholdAttribute;
 			Mode = TypedOther->Mode;
 			Comparison = TypedOther->Comparison;
 			bInvert = TypedOther->bInvert;
@@ -42,6 +44,19 @@ public:
 	virtual bool RequiresIndividualEdgeProcessing() override { return true; }
 	virtual bool GetDefaultEdgeValidity() override { return !bInvert; }
 
+	virtual void PrepareForCluster(const TSharedPtr<PCGExCluster::FCluster>& InCluster, const TSharedPtr<PCGExHeuristics::THeuristicsHandler>& InHeuristics) override
+	{
+		Super::PrepareForCluster(InCluster, InHeuristics);
+		if (ThresholdSource == EPCGExFetchType::Attribute)
+		{
+			ThresholdBuffer = SecondaryDataFacade->GetScopedBroadcaster<int32>(ThresholdAttribute);
+			if(!ThresholdBuffer)
+			{
+				PCGE_LOG_C(Warning, GraphAndLog, Context, FText::Format(FTEXT("Threshold Attribute ({0}) is not valid."), FText::FromString(ThresholdAttribute.GetName().ToString())));
+			}
+		}
+	}
+
 	virtual void ProcessEdge(PCGExGraph::FIndexedEdge& Edge) override
 	{
 		Super::ProcessEdge(Edge);
@@ -49,6 +64,8 @@ public:
 		const PCGExCluster::FNode* From = Cluster->Nodes->GetData() + (*Cluster->NodeIndexLookup)[Edge.Start];
 		const PCGExCluster::FNode* To = Cluster->Nodes->GetData() + (*Cluster->NodeIndexLookup)[Edge.End];
 
+		const int32 Threshold = ThresholdBuffer ? ThresholdBuffer->Read(Edge.PointIndex) : ThresholdConstant;
+		
 		if (Mode == EPCGExRefineEdgeThresholdMode::Both)
 		{
 			if (PCGExCompare::Compare(Comparison, From->Adjacency.Num(), Threshold) && PCGExCompare::Compare(Comparison, To->Adjacency.Num(), Threshold, Tolerance)) { return; }
@@ -65,14 +82,22 @@ public:
 		FPlatformAtomics::InterlockedExchange(&Edge.bValid, bInvert ? 1 : 0);
 	}
 
+	/** Whether to read the threshold from an attribute on the edge or a constant. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	EPCGExFetchType ThresholdSource = EPCGExFetchType::Constant;
+
 	/** The number of connection endpoints must have to be considered a Bridge. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ClampMin="1"))
-	int32 Threshold = 2;
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ClampMin="1", DisplayName="Threshold", EditCondition="ThresholdSource == EPCGExFetchType::Constant", EditConditionHides))
+	int32 ThresholdConstant = 2;
+
+	/** Attribute to fetch threshold from */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Threshold", EditCondition="ThresholdSource == EPCGExFetchType::Attribute", EditConditionHides))
+	FPCGAttributePropertyInputSelector ThresholdAttribute;
 
 	/** How should we check if the threshold is reached. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	EPCGExRefineEdgeThresholdMode Mode = EPCGExRefineEdgeThresholdMode::Sum;
-	
+
 	/** Comparison check */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	EPCGExComparison Comparison = EPCGExComparison::StrictlyGreater;
@@ -80,17 +105,26 @@ public:
 	/** Rounding mode for approx. comparison modes */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="Comparison==EPCGExComparison::NearlyEqual || Comparison==EPCGExComparison::NearlyNotEqual", EditConditionHides))
 	int32 Tolerance = 0;
-	
+
 	/** */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	bool bInvert = false;
 
+	virtual void Cleanup() override
+	{
+		ThresholdBuffer.Reset();
+		Super::Cleanup();
+	}
+
 protected:
+	TSharedPtr<PCGExData::TBuffer<int32>> ThresholdBuffer;
+
 	virtual void ApplyOverrides() override
 	{
 		Super::ApplyOverrides();
-		
-		PCGEX_OVERRIDE_OPERATION_PROPERTY(Threshold, "Refine/Threshold")
+
+		PCGEX_OVERRIDE_OPERATION_PROPERTY_SELECTOR(ThresholdAttribute, "Refine/ThresholdAttribute")
+		PCGEX_OVERRIDE_OPERATION_PROPERTY(ThresholdConstant, "Refine/ThresholdConstant")
 		PCGEX_OVERRIDE_OPERATION_PROPERTY(Tolerance, "Refine/Tolerance")
 		PCGEX_OVERRIDE_OPERATION_PROPERTY(bInvert, "Refine/Invert")
 	}

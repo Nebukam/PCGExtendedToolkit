@@ -148,7 +148,7 @@ namespace PCGExRefineEdges
 		Refinement = Context->Refinement->CopyOperation<UPCGExEdgeRefineOperation>();
 		Refinement->PrimaryDataFacade = VtxDataFacade;
 		Refinement->SecondaryDataFacade = EdgeDataFacade;
-		
+
 		Refinement->PrepareForCluster(Cluster, HeuristicsHandler);
 
 		Refinement->EdgesFilters = &EdgeFilterCache;
@@ -156,7 +156,7 @@ namespace PCGExRefineEdges
 
 		if (!Context->EdgeFilterFactories.IsEmpty())
 		{
-			EdgeFilterManager = MakeShared<PCGExPointFilter::TManager>(EdgeDataFacade);
+			EdgeFilterManager = MakeShared<PCGExClusterFilter::TManager>(Cluster, VtxDataFacade, EdgeDataFacade);
 			if (!EdgeFilterManager->Init(ExecutionContext, Context->EdgeFilterFactories)) { return false; }
 		}
 		else
@@ -169,7 +169,7 @@ namespace PCGExRefineEdges
 		{
 			if (!Context->SanitizationFilterFactories.IsEmpty())
 			{
-				SanitizationFilterManager = MakeShared<PCGExPointFilter::TManager>(EdgeDataFacade);
+				SanitizationFilterManager = MakeShared<PCGExClusterFilter::TManager>(Cluster, VtxDataFacade, EdgeDataFacade);
 				if (!SanitizationFilterManager->Init(ExecutionContext, Context->SanitizationFilterFactories)) { return false; }
 			}
 		}
@@ -218,7 +218,7 @@ namespace PCGExRefineEdges
 		{
 			for (int i = StartIndex; i < MaxIndex; i++)
 			{
-				EdgeFilterCache[i] = EdgeFilterManager->Test(i);
+				EdgeFilterCache[i] = EdgeFilterManager->Test(Edges[i]);
 				Edges[i].bValid = bDefaultValidity;
 			}
 		}
@@ -251,7 +251,11 @@ namespace PCGExRefineEdges
 				[&](const int32 StartIndex, const int32 Count, const int32 LoopIdx)
 				{
 					const int32 MaxIndex = StartIndex + Count;
-					for (int i = StartIndex; i < MaxIndex; i++) { if (SanitizationFilterManager->Test(i)) { (Cluster->Edges->GetData() + i)->bValid = true; } }
+					for (int i = StartIndex; i < MaxIndex; i++)
+					{
+						PCGExGraph::FIndexedEdge& Edge = *(Cluster->Edges->GetData() + i);
+						if (SanitizationFilterManager->Test(Edge)) { Edge.bValid = true; }
+					}
 				};
 			SanitizeTaskGroup->StartRangePrepareOnly(EdgeDataFacade->GetNum(), PLI);
 		}

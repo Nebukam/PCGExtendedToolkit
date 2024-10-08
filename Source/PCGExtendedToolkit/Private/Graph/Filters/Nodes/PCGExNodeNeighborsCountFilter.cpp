@@ -1,7 +1,7 @@
 ﻿// Copyright Timothé Lapetite 2024
 // Released under the MIT license https://opensource.org/license/MIT/
 
-#include "Graph/Filters/Nodes/PCGExNeighborsCountFilter.h"
+#include "Graph/Filters/Nodes/PCGExNodeNeighborsCountFilter.h"
 
 
 #include "Graph/PCGExGraph.h"
@@ -9,7 +9,7 @@
 #define LOCTEXT_NAMESPACE "PCGExNodeNeighborsCountFilter"
 #define PCGEX_NAMESPACE NodeNeighborsCountFilter
 
-TSharedPtr<PCGExPointFilter::TFilter> UPCGExNeighborsCountFilterFactory::CreateFilter() const
+TSharedPtr<PCGExPointFilter::TFilter> UPCGExNodeNeighborsCountFilterFactory::CreateFilter() const
 {
 	return MakeShared<PCGExNodeNeighborsCount::FNeighborsCountFilter>(this);
 }
@@ -43,10 +43,10 @@ namespace PCGExNodeNeighborsCount
 	}
 }
 
-PCGEX_CREATE_FILTER_FACTORY(NeighborsCount)
+PCGEX_CREATE_FILTER_FACTORY(NodeNeighborsCount)
 
 #if WITH_EDITOR
-FString UPCGExNeighborsCountFilterProviderSettings::GetDisplayName() const
+FString UPCGExNodeNeighborsCountFilterProviderSettings::GetDisplayName() const
 {
 	FString DisplayName = "Neighbors Count" + PCGExCompare::ToString(Config.Comparison);
 
