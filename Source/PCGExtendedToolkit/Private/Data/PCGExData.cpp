@@ -26,14 +26,33 @@ namespace PCGExData
 
 	void FFacade::Write(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager)
 	{
-		if (!AsyncManager) { return; }
+		if (!AsyncManager || !AsyncManager->IsAvailable()) { return; }
 
-		for (const TSharedPtr<FBufferBase>& Buffer : Buffers)
+		//UE_LOG(LogTemp, Warning, TEXT("{%lld} Facade -> Write"), AsyncManager->Context->GetInputSettings<UPCGSettings>()->UID)
+
+		for (const TSharedPtr<FBufferBase> Buffer : Buffers)
 		{
-			if (Buffer->IsWritable()) { PCGExMT::Write(AsyncManager, Buffer); }
+			if (!Buffer.IsValid() || !Buffer->IsWritable()) { continue; }
+			PCGExMT::Write(AsyncManager, Buffer);
 		}
 
 		Flush();
+	}
+
+	void FFacade::WriteBuffersAsCallbacks(const TSharedPtr<PCGExMT::FTaskGroup>& TaskGroup)
+	{
+		// !!! Requires manual flush !!!
+
+		if (!TaskGroup)
+		{
+			Flush();
+			return;
+		}
+
+		for (const TSharedPtr<FBufferBase> Buffer : Buffers)
+		{
+			if (Buffer->IsWritable()) { TaskGroup->AddSimpleCallback([BufferRef = Buffer]() { BufferRef->Write(); }); }
+		}
 	}
 
 	void FUnionData::ComputeWeights(
@@ -101,6 +120,28 @@ namespace PCGExData
 		}
 
 		return H;
+	}
+
+	FUnionData* FUnionMetadata::NewEntry(const int32 IOIndex, const int32 ItemIndex)
+	{
+		FUnionData* NewUnionData = Entries.Add_GetRef(new FUnionData());
+		//NewUnionData->Index = Items.Num() - 1;
+		NewUnionData->IOIndices.Add(IOIndex);
+		const uint64 H = PCGEx::H64(IOIndex, ItemIndex);
+		NewUnionData->ItemHashSet.Add(H);
+
+		return NewUnionData;
+	}
+
+	uint64 FUnionMetadata::Append(const int32 Index, const int32 IOIndex, const int32 ItemIndex)
+	{
+		return Entries[Index]->Add(IOIndex, ItemIndex);
+	}
+
+	bool FUnionMetadata::IOIndexOverlap(const int32 InIdx, const TSet<int32>& InIndices)
+	{
+		const TSet<int32> Overlap = Entries[InIdx]->IOIndices.Intersect(InIndices);
+		return Overlap.Num() > 0;
 	}
 
 

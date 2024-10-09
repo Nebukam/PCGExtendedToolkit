@@ -8,33 +8,35 @@
 #include "PCGExDetails.h"
 
 
+
+
+
+
+
+
 #include "Graph/PCGExCluster.h"
 #include "Graph/Filters/PCGExClusterFilter.h"
 #include "Misc/Filters/PCGExFilterFactoryProvider.h"
 
-#include "PCGExEdgeDirectionFilter.generated.h"
+#include "PCGExIsoEdgeDirectionFilter.generated.h"
 
 
 USTRUCT(BlueprintType)
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExEdgeDirectionFilterConfig
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExIsoEdgeDirectionFilterConfig
 {
 	GENERATED_BODY()
 
-	FPCGExEdgeDirectionFilterConfig()
+	FPCGExIsoEdgeDirectionFilterConfig()
 	{
 	}
 
+	/** Defines the direction in which points will be ordered to form the final paths. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	FPCGExEdgeDirectionSettings DirectionSettings;
+	
 	/** Type of check; Note that Fast comparison ignores adjacency consolidation. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_NotOverridable))
 	EPCGExDirectionCheckMode ComparisonQuality = EPCGExDirectionCheckMode::Dot;
-
-	/** Adjacency Settings */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
-	FPCGExAdjacencySettings Adjacency;
-
-	/** Direction orientation */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable))
-	EPCGExAdjacencyDirectionOrigin DirectionOrder = EPCGExAdjacencyDirectionOrigin::FromNode;
 
 	/** Where to read the compared direction from. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable))
@@ -65,57 +67,52 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExEdgeDirectionFilterConfig
  * 
  */
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExEdgeDirectionFilterFactory : public UPCGExClusterFilterFactoryBase
+class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExIsoEdgeDirectionFilterFactory : public UPCGExEdgeFilterFactoryBase
 {
 	GENERATED_BODY()
 
 public:
-	FPCGExEdgeDirectionFilterConfig Config;
+	FPCGExIsoEdgeDirectionFilterConfig Config;
 
 	virtual TSharedPtr<PCGExPointFilter::TFilter> CreateFilter() const override;
 };
 
-namespace PCGExNodeAdjacency
+class /*PCGEXTENDEDTOOLKIT_API*/ FIsoEdgeDirectionFilter final : public PCGExClusterFilter::TEdgeFilter
 {
-	class /*PCGEXTENDEDTOOLKIT_API*/ FEdgeDirectionFilter final : public PCGExClusterFilter::TFilter
+public:
+	explicit FIsoEdgeDirectionFilter(const UPCGExIsoEdgeDirectionFilterFactory* InFactory)
+		: TEdgeFilter(InFactory), TypedFilterFactory(InFactory)
 	{
-	public:
-		explicit FEdgeDirectionFilter(const UPCGExEdgeDirectionFilterFactory* InFactory)
-			: TFilter(InFactory), TypedFilterFactory(InFactory)
-		{
-			Adjacency = InFactory->Config.Adjacency;
-			DotComparison = InFactory->Config.DotComparisonDetails;
-			HashComparison = InFactory->Config.HashComparisonDetails;
-		}
+		DotComparison = InFactory->Config.DotComparisonDetails;
+		HashComparison = InFactory->Config.HashComparisonDetails;
+	}
 
-		const UPCGExEdgeDirectionFilterFactory* TypedFilterFactory;
+	const UPCGExIsoEdgeDirectionFilterFactory* TypedFilterFactory;
 
-		bool bFromNode = true;
-		bool bUseDot = true;
+	bool bUseDot = true;
 
-		TArray<double> CachedThreshold;
-		FPCGExAdjacencySettings Adjacency;
-		FPCGExDotComparisonDetails DotComparison;
-		FPCGExVectorHashComparisonDetails HashComparison;
+	TArray<double> CachedThreshold;
+	FPCGExEdgeDirectionSettings DirectionSettings;
+	FPCGExDotComparisonDetails DotComparison;
+	FPCGExVectorHashComparisonDetails HashComparison;
 
-		TSharedPtr<PCGExData::TBuffer<FVector>> OperandDirection;
+	TSharedPtr<PCGExData::TBuffer<FVector>> OperandDirection;
 
-		virtual bool Init(const FPCGContext* InContext, const TSharedPtr<PCGExCluster::FCluster>& InCluster, const TSharedPtr<PCGExData::FFacade>& InPointDataFacade, const TSharedPtr<PCGExData::FFacade>& InEdgeDataFacade) override;
-		virtual bool Test(const PCGExCluster::FNode& Node) const override;
+	virtual bool Init(const FPCGContext* InContext, const TSharedRef<PCGExCluster::FCluster>& InCluster, const TSharedRef<PCGExData::FFacade>& InPointDataFacade, const TSharedRef<PCGExData::FFacade>& InEdgeDataFacade) override;
+	virtual bool Test(const PCGExGraph::FIndexedEdge& Edge) const override;
 
-		bool TestDot(const PCGExCluster::FNode& Node) const;
-		bool TestHash(const PCGExCluster::FNode& Node) const;
+	bool TestDot(const int32 PtIndex, const FVector& EdgeDir) const;
+	bool TestHash(const int32 PtIndex, const FVector& EdgeDir) const;
 
-		virtual ~FEdgeDirectionFilter() override
-		{
-			TypedFilterFactory = nullptr;
-		}
-	};
-}
+	virtual ~FIsoEdgeDirectionFilter() override
+	{
+		TypedFilterFactory = nullptr;
+	}
+};
 
 
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Graph|Params")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExEdgeDirectionFilterProviderSettings : public UPCGExFilterProviderSettings
+UCLASS(Abstract, MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Graph|Params")
+class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExIsoEdgeDirectionFilterProviderSettings : public UPCGExFilterProviderSettings
 {
 	GENERATED_BODY()
 
@@ -123,14 +120,14 @@ public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(
-		NodeEdgeDirectionFilterFactory, "Cluster Filter : Edge Direction", "Dot product comparison of connected edges against a direction attribute stored on the vtx.",
+		IsoEdgeDirectionFilterFactory, "Cluster Filter : Edge Direction (Edge)", "Dot product comparison of the edge direction against a local attribute or constant.",
 		PCGEX_FACTORY_NAME_PRIORITY)
 	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->NodeColorClusterFilter; }
 #endif
 
 	/** Test Config.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ShowOnlyInnerProperties))
-	FPCGExEdgeDirectionFilterConfig Config;
+	FPCGExIsoEdgeDirectionFilterConfig Config;
 
 	virtual UPCGExParamFactoryBase* CreateFactory(FPCGExContext* InContext, UPCGExParamFactoryBase* InFactory) const override;
 

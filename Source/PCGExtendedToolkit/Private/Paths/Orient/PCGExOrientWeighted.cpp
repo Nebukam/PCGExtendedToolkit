@@ -34,9 +34,3 @@ FTransform UPCGExOrientWeighted::ComputeOrientation(const PCGExData::FPointRef& 
 
 	return OutT;
 }
-
-void UPCGExOrientWeighted::ApplyOverrides()
-{
-	Super::ApplyOverrides();
-	PCGEX_OVERRIDE_OP_PROPERTY(bInverseWeight, FName(TEXT("Orient/InverseWeight")), EPCGMetadataTypes::Boolean);
-}

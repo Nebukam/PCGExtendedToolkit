@@ -131,4 +131,16 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bUseMaxAngle", Units="Degrees", ClampMin=0, ClampMax=90))
 	double MaxAngle = 90;
 	double MaxDot = -1;
+	
+protected:
+	virtual void ApplyOverrides() override
+	{
+		Super::ApplyOverrides();
+		
+		PCGEX_OVERRIDE_OPERATION_PROPERTY(Tolerance, "Refine/Tolerance")
+		PCGEX_OVERRIDE_OPERATION_PROPERTY(bUseMinAngle, "Refine/UseMinAngle")
+		PCGEX_OVERRIDE_OPERATION_PROPERTY(MinAngle, "Refine/MinAngle")
+		PCGEX_OVERRIDE_OPERATION_PROPERTY(bUseMaxAngle, "Refine/UseMaxAngle")
+		PCGEX_OVERRIDE_OPERATION_PROPERTY(MaxAngle, "Refine/MaxAngle")
+	}
 };

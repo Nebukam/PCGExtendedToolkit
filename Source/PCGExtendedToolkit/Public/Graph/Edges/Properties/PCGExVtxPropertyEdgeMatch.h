@@ -91,7 +91,7 @@ protected:
 	mutable FRWLock FilterLock;
 
 	TSharedPtr<PCGExData::TBuffer<FVector>> DirCache;
-	TArray<TUniquePtr<PCGExPointFilter::TManager>> FilterManagers;
+	TArray<TSharedPtr<PCGExPointFilter::TManager>> FilterManagers;
 };
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")

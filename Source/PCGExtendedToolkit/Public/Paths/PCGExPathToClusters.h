@@ -98,14 +98,14 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPathToClustersContext final : FPCGExPath
 {
 	friend class FPCGExPathToClustersElement;
 
-	TArray<TSharedPtr<PCGExData::FFacade>> PathsFacades;
+	TArray<TSharedRef<PCGExData::FFacade>> PathsFacades;
 
 	FPCGExCarryOverDetails CarryOverDetails;
 
 	TSharedPtr<PCGExGraph::FUnionGraph> UnionGraph;
 	TSharedPtr<PCGExData::FFacade> UnionDataFacade;
 
-	TUniquePtr<PCGExGraph::FUnionProcessor> UnionProcessor;
+	TSharedPtr<PCGExGraph::FUnionProcessor> UnionProcessor;
 };
 
 class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPathToClustersElement final : public FPCGExPathProcessorElement

@@ -87,7 +87,7 @@ namespace PCGExPointStates
 		void ProcessFlags(const bool bSuccess, int64& InFlags) const;
 
 	protected:
-		TUniquePtr<PCGExPointFilter::TManager> Manager;
+		TSharedPtr<PCGExPointFilter::TManager> Manager;
 	};
 
 	class /*PCGEXTENDEDTOOLKIT_API*/ FStateManager : public PCGExPointFilter::TManager
@@ -96,7 +96,7 @@ namespace PCGExPointStates
 		TSharedPtr<TArray<int64>> FlagsCache;
 
 	public:
-		explicit FStateManager(const TSharedPtr<TArray<int64>>& InFlags, const TSharedPtr<PCGExData::FFacade>& InPointDataFacade);
+		explicit FStateManager(const TSharedPtr<TArray<int64>>& InFlags, const TSharedRef<PCGExData::FFacade>& InPointDataFacade);
 
 		virtual bool Test(const int32 Index) override;
 

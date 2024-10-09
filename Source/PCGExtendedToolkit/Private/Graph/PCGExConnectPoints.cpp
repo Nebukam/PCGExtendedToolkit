@@ -148,13 +148,13 @@ namespace PCGExConnectPoints
 
 		if (!Context->GeneratorsFiltersFactories.IsEmpty())
 		{
-			GeneratorsFilter = MakeUnique<PCGExPointFilter::TManager>(PointDataFacade);
+			GeneratorsFilter = MakeShared<PCGExPointFilter::TManager>(PointDataFacade);
 			GeneratorsFilter->Init(ExecutionContext, Context->GeneratorsFiltersFactories);
 		}
 
 		if (!Context->ConnectablesFiltersFactories.IsEmpty())
 		{
-			ConnectableFilter = MakeUnique<PCGExPointFilter::TManager>(PointDataFacade);
+			ConnectableFilter = MakeShared<PCGExPointFilter::TManager>(PointDataFacade);
 			ConnectableFilter->Init(ExecutionContext, Context->ConnectablesFiltersFactories);
 		}
 
@@ -180,7 +180,7 @@ namespace PCGExConnectPoints
 				PointDataFacade->Fetch(StartIndex, Count);
 			};
 
-		PrepTask->PrepareRangesOnly(NumPoints, GetDefault<UPCGExGlobalSettings>()->GetPointsBatchChunkSize());
+		PrepTask->StartRangePrepareOnly(NumPoints, GetDefault<UPCGExGlobalSettings>()->GetPointsBatchChunkSize());
 
 		return true;
 	}

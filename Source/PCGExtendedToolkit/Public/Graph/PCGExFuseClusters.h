@@ -98,7 +98,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExFuseClustersContext final : FPCGExEdgesP
 	friend class UPCGExFuseClustersSettings;
 	friend class FPCGExFuseClustersElement;
 
-	TArray<TSharedPtr<PCGExData::FFacade>> VtxFacades;
+	TArray<TSharedRef<PCGExData::FFacade>> VtxFacades;
 	TSharedPtr<PCGExGraph::FUnionGraph> UnionGraph;
 	TSharedPtr<PCGExData::FFacade> UnionDataFacade;
 

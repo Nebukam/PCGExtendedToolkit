@@ -88,9 +88,9 @@ bool FPCGExRefineEdgesElement::ExecuteInternal(
 	{
 		if (Settings->bOutputOnlyEdgesAsPoints)
 		{
-			if (!Context->StartProcessingClusters<PCGExClusterMT::TBatch<PCGExRefineEdges::FProcessor>>(
+			if (!Context->StartProcessingClusters<PCGExRefineEdges::FProcessorBatch>(
 				[](const TSharedPtr<PCGExData::FPointIOTaggedEntries>& Entries) { return true; },
-				[&](const TSharedPtr<PCGExClusterMT::TBatch<PCGExRefineEdges::FProcessor>>& NewBatch)
+				[&](const TSharedPtr<PCGExRefineEdges::FProcessorBatch>& NewBatch)
 				{
 					if (Context->Refinement->RequiresHeuristics()) { NewBatch->SetRequiresHeuristics(true); }
 				}))
@@ -146,6 +146,9 @@ namespace PCGExRefineEdges
 		Sanitization = Settings->Sanitization;
 
 		Refinement = Context->Refinement->CopyOperation<UPCGExEdgeRefineOperation>();
+		Refinement->PrimaryDataFacade = VtxDataFacade;
+		Refinement->SecondaryDataFacade = EdgeDataFacade;
+
 		Refinement->PrepareForCluster(Cluster, HeuristicsHandler);
 
 		Refinement->EdgesFilters = &EdgeFilterCache;
@@ -153,7 +156,8 @@ namespace PCGExRefineEdges
 
 		if (!Context->EdgeFilterFactories.IsEmpty())
 		{
-			EdgeFilterManager = MakeUnique<PCGExPointFilter::TManager>(EdgeDataFacade);
+			EdgeFilterManager = MakeShared<PCGExClusterFilter::TManager>(Cluster.ToSharedRef(), VtxDataFacade, EdgeDataFacade);
+			EdgeFilterManager->bUseEdgeAsPrimary = true;
 			if (!EdgeFilterManager->Init(ExecutionContext, Context->EdgeFilterFactories)) { return false; }
 		}
 		else
@@ -166,7 +170,8 @@ namespace PCGExRefineEdges
 		{
 			if (!Context->SanitizationFilterFactories.IsEmpty())
 			{
-				SanitizationFilterManager = MakeUnique<PCGExPointFilter::TManager>(EdgeDataFacade);
+				SanitizationFilterManager = MakeShared<PCGExClusterFilter::TManager>(Cluster.ToSharedRef(), VtxDataFacade, EdgeDataFacade);
+				SanitizationFilterManager->bUseEdgeAsPrimary = true;
 				if (!SanitizationFilterManager->Init(ExecutionContext, Context->SanitizationFilterFactories)) { return false; }
 			}
 		}
@@ -190,7 +195,7 @@ namespace PCGExRefineEdges
 			EdgeScopeLoop->OnIterationRangeStartCallback =
 				[&](const int32 StartIndex, const int32 Count, const int32 LoopIdx) { PrepareSingleLoopScopeForEdges(StartIndex, Count); };
 
-			EdgeScopeLoop->PrepareRangesOnly(EdgeDataFacade->GetNum(), PLI);
+			EdgeScopeLoop->StartRangePrepareOnly(EdgeDataFacade->GetNum(), PLI);
 		}
 
 		return true;
@@ -215,7 +220,7 @@ namespace PCGExRefineEdges
 		{
 			for (int i = StartIndex; i < MaxIndex; i++)
 			{
-				EdgeFilterCache[i] = EdgeFilterManager->Test(i);
+				EdgeFilterCache[i] = EdgeFilterManager->Test(Edges[i]);
 				Edges[i].bValid = bDefaultValidity;
 			}
 		}
@@ -248,9 +253,13 @@ namespace PCGExRefineEdges
 				[&](const int32 StartIndex, const int32 Count, const int32 LoopIdx)
 				{
 					const int32 MaxIndex = StartIndex + Count;
-					for (int i = StartIndex; i < MaxIndex; i++) { if (SanitizationFilterManager->Test(i)) { (Cluster->Edges->GetData() + i)->bValid = true; } }
+					for (int i = StartIndex; i < MaxIndex; i++)
+					{
+						PCGExGraph::FIndexedEdge& Edge = *(Cluster->Edges->GetData() + i);
+						if (SanitizationFilterManager->Test(Edge)) { Edge.bValid = true; }
+					}
 				};
-			SanitizeTaskGroup->PrepareRangesOnly(EdgeDataFacade->GetNum(), PLI);
+			SanitizeTaskGroup->StartRangePrepareOnly(EdgeDataFacade->GetNum(), PLI);
 		}
 		else
 		{
@@ -289,6 +298,16 @@ namespace PCGExRefineEdges
 		}
 
 		InsertEdges();
+	}
+
+	void FProcessorBatch::OnProcessingPreparationComplete()
+	{
+		PCGEX_TYPED_CONTEXT_AND_SETTINGS(RefineEdges)
+
+		VtxDataFacade->bSupportsScopedGet = false; // :(
+		Context->Refinement->PrepareVtxFacade(VtxDataFacade);
+
+		TBatch<FProcessor>::OnProcessingPreparationComplete();
 	}
 
 	bool FSanitizeRangeTask::ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager)

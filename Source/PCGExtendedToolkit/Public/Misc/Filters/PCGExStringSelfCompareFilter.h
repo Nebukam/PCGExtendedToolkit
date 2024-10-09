@@ -69,17 +69,17 @@ public:
 
 namespace PCGExPointsFilter
 {
-	class /*PCGEXTENDEDTOOLKIT_API*/ TStringSelfComparisonFilter final : public PCGExPointFilter::TFilter
+	class /*PCGEXTENDEDTOOLKIT_API*/ TStringSelfComparisonFilter final : public PCGExPointFilter::TSimpleFilter
 	{
 	public:
 		explicit TStringSelfComparisonFilter(const TObjectPtr<const UPCGExStringSelfCompareFilterFactory>& InDefinition)
-			: TFilter(InDefinition), TypedFilterFactory(InDefinition)
+			: TSimpleFilter(InDefinition), TypedFilterFactory(InDefinition)
 		{
 		}
 
 		const TObjectPtr<const UPCGExStringSelfCompareFilterFactory> TypedFilterFactory;
 
-		TUniquePtr<PCGEx::TAttributeBroadcaster<FString>> OperandA;
+		TSharedPtr<PCGEx::TAttributeBroadcaster<FString>> OperandA;
 		TSharedPtr<PCGExData::TBuffer<int32>> Index;
 		bool bOffset = false;
 		int32 MaxIndex = 0;

@@ -115,10 +115,10 @@ namespace PCGExPathCrossings
 		Details = Settings->IntersectionDetails;
 		Details.Init();
 
-		CanCutFilterManager = MakeUnique<PCGExPointFilter::TManager>(PointDataFacade);
+		CanCutFilterManager = MakeShared<PCGExPointFilter::TManager>(PointDataFacade);
 		if (!CanCutFilterManager->Init(ExecutionContext, Context->CanCutFilterFactories)) { CanCutFilterManager.Reset(); }
 
-		CanBeCutFilterManager = MakeUnique<PCGExPointFilter::TManager>(PointDataFacade);
+		CanBeCutFilterManager = MakeShared<PCGExPointFilter::TManager>(PointDataFacade);
 		if (!CanBeCutFilterManager->Init(ExecutionContext, Context->CanBeCutFilterFactories)) { CanBeCutFilterManager.Reset(); }
 
 		// Build edges
@@ -443,7 +443,7 @@ namespace PCGExPathCrossings
 	void FProcessor::Write()
 	{
 		UnionMetadata = MakeShared<PCGExData::FUnionMetadata>();
-		UnionBlender = MakeUnique<PCGExDataBlending::FUnionBlender>(&Settings->CrossingBlending, &Settings->CrossingCarryOver);
+		UnionBlender = MakeShared<PCGExDataBlending::FUnionBlender>(&Settings->CrossingBlending, &Settings->CrossingCarryOver);
 		for (const TSharedPtr<PCGExData::FPointIO> IO : Context->MainPoints->Pairs)
 		{
 			if (IO && CrossIOIndices.Contains(IO->IOIndex)) { UnionBlender->AddSource(Context->SubProcessorMap[IO.Get()]->PointDataFacade); }

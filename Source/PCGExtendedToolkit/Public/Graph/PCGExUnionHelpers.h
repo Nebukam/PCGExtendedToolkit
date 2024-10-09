@@ -16,10 +16,13 @@
 
 namespace PCGExGraph
 {
-	struct /*PCGEXTENDEDTOOLKIT_API*/ FUnionProcessor : TSharedFromThis<FUnionProcessor>
+	struct /*PCGEXTENDEDTOOLKIT_API*/ FUnionProcessor : public TSharedFromThis<FUnionProcessor>
 	{
 		FPCGExPointsProcessorContext* Context = nullptr;
 
+		TSharedRef<PCGExData::FFacade> UnionDataFacade;
+		TSharedPtr<FUnionGraph> UnionGraph;
+		
 		FPCGExPointPointIntersectionDetails PointPointIntersectionDetails;
 
 		bool bDoPointEdge = false;
@@ -34,12 +37,13 @@ namespace PCGExGraph
 
 		FPCGExGraphBuilderDetails GraphBuilderDetails;
 
-		TSharedPtr<FUnionGraph> UnionGraph;
-		TSharedPtr<PCGExData::FFacade> UnionFacade;
+		
 		TSharedPtr<PCGExDataBlending::FUnionBlender> UnionPointsBlender;
 
 		explicit FUnionProcessor(
 			FPCGExPointsProcessorContext* InContext,
+			TSharedRef<PCGExData::FFacade> InUnionDataFacade,
+			TSharedRef<FUnionGraph> InUnionGraph,
 			FPCGExPointPointIntersectionDetails PointPointIntersectionDetails,
 			FPCGExBlendingDetails InDefaultPointsBlending,
 			FPCGExBlendingDetails InDefaultEdgesBlending);
@@ -57,9 +61,7 @@ namespace PCGExGraph
 			const FPCGExBlendingDetails* InOverride = nullptr);
 
 		bool StartExecution(
-			const TSharedPtr<FUnionGraph>& InUnionGraph,
-			const TSharedPtr<PCGExData::FFacade>& InUnionFacade,
-			const TArray<TSharedPtr<PCGExData::FFacade>>& InFacades,
+			const TArray<TSharedRef<PCGExData::FFacade>>& InFacades,
 			const FPCGExGraphBuilderDetails& InBuilderDetails,
 			const FPCGExCarryOverDetails* InCarryOverDetails);
 
@@ -70,8 +72,10 @@ namespace PCGExGraph
 
 		int32 NewEdgesNum = 0;
 
+		void OnNodesProcessingComplete();
 		void InternalStartExecution();
 
+		FPCGExGraphBuilderDetails BuilderDetails;
 		FPCGExBlendingDetails DefaultPointsBlendingDetails;
 		FPCGExBlendingDetails DefaultEdgesBlendingDetails;
 
@@ -82,13 +86,16 @@ namespace PCGExGraph
 		TSharedPtr<FEdgeEdgeIntersections> EdgeEdgeIntersections;
 		TSharedPtr<PCGExDataBlending::FMetadataBlender> MetadataBlender;
 
+
 		void FindPointEdgeIntersections();
 		void FindPointEdgeIntersectionsFound();
+		void OnPointEdgeSortingComplete();
 		void OnPointEdgeIntersectionsComplete();
 
 		void FindEdgeEdgeIntersections();
 		void OnEdgeEdgeIntersectionsFound();
+		void OnEdgeEdgeSortingComplete();
 		void OnEdgeEdgeIntersectionsComplete();
-		void WriteClusters();
+		void CompileFinalGraph();
 	};
 }

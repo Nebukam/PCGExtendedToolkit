@@ -28,8 +28,7 @@ namespace PCGExPointsMT
 	} else {\
 		PCGEX_ASYNC_GROUP_CHKD_VOID(AsyncManager, _ID##NonTrivial)\
 		_ID##NonTrivial->OnIterationCallback = [&](const int32 Index, const int32 Count, const int32 LoopIdx) {\
-		const TSharedRef<T>& Processor = Processors[Index];\
-		if (Processor->IsTrivial()) { return; } _BODY 	}; \
+		const TSharedRef<T>& Processor = Processors[Index]; if (Processor->IsTrivial()) { return; } _BODY }; \
 		_ID##NonTrivial->StartIterations(Processors.Num(), 1, false, false);\
 		if(!TrivialProcessors.IsEmpty()){\
 		PCGEX_ASYNC_GROUP_CHKD_VOID(AsyncManager, _ID##Trivial) \
@@ -50,7 +49,7 @@ namespace PCGExPointsMT
 		TSharedPtr<PCGExMT::FTaskManager> AsyncManager;
 		FPCGExContext* ExecutionContext = nullptr;
 
-		TUniquePtr<PCGExPointFilter::TManager> PrimaryFilters;
+		TSharedPtr<PCGExPointFilter::TManager> PrimaryFilters;
 		bool bInlineProcessPoints = false;
 		bool bInlineProcessRange = false;
 
@@ -62,7 +61,7 @@ namespace PCGExPointsMT
 
 		bool bIsProcessorValid = false;
 
-		const TSharedRef<PCGExData::FFacade> PointDataFacade;
+		TSharedRef<PCGExData::FFacade> PointDataFacade;
 
 		TArray<TObjectPtr<const UPCGExFilterFactoryBase>>* FilterFactories = nullptr;
 		bool DefaultPointFilterValue = true;
@@ -142,7 +141,7 @@ namespace PCGExPointsMT
 			ParallelLoopForPoints->OnIterationRangePrepareCallback = [&](const TArray<uint64>& Loops) { PrepareLoopScopesForPoints(Loops); };
 			ParallelLoopForPoints->OnIterationRangeStartCallback =
 				[&](const int32 StartIndex, const int32 Count, const int32 LoopIdx) { ProcessPoints(StartIndex, Count, LoopIdx); };
-			ParallelLoopForPoints->PrepareRangesOnly(NumPoints, PLI, bInlineProcessPoints);
+			ParallelLoopForPoints->StartRangePrepareOnly(NumPoints, PLI, bInlineProcessPoints);
 		}
 
 		virtual void PrepareLoopScopesForPoints(const TArray<uint64>& Loops)
@@ -195,7 +194,7 @@ namespace PCGExPointsMT
 			ParallelLoopForRanges->OnIterationRangePrepareCallback = [&](const TArray<uint64>& Loops) { PrepareLoopScopesForRanges(Loops); };
 			ParallelLoopForRanges->OnIterationRangeStartCallback =
 				[&](const int32 StartIndex, const int32 Count, const int32 LoopIdx) { ProcessRange(StartIndex, Count, LoopIdx); };
-			ParallelLoopForRanges->PrepareRangesOnly(NumIterations, PLI, bInlineProcessRange);
+			ParallelLoopForRanges->StartRangePrepareOnly(NumIterations, PLI, bInlineProcessRange);
 		}
 
 		virtual void PrepareLoopScopesForRanges(const TArray<uint64>& Loops)
@@ -236,6 +235,7 @@ namespace PCGExPointsMT
 
 		virtual void Cleanup()
 		{
+			bIsProcessorValid = false;
 		}
 
 	protected:
@@ -245,7 +245,7 @@ namespace PCGExPointsMT
 
 			if (InFilterFactories->IsEmpty()) { return true; }
 
-			PrimaryFilters = MakeUnique<PCGExPointFilter::TManager>(PointDataFacade);
+			PrimaryFilters = MakeShared<PCGExPointFilter::TManager>(PointDataFacade);
 			return PrimaryFilters->Init(ExecutionContext, *InFilterFactories);
 		}
 

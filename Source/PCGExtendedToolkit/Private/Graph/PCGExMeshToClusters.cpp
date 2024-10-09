@@ -53,7 +53,7 @@ bool FPCGExMeshToClustersElement::Boot(FPCGExContext* InContext) const
 	const TSharedPtr<PCGExData::FPointIO> Targets = Context->MainPoints->Pairs[0];
 	Context->MeshIdx.SetNum(Targets->GetNum());
 
-	Context->StaticMeshMap = MakeUnique<PCGExGeo::FGeoStaticMeshMap>();
+	Context->StaticMeshMap = MakeShared<PCGExGeo::FGeoStaticMeshMap>();
 	Context->StaticMeshMap->DesiredTriangulationType = Settings->GraphOutputType;
 
 	Context->RootVtx = MakeShared<PCGExData::FPointIOCollection>(Context); // Make this pinless
@@ -246,7 +246,7 @@ namespace PCGExMeshToCluster
 
 		TSharedPtr<PCGExData::FFacade> RootVtxFacade = MakeShared<PCGExData::FFacade>(RootVtx.ToSharedRef());
 
-		const TSharedPtr<PCGExGraph::FGraphBuilder> GraphBuilder = MakeShared<PCGExGraph::FGraphBuilder>(RootVtxFacade, &Context->GraphBuilderDetails);
+		const TSharedPtr<PCGExGraph::FGraphBuilder> GraphBuilder = MakeShared<PCGExGraph::FGraphBuilder>(RootVtxFacade.ToSharedRef(), &Context->GraphBuilderDetails);
 		Context->GraphBuilders[TaskIndex] = GraphBuilder;
 
 		for (int i = 0; i < VtxPoints.Num(); i++)

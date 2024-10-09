@@ -123,7 +123,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPointsProcessorContext : FPCGExContext
 
 		T* RetValue = BaseOperation->CopyOperation<T>();
 		OwnedProcessorOperations.Add(RetValue);
-		RetValue->BindContext(this);
+		RetValue->FindSettingsOverrides(this);
 		return RetValue;
 	}
 

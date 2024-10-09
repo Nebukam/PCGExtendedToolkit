@@ -72,11 +72,11 @@ public:
 
 namespace PCGExPointsFilter
 {
-	class /*PCGEXTENDEDTOOLKIT_API*/ TDotFilter final : public PCGExPointFilter::TFilter
+	class /*PCGEXTENDEDTOOLKIT_API*/ TDotFilter final : public PCGExPointFilter::TSimpleFilter
 	{
 	public:
 		explicit TDotFilter(const TObjectPtr<const UPCGExDotFilterFactory>& InFactory)
-			: TFilter(InFactory), TypedFilterFactory(InFactory)
+			: TSimpleFilter(InFactory), TypedFilterFactory(InFactory)
 		{
 			DotComparison = TypedFilterFactory->Config.DotComparisonDetails;
 		}

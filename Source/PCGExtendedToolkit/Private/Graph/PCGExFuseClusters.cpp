@@ -45,8 +45,22 @@ bool FPCGExFuseClustersElement::Boot(FPCGExContext* InContext) const
 
 	const_cast<UPCGExFuseClustersSettings*>(Settings)->EdgeEdgeIntersectionDetails.Init();
 
+	const TSharedPtr<PCGExData::FPointIO> UnionIO = MakeShared<PCGExData::FPointIO>(Context);
+	UnionIO->SetInfos(-1, PCGExGraph::OutputVerticesLabel);
+	UnionIO->InitializeOutput<UPCGExClusterNodesData>(Context, PCGExData::EInit::NewOutput);
+
+	Context->UnionDataFacade = MakeShared<PCGExData::FFacade>(UnionIO.ToSharedRef());
+	
+	Context->UnionGraph = MakeShared<PCGExGraph::FUnionGraph>(
+		Settings->PointPointIntersectionDetails.FuseDetails,
+		Context->MainPoints->GetInBounds().ExpandBy(10));
+
+	Context->UnionGraph->EdgesUnion->bIsAbstract = false; // Because we have valid edge data
+	
 	Context->UnionProcessor = MakeShared<PCGExGraph::FUnionProcessor>(
 		Context,
+		Context->UnionDataFacade.ToSharedRef(),
+		Context->UnionGraph.ToSharedRef(),
 		Settings->PointPointIntersectionDetails,
 		Settings->DefaultPointsBlendingDetails,
 		Settings->DefaultEdgesBlendingDetails);
@@ -66,18 +80,6 @@ bool FPCGExFuseClustersElement::Boot(FPCGExContext* InContext) const
 			Settings->bUseCustomPointEdgeBlending,
 			&Settings->CustomEdgeEdgeBlendingDetails);
 	}
-
-	const TSharedPtr<PCGExData::FPointIO> UnionIO = MakeShared<PCGExData::FPointIO>(Context);
-	UnionIO->SetInfos(-1, PCGExGraph::OutputVerticesLabel);
-	UnionIO->InitializeOutput<UPCGExClusterNodesData>(Context, PCGExData::EInit::NewOutput);
-
-	Context->UnionDataFacade = MakeShared<PCGExData::FFacade>(UnionIO.ToSharedRef());
-
-	Context->UnionGraph = MakeShared<PCGExGraph::FUnionGraph>(
-		Settings->PointPointIntersectionDetails.FuseDetails,
-		Context->MainPoints->GetInBounds().ExpandBy(10));
-
-	Context->UnionGraph->EdgesUnion->bIsAbstract = false; // Because we have valid edge data
 
 	return true;
 }
@@ -117,8 +119,6 @@ bool FPCGExFuseClustersElement::ExecuteInternal(FPCGContext* InContext) const
 		}
 
 		if (!Context->UnionProcessor->StartExecution(
-			Context->UnionGraph,
-			Context->UnionDataFacade,
 			Context->VtxFacades,
 			Settings->GraphBuilderDetails,
 			&Settings->VtxCarryOverDetails)) { return true; }
@@ -127,6 +127,7 @@ bool FPCGExFuseClustersElement::ExecuteInternal(FPCGContext* InContext) const
 	if (!Context->UnionProcessor->Execute()) { return false; }
 
 	Context->UnionDataFacade->Source->StageOutput();
+	
 	Context->Done();
 
 	return Context->TryComplete();

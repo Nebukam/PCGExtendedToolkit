@@ -96,7 +96,7 @@ namespace PCGExReversePointOrder
 					});
 			};
 
-		FetchWritersTask->PrepareRangesOnly(SwapPairs.Num(), 1);
+		FetchWritersTask->StartRangePrepareOnly(SwapPairs.Num(), 1);
 
 		return true;
 	}

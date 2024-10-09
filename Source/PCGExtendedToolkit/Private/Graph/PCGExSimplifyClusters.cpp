@@ -73,7 +73,7 @@ namespace PCGExSimplifyClusters
 
 		if (!Context->FilterFactories.IsEmpty())
 		{
-			const TUniquePtr<PCGExClusterFilter::TManager> FilterManager = MakeUnique<PCGExClusterFilter::TManager>(Cluster, VtxDataFacade, EdgeDataFacade);
+			const TSharedPtr<PCGExClusterFilter::TManager> FilterManager = MakeShared<PCGExClusterFilter::TManager>(Cluster.ToSharedRef(), VtxDataFacade, EdgeDataFacade);
 			FilterManager->Init(ExecutionContext, Context->FilterFactories);
 			for (const PCGExCluster::FNode& Node : *Cluster->Nodes) { Breakpoints[Node.NodeIndex] = Node.IsComplex() ? true : FilterManager->Test(Node); }
 		}

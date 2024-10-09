@@ -8,6 +8,12 @@
 #include "Data/PCGExPointStates.h"
 
 
+
+
+
+
+
+
 #include "Graph/Filters/PCGExClusterFilter.h"
 #include "Misc/PCGExBitmaskMerge.h"
 #include "Graph/PCGExCluster.h"
@@ -64,7 +70,7 @@ namespace PCGExClusterStates
 
 		virtual ~FState() override;
 
-		virtual bool Init(const FPCGContext* InContext, const TSharedPtr<PCGExCluster::FCluster>& InCluster, const TSharedPtr<PCGExData::FFacade>& InPointDataFacade, const TSharedPtr<PCGExData::FFacade>& InEdgeDataFacade) override;
+		virtual bool Init(const FPCGContext* InContext, const TSharedRef<PCGExCluster::FCluster>& InCluster, const TSharedRef<PCGExData::FFacade>& InPointDataFacade, const TSharedRef<PCGExData::FFacade>& InEdgeDataFacade) override;
 		virtual bool InitInternalManager(const FPCGContext* InContext, const TArray<TObjectPtr<const UPCGExFilterFactoryBase>>& InFactories);
 
 		virtual bool Test(const int32 Index) const override;
@@ -74,7 +80,7 @@ namespace PCGExClusterStates
 		void ProcessFlags(const bool bSuccess, int64& InFlags) const;
 
 	protected:
-		TUniquePtr<PCGExClusterFilter::TManager> Manager;
+		TSharedPtr<PCGExClusterFilter::TManager> Manager;
 	};
 
 	class /*PCGEXTENDEDTOOLKIT_API*/ FStateManager : public PCGExClusterFilter::TManager
@@ -85,9 +91,9 @@ namespace PCGExClusterStates
 	public:
 		explicit FStateManager(
 			const TSharedPtr<TArray<int64>>& InFlags,
-			const TSharedPtr<PCGExCluster::FCluster>& InCluster,
-			const TSharedPtr<PCGExData::FFacade>& InPointDataCache,
-			const TSharedPtr<PCGExData::FFacade>& InEdgeDataCache);
+			const TSharedRef<PCGExCluster::FCluster>& InCluster,
+			const TSharedRef<PCGExData::FFacade>& InPointDataCache,
+			const TSharedRef<PCGExData::FFacade>& InEdgeDataCache);
 
 		FORCEINLINE virtual bool Test(const int32 Index) override
 		{

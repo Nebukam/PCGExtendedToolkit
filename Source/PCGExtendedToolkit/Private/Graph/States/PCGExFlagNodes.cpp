@@ -86,7 +86,7 @@ namespace PCGExFlagNodes
 
 		Cluster->ComputeEdgeLengths();
 
-		StateManager = MakeUnique<PCGExClusterStates::FStateManager>(StateFlags, Cluster, VtxDataFacade, EdgeDataFacade);
+		StateManager = MakeShared<PCGExClusterStates::FStateManager>(StateFlags, Cluster.ToSharedRef(), VtxDataFacade, EdgeDataFacade);
 		StateManager->Init(ExecutionContext, Context->StateFactories);
 
 		if (bBuildExpandedNodes) { StartParallelLoopForRange(NumNodes); }
@@ -97,7 +97,7 @@ namespace PCGExFlagNodes
 
 	void FProcessor::ProcessSingleRangeIteration(const int32 Iteration, const int32 LoopIdx, const int32 Count)
 	{
-		(*ExpandedNodes)[Iteration] = PCGExCluster::FExpandedNode(Cluster.Get(), Iteration);
+		*(ExpandedNodes->GetData() + Iteration) = PCGExCluster::FExpandedNode(Cluster, Iteration);
 	}
 
 	void FProcessor::ProcessSingleNode(const int32 Index, PCGExCluster::FNode& Node, const int32 LoopIdx, const int32 Count)

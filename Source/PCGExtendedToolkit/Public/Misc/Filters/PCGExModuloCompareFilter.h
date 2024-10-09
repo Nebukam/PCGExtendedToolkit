@@ -78,11 +78,11 @@ public:
 
 namespace PCGExPointsFilter
 {
-	class /*PCGEXTENDEDTOOLKIT_API*/ TModuloComparisonFilter final : public PCGExPointFilter::TFilter
+	class /*PCGEXTENDEDTOOLKIT_API*/ TModuloComparisonFilter final : public PCGExPointFilter::TSimpleFilter
 	{
 	public:
 		explicit TModuloComparisonFilter(const TObjectPtr<const UPCGExModuloCompareFilterFactory>& InDefinition)
-			: TFilter(InDefinition), TypedFilterFactory(InDefinition)
+			: TSimpleFilter(InDefinition), TypedFilterFactory(InDefinition)
 		{
 		}
 

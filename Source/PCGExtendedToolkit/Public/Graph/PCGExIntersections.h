@@ -172,7 +172,7 @@ namespace PCGExGraph
 			Adjacency.Empty();
 		}
 
-		FVector UpdateCenter(const PCGExData::FUnionMetadata* InUnionMetadata, PCGExData::FPointIOCollection* IOGroup);
+		FVector UpdateCenter(const TSharedPtr<PCGExData::FUnionMetadata>& InUnionMetadata, const TSharedPtr<PCGExData::FPointIOCollection>& IOGroup);
 
 		FORCEINLINE void Add(const int32 InAdjacency)
 		{
@@ -217,7 +217,7 @@ namespace PCGExGraph
 
 		TSharedPtr<PCGExData::FUnionMetadata> PointsUnion;
 		TSharedPtr<PCGExData::FUnionMetadata> EdgesUnion;
-		TArray<TUniquePtr<FUnionNode>> Nodes;
+		TArray<FUnionNode*> Nodes;
 		TMap<uint64, FIndexedEdge> Edges;
 
 		FPCGExFuseDetails FuseDetails;
@@ -247,6 +247,7 @@ namespace PCGExGraph
 
 		~FUnionGraph()
 		{
+			for (const FUnionNode* Node : Nodes) { delete Node; }
 		}
 
 		int32 NumNodes() const { return PointsUnion->Num(); }
@@ -262,8 +263,8 @@ namespace PCGExGraph
 		                                        const int32 EdgeIOIndex = -1, const int32 EdgePointIndex = -1);
 		void GetUniqueEdges(TSet<uint64>& OutEdges);
 		void GetUniqueEdges(TArray<FIndexedEdge>& OutEdges);
-		void WriteNodeMetadata(TMap<int32, FGraphNodeMetadata>& OutMetadata);
-		void WriteEdgeMetadata(TMap<int32, FGraphEdgeMetadata>& OutMetadata);
+		void WriteNodeMetadata(TMap<int32, FGraphNodeMetadata>& OutMetadata) const;
+		void WriteEdgeMetadata(TMap<int32, FGraphEdgeMetadata>& OutMetadata) const;
 	};
 
 #pragma endregion
@@ -377,7 +378,7 @@ namespace PCGExGraph
 	};
 
 	static void FindCollinearNodes(
-		FPointEdgeIntersections* InIntersections,
+		const TSharedPtr<FPointEdgeIntersections>& InIntersections,
 		const int32 EdgeIndex,
 		const UPCGPointData* PointsData)
 	{
@@ -390,7 +391,7 @@ namespace PCGExGraph
 		if (!InIntersections->Details->bEnableSelfIntersection)
 		{
 			const int32 RootIndex = InIntersections->Graph->FindEdgeMetadata(Edge.EdgeIndex)->RootIndex;
-			const TSet<int32>& RootIOIndices = InIntersections->UnionGraph->EdgesUnion->Items[RootIndex]->IOIndices;
+			const TSet<int32>& RootIOIndices = InIntersections->UnionGraph->EdgesUnion->Entries[RootIndex]->IOIndices;
 
 			auto ProcessPointRef = [&](const FPCGPointRef& PointRef)
 			{
@@ -663,7 +664,7 @@ namespace PCGExGraph
 		if (!InIntersections->Details->bEnableSelfIntersection)
 		{
 			const int32 RootIndex = InIntersections->Graph->FindEdgeMetadata(Edge.EdgeIndex)->RootIndex;
-			const TSet<int32>& RootIOIndices = InIntersections->UnionGraph->EdgesUnion->Items[RootIndex]->IOIndices;
+			const TSet<int32>& RootIOIndices = InIntersections->UnionGraph->EdgesUnion->Entries[RootIndex]->IOIndices;
 
 			auto ProcessEdge = [&](const FEdgeEdgeProxy* Proxy)
 			{

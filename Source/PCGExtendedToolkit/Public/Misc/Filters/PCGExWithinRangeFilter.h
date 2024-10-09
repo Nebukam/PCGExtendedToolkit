@@ -61,11 +61,11 @@ public:
 
 namespace PCGExPointsFilter
 {
-	class /*PCGEXTENDEDTOOLKIT_API*/ TWithinRangeFilter final : public PCGExPointFilter::TFilter
+	class /*PCGEXTENDEDTOOLKIT_API*/ TWithinRangeFilter final : public PCGExPointFilter::TSimpleFilter
 	{
 	public:
 		explicit TWithinRangeFilter(const UPCGExWithinRangeFilterFactory* InDefinition)
-			: TFilter(InDefinition), TypedFilterFactory(InDefinition)
+			: TSimpleFilter(InDefinition), TypedFilterFactory(InDefinition)
 		{
 		}
 

@@ -95,7 +95,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExMeshToClustersContext final : FPCGExPoin
 	FPCGExGraphBuilderDetails GraphBuilderDetails;
 	FPCGExTransformDetails TransformDetails;
 
-	TUniquePtr<PCGExGeo::FGeoStaticMeshMap> StaticMeshMap;
+	TSharedPtr<PCGExGeo::FGeoStaticMeshMap> StaticMeshMap;
 	TArray<int32> MeshIdx;
 
 	TSharedPtr<PCGExData::FPointIOCollection> RootVtx;

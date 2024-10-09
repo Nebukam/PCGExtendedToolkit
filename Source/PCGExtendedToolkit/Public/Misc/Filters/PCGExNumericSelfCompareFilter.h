@@ -73,17 +73,17 @@ public:
 
 namespace PCGExPointsFilter
 {
-	class /*PCGEXTENDEDTOOLKIT_API*/ TNumericSelfComparisonFilter final : public PCGExPointFilter::TFilter
+	class /*PCGEXTENDEDTOOLKIT_API*/ TNumericSelfComparisonFilter final : public PCGExPointFilter::TSimpleFilter
 	{
 	public:
 		explicit TNumericSelfComparisonFilter(const TObjectPtr<const UPCGExNumericSelfCompareFilterFactory>& InDefinition)
-			: TFilter(InDefinition), TypedFilterFactory(InDefinition)
+			: TSimpleFilter(InDefinition), TypedFilterFactory(InDefinition)
 		{
 		}
 
 		const TObjectPtr<const UPCGExNumericSelfCompareFilterFactory> TypedFilterFactory;
 
-		TUniquePtr<PCGEx::TAttributeBroadcaster<double>> OperandA;
+		TSharedPtr<PCGEx::TAttributeBroadcaster<double>> OperandA;
 		TSharedPtr<PCGExData::TBuffer<int32>> Index;
 		bool bOffset = false;
 		int32 MaxIndex = 0;

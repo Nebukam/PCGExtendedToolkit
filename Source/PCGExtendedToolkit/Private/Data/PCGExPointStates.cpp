@@ -24,7 +24,7 @@ namespace PCGExPointStates
 	{
 		if (!TFilter::Init(InContext, InPointDataFacade)) { return false; }
 
-		Manager = MakeUnique<PCGExPointFilter::TManager>(InPointDataFacade);
+		Manager = MakeShared<PCGExPointFilter::TManager>(InPointDataFacade.ToSharedRef());
 		Manager->bCacheResults = true;
 		return true;
 	}
@@ -46,7 +46,7 @@ namespace PCGExPointStates
 		// TODO : Implement
 	}
 
-	FStateManager::FStateManager(const TSharedPtr<TArray<int64>>& InFlags, const TSharedPtr<PCGExData::FFacade>& InPointDataFacade)
+	FStateManager::FStateManager(const TSharedPtr<TArray<int64>>& InFlags, const TSharedRef<PCGExData::FFacade>& InPointDataFacade)
 		: TManager(InPointDataFacade)
 	{
 		FlagsCache = InFlags;

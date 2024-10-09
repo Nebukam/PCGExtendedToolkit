@@ -212,7 +212,7 @@ namespace PCGExWriteEdgeProperties
 		double StartWeight = 0;
 		double EndWeight = 1;
 
-		TUniquePtr<PCGExDataBlending::FMetadataBlender> MetadataBlender;
+		TSharedPtr<PCGExDataBlending::FMetadataBlender> MetadataBlender;
 
 		TSharedPtr<PCGExData::TBuffer<double>> SolidificationLerpGetter;
 

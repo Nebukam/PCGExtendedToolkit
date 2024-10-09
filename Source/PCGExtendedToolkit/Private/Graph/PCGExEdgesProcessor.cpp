@@ -21,7 +21,13 @@ FPCGExEdgesProcessorContext::~FPCGExEdgesProcessorContext()
 {
 	PCGEX_TERMINATE_ASYNC
 
-	for (const TSharedPtr<PCGExClusterMT::FClusterProcessorBatchBase>& Batch : Batches) { Batch->Cleanup(); }
+	for (TSharedPtr<PCGExClusterMT::FClusterProcessorBatchBase>& Batch : Batches)
+	{
+		Batch->Cleanup();
+		Batch.Reset();
+	}
+
+	Batches.Empty();
 }
 
 TArray<FPCGPinProperties> UPCGExEdgesProcessorSettings::InputPinProperties() const
@@ -274,7 +280,7 @@ bool FPCGExEdgesProcessorElement::Boot(FPCGExContext* InContext) const
 
 	Context->bHasValidHeuristics = Context->HasValidHeuristics();
 
-	Context->InputDictionary = MakeUnique<PCGExData::FPointIOTaggedDictionary>(PCGExGraph::TagStr_ClusterPair);
+	Context->InputDictionary = MakeShared<PCGExData::FPointIOTaggedDictionary>(PCGExGraph::TagStr_ClusterPair);
 
 	TArray<TSharedPtr<PCGExData::FPointIO>> TaggedVtx;
 	TArray<TSharedPtr<PCGExData::FPointIO>> TaggedEdges;

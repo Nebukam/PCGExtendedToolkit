@@ -111,8 +111,8 @@ namespace PCGExFusePoints
 	class FProcessor final : public PCGExPointsMT::TPointsProcessor<FPCGExFusePointsContext, UPCGExFusePointsSettings>
 	{
 		PCGExGraph::FGraphMetadataDetails GraphMetadataDetails;
-		TUniquePtr<PCGExGraph::FUnionGraph> UnionGraph;
-		TUniquePtr<PCGExDataBlending::FUnionBlender> UnionBlender;
+		TSharedPtr<PCGExGraph::FUnionGraph> UnionGraph;
+		TSharedPtr<PCGExDataBlending::FUnionBlender> UnionBlender;
 
 	public:
 		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade)

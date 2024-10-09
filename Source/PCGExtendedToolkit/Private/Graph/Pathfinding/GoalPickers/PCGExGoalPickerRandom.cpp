@@ -61,10 +61,3 @@ void UPCGExGoalPickerRandom::Cleanup()
 {
 	Super::Cleanup();
 }
-
-void UPCGExGoalPickerRandom::ApplyOverrides()
-{
-	Super::ApplyOverrides();
-	PCGEX_OVERRIDE_OP_PROPERTY(NumGoals, FName(TEXT("Goals/NumGoals")), EPCGMetadataTypes::Integer32);
-	PCGEX_OVERRIDE_OP_PROPERTY(bUseLocalNumGoals, FName(TEXT("Goals/UseLocalNumGoals")), EPCGMetadataTypes::Boolean);
-}

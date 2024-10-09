@@ -74,7 +74,7 @@ namespace PCGExBreakClustersToPaths
 			return false;
 		}
 
-		const TUniquePtr<PCGExClusterFilter::TManager> FilterManager = MakeUnique<PCGExClusterFilter::TManager>(Cluster, VtxDataFacade, EdgeDataFacade);
+		const TSharedPtr<PCGExClusterFilter::TManager> FilterManager = MakeShared<PCGExClusterFilter::TManager>(Cluster.ToSharedRef(), VtxDataFacade, EdgeDataFacade);
 		if (!Context->FilterFactories.IsEmpty() && FilterManager->Init(ExecutionContext, Context->FilterFactories))
 		{
 			for (const PCGExCluster::FNode& Node : *Cluster->Nodes) { Breakpoints[Node.NodeIndex] = Node.IsComplex() ? true : FilterManager->Test(Node); }
@@ -204,7 +204,7 @@ namespace PCGExBreakClustersToPaths
 					VtxDataFacade->Fetch(StartIndex, Count);
 				};
 
-			FetchVtxTask->PrepareRangesOnly(VtxDataFacade->GetNum(), PLI);
+			FetchVtxTask->StartRangePrepareOnly(VtxDataFacade->GetNum(), PLI);
 		}
 
 		TBatch<FProcessor>::OnProcessingPreparationComplete();

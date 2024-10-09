@@ -75,7 +75,7 @@ namespace PCGExAttributeRolling
 	class FProcessor final : public PCGExPointsMT::TPointsProcessor<FPCGExAttributeRollingContext, UPCGExAttributeRollingSettings>
 	{
 		PCGExPaths::FPathMetrics CurrentMetric;
-		TUniquePtr<PCGExDataBlending::FMetadataBlender> MetadataBlender;
+		TSharedPtr<PCGExDataBlending::FMetadataBlender> MetadataBlender;
 
 		UPCGMetadata* OutMetadata = nullptr;
 		TArray<FPCGPoint>* OutPoints = nullptr;

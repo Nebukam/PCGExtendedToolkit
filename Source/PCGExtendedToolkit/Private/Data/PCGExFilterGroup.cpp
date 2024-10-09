@@ -4,6 +4,12 @@
 #include "Data/PCGExFilterGroup.h"
 
 
+
+
+
+
+
+
 #include "Graph/PCGExCluster.h"
 
 namespace PCGExFilterGroup
@@ -14,7 +20,7 @@ namespace PCGExFilterGroup
 		return InitManaged(InContext);
 	}
 
-	bool TFilterGroup::Init(const FPCGContext* InContext, const TSharedPtr<PCGExCluster::FCluster>& InCluster, const TSharedPtr<PCGExData::FFacade>& InPointDataFacade, const TSharedPtr<PCGExData::FFacade>& InEdgeDataFacade)
+	bool TFilterGroup::Init(const FPCGContext* InContext, const TSharedRef<PCGExCluster::FCluster>& InCluster, const TSharedRef<PCGExData::FFacade>& InPointDataFacade, const TSharedRef<PCGExData::FFacade>& InEdgeDataFacade)
 	{
 		bInitForCluster = true;
 		Cluster = InCluster;
@@ -57,13 +63,13 @@ namespace PCGExFilterGroup
 			if (bInitForCluster)
 			{
 				TFilterGroup* FilterGroup = static_cast<TFilterGroup*>(Filter.Get());
-				return FilterGroup->Init(InContext, Cluster, PointDataFacade, EdgeDataCache);
+				return FilterGroup->Init(InContext, Cluster.ToSharedRef(), PointDataFacade.ToSharedRef(), EdgeDataCache.ToSharedRef());
 			}
 
 			return Filter->Init(InContext, PointDataFacade);
 		}
 
-		if (Filter->GetFilterType() == PCGExFilters::EType::Node)
+		if ( PCGExFactories::ClusterSpecificFilters.Contains(Filter->Factory->GetFactoryType()))
 		{
 			if (!bInitForCluster)
 			{
@@ -73,7 +79,7 @@ namespace PCGExFilterGroup
 			}
 
 			TFilter* ClusterFilter = static_cast<TFilter*>(Filter.Get());
-			return ClusterFilter->Init(InContext, Cluster, PointDataFacade, EdgeDataCache);
+			return ClusterFilter->Init(InContext, Cluster.ToSharedRef(), PointDataFacade.ToSharedRef(), EdgeDataCache.ToSharedRef());
 		}
 
 		return false;

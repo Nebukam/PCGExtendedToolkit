@@ -417,16 +417,11 @@ namespace PCGExData
 	static TSharedPtr<FPointIO> TryGetSingleInput(FPCGExContext* InContext, const FName InputPinLabel, const bool bThrowError)
 	{
 		TSharedPtr<FPointIO> SingleIO;
-		const TUniquePtr<FPointIOCollection> Collection = MakeUnique<FPointIOCollection>(InContext, InputPinLabel);
+		const TSharedPtr<FPointIOCollection> Collection = MakeShared<FPointIOCollection>(InContext, InputPinLabel);
 
 		if (!Collection->Pairs.IsEmpty())
 		{
-			const FPointIO* Data = Collection->Pairs[0].Get();
-			SingleIO = MakeShared<FPointIO>(InContext, Data->GetIn());
-
-			TSet<FString> TagDump;
-			Data->Tags->Dump(TagDump);
-			SingleIO->SetInfos(-1, InputPinLabel, &TagDump);
+			SingleIO = Collection->Pairs[0];
 		}
 		else if (bThrowError)
 		{

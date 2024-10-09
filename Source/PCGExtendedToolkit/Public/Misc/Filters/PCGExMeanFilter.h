@@ -75,11 +75,11 @@ public:
 
 namespace PCGExPointsFilter
 {
-	class /*PCGEXTENDEDTOOLKIT_API*/ TMeanFilter final : public PCGExPointFilter::TFilter
+	class /*PCGEXTENDEDTOOLKIT_API*/ TMeanFilter final : public PCGExPointFilter::TSimpleFilter
 	{
 	public:
 		explicit TMeanFilter(const TObjectPtr<const UPCGExMeanFilterFactory>& InFactory)
-			: TFilter(InFactory), TypedFilterFactory(InFactory)
+			: TSimpleFilter(InFactory), TypedFilterFactory(InFactory)
 		{
 		}
 

@@ -10,6 +10,12 @@
 
 #include "PCGExPointFilter.h"
 
+
+
+
+
+
+
 #include "Graph/Filters/PCGExClusterFilter.h"
 #include "PCGExFilterGroup.generated.h"
 
@@ -84,7 +90,7 @@ namespace PCGExFilterGroup
 		virtual PCGExFilters::EType GetFilterType() const override { return PCGExFilters::EType::Group; }
 
 		virtual bool Init(const FPCGContext* InContext, const TSharedPtr<PCGExData::FFacade> InPointDataFacade) override;
-		virtual bool Init(const FPCGContext* InContext, const TSharedPtr<PCGExCluster::FCluster>& InCluster, const TSharedPtr<PCGExData::FFacade>& InPointDataFacade, const TSharedPtr<PCGExData::FFacade>& InEdgeDataFacade) override;
+		virtual bool Init(const FPCGContext* InContext, const TSharedRef<PCGExCluster::FCluster>& InCluster, const TSharedRef<PCGExData::FFacade>& InPointDataFacade, const TSharedRef<PCGExData::FFacade>& InEdgeDataFacade) override;
 
 		virtual void PostInit() override;
 

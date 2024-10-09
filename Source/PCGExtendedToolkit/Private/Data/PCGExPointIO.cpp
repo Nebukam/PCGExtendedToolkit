@@ -105,15 +105,15 @@ namespace PCGExData
 		{
 			FWriteScopeLock WriteScopeLock(OutKeysLock);
 			if (OutKeys) { return OutKeys; }
-			const TArrayView<FPCGPoint> View(Out->GetMutablePoints());
+			const TArrayView<FPCGPoint> MutablePoints = MakeArrayView(Out->GetMutablePoints());
 
 			if (bEnsureValidKeys)
 			{
-				UPCGMetadata* Metadata = Out->Metadata;
-				for (FPCGPoint& Pt : View) { if (Pt.MetadataEntry == PCGInvalidEntryKey) { Metadata->InitializeOnSet(Pt.MetadataEntry); } }
+				UPCGMetadata* OutMetadata = Out->Metadata;
+				for (FPCGPoint& Pt : MutablePoints) { OutMetadata->InitializeOnSet(Pt.MetadataEntry); }
 			}
-
-			OutKeys = MakeShared<FPCGAttributeAccessorKeysPoints>(View);
+			
+			OutKeys = MakeShared<FPCGAttributeAccessorKeysPoints>(MutablePoints);
 		}
 
 		return OutKeys;
@@ -198,8 +198,7 @@ namespace PCGExData
 
 	FPointIOCollection::~FPointIOCollection()
 	{
-		PCGEX_LOG_DTR(FPointIOCollection)
-		Flush();
+		PCGEX_LOG_DTR(FPointIOCollection);
 	}
 
 	void FPointIOCollection::Initialize(
@@ -281,14 +280,14 @@ namespace PCGExData
 	{
 		Sort();
 		Context->StagedOutputReserve(Pairs.Num());
-		for (const TSharedPtr<FPointIO>& Pair : Pairs) { Pair->StageOutput(); }
+		for (int i = 0; i < Pairs.Num(); i++) { Pairs[i]->StageOutput(); }
 	}
 
 	void FPointIOCollection::StageOutputs(const int32 MinPointCount, const int32 MaxPointCount)
 	{
 		Sort();
 		Context->StagedOutputReserve(Pairs.Num());
-		for (const TSharedPtr<FPointIO>& Pair : Pairs) { Pair->StageOutput(MinPointCount, MaxPointCount); }
+		for (int i = 0; i < Pairs.Num(); i++) { Pairs[i]->StageOutput(MinPointCount, MaxPointCount); }
 	}
 
 	void FPointIOCollection::Sort()

@@ -47,7 +47,7 @@ void UPCGExNeighborSampleAttribute::PrepareForCluster(const FPCGContext* InConte
 		return;
 	}
 
-	Blender = MakeUnique<PCGExDataBlending::FMetadataBlender>(&MetadataBlendingDetails);
+	Blender = MakeShared<PCGExDataBlending::FMetadataBlender>(&MetadataBlendingDetails);
 	Blender->bBlendProperties = false;
 	Blender->PrepareForData(InVtxDataFacade, GetSourceDataFacade(), PCGExData::ESource::In);
 

@@ -120,7 +120,7 @@ namespace PCGExPathfindingPlotEdge
 	public:
 		FPCGExPlotClusterPathTask(const TSharedPtr<PCGExData::FPointIO>& InPointIO,
 		                          const UPCGExSearchOperation* InSearchOperation,
-		                          const PCGExData::FPointIOCollection* InPlots,
+		                          const TSharedPtr<PCGExData::FPointIOCollection>& InPlots,
 		                          const TSharedPtr<PCGExHeuristics::THeuristicsHandler>& InHeuristics,
 		                          const bool Inlined = false) :
 			FPCGExPathfindingTask(InPointIO, nullptr),
@@ -132,7 +132,7 @@ namespace PCGExPathfindingPlotEdge
 		}
 
 		const UPCGExSearchOperation* SearchOperation = nullptr;
-		const PCGExData::FPointIOCollection* Plots = nullptr;
+		TSharedPtr<PCGExData::FPointIOCollection> Plots;
 		TSharedPtr<PCGExHeuristics::THeuristicsHandler> Heuristics;
 		bool bInlined = false;
 

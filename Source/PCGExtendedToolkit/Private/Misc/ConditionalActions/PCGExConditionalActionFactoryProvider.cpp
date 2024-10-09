@@ -22,7 +22,7 @@ bool UPCGExConditionalActionOperation::PrepareForData(const FPCGContext* InConte
 {
 	PrimaryDataFacade = InPointDataFacade;
 
-	FilterManager = MakeUnique<PCGExPointFilter::TManager>(PrimaryDataFacade);
+	FilterManager = MakeShared<PCGExPointFilter::TManager>(PrimaryDataFacade.ToSharedRef());
 
 	if (!FilterManager->Init(InContext, Factory->FilterFactories)) { return false; }
 

@@ -54,11 +54,11 @@ public:
 
 namespace PCGExPointsFilter
 {
-	class /*PCGEXTENDEDTOOLKIT_API*/ TBoundsFilter final : public PCGExPointFilter::TFilter
+	class /*PCGEXTENDEDTOOLKIT_API*/ TBoundsFilter final : public PCGExPointFilter::TSimpleFilter
 	{
 	public:
 		explicit TBoundsFilter(const TObjectPtr<const UPCGExBoundsFilterFactory>& InFactory)
-			: TFilter(InFactory), TypedFilterFactory(InFactory)
+			: TSimpleFilter(InFactory), TypedFilterFactory(InFactory)
 		{
 			Cloud = TypedFilterFactory->BoundsDataFacade ? TypedFilterFactory->BoundsDataFacade->GetCloud(TypedFilterFactory->Config.BoundsSource, TypedFilterFactory->Config.InsideEpsilon) : nullptr;
 		}

@@ -96,7 +96,7 @@ namespace PCGExBlendPath
 		PCGExPaths::FPathMetrics Metrics;
 
 		TSharedPtr<PCGExData::TBuffer<double>> LerpCache;
-		TUniquePtr<PCGExDataBlending::FMetadataBlender> MetadataBlender;
+		TSharedPtr<PCGExDataBlending::FMetadataBlender> MetadataBlender;
 
 		TSharedPtr<PCGExData::FPointRef> Start;
 		TSharedPtr<PCGExData::FPointRef> End;

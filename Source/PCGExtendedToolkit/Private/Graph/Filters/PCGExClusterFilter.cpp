@@ -20,7 +20,7 @@ namespace PCGExClusterFilter
 		return PCGExPointFilter::TFilter::Init(InContext, InPointDataFacade);
 	}
 
-	bool TFilter::Init(const FPCGContext* InContext, const TSharedPtr<PCGExCluster::FCluster>& InCluster, const TSharedPtr<PCGExData::FFacade>& InPointDataFacade, const TSharedPtr<PCGExData::FFacade>& InEdgeDataFacade)
+	bool TFilter::Init(const FPCGContext* InContext, const TSharedRef<PCGExCluster::FCluster>& InCluster, const TSharedRef<PCGExData::FFacade>& InPointDataFacade, const TSharedRef<PCGExData::FFacade>& InEdgeDataFacade)
 	{
 		bInitForCluster = true;
 		Cluster = InCluster;
@@ -36,18 +36,26 @@ namespace PCGExClusterFilter
 		Results.Init(false, NumResults);
 	}
 
-	TManager::TManager(const TSharedPtr<PCGExCluster::FCluster>& InCluster, const TSharedPtr<PCGExData::FFacade>& InPointDataFacade, const TSharedPtr<PCGExData::FFacade>& InEdgeDataFacade)
-		: PCGExPointFilter::TManager(InPointDataFacade), Cluster(InCluster), EdgeDataCache(InEdgeDataFacade)
+	bool TNodeFilter::Test(const int32 Index) const { return TFilter::Test(*(Cluster->Nodes->GetData() + Index)); }
+	bool TNodeFilter::Test(const PCGExCluster::FNode& Node) const { return TFilter::Test(Node); }
+	bool TNodeFilter::Test(const PCGExGraph::FIndexedEdge& Edge) const PCGEX_NOT_IMPLEMENTED_RET(TVtxFilter::Test(const PCGExGraph::FIndexedEdge& Edge), false)
+
+	bool TEdgeFilter::Test(const int32 Index) const { return TFilter::Test(*(Cluster->Edges->GetData() + Index)); }
+	bool TEdgeFilter::Test(const PCGExCluster::FNode& Node) const PCGEX_NOT_IMPLEMENTED_RET(TEdgeFilter::Test(const PCGExCluster::FNode& Node), false)
+	bool TEdgeFilter::Test(const PCGExGraph::FIndexedEdge& Edge) const { return TFilter::Test(Edge); }
+
+	TManager::TManager(const TSharedRef<PCGExCluster::FCluster>& InCluster, const TSharedRef<PCGExData::FFacade>& InPointDataFacade, const TSharedRef<PCGExData::FFacade>& InEdgeDataFacade)
+		: PCGExPointFilter::TManager(InPointDataFacade), Cluster(InCluster), EdgeDataFacade(InEdgeDataFacade)
 	{
 	}
 
 	bool TManager::InitFilter(const FPCGContext* InContext, const TSharedPtr<PCGExPointFilter::TFilter>& Filter)
 	{
-		if (Filter->GetFilterType() == PCGExFilters::EType::Point) { return PCGExPointFilter::TManager::InitFilter(InContext, Filter); }
-		if (Filter->GetFilterType() == PCGExFilters::EType::Node)
+		if (Filter->GetFilterType() == PCGExFilters::EType::Point) { return Filter->Init(InContext, bUseEdgeAsPrimary ? EdgeDataFacade : PointDataFacade); }
+		if (PCGExFactories::ClusterSpecificFilters.Contains(Filter->Factory->GetFactoryType()))
 		{
 			const TSharedPtr<TFilter> ClusterFilter = StaticCastSharedPtr<TFilter>(Filter);
-			if (!ClusterFilter->Init(InContext, Cluster, PointDataFacade, EdgeDataCache)) { return false; }
+			if (!ClusterFilter->Init(InContext, Cluster, PointDataFacade, EdgeDataFacade)) { return false; }
 			return true;
 		}
 		return false;

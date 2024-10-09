@@ -66,11 +66,11 @@ public:
 
 namespace PCGExPointsFilter
 {
-	class /*PCGEXTENDEDTOOLKIT_API*/ TNumericComparisonFilter final : public PCGExPointFilter::TFilter
+	class /*PCGEXTENDEDTOOLKIT_API*/ TNumericComparisonFilter final : public PCGExPointFilter::TSimpleFilter
 	{
 	public:
 		explicit TNumericComparisonFilter(const TObjectPtr<const UPCGExNumericCompareFilterFactory>& InDefinition)
-			: TFilter(InDefinition), TypedFilterFactory(InDefinition)
+			: TSimpleFilter(InDefinition), TypedFilterFactory(InDefinition)
 		{
 		}
 

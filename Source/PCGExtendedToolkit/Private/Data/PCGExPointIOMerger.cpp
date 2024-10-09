@@ -33,7 +33,7 @@ void FPCGExPointIOMerger::Append(const TArray<TSharedPtr<PCGExData::FPointIO>>& 
 	for (const TSharedPtr<PCGExData::FPointIO>& PointIO : InData) { Append(PointIO); }
 }
 
-void FPCGExPointIOMerger::Append(PCGExData::FPointIOCollection* InCollection)
+void FPCGExPointIOMerger::Append(const TSharedRef<PCGExData::FPointIOCollection>& InCollection)
 {
 	for (const TSharedPtr<PCGExData::FPointIO>& PointIO : InCollection->Pairs) { Append(PointIO); }
 }
@@ -134,7 +134,7 @@ namespace PCGExPointIOMerger
 					if (!Attribute) { continue; }                            // Missing attribute
 					if (!Identity.IsA(Attribute->GetTypeId())) { continue; } // Type mismatch
 
-					AsyncManager->Start<FWriteAttributeScopeTask<T>>(-1, SourceIO, Merger->Scopes[i], Identity, TypedBuffer->GetOutValues());
+					InternalStart<FWriteAttributeScopeTask<T>>(-1, SourceIO, Merger->Scopes[i], Identity, TypedBuffer->GetOutValues());
 				}
 			});
 

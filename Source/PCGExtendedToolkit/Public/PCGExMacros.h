@@ -8,8 +8,11 @@
 
 #pragma region PCGEX MACROS
 
-#define PCGEX_LOG_CTR(_NAME) // UE_LOG(LogTemp, Warning, TEXT(#_NAME"::Constructor"))
-#define PCGEX_LOG_DTR(_NAME) // UE_LOG(LogTemp, Warning, TEXT(#_NAME"::Destructor"))
+#define PCGEX_NOT_IMPLEMENTED(_NAME){ LowLevelFatalError(TEXT("Method not supported (%s)"), TEXT(#_NAME));}
+#define PCGEX_NOT_IMPLEMENTED_RET(_NAME, _RETURN){ LowLevelFatalError(TEXT("Method not supported (%s)"), TEXT(#_NAME)); return _RETURN;}
+
+#define PCGEX_LOG_CTR(_NAME)  //UE_LOG(LogTemp, Warning, TEXT(#_NAME"::Constructor"))
+#define PCGEX_LOG_DTR(_NAME)  //UE_LOG(LogTemp, Warning, TEXT(#_NAME"::Destructor"))
 
 #define FTEXT(_TEXT) FText::FromString(FString(_TEXT))
 #define FSTRING(_TEXT) FString(_TEXT)

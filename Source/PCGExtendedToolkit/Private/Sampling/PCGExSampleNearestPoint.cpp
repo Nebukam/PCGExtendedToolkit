@@ -136,7 +136,7 @@ namespace PCGExSampleNearestPoints
 		if (!Context->BlendingDetails.FilteredAttributes.IsEmpty() ||
 			!Context->BlendingDetails.GetPropertiesBlendingDetails().HasNoBlending())
 		{
-			Blender = MakeUnique<PCGExDataBlending::FMetadataBlender>(&Context->BlendingDetails);
+			Blender = MakeShared<PCGExDataBlending::FMetadataBlender>(&Context->BlendingDetails);
 			Blender->PrepareForData(PointDataFacade, Context->TargetsFacade.ToSharedRef());
 		}
 

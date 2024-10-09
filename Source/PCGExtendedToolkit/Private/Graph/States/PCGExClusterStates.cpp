@@ -4,6 +4,12 @@
 #include "Graph/States/PCGExClusterStates.h"
 
 
+
+
+
+
+
+
 #include "Graph/PCGExCluster.h"
 #include "Graph/Filters/PCGExClusterFilter.h"
 
@@ -26,13 +32,13 @@ namespace PCGExClusterStates
 	{
 	}
 
-	bool FState::Init(const FPCGContext* InContext, const TSharedPtr<PCGExCluster::FCluster>& InCluster, const TSharedPtr<PCGExData::FFacade>& InPointDataFacade, const TSharedPtr<PCGExData::FFacade>& InEdgeDataFacade)
+	bool FState::Init(const FPCGContext* InContext, const TSharedRef<PCGExCluster::FCluster>& InCluster, const TSharedRef<PCGExData::FFacade>& InPointDataFacade, const TSharedRef<PCGExData::FFacade>& InEdgeDataFacade)
 	{
 		Config.Init();
 
 		if (!TFilter::Init(InContext, InCluster, InPointDataFacade, InEdgeDataFacade)) { return false; }
 
-		Manager = MakeUnique<PCGExClusterFilter::TManager>(InCluster, PointDataFacade, EdgeDataFacade);
+		Manager = MakeShared<PCGExClusterFilter::TManager>(InCluster, PointDataFacade.ToSharedRef(), EdgeDataFacade.ToSharedRef());
 		Manager->bCacheResults = true;
 		return true;
 	}
@@ -71,9 +77,9 @@ namespace PCGExClusterStates
 
 	FStateManager::FStateManager(
 		const TSharedPtr<TArray<int64>>& InFlags,
-		const TSharedPtr<PCGExCluster::FCluster>& InCluster,
-		const TSharedPtr<PCGExData::FFacade>& InPointDataCache,
-		const TSharedPtr<PCGExData::FFacade>& InEdgeDataCache)
+		const TSharedRef<PCGExCluster::FCluster>& InCluster,
+		const TSharedRef<PCGExData::FFacade>& InPointDataCache,
+		const TSharedRef<PCGExData::FFacade>& InEdgeDataCache)
 		: TManager(InCluster, InPointDataCache, InEdgeDataCache)
 	{
 		FlagsCache = InFlags;

@@ -797,7 +797,8 @@ namespace PCGExCluster
 			PCGEx::InitArray(ExpandedNodes, Nodes->Num());
 
 			TArray<FExpandedNode>& ExpandedNodesRef = (*ExpandedNodes);
-			if (bBuild) { for (int i = 0; i < ExpandedNodes->Num(); i++) { ExpandedNodesRef[i] = FExpandedNode(this, i); } } // Ooof
+			TSharedPtr<FCluster> SharedPtr = SharedThis(this);
+			if (bBuild) { for (int i = 0; i < ExpandedNodes->Num(); i++) { ExpandedNodesRef[i] = FExpandedNode(SharedPtr, i); } } // Ooof
 		}
 
 		return ExpandedNodes;
@@ -816,10 +817,11 @@ namespace PCGExCluster
 		{
 			TArray<FExpandedNode>& ExpandedNodesRef = (*ExpandedNodes);
 			const int32 MaxIndex = StartIndex + Count;
-			for (int i = StartIndex; i < MaxIndex; i++) { ExpandedNodesRef[i] = FExpandedNode(this, i); }
+			TSharedPtr<FCluster> SharedPtr = SharedThis(this);
+			for (int i = StartIndex; i < MaxIndex; i++) { ExpandedNodesRef[i] = FExpandedNode(SharedPtr, i); }
 		};
 
-		ExpandNodesTask->PrepareRangesOnly(Nodes->Num(), 256);
+		ExpandNodesTask->StartRangePrepareOnly(Nodes->Num(), 256);
 	}
 
 	TSharedPtr<TArray<FExpandedEdge>> FCluster::GetExpandedEdges(const bool bBuild)
@@ -857,7 +859,7 @@ namespace PCGExCluster
 			for (int i = StartIndex; i < MaxIndex; i++) { ExpandedEdgesRef[i] = FExpandedEdge(this, i); }
 		};
 
-		ExpandEdgesTask->PrepareRangesOnly(Edges->Num(), 256);
+		ExpandEdgesTask->StartRangePrepareOnly(Edges->Num(), 256);
 	}
 
 	void FCluster::UpdatePositions()
