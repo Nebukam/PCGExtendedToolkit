@@ -4,6 +4,12 @@
 #include "Graph/Filters/Nodes/PCGExNodeAdjacencyFilter.h"
 
 
+
+
+
+
+
+
 #include "Graph/PCGExGraph.h"
 
 #define LOCTEXT_NAMESPACE "PCGExNodeAdjacencyFilter"
@@ -14,7 +20,7 @@ TSharedPtr<PCGExPointFilter::TFilter> UPCGExNodeAdjacencyFilterFactory::CreateFi
 	return MakeShared<FNodeAdjacencyFilter>(this);
 }
 
-bool FNodeAdjacencyFilter::Init(const FPCGContext* InContext, const TSharedPtr<PCGExCluster::FCluster>& InCluster, const TSharedPtr<PCGExData::FFacade>& InPointDataFacade, const TSharedPtr<PCGExData::FFacade>& InEdgeDataFacade)
+bool FNodeAdjacencyFilter::Init(const FPCGContext* InContext, const TSharedRef<PCGExCluster::FCluster>& InCluster, const TSharedRef<PCGExData::FFacade>& InPointDataFacade, const TSharedRef<PCGExData::FFacade>& InEdgeDataFacade)
 {
 	if (!TFilter::Init(InContext, InCluster, InPointDataFacade, InEdgeDataFacade)) { return false; }
 

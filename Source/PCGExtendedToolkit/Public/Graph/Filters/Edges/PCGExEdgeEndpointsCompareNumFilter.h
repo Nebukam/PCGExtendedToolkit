@@ -7,79 +7,76 @@
 #include "PCGExCompare.h"
 
 
-
-
-
-
-
-
 #include "Graph/PCGExCluster.h"
 #include "Graph/Filters/PCGExClusterFilter.h"
 #include "Misc/Filters/PCGExFilterFactoryProvider.h"
 
-#include "PCGExNodeNeighborsCountFilter.generated.h"
+#include "PCGExEdgeEndpointsCompareNumFilter.generated.h"
+
+UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Refine Edge Compare Against Mode"))
+enum class EPCGExRefineEdgeCompareAgainstMode : uint8
+{
+	EndEnd  = 0 UMETA(DisplayName = "Endpoints", Tooltip="Numeric comparison"),
+	EndEdge = 1 UMETA(DisplayName = "Endpoints vs Edge", Tooltip="String comparison"),
+};
 
 
 USTRUCT(BlueprintType)
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExNodeNeighborsCountFilterConfig
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExEdgeEndpointsCompareNumFilterConfig
 {
 	GENERATED_BODY()
 
-	FPCGExNodeNeighborsCountFilterConfig()
+	FPCGExEdgeEndpointsCompareNumFilterConfig()
 	{
 	}
 
-	/** Comparison */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
-	EPCGExComparison Comparison = EPCGExComparison::NearlyEqual;
-
-	/** Type of Count */
+	/** Attribute to compare */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
-	EPCGExFetchType CompareAgainst = EPCGExFetchType::Constant;
+	FPCGAttributePropertyInputSelector Attribute;
 
-	/** Operand A for testing -- Will be translated to `double` under the hood. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(EditCondition="CompareAgainst==EPCGExFetchType::Attribute", EditConditionHides, ShowOnlyInnerProperties, DisplayName="Operand A (First)"))
-	FPCGAttributePropertyInputSelector LocalCount;
+	/** Comparison check */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Comparison"))
+	EPCGExComparison NumericComparison = EPCGExComparison::StrictlyGreater;
 
-	/** Constant Operand A for testing. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="CompareAgainst==EPCGExFetchType::Constant", EditConditionHides))
-	int32 Count = 0;
-
-	/** Rounding mode for near measures */
+	/** Rounding mode for approx. comparison modes */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="Comparison==EPCGExComparison::NearlyEqual || Comparison==EPCGExComparison::NearlyNotEqual", EditConditionHides))
 	double Tolerance = 0.001;
+
+	/** */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	bool bInvert = false;
 };
 
 /**
  * 
  */
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExNodeNeighborsCountFilterFactory : public UPCGExNodeFilterFactoryBase
+class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExEdgeEndpointsCompareNumFilterFactory : public UPCGExNodeFilterFactoryBase
 {
 	GENERATED_BODY()
 
 public:
-	FPCGExNodeNeighborsCountFilterConfig Config;
+	FPCGExEdgeEndpointsCompareNumFilterConfig Config;
 
 	virtual TSharedPtr<PCGExPointFilter::TFilter> CreateFilter() const override;
 };
 
-namespace PCGExNodeNeighborsCount
+namespace PCGExEdgeEndpointsCompareNum
 {
-	class /*PCGEXTENDEDTOOLKIT_API*/ FNeighborsCountFilter final : public PCGExClusterFilter::TNodeFilter
+	class /*PCGEXTENDEDTOOLKIT_API*/ FNeighborsCountFilter final : public PCGExClusterFilter::TEdgeFilter
 	{
 	public:
-		explicit FNeighborsCountFilter(const UPCGExNodeNeighborsCountFilterFactory* InFactory)
-			: TNodeFilter(InFactory), TypedFilterFactory(InFactory)
+		explicit FNeighborsCountFilter(const UPCGExEdgeEndpointsCompareNumFilterFactory* InFactory)
+			: TEdgeFilter(InFactory), TypedFilterFactory(InFactory)
 		{
 		}
 
-		const UPCGExNodeNeighborsCountFilterFactory* TypedFilterFactory;
+		const UPCGExEdgeEndpointsCompareNumFilterFactory* TypedFilterFactory;
 
-		TSharedPtr<PCGExData::TBuffer<double>> LocalCount;
+		TSharedPtr<PCGExData::TBuffer<double>> NumericBuffer;
 
 		virtual bool Init(const FPCGContext* InContext, const TSharedRef<PCGExCluster::FCluster>& InCluster, const TSharedRef<PCGExData::FFacade>& InPointDataFacade, const TSharedRef<PCGExData::FFacade>& InEdgeDataFacade) override;
-		virtual bool Test(const PCGExCluster::FNode& Node) const override;
+		virtual bool Test(const PCGExGraph::FIndexedEdge& Edge) const override;
 
 		virtual ~FNeighborsCountFilter() override
 		{
@@ -91,7 +88,7 @@ namespace PCGExNodeNeighborsCount
 
 /** Outputs a single GraphParam to be consumed by other nodes */
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Graph|Params")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExNodeNeighborsCountFilterProviderSettings : public UPCGExFilterProviderSettings
+class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExEdgeEndpointsCompareNumFilterProviderSettings : public UPCGExFilterProviderSettings
 {
 	GENERATED_BODY()
 
@@ -99,7 +96,7 @@ public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(
-		NodeNeighborsCountFilterFactory, "Cluster Filter : Neighbors Count (Node)", "Check against the node' neighbor count.",
+		EdgeEndpointsCompareNumFilterFactory, "Cluster Filter : Neighbors Count (Edge)", "Check against the edge' endpoints neighbor count.",
 		PCGEX_FACTORY_NAME_PRIORITY)
 	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->NodeColorClusterFilter; }
 #endif
@@ -107,7 +104,7 @@ public:
 
 	/** Test Config.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ShowOnlyInnerProperties))
-	FPCGExNodeNeighborsCountFilterConfig Config;
+	FPCGExEdgeEndpointsCompareNumFilterConfig Config;
 
 	virtual UPCGExParamFactoryBase* CreateFactory(FPCGExContext* InContext, UPCGExParamFactoryBase* InFactory) const override;
 

@@ -86,7 +86,7 @@ namespace PCGExFlagNodes
 
 		Cluster->ComputeEdgeLengths();
 
-		StateManager = MakeShared<PCGExClusterStates::FStateManager>(StateFlags, Cluster, VtxDataFacade, EdgeDataFacade);
+		StateManager = MakeShared<PCGExClusterStates::FStateManager>(StateFlags, Cluster.ToSharedRef(), VtxDataFacade, EdgeDataFacade);
 		StateManager->Init(ExecutionContext, Context->StateFactories);
 
 		if (bBuildExpandedNodes) { StartParallelLoopForRange(NumNodes); }

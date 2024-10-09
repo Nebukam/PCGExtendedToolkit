@@ -62,11 +62,11 @@ public:
 
 namespace PCGExPointsFilter
 {
-	class /*PCGEXTENDEDTOOLKIT_API*/ TBooleanComparisonFilter final : public PCGExPointFilter::TFilter
+	class /*PCGEXTENDEDTOOLKIT_API*/ TBooleanComparisonFilter final : public PCGExPointFilter::TSimpleFilter
 	{
 	public:
 		explicit TBooleanComparisonFilter(const TObjectPtr<const UPCGExBooleanCompareFilterFactory> InDefinition)
-			: TFilter(InDefinition), TypedFilterFactory(InDefinition)
+			: TSimpleFilter(InDefinition), TypedFilterFactory(InDefinition)
 		{
 		}
 

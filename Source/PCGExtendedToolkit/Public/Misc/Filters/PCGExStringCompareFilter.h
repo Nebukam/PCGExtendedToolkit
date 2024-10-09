@@ -63,11 +63,11 @@ public:
 
 namespace PCGExPointsFilter
 {
-	class /*PCGEXTENDEDTOOLKIT_API*/ TStringCompareFilter final : public PCGExPointFilter::TFilter
+	class /*PCGEXTENDEDTOOLKIT_API*/ TStringCompareFilter final : public PCGExPointFilter::TSimpleFilter
 	{
 	public:
 		explicit TStringCompareFilter(const TObjectPtr<const UPCGExStringCompareFilterFactory>& InFactory)
-			: TFilter(InFactory), TypedFilterFactory(InFactory)
+			: TSimpleFilter(InFactory), TypedFilterFactory(InFactory)
 		{
 		}
 

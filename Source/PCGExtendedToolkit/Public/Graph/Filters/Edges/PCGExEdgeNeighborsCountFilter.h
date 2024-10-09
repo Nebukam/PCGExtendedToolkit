@@ -7,12 +7,25 @@
 #include "PCGExCompare.h"
 
 
+
+
+
+
+
+
 #include "Graph/PCGExCluster.h"
 #include "Graph/Filters/PCGExClusterFilter.h"
 #include "Misc/Filters/PCGExFilterFactoryProvider.h"
 
 #include "PCGExEdgeNeighborsCountFilter.generated.h"
 
+UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Refine Edge Threshold Mode"))
+enum class EPCGExRefineEdgeThresholdMode : uint8
+{
+	Sum  = 0 UMETA(DisplayName = "Sum", Tooltip="The sum of adjacencies must be below the specified threshold"),
+	Any  = 1 UMETA(DisplayName = "Any Endpoint", Tooltip="At least one endpoint adjacency count must be below the specified threshold"),
+	Both = 2 UMETA(DisplayName = "Both Endpoints", Tooltip="Both endpoint adjacency count must be below the specified threshold"),
+};
 
 USTRUCT(BlueprintType)
 struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExEdgeNeighborsCountFilterConfig
@@ -23,25 +36,33 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExEdgeNeighborsCountFilterConfig
 	{
 	}
 
-	/** Comparison */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
-	EPCGExComparison Comparison = EPCGExComparison::NearlyEqual;
-
-	/** Type of Count */
+	/** Whether to read the threshold from an attribute on the edge or a constant. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
-	EPCGExFetchType CompareAgainst = EPCGExFetchType::Constant;
+	EPCGExFetchType ThresholdSource = EPCGExFetchType::Constant;
 
-	/** Operand A for testing -- Will be translated to `double` under the hood. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(EditCondition="CompareAgainst==EPCGExFetchType::Attribute", EditConditionHides, ShowOnlyInnerProperties, DisplayName="Operand A (First)"))
-	FPCGAttributePropertyInputSelector LocalCount;
+	/** The number of connection endpoints must have to be considered a Bridge. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ClampMin="1", DisplayName="Threshold", EditCondition="ThresholdSource == EPCGExFetchType::Constant", EditConditionHides))
+	int32 ThresholdConstant = 2;
 
-	/** Constant Operand A for testing. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="CompareAgainst==EPCGExFetchType::Constant", EditConditionHides))
-	int32 Count = 0;
+	/** Attribute to fetch threshold from */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Threshold", EditCondition="ThresholdSource == EPCGExFetchType::Attribute", EditConditionHides))
+	FPCGAttributePropertyInputSelector ThresholdAttribute;
 
-	/** Rounding mode for near measures */
+	/** How should we check if the threshold is reached. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	EPCGExRefineEdgeThresholdMode Mode = EPCGExRefineEdgeThresholdMode::Sum;
+
+	/** Comparison check */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	EPCGExComparison Comparison = EPCGExComparison::StrictlyGreater;
+
+	/** Rounding mode for approx. comparison modes */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="Comparison==EPCGExComparison::NearlyEqual || Comparison==EPCGExComparison::NearlyNotEqual", EditConditionHides))
-	double Tolerance = 0.001;
+	int32 Tolerance = 0;
+
+	/** */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	bool bInvert = false;
 };
 
 /**
@@ -60,20 +81,20 @@ public:
 
 namespace PCGExEdgeNeighborsCount
 {
-	class /*PCGEXTENDEDTOOLKIT_API*/ FNeighborsCountFilter final : public PCGExClusterFilter::TFilter
+	class /*PCGEXTENDEDTOOLKIT_API*/ FNeighborsCountFilter final : public PCGExClusterFilter::TEdgeFilter
 	{
 	public:
 		explicit FNeighborsCountFilter(const UPCGExEdgeNeighborsCountFilterFactory* InFactory)
-			: TFilter(InFactory), TypedFilterFactory(InFactory)
+			: TEdgeFilter(InFactory), TypedFilterFactory(InFactory)
 		{
 		}
 
 		const UPCGExEdgeNeighborsCountFilterFactory* TypedFilterFactory;
 
-		TSharedPtr<PCGExData::TBuffer<double>> LocalCount;
+		TSharedPtr<PCGExData::TBuffer<int32>> ThresholdBuffer;
 
-		virtual bool Init(const FPCGContext* InContext, const TSharedPtr<PCGExCluster::FCluster>& InCluster, const TSharedPtr<PCGExData::FFacade>& InPointDataFacade, const TSharedPtr<PCGExData::FFacade>& InEdgeDataFacade) override;
-		virtual bool Test(const PCGExCluster::FNode& Node) const override;
+		virtual bool Init(const FPCGContext* InContext, const TSharedRef<PCGExCluster::FCluster>& InCluster, const TSharedRef<PCGExData::FFacade>& InPointDataFacade, const TSharedRef<PCGExData::FFacade>& InEdgeDataFacade) override;
+		virtual bool Test(const PCGExGraph::FIndexedEdge& Edge) const override;
 
 		virtual ~FNeighborsCountFilter() override
 		{
@@ -84,7 +105,7 @@ namespace PCGExEdgeNeighborsCount
 
 
 /** Outputs a single GraphParam to be consumed by other nodes */
-UCLASS(Abstract, MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Graph|Params")
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Graph|Params")
 class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExEdgeNeighborsCountFilterProviderSettings : public UPCGExFilterProviderSettings
 {
 	GENERATED_BODY()

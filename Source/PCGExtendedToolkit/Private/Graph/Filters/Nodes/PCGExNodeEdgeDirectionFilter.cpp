@@ -4,6 +4,12 @@
 #include "Graph/Filters/Nodes/PCGExNodeEdgeDirectionFilter.h"
 
 
+
+
+
+
+
+
 #include "Graph/PCGExGraph.h"
 
 #define LOCTEXT_NAMESPACE "PCGExNodeEdgeDirectionFilter"
@@ -14,7 +20,7 @@ TSharedPtr<PCGExPointFilter::TFilter> UPCGExNodeEdgeDirectionFilterFactory::Crea
 	return MakeShared<FNodeEdgeDirectionFilter>(this);
 }
 
-bool FNodeEdgeDirectionFilter::Init(const FPCGContext* InContext, const TSharedPtr<PCGExCluster::FCluster>& InCluster, const TSharedPtr<PCGExData::FFacade>& InPointDataFacade, const TSharedPtr<PCGExData::FFacade>& InEdgeDataFacade)
+bool FNodeEdgeDirectionFilter::Init(const FPCGContext* InContext, const TSharedRef<PCGExCluster::FCluster>& InCluster, const TSharedRef<PCGExData::FFacade>& InPointDataFacade, const TSharedRef<PCGExData::FFacade>& InEdgeDataFacade)
 {
 	if (!TFilter::Init(InContext, InCluster, InPointDataFacade, InEdgeDataFacade)) { return false; }
 

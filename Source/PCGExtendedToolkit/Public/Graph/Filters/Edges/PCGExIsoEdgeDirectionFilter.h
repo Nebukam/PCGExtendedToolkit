@@ -8,11 +8,17 @@
 #include "PCGExDetails.h"
 
 
+
+
+
+
+
+
 #include "Graph/PCGExCluster.h"
 #include "Graph/Filters/PCGExClusterFilter.h"
 #include "Misc/Filters/PCGExFilterFactoryProvider.h"
 
-#include "PCGExEdgeDirectionFilter.generated.h"
+#include "PCGExIsoEdgeDirectionFilter.generated.h"
 
 
 USTRUCT(BlueprintType)
@@ -24,17 +30,13 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExIsoEdgeDirectionFilterConfig
 	{
 	}
 
+	/** Defines the direction in which points will be ordered to form the final paths. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	FPCGExEdgeDirectionSettings DirectionSettings;
+	
 	/** Type of check; Note that Fast comparison ignores adjacency consolidation. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_NotOverridable))
 	EPCGExDirectionCheckMode ComparisonQuality = EPCGExDirectionCheckMode::Dot;
-
-	/** Adjacency Settings */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
-	FPCGExAdjacencySettings Adjacency;
-
-	/** Direction orientation */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable))
-	EPCGExAdjacencyDirectionOrigin DirectionOrder = EPCGExAdjacencyDirectionOrigin::FromNode;
 
 	/** Where to read the compared direction from. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable))
@@ -75,34 +77,32 @@ public:
 	virtual TSharedPtr<PCGExPointFilter::TFilter> CreateFilter() const override;
 };
 
-class /*PCGEXTENDEDTOOLKIT_API*/ FIsoEdgeDirectionFilter final : public PCGExClusterFilter::TFilter
+class /*PCGEXTENDEDTOOLKIT_API*/ FIsoEdgeDirectionFilter final : public PCGExClusterFilter::TEdgeFilter
 {
 public:
 	explicit FIsoEdgeDirectionFilter(const UPCGExIsoEdgeDirectionFilterFactory* InFactory)
-		: TFilter(InFactory), TypedFilterFactory(InFactory)
+		: TEdgeFilter(InFactory), TypedFilterFactory(InFactory)
 	{
-		Adjacency = InFactory->Config.Adjacency;
 		DotComparison = InFactory->Config.DotComparisonDetails;
 		HashComparison = InFactory->Config.HashComparisonDetails;
 	}
 
 	const UPCGExIsoEdgeDirectionFilterFactory* TypedFilterFactory;
 
-	bool bFromNode = true;
 	bool bUseDot = true;
 
 	TArray<double> CachedThreshold;
-	FPCGExAdjacencySettings Adjacency;
+	FPCGExEdgeDirectionSettings DirectionSettings;
 	FPCGExDotComparisonDetails DotComparison;
 	FPCGExVectorHashComparisonDetails HashComparison;
 
 	TSharedPtr<PCGExData::TBuffer<FVector>> OperandDirection;
 
-	virtual bool Init(const FPCGContext* InContext, const TSharedPtr<PCGExCluster::FCluster>& InCluster, const TSharedPtr<PCGExData::FFacade>& InPointDataFacade, const TSharedPtr<PCGExData::FFacade>& InEdgeDataFacade) override;
-	virtual bool Test(const PCGExCluster::FNode& Node) const override;
+	virtual bool Init(const FPCGContext* InContext, const TSharedRef<PCGExCluster::FCluster>& InCluster, const TSharedRef<PCGExData::FFacade>& InPointDataFacade, const TSharedRef<PCGExData::FFacade>& InEdgeDataFacade) override;
+	virtual bool Test(const PCGExGraph::FIndexedEdge& Edge) const override;
 
-	bool TestDot(const PCGExCluster::FNode& Node) const;
-	bool TestHash(const PCGExCluster::FNode& Node) const;
+	bool TestDot(const int32 PtIndex, const FVector& EdgeDir) const;
+	bool TestHash(const int32 PtIndex, const FVector& EdgeDir) const;
 
 	virtual ~FIsoEdgeDirectionFilter() override
 	{

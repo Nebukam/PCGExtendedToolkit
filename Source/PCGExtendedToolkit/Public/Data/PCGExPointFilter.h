@@ -7,6 +7,7 @@
 #include "UObject/Object.h"
 #include "PCGExData.h"
 #include "PCGExFactoryProvider.h"
+#include "Graph/PCGExCluster.h"
 
 
 #include "PCGExPointFilter.generated.h"
@@ -14,11 +15,6 @@
 namespace PCGExGraph
 {
 	struct FIndexedEdge;
-}
-
-namespace PCGExCluster
-{
-	struct FNode;
 }
 
 namespace PCGExPointFilter
@@ -34,7 +30,7 @@ namespace PCGExFilters
 		Point,
 		Group,
 		Node,
-		ClusterEdge,
+		Edge,
 	};
 }
 
@@ -100,10 +96,24 @@ namespace PCGExPointFilter
 		virtual ~TFilter() = default;
 	};
 
-	class /*PCGEXTENDEDTOOLKIT_API*/ TManager
+	class /*PCGEXTENDEDTOOLKIT_API*/ TSimpleFilter : public TFilter
 	{
 	public:
-		explicit TManager(const TSharedPtr<PCGExData::FFacade>& InPointDataFacade);
+		explicit TSimpleFilter(const TObjectPtr<const UPCGExFilterFactoryBase>& InFactory):
+			TFilter(InFactory)
+		{
+		}
+
+		virtual bool Test(const int32 Index) const override;
+		virtual bool Test(const PCGExCluster::FNode& Node) const override final;
+		virtual bool Test(const PCGExGraph::FIndexedEdge& Edge) const override final;
+
+	};
+	
+	class /*PCGEXTENDEDTOOLKIT_API*/ TManager : public TSharedFromThis<TManager>
+	{
+	public:
+		explicit TManager(const TSharedRef<PCGExData::FFacade>& InPointDataFacade);
 
 		bool bCacheResultsPerFilter = false;
 		bool bCacheResults = false;
@@ -111,7 +121,7 @@ namespace PCGExPointFilter
 
 		bool bValid = false;
 
-		TSharedPtr<PCGExData::FFacade> PointDataFacade;
+		TSharedRef<PCGExData::FFacade> PointDataFacade;
 
 		bool Init(const FPCGContext* InContext, const TArray<TObjectPtr<const UPCGExFilterFactoryBase>>& InFactories);
 

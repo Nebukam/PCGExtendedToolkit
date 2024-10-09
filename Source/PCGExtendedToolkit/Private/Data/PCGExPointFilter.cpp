@@ -32,11 +32,15 @@ namespace PCGExPointFilter
 		Results.Init(false, NumResults);
 	}
 
-	bool TFilter::Test(const int32 Index) const { return DefaultResult; }
+	bool TFilter::Test(const int32 Index) const PCGEX_NOT_IMPLEMENTED_RET(TFilter::Test(const int32 Index), false)
 	bool TFilter::Test(const PCGExCluster::FNode& Node) const { return Test(Node.PointIndex); }
 	bool TFilter::Test(const PCGExGraph::FIndexedEdge& Edge) const { return Test(Edge.PointIndex); }
 
-	TManager::TManager(const TSharedPtr<PCGExData::FFacade>& InPointDataFacade)
+	bool TSimpleFilter::Test(const int32 Index) const PCGEX_NOT_IMPLEMENTED_RET(TEdgeFilter::Test(const PCGExCluster::FNode& Node), false)
+	bool TSimpleFilter::Test(const PCGExCluster::FNode& Node) const { return Test(Node.PointIndex); }
+	bool TSimpleFilter::Test(const PCGExGraph::FIndexedEdge& Edge) const { return Test(Edge.PointIndex); }
+
+	TManager::TManager(const TSharedRef<PCGExData::FFacade>& InPointDataFacade)
 		: PointDataFacade(InPointDataFacade)
 	{
 	}

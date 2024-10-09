@@ -8,6 +8,12 @@
 #include "PCGExDetails.h"
 
 
+
+
+
+
+
+
 #include "Graph/PCGExCluster.h"
 #include "Graph/Filters/PCGExClusterFilter.h"
 #include "Misc/Filters/PCGExFilterFactoryProvider.h"
@@ -75,11 +81,11 @@ public:
 	virtual TSharedPtr<PCGExPointFilter::TFilter> CreateFilter() const override;
 };
 
-class /*PCGEXTENDEDTOOLKIT_API*/ FNodeEdgeDirectionFilter final : public PCGExClusterFilter::TFilter
+class /*PCGEXTENDEDTOOLKIT_API*/ FNodeEdgeDirectionFilter final : public PCGExClusterFilter::TNodeFilter
 {
 public:
 	explicit FNodeEdgeDirectionFilter(const UPCGExNodeEdgeDirectionFilterFactory* InFactory)
-		: TFilter(InFactory), TypedFilterFactory(InFactory)
+		: TNodeFilter(InFactory), TypedFilterFactory(InFactory)
 	{
 		Adjacency = InFactory->Config.Adjacency;
 		DotComparison = InFactory->Config.DotComparisonDetails;
@@ -98,7 +104,7 @@ public:
 
 	TSharedPtr<PCGExData::TBuffer<FVector>> OperandDirection;
 
-	virtual bool Init(const FPCGContext* InContext, const TSharedPtr<PCGExCluster::FCluster>& InCluster, const TSharedPtr<PCGExData::FFacade>& InPointDataFacade, const TSharedPtr<PCGExData::FFacade>& InEdgeDataFacade) override;
+	virtual bool Init(const FPCGContext* InContext, const TSharedRef<PCGExCluster::FCluster>& InCluster, const TSharedRef<PCGExData::FFacade>& InPointDataFacade, const TSharedRef<PCGExData::FFacade>& InEdgeDataFacade) override;
 	virtual bool Test(const PCGExCluster::FNode& Node) const override;
 
 	bool TestDot(const PCGExCluster::FNode& Node) const;
