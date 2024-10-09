@@ -222,9 +222,13 @@ namespace PCGExData
 
 			UPCGMetadata* InMetadata = Source->GetIn()->Metadata;
 
+			check(InMetadata)
+
 			// 'template' spec required for clang on mac, not sure why.
 			// ReSharper disable once CppRedundantTemplateKeyword
 			TypedInAttribute = InMetadata->template GetConstTypedAttribute<T>(FullName);
+			if (!TypedInAttribute) { return false; }
+
 			InAccessor = MakeUnique<FPCGAttributeAccessor<T>>(TypedInAttribute, InMetadata);
 
 			if (!TypedInAttribute || !InAccessor.IsValid())
