@@ -92,6 +92,7 @@ public:
 	bool bUseDot = true;
 
 	TArray<double> CachedThreshold;
+	FVector DirConstant = FVector::ZeroVector;
 	FPCGExAdjacencySettings Adjacency;
 	FPCGExDotComparisonDetails DotComparison;
 	FPCGExVectorHashComparisonDetails HashComparison;
