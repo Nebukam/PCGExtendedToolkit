@@ -4,6 +4,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "PCGExBroadcast.h"
 #include "UObject/Object.h"
 
 #include "Data/PCGExAttributeHelpers.h"
@@ -74,9 +75,16 @@ protected:
 	bool GetOverrideValue(const FName Name, T& OutValue)
 	{
 		FPCGMetadataAttributeBase** Att = PossibleOverrides.Find(Name);
-		if (!Att || (*Att)->GetTypeId() != static_cast<int16>(PCGEx::GetMetadataType<T>())) { return false; }
-		FPCGMetadataAttribute<T>* TypedAttribute = static_cast<FPCGMetadataAttribute<T>*>(*Att);
-		OutValue = TypedAttribute->GetValue(PCGDefaultValueKey);
+		if (!Att) { return false; }
+
+		PCGMetadataAttribute::CallbackWithRightType(
+			static_cast<uint16>((*Att)->GetTypeId()), [&](auto DummyValue)
+			{
+				using RawT = decltype(DummyValue);
+				FPCGMetadataAttribute<RawT>* TypedAttribute = static_cast<FPCGMetadataAttribute<RawT>*>(*Att);
+				OutValue = PCGEx::Broadcast<T>(TypedAttribute->GetValue(PCGDefaultValueKey));
+			});
+
 		return true;
 	}
 
