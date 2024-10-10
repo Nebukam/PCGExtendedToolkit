@@ -4,7 +4,6 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Data/PCGPointData.h"
 #include "UObject/Object.h"
 
 #include "PCGExDataBlending.h"

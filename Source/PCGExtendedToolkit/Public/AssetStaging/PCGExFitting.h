@@ -66,7 +66,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExScaleToFitDetails
 	{
 	}
 
-	explicit FPCGExScaleToFitDetails(EPCGExFitMode DefaultFit)
+	explicit FPCGExScaleToFitDetails(const EPCGExFitMode DefaultFit)
 	{
 		ScaleToFitMode = DefaultFit;
 	}
@@ -522,7 +522,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExFittingVariationsDetails
 	bool bEnabledAfter = true;
 	int Seed = 0;
 
-	void Init(int InSeed)
+	void Init(const int InSeed)
 	{
 		Seed = InSeed;
 		bEnabledBefore = (Offset == EPCGExVariationMode::Before || Rotation != EPCGExVariationMode::Before || Scale != EPCGExVariationMode::Before);
@@ -539,7 +539,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExFittingVariationsDetails
 		FVector RandomScale = FVector::OneVector;
 		FVector RandomOffset = FVector::ZeroVector;
 		FQuat RandomRotation = FQuat::Identity;
-		FTransform SourceTransform = InPoint.Transform;
+		const FTransform SourceTransform = InPoint.Transform;
 
 		if (Offset == Step)
 		{

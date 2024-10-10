@@ -94,7 +94,7 @@ namespace PCGExCopyClusters
 	void FProcessor::CompleteWork()
 	{
 		// Once work is complete, check if there are cached clusters we can forward
-		TSharedPtr<PCGExCluster::FCluster> CachedCluster = PCGExClusterData::TryGetCachedCluster(VtxDataFacade->Source, EdgeDataFacade->Source);
+		const TSharedPtr<PCGExCluster::FCluster> CachedCluster = PCGExClusterData::TryGetCachedCluster(VtxDataFacade->Source, EdgeDataFacade->Source);
 
 		if (!CachedCluster) { return; }
 

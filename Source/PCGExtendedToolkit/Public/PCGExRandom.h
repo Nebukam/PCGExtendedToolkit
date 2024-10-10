@@ -4,7 +4,6 @@
 #pragma once
 
 #include "PCGExMath.h"
-#include "Data/PCGExPointIO.h"
 
 UENUM(BlueprintType, meta=(Bitflags, UseEnumValuesAsMaskValuesInEditor="true", DisplayName="[PCGEx] Seed Components"))
 enum class EPCGExSeedComponents : uint8
@@ -20,19 +19,19 @@ using EPCGExSeedComponentsBitmask = TEnumAsByte<EPCGExSeedComponents>;
 
 namespace PCGExRandom
 {
-	FORCEINLINE static int ComputeSeed(int A)
+	FORCEINLINE static int ComputeSeed(const int A)
 	{
 		// From Epic git main, unexposed in 5.3
 		return (A * 196314165U) + 907633515U;
 	}
 
-	FORCEINLINE static int ComputeSeed(int A, int B)
+	FORCEINLINE static int ComputeSeed(const int A, const int B)
 	{
 		// From Epic git main, unexposed in 5.3
 		return ((A * 196314165U) + 907633515U) ^ ((B * 73148459U) + 453816763U);
 	}
 
-	FORCEINLINE static int ComputeSeed(int A, int B, int C)
+	FORCEINLINE static int ComputeSeed(const int A, const int B, const int C)
 	{
 		// From Epic git main, unexposed in 5.3
 		return ((A * 196314165U) + 907633515U) ^ ((B * 73148459U) + 453816763U) ^ ((C * 34731343U) + 453816743U);

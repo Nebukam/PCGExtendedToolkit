@@ -102,8 +102,8 @@ namespace PCGExRefineEdges
 		friend class FFilterRangeTask;
 
 	protected:
-		TSharedPtr<PCGExClusterFilter::TManager> EdgeFilterManager;
-		TSharedPtr<PCGExClusterFilter::TManager> SanitizationFilterManager;
+		TSharedPtr<PCGExClusterFilter::FManager> EdgeFilterManager;
+		TSharedPtr<PCGExClusterFilter::FManager> SanitizationFilterManager;
 		EPCGExRefineSanitization Sanitization = EPCGExRefineSanitization::None;
 
 		virtual TSharedPtr<PCGExCluster::FCluster> HandleCachedCluster(const TSharedRef<PCGExCluster::FCluster>& InClusterRef) override;
@@ -134,15 +134,15 @@ namespace PCGExRefineEdges
 	class FProcessorBatch final : public PCGExClusterMT::TBatch<FProcessor>
 	{
 	public:
-		FProcessorBatch(FPCGExContext* InContext, const TSharedRef<PCGExData::FPointIO>& InVtx, TArrayView<TSharedRef<PCGExData::FPointIO>> InEdges)
-			: PCGExClusterMT::TBatch<FProcessor>(InContext, InVtx, InEdges)
+		FProcessorBatch(FPCGExContext* InContext, const TSharedRef<PCGExData::FPointIO>& InVtx, const TArrayView<TSharedRef<PCGExData::FPointIO>> InEdges)
+			: TBatch<FProcessor>(InContext, InVtx, InEdges)
 		{
 		}
 
 		virtual void OnProcessingPreparationComplete() override;
 	};
 
-	class FSanitizeRangeTask : public PCGExMT::FPCGExTask
+	class FSanitizeRangeTask final : public PCGExMT::FPCGExTask
 	{
 	public:
 		FSanitizeRangeTask(const TSharedPtr<PCGExData::FPointIO>& InPointIO,

@@ -19,7 +19,7 @@ namespace PCGExGraph
 
 namespace PCGExPointFilter
 {
-	class TFilter;
+	class FFilter;
 }
 
 /**
@@ -57,11 +57,11 @@ public:
 
 namespace PCGExClusterFilter
 {
-	class /*PCGEXTENDEDTOOLKIT_API*/ TFilter : public PCGExPointFilter::TFilter
+	class /*PCGEXTENDEDTOOLKIT_API*/ FFilter : public PCGExPointFilter::FFilter
 	{
 	public:
-		explicit TFilter(const TObjectPtr<const UPCGExClusterFilterFactoryBase>& InFactory):
-			PCGExPointFilter::TFilter(InFactory)
+		explicit FFilter(const TObjectPtr<const UPCGExClusterFilterFactoryBase>& InFactory):
+			PCGExPointFilter::FFilter(InFactory)
 		{
 		}
 
@@ -76,11 +76,11 @@ namespace PCGExClusterFilter
 		virtual void PostInit() override;
 	};
 
-	class /*PCGEXTENDEDTOOLKIT_API*/ TNodeFilter : public TFilter
+	class /*PCGEXTENDEDTOOLKIT_API*/ TNodeFilter : public FFilter
 	{
 	public:
 		explicit TNodeFilter(const TObjectPtr<const UPCGExClusterFilterFactoryBase>& InFactory):
-			TFilter(InFactory)
+			FFilter(InFactory)
 		{
 		}
 
@@ -90,11 +90,11 @@ namespace PCGExClusterFilter
 		virtual bool Test(const PCGExGraph::FIndexedEdge& Edge) const override final;
 	};
 
-	class /*PCGEXTENDEDTOOLKIT_API*/ TEdgeFilter : public TFilter
+	class /*PCGEXTENDEDTOOLKIT_API*/ TEdgeFilter : public FFilter
 	{
 	public:
 		explicit TEdgeFilter(const TObjectPtr<const UPCGExClusterFilterFactoryBase>& InFactory):
-			TFilter(InFactory)
+			FFilter(InFactory)
 		{
 		}
 
@@ -104,21 +104,21 @@ namespace PCGExClusterFilter
 		virtual bool Test(const PCGExGraph::FIndexedEdge& Edge) const override;
 	};
 
-	class /*PCGEXTENDEDTOOLKIT_API*/ TManager : public PCGExPointFilter::TManager
+	class /*PCGEXTENDEDTOOLKIT_API*/ FManager : public PCGExPointFilter::FManager
 	{
 	public:
-		TManager(const TSharedRef<PCGExCluster::FCluster>& InCluster, const TSharedRef<PCGExData::FFacade>& InPointDataFacade, const TSharedRef<PCGExData::FFacade>& InEdgeDataFacade);
+		FManager(const TSharedRef<PCGExCluster::FCluster>& InCluster, const TSharedRef<PCGExData::FFacade>& InPointDataFacade, const TSharedRef<PCGExData::FFacade>& InEdgeDataFacade);
 
 		bool bUseEdgeAsPrimary = false;
 		TSharedRef<PCGExCluster::FCluster> Cluster;
 		TSharedRef<PCGExData::FFacade> EdgeDataFacade;
 
-		virtual ~TManager() override
+		virtual ~FManager() override
 		{
 		}
 
 	protected:
-		virtual bool InitFilter(const FPCGContext* InContext, const TSharedPtr<PCGExPointFilter::TFilter>& Filter) override;
+		virtual bool InitFilter(const FPCGContext* InContext, const TSharedPtr<PCGExPointFilter::FFilter>& Filter) override;
 		virtual void InitCache() override;
 	};
 }

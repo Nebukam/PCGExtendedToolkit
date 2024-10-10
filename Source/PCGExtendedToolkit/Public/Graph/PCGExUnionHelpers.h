@@ -8,7 +8,6 @@
 #include "PCGExGraph.h"
 #include "PCGExIntersections.h"
 #include "PCGExPointsProcessor.h"
-#include "PCGExDetails.h"
 #include "PCGExDetailsIntersection.h"
 #include "Data/PCGExData.h"
 #include "Data/Blending/PCGExUnionBlender.h"
@@ -16,13 +15,13 @@
 
 namespace PCGExGraph
 {
-	struct /*PCGEXTENDEDTOOLKIT_API*/ FUnionProcessor : public TSharedFromThis<FUnionProcessor>
+	struct /*PCGEXTENDEDTOOLKIT_API*/ FUnionProcessor : TSharedFromThis<FUnionProcessor>
 	{
 		FPCGExPointsProcessorContext* Context = nullptr;
 
 		TSharedRef<PCGExData::FFacade> UnionDataFacade;
 		TSharedPtr<FUnionGraph> UnionGraph;
-		
+
 		FPCGExPointPointIntersectionDetails PointPointIntersectionDetails;
 
 		bool bDoPointEdge = false;
@@ -37,7 +36,7 @@ namespace PCGExGraph
 
 		FPCGExGraphBuilderDetails GraphBuilderDetails;
 
-		
+
 		TSharedPtr<PCGExDataBlending::FUnionBlender> UnionPointsBlender;
 
 		explicit FUnionProcessor(
@@ -90,12 +89,12 @@ namespace PCGExGraph
 		void FindPointEdgeIntersections();
 		void FindPointEdgeIntersectionsFound();
 		void OnPointEdgeSortingComplete();
-		void OnPointEdgeIntersectionsComplete();
+		void OnPointEdgeIntersectionsComplete() const;
 
 		void FindEdgeEdgeIntersections();
 		void OnEdgeEdgeIntersectionsFound();
 		void OnEdgeEdgeSortingComplete();
-		void OnEdgeEdgeIntersectionsComplete();
+		void OnEdgeEdgeIntersectionsComplete() const;
 		void CompileFinalGraph();
 	};
 }

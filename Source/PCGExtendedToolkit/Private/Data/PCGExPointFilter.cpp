@@ -6,7 +6,7 @@
 
 #include "Graph/PCGExCluster.h"
 
-TSharedPtr<PCGExPointFilter::TFilter> UPCGExFilterFactoryBase::CreateFilter() const
+TSharedPtr<PCGExPointFilter::FFilter> UPCGExFilterFactoryBase::CreateFilter() const
 {
 	return nullptr;
 }
@@ -19,37 +19,37 @@ bool UPCGExFilterFactoryBase::Init(FPCGExContext* InContext)
 
 namespace PCGExPointFilter
 {
-	bool TFilter::Init(const FPCGContext* InContext, const TSharedPtr<PCGExData::FFacade> InPointDataFacade)
+	bool FFilter::Init(const FPCGContext* InContext, const TSharedPtr<PCGExData::FFacade> InPointDataFacade)
 	{
 		PointDataFacade = InPointDataFacade;
 		return true;
 	}
 
-	void TFilter::PostInit()
+	void FFilter::PostInit()
 	{
 		if (!bCacheResults) { return; }
 		const int32 NumResults = PointDataFacade->Source->GetNum();
 		Results.Init(false, NumResults);
 	}
 
-	bool TFilter::Test(const int32 Index) const PCGEX_NOT_IMPLEMENTED_RET(TFilter::Test(const int32 Index), false)
-	bool TFilter::Test(const PCGExCluster::FNode& Node) const { return Test(Node.PointIndex); }
-	bool TFilter::Test(const PCGExGraph::FIndexedEdge& Edge) const { return Test(Edge.PointIndex); }
+	bool FFilter::Test(const int32 Index) const PCGEX_NOT_IMPLEMENTED_RET(FFilter::Test(const int32 Index), false)
+	bool FFilter::Test(const PCGExCluster::FNode& Node) const { return Test(Node.PointIndex); }
+	bool FFilter::Test(const PCGExGraph::FIndexedEdge& Edge) const { return Test(Edge.PointIndex); }
 
-	bool TSimpleFilter::Test(const int32 Index) const PCGEX_NOT_IMPLEMENTED_RET(TEdgeFilter::Test(const PCGExCluster::FNode& Node), false)
-	bool TSimpleFilter::Test(const PCGExCluster::FNode& Node) const { return Test(Node.PointIndex); }
-	bool TSimpleFilter::Test(const PCGExGraph::FIndexedEdge& Edge) const { return Test(Edge.PointIndex); }
+	bool FSimpleFilter::Test(const int32 Index) const PCGEX_NOT_IMPLEMENTED_RET(TEdgeFilter::Test(const PCGExCluster::FNode& Node), false)
+	bool FSimpleFilter::Test(const PCGExCluster::FNode& Node) const { return Test(Node.PointIndex); }
+	bool FSimpleFilter::Test(const PCGExGraph::FIndexedEdge& Edge) const { return Test(Edge.PointIndex); }
 
-	TManager::TManager(const TSharedRef<PCGExData::FFacade>& InPointDataFacade)
+	FManager::FManager(const TSharedRef<PCGExData::FFacade>& InPointDataFacade)
 		: PointDataFacade(InPointDataFacade)
 	{
 	}
 
-	bool TManager::Init(const FPCGContext* InContext, const TArray<TObjectPtr<const UPCGExFilterFactoryBase>>& InFactories)
+	bool FManager::Init(const FPCGContext* InContext, const TArray<TObjectPtr<const UPCGExFilterFactoryBase>>& InFactories)
 	{
 		for (const UPCGExFilterFactoryBase* Factory : InFactories)
 		{
-			TSharedPtr<TFilter> NewFilter = Factory->CreateFilter();
+			TSharedPtr<FFilter> NewFilter = Factory->CreateFilter();
 			NewFilter->bCacheResults = bCacheResultsPerFilter;
 			if (!InitFilter(InContext, NewFilter)) { continue; }
 			ManagedFilters.Add(NewFilter);
@@ -58,42 +58,42 @@ namespace PCGExPointFilter
 		return PostInit(InContext);
 	}
 
-	bool TManager::Test(const int32 Index)
+	bool FManager::Test(const int32 Index)
 	{
-		for (const TSharedPtr<TFilter>& Handler : ManagedFilters) { if (!Handler->Test(Index)) { return false; } }
+		for (const TSharedPtr<FFilter>& Handler : ManagedFilters) { if (!Handler->Test(Index)) { return false; } }
 		return true;
 	}
 
-	bool TManager::Test(const PCGExCluster::FNode& Node)
+	bool FManager::Test(const PCGExCluster::FNode& Node)
 	{
-		for (const TSharedPtr<TFilter>& Handler : ManagedFilters) { if (!Handler->Test(Node)) { return false; } }
+		for (const TSharedPtr<FFilter>& Handler : ManagedFilters) { if (!Handler->Test(Node)) { return false; } }
 		return true;
 	}
 
-	bool TManager::Test(const PCGExGraph::FIndexedEdge& Edge)
+	bool FManager::Test(const PCGExGraph::FIndexedEdge& Edge)
 	{
-		for (const TSharedPtr<TFilter>& Handler : ManagedFilters) { if (!Handler->Test(Edge)) { return false; } }
+		for (const TSharedPtr<FFilter>& Handler : ManagedFilters) { if (!Handler->Test(Edge)) { return false; } }
 		return true;
 	}
 
-	bool TManager::InitFilter(const FPCGContext* InContext, const TSharedPtr<TFilter>& Filter)
+	bool FManager::InitFilter(const FPCGContext* InContext, const TSharedPtr<FFilter>& Filter)
 	{
 		return Filter->Init(InContext, PointDataFacade);
 	}
 
-	bool TManager::PostInit(const FPCGContext* InContext)
+	bool FManager::PostInit(const FPCGContext* InContext)
 	{
 		bValid = !ManagedFilters.IsEmpty();
 
 		if (!bValid) { return false; }
 
 		// Sort mappings so higher priorities come last, as they have to potential to override values.
-		ManagedFilters.Sort([&](const TSharedPtr<TFilter>& A, const TSharedPtr<TFilter>& B) { return A->Factory->Priority < B->Factory->Priority; });
+		ManagedFilters.Sort([&](const TSharedPtr<FFilter>& A, const TSharedPtr<FFilter>& B) { return A->Factory->Priority < B->Factory->Priority; });
 
 		// Update index & post-init
 		for (int i = 0; i < ManagedFilters.Num(); i++)
 		{
-			TSharedPtr<TFilter> Filter = ManagedFilters[i];
+			TSharedPtr<FFilter> Filter = ManagedFilters[i];
 			Filter->FilterIndex = i;
 			PostInitFilter(InContext, Filter);
 		}
@@ -103,12 +103,12 @@ namespace PCGExPointFilter
 		return true;
 	}
 
-	void TManager::PostInitFilter(const FPCGContext* InContext, const TSharedPtr<TFilter>& InFilter)
+	void FManager::PostInitFilter(const FPCGContext* InContext, const TSharedPtr<FFilter>& InFilter)
 	{
 		InFilter->PostInit();
 	}
 
-	void TManager::InitCache()
+	void FManager::InitCache()
 	{
 		const int32 NumResults = PointDataFacade->Source->GetNum();
 		Results.Init(false, NumResults);

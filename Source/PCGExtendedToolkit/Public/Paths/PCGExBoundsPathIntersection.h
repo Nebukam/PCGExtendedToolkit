@@ -8,8 +8,6 @@
 
 #include "PCGExPointsProcessor.h"
 
-
-#include "Geometry/PCGExGeo.h"
 #include "Graph/PCGExIntersections.h"
 #include "PCGExBoundsPathIntersection.generated.h"
 
@@ -86,7 +84,7 @@ namespace PCGExPathIntersections
 
 		virtual ~FProcessor() override;
 
-		virtual bool Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager) override;
+		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager> InAsyncManager) override;
 		void FindIntersections(const int32 Index) const;
 		void InsertIntersections(const int32 Index) const;
 		void OnInsertionComplete();

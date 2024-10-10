@@ -100,7 +100,7 @@ namespace PCGExData
 						// ReSharper disable once CppRedundantTemplateKeyword
 						const FPCGMetadataAttribute<T>* SourceAtt = SourceDataFacade->GetIn()->Metadata->template GetConstTypedAttribute<T>(Identity.Name);
 						if (!SourceAtt) { return; }
-						
+
 						TSharedPtr<TBuffer<T>> Writer = InTargetDataFacade->GetWritable<T>(SourceAtt, true);
 
 						const T ForwardValue = SourceAtt->GetValueFromItemKey(SourceDataFacade->Source->GetInPoint(SourceIndex).MetadataEntry);
@@ -123,7 +123,7 @@ namespace PCGExData
 					// ReSharper disable once CppRedundantTemplateKeyword
 					const FPCGMetadataAttribute<T>* SourceAtt = SourceDataFacade->GetIn()->Metadata->template GetConstTypedAttribute<T>(Identity.Name);
 					if (!SourceAtt) { return; }
-					
+
 					InTargetDataFacade->Source->DeleteAttribute(Identity.Name);
 					FPCGMetadataAttribute<T>* Mark = InTargetDataFacade->Source->FindOrCreateAttribute<T>(
 						Identity.Name,

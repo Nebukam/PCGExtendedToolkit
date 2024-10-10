@@ -10,8 +10,6 @@
 #include "PCGExMT.h"
 
 
-
-
 #include "UObject/Object.h"
 
 class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPointIOMerger final : public TSharedFromThis<FPCGExPointIOMerger>
@@ -25,7 +23,7 @@ public:
 	TArray<uint64> Scopes;
 	TArray<TSharedPtr<PCGExData::FBufferBase>> Buffers;
 
-	FPCGExPointIOMerger(const TSharedRef<PCGExData::FFacade>& InUnionDataFacade);
+	explicit FPCGExPointIOMerger(const TSharedRef<PCGExData::FFacade>& InUnionDataFacade);
 	~FPCGExPointIOMerger();
 
 	void Append(const TSharedPtr<PCGExData::FPointIO>& InData);

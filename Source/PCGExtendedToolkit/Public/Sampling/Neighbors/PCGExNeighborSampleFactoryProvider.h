@@ -115,13 +115,15 @@ class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExNeighborSampleOperation : public UPCGExOp
 	GENERATED_BODY()
 
 public:
-	TSharedPtr<PCGExClusterFilter::TManager> PointFilters;
-	TSharedPtr<PCGExClusterFilter::TManager> ValueFilters;
+	TSharedPtr<PCGExClusterFilter::FManager> PointFilters;
+	TSharedPtr<PCGExClusterFilter::FManager> ValueFilters;
 
 	TSharedPtr<PCGExData::FFacade> VtxDataFacade;
 	TSharedPtr<PCGExData::FFacade> EdgeDataFacade;
 
 	FPCGExSamplingConfig SamplingConfig;
+
+	UPROPERTY(Transient)
 	TObjectPtr<UCurveFloat> WeightCurveObj = nullptr;
 
 	virtual void CopySettingsFrom(const UPCGExOperation* Other) override;

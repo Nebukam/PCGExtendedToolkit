@@ -104,7 +104,7 @@ namespace PCGExData
 	};
 
 	template <typename T>
-	class /*PCGEXTENDEDTOOLKIT_API*/ TBuffer : public FBufferBase
+	class /*PCGEXTENDEDTOOLKIT_API*/ TBuffer final : public FBufferBase
 	{
 		friend class FFacade;
 

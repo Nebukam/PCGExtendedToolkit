@@ -130,9 +130,6 @@ protected:
 	void DrawConnection(const UWorld* World, const FVector& Start, const PCGExData::FPointRef& Point, const FVector& End) const;
 	void DrawPoint(const UWorld* World, const FVector& Start, const PCGExData::FPointRef& Point) const;
 	void DrawSingle(const UWorld* World, const FVector& Start, const PCGExData::FPointRef& Point) const;
-
-	template <typename T, typename CompilerSafety = void>
-	static FString AsString(const T& InValue) { return InValue.ToString(); }
 };
 
 

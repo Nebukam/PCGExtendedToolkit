@@ -68,12 +68,12 @@ namespace PCGExAttributeRemap
 	{
 	}
 
-	bool FProcessor::Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager)
+	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager> InAsyncManager)
 	{
 		if (!FPointsProcessor::Process(InAsyncManager)) { return false; }
 
 
-		TSharedPtr<PCGEx::FAttributesInfos> Infos = PCGEx::FAttributesInfos::Get(PointDataFacade->GetIn()->Metadata);
+		const TSharedPtr<PCGEx::FAttributesInfos> Infos = PCGEx::FAttributesInfos::Get(PointDataFacade->GetIn()->Metadata);
 		const PCGEx::FAttributeIdentity* Identity = Infos->Find(Settings->SourceAttributeName);
 
 		if (!Identity)

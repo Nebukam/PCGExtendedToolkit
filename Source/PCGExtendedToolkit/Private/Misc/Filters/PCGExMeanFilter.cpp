@@ -7,14 +7,14 @@
 #define LOCTEXT_NAMESPACE "PCGExMeanFilterDefinition"
 #define PCGEX_NAMESPACE MeanFilterDefinition
 
-TSharedPtr<PCGExPointFilter::TFilter> UPCGExMeanFilterFactory::CreateFilter() const
+TSharedPtr<PCGExPointFilter::FFilter> UPCGExMeanFilterFactory::CreateFilter() const
 {
 	return MakeShared<PCGExPointsFilter::TMeanFilter>(this);
 }
 
 bool PCGExPointsFilter::TMeanFilter::Init(const FPCGContext* InContext, const TSharedPtr<PCGExData::FFacade> InPointDataFacade)
 {
-	if (!TFilter::Init(InContext, InPointDataFacade)) { return false; }
+	if (!FFilter::Init(InContext, InPointDataFacade)) { return false; }
 
 	const TSharedPtr<PCGExData::TBuffer<double>> Target = PointDataFacade->GetBroadcaster<double>(TypedFilterFactory->Config.Target, true);
 

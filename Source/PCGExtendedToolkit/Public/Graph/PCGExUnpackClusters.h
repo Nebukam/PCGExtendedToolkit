@@ -5,7 +5,7 @@
 
 #include "CoreMinimal.h"
 
-
+#include "PCGExMT.h"
 #include "Graph/PCGExEdgesProcessor.h"
 #include "PCGExUnpackClusters.generated.h"
 
@@ -66,7 +66,7 @@ protected:
 class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExUnpackClusterTask final : public PCGExMT::FPCGExTask
 {
 public:
-	FPCGExUnpackClusterTask(const TSharedPtr<PCGExData::FPointIO>& InPointIO) :
+	explicit FPCGExUnpackClusterTask(const TSharedPtr<PCGExData::FPointIO>& InPointIO) :
 		FPCGExTask(InPointIO)
 	{
 	}

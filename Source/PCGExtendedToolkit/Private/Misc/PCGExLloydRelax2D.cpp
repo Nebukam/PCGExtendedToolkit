@@ -66,7 +66,7 @@ bool FPCGExLloydRelax2DElement::ExecuteInternal(FPCGContext* InContext) const
 
 namespace PCGExLloydRelax2D
 {
-	bool FProcessor::Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager)
+	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager> InAsyncManager)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExLloydRelax2D::Process);
 

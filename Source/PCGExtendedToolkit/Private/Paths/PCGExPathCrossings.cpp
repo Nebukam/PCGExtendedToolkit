@@ -3,7 +3,6 @@
 
 #include "Paths/PCGExPathCrossings.h"
 #include "PCGExMath.h"
-#include "PCGExRandom.h"
 #include "Data/Blending/PCGExUnionBlender.h"
 
 
@@ -98,7 +97,7 @@ bool FPCGExPathCrossingsElement::ExecuteInternal(FPCGContext* InContext) const
 
 namespace PCGExPathCrossings
 {
-	bool FProcessor::Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager)
+	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager> InAsyncManager)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExPathCrossings::Process);
 
@@ -115,10 +114,10 @@ namespace PCGExPathCrossings
 		Details = Settings->IntersectionDetails;
 		Details.Init();
 
-		CanCutFilterManager = MakeShared<PCGExPointFilter::TManager>(PointDataFacade);
+		CanCutFilterManager = MakeShared<PCGExPointFilter::FManager>(PointDataFacade);
 		if (!CanCutFilterManager->Init(ExecutionContext, Context->CanCutFilterFactories)) { CanCutFilterManager.Reset(); }
 
-		CanBeCutFilterManager = MakeShared<PCGExPointFilter::TManager>(PointDataFacade);
+		CanBeCutFilterManager = MakeShared<PCGExPointFilter::FManager>(PointDataFacade);
 		if (!CanBeCutFilterManager->Init(ExecutionContext, Context->CanBeCutFilterFactories)) { CanBeCutFilterManager.Reset(); }
 
 		// Build edges
@@ -321,7 +320,7 @@ namespace PCGExPathCrossings
 
 		Metrics.Add(Positions[Edge->End]);
 
-		TArrayView<FPCGPoint> View = MakeArrayView(OutPoints.GetData() + CrossingStartIndex, NumCrossings);
+		const TArrayView<FPCGPoint> View = MakeArrayView(OutPoints.GetData() + CrossingStartIndex, NumCrossings);
 		const int32 EndIndex = Index == LastIndex ? 0 : CrossingStartIndex + NumCrossings;
 		Blending->ProcessSubPoints(PointIO->GetOutPointRef(CrossingStartIndex - 1), PointIO->GetOutPointRef(EndIndex), View, Metrics, CrossingStartIndex);
 	}
@@ -338,7 +337,7 @@ namespace PCGExPathCrossings
 		PCGEx::ArrayOfIndices(Order, NumCrossings);
 		Order.Sort([&](const int32 A, const int32 B) { return Crossing->Alphas[A] < Crossing->Alphas[B]; });
 
-		TUniquePtr<PCGExData::FUnionData> Union = MakeUnique<PCGExData::FUnionData>();
+		const TUniquePtr<PCGExData::FUnionData> Union = MakeUnique<PCGExData::FUnionData>();
 		for (int i = 0; i < NumCrossings; i++)
 		{
 			uint32 PtIdx;

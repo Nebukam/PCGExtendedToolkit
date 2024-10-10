@@ -116,7 +116,7 @@ namespace PCGExBuildVoronoi2D
 
 		TBitArray<> WithinBounds;
 		TBitArray<> VtxWithinBounds;
-		
+
 		TArray<FVector> SitesPositions;
 		TArray<FVector> DelaunaySitesLocations;
 		TArray<double> DelaunaySitesInfluenceCount;
@@ -127,7 +127,6 @@ namespace PCGExBuildVoronoi2D
 		TSharedPtr<PCGExData::FFacade> SiteDataFacade;
 		TSharedPtr<PCGExData::TBuffer<bool>> HullMarkPointWriter;
 		TSharedPtr<PCGExData::TBuffer<bool>> OpenSiteWriter;
-		
 
 	public:
 		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade):
@@ -137,7 +136,7 @@ namespace PCGExBuildVoronoi2D
 
 		virtual ~FProcessor() override;
 
-		virtual bool Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager) override;
+		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager> InAsyncManager) override;
 		virtual void ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const int32 LoopIdx, const int32 Count) override;
 		virtual void CompleteWork() override;
 		virtual void Write() override;

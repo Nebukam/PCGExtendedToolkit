@@ -46,7 +46,7 @@ class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExEdgeEndpointsCompareStrFilterFactory : pu
 public:
 	FPCGExEdgeEndpointsCompareStrFilterConfig Config;
 
-	virtual TSharedPtr<PCGExPointFilter::TFilter> CreateFilter() const override;
+	virtual TSharedPtr<PCGExPointFilter::FFilter> CreateFilter() const override;
 };
 
 namespace PCGExEdgeEndpointsCompareStr

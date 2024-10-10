@@ -3,9 +3,6 @@
 
 #include "Sampling/PCGExSampleSurfaceGuided.h"
 
-#include "Data/PCGExPointFilter.h"
-
-
 #define LOCTEXT_NAMESPACE "PCGExSampleSurfaceGuidedElement"
 #define PCGEX_NAMESPACE SampleSurfaceGuided
 
@@ -34,7 +31,7 @@ bool FPCGExSampleSurfaceGuidedElement::Boot(FPCGExContext* InContext) const
 	if (Context->bUseInclude)
 	{
 		PCGEX_VALIDATE_NAME(Settings->ActorReference)
-		TSharedPtr<PCGExData::FPointIO> ActorRefIO = PCGExData::TryGetSingleInput(Context, PCGExSampling::SourceActorReferencesLabel, true);
+		const TSharedPtr<PCGExData::FPointIO> ActorRefIO = PCGExData::TryGetSingleInput(Context, PCGExSampling::SourceActorReferencesLabel, true);
 		if (!ActorRefIO) { return false; }
 
 		Context->ActorReferenceDataFacade = MakeShared<PCGExData::FFacade>(ActorRefIO.ToSharedRef());
@@ -84,7 +81,7 @@ namespace PCGExSampleSurfaceGuided
 	{
 	}
 
-	bool FProcessor::Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager)
+	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager> InAsyncManager)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExSampleSurfaceGuided::Process);
 

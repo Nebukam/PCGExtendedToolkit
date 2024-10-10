@@ -61,7 +61,7 @@ protected:
 class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExRefreshSeedTask final : public PCGExMT::FPCGExTask
 {
 public:
-	FPCGExRefreshSeedTask(const TSharedPtr<PCGExData::FPointIO>& InPointIO) :
+	explicit FPCGExRefreshSeedTask(const TSharedPtr<PCGExData::FPointIO>& InPointIO) :
 		FPCGExTask(InPointIO)
 	{
 	}

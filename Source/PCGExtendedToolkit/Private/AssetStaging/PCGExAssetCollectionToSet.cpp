@@ -93,7 +93,7 @@ bool FPCGExAssetCollectionToSetElement::ExecuteInternal(FPCGContext* Context) co
 		return OutputToPin();
 	}
 
-	PCGExAssetCollection::FCache* MainCache = MainCollection->LoadCache();
+	const PCGExAssetCollection::FCache* MainCache = MainCollection->LoadCache();
 	TArray<const FPCGExAssetStagingData*> StagingDataList;
 
 	const FPCGExAssetStagingData* StagingData = nullptr;
@@ -113,7 +113,7 @@ bool FPCGExAssetCollectionToSetElement::ExecuteInternal(FPCGContext* Context) co
 
 	for (const FPCGExAssetStagingData* S : StagingDataList)
 	{
-		int64 Key = OutputSet->Metadata->AddEntry();
+		const int64 Key = OutputSet->Metadata->AddEntry();
 
 		if (!S || S->bIsSubCollection)
 		{
@@ -164,7 +164,7 @@ void FPCGExAssetCollectionToSetElement::ProcessStagingData(
 		if (SubHandling == EPCGExSubCollectionToSet::Ignore) { return; }
 
 		UPCGExAssetCollection* SubCollection = InStagingData->LoadSynchronous<UPCGExAssetCollection>();
-		PCGExAssetCollection::FCache* SubCache = SubCollection ? SubCollection->LoadCache() : nullptr;
+		const PCGExAssetCollection::FCache* SubCache = SubCollection ? SubCollection->LoadCache() : nullptr;
 
 		if (!SubCache)
 		{
@@ -188,7 +188,6 @@ void FPCGExAssetCollectionToSetElement::ProcessStagingData(
 				ProcessStagingData(NestedStaging, OutStagingDataList, bOmitInvalidAndEmpty, bNoDuplicates, SubHandling, GUIDS);
 			}
 			return;
-			break;
 		case EPCGExSubCollectionToSet::PickRandom:
 			SubCollection->GetStagingRandom(NestedStaging, 0);
 			break;

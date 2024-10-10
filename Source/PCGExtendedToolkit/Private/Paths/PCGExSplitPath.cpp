@@ -73,7 +73,7 @@ bool FPCGExSplitPathElement::ExecuteInternal(FPCGContext* InContext) const
 
 namespace PCGExSplitPath
 {
-	bool FProcessor::Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager)
+	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager> InAsyncManager)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExSplitPath::Process);
 
@@ -139,7 +139,7 @@ namespace PCGExSplitPath
 
 		if (NumPathPoints == 1 && Settings->bOmitSinglePointOutputs) { return; }
 
-		TSharedPtr<PCGExData::FPointIO> PathIO = MakeShared<PCGExData::FPointIO>(ExecutionContext, PointDataFacade->Source);
+		const TSharedPtr<PCGExData::FPointIO> PathIO = MakeShared<PCGExData::FPointIO>(ExecutionContext, PointDataFacade->Source);
 		PathIO->InitializeOutput(Context, PCGExData::EInit::NewOutput);
 		PathsIOs[Iteration] = PathIO;
 

@@ -59,7 +59,7 @@ namespace PCGExFusePoints
 	{
 	}
 
-	bool FProcessor::Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager)
+	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager> InAsyncManager)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExFusePoints::Process);
 
@@ -88,7 +88,7 @@ namespace PCGExFusePoints
 		TArray<FPCGPoint>& MutablePoints = PointDataFacade->GetOut()->GetMutablePoints();
 
 		PCGExGraph::FUnionNode* UnionNode = UnionGraph->Nodes[Iteration];
-		PCGMetadataEntryKey Key = MutablePoints[Iteration].MetadataEntry;
+		const PCGMetadataEntryKey Key = MutablePoints[Iteration].MetadataEntry;
 		MutablePoints[Iteration] = UnionNode->Point; // Copy "original" point properties, in case there's only one
 
 		FPCGPoint& Point = MutablePoints[Iteration];

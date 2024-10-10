@@ -24,6 +24,8 @@ public:
 	bool bUseLocalWeightMultiplier = false;
 	EPCGExGraphValueSource LocalWeightMultiplierSource = EPCGExGraphValueSource::Vtx;
 	FPCGAttributePropertyInputSelector WeightMultiplierAttribute;
+
+	UPROPERTY(Transient)
 	TObjectPtr<UCurveFloat> ScoreCurveObj;
 
 	bool bHasCustomLocalWeightMultiplier = false;

@@ -4,25 +4,19 @@
 #include "Graph/Filters/Nodes/PCGExNodeEdgeDirectionFilter.h"
 
 
-
-
-
-
-
-
 #include "Graph/PCGExGraph.h"
 
 #define LOCTEXT_NAMESPACE "PCGExNodeEdgeDirectionFilter"
 #define PCGEX_NAMESPACE NodeEdgeDirectionFilter
 
-TSharedPtr<PCGExPointFilter::TFilter> UPCGExNodeEdgeDirectionFilterFactory::CreateFilter() const
+TSharedPtr<PCGExPointFilter::FFilter> UPCGExNodeEdgeDirectionFilterFactory::CreateFilter() const
 {
 	return MakeShared<FNodeEdgeDirectionFilter>(this);
 }
 
 bool FNodeEdgeDirectionFilter::Init(const FPCGContext* InContext, const TSharedRef<PCGExCluster::FCluster>& InCluster, const TSharedRef<PCGExData::FFacade>& InPointDataFacade, const TSharedRef<PCGExData::FFacade>& InEdgeDataFacade)
 {
-	if (!TFilter::Init(InContext, InCluster, InPointDataFacade, InEdgeDataFacade)) { return false; }
+	if (!FFilter::Init(InContext, InCluster, InPointDataFacade, InEdgeDataFacade)) { return false; }
 
 	bFromNode = TypedFilterFactory->Config.DirectionOrder == EPCGExAdjacencyDirectionOrigin::FromNode;
 

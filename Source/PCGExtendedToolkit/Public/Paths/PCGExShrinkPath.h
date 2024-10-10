@@ -8,8 +8,6 @@
 
 #include "PCGExPointsProcessor.h"
 
-
-#include "Geometry/PCGExGeo.h"
 #include "PCGExShrinkPath.generated.h"
 
 UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Path Shrink Mode"))
@@ -104,7 +102,7 @@ class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExShrinkPathSettings : public UPCGExPathPro
 	GENERATED_BODY()
 
 public:
-	UPCGExShrinkPathSettings(const FObjectInitializer& ObjectInitializer);
+	explicit UPCGExShrinkPathSettings(const FObjectInitializer& ObjectInitializer);
 
 	//~Begin UPCGSettings
 #if WITH_EDITOR
@@ -194,7 +192,7 @@ namespace PCGExShrinkPath
 
 		virtual ~FProcessor() override;
 
-		virtual bool Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager) override;
+		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager> InAsyncManager) override;
 		virtual void CompleteWork() override;
 	};
 }

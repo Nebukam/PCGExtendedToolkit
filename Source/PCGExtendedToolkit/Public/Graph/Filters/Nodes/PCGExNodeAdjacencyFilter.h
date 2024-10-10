@@ -8,12 +8,6 @@
 #include "PCGExDetails.h"
 
 
-
-
-
-
-
-
 #include "Graph/PCGExCluster.h"
 #include "Graph/Filters/PCGExClusterFilter.h"
 #include "Misc/Filters/PCGExFilterFactoryProvider.h"
@@ -73,7 +67,7 @@ class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExNodeAdjacencyFilterFactory : public UPCGE
 public:
 	FPCGExNodeAdjacencyFilterConfig Config;
 
-	virtual TSharedPtr<PCGExPointFilter::TFilter> CreateFilter() const override;
+	virtual TSharedPtr<PCGExPointFilter::FFilter> CreateFilter() const override;
 };
 
 class /*PCGEXTENDEDTOOLKIT_API*/ FNodeAdjacencyFilter final : public PCGExClusterFilter::TNodeFilter

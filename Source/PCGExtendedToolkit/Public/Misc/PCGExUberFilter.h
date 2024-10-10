@@ -9,10 +9,6 @@
 #include "Data/PCGExAttributeHelpers.h"
 
 
-
-
-
-
 #include "PCGExUberFilter.generated.h"
 
 UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Uber Filter Mode"))
@@ -110,7 +106,7 @@ namespace PCGExUberFilter
 
 		virtual ~FProcessor() override;
 
-		virtual bool Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager) override;
+		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager> InAsyncManager) override;
 		virtual void PrepareSingleLoopScopeForPoints(const uint32 StartIndex, const int32 Count) override;
 		virtual void ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const int32 LoopIdx, const int32 LoopCount) override;
 		TSharedPtr<PCGExData::FPointIO> CreateIO(const TSharedRef<PCGExData::FPointIOCollection>& InCollection, const PCGExData::EInit InitMode) const;

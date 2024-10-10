@@ -504,7 +504,7 @@ namespace PCGExCluster
 		int32 BestIndex = -1;
 
 		double BestDot = 1;
-		FVector Position = GetPos(Node);
+		const FVector Position = GetPos(Node);
 		const FVector SearchDirection = (GetPos(Node) - InPosition).GetSafeNormal();
 
 		if (ExpandedNodes)
@@ -797,7 +797,7 @@ namespace PCGExCluster
 			PCGEx::InitArray(ExpandedNodes, Nodes->Num());
 
 			TArray<FExpandedNode>& ExpandedNodesRef = (*ExpandedNodes);
-			TSharedPtr<FCluster> SharedPtr = SharedThis(this);
+			const TSharedPtr<FCluster> SharedPtr = SharedThis(this);
 			if (bBuild) { for (int i = 0; i < ExpandedNodes->Num(); i++) { ExpandedNodesRef[i] = FExpandedNode(SharedPtr, i); } } // Ooof
 		}
 
@@ -817,7 +817,7 @@ namespace PCGExCluster
 		{
 			TArray<FExpandedNode>& ExpandedNodesRef = (*ExpandedNodes);
 			const int32 MaxIndex = StartIndex + Count;
-			TSharedPtr<FCluster> SharedPtr = SharedThis(this);
+			const TSharedPtr<FCluster> SharedPtr = SharedThis(this);
 			for (int i = StartIndex; i < MaxIndex; i++) { ExpandedNodesRef[i] = FExpandedNode(SharedPtr, i); }
 		};
 

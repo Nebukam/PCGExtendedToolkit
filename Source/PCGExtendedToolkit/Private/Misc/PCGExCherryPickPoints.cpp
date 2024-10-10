@@ -24,7 +24,7 @@ bool FPCGExCherryPickPointsContext::TryGetUniqueIndices(const TSharedRef<PCGExDa
 
 	TArray<int32> SourceIndices;
 	TSet<int32> UniqueIndices;
-	TUniquePtr<PCGEx::TAttributeBroadcaster<int32>> Getter = MakeUnique<PCGEx::TAttributeBroadcaster<int32>>();
+	const TUniquePtr<PCGEx::TAttributeBroadcaster<int32>> Getter = MakeUnique<PCGEx::TAttributeBroadcaster<int32>>();
 	if (!Getter->Prepare(Settings->ReadIndexFromAttribute, InSource))
 	{
 		PCGE_LOG_C(Warning, GraphAndLog, this, FTEXT("Index attribute is invalid."));
@@ -105,7 +105,7 @@ bool FPCGExCherryPickPointsElement::ExecuteInternal(FPCGContext* InContext) cons
 
 namespace PCGExCherryPickPoints
 {
-	bool FProcessor::Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager)
+	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager> InAsyncManager)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExCherryPickPoints::Process);
 

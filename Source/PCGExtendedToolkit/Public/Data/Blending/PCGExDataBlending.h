@@ -3,8 +3,6 @@
 
 #pragma once
 
-#include <variant>
-
 #include "PCGEx.h"
 #include "PCGExMT.h"
 #include "Data/PCGExAttributeHelpers.h"

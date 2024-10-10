@@ -9,14 +9,14 @@
 #define LOCTEXT_NAMESPACE "PCGExIsoEdgeDirectionFilter"
 #define PCGEX_NAMESPACE IsoEdgeDirectionFilter
 
-TSharedPtr<PCGExPointFilter::TFilter> UPCGExIsoEdgeDirectionFilterFactory::CreateFilter() const
+TSharedPtr<PCGExPointFilter::FFilter> UPCGExIsoEdgeDirectionFilterFactory::CreateFilter() const
 {
 	return MakeShared<FIsoEdgeDirectionFilter>(this);
 }
 
 bool FIsoEdgeDirectionFilter::Init(const FPCGContext* InContext, const TSharedRef<PCGExCluster::FCluster>& InCluster, const TSharedRef<PCGExData::FFacade>& InPointDataFacade, const TSharedRef<PCGExData::FFacade>& InEdgeDataFacade)
 {
-	if (!TFilter::Init(InContext, InCluster, InPointDataFacade, InEdgeDataFacade)) { return false; }
+	if (!FFilter::Init(InContext, InCluster, InPointDataFacade, InEdgeDataFacade)) { return false; }
 
 	DirectionSettings = TypedFilterFactory->Config.DirectionSettings;
 	if (!DirectionSettings.Init(InContext, InPointDataFacade))
@@ -60,7 +60,7 @@ bool FIsoEdgeDirectionFilter::Test(const PCGExGraph::FIndexedEdge& Edge) const
 	PCGExGraph::FIndexedEdge MutableEdge = Edge;
 	DirectionSettings.SortEndpoints(Cluster.Get(), MutableEdge);
 
-	FVector Direction = Cluster->GetDir((*Cluster->NodeIndexLookup)[MutableEdge.Start], (*Cluster->NodeIndexLookup)[MutableEdge.End]);
+	const FVector Direction = Cluster->GetDir((*Cluster->NodeIndexLookup)[MutableEdge.Start], (*Cluster->NodeIndexLookup)[MutableEdge.End]);
 
 	return bUseDot ? TestDot(Edge.PointIndex, Direction) : TestHash(Edge.PointIndex, Direction);
 }

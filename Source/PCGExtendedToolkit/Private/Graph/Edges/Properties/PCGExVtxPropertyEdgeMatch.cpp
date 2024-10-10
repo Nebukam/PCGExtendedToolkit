@@ -68,7 +68,7 @@ bool UPCGExVtxPropertyEdgeMatch::PrepareForVtx(const FPCGContext* InContext, con
 
 void UPCGExVtxPropertyEdgeMatch::ProcessNode(const int32 ClusterIdx, const PCGExCluster::FCluster* Cluster, PCGExCluster::FNode& Node, const TArray<PCGExCluster::FAdjacencyData>& Adjacency)
 {
-	//PCGExPointFilter::TManager* EdgeFilters = FilterManagers[ClusterIdx]; //TODO : Implement properly
+	//PCGExPointFilter::FManager* EdgeFilters = FilterManagers[ClusterIdx]; //TODO : Implement properly
 
 	const FPCGPoint& Point = PrimaryDataFacade->Source->GetInPoint(Node.PointIndex);
 

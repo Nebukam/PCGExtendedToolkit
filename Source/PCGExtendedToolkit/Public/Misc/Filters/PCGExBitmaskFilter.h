@@ -60,16 +60,16 @@ class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExBitmaskFilterFactory : public UPCGExFilte
 public:
 	FPCGExBitmaskFilterConfig Config;
 
-	virtual TSharedPtr<PCGExPointFilter::TFilter> CreateFilter() const override;
+	virtual TSharedPtr<PCGExPointFilter::FFilter> CreateFilter() const override;
 };
 
 namespace PCGExPointsFilter
 {
-	class /*PCGEXTENDEDTOOLKIT_API*/ TBitmaskFilter final : public PCGExPointFilter::TSimpleFilter
+	class /*PCGEXTENDEDTOOLKIT_API*/ TBitmaskFilter final : public PCGExPointFilter::FSimpleFilter
 	{
 	public:
 		explicit TBitmaskFilter(const TObjectPtr<const UPCGExBitmaskFilterFactory>& InDefinition)
-			: TSimpleFilter(InDefinition), TypedFilterFactory(InDefinition), Bitmask(InDefinition->Config.Bitmask)
+			: FSimpleFilter(InDefinition), TypedFilterFactory(InDefinition), Bitmask(InDefinition->Config.Bitmask)
 		{
 		}
 

@@ -224,7 +224,7 @@ namespace PCGExGeo
 				Faces[i] = 0;
 			}
 
-			std::sort(std::begin(Vtx), std::end(Vtx));
+			std::ranges::sort(Vtx);
 		}
 
 		void ComputeFaces()

@@ -8,7 +8,6 @@
 #include "UObject/Object.h"
 
 #include "PCGExFactoryProvider.h"
-#include "Graph/PCGExCluster.h"
 #include "PCGExOperation.h"
 
 
@@ -31,6 +30,7 @@ class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExConditionalActionAttributesOperation : pu
 	GENERATED_BODY()
 
 public:
+	UPROPERTY(Transient)
 	UPCGExConditionalActionAttributesFactory* TypedFactory = nullptr;
 
 	virtual void CopySettingsFrom(const UPCGExOperation* Other) override;

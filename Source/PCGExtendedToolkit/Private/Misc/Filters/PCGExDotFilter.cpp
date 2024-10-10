@@ -14,14 +14,14 @@ bool UPCGExDotFilterFactory::Init(FPCGExContext* InContext)
 	return true;
 }
 
-TSharedPtr<PCGExPointFilter::TFilter> UPCGExDotFilterFactory::CreateFilter() const
+TSharedPtr<PCGExPointFilter::FFilter> UPCGExDotFilterFactory::CreateFilter() const
 {
 	return MakeShared<PCGExPointsFilter::TDotFilter>(this);
 }
 
 bool PCGExPointsFilter::TDotFilter::Init(const FPCGContext* InContext, const TSharedPtr<PCGExData::FFacade> InPointDataFacade)
 {
-	if (!TFilter::Init(InContext, InPointDataFacade)) { return false; }
+	if (!FFilter::Init(InContext, InPointDataFacade)) { return false; }
 
 	OperandA = PointDataFacade->GetScopedBroadcaster<FVector>(TypedFilterFactory->Config.OperandA);
 	if (!OperandA)

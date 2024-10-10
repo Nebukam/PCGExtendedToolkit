@@ -47,11 +47,11 @@ public:
 
 protected:
 	TSharedPtr<PCGExData::TBuffer<FVector>> LookAtGetter;
+
 	virtual void ApplyOverrides() override
 	{
 		Super::ApplyOverrides();
-		
+
 		PCGEX_OVERRIDE_OPERATION_PROPERTY_SELECTOR(LookAtAttribute, "Orient/LookAt")
 	}
-
 };

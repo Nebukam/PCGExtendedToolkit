@@ -5,7 +5,6 @@
 
 #include "CoreMinimal.h"
 #include "PCGExAssetCollection.h"
-#include "Data/PCGExAttributeHelpers.h"
 #include "Engine/DataAsset.h"
 
 #include "PCGExInternalCollection.generated.h"

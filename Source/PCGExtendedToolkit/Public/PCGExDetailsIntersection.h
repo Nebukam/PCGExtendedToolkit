@@ -56,7 +56,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPointPointIntersectionDetails
 	{
 	}
 
-	explicit FPCGExPointPointIntersectionDetails(bool InSupportEdges):
+	explicit FPCGExPointPointIntersectionDetails(const bool InSupportEdges):
 		bSupportsEdges(InSupportEdges)
 	{
 	}

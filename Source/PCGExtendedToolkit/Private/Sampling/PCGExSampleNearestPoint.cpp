@@ -7,8 +7,6 @@
 #include "Data/Blending/PCGExMetadataBlender.h"
 
 
-#include "Graph/PCGExCluster.h"
-
 #define LOCTEXT_NAMESPACE "PCGExSampleNearestPointElement"
 #define PCGEX_NAMESPACE SampleNearestPoint
 
@@ -122,7 +120,7 @@ namespace PCGExSampleNearestPoints
 		PCGEX_OUTPUT_VALUE(NumSamples, Index, 0)
 	}
 
-	bool FProcessor::Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager)
+	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager> InAsyncManager)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExSampleNearestPoints::Process);
 

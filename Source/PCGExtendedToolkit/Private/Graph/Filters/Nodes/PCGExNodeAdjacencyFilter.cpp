@@ -4,25 +4,19 @@
 #include "Graph/Filters/Nodes/PCGExNodeAdjacencyFilter.h"
 
 
-
-
-
-
-
-
 #include "Graph/PCGExGraph.h"
 
 #define LOCTEXT_NAMESPACE "PCGExNodeAdjacencyFilter"
 #define PCGEX_NAMESPACE NodeAdjacencyFilter
 
-TSharedPtr<PCGExPointFilter::TFilter> UPCGExNodeAdjacencyFilterFactory::CreateFilter() const
+TSharedPtr<PCGExPointFilter::FFilter> UPCGExNodeAdjacencyFilterFactory::CreateFilter() const
 {
 	return MakeShared<FNodeAdjacencyFilter>(this);
 }
 
 bool FNodeAdjacencyFilter::Init(const FPCGContext* InContext, const TSharedRef<PCGExCluster::FCluster>& InCluster, const TSharedRef<PCGExData::FFacade>& InPointDataFacade, const TSharedRef<PCGExData::FFacade>& InEdgeDataFacade)
 {
-	if (!TFilter::Init(InContext, InCluster, InPointDataFacade, InEdgeDataFacade)) { return false; }
+	if (!FFilter::Init(InContext, InCluster, InPointDataFacade, InEdgeDataFacade)) { return false; }
 
 	bCaptureFromNodes = TypedFilterFactory->Config.OperandBSource != EPCGExGraphValueSource::Edge;
 

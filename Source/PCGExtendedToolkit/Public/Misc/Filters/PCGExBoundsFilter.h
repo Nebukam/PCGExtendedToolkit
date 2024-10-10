@@ -47,18 +47,18 @@ public:
 	FPCGExBoundsFilterConfig Config;
 	TSharedPtr<PCGExData::FFacade> BoundsDataFacade;
 	virtual bool Init(FPCGExContext* InContext) override;
-	virtual TSharedPtr<PCGExPointFilter::TFilter> CreateFilter() const override;
+	virtual TSharedPtr<PCGExPointFilter::FFilter> CreateFilter() const override;
 
 	virtual void BeginDestroy() override;
 };
 
 namespace PCGExPointsFilter
 {
-	class /*PCGEXTENDEDTOOLKIT_API*/ TBoundsFilter final : public PCGExPointFilter::TSimpleFilter
+	class /*PCGEXTENDEDTOOLKIT_API*/ TBoundsFilter final : public PCGExPointFilter::FSimpleFilter
 	{
 	public:
 		explicit TBoundsFilter(const TObjectPtr<const UPCGExBoundsFilterFactory>& InFactory)
-			: TSimpleFilter(InFactory), TypedFilterFactory(InFactory)
+			: FSimpleFilter(InFactory), TypedFilterFactory(InFactory)
 		{
 			Cloud = TypedFilterFactory->BoundsDataFacade ? TypedFilterFactory->BoundsDataFacade->GetCloud(TypedFilterFactory->Config.BoundsSource, TypedFilterFactory->Config.InsideEpsilon) : nullptr;
 		}

@@ -27,7 +27,7 @@ namespace PCGExClusterMT
 	class FStartClusterBatchProcessing final : public PCGExMT::FPCGExTask
 	{
 	public:
-		FStartClusterBatchProcessing(const TSharedPtr<PCGExData::FPointIO>& InPointIO, TSharedPtr<T> InTarget, bool bScoped) : FPCGExTask(InPointIO), Target(InTarget), bScopedIndexLookupBuild(bScoped)
+		FStartClusterBatchProcessing(const TSharedPtr<PCGExData::FPointIO>& InPointIO, TSharedPtr<T> InTarget, const bool bScoped) : FPCGExTask(InPointIO), Target(InTarget), bScopedIndexLookupBuild(bScoped)
 		{
 		}
 
@@ -127,7 +127,7 @@ namespace PCGExClusterMT
 
 		void SetRequiresHeuristics(const bool bRequired = false) { bRequiresHeuristics = bRequired; }
 
-		virtual bool Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager)
+		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager> InAsyncManager)
 		{
 			AsyncManager = InAsyncManager;
 
@@ -410,7 +410,7 @@ namespace PCGExClusterMT
 		template <typename T>
 		T* GetContext() { return static_cast<T*>(ExecutionContext); }
 
-		virtual void PrepareProcessing(TSharedPtr<PCGExMT::FTaskManager> AsyncManagerPtr, const bool bScopedIndexLookupBuild)
+		virtual void PrepareProcessing(const TSharedPtr<PCGExMT::FTaskManager> AsyncManagerPtr, const bool bScopedIndexLookupBuild)
 		{
 			AsyncManager = AsyncManagerPtr;
 			const int32 NumVtx = VtxDataFacade->GetNum();

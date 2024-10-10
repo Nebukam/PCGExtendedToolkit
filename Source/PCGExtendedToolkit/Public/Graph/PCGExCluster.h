@@ -180,7 +180,7 @@ namespace PCGExCluster
 		}
 	};
 
-	struct /*PCGEXTENDEDTOOLKIT_API*/ FCluster : public TSharedFromThis<FCluster>
+	struct /*PCGEXTENDEDTOOLKIT_API*/ FCluster : TSharedFromThis<FCluster>
 	{
 	protected:
 		bool bIsMirror = false;

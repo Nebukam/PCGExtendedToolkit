@@ -5,7 +5,6 @@
 
 #include "CoreMinimal.h"
 #include "PCGExTangentsOperation.h"
-#include "Data/PCGExAttributeHelpers.h"
 
 #include "PCGExFromTransformTangents.generated.h"
 

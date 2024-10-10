@@ -52,7 +52,7 @@ bool FPCGExReversePointOrderElement::ExecuteInternal(FPCGContext* InContext) con
 
 namespace PCGExReversePointOrder
 {
-	bool FProcessor::Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager)
+	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager> InAsyncManager)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExWriteIndex::Process);
 

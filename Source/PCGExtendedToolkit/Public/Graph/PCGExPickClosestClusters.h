@@ -140,7 +140,7 @@ namespace PCGExPickClosestClusters
 	class FProcessorBatch final : public PCGExClusterMT::TBatch<FProcessor>
 	{
 	public:
-		FProcessorBatch(FPCGExContext* InContext, const TSharedRef<PCGExData::FPointIO>& InVtx, TArrayView<TSharedRef<PCGExData::FPointIO>> InEdges):
+		FProcessorBatch(FPCGExContext* InContext, const TSharedRef<PCGExData::FPointIO>& InVtx, const TArrayView<TSharedRef<PCGExData::FPointIO>> InEdges):
 			TBatch<FProcessor>(InContext, InVtx, InEdges)
 		{
 		}

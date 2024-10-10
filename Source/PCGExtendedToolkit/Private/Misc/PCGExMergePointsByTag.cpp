@@ -70,7 +70,7 @@ namespace PCPGExMergePointsByTag
 		if (!bDistributed) { IO->InitializeOutput(InContext, PCGExData::EInit::Forward); }
 	}
 
-	void FTagBuckets::AddToReverseMap(TSharedPtr<PCGExData::FPointIO> IO, const TSharedPtr<FTagBucket>& Bucket)
+	void FTagBuckets::AddToReverseMap(const TSharedPtr<PCGExData::FPointIO>& IO, const TSharedPtr<FTagBucket>& Bucket)
 	{
 		if (const TSharedPtr<TSet<TSharedPtr<FTagBucket>>>* BucketSet = ReverseBucketsMap.Find(IO.Get()))
 		{
@@ -178,7 +178,7 @@ namespace PCPGExMergePointsByTag
 					NewMergeList->IOs.Add(IO);
 
 					// Get all buckets that share this IO
-					if (TSharedPtr<TSet<TSharedPtr<FTagBucket>>>* OverlappingBuckets = ReverseBucketsMap.Find(IO.Get()))
+					if (const TSharedPtr<TSet<TSharedPtr<FTagBucket>>>* OverlappingBuckets = ReverseBucketsMap.Find(IO.Get()))
 					{
 						for (TSharedPtr<FTagBucket> OverlappingBucket : (**OverlappingBuckets))
 						{
@@ -282,19 +282,19 @@ bool FPCGExMergePointsByTagElement::ExecuteInternal(FPCGContext* InContext) cons
 		else
 		{
 			// Bucket IOs
-			TSharedPtr<PCPGExMergePointsByTag::FTagBuckets> Buckets = MakeShared<PCPGExMergePointsByTag::FTagBuckets>();
+			const TSharedPtr<PCPGExMergePointsByTag::FTagBuckets> Buckets = MakeShared<PCPGExMergePointsByTag::FTagBuckets>();
 			for (TSharedPtr<PCGExData::FPointIO> IO : Context->MainPoints->Pairs) { Buckets->Distribute(Context, IO, Context->TagFilters); }
 			Buckets->BuildMergeLists(Context, Settings->Mode, Context->MergeLists, Settings->ResolutionPriorities, Settings->SortDirection);
 		}
 
 		if (Context->FallbackMergeList) { Context->FallbackMergeList->Merge(Context->GetAsyncManager(), &Context->CarryOverDetails); }
-		for (TSharedPtr<PCPGExMergePointsByTag::FMergeList> List : Context->MergeLists) { List->Merge(Context->GetAsyncManager(), &Context->CarryOverDetails); }
+		for (const TSharedPtr<PCPGExMergePointsByTag::FMergeList> List : Context->MergeLists) { List->Merge(Context->GetAsyncManager(), &Context->CarryOverDetails); }
 		Context->SetAsyncState(PCGExData::State_MergingData);
 	}
 
 	PCGEX_ON_ASYNC_STATE_READY(PCGExData::State_MergingData)
 	{
-		for (TSharedPtr<PCPGExMergePointsByTag::FMergeList> List : Context->MergeLists) { List->Write(Context->GetAsyncManager()); }
+		for (const TSharedPtr<PCPGExMergePointsByTag::FMergeList> List : Context->MergeLists) { List->Write(Context->GetAsyncManager()); }
 		Context->SetAsyncState(PCGEx::State_Writing);
 	}
 

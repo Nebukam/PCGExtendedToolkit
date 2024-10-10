@@ -3,9 +3,7 @@
 
 #include "Misc/PCGExConditionalActions.h"
 
-
 #include "Elements/Metadata/PCGMetadataElementCommon.h"
-#include "Graph/PCGExCluster.h"
 #include "Graph/States/PCGExClusterStates.h"
 #include "Misc/ConditionalActions/PCGExConditionalActionFactoryProvider.h"
 
@@ -99,7 +97,7 @@ namespace PCGExConditionalActions
 	{
 	}
 
-	bool FProcessor::Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager)
+	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager> InAsyncManager)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExConditionalActions::Process);
 

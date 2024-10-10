@@ -3,8 +3,6 @@
 
 #include "Paths/PCGExPathProcessor.h"
 
-#include "Graph/PCGExCluster.h"
-
 #define LOCTEXT_NAMESPACE "PCGExPathProcessorElement"
 
 UPCGExPathProcessorSettings::UPCGExPathProcessorSettings(

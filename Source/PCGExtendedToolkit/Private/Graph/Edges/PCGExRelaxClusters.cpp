@@ -5,7 +5,6 @@
 
 
 #include "Graph/Edges/Relaxing/PCGExRelaxClusterOperation.h"
-#include "Graph/Edges/Relaxing/PCGExForceDirectedRelax.h"
 
 #define LOCTEXT_NAMESPACE "PCGExRelaxClusters"
 #define PCGEX_NAMESPACE RelaxClusters

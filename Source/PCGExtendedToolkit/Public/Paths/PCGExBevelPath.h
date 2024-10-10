@@ -8,8 +8,6 @@
 
 #include "PCGExPointsProcessor.h"
 
-
-#include "Geometry/PCGExGeo.h"
 #include "PCGExBevelPath.generated.h"
 
 namespace PCGExBevelPath
@@ -254,7 +252,7 @@ namespace PCGExBevelPath
 
 		FORCEINLINE double Len(const int32 Index) const { return Lengths[Index]; }
 
-		virtual bool Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager) override;
+		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager> InAsyncManager) override;
 		virtual void ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const int32 LoopIdx, const int32 LoopCount) override;
 		virtual void ProcessSingleRangeIteration(const int32 Iteration, const int32 LoopIdx, const int32 LoopCount) override;
 		void WriteFlags(const int32 Index);

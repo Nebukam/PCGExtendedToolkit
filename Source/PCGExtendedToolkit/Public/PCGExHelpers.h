@@ -158,7 +158,7 @@ namespace PCGEx
 			return Object;
 		}
 
-		template <class T, typename... Args>
+		template <class T>
 		T* Duplicate(const UPCGData* InData)
 		{
 			T* Object = nullptr;
@@ -229,7 +229,7 @@ namespace PCGEx
 
 	protected:
 		TSet<UObject*> DuplicateObjects;
-		void RecursivelyClearAsyncFlag(UObject* InObject);
+		void RecursivelyClearAsyncFlag(UObject* InObject) const;
 	};
 
 #pragma region Metadata Type

@@ -58,16 +58,16 @@ class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExStringCompareFilterFactory : public UPCGE
 public:
 	FPCGExStringCompareFilterConfig Config;
 
-	virtual TSharedPtr<PCGExPointFilter::TFilter> CreateFilter() const override;
+	virtual TSharedPtr<PCGExPointFilter::FFilter> CreateFilter() const override;
 };
 
 namespace PCGExPointsFilter
 {
-	class /*PCGEXTENDEDTOOLKIT_API*/ TStringCompareFilter final : public PCGExPointFilter::TSimpleFilter
+	class /*PCGEXTENDEDTOOLKIT_API*/ TStringCompareFilter final : public PCGExPointFilter::FSimpleFilter
 	{
 	public:
 		explicit TStringCompareFilter(const TObjectPtr<const UPCGExStringCompareFilterFactory>& InFactory)
-			: TSimpleFilter(InFactory), TypedFilterFactory(InFactory)
+			: FSimpleFilter(InFactory), TypedFilterFactory(InFactory)
 		{
 		}
 

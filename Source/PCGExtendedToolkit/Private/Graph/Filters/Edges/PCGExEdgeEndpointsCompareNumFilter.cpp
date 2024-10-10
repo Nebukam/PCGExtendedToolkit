@@ -9,7 +9,7 @@
 #define LOCTEXT_NAMESPACE "PCGExEdgeEndpointsCompareNumFilter"
 #define PCGEX_NAMESPACE EdgeEndpointsCompareNumFilter
 
-TSharedPtr<PCGExPointFilter::TFilter> UPCGExEdgeEndpointsCompareNumFilterFactory::CreateFilter() const
+TSharedPtr<PCGExPointFilter::FFilter> UPCGExEdgeEndpointsCompareNumFilterFactory::CreateFilter() const
 {
 	return MakeShared<PCGExEdgeEndpointsCompareNum::FNeighborsCountFilter>(this);
 }
@@ -18,7 +18,7 @@ namespace PCGExEdgeEndpointsCompareNum
 {
 	bool FNeighborsCountFilter::Init(const FPCGContext* InContext, const TSharedRef<PCGExCluster::FCluster>& InCluster, const TSharedRef<PCGExData::FFacade>& InPointDataFacade, const TSharedRef<PCGExData::FFacade>& InEdgeDataFacade)
 	{
-		if (!TFilter::Init(InContext, InCluster, InPointDataFacade, InEdgeDataFacade)) { return false; }
+		if (!FFilter::Init(InContext, InCluster, InPointDataFacade, InEdgeDataFacade)) { return false; }
 
 		NumericBuffer = InPointDataFacade->GetBroadcaster<double>(TypedFilterFactory->Config.Attribute);
 		if (!NumericBuffer)
@@ -32,7 +32,7 @@ namespace PCGExEdgeEndpointsCompareNum
 
 	bool FNeighborsCountFilter::Test(const PCGExGraph::FIndexedEdge& Edge) const
 	{
-		bool bResult = PCGExCompare::Compare(TypedFilterFactory->Config.NumericComparison, NumericBuffer->Read(Edge.Start), NumericBuffer->Read(Edge.End), TypedFilterFactory->Config.Tolerance);
+		const bool bResult = PCGExCompare::Compare(TypedFilterFactory->Config.NumericComparison, NumericBuffer->Read(Edge.Start), NumericBuffer->Read(Edge.End), TypedFilterFactory->Config.Tolerance);
 		return TypedFilterFactory->Config.bInvert ? !bResult : bResult;
 	}
 }

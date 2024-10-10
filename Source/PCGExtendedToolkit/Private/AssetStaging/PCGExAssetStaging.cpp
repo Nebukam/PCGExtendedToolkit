@@ -113,7 +113,7 @@ bool FPCGExAssetStagingElement::ExecuteInternal(FPCGContext* InContext) const
 
 namespace PCGExAssetStaging
 {
-	bool FProcessor::Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager)
+	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager> InAsyncManager)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExAssetStaging::Process);
 

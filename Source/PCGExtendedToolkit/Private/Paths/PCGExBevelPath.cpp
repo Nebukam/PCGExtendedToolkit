@@ -234,7 +234,7 @@ namespace PCGExBevelPath
 			return;
 		}
 
-		int32 SubdivCount = bIsCount ? Factor : FMath::Floor(Arc.GetLength() / Factor);
+		const int32 SubdivCount = bIsCount ? Factor : FMath::Floor(Arc.GetLength() / Factor);
 
 		const double StepSize = 1 / static_cast<double>(SubdivCount + 1);
 		PCGEx::InitArray(Subdivisions, SubdivCount);
@@ -261,7 +261,7 @@ namespace PCGExBevelPath
 		}
 	}
 
-	bool FProcessor::Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager)
+	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager> InAsyncManager)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExBevelPath::Process);
 

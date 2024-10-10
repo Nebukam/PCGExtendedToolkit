@@ -2,7 +2,6 @@
 // Released under the MIT license https://opensource.org/license/MIT/
 
 #include "PCGExHelpers.h"
-#include "Data/PCGSpatialData.h"
 
 namespace PCGEx
 {
@@ -74,7 +73,7 @@ namespace PCGEx
 		InObject->MarkAsGarbage();
 	}
 
-	void FManagedObjects::RecursivelyClearAsyncFlag(UObject* InObject)
+	void FManagedObjects::RecursivelyClearAsyncFlag(UObject* InObject) const
 	{
 #if ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION >= 5
 		if (DuplicateObjects.Contains(InObject))

@@ -93,7 +93,7 @@ namespace PCGExConnectPoints
 	{
 	}
 
-	bool FProcessor::Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager)
+	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager> InAsyncManager)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExConnectPoints::Process);
 
@@ -148,13 +148,13 @@ namespace PCGExConnectPoints
 
 		if (!Context->GeneratorsFiltersFactories.IsEmpty())
 		{
-			GeneratorsFilter = MakeShared<PCGExPointFilter::TManager>(PointDataFacade);
+			GeneratorsFilter = MakeShared<PCGExPointFilter::FManager>(PointDataFacade);
 			GeneratorsFilter->Init(ExecutionContext, Context->GeneratorsFiltersFactories);
 		}
 
 		if (!Context->ConnectablesFiltersFactories.IsEmpty())
 		{
-			ConnectableFilter = MakeShared<PCGExPointFilter::TManager>(PointDataFacade);
+			ConnectableFilter = MakeShared<PCGExPointFilter::FManager>(PointDataFacade);
 			ConnectableFilter->Init(ExecutionContext, Context->ConnectablesFiltersFactories);
 		}
 
@@ -237,7 +237,7 @@ namespace PCGExConnectPoints
 
 		if (!CanGenerate[Index]) { return; } // Not a generator
 
-		TSharedPtr<TSet<uint64>> UniqueEdges = DistributedEdgesSet[LoopIdx];
+		const TSharedPtr<TSet<uint64>> UniqueEdges = DistributedEdgesSet[LoopIdx];
 		TUniquePtr<TSet<FInt32Vector>> LocalCoincidence;
 		if (bPreventCoincidence) { LocalCoincidence = MakeUnique<TSet<FInt32Vector>>(); }
 
@@ -263,7 +263,7 @@ namespace PCGExConnectPoints
 			if (!bUseVariableRadius) { MaxRadius = SharedSearchRadius; }
 			else
 			{
-				for (UPCGExProbeOperation* Op : ProbeOperations) { MaxRadius = FMath::Max(MaxRadius, Op->SearchRadiusCache ? Op->SearchRadiusCache->Read(Index) : Op->SearchRadius); }
+				for (const UPCGExProbeOperation* Op : ProbeOperations) { MaxRadius = FMath::Max(MaxRadius, Op->SearchRadiusCache ? Op->SearchRadiusCache->Read(Index) : Op->SearchRadius); }
 			}
 
 			const FVector Origin = CachedTransforms[Index].GetLocation();

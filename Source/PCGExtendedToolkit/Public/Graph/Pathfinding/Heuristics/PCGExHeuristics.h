@@ -28,7 +28,7 @@ namespace PCGExHeuristics
 		TArray<UPCGExHeuristicFeedback*> Feedbacks;
 		double TotalWeight = 0;
 
-		FLocalFeedbackHandler(FPCGExContext* InContext):
+		explicit FLocalFeedbackHandler(FPCGExContext* InContext):
 			ExecutionContext(InContext)
 		{
 		}

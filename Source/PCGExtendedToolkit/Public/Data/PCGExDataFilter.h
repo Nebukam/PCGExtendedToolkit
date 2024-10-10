@@ -6,7 +6,6 @@
 #include "CoreMinimal.h"
 #include "UObject/Object.h"
 
-#include "PCGEx.h"
 #include "PCGExAttributeHelpers.h"
 #include "PCGExPointIO.h"
 

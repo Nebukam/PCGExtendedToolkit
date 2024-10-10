@@ -3,7 +3,6 @@
 
 #include "Paths/PCGExAttributeRolling.h"
 
-#include "Data/PCGExPointFilter.h"
 #include "Data/Blending/PCGExMetadataBlender.h"
 
 
@@ -82,7 +81,7 @@ namespace PCGExAttributeRolling
 	{
 	}
 
-	bool FProcessor::Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager)
+	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager> InAsyncManager)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExAttributeRolling::Process);
 

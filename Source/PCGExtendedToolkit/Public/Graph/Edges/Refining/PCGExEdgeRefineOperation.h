@@ -32,9 +32,8 @@ public:
 
 	virtual void PrepareVtxFacade(const TSharedPtr<PCGExData::FFacade>& InVtxFacade) const
 	{
-		
 	}
-	
+
 	virtual void PrepareForCluster(const TSharedPtr<PCGExCluster::FCluster>& InCluster, const TSharedPtr<PCGExHeuristics::THeuristicsHandler>& InHeuristics = nullptr)
 	{
 		Cluster = InCluster;

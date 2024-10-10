@@ -4,7 +4,6 @@
 
 #include "Data/PCGExPointIOMerger.h"
 
-#include "PCGExGlobalSettings.h"
 #include "Data/PCGExDataFilter.h"
 
 

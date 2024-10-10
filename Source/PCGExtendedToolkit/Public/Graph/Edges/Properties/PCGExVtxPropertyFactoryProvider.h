@@ -74,13 +74,13 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExSimpleEdgeOutputSettings
 		if (bWriteLength) { LengthWriter = InFacade->GetWritable<double>(LengthAttribute, true); }
 	}
 
-	void Set(const int32 EntryIndex, const double InLength, const FVector& InDir)
+	void Set(const int32 EntryIndex, const double InLength, const FVector& InDir) const
 	{
 		if (DirWriter) { DirWriter->GetMutable(EntryIndex) = bInvertDirection ? InDir * -1 : InDir; }
 		if (LengthWriter) { LengthWriter->GetMutable(EntryIndex) = InLength; }
 	}
 
-	virtual void Set(const int32 EntryIndex, const PCGExCluster::FAdjacencyData& Data)
+	virtual void Set(const int32 EntryIndex, const PCGExCluster::FAdjacencyData& Data) const
 	{
 		if (DirWriter) { DirWriter->GetMutable(EntryIndex) = bInvertDirection ? Data.Direction * -1 : Data.Direction; }
 		if (LengthWriter) { LengthWriter->GetMutable(EntryIndex) = Data.Length; }
@@ -157,7 +157,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExEdgeOutputWithIndexSettings : public FPC
 		if (NCountWriter) { NCountWriter->GetMutable(EntryIndex) = NeighborCount; }
 	}
 
-	virtual void Set(const int32 EntryIndex, const PCGExCluster::FAdjacencyData& Data) override
+	virtual void Set(const int32 EntryIndex, const PCGExCluster::FAdjacencyData& Data) const override
 	{
 		FPCGExSimpleEdgeOutputSettings::Set(EntryIndex, Data);
 		if (EIdxWriter) { EIdxWriter->GetMutable(EntryIndex) = Data.EdgeIndex; }

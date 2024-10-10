@@ -258,7 +258,7 @@ namespace PCGExSampleOverlapStats
 
 		void RegisterOverlap(FProcessor* InManaged, const FBox& Intersection);
 
-		virtual bool Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager) override;
+		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager> InAsyncManager) override;
 		void ResolveOverlap(const int32 Index);
 		void WriteSingleData(const int32 Index);
 		virtual void CompleteWork() override;

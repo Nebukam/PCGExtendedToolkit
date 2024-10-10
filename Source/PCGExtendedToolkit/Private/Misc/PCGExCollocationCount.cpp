@@ -50,7 +50,7 @@ bool FPCGExCollocationCountElement::ExecuteInternal(FPCGContext* InContext) cons
 
 namespace PCGExCollocationCount
 {
-	bool FProcessor::Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager)
+	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager> InAsyncManager)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExCollocationCount::Process);
 
@@ -77,7 +77,7 @@ namespace PCGExCollocationCount
 	{
 		const FVector Center = Point.Transform.GetLocation();
 		const double Tolerance = ToleranceConstant;
-		FBoxCenterAndExtent BCAE = FBoxCenterAndExtent(Center, FVector(Tolerance));
+		const FBoxCenterAndExtent BCAE = FBoxCenterAndExtent(Center, FVector(Tolerance));
 
 		CollocationWriter->GetMutable(Index) = 0;
 

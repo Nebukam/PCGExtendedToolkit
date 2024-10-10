@@ -63,7 +63,7 @@ namespace PCPGExMergePointsByTag
 		~FTagBuckets() = default;
 
 		void Distribute(FPCGExContext* InContext, const TSharedPtr<PCGExData::FPointIO>& IO, const FPCGExNameFiltersDetails& Filters);
-		void AddToReverseMap(TSharedPtr<PCGExData::FPointIO> IO, const TSharedPtr<FTagBucket>& Bucket);
+		void AddToReverseMap(const TSharedPtr<PCGExData::FPointIO>& IO, const TSharedPtr<FTagBucket>& Bucket);
 		void BuildMergeLists(FPCGExContext* InContext, EPCGExMergeByTagOverlapResolutionMode Mode, TArray<TSharedPtr<FMergeList>>& OutLists, const TArray<FString>& Priorities, const EPCGExSortDirection SortDirection);
 	};
 }

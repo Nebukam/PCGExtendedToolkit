@@ -7,14 +7,14 @@
 #define LOCTEXT_NAMESPACE "PCGExCompareFilterDefinition"
 #define PCGEX_NAMESPACE CompareFilterDefinition
 
-TSharedPtr<PCGExPointFilter::TFilter> UPCGExBitmaskFilterFactory::CreateFilter() const
+TSharedPtr<PCGExPointFilter::FFilter> UPCGExBitmaskFilterFactory::CreateFilter() const
 {
 	return MakeShared<PCGExPointsFilter::TBitmaskFilter>(this);
 }
 
 bool PCGExPointsFilter::TBitmaskFilter::Init(const FPCGContext* InContext, const TSharedPtr<PCGExData::FFacade> InPointDataFacade)
 {
-	if (!TFilter::Init(InContext, InPointDataFacade)) { return false; }
+	if (!FFilter::Init(InContext, InPointDataFacade)) { return false; }
 
 	FlagsReader = PointDataFacade->GetScopedReadable<int64>(TypedFilterFactory->Config.FlagsAttribute);
 
