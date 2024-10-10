@@ -70,16 +70,16 @@ class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExMeanFilterFactory : public UPCGExFilterFa
 public:
 	FPCGExMeanFilterConfig Config;
 
-	virtual TSharedPtr<PCGExPointFilter::TFilter> CreateFilter() const override;
+	virtual TSharedPtr<PCGExPointFilter::FFilter> CreateFilter() const override;
 };
 
 namespace PCGExPointsFilter
 {
-	class /*PCGEXTENDEDTOOLKIT_API*/ TMeanFilter final : public PCGExPointFilter::TSimpleFilter
+	class /*PCGEXTENDEDTOOLKIT_API*/ TMeanFilter final : public PCGExPointFilter::FSimpleFilter
 	{
 	public:
 		explicit TMeanFilter(const TObjectPtr<const UPCGExMeanFilterFactory>& InFactory)
-			: TSimpleFilter(InFactory), TypedFilterFactory(InFactory)
+			: FSimpleFilter(InFactory), TypedFilterFactory(InFactory)
 		{
 		}
 

@@ -408,7 +408,7 @@ namespace PCGExGraph
 		ProcessSubGraphTask->OnCompleteCallback =
 			[WeakThis = TWeakPtr<FGraphBuilder>(SharedThis(this))]()
 			{
-				if (TSharedPtr<FGraphBuilder> Builder = WeakThis.Pin())
+				if (const TSharedPtr<FGraphBuilder> Builder = WeakThis.Pin())
 				{
 					if (Builder->OnCompilationEndCallback) { Builder->OnCompilationEndCallback(Builder.ToSharedRef(), Builder->bCompiledSuccessfully); }
 					if (!Builder->bCompiledSuccessfully) { return; }
@@ -420,7 +420,7 @@ namespace PCGExGraph
 		ProcessSubGraphTask->OnIterationCallback =
 			[WeakThis = TWeakPtr<FGraphBuilder>(SharedThis(this))](const int32 Index, const int32 Count, const int32 LoopIdx)
 			{
-				if (TSharedPtr<FGraphBuilder> Builder = WeakThis.Pin())
+				if (const TSharedPtr<FGraphBuilder> Builder = WeakThis.Pin())
 				{
 					const TSharedPtr<FSubGraph> SubGraph = Builder->Graph->SubGraphs[Index];
 					PCGExGraphTask::WriteSubGraphEdges(Builder->AsyncManager, SubGraph, Builder->MetadataDetailsPtr);
@@ -475,7 +475,7 @@ namespace PCGExGraphTask
 			const TArray<FPCGPoint>& InPoints = EdgeIO->GetIn()->GetPoints();
 			for (int i = 0; i < NumEdges; i++)
 			{
-				PCGExGraph::FIndexedEdge& OE = Graph->Edges[EdgeDump[i]];
+				const PCGExGraph::FIndexedEdge& OE = Graph->Edges[EdgeDump[i]];
 				FlattenedEdges[i] = PCGExGraph::FIndexedEdge(i, Graph->Nodes[OE.Start].PointIndex, Graph->Nodes[OE.End].PointIndex, i);
 				RootEdgeIndices[i] = OE.EdgeIndex;
 				if (InPoints.IsValidIndex(OE.PointIndex)) { MutablePoints[i] = InPoints[OE.PointIndex]; }
@@ -490,7 +490,7 @@ namespace PCGExGraphTask
 
 			for (int i = 0; i < NumEdges; i++)
 			{
-				PCGExGraph::FIndexedEdge& E = Graph->Edges[EdgeDump[i]];
+				const PCGExGraph::FIndexedEdge& E = Graph->Edges[EdgeDump[i]];
 				FlattenedEdges[i] = PCGExGraph::FIndexedEdge(i, Graph->Nodes[E.Start].PointIndex, Graph->Nodes[E.End].PointIndex, i);
 				RootEdgeIndices[i] = E.EdgeIndex;
 				Metadata->InitializeOnSet(MutablePoints[i].MetadataEntry);

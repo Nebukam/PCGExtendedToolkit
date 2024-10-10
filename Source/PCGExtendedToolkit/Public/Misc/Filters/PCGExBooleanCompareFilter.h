@@ -57,16 +57,16 @@ class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExBooleanCompareFilterFactory : public UPCG
 public:
 	FPCGExBooleanCompareFilterConfig Config;
 
-	virtual TSharedPtr<PCGExPointFilter::TFilter> CreateFilter() const override;
+	virtual TSharedPtr<PCGExPointFilter::FFilter> CreateFilter() const override;
 };
 
 namespace PCGExPointsFilter
 {
-	class /*PCGEXTENDEDTOOLKIT_API*/ TBooleanComparisonFilter final : public PCGExPointFilter::TSimpleFilter
+	class /*PCGEXTENDEDTOOLKIT_API*/ FBooleanComparisonFilter final : public PCGExPointFilter::FSimpleFilter
 	{
 	public:
-		explicit TBooleanComparisonFilter(const TObjectPtr<const UPCGExBooleanCompareFilterFactory> InDefinition)
-			: TSimpleFilter(InDefinition), TypedFilterFactory(InDefinition)
+		explicit FBooleanComparisonFilter(const TObjectPtr<const UPCGExBooleanCompareFilterFactory>& InDefinition)
+			: FSimpleFilter(InDefinition), TypedFilterFactory(InDefinition)
 		{
 		}
 
@@ -83,7 +83,7 @@ namespace PCGExPointsFilter
 			return TypedFilterFactory->Config.Comparison == EPCGExEquality::Equal ? A == B : A != B;
 		}
 
-		virtual ~TBooleanComparisonFilter() override
+		virtual ~FBooleanComparisonFilter() override
 		{
 		}
 	};

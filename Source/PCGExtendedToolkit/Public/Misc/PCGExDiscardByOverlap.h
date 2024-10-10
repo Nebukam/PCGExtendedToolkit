@@ -184,7 +184,7 @@ namespace PCGExDiscardByOverlap
 	class /*PCGEXTENDEDTOOLKIT_API*/ FPruneTask final : public PCGExMT::FPCGExTask
 	{
 	public:
-		FPruneTask(const TSharedPtr<PCGExData::FPointIO>& InPointIO)
+		explicit FPruneTask(const TSharedPtr<PCGExData::FPointIO>& InPointIO)
 			: FPCGExTask(InPointIO)
 
 		{
@@ -356,7 +356,7 @@ namespace PCGExDiscardByOverlap
 			if (bValidPoint) { LocalPointBounds[Index] = InPointBounds; }
 		}
 
-		virtual bool Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager) override;
+		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager> InAsyncManager) override;
 		virtual void ProcessSingleRangeIteration(const int32 Iteration, const int32 LoopIdx, const int32 LoopCount) override;
 		virtual void CompleteWork() override;
 		virtual void Write() override;

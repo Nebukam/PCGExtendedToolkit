@@ -17,7 +17,7 @@ namespace PCGExGeo
 			Vtx[0] = A;
 			Vtx[1] = B;
 			Vtx[2] = C;
-			std::sort(std::begin(Vtx), std::end(Vtx));
+			std::ranges::sort(Vtx);
 		}
 
 		explicit FTriangle(const int (&ABC)[3])
@@ -100,7 +100,7 @@ namespace PCGExGeo
 
 		bool operator==(const FTriangle& Other) const
 		{
-			return Vtx[0] == Vtx[0] && Vtx[1] == Vtx[1] && Vtx[2] == Vtx[2];
+			return Vtx[0] == Other.Vtx[0] && Vtx[1] == Other.Vtx[1] && Vtx[2] == Other.Vtx[2];
 		}
 	};
 

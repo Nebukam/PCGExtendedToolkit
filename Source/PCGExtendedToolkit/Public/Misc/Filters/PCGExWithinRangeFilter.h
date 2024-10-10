@@ -56,16 +56,16 @@ class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExWithinRangeFilterFactory : public UPCGExF
 public:
 	FPCGExWithinRangeFilterConfig Config;
 
-	virtual TSharedPtr<PCGExPointFilter::TFilter> CreateFilter() const override;
+	virtual TSharedPtr<PCGExPointFilter::FFilter> CreateFilter() const override;
 };
 
 namespace PCGExPointsFilter
 {
-	class /*PCGEXTENDEDTOOLKIT_API*/ TWithinRangeFilter final : public PCGExPointFilter::TSimpleFilter
+	class /*PCGEXTENDEDTOOLKIT_API*/ TWithinRangeFilter final : public PCGExPointFilter::FSimpleFilter
 	{
 	public:
 		explicit TWithinRangeFilter(const UPCGExWithinRangeFilterFactory* InDefinition)
-			: TSimpleFilter(InDefinition), TypedFilterFactory(InDefinition)
+			: FSimpleFilter(InDefinition), TypedFilterFactory(InDefinition)
 		{
 		}
 

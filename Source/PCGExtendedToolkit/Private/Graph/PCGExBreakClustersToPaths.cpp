@@ -74,7 +74,7 @@ namespace PCGExBreakClustersToPaths
 			return false;
 		}
 
-		const TSharedPtr<PCGExClusterFilter::TManager> FilterManager = MakeShared<PCGExClusterFilter::TManager>(Cluster.ToSharedRef(), VtxDataFacade, EdgeDataFacade);
+		const TSharedPtr<PCGExClusterFilter::FManager> FilterManager = MakeShared<PCGExClusterFilter::FManager>(Cluster.ToSharedRef(), VtxDataFacade, EdgeDataFacade);
 		if (!Context->FilterFactories.IsEmpty() && FilterManager->Init(ExecutionContext, Context->FilterFactories))
 		{
 			for (const PCGExCluster::FNode& Node : *Cluster->Nodes) { Breakpoints[Node.NodeIndex] = Node.IsComplex() ? true : FilterManager->Test(Node); }

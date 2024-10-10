@@ -59,21 +59,21 @@ class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExPointStateFactoryBase : public UPCGExFilt
 
 public:
 	TArray<TObjectPtr<const UPCGExFilterFactoryBase>> FilterFactories;
-	virtual TSharedPtr<PCGExPointFilter::TFilter> CreateFilter() const override;
+	virtual TSharedPtr<PCGExPointFilter::FFilter> CreateFilter() const override;
 
 	virtual void BeginDestroy() override;
 };
 
 namespace PCGExPointStates
 {
-	class /*PCGEXTENDEDTOOLKIT_API*/ FState : public PCGExPointFilter::TFilter
+	class /*PCGEXTENDEDTOOLKIT_API*/ FState final : public PCGExPointFilter::FFilter
 	{
 	public:
 		FPCGExStateConfigBase* BaseConfig = nullptr;
 		const UPCGExPointStateFactoryBase* StateFactory = nullptr;
 
 		explicit FState(const TObjectPtr<const UPCGExPointStateFactoryBase>& InFactory):
-			TFilter(InFactory), StateFactory(InFactory)
+			FFilter(InFactory), StateFactory(InFactory)
 		{
 		}
 
@@ -87,10 +87,10 @@ namespace PCGExPointStates
 		void ProcessFlags(const bool bSuccess, int64& InFlags) const;
 
 	protected:
-		TSharedPtr<PCGExPointFilter::TManager> Manager;
+		TSharedPtr<PCGExPointFilter::FManager> Manager;
 	};
 
-	class /*PCGEXTENDEDTOOLKIT_API*/ FStateManager : public PCGExPointFilter::TManager
+	class /*PCGEXTENDEDTOOLKIT_API*/ FStateManager final : public PCGExPointFilter::FManager
 	{
 		TArray<TSharedPtr<FState>> States;
 		TSharedPtr<TArray<int64>> FlagsCache;
@@ -101,7 +101,7 @@ namespace PCGExPointStates
 		virtual bool Test(const int32 Index) override;
 
 	protected:
-		virtual void PostInitFilter(const FPCGContext* InContext, const TSharedPtr<PCGExPointFilter::TFilter>& InFilter) override;
+		virtual void PostInitFilter(const FPCGContext* InContext, const TSharedPtr<PCGExPointFilter::FFilter>& InFilter) override;
 	};
 };
 

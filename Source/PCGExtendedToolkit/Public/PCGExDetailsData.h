@@ -7,7 +7,6 @@
 
 #include "CoreMinimal.h"
 #include "PCGExMacros.h"
-#include "PCGEx.h"
 #include "Data/PCGExData.h"
 
 #include "PCGExDetailsData.generated.h"

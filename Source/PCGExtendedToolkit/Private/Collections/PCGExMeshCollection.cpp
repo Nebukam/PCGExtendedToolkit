@@ -3,9 +3,6 @@
 
 #include "Collections/PCGExMeshCollection.h"
 
-#include "PCGEx.h"
-#include "PCGExMacros.h"
-
 bool FPCGExMeshCollectionEntry::Validate(const UPCGExAssetCollection* ParentCollection)
 {
 	if (bIsSubCollection) { LoadSubCollection(SubCollection); }

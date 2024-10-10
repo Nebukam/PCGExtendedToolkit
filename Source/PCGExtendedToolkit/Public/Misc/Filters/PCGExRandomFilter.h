@@ -4,7 +4,6 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "PCGExCompare.h"
 #include "PCGExFilterFactoryProvider.h"
 #include "UObject/Object.h"
 
@@ -45,16 +44,16 @@ class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExRandomFilterFactory : public UPCGExFilter
 public:
 	FPCGExRandomFilterConfig Config;
 
-	virtual TSharedPtr<PCGExPointFilter::TFilter> CreateFilter() const override;
+	virtual TSharedPtr<PCGExPointFilter::FFilter> CreateFilter() const override;
 };
 
 namespace PCGExPointsFilter
 {
-	class /*PCGEXTENDEDTOOLKIT_API*/ TRandomFilter final : public PCGExPointFilter::TSimpleFilter
+	class /*PCGEXTENDEDTOOLKIT_API*/ TRandomFilter final : public PCGExPointFilter::FSimpleFilter
 	{
 	public:
 		explicit TRandomFilter(const TObjectPtr<const UPCGExRandomFilterFactory>& InDefinition)
-			: TSimpleFilter(InDefinition), TypedFilterFactory(InDefinition), RandomSeed(InDefinition->Config.RandomSeed)
+			: FSimpleFilter(InDefinition), TypedFilterFactory(InDefinition), RandomSeed(InDefinition->Config.RandomSeed)
 		{
 		}
 

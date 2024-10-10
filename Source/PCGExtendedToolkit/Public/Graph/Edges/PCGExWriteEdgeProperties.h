@@ -246,7 +246,7 @@ namespace PCGExWriteEdgeProperties
 		FPCGExEdgeDirectionSettings DirectionSettings;
 
 	public:
-		FProcessorBatch(FPCGExContext* InContext, const TSharedRef<PCGExData::FPointIO>& InVtx, TArrayView<TSharedRef<PCGExData::FPointIO>> InEdges):
+		FProcessorBatch(FPCGExContext* InContext, const TSharedRef<PCGExData::FPointIO>& InVtx, const TArrayView<TSharedRef<PCGExData::FPointIO>> InEdges):
 			TBatch<FProcessor>(InContext, InVtx, InEdges)
 		{
 		}

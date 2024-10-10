@@ -7,7 +7,6 @@
 
 //#include "Engine/SplineMeshComponentDescriptor.h"
 #include "PCGComponent.h"
-#include "PCGContext.h"
 #include "PCGManagedResource.h"
 
 #include "PCGExManagedResource.generated.h"
@@ -61,9 +60,9 @@ public:
 	//const FPCGSplineMeshParams& GetSplineMeshParams() const { return SplineMeshParams; }
 
 	uint64 GetSettingsUID() const { return SettingsUID; }
-	void SetSettingsUID(uint64 InSettingsUID) { SettingsUID = InSettingsUID; }
+	void SetSettingsUID(const uint64 InSettingsUID) { SettingsUID = InSettingsUID; }
 
-	void AttachTo(AActor* InTargetActor, UPCGComponent* InSourceComponent);
+	void AttachTo(AActor* InTargetActor, const UPCGComponent* InSourceComponent) const;
 
 	static USplineMeshComponent* CreateComponentOnly(AActor* InOuter, UPCGComponent* InSourceComponent, const PCGExPaths::FSplineMeshSegment& InParams);
 	static UPCGExManagedSplineMeshComponent* RegisterAndAttachComponent(AActor* InOuter, USplineMeshComponent* InSMC, UPCGComponent* InSourceComponent, uint64 SettingsUID);

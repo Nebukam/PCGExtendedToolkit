@@ -123,7 +123,7 @@ protected:
 class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPlotNavmeshTask final : public PCGExMT::FPCGExTask
 {
 public:
-	FPCGExPlotNavmeshTask(
+	explicit FPCGExPlotNavmeshTask(
 		const TSharedPtr<PCGExData::FPointIO>& InPointIO) :
 		FPCGExTask(InPointIO)
 	{

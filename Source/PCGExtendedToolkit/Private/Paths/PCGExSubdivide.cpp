@@ -75,7 +75,7 @@ bool FPCGExSubdivideElement::ExecuteInternal(FPCGContext* InContext) const
 
 namespace PCGExSubdivide
 {
-	bool FProcessor::Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager)
+	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager> InAsyncManager)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExSubdivide::Process);
 
@@ -179,7 +179,7 @@ namespace PCGExSubdivide
 
 		Metrics.Add(Sub.End);
 
-		TArrayView<FPCGPoint> View = MakeArrayView(MutablePoints.GetData() + SubStart, Sub.NumSubdivisions);
+		const TArrayView<FPCGPoint> View = MakeArrayView(MutablePoints.GetData() + SubStart, Sub.NumSubdivisions);
 		Blending->ProcessSubPoints(PointDataFacade->Source->GetOutPointRef(Sub.OutStart), PointDataFacade->Source->GetOutPointRef(Sub.OutEnd), View, Metrics, SubStart);
 
 		for (FPCGPoint& Pt : View) { Pt.Seed = PCGExRandom::ComputeSeed(Pt); }

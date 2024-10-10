@@ -3,8 +3,6 @@
 
 #pragma once
 
-#include <variant>
-
 #include "CoreMinimal.h"
 #include "PCGExDataBlending.h"
 #include "UObject/Object.h"

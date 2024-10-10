@@ -7,8 +7,6 @@
 #include "PCGExPointsProcessor.h"
 #include "Data/PCGExDataForward.h"
 
-
-#include "Geometry/PCGExGeo.h"
 #include "Geometry/PCGExGeoMesh.h"
 
 #include "PCGExMeshToClusters.generated.h"

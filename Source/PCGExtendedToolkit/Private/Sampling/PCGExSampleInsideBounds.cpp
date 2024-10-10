@@ -7,8 +7,6 @@
 #include "Data/Blending/PCGExMetadataBlender.h"
 
 
-#include "Graph/PCGExCluster.h"
-
 #define LOCTEXT_NAMESPACE "PCGExSampleInsideBoundsElement"
 #define PCGEX_NAMESPACE SampleInsideBounds
 
@@ -40,7 +38,7 @@ bool FPCGExSampleInsideBoundsElement::Boot(FPCGExContext* InContext) const
 
 	PCGEX_CONTEXT_AND_SETTINGS(SampleInsideBounds)
 
-	TSharedPtr<PCGExData::FPointIO> Targets = PCGExData::TryGetSingleInput(Context, PCGEx::SourceTargetsLabel, true);
+	const TSharedPtr<PCGExData::FPointIO> Targets = PCGExData::TryGetSingleInput(Context, PCGEx::SourceTargetsLabel, true);
 	if (!Targets) { return false; }
 
 	Context->TargetsFacade = MakeShared<PCGExData::FFacade>(Targets.ToSharedRef());
@@ -112,7 +110,7 @@ namespace PCGExSampleInsideBoundss
 		PCGEX_OUTPUT_VALUE(NumSamples, Index, 0)
 	}
 
-	bool FProcessor::Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager)
+	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager> InAsyncManager)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExSampleInsideBoundss::Process);
 

@@ -28,7 +28,7 @@ bool FPCGExBoundsClustersIntersectionElement::Boot(FPCGExContext* InContext) con
 
 	PCGEX_CONTEXT_AND_SETTINGS(BoundsClustersIntersection)
 
-	TSharedPtr<PCGExData::FPointIO> BoundsIO = PCGExData::TryGetSingleInput(InContext, PCGEx::SourceBoundsLabel, true);
+	const TSharedPtr<PCGExData::FPointIO> BoundsIO = PCGExData::TryGetSingleInput(InContext, PCGEx::SourceBoundsLabel, true);
 	if (!BoundsIO) { return false; }
 
 	Context->BoundsDataFacade = MakeShared<PCGExData::FFacade>(BoundsIO.ToSharedRef());

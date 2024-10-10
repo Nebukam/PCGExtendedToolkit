@@ -198,10 +198,10 @@ namespace PCGExCompare
 
 #pragma region Numeric comparisons ops
 
-	template <typename T, typename CompilerSafety = void>
+	template <typename T>
 	FORCEINLINE static bool StrictlyEqual(const T& A, const T& B) { return A == B; }
 
-	template <typename T, typename CompilerSafety = void>
+	template <typename T>
 	FORCEINLINE static bool StrictlyNotEqual(const T& A, const T& B) { return A != B; }
 
 	template <typename T>
@@ -450,7 +450,7 @@ namespace PCGExCompare
 		}
 	}
 
-	template <typename T, typename CompilerSafety = void>
+	template <typename T>
 	FORCEINLINE static bool NearlyNotEqual(const T& A, const T& B, const double Tolerance = 0.001) { return !NearlyEqual(A, B, Tolerance); }
 
 #pragma endregion
@@ -1132,7 +1132,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExBitmaskWithOperation
 		{
 			for (const FClampedBitOp& BitOp : Bits)
 			{
-				int64 Bit = BitOp.Get();
+				const int64 Bit = BitOp.Get();
 				switch (BitOp.Op)
 				{
 				case EPCGExBitOp::Set:

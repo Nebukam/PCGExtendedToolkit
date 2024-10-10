@@ -10,9 +10,6 @@
 #include "Graph/Pathfinding/Search/PCGExSearchOperation.h"
 #include "Algo/Reverse.h"
 
-
-#include "Graph/Pathfinding/Search/PCGExSearchAStar.h"
-
 #define LOCTEXT_NAMESPACE "PCGExPathfindingEdgesElement"
 #define PCGEX_NAMESPACE PathfindingEdges
 

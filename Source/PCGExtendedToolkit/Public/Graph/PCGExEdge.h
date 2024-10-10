@@ -4,10 +4,9 @@
 #pragma once
 
 #include "CoreMinimal.h"
-
-#include "PCGExMT.h"
-#include "Data/PCGExAttributeHelpers.h"
-
+#include "PCGEx.h"
+#include "PCGExContext.h"
+#include "Data/PCGExPointIO.h"
 #include "PCGExEdge.generated.h"
 
 UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Edge Direction Mode"))

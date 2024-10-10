@@ -53,8 +53,8 @@ bool FPCGExPathfindingNavmeshElement::Boot(FPCGExContext* InContext) const
 	PCGEX_OPERATION_BIND(GoalPicker, UPCGExGoalPicker)
 	PCGEX_OPERATION_BIND(Blending, UPCGExSubPointsBlendOperation)
 
-	TSharedPtr<PCGExData::FPointIO> SeedsPoints = PCGExData::TryGetSingleInput(Context, PCGExGraph::SourceSeedsLabel, true);
-	TSharedPtr<PCGExData::FPointIO> GoalsPoints = PCGExData::TryGetSingleInput(Context, PCGExGraph::SourceGoalsLabel, true);
+	const TSharedPtr<PCGExData::FPointIO> SeedsPoints = PCGExData::TryGetSingleInput(Context, PCGExGraph::SourceSeedsLabel, true);
+	const TSharedPtr<PCGExData::FPointIO> GoalsPoints = PCGExData::TryGetSingleInput(Context, PCGExGraph::SourceGoalsLabel, true);
 
 	if (!SeedsPoints || !GoalsPoints) { return false; }
 

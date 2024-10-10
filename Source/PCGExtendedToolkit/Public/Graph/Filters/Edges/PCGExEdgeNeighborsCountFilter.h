@@ -7,12 +7,6 @@
 #include "PCGExCompare.h"
 
 
-
-
-
-
-
-
 #include "Graph/PCGExCluster.h"
 #include "Graph/Filters/PCGExClusterFilter.h"
 #include "Misc/Filters/PCGExFilterFactoryProvider.h"
@@ -76,7 +70,7 @@ class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExEdgeNeighborsCountFilterFactory : public 
 public:
 	FPCGExEdgeNeighborsCountFilterConfig Config;
 
-	virtual TSharedPtr<PCGExPointFilter::TFilter> CreateFilter() const override;
+	virtual TSharedPtr<PCGExPointFilter::FFilter> CreateFilter() const override;
 };
 
 namespace PCGExEdgeNeighborsCount

@@ -6,9 +6,6 @@
 #include "PCGExPointsProcessor.h"
 #include "Data/Blending/PCGExMetadataBlender.h"
 
-
-#include "Graph/PCGExCluster.h"
-
 #define LOCTEXT_NAMESPACE "PCGExSampleNearestBoundsElement"
 #define PCGEX_NAMESPACE SampleNearestBounds
 
@@ -40,7 +37,7 @@ bool FPCGExSampleNearestBoundsElement::Boot(FPCGExContext* InContext) const
 
 	PCGEX_CONTEXT_AND_SETTINGS(SampleNearestBounds)
 
-	TSharedPtr<PCGExData::FPointIO> Bounds = PCGExData::TryGetSingleInput(Context, PCGEx::SourceBoundsLabel, true);
+	const TSharedPtr<PCGExData::FPointIO> Bounds = PCGExData::TryGetSingleInput(Context, PCGEx::SourceBoundsLabel, true);
 	if (!Bounds) { return false; }
 
 	Context->BoundsFacade = MakeShared<PCGExData::FFacade>(Bounds.ToSharedRef());
@@ -110,7 +107,7 @@ namespace PCGExSampleNearestBounds
 		PCGEX_OUTPUT_VALUE(NumSamples, Index, 0)
 	}
 
-	bool FProcessor::Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager)
+	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager> InAsyncManager)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExSampleNearestBounds::Process);
 

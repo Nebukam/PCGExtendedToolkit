@@ -112,7 +112,7 @@ namespace PCGExData
 				UPCGMetadata* OutMetadata = Out->Metadata;
 				for (FPCGPoint& Pt : MutablePoints) { OutMetadata->InitializeOnSet(Pt.MetadataEntry); }
 			}
-			
+
 			OutKeys = MakeShared<FPCGAttributeAccessorKeysPoints>(MutablePoints);
 		}
 

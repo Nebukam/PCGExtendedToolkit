@@ -43,7 +43,7 @@ protected:
 	virtual void ApplyOverrides() override
 	{
 		Super::ApplyOverrides();
-		
+
 		PCGEX_OVERRIDE_OPERATION_PROPERTY(Lerp, "Blending/Weight");
 	}
 };

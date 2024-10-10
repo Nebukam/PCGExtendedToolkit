@@ -8,8 +8,6 @@
 
 #include "PCGExPointsProcessor.h"
 
-
-#include "Geometry/PCGExGeo.h"
 #include "PCGExSplitPath.generated.h"
 
 namespace PCGExSplitPath
@@ -127,7 +125,7 @@ namespace PCGExSplitPath
 		{
 		}
 
-		virtual bool Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager) override;
+		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager> InAsyncManager) override;
 
 		FORCEINLINE void DoActionSplit(const int32 Index)
 		{

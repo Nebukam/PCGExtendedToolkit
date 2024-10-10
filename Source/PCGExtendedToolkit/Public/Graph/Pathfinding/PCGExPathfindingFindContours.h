@@ -226,7 +226,7 @@ namespace PCGExFindContours
 		virtual bool PrepareSingle(const TSharedPtr<FProcessor>& ClusterProcessor) override;
 	};
 
-	class FProjectRangeTask : public PCGExMT::FPCGExTask
+	class FProjectRangeTask final : public PCGExMT::FPCGExTask
 	{
 	public:
 		FProjectRangeTask(const TSharedPtr<PCGExData::FPointIO>& InPointIO,

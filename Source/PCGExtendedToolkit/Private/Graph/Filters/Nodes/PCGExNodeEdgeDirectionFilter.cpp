@@ -4,26 +4,21 @@
 #include "Graph/Filters/Nodes/PCGExNodeEdgeDirectionFilter.h"
 
 
-
-
-
-
-
-
 #include "Graph/PCGExGraph.h"
 
 #define LOCTEXT_NAMESPACE "PCGExNodeEdgeDirectionFilter"
 #define PCGEX_NAMESPACE NodeEdgeDirectionFilter
 
-TSharedPtr<PCGExPointFilter::TFilter> UPCGExNodeEdgeDirectionFilterFactory::CreateFilter() const
+TSharedPtr<PCGExPointFilter::FFilter> UPCGExNodeEdgeDirectionFilterFactory::CreateFilter() const
 {
 	return MakeShared<FNodeEdgeDirectionFilter>(this);
 }
 
 bool FNodeEdgeDirectionFilter::Init(const FPCGContext* InContext, const TSharedRef<PCGExCluster::FCluster>& InCluster, const TSharedRef<PCGExData::FFacade>& InPointDataFacade, const TSharedRef<PCGExData::FFacade>& InEdgeDataFacade)
 {
-	if (!TFilter::Init(InContext, InCluster, InPointDataFacade, InEdgeDataFacade)) { return false; }
+	if (!FFilter::Init(InContext, InCluster, InPointDataFacade, InEdgeDataFacade)) { return false; }
 
+	DirConstant = TypedFilterFactory->Config.DirectionConstant.GetSafeNormal();
 	bFromNode = TypedFilterFactory->Config.DirectionOrder == EPCGExAdjacencyDirectionOrigin::FromNode;
 
 	if (TypedFilterFactory->Config.CompareAgainst == EPCGExFetchType::Attribute)
@@ -63,7 +58,7 @@ bool FNodeEdgeDirectionFilter::TestDot(const PCGExCluster::FNode& Node) const
 
 	const FPCGPoint& Point = PointDataFacade->Source->GetInPoint(PointIndex);
 
-	FVector RefDir = OperandDirection ? OperandDirection->Read(PointIndex) : TypedFilterFactory->Config.DirectionConstant;
+	FVector RefDir = OperandDirection ? OperandDirection->Read(PointIndex) : DirConstant;
 	if (TypedFilterFactory->Config.bTransformDirection) { RefDir = Point.Transform.TransformVectorNoScale(RefDir).GetSafeNormal(); }
 
 	const double A = DotComparison.GetDot(PointIndex);
@@ -160,7 +155,7 @@ bool FNodeEdgeDirectionFilter::TestHash(const PCGExCluster::FNode& Node) const
 
 	const FPCGPoint& Point = PointDataFacade->Source->GetInPoint(PointIndex);
 
-	FVector RefDir = OperandDirection ? OperandDirection->Read(PointIndex) : TypedFilterFactory->Config.DirectionConstant;
+	FVector RefDir = OperandDirection ? OperandDirection->Read(PointIndex) : DirConstant;
 	if (TypedFilterFactory->Config.bTransformDirection) { RefDir = Point.Transform.TransformVectorNoScale(RefDir); }
 
 	RefDir.Normalize();
@@ -215,8 +210,7 @@ FString UPCGExNodeEdgeDirectionFilterProviderSettings::GetDisplayName() const
 	FString DisplayName = TEXT("Edge Direction ") + PCGExCompare::ToString(Config.DotComparisonDetails.Comparison);
 
 	UPCGExNodeEdgeDirectionFilterProviderSettings* MutableSelf = const_cast<UPCGExNodeEdgeDirectionFilterProviderSettings*>(this);
-	MutableSelf->Config.DirectionConstant = Config.DirectionConstant.GetSafeNormal();
-
+	
 	DisplayName += Config.Direction.GetName().ToString();
 	DisplayName += TEXT(" (");
 

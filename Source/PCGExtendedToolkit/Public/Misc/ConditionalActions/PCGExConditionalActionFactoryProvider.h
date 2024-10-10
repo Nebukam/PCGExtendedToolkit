@@ -25,6 +25,8 @@
 	_BODY \
 	return NewOperation;}
 
+class UPCGExConditionalActionFactoryBase;
+
 namespace PCGExConditionalActions
 {
 	const FName SourceConditionsFilterLabel = TEXT("Conditions");
@@ -43,6 +45,7 @@ class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExConditionalActionOperation : public UPCGE
 	GENERATED_BODY()
 
 public:
+	UPROPERTY(Transient)
 	UPCGExConditionalActionFactoryBase* Factory = nullptr;
 
 	virtual void CopySettingsFrom(const UPCGExOperation* Other) override;
@@ -56,7 +59,7 @@ public:
 	virtual void Cleanup() override;
 
 protected:
-	TSharedPtr<PCGExPointFilter::TManager> FilterManager;
+	TSharedPtr<PCGExPointFilter::FManager> FilterManager;
 };
 
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")

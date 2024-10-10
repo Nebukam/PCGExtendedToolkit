@@ -5,8 +5,6 @@
 
 #include <functional>
 #include <atomic>
-#include "Helpers/PCGAsync.h"
-#include "PCGContext.h"
 
 #include "PCGExMacros.h"
 #include "PCGExGlobalSettings.h"
@@ -139,7 +137,7 @@ namespace PCGExMT
 				delete AsyncTask;
 				return;
 			}
-			
+
 			GrowNumStarted();
 
 			{
@@ -163,7 +161,7 @@ namespace PCGExMT
 				delete AsyncTask;
 				return;
 			}
-			
+
 			GrowNumStarted();
 
 			T& Task = AsyncTask->GetTask();

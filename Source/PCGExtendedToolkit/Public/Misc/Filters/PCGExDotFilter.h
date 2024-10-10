@@ -67,16 +67,16 @@ class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExDotFilterFactory : public UPCGExFilterFac
 public:
 	FPCGExDotFilterConfig Config;
 	virtual bool Init(FPCGExContext* InContext) override;
-	virtual TSharedPtr<PCGExPointFilter::TFilter> CreateFilter() const override;
+	virtual TSharedPtr<PCGExPointFilter::FFilter> CreateFilter() const override;
 };
 
 namespace PCGExPointsFilter
 {
-	class /*PCGEXTENDEDTOOLKIT_API*/ TDotFilter final : public PCGExPointFilter::TSimpleFilter
+	class /*PCGEXTENDEDTOOLKIT_API*/ TDotFilter final : public PCGExPointFilter::FSimpleFilter
 	{
 	public:
 		explicit TDotFilter(const TObjectPtr<const UPCGExDotFilterFactory>& InFactory)
-			: TSimpleFilter(InFactory), TypedFilterFactory(InFactory)
+			: FSimpleFilter(InFactory), TypedFilterFactory(InFactory)
 		{
 			DotComparison = TypedFilterFactory->Config.DotComparisonDetails;
 		}

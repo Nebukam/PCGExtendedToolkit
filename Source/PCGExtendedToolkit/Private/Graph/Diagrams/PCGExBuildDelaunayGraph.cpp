@@ -91,7 +91,7 @@ bool FPCGExBuildDelaunayGraphElement::ExecuteInternal(
 
 namespace PCGExBuildDelaunay
 {
-	bool FProcessor::Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager)
+	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager> InAsyncManager)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExBuildDelaunay::Process);
 

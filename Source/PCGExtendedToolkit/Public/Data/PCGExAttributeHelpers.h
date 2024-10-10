@@ -347,7 +347,6 @@ namespace PCGEx
 
 		/**
 		 * Build and validate a property/attribute accessor for the selected
-		 * @param PointIO
 		 * @param Dump
 		 * @param bCaptureMinMax
 		 * @param OutMin

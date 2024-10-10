@@ -29,13 +29,13 @@ void UPCGExNeighborSampleOperation::PrepareForCluster(const FPCGContext* InConte
 
 	if (!PointFilterFactories.IsEmpty())
 	{
-		PointFilters = MakeShared<PCGExClusterFilter::TManager>(InCluster, InVtxDataFacade, InEdgeDataFacade);
+		PointFilters = MakeShared<PCGExClusterFilter::FManager>(InCluster, InVtxDataFacade, InEdgeDataFacade);
 		PointFilters->Init(InContext, PointFilterFactories);
 	}
 
 	if (!ValueFilterFactories.IsEmpty())
 	{
-		ValueFilters = MakeShared<PCGExClusterFilter::TManager>(InCluster, InVtxDataFacade, InEdgeDataFacade);
+		ValueFilters = MakeShared<PCGExClusterFilter::FManager>(InCluster, InVtxDataFacade, InEdgeDataFacade);
 		ValueFilters->Init(InContext, ValueFilterFactories);
 	}
 }

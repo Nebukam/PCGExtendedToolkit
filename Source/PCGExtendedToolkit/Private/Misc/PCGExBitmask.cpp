@@ -24,8 +24,7 @@ UPCGExGlobalBitmaskManager* UPCGExGlobalBitmaskManager::Get()
 
 UPCGParamData* UPCGExGlobalBitmaskManager::GetOrCreate(const int64 Bitmask)
 {
-	UPCGParamData** Data = Get()->SharedInstances.Find(Bitmask);
-	if (Data) { return *Data; }
+	if (UPCGParamData** Data = Get()->SharedInstances.Find(Bitmask)) { return *Data; }
 
 	UPCGParamData* NewBitmask = NewObject<UPCGParamData>();
 	NewBitmask->AddToRoot();

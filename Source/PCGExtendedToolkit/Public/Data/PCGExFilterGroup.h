@@ -11,11 +11,6 @@
 #include "PCGExPointFilter.h"
 
 
-
-
-
-
-
 #include "Graph/Filters/PCGExClusterFilter.h"
 #include "PCGExFilterGroup.generated.h"
 
@@ -39,7 +34,7 @@ public:
 	TArray<TObjectPtr<const UPCGExFilterFactoryBase>> FilterFactories;
 
 	virtual PCGExFactories::EType GetFactoryType() const override { return PCGExFactories::EType::FilterGroup; }
-	virtual TSharedPtr<PCGExPointFilter::TFilter> CreateFilter() const override { return nullptr; }
+	virtual TSharedPtr<PCGExPointFilter::FFilter> CreateFilter() const override { return nullptr; }
 };
 
 /**
@@ -52,7 +47,7 @@ class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExFilterGroupFactoryBaseAND : public UPCGEx
 
 public:
 	virtual PCGExFactories::EType GetFactoryType() const override { return PCGExFactories::EType::FilterGroup; }
-	virtual TSharedPtr<PCGExPointFilter::TFilter> CreateFilter() const override;
+	virtual TSharedPtr<PCGExPointFilter::FFilter> CreateFilter() const override;
 };
 
 /**
@@ -65,16 +60,16 @@ class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExFilterGroupFactoryBaseOR : public UPCGExF
 
 public:
 	virtual PCGExFactories::EType GetFactoryType() const override { return PCGExFactories::EType::FilterGroup; }
-	virtual TSharedPtr<PCGExPointFilter::TFilter> CreateFilter() const override;
+	virtual TSharedPtr<PCGExPointFilter::FFilter> CreateFilter() const override;
 };
 
 namespace PCGExFilterGroup
 {
-	class /*PCGEXTENDEDTOOLKIT_API*/ TFilterGroup : public PCGExClusterFilter::TFilter
+	class /*PCGEXTENDEDTOOLKIT_API*/ FFilterGroup : public PCGExClusterFilter::FFilter
 	{
 	public:
-		explicit TFilterGroup(const UPCGExFilterGroupFactoryBase* InFactory, const TArray<TObjectPtr<const UPCGExFilterFactoryBase>>* InFilterFactories):
-			TFilter(InFactory), GroupFactory(InFactory), ManagedFactories(InFilterFactories)
+		explicit FFilterGroup(const UPCGExFilterGroupFactoryBase* InFactory, const TArray<TObjectPtr<const UPCGExFilterFactoryBase>>* InFilterFactories):
+			FFilter(InFactory), GroupFactory(InFactory), ManagedFactories(InFilterFactories)
 		{
 		}
 
@@ -99,64 +94,64 @@ namespace PCGExFilterGroup
 		virtual bool Test(const PCGExGraph::FIndexedEdge& Edge) const override = 0;
 
 	protected:
-		TArray<TSharedPtr<PCGExPointFilter::TFilter>> ManagedFilters;
+		TArray<TSharedPtr<PCGExPointFilter::FFilter>> ManagedFilters;
 
 		virtual bool InitManaged(const FPCGContext* InContext);
-		bool InitManagedFilter(const FPCGContext* InContext, const TSharedPtr<PCGExPointFilter::TFilter>& Filter) const;
+		bool InitManagedFilter(const FPCGContext* InContext, const TSharedPtr<PCGExPointFilter::FFilter>& Filter) const;
 		virtual bool PostInitManaged(const FPCGContext* InContext);
-		virtual void PostInitManagedFilter(const FPCGContext* InContext, const TSharedPtr<PCGExPointFilter::TFilter>& InFilter);
+		virtual void PostInitManagedFilter(const FPCGContext* InContext, const TSharedPtr<PCGExPointFilter::FFilter>& InFilter);
 	};
 
-	class /*PCGEXTENDEDTOOLKIT_API*/ TFilterGroupAND : public TFilterGroup
+	class /*PCGEXTENDEDTOOLKIT_API*/ FFilterGroupAND final : public FFilterGroup
 	{
 	public:
-		explicit TFilterGroupAND(const UPCGExFilterGroupFactoryBase* InFactory, const TArray<TObjectPtr<const UPCGExFilterFactoryBase>>* InFilterFactories):
-			TFilterGroup(InFactory, InFilterFactories)
+		explicit FFilterGroupAND(const UPCGExFilterGroupFactoryBase* InFactory, const TArray<TObjectPtr<const UPCGExFilterFactoryBase>>* InFilterFactories):
+			FFilterGroup(InFactory, InFilterFactories)
 		{
 		}
 
 		FORCEINLINE virtual bool Test(const int32 Index) const override
 		{
-			for (const TSharedPtr<PCGExPointFilter::TFilter>& Filter : ManagedFilters) { if (!Filter->Test(Index)) { return bInvert; } }
+			for (const TSharedPtr<PCGExPointFilter::FFilter>& Filter : ManagedFilters) { if (!Filter->Test(Index)) { return bInvert; } }
 			return !bInvert;
 		}
 
 		FORCEINLINE virtual bool Test(const PCGExCluster::FNode& Node) const override
 		{
-			for (const TSharedPtr<PCGExPointFilter::TFilter>& Filter : ManagedFilters) { if (!Filter->Test(Node)) { return bInvert; } }
+			for (const TSharedPtr<PCGExPointFilter::FFilter>& Filter : ManagedFilters) { if (!Filter->Test(Node)) { return bInvert; } }
 			return !bInvert;
 		}
 
 		FORCEINLINE virtual bool Test(const PCGExGraph::FIndexedEdge& Edge) const override
 		{
-			for (const TSharedPtr<PCGExPointFilter::TFilter>& Filter : ManagedFilters) { if (!Filter->Test(Edge)) { return bInvert; } }
+			for (const TSharedPtr<PCGExPointFilter::FFilter>& Filter : ManagedFilters) { if (!Filter->Test(Edge)) { return bInvert; } }
 			return !bInvert;
 		}
 	};
 
-	class /*PCGEXTENDEDTOOLKIT_API*/ TFilterGroupOR : public TFilterGroup
+	class /*PCGEXTENDEDTOOLKIT_API*/ FFilterGroupOR final : public FFilterGroup
 	{
 	public:
-		explicit TFilterGroupOR(const UPCGExFilterGroupFactoryBase* InFactory, const TArray<TObjectPtr<const UPCGExFilterFactoryBase>>* InFilterFactories):
-			TFilterGroup(InFactory, InFilterFactories)
+		explicit FFilterGroupOR(const UPCGExFilterGroupFactoryBase* InFactory, const TArray<TObjectPtr<const UPCGExFilterFactoryBase>>* InFilterFactories):
+			FFilterGroup(InFactory, InFilterFactories)
 		{
 		}
 
 		FORCEINLINE virtual bool Test(const int32 Index) const override
 		{
-			for (const TSharedPtr<PCGExPointFilter::TFilter>& Filter : ManagedFilters) { if (Filter->Test(Index)) { return !bInvert; } }
+			for (const TSharedPtr<PCGExPointFilter::FFilter>& Filter : ManagedFilters) { if (Filter->Test(Index)) { return !bInvert; } }
 			return bInvert;
 		}
 
 		FORCEINLINE virtual bool Test(const PCGExCluster::FNode& Node) const override
 		{
-			for (const TSharedPtr<PCGExPointFilter::TFilter>& Filter : ManagedFilters) { if (Filter->Test(Node)) { return !bInvert; } }
+			for (const TSharedPtr<PCGExPointFilter::FFilter>& Filter : ManagedFilters) { if (Filter->Test(Node)) { return !bInvert; } }
 			return bInvert;
 		}
 
 		FORCEINLINE virtual bool Test(const PCGExGraph::FIndexedEdge& Edge) const override
 		{
-			for (const TSharedPtr<PCGExPointFilter::TFilter>& Filter : ManagedFilters) { if (Filter->Test(Edge)) { return !bInvert; } }
+			for (const TSharedPtr<PCGExPointFilter::FFilter>& Filter : ManagedFilters) { if (Filter->Test(Edge)) { return !bInvert; } }
 			return bInvert;
 		}
 	};

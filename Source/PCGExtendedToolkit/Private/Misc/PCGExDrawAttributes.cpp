@@ -251,7 +251,7 @@ bool FPCGExDrawAttributesElement::ExecuteInternal(FPCGContext* InContext) const
 	{
 		for (FPCGExAttributeDebugDraw& DebugInfos : Context->DebugList) { DebugInfos.Bind(Context->CurrentIO.ToSharedRef()); }
 
-		UWorld* World = Context->SourceComponent->GetWorld();
+		const UWorld* World = Context->SourceComponent->GetWorld();
 
 		for (int PointIndex = 0; PointIndex < Context->CurrentIO->GetNum(); PointIndex++)
 		{

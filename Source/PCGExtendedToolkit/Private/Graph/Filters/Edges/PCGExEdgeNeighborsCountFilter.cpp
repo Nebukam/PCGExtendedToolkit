@@ -4,18 +4,12 @@
 #include "Graph/Filters/Edges/PCGExEdgeNeighborsCountFilter.h"
 
 
-
-
-
-
-
-
 #include "Graph/PCGExGraph.h"
 
 #define LOCTEXT_NAMESPACE "PCGExEdgeNeighborsCountFilter"
 #define PCGEX_NAMESPACE EdgeNeighborsCountFilter
 
-TSharedPtr<PCGExPointFilter::TFilter> UPCGExEdgeNeighborsCountFilterFactory::CreateFilter() const
+TSharedPtr<PCGExPointFilter::FFilter> UPCGExEdgeNeighborsCountFilterFactory::CreateFilter() const
 {
 	return MakeShared<PCGExEdgeNeighborsCount::FNeighborsCountFilter>(this);
 }
@@ -24,7 +18,7 @@ namespace PCGExEdgeNeighborsCount
 {
 	bool FNeighborsCountFilter::Init(const FPCGContext* InContext, const TSharedRef<PCGExCluster::FCluster>& InCluster, const TSharedRef<PCGExData::FFacade>& InPointDataFacade, const TSharedRef<PCGExData::FFacade>& InEdgeDataFacade)
 	{
-		if (!TFilter::Init(InContext, InCluster, InPointDataFacade, InEdgeDataFacade)) { return false; }
+		if (!FFilter::Init(InContext, InCluster, InPointDataFacade, InEdgeDataFacade)) { return false; }
 
 		if (TypedFilterFactory->Config.ThresholdSource == EPCGExFetchType::Attribute)
 		{

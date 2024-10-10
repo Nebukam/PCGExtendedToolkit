@@ -64,16 +64,16 @@ class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExStringSelfCompareFilterFactory : public U
 public:
 	FPCGExStringSelfCompareFilterConfig Config;
 
-	virtual TSharedPtr<PCGExPointFilter::TFilter> CreateFilter() const override;
+	virtual TSharedPtr<PCGExPointFilter::FFilter> CreateFilter() const override;
 };
 
 namespace PCGExPointsFilter
 {
-	class /*PCGEXTENDEDTOOLKIT_API*/ TStringSelfComparisonFilter final : public PCGExPointFilter::TSimpleFilter
+	class /*PCGEXTENDEDTOOLKIT_API*/ TStringSelfComparisonFilter final : public PCGExPointFilter::FSimpleFilter
 	{
 	public:
 		explicit TStringSelfComparisonFilter(const TObjectPtr<const UPCGExStringSelfCompareFilterFactory>& InDefinition)
-			: TSimpleFilter(InDefinition), TypedFilterFactory(InDefinition)
+			: FSimpleFilter(InDefinition), TypedFilterFactory(InDefinition)
 		{
 		}
 

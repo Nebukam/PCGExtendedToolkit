@@ -2,7 +2,6 @@
 // Released under the MIT license https://opensource.org/license/MIT/
 
 #include "Paths/PCGExBoundsPathIntersection.h"
-#include "PCGExMath.h"
 #include "PCGExRandom.h"
 
 
@@ -28,7 +27,7 @@ bool FPCGExBoundsPathIntersectionElement::Boot(FPCGExContext* InContext) const
 
 	if (!Settings->OutputSettings.Validate(Context)) { return false; }
 
-	TSharedPtr<PCGExData::FPointIO> BoundsIO = PCGExData::TryGetSingleInput(InContext, PCGEx::SourceBoundsLabel, true);
+	const TSharedPtr<PCGExData::FPointIO> BoundsIO = PCGExData::TryGetSingleInput(InContext, PCGEx::SourceBoundsLabel, true);
 	if (!BoundsIO) { return false; }
 
 	Context->BoundsDataFacade = MakeShared<PCGExData::FFacade>(BoundsIO.ToSharedRef());
@@ -45,7 +44,7 @@ bool FPCGExBoundsPathIntersectionElement::ExecuteInternal(FPCGContext* InContext
 	PCGEX_ON_INITIAL_EXECUTION
 	{
 		bool bHasInvalidInputs = false;
-		bool bWritesAny = Settings->OutputSettings.WillWriteAny();
+		const bool bWritesAny = Settings->OutputSettings.WillWriteAny();
 		if (!Context->StartBatchProcessingPoints<PCGExPointsMT::TBatch<PCGExPathIntersections::FProcessor>>(
 			[&](const TSharedPtr<PCGExData::FPointIO>& Entry)
 			{
@@ -95,7 +94,7 @@ namespace PCGExPathIntersections
 	{
 	}
 
-	bool FProcessor::Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager)
+	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager> InAsyncManager)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExPathIntersections::Process);
 

@@ -8,12 +8,6 @@
 #include "PCGExDetails.h"
 
 
-
-
-
-
-
-
 #include "Graph/PCGExCluster.h"
 #include "Graph/Filters/PCGExClusterFilter.h"
 #include "Misc/Filters/PCGExFilterFactoryProvider.h"
@@ -33,7 +27,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExIsoEdgeDirectionFilterConfig
 	/** Defines the direction in which points will be ordered to form the final paths. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	FPCGExEdgeDirectionSettings DirectionSettings;
-	
+
 	/** Type of check; Note that Fast comparison ignores adjacency consolidation. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_NotOverridable))
 	EPCGExDirectionCheckMode ComparisonQuality = EPCGExDirectionCheckMode::Dot;
@@ -74,7 +68,7 @@ class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExIsoEdgeDirectionFilterFactory : public UP
 public:
 	FPCGExIsoEdgeDirectionFilterConfig Config;
 
-	virtual TSharedPtr<PCGExPointFilter::TFilter> CreateFilter() const override;
+	virtual TSharedPtr<PCGExPointFilter::FFilter> CreateFilter() const override;
 };
 
 class /*PCGEXTENDEDTOOLKIT_API*/ FIsoEdgeDirectionFilter final : public PCGExClusterFilter::TEdgeFilter

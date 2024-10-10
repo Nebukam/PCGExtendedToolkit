@@ -283,7 +283,7 @@ namespace PCGExGeo
 		{
 			if (const int32* GSMPtr = Map.Find(InPath)) { return *GSMPtr; }
 
-			TSharedPtr<FGeoStaticMesh> GSM = MakeShared<FGeoStaticMesh>(InPath);
+			const TSharedPtr<FGeoStaticMesh> GSM = MakeShared<FGeoStaticMesh>(InPath);
 			if (!GSM->bIsValid) { return -1; }
 
 			const int32 Index = GSMs.Add(GSM);

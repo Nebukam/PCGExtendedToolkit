@@ -3,11 +3,7 @@
 
 #include "Graph/PCGExChain.h"
 #include "Graph/PCGExCluster.h"
-
-#include "Data/PCGExAttributeHelpers.h"
 #include "Geometry/PCGExGeo.h"
-#include "Graph/Data/PCGExClusterData.h"
-#include "HLSLTree/HLSLTree.h"
 
 namespace PCGExCluster
 {

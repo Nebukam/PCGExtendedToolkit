@@ -49,6 +49,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExHeuristicConfigBase
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayPriority=-1))
 	TSoftObjectPtr<UCurveFloat> ScoreCurve;
 
+	UPROPERTY(Transient)
 	TObjectPtr<UCurveFloat> ScoreCurveObj;
 
 	/** Use a local attribute */

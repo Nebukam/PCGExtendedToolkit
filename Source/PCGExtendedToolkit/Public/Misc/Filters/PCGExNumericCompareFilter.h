@@ -61,16 +61,16 @@ class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExNumericCompareFilterFactory : public UPCG
 public:
 	FPCGExNumericCompareFilterConfig Config;
 
-	virtual TSharedPtr<PCGExPointFilter::TFilter> CreateFilter() const override;
+	virtual TSharedPtr<PCGExPointFilter::FFilter> CreateFilter() const override;
 };
 
 namespace PCGExPointsFilter
 {
-	class /*PCGEXTENDEDTOOLKIT_API*/ TNumericComparisonFilter final : public PCGExPointFilter::TSimpleFilter
+	class /*PCGEXTENDEDTOOLKIT_API*/ TNumericComparisonFilter final : public PCGExPointFilter::FSimpleFilter
 	{
 	public:
 		explicit TNumericComparisonFilter(const TObjectPtr<const UPCGExNumericCompareFilterFactory>& InDefinition)
-			: TSimpleFilter(InDefinition), TypedFilterFactory(InDefinition)
+			: FSimpleFilter(InDefinition), TypedFilterFactory(InDefinition)
 		{
 		}
 

@@ -193,7 +193,7 @@ bool FPCGExPartitionByValuesBaseElement::ExecuteInternal(FPCGContext* InContext)
 
 namespace PCGExPartitionByValues
 {
-	bool FProcessor::Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager)
+	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager> InAsyncManager)
 	{
 		if (!FPointsProcessor::Process(InAsyncManager)) { return false; }
 

@@ -327,7 +327,7 @@ namespace PCGExAssetCollection
 		}
 
 
-		void Reserve(int32 Num)
+		void Reserve(const int32 Num)
 		{
 			Indices.Reserve(Num);
 			Weights.Reserve(Num);

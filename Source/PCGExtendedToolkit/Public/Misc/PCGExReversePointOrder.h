@@ -91,7 +91,7 @@ protected:
 class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExReversePointOrderTask final : public PCGExMT::FPCGExTask
 {
 public:
-	FPCGExReversePointOrderTask(const TSharedPtr<PCGExData::FPointIO>& InPointIO) :
+	explicit FPCGExReversePointOrderTask(const TSharedPtr<PCGExData::FPointIO>& InPointIO) :
 		FPCGExTask(InPointIO)
 	{
 	}
@@ -116,7 +116,7 @@ namespace PCGExReversePointOrder
 		{
 		}
 
-		virtual bool Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager) override;
+		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager> InAsyncManager) override;
 		virtual void PrepareSingleLoopScopeForPoints(const uint32 StartIndex, const int32 Count) override;
 		virtual void CompleteWork() override;
 	};

@@ -10,9 +10,6 @@
 #include "Data/PCGExData.h"
 #include "Data/PCGExPointFilter.h"
 
-
-#include "Graph/PCGExGraph.h"
-
 namespace PCGExPointsMT
 {
 	PCGEX_ASYNC_STATE(MTState_PointsProcessing)
@@ -49,7 +46,7 @@ namespace PCGExPointsMT
 		TSharedPtr<PCGExMT::FTaskManager> AsyncManager;
 		FPCGExContext* ExecutionContext = nullptr;
 
-		TSharedPtr<PCGExPointFilter::TManager> PrimaryFilters;
+		TSharedPtr<PCGExPointFilter::FManager> PrimaryFilters;
 		bool bInlineProcessPoints = false;
 		bool bInlineProcessRange = false;
 
@@ -97,7 +94,7 @@ namespace PCGExPointsMT
 			FilterFactories = InFactories;
 		}
 
-		virtual bool Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager)
+		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager> InAsyncManager)
 		{
 			AsyncManager = InAsyncManager;
 
@@ -245,7 +242,7 @@ namespace PCGExPointsMT
 
 			if (InFilterFactories->IsEmpty()) { return true; }
 
-			PrimaryFilters = MakeShared<PCGExPointFilter::TManager>(PointDataFacade);
+			PrimaryFilters = MakeShared<PCGExPointFilter::FManager>(PointDataFacade);
 			return PrimaryFilters->Init(ExecutionContext, *InFilterFactories);
 		}
 
@@ -269,7 +266,7 @@ namespace PCGExPointsMT
 		const TSettings* Settings = nullptr;
 
 	public:
-		TPointsProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade):
+		explicit TPointsProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade):
 			FPointsProcessor(InPointDataFacade)
 		{
 		}

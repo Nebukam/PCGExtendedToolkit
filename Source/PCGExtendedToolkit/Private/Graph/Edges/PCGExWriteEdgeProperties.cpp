@@ -5,9 +5,6 @@
 
 #include "Data/Blending/PCGExMetadataBlender.h"
 
-
-#include "Kismet/KismetMathLibrary.h"
-
 #define LOCTEXT_NAMESPACE "PCGExEdgesToPaths"
 #define PCGEX_NAMESPACE WriteEdgeProperties
 

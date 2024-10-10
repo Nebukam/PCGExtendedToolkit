@@ -8,12 +8,6 @@
 #include "Data/PCGExPointStates.h"
 
 
-
-
-
-
-
-
 #include "Graph/Filters/PCGExClusterFilter.h"
 #include "Misc/PCGExBitmaskMerge.h"
 #include "Graph/PCGExCluster.h"
@@ -44,10 +38,10 @@ class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExClusterStateFactoryBase : public UPCGExCl
 	GENERATED_BODY()
 
 public:
-	virtual PCGExFactories::EType GetFactoryType() const override { return PCGExFactories::EType::StateNode; }
+	virtual PCGExFactories::EType GetFactoryType() const override { return PCGExFactories::EType::NodeState; }
 
 	TArray<TObjectPtr<const UPCGExFilterFactoryBase>> FilterFactories;
-	virtual TSharedPtr<PCGExPointFilter::TFilter> CreateFilter() const override;
+	virtual TSharedPtr<PCGExPointFilter::FFilter> CreateFilter() const override;
 
 	FPCGExClusterStateConfigBase Config;
 
@@ -56,7 +50,7 @@ public:
 
 namespace PCGExClusterStates
 {
-	class /*PCGEXTENDEDTOOLKIT_API*/ FState : public PCGExClusterFilter::TFilter
+	class /*PCGEXTENDEDTOOLKIT_API*/ FState final : public PCGExClusterFilter::FFilter
 	{
 	public:
 		FPCGExClusterStateConfigBase Config;
@@ -64,7 +58,7 @@ namespace PCGExClusterStates
 		const UPCGExClusterStateFactoryBase* StateFactory = nullptr;
 
 		explicit FState(const UPCGExClusterStateFactoryBase* InFactory):
-			TFilter(InFactory), StateFactory(InFactory)
+			FFilter(InFactory), StateFactory(InFactory)
 		{
 		}
 
@@ -80,10 +74,10 @@ namespace PCGExClusterStates
 		void ProcessFlags(const bool bSuccess, int64& InFlags) const;
 
 	protected:
-		TSharedPtr<PCGExClusterFilter::TManager> Manager;
+		TSharedPtr<PCGExClusterFilter::FManager> Manager;
 	};
 
-	class /*PCGEXTENDEDTOOLKIT_API*/ FStateManager : public PCGExClusterFilter::TManager
+	class /*PCGEXTENDEDTOOLKIT_API*/ FStateManager final : public PCGExClusterFilter::FManager
 	{
 		TArray<TSharedPtr<FState>> States;
 		TSharedPtr<TArray<int64>> FlagsCache;
@@ -117,7 +111,7 @@ namespace PCGExClusterStates
 		}
 
 	protected:
-		virtual void PostInitFilter(const FPCGContext* InContext, const TSharedPtr<PCGExPointFilter::TFilter>& InFilter) override;
+		virtual void PostInitFilter(const FPCGContext* InContext, const TSharedPtr<PCGExPointFilter::FFilter>& InFilter) override;
 	};
 };
 

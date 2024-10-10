@@ -3,9 +3,6 @@
 
 #include "Sampling/PCGExSampleNearestSurface.h"
 
-#include "Data/PCGExPointFilter.h"
-
-
 #if ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION > 3
 #include "Engine/OverlapResult.h"
 #endif
@@ -106,7 +103,7 @@ namespace PCGExSampleNearestSurface
 	{
 	}
 
-	bool FProcessor::Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager)
+	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager> InAsyncManager)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExSampleNearestSurface::Process);
 
@@ -174,7 +171,7 @@ namespace PCGExSampleNearestSurface
 		const FCollisionShape CollisionShape = FCollisionShape::MakeSphere(MaxDistance);
 
 		FVector HitLocation;
-		int32* HitIndex = nullptr;
+		const int32* HitIndex = nullptr;
 		bool bSuccess = false;
 		TArray<FOverlapResult> OutOverlaps;
 
@@ -270,8 +267,8 @@ namespace PCGExSampleNearestSurface
 		{
 			for (const UPrimitiveComponent* Primitive : Context->IncludedPrimitives)
 			{
-				TArray<FOverlapResult> TempOverlaps;
-				if (Primitive->OverlapComponentWithResult(Origin, FQuat::Identity, CollisionShape, TempOverlaps))
+				if (TArray<FOverlapResult> TempOverlaps;
+					Primitive->OverlapComponentWithResult(Origin, FQuat::Identity, CollisionShape, TempOverlaps))
 				{
 					OutOverlaps.Append(TempOverlaps);
 				}
@@ -281,7 +278,7 @@ namespace PCGExSampleNearestSurface
 		}
 		else
 		{
-			UWorld* World = Context->SourceComponent->GetWorld();
+			const UWorld* World = Context->SourceComponent->GetWorld();
 
 			switch (Context->CollisionSettings.CollisionType)
 			{

@@ -104,7 +104,7 @@ namespace PCGExRelaxClusters
 		virtual void Write() override;
 	};
 
-	class FRelaxRangeTask : public PCGExMT::FPCGExTask
+	class FRelaxRangeTask final : public PCGExMT::FPCGExTask
 	{
 	public:
 		FRelaxRangeTask(const TSharedPtr<PCGExData::FPointIO>& InPointIO,

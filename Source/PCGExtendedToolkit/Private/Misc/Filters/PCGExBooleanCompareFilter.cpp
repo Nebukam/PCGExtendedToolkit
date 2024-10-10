@@ -7,14 +7,14 @@
 #define LOCTEXT_NAMESPACE "PCGExCompareFilterDefinition"
 #define PCGEX_NAMESPACE CompareFilterDefinition
 
-TSharedPtr<PCGExPointFilter::TFilter> UPCGExBooleanCompareFilterFactory::CreateFilter() const
+TSharedPtr<PCGExPointFilter::FFilter> UPCGExBooleanCompareFilterFactory::CreateFilter() const
 {
-	return MakeShared<PCGExPointsFilter::TBooleanComparisonFilter>(this);
+	return MakeShared<PCGExPointsFilter::FBooleanComparisonFilter>(this);
 }
 
-bool PCGExPointsFilter::TBooleanComparisonFilter::Init(const FPCGContext* InContext, const TSharedPtr<PCGExData::FFacade> InPointDataFacade)
+bool PCGExPointsFilter::FBooleanComparisonFilter::Init(const FPCGContext* InContext, const TSharedPtr<PCGExData::FFacade> InPointDataFacade)
 {
-	if (!TFilter::Init(InContext, InPointDataFacade)) { return false; }
+	if (!FFilter::Init(InContext, InPointDataFacade)) { return false; }
 
 	OperandA = PointDataFacade->GetScopedBroadcaster<bool>(TypedFilterFactory->Config.OperandA);
 

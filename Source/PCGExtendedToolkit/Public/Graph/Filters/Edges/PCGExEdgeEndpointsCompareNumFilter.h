@@ -58,7 +58,7 @@ class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExEdgeEndpointsCompareNumFilterFactory : pu
 public:
 	FPCGExEdgeEndpointsCompareNumFilterConfig Config;
 
-	virtual TSharedPtr<PCGExPointFilter::TFilter> CreateFilter() const override;
+	virtual TSharedPtr<PCGExPointFilter::FFilter> CreateFilter() const override;
 };
 
 namespace PCGExEdgeEndpointsCompareNum

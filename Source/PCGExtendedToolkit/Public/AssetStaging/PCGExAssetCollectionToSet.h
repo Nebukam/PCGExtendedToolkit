@@ -6,7 +6,6 @@
 #include "CoreMinimal.h"
 
 #include "PCGEx.h"
-#include "PCGExCompare.h"
 #include "PCGExPointsProcessor.h"
 #include "Collections/PCGExAssetCollection.h"
 

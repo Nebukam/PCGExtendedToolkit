@@ -5,6 +5,7 @@
 
 #include "PCGExRandom.h"
 
+
 #include "Elements/Metadata/PCGMetadataElementCommon.h"
 #include "Geometry/PCGExGeoVoronoi.h"
 #include "Graph/PCGExCluster.h"
@@ -98,7 +99,7 @@ namespace PCGExBuildVoronoi2D
 	{
 	}
 
-	bool FProcessor::Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager)
+	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager> InAsyncManager)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExBuildVoronoi2D::Process);
 

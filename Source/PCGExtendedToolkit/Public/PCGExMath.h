@@ -73,45 +73,42 @@ namespace PCGExMath
 		return FMath::Lerp(OutMin, OutMax, (InBase - InMin) / (InMax - InMin));
 	}
 
-	template <typename T, typename CompilerSafety = void>
+	template <typename T>
 	FORCEINLINE static T Tile(const T Value, const T Min, const T Max)
 	{
-		if (FMath::IsWithin(Value, Min, Max)) { return Value; }
+		if constexpr (std::is_same_v<T, FVector2D>)
+		{
+			return FVector2D(
+				Tile(Value.X, Min.X, Max.X),
+				Tile(Value.Y, Min.Y, Max.Y));
+		}
+		else if constexpr (std::is_same_v<T, FVector>)
+		{
+			return FVector(
+				Tile(Value.X, Min.X, Max.X),
+				Tile(Value.Y, Min.Y, Max.Y),
+				Tile(Value.Z, Min.Z, Max.Z));
+		}
+		else if constexpr (std::is_same_v<T, FVector4>)
+		{
+			return FVector4(
+				Tile(Value.X, Min.X, Max.X),
+				Tile(Value.Y, Min.Y, Max.Y),
+				Tile(Value.Z, Min.Z, Max.Z),
+				Tile(Value.W, Min.W, Max.W));
+		}
+		else
+		{
+			if (FMath::IsWithin(Value, Min, Max)) { return Value; }
 
-		T OutValue = Value;
-		T Range = Max - Min + 1;
+			T OutValue = Value;
+			T Range = Max - Min + 1;
 
-		OutValue = FMath::Fmod(static_cast<double>(OutValue - Min), static_cast<double>(Range));
-		if (OutValue < 0) { OutValue += Range; }
+			OutValue = FMath::Fmod(static_cast<double>(OutValue - Min), static_cast<double>(Range));
+			if (OutValue < 0) { OutValue += Range; }
 
-		return OutValue + Min;
-	}
-
-	template <typename CompilerSafety = void>
-	FORCEINLINE static FVector2D Tile(const FVector2D Value, const FVector2D Min, const FVector2D Max)
-	{
-		return FVector2D(
-			Tile(Value.X, Min.X, Max.X),
-			Tile(Value.Y, Min.Y, Max.Y));
-	}
-
-	template <typename CompilerSafety = void>
-	FORCEINLINE static FVector Tile(const FVector Value, const FVector Min, const FVector Max)
-	{
-		return FVector(
-			Tile(Value.X, Min.X, Max.X),
-			Tile(Value.Y, Min.Y, Max.Y),
-			Tile(Value.Z, Min.Z, Max.Z));
-	}
-
-	template <typename CompilerSafety = void>
-	FORCEINLINE static FVector4 Tile(const FVector4 Value, const FVector4 Min, const FVector4 Max)
-	{
-		return FVector4(
-			Tile(Value.X, Min.X, Max.X),
-			Tile(Value.Y, Min.Y, Max.Y),
-			Tile(Value.Z, Min.Z, Max.Z),
-			Tile(Value.W, Min.W, Max.W));
+			return OutValue + Min;
+		}
 	}
 
 	template <typename T>

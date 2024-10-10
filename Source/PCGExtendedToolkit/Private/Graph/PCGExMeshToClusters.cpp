@@ -138,7 +138,7 @@ bool FPCGExMeshToClustersElement::ExecuteInternal(
 					TArray<UStaticMeshComponent*> SMComponents;
 					if (UObject* FoundObject = FindObject<AActor>(nullptr, *Path.ToString()))
 					{
-						if (AActor* SourceActor = Cast<AActor>(FoundObject))
+						if (const AActor* SourceActor = Cast<AActor>(FoundObject))
 						{
 							TArray<UActorComponent*> Components;
 							SourceActor->GetComponents(Components);
@@ -244,7 +244,7 @@ namespace PCGExMeshToCluster
 		TArray<FPCGPoint>& VtxPoints = RootVtx->GetOut()->GetMutablePoints();
 		VtxPoints.SetNum(Mesh->Vertices.Num());
 
-		TSharedPtr<PCGExData::FFacade> RootVtxFacade = MakeShared<PCGExData::FFacade>(RootVtx.ToSharedRef());
+		const TSharedPtr<PCGExData::FFacade> RootVtxFacade = MakeShared<PCGExData::FFacade>(RootVtx.ToSharedRef());
 
 		const TSharedPtr<PCGExGraph::FGraphBuilder> GraphBuilder = MakeShared<PCGExGraph::FGraphBuilder>(RootVtxFacade.ToSharedRef(), &Context->GraphBuilderDetails);
 		Context->GraphBuilders[TaskIndex] = GraphBuilder;

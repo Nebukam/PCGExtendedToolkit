@@ -22,7 +22,7 @@ bool UPCGExBoundsFilterFactory::Init(FPCGExContext* InContext)
 	return true;
 }
 
-TSharedPtr<PCGExPointFilter::TFilter> UPCGExBoundsFilterFactory::CreateFilter() const
+TSharedPtr<PCGExPointFilter::FFilter> UPCGExBoundsFilterFactory::CreateFilter() const
 {
 	return MakeShared<PCGExPointsFilter::TBoundsFilter>(this);
 }
@@ -34,7 +34,7 @@ void UPCGExBoundsFilterFactory::BeginDestroy()
 
 bool PCGExPointsFilter::TBoundsFilter::Init(const FPCGContext* InContext, const TSharedPtr<PCGExData::FFacade> InPointDataFacade)
 {
-	if (!TFilter::Init(InContext, InPointDataFacade)) { return false; }
+	if (!FFilter::Init(InContext, InPointDataFacade)) { return false; }
 	return Cloud ? true : false;
 }
 

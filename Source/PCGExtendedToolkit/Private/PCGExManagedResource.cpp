@@ -43,7 +43,7 @@ void UPCGExManagedSplineMeshComponent::SetComponent(USplineMeshComponent* InComp
 	CachedRawComponentPtr = InComponent;
 }
 
-void UPCGExManagedSplineMeshComponent::AttachTo(AActor* InTargetActor, UPCGComponent* InSourceComponent)
+void UPCGExManagedSplineMeshComponent::AttachTo(AActor* InTargetActor, const UPCGComponent* InSourceComponent) const
 {
 	TRACE_CPUPROFILER_EVENT_SCOPE(UPCGExManagedSplineMeshComponent::AttachTo);
 

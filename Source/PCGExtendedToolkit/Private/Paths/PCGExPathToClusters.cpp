@@ -55,14 +55,14 @@ bool FPCGExPathToClustersElement::Boot(FPCGExContext* InContext) const
 			Context->MainPoints->GetInBounds().ExpandBy(10));
 
 		Context->UnionGraph->EdgesUnion->bIsAbstract = true; // Because we don't have edge data
-		
+
 		Context->UnionProcessor = MakeShared<PCGExGraph::FUnionProcessor>(
-		Context,
-		Context->UnionDataFacade.ToSharedRef(),
-		Context->UnionGraph.ToSharedRef(),
-		Settings->PointPointIntersectionDetails,
-		Settings->DefaultPointsBlendingDetails,
-		Settings->DefaultEdgesBlendingDetails);
+			Context,
+			Context->UnionDataFacade.ToSharedRef(),
+			Context->UnionGraph.ToSharedRef(),
+			Settings->PointPointIntersectionDetails,
+			Settings->DefaultPointsBlendingDetails,
+			Settings->DefaultEdgesBlendingDetails);
 
 		if (Settings->bFindPointEdgeIntersections)
 		{
@@ -79,7 +79,6 @@ bool FPCGExPathToClustersElement::Boot(FPCGExContext* InContext) const
 				Settings->bUseCustomPointEdgeBlending,
 				&Settings->CustomEdgeEdgeBlendingDetails);
 		}
-		
 	}
 
 
@@ -173,7 +172,7 @@ namespace PCGExPathToClusters
 	{
 	}
 
-	bool FNonFusingProcessor::Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager)
+	bool FNonFusingProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager> InAsyncManager)
 	{
 		if (!FPointsProcessor::Process(InAsyncManager)) { return false; }
 
@@ -231,7 +230,7 @@ namespace PCGExPathToClusters
 	{
 	}
 
-	bool FFusingProcessor::Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager)
+	bool FFusingProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager> InAsyncManager)
 	{
 		if (!FPointsProcessor::Process(InAsyncManager)) { return false; }
 
