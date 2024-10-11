@@ -115,7 +115,7 @@ namespace PCGExBuildVoronoi2D
 		FPCGExGeo2DProjectionDetails ProjectionDetails;
 
 		TBitArray<> WithinBounds;
-		TBitArray<> VtxWithinBounds;
+		TBitArray<> IsVtxValid;
 
 		TArray<FVector> SitesPositions;
 		TArray<FVector> DelaunaySitesLocations;

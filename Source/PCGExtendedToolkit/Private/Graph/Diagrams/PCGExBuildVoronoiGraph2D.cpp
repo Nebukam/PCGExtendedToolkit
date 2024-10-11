@@ -115,31 +115,10 @@ namespace PCGExBuildVoronoi2D
 
 		Voronoi = MakeUnique<PCGExGeo::TVoronoi2>();
 
-		/*
-		auto ExtractValidSites = [&]()
-		{
-			const PCGExData::FPointIO* SitesIO = Context->SitesOutput->Pairs[BatchIndex];
-			const TArray<FPCGPoint>& OriginalSites = PointIO->GetIn()->GetPoints();
-			TArray<FPCGPoint>& MutableSites = SitesIO->GetOut()->GetMutablePoints();
-			for (int i = 0; i < OriginalSites.Num(); i++)
-			{
-				if (Voronoi->Delaunay->DelaunayHull.Contains(i)) { continue; }
-				MutableSites.Add(OriginalSites[i]);
-			}
-		};
-		*/
-
 		const FBox Bounds = PointDataFacade->GetIn()->GetBounds().ExpandBy(Settings->ExpandBounds);
 		bool bSuccess = false;
 
-		if (Settings->bOutputSites)
-		{
-			bSuccess = Voronoi->Process<true>(ActivePositions, ProjectionDetails, Bounds, WithinBounds, VtxWithinBounds);
-		}
-		else
-		{
-			bSuccess = Voronoi->Process<false>(ActivePositions, ProjectionDetails, Bounds, WithinBounds, VtxWithinBounds);
-		}
+		bSuccess = Voronoi->Process(ActivePositions, ProjectionDetails, Bounds, WithinBounds);
 
 		if (!bSuccess)
 		{
@@ -153,9 +132,15 @@ namespace PCGExBuildVoronoi2D
 
 		SitesPositions.SetNumUninitialized(NumSites);
 
-		using UpdatePositionCallback = std::function<void(const int32, const FVector&)>;
-		UpdatePositionCallback UpdateSitePosition = [](const int32 Site, const FVector& InCentroid)
+		using UpdatePositionCallback = std::function<void(const int32)>;
+		UpdatePositionCallback UpdateSitePosition = [](const int32 SiteIndex)
 		{
+		};
+
+		auto MarkOOB = [&](const int32 SiteIndex)
+		{
+			const PCGExGeo::FDelaunaySite2& Site = Voronoi->Delaunay->Sites[SiteIndex];
+			for (int i = 0; i < 3; i++) { IsVtxValid[Site.Vtx[i]] = false; }
 		};
 
 		const int32 DelaunaySitesNum = PointDataFacade->GetNum(PCGExData::ESource::In);
@@ -164,11 +149,20 @@ namespace PCGExBuildVoronoi2D
 		{
 			DelaunaySitesLocations.Init(FVector::ZeroVector, DelaunaySitesNum);
 			DelaunaySitesInfluenceCount.Init(0, DelaunaySitesNum);
+			IsVtxValid.Init(true, DelaunaySitesNum);
 
-			UpdateSitePosition = [&](const int32 DelSiteIndex, const FVector& InCentroid)
+			for (int i = 0; i < IsVtxValid.Num(); i++) { IsVtxValid[i] = !Voronoi->Delaunay->DelaunayHull.Contains(i); }
+
+			UpdateSitePosition = [&](const int32 SiteIndex)
 			{
-				DelaunaySitesLocations[DelSiteIndex] += InCentroid;
-				DelaunaySitesInfluenceCount[DelSiteIndex] += 1;
+				const PCGExGeo::FDelaunaySite2& Site = Voronoi->Delaunay->Sites[SiteIndex];
+				const FVector& SitePos = SitesPositions[SiteIndex];
+				for (int i = 0; i < 3; i++)
+				{
+					const int32 DelSiteIndex = Site.Vtx[i];
+					DelaunaySitesLocations[DelSiteIndex] += SitePos;
+					DelaunaySitesInfluenceCount[DelSiteIndex] += 1;
+				}
 			};
 
 			SiteDataFacade = MakeShared<PCGExData::FFacade>(Context->SitesOutput->Pairs[PointDataFacade->Source->IOIndex].ToSharedRef());
@@ -218,18 +212,16 @@ namespace PCGExBuildVoronoi2D
 						const int32 A = RemappedIndices[HA];
 						const int32 B = RemappedIndices[HB];
 
-						if (A == -1 || B == -1) { continue; }
+						if (A == -1 || B == -1)
+						{
+							if (A == -1) { MarkOOB(HA); }
+							if (B == -1) { MarkOOB(HB); }
+							continue;
+						}
 						ValidEdges.Add(PCGEx::H64(A, B));
 
-						{
-							const PCGExGeo::FDelaunaySite2& Site = Voronoi->Delaunay->Sites[HA];
-							for (int i = 0; i < 3; i++) { UpdateSitePosition(Site.Vtx[i], SitesPositions[HA]); }
-						}
-
-						{
-							const PCGExGeo::FDelaunaySite2& Site = Voronoi->Delaunay->Sites[HB];
-							for (int i = 0; i < 3; i++) { UpdateSitePosition(Site.Vtx[i], SitesPositions[HB]); }
-						}
+						UpdateSitePosition(HA);
+						UpdateSitePosition(HB);
 					}
 				}
 				else
@@ -241,17 +233,15 @@ namespace PCGExBuildVoronoi2D
 						const int32 A = RemappedIndices[HA];
 						const int32 B = RemappedIndices[HB];
 
-						{
-							const PCGExGeo::FDelaunaySite2& Site = Voronoi->Delaunay->Sites[HA];
-							for (int i = 0; i < 3; i++) { UpdateSitePosition(Site.Vtx[i], SitesPositions[HA]); }
-						}
+						UpdateSitePosition(HA);
+						UpdateSitePosition(HB);
 
+						if (A == -1 || B == -1)
 						{
-							const PCGExGeo::FDelaunaySite2& Site = Voronoi->Delaunay->Sites[HB];
-							for (int i = 0; i < 3; i++) { UpdateSitePosition(Site.Vtx[i], SitesPositions[HB]); }
+							if (A == -1) { MarkOOB(HA); }
+							if (B == -1) { MarkOOB(HB); }
+							continue;
 						}
-
-						if (A == -1 || B == -1) { continue; }
 						ValidEdges.Add(PCGEx::H64(A, B));
 					}
 				}
@@ -313,17 +303,14 @@ namespace PCGExBuildVoronoi2D
 			{
 				for (const uint64 Hash : Voronoi->VoronoiEdges)
 				{
-					{
-						const int32 H = PCGEx::H64A(Hash);
-						const PCGExGeo::FDelaunaySite2& Site = Voronoi->Delaunay->Sites[H];
-						for (int i = 0; i < 3; i++) { UpdateSitePosition(Site.Vtx[i], SitesPositions[H]); }
-					}
+					const int32 HA = PCGEx::H64A(Hash);
+					const int32 HB = PCGEx::H64B(Hash);
 
-					{
-						const int32 H = PCGEx::H64B(Hash);
-						const PCGExGeo::FDelaunaySite2& Site = Voronoi->Delaunay->Sites[H];
-						for (int i = 0; i < 3; i++) { UpdateSitePosition(Site.Vtx[i], SitesPositions[H]); }
-					}
+					UpdateSitePosition(HA);
+					UpdateSitePosition(HB);
+
+					if (!WithinBounds[HA]) { MarkOOB(HA); }
+					if (!WithinBounds[HB]) { MarkOOB(HB); }
 				}
 			}
 
@@ -341,7 +328,7 @@ namespace PCGExBuildVoronoi2D
 
 			OutputSites->OnIterationCallback = [&](const int32 Index, const int32 Count, const int32 LoopIdx)
 			{
-				const bool bIsWithinBounds = VtxWithinBounds[Index];
+				const bool bIsWithinBounds = IsVtxValid[Index];
 				if (OpenSiteWriter) { OpenSiteWriter->GetMutable(Index) = bIsWithinBounds; }
 				if (DelaunaySitesInfluenceCount[Index] == 0) { return; }
 				SiteDataFacade->GetOut()->GetMutablePoints()[Index].Transform.SetLocation(DelaunaySitesLocations[Index] / DelaunaySitesInfluenceCount[Index]);
@@ -374,13 +361,14 @@ namespace PCGExBuildVoronoi2D
 			{
 				TArray<FPCGPoint>& MutablePoints = SiteDataFacade->GetOut()->GetMutablePoints();
 				int32 WriteIndex = 0;
-				for (int32 i = 0; i < MutablePoints.Num(); i++) { if (VtxWithinBounds[i]) { MutablePoints[WriteIndex++] = MutablePoints[i]; } }
+				for (int32 i = 0; i < MutablePoints.Num(); i++) { if (IsVtxValid[i]) { MutablePoints[WriteIndex++] = MutablePoints[i]; } }
 
 				MutablePoints.SetNum(WriteIndex);
 			}
 		}
 
 		GraphBuilder->OutputEdgesToContext();
+		if (SiteDataFacade) { SiteDataFacade->Source->Tags->Append(PointDataFacade->Source->Tags.ToSharedRef()); }
 	}
 
 	void FProcessor::Write()

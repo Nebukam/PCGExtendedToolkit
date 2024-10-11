@@ -69,8 +69,7 @@ namespace PCGExGeo
 			return IsValid;
 		}
 
-		template <bool bPerVtxCheck>
-		bool Process(const TArrayView<FVector>& Positions, const FPCGExGeo2DProjectionDetails& ProjectionDetails, const FBox& Bounds, TBitArray<>& WithinBounds, TBitArray<>& VtxWithinBounds)
+		bool Process(const TArrayView<FVector>& Positions, const FPCGExGeo2DProjectionDetails& ProjectionDetails, const FBox& Bounds, TBitArray<>& WithinBounds)
 		{
 			Clear();
 
@@ -86,11 +85,6 @@ namespace PCGExGeo
 			PCGEx::InitArray(Centroids, NumSites);
 			WithinBounds.Init(true, NumSites);
 
-			if constexpr (bPerVtxCheck)
-			{
-				VtxWithinBounds.Init(true, Positions.Num());
-			}
-
 			for (FDelaunaySite2& Site : Delaunay->Sites)
 			{
 				FVector CC = FVector::ZeroVector;
@@ -98,22 +92,7 @@ namespace PCGExGeo
 				GetCircumcenter(Positions, Site.Vtx, CC);
 				Circumcenters[Site.Id] = CC;
 
-				if constexpr (bPerVtxCheck)
-				{
-					if (Bounds.IsInside(CC))
-					{
-						WithinBounds[Site.Id] = true;
-					}
-					else
-					{
-						WithinBounds[Site.Id] = false;
-						for (int i = 0; i < 3; i++) { VtxWithinBounds[Site.Vtx[i]] = false; }
-					}
-				}
-				else
-				{
-					WithinBounds[Site.Id] = Bounds.IsInside(CC);
-				}
+				WithinBounds[Site.Id] = Bounds.IsInside(CC);
 
 				GetCentroid(Positions, Site.Vtx, Centroids[Site.Id]);
 
