@@ -459,11 +459,11 @@ namespace PCGExData
 		}
 
 		template <typename T>
-		TSharedPtr<TBuffer<T>> GetScopedBroadcaster(const FName& InName, const bool bCaptureMinMax = false)
+		TSharedPtr<TBuffer<T>> GetScopedBroadcaster(const FName& InName)
 		{
 			FPCGAttributePropertyInputSelector Selector = FPCGAttributePropertyInputSelector();
 			Selector.SetAttributeName(InName);
-			return GetScopedBroadcaster<T>(Selector, bCaptureMinMax);
+			return GetScopedBroadcaster<T>(Selector);
 		}
 
 		template <typename T>

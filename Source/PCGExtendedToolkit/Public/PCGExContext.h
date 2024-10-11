@@ -110,6 +110,13 @@ protected:
 
 #pragma endregion
 
+#pragma region Managed Components
+
+public:
+	void AttachManageComponent(AActor* InParent, USceneComponent* InComponent, const FAttachmentTransformRules& AttachmentRules) const;
+
+#pragma endregion
+
 public:
 	bool CanExecute() const;
 	bool CancelExecution(const FString& InReason);

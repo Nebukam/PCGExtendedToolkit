@@ -3,9 +3,12 @@
 
 #include "PCGExContext.h"
 
+#include "PCGComponent.h"
 #include "PCGExMacros.h"
+#include "PCGManagedResource.h"
 #include "Data/PCGSpatialData.h"
 #include "Engine/AssetManager.h"
+#include "Helpers/PCGHelpers.h"
 
 #define LOCTEXT_NAMESPACE "PCGExContext"
 
@@ -230,6 +233,30 @@ void FPCGExContext::LoadAssets()
 	{
 		LoadHandle = UAssetManager::GetStreamableManager().RequestSyncLoad(RequiredAssets.Array());
 	}
+}
+
+void FPCGExContext::AttachManageComponent(AActor* InParent, USceneComponent* InComponent, const FAttachmentTransformRules& AttachmentRules) const
+{
+	UPCGComponent* SrcComp = SourceComponent.Get();
+
+	bool bIsPreviewMode = false;
+#if ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION > 3
+	bIsPreviewMode = SrcComp->IsInPreviewMode();
+#endif
+
+	InComponent->ComponentTags.Reserve(InComponent->ComponentTags.Num() + 2);
+	InComponent->ComponentTags.Add(SrcComp->GetFName());
+	InComponent->ComponentTags.Add(PCGHelpers::DefaultPCGTag);
+
+	UPCGManagedComponent* ManagedComponent = NewObject<UPCGManagedComponent>(SrcComp);
+	ManagedComponent->GeneratedComponent = InComponent;
+	SrcComp->AddToManagedResources(ManagedComponent);
+
+	InParent->Modify(!bIsPreviewMode);
+
+	InComponent->RegisterComponent();
+	InParent->AddInstanceComponent(InComponent);
+	InComponent->AttachToComponent(InParent->GetRootComponent(), AttachmentRules);
 }
 
 bool FPCGExContext::CanExecute() const

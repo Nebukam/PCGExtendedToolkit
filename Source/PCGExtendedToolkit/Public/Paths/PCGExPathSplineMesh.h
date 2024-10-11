@@ -151,6 +151,7 @@ namespace PCGExPathSplineMesh
 {
 	class FProcessor final : public PCGExPointsMT::TPointsProcessor<FPCGExPathSplineMeshContext, UPCGExPathSplineMeshSettings>
 	{
+		
 		bool bOutputWeight = false;
 		bool bOneMinusWeight = false;
 		bool bNormalizedWeight = false;

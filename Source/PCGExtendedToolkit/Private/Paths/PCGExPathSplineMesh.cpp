@@ -4,7 +4,6 @@
 #include "Paths/PCGExPathSplineMesh.h"
 
 #include "PCGExHelpers.h"
-#include "PCGExManagedResource.h"
 #include "Collections/PCGExInternalCollection.h"
 
 
@@ -382,53 +381,41 @@ namespace PCGExPathSplineMesh
 			return;
 		}
 
-		UPCGComponent* Comp = ExecutionContext->SourceComponent.Get();
+		bool bIsPreviewMode = false;
+#if ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION > 3
+		bIsPreviewMode = ExecutionContext->SourceComponent.Get()->IsInPreviewMode();
+#endif
+
+		TArray<FName> DataTags = PointDataFacade->Source->Tags->ToFNameList();
 
 		for (const PCGExPaths::FSplineMeshSegment& Segment : Segments)
 		{
 			if (!Segment.AssetStaging) { continue; }
 
-			USplineMeshComponent* SMC = UPCGExManagedSplineMeshComponent::CreateComponentOnly(TargetActor, ExecutionContext->SourceComponent.Get(), Segment);
-			if (!SMC) { continue; }
+			const FString ComponentName = TEXT("PCGSplineMeshComponent_") + Segment.AssetStaging->Path.GetAssetName();
+			const EObjectFlags ObjectFlags = (bIsPreviewMode ? RF_Transient : RF_NoFlags);
+			USplineMeshComponent* SplineMeshComponent = NewObject<USplineMeshComponent>(TargetActor, MakeUniqueObjectName(TargetActor, USplineMeshComponent::StaticClass(), FName(ComponentName)), ObjectFlags);
 
-			if (!Segment.ApplyMesh(SMC))
-			{
-				if (SMC)
-				{
-					SMC->RemoveFromRoot();
-					SMC->ClearInternalFlags(EInternalObjectFlags::Async);
-					SMC->MarkAsGarbage();
-					SMC = nullptr;
-				}
-				continue;
-			}
+			SplineMeshComponent->SetCollisionEnabled(ECollisionEnabled::Type::NoCollision);
+			SplineMeshComponent->SetMobility(EComponentMobility::Static);
+			SplineMeshComponent->SetSimulatePhysics(false);
+			SplineMeshComponent->SetMassOverrideInKg(NAME_None, 0.0f);
+			SplineMeshComponent->SetUseCCD(false);
+			SplineMeshComponent->CanCharacterStepUpOn = ECB_No;
+			SplineMeshComponent->bUseDefaultCollision = false;
+			SplineMeshComponent->bNavigationRelevant = false;
+			SplineMeshComponent->SetbNeverNeedsCookedCollisionData(true);
 
-			SMC->ClearInternalFlags(EInternalObjectFlags::Async);
-			UPCGExManagedSplineMeshComponent::RegisterAndAttachComponent(TargetActor, SMC, Comp, Settings->UID);
+			Segment.ApplySettings(SplineMeshComponent); // Init Component
+
+			SplineMeshComponent->ComponentTags.Append(DataTags);
+
+			Context->AttachManageComponent(
+				TargetActor, SplineMeshComponent,
+				FAttachmentTransformRules(EAttachmentRule::KeepWorld, EAttachmentRule::KeepWorld, EAttachmentRule::KeepWorld, false));
+
 			Context->NotifyActors.Add(TargetActor);
 		}
-
-		/*
-		for (int i = 0; i < SplineMeshComponents.Num(); i++)
-		{
-			USplineMeshComponent* SMC = SplineMeshComponents[i];
-			if (!SMC) { continue; }
-
-			const PCGExPaths::FSplineMeshSegment& Params = Segments[i];
-
-			if (!Params.ApplyMesh(SMC))
-			{
-				SplineMeshComponents[i] = nullptr;
-				PCGEX_DELETE_UOBJECT(SMC)
-			}
-
-			SMC->ClearInternalFlags(EInternalObjectFlags::Async);
-			UPCGExManagedSplineMeshComponent::RegisterAndAttachComponent(TargetActor, SMC, Comp, Settings->UID);
-			Context->NotifyActors.Add(TargetActor);
-		}
-
-		SplineMeshComponents.Empty();
-		*/
 	}
 }
 
