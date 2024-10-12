@@ -30,7 +30,6 @@ class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExConditionalActionAttributesOperation : pu
 	GENERATED_BODY()
 
 public:
-	UPROPERTY(Transient)
 	UPCGExConditionalActionAttributesFactory* TypedFactory = nullptr;
 
 	virtual void CopySettingsFrom(const UPCGExOperation* Other) override;

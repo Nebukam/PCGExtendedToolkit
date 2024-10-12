@@ -44,7 +44,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExActorCollectionEntry : public FPCGExAsse
 
 	virtual bool Validate(const UPCGExAssetCollection* ParentCollection) override;
 	virtual void UpdateStaging(const UPCGExAssetCollection* OwningCollection, const bool bRecursive) override;
-	virtual void SetAssetPath(FSoftObjectPath InPath) override;
+	virtual void SetAssetPath(const FSoftObjectPath& InPath) override;
 
 protected:
 	virtual void OnSubCollectionLoaded() override;
@@ -67,29 +67,8 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Settings, meta=(TitleProperty="DisplayName"))
 	TArray<FPCGExActorCollectionEntry> Entries;
 
-	FORCEINLINE virtual bool GetStagingAt(const FPCGExAssetStagingData*& OutStaging, const int32 Index) const override
-	{
-		return GetStagingAtTpl(OutStaging, Entries, Index);
-	}
-
-	FORCEINLINE virtual bool GetStaging(const FPCGExAssetStagingData*& OutStaging, const int32 Index, const int32 Seed, const EPCGExIndexPickMode PickMode) const override
-	{
-		return GetStagingTpl(OutStaging, Entries, Index, Seed, PickMode);
-	}
-
-	FORCEINLINE virtual bool GetStagingRandom(const FPCGExAssetStagingData*& OutStaging, const int32 Seed) const override
-	{
-		return GetStagingRandomTpl(OutStaging, Entries, Seed);
-	}
-
-	FORCEINLINE virtual bool GetStagingWeightedRandom(const FPCGExAssetStagingData*& OutStaging, const int32 Seed) const override
-	{
-		return GetStagingWeightedRandomTpl(OutStaging, Entries, Seed);
-	}
-
-	virtual UPCGExAssetCollection* GetCollectionFromAttributeSet(FPCGExContext* InContext, const UPCGParamData* InAttributeSet, const FPCGExAssetAttributeSetDetails& Details, const bool bBuildStaging) const override;
-	virtual UPCGExAssetCollection* GetCollectionFromAttributeSet(FPCGExContext* InContext, const FName InputPin, const FPCGExAssetAttributeSetDetails& Details, const bool bBuildStaging) const override;
+	PCGEX_ASSET_COLLECTION_BOILERPLATE(UPCGExActorCollection)
+	
 	virtual void GetAssetPaths(TSet<FSoftObjectPath>& OutPaths, const PCGExAssetCollection::ELoadingFlags Flags) const override;
 
-	virtual void BuildCache() override;
 };

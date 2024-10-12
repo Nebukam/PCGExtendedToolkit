@@ -163,7 +163,7 @@ namespace PCGEx
 		{
 			T* Object = nullptr;
 
-#if ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION >= 5
+#if PCGEX_ENGINE_VERSION >= 505
 
 			if (!IsInGameThread())
 			{
@@ -183,7 +183,7 @@ namespace PCGEx
 
 			DuplicateObjects.Add(Object);
 
-#elif ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION == 4
+#elif PCGEX_ENGINE_VERSION == 504
 			if (!IsInGameThread())
 			{
 				{
@@ -250,7 +250,7 @@ namespace PCGEx
 		else if constexpr (std::is_same_v<T, FTransform>) { return EPCGMetadataTypes::Transform; }
 		else if constexpr (std::is_same_v<T, FString>) { return EPCGMetadataTypes::String; }
 		else if constexpr (std::is_same_v<T, FName>) { return EPCGMetadataTypes::Name; }
-#if ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION > 3
+#if PCGEX_ENGINE_VERSION > 503
 		else if constexpr (std::is_same_v<T, FSoftClassPath>) { return EPCGMetadataTypes::SoftClassPath; }
 		else if constexpr (std::is_same_v<T, FSoftObjectPath>) { return EPCGMetadataTypes::SoftObjectPath; }
 #endif

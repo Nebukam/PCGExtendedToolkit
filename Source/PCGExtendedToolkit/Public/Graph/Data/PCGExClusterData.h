@@ -50,7 +50,7 @@ public:
 	virtual void BeginDestroy() override;
 
 protected:
-#if ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION < 5
+#if PCGEX_ENGINE_VERSION < 505
 	virtual UPCGSpatialData* CopyInternal() const override;
 #else
 	virtual UPCGSpatialData* CopyInternal(FPCGContext* Context) const override;
@@ -75,7 +75,7 @@ public:
 
 protected:
 	TSharedPtr<PCGExCluster::FCluster> Cluster;
-#if ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION < 5
+#if PCGEX_ENGINE_VERSION < 505
 	virtual UPCGSpatialData* CopyInternal() const override;
 #else
 	virtual UPCGSpatialData* CopyInternal(FPCGContext* Context) const override;

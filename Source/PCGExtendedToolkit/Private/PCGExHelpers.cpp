@@ -75,7 +75,7 @@ namespace PCGEx
 
 	void FManagedObjects::RecursivelyClearAsyncFlag(UObject* InObject) const
 	{
-#if ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION >= 5
+#if PCGEX_ENGINE_VERSION >= 505
 		if (DuplicateObjects.Contains(InObject))
 		{
 			//UPCGSpatialData* SpatialData = Cast<UPCGSpatialData>(InObject);

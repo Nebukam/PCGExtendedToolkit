@@ -209,7 +209,7 @@ namespace PCGExCreateSpline
 		if (Settings->Mode != EPCGCreateSplineMode::CreateDataOnly)
 		{
 			bool bIsPreviewMode = false;
-#if ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION > 3
+#if PCGEX_ENGINE_VERSION > 503
 			bIsPreviewMode = ExecutionContext->SourceComponent.Get()->IsInPreviewMode();
 #endif
 

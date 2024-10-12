@@ -481,10 +481,8 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExCollisionDetails
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bIgnoreActors"))
 	FPCGExActorSelectorSettings IgnoredActorSelector;
 
-	UPROPERTY(Transient)
 	TArray<AActor*> IgnoredActors;
 
-	UPROPERTY(Transient)
 	UWorld* World = nullptr;
 
 	void Init(const FPCGExContext* InContext);

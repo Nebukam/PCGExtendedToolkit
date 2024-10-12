@@ -29,7 +29,7 @@ void UPCGExClusterNodesData::BeginDestroy()
 	BoundClusters.Empty();
 }
 
-#if ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION < 5
+#if PCGEX_ENGINE_VERSION < 505
 UPCGSpatialData* UPCGExClusterNodesData::CopyInternal() const
 {
 	UPCGExClusterNodesData* NewNodeData = nullptr;
@@ -76,7 +76,7 @@ const TSharedPtr<PCGExCluster::FCluster>& UPCGExClusterEdgesData::GetBoundCluste
 	return Cluster;
 }
 
-#if ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION < 5
+#if PCGEX_ENGINE_VERSION < 505
 UPCGSpatialData* UPCGExClusterEdgesData::CopyInternal() const
 {
 	UPCGExClusterEdgesData* NewEdgeData = nullptr;

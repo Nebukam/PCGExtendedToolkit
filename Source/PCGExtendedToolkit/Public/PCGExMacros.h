@@ -6,10 +6,12 @@
 #ifndef PCGEX_MACROS
 #define PCGEX_MACROS
 
+#define PCGEX_ENGINE_VERSION ENGINE_MAJOR_VERSION * 100 + ENGINE_MINOR_VERSION
+
 #pragma region PCGEX MACROS
 
-#define PCGEX_NOT_IMPLEMENTED(_NAME){ LowLevelFatalError(TEXT("Method not supported (%s)"), TEXT(#_NAME));}
-#define PCGEX_NOT_IMPLEMENTED_RET(_NAME, _RETURN){ LowLevelFatalError(TEXT("Method not supported (%s)"), TEXT(#_NAME)); return _RETURN;}
+#define PCGEX_NOT_IMPLEMENTED(_NAME){ LowLevelFatalError(TEXT("Method not implemented: (%s)"), TEXT(#_NAME));}
+#define PCGEX_NOT_IMPLEMENTED_RET(_NAME, _RETURN){ LowLevelFatalError(TEXT("Method not implemented: (%s)"), TEXT(#_NAME)); return _RETURN;}
 
 #define PCGEX_LOG_CTR(_NAME)  //UE_LOG(LogTemp, Warning, TEXT(#_NAME"::Constructor"))
 #define PCGEX_LOG_DTR(_NAME)  //UE_LOG(LogTemp, Warning, TEXT(#_NAME"::Destructor"))
@@ -22,7 +24,7 @@ MACRO(X)\
 MACRO(Y)\
 MACRO(Z)
 
-#if ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION <= 3
+#if PCGEX_ENGINE_VERSION <= 503
 enum class EPCGPinStatus : uint8
 {
 	Normal = 0,
@@ -31,7 +33,7 @@ enum class EPCGPinStatus : uint8
 };
 #endif
 
-#if ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION <= 3
+#if PCGEX_ENGINE_VERSION <= 503
 #define PCGEX_FOREACH_SUPPORTEDTYPES(MACRO, ...) \
 MACRO(bool, Boolean, __VA_ARGS__)       \
 MACRO(int32, Integer32, __VA_ARGS__)      \
@@ -125,7 +127,7 @@ virtual FName AdditionalTaskName() const override{ return bCacheResult ? FName(F
 virtual FText GetDefaultNodeTitle() const override { return NSLOCTEXT("PCGEx" #_SHORTNAME, "NodeTitle", "PCGEx | " _NAME);} \
 virtual FText GetNodeTooltipText() const override{ return NSLOCTEXT("PCGEx" #_SHORTNAME "Tooltip", "NodeTooltip", _TOOLTIP); }
 
-#if ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION <= 3
+#if PCGEX_ENGINE_VERSION <= 503
 #define PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(_SHORTNAME, _NAME, _TOOLTIP, _TASK_NAME)\
 virtual FName GetDefaultNodeName() const override { return FName(TEXT(#_SHORTNAME)); } \
 virtual FName AdditionalTaskName() const override{ return _TASK_NAME.IsNone() ? FName(GetDefaultNodeTitle().ToString()) : FName(FString(GetDefaultNodeTitle().ToString() + "\r" + _TASK_NAME.ToString())); }\
@@ -174,7 +176,7 @@ FPCGElementPtr UPCGEx##_NAME##Settings::CreateElement() const{	return MakeShared
 #define PCGEX_PIN_TOOLTIP(_TOOLTIP) {}
 #endif
 
-#if ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION > 3
+#if PCGEX_ENGINE_VERSION > 503
 #define PCGEX_PIN_STATUS(_STATUS) Pin.PinStatus = EPCGPinStatus::_STATUS;
 #else
 #define PCGEX_PIN_STATUS(_STATUS) Pin.bAdvancedPin = EPCGPinStatus::_STATUS == EPCGPinStatus::Advanced;

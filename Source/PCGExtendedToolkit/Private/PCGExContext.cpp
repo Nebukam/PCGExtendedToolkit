@@ -240,7 +240,7 @@ void FPCGExContext::AttachManageComponent(AActor* InParent, USceneComponent* InC
 	UPCGComponent* SrcComp = SourceComponent.Get();
 
 	bool bIsPreviewMode = false;
-#if ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION > 3
+#if PCGEX_ENGINE_VERSION > 503
 	bIsPreviewMode = SrcComp->IsInPreviewMode();
 #endif
 

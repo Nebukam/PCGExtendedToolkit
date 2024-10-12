@@ -277,7 +277,7 @@ namespace PCGExPaths
 			Component->SetStartOffset(Params.StartOffset, false);
 			Component->SetEndOffset(Params.EndOffset, false);
 
-#if ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION > 3
+#if PCGEX_ENGINE_VERSION > 503
 			Component->SplineParams.NaniteClusterBoundsScale = Params.NaniteClusterBoundsScale;
 #endif
 

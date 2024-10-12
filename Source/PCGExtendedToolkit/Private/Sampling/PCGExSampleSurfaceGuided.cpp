@@ -175,7 +175,7 @@ namespace PCGExSampleSurfaceGuided
 			PCGEX_OUTPUT_VALUE(IsInside, Index, FVector::DotProduct(Direction, HitResult.ImpactNormal) > 0)
 			PCGEX_OUTPUT_VALUE(Success, Index, bSuccess)
 
-#if ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION <= 3
+#if PCGEX_ENGINE_VERSION <= 503
 			if (const AActor* HitActor = HitResult.GetActor())
 			{
 				HitIndex = Context->IncludedActors.Find(HitActor);

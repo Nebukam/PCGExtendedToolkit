@@ -25,7 +25,7 @@ void UPCGExPointData::BeginDestroy()
 	Super::BeginDestroy();
 }
 
-#if ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION < 5
+#if PCGEX_ENGINE_VERSION < 505
 UPCGSpatialData* UPCGExPointData::CopyInternal() const
 {
 	UPCGExPointData* NewPointData = nullptr;

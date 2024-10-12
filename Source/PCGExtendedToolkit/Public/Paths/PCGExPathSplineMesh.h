@@ -60,7 +60,7 @@ public:
 	TSoftObjectPtr<UPCGExAssetCollection> AssetCollection;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="CollectionSource == EPCGExCollectionSource::AttributeSet", EditConditionHides))
-	FPCGExAssetAttributeSetDetails AttributeSetDetails;
+	FPCGExRoamingAssetCollectionDetails AttributeSetDetails = FPCGExRoamingAssetCollectionDetails(UPCGExMeshCollection::StaticClass());
 
 	/** Distribution details */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Distribution", meta=(PCG_Overridable, ShowOnlyInnerProperties))
@@ -151,7 +151,6 @@ namespace PCGExPathSplineMesh
 {
 	class FProcessor final : public PCGExPointsMT::TPointsProcessor<FPCGExPathSplineMeshContext, UPCGExPathSplineMeshSettings>
 	{
-		
 		bool bOutputWeight = false;
 		bool bOneMinusWeight = false;
 		bool bNormalizedWeight = false;
@@ -173,7 +172,7 @@ namespace PCGExPathSplineMesh
 		TSharedPtr<PCGExData::TBuffer<int32>> WeightWriter;
 		TSharedPtr<PCGExData::TBuffer<double>> NormalizedWeightWriter;
 
-#if ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION > 3
+#if PCGEX_ENGINE_VERSION > 503
 		TSharedPtr<PCGExData::TBuffer<FSoftObjectPath>> PathWriter;
 #else
 		TSharedPtr<PCGExData::TBuffer<FString>> PathWriter;

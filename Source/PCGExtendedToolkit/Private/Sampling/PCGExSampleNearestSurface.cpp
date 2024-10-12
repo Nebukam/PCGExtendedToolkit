@@ -3,7 +3,7 @@
 
 #include "Sampling/PCGExSampleNearestSurface.h"
 
-#if ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION > 3
+#if PCGEX_ENGINE_VERSION > 503
 #include "Engine/OverlapResult.h"
 #endif
 
@@ -225,7 +225,7 @@ namespace PCGExSampleNearestSurface
 							HitLocation = HitResult.Location;
 							bIsInside = IsInsideWriter ? FVector::DotProduct(Direction, HitResult.ImpactNormal) > 0 : false;
 
-#if ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION <= 3
+#if PCGEX_ENGINE_VERSION <= 503
 							if (const AActor* HitActor = HitResult.GetActor()) { PCGEX_OUTPUT_VALUE(ActorReference, Index, HitActor->GetPathName()) }
 							if (const UPhysicalMaterial* PhysMat = HitResult.PhysMaterial.Get()) { PCGEX_OUTPUT_VALUE(PhysMat, Index, PhysMat->GetPathName()) }
 #else
@@ -238,7 +238,7 @@ namespace PCGExSampleNearestSurface
 					{
 						UPhysicalMaterial* PhysMat = HitComp->GetBodyInstance()->GetSimplePhysicalMaterial();
 
-#if ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION <= 3
+#if PCGEX_ENGINE_VERSION <= 503
 						PCGEX_OUTPUT_VALUE(ActorReference, Index, HitComp->GetOwner()->GetPathName())
 						if (PhysMat) { PCGEX_OUTPUT_VALUE(PhysMat, Index, PhysMat->GetPathName()) }
 #else

@@ -14,7 +14,7 @@
 
 #include "PCGExSampleNearestSurface.generated.h"
 
-#if ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION <= 3
+#if PCGEX_ENGINE_VERSION <= 503
 #define PCGEX_FOREACH_FIELD_NEARESTSURFACE(MACRO)\
 MACRO(Success, bool, false)\
 MACRO(Location, FVector, FVector::ZeroVector)\

@@ -48,12 +48,9 @@ void FPCGExAssetCollectionEntry::UpdateStaging(const UPCGExAssetCollection* Owni
 	Staging.bIsSubCollection = bIsSubCollection;
 	Staging.Weight = Weight;
 	Staging.Category = Category;
+	Staging.Tags = Tags;
 	Staging.Variations = Variations;
 	if (bIsSubCollection) { Staging.Bounds = FBox(ForceInitToZero); }
-}
-
-void FPCGExAssetCollectionEntry::SetAssetPath(FSoftObjectPath InPath)
-{
 }
 
 void FPCGExAssetCollectionEntry::OnSubCollectionLoaded()
@@ -190,19 +187,52 @@ void UPCGExAssetCollection::BuildCache()
 	/* per-class implementation, forwards Entries to protected method */
 }
 
-UPCGExAssetCollection* UPCGExAssetCollection::GetCollectionFromAttributeSet(FPCGExContext* InContext, const UPCGParamData* InAttributeSet, const FPCGExAssetAttributeSetDetails& Details, const bool bBuildStaging) const
-{
-	return nullptr;
-}
-
-UPCGExAssetCollection* UPCGExAssetCollection::GetCollectionFromAttributeSet(FPCGExContext* InContext, const FName InputPin, const FPCGExAssetAttributeSetDetails& Details, const bool bBuildStaging) const
-{
-	return nullptr;
-}
-
 void UPCGExAssetCollection::GetAssetPaths(TSet<FSoftObjectPath>& OutPaths, const PCGExAssetCollection::ELoadingFlags Flags) const
 {
 }
+
+
+bool FPCGExRoamingAssetCollectionDetails::Validate(FPCGExContext* InContext) const
+{
+	if(!AssetCollectionType)
+	{
+		PCGE_LOG_C(Error, GraphAndLog, InContext, FTEXT("Collection type is not set."));
+		return false;
+	}
+	
+	return true;
+}
+
+UPCGExAssetCollection* FPCGExRoamingAssetCollectionDetails::TryBuildCollection(FPCGExContext* InContext, const UPCGParamData* InAttributeSet, const bool bBuildStaging) const
+{
+	if (!AssetCollectionType) { return nullptr; }
+	UPCGExAssetCollection* Collection = InContext->ManagedObjects->New<UPCGExAssetCollection>(GetTransientPackage(), AssetCollectionType, NAME_None);
+	if (!Collection) { return nullptr; }
+
+	if (!Collection->BuildFromAttributeSet(InContext, InAttributeSet, *this, bBuildStaging))
+	{
+		InContext->ManagedObjects->Destroy(Collection);
+		return nullptr;
+	}
+
+	return Collection;
+}
+
+UPCGExAssetCollection* FPCGExRoamingAssetCollectionDetails::TryBuildCollection(FPCGExContext* InContext, const FName InputPin, const bool bBuildStaging) const
+{
+	if (!AssetCollectionType) { return nullptr; }
+	UPCGExAssetCollection* Collection = InContext->ManagedObjects->New<UPCGExAssetCollection>(GetTransientPackage(), AssetCollectionType, NAME_None);
+	if (!Collection) { return nullptr; }
+
+	if (!Collection->BuildFromAttributeSet(InContext, InputPin, *this, bBuildStaging))
+	{
+		InContext->ManagedObjects->Destroy(Collection);
+		return nullptr;
+	}
+
+	return Collection;
+}
+
 
 namespace PCGExAssetCollection
 {

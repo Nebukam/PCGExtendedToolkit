@@ -45,7 +45,6 @@ class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExConditionalActionOperation : public UPCGE
 	GENERATED_BODY()
 
 public:
-	UPROPERTY(Transient)
 	UPCGExConditionalActionFactoryBase* Factory = nullptr;
 
 	virtual void CopySettingsFrom(const UPCGExOperation* Other) override;

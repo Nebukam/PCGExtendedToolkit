@@ -12,6 +12,17 @@
 
 #include "PCGExAssetCollection.generated.h"
 
+#define PCGEX_ASSET_COLLECTION_BOILERPLATE(_TYPE)\
+FORCEINLINE virtual bool GetStagingAt(const FPCGExAssetStagingData*& OutStaging, const int32 Index) const override{	return GetStagingAtTpl(OutStaging, Entries, Index);}\
+FORCEINLINE virtual bool GetStaging(const FPCGExAssetStagingData*& OutStaging, const int32 Index, const int32 Seed, const EPCGExIndexPickMode PickMode) const override{	return GetStagingTpl(OutStaging, Entries, Index, Seed, PickMode);}\
+FORCEINLINE virtual bool GetStagingRandom(const FPCGExAssetStagingData*& OutStaging, const int32 Seed) const override{	return GetStagingRandomTpl(OutStaging, Entries, Seed);}\
+FORCEINLINE virtual bool GetStagingWeightedRandom(const FPCGExAssetStagingData*& OutStaging, const int32 Seed) const override{	return GetStagingWeightedRandomTpl(OutStaging, Entries, Seed);}\
+virtual bool BuildFromAttributeSet(FPCGExContext* InContext, const UPCGParamData* InAttributeSet, const FPCGExAssetAttributeSetDetails& Details, const bool bBuildStaging) override \
+{ return BuildFromAttributeSetTpl(this, InContext, InAttributeSet, Details, bBuildStaging); } \
+virtual bool BuildFromAttributeSet(FPCGExContext* InContext, const FName InputPin, const FPCGExAssetAttributeSetDetails& Details, const bool bBuildStaging) override\
+{ return BuildFromAttributeSetTpl(this, InContext, InputPin, Details, bBuildStaging);}\
+virtual void BuildCache() override{ Super::BuildCache(Entries); }
+
 class UPCGExAssetCollection;
 
 UENUM(BlueprintType)
@@ -54,7 +65,7 @@ namespace PCGExAssetCollection
 {
 	const FName SourceAssetCollection = TEXT("AttributeSet");
 
-#if ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION > 3
+#if PCGEX_ENGINE_VERSION > 503
 	const TSet<EPCGMetadataTypes> SupportedPathTypes = {
 		EPCGMetadataTypes::SoftObjectPath,
 		EPCGMetadataTypes::String,
@@ -177,6 +188,9 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExAssetStagingData
 	FName Category = NAME_None; // Dupe from parent.
 
 	UPROPERTY()
+	TSet<FName> Tags;
+
+	UPROPERTY()
 	FPCGExFittingVariations Variations;
 
 	UPROPERTY(VisibleAnywhere, Category = Baked)
@@ -217,6 +231,9 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExAssetCollectionEntry
 	UPROPERTY(EditAnywhere, Category = Settings)
 	FName Category = NAME_None;
 
+	UPROPERTY(EditAnywhere, Category = Settings)
+	TSet<FName> Tags;
+
 	UPROPERTY(EditAnywhere, Category = Settings, meta=(EditCondition="!bIsSubCollection"))
 	FPCGExFittingVariations Variations;
 
@@ -235,7 +252,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExAssetCollectionEntry
 
 	virtual bool Validate(const UPCGExAssetCollection* ParentCollection);
 	virtual void UpdateStaging(const UPCGExAssetCollection* OwningCollection, const bool bRecursive);
-	virtual void SetAssetPath(FSoftObjectPath InPath);
+	virtual void SetAssetPath(const FSoftObjectPath& InPath) PCGEX_NOT_IMPLEMENTED(SetAssetPath(const FSoftObjectPath& InPath))
 
 protected:
 	template <typename T>
@@ -474,43 +491,40 @@ public:
 #pragma endregion
 
 	FORCEINLINE virtual bool GetStagingAt(const FPCGExAssetStagingData*& OutStaging, const int32 Index) const
-	{
-		return false;
-	}
+	PCGEX_NOT_IMPLEMENTED_RET(GetStagingAt(const FPCGExAssetStagingData*& OutStaging, const int32 Index), false)
 
 	FORCEINLINE virtual bool GetStaging(const FPCGExAssetStagingData*& OutStaging, const int32 Index, const int32 Seed, const EPCGExIndexPickMode PickMode = EPCGExIndexPickMode::Ascending) const
-	{
-		return false;
-	}
+	PCGEX_NOT_IMPLEMENTED_RET(GetStaging(const FPCGExAssetStagingData*& OutStaging, const int32 Index, const int32 Seed, const EPCGExIndexPickMode PickMode), false)
 
 	FORCEINLINE virtual bool GetStagingRandom(const FPCGExAssetStagingData*& OutStaging, const int32 Seed) const
-	{
-		return false;
-	}
+	PCGEX_NOT_IMPLEMENTED_RET(GetStagingRandom(const FPCGExAssetStagingData*& OutStaging, const int32 Seed), false)
 
 	FORCEINLINE virtual bool GetStagingWeightedRandom(const FPCGExAssetStagingData*& OutStaging, const int32 Seed) const
-	{
-		return false;
-	}
+	PCGEX_NOT_IMPLEMENTED_RET(GetStagingWeightedRandom(const FPCGExAssetStagingData*& OutStaging, const int32 Seed), false)
 
-	virtual UPCGExAssetCollection* GetCollectionFromAttributeSet(
+	virtual bool BuildFromAttributeSet(
 		FPCGExContext* InContext,
 		const UPCGParamData* InAttributeSet,
 		const FPCGExAssetAttributeSetDetails& Details,
-		const bool bBuildStaging = false) const;
+		const bool bBuildStaging = false)
+	PCGEX_NOT_IMPLEMENTED_RET(BuildFromAttributeSet, false)
 
-	virtual UPCGExAssetCollection* GetCollectionFromAttributeSet(
+	virtual bool BuildFromAttributeSet(
 		FPCGExContext* InContext,
 		const FName InputPin,
 		const FPCGExAssetAttributeSetDetails& Details,
-		const bool bBuildStaging = false) const;
+		const bool bBuildStaging = false)
+	PCGEX_NOT_IMPLEMENTED_RET(BuildFromAttributeSet, false)
 
 	virtual void GetAssetPaths(TSet<FSoftObjectPath>& OutPaths, const PCGExAssetCollection::ELoadingFlags Flags) const;
 
 protected:
 #pragma region GetStaging
 	template <typename T>
-	FORCEINLINE bool GetStagingAtTpl(const FPCGExAssetStagingData*& OutStaging, const TArray<T>& InEntries, const int32 Index) const
+	FORCEINLINE bool GetStagingAtTpl(
+		const FPCGExAssetStagingData*& OutStaging,
+		const TArray<T>& InEntries,
+		const int32 Index) const
 	{
 		const int32 Pick = Cache->Main->GetPick(Index, EPCGExIndexPickMode::Ascending);
 		if (!InEntries.IsValidIndex(Pick)) { return false; }
@@ -519,7 +533,12 @@ protected:
 	}
 
 	template <typename T>
-	FORCEINLINE bool GetStagingTpl(const FPCGExAssetStagingData*& OutStaging, const TArray<T>& InEntries, const int32 Index, const int32 Seed, const EPCGExIndexPickMode PickMode = EPCGExIndexPickMode::Ascending) const
+	FORCEINLINE bool GetStagingTpl(
+		const FPCGExAssetStagingData*& OutStaging,
+		const TArray<T>& InEntries,
+		const int32 Index,
+		const int32 Seed,
+		const EPCGExIndexPickMode PickMode) const
 	{
 		const int32 Pick = Cache->Main->GetPick(Index, PickMode);
 		if (!InEntries.IsValidIndex(Pick)) { return false; }
@@ -529,7 +548,10 @@ protected:
 	}
 
 	template <typename T>
-	FORCEINLINE bool GetStagingRandomTpl(const FPCGExAssetStagingData*& OutStaging, const TArray<T>& InEntries, const int32 Seed) const
+	FORCEINLINE bool GetStagingRandomTpl(
+		const FPCGExAssetStagingData*& OutStaging,
+		const TArray<T>& InEntries,
+		const int32 Seed) const
 	{
 		const T& Entry = InEntries[Cache->Main->GetPickRandom(Seed)];
 		if (Entry.SubCollectionPtr) { Entry.SubCollectionPtr->GetStagingRandomTpl(OutStaging, Entry.SubCollectionPtr->Entries, Seed + 1); }
@@ -538,11 +560,69 @@ protected:
 	}
 
 	template <typename T>
-	FORCEINLINE bool GetStagingWeightedRandomTpl(const FPCGExAssetStagingData*& OutStaging, const TArray<T>& InEntries, const int32 Seed) const
+	FORCEINLINE bool GetStagingWeightedRandomTpl(
+		const FPCGExAssetStagingData*& OutStaging,
+		const TArray<T>& InEntries,
+		const int32 Seed) const
 	{
 		const T& Entry = InEntries[Cache->Main->GetPickRandomWeighted(Seed)];
 		if (Entry.SubCollectionPtr) { Entry.SubCollectionPtr->GetStagingWeightedRandomTpl(OutStaging, Entry.SubCollectionPtr->Entries, Seed + 1); }
 		else { OutStaging = &Entry.Staging; }
+		return true;
+	}
+
+#pragma endregion
+
+#pragma region GetEntry
+
+	template <typename T>
+	FORCEINLINE bool GetEntryAtTpl(
+		const T*& OutEntry,
+		const TArray<T>& InEntries,
+		const int32 Index) const
+	{
+		const int32 Pick = Cache->Main->GetPick(Index, EPCGExIndexPickMode::Ascending);
+		if (!InEntries.IsValidIndex(Pick)) { return false; }
+		OutEntry = &InEntries[Pick];
+		return true;
+	}
+
+	template <typename T>
+	FORCEINLINE bool GetEntryTpl(
+		const T*& OutEntry,
+		const TArray<T>& InEntries,
+		const int32 Index,
+		const int32 Seed,
+		const EPCGExIndexPickMode PickMode) const
+	{
+		const int32 Pick = Cache->Main->GetPick(Index, PickMode);
+		if (!InEntries.IsValidIndex(Pick)) { return false; }
+		if (const T& Entry = InEntries[Pick]; Entry.SubCollectionPtr) { Entry.SubCollectionPtr->GetEntryWeightedRandomTpl(OutEntry, Entry.SubCollectionPtr->Entries, Seed); }
+		else { OutEntry = &Entry; }
+		return true;
+	}
+
+	template <typename T>
+	FORCEINLINE bool GetEntryRandomTpl(
+		const T*& OutEntry,
+		const TArray<T>& InEntries,
+		const int32 Seed) const
+	{
+		const T& Entry = InEntries[Cache->Main->GetPickRandom(Seed)];
+		if (Entry.SubCollectionPtr) { Entry.SubCollectionPtr->GetEntryRandomTpl(OutEntry, Entry.SubCollectionPtr->Entries, Seed + 1); }
+		else { OutEntry = &Entry; }
+		return true;
+	}
+
+	template <typename T>
+	FORCEINLINE bool GetEntryWeightedRandomTpl(
+		const T*& OutEntry,
+		const TArray<T>& InEntries,
+		const int32 Seed) const
+	{
+		const T& Entry = InEntries[Cache->Main->GetPickRandomWeighted(Seed)];
+		if (Entry.SubCollectionPtr) { Entry.SubCollectionPtr->GetEntryWeightedRandomTpl(OutEntry, Entry.SubCollectionPtr->Entries, Seed + 1); }
+		else { OutEntry = &Entry; }
 		return true;
 	}
 
@@ -586,25 +666,17 @@ protected:
 #endif
 
 	template <typename T>
-	T* GetCollectionFromAttributeSetTpl(
-		FPCGExContext* InContext,
-		const UPCGParamData* InAttributeSet,
+	bool BuildFromAttributeSetTpl(
+		T* InCollection, FPCGExContext* InContext, const UPCGParamData* InAttributeSet,
 		const FPCGExAssetAttributeSetDetails& Details,
 		const bool bBuildStaging = false) const
 	{
-		T* Collection = InContext->ManagedObjects->New<T>();
 		TUniquePtr<FPCGAttributeAccessorKeysEntries> Keys;
-
-		auto CreationFailed = [&]()
-		{
-			InContext->ManagedObjects->Remove(Collection);
-			return nullptr;
-		};
 
 		const UPCGMetadata* Metadata = InAttributeSet->Metadata;
 
 		const TSharedPtr<PCGEx::FAttributesInfos> Infos = PCGEx::FAttributesInfos::Get(Metadata);
-		if (Infos->Attributes.IsEmpty()) { return CreationFailed(); }
+		if (Infos->Attributes.IsEmpty()) { return false; }
 
 		const PCGEx::FAttributeIdentity* PathIdentity = Infos->Find(Details.AssetPathSourceAttribute);
 		const PCGEx::FAttributeIdentity* WeightIdentity = Infos->Find(Details.WeightSourceAttribute);
@@ -613,7 +685,7 @@ protected:
 		if (!PathIdentity || !PCGExAssetCollection::SupportedPathTypes.Contains(PathIdentity->UnderlyingType))
 		{
 			PCGE_LOG_C(Error, GraphAndLog, InContext, FText::Format(FTEXT("Path attribute '{0}' is either of unsupported type or not in the metadata. Expecting SoftObjectPath/String/Name"), FText::FromName(Details.AssetPathSourceAttribute)));
-			return CreationFailed();
+			return false;
 		}
 
 		if (WeightIdentity)
@@ -642,7 +714,7 @@ protected:
 			}
 		}
 
-#if ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION > 3
+#if PCGEX_ENGINE_VERSION > 503
 		Keys = MakeUnique<FPCGAttributeAccessorKeysEntries>(Metadata);
 #else
 		Keys = MakeUnique<FPCGAttributeAccessorKeysEntries>(Infos->Attributes[0]); // Probably not reliable, but make 5.3 compile -_-
@@ -652,21 +724,21 @@ protected:
 		if (NumEntries == 0)
 		{
 			PCGE_LOG_C(Error, GraphAndLog, InContext, FTEXT("Attribute set is empty."));
-			return CreationFailed();
+			return false;
 		}
 
-		PCGEx::InitArray(Collection->Entries, NumEntries);
+		PCGEx::InitArray(InCollection->Entries, NumEntries);
 
 		// Path value
 
-		auto SetEntryPath = [&](const int32 Index, const FSoftObjectPath& Path) { Collection->Entries[Index].SetAssetPath(Path); };
+		auto SetEntryPath = [&](const int32 Index, const FSoftObjectPath& Path) { InCollection->Entries[Index].SetAssetPath(Path); };
 
 #define PCGEX_FOREACH_COLLECTION_ENTRY(_TYPE, _NAME, _BODY)\
 		const FPCGMetadataAttribute<_TYPE>* A = Metadata->GetConstTypedAttribute<_TYPE>(_NAME);\
 		for (int i = 0; i < NumEntries; i++) { _TYPE V = A->GetValueFromItemKey(i); _BODY }
 
 
-#if ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION > 3
+#if PCGEX_ENGINE_VERSION > 503
 		if (PathIdentity->UnderlyingType == EPCGMetadataTypes::SoftObjectPath)
 		{
 			PCGEX_FOREACH_COLLECTION_ENTRY(FSoftObjectPath, PathIdentity->Name, { SetEntryPath(i, V); })
@@ -688,7 +760,7 @@ protected:
 		{
 #define PCGEX_ATT_TOINT32(_NAME, _TYPE)\
 			if (WeightIdentity->UnderlyingType == EPCGMetadataTypes::_NAME){ \
-				PCGEX_FOREACH_COLLECTION_ENTRY(_TYPE, WeightIdentity->Name, {  Collection->Entries[i].Weight = static_cast<int32>(V); }) }
+				PCGEX_FOREACH_COLLECTION_ENTRY(_TYPE, WeightIdentity->Name, {  InCollection->Entries[i].Weight = static_cast<int32>(V); }) }
 
 			PCGEX_ATT_TOINT32(Integer32, int32)
 			else
@@ -706,38 +778,65 @@ protected:
 		{
 			if (CategoryIdentity->UnderlyingType == EPCGMetadataTypes::String)
 			{
-				PCGEX_FOREACH_COLLECTION_ENTRY(FString, WeightIdentity->Name, { Collection->Entries[i].Category = FName(V); })
+				PCGEX_FOREACH_COLLECTION_ENTRY(FString, WeightIdentity->Name, { InCollection->Entries[i].Category = FName(V); })
 			}
 			else if (CategoryIdentity->UnderlyingType == EPCGMetadataTypes::Name)
 			{
-				PCGEX_FOREACH_COLLECTION_ENTRY(FName, WeightIdentity->Name, { Collection->Entries[i].Category = V; })
+				PCGEX_FOREACH_COLLECTION_ENTRY(FName, WeightIdentity->Name, { InCollection->Entries[i].Category = V; })
 			}
 		}
 
 #undef PCGEX_FOREACH_COLLECTION_ENTRY
 
-		if (bBuildStaging) { Collection->RebuildStagingData(false); }
+		if (bBuildStaging) { InCollection->RebuildStagingData(false); }
 
-		return Collection;
+		return true;
 	}
 
 	template <typename T>
-	T* GetCollectionFromAttributeSetTpl(
-		FPCGExContext* InContext,
-		const FName InputPin,
+	bool BuildFromAttributeSetTpl(
+		T* InCollection, FPCGExContext* InContext, const FName InputPin,
 		const FPCGExAssetAttributeSetDetails& Details, const bool bBuildStaging) const
 	{
 		const TArray<FPCGTaggedData> Inputs = InContext->InputData.GetInputsByPin(InputPin);
-		if (Inputs.IsEmpty()) { return nullptr; }
+		if (Inputs.IsEmpty()) { return false; }
 		for (const FPCGTaggedData& InData : Inputs)
 		{
 			if (const UPCGParamData* ParamData = Cast<UPCGParamData>(InData.Data))
 			{
-				return GetCollectionFromAttributeSetTpl<T>(InContext, ParamData, Details, bBuildStaging);
+				return BuildFromAttributeSetTpl<T>(InCollection, InContext, ParamData, Details, bBuildStaging);
 			}
 		}
-		return nullptr;
+		return false;
 	}
+};
+
+USTRUCT(BlueprintType)
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExRoamingAssetCollectionDetails : public FPCGExAssetAttributeSetDetails
+{
+	GENERATED_BODY()
+
+	FPCGExRoamingAssetCollectionDetails()
+	{
+	}
+
+	explicit FPCGExRoamingAssetCollectionDetails(const TSubclassOf<UPCGExAssetCollection>& InAssetCollectionType):
+		bSupportCustomType(false), AssetCollectionType(InAssetCollectionType)
+	{
+	}
+
+	UPROPERTY()
+	bool bSupportCustomType = true;
+
+	/** Defines what type of temp collection to build from input attribute set */
+	UPROPERTY(BlueprintReadOnly, EditAnywhere, NoClear, Category = Settings, meta=(PCG_Overridable, EditCondition="bSupportCustomType", EditConditionHides, HideEditConditionToggle))
+	TSubclassOf<UPCGExAssetCollection> AssetCollectionType;
+
+	bool Validate(FPCGExContext* InContext) const;
+
+	UPCGExAssetCollection* TryBuildCollection(FPCGExContext* InContext, const UPCGParamData* InAttributeSet, const bool bBuildStaging = false) const;
+
+	UPCGExAssetCollection* TryBuildCollection(FPCGExContext* InContext, const FName InputPin, const bool bBuildStaging) const;
 };
 
 namespace PCGExAssetCollection

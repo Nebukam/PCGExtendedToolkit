@@ -4,9 +4,6 @@
 #include "Paths/PCGExPathSplineMesh.h"
 
 #include "PCGExHelpers.h"
-#include "Collections/PCGExInternalCollection.h"
-
-
 #include "Paths/PCGExPaths.h"
 
 #define LOCTEXT_NAMESPACE "PCGExPathSplineMeshElement"
@@ -28,27 +25,6 @@ TArray<FPCGPinProperties> UPCGExPathSplineMeshSettings::InputPinProperties() con
 
 PCGExData::EInit UPCGExPathSplineMeshSettings::GetMainOutputInitMode() const { return PCGExData::EInit::DuplicateInput; }
 
-void FPCGExPathSplineMeshContext::RegisterAssetDependencies()
-{
-	FPCGExPathProcessorContext::RegisterAssetDependencies();
-
-	PCGEX_SETTINGS_LOCAL(PathSplineMesh)
-
-	if (Settings->CollectionSource == EPCGExCollectionSource::Asset)
-	{
-		MainCollection = Settings->AssetCollection.LoadSynchronous();
-	}
-	else
-	{
-		// Only load assets for internal collections
-		// since we need them for staging
-		MainCollection = GetDefault<UPCGExInternalCollection>()->GetCollectionFromAttributeSet(
-			this, PCGExAssetCollection::SourceAssetCollection,
-			Settings->AttributeSetDetails, false);
-		if (MainCollection) { MainCollection->GetAssetPaths(RequiredAssets, PCGExAssetCollection::ELoadingFlags::Recursive); }
-	}
-}
-
 bool FPCGExPathSplineMeshElement::Boot(FPCGExContext* InContext) const
 {
 	if (!FPCGExPathProcessorElement::Boot(InContext)) { return false; }
@@ -64,7 +40,6 @@ bool FPCGExPathSplineMeshElement::Boot(FPCGExContext* InContext) const
 	if (Settings->CollectionSource == EPCGExCollectionSource::Asset)
 	{
 		Context->MainCollection = Settings->AssetCollection.LoadSynchronous();
-
 		if (!Context->MainCollection)
 		{
 			PCGE_LOG(Error, GraphAndLog, FTEXT("Missing asset collection."));
@@ -73,11 +48,14 @@ bool FPCGExPathSplineMeshElement::Boot(FPCGExContext* InContext) const
 	}
 	else
 	{
-		// Only load assets for internal collections since we need them for staging
-		Context->MainCollection = GetDefault<UPCGExInternalCollection>()->GetCollectionFromAttributeSet(
-			Context, PCGExAssetCollection::SourceAssetCollection, Settings->AttributeSetDetails, false);
-		if (Context->MainCollection) { Context->MainCollection->GetAssetPaths(Context->GetRequiredAssets(), PCGExAssetCollection::ELoadingFlags::Recursive); }
+		Context->MainCollection = Settings->AttributeSetDetails.TryBuildCollection(Context, PCGExAssetCollection::SourceAssetCollection, false);
+		if (!Context->MainCollection)
+		{
+			PCGE_LOG(Error, GraphAndLog, FTEXT("Failed to build collection from attribute set."));
+			return false;
+		}
 	}
+
 
 	PCGEX_VALIDATE_NAME(Settings->AssetPathAttributeName)
 
@@ -87,6 +65,15 @@ bool FPCGExPathSplineMeshElement::Boot(FPCGExContext* InContext) const
 	}
 
 	return true;
+}
+
+void FPCGExPathSplineMeshContext::RegisterAssetDependencies()
+{
+	FPCGExPathProcessorContext::RegisterAssetDependencies();
+
+	PCGEX_SETTINGS_LOCAL(PathSplineMesh)
+
+	MainCollection->GetAssetPaths(RequiredAssets, PCGExAssetCollection::ELoadingFlags::Recursive);
 }
 
 void FPCGExPathSplineMeshElement::PostLoadAssetsDependencies(FPCGExContext* InContext) const
@@ -238,7 +225,7 @@ namespace PCGExPathSplineMesh
 			NormalizedWeightWriter = PointDataFacade->GetWritable<double>(Settings->WeightAttributeName, true);
 		}
 
-#if ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION > 3
+#if PCGEX_ENGINE_VERSION > 503
 		PathWriter = PointDataFacade->GetWritable<FSoftObjectPath>(Settings->AssetPathAttributeName, true);
 #else
 		PathWriter = PointDataFacade->GetWritable<FString>(Settings->AssetPathAttributeName, true);
@@ -259,7 +246,7 @@ namespace PCGExPathSplineMesh
 	{
 		auto InvalidPoint = [&]()
 		{
-#if ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION > 3
+#if PCGEX_ENGINE_VERSION > 503
 			PathWriter->GetMutable(Index) = FSoftObjectPath{};
 #else
 			PathWriter->GetMutable(Index) = TEXT("");
@@ -315,7 +302,7 @@ namespace PCGExPathSplineMesh
 			else { Point.Density = Weight; }
 		}
 
-#if ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION > 3
+#if PCGEX_ENGINE_VERSION > 503
 		PathWriter->GetMutable(Index) = StagingData->Path;
 #else
 		PathWriter->GetMutable(Index) = StagingData->Path.ToString();
@@ -382,7 +369,7 @@ namespace PCGExPathSplineMesh
 		}
 
 		bool bIsPreviewMode = false;
-#if ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION > 3
+#if PCGEX_ENGINE_VERSION > 503
 		bIsPreviewMode = ExecutionContext->SourceComponent.Get()->IsInPreviewMode();
 #endif
 
@@ -407,6 +394,7 @@ namespace PCGExPathSplineMesh
 			SplineMeshComponent->SetbNeverNeedsCookedCollisionData(true);
 
 			Segment.ApplySettings(SplineMeshComponent); // Init Component
+			if (!Segment.ApplyMesh(SplineMeshComponent)) { continue; }
 
 			SplineMeshComponent->ComponentTags.Append(DataTags);
 
