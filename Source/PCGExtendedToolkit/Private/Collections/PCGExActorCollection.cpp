@@ -39,12 +39,6 @@ void FPCGExActorCollectionEntry::OnSubCollectionLoaded()
 	SubCollectionPtr = Cast<UPCGExActorCollection>(BaseSubCollectionPtr);
 }
 
-void UPCGExActorCollection::RebuildStagingData(const bool bRecursive)
-{
-	for (FPCGExActorCollectionEntry& Entry : Entries) { Entry.UpdateStaging(this, bRecursive); }
-	Super::RebuildStagingData(bRecursive);
-}
-
 #if WITH_EDITOR
 void UPCGExActorCollection::EDITOR_RefreshDisplayNames()
 {

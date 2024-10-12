@@ -58,8 +58,7 @@ class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExActorCollection : public UPCGExAssetColle
 	friend struct FPCGExActorCollectionEntry;
 
 public:
-	virtual void RebuildStagingData(const bool bRecursive) override;
-
+	
 #if WITH_EDITOR
 	virtual void EDITOR_RefreshDisplayNames() override;
 #endif

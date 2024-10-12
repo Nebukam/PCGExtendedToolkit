@@ -143,7 +143,7 @@ void UPCGExAssetCollection::EDITOR_RefreshDisplayNames()
 void UPCGExAssetCollection::EDITOR_RebuildStagingData()
 {
 	Modify(true);
-	RebuildStagingData(false);
+	EDITOR_SanitizeAndRebuildStagingData(false);
 	MarkPackageDirty();
 	//CollectGarbage(GARBAGE_COLLECTION_KEEPFLAGS);
 }
@@ -151,7 +151,7 @@ void UPCGExAssetCollection::EDITOR_RebuildStagingData()
 void UPCGExAssetCollection::EDITOR_RebuildStagingData_Recursive()
 {
 	Modify(true);
-	RebuildStagingData(true);
+	EDITOR_SanitizeAndRebuildStagingData(true);
 	MarkPackageDirty();
 	//CollectGarbage(GARBAGE_COLLECTION_KEEPFLAGS);
 }
@@ -172,6 +172,10 @@ void UPCGExAssetCollection::EDITOR_RebuildStagingData_Project()
 	{
 		if (UPCGExAssetCollection* Collection = Cast<UPCGExAssetCollection>(AssetData.GetAsset())) { Collection->EDITOR_RebuildStagingData(); }
 	}
+}
+
+void UPCGExAssetCollection::EDITOR_SanitizeAndRebuildStagingData(const bool bRecursive)
+{
 }
 #endif
 

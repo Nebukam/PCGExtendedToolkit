@@ -12,7 +12,7 @@
 
 #include "PCGExAssetCollection.generated.h"
 
-#define PCGEX_ASSET_COLLECTION_BOILERPLATE(_TYPE, _ENTRY_TYPE)\
+#define PCGEX_ASSET_COLLECTION_BOILERPLATE_BASE(_TYPE, _ENTRY_TYPE)\
 FORCEINLINE virtual bool GetStagingAt(const FPCGExAssetStagingData*& OutStaging, const int32 Index) const override{	return GetStagingAtTpl(OutStaging, Entries, Index);}\
 FORCEINLINE virtual bool GetStaging(const FPCGExAssetStagingData*& OutStaging, const int32 Index, const int32 Seed, const EPCGExIndexPickMode PickMode) const override{	return GetStagingTpl(OutStaging, Entries, Index, Seed, PickMode);}\
 FORCEINLINE virtual bool GetStagingRandom(const FPCGExAssetStagingData*& OutStaging, const int32 Seed) const override{	return GetStagingRandomTpl(OutStaging, Entries, Seed);}\
@@ -24,7 +24,17 @@ virtual bool BuildFromAttributeSet(FPCGExContext* InContext, const UPCGParamData
 { return BuildFromAttributeSetTpl(this, InContext, InAttributeSet, Details, bBuildStaging); } \
 virtual bool BuildFromAttributeSet(FPCGExContext* InContext, const FName InputPin, const FPCGExAssetAttributeSetDetails& Details, const bool bBuildStaging) override\
 { return BuildFromAttributeSetTpl(this, InContext, InputPin, Details, bBuildStaging);}\
+virtual void RebuildStagingData(const bool bRecursive) override{ for (_ENTRY_TYPE& Entry : Entries) { Entry.UpdateStaging(this, bRecursive); } Super::RebuildStagingData(bRecursive); }\
 virtual void BuildCache() override{ Super::BuildCache(Entries); }
+
+#if WITH_EDITOR
+#define PCGEX_ASSET_COLLECTION_BOILERPLATE(_TYPE, _ENTRY_TYPE)\
+PCGEX_ASSET_COLLECTION_BOILERPLATE_BASE(_TYPE, _ENTRY_TYPE)\
+virtual void EDITOR_SanitizeAndRebuildStagingData(const bool bRecursive) override{ for(_ENTRY_TYPE& Entry : Entries){ Entry.EDITOR_Sanitize(); Entry.UpdateStaging(this, bRecursive);} }
+#else
+#define PCGEX_ASSET_COLLECTION_BOILERPLATE(_TYPE, _ENTRY_TYPE)\
+PCGEX_ASSET_COLLECTION_BOILERPLATE_BASE(_TYPE, _ENTRY_TYPE)
+#endif
 
 class UPCGExAssetCollection;
 
@@ -253,10 +263,13 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExAssetCollectionEntry
 	FName DisplayName = NAME_None;
 #endif
 
+#if WITH_EDITOR
+	virtual void EDITOR_Sanitize(){}
+#endif
 	virtual bool Validate(const UPCGExAssetCollection* ParentCollection);
 	virtual void UpdateStaging(const UPCGExAssetCollection* OwningCollection, const bool bRecursive);
 	virtual void SetAssetPath(const FSoftObjectPath& InPath) PCGEX_NOT_IMPLEMENTED(SetAssetPath(const FSoftObjectPath& InPath))
-
+	
 protected:
 	template <typename T>
 	void LoadSubCollection(TSoftObjectPtr<T> SoftPtr)
@@ -445,6 +458,9 @@ public:
 
 	UFUNCTION(CallInEditor, Category = Tools, meta=(DisplayName="Rebuild Staging (Project)", ShortToolTip="Rebuild Staging data for all collection within this project."))
 	virtual void EDITOR_RebuildStagingData_Project();
+
+	virtual void EDITOR_SanitizeAndRebuildStagingData(const bool bRecursive);
+	
 #endif
 
 	virtual void BeginDestroy() override;
