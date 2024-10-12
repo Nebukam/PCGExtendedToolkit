@@ -12,11 +12,14 @@
 
 #include "PCGExAssetCollection.generated.h"
 
-#define PCGEX_ASSET_COLLECTION_BOILERPLATE(_TYPE)\
+#define PCGEX_ASSET_COLLECTION_BOILERPLATE(_TYPE, _ENTRY_TYPE)\
 FORCEINLINE virtual bool GetStagingAt(const FPCGExAssetStagingData*& OutStaging, const int32 Index) const override{	return GetStagingAtTpl(OutStaging, Entries, Index);}\
 FORCEINLINE virtual bool GetStaging(const FPCGExAssetStagingData*& OutStaging, const int32 Index, const int32 Seed, const EPCGExIndexPickMode PickMode) const override{	return GetStagingTpl(OutStaging, Entries, Index, Seed, PickMode);}\
 FORCEINLINE virtual bool GetStagingRandom(const FPCGExAssetStagingData*& OutStaging, const int32 Seed) const override{	return GetStagingRandomTpl(OutStaging, Entries, Seed);}\
 FORCEINLINE virtual bool GetStagingWeightedRandom(const FPCGExAssetStagingData*& OutStaging, const int32 Seed) const override{	return GetStagingWeightedRandomTpl(OutStaging, Entries, Seed);}\
+FORCEINLINE bool GetEntry(const _ENTRY_TYPE*& OutEntry, const int32 Index, const int32 Seed, const EPCGExIndexPickMode PickMode = EPCGExIndexPickMode::Ascending) const { return GetEntryTpl(OutEntry, Entries, Index, Seed, PickMode); }\
+FORCEINLINE bool GetEntryRandom(const _ENTRY_TYPE*& OutEntry, const int32 Seed) const { return GetEntryRandomTpl(OutEntry, Entries, Seed); }\
+FORCEINLINE bool GetEntryWeightedRandom(const _ENTRY_TYPE*& OutEntry, const int32 Seed) const { return GetEntryWeightedRandomTpl(OutEntry, Entries, Seed); }\
 virtual bool BuildFromAttributeSet(FPCGExContext* InContext, const UPCGParamData* InAttributeSet, const FPCGExAssetAttributeSetDetails& Details, const bool bBuildStaging) override \
 { return BuildFromAttributeSetTpl(this, InContext, InAttributeSet, Details, bBuildStaging); } \
 virtual bool BuildFromAttributeSet(FPCGExContext* InContext, const FName InputPin, const FPCGExAssetAttributeSetDetails& Details, const bool bBuildStaging) override\
@@ -460,36 +463,6 @@ public:
 
 	virtual void BuildCache();
 
-#pragma region GetEntry
-
-	template <typename T>
-	FORCEINLINE bool GetEntry(T& OutEntry, TArray<T>& InEntries, const int32 Index, const int32 Seed, const EPCGExIndexPickMode PickMode = EPCGExIndexPickMode::Ascending) const
-	{
-		int32 Pick = Cache->Main->GetPick(Index, PickMode);
-		if (!InEntries.IsValidIndex(Pick)) { return false; }
-		OutEntry = InEntries[Pick];
-		if (OutEntry.SubCollectionPtr) { OutEntry.SubCollectionPtr->GetEntryWeightedRandom(OutEntry, OutEntry.SubCollectionPtr->Entries, Seed); }
-		return true;
-	}
-
-	template <typename T>
-	FORCEINLINE bool GetEntryRandom(T& OutEntry, TArray<T>& InEntries, const int32 Seed) const
-	{
-		OutEntry = InEntries[Cache->Main->GetPickRandom(Seed)];
-		if (OutEntry.SubCollectionPtr) { OutEntry.SubCollectionPtr->GetEntryRandom(OutEntry, OutEntry.SubCollectionPtr->Entries, Seed + 1); }
-		return true;
-	}
-
-	template <typename T>
-	FORCEINLINE bool GetEntryWeightedRandom(T& OutEntry, TArray<T>& InEntries, const int32 Seed) const
-	{
-		OutEntry = InEntries[Cache->Main->GetPickRandomWeighted(Seed)];
-		if (OutEntry.SubCollectionPtr) { OutEntry.SubCollectionPtr->GetEntryWeightedRandom(OutEntry, OutEntry.SubCollectionPtr->Entries, Seed + 1); }
-		return true;
-	}
-
-#pragma endregion
-
 	FORCEINLINE virtual bool GetStagingAt(const FPCGExAssetStagingData*& OutStaging, const int32 Index) const
 	PCGEX_NOT_IMPLEMENTED_RET(GetStagingAt(const FPCGExAssetStagingData*& OutStaging, const int32 Index), false)
 
@@ -519,6 +492,7 @@ public:
 	virtual void GetAssetPaths(TSet<FSoftObjectPath>& OutPaths, const PCGExAssetCollection::ELoadingFlags Flags) const;
 
 protected:
+	
 #pragma region GetStaging
 	template <typename T>
 	FORCEINLINE bool GetStagingAtTpl(

@@ -81,12 +81,6 @@ bool FPCGExCreateSplineElement::ExecuteInternal(FPCGContext* InContext) const
 	return Context->TryComplete();
 }
 
-bool FPCGExCreateSplineElement::CanExecuteOnlyOnMainThread(FPCGContext* Context) const
-{
-	const UPCGCreateSplineSettings* Settings = Context->GetInputSettings<UPCGCreateSplineSettings>();
-	return Settings && Settings->Mode == EPCGCreateSplineMode::CreateNewActor;
-}
-
 bool FPCGExCreateSplineElement::IsCacheable(const UPCGSettings* InSettings) const
 {
 	const UPCGCreateSplineSettings* Settings = Cast<const UPCGCreateSplineSettings>(InSettings);
