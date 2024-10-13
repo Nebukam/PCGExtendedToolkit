@@ -42,7 +42,7 @@ void FPCGExMeshCollectionEntry::EDITOR_Sanitize()
 	if (!bIsSubCollection)
 	{
 		if (StaticMesh) { ISMDescriptor.StaticMesh = StaticMesh; }
-		else if (ISMDescriptor.StaticMesh) { StaticMesh = ISMDescriptor.StaticMesh; }
+		else if (ISMDescriptor.StaticMesh && !StaticMesh) { StaticMesh = ISMDescriptor.StaticMesh; }
 	}
 }
 #endif

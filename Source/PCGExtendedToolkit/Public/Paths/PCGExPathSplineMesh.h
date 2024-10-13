@@ -57,7 +57,7 @@ public:
 	EPCGExCollectionSource CollectionSource = EPCGExCollectionSource::Asset;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="CollectionSource == EPCGExCollectionSource::Asset", EditConditionHides))
-	TSoftObjectPtr<UPCGExAssetCollection> AssetCollection;
+	TSoftObjectPtr<UPCGExMeshCollection> AssetCollection;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="CollectionSource == EPCGExCollectionSource::AttributeSet", EditConditionHides))
 	FPCGExRoamingAssetCollectionDetails AttributeSetDetails = FPCGExRoamingAssetCollectionDetails(UPCGExMeshCollection::StaticClass());
@@ -115,10 +115,19 @@ public:
 	/** The name of the attribute to write asset weight to.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Additional Outputs", meta=(PCG_Overridable, EditCondition="WeightToAttribute!=EPCGExWeightOutputMode::NoOutput && WeightToAttribute!=EPCGExWeightOutputMode::NormalizedToDensity && WeightToAttribute!=EPCGExWeightOutputMode::NormalizedInvertedToDensity"))
 	FName WeightAttributeName = "AssetWeight";
+	
+	/** Default static mesh config applied to spline mesh components. */
+	UPROPERTY(EditAnywhere, Category = Settings)
+	FPCGExStaticMeshComponentDescriptor DefaultDescriptor;
 
+	/** If enabled, override collection settings with the default descriptor settings */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bApplyCustomTangents"))
+	bool bForceDefaultDescriptor = false;
+	
 	/** Specify a list of functions to be called on the target actor after spline mesh creation. Functions need to be parameter-less and with "CallInEditor" flag enabled. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
 	TArray<FName> PostProcessFunctionNames;
+	
 };
 
 struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPathSplineMeshContext final : FPCGExPathProcessorContext
@@ -129,7 +138,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPathSplineMeshContext final : FPCGExPath
 
 	TSet<AActor*> NotifyActors;
 
-	TObjectPtr<UPCGExAssetCollection> MainCollection;
+	TObjectPtr<UPCGExMeshCollection> MainCollection;
 };
 
 class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPathSplineMeshElement final : public FPCGExPathProcessorElement
@@ -163,7 +172,7 @@ namespace PCGExPathSplineMesh
 		int32 C1 = 1;
 		int32 C2 = 2;
 
-		TUniquePtr<PCGExAssetCollection::FDistributionHelper> Helper;
+		TUniquePtr<PCGExAssetCollection::TDistributionHelper<UPCGExMeshCollection, FPCGExMeshCollectionEntry>> Helper;
 		FPCGExJustificationDetails Justification;
 
 		TSharedPtr<PCGExData::TBuffer<FVector>> ArriveReader;

@@ -86,7 +86,7 @@ void FPCGExPrimitiveComponentDescriptor::InitFrom(const UPrimitiveComponent* Com
 	CustomDepthStencilWriteMask = SourceComponent->CustomDepthStencilWriteMask;
 }
 
-void FPCGExPrimitiveComponentDescriptor::InitComponent(UPrimitiveComponent* InComponent)
+void FPCGExPrimitiveComponentDescriptor::InitComponent(UPrimitiveComponent* InComponent) const
 {
 	UPrimitiveComponent* TargetComponent = InComponent;
 
@@ -185,7 +185,7 @@ void FPCGExMeshComponentDescriptor::InitFrom(const UPrimitiveComponent* Componen
 	OverlayMaterialMaxDrawDistance = SourceComponent->OverlayMaterialMaxDrawDistance;
 }
 
-void FPCGExMeshComponentDescriptor::InitComponent(UPrimitiveComponent* InComponent)
+void FPCGExMeshComponentDescriptor::InitComponent(UPrimitiveComponent* InComponent) const
 {
 	FPCGExPrimitiveComponentDescriptor::InitComponent(InComponent);
 
@@ -239,9 +239,14 @@ void FPCGExStaticMeshComponentDescriptor::InitFrom(const UPrimitiveComponent* Co
 	DistanceFieldSelfShadowBias = SourceComponent->DistanceFieldSelfShadowBias;
 	StreamingDistanceMultiplier = SourceComponent->StreamingDistanceMultiplier;
 	LightmassSettings = SourceComponent->LightmassSettings;
+
+#if WITH_EDITOR
+	bCustomOverrideVertexColorPerLOD = SourceComponent->bCustomOverrideVertexColorPerLOD;
+	bDisplayNaniteFallbackMesh = SourceComponent->bDisplayNaniteFallbackMesh;
+#endif
 }
 
-void FPCGExStaticMeshComponentDescriptor::InitComponent(UPrimitiveComponent* InComponent)
+void FPCGExStaticMeshComponentDescriptor::InitComponent(UPrimitiveComponent* InComponent) const
 {
 	FPCGExMeshComponentDescriptor::InitComponent(InComponent);
 

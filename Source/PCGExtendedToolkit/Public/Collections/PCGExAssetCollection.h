@@ -264,12 +264,14 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExAssetCollectionEntry
 #endif
 
 #if WITH_EDITOR
-	virtual void EDITOR_Sanitize(){}
+	virtual void EDITOR_Sanitize()
+	{
+	}
 #endif
 	virtual bool Validate(const UPCGExAssetCollection* ParentCollection);
 	virtual void UpdateStaging(const UPCGExAssetCollection* OwningCollection, const bool bRecursive);
 	virtual void SetAssetPath(const FSoftObjectPath& InPath) PCGEX_NOT_IMPLEMENTED(SetAssetPath(const FSoftObjectPath& InPath))
-	
+
 protected:
 	template <typename T>
 	void LoadSubCollection(TSoftObjectPtr<T> SoftPtr)
@@ -460,7 +462,7 @@ public:
 	virtual void EDITOR_RebuildStagingData_Project();
 
 	virtual void EDITOR_SanitizeAndRebuildStagingData(const bool bRecursive);
-	
+
 #endif
 
 	virtual void BeginDestroy() override;
@@ -491,6 +493,15 @@ public:
 	FORCEINLINE virtual bool GetStagingWeightedRandom(const FPCGExAssetStagingData*& OutStaging, const int32 Seed) const
 	PCGEX_NOT_IMPLEMENTED_RET(GetStagingWeightedRandom(const FPCGExAssetStagingData*& OutStaging, const int32 Seed), false)
 
+	FORCEINLINE bool GetEntry(const FPCGExAssetCollectionEntry*& OutEntry, const int32 Index, const int32 Seed, const EPCGExIndexPickMode PickMode = EPCGExIndexPickMode::Ascending) const
+	PCGEX_NOT_IMPLEMENTED_RET(GetEntry, false)
+
+	FORCEINLINE bool GetEntryRandom(const FPCGExAssetCollectionEntry*& OutEntry, const int32 Seed) const
+	PCGEX_NOT_IMPLEMENTED_RET(GetEntry, false)
+
+	FORCEINLINE bool GetEntryWeightedRandom(const FPCGExAssetCollectionEntry*& OutEntry, const int32 Seed) const
+	PCGEX_NOT_IMPLEMENTED_RET(GetEntry, false)
+
 	virtual bool BuildFromAttributeSet(
 		FPCGExContext* InContext,
 		const UPCGParamData* InAttributeSet,
@@ -508,7 +519,6 @@ public:
 	virtual void GetAssetPaths(TSet<FSoftObjectPath>& OutPaths, const PCGExAssetCollection::ELoadingFlags Flags) const;
 
 protected:
-	
 #pragma region GetStaging
 	template <typename T>
 	FORCEINLINE bool GetStagingAtTpl(
@@ -831,9 +841,10 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExRoamingAssetCollectionDetails : public F
 
 namespace PCGExAssetCollection
 {
-	struct /*PCGEXTENDEDTOOLKIT_API*/ FDistributionHelper
+	template <typename C = UPCGExAssetCollection, typename A = FPCGExAssetCollectionEntry>
+	struct /*PCGEXTENDEDTOOLKIT_API*/ TDistributionHelper
 	{
-		UPCGExAssetCollection* Collection = nullptr;
+		C* Collection = nullptr;
 		FPCGExAssetDistributionDetails Details;
 
 		TSharedPtr<PCGExData::TBuffer<int32>> IndexGetter;
@@ -844,11 +855,119 @@ namespace PCGExAssetCollection
 		TArray<int32> MinCache;
 		TArray<int32> MaxCache;
 
-		FDistributionHelper(
-			UPCGExAssetCollection* InCollection,
-			const FPCGExAssetDistributionDetails& InDetails);
+		TDistributionHelper(
+			C* InCollection,
+			const FPCGExAssetDistributionDetails& InDetails):
+			Collection(InCollection),
+			Details(InDetails)
+		{
+		}
 
-		bool Init(const FPCGContext* InContext, const TSharedRef<PCGExData::FFacade>& InDataFacade);
-		void GetStaging(const FPCGExAssetStagingData*& OutStaging, const int32 PointIndex, const int32 Seed) const;
+		bool Init(const FPCGContext* InContext, const TSharedRef<PCGExData::FFacade>& InDataFacade)
+		{
+			MaxIndex = Collection->LoadCache()->Main->Order.Num() - 1;
+
+			if (Details.Distribution == EPCGExDistribution::Index)
+			{
+				if (Details.IndexSettings.bRemapIndexToCollectionSize)
+				{
+					// Non-dynamic since we want min-max to start with :(
+					IndexGetter = InDataFacade->GetBroadcaster<int32>(Details.IndexSettings.IndexSource, true);
+					MaxInputIndex = IndexGetter ? static_cast<double>(IndexGetter->Max) : 0;
+				}
+				else
+				{
+					IndexGetter = InDataFacade->GetScopedBroadcaster<int32>(Details.IndexSettings.IndexSource);
+				}
+
+				if (!IndexGetter)
+				{
+					PCGE_LOG_C(Warning, GraphAndLog, InContext, FTEXT("Invalid Index attribute used"));
+					return false;
+				}
+			}
+
+			return true;
+		}
+
+		void GetStaging(const FPCGExAssetStagingData*& OutStaging, const int32 PointIndex, const int32 Seed) const
+		{
+			if (Details.Distribution == EPCGExDistribution::WeightedRandom)
+			{
+				Collection->GetStagingWeightedRandom(OutStaging, Seed);
+			}
+			else if (Details.Distribution == EPCGExDistribution::Random)
+			{
+				Collection->GetStagingRandom(OutStaging, Seed);
+			}
+			else
+			{
+				double PickedIndex = IndexGetter->Read(PointIndex);
+				if (Details.IndexSettings.bRemapIndexToCollectionSize)
+				{
+					PickedIndex = MaxInputIndex == 0 ? 0 : PCGExMath::Remap(PickedIndex, 0, MaxInputIndex, 0, MaxIndex);
+					switch (Details.IndexSettings.TruncateRemap)
+					{
+					case EPCGExTruncateMode::Round:
+						PickedIndex = FMath::RoundToInt(PickedIndex);
+						break;
+					case EPCGExTruncateMode::Ceil:
+						PickedIndex = FMath::CeilToDouble(PickedIndex);
+						break;
+					case EPCGExTruncateMode::Floor:
+						PickedIndex = FMath::FloorToDouble(PickedIndex);
+						break;
+					default:
+					case EPCGExTruncateMode::None:
+						break;
+					}
+				}
+
+				Collection->GetStaging(
+					OutStaging,
+					PCGExMath::SanitizeIndex(static_cast<int32>(PickedIndex), MaxIndex, Details.IndexSettings.IndexSafety),
+					Seed, Details.IndexSettings.PickMode);
+			}
+		}
+
+		void GetEntry(const A*& OutEntry, const int32 PointIndex, const int32 Seed) const
+		{
+			if (Details.Distribution == EPCGExDistribution::WeightedRandom)
+			{
+				Collection->GetEntryWeightedRandom(OutEntry, Seed);
+			}
+			else if (Details.Distribution == EPCGExDistribution::Random)
+			{
+				Collection->GetEntryRandom(OutEntry, Seed);
+			}
+			else
+			{
+				double PickedIndex = IndexGetter->Read(PointIndex);
+				if (Details.IndexSettings.bRemapIndexToCollectionSize)
+				{
+					PickedIndex = MaxInputIndex == 0 ? 0 : PCGExMath::Remap(PickedIndex, 0, MaxInputIndex, 0, MaxIndex);
+					switch (Details.IndexSettings.TruncateRemap)
+					{
+					case EPCGExTruncateMode::Round:
+						PickedIndex = FMath::RoundToInt(PickedIndex);
+						break;
+					case EPCGExTruncateMode::Ceil:
+						PickedIndex = FMath::CeilToDouble(PickedIndex);
+						break;
+					case EPCGExTruncateMode::Floor:
+						PickedIndex = FMath::FloorToDouble(PickedIndex);
+						break;
+					default:
+					case EPCGExTruncateMode::None:
+						break;
+					}
+				}
+
+				Collection->GetEntry(
+					OutEntry,
+					PCGExMath::SanitizeIndex(static_cast<int32>(PickedIndex), MaxIndex, Details.IndexSettings.IndexSafety),
+					Seed, Details.IndexSettings.PickMode);
+			}
+		}
 	};
 }

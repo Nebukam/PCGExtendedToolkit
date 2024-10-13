@@ -143,7 +143,7 @@ namespace PCGExAssetStaging
 
 		NumPoints = PointDataFacade->GetNum();
 
-		Helper = MakeUnique<PCGExAssetCollection::FDistributionHelper>(Context->MainCollection, Settings->DistributionSettings);
+		Helper = MakeUnique<PCGExAssetCollection::TDistributionHelper<UPCGExAssetCollection, FPCGExAssetCollectionEntry>>(Context->MainCollection, Settings->DistributionSettings);
 		if (!Helper->Init(ExecutionContext, PointDataFacade)) { return false; }
 
 		bOutputWeight = Settings->WeightToAttribute != EPCGExWeightOutputMode::NoOutput;

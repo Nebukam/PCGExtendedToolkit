@@ -114,7 +114,7 @@ namespace PCGExAssetStaging
 		FPCGExJustificationDetails Justification;
 		FPCGExFittingVariationsDetails Variations;
 
-		TUniquePtr<PCGExAssetCollection::FDistributionHelper> Helper;
+		TUniquePtr<PCGExAssetCollection::TDistributionHelper<UPCGExAssetCollection, FPCGExAssetCollectionEntry>> Helper;
 
 		TSharedPtr<PCGExData::TBuffer<int32>> WeightWriter;
 		TSharedPtr<PCGExData::TBuffer<double>> NormalizedWeightWriter;

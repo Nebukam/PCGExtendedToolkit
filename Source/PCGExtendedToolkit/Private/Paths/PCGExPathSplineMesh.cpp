@@ -48,7 +48,7 @@ bool FPCGExPathSplineMeshElement::Boot(FPCGExContext* InContext) const
 	}
 	else
 	{
-		Context->MainCollection = Settings->AttributeSetDetails.TryBuildCollection(Context, PCGExAssetCollection::SourceAssetCollection, false);
+		Context->MainCollection = Cast<UPCGExMeshCollection>(Settings->AttributeSetDetails.TryBuildCollection(Context, PCGExAssetCollection::SourceAssetCollection, false));
 		if (!Context->MainCollection)
 		{
 			PCGE_LOG(Error, GraphAndLog, FTEXT("Failed to build collection from attribute set."));
@@ -169,7 +169,7 @@ namespace PCGExPathSplineMesh
 		bClosedLoop = Context->ClosedLoop.IsClosedLoop(PointDataFacade->Source);
 		bApplyScaleToFit = Settings->ScaleToFit.ScaleToFitMode != EPCGExFitMode::None;
 
-		Helper = MakeUnique<PCGExAssetCollection::FDistributionHelper>(Context->MainCollection, Settings->DistributionSettings);
+		Helper = MakeUnique<PCGExAssetCollection::TDistributionHelper<UPCGExMeshCollection, FPCGExMeshCollectionEntry>>(Context->MainCollection, Settings->DistributionSettings);
 		if (!Helper->Init(ExecutionContext, PointDataFacade)) { return false; }
 
 		if (Settings->bApplyCustomTangents)
@@ -273,19 +273,19 @@ namespace PCGExPathSplineMesh
 			return;
 		}
 
-		const FPCGExAssetStagingData* StagingData = nullptr;
+		const FPCGExMeshCollectionEntry* MeshEntry = nullptr;
 
 		const int32 Seed = PCGExRandom::GetSeedFromPoint(
 			Helper->Details.SeedComponents, Point,
 			Helper->Details.LocalSeed, Settings, Context->SourceComponent.Get());
 
-		Helper->GetStaging(StagingData, Index, Seed);
+		Helper->GetEntry(MeshEntry, Index, Seed);
 
 		Segments[Index] = PCGExPaths::FSplineMeshSegment();
 		PCGExPaths::FSplineMeshSegment& Segment = Segments[Index];
-		Segment.AssetStaging = StagingData;
+		Segment.MeshEntry = MeshEntry;
 
-		if (!StagingData)
+		if (!MeshEntry)
 		{
 			InvalidPoint();
 			return;
@@ -295,7 +295,7 @@ namespace PCGExPathSplineMesh
 
 		if (bOutputWeight)
 		{
-			double Weight = bNormalizedWeight ? static_cast<double>(StagingData->Weight) / static_cast<double>(Context->MainCollection->LoadCache()->WeightSum) : StagingData->Weight;
+			double Weight = bNormalizedWeight ? static_cast<double>(MeshEntry->Weight) / static_cast<double>(Context->MainCollection->LoadCache()->WeightSum) : MeshEntry->Weight;
 			if (bOneMinusWeight) { Weight = 1 - Weight; }
 			if (WeightWriter) { WeightWriter->GetMutable(Index) = Weight; }
 			else if (NormalizedWeightWriter) { NormalizedWeightWriter->GetMutable(Index) = Weight; }
@@ -303,9 +303,9 @@ namespace PCGExPathSplineMesh
 		}
 
 #if PCGEX_ENGINE_VERSION > 503
-		PathWriter->GetMutable(Index) = StagingData->Path;
+		PathWriter->GetMutable(Index) = MeshEntry->Staging.Path;
 #else
-		PathWriter->GetMutable(Index) = StagingData->Path.ToString();
+		PathWriter->GetMutable(Index) = StagingData->->Staging.Path.ToString();
 #endif
 
 		//
@@ -317,12 +317,12 @@ namespace PCGExPathSplineMesh
 
 		//
 
-		const FBox& StBox = StagingData->Bounds;
+		const FBox& StBox = MeshEntry->Staging.Bounds;
 		FVector OutScale = Point.Transform.GetScale3D();
 		const FBox InBounds = FBox(Point.BoundsMin * OutScale, Point.BoundsMax * OutScale);
 		FBox OutBounds = StBox;
 
-		Settings->ScaleToFit.Process(Point, StagingData->Bounds, OutScale, OutBounds);
+		Settings->ScaleToFit.Process(Point, MeshEntry->Staging.Bounds, OutScale, OutBounds);
 
 		FVector OutTranslation = FVector::ZeroVector;
 		OutBounds = FBox(OutBounds.Min * OutScale, OutBounds.Max * OutScale);
@@ -377,9 +377,9 @@ namespace PCGExPathSplineMesh
 
 		for (const PCGExPaths::FSplineMeshSegment& Segment : Segments)
 		{
-			if (!Segment.AssetStaging) { continue; }
+			if (!Segment.MeshEntry) { continue; }
 
-			const FString ComponentName = TEXT("PCGSplineMeshComponent_") + Segment.AssetStaging->Path.GetAssetName();
+			const FString ComponentName = TEXT("PCGSplineMeshComponent_") + Segment.MeshEntry->Staging.Path.GetAssetName();
 			const EObjectFlags ObjectFlags = (bIsPreviewMode ? RF_Transient : RF_NoFlags);
 			USplineMeshComponent* SplineMeshComponent = NewObject<USplineMeshComponent>(TargetActor, MakeUniqueObjectName(TargetActor, USplineMeshComponent::StaticClass(), FName(ComponentName)), ObjectFlags);
 
@@ -397,6 +397,9 @@ namespace PCGExPathSplineMesh
 			if (!Segment.ApplyMesh(SplineMeshComponent)) { continue; }
 
 			SplineMeshComponent->ComponentTags.Append(DataTags);
+
+			if (Settings->bForceDefaultDescriptor) { Settings->DefaultDescriptor.InitComponent(SplineMeshComponent); }
+			else { Segment.MeshEntry->SMDescriptor.InitComponent(SplineMeshComponent); }
 
 			Context->AttachManageComponent(
 				TargetActor, SplineMeshComponent,
