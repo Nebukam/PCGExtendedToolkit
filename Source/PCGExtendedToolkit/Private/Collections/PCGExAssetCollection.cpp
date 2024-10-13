@@ -198,12 +198,12 @@ void UPCGExAssetCollection::GetAssetPaths(TSet<FSoftObjectPath>& OutPaths, const
 
 bool FPCGExRoamingAssetCollectionDetails::Validate(FPCGExContext* InContext) const
 {
-	if(!AssetCollectionType)
+	if (!AssetCollectionType)
 	{
 		PCGE_LOG_C(Error, GraphAndLog, InContext, FTEXT("Collection type is not set."));
 		return false;
 	}
-	
+
 	return true;
 }
 
@@ -240,5 +240,4 @@ UPCGExAssetCollection* FPCGExRoamingAssetCollectionDetails::TryBuildCollection(F
 
 namespace PCGExAssetCollection
 {
-	
 }
