@@ -1,4 +1,8 @@
-﻿#include "Collections/PCGExComponentDescriptors.h"
+﻿// Copyright Timothé Lapetite 2024
+// Released under the MIT license https://opensource.org/license/MIT/
+
+#include "PCGExMacros.h"
+#include "Collections/PCGExComponentDescriptors.h"
 
 FPCGExPrimitiveComponentDescriptor::FPCGExPrimitiveComponentDescriptor()
 {
@@ -224,7 +228,9 @@ void FPCGExStaticMeshComponentDescriptor::InitFrom(const UPrimitiveComponent* Co
 	WorldPositionOffsetDisableDistance = SourceComponent->WorldPositionOffsetDisableDistance;
 	bOverrideWireframeColor = SourceComponent->bOverrideWireframeColor;
 	bOverrideMinLOD = SourceComponent->bOverrideMinLOD;
+#if PCGEX_ENGINE_VERSION < 505
 	bDisallowMeshPaintPerInstance = SourceComponent->bDisallowMeshPaintPerInstance;
+#endif
 	bIgnoreInstanceForTextureStreaming = SourceComponent->bIgnoreInstanceForTextureStreaming;
 	bOverrideLightMapRes = SourceComponent->bOverrideLightMapRes;
 	bCastDistanceFieldIndirectShadow = SourceComponent->bCastDistanceFieldIndirectShadow;
@@ -266,7 +272,9 @@ void FPCGExStaticMeshComponentDescriptor::InitComponent(UPrimitiveComponent* InC
 	TargetComponent->WorldPositionOffsetDisableDistance = WorldPositionOffsetDisableDistance;
 	TargetComponent->bOverrideWireframeColor = bOverrideWireframeColor;
 	TargetComponent->bOverrideMinLOD = bOverrideMinLOD;
+#if PCGEX_ENGINE_VERSION < 505
 	TargetComponent->bDisallowMeshPaintPerInstance = bDisallowMeshPaintPerInstance;
+#endif
 	TargetComponent->bIgnoreInstanceForTextureStreaming = bIgnoreInstanceForTextureStreaming;
 	TargetComponent->bOverrideLightMapRes = bOverrideLightMapRes;
 	TargetComponent->bCastDistanceFieldIndirectShadow = bCastDistanceFieldIndirectShadow;
