@@ -115,7 +115,7 @@ public:
 	/** The name of the attribute to write asset weight to.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Additional Outputs", meta=(PCG_Overridable, EditCondition="WeightToAttribute!=EPCGExWeightOutputMode::NoOutput && WeightToAttribute!=EPCGExWeightOutputMode::NormalizedToDensity && WeightToAttribute!=EPCGExWeightOutputMode::NormalizedInvertedToDensity"))
 	FName WeightAttributeName = "AssetWeight";
-	
+
 	/** Default static mesh config applied to spline mesh components. */
 	UPROPERTY(EditAnywhere, Category = Settings)
 	FPCGExStaticMeshComponentDescriptor DefaultDescriptor;
@@ -123,11 +123,10 @@ public:
 	/** If enabled, override collection settings with the default descriptor settings */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bApplyCustomTangents"))
 	bool bForceDefaultDescriptor = false;
-	
+
 	/** Specify a list of functions to be called on the target actor after spline mesh creation. Functions need to be parameter-less and with "CallInEditor" flag enabled. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
 	TArray<FName> PostProcessFunctionNames;
-	
 };
 
 struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPathSplineMeshContext final : FPCGExPathProcessorContext

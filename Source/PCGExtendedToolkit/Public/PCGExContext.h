@@ -117,7 +117,6 @@ public:
 
 #pragma endregion
 
-public:
 	bool CanExecute() const;
 	bool CancelExecution(const FString& InReason);
 

@@ -33,7 +33,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExMeshCollectionEntry : public FPCGExAsset
 	/** Config used when this entry is consumed as a regular static mesh primitive (i.e Spline Mesh)*/
 	UPROPERTY(EditAnywhere, Category = Settings, meta=(EditCondition="!bIsSubCollection", EditConditionHides))
 	FPCGExStaticMeshComponentDescriptor SMDescriptor;
-	
+
 	UPROPERTY(EditAnywhere, Category = Settings, meta=(EditCondition="bIsSubCollection", EditConditionHides))
 	TSoftObjectPtr<UPCGExMeshCollection> SubCollection;
 
@@ -57,7 +57,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExMeshCollectionEntry : public FPCGExAsset
 	virtual bool Validate(const UPCGExAssetCollection* ParentCollection) override;
 	virtual void UpdateStaging(const UPCGExAssetCollection* OwningCollection, const bool bRecursive) override;
 	virtual void SetAssetPath(const FSoftObjectPath& InPath) override;
-	
+
 #if WITH_EDITOR
 	virtual void EDITOR_Sanitize() override;
 #endif
@@ -80,7 +80,7 @@ public:
 #endif
 
 	PCGEX_ASSET_COLLECTION_BOILERPLATE(UPCGExMeshCollection, FPCGExMeshCollectionEntry)
-
+	
 	virtual void GetAssetPaths(TSet<FSoftObjectPath>& OutPaths, const PCGExAssetCollection::ELoadingFlags Flags) const override;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Settings, meta=(TitleProperty="DisplayName"))

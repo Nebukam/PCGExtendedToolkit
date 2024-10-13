@@ -17,6 +17,12 @@ FORCEINLINE virtual bool GetStagingAt(const FPCGExAssetStagingData*& OutStaging,
 FORCEINLINE virtual bool GetStaging(const FPCGExAssetStagingData*& OutStaging, const int32 Index, const int32 Seed, const EPCGExIndexPickMode PickMode) const override{	return GetStagingTpl(OutStaging, Entries, Index, Seed, PickMode);}\
 FORCEINLINE virtual bool GetStagingRandom(const FPCGExAssetStagingData*& OutStaging, const int32 Seed) const override{	return GetStagingRandomTpl(OutStaging, Entries, Seed);}\
 FORCEINLINE virtual bool GetStagingWeightedRandom(const FPCGExAssetStagingData*& OutStaging, const int32 Seed) const override{	return GetStagingWeightedRandomTpl(OutStaging, Entries, Seed);}\
+FORCEINLINE virtual bool GetEntry(const FPCGExAssetCollectionEntry*& OutEntry, const int32 Index, const int32 Seed, const EPCGExIndexPickMode PickMode = EPCGExIndexPickMode::Ascending) const override {\
+const _ENTRY_TYPE* OutTypedEntry = static_cast<const _ENTRY_TYPE*>(OutEntry); if(GetEntryTpl(OutTypedEntry, Entries, Index, Seed, PickMode)){ OutEntry = static_cast<const FPCGExAssetCollectionEntry*>(OutTypedEntry);  return true;} return false; }\
+FORCEINLINE virtual bool GetEntryRandom(const FPCGExAssetCollectionEntry*& OutEntry, const int32 Seed) const override {\
+const _ENTRY_TYPE* OutTypedEntry = static_cast<const _ENTRY_TYPE*>(OutEntry); if(GetEntryRandomTpl(OutTypedEntry, Entries, Seed)){ OutEntry = static_cast<const FPCGExAssetCollectionEntry*>(OutTypedEntry);  return true;} return false; }\
+FORCEINLINE virtual bool GetEntryWeightedRandom(const FPCGExAssetCollectionEntry*& OutEntry, const int32 Seed) const override {\
+const _ENTRY_TYPE* OutTypedEntry = static_cast<const _ENTRY_TYPE*>(OutEntry); if(GetEntryWeightedRandomTpl(OutTypedEntry, Entries, Seed)){ OutEntry = static_cast<const FPCGExAssetCollectionEntry*>(OutTypedEntry);  return true;} return false; }\
 FORCEINLINE bool GetEntry(const _ENTRY_TYPE*& OutEntry, const int32 Index, const int32 Seed, const EPCGExIndexPickMode PickMode = EPCGExIndexPickMode::Ascending) const { return GetEntryTpl(OutEntry, Entries, Index, Seed, PickMode); }\
 FORCEINLINE bool GetEntryRandom(const _ENTRY_TYPE*& OutEntry, const int32 Seed) const { return GetEntryRandomTpl(OutEntry, Entries, Seed); }\
 FORCEINLINE bool GetEntryWeightedRandom(const _ENTRY_TYPE*& OutEntry, const int32 Seed) const { return GetEntryWeightedRandomTpl(OutEntry, Entries, Seed); }\
@@ -26,10 +32,6 @@ virtual bool BuildFromAttributeSet(FPCGExContext* InContext, const FName InputPi
 { return BuildFromAttributeSetTpl(this, InContext, InputPin, Details, bBuildStaging);}\
 virtual void RebuildStagingData(const bool bRecursive) override{ for (_ENTRY_TYPE& Entry : Entries) { Entry.UpdateStaging(this, bRecursive); } Super::RebuildStagingData(bRecursive); }\
 virtual void BuildCache() override{ Super::BuildCache(Entries); }
-
-// FORCEINLINE virtual bool GetEntry(const FPCGExAssetCollectionEntry*& OutEntry, const int32 Index, const int32 Seed, const EPCGExIndexPickMode PickMode = EPCGExIndexPickMode::Ascending) const override { return GetEntryTpl(OutEntry, Entries, Index, Seed, PickMode); }\
-// FORCEINLINE virtual bool GetEntryRandom(const FPCGExAssetCollectionEntry*& OutEntry, const int32 Seed) const override { return GetEntryRandomTpl(OutEntry, Entries, Seed); }\
-// FORCEINLINE virtual bool GetEntryWeightedRandom(const FPCGExAssetCollectionEntry*& OutEntry, const int32 Seed) const override { return GetEntryWeightedRandomTpl(OutEntry, Entries, Seed); }\
 
 #if WITH_EDITOR
 #define PCGEX_ASSET_COLLECTION_BOILERPLATE(_TYPE, _ENTRY_TYPE)\

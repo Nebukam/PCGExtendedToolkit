@@ -58,7 +58,6 @@ class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExActorCollection : public UPCGExAssetColle
 	friend struct FPCGExActorCollectionEntry;
 
 public:
-	
 #if WITH_EDITOR
 	virtual void EDITOR_RefreshDisplayNames() override;
 #endif
@@ -67,7 +66,6 @@ public:
 	TArray<FPCGExActorCollectionEntry> Entries;
 
 	PCGEX_ASSET_COLLECTION_BOILERPLATE(UPCGExActorCollection, FPCGExActorCollectionEntry)
-	
-	virtual void GetAssetPaths(TSet<FSoftObjectPath>& OutPaths, const PCGExAssetCollection::ELoadingFlags Flags) const override;
 
+	virtual void GetAssetPaths(TSet<FSoftObjectPath>& OutPaths, const PCGExAssetCollection::ELoadingFlags Flags) const override;
 };
