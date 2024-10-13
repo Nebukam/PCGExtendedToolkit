@@ -27,6 +27,10 @@ virtual bool BuildFromAttributeSet(FPCGExContext* InContext, const FName InputPi
 virtual void RebuildStagingData(const bool bRecursive) override{ for (_ENTRY_TYPE& Entry : Entries) { Entry.UpdateStaging(this, bRecursive); } Super::RebuildStagingData(bRecursive); }\
 virtual void BuildCache() override{ Super::BuildCache(Entries); }
 
+// FORCEINLINE virtual bool GetEntry(const FPCGExAssetCollectionEntry*& OutEntry, const int32 Index, const int32 Seed, const EPCGExIndexPickMode PickMode = EPCGExIndexPickMode::Ascending) const override { return GetEntryTpl(OutEntry, Entries, Index, Seed, PickMode); }\
+// FORCEINLINE virtual bool GetEntryRandom(const FPCGExAssetCollectionEntry*& OutEntry, const int32 Seed) const override { return GetEntryRandomTpl(OutEntry, Entries, Seed); }\
+// FORCEINLINE virtual bool GetEntryWeightedRandom(const FPCGExAssetCollectionEntry*& OutEntry, const int32 Seed) const override { return GetEntryWeightedRandomTpl(OutEntry, Entries, Seed); }\
+
 #if WITH_EDITOR
 #define PCGEX_ASSET_COLLECTION_BOILERPLATE(_TYPE, _ENTRY_TYPE)\
 PCGEX_ASSET_COLLECTION_BOILERPLATE_BASE(_TYPE, _ENTRY_TYPE)\
@@ -493,13 +497,13 @@ public:
 	FORCEINLINE virtual bool GetStagingWeightedRandom(const FPCGExAssetStagingData*& OutStaging, const int32 Seed) const
 	PCGEX_NOT_IMPLEMENTED_RET(GetStagingWeightedRandom(const FPCGExAssetStagingData*& OutStaging, const int32 Seed), false)
 
-	FORCEINLINE bool GetEntry(const FPCGExAssetCollectionEntry*& OutEntry, const int32 Index, const int32 Seed, const EPCGExIndexPickMode PickMode = EPCGExIndexPickMode::Ascending) const
+	FORCEINLINE virtual bool GetEntry(const FPCGExAssetCollectionEntry*& OutEntry, const int32 Index, const int32 Seed, const EPCGExIndexPickMode PickMode = EPCGExIndexPickMode::Ascending) const
 	PCGEX_NOT_IMPLEMENTED_RET(GetEntry, false)
 
-	FORCEINLINE bool GetEntryRandom(const FPCGExAssetCollectionEntry*& OutEntry, const int32 Seed) const
+	FORCEINLINE virtual bool GetEntryRandom(const FPCGExAssetCollectionEntry*& OutEntry, const int32 Seed) const
 	PCGEX_NOT_IMPLEMENTED_RET(GetEntry, false)
 
-	FORCEINLINE bool GetEntryWeightedRandom(const FPCGExAssetCollectionEntry*& OutEntry, const int32 Seed) const
+	FORCEINLINE virtual bool GetEntryWeightedRandom(const FPCGExAssetCollectionEntry*& OutEntry, const int32 Seed) const
 	PCGEX_NOT_IMPLEMENTED_RET(GetEntry, false)
 
 	virtual bool BuildFromAttributeSet(
