@@ -305,7 +305,7 @@ namespace PCGExPathSplineMesh
 #if PCGEX_ENGINE_VERSION > 503
 		PathWriter->GetMutable(Index) = MeshEntry->Staging.Path;
 #else
-		PathWriter->GetMutable(Index) = StagingData->->Staging.Path.ToString();
+		PathWriter->GetMutable(Index) = MeshEntry->Staging.Path.ToString();
 #endif
 
 		//
