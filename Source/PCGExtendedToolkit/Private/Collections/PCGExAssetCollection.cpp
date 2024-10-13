@@ -9,14 +9,14 @@
 
 namespace PCGExAssetCollection
 {
-	void FCategory::RegisterStaging(const int32 Index, const FPCGExAssetStagingData* InStaging)
+	void FCategory::RegisterEntry(const int32 Index, const FPCGExAssetCollectionEntry* InEntry)
 	{
-		StagingDatas.Add(InStaging);
+		Entries.Add(InEntry);
 
 		Indices.Add(Index);
 
-		Weights.Add(InStaging->Weight);
-		WeightSum += InStaging->Weight;
+		Weights.Add(InEntry->Weight);
+		WeightSum += InEntry->Weight;
 	}
 
 	void FCategory::Compile()
@@ -45,11 +45,6 @@ bool FPCGExAssetCollectionEntry::Validate(const UPCGExAssetCollection* ParentCol
 
 void FPCGExAssetCollectionEntry::UpdateStaging(const UPCGExAssetCollection* OwningCollection, const bool bRecursive)
 {
-	Staging.bIsSubCollection = bIsSubCollection;
-	Staging.Weight = Weight;
-	Staging.Category = Category;
-	Staging.Tags = Tags;
-	Staging.Variations = Variations;
 	if (bIsSubCollection) { Staging.Bounds = FBox(ForceInitToZero); }
 }
 
@@ -59,21 +54,21 @@ void FPCGExAssetCollectionEntry::OnSubCollectionLoaded()
 
 namespace PCGExAssetCollection
 {
-	void FCache::RegisterStaging(const int32 Index, const FPCGExAssetStagingData* InStaging)
+	void FCache::RegisterEntry(const int32 Index, const FPCGExAssetCollectionEntry* InEntry)
 	{
 		// Register to main category
-		Main->RegisterStaging(Index, InStaging);
+		Main->RegisterEntry(Index, InEntry);
 
 		// Register to sub categories
-		if (const TSharedPtr<FCategory>* CategoryPtr = Categories.Find(InStaging->Category); !CategoryPtr)
+		if (const TSharedPtr<FCategory>* CategoryPtr = Categories.Find(InEntry->Category); !CategoryPtr)
 		{
-			const TSharedPtr<FCategory> Category = MakeShared<FCategory>(InStaging->Category);
-			Categories.Add(InStaging->Category, Category);
-			Category->RegisterStaging(Index, InStaging);
+			const TSharedPtr<FCategory> Category = MakeShared<FCategory>(InEntry->Category);
+			Categories.Add(InEntry->Category, Category);
+			Category->RegisterEntry(Index, InEntry);
 		}
 		else
 		{
-			(*CategoryPtr)->RegisterStaging(Index, InStaging);
+			(*CategoryPtr)->RegisterEntry(Index, InEntry);
 		}
 	}
 
@@ -236,7 +231,6 @@ UPCGExAssetCollection* FPCGExRoamingAssetCollectionDetails::TryBuildCollection(F
 
 	return Collection;
 }
-
 
 namespace PCGExAssetCollection
 {

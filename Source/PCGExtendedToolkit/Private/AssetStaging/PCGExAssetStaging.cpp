@@ -205,15 +205,15 @@ namespace PCGExAssetStaging
 			return;
 		}
 
-		const FPCGExAssetStagingData* StagingData = nullptr;
+		const FPCGExAssetCollectionEntry* Entry = nullptr;
 
 		const int32 Seed = PCGExRandom::GetSeedFromPoint(
 			Helper->Details.SeedComponents, Point,
 			Helper->Details.LocalSeed, Settings, Context->SourceComponent.Get());
 
-		Helper->GetStaging(StagingData, Index, Seed);
+		Helper->GetEntry(Entry, Index, Seed);
 
-		if (!StagingData || !StagingData->Bounds.IsValid)
+		if (!Entry || !Entry->Staging.Bounds.IsValid)
 		{
 			InvalidPoint();
 			return;
@@ -221,7 +221,7 @@ namespace PCGExAssetStaging
 
 		if (bOutputWeight)
 		{
-			double Weight = bNormalizedWeight ? static_cast<double>(StagingData->Weight) / static_cast<double>(Context->MainCollection->LoadCache()->WeightSum) : StagingData->Weight;
+			double Weight = bNormalizedWeight ? static_cast<double>(Entry->Weight) / static_cast<double>(Context->MainCollection->LoadCache()->WeightSum) : Entry->Weight;
 			if (bOneMinusWeight) { Weight = 1 - Weight; }
 			if (WeightWriter) { WeightWriter->GetMutable(Index) = Weight; }
 			else if (NormalizedWeightWriter) { NormalizedWeightWriter->GetMutable(Index) = Weight; }
@@ -229,20 +229,20 @@ namespace PCGExAssetStaging
 		}
 
 #if PCGEX_ENGINE_VERSION > 503
-		PathWriter->GetMutable(Index) = StagingData->Path;
+		PathWriter->GetMutable(Index) = Entry->Staging.Path;
 #else
-		PathWriter->GetMutable(Index) = StagingData->Path.ToString();
+		PathWriter->GetMutable(Index) = Entry->Staging.Path.ToString();
 #endif
 
 
-		if (Variations.bEnabledBefore) { Variations.Apply(Point, StagingData->Variations, EPCGExVariationMode::Before); }
+		if (Variations.bEnabledBefore) { Variations.Apply(Point, Entry->Variations, EPCGExVariationMode::Before); }
 
-		const FBox& StBox = StagingData->Bounds;
+		const FBox& StBox = Entry->Staging.Bounds;
 		FVector OutScale = Point.Transform.GetScale3D();
 		const FBox InBounds = FBox(Point.BoundsMin * OutScale, Point.BoundsMax * OutScale);
 		FBox OutBounds = StBox;
 
-		Settings->ScaleToFit.Process(Point, StagingData->Bounds, OutScale, OutBounds);
+		Settings->ScaleToFit.Process(Point, Entry->Staging.Bounds, OutScale, OutBounds);
 
 		Point.BoundsMin = OutBounds.Min;
 		Point.BoundsMax = OutBounds.Max;
@@ -255,7 +255,7 @@ namespace PCGExAssetStaging
 		Point.Transform.AddToTranslation(Point.Transform.GetRotation().RotateVector(OutTranslation));
 		Point.Transform.SetScale3D(OutScale);
 
-		if (Variations.bEnabledAfter) { Variations.Apply(Point, StagingData->Variations, EPCGExVariationMode::After); }
+		if (Variations.bEnabledAfter) { Variations.Apply(Point, Entry->Variations, EPCGExVariationMode::After); }
 	}
 
 	void FProcessor::CompleteWork()

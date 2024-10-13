@@ -51,7 +51,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExMeshCollectionEntry : public FPCGExAsset
 			SubCollectionPtr == Other.SubCollectionPtr &&
 			Weight == Other.Weight &&
 			Category == Other.Category &&
-			ISMDescriptor.StaticMesh == Other.ISMDescriptor.StaticMesh;
+			StaticMesh == Other.StaticMesh;
 	}
 
 	virtual bool Validate(const UPCGExAssetCollection* ParentCollection) override;

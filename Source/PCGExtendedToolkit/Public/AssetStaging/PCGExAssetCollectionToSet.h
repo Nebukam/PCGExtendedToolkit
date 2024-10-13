@@ -128,9 +128,9 @@ public:
 
 protected:
 	virtual bool ExecuteInternal(FPCGContext* Context) const override;
-	static void ProcessStagingData(
-		const FPCGExAssetStagingData* InStagingData,
-		TArray<const FPCGExAssetStagingData*>& OutStagingDataList,
+	static void ProcessEntry(
+		const FPCGExAssetCollectionEntry* InEntry,
+		TArray<const FPCGExAssetCollectionEntry*>& OutEntries,
 		const bool bOmitInvalidAndEmpty,
 		const bool bNoDuplicates,
 		const EPCGExSubCollectionToSet SubHandling,

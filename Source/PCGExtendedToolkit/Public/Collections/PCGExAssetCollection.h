@@ -12,26 +12,51 @@
 
 #include "PCGExAssetCollection.generated.h"
 
-#define PCGEX_ASSET_COLLECTION_BOILERPLATE_BASE(_TYPE, _ENTRY_TYPE)\
+#define PCGEX_ASSET_COLLECTION_GET_STAGING(_TYPE, _ENTRY_TYPE)\
 FORCEINLINE virtual bool GetStagingAt(const FPCGExAssetStagingData*& OutStaging, const int32 Index) const override{	return GetStagingAtTpl(OutStaging, Entries, Index);}\
 FORCEINLINE virtual bool GetStaging(const FPCGExAssetStagingData*& OutStaging, const int32 Index, const int32 Seed, const EPCGExIndexPickMode PickMode) const override{	return GetStagingTpl(OutStaging, Entries, Index, Seed, PickMode);}\
 FORCEINLINE virtual bool GetStagingRandom(const FPCGExAssetStagingData*& OutStaging, const int32 Seed) const override{	return GetStagingRandomTpl(OutStaging, Entries, Seed);}\
-FORCEINLINE virtual bool GetStagingWeightedRandom(const FPCGExAssetStagingData*& OutStaging, const int32 Seed) const override{	return GetStagingWeightedRandomTpl(OutStaging, Entries, Seed);}\
+FORCEINLINE virtual bool GetStagingWeightedRandom(const FPCGExAssetStagingData*& OutStaging, const int32 Seed) const override{	return GetStagingWeightedRandomTpl(OutStaging, Entries, Seed);}
+
+#define PCGEX_ASSET_COLLECTION_GET_ENTRY(_TYPE, _ENTRY_TYPE)\
+FORCEINLINE virtual bool GetEntryAt(const FPCGExAssetCollectionEntry*& OutEntry, const int32 Index) const override {\
+const _ENTRY_TYPE* OutTypedEntry = static_cast<const _ENTRY_TYPE*>(OutEntry); if(GetEntryAtTpl(OutTypedEntry, Entries, Index)){ OutEntry = static_cast<const FPCGExAssetCollectionEntry*>(OutTypedEntry);  return true;} return false; }\
 FORCEINLINE virtual bool GetEntry(const FPCGExAssetCollectionEntry*& OutEntry, const int32 Index, const int32 Seed, const EPCGExIndexPickMode PickMode = EPCGExIndexPickMode::Ascending) const override {\
 const _ENTRY_TYPE* OutTypedEntry = static_cast<const _ENTRY_TYPE*>(OutEntry); if(GetEntryTpl(OutTypedEntry, Entries, Index, Seed, PickMode)){ OutEntry = static_cast<const FPCGExAssetCollectionEntry*>(OutTypedEntry);  return true;} return false; }\
 FORCEINLINE virtual bool GetEntryRandom(const FPCGExAssetCollectionEntry*& OutEntry, const int32 Seed) const override {\
 const _ENTRY_TYPE* OutTypedEntry = static_cast<const _ENTRY_TYPE*>(OutEntry); if(GetEntryRandomTpl(OutTypedEntry, Entries, Seed)){ OutEntry = static_cast<const FPCGExAssetCollectionEntry*>(OutTypedEntry);  return true;} return false; }\
 FORCEINLINE virtual bool GetEntryWeightedRandom(const FPCGExAssetCollectionEntry*& OutEntry, const int32 Seed) const override {\
 const _ENTRY_TYPE* OutTypedEntry = static_cast<const _ENTRY_TYPE*>(OutEntry); if(GetEntryWeightedRandomTpl(OutTypedEntry, Entries, Seed)){ OutEntry = static_cast<const FPCGExAssetCollectionEntry*>(OutTypedEntry);  return true;} return false; }\
+FORCEINLINE virtual bool GetEntryAt(const FPCGExAssetCollectionEntry*& OutEntry, const int32 Index, uint8 TagInheritance, TSet<FName>& OutTags) const override{\
+const _ENTRY_TYPE* OutTypedEntry = static_cast<const _ENTRY_TYPE*>(OutEntry); if(GetEntryAtTpl(OutTypedEntry, Entries, Index, TagInheritance, OutTags)){ OutEntry = static_cast<const FPCGExAssetCollectionEntry*>(OutTypedEntry);  return true;} return false; }\
+FORCEINLINE virtual bool GetEntry(const FPCGExAssetCollectionEntry*& OutEntry, const int32 Index, const int32 Seed, const EPCGExIndexPickMode PickMode, uint8 TagInheritance, TSet<FName>& OutTags) const override{\
+const _ENTRY_TYPE* OutTypedEntry = static_cast<const _ENTRY_TYPE*>(OutEntry); if(GetEntryTpl(OutTypedEntry, Entries, Index, Seed, PickMode, TagInheritance, OutTags)){ OutEntry = static_cast<const FPCGExAssetCollectionEntry*>(OutTypedEntry);  return true;} return false; }\
+FORCEINLINE virtual bool GetEntryRandom(const FPCGExAssetCollectionEntry*& OutEntry, const int32 Seed, uint8 TagInheritance, TSet<FName>& OutTags) const override{\
+const _ENTRY_TYPE* OutTypedEntry = static_cast<const _ENTRY_TYPE*>(OutEntry); if(GetEntryRandomTpl(OutTypedEntry, Entries, Seed, TagInheritance, OutTags)){ OutEntry = static_cast<const FPCGExAssetCollectionEntry*>(OutTypedEntry);  return true;} return false; }\
+FORCEINLINE virtual bool GetEntryWeightedRandom(const FPCGExAssetCollectionEntry*& OutEntry, const int32 Seed, uint8 TagInheritance, TSet<FName>& OutTags) const override{\
+const _ENTRY_TYPE* OutTypedEntry = static_cast<const _ENTRY_TYPE*>(OutEntry); if(GetEntryWeightedRandomTpl(OutTypedEntry, Entries, Seed, TagInheritance, OutTags)){ OutEntry = static_cast<const FPCGExAssetCollectionEntry*>(OutTypedEntry);  return true;} return false; }
+
+#define PCGEX_ASSET_COLLECTION_GET_ENTRY_TYPED(_TYPE, _ENTRY_TYPE)\
+FORCEINLINE bool GetEntryAt(const _ENTRY_TYPE*& OutEntry, const int32 Index) const { return GetEntryAtTpl(OutEntry, Entries, Index); }\
 FORCEINLINE bool GetEntry(const _ENTRY_TYPE*& OutEntry, const int32 Index, const int32 Seed, const EPCGExIndexPickMode PickMode = EPCGExIndexPickMode::Ascending) const { return GetEntryTpl(OutEntry, Entries, Index, Seed, PickMode); }\
 FORCEINLINE bool GetEntryRandom(const _ENTRY_TYPE*& OutEntry, const int32 Seed) const { return GetEntryRandomTpl(OutEntry, Entries, Seed); }\
 FORCEINLINE bool GetEntryWeightedRandom(const _ENTRY_TYPE*& OutEntry, const int32 Seed) const { return GetEntryWeightedRandomTpl(OutEntry, Entries, Seed); }\
+FORCEINLINE bool GetEntryAt(const _ENTRY_TYPE*& OutEntry, const int32 Index, uint8 TagInheritance, TSet<FName>& OutTags) const { return GetEntryAtTpl(OutEntry, Entries, Index, TagInheritance, OutTags); }\
+FORCEINLINE bool GetEntry(const _ENTRY_TYPE*& OutEntry, const int32 Index, const int32 Seed, const EPCGExIndexPickMode PickMode, uint8 TagInheritance, TSet<FName>& OutTags) const { return GetEntryTpl(OutEntry, Entries, Index, Seed, PickMode, TagInheritance, OutTags); }\
+FORCEINLINE bool GetEntryRandom(const _ENTRY_TYPE*& OutEntry, const int32 Seed, uint8 TagInheritance, TSet<FName>& OutTags) const { return GetEntryRandomTpl(OutEntry, Entries, Seed, TagInheritance, OutTags); }\
+FORCEINLINE bool GetEntryWeightedRandom(const _ENTRY_TYPE*& OutEntry, const int32 Seed, uint8 TagInheritance, TSet<FName>& OutTags) const { return GetEntryWeightedRandomTpl(OutEntry, Entries, Seed, TagInheritance, OutTags); }
+
+#define PCGEX_ASSET_COLLECTION_BOILERPLATE_BASE(_TYPE, _ENTRY_TYPE)\
+PCGEX_ASSET_COLLECTION_GET_STAGING(_TYPE, _ENTRY_TYPE)\
+PCGEX_ASSET_COLLECTION_GET_ENTRY_TYPED(_TYPE, _ENTRY_TYPE)\
+PCGEX_ASSET_COLLECTION_GET_ENTRY(_TYPE, _ENTRY_TYPE)\
 virtual bool BuildFromAttributeSet(FPCGExContext* InContext, const UPCGParamData* InAttributeSet, const FPCGExAssetAttributeSetDetails& Details, const bool bBuildStaging) override \
 { return BuildFromAttributeSetTpl(this, InContext, InAttributeSet, Details, bBuildStaging); } \
 virtual bool BuildFromAttributeSet(FPCGExContext* InContext, const FName InputPin, const FPCGExAssetAttributeSetDetails& Details, const bool bBuildStaging) override\
 { return BuildFromAttributeSetTpl(this, InContext, InputPin, Details, bBuildStaging);}\
 virtual void RebuildStagingData(const bool bRecursive) override{ for (_ENTRY_TYPE& Entry : Entries) { Entry.UpdateStaging(this, bRecursive); } Super::RebuildStagingData(bRecursive); }\
 virtual void BuildCache() override{ Super::BuildCache(Entries); }
+
 
 #if WITH_EDITOR
 #define PCGEX_ASSET_COLLECTION_BOILERPLATE(_TYPE, _ENTRY_TYPE)\
@@ -79,6 +104,19 @@ enum class EPCGExWeightOutputMode : uint8
 	NormalizedToDensity         = 4 UMETA(DisplayName = "Normalized to Density", ToolTip="Normalized weight value (Weight / WeightSum)"),
 	NormalizedInvertedToDensity = 5 UMETA(DisplayName = "Normalized (Inverted) to Density", ToolTip="One Minus normalized weight value (1 - (Weight / WeightSum))"),
 };
+
+UENUM(BlueprintType, meta=(Bitflags, UseEnumValuesAsMaskValuesInEditor="true", DisplayName="[PCGEx] Asset Tag Inheritance"))
+enum class EPCGExAssetTagInheritance : uint8
+{
+	None           = 0,
+	Asset          = 1 << 1 UMETA(DisplayName = "Asset"),
+	Hierarchy      = 1 << 2 UMETA(DisplayName = "Hierarchy"),
+	Collection     = 1 << 3 UMETA(DisplayName = "Collection"),
+	RootCollection = 1 << 4 UMETA(DisplayName = "Root Collection"),
+};
+
+ENUM_CLASS_FLAGS(EPCGExAssetTagInheritance)
+using EPCGExAssetTagInheritanceBitmask = TEnumAsByte<EPCGExAssetTagInheritance>;
 
 namespace PCGExAssetCollection
 {
@@ -195,22 +233,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExAssetStagingData
 	GENERATED_BODY()
 
 	UPROPERTY()
-	bool bIsSubCollection = false;
-
-	UPROPERTY()
 	FSoftObjectPath Path;
-
-	UPROPERTY()
-	int32 Weight = 1; // Dupe from parent.
-
-	UPROPERTY()
-	FName Category = NAME_None; // Dupe from parent.
-
-	UPROPERTY()
-	TSet<FName> Tags;
-
-	UPROPERTY()
-	FPCGExFittingVariations Variations;
 
 	UPROPERTY(VisibleAnywhere, Category = Baked)
 	FBox Bounds = FBox(ForceInitToZero);
@@ -305,7 +328,7 @@ namespace PCGExAssetCollection
 		TArray<int32> Indices;
 		TArray<int32> Weights;
 		TArray<int32> Order;
-		TArray<const FPCGExAssetStagingData*> StagingDatas;
+		TArray<const FPCGExAssetCollectionEntry*> Entries;
 
 		FCategory()
 		{
@@ -382,7 +405,7 @@ namespace PCGExAssetCollection
 			Order.Shrink();
 		}
 
-		void RegisterStaging(const int32 Index, const FPCGExAssetStagingData* InStaging);
+		void RegisterEntry(const int32 Index, const FPCGExAssetCollectionEntry* InEntry);
 		void Compile();
 	};
 
@@ -403,7 +426,7 @@ namespace PCGExAssetCollection
 
 		void Compile();
 
-		void RegisterStaging(const int32 Index, const FPCGExAssetStagingData* InStaging);
+		void RegisterEntry(const int32 Index, const FPCGExAssetCollectionEntry* InEntry);
 	};
 
 #pragma region Staging bounds update
@@ -473,6 +496,10 @@ public:
 
 	virtual void BeginDestroy() override;
 
+	/** Collection tags */
+	UPROPERTY(EditAnywhere, Category = Settings, meta=(DisplayPriority=-1))
+	TSet<FName> CollectionTags;
+
 #if WITH_EDITORONLY_DATA
 	/**  */
 	UPROPERTY(EditAnywhere, Category = Settings, AdvancedDisplay)
@@ -499,14 +526,30 @@ public:
 	FORCEINLINE virtual bool GetStagingWeightedRandom(const FPCGExAssetStagingData*& OutStaging, const int32 Seed) const
 	PCGEX_NOT_IMPLEMENTED_RET(GetStagingWeightedRandom(const FPCGExAssetStagingData*& OutStaging, const int32 Seed), false)
 
+	FORCEINLINE virtual bool GetEntryAt(const FPCGExAssetCollectionEntry*& OutEntry, const int32 Index) const
+	PCGEX_NOT_IMPLEMENTED_RET(GetEntryAt, false)
+	
 	FORCEINLINE virtual bool GetEntry(const FPCGExAssetCollectionEntry*& OutEntry, const int32 Index, const int32 Seed, const EPCGExIndexPickMode PickMode = EPCGExIndexPickMode::Ascending) const
 	PCGEX_NOT_IMPLEMENTED_RET(GetEntry, false)
 
 	FORCEINLINE virtual bool GetEntryRandom(const FPCGExAssetCollectionEntry*& OutEntry, const int32 Seed) const
-	PCGEX_NOT_IMPLEMENTED_RET(GetEntry, false)
+	PCGEX_NOT_IMPLEMENTED_RET(GetEntryRandom, false)
 
 	FORCEINLINE virtual bool GetEntryWeightedRandom(const FPCGExAssetCollectionEntry*& OutEntry, const int32 Seed) const
+	PCGEX_NOT_IMPLEMENTED_RET(GetEntryWeightedRandom, false)
+
+	
+	FORCEINLINE virtual bool GetEntryAt(const FPCGExAssetCollectionEntry*& OutEntry, const int32 Index, uint8 TagInheritance, TSet<FName>& OutTags) const
+	PCGEX_NOT_IMPLEMENTED_RET(GetEntryAt, false)
+
+	FORCEINLINE virtual bool GetEntry(const FPCGExAssetCollectionEntry*& OutEntry, const int32 Index, const int32 Seed, const EPCGExIndexPickMode PickMode, uint8 TagInheritance, TSet<FName>& OutTags) const
 	PCGEX_NOT_IMPLEMENTED_RET(GetEntry, false)
+
+	FORCEINLINE virtual bool GetEntryRandom(const FPCGExAssetCollectionEntry*& OutEntry, const int32 Seed, uint8 TagInheritance, TSet<FName>& OutTags) const
+	PCGEX_NOT_IMPLEMENTED_RET(GetEntryRandom, false)
+
+	FORCEINLINE virtual bool GetEntryWeightedRandom(const FPCGExAssetCollectionEntry*& OutEntry, const int32 Seed, uint8 TagInheritance, TSet<FName>& OutTags) const
+	PCGEX_NOT_IMPLEMENTED_RET(GetEntryWeightedRandom, false)
 
 	virtual bool BuildFromAttributeSet(
 		FPCGExContext* InContext,
@@ -529,8 +572,7 @@ protected:
 	template <typename T>
 	FORCEINLINE bool GetStagingAtTpl(
 		const FPCGExAssetStagingData*& OutStaging,
-		const TArray<T>& InEntries,
-		const int32 Index) const
+		const TArray<T>& InEntries, const int32 Index) const
 	{
 		const int32 Pick = Cache->Main->GetPick(Index, EPCGExIndexPickMode::Ascending);
 		if (!InEntries.IsValidIndex(Pick)) { return false; }
@@ -541,10 +583,7 @@ protected:
 	template <typename T>
 	FORCEINLINE bool GetStagingTpl(
 		const FPCGExAssetStagingData*& OutStaging,
-		const TArray<T>& InEntries,
-		const int32 Index,
-		const int32 Seed,
-		const EPCGExIndexPickMode PickMode) const
+		const TArray<T>& InEntries, const int32 Index, const int32 Seed, const EPCGExIndexPickMode PickMode) const
 	{
 		const int32 Pick = Cache->Main->GetPick(Index, PickMode);
 		if (!InEntries.IsValidIndex(Pick)) { return false; }
@@ -556,8 +595,7 @@ protected:
 	template <typename T>
 	FORCEINLINE bool GetStagingRandomTpl(
 		const FPCGExAssetStagingData*& OutStaging,
-		const TArray<T>& InEntries,
-		const int32 Seed) const
+		const TArray<T>& InEntries, const int32 Seed) const
 	{
 		const T& Entry = InEntries[Cache->Main->GetPickRandom(Seed)];
 		if (Entry.SubCollectionPtr) { Entry.SubCollectionPtr->GetStagingRandomTpl(OutStaging, Entry.SubCollectionPtr->Entries, Seed + 1); }
@@ -568,12 +606,98 @@ protected:
 	template <typename T>
 	FORCEINLINE bool GetStagingWeightedRandomTpl(
 		const FPCGExAssetStagingData*& OutStaging,
-		const TArray<T>& InEntries,
-		const int32 Seed) const
+		const TArray<T>& InEntries, const int32 Seed) const
 	{
 		const T& Entry = InEntries[Cache->Main->GetPickRandomWeighted(Seed)];
 		if (Entry.SubCollectionPtr) { Entry.SubCollectionPtr->GetStagingWeightedRandomTpl(OutStaging, Entry.SubCollectionPtr->Entries, Seed + 1); }
 		else { OutStaging = &Entry.Staging; }
+		return true;
+	}
+
+#pragma endregion
+
+#pragma region GetStagingWithTags
+	template <typename T>
+	FORCEINLINE bool GetStagingAtTpl(
+		const FPCGExAssetStagingData*& OutStaging,
+		const TArray<T>& InEntries, const int32 Index,
+		uint8 TagInheritance, TSet<FName>& OutTags) const
+	{
+		const int32 Pick = Cache->Main->GetPick(Index, EPCGExIndexPickMode::Ascending);
+		if (!InEntries.IsValidIndex(Pick)) { return false; }
+		const T& Entry = InEntries[Pick];
+
+		if (Entry.SubCollectionPtr && (TagInheritance & static_cast<uint8>(EPCGExAssetTagInheritance::Collection))) { OutTags.Append(Entry.SubCollectionPtr->CollectionTags); }
+		if ((TagInheritance & static_cast<uint8>(EPCGExAssetTagInheritance::Asset))) { OutTags.Append(Entry.Tags); }
+
+		OutStaging = &Entry.Staging;
+		return true;
+	}
+
+	template <typename T>
+	FORCEINLINE bool GetStagingTpl(
+		const FPCGExAssetStagingData*& OutStaging,
+		const TArray<T>& InEntries, const int32 Index, const int32 Seed, const EPCGExIndexPickMode PickMode,
+		uint8 TagInheritance, TSet<FName>& OutTags) const
+	{
+		const int32 Pick = Cache->Main->GetPick(Index, PickMode);
+		if (!InEntries.IsValidIndex(Pick)) { return false; }
+
+		const T& Entry = InEntries[Pick];
+
+		if (Entry.SubCollectionPtr)
+		{
+			if ((TagInheritance & static_cast<uint8>(EPCGExAssetTagInheritance::Hierarchy))) { OutTags.Append(Entry.Tags); }
+			if ((TagInheritance & static_cast<uint8>(EPCGExAssetTagInheritance::Collection))) { OutTags.Append(Entry.SubCollectionPtr->CollectionTags); }
+			Entry.SubCollectionPtr->GetStagingWeightedRandomTpl(OutStaging, Entry.SubCollectionPtr->Entries, Seed, TagInheritance, OutTags);
+		}
+		else
+		{
+			if ((TagInheritance & static_cast<uint8>(EPCGExAssetTagInheritance::Asset))) { OutTags.Append(Entry.Tags); }
+			OutStaging = &Entry.Staging;
+		}
+		return true;
+	}
+
+	template <typename T>
+	FORCEINLINE bool GetStagingRandomTpl(
+		const FPCGExAssetStagingData*& OutStaging,
+		const TArray<T>& InEntries, const int32 Seed,
+		uint8 TagInheritance, TSet<FName>& OutTags) const
+	{
+		const T& Entry = InEntries[Cache->Main->GetPickRandom(Seed)];
+		if (Entry.SubCollectionPtr)
+		{
+			if ((TagInheritance & static_cast<uint8>(EPCGExAssetTagInheritance::Hierarchy))) { OutTags.Append(Entry.Tags); }
+			if ((TagInheritance & static_cast<uint8>(EPCGExAssetTagInheritance::Collection))) { OutTags.Append(Entry.SubCollectionPtr->CollectionTags); }
+			Entry.SubCollectionPtr->GetStagingRandomTpl(OutStaging, Entry.SubCollectionPtr->Entries, Seed + 1, TagInheritance, OutTags);
+		}
+		else
+		{
+			if ((TagInheritance & static_cast<uint8>(EPCGExAssetTagInheritance::Asset))) { OutTags.Append(Entry.Tags); }
+			OutStaging = &Entry.Staging;
+		}
+		return true;
+	}
+
+	template <typename T>
+	FORCEINLINE bool GetStagingWeightedRandomTpl(
+		const FPCGExAssetStagingData*& OutStaging,
+		const TArray<T>& InEntries, const int32 Seed,
+		uint8 TagInheritance, TSet<FName>& OutTags) const
+	{
+		const T& Entry = InEntries[Cache->Main->GetPickRandomWeighted(Seed)];
+		if (Entry.SubCollectionPtr)
+		{
+			if ((TagInheritance & static_cast<uint8>(EPCGExAssetTagInheritance::Hierarchy))) { OutTags.Append(Entry.Tags); }
+			if ((TagInheritance & static_cast<uint8>(EPCGExAssetTagInheritance::Collection))) { OutTags.Append(Entry.SubCollectionPtr->CollectionTags); }
+			Entry.SubCollectionPtr->GetStagingWeightedRandomTpl(OutStaging, Entry.SubCollectionPtr->Entries, Seed + 1, TagInheritance, OutTags);
+		}
+		else
+		{
+			if ((TagInheritance & static_cast<uint8>(EPCGExAssetTagInheritance::Asset))) { OutTags.Append(Entry.Tags); }
+			OutStaging = &Entry.Staging;
+		}
 		return true;
 	}
 
@@ -584,8 +708,7 @@ protected:
 	template <typename T>
 	FORCEINLINE bool GetEntryAtTpl(
 		const T*& OutEntry,
-		const TArray<T>& InEntries,
-		const int32 Index) const
+		const TArray<T>& InEntries, const int32 Index) const
 	{
 		const int32 Pick = Cache->Main->GetPick(Index, EPCGExIndexPickMode::Ascending);
 		if (!InEntries.IsValidIndex(Pick)) { return false; }
@@ -596,10 +719,7 @@ protected:
 	template <typename T>
 	FORCEINLINE bool GetEntryTpl(
 		const T*& OutEntry,
-		const TArray<T>& InEntries,
-		const int32 Index,
-		const int32 Seed,
-		const EPCGExIndexPickMode PickMode) const
+		const TArray<T>& InEntries, const int32 Index, const int32 Seed, const EPCGExIndexPickMode PickMode) const
 	{
 		const int32 Pick = Cache->Main->GetPick(Index, PickMode);
 		if (!InEntries.IsValidIndex(Pick)) { return false; }
@@ -611,8 +731,7 @@ protected:
 	template <typename T>
 	FORCEINLINE bool GetEntryRandomTpl(
 		const T*& OutEntry,
-		const TArray<T>& InEntries,
-		const int32 Seed) const
+		const TArray<T>& InEntries, const int32 Seed) const
 	{
 		const T& Entry = InEntries[Cache->Main->GetPickRandom(Seed)];
 		if (Entry.SubCollectionPtr) { Entry.SubCollectionPtr->GetEntryRandomTpl(OutEntry, Entry.SubCollectionPtr->Entries, Seed + 1); }
@@ -623,12 +742,97 @@ protected:
 	template <typename T>
 	FORCEINLINE bool GetEntryWeightedRandomTpl(
 		const T*& OutEntry,
-		const TArray<T>& InEntries,
-		const int32 Seed) const
+		const TArray<T>& InEntries, const int32 Seed) const
 	{
 		const T& Entry = InEntries[Cache->Main->GetPickRandomWeighted(Seed)];
 		if (Entry.SubCollectionPtr) { Entry.SubCollectionPtr->GetEntryWeightedRandomTpl(OutEntry, Entry.SubCollectionPtr->Entries, Seed + 1); }
 		else { OutEntry = &Entry; }
+		return true;
+	}
+
+#pragma endregion
+
+#pragma region GetEntryWithTags
+
+	template <typename T>
+	FORCEINLINE bool GetEntryAtTpl(
+		const T*& OutEntry,
+		const TArray<T>& InEntries, const int32 Index,
+		uint8 TagInheritance, TSet<FName>& OutTags) const
+	{
+		const int32 Pick = Cache->Main->GetPick(Index, EPCGExIndexPickMode::Ascending);
+		if (!InEntries.IsValidIndex(Pick)) { return false; }
+		const T& Entry = InEntries[Pick];
+
+		if (Entry.SubCollectionPtr && (TagInheritance & static_cast<uint8>(EPCGExAssetTagInheritance::Collection))) { OutTags.Append(Entry.SubCollectionPtr->CollectionTags); }
+		if ((TagInheritance & static_cast<uint8>(EPCGExAssetTagInheritance::Asset))) { OutTags.Append(Entry.Tags); }
+
+		OutEntry = &InEntries[Pick];
+		return true;
+	}
+
+	template <typename T>
+	FORCEINLINE bool GetEntryTpl(
+		const T*& OutEntry,
+		const TArray<T>& InEntries, const int32 Index, const int32 Seed, const EPCGExIndexPickMode PickMode,
+		uint8 TagInheritance, TSet<FName>& OutTags) const
+	{
+		const int32 Pick = Cache->Main->GetPick(Index, PickMode);
+		if (!InEntries.IsValidIndex(Pick)) { return false; }
+		const T& Entry = InEntries[Pick];
+		if (Entry.SubCollectionPtr)
+		{
+			if ((TagInheritance & static_cast<uint8>(EPCGExAssetTagInheritance::Hierarchy))) { OutTags.Append(Entry.Tags); }
+			if ((TagInheritance & static_cast<uint8>(EPCGExAssetTagInheritance::Collection))) { OutTags.Append(Entry.SubCollectionPtr->CollectionTags); }
+			Entry.SubCollectionPtr->GetEntryWeightedRandomTpl(OutEntry, Entry.SubCollectionPtr->Entries, Seed);
+		}
+		else
+		{
+			if ((TagInheritance & static_cast<uint8>(EPCGExAssetTagInheritance::Asset))) { OutTags.Append(Entry.Tags); }
+			OutEntry = &Entry;
+		}
+		return true;
+	}
+
+	template <typename T>
+	FORCEINLINE bool GetEntryRandomTpl(
+		const T*& OutEntry,
+		const TArray<T>& InEntries, const int32 Seed,
+		uint8 TagInheritance, TSet<FName>& OutTags) const
+	{
+		const T& Entry = InEntries[Cache->Main->GetPickRandom(Seed)];
+		if (Entry.SubCollectionPtr)
+		{
+			if ((TagInheritance & static_cast<uint8>(EPCGExAssetTagInheritance::Hierarchy))) { OutTags.Append(Entry.Tags); }
+			if ((TagInheritance & static_cast<uint8>(EPCGExAssetTagInheritance::Collection))) { OutTags.Append(Entry.SubCollectionPtr->CollectionTags); }
+			Entry.SubCollectionPtr->GetEntryRandomTpl(OutEntry, Entry.SubCollectionPtr->Entries, Seed + 1);
+		}
+		else
+		{
+			if ((TagInheritance & static_cast<uint8>(EPCGExAssetTagInheritance::Asset))) { OutTags.Append(Entry.Tags); }
+			OutEntry = &Entry;
+		}
+		return true;
+	}
+
+	template <typename T>
+	FORCEINLINE bool GetEntryWeightedRandomTpl(
+		const T*& OutEntry,
+		const TArray<T>& InEntries, const int32 Seed,
+		uint8 TagInheritance, TSet<FName>& OutTags) const
+	{
+		const T& Entry = InEntries[Cache->Main->GetPickRandomWeighted(Seed)];
+		if (Entry.SubCollectionPtr)
+		{
+			if ((TagInheritance & static_cast<uint8>(EPCGExAssetTagInheritance::Hierarchy))) { OutTags.Append(Entry.Tags); }
+			if ((TagInheritance & static_cast<uint8>(EPCGExAssetTagInheritance::Collection))) { OutTags.Append(Entry.SubCollectionPtr->CollectionTags); }
+			Entry.SubCollectionPtr->GetEntryWeightedRandomTpl(OutEntry, Entry.SubCollectionPtr->Entries, Seed + 1);
+		}
+		else
+		{
+			if ((TagInheritance & static_cast<uint8>(EPCGExAssetTagInheritance::Asset))) { OutTags.Append(Entry.Tags); }
+			OutEntry = &Entry;
+		}
 		return true;
 	}
 
@@ -656,7 +860,7 @@ protected:
 			T& Entry = InEntries[i];
 			if (!Entry.Validate(this)) { continue; }
 
-			Cache->RegisterStaging(i, &Entry.Staging);
+			Cache->RegisterEntry(i, static_cast<const FPCGExAssetCollectionEntry*>(&Entry));
 		}
 
 		Cache->Main->Compile();
@@ -894,46 +1098,6 @@ namespace PCGExAssetCollection
 			}
 
 			return true;
-		}
-
-		void GetStaging(const FPCGExAssetStagingData*& OutStaging, const int32 PointIndex, const int32 Seed) const
-		{
-			if (Details.Distribution == EPCGExDistribution::WeightedRandom)
-			{
-				Collection->GetStagingWeightedRandom(OutStaging, Seed);
-			}
-			else if (Details.Distribution == EPCGExDistribution::Random)
-			{
-				Collection->GetStagingRandom(OutStaging, Seed);
-			}
-			else
-			{
-				double PickedIndex = IndexGetter->Read(PointIndex);
-				if (Details.IndexSettings.bRemapIndexToCollectionSize)
-				{
-					PickedIndex = MaxInputIndex == 0 ? 0 : PCGExMath::Remap(PickedIndex, 0, MaxInputIndex, 0, MaxIndex);
-					switch (Details.IndexSettings.TruncateRemap)
-					{
-					case EPCGExTruncateMode::Round:
-						PickedIndex = FMath::RoundToInt(PickedIndex);
-						break;
-					case EPCGExTruncateMode::Ceil:
-						PickedIndex = FMath::CeilToDouble(PickedIndex);
-						break;
-					case EPCGExTruncateMode::Floor:
-						PickedIndex = FMath::FloorToDouble(PickedIndex);
-						break;
-					default:
-					case EPCGExTruncateMode::None:
-						break;
-					}
-				}
-
-				Collection->GetStaging(
-					OutStaging,
-					PCGExMath::SanitizeIndex(static_cast<int32>(PickedIndex), MaxIndex, Details.IndexSettings.IndexSafety),
-					Seed, Details.IndexSettings.PickMode);
-			}
 		}
 
 		void GetEntry(const A*& OutEntry, const int32 PointIndex, const int32 Seed) const
