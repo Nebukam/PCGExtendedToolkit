@@ -68,12 +68,16 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	bool bPruneEmptyPoints = true;
 
+	/** Tagging details */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Additional Outputs", meta=(PCG_Overridable))
+	FPCGExAssetTaggingDetails TaggingDetails;
+	
 	/** Update point scale so staged asset fits within its bounds */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Additional Outputs", meta=(PCG_Overridable))
 	EPCGExWeightOutputMode WeightToAttribute = EPCGExWeightOutputMode::NoOutput;
 
 	/** The name of the attribute to write asset weight to.*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Additional Output", meta=(PCG_Overridable, EditCondition="WeightToAttribute!=EPCGExWeightOutputMode::NoOutput && WeightToAttribute!=EPCGExWeightOutputMode::NormalizedToDensity && WeightToAttribute!=EPCGExWeightOutputMode::NormalizedInvertedToDensity"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Additional Outputs", meta=(PCG_Overridable, EditCondition="WeightToAttribute!=EPCGExWeightOutputMode::NoOutput && WeightToAttribute!=EPCGExWeightOutputMode::NormalizedToDensity && WeightToAttribute!=EPCGExWeightOutputMode::NormalizedInvertedToDensity"))
 	FName WeightAttributeName = "AssetWeight";
 };
 

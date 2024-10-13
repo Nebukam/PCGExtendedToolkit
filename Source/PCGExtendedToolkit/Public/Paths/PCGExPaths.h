@@ -251,6 +251,7 @@ namespace PCGExPaths
 		bool bSmoothInterpRollScale = true;
 		bool bUseDegrees = true;
 		FVector UpVector = FVector::UpVector;
+		TSet<FName> Tags;
 
 		ESplineMeshAxis::Type SplineMeshAxis = ESplineMeshAxis::Type::X;
 
@@ -285,7 +286,7 @@ namespace PCGExPaths
 			Component->SplineBoundaryMax = 0;
 
 			Component->bSmoothInterpRollScale = bSmoothInterpRollScale;
-
+			
 			if (bSetMeshWithSettings) { ApplyMesh(Component); }
 		}
 

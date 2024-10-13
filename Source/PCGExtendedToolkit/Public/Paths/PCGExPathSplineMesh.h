@@ -108,6 +108,10 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bApplyCustomTangents"))
 	bool bJustifyToOne = false;
 
+	/** Tagging details */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Additional Outputs", meta=(PCG_Overridable))
+	FPCGExAssetTaggingDetails TaggingDetails;
+	
 	/** Update point scale so staged asset fits within its bounds */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Additional Outputs", meta=(PCG_Overridable))
 	EPCGExWeightOutputMode WeightToAttribute = EPCGExWeightOutputMode::NoOutput;
@@ -165,7 +169,8 @@ namespace PCGExPathSplineMesh
 
 		bool bClosedLoop = false;
 		bool bApplyScaleToFit = false;
-
+		bool bUseTags = false;
+		
 		int32 LastIndex = 0;
 
 		int32 C1 = 1;

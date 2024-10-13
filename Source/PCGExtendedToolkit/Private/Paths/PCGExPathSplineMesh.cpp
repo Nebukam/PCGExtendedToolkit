@@ -168,6 +168,7 @@ namespace PCGExPathSplineMesh
 
 		bClosedLoop = Context->ClosedLoop.IsClosedLoop(PointDataFacade->Source);
 		bApplyScaleToFit = Settings->ScaleToFit.ScaleToFitMode != EPCGExFitMode::None;
+		bUseTags = Settings->TaggingDetails.IsEnabled();
 
 		Helper = MakeUnique<PCGExAssetCollection::TDistributionHelper<UPCGExMeshCollection, FPCGExMeshCollectionEntry>>(Context->MainCollection, Settings->DistributionSettings);
 		if (!Helper->Init(ExecutionContext, PointDataFacade)) { return false; }
@@ -279,10 +280,13 @@ namespace PCGExPathSplineMesh
 			Helper->Details.SeedComponents, Point,
 			Helper->Details.LocalSeed, Settings, Context->SourceComponent.Get());
 
-		Helper->GetEntry(MeshEntry, Index, Seed);
 
 		Segments[Index] = PCGExPaths::FSplineMeshSegment();
 		PCGExPaths::FSplineMeshSegment& Segment = Segments[Index];
+
+		if (bUseTags) { Helper->GetEntry(MeshEntry, Index, Seed, Settings->TaggingDetails.GrabTags, Segment.Tags); }
+		else { Helper->GetEntry(MeshEntry, Index, Seed); }
+
 		Segment.MeshEntry = MeshEntry;
 
 		if (!MeshEntry)
@@ -396,10 +400,12 @@ namespace PCGExPathSplineMesh
 			Segment.ApplySettings(SplineMeshComponent); // Init Component
 			if (!Segment.ApplyMesh(SplineMeshComponent)) { continue; }
 
-			SplineMeshComponent->ComponentTags.Append(DataTags);
+			if (Settings->TaggingDetails.bForwardInputDataTags) { SplineMeshComponent->ComponentTags.Append(DataTags); }
+			if (!Segment.Tags.IsEmpty()) { SplineMeshComponent->ComponentTags.Append(Segment.Tags.Array()); }
 
 			if (Settings->bForceDefaultDescriptor) { Settings->DefaultDescriptor.InitComponent(SplineMeshComponent); }
 			else { Segment.MeshEntry->SMDescriptor.InitComponent(SplineMeshComponent); }
+
 
 			Context->AttachManageComponent(
 				TargetActor, SplineMeshComponent,

@@ -174,6 +174,30 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExAssetDistributionIndexDetails
 };
 
 USTRUCT(BlueprintType)
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExAssetTaggingDetails
+{
+	GENERATED_BODY()
+
+	FPCGExAssetTaggingDetails()
+	{
+	}
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable, Bitmask, BitmaskEnum="/Script/PCGExtendedToolkit.EPCGExAssetTagInheritance"))
+	uint8 GrabTags = static_cast<uint8>(EPCGExAssetTagInheritance::Asset);
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	bool bForwardInputDataTags = true;
+	
+	//UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	//bool bOutputTagsToAttributes = false;
+
+	//UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	//bool bAddTagsToData = false;
+
+	bool IsEnabled() const { return GrabTags != 0; }
+};
+
+USTRUCT(BlueprintType)
 struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExAssetDistributionDetails
 {
 	GENERATED_BODY()
@@ -509,7 +533,7 @@ public:
 
 	FORCEINLINE virtual bool GetEntryAt(const FPCGExAssetCollectionEntry*& OutEntry, const int32 Index) const
 	PCGEX_NOT_IMPLEMENTED_RET(GetEntryAt, false)
-	
+
 	FORCEINLINE virtual bool GetEntry(const FPCGExAssetCollectionEntry*& OutEntry, const int32 Index, const int32 Seed, const EPCGExIndexPickMode PickMode = EPCGExIndexPickMode::Ascending) const
 	PCGEX_NOT_IMPLEMENTED_RET(GetEntry, false)
 
@@ -519,7 +543,7 @@ public:
 	FORCEINLINE virtual bool GetEntryWeightedRandom(const FPCGExAssetCollectionEntry*& OutEntry, const int32 Seed) const
 	PCGEX_NOT_IMPLEMENTED_RET(GetEntryWeightedRandom, false)
 
-	
+
 	FORCEINLINE virtual bool GetEntryAt(const FPCGExAssetCollectionEntry*& OutEntry, const int32 Index, uint8 TagInheritance, TSet<FName>& OutTags) const
 	PCGEX_NOT_IMPLEMENTED_RET(GetEntryAt, false)
 
@@ -983,6 +1007,54 @@ namespace PCGExAssetCollection
 					OutEntry,
 					PCGExMath::SanitizeIndex(static_cast<int32>(PickedIndex), MaxIndex, Details.IndexSettings.IndexSafety),
 					Seed, Details.IndexSettings.PickMode);
+			}
+		}
+
+		void GetEntry(const A*& OutEntry, const int32 PointIndex, const int32 Seed, uint8 TagInheritance, TSet<FName>& OutTags) const
+		{
+			if (TagInheritance == 0)
+			{
+				GetEntry(OutEntry, PointIndex, Seed);
+				return;
+			}
+
+			if (TagInheritance & static_cast<uint8>(EPCGExAssetTagInheritance::RootCollection)) { OutTags.Append(Collection->CollectionTags); }
+			
+			if (Details.Distribution == EPCGExDistribution::WeightedRandom)
+			{
+				Collection->GetEntryWeightedRandom(OutEntry, Seed, TagInheritance, OutTags);
+			}
+			else if (Details.Distribution == EPCGExDistribution::Random)
+			{
+				Collection->GetEntryRandom(OutEntry, Seed, TagInheritance, OutTags);
+			}
+			else
+			{
+				double PickedIndex = IndexGetter->Read(PointIndex);
+				if (Details.IndexSettings.bRemapIndexToCollectionSize)
+				{
+					PickedIndex = MaxInputIndex == 0 ? 0 : PCGExMath::Remap(PickedIndex, 0, MaxInputIndex, 0, MaxIndex);
+					switch (Details.IndexSettings.TruncateRemap)
+					{
+					case EPCGExTruncateMode::Round:
+						PickedIndex = FMath::RoundToInt(PickedIndex);
+						break;
+					case EPCGExTruncateMode::Ceil:
+						PickedIndex = FMath::CeilToDouble(PickedIndex);
+						break;
+					case EPCGExTruncateMode::Floor:
+						PickedIndex = FMath::FloorToDouble(PickedIndex);
+						break;
+					default:
+					case EPCGExTruncateMode::None:
+						break;
+					}
+				}
+
+				Collection->GetEntry(
+					OutEntry,
+					PCGExMath::SanitizeIndex(static_cast<int32>(PickedIndex), MaxIndex, Details.IndexSettings.IndexSafety),
+					Seed, Details.IndexSettings.PickMode, TagInheritance, OutTags);
 			}
 		}
 	};
