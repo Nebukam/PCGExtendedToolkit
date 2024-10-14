@@ -27,6 +27,8 @@ bool FPCGExPathSplineMeshSimpleElement::Boot(FPCGExContext* InContext) const
 
 	PCGEX_VALIDATE_NAME(Settings->AssetPathAttributeName)
 
+	TArray<FName> Names = {Settings->AssetPathAttributeName};
+	Context->StaticMeshLoader = MakeShared<PCGEx::TAssetLoader<UStaticMesh>>(Context, Context->MainPoints.ToSharedRef(), Names);
 	return true;
 }
 
@@ -37,6 +39,19 @@ bool FPCGExPathSplineMeshSimpleElement::ExecuteInternal(FPCGContext* InContext) 
 	PCGEX_CONTEXT_AND_SETTINGS(PathSplineMeshSimple)
 	PCGEX_EXECUTION_CHECK
 	PCGEX_ON_INITIAL_EXECUTION
+	{
+		if (!Context->StaticMeshLoader->Start(Context->GetAsyncManager(), PCGEx::State_WaitingOnAsyncWork))
+		{
+			PCGE_LOG(Error, GraphAndLog, FTEXT("Failed to find any asset to load."));
+			return true;
+		}
+
+		return false;
+	}
+
+	if (!Context->StaticMeshLoader->Execute()) { return false; }
+
+	PCGEX_ON_STATE(PCGEx::State_WaitingOnAsyncWork)
 	{
 		bool bInvalidInputs = false;
 
@@ -96,15 +111,15 @@ namespace PCGExPathSplineMeshSimple
 		if (!FPointsProcessor::Process(InAsyncManager)) { return false; }
 
 		AssetPathReader = PointDataFacade->GetScopedBroadcaster<FSoftObjectPath>(Settings->AssetPathAttributeName);
-		if(!AssetPathReader)
+		if (!AssetPathReader)
 		{
 			PCGE_LOG_C(Error, GraphAndLog, ExecutionContext, FTEXT("AssetPath attribute is missing on some inputs.."));
 			return false;
 		}
-		
+
 		bClosedLoop = Context->ClosedLoop.IsClosedLoop(PointDataFacade->Source);
 		bUseTags = Settings->TaggingDetails.IsEnabled();
-		
+
 		if (Settings->bApplyCustomTangents)
 		{
 			ArriveReader = PointDataFacade->GetReadable<FVector>(Settings->ArriveTangentAttribute);
@@ -178,14 +193,14 @@ namespace PCGExPathSplineMeshSimple
 			return;
 		}
 
-		TObjectPtr<UStaticMesh>* SM = Context->Meshes.Find(AssetPathReader->Read(Index));
-		if(!SM)
+		TObjectPtr<UStaticMesh>* SM = Context->StaticMeshLoader->GetAsset(AssetPathReader->Read(Index));
+		if (!SM)
 		{
 			InvalidPoint();
 			return;
 		}
 
-		Meshes[Index] = *SM;		
+		Meshes[Index] = *SM;
 		Segments[Index] = PCGExPaths::FSplineMeshSegment();
 		PCGExPaths::FSplineMeshSegment& Segment = Segments[Index];
 
@@ -247,11 +262,14 @@ namespace PCGExPathSplineMeshSimple
 
 		TArray<FName> DataTags = PointDataFacade->Source->Tags->ToFNameList();
 
-		for (const PCGExPaths::FSplineMeshSegment& Segment : Segments)
+		for (int i = 0; i < Segments.Num(); i++)
 		{
-			if (!Segment.MeshEntry) { continue; }
+			UStaticMesh* Mesh = Meshes[i];
+			if (!Mesh) { continue; }
 
-			const FString ComponentName = TEXT("PCGSplineMeshComponent_") + Segment.MeshEntry->Staging.Path.GetAssetName();
+			const PCGExPaths::FSplineMeshSegment& Segment = Segments[i];
+
+			const FString ComponentName = TEXT("PCGSplineMeshComponent_") + Mesh->GetName();
 			const EObjectFlags ObjectFlags = (bIsPreviewMode ? RF_Transient : RF_NoFlags);
 			USplineMeshComponent* SplineMeshComponent = NewObject<USplineMeshComponent>(TargetActor, MakeUniqueObjectName(TargetActor, USplineMeshComponent::StaticClass(), FName(ComponentName)), ObjectFlags);
 
@@ -265,8 +283,8 @@ namespace PCGExPathSplineMeshSimple
 			SplineMeshComponent->bNavigationRelevant = false;
 			SplineMeshComponent->SetbNeverNeedsCookedCollisionData(true);
 
-			Segment.ApplySettings(SplineMeshComponent); // Init Component
-			if (!Segment.ApplyMesh(SplineMeshComponent)) { continue; }
+			Segment.ApplySettings(SplineMeshComponent);    // Init Component
+			SplineMeshComponent->SetStaticMesh(Mesh); // Will trigger a force rebuild, so put this last
 
 			if (Settings->TaggingDetails.bForwardInputDataTags) { SplineMeshComponent->ComponentTags.Append(DataTags); }
 			if (!Segment.Tags.IsEmpty()) { SplineMeshComponent->ComponentTags.Append(Segment.Tags.Array()); }

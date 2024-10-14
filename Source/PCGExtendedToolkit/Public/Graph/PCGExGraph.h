@@ -21,7 +21,7 @@ namespace PCGExGraph
 
 namespace PCGExCluster
 {
-	struct FCluster;
+	class FCluster;
 }
 
 UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Graph Value Source"))

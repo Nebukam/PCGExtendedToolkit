@@ -18,7 +18,7 @@ namespace PCGExData
 
 namespace PCGExCluster
 {
-	struct FCluster;
+	class FCluster;
 }
 
 /**

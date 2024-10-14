@@ -33,7 +33,7 @@ namespace PCGExData
 
 	struct /*PCGEXTENDEDTOOLKIT_API*/ FPointRef
 	{
-		friend struct FPointIO;
+		friend class FPointIO;
 
 		FPointRef(const FPCGPoint& InPoint, const int32 InIndex):
 			Point(&InPoint), Index(InIndex)
@@ -64,7 +64,7 @@ namespace PCGExData
 	/**
 	 * 
 	 */
-	struct /*PCGEXTENDEDTOOLKIT_API*/ FPointIO
+	class /*PCGEXTENDEDTOOLKIT_API*/ FPointIO : public TSharedFromThis<FPointIO>
 	{
 		friend class FPointIOCollection;
 
@@ -284,7 +284,7 @@ namespace PCGExData
 	/**
 	 * 
 	 */
-	class /*PCGEXTENDEDTOOLKIT_API*/ FPointIOCollection
+	class /*PCGEXTENDEDTOOLKIT_API*/ FPointIOCollection : public TSharedFromThis<FPointIOCollection>
 	{
 	protected:
 		mutable FRWLock PairsLock;

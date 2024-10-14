@@ -15,8 +15,10 @@
 
 namespace PCGExGraph
 {
-	struct /*PCGEXTENDEDTOOLKIT_API*/ FUnionProcessor : TSharedFromThis<FUnionProcessor>
+	class /*PCGEXTENDEDTOOLKIT_API*/ FUnionProcessor : public TSharedFromThis<FUnionProcessor>
 	{
+		
+	public:
 		FPCGExPointsProcessorContext* Context = nullptr;
 
 		TSharedRef<PCGExData::FFacade> UnionDataFacade;

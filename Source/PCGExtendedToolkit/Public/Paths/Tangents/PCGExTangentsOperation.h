@@ -9,7 +9,7 @@
 
 namespace PCGExData
 {
-	struct FPointIO;
+	class FPointIO;
 }
 
 /**

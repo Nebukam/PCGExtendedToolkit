@@ -19,7 +19,7 @@ class UPCGExHeuristicOperation;
 
 namespace PCGExCluster
 {
-	struct FCluster;
+	class FCluster;
 }
 
 /**

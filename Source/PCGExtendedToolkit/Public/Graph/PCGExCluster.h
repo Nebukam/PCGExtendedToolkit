@@ -115,7 +115,7 @@ namespace PCGExCluster
 		}
 	};
 
-	struct FCluster;
+	class FCluster;
 
 	struct /*PCGEXTENDEDTOOLKIT_API*/ FNode : PCGExGraph::FNode
 	{
@@ -180,7 +180,7 @@ namespace PCGExCluster
 		}
 	};
 
-	struct /*PCGEXTENDEDTOOLKIT_API*/ FCluster : TSharedFromThis<FCluster>
+	class /*PCGEXTENDEDTOOLKIT_API*/ FCluster : public TSharedFromThis<FCluster>
 	{
 	protected:
 		bool bIsMirror = false;

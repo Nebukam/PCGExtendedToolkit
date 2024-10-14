@@ -7,6 +7,7 @@
 #include "PCGExPathProcessor.h"
 #include "PCGExPaths.h"
 #include "PCGExPointsProcessor.h"
+#include "Collections/PCGExAssetLoader.h"
 #include "Collections/PCGExMeshCollection.h"
 
 #include "Tangents/PCGExTangentsOperation.h"
@@ -18,7 +19,7 @@
 /**
  * 
  */
-UCLASS(Abstract, MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Path")
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Path")
 class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExPathSplineMeshSimpleSettings : public UPCGExPathProcessorSettings
 {
 	GENERATED_BODY()
@@ -38,7 +39,7 @@ public:
 	virtual PCGExData::EInit GetMainOutputInitMode() const override;
 
 	/** The name of the attribute to write asset path to.*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Distribution", meta=(PCG_Overridable))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	FName AssetPathAttributeName = "AssetPath";
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Target Actor", meta = (PCG_Overridable))
@@ -86,7 +87,8 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPathSplineMeshSimpleContext final : FPCG
 	friend class FPCGExPathSplineMeshSimpleElement;
 
 	TSet<AActor*> NotifyActors;
-	TMap<FSoftObjectPath, TObjectPtr<UStaticMesh>> Meshes;
+	TSharedPtr<PCGEx::TAssetLoader<UStaticMesh>> StaticMeshLoader;
+	
 };
 
 class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPathSplineMeshSimpleElement final : public FPCGExPathProcessorElement
