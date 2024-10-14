@@ -4,6 +4,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "PCGExDetailsData.h"
 #include "Data/PCGExAttributeHelpers.h"
 #include "Data/PCGExData.h"
 #include "Engine/AssetManager.h"
@@ -174,7 +175,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExAssetDistributionIndexDetails
 };
 
 USTRUCT(BlueprintType)
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExAssetTaggingDetails
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExAssetTaggingDetails : public FPCGExComponentTaggingDetails
 {
 	GENERATED_BODY()
 
@@ -184,16 +185,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExAssetTaggingDetails
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable, Bitmask, BitmaskEnum="/Script/PCGExtendedToolkit.EPCGExAssetTagInheritance"))
 	uint8 GrabTags = static_cast<uint8>(EPCGExAssetTagInheritance::Asset);
-
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
-	bool bForwardInputDataTags = true;
 	
-	//UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
-	//bool bOutputTagsToAttributes = false;
-
-	//UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
-	//bool bAddTagsToData = false;
-
 	bool IsEnabled() const { return GrabTags != 0; }
 };
 

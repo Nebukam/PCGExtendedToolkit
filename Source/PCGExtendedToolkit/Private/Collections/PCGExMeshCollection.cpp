@@ -21,9 +21,9 @@ void FPCGExMeshCollectionEntry::UpdateStaging(const UPCGExAssetCollection* Ownin
 		return;
 	}
 
-	Staging.Path = ISMDescriptor.StaticMesh.ToSoftObjectPath();
+	Staging.Path = StaticMesh.ToSoftObjectPath();
 
-	const UStaticMesh* M = ISMDescriptor.StaticMesh.LoadSynchronous();
+	const UStaticMesh* M = StaticMesh.LoadSynchronous();
 	PCGExAssetCollection::UpdateStagingBounds(Staging, M);
 
 	Super::UpdateStaging(OwningCollection, bRecursive);

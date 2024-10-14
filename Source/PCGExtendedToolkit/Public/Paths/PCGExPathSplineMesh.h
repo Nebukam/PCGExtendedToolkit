@@ -111,7 +111,7 @@ public:
 	/** Tagging details */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Additional Outputs", meta=(PCG_Overridable))
 	FPCGExAssetTaggingDetails TaggingDetails;
-	
+
 	/** Update point scale so staged asset fits within its bounds */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Additional Outputs", meta=(PCG_Overridable))
 	EPCGExWeightOutputMode WeightToAttribute = EPCGExWeightOutputMode::NoOutput;
@@ -167,10 +167,11 @@ namespace PCGExPathSplineMesh
 		bool bOneMinusWeight = false;
 		bool bNormalizedWeight = false;
 
+		bool bIsPreviewMode = false;
 		bool bClosedLoop = false;
 		bool bApplyScaleToFit = false;
 		bool bUseTags = false;
-		
+
 		int32 LastIndex = 0;
 
 		int32 C1 = 1;
@@ -185,6 +186,8 @@ namespace PCGExPathSplineMesh
 		TSharedPtr<PCGExData::TBuffer<int32>> WeightWriter;
 		TSharedPtr<PCGExData::TBuffer<double>> NormalizedWeightWriter;
 
+		TArray<FName> DataTags;
+
 #if PCGEX_ENGINE_VERSION > 503
 		TSharedPtr<PCGExData::TBuffer<FSoftObjectPath>> PathWriter;
 #else
@@ -192,7 +195,6 @@ namespace PCGExPathSplineMesh
 #endif
 
 		TArray<PCGExPaths::FSplineMeshSegment> Segments;
-		//TArray<USplineMeshComponent*> SplineMeshComponents;
 
 		ESplineMeshAxis::Type SplineMeshAxisConstant = ESplineMeshAxis::Type::X;
 

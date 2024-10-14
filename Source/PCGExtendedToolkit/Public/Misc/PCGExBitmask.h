@@ -73,7 +73,7 @@ public:
 	static UPCGParamData* GetOrCreate(const int64 Bitmask);
 
 	UPROPERTY()
-	TMap<int64, UPCGParamData*> SharedInstances;
+	TMap<int64, TObjectPtr<UPCGParamData>> SharedInstances;
 };
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural))

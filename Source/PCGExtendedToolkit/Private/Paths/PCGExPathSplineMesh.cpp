@@ -163,6 +163,10 @@ namespace PCGExPathSplineMesh
 
 		if (!FPointsProcessor::Process(InAsyncManager)) { return false; }
 
+#if PCGEX_ENGINE_VERSION > 503
+		bIsPreviewMode = ExecutionContext->SourceComponent.Get()->IsInPreviewMode();
+#endif
+
 		Justification = Settings->Justification;
 		Justification.Init(ExecutionContext, PointDataFacade);
 
@@ -231,6 +235,8 @@ namespace PCGExPathSplineMesh
 #else
 		PathWriter = PointDataFacade->GetWritable<FString>(Settings->AssetPathAttributeName, true);
 #endif
+
+		DataTags = PointDataFacade->Source->Tags->ToFNameList();
 
 		StartParallelLoopForPoints();
 
@@ -371,16 +377,10 @@ namespace PCGExPathSplineMesh
 			PCGE_LOG_C(Error, GraphAndLog, ExecutionContext, FTEXT("Invalid target actor."));
 			return;
 		}
-
-		bool bIsPreviewMode = false;
-#if PCGEX_ENGINE_VERSION > 503
-		bIsPreviewMode = ExecutionContext->SourceComponent.Get()->IsInPreviewMode();
-#endif
-
-		TArray<FName> DataTags = PointDataFacade->Source->Tags->ToFNameList();
-
-		for (const PCGExPaths::FSplineMeshSegment& Segment : Segments)
+		
+		for (int i = 0; i < Segments.Num(); i++)
 		{
+			const PCGExPaths::FSplineMeshSegment& Segment = Segments[i];
 			if (!Segment.MeshEntry) { continue; }
 
 			const FString ComponentName = TEXT("PCGSplineMeshComponent_") + Segment.MeshEntry->Staging.Path.GetAssetName();
@@ -398,14 +398,18 @@ namespace PCGExPathSplineMesh
 			SplineMeshComponent->SetbNeverNeedsCookedCollisionData(true);
 
 			Segment.ApplySettings(SplineMeshComponent); // Init Component
-			if (!Segment.ApplyMesh(SplineMeshComponent)) { continue; }
+
+			if (!Segment.ApplyMesh(SplineMeshComponent))
+			{
+				SplineMeshComponent->MarkAsGarbage();
+				continue;
+			}
 
 			if (Settings->TaggingDetails.bForwardInputDataTags) { SplineMeshComponent->ComponentTags.Append(DataTags); }
 			if (!Segment.Tags.IsEmpty()) { SplineMeshComponent->ComponentTags.Append(Segment.Tags.Array()); }
 
 			if (Settings->bForceDefaultDescriptor) { Settings->DefaultDescriptor.InitComponent(SplineMeshComponent); }
 			else { Segment.MeshEntry->SMDescriptor.InitComponent(SplineMeshComponent); }
-
 
 			Context->AttachManageComponent(
 				TargetActor, SplineMeshComponent,
@@ -414,6 +418,7 @@ namespace PCGExPathSplineMesh
 			Context->NotifyActors.Add(TargetActor);
 		}
 	}
+
 }
 
 #undef LOCTEXT_NAMESPACE

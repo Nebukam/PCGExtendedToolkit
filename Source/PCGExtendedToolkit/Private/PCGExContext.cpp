@@ -244,10 +244,17 @@ void FPCGExContext::AttachManageComponent(AActor* InParent, USceneComponent* InC
 	bIsPreviewMode = SrcComp->IsInPreviewMode();
 #endif
 
+	if(!ManagedObjects->Remove(InComponent))
+	{
+		// If the component is not managed internally, make sure it's cleared
+		InComponent->RemoveFromRoot();
+		InComponent->ClearInternalFlags(EInternalObjectFlags::Async);
+	}
+	
 	InComponent->ComponentTags.Reserve(InComponent->ComponentTags.Num() + 2);
 	InComponent->ComponentTags.Add(SrcComp->GetFName());
 	InComponent->ComponentTags.Add(PCGHelpers::DefaultPCGTag);
-
+	
 	UPCGManagedComponent* ManagedComponent = NewObject<UPCGManagedComponent>(SrcComp);
 	ManagedComponent->GeneratedComponent = InComponent;
 	SrcComp->AddToManagedResources(ManagedComponent);

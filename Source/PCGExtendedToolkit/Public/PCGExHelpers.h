@@ -134,7 +134,7 @@ namespace PCGEx
 		void Flush();
 
 		void Add(UObject* InObject);
-		void Remove(UObject* InObject);
+		bool Remove(UObject* InObject);
 
 		template <class T, typename... Args>
 		T*
