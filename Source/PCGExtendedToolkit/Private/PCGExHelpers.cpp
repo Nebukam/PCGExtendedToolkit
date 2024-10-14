@@ -44,9 +44,9 @@ namespace PCGEx
 		InObject->AddToRoot();
 	}
 
-	void FManagedObjects::Remove(UObject* InObject)
+	bool FManagedObjects::Remove(UObject* InObject)
 	{
-		if (!IsValid(InObject) || !ManagedObjects.Contains(InObject)) { return; }
+		if (!IsValid(InObject) || !ManagedObjects.Contains(InObject)) { return false; }
 
 		{
 			FWriteScopeLock WriteScopeLock(ManagedObjectLock);
@@ -61,6 +61,8 @@ namespace PCGEx
 			IPCGExManagedObjectInterface* ManagedObject = Cast<IPCGExManagedObjectInterface>(InObject);
 			if (ManagedObject) { ManagedObject->Cleanup(); }
 		}
+		
+		return true;
 	}
 
 	void FManagedObjects::Destroy(UObject* InObject)

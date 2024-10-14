@@ -251,10 +251,11 @@ namespace PCGExPaths
 		bool bSmoothInterpRollScale = true;
 		bool bUseDegrees = true;
 		FVector UpVector = FVector::UpVector;
+		TSet<FName> Tags;
 
 		ESplineMeshAxis::Type SplineMeshAxis = ESplineMeshAxis::Type::X;
 
-		const FPCGExAssetStagingData* AssetStaging = nullptr;
+		const FPCGExMeshCollectionEntry* MeshEntry = nullptr;
 		FSplineMeshParams Params;
 
 		void ApplySettings(USplineMeshComponent* Component) const
@@ -285,14 +286,14 @@ namespace PCGExPaths
 			Component->SplineBoundaryMax = 0;
 
 			Component->bSmoothInterpRollScale = bSmoothInterpRollScale;
-
+			
 			if (bSetMeshWithSettings) { ApplyMesh(Component); }
 		}
 
 		bool ApplyMesh(USplineMeshComponent* Component) const
 		{
 			check(Component)
-			UStaticMesh* StaticMesh = AssetStaging->TryGet<UStaticMesh>(); //LoadSynchronous<UStaticMesh>();
+			UStaticMesh* StaticMesh = MeshEntry->Staging.TryGet<UStaticMesh>(); //LoadSynchronous<UStaticMesh>();
 
 			if (!StaticMesh) { return false; }
 

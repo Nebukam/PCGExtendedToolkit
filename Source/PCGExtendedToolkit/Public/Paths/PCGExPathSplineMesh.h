@@ -57,7 +57,7 @@ public:
 	EPCGExCollectionSource CollectionSource = EPCGExCollectionSource::Asset;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="CollectionSource == EPCGExCollectionSource::Asset", EditConditionHides))
-	TSoftObjectPtr<UPCGExAssetCollection> AssetCollection;
+	TSoftObjectPtr<UPCGExMeshCollection> AssetCollection;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="CollectionSource == EPCGExCollectionSource::AttributeSet", EditConditionHides))
 	FPCGExRoamingAssetCollectionDetails AttributeSetDetails = FPCGExRoamingAssetCollectionDetails(UPCGExMeshCollection::StaticClass());
@@ -108,6 +108,10 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bApplyCustomTangents"))
 	bool bJustifyToOne = false;
 
+	/** Tagging details */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Additional Outputs", meta=(PCG_Overridable))
+	FPCGExAssetTaggingDetails TaggingDetails;
+
 	/** Update point scale so staged asset fits within its bounds */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Additional Outputs", meta=(PCG_Overridable))
 	EPCGExWeightOutputMode WeightToAttribute = EPCGExWeightOutputMode::NoOutput;
@@ -115,6 +119,14 @@ public:
 	/** The name of the attribute to write asset weight to.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Additional Outputs", meta=(PCG_Overridable, EditCondition="WeightToAttribute!=EPCGExWeightOutputMode::NoOutput && WeightToAttribute!=EPCGExWeightOutputMode::NormalizedToDensity && WeightToAttribute!=EPCGExWeightOutputMode::NormalizedInvertedToDensity"))
 	FName WeightAttributeName = "AssetWeight";
+
+	/** Default static mesh config applied to spline mesh components. */
+	UPROPERTY(EditAnywhere, Category = Settings)
+	FPCGExStaticMeshComponentDescriptor DefaultDescriptor;
+
+	/** If enabled, override collection settings with the default descriptor settings */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bApplyCustomTangents"))
+	bool bForceDefaultDescriptor = false;
 
 	/** Specify a list of functions to be called on the target actor after spline mesh creation. Functions need to be parameter-less and with "CallInEditor" flag enabled. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
@@ -129,7 +141,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPathSplineMeshContext final : FPCGExPath
 
 	TSet<AActor*> NotifyActors;
 
-	TObjectPtr<UPCGExAssetCollection> MainCollection;
+	TObjectPtr<UPCGExMeshCollection> MainCollection;
 };
 
 class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPathSplineMeshElement final : public FPCGExPathProcessorElement
@@ -155,15 +167,17 @@ namespace PCGExPathSplineMesh
 		bool bOneMinusWeight = false;
 		bool bNormalizedWeight = false;
 
+		bool bIsPreviewMode = false;
 		bool bClosedLoop = false;
 		bool bApplyScaleToFit = false;
+		bool bUseTags = false;
 
 		int32 LastIndex = 0;
 
 		int32 C1 = 1;
 		int32 C2 = 2;
 
-		TUniquePtr<PCGExAssetCollection::FDistributionHelper> Helper;
+		TUniquePtr<PCGExAssetCollection::TDistributionHelper<UPCGExMeshCollection, FPCGExMeshCollectionEntry>> Helper;
 		FPCGExJustificationDetails Justification;
 
 		TSharedPtr<PCGExData::TBuffer<FVector>> ArriveReader;
@@ -172,6 +186,8 @@ namespace PCGExPathSplineMesh
 		TSharedPtr<PCGExData::TBuffer<int32>> WeightWriter;
 		TSharedPtr<PCGExData::TBuffer<double>> NormalizedWeightWriter;
 
+		TArray<FName> DataTags;
+
 #if PCGEX_ENGINE_VERSION > 503
 		TSharedPtr<PCGExData::TBuffer<FSoftObjectPath>> PathWriter;
 #else
@@ -179,7 +195,6 @@ namespace PCGExPathSplineMesh
 #endif
 
 		TArray<PCGExPaths::FSplineMeshSegment> Segments;
-		//TArray<USplineMeshComponent*> SplineMeshComponents;
 
 		ESplineMeshAxis::Type SplineMeshAxisConstant = ESplineMeshAxis::Type::X;
 

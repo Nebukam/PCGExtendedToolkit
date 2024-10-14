@@ -84,7 +84,7 @@ namespace PCGExData
 			InTags.Append(RawTags);
 			for (const TPair<FString, FString>& Tag : Tags) { InTags.Add((Tag.Key + TagSeparator + Tag.Value)); }
 		}
-		
+
 		void Dump(TArray<FName>& InTags) const
 		{
 			TArray<FName> NameDump = ToFNameList();

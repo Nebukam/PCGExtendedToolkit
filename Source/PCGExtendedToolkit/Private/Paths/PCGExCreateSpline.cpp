@@ -98,7 +98,7 @@ namespace PCGExCreateSpline
 		if (!FPointsProcessor::Process(InAsyncManager)) { return false; }
 
 		bClosedLoop = Context->ClosedLoop.IsClosedLoop(PointDataFacade->Source);
-		
+
 		if (Settings->bApplyCustomTangents)
 		{
 			ArriveTangent = PointDataFacade->GetScopedBroadcaster<FVector>(Settings->ArriveTangentAttribute);

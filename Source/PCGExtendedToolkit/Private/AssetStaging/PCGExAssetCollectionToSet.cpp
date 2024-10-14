@@ -30,12 +30,12 @@ FPCGElementPtr UPCGExAssetCollectionToSetSettings::CreateElement() const { retur
 
 #if PCGEX_ENGINE_VERSION > 503
 #define PCGEX_FOREACH_COL_FIELD(MACRO)\
-MACRO(AssetPath, FSoftObjectPath, FSoftObjectPath(), S->Path)\
-MACRO(Weight, int32, 0, S->Weight)\
-MACRO(Category, FName, NAME_None, S->Category)\
-MACRO(Extents, FVector, FVector::OneVector, S->Bounds.GetExtent())\
-MACRO(BoundsMin, FVector, FVector::OneVector, S->Bounds.Min)\
-MACRO(BoundsMax, FVector, FVector::OneVector, S->Bounds.Max)\
+MACRO(AssetPath, FSoftObjectPath, FSoftObjectPath(), E->Staging.Path)\
+MACRO(Weight, int32, 0, E->Weight)\
+MACRO(Category, FName, NAME_None, E->Category)\
+MACRO(Extents, FVector, FVector::OneVector, E->Staging.Bounds.GetExtent())\
+MACRO(BoundsMin, FVector, FVector::OneVector, E->Staging.Bounds.Min)\
+MACRO(BoundsMax, FVector, FVector::OneVector, E->Staging.Bounds.Max)\
 MACRO(NestingDepth, int32, -1, -1)
 #else
 #define PCGEX_FOREACH_COL_FIELD(MACRO)\
@@ -94,28 +94,28 @@ bool FPCGExAssetCollectionToSetElement::ExecuteInternal(FPCGContext* Context) co
 	}
 
 	const PCGExAssetCollection::FCache* MainCache = MainCollection->LoadCache();
-	TArray<const FPCGExAssetStagingData*> StagingDataList;
+	TArray<const FPCGExAssetCollectionEntry*> Entries;
 
-	const FPCGExAssetStagingData* StagingData = nullptr;
+	const FPCGExAssetCollectionEntry* Entry = nullptr;
 
 	TSet<uint64> GUIDS;
 
 	for (int i = 0; i < MainCache->Main->Order.Num(); i++)
 	{
 		GUIDS.Empty();
-		MainCollection->GetStagingAt(StagingData, i);
-		ProcessStagingData(StagingData, StagingDataList, Settings->bOmitInvalidAndEmpty, !Settings->bAllowDuplicates, Settings->SubCollectionHandling, GUIDS);
+		MainCollection->GetEntryAt(Entry, i);
+		ProcessEntry(Entry, Entries, Settings->bOmitInvalidAndEmpty, !Settings->bAllowDuplicates, Settings->SubCollectionHandling, GUIDS);
 	}
 
-	if (StagingDataList.IsEmpty()) { return OutputToPin(); }
+	if (Entries.IsEmpty()) { return OutputToPin(); }
 
 	// TODO : Sort StagingDataList according to sorting parameters
 
-	for (const FPCGExAssetStagingData* S : StagingDataList)
+	for (const FPCGExAssetCollectionEntry* E : Entries)
 	{
 		const int64 Key = OutputSet->Metadata->AddEntry();
 
-		if (!S || S->bIsSubCollection)
+		if (!E || E->bIsSubCollection)
 		{
 #define PCGEX_SET_ATT(_NAME, _TYPE, _DEFAULT, _VALUE) if(_NAME##Attribute){ _NAME##Attribute->SetValue(Key, _DEFAULT); }
 			PCGEX_FOREACH_COL_FIELD(PCGEX_SET_ATT)
@@ -131,44 +131,44 @@ bool FPCGExAssetCollectionToSetElement::ExecuteInternal(FPCGContext* Context) co
 	return OutputToPin();
 }
 
-void FPCGExAssetCollectionToSetElement::ProcessStagingData(
-	const FPCGExAssetStagingData* InStagingData,
-	TArray<const FPCGExAssetStagingData*>& OutStagingDataList,
+void FPCGExAssetCollectionToSetElement::ProcessEntry(
+	const FPCGExAssetCollectionEntry* InEntry,
+	TArray<const FPCGExAssetCollectionEntry*>& OutEntries,
 	const bool bOmitInvalidAndEmpty,
 	const bool bNoDuplicates,
 	const EPCGExSubCollectionToSet SubHandling,
 	TSet<uint64>& GUIDS)
 {
-	if (bNoDuplicates) { if (OutStagingDataList.Contains(InStagingData)) { return; } }
+	if (bNoDuplicates) { if (OutEntries.Contains(InEntry)) { return; } }
 
 	auto AddNone = [&]()
 	{
 		if (bOmitInvalidAndEmpty) { return; }
-		OutStagingDataList.Add(nullptr);
+		OutEntries.Add(nullptr);
 	};
 
-	if (!InStagingData)
+	if (!InEntry)
 	{
 		AddNone();
 		return;
 	}
 
-	auto AddEmpty = [&](const FPCGExAssetStagingData* S)
+	auto AddEmpty = [&](const FPCGExAssetCollectionEntry* S)
 	{
 		if (bOmitInvalidAndEmpty) { return; }
-		OutStagingDataList.Add(S);
+		OutEntries.Add(S);
 	};
 
-	if (InStagingData->bIsSubCollection)
+	if (InEntry->bIsSubCollection)
 	{
 		if (SubHandling == EPCGExSubCollectionToSet::Ignore) { return; }
 
-		UPCGExAssetCollection* SubCollection = InStagingData->LoadSynchronous<UPCGExAssetCollection>();
+		UPCGExAssetCollection* SubCollection = InEntry->Staging.LoadSynchronous<UPCGExAssetCollection>();
 		const PCGExAssetCollection::FCache* SubCache = SubCollection ? SubCollection->LoadCache() : nullptr;
 
 		if (!SubCache)
 		{
-			AddEmpty(InStagingData);
+			AddEmpty(InEntry);
 			return;
 		}
 
@@ -176,7 +176,7 @@ void FPCGExAssetCollectionToSetElement::ProcessStagingData(
 		GUIDS.Add(SubCollection->GetUniqueID(), &bVisited);
 		if (bVisited) { return; } // !! Circular dependency !!
 
-		const FPCGExAssetStagingData* NestedStaging = nullptr;
+		const FPCGExAssetCollectionEntry* NestedEntry = nullptr;
 
 		switch (SubHandling)
 		{
@@ -184,29 +184,29 @@ void FPCGExAssetCollectionToSetElement::ProcessStagingData(
 		case EPCGExSubCollectionToSet::Expand:
 			for (int i = 0; i < SubCache->Main->Order.Num(); i++)
 			{
-				SubCollection->GetStagingAt(NestedStaging, i);
-				ProcessStagingData(NestedStaging, OutStagingDataList, bOmitInvalidAndEmpty, bNoDuplicates, SubHandling, GUIDS);
+				SubCollection->GetEntryAt(NestedEntry, i);
+				ProcessEntry(NestedEntry, OutEntries, bOmitInvalidAndEmpty, bNoDuplicates, SubHandling, GUIDS);
 			}
 			return;
 		case EPCGExSubCollectionToSet::PickRandom:
-			SubCollection->GetStagingRandom(NestedStaging, 0);
+			SubCollection->GetEntryRandom(NestedEntry, 0);
 			break;
 		case EPCGExSubCollectionToSet::PickRandomWeighted:
-			SubCollection->GetStagingWeightedRandom(NestedStaging, 0);
+			SubCollection->GetEntryWeightedRandom(NestedEntry, 0);
 			break;
 		case EPCGExSubCollectionToSet::PickFirstItem:
-			SubCollection->GetStagingAt(NestedStaging, 0);
+			SubCollection->GetEntryAt(NestedEntry, 0);
 			break;
 		case EPCGExSubCollectionToSet::PickLastItem:
-			SubCollection->GetStagingAt(NestedStaging, SubCache->Main->Indices.Num() - 1);
+			SubCollection->GetEntryAt(NestedEntry, SubCache->Main->Indices.Num() - 1);
 			break;
 		}
 
-		ProcessStagingData(NestedStaging, OutStagingDataList, bOmitInvalidAndEmpty, bNoDuplicates, SubHandling, GUIDS);
+		ProcessEntry(NestedEntry, OutEntries, bOmitInvalidAndEmpty, bNoDuplicates, SubHandling, GUIDS);
 	}
 	else
 	{
-		OutStagingDataList.Add(InStagingData);
+		OutEntries.Add(InEntry);
 	}
 }
 

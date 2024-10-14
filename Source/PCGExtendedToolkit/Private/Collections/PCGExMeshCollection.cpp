@@ -6,7 +6,7 @@
 bool FPCGExMeshCollectionEntry::Validate(const UPCGExAssetCollection* ParentCollection)
 {
 	if (bIsSubCollection) { LoadSubCollection(SubCollection); }
-	else if (!Descriptor.StaticMesh.ToSoftObjectPath().IsValid() && ParentCollection->bDoNotIgnoreInvalidEntries) { return false; }
+	else if (!ISMDescriptor.StaticMesh.ToSoftObjectPath().IsValid() && ParentCollection->bDoNotIgnoreInvalidEntries) { return false; }
 
 	return Super::Validate(ParentCollection);
 }
@@ -21,9 +21,9 @@ void FPCGExMeshCollectionEntry::UpdateStaging(const UPCGExAssetCollection* Ownin
 		return;
 	}
 
-	Staging.Path = Descriptor.StaticMesh.ToSoftObjectPath();
+	Staging.Path = StaticMesh.ToSoftObjectPath();
 
-	const UStaticMesh* M = Descriptor.StaticMesh.LoadSynchronous();
+	const UStaticMesh* M = StaticMesh.LoadSynchronous();
 	PCGExAssetCollection::UpdateStagingBounds(Staging, M);
 
 	Super::UpdateStaging(OwningCollection, bRecursive);
@@ -31,18 +31,25 @@ void FPCGExMeshCollectionEntry::UpdateStaging(const UPCGExAssetCollection* Ownin
 
 void FPCGExMeshCollectionEntry::SetAssetPath(const FSoftObjectPath& InPath)
 {
-	Descriptor.StaticMesh = TSoftObjectPtr<UStaticMesh>(InPath);
+	StaticMesh = TSoftObjectPtr<UStaticMesh>(InPath);
+	ISMDescriptor.StaticMesh = StaticMesh;
 }
+
+#if WITH_EDITOR
+void FPCGExMeshCollectionEntry::EDITOR_Sanitize()
+{
+	FPCGExAssetCollectionEntry::EDITOR_Sanitize();
+	if (!bIsSubCollection)
+	{
+		if (StaticMesh) { ISMDescriptor.StaticMesh = StaticMesh; }
+		else if (ISMDescriptor.StaticMesh && !StaticMesh) { StaticMesh = ISMDescriptor.StaticMesh; }
+	}
+}
+#endif
 
 void FPCGExMeshCollectionEntry::OnSubCollectionLoaded()
 {
 	SubCollectionPtr = Cast<UPCGExMeshCollection>(BaseSubCollectionPtr);
-}
-
-void UPCGExMeshCollection::RebuildStagingData(const bool bRecursive)
-{
-	for (FPCGExMeshCollectionEntry& Entry : Entries) { Entry.UpdateStaging(this, bRecursive); }
-	Super::RebuildStagingData(bRecursive);
 }
 
 #if WITH_EDITOR
@@ -51,7 +58,7 @@ void UPCGExMeshCollection::EDITOR_RefreshDisplayNames()
 	Super::EDITOR_RefreshDisplayNames();
 	for (FPCGExMeshCollectionEntry& Entry : Entries)
 	{
-		Entry.DisplayName = Entry.bIsSubCollection ? FName(TEXT("[") + Entry.SubCollection.GetAssetName() + TEXT("]")) : FName(Entry.Descriptor.StaticMesh.GetAssetName());
+		Entry.DisplayName = Entry.bIsSubCollection ? FName(TEXT("[") + Entry.SubCollection.GetAssetName() + TEXT("]")) : FName(Entry.ISMDescriptor.StaticMesh.GetAssetName());
 	}
 }
 #endif
@@ -77,21 +84,21 @@ void UPCGExMeshCollection::GetAssetPaths(TSet<FSoftObjectPath>& OutPaths, const 
 
 		if (bCollectionOnly) { continue; }
 
-		OutPaths.Add(Entry.Descriptor.StaticMesh.ToSoftObjectPath());
+		OutPaths.Add(Entry.ISMDescriptor.StaticMesh.ToSoftObjectPath());
 
-		for (int i = 0; i < Entry.Descriptor.OverrideMaterials.Num(); i++)
+		for (int i = 0; i < Entry.ISMDescriptor.OverrideMaterials.Num(); i++)
 		{
-			if (!Entry.Descriptor.OverrideMaterials[i].IsNull())
+			if (!Entry.ISMDescriptor.OverrideMaterials[i].IsNull())
 			{
-				OutPaths.Add(Entry.Descriptor.OverrideMaterials[i].ToSoftObjectPath());
+				OutPaths.Add(Entry.ISMDescriptor.OverrideMaterials[i].ToSoftObjectPath());
 			}
 		}
 
-		for (int i = 0; i < Entry.Descriptor.RuntimeVirtualTextures.Num(); i++)
+		for (int i = 0; i < Entry.ISMDescriptor.RuntimeVirtualTextures.Num(); i++)
 		{
-			if (!Entry.Descriptor.RuntimeVirtualTextures[i].IsNull())
+			if (!Entry.ISMDescriptor.RuntimeVirtualTextures[i].IsNull())
 			{
-				OutPaths.Add(Entry.Descriptor.RuntimeVirtualTextures[i].ToSoftObjectPath());
+				OutPaths.Add(Entry.ISMDescriptor.RuntimeVirtualTextures[i].ToSoftObjectPath());
 			}
 		}
 	}
