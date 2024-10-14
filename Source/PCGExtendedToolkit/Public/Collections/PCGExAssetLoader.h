@@ -77,7 +77,12 @@ namespace PCGEx
 				TSharedRef<PCGExData::FPointIO> PointIORef = PointIO.ToSharedRef();
 				for (const FName& AssetAttributeName : AttributeNames)
 				{
+#if PCGEX_ENGINE_VERSION <= 503
+					TSharedPtr<TAttributeBroadcaster<FString>> Broadcaster = MakeShared<TAttributeBroadcaster<FString>>();
+#else
 					TSharedPtr<TAttributeBroadcaster<FSoftObjectPath>> Broadcaster = MakeShared<TAttributeBroadcaster<FSoftObjectPath>>();
+#endif
+
 					if (!Broadcaster->Prepare(AssetAttributeName, PointIORef))
 					{
 						// Warn & continue
@@ -118,7 +123,6 @@ namespace PCGEx
 
 				if (!LoadHandle || !LoadHandle->IsActive())
 				{
-					
 					if (!LoadHandle || !LoadHandle->HasLoadCompleted())
 					{
 						Context->CancelExecution("Error loading assets.");
@@ -163,7 +167,7 @@ namespace PCGEx
 			}
 
 			if (Context->IsState(InternalState_LoadingAssets)) { return false; }
-			
+
 			PCGEX_ON_ASYNC_STATE_READY(InternalState_AssetsLoaded)
 			{
 				bBypass = true;
@@ -182,13 +186,47 @@ namespace PCGEx
 		}
 	};
 
+#if PCGEX_ENGINE_VERSION <= 503
 	template <typename T>
 	class /*PCGEXTENDEDTOOLKIT_API*/ TDiscoverAssetsTask final : public PCGExMT::FPCGExTask
 	{
 	public:
 		TDiscoverAssetsTask(const TSharedPtr<PCGExData::FPointIO>& InPointIO,
 		                    const TSharedPtr<TAssetLoader<T>>& InLoader,
-		                    const TSharedPtr<TAttributeBroadcaster<FSoftObjectPath>>& InBroadcaster) :
+		                    const TSharedPtr<TAttributeBroadcaster<FString>>& InBroadcaster) :
+			FPCGExTask(InPointIO),
+			Loader(InLoader),
+			Broadcaster(InBroadcaster)
+		{
+		}
+
+		TSharedPtr<TAssetLoader<T>> Loader;
+		TSharedPtr<TAttributeBroadcaster<FString>> Broadcaster;
+
+		virtual bool ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager) override
+		{
+			Broadcaster->Grab(false);
+
+			TSet<FSoftObjectPath> UniquePaths;
+			for (const FString& Path : Broadcaster->Values)
+			{
+				FSoftObjectPath PathTemp = FSoftObjectPath(Path);
+				if (!PathTemp.IsAsset()) { continue; }
+				UniquePaths.Add(PathTemp);
+			}
+
+			Loader->AddUniquePaths(UniquePaths);
+			return true;
+		}
+	};
+#else
+	template <typename T>
+		class /*PCGEXTENDEDTOOLKIT_API*/ TDiscoverAssetsTask final : public PCGExMT::FPCGExTask
+	{
+	public:
+		TDiscoverAssetsTask(const TSharedPtr<PCGExData::FPointIO>& InPointIO,
+							const TSharedPtr<TAssetLoader<T>>& InLoader,
+							const TSharedPtr<TAttributeBroadcaster<FSoftObjectPath>>& InBroadcaster) :
 			FPCGExTask(InPointIO),
 			Loader(InLoader),
 			Broadcaster(InBroadcaster)
@@ -213,4 +251,5 @@ namespace PCGEx
 			return true;
 		}
 	};
+#endif
 }

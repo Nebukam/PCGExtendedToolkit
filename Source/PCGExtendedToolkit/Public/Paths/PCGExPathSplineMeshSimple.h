@@ -116,7 +116,12 @@ namespace PCGExPathSplineMeshSimple
 		int32 C1 = 1;
 		int32 C2 = 2;
 
+#if PCGEX_ENGINE_VERSION <= 503
+		TSharedPtr<PCGExData::TBuffer<FString>> AssetPathReader;
+#else
 		TSharedPtr<PCGExData::TBuffer<FSoftObjectPath>> AssetPathReader;
+#endif
+		
 		
 		TSharedPtr<PCGExData::TBuffer<FVector>> ArriveReader;
 		TSharedPtr<PCGExData::TBuffer<FVector>> LeaveReader;

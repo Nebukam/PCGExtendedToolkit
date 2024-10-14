@@ -110,7 +110,12 @@ namespace PCGExPathSplineMeshSimple
 
 		if (!FPointsProcessor::Process(InAsyncManager)) { return false; }
 
+#if PCGEX_ENGINE_VERSION <= 503
+		AssetPathReader = PointDataFacade->GetScopedBroadcaster<FString>(Settings->AssetPathAttributeName);
+#else
 		AssetPathReader = PointDataFacade->GetScopedBroadcaster<FSoftObjectPath>(Settings->AssetPathAttributeName);
+#endif
+		
 		if (!AssetPathReader)
 		{
 			PCGE_LOG_C(Error, GraphAndLog, ExecutionContext, FTEXT("AssetPath attribute is missing on some inputs.."));
