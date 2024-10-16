@@ -12,6 +12,7 @@ splash: icons/icon_misc-sort-points.svg
 tagged: 
     - node
     - filter
+    - point filter
     - misc
 nav_order: 12
 outputs:

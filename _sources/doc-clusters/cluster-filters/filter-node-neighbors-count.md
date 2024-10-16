@@ -2,9 +2,9 @@
 layout: page
 family: ClusterFilter
 grand_parent: Clusters
-parent: Flag Nodes
-title: 🝖 Neighbors Count
-name_in_editor: "Cluster Filter : Neighbors Count"
+parent: Cluster Filters
+title: 🝖 Neighbors Count (Node)
+name_in_editor: "Cluster Filter : Neighbors Count (Node)"
 subtitle: Check a node' neighbors count
 summary: The **Neighbors Count** filter compares the number of neighbors a node has against a specified value, offering a faster alternative to writing and comparing neighbor counts as attributes.
 color: param
@@ -12,11 +12,12 @@ splash: icons/icon_misc-sort-points.svg
 tagged: 
     - node
     - clusterfilter
+    - nodefilter
     - clusters
     - filter
-nav_order: 102
+nav_order: 12
 outputs:
-    -   name : Filter
+    -   name : Node Filter
         desc : A single cluster filter definition
         pin : params
 ---
@@ -26,7 +27,7 @@ outputs:
 The Neighbors Count filter does a simple numeric comparison of it's number of neighbors against another value. *When you can, this is much faster and preferrable to writing the neighbor count to an attribute and then doing a regular numeric compare with it.*
 {: .fs-5 .fw-400 } 
 
-{% include img a='details/flag-nodes/filter-neighbors-count-lead.png' %}
+{% include img a='details/cluster-filters/filter-node-neighbors-count-lead.png' %}
 
 # Properties
 <br>

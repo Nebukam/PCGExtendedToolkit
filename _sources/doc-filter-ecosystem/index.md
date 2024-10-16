@@ -31,6 +31,12 @@ PCGEx' filter system can be slightly slower than the regular filters but saves a
 {% include card_childs tagged='filter' %}
 
 ---
+## Cluster-specific filters
+<br>
+Some nodes support-cluster specific filters, leveraging intrinsic cluster properties that are not otherwise accessible. See {% include lk id='Cluster Filters' %} for more details.
+{% include card_any tagged='clusterfilter' %}
+
+---
 ## Optimizing 
 
 > The biggest overhead of filtering is fetching attribute values : testing a lot of different attributes if much more expensive that a lot of different tests on the same attributes, as PCGEx caches attribute values before testing!

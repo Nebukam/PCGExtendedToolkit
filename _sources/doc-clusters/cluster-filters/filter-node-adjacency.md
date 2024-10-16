@@ -2,9 +2,9 @@
 layout: page
 family: ClusterFilter
 grand_parent: Clusters
-parent: Flag Nodes
-title: 🝖 Adjacency
-name_in_editor: "Cluster Filter : Adjacency"
+parent: Cluster Filters
+title: 🝖 Adjacency (Node)
+name_in_editor: "Cluster Filter : Adjacency (Node)"
 subtitle: Check if adjacent node meet specific conditions
 summary: The **Adjacency** filter performs numeric comparisons on each connection of a Vtx, allowing precise control over success criteria based on the number of passed comparisons, offering the flexibility to test either discrete or relative connections.
 color: param
@@ -12,11 +12,12 @@ splash: icons/icon_misc-sort-points.svg
 tagged: 
     - node
     - clusterfilter
+    - nodefilter
     - clusters
     - filter
-nav_order: 100
+nav_order: 10
 outputs:
-    -   name : Filter
+    -   name : Node Filter
         desc : A single cluster filter definition
         pin : params
 ---
@@ -26,7 +27,7 @@ outputs:
 The adjacency filter does a simple numeric comparison on each individual connections of a `Vtx`, and offer fine grained control over what qualifies as a "success", based on how many connections passed the comparison or not. *What makes it equally useful and tricky to set-up is its ability to test against either a discrete number of connection, or relative ones.*
 {: .fs-5 .fw-400 } 
 
-{% include img a='details/flag-nodes/filter-adjacency-lead.png' %}
+{% include img a='details/cluster-filters/filter-node-adjacency-lead.png' %}
 
 # Properties
 <br>

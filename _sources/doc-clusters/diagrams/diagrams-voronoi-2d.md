@@ -27,6 +27,9 @@ outputs:
     -   name : Edges
         desc : Edges associated with the output Vtxs
         pin : points
+    -   name : Sites
+        desc : Updated & optionally pruned delaunay sites
+        pin : points
 ---
 
 {% include header_card_node %}
@@ -55,7 +58,7 @@ This node creates a 2D Voronoi diagram from the input points. If you'd like to k
 ## Voronoi site position
 <br>
 
-{% include img a='details/diagrams/diagrams-voronoi-3d-sites.png' %}
+{% include img a='details/diagrams/diagrams-voronoi-2d-sites.png' %}
 
 | Mode       | |
 |:-------------|:------------------|
@@ -63,6 +66,19 @@ This node creates a 2D Voronoi diagram from the input points. If you'd like to k
 | {% include img a='placeholder.jpg' %} | **Canon (Circumcenter)**<br>Uses the [circumcenter](https://en.wikipedia.org/wiki/Circumcircle) of the Delaunay triangle.<br>*This is the true voronoi algorithm, it guarantees only convex sites.* |
 | {% include img a='placeholder.jpg' %} | **Centroid**<br>Uses the centroid of the Delaunay site for the point that are outside the bounds, otherwise use circumcenters.<br>*Best of both worlds, or worst of both worlds; depending on how you look at it.* |
 
+---
+## Additional Outputs
+<br>
+
+It may come (very) handy to have access to updated and/or pruned output cell centroid. You can output an modified version of the `In` points, that better matches the output voronoi cells.
+
+{% include img a='details/diagrams/diagrams-voronoi-2d-sites.png' %}
+
+| Settings       | |
+|:-------------|:------------------|
+| Output Sites | If enabled, the node will generate a new output.<br>*Sites output have matching ClusterId tags corresponding output Vtx data.* |
+| Prune Open Sites | If enabled, open (or incomplete) voronoi site will be pruned.<br>*This is especially useful if you intend to find individual & valid cell contours.* |
+| <span class="eout">Open Site Flag</span><br>`bool` | If the above is disabled, sites matching incomplete or open voronoi sites will be flagged with a boolean attribute. |
 
 ---
 ## Projection Settings

@@ -91,7 +91,22 @@ The sanitization property lets you enforce some general conditions within the gr
 *See [Working with Clusters - Cluster Output Settings](/PCGExtendedToolkit/doc-general/working-with-clusters.html#cluster-output-settings).*
 
 
+
+---
+# Filters
+<br>
+This node supports a wide variety of filters, but it's important to keep in mind that **only the edge points are processed by the filters**.
+{: .fs-5 .fw-400 } 
+
+> Regular & Sanitization filtering operate on input data, not the modified output. That means if you use filters that rely on intrinsinc properties such as neighbor count, it will be the neighbor count of the input, not the output!
+{: .infos }
+
 ---
 ## Available Filters
 <br>
 {% include card_any tagged="filter" %}
+
+---
+## Edge-specific filters
+<br>
+{% include card_any tagged='edgefilter' %}

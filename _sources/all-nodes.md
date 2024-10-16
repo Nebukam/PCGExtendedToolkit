@@ -49,7 +49,9 @@ nav_order: 200
 
 
 ---
-## Individual Filters
+# Filters
+
+## Regular Filters
 *There are here to enable `ctrl+f` users. You can find all about them in the {% include lk id='Filter Ecosystem' %} section.*
 <br>
 {% include card_any tagged='filter' %}

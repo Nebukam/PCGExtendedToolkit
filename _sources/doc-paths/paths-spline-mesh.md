@@ -9,6 +9,8 @@ subtitle: Create SplineMesh components from paths
 summary: The **Path Spline Mesh** node generates spline meshes along a path with detailed per-segment settings, allowing for mesh and data distribution from asset collections or attribute sets, and includes advanced options for tangents, scaling, justification, and distribution to control mesh behavior and appearance.
 color: white
 splash: icons/icon_paths-orient.svg
+see-also:
+    - Path Spline Mesh (Simple)
 tagged: 
     - node
     - paths
@@ -185,3 +187,7 @@ Uses the PCG Component' owner if the provided value is invalid.
 
 Lets you output the Weight of the selection to each node, using different post-processing methods.  
 **This can be very handy to identify "rare" spawns and preserve them during self-pruning operations.**
+
+### Tagging
+
+Lets you pick which tags to add/forward to the output spline mesh component.  

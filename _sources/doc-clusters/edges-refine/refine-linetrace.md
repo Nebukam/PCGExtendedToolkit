@@ -2,7 +2,7 @@
 layout: page
 grand_parent: Clusters
 parent: Refine
-title: 🝔 Remove by Collision
+title: 🝔 Line Trace
 subtitle: Removes edges by doing linetrace and checking for collisions.
 #summary: The **Remove Overlap** refinement ...
 color: blue

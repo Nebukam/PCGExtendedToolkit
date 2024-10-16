@@ -2,8 +2,8 @@
 layout: page
 grand_parent: Clusters
 parent: Refine
-title: 🝔 Keep by Filter
-subtitle: Keeps edges that pass the input filters.
+title: 🝔 Refine by Filter
+subtitle: Keeps edges that pass the input filters, or vice-versa.
 #summary: The **Keep Highest Score** refinement ...
 color: blue
 splash: icons/icon_edges-refine.svg
@@ -20,3 +20,12 @@ nav_order: 10
 This refinement is amongst the most straightforward to use, as it **keeps edges that pass the Refine' input filters.**
 {: .fs-5 .fw-400 } 
 
+---
+## Edge-specific filters
+<br>
+{% include card_any tagged='edgefilter' %}
+
+---
+## Point Filters
+<br>
+{% include card_any tagged="filter" %}
