@@ -32,7 +32,7 @@ namespace PCGExEdgeEndpointsCompareNum
 
 	bool FNeighborsCountFilter::Test(const PCGExGraph::FIndexedEdge& Edge) const
 	{
-		const bool bResult = PCGExCompare::Compare(TypedFilterFactory->Config.NumericComparison, NumericBuffer->Read(Edge.Start), NumericBuffer->Read(Edge.End), TypedFilterFactory->Config.Tolerance);
+		const bool bResult = PCGExCompare::Compare(TypedFilterFactory->Config.Comparison, NumericBuffer->Read(Edge.Start), NumericBuffer->Read(Edge.End), TypedFilterFactory->Config.Tolerance);
 		return TypedFilterFactory->Config.bInvert ? !bResult : bResult;
 	}
 }

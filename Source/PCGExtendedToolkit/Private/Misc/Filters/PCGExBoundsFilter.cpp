@@ -35,12 +35,24 @@ void UPCGExBoundsFilterFactory::BeginDestroy()
 bool PCGExPointsFilter::TBoundsFilter::Init(const FPCGContext* InContext, const TSharedPtr<PCGExData::FFacade> InPointDataFacade)
 {
 	if (!FFilter::Init(InContext, InPointDataFacade)) { return false; }
-	return Cloud ? true : false;
-}
+	if (!Cloud) { return false; }
 
-bool PCGExPointsFilter::TBoundsFilter::Test(const int32 PointIndex) const
-{
-	return Cloud->ContainsMinusEpsilon(PointDataFacade->Source->GetInPoint(PointIndex).Transform.GetLocation()) ? TypedFilterFactory->Config.bCheckIfInside : !TypedFilterFactory->Config.bCheckIfInside;
+
+	switch (TypedFilterFactory->Config.CheckType)
+	{
+	default:
+	case EPCGExBoundsCheckType::Overlap:
+		BoundCheck = [&](const FPCGPoint& Point) { return Cloud->ContainsMinusEpsilon(Point.Transform.GetLocation()); };
+		break;
+	case EPCGExBoundsCheckType::Inside:
+		BoundCheck = [&](const FPCGPoint& Point) { return Cloud->ContainsMinusEpsilon(Point.Transform.GetLocation()); };
+		break;
+	case EPCGExBoundsCheckType::Outside:
+		BoundCheck = [&](const FPCGPoint& Point) { return !Cloud->ContainsMinusEpsilon(Point.Transform.GetLocation()); };
+		break;
+	}
+
+	return true;
 }
 
 TArray<FPCGPinProperties> UPCGExBoundsFilterProviderSettings::InputPinProperties() const
@@ -55,7 +67,13 @@ PCGEX_CREATE_FILTER_FACTORY(Bounds)
 #if WITH_EDITOR
 FString UPCGExBoundsFilterProviderSettings::GetDisplayName() const
 {
-	return Config.bCheckIfInside ? TEXT("Inside") : TEXT("Outside");
+	switch (Config.CheckType)
+	{
+	default:
+	case EPCGExBoundsCheckType::Overlap: return TEXT("Overlap");
+	case EPCGExBoundsCheckType::Inside: return TEXT("Inside");
+	case EPCGExBoundsCheckType::Outside: return TEXT("Outside");
+	}
 }
 #endif
 

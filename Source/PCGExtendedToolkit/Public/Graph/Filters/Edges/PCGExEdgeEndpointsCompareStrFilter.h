@@ -28,7 +28,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExEdgeEndpointsCompareStrFilterConfig
 
 	/** Comparison check */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Comparison"))
-	EPCGExStringComparison StringComparison = EPCGExStringComparison::StrictlyEqual;
+	EPCGExStringComparison Comparison = EPCGExStringComparison::StrictlyEqual;
 
 	/** */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))

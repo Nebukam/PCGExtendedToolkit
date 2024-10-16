@@ -13,6 +13,14 @@
 
 #include "PCGExBoundsFilter.generated.h"
 
+UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Fetch Type"))
+enum class EPCGExBoundsCheckType : uint8
+{
+	Overlap = 0 UMETA(DisplayName = "Overlap", Tooltip="Check if the tested point' bounds overlap with the provided bounds."),
+	Inside  = 1 UMETA(DisplayName = "Inside", Tooltip="Check if the tested point' bounds are inside the provided bounds."),
+	Outside = 2 UMETA(DisplayName = "Outside", Tooltip="Pass if the tested point' bounds are outside the provided bounds."),
+};
+
 USTRUCT(BlueprintType)
 struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExBoundsFilterConfig
 {
@@ -28,11 +36,11 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExBoundsFilterConfig
 
 	/** */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
-	bool bCheckIfInside = true;
+	EPCGExBoundsCheckType CheckType = EPCGExBoundsCheckType::Overlap;
 
 	/** Epsilon value used to expand the box when testing if IsInside. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
-	double InsideEpsilon = 1e-4;
+	double Epsilon = 1e-4;
 };
 
 /**
@@ -60,15 +68,18 @@ namespace PCGExPointsFilter
 		explicit TBoundsFilter(const TObjectPtr<const UPCGExBoundsFilterFactory>& InFactory)
 			: FSimpleFilter(InFactory), TypedFilterFactory(InFactory)
 		{
-			Cloud = TypedFilterFactory->BoundsDataFacade ? TypedFilterFactory->BoundsDataFacade->GetCloud(TypedFilterFactory->Config.BoundsSource, TypedFilterFactory->Config.InsideEpsilon) : nullptr;
+			Cloud = TypedFilterFactory->BoundsDataFacade ? TypedFilterFactory->BoundsDataFacade->GetCloud(TypedFilterFactory->Config.BoundsSource, TypedFilterFactory->Config.Epsilon) : nullptr;
 		}
 
 		const TObjectPtr<const UPCGExBoundsFilterFactory> TypedFilterFactory;
 
 		TSharedPtr<PCGExGeo::FPointBoxCloud> Cloud;
 
+		using BoundCheckCallback = std::function<bool(const FPCGPoint&)>;
+		BoundCheckCallback BoundCheck;
+
 		virtual bool Init(const FPCGContext* InContext, const TSharedPtr<PCGExData::FFacade> InPointDataFacade) override;
-		virtual bool Test(const int32 PointIndex) const override;
+		FORCEINLINE virtual bool Test(const int32 PointIndex) const override { return BoundCheck(PointDataFacade->Source->GetInPoint(PointIndex)); }
 
 		virtual ~TBoundsFilter() override
 		{
