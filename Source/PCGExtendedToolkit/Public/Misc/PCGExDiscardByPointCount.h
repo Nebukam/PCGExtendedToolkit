@@ -36,10 +36,10 @@ public:
 
 	/** Don't output Clusters if they have less points than a specified amount. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, InlineEditConditionToggle))
-	bool bRemoveBelow = false;
+	bool bRemoveBelow = true;
 
 	/** Discarded if point count is less than */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bRemoveBelow", ClampMin=1))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bRemoveBelow", ClampMin=0))
 	int32 MinPointCount = 1;
 
 	/** Don't output Clusters if they have more points than a specified amount. */
@@ -47,14 +47,16 @@ public:
 	bool bRemoveAbove = false;
 
 	/** Discarded if point count is more than */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bRemoveAbove", ClampMin=-1))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bRemoveAbove", ClampMin=0))
 	int32 MaxPointCount = 500;
 
-	bool OutsidePointCountFilter(const int32 InValue) const { return (MinPointCount > 0 && InValue < MinPointCount) || (MaxPointCount > 0 && InValue < MaxPointCount); }
 };
 
 class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExDiscardByPointCountElement final : public FPCGExPointsProcessorElement
 {
+
+	virtual bool Boot(FPCGExContext* InContext) const override;
+	
 protected:
 	virtual bool ExecuteInternal(FPCGContext* Context) const override;
 };

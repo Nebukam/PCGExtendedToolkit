@@ -107,6 +107,7 @@ enum class EPCGExAssetTagInheritance : uint8
 	Hierarchy      = 1 << 2 UMETA(DisplayName = "Hierarchy"),
 	Collection     = 1 << 3 UMETA(DisplayName = "Collection"),
 	RootCollection = 1 << 4 UMETA(DisplayName = "Root Collection"),
+	RootAsset      = 1 << 5 UMETA(DisplayName = "Root Asset"),
 };
 
 ENUM_CLASS_FLAGS(EPCGExAssetTagInheritance)
@@ -185,7 +186,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExAssetTaggingDetails : public FPCGExCompo
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable, Bitmask, BitmaskEnum="/Script/PCGExtendedToolkit.EPCGExAssetTagInheritance"))
 	uint8 GrabTags = static_cast<uint8>(EPCGExAssetTagInheritance::Asset);
-	
+
 	bool IsEnabled() const { return GrabTags != 0; }
 };
 
@@ -1011,7 +1012,7 @@ namespace PCGExAssetCollection
 			}
 
 			if (TagInheritance & static_cast<uint8>(EPCGExAssetTagInheritance::RootCollection)) { OutTags.Append(Collection->CollectionTags); }
-			
+
 			if (Details.Distribution == EPCGExDistribution::WeightedRandom)
 			{
 				Collection->GetEntryWeightedRandom(OutEntry, Seed, TagInheritance, OutTags);

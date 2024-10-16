@@ -12,6 +12,20 @@ PCGExData::EInit UPCGExDiscardByPointCountSettings::GetMainOutputInitMode() cons
 
 FPCGElementPtr UPCGExDiscardByPointCountSettings::CreateElement() const { return MakeShared<FPCGExDiscardByPointCountElement>(); }
 
+bool FPCGExDiscardByPointCountElement::Boot(FPCGExContext* InContext) const
+{
+	FPCGExPointsProcessorContext* Context = static_cast<FPCGExPointsProcessorContext*>(InContext);
+	PCGEX_SETTINGS(PointsProcessor)
+
+	Context->MainPoints = MakeShared<PCGExData::FPointIOCollection>(Context);
+	Context->MainPoints->DefaultOutputLabel = Settings->GetMainOutputLabel();
+
+	TArray<FPCGTaggedData> Sources = Context->InputData.GetInputsByPin(Settings->GetMainInputLabel());
+	Context->MainPoints->Initialize(Sources, Settings->GetMainOutputInitMode());
+
+	return true;
+}
+
 bool FPCGExDiscardByPointCountElement::ExecuteInternal(FPCGContext* InContext) const
 {
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExDiscardByPointCountElement::Execute);
@@ -20,8 +34,8 @@ bool FPCGExDiscardByPointCountElement::ExecuteInternal(FPCGContext* InContext) c
 	PCGEX_SETTINGS(DiscardByPointCount)
 	PCGEX_ON_INITIAL_EXECUTION
 	{
-		const int32 Min = Settings->bRemoveBelow ? FMath::Max(1, Settings->MinPointCount) : 1;
-		const int32 Max = Settings->bRemoveAbove ? FMath::Max(1, Settings->MaxPointCount) : TNumericLimits<int32>::Max();
+		const int32 Min = (Settings->bRemoveBelow && Settings->MinPointCount >= 0) ? Settings->MinPointCount : -1;
+		const int32 Max = (Settings->bRemoveAbove && Settings->MaxPointCount >= 0) ? Settings->MaxPointCount : TNumericLimits<int32>::Max();
 
 		for (const TSharedPtr<PCGExData::FPointIO>& PointIO : Context->MainPoints->Pairs)
 		{
