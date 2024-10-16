@@ -54,6 +54,8 @@ public:
 namespace PCGExPointFilter
 {
 	const FName OutputFilterLabel = FName("Filter");
+	const FName OutputFilterLabelNode = FName("Node Filter");
+	const FName OutputFilterLabelEdge = FName("Edge Filter");
 	const FName SourceFiltersLabel = FName("Filters");
 
 	const FName SourceFiltersConditionLabel = FName("Conditions Filters");

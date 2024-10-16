@@ -96,12 +96,14 @@ public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(
-		EdgeEndpointsCompareNumFilterFactory, "Cluster Filter : Neighbors Count (Edge)", "Check against the edge' endpoints neighbor count.",
+		EdgeEndpointsCompareNumFilterFactory, "Cluster Filter : Endpoints Compare (Numeric)", "Compare the value of an attribute on each of the edge endpoint.",
 		PCGEX_FACTORY_NAME_PRIORITY)
 	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->NodeColorClusterFilter; }
 #endif
 	//~End UPCGSettings
 
+	virtual FName GetMainOutputLabel() const override { return PCGExPointFilter::OutputFilterLabelEdge; }
+	
 	/** Test Config.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ShowOnlyInnerProperties))
 	FPCGExEdgeEndpointsCompareNumFilterConfig Config;
