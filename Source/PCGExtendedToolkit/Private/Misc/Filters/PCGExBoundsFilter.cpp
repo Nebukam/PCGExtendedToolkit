@@ -40,10 +40,16 @@ bool PCGExPointsFilter::TBoundsFilter::Init(const FPCGContext* InContext, const 
 	BoundsTarget = TypedFilterFactory->Config.BoundsTarget;
 
 #define PCGEX_FOREACH_BOUNDTYPE(_NAME)\
+if(TypedFilterFactory->Config.bInvert){\
+	switch (TypedFilterFactory->Config.BoundsSource) { default: \
+	case EPCGExPointBoundsSource::ScaledBounds: BoundCheck = [&](const FPCGPoint& Point) { return !Cloud->_NAME<EPCGExPointBoundsSource::ScaledBounds>(Point); }; break;\
+	case EPCGExPointBoundsSource::DensityBounds: BoundCheck = [&](const FPCGPoint& Point) { return !Cloud->_NAME<EPCGExPointBoundsSource::DensityBounds>(Point); }; break;\
+	case EPCGExPointBoundsSource::Bounds: BoundCheck = [&](const FPCGPoint& Point) { return !Cloud->_NAME<EPCGExPointBoundsSource::Bounds>(Point); }; break;}\
+	}else{\
 	switch (TypedFilterFactory->Config.BoundsSource) { default: \
 	case EPCGExPointBoundsSource::ScaledBounds: BoundCheck = [&](const FPCGPoint& Point) { return Cloud->_NAME<EPCGExPointBoundsSource::ScaledBounds>(Point); }; break;\
 	case EPCGExPointBoundsSource::DensityBounds: BoundCheck = [&](const FPCGPoint& Point) { return Cloud->_NAME<EPCGExPointBoundsSource::DensityBounds>(Point); }; break;\
-	case EPCGExPointBoundsSource::Bounds: BoundCheck = [&](const FPCGPoint& Point) { return Cloud->_NAME<EPCGExPointBoundsSource::Bounds>(Point); }; break;}
+	case EPCGExPointBoundsSource::Bounds: BoundCheck = [&](const FPCGPoint& Point) { return Cloud->_NAME<EPCGExPointBoundsSource::Bounds>(Point); }; break;} }
 
 	switch (TypedFilterFactory->Config.CheckType)
 	{
