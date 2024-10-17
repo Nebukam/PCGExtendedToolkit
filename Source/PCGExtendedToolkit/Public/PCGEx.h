@@ -353,7 +353,7 @@ namespace PCGEx
 	FORCEINLINE static bool SameSet(const TSet<T>& A, const TSet<T>& B)
 	{
 		if (A.Num() != B.Num()) { return false; }
-		for (const T& Entry : A) { if (!B.Contains(Entry)) { return false; } }
+		for (const T& Entry : A) { if (!B.IsInside(Entry)) { return false; } }
 		return true;
 	}
 }

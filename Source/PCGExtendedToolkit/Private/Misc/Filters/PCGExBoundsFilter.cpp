@@ -37,20 +37,32 @@ bool PCGExPointsFilter::TBoundsFilter::Init(const FPCGContext* InContext, const 
 	if (!FFilter::Init(InContext, InPointDataFacade)) { return false; }
 	if (!Cloud) { return false; }
 
+	BoundsTarget = TypedFilterFactory->Config.BoundsTarget;
+
+#define PCGEX_FOREACH_BOUNDTYPE(_NAME)\
+	switch (TypedFilterFactory->Config.BoundsSource) { default: \
+	case EPCGExPointBoundsSource::ScaledBounds: BoundCheck = [&](const FPCGPoint& Point) { return Cloud->_NAME<EPCGExPointBoundsSource::ScaledBounds>(Point); }; break;\
+	case EPCGExPointBoundsSource::DensityBounds: BoundCheck = [&](const FPCGPoint& Point) { return Cloud->_NAME<EPCGExPointBoundsSource::DensityBounds>(Point); }; break;\
+	case EPCGExPointBoundsSource::Bounds: BoundCheck = [&](const FPCGPoint& Point) { return Cloud->_NAME<EPCGExPointBoundsSource::Bounds>(Point); }; break;}
 
 	switch (TypedFilterFactory->Config.CheckType)
 	{
 	default:
-	case EPCGExBoundsCheckType::Overlap:
-		BoundCheck = [&](const FPCGPoint& Point) { return Cloud->ContainsMinusEpsilon(Point.Transform.GetLocation()); };
+	case EPCGExBoundsCheckType::Intersects:
+		PCGEX_FOREACH_BOUNDTYPE(Intersect)
 		break;
-	case EPCGExBoundsCheckType::Inside:
-		BoundCheck = [&](const FPCGPoint& Point) { return Cloud->ContainsMinusEpsilon(Point.Transform.GetLocation()); };
+	case EPCGExBoundsCheckType::IsInside:
+		PCGEX_FOREACH_BOUNDTYPE(IsInside)
 		break;
-	case EPCGExBoundsCheckType::Outside:
-		BoundCheck = [&](const FPCGPoint& Point) { return !Cloud->ContainsMinusEpsilon(Point.Transform.GetLocation()); };
+	case EPCGExBoundsCheckType::IsInsideOrOn:
+		PCGEX_FOREACH_BOUNDTYPE(IsInsideOrOn)
+		break;
+	case EPCGExBoundsCheckType::IsInsideOrIntersects:
+		PCGEX_FOREACH_BOUNDTYPE(IsInsideOrIntersects)
 		break;
 	}
+
+#undef PCGEX_FOREACH_BOUNDTYPE
 
 	return true;
 }
@@ -70,9 +82,10 @@ FString UPCGExBoundsFilterProviderSettings::GetDisplayName() const
 	switch (Config.CheckType)
 	{
 	default:
-	case EPCGExBoundsCheckType::Overlap: return TEXT("Overlap");
-	case EPCGExBoundsCheckType::Inside: return TEXT("Inside");
-	case EPCGExBoundsCheckType::Outside: return TEXT("Outside");
+	case EPCGExBoundsCheckType::Intersects: return TEXT("Intersects");
+	case EPCGExBoundsCheckType::IsInside: return TEXT("Is Inside");
+	case EPCGExBoundsCheckType::IsInsideOrOn: return TEXT("Is Inside or On");
+	case EPCGExBoundsCheckType::IsInsideOrIntersects: return TEXT("Is Inside or Intersects");
 	}
 }
 #endif

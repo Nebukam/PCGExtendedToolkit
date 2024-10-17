@@ -94,12 +94,12 @@ namespace PCGExPathIntersections
 			if (Details.InsideForwardHandler)
 			{
 				TArray<TSharedPtr<PCGExGeo::FPointBox>> Overlaps;
-				const bool bContained = Cloud->ContainsMinusEpsilon(Point.Transform.GetLocation(), Overlaps); // Avoid intersections being captured
+				const bool bContained = Cloud->IsInsideMinusEpsilon(Point.Transform.GetLocation(), Overlaps); // Avoid intersections being captured
 				Details.SetIsInside(Index, bContained, bContained ? Overlaps[0]->Index : -1);
 			}
 			else
 			{
-				Details.SetIsInside(Index, Cloud->ContainsMinusEpsilon(Point.Transform.GetLocation()));
+				Details.SetIsInside(Index, Cloud->IsInsideMinusEpsilon(Point.Transform.GetLocation()));
 			}
 		}
 

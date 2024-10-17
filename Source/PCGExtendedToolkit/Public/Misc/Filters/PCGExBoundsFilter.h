@@ -16,9 +16,10 @@
 UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Fetch Type"))
 enum class EPCGExBoundsCheckType : uint8
 {
-	Overlap = 0 UMETA(DisplayName = "Overlap", Tooltip="Check if the tested point' bounds overlap with the provided bounds."),
-	Inside  = 1 UMETA(DisplayName = "Inside", Tooltip="Check if the tested point' bounds are inside the provided bounds."),
-	Outside = 2 UMETA(DisplayName = "Outside", Tooltip="Pass if the tested point' bounds are outside the provided bounds."),
+	Intersects           = 0 UMETA(DisplayName = "Intersects", Tooltip="..."),
+	IsInside             = 1 UMETA(DisplayName = "Is Inside", Tooltip="..."),
+	IsInsideOrOn         = 2 UMETA(DisplayName = "Is Inside or On", Tooltip="..."),
+	IsInsideOrIntersects = 3 UMETA(DisplayName = "Is Inside or Intersects", Tooltip="..."),
 };
 
 USTRUCT(BlueprintType)
@@ -30,15 +31,19 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExBoundsFilterConfig
 	{
 	}
 
-	/** Bounds type. */
+	/** Bounds to use on input points. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	EPCGExPointBoundsSource BoundsSource = EPCGExPointBoundsSource::ScaledBounds;
 
+	/** Bounds to use on input bounds. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	EPCGExPointBoundsSource BoundsTarget = EPCGExPointBoundsSource::ScaledBounds;
+	
 	/** */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
-	EPCGExBoundsCheckType CheckType = EPCGExBoundsCheckType::Overlap;
+	EPCGExBoundsCheckType CheckType = EPCGExBoundsCheckType::Intersects;
 
-	/** Epsilon value used to expand the box when testing if IsInside. */
+	/** Epsilon value used to slightly expand target bounds. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	double Epsilon = 1e-4;
 };
@@ -68,12 +73,13 @@ namespace PCGExPointsFilter
 		explicit TBoundsFilter(const TObjectPtr<const UPCGExBoundsFilterFactory>& InFactory)
 			: FSimpleFilter(InFactory), TypedFilterFactory(InFactory)
 		{
-			Cloud = TypedFilterFactory->BoundsDataFacade ? TypedFilterFactory->BoundsDataFacade->GetCloud(TypedFilterFactory->Config.BoundsSource, TypedFilterFactory->Config.Epsilon) : nullptr;
+			Cloud = TypedFilterFactory->BoundsDataFacade ? TypedFilterFactory->BoundsDataFacade->GetCloud(TypedFilterFactory->Config.BoundsTarget, TypedFilterFactory->Config.Epsilon) : nullptr;
 		}
 
 		const TObjectPtr<const UPCGExBoundsFilterFactory> TypedFilterFactory;
 
 		TSharedPtr<PCGExGeo::FPointBoxCloud> Cloud;
+		EPCGExPointBoundsSource BoundsTarget = EPCGExPointBoundsSource::ScaledBounds;
 
 		using BoundCheckCallback = std::function<bool(const FPCGPoint&)>;
 		BoundCheckCallback BoundCheck;

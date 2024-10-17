@@ -48,6 +48,30 @@ namespace PCGExMath
 		return FBox(-Extents, Extents);
 	}
 
+	template <EPCGExPointBoundsSource S = EPCGExPointBoundsSource::ScaledBounds>
+	FORCEINLINE static FBox GetLocalBounds(const FPCGPoint& Point)
+	{
+		if constexpr (S == EPCGExPointBoundsSource::ScaledBounds)
+		{
+			const FVector Extents = Point.GetScaledExtents();
+			return FBox(-Extents, Extents);
+		}
+		else if constexpr (S == EPCGExPointBoundsSource::Bounds)
+		{
+			const FVector Extents = Point.GetExtents();
+			return FBox(-Extents, Extents);
+		}
+		else if constexpr (S == EPCGExPointBoundsSource::DensityBounds)
+		{
+			const FVector Extents = Point.GetDensityBounds().BoxExtent;
+			return FBox(-Extents, Extents);
+		}
+		else
+		{
+			return FBox(FVector::OneVector * -1, FVector::OneVector);
+		}
+	}
+
 #pragma region basics
 
 	FORCEINLINE static double DegreesToDot(const double Angle)
