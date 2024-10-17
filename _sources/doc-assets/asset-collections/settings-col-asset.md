@@ -18,6 +18,7 @@ nav_exclude: true
 |: **Settings** :||
 | Weight       | The weight of this entry, relative to the others in the list.<br>Higher weights means higher chance of being picked, if the context is using weighted random selection. |
 | Category       | A category associated with this entry. *Think of it as a unique tag.* |
+| Tags       | A list of unique tags that can be forwarded to components  using this entry.<br>*Note that not all nodes can handle tags.* |
 
 > An entry `Weight` is not only used for Weighted Random selection, but is also used to sort entries in certain cases; among which `Indexed Weight` (Ascending/Descending) distribution mode of the [Asset Staging](../assets-staging.html) node.
 {: .infos-hl }

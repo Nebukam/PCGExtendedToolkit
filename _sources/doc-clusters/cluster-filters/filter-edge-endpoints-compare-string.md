@@ -32,5 +32,9 @@ WIP
 # Properties
 <br>
 
-> WIP
-{: .warning-hl }
+| Property       | Description          |
+|:-------------|:------------------|
+|: **Settings** ||
+| Attribute | Attribute to read on edges' endpoints |
+| Comparison           | How to compare each endpoint value against the other.<br>*See [String comparisons](/PCGExtendedToolkit/doc-general/comparisons.html#string-comparisons).* |
+| Invert | If enabled, invert the result of the filter. |

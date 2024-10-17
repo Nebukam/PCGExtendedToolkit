@@ -74,3 +74,25 @@ As such you will need to trigger a manual refresh from to time. You can do so us
 ## Available Collections
 <br>
 {% include card_childs tagged='assetcollection' %}
+
+---
+## Entries & Collections Tags
+<br>
+
+Both entries and collections can hold tags. Some of these tags are entry-bound (i.e they exist in the context of a given collection only), and some are asset-bound (i.e they are always the same no matter where that entry is referenced).  
+**Some nodes, such as {% include lk id='Path Spline Mesh' %} can use & add those tags to the components they generate.**  
+
+Since collections can be nested, and both entries *and* collections can have tags, you can pick'n choose which tags should be grabbed during the entry selection process:  
+
+
+|: Flags     ||
+| <span class="ebit">None</span>           | Tags will be ignored |
+| <span class="ebit">Asset</span>           | Grab tags from the **final** picked entry. |
+| <span class="ebit">Hierarchy</span>          | Grab tags from the **entries that have been traversed** to the final pick. |
+| <span class="ebit">Collection</span>          | Grab tags from the **sub-collections that have been traversed** to the final pick.<br>*This does not include the root collection.* |
+| <span class="ebit">Root Collection</span>          | Grab tags from the "root", or main **collection**.<br>*This does not include nested & sub-collections.* |
+| <span class="ebit">Root Asset</span>          | Grab tags from the "root", or first traversed entry.<br>**This invalidates the <span class="ebit">Hierarchy</span> flag.** |
+{: .enum }
+
+{% include img a='guides/data-asset-collection-grab-tag.png' %}
+

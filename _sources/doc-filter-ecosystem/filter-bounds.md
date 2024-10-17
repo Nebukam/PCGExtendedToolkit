@@ -39,6 +39,26 @@ The **Bounds Filter** checks whether the test points are inside the provided bou
 
 | Property       | Description          |
 |:-------------|:------------------|
-| Bounds Source          | Lets you pick which point' bounds will be used for the Bounds inputs.<br>-`Scaled Bounds` is closest to what you see using a `Debug` node.<br>-`Density Bounds` are the same as `Scaled Bounds` but factor in the local density of the point.<br>-`Bounds` uses unscaled bounds. |
-| Check if Inside | If enabled, the filter **passes if the tested point is inside the provided bounds**; otherwise it passes if the tested point is **outside**.  |
-| Inside Epsilon | Lets you set a small value that will be used to expand the bounds in order to rule out perfect surface overlaps. |
+| Bounds Source          | Defines the bounds to be used for tested points. |
+| Bounds Target          | Defines the bounds to be used for the input `Bounds` points. |
+| Check Type | The type of bounds x bounds check the filter will do. |
+| Inside Epsilon | Lets you set a small value that will be used to expand the target bounds. |
+
+---
+## Bounds types
+<br>
+{% include embed id='settings-bounds-type' %}
+
+---
+## Check Type
+
+Defines how source bounds are checked against the target bounds. These are fairly standard box/box operations.  
+
+> Note that the source bounds are first transformed by their point' transform, and then inverse transformed by the target' point transform; meaning there can be some artifacts and mathematical variations as a result of applying the matrices.
+
+|: Check Type     ||
+| {% include img a='details/filter-ecosystem/enum-check-type-intersect.png' %}           | <span class="ebit">Intersect</span><br>TBD |
+| {% include img a='details/filter-ecosystem/enum-check-type-is-inside.png' %}           | <span class="ebit">Is Inside</span><br>TBD |
+| {% include img a='details/filter-ecosystem/enum-check-type-is-inside-or-on.png' %}           | <span class="ebit">Is Inside or On</span><br>TBD |
+| {% include img a='details/filter-ecosystem/enum-check-type-is-inside-or-intersect.png' %}           | <span class="ebit">Is Inside or On</span><br>TBD |
+{: .enum }

@@ -51,7 +51,18 @@ The Edge Direction filter does a simple dot product comparison on each individua
 | Operand B (Neighbor)           | TBD |
 
 ---
-## Dot Comparison Details
+## Comparison Quality
+
+{% include img a='details/settings/comparison-quality.png' %}
+
+### Dot Comparison Details
+*Only if Dot method is selected*
 <br>
 {% include embed id='settings-dot-comparison' %}
+
+---
+### Hash Comparison Details
+*Only if Hash method is selected*
+<br>
+{% include embed id='settings-hash-comparison' %}
 

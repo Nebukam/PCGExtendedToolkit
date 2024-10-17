@@ -162,10 +162,14 @@ is used.
 {% include embed id='settings-index-safety' %}
 
 ---
-## Output
+## Additional Outputs
 
 Lets you output the Weight of the selection to each node, using different post-processing methods.  
 **This can be very handy to identify "rare" spawns and preserve them during self-pruning operations.**
+
+### Tagging/Flagging Points
+
+{% include embed id='settings-tagging-assets' %}
 
 ---
 # Modules

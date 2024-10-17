@@ -183,11 +183,13 @@ Lets you pick which actor to attach the spline components to.
 Uses the PCG Component' owner if the provided value is invalid.
 
 ---
-## Output
+## Additional Outputs
 
 Lets you output the Weight of the selection to each node, using different post-processing methods.  
 **This can be very handy to identify "rare" spawns and preserve them during self-pruning operations.**
 
-### Tagging
+### Tagging Components
 
-Lets you pick which tags to add/forward to the output spline mesh component.  
+Lets you pick which tags to add/forward to the output spline mesh components.  
+
+{% include embed id='settings-tagging-assets' %}

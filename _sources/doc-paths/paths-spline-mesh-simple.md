@@ -56,7 +56,11 @@ While disabled by default, Tangents play a crucial role in giving the spline mes
 
 
 ---
-## Output
+## Additional Outputs
 
 Lets you output the Weight of the selection to each node, using different post-processing methods.  
 **This can be very handy to identify "rare" spawns and preserve them during self-pruning operations.**
+
+### Tagging Components
+
+{% include embed id='settings-tagging-assets' %}

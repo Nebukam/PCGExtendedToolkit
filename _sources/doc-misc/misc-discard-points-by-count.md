@@ -17,6 +17,9 @@ nav_order: 20
 
 {% include header_card_node %}
 
+> Note that this node may output no data at all, depending on its settings -- *in which case subsequent nodes in the graph will be culled.*
+{: .warning }
+
 # Properties
 <br>
 

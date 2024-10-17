@@ -32,5 +32,37 @@ WIP
 # Properties
 <br>
 
-> WIP
-{: .warning-hl }
+| Property       | Description          |
+|:-------------|:------------------|
+|: **Settings (Operand A)** ||
+|: Direction Settings | Used to determine which edge endpoint is either the start or end.<br>*See below.* |
+| Comparison Quality          | Defines the method used for comparison.<br>- `Dot` is precise *(easily returns false)*<br>- `Hash` method is approximative *(easily returns true)* |
+
+|: **Operand B** ||
+| Compare Against | Type of operand B. Can be a per-edge point `Attribute`, or an easily overridable `Constant`. |
+| Direction<br>`FVector` | Attribute to read the direction vector to compare the edge direction against. |
+| Direction Constant | Constant direction vector to compare the edge direction against. |
+| Transform Direction | If enabled, the direction to compare will be adjusted by the current edge point' transform.<br>*If disabled, the direction is in world space.* |
+
+---
+## Direction Settings
+<br>
+{% include embed id='settings-edge-direction' %}
+
+---
+## Comparison Quality
+
+{% include img a='details/settings/edge-direction.png' %}
+<br>
+{% include img a='details/settings/comparison-quality.png' %}
+
+### Dot Comparison Details
+*Only if Dot method is selected*
+<br>
+{% include embed id='settings-dot-comparison' %}
+
+---
+### Hash Comparison Details
+*Only if Hash method is selected*
+<br>
+{% include embed id='settings-hash-comparison' %}

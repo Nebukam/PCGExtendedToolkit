@@ -4,7 +4,6 @@ has_children: false
 nav_exclude: true
 ---
 
-
 | Property       | Description          |
 |:-------------|:------------------|
 | Direction Method     |  Defines which endpoints "order" will be used to define the direction reference for the ouputs. |
