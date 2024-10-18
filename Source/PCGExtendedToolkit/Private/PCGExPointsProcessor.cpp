@@ -18,12 +18,12 @@ TArray<FPCGPinProperties> UPCGExPointsProcessorSettings::InputPinProperties() co
 {
 	TArray<FPCGPinProperties> PinProperties;
 
-	if (!IsInputless())
+	if(!IsInputless())
 	{
 		if (GetMainAcceptMultipleData()) { PCGEX_PIN_POINTS(GetMainInputLabel(), "The point data to be processed.", Required, {}) }
 		else { PCGEX_PIN_POINT(GetMainInputLabel(), "The point data to be processed.", Required, {}) }
 	}
-
+	
 	if (SupportsPointFilters())
 	{
 		if (RequiresPointFilters()) { PCGEX_PIN_PARAMS(GetPointFilterLabel(), GetPointFilterTooltip(), Required, {}) }
@@ -180,7 +180,11 @@ bool FPCGExPointsProcessorElement::PrepareDataInternal(FPCGContext* InContext) c
 
 	if (Context->IsState(PCGEx::State_Preparation))
 	{
-		if (!Boot(Context)) { return Context->CancelExecution(TEXT("")); }
+		if (!Boot(Context))
+		{
+			Context->OutputData.TaggedData.Empty(); // Ensure culling of subsequent nodes if boot fails
+			return Context->CancelExecution(TEXT(""));
+		}
 
 		Context->RegisterAssetDependencies();
 		if (Context->HasAssetRequirements())
