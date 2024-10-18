@@ -36,7 +36,7 @@ public:
 	TSet<uint64> UniqueEdges;
 	int32 MaxIndex = -1;
 	TSharedPtr<PCGExGraph::FGraphBuilder> GraphBuilder;
-
+	
 	/**
 	 * Create an edge between two nodes in an indexed graph.
 	 * @param InStartIndex 
@@ -45,6 +45,14 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "PCGEx|Data")
 	void AddEdge(const int32 InStartIndex, const int32 InEndIndex);
 
+	/**
+	 * Main execution function. Called once per requested graphs. This method is executed in a multi-threaded context, Graph Settings are safe but the custom builder wrapper itself isn't.
+	 * @param InContext - Context of the execution
+	 * @param OutSuccess
+	 */
+	UFUNCTION(BlueprintNativeEvent, Category = "PCGEx|Execution")
+	void BuildGraph(const FPCGContext& InContext, bool& OutSuccess);
+	
 	/**
 	 * Update Node Point is called on each node point after BuildGraph has been, and edges added. This method is executed in a multi-threaded context.
 	 * This is where point transform & properties should be set.

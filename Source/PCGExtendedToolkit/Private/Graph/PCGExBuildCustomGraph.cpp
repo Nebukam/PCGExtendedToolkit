@@ -23,6 +23,11 @@ void UPCGExCustomGraphSettings::AddEdge(const int32 InStartIndex, const int32 In
 	UniqueEdges.Add(PCGEx::H64U(InStartIndex, InEndIndex));
 }
 
+void UPCGExCustomGraphSettings::BuildGraph_Implementation(const FPCGContext& InContext, bool& OutSuccess)
+{
+	OutSuccess = false;
+}
+
 void UPCGExCustomGraphSettings::UpdateNodePoint_Implementation(const int32 InNodeIndex, const FPCGPoint& InPoint, FPCGPoint& OutPoint) const
 {
 	OutPoint = InPoint;
@@ -39,7 +44,7 @@ UPCGExCustomGraphSettings* UPCGExCustomGraphBuilder::CreateGraphSettings(TSubcla
 
 void UPCGExCustomGraphBuilder::BuildGraph_Implementation(const FPCGContext& InContext, UPCGExCustomGraphSettings* InCustomGraphSettings, bool& OutSuccess)
 {
-	OutSuccess = false;
+	InCustomGraphSettings->BuildGraph(InContext, OutSuccess);
 }
 
 void UPCGExCustomGraphBuilder::UpdateNodePoint_Implementation(const UPCGExCustomGraphSettings* InCustomGraphSettings, const int32 InNodeIndex, const FPCGPoint& InPoint, FPCGPoint& OutPoint) const
