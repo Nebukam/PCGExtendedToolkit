@@ -94,8 +94,3 @@ The delaunay algorithm creates a convex hull of very, *very* long edges, so you'
 
 {% include img_link a='details/diagrams/diagrams-delaunay-2d-hull-pruning.png' %}
 
-### Prune by Length
-- Use {% include lk id='Prune edges by Length' %} to remove outliers. This is a more conversative approach compared to the one above, as it will keep the smaller hull edges.
-
-{% include img_link a='details/diagrams/diagrams-delaunay-2d-hull-pruning2.png' %}
-

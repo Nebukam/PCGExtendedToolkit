@@ -1,5 +1,5 @@
 ---
-title: settings-projection
+title: settings-fuse-details
 has_children: false
 nav_exclude: true
 ---

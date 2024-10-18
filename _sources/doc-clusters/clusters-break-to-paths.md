@@ -64,6 +64,7 @@ The **Break Cluster to Path** turns all `Edges` chains to individual paths. It's
 {% include img a='details/clusters-break-to-paths/direction.png' %}
 
 {% include embed id='settings-edge-direction' %}
+{% include img_link a='explainers/edge-direction-method.png' %}
 
 > Using `Edge Dot Attribute` only uses the first available edge in the chain to infer direction.
 {: .infos }

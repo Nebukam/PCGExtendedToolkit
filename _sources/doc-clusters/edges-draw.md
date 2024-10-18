@@ -32,6 +32,9 @@ outputs:
 
 {% include header_card_node %}
 
+> This node is very legacy, I recommend using the `Solidify Edge` subgraph preset with a regular `Debug` node.
+{: .error }
+
 # Properties
 <br>
 

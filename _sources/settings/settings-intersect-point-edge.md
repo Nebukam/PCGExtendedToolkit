@@ -1,5 +1,5 @@
 ---
-title: settings-projection
+title: settings-intersect-point-edge
 has_children: false
 nav_exclude: true
 ---

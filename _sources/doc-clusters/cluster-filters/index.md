@@ -7,8 +7,8 @@ title: Cluster Filters
 subtitle: Cluster-specific filters
 summary: The **Cluster Filters** are a sub-collection of filters that only works with certain specific cluster processing nodes, that can work with more rely on intrinsinc & relational data comparisons from either vtx or edges specifically.
 color: red
-splash: icons/icon_edges-extras.svg
-preview_img: previews/index-flag-nodes.png
+splash: icons/icon_misc-sort-points.svg
+preview_img: previews/index-cluster-filters.png
 has_children: true
 see_also:
     - Working with Clusters
@@ -17,7 +17,7 @@ see_also:
 tagged: 
     - node
     - clusters
-nav_order: 13
+nav_order: 100
 ---
 
 {% include header_card %}

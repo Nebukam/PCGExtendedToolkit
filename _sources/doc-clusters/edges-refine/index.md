@@ -78,7 +78,7 @@ The sanitization property lets you enforce some general conditions within the gr
 | Longest           | If a node has no edge left, restore the longest one.|
 | Filters           | Use per-point filters to ensure edge preservation.|
 
-> Note that the **sanitization options offer no guarantee that the initial interconnectivity will be preserved!** 
+> Note that the **sanitization options offer no guarantee that the initial interconnectivity will be preserved!** *-- It's more of a "whatever happens, keep those edges" pass.*
 {: .warning }
 
 ---
@@ -98,13 +98,15 @@ The sanitization property lets you enforce some general conditions within the gr
 This node supports a wide variety of filters, but it's important to keep in mind that **only the edge points are processed by the filters**.
 {: .fs-5 .fw-400 } 
 
+Both regular point filter & edge filters are supported, node filter are not *(because they operate on endpoints specifically, which this node doesn't work on)*.
+
 > Regular & Sanitization filtering operate on input data, not the modified output. That means if you use filters that rely on intrinsinc properties such as neighbor count, it will be the neighbor count of the input, not the output!
 {: .infos }
 
 ---
 ## Available Filters
 <br>
-{% include card_any tagged="filter" %}
+{% include card_any tagged="pointfilter" %}
 
 ---
 ## Edge-specific filters

@@ -166,6 +166,10 @@ body:hover::-webkit-scrollbar-thumb:hover, .main:hover::-webkit-scrollbar-thumb:
 
 .node-splash { background-image: var(--img); background-size: cover; background-position-x: 50%; background-position-y: 50%; height: 100px; border-radius: 3px; }
 
+u { background-color: #46322a; text-decoration: none; color: #f9a101; }
+
+code { font-size: 95%; }
+
 .side-bar { z-index: 0; display: flex; flex-wrap: wrap; background-color: #27262b; }
 
 @media (min-width: 62.5rem) { .side-bar { flex-wrap: nowrap; position: fixed; width: 248px; height: 100%; flex-direction: column; border-right: 1px solid #44434d; align-items: flex-end; } }

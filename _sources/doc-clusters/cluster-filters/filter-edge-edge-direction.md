@@ -48,6 +48,7 @@ WIP
 ## Direction Settings
 <br>
 {% include embed id='settings-edge-direction' %}
+{% include img_link a='explainers/edge-direction-method.png' %}
 
 ---
 ## Comparison Quality

@@ -28,7 +28,7 @@ PCGEx' filter system can be slightly slower than the regular filters but saves a
 ---
 ## Available Filters
 <br>
-{% include card_childs tagged='filter' %}
+{% include card_childs tagged='pointfilter' %}
 
 ---
 ## Cluster-specific filters
