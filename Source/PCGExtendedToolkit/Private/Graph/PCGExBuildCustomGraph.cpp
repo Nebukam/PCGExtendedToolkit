@@ -23,6 +23,11 @@ void UPCGExCustomGraphSettings::AddEdge(const int32 InStartIndex, const int32 In
 	UniqueEdges.Add(PCGEx::H64U(InStartIndex, InEndIndex));
 }
 
+void UPCGExCustomGraphSettings::UpdateNodePoint_Implementation(const int32 InNodeIndex, const FPCGPoint& InPoint, FPCGPoint& OutPoint) const
+{
+	OutPoint = InPoint;
+}
+
 UPCGExCustomGraphSettings* UPCGExCustomGraphBuilder::CreateGraphSettings(TSubclassOf<UPCGExCustomGraphSettings> SettingsClass, int32 InMaxNumNodes)
 {
 	TObjectPtr<UPCGExCustomGraphSettings> NewSettings = Context->ManagedObjects->New<UPCGExCustomGraphSettings>(GetTransientPackage(), SettingsClass);
@@ -37,9 +42,9 @@ void UPCGExCustomGraphBuilder::BuildGraph_Implementation(const FPCGContext& InCo
 	OutSuccess = false;
 }
 
-void UPCGExCustomGraphBuilder::UpdateNodePoint_Implementation(const UPCGExCustomGraphSettings* InCustomGraphSettings, const int32 InNodeIndex, const FPCGPoint& InPoint, FPCGPoint& OutPoint)
+void UPCGExCustomGraphBuilder::UpdateNodePoint_Implementation(const UPCGExCustomGraphSettings* InCustomGraphSettings, const int32 InNodeIndex, const FPCGPoint& InPoint, FPCGPoint& OutPoint) const
 {
-	OutPoint = InPoint;
+	InCustomGraphSettings->UpdateNodePoint(InNodeIndex, InPoint, OutPoint);
 }
 
 TArray<FPCGPinProperties> UPCGExBuildCustomGraphSettings::OutputPinProperties() const

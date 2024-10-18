@@ -44,6 +44,16 @@ public:
 	 */
 	UFUNCTION(BlueprintCallable, Category = "PCGEx|Data")
 	void AddEdge(const int32 InStartIndex, const int32 InEndIndex);
+
+	/**
+	 * Update Node Point is called on each node point after BuildGraph has been, and edges added. This method is executed in a multi-threaded context.
+	 * This is where point transform & properties should be set.
+	 * @param InNodeIndex 
+	 * @param InPoint
+	 * @param OutPoint 
+	 */
+	UFUNCTION(BlueprintNativeEvent, Category = "PCGEx|Execution")
+	void UpdateNodePoint(const int32 InNodeIndex, const FPCGPoint& InPoint, FPCGPoint& OutPoint) const;
 };
 
 /**
@@ -90,7 +100,7 @@ public:
 	 * @param OutPoint 
 	 */
 	UFUNCTION(BlueprintNativeEvent, Category = "PCGEx|Execution")
-	void UpdateNodePoint(const UPCGExCustomGraphSettings* InCustomGraphSettings, const int32 InNodeIndex, const FPCGPoint& InPoint, FPCGPoint& OutPoint);
+	void UpdateNodePoint(const UPCGExCustomGraphSettings* InCustomGraphSettings, const int32 InNodeIndex, const FPCGPoint& InPoint, FPCGPoint& OutPoint) const;
 
 	virtual void Cleanup() override
 	{
