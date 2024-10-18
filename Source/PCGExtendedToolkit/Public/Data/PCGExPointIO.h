@@ -419,15 +419,16 @@ namespace PCGExData
 		TSharedPtr<FPointIO> SingleIO;
 		const TSharedPtr<FPointIOCollection> Collection = MakeShared<FPointIOCollection>(InContext, InputPinLabel);
 
-		if (!Collection->Pairs.IsEmpty())
+		if (!Collection->Pairs.IsEmpty() && Collection->Pairs[0]->GetNum() > 0)
 		{
 			SingleIO = Collection->Pairs[0];
 		}
 		else if (bThrowError)
 		{
-			PCGE_LOG_C(Error, GraphAndLog, InContext, FText::Format(FText::FromString(TEXT("Missing {0} inputs")), FText::FromName(InputPinLabel)));
+			PCGE_LOG_C(Error, GraphAndLog, InContext, FText::Format(FText::FromString(TEXT("Missing or zero-points '{0}' inputs")), FText::FromName(InputPinLabel)));
 		}
 
 		return SingleIO;
 	}
+
 }
