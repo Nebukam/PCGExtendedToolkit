@@ -16,20 +16,34 @@ enum class EPCGExCustomGraphActorSourceMode : uint8
 	ActorReferences = 1 UMETA(DisplayName = "Actor References", ToolTip="Point data with an actor reference property."),
 };
 
-USTRUCT(BlueprintType)
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExCustomGraphSettings
+/**
+ * 
+ */
+UCLASS(Blueprintable, BlueprintType, DisplayName = "[PCGEx] Custom Graph Settings")
+class PCGEXTENDEDTOOLKIT_API UPCGExCustomGraphSettings : public UObject
 {
 	GENERATED_BODY()
 
-	FPCGExCustomGraphSettings()
-	{
-	}
-
+public:
 	/** Maximum number of node in the graph. The final number can be less, as isolated points will be pruned; but no edge endpoint' index should be greater that this number. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "PCGEx|Settings", meta = (ExposeOnSpawn = "true"))
 	int32 MaxNumNodes = 0;
-	
+
+	/** Internal index of these settings. */
+	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "PCGEx|Settings")
+	int32 Index = 0;
+
 	TSet<uint64> UniqueEdges;
+	int32 MaxIndex = -1;
+	TSharedPtr<PCGExGraph::FGraphBuilder> GraphBuilder;
+
+	/**
+	 * Create an edge between two nodes in an indexed graph.
+	 * @param InStartIndex 
+	 * @param InEndIndex 
+	 */
+	UFUNCTION(BlueprintCallable, Category = "PCGEx|Data")
+	void AddEdge(const int32 InStartIndex, const int32 InEndIndex);
 };
 
 /**
@@ -43,53 +57,56 @@ class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExCustomGraphBuilder : public UPCGExOperati
 public:
 	/**
 	 * Main initialization function. Called once, and is responsible for populating graph builder settings.
-	 * At least one setting is expected to be found in the GraphSettings array.
+	 * At least one setting is expected to be found in the GraphSettings array. This is executed on the main thread.
 	 * @param InContext - Context of the initialization
+	 * @param OutSuccess
 	 */
 	UFUNCTION(BlueprintNativeEvent, Category = "PCGEx|Execution")
-	void InitializeWithContext(const FPCGContext& InContext);
+	void InitializeWithContext(const FPCGContext& InContext, bool& OutSuccess);
 
 	/**
-	 * Main execution function. Called once per requested graphs.
-	 * @param InContext - Context of the execution
-	 * @param InGraphIndex
-	 */
-	UFUNCTION(BlueprintNativeEvent, Category = "PCGEx|Execution")
-	void BuildGraph(const FPCGContext& InContext, const int32 InGraphIndex);
-
-	/**
-	 * Create an edge between two nodes in an indexed graph.
-	 * @param InGraphIndex 
-	 * @param InStartIndex 
-	 * @param InEndIndex 
+	 * Create an edge between two nodes in an indexed graph. This method is executed in a multi-threaded context
+	 * @param SettingsClass
+	 * @param InMaxNumNodes
 	 */
 	UFUNCTION(BlueprintCallable, Category = "PCGEx|Execution")
-	void AddEdge(int32 InGraphIndex, int32 InStartIndex, int32 InEndIndex);
+	UPCGExCustomGraphSettings* CreateGraphSettings(TSubclassOf<UPCGExCustomGraphSettings> SettingsClass, int32 InMaxNumNodes);
 
 	/**
-	 * Update Node Point is called on each node point after BuildGraph has been called. This method is executed asynchronously, and in parallel.
+	 * Main execution function. Called once per requested graphs. This method is executed in a multi-threaded context, Graph Settings are safe but the custom builder wrapper itself isn't.
+	 * @param InContext - Context of the execution
+	 * @param InCustomGraphSettings
+	 * @param OutSuccess
+	 */
+	UFUNCTION(BlueprintNativeEvent, Category = "PCGEx|Execution")
+	void BuildGraph(const FPCGContext& InContext, UPCGExCustomGraphSettings* InCustomGraphSettings, bool& OutSuccess);
+
+	/**
+	 * Update Node Point is called on each node point after BuildGraph has been, and edges added. This method is executed in a multi-threaded context.
 	 * This is where point transform & properties should be set.
-	 * @param InGraphIndex 
+	 * @param InCustomGraphSettings
 	 * @param InNodeIndex 
 	 * @param InPoint
 	 * @param OutPoint 
 	 */
 	UFUNCTION(BlueprintNativeEvent, Category = "PCGEx|Execution")
-	void UpdateNodePoint(const int32 InGraphIndex, const int32 InNodeIndex, const FPCGPoint& InPoint, FPCGPoint& OutPoint);
+	void UpdateNodePoint(const UPCGExCustomGraphSettings* InCustomGraphSettings, const int32 InNodeIndex, const FPCGPoint& InPoint, FPCGPoint& OutPoint);
 
 	virtual void Cleanup() override
 	{
 		InputActors.Empty();
+
+		for (UPCGExCustomGraphSettings* GSettings : GraphSettings) { GSettings->GraphBuilder.Reset(); }
+
+		GraphSettings.Empty();
 		Super::Cleanup();
 	}
 
 	UPROPERTY(BlueprintReadOnly, Category = "PCGEx|Inputs")
 	TArray<TObjectPtr<AActor>> InputActors;
 
-	UPROPERTY(BlueprintReadWrite, Category = "PCGEx|Outputs")
-	TArray<FPCGExCustomGraphSettings> GraphSettings;
-
-	
+	UPROPERTY(BlueprintReadOnly, Category = "PCGEx|Outputs")
+	TArray<TObjectPtr<UPCGExCustomGraphSettings>> GraphSettings;
 };
 
 /**
@@ -120,12 +137,12 @@ public:
 	//~End UPCGExPointsProcessorSettings
 
 	/** Actor fetching mode. These actors will be forwarded to the builder so it can fetch components and data from there during its initialization. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, InlineEditConditionToggle))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	EPCGExCustomGraphActorSourceMode Mode = EPCGExCustomGraphActorSourceMode::Owner;
 
 	/** Actor reference */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="Mode==EPCGExCustomGraphActorSourceMode::ActorReferences", EditConditionHides))
-	FName ActorReferenceAttribute;
+	FName ActorReferenceAttribute = FName(TEXT("ActorReference"));
 
 	/** Builder instance. */
 	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = Settings, Instanced, meta = (PCG_Overridable, NoResetToDefault, ShowOnlyInnerProperties))
@@ -134,7 +151,7 @@ public:
 	/** Graph & Edges output properties */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
 	bool bMuteUnprocessedSettingsWarning = false;
-	
+
 	/** Graph & Edges output properties */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName="Cluster Output Settings"))
 	FPCGExGraphBuilderDetails GraphBuilderDetails;
@@ -144,7 +161,6 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExBuildCustomGraphContext final : FPCGExPo
 {
 	friend class FPCGExBuildCustomGraphElement;
 	UPCGExCustomGraphBuilder* Builder = nullptr;
-	TSharedPtr<TArray<TSharedPtr<PCGExGraph::FGraphBuilder>>> GraphBuilders;
 };
 
 class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExBuildCustomGraphElement final : public FPCGExPointsProcessorElement
@@ -165,11 +181,13 @@ namespace PCGExBuildCustomGraph
 	class /*PCGEXTENDEDTOOLKIT_API*/ FBuildGraph final : public PCGExMT::FPCGExTask
 	{
 	public:
-		FBuildGraph(const TSharedPtr<PCGExData::FPointIO>& InPointIO) :
-			FPCGExTask(InPointIO)
+		FBuildGraph(const TSharedPtr<PCGExData::FPointIO>& InPointIO,
+		            UPCGExCustomGraphSettings* InGraphSettings) :
+			FPCGExTask(InPointIO), GraphSettings(InGraphSettings)
 		{
 		}
 
+		UPCGExCustomGraphSettings* GraphSettings = nullptr;
 		virtual bool ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager) override;
 	};
 }
