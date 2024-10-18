@@ -367,7 +367,7 @@ namespace PCGExBuildVoronoi2D
 			}
 		}
 
-		GraphBuilder->OutputEdgesToContext();
+		GraphBuilder->StageEdgesOutputs();
 		if (SiteDataFacade) { SiteDataFacade->Source->Tags->Append(PointDataFacade->Source->Tags.ToSharedRef()); }
 	}
 

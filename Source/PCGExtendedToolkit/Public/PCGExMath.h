@@ -920,27 +920,51 @@ namespace PCGExMath
 
 #pragma endregion
 
-
-	template <typename T>
-	FORCEINLINE static T SanitizeIndex(const T& Index, const T& MaxIndex, const EPCGExIndexSafety Method)
+	template <typename T, EPCGExIndexSafety Safety = EPCGExIndexSafety::Ignore>
+	FORCEINLINE static T SanitizeIndex(const T& Index, const T& MaxIndex)
 	{
-		if (Method == EPCGExIndexSafety::Yoyo)
+		if constexpr (Safety == EPCGExIndexSafety::Yoyo)
 		{
 			const T L = 2 * MaxIndex;
 			const T C = Index % L;
 			return C <= MaxIndex ? C : L - C;
 		}
+		else if constexpr (Safety == EPCGExIndexSafety::Tile)
+		{
+			return PCGExMath::Tile(Index, 0, MaxIndex);
+		}
+		else if constexpr (Safety == EPCGExIndexSafety::Clamp)
+		{
+			return FMath::Clamp(Index, 0, MaxIndex);
+		}
+		else
+		{
+			return (Index < 0 || Index > MaxIndex) ? -1 : Index;
+		}
+	}
 
+	template <typename T>
+	FORCEINLINE static T SanitizeIndex(const T& Index, const T& MaxIndex, const EPCGExIndexSafety Method)
+	{
 		switch (Method)
 		{
 		default:
-		case EPCGExIndexSafety::Ignore:
-			return (Index < 0 || Index > MaxIndex) ? -1 : Index;
-		case EPCGExIndexSafety::Tile:
-			return PCGExMath::Tile(Index, 0, MaxIndex);
-		case EPCGExIndexSafety::Clamp:
-			return FMath::Clamp(Index, 0, MaxIndex);
+		case EPCGExIndexSafety::Ignore: return SanitizeIndex<T, EPCGExIndexSafety::Ignore>(Index, MaxIndex);
+		case EPCGExIndexSafety::Tile: return SanitizeIndex<T, EPCGExIndexSafety::Tile>(Index, MaxIndex);
+		case EPCGExIndexSafety::Clamp: return SanitizeIndex<T, EPCGExIndexSafety::Clamp>(Index, MaxIndex);
+		case EPCGExIndexSafety::Yoyo: return SanitizeIndex<T, EPCGExIndexSafety::Yoyo>(Index, MaxIndex);
 		}
+	}
+
+	template <const EPCGExAxis Dir = EPCGExAxis::Forward>
+	FORCEINLINE static FVector GetDirection(const FQuat& Quat)
+	{
+		if constexpr (Dir == EPCGExAxis::Backward) { return Quat.GetForwardVector() * -1; }
+		else if constexpr (Dir == EPCGExAxis::Right) { return Quat.GetRightVector(); }
+		else if constexpr (Dir == EPCGExAxis::Left) { return Quat.GetRightVector() * -1; }
+		else if constexpr (Dir == EPCGExAxis::Up) { return Quat.GetUpVector(); }
+		else if constexpr (Dir == EPCGExAxis::Down) { return Quat.GetUpVector() * -1; }
+		else { return Quat.GetForwardVector(); }
 	}
 
 	FORCEINLINE static FVector GetDirection(const FQuat& Quat, const EPCGExAxis Dir)
@@ -948,18 +972,12 @@ namespace PCGExMath
 		switch (Dir)
 		{
 		default:
-		case EPCGExAxis::Forward:
-			return Quat.GetForwardVector();
-		case EPCGExAxis::Backward:
-			return Quat.GetForwardVector() * -1;
-		case EPCGExAxis::Right:
-			return Quat.GetRightVector();
-		case EPCGExAxis::Left:
-			return Quat.GetRightVector() * -1;
-		case EPCGExAxis::Up:
-			return Quat.GetUpVector();
-		case EPCGExAxis::Down:
-			return Quat.GetUpVector() * -1;
+		case EPCGExAxis::Forward: return GetDirection<EPCGExAxis::Forward>(Quat);
+		case EPCGExAxis::Backward: return GetDirection<EPCGExAxis::Backward>(Quat);
+		case EPCGExAxis::Right: return GetDirection<EPCGExAxis::Right>(Quat);
+		case EPCGExAxis::Left: return GetDirection<EPCGExAxis::Left>(Quat);
+		case EPCGExAxis::Up: return GetDirection<EPCGExAxis::Up>(Quat);
+		case EPCGExAxis::Down: return GetDirection<EPCGExAxis::Down>(Quat);
 		}
 	}
 

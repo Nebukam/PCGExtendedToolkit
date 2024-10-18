@@ -82,7 +82,7 @@ namespace PCGExSanitizeClusters
 
 	void FProcessorBatch::Output()
 	{
-		if (GraphBuilder->bCompiledSuccessfully) { GraphBuilder->OutputEdgesToContext(); }
+		if (GraphBuilder->bCompiledSuccessfully) { GraphBuilder->StageEdgesOutputs(); }
 		else { GraphBuilder->NodeDataFacade->Source->InitializeOutput(AsyncManager->Context, PCGExData::EInit::NoOutput); }
 		//TBatchWithGraphBuilder<FProcessor>::Output();
 	}

@@ -18,7 +18,11 @@ void FPCGExPrimitiveComponentDescriptor::InitFrom(const UPrimitiveComponent* Com
 	LDMaxDrawDistance = SourceComponent->LDMaxDrawDistance;
 	CachedMaxDrawDistance = SourceComponent->CachedMaxDrawDistance;
 	IndirectLightingCacheQuality = SourceComponent->IndirectLightingCacheQuality;
+#if PCGEX_ENGINE_VERSION < 505
 	LightmapType = SourceComponent->LightmapType;
+#else
+	LightmapType = SourceComponent->GetLightmapType();
+#endif	
 	HLODBatchingPolicy = SourceComponent->HLODBatchingPolicy;
 	bEnableAutoLODGeneration = SourceComponent->bEnableAutoLODGeneration;
 	bNeverDistanceCull = SourceComponent->bNeverDistanceCull;
@@ -98,7 +102,11 @@ void FPCGExPrimitiveComponentDescriptor::InitComponent(UPrimitiveComponent* InCo
 	TargetComponent->LDMaxDrawDistance = LDMaxDrawDistance;
 	TargetComponent->CachedMaxDrawDistance = CachedMaxDrawDistance;
 	TargetComponent->IndirectLightingCacheQuality = IndirectLightingCacheQuality;
+#if PCGEX_ENGINE_VERSION < 505
 	TargetComponent->LightmapType = LightmapType;
+#else
+	TargetComponent->SetLightmapType(LightmapType);
+#endif	
 	TargetComponent->HLODBatchingPolicy = HLODBatchingPolicy;
 	TargetComponent->bEnableAutoLODGeneration = bEnableAutoLODGeneration;
 	TargetComponent->bNeverDistanceCull = bNeverDistanceCull;

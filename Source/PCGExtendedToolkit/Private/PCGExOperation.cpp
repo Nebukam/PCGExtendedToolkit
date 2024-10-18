@@ -56,4 +56,23 @@ void UPCGExOperation::ApplyOverrides()
 void UPCGExOperation::CopySettingsFrom(const UPCGExOperation* Other)
 {
 	BindContext(Other->Context);
+
+	check(GetClass() == Other->GetClass())
+
+	// Get the class type
+	UClass* Class = Other->GetClass();
+
+	// Iterate over properties
+	for (TFieldIterator<FProperty> It(Class); It; ++It)
+	{
+		const FProperty* Property = *It;
+
+		// Skip properties that shouldn't be copied (like transient properties)
+		if (Property->HasAnyPropertyFlags(CPF_Transient | CPF_ConstParm | CPF_OutParm)) { continue; }
+
+		// Copy the value from source to target
+		const void* SourceValue = Property->ContainerPtrToValuePtr<void>(Other);
+		void* TargetValue = Property->ContainerPtrToValuePtr<void>(this);
+		Property->CopyCompleteValue(TargetValue, SourceValue);
+	}
 }

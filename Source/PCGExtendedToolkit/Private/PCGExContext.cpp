@@ -225,7 +225,7 @@ void FPCGExContext::LoadAssets()
 		if (!LoadHandle || !LoadHandle->IsActive())
 		{
 			UnpauseContext();
-			
+
 			if (!LoadHandle || !LoadHandle->HasLoadCompleted())
 			{
 				bAssetLoadError = true;

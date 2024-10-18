@@ -430,7 +430,7 @@ namespace PCGExGraph
 		ProcessSubGraphTask->StartIterations(Graph->SubGraphs.Num(), 1, false, false);
 	}
 
-	void FGraphBuilder::OutputEdgesToContext() const
+	void FGraphBuilder::StageEdgesOutputs() const
 	{
 		EdgesIO->StageOutputs();
 	}

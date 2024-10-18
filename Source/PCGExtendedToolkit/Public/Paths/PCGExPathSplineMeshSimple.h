@@ -72,7 +72,7 @@ public:
 	/** Tagging details */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Additional Outputs", meta=(PCG_Overridable))
 	FPCGExAssetTaggingDetails TaggingDetails;
-	
+
 	/** Default static mesh config applied to spline mesh components. */
 	UPROPERTY(EditAnywhere, Category = Settings)
 	FPCGExStaticMeshComponentDescriptor StaticMeshDescriptor;
@@ -88,7 +88,6 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPathSplineMeshSimpleContext final : FPCG
 
 	TSet<AActor*> NotifyActors;
 	TSharedPtr<PCGEx::TAssetLoader<UStaticMesh>> StaticMeshLoader;
-	
 };
 
 class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPathSplineMeshSimpleElement final : public FPCGExPathProcessorElement
@@ -110,7 +109,7 @@ namespace PCGExPathSplineMeshSimple
 	{
 		bool bClosedLoop = false;
 		bool bUseTags = false;
-		
+
 		int32 LastIndex = 0;
 
 		int32 C1 = 1;
@@ -121,8 +120,8 @@ namespace PCGExPathSplineMeshSimple
 #else
 		TSharedPtr<PCGExData::TBuffer<FSoftObjectPath>> AssetPathReader;
 #endif
-		
-		
+
+
 		TSharedPtr<PCGExData::TBuffer<FVector>> ArriveReader;
 		TSharedPtr<PCGExData::TBuffer<FVector>> LeaveReader;
 

@@ -377,7 +377,7 @@ namespace PCGExPathSplineMesh
 			PCGE_LOG_C(Error, GraphAndLog, ExecutionContext, FTEXT("Invalid target actor."));
 			return;
 		}
-		
+
 		for (int i = 0; i < Segments.Num(); i++)
 		{
 			const PCGExPaths::FSplineMeshSegment& Segment = Segments[i];
@@ -418,7 +418,6 @@ namespace PCGExPathSplineMesh
 			Context->NotifyActors.Add(TargetActor);
 		}
 	}
-
 }
 
 #undef LOCTEXT_NAMESPACE

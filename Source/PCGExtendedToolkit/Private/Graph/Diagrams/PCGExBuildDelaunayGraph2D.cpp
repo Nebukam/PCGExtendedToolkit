@@ -164,7 +164,7 @@ namespace PCGExBuildDelaunay2D
 			return;
 		}
 
-		GraphBuilder->OutputEdgesToContext();
+		GraphBuilder->StageEdgesOutputs();
 
 		if (HullMarkPointWriter) // BUG
 		{

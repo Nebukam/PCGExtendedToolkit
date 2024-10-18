@@ -218,7 +218,7 @@ namespace PCGExPathToClusters
 			return;
 		}
 
-		GraphBuilder->OutputEdgesToContext();
+		GraphBuilder->StageEdgesOutputs();
 		PointDataFacade->Write(AsyncManager);
 	}
 

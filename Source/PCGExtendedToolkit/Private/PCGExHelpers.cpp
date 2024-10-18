@@ -61,7 +61,7 @@ namespace PCGEx
 			IPCGExManagedObjectInterface* ManagedObject = Cast<IPCGExManagedObjectInterface>(InObject);
 			if (ManagedObject) { ManagedObject->Cleanup(); }
 		}
-		
+
 		return true;
 	}
 

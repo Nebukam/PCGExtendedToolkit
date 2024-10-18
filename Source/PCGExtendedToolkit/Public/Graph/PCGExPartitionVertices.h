@@ -12,7 +12,7 @@
 #include "PCGExPartitionVertices.generated.h"
 
 
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Graph")
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Clusters")
 class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExPartitionVerticesSettings : public UPCGExEdgesProcessorSettings
 {
 	GENERATED_BODY()

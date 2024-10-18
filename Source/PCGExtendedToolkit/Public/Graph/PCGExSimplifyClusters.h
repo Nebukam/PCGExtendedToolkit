@@ -12,7 +12,7 @@
 
 #include "PCGExSimplifyClusters.generated.h"
 
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Graph")
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Clusters")
 class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExSimplifyClustersSettings : public UPCGExEdgesProcessorSettings
 {
 	GENERATED_BODY()

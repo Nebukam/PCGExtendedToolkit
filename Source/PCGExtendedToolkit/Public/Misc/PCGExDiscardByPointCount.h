@@ -49,14 +49,12 @@ public:
 	/** Discarded if point count is more than */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bRemoveAbove", ClampMin=0))
 	int32 MaxPointCount = 500;
-
 };
 
 class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExDiscardByPointCountElement final : public FPCGExPointsProcessorElement
 {
-
 	virtual bool Boot(FPCGExContext* InContext) const override;
-	
+
 protected:
 	virtual bool ExecuteInternal(FPCGContext* Context) const override;
 };

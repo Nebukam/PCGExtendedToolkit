@@ -125,7 +125,7 @@ public:
 		PCGEX_FACTORY_NAME_PRIORITY)
 	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->NodeColorClusterFilter; }
 #endif
-	
+
 	virtual FName GetMainOutputLabel() const override { return PCGExPointFilter::OutputFilterLabelNode; }
 
 	/** Test Config.*/

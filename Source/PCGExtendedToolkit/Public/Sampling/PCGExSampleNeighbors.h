@@ -18,7 +18,7 @@ namespace PCGExNeighborSample
 class UPCGExNeighborSamplerFactoryBase;
 class UPCGExNeighborSampleOperation;
 
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Edges")
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Clusters")
 class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExSampleNeighborsSettings : public UPCGExEdgesProcessorSettings
 {
 	GENERATED_BODY()

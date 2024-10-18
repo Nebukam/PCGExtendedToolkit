@@ -61,7 +61,10 @@ class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExProbeIndex : public UPCGExProbeOperation
 public:
 	virtual bool RequiresDirectProcessing() override;
 	virtual bool PrepareForPoints(const TSharedPtr<PCGExData::FPointIO>& InPointIO) override;
-	virtual void ProcessNode(const int32 Index, const FPCGPoint& Point, TSet<FInt32Vector>* Coincidence, const FVector& ST, TSet<uint64>* OutEdges) override;
+	FORCEINLINE virtual void ProcessNode(const int32 Index, const FPCGPoint& Point, TSet<FInt32Vector>* Coincidence, const FVector& ST, TSet<uint64>* OutEdges) override
+	{
+		TryCreateEdge(Index, OutEdges);
+	}
 
 	virtual void Cleanup() override
 	{
@@ -71,6 +74,9 @@ public:
 
 	FPCGExProbeConfigIndex Config;
 	TSharedPtr<PCGExData::TBuffer<int32>> TargetCache;
+
+	using TryCreateEdgeCallback = std::function<void(const int32, TSet<uint64>*)>;
+	TryCreateEdgeCallback TryCreateEdge;
 
 protected:
 	int32 MaxIndex = -1;

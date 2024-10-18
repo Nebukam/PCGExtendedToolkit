@@ -18,9 +18,12 @@ TArray<FPCGPinProperties> UPCGExPointsProcessorSettings::InputPinProperties() co
 {
 	TArray<FPCGPinProperties> PinProperties;
 
-	if (GetMainAcceptMultipleData()) { PCGEX_PIN_POINTS(GetMainInputLabel(), "The point data to be processed.", Required, {}) }
-	else { PCGEX_PIN_POINT(GetMainInputLabel(), "The point data to be processed.", Required, {}) }
-
+	if(!IsInputless())
+	{
+		if (GetMainAcceptMultipleData()) { PCGEX_PIN_POINTS(GetMainInputLabel(), "The point data to be processed.", Required, {}) }
+		else { PCGEX_PIN_POINT(GetMainInputLabel(), "The point data to be processed.", Required, {}) }
+	}
+	
 	if (SupportsPointFilters())
 	{
 		if (RequiresPointFilters()) { PCGEX_PIN_PARAMS(GetPointFilterLabel(), GetPointFilterTooltip(), Required, {}) }
@@ -290,7 +293,7 @@ bool FPCGExPointsProcessorElement::Boot(FPCGExContext* InContext) const
 		if (SingleInput) { Context->MainPoints->AddUnsafe(SingleInput); }
 	}
 
-	if (Context->MainPoints->IsEmpty())
+	if (Context->MainPoints->IsEmpty() && !Settings->IsInputless())
 	{
 		PCGE_LOG(Error, GraphAndLog, FText::Format(FText::FromString(TEXT("Missing {0} inputs (either no data or no points)")), FText::FromName(Settings->GetMainInputLabel())));
 		return false;

@@ -115,7 +115,7 @@ namespace PCGExPathSplineMeshSimple
 #else
 		AssetPathReader = PointDataFacade->GetScopedBroadcaster<FSoftObjectPath>(Settings->AssetPathAttributeName);
 #endif
-		
+
 		if (!AssetPathReader)
 		{
 			PCGE_LOG_C(Error, GraphAndLog, ExecutionContext, FTEXT("AssetPath attribute is missing on some inputs.."));
@@ -288,8 +288,8 @@ namespace PCGExPathSplineMeshSimple
 			SplineMeshComponent->bNavigationRelevant = false;
 			SplineMeshComponent->SetbNeverNeedsCookedCollisionData(true);
 
-			Segment.ApplySettings(SplineMeshComponent);    // Init Component
-			SplineMeshComponent->SetStaticMesh(Mesh); // Will trigger a force rebuild, so put this last
+			Segment.ApplySettings(SplineMeshComponent); // Init Component
+			SplineMeshComponent->SetStaticMesh(Mesh);   // Will trigger a force rebuild, so put this last
 
 			if (Settings->TaggingDetails.bForwardInputDataTags) { SplineMeshComponent->ComponentTags.Append(DataTags); }
 			if (!Segment.Tags.IsEmpty()) { SplineMeshComponent->ComponentTags.Append(Segment.Tags.Array()); }
