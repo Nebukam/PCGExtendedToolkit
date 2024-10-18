@@ -9,7 +9,7 @@
 
 #include "PCGExPruneEdgesByLength.generated.h"
 
-UCLASS(MinimalAPI, BlueprintType, Deprecated, ClassGroup = (Procedural), Category="PCGEx|Graph", meta = (DeprecatedNode, DeprecationMessage = "Prune by Length has been deprecated and should be replaced. See https://nebukam.github.io/PCGExtendedToolkit/doc-clusters/clusters-prune-by-length.html."))
+UCLASS(MinimalAPI, BlueprintType, Deprecated, ClassGroup = (Procedural), Category="PCGEx|Clusters", meta = (DeprecatedNode, DeprecationMessage = "Prune by Length has been deprecated and should be replaced. See https://nebukam.github.io/PCGExtendedToolkit/doc-clusters/clusters-prune-by-length.html."))
 class /*PCGEXTENDEDTOOLKIT_API*/ UDEPRECATED_PCGExPruneEdgesByLengthSettings : public UPCGExEdgesProcessorSettings
 {
 	GENERATED_BODY()

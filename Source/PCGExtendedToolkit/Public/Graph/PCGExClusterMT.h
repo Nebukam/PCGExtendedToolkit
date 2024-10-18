@@ -509,7 +509,7 @@ namespace PCGExClusterMT
 						return;
 					}
 
-					InBuilder->OutputEdgesToContext();
+					InBuilder->StageEdgesOutputs();
 				};
 			}
 

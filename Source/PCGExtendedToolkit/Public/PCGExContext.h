@@ -36,7 +36,6 @@ namespace PCGEx
 
 struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExContext : FPCGContext
 {
-	
 protected:
 	mutable FRWLock StagedOutputLock;
 
@@ -81,7 +80,7 @@ public:
 	bool TryComplete(const bool bForce = false);
 
 	virtual void ResumeExecution();
-	
+
 protected:
 	bool bWaitingForAsyncCompletion = false;
 	PCGEx::AsyncState CurrentState;

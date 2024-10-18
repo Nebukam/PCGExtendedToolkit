@@ -186,15 +186,15 @@ namespace PCGEx
 	template <typename T>
 	FORCEINLINE static T Broadcast(const FQuat& Value)
 	{
-		if constexpr (std::is_same_v<T, bool>) { return PCGExMath::GetDirection(Value, EPCGExAxis::Forward).X > 0; }
-		else if constexpr (std::is_same_v<T, int32> || std::is_same_v<T, int64> || std::is_same_v<T, float> || std::is_same_v<T, double>) { return PCGExMath::GetDirection(Value, EPCGExAxis::Forward).X; }
+		if constexpr (std::is_same_v<T, bool>) { return PCGExMath::GetDirection<EPCGExAxis::Forward>(Value).X > 0; }
+		else if constexpr (std::is_same_v<T, int32> || std::is_same_v<T, int64> || std::is_same_v<T, float> || std::is_same_v<T, double>) { return PCGExMath::GetDirection<EPCGExAxis::Forward>(Value).X; }
 		else if constexpr (std::is_same_v<T, FVector2D>)
 		{
 			const FVector Dir = PCGExMath::GetDirection(Value, EPCGExAxis::Forward);
 			return FVector2D(Dir.X, Dir.Y);
 		}
-		else if constexpr (std::is_same_v<T, FVector>) { return PCGExMath::GetDirection(Value, EPCGExAxis::Forward); }
-		else if constexpr (std::is_same_v<T, FVector4>) { return FVector4(PCGExMath::GetDirection(Value, EPCGExAxis::Forward), 0); }
+		else if constexpr (std::is_same_v<T, FVector>) { return PCGExMath::GetDirection<EPCGExAxis::Forward>(Value); }
+		else if constexpr (std::is_same_v<T, FVector4>) { return FVector4(PCGExMath::GetDirection<EPCGExAxis::Forward>(Value), 0); }
 		else if constexpr (std::is_same_v<T, FQuat>) { return Value; }
 		else if constexpr (std::is_same_v<T, FRotator>) { return Value.Rotator(); }
 		else if constexpr (std::is_same_v<T, FTransform>) { return FTransform(Value, FVector::ZeroVector, FVector::OneVector); }

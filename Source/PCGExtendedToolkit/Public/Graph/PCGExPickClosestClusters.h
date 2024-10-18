@@ -18,7 +18,7 @@ enum class EPCGExClusterClosestPickMode : uint8
 	NextBest = 1 UMETA(DisplayName = "Next Best", ToolTip="If a cluster was already the closest pick of another target, pick the nest best candidate."),
 };
 
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Edges")
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Clusters")
 class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExPickClosestClustersSettings : public UPCGExEdgesProcessorSettings
 {
 	GENERATED_BODY()

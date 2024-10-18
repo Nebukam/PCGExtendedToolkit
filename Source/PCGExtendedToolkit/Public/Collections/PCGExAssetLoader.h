@@ -37,7 +37,7 @@ namespace PCGEx
 		mutable FRWLock RegistrationLock;
 
 		TArray<FName> AttributeNames;
-		PCGEx::AsyncState ExitState = PCGEx::State_WaitingOnAsyncWork;
+		AsyncState ExitState = State_WaitingOnAsyncWork;
 
 		TSet<FSoftObjectPath> UniquePaths;
 		TSharedPtr<FStreamableHandle> LoadHandle;
@@ -221,12 +221,12 @@ namespace PCGEx
 	};
 #else
 	template <typename T>
-		class /*PCGEXTENDEDTOOLKIT_API*/ TDiscoverAssetsTask final : public PCGExMT::FPCGExTask
+	class /*PCGEXTENDEDTOOLKIT_API*/ TDiscoverAssetsTask final : public PCGExMT::FPCGExTask
 	{
 	public:
 		TDiscoverAssetsTask(const TSharedPtr<PCGExData::FPointIO>& InPointIO,
-							const TSharedPtr<TAssetLoader<T>>& InLoader,
-							const TSharedPtr<TAttributeBroadcaster<FSoftObjectPath>>& InBroadcaster) :
+		                    const TSharedPtr<TAssetLoader<T>>& InLoader,
+		                    const TSharedPtr<TAttributeBroadcaster<FSoftObjectPath>>& InBroadcaster) :
 			FPCGExTask(InPointIO),
 			Loader(InLoader),
 			Broadcaster(InBroadcaster)

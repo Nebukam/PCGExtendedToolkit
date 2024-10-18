@@ -18,7 +18,7 @@ enum class EPCGExBridgeClusterMethod : uint8
 	MostEdges  = 3 UMETA(DisplayName = "Most Edges", ToolTip="Each cluster will have a bridge to every other cluster"),
 };
 
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Edges")
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Clusters")
 class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExConnectClustersSettings : public UPCGExEdgesProcessorSettings
 {
 	GENERATED_BODY()

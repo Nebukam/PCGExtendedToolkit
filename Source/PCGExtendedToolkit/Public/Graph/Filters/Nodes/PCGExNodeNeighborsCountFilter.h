@@ -100,7 +100,7 @@ public:
 	//~End UPCGSettings
 
 	virtual FName GetMainOutputLabel() const override { return PCGExPointFilter::OutputFilterLabelNode; }
-	
+
 	/** Test Config.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ShowOnlyInnerProperties))
 	FPCGExNodeNeighborsCountFilterConfig Config;

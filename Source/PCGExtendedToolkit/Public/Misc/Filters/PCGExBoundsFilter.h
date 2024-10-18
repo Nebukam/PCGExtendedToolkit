@@ -38,7 +38,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExBoundsFilterConfig
 	/** Bounds to use on input bounds. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	EPCGExPointBoundsSource BoundsTarget = EPCGExPointBoundsSource::ScaledBounds;
-	
+
 	/** */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	EPCGExBoundsCheckType CheckType = EPCGExBoundsCheckType::Intersects;

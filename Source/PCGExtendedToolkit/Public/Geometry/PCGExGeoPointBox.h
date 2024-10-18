@@ -182,7 +182,7 @@ namespace PCGExGeo
 			const FBox PointBox = PCGExMath::GetLocalBounds(InPoint, BoundsSource);
 			Extents = PointBox.GetExtent();
 			Len = Extents.Length();
-			
+
 			Box = FBox(Extents * -1, Extents);
 
 			EpsilonBox = Box.ExpandBy(-Epsilon);
@@ -200,7 +200,7 @@ namespace PCGExGeo
 
 #define PCGEX_TRANSFORM_LOCALBOUNDS const FBox LocalBox = PCGExMath::GetLocalBounds(Point, BoundsSource).TransformBy(Point.Transform.ToMatrixNoScale() * InvMatrix);
 #define PCGEX_TRANSFORM_LOCALBOUNDS_T const FBox LocalBox = PCGExMath::GetLocalBounds<S>(Point).TransformBy(Point.Transform.ToMatrixNoScale() * InvMatrix);
-		
+
 		FORCEINLINE bool Intersect(const FPCGPoint& Point, const EPCGExPointBoundsSource BoundsSource) const
 		{
 			PCGEX_TRANSFORM_LOCALBOUNDS
@@ -255,7 +255,7 @@ namespace PCGExGeo
 
 #undef PCGEX_TRANSFORM_LOCALBOUNDS
 #undef PCGEX_TRANSFORM_LOCALBOUNDS_T
-		
+
 #pragma endregion
 
 		FORCEINLINE void Sample(const FVector& Position, FSample& OutSample) const
@@ -510,13 +510,11 @@ namespace PCGExGeo
 #define PCGEX_POINT_BOUNDS_CHECK(_NAME) \
 		bool bIntersectFound = false; \
 		Octree->FindFirstElementWithBoundsTest(FBoxCenterAndExtent(Point.Transform.GetLocation(), Point.GetScaledExtents()), [&](const FPointBox* NearbyBox){ \
-				if (NearbyBox->_NAME(Point, BoundsSource)){ bIntersectFound = true; return false;} return true; }); return bIntersectFound; \
-
+				if (NearbyBox->_NAME(Point, BoundsSource)){ bIntersectFound = true; return false;} return true; }); return bIntersectFound;
 #define PCGEX_POINT_BOUNDS_CHECK_T(_NAME) \
 		bool bIntersectFound = false; \
 		Octree->FindFirstElementWithBoundsTest(FBoxCenterAndExtent(Point.Transform.GetLocation(), Point.GetScaledExtents()), [&](const FPointBox* NearbyBox){ \
-		if (NearbyBox->_NAME<S>(Point)){ bIntersectFound = true; return false;} return true; }); return bIntersectFound; \
-		
+		if (NearbyBox->_NAME<S>(Point)){ bIntersectFound = true; return false;} return true; }); return bIntersectFound;
 		FORCEINLINE bool Intersect(const FPCGPoint& Point, const EPCGExPointBoundsSource BoundsSource) const
 		{
 			PCGEX_POINT_BOUNDS_CHECK(Intersect)
