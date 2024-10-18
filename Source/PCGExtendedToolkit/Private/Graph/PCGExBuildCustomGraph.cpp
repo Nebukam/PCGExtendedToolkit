@@ -17,6 +17,11 @@ void UPCGExCustomGraphBuilder::InitializeWithContext_Implementation(const FPCGCo
 	OutSuccess = false;
 }
 
+void UPCGExCustomGraphSettings::InitializeSettings_Implementation(const FPCGContext& InContext, int32& OutMaxNodesNum)
+{
+	OutMaxNodesNum = 0;
+}
+
 void UPCGExCustomGraphSettings::AddEdge(const int32 InStartIndex, const int32 InEndIndex)
 {
 	if (InStartIndex < 0 || InEndIndex < 0 || InStartIndex > MaxIndex || InEndIndex > MaxIndex) { return; }
@@ -33,12 +38,10 @@ void UPCGExCustomGraphSettings::UpdateNodePoint_Implementation(const int32 InNod
 	OutPoint = InPoint;
 }
 
-UPCGExCustomGraphSettings* UPCGExCustomGraphBuilder::CreateGraphSettings(TSubclassOf<UPCGExCustomGraphSettings> SettingsClass, int32 InMaxNumNodes)
+UPCGExCustomGraphSettings* UPCGExCustomGraphBuilder::CreateGraphSettings(TSubclassOf<UPCGExCustomGraphSettings> SettingsClass)
 {
 	TObjectPtr<UPCGExCustomGraphSettings> NewSettings = Context->ManagedObjects->New<UPCGExCustomGraphSettings>(GetTransientPackage(), SettingsClass);
 	NewSettings->Index = GraphSettings.Add(NewSettings);
-	NewSettings->MaxNumNodes = InMaxNumNodes;
-	NewSettings->MaxIndex = InMaxNumNodes - 1; // Might need to update prior to processing
 	return NewSettings;
 }
 
@@ -143,18 +146,8 @@ bool FPCGExBuildCustomGraphElement::ExecuteInternal(FPCGContext* InContext) cons
 
 		for (UPCGExCustomGraphSettings* GraphSettings : Context->Builder->GraphSettings)
 		{
-			if (GraphSettings->MaxNumNodes < 2)
-			{
-				if (!Settings->bMuteUnprocessedSettingsWarning)
-				{
-					PCGE_LOG(Warning, GraphAndLog, FTEXT("A graph builder settings has less than 2 max nodes and won't be processed."));
-				}
-				continue;
-			}
-
 			TSharedPtr<PCGExData::FPointIO> NodeIO = Context->MainPoints->Emplace_GetRef();
 			NodeIO->IOIndex = GraphSettings->Index;
-			GraphSettings->MaxIndex = GraphSettings->MaxNumNodes - 1;
 			Context->GetAsyncManager()->Start<PCGExBuildCustomGraph::FBuildGraph>(GraphSettings->Index, NodeIO, GraphSettings);
 		}
 
@@ -193,7 +186,24 @@ namespace PCGExBuildCustomGraph
 
 		UPCGExCustomGraphBuilder* Builder = Context->Builder;
 
-		PointIO->GetOut()->GetMutablePoints().SetNum(GraphSettings->MaxNumNodes);
+		int32 OutMaxNodesNum = 0;
+		GraphSettings->InitializeSettings(*Context, OutMaxNodesNum);
+		GraphSettings->MaxNodesNum = OutMaxNodesNum;
+		GraphSettings->MaxIndex = OutMaxNodesNum - 1; // Might need to update prior to processing
+
+		if (OutMaxNodesNum <= 0)
+		{
+			if (!Settings->bMuteUnprocessedSettingsWarning)
+			{
+				PCGE_LOG_C(Warning, GraphAndLog, Context, FTEXT("A graph builder settings has less than 2 max nodes and won't be processed."));
+			}
+			
+			PointIO->InitializeOutput(Context, PCGExData::EInit::NoOutput);
+			GraphSettings->GraphBuilder->bCompiledSuccessfully = false;
+			return false;
+		}
+
+		PointIO->GetOut()->GetMutablePoints().SetNum(GraphSettings->MaxNodesNum);
 
 		TSharedPtr<PCGExData::FFacade> NodeDataFacade = MakeShared<PCGExData::FFacade>(PointIO.ToSharedRef());
 		const TSharedPtr<PCGExGraph::FGraphBuilder> GraphBuilder = MakeShared<PCGExGraph::FGraphBuilder>(NodeDataFacade.ToSharedRef(), &Settings->GraphBuilderDetails);
@@ -237,7 +247,7 @@ namespace PCGExBuildCustomGraph
 			}
 		};
 
-		InitNodesGroup->StartRangePrepareOnly(GraphSettings->MaxNumNodes, 256);
+		InitNodesGroup->StartRangePrepareOnly(GraphSettings->MaxNodesNum, 256);
 
 		return true;
 	}

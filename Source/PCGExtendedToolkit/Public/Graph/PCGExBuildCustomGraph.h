@@ -19,18 +19,18 @@ enum class EPCGExCustomGraphActorSourceMode : uint8
 /**
  * 
  */
-UCLASS(Blueprintable, BlueprintType, DisplayName = "[PCGEx] Custom Graph Settings")
+UCLASS(Blueprintable, BlueprintType, Abstract, DisplayName = "[PCGEx] Custom Graph Settings")
 class PCGEXTENDEDTOOLKIT_API UPCGExCustomGraphSettings : public UObject
 {
 	GENERATED_BODY()
 
 public:
 	/** Maximum number of node in the graph. The final number can be less, as isolated points will be pruned; but no edge endpoint' index should be greater that this number. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "PCGEx|Settings", meta = (ExposeOnSpawn = "true"))
-	int32 MaxNumNodes = 0;
+	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "PCGEx|Data")
+	int32 MaxNodesNum = 0;
 
 	/** Internal index of these settings. */
-	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "PCGEx|Settings")
+	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "PCGEx|Data")
 	int32 Index = 0;
 
 	TSet<uint64> UniqueEdges;
@@ -46,9 +46,17 @@ public:
 	void AddEdge(const int32 InStartIndex, const int32 InEndIndex);
 
 	/**
+	 * Initialization method. It is called right before Build Graph -- this is where you must set the max number of nodes.
+	 * @param InContext Context of the execution
+	 * @param OutMaxNodesNum The maximum number of node this graph will be working with.
+	 */
+	UFUNCTION(BlueprintNativeEvent, Category = "PCGEx|Execution")
+	void InitializeSettings(const FPCGContext& InContext, int32& OutMaxNodesNum);
+	
+	/**
 	 * Main execution function. Called once per requested graphs. This method is executed in a multi-threaded context, Graph Settings are safe but the custom builder wrapper itself isn't.
-	 * @param InContext - Context of the execution
-	 * @param OutSuccess
+	 * @param InContext Context of the execution
+	 * @param OutSuccess Whether building was successful or not
 	 */
 	UFUNCTION(BlueprintNativeEvent, Category = "PCGEx|Execution")
 	void BuildGraph(const FPCGContext& InContext, bool& OutSuccess);
@@ -56,9 +64,9 @@ public:
 	/**
 	 * Update Node Point is called on each node point after BuildGraph has been, and edges added. This method is executed in a multi-threaded context.
 	 * This is where point transform & properties should be set.
-	 * @param InNodeIndex 
-	 * @param InPoint
-	 * @param OutPoint 
+	 * @param InNodeIndex Index of the node the given point matches with
+	 * @param InPoint PCG Point that represents the node
+	 * @param OutPoint Muted PCG Point that represents the node.
 	 */
 	UFUNCTION(BlueprintNativeEvent, Category = "PCGEx|Execution")
 	void UpdateNodePoint(const int32 InNodeIndex, const FPCGPoint& InPoint, FPCGPoint& OutPoint) const;
@@ -88,7 +96,7 @@ public:
 	 * @param InMaxNumNodes
 	 */
 	UFUNCTION(BlueprintCallable, Category = "PCGEx|Execution")
-	UPCGExCustomGraphSettings* CreateGraphSettings(TSubclassOf<UPCGExCustomGraphSettings> SettingsClass, int32 InMaxNumNodes);
+	UPCGExCustomGraphSettings* CreateGraphSettings(TSubclassOf<UPCGExCustomGraphSettings> SettingsClass);
 
 	/**
 	 * Main execution function. Called once per requested graphs. This method is executed in a multi-threaded context, Graph Settings are safe but the custom builder wrapper itself isn't.
