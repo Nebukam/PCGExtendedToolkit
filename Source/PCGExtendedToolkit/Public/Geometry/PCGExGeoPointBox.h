@@ -216,13 +216,21 @@ namespace PCGExGeo
 		FORCEINLINE bool IsInsideOrOn(const FPCGPoint& Point, const EPCGExPointBoundsSource BoundsSource) const
 		{
 			PCGEX_TRANSFORM_LOCALBOUNDS
+#if PCGEX_ENGINE_VERSION <= 503
+			return Box.IsInside(LocalBox);
+#else
 			return Box.IsInsideOrOn(LocalBox);
+#endif
 		}
 
 		FORCEINLINE bool IsInsideOrIntersects(const FPCGPoint& Point, const EPCGExPointBoundsSource BoundsSource) const
 		{
 			PCGEX_TRANSFORM_LOCALBOUNDS
+#if PCGEX_ENGINE_VERSION <= 503
+			return Box.IsInside(LocalBox) || Box.Intersect(LocalBox);
+#else
 			return Box.IsInsideOrOn(LocalBox) || Box.Intersect(LocalBox);
+#endif
 		}
 
 		template <EPCGExPointBoundsSource S = EPCGExPointBoundsSource::ScaledBounds>
@@ -243,14 +251,22 @@ namespace PCGExGeo
 		FORCEINLINE bool IsInsideOrOn(const FPCGPoint& Point) const
 		{
 			PCGEX_TRANSFORM_LOCALBOUNDS_T
+#if PCGEX_ENGINE_VERSION <= 503
+			return Box.IsInside(LocalBox);
+#else
 			return Box.IsInsideOrOn(LocalBox);
+#endif
 		}
 
 		template <EPCGExPointBoundsSource S = EPCGExPointBoundsSource::ScaledBounds>
 		FORCEINLINE bool IsInsideOrIntersects(const FPCGPoint& Point) const
 		{
 			PCGEX_TRANSFORM_LOCALBOUNDS_T
+#if PCGEX_ENGINE_VERSION <= 503
+			return Box.IsInside(LocalBox) || Box.Intersect(LocalBox);
+#else
 			return Box.IsInsideOrOn(LocalBox) || Box.Intersect(LocalBox);
+#endif
 		}
 
 #undef PCGEX_TRANSFORM_LOCALBOUNDS
