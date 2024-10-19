@@ -521,6 +521,7 @@ namespace PCGExGraph
 
 		TSharedPtr<PCGExData::FPointIOCollection> EdgesIO;
 		TSharedPtr<PCGExData::FPointIOCollection> SourceEdgesIO;
+		TSharedPtr<TArray<int32>> OutputNodeIndices;
 
 		bool bCompiledSuccessfully = false;
 

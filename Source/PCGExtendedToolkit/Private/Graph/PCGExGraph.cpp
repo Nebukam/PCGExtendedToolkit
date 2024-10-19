@@ -294,7 +294,11 @@ namespace PCGExGraph
 		NodeDataFacade->Source->CleanupKeys(); //Ensure fresh keys later on
 
 		TArray<FNode>& Nodes = Graph->Nodes;
-		TArray<int32> ValidNodes;
+
+		TArray<int32> InternalValidNodes;
+		TArray<int32>& ValidNodes = InternalValidNodes;
+		if (OutputNodeIndices) { ValidNodes = *OutputNodeIndices; }
+
 		ValidNodes.Reserve(Nodes.Num());
 
 		{

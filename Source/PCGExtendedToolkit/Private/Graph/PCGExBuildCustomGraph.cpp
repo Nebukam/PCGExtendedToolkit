@@ -17,15 +17,18 @@ void UPCGExCustomGraphBuilder::InitializeWithContext_Implementation(const FPCGCo
 	OutSuccess = false;
 }
 
-void UPCGExCustomGraphSettings::InitializeSettings_Implementation(const FPCGContext& InContext, int32& OutMaxNodesNum)
+void UPCGExCustomGraphSettings::InitializeSettings_Implementation(const FPCGContext& InContext, bool& OutSuccess, int32& OutNodeReserve, int32& OutEdgeReserve)
 {
-	OutMaxNodesNum = 0;
 }
 
-void UPCGExCustomGraphSettings::AddEdge(const int32 InStartIndex, const int32 InEndIndex)
+void UPCGExCustomGraphSettings::AddEdge(const int64 InStartIdx, const int64 InEndIdx)
 {
-	if (InStartIndex < 0 || InEndIndex < 0 || InStartIndex > MaxIndex || InEndIndex > MaxIndex) { return; }
-	UniqueEdges.Add(PCGEx::H64U(InStartIndex, InEndIndex));
+	UniqueEdges.Add(PCGEx::H64U(GetOrCreateNode(InStartIdx), GetOrCreateNode(InEndIdx)));
+}
+
+void UPCGExCustomGraphSettings::RemoveEdge(const int64 InStartIdx, const int64 InEndIdx)
+{
+	UniqueEdges.Remove(PCGEx::H64U(GetOrCreateNode(InStartIdx), GetOrCreateNode(InEndIdx)));
 }
 
 void UPCGExCustomGraphSettings::BuildGraph_Implementation(const FPCGContext& InContext, bool& OutSuccess)
@@ -33,7 +36,7 @@ void UPCGExCustomGraphSettings::BuildGraph_Implementation(const FPCGContext& InC
 	OutSuccess = false;
 }
 
-void UPCGExCustomGraphSettings::UpdateNodePoint_Implementation(const int32 InNodeIndex, const FPCGPoint& InPoint, FPCGPoint& OutPoint) const
+void UPCGExCustomGraphSettings::UpdateNodePoint_Implementation(const FPCGPoint& InPoint, const int64 InNodeIdx, const int32 InPointIndex, FPCGPoint& OutPoint) const
 {
 	OutPoint = InPoint;
 }
@@ -41,18 +44,13 @@ void UPCGExCustomGraphSettings::UpdateNodePoint_Implementation(const int32 InNod
 UPCGExCustomGraphSettings* UPCGExCustomGraphBuilder::CreateGraphSettings(TSubclassOf<UPCGExCustomGraphSettings> SettingsClass)
 {
 	TObjectPtr<UPCGExCustomGraphSettings> NewSettings = Context->ManagedObjects->New<UPCGExCustomGraphSettings>(GetTransientPackage(), SettingsClass);
-	NewSettings->Index = GraphSettings.Add(NewSettings);
+	NewSettings->SettingsIndex = GraphSettings.Add(NewSettings);
 	return NewSettings;
 }
 
 void UPCGExCustomGraphBuilder::BuildGraph_Implementation(const FPCGContext& InContext, UPCGExCustomGraphSettings* InCustomGraphSettings, bool& OutSuccess)
 {
 	InCustomGraphSettings->BuildGraph(InContext, OutSuccess);
-}
-
-void UPCGExCustomGraphBuilder::UpdateNodePoint_Implementation(const UPCGExCustomGraphSettings* InCustomGraphSettings, const int32 InNodeIndex, const FPCGPoint& InPoint, FPCGPoint& OutPoint) const
-{
-	InCustomGraphSettings->UpdateNodePoint(InNodeIndex, InPoint, OutPoint);
 }
 
 TArray<FPCGPinProperties> UPCGExBuildCustomGraphSettings::OutputPinProperties() const
@@ -147,8 +145,8 @@ bool FPCGExBuildCustomGraphElement::ExecuteInternal(FPCGContext* InContext) cons
 		for (UPCGExCustomGraphSettings* GraphSettings : Context->Builder->GraphSettings)
 		{
 			TSharedPtr<PCGExData::FPointIO> NodeIO = Context->MainPoints->Emplace_GetRef();
-			NodeIO->IOIndex = GraphSettings->Index;
-			Context->GetAsyncManager()->Start<PCGExBuildCustomGraph::FBuildGraph>(GraphSettings->Index, NodeIO, GraphSettings);
+			NodeIO->IOIndex = GraphSettings->SettingsIndex;
+			Context->GetAsyncManager()->Start<PCGExBuildCustomGraph::FBuildGraph>(GraphSettings->SettingsIndex, NodeIO, GraphSettings);
 		}
 
 		return false;
@@ -186,36 +184,54 @@ namespace PCGExBuildCustomGraph
 
 		UPCGExCustomGraphBuilder* Builder = Context->Builder;
 
-		int32 OutMaxNodesNum = 0;
-		GraphSettings->InitializeSettings(*Context, OutMaxNodesNum);
-		GraphSettings->MaxNodesNum = OutMaxNodesNum;
-		GraphSettings->MaxIndex = OutMaxNodesNum - 1; // Might need to update prior to processing
+		bool bInitSuccess = 0;
+		int32 NodeReserveNum = 0;
+		int32 EdgeReserveNum = 0;
+		GraphSettings->InitializeSettings(*Context, bInitSuccess, NodeReserveNum, EdgeReserveNum);
 
-		if (OutMaxNodesNum <= 0)
+		if (!bInitSuccess)
 		{
 			if (!Settings->bMuteUnprocessedSettingsWarning)
 			{
 				PCGE_LOG_C(Warning, GraphAndLog, Context, FTEXT("A graph builder settings has less than 2 max nodes and won't be processed."));
 			}
-			
+
 			PointIO->InitializeOutput(Context, PCGExData::EInit::NoOutput);
 			GraphSettings->GraphBuilder->bCompiledSuccessfully = false;
 			return false;
 		}
 
-		PointIO->GetOut()->GetMutablePoints().SetNum(GraphSettings->MaxNodesNum);
+		if (NodeReserveNum > 0)
+		{
+			GraphSettings->Idx.Reserve(NodeReserveNum);
+			GraphSettings->IdxMap.Reserve(NodeReserveNum);
+		}
 
-		TSharedPtr<PCGExData::FFacade> NodeDataFacade = MakeShared<PCGExData::FFacade>(PointIO.ToSharedRef());
-		const TSharedPtr<PCGExGraph::FGraphBuilder> GraphBuilder = MakeShared<PCGExGraph::FGraphBuilder>(NodeDataFacade.ToSharedRef(), &Settings->GraphBuilderDetails);
-		GraphSettings->GraphBuilder = GraphBuilder;
+		if (EdgeReserveNum > 0)
+		{
+			GraphSettings->UniqueEdges.Reserve(EdgeReserveNum);
+		}
+		else if (NodeReserveNum > 0)
+		{
+			GraphSettings->UniqueEdges.Reserve(NodeReserveNum * 3); // Wild guess
+		}
 
 		bool bSuccessfulBuild = false;
 		Builder->BuildGraph(*Context, GraphSettings, bSuccessfulBuild);
+
 		if (!bSuccessfulBuild)
 		{
 			GraphSettings->GraphBuilder->bCompiledSuccessfully = false;
 			return false;
 		}
+
+		PointIO->GetOut()->GetMutablePoints().SetNum(GraphSettings->Idx.Num());
+
+		TSharedPtr<PCGExData::FFacade> NodeDataFacade = MakeShared<PCGExData::FFacade>(PointIO.ToSharedRef());
+		const TSharedPtr<PCGExGraph::FGraphBuilder> GraphBuilder = MakeShared<PCGExGraph::FGraphBuilder>(NodeDataFacade.ToSharedRef(), &Settings->GraphBuilderDetails);
+		GraphBuilder->OutputNodeIndices = MakeShared<TArray<int32>>();
+
+		GraphSettings->GraphBuilder = GraphBuilder;
 
 		GraphBuilder->Graph->InsertEdges(GraphSettings->UniqueEdges, -1);
 
@@ -233,7 +249,7 @@ namespace PCGExBuildCustomGraph
 		};
 
 		UPCGExCustomGraphSettings* CustomGraphSettings = GraphSettings;
-		InitNodesGroup->OnIterationRangeStartCallback = [WeakIO, Builder, CustomGraphSettings](const int32 StartIndex, const int32 Count, const int32 LoopIdx)
+		InitNodesGroup->OnIterationRangeStartCallback = [WeakIO, CustomGraphSettings](const int32 StartIndex, const int32 Count, const int32 LoopIdx)
 		{
 			const TSharedPtr<PCGExData::FPointIO> IO = WeakIO.Pin();
 			if (!IO) { return; }
@@ -243,11 +259,11 @@ namespace PCGExBuildCustomGraph
 			for (int i = StartIndex; i < MaxIndex; i++)
 			{
 				FPCGPoint& Point = MutablePoints[i];
-				Builder->UpdateNodePoint(CustomGraphSettings, i, Point, Point);
+				CustomGraphSettings->UpdateNodePoint(Point, CustomGraphSettings->Idx[i], i, Point);
 			}
 		};
 
-		InitNodesGroup->StartRangePrepareOnly(GraphSettings->MaxNodesNum, 256);
+		InitNodesGroup->StartRangePrepareOnly(CustomGraphSettings->Idx.Num(), GetDefault<UPCGExGlobalSettings>()->ClusterDefaultBatchChunkSize);
 
 		return true;
 	}

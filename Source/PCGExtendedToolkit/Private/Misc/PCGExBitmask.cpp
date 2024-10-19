@@ -11,29 +11,6 @@
 
 #pragma region UPCGSettings interface
 
-UPCGExGlobalBitmaskManager* UPCGExGlobalBitmaskManager::Get()
-{
-	static UPCGExGlobalBitmaskManager* Instance = nullptr;
-	if (!Instance)
-	{
-		Instance = NewObject<UPCGExGlobalBitmaskManager>();
-		Instance->AddToRoot(); // Prevent garbage collection
-	}
-	return Instance;
-}
-
-UPCGParamData* UPCGExGlobalBitmaskManager::GetOrCreate(const int64 Bitmask)
-{
-	if (TObjectPtr<UPCGParamData>* Data = Get()->SharedInstances.Find(Bitmask)) { return *Data; }
-
-	TObjectPtr<UPCGParamData> NewBitmask = NewObject<UPCGParamData>();
-	NewBitmask->AddToRoot();
-	NewBitmask->Metadata->CreateAttribute<int64>(FName("Bitmask"), Bitmask, false, true);
-	NewBitmask->Metadata->AddEntry();
-	Get()->SharedInstances.Add(Bitmask, NewBitmask);
-	return NewBitmask;
-}
-
 TArray<FPCGPinProperties> UPCGExBitmaskSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties;
@@ -72,16 +49,9 @@ bool FPCGExBitmaskElement::ExecuteInternal(FPCGContext* Context) const
 	UPCGParamData* BitmaskData;
 	const int64 Bitmask = Settings->Bitmask.Get();
 
-	if (Settings->bGlobalInstance)
-	{
-		BitmaskData = UPCGExGlobalBitmaskManager::GetOrCreate(Bitmask);
-	}
-	else
-	{
-		BitmaskData = NewObject<UPCGParamData>();
-		BitmaskData->Metadata->CreateAttribute<int64>(FName("Bitmask"), Bitmask, false, true);
-		BitmaskData->Metadata->AddEntry();
-	}
+	BitmaskData = NewObject<UPCGParamData>();
+	BitmaskData->Metadata->CreateAttribute<int64>(FName("Bitmask"), Bitmask, false, true);
+	BitmaskData->Metadata->AddEntry();
 
 	FPCGTaggedData& OutData = Context->OutputData.TaggedData.Emplace_GetRef();
 	OutData.Pin = FName("Bitmask");

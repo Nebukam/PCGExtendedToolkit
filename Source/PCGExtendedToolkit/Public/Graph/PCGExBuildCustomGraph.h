@@ -25,33 +25,50 @@ class PCGEXTENDEDTOOLKIT_API UPCGExCustomGraphSettings : public UObject
 	GENERATED_BODY()
 
 public:
-	/** Maximum number of node in the graph. The final number can be less, as isolated points will be pruned; but no edge endpoint' index should be greater that this number. */
-	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "PCGEx|Data")
-	int32 MaxNodesNum = 0;
-
 	/** Internal index of these settings. */
 	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "PCGEx|Data")
-	int32 Index = 0;
+	int32 SettingsIndex = 0;
 
-	TSet<uint64> UniqueEdges;
-	int32 MaxIndex = -1;
+	TArray<int64> Idx;
+	TMap<int64, int32> IdxMap;
+	TSharedPtr<TArray<int32>> ValidNodeIndices;
 	TSharedPtr<PCGExGraph::FGraphBuilder> GraphBuilder;
 	
+	TSet<uint64> UniqueEdges;
+
+	FORCEINLINE int32 GetOrCreateNode(int64 InIdx)
+	{
+		if (int32* IndexPtr = IdxMap.Find(InIdx)) { return *IndexPtr; }
+		const int32 Index = Idx.Add(InIdx);
+		IdxMap.Add(InIdx, Index);
+		return Index;
+	}
+	
 	/**
-	 * Create an edge between two nodes in an indexed graph.
-	 * @param InStartIndex 
-	 * @param InEndIndex 
+	 * Creates an edge between two nodes in an indexed graph.
+	 * @param InStartIdx 
+	 * @param InEndIdx 
 	 */
 	UFUNCTION(BlueprintCallable, Category = "PCGEx|Data")
-	void AddEdge(const int32 InStartIndex, const int32 InEndIndex);
+	void AddEdge(const int64 InStartIdx, const int64 InEndIdx);
 
+	/**
+	 * Removes an edge between two nodes in an indexed graph.
+	 * @param InStartIdx 
+	 * @param InEndIdx 
+	 */
+	UFUNCTION(BlueprintCallable, Category = "PCGEx|Data")
+	void RemoveEdge(const int64 InStartIdx, const int64 InEndIdx);
+	
 	/**
 	 * Initialization method. It is called right before Build Graph -- this is where you must set the max number of nodes.
 	 * @param InContext Context of the execution
-	 * @param OutMaxNodesNum The maximum number of node this graph will be working with.
+	 * @param OutSuccess The maximum number of node this graph will be working with.
+	 * @param OutNodeReserve Number of nodes to reserve. This is mostly for memory optimization purpose. Try to be as close as possible if you can; slightly more is better than slightly less.
+	 * @param OutEdgeReserve Number of edges to reserve. This is mostly for memory optimization purpose. Try to be as close as possible if you can; slightly more is better than slightly less.
 	 */
 	UFUNCTION(BlueprintNativeEvent, Category = "PCGEx|Execution")
-	void InitializeSettings(const FPCGContext& InContext, int32& OutMaxNodesNum);
+	void InitializeSettings(UPARAM(ref)const FPCGContext& InContext, bool& OutSuccess, int32& OutNodeReserve, int32& OutEdgeReserve);
 	
 	/**
 	 * Main execution function. Called once per requested graphs. This method is executed in a multi-threaded context, Graph Settings are safe but the custom builder wrapper itself isn't.
@@ -59,17 +76,18 @@ public:
 	 * @param OutSuccess Whether building was successful or not
 	 */
 	UFUNCTION(BlueprintNativeEvent, Category = "PCGEx|Execution")
-	void BuildGraph(const FPCGContext& InContext, bool& OutSuccess);
+	void BuildGraph(UPARAM(ref)const FPCGContext& InContext, bool& OutSuccess);
 	
 	/**
 	 * Update Node Point is called on each node point after BuildGraph has been, and edges added. This method is executed in a multi-threaded context.
 	 * This is where point transform & properties should be set.
-	 * @param InNodeIndex Index of the node the given point matches with
 	 * @param InPoint PCG Point that represents the node
+	 * @param InNodeIdx Index of the node the given point matches with
+	 * @param InPointIndex Index of the node' PCG Point (before pruning)
 	 * @param OutPoint Muted PCG Point that represents the node.
 	 */
 	UFUNCTION(BlueprintNativeEvent, Category = "PCGEx|Execution")
-	void UpdateNodePoint(const int32 InNodeIndex, const FPCGPoint& InPoint, FPCGPoint& OutPoint) const;
+	void UpdateNodePoint(const FPCGPoint& InPoint, int64 InNodeIdx, int32 InPointIndex, FPCGPoint& OutPoint) const;
 };
 
 /**
@@ -88,12 +106,11 @@ public:
 	 * @param OutSuccess
 	 */
 	UFUNCTION(BlueprintNativeEvent, Category = "PCGEx|Execution")
-	void InitializeWithContext(const FPCGContext& InContext, bool& OutSuccess);
+	void InitializeWithContext(UPARAM(ref)const FPCGContext& InContext, bool& OutSuccess);
 
 	/**
 	 * Create an edge between two nodes in an indexed graph. This method is executed in a multi-threaded context
 	 * @param SettingsClass
-	 * @param InMaxNumNodes
 	 */
 	UFUNCTION(BlueprintCallable, Category = "PCGEx|Execution")
 	UPCGExCustomGraphSettings* CreateGraphSettings(TSubclassOf<UPCGExCustomGraphSettings> SettingsClass);
@@ -105,18 +122,7 @@ public:
 	 * @param OutSuccess
 	 */
 	UFUNCTION(BlueprintNativeEvent, Category = "PCGEx|Execution")
-	void BuildGraph(const FPCGContext& InContext, UPCGExCustomGraphSettings* InCustomGraphSettings, bool& OutSuccess);
-
-	/**
-	 * Update Node Point is called on each node point after BuildGraph has been, and edges added. This method is executed in a multi-threaded context.
-	 * This is where point transform & properties should be set.
-	 * @param InCustomGraphSettings
-	 * @param InNodeIndex 
-	 * @param InPoint
-	 * @param OutPoint 
-	 */
-	UFUNCTION(BlueprintNativeEvent, Category = "PCGEx|Execution")
-	void UpdateNodePoint(const UPCGExCustomGraphSettings* InCustomGraphSettings, const int32 InNodeIndex, const FPCGPoint& InPoint, FPCGPoint& OutPoint) const;
+	void BuildGraph(UPARAM(ref)const FPCGContext& InContext, UPCGExCustomGraphSettings* InCustomGraphSettings, bool& OutSuccess);
 
 	virtual void Cleanup() override
 	{
