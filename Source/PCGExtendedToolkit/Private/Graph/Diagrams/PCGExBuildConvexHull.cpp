@@ -87,7 +87,7 @@ namespace PCGExConvexHull
 
 		Delaunay = MakeUnique<PCGExGeo::TDelaunay3>();
 
-		if (!Delaunay->Process(ActivePositions, false))
+		if (!Delaunay->Process<false, true>(ActivePositions))
 		{
 			PCGE_LOG_C(Warning, GraphAndLog, ExecutionContext, FTEXT("Some inputs generates no results. Are points coplanar? If so, use Convex Hull 2D instead."));
 			return false;

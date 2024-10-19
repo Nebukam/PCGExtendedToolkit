@@ -142,7 +142,7 @@ namespace PCGExGeo
 			IsValid = false;
 			Delaunay = MakeUnique<TDelaunay3>();
 
-			if (!Delaunay->Process(Positions, true))
+			if (!Delaunay->Process<true, false>(Positions))
 			{
 				Clear();
 				return IsValid;
@@ -152,23 +152,24 @@ namespace PCGExGeo
 			PCGEx::InitArray(Circumspheres, NumSites);
 			PCGEx::InitArray(Centroids, NumSites);
 
-			for (FDelaunaySite3& Site : Delaunay->Sites)
 			{
-				FindSphereFrom4Points(Positions, Site.Vtx, Circumspheres[Site.Id]);
-				GetCentroid(Positions, Site.Vtx, Centroids[Site.Id]);
+				TRACE_CPUPROFILER_EVENT_SCOPE(GeoVoronoi::FindVoronoiEdges);
 
-				for (int i = 0; i < 4; i++)
+				for (FDelaunaySite3& Site : Delaunay->Sites)
 				{
-					const int32 AdjacentIdx = Site.Neighbors[i];
+					FindSphereFrom4Points(Positions, Site.Vtx, Circumspheres[Site.Id]);
+					GetCentroid(Positions, Site.Vtx, Centroids[Site.Id]);
+				}
 
-					if (AdjacentIdx == -1)
-					{
-						//VoronoiHull.Add(); //TODO: Find which triangle has no adjacency
-						Site.bOnHull = true;
-						continue;
-					}
+				for (const TPair<uint32, uint64>& AdjacencyPair : Delaunay->Adjacency)
+				{
+					int32 A = -1;
+					int32 B = -1;
+					PCGEx::NH64(AdjacencyPair.Value, A, B);
 
-					VoronoiEdges.Add(PCGEx::H64U(Site.Id, AdjacentIdx));
+					if (A == -1 || B == -1) { continue; }
+
+					VoronoiEdges.Add(PCGEx::H64U(A, B));
 				}
 			}
 

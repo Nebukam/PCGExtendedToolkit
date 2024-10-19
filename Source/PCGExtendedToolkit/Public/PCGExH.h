@@ -65,12 +65,12 @@ namespace PCGEx
 		D = static_cast<uint16>(H & 0xFFFF);
 	}
 
-	FORCEINLINE static uint64 H64S(const uint32 A, const uint32 B, const uint32 C)
+	FORCEINLINE static uint32 H64S(const uint32 A, const uint32 B, const uint32 C)
 	{
 		return HashCombineFast(A, HashCombineFast(B, C));
 	}
 
-	FORCEINLINE static uint64 H64S(int32 ABC[3]) { return H64S(ABC[0], ABC[1], ABC[2]); }
+	FORCEINLINE static uint32 H64S(int32 ABC[3]) { return H64S(ABC[0], ABC[1], ABC[2]); }
 
 	FORCEINLINE static uint32 GH(const FInt64Vector3& Seed) { return GetTypeHash(Seed); }
 
@@ -109,4 +109,13 @@ namespace PCGEx
 	FORCEINLINE static uint32 GH(const FVector& Seed, const FInt64Vector3& Tolerance) { return GetTypeHash(I643(Seed, Tolerance)); }
 
 	FORCEINLINE static uint32 GH(const FVector& Seed, const FVector& Tolerance) { return GetTypeHash(I643(Seed, Tolerance)); }
+
+	FORCEINLINE static uint32 UH3(const int32 A, const int32 B, const int32 C)
+	{
+		int32 X = A, Y = B, Z = C;
+		if (X > Y) { Swap(X, Y); }
+		if (X > Z) { Swap(X, Z); }
+		if (Y > Z) { Swap(Y, Z); }
+		return GetTypeHash(FInt32Vector3(X, Y, Z));
+	}
 }

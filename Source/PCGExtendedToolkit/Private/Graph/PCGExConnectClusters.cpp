@@ -171,7 +171,7 @@ namespace PCGExBridgeClusters
 
 			for (int i = 0; i < NumBounds; i++) { Positions[i] = Bounds[i].GetCenter(); }
 
-			if (Delaunay->Process(Positions, false)) { Bridges.Append(Delaunay->DelaunayEdges); }
+			if (Delaunay->Process<false, false>(Positions)) { Bridges.Append(Delaunay->DelaunayEdges); }
 			else { PCGE_LOG_C(Warning, GraphAndLog, ExecutionContext, FTEXT("Delaunay 3D failed. Are points coplanar? If so, use Delaunay 2D instead.")); }
 
 			Positions.Empty();
