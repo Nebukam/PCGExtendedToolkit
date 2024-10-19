@@ -6,15 +6,14 @@
 #include "CoreMinimal.h"
 
 #include "PCGExPointsProcessor.h"
-
-
 #include "PCGExDiscardByOverlap.generated.h"
 
 UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Overlap Test Mode"))
 enum class EPCGExOverlapTestMode : uint8
 {
-	Fast    = 0 UMETA(DisplayName = "Fast", ToolTip="Only test using datasets' overall bounds"),
-	Precise = 1 UMETA(DisplayName = "Precise", ToolTip="Test every points' bounds"),
+	Fast   = 0 UMETA(DisplayName = "Fast", ToolTip="Only test using datasets' overall bounds"),
+	Box    = 1 UMETA(DisplayName = "Box", ToolTip="Test every points' bounds as transformed box. May not detect some overlaps."),
+	Sphere = 2 UMETA(DisplayName = "Sphere", ToolTip="Test every points' bounds as spheres. Will have some false positve."),
 };
 
 UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Overlap Pruning Logic"))
@@ -116,13 +115,17 @@ public:
 	PCGEX_NODE_POINT_FILTER(PCGExPointFilter::SourcePointFiltersLabel, "Filter which points can be considered for overlap.", PCGExFactories::PointFilters, false)
 	//~End UPCGExPointsProcessorSettings
 
-	/** Overlap overlap test mode */
+	/** Overlap test mode */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
-	EPCGExOverlapTestMode TestMode = EPCGExOverlapTestMode::Precise;
+	EPCGExOverlapTestMode TestMode = EPCGExOverlapTestMode::Sphere;
 
 	/** Point bounds to be used to compute overlaps */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	EPCGExPointBoundsSource BoundsSource = EPCGExPointBoundsSource::ScaledBounds;
+
+	/** Expand bounds by that amount to account for a margin of error due to multiple layers of transformation and lack of OBB */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	double Expansion = 10;
 
 	/** Scores weighting */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
@@ -156,8 +159,8 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExDiscardByOverlapContext final : FPCGExPo
 	TMap<uint64, TSharedPtr<PCGExDiscardByOverlap::FOverlap>> OverlapMap;
 
 	TSharedPtr<PCGExDiscardByOverlap::FOverlap> RegisterOverlap(
-		PCGExDiscardByOverlap::FProcessor* InManager,
-		PCGExDiscardByOverlap::FProcessor* InManaged,
+		PCGExDiscardByOverlap::FProcessor* InA,
+		PCGExDiscardByOverlap::FProcessor* InB,
 		const FBox& InIntersection);
 
 	FPCGExOverlapScoresWeighting Weights;
@@ -257,14 +260,20 @@ namespace PCGExDiscardByOverlap
 
 	struct /*PCGEXTENDEDTOOLKIT_API*/ FPointBounds
 	{
-		FPointBounds(const int32 InIndex, const FPCGPoint& InPoint, const FBox& InBounds):
-			Index(InIndex), Point(&InPoint), Bounds(InBounds)
+		FPointBounds(const int32 InIndex, const FPCGPoint* InPoint, const FBox& InBounds):
+			Index(InIndex), Point(InPoint), LocalBounds(InBounds), WorldBoxSphereBounds(InBounds.TransformBy(InPoint->Transform.ToMatrixNoScale()))
 		{
 		}
 
 		const int32 Index;
 		const FPCGPoint* Point;
-		FBoxSphereBounds Bounds;
+		FBox LocalBounds;
+		FBoxSphereBounds WorldBoxSphereBounds;
+
+		FORCEINLINE FBox TransposedBounds(const FMatrix& InMatrix) const
+		{
+			return LocalBounds.TransformBy(Point->Transform.ToMatrixNoScale() * InMatrix);
+		}
 	};
 
 	struct /*PCGEXTENDEDTOOLKIT_API*/ FPointBoundsSemantics
@@ -279,7 +288,7 @@ namespace PCGExDiscardByOverlap
 
 		FORCEINLINE static const FBoxSphereBounds& GetBoundingBox(const FPointBounds* InPoint)
 		{
-			return InPoint->Bounds;
+			return InPoint->WorldBoxSphereBounds;
 		}
 
 		FORCEINLINE static const bool AreElementsEqual(const FPointBounds* A, const FPointBounds* B)
@@ -340,7 +349,7 @@ namespace PCGExDiscardByOverlap
 
 		FORCEINLINE bool HasOverlaps() const { return !Overlaps.IsEmpty(); }
 
-		void RegisterOverlap(FProcessor* InManaged, const FBox& Intersection);
+		void RegisterOverlap(FProcessor* InOtherProcessor, const FBox& Intersection);
 		void RemoveOverlap(const TSharedPtr<FOverlap>& InOverlap, TArray<FProcessor*>& Stack);
 		void Prune(TArray<FProcessor*>& Stack);
 
@@ -349,7 +358,7 @@ namespace PCGExDiscardByOverlap
 			const bool bValidPoint = PointFilterCache[Index];
 			if (!bValidPoint && !Settings->bIncludeFilteredInMetrics) { return; }
 
-			const FBox& B = InPointBounds->Bounds.GetBox();
+			const FBox& B = InPointBounds->WorldBoxSphereBounds.GetBox();
 			Bounds += B;
 			TotalVolume += B.GetVolume();
 

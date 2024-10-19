@@ -7,8 +7,6 @@
 
 #include "PCGExPointsProcessor.h"
 #include "PCGExSampling.h"
-
-
 #include "Misc/PCGExDiscardByOverlap.h"
 
 #include "PCGExSampleOverlapStats.generated.h"
@@ -48,10 +46,18 @@ public:
 	PCGEX_NODE_POINT_FILTER(PCGExPointFilter::SourcePointFiltersLabel, "Filters used to know whether a point should be considered for overlap or not.", PCGExFactories::PointFilters, false)
 	//~End UPCGExPointsProcessorSettings
 
+	/** Overlap test mode */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	EPCGExOverlapTestMode TestMode = EPCGExOverlapTestMode::Sphere;
+	
 	/** Point bounds to be used to compute overlaps */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	EPCGExPointBoundsSource BoundsSource = EPCGExPointBoundsSource::ScaledBounds;
 
+	/** Expand bounds by that amount to account for a margin of error due to multiple layers of transformation and lack of OBB */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	double Expansion = 10;
+	
 	/** The minimum amount two sub-points must overlap to be added to the comparison.  The higher, the more "overlap" there must be. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ClampMin=0))
 	double MinThreshold = 0.1;
@@ -123,8 +129,8 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExSampleOverlapStatsContext final : FPCGEx
 	TMap<uint64, TSharedPtr<PCGExSampleOverlapStats::FOverlap>> OverlapMap;
 
 	TSharedPtr<PCGExSampleOverlapStats::FOverlap> RegisterOverlap(
-		PCGExSampleOverlapStats::FProcessor* InManager,
-		PCGExSampleOverlapStats::FProcessor* InManaged,
+		PCGExSampleOverlapStats::FProcessor* InA,
+		PCGExSampleOverlapStats::FProcessor* InB,
 		const FBox& InIntersection);
 
 	virtual void BatchProcessing_WorkComplete() override;
@@ -197,13 +203,13 @@ namespace PCGExSampleOverlapStats
 		FBox Intersection = FBox(NoInit);
 		bool IsValid = true;
 
-		FProcessor* Manager = nullptr;
-		FProcessor* Managed = nullptr;
+		FProcessor* Primary = nullptr;
+		FProcessor* Secondary = nullptr;
 
 		FOverlapStats Stats;
 
-		FOverlap(FProcessor* InManager, FProcessor* InManaged, const FBox& InIntersection);
-		FORCEINLINE FProcessor* GetOther(const FProcessor* InCandidate) const { return Manager == InCandidate ? Managed : Manager; }
+		FOverlap(FProcessor* InPrimary, FProcessor* InSecondary, const FBox& InIntersection);
+		FORCEINLINE FProcessor* GetOther(const FProcessor* InCandidate) const { return Primary == InCandidate ? Secondary : Primary; }
 	};
 
 	class FProcessor final : public PCGExPointsMT::TPointsProcessor<FPCGExSampleOverlapStatsContext, UPCGExSampleOverlapStatsSettings>
@@ -252,11 +258,11 @@ namespace PCGExSampleOverlapStats
 
 		FORCEINLINE void RegisterPointBounds(const int32 Index, const TSharedPtr<PCGExDiscardByOverlap::FPointBounds>& InPointBounds)
 		{
-			Bounds += InPointBounds->Bounds.GetBox();
+			Bounds += InPointBounds->WorldBoxSphereBounds.GetBox();
 			LocalPointBounds[Index] = InPointBounds;
 		}
 
-		void RegisterOverlap(FProcessor* InManaged, const FBox& Intersection);
+		void RegisterOverlap(FProcessor* InOtherProcessor, const FBox& Intersection);
 
 		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager> InAsyncManager) override;
 		void ResolveOverlap(const int32 Index);

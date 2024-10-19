@@ -37,39 +37,66 @@ enum class EPCGExPointBoundsSource : uint8
 
 namespace PCGExMath
 {
-	FORCEINLINE static FBox GetLocalBounds(const FPCGPoint& Point, const EPCGExPointBoundsSource Source)
-	{
-		FVector Extents;
-
-		if (Source == EPCGExPointBoundsSource::ScaledBounds) { Extents = Point.GetScaledExtents(); }
-		else if (Source == EPCGExPointBoundsSource::Bounds) { Extents = Point.GetExtents(); }
-		else if (Source == EPCGExPointBoundsSource::DensityBounds) { Extents = Point.GetDensityBounds().BoxExtent; }
-
-		return FBox(-Extents, Extents);
-	}
-
 	template <EPCGExPointBoundsSource S = EPCGExPointBoundsSource::ScaledBounds>
 	FORCEINLINE static FBox GetLocalBounds(const FPCGPoint& Point)
 	{
 		if constexpr (S == EPCGExPointBoundsSource::ScaledBounds)
 		{
-			const FVector Extents = Point.GetScaledExtents();
-			return FBox(-Extents, Extents);
+			const FBox LocalBounds = Point.GetLocalBounds();
+			const FVector Scale = Point.Transform.GetScale3D();
+			return FBox(LocalBounds.Min * Scale, LocalBounds.Max * Scale);
 		}
 		else if constexpr (S == EPCGExPointBoundsSource::Bounds)
 		{
-			const FVector Extents = Point.GetExtents();
-			return FBox(-Extents, Extents);
+			return Point.GetLocalBounds();
 		}
 		else if constexpr (S == EPCGExPointBoundsSource::DensityBounds)
 		{
-			const FVector Extents = Point.GetDensityBounds().BoxExtent;
-			return FBox(-Extents, Extents);
+			return Point.GetLocalDensityBounds();
 		}
 		else
 		{
 			return FBox(FVector::OneVector * -1, FVector::OneVector);
 		}
+	}
+
+	template <EPCGExPointBoundsSource S = EPCGExPointBoundsSource::ScaledBounds>
+	FORCEINLINE static FBox GetLocalBounds(const FPCGPoint* Point)
+	{
+		if constexpr (S == EPCGExPointBoundsSource::ScaledBounds)
+		{
+			const FBox LocalBounds = Point->GetLocalBounds();
+			const FVector Scale = Point->Transform.GetScale3D();
+			return FBox(LocalBounds.Min * Scale, LocalBounds.Max * Scale);
+		}
+		else if constexpr (S == EPCGExPointBoundsSource::Bounds)
+		{
+			return Point->GetLocalBounds();
+		}
+		else if constexpr (S == EPCGExPointBoundsSource::DensityBounds)
+		{
+			return Point->GetLocalDensityBounds();
+		}
+		else
+		{
+			return FBox(FVector::OneVector * -1, FVector::OneVector);
+		}
+	}
+
+	FORCEINLINE static FBox GetLocalBounds(const FPCGPoint& Point, const EPCGExPointBoundsSource Source)
+	{
+		if (Source == EPCGExPointBoundsSource::ScaledBounds) { return GetLocalBounds<EPCGExPointBoundsSource::ScaledBounds>(Point); }
+		else if (Source == EPCGExPointBoundsSource::Bounds) { return GetLocalBounds<EPCGExPointBoundsSource::Bounds>(Point); }
+		else if (Source == EPCGExPointBoundsSource::DensityBounds) { return GetLocalBounds<EPCGExPointBoundsSource::DensityBounds>(Point); }
+		else { return FBox(FVector::OneVector * -1, FVector::OneVector); }
+	}
+
+	FORCEINLINE static FBox GetLocalBounds(const FPCGPoint* Point, const EPCGExPointBoundsSource Source)
+	{
+		if (Source == EPCGExPointBoundsSource::ScaledBounds) { return GetLocalBounds<EPCGExPointBoundsSource::ScaledBounds>(Point); }
+		else if (Source == EPCGExPointBoundsSource::Bounds) { return GetLocalBounds<EPCGExPointBoundsSource::Bounds>(Point); }
+		else if (Source == EPCGExPointBoundsSource::DensityBounds) { return GetLocalBounds<EPCGExPointBoundsSource::DensityBounds>(Point); }
+		else { return FBox(FVector::OneVector * -1, FVector::OneVector); }
 	}
 
 #pragma region basics
@@ -274,6 +301,17 @@ namespace PCGExMath
 
 		bIntersect = true;
 		return FMath::LinePlaneIntersection(Pt1, Pt2, PlaneOrigin, PlaneNormal);
+	}
+
+	FORCEINLINE bool SphereOverlap(const FSphere& S1, const FSphere& S2, double& OutOverlap)
+	{
+		OutOverlap = (S1.W + S2.W) - FVector::Dist(S1.Center, S2.Center);
+		return OutOverlap > 0;
+	}
+
+	FORCEINLINE bool SphereOverlap(const FBoxSphereBounds& S1, const FBoxSphereBounds& S2, double& OutOverlap)
+	{
+		return SphereOverlap(S1.GetSphere(), S2.GetSphere(), OutOverlap);
 	}
 
 #pragma endregion
