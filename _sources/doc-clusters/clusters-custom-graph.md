@@ -67,11 +67,18 @@ The custom graph workflow is made out of two pieces. The main one, `Custom Graph
     * `UpdateNodePoint` is where you will <u>set individual node' PCG point properties.</u>
 3. Next, create a new blueprint, inheriting from `[PCGEx] Custom Graph Builder`.  
 4. Override `InitializeWithContext`.
-    <u>This is where you will create "settings" objects using the internal <code>CreateSettings</code> method and the class created before.</u> Each unique settings represent a single graph, with a finite number of nodes, or `Vtx`, and **must be initialilzed with the maximum number of nodes you intend to work with.**
+    <u>This is where you will create "settings" objects using the internal <code>CreateSettings</code> method and the class created before.</u> Each unique settings represent a single graph, that you will populate as you see fit.
 
 
 > Only `InitializeWithContext` is executed on the main thread, **all other methods are called from asynchronous, multi-threaded places**. If you need custom initialization behavior that is guaranteed to run on the main thread, implement your own method and call it on the setting object after using `CreateSettings` during builder' initialization.
 {: .warning }
+
+### Order of operations
+
+1. First, `InitializeSettings` will be called on the main builder instance.
+2. Then, for each graph settings registered during initialization, individual Settings objects will have their `BuildGraph` method called. This is where you add edges. *Points will be automatically created based on the IDs you use to register edges.*
+3. Finally, each individual Settings will have its `UpdateNodePoint` method called once per node created. *Since this part is heavily multi-threaded, there is no call order guarantee.*
+4. That's it!
 
 ---
 ## Custom Graph Builder
