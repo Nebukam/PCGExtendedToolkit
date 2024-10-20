@@ -23,11 +23,13 @@ void UPCGExCustomGraphSettings::InitializeSettings_Implementation(const FPCGCont
 
 void UPCGExCustomGraphSettings::AddEdge(const int64 InStartIdx, const int64 InEndIdx)
 {
+	if (InStartIdx == InEndIdx) { return; }
 	UniqueEdges.Add(PCGEx::H64U(GetOrCreateNode(InStartIdx), GetOrCreateNode(InEndIdx)));
 }
 
 void UPCGExCustomGraphSettings::RemoveEdge(const int64 InStartIdx, const int64 InEndIdx)
 {
+	if (InStartIdx == InEndIdx) { return; }
 	UniqueEdges.Remove(PCGEx::H64U(GetOrCreateNode(InStartIdx), GetOrCreateNode(InEndIdx)));
 }
 
