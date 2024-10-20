@@ -62,7 +62,7 @@ The custom graph workflow is made out of two pieces. The main one, `Custom Graph
 
 1. First, create a new blueprint inheriting from `[PCGEx] Custom Graph Settings`.
 2. Override the `InitializeSettings`, `BuildGraph` and `UpdateNodePoint`.
-    * `InitializeSettings` is where you will set the <u>maximum number of node you intend to work with.</u>
+    * `InitializeSettings` is where you confirm the settings are valid, and optionally reserve some memory for your graph.
     * `BuildGraph` is where you will <u>add edges to the graph.</u>
     * `UpdateNodePoint` is where you will <u>set individual node' PCG point properties.</u>
 3. Next, create a new blueprint, inheriting from `[PCGEx] Custom Graph Builder`.  
@@ -106,6 +106,15 @@ The custom graph settings are holding data & providing a handy way to cache per-
 *Example where initialization uses a property on an actor to drive the number of node for these settings.*
 
 ### BuildGraph
+
+BuildGraph is where you call `AddEdge` appropriately. The method takes two `int64` IDs -- those can be point index, or whatever you see fit. These IDs will be passed to `UpdateNodePoint` later on; along with the internal point index assocaited with it.  
+`RemoveEdge` is also available if you want to remove a previously added edge.
+
+> Custom Graph uses per-node IDs instead of indices so that you can build a graph as you discover connections. *It comes at the cost of a slight overhead, but it's much more flexible that way.*
+{: .comment }
+
+> You don't have to worry about duplicate/directed edges, the graph system uses an unsigned hash under the hood, so `A -> B` and `B -> A` refer to the same edge.
+{: .infos }
 
 {% include img_link a='details/clusters-custom-graph/build-graph.png' %}
 *Example where a straight line of edges is created by using a simple loop index.*
