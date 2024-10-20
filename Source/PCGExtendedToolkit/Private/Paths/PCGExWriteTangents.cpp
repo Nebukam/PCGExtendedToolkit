@@ -105,7 +105,7 @@ namespace PCGExWriteTangents
 		ConstantArriveScale = FVector(Settings->ArriveScaleConstant);
 		ConstantLeaveScale = FVector(Settings->LeaveScaleConstant);
 
-		if (Settings->ArriveScaleType == EPCGExFetchType::Attribute)
+		if (Settings->ArriveScaleInput == EPCGExInputValueType::Attribute)
 		{
 			ArriveScaleReader = PointDataFacade->GetScopedBroadcaster<FVector>(Settings->ArriveScaleAttribute);
 			if (!ArriveScaleReader)
@@ -115,7 +115,7 @@ namespace PCGExWriteTangents
 			}
 		}
 
-		if (Settings->LeaveScaleType == EPCGExFetchType::Attribute)
+		if (Settings->LeaveScaleInput == EPCGExInputValueType::Attribute)
 		{
 			LeaveScaleReader = PointDataFacade->GetScopedBroadcaster<FVector>(Settings->LeaveScaleAttribute);
 			if (!LeaveScaleReader)

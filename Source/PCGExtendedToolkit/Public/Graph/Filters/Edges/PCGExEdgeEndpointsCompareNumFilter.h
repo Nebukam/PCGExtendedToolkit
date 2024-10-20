@@ -51,12 +51,14 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExEdgeEndpointsCompareNumFilterConfig
  * 
  */
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExEdgeEndpointsCompareNumFilterFactory : public UPCGExNodeFilterFactoryBase
+class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExEdgeEndpointsCompareNumFilterFactory : public UPCGExEdgeFilterFactoryBase
 {
 	GENERATED_BODY()
 
 public:
 	FPCGExEdgeEndpointsCompareNumFilterConfig Config;
+
+	virtual void GatherRequiredVtxAttributes(FPCGExContext* InContext, PCGExData::FReadableBufferConfigList& ReadableBufferConfigList) const override;
 
 	virtual TSharedPtr<PCGExPointFilter::FFilter> CreateFilter() const override;
 };
@@ -75,7 +77,7 @@ namespace PCGExEdgeEndpointsCompareNum
 
 		TSharedPtr<PCGExData::TBuffer<double>> NumericBuffer;
 
-		virtual bool Init(const FPCGContext* InContext, const TSharedRef<PCGExCluster::FCluster>& InCluster, const TSharedRef<PCGExData::FFacade>& InPointDataFacade, const TSharedRef<PCGExData::FFacade>& InEdgeDataFacade) override;
+		virtual bool Init(FPCGExContext* InContext, const TSharedRef<PCGExCluster::FCluster>& InCluster, const TSharedRef<PCGExData::FFacade>& InPointDataFacade, const TSharedRef<PCGExData::FFacade>& InEdgeDataFacade) override;
 		virtual bool Test(const PCGExGraph::FIndexedEdge& Edge) const override;
 
 		virtual ~FNeighborsCountFilter() override

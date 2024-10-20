@@ -18,7 +18,7 @@ void UPCGExConditionalActionAttributesOperation::CopySettingsFrom(const UPCGExOp
 	}
 }
 
-bool UPCGExConditionalActionAttributesOperation::PrepareForData(const FPCGContext* InContext, const TSharedPtr<PCGExData::FFacade>& InPointDataFacade)
+bool UPCGExConditionalActionAttributesOperation::PrepareForData(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade>& InPointDataFacade)
 {
 	if (!Super::PrepareForData(InContext, InPointDataFacade)) { return false; }
 

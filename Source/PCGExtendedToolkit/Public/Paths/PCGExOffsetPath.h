@@ -35,26 +35,26 @@ public:
 
 	/** Offset type.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
-	EPCGExFetchType OffsetType = EPCGExFetchType::Constant;
+	EPCGExInputValueType OffsetInput = EPCGExInputValueType::Constant;
 
 	/** Offset size.*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="OffsetType == EPCGExFetchType::Constant"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="OffsetInput == EPCGExInputValueType::Constant"))
 	double OffsetConstant = 1.0;
 
 	/** Fetch the offset size from a local attribute. The regular Size parameter then act as a scale.*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="OffsetType == EPCGExFetchType::Attribute"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="OffsetInput == EPCGExInputValueType::Attribute"))
 	FPCGAttributePropertyInputSelector OffsetAttribute;
 
 	/** Up Vector type.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
-	EPCGExFetchType UpVectorType = EPCGExFetchType::Constant;
+	EPCGExInputValueType UpVectorType = EPCGExInputValueType::Constant;
 
 	/** Up vector used to calculate Offset direction.*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="UpVectorType == EPCGExFetchType::Constant"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="UpVectorType == EPCGExInputValueType::Constant"))
 	FVector UpVectorConstant = FVector::UpVector;
 
 	/** Fetch the Up vector from a local point attribute. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="UpVectorType == EPCGExFetchType::Attribute"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="UpVectorType == EPCGExInputValueType::Attribute"))
 	FPCGAttributePropertyInputSelector UpVectorAttribute;
 };
 

@@ -38,14 +38,14 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExNodeEdgeDirectionFilterConfig
 
 	/** Where to read the compared direction from. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable))
-	EPCGExFetchType CompareAgainst = EPCGExFetchType::Constant;
+	EPCGExInputValueType CompareAgainst = EPCGExInputValueType::Constant;
 
 	/** Operand B for testing -- Will be translated to `double` under the hood. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="CompareAgainst==EPCGExFetchType::Attribute", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="CompareAgainst==EPCGExInputValueType::Attribute", EditConditionHides))
 	FPCGAttributePropertyInputSelector Direction;
 
 	/** Direction for computing the dot product against the edge's. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="CompareAgainst==EPCGExFetchType::Constant", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="CompareAgainst==EPCGExInputValueType::Constant", EditConditionHides))
 	FVector DirectionConstant = FVector::UpVector;
 
 	/** Transform the reference direction with the local point' transform */
@@ -99,7 +99,7 @@ public:
 
 	TSharedPtr<PCGExData::TBuffer<FVector>> OperandDirection;
 
-	virtual bool Init(const FPCGContext* InContext, const TSharedRef<PCGExCluster::FCluster>& InCluster, const TSharedRef<PCGExData::FFacade>& InPointDataFacade, const TSharedRef<PCGExData::FFacade>& InEdgeDataFacade) override;
+	virtual bool Init(FPCGExContext* InContext, const TSharedRef<PCGExCluster::FCluster>& InCluster, const TSharedRef<PCGExData::FFacade>& InPointDataFacade, const TSharedRef<PCGExData::FFacade>& InEdgeDataFacade) override;
 	virtual bool Test(const PCGExCluster::FNode& Node) const override;
 
 	bool TestDot(const PCGExCluster::FNode& Node) const;

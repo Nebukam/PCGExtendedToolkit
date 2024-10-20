@@ -7,6 +7,8 @@
 #include "UObject/Object.h"
 #include "PCGExData.h"
 #include "PCGExFactoryProvider.h"
+
+
 #include "Graph/PCGExCluster.h"
 
 
@@ -87,7 +89,7 @@ namespace PCGExPointFilter
 
 		virtual PCGExFilters::EType GetFilterType() const { return PCGExFilters::EType::Point; }
 
-		virtual bool Init(const FPCGContext* InContext, const TSharedPtr<PCGExData::FFacade> InPointDataFacade);
+		virtual bool Init(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade> InPointDataFacade);
 
 		virtual void PostInit();
 
@@ -124,7 +126,7 @@ namespace PCGExPointFilter
 
 		TSharedRef<PCGExData::FFacade> PointDataFacade;
 
-		bool Init(const FPCGContext* InContext, const TArray<TObjectPtr<const UPCGExFilterFactoryBase>>& InFactories);
+		bool Init(FPCGExContext* InContext, const TArray<TObjectPtr<const UPCGExFilterFactoryBase>>& InFactories);
 
 		virtual bool Test(const int32 Index);
 		virtual bool Test(const PCGExCluster::FNode& Node);
@@ -137,9 +139,9 @@ namespace PCGExPointFilter
 	protected:
 		TArray<TSharedPtr<FFilter>> ManagedFilters;
 
-		virtual bool InitFilter(const FPCGContext* InContext, const TSharedPtr<FFilter>& Filter);
-		virtual bool PostInit(const FPCGContext* InContext);
-		virtual void PostInitFilter(const FPCGContext* InContext, const TSharedPtr<FFilter>& InFilter);
+		virtual bool InitFilter(FPCGExContext* InContext, const TSharedPtr<FFilter>& Filter);
+		virtual bool PostInit(FPCGExContext* InContext);
+		virtual void PostInitFilter(FPCGExContext* InContext, const TSharedPtr<FFilter>& InFilter);
 
 		virtual void InitCache();
 	};

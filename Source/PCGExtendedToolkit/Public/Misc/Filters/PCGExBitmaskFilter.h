@@ -33,14 +33,14 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExBitmaskFilterConfig
 
 	/** Type of Mask */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable))
-	EPCGExFetchType MaskType = EPCGExFetchType::Constant;
+	EPCGExInputValueType MaskInput = EPCGExInputValueType::Constant;
 
 	/** Mask for testing -- Must be int64. (Operand B) */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="MaskType==EPCGExFetchType::Attribute", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="MaskInput==EPCGExInputValueType::Attribute", EditConditionHides))
 	FName BitmaskAttribute = FName("Mask");
 
 	/** (Operand B) */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="MaskType==EPCGExFetchType::Constant", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="MaskInput==EPCGExInputValueType::Constant", EditConditionHides))
 	int64 Bitmask = 0;
 
 	/** TBD */
@@ -80,7 +80,7 @@ namespace PCGExPointsFilter
 
 		int64 Bitmask;
 
-		virtual bool Init(const FPCGContext* InContext, const TSharedPtr<PCGExData::FFacade> InPointDataFacade) override;
+		virtual bool Init(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade> InPointDataFacade) override;
 
 		FORCEINLINE virtual bool Test(const int32 PointIndex) const override
 		{

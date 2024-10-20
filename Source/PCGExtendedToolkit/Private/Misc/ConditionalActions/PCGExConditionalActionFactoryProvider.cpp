@@ -5,6 +5,7 @@
 
 #include "PCGPin.h"
 
+
 #define LOCTEXT_NAMESPACE "PCGExWriteConditionalActions"
 #define PCGEX_NAMESPACE PCGExWriteConditionalActions
 
@@ -18,7 +19,7 @@ void UPCGExConditionalActionOperation::CopySettingsFrom(const UPCGExOperation* O
 	}
 }
 
-bool UPCGExConditionalActionOperation::PrepareForData(const FPCGContext* InContext, const TSharedPtr<PCGExData::FFacade>& InPointDataFacade)
+bool UPCGExConditionalActionOperation::PrepareForData(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade>& InPointDataFacade)
 {
 	PrimaryDataFacade = InPointDataFacade;
 

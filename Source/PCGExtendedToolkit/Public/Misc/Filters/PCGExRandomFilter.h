@@ -61,7 +61,7 @@ namespace PCGExPointsFilter
 
 		int32 RandomSeed;
 
-		virtual bool Init(const FPCGContext* InContext, const TSharedPtr<PCGExData::FFacade> InPointDataFacade) override;
+		virtual bool Init(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade> InPointDataFacade) override;
 
 		FORCEINLINE virtual bool Test(const int32 PointIndex) const override
 		{

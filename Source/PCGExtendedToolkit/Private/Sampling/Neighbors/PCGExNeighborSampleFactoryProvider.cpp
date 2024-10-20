@@ -20,7 +20,7 @@ void UPCGExNeighborSampleOperation::CopySettingsFrom(const UPCGExOperation* Othe
 	}
 }
 
-void UPCGExNeighborSampleOperation::PrepareForCluster(const FPCGContext* InContext, TSharedRef<PCGExCluster::FCluster> InCluster, TSharedRef<PCGExData::FFacade> InVtxDataFacade, TSharedRef<PCGExData::FFacade> InEdgeDataFacade)
+void UPCGExNeighborSampleOperation::PrepareForCluster(FPCGExContext* InContext, TSharedRef<PCGExCluster::FCluster> InCluster, TSharedRef<PCGExData::FFacade> InVtxDataFacade, TSharedRef<PCGExData::FFacade> InEdgeDataFacade)
 {
 	Cluster = InCluster;
 
@@ -46,7 +46,7 @@ TSharedRef<PCGExData::FPointIO> UPCGExNeighborSampleOperation::GetSourceIO() con
 
 TSharedRef<PCGExData::FFacade> UPCGExNeighborSampleOperation::GetSourceDataFacade() const
 {
-	return SamplingConfig.NeighborSource == EPCGExGraphValueSource::Vtx ? VtxDataFacade.ToSharedRef() : EdgeDataFacade.ToSharedRef();
+	return SamplingConfig.NeighborSource == EPCGExClusterComponentSource::Vtx ? VtxDataFacade.ToSharedRef() : EdgeDataFacade.ToSharedRef();
 }
 
 void UPCGExNeighborSampleOperation::ProcessNode(const int32 NodeIndex) const
@@ -98,7 +98,7 @@ void UPCGExNeighborSampleOperation::ProcessNode(const int32 NodeIndex) const
 
 			LocalWeight = SampleCurve(LocalWeight);
 
-			if (SamplingConfig.NeighborSource == EPCGExGraphValueSource::Vtx) { BlendNodePoint(Node, Neighbor, LocalWeight); }
+			if (SamplingConfig.NeighborSource == EPCGExClusterComponentSource::Vtx) { BlendNodePoint(Node, Neighbor, LocalWeight); }
 			else { BlendNodeEdge(Node, Neighbor, LocalWeight); }
 
 			Count++;

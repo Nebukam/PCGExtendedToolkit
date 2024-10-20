@@ -35,14 +35,14 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExStringCompareFilterConfig
 
 	/** Type of OperandB */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
-	EPCGExFetchType CompareAgainst = EPCGExFetchType::Constant;
+	EPCGExInputValueType CompareAgainst = EPCGExInputValueType::Constant;
 
 	/** Operand B for testing -- Will be translated to `double` under the hood. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="CompareAgainst==EPCGExFetchType::Attribute", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="CompareAgainst==EPCGExInputValueType::Attribute", EditConditionHides))
 	FName OperandB = NAME_None;
 
 	/** Operand B for testing */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="CompareAgainst==EPCGExFetchType::Constant", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="CompareAgainst==EPCGExInputValueType::Constant", EditConditionHides))
 	FString OperandBConstant = TEXT("MyString");
 };
 
@@ -76,12 +76,12 @@ namespace PCGExPointsFilter
 		TSharedPtr<PCGEx::TAttributeBroadcaster<FString>> OperandA;
 		TSharedPtr<PCGEx::TAttributeBroadcaster<FString>> OperandB;
 
-		virtual bool Init(const FPCGContext* InContext, const TSharedPtr<PCGExData::FFacade> InPointDataFacade) override;
+		virtual bool Init(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade> InPointDataFacade) override;
 		FORCEINLINE virtual bool Test(const int32 PointIndex) const override
 		{
 			const FPCGPoint& Point = PointDataFacade->Source->GetInPoint(PointIndex);
 			const FString A = OperandA->SoftGet(PointIndex, Point, TEXT(""));
-			const FString B = TypedFilterFactory->Config.CompareAgainst == EPCGExFetchType::Attribute ? OperandB->SoftGet(PointIndex, Point, TEXT("")) : TypedFilterFactory->Config.OperandBConstant;
+			const FString B = TypedFilterFactory->Config.CompareAgainst == EPCGExInputValueType::Attribute ? OperandB->SoftGet(PointIndex, Point, TEXT("")) : TypedFilterFactory->Config.OperandBConstant;
 			return PCGExCompare::Compare(TypedFilterFactory->Config.Comparison, A, B);
 		}
 

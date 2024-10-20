@@ -41,14 +41,14 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExProbeConfigDirection : public FPCGExProb
 	FRotator MaxAngles = FRotator(45);
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
-	EPCGExFetchType DirectionSource = EPCGExFetchType::Constant;
+	EPCGExInputValueType DirectionInput = EPCGExInputValueType::Constant;
 
 	/** Constant direction */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ClampMin=0, EditCondition="DirectionSource==EPCGExFetchType::Constant", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ClampMin=0, EditCondition="DirectionInput==EPCGExInputValueType::Constant", EditConditionHides))
 	FVector DirectionConstant = FVector::ForwardVector;
 
 	/** Attribute to read the direction from */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="DirectionSource==EPCGExFetchType::Attribute", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="DirectionInput==EPCGExInputValueType::Attribute", EditConditionHides))
 	FPCGAttributePropertyInputSelector DirectionAttribute;
 
 	/** Transform the direction with the point's */

@@ -26,38 +26,38 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExUVW
 
 	/** U Source */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable))
-	EPCGExFetchType USource = EPCGExFetchType::Constant;
+	EPCGExInputValueType UInput = EPCGExInputValueType::Constant;
 
 	/** U Constant */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="USource==EPCGExFetchType::Constant", EditConditionHides, DisplayName="U"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="UInput==EPCGExInputValueType::Constant", EditConditionHides, DisplayName="U"))
 	double UConstant = 0;
 
 	/** U Attribute */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="USource==EPCGExFetchType::Attribute", EditConditionHides, DisplayName="U"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="UInput==EPCGExInputValueType::Attribute", EditConditionHides, DisplayName="U"))
 	FPCGAttributePropertyInputSelector UAttribute;
 
 	/** V Source */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable))
-	EPCGExFetchType VSource = EPCGExFetchType::Constant;
+	EPCGExInputValueType VInput = EPCGExInputValueType::Constant;
 
 	/** V Constant */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="VSource==EPCGExFetchType::Constant", EditConditionHides, DisplayName="V"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="VInput==EPCGExInputValueType::Constant", EditConditionHides, DisplayName="V"))
 	double VConstant = 0;
 
 	/** V Attribute */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="USource==EPCGExFetchType::Attribute", EditConditionHides, DisplayName="V"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="VInput==EPCGExInputValueType::Attribute", EditConditionHides, DisplayName="V"))
 	FPCGAttributePropertyInputSelector VAttribute;
 
 	/** W Source */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable))
-	EPCGExFetchType WSource = EPCGExFetchType::Constant;
+	EPCGExInputValueType WInput = EPCGExInputValueType::Constant;
 
 	/** W Constant */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="WSource==EPCGExFetchType::Constant", EditConditionHides, DisplayName="W"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="WInput==EPCGExInputValueType::Constant", EditConditionHides, DisplayName="W"))
 	double WConstant = 0;
 
 	/** W Attribute */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="USource==EPCGExFetchType::Attribute", EditConditionHides, DisplayName="W"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="WInput==EPCGExInputValueType::Attribute", EditConditionHides, DisplayName="W"))
 	FPCGAttributePropertyInputSelector WAttribute;
 
 	TSharedPtr<PCGExData::TBuffer<double>> UGetter;
@@ -66,7 +66,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExUVW
 
 	bool Init(const FPCGContext* InContext, const TSharedRef<PCGExData::FFacade>& InDataFacade)
 	{
-		if (USource == EPCGExFetchType::Attribute)
+		if (UInput == EPCGExInputValueType::Attribute)
 		{
 			UGetter = InDataFacade->GetScopedBroadcaster<double>(UAttribute);
 			if (!UGetter)
@@ -76,7 +76,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExUVW
 			}
 		}
 
-		if (VSource == EPCGExFetchType::Attribute)
+		if (VInput == EPCGExInputValueType::Attribute)
 		{
 			VGetter = InDataFacade->GetScopedBroadcaster<double>(VAttribute);
 			if (!VGetter)
@@ -86,7 +86,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExUVW
 			}
 		}
 
-		if (WSource == EPCGExFetchType::Attribute)
+		if (WInput == EPCGExInputValueType::Attribute)
 		{
 			WGetter = InDataFacade->GetScopedBroadcaster<double>(WAttribute);
 			if (!WGetter)

@@ -314,6 +314,11 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExBlendingDetails
 			}
 		}
 	}
+
+	bool PrepareFacadeForScopedReading(TSharedRef<PCGExData::FFacade> InFacade, bool& bUsesAttributes) const
+	{
+		//
+	}
 };
 
 namespace PCGExDataBlending

@@ -101,9 +101,15 @@ namespace PCGExFlagNodes
 		TSharedPtr<TArray<int64>> StateFlags;
 
 	public:
-		FProcessorBatch(FPCGExContext* InContext, const TSharedRef<PCGExData::FPointIO>& InVtx, TArrayView<TSharedRef<PCGExData::FPointIO>> InEdges);
+		FProcessorBatch(FPCGExContext* InContext, const TSharedRef<PCGExData::FPointIO>& InVtx, TArrayView<TSharedRef<PCGExData::FPointIO>> InEdges)
+			: TBatch(InContext, InVtx, InEdges)
+		{
+			bAllowVtxDataFacadeScopedGet = true;
+		}
+
 		virtual ~FProcessorBatch() override;
 
+		virtual void GatherRequiredVtxAttributes(PCGExData::FReadableBufferConfigList& ReadableBufferConfigList) override;
 		virtual void OnProcessingPreparationComplete() override;
 		virtual bool PrepareSingle(const TSharedPtr<FProcessor>& ClusterProcessor) override;
 	};

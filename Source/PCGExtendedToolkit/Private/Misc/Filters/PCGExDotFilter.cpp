@@ -19,7 +19,7 @@ TSharedPtr<PCGExPointFilter::FFilter> UPCGExDotFilterFactory::CreateFilter() con
 	return MakeShared<PCGExPointsFilter::TDotFilter>(this);
 }
 
-bool PCGExPointsFilter::TDotFilter::Init(const FPCGContext* InContext, const TSharedPtr<PCGExData::FFacade> InPointDataFacade)
+bool PCGExPointsFilter::TDotFilter::Init(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade> InPointDataFacade)
 {
 	if (!FFilter::Init(InContext, InPointDataFacade)) { return false; }
 
@@ -30,7 +30,7 @@ bool PCGExPointsFilter::TDotFilter::Init(const FPCGContext* InContext, const TSh
 		return false;
 	}
 
-	if (TypedFilterFactory->Config.CompareAgainst == EPCGExFetchType::Attribute)
+	if (TypedFilterFactory->Config.CompareAgainst == EPCGExInputValueType::Attribute)
 	{
 		OperandB = PointDataFacade->GetScopedBroadcaster<FVector>(TypedFilterFactory->Config.OperandB);
 		if (!OperandB)
@@ -50,7 +50,7 @@ FString UPCGExDotFilterProviderSettings::GetDisplayName() const
 {
 	FString DisplayName = Config.OperandA.GetName().ToString() + " . ";
 
-	if (Config.CompareAgainst == EPCGExFetchType::Attribute) { DisplayName += Config.OperandB.GetName().ToString(); }
+	if (Config.CompareAgainst == EPCGExInputValueType::Attribute) { DisplayName += Config.OperandB.GetName().ToString(); }
 	else { DisplayName += " (Constant)"; }
 
 	return DisplayName;

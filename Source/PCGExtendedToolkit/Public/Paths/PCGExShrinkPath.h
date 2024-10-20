@@ -48,14 +48,14 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExShrinkPathEndpointDistanceDetails
 
 	/** TBD */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
-	EPCGExFetchType ValueSource = EPCGExFetchType::Constant;
+	EPCGExInputValueType AmountInput = EPCGExInputValueType::Constant;
 
 	/** TBD */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="ValueSource==EPCGExFetchType::Constant", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="AmountInput==EPCGExInputValueType::Constant", EditConditionHides))
 	double Distance = 10;
 
 	/** Distance or count */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="ValueSource==EPCGExFetchType::Attribute", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="AmountInput==EPCGExInputValueType::Attribute", EditConditionHides))
 	FPCGAttributePropertyInputSelector DistanceAttribute;
 
 	/** TBD */
@@ -64,7 +64,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExShrinkPathEndpointDistanceDetails
 
 	bool SanityCheck(const FPCGContext* Context) const
 	{
-		if (ValueSource == EPCGExFetchType::Attribute) { PCGEX_VALIDATE_NAME_C(Context, DistanceAttribute.GetName()) }
+		if (AmountInput == EPCGExInputValueType::Attribute) { PCGEX_VALIDATE_NAME_C(Context, DistanceAttribute.GetName()) }
 		return true;
 	}
 };
@@ -76,19 +76,19 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExShrinkPathEndpointCountDetails
 
 	/** TBD */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
-	EPCGExFetchType ValueSource = EPCGExFetchType::Constant;
+	EPCGExInputValueType ValueSource = EPCGExInputValueType::Constant;
 
 	/** TBD */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="ValueSource==EPCGExFetchType::Constant", EditConditionHides, ClampMin=1))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="ValueSource==EPCGExInputValueType::Constant", EditConditionHides, ClampMin=1))
 	int32 Count = 10;
 
 	/** Distance or count */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="ValueSource==EPCGExFetchType::Attribute", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="ValueSource==EPCGExInputValueType::Attribute", EditConditionHides))
 	FPCGAttributePropertyInputSelector CountAttribute;
 
 	bool SanityCheck(const FPCGContext* Context) const
 	{
-		if (ValueSource == EPCGExFetchType::Attribute) { PCGEX_VALIDATE_NAME_C(Context, CountAttribute.GetName()) }
+		if (ValueSource == EPCGExInputValueType::Attribute) { PCGEX_VALIDATE_NAME_C(Context, CountAttribute.GetName()) }
 		return true;
 	}
 };

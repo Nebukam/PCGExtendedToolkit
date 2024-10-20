@@ -229,7 +229,6 @@ namespace PCGExGeo
 		{
 			for (int i = 0; i < 4; i++) { Faces[i] = PCGEx::UH3(Vtx[MTX[i][0]], Vtx[MTX[i][1]], Vtx[MTX[i][2]]); }
 		}
-
 	};
 
 	class /*PCGEXTENDEDTOOLKIT_API*/ TDelaunay3

@@ -1,0 +1,112 @@
+﻿// Copyright Timothé Lapetite 2024
+// Released under the MIT license https://opensource.org/license/MIT/
+
+#include "Graph/PCGExFindPointOnBoundsClusters.h"
+
+#include "Data/PCGExPointIOMerger.h"
+
+#define LOCTEXT_NAMESPACE "PCGExFindPointOnBoundsClusters"
+#define PCGEX_NAMESPACE FindPointOnBoundsClusters
+
+PCGExData::EInit UPCGExFindPointOnBoundsClustersSettings::GetEdgeOutputInitMode() const { return PCGExData::EInit::NoOutput; }
+PCGExData::EInit UPCGExFindPointOnBoundsClustersSettings::GetMainOutputInitMode() const { return PCGExData::EInit::NoOutput; }
+
+TArray<FPCGPinProperties> UPCGExFindPointOnBoundsClustersSettings::InputPinProperties() const
+{
+	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
+	PCGEX_PIN_POINT(PCGExGraph::SourcePickersLabel, "Target points used to test for proximity", Required, {})
+	return PinProperties;
+}
+
+void FPCGExFindPointOnBoundsClustersContext::ClusterProcessing_InitialProcessingDone()
+{
+	FPCGExEdgesProcessorContext::ClusterProcessing_InitialProcessingDone();
+	PCGEX_SETTINGS_LOCAL(FindPointOnBoundsClusters)
+}
+
+PCGEX_INITIALIZE_ELEMENT(FindPointOnBoundsClusters)
+
+bool FPCGExFindPointOnBoundsClustersElement::Boot(FPCGExContext* InContext) const
+{
+	if (!FPCGExEdgesProcessorElement::Boot(InContext)) { return false; }
+	PCGEX_CONTEXT_AND_SETTINGS(FindPointOnBoundsClusters)
+	return true;
+}
+
+bool FPCGExFindPointOnBoundsClustersElement::ExecuteInternal(
+	FPCGContext* InContext) const
+{
+	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExFindPointOnBoundsClustersElement::Execute);
+
+	PCGEX_CONTEXT_AND_SETTINGS(FindPointOnBoundsClusters)
+	PCGEX_EXECUTION_CHECK
+	PCGEX_ON_INITIAL_EXECUTION
+	{
+		if (!Context->StartProcessingClusters<PCGExClusterMT::TBatch<PCGExFindPointOnBoundsClusters::FProcessor>>(
+			[](const TSharedPtr<PCGExData::FPointIOTaggedEntries>& Entries) { return true; },
+			[&](const TSharedPtr<PCGExClusterMT::TBatch<PCGExFindPointOnBoundsClusters::FProcessor>>& NewBatch)
+			{
+			}))
+		{
+			return Context->CancelExecution(TEXT("Could not build any clusters."));
+		}
+	}
+
+	PCGEX_CLUSTER_BATCH_PROCESSING(PCGEx::State_Done)
+
+	Context->MainPoints->StageOutputs();
+
+	return Context->TryComplete();
+}
+
+
+namespace PCGExFindPointOnBoundsClusters
+{
+	FProcessor::~FProcessor()
+	{
+	}
+
+	bool FProcessor::Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager)
+	{
+		if (!FClusterProcessor::Process(InAsyncManager)) { return false; }
+
+		const FVector E = Cluster->Bounds.GetExtent();
+		SearchPosition = Cluster->Bounds.GetCenter() + FVector(Settings->UConstant * E.X, Settings->VConstant * E.Y, Settings->WConstant * E.Z);
+		Cluster->RebuildOctree(Settings->SearchMode);
+
+		if (Settings->SearchMode == EPCGExClusterClosestSearchMode::Node) { StartParallelLoopForNodes(); }
+		else { StartParallelLoopForEdges(); }
+
+		return true;
+	}
+
+	void FProcessor::UpdateCandidate(const FVector& InPosition, const int32 InIndex)
+	{
+		if (const double Dist = FVector::Dist(InPosition, SearchPosition); Dist < BestDistance)
+		{
+			FWriteScopeLock WriteLock(BestIndexLock);
+			BestIndex = InIndex;
+			BestDistance = Dist;
+		}
+	}
+
+	void FProcessor::ProcessSingleNode(const int32 Index, PCGExCluster::FNode& Node, const int32 LoopIdx, const int32 Count)
+	{
+		TClusterProcessor<FPCGExFindPointOnBoundsClustersContext, UPCGExFindPointOnBoundsClustersSettings>::ProcessSingleNode(Index, Node, LoopIdx, Count);
+		UpdateCandidate(Cluster->GetPos(Node), Node.PointIndex);
+	}
+
+	void FProcessor::ProcessSingleEdge(const int32 EdgeIndex, PCGExGraph::FIndexedEdge& Edge, const int32 LoopIdx, const int32 Count)
+	{
+		TClusterProcessor<FPCGExFindPointOnBoundsClustersContext, UPCGExFindPointOnBoundsClustersSettings>::ProcessSingleEdge(EdgeIndex, Edge, LoopIdx, Count);
+		UpdateCandidate(Cluster->GetClosestPointOnEdge(EdgeIndex, SearchPosition), EdgeIndex);
+	}
+
+	void FProcessor::CompleteWork()
+	{
+		//TSharedPtr<PCGExData::FPointIO> PointIO 
+	}
+}
+
+#undef LOCTEXT_NAMESPACE
+#undef PCGEX_NAMESPACE

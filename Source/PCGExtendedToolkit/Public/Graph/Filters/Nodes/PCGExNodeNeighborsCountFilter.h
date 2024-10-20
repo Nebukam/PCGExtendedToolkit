@@ -29,14 +29,14 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExNodeNeighborsCountFilterConfig
 
 	/** Type of Count */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
-	EPCGExFetchType CompareAgainst = EPCGExFetchType::Constant;
+	EPCGExInputValueType CompareAgainst = EPCGExInputValueType::Constant;
 
 	/** Operand A for testing -- Will be translated to `double` under the hood. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(EditCondition="CompareAgainst==EPCGExFetchType::Attribute", EditConditionHides, ShowOnlyInnerProperties, DisplayName="Operand A (First)"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(EditCondition="CompareAgainst==EPCGExInputValueType::Attribute", EditConditionHides, ShowOnlyInnerProperties, DisplayName="Operand A (First)"))
 	FPCGAttributePropertyInputSelector LocalCount;
 
 	/** Constant Operand A for testing. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="CompareAgainst==EPCGExFetchType::Constant", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="CompareAgainst==EPCGExInputValueType::Constant", EditConditionHides))
 	int32 Count = 0;
 
 	/** Rounding mode for near measures */
@@ -72,7 +72,7 @@ namespace PCGExNodeNeighborsCount
 
 		TSharedPtr<PCGExData::TBuffer<double>> LocalCount;
 
-		virtual bool Init(const FPCGContext* InContext, const TSharedRef<PCGExCluster::FCluster>& InCluster, const TSharedRef<PCGExData::FFacade>& InPointDataFacade, const TSharedRef<PCGExData::FFacade>& InEdgeDataFacade) override;
+		virtual bool Init(FPCGExContext* InContext, const TSharedRef<PCGExCluster::FCluster>& InCluster, const TSharedRef<PCGExData::FFacade>& InPointDataFacade, const TSharedRef<PCGExData::FFacade>& InEdgeDataFacade) override;
 		virtual bool Test(const PCGExCluster::FNode& Node) const override;
 
 		virtual ~FNeighborsCountFilter() override

@@ -72,18 +72,18 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExAdjacencySettings
 
 	/** Define the nodes subset' size that must meet requirements. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable, PCG_Overridable, EditCondition="Mode==EPCGExAdjacencyTestMode::Some", EditConditionHides))
-	EPCGExFetchType ThresholdSource = EPCGExFetchType::Constant;
+	EPCGExInputValueType ThresholdInput = EPCGExInputValueType::Constant;
 
 	/** Discrete threshold value */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="Mode==EPCGExAdjacencyTestMode::Some && ThresholdSource==EPCGExFetchType::Constant && ThresholdType == EPCGExMeanMeasure::Discrete", EditConditionHides, ClampMin=0))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="Mode==EPCGExAdjacencyTestMode::Some && ThresholdInput==EPCGExInputValueType::Constant && ThresholdType == EPCGExMeanMeasure::Discrete", EditConditionHides, ClampMin=0))
 	int32 DiscreteThreshold = 1;
 
 	/** Relative threshold value */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="Mode==EPCGExAdjacencyTestMode::Some && ThresholdSource==EPCGExFetchType::Constant && ThresholdType == EPCGExMeanMeasure::Relative", EditConditionHides, ClampMin=0, ClampMax=1))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="Mode==EPCGExAdjacencyTestMode::Some && ThresholdInput==EPCGExInputValueType::Constant && ThresholdType == EPCGExMeanMeasure::Relative", EditConditionHides, ClampMin=0, ClampMax=1))
 	double RelativeThreshold = 0.5;
 
 	/** Local measure attribute */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="Mode==EPCGExAdjacencyTestMode::Some && ThresholdSource==EPCGExFetchType::Attribute", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="Mode==EPCGExAdjacencyTestMode::Some && ThresholdInput==EPCGExInputValueType::Attribute", EditConditionHides))
 	FPCGAttributePropertyInputSelector ThresholdAttribute;
 
 	/** When using relative threshold mode, choose how to round it to a discrete value. */
@@ -103,7 +103,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExAdjacencySettings
 	bool Init(const FPCGContext* InContext, const TSharedRef<PCGExData::FFacade>& InPrimaryDataFacade)
 	{
 		bUseDiscreteMeasure = ThresholdType == EPCGExMeanMeasure::Discrete;
-		bUseLocalThreshold = ThresholdSource == EPCGExFetchType::Attribute;
+		bUseLocalThreshold = ThresholdInput == EPCGExInputValueType::Attribute;
 		bTestAllNeighbors = Mode != EPCGExAdjacencyTestMode::Some;
 
 		if (bUseLocalThreshold)

@@ -87,7 +87,7 @@ namespace PCGExBlendPath
 		if (!FPointsProcessor::Process(InAsyncManager)) { return false; }
 
 
-		if (Settings->BlendOver == EPCGExBlendOver::Fixed && Settings->LerpSource == EPCGExFetchType::Attribute)
+		if (Settings->BlendOver == EPCGExBlendOver::Fixed && Settings->LerpInput == EPCGExInputValueType::Attribute)
 		{
 			LerpCache = PointDataFacade->GetScopedBroadcaster<double>(Settings->LerpAttribute);
 

@@ -50,6 +50,8 @@ protected:
 public:
 	TSharedPtr<PCGEx::FManagedObjects> ManagedObjects;
 
+	bool bScopedAttributeGet = false;
+
 	FPCGExContext();
 
 	virtual ~FPCGExContext() override;

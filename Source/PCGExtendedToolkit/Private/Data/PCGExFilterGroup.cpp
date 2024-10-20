@@ -8,13 +8,13 @@
 
 namespace PCGExFilterGroup
 {
-	bool FFilterGroup::Init(const FPCGContext* InContext, const TSharedPtr<PCGExData::FFacade> InPointDataFacade)
+	bool FFilterGroup::Init(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade> InPointDataFacade)
 	{
 		PointDataFacade = InPointDataFacade;
 		return InitManaged(InContext);
 	}
 
-	bool FFilterGroup::Init(const FPCGContext* InContext, const TSharedRef<PCGExCluster::FCluster>& InCluster, const TSharedRef<PCGExData::FFacade>& InPointDataFacade, const TSharedRef<PCGExData::FFacade>& InEdgeDataFacade)
+	bool FFilterGroup::Init(FPCGExContext* InContext, const TSharedRef<PCGExCluster::FCluster>& InCluster, const TSharedRef<PCGExData::FFacade>& InPointDataFacade, const TSharedRef<PCGExData::FFacade>& InEdgeDataFacade)
 	{
 		bInitForCluster = true;
 		Cluster = InCluster;
@@ -35,7 +35,7 @@ namespace PCGExFilterGroup
 		*/
 	}
 
-	bool FFilterGroup::InitManaged(const FPCGContext* InContext)
+	bool FFilterGroup::InitManaged(FPCGExContext* InContext)
 	{
 		for (const UPCGExFilterFactoryBase* ManagedFactory : *ManagedFactories)
 		{
@@ -48,7 +48,7 @@ namespace PCGExFilterGroup
 		return PostInitManaged(InContext);
 	}
 
-	bool FFilterGroup::InitManagedFilter(const FPCGContext* InContext, const TSharedPtr<PCGExPointFilter::FFilter>& Filter) const
+	bool FFilterGroup::InitManagedFilter(FPCGExContext* InContext, const TSharedPtr<PCGExPointFilter::FFilter>& Filter) const
 	{
 		if (Filter->GetFilterType() == PCGExFilters::EType::Point) { return Filter->Init(InContext, PointDataFacade); }
 
@@ -79,7 +79,7 @@ namespace PCGExFilterGroup
 		return false;
 	}
 
-	bool FFilterGroup::PostInitManaged(const FPCGContext* InContext)
+	bool FFilterGroup::PostInitManaged(FPCGExContext* InContext)
 	{
 		bValid = !ManagedFilters.IsEmpty();
 
@@ -99,7 +99,7 @@ namespace PCGExFilterGroup
 		return true;
 	}
 
-	void FFilterGroup::PostInitManagedFilter(const FPCGContext* InContext, const TSharedPtr<PCGExPointFilter::FFilter>& InFilter)
+	void FFilterGroup::PostInitManagedFilter(FPCGExContext* InContext, const TSharedPtr<PCGExPointFilter::FFilter>& InFilter)
 	{
 		InFilter->PostInit();
 	}

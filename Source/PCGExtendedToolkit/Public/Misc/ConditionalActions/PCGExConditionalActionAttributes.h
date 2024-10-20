@@ -34,7 +34,7 @@ public:
 
 	virtual void CopySettingsFrom(const UPCGExOperation* Other) override;
 
-	virtual bool PrepareForData(const FPCGContext* InContext, const TSharedPtr<PCGExData::FFacade>& InPointDataFacade) override;
+	virtual bool PrepareForData(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade>& InPointDataFacade) override;
 	virtual void OnMatchSuccess(int32 Index, const FPCGPoint& Point) override;
 	virtual void OnMatchFail(int32 Index, const FPCGPoint& Point) override;
 

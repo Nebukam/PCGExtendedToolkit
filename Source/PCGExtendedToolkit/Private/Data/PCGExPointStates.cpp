@@ -20,7 +20,7 @@ namespace PCGExPointStates
 	{
 	}
 
-	bool FState::Init(const FPCGContext* InContext, const TSharedPtr<PCGExData::FFacade> InPointDataFacade)
+	bool FState::Init(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade> InPointDataFacade)
 	{
 		if (!FFilter::Init(InContext, InPointDataFacade)) { return false; }
 
@@ -29,7 +29,7 @@ namespace PCGExPointStates
 		return true;
 	}
 
-	bool FState::InitInternalManager(const FPCGContext* InContext, const TArray<TObjectPtr<const UPCGExFilterFactoryBase>>& InFactories)
+	bool FState::InitInternalManager(FPCGExContext* InContext, const TArray<TObjectPtr<const UPCGExFilterFactoryBase>>& InFactories)
 	{
 		return Manager->Init(InContext, InFactories);
 	}
@@ -52,7 +52,7 @@ namespace PCGExPointStates
 		FlagsCache = InFlags;
 	}
 
-	void FStateManager::PostInitFilter(const FPCGContext* InContext, const TSharedPtr<PCGExPointFilter::FFilter>& InFilter)
+	void FStateManager::PostInitFilter(FPCGExContext* InContext, const TSharedPtr<PCGExPointFilter::FFilter>& InFilter)
 	{
 		const TSharedPtr<FState> State = StaticCastSharedPtr<FState>(InFilter);
 		State->InitInternalManager(InContext, State->StateFactory->FilterFactories);

@@ -45,7 +45,7 @@ bool FPCGExMeshToClustersElement::Boot(FPCGExContext* InContext) const
 	PCGEX_FWD(GraphBuilderDetails)
 	PCGEX_FWD(TransformDetails)
 
-	if (Settings->StaticMeshSource == EPCGExFetchType::Attribute)
+	if (Settings->StaticMeshInput == EPCGExInputValueType::Attribute)
 	{
 		PCGEX_VALIDATE_NAME(Settings->StaticMeshAttribute)
 	}
@@ -77,7 +77,7 @@ bool FPCGExMeshToClustersElement::ExecuteInternal(
 	PCGEX_ON_INITIAL_EXECUTION
 	{
 		Context->AdvancePointsIO();
-		if (Settings->StaticMeshSource == EPCGExFetchType::Constant)
+		if (Settings->StaticMeshInput == EPCGExInputValueType::Constant)
 		{
 			if (!Settings->StaticMeshConstant.ToSoftObjectPath().IsValid())
 			{

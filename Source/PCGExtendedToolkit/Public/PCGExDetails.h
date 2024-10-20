@@ -22,7 +22,7 @@ enum class EPCGExAdjacencyDirectionOrigin : uint8
 };
 
 UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Fetch Type"))
-enum class EPCGExFetchType : uint8
+enum class EPCGExInputValueType : uint8
 {
 	Constant  = 0 UMETA(DisplayName = "Constant", Tooltip="Constant."),
 	Attribute = 1 UMETA(DisplayName = "Attribute", Tooltip="Attribute."),

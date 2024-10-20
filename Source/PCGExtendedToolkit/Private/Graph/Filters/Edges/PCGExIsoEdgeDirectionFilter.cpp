@@ -9,17 +9,23 @@
 #define LOCTEXT_NAMESPACE "PCGExIsoEdgeDirectionFilter"
 #define PCGEX_NAMESPACE IsoEdgeDirectionFilter
 
+void UPCGExIsoEdgeDirectionFilterFactory::GatherRequiredVtxAttributes(FPCGExContext* InContext, PCGExData::FReadableBufferConfigList& ReadableBufferConfigList) const
+{
+	Super::GatherRequiredVtxAttributes(InContext, ReadableBufferConfigList);
+	Config.DirectionSettings.GatherRequiredVtxAttributes(InContext, ReadableBufferConfigList);
+}
+
 TSharedPtr<PCGExPointFilter::FFilter> UPCGExIsoEdgeDirectionFilterFactory::CreateFilter() const
 {
 	return MakeShared<FIsoEdgeDirectionFilter>(this);
 }
 
-bool FIsoEdgeDirectionFilter::Init(const FPCGContext* InContext, const TSharedRef<PCGExCluster::FCluster>& InCluster, const TSharedRef<PCGExData::FFacade>& InPointDataFacade, const TSharedRef<PCGExData::FFacade>& InEdgeDataFacade)
+bool FIsoEdgeDirectionFilter::Init(FPCGExContext* InContext, const TSharedRef<PCGExCluster::FCluster>& InCluster, const TSharedRef<PCGExData::FFacade>& InPointDataFacade, const TSharedRef<PCGExData::FFacade>& InEdgeDataFacade)
 {
 	if (!FFilter::Init(InContext, InCluster, InPointDataFacade, InEdgeDataFacade)) { return false; }
 
 	DirectionSettings = TypedFilterFactory->Config.DirectionSettings;
-	if (!DirectionSettings.Init(InContext, InPointDataFacade))
+	if (!DirectionSettings.Init(InContext))
 	{
 		PCGE_LOG_C(Warning, GraphAndLog, InContext, FTEXT("Some vtx are missing the specified Direction attribute."));
 		return false;
@@ -32,7 +38,7 @@ bool FIsoEdgeDirectionFilter::Init(const FPCGContext* InContext, const TSharedRe
 		const int32 PLI = GetDefault<UPCGExGlobalSettings>()->GetClusterBatchChunkSize();
 	}
 
-	if (TypedFilterFactory->Config.CompareAgainst == EPCGExFetchType::Attribute)
+	if (TypedFilterFactory->Config.CompareAgainst == EPCGExInputValueType::Attribute)
 	{
 		OperandDirection = PointDataFacade->GetBroadcaster<FVector>(TypedFilterFactory->Config.Direction);
 		if (!OperandDirection)

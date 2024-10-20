@@ -37,12 +37,12 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExProbeConfigBase
 	bool bSupportRadius = true;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bSupportRadius", EditConditionHides))
-	EPCGExFetchType SearchRadiusSource = EPCGExFetchType::Constant;
+	EPCGExInputValueType SearchRadiusInput = EPCGExInputValueType::Constant;
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ClampMin=0, EditCondition="bSupportRadius && SearchRadiusSource==EPCGExFetchType::Constant", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ClampMin=0, EditCondition="bSupportRadius && SearchRadiusInput==EPCGExInputValueType::Constant", EditConditionHides))
 	double SearchRadiusConstant = 100;
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bSupportRadius && SearchRadiusSource==EPCGExFetchType::Attribute", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bSupportRadius && SearchRadiusInput==EPCGExInputValueType::Attribute", EditConditionHides))
 	FPCGAttributePropertyInputSelector SearchRadiusAttribute;
 };
 

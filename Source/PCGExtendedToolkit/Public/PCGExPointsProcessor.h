@@ -102,7 +102,6 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPointsProcessorContext : FPCGExContext
 {
 	friend class FPCGExPointsProcessorElement;
 
-	bool bScopedAttributeGet = false;
 	virtual ~FPCGExPointsProcessorContext() override;
 
 	mutable FRWLock AsyncLock;

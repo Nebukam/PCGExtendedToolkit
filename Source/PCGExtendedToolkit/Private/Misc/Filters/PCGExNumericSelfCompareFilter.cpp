@@ -12,7 +12,7 @@ TSharedPtr<PCGExPointFilter::FFilter> UPCGExNumericSelfCompareFilterFactory::Cre
 	return MakeShared<PCGExPointsFilter::TNumericSelfComparisonFilter>(this);
 }
 
-bool PCGExPointsFilter::TNumericSelfComparisonFilter::Init(const FPCGContext* InContext, const TSharedPtr<PCGExData::FFacade> InPointDataFacade)
+bool PCGExPointsFilter::TNumericSelfComparisonFilter::Init(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade> InPointDataFacade)
 {
 	if (!FFilter::Init(InContext, InPointDataFacade)) { return false; }
 
@@ -29,7 +29,7 @@ bool PCGExPointsFilter::TNumericSelfComparisonFilter::Init(const FPCGContext* In
 		return false;
 	}
 
-	if (TypedFilterFactory->Config.CompareAgainst == EPCGExFetchType::Attribute)
+	if (TypedFilterFactory->Config.CompareAgainst == EPCGExInputValueType::Attribute)
 	{
 		Index = PointDataFacade->GetScopedBroadcaster<int32>(TypedFilterFactory->Config.IndexAttribute);
 
@@ -53,7 +53,7 @@ FString UPCGExNumericSelfCompareFilterProviderSettings::GetDisplayName() const
 	if (Config.IndexMode == EPCGExIndexMode::Pick) { DisplayName += TEXT(" @ "); }
 	else { DisplayName += TEXT(" i+ "); }
 
-	if (Config.CompareAgainst == EPCGExFetchType::Attribute) { DisplayName += Config.IndexAttribute.GetName().ToString(); }
+	if (Config.CompareAgainst == EPCGExInputValueType::Attribute) { DisplayName += Config.IndexAttribute.GetName().ToString(); }
 	else { DisplayName += FString::Printf(TEXT("%d"), Config.IndexConstant); }
 
 	return DisplayName;

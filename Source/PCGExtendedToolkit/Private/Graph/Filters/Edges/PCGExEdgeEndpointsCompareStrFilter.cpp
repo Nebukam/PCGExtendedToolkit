@@ -9,6 +9,12 @@
 #define LOCTEXT_NAMESPACE "PCGExEdgeEndpointsCompareStrFilter"
 #define PCGEX_NAMESPACE EdgeEndpointsCompareStrFilter
 
+void UPCGExEdgeEndpointsCompareStrFilterFactory::GatherRequiredVtxAttributes(FPCGExContext* InContext, PCGExData::FReadableBufferConfigList& ReadableBufferConfigList) const
+{
+	Super::GatherRequiredVtxAttributes(InContext, ReadableBufferConfigList);
+	ReadableBufferConfigList.Register<FString>(InContext, Config.Attribute);
+}
+
 TSharedPtr<PCGExPointFilter::FFilter> UPCGExEdgeEndpointsCompareStrFilterFactory::CreateFilter() const
 {
 	return MakeShared<PCGExEdgeEndpointsCompareStr::FNeighborsCountFilter>(this);
@@ -16,7 +22,7 @@ TSharedPtr<PCGExPointFilter::FFilter> UPCGExEdgeEndpointsCompareStrFilterFactory
 
 namespace PCGExEdgeEndpointsCompareStr
 {
-	bool FNeighborsCountFilter::Init(const FPCGContext* InContext, const TSharedRef<PCGExCluster::FCluster>& InCluster, const TSharedRef<PCGExData::FFacade>& InPointDataFacade, const TSharedRef<PCGExData::FFacade>& InEdgeDataFacade)
+	bool FNeighborsCountFilter::Init(FPCGExContext* InContext, const TSharedRef<PCGExCluster::FCluster>& InCluster, const TSharedRef<PCGExData::FFacade>& InPointDataFacade, const TSharedRef<PCGExData::FFacade>& InEdgeDataFacade)
 	{
 		if (!FFilter::Init(InContext, InCluster, InPointDataFacade, InEdgeDataFacade)) { return false; }
 
@@ -58,7 +64,7 @@ FString UPCGExEdgeEndpointsCompareStrFilterProviderSettings::GetDisplayName() co
 		}
 	
 		DisplayName += ")" + PCGExCompare::ToString(Config.Comparison);
-		if (Config.ThresholdSource == EPCGExFetchType::Constant) { DisplayName += FString::Printf(TEXT("%d"), Config.ThresholdConstant); }
+		if (Config.ThresholdSource == EPCGExInputValueType::Constant) { DisplayName += FString::Printf(TEXT("%d"), Config.ThresholdConstant); }
 		else { DisplayName += Config.ThresholdAttribute.GetName().ToString(); }
 	*/
 	return DisplayName;

@@ -17,11 +17,11 @@ TSharedPtr<PCGExPointFilter::FFilter> UPCGExNodeNeighborsCountFilterFactory::Cre
 
 namespace PCGExNodeNeighborsCount
 {
-	bool FNeighborsCountFilter::Init(const FPCGContext* InContext, const TSharedRef<PCGExCluster::FCluster>& InCluster, const TSharedRef<PCGExData::FFacade>& InPointDataFacade, const TSharedRef<PCGExData::FFacade>& InEdgeDataFacade)
+	bool FNeighborsCountFilter::Init(FPCGExContext* InContext, const TSharedRef<PCGExCluster::FCluster>& InCluster, const TSharedRef<PCGExData::FFacade>& InPointDataFacade, const TSharedRef<PCGExData::FFacade>& InEdgeDataFacade)
 	{
 		if (!FFilter::Init(InContext, InCluster, InPointDataFacade, InEdgeDataFacade)) { return false; }
 
-		if (TypedFilterFactory->Config.CompareAgainst == EPCGExFetchType::Attribute)
+		if (TypedFilterFactory->Config.CompareAgainst == EPCGExInputValueType::Attribute)
 		{
 			LocalCount = PointDataFacade->GetBroadcaster<double>(TypedFilterFactory->Config.LocalCount);
 
@@ -50,7 +50,7 @@ FString UPCGExNodeNeighborsCountFilterProviderSettings::GetDisplayName() const
 {
 	FString DisplayName = "Neighbors Count" + PCGExCompare::ToString(Config.Comparison);
 
-	if (Config.CompareAgainst == EPCGExFetchType::Constant) { DisplayName += FString::Printf(TEXT("%d"), Config.Count); }
+	if (Config.CompareAgainst == EPCGExInputValueType::Constant) { DisplayName += FString::Printf(TEXT("%d"), Config.Count); }
 	else { DisplayName += Config.LocalCount.GetName().ToString(); }
 
 	return DisplayName;

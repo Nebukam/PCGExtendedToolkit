@@ -87,7 +87,7 @@ namespace PCGExSubdivide
 
 		bClosedLoop = Context->ClosedLoop.IsClosedLoop(PointDataFacade->Source);
 
-		if (Settings->ValueSource == EPCGExFetchType::Attribute)
+		if (Settings->AmountInput == EPCGExInputValueType::Attribute)
 		{
 			AmountGetter = PointDataFacade->GetScopedBroadcaster<double>(Settings->SubdivisionAmount);
 			if (!AmountGetter)
@@ -128,7 +128,6 @@ namespace PCGExSubdivide
 		Sub.NumSubdivisions = 0;
 		Sub.Start = PointIO->GetInPoint(Index).Transform.GetLocation();
 		Sub.End = PointIO->GetInPoint(Index + 1 == PointIO->GetNum() ? 0 : Index + 1).Transform.GetLocation();
-
 		Sub.Dist = FVector::Distance(Sub.Start, Sub.End);
 
 		if (!PointFilterCache[Index]) { return; }

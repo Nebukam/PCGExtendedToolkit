@@ -84,8 +84,8 @@ namespace PCGExFilterGroup
 
 		virtual PCGExFilters::EType GetFilterType() const override { return PCGExFilters::EType::Group; }
 
-		virtual bool Init(const FPCGContext* InContext, const TSharedPtr<PCGExData::FFacade> InPointDataFacade) override;
-		virtual bool Init(const FPCGContext* InContext, const TSharedRef<PCGExCluster::FCluster>& InCluster, const TSharedRef<PCGExData::FFacade>& InPointDataFacade, const TSharedRef<PCGExData::FFacade>& InEdgeDataFacade) override;
+		virtual bool Init(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade> InPointDataFacade) override;
+		virtual bool Init(FPCGExContext* InContext, const TSharedRef<PCGExCluster::FCluster>& InCluster, const TSharedRef<PCGExData::FFacade>& InPointDataFacade, const TSharedRef<PCGExData::FFacade>& InEdgeDataFacade) override;
 
 		virtual void PostInit() override;
 
@@ -96,10 +96,10 @@ namespace PCGExFilterGroup
 	protected:
 		TArray<TSharedPtr<PCGExPointFilter::FFilter>> ManagedFilters;
 
-		virtual bool InitManaged(const FPCGContext* InContext);
-		bool InitManagedFilter(const FPCGContext* InContext, const TSharedPtr<PCGExPointFilter::FFilter>& Filter) const;
-		virtual bool PostInitManaged(const FPCGContext* InContext);
-		virtual void PostInitManagedFilter(const FPCGContext* InContext, const TSharedPtr<PCGExPointFilter::FFilter>& InFilter);
+		virtual bool InitManaged(FPCGExContext* InContext);
+		bool InitManagedFilter(FPCGExContext* InContext, const TSharedPtr<PCGExPointFilter::FFilter>& Filter) const;
+		virtual bool PostInitManaged(FPCGExContext* InContext);
+		virtual void PostInitManagedFilter(FPCGExContext* InContext, const TSharedPtr<PCGExPointFilter::FFilter>& InFilter);
 	};
 
 	class /*PCGEXTENDEDTOOLKIT_API*/ FFilterGroupAND final : public FFilterGroup

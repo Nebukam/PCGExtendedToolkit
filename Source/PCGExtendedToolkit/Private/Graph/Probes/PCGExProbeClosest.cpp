@@ -16,7 +16,7 @@ bool UPCGExProbeClosest::PrepareForPoints(const TSharedPtr<PCGExData::FPointIO>&
 {
 	if (!Super::PrepareForPoints(InPointIO)) { return false; }
 
-	if (Config.MaxConnectionsSource == EPCGExFetchType::Constant)
+	if (Config.MaxConnectionsInput == EPCGExInputValueType::Constant)
 	{
 		MaxConnections = Config.MaxConnectionsConstant;
 	}

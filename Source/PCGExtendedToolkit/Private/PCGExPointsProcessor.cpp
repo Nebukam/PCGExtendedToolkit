@@ -18,12 +18,12 @@ TArray<FPCGPinProperties> UPCGExPointsProcessorSettings::InputPinProperties() co
 {
 	TArray<FPCGPinProperties> PinProperties;
 
-	if(!IsInputless())
+	if (!IsInputless())
 	{
 		if (GetMainAcceptMultipleData()) { PCGEX_PIN_POINTS(GetMainInputLabel(), "The point data to be processed.", Required, {}) }
 		else { PCGEX_PIN_POINT(GetMainInputLabel(), "The point data to be processed.", Required, {}) }
 	}
-	
+
 	if (SupportsPointFilters())
 	{
 		if (RequiresPointFilters()) { PCGEX_PIN_PARAMS(GetPointFilterLabel(), GetPointFilterTooltip(), Required, {}) }

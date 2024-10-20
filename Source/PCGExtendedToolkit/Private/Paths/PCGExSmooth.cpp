@@ -87,7 +87,7 @@ namespace PCGExSmooth
 		MetadataBlender = MakeShared<PCGExDataBlending::FMetadataBlender>(&Settings->BlendingSettings);
 		MetadataBlender->PrepareForData(PointDataFacade);
 
-		if (Settings->InfluenceType == EPCGExFetchType::Attribute)
+		if (Settings->InfluenceInput == EPCGExInputValueType::Attribute)
 		{
 			Influence = PointDataFacade->GetScopedBroadcaster<double>(Settings->InfluenceAttribute);
 			if (!Influence)
@@ -97,7 +97,7 @@ namespace PCGExSmooth
 			}
 		}
 
-		if (Settings->SmoothingAmountType == EPCGExFetchType::Attribute)
+		if (Settings->SmoothingAmountType == EPCGExInputValueType::Attribute)
 		{
 			Smoothing = PointDataFacade->GetScopedBroadcaster<double>(Settings->SmoothingAmountAttribute);
 			if (!Smoothing)

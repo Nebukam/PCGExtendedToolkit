@@ -136,8 +136,10 @@ namespace PCGExBreakClustersToPaths
 		FProcessorBatch(FPCGExContext* InContext, const TSharedRef<PCGExData::FPointIO>& InVtx, const TArrayView<TSharedRef<PCGExData::FPointIO>> InEdges):
 			TBatch<FProcessor>(InContext, InVtx, InEdges)
 		{
+			bAllowVtxDataFacadeScopedGet = true;
 		}
 
+		virtual void GatherRequiredVtxAttributes(PCGExData::FReadableBufferConfigList& ReadableBufferConfigList) override;
 		virtual void OnProcessingPreparationComplete() override;
 	};
 }

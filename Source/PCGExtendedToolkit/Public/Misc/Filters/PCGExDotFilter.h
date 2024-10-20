@@ -33,14 +33,14 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExDotFilterConfig
 
 	/** Type of OperandB */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
-	EPCGExFetchType CompareAgainst = EPCGExFetchType::Constant;
+	EPCGExInputValueType CompareAgainst = EPCGExInputValueType::Constant;
 
 	/** Operand B for computing the dot product */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="CompareAgainst==EPCGExFetchType::Attribute", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="CompareAgainst==EPCGExInputValueType::Attribute", EditConditionHides))
 	FPCGAttributePropertyInputSelector OperandB;
 
 	/** Operand B for computing the dot product. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="CompareAgainst==EPCGExFetchType::Constant", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="CompareAgainst==EPCGExInputValueType::Constant", EditConditionHides))
 	FVector OperandBConstant = FVector::UpVector;
 
 	/** Transform OperandB with the local point' transform */
@@ -88,7 +88,7 @@ namespace PCGExPointsFilter
 		TSharedPtr<PCGExData::TBuffer<FVector>> OperandA;
 		TSharedPtr<PCGExData::TBuffer<FVector>> OperandB;
 
-		virtual bool Init(const FPCGContext* InContext, const TSharedPtr<PCGExData::FFacade> InPointDataFacade) override;
+		virtual bool Init(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade> InPointDataFacade) override;
 		FORCEINLINE virtual bool Test(const int32 PointIndex) const override
 		{
 			const FPCGPoint& Point = PointDataFacade->Source->GetInPoint(PointIndex);

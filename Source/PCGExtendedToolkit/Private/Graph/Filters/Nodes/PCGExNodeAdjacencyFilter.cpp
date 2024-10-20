@@ -14,13 +14,13 @@ TSharedPtr<PCGExPointFilter::FFilter> UPCGExNodeAdjacencyFilterFactory::CreateFi
 	return MakeShared<FNodeAdjacencyFilter>(this);
 }
 
-bool FNodeAdjacencyFilter::Init(const FPCGContext* InContext, const TSharedRef<PCGExCluster::FCluster>& InCluster, const TSharedRef<PCGExData::FFacade>& InPointDataFacade, const TSharedRef<PCGExData::FFacade>& InEdgeDataFacade)
+bool FNodeAdjacencyFilter::Init(FPCGExContext* InContext, const TSharedRef<PCGExCluster::FCluster>& InCluster, const TSharedRef<PCGExData::FFacade>& InPointDataFacade, const TSharedRef<PCGExData::FFacade>& InEdgeDataFacade)
 {
 	if (!FFilter::Init(InContext, InCluster, InPointDataFacade, InEdgeDataFacade)) { return false; }
 
-	bCaptureFromNodes = TypedFilterFactory->Config.OperandBSource != EPCGExGraphValueSource::Edge;
+	bCaptureFromNodes = TypedFilterFactory->Config.OperandBSource != EPCGExClusterComponentSource::Edge;
 
-	if (TypedFilterFactory->Config.CompareAgainst == EPCGExFetchType::Attribute)
+	if (TypedFilterFactory->Config.CompareAgainst == EPCGExInputValueType::Attribute)
 	{
 		OperandA = PointDataFacade->GetBroadcaster<double>(TypedFilterFactory->Config.OperandA);
 		if (!OperandA)

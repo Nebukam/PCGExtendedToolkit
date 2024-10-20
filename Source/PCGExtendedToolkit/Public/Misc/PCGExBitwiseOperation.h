@@ -43,14 +43,14 @@ public:
 
 	/** Type of Mask */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
-	EPCGExFetchType MaskType = EPCGExFetchType::Constant;
+	EPCGExInputValueType MaskInput = EPCGExInputValueType::Constant;
 
 	/** Mask -- Must be int64. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="MaskType==EPCGExFetchType::Attribute", DisplayName="Mask", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="MaskInput==EPCGExInputValueType::Attribute", DisplayName="Mask", EditConditionHides))
 	FName MaskAttribute;
 
 	/**  */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="MaskType==EPCGExFetchType::Constant", DisplayName="Mask", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="MaskInput==EPCGExInputValueType::Constant", DisplayName="Mask", EditConditionHides))
 	int64 Bitmask;
 };
 

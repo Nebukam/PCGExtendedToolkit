@@ -45,6 +45,8 @@ public:
 
 	FPCGExClusterStateConfigBase Config;
 
+	virtual void GatherRequiredVtxAttributes(FPCGExContext* InContext, PCGExData::FReadableBufferConfigList& ReadableBufferConfigList) const override;
+
 	virtual void BeginDestroy() override;
 };
 
@@ -64,8 +66,8 @@ namespace PCGExClusterStates
 
 		virtual ~FState() override;
 
-		virtual bool Init(const FPCGContext* InContext, const TSharedRef<PCGExCluster::FCluster>& InCluster, const TSharedRef<PCGExData::FFacade>& InPointDataFacade, const TSharedRef<PCGExData::FFacade>& InEdgeDataFacade) override;
-		virtual bool InitInternalManager(const FPCGContext* InContext, const TArray<TObjectPtr<const UPCGExFilterFactoryBase>>& InFactories);
+		virtual bool Init(FPCGExContext* InContext, const TSharedRef<PCGExCluster::FCluster>& InCluster, const TSharedRef<PCGExData::FFacade>& InPointDataFacade, const TSharedRef<PCGExData::FFacade>& InEdgeDataFacade) override;
+		virtual bool InitInternalManager(FPCGExContext* InContext, const TArray<TObjectPtr<const UPCGExFilterFactoryBase>>& InFactories);
 
 		virtual bool Test(const int32 Index) const override;
 		virtual bool Test(const PCGExCluster::FNode& Node) const override;
@@ -111,7 +113,7 @@ namespace PCGExClusterStates
 		}
 
 	protected:
-		virtual void PostInitFilter(const FPCGContext* InContext, const TSharedPtr<PCGExPointFilter::FFilter>& InFilter) override;
+		virtual void PostInitFilter(FPCGExContext* InContext, const TSharedPtr<PCGExPointFilter::FFilter>& InFilter) override;
 	};
 };
 

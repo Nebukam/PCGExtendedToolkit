@@ -80,7 +80,7 @@ namespace PCGExWritePathProperties
 		PCGEx::InitArray(Details, NumPoints);
 
 		UpConstant = Settings->UpVectorConstant;
-		if (Settings->UpVectorType == EPCGExFetchType::Attribute)
+		if (Settings->UpVectorInput == EPCGExInputValueType::Attribute)
 		{
 			UpGetter = PointDataFacade->GetScopedBroadcaster<FVector>(Settings->UpVectorSourceAttribute);
 			if (!UpGetter)
@@ -207,7 +207,7 @@ namespace PCGExWritePathProperties
 		{
 			const FPointDetails& First = Details[0];
 			const FPointDetails& Last = Details[LastIndex];
-			
+
 			PCGEX_OUTPUT_VALUE(Dot, 0, -1);
 			PCGEX_OUTPUT_VALUE(Angle, 0, PCGExSampling::GetAngle(Settings->AngleRange, First.ToNext *-1, First.ToNext));
 

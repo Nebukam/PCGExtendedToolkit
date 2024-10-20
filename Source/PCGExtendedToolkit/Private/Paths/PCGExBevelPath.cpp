@@ -275,7 +275,7 @@ namespace PCGExBevelPath
 
 		Bevels.Init(nullptr, PointDataFacade->GetNum());
 
-		if (Settings->WidthSource == EPCGExFetchType::Attribute)
+		if (Settings->WidthInput == EPCGExInputValueType::Attribute)
 		{
 			WidthGetter = PointDataFacade->GetScopedBroadcaster<double>(Settings->WidthAttribute);
 			if (!WidthGetter)
@@ -292,7 +292,7 @@ namespace PCGExBevelPath
 			{
 				bSubdivideCount = Settings->SubdivideMethod == EPCGExSubdivideMode::Count;
 
-				if (Settings->SubdivisionValueSource == EPCGExFetchType::Attribute)
+				if (Settings->SubdivisionAmountInput == EPCGExInputValueType::Attribute)
 				{
 					SubdivAmountGetter = PointDataFacade->GetScopedBroadcaster<double>(Settings->SubdivisionAmount);
 					if (!SubdivAmountGetter)

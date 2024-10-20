@@ -24,6 +24,15 @@ namespace PCGExData
 
 #pragma region FIdxUnion
 
+	void FFacade::MarkCurrentBuffersReadAsComplete()
+	{
+		for (const TSharedPtr<FBufferBase> Buffer : Buffers)
+		{
+			if (!Buffer.IsValid() || !Buffer->IsReadable()) { continue; }
+			Buffer->bReadComplete = true;
+		}
+	}
+
 	void FFacade::Write(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager)
 	{
 		if (!AsyncManager || !AsyncManager->IsAvailable()) { return; }
@@ -53,6 +62,73 @@ namespace PCGExData
 		{
 			if (Buffer->IsWritable()) { TaskGroup->AddSimpleCallback([BufferRef = Buffer]() { BufferRef->Write(); }); }
 		}
+	}
+
+	bool FReadableBufferConfig::Validate(FPCGExContext* InContext, const TSharedRef<FFacade>& InFacade) const
+	{
+		return true;
+	}
+
+	void FReadableBufferConfig::Fetch(const TSharedRef<FFacade>& InFacade, const int32 StartIndex, const int32 Count) const
+	{
+		PCGMetadataAttribute::CallbackWithRightType(
+			static_cast<uint16>(Identity.UnderlyingType), [&](auto DummyValue)
+			{
+				using T = decltype(DummyValue);
+				TSharedPtr<TBuffer<T>> Reader = nullptr;
+				switch (Mode)
+				{
+				case EPCGExReadableConfigMode::RawAttribute:
+					Reader = InFacade->GetScopedReadable<T>(Identity.Name);
+					break;
+				case EPCGExReadableConfigMode::BroadcastFromName:
+					Reader = InFacade->GetScopedBroadcaster<T>(Identity.Name);
+					break;
+				case EPCGExReadableConfigMode::BroadcastFromSelector:
+					Reader = InFacade->GetScopedBroadcaster<T>(Selector);
+					break;
+				}
+				Reader->Fetch(StartIndex, Count);
+			});
+	}
+
+	void FReadableBufferConfig::Read(const TSharedRef<FFacade>& InFacade) const
+	{
+		PCGMetadataAttribute::CallbackWithRightType(
+			static_cast<uint16>(Identity.UnderlyingType), [&](auto DummyValue)
+			{
+				using T = decltype(DummyValue);
+				TSharedPtr<TBuffer<T>> Reader = nullptr;
+				switch (Mode)
+				{
+				case EPCGExReadableConfigMode::RawAttribute:
+					Reader = InFacade->GetReadable<T>(Identity.Name);
+					break;
+				case EPCGExReadableConfigMode::BroadcastFromName:
+					Reader = InFacade->GetBroadcaster<T>(Identity.Name);
+					break;
+				case EPCGExReadableConfigMode::BroadcastFromSelector:
+					Reader = InFacade->GetBroadcaster<T>(Selector);
+					break;
+				}
+			});
+	}
+
+	bool FReadableBufferConfigList::Validate(FPCGExContext* InContext, const TSharedRef<FFacade>& InFacade) const
+	{
+		if (BufferConfigs.IsEmpty()) { return true; }
+		for (const FReadableBufferConfig& Config : BufferConfigs) { if (!Config.Validate(InContext, InFacade)) { return false; } }
+		return true;
+	}
+
+	void FReadableBufferConfigList::Fetch(const TSharedRef<FFacade>& InFacade, const int32 StartIndex, const int32 Count) const
+	{
+		for (const FReadableBufferConfig& ExistingConfig : BufferConfigs) { ExistingConfig.Fetch(InFacade, StartIndex, Count); }
+	}
+
+	void FReadableBufferConfigList::Read(const TSharedRef<FFacade>& InFacade, const int32 ConfigIndex) const
+	{
+		BufferConfigs[ConfigIndex].Read(InFacade);
 	}
 
 	void FUnionData::ComputeWeights(

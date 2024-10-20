@@ -12,7 +12,7 @@ TSharedPtr<PCGExPointFilter::FFilter> UPCGExNumericCompareFilterFactory::CreateF
 	return MakeShared<PCGExPointsFilter::TNumericComparisonFilter>(this);
 }
 
-bool PCGExPointsFilter::TNumericComparisonFilter::Init(const FPCGContext* InContext, const TSharedPtr<PCGExData::FFacade> InPointDataFacade)
+bool PCGExPointsFilter::TNumericComparisonFilter::Init(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade> InPointDataFacade)
 {
 	if (!FFilter::Init(InContext, InPointDataFacade)) { return false; }
 
@@ -24,7 +24,7 @@ bool PCGExPointsFilter::TNumericComparisonFilter::Init(const FPCGContext* InCont
 		return false;
 	}
 
-	if (TypedFilterFactory->Config.CompareAgainst == EPCGExFetchType::Attribute)
+	if (TypedFilterFactory->Config.CompareAgainst == EPCGExInputValueType::Attribute)
 	{
 		OperandB = PointDataFacade->GetScopedBroadcaster<double>(TypedFilterFactory->Config.OperandB);
 
@@ -45,7 +45,7 @@ FString UPCGExNumericCompareFilterProviderSettings::GetDisplayName() const
 {
 	FString DisplayName = Config.OperandA.GetName().ToString() + PCGExCompare::ToString(Config.Comparison);
 
-	if (Config.CompareAgainst == EPCGExFetchType::Attribute) { DisplayName += Config.OperandB.GetName().ToString(); }
+	if (Config.CompareAgainst == EPCGExInputValueType::Attribute) { DisplayName += Config.OperandB.GetName().ToString(); }
 	else { DisplayName += FString::Printf(TEXT("%.3f"), (static_cast<int32>(1000 * Config.OperandBConstant) / 1000.0)); }
 
 	return DisplayName;

@@ -32,14 +32,14 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExEdgeNeighborsCountFilterConfig
 
 	/** Whether to read the threshold from an attribute on the edge or a constant. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
-	EPCGExFetchType ThresholdSource = EPCGExFetchType::Constant;
+	EPCGExInputValueType ThresholdInput = EPCGExInputValueType::Constant;
 
 	/** The number of connection endpoints must have to be considered a Bridge. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ClampMin="1", DisplayName="Threshold", EditCondition="ThresholdSource == EPCGExFetchType::Constant", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ClampMin="1", DisplayName="Threshold", EditCondition="ThresholdInput == EPCGExInputValueType::Constant", EditConditionHides))
 	int32 ThresholdConstant = 2;
 
 	/** Attribute to fetch threshold from */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Threshold", EditCondition="ThresholdSource == EPCGExFetchType::Attribute", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Threshold", EditCondition="ThresholdInput == EPCGExInputValueType::Attribute", EditConditionHides))
 	FPCGAttributePropertyInputSelector ThresholdAttribute;
 
 	/** How should we check if the threshold is reached. */
@@ -63,7 +63,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExEdgeNeighborsCountFilterConfig
  * 
  */
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExEdgeNeighborsCountFilterFactory : public UPCGExNodeFilterFactoryBase
+class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExEdgeNeighborsCountFilterFactory : public UPCGExEdgeFilterFactoryBase
 {
 	GENERATED_BODY()
 
@@ -87,7 +87,7 @@ namespace PCGExEdgeNeighborsCount
 
 		TSharedPtr<PCGExData::TBuffer<int32>> ThresholdBuffer;
 
-		virtual bool Init(const FPCGContext* InContext, const TSharedRef<PCGExCluster::FCluster>& InCluster, const TSharedRef<PCGExData::FFacade>& InPointDataFacade, const TSharedRef<PCGExData::FFacade>& InEdgeDataFacade) override;
+		virtual bool Init(FPCGExContext* InContext, const TSharedRef<PCGExCluster::FCluster>& InCluster, const TSharedRef<PCGExData::FFacade>& InPointDataFacade, const TSharedRef<PCGExData::FFacade>& InEdgeDataFacade) override;
 		virtual bool Test(const PCGExGraph::FIndexedEdge& Edge) const override;
 
 		virtual ~FNeighborsCountFilter() override

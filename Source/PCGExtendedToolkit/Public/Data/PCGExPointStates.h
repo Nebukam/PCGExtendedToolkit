@@ -80,8 +80,8 @@ namespace PCGExPointStates
 		virtual ~FState() override;
 
 
-		virtual bool Init(const FPCGContext* InContext, const TSharedPtr<PCGExData::FFacade> InPointDataFacade) override;
-		virtual bool InitInternalManager(const FPCGContext* InContext, const TArray<TObjectPtr<const UPCGExFilterFactoryBase>>& InFactories);
+		virtual bool Init(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade> InPointDataFacade) override;
+		virtual bool InitInternalManager(FPCGExContext* InContext, const TArray<TObjectPtr<const UPCGExFilterFactoryBase>>& InFactories);
 		virtual bool Test(const int32 Index) const override;
 
 		void ProcessFlags(const bool bSuccess, int64& InFlags) const;
@@ -101,7 +101,7 @@ namespace PCGExPointStates
 		virtual bool Test(const int32 Index) override;
 
 	protected:
-		virtual void PostInitFilter(const FPCGContext* InContext, const TSharedPtr<PCGExPointFilter::FFilter>& InFilter) override;
+		virtual void PostInitFilter(FPCGExContext* InContext, const TSharedPtr<PCGExPointFilter::FFilter>& InFilter) override;
 	};
 };
 

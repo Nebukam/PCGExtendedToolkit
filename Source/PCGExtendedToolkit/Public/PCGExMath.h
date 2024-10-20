@@ -86,17 +86,17 @@ namespace PCGExMath
 	FORCEINLINE static FBox GetLocalBounds(const FPCGPoint& Point, const EPCGExPointBoundsSource Source)
 	{
 		if (Source == EPCGExPointBoundsSource::ScaledBounds) { return GetLocalBounds<EPCGExPointBoundsSource::ScaledBounds>(Point); }
-		else if (Source == EPCGExPointBoundsSource::Bounds) { return GetLocalBounds<EPCGExPointBoundsSource::Bounds>(Point); }
-		else if (Source == EPCGExPointBoundsSource::DensityBounds) { return GetLocalBounds<EPCGExPointBoundsSource::DensityBounds>(Point); }
-		else { return FBox(FVector::OneVector * -1, FVector::OneVector); }
+		if (Source == EPCGExPointBoundsSource::Bounds) { return GetLocalBounds<EPCGExPointBoundsSource::Bounds>(Point); }
+		if (Source == EPCGExPointBoundsSource::DensityBounds) { return GetLocalBounds<EPCGExPointBoundsSource::DensityBounds>(Point); }
+		return FBox(FVector::OneVector * -1, FVector::OneVector);
 	}
 
 	FORCEINLINE static FBox GetLocalBounds(const FPCGPoint* Point, const EPCGExPointBoundsSource Source)
 	{
 		if (Source == EPCGExPointBoundsSource::ScaledBounds) { return GetLocalBounds<EPCGExPointBoundsSource::ScaledBounds>(Point); }
-		else if (Source == EPCGExPointBoundsSource::Bounds) { return GetLocalBounds<EPCGExPointBoundsSource::Bounds>(Point); }
-		else if (Source == EPCGExPointBoundsSource::DensityBounds) { return GetLocalBounds<EPCGExPointBoundsSource::DensityBounds>(Point); }
-		else { return FBox(FVector::OneVector * -1, FVector::OneVector); }
+		if (Source == EPCGExPointBoundsSource::Bounds) { return GetLocalBounds<EPCGExPointBoundsSource::Bounds>(Point); }
+		if (Source == EPCGExPointBoundsSource::DensityBounds) { return GetLocalBounds<EPCGExPointBoundsSource::DensityBounds>(Point); }
+		return FBox(FVector::OneVector * -1, FVector::OneVector);
 	}
 
 #pragma region basics

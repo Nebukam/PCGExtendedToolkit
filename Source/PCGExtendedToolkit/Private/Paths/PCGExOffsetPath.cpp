@@ -78,7 +78,7 @@ namespace PCGExOffsetPath
 		UpConstant = Settings->UpVectorConstant.GetSafeNormal();
 		OffsetConstant = Settings->OffsetConstant;
 
-		if (Settings->OffsetType == EPCGExFetchType::Attribute)
+		if (Settings->OffsetInput == EPCGExInputValueType::Attribute)
 		{
 			OffsetGetter = PointDataFacade->GetScopedBroadcaster<double>(Settings->OffsetAttribute);
 			if (!OffsetGetter)
@@ -88,7 +88,7 @@ namespace PCGExOffsetPath
 			}
 		}
 
-		if (Settings->UpVectorType == EPCGExFetchType::Attribute)
+		if (Settings->UpVectorType == EPCGExInputValueType::Attribute)
 		{
 			UpGetter = PointDataFacade->GetScopedBroadcaster<FVector>(Settings->UpVectorAttribute);
 			if (!UpGetter)

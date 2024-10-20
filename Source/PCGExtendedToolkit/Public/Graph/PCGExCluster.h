@@ -8,6 +8,8 @@
 #include "PCGExEdge.h"
 #include "PCGExGraph.h"
 #include "Data/PCGExAttributeHelpers.h"
+
+
 #include "Geometry/PCGExGeo.h"
 
 #include "PCGExCluster.generated.h"
@@ -510,8 +512,10 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExEdgeDirectionSettings
 	TSharedPtr<PCGExData::TBuffer<double>> EndpointsReader;
 	TSharedPtr<PCGExData::TBuffer<FVector>> EdgeDirReader;
 
-	bool Init(const FPCGContext* InContext, const TSharedRef<PCGExData::FFacade>& InEndpointsFacade);
-	bool InitFromParent(FPCGContext* InContext, const FPCGExEdgeDirectionSettings& ParentSettings, const TSharedRef<PCGExData::FFacade>& InEdgeDataFacade);
+	void GatherRequiredVtxAttributes(FPCGExContext* InContext, PCGExData::FReadableBufferConfigList& ReadableBufferConfigList) const;
+
+	bool Init(FPCGExContext* InContext);
+	bool InitFromParent(FPCGExContext* InContext, const FPCGExEdgeDirectionSettings& ParentSettings, const TSharedRef<PCGExData::FFacade>& InEdgeDataFacade);
 
 	bool RequiresEndpointsMetadata() const { return DirectionMethod == EPCGExEdgeDirectionMethod::EndpointsAttribute; }
 	bool RequiresEdgeMetadata() const { return DirectionMethod == EPCGExEdgeDirectionMethod::EdgeDotAttribute; }

@@ -21,7 +21,7 @@ bool FPCGExBitwiseOperationElement::Boot(FPCGExContext* InContext) const
 
 	PCGEX_VALIDATE_NAME(Settings->FlagAttribute)
 
-	if (Settings->MaskType == EPCGExFetchType::Attribute)
+	if (Settings->MaskInput == EPCGExInputValueType::Attribute)
 	{
 		PCGEX_VALIDATE_NAME(Settings->MaskAttribute)
 	}
@@ -42,7 +42,7 @@ bool FPCGExBitwiseOperationElement::ExecuteInternal(FPCGContext* InContext) cons
 		if (!Context->StartBatchProcessingPoints<PCGExPointsMT::TBatch<PCGExBitwiseOperation::FProcessor>>(
 			[&](const TSharedPtr<PCGExData::FPointIO>& Entry)
 			{
-				if (Settings->MaskType == EPCGExFetchType::Attribute && !Entry->GetOut()->Metadata->HasAttribute(Settings->MaskAttribute))
+				if (Settings->MaskInput == EPCGExInputValueType::Attribute && !Entry->GetOut()->Metadata->HasAttribute(Settings->MaskAttribute))
 				{
 					bInvalidInputs = true;
 					return false;
@@ -80,7 +80,7 @@ namespace PCGExBitwiseOperation
 
 		Writer = PointDataFacade->GetWritable<int64>(Settings->FlagAttribute, 0, false, false);
 
-		if (Settings->MaskType == EPCGExFetchType::Attribute)
+		if (Settings->MaskInput == EPCGExInputValueType::Attribute)
 		{
 			Reader = PointDataFacade->GetScopedReadable<int64>(Settings->MaskAttribute);
 			if (!Reader) { return false; }
