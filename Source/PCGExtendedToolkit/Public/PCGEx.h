@@ -4,6 +4,18 @@
 #pragma once
 
 #include "Runtime/Launch/Resources/Version.h"
+
+#include "Misc/ScopeRWLock.h"
+#include "UObject/ObjectPtr.h"
+#include "Templates/SharedPointer.h"
+#include "Templates/SharedPointerFwd.h"
+#include "Curves/CurveFloat.h"
+#include "Math/GenericOctree.h"
+#include "CollisionQueryParams.h"
+#include "Engine/HitResult.h"
+#include "GameFramework/Actor.h"
+#include "Components/StaticMeshComponent.h"
+
 #include "PCGComponent.h"
 #include "PCGContext.h"
 #include "PCGExH.h"

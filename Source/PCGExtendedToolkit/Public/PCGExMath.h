@@ -181,8 +181,8 @@ namespace PCGExMath
 		const FVector Dir = ConeDirection.GetSafeNormal();
 		const FVector U = FVector::CrossProduct(Dir, Dir + FVector(0.1)).GetSafeNormal();
 		const FVector V = FVector::CrossProduct(Dir, Dir + FVector(-0.1)).GetSafeNormal();
-
-		FBox Box = FBoxCenterAndExtent(Center, FVector(0.0001)).GetBox();
+		
+		FBox Box = FBox(Center - FVector(0.0001), Center + FVector(0.0001));
 		Box += Center + Dir * Size;
 		Box += Center + U * Size;
 		Box += Center + V * Size;

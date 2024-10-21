@@ -222,7 +222,7 @@ namespace PCGExGeo
 				Faces[i] = 0;
 			}
 
-			std::ranges::sort(Vtx);
+			Algo::Sort(Vtx);
 		}
 
 		void ComputeFaces()

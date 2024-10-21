@@ -8,6 +8,7 @@
 #include "PCGExMT.h"
 #include "PCGExMath.h"
 #include "PCGExHelpers.h"
+#include "Components/StaticMeshComponent.h"
 
 
 //#include "PCGExGeoMesh.generated.h"
