@@ -18,6 +18,31 @@ bool FPCGExFindPointOnBoundsElement::Boot(FPCGExContext* InContext) const
 
 	PCGEX_CONTEXT_AND_SETTINGS(FindPointOnBounds)
 
+	PCGEX_FWD(CarryOverDetails)
+	Context->CarryOverDetails.Init();
+
+	if (Settings->OutputMode == EPCGExPointOnBoundsOutputMode::Merged)
+	{
+		TSet<FName> AttributeMismatches;
+
+		Context->BestIndices.Init(-1, Context->MainPoints->Num());
+
+		Context->MergedOut = MakeShared<PCGExData::FPointIO>(Context);
+		Context->MergedAttributesInfos = PCGEx::FAttributesInfos::Get(Context->MainPoints, AttributeMismatches);
+
+		Context->CarryOverDetails.Attributes.Prune(*Context->MergedAttributesInfos);
+		Context->CarryOverDetails.Attributes.Prune(AttributeMismatches);
+
+		Context->MergedOut->InitializeOutput(InContext, PCGExData::EInit::NewOutput);
+		Context->MergedOut->GetOut()->GetMutablePoints().SetNum(Context->MainPoints->Num());
+		Context->MergedOut->GetOutKeys(true);
+
+		if (!AttributeMismatches.IsEmpty() && !Settings->bQuietAttributeMismatchWarning)
+		{
+			PCGE_LOG_C(Warning, GraphAndLog, InContext, FTEXT("Some attributes on incoming data share the same name but not the same type. Whatever type was discovered first will be used."));
+		}
+	}
+
 	return true;
 }
 
@@ -42,7 +67,20 @@ bool FPCGExFindPointOnBoundsElement::ExecuteInternal(FPCGContext* InContext) con
 
 	PCGEX_POINTS_BATCH_PROCESSING(PCGEx::State_Done)
 
-	Context->MainPoints->StageOutputs();
+	if (Settings->OutputMode == EPCGExPointOnBoundsOutputMode::Merged)
+	{		
+		PCGExFindPointOnBounds::MergeBestCandidatesAttributes(
+			Context->MergedOut,
+			Context->MainPoints->Pairs,
+			Context->BestIndices,
+			*Context->MergedAttributesInfos);
+
+		Context->MergedOut->StageOutput();
+	}
+	else
+	{
+		Context->MainPoints->StageOutputs();
+	}
 
 	return Context->TryComplete();
 }
@@ -60,8 +98,9 @@ namespace PCGExFindPointOnBounds
 		if (!FPointsProcessor::Process(InAsyncManager)) { return false; }
 
 		const FBox Bounds = PointDataFacade->Source->GetIn()->GetBounds();
-		const FVector E = Bounds.GetExtent();
-		SearchPosition = Bounds.GetCenter() + FVector(Settings->UConstant * E.X, Settings->VConstant * E.Y, Settings->WConstant * E.Z);
+		SearchPosition = Bounds.GetCenter() + Bounds.GetExtent() * Settings->UVW;
+
+		StartParallelLoopForPoints(PCGExData::ESource::In);
 
 		return true;
 	}
@@ -71,6 +110,7 @@ namespace PCGExFindPointOnBounds
 		if (const double Dist = FVector::Dist(Point.Transform.GetLocation(), SearchPosition); Dist < BestDistance)
 		{
 			FWriteScopeLock WriteLock(BestIndexLock);
+			BestPosition = Point.Transform.GetLocation();
 			BestIndex = Index;
 			BestDistance = Dist;
 		}
@@ -78,6 +118,24 @@ namespace PCGExFindPointOnBounds
 
 	void FProcessor::CompleteWork()
 	{
+		const FVector Offset = (BestPosition - PointDataFacade->Source->GetIn()->GetBounds().GetCenter()).GetSafeNormal() * Settings->Offset;
+		
+		if (Settings->OutputMode == EPCGExPointOnBoundsOutputMode::Merged)
+		{			
+			const PCGMetadataEntryKey OriginalKey = Context->MergedOut->GetOut()->GetMutablePoints()[PointDataFacade->Source->IOIndex].MetadataEntry;
+			FPCGPoint& OutPoint = (Context->MergedOut->GetOut()->GetMutablePoints()[PointDataFacade->Source->IOIndex] = PointDataFacade->Source->GetInPoint(BestIndex));
+			OutPoint.MetadataEntry = OriginalKey;
+			OutPoint.Transform.AddToTranslation(Offset);			
+		}
+		else
+		{
+			PointDataFacade->Source->InitializeOutput(Context, PCGExData::EInit::NewOutput);
+			PointDataFacade->Source->GetOut()->GetMutablePoints().SetNum(1);
+
+			FPCGPoint& OutPoint = (PointDataFacade->Source->GetOut()->GetMutablePoints()[0] = PointDataFacade->Source->GetInPoint(BestIndex));
+			PointDataFacade->Source->GetOut()->Metadata->InitializeOnSet(OutPoint.MetadataEntry);
+			OutPoint.Transform.AddToTranslation(Offset);
+		}
 	}
 }
 

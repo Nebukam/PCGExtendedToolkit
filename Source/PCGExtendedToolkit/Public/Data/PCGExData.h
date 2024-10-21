@@ -207,6 +207,7 @@ namespace PCGExData
 				{
 					// Un-scoping reader.
 					Fetch(0, InValues->Num());
+					bReadComplete = true;
 					bScopedBuffer = false;
 				}
 
@@ -622,7 +623,7 @@ namespace PCGExData
 		}
 
 		FReadableBufferConfig(const FPCGAttributePropertyInputSelector& InSelector, const EPCGMetadataTypes InUnderlyingType)
-			: Mode(EPCGExReadableConfigMode::BroadcastFromSelector), Identity(InSelector.GetName(), InUnderlyingType, false)
+			: Mode(EPCGExReadableConfigMode::BroadcastFromSelector), Selector(InSelector), Identity(InSelector.GetName(), InUnderlyingType, false)
 		{
 		}
 
@@ -645,7 +646,7 @@ namespace PCGExData
 		bool Validate(FPCGExContext* InContext, const TSharedRef<FFacade>& InFacade) const;
 
 		template <typename T>
-		void Register(FPCGExContext* InContext, FPCGAttributePropertyInputSelector InSelector)
+		void Register(FPCGExContext* InContext, const FPCGAttributePropertyInputSelector& InSelector)
 		{
 			EPCGMetadataTypes Type = PCGEx::GetMetadataType<T>();
 			for (const FReadableBufferConfig& ExistingConfig : BufferConfigs)

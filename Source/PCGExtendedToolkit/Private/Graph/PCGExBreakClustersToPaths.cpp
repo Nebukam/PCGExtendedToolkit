@@ -190,8 +190,6 @@ namespace PCGExBreakClustersToPaths
 	{
 		PCGEX_TYPED_CONTEXT_AND_SETTINGS(BreakClustersToPaths)
 
-		VtxDataFacade->bSupportsScopedGet = Context->bScopedAttributeGet;
-
 		DirectionSettings = Settings->DirectionSettings;
 		if (!DirectionSettings.Init(Context))
 		{

@@ -30,8 +30,14 @@ public:
 	TArray<bool>* VtxFilters = nullptr;
 	TArray<bool>* EdgesFilters = nullptr;
 
+	virtual void GatherRequiredVtxAttributes(FPCGExContext* InContext, PCGExData::FReadableBufferConfigList& ReadableBufferConfigList)
+	{
+		
+	}
+	
 	virtual void PrepareVtxFacade(const TSharedPtr<PCGExData::FFacade>& InVtxFacade) const
 	{
+		
 	}
 
 	virtual void PrepareForCluster(const TSharedPtr<PCGExCluster::FCluster>& InCluster, const TSharedPtr<PCGExHeuristics::THeuristicsHandler>& InHeuristics = nullptr)

@@ -402,7 +402,6 @@ namespace PCGExClusterMT
 		{
 			PCGEX_LOG_CTR(FClusterProcessorBatchBase)
 			Edges.Append(InEdges);
-			VtxDataFacade->bSupportsScopedGet = bAllowVtxDataFacadeScopedGet && ExecutionContext->bScopedAttributeGet;
 		}
 
 		virtual ~FClusterProcessorBatchBase()
@@ -416,6 +415,8 @@ namespace PCGExClusterMT
 		virtual void PrepareProcessing(const TSharedPtr<PCGExMT::FTaskManager> AsyncManagerPtr, const bool bScopedIndexLookupBuild)
 		{
 			AsyncManager = AsyncManagerPtr;
+			VtxDataFacade->bSupportsScopedGet = bAllowVtxDataFacadeScopedGet && ExecutionContext->bScopedAttributeGet;
+			
 			const int32 NumVtx = VtxDataFacade->GetNum();
 
 			if (!bScopedIndexLookupBuild || NumVtx < GetDefault<UPCGExGlobalSettings>()->SmallClusterSize)
@@ -483,7 +484,7 @@ namespace PCGExClusterMT
 		virtual void GatherRequiredVtxAttributes(PCGExData::FReadableBufferConfigList& ReadableBufferConfigList)
 		{
 		}
-
+		
 		virtual void OnProcessingPreparationComplete()
 		{
 			if (!bIsBatchValid) { return; }
@@ -508,6 +509,7 @@ namespace PCGExClusterMT
 				{
 					const TSharedPtr<FClusterProcessorBatchBase> This = WeakPtr.Pin();
 					if (!This) { return; }
+					This->VtxDataFacade->MarkCurrentBuffersReadAsComplete();
 					This->Process();
 				};
 

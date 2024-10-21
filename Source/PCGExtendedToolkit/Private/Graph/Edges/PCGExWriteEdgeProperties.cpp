@@ -262,7 +262,6 @@ namespace PCGExWriteEdgeProperties
 	{
 		PCGEX_TYPED_CONTEXT_AND_SETTINGS(WriteEdgeProperties)
 
-		VtxDataFacade->bSupportsScopedGet = Context->bScopedAttributeGet;
 		DirectionSettings = Settings->DirectionSettings;
 
 		if (!DirectionSettings.Init(ExecutionContext))

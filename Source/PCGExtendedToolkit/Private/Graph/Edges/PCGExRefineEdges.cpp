@@ -304,18 +304,20 @@ namespace PCGExRefineEdges
 	{
 		TBatchWithGraphBuilder<FProcessor>::GatherRequiredVtxAttributes(ReadableBufferConfigList);
 		PCGEX_TYPED_CONTEXT_AND_SETTINGS(RefineEdges)
+		
+		Context->Refinement->GatherRequiredVtxAttributes(ExecutionContext, ReadableBufferConfigList);
+
 		//PCGExClusterFilter::GatherRequiredVtxAttributes(ExecutionContext, Context->VtxFilterFactories, ReadableBufferConfigList);
 		PCGExClusterFilter::GatherRequiredVtxAttributes(ExecutionContext, Context->EdgeFilterFactories, ReadableBufferConfigList);
 		PCGExClusterFilter::GatherRequiredVtxAttributes(ExecutionContext, Context->SanitizationFilterFactories, ReadableBufferConfigList);
+
 	}
 
 	void FProcessorBatch::OnProcessingPreparationComplete()
 	{
 		PCGEX_TYPED_CONTEXT_AND_SETTINGS(RefineEdges)
 
-		VtxDataFacade->bSupportsScopedGet = false; // :(
-		Context->Refinement->PrepareVtxFacade(VtxDataFacade);
-
+		Context->Refinement->PrepareVtxFacade(VtxDataFacade);		
 		TBatch<FProcessor>::OnProcessingPreparationComplete();
 	}
 

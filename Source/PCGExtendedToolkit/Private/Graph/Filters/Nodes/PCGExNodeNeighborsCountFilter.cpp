@@ -9,11 +9,16 @@
 #define LOCTEXT_NAMESPACE "PCGExNodeNeighborsCountFilter"
 #define PCGEX_NAMESPACE NodeNeighborsCountFilter
 
+void UPCGExNodeNeighborsCountFilterFactory::GatherRequiredVtxAttributes(FPCGExContext* InContext, PCGExData::FReadableBufferConfigList& ReadableBufferConfigList) const
+{
+	Super::GatherRequiredVtxAttributes(InContext, ReadableBufferConfigList);
+	if (Config.CompareAgainst == EPCGExInputValueType::Attribute) { ReadableBufferConfigList.Register<double>(InContext, Config.LocalCount); }
+}
+
 TSharedPtr<PCGExPointFilter::FFilter> UPCGExNodeNeighborsCountFilterFactory::CreateFilter() const
 {
 	return MakeShared<PCGExNodeNeighborsCount::FNeighborsCountFilter>(this);
 }
-
 
 namespace PCGExNodeNeighborsCount
 {

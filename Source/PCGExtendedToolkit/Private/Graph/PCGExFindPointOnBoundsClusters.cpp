@@ -30,6 +30,33 @@ bool FPCGExFindPointOnBoundsClustersElement::Boot(FPCGExContext* InContext) cons
 {
 	if (!FPCGExEdgesProcessorElement::Boot(InContext)) { return false; }
 	PCGEX_CONTEXT_AND_SETTINGS(FindPointOnBoundsClusters)
+
+	PCGEX_FWD(CarryOverDetails)
+	Context->CarryOverDetails.Init();
+
+	if (Settings->OutputMode == EPCGExPointOnBoundsOutputMode::Merged)
+	{
+		TSharedPtr<PCGExData::FPointIOCollection> Collection = Settings->SearchMode == EPCGExClusterClosestSearchMode::Node ? Context->MainPoints : Context->MainEdges;
+		TSet<FName> AttributeMismatches;
+
+		Context->BestIndices.Init(-1, Context->MainEdges->Num());
+
+		Context->MergedOut = MakeShared<PCGExData::FPointIO>(Context);
+		Context->MergedAttributesInfos = PCGEx::FAttributesInfos::Get(Collection, AttributeMismatches);
+
+		Context->CarryOverDetails.Attributes.Prune(*Context->MergedAttributesInfos);
+		Context->CarryOverDetails.Attributes.Prune(AttributeMismatches);
+
+		Context->MergedOut->InitializeOutput(InContext, PCGExData::EInit::NewOutput);
+		Context->MergedOut->GetOut()->GetMutablePoints().SetNum(Context->MainEdges->Num());
+		Context->MergedOut->GetOutKeys(true);
+
+		if (!AttributeMismatches.IsEmpty() && !Settings->bQuietAttributeMismatchWarning)
+		{
+			PCGE_LOG_C(Warning, GraphAndLog, InContext, FTEXT("Some attributes on incoming data share the same name but not the same type. Whatever type was discovered first will be used."));
+		}
+	}
+
 	return true;
 }
 
@@ -54,7 +81,22 @@ bool FPCGExFindPointOnBoundsClustersElement::ExecuteInternal(
 
 	PCGEX_CLUSTER_BATCH_PROCESSING(PCGEx::State_Done)
 
-	Context->MainPoints->StageOutputs();
+	if (Settings->OutputMode == EPCGExPointOnBoundsOutputMode::Merged)
+	{
+		TSharedPtr<PCGExData::FPointIOCollection> Collection = Settings->SearchMode == EPCGExClusterClosestSearchMode::Node ? Context->MainPoints : Context->MainEdges;
+		PCGExFindPointOnBounds::MergeBestCandidatesAttributes(
+			Context->MergedOut,
+			Context->IOMergeSources,
+			Context->BestIndices,
+			*Context->MergedAttributesInfos);
+
+		Context->MergedOut->StageOutput();
+	}
+	else
+	{
+		if (Settings->SearchMode == EPCGExClusterClosestSearchMode::Node) { Context->MainPoints->StageOutputs(); }
+		else { Context->MainEdges->StageOutputs(); }
+	}
 
 	return Context->TryComplete();
 }
@@ -71,7 +113,7 @@ namespace PCGExFindPointOnBoundsClusters
 		if (!FClusterProcessor::Process(InAsyncManager)) { return false; }
 
 		const FVector E = Cluster->Bounds.GetExtent();
-		SearchPosition = Cluster->Bounds.GetCenter() + FVector(Settings->UConstant * E.X, Settings->VConstant * E.Y, Settings->WConstant * E.Z);
+		SearchPosition = Cluster->Bounds.GetCenter() + Cluster->Bounds.GetExtent() * Settings->UVW;
 		Cluster->RebuildOctree(Settings->SearchMode);
 
 		if (Settings->SearchMode == EPCGExClusterClosestSearchMode::Node) { StartParallelLoopForNodes(); }
@@ -85,6 +127,7 @@ namespace PCGExFindPointOnBoundsClusters
 		if (const double Dist = FVector::Dist(InPosition, SearchPosition); Dist < BestDistance)
 		{
 			FWriteScopeLock WriteLock(BestIndexLock);
+			BestPosition = InPosition;
 			BestIndex = InIndex;
 			BestDistance = Dist;
 		}
@@ -92,19 +135,39 @@ namespace PCGExFindPointOnBoundsClusters
 
 	void FProcessor::ProcessSingleNode(const int32 Index, PCGExCluster::FNode& Node, const int32 LoopIdx, const int32 Count)
 	{
-		TClusterProcessor<FPCGExFindPointOnBoundsClustersContext, UPCGExFindPointOnBoundsClustersSettings>::ProcessSingleNode(Index, Node, LoopIdx, Count);
 		UpdateCandidate(Cluster->GetPos(Node), Node.PointIndex);
 	}
 
 	void FProcessor::ProcessSingleEdge(const int32 EdgeIndex, PCGExGraph::FIndexedEdge& Edge, const int32 LoopIdx, const int32 Count)
 	{
-		TClusterProcessor<FPCGExFindPointOnBoundsClustersContext, UPCGExFindPointOnBoundsClustersSettings>::ProcessSingleEdge(EdgeIndex, Edge, LoopIdx, Count);
 		UpdateCandidate(Cluster->GetClosestPointOnEdge(EdgeIndex, SearchPosition), EdgeIndex);
 	}
 
 	void FProcessor::CompleteWork()
 	{
-		//TSharedPtr<PCGExData::FPointIO> PointIO 
+		const TSharedPtr<PCGExData::FPointIO> IORef = Settings->SearchMode == EPCGExClusterClosestSearchMode::Node ? VtxDataFacade->Source : EdgeDataFacade->Source;
+
+		const FVector Offset = (BestPosition - Cluster->Bounds.GetCenter()).GetSafeNormal() * Settings->Offset;
+
+		if (Settings->OutputMode == EPCGExPointOnBoundsOutputMode::Merged)
+		{
+			const int32 SourceIndex = EdgeDataFacade->Source->IOIndex;
+			Context->IOMergeSources[SourceIndex] = IORef;
+
+			const PCGMetadataEntryKey OriginalKey = Context->MergedOut->GetOut()->GetMutablePoints()[SourceIndex].MetadataEntry;
+			FPCGPoint& OutPoint = (Context->MergedOut->GetOut()->GetMutablePoints()[SourceIndex] = IORef->GetInPoint(BestIndex));
+			OutPoint.MetadataEntry = OriginalKey;
+			OutPoint.Transform.AddToTranslation(Offset);
+		}
+		else
+		{
+			IORef->InitializeOutput(Context, PCGExData::EInit::NewOutput);
+			IORef->GetOut()->GetMutablePoints().SetNum(1);
+
+			FPCGPoint& OutPoint = (IORef->GetOut()->GetMutablePoints()[0] = IORef->GetInPoint(BestIndex));
+			IORef->GetOut()->Metadata->InitializeOnSet(OutPoint.MetadataEntry);
+			OutPoint.Transform.AddToTranslation(Offset);
+		}
 	}
 }
 

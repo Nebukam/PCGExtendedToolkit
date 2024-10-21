@@ -100,4 +100,18 @@ namespace PCGExSimplifyClusters
 
 		virtual void ProcessSingleRangeIteration(const int32 Iteration, const int32 LoopIdx, const int32 Count) override;
 	};
+
+	class FProcessorBatch final : public PCGExClusterMT::TBatch<FProcessor>
+	{
+		friend class FProcessor;
+
+	public:
+		FProcessorBatch(FPCGExContext* InContext, const TSharedRef<PCGExData::FPointIO>& InVtx, const TArrayView<TSharedRef<PCGExData::FPointIO>> InEdges):
+			TBatch<FProcessor>(InContext, InVtx, InEdges)
+		{
+			bAllowVtxDataFacadeScopedGet = true;
+		}
+
+		virtual void GatherRequiredVtxAttributes(PCGExData::FReadableBufferConfigList& ReadableBufferConfigList) override;
+	};
 }

@@ -47,17 +47,21 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	EPCGExPointOnBoundsOutputMode OutputMode = EPCGExPointOnBoundsOutputMode::Merged;
 
-	/** U Constant */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|UVW", meta=(PCG_Overridable, DisplayName="U"))
-	double UConstant = 1;
+	/** UVW position of the target within bounds. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	FVector UVW = FVector::OneVector;
 
-	/** V Constant */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|UVW", meta=(PCG_Overridable, DisplayName="V"))
-	double VConstant = 1;
+	/** Offset to apply to the closest point, away from the bounds center. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	double Offset = 1;
 
-	/** W Constant */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|UVW", meta=(PCG_Overridable, DisplayName="W"))
-	double WConstant = 0;
+	/** Meta filter settings. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName="Carry Over Settings"))
+	FPCGExCarryOverDetails CarryOverDetails;
+
+	/**  */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
+	bool bQuietAttributeMismatchWarning = false;
 
 private:
 	friend class FPCGExFindPointOnBoundsElement;
@@ -66,6 +70,12 @@ private:
 struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExFindPointOnBoundsContext final : FPCGExPointsProcessorContext
 {
 	friend class FPCGExFindPointOnBoundsElement;
+
+	FPCGExCarryOverDetails CarryOverDetails;
+
+	TArray<int32> BestIndices;
+	TSharedPtr<PCGExData::FPointIO> MergedOut;
+	TSharedPtr<PCGEx::FAttributesInfos> MergedAttributesInfos;
 };
 
 class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExFindPointOnBoundsElement final : public FPCGExPointsProcessorElement
@@ -82,11 +92,56 @@ protected:
 
 namespace PCGExFindPointOnBounds
 {
+	static void MergeBestCandidatesAttributes(
+		const TSharedPtr<PCGExData::FPointIO>& Target,
+		const TArray<TSharedPtr<PCGExData::FPointIO>>& Collections,
+		const TArray<int32>& BestIndices,
+		const PCGEx::FAttributesInfos& InAttributesInfos)
+	{
+		UPCGMetadata* OutMetadata = Target->GetOut()->Metadata;
+
+		for (int i = 0; i < BestIndices.Num(); i++)
+		{
+			TSharedPtr<PCGExData::FPointIO> IO = Collections[i];
+			PCGMetadataEntryKey InKey = IO->GetInPoint(BestIndices[i]).MetadataEntry;
+			PCGMetadataEntryKey OutKey = Target->GetOutPoint(i).MetadataEntry;
+			UPCGMetadata* InMetadata = IO->GetIn()->Metadata;
+			for (const PCGEx::FAttributeIdentity& Identity : InAttributesInfos.Identities)
+			{
+				PCGMetadataAttribute::CallbackWithRightType(
+					static_cast<uint16>(Identity.GetTypeId()), [&](auto DummyValue)
+					{
+						using T = decltype(DummyValue);
+						const FPCGMetadataAttribute<T>* InAttribute = InMetadata->GetConstTypedAttribute<T>(Identity.Name);
+						const FPCGMetadataAttributeBase* OutAttributeBase = OutMetadata->GetMutableAttribute(Identity.Name);
+						FPCGMetadataAttribute<T>* OutAttribute = nullptr;
+
+						if (!OutAttributeBase)
+						{
+							OutAttribute = OutMetadata->FindOrCreateAttribute<T>(
+								Identity.Name,
+								InAttribute->GetValueFromItemKey(PCGDefaultValueKey),
+								InAttribute->AllowsInterpolation());
+						}
+						else
+						{
+							OutAttribute = OutMetadata->GetMutableTypedAttribute<T>(Identity.Name);
+						}
+
+						if (!OutAttribute) { return; }
+
+						OutAttribute->SetValue(OutKey, InAttribute->GetValueFromItemKey(InKey));
+					});
+			}
+		}
+	}
+
 	class FProcessor final : public PCGExPointsMT::TPointsProcessor<FPCGExFindPointOnBoundsContext, UPCGExFindPointOnBoundsSettings>
 	{
 		mutable FRWLock BestIndexLock;
 
 		FVector SearchPosition = FVector::ZeroVector;
+		FVector BestPosition = FVector::ZeroVector;
 		int32 BestIndex = -1;
 		double BestDistance = DBL_MAX;
 

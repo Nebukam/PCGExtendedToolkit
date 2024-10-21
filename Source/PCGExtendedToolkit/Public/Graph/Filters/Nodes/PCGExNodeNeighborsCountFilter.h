@@ -55,6 +55,8 @@ class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExNodeNeighborsCountFilterFactory : public 
 public:
 	FPCGExNodeNeighborsCountFilterConfig Config;
 
+	virtual void GatherRequiredVtxAttributes(FPCGExContext* InContext, PCGExData::FReadableBufferConfigList& ReadableBufferConfigList) const override;
+	
 	virtual TSharedPtr<PCGExPointFilter::FFilter> CreateFilter() const override;
 };
 

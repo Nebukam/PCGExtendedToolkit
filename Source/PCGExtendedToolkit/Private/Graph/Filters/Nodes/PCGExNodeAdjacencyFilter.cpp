@@ -9,6 +9,13 @@
 #define LOCTEXT_NAMESPACE "PCGExNodeAdjacencyFilter"
 #define PCGEX_NAMESPACE NodeAdjacencyFilter
 
+void UPCGExNodeAdjacencyFilterFactory::GatherRequiredVtxAttributes(FPCGExContext* InContext, PCGExData::FReadableBufferConfigList& ReadableBufferConfigList) const
+{
+	Super::GatherRequiredVtxAttributes(InContext, ReadableBufferConfigList);
+	if (Config.CompareAgainst == EPCGExInputValueType::Attribute) { ReadableBufferConfigList.Register<double>(InContext, Config.OperandA); }
+	if (Config.OperandBSource == EPCGExClusterComponentSource::Vtx) { ReadableBufferConfigList.Register<double>(InContext, Config.OperandB); }
+}
+
 TSharedPtr<PCGExPointFilter::FFilter> UPCGExNodeAdjacencyFilterFactory::CreateFilter() const
 {
 	return MakeShared<FNodeAdjacencyFilter>(this);

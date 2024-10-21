@@ -41,26 +41,22 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	EPCGExPointOnBoundsOutputMode OutputMode = EPCGExPointOnBoundsOutputMode::Merged;
 
-	/** U Constant */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|UVW", meta=(PCG_Overridable, DisplayName="U"))
-	double UConstant = 1;
+	/** UVW position of the target within bounds. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	FVector UVW = FVector::OneVector;
 
-	/** V Constant */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|UVW", meta=(PCG_Overridable, DisplayName="V"))
-	double VConstant = 1;
+	/** Offset to apply to the closest point, away from the bounds center. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	double Offset = 1;
 
-	/** W Constant */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|UVW", meta=(PCG_Overridable, DisplayName="W"))
-	double WConstant = 0;
+	/** Meta filter settings. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName="Carry Over Settings"))
+	FPCGExCarryOverDetails CarryOverDetails;
 
-	/** TBD */
-	//UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
-	//FPCGExAttributeToTagDetails TargetAttributesToTags;
-
-	/** Which Seed attributes to forward on paths. */
-	//UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
-	//FPCGExForwardDetails TargetForwarding;
-
+	/**  */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
+	bool bQuietAttributeMismatchWarning = false;
+	
 private:
 	friend class FPCGExFindPointOnBoundsClustersElement;
 };
@@ -69,9 +65,13 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExFindPointOnBoundsClustersContext final :
 {
 	friend class FPCGExFindPointOnBoundsClustersElement;
 
-	FPCGExAttributeToTagDetails TargetAttributesToTags;
-	TSharedPtr<PCGExData::FDataForwardHandler> TargetForwardHandler;
+	FPCGExCarryOverDetails CarryOverDetails;
 
+	TArray<int32> BestIndices;
+	TSharedPtr<PCGExData::FPointIO> MergedOut;
+	TArray<TSharedPtr<PCGExData::FPointIO>> IOMergeSources;
+	TSharedPtr<PCGEx::FAttributesInfos> MergedAttributesInfos;
+	
 	virtual void ClusterProcessing_InitialProcessingDone() override;
 };
 
@@ -94,6 +94,7 @@ namespace PCGExFindPointOnBoundsClusters
 	{
 		mutable FRWLock BestIndexLock;
 
+		FVector BestPosition = FVector::ZeroVector;
 		FVector SearchPosition = FVector::ZeroVector;
 		int32 BestIndex = -1;
 		double BestDistance = DBL_MAX;
