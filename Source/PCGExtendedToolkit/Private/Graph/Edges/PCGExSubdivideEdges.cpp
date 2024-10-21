@@ -5,6 +5,7 @@
 
 
 #include "Graph/Edges/Relaxing/PCGExRelaxClusterOperation.h"
+#include "Graph/Filters/PCGExClusterFilter.h"
 
 #define LOCTEXT_NAMESPACE "PCGExSubdivideEdges"
 #define PCGEX_NAMESPACE SubdivideEdges
@@ -104,7 +105,6 @@ namespace PCGExSubdivideEdges
 		// - Edge end test
 		// - Edge itself test
 
-
 		Sub.Start = Cluster->GetPos(StartNode);
 		Sub.End = Cluster->GetPos(EndNode);
 		Sub.Dist = FVector::Distance(Sub.Start, Sub.End);
@@ -122,6 +122,10 @@ namespace PCGExSubdivideEdges
 	void FProcessorBatch::GatherRequiredVtxAttributes(PCGExData::FReadableBufferConfigList& ReadableBufferConfigList)
 	{
 		TBatchWithGraphBuilder<FProcessor>::GatherRequiredVtxAttributes(ReadableBufferConfigList);
+
+		PCGEX_TYPED_CONTEXT_AND_SETTINGS(SubdivideEdges)
+		
+		PCGExClusterFilter::GatherRequiredVtxAttributes(ExecutionContext, Context->FilterFactories, ReadableBufferConfigList);
 		DirectionSettings.GatherRequiredVtxAttributes(ExecutionContext, ReadableBufferConfigList);
 	}
 
