@@ -921,10 +921,10 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FClampedBit
 {
 	GENERATED_BODY()
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (ClampMin = "0", ClampMax = "63"))
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Settings, meta = (ClampMin = "0", ClampMax = "63"))
 	uint8 BitIndex;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Settings)
 	bool bValue;
 
 	FClampedBit() : BitIndex(0), bValue(false)
@@ -942,13 +942,13 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FClampedBitOp
 {
 	GENERATED_BODY()
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (ClampMin = "0", ClampMax = "63"))
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Settings, meta = (ClampMin = "0", ClampMax = "63"))
 	uint8 BitIndex;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Settings)
 	EPCGExBitOp Op = EPCGExBitOp::OR;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Settings)
 	bool bValue;
 
 	FClampedBitOp() : BitIndex(0), bValue(true)
@@ -1071,7 +1071,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExBitmaskWithOperation
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable, EditCondition="Mode==EPCGExBitmaskMode::Individual", TitleProperty="Bit # {BitIndex} = {bValue}", EditConditionHides))
 	TArray<FClampedBitOp> Bits;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta=(PCG_NotOverridable, EditCondition="Mode!=EPCGExBitmaskMode::Individual", EditConditionHides))
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Settings, meta=(PCG_NotOverridable, EditCondition="Mode!=EPCGExBitmaskMode::Individual", EditConditionHides))
 	EPCGExBitOp Op = EPCGExBitOp::OR;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable, Bitmask, BitmaskEnum="/Script/PCGExtendedToolkit.EPCGExBitmask8_00_08", DisplayName="0-8 Bits", EditCondition="Mode==EPCGExBitmaskMode::Composite", EditConditionHides))

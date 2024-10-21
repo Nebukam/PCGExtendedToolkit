@@ -22,6 +22,10 @@ bool FPCGExSubdivideEdgesElement::Boot(FPCGExContext* InContext) const
 
 	PCGEX_CONTEXT_AND_SETTINGS(SubdivideEdges)
 
+	if (Settings->bFlagSubVtx) { PCGEX_VALIDATE_NAME(Settings->SubVtxFlagName) }
+	if (Settings->bFlagSubEdge) { PCGEX_VALIDATE_NAME(Settings->SubEdgeFlagName) }
+	if (Settings->bWriteVtxAlpha) { PCGEX_VALIDATE_NAME(Settings->VtxAlphaAttributeName) }
+	
 	PCGEX_OPERATION_BIND(Blending, UPCGExSubPointsBlendOperation)
 
 	return true;
