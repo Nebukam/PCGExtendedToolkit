@@ -53,6 +53,8 @@ namespace PCGExClusterMT
 		TSharedPtr<PCGExMT::FTaskManager> AsyncManager;
 		FPCGExContext* ExecutionContext = nullptr;
 
+		FPCGExEdgeDirectionSettings DirectionSettings;
+
 		bool bBuildCluster = true;
 		bool bRequiresHeuristics = false;
 		bool bCacheVtxPointIndices = false;
@@ -367,6 +369,7 @@ namespace PCGExClusterMT
 		bool bRequiresGraphBuilder = false;
 
 	public:
+		bool bIsBatchValid = true;
 		FPCGExContext* ExecutionContext = nullptr;
 
 		const TSharedRef<PCGExData::FFacade> VtxDataFacade;
@@ -399,7 +402,6 @@ namespace PCGExClusterMT
 		{
 			PCGEX_LOG_CTR(FClusterProcessorBatchBase)
 			Edges.Append(InEdges);
-			VtxDataFacade->bSupportsScopedGet = bAllowVtxDataFacadeScopedGet;
 		}
 
 		virtual ~FClusterProcessorBatchBase()
@@ -413,6 +415,8 @@ namespace PCGExClusterMT
 		virtual void PrepareProcessing(const TSharedPtr<PCGExMT::FTaskManager> AsyncManagerPtr, const bool bScopedIndexLookupBuild)
 		{
 			AsyncManager = AsyncManagerPtr;
+			VtxDataFacade->bSupportsScopedGet = bAllowVtxDataFacadeScopedGet && ExecutionContext->bScopedAttributeGet;
+			
 			const int32 NumVtx = VtxDataFacade->GetNum();
 
 			if (!bScopedIndexLookupBuild || NumVtx < GetDefault<UPCGExGlobalSettings>()->SmallClusterSize)
@@ -477,9 +481,67 @@ namespace PCGExClusterMT
 			}
 		}
 
+		virtual void GatherRequiredVtxAttributes(PCGExData::FReadableBufferConfigList& ReadableBufferConfigList)
+		{
+		}
+		
 		virtual void OnProcessingPreparationComplete()
 		{
-			Process();
+			if (!bIsBatchValid) { return; }
+
+			// Gather required vtx attributes
+			PCGExData::FReadableBufferConfigList BufferList;
+
+			GatherRequiredVtxAttributes(BufferList);
+
+			if (!BufferList.IsEmpty())
+			{
+				if (!BufferList.Validate(ExecutionContext, VtxDataFacade))
+				{
+					bIsBatchValid = false;
+					return;
+				}
+
+				TWeakPtr<FClusterProcessorBatchBase> WeakPtr = SharedThis(this);
+				PCGEX_ASYNC_GROUP_CHKD_VOID(AsyncManager, ParallelVtxAttributeRead)
+
+				ParallelVtxAttributeRead->OnCompleteCallback = [WeakPtr]()
+				{
+					const TSharedPtr<FClusterProcessorBatchBase> This = WeakPtr.Pin();
+					if (!This) { return; }
+					This->VtxDataFacade->MarkCurrentBuffersReadAsComplete();
+					This->Process();
+				};
+
+				if (VtxDataFacade->bSupportsScopedGet)
+				{
+					ParallelVtxAttributeRead->OnIterationRangeStartCallback =
+						[WeakPtr, BufferList](const int32 StartIndex, const int32 Count, const int32 LoopIdx)
+						{
+							const TSharedPtr<FClusterProcessorBatchBase> This = WeakPtr.Pin();
+							if (!This) { return; }
+							BufferList.Fetch(This->VtxDataFacade, StartIndex, Count);
+						};
+
+					ParallelVtxAttributeRead->StartRangePrepareOnly(VtxDataFacade->GetNum(), GetDefault<UPCGExGlobalSettings>()->GetPointsBatchChunkSize());
+				}
+				else
+				{
+					ParallelVtxAttributeRead->OnIterationRangeStartCallback =
+						[WeakPtr, BufferList](const int32 StartIndex, const int32 Count, const int32 LoopIdx)
+						{
+							const TSharedPtr<FClusterProcessorBatchBase> This = WeakPtr.Pin();
+							if (!This) { return; }
+							BufferList.Read(This->VtxDataFacade, StartIndex);
+						};
+
+					ParallelVtxAttributeRead->StartRangePrepareOnly(BufferList.Num(), 1);
+				}
+			}
+			else
+			{
+				Process();
+			}
 		}
 
 		virtual void Process()
@@ -492,12 +554,12 @@ namespace PCGExClusterMT
 
 		virtual void Write()
 		{
-			if (bWriteVtxDataFacade) { VtxDataFacade->Write(AsyncManager); }
+			if (bWriteVtxDataFacade && bIsBatchValid) { VtxDataFacade->Write(AsyncManager); }
 		}
 
 		virtual void CompileGraphBuilder(const bool bOutputToContext)
 		{
-			if (!GraphBuilder) { return; }
+			if (!GraphBuilder || !bIsBatchValid) { return; }
 
 			if (bOutputToContext)
 			{
@@ -555,6 +617,8 @@ namespace PCGExClusterMT
 
 		virtual void Process() override
 		{
+			if (!bIsBatchValid) { return; }
+
 			FClusterProcessorBatchBase::Process();
 
 			if (VtxDataFacade->GetNum() <= 1) { return; }
@@ -588,6 +652,8 @@ namespace PCGExClusterMT
 
 		virtual void StartProcessing()
 		{
+			if (!bIsBatchValid) { return; }
+
 			PCGEX_ASYNC_MT_LOOP_TPL(Process, bInlineProcessing, { Processor->bIsProcessorValid = Processor->Process(AsyncManager); })
 		}
 
@@ -595,6 +661,8 @@ namespace PCGExClusterMT
 
 		virtual void CompleteWork() override
 		{
+			if (!bIsBatchValid) { return; }
+
 			CurrentState = PCGEx::State_Completing;
 			PCGEX_ASYNC_MT_LOOP_VALID_PROCESSORS(CompleteWork, bInlineCompletion, { Processor->CompleteWork(); })
 			FClusterProcessorBatchBase::CompleteWork();
@@ -602,6 +670,8 @@ namespace PCGExClusterMT
 
 		virtual void Write() override
 		{
+			if (!bIsBatchValid) { return; }
+
 			CurrentState = PCGEx::State_Writing;
 			PCGEX_ASYNC_MT_LOOP_VALID_PROCESSORS(Write, bInlineWrite, { Processor->Write(); })
 			FClusterProcessorBatchBase::Write();
@@ -609,6 +679,7 @@ namespace PCGExClusterMT
 
 		virtual void Output() override
 		{
+			if (!bIsBatchValid) { return; }
 			for (const TSharedPtr<T>& P : Processors)
 			{
 				if (!P->bIsProcessorValid) { continue; }

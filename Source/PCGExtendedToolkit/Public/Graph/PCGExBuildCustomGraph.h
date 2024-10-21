@@ -33,7 +33,7 @@ public:
 	TMap<int64, int32> IdxMap;
 	TSharedPtr<TArray<int32>> ValidNodeIndices;
 	TSharedPtr<PCGExGraph::FGraphBuilder> GraphBuilder;
-	
+
 	TSet<uint64> UniqueEdges;
 
 	FORCEINLINE int32 GetOrCreateNode(int64 InIdx)
@@ -43,7 +43,7 @@ public:
 		IdxMap.Add(InIdx, Index);
 		return Index;
 	}
-	
+
 	/**
 	 * Creates an edge between two nodes in an indexed graph.
 	 * @param InStartIdx 
@@ -59,7 +59,7 @@ public:
 	 */
 	UFUNCTION(BlueprintCallable, Category = "PCGEx|Data")
 	void RemoveEdge(const int64 InStartIdx, const int64 InEndIdx);
-	
+
 	/**
 	 * Initialization method. It is called right before Build Graph -- this is where you must set the max number of nodes.
 	 * @param InContext Context of the execution
@@ -69,7 +69,7 @@ public:
 	 */
 	UFUNCTION(BlueprintNativeEvent, Category = "PCGEx|Execution")
 	void InitializeSettings(UPARAM(ref)const FPCGContext& InContext, bool& OutSuccess, int32& OutNodeReserve, int32& OutEdgeReserve);
-	
+
 	/**
 	 * Main execution function. Called once per requested graphs. This method is executed in a multi-threaded context, Graph Settings are safe but the custom builder wrapper itself isn't.
 	 * @param InContext Context of the execution
@@ -77,7 +77,7 @@ public:
 	 */
 	UFUNCTION(BlueprintNativeEvent, Category = "PCGEx|Execution")
 	void BuildGraph(UPARAM(ref)const FPCGContext& InContext, bool& OutSuccess);
-	
+
 	/**
 	 * Update Node Point is called on each node point after BuildGraph has been, and edges added. This method is executed in a multi-threaded context.
 	 * This is where point transform & properties should be set.

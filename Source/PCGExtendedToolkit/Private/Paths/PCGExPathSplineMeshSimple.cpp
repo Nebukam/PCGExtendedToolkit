@@ -53,14 +53,14 @@ bool FPCGExPathSplineMeshSimpleElement::ExecuteInternal(FPCGContext* InContext) 
 
 	PCGEX_ON_STATE(PCGEx::State_WaitingOnAsyncWork)
 	{
-		bool bInvalidInputs = false;
+		PCGEX_ON_INVALILD_INPUTS(FTEXT("Some inputs have less than 2 points and won't be processed."))
 
 		if (!Context->StartBatchProcessingPoints<PCGExPointsMT::TBatch<PCGExPathSplineMeshSimple::FProcessor>>(
 			[&](const TSharedPtr<PCGExData::FPointIO>& Entry)
 			{
 				if (Entry->GetNum() < 2)
 				{
-					bInvalidInputs = true;
+					bHasInvalidInputs = true;
 					Entry->InitializeOutput(Context, PCGExData::EInit::Forward);
 					return false;
 				}
@@ -73,10 +73,6 @@ bool FPCGExPathSplineMeshSimpleElement::ExecuteInternal(FPCGContext* InContext) 
 			return Context->CancelExecution(TEXT("Could not find any paths to write tangents to."));
 		}
 
-		if (bInvalidInputs)
-		{
-			PCGE_LOG(Warning, GraphAndLog, FTEXT("Some inputs have less than 2 points and won't be processed."));
-		}
 	}
 
 	PCGEX_POINTS_BATCH_PROCESSING(PCGEx::State_Done)

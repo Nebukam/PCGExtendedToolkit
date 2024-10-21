@@ -16,7 +16,7 @@ bool UPCGExProbeDirection::PrepareForPoints(const TSharedPtr<PCGExData::FPointIO
 	bUseBestDot = Config.Favor == EPCGExProbeDirectionPriorization::Dot;
 	MinDot = PCGExMath::DegreesToDot(Config.MaxAngle);
 
-	if (Config.DirectionSource == EPCGExFetchType::Constant)
+	if (Config.DirectionInput == EPCGExInputValueType::Constant)
 	{
 		Direction = Config.DirectionConstant.GetSafeNormal();
 		bUseConstantDir = true;

@@ -3,7 +3,6 @@
 
 #include "Graph/PCGExConnectPoints.h"
 
-
 #include "Graph/PCGExGraph.h"
 #include "Graph/Data/PCGExClusterData.h"
 #include "Graph/PCGExUnionHelpers.h"
@@ -70,13 +69,16 @@ bool FPCGExConnectPointsElement::ExecuteInternal(FPCGContext* InContext) const
 	PCGEX_ON_INITIAL_EXECUTION
 	{
 		if (!Context->StartBatchProcessingPoints<PCGExPointsMT::TBatch<PCGExConnectPoints::FProcessor>>(
-			[&](const TSharedPtr<PCGExData::FPointIO>& Entry) { return Entry->GetNum() >= 2; },
+			[&](const TSharedPtr<PCGExData::FPointIO>& Entry)
+			{
+				return Entry->GetNum() >= 2;
+			},
 			[&](const TSharedPtr<PCGExPointsMT::TBatch<PCGExConnectPoints::FProcessor>>& NewBatch)
 			{
 				NewBatch->bRequiresWriteStep = true;
 			}))
 		{
-			return Context->CancelExecution(TEXT("Could not build any clusters."));
+			return Context->CancelExecution(TEXT("Could not build any clusters. Make sure inputs have at least 2 points."));
 		}
 	}
 

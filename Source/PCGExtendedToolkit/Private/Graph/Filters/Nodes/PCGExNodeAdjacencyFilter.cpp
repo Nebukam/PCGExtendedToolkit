@@ -9,18 +9,25 @@
 #define LOCTEXT_NAMESPACE "PCGExNodeAdjacencyFilter"
 #define PCGEX_NAMESPACE NodeAdjacencyFilter
 
+void UPCGExNodeAdjacencyFilterFactory::GatherRequiredVtxAttributes(FPCGExContext* InContext, PCGExData::FReadableBufferConfigList& ReadableBufferConfigList) const
+{
+	Super::GatherRequiredVtxAttributes(InContext, ReadableBufferConfigList);
+	if (Config.CompareAgainst == EPCGExInputValueType::Attribute) { ReadableBufferConfigList.Register<double>(InContext, Config.OperandA); }
+	if (Config.OperandBSource == EPCGExClusterComponentSource::Vtx) { ReadableBufferConfigList.Register<double>(InContext, Config.OperandB); }
+}
+
 TSharedPtr<PCGExPointFilter::FFilter> UPCGExNodeAdjacencyFilterFactory::CreateFilter() const
 {
 	return MakeShared<FNodeAdjacencyFilter>(this);
 }
 
-bool FNodeAdjacencyFilter::Init(const FPCGContext* InContext, const TSharedRef<PCGExCluster::FCluster>& InCluster, const TSharedRef<PCGExData::FFacade>& InPointDataFacade, const TSharedRef<PCGExData::FFacade>& InEdgeDataFacade)
+bool FNodeAdjacencyFilter::Init(FPCGExContext* InContext, const TSharedRef<PCGExCluster::FCluster>& InCluster, const TSharedRef<PCGExData::FFacade>& InPointDataFacade, const TSharedRef<PCGExData::FFacade>& InEdgeDataFacade)
 {
 	if (!FFilter::Init(InContext, InCluster, InPointDataFacade, InEdgeDataFacade)) { return false; }
 
-	bCaptureFromNodes = TypedFilterFactory->Config.OperandBSource != EPCGExGraphValueSource::Edge;
+	bCaptureFromNodes = TypedFilterFactory->Config.OperandBSource != EPCGExClusterComponentSource::Edge;
 
-	if (TypedFilterFactory->Config.CompareAgainst == EPCGExFetchType::Attribute)
+	if (TypedFilterFactory->Config.CompareAgainst == EPCGExInputValueType::Attribute)
 	{
 		OperandA = PointDataFacade->GetBroadcaster<double>(TypedFilterFactory->Config.OperandA);
 		if (!OperandA)

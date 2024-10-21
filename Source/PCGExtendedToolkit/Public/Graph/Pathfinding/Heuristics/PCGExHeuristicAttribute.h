@@ -27,7 +27,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExHeuristicAttributeConfig : public FPCGEx
 
 	/** Read the data from either vertices or edges */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
-	EPCGExGraphValueSource Source = EPCGExGraphValueSource::Vtx;
+	EPCGExClusterComponentSource Source = EPCGExClusterComponentSource::Vtx;
 
 	/** Attribute to read modifier value from. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
@@ -61,7 +61,7 @@ public:
 		const PCGExCluster::FNode& Goal,
 		const TArray<uint64>* TravelStack) const override
 	{
-		return CachedScores[Source == EPCGExGraphValueSource::Edge ? Edge.PointIndex : To.NodeIndex];
+		return CachedScores[Source == EPCGExClusterComponentSource::Edge ? Edge.PointIndex : To.NodeIndex];
 	}
 
 	virtual void Cleanup() override
@@ -71,7 +71,7 @@ public:
 		Super::Cleanup();
 	}
 
-	EPCGExGraphValueSource Source = EPCGExGraphValueSource::Vtx;
+	EPCGExClusterComponentSource Source = EPCGExClusterComponentSource::Vtx;
 	FPCGAttributePropertyInputSelector Attribute;
 
 protected:

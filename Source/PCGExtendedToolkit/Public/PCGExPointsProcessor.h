@@ -3,8 +3,6 @@
 
 #pragma once
 
-#include "Runtime/Launch/Resources/Version.h"
-
 #include "CoreMinimal.h"
 #include "PCGPin.h"
 
@@ -102,7 +100,6 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPointsProcessorContext : FPCGExContext
 {
 	friend class FPCGExPointsProcessorElement;
 
-	bool bScopedAttributeGet = false;
 	virtual ~FPCGExPointsProcessorContext() override;
 
 	mutable FRWLock AsyncLock;

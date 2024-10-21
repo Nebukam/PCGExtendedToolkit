@@ -143,6 +143,47 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExNameFiltersDetails
 			}
 		}
 	}
+
+	void Prune(TSet<FName>& Names) const
+	{
+		TArray<FName> ValidNames;
+		ValidNames.Reserve(Names.Num());
+		for (FName Name : Names) { if (Test(Name.ToString())) { ValidNames.Add(Name); } }
+		Names.Empty();
+		Names.Append(ValidNames);
+	}
+
+	void Prune(PCGEx::FAttributesInfos& InAttributeInfos) const
+	{
+		TArray<FName> FilteredOutNames;
+		FilteredOutNames.Reserve(InAttributeInfos.Identities.Num());
+		for (const TPair<FName, int32>& Pair : InAttributeInfos.Map)
+		{
+			if (Test(Pair.Key.ToString())) { continue; }
+			FilteredOutNames.Add(Pair.Key);
+		}
+
+		// Filter out identities & attributes
+		for (FName FilteredOutName : FilteredOutNames)
+		{
+			InAttributeInfos.Map.Remove(FilteredOutName);
+			for (int i = 0; i < InAttributeInfos.Identities.Num(); i++)
+			{
+				if (InAttributeInfos.Identities[i].Name == FilteredOutName)
+				{
+					InAttributeInfos.Identities.RemoveAt(i);
+					InAttributeInfos.Attributes.RemoveAt(i);
+					break;
+				}
+			}
+		}
+
+		// Refresh indices
+		for (int i = 0; i < InAttributeInfos.Identities.Num(); i++)
+		{
+			InAttributeInfos.Map.Add(InAttributeInfos.Identities[i].Name, i);
+		}
+	}
 };
 
 USTRUCT(BlueprintType)

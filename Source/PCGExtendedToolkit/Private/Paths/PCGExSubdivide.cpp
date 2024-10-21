@@ -38,14 +38,14 @@ bool FPCGExSubdivideElement::ExecuteInternal(FPCGContext* InContext) const
 	PCGEX_EXECUTION_CHECK
 	PCGEX_ON_INITIAL_EXECUTION
 	{
-		bool bInvalidInputs = false;
+		PCGEX_ON_INVALILD_INPUTS(FTEXT("Some inputs have less than 2 points and won't be processed."))
 
 		if (!Context->StartBatchProcessingPoints<PCGExPointsMT::TBatch<PCGExSubdivide::FProcessor>>(
 			[&](const TSharedPtr<PCGExData::FPointIO>& Entry)
 			{
 				if (Entry->GetNum() < 2)
 				{
-					bInvalidInputs = true;
+					bHasInvalidInputs = true;
 					Entry->InitializeOutput(Context, PCGExData::EInit::Forward);
 					return false;
 				}
@@ -60,10 +60,6 @@ bool FPCGExSubdivideElement::ExecuteInternal(FPCGContext* InContext) const
 			return Context->CancelExecution(TEXT("Could not find any paths to subdivide."));
 		}
 
-		if (bInvalidInputs)
-		{
-			PCGE_LOG(Warning, GraphAndLog, FTEXT("Some inputs have less than 2 points and won't be processed."));
-		}
 	}
 
 	PCGEX_POINTS_BATCH_PROCESSING(PCGEx::State_Done)
@@ -87,7 +83,7 @@ namespace PCGExSubdivide
 
 		bClosedLoop = Context->ClosedLoop.IsClosedLoop(PointDataFacade->Source);
 
-		if (Settings->ValueSource == EPCGExFetchType::Attribute)
+		if (Settings->AmountInput == EPCGExInputValueType::Attribute)
 		{
 			AmountGetter = PointDataFacade->GetScopedBroadcaster<double>(Settings->SubdivisionAmount);
 			if (!AmountGetter)
@@ -128,7 +124,6 @@ namespace PCGExSubdivide
 		Sub.NumSubdivisions = 0;
 		Sub.Start = PointIO->GetInPoint(Index).Transform.GetLocation();
 		Sub.End = PointIO->GetInPoint(Index + 1 == PointIO->GetNum() ? 0 : Index + 1).Transform.GetLocation();
-
 		Sub.Dist = FVector::Distance(Sub.Start, Sub.End);
 
 		if (!PointFilterCache[Index]) { return; }

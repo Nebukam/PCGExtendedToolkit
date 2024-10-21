@@ -29,6 +29,11 @@ UCLASS(Abstract, MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category=
 class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExClusterFilterFactoryBase : public UPCGExFilterFactoryBase
 {
 	GENERATED_BODY()
+
+public:
+	virtual void GatherRequiredVtxAttributes(FPCGExContext* InContext, PCGExData::FReadableBufferConfigList& ReadableBufferConfigList) const
+	{
+	}
 };
 
 /**
@@ -57,6 +62,18 @@ public:
 
 namespace PCGExClusterFilter
 {
+	static void GatherRequiredVtxAttributes(FPCGExContext* InContext, const TArray<TObjectPtr<const UPCGExFilterFactoryBase>>& InFactories, PCGExData::FReadableBufferConfigList& ReadableBufferConfigList)
+	{
+		for (const UPCGExFilterFactoryBase* Factory : InFactories)
+		{
+			if (PCGExFactories::ClusterSpecificFilters.Contains(Factory->GetFactoryType()))
+			{
+				const UPCGExClusterFilterFactoryBase* ClusterFilterFactory = static_cast<const UPCGExClusterFilterFactoryBase*>(Factory);
+				ClusterFilterFactory->GatherRequiredVtxAttributes(InContext, ReadableBufferConfigList);
+			}
+		}
+	}
+
 	class /*PCGEXTENDEDTOOLKIT_API*/ FFilter : public PCGExPointFilter::FFilter
 	{
 	public:
@@ -71,8 +88,8 @@ namespace PCGExClusterFilter
 
 		virtual PCGExFilters::EType GetFilterType() const override;
 
-		virtual bool Init(const FPCGContext* InContext, const TSharedPtr<PCGExData::FFacade> InPointDataFacade) override;
-		virtual bool Init(const FPCGContext* InContext, const TSharedRef<PCGExCluster::FCluster>& InCluster, const TSharedRef<PCGExData::FFacade>& InPointDataFacade, const TSharedRef<PCGExData::FFacade>& InEdgeDataFacade);
+		virtual bool Init(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade> InPointDataFacade) override;
+		virtual bool Init(FPCGExContext* InContext, const TSharedRef<PCGExCluster::FCluster>& InCluster, const TSharedRef<PCGExData::FFacade>& InPointDataFacade, const TSharedRef<PCGExData::FFacade>& InEdgeDataFacade);
 		virtual void PostInit() override;
 	};
 
@@ -118,7 +135,7 @@ namespace PCGExClusterFilter
 		}
 
 	protected:
-		virtual bool InitFilter(const FPCGContext* InContext, const TSharedPtr<PCGExPointFilter::FFilter>& Filter) override;
+		virtual bool InitFilter(FPCGExContext* InContext, const TSharedPtr<PCGExPointFilter::FFilter>& Filter) override;
 		virtual void InitCache() override;
 	};
 }

@@ -73,13 +73,13 @@ namespace PCGExPathSolidify
 
 		// Create edge-scope getters
 #define PCGEX_CREATE_LOCAL_AXIS_GETTER(_AXIS)\
-if (Settings->bWriteRadius##_AXIS && Settings->Radius##_AXIS##Type == EPCGExFetchType::Attribute){\
+if (Settings->bWriteRadius##_AXIS && Settings->Radius##_AXIS##Input == EPCGExInputValueType::Attribute){\
 SolidificationRad##_AXIS = PointDataFacade->GetBroadcaster<double>(Settings->Radius##_AXIS##SourceAttribute);\
 if (!SolidificationRad##_AXIS){ PCGE_LOG_C(Warning, GraphAndLog, Context, FText::Format(FTEXT("Some paths don't have the specified Radius Attribute \"{0}\"."), FText::FromName(Settings->Radius##_AXIS##SourceAttribute.GetName()))); return false; }}
 		PCGEX_FOREACH_XYZ(PCGEX_CREATE_LOCAL_AXIS_GETTER)
 #undef PCGEX_CREATE_LOCAL_AXIS_GETTER
 
-		if (Settings->SolidificationLerpOperand == EPCGExFetchType::Attribute)
+		if (Settings->SolidificationLerpInput == EPCGExInputValueType::Attribute)
 		{
 			SolidificationLerpGetter = PointDataFacade->GetBroadcaster<double>(Settings->SolidificationLerpAttribute);
 			if (!SolidificationLerpGetter)

@@ -12,7 +12,7 @@ TSharedPtr<PCGExPointFilter::FFilter> UPCGExBitmaskFilterFactory::CreateFilter()
 	return MakeShared<PCGExPointsFilter::TBitmaskFilter>(this);
 }
 
-bool PCGExPointsFilter::TBitmaskFilter::Init(const FPCGContext* InContext, const TSharedPtr<PCGExData::FFacade> InPointDataFacade)
+bool PCGExPointsFilter::TBitmaskFilter::Init(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade> InPointDataFacade)
 {
 	if (!FFilter::Init(InContext, InPointDataFacade)) { return false; }
 
@@ -24,7 +24,7 @@ bool PCGExPointsFilter::TBitmaskFilter::Init(const FPCGContext* InContext, const
 		return false;
 	}
 
-	if (TypedFilterFactory->Config.MaskType == EPCGExFetchType::Attribute)
+	if (TypedFilterFactory->Config.MaskInput == EPCGExInputValueType::Attribute)
 	{
 		MaskReader = PointDataFacade->GetScopedReadable<int64>(TypedFilterFactory->Config.BitmaskAttribute);
 		if (!MaskReader)
@@ -42,7 +42,7 @@ PCGEX_CREATE_FILTER_FACTORY(Bitmask)
 #if WITH_EDITOR
 FString UPCGExBitmaskFilterProviderSettings::GetDisplayName() const
 {
-	FString A = Config.MaskType == EPCGExFetchType::Attribute ? Config.BitmaskAttribute.ToString() : TEXT("(Const)");
+	FString A = Config.MaskInput == EPCGExInputValueType::Attribute ? Config.BitmaskAttribute.ToString() : TEXT("(Const)");
 	FString B = Config.FlagsAttribute.ToString();
 	FString DisplayName;
 

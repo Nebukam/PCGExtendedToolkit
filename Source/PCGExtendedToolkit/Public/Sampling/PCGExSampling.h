@@ -5,6 +5,7 @@
 
 #include "PCGEx.h"
 #include "Data/PCGExData.h"
+#include "PhysicalMaterials/PhysicalMaterial.h"
 
 #include "PCGExSampling.generated.h"
 

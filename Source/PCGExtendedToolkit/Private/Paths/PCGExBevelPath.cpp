@@ -79,8 +79,9 @@ bool FPCGExBevelPathElement::ExecuteInternal(FPCGContext* InContext) const
 	PCGEX_CONTEXT_AND_SETTINGS(BevelPath)
 	PCGEX_EXECUTION_CHECK
 	PCGEX_ON_INITIAL_EXECUTION
-	{
-		bool bHasInvalidInputs = false;
+	{		
+		PCGEX_ON_INVALILD_INPUTS(FTEXT("Some inputs have less than 3 points and won't be processed."))
+		
 		if (!Context->StartBatchProcessingPoints<PCGExPointsMT::TBatch<PCGExBevelPath::FProcessor>>(
 			[&](const TSharedPtr<PCGExData::FPointIO>& Entry)
 			{
@@ -100,11 +101,6 @@ bool FPCGExBevelPathElement::ExecuteInternal(FPCGContext* InContext) const
 			}))
 		{
 			return Context->CancelExecution(TEXT("Could not find any paths to Bevel."));
-		}
-
-		if (bHasInvalidInputs)
-		{
-			PCGE_LOG(Warning, GraphAndLog, FTEXT("Some inputs have less than 3 points and won't be processed."));
 		}
 	}
 
@@ -275,7 +271,7 @@ namespace PCGExBevelPath
 
 		Bevels.Init(nullptr, PointDataFacade->GetNum());
 
-		if (Settings->WidthSource == EPCGExFetchType::Attribute)
+		if (Settings->WidthInput == EPCGExInputValueType::Attribute)
 		{
 			WidthGetter = PointDataFacade->GetScopedBroadcaster<double>(Settings->WidthAttribute);
 			if (!WidthGetter)
@@ -292,7 +288,7 @@ namespace PCGExBevelPath
 			{
 				bSubdivideCount = Settings->SubdivideMethod == EPCGExSubdivideMode::Count;
 
-				if (Settings->SubdivisionValueSource == EPCGExFetchType::Attribute)
+				if (Settings->SubdivisionAmountInput == EPCGExInputValueType::Attribute)
 				{
 					SubdivAmountGetter = PointDataFacade->GetScopedBroadcaster<double>(Settings->SubdivisionAmount);
 					if (!SubdivAmountGetter)

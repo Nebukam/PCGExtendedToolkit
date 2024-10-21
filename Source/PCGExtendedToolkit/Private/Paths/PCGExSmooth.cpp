@@ -33,14 +33,14 @@ bool FPCGExSmoothElement::ExecuteInternal(FPCGContext* InContext) const
 	PCGEX_EXECUTION_CHECK
 	PCGEX_ON_INITIAL_EXECUTION
 	{
-		bool bInvalidInputs = false;
+		PCGEX_ON_INVALILD_INPUTS(FTEXT("Some inputs have less than 2 points and won't be processed."))
 
 		if (!Context->StartBatchProcessingPoints<PCGExPointsMT::TBatch<PCGExSmooth::FProcessor>>(
 			[&](const TSharedPtr<PCGExData::FPointIO>& Entry)
 			{
 				if (Entry->GetNum() < 2)
 				{
-					bInvalidInputs = true;
+					bHasInvalidInputs = true;
 					return false;
 				}
 				return true;
@@ -51,11 +51,6 @@ bool FPCGExSmoothElement::ExecuteInternal(FPCGContext* InContext) const
 			}))
 		{
 			return Context->CancelExecution(TEXT("Could not find any paths to smooth."));
-		}
-
-		if (bInvalidInputs)
-		{
-			PCGE_LOG(Warning, GraphAndLog, FTEXT("Some inputs have less than 2 points and won't be processed."));
 		}
 	}
 
@@ -87,7 +82,7 @@ namespace PCGExSmooth
 		MetadataBlender = MakeShared<PCGExDataBlending::FMetadataBlender>(&Settings->BlendingSettings);
 		MetadataBlender->PrepareForData(PointDataFacade);
 
-		if (Settings->InfluenceType == EPCGExFetchType::Attribute)
+		if (Settings->InfluenceInput == EPCGExInputValueType::Attribute)
 		{
 			Influence = PointDataFacade->GetScopedBroadcaster<double>(Settings->InfluenceAttribute);
 			if (!Influence)
@@ -97,7 +92,7 @@ namespace PCGExSmooth
 			}
 		}
 
-		if (Settings->SmoothingAmountType == EPCGExFetchType::Attribute)
+		if (Settings->SmoothingAmountType == EPCGExInputValueType::Attribute)
 		{
 			Smoothing = PointDataFacade->GetScopedBroadcaster<double>(Settings->SmoothingAmountAttribute);
 			if (!Smoothing)

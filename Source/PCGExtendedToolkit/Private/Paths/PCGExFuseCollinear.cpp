@@ -31,7 +31,7 @@ bool FPCGExFuseCollinearElement::ExecuteInternal(FPCGContext* InContext) const
 	PCGEX_EXECUTION_CHECK
 	PCGEX_ON_INITIAL_EXECUTION
 	{
-		bool bInvalidInputs = false;
+		PCGEX_ON_INVALILD_INPUTS(FTEXT("Some inputs have less than 2 points and won't be processed."))
 
 		// TODO : Skip completion
 
@@ -40,7 +40,7 @@ bool FPCGExFuseCollinearElement::ExecuteInternal(FPCGContext* InContext) const
 			{
 				if (Entry->GetNum() < 2)
 				{
-					bInvalidInputs = true;
+					bHasInvalidInputs = true;
 					Entry->InitializeOutput(Context, PCGExData::EInit::Forward);
 					return false;
 				}
@@ -53,10 +53,6 @@ bool FPCGExFuseCollinearElement::ExecuteInternal(FPCGContext* InContext) const
 			Context->CancelExecution(TEXT("Could not find any paths to fuse."));
 		}
 
-		if (bInvalidInputs)
-		{
-			PCGE_LOG(Warning, GraphAndLog, FTEXT("Some inputs have less than 2 points and won't be processed."));
-		}
 	}
 
 	PCGEX_POINTS_BATCH_PROCESSING(PCGEx::State_Done)

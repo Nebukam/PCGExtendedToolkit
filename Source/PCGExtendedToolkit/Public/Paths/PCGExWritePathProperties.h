@@ -80,14 +80,14 @@ public:
 
 	/** Type of Up vector */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output - Points", meta=(PCG_Overridable))
-	EPCGExFetchType UpVectorType = EPCGExFetchType::Constant;
+	EPCGExInputValueType UpVectorInput = EPCGExInputValueType::Constant;
 
 	/** Up Attribute read on points */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output - Points", meta = (PCG_Overridable, EditCondition="UpVectorType==EPCGExFetchType::Attribute", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output - Points", meta = (PCG_Overridable, EditCondition="UpVectorInput==EPCGExInputValueType::Attribute", EditConditionHides))
 	FPCGAttributePropertyInputSelector UpVectorSourceAttribute;
 
 	/** Up Attribute constant */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output - Points", meta = (PCG_Overridable, EditCondition="UpVectorType==EPCGExFetchType::Constant", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output - Points", meta = (PCG_Overridable, EditCondition="UpVectorInput==EPCGExInputValueType::Constant", EditConditionHides))
 	FVector UpVectorConstant = FVector::UpVector;
 
 	/** Whether to average normal for computations */

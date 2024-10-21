@@ -45,7 +45,6 @@ bool FPCGExWriteEdgePropertiesElement::ExecuteInternal(
 			[&](const TSharedPtr<PCGExWriteEdgeProperties::FProcessorBatch>& NewBatch)
 			{
 				if (Settings->bWriteHeuristics) { NewBatch->SetRequiresHeuristics(true); }
-				if (Settings->DirectionSettings.RequiresEndpointsMetadata()) { NewBatch->bRequiresWriteStep = true; }
 			}))
 		{
 			return Context->CancelExecution(TEXT("Could not build any clusters."));
@@ -94,13 +93,13 @@ namespace PCGExWriteEdgeProperties
 
 			// Create edge-scope getters
 #define PCGEX_CREATE_LOCAL_AXIS_GETTER(_AXIS)\
-			if (Settings->bWriteRadius##_AXIS && Settings->Radius##_AXIS##Type == EPCGExFetchType::Attribute){\
-				SolidificationRad##_AXIS = Settings->Radius##_AXIS##Source == EPCGExGraphValueSource::Edge ? EdgeDataFacade->GetBroadcaster<double>(Settings->Radius##_AXIS##SourceAttribute) : VtxDataFacade->GetBroadcaster<double>(Settings->Radius##_AXIS##SourceAttribute);\
+			if (Settings->bWriteRadius##_AXIS && Settings->Radius##_AXIS##Input == EPCGExInputValueType::Attribute){\
+				SolidificationRad##_AXIS = Settings->Radius##_AXIS##Source == EPCGExClusterComponentSource::Edge ? EdgeDataFacade->GetBroadcaster<double>(Settings->Radius##_AXIS##SourceAttribute) : VtxDataFacade->GetBroadcaster<double>(Settings->Radius##_AXIS##SourceAttribute);\
 				if (!SolidificationRad##_AXIS){ PCGE_LOG_C(Warning, GraphAndLog, Context, FText::Format(FTEXT("Some edges don't have the specified Radius Attribute \"{0}\"."), FText::FromName(Settings->Radius##_AXIS##SourceAttribute.GetName()))); return false; }}
 			PCGEX_FOREACH_XYZ(PCGEX_CREATE_LOCAL_AXIS_GETTER)
 #undef PCGEX_CREATE_LOCAL_AXIS_GETTER
 
-			if (Settings->SolidificationLerpOperand == EPCGExFetchType::Attribute)
+			if (Settings->SolidificationLerpInput == EPCGExInputValueType::Attribute)
 			{
 				SolidificationLerpGetter = EdgeDataFacade->GetBroadcaster<double>(Settings->SolidificationLerpAttribute);
 				if (!SolidificationLerpGetter)
@@ -120,8 +119,8 @@ namespace PCGExWriteEdgeProperties
 		StartWeight = FMath::Clamp(Settings->EndpointsWeights, 0, 1);
 		EndWeight = 1 - StartWeight;
 
+		StartParallelLoopForEdges();
 
-		if (!DirectionSettings.RequiresEndpointsMetadata()) { StartParallelLoopForEdges(); } // Need to wait for data
 		return true;
 	}
 
@@ -204,7 +203,7 @@ namespace PCGExWriteEdgeProperties
 					}else{\
 						double Rad = Rad##_AXIS##Constant;\
 						if(SolidificationRad##_AXIS){\
-						if (Settings->Radius##_AXIS##Source == EPCGExGraphValueSource::Vtx) { Rad = FMath::Lerp(SolidificationRad##_AXIS->Read(Edge.Start), SolidificationRad##_AXIS->Read(Edge.End), EdgeLerp); }\
+						if (Settings->Radius##_AXIS##Source == EPCGExClusterComponentSource::Vtx) { Rad = FMath::Lerp(SolidificationRad##_AXIS->Read(Edge.Start), SolidificationRad##_AXIS->Read(Edge.End), EdgeLerp); }\
 						else { Rad = SolidificationRad##_AXIS->Read(Edge.PointIndex); }}\
 						TargetBoundsMin._AXIS = -Rad;\
 						TargetBoundsMax._AXIS = Rad;\
@@ -250,50 +249,28 @@ namespace PCGExWriteEdgeProperties
 
 	void FProcessor::CompleteWork()
 	{
-		if (DirectionSettings.RequiresEndpointsMetadata())
-		{
-			StartParallelLoopForEdges();
-			return;
-		}
-
 		EdgeDataFacade->Write(AsyncManager);
 	}
 
-	void FProcessor::Write()
+	void FProcessorBatch::GatherRequiredVtxAttributes(PCGExData::FReadableBufferConfigList& ReadableBufferConfigList)
 	{
-		EdgeDataFacade->Write(AsyncManager);
+		TBatch<FProcessor>::GatherRequiredVtxAttributes(ReadableBufferConfigList);
+		DirectionSettings.GatherRequiredVtxAttributes(ExecutionContext, ReadableBufferConfigList);
 	}
 
 	void FProcessorBatch::OnProcessingPreparationComplete()
 	{
-		TBatch<FProcessor>::OnProcessingPreparationComplete();
-
 		PCGEX_TYPED_CONTEXT_AND_SETTINGS(WriteEdgeProperties)
 
-		VtxDataFacade->bSupportsScopedGet = Context->bScopedAttributeGet;
 		DirectionSettings = Settings->DirectionSettings;
 
-		if (!DirectionSettings.Init(Context, VtxDataFacade))
+		if (!DirectionSettings.Init(ExecutionContext))
 		{
-			PCGE_LOG_C(Warning, GraphAndLog, Context, FTEXT("Some vtx are missing the specified Direction attribute."));
+			bIsBatchValid = false;
 			return;
 		}
 
-		if (DirectionSettings.RequiresEndpointsMetadata())
-		{
-			// Fetch attributes while processors are searching for chains
-
-			const int32 PLI = GetDefault<UPCGExGlobalSettings>()->GetClusterBatchChunkSize();
-
-			PCGEX_ASYNC_GROUP_CHKD_VOID(AsyncManager, FetchVtxTask)
-			FetchVtxTask->OnIterationRangeStartCallback =
-				[&](const int32 StartIndex, const int32 Count, const int32 LoopIdx)
-				{
-					VtxDataFacade->Fetch(StartIndex, Count);
-				};
-
-			FetchVtxTask->StartRangePrepareOnly(VtxDataFacade->GetNum(), PLI);
-		}
+		TBatch<FProcessor>::OnProcessingPreparationComplete();
 	}
 }
 

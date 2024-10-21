@@ -12,7 +12,7 @@ TSharedPtr<PCGExPointFilter::FFilter> UPCGExModuloCompareFilterFactory::CreateFi
 	return MakeShared<PCGExPointsFilter::TModuloComparisonFilter>(this);
 }
 
-bool PCGExPointsFilter::TModuloComparisonFilter::Init(const FPCGContext* InContext, const TSharedPtr<PCGExData::FFacade> InPointDataFacade)
+bool PCGExPointsFilter::TModuloComparisonFilter::Init(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade> InPointDataFacade)
 {
 	if (!FFilter::Init(InContext, InPointDataFacade)) { return false; }
 
@@ -24,7 +24,7 @@ bool PCGExPointsFilter::TModuloComparisonFilter::Init(const FPCGContext* InConte
 		return false;
 	}
 
-	if (TypedFilterFactory->Config.OperandBSource == EPCGExFetchType::Attribute)
+	if (TypedFilterFactory->Config.OperandBSource == EPCGExInputValueType::Attribute)
 	{
 		OperandB = PointDataFacade->GetScopedBroadcaster<double>(TypedFilterFactory->Config.OperandB);
 
@@ -35,7 +35,7 @@ bool PCGExPointsFilter::TModuloComparisonFilter::Init(const FPCGContext* InConte
 		}
 	}
 
-	if (TypedFilterFactory->Config.CompareAgainst == EPCGExFetchType::Attribute)
+	if (TypedFilterFactory->Config.CompareAgainst == EPCGExInputValueType::Attribute)
 	{
 		OperandC = PointDataFacade->GetScopedBroadcaster<double>(TypedFilterFactory->Config.OperandC);
 
@@ -56,12 +56,12 @@ FString UPCGExModuloCompareFilterProviderSettings::GetDisplayName() const
 {
 	FString DisplayName = Config.OperandA.GetName().ToString() + " % ";
 
-	if (Config.OperandBSource == EPCGExFetchType::Attribute) { DisplayName += Config.OperandB.GetName().ToString(); }
+	if (Config.OperandBSource == EPCGExInputValueType::Attribute) { DisplayName += Config.OperandB.GetName().ToString(); }
 	else { DisplayName += FString::Printf(TEXT("%.3f "), (static_cast<int32>(1000 * Config.OperandBConstant) / 1000.0)); }
 
 	DisplayName += PCGExCompare::ToString(Config.Comparison);
 
-	if (Config.CompareAgainst == EPCGExFetchType::Attribute) { DisplayName += Config.OperandC.GetName().ToString(); }
+	if (Config.CompareAgainst == EPCGExInputValueType::Attribute) { DisplayName += Config.OperandC.GetName().ToString(); }
 	else { DisplayName += FString::Printf(TEXT(" %.3f"), (static_cast<int32>(1000 * Config.OperandCConstant) / 1000.0)); }
 
 	return DisplayName;

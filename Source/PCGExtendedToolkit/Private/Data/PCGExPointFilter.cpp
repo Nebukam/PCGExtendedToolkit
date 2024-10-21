@@ -19,7 +19,7 @@ bool UPCGExFilterFactoryBase::Init(FPCGExContext* InContext)
 
 namespace PCGExPointFilter
 {
-	bool FFilter::Init(const FPCGContext* InContext, const TSharedPtr<PCGExData::FFacade> InPointDataFacade)
+	bool FFilter::Init(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade> InPointDataFacade)
 	{
 		PointDataFacade = InPointDataFacade;
 		return true;
@@ -45,7 +45,7 @@ namespace PCGExPointFilter
 	{
 	}
 
-	bool FManager::Init(const FPCGContext* InContext, const TArray<TObjectPtr<const UPCGExFilterFactoryBase>>& InFactories)
+	bool FManager::Init(FPCGExContext* InContext, const TArray<TObjectPtr<const UPCGExFilterFactoryBase>>& InFactories)
 	{
 		for (const UPCGExFilterFactoryBase* Factory : InFactories)
 		{
@@ -76,12 +76,12 @@ namespace PCGExPointFilter
 		return true;
 	}
 
-	bool FManager::InitFilter(const FPCGContext* InContext, const TSharedPtr<FFilter>& Filter)
+	bool FManager::InitFilter(FPCGExContext* InContext, const TSharedPtr<FFilter>& Filter)
 	{
 		return Filter->Init(InContext, PointDataFacade);
 	}
 
-	bool FManager::PostInit(const FPCGContext* InContext)
+	bool FManager::PostInit(FPCGExContext* InContext)
 	{
 		bValid = !ManagedFilters.IsEmpty();
 
@@ -103,7 +103,7 @@ namespace PCGExPointFilter
 		return true;
 	}
 
-	void FManager::PostInitFilter(const FPCGContext* InContext, const TSharedPtr<FFilter>& InFilter)
+	void FManager::PostInitFilter(FPCGExContext* InContext, const TSharedPtr<FFilter>& InFilter)
 	{
 		InFilter->PostInit();
 	}

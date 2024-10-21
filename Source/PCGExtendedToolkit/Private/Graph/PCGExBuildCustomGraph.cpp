@@ -186,7 +186,7 @@ namespace PCGExBuildCustomGraph
 
 		UPCGExCustomGraphBuilder* Builder = Context->Builder;
 
-		bool bInitSuccess = 0;
+		bool bInitSuccess = false;
 		int32 NodeReserveNum = 0;
 		int32 EdgeReserveNum = 0;
 		GraphSettings->InitializeSettings(*Context, bInitSuccess, NodeReserveNum, EdgeReserveNum);

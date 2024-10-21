@@ -22,7 +22,7 @@ public:
 	double ReferenceWeight = 1;
 	double WeightFactor = 1;
 	bool bUseLocalWeightMultiplier = false;
-	EPCGExGraphValueSource LocalWeightMultiplierSource = EPCGExGraphValueSource::Vtx;
+	EPCGExClusterComponentSource LocalWeightMultiplierSource = EPCGExClusterComponentSource::Vtx;
 	FPCGAttributePropertyInputSelector WeightMultiplierAttribute;
 
 	UPROPERTY(Transient)
@@ -55,7 +55,7 @@ public:
 	{
 		//TODO Rewrite this
 		if (!bUseLocalWeightMultiplier || LocalWeightMultiplier.IsEmpty()) { return 1; }
-		return FMath::Abs(LocalWeightMultiplier[LocalWeightMultiplierSource == EPCGExGraphValueSource::Vtx ? PointIndex : EdgeIndex]);
+		return FMath::Abs(LocalWeightMultiplier[LocalWeightMultiplierSource == EPCGExClusterComponentSource::Vtx ? PointIndex : EdgeIndex]);
 	}
 
 	virtual void Cleanup() override

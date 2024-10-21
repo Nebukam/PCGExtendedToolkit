@@ -116,14 +116,16 @@ namespace PCGExFlagNodes
 
 	//////// BATCH
 
-	FProcessorBatch::FProcessorBatch(FPCGExContext* InContext, const TSharedRef<PCGExData::FPointIO>& InVtx, const TArrayView<TSharedRef<PCGExData::FPointIO>> InEdges):
-		TBatch(InContext, InVtx, InEdges)
-	{
-	}
-
 	FProcessorBatch::~FProcessorBatch()
 	{
 		StateFlags = nullptr;
+	}
+
+	void FProcessorBatch::GatherRequiredVtxAttributes(PCGExData::FReadableBufferConfigList& ReadableBufferConfigList)
+	{
+		TBatch<FProcessor>::GatherRequiredVtxAttributes(ReadableBufferConfigList);
+		PCGEX_TYPED_CONTEXT_AND_SETTINGS(FlagNodes)
+		PCGExClusterFilter::GatherRequiredVtxAttributes(ExecutionContext, Context->StateFactories, ReadableBufferConfigList);
 	}
 
 	void FProcessorBatch::OnProcessingPreparationComplete()

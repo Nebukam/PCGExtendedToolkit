@@ -94,7 +94,7 @@ namespace PCGExPointsFilter
 		double ReferenceMin = 0;
 		double ReferenceMax = 0;
 
-		virtual bool Init(const FPCGContext* InContext, const TSharedPtr<PCGExData::FFacade> InPointDataFacade) override;
+		virtual bool Init(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade> InPointDataFacade) override;
 		virtual void PostInit() override;
 
 		FORCEINLINE virtual bool Test(const int32 PointIndex) const override

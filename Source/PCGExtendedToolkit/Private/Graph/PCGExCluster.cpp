@@ -895,22 +895,18 @@ namespace PCGExCluster
 #pragma endregion
 }
 
-bool FPCGExEdgeDirectionSettings::Init(const FPCGContext* InContext, const TSharedRef<PCGExData::FFacade>& InEndpointsFacade)
+void FPCGExEdgeDirectionSettings::GatherRequiredVtxAttributes(FPCGExContext* InContext, PCGExData::FReadableBufferConfigList& ReadableBufferConfigList) const
+{
+	if (DirectionMethod == EPCGExEdgeDirectionMethod::EndpointsAttribute) { ReadableBufferConfigList.Register<double>(InContext, DirSourceAttribute); }
+}
+
+bool FPCGExEdgeDirectionSettings::Init(FPCGExContext* InContext)
 {
 	bAscendingDesired = DirectionChoice == EPCGExEdgeDirectionChoice::SmallestToGreatest;
-	if (DirectionMethod == EPCGExEdgeDirectionMethod::EndpointsAttribute)
-	{
-		EndpointsReader = InEndpointsFacade->GetScopedBroadcaster<double>(DirSourceAttribute);
-		if (!EndpointsReader)
-		{
-			PCGE_LOG_C(Warning, GraphAndLog, InContext, FText::Format(FTEXT("Some vtx don't have the specified DirSource Attribute \"{0}\"."), FText::FromName(DirSourceAttribute.GetName())));
-			return false;
-		}
-	}
 	return true;
 }
 
-bool FPCGExEdgeDirectionSettings::InitFromParent(FPCGContext* InContext, const FPCGExEdgeDirectionSettings& ParentSettings, const TSharedRef<PCGExData::FFacade>& InEdgeDataFacade)
+bool FPCGExEdgeDirectionSettings::InitFromParent(FPCGExContext* InContext, const FPCGExEdgeDirectionSettings& ParentSettings, const TSharedRef<PCGExData::FFacade>& InEdgeDataFacade)
 {
 	DirectionMethod = ParentSettings.DirectionMethod;
 	DirectionChoice = ParentSettings.DirectionChoice;

@@ -3,8 +3,6 @@
 
 #pragma once
 
-#define PCGEX_SOFT_VALIDATE_NAME_DETAILS(_BOOL, _NAME, _CTX) if(_BOOL){if (!FPCGMetadataAttributeBase::IsValidName(_NAME) || _NAME.IsNone()){ PCGE_LOG_C(Warning, GraphAndLog, _CTX, FTEXT("Invalid user-defined attribute name for " #_NAME)); _BOOL = false; } }
-
 #include "CoreMinimal.h"
 #include "PCGExMacros.h"
 #include "PCGEx.h"
@@ -14,6 +12,8 @@
 
 #include "PCGExDetails.generated.h"
 
+#define PCGEX_SOFT_VALIDATE_NAME_DETAILS(_BOOL, _NAME, _CTX) if(_BOOL){if (!FPCGMetadataAttributeBase::IsValidName(_NAME) || _NAME.IsNone()){ PCGE_LOG_C(Warning, GraphAndLog, _CTX, FTEXT("Invalid user-defined attribute name for " #_NAME)); _BOOL = false; } }
+
 UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Adjacency Direction Mode"))
 enum class EPCGExAdjacencyDirectionOrigin : uint8
 {
@@ -22,7 +22,7 @@ enum class EPCGExAdjacencyDirectionOrigin : uint8
 };
 
 UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Fetch Type"))
-enum class EPCGExFetchType : uint8
+enum class EPCGExInputValueType : uint8
 {
 	Constant  = 0 UMETA(DisplayName = "Constant", Tooltip="Constant."),
 	Attribute = 1 UMETA(DisplayName = "Attribute", Tooltip="Attribute."),

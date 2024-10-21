@@ -100,9 +100,9 @@ bool FPCGExRefineEdgesElement::ExecuteInternal(
 		}
 		else
 		{
-			if (!Context->StartProcessingClusters<PCGExClusterMT::TBatchWithGraphBuilder<PCGExRefineEdges::FProcessor>>(
+			if (!Context->StartProcessingClusters<PCGExRefineEdges::FProcessorBatch>(
 				[](const TSharedPtr<PCGExData::FPointIOTaggedEntries>& Entries) { return true; },
-				[&](const TSharedPtr<PCGExClusterMT::TBatchWithGraphBuilder<PCGExRefineEdges::FProcessor>>& NewBatch)
+				[&](const TSharedPtr<PCGExRefineEdges::FProcessorBatch>& NewBatch)
 				{
 					NewBatch->GraphBuilderDetails = Context->GraphBuilderDetails;
 					if (Context->Refinement->RequiresHeuristics()) { NewBatch->SetRequiresHeuristics(true); }
@@ -300,13 +300,24 @@ namespace PCGExRefineEdges
 		InsertEdges();
 	}
 
+	void FProcessorBatch::GatherRequiredVtxAttributes(PCGExData::FReadableBufferConfigList& ReadableBufferConfigList)
+	{
+		TBatchWithGraphBuilder<FProcessor>::GatherRequiredVtxAttributes(ReadableBufferConfigList);
+		PCGEX_TYPED_CONTEXT_AND_SETTINGS(RefineEdges)
+		
+		Context->Refinement->GatherRequiredVtxAttributes(ExecutionContext, ReadableBufferConfigList);
+
+		//PCGExClusterFilter::GatherRequiredVtxAttributes(ExecutionContext, Context->VtxFilterFactories, ReadableBufferConfigList);
+		PCGExClusterFilter::GatherRequiredVtxAttributes(ExecutionContext, Context->EdgeFilterFactories, ReadableBufferConfigList);
+		PCGExClusterFilter::GatherRequiredVtxAttributes(ExecutionContext, Context->SanitizationFilterFactories, ReadableBufferConfigList);
+
+	}
+
 	void FProcessorBatch::OnProcessingPreparationComplete()
 	{
 		PCGEX_TYPED_CONTEXT_AND_SETTINGS(RefineEdges)
 
-		VtxDataFacade->bSupportsScopedGet = false; // :(
-		Context->Refinement->PrepareVtxFacade(VtxDataFacade);
-
+		Context->Refinement->PrepareVtxFacade(VtxDataFacade);		
 		TBatch<FProcessor>::OnProcessingPreparationComplete();
 	}
 

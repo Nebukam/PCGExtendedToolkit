@@ -178,33 +178,23 @@ namespace PCGExBreakClustersToPaths
 		MutablePoints[1] = PathIO->GetInPoint(Edge.End);
 	}
 
+	void FProcessorBatch::GatherRequiredVtxAttributes(PCGExData::FReadableBufferConfigList& ReadableBufferConfigList)
+	{
+		TBatch<FProcessor>::GatherRequiredVtxAttributes(ReadableBufferConfigList);
+		PCGEX_TYPED_CONTEXT_AND_SETTINGS(BreakClustersToPaths)
+		PCGExClusterFilter::GatherRequiredVtxAttributes(ExecutionContext, Context->FilterFactories, ReadableBufferConfigList);
+		DirectionSettings.GatherRequiredVtxAttributes(ExecutionContext, ReadableBufferConfigList);
+	}
+
 	void FProcessorBatch::OnProcessingPreparationComplete()
 	{
 		PCGEX_TYPED_CONTEXT_AND_SETTINGS(BreakClustersToPaths)
 
-		VtxDataFacade->bSupportsScopedGet = Context->bScopedAttributeGet;
-
 		DirectionSettings = Settings->DirectionSettings;
-		if (!DirectionSettings.Init(Context, VtxDataFacade))
+		if (!DirectionSettings.Init(Context))
 		{
 			PCGE_LOG_C(Warning, GraphAndLog, Context, FTEXT("Some vtx are missing the specified Direction attribute."));
 			return;
-		}
-
-		if (DirectionSettings.RequiresEndpointsMetadata())
-		{
-			// Fetch attributes while processors are searching for chains
-
-			const int32 PLI = GetDefault<UPCGExGlobalSettings>()->GetClusterBatchChunkSize();
-
-			PCGEX_ASYNC_GROUP_CHKD_VOID(AsyncManager, FetchVtxTask)
-			FetchVtxTask->OnIterationRangeStartCallback =
-				[&](const int32 StartIndex, const int32 Count, const int32 LoopIdx)
-				{
-					VtxDataFacade->Fetch(StartIndex, Count);
-				};
-
-			FetchVtxTask->StartRangePrepareOnly(VtxDataFacade->GetNum(), PLI);
 		}
 
 		TBatch<FProcessor>::OnProcessingPreparationComplete();

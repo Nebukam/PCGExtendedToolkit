@@ -50,7 +50,7 @@ bool UPCGExVtxPropertyEdgeMatch::PrepareForVtx(const FPCGContext* InContext, con
 		return false;
 	}
 
-	if (Config.DirectionSource == EPCGExFetchType::Attribute)
+	if (Config.DirectionInput == EPCGExInputValueType::Attribute)
 	{
 		DirCache = PrimaryDataFacade->GetBroadcaster<FVector>(Config.Direction);
 		if (!DirCache)

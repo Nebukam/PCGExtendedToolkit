@@ -6,6 +6,13 @@
 #include <functional>
 #include <atomic>
 
+#include "Misc/ScopeRWLock.h"
+#include "UObject/ObjectPtr.h"
+#include "Templates/SharedPointer.h"
+#include "Templates/SharedPointerFwd.h"
+#include "Async/AsyncWork.h"
+#include "Misc/QueuedThreadPool.h"
+
 #include "PCGExMacros.h"
 #include "PCGExGlobalSettings.h"
 #include "Data/PCGExPointIO.h"

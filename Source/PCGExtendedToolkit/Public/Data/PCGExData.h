@@ -17,6 +17,14 @@
 
 #include "PCGExData.generated.h"
 
+UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Readable Config Mode"))
+enum class EPCGExReadableConfigMode : uint8
+{
+	RawAttribute          = 0 UMETA(DisplayName = "RawAttribute", Tooltip="..."),
+	BroadcastFromName     = 1 UMETA(DisplayName = "BroadcastFromName", Tooltip="..."),
+	BroadcastFromSelector = 2 UMETA(DisplayName = "BroadcastFromSelector", Tooltip="..."),
+};
+
 USTRUCT(BlueprintType)
 struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExAttributeGatherDetails : public FPCGExNameFiltersDetails
 {
@@ -68,6 +76,7 @@ namespace PCGExData
 		int32 BufferIndex = -1;
 		const TSharedRef<FPointIO> Source;
 
+		bool bReadComplete = false;
 
 		FBufferBase(const TSharedRef<FPointIO>& InSource, const FName InFullName):
 			FullName(InFullName), Source(InSource)
@@ -198,6 +207,7 @@ namespace PCGExData
 				{
 					// Un-scoping reader.
 					Fetch(0, InValues->Num());
+					bReadComplete = true;
 					bScopedBuffer = false;
 				}
 
@@ -240,10 +250,11 @@ namespace PCGExData
 
 			PrepareReadInternal(bScoped, TypedInAttribute);
 
-			if (!bScopedBuffer)
+			if (!bScopedBuffer && !bReadComplete)
 			{
 				TArrayView<T> InRange = MakeArrayView(InValues->GetData(), InValues->Num());
 				InAccessor->GetRange(InRange, 0, *Source->GetInKeys());
+				bReadComplete = true;
 			}
 
 			return true;
@@ -325,7 +336,7 @@ namespace PCGExData
 
 		virtual void Fetch(const int32 StartIndex, const int32 Count) override
 		{
-			if (!IsScoped()) { return; }
+			if (!IsScoped() || bReadComplete) { return; }
 			if (ScopedBroadcaster) { ScopedBroadcaster->Fetch(*InValues, StartIndex, Count); }
 			if (InAccessor.IsValid())
 			{
@@ -562,6 +573,8 @@ namespace PCGExData
 		const UPCGPointData* GetIn() const { return Source->GetIn(); }
 		UPCGPointData* GetOut() const { return Source->GetOut(); }
 
+		void MarkCurrentBuffersReadAsComplete();
+
 		void Flush()
 		{
 			Buffers.Empty();
@@ -582,6 +595,90 @@ namespace PCGExData
 			BufferMap.Remove(Buffer->GetUID());
 			for (int i = 0; i < Buffers.Num(); i++) { Buffers[i].Get()->BufferIndex = i; }
 		}
+	};
+
+#pragma endregion
+
+#pragma region Facade prep
+
+	struct /*PCGEXTENDEDTOOLKIT_API*/ FReadableBufferConfig
+	{
+		EPCGExReadableConfigMode Mode = EPCGExReadableConfigMode::RawAttribute;
+		FPCGAttributePropertyInputSelector Selector;
+		PCGEx::FAttributeIdentity Identity;
+
+		FReadableBufferConfig(const FReadableBufferConfig& Other)
+			: Mode(Other.Mode), Selector(Other.Selector), Identity(Other.Identity)
+		{
+		}
+
+		FReadableBufferConfig(const PCGEx::FAttributeIdentity& InIdentity, EPCGExReadableConfigMode InMode = EPCGExReadableConfigMode::RawAttribute)
+			: Mode(InMode), Identity(InIdentity)
+		{
+		}
+
+		FReadableBufferConfig(const FName InName, const EPCGMetadataTypes InUnderlyingType, EPCGExReadableConfigMode InMode = EPCGExReadableConfigMode::RawAttribute)
+			: Mode(InMode), Identity(InName, InUnderlyingType, false)
+		{
+		}
+
+		FReadableBufferConfig(const FPCGAttributePropertyInputSelector& InSelector, const EPCGMetadataTypes InUnderlyingType)
+			: Mode(EPCGExReadableConfigMode::BroadcastFromSelector), Selector(InSelector), Identity(InSelector.GetName(), InUnderlyingType, false)
+		{
+		}
+
+		bool Validate(FPCGExContext* InContext, const TSharedRef<FFacade>& InFacade) const;
+		void Fetch(const TSharedRef<FFacade>& InFacade, const int32 StartIndex, const int32 Count) const;
+		void Read(const TSharedRef<FFacade>& InFacade) const;
+	};
+
+	struct /*PCGEXTENDEDTOOLKIT_API*/ FReadableBufferConfigList
+	{
+		TArray<FReadableBufferConfig> BufferConfigs;
+
+		FReadableBufferConfigList()
+		{
+		}
+
+		bool IsEmpty() const { return BufferConfigs.IsEmpty(); }
+		int32 Num() const { return BufferConfigs.Num(); }
+
+		bool Validate(FPCGExContext* InContext, const TSharedRef<FFacade>& InFacade) const;
+
+		template <typename T>
+		void Register(FPCGExContext* InContext, const FPCGAttributePropertyInputSelector& InSelector)
+		{
+			EPCGMetadataTypes Type = PCGEx::GetMetadataType<T>();
+			for (const FReadableBufferConfig& ExistingConfig : BufferConfigs)
+			{
+				if (ExistingConfig.Selector == InSelector &&
+					ExistingConfig.Identity.UnderlyingType == Type)
+				{
+					return;
+				}
+			}
+
+			BufferConfigs.Emplace(InSelector, Type);
+		}
+
+		template <typename T>
+		void Register(FPCGExContext* InContext, const FName InName, EPCGExReadableConfigMode InMode = EPCGExReadableConfigMode::RawAttribute)
+		{
+			EPCGMetadataTypes Type = PCGEx::GetMetadataType<T>();
+			for (const FReadableBufferConfig& ExistingConfig : BufferConfigs)
+			{
+				if (ExistingConfig.Identity.Name == InName &&
+					ExistingConfig.Identity.UnderlyingType == Type)
+				{
+					return;
+				}
+			}
+
+			BufferConfigs.Emplace(InName, Type, InMode);
+		}
+
+		void Fetch(const TSharedRef<FFacade>& InFacade, const int32 StartIndex, const int32 Count) const;
+		void Read(const TSharedRef<FFacade>& InFacade, const int32 ConfigIndex) const;
 	};
 
 #pragma endregion

@@ -3,11 +3,10 @@
 
 #pragma once
 
-#include "Runtime/Launch/Resources/Version.h"
-
 #include "CoreMinimal.h"
 #include "PCGContext.h"
 #include "PCGExHelpers.h"
+#include "PCGEx.h"
 #include "Engine/StreamableManager.h"
 
 namespace PCGEx
@@ -49,6 +48,8 @@ protected:
 
 public:
 	TSharedPtr<PCGEx::FManagedObjects> ManagedObjects;
+
+	bool bScopedAttributeGet = false;
 
 	FPCGExContext();
 

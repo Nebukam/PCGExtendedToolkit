@@ -30,14 +30,14 @@ bool FPCGExOffsetPathElement::ExecuteInternal(FPCGContext* InContext) const
 	PCGEX_EXECUTION_CHECK
 	PCGEX_ON_INITIAL_EXECUTION
 	{
-		bool bInvalidInputs = false;
+		PCGEX_ON_INVALILD_INPUTS(FTEXT("Some inputs have less than 2 points and won't be affected."))
 
 		if (!Context->StartBatchProcessingPoints<PCGExPointsMT::TBatch<PCGExOffsetPath::FProcessor>>(
 			[&](const TSharedPtr<PCGExData::FPointIO>& Entry)
 			{
 				if (Entry->GetNum() < 2)
 				{
-					bInvalidInputs = true;
+					bHasInvalidInputs = true;
 					return false;
 				}
 				return true;
@@ -48,11 +48,6 @@ bool FPCGExOffsetPathElement::ExecuteInternal(FPCGContext* InContext) const
 			}))
 		{
 			Context->CancelExecution(TEXT("Could not find any paths to shrink."));
-		}
-
-		if (bInvalidInputs)
-		{
-			PCGE_LOG(Warning, GraphAndLog, FTEXT("Some inputs have less than 2 points and won't be affected."));
 		}
 	}
 
@@ -78,7 +73,7 @@ namespace PCGExOffsetPath
 		UpConstant = Settings->UpVectorConstant.GetSafeNormal();
 		OffsetConstant = Settings->OffsetConstant;
 
-		if (Settings->OffsetType == EPCGExFetchType::Attribute)
+		if (Settings->OffsetInput == EPCGExInputValueType::Attribute)
 		{
 			OffsetGetter = PointDataFacade->GetScopedBroadcaster<double>(Settings->OffsetAttribute);
 			if (!OffsetGetter)
@@ -88,7 +83,7 @@ namespace PCGExOffsetPath
 			}
 		}
 
-		if (Settings->UpVectorType == EPCGExFetchType::Attribute)
+		if (Settings->UpVectorType == EPCGExInputValueType::Attribute)
 		{
 			UpGetter = PointDataFacade->GetScopedBroadcaster<FVector>(Settings->UpVectorAttribute);
 			if (!UpGetter)

@@ -14,7 +14,7 @@ bool UPCGExProbeOperation::PrepareForPoints(const TSharedPtr<PCGExData::FPointIO
 {
 	PointIO = InPointIO;
 
-	if (BaseConfig->SearchRadiusSource == EPCGExFetchType::Constant)
+	if (BaseConfig->SearchRadiusInput == EPCGExInputValueType::Constant)
 	{
 		SearchRadius = BaseConfig->SearchRadiusConstant;
 		SearchRadiusSquared = SearchRadius * SearchRadius;

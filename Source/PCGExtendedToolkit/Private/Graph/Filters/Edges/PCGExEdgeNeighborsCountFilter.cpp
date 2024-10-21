@@ -16,11 +16,11 @@ TSharedPtr<PCGExPointFilter::FFilter> UPCGExEdgeNeighborsCountFilterFactory::Cre
 
 namespace PCGExEdgeNeighborsCount
 {
-	bool FNeighborsCountFilter::Init(const FPCGContext* InContext, const TSharedRef<PCGExCluster::FCluster>& InCluster, const TSharedRef<PCGExData::FFacade>& InPointDataFacade, const TSharedRef<PCGExData::FFacade>& InEdgeDataFacade)
+	bool FNeighborsCountFilter::Init(FPCGExContext* InContext, const TSharedRef<PCGExCluster::FCluster>& InCluster, const TSharedRef<PCGExData::FFacade>& InPointDataFacade, const TSharedRef<PCGExData::FFacade>& InEdgeDataFacade)
 	{
 		if (!FFilter::Init(InContext, InCluster, InPointDataFacade, InEdgeDataFacade)) { return false; }
 
-		if (TypedFilterFactory->Config.ThresholdSource == EPCGExFetchType::Attribute)
+		if (TypedFilterFactory->Config.ThresholdInput == EPCGExInputValueType::Attribute)
 		{
 			ThresholdBuffer = PointDataFacade->GetScopedBroadcaster<int32>(TypedFilterFactory->Config.ThresholdAttribute);
 			if (!ThresholdBuffer)
@@ -83,7 +83,7 @@ FString UPCGExEdgeNeighborsCountFilterProviderSettings::GetDisplayName() const
 	}
 
 	DisplayName += ")" + PCGExCompare::ToString(Config.Comparison);
-	if (Config.ThresholdSource == EPCGExFetchType::Constant) { DisplayName += FString::Printf(TEXT("%d"), Config.ThresholdConstant); }
+	if (Config.ThresholdInput == EPCGExInputValueType::Constant) { DisplayName += FString::Printf(TEXT("%d"), Config.ThresholdConstant); }
 	else { DisplayName += Config.ThresholdAttribute.GetName().ToString(); }
 
 	return DisplayName;

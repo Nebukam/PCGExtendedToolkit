@@ -22,7 +22,7 @@ void FPCGExPrimitiveComponentDescriptor::InitFrom(const UPrimitiveComponent* Com
 	LightmapType = SourceComponent->LightmapType;
 #else
 	LightmapType = SourceComponent->GetLightmapType();
-#endif	
+#endif
 	HLODBatchingPolicy = SourceComponent->HLODBatchingPolicy;
 	bEnableAutoLODGeneration = SourceComponent->bEnableAutoLODGeneration;
 	bNeverDistanceCull = SourceComponent->bNeverDistanceCull;
@@ -106,7 +106,7 @@ void FPCGExPrimitiveComponentDescriptor::InitComponent(UPrimitiveComponent* InCo
 	TargetComponent->LightmapType = LightmapType;
 #else
 	TargetComponent->SetLightmapType(LightmapType);
-#endif	
+#endif
 	TargetComponent->HLODBatchingPolicy = HLODBatchingPolicy;
 	TargetComponent->bEnableAutoLODGeneration = bEnableAutoLODGeneration;
 	TargetComponent->bNeverDistanceCull = bNeverDistanceCull;

@@ -12,12 +12,12 @@ void UPCGExHeuristicAttribute::PrepareForCluster(const PCGExCluster::FCluster* I
 {
 	Super::PrepareForCluster(InCluster);
 
-	const TSharedPtr<PCGExData::FPointIO> InPoints = Source == EPCGExGraphValueSource::Vtx ? InCluster->VtxIO.Pin() : InCluster->EdgesIO.Pin();
-	const TSharedPtr<PCGExData::FFacade> DataFacade = Source == EPCGExGraphValueSource::Vtx ? PrimaryDataFacade : SecondaryDataFacade;
+	const TSharedPtr<PCGExData::FPointIO> InPoints = Source == EPCGExClusterComponentSource::Vtx ? InCluster->VtxIO.Pin() : InCluster->EdgesIO.Pin();
+	const TSharedPtr<PCGExData::FFacade> DataFacade = Source == EPCGExClusterComponentSource::Vtx ? PrimaryDataFacade : SecondaryDataFacade;
 
 	if (LastPoints == InPoints) { return; }
 
-	const int32 NumPoints = Source == EPCGExGraphValueSource::Vtx ? InCluster->Nodes->Num() : InPoints->GetNum();
+	const int32 NumPoints = Source == EPCGExClusterComponentSource::Vtx ? InCluster->Nodes->Num() : InPoints->GetNum();
 
 	LastPoints = InPoints;
 	CachedScores.SetNumZeroed(NumPoints);
@@ -38,7 +38,7 @@ void UPCGExHeuristicAttribute::PrepareForCluster(const PCGExCluster::FCluster* I
 
 	const double Factor = ReferenceWeight * WeightFactor;
 
-	if (Source == EPCGExGraphValueSource::Vtx)
+	if (Source == EPCGExClusterComponentSource::Vtx)
 	{
 		for (const PCGExCluster::FNode& Node : (*InCluster->Nodes))
 		{

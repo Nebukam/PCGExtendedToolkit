@@ -17,7 +17,7 @@ namespace PCGExGeo
 			Vtx[0] = A;
 			Vtx[1] = B;
 			Vtx[2] = C;
-			std::ranges::sort(Vtx);
+			Algo::Sort(Vtx);
 		}
 
 		explicit FTriangle(const int (&ABC)[3])

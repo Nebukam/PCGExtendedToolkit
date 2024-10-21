@@ -88,7 +88,7 @@ namespace PCGExPointsFilter
 		using BoundCheckCallback = std::function<bool(const FPCGPoint&)>;
 		BoundCheckCallback BoundCheck;
 
-		virtual bool Init(const FPCGContext* InContext, const TSharedPtr<PCGExData::FFacade> InPointDataFacade) override;
+		virtual bool Init(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade> InPointDataFacade) override;
 		FORCEINLINE virtual bool Test(const int32 PointIndex) const override { return BoundCheck(PointDataFacade->Source->GetInPoint(PointIndex)); }
 
 		virtual ~TBoundsFilter() override

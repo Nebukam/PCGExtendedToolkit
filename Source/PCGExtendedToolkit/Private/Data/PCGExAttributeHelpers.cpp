@@ -133,12 +133,39 @@ namespace PCGEx
 		}
 	}
 
+	void FAttributesInfos::Append(const TSharedPtr<FAttributesInfos>& Other, TSet<FName>& OutTypeMismatch, const TSet<FName>* InIgnoredAttributes)
+	{
+		for (int i = 0; i < Other->Identities.Num(); i++)
+		{
+			const FAttributeIdentity& OtherId = Other->Identities[i];
+
+			if (InIgnoredAttributes && InIgnoredAttributes->Contains(OtherId.Name)) { continue; }
+
+			if (const int32* Index = Map.Find(OtherId.Name))
+			{
+				const FAttributeIdentity& Id = Identities[*Index];
+				if (Id.UnderlyingType != OtherId.UnderlyingType)
+				{
+					OutTypeMismatch.Add(Id.Name);
+					// TODO : Update existing based on settings
+				}
+
+				continue;
+			}
+
+			FPCGMetadataAttributeBase* Attribute = Other->Attributes[i];
+			int32 AppendIndex = Identities.Add(OtherId);
+			Attributes.Add(Attribute);
+			Map.Add(OtherId.Name, AppendIndex);
+		}
+	}
+
 	void FAttributesInfos::Update(const FAttributesInfos* Other, const FPCGExAttributeGatherDetails& InGatherDetails, TSet<FName>& OutTypeMismatch)
 	{
 		// TODO : Update types and attributes according to input settings?
 	}
 
-	TSharedPtr<FAttributesInfos> FAttributesInfos::Get(const UPCGMetadata* InMetadata)
+	TSharedPtr<FAttributesInfos> FAttributesInfos::Get(const UPCGMetadata* InMetadata, const TSet<FName>* IgnoredAttributes)
 	{
 		TSharedPtr<FAttributesInfos> NewInfos = MakeShared<FAttributesInfos>();
 		FAttributeIdentity::Get(InMetadata, NewInfos->Identities);
@@ -149,6 +176,18 @@ namespace PCGEx
 			const FAttributeIdentity& Identity = NewInfos->Identities[i];
 			NewInfos->Map.Add(Identity.Name, i);
 			NewInfos->Attributes.Add(MutableData->GetMutableAttribute(Identity.Name));
+		}
+
+		return NewInfos;
+	}
+
+	TSharedPtr<FAttributesInfos> FAttributesInfos::Get(const TSharedPtr<PCGExData::FPointIOCollection>& InCollection, TSet<FName>& OutTypeMismatch, const TSet<FName>* IgnoredAttributes)
+	{
+		TSharedPtr<FAttributesInfos> NewInfos = MakeShared<FAttributesInfos>();
+		for (TSharedPtr<PCGExData::FPointIO> IO : InCollection->Pairs)
+		{
+			TSharedPtr<FAttributesInfos> Infos = Get(IO->GetIn()->Metadata, IgnoredAttributes);
+			NewInfos->Append(Infos, OutTypeMismatch, IgnoredAttributes);
 		}
 
 		return NewInfos;

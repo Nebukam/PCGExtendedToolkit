@@ -47,12 +47,12 @@ bool UPCGExProbeIndex::PrepareForPoints(const TSharedPtr<PCGExData::FPointIO>& I
 	case EPCGExProbeTargetMode::OneWayOffset: PCGEX_FOREACH_SANITIZEINDEX(PCGEX_TARGET_CONNECT_ONEWAY, _VALUE) break;\
 	case EPCGExProbeTargetMode::TwoWayOffset: PCGEX_FOREACH_SANITIZEINDEX(PCGEX_TARGET_CONNECT_TWOWAY, _VALUE) break; }
 
-	if (Config.TargetIndex == EPCGExFetchType::Attribute)
+	if (Config.IndexInput == EPCGExInputValueType::Attribute)
 	{
-		TargetCache = PrimaryDataFacade->GetScopedBroadcaster<int32>(Config.TargetAttribute);
+		TargetCache = PrimaryDataFacade->GetScopedBroadcaster<int32>(Config.IndexAttribute);
 		if (!TargetCache)
 		{
-			PCGE_LOG_C(Error, GraphAndLog, Context, FText::Format(FText::FromString(TEXT("Invalid Target attribute: \"{0}\"")), FText::FromName(Config.TargetAttribute.GetName())));
+			PCGE_LOG_C(Error, GraphAndLog, Context, FText::Format(FText::FromString(TEXT("Invalid Target attribute: \"{0}\"")), FText::FromName(Config.IndexAttribute.GetName())));
 			return false;
 		}
 
@@ -60,7 +60,7 @@ bool UPCGExProbeIndex::PrepareForPoints(const TSharedPtr<PCGExData::FPointIO>& I
 	}
 	else
 	{
-		PCGEX_TARGET_CONNECT_SWITCH(Config.TargetConstant)
+		PCGEX_TARGET_CONNECT_SWITCH(Config.IndexConstant)
 	}
 
 #undef PCGEX_FOREACH_SANITIZEINDEX
