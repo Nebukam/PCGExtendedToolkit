@@ -9,7 +9,7 @@
 #include "Misc/PCGExFindPointOnBounds.h"
 #include "PCGExFindPointOnBoundsClusters.generated.h"
 
-UCLASS(Abstract, MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Clusters")
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Clusters")
 class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExFindPointOnBoundsClustersSettings : public UPCGExEdgesProcessorSettings
 {
 	GENERATED_BODY()
@@ -22,13 +22,14 @@ public:
 #endif
 
 protected:
-	virtual TArray<FPCGPinProperties> InputPinProperties() const override;
 	virtual FPCGElementPtr CreateElement() const override;
 	//~End UPCGSettings
 
 	//~Begin UPCGExPointsProcessorSettings
 public:
+	virtual  TArray<FPCGPinProperties> OutputPinProperties() const override;
 	virtual PCGExData::EInit GetMainOutputInitMode() const override;
+	virtual FName GetMainOutputLabel() const override{ return PCGEx::OutputPointsLabel; }
 	//~End UPCGExPointsProcessorSettings
 
 	virtual PCGExData::EInit GetEdgeOutputInitMode() const override;

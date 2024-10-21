@@ -22,7 +22,7 @@ enum class EPCGExPointOnBoundsOutputMode : uint8
 	Individual = 1 UMETA(DisplayName = "Per-point dataset", Tooltip="..."),
 };
 
-UCLASS(Abstract, MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc")
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc")
 class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExFindPointOnBoundsSettings : public UPCGExPointsProcessorSettings
 {
 	GENERATED_BODY()
@@ -102,7 +102,10 @@ namespace PCGExFindPointOnBounds
 
 		for (int i = 0; i < BestIndices.Num(); i++)
 		{
-			TSharedPtr<PCGExData::FPointIO> IO = Collections[i];
+			const TSharedPtr<PCGExData::FPointIO> IO = Collections[i];
+
+			if (BestIndices[i] == -1 || !IO) { continue; }
+
 			PCGMetadataEntryKey InKey = IO->GetInPoint(BestIndices[i]).MetadataEntry;
 			PCGMetadataEntryKey OutKey = Target->GetOutPoint(i).MetadataEntry;
 			UPCGMetadata* InMetadata = IO->GetIn()->Metadata;

@@ -11,13 +11,6 @@
 PCGExData::EInit UPCGExFindPointOnBoundsClustersSettings::GetEdgeOutputInitMode() const { return PCGExData::EInit::NoOutput; }
 PCGExData::EInit UPCGExFindPointOnBoundsClustersSettings::GetMainOutputInitMode() const { return PCGExData::EInit::NoOutput; }
 
-TArray<FPCGPinProperties> UPCGExFindPointOnBoundsClustersSettings::InputPinProperties() const
-{
-	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
-	PCGEX_PIN_POINT(PCGExGraph::SourcePickersLabel, "Target points used to test for proximity", Required, {})
-	return PinProperties;
-}
-
 void FPCGExFindPointOnBoundsClustersContext::ClusterProcessing_InitialProcessingDone()
 {
 	FPCGExEdgesProcessorContext::ClusterProcessing_InitialProcessingDone();
@@ -25,6 +18,13 @@ void FPCGExFindPointOnBoundsClustersContext::ClusterProcessing_InitialProcessing
 }
 
 PCGEX_INITIALIZE_ELEMENT(FindPointOnBoundsClusters)
+
+TArray<FPCGPinProperties> UPCGExFindPointOnBoundsClustersSettings::OutputPinProperties() const
+{
+	TArray<FPCGPinProperties> PinProperties = Super::OutputPinProperties();
+	PinProperties.Pop();
+	return PinProperties;
+}
 
 bool FPCGExFindPointOnBoundsClustersElement::Boot(FPCGExContext* InContext) const
 {
@@ -40,8 +40,10 @@ bool FPCGExFindPointOnBoundsClustersElement::Boot(FPCGExContext* InContext) cons
 		TSet<FName> AttributeMismatches;
 
 		Context->BestIndices.Init(-1, Context->MainEdges->Num());
+		Context->IOMergeSources.Init(nullptr, Context->MainEdges->Num());
 
 		Context->MergedOut = MakeShared<PCGExData::FPointIO>(Context);
+		Context->MergedOut->SetInfos(0, Settings->GetMainOutputLabel());
 		Context->MergedAttributesInfos = PCGEx::FAttributesInfos::Get(Collection, AttributeMismatches);
 
 		Context->CarryOverDetails.Attributes.Prune(*Context->MergedAttributesInfos);
