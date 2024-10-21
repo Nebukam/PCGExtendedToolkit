@@ -6,6 +6,7 @@
 #include "CoreMinimal.h"
 #include "PCGContext.h"
 #include "PCGExHelpers.h"
+#include "PCGEx.h"
 #include "Engine/StreamableManager.h"
 
 namespace PCGEx

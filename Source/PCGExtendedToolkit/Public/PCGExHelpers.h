@@ -6,6 +6,9 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "UObject/Interface.h"
+#include "GameFramework/Actor.h"
+
 #include "PCGContext.h"
 #include "PCGElement.h"
 #include "PCGExMacros.h"
