@@ -31,7 +31,7 @@ bool FPCGExLloydRelax2DElement::ExecuteInternal(FPCGContext* InContext) const
 
 	PCGEX_ON_INITIAL_EXECUTION
 	{
-		bool bInvalidInputs = false;
+		PCGEX_ON_INVALILD_INPUTS(FTEXT("Some inputs have less than 3 points and won't be processed."))
 
 		if (!Context->StartBatchProcessingPoints<PCGExPointsMT::TBatch<PCGExLloydRelax2D::FProcessor>>(
 			[&](const TSharedPtr<PCGExData::FPointIO>& Entry)
@@ -39,7 +39,7 @@ bool FPCGExLloydRelax2DElement::ExecuteInternal(FPCGContext* InContext) const
 				if (Entry->GetNum() <= 3)
 				{
 					Entry->InitializeOutput(Context, PCGExData::EInit::Forward);
-					bInvalidInputs = true;
+					bHasInvalidInputs = true;
 					return false;
 				}
 				return true;
@@ -49,11 +49,6 @@ bool FPCGExLloydRelax2DElement::ExecuteInternal(FPCGContext* InContext) const
 			}))
 		{
 			Context->CancelExecution(TEXT("Could not find any paths to relax."));
-		}
-
-		if (bInvalidInputs)
-		{
-			PCGE_LOG(Warning, GraphAndLog, FTEXT("Some inputs have less than 3 points and won't be processed."));
 		}
 	}
 

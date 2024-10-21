@@ -51,14 +51,15 @@ bool FPCGExBuildDelaunayGraphElement::ExecuteInternal(
 	PCGEX_EXECUTION_CHECK
 	PCGEX_ON_INITIAL_EXECUTION
 	{
-		bool bInvalidInputs = false;
 
+		PCGEX_ON_INVALILD_INPUTS(FTEXT("Some inputs have less than 4 points and won't be processed."))
+		
 		if (!Context->StartBatchProcessingPoints<PCGExPointsMT::TBatch<PCGExBuildDelaunay::FProcessor>>(
 			[&](const TSharedPtr<PCGExData::FPointIO>& Entry)
 			{
 				if (Entry->GetNum() < 4)
 				{
-					bInvalidInputs = true;
+					bHasInvalidInputs = true;
 					return false;
 				}
 				return true;
@@ -68,12 +69,7 @@ bool FPCGExBuildDelaunayGraphElement::ExecuteInternal(
 				NewBatch->bRequiresWriteStep = true;
 			}))
 		{
-			return Context->CancelExecution(TEXT("Could not find any points to build from."));
-		}
-
-		if (bInvalidInputs)
-		{
-			PCGE_LOG(Warning, GraphAndLog, FTEXT("Some inputs have less than 4 points and won't be processed."));
+			return Context->CancelExecution(TEXT("Could not find any valid inputs to build from."));
 		}
 	}
 

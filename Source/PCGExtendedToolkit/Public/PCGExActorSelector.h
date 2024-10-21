@@ -4,6 +4,7 @@
 
 #include "Templates/SubclassOf.h"
 #include "UObject/NameTypes.h"
+#include "PCGEx.h"
 
 #include "PCGExActorSelector.generated.h"
 

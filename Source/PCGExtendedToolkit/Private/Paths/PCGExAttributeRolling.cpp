@@ -48,7 +48,7 @@ bool FPCGExAttributeRollingElement::ExecuteInternal(FPCGContext* InContext) cons
 	PCGEX_EXECUTION_CHECK
 	PCGEX_ON_INITIAL_EXECUTION
 	{
-		bool bInvalidInputs = false;
+		PCGEX_ON_INVALILD_INPUTS(FTEXT("Some inputs have less than 2 points and won't be processed."))
 
 		// TODO : Skip completion
 
@@ -59,11 +59,6 @@ bool FPCGExAttributeRollingElement::ExecuteInternal(FPCGContext* InContext) cons
 			}))
 		{
 			return Context->CancelExecution(TEXT("Could not find any paths to fuse."));
-		}
-
-		if (bInvalidInputs)
-		{
-			PCGE_LOG(Warning, GraphAndLog, FTEXT("Some inputs have less than 2 points and won't be processed."));
 		}
 	}
 

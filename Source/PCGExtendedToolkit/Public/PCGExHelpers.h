@@ -4,6 +4,8 @@
 // Most helpers here are Copyright Epic Games, Inc. All Rights Reserved, cherry picked for 5.3
 
 #pragma once
+
+#include "CoreMinimal.h"
 #include "PCGContext.h"
 #include "PCGElement.h"
 #include "PCGExMacros.h"

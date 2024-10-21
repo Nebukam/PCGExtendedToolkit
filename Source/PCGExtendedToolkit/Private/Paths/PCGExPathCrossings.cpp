@@ -57,7 +57,9 @@ bool FPCGExPathCrossingsElement::ExecuteInternal(FPCGContext* InContext) const
 	PCGEX_EXECUTION_CHECK
 	PCGEX_ON_INITIAL_EXECUTION
 	{
-		bool bHasInvalidInputs = false;
+
+		PCGEX_ON_INVALILD_INPUTS(FTEXT("Some inputs have less than 2 points and won't be processed."))
+		
 		if (!Context->StartBatchProcessingPoints<PCGExPointsMT::TBatch<PCGExPathCrossings::FProcessor>>(
 			[&](const TSharedPtr<PCGExData::FPointIO>& Entry)
 			{
@@ -82,10 +84,6 @@ bool FPCGExPathCrossingsElement::ExecuteInternal(FPCGContext* InContext) const
 			return Context->CancelExecution(TEXT("Could not find any paths to intersect with."));
 		}
 
-		if (bHasInvalidInputs)
-		{
-			PCGE_LOG(Warning, GraphAndLog, FTEXT("Some inputs have less than 2 points and won't be processed."));
-		}
 	}
 
 	PCGEX_POINTS_BATCH_PROCESSING(PCGEx::State_Done)

@@ -38,13 +38,14 @@ bool FPCGExBitwiseOperationElement::ExecuteInternal(FPCGContext* InContext) cons
 
 	PCGEX_ON_INITIAL_EXECUTION
 	{
-		bool bInvalidInputs = false;
+		PCGEX_ON_INVALILD_INPUTS(FTEXT("Some inputs are missing the specified MaskAttribute and won't be processed."))
+		
 		if (!Context->StartBatchProcessingPoints<PCGExPointsMT::TBatch<PCGExBitwiseOperation::FProcessor>>(
 			[&](const TSharedPtr<PCGExData::FPointIO>& Entry)
 			{
 				if (Settings->MaskInput == EPCGExInputValueType::Attribute && !Entry->GetOut()->Metadata->HasAttribute(Settings->MaskAttribute))
 				{
-					bInvalidInputs = true;
+					bHasInvalidInputs = true;
 					return false;
 				}
 				return true;
@@ -54,11 +55,6 @@ bool FPCGExBitwiseOperationElement::ExecuteInternal(FPCGContext* InContext) cons
 			}))
 		{
 			return Context->CancelExecution(TEXT("Could not find any points to process."));
-		}
-
-		if (bInvalidInputs)
-		{
-			PCGE_LOG(Warning, GraphAndLog, FTEXT("Some inputs are missing the specified MaskAttribute and won't be processed."));
 		}
 	}
 
