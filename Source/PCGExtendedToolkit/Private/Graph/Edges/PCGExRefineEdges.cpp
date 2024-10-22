@@ -73,7 +73,10 @@ bool FPCGExRefineEdgesElement::Boot(FPCGExContext* InContext) const
 
 	if (Settings->Sanitization == EPCGExRefineSanitization::Filters)
 	{
-		GetInputFactories(Context, PCGExRefineEdges::SourceSanitizeEdgeFilters, Context->SanitizationFilterFactories, PCGExFactories::ClusterEdgeFilters, false);
+		if(!GetInputFactories(Context, PCGExRefineEdges::SourceSanitizeEdgeFilters, Context->SanitizationFilterFactories, PCGExFactories::ClusterEdgeFilters, true))
+		{
+			return false;
+		}
 	}
 
 	if (Settings->bOutputEdgesOnly)
