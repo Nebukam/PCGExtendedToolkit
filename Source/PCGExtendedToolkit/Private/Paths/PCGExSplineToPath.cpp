@@ -145,8 +145,7 @@ namespace PCGExSplineToPath
 		}
 
 		auto ApplyTransform = [&](FPCGPoint& Point, const FTransform& Transform)
-		{			
-			Point.Seed = PCGExRandom::ComputeSeed(Point);
+		{
 			
 			if (Settings->TransformDetails.bInheritRotation && Settings->TransformDetails.bInheritScale)
 			{
@@ -166,6 +165,8 @@ namespace PCGExSplineToPath
 			{
 				Point.Transform.SetLocation(Transform.GetLocation());
 			}
+
+			Point.Seed = PCGExRandom::ComputeSeed(Point);
 		};
 
 		for (int i = 0; i < NumSegments; i++)
