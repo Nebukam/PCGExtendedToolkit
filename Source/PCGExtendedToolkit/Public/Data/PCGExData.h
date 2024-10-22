@@ -184,7 +184,7 @@ namespace PCGExData
 		{
 			if (OutValues) { return; }
 
-			TArray<FPCGPoint>& OutPts = Source->GetOut()->GetMutablePoints();
+			TArray<FPCGPoint>& OutPts = Source->GetMutablePoints();
 			const int32 NumPoints = OutPts.Num();
 			OutPoints = MakeArrayView(OutPts.GetData(), NumPoints);
 
@@ -373,7 +373,8 @@ namespace PCGExData
 		bool bSupportsScopedGet = false;
 
 		FORCEINLINE int32 GetNum(const ESource InSource = ESource::In) const { return Source->GetNum(InSource); }
-
+		FORCEINLINE TArray<FPCGPoint>& GetMutablePoints() const { return Source->GetMutablePoints(); }
+		
 		TSharedPtr<FBufferBase> FindBufferUnsafe(const uint64 UID);
 		TSharedPtr<FBufferBase> FindBuffer(const uint64 UID);
 

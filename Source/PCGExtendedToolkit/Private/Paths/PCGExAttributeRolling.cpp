@@ -14,7 +14,7 @@ UPCGExAttributeRollingSettings::UPCGExAttributeRollingSettings(
 	: Super(ObjectInitializer)
 {
 	bSupportClosedLoops = false;
-	bSupportCustomDirection = true;
+	bSupportPathDirection = true;
 }
 
 PCGExData::EInit UPCGExAttributeRollingSettings::GetMainOutputInitMode() const { return PCGExData::EInit::DuplicateInput; }
@@ -83,7 +83,7 @@ namespace PCGExAttributeRolling
 
 		if (!FPointsProcessor::Process(InAsyncManager)) { return false; }
 
-		bInvertOrientation = !Context->ProcessingDirection.StartWithFirstIndex(PointDataFacade->Source);
+		bInvertOrientation = !Context->PathDirection.StartWithFirstIndex(PointDataFacade->Source);
 		MaxIndex = PointDataFacade->GetNum(PCGExData::ESource::In) - 1;
 		LastTriggerIndex = bInvertOrientation ? MaxIndex : 0;
 
@@ -107,19 +107,19 @@ namespace PCGExAttributeRolling
 			}
 			else
 			{
-				TWeakPtr<FPointsProcessor> WeakPtr = SharedThis(this);
+				TWeakPtr<FProcessor> WeakPtr = SharedThis(this);
 				PCGEX_ASYNC_GROUP_CHKD(AsyncManager, FilterTask)
 
 				FilterTask->OnCompleteCallback = [WeakPtr]()
 				{
-					TSharedPtr<FPointsProcessor> This = WeakPtr.Pin();
+					const TSharedPtr<FProcessor> This = WeakPtr.Pin();
 					if (!This) { return; }
 					This->StartParallelLoopForRange(This->PointDataFacade->GetNum());
 				};
 
 				FilterTask->OnIterationRangeStartCallback = [WeakPtr](const int32 StartIndex, const int32 Count, const int32 LoopIdx)
 				{
-					TSharedPtr<FPointsProcessor> This = WeakPtr.Pin();
+					const TSharedPtr<FProcessor> This = WeakPtr.Pin();
 					if (!This) { return; }
 					This->PrepareSingleLoopScopeForPoints(StartIndex, Count);
 				};

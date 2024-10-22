@@ -24,8 +24,8 @@ bool FPCGExPathProcessorElement::Boot(FPCGExContext* InContext) const
 	PCGEX_FWD(ClosedLoop)
 	Context->ClosedLoop.Init();
 
-	PCGEX_FWD(ProcessingDirection)
-	Context->ProcessingDirection.Init();
+	PCGEX_FWD(PathDirection)
+	Context->PathDirection.Init();
 
 	return true;
 }

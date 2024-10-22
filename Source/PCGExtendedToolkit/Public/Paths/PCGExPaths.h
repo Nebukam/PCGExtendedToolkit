@@ -13,7 +13,7 @@
 UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Path Shrink Distance Cut Type"))
 enum class EPCGExInlinePathProcessingOrder : uint8
 {
-	FirstIndex      = 0 UMETA(DisplayName = "First Index", ToolTip="Start at the index 0 of the path. If inverted, start at the last index."),
+	FromStart      = 0 UMETA(DisplayName = "From Start", ToolTip="Start at the index 0 of the path. If inverted, start at the last index."),
 	EndpointCompare = 2 UMETA(DisplayName = "Endpoint Comparison", ToolTip="Compare an attribute on start and end point to determine which endpoint to start with. If the comparison returns true, start with first point."),
 	TaggedAny       = 3 UMETA(DisplayName = "Tagged (Any)", ToolTip="Check for a tag match on the input data. If the tag is found, start with first point."),
 	TaggedAll       = 4 UMETA(DisplayName = "Tagged (All)", ToolTip="Check for all tag matches on the input data. If all tags are found, start with first point."),
@@ -96,7 +96,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPathProcessingDirectionDetails
 
 	/** How to pick which path endpoint to start with */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
-	EPCGExInlinePathProcessingOrder Mode = EPCGExInlinePathProcessingOrder::FirstIndex;
+	EPCGExInlinePathProcessingOrder Mode = EPCGExInlinePathProcessingOrder::FromStart;
 
 	/** Invert the select mode to go with the opposite endpoint. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
@@ -127,7 +127,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPathProcessingDirectionDetails
 
 	bool StartWithFirstIndex(const TSharedRef<PCGExData::FPointIO>& InPointIO)
 	{
-		if (Mode == EPCGExInlinePathProcessingOrder::FirstIndex) { return !bInvert; }
+		if (Mode == EPCGExInlinePathProcessingOrder::FromStart) { return !bInvert; }
 		else if (Mode == EPCGExInlinePathProcessingOrder::EndpointCompare)
 		{
 			const TSharedPtr<PCGEx::TAttributeBroadcaster<double>> Value = PCGEx::TAttributeBroadcaster<double>::Make(ComparisonAttribute, InPointIO);

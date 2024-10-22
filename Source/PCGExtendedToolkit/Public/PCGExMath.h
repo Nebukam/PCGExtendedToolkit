@@ -181,7 +181,7 @@ namespace PCGExMath
 		const FVector Dir = ConeDirection.GetSafeNormal();
 		const FVector U = FVector::CrossProduct(Dir, Dir + FVector(0.1)).GetSafeNormal();
 		const FVector V = FVector::CrossProduct(Dir, Dir + FVector(-0.1)).GetSafeNormal();
-		
+
 		FBox Box = FBox(Center - FVector(0.0001), Center + FVector(0.0001));
 		Box += Center + Dir * Size;
 		Box += Center + U * Size;
@@ -957,6 +957,17 @@ namespace PCGExMath
 	}
 
 #pragma endregion
+
+	template <typename T>
+	FORCEINLINE void ReverseRange(TArray<T>& InArray, int32 Start, int32 End)
+	{
+		while (Start < End)
+		{
+			InArray.Swap(Start, End);
+			Start++;
+			End--;
+		}
+	}
 
 	template <typename T, EPCGExIndexSafety Safety = EPCGExIndexSafety::Ignore>
 	FORCEINLINE static T SanitizeIndex(const T& Index, const T& MaxIndex)

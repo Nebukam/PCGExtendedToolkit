@@ -14,8 +14,16 @@ UPCGExShiftPathSettings::UPCGExShiftPathSettings(
 	: Super(ObjectInitializer)
 {
 	bSupportClosedLoops = false;
-	bSupportCustomDirection = true;
+	bSupportPathDirection = InputMode != EPCGExShiftPathMode::Filter;
 }
+
+#if WITH_EDITOR
+void UPCGExShiftPathSettings::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
+{
+	Super::PostEditChangeProperty(PropertyChangedEvent);
+	bSupportPathDirection = InputMode != EPCGExShiftPathMode::Filter;
+}
+#endif
 
 PCGExData::EInit UPCGExShiftPathSettings::GetMainOutputInitMode() const { return PCGExData::EInit::DuplicateInput; }
 
@@ -73,15 +81,122 @@ namespace PCGExShiftPath
 
 		if (!FPointsProcessor::Process(InAsyncManager)) { return false; }
 
-		bInvertOrientation = !Context->ProcessingDirection.StartWithFirstIndex(PointDataFacade->Source);
+		bInvertOrientation = !Context->PathDirection.StartWithFirstIndex(PointDataFacade->Source);
 		MaxIndex = PointDataFacade->GetNum(PCGExData::ESource::In) - 1;
+		PivotIndex = bInvertOrientation ? MaxIndex : 0;
+
+		if (Settings->InputMode == EPCGExShiftPathMode::Relative)
+		{
+			const double Pivot = static_cast<double>(MaxIndex) * static_cast<double>(Settings->RelativeConstant);
+			switch (Settings->Truncate)
+			{
+			case EPCGExTruncateMode::Round:
+				PivotIndex = FMath::RoundToInt(Pivot);
+				break;
+			case EPCGExTruncateMode::Ceil:
+				PivotIndex = FMath::CeilToDouble(Pivot);
+				break;
+			case EPCGExTruncateMode::Floor:
+				PivotIndex = FMath::FloorToDouble(Pivot);
+				break;
+			default:
+			case EPCGExTruncateMode::None:
+				PivotIndex = Pivot;
+				break;
+			}
+		}
+		else if (Settings->InputMode == EPCGExShiftPathMode::Discrete)
+		{
+			PivotIndex = Settings->DiscreteConstant;
+		}
+		else if (Settings->InputMode == EPCGExShiftPathMode::Filter)
+		{
+			if (Context->FilterFactories.IsEmpty()) { return false; }
+			TWeakPtr<FProcessor> WeakPtr = SharedThis(this);
+			PCGEX_ASYNC_GROUP_CHKD(AsyncManager, FilterTask)
+
+			FilterTask->OnCompleteCallback = [WeakPtr]()
+			{
+				const TSharedPtr<FProcessor> This = WeakPtr.Pin();
+				if (!This) { return; }
+
+				if (This->bInvertOrientation)
+				{
+					for (int i = This->MaxIndex; i >= 0; i--)
+					{
+						if (This->PointFilterCache[i])
+						{
+							This->PivotIndex = i;
+							return;
+						}
+					}
+				}
+				else
+				{
+					for (int i = 0; i <= This->MaxIndex; i++)
+					{
+						if (This->PointFilterCache[i])
+						{
+							This->PivotIndex = i;
+							return;
+						}
+					}
+				}
+			};
+
+			FilterTask->OnIterationRangeStartCallback = [WeakPtr](const int32 StartIndex, const int32 Count, const int32 LoopIdx)
+			{
+				const TSharedPtr<FProcessor> This = WeakPtr.Pin();
+				if (!This) { return; }
+				This->PrepareSingleLoopScopeForPoints(StartIndex, Count);
+			};
+
+			FilterTask->StartRangePrepareOnly(PointDataFacade->GetNum(), GetDefault<UPCGExGlobalSettings>()->GetPointsBatchChunkSize());
+			return true;
+		}
+
+		if (bInvertOrientation) { PivotIndex = MaxIndex - PivotIndex; }
+		PivotIndex = PCGExMath::SanitizeIndex(PivotIndex, MaxIndex, Settings->IndexSafety);
+
+		if (!FMath::IsWithinInclusive(PivotIndex, 0, MaxIndex))
+		{
+			PCGE_LOG_C(Warning, GraphAndLog, Context, FText::FromString(TEXT("Some data has invalid pivot index.")));
+		}
 
 		return true;
 	}
 
+	void FProcessor::PrepareSingleLoopScopeForPoints(const uint32 StartIndex, const int32 Count)
+	{
+		PointDataFacade->Fetch(StartIndex, Count);
+		FilterScope(StartIndex, Count);
+	}
+
+
 	void FProcessor::CompleteWork()
 	{
-		// Shift!
+		if (PivotIndex == 0 || PivotIndex == MaxIndex) { return; }
+
+		if (!FMath::IsWithinInclusive(PivotIndex, 0, MaxIndex))
+		{
+			bIsProcessorValid = false;
+			return;
+		}
+
+		TArray<FPCGPoint>& MutablePoints = PointDataFacade->GetMutablePoints();
+
+		if (bInvertOrientation)
+		{
+			PCGExMath::ReverseRange(MutablePoints, 0, PivotIndex);
+			PCGExMath::ReverseRange(MutablePoints, PivotIndex + 1, MaxIndex);
+		}
+		else
+		{
+			PCGExMath::ReverseRange(MutablePoints, 0, PivotIndex - 1);
+			PCGExMath::ReverseRange(MutablePoints, PivotIndex, MaxIndex);
+		}
+		
+		Algo::Reverse(MutablePoints);
 	}
 }
 

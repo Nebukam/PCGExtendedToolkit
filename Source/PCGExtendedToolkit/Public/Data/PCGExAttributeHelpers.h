@@ -1035,7 +1035,7 @@ namespace PCGEx
 	{
 		const int32 NumIndices = SourceIndices.Num();
 		const TArray<FPCGPoint>& SourcePoints = Source->GetIn()->GetPoints();
-		TArray<FPCGPoint>& TargetPoints = Target->GetOut()->GetMutablePoints();
+		TArray<FPCGPoint>& TargetPoints = Target->GetMutablePoints();
 
 		if (bKeepSourceMetadataEntry)
 		{

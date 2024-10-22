@@ -45,11 +45,11 @@ public:
 	//~End UPCGExPointsProcessorSettings
 	
 	UPROPERTY()
-	bool bSupportCustomDirection = false;
+	bool bSupportPathDirection = false;
 
 	/** Closed loop handling.*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayPriority=-2, EditCondition="bSupportCustomDirection", EditConditionHides, HideEditConditionToggle))
-	FPCGExPathProcessingDirectionDetails ProcessingDirection;
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayPriority=-2, EditCondition="bSupportPathDirection", EditConditionHides, HideEditConditionToggle))
+	FPCGExPathProcessingDirectionDetails PathDirection;
 
 	UPROPERTY()
 	bool bSupportClosedLoops = true;
@@ -64,7 +64,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPathProcessorContext : FPCGExPointsProce
 	friend class FPCGExPathProcessorElement;
 
 	FPCGExPathClosedLoopDetails ClosedLoop;
-	FPCGExPathProcessingDirectionDetails ProcessingDirection;
+	FPCGExPathProcessingDirectionDetails PathDirection;
 	TSharedPtr<PCGExData::FPointIOCollection> MainPaths;
 };
 
