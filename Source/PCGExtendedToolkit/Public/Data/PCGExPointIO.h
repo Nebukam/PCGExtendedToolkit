@@ -92,6 +92,8 @@ namespace PCGExData
 		TSharedPtr<FTags> Tags;
 		int32 IOIndex = 0;
 
+		bool bAllowEmptyOutput = false;
+		
 		explicit FPointIO(FPCGExContext* InContext):
 			Context(InContext), In(nullptr)
 		{

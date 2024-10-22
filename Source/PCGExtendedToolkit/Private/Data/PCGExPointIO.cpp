@@ -144,7 +144,7 @@ namespace PCGExData
 
 	bool FPointIO::StageOutput() const
 	{
-		if (!bEnabled || !Out || Out->GetPoints().IsEmpty()) { return false; }
+		if (!bEnabled || !Out || (!bAllowEmptyOutput && Out->GetPoints().IsEmpty())) { return false; }
 
 		Context->StageOutput(DefaultOutputLabel, Out, Tags->ToSet(), Out != In);
 		return true;

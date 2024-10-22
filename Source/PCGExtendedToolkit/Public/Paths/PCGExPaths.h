@@ -33,7 +33,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPathClosedLoopDetails
 
 	/** Define whether the input dataset should be considered open or closed. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
-	EPCGExInputScope Scope = EPCGExInputScope::All;
+	EPCGExInputScope Scope = EPCGExInputScope::AllButTagged;
 
 	/** Whether the paths are closed loops. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))

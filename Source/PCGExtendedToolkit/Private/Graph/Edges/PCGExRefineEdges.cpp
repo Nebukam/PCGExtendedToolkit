@@ -31,13 +31,15 @@ TArray<FPCGPinProperties> UPCGExRefineEdgesSettings::InputPinProperties() const
 
 TArray<FPCGPinProperties> UPCGExRefineEdgesSettings::OutputPinProperties() const
 {
-	if (!bOutputOnlyEdgesAsPoints) { return Super::OutputPinProperties(); }
+	if (!bOutputEdgesOnly) { return Super::OutputPinProperties(); }
+	
 	TArray<FPCGPinProperties> PinProperties;
-	PCGEX_PIN_POINTS(PCGExGraph::OutputEdgesLabel, "Edges but as simple points.", Required, {})
+	PCGEX_PIN_POINTS(PCGExGraph::OutputKeptEdgesLabel, "Kept edges but as simple points.", Required, {})
+	PCGEX_PIN_POINTS(PCGExGraph::OutputRemovedEdgesLabel, "Removed edges but as simple points.", Required, {})
 	return PinProperties;
 }
 
-PCGExData::EInit UPCGExRefineEdgesSettings::GetMainOutputInitMode() const { return bOutputOnlyEdgesAsPoints ? PCGExData::EInit::NoOutput : PCGExData::EInit::NewOutput; }
+PCGExData::EInit UPCGExRefineEdgesSettings::GetMainOutputInitMode() const { return bOutputEdgesOnly ? PCGExData::EInit::NoOutput : PCGExData::EInit::NewOutput; }
 PCGExData::EInit UPCGExRefineEdgesSettings::GetEdgeOutputInitMode() const { return PCGExData::EInit::NoOutput; }
 
 PCGEX_INITIALIZE_ELEMENT(RefineEdges)
@@ -74,6 +76,25 @@ bool FPCGExRefineEdgesElement::Boot(FPCGExContext* InContext) const
 		GetInputFactories(Context, PCGExRefineEdges::SourceSanitizeEdgeFilters, Context->SanitizationFilterFactories, PCGExFactories::ClusterEdgeFilters, false);
 	}
 
+	if (Settings->bOutputEdgesOnly)
+	{
+		Context->KeptEdges = MakeShared<PCGExData::FPointIOCollection>(Context);
+		Context->KeptEdges->DefaultOutputLabel = PCGExGraph::OutputKeptEdgesLabel;
+
+		Context->RemovedEdges = MakeShared<PCGExData::FPointIOCollection>(Context);
+		Context->RemovedEdges->DefaultOutputLabel = PCGExGraph::OutputRemovedEdgesLabel;
+
+		int32 NumEdgesInputs = Context->MainEdges->Num();
+		Context->KeptEdges->Pairs.Reserve(NumEdgesInputs);
+		Context->RemovedEdges->Pairs.Reserve(NumEdgesInputs);
+
+		for (const TSharedPtr<PCGExData::FPointIO>& EdgeIO : Context->MainEdges->Pairs)
+		{
+			Context->KeptEdges->Emplace_GetRef(EdgeIO, PCGExData::EInit::NewOutput)->bAllowEmptyOutput = Settings->bAllowZeroPointOutputs;
+			Context->RemovedEdges->Emplace_GetRef(EdgeIO, PCGExData::EInit::NewOutput)->bAllowEmptyOutput = Settings->bAllowZeroPointOutputs;
+		}
+	}
+
 	return true;
 }
 
@@ -86,7 +107,7 @@ bool FPCGExRefineEdgesElement::ExecuteInternal(
 	PCGEX_EXECUTION_CHECK
 	PCGEX_ON_INITIAL_EXECUTION
 	{
-		if (Settings->bOutputOnlyEdgesAsPoints)
+		if (Settings->bOutputEdgesOnly)
 		{
 			if (!Context->StartProcessingClusters<PCGExRefineEdges::FProcessorBatch>(
 				[](const TSharedPtr<PCGExData::FPointIOTaggedEntries>& Entries) { return true; },
@@ -115,12 +136,19 @@ bool FPCGExRefineEdgesElement::ExecuteInternal(
 		}
 	}
 
-	PCGEX_CLUSTER_BATCH_PROCESSING(Settings->bOutputOnlyEdgesAsPoints ? PCGEx::State_Done : PCGExGraph::State_ReadyToCompile)
+	PCGEX_CLUSTER_BATCH_PROCESSING(Settings->bOutputEdgesOnly ? PCGEx::State_Done : PCGExGraph::State_ReadyToCompile)
 
-	if (!Settings->bOutputOnlyEdgesAsPoints && !Context->CompileGraphBuilders(true, PCGEx::State_Done)) { return false; }
+	if (!Settings->bOutputEdgesOnly && !Context->CompileGraphBuilders(true, PCGEx::State_Done)) { return false; }
 
-	if (!Settings->bOutputOnlyEdgesAsPoints) { Context->MainPoints->StageOutputs(); }
-	else { Context->MainEdges->StageOutputs(); }
+	if (!Settings->bOutputEdgesOnly)
+	{
+		Context->MainPoints->StageOutputs();
+	}
+	else
+	{
+		Context->KeptEdges->StageOutputs();
+		Context->RemovedEdges->StageOutputs();
+	}
 
 	return Context->TryComplete();
 }
@@ -271,22 +299,35 @@ namespace PCGExRefineEdges
 
 	void FProcessor::InsertEdges() const
 	{
-		TArray<PCGExGraph::FIndexedEdge> ValidEdges;
-		Cluster->GetValidEdges(ValidEdges);
-
-		if (ValidEdges.IsEmpty()) { return; }
-
 		if (GraphBuilder)
 		{
+			TArray<PCGExGraph::FIndexedEdge> ValidEdges;
+			Cluster->GetValidEdges(ValidEdges);
+
+			if (ValidEdges.IsEmpty()) { return; }
+
 			GraphBuilder->Graph->InsertEdges(ValidEdges);
 			return;
 		}
 
-		EdgeDataFacade->Source->InitializeOutput<UPCGPointData>(Context, PCGExData::EInit::NewOutput); // Downgrade to regular data
 		const TArray<FPCGPoint>& OriginalEdges = EdgeDataFacade->GetIn()->GetPoints();
-		TArray<FPCGPoint>& MutableEdges = EdgeDataFacade->GetOut()->GetMutablePoints();
-		PCGEx::InitArray(MutableEdges, ValidEdges.Num());
-		for (int i = 0; i < ValidEdges.Num(); i++) { MutableEdges[i] = OriginalEdges[ValidEdges[i].EdgeIndex]; }
+		const int32 EdgesNum = OriginalEdges.Num();
+
+		TArray<FPCGPoint>& KeptEdges = Context->KeptEdges->Pairs[EdgeDataFacade->Source->IOIndex]->GetMutablePoints();
+		TArray<FPCGPoint>& RemovedEdges = Context->RemovedEdges->Pairs[EdgeDataFacade->Source->IOIndex]->GetMutablePoints();
+		
+		KeptEdges.Reserve(EdgesNum);
+		RemovedEdges.Reserve(EdgesNum);
+		
+		const TArray<PCGExGraph::FIndexedEdge>& Edges = *Cluster->Edges;
+		for (int i = 0; i < EdgesNum; i++)
+		{
+			if (Edges[i].bValid) { KeptEdges.Add(OriginalEdges[i]); }
+			else { RemovedEdges.Add(OriginalEdges[i]); }
+		}
+
+		KeptEdges.SetNum(KeptEdges.Num());
+		RemovedEdges.SetNum(RemovedEdges.Num());
 	}
 
 	void FProcessor::CompleteWork()
@@ -302,22 +343,21 @@ namespace PCGExRefineEdges
 
 	void FProcessorBatch::GatherRequiredVtxAttributes(PCGExData::FReadableBufferConfigList& ReadableBufferConfigList)
 	{
-		TBatchWithGraphBuilder<FProcessor>::GatherRequiredVtxAttributes(ReadableBufferConfigList);
+		TBatch<FProcessor>::GatherRequiredVtxAttributes(ReadableBufferConfigList);
 		PCGEX_TYPED_CONTEXT_AND_SETTINGS(RefineEdges)
-		
+
 		Context->Refinement->GatherRequiredVtxAttributes(ExecutionContext, ReadableBufferConfigList);
 
 		//PCGExClusterFilter::GatherRequiredVtxAttributes(ExecutionContext, Context->VtxFilterFactories, ReadableBufferConfigList);
 		PCGExClusterFilter::GatherRequiredVtxAttributes(ExecutionContext, Context->EdgeFilterFactories, ReadableBufferConfigList);
 		PCGExClusterFilter::GatherRequiredVtxAttributes(ExecutionContext, Context->SanitizationFilterFactories, ReadableBufferConfigList);
-
 	}
 
 	void FProcessorBatch::OnProcessingPreparationComplete()
 	{
 		PCGEX_TYPED_CONTEXT_AND_SETTINGS(RefineEdges)
 
-		Context->Refinement->PrepareVtxFacade(VtxDataFacade);		
+		Context->Refinement->PrepareVtxFacade(VtxDataFacade);
 		TBatch<FProcessor>::OnProcessingPreparationComplete();
 	}
 

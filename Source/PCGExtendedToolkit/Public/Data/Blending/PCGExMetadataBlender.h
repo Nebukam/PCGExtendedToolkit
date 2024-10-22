@@ -12,7 +12,7 @@
 
 namespace PCGExDataBlending
 {
-	class /*PCGEXTENDEDTOOLKIT_API*/ FMetadataBlender final
+	class /*PCGEXTENDEDTOOLKIT_API*/ FMetadataBlender final : public TSharedFromThis<FMetadataBlender>
 	{
 	public:
 		bool bBlendProperties = true;
