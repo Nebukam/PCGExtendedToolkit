@@ -9,6 +9,16 @@
 #define LOCTEXT_NAMESPACE "PCGExSplitPathElement"
 #define PCGEX_NAMESPACE SplitPath
 
+#if WITH_EDITOR
+void UPCGExSplitPathSettings::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
+{
+	Super::PostEditChangeProperty(PropertyChangedEvent);
+	if (SplitAction == EPCGExPathSplitAction::Switch)
+	{
+	}
+}
+#endif
+
 PCGExData::EInit UPCGExSplitPathSettings::GetMainOutputInitMode() const { return PCGExData::EInit::NoOutput; }
 
 PCGEX_INITIALIZE_ELEMENT(SplitPath)
@@ -37,7 +47,7 @@ bool FPCGExSplitPathElement::ExecuteInternal(FPCGContext* InContext) const
 	PCGEX_ON_INITIAL_EXECUTION
 	{
 		PCGEX_ON_INVALILD_INPUTS(FTEXT("Some inputs have less than 2 points and won't be processed."))
-		
+
 		if (!Context->StartBatchProcessingPoints<PCGExPointsMT::TBatch<PCGExSplitPath::FProcessor>>(
 			[&](const TSharedPtr<PCGExData::FPointIO>& Entry)
 			{
@@ -92,11 +102,34 @@ namespace PCGExSplitPath
 				FilterScope(StartIndex, Count);
 			};
 
+		if (Settings->SplitAction == EPCGExPathSplitAction::Partition ||
+			Settings->SplitAction == EPCGExPathSplitAction::Switch)
+		{
+			PointDataFacade->Fetch(0, 1);
+			FilterScope(0, 1);
+
+			switch (Settings->InitialBehavior)
+			{
+			default:
+			case EPCGExPathSplitInitialValue::Constant:
+				bLastResult = Settings->bInitialValue;
+				break;
+			case EPCGExPathSplitInitialValue::ConstantPreserve:
+				bLastResult = Settings->bInitialValue == PointFilterCache[0] ? !bLastResult : bLastResult;
+				break;
+			case EPCGExPathSplitInitialValue::FromPoint:
+				bLastResult = PointFilterCache[0];
+				break;
+			case EPCGExPathSplitInitialValue::FromPointPreserve:
+				bLastResult = !PointFilterCache[0];
+				break;
+			}
+		}
+
 		switch (Settings->SplitAction)
 		{
 		case EPCGExPathSplitAction::Split:
 			TaskGroup->OnIterationCallback = [&](const int32 Index, const int32 Count, const int32 LoopIdx) { DoActionSplit(Index); };
-
 			break;
 		case EPCGExPathSplitAction::Remove:
 			TaskGroup->OnIterationCallback = [&](const int32 Index, const int32 Count, const int32 LoopIdx) { DoActionRemove(Index); };
@@ -105,12 +138,9 @@ namespace PCGExSplitPath
 			TaskGroup->OnIterationCallback = [&](const int32 Index, const int32 Count, const int32 LoopIdx) { DoActionDisconnect(Index); };
 			break;
 		case EPCGExPathSplitAction::Partition:
-			PointDataFacade->Fetch(0, 1);
-			bLastResult = PrimaryFilters->Test(0);
 			TaskGroup->OnIterationCallback = [&](const int32 Index, const int32 Count, const int32 LoopIdx) { DoActionPartition(Index); };
 			break;
 		case EPCGExPathSplitAction::Switch:
-			bLastResult = Settings->bInitialSwitchValue;
 			TaskGroup->OnIterationCallback = [&](const int32 Index, const int32 Count, const int32 LoopIdx) { DoActionSwitch(Index); };
 			break;
 		default: ;

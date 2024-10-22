@@ -603,7 +603,7 @@ namespace PCGExGeoTasks
 		virtual bool ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager) override
 		{
 			const FPCGPoint& TargetPoint = PointIO->GetInPoint(TaskIndex);
-			TArray<FPCGPoint>& MutableTargets = ToBeTransformedIO->GetOut()->GetMutablePoints();
+			TArray<FPCGPoint>& MutableTargets = ToBeTransformedIO->GetMutablePoints();
 
 			for (FPCGPoint& InPoint : MutableTargets)
 			{

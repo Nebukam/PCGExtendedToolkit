@@ -315,9 +315,14 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExBlendingDetails
 		}
 	}
 
-	bool PrepareFacadeForScopedReading(TSharedRef<PCGExData::FFacade> InFacade, bool& bUsesAttributes) const
+	void PrepareAttributeBuffers(
+		FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade>& InDataFacade,
+		PCGExData::FReadableBufferConfigList& ReadableBufferConfigList,
+		const TSet<FName>* IgnoredAttributes = nullptr) const
 	{
-		//
+		TSharedPtr<PCGEx::FAttributesInfos> Infos = PCGEx::FAttributesInfos::Get(InDataFacade->GetIn()->Metadata, IgnoredAttributes);
+		Filter(Infos->Identities);
+		for (const PCGEx::FAttributeIdentity& Identity : Infos->Identities) { ReadableBufferConfigList.Register(InContext, Identity); }
 	}
 };
 

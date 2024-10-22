@@ -172,7 +172,7 @@ namespace PCGExSampleSurfaceGuided
 			PCGEX_OUTPUT_VALUE(LookAt, Index, Direction)
 			PCGEX_OUTPUT_VALUE(Normal, Index, HitResult.ImpactNormal)
 			PCGEX_OUTPUT_VALUE(Distance, Index, FVector::Distance(HitResult.ImpactPoint, Origin))
-			PCGEX_OUTPUT_VALUE(IsInside, Index, FVector::DotProduct(Direction, HitResult.ImpactNormal) > 0)
+			PCGEX_OUTPUT_VALUE(IsInside, Index, FVector::DotProduct(Direction, HitResult.Normal) > 0)
 			PCGEX_OUTPUT_VALUE(Success, Index, bSuccess)
 
 #if PCGEX_ENGINE_VERSION <= 503
