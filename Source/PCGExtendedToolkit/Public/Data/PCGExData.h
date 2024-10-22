@@ -157,7 +157,7 @@ namespace PCGExData
 		FORCEINLINE T& GetMutable(const int32 Index) { return *(OutValues->GetData() + Index); }
 		FORCEINLINE const T& GetConst(const int32 Index) { return *(OutValues->GetData() + Index); }
 		FORCEINLINE const T& Read(const int32 Index) const { return *(InValues->GetData() + Index); }
-		FORCEINLINE const T& ReadImmediate(const int32 Index) const { return TypedInAttribute->GetValueFromItemKey(InPoints[Index]); }
+		FORCEINLINE const T& ReadImmediate(const int32 Index) const { return TypedInAttribute->GetValueFromItemKey(InPoints[Index].MetadataEntry); }
 
 		FORCEINLINE void Set(const int32 Index, const T& Value) { *(OutValues->GetData() + Index) = Value; }
 		FORCEINLINE void SetImmediate(const int32 Index, const T& Value) { TypedOutAttribute->SetValue(InPoints[Index], Value); }

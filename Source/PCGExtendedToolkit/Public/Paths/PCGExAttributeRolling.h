@@ -97,7 +97,6 @@ namespace PCGExAttributeRolling
 		}
 
 		virtual ~FProcessor() override;
-
 		virtual void PrepareAttributeBuffers(PCGExData::FReadableBufferConfigList& ReadableBufferConfigList) override;
 		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager> InAsyncManager) override;
 		virtual void PrepareSingleLoopScopeForPoints(const uint32 StartIndex, const int32 Count) override;

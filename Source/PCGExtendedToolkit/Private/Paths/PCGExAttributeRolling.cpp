@@ -140,6 +140,7 @@ namespace PCGExAttributeRolling
 
 	void FProcessor::ProcessSingleRangeIteration(const int32 Iteration, const int32 LoopIdx, const int32 LoopCount)
 	{
+		
 		int32 TargetIndex = -1;
 		int32 PrevIndex = -1;
 
