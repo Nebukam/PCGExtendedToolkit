@@ -113,7 +113,7 @@ namespace PCGExWriteEdgeProperties
 		if (Settings->bEndpointsBlending)
 		{
 			MetadataBlender = MakeShared<PCGExDataBlending::FMetadataBlender>(const_cast<FPCGExBlendingDetails*>(&Settings->BlendingSettings));
-			MetadataBlender->PrepareForData(EdgeDataFacade, VtxDataFacade, PCGExData::ESource::In);
+			MetadataBlender->PrepareForData(EdgeDataFacade, VtxDataFacade, PCGExData::ESource::In, true, &PCGExGraph::IgnoreGraphBlendAttributes);
 		}
 
 		StartWeight = FMath::Clamp(Settings->EndpointsWeights, 0, 1);
@@ -239,10 +239,14 @@ namespace PCGExWriteEdgeProperties
 		}
 		else if (Settings->bWriteEdgePosition)
 		{
-			MutableTarget.Transform.SetLocation(FMath::Lerp(B, A, Settings->EdgePositionLerp));
 			BlendWeightStart = Settings->EdgePositionLerp;
 			BlendWeightEnd = 1 - Settings->EdgePositionLerp;
 
+			if (MetadataBlender) { MetadataBlend(); }
+
+			MutableTarget.Transform.SetLocation(FMath::Lerp(B, A, Settings->EdgePositionLerp));
+		}else
+		{
 			if (MetadataBlender) { MetadataBlend(); }
 		}
 	}
@@ -255,6 +259,14 @@ namespace PCGExWriteEdgeProperties
 	void FProcessorBatch::GatherRequiredVtxAttributes(PCGExData::FReadableBufferConfigList& ReadableBufferConfigList)
 	{
 		TBatch<FProcessor>::GatherRequiredVtxAttributes(ReadableBufferConfigList);
+		
+		PCGEX_TYPED_CONTEXT_AND_SETTINGS(WriteEdgeProperties)
+		
+		if (Settings->bEndpointsBlending)
+		{
+			Settings->BlendingSettings.PrepareAttributeBuffers(Context, VtxDataFacade, ReadableBufferConfigList, &PCGExGraph::IgnoreGraphBlendAttributes);
+		}
+		
 		DirectionSettings.GatherRequiredVtxAttributes(ExecutionContext, ReadableBufferConfigList);
 	}
 

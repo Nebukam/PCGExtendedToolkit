@@ -33,6 +33,9 @@ namespace PCGExGraph
 	const FName OutputEdgesLabel = TEXT("Edges");
 	const FName OutputSitesLabel = TEXT("Sites");
 
+	const FName OutputKeptEdgesLabel = TEXT("Kept Edges");
+	const FName OutputRemovedEdgesLabel = TEXT("Removed Edges");
+	
 	const FName SourcePackedClustersLabel = TEXT("Packed Clusters");
 	const FName OutputPackedClustersLabel = TEXT("Packed Clusters");
 
