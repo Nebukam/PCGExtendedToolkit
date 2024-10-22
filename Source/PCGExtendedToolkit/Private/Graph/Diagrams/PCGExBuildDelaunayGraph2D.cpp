@@ -256,6 +256,8 @@ namespace PCGExBuildDelaunay2D
 			TSet<uint64> QueuedEdgesSet;
 			Delaunay->GetMergedSites(i, Processor->UrquhartEdges, QueueSet, QueuedEdgesSet, VisitedSites);
 
+			if(QueuedEdgesSet.IsEmpty()){continue;}
+			
 			TArray<int32> Queue = QueueSet.Array();
 			QueueSet.Empty();
 
