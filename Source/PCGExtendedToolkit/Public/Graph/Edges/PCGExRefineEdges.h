@@ -57,13 +57,16 @@ public:
 	TObjectPtr<UPCGExEdgeRefineOperation> Refinement;
 
 	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = Settings, meta = (PCG_NotOverridable))
-	bool bOutputOnlyEdgesAsPoints = false;
+	bool bOutputEdgesOnly = false;
+
+	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = Settings, meta = (PCG_NotOverridable, EditCondition = "bOutputEdgesOnly", EditConditionHides))
+	bool bAllowZeroPointOutputs = false;
 
 	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = Settings, meta = (PCG_NotOverridable))
 	EPCGExRefineSanitization Sanitization = EPCGExRefineSanitization::None;
 
 	/** Graph & Edges output properties */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName="Cluster Output Settings", EditCondition="!bOutputOnlyEdgesAsPoints", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName="Cluster Output Settings", EditCondition="!bOutputEdgesOnly", EditConditionHides))
 	FPCGExGraphBuilderDetails GraphBuilderDetails;
 
 private:
@@ -79,6 +82,9 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExRefineEdgesContext final : FPCGExEdgesPr
 	TArray<TObjectPtr<const UPCGExFilterFactoryBase>> SanitizationFilterFactories;
 
 	UPCGExEdgeRefineOperation* Refinement = nullptr;
+
+	TSharedPtr<PCGExData::FPointIOCollection> KeptEdges;
+	TSharedPtr<PCGExData::FPointIOCollection> RemovedEdges;
 };
 
 class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExRefineEdgesElement final : public FPCGExEdgesProcessorElement
@@ -131,12 +137,14 @@ namespace PCGExRefineEdges
 		UPCGExEdgeRefineOperation* Refinement = nullptr;
 	};
 
-	class FProcessorBatch final : public PCGExClusterMT::TBatchWithGraphBuilder<FProcessor>
+	class FProcessorBatch final : public PCGExClusterMT::TBatch<FProcessor>
 	{
 	public:
 		FProcessorBatch(FPCGExContext* InContext, const TSharedRef<PCGExData::FPointIO>& InVtx, const TArrayView<TSharedRef<PCGExData::FPointIO>> InEdges)
-			: TBatchWithGraphBuilder<FProcessor>(InContext, InVtx, InEdges)
+			: TBatch<FProcessor>(InContext, InVtx, InEdges)
 		{
+			PCGEX_TYPED_CONTEXT_AND_SETTINGS(RefineEdges)
+			bRequiresGraphBuilder = !Settings->bOutputEdgesOnly;
 			bAllowVtxDataFacadeScopedGet = true;
 		}
 
