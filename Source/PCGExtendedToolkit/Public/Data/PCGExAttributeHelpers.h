@@ -485,6 +485,20 @@ namespace PCGEx
 		FORCEINLINE T SafeGet(const int32 Index, const T& fallback) const { return !bValid ? fallback : Values[Index]; }
 		FORCEINLINE T operator[](int32 Index) const { return bValid ? Values[Index] : T{}; }
 
+		static TSharedPtr<TAttributeBroadcaster<T>> Make(const FName& InName, const TSharedRef<PCGExData::FPointIO>& InPointIO)
+		{
+			TSharedPtr<TAttributeBroadcaster<T>> Broadcaster = MakeShared<TAttributeBroadcaster<T>>();
+			if (!Broadcaster->Prepare(InName, InPointIO)) { return nullptr; }
+			return Broadcaster;
+		}
+
+		static TSharedPtr<TAttributeBroadcaster<T>> Make(const FPCGAttributePropertyInputSelector& InSelector, const TSharedRef<PCGExData::FPointIO>& InPointIO)
+		{
+			TSharedPtr<TAttributeBroadcaster<T>> Broadcaster = MakeShared<TAttributeBroadcaster<T>>();
+			if (!Broadcaster->Prepare(InSelector, InPointIO)) { return nullptr; }
+			return Broadcaster;
+		}
+
 	protected:
 		virtual void ResetMinMax()
 		{

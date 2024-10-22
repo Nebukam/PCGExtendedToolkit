@@ -46,6 +46,8 @@ namespace PCGExPointsMT
 		TSharedPtr<PCGExMT::FTaskManager> AsyncManager;
 		FPCGExContext* ExecutionContext = nullptr;
 
+		TSharedPtr<PCGExMT::FTaskGroup> PrefetchDataTaskGroup;
+
 		TSharedPtr<PCGExPointFilter::FManager> PrimaryFilters;
 		bool bInlineProcessPoints = false;
 		bool bInlineProcessRange = false;
@@ -92,6 +94,63 @@ namespace PCGExPointsMT
 		void SetPointsFilterData(TArray<TObjectPtr<const UPCGExFilterFactoryBase>>* InFactories)
 		{
 			FilterFactories = InFactories;
+		}
+
+		virtual void PrepareAttributeBuffers(PCGExData::FReadableBufferConfigList& ReadableBufferConfigList)
+		{
+		}
+
+		void PrefetchData(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager, const TSharedPtr<PCGExMT::FTaskGroup>& InPrefetchDataTaskGroup)
+		{
+			AsyncManager = InAsyncManager;
+			PrefetchDataTaskGroup = InPrefetchDataTaskGroup;
+
+			// Gather required vtx attributes
+			PCGExData::FReadableBufferConfigList BufferList;
+			PrepareAttributeBuffers(BufferList);
+
+			if (!BufferList.IsEmpty())
+			{
+				if (!BufferList.Validate(ExecutionContext, PointDataFacade)) { return; }
+
+				TWeakPtr<FPointsProcessor> WeakPtr = SharedThis(this);
+				PCGEX_ASYNC_GROUP_CHKD_VOID(AsyncManager, PrefetchAttributesTask)
+
+				PrefetchDataTaskGroup->GrowNumStarted();
+
+				PrefetchAttributesTask->OnCompleteCallback = [WeakPtr]()
+				{
+					const TSharedPtr<FPointsProcessor> This = WeakPtr.Pin();
+					if (!This) { return; }
+					This->PointDataFacade->MarkCurrentBuffersReadAsComplete();
+					This->PrefetchDataTaskGroup->GrowNumCompleted();
+				};
+
+				if (PointDataFacade->bSupportsScopedGet)
+				{
+					PrefetchAttributesTask->OnIterationRangeStartCallback =
+						[WeakPtr, BufferList](const int32 StartIndex, const int32 Count, const int32 LoopIdx)
+						{
+							const TSharedPtr<FPointsProcessor> This = WeakPtr.Pin();
+							if (!This) { return; }
+							BufferList.Fetch(This->PointDataFacade, StartIndex, Count);
+						};
+
+					PrefetchAttributesTask->StartRangePrepareOnly(PointDataFacade->GetNum(), GetDefault<UPCGExGlobalSettings>()->GetPointsBatchChunkSize());
+				}
+				else
+				{
+					PrefetchAttributesTask->OnIterationRangeStartCallback =
+						[WeakPtr, BufferList](const int32 StartIndex, const int32 Count, const int32 LoopIdx)
+						{
+							const TSharedPtr<FPointsProcessor> This = WeakPtr.Pin();
+							if (!This) { return; }
+							BufferList.Read(This->PointDataFacade, StartIndex);
+						};
+
+					PrefetchAttributesTask->StartRangePrepareOnly(BufferList.Num(), 1);
+				}
+			}
 		}
 
 		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager> InAsyncManager)
@@ -291,6 +350,7 @@ namespace PCGExPointsMT
 		TArray<TObjectPtr<const UPCGExFilterFactoryBase>>* FilterFactories = nullptr;
 
 	public:
+		bool bPrefetchData = false;
 		bool bInlineProcessing = false;
 		bool bInlineCompletion = false;
 		bool bInlineWrite = false;
@@ -417,9 +477,42 @@ namespace PCGExPointsMT
 				if (NewProcessor->IsTrivial()) { TrivialProcessors.Add(NewProcessor.ToSharedRef()); }
 			}
 
+			if (bPrefetchData)
+			{
+				TWeakPtr<TBatch<T>> WeakPtr = SharedThis(this);
+				PCGEX_ASYNC_GROUP_CHKD_VOID(AsyncManager, ParallelAttributeRead)
+
+				ParallelAttributeRead->OnCompleteCallback = [WeakPtr]()
+				{
+					const TSharedPtr<TBatch<T>> This = WeakPtr.Pin();
+					if (!This) { return; }
+					This->OnProcessingPreparationComplete();
+				};
+
+				ParallelAttributeRead->OnIterationRangeStartCallback =
+					[WeakPtr, ParallelAttributeRead](const int32 StartIndex, const int32 Count, const int32 LoopIdx)
+					{
+						const TSharedPtr<TBatch<T>> This = WeakPtr.Pin();
+						if (!This) { return; }
+
+						This->Processors[StartIndex]->PrefetchData(This->AsyncManager, ParallelAttributeRead);
+					};
+
+				ParallelAttributeRead->StartRangePrepareOnly(Processors.Num(), 1);
+			}
+			else
+			{
+				OnProcessingPreparationComplete();
+			}
+		}
+
+	protected:
+		void OnProcessingPreparationComplete()
+		{
 			PCGEX_ASYNC_MT_LOOP_TPL(Process, bInlineProcessing, { Processor->bIsProcessorValid = Processor->Process(AsyncManager); })
 		}
 
+	public:
 		virtual bool PrepareSingle(const TSharedPtr<T>& PointsProcessor)
 		{
 			return true;

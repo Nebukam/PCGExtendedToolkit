@@ -25,6 +25,15 @@ enum class EPCGExPathSplitAction : uint8
 	Switch     = 4 UMETA(DisplayName = "Switch", ToolTip="Use the result of the filter as a switch signal to change between keep/prune behavior."),
 };
 
+UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Path Split Initial Value"))
+enum class EPCGExPathSplitInitialValue : uint8
+{
+	Constant  = 0 UMETA(DisplayName = "Constant", ToolTip="Use a constant value."),
+	ConstantPreserve  = 1 UMETA(DisplayName = "Constant (Preserve)", ToolTip="Use a constant value, but does not switch if the first value is the same."),
+	FromPoint = 2 UMETA(DisplayName = "From Point", ToolTip="Use the first point starting value."),
+	FromPointPreserve = 3 UMETA(DisplayName = "From Point (Preserve)", ToolTip="Use the first point starting value, but preserve its behavior."),
+};
+
 /**
  * 
  */
@@ -32,6 +41,14 @@ UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Pat
 class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExSplitPathSettings : public UPCGExPathProcessorSettings
 {
 	GENERATED_BODY()
+
+	//~Begin UObject interface
+public:
+#if WITH_EDITOR
+
+	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
+#endif
+	//~End UObject interface
 
 public:
 	//~Begin UPCGSettings
@@ -57,9 +74,13 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	EPCGExPathSplitAction SplitAction = EPCGExPathSplitAction::Split;
 
+	/**  */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="SplitAction==EPCGExPathSplitAction::Switch || SplitAction==EPCGExPathSplitAction::Partition", EditConditionHides))
+	EPCGExPathSplitInitialValue InitialBehavior = EPCGExPathSplitInitialValue::Constant;
+	
 	/** The initial switch value to start from. If false, will only starting to create paths after the first true result. If false, will start to create paths from the beginning and stop at the first true result instead.*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="SplitAction==EPCGExPathSplitAction::Switch", EditConditionHides))
-	bool bInitialSwitchValue = false;
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="InitialBehavior == EPCGExPathSplitSwitchInitialBehavior::Constant && (SplitAction==EPCGExPathSplitAction::Switch || SplitAction==EPCGExPathSplitAction::Partition)", EditConditionHides))
+	bool bInitialValue = false;
 
 	/** Should point insertion be inclusive of the behavior change */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="SplitAction==EPCGExPathSplitAction::Switch || SplitAction==EPCGExPathSplitAction::Partition", EditConditionHides))

@@ -186,6 +186,9 @@ namespace PCGExData
 
 		FName DefaultOutputLabel = PCGEx::OutputPointsLabel;
 
+		FORCEINLINE const PCGMetadataEntryKey& GetInItemKey(const int32 Index) const { return (In->GetPoints().GetData() + Index)->MetadataEntry; }
+		FORCEINLINE const PCGMetadataEntryKey& GetOutItemKey(const int32 Index) const { return (Out->GetPoints().GetData() + Index)->MetadataEntry; }
+		
 		FORCEINLINE const FPCGPoint& GetInPoint(const int32 Index) const { return *(In->GetPoints().GetData() + Index); }
 		FORCEINLINE const FPCGPoint& GetOutPoint(const int32 Index) const { return *(Out->GetPoints().GetData() + Index); }
 		FORCEINLINE FPCGPoint& GetMutablePoint(const int32 Index) const { return *(Out->GetMutablePoints().GetData() + Index); }

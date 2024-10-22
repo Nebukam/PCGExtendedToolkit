@@ -645,6 +645,16 @@ namespace PCGExData
 
 		bool Validate(FPCGExContext* InContext, const TSharedRef<FFacade>& InFacade) const;
 
+		void Register(FPCGExContext* InContext, const PCGEx::FAttributeIdentity& InIdentity)
+		{
+			for (const FReadableBufferConfig& ExistingConfig : BufferConfigs)
+			{
+				if (ExistingConfig.Identity == InIdentity) { return; }
+			}
+
+			BufferConfigs.Emplace(InIdentity.Name, InIdentity.UnderlyingType);
+		}
+
 		template <typename T>
 		void Register(FPCGExContext* InContext, const FPCGAttributePropertyInputSelector& InSelector)
 		{

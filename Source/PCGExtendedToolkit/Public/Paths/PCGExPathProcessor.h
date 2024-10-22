@@ -43,10 +43,17 @@ public:
 	virtual FString GetPointFilterTooltip() const override { return TEXT("Path points processing filters"); }
 
 	//~End UPCGExPointsProcessorSettings
+	
+	UPROPERTY()
+	bool bSupportCustomDirection = false;
+
+	/** Closed loop handling.*/
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayPriority=-2, EditCondition="bSupportCustomDirection", EditConditionHides, HideEditConditionToggle))
+	FPCGExPathProcessingDirectionDetails ProcessingDirection;
 
 	UPROPERTY()
 	bool bSupportClosedLoops = true;
-
+	
 	/** Closed loop handling.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayPriority=-1, EditCondition="bSupportClosedLoops", EditConditionHides, HideEditConditionToggle))
 	FPCGExPathClosedLoopDetails ClosedLoop;
@@ -57,6 +64,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPathProcessorContext : FPCGExPointsProce
 	friend class FPCGExPathProcessorElement;
 
 	FPCGExPathClosedLoopDetails ClosedLoop;
+	FPCGExPathProcessingDirectionDetails ProcessingDirection;
 	TSharedPtr<PCGExData::FPointIOCollection> MainPaths;
 };
 

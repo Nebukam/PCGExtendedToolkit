@@ -278,6 +278,9 @@ namespace PCGExMT
 		void AddSimpleCallback(SimpleCallback&& InCallback);
 		void StartSimpleCallbacks();
 
+		void GrowNumStarted(const int32 InNumStarted = 1);
+		void GrowNumCompleted();
+		
 	protected:
 		TArray<SimpleCallback> SimpleCallbacks;
 
@@ -288,9 +291,6 @@ namespace PCGExMT
 
 		int32 NumStarted = 0;
 		int32 NumCompleted = 0;
-
-		void GrowNumStarted(const int32 InNumStarted = 1);
-		void GrowNumCompleted();
 
 		void PrepareRangeIteration(const int32 StartIndex, const int32 Count, const int32 LoopIdx) const;
 		void DoRangeIteration(const int32 StartIndex, const int32 Count, const int32 LoopIdx) const;
