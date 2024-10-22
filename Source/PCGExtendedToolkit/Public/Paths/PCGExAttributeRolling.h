@@ -17,8 +17,8 @@ UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Path Shrink Distance Cut Type"))
 enum class EPCGExRollingTriggerMode : uint8
 {
 	None  = 0 UMETA(DisplayName = "None", ToolTip="Ignore triggers"),
-	Hold  = 1 UMETA(DisplayName = "Hold", ToolTip="Hold value until next trigger"),
 	Reset = 2 UMETA(DisplayName = "Reset", ToolTip="Reset rolling"),
+	Pin   = 4 UMETA(DisplayName = "Pin", ToolTip="Pin triggered value to roll with until next trigger"),
 };
 
 /**
@@ -38,14 +38,18 @@ public:
 #endif
 
 protected:
-	virtual TArray<FPCGPinProperties> InputPinProperties() const override;
 	virtual FPCGElementPtr CreateElement() const override;
 	//~End UPCGSettings
 
 	//~Begin UPCGExPointsProcessorSettings
 public:
 	virtual PCGExData::EInit GetMainOutputInitMode() const override;
+	PCGEX_NODE_POINT_FILTER(PCGExPaths::SourceTriggerFilters, "Filters used to check if a point triggers the select behavior.", PCGExFactories::PointFilters, false)
 	//~End UPCGExPointsProcessorSettings
+
+	/** NOT IMPLEMENTED YET */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
+	EPCGExRollingTriggerMode TriggerAction = EPCGExRollingTriggerMode::None;
 
 	/** Blending settings used to smooth attributes.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, ShowOnlyInnerProperties))
@@ -55,6 +59,7 @@ public:
 struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExAttributeRollingContext final : FPCGExPathProcessorContext
 {
 	friend class FPCGExAttributeRollingElement;
+	FPCGExBlendingDetails BlendingSettings;
 };
 
 class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExAttributeRollingElement final : public FPCGExPathProcessorElement
@@ -74,11 +79,16 @@ namespace PCGExAttributeRolling
 {
 	class FProcessor final : public PCGExPointsMT::TPointsProcessor<FPCGExAttributeRollingContext, UPCGExAttributeRollingSettings>
 	{
+		int32 MaxIndex = 0;
+		int32 LastTriggerIndex = -1;
+
 		PCGExPaths::FPathMetrics CurrentMetric;
 		TSharedPtr<PCGExDataBlending::FMetadataBlender> MetadataBlender;
 
 		UPCGMetadata* OutMetadata = nullptr;
 		TArray<FPCGPoint>* OutPoints = nullptr;
+
+		bool bInvertOrientation = false;
 
 	public:
 		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade):
@@ -87,10 +97,10 @@ namespace PCGExAttributeRolling
 		}
 
 		virtual ~FProcessor() override;
-
+		virtual void PrepareAttributeBuffers(PCGExData::FReadableBufferConfigList& ReadableBufferConfigList) override;
 		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager> InAsyncManager) override;
 		virtual void PrepareSingleLoopScopeForPoints(const uint32 StartIndex, const int32 Count) override;
-		virtual void ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const int32 LoopIdx, const int32 LoopCount) override;
+		virtual void ProcessSingleRangeIteration(const int32 Iteration, const int32 LoopIdx, const int32 LoopCount) override;
 		virtual void CompleteWork() override;
 	};
 }

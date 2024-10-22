@@ -157,7 +157,7 @@ namespace PCGExData
 		FORCEINLINE T& GetMutable(const int32 Index) { return *(OutValues->GetData() + Index); }
 		FORCEINLINE const T& GetConst(const int32 Index) { return *(OutValues->GetData() + Index); }
 		FORCEINLINE const T& Read(const int32 Index) const { return *(InValues->GetData() + Index); }
-		FORCEINLINE const T& ReadImmediate(const int32 Index) const { return TypedInAttribute->GetValueFromItemKey(InPoints[Index]); }
+		FORCEINLINE const T& ReadImmediate(const int32 Index) const { return TypedInAttribute->GetValueFromItemKey(InPoints[Index].MetadataEntry); }
 
 		FORCEINLINE void Set(const int32 Index, const T& Value) { *(OutValues->GetData() + Index) = Value; }
 		FORCEINLINE void SetImmediate(const int32 Index, const T& Value) { TypedOutAttribute->SetValue(InPoints[Index], Value); }
@@ -184,7 +184,7 @@ namespace PCGExData
 		{
 			if (OutValues) { return; }
 
-			TArray<FPCGPoint>& OutPts = Source->GetOut()->GetMutablePoints();
+			TArray<FPCGPoint>& OutPts = Source->GetMutablePoints();
 			const int32 NumPoints = OutPts.Num();
 			OutPoints = MakeArrayView(OutPts.GetData(), NumPoints);
 
@@ -373,7 +373,8 @@ namespace PCGExData
 		bool bSupportsScopedGet = false;
 
 		FORCEINLINE int32 GetNum(const ESource InSource = ESource::In) const { return Source->GetNum(InSource); }
-
+		FORCEINLINE TArray<FPCGPoint>& GetMutablePoints() const { return Source->GetMutablePoints(); }
+		
 		TSharedPtr<FBufferBase> FindBufferUnsafe(const uint64 UID);
 		TSharedPtr<FBufferBase> FindBuffer(const uint64 UID);
 
@@ -644,6 +645,16 @@ namespace PCGExData
 		int32 Num() const { return BufferConfigs.Num(); }
 
 		bool Validate(FPCGExContext* InContext, const TSharedRef<FFacade>& InFacade) const;
+
+		void Register(FPCGExContext* InContext, const PCGEx::FAttributeIdentity& InIdentity)
+		{
+			for (const FReadableBufferConfig& ExistingConfig : BufferConfigs)
+			{
+				if (ExistingConfig.Identity == InIdentity) { return; }
+			}
+
+			BufferConfigs.Emplace(InIdentity.Name, InIdentity.UnderlyingType);
+		}
 
 		template <typename T>
 		void Register(FPCGExContext* InContext, const FPCGAttributePropertyInputSelector& InSelector)
