@@ -150,7 +150,7 @@ namespace PCGExPackActorDatas
 		Packer->PointDataFacade = PointDataFacade;
 
 		ActorReferences = MakeShared<PCGEx::TAttributeBroadcaster<FString>>();
-		if (!ActorReferences->Prepare(Settings->ActorReferenceAttribute, Context->CurrentIO.ToSharedRef()))
+		if (!ActorReferences->Prepare(Settings->ActorReferenceAttribute, PointDataFacade->Source))
 		{
 			PCGE_LOG_C(Warning, GraphAndLog, ExecutionContext, FTEXT("Some inputs don't have the specified Actor Reference attribute."));
 			return false;
