@@ -11,6 +11,7 @@
 #include "PCGExDetails.h"
 #include "Data/Blending/PCGExDataBlending.h"
 #include "Data/Blending/PCGExMetadataBlender.h"
+#include "Misc/PCGExSortPoints.h"
 
 
 #include "PCGExSampleNearestBounds.generated.h"
@@ -32,6 +33,7 @@ enum class EPCGExBoundsSampleMethod : uint8
 	FarthestBounds = 2 UMETA(DisplayName = "Farthest Bounds", ToolTip="Picks & process the farthest bounds only"),
 	LargestBounds  = 3 UMETA(DisplayName = "Largest Bounds", ToolTip="Picks & process the largest bounds only (extents length)"),
 	SmallestBounds = 4 UMETA(DisplayName = "Smallest Bounds", ToolTip="Picks & process the smallest bounds only (extents length)"),
+	BestCandidate  = 5 UMETA(DisplayName = "Best Candidate", ToolTip="Picks the best candidate based on sorting rules."),
 };
 
 namespace PCGExNearestBounds
@@ -102,7 +104,21 @@ namespace PCGExNearestBounds
 			}
 		}
 
-		bool IsValid() const { return UpdateCount > 0; }
+		FORCEINLINE void SetCompound(const FTargetInfos& Infos)
+		{
+			UpdateCount++;
+
+			Closest = Infos;
+			SampledRangeMin = Infos.Distance;
+			Farthest = Infos;
+			SampledRangeMax = Infos.Distance;
+			Largest = Infos;
+			SampledLengthMax = Infos.Length;
+			Smallest = Infos;
+			SampledLengthMin = Infos.Length;
+		}
+
+		FORCEINLINE bool IsValid() const { return UpdateCount > 0; }
 	};
 }
 
@@ -136,6 +152,10 @@ public:
 	/** Sampling method.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta=(PCG_Overridable))
 	EPCGExBoundsSampleMethod SampleMethod = EPCGExBoundsSampleMethod::WithinRange;
+
+	/** Sort direction */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta = (PCG_Overridable, EditCondition="SampleMethod==EPCGExBoundsSampleMethod::BestCandidate", EditConditionHides))
+	EPCGExSortDirection SortDirection = EPCGExSortDirection::Ascending;
 
 	/** Source bounds.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta=(PCG_NotOverridable))
@@ -268,6 +288,8 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExSampleNearestBoundsContext final : FPCGE
 	friend class FPCGExSampleNearestBoundsElement;
 
 	TSharedPtr<PCGExData::FFacade> BoundsFacade;
+
+	TSharedPtr<PCGExSortPoints::PointSorter<false>> Sorter;
 
 	FPCGExBlendingDetails BlendingDetails;
 	const TArray<FPCGPoint>* BoundsPoints = nullptr;

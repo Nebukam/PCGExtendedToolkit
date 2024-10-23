@@ -11,6 +11,7 @@
 #include "PCGExDetails.h"
 #include "Data/Blending/PCGExDataBlending.h"
 #include "Data/Blending/PCGExMetadataBlender.h"
+#include "Misc/PCGExSortPoints.h"
 
 
 #include "PCGExSampleNearestPoint.generated.h"
@@ -76,6 +77,18 @@ namespace PCGExNearestPoint
 			SampledRangeWidth = SampledRangeMax - SampledRangeMin;
 		}
 
+		FORCEINLINE void SetCompound(const FTargetInfos& Infos)
+		{
+			UpdateCount++;
+
+			Closest = Infos;
+			SampledRangeMin = Infos.Distance;
+			Farthest = Infos;
+			SampledRangeMax = Infos.Distance;
+
+			SampledRangeWidth = SampledRangeMax - SampledRangeMin;
+		}
+
 		FORCEINLINE double GetRangeRatio(const double Distance) const
 		{
 			return (Distance - SampledRangeMin) / SampledRangeWidth;
@@ -116,6 +129,10 @@ public:
 	/** Sampling method.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta=(PCG_Overridable))
 	EPCGExSampleMethod SampleMethod = EPCGExSampleMethod::WithinRange;
+
+	/** Sort direction */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="SampleMethod==EPCGExBoundsSampleMethod::BestCandidate", EditConditionHides))
+	EPCGExSortDirection SortDirection = EPCGExSortDirection::Ascending;
 
 	/** Minimum target range. Used as fallback if LocalRangeMin is enabled but missing. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta=(PCG_Overridable, ClampMin=0, EditConditionHides, HideEditConditionToggle))
@@ -317,6 +334,9 @@ namespace PCGExSampleNearestPoints
 	class FProcessor final : public PCGExPointsMT::TPointsProcessor<FPCGExSampleNearestPointContext, UPCGExSampleNearestPointSettings>
 	{
 		bool bSingleSample = false;
+		bool bSampleClosest = false;
+
+		TSharedPtr<PCGExSortPoints::PointSorter<false>> Sorter;
 
 		TSharedPtr<PCGExData::TBuffer<double>> RangeMinGetter;
 		TSharedPtr<PCGExData::TBuffer<double>> RangeMaxGetter;
