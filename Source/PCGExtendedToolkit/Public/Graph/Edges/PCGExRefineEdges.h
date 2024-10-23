@@ -102,7 +102,7 @@ protected:
 
 namespace PCGExRefineEdges
 {
-	class FProcessor final : public PCGExClusterMT::TClusterProcessor<FPCGExRefineEdgesContext, UPCGExRefineEdgesSettings>
+	class FProcessor final : public PCGExClusterMT::TProcessor<FPCGExRefineEdgesContext, UPCGExRefineEdgesSettings>
 	{
 		friend class FSanitizeRangeTask;
 		friend class FFilterRangeTask;
@@ -119,7 +119,7 @@ namespace PCGExRefineEdges
 
 	public:
 		FProcessor(const TSharedRef<PCGExData::FFacade>& InVtxDataFacade, const TSharedRef<PCGExData::FFacade>& InEdgeDataFacade)
-			: TClusterProcessor(InVtxDataFacade, InEdgeDataFacade)
+			: TProcessor(InVtxDataFacade, InEdgeDataFacade)
 		{
 		}
 
@@ -148,7 +148,7 @@ namespace PCGExRefineEdges
 			bAllowVtxDataFacadeScopedGet = true;
 		}
 
-		virtual void GatherRequiredVtxAttributes(PCGExData::FReadableBufferConfigList& ReadableBufferConfigList) override;
+		virtual void RegisterBuffersDependencies(PCGExData::FFacadePreloader& FacadePreloader) override;
 		virtual void OnProcessingPreparationComplete() override;
 	};
 

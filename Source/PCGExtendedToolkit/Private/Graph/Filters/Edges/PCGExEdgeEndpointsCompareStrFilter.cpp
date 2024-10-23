@@ -9,10 +9,10 @@
 #define LOCTEXT_NAMESPACE "PCGExEdgeEndpointsCompareStrFilter"
 #define PCGEX_NAMESPACE EdgeEndpointsCompareStrFilter
 
-void UPCGExEdgeEndpointsCompareStrFilterFactory::GatherRequiredVtxAttributes(FPCGExContext* InContext, PCGExData::FReadableBufferConfigList& ReadableBufferConfigList) const
+void UPCGExEdgeEndpointsCompareStrFilterFactory::RegisterBuffersDependencies(FPCGExContext* InContext, PCGExData::FFacadePreloader& FacadePreloader) const
 {
-	Super::GatherRequiredVtxAttributes(InContext, ReadableBufferConfigList);
-	ReadableBufferConfigList.Register<FString>(InContext, Config.Attribute);
+	Super::RegisterBuffersDependencies(InContext, FacadePreloader);
+	FacadePreloader.Register<FString>(InContext, Config.Attribute);
 }
 
 TSharedPtr<PCGExPointFilter::FFilter> UPCGExEdgeEndpointsCompareStrFilterFactory::CreateFilter() const

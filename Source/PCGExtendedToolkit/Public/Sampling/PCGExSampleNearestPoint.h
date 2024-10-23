@@ -131,7 +131,7 @@ public:
 	EPCGExSampleMethod SampleMethod = EPCGExSampleMethod::WithinRange;
 
 	/** Sort direction */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="SampleMethod==EPCGExBoundsSampleMethod::BestCandidate", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta = (PCG_Overridable, EditCondition="SampleMethod==EPCGExSampleMethod::BestCandidate", EditConditionHides))
 	EPCGExSortDirection SortDirection = EPCGExSortDirection::Ascending;
 
 	/** Minimum target range. Used as fallback if LocalRangeMin is enabled but missing. */
@@ -303,8 +303,10 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExSampleNearestPointContext final : FPCGEx
 {
 	friend class FPCGExSampleNearestPointElement;
 
+	TSharedPtr<PCGExData::FFacadePreloader> TargetsPreloader;
 	TSharedPtr<PCGExData::FFacade> TargetsFacade;
 	const UPCGPointData::PointOctree* TargetOctree = nullptr;
+	TSharedPtr<PCGExSortPoints::PointSorter<false>> Sorter;
 
 	FPCGExBlendingDetails BlendingDetails;
 	const TArray<FPCGPoint>* TargetPoints = nullptr;
@@ -335,8 +337,6 @@ namespace PCGExSampleNearestPoints
 	{
 		bool bSingleSample = false;
 		bool bSampleClosest = false;
-
-		TSharedPtr<PCGExSortPoints::PointSorter<false>> Sorter;
 
 		TSharedPtr<PCGExData::TBuffer<double>> RangeMinGetter;
 		TSharedPtr<PCGExData::TBuffer<double>> RangeMaxGetter;

@@ -31,7 +31,7 @@ class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExClusterFilterFactoryBase : public UPCGExF
 	GENERATED_BODY()
 
 public:
-	virtual void GatherRequiredVtxAttributes(FPCGExContext* InContext, PCGExData::FReadableBufferConfigList& ReadableBufferConfigList) const
+	virtual void RegisterBuffersDependencies(FPCGExContext* InContext, PCGExData::FFacadePreloader& FacadePreloader) const
 	{
 	}
 };
@@ -62,14 +62,14 @@ public:
 
 namespace PCGExClusterFilter
 {
-	static void GatherRequiredVtxAttributes(FPCGExContext* InContext, const TArray<TObjectPtr<const UPCGExFilterFactoryBase>>& InFactories, PCGExData::FReadableBufferConfigList& ReadableBufferConfigList)
+	static void RegisterBuffersDependencies(FPCGExContext* InContext, const TArray<TObjectPtr<const UPCGExFilterFactoryBase>>& InFactories, PCGExData::FFacadePreloader& FacadePreloader)
 	{
 		for (const UPCGExFilterFactoryBase* Factory : InFactories)
 		{
 			if (PCGExFactories::ClusterSpecificFilters.Contains(Factory->GetFactoryType()))
 			{
 				const UPCGExClusterFilterFactoryBase* ClusterFilterFactory = static_cast<const UPCGExClusterFilterFactoryBase*>(Factory);
-				ClusterFilterFactory->GatherRequiredVtxAttributes(InContext, ReadableBufferConfigList);
+				ClusterFilterFactory->RegisterBuffersDependencies(InContext, FacadePreloader);
 			}
 		}
 	}

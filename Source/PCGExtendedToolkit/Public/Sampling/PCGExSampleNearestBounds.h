@@ -287,6 +287,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExSampleNearestBoundsContext final : FPCGE
 {
 	friend class FPCGExSampleNearestBoundsElement;
 
+	TSharedPtr<PCGExData::FFacadePreloader> BoundsPreloader;
 	TSharedPtr<PCGExData::FFacade> BoundsFacade;
 
 	TSharedPtr<PCGExSortPoints::PointSorter<false>> Sorter;

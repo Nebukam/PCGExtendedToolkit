@@ -288,6 +288,11 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExBlendingDetails
 		return OutDetails;
 	}
 
+	bool HasAnyBlending() const
+	{
+		return !FilteredAttributes.IsEmpty() || !GetPropertiesBlendingDetails().HasNoBlending();
+	}
+
 	bool CanBlend(const FName AttributeName) const
 	{
 		switch (BlendingFilter)
@@ -315,14 +320,14 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExBlendingDetails
 		}
 	}
 
-	void PrepareAttributeBuffers(
+	void RegisterBuffersDependencies(
 		FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade>& InDataFacade,
-		PCGExData::FReadableBufferConfigList& ReadableBufferConfigList,
+		PCGExData::FFacadePreloader& FacadePreloader,
 		const TSet<FName>* IgnoredAttributes = nullptr) const
 	{
 		TSharedPtr<PCGEx::FAttributesInfos> Infos = PCGEx::FAttributesInfos::Get(InDataFacade->GetIn()->Metadata, IgnoredAttributes);
 		Filter(Infos->Identities);
-		for (const PCGEx::FAttributeIdentity& Identity : Infos->Identities) { ReadableBufferConfigList.Register(InContext, Identity); }
+		for (const PCGEx::FAttributeIdentity& Identity : Infos->Identities) { FacadePreloader.Register(InContext, Identity); }
 	}
 };
 

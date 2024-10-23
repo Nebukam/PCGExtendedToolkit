@@ -91,7 +91,7 @@ protected:
 
 namespace PCGExFindPointOnBoundsClusters
 {
-	class FProcessor final : public PCGExClusterMT::TClusterProcessor<FPCGExFindPointOnBoundsClustersContext, UPCGExFindPointOnBoundsClustersSettings>
+	class FProcessor final : public PCGExClusterMT::TProcessor<FPCGExFindPointOnBoundsClustersContext, UPCGExFindPointOnBoundsClustersSettings>
 	{
 		mutable FRWLock BestIndexLock;
 
@@ -104,7 +104,7 @@ namespace PCGExFindPointOnBoundsClusters
 		int32 Picker = -1;
 
 		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InVtxDataFacade, const TSharedRef<PCGExData::FFacade>& InEdgeDataFacade)
-			: TClusterProcessor(InVtxDataFacade, InEdgeDataFacade)
+			: TProcessor(InVtxDataFacade, InEdgeDataFacade)
 		{
 		}
 

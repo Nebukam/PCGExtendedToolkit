@@ -81,7 +81,7 @@ protected:
 
 namespace PCGExSimplifyClusters
 {
-	class FProcessor final : public PCGExClusterMT::TClusterProcessor<FPCGExSimplifyClustersContext, UPCGExSimplifyClustersSettings>
+	class FProcessor final : public PCGExClusterMT::TProcessor<FPCGExSimplifyClustersContext, UPCGExSimplifyClustersSettings>
 	{
 		TArray<bool> Breakpoints;
 
@@ -89,7 +89,7 @@ namespace PCGExSimplifyClusters
 
 	public:
 		FProcessor(const TSharedRef<PCGExData::FFacade>& InVtxDataFacade, const TSharedRef<PCGExData::FFacade>& InEdgeDataFacade):
-			TClusterProcessor(InVtxDataFacade, InEdgeDataFacade)
+			TProcessor(InVtxDataFacade, InEdgeDataFacade)
 		{
 		}
 
@@ -112,6 +112,6 @@ namespace PCGExSimplifyClusters
 			bAllowVtxDataFacadeScopedGet = true;
 		}
 
-		virtual void GatherRequiredVtxAttributes(PCGExData::FReadableBufferConfigList& ReadableBufferConfigList) override;
+		virtual void RegisterBuffersDependencies(PCGExData::FFacadePreloader& FacadePreloader) override;
 	};
 }

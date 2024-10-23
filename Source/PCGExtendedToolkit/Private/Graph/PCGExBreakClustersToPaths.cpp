@@ -178,12 +178,12 @@ namespace PCGExBreakClustersToPaths
 		MutablePoints[1] = PathIO->GetInPoint(Edge.End);
 	}
 
-	void FProcessorBatch::GatherRequiredVtxAttributes(PCGExData::FReadableBufferConfigList& ReadableBufferConfigList)
+	void FProcessorBatch::RegisterBuffersDependencies(PCGExData::FFacadePreloader& FacadePreloader)
 	{
-		TBatch<FProcessor>::GatherRequiredVtxAttributes(ReadableBufferConfigList);
+		TBatch<FProcessor>::RegisterBuffersDependencies(FacadePreloader);
 		PCGEX_TYPED_CONTEXT_AND_SETTINGS(BreakClustersToPaths)
-		PCGExClusterFilter::GatherRequiredVtxAttributes(ExecutionContext, Context->FilterFactories, ReadableBufferConfigList);
-		DirectionSettings.GatherRequiredVtxAttributes(ExecutionContext, ReadableBufferConfigList);
+		PCGExClusterFilter::RegisterBuffersDependencies(ExecutionContext, Context->FilterFactories, FacadePreloader);
+		DirectionSettings.RegisterBuffersDependencies(ExecutionContext, FacadePreloader);
 	}
 
 	void FProcessorBatch::OnProcessingPreparationComplete()

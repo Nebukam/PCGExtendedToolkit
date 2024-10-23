@@ -30,7 +30,7 @@ public:
 	TArray<bool>* VtxFilters = nullptr;
 	TArray<bool>* EdgesFilters = nullptr;
 
-	virtual void GatherRequiredVtxAttributes(FPCGExContext* InContext, PCGExData::FReadableBufferConfigList& ReadableBufferConfigList)
+	virtual void RegisterBuffersDependencies(FPCGExContext* InContext, PCGExData::FFacadePreloader& FacadePreloader)
 	{
 		
 	}

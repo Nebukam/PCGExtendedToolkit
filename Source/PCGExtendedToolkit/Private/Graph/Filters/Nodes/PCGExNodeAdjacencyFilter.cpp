@@ -9,11 +9,11 @@
 #define LOCTEXT_NAMESPACE "PCGExNodeAdjacencyFilter"
 #define PCGEX_NAMESPACE NodeAdjacencyFilter
 
-void UPCGExNodeAdjacencyFilterFactory::GatherRequiredVtxAttributes(FPCGExContext* InContext, PCGExData::FReadableBufferConfigList& ReadableBufferConfigList) const
+void UPCGExNodeAdjacencyFilterFactory::RegisterBuffersDependencies(FPCGExContext* InContext, PCGExData::FFacadePreloader& FacadePreloader) const
 {
-	Super::GatherRequiredVtxAttributes(InContext, ReadableBufferConfigList);
-	if (Config.CompareAgainst == EPCGExInputValueType::Attribute) { ReadableBufferConfigList.Register<double>(InContext, Config.OperandA); }
-	if (Config.OperandBSource == EPCGExClusterComponentSource::Vtx) { ReadableBufferConfigList.Register<double>(InContext, Config.OperandB); }
+	Super::RegisterBuffersDependencies(InContext, FacadePreloader);
+	if (Config.CompareAgainst == EPCGExInputValueType::Attribute) { FacadePreloader.Register<double>(InContext, Config.OperandA); }
+	if (Config.OperandBSource == EPCGExClusterComponentSource::Vtx) { FacadePreloader.Register<double>(InContext, Config.OperandB); }
 }
 
 TSharedPtr<PCGExPointFilter::FFilter> UPCGExNodeAdjacencyFilterFactory::CreateFilter() const

@@ -121,11 +121,11 @@ namespace PCGExFlagNodes
 		StateFlags = nullptr;
 	}
 
-	void FProcessorBatch::GatherRequiredVtxAttributes(PCGExData::FReadableBufferConfigList& ReadableBufferConfigList)
+	void FProcessorBatch::RegisterBuffersDependencies(PCGExData::FFacadePreloader& FacadePreloader)
 	{
-		TBatch<FProcessor>::GatherRequiredVtxAttributes(ReadableBufferConfigList);
+		TBatch<FProcessor>::RegisterBuffersDependencies(FacadePreloader);
 		PCGEX_TYPED_CONTEXT_AND_SETTINGS(FlagNodes)
-		PCGExClusterFilter::GatherRequiredVtxAttributes(ExecutionContext, Context->StateFactories, ReadableBufferConfigList);
+		PCGExClusterFilter::RegisterBuffersDependencies(ExecutionContext, Context->StateFactories, FacadePreloader);
 	}
 
 	void FProcessorBatch::OnProcessingPreparationComplete()

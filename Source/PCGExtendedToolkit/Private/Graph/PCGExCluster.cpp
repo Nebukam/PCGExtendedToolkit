@@ -895,9 +895,9 @@ namespace PCGExCluster
 #pragma endregion
 }
 
-void FPCGExEdgeDirectionSettings::GatherRequiredVtxAttributes(FPCGExContext* InContext, PCGExData::FReadableBufferConfigList& ReadableBufferConfigList) const
+void FPCGExEdgeDirectionSettings::RegisterBuffersDependencies(FPCGExContext* InContext, PCGExData::FFacadePreloader& FacadePreloader) const
 {
-	if (DirectionMethod == EPCGExEdgeDirectionMethod::EndpointsAttribute) { ReadableBufferConfigList.Register<double>(InContext, DirSourceAttribute); }
+	if (DirectionMethod == EPCGExEdgeDirectionMethod::EndpointsAttribute) { FacadePreloader.Register<double>(InContext, DirSourceAttribute); }
 }
 
 bool FPCGExEdgeDirectionSettings::Init(FPCGExContext* InContext)

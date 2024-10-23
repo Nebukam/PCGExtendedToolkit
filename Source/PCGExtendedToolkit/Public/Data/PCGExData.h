@@ -213,6 +213,7 @@ namespace PCGExData
 
 				if (InSource == ESource::In && OutValues && InValues == OutValues)
 				{
+					check(false)
 					// Out-source Reader was created before writer, this is bad?
 					InValues = nullptr;
 				}
@@ -241,7 +242,7 @@ namespace PCGExData
 
 			InAccessor = MakeUnique<FPCGAttributeAccessor<T>>(TypedInAttribute, InMetadata);
 
-			if (!TypedInAttribute || !InAccessor.IsValid())
+			if (!InAccessor.IsValid())
 			{
 				TypedInAttribute = nullptr;
 				InAccessor = nullptr;
@@ -277,16 +278,33 @@ namespace PCGExData
 
 			PrepareWriteInternal(TypedOutAttribute, bUninitialized, DefaultValue);
 
-			if (!bUninitialized)
+			if (!bUninitialized && Source->GetIn())
 			{
-				// 'template' spec required for clang on mac, not sure why.
-				// ReSharper disable once CppRedundantTemplateKeyword
-				if (Source->GetIn() && Source->GetIn()->Metadata->template GetConstTypedAttribute<T>(FullName))
+				if (InValues && bReadComplete)
 				{
-					// TODO : Scoped get would be better here
-					// Get existing values
-					TArrayView<T> OutRange = MakeArrayView(OutValues->GetData(), OutValues->Num());
-					OutAccessor->GetRange(OutRange, 0, *Source->GetOutKeys(false));
+					// Leverage prefetched data					
+					int32 NumToCopy = FMath::Min(InValues->Num(), OutValues->Num());
+					if constexpr (std::is_trivial_v<T>)
+					{
+						FMemory::Memcpy(OutValues->GetData(), InValues->GetData(), NumToCopy * sizeof(T));
+					}
+					else
+					{
+						for (int32 i = 0; i < NumToCopy; i++) { *(OutValues->GetData() + i) = *(InValues->GetData() + i); }
+					}
+				}
+				else
+				{
+					UPCGMetadata* InMetadata = Source->GetIn()->Metadata;
+
+					// 'template' spec required for clang on mac, not sure why.
+					// ReSharper disable once CppRedundantTemplateKeyword
+					if (const FPCGMetadataAttribute<T>* TempInAttribute = InMetadata->template GetConstTypedAttribute<T>(FullName))
+					{
+						TUniquePtr<FPCGAttributeAccessor<T>> TempInAccessor = MakeUnique<FPCGAttributeAccessor<T>>(TempInAttribute, InMetadata);
+						TArrayView<T> OutRange = MakeArrayView(OutValues->GetData(), FMath::Min(Source->GetIn()->GetNumPoints(), OutValues->Num()));
+						TempInAccessor->GetRange(OutRange, 0, *Source->GetInKeys());
+					}
 				}
 			}
 
@@ -329,6 +347,8 @@ namespace PCGExData
 		virtual void Write() override
 		{
 			if (!IsWritable() || !OutAccessor || !OutValues || !TypedOutAttribute) { return; }
+
+			TRACE_CPUPROFILER_EVENT_SCOPE(TBuffer::Write);
 
 			TArrayView<const T> View = MakeArrayView(OutValues->GetData(), OutValues->Num());
 			OutAccessor->SetRange(View, 0, *Source->GetOutKeys(true).Get());
@@ -374,7 +394,7 @@ namespace PCGExData
 
 		FORCEINLINE int32 GetNum(const ESource InSource = ESource::In) const { return Source->GetNum(InSource); }
 		FORCEINLINE TArray<FPCGPoint>& GetMutablePoints() const { return Source->GetMutablePoints(); }
-		
+
 		TSharedPtr<FBufferBase> FindBufferUnsafe(const uint64 UID);
 		TSharedPtr<FBufferBase> FindBuffer(const uint64 UID);
 
@@ -431,6 +451,65 @@ namespace PCGExData
 			}
 		}
 
+#pragma region Writable
+
+		template <typename T>
+		TSharedPtr<TBuffer<T>> GetWritable(const FPCGMetadataAttribute<T>* InAttribute, bool bUninitialized)
+		{
+			TSharedPtr<TBuffer<T>> Buffer = GetBuffer<T>(InAttribute->Name);
+			return Buffer->PrepareWrite(InAttribute->GetValue(PCGDefaultValueKey), InAttribute->AllowsInterpolation(), bUninitialized) ? Buffer : nullptr;
+		}
+
+		template <typename T>
+		TSharedPtr<TBuffer<T>> GetWritable(const FName InName, T DefaultValue, bool bAllowInterpolation, bool bUninitialized)
+		{
+			TSharedPtr<TBuffer<T>> Buffer = GetBuffer<T>(InName);
+			return Buffer->PrepareWrite(DefaultValue, bAllowInterpolation, bUninitialized) ? Buffer : nullptr;
+		}
+
+		template <typename T>
+		TSharedPtr<TBuffer<T>> GetWritable(const FName InName, bool bUninitialized)
+		{
+			TSharedPtr<TBuffer<T>> Buffer = GetBuffer<T>(InName);
+			return Buffer->PrepareWrite(bUninitialized) ? Buffer : nullptr;
+		}
+
+		template <typename T>
+		TSharedPtr<TBuffer<T>> GetReadable(const FName InName, const ESource InSource = ESource::In)
+		{
+			TSharedPtr<TBuffer<T>> Buffer = GetBuffer<T>(InName);
+			if (!Buffer->PrepareRead(InSource, false))
+			{
+				Flush(Buffer);
+				return nullptr;
+			}
+
+			return Buffer;
+		}
+
+#pragma endregion
+
+#pragma region Readable
+
+		template <typename T>
+		TSharedPtr<TBuffer<T>> GetScopedReadable(const FName InName)
+		{
+			if (!bSupportsScopedGet) { return GetReadable<T>(InName); }
+
+			TSharedPtr<TBuffer<T>> Buffer = GetBuffer<T>(InName);
+			if (!Buffer->PrepareRead(ESource::In, true))
+			{
+				Flush(Buffer);
+				return nullptr;
+			}
+
+			return Buffer;
+		}
+
+#pragma endregion
+
+#pragma region Broadcasters
+
 		template <typename T>
 		TSharedPtr<TBuffer<T>> GetBroadcaster(const FPCGAttributePropertyInputSelector& InSelector, const bool bCaptureMinMax = false)
 		{
@@ -478,54 +557,7 @@ namespace PCGExData
 			return GetScopedBroadcaster<T>(Selector);
 		}
 
-		template <typename T>
-		TSharedPtr<TBuffer<T>> GetWritable(const FPCGMetadataAttribute<T>* InAttribute, bool bUninitialized)
-		{
-			TSharedPtr<TBuffer<T>> Buffer = GetBuffer<T>(InAttribute->Name);
-			return Buffer->PrepareWrite(InAttribute->GetValue(PCGDefaultValueKey), InAttribute->AllowsInterpolation(), bUninitialized) ? Buffer : nullptr;
-		}
-
-		template <typename T>
-		TSharedPtr<TBuffer<T>> GetWritable(const FName InName, T DefaultValue, bool bAllowInterpolation, bool bUninitialized)
-		{
-			TSharedPtr<TBuffer<T>> Buffer = GetBuffer<T>(InName);
-			return Buffer->PrepareWrite(DefaultValue, bAllowInterpolation, bUninitialized) ? Buffer : nullptr;
-		}
-
-		template <typename T>
-		TSharedPtr<TBuffer<T>> GetWritable(const FName InName, bool bUninitialized)
-		{
-			TSharedPtr<TBuffer<T>> Buffer = GetBuffer<T>(InName);
-			return Buffer->PrepareWrite(bUninitialized) ? Buffer : nullptr;
-		}
-
-		template <typename T>
-		TSharedPtr<TBuffer<T>> GetReadable(const FName InName, const ESource InSource = ESource::In)
-		{
-			TSharedPtr<TBuffer<T>> Buffer = GetBuffer<T>(InName);
-			if (!Buffer->PrepareRead(InSource, false))
-			{
-				Flush(Buffer);
-				return nullptr;
-			}
-
-			return Buffer;
-		}
-
-		template <typename T>
-		TSharedPtr<TBuffer<T>> GetScopedReadable(const FName InName)
-		{
-			if (!bSupportsScopedGet) { return GetReadable<T>(InName); }
-
-			TSharedPtr<TBuffer<T>> Buffer = GetBuffer<T>(InName);
-			if (!Buffer->PrepareRead(ESource::In, true))
-			{
-				Flush(Buffer);
-				return nullptr;
-			}
-
-			return Buffer;
-		}
+#pragma endregion
 
 		FPCGMetadataAttributeBase* FindMutableAttribute(const FName InName, const ESource InSource = ESource::In) const
 		{
@@ -633,11 +665,16 @@ namespace PCGExData
 		void Read(const TSharedRef<FFacade>& InFacade) const;
 	};
 
-	struct /*PCGEXTENDEDTOOLKIT_API*/ FReadableBufferConfigList
+	class /*PCGEXTENDEDTOOLKIT_API*/ FFacadePreloader : public TSharedFromThis<FFacadePreloader>
 	{
+	protected:
+		TWeakPtr<PCGExMT::FTaskGroup> TaskGroupPtr;
+		TWeakPtr<FFacade> InternalDataFacadePtr;
+
+	public:
 		TArray<FReadableBufferConfig> BufferConfigs;
 
-		FReadableBufferConfigList()
+		FFacadePreloader()
 		{
 		}
 
@@ -690,6 +727,16 @@ namespace PCGExData
 
 		void Fetch(const TSharedRef<FFacade>& InFacade, const int32 StartIndex, const int32 Count) const;
 		void Read(const TSharedRef<FFacade>& InFacade, const int32 ConfigIndex) const;
+
+		///
+
+		using CompletionCallback = std::function<void()>;
+		CompletionCallback OnCompleteCallback;
+
+		void StartLoading(TSharedPtr<PCGExMT::FTaskManager> AsyncManager, const TSharedRef<FFacade>& InDataFacade, TSharedPtr<PCGExMT::FTaskGroup> InTaskGroup = nullptr);
+
+	protected:
+		void OnLoadingEnd();
 	};
 
 #pragma endregion

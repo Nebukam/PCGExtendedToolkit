@@ -71,7 +71,7 @@ protected:
 
 namespace PCGExRelaxClusters
 {
-	class FProcessor final : public PCGExClusterMT::TClusterProcessor<FPCGExRelaxClustersContext, UPCGExRelaxClustersSettings>
+	class FProcessor final : public PCGExClusterMT::TProcessor<FPCGExRelaxClustersContext, UPCGExRelaxClustersSettings>
 	{
 		int32 Iterations = 10;
 
@@ -89,7 +89,7 @@ namespace PCGExRelaxClusters
 
 	public:
 		FProcessor(const TSharedRef<PCGExData::FFacade>& InVtxDataFacade, const TSharedRef<PCGExData::FFacade>& InEdgeDataFacade)
-			: TClusterProcessor(InVtxDataFacade, InEdgeDataFacade)
+			: TProcessor(InVtxDataFacade, InEdgeDataFacade)
 		{
 		}
 

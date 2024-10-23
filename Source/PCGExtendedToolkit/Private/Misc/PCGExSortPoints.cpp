@@ -4,6 +4,8 @@
 
 #include "Misc/PCGExSortPoints.h"
 
+#include "Misc/PCGExModularSortPoints.h"
+
 
 #define LOCTEXT_NAMESPACE "PCGExSortPoints"
 #define PCGEX_NAMESPACE SortPoints
@@ -20,12 +22,12 @@ FPCGElementPtr UPCGExSortPointsBaseSettings::CreateElement() const { return Make
 
 PCGExData::EInit UPCGExSortPointsBaseSettings::GetMainOutputInitMode() const { return PCGExData::EInit::DuplicateInput; }
 
-bool UPCGExSortPointsBaseSettings::GetSortingRules(const FPCGContext* InContext, TArray<FPCGExSortRuleConfig>& OutRules) const
+bool UPCGExSortPointsBaseSettings::GetSortingRules(FPCGExContext* InContext, TArray<FPCGExSortRuleConfig>& OutRules) const
 {
 	return true;
 }
 
-bool UPCGExSortPointsSettings::GetSortingRules(const FPCGContext* InContext, TArray<FPCGExSortRuleConfig>& OutRules) const
+bool UPCGExSortPointsSettings::GetSortingRules(FPCGExContext* InContext, TArray<FPCGExSortRuleConfig>& OutRules) const
 {
 	if (Rules.IsEmpty()) { return false; }
 	for (const FPCGExSortRuleConfig& Config : Rules) { OutRules.Add(Config); }
@@ -67,33 +69,25 @@ bool FPCGExSortPointsBaseElement::ExecuteInternal(FPCGContext* InContext) const
 
 namespace PCGExSortPoints
 {
-	void FProcessor::PrepareAttributeBuffers(PCGExData::FReadableBufferConfigList& ReadableBufferConfigList)
+	void FProcessor::RegisterBuffersDependencies(PCGExData::FFacadePreloader& FacadePreloader)
 	{
-		FPointsProcessor::PrepareAttributeBuffers(ReadableBufferConfigList);
-
-		const UPCGExSortPointsSettings* Settings = ExecutionContext->GetInputSettings<UPCGExSortPointsSettings>();
-		check(Settings);
+		TPointsProcessor::RegisterBuffersDependencies(FacadePreloader);
 
 		TArray<FPCGExSortRuleConfig> RuleConfigs;
 		Settings->GetSortingRules(ExecutionContext, RuleConfigs);
-		for (const FPCGExSortRuleConfig& RuleConfig : RuleConfigs) { ReadableBufferConfigList.Register<double>(ExecutionContext, RuleConfig.Selector); }
+
+		Sorter = MakeShared<PointSorter<true>>(Context, PointDataFacade, RuleConfigs);
+		Sorter->SortDirection = Settings->SortDirection;
+		Sorter->RegisterBuffersDependencies(FacadePreloader);
 	}
 
 	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager> InAsyncManager)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExSortPoints::Process);
-		const UPCGExSortPointsBaseSettings* Settings = ExecutionContext->GetInputSettings<UPCGExSortPointsBaseSettings>();
-		check(Settings);
 
-		if (!FPointsProcessor::Process(InAsyncManager)) { return false; }
+		if (!TPointsProcessor::Process(InAsyncManager)) { return false; }
 
-		TArray<FPCGExSortRuleConfig> RuleConfigs;
-		Settings->GetSortingRules(ExecutionContext, RuleConfigs);
-
-		Sorter = MakeShared<PointSorter<true>>(PointDataFacade);
-		Sorter->SortDirection = Settings->SortDirection;
-		
-		if (!Sorter->Init(ExecutionContext, RuleConfigs))
+		if (!Sorter->Init())
 		{
 			PCGE_LOG_C(Warning, GraphAndLog, ExecutionContext, FTEXT("Some dataset have no valid sorting rules, they won't be sorted."));
 			return false;

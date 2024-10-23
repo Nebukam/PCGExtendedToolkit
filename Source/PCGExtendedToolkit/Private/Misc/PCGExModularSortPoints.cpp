@@ -29,7 +29,7 @@ TArray<FPCGPinProperties> UPCGExModularSortPointsSettings::InputPinProperties() 
 	return PinProperties;
 }
 
-bool UPCGExModularSortPointsSettings::GetSortingRules(const FPCGContext* InContext, TArray<FPCGExSortRuleConfig>& OutRules) const
+bool UPCGExModularSortPointsSettings::GetSortingRules(FPCGExContext* InContext, TArray<FPCGExSortRuleConfig>& OutRules) const
 {
 	OutRules.Append(PCGExSortPoints::GetSortingRules(InContext, PCGExSortPoints::SourceSortingRules));
 	return !OutRules.IsEmpty();

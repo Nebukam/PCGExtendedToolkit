@@ -344,16 +344,16 @@ namespace PCGExRefineEdges
 		InsertEdges();
 	}
 
-	void FProcessorBatch::GatherRequiredVtxAttributes(PCGExData::FReadableBufferConfigList& ReadableBufferConfigList)
+	void FProcessorBatch::RegisterBuffersDependencies(PCGExData::FFacadePreloader& FacadePreloader)
 	{
-		TBatch<FProcessor>::GatherRequiredVtxAttributes(ReadableBufferConfigList);
+		TBatch<FProcessor>::RegisterBuffersDependencies(FacadePreloader);
 		PCGEX_TYPED_CONTEXT_AND_SETTINGS(RefineEdges)
 
-		Context->Refinement->GatherRequiredVtxAttributes(ExecutionContext, ReadableBufferConfigList);
+		Context->Refinement->RegisterBuffersDependencies(ExecutionContext, FacadePreloader);
 
-		//PCGExClusterFilter::GatherRequiredVtxAttributes(ExecutionContext, Context->VtxFilterFactories, ReadableBufferConfigList);
-		PCGExClusterFilter::GatherRequiredVtxAttributes(ExecutionContext, Context->EdgeFilterFactories, ReadableBufferConfigList);
-		PCGExClusterFilter::GatherRequiredVtxAttributes(ExecutionContext, Context->SanitizationFilterFactories, ReadableBufferConfigList);
+		//PCGExClusterFilter::RegisterBuffersDependencies(ExecutionContext, Context->VtxFilterFactories, FacadePreloader);
+		PCGExClusterFilter::RegisterBuffersDependencies(ExecutionContext, Context->EdgeFilterFactories, FacadePreloader);
+		PCGExClusterFilter::RegisterBuffersDependencies(ExecutionContext, Context->SanitizationFilterFactories, FacadePreloader);
 	}
 
 	void FProcessorBatch::OnProcessingPreparationComplete()

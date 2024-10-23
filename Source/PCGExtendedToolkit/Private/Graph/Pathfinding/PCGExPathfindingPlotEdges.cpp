@@ -125,6 +125,15 @@ void FPCGExPathfindingPlotEdgesContext::TryFindPath(
 	}
 
 	PathIO->Tags->Append(InPlotPoints->Tags.ToSharedRef());
+
+	if (!Settings->bClosedLoop)
+	{
+		if (Settings->bTagIfOpenPath) { PathIO->Tags->Add(Settings->IsOpenPathTag); }
+	}
+	else
+	{
+		if (Settings->bTagIfClosedLoop) { PathIO->Tags->Add(Settings->IsClosedLoopTag); }
+	}
 }
 
 PCGEX_INITIALIZE_ELEMENT(PathfindingPlotEdges)

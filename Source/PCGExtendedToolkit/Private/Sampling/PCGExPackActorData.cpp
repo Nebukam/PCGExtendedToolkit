@@ -48,7 +48,7 @@ PCGEX_FOREACH_PACKER(PCGEX_SET_ATT_IMPL)
 bool UPCGExCustomActorDataPacker::PackSoftObjectPath(const FName& InAttributeName, const int32 InPointIndex, const FSoftObjectPath& InValue)
 {
 #if PCGEX_ENGINE_VERSION <= 503
-	return false;
+	return PackString(InAttributeName, InPointIndex, InValue.ToString());
 #else
 	TSharedPtr<PCGExData::TBuffer<FSoftObjectPath>> Buffer = PointDataFacade->GetWritable<FSoftObjectPath>(InAttributeName, false);
 	if (!Buffer) { return false; }
@@ -60,7 +60,7 @@ bool UPCGExCustomActorDataPacker::PackSoftObjectPath(const FName& InAttributeNam
 bool UPCGExCustomActorDataPacker::PackSoftClassPath(const FName& InAttributeName, const int32 InPointIndex, const FSoftClassPath& InValue)
 {
 #if PCGEX_ENGINE_VERSION <= 503
-	return false;
+	return PackString(InAttributeName, InPointIndex, InValue.ToString());
 #else
 	TSharedPtr<PCGExData::TBuffer<FSoftClassPath>> Buffer = PointDataFacade->GetWritable<FSoftClassPath>(InAttributeName, false);
 	if (!Buffer) { return false; }

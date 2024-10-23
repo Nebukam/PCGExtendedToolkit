@@ -105,7 +105,7 @@ protected:
 
 namespace PCGExBreakClustersToPaths
 {
-	class FProcessor final : public PCGExClusterMT::TClusterProcessor<FPCGExBreakClustersToPathsContext, UPCGExBreakClustersToPathsSettings>
+	class FProcessor final : public PCGExClusterMT::TProcessor<FPCGExBreakClustersToPathsContext, UPCGExBreakClustersToPathsSettings>
 	{
 		TArray<bool> Breakpoints;
 
@@ -114,7 +114,7 @@ namespace PCGExBreakClustersToPaths
 
 	public:
 		FProcessor(const TSharedRef<PCGExData::FFacade>& InVtxDataFacade, const TSharedRef<PCGExData::FFacade>& InEdgeDataFacade):
-			TClusterProcessor(InVtxDataFacade, InEdgeDataFacade)
+			TProcessor(InVtxDataFacade, InEdgeDataFacade)
 		{
 			bCacheVtxPointIndices = true;
 		}
@@ -139,7 +139,7 @@ namespace PCGExBreakClustersToPaths
 			bAllowVtxDataFacadeScopedGet = true;
 		}
 
-		virtual void GatherRequiredVtxAttributes(PCGExData::FReadableBufferConfigList& ReadableBufferConfigList) override;
+		virtual void RegisterBuffersDependencies(PCGExData::FFacadePreloader& FacadePreloader) override;
 		virtual void OnProcessingPreparationComplete() override;
 	};
 }

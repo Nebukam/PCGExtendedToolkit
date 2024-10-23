@@ -59,7 +59,7 @@ protected:
 
 namespace PCGExPartitionVertices
 {
-	class FProcessor final : public PCGExClusterMT::TClusterProcessor<FPCGExPartitionVerticesContext, UPCGExPartitionVerticesSettings>
+	class FProcessor final : public PCGExClusterMT::TProcessor<FPCGExPartitionVerticesContext, UPCGExPartitionVerticesSettings>
 	{
 		friend class FProcessorBatch;
 
@@ -72,7 +72,7 @@ namespace PCGExPartitionVertices
 
 	public:
 		FProcessor(const TSharedRef<PCGExData::FFacade>& InVtxDataFacade, const TSharedRef<PCGExData::FFacade>& InEdgeDataFacade):
-			TClusterProcessor(InVtxDataFacade, InEdgeDataFacade)
+			TProcessor(InVtxDataFacade, InEdgeDataFacade)
 		{
 		}
 
