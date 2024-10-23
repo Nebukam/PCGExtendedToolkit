@@ -5,6 +5,7 @@
 
 #include "PCGExPointsProcessor.h"
 #include "Data/Blending/PCGExMetadataBlender.h"
+#include "Misc/PCGExModularSortPoints.h"
 
 #define LOCTEXT_NAMESPACE "PCGExSampleNearestBoundsElement"
 #define PCGEX_NAMESPACE SampleNearestBounds
@@ -21,7 +22,10 @@ TArray<FPCGPinProperties> UPCGExSampleNearestBoundsSettings::InputPinProperties(
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
 	PCGEX_PIN_POINT(PCGEx::SourceBoundsLabel, "The bounds data set to check against.", Required, {})
-	PCGEX_PIN_PARAMS(PCGEx::SourceUseValueIfFilters, "Filter which points values will be processed.", Advanced, {})
+	if (SampleMethod == EPCGExBoundsSampleMethod::BestCandidate)
+	{
+		PCGEX_PIN_PARAMS(PCGExSortPoints::SourceSortingRules, "Plug sorting rules here. Order is defined by each rule' priority value, in ascending order.", Required, {})
+	}
 	return PinProperties;
 }
 
@@ -61,6 +65,17 @@ bool FPCGExSampleNearestBoundsElement::Boot(FPCGExContext* InContext) const
 	}
 
 	Context->BoundsPoints = &Context->BoundsFacade->Source->GetIn()->GetPoints();
+
+	if (Settings->SampleMethod == EPCGExBoundsSampleMethod::BestCandidate)
+	{
+		Context->Sorter = MakeShared<PCGExSortPoints::PointSorter<false>>(Context->BoundsFacade.ToSharedRef());
+		Context->Sorter->SortDirection = Settings->SortDirection;
+		if (!Context->Sorter->Init(Context, PCGExSortPoints::GetSortingRules(InContext, PCGExSortPoints::SourceSortingRules)))
+		{
+			PCGE_LOG(Error, GraphAndLog, FTEXT("Invalid sort rules"));
+			return false;
+		}
+	}
 
 	return true;
 }
@@ -173,7 +188,15 @@ namespace PCGExSampleNearestBounds
 
 				if (bSingleSample)
 				{
-					TargetsCompoundInfos.UpdateCompound(PCGExNearestBounds::FTargetInfos(CurrentSample, NearbyBox->Len));
+					if (Settings->SampleMethod == EPCGExBoundsSampleMethod::BestCandidate && TargetsCompoundInfos.IsValid())
+					{
+						if (!Context->Sorter->Sort(NearbyBox->Index, TargetsCompoundInfos.Closest.Index)) { return; }
+						TargetsCompoundInfos.SetCompound(PCGExNearestBounds::FTargetInfos(CurrentSample, NearbyBox->Len));
+					}
+					else
+					{
+						TargetsCompoundInfos.UpdateCompound(PCGExNearestBounds::FTargetInfos(CurrentSample, NearbyBox->Len));
+					}
 				}
 				else
 				{
@@ -233,6 +256,7 @@ namespace PCGExSampleNearestBounds
 			case EPCGExBoundsSampleMethod::WithinRange:
 				// Ignore
 				break;
+			case EPCGExBoundsSampleMethod::BestCandidate:
 			case EPCGExBoundsSampleMethod::ClosestBounds:
 				ProcessTargetInfos(TargetsCompoundInfos.Closest);
 				break;

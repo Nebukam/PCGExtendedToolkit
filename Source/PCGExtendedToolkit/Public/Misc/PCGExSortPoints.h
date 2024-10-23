@@ -122,8 +122,79 @@ protected:
 
 namespace PCGExSortPoints
 {
+	const FName SourceSortingRules = TEXT("SortRules");
+	
+	template <bool bUsePointIndices = false>
+	class PointSorter : public TSharedFromThis<PointSorter<bUsePointIndices>>
+	{
+	protected:
+		TArray<TSharedRef<FPCGExSortRule>> Rules;
+		TMap<PCGMetadataEntryKey, int32> PointIndices;
+
+	public:
+		EPCGExSortDirection SortDirection = EPCGExSortDirection::Ascending;
+		TSharedRef<PCGExData::FFacade> DataFacade;
+
+		explicit PointSorter(TSharedRef<PCGExData::FFacade> InDataFacade)
+			: DataFacade(InDataFacade)
+		{
+			if constexpr (bUsePointIndices)
+			{
+				InDataFacade->Source->PrintOutKeysMap(PointIndices);
+			}
+		}
+		
+		bool Init(FPCGExContext* InContext, TArray<FPCGExSortRuleConfig> InRuleConfigs)
+		{
+			for (const FPCGExSortRuleConfig& RuleConfig : InRuleConfigs)
+			{
+				const TSharedPtr<PCGExData::TBuffer<double>> Cache = DataFacade->GetBroadcaster<double>(RuleConfig.Selector);
+
+				if (!Cache)
+				{
+					PCGE_LOG_C(Warning, GraphAndLog, InContext, FTEXT("Some points are missing attributes used for sorting."));
+					continue;
+				}
+
+				TSharedPtr<FPCGExSortRule> NewRule = MakeShared<FPCGExSortRule>();
+				NewRule->Cache = Cache;
+				NewRule->Tolerance = RuleConfig.Tolerance;
+				NewRule->bInvertRule = RuleConfig.bInvertRule;
+				Rules.Add(NewRule.ToSharedRef());
+			}
+
+			return !Rules.IsEmpty();
+		}
+
+		FORCEINLINE bool Sort(const int32 A, const int32 B)
+		{
+			int Result = 0;
+			for (const TSharedRef<FPCGExSortRule>& Rule : Rules)
+			{
+				const double ValueA = Rule->Cache->Read(A);
+				const double ValueB = Rule->Cache->Read(B);
+				Result = FMath::IsNearlyEqual(ValueA, ValueB, Rule->Tolerance) ? 0 : ValueA < ValueB ? -1 : 1;
+				if (Result != 0)
+				{
+					if (Rule->bInvertRule) { Result *= -1; }
+					break;
+				}
+			}
+
+			if (SortDirection == EPCGExSortDirection::Descending) { Result *= -1; }
+			return Result < 0;
+		}
+
+		FORCEINLINE bool Sort(const FPCGPoint& A, const FPCGPoint& B)
+		{
+			return Sort(PointIndices[A.MetadataEntry], PointIndices[B.MetadataEntry]);
+		}
+	};
+
 	class FProcessor final : public PCGExPointsMT::FPointsProcessor
 	{
+		TSharedPtr<PointSorter<true>> Sorter;
+
 	public:
 		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade):
 			FPointsProcessor(InPointDataFacade)
@@ -134,6 +205,7 @@ namespace PCGExSortPoints
 		{
 		}
 
+		virtual void PrepareAttributeBuffers(PCGExData::FReadableBufferConfigList& ReadableBufferConfigList) override;
 		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager> InAsyncManager) override;
 		virtual void CompleteWork() override;
 	};
