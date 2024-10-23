@@ -19,7 +19,7 @@ namespace PCGExPackActorData
 /**
  * 
  */
-UCLASS(Blueprintable, BlueprintType, Abstract, MinimalAPI, DisplayName = "[PCGEx] Custom Graph Builder")
+UCLASS(Blueprintable, BlueprintType, Abstract, MinimalAPI, DisplayName = "[PCGEx] Custom Actor Data Packer")
 class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExCustomActorDataPacker : public UPCGExOperation
 {
 	GENERATED_BODY()
