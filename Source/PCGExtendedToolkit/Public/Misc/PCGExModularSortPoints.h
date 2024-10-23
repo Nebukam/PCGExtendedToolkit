@@ -35,7 +35,7 @@ public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(
-		DotFilterFactory, "Rule : Sorting", "Creates an single sorting rule to be used with the Sort Points node.",
+		SortingRuleFactory, "Sorting Rule", "Creates an single sorting rule to be used with the Sort Points node.",
 		PCGEX_FACTORY_NAME_PRIORITY)
 	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->NodeColorMisc; }
 #endif
@@ -76,3 +76,20 @@ protected:
 public:
 	virtual bool GetSortingRules(const FPCGContext* InContext, TArray<FPCGExSortRuleConfig>& OutRules) const override;
 };
+
+namespace PCGExSortPoints
+{
+	static TArray<FPCGExSortRuleConfig> GetSortingRules(const FPCGContext* InContext, const FName InLabel)
+	{
+		TArray<FPCGExSortRuleConfig> OutRules;
+		TArray<TObjectPtr<const UPCGExSortingRule>> Factories;
+		if (!PCGExFactories::GetInputFactories(
+			InContext, InLabel, Factories,
+			{PCGExFactories::EType::RuleSort}, false)) { return OutRules; }
+
+		Factories.Sort([](const UPCGExSortingRule& A, const UPCGExSortingRule& B) { return A.Priority < B.Priority; });
+		for (const UPCGExSortingRule* Factory : Factories) { OutRules.Add(Factory->Config); }
+
+		return OutRules;
+	}
+}

@@ -5,6 +5,8 @@
 
 #include "PCGExPointsProcessor.h"
 #include "Data/Blending/PCGExMetadataBlender.h"
+#include "Misc/PCGExModularSortPoints.h"
+#include "Misc/PCGExSortPoints.h"
 
 
 #define LOCTEXT_NAMESPACE "PCGExSampleNearestPointElement"
@@ -22,6 +24,10 @@ TArray<FPCGPinProperties> UPCGExSampleNearestPointSettings::InputPinProperties()
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
 	PCGEX_PIN_POINT(PCGEx::SourceTargetsLabel, "The point data set to check against.", Required, {})
+	if (SampleMethod == EPCGExSampleMethod::BestCandidate)
+	{
+		PCGEX_PIN_PARAMS(PCGExSortPoints::SourceSortingRules, "Plug sorting rules here. Order is defined by each rule' priority value, in ascending order.", Required, {})
+	}
 	PCGEX_PIN_PARAMS(PCGEx::SourceUseValueIfFilters, "Filter which points values will be processed.", Advanced, {})
 	return PinProperties;
 }
@@ -158,6 +164,18 @@ namespace PCGExSampleNearestPoints
 		}
 
 		bSingleSample = Settings->SampleMethod != EPCGExSampleMethod::WithinRange;
+		bSampleClosest = Settings->SampleMethod == EPCGExSampleMethod::ClosestTarget || Settings->SampleMethod == EPCGExSampleMethod::BestCandidate;
+
+		if (Settings->SampleMethod == EPCGExSampleMethod::BestCandidate)
+		{
+			Sorter = MakeShared<PCGExSortPoints::PointSorter<false>>(Context->TargetsFacade.ToSharedRef());
+			Sorter->SortDirection = Settings->SortDirection;
+			if (!Sorter->Init(Context, PCGExSortPoints::GetSortingRules(Context, PCGExSortPoints::SourceSortingRules)))
+			{
+				PCGE_LOG_C(Error, GraphAndLog, Context, FTEXT("Invalid sort rules"));
+				return false;
+			}
+		}
 
 		StartParallelLoopForPoints();
 
@@ -208,7 +226,15 @@ namespace PCGExSampleNearestPoints
 
 			if (bSingleSample)
 			{
-				TargetsCompoundInfos.UpdateCompound(PCGExNearestPoint::FTargetInfos(TargetPtIndex, Dist));
+				if (Settings->SampleMethod == EPCGExSampleMethod::BestCandidate && TargetsCompoundInfos.IsValid())
+				{
+					if (!Sorter->Sort(TargetPtIndex, TargetsCompoundInfos.Closest.Index)) { return; }
+					TargetsCompoundInfos.SetCompound(PCGExNearestPoint::FTargetInfos(TargetPtIndex, Dist));
+				}
+				else
+				{
+					TargetsCompoundInfos.UpdateCompound(PCGExNearestPoint::FTargetInfos(TargetPtIndex, Dist));
+				}
 			}
 			else
 			{
@@ -287,7 +313,7 @@ namespace PCGExSampleNearestPoints
 
 		if (bSingleSample)
 		{
-			const PCGExNearestPoint::FTargetInfos& TargetInfos = Settings->SampleMethod == EPCGExSampleMethod::ClosestTarget ? TargetsCompoundInfos.Closest : TargetsCompoundInfos.Farthest;
+			const PCGExNearestPoint::FTargetInfos& TargetInfos = bSampleClosest ? TargetsCompoundInfos.Closest : TargetsCompoundInfos.Farthest;
 			const double Weight = Context->WeightCurve->GetFloatValue(TargetsCompoundInfos.GetRangeRatio(TargetInfos.Distance));
 			ProcessTargetInfos(TargetInfos, Weight);
 		}

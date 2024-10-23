@@ -230,7 +230,7 @@ namespace PCGExSampleNearestSpline
 			bool IsNewClosest = false;
 			bool IsNewFarthest = false;
 
-			if (Settings->SampleMethod == EPCGExSampleMethod::ClosestTarget)
+			if (Settings->SampleMethod == EPCGExSampleMethod::ClosestTarget || Settings->SampleMethod == EPCGExSampleMethod::BestCandidate)
 			{
 				TargetsCompoundInfos.UpdateCompound(PCGExPolyLine::FSampleInfos(Transform, Dist, Time), IsNewClosest, IsNewFarthest);
 				if (IsNewClosest)
