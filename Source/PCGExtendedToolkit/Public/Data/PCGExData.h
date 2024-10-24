@@ -620,6 +620,7 @@ namespace PCGExData
 		void Fetch(const int32 StartIndex, const int32 Count) { for (const TSharedPtr<FBufferBase>& Buffer : Buffers) { Buffer->Fetch(StartIndex, Count); } }
 		void Fetch(const uint64 Scope) { Fetch(PCGEx::H64A(Scope), PCGEx::H64B(Scope)); }
 
+
 	protected:
 		void Flush(const TSharedPtr<FBufferBase>& Buffer)
 		{

@@ -55,6 +55,145 @@ public:
 
 	TSharedPtr<PCGExData::FFacade> PointDataFacade;
 
+#pragma region Init
+
+	/**
+	 * Initialize a point' attribute default value.
+	 * Must be called during initialization.
+	 * @param InAttributeName
+	 * @param InValue
+	 */
+	UFUNCTION(BlueprintCallable, Category = "PCGEx|Setter")
+	bool InitInt32(const FName& InAttributeName, const int32& InValue);
+
+	/**
+	* Initialize a point' attribute default value.
+	 * Must be called during initialization.
+	 * @param InAttributeName
+	 * @param InValue
+	 */
+	UFUNCTION(BlueprintCallable, Category = "PCGEx|Setter")
+	bool InitInt64(const FName& InAttributeName, const int64& InValue);
+
+	/**
+	* Initialize a point' attribute default value.
+	 * Must be called during initialization.
+	 * @param InAttributeName
+	 * @param InValue
+	 */
+	UFUNCTION(BlueprintCallable, Category = "PCGEx|Setter")
+	bool InitFloat(const FName& InAttributeName, const float& InValue);
+
+	/**
+	* Initialize a point' attribute default value.
+	 * Must be called during initialization.
+	 * @param InAttributeName
+	 * @param InValue
+	 */
+	UFUNCTION(BlueprintCallable, Category = "PCGEx|Setter")
+	bool InitDouble(const FName& InAttributeName, const double& InValue);
+
+	/**
+	* Initialize a point' attribute default value.
+	 * Must be called during initialization.
+	 * @param InAttributeName
+	 * @param InValue
+	 */
+	UFUNCTION(BlueprintCallable, Category = "PCGEx|Setter")
+	bool InitVector2(const FName& InAttributeName, const FVector2D& InValue);
+
+	/**
+	* Initialize a point' attribute default value.
+	 * Must be called during initialization.
+	 * @param InAttributeName
+	 * @param InValue
+	 */
+	UFUNCTION(BlueprintCallable, Category = "PCGEx|Setter")
+	bool InitVector(const FName& InAttributeName, const FVector& InValue);
+
+	/**
+	* Initialize a point' attribute default value.
+	 * Must be called during initialization.
+	 * @param InAttributeName
+	 * @param InValue
+	 */
+	UFUNCTION(BlueprintCallable, Category = "PCGEx|Setter")
+	bool InitVector4(const FName& InAttributeName, const FVector4& InValue);
+
+	/**
+	* Initialize a point' attribute default value.
+	 * Must be called during initialization.
+	 * @param InAttributeName
+	 * @param InValue
+	 */
+	UFUNCTION(BlueprintCallable, Category = "PCGEx|Setter")
+	bool InitQuat(const FName& InAttributeName, const FQuat& InValue);
+
+	/**
+	* Initialize a point' attribute default value.
+	 * Must be called during initialization.
+	 * @param InAttributeName
+	 * @param InValue
+	 */
+	UFUNCTION(BlueprintCallable, Category = "PCGEx|Execution")
+	bool InitTransform(const FName& InAttributeName, const FTransform& InValue);
+
+	/**
+	* Initialize a point' attribute default value.
+	 * Must be called during initialization.
+	 * @param InAttributeName
+	 * @param InValue
+	 */
+	UFUNCTION(BlueprintCallable, Category = "PCGEx|Setter")
+	bool InitString(const FName& InAttributeName, const FString& InValue);
+
+	/**
+	* Initialize a point' attribute default value.
+	 * Must be called during initialization.
+	 * @param InAttributeName
+	 * @param InValue
+	 */
+	UFUNCTION(BlueprintCallable, Category = "PCGEx|Setter")
+	bool InitBool(const FName& InAttributeName, const bool& InValue);
+
+	/**
+	* Initialize a point' attribute default value.
+	 * Must be called during initialization.
+	 * @param InAttributeName
+	 * @param InValue
+	 */
+	UFUNCTION(BlueprintCallable, Category = "PCGEx|Setter")
+	bool InitRotator(const FName& InAttributeName, const FRotator& InValue);
+
+	/**
+	* Initialize a point' attribute default value.
+	 * Must be called during initialization.
+	 * @param InAttributeName
+	 * @param InValue
+	 */
+	UFUNCTION(BlueprintCallable, Category = "PCGEx|Setter")
+	bool InitName(const FName& InAttributeName, const FName& InValue);
+
+	/**
+	* Initialize a point' attribute default value.
+	 * Must be called during initialization.
+	 * @param InAttributeName
+	 * @param InValue
+	 */
+	UFUNCTION(BlueprintCallable, Category = "PCGEx|Setter")
+	bool InitSoftObjectPath(const FName& InAttributeName, const FSoftObjectPath& InValue);
+
+	/**
+	* Initialize a point' attribute default value.
+	 * Must be called during initialization.
+	 * @param InAttributeName
+	 * @param InValue
+	 */
+	UFUNCTION(BlueprintCallable, Category = "PCGEx|Setter")
+	bool InitSoftClassPath(const FName& InAttributeName, const FSoftClassPath& InValue);
+
+#pragma endregion
+
 #pragma region Setters
 
 	/**
@@ -211,6 +350,7 @@ public:
 #endif
 
 protected:
+	virtual TArray<FPCGPinProperties> OutputPinProperties() const override;
 	virtual FPCGElementPtr CreateElement() const override;
 	//~End UPCGSettings
 
@@ -230,12 +370,21 @@ public:
 	/** Builder instance. */
 	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = Settings, Instanced, meta = (PCG_Overridable, NoResetToDefault, ShowOnlyInnerProperties))
 	TObjectPtr<UPCGExCustomActorDataPacker> Packer;
+
+	/** */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
+	bool bOmitUnresolvedEntries = true;
+
+	/** */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
+	bool bOmitEmptyOutputs = true;
 };
 
 struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPackActorDataContext final : FPCGExPointsProcessorContext
 {
 	friend class FPCGExPackActorDataElement;
 	UPCGExCustomActorDataPacker* Packer = nullptr;
+	TArray<UPCGParamData*> OutputParams;
 };
 
 class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPackActorDataElement final : public FPCGExPointsProcessorElement
@@ -255,6 +404,7 @@ namespace PCGExPackActorDatas
 {
 	class FProcessor final : public PCGExPointsMT::TPointsProcessor<FPCGExPackActorDataContext, UPCGExPackActorDataSettings>
 	{
+		TArray<FPCGMetadataAttributeBase*> Attributes;
 		UPCGExCustomActorDataPacker* Packer = nullptr;
 		TSharedPtr<PCGEx::TAttributeBroadcaster<FSoftObjectPath>> ActorReferences;
 
@@ -269,5 +419,6 @@ namespace PCGExPackActorDatas
 		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager> InAsyncManager) override;
 		virtual void ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const int32 LoopIdx, const int32 Count) override;
 		virtual void CompleteWork() override;
+		virtual void Write() override;
 	};
 }
