@@ -403,7 +403,7 @@ namespace PCGExGraph
 		TSharedPtr<PCGExData::FFacade> VtxDataFacade;
 		TSharedPtr<PCGExData::FFacade> EdgesDataFacade;
 		TArray<FIndexedEdge> FlattenedEdges;
-		int64 UID = 0;
+		int32 UID = 0;
 
 		FSubGraph()
 		{
@@ -514,7 +514,7 @@ namespace PCGExGraph
 		using CompilationEndCallback = std::function<void(const TSharedRef<FGraphBuilder>& InBuilder, const bool bSuccess)>;
 		CompilationEndCallback OnCompilationEndCallback;
 
-		int64 PairId;
+		uint32 PairId;
 		FString PairIdStr;
 
 		TSharedPtr<FGraph> Graph;
@@ -532,7 +532,7 @@ namespace PCGExGraph
 		{
 			PCGEX_LOG_CTR(FGraphBuilder)
 
-			PairId = NodeDataFacade->Source->GetOutIn()->UID;
+			PairId = NodeDataFacade->Source->GetOutIn()->GetUniqueID();
 			NodeDataFacade->Source->Tags->Add(TagStr_ClusterPair, PairId, PairIdStr);
 
 			const int32 NumNodes = NodeDataFacade->Source->GetOutInNum();
@@ -593,13 +593,13 @@ namespace PCGExGraph
 	static bool IsPointDataVtxReady(const UPCGMetadata* Metadata)
 	{
 		constexpr int16 I64 = static_cast<uint16>(EPCGMetadataTypes::Integer64);
-		//constexpr int16 I32 = static_cast<uint16>(EPCGMetadataTypes::Integer32);
+		constexpr int16 I32 = static_cast<uint16>(EPCGMetadataTypes::Integer32);
 
 		const FPCGMetadataAttributeBase* EndpointAttribute = Metadata->GetConstAttribute(Tag_VtxEndpoint);
 		if (!EndpointAttribute || EndpointAttribute->GetTypeId() != I64) { return false; }
 
 		const FPCGMetadataAttributeBase* ClusterIdAttribute = Metadata->GetConstAttribute(Tag_ClusterId);
-		if (!ClusterIdAttribute || ClusterIdAttribute->GetTypeId() != I64) { return false; }
+		if (!ClusterIdAttribute || ClusterIdAttribute->GetTypeId() != I32) { return false; }
 
 		return true;
 	}
@@ -613,7 +613,7 @@ namespace PCGExGraph
 		if (!EndpointAttribute || EndpointAttribute->GetTypeId() != I64) { return false; }
 
 		const FPCGMetadataAttributeBase* ClusterIdAttribute = Metadata->GetConstAttribute(Tag_ClusterId);
-		if (!ClusterIdAttribute || ClusterIdAttribute->GetTypeId() != I64) { return false; }
+		if (!ClusterIdAttribute || ClusterIdAttribute->GetTypeId() != I32) { return false; }
 
 		return true;
 	}

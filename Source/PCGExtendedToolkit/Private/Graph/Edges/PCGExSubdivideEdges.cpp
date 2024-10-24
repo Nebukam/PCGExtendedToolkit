@@ -129,7 +129,7 @@ namespace PCGExSubdivideEdges
 
 		PCGEX_TYPED_CONTEXT_AND_SETTINGS(SubdivideEdges)
 
-		PCGExClusterFilter::RegisterBuffersDependencies(ExecutionContext, Context->FilterFactories, FacadePreloader);
+		PCGExPointFilter::RegisterBuffersDependencies(ExecutionContext, Context->FilterFactories, FacadePreloader);
 		DirectionSettings.RegisterBuffersDependencies(ExecutionContext, FacadePreloader);
 	}
 

@@ -12,6 +12,12 @@ TSharedPtr<PCGExPointFilter::FFilter> UPCGExMeanFilterFactory::CreateFilter() co
 	return MakeShared<PCGExPointsFilter::TMeanFilter>(this);
 }
 
+void UPCGExMeanFilterFactory::RegisterBuffersDependencies(FPCGExContext* InContext, PCGExData::FFacadePreloader& FacadePreloader) const
+{
+	Super::RegisterBuffersDependencies(InContext, FacadePreloader);
+	//FacadePreloader.Register<double>(InContext, Config.Target); // TODO SUPPORT MIN MAX FETCH
+}
+
 bool PCGExPointsFilter::TMeanFilter::Init(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade> InPointDataFacade)
 {
 	if (!FFilter::Init(InContext, InPointDataFacade)) { return false; }

@@ -18,7 +18,7 @@ TSharedPtr<PCGExPointFilter::FFilter> UPCGExClusterStateFactoryBase::CreateFilte
 void UPCGExClusterStateFactoryBase::RegisterBuffersDependencies(FPCGExContext* InContext, PCGExData::FFacadePreloader& FacadePreloader) const
 {
 	Super::RegisterBuffersDependencies(InContext, FacadePreloader);
-	PCGExClusterFilter::RegisterBuffersDependencies(InContext, FilterFactories, FacadePreloader);
+	PCGExPointFilter::RegisterBuffersDependencies(InContext, FilterFactories, FacadePreloader);
 }
 
 void UPCGExClusterStateFactoryBase::BeginDestroy()

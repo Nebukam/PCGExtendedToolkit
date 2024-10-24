@@ -66,7 +66,7 @@ bool FPCGExConnectClustersElement::ExecuteInternal(FPCGContext* InContext) const
 	for (const TSharedPtr<PCGExClusterMT::FClusterProcessorBatchBase>& Batch : Context->Batches)
 	{
 		const TSharedPtr<PCGExBridgeClusters::FProcessorBatch> BridgeBatch = StaticCastSharedPtr<PCGExBridgeClusters::FProcessorBatch>(Batch);
-		const int64 ClusterId = BridgeBatch->VtxDataFacade->GetOut()->UID;
+		const int32 ClusterId = BridgeBatch->VtxDataFacade->GetOut()->GetUniqueID();
 		WriteMark(BridgeBatch->CompoundedEdgesDataFacade->Source, PCGExGraph::Tag_ClusterId, ClusterId);
 
 		FString OutId;
@@ -246,9 +246,9 @@ namespace PCGExBridgeClusters
 		}
 
 		// Force writing cluster ID to Vtx, otherwise we inherit from previous metadata.
-		const uint64 ClusterId = VtxDataFacade->GetOut()->UID;
-		const TSharedPtr<PCGExData::TBuffer<int64>> ClusterIdBuffer = CompoundedEdgesDataFacade->GetWritable<int64>(PCGExGraph::Tag_ClusterId, true);
-		for (TArray<int64>& OutValues = *ClusterIdBuffer->GetOutValues(); int64& Id : OutValues) { Id = ClusterId; }
+		const uint32 ClusterId = VtxDataFacade->GetOut()->GetUniqueID();
+		const TSharedPtr<PCGExData::TBuffer<int32>> ClusterIdBuffer = CompoundedEdgesDataFacade->GetWritable<int32>(PCGExGraph::Tag_ClusterId, true);
+		for (TArray<int32>& OutValues = *ClusterIdBuffer->GetOutValues(); int32& Id : OutValues) { Id = ClusterId; }
 		PCGExMT::Write(AsyncManager, ClusterIdBuffer);
 	}
 
