@@ -102,6 +102,7 @@ const TSharedPtr<TBatch<T>> Batch = WeakBatch.Pin(); if(!Batch){return;}\
 
 		virtual void RegisterBuffersDependencies(PCGExData::FFacadePreloader& FacadePreloader)
 		{
+			if (FilterFactories) { PCGExPointFilter::RegisterBuffersDependencies(ExecutionContext, *FilterFactories, FacadePreloader); }
 		}
 
 		void PrefetchData(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager, const TSharedPtr<PCGExMT::FTaskGroup>& InPrefetchDataTaskGroup)

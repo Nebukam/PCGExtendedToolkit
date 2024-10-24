@@ -496,54 +496,7 @@ namespace PCGEx
 		}
 
 	protected:
-		virtual void ResetMinMax()
-		{
-			if constexpr (std::is_same_v<T, bool>)
-			{
-				Min = false;
-				Max = true;
-			}
-			else if constexpr (std::is_same_v<T, int32> || std::is_same_v<T, int64> || std::is_same_v<T, float> || std::is_same_v<T, double>)
-			{
-				Min = TNumericLimits<T>::Max();
-				Max = TNumericLimits<T>::Min();
-			}
-			else if constexpr (std::is_same_v<T, FVector2D>)
-			{
-				Min = FVector2D(MAX_dbl);
-				Max = FVector2D(MIN_dbl);
-			}
-			else if constexpr (std::is_same_v<T, FVector>)
-			{
-				Min = FVector(MAX_dbl);
-				Max = FVector(MIN_dbl);
-			}
-			else if constexpr (std::is_same_v<T, FVector4>)
-			{
-				Min = FVector4(MAX_dbl, MAX_dbl, MAX_dbl, MAX_dbl);
-				Max = FVector4(MIN_dbl, MIN_dbl, MIN_dbl, MIN_dbl);
-			}
-			else if constexpr (std::is_same_v<T, FQuat>)
-			{
-				Min = FRotator(MAX_dbl, MAX_dbl, MAX_dbl).Quaternion();
-				Max = FRotator(MIN_dbl, MIN_dbl, MIN_dbl).Quaternion();
-			}
-			else if constexpr (std::is_same_v<T, FRotator>)
-			{
-				Min = FRotator(MAX_dbl, MAX_dbl, MAX_dbl);
-				Max = FRotator(MIN_dbl, MIN_dbl, MIN_dbl);
-			}
-			else if constexpr (std::is_same_v<T, FTransform>)
-			{
-				Min = FTransform(FRotator(MAX_dbl, MAX_dbl, MAX_dbl).Quaternion(), FVector(MAX_dbl), FVector(MAX_dbl));
-				Max = FTransform(FRotator(MIN_dbl, MIN_dbl, MIN_dbl).Quaternion(), FVector(MIN_dbl), FVector(MIN_dbl));
-			}
-			else
-			{
-				Min = T{};
-				Max = T{};
-			}
-		}
+		virtual void ResetMinMax() { PCGExMath::TypeMinMax(Min, Max); }
 
 #pragma region Conversions
 

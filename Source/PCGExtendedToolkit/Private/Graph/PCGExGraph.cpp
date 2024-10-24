@@ -346,7 +346,7 @@ namespace PCGExGraph
 
 		const TSharedPtr<PCGExData::TBuffer<int64>> VtxEndpointWriter = NodeDataFacade->GetWritable<int64>(Tag_VtxEndpoint, 0, false, true);
 
-		const uint64 BaseGUID = NodeDataFacade->GetOut()->UID;
+		const uint32 BaseGUID = NodeDataFacade->GetOut()->GetUniqueID();
 		for (const int32 NodeIndex : ValidNodes)
 		{
 			const FNode& Node = Nodes[NodeIndex];
@@ -398,7 +398,7 @@ namespace PCGExGraph
 				EdgeIO = EdgesIO->Emplace_GetRef<UPCGExClusterEdgesData>(PCGExData::EInit::NewOutput);
 			}
 
-			SubGraph->UID = EdgeIO->GetOut()->UID;
+			SubGraph->UID = EdgeIO->GetOut()->GetUniqueID();
 
 			SubGraph->VtxDataFacade = NodeDataFacade;
 			SubGraph->EdgesDataFacade = MakeShared<PCGExData::FFacade>(EdgeIO.ToSharedRef());
@@ -501,13 +501,13 @@ namespace PCGExGraphTask
 			}
 		}
 
-		const TSharedPtr<PCGExData::TBuffer<int64>> NumClusterIdWriter = VtxDataFacade->GetWritable<int64>(PCGExGraph::Tag_ClusterId, -1, false, true);
+		const TSharedPtr<PCGExData::TBuffer<int32>> NumClusterIdWriter = VtxDataFacade->GetWritable<int32>(PCGExGraph::Tag_ClusterId, -1, false, true);
 		const TSharedPtr<PCGExData::TBuffer<int64>> EdgeEndpointsWriter = SubGraph->EdgesDataFacade->GetWritable<int64>(PCGExGraph::Tag_EdgeEndpoints, -1, false, true);
 
 		const FVector SeedOffset = FVector(EdgeIO->IOIndex);
 
-		const int64 ClusterId = SubGraph->UID;
-		const uint64 BaseGUID = VtxDataFacade->Source->GetOut()->UID;
+		const int32 ClusterId = SubGraph->UID;
+		const uint32 BaseGUID = VtxDataFacade->Source->GetOut()->GetUniqueID();
 
 		for (const PCGExGraph::FIndexedEdge& E : FlattenedEdges)
 		{

@@ -12,6 +12,11 @@ TSharedPtr<PCGExPointFilter::FFilter> UPCGExStringSelfCompareFilterFactory::Crea
 	return MakeShared<PCGExPointsFilter::TStringSelfComparisonFilter>(this);
 }
 
+void UPCGExStringSelfCompareFilterFactory::RegisterBuffersDependencies(FPCGExContext* InContext, PCGExData::FFacadePreloader& FacadePreloader) const
+{
+	Super::RegisterBuffersDependencies(InContext, FacadePreloader);
+}
+
 bool PCGExPointsFilter::TStringSelfComparisonFilter::Init(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade> InPointDataFacade)
 {
 	if (!FFilter::Init(InContext, InPointDataFacade)) { return false; }

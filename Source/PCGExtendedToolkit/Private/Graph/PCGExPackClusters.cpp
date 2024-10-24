@@ -110,7 +110,7 @@ bool FPCGExPackClusterTask::ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>&
 	PCGExGraph::CleanupClusterTags(PackedIO);
 
 	FString OutPairId;
-	PackedIO->Tags->Add(PCGExGraph::TagStr_ClusterPair, InEdges->GetIn()->UID, OutPairId);
+	PackedIO->Tags->Add(PCGExGraph::TagStr_ClusterPair, InEdges->GetIn()->GetUniqueID(), OutPairId);
 
 	InEdges->CleanupKeys();
 

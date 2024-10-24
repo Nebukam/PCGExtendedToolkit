@@ -123,13 +123,13 @@ namespace PCGExFactories
 	static bool GetInputFactories(const FPCGContext* InContext, const FName InLabel, TArray<TObjectPtr<const T_DEF>>& OutFactories, const TSet<EType>& Types, const bool bThrowError = true)
 	{
 		const TArray<FPCGTaggedData>& Inputs = InContext->InputData.GetInputsByPin(InLabel);
-		TSet<uint64> UniqueData;
+		TSet<uint32> UniqueData;
 		UniqueData.Reserve(Inputs.Num());
 
 		for (const FPCGTaggedData& TaggedData : Inputs)
 		{
 			bool bIsAlreadyInSet;
-			UniqueData.Add(TaggedData.Data->UID, &bIsAlreadyInSet);
+			UniqueData.Add(TaggedData.Data->GetUniqueID(), &bIsAlreadyInSet);
 			if (bIsAlreadyInSet) { continue; }
 
 			if (const T_DEF* State = Cast<T_DEF>(TaggedData.Data))

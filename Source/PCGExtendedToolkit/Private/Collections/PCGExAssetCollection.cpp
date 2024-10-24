@@ -90,7 +90,7 @@ PCGExAssetCollection::FCache* UPCGExAssetCollection::LoadCache()
 		if (bCacheNeedsRebuild) { InvalidateCache(); }
 		if (Cache) { return Cache.Get(); }
 	}
-	
+
 	BuildCache();
 	return Cache.Get();
 }

@@ -124,10 +124,10 @@ namespace PCGExData
 			Tags.Add(Key, Value);
 		}
 
-		void Add(const FString& Key, const int64 Value, FString& OutValue)
+		void Add(const FString& Key, const uint32 Value, FString& OutValue)
 		{
 			FWriteScopeLock WriteScopeLock(TagsLock);
-			OutValue = FString::Printf(TEXT("%llu"), Value);
+			OutValue = FString::Printf(TEXT("%u"), Value);
 			Tags.Add(Key, OutValue);
 		}
 
@@ -171,15 +171,15 @@ namespace PCGExData
 			Tags.Add(Key, Value);
 		}
 
-		void GetOrSet(const FString& Key, const int64 Value, FString& OutValue)
+		void GetOrSet(const FString& Key, const uint32 Value, FString& OutValue)
 		{
-			OutValue = FString::Printf(TEXT("%llu"), Value);
+			OutValue = FString::Printf(TEXT("%u"), Value);
 			GetOrSet(Key, OutValue);
 		}
 
 		bool IsTagged(const FString& Key) const { return Tags.Contains(Key) || RawTags.Contains(Key); }
 		bool IsTagged(const FString& Key, const FString& Value) const { return RawTags.Contains(Key + TagSeparator + Value); }
-		bool IsTagged(const FString& Key, const int64 Value) const { return IsTagged(Key, FString::Printf(TEXT("%llu"), Value)); }
+		bool IsTagged(const FString& Key, const uint32 Value) const { return IsTagged(Key, FString::Printf(TEXT("%u"), Value)); }
 
 	protected:
 		// NAME::VALUE

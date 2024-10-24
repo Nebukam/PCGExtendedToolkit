@@ -351,9 +351,9 @@ namespace PCGExRefineEdges
 
 		Context->Refinement->RegisterBuffersDependencies(ExecutionContext, FacadePreloader);
 
-		//PCGExClusterFilter::RegisterBuffersDependencies(ExecutionContext, Context->VtxFilterFactories, FacadePreloader);
-		PCGExClusterFilter::RegisterBuffersDependencies(ExecutionContext, Context->EdgeFilterFactories, FacadePreloader);
-		PCGExClusterFilter::RegisterBuffersDependencies(ExecutionContext, Context->SanitizationFilterFactories, FacadePreloader);
+		//PCGExPointFilter::RegisterBuffersDependencies(ExecutionContext, Context->VtxFilterFactories, FacadePreloader);
+		PCGExPointFilter::RegisterBuffersDependencies(ExecutionContext, Context->EdgeFilterFactories, FacadePreloader);
+		PCGExPointFilter::RegisterBuffersDependencies(ExecutionContext, Context->SanitizationFilterFactories, FacadePreloader);
 	}
 
 	void FProcessorBatch::OnProcessingPreparationComplete()
