@@ -83,7 +83,7 @@ PCGExData::EInit UPCGExPackActorDataSettings::GetMainOutputInitMode() const { re
 
 int32 UPCGExPackActorDataSettings::GetPreferredChunkSize() const { return PCGExMT::GAsyncLoop_L; }
 
-PCGEX_INITIALIZE_ELEMENT(PackActorData)
+PCGEX_INITIALIZE_ELEMENT (PackActorData)
 
 FName UPCGExPackActorDataSettings::GetMainInputLabel() const
 {
@@ -114,7 +114,7 @@ bool FPCGExPackActorDataElement::ExecuteInternal(FPCGContext* InContext) const
 
 	PCGEX_CONTEXT_AND_SETTINGS(PackActorData)
 	PCGEX_EXECUTION_CHECK
-	PCGEX_ON_INITIAL_EXECUTION
+		PCGEX_ON_INITIAL_EXECUTION
 	{
 		if (!Context->StartBatchProcessingPoints<PCGExPointsMT::TBatch<PCGExPackActorDatas::FProcessor>>(
 			[&](const TSharedPtr<PCGExData::FPointIO>& Entry) { return true; },
@@ -149,7 +149,7 @@ namespace PCGExPackActorDatas
 		Packer = static_cast<UPCGExCustomActorDataPacker*>(PrimaryOperation);
 		Packer->PointDataFacade = PointDataFacade;
 
-		ActorReferences = MakeShared<PCGEx::TAttributeBroadcaster<FString>>();
+		ActorReferences = MakeShared<PCGEx::TAttributeBroadcaster<FSoftObjectPath>>();
 		if (!ActorReferences->Prepare(Settings->ActorReferenceAttribute, PointDataFacade->Source))
 		{
 			PCGE_LOG_C(Warning, GraphAndLog, ExecutionContext, FTEXT("Some inputs don't have the specified Actor Reference attribute."));
@@ -157,61 +157,22 @@ namespace PCGExPackActorDatas
 		}
 
 		ActorReferences->Grab();
-		InputActors.Init(nullptr, PointDataFacade->GetNum());
+		Packer->InputActors.Init(nullptr, PointDataFacade->GetNum());
 
-		AsyncManager->GrowNumStarted();
+		for (int i = 0; i < ActorReferences->Values.Num(); i++) { Packer->InputActors[i] = Cast<AActor>(ActorReferences->Values[i].ResolveObject()); }
 
-		TWeakPtr<FProcessor> WeakPtr = SharedThis(this);
-		AsyncTask(
-			ENamedThreads::GameThread, [WeakPtr]()
-			{
-				TSharedPtr<FProcessor> This = WeakPtr.Pin();
-				if (!This) { return; }
+		bool bSuccess = false;
+		Packer->InitializeWithContext(*Context, bSuccess);
 
-				TMap<FString, AActor*> Map;
+		if (!bSuccess) { return false; }
 
-				for (int i = 0; i < This->ActorReferences->Values.Num(); i++)
-				{
-					const FString& Path = This->ActorReferences->Values[i];
-					if (AActor** ActorRef = Map.Find(Path))
-					{
-						This->InputActors[i] = *ActorRef;
-						continue;
-					}
-
-					if (UObject* FoundObject = FindObject<AActor>(nullptr, *This->ActorReferences->Values[i]))
-					{
-						if (AActor* SourceActor = Cast<AActor>(FoundObject))
-						{
-							Map.Add(Path, SourceActor);
-							This->InputActors[i] = SourceActor;
-						}
-					}
-				}
-
-				This->Packer->InputActors = This->InputActors;
-
-				bool bSuccess = false;
-				This->Packer->InitializeWithContext(*This->Context, bSuccess);
-
-				if (bSuccess)
-				{
-					This->StartParallelLoopForPoints();
-				}
-				else
-				{
-					This->bIsProcessorValid = false;
-				}
-
-				This->AsyncManager->GrowNumCompleted();
-			});
-
+		StartParallelLoopForPoints();
 		return true;
 	}
 
 	void FProcessor::ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const int32 LoopIdx, const int32 Count)
 	{
-		AActor* ActorRef = InputActors[Index];
+		AActor* ActorRef = Packer->InputActors[Index];
 		if (!ActorRef) { return; }
 
 		Packer->ProcessEntry(ActorRef, Point, Index, Point);

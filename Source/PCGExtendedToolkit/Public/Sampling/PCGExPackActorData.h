@@ -256,8 +256,7 @@ namespace PCGExPackActorDatas
 	class FProcessor final : public PCGExPointsMT::TPointsProcessor<FPCGExPackActorDataContext, UPCGExPackActorDataSettings>
 	{
 		UPCGExCustomActorDataPacker* Packer = nullptr;
-		TSharedPtr<PCGEx::TAttributeBroadcaster<FString>> ActorReferences;
-		TArray<AActor*> InputActors;
+		TSharedPtr<PCGEx::TAttributeBroadcaster<FSoftObjectPath>> ActorReferences;
 
 	public:
 		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade)
