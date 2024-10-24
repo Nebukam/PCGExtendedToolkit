@@ -170,7 +170,7 @@ public:
 	FName UniqueValueAttributeName = FName(TEXT("Value"));
 
 	/** */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs (Unique Values)", meta = (PCG_Overridable, DisplayName = "Has only Unique Values", EditCondition="bOutputPerUniqueValuesStats"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs (Unique Values)", meta = (PCG_Overridable, EditCondition="bOutputPerUniqueValuesStats"))
 	bool bOmitDefaultValue = false;
 
 	/** */
