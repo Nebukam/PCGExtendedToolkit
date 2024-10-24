@@ -239,7 +239,7 @@ namespace PCGExPackActorDatas
 	void FProcessor::Write()
 	{
 		TArray<int32> ValidIndices;
-		PCGEx::ArrayOfIndices(ValidIndices, PointDataFacade->GetOut()->GetNumPoints());
+		PCGEx::ArrayOfIndices(ValidIndices, PointDataFacade->Source->GetNum());
 
 		if (Settings->bOmitUnresolvedEntries)
 		{
