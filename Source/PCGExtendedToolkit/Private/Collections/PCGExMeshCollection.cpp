@@ -42,7 +42,7 @@ void FPCGExMeshCollectionEntry::EDITOR_Sanitize()
 	if (!bIsSubCollection)
 	{
 		if (StaticMesh) { ISMDescriptor.StaticMesh = StaticMesh; }
-		else if (ISMDescriptor.StaticMesh && !StaticMesh) { StaticMesh = ISMDescriptor.StaticMesh; }
+		//else if (ISMDescriptor.StaticMesh && !StaticMesh) { StaticMesh = ISMDescriptor.StaticMesh; }
 	}
 }
 #endif
@@ -58,7 +58,9 @@ void UPCGExMeshCollection::EDITOR_RefreshDisplayNames()
 	Super::EDITOR_RefreshDisplayNames();
 	for (FPCGExMeshCollectionEntry& Entry : Entries)
 	{
-		Entry.DisplayName = Entry.bIsSubCollection ? FName(TEXT("[") + Entry.SubCollection.GetAssetName() + TEXT("]")) : FName(Entry.ISMDescriptor.StaticMesh.GetAssetName());
+		FString DisplayName = Entry.bIsSubCollection ? TEXT("[") + Entry.SubCollection.GetAssetName() + TEXT("]") : Entry.StaticMesh.GetAssetName();
+		DisplayName += FString::Printf(TEXT(" @ %d "), Entry.Weight);
+		Entry.DisplayName = FName(DisplayName);
 	}
 }
 #endif
