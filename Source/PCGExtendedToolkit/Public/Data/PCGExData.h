@@ -302,7 +302,7 @@ namespace PCGExData
 					if (const FPCGMetadataAttribute<T>* TempInAttribute = InMetadata->template GetConstTypedAttribute<T>(FullName))
 					{
 						TUniquePtr<FPCGAttributeAccessor<T>> TempInAccessor = MakeUnique<FPCGAttributeAccessor<T>>(TempInAttribute, InMetadata);
-						TArrayView<T> OutRange = MakeArrayView(OutValues->GetData(), FMath::Min(Source->GetIn()->GetNumPoints(), OutValues->Num()));
+						TArrayView<T> OutRange = MakeArrayView(OutValues->GetData(), FMath::Min(Source->GetNum(), OutValues->Num()));
 						TempInAccessor->GetRange(OutRange, 0, *Source->GetInKeys());
 					}
 				}
