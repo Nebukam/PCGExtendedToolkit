@@ -39,7 +39,7 @@ bool FPCGExBitwiseOperationElement::ExecuteInternal(FPCGContext* InContext) cons
 	PCGEX_ON_INITIAL_EXECUTION
 	{
 		PCGEX_ON_INVALILD_INPUTS(FTEXT("Some inputs are missing the specified MaskAttribute and won't be processed."))
-		
+
 		if (!Context->StartBatchProcessingPoints<PCGExPointsMT::TBatch<PCGExBitwiseOperation::FProcessor>>(
 			[&](const TSharedPtr<PCGExData::FPointIO>& Entry)
 			{

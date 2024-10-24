@@ -125,7 +125,6 @@ bool FPCGExPathSplineMeshElement::ExecuteInternal(FPCGContext* InContext) const
 		{
 			return Context->CancelExecution(TEXT("Could not find any paths to write tangents to."));
 		}
-
 	}
 
 	PCGEX_POINTS_BATCH_PROCESSING(PCGEx::State_Done)

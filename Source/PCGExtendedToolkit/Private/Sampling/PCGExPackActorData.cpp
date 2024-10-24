@@ -83,7 +83,7 @@ PCGExData::EInit UPCGExPackActorDataSettings::GetMainOutputInitMode() const { re
 
 int32 UPCGExPackActorDataSettings::GetPreferredChunkSize() const { return PCGExMT::GAsyncLoop_L; }
 
-PCGEX_INITIALIZE_ELEMENT (PackActorData)
+PCGEX_INITIALIZE_ELEMENT(PackActorData)
 
 FName UPCGExPackActorDataSettings::GetMainInputLabel() const
 {
@@ -114,7 +114,7 @@ bool FPCGExPackActorDataElement::ExecuteInternal(FPCGContext* InContext) const
 
 	PCGEX_CONTEXT_AND_SETTINGS(PackActorData)
 	PCGEX_EXECUTION_CHECK
-		PCGEX_ON_INITIAL_EXECUTION
+	PCGEX_ON_INITIAL_EXECUTION
 	{
 		if (!Context->StartBatchProcessingPoints<PCGExPointsMT::TBatch<PCGExPackActorDatas::FProcessor>>(
 			[&](const TSharedPtr<PCGExData::FPointIO>& Entry) { return true; },

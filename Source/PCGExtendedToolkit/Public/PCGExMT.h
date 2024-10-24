@@ -278,7 +278,7 @@ namespace PCGExMT
 
 		void GrowNumStarted(const int32 InNumStarted = 1);
 		void GrowNumCompleted();
-		
+
 	protected:
 		TArray<SimpleCallback> SimpleCallbacks;
 

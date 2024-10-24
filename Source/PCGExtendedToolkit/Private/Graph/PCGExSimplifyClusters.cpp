@@ -181,7 +181,6 @@ namespace PCGExSimplifyClusters
 		PCGEX_TYPED_CONTEXT_AND_SETTINGS(SimplifyClusters)
 		PCGExClusterFilter::RegisterBuffersDependencies(ExecutionContext, Context->FilterFactories, FacadePreloader);
 	}
-
 }
 
 

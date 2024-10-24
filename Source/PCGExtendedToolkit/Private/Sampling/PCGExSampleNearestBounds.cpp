@@ -96,7 +96,7 @@ bool FPCGExSampleNearestBoundsElement::ExecuteInternal(FPCGContext* InContext) c
 				Context->CancelExecution(TEXT("Invalid sort rules"));
 				return;
 			}
-			
+
 			if (!Context->StartBatchProcessingPoints<PCGExPointsMT::TBatch<PCGExSampleNearestBounds::FProcessor>>(
 				[&](const TSharedPtr<PCGExData::FPointIO>& Entry) { return true; },
 				[&](const TSharedPtr<PCGExPointsMT::TBatch<PCGExSampleNearestBounds::FProcessor>>& NewBatch)
@@ -112,7 +112,7 @@ bool FPCGExSampleNearestBoundsElement::ExecuteInternal(FPCGContext* InContext) c
 	}
 
 	PCGEX_POINTS_BATCH_PROCESSING(PCGEx::State_Done)
-	
+
 	Context->MainPoints->StageOutputs();
 
 	return Context->TryComplete();
@@ -140,7 +140,7 @@ namespace PCGExSampleNearestBounds
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExSampleNearestBounds::Process);
 
 		if (!FPointsProcessor::Process(InAsyncManager)) { return false; }
-		
+
 		{
 			const TSharedRef<PCGExData::FFacade>& OutputFacade = PointDataFacade;
 			PCGEX_FOREACH_FIELD_NEARESTBOUNDS(PCGEX_OUTPUT_INIT)

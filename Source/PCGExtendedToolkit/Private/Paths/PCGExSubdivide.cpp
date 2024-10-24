@@ -59,7 +59,6 @@ bool FPCGExSubdivideElement::ExecuteInternal(FPCGContext* InContext) const
 		{
 			return Context->CancelExecution(TEXT("Could not find any paths to subdivide."));
 		}
-
 	}
 
 	PCGEX_POINTS_BATCH_PROCESSING(PCGEx::State_Done)

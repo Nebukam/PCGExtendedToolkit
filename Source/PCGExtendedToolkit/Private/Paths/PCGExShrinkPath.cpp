@@ -144,7 +144,6 @@ bool FPCGExShrinkPathElement::ExecuteInternal(FPCGContext* InContext) const
 		{
 			return Context->CancelExecution(TEXT("Could not find any paths to shrink."));
 		}
-
 	}
 
 	PCGEX_POINTS_BATCH_PROCESSING(PCGEx::State_Done)

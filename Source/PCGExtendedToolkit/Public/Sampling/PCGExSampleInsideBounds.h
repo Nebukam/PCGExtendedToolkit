@@ -366,7 +366,5 @@ namespace PCGExSampleInsideBoundss
 		{
 			bPrefetchData = true;
 		}
-
 	};
-
 }

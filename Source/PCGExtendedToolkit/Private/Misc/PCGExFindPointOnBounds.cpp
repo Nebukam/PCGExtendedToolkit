@@ -69,7 +69,7 @@ bool FPCGExFindPointOnBoundsElement::ExecuteInternal(FPCGContext* InContext) con
 	PCGEX_POINTS_BATCH_PROCESSING(PCGEx::State_Done)
 
 	if (Settings->OutputMode == EPCGExPointOnBoundsOutputMode::Merged)
-	{		
+	{
 		PCGExFindPointOnBounds::MergeBestCandidatesAttributes(
 			Context->MergedOut,
 			Context->MainPoints->Pairs,
@@ -120,13 +120,13 @@ namespace PCGExFindPointOnBounds
 	void FProcessor::CompleteWork()
 	{
 		const FVector Offset = (BestPosition - PointDataFacade->Source->GetIn()->GetBounds().GetCenter()).GetSafeNormal() * Settings->Offset;
-		
+
 		if (Settings->OutputMode == EPCGExPointOnBoundsOutputMode::Merged)
-		{			
+		{
 			const PCGMetadataEntryKey OriginalKey = Context->MergedOut->GetOut()->GetMutablePoints()[PointDataFacade->Source->IOIndex].MetadataEntry;
 			FPCGPoint& OutPoint = (Context->MergedOut->GetOut()->GetMutablePoints()[PointDataFacade->Source->IOIndex] = PointDataFacade->Source->GetInPoint(BestIndex));
 			OutPoint.MetadataEntry = OriginalKey;
-			OutPoint.Transform.AddToTranslation(Offset);			
+			OutPoint.Transform.AddToTranslation(Offset);
 		}
 		else
 		{

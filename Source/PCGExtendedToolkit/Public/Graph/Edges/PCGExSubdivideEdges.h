@@ -56,7 +56,7 @@ public:
 
 	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = Settings, Instanced, meta=(PCG_Overridable, ShowOnlyInnerProperties, NoResetToDefault))
 	TObjectPtr<UPCGExSubPointsBlendOperation> Blending;
-	
+
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Additional Outputs", meta=(PCG_Overridable, InlineEditConditionToggle))
 	bool bFlagSubVtx = false;
 
@@ -68,7 +68,7 @@ public:
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Additional Outputs", meta=(PCG_Overridable, EditCondition="bFlagSubEdge"))
 	FName SubEdgeFlagName = "IsSubEdge";
-	
+
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Additional Outputs", meta=(PCG_Overridable, InlineEditConditionToggle))
 	bool bWriteVtxAlpha = false;
 

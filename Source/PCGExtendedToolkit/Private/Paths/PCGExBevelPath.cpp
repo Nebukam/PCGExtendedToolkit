@@ -79,9 +79,9 @@ bool FPCGExBevelPathElement::ExecuteInternal(FPCGContext* InContext) const
 	PCGEX_CONTEXT_AND_SETTINGS(BevelPath)
 	PCGEX_EXECUTION_CHECK
 	PCGEX_ON_INITIAL_EXECUTION
-	{		
+	{
 		PCGEX_ON_INVALILD_INPUTS(FTEXT("Some inputs have less than 3 points and won't be processed."))
-		
+
 		if (!Context->StartBatchProcessingPoints<PCGExPointsMT::TBatch<PCGExBevelPath::FProcessor>>(
 			[&](const TSharedPtr<PCGExData::FPointIO>& Entry)
 			{

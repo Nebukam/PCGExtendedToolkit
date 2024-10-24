@@ -500,9 +500,8 @@ namespace PCGExClusterMT
 				if (!This) { return; }
 				This->Process();
 			};
-			
+
 			VtxFacadePreloader->StartLoading(AsyncManager, VtxDataFacade);
-			
 		}
 
 		virtual void Process()

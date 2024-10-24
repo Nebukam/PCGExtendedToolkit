@@ -15,7 +15,7 @@
 UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Shift Path Mode"))
 enum class EPCGExShiftPathMode : uint8
 {
-	Discrete    = 0 UMETA(DisplayName = "Discrete", ToolTip="Shift point is selected using a discrete value"),
+	Discrete = 0 UMETA(DisplayName = "Discrete", ToolTip="Shift point is selected using a discrete value"),
 	Relative = 1 UMETA(DisplayName = "Relative", ToolTip="Shift point is selected using a value relative to the input size"),
 	Filter   = 2 UMETA(DisplayName = "Filter", ToolTip="Shift point using the first point that passes the provided filters"),
 };
@@ -31,14 +31,13 @@ class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExShiftPathSettings : public UPCGExPathProc
 public:
 	UPCGExShiftPathSettings(const FObjectInitializer& ObjectInitializer);
 
-public:
 	//~Begin UObject interface
 #if WITH_EDITOR
 
 	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
 #endif
 	//~End UObject interface
-	
+
 	//~Begin UPCGSettings
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS(ShiftPath, "Path : Shift", "Shift path points");
@@ -57,7 +56,7 @@ public:
 	/**  */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	EPCGExShiftPathMode InputMode = EPCGExShiftPathMode::Relative;
-	
+
 	/**  */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="InputMode == EPCGExShiftPathMode::Relative", EditConditionHides))
 	double RelativeConstant = 0.5;
@@ -69,7 +68,7 @@ public:
 	/**  */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="InputMode == EPCGExShiftPathMode::Discrete", EditConditionHides))
 	int32 DiscreteConstant = 0;
-	
+
 	/**  */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="InputMode != EPCGExShiftPathMode::Filter", EditConditionHides))
 	EPCGExIndexSafety IndexSafety = EPCGExIndexSafety::Tile;

@@ -42,7 +42,7 @@ namespace PCGExData
 		//UE_LOG(LogTemp, Warning, TEXT("{%lld} Facade -> Write"), AsyncManager->Context->GetInputSettings<UPCGSettings>()->UID)
 
 		Source->GetOutKeys(true);
-		
+
 		for (const TSharedPtr<FBufferBase> Buffer : Buffers)
 		{
 			if (!Buffer.IsValid() || !Buffer->IsWritable()) { continue; }

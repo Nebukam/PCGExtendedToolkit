@@ -43,7 +43,7 @@ public:
 	virtual FString GetPointFilterTooltip() const override { return TEXT("Path points processing filters"); }
 
 	//~End UPCGExPointsProcessorSettings
-	
+
 	UPROPERTY()
 	bool bSupportPathDirection = false;
 
@@ -53,7 +53,7 @@ public:
 
 	UPROPERTY()
 	bool bSupportClosedLoops = true;
-	
+
 	/** Closed loop handling.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayPriority=-1, EditCondition="bSupportClosedLoops", EditConditionHides, HideEditConditionToggle))
 	FPCGExPathClosedLoopDetails ClosedLoop;
