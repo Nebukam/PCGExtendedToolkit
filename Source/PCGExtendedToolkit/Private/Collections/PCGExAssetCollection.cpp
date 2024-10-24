@@ -16,7 +16,6 @@ namespace PCGExAssetCollection
 		Indices.Add(Index);
 
 		Weights.Add(InEntry->Weight);
-		WeightSum += InEntry->Weight;
 	}
 
 	void FCategory::Compile()
@@ -27,9 +26,14 @@ namespace PCGExAssetCollection
 		PCGEx::ArrayOfIndices(Order, NumEntries);
 
 		Order.Sort([&](const int32 A, const int32 B) { return Weights[A] < Weights[B]; });
-		Weights.Sort([&](const int32 A, const int32 B) { return A < B; });
+		Weights.Sort([](const int32 A, const int32 B) { return A < B; });
 
-		for (int32 i = 0; i < NumEntries; i++) { Weights[i] = i == 0 ? Weights[i] : Weights[i - 1] + Weights[i]; }
+		WeightSum = 0;
+		for (int32 i = 0; i < NumEntries; i++)
+		{
+			WeightSum += Weights[i];
+			Weights[i] = WeightSum;
+		}
 	}
 }
 
@@ -81,12 +85,20 @@ namespace PCGExAssetCollection
 
 PCGExAssetCollection::FCache* UPCGExAssetCollection::LoadCache()
 {
-	if (bCacheNeedsRebuild) { Cache.Reset(); }
-	if (Cache) { return Cache.Get(); }
-	Cache = MakeUnique<PCGExAssetCollection::FCache>();
+	{
+		FReadScopeLock ReadScopeLock(CacheLock);
+		if (bCacheNeedsRebuild) { InvalidateCache(); }
+		if (Cache) { return Cache.Get(); }
+	}
+	
 	BuildCache();
-	Cache->Compile();
 	return Cache.Get();
+}
+
+void UPCGExAssetCollection::InvalidateCache()
+{
+	Cache.Reset();
+	bCacheNeedsRebuild = true;
 }
 
 void UPCGExAssetCollection::PostLoad()
@@ -118,6 +130,7 @@ void UPCGExAssetCollection::PostEditImport()
 
 void UPCGExAssetCollection::RebuildStagingData(const bool bRecursive)
 {
+	InvalidateCache();
 }
 
 #if WITH_EDITOR
@@ -171,18 +184,20 @@ void UPCGExAssetCollection::EDITOR_RebuildStagingData_Project()
 
 void UPCGExAssetCollection::EDITOR_SanitizeAndRebuildStagingData(const bool bRecursive)
 {
+	InvalidateCache();
 }
 #endif
 
 
 void UPCGExAssetCollection::BeginDestroy()
 {
-	Cache.Reset();
+	InvalidateCache();
 	Super::BeginDestroy();
 }
 
 void UPCGExAssetCollection::BuildCache()
 {
+	bCacheNeedsRebuild = false;
 	/* per-class implementation, forwards Entries to protected method */
 }
 
