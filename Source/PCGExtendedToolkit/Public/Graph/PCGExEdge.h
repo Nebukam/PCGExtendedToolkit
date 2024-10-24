@@ -54,7 +54,7 @@ namespace PCGExGraph
 
 	PCGEX_ASYNC_STATE(State_ReadyForNextEdges)
 
-	FORCEINLINE static uint32 NodeGUID(const uint64 Base, const int32 Index)
+	FORCEINLINE static uint32 NodeGUID(const uint32 Base, const int32 Index)
 	{
 		uint32 A;
 		uint32 B;
@@ -131,7 +131,7 @@ namespace PCGExGraph
 
 	static void SetClusterVtx(const TSharedPtr<PCGExData::FPointIO>& IO, FString& OutId)
 	{
-		IO->Tags->Add(TagStr_ClusterPair, IO->GetOutIn()->UID, OutId);
+		IO->Tags->Add(TagStr_ClusterPair, IO->GetOutIn()->GetUniqueID(), OutId);
 		IO->Tags->Add(TagStr_PCGExVtx);
 		IO->Tags->Remove(TagStr_PCGExEdges);
 	}

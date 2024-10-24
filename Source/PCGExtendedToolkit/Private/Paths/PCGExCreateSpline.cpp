@@ -186,11 +186,6 @@ namespace PCGExCreateSpline
 			PointType);
 	}
 
-	void FProcessor::CompleteWork()
-	{
-		PointDataFacade->Write(AsyncManager);
-	}
-
 	void FProcessor::Output()
 	{
 		TPointsProcessor<FPCGExCreateSplineContext, UPCGExCreateSplineSettings>::Output();

@@ -1,4 +1,7 @@
-﻿#include "PCGExtendedToolkitEditor.h"
+﻿// Copyright Timothé Lapetite 2024
+// Released under the MIT license https://opensource.org/license/MIT/
+
+#include "PCGExtendedToolkitEditor.h"
 #include "Styling/SlateStyle.h"
 #include "Styling/SlateStyleRegistry.h"
 #include "Interfaces/IPluginManager.h"
@@ -12,10 +15,8 @@ StyleSet->Set("ClassThumbnail." # _NAME, new FSlateImageBrush(StyleSet->RootToCo
 
 void FPCGExtendedToolkitEditorModule::StartupModule()
 {
-	// Create a new style set for your custom icons
 	const FString ContentDir = IPluginManager::Get().FindPlugin(TEXT("PCGExtendedToolkit"))->GetBaseDir() / TEXT("Resources") / TEXT("Icons");
 
-	// Initialize the Slate style set for your module
 	static TSharedPtr<FSlateStyleSet> StyleSet = MakeShareable(new FSlateStyleSet("PCGExStyleSet"));
 	StyleSet->SetContentRoot(ContentDir);
 
@@ -24,7 +25,6 @@ void FPCGExtendedToolkitEditorModule::StartupModule()
 	PCGEX_ADD_ICON(PCGExCustomGraphBuilder)
 	PCGEX_ADD_ICON(PCGExCustomActorDataPacker)
 
-	// Register the Slate style set
 	FSlateStyleRegistry::RegisterSlateStyle(*StyleSet.Get());
 }
 

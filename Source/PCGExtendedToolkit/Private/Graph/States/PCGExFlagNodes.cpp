@@ -125,7 +125,7 @@ namespace PCGExFlagNodes
 	{
 		TBatch<FProcessor>::RegisterBuffersDependencies(FacadePreloader);
 		PCGEX_TYPED_CONTEXT_AND_SETTINGS(FlagNodes)
-		PCGExClusterFilter::RegisterBuffersDependencies(ExecutionContext, Context->StateFactories, FacadePreloader);
+		PCGExPointFilter::RegisterBuffersDependencies(ExecutionContext, Context->StateFactories, FacadePreloader);
 	}
 
 	void FProcessorBatch::OnProcessingPreparationComplete()

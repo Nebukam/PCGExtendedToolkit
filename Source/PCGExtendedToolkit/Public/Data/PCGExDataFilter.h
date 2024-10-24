@@ -132,35 +132,62 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExNameFiltersDetails
 		return Test(InAttribute->Name.ToString());
 	}
 
-	void Prune(TArray<FString>& Names) const
+	void Prune(TArray<FString>& Names, bool bInvert = false) const
 	{
-		for (int i = 0; i < Names.Num(); i++)
+		if (bInvert)
 		{
-			if (!Test(Names[i]))
+			for (int i = 0; i < Names.Num(); i++)
 			{
-				Names.RemoveAt(i);
-				i--;
+				if (Test(Names[i]))
+				{
+					Names.RemoveAt(i);
+					i--;
+				}
+			}
+		}
+		else
+		{
+			for (int i = 0; i < Names.Num(); i++)
+			{
+				if (!Test(Names[i]))
+				{
+					Names.RemoveAt(i);
+					i--;
+				}
 			}
 		}
 	}
 
-	void Prune(TSet<FName>& Names) const
+	void Prune(TSet<FName>& Names, bool bInvert = false) const
 	{
 		TArray<FName> ValidNames;
 		ValidNames.Reserve(Names.Num());
-		for (FName Name : Names) { if (Test(Name.ToString())) { ValidNames.Add(Name); } }
+		if (bInvert) { for (FName Name : Names) { if (!Test(Name.ToString())) { ValidNames.Add(Name); } } }
+		else { for (FName Name : Names) { if (Test(Name.ToString())) { ValidNames.Add(Name); } } }
 		Names.Empty();
 		Names.Append(ValidNames);
 	}
 
-	void Prune(PCGEx::FAttributesInfos& InAttributeInfos) const
+	void Prune(PCGEx::FAttributesInfos& InAttributeInfos, bool bInvert = false) const
 	{
 		TArray<FName> FilteredOutNames;
 		FilteredOutNames.Reserve(InAttributeInfos.Identities.Num());
-		for (const TPair<FName, int32>& Pair : InAttributeInfos.Map)
+
+		if (bInvert)
 		{
-			if (Test(Pair.Key.ToString())) { continue; }
-			FilteredOutNames.Add(Pair.Key);
+			for (const TPair<FName, int32>& Pair : InAttributeInfos.Map)
+			{
+				if (Test(Pair.Key.ToString())) { continue; }
+				FilteredOutNames.Add(Pair.Key);
+			}
+		}
+		else
+		{
+			for (const TPair<FName, int32>& Pair : InAttributeInfos.Map)
+			{
+				if (!Test(Pair.Key.ToString())) { continue; }
+				FilteredOutNames.Add(Pair.Key);
+			}
 		}
 
 		// Filter out identities & attributes

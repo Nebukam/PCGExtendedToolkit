@@ -29,11 +29,6 @@ UCLASS(Abstract, MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category=
 class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExClusterFilterFactoryBase : public UPCGExFilterFactoryBase
 {
 	GENERATED_BODY()
-
-public:
-	virtual void RegisterBuffersDependencies(FPCGExContext* InContext, PCGExData::FFacadePreloader& FacadePreloader) const
-	{
-	}
 };
 
 /**
@@ -62,18 +57,6 @@ public:
 
 namespace PCGExClusterFilter
 {
-	static void RegisterBuffersDependencies(FPCGExContext* InContext, const TArray<TObjectPtr<const UPCGExFilterFactoryBase>>& InFactories, PCGExData::FFacadePreloader& FacadePreloader)
-	{
-		for (const UPCGExFilterFactoryBase* Factory : InFactories)
-		{
-			if (PCGExFactories::ClusterSpecificFilters.Contains(Factory->GetFactoryType()))
-			{
-				const UPCGExClusterFilterFactoryBase* ClusterFilterFactory = static_cast<const UPCGExClusterFilterFactoryBase*>(Factory);
-				ClusterFilterFactory->RegisterBuffersDependencies(InContext, FacadePreloader);
-			}
-		}
-	}
-
 	class /*PCGEXTENDEDTOOLKIT_API*/ FFilter : public PCGExPointFilter::FFilter
 	{
 	public:

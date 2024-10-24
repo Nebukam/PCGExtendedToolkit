@@ -3,8 +3,36 @@
 
 #pragma once
 
+
 namespace PCGEx
 {
+	template <typename, typename = void>
+	struct HasGetTypeHash : std::false_type
+	{
+	};
+
+	template <typename T>
+	struct HasGetTypeHash<T, std::void_t<decltype(GetTypeHash(std::declval<T>()))>> : std::true_type
+	{
+	};
+
+	// Check if `operator==` is available for type T
+	template <typename, typename = void>
+	struct HasEqualityOperator : std::false_type
+	{
+	};
+
+	template <typename T>
+	struct HasEqualityOperator<T, std::void_t<decltype(std::declval<T>() == std::declval<T>())>> : std::true_type
+	{
+	};
+
+	// Final compile-time check to ensure both conditions are met
+	template <typename T>
+	struct IsValidForTMap : std::integral_constant<bool, HasGetTypeHash<T>::value && HasEqualityOperator<T>::value>
+	{
+	};
+
 	// Unsigned uint64 hash
 	FORCEINLINE static uint64 H64U(const uint32 A, const uint32 B)
 	{

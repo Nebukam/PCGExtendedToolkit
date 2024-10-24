@@ -620,7 +620,6 @@ namespace PCGExData
 		void Fetch(const int32 StartIndex, const int32 Count) { for (const TSharedPtr<FBufferBase>& Buffer : Buffers) { Buffer->Fetch(StartIndex, Count); } }
 		void Fetch(const uint64 Scope) { Fetch(PCGEx::H64A(Scope), PCGEx::H64B(Scope)); }
 
-
 	protected:
 		void Flush(const TSharedPtr<FBufferBase>& Buffer)
 		{
@@ -695,7 +694,7 @@ namespace PCGExData
 		}
 
 		template <typename T>
-		void Register(FPCGExContext* InContext, const FPCGAttributePropertyInputSelector& InSelector)
+		void Register(FPCGExContext* InContext, const FPCGAttributePropertyInputSelector& InSelector, bool bCaptureMinMax = false)
 		{
 			EPCGMetadataTypes Type = PCGEx::GetMetadataType<T>();
 			for (const FReadableBufferConfig& ExistingConfig : BufferConfigs)

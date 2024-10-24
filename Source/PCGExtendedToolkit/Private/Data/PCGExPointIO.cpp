@@ -97,6 +97,8 @@ namespace PCGExData
 
 	TSharedPtr<FPCGAttributeAccessorKeysPoints> FPointIO::GetOutKeys(const bool bEnsureValidKeys)
 	{
+		check(Out)
+		
 		{
 			FReadScopeLock ReadScopeLock(OutKeysLock);
 			if (OutKeys) { return OutKeys; }
@@ -352,7 +354,7 @@ namespace PCGExData
 		FString TagValue;
 		if (!PointIOKey->Tags->GetValue(TagId, TagValue))
 		{
-			TagValue = FString::Printf(TEXT("%llu"), PointIOKey->GetInOut()->UID);
+			TagValue = FString::Printf(TEXT("%u"), PointIOKey->GetInOut()->GetUniqueID());
 			PointIOKey->Tags->Add(TagId, TagValue);
 		}
 

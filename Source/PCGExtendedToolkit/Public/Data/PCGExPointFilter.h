@@ -51,6 +51,10 @@ public:
 
 	int32 Priority = 0;
 	virtual TSharedPtr<PCGExPointFilter::FFilter> CreateFilter() const;
+
+	virtual void RegisterBuffersDependencies(FPCGExContext* InContext, PCGExData::FFacadePreloader& FacadePreloader) const
+	{
+	}
 };
 
 namespace PCGExPointFilter
@@ -145,4 +149,12 @@ namespace PCGExPointFilter
 
 		virtual void InitCache();
 	};
+
+	static void RegisterBuffersDependencies(FPCGExContext* InContext, const TArray<TObjectPtr<const UPCGExFilterFactoryBase>>& InFactories, PCGExData::FFacadePreloader& FacadePreloader)
+	{
+		for (const UPCGExFilterFactoryBase* Factory : InFactories)
+		{
+			Factory->RegisterBuffersDependencies(InContext, FacadePreloader);
+		}
+	}
 }
