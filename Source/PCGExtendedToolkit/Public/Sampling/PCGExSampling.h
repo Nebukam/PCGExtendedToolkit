@@ -131,24 +131,20 @@ namespace PCGExSampling
 		FPCGAttributePropertyInputSelector Selector = FPCGAttributePropertyInputSelector();
 		Selector.SetAttributeName(ActorReferenceName);
 
-		const TUniquePtr<PCGEx::TAttributeBroadcaster<FString>> PathGetter = MakeUnique<PCGEx::TAttributeBroadcaster<FString>>();
-		if (!PathGetter->Prepare(Selector, InFacade->Source))
+		const TUniquePtr<PCGEx::TAttributeBroadcaster<FSoftObjectPath>> ActorReferences = MakeUnique<PCGEx::TAttributeBroadcaster<FSoftObjectPath>>();
+		if (!ActorReferences->Prepare(Selector, InFacade->Source))
 		{
 			PCGE_LOG_C(Error, GraphAndLog, InContext, FTEXT("Actor reference attribute does not exist."));
 			return false;
 		}
 
-		const TArray<FPCGPoint>& TargetPoints = InFacade->GetIn()->GetPoints();
-		for (int i = 0; i < TargetPoints.Num(); i++)
+		ActorReferences->Grab();
+
+		for (int i = 0; i < ActorReferences->Values.Num(); i++)
 		{
-			FSoftObjectPath Path = PathGetter->SoftGet(i, TargetPoints[i], TEXT(""));
-
+			const FSoftObjectPath& Path = ActorReferences->Values[i];
 			if (!Path.IsValid()) { continue; }
-
-			if (UObject* FoundObject = FindObject<AActor>(nullptr, *Path.ToString()))
-			{
-				if (AActor* TargetActor = Cast<AActor>(FoundObject)) { OutActorSet.FindOrAdd(TargetActor, i); }
-			}
+			if (AActor* TargetActor = Cast<AActor>(Path.ResolveObject())) { OutActorSet.FindOrAdd(TargetActor, i); }
 		}
 
 		return true;

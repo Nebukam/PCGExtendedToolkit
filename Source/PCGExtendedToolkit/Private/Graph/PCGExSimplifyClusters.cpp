@@ -175,13 +175,12 @@ namespace PCGExSimplifyClusters
 		GraphBuilder->Graph->InsertEdges(NewEdges, IOIndex);
 	}
 
-	void FProcessorBatch::GatherRequiredVtxAttributes(PCGExData::FReadableBufferConfigList& ReadableBufferConfigList)
+	void FProcessorBatch::RegisterBuffersDependencies(PCGExData::FFacadePreloader& FacadePreloader)
 	{
-		TBatch<FProcessor>::GatherRequiredVtxAttributes(ReadableBufferConfigList);
+		TBatch<FProcessor>::RegisterBuffersDependencies(FacadePreloader);
 		PCGEX_TYPED_CONTEXT_AND_SETTINGS(SimplifyClusters)
-		PCGExClusterFilter::GatherRequiredVtxAttributes(ExecutionContext, Context->FilterFactories, ReadableBufferConfigList);
+		PCGExClusterFilter::RegisterBuffersDependencies(ExecutionContext, Context->FilterFactories, FacadePreloader);
 	}
-
 }
 
 

@@ -3,6 +3,8 @@
 
 #include "Data/PCGExData.h"
 
+#include "PCGExPointsMT.h"
+
 namespace PCGExData
 {
 #pragma region Pools & cache
@@ -38,6 +40,8 @@ namespace PCGExData
 		if (!AsyncManager || !AsyncManager->IsAvailable()) { return; }
 
 		//UE_LOG(LogTemp, Warning, TEXT("{%lld} Facade -> Write"), AsyncManager->Context->GetInputSettings<UPCGSettings>()->UID)
+
+		Source->GetOutKeys(true);
 
 		for (const TSharedPtr<FBufferBase> Buffer : Buffers)
 		{
@@ -114,21 +118,94 @@ namespace PCGExData
 			});
 	}
 
-	bool FReadableBufferConfigList::Validate(FPCGExContext* InContext, const TSharedRef<FFacade>& InFacade) const
+	bool FFacadePreloader::Validate(FPCGExContext* InContext, const TSharedRef<FFacade>& InFacade) const
 	{
 		if (BufferConfigs.IsEmpty()) { return true; }
 		for (const FReadableBufferConfig& Config : BufferConfigs) { if (!Config.Validate(InContext, InFacade)) { return false; } }
 		return true;
 	}
 
-	void FReadableBufferConfigList::Fetch(const TSharedRef<FFacade>& InFacade, const int32 StartIndex, const int32 Count) const
+	void FFacadePreloader::Fetch(const TSharedRef<FFacade>& InFacade, const int32 StartIndex, const int32 Count) const
 	{
 		for (const FReadableBufferConfig& ExistingConfig : BufferConfigs) { ExistingConfig.Fetch(InFacade, StartIndex, Count); }
 	}
 
-	void FReadableBufferConfigList::Read(const TSharedRef<FFacade>& InFacade, const int32 ConfigIndex) const
+	void FFacadePreloader::Read(const TSharedRef<FFacade>& InFacade, const int32 ConfigIndex) const
 	{
 		BufferConfigs[ConfigIndex].Read(InFacade);
+	}
+
+	void FFacadePreloader::StartLoading(TSharedPtr<PCGExMT::FTaskManager> AsyncManager, const TSharedRef<FFacade>& InDataFacade, TSharedPtr<PCGExMT::FTaskGroup> InTaskGroup)
+	{
+		InternalDataFacadePtr = InDataFacade;
+		TaskGroupPtr = InTaskGroup;
+
+		if (!IsEmpty())
+		{
+			if (!Validate(AsyncManager->Context, InDataFacade))
+			{
+				InternalDataFacadePtr.Reset();
+				TaskGroupPtr.Reset();
+				OnLoadingEnd();
+				return;
+			}
+
+			PCGEX_ASYNC_GROUP_CHKD_VOID(AsyncManager, PrefetchAttributesTask)
+
+			if (InTaskGroup) { InTaskGroup->GrowNumStarted(); }
+			TWeakPtr<FFacadePreloader> WeakPtr = SharedThis(this);
+
+			PrefetchAttributesTask->OnCompleteCallback = [WeakPtr]()
+			{
+				const TSharedPtr<FFacadePreloader> This = WeakPtr.Pin();
+				if (!This) { return; }
+
+				This->OnLoadingEnd();
+			};
+
+			if (InDataFacade->bSupportsScopedGet)
+			{
+				PrefetchAttributesTask->OnIterationRangeStartCallback =
+					[WeakPtr](const int32 StartIndex, const int32 Count, const int32 LoopIdx)
+					{
+						const TSharedPtr<FFacadePreloader> This = WeakPtr.Pin();
+						if (!This) { return; }
+						if (TSharedPtr<FFacade> InternalFacade = This->InternalDataFacadePtr.Pin())
+						{
+							This->Fetch(InternalFacade.ToSharedRef(), StartIndex, Count);
+						}
+					};
+
+				PrefetchAttributesTask->StartRangePrepareOnly(InDataFacade->GetNum(), GetDefault<UPCGExGlobalSettings>()->GetPointsBatchChunkSize());
+			}
+			else
+			{
+				PrefetchAttributesTask->OnIterationRangeStartCallback =
+					[WeakPtr](const int32 StartIndex, const int32 Count, const int32 LoopIdx)
+					{
+						const TSharedPtr<FFacadePreloader> This = WeakPtr.Pin();
+						if (!This) { return; }
+						if (TSharedPtr<FFacade> InternalFacade = This->InternalDataFacadePtr.Pin())
+						{
+							This->Read(InternalFacade.ToSharedRef(), StartIndex);
+						}
+					};
+
+				PrefetchAttributesTask->StartRangePrepareOnly(Num(), 1);
+			}
+		}
+		else
+		{
+			TaskGroupPtr.Reset();
+			OnLoadingEnd();
+		}
+	}
+
+	void FFacadePreloader::OnLoadingEnd()
+	{
+		if (TSharedPtr<FFacade> InternalFacade = InternalDataFacadePtr.Pin()) { InternalFacade->MarkCurrentBuffersReadAsComplete(); }
+		if (OnCompleteCallback) { OnCompleteCallback(); }
+		if (const TSharedPtr<PCGExMT::FTaskGroup> TaskGroup = TaskGroupPtr.Pin()) { TaskGroup->GrowNumCompleted(); }
 	}
 
 	void FUnionData::ComputeWeights(

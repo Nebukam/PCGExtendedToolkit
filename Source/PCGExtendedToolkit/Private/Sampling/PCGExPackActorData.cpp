@@ -38,17 +38,45 @@ void UPCGExCustomActorDataPacker::ProcessEntry_Implementation(AActor* InActor, c
 }
 
 #define PCGEX_SET_ATT_IMPL(_NAME, _TYPE)\
+bool UPCGExCustomActorDataPacker::Init##_NAME(const FName& InAttributeName, const _TYPE& InValue){\
+TSharedPtr<PCGExData::TBuffer<_TYPE>> Buffer = PointDataFacade->GetWritable<_TYPE>(InAttributeName, InValue, true, true);\
+return Buffer ? true : false;}
+PCGEX_FOREACH_PACKER(PCGEX_SET_ATT_IMPL)
+#undef PCGEX_SET_ATT_IMPL
+
+bool UPCGExCustomActorDataPacker::InitSoftObjectPath(const FName& InAttributeName, const FSoftObjectPath& InValue)
+{
+#if PCGEX_ENGINE_VERSION <= 503
+	return InitString(InAttributeName, InValue.ToString());
+#else
+	TSharedPtr<PCGExData::TBuffer<FSoftObjectPath>> Buffer = PointDataFacade->GetWritable<FSoftObjectPath>(InAttributeName, InValue, true, true);\
+	return Buffer ? true : false;
+#endif
+}
+
+bool UPCGExCustomActorDataPacker::InitSoftClassPath(const FName& InAttributeName, const FSoftClassPath& InValue)
+{
+#if PCGEX_ENGINE_VERSION <= 503
+	return InitString(InAttributeName, InValue.ToString());
+#else
+	TSharedPtr<PCGExData::TBuffer<FSoftClassPath>> Buffer = PointDataFacade->GetWritable<FSoftClassPath>(InAttributeName, InValue, true, true);\
+	return Buffer ? true : false;
+#endif
+}
+
+#define PCGEX_SET_ATT_IMPL(_NAME, _TYPE)\
 bool UPCGExCustomActorDataPacker::Pack##_NAME(const FName& InAttributeName, const int32 InPointIndex, const _TYPE& InValue){\
 TSharedPtr<PCGExData::TBuffer<_TYPE>> Buffer = PointDataFacade->GetWritable<_TYPE>(InAttributeName, false);\
 if (!Buffer) { return false; }\
 Buffer->GetMutable(InPointIndex) = InValue;\
 return true;}
 PCGEX_FOREACH_PACKER(PCGEX_SET_ATT_IMPL)
+#undef PCGEX_SET_ATT_IMPL
 
 bool UPCGExCustomActorDataPacker::PackSoftObjectPath(const FName& InAttributeName, const int32 InPointIndex, const FSoftObjectPath& InValue)
 {
 #if PCGEX_ENGINE_VERSION <= 503
-	return false;
+	return PackString(InAttributeName, InPointIndex, InValue.ToString());
 #else
 	TSharedPtr<PCGExData::TBuffer<FSoftObjectPath>> Buffer = PointDataFacade->GetWritable<FSoftObjectPath>(InAttributeName, false);
 	if (!Buffer) { return false; }
@@ -60,7 +88,7 @@ bool UPCGExCustomActorDataPacker::PackSoftObjectPath(const FName& InAttributeNam
 bool UPCGExCustomActorDataPacker::PackSoftClassPath(const FName& InAttributeName, const int32 InPointIndex, const FSoftClassPath& InValue)
 {
 #if PCGEX_ENGINE_VERSION <= 503
-	return false;
+	return PackString(InAttributeName, InPointIndex, InValue.ToString());
 #else
 	TSharedPtr<PCGExData::TBuffer<FSoftClassPath>> Buffer = PointDataFacade->GetWritable<FSoftClassPath>(InAttributeName, false);
 	if (!Buffer) { return false; }
@@ -69,7 +97,6 @@ bool UPCGExCustomActorDataPacker::PackSoftClassPath(const FName& InAttributeName
 #endif
 }
 
-#undef PCGEX_SET_ATT_IMPL
 #undef PCGEX_FOREACH_PACKER
 
 
@@ -77,6 +104,13 @@ UPCGExPackActorDataSettings::UPCGExPackActorDataSettings(
 	const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
+}
+
+TArray<FPCGPinProperties> UPCGExPackActorDataSettings::OutputPinProperties() const
+{
+	TArray<FPCGPinProperties> PinProperties = Super::OutputPinProperties();
+	PCGEX_PIN_PARAMS(TEXT("AttributeSet"), "Same as point, but contains only added data.", Advanced, {})
+	return PinProperties;
 }
 
 PCGExData::EInit UPCGExPackActorDataSettings::GetMainOutputInitMode() const { return PCGExData::EInit::DuplicateInput; }
@@ -105,6 +139,8 @@ bool FPCGExPackActorDataElement::Boot(FPCGExContext* InContext) const
 	PCGEX_OPERATION_BIND(Packer, UPCGExCustomActorDataPacker)
 	PCGEX_VALIDATE_NAME(Settings->ActorReferenceAttribute)
 
+	Context->OutputParams.Init(nullptr, Context->MainPoints->Num());
+
 	return true;
 }
 
@@ -121,6 +157,7 @@ bool FPCGExPackActorDataElement::ExecuteInternal(FPCGContext* InContext) const
 			[&](const TSharedPtr<PCGExPointsMT::TBatch<PCGExPackActorDatas::FProcessor>>& NewBatch)
 			{
 				NewBatch->PrimaryOperation = Context->Packer;
+				NewBatch->bRequiresWriteStep = true;
 			}))
 		{
 			return Context->CancelExecution(TEXT("Could not find any points."));
@@ -130,6 +167,13 @@ bool FPCGExPackActorDataElement::ExecuteInternal(FPCGContext* InContext) const
 	PCGEX_POINTS_BATCH_PROCESSING(PCGEx::State_Done)
 
 	Context->MainPoints->StageOutputs();
+	
+	for (int i = 0; i < Context->MainPoints->Pairs.Num(); i++)
+	{
+		UPCGParamData* ParamData = Context->OutputParams[i];
+		if (!ParamData) { continue; }
+		Context->StageOutput(TEXT("AttributeSet"), ParamData, Context->MainPoints->Pairs[i]->Tags->ToSet(), false);
+	}
 
 	return Context->TryComplete();
 }
@@ -149,7 +193,9 @@ namespace PCGExPackActorDatas
 		Packer = static_cast<UPCGExCustomActorDataPacker*>(PrimaryOperation);
 		Packer->PointDataFacade = PointDataFacade;
 
-		ActorReferences = MakeShared<PCGEx::TAttributeBroadcaster<FString>>();
+		Packer->PointDataFacade->Source->bAllowEmptyOutput = !Settings->bOmitEmptyOutputs;
+
+		ActorReferences = MakeShared<PCGEx::TAttributeBroadcaster<FSoftObjectPath>>();
 		if (!ActorReferences->Prepare(Settings->ActorReferenceAttribute, PointDataFacade->Source))
 		{
 			PCGE_LOG_C(Warning, GraphAndLog, ExecutionContext, FTEXT("Some inputs don't have the specified Actor Reference attribute."));
@@ -157,61 +203,22 @@ namespace PCGExPackActorDatas
 		}
 
 		ActorReferences->Grab();
-		InputActors.Init(nullptr, PointDataFacade->GetNum());
+		Packer->InputActors.Init(nullptr, PointDataFacade->GetNum());
 
-		AsyncManager->GrowNumStarted();
+		for (int i = 0; i < ActorReferences->Values.Num(); i++) { Packer->InputActors[i] = Cast<AActor>(ActorReferences->Values[i].ResolveObject()); }
 
-		TWeakPtr<FProcessor> WeakPtr = SharedThis(this);
-		AsyncTask(
-			ENamedThreads::GameThread, [WeakPtr]()
-			{
-				TSharedPtr<FProcessor> This = WeakPtr.Pin();
-				if (!This) { return; }
+		bool bSuccess = false;
+		Packer->InitializeWithContext(*Context, bSuccess);
 
-				TMap<FString, AActor*> Map;
+		if (!bSuccess) { return false; }
 
-				for (int i = 0; i < This->ActorReferences->Values.Num(); i++)
-				{
-					const FString& Path = This->ActorReferences->Values[i];
-					if (AActor** ActorRef = Map.Find(Path))
-					{
-						This->InputActors[i] = *ActorRef;
-						continue;
-					}
-
-					if (UObject* FoundObject = FindObject<AActor>(nullptr, *This->ActorReferences->Values[i]))
-					{
-						if (AActor* SourceActor = Cast<AActor>(FoundObject))
-						{
-							Map.Add(Path, SourceActor);
-							This->InputActors[i] = SourceActor;
-						}
-					}
-				}
-
-				This->Packer->InputActors = This->InputActors;
-
-				bool bSuccess = false;
-				This->Packer->InitializeWithContext(*This->Context, bSuccess);
-
-				if (bSuccess)
-				{
-					This->StartParallelLoopForPoints();
-				}
-				else
-				{
-					This->bIsProcessorValid = false;
-				}
-
-				This->AsyncManager->GrowNumCompleted();
-			});
-
+		StartParallelLoopForPoints();
 		return true;
 	}
 
 	void FProcessor::ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const int32 LoopIdx, const int32 Count)
 	{
-		AActor* ActorRef = InputActors[Index];
+		AActor* ActorRef = Packer->InputActors[Index];
 		if (!ActorRef) { return; }
 
 		Packer->ProcessEntry(ActorRef, Point, Index, Point);
@@ -219,7 +226,67 @@ namespace PCGExPackActorDatas
 
 	void FProcessor::CompleteWork()
 	{
+		Attributes.Reserve(PointDataFacade->Buffers.Num());
+		for (TSharedPtr<PCGExData::FBufferBase> Buffer : PointDataFacade->Buffers)
+		{
+			if (!Buffer->IsWritable()) { continue; }
+			Attributes.Add(Buffer->OutAttribute);
+		}
+
 		PointDataFacade->Write(AsyncManager);
+	}
+
+	void FProcessor::Write()
+	{
+		TArray<int32> ValidIndices;
+		PCGEx::ArrayOfIndices(ValidIndices, PointDataFacade->GetOut()->GetNumPoints());
+
+		if (Settings->bOmitUnresolvedEntries)
+		{
+			TArray<FPCGPoint>& MutablePoints = PointDataFacade->GetOut()->GetMutablePoints();
+			const int32 NumPoints = MutablePoints.Num();
+			int32 WriteIndex = 0;
+			for (int32 i = 0; i < NumPoints; i++)
+			{
+				if (Packer->InputActors[i])
+				{
+					ValidIndices[WriteIndex] = i;
+					MutablePoints[WriteIndex++] = MutablePoints[i];
+				}
+			}
+
+			if (MutablePoints.IsEmpty() && Settings->bOmitEmptyOutputs) { return; }
+
+			ValidIndices.SetNum(WriteIndex);
+			MutablePoints.SetNum(WriteIndex);
+		}
+
+		UPCGParamData* ParamData = Context->ManagedObjects->New<UPCGParamData>();
+		Context->OutputParams[PointDataFacade->Source->IOIndex] = ParamData;
+		TArray<FPCGPoint>& MutablePoints = PointDataFacade->GetOut()->GetMutablePoints();
+
+		UPCGMetadata* ParamMetadata = ParamData->Metadata;
+
+		for (int i = 0; i < MutablePoints.Num(); i++)
+		{
+			const int64 Key = ParamMetadata->AddEntry();
+			PCGMetadataEntryKey ItemKey = MutablePoints[i].MetadataEntry;
+			const int32 ValidIndex = ValidIndices[i];
+
+			if (!Packer->InputActors[ValidIndex]) { continue; }
+
+			for (FPCGMetadataAttributeBase* OutAttribute : Attributes)
+			{
+				PCGMetadataAttribute::CallbackWithRightType(
+					static_cast<uint16>(OutAttribute->GetTypeId()), [ParamMetadata, ItemKey, Key, OutAttribute](auto DummyValue)
+					{
+						using RawT = decltype(DummyValue);
+						FPCGMetadataAttribute<RawT>* A = static_cast<FPCGMetadataAttribute<RawT>*>(OutAttribute);
+						FPCGMetadataAttribute<RawT>* B = ParamMetadata->FindOrCreateAttribute(A->Name, A->GetValueFromItemKey(PCGDefaultValueKey), A->AllowsInterpolation());
+						B->SetValue(Key, A->GetValueFromItemKey(ItemKey));
+					});
+			}
+		}
 	}
 }
 

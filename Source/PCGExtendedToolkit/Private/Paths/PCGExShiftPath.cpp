@@ -195,7 +195,7 @@ namespace PCGExShiftPath
 			PCGExMath::ReverseRange(MutablePoints, 0, PivotIndex - 1);
 			PCGExMath::ReverseRange(MutablePoints, PivotIndex, MaxIndex);
 		}
-		
+
 		Algo::Reverse(MutablePoints);
 	}
 }

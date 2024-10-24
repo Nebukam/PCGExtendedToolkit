@@ -39,7 +39,6 @@ bool FPCGExBuildConvexHullElement::ExecuteInternal(
 	PCGEX_EXECUTION_CHECK
 	PCGEX_ON_INITIAL_EXECUTION
 	{
-		
 		PCGEX_ON_INVALILD_INPUTS(FTEXT("Some inputs have less than 4 points and won't be processed."))
 
 		if (!Context->StartBatchProcessingPoints<PCGExPointsMT::TBatch<PCGExConvexHull::FProcessor>>(

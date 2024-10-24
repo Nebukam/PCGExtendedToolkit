@@ -87,7 +87,7 @@ protected:
 
 namespace PCGExWriteVtxProperties
 {
-	class FProcessor final : public PCGExClusterMT::TClusterProcessor<FPCGExWriteVtxPropertiesContext, UPCGExWriteVtxPropertiesSettings>
+	class FProcessor final : public PCGExClusterMT::TProcessor<FPCGExWriteVtxPropertiesContext, UPCGExWriteVtxPropertiesSettings>
 	{
 		friend class FProcessorBatch;
 
@@ -95,7 +95,7 @@ namespace PCGExWriteVtxProperties
 
 	public:
 		FProcessor(const TSharedRef<PCGExData::FFacade>& InVtxDataFacade, const TSharedRef<PCGExData::FFacade>& InEdgeDataFacade)
-			: TClusterProcessor(InVtxDataFacade, InEdgeDataFacade)
+			: TProcessor(InVtxDataFacade, InEdgeDataFacade)
 		{
 		}
 

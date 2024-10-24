@@ -9,10 +9,10 @@
 #define LOCTEXT_NAMESPACE "PCGExIsoEdgeDirectionFilter"
 #define PCGEX_NAMESPACE IsoEdgeDirectionFilter
 
-void UPCGExIsoEdgeDirectionFilterFactory::GatherRequiredVtxAttributes(FPCGExContext* InContext, PCGExData::FReadableBufferConfigList& ReadableBufferConfigList) const
+void UPCGExIsoEdgeDirectionFilterFactory::RegisterBuffersDependencies(FPCGExContext* InContext, PCGExData::FFacadePreloader& FacadePreloader) const
 {
-	Super::GatherRequiredVtxAttributes(InContext, ReadableBufferConfigList);
-	Config.DirectionSettings.GatherRequiredVtxAttributes(InContext, ReadableBufferConfigList);
+	Super::RegisterBuffersDependencies(InContext, FacadePreloader);
+	Config.DirectionSettings.RegisterBuffersDependencies(InContext, FacadePreloader);
 }
 
 TSharedPtr<PCGExPointFilter::FFilter> UPCGExIsoEdgeDirectionFilterFactory::CreateFilter() const

@@ -104,24 +104,22 @@ bool FPCGExBuildCustomGraphElement::ExecuteInternal(FPCGContext* InContext) cons
 		{
 			while (Context->AdvancePointsIO())
 			{
-				TUniquePtr<PCGEx::TAttributeBroadcaster<FString>> ActorReferences = MakeUnique<PCGEx::TAttributeBroadcaster<FString>>();
+				TUniquePtr<PCGEx::TAttributeBroadcaster<FSoftObjectPath>> ActorReferences = MakeUnique<PCGEx::TAttributeBroadcaster<FSoftObjectPath>>();
 				if (!ActorReferences->Prepare(Settings->ActorReferenceAttribute, Context->CurrentIO.ToSharedRef()))
 				{
 					PCGE_LOG(Warning, GraphAndLog, FTEXT("Some inputs don't have the specified Actor Reference attribute."));
 				}
 
 				ActorReferences->Grab();
+				TSet<AActor*> UniqueActors;
 
-				for (FString Path : ActorReferences->Values)
+				for (FSoftObjectPath Path : ActorReferences->Values)
 				{
-					if (UObject* FoundObject = FindObject<AActor>(nullptr, *Path))
-					{
-						if (AActor* SourceActor = Cast<AActor>(FoundObject))
-						{
-							Context->Builder->InputActors.AddUnique(SourceActor);
-						}
-					}
+					if (AActor* SourceActor = Cast<AActor>(Path.ResolveObject())) { UniqueActors.Add(SourceActor); }
 				}
+
+				Context->Builder->InputActors.Reserve(UniqueActors.Num());
+				Context->Builder->InputActors.Append(UniqueActors.Array());
 			}
 		}
 

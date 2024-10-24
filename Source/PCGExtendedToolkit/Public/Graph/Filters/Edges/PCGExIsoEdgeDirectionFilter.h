@@ -68,7 +68,7 @@ class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExIsoEdgeDirectionFilterFactory : public UP
 public:
 	FPCGExIsoEdgeDirectionFilterConfig Config;
 
-	virtual void GatherRequiredVtxAttributes(FPCGExContext* InContext, PCGExData::FReadableBufferConfigList& ReadableBufferConfigList) const override;
+	virtual void RegisterBuffersDependencies(FPCGExContext* InContext, PCGExData::FFacadePreloader& FacadePreloader) const override;
 
 	virtual TSharedPtr<PCGExPointFilter::FFilter> CreateFilter() const override;
 };

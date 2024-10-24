@@ -175,7 +175,7 @@ protected:
 
 namespace PCGExFindContours
 {
-	class FProcessor final : public PCGExClusterMT::TClusterProcessor<FPCGExFindContoursContext, UPCGExFindContoursSettings>
+	class FProcessor final : public PCGExClusterMT::TProcessor<FPCGExFindContoursContext, UPCGExFindContoursSettings>
 	{
 		friend struct FPCGExFindContoursContext;
 		friend class FBatch;
@@ -194,7 +194,7 @@ namespace PCGExFindContours
 		TSharedPtr<TArray<PCGExCluster::FExpandedEdge>> ExpandedEdges;
 
 		FProcessor(const TSharedRef<PCGExData::FFacade>& InVtxDataFacade, const TSharedRef<PCGExData::FFacade>& InEdgeDataFacade):
-			TClusterProcessor(InVtxDataFacade, InEdgeDataFacade)
+			TProcessor(InVtxDataFacade, InEdgeDataFacade)
 		{
 		}
 

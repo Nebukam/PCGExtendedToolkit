@@ -57,9 +57,8 @@ bool FPCGExBuildDelaunayGraph2DElement::ExecuteInternal(
 	PCGEX_EXECUTION_CHECK
 	PCGEX_ON_INITIAL_EXECUTION
 	{
-	
 		PCGEX_ON_INVALILD_INPUTS(FTEXT("Some inputs have less than 3 points and won't be processed."))
-		
+
 		if (!Context->StartBatchProcessingPoints<PCGExPointsMT::TBatch<PCGExBuildDelaunay2D::FProcessor>>(
 			[&](const TSharedPtr<PCGExData::FPointIO>& Entry)
 			{
@@ -256,8 +255,8 @@ namespace PCGExBuildDelaunay2D
 			TSet<uint64> QueuedEdgesSet;
 			Delaunay->GetMergedSites(i, Processor->UrquhartEdges, QueueSet, QueuedEdgesSet, VisitedSites);
 
-			if(QueuedEdgesSet.IsEmpty()){continue;}
-			
+			if (QueuedEdgesSet.IsEmpty()) { continue; }
+
 			TArray<int32> Queue = QueueSet.Array();
 			QueueSet.Empty();
 

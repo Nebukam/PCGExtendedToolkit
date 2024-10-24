@@ -328,14 +328,14 @@ namespace PCGExClusterMT
 	};
 
 	template <typename TContext, typename TSettings>
-	class TClusterProcessor : public FClusterProcessor
+	class TProcessor : public FClusterProcessor
 	{
 	protected:
 		TContext* Context = nullptr;
 		const TSettings* Settings = nullptr;
 
 	public:
-		TClusterProcessor(const TSharedRef<PCGExData::FFacade>& InVtxDataFacade, const TSharedRef<PCGExData::FFacade>& InEdgeDataFacade):
+		TProcessor(const TSharedRef<PCGExData::FFacade>& InVtxDataFacade, const TSharedRef<PCGExData::FFacade>& InEdgeDataFacade):
 			FClusterProcessor(InVtxDataFacade, InEdgeDataFacade)
 		{
 		}
@@ -357,6 +357,7 @@ namespace PCGExClusterMT
 		mutable FRWLock BatchLock;
 
 		TSharedPtr<PCGExMT::FTaskManager> AsyncManager;
+		TSharedPtr<PCGExData::FFacadePreloader> VtxFacadePreloader;
 
 		const FPCGMetadataAttribute<int64>* RawLookupAttribute = nullptr;
 		TArray<uint32> ReverseLookup;
@@ -416,7 +417,7 @@ namespace PCGExClusterMT
 		{
 			AsyncManager = AsyncManagerPtr;
 			VtxDataFacade->bSupportsScopedGet = bAllowVtxDataFacadeScopedGet && ExecutionContext->bScopedAttributeGet;
-			
+
 			const int32 NumVtx = VtxDataFacade->GetNum();
 
 			if (!bScopedIndexLookupBuild || NumVtx < GetDefault<UPCGExGlobalSettings>()->SmallClusterSize)
@@ -481,67 +482,26 @@ namespace PCGExClusterMT
 			}
 		}
 
-		virtual void GatherRequiredVtxAttributes(PCGExData::FReadableBufferConfigList& ReadableBufferConfigList)
+		virtual void RegisterBuffersDependencies(PCGExData::FFacadePreloader& FacadePreloader)
 		{
 		}
-		
+
 		virtual void OnProcessingPreparationComplete()
 		{
 			if (!bIsBatchValid) { return; }
 
-			// Gather required vtx attributes
-			PCGExData::FReadableBufferConfigList BufferList;
+			VtxFacadePreloader = MakeShared<PCGExData::FFacadePreloader>();
+			RegisterBuffersDependencies(*VtxFacadePreloader);
 
-			GatherRequiredVtxAttributes(BufferList);
-
-			if (!BufferList.IsEmpty())
+			TWeakPtr<FClusterProcessorBatchBase> WeakPtr = SharedThis(this);
+			VtxFacadePreloader->OnCompleteCallback = [WeakPtr]
 			{
-				if (!BufferList.Validate(ExecutionContext, VtxDataFacade))
-				{
-					bIsBatchValid = false;
-					return;
-				}
+				const TSharedPtr<FClusterProcessorBatchBase> This = WeakPtr.Pin();
+				if (!This) { return; }
+				This->Process();
+			};
 
-				TWeakPtr<FClusterProcessorBatchBase> WeakPtr = SharedThis(this);
-				PCGEX_ASYNC_GROUP_CHKD_VOID(AsyncManager, ParallelVtxAttributeRead)
-
-				ParallelVtxAttributeRead->OnCompleteCallback = [WeakPtr]()
-				{
-					const TSharedPtr<FClusterProcessorBatchBase> This = WeakPtr.Pin();
-					if (!This) { return; }
-					This->VtxDataFacade->MarkCurrentBuffersReadAsComplete();
-					This->Process();
-				};
-
-				if (VtxDataFacade->bSupportsScopedGet)
-				{
-					ParallelVtxAttributeRead->OnIterationRangeStartCallback =
-						[WeakPtr, BufferList](const int32 StartIndex, const int32 Count, const int32 LoopIdx)
-						{
-							const TSharedPtr<FClusterProcessorBatchBase> This = WeakPtr.Pin();
-							if (!This) { return; }
-							BufferList.Fetch(This->VtxDataFacade, StartIndex, Count);
-						};
-
-					ParallelVtxAttributeRead->StartRangePrepareOnly(VtxDataFacade->GetNum(), GetDefault<UPCGExGlobalSettings>()->GetPointsBatchChunkSize());
-				}
-				else
-				{
-					ParallelVtxAttributeRead->OnIterationRangeStartCallback =
-						[WeakPtr, BufferList](const int32 StartIndex, const int32 Count, const int32 LoopIdx)
-						{
-							const TSharedPtr<FClusterProcessorBatchBase> This = WeakPtr.Pin();
-							if (!This) { return; }
-							BufferList.Read(This->VtxDataFacade, StartIndex);
-						};
-
-					ParallelVtxAttributeRead->StartRangePrepareOnly(BufferList.Num(), 1);
-				}
-			}
-			else
-			{
-				Process();
-			}
+			VtxFacadePreloader->StartLoading(AsyncManager, VtxDataFacade);
 		}
 
 		virtual void Process()
@@ -654,7 +614,7 @@ namespace PCGExClusterMT
 		{
 			if (!bIsBatchValid) { return; }
 
-			PCGEX_ASYNC_MT_LOOP_TPL(Process, bInlineProcessing, { Processor->bIsProcessorValid = Processor->Process(AsyncManager); })
+			PCGEX_ASYNC_MT_LOOP_TPL(Process, bInlineProcessing, { Processor->bIsProcessorValid = Processor->Process(Batch->AsyncManager); })
 		}
 
 		virtual bool PrepareSingle(const TSharedPtr<T>& ClusterProcessor) { return true; }

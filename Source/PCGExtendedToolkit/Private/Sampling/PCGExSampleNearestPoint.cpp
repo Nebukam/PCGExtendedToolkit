@@ -48,6 +48,7 @@ bool FPCGExSampleNearestPointElement::Boot(FPCGExContext* InContext) const
 	if (!Targets) { return false; }
 
 	Context->TargetsFacade = MakeShared<PCGExData::FFacade>(Targets.ToSharedRef());
+	Context->TargetsPreloader = MakeShared<PCGExData::FFacadePreloader>();
 
 	TSet<FName> MissingTargetAttributes;
 	PCGExDataBlending::AssembleBlendingDetails(
@@ -81,6 +82,15 @@ bool FPCGExSampleNearestPointElement::Boot(FPCGExContext* InContext) const
 		}
 	}
 
+	if (Settings->SampleMethod == EPCGExSampleMethod::BestCandidate)
+	{
+		Context->Sorter = MakeShared<PCGExSortPoints::PointSorter<false>>(Context, Context->TargetsFacade.ToSharedRef(), PCGExSortPoints::GetSortingRules(Context, PCGExSortPoints::SourceSortingRules));
+		Context->Sorter->SortDirection = Settings->SortDirection;
+		Context->Sorter->RegisterBuffersDependencies(*Context->TargetsPreloader);
+	}
+
+	Context->BlendingDetails.RegisterBuffersDependencies(Context, Context->TargetsFacade, *Context->TargetsPreloader);
+
 	return true;
 }
 
@@ -92,14 +102,27 @@ bool FPCGExSampleNearestPointElement::ExecuteInternal(FPCGContext* InContext) co
 	PCGEX_EXECUTION_CHECK
 	PCGEX_ON_INITIAL_EXECUTION
 	{
-		if (!Context->StartBatchProcessingPoints<PCGExPointsMT::TBatch<PCGExSampleNearestPoints::FProcessor>>(
-			[&](const TSharedPtr<PCGExData::FPointIO>& Entry) { return true; },
-			[&](const TSharedPtr<PCGExPointsMT::TBatch<PCGExSampleNearestPoints::FProcessor>>& NewBatch)
-			{
-			}))
+		Context->SetAsyncState(PCGEx::State_FacadePreloading);
+		Context->TargetsPreloader->OnCompleteCallback = [Context]()
 		{
-			return Context->CancelExecution(TEXT("Could not find any points to sample."));
-		}
+			if (Context->Sorter && !Context->Sorter->Init())
+			{
+				Context->CancelExecution(TEXT("Invalid sort rules"));
+				return;
+			}
+
+			if (!Context->StartBatchProcessingPoints<PCGExPointsMT::TBatch<PCGExSampleNearestPoints::FProcessor>>(
+				[&](const TSharedPtr<PCGExData::FPointIO>& Entry) { return true; },
+				[&](const TSharedPtr<PCGExPointsMT::TBatch<PCGExSampleNearestPoints::FProcessor>>& NewBatch)
+				{
+				}))
+			{
+				Context->CancelExecution(TEXT("Could not find any points to sample."));
+			}
+		};
+
+		Context->TargetsPreloader->StartLoading(Context->GetAsyncManager(), Context->TargetsFacade.ToSharedRef());
+		return false;
 	}
 
 	PCGEX_POINTS_BATCH_PROCESSING(PCGEx::State_Done)
@@ -166,17 +189,6 @@ namespace PCGExSampleNearestPoints
 		bSingleSample = Settings->SampleMethod != EPCGExSampleMethod::WithinRange;
 		bSampleClosest = Settings->SampleMethod == EPCGExSampleMethod::ClosestTarget || Settings->SampleMethod == EPCGExSampleMethod::BestCandidate;
 
-		if (Settings->SampleMethod == EPCGExSampleMethod::BestCandidate)
-		{
-			Sorter = MakeShared<PCGExSortPoints::PointSorter<false>>(Context->TargetsFacade.ToSharedRef());
-			Sorter->SortDirection = Settings->SortDirection;
-			if (!Sorter->Init(Context, PCGExSortPoints::GetSortingRules(Context, PCGExSortPoints::SourceSortingRules)))
-			{
-				PCGE_LOG_C(Error, GraphAndLog, Context, FTEXT("Invalid sort rules"));
-				return false;
-			}
-		}
-
 		StartParallelLoopForPoints();
 
 		return true;
@@ -228,7 +240,7 @@ namespace PCGExSampleNearestPoints
 			{
 				if (Settings->SampleMethod == EPCGExSampleMethod::BestCandidate && TargetsCompoundInfos.IsValid())
 				{
-					if (!Sorter->Sort(TargetPtIndex, TargetsCompoundInfos.Closest.Index)) { return; }
+					if (!Context->Sorter->Sort(TargetPtIndex, TargetsCompoundInfos.Closest.Index)) { return; }
 					TargetsCompoundInfos.SetCompound(PCGExNearestPoint::FTargetInfos(TargetPtIndex, Dist));
 				}
 				else

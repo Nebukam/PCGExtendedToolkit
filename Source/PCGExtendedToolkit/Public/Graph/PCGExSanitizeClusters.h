@@ -59,11 +59,11 @@ protected:
 
 namespace PCGExSanitizeClusters
 {
-	class FProcessor final : public PCGExClusterMT::TClusterProcessor<FPCGExSanitizeClustersContext, UPCGExSanitizeClustersSettings>
+	class FProcessor final : public PCGExClusterMT::TProcessor<FPCGExSanitizeClustersContext, UPCGExSanitizeClustersSettings>
 	{
 	public:
 		FProcessor(const TSharedRef<PCGExData::FFacade>& InVtxDataFacade, const TSharedRef<PCGExData::FFacade>& InEdgeDataFacade)
-			: TClusterProcessor(InVtxDataFacade, InEdgeDataFacade)
+			: TProcessor(InVtxDataFacade, InEdgeDataFacade)
 		{
 			bBuildCluster = false;
 		}

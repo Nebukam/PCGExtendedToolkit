@@ -71,7 +71,7 @@ protected:
 
 namespace PCGExFlagNodes
 {
-	class FProcessor final : public PCGExClusterMT::TClusterProcessor<FPCGExFlagNodesContext, UPCGExFlagNodesSettings>
+	class FProcessor final : public PCGExClusterMT::TProcessor<FPCGExFlagNodesContext, UPCGExFlagNodesSettings>
 	{
 		friend class FProcessorBatch;
 		TSharedPtr<TArray<int64>> StateFlags;
@@ -82,7 +82,7 @@ namespace PCGExFlagNodes
 
 	public:
 		FProcessor(const TSharedRef<PCGExData::FFacade>& InVtxDataFacade, const TSharedRef<PCGExData::FFacade>& InEdgeDataFacade):
-			TClusterProcessor(InVtxDataFacade, InEdgeDataFacade)
+			TProcessor(InVtxDataFacade, InEdgeDataFacade)
 		{
 			bCacheVtxPointIndices = true;
 		}
@@ -109,7 +109,7 @@ namespace PCGExFlagNodes
 
 		virtual ~FProcessorBatch() override;
 
-		virtual void GatherRequiredVtxAttributes(PCGExData::FReadableBufferConfigList& ReadableBufferConfigList) override;
+		virtual void RegisterBuffersDependencies(PCGExData::FFacadePreloader& FacadePreloader) override;
 		virtual void OnProcessingPreparationComplete() override;
 		virtual bool PrepareSingle(const TSharedPtr<FProcessor>& ClusterProcessor) override;
 	};

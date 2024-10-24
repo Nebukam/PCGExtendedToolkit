@@ -271,7 +271,7 @@ protected:
 
 namespace PCGExGrowPaths
 {
-	class FProcessor final : public PCGExClusterMT::TClusterProcessor<FPCGExPathfindingGrowPathsContext, UPCGExPathfindingGrowPathsSettings>
+	class FProcessor final : public PCGExClusterMT::TProcessor<FPCGExPathfindingGrowPathsContext, UPCGExPathfindingGrowPathsSettings>
 	{
 		friend class FGrowth;
 		friend class FProcessorBatch;
@@ -289,7 +289,7 @@ namespace PCGExGrowPaths
 		TArray<TSharedPtr<FGrowth>> QueuedGrowths;
 
 		FProcessor(const TSharedRef<PCGExData::FFacade>& InVtxDataFacade, const TSharedRef<PCGExData::FFacade>& InEdgeDataFacade):
-			TClusterProcessor(InVtxDataFacade, InEdgeDataFacade)
+			TProcessor(InVtxDataFacade, InEdgeDataFacade)
 		{
 		}
 

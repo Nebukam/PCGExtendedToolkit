@@ -136,19 +136,16 @@ bool FPCGExMeshToClustersElement::ExecuteInternal(
 				else
 				{
 					TArray<UStaticMeshComponent*> SMComponents;
-					if (UObject* FoundObject = FindObject<AActor>(nullptr, *Path.ToString()))
+					if (const AActor* SourceActor = Cast<AActor>(Path.ResolveObject()))
 					{
-						if (const AActor* SourceActor = Cast<AActor>(FoundObject))
-						{
-							TArray<UActorComponent*> Components;
-							SourceActor->GetComponents(Components);
+						TArray<UActorComponent*> Components;
+						SourceActor->GetComponents(Components);
 
-							for (UActorComponent* Component : Components)
+						for (UActorComponent* Component : Components)
+						{
+							if (UStaticMeshComponent* StaticMeshComponent = Cast<UStaticMeshComponent>(Component))
 							{
-								if (UStaticMeshComponent* StaticMeshComponent = Cast<UStaticMeshComponent>(Component))
-								{
-									SMComponents.Add(StaticMeshComponent);
-								}
+								SMComponents.Add(StaticMeshComponent);
 							}
 						}
 					}

@@ -161,11 +161,11 @@ namespace PCGExPathfindingEdge
 		virtual bool ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager) override;
 	};
 
-	class FProcessor final : public PCGExClusterMT::TClusterProcessor<FPCGExPathfindingEdgesContext, UPCGExPathfindingEdgesSettings>
+	class FProcessor final : public PCGExClusterMT::TProcessor<FPCGExPathfindingEdgesContext, UPCGExPathfindingEdgesSettings>
 	{
 	public:
 		FProcessor(const TSharedRef<PCGExData::FFacade>& InVtxDataFacade, const TSharedRef<PCGExData::FFacade>& InEdgeDataFacade):
-			TClusterProcessor(InVtxDataFacade, InEdgeDataFacade)
+			TProcessor(InVtxDataFacade, InEdgeDataFacade)
 		{
 		}
 

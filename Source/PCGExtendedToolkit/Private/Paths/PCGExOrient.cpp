@@ -68,7 +68,6 @@ bool FPCGExOrientElement::ExecuteInternal(FPCGContext* InContext) const
 		{
 			Context->CancelExecution(TEXT("Could not find any paths to orient."));
 		}
-
 	}
 
 	PCGEX_POINTS_BATCH_PROCESSING(PCGEx::State_Done)

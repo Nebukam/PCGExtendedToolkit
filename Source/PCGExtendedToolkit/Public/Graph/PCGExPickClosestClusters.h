@@ -112,7 +112,7 @@ protected:
 
 namespace PCGExPickClosestClusters
 {
-	class FProcessor final : public PCGExClusterMT::TClusterProcessor<FPCGExPickClosestClustersContext, UPCGExPickClosestClustersSettings>
+	class FProcessor final : public PCGExClusterMT::TProcessor<FPCGExPickClosestClustersContext, UPCGExPickClosestClustersSettings>
 	{
 		friend class FProcessorBatch;
 
@@ -122,7 +122,7 @@ namespace PCGExPickClosestClusters
 		int32 Picker = -1;
 
 		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InVtxDataFacade, const TSharedRef<PCGExData::FFacade>& InEdgeDataFacade)
-			: TClusterProcessor(InVtxDataFacade, InEdgeDataFacade)
+			: TProcessor(InVtxDataFacade, InEdgeDataFacade)
 		{
 		}
 

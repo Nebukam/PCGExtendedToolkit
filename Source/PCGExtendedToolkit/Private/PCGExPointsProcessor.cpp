@@ -82,18 +82,20 @@ bool FPCGExPointsProcessorContext::ProcessPointsBatch(const PCGEx::AsyncState Ne
 
 	PCGEX_ON_ASYNC_STATE_READY_INTERNAL(PCGExPointsMT::MTState_PointsProcessing)
 	{
+		TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExPointsProcessorContext::BatchProcessing_InitialProcessingDone);
 		BatchProcessing_InitialProcessingDone();
-		MainBatch->CompleteWork();
 		SetAsyncState(PCGExPointsMT::MTState_PointsCompletingWork);
+		MainBatch->CompleteWork();
 	}
 
 	PCGEX_ON_ASYNC_STATE_READY_INTERNAL(PCGExPointsMT::MTState_PointsCompletingWork)
 	{
+		TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExPointsProcessorContext::BatchProcessing_WorkComplete);
 		BatchProcessing_WorkComplete();
 		if (MainBatch->bRequiresWriteStep)
 		{
-			MainBatch->Write();
 			SetAsyncState(PCGExPointsMT::MTState_PointsWriting);
+			MainBatch->Write();
 			return false;
 		}
 
@@ -105,6 +107,7 @@ bool FPCGExPointsProcessorContext::ProcessPointsBatch(const PCGEx::AsyncState Ne
 
 	PCGEX_ON_ASYNC_STATE_READY_INTERNAL(PCGExPointsMT::MTState_PointsWriting)
 	{
+		TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExPointsProcessorContext::BatchProcessing_WritingDone);
 		BatchProcessing_WritingDone();
 
 		bBatchProcessingEnabled = false;

@@ -245,7 +245,8 @@ namespace PCGExWriteEdgeProperties
 			if (MetadataBlender) { MetadataBlend(); }
 
 			MutableTarget.Transform.SetLocation(FMath::Lerp(B, A, Settings->EdgePositionLerp));
-		}else
+		}
+		else
 		{
 			if (MetadataBlender) { MetadataBlend(); }
 		}
@@ -256,18 +257,18 @@ namespace PCGExWriteEdgeProperties
 		EdgeDataFacade->Write(AsyncManager);
 	}
 
-	void FProcessorBatch::GatherRequiredVtxAttributes(PCGExData::FReadableBufferConfigList& ReadableBufferConfigList)
+	void FProcessorBatch::RegisterBuffersDependencies(PCGExData::FFacadePreloader& FacadePreloader)
 	{
-		TBatch<FProcessor>::GatherRequiredVtxAttributes(ReadableBufferConfigList);
-		
+		TBatch<FProcessor>::RegisterBuffersDependencies(FacadePreloader);
+
 		PCGEX_TYPED_CONTEXT_AND_SETTINGS(WriteEdgeProperties)
-		
+
 		if (Settings->bEndpointsBlending)
 		{
-			Settings->BlendingSettings.PrepareAttributeBuffers(Context, VtxDataFacade, ReadableBufferConfigList, &PCGExGraph::IgnoreGraphBlendAttributes);
+			Settings->BlendingSettings.RegisterBuffersDependencies(Context, VtxDataFacade, FacadePreloader, &PCGExGraph::IgnoreGraphBlendAttributes);
 		}
-		
-		DirectionSettings.GatherRequiredVtxAttributes(ExecutionContext, ReadableBufferConfigList);
+
+		DirectionSettings.RegisterBuffersDependencies(ExecutionContext, FacadePreloader);
 	}
 
 	void FProcessorBatch::OnProcessingPreparationComplete()

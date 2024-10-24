@@ -65,17 +65,16 @@ bool FPCGExSampleNearestBoundsElement::Boot(FPCGExContext* InContext) const
 	}
 
 	Context->BoundsPoints = &Context->BoundsFacade->Source->GetIn()->GetPoints();
+	Context->BoundsPreloader = MakeShared<PCGExData::FFacadePreloader>();
 
 	if (Settings->SampleMethod == EPCGExBoundsSampleMethod::BestCandidate)
 	{
-		Context->Sorter = MakeShared<PCGExSortPoints::PointSorter<false>>(Context->BoundsFacade.ToSharedRef());
+		Context->Sorter = MakeShared<PCGExSortPoints::PointSorter<false>>(Context, Context->BoundsFacade.ToSharedRef(), PCGExSortPoints::GetSortingRules(InContext, PCGExSortPoints::SourceSortingRules));
 		Context->Sorter->SortDirection = Settings->SortDirection;
-		if (!Context->Sorter->Init(Context, PCGExSortPoints::GetSortingRules(InContext, PCGExSortPoints::SourceSortingRules)))
-		{
-			PCGE_LOG(Error, GraphAndLog, FTEXT("Invalid sort rules"));
-			return false;
-		}
+		Context->Sorter->RegisterBuffersDependencies(*Context->BoundsPreloader);
 	}
+
+	Context->BlendingDetails.RegisterBuffersDependencies(Context, Context->BoundsFacade, *Context->BoundsPreloader);
 
 	return true;
 }
@@ -88,14 +87,28 @@ bool FPCGExSampleNearestBoundsElement::ExecuteInternal(FPCGContext* InContext) c
 	PCGEX_EXECUTION_CHECK
 	PCGEX_ON_INITIAL_EXECUTION
 	{
-		if (!Context->StartBatchProcessingPoints<PCGExPointsMT::TBatch<PCGExSampleNearestBounds::FProcessor>>(
-			[&](const TSharedPtr<PCGExData::FPointIO>& Entry) { return true; },
-			[&](const TSharedPtr<PCGExPointsMT::TBatch<PCGExSampleNearestBounds::FProcessor>>& NewBatch)
-			{
-			}))
+		Context->SetAsyncState(PCGEx::State_FacadePreloading);
+		Context->PauseContext();
+		Context->BoundsPreloader->OnCompleteCallback = [Context]()
 		{
-			return Context->CancelExecution(TEXT("Could not find any points to sample."));
-		}
+			if (Context->Sorter && !Context->Sorter->Init())
+			{
+				Context->CancelExecution(TEXT("Invalid sort rules"));
+				return;
+			}
+
+			if (!Context->StartBatchProcessingPoints<PCGExPointsMT::TBatch<PCGExSampleNearestBounds::FProcessor>>(
+				[&](const TSharedPtr<PCGExData::FPointIO>& Entry) { return true; },
+				[&](const TSharedPtr<PCGExPointsMT::TBatch<PCGExSampleNearestBounds::FProcessor>>& NewBatch)
+				{
+				}))
+			{
+				Context->CancelExecution(TEXT("Could not find any points to sample."));
+			}
+		};
+
+		Context->BoundsPreloader->StartLoading(Context->GetAsyncManager(), Context->BoundsFacade.ToSharedRef());
+		return false;
 	}
 
 	PCGEX_POINTS_BATCH_PROCESSING(PCGEx::State_Done)
@@ -133,8 +146,7 @@ namespace PCGExSampleNearestBounds
 			PCGEX_FOREACH_FIELD_NEARESTBOUNDS(PCGEX_OUTPUT_INIT)
 		}
 
-		if (!Context->BlendingDetails.FilteredAttributes.IsEmpty() ||
-			!Context->BlendingDetails.GetPropertiesBlendingDetails().HasNoBlending())
+		if (Context->BlendingDetails.HasAnyBlending())
 		{
 			Blender = MakeShared<PCGExDataBlending::FMetadataBlender>(&Context->BlendingDetails);
 			Blender->PrepareForData(PointDataFacade, Context->BoundsFacade.ToSharedRef());
