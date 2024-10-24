@@ -19,8 +19,6 @@
 
 #pragma region MT MACROS
 
-#define PCGEX_ASYNC_WRITE(_MANAGER, _TARGET) if(_TARGET){ PCGExMT::Write(_MANAGER, _TARGET); }
-#define PCGEX_ASYNC_WRITE_DELETE(_MANAGER, _TARGET) if(_TARGET){ PCGExMT::WriteAndDelete(_MANAGER, _TARGET); _TARGET = nullptr; }
 #define PCGEX_ASYNC_GROUP_CHKD_VOID(_MANAGER, _NAME) \
 	TSharedPtr<PCGExMT::FTaskGroup> _NAME = _MANAGER ? _MANAGER->TryCreateGroup(FName(#_NAME)) : nullptr; \
 	if(!_NAME){ return; }
@@ -280,7 +278,7 @@ namespace PCGExMT
 
 		void GrowNumStarted(const int32 InNumStarted = 1);
 		void GrowNumCompleted();
-		
+
 	protected:
 		TArray<SimpleCallback> SimpleCallbacks;
 
@@ -489,7 +487,6 @@ namespace PCGExMT
 	template <typename T, bool bWithManager = false>
 	static void Write(const TSharedPtr<FTaskManager>& AsyncManager, const TSharedPtr<T>& Operation)
 	{
-		if (!Operation) { return; }
 		if (!AsyncManager || !AsyncManager->IsAvailable()) { Operation->Write(); }
 		else
 		{

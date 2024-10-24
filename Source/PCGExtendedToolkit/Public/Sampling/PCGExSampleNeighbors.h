@@ -69,7 +69,7 @@ protected:
 
 namespace PCGExSampleNeighbors
 {
-	class FProcessor final : public PCGExClusterMT::TClusterProcessor<FPCGExSampleNeighborsContext, UPCGExSampleNeighborsSettings>
+	class FProcessor final : public PCGExClusterMT::TProcessor<FPCGExSampleNeighborsContext, UPCGExSampleNeighborsSettings>
 	{
 		TArray<UPCGExNeighborSampleOperation*> SamplingOperations;
 		TArray<UPCGExNeighborSampleOperation*> OpsWithValueTest;
@@ -79,7 +79,7 @@ namespace PCGExSampleNeighbors
 
 	public:
 		FProcessor(const TSharedRef<PCGExData::FFacade>& InVtxDataFacade, const TSharedRef<PCGExData::FFacade>& InEdgeDataFacade):
-			TClusterProcessor(InVtxDataFacade, InEdgeDataFacade)
+			TProcessor(InVtxDataFacade, InEdgeDataFacade)
 		{
 		}
 

@@ -123,7 +123,7 @@ protected:
 
 namespace PCGExFuseClusters
 {
-	class FProcessor final : public PCGExClusterMT::TClusterProcessor<FPCGExFuseClustersContext, UPCGExFuseClustersSettings>
+	class FProcessor final : public PCGExClusterMT::TProcessor<FPCGExFuseClustersContext, UPCGExFuseClustersSettings>
 	{
 		int32 VtxIOIndex = 0;
 		int32 EdgesIOIndex = 0;
@@ -135,7 +135,7 @@ namespace PCGExFuseClusters
 		TSharedPtr<PCGExGraph::FUnionGraph> UnionGraph;
 
 		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InVtxDataFacade, const TSharedRef<PCGExData::FFacade>& InEdgeDataFacade)
-			: TClusterProcessor(InVtxDataFacade, InEdgeDataFacade)
+			: TProcessor(InVtxDataFacade, InEdgeDataFacade)
 		{
 			bBuildCluster = false;
 		}

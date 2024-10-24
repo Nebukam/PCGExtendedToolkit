@@ -512,7 +512,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExEdgeDirectionSettings
 	TSharedPtr<PCGExData::TBuffer<double>> EndpointsReader;
 	TSharedPtr<PCGExData::TBuffer<FVector>> EdgeDirReader;
 
-	void GatherRequiredVtxAttributes(FPCGExContext* InContext, PCGExData::FReadableBufferConfigList& ReadableBufferConfigList) const;
+	void RegisterBuffersDependencies(FPCGExContext* InContext, PCGExData::FFacadePreloader& FacadePreloader) const;
 
 	bool Init(FPCGExContext* InContext);
 	bool InitFromParent(FPCGExContext* InContext, const FPCGExEdgeDirectionSettings& ParentSettings, const TSharedRef<PCGExData::FFacade>& InEdgeDataFacade);

@@ -25,7 +25,7 @@ bool FPCGExSubdivideEdgesElement::Boot(FPCGExContext* InContext) const
 	if (Settings->bFlagSubVtx) { PCGEX_VALIDATE_NAME(Settings->SubVtxFlagName) }
 	if (Settings->bFlagSubEdge) { PCGEX_VALIDATE_NAME(Settings->SubEdgeFlagName) }
 	if (Settings->bWriteVtxAlpha) { PCGEX_VALIDATE_NAME(Settings->VtxAlphaAttributeName) }
-	
+
 	PCGEX_OPERATION_BIND(Blending, UPCGExSubPointsBlendOperation)
 
 	return true;
@@ -123,14 +123,14 @@ namespace PCGExSubdivideEdges
 		FClusterProcessor::Write();
 	}
 
-	void FProcessorBatch::GatherRequiredVtxAttributes(PCGExData::FReadableBufferConfigList& ReadableBufferConfigList)
+	void FProcessorBatch::RegisterBuffersDependencies(PCGExData::FFacadePreloader& FacadePreloader)
 	{
-		TBatchWithGraphBuilder<FProcessor>::GatherRequiredVtxAttributes(ReadableBufferConfigList);
+		TBatchWithGraphBuilder<FProcessor>::RegisterBuffersDependencies(FacadePreloader);
 
 		PCGEX_TYPED_CONTEXT_AND_SETTINGS(SubdivideEdges)
-		
-		PCGExClusterFilter::GatherRequiredVtxAttributes(ExecutionContext, Context->FilterFactories, ReadableBufferConfigList);
-		DirectionSettings.GatherRequiredVtxAttributes(ExecutionContext, ReadableBufferConfigList);
+
+		PCGExClusterFilter::RegisterBuffersDependencies(ExecutionContext, Context->FilterFactories, FacadePreloader);
+		DirectionSettings.RegisterBuffersDependencies(ExecutionContext, FacadePreloader);
 	}
 
 	void FProcessorBatch::OnProcessingPreparationComplete()

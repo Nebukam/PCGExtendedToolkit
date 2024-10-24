@@ -17,20 +17,24 @@ namespace PCGExPointsMT
 	PCGEX_ASYNC_STATE(MTState_PointsWriting)
 
 #define PCGEX_ASYNC_MT_LOOP_TPL(_ID, _INLINE_CONDITION, _BODY)\
+	TWeakPtr<TBatch<T>> WeakBatch = SharedThis(this);\
 	if (_INLINE_CONDITION)  { \
 		PCGEX_ASYNC_GROUP_CHKD_VOID(AsyncManager, _ID##Inlined) \
-		_ID##Inlined->OnIterationCallback = [&](const int32 Index, const int32 Count, const int32 LoopIdx) { \
-		const TSharedRef<T>& Processor = Processors[Index]; _BODY }; \
+		_ID##Inlined->OnIterationCallback = [WeakBatch](const int32 Index, const int32 Count, const int32 LoopIdx) { \
+		const TSharedPtr<TBatch<T>> Batch = WeakBatch.Pin(); if(!Batch){return;}\
+		const TSharedRef<T>& Processor = Batch->Processors[Index]; _BODY }; \
 		_ID##Inlined->StartIterations( Processors.Num(), 1, true, false);\
 	} else {\
 		PCGEX_ASYNC_GROUP_CHKD_VOID(AsyncManager, _ID##NonTrivial)\
-		_ID##NonTrivial->OnIterationCallback = [&](const int32 Index, const int32 Count, const int32 LoopIdx) {\
-		const TSharedRef<T>& Processor = Processors[Index]; if (Processor->IsTrivial()) { return; } _BODY }; \
+		_ID##NonTrivial->OnIterationCallback = [WeakBatch](const int32 Index, const int32 Count, const int32 LoopIdx) {\
+const TSharedPtr<TBatch<T>> Batch = WeakBatch.Pin(); if(!Batch){return;}\
+		const TSharedRef<T>& Processor = Batch->Processors[Index]; if (Processor->IsTrivial()) { return; } _BODY }; \
 		_ID##NonTrivial->StartIterations(Processors.Num(), 1, false, false);\
 		if(!TrivialProcessors.IsEmpty()){\
 		PCGEX_ASYNC_GROUP_CHKD_VOID(AsyncManager, _ID##Trivial) \
-		_ID##Trivial->OnIterationCallback =[&](const int32 Index, const int32 Count, const int32 LoopIdx){ \
-		const TSharedRef<T>& Processor = TrivialProcessors[Index]; _BODY }; \
+		_ID##Trivial->OnIterationCallback =[WeakBatch](const int32 Index, const int32 Count, const int32 LoopIdx){ \
+		const TSharedPtr<TBatch<T>> Batch = WeakBatch.Pin(); if(!Batch){return;}\
+		const TSharedRef<T>& Processor = Batch->TrivialProcessors[Index]; _BODY }; \
 		_ID##Trivial->StartIterations( TrivialProcessors.Num(), 32, false, false); }\
 	}
 
@@ -46,7 +50,7 @@ namespace PCGExPointsMT
 		TSharedPtr<PCGExMT::FTaskManager> AsyncManager;
 		FPCGExContext* ExecutionContext = nullptr;
 
-		TSharedPtr<PCGExMT::FTaskGroup> PrefetchDataTaskGroup;
+		TSharedPtr<PCGExData::FFacadePreloader> InternalFacadePreloader;
 
 		TSharedPtr<PCGExPointFilter::FManager> PrimaryFilters;
 		bool bInlineProcessPoints = false;
@@ -96,61 +100,18 @@ namespace PCGExPointsMT
 			FilterFactories = InFactories;
 		}
 
-		virtual void PrepareAttributeBuffers(PCGExData::FReadableBufferConfigList& ReadableBufferConfigList)
+		virtual void RegisterBuffersDependencies(PCGExData::FFacadePreloader& FacadePreloader)
 		{
 		}
 
 		void PrefetchData(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager, const TSharedPtr<PCGExMT::FTaskGroup>& InPrefetchDataTaskGroup)
 		{
 			AsyncManager = InAsyncManager;
-			PrefetchDataTaskGroup = InPrefetchDataTaskGroup;
 
-			// Gather required vtx attributes
-			PCGExData::FReadableBufferConfigList BufferList;
-			PrepareAttributeBuffers(BufferList);
+			InternalFacadePreloader = MakeShared<PCGExData::FFacadePreloader>();
+			RegisterBuffersDependencies(*InternalFacadePreloader);
 
-			if (!BufferList.IsEmpty())
-			{
-				if (!BufferList.Validate(ExecutionContext, PointDataFacade)) { return; }
-
-				TWeakPtr<FPointsProcessor> WeakPtr = SharedThis(this);
-				PCGEX_ASYNC_GROUP_CHKD_VOID(AsyncManager, PrefetchAttributesTask)
-
-				PrefetchDataTaskGroup->GrowNumStarted();
-
-				PrefetchAttributesTask->OnCompleteCallback = [WeakPtr]()
-				{
-					const TSharedPtr<FPointsProcessor> This = WeakPtr.Pin();
-					if (!This) { return; }
-					This->PointDataFacade->MarkCurrentBuffersReadAsComplete();
-					This->PrefetchDataTaskGroup->GrowNumCompleted();
-				};
-
-				if (PointDataFacade->bSupportsScopedGet)
-				{
-					PrefetchAttributesTask->OnIterationRangeStartCallback =
-						[WeakPtr, BufferList](const int32 StartIndex, const int32 Count, const int32 LoopIdx)
-						{
-							const TSharedPtr<FPointsProcessor> This = WeakPtr.Pin();
-							if (!This) { return; }
-							BufferList.Fetch(This->PointDataFacade, StartIndex, Count);
-						};
-
-					PrefetchAttributesTask->StartRangePrepareOnly(PointDataFacade->GetNum(), GetDefault<UPCGExGlobalSettings>()->GetPointsBatchChunkSize());
-				}
-				else
-				{
-					PrefetchAttributesTask->OnIterationRangeStartCallback =
-						[WeakPtr, BufferList](const int32 StartIndex, const int32 Count, const int32 LoopIdx)
-						{
-							const TSharedPtr<FPointsProcessor> This = WeakPtr.Pin();
-							if (!This) { return; }
-							BufferList.Read(This->PointDataFacade, StartIndex);
-						};
-
-					PrefetchAttributesTask->StartRangePrepareOnly(BufferList.Num(), 1);
-				}
-			}
+			InternalFacadePreloader->StartLoading(AsyncManager, PointDataFacade, InPrefetchDataTaskGroup);
 		}
 
 		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager> InAsyncManager)
@@ -509,7 +470,7 @@ namespace PCGExPointsMT
 	protected:
 		void OnProcessingPreparationComplete()
 		{
-			PCGEX_ASYNC_MT_LOOP_TPL(Process, bInlineProcessing, { Processor->bIsProcessorValid = Processor->Process(AsyncManager); })
+			PCGEX_ASYNC_MT_LOOP_TPL(Process, bInlineProcessing, { Processor->bIsProcessorValid = Processor->Process(Batch->AsyncManager); })
 		}
 
 	public:

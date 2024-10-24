@@ -74,22 +74,25 @@ protected:
 	virtual TArray<FPCGPinProperties> InputPinProperties() const override;
 
 public:
-	virtual bool GetSortingRules(const FPCGContext* InContext, TArray<FPCGExSortRuleConfig>& OutRules) const override;
+	virtual bool GetSortingRules(FPCGExContext* InContext, TArray<FPCGExSortRuleConfig>& OutRules) const override;
 };
 
 namespace PCGExSortPoints
 {
-	static TArray<FPCGExSortRuleConfig> GetSortingRules(const FPCGContext* InContext, const FName InLabel)
+	static TArray<FPCGExSortRuleConfig> GetSortingRules(FPCGExContext* InContext, const FName InLabel)
 	{
 		TArray<FPCGExSortRuleConfig> OutRules;
 		TArray<TObjectPtr<const UPCGExSortingRule>> Factories;
-		if (!PCGExFactories::GetInputFactories(
-			InContext, InLabel, Factories,
-			{PCGExFactories::EType::RuleSort}, false)) { return OutRules; }
-
-		Factories.Sort([](const UPCGExSortingRule& A, const UPCGExSortingRule& B) { return A.Priority < B.Priority; });
+		if (!PCGExFactories::GetInputFactories(InContext, InLabel, Factories, {PCGExFactories::EType::RuleSort}, false)) { return OutRules; }
 		for (const UPCGExSortingRule* Factory : Factories) { OutRules.Add(Factory->Config); }
 
 		return OutRules;
+	}
+
+	static void PrepareRulesAttributeBuffers(FPCGExContext* InContext, const FName InLabel, PCGExData::FFacadePreloader& FacadePreloader)
+	{
+		TArray<TObjectPtr<const UPCGExSortingRule>> Factories;
+		if (!PCGExFactories::GetInputFactories(InContext, InLabel, Factories, {PCGExFactories::EType::RuleSort}, false)) { return; }
+		for (const UPCGExSortingRule* Factory : Factories) { FacadePreloader.Register<double>(InContext, Factory->Config.Selector); }
 	}
 }

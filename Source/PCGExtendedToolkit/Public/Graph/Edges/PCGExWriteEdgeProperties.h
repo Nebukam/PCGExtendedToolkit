@@ -205,7 +205,7 @@ protected:
 
 namespace PCGExWriteEdgeProperties
 {
-	class FProcessor final : public PCGExClusterMT::TClusterProcessor<FPCGExWriteEdgePropertiesContext, UPCGExWriteEdgePropertiesSettings>
+	class FProcessor final : public PCGExClusterMT::TProcessor<FPCGExWriteEdgePropertiesContext, UPCGExWriteEdgePropertiesSettings>
 	{
 		FPCGExEdgeDirectionSettings DirectionSettings;
 
@@ -226,7 +226,7 @@ namespace PCGExWriteEdgeProperties
 
 	public:
 		FProcessor(const TSharedRef<PCGExData::FFacade>& InVtxDataFacade, const TSharedRef<PCGExData::FFacade>& InEdgeDataFacade)
-			: TClusterProcessor(InVtxDataFacade, InEdgeDataFacade)
+			: TProcessor(InVtxDataFacade, InEdgeDataFacade)
 		{
 		}
 
@@ -251,7 +251,7 @@ namespace PCGExWriteEdgeProperties
 			bAllowVtxDataFacadeScopedGet = true;
 		}
 
-		virtual void GatherRequiredVtxAttributes(PCGExData::FReadableBufferConfigList& ReadableBufferConfigList) override;
+		virtual void RegisterBuffersDependencies(PCGExData::FFacadePreloader& FacadePreloader) override;
 		virtual void OnProcessingPreparationComplete() override;
 	};
 }

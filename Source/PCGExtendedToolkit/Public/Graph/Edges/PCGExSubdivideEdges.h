@@ -56,7 +56,7 @@ public:
 
 	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = Settings, Instanced, meta=(PCG_Overridable, ShowOnlyInnerProperties, NoResetToDefault))
 	TObjectPtr<UPCGExSubPointsBlendOperation> Blending;
-	
+
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Additional Outputs", meta=(PCG_Overridable, InlineEditConditionToggle))
 	bool bFlagSubVtx = false;
 
@@ -68,7 +68,7 @@ public:
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Additional Outputs", meta=(PCG_Overridable, EditCondition="bFlagSubEdge"))
 	FName SubEdgeFlagName = "IsSubEdge";
-	
+
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Additional Outputs", meta=(PCG_Overridable, InlineEditConditionToggle))
 	bool bWriteVtxAlpha = false;
 
@@ -117,7 +117,7 @@ namespace PCGExSubdivideEdges
 		FVector Dir = FVector::ZeroVector;
 	};
 
-	class FProcessor final : public PCGExClusterMT::TClusterProcessor<FPCGExSubdivideEdgesContext, UPCGExSubdivideEdgesSettings>
+	class FProcessor final : public PCGExClusterMT::TProcessor<FPCGExSubdivideEdgesContext, UPCGExSubdivideEdgesSettings>
 	{
 		TArray<FSubdivision> Subdivisions;
 
@@ -135,7 +135,7 @@ namespace PCGExSubdivideEdges
 
 	public:
 		FProcessor(const TSharedRef<PCGExData::FFacade>& InVtxDataFacade, const TSharedRef<PCGExData::FFacade>& InEdgeDataFacade)
-			: TClusterProcessor(InVtxDataFacade, InEdgeDataFacade)
+			: TProcessor(InVtxDataFacade, InEdgeDataFacade)
 		{
 		}
 
@@ -161,7 +161,7 @@ namespace PCGExSubdivideEdges
 			bAllowVtxDataFacadeScopedGet = true;
 		}
 
-		virtual void GatherRequiredVtxAttributes(PCGExData::FReadableBufferConfigList& ReadableBufferConfigList) override;
+		virtual void RegisterBuffersDependencies(PCGExData::FFacadePreloader& FacadePreloader) override;
 		virtual void OnProcessingPreparationComplete() override;
 	};
 }

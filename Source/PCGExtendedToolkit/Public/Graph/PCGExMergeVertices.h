@@ -70,7 +70,7 @@ protected:
 
 namespace PCGExMergeVertices
 {
-	class FProcessor final : public PCGExClusterMT::TClusterProcessor<FPCGExMergeVerticesContext, UPCGExMergeVerticesSettings>
+	class FProcessor final : public PCGExClusterMT::TProcessor<FPCGExMergeVerticesContext, UPCGExMergeVerticesSettings>
 	{
 		friend class FProcessorBatch;
 
@@ -81,7 +81,7 @@ namespace PCGExMergeVertices
 		int32 StartIndexOffset = 0;
 
 		FProcessor(const TSharedRef<PCGExData::FFacade>& InVtxDataFacade, const TSharedRef<PCGExData::FFacade>& InEdgeDataFacade):
-			TClusterProcessor(InVtxDataFacade, InEdgeDataFacade)
+			TProcessor(InVtxDataFacade, InEdgeDataFacade)
 		{
 		}
 

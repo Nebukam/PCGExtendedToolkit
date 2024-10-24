@@ -45,7 +45,7 @@ public:
 
 	FPCGExClusterStateConfigBase Config;
 
-	virtual void GatherRequiredVtxAttributes(FPCGExContext* InContext, PCGExData::FReadableBufferConfigList& ReadableBufferConfigList) const override;
+	virtual void RegisterBuffersDependencies(FPCGExContext* InContext, PCGExData::FFacadePreloader& FacadePreloader) const override;
 
 	virtual void BeginDestroy() override;
 };

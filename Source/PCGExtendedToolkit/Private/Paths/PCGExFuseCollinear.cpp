@@ -52,7 +52,6 @@ bool FPCGExFuseCollinearElement::ExecuteInternal(FPCGContext* InContext) const
 		{
 			Context->CancelExecution(TEXT("Could not find any paths to fuse."));
 		}
-
 	}
 
 	PCGEX_POINTS_BATCH_PROCESSING(PCGEx::State_Done)

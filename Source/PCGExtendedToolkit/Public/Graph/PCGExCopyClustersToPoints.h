@@ -63,7 +63,7 @@ protected:
 
 namespace PCGExCopyClusters
 {
-	class FProcessor final : public PCGExClusterMT::TClusterProcessor<FPCGExCopyClustersToPointsContext, UPCGExCopyClustersToPointsSettings>
+	class FProcessor final : public PCGExClusterMT::TProcessor<FPCGExCopyClustersToPointsContext, UPCGExCopyClustersToPointsSettings>
 	{
 	public:
 		TArray<TSharedPtr<PCGExData::FPointIO>>* VtxDupes = nullptr;
@@ -72,7 +72,7 @@ namespace PCGExCopyClusters
 		TArray<TSharedPtr<PCGExData::FPointIO>> EdgesDupes;
 
 		FProcessor(const TSharedRef<PCGExData::FFacade>& InVtxDataFacade, const TSharedRef<PCGExData::FFacade>& InEdgeDataFacade):
-			TClusterProcessor(InVtxDataFacade, InEdgeDataFacade)
+			TProcessor(InVtxDataFacade, InEdgeDataFacade)
 		{
 			bBuildCluster = false;
 		}

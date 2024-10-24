@@ -133,7 +133,7 @@ public:
 	EPCGExSampleMethod SampleMethod = EPCGExSampleMethod::WithinRange;
 
 	/** Sort direction */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="SampleMethod==EPCGExBoundsSampleMethod::BestCandidate", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta = (PCG_Overridable, EditCondition="SampleMethod==EPCGExSampleMethod::BestCandidate", EditConditionHides))
 	EPCGExSortDirection SortDirection = EPCGExSortDirection::Ascending;
 
 	/** Minimum target range. Used as fallback if LocalRangeMin is enabled but missing. */
@@ -295,8 +295,10 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExSampleInsideBoundsContext final : FPCGEx
 {
 	friend class FPCGExSampleInsideBoundsElement;
 
+	TSharedPtr<PCGExData::FFacadePreloader> TargetsPreloader;
 	TSharedPtr<PCGExData::FFacade> TargetsFacade;
 	const UPCGPointData::PointOctree* TargetOctree = nullptr;
+	TSharedPtr<PCGExSortPoints::PointSorter<false>> Sorter;
 
 	FPCGExBlendingDetails BlendingDetails;
 	const TArray<FPCGPoint>* TargetPoints = nullptr;
@@ -327,8 +329,6 @@ namespace PCGExSampleInsideBoundss
 		bool bSingleSample = false;
 		bool bSampleClosest = false;
 
-		TSharedPtr<PCGExSortPoints::PointSorter<false>> Sorter;
-
 		TSharedPtr<PCGExData::TBuffer<double>> RangeMinGetter;
 		TSharedPtr<PCGExData::TBuffer<double>> RangeMaxGetter;
 		TSharedPtr<PCGExData::TBuffer<FVector>> LookAtUpGetter;
@@ -356,5 +356,15 @@ namespace PCGExSampleInsideBoundss
 		virtual void PrepareSingleLoopScopeForPoints(const uint32 StartIndex, const int32 Count) override;
 		virtual void ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const int32 LoopIdx, const int32 Count) override;
 		virtual void CompleteWork() override;
+	};
+
+	class FBatch final : public PCGExPointsMT::TBatch<FProcessor>
+	{
+	public:
+		explicit FBatch(FPCGExContext* InContext, const TArray<TWeakPtr<PCGExData::FPointIO>>& InPointsCollection):
+			TBatch(InContext, InPointsCollection)
+		{
+			bPrefetchData = true;
+		}
 	};
 }

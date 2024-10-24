@@ -18,6 +18,7 @@ namespace PCGEx
 	PCGEX_ASYNC_STATE(State_Preparation)
 	PCGEX_ASYNC_STATE(State_LoadingAssetDependencies)
 	PCGEX_ASYNC_STATE(State_AsyncPreparation)
+	PCGEX_ASYNC_STATE(State_FacadePreloading)
 
 	PCGEX_ASYNC_STATE(State_InitialExecution)
 	PCGEX_ASYNC_STATE(State_ReadyForNextPoints)

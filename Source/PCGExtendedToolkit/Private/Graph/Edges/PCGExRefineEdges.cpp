@@ -32,7 +32,7 @@ TArray<FPCGPinProperties> UPCGExRefineEdgesSettings::InputPinProperties() const
 TArray<FPCGPinProperties> UPCGExRefineEdgesSettings::OutputPinProperties() const
 {
 	if (!bOutputEdgesOnly) { return Super::OutputPinProperties(); }
-	
+
 	TArray<FPCGPinProperties> PinProperties;
 	PCGEX_PIN_POINTS(PCGExGraph::OutputKeptEdgesLabel, "Kept edges but as simple points.", Required, {})
 	PCGEX_PIN_POINTS(PCGExGraph::OutputRemovedEdgesLabel, "Removed edges but as simple points.", Required, {})
@@ -73,7 +73,7 @@ bool FPCGExRefineEdgesElement::Boot(FPCGExContext* InContext) const
 
 	if (Settings->Sanitization == EPCGExRefineSanitization::Filters)
 	{
-		if(!GetInputFactories(Context, PCGExRefineEdges::SourceSanitizeEdgeFilters, Context->SanitizationFilterFactories, PCGExFactories::ClusterEdgeFilters, true))
+		if (!GetInputFactories(Context, PCGExRefineEdges::SourceSanitizeEdgeFilters, Context->SanitizationFilterFactories, PCGExFactories::ClusterEdgeFilters, true))
 		{
 			return false;
 		}
@@ -318,10 +318,10 @@ namespace PCGExRefineEdges
 
 		TArray<FPCGPoint>& KeptEdges = Context->KeptEdges->Pairs[EdgeDataFacade->Source->IOIndex]->GetMutablePoints();
 		TArray<FPCGPoint>& RemovedEdges = Context->RemovedEdges->Pairs[EdgeDataFacade->Source->IOIndex]->GetMutablePoints();
-		
+
 		KeptEdges.Reserve(EdgesNum);
 		RemovedEdges.Reserve(EdgesNum);
-		
+
 		const TArray<PCGExGraph::FIndexedEdge>& Edges = *Cluster->Edges;
 		for (int i = 0; i < EdgesNum; i++)
 		{
@@ -344,16 +344,16 @@ namespace PCGExRefineEdges
 		InsertEdges();
 	}
 
-	void FProcessorBatch::GatherRequiredVtxAttributes(PCGExData::FReadableBufferConfigList& ReadableBufferConfigList)
+	void FProcessorBatch::RegisterBuffersDependencies(PCGExData::FFacadePreloader& FacadePreloader)
 	{
-		TBatch<FProcessor>::GatherRequiredVtxAttributes(ReadableBufferConfigList);
+		TBatch<FProcessor>::RegisterBuffersDependencies(FacadePreloader);
 		PCGEX_TYPED_CONTEXT_AND_SETTINGS(RefineEdges)
 
-		Context->Refinement->GatherRequiredVtxAttributes(ExecutionContext, ReadableBufferConfigList);
+		Context->Refinement->RegisterBuffersDependencies(ExecutionContext, FacadePreloader);
 
-		//PCGExClusterFilter::GatherRequiredVtxAttributes(ExecutionContext, Context->VtxFilterFactories, ReadableBufferConfigList);
-		PCGExClusterFilter::GatherRequiredVtxAttributes(ExecutionContext, Context->EdgeFilterFactories, ReadableBufferConfigList);
-		PCGExClusterFilter::GatherRequiredVtxAttributes(ExecutionContext, Context->SanitizationFilterFactories, ReadableBufferConfigList);
+		//PCGExClusterFilter::RegisterBuffersDependencies(ExecutionContext, Context->VtxFilterFactories, FacadePreloader);
+		PCGExClusterFilter::RegisterBuffersDependencies(ExecutionContext, Context->EdgeFilterFactories, FacadePreloader);
+		PCGExClusterFilter::RegisterBuffersDependencies(ExecutionContext, Context->SanitizationFilterFactories, FacadePreloader);
 	}
 
 	void FProcessorBatch::OnProcessingPreparationComplete()

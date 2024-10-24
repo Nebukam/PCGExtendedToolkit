@@ -89,11 +89,11 @@ protected:
 
 namespace PCGExBridgeClusters
 {
-	class FProcessor final : public PCGExClusterMT::TClusterProcessor<FPCGExConnectClustersContext, UPCGExConnectClustersSettings>
+	class FProcessor final : public PCGExClusterMT::TProcessor<FPCGExConnectClustersContext, UPCGExConnectClustersSettings>
 	{
 	public:
 		FProcessor(const TSharedRef<PCGExData::FFacade>& InVtxDataFacade, const TSharedRef<PCGExData::FFacade>& InEdgeDataFacade):
-			TClusterProcessor(InVtxDataFacade, InEdgeDataFacade)
+			TProcessor(InVtxDataFacade, InEdgeDataFacade)
 		{
 		}
 

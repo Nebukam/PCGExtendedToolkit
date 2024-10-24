@@ -69,10 +69,10 @@ namespace PCGExAttributeRolling
 	{
 	}
 
-	void FProcessor::PrepareAttributeBuffers(PCGExData::FReadableBufferConfigList& ReadableBufferConfigList)
+	void FProcessor::RegisterBuffersDependencies(PCGExData::FFacadePreloader& FacadePreloader)
 	{
-		TPointsProcessor<FPCGExAttributeRollingContext, UPCGExAttributeRollingSettings>::PrepareAttributeBuffers(ReadableBufferConfigList);
-		Settings->BlendingSettings.PrepareAttributeBuffers(Context, PointDataFacade, ReadableBufferConfigList);
+		TPointsProcessor<FPCGExAttributeRollingContext, UPCGExAttributeRollingSettings>::RegisterBuffersDependencies(FacadePreloader);
+		Settings->BlendingSettings.RegisterBuffersDependencies(Context, PointDataFacade, FacadePreloader);
 	}
 
 	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager> InAsyncManager)
@@ -140,7 +140,6 @@ namespace PCGExAttributeRolling
 
 	void FProcessor::ProcessSingleRangeIteration(const int32 Iteration, const int32 LoopIdx, const int32 LoopCount)
 	{
-		
 		int32 TargetIndex = -1;
 		int32 PrevIndex = -1;
 

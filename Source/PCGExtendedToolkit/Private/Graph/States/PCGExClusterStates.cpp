@@ -15,10 +15,10 @@ TSharedPtr<PCGExPointFilter::FFilter> UPCGExClusterStateFactoryBase::CreateFilte
 	return NewState;
 }
 
-void UPCGExClusterStateFactoryBase::GatherRequiredVtxAttributes(FPCGExContext* InContext, PCGExData::FReadableBufferConfigList& ReadableBufferConfigList) const
+void UPCGExClusterStateFactoryBase::RegisterBuffersDependencies(FPCGExContext* InContext, PCGExData::FFacadePreloader& FacadePreloader) const
 {
-	Super::GatherRequiredVtxAttributes(InContext, ReadableBufferConfigList);
-	PCGExClusterFilter::GatherRequiredVtxAttributes(InContext, FilterFactories, ReadableBufferConfigList);
+	Super::RegisterBuffersDependencies(InContext, FacadePreloader);
+	PCGExClusterFilter::RegisterBuffersDependencies(InContext, FilterFactories, FacadePreloader);
 }
 
 void UPCGExClusterStateFactoryBase::BeginDestroy()

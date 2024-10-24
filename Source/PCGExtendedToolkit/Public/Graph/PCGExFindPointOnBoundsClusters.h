@@ -27,9 +27,9 @@ protected:
 
 	//~Begin UPCGExPointsProcessorSettings
 public:
-	virtual  TArray<FPCGPinProperties> OutputPinProperties() const override;
+	virtual TArray<FPCGPinProperties> OutputPinProperties() const override;
 	virtual PCGExData::EInit GetMainOutputInitMode() const override;
-	virtual FName GetMainOutputLabel() const override{ return PCGEx::OutputPointsLabel; }
+	virtual FName GetMainOutputLabel() const override { return PCGEx::OutputPointsLabel; }
 	//~End UPCGExPointsProcessorSettings
 
 	virtual PCGExData::EInit GetEdgeOutputInitMode() const override;
@@ -57,7 +57,7 @@ public:
 	/**  */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
 	bool bQuietAttributeMismatchWarning = false;
-	
+
 private:
 	friend class FPCGExFindPointOnBoundsClustersElement;
 };
@@ -72,7 +72,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExFindPointOnBoundsClustersContext final :
 	TSharedPtr<PCGExData::FPointIO> MergedOut;
 	TArray<TSharedPtr<PCGExData::FPointIO>> IOMergeSources;
 	TSharedPtr<PCGEx::FAttributesInfos> MergedAttributesInfos;
-	
+
 	virtual void ClusterProcessing_InitialProcessingDone() override;
 };
 
@@ -91,7 +91,7 @@ protected:
 
 namespace PCGExFindPointOnBoundsClusters
 {
-	class FProcessor final : public PCGExClusterMT::TClusterProcessor<FPCGExFindPointOnBoundsClustersContext, UPCGExFindPointOnBoundsClustersSettings>
+	class FProcessor final : public PCGExClusterMT::TProcessor<FPCGExFindPointOnBoundsClustersContext, UPCGExFindPointOnBoundsClustersSettings>
 	{
 		mutable FRWLock BestIndexLock;
 
@@ -104,7 +104,7 @@ namespace PCGExFindPointOnBoundsClusters
 		int32 Picker = -1;
 
 		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InVtxDataFacade, const TSharedRef<PCGExData::FFacade>& InEdgeDataFacade)
-			: TClusterProcessor(InVtxDataFacade, InEdgeDataFacade)
+			: TProcessor(InVtxDataFacade, InEdgeDataFacade)
 		{
 		}
 
