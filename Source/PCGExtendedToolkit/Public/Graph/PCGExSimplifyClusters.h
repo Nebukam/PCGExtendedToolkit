@@ -55,6 +55,10 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	bool bPruneDeadEnds = false;
 
+	/**  Edge Union Data */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditConditionHides, HideEditConditionToggle))
+	FPCGExEdgeUnionMetadataDetails EdgeUnionData;
+	
 	/** Graph & Edges output properties */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName="Cluster Output Settings"))
 	FPCGExGraphBuilderDetails GraphBuilderDetails;
@@ -103,6 +107,8 @@ namespace PCGExSimplifyClusters
 
 	class FProcessorBatch final : public PCGExClusterMT::TBatch<FProcessor>
 	{
+		
+		PCGExGraph::FGraphMetadataDetails GraphMetadataDetails;
 		friend class FProcessor;
 
 	public:
@@ -110,8 +116,10 @@ namespace PCGExSimplifyClusters
 			TBatch<FProcessor>(InContext, InVtx, InEdges)
 		{
 			bAllowVtxDataFacadeScopedGet = true;
+			bRequiresGraphBuilder = true;
 		}
 
+		virtual const PCGExGraph::FGraphMetadataDetails* GetGraphMetadataDetails() override;
 		virtual void RegisterBuffersDependencies(PCGExData::FFacadePreloader& FacadePreloader) override;
 	};
 }

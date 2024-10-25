@@ -145,8 +145,8 @@ namespace PCGExGraph
 		};
 
 		UnionDataFacade->WriteBuffersAsCallbacks(WriteMetadataTask);
-		WriteMetadataTask->AddSimpleCallback([WeakPtr]() { if (const TSharedPtr<FUnionProcessor> This = WeakPtr.Pin()) { This->UnionGraph->WriteNodeMetadata(This->GraphBuilder->Graph->NodeMetadata); } });
-		WriteMetadataTask->AddSimpleCallback([WeakPtr]() { if (const TSharedPtr<FUnionProcessor> This = WeakPtr.Pin()) { This->UnionGraph->WriteEdgeMetadata(This->GraphBuilder->Graph->EdgeMetadata); } });
+		WriteMetadataTask->AddSimpleCallback([WeakPtr]() { if (const TSharedPtr<FUnionProcessor> This = WeakPtr.Pin()) { This->UnionGraph->WriteNodeMetadata(This->GraphBuilder->Graph); } });
+		WriteMetadataTask->AddSimpleCallback([WeakPtr]() { if (const TSharedPtr<FUnionProcessor> This = WeakPtr.Pin()) { This->UnionGraph->WriteEdgeMetadata(This->GraphBuilder->Graph); } });
 
 		WriteMetadataTask->StartSimpleCallbacks();
 	}

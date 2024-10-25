@@ -517,6 +517,8 @@ namespace PCGExClusterMT
 			if (bWriteVtxDataFacade && bIsBatchValid) { VtxDataFacade->Write(AsyncManager); }
 		}
 
+		virtual const PCGExGraph::FGraphMetadataDetails* GetGraphMetadataDetails() { return nullptr; }
+
 		virtual void CompileGraphBuilder(const bool bOutputToContext)
 		{
 			if (!GraphBuilder || !bIsBatchValid) { return; }
@@ -535,7 +537,7 @@ namespace PCGExClusterMT
 				};
 			}
 
-			GraphBuilder->CompileAsync(AsyncManager, true);
+			GraphBuilder->CompileAsync(AsyncManager, true, GetGraphMetadataDetails());
 		}
 
 		virtual void Output()

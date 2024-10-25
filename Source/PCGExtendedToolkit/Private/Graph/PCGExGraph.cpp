@@ -62,14 +62,12 @@ namespace PCGExGraph
 
 	bool FGraph::InsertEdgeUnsafe(const int32 A, const int32 B, FIndexedEdge& OutEdge, const int32 IOIndex)
 	{
-		bool bAlreadyExists;
 		const uint64 Hash = PCGEx::H64U(A, B);
 
-		UniqueEdges.Add(Hash, &bAlreadyExists);
-
-		if (bAlreadyExists) { return false; }
+		if (UniqueEdges.Contains(Hash)) { return false; }
 
 		OutEdge = Edges.Emplace_GetRef(Edges.Num(), A, B, -1, IOIndex);
+		UniqueEdges.Add(Hash, (OutEdge.EdgeIndex = Edges.Num() - 1));
 
 		Nodes[A].Add(OutEdge.EdgeIndex);
 		Nodes[B].Add(OutEdge.EdgeIndex);
@@ -85,17 +83,11 @@ namespace PCGExGraph
 
 	bool FGraph::InsertEdgeUnsafe(const FIndexedEdge& Edge)
 	{
-		bool bAlreadyExists;
 		const uint64 Hash = Edge.H64U();
-
-		UniqueEdges.Add(Hash, &bAlreadyExists);
-
-		if (bAlreadyExists) { return false; }
-
-		UniqueEdges.Add(Hash);
+		if (UniqueEdges.Contains(Hash)) { return false; }
 
 		FIndexedEdge& NewEdge = Edges.Emplace_GetRef(Edge);
-		NewEdge.EdgeIndex = Edges.Num() - 1;
+		UniqueEdges.Add(Hash, (NewEdge.EdgeIndex = Edges.Num() - 1));
 
 		Nodes[Edge.Start].Add(NewEdge.EdgeIndex);
 		Nodes[Edge.End].Add(NewEdge.EdgeIndex);
@@ -109,20 +101,29 @@ namespace PCGExGraph
 		return InsertEdgeUnsafe(Edge);
 	}
 
+	bool FGraph::InsertEdgeUnsafe(const FIndexedEdge& Edge, FIndexedEdge& OutEdge)
+	{
+		return InsertEdgeUnsafe(Edge.Start, Edge.End, OutEdge, Edge.IOIndex);
+	}
+
+	bool FGraph::InsertEdge(const FIndexedEdge& Edge, FIndexedEdge& OutEdge)
+	{
+		return InsertEdge(Edge.Start, Edge.End, OutEdge, Edge.IOIndex);
+	}
+
 	void FGraph::InsertEdges(const TArray<uint64>& InEdges, const int32 InIOIndex)
 	{
 		FWriteScopeLock WriteLock(GraphLock);
 		uint32 A;
 		uint32 B;
-		bool bAlreadyExists;
 
 		for (const uint64& E : InEdges)
 		{
-			UniqueEdges.Add(E, &bAlreadyExists);
-			if (bAlreadyExists) { continue; }
+			if (UniqueEdges.Contains(E)) { continue; }
 
 			PCGEx::H64(E, A, B);
 			const int32 EdgeIndex = Edges.Emplace(Edges.Num(), A, B);
+			UniqueEdges.Add(E, EdgeIndex);
 			Nodes[A].Add(EdgeIndex);
 			Nodes[B].Add(EdgeIndex);
 			Edges[EdgeIndex].IOIndex = InIOIndex;
@@ -141,14 +142,13 @@ namespace PCGExGraph
 	{
 		uint32 A;
 		uint32 B;
-		bool bAlreadyExists;
 		for (const uint64& E : InEdges)
 		{
-			UniqueEdges.Add(E, &bAlreadyExists);
-			if (bAlreadyExists) { continue; }
+			if (UniqueEdges.Contains(E)) { continue; }
 
 			PCGEx::H64(E, A, B);
 			const int32 EdgeIndex = Edges.Emplace(Edges.Num(), A, B);
+			UniqueEdges.Add(E, EdgeIndex);
 			Nodes[A].Add(EdgeIndex);
 			Nodes[B].Add(EdgeIndex);
 			Edges[EdgeIndex].IOIndex = InIOIndex;
@@ -265,12 +265,12 @@ namespace PCGExGraph
 		}
 	}
 
-	void FGraphBuilder::CompileAsync(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager, const bool bWriteNodeFacade, FGraphMetadataDetails* MetadataDetails)
+	void FGraphBuilder::CompileAsync(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager, const bool bWriteNodeFacade, const FGraphMetadataDetails* MetadataDetails)
 	{
 		InAsyncManager->Start<PCGExGraphTask::FCompileGraph>(-1, NodeDataFacade->Source, SharedThis(this), bWriteNodeFacade, MetadataDetails);
 	}
 
-	void FGraphBuilder::Compile(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager, const bool bWriteNodeFacade, FGraphMetadataDetails* MetadataDetails)
+	void FGraphBuilder::Compile(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager, const bool bWriteNodeFacade, const FGraphMetadataDetails* MetadataDetails)
 	{
 		AsyncManager = InAsyncManager;
 		MetadataDetailsPtr = MetadataDetails;
@@ -367,7 +367,7 @@ namespace PCGExGraph
 
 			for (const int32 NodeIndex : ValidNodes)
 			{
-				const FGraphNodeMetadata* NodeMeta = Graph->FindNodeMetadata(NodeIndex);
+				const FGraphNodeMetadata* NodeMeta = Graph->FindNodeMetadataUnsafe(NodeIndex);
 
 				if (!NodeMeta) { continue; }
 
@@ -399,6 +399,7 @@ namespace PCGExGraph
 			}
 
 			SubGraph->UID = EdgeIO->GetOut()->GetUniqueID();
+			SubGraph->OnSubGraphPostProcess = OnSubGraphPostProcess;
 
 			SubGraph->VtxDataFacade = NodeDataFacade;
 			SubGraph->EdgesDataFacade = MakeShared<PCGExData::FFacade>(EdgeIO.ToSharedRef());
@@ -546,7 +547,7 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 			for (const PCGExGraph::FIndexedEdge& E : FlattenedEdges)
 			{
 				const int32 PointIndex = E.EdgeIndex;
-				if (const PCGExGraph::FGraphEdgeMetadata* EdgeMeta = Graph->FindRootEdgeMetadata(RootEdgeIndices[E.EdgeIndex]))
+				if (const PCGExGraph::FGraphEdgeMetadata* EdgeMeta = Graph->FindRootEdgeMetadataUnsafe(RootEdgeIndices[E.EdgeIndex]))
 				{
 					PCGEX_FOREACH_EDGE_METADATA(PCGEX_EDGE_METADATA_OUTPUT)
 				}
@@ -564,6 +565,8 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 				AsyncManager->Start<FWriteSubGraphCluster>(-1, nullptr, SubGraph);
 			}
 		}
+
+		if (SubGraph->OnSubGraphPostProcess) { SubGraph->OnSubGraphPostProcess(SubGraph.ToSharedRef()); }
 
 		SubGraph->EdgesDataFacade->Write(AsyncManager);
 	}
