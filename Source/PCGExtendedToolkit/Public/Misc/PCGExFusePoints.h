@@ -109,7 +109,6 @@ namespace PCGExFusePoints
 {
 	class FProcessor final : public PCGExPointsMT::TPointsProcessor<FPCGExFusePointsContext, UPCGExFusePointsSettings>
 	{
-		PCGExGraph::FGraphMetadataDetails GraphMetadataDetails;
 		TSharedPtr<PCGExGraph::FUnionGraph> UnionGraph;
 		TSharedPtr<PCGExDataBlending::FUnionBlender> UnionBlender;
 

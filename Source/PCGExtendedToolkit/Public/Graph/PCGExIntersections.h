@@ -262,8 +262,8 @@ namespace PCGExGraph
 		                                        const int32 EdgeIOIndex = -1, const int32 EdgePointIndex = -1);
 		void GetUniqueEdges(TSet<uint64>& OutEdges);
 		void GetUniqueEdges(TArray<FIndexedEdge>& OutEdges);
-		void WriteNodeMetadata(TMap<int32, FGraphNodeMetadata>& OutMetadata) const;
-		void WriteEdgeMetadata(TMap<int32, FGraphEdgeMetadata>& OutMetadata) const;
+		void WriteNodeMetadata(const TSharedPtr<FGraph>& InGraph) const;
+		void WriteEdgeMetadata(const TSharedPtr<FGraph>& InGraph) const;
 	};
 
 #pragma endregion
@@ -389,7 +389,7 @@ namespace PCGExGraph
 
 		if (!InIntersections->Details->bEnableSelfIntersection)
 		{
-			const int32 RootIndex = InIntersections->Graph->FindEdgeMetadata(Edge.EdgeIndex)->RootIndex;
+			const int32 RootIndex = InIntersections->Graph->FindEdgeMetadataUnsafe(Edge.EdgeIndex)->RootIndex;
 			const TSet<int32>& RootIOIndices = InIntersections->UnionGraph->EdgesUnion->Entries[RootIndex]->IOIndices;
 
 			auto ProcessPointRef = [&](const FPCGPointRef& PointRef)
@@ -662,7 +662,7 @@ namespace PCGExGraph
 
 		if (!InIntersections->Details->bEnableSelfIntersection)
 		{
-			const int32 RootIndex = InIntersections->Graph->FindEdgeMetadata(Edge.EdgeIndex)->RootIndex;
+			const int32 RootIndex = InIntersections->Graph->FindEdgeMetadataUnsafe(Edge.EdgeIndex)->RootIndex;
 			const TSet<int32>& RootIOIndices = InIntersections->UnionGraph->EdgesUnion->Entries[RootIndex]->IOIndices;
 
 			auto ProcessEdge = [&](const FEdgeEdgeProxy* Proxy)
@@ -677,7 +677,7 @@ namespace PCGExGraph
 				}
 
 				// Check overlap last as it's the most expensive op
-				if (InIntersections->UnionGraph->PointsUnion->IOIndexOverlap(InIntersections->Graph->FindEdgeMetadata(OtherEdge.EdgeIndex)->RootIndex, RootIOIndices)) { return; }
+				if (InIntersections->UnionGraph->PointsUnion->IOIndexOverlap(InIntersections->Graph->FindEdgeMetadataUnsafe(OtherEdge.EdgeIndex)->RootIndex, RootIOIndices)) { return; }
 
 				if (!Edge.FindSplit(OtherEdge, OutSplits))
 				{

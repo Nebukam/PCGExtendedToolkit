@@ -38,9 +38,9 @@ bool FPCGExSimplifyClustersElement::ExecuteInternal(FPCGContext* InContext) cons
 	PCGEX_EXECUTION_CHECK
 	PCGEX_ON_INITIAL_EXECUTION
 	{
-		if (!Context->StartProcessingClusters<PCGExClusterMT::TBatchWithGraphBuilder<PCGExSimplifyClusters::FProcessor>>(
+		if (!Context->StartProcessingClusters<PCGExSimplifyClusters::FProcessorBatch>(
 			[&](const TSharedPtr<PCGExData::FPointIOTaggedEntries>& Entries) { return true; },
-			[&](const TSharedPtr<PCGExClusterMT::TBatchWithGraphBuilder<PCGExSimplifyClusters::FProcessor>>& NewBatch)
+			[&](const TSharedPtr<PCGExSimplifyClusters::FProcessorBatch>& NewBatch)
 			{
 			}))
 		{
@@ -113,44 +113,63 @@ namespace PCGExSimplifyClusters
 
 		const TArray<PCGExCluster::FNode>& NodesRef = *Cluster->Nodes;
 		const TArray<PCGExGraph::FIndexedEdge>& EdgesRef = *Cluster->Edges;
+		const bool bComputeMeta = Settings->EdgeUnionData.WriteAny();
 
 		const bool bIsDeadEnd = NodesRef[Chain->First].Adjacency.Num() == 1 || NodesRef[Chain->Last].Adjacency.Num() == 1;
 
 		if (Settings->bPruneDeadEnds && bIsDeadEnd) { return; }
 
+		PCGExGraph::FIndexedEdge OutEdge = PCGExGraph::FIndexedEdge{};
+
 		if (Settings->bOperateOnDeadEndsOnly && !bIsDeadEnd)
 		{
 			// Dump edges
-			if (Chain->SingleEdge != -1) { GraphBuilder->Graph->InsertEdge(EdgesRef[Chain->SingleEdge]); }
-			else { for (const int32 EdgeIndex : Chain->Edges) { GraphBuilder->Graph->InsertEdge(EdgesRef[EdgeIndex]); } }
+			if (Chain->SingleEdge != -1)
+			{
+				GraphBuilder->Graph->InsertEdge(EdgesRef[Chain->SingleEdge], OutEdge);
+				if (bComputeMeta) { GraphBuilder->Graph->GetOrCreateEdgeMetadata(OutEdge.EdgeIndex).UnionSize = 1; }
+			}
+			else
+			{
+				for (const int32 EdgeIndex : Chain->Edges)
+				{
+					GraphBuilder->Graph->InsertEdge(EdgesRef[EdgeIndex], OutEdge);
+					if (bComputeMeta) { GraphBuilder->Graph->GetOrCreateEdgeMetadata(OutEdge.EdgeIndex).UnionSize = 1; }
+				}
+			}
 			return;
 		}
 
 		const int32 IOIndex = Cluster->EdgesIO.Pin()->IOIndex;
-		const double DotThreshold = PCGExMath::DegreesToDot(Settings->AngularThreshold);
-		PCGExGraph::FIndexedEdge NewEdge = PCGExGraph::FIndexedEdge{};
+
+		int32 StartIndex = Chain->First;
+		const int32 LastIndex = Chain->Nodes.Num() - 1;
 
 		if (!Settings->bMergeAboveAngularThreshold)
 		{
 			GraphBuilder->Graph->InsertEdge(
 				NodesRef[Chain->First].PointIndex,
 				NodesRef[Chain->Last].PointIndex,
-				NewEdge, IOIndex);
+				OutEdge, IOIndex);
 
+			if (bComputeMeta) { GraphBuilder->Graph->GetOrCreateEdgeMetadata(OutEdge.EdgeIndex).UnionSize = Chain->Nodes.Num() + 1; }
 			return;
 		}
 
 		if (Chain->SingleEdge != -1)
 		{
-			GraphBuilder->Graph->InsertEdge(EdgesRef[Chain->SingleEdge]);
+			GraphBuilder->Graph->InsertEdge(EdgesRef[Chain->SingleEdge], OutEdge);
+			if (bComputeMeta) { GraphBuilder->Graph->GetOrCreateEdgeMetadata(OutEdge.EdgeIndex).UnionSize = Chain->Nodes.Num() + 1; }
 			return;
 		}
 
-
-		int32 StartIndex = Chain->First;
-		const int32 LastIndex = Chain->Nodes.Num() - 1;
-
+		const double DotThreshold = PCGExMath::DegreesToDot(Settings->AngularThreshold);
 		TSet<uint64> NewEdges;
+
+		// Insert nodes incrementally, checking for angle
+
+		TMap<uint64, int32> NewEdgesMap;
+		int32 FusedEdgeNum = 1;
 
 		for (int i = 0; i < Chain->Nodes.Num(); i++)
 		{
@@ -163,16 +182,49 @@ namespace PCGExSimplifyClusters
 			const FVector A = Cluster->GetDir(PrevNode, CurrentNode).GetSafeNormal();
 			const FVector B = Cluster->GetDir(CurrentNode, NextNode).GetSafeNormal();
 
-			if (!Settings->bInvertAngularThreshold) { if (FVector::DotProduct(A, B) > DotThreshold) { continue; } }
-			else { if (FVector::DotProduct(A, B) < DotThreshold) { continue; } }
+			if (!Settings->bInvertAngularThreshold)
+			{
+				if (FVector::DotProduct(A, B) > DotThreshold)
+				{
+					FusedEdgeNum++;
+					continue;
+				}
+			}
+			else
+			{
+				if (FVector::DotProduct(A, B) < DotThreshold)
+				{
+					FusedEdgeNum++;
+					continue;
+				}
+			}
 
-			NewEdges.Add(PCGEx::H64U(NodesRef[StartIndex].PointIndex, NodesRef[CurrentIndex].PointIndex));
+			uint64 Hash = PCGEx::H64U(NodesRef[StartIndex].PointIndex, NodesRef[CurrentIndex].PointIndex);
+			NewEdges.Add(Hash);
 			StartIndex = CurrentIndex;
+
+			NewEdgesMap.Add(Hash, FusedEdgeNum);
+			FusedEdgeNum = 1;
 		}
 
 		NewEdges.Add(PCGEx::H64U(NodesRef[StartIndex].PointIndex, NodesRef[Chain->Last].PointIndex)); // Wrap
-
 		GraphBuilder->Graph->InsertEdges(NewEdges, IOIndex);
+
+		if (bComputeMeta)
+		{
+			for (const uint64 H : NewEdges)
+			{
+				GraphBuilder->Graph->GetOrCreateNodeMetadataUnsafe(GraphBuilder->Graph->FindEdge(H)->EdgeIndex).UnionSize = NewEdgesMap[H];
+			}
+		}
+	}
+
+	const PCGExGraph::FGraphMetadataDetails* FProcessorBatch::GetGraphMetadataDetails()
+	{
+		PCGEX_TYPED_CONTEXT_AND_SETTINGS(SimplifyClusters)
+		if (!Settings->EdgeUnionData.WriteAny()) { return nullptr; }
+		GraphMetadataDetails.Grab(Context, Settings->EdgeUnionData);
+		return &GraphMetadataDetails;
 	}
 
 	void FProcessorBatch::RegisterBuffersDependencies(PCGExData::FFacadePreloader& FacadePreloader)

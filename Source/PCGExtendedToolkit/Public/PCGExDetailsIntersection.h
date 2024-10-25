@@ -12,7 +12,7 @@
 #include "PCGExDetailsIntersection.generated.h"
 
 USTRUCT(BlueprintType)
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExIntersectionMetaDetails
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExUnionMetadataDetails
 {
 	GENERATED_BODY()
 
@@ -36,13 +36,13 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExIntersectionMetaDetails
 };
 
 USTRUCT(BlueprintType)
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPointIntersectionMetaDetails : public FPCGExIntersectionMetaDetails
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPointUnionMetadataDetails : public FPCGExUnionMetadataDetails
 {
 	GENERATED_BODY()
 };
 
 USTRUCT(BlueprintType)
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExEdgeIntersectionMetaDetails : public FPCGExIntersectionMetaDetails
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExEdgeUnionMetadataDetails : public FPCGExUnionMetadataDetails
 {
 	GENERATED_BODY()
 };
@@ -70,11 +70,11 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPointPointIntersectionDetails
 
 	/**  Point Union Data */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
-	FPCGExPointIntersectionMetaDetails PointUnionData;
+	FPCGExPointUnionMetadataDetails PointUnionData;
 
 	/**  Edge Union Data */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bSupportsEdges", EditConditionHides, HideEditConditionToggle))
-	FPCGExPointIntersectionMetaDetails EdgeUnionData;
+	FPCGExEdgeUnionMetadataDetails EdgeUnionData;
 
 	bool WriteAny() const { return bSupportsEdges ? (PointUnionData.WriteAny() || EdgeUnionData.WriteAny()) : PointUnionData.WriteAny(); }
 };
