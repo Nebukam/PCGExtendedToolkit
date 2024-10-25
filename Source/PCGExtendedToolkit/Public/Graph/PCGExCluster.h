@@ -263,7 +263,7 @@ namespace PCGExCluster
 		FORCEINLINE double EdgeDistToEdge(const uint64 A, const uint64 B, FVector& OutP1, FVector& OutP2) const
 		{
 			FMath::SegmentDistToSegment(
-				GetPos(PCGEx::H64A(A)), GetPos(PCGEx::H64B(B)),
+				GetPos(PCGEx::H64A(A)), GetPos(PCGEx::H64B(A)),
 				GetPos(PCGEx::H64A(B)), GetPos(PCGEx::H64B(B)),
 				OutP1, OutP2);
 

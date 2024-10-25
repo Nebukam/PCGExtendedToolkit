@@ -299,27 +299,27 @@ namespace PCGExGraph
 		for (const TPair<uint64, FIndexedEdge>& Pair : Edges) { OutEdges[Pair.Value.EdgeIndex] = Pair.Value; }
 	}
 
-	void FUnionGraph::WriteNodeMetadata(TMap<int32, FGraphNodeMetadata>& OutMetadata) const
+	void FUnionGraph::WriteNodeMetadata(const TSharedPtr<FGraph>& InGraph) const
 	{
-		OutMetadata.Reserve(Nodes.Num());
+		InGraph->NodeMetadata.Reserve(Nodes.Num());
 
 		for (const FUnionNode* Node : Nodes)
 		{
 			const PCGExData::FUnionData* UnionData = PointsUnion->Entries[Node->Index];
-			FGraphNodeMetadata& NodeMeta = FGraphNodeMetadata::GetOrCreate(Node->Index, OutMetadata);
+			FGraphNodeMetadata& NodeMeta = InGraph->GetOrCreateNodeMetadataUnsafe(Node->Index);
 			NodeMeta.UnionSize = UnionData->Num();
 		}
 	}
 
-	void FUnionGraph::WriteEdgeMetadata(TMap<int32, FGraphEdgeMetadata>& OutMetadata) const
+	void FUnionGraph::WriteEdgeMetadata(const TSharedPtr<FGraph>& InGraph) const
 	{
 		const int32 NumEdges = Edges.Num();
-		OutMetadata.Reserve(NumEdges);
+		InGraph->EdgeMetadata.Reserve(NumEdges);
 
 		for (int i = 0; i < NumEdges; i++)
 		{
 			const PCGExData::FUnionData* UnionData = EdgesUnion->Entries[i];
-			FGraphEdgeMetadata& EdgeMetadata = FGraphEdgeMetadata::GetOrCreate(i, nullptr, OutMetadata);
+			FGraphEdgeMetadata& EdgeMetadata = InGraph->GetOrCreateEdgeMetadataUnsafe(i);
 			EdgeMetadata.UnionSize = UnionData->Num();
 		}
 		/*
@@ -365,7 +365,7 @@ namespace PCGExGraph
 			if (PointEdgeProxy.CollinearPoints.IsEmpty()) { continue; }
 
 			const FIndexedEdge& SplitEdge = Graph->Edges[PointEdgeProxy.EdgeIndex];
-			const FGraphEdgeMetadata* SplitEdgeMeta = Graph->FindEdgeMetadata(SplitEdge.EdgeIndex);
+			const FGraphEdgeMetadata* SplitEdgeMeta = Graph->FindEdgeMetadataUnsafe(SplitEdge.EdgeIndex);
 
 			int32 NodeIndex = -1;
 
@@ -377,10 +377,10 @@ namespace PCGExGraph
 				Graph->InsertEdge(PrevIndex, NodeIndex, NewEdge, SplitEdge.IOIndex); //TODO: IOIndex required
 				PrevIndex = NodeIndex;
 
-				FGraphNodeMetadata& NodeMetadata = FGraphNodeMetadata::GetOrCreate(NodeIndex, Graph->NodeMetadata);
+				FGraphNodeMetadata& NodeMetadata = Graph->GetOrCreateNodeMetadataUnsafe(NodeIndex);
 				NodeMetadata.Type = EPCGExIntersectionType::PointEdge;
 
-				FGraphEdgeMetadata& EdgeMetadata = FGraphEdgeMetadata::GetOrCreate(NewEdge.EdgeIndex, SplitEdgeMeta, Graph->EdgeMetadata);
+				FGraphEdgeMetadata& EdgeMetadata = Graph->GetOrCreateEdgeMetadataUnsafe(NewEdge.EdgeIndex, SplitEdgeMeta);
 				EdgeMetadata.Type = EPCGExIntersectionType::PointEdge;
 
 				if (Details->bSnapOnEdge)
@@ -476,7 +476,7 @@ namespace PCGExGraph
 			if (EdgeProxy.Intersections.IsEmpty()) { continue; }
 
 			const FIndexedEdge SplitEdge = Graph->Edges[EdgeProxy.EdgeIndex];
-			const FGraphEdgeMetadata* SplitEdgeMeta = Graph->FindEdgeMetadata(SplitEdge.EdgeIndex);
+			const FGraphEdgeMetadata* SplitEdgeMeta = Graph->FindEdgeMetadataUnsafe(SplitEdge.EdgeIndex);
 
 			int32 NodeIndex = -1;
 			int32 PrevIndex = SplitEdge.Start;
@@ -489,10 +489,10 @@ namespace PCGExGraph
 				Graph->InsertEdgeUnsafe(PrevIndex, NodeIndex, NewEdge, SplitEdge.IOIndex); //TODO: this is the wrong edge IOIndex
 				PrevIndex = NodeIndex;
 
-				FGraphNodeMetadata& NodeMetadata = FGraphNodeMetadata::GetOrCreate(NodeIndex, Graph->NodeMetadata);
+				FGraphNodeMetadata& NodeMetadata = Graph->GetOrCreateNodeMetadataUnsafe(NodeIndex);
 				NodeMetadata.Type = EPCGExIntersectionType::EdgeEdge;
 
-				FGraphEdgeMetadata& EdgeMetadata = FGraphEdgeMetadata::GetOrCreate(NewEdge.EdgeIndex, SplitEdgeMeta, Graph->EdgeMetadata);
+				FGraphEdgeMetadata& EdgeMetadata = Graph->GetOrCreateEdgeMetadataUnsafe(NewEdge.EdgeIndex, SplitEdgeMeta);
 				EdgeMetadata.Type = EPCGExIntersectionType::EdgeEdge;
 			}
 
