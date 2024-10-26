@@ -296,10 +296,10 @@ namespace PCGExCutEdges
 			return;
 		}
 
-		const FVector A1 = Cluster->GetPos(Node);
 
-		const FPCGPoint& NodePoint = VtxDataFacade->Source->GetInPoint(Index);
-		FBox PointBox = PCGExMath::GetLocalBounds<EPCGExPointBoundsSource::ScaledBounds>(NodePoint).ExpandBy(Settings->NodeExpansion).TransformBy(NodePoint.Transform);
+		const FPCGPoint& NodePoint = VtxDataFacade->Source->GetInPoint(Node.PointIndex);
+		const FVector A1 = NodePoint.Transform.GetLocation();
+		FBox PointBox = PCGExMath::GetLocalBounds<EPCGExPointBoundsSource::Bounds>(NodePoint).ExpandBy(Settings->NodeExpansion + Settings->IntersectionDetails.ToleranceSquared).TransformBy(NodePoint.Transform);
 
 		for (TSharedPtr<PCGExPaths::FPath> Path : Context->Paths)
 		{
