@@ -104,7 +104,6 @@ namespace PCGExPathCrossings
 
 		if (!FPointsProcessor::Process(InAsyncManager)) { return false; }
 
-
 		bClosedLoop = Context->ClosedLoop.IsClosedLoop(PointIO);
 		bSelfIntersectionOnly = Settings->bSelfIntersectionOnly;
 		Details = Settings->IntersectionDetails;
@@ -116,32 +115,19 @@ namespace PCGExPathCrossings
 		CanBeCutFilterManager = MakeShared<PCGExPointFilter::FManager>(PointDataFacade);
 		if (!CanBeCutFilterManager->Init(ExecutionContext, Context->CanBeCutFilterFactories)) { CanBeCutFilterManager.Reset(); }
 
-		// Build edges
-		const TArray<FPCGPoint>& InPoints = PointIO->GetIn()->GetPoints();
-		NumPoints = InPoints.Num();
-		LastIndex = NumPoints - 1;
+		Path = PCGExPaths::MakePath(PointIO->GetIn()->GetPoints(), Details.Tolerance * 2, bClosedLoop, true);
+		Path->IOIndex = PointIO->IOIndex;
+		
+		Crossings.Init(nullptr, Path->NumEdges);
 
-		PCGEx::InitArray(Positions, NumPoints);
-		PCGEx::InitArray(Lengths, NumPoints);
-		Edges.Init(nullptr, NumPoints);
-		Crossings.Init(nullptr, NumPoints);
-
-		CanCut.Init(true, NumPoints);
-		CanBeCut.Init(true, NumPoints);
-
-		FBox PointBounds = FBox(ForceInit);
-		for (int i = 0; i < NumPoints; i++)
-		{
-			const FVector V = InPoints[i].Transform.GetLocation();
-			Positions[i] = V;
-			PointBounds += V;
-		}
-
-		EdgeOctree = MakeUnique<TEdgeOctree>(PointBounds.GetCenter(), PointBounds.GetExtent().Length() + (Details.Tolerance * 2));
+		CanCut.SetNumUninitialized(Path->NumEdges);
+		CanBeCut.SetNumUninitialized(Path->NumEdges);
 
 		Blending = Cast<UPCGExSubPointsBlendOperation>(PrimaryOperation);
 		Blending->bClosedLoop = bClosedLoop;
 		if (Settings->bOrientCrossing) { Blending->bPreserveRotation = true; }
+
+		//TWeakPtr<FProcessor> WeakPtr = SharedThis(this);
 
 		PCGEX_ASYNC_GROUP_CHKD(AsyncManager, Preparation)
 		Preparation->OnCompleteCallback =
@@ -149,67 +135,76 @@ namespace PCGExPathCrossings
 			{
 				CanCutFilterManager.Reset();
 				CanBeCutFilterManager.Reset();
-
-				if (!bClosedLoop)
-				{
-					CanBeCut[NumPoints - 1] = false;
-					CanCut[NumPoints - 1] = false;
-				}
-
-				for (int i = 0; i < NumPoints; i++)
-				{
-					if (!CanCut[i]) { continue; } // !!
-					EdgeOctree->AddElement(Edges[i].Get());
-				}
+				Path->BuildPartialEdgeOctree(CanCut);
+				CanCut.Empty();
 			};
 
 		Preparation->OnIterationRangeStartCallback =
 			[&](const int32 StartIndex, const int32 Count, const int32 LoopIdx)
 			{
 				PointDataFacade->Fetch(StartIndex, Count);
+				const int32 MaxIndex = StartIndex + Count;
+
+				if (CanCutFilterManager && CanBeCutFilterManager)
+				{
+					for (int i = StartIndex; i < MaxIndex; i++)
+					{
+						CanCut[i] = CanCutFilterManager->Test(i);
+						CanBeCut[i] = CanBeCutFilterManager->Test(i);
+					}
+				}
+				else if (CanCutFilterManager)
+				{
+					for (int i = StartIndex; i < MaxIndex; i++)
+					{
+						CanCut[i] = CanCutFilterManager->Test(i);
+						CanBeCut[i] = true;
+					}
+				}
+				else if (CanBeCutFilterManager)
+				{
+					for (int i = StartIndex; i < MaxIndex; i++)
+					{
+						CanCut[i] = true;
+						CanBeCut[i] = CanBeCutFilterManager->Test(i);
+					}
+				}
+				else
+				{
+					for (int i = StartIndex; i < MaxIndex; i++)
+					{
+						CanCut[i] = true;
+						CanBeCut[i] = true;
+					}
+				}
 			};
 
-		Preparation->OnIterationCallback = [&](const int32 Index, const int32 Count, const int32 LoopIdx)
-		{
-			const TSharedPtr<PCGExPaths::FPathEdge> Edge = MakeShared<PCGExPaths::FPathEdge>(Index, Index + 1 >= NumPoints ? 0 : Index + 1, Positions, Details.Tolerance);
-
-			const double Length = FVector::DistSquared(Positions[Edge->Start], Positions[Edge->End]);
-			Lengths[Index] = Length;
-
-			if (Length > 0)
-			{
-				if (CanCutFilterManager) { CanCut[Index] = CanCutFilterManager->Test(Index); }
-				if (CanBeCutFilterManager) { CanBeCut[Index] = CanBeCutFilterManager->Test(Index); }
-			}
-
-			Edges[Index] = Edge;
-		};
-
-		Preparation->StartIterations(NumPoints, GetDefault<UPCGExGlobalSettings>()->GetPointsBatchChunkSize());
+		Preparation->StartRangePrepareOnly(Path->NumEdges, GetDefault<UPCGExGlobalSettings>()->GetPointsBatchChunkSize());
 
 		return true;
 	}
 
-	void FProcessor::ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const int32 LoopIdx, const int32 LoopCount)
+	void FProcessor::ProcessSingleRangeIteration(const int32 Iteration, const int32 LoopIdx, const int32 LoopCount)
 	{
-		Crossings[Index] = nullptr;
+		Crossings[Iteration] = nullptr;
+		if (!CanBeCut[Iteration]) { return; }
 
-		if (!CanBeCut[Index]) { return; }
-		if (!bClosedLoop && Index == LastIndex) { return; }
+		const PCGExPaths::FPathEdge& Edge = Path->Edges[Iteration];
 
-		const PCGExPaths::FPathEdge* Edge = Edges[Index].Get();
+		const PCGExPaths::FPath* OtherPath = nullptr;
 
 		int32 CurrentIOIndex = PointDataFacade->Source->IOIndex;
-		const TArray<FVector>* P2 = &Positions;
 
-		const TSharedPtr<FCrossing> NewCrossing = MakeShared<FCrossing>(Index);
+		const TSharedPtr<FCrossing> NewCrossing = MakeShared<FCrossing>(Iteration);
 
-		auto FindSplit = [&](const PCGExPaths::FPathEdge* E1, const PCGExPaths::FPathEdge* E2)
+		auto FindSplit = [&](const PCGExPaths::FPathEdge& E1, const PCGExPaths::FPathEdge& E2)
 		{
-			const FVector& A1 = Positions[E1->Start];
-			const FVector& B1 = Positions[E1->End];
-			const FVector& A2 = *(P2->GetData() + E2->Start);
-			const FVector& B2 = *(P2->GetData() + E2->End);
+			if (!Path->IsEdgeValid(E1) || !OtherPath->IsEdgeValid(E2)) { return; }
+
+			const FVector& A1 = Path->GetPos(E1.Start);
+			const FVector& B1 = Path->GetPos(E1.End);
+			const FVector& A2 = OtherPath->GetPos(E2.Start);
+			const FVector& B2 = OtherPath->GetPos(E2.End);
 			if (A1 == A2 || A1 == B2 || A2 == B1 || B2 == B1) { return; }
 
 			const FVector CrossDir = (B2 - A2).GetSafeNormal();
@@ -221,29 +216,26 @@ namespace PCGExPathCrossings
 
 			FVector A;
 			FVector B;
-			FMath::SegmentDistToSegment(
-				A1, B1,
-				A2, B2,
-				A, B);
-
+			FMath::SegmentDistToSegment(A1, B1, A2, B2, A, B);
 			if (A == A1 || A == B1 || B == A2 || B == B2) { return; }
 
 			if (FVector::DistSquared(A, B) >= Details.ToleranceSquared) { return; }
 
-			NewCrossing->Crossings.Add(PCGEx::H64(E2->Start, CurrentIOIndex));
+			NewCrossing->Crossings.Add(PCGEx::H64(E2.Start, CurrentIOIndex));
 			NewCrossing->Positions.Add(FMath::Lerp(A, B, 0.5));
 			NewCrossing->CrossingDirections.Add(CrossDir);
-			NewCrossing->Alphas.Add(FVector::DistSquared(A1, A) / Lengths[E1->Start]);
+			NewCrossing->Alphas.Add(FVector::Dist(A1, A) / Path->GetEdgeLength(E1));
 		};
 
 		// Find crossings
 		if (bSelfIntersectionOnly)
 		{
-			EdgeOctree->FindElementsWithBoundsTest(
-				Edge->FSBounds.GetBox(), [&](const PCGExPaths::FPathEdge* OtherEdge)
+			OtherPath = Path.Get();
+			Path->GetEdgeOctree()->FindElementsWithBoundsTest(
+				Edge.BSB.GetBox(), [&](const PCGExPaths::FPathEdge* OtherEdge)
 				{
-					if (OtherEdge == Edge) { return; }
-					FindSplit(Edge, OtherEdge);
+					if (Edge.ShareIndices(OtherEdge)) { return; }
+					FindSplit(Edge, *OtherEdge);
 				});
 			return;
 		}
@@ -259,103 +251,22 @@ namespace PCGExPathCrossings
 			const TSharedRef<FProcessor> TypedProcessor = StaticCastSharedRef<FProcessor>(OtherProcessor);
 
 			CurrentIOIndex = TypedProcessor->PointDataFacade->Source->IOIndex;
-			P2 = &TypedProcessor->Positions;
 
-			TypedProcessor->GetEdgeOctree()->FindElementsWithBoundsTest(
-				Edge->FSBounds.GetBox(), [&](const PCGExPaths::FPathEdge* OtherEdge) { FindSplit(Edge, OtherEdge); });
+			OtherPath = TypedProcessor->Path.Get();
+			TypedProcessor->GetEdgeOctree()->FindElementsWithBoundsTest(Edge.BSB.GetBox(), [&](const PCGExPaths::FPathEdge* OtherEdge) { FindSplit(Edge, *OtherEdge); });
 		}
 
-		if (!NewCrossing->Crossings.IsEmpty()) { Crossings[Index] = NewCrossing; }
+		if (!NewCrossing->Crossings.IsEmpty()) { Crossings[Iteration] = NewCrossing; }
 	}
 
-	void FProcessor::FixPoint(const int32 Index)
-	{
-		const TSharedRef<PCGExData::FPointIO>& PointIO = PointDataFacade->Source;
 
-		// TODO : Set crossing positions + blending
-		const FCrossing* Crossing = Crossings[Index].Get();
-		const PCGExPaths::FPathEdge* Edge = Edges[Index].Get();
-
-		if (FlagWriter) { FlagWriter->GetMutable(Edge->OffsetedStart) = false; }
-		if (AlphaWriter) { AlphaWriter->GetMutable(Edge->OffsetedStart) = Settings->DefaultAlpha; }
-		if (CrossWriter) { CrossWriter->GetMutable(Edge->OffsetedStart) = Settings->DefaultCrossDirection; }
-
-		if (!Crossing) { return; }
-
-		const int32 NumCrossings = Crossing->Crossings.Num();
-		const int32 CrossingStartIndex = Edge->OffsetedStart + 1;
-
-		TArray<FPCGPoint>& OutPoints = PointIO->GetOut()->GetMutablePoints();
-		PCGExPaths::FPathMetrics Metrics = PCGExPaths::FPathMetrics(Positions[Edge->Start]);
-
-		TArray<int32> Order;
-		PCGEx::ArrayOfIndices(Order, NumCrossings);
-		Order.Sort([&](const int32 A, const int32 B) { return Crossing->Alphas[A] < Crossing->Alphas[B]; });
-
-		for (int i = 0; i < NumCrossings; i++)
-		{
-			const int32 Idx = CrossingStartIndex + i;
-			FPCGPoint& CrossingPt = OutPoints[Idx];
-
-			const int32 OrderIdx = Order[i];
-			const FVector& V = Crossing->Positions[OrderIdx];
-			const FVector CrossDir = Crossing->CrossingDirections[OrderIdx];
-
-			if (FlagWriter) { FlagWriter->GetMutable(Idx) = true; }
-			if (AlphaWriter) { AlphaWriter->GetMutable(Idx) = Crossing->Alphas[OrderIdx]; }
-			if (CrossWriter) { CrossWriter->GetMutable(Idx) = CrossDir; }
-
-			if (Settings->bOrientCrossing)
-			{
-				CrossingPt.Transform.SetRotation(PCGExMath::MakeDirection(Settings->CrossingOrientAxis, CrossDir));
-			}
-
-			CrossingPt.Transform.SetLocation(V);
-			Metrics.Add(V);
-		}
-
-		Metrics.Add(Positions[Edge->End]);
-
-		const TArrayView<FPCGPoint> View = MakeArrayView(OutPoints.GetData() + CrossingStartIndex, NumCrossings);
-		const int32 EndIndex = Index == LastIndex ? 0 : CrossingStartIndex + NumCrossings;
-		Blending->ProcessSubPoints(PointIO->GetOutPointRef(CrossingStartIndex - 1), PointIO->GetOutPointRef(EndIndex), View, Metrics, CrossingStartIndex);
-	}
-
-	void FProcessor::CrossBlendPoint(const int32 Index)
-	{
-		const FCrossing* Crossing = Crossings[Index].Get();
-		const PCGExPaths::FPathEdge* Edge = Edges[Index].Get();
-
-		const int32 NumCrossings = Crossing->Crossings.Num();
-
-		// Sorting again, ugh
-		TArray<int32> Order;
-		PCGEx::ArrayOfIndices(Order, NumCrossings);
-		Order.Sort([&](const int32 A, const int32 B) { return Crossing->Alphas[A] < Crossing->Alphas[B]; });
-
-		const TUniquePtr<PCGExData::FUnionData> Union = MakeUnique<PCGExData::FUnionData>();
-		for (int i = 0; i < NumCrossings; i++)
-		{
-			uint32 PtIdx;
-			uint32 IOIdx;
-			PCGEx::H64(Crossing->Crossings[Order[i]], PtIdx, IOIdx);
-
-			const int32 SecondIndex = PtIdx + 1 >= static_cast<uint32>(Context->MainPoints->Pairs[IOIdx]->GetNum(PCGExData::ESource::In)) ? 0 : PtIdx + 1;
-
-			Union->Reset();
-			Union->Add(IOIdx, PtIdx);
-			Union->Add(IOIdx, SecondIndex);
-			UnionBlender->SoftMergeSingle(Edge->OffsetedStart + i + 1, Union.Get(), Settings->CrossingBlendingDistance);
-		}
-	}
-
-	void FProcessor::OnSearchComplete()
+	void FProcessor::OnRangeProcessingComplete()
 	{
 		const TSharedRef<PCGExData::FPointIO>& PointIO = PointDataFacade->Source;
 
 		int32 NumPointsFinal = 0;
 
-		for (int i = 0; i < NumPoints; i++)
+		for (int i = 0; i < Path->NumPoints; i++)
 		{
 			NumPointsFinal++;
 
@@ -374,9 +285,9 @@ namespace PCGExPathCrossings
 		PCGEx::InitArray(OutPoints, NumPointsFinal);
 
 		int32 Index = 0;
-		for (int i = 0; i < NumPoints; i++)
+		for (int i = 0; i < Path->NumPoints; i++)
 		{
-			Edges[i]->OffsetedStart = Index;
+			Path->Edges[i].AltStart = Index;
 
 			const FPCGPoint& OriginalPoint = InPoints[i];
 			OutPoints[Index] = OriginalPoint;
@@ -417,22 +328,95 @@ namespace PCGExPathCrossings
 		if (PointIO->GetIn()->GetPoints().Num() != PointIO->GetOut()->GetPoints().Num()) { if (Settings->bTagIfHasCrossing) { PointIO->Tags->Add(Settings->HasCrossingsTag); } }
 		else { if (Settings->bTagIfHasNoCrossings) { PointIO->Tags->Add(Settings->HasNoCrossingsTag); } }
 
-		PCGEX_ASYNC_GROUP_CHKD_VOID(AsyncManager, FixTask)
-		FixTask->OnCompleteCallback = [&]() { PointDataFacade->Write(AsyncManager); };
-		FixTask->OnIterationCallback = [&](const int32 FixIndex, const int32 Count, const int32 LoopIdx) { FixPoint(FixIndex); };
-		FixTask->StartIterations(NumPoints, GetDefault<UPCGExGlobalSettings>()->GetPointsBatchChunkSize());
+		PCGEX_ASYNC_GROUP_CHKD_VOID(AsyncManager, CollapseTask)
+		CollapseTask->OnCompleteCallback = [&]() { PointDataFacade->Write(AsyncManager); };
+		CollapseTask->OnIterationCallback = [&](const int32 CollapseIndex, const int32 Count, const int32 LoopIdx) { CollapseCrossing(CollapseIndex); };
+		CollapseTask->StartIterations(Path->NumEdges, GetDefault<UPCGExGlobalSettings>()->GetPointsBatchChunkSize());
+	}
+
+	void FProcessor::CollapseCrossing(const int32 Index)
+	{
+		const TSharedRef<PCGExData::FPointIO>& PointIO = PointDataFacade->Source;
+
+		const FCrossing* Crossing = Crossings[Index].Get();
+		const PCGExPaths::FPathEdge& Edge = Path->Edges[Index];
+
+		if (FlagWriter) { FlagWriter->GetMutable(Edge.AltStart) = false; }
+		if (AlphaWriter) { AlphaWriter->GetMutable(Edge.AltStart) = Settings->DefaultAlpha; }
+		if (CrossWriter) { CrossWriter->GetMutable(Edge.AltStart) = Settings->DefaultCrossDirection; }
+
+		if (!Crossing) { return; }
+
+		const int32 NumCrossings = Crossing->Crossings.Num();
+		const int32 CrossingStartIndex = Edge.AltStart + 1;
+
+		TArray<FPCGPoint>& OutPoints = PointIO->GetOut()->GetMutablePoints();
+		PCGExPaths::FPathMetrics Metrics = PCGExPaths::FPathMetrics(Path->GetPos(Edge.Start));
+
+		TArray<int32> Order;
+		PCGEx::ArrayOfIndices(Order, NumCrossings);
+		Order.Sort([&](const int32 A, const int32 B) { return Crossing->Alphas[A] < Crossing->Alphas[B]; });
+
+		for (int i = 0; i < NumCrossings; i++)
+		{
+			const int32 Idx = CrossingStartIndex + i;
+			FPCGPoint& CrossingPt = OutPoints[Idx];
+
+			const int32 OrderIdx = Order[i];
+			const FVector& V = Crossing->Positions[OrderIdx];
+			const FVector CrossDir = Crossing->CrossingDirections[OrderIdx];
+
+			if (FlagWriter) { FlagWriter->GetMutable(Idx) = true; }
+			if (AlphaWriter) { AlphaWriter->GetMutable(Idx) = Crossing->Alphas[OrderIdx]; }
+			if (CrossWriter) { CrossWriter->GetMutable(Idx) = CrossDir; }
+
+			if (Settings->bOrientCrossing)
+			{
+				CrossingPt.Transform.SetRotation(PCGExMath::MakeDirection(Settings->CrossingOrientAxis, CrossDir));
+			}
+
+			CrossingPt.Transform.SetLocation(V);
+			Metrics.Add(V);
+		}
+
+		Metrics.Add(Path->GetPos(Edge.End));
+
+		const TArrayView<FPCGPoint> View = MakeArrayView(OutPoints.GetData() + CrossingStartIndex, NumCrossings);
+		const int32 EndIndex = Index == Path->LastIndex ? 0 : CrossingStartIndex + NumCrossings;
+		Blending->ProcessSubPoints(PointIO->GetOutPointRef(CrossingStartIndex - 1), PointIO->GetOutPointRef(EndIndex), View, Metrics, CrossingStartIndex);
+	}
+
+	void FProcessor::CrossBlendPoint(const int32 Index)
+	{
+		const FCrossing* Crossing = Crossings[Index].Get();
+		const PCGExPaths::FPathEdge& Edge = Path->Edges[Index];
+
+		const int32 NumCrossings = Crossing->Crossings.Num();
+
+		// Sorting again, ugh
+		TArray<int32> Order;
+		PCGEx::ArrayOfIndices(Order, NumCrossings);
+		Order.Sort([&](const int32 A, const int32 B) { return Crossing->Alphas[A] < Crossing->Alphas[B]; });
+
+		const TUniquePtr<PCGExData::FUnionData> Union = MakeUnique<PCGExData::FUnionData>();
+		for (int i = 0; i < NumCrossings; i++)
+		{
+			uint32 PtIdx;
+			uint32 IOIdx;
+			PCGEx::H64(Crossing->Crossings[Order[i]], PtIdx, IOIdx);
+
+			const int32 SecondIndex = PtIdx + 1 >= static_cast<uint32>(Context->MainPoints->Pairs[IOIdx]->GetNum(PCGExData::ESource::In)) ? 0 : PtIdx + 1;
+
+			Union->Reset();
+			Union->Add(IOIdx, PtIdx);
+			Union->Add(IOIdx, SecondIndex);
+			UnionBlender->SoftMergeSingle(Edge.AltStart + i + 1, Union.Get(), Settings->CrossingBlendingDistance);
+		}
 	}
 
 	void FProcessor::CompleteWork()
 	{
-		PCGEX_ASYNC_GROUP_CHKD_VOID(AsyncManager, SearchTask)
-		SearchTask->OnCompleteCallback = [&]() { OnSearchComplete(); };
-		SearchTask->OnIterationCallback = [&](const int32 Index, const int32 Count, const int32 LoopIdx)
-		{
-			FPCGPoint Dummy;
-			ProcessSinglePoint(Index, Dummy, LoopIdx, Count);
-		};
-		SearchTask->StartIterations(NumPoints, GetDefault<UPCGExGlobalSettings>()->GetPointsBatchChunkSize());
+		StartParallelLoopForRange(Path->NumEdges);
 	}
 
 	void FProcessor::Write()
@@ -452,7 +436,7 @@ namespace PCGExPathCrossings
 			if (!Crossings[Index]) { return; }
 			CrossBlendPoint(Index);
 		};
-		CrossBlendTask->StartIterations(NumPoints, GetDefault<UPCGExGlobalSettings>()->GetPointsBatchChunkSize());
+		CrossBlendTask->StartIterations(Path->NumEdges, GetDefault<UPCGExGlobalSettings>()->GetPointsBatchChunkSize());
 	}
 }
 

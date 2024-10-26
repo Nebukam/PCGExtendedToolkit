@@ -127,7 +127,23 @@ namespace PCGExMath
 	template <typename T>
 	FORCEINLINE static T Tile(const T Value, const T Min, const T Max)
 	{
-		if constexpr (std::is_same_v<T, FVector2D>)
+		if constexpr (std::is_unsigned_v<T>)
+		{
+			return ((Value - Min) % (Max - Min + 1)) + Min;
+		}
+		else if constexpr (std::is_integral_v<T>)
+		{
+			T R = Max - Min + 1;
+			T W = (Value - Min) % R;
+			return W < 0 ? W + R + Min : W + Min;
+		}
+		else if constexpr (std::is_floating_point_v<T>)
+		{
+			T R = Max - Min;
+			T W = FMath::Fmod(Value - Min, R);
+			return W < 0 ? W + R + Min : W + Min;
+		}
+		else if constexpr (std::is_same_v<T, FVector2D>)
 		{
 			return FVector2D(
 				Tile(Value.X, Min.X, Max.X),
@@ -150,15 +166,14 @@ namespace PCGExMath
 		}
 		else
 		{
-			if (FMath::IsWithin(Value, Min, Max)) { return Value; }
-
-			T OutValue = Value;
-			T Range = Max - Min + 1;
-
-			OutValue = FMath::Fmod(static_cast<double>(OutValue - Min), static_cast<double>(Range));
-			if (OutValue < 0) { OutValue += Range; }
-
-			return OutValue + Min;
+			static_assert(
+				std::is_unsigned_v<T> ||
+				std::is_integral_v<T> ||
+				std::is_floating_point_v<T> ||
+				std::is_same_v<T, FVector2D> ||
+				std::is_same_v<T, FVector> ||
+				std::is_same_v<T, FVector4>, "Can't tile type.");
+			return T{};
 		}
 	}
 
@@ -988,7 +1003,7 @@ namespace PCGExMath
 		}
 		else
 		{
-			return (Index < 0 || Index > MaxIndex) ? -1 : Index;
+			return Index < 0 || Index > MaxIndex ? -1 : Index;
 		}
 	}
 

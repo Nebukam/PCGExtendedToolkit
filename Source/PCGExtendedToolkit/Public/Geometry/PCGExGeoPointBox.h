@@ -167,7 +167,7 @@ namespace PCGExGeo
 	{
 		FMatrix Matrix;
 		FMatrix InvMatrix;
-		FBoxSphereBounds Sphere;
+		FBoxSphereBounds BSB;
 		FVector Extents;
 		FBox Box;
 		FBox EpsilonBox;
@@ -186,7 +186,7 @@ namespace PCGExGeo
 			Box = FBox(Extents * -1, Extents);
 
 			EpsilonBox = Box.ExpandBy(-Epsilon);
-			Sphere = FBoxSphereBounds(InPoint.Transform.GetLocation(), FVector(Len), Len);
+			BSB = FBoxSphereBounds(InPoint.Transform.GetLocation(), FVector(Len), Len);
 		}
 
 #pragma region Position checks
@@ -401,40 +401,11 @@ namespace PCGExGeo
 #pragma endregion
 	};
 
-	struct /*PCGEXTENDEDTOOLKIT_API*/ FPointBoxSemantics
-	{
-		enum { MaxElementsPerLeaf = 16 };
-
-		enum { MinInclusiveElementsPerNode = 7 };
-
-		enum { MaxNodeDepth = 12 };
-
-		using ElementAllocator = TInlineAllocator<MaxElementsPerLeaf>;
-
-		FORCEINLINE static const FBoxSphereBounds& GetBoundingBox(const FPointBox* InPoint)
-		{
-			return InPoint->Sphere;
-		}
-
-		FORCEINLINE static const bool AreElementsEqual(const FPointBox* A, const FPointBox* B)
-		{
-			return A->Index == B->Index;
-		}
-
-		FORCEINLINE static void ApplyOffset(FPointBox* InNode)
-		{
-			ensureMsgf(false, TEXT("Not implemented"));
-		}
-
-		FORCEINLINE static void SetElementId(const FPointBox* Element, FOctreeElementId2 OctreeElementID)
-		{
-		}
-	};
+	PCGEX_OCTREE_SEMANTICS(FPointBox, { return Element->BSB;}, { return A->Index == B->Index; })
 
 	class /*PCGEXTENDEDTOOLKIT_API*/ FPointBoxCloud
 	{
-		using PointBoxCloudOctree = TOctree2<FPointBox*, FPointBoxSemantics>;
-		TUniquePtr<PointBoxCloudOctree> Octree;
+		TUniquePtr<FPointBoxOctree> Octree;
 		TArray<TSharedPtr<FPointBox>> Boxes;
 		FBox CloudBounds;
 
@@ -442,7 +413,7 @@ namespace PCGExGeo
 		explicit FPointBoxCloud(const UPCGPointData* PointData, const EPCGExPointBoundsSource BoundsSource, const double Epsilon = DBL_EPSILON)
 		{
 			CloudBounds = PointData->GetBounds();
-			Octree = MakeUnique<PointBoxCloudOctree>(CloudBounds.GetCenter(), CloudBounds.GetExtent().Length() * 1.5);
+			Octree = MakeUnique<FPointBoxOctree>(CloudBounds.GetCenter(), CloudBounds.GetExtent().Length() * 1.5);
 			const TArray<FPCGPoint>& Points = PointData->GetPoints();
 
 			CloudBounds = FBox(ForceInit);
@@ -458,7 +429,7 @@ namespace PCGExGeo
 			}
 		}
 
-		FORCEINLINE const PointBoxCloudOctree* GetOctree() const { return Octree.Get(); }
+		FORCEINLINE const FPointBoxOctree* GetOctree() const { return Octree.Get(); }
 
 		~FPointBoxCloud()
 		{

@@ -135,7 +135,7 @@ namespace PCGExSampleOverlapStats
 		BoundsPreparationTask->OnCompleteCallback =
 			[&]()
 			{
-				Octree = MakeUnique<TBoundsOctree>(Bounds.GetCenter(), Bounds.GetExtent().Length());
+				Octree = MakeUnique<PCGExDiscardByOverlap::FPointBoundsOctree>(Bounds.GetCenter(), Bounds.GetExtent().Length());
 				for (TSharedPtr<PCGExDiscardByOverlap::FPointBounds> PtBounds : LocalPointBounds)
 				{
 					if (!PtBounds) { continue; }
@@ -212,7 +212,7 @@ namespace PCGExSampleOverlapStats
 					int32 Count = 0;
 
 					OtherProcessor->GetOctree()->FindElementsWithBoundsTest(
-						FBoxCenterAndExtent(OwnedPoint->WorldBoxSphereBounds.GetBox()), [&](const PCGExDiscardByOverlap::FPointBounds* OtherPoint)
+						FBoxCenterAndExtent(OwnedPoint->BSB.GetBox()), [&](const PCGExDiscardByOverlap::FPointBounds* OtherPoint)
 						{
 							const FBox Intersection = OwnedPoint->LocalBounds.Overlap(OtherPoint->TransposedBounds(InvMatrix));
 
@@ -245,15 +245,15 @@ namespace PCGExSampleOverlapStats
 				FBoxCenterAndExtent(Overlap->Intersection.GetCenter(), Overlap->Intersection.GetExtent()),
 				[&](const PCGExDiscardByOverlap::FPointBounds* OwnedPoint)
 				{
-					const FSphere S1 = OwnedPoint->WorldBoxSphereBounds.GetSphere();
+					const FSphere S1 = OwnedPoint->BSB.GetSphere();
 
 					int32 Count = 0;
 
 					OtherProcessor->GetOctree()->FindElementsWithBoundsTest(
-						FBoxCenterAndExtent(OwnedPoint->WorldBoxSphereBounds.GetBox()), [&](const PCGExDiscardByOverlap::FPointBounds* OtherPoint)
+						FBoxCenterAndExtent(OwnedPoint->BSB.GetBox()), [&](const PCGExDiscardByOverlap::FPointBounds* OtherPoint)
 						{
 							double OverlapAmount = 0;
-							if (!PCGExMath::SphereOverlap(S1, OtherPoint->WorldBoxSphereBounds.GetSphere(), OverlapAmount)) { return; }
+							if (!PCGExMath::SphereOverlap(S1, OtherPoint->BSB.GetSphere(), OverlapAmount)) { return; }
 
 							if (Settings->ThresholdMeasure == EPCGExMeanMeasure::Relative) { if ((OverlapAmount / S1.W) < Settings->MinThreshold) { return; } }
 							else if (OverlapAmount < Settings->MinThreshold) { return; }

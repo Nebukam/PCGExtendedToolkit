@@ -235,8 +235,6 @@ namespace PCGExWritePathProperties
 	struct /*PCGEXTENDEDTOOLKIT_API*/ FPointDetails
 	{
 		int32 Index;
-		double Length;
-		FVector Position;
 		FVector Normal;
 		FVector Binormal;
 		FVector ToPrev;
@@ -247,14 +245,13 @@ namespace PCGExWritePathProperties
 	{
 		PCGEX_FOREACH_FIELD_PATH(PCGEX_OUTPUT_DECL)
 
-		TArray<FPointDetails> Details;
-
 		bool bClosedLoop = false;
+		TSharedPtr<PCGExPaths::FPath> Path;
+		
+		TArray<FPointDetails> Details;
 
 		FVector UpConstant = FVector::ZeroVector;
 		TSharedPtr<PCGExData::TBuffer<FVector>> UpGetter;
-
-		int32 LastIndex = 0;
 
 	public:
 		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade):
