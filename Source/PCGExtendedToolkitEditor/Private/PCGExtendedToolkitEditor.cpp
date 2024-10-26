@@ -10,7 +10,7 @@
 #define LOCTEXT_NAMESPACE "FPCGExtendedToolkitEditorModule"
 
 #define PCGEX_ADD_ICON(_NAME) \
-StyleSet->Set("ClassIcon." # _NAME, new FSlateImageBrush(StyleSet->RootToContentDir(TEXT( "" #_NAME ".png")), FVector2D(32.0f, 32.0f)));\
+StyleSet->Set("ClassIcon." # _NAME, new FSlateImageBrush(StyleSet->RootToContentDir(TEXT( "" #_NAME ".png")), FVector2D(16.0f, 16.0f)));\
 StyleSet->Set("ClassThumbnail." # _NAME, new FSlateImageBrush(StyleSet->RootToContentDir(TEXT( "" #_NAME ".png")), FVector2D(128.0f, 128.0f)));
 
 void FPCGExtendedToolkitEditorModule::StartupModule()
