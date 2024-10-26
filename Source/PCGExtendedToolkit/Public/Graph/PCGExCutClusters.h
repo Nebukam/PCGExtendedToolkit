@@ -13,20 +13,14 @@
 #include "Paths/PCGExPaths.h"
 #include "Paths/SubPoints/DataBlending/PCGExSubPointsBlendOperation.h"
 
-#include "PCGExCutEdges.generated.h"
+#include "PCGExCutClusters.generated.h"
 
 UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Cut Edges Mode"))
 enum class EPCGExCutEdgesMode : uint8
 {
-	Cut = 0 UMETA(DisplayName = "Remove Edges", ToolTip="Remove edges cut by the paths"),
-	Crossings   = 1 UMETA(DisplayName = "Crossings", ToolTip="Add crossings nodes where the edges intersect with the paths"),
-};
-
-UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Cut Edges Node Handling Mode"))
-enum class EPCGExCutEdgesNodeHandlingMode : uint8
-{
-	Ignore = 0 UMETA(DisplayName = "Ignore", ToolTip="Nodes are ignored"),
-	Remove = 1 UMETA(DisplayName = "Remove", ToolTip="Remove nodes that are collinear to paths"),
+	Nodes         = 0 UMETA(DisplayName = "Nodes", ToolTip="Check for path overlap with nodes"),
+	Edges         = 1 UMETA(DisplayName = "Edges", ToolTip="Check for path overlap with edges"),
+	NodesAndEdges = 2 UMETA(DisplayName = "Edges & Nodes", ToolTip="Check for overlap with both nodes and edges"),
 };
 
 namespace PCGExCutEdges
@@ -44,7 +38,7 @@ class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExCutEdgesSettings : public UPCGExEdgesProc
 public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS(CutEdges, "Cluster : Cut Edges", "Refine clusters using edge/paths intersections.");
+	PCGEX_NODE_INFOS(CutEdges, "Cluster : Cut", "Cut clusters nodes & edges using paths.");
 #endif
 
 protected:
@@ -58,41 +52,45 @@ public:
 	virtual PCGExData::EInit GetEdgeOutputInitMode() const override;
 	//~End UPCGExPointsProcessorSettings
 
-	/**  */
-	//UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
-	EPCGExCutEdgesMode Mode = EPCGExCutEdgesMode::Cut;
-
-	/** Graph & Edges output properties */
-	//UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="!Mode==", EditConditionHides))
-	EPCGExCutEdgesNodeHandlingMode NodeHandling = EPCGExCutEdgesNodeHandlingMode::Ignore;
-
 	/** Closed loop handling.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	FPCGExPathClosedLoopDetails ClosedLoop;
 
+	/** Keep intersections/proximity instead of removing. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	bool bInvert = false;
 
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	EPCGExCutEdgesMode Mode = EPCGExCutEdgesMode::NodesAndEdges;
+
+	/** If enabled, keep edges that connect two preserved nodes even if they don't intersect with the path. */
+	//UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bInvert && Mode!=EPCGExCutEdgesMode::Edges"))
+	//bool bConservative = false;
+
+	/** Expansion factor of node points to check for initial overlap. Uses scaled bounds expanded by the specified value. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="Mode!=EPCGExCutEdgesMode::Edges"))
+	double NodeExpansion = 100;
+
+	/** */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="Mode!=EPCGExCutEdgesMode::Edges"))
+	EPCGExDistance NodeDistanceSettings = EPCGExDistance::Center;
+
+	/** */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="Mode!=EPCGExCutEdgesMode::Edges"))
+	bool bAffectedNodesAffectConnectedEdges = false;
+
+	/** */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="!bInvert && Mode!=EPCGExCutEdgesMode::Nodes"))
+	bool bAffectedEdgesAffectEndpoints = false;
+
+	/** */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bInvert && Mode!=EPCGExCutEdgesMode::Edges"))
+	bool bKeepEdgeThatConnectValidNodes = false;
+	
 	/**  */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="Mode==EPCGExCutEdgesMode::Crossing"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	FPCGExPathEdgeIntersectionDetails IntersectionDetails = FPCGExPathEdgeIntersectionDetails(false);
 
-	/** Blending applied on intersecting points along the path prev and next point. This is different from inheriting from external properties. */
-	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = Settings, Instanced, meta=(PCG_Overridable, EditCondition="Mode==EPCGExCutEdgesMode::Crossing", ShowOnlyInnerProperties, NoResetToDefault))
-	TObjectPtr<UPCGExSubPointsBlendOperation> Blending;
-
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Cross Blending", meta=(PCG_Overridable, EditCondition="Mode==EPCGExCutEdgesMode::Crossing"))
-	bool bDoCrossBlending = false;
-
-	/** If enabled, blend in properties & attributes from external sources. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Cross Blending", meta=(PCG_Overridable, EditCondition="bDoCrossBlending && Mode==EPCGExCutEdgesMode::Crossing"))
-	FPCGExCarryOverDetails CrossingCarryOver;
-
-	/** If enabled, blend in properties & attributes from external sources. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Cross Blending", meta=(PCG_Overridable, EditCondition="bDoCrossBlending && Mode==EPCGExCutEdgesMode::Crossing"))
-	FPCGExBlendingDetails CrossingBlending = FPCGExBlendingDetails(EPCGExDataBlendingType::Average, EPCGExDataBlendingType::None);
-
-	FPCGExDistanceDetails CrossingBlendingDistance;
-
-	
 	/** Graph & Edges output properties */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName="Cluster Output Settings"))
 	FPCGExGraphBuilderDetails GraphBuilderDetails;
@@ -108,17 +106,11 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExCutEdgesContext final : FPCGExEdgesProce
 	FPCGExPathClosedLoopDetails ClosedLoop;
 	FPCGExPathEdgeIntersectionDetails IntersectionDetails;
 
-	UPCGExSubPointsBlendOperation* Blending = nullptr;
-	TSharedPtr<PCGEx::FAttributesInfos> PathsAttributesInfos;
-
-	FPCGExBlendingDetails CrossingBlending;
-	
 	TArray<TObjectPtr<const UPCGExFilterFactoryBase>> EdgeFilterFactories;
 	TArray<TObjectPtr<const UPCGExFilterFactoryBase>> NodeFilterFactories;
 
 	TArray<TSharedRef<PCGExData::FFacade>> PathFacades;
 	TArray<TSharedRef<PCGExPaths::FPath>> Paths;
-	TArray<TSharedPtr<PCGExData::FFacadePreloader>> PathsPreloaders;
 };
 
 class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExCutEdgesElement final : public FPCGExEdgesProcessorElement
@@ -142,11 +134,15 @@ namespace PCGExCutEdges
 		TSharedPtr<PCGExClusterFilter::FManager> EdgeFilterManager;
 		TSharedPtr<PCGExClusterFilter::FManager> NodeFilterManager;
 
-		virtual TSharedPtr<PCGExCluster::FCluster> HandleCachedCluster(const TSharedRef<PCGExCluster::FCluster>& InClusterRef) override;
+		int8 EdgesProcessed = 0;
+		int8 NodesProcessed = 0;
+		
 		TArray<bool> EdgeFilterCache;
+		TArray<bool> NodeFilterCache;
+
+		virtual TSharedPtr<PCGExCluster::FCluster> HandleCachedCluster(const TSharedRef<PCGExCluster::FCluster>& InClusterRef) override;
 
 	public:
-		
 		FProcessor(const TSharedRef<PCGExData::FFacade>& InVtxDataFacade, const TSharedRef<PCGExData::FFacade>& InEdgeDataFacade)
 			: TProcessor(InVtxDataFacade, InEdgeDataFacade)
 		{
@@ -155,9 +151,15 @@ namespace PCGExCutEdges
 		virtual ~FProcessor() override;
 
 		virtual bool Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager) override;
-		
+
 		virtual void PrepareSingleLoopScopeForEdges(const uint32 StartIndex, const int32 Count) override;
 		virtual void ProcessSingleEdge(const int32 EdgeIndex, PCGExGraph::FIndexedEdge& Edge, const int32 LoopIdx, const int32 Count) override;
+		virtual void PrepareSingleLoopScopeForNodes(const uint32 StartIndex, const int32 Count) override;
+		virtual void ProcessSingleNode(const int32 Index, PCGExCluster::FNode& Node, const int32 LoopIdx, const int32 Count) override;
+		virtual void OnEdgesProcessingComplete() override;
+		virtual void OnNodesProcessingComplete() override;
+		void TryConsolidate();
+		virtual void ProcessSingleRangeIteration(const int32 Iteration, const int32 LoopIdx, const int32 Count) override;
 		virtual void CompleteWork() override;
 	};
 
@@ -168,14 +170,11 @@ namespace PCGExCutEdges
 			: TBatch<FProcessor>(InContext, InVtx, InEdges)
 		{
 			PCGEX_TYPED_CONTEXT_AND_SETTINGS(CutEdges)
-			bRequiresGraphBuilder = Settings->Mode != EPCGExCutEdgesMode::Crossings; // If crossing, just insert new data like ConnectCluster does
+			bRequiresGraphBuilder = true;
 			bAllowVtxDataFacadeScopedGet = true;
 		}
 
 		virtual void RegisterBuffersDependencies(PCGExData::FFacadePreloader& FacadePreloader) override;
 		virtual void OnProcessingPreparationComplete() override;
-
-		
 	};
-
 }

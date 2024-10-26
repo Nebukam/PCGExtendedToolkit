@@ -13,6 +13,19 @@ PCGExData::EInit UPCGExConnectClustersSettings::GetEdgeOutputInitMode() const { 
 
 PCGEX_INITIALIZE_ELEMENT(ConnectClusters)
 
+TArray<FPCGPinProperties> UPCGExConnectClustersSettings::InputPinProperties() const
+{
+	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
+
+	if (BridgeMethod == EPCGExBridgeClusterMethod::Filters)
+	{
+		PCGEX_PIN_PARAMS(PCGExGraph::SourceFilterGenerators, "Nodes that don't meet requirements won't generate connections", Required, {})
+		PCGEX_PIN_PARAMS(PCGExGraph::SourceFilterConnectables, "Nodes that don't meet requirements can't receive connections", Required, {})
+	}
+
+	return PinProperties;
+}
+
 bool FPCGExConnectClustersElement::Boot(FPCGExContext* InContext) const
 {
 	if (!FPCGExEdgesProcessorElement::Boot(InContext)) { return false; }
