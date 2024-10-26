@@ -395,10 +395,14 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExFuseDetails : public FPCGExSourceFuseDet
 		{
 			Tolerances *= 2;
 			Tolerance *= 2;
+			
+			if (bComponentWiseTolerance) { CWTolerance = FVector(1 / Tolerances.X, 1 / Tolerances.Y, 1 / Tolerances.Z); }
+			else { CWTolerance = FVector(1 / Tolerance); }
+		}else
+		{
+			if (bComponentWiseTolerance) { CWTolerance = Tolerances; }
+			else { CWTolerance = FVector(Tolerance); }
 		}
-
-		if (bComponentWiseTolerance) { CWTolerance = FVector(1 / Tolerances.X, 1 / Tolerances.Y, 1 / Tolerances.Z); }
-		else { CWTolerance = FVector(1 / Tolerance); }
 	}
 
 	bool DoInlineInsertion() const { return FuseMethod == EPCGExFuseMethod::Octree && bInlineInsertion; }
