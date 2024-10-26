@@ -393,7 +393,7 @@ namespace PCGExGraph
 			Adjacency.Empty();
 		}
 
-		bool bValid = true;
+		int8 bValid = 1; // int for atomic operations
 
 		int32 NodeIndex = -1;  // Index in the context of the list that helds the node
 		int32 PointIndex = -1; // Index in the context of the UPCGPointData that helds the vtx

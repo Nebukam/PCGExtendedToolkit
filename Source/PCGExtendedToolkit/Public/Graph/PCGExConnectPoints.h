@@ -85,49 +85,7 @@ protected:
 
 namespace PCGExConnectPoints
 {
-	struct /*PCGEXTENDEDTOOLKIT_API*/ FPositionRef
-	{
-		int32 Index;
-		FBoxSphereBounds Bounds;
-
-		FPositionRef(const int32 InItemIndex, const FBoxSphereBounds& InBounds)
-			: Index(InItemIndex), Bounds(InBounds)
-		{
-		}
-	};
-
-	struct /*PCGEXTENDEDTOOLKIT_API*/ FPositionRefSemantics
-	{
-		enum { MaxElementsPerLeaf = 16 };
-
-		enum { MinInclusiveElementsPerNode = 7 };
-
-		enum { MaxNodeDepth = 12 };
-
-		using ElementAllocator = TInlineAllocator<MaxElementsPerLeaf>;
-
-		FORCEINLINE static const FBoxSphereBounds& GetBoundingBox(const FPositionRef& InPosition)
-		{
-			return InPosition.Bounds;
-		}
-
-		FORCEINLINE static const bool AreElementsEqual(const FPositionRef& A, const FPositionRef& B)
-		{
-			return A.Index == B.Index;
-		}
-
-		FORCEINLINE static void ApplyOffset(FPositionRef& InNode)
-		{
-			ensureMsgf(false, TEXT("Not implemented"));
-		}
-
-		FORCEINLINE static void SetElementId(const FPositionRef& Element, FOctreeElementId2 OctreeElementID)
-		{
-		}
-	};
-
-	using PositionOctree = TOctree2<FPositionRef, FPositionRefSemantics>;
-
+	
 	class FProcessor final : public PCGExPointsMT::TPointsProcessor<FPCGExConnectPointsContext, UPCGExConnectPointsSettings>
 	{
 		TSharedPtr<PCGExPointFilter::FManager> GeneratorsFilter;
@@ -144,7 +102,7 @@ namespace PCGExConnectPoints
 		double SharedSearchRadius = MIN_dbl;
 
 		TArray<bool> CanGenerate;
-		TUniquePtr<PositionOctree> Octree;
+		TUniquePtr<PCGEx::FIndexedItemOctree> Octree;
 
 		const TArray<FPCGPoint>* InPoints = nullptr;
 		TArray<FTransform> CachedTransforms;

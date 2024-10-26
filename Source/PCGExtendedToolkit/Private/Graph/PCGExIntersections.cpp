@@ -433,7 +433,7 @@ namespace PCGExGraph
 		const int32 NumEdges = InGraph->Edges.Num();
 		Edges.SetNum(NumEdges);
 
-		Octree = MakeUnique<TEdgeOctree>(InUnionGraph->Bounds.GetCenter(), InUnionGraph->Bounds.GetExtent().Length() + (Details->Tolerance * 2));
+		Octree = MakeUnique<FEdgeEdgeProxyOctree>(InUnionGraph->Bounds.GetCenter(), InUnionGraph->Bounds.GetExtent().Length() + (Details->Tolerance * 2));
 
 		for (const FIndexedEdge& Edge : InGraph->Edges)
 		{

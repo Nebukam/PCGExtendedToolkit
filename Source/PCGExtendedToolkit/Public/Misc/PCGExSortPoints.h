@@ -4,6 +4,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "PCGExConstants.h"
 #include "PCGExGlobalSettings.h"
 
 #include "PCGExPointsProcessor.h"
@@ -36,7 +37,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExSortRuleConfig : public FPCGExInputConfi
 
 	/** Equality tolerance. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
-	double Tolerance = 0.0001f;
+	double Tolerance = DBL_COMPARE_TOLERANCE;
 
 	/** Invert sorting direction on that rule. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
@@ -56,7 +57,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExSortRule
 	TSharedPtr<PCGExData::TBuffer<double>> Cache;
 
 	FPCGAttributePropertyInputSelector Selector;
-	double Tolerance = 0.0001f;
+	double Tolerance = DBL_COMPARE_TOLERANCE;
 	bool bInvertRule = false;
 	bool bAbsolute = false;
 };

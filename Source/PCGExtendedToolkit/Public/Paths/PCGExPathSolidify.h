@@ -131,15 +131,16 @@ namespace PCGExPathSolidify
 {
 	class FProcessor final : public PCGExPointsMT::TPointsProcessor<FPCGExPathSolidifyContext, UPCGExPathSolidifySettings>
 	{
+		bool bClosedLoop = false;
+		
 		TSharedPtr<PCGExData::TBuffer<double>> SolidificationLerpGetter;
+
+		TSharedPtr<PCGExPaths::FPath> Path;
 
 #define PCGEX_LOCAL_EDGE_GETTER_DECL(_AXIS) TSharedPtr<PCGExData::TBuffer<double>> SolidificationRad##_AXIS; bool bOwnSolidificationRad##_AXIS = true; double Rad##_AXIS##Constant = 1;
 		PCGEX_FOREACH_XYZ(PCGEX_LOCAL_EDGE_GETTER_DECL)
 #undef PCGEX_LOCAL_EDGE_GETTER_DECL
 
-		bool bClosedLoop = false;
-
-		int32 LastIndex = 0;
 
 	public:
 		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade):
@@ -152,6 +153,5 @@ namespace PCGExPathSolidify
 		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager> InAsyncManager) override;
 		virtual void PrepareSingleLoopScopeForPoints(const uint32 StartIndex, const int32 Count) override;
 		virtual void ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const int32 LoopIdx, const int32 Count) override;
-		virtual void CompleteWork() override;
 	};
 }

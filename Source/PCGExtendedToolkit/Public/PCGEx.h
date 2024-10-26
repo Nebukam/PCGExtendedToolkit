@@ -23,6 +23,8 @@
 #include "MatchAndSet/PCGMatchAndSetWeighted.h"
 #include "Metadata/PCGMetadataAttribute.h"
 
+#include "PCGExMacros.h"
+
 #include "PCGEx.generated.h"
 
 UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Ordered Field Selection"))
@@ -369,4 +371,18 @@ namespace PCGEx
 		for (const T& Entry : A) { if (!B.IsInside(Entry)) { return false; } }
 		return true;
 	}
+
+	struct FIndexedItem
+	{
+		int32 Index;
+		FBoxSphereBounds BSB;
+
+		FIndexedItem(const int32 InIndex, const FBoxSphereBounds& InBounds)
+			: Index(InIndex), BSB(InBounds)
+		{
+		}
+	};
+
+	PCGEX_OCTREE_SEMANTICS_REF(FIndexedItem, { return Element.BSB;}, { return A.Index == B.Index; })
+	
 }

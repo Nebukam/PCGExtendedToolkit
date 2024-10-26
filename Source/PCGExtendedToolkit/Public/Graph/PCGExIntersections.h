@@ -152,7 +152,7 @@ namespace PCGExGraph
 	public:
 		const FPCGPoint Point;
 		FVector Center;
-		FBoxSphereBounds Bounds;
+		FBoxSphereBounds BSB;
 		int32 Index;
 
 		TSet<int32> Adjacency;
@@ -163,7 +163,7 @@ namespace PCGExGraph
 			  Index(InIndex)
 		{
 			Adjacency.Empty();
-			Bounds = FBoxSphereBounds(InPoint.GetLocalBounds().TransformBy(InPoint.Transform));
+			BSB = FBoxSphereBounds(InPoint.GetLocalBounds().TransformBy(InPoint.Transform));
 		}
 
 		~FUnionNode()
@@ -180,35 +180,7 @@ namespace PCGExGraph
 		}
 	};
 
-	struct /*PCGEXTENDEDTOOLKIT_API*/ FCompoundNodeSemantics
-	{
-		enum { MaxElementsPerLeaf = 16 };
-
-		enum { MinInclusiveElementsPerNode = 7 };
-
-		enum { MaxNodeDepth = 12 };
-
-		using ElementAllocator = TInlineAllocator<MaxElementsPerLeaf>;
-
-		FORCEINLINE static const FBoxSphereBounds& GetBoundingBox(const FUnionNode* InNode)
-		{
-			return InNode->Bounds;
-		}
-
-		FORCEINLINE static const bool AreElementsEqual(const FUnionNode* A, const FUnionNode* B)
-		{
-			return A == B;
-		}
-
-		FORCEINLINE static void ApplyOffset(FUnionNode& InNode)
-		{
-			ensureMsgf(false, TEXT("Not implemented"));
-		}
-
-		FORCEINLINE static void SetElementId(const FUnionNode* Element, FOctreeElementId2 OctreeElementID)
-		{
-		}
-	};
+	PCGEX_OCTREE_SEMANTICS(FUnionNode, { return Element->BSB;}, { return A->Index == B->Index; })
 
 	struct /*PCGEXTENDEDTOOLKIT_API*/ FUnionGraph
 	{
@@ -223,8 +195,7 @@ namespace PCGExGraph
 
 		FBox Bounds;
 
-		using NodeOctree = TOctree2<FUnionNode*, FCompoundNodeSemantics>;
-		TUniquePtr<NodeOctree> Octree;
+		TUniquePtr<FUnionNodeOctree> Octree;
 
 		mutable FRWLock UnionLock;
 		mutable FRWLock EdgesLock;
@@ -241,7 +212,7 @@ namespace PCGExGraph
 			PointsUnion = MakeShared<PCGExData::FUnionMetadata>();
 			EdgesUnion = MakeShared<PCGExData::FUnionMetadata>();
 
-			if (InFuseDetails.FuseMethod == EPCGExFuseMethod::Octree) { Octree = MakeUnique<NodeOctree>(Bounds.GetCenter(), Bounds.GetExtent().Length() + 10); }
+			if (InFuseDetails.FuseMethod == EPCGExFuseMethod::Octree) { Octree = MakeUnique<FUnionNodeOctree>(Bounds.GetCenter(), Bounds.GetExtent().Length() + 10); }
 		}
 
 		~FUnionGraph()
@@ -479,10 +450,11 @@ namespace PCGExGraph
 		double LengthSquared = -1;
 		double ToleranceSquared = -1;
 		FBox Box = FBox(NoInit);
-		FBoxSphereBounds FSBounds = FBoxSphereBounds{};
+		FBoxSphereBounds BSB = FBoxSphereBounds{};
 
 		FVector Start = FVector::ZeroVector;
 		FVector End = FVector::ZeroVector;
+		FVector Direction = FVector::ZeroVector;
 
 		FEdgeEdgeProxy()
 		{
@@ -517,7 +489,9 @@ namespace PCGExGraph
 			Box = Box.ExpandBy(Tolerance);
 
 			LengthSquared = FVector::DistSquared(Start, End);
-			FSBounds = Box;
+			BSB = Box;
+
+			Direction = (Start - End).GetSafeNormal();
 		}
 
 		~FEdgeEdgeProxy()
@@ -552,35 +526,7 @@ namespace PCGExGraph
 		}
 	};
 
-	struct /*PCGEXTENDEDTOOLKIT_API*/ FEdgeEdgeProxySemantics
-	{
-		enum { MaxElementsPerLeaf = 16 };
-
-		enum { MinInclusiveElementsPerNode = 7 };
-
-		enum { MaxNodeDepth = 12 };
-
-		using ElementAllocator = TInlineAllocator<MaxElementsPerLeaf>;
-
-		FORCEINLINE static const FBoxSphereBounds& GetBoundingBox(const FEdgeEdgeProxy* InEdge)
-		{
-			return InEdge->FSBounds;
-		}
-
-		FORCEINLINE static const bool AreElementsEqual(const FEdgeEdgeProxy* A, const FEdgeEdgeProxy* B)
-		{
-			return A == B;
-		}
-
-		FORCEINLINE static void ApplyOffset(FEdgeEdgeProxy& InEdge)
-		{
-			ensureMsgf(false, TEXT("Not implemented"));
-		}
-
-		FORCEINLINE static void SetElementId(const FEdgeEdgeProxy* Element, FOctreeElementId2 OctreeElementID)
-		{
-		}
-	};
+	PCGEX_OCTREE_SEMANTICS(FEdgeEdgeProxy, { return Element->BSB;}, { return A == B; })
 
 	struct /*PCGEXTENDEDTOOLKIT_API*/ FEdgeEdgeIntersections
 	{
@@ -595,8 +541,7 @@ namespace PCGExGraph
 		TArray<FEdgeEdgeProxy> Edges;
 		TSet<uint64> CheckedPairs;
 
-		using TEdgeOctree = TOctree2<FEdgeEdgeProxy*, FEdgeEdgeProxySemantics>;
-		TUniquePtr<TEdgeOctree> Octree;
+		TUniquePtr<FEdgeEdgeProxyOctree> Octree;
 
 		FEdgeEdgeIntersections(
 			const TSharedPtr<FGraph>& InGraph,
@@ -673,7 +618,7 @@ namespace PCGExGraph
 				if (!Edge.Box.Intersect(OtherEdge.Box)) { return; }
 				if (InIntersections->Details->bUseMinAngle || InIntersections->Details->bUseMaxAngle)
 				{
-					if (!InIntersections->Details->CheckDot(FMath::Abs(FVector::DotProduct((Edge.Start - Edge.End).GetSafeNormal(), (OtherEdge.Start - OtherEdge.End).GetSafeNormal())))) { return; }
+					if (!InIntersections->Details->CheckDot(FMath::Abs(FVector::DotProduct(Edge.Direction, OtherEdge.Direction)))) { return; }
 				}
 
 				// Check overlap last as it's the most expensive op

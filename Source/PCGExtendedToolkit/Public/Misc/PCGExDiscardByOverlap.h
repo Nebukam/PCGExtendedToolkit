@@ -261,14 +261,14 @@ namespace PCGExDiscardByOverlap
 	struct /*PCGEXTENDEDTOOLKIT_API*/ FPointBounds
 	{
 		FPointBounds(const int32 InIndex, const FPCGPoint* InPoint, const FBox& InBounds):
-			Index(InIndex), Point(InPoint), LocalBounds(InBounds), WorldBoxSphereBounds(InBounds.TransformBy(InPoint->Transform.ToMatrixNoScale()))
+			Index(InIndex), Point(InPoint), LocalBounds(InBounds), BSB(InBounds.TransformBy(InPoint->Transform.ToMatrixNoScale()))
 		{
 		}
 
 		const int32 Index;
 		const FPCGPoint* Point;
 		FBox LocalBounds;
-		FBoxSphereBounds WorldBoxSphereBounds;
+		FBoxSphereBounds BSB;
 
 		FORCEINLINE FBox TransposedBounds(const FMatrix& InMatrix) const
 		{
@@ -276,35 +276,7 @@ namespace PCGExDiscardByOverlap
 		}
 	};
 
-	struct /*PCGEXTENDEDTOOLKIT_API*/ FPointBoundsSemantics
-	{
-		enum { MaxElementsPerLeaf = 16 };
-
-		enum { MinInclusiveElementsPerNode = 7 };
-
-		enum { MaxNodeDepth = 12 };
-
-		using ElementAllocator = TInlineAllocator<MaxElementsPerLeaf>;
-
-		FORCEINLINE static const FBoxSphereBounds& GetBoundingBox(const FPointBounds* InPoint)
-		{
-			return InPoint->WorldBoxSphereBounds;
-		}
-
-		FORCEINLINE static const bool AreElementsEqual(const FPointBounds* A, const FPointBounds* B)
-		{
-			return A->Point == B->Point;
-		}
-
-		FORCEINLINE static void ApplyOffset(FPointBounds& InPoint)
-		{
-			ensureMsgf(false, TEXT("Not implemented"));
-		}
-
-		FORCEINLINE static void SetElementId(const FPointBounds* Element, FOctreeElementId2 OctreeElementID)
-		{
-		}
-	};
+	PCGEX_OCTREE_SEMANTICS(FPointBounds, { return Element->BSB; }, { return A->Point == B->Point; })
 
 	class FProcessor final : public PCGExPointsMT::TPointsProcessor<FPCGExDiscardByOverlapContext, UPCGExDiscardByOverlapSettings>
 	{
@@ -313,8 +285,7 @@ namespace PCGExDiscardByOverlap
 		const TArray<FPCGPoint>* InPoints = nullptr;
 		FBox Bounds = FBox(ForceInit);
 
-		using TBoundsOctree = TOctree2<FPointBounds*, FPointBoundsSemantics>;
-		TUniquePtr<TBoundsOctree> Octree;
+		TUniquePtr<FPointBoundsOctree> Octree;
 
 		TArray<TSharedPtr<FPointBounds>> LocalPointBounds;
 
@@ -343,7 +314,7 @@ namespace PCGExDiscardByOverlap
 
 		FORCEINLINE const FBox& GetBounds() const { return Bounds; }
 		FORCEINLINE const TArray<TSharedPtr<FPointBounds>>& GetPointBounds() const { return LocalPointBounds; }
-		FORCEINLINE const TBoundsOctree* GetOctree() const { return Octree.Get(); }
+		FORCEINLINE const FPointBoundsOctree* GetOctree() const { return Octree.Get(); }
 
 		//virtual bool IsTrivial() const override { return false; } // Force non-trivial because this shit is expensive
 
@@ -358,7 +329,7 @@ namespace PCGExDiscardByOverlap
 			const bool bValidPoint = PointFilterCache[Index];
 			if (!bValidPoint && !Settings->bIncludeFilteredInMetrics) { return; }
 
-			const FBox& B = InPointBounds->WorldBoxSphereBounds.GetBox();
+			const FBox& B = InPointBounds->BSB.GetBox();
 			Bounds += B;
 			TotalVolume += B.GetVolume();
 

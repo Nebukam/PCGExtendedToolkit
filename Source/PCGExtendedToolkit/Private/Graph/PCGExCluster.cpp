@@ -325,12 +325,12 @@ namespace PCGExCluster
 		TRACE_CPUPROFILER_EVENT_SCOPE(FCluster::RebuildNodeOctree);
 
 		const FPCGPoint* StartPtr = VtxPoints->GetData();
-		NodeOctree = MakeShared<ClusterItemOctree>(Bounds.GetCenter(), (Bounds.GetExtent() + FVector(10)).Length());
+		NodeOctree = MakeShared<PCGEx::FIndexedItemOctree>(Bounds.GetCenter(), (Bounds.GetExtent() + FVector(10)).Length());
 		for (int i = 0; i < Nodes->Num(); i++)
 		{
 			const FNode* Node = Nodes->GetData() + i;
 			const FPCGPoint* Pt = StartPtr + Node->PointIndex;
-			NodeOctree->AddElement(FClusterItemRef(Node->NodeIndex, FBoxSphereBounds(Pt->GetLocalBounds().TransformBy(Pt->Transform))));
+			NodeOctree->AddElement(PCGEx::FIndexedItem(Node->NodeIndex, FBoxSphereBounds(Pt->GetLocalBounds().TransformBy(Pt->Transform))));
 		}
 	}
 
@@ -340,7 +340,7 @@ namespace PCGExCluster
 
 		check(Bounds.GetExtent().Length() != 0)
 
-		EdgeOctree = MakeShared<ClusterItemOctree>(Bounds.GetCenter(), (Bounds.GetExtent() + FVector(10)).Length());
+		EdgeOctree = MakeShared<PCGEx::FIndexedItemOctree>(Bounds.GetCenter(), (Bounds.GetExtent() + FVector(10)).Length());
 
 		if (!ExpandedEdges)
 		{
@@ -352,7 +352,7 @@ namespace PCGExCluster
 			for (int i = 0; i < Edges->Num(); i++)
 			{
 				const FExpandedEdge& NewExpandedEdge = (ExpandedEdgesRef[i] = FExpandedEdge(this, i));
-				EdgeOctree->AddElement(FClusterItemRef(i, NewExpandedEdge.Bounds));
+				EdgeOctree->AddElement(PCGEx::FIndexedItem(i, NewExpandedEdge.BSB));
 			}
 		}
 		else
@@ -360,7 +360,7 @@ namespace PCGExCluster
 			for (int i = 0; i < Edges->Num(); i++)
 			{
 				const FExpandedEdge& ExpandedEdge = *(ExpandedEdges->GetData() + i);
-				EdgeOctree->AddElement(FClusterItemRef(i, ExpandedEdge.Bounds));
+				EdgeOctree->AddElement(PCGEx::FIndexedItem(i, ExpandedEdge.BSB));
 			}
 		}
 	}
@@ -402,9 +402,9 @@ namespace PCGExCluster
 
 		if (NodeOctree)
 		{
-			auto ProcessCandidate = [&](const FClusterItemRef& Item)
+			auto ProcessCandidate = [&](const PCGEx::FIndexedItem& Item)
 			{
-				const FNode& Node = NodesRef[Item.ItemIndex];
+				const FNode& Node = NodesRef[Item.Index];
 				if (Node.Adjacency.Num() < MinNeighbors) { return; }
 				const double Dist = FVector::DistSquared(Position, GetPos(Node));
 				if (Dist < MaxDistance)
@@ -444,9 +444,9 @@ namespace PCGExCluster
 
 		if (EdgeOctree)
 		{
-			auto ProcessCandidate = [&](const FClusterItemRef& Item)
+			auto ProcessCandidate = [&](const PCGEx::FIndexedItem& Item)
 			{
-				const FExpandedEdge& Edge = *(ExpandedEdges->GetData() + Item.ItemIndex);
+				const FExpandedEdge& Edge = *(ExpandedEdges->GetData() + Item.Index);
 				const double Dist = FMath::PointDistToSegmentSquared(Position, GetPos(Edge.Start), GetPos(Edge.End));
 				if (Dist < MaxDistance)
 				{
@@ -569,14 +569,14 @@ namespace PCGExCluster
 
 		if (NodeOctree)
 		{
-			auto ProcessCandidate = [&](const FClusterItemRef& Item)
+			auto ProcessCandidate = [&](const PCGEx::FIndexedItem& Item)
 			{
-				if (NodesRef[Item.ItemIndex].Adjacency.Num() < MinNeighborCount) { return; }
-				if (const double Dist = FMath::PointDistToSegmentSquared(Position, NodePosition, GetPos(Item.ItemIndex));
+				if (NodesRef[Item.Index].Adjacency.Num() < MinNeighborCount) { return; }
+				if (const double Dist = FMath::PointDistToSegmentSquared(Position, NodePosition, GetPos(Item.Index));
 					Dist < LastDist)
 				{
 					LastDist = Dist;
-					Result = Item.ItemIndex;
+					Result = Item.Index;
 				}
 			};
 
@@ -609,15 +609,15 @@ namespace PCGExCluster
 
 		if (NodeOctree)
 		{
-			auto ProcessCandidate = [&](const FClusterItemRef& Item)
+			auto ProcessCandidate = [&](const PCGEx::FIndexedItem& Item)
 			{
-				if (NodesRef[Item.ItemIndex].Adjacency.Num() < MinNeighborCount) { return; }
-				if (Exclusion.Contains(Item.ItemIndex)) { return; }
-				if (const double Dist = FMath::PointDistToSegmentSquared(Position, NodePosition, GetPos(Item.ItemIndex));
+				if (NodesRef[Item.Index].Adjacency.Num() < MinNeighborCount) { return; }
+				if (Exclusion.Contains(Item.Index)) { return; }
+				if (const double Dist = FMath::PointDistToSegmentSquared(Position, NodePosition, GetPos(Item.Index));
 					Dist < LastDist)
 				{
 					LastDist = Dist;
-					Result = Item.ItemIndex;
+					Result = Item.Index;
 				}
 			};
 
