@@ -376,7 +376,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExFuseDetails : public FPCGExSourceFuseDet
 	EPCGExDistance TargetDistance = EPCGExDistance::Center;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
-	EPCGExFuseMethod FuseMethod = EPCGExFuseMethod::Voxel;
+	EPCGExFuseMethod FuseMethod = EPCGExFuseMethod::Octree;
 
 	/** Offset the voxelized grid by an amount */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="FuseMethod==EPCGExFuseMethod::Voxel", EditConditionHides))
