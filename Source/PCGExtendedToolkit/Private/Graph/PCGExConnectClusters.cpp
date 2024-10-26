@@ -13,6 +13,19 @@ PCGExData::EInit UPCGExConnectClustersSettings::GetEdgeOutputInitMode() const { 
 
 PCGEX_INITIALIZE_ELEMENT(ConnectClusters)
 
+TArray<FPCGPinProperties> UPCGExConnectClustersSettings::InputPinProperties() const
+{
+	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
+
+	if (BridgeMethod == EPCGExBridgeClusterMethod::Filters)
+	{
+		PCGEX_PIN_PARAMS(PCGExGraph::SourceFilterGenerators, "Nodes that don't meet requirements won't generate connections", Required, {})
+		PCGEX_PIN_PARAMS(PCGExGraph::SourceFilterConnectables, "Nodes that don't meet requirements can't receive connections", Required, {})
+	}
+
+	return PinProperties;
+}
+
 bool FPCGExConnectClustersElement::Boot(FPCGExContext* InContext) const
 {
 	if (!FPCGExEdgesProcessorElement::Boot(InContext)) { return false; }
@@ -24,6 +37,20 @@ bool FPCGExConnectClustersElement::Boot(FPCGExContext* InContext) const
 
 	PCGEX_FWD(ProjectionDetails)
 	PCGEX_FWD(GraphBuilderDetails)
+
+	if (Settings->BridgeMethod == EPCGExBridgeClusterMethod::Filters)
+	{
+		PCGE_LOG(Error, GraphAndLog, FTEXT("Bridge through filter is not implemented yet!"));
+		return false;
+
+		if (!GetInputFactories(
+			Context, PCGExGraph::SourceFilterGenerators, Context->GeneratorsFiltersFactories,
+			PCGExFactories::ClusterNodeFilters, true)) { return false; }
+
+		if (!GetInputFactories(
+			Context, PCGExGraph::SourceFilterConnectables, Context->ConnectablesFiltersFactories,
+			PCGExFactories::ClusterNodeFilters, true)) { return false; }
+	}
 
 	return true;
 }
@@ -96,6 +123,7 @@ namespace PCGExBridgeClusters
 
 	void FProcessor::CompleteWork()
 	{
+		// if mode == filter, loop through generators and find all suitable connectables
 	}
 
 	//////// BATCH
@@ -226,6 +254,10 @@ namespace PCGExBridgeClusters
 					Bridges.Add(PCGEx::H64U(i, j));
 				}
 			}
+		}
+		else if (SafeMethod == EPCGExBridgeClusterMethod::Filters)
+		{
+			// Let cluster processor handle it.
 		}
 	}
 

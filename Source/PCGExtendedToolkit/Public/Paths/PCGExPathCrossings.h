@@ -151,12 +151,8 @@ namespace PCGExPathCrossings
 		bool bClosedLoop = false;
 		bool bSelfIntersectionOnly = false;
 
-		int32 NumPoints = 0;
-		int32 LastIndex = 0;
-
-		TArray<FVector> Positions;
-		TArray<double> Lengths;
-		TArray<TSharedPtr<PCGExPaths::FPathEdge>> Edges;
+		TSharedPtr<PCGExPaths::FPath> Path;
+		
 		TArray<TSharedPtr<FCrossing>> Crossings;
 
 		TSharedPtr<PCGExPointFilter::FManager> CanCutFilterManager;
@@ -172,9 +168,6 @@ namespace PCGExPathCrossings
 		TSharedPtr<PCGExData::FUnionMetadata> UnionMetadata;
 		TSharedPtr<PCGExDataBlending::FUnionBlender> UnionBlender;
 
-		using TEdgeOctree = TOctree2<PCGExPaths::FPathEdge*, PCGExPaths::FPathEdgeSemantics>;
-		TUniquePtr<TEdgeOctree> EdgeOctree;
-
 		FPCGExPathEdgeIntersectionDetails Details;
 
 		TSharedPtr<PCGExData::TBuffer<bool>> FlagWriter;
@@ -189,13 +182,13 @@ namespace PCGExPathCrossings
 
 		virtual bool IsTrivial() const override { return false; } // Force non-trivial because this shit is expensive
 
-		const TEdgeOctree* GetEdgeOctree() const { return EdgeOctree.Get(); }
+		const PCGExPaths::FPathEdgeOctree* GetEdgeOctree() const { return Path->GetEdgeOctree(); }
 
 		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager> InAsyncManager) override;
-		virtual void ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const int32 LoopIdx, const int32 LoopCount) override;
-		void FixPoint(const int32 Index);
+		virtual void ProcessSingleRangeIteration(const int32 Iteration, const int32 LoopIdx, const int32 LoopCount) override;
+		virtual void OnRangeProcessingComplete() override;
+		void CollapseCrossing(const int32 Index);
 		void CrossBlendPoint(const int32 Index);
-		void OnSearchComplete();
 		virtual void CompleteWork() override;
 		virtual void Write() override;
 	};

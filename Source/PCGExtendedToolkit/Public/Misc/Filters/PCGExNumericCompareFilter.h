@@ -5,6 +5,7 @@
 
 #include "CoreMinimal.h"
 #include "PCGExCompare.h"
+#include "PCGExConstants.h"
 #include "PCGExFilterFactoryProvider.h"
 #include "UObject/Object.h"
 
@@ -46,7 +47,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExNumericCompareFilterConfig
 
 	/** Rounding mode for relative measures */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="Comparison==EPCGExComparison::NearlyEqual || Comparison==EPCGExComparison::NearlyNotEqual", EditConditionHides))
-	double Tolerance = 0.001;
+	double Tolerance = DBL_COMPARE_TOLERANCE;
 };
 
 

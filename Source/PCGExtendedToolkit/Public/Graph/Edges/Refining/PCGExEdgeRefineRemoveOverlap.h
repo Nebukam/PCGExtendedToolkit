@@ -4,6 +4,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "PCGExConstants.h"
 #include "PCGExEdgeRefineOperation.h"
 #include "Graph/PCGExCluster.h"
 #include "Graph/Pathfinding/Heuristics/PCGExHeuristics.h"
@@ -56,11 +57,11 @@ public:
 		const PCGExCluster::FExpandedEdge& EEdge = *(Cluster->ExpandedEdges->GetData() + Edge.EdgeIndex);
 		const double Length = EEdge.GetEdgeLengthSquared(Cluster.Get());
 
-		auto ProcessOverlap = [&](const PCGExCluster::FClusterItemRef& ItemRef)
+		auto ProcessOverlap = [&](const PCGEx::FIndexedItem& Item)
 		{
 			//if (!Edge.bValid) { return false; }
 
-			const PCGExCluster::FExpandedEdge& OtherEEdge = *(Cluster->ExpandedEdges->GetData() + ItemRef.ItemIndex);
+			const PCGExCluster::FExpandedEdge& OtherEEdge = *(Cluster->ExpandedEdges->GetData() + Item.Index);
 
 			if (EEdge == OtherEEdge ||
 				EEdge.Start == OtherEEdge.Start || EEdge.Start == OtherEEdge.End ||
@@ -100,7 +101,7 @@ public:
 			return true;
 		};
 
-		Cluster->EdgeOctree->FindFirstElementWithBoundsTest(FBoxCenterAndExtent(EEdge.Bounds), ProcessOverlap);
+		Cluster->EdgeOctree->FindFirstElementWithBoundsTest(FBoxCenterAndExtent(EEdge.BSB), ProcessOverlap);
 	}
 
 	//virtual void Process() override;
@@ -111,8 +112,8 @@ public:
 
 	/** Distance at which two edges are considered intersecting. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ClampMin=0))
-	double Tolerance = 0.001;
-	double ToleranceSquared = 0.001;
+	double Tolerance = DBL_INTERSECTION_TOLERANCE;
+	double ToleranceSquared = DBL_INTERSECTION_TOLERANCE * DBL_INTERSECTION_TOLERANCE;
 
 	/** . */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, InlineEditConditionToggle))

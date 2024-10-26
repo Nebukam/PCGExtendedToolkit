@@ -8,6 +8,7 @@
 #include "PCGEx.h"
 #include "PCGExMath.h"
 #include "PCGExActorSelector.h"
+#include "PCGExConstants.h"
 #include "PCGExContext.h"
 
 #include "PCGExDetails.generated.h"
@@ -266,11 +267,11 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExFuseDetailsBase
 
 	/** Fusing distance */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="!bComponentWiseTolerance", EditConditionHides, ClampMin=0.0001))
-	double Tolerance = 0.001;
+	double Tolerance = DBL_COLLOCATION_TOLERANCE;
 
 	/** Component-wise radiuses */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bComponentWiseTolerance", EditConditionHides, ClampMin=0.0001))
-	FVector Tolerances = FVector(0.001);
+	FVector Tolerances = FVector(DBL_COLLOCATION_TOLERANCE);
 
 	/** Method used to compute the distance from the source */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, InlineEditConditionToggle))
@@ -381,8 +382,8 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExFuseDetails : public FPCGExSourceFuseDet
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="FuseMethod==EPCGExFuseMethod::Voxel", EditConditionHides))
 	FVector VoxelGridOffset = FVector::ZeroVector;
 
-	/** Check this box if you're fusing over a very large radius and want to ensure determinism. NOTE : Will make things considerably slower. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="FuseMethod==EPCGExFuseMethod::Octree", EditConditionHides))
+	/** Check this box if you're fusing over a very large radius and want to ensure determinism. NOTE : Will make things slower. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Force Determinism", EditCondition="FuseMethod==EPCGExFuseMethod::Octree", EditConditionHides))
 	bool bInlineInsertion = false;
 
 

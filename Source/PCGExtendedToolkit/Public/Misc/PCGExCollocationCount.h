@@ -4,6 +4,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "PCGExConstants.h"
 #include "PCGExGlobalSettings.h"
 
 #include "PCGExPointsProcessor.h"
@@ -48,7 +49,7 @@ public:
 
 	/** */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ClampMin=0.01))
-	double Tolerance = 0.01;
+	double Tolerance = DBL_COLLOCATION_TOLERANCE;
 };
 
 struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExCollocationCountContext final : FPCGExPointsProcessorContext
@@ -74,7 +75,7 @@ namespace PCGExCollocationCount
 	class FProcessor final : public PCGExPointsMT::TPointsProcessor<FPCGExCollocationCountContext, UPCGExCollocationCountSettings>
 	{
 		double NumPoints = 0;
-		double ToleranceConstant = 0;
+		double ToleranceConstant = DBL_COLLOCATION_TOLERANCE;
 		TSharedPtr<PCGExData::TBuffer<int32>> CollocationWriter;
 		TSharedPtr<PCGExData::TBuffer<int32>> LinearOccurencesWriter;
 

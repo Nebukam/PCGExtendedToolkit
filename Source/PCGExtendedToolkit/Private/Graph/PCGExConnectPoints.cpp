@@ -167,7 +167,7 @@ namespace PCGExConnectPoints
 		if (!ProbeOperations.IsEmpty())
 		{
 			const FBox B = PointDataFacade->GetIn()->GetBounds();
-			Octree = MakeUnique<PositionOctree>(bUseProjection ? ProjectionDetails.ProjectFlat(B.GetCenter()) : B.GetCenter(), B.GetExtent().Length());
+			Octree = MakeUnique<PCGEx::FIndexedItemOctree>(bUseProjection ? ProjectionDetails.ProjectFlat(B.GetCenter()) : B.GetCenter(), B.GetExtent().Length());
 		}
 		else
 		{
@@ -205,7 +205,7 @@ namespace PCGExConnectPoints
 
 					CanGenerate[i] = GeneratorsFilter ? GeneratorsFilter->Test(i) : true;
 					if (ConnectableFilter && ConnectableFilter->Test(i)) { continue; }
-					Octree->AddElement(FPositionRef(i, FBoxSphereBounds(CachedTransforms[i].GetLocation(), PPRefExtents, PPRefRadius)));
+					Octree->AddElement(PCGEx::FIndexedItem(i, FBoxSphereBounds(CachedTransforms[i].GetLocation(), PPRefExtents, PPRefRadius)));
 				}
 			}
 			else
@@ -216,7 +216,7 @@ namespace PCGExConnectPoints
 
 					CanGenerate[i] = GeneratorsFilter ? GeneratorsFilter->Test(i) : true;
 					if (ConnectableFilter && !ConnectableFilter->Test(i)) { continue; }
-					Octree->AddElement(FPositionRef(i, FBoxSphereBounds(CachedTransforms[i].GetLocation(), PPRefExtents, PPRefRadius)));
+					Octree->AddElement(PCGEx::FIndexedItem(i, FBoxSphereBounds(CachedTransforms[i].GetLocation(), PPRefExtents, PPRefRadius)));
 				}
 			}
 		}
@@ -278,7 +278,7 @@ namespace PCGExConnectPoints
 
 			TArray<PCGExProbing::FCandidate> Candidates;
 
-			auto ProcessPoint = [&](const FPositionRef& InPositionRef)
+			auto ProcessPoint = [&](const PCGEx::FIndexedItem& InPositionRef)
 			{
 				const int32 OtherPointIndex = InPositionRef.Index;
 				if (OtherPointIndex == Index) { return; }
