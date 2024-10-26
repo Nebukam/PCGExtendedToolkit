@@ -90,6 +90,18 @@ public:
 	void UpdateNodePoint(const FPCGPoint& InPoint, int64 InNodeIdx, int32 InPointIndex, FPCGPoint& OutPoint) const;
 };
 
+USTRUCT(BlueprintType)
+struct FNewGraphSettingsResult
+{
+	GENERATED_BODY()
+
+	UPROPERTY(BlueprintReadWrite, Category = "Result")
+	bool bIsValid = false;
+
+	UPROPERTY(BlueprintReadWrite, Category = "Result")
+	UPCGExCustomGraphSettings* Settings = nullptr;
+};
+
 /**
  * 
  */
@@ -113,7 +125,7 @@ public:
 	 * @param SettingsClass
 	 */
 	UFUNCTION(BlueprintCallable, Category = "PCGEx|Execution")
-	UPCGExCustomGraphSettings* CreateGraphSettings(TSubclassOf<UPCGExCustomGraphSettings> SettingsClass);
+	FNewGraphSettingsResult CreateGraphSettings(TSubclassOf<UPCGExCustomGraphSettings> SettingsClass);
 
 	/**
 	 * Main execution function. Called once per requested graphs. This method is executed in a multi-threaded context, Graph Settings are safe but the custom builder wrapper itself isn't.
