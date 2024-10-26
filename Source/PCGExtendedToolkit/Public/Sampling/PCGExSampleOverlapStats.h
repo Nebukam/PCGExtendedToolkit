@@ -219,8 +219,7 @@ namespace PCGExSampleOverlapStats
 		const TArray<FPCGPoint>* InPoints = nullptr;
 		FBox Bounds = FBox(ForceInit);
 
-		using TBoundsOctree = TOctree2<PCGExDiscardByOverlap::FPointBounds*, PCGExDiscardByOverlap::FPointBoundsSemantics>;
-		TUniquePtr<TBoundsOctree> Octree;
+		TUniquePtr<PCGExDiscardByOverlap::FPointBoundsOctree> Octree;
 
 		TArray<TSharedPtr<PCGExDiscardByOverlap::FPointBounds>> LocalPointBounds;
 
@@ -250,7 +249,7 @@ namespace PCGExSampleOverlapStats
 
 		FORCEINLINE const FBox& GetBounds() const { return Bounds; }
 		FORCEINLINE const TArray<TSharedPtr<PCGExDiscardByOverlap::FPointBounds>>& GetPointBounds() const { return LocalPointBounds; }
-		FORCEINLINE const TBoundsOctree* GetOctree() const { return Octree.Get(); }
+		FORCEINLINE const PCGExDiscardByOverlap::FPointBoundsOctree* GetOctree() const { return Octree.Get(); }
 
 		//virtual bool IsTrivial() const override { return false; } // Force non-trivial because this shit is expensive
 
@@ -258,7 +257,7 @@ namespace PCGExSampleOverlapStats
 
 		FORCEINLINE void RegisterPointBounds(const int32 Index, const TSharedPtr<PCGExDiscardByOverlap::FPointBounds>& InPointBounds)
 		{
-			Bounds += InPointBounds->WorldBoxSphereBounds.GetBox();
+			Bounds += InPointBounds->BSB.GetBox();
 			LocalPointBounds[Index] = InPointBounds;
 		}
 

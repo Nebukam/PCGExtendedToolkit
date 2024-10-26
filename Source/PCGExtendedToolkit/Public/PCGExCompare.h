@@ -5,6 +5,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "PCGExConstants.h"
 #include "PCGExDetails.h"
 #include "Data/PCGExData.h"
 
@@ -393,7 +394,7 @@ namespace PCGExCompare
 	}
 
 	template <typename T>
-	FORCEINLINE static bool NearlyEqual(const T& A, const T& B, const double Tolerance = 0.001)
+	FORCEINLINE static bool NearlyEqual(const T& A, const T& B, const double Tolerance = DBL_COMPARE_TOLERANCE)
 	{
 		if constexpr (std::is_same_v<T, bool>)
 		{
@@ -451,12 +452,12 @@ namespace PCGExCompare
 	}
 
 	template <typename T>
-	FORCEINLINE static bool NearlyNotEqual(const T& A, const T& B, const double Tolerance = 0.001) { return !NearlyEqual(A, B, Tolerance); }
+	FORCEINLINE static bool NearlyNotEqual(const T& A, const T& B, const double Tolerance = DBL_COMPARE_TOLERANCE) { return !NearlyEqual(A, B, Tolerance); }
 
 #pragma endregion
 
 	template <typename T>
-	FORCEINLINE static bool Compare(const EPCGExComparison Method, const T& A, const T& B, const double Tolerance = 0.001)
+	FORCEINLINE static bool Compare(const EPCGExComparison Method, const T& A, const T& B, const double Tolerance = DBL_COMPARE_TOLERANCE)
 	{
 		switch (Method)
 		{
@@ -529,7 +530,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExComparisonDetails
 
 	/** Comparison Tolerance. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="Comparison==EPCGExComparison::NearlyEqual||Comparison==EPCGExComparison::NearlyNotEqual", EditConditionHides, ClampMin=0.001))
-	double Tolerance = 0.001;
+	double Tolerance = DBL_COMPARE_TOLERANCE;
 };
 
 

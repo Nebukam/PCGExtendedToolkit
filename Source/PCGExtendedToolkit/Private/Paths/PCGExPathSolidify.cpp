@@ -64,7 +64,9 @@ namespace PCGExPathSolidify
 
 		const TSharedRef<PCGExData::FPointIO>& PointIO = PointDataFacade->Source;
 		bClosedLoop = Context->ClosedLoop.IsClosedLoop(PointIO);
-		LastIndex = PointIO->GetNum() - 1;
+
+		Path = PCGExPaths::MakePath(PointDataFacade->GetIn()->GetPoints(), 0, bClosedLoop, false);
+		Path->IOIndex = PointDataFacade->Source->IOIndex;
 
 
 #define PCGEX_CREATE_LOCAL_AXIS_SET_CONST(_AXIS) if (Settings->bWriteRadius##_AXIS){Rad##_AXIS##Constant = Settings->Radius##_AXIS##Constant;}
@@ -89,7 +91,7 @@ if (!SolidificationRad##_AXIS){ PCGE_LOG_C(Warning, GraphAndLog, Context, FText:
 			}
 		}
 
-		if (!bClosedLoop && Settings->bRemoveLastPoint) { PointIO->GetOut()->GetMutablePoints().RemoveAt(LastIndex); }
+		if (!bClosedLoop && Settings->bRemoveLastPoint) { PointIO->GetOut()->GetMutablePoints().RemoveAt(Path->LastIndex); }
 
 		StartParallelLoopForPoints();
 
@@ -103,14 +105,10 @@ if (!SolidificationRad##_AXIS){ PCGE_LOG_C(Warning, GraphAndLog, Context, FText:
 
 	void FProcessor::ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const int32 LoopIdx, const int32 Count)
 	{
-		if (!bClosedLoop && Index == LastIndex) { return; } // Skip last point
+		if (!Path->IsValidEdgeIndex(Index)) { return; }
 
-		const FVector Position = Point.Transform.GetLocation();
-		const FVector NextPosition = PointDataFacade->Source->GetInPoint(Index == LastIndex ? 0 : Index + 1).Transform.GetLocation();
-		const double Length = FVector::Dist(Position, NextPosition);
-		const FVector EdgeDirection = (Position - NextPosition).GetSafeNormal();
+		const double Length = Path->GetEdgeLength(Index);
 		const FVector Scale = Settings->bScaleBounds ? FVector::OneVector / Point.Transform.GetScale3D() : FVector::OneVector;
-
 
 		FRotator EdgeRot;
 		FVector TargetBoundsMin = Point.BoundsMin;
@@ -142,26 +140,22 @@ if (!SolidificationRad##_AXIS){ PCGE_LOG_C(Warning, GraphAndLog, Context, FText:
 		{
 		default:
 		case EPCGExMinimalAxis::X:
-			EdgeRot = FRotationMatrix::MakeFromX(EdgeDirection).Rotator();
+			EdgeRot = FRotationMatrix::MakeFromX(Path->GetEdgeDir(Index)).Rotator();
 			break;
 		case EPCGExMinimalAxis::Y:
-			EdgeRot = FRotationMatrix::MakeFromY(EdgeDirection).Rotator();
+			EdgeRot = FRotationMatrix::MakeFromY(Path->GetEdgeDir(Index)).Rotator();
 			break;
 		case EPCGExMinimalAxis::Z:
-			EdgeRot = FRotationMatrix::MakeFromZ(EdgeDirection).Rotator();
+			EdgeRot = FRotationMatrix::MakeFromZ(Path->GetEdgeDir(Index)).Rotator();
 			break;
 		}
 
-		Point.Transform = FTransform(EdgeRot, FMath::Lerp(Position, NextPosition, EdgeLerp), Point.Transform.GetScale3D());
+		Point.Transform = FTransform(EdgeRot, Path->GetEdgePositionAtAlpha(Index, EdgeLerp), Point.Transform.GetScale3D());
 
 		Point.BoundsMin = TargetBoundsMin;
 		Point.BoundsMax = TargetBoundsMax;
 	}
 
-	void FProcessor::CompleteWork()
-	{
-		//PointDataFacade->Write(AsyncManagerPtr, true);
-	}
 }
 
 #undef LOCTEXT_NAMESPACE

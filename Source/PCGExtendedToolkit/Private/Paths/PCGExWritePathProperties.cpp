@@ -64,8 +64,8 @@ namespace PCGExWritePathProperties
 		const TSharedRef<PCGExData::FPointIO>& PointIO = PointDataFacade->Source;
 
 		bClosedLoop = Context->ClosedLoop.IsClosedLoop(PointIO);
-
-		LastIndex = PointIO->GetNum() - 1;
+		Path = PCGExPaths::MakePath(PointDataFacade->GetIn()->GetPoints(), 0, bClosedLoop, true);
+		Path->IOIndex = PointDataFacade->Source->IOIndex;
 
 		{
 			const TSharedRef<PCGExData::FFacade>& OutputFacade = PointDataFacade;
@@ -93,8 +93,6 @@ namespace PCGExWritePathProperties
 		{
 			Details[i] = {
 				i,
-				0,
-				InPoints[i].Transform.GetLocation(),
 				FVector::ZeroVector,
 				FVector::ZeroVector,
 				FVector::ZeroVector,
@@ -114,23 +112,10 @@ namespace PCGExWritePathProperties
 
 	void FProcessor::ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const int32 LoopIdx, const int32 Count)
 	{
-		const int32 PrevIndex = Index == 0 ? bClosedLoop ? LastIndex : Index : Index - 1;
-		const int32 NextIndex = Index == LastIndex ? bClosedLoop ? 0 : Index : Index + 1;
-
 		FPointDetails& Current = Details[Index];
-		const FPointDetails& Prev = Details[PrevIndex];
-		const FPointDetails& Next = Details[NextIndex];
 
-		Current.Length = FVector::Dist(Current.Position, Next.Position);
-
-		Current.ToPrev = (Prev.Position - Current.Position).GetSafeNormal();
-		Current.ToNext = (Next.Position - Current.Position).GetSafeNormal();
-
-		if (!bClosedLoop)
-		{
-			if (Index == LastIndex) { Current.ToNext = Current.ToPrev * -1; }
-			else if (Index == 0) { Current.ToPrev = Current.ToNext * -1; }
-		}
+		Current.ToPrev = Path->DirToPrevPoint(Index);
+		Current.ToNext = Path->DirToNextPoint(Index);
 
 		Current.Normal = FVector::CrossProduct(Current.ToNext, FVector::CrossProduct(UpGetter ? UpGetter->Read(Index) : UpConstant, Current.ToNext)).GetSafeNormal();
 		Current.Binormal = FVector::CrossProduct(Current.ToNext, Current.Normal).GetSafeNormal();
@@ -144,8 +129,8 @@ namespace PCGExWritePathProperties
 		PCGEX_OUTPUT_VALUE(DirectionToNext, Index, Current.ToNext);
 		PCGEX_OUTPUT_VALUE(DirectionToPrev, Index, Current.ToPrev);
 
-		PCGEX_OUTPUT_VALUE(DistanceToNext, Index, Current.Length);
-		PCGEX_OUTPUT_VALUE(DistanceToPrev, Index, FVector::Dist(Prev.Position,Current.Position));
+		PCGEX_OUTPUT_VALUE(DistanceToNext, Index, Path->DistToNextPoint(Index));
+		PCGEX_OUTPUT_VALUE(DistanceToPrev, Index, Path->DistToPrevPoint(Index));
 
 		PCGEX_OUTPUT_VALUE(Dot, Index, FVector::DotProduct(Current.ToPrev, Current.ToNext));
 		PCGEX_OUTPUT_VALUE(Angle, Index, PCGExSampling::GetAngle(Settings->AngleRange, Current.ToPrev, Current.ToNext));
@@ -155,41 +140,18 @@ namespace PCGExWritePathProperties
 	{
 		const TSharedRef<PCGExData::FPointIO>& PointIO = PointDataFacade->Source;
 
-		const int32 NumPoints = PointDataFacade->GetNum();
-
 		FVector PathCentroid = FVector::ZeroVector;
 		FVector PathDir = Details[0].ToNext;
 
-		bool bIsConvex = true;
-		int32 Sign = 0;
-
-		auto CheckConvex = [&](const int32 A, const int32 B, const int32 C)
-		{
-			if (!bIsConvex) { return; }
-
-			if (A == C)
-			{
-				bIsConvex = false;
-				return;
-			}
-
-			PCGExMath::CheckConvex(
-				Details[A].Position, Details[B].Position, Details[C].Position,
-				bIsConvex, Sign);
-		};
-
 		// Compute path-wide data
 		double TotalLength = 0;
-		for (int i = 0; i < NumPoints; i++) { TotalLength += Details[i].Length; }
+		for (int i = 0; i < Path->NumPoints; i++) { TotalLength += Path->DistToNextPoint(i); }
 
 		// Compute path-wide, per-point stuff
 		double TraversedDistance = 0;
-		for (int i = 0; i <= LastIndex; i++)
+		for (int i = 0; i < Path->NumPoints; i++)
 		{
-			const int32 PrevIndex = i == 0 ? bClosedLoop ? LastIndex : i : i - 1;
-			const int32 NextIndex = i == LastIndex ? bClosedLoop ? 0 : i : i + 1;
-
-			if (Settings->bTagConcave || Settings->bTagConvex) { CheckConvex(PrevIndex, i, NextIndex); }
+			if (Settings->bTagConcave || Settings->bTagConvex) { Path->UpdateConvexity(i); }
 
 			const FPointDetails& Detail = Details[i];
 			PathDir += Detail.ToNext;
@@ -199,28 +161,28 @@ namespace PCGExWritePathProperties
 			PCGEX_OUTPUT_VALUE(DistanceToStart, i, TraversedDistance);
 			PCGEX_OUTPUT_VALUE(DistanceToEnd, i, TotalLength - TraversedDistance);
 
-			TraversedDistance += Detail.Length;
-			PathCentroid += Detail.Position;
+			TraversedDistance += Path->DistToNextPoint(i);
+			PathCentroid += Path->GetPosUnsafe(i);
 		}
 
 		if (!bClosedLoop)
 		{
 			const FPointDetails& First = Details[0];
-			const FPointDetails& Last = Details[LastIndex];
+			const FPointDetails& Last = Details[Path->LastIndex];
 
 			PCGEX_OUTPUT_VALUE(Dot, 0, -1);
 			PCGEX_OUTPUT_VALUE(Angle, 0, PCGExSampling::GetAngle(Settings->AngleRange, First.ToNext *-1, First.ToNext));
 
-			PCGEX_OUTPUT_VALUE(Dot, LastIndex, -1);
-			PCGEX_OUTPUT_VALUE(Angle, LastIndex, PCGExSampling::GetAngle(Settings->AngleRange, Last.ToPrev *-1, Last.ToPrev));
+			PCGEX_OUTPUT_VALUE(Dot, Path->LastIndex, -1);
+			PCGEX_OUTPUT_VALUE(Angle, Path->LastIndex, PCGExSampling::GetAngle(Settings->AngleRange, Last.ToPrev *-1, Last.ToPrev));
 		}
 
 		if (Settings->bAverageNormals)
 		{
-			for (int i = 0; i <= LastIndex; i++)
+			for (int i = 0; i < Path->NumPoints; i++)
 			{
-				const int32 PrevIndex = i == 0 ? bClosedLoop ? LastIndex : i : i - 1;
-				const int32 NextIndex = i == LastIndex ? bClosedLoop ? 0 : i : i + 1;
+				const int32 PrevIndex = Path->PrevPointIndex(i);
+				const int32 NextIndex = Path->NextPointIndex(i);
 
 				PCGEX_OUTPUT_VALUE(PointNormal, i, ((Details[PrevIndex].Normal + Details[i].Normal + Details[NextIndex].Normal) / 3).GetSafeNormal());
 				PCGEX_OUTPUT_VALUE(PointBinormal, i, ((Details[PrevIndex].Binormal + Details[i].Binormal + Details[NextIndex].Binormal) / 3).GetSafeNormal());
@@ -228,15 +190,15 @@ namespace PCGExWritePathProperties
 		}
 
 		if (Context->bWritePathLength) { WriteMark(PointIO, Settings->PathLengthAttributeName, TotalLength); }
-		if (Context->bWritePathDirection) { WriteMark(PointIO, Settings->PathDirectionAttributeName, (PathDir / NumPoints).GetSafeNormal()); }
-		if (Context->bWritePathCentroid) { WriteMark(PointIO, Settings->PathCentroidAttributeName, (PathCentroid / NumPoints).GetSafeNormal()); }
+		if (Context->bWritePathDirection) { WriteMark(PointIO, Settings->PathDirectionAttributeName, (PathDir / Path->NumPoints).GetSafeNormal()); }
+		if (Context->bWritePathCentroid) { WriteMark(PointIO, Settings->PathCentroidAttributeName, (PathCentroid / Path->NumPoints).GetSafeNormal()); }
 
 		///
 
-		if (Sign != 0)
+		if (Path->ConvexitySign != 0)
 		{
-			if (Settings->bTagConcave && !bIsConvex) { PointIO->Tags->Add(Settings->ConcaveTag); }
-			if (Settings->bTagConvex && bIsConvex) { PointIO->Tags->Add(Settings->ConvexTag); }
+			if (Settings->bTagConcave && !Path->bIsConvex) { PointIO->Tags->Add(Settings->ConcaveTag); }
+			if (Settings->bTagConvex && Path->bIsConvex) { PointIO->Tags->Add(Settings->ConvexTag); }
 		}
 
 		PointDataFacade->Write(AsyncManager);

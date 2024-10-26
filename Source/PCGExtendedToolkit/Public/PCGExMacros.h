@@ -193,4 +193,28 @@ FPCGElementPtr UPCGEx##_NAME##Settings::CreateElement() const{	return MakeShared
 #define PCGEX_PIN_POINT(_LABEL, _TOOLTIP, _STATUS, _EXTRA) { FPCGPinProperties& Pin = PinProperties.Emplace_GetRef(_LABEL, EPCGDataType::Point, false, false); PCGEX_PIN_TOOLTIP(_TOOLTIP) PCGEX_PIN_STATUS(_STATUS) _EXTRA }
 #define PCGEX_PIN_PARAM(_LABEL, _TOOLTIP, _STATUS, _EXTRA) { FPCGPinProperties& Pin = PinProperties.Emplace_GetRef(_LABEL, EPCGDataType::Param, false, false); PCGEX_PIN_TOOLTIP(_TOOLTIP) PCGEX_PIN_STATUS(_STATUS) _EXTRA }
 
+#define PCGEX_OCTREE_SEMANTICS(_ITEM, _BOUNDS, _EQUALITY)\
+struct _ITEM##Semantics{ \
+	enum { MaxElementsPerLeaf = 16 }; \
+	enum { MinInclusiveElementsPerNode = 7 }; \
+	enum { MaxNodeDepth = 12 }; \
+	using ElementAllocator = TInlineAllocator<MaxElementsPerLeaf>; \
+	FORCEINLINE static const FBoxSphereBounds& GetBoundingBox(const _ITEM* Element) _BOUNDS \
+	FORCEINLINE static const bool AreElementsEqual(const _ITEM* A, const _ITEM* B) _EQUALITY \
+	FORCEINLINE static void ApplyOffset(_ITEM& Element){ ensureMsgf(false, TEXT("Not implemented")); } \
+	FORCEINLINE static void SetElementId(const _ITEM* Element, FOctreeElementId2 OctreeElementID){ }}; \
+	using _ITEM##Octree = TOctree2<_ITEM*, _ITEM##Semantics>;
+
+#define PCGEX_OCTREE_SEMANTICS_REF(_ITEM, _BOUNDS, _EQUALITY)\
+struct _ITEM##Semantics{ \
+enum { MaxElementsPerLeaf = 16 }; \
+enum { MinInclusiveElementsPerNode = 7 }; \
+enum { MaxNodeDepth = 12 }; \
+using ElementAllocator = TInlineAllocator<MaxElementsPerLeaf>; \
+FORCEINLINE static const FBoxSphereBounds& GetBoundingBox(const _ITEM& Element) _BOUNDS \
+FORCEINLINE static const bool AreElementsEqual(const _ITEM& A, const _ITEM& B) _EQUALITY \
+FORCEINLINE static void ApplyOffset(_ITEM& Element){ ensureMsgf(false, TEXT("Not implemented")); } \
+FORCEINLINE static void SetElementId(const _ITEM& Element, FOctreeElementId2 OctreeElementID){ }}; \
+using _ITEM##Octree = TOctree2<_ITEM, _ITEM##Semantics>;
+
 #endif

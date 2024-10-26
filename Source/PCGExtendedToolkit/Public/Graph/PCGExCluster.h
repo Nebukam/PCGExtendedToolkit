@@ -76,47 +76,6 @@ namespace PCGExCluster
 		double Length = 0;
 	};
 
-	struct /*PCGEXTENDEDTOOLKIT_API*/ FClusterItemRef
-	{
-		int32 ItemIndex;
-		FBoxSphereBounds Bounds;
-
-		FClusterItemRef(const int32 InItemIndex, const FBoxSphereBounds& InBounds)
-			: ItemIndex(InItemIndex), Bounds(InBounds)
-		{
-		}
-	};
-
-	struct /*PCGEXTENDEDTOOLKIT_API*/ FClusterItemRefSemantics
-	{
-		enum { MaxElementsPerLeaf = 16 };
-
-		enum { MinInclusiveElementsPerNode = 7 };
-
-		enum { MaxNodeDepth = 12 };
-
-		using ElementAllocator = TInlineAllocator<MaxElementsPerLeaf>;
-
-		FORCEINLINE static const FBoxSphereBounds& GetBoundingBox(const FClusterItemRef& InNode)
-		{
-			return InNode.Bounds;
-		}
-
-		FORCEINLINE static const bool AreElementsEqual(const FClusterItemRef& A, const FClusterItemRef& B)
-		{
-			return A.ItemIndex == B.ItemIndex;
-		}
-
-		FORCEINLINE static void ApplyOffset(FClusterItemRef& InNode)
-		{
-			ensureMsgf(false, TEXT("Not implemented"));
-		}
-
-		FORCEINLINE static void SetElementId(const FClusterItemRef& Element, FOctreeElementId2 OctreeElementID)
-		{
-		}
-	};
-
 	class FCluster;
 
 	struct /*PCGEXTENDEDTOOLKIT_API*/ FNode : PCGExGraph::FNode
@@ -218,9 +177,8 @@ namespace PCGExCluster
 		TWeakPtr<PCGExData::FPointIO> VtxIO;
 		TWeakPtr<PCGExData::FPointIO> EdgesIO;
 
-		using ClusterItemOctree = TOctree2<FClusterItemRef, FClusterItemRefSemantics>;
-		TSharedPtr<ClusterItemOctree> NodeOctree;
-		TSharedPtr<ClusterItemOctree> EdgeOctree;
+		TSharedPtr<PCGEx::FIndexedItemOctree> NodeOctree;
+		TSharedPtr<PCGEx::FIndexedItemOctree> EdgeOctree;
 
 		FCluster(const TSharedPtr<PCGExData::FPointIO>& InVtxIO, const TSharedPtr<PCGExData::FPointIO>& InEdgesIO);
 		FCluster(const TSharedRef<FCluster>& OtherCluster,
@@ -428,23 +386,23 @@ namespace PCGExCluster
 		int32 Index;
 		const FNode* Start;
 		const FNode* End;
-		FBoxSphereBounds Bounds;
+		FBoxSphereBounds BSB;
 
 		FExpandedEdge(const FCluster* Cluster, const int32 InEdgeIndex):
 			Index(InEdgeIndex),
 			Start(Cluster->Nodes->GetData() + (*Cluster->NodeIndexLookup)[(Cluster->Edges->GetData() + InEdgeIndex)->Start]),
 			End(Cluster->Nodes->GetData() + (*Cluster->NodeIndexLookup)[(Cluster->Edges->GetData() + InEdgeIndex)->End]),
-			Bounds(FBoxSphereBounds(FSphere(FMath::Lerp(Cluster->GetPos(Start), Cluster->GetPos(End), 0.5), FVector::Dist(Cluster->GetPos(Start), Cluster->GetPos(End)) * 0.5)))
+			BSB(FBoxSphereBounds(FSphere(FMath::Lerp(Cluster->GetPos(Start), Cluster->GetPos(End), 0.5), FVector::Dist(Cluster->GetPos(Start), Cluster->GetPos(End)) * 0.5)))
 		{
 		}
 
 		FExpandedEdge():
-			Index(-1), Start(nullptr), End(nullptr), Bounds(FBoxSphereBounds(ForceInit))
+			Index(-1), Start(nullptr), End(nullptr), BSB(FBoxSphereBounds(ForceInit))
 		{
 		}
 
 		FExpandedEdge(const FExpandedEdge& Other):
-			Index(Other.Index), Start(Other.Start), End(Other.End), Bounds(Other.Bounds)
+			Index(Other.Index), Start(Other.Start), End(Other.End), BSB(Other.BSB)
 		{
 		}
 
@@ -453,7 +411,7 @@ namespace PCGExCluster
 		FORCEINLINE uint64 GetNodes() const { return PCGEx::H64(Start->NodeIndex, End->NodeIndex); }
 		FORCEINLINE double GetEdgeLength(const FCluster* Cluster) const { return FVector::Dist(Cluster->GetPos(Start), Cluster->GetPos(End)); }
 		FORCEINLINE double GetEdgeLengthSquared(const FCluster* Cluster) const { return FVector::DistSquared(Cluster->GetPos(Start), Cluster->GetPos(End)); }
-		FORCEINLINE FVector GetCenter() const { return Bounds.Origin; }
+		FORCEINLINE FVector GetCenter() const { return BSB.Origin; }
 		FORCEINLINE int32 OtherNodeIndex(const int32 NodeIndex) const
 		{
 			check(NodeIndex == Start->NodeIndex || NodeIndex == End->NodeIndex)

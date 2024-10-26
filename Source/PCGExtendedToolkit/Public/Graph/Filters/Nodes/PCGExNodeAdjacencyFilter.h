@@ -4,6 +4,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "PCGExConstants.h"
 #include "Graph/Filters/PCGExAdjacency.h"
 #include "PCGExDetails.h"
 
@@ -53,7 +54,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExNodeAdjacencyFilterConfig
 
 	/** Rounding mode for near measures */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="Comparison==EPCGExComparison::NearlyEqual || Comparison==EPCGExComparison::NearlyNotEqual", EditConditionHides))
-	double Tolerance = 0.001;
+	double Tolerance = DBL_COMPARE_TOLERANCE;
 };
 
 /**
