@@ -38,6 +38,20 @@ bool FPCGExConnectClustersElement::Boot(FPCGExContext* InContext) const
 	PCGEX_FWD(ProjectionDetails)
 	PCGEX_FWD(GraphBuilderDetails)
 
+	if (Settings->BridgeMethod == EPCGExBridgeClusterMethod::Filters)
+	{
+		PCGE_LOG(Error, GraphAndLog, FTEXT("Bridge through filter is not implemented yet!"));
+		return false;
+
+		if (!GetInputFactories(
+			Context, PCGExGraph::SourceFilterGenerators, Context->GeneratorsFiltersFactories,
+			PCGExFactories::ClusterNodeFilters, true)) { return false; }
+
+		if (!GetInputFactories(
+			Context, PCGExGraph::SourceFilterConnectables, Context->ConnectablesFiltersFactories,
+			PCGExFactories::ClusterNodeFilters, true)) { return false; }
+	}
+
 	return true;
 }
 
@@ -109,6 +123,7 @@ namespace PCGExBridgeClusters
 
 	void FProcessor::CompleteWork()
 	{
+		// if mode == filter, loop through generators and find all suitable connectables
 	}
 
 	//////// BATCH
@@ -239,6 +254,10 @@ namespace PCGExBridgeClusters
 					Bridges.Add(PCGEx::H64U(i, j));
 				}
 			}
+		}
+		else if (SafeMethod == EPCGExBridgeClusterMethod::Filters)
+		{
+			// Let cluster processor handle it.
 		}
 	}
 
