@@ -384,5 +384,4 @@ namespace PCGEx
 	};
 
 	PCGEX_OCTREE_SEMANTICS_REF(FIndexedItem, { return Element.BSB;}, { return A.Index == B.Index; })
-	
 }

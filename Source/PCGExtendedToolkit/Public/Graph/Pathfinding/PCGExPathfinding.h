@@ -15,14 +15,14 @@ namespace PCGExHeuristics
 	class THeuristicsHandler;
 }
 
-UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Pathfinding Navmesh Mode"))
+UENUM(/*E--BlueprintType, meta=(DisplayName="[PCGEx] Pathfinding Navmesh Mode")--E*/)
 enum class EPCGExPathfindingNavmeshMode : uint8
 {
 	Regular      = 0 UMETA(DisplayName = "Regular", ToolTip="Regular pathfinding"),
 	Hierarchical = 1 UMETA(DisplayName = "HIerarchical", ToolTip="Cell-based pathfinding"),
 };
 
-UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Pathfinding Goal Pick Method"))
+UENUM(/*E--BlueprintType, meta=(DisplayName="[PCGEx] Pathfinding Goal Pick Method")--E*/)
 enum class EPCGExPathfindingGoalPickMethod : uint8
 {
 	SeedIndex              = 0 UMETA(DisplayName = "Seed Index", Tooltip="Uses the seed index as goal index."),
@@ -32,7 +32,7 @@ enum class EPCGExPathfindingGoalPickMethod : uint8
 	All                    = 4 UMETA(DisplayName = "All", Tooltip="Each seed will create a path for each goal."),
 };
 
-UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Path Point Orientation"))
+UENUM(/*E--BlueprintType, meta=(DisplayName="[PCGEx] Path Point Orientation")--E*/)
 enum class EPCGExPathPointOrientation : uint8
 {
 	None            = 0 UMETA(DisplayName = "None", Tooltip="No orientation is applied to the point"),

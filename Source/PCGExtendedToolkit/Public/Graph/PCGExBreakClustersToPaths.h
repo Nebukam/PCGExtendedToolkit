@@ -11,7 +11,7 @@
 
 #include "PCGExBreakClustersToPaths.generated.h"
 
-UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Break Cluster Operation Target"))
+UENUM(/*E--BlueprintType, meta=(DisplayName="[PCGEx] Break Cluster Operation Target")--E*/)
 enum class EPCGExBreakClusterOperationTarget : uint8
 {
 	Paths = 0 UMETA(DisplayName = "Paths", ToolTip="Operate on edge chains which form paths with no crossings.  e.g, nodes with only two neighbors."),
@@ -37,6 +37,7 @@ protected:
 
 	//~Begin UPCGExPointsProcessorSettings
 public:
+	virtual bool SupportsEdgeSorting() const override { return DirectionSettings.RequiresSortingRules(); }
 	virtual PCGExData::EInit GetMainOutputInitMode() const override;
 	virtual PCGExData::EInit GetEdgeOutputInitMode() const override;
 	PCGEX_NODE_POINT_FILTER(FName("Break Conditions"), "Filters used to know which points are 'break' points.", PCGExFactories::ClusterNodeFilters, false)

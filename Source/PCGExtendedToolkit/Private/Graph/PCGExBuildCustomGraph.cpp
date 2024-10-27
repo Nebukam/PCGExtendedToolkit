@@ -43,21 +43,17 @@ void UPCGExCustomGraphSettings::UpdateNodePoint_Implementation(const FPCGPoint& 
 	OutPoint = InPoint;
 }
 
-FNewGraphSettingsResult UPCGExCustomGraphBuilder::CreateGraphSettings(TSubclassOf<UPCGExCustomGraphSettings> SettingsClass)
+void UPCGExCustomGraphBuilder::CreateGraphSettings(TSubclassOf<UPCGExCustomGraphSettings> SettingsClass, UPCGExCustomGraphSettings*& OutSettings)
 {
-	FNewGraphSettingsResult Result;
-	
 	if (!SettingsClass || SettingsClass->HasAnyClassFlags(CLASS_Abstract))
 	{
 		UE_LOG(LogTemp, Error, TEXT("Cannot instantiate an abstract class!"));
-		return Result;
+		return;
 	}
-	
+
 	TObjectPtr<UPCGExCustomGraphSettings> NewSettings = Context->ManagedObjects->New<UPCGExCustomGraphSettings>(GetTransientPackage(), SettingsClass);
 	NewSettings->SettingsIndex = GraphSettings.Add(NewSettings);
-	Result.Settings = NewSettings;
-	Result.bIsValid = true;
-	return Result;
+	OutSettings = NewSettings;
 }
 
 void UPCGExCustomGraphBuilder::BuildGraph_Implementation(const FPCGContext& InContext, UPCGExCustomGraphSettings* InCustomGraphSettings, bool& OutSuccess)

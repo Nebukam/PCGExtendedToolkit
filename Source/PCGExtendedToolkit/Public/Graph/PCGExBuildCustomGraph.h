@@ -9,7 +9,7 @@
 #include "Graph/PCGExGraph.h"
 #include "PCGExBuildCustomGraph.generated.h"
 
-UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Custom Graph Actor Source Mode"))
+UENUM(/*E--BlueprintType, meta=(DisplayName="[PCGEx] Custom Graph Actor Source Mode")--E*/)
 enum class EPCGExCustomGraphActorSourceMode : uint8
 {
 	Owner           = 0 UMETA(DisplayName = "Owner", ToolTip="PCG Component owner"),
@@ -123,9 +123,10 @@ public:
 	/**
 	 * Create an edge between two nodes in an indexed graph. This method is executed in a multi-threaded context
 	 * @param SettingsClass
+	 * @param OutSettings
 	 */
-	UFUNCTION(BlueprintCallable, Category = "PCGEx|Execution")
-	FNewGraphSettingsResult CreateGraphSettings(TSubclassOf<UPCGExCustomGraphSettings> SettingsClass);
+	UFUNCTION(BlueprintCallable, Category = "PCGEx|Execution", meta=(DeterminesOutputType="SettingsClass", DynamicOutputParam="OutSettings"))
+	void CreateGraphSettings(TSubclassOf<UPCGExCustomGraphSettings> SettingsClass, UPCGExCustomGraphSettings*& OutSettings);
 
 	/**
 	 * Main execution function. Called once per requested graphs. This method is executed in a multi-threaded context, Graph Settings are safe but the custom builder wrapper itself isn't.

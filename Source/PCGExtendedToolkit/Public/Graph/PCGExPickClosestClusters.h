@@ -11,7 +11,7 @@
 #include "Graph/PCGExEdgesProcessor.h"
 #include "PCGExPickClosestClusters.generated.h"
 
-UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Cluster Closest Pick Mode"))
+UENUM(/*E--BlueprintType, meta=(DisplayName="[PCGEx] Cluster Closest Pick Mode")--E*/)
 enum class EPCGExClusterClosestPickMode : uint8
 {
 	OnlyBest = 0 UMETA(DisplayName = "Only Best", ToolTip="Allows duplicate picks for multiple targets"),

@@ -39,7 +39,7 @@ void UPCGExCustomActorDataPacker::ProcessEntry_Implementation(AActor* InActor, c
 
 #define PCGEX_SET_ATT_IMPL(_NAME, _TYPE)\
 bool UPCGExCustomActorDataPacker::Init##_NAME(const FName& InAttributeName, const _TYPE& InValue){\
-TSharedPtr<PCGExData::TBuffer<_TYPE>> Buffer = PointDataFacade->GetWritable<_TYPE>(InAttributeName, InValue, true, true);\
+TSharedPtr<PCGExData::TBuffer<_TYPE>> Buffer = GetBuffer<_TYPE>(InAttributeName, InValue);\
 return Buffer ? true : false;}
 PCGEX_FOREACH_PACKER(PCGEX_SET_ATT_IMPL)
 #undef PCGEX_SET_ATT_IMPL
@@ -49,7 +49,7 @@ bool UPCGExCustomActorDataPacker::InitSoftObjectPath(const FName& InAttributeNam
 #if PCGEX_ENGINE_VERSION <= 503
 	return InitString(InAttributeName, InValue.ToString());
 #else
-	TSharedPtr<PCGExData::TBuffer<FSoftObjectPath>> Buffer = PointDataFacade->GetWritable<FSoftObjectPath>(InAttributeName, InValue, true, true);\
+	TSharedPtr<PCGExData::TBuffer<FSoftObjectPath>> Buffer = GetBuffer<FSoftObjectPath>(InAttributeName, InValue);
 	return Buffer ? true : false;
 #endif
 }
@@ -59,14 +59,14 @@ bool UPCGExCustomActorDataPacker::InitSoftClassPath(const FName& InAttributeName
 #if PCGEX_ENGINE_VERSION <= 503
 	return InitString(InAttributeName, InValue.ToString());
 #else
-	TSharedPtr<PCGExData::TBuffer<FSoftClassPath>> Buffer = PointDataFacade->GetWritable<FSoftClassPath>(InAttributeName, InValue, true, true);\
+	TSharedPtr<PCGExData::TBuffer<FSoftClassPath>> Buffer = GetBuffer<FSoftClassPath>(InAttributeName, InValue);
 	return Buffer ? true : false;
 #endif
 }
 
 #define PCGEX_SET_ATT_IMPL(_NAME, _TYPE)\
 bool UPCGExCustomActorDataPacker::Pack##_NAME(const FName& InAttributeName, const int32 InPointIndex, const _TYPE& InValue){\
-TSharedPtr<PCGExData::TBuffer<_TYPE>> Buffer = PointDataFacade->GetWritable<_TYPE>(InAttributeName, false);\
+TSharedPtr<PCGExData::TBuffer<_TYPE>> Buffer = GetBuffer<_TYPE>(InAttributeName);\
 if (!Buffer) { return false; }\
 Buffer->GetMutable(InPointIndex) = InValue;\
 return true;}
@@ -78,7 +78,7 @@ bool UPCGExCustomActorDataPacker::PackSoftObjectPath(const FName& InAttributeNam
 #if PCGEX_ENGINE_VERSION <= 503
 	return PackString(InAttributeName, InPointIndex, InValue.ToString());
 #else
-	TSharedPtr<PCGExData::TBuffer<FSoftObjectPath>> Buffer = PointDataFacade->GetWritable<FSoftObjectPath>(InAttributeName, false);
+	TSharedPtr<PCGExData::TBuffer<FSoftObjectPath>> Buffer = GetBuffer<FSoftObjectPath>(InAttributeName);
 	if (!Buffer) { return false; }
 	Buffer->GetMutable(InPointIndex) = InValue;
 	return true;
@@ -90,7 +90,7 @@ bool UPCGExCustomActorDataPacker::PackSoftClassPath(const FName& InAttributeName
 #if PCGEX_ENGINE_VERSION <= 503
 	return PackString(InAttributeName, InPointIndex, InValue.ToString());
 #else
-	TSharedPtr<PCGExData::TBuffer<FSoftClassPath>> Buffer = PointDataFacade->GetWritable<FSoftClassPath>(InAttributeName, false);
+	TSharedPtr<PCGExData::TBuffer<FSoftClassPath>> Buffer = GetBuffer<FSoftClassPath>(InAttributeName);
 	if (!Buffer) { return false; }
 	Buffer->GetMutable(InPointIndex) = InValue;
 	return true;

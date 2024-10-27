@@ -2,10 +2,7 @@
 // Released under the MIT license https://opensource.org/license/MIT/
 
 #include "Graph/PCGExCluster.h"
-
 #include "Data/PCGExAttributeHelpers.h"
-
-
 #include "Geometry/PCGExGeo.h"
 #include "Graph/Data/PCGExClusterData.h"
 
@@ -895,25 +892,43 @@ namespace PCGExCluster
 #pragma endregion
 }
 
-void FPCGExEdgeDirectionSettings::RegisterBuffersDependencies(FPCGExContext* InContext, PCGExData::FFacadePreloader& FacadePreloader) const
+void FPCGExEdgeDirectionSettings::RegisterBuffersDependencies(FPCGExContext* InContext, PCGExData::FFacadePreloader& FacadePreloader, const TArray<FPCGExSortRuleConfig>* InSortingRules) const
 {
-	if (DirectionMethod == EPCGExEdgeDirectionMethod::EndpointsAttribute) { FacadePreloader.Register<double>(InContext, DirSourceAttribute); }
+	if (DirectionMethod == EPCGExEdgeDirectionMethod::EndpointsSort)
+	{
+		FacadePreloader.Register<double>(InContext, DirSourceAttribute);
+	}
+
+	if (Sorter) { Sorter->RegisterBuffersDependencies(FacadePreloader); }
+	else if (InSortingRules) { PCGExSorting::RegisterBuffersDependencies(InContext, FacadePreloader, *InSortingRules); }
 }
 
-bool FPCGExEdgeDirectionSettings::Init(FPCGExContext* InContext)
+bool FPCGExEdgeDirectionSettings::Init(
+	FPCGExContext* InContext,
+	const TSharedRef<PCGExData::FFacade>& InVtxDataFacade,
+	const TArray<FPCGExSortRuleConfig>* InSortingRules)
 {
 	bAscendingDesired = DirectionChoice == EPCGExEdgeDirectionChoice::SmallestToGreatest;
+	if (DirectionMethod == EPCGExEdgeDirectionMethod::EndpointsSort)
+	{
+		if (!InSortingRules) { return false; }
+
+		Sorter = MakeShared<PCGExSorting::PointSorter<true>>(InContext, InVtxDataFacade, *InSortingRules);
+		if (!Sorter->Init()) { return false; }
+	}
 	return true;
 }
 
-bool FPCGExEdgeDirectionSettings::InitFromParent(FPCGExContext* InContext, const FPCGExEdgeDirectionSettings& ParentSettings, const TSharedRef<PCGExData::FFacade>& InEdgeDataFacade)
+bool FPCGExEdgeDirectionSettings::InitFromParent(
+	FPCGExContext* InContext,
+	const FPCGExEdgeDirectionSettings& ParentSettings,
+	const TSharedRef<PCGExData::FFacade>& InEdgeDataFacade)
 {
 	DirectionMethod = ParentSettings.DirectionMethod;
 	DirectionChoice = ParentSettings.DirectionChoice;
 
 	bAscendingDesired = ParentSettings.bAscendingDesired;
-
-	EndpointsReader = ParentSettings.EndpointsReader;
+	Sorter = ParentSettings.Sorter;
 
 	if (DirectionMethod == EPCGExEdgeDirectionMethod::EdgeDotAttribute)
 	{
@@ -942,9 +957,9 @@ bool FPCGExEdgeDirectionSettings::SortEndpoints(const PCGExCluster::FCluster* In
 	{
 		bAscending = (Start < End);
 	}
-	else if (DirectionMethod == EPCGExEdgeDirectionMethod::EndpointsAttribute)
+	else if (DirectionMethod == EPCGExEdgeDirectionMethod::EndpointsSort)
 	{
-		bAscending = EndpointsReader->Read(Start) < EndpointsReader->Read(End);
+		bAscending = Sorter->Sort(Start, End);
 	}
 	else if (DirectionMethod == EPCGExEdgeDirectionMethod::EdgeDotAttribute)
 	{

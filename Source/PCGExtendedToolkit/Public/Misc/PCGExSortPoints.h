@@ -4,63 +4,14 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "PCGExConstants.h"
 #include "PCGExGlobalSettings.h"
 
 #include "PCGExPointsProcessor.h"
+#include "PCGExSorting.h"
 #include "Data/PCGExAttributeHelpers.h"
 
 
 #include "PCGExSortPoints.generated.h"
-
-UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Sort Direction"))
-enum class EPCGExSortDirection : uint8
-{
-	Ascending  = 0 UMETA(DisplayName = "Ascending"),
-	Descending = 1 UMETA(DisplayName = "Descending")
-};
-
-USTRUCT(BlueprintType)
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExSortRuleConfig : public FPCGExInputConfig
-{
-	GENERATED_BODY()
-
-	FPCGExSortRuleConfig()
-	{
-	}
-
-	FPCGExSortRuleConfig(const FPCGExSortRuleConfig& Other)
-		: FPCGExInputConfig(Other),
-		  Tolerance(Other.Tolerance)
-	{
-	}
-
-	/** Equality tolerance. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
-	double Tolerance = DBL_COMPARE_TOLERANCE;
-
-	/** Invert sorting direction on that rule. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
-	bool bInvertRule = false;
-
-	/** Compare absolute value. */
-	//UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
-	//bool bAbsolute = false;
-};
-
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExSortRule
-{
-	FPCGExSortRule()
-	{
-	}
-
-	TSharedPtr<PCGExData::TBuffer<double>> Cache;
-
-	FPCGAttributePropertyInputSelector Selector;
-	double Tolerance = DBL_COMPARE_TOLERANCE;
-	bool bInvertRule = false;
-	bool bAbsolute = false;
-};
 
 UCLASS(Abstract, MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc")
 class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExSortPointsBaseSettings : public UPCGExPointsProcessorSettings
@@ -124,93 +75,9 @@ protected:
 
 namespace PCGExSortPoints
 {
-	const FName SourceSortingRules = TEXT("SortRules");
-
-	template <bool bUsePointIndices = false>
-	class PointSorter : public TSharedFromThis<PointSorter<bUsePointIndices>>
-	{
-	protected:
-		FPCGExContext* ExecutionContext = nullptr;
-		TArray<TSharedRef<FPCGExSortRule>> Rules;
-		TMap<PCGMetadataEntryKey, int32> PointIndices;
-
-	public:
-		EPCGExSortDirection SortDirection = EPCGExSortDirection::Ascending;
-		TSharedRef<PCGExData::FFacade> DataFacade;
-
-		explicit PointSorter(FPCGExContext* InContext, const TSharedRef<PCGExData::FFacade>& InDataFacade, TArray<FPCGExSortRuleConfig> InRuleConfigs)
-			: ExecutionContext(InContext), DataFacade(InDataFacade)
-		{
-			if constexpr (bUsePointIndices)
-			{
-				InDataFacade->Source->PrintOutKeysMap(PointIndices);
-			}
-
-			for (const FPCGExSortRuleConfig& RuleConfig : InRuleConfigs)
-			{
-				TSharedPtr<FPCGExSortRule> NewRule = MakeShared<FPCGExSortRule>();
-				NewRule->Selector = RuleConfig.Selector;
-				NewRule->Tolerance = RuleConfig.Tolerance;
-				NewRule->bInvertRule = RuleConfig.bInvertRule;
-				Rules.Add(NewRule.ToSharedRef());
-			}
-		}
-
-		void RegisterBuffersDependencies(PCGExData::FFacadePreloader& FacadePreloader)
-		{
-			for (const TSharedRef<FPCGExSortRule> Rule : Rules) { FacadePreloader.Register<double>(ExecutionContext, Rule->Selector); }
-		}
-
-		bool Init()
-		{
-			for (int i = 0; i < Rules.Num(); i++)
-			{
-				TSharedPtr<FPCGExSortRule> Rule = Rules[i];
-				const TSharedPtr<PCGExData::TBuffer<double>> Cache = DataFacade->GetBroadcaster<double>(Rule->Selector);
-
-				if (!Cache)
-				{
-					Rules.RemoveAt(i);
-					i--;
-
-					PCGE_LOG_C(Warning, GraphAndLog, ExecutionContext, FTEXT("Some points are missing attributes used for sorting."));
-					continue;
-				}
-
-				Rule->Cache = Cache;
-			}
-
-			return !Rules.IsEmpty();
-		}
-
-		FORCEINLINE bool Sort(const int32 A, const int32 B)
-		{
-			int Result = 0;
-			for (const TSharedRef<FPCGExSortRule>& Rule : Rules)
-			{
-				const double ValueA = Rule->Cache->Read(A);
-				const double ValueB = Rule->Cache->Read(B);
-				Result = FMath::IsNearlyEqual(ValueA, ValueB, Rule->Tolerance) ? 0 : ValueA < ValueB ? -1 : 1;
-				if (Result != 0)
-				{
-					if (Rule->bInvertRule) { Result *= -1; }
-					break;
-				}
-			}
-
-			if (SortDirection == EPCGExSortDirection::Descending) { Result *= -1; }
-			return Result < 0;
-		}
-
-		FORCEINLINE bool Sort(const FPCGPoint& A, const FPCGPoint& B)
-		{
-			return Sort(PointIndices[A.MetadataEntry], PointIndices[B.MetadataEntry]);
-		}
-	};
-
 	class FProcessor final : public PCGExPointsMT::TPointsProcessor<FPCGExPointsProcessorContext, UPCGExSortPointsBaseSettings>
 	{
-		TSharedPtr<PointSorter<true>> Sorter;
+		TSharedPtr<PCGExSorting::PointSorter<true>> Sorter;
 
 	public:
 		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade):

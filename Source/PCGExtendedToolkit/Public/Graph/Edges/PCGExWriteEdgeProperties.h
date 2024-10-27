@@ -18,7 +18,7 @@ MACRO(EdgeLength, double, 0) \
 MACRO(EdgeDirection, FVector, FVector::OneVector) \
 MACRO(Heuristics, double, 0)
 
-UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Heuristics Write Mode"))
+UENUM(/*E--BlueprintType, meta=(DisplayName="[PCGEx] Heuristics Write Mode")--E*/)
 enum class EPCGExHeuristicsWriteMode : uint8
 {
 	EndpointsOrder = 0 UMETA(DisplayName = "Endpoints Order", ToolTip="Use endpoint order heuristics."),
@@ -38,6 +38,7 @@ public:
 	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->NodeColorSamplerNeighbor; }
 #endif
 
+	virtual bool SupportsEdgeSorting() const override { return DirectionSettings.RequiresSortingRules(); }
 	virtual PCGExData::EInit GetMainOutputInitMode() const override;
 	virtual PCGExData::EInit GetEdgeOutputInitMode() const override;
 

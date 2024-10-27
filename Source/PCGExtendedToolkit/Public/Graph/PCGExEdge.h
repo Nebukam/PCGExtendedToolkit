@@ -9,16 +9,16 @@
 #include "Data/PCGExPointIO.h"
 #include "PCGExEdge.generated.h"
 
-UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Edge Direction Mode"))
+UENUM(/*E--BlueprintType, meta=(DisplayName="[PCGEx] Edge Direction Mode")--E*/)
 enum class EPCGExEdgeDirectionMethod : uint8
 {
-	EndpointsOrder     = 0 UMETA(DisplayName = "Endpoints Order", ToolTip="Uses the edge' Start & End properties"),
-	EndpointsIndices   = 1 UMETA(DisplayName = "Endpoints Indices", ToolTip="Uses the edge' Start & End indices"),
-	EndpointsAttribute = 2 UMETA(DisplayName = "Endpoints Attribute", ToolTip="Uses a single-component property or attribute value on Start & End points"),
-	EdgeDotAttribute   = 3 UMETA(DisplayName = "Edge Dot Attribute", ToolTip="Chooses the highest dot product against a vector property or attribute on the edge point"),
+	EndpointsOrder   = 0 UMETA(DisplayName = "Endpoints Order", ToolTip="Uses the edge' Start & End properties"),
+	EndpointsIndices = 1 UMETA(DisplayName = "Endpoints Indices", ToolTip="Uses the edge' Start & End indices"),
+	EndpointsSort    = 2 UMETA(DisplayName = "Endpoints Sort", ToolTip="Uses sorting rules to check endpoint is the Start or End."),
+	EdgeDotAttribute = 3 UMETA(DisplayName = "Edge Dot Attribute", ToolTip="Chooses the highest dot product against a vector property or attribute on the edge point"),
 };
 
-UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Edge Direction Choice"))
+UENUM(/*E--BlueprintType, meta=(DisplayName="[PCGEx] Edge Direction Choice")--E*/)
 enum class EPCGExEdgeDirectionChoice : uint8
 {
 	SmallestToGreatest = 0 UMETA(DisplayName = "Smallest to Greatest", ToolTip="Direction points from smallest to greatest value"),
@@ -37,6 +37,7 @@ namespace PCGExGraph
 	const FName OutputRemovedEdgesLabel = TEXT("Removed Edges");
 
 	const FName SourcePackedClustersLabel = TEXT("Packed Clusters");
+	const FName SourceEdgeSortingRules = TEXT("Edge Sorting Rules");
 	const FName OutputPackedClustersLabel = TEXT("Packed Clusters");
 
 	const FName Tag_EdgeEndpoints = FName(PCGEx::PCGExPrefix + TEXT("EdgeEndpoints"));

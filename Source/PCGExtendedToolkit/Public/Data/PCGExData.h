@@ -92,6 +92,11 @@ namespace PCGExData
 			UID = BufferUID(FullName, InType);
 		}
 
+		EPCGMetadataTypes GetType() const { return Type; }
+
+		template<typename T>
+		bool IsA() const { return Type == PCGEx::GetMetadataType<T>(); }
+
 		virtual ~FBufferBase()
 		{
 			PCGEX_LOG_DTR(FBufferBase)
@@ -131,9 +136,9 @@ namespace PCGExData
 		T Min = T{};
 		T Max = T{};
 
-		TSharedPtr<PCGEx::TAttributeBroadcaster<T>> ScopedBroadcaster;
+		TSharedPtr<PCGEx::TAttributeBroadcaster<T>> InternalBroadcaster;
 
-		virtual bool IsScoped() override { return bScopedBuffer || ScopedBroadcaster; }
+		virtual bool IsScoped() override { return bScopedBuffer || InternalBroadcaster; }
 
 		TBuffer(const TSharedRef<FPointIO>& InSource, const FName InFullName):
 			FBufferBase(InSource, InFullName)
@@ -261,6 +266,54 @@ namespace PCGExData
 			return true;
 		}
 
+
+		bool PrepareBroadcast(const FPCGAttributePropertyInputSelector& InSelector, const bool bCaptureMinMax = false, const bool bScoped = false)
+		{
+			FWriteScopeLock WriteScopeLock(BufferLock);
+
+			if (InValues)
+			{
+				if (bScopedBuffer && !bScoped)
+				{
+					// Un-scoping reader.
+					InternalBroadcaster->GrabAndDump(*InValues, bCaptureMinMax, Min, Max);
+					bReadComplete = true;
+					bScopedBuffer = false;
+					InternalBroadcaster.Reset();
+				}
+
+				if (OutValues && InValues == OutValues)
+				{
+					check(false)
+					// Out-source broadcaster was created before writer, this is bad?
+					InValues = nullptr;
+				}
+				else
+				{
+					return true;
+				}
+			}
+
+			InternalBroadcaster = MakeShared<PCGEx::TAttributeBroadcaster<T>>();
+			if (!InternalBroadcaster->Prepare(InSelector, Source))
+			{
+				TypedInAttribute = nullptr;
+				InAccessor = nullptr;
+				return false;
+			}
+
+			PrepareReadInternal(bScoped, InternalBroadcaster->GetAttribute());
+
+			if (!bScopedBuffer && !bReadComplete)
+			{
+				InternalBroadcaster->GrabAndDump(*InValues, bCaptureMinMax, Min, Max);
+				bReadComplete = true;
+				InternalBroadcaster.Reset();
+			}
+
+			return true;
+		}
+
 		bool PrepareWrite(const T& DefaultValue, bool bAllowInterpolation, const bool bUninitialized = false)
 		{
 			FWriteScopeLock WriteScopeLock(BufferLock);
@@ -334,16 +387,6 @@ namespace PCGExData
 			return PrepareWrite(T{}, true, bUninitialized);
 		}
 
-		void SetScopedGetter(const TSharedRef<PCGEx::TAttributeBroadcaster<T>>& Getter)
-		{
-			FWriteScopeLock WriteScopeLock(BufferLock);
-
-			PrepareReadInternal(true, Getter->GetAttribute());
-			ScopedBroadcaster = Getter;
-
-			PCGEx::InitArray(InValues, Source->GetNum());
-		}
-
 		virtual void Write() override
 		{
 			if (!IsWritable() || !OutAccessor || !OutValues || !TypedOutAttribute) { return; }
@@ -357,7 +400,7 @@ namespace PCGExData
 		virtual void Fetch(const int32 StartIndex, const int32 Count) override
 		{
 			if (!IsScoped() || bReadComplete) { return; }
-			if (ScopedBroadcaster) { ScopedBroadcaster->Fetch(*InValues, StartIndex, Count); }
+			if (InternalBroadcaster) { InternalBroadcaster->Fetch(*InValues, StartIndex, Count); }
 			if (InAccessor.IsValid())
 			{
 				TArrayView<T> ReadRange = MakeArrayView(InValues->GetData() + StartIndex, Count);
@@ -375,7 +418,7 @@ namespace PCGExData
 		{
 			InValues.Reset();
 			OutValues.Reset();
-			ScopedBroadcaster.Reset();
+			InternalBroadcaster.Reset();
 		}
 	};
 
@@ -513,15 +556,11 @@ namespace PCGExData
 		template <typename T>
 		TSharedPtr<TBuffer<T>> GetBroadcaster(const FPCGAttributePropertyInputSelector& InSelector, const bool bCaptureMinMax = false)
 		{
-			TSharedPtr<PCGEx::TAttributeBroadcaster<T>> Getter = MakeShared<PCGEx::TAttributeBroadcaster<T>>();
-			if (!Getter->Prepare(InSelector, Source)) { return nullptr; }
-
-			TSharedPtr<TBuffer<T>> Buffer = GetBuffer<T>(Getter->FullName);
-
+			TSharedPtr<TBuffer<T>> Buffer = GetBuffer<T>(PCGEx::GetSelectorFullName<false>(InSelector, Source->GetIn()));
+			if (!Buffer->PrepareBroadcast(InSelector, bCaptureMinMax, false))
 			{
-				FWriteScopeLock WriteScopeLock(Buffer->BufferLock);
-				Buffer->PrepareReadInternal(false, Getter->GetAttribute());
-				Getter->GrabAndDump(*Buffer->GetInValues(), bCaptureMinMax, Buffer->Min, Buffer->Max);
+				Flush(Buffer);
+				return nullptr;
 			}
 
 			return Buffer;
@@ -540,11 +579,12 @@ namespace PCGExData
 		{
 			if (!bSupportsScopedGet) { return GetBroadcaster<T>(InSelector); }
 
-			TSharedPtr<PCGEx::TAttributeBroadcaster<T>> Getter = MakeShared<PCGEx::TAttributeBroadcaster<T>>();
-			if (!Getter->Prepare(InSelector, Source)) { return nullptr; }
-
-			TSharedPtr<TBuffer<T>> Buffer = GetBuffer<T>(Getter->FullName);
-			Buffer->SetScopedGetter(Getter.ToSharedRef());
+			TSharedPtr<TBuffer<T>> Buffer = GetBuffer<T>(PCGEx::GetSelectorFullName<true>(InSelector, Source->GetIn()));
+			if (!Buffer->PrepareBroadcast(InSelector, false, false))
+			{
+				Flush(Buffer);
+				return nullptr;
+			}
 
 			return Buffer;
 		}

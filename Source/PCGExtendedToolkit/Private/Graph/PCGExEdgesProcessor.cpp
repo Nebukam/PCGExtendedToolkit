@@ -2,8 +2,6 @@
 // Released under the MIT license https://opensource.org/license/MIT/
 
 #include "Graph/PCGExEdgesProcessor.h"
-
-
 #include "Graph/PCGExClusterMT.h"
 
 #define LOCTEXT_NAMESPACE "PCGExGraphSettings"
@@ -34,6 +32,11 @@ TArray<FPCGPinProperties> UPCGExEdgesProcessorSettings::InputPinProperties() con
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
 	PCGEX_PIN_POINTS(PCGExGraph::SourceEdgesLabel, "Edges associated with the main input points", Required, {})
+	if (SupportsEdgeSorting())
+	{
+		if (RequiresEdgeSorting()) { PCGEX_PIN_PARAMS(PCGExGraph::SourceEdgeSortingRules, "Plug sorting rules here. Order is defined by each rule' priority value, in ascending order.", Required, {}) }
+		else { PCGEX_PIN_PARAMS(PCGExGraph::SourceEdgeSortingRules, "Plug sorting rules here. Order is defined by each rule' priority value, in ascending order.", Normal, {}) }
+	}
 	return PinProperties;
 }
 
@@ -44,7 +47,17 @@ TArray<FPCGPinProperties> UPCGExEdgesProcessorSettings::OutputPinProperties() co
 	return PinProperties;
 }
 
+bool UPCGExEdgesProcessorSettings::SupportsEdgeSorting() const { return false; }
+
+bool UPCGExEdgesProcessorSettings::RequiresEdgeSorting() const { return true; }
+
 #pragma endregion
+
+const TArray<FPCGExSortRuleConfig>* FPCGExEdgesProcessorContext::GetEdgeSortingRules() const
+{
+	if (EdgeSortingRules.IsEmpty()) { return nullptr; }
+	return &EdgeSortingRules;
+}
 
 bool FPCGExEdgesProcessorContext::AdvancePointsIO(const bool bCleanupKeys)
 {
@@ -386,6 +399,17 @@ bool FPCGExEdgesProcessorElement::Boot(FPCGExContext* InContext) const
 	{
 		PCGE_LOG(Error, GraphAndLog, FTEXT("Missing Edges."));
 		return false;
+	}
+
+	if (Settings->SupportsEdgeSorting())
+	{
+		Context->EdgeSortingRules = PCGExSorting::GetSortingRules(Context, PCGExGraph::SourceEdgeSortingRules);
+
+		if (Settings->RequiresEdgeSorting() && Context->EdgeSortingRules.IsEmpty())
+		{
+			PCGE_LOG(Error, GraphAndLog, FTEXT("Missing valid sorting rules."));
+			return false;
+		}
 	}
 
 	return true;

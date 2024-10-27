@@ -11,7 +11,7 @@
 
 #include "PCGExMeshToClusters.generated.h"
 
-UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Mesh Source Type"))
+UENUM(/*E--BlueprintType, meta=(DisplayName="[PCGEx] Mesh Source Type")--E*/)
 enum class EPCGExMeshAttributeHandling : uint8
 {
 	StaticMeshSoftPath = 0 UMETA(DisplayName = "StaticMesh Soft Path", ToolTip="Read the attribute as a StaticMesh soft path."),

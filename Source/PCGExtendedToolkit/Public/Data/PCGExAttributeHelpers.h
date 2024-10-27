@@ -185,6 +185,26 @@ namespace PCGEx
 
 #pragma region Local Attribute Inputs
 
+	template <bool bInitialized>
+	static FName GetSelectorFullName(const FPCGAttributePropertyInputSelector& InSelector, const UPCGData* InData)
+	{
+		if (!InData) { return FName(TEXT("NULL_DATA")); }
+
+		if constexpr (bInitialized)
+		{
+			return FName(InSelector.GetName().ToString() + FString::Join(InSelector.GetExtraNames(), TEXT(".")));
+		}
+		else
+		{
+			if (InSelector.GetSelection() == EPCGAttributePropertySelection::Attribute && InSelector.GetName() == "@Last")
+			{
+				return GetSelectorFullName<true>(InSelector.CopyAndFixLast(InData), InData);
+			}
+
+			return GetSelectorFullName<true>(InSelector, InData);
+		}
+	}
+
 	class /*PCGEXTENDEDTOOLKIT_API*/ FAttributeBroadcasterBase
 	{
 	public:
@@ -199,7 +219,7 @@ namespace PCGEx
 		bool bMinMaxDirty = true;
 		bool bNormalized = false;
 		FPCGAttributePropertyInputSelector InternalSelector;
-		TUniquePtr<IPCGAttributeAccessor> InternalAccessor;
+		TSharedPtr<IPCGAttributeAccessor> InternalAccessor;
 
 		const FPCGMetadataAttributeBase* Attribute = nullptr;
 		EPCGExTransformComponent Component = EPCGExTransformComponent::Position;
@@ -227,7 +247,7 @@ namespace PCGEx
 			}
 
 			GetFieldSelection(ExtraNames, Field);
-			FullName = ExtraNames.IsEmpty() ? InternalSelector.GetName() : FName(InternalSelector.GetName().ToString() + FString::Join(ExtraNames, TEXT(".")));
+			FullName = GetSelectorFullName<true>(InternalSelector, InData);
 
 			if (InternalSelector.GetSelection() == EPCGAttributePropertySelection::Attribute)
 			{
@@ -244,7 +264,7 @@ namespace PCGEx
 							[&](auto DummyValue) -> void
 							{
 								using RawT = decltype(DummyValue);
-								InternalAccessor = MakeUnique<FPCGAttributeAccessor<RawT>>(static_cast<const FPCGMetadataAttribute<RawT>*>(Attribute), AsSpatial->Metadata);
+								InternalAccessor = MakeShared<FPCGAttributeAccessor<RawT>>(static_cast<const FPCGMetadataAttribute<RawT>*>(Attribute), AsSpatial->Metadata);
 							});
 
 						bValid = true;

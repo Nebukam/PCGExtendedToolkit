@@ -128,6 +128,7 @@ namespace PCGExBreakClustersToPaths
 
 		if (DirectionSettings.DirectionMethod == EPCGExEdgeDirectionMethod::EdgeDotAttribute)
 		{
+			// BUG possible bug with this, First isn't guaranteed to be linked to Last
 			PCGExGraph::FIndexedEdge ChainDir = PCGExGraph::FIndexedEdge((*Cluster->Nodes)[Chain->First].GetEdgeIndex(Chain->Last), StartIdx, EndIdx);
 			bReverse = DirectionSettings.SortEndpoints(Cluster.Get(), ChainDir);
 		}
@@ -191,7 +192,7 @@ namespace PCGExBreakClustersToPaths
 		PCGEX_TYPED_CONTEXT_AND_SETTINGS(BreakClustersToPaths)
 
 		DirectionSettings = Settings->DirectionSettings;
-		if (!DirectionSettings.Init(Context))
+		if (!DirectionSettings.Init(Context, VtxDataFacade, Context->GetEdgeSortingRules()))
 		{
 			PCGE_LOG_C(Warning, GraphAndLog, Context, FTEXT("Some vtx are missing the specified Direction attribute."));
 			return;
