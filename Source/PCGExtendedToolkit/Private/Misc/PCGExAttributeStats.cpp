@@ -130,7 +130,7 @@ bool FPCGExAttributeStatsElement::ExecuteInternal(FPCGContext* InContext) const
 	PCGEX_POINTS_BATCH_PROCESSING(PCGEx::State_Done)
 
 	Context->MainPoints->StageOutputs();
-	
+
 	for (int i = 0; i < Context->OutputParams.Num(); i++)
 	{
 		UPCGParamData* ParamData = Context->OutputParams[i];

@@ -14,7 +14,7 @@
 
 #include "PCGExEdgeEndpointsCompareNumFilter.generated.h"
 
-UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Refine Edge Compare Against Mode"))
+UENUM(/*E--BlueprintType, meta=(DisplayName="[PCGEx] Refine Edge Compare Against Mode")--E*/)
 enum class EPCGExRefineEdgeCompareAgainstMode : uint8
 {
 	EndEnd  = 0 UMETA(DisplayName = "Endpoints", Tooltip="Numeric comparison"),

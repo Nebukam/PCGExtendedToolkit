@@ -98,7 +98,7 @@ namespace PCGExData
 	TSharedPtr<FPCGAttributeAccessorKeysPoints> FPointIO::GetOutKeys(const bool bEnsureValidKeys)
 	{
 		check(Out)
-		
+
 		{
 			FReadScopeLock ReadScopeLock(OutKeysLock);
 			if (OutKeys) { return OutKeys; }

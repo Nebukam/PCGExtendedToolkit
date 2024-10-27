@@ -67,6 +67,7 @@ class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExIsoEdgeDirectionFilterFactory : public UP
 
 public:
 	FPCGExIsoEdgeDirectionFilterConfig Config;
+	TArray<FPCGExSortRuleConfig> EdgeSortingRules;
 
 	virtual void RegisterBuffersDependencies(FPCGExContext* InContext, PCGExData::FFacadePreloader& FacadePreloader) const override;
 
@@ -121,6 +122,7 @@ public:
 	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->NodeColorClusterFilter; }
 #endif
 
+	virtual TArray<FPCGPinProperties> InputPinProperties() const override;
 	virtual FName GetMainOutputLabel() const override { return PCGExPointFilter::OutputFilterLabelEdge; }
 
 	/** Test Config.*/

@@ -22,7 +22,7 @@ public:
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS(SubdivideEdges, "Cluster : Subdivide Edges", "Subdivide edges.");
 #endif
-
+	virtual bool SupportsEdgeSorting() const override { return DirectionSettings.RequiresSortingRules(); }
 	virtual PCGExData::EInit GetMainOutputInitMode() const override;
 	virtual PCGExData::EInit GetEdgeOutputInitMode() const override;
 

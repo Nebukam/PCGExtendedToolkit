@@ -5,7 +5,6 @@
 
 #include "PCGExPointsProcessor.h"
 #include "Data/Blending/PCGExMetadataBlender.h"
-#include "Misc/PCGExModularSortPoints.h"
 #include "Misc/PCGExSortPoints.h"
 
 
@@ -26,7 +25,7 @@ TArray<FPCGPinProperties> UPCGExSampleNearestPointSettings::InputPinProperties()
 	PCGEX_PIN_POINT(PCGEx::SourceTargetsLabel, "The point data set to check against.", Required, {})
 	if (SampleMethod == EPCGExSampleMethod::BestCandidate)
 	{
-		PCGEX_PIN_PARAMS(PCGExSortPoints::SourceSortingRules, "Plug sorting rules here. Order is defined by each rule' priority value, in ascending order.", Required, {})
+		PCGEX_PIN_PARAMS(PCGExSorting::SourceSortingRules, "Plug sorting rules here. Order is defined by each rule' priority value, in ascending order.", Required, {})
 	}
 	PCGEX_PIN_PARAMS(PCGEx::SourceUseValueIfFilters, "Filter which points values will be processed.", Advanced, {})
 	return PinProperties;
@@ -84,7 +83,7 @@ bool FPCGExSampleNearestPointElement::Boot(FPCGExContext* InContext) const
 
 	if (Settings->SampleMethod == EPCGExSampleMethod::BestCandidate)
 	{
-		Context->Sorter = MakeShared<PCGExSortPoints::PointSorter<false>>(Context, Context->TargetsFacade.ToSharedRef(), PCGExSortPoints::GetSortingRules(Context, PCGExSortPoints::SourceSortingRules));
+		Context->Sorter = MakeShared<PCGExSorting::PointSorter<false>>(Context, Context->TargetsFacade.ToSharedRef(), PCGExSorting::GetSortingRules(Context, PCGExSorting::SourceSortingRules));
 		Context->Sorter->SortDirection = Settings->SortDirection;
 		Context->Sorter->RegisterBuffersDependencies(*Context->TargetsPreloader);
 	}

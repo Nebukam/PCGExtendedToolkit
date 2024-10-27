@@ -10,8 +10,8 @@
 #define LOCTEXT_NAMESPACE "FPCGExtendedToolkitEditorModule"
 
 #define PCGEX_ADD_ICON(_NAME) \
-StyleSet->Set("ClassIcon." # _NAME, new FSlateImageBrush(StyleSet->RootToContentDir(TEXT( "" #_NAME ".png")), FVector2D(16.0f, 16.0f)));\
-StyleSet->Set("ClassThumbnail." # _NAME, new FSlateImageBrush(StyleSet->RootToContentDir(TEXT( "" #_NAME ".png")), FVector2D(128.0f, 128.0f)));
+StyleSet->Set("ClassIcon." # _NAME, new FSlateImageBrush(StyleSet->RootToContentDir(TEXT( "" #_NAME ".png")), SizeIcon));\
+StyleSet->Set("ClassThumbnail." # _NAME, new FSlateImageBrush(StyleSet->RootToContentDir(TEXT( "" #_NAME ".png")), SizeThumbnail));
 
 void FPCGExtendedToolkitEditorModule::StartupModule()
 {
@@ -20,6 +20,9 @@ void FPCGExtendedToolkitEditorModule::StartupModule()
 	static TSharedPtr<FSlateStyleSet> StyleSet = MakeShareable(new FSlateStyleSet("PCGExStyleSet"));
 	StyleSet->SetContentRoot(ContentDir);
 
+	const FVector2D SizeIcon = FVector2D(16.0f, 16.0f);
+	const FVector2D SizeThumbnail = FVector2D(128.0f, 128.0f);
+	
 	PCGEX_ADD_ICON(PCGExAssetCollection)
 	PCGEX_ADD_ICON(PCGExCustomGraphSettings)
 	PCGEX_ADD_ICON(PCGExCustomGraphBuilder)

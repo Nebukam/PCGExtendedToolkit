@@ -85,7 +85,6 @@ protected:
 
 namespace PCGExConnectPoints
 {
-	
 	class FProcessor final : public PCGExPointsMT::TPointsProcessor<FPCGExConnectPointsContext, UPCGExConnectPointsSettings>
 	{
 		TSharedPtr<PCGExPointFilter::FManager> GeneratorsFilter;

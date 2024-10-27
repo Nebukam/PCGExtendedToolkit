@@ -215,6 +215,32 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPathEdgeIntersectionDetails
 	FORCEINLINE bool CheckDot(const double InDot) const { return InDot <= MaxDot && InDot >= MinDot; }
 };
 
+USTRUCT(BlueprintType)
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPathFilterSettings
+{
+	GENERATED_BODY()
+
+	/** Method to pick the edge direction amongst various possibilities.*/
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	EPCGExEdgeDirectionMethod DirectionMethod = EPCGExEdgeDirectionMethod::EndpointsOrder;
+
+	/** Further refine the direction method. Not all methods make use of this property.*/
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	EPCGExEdgeDirectionChoice DirectionChoice = EPCGExEdgeDirectionChoice::SmallestToGreatest;
+
+	/** Attribute picker for the selected Direction Method.*/
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="DirectionMethod==EPCGExEdgeDirectionMethod::EndpointsAttribute || DirectionMethod==EPCGExEdgeDirectionMethod::EdgeDotAttribute", EditConditionHides))
+	FPCGAttributePropertyInputSelector DirSourceAttribute;
+
+	bool bAscendingDesired = false;
+	TSharedPtr<PCGExData::TBuffer<double>> EndpointsReader;
+	TSharedPtr<PCGExData::TBuffer<FVector>> EdgeDirReader;
+
+	void RegisterBuffersDependencies(FPCGExContext* InContext, PCGExData::FFacadePreloader& FacadePreloader) const;
+
+	bool Init(FPCGExContext* InContext);
+};
+
 namespace PCGExPaths
 {
 	PCGEX_ASYNC_STATE(State_BuildingPaths)
@@ -556,24 +582,15 @@ namespace PCGExPaths
 				TSharedPtr<TPath<true, true>> P = MakeShared<TPath<true, true>>(InPoints, Expansion);
 				return StaticCastSharedPtr<FPath>(P);
 			}
-			else
-			{
-				TSharedPtr<TPath<true, false>> P = MakeShared<TPath<true, false>>(InPoints, Expansion);
-				return StaticCastSharedPtr<FPath>(P);
-			}
+			TSharedPtr<TPath<true, false>> P = MakeShared<TPath<true, false>>(InPoints, Expansion);
+			return StaticCastSharedPtr<FPath>(P);
 		}
-		else
+		if (bCacheLength)
 		{
-			if (bCacheLength)
-			{
-				TSharedPtr<TPath<false, true>> P = MakeShared<TPath<false, true>>(InPoints, Expansion);
-				return StaticCastSharedPtr<FPath>(P);
-			}
-			else
-			{
-				TSharedPtr<TPath<false, false>> P = MakeShared<TPath<false, false>>(InPoints, Expansion);
-				return StaticCastSharedPtr<FPath>(P);
-			}
+			TSharedPtr<TPath<false, true>> P = MakeShared<TPath<false, true>>(InPoints, Expansion);
+			return StaticCastSharedPtr<FPath>(P);
 		}
+		TSharedPtr<TPath<false, false>> P = MakeShared<TPath<false, false>>(InPoints, Expansion);
+		return StaticCastSharedPtr<FPath>(P);
 	}
 }

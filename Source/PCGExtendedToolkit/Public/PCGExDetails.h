@@ -376,7 +376,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExFuseDetails : public FPCGExSourceFuseDet
 	EPCGExDistance TargetDistance = EPCGExDistance::Center;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
-	EPCGExFuseMethod FuseMethod = EPCGExFuseMethod::Voxel;
+	EPCGExFuseMethod FuseMethod = EPCGExFuseMethod::Octree;
 
 	/** Offset the voxelized grid by an amount */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="FuseMethod==EPCGExFuseMethod::Voxel", EditConditionHides))
@@ -395,16 +395,21 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExFuseDetails : public FPCGExSourceFuseDet
 		{
 			Tolerances *= 2;
 			Tolerance *= 2;
-		}
 
-		if (bComponentWiseTolerance) { CWTolerance = FVector(1 / Tolerances.X, 1 / Tolerances.Y, 1 / Tolerances.Z); }
-		else { CWTolerance = FVector(1 / Tolerance); }
+			if (bComponentWiseTolerance) { CWTolerance = FVector(1 / Tolerances.X, 1 / Tolerances.Y, 1 / Tolerances.Z); }
+			else { CWTolerance = FVector(1 / Tolerance); }
+		}
+		else
+		{
+			if (bComponentWiseTolerance) { CWTolerance = Tolerances; }
+			else { CWTolerance = FVector(Tolerance); }
+		}
 	}
 
 	bool DoInlineInsertion() const { return FuseMethod == EPCGExFuseMethod::Octree && bInlineInsertion; }
 
 	FORCEINLINE uint32 GetGridKey(const FVector& Location) const { return PCGEx::GH(Location + VoxelGridOffset, CWTolerance); }
-	FORCEINLINE FBoxCenterAndExtent GetOctreeBox(const FVector& Location) const { return FBoxCenterAndExtent(Location, Tolerances); }
+	FORCEINLINE FBoxCenterAndExtent GetOctreeBox(const FVector& Location) const { return FBoxCenterAndExtent(Location, CWTolerance); }
 
 	FORCEINLINE void GetCenters(const FPCGPoint& SourcePoint, const FPCGPoint& TargetPoint, FVector& OutSource, FVector& OutTarget) const
 	{

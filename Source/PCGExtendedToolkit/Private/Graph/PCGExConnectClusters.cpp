@@ -43,6 +43,7 @@ bool FPCGExConnectClustersElement::Boot(FPCGExContext* InContext) const
 		PCGE_LOG(Error, GraphAndLog, FTEXT("Bridge through filter is not implemented yet!"));
 		return false;
 
+		/*
 		if (!GetInputFactories(
 			Context, PCGExGraph::SourceFilterGenerators, Context->GeneratorsFiltersFactories,
 			PCGExFactories::ClusterNodeFilters, true)) { return false; }
@@ -50,6 +51,7 @@ bool FPCGExConnectClustersElement::Boot(FPCGExContext* InContext) const
 		if (!GetInputFactories(
 			Context, PCGExGraph::SourceFilterConnectables, Context->ConnectablesFiltersFactories,
 			PCGExFactories::ClusterNodeFilters, true)) { return false; }
+		*/
 	}
 
 	return true;

@@ -11,7 +11,7 @@
 
 #include "PCGExProbeDirection.generated.h"
 
-UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Transform Component Selector"))
+UENUM(/*E--BlueprintType, meta=(DisplayName="[PCGEx] Transform Component Selector")--E*/)
 enum class EPCGExProbeDirectionPriorization : uint8
 {
 	Dot  = 0 UMETA(DisplayName = "Best alignment", ToolTip="Favor the candidates that best align with the direction, as opposed to closest ones."),

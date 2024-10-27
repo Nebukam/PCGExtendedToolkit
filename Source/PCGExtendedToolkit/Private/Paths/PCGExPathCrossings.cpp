@@ -117,7 +117,7 @@ namespace PCGExPathCrossings
 
 		Path = PCGExPaths::MakePath(PointIO->GetIn()->GetPoints(), Details.Tolerance * 2, bClosedLoop, true);
 		Path->IOIndex = PointIO->IOIndex;
-		
+
 		Crossings.Init(nullptr, Path->NumEdges);
 
 		CanCut.SetNumUninitialized(Path->NumEdges);

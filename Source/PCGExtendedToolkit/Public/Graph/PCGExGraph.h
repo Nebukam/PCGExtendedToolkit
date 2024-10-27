@@ -26,14 +26,14 @@ namespace PCGExCluster
 	class FCluster;
 }
 
-UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Graph Value Source"))
+UENUM(/*E--BlueprintType, meta=(DisplayName="[PCGEx] Graph Value Source")--E*/)
 enum class EPCGExClusterComponentSource : uint8
 {
 	Vtx  = 0 UMETA(DisplayName = "Point", Tooltip="Value is fetched from the point being evaluated."),
 	Edge = 1 UMETA(DisplayName = "Edge", Tooltip="Value is fetched from the edge connecting to the point being evaluated."),
 };
 
-UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Intersection Type"))
+UENUM(/*E--BlueprintType, meta=(DisplayName="[PCGEx] Intersection Type")--E*/)
 enum class EPCGExIntersectionType : uint8
 {
 	Unknown   = 0 UMETA(DisplayName = "Unknown", ToolTip="Unknown"),

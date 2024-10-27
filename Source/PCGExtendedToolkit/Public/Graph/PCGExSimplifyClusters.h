@@ -58,7 +58,7 @@ public:
 	/**  Edge Union Data */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditConditionHides, HideEditConditionToggle))
 	FPCGExEdgeUnionMetadataDetails EdgeUnionData;
-	
+
 	/** Graph & Edges output properties */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName="Cluster Output Settings"))
 	FPCGExGraphBuilderDetails GraphBuilderDetails;
@@ -107,7 +107,6 @@ namespace PCGExSimplifyClusters
 
 	class FProcessorBatch final : public PCGExClusterMT::TBatch<FProcessor>
 	{
-		
 		PCGExGraph::FGraphMetadataDetails GraphMetadataDetails;
 		friend class FProcessor;
 

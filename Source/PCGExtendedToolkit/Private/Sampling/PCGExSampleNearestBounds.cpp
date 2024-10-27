@@ -5,7 +5,6 @@
 
 #include "PCGExPointsProcessor.h"
 #include "Data/Blending/PCGExMetadataBlender.h"
-#include "Misc/PCGExModularSortPoints.h"
 
 #define LOCTEXT_NAMESPACE "PCGExSampleNearestBoundsElement"
 #define PCGEX_NAMESPACE SampleNearestBounds
@@ -24,7 +23,7 @@ TArray<FPCGPinProperties> UPCGExSampleNearestBoundsSettings::InputPinProperties(
 	PCGEX_PIN_POINT(PCGEx::SourceBoundsLabel, "The bounds data set to check against.", Required, {})
 	if (SampleMethod == EPCGExBoundsSampleMethod::BestCandidate)
 	{
-		PCGEX_PIN_PARAMS(PCGExSortPoints::SourceSortingRules, "Plug sorting rules here. Order is defined by each rule' priority value, in ascending order.", Required, {})
+		PCGEX_PIN_PARAMS(PCGExSorting::SourceSortingRules, "Plug sorting rules here. Order is defined by each rule' priority value, in ascending order.", Required, {})
 	}
 	return PinProperties;
 }
@@ -69,7 +68,7 @@ bool FPCGExSampleNearestBoundsElement::Boot(FPCGExContext* InContext) const
 
 	if (Settings->SampleMethod == EPCGExBoundsSampleMethod::BestCandidate)
 	{
-		Context->Sorter = MakeShared<PCGExSortPoints::PointSorter<false>>(Context, Context->BoundsFacade.ToSharedRef(), PCGExSortPoints::GetSortingRules(InContext, PCGExSortPoints::SourceSortingRules));
+		Context->Sorter = MakeShared<PCGExSorting::PointSorter<false>>(Context, Context->BoundsFacade.ToSharedRef(), PCGExSorting::GetSortingRules(InContext, PCGExSorting::SourceSortingRules));
 		Context->Sorter->SortDirection = Settings->SortDirection;
 		Context->Sorter->RegisterBuffersDependencies(*Context->BoundsPreloader);
 	}

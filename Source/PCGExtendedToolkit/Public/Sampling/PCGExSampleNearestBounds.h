@@ -8,11 +8,8 @@
 
 #include "PCGExPointsProcessor.h"
 #include "PCGExSampling.h"
-#include "PCGExDetails.h"
 #include "Data/Blending/PCGExDataBlending.h"
 #include "Data/Blending/PCGExMetadataBlender.h"
-#include "Misc/PCGExSortPoints.h"
-
 
 #include "PCGExSampleNearestBounds.generated.h"
 
@@ -290,7 +287,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExSampleNearestBoundsContext final : FPCGE
 	TSharedPtr<PCGExData::FFacadePreloader> BoundsPreloader;
 	TSharedPtr<PCGExData::FFacade> BoundsFacade;
 
-	TSharedPtr<PCGExSortPoints::PointSorter<false>> Sorter;
+	TSharedPtr<PCGExSorting::PointSorter<false>> Sorter;
 
 	FPCGExBlendingDetails BlendingDetails;
 	const TArray<FPCGPoint>* BoundsPoints = nullptr;

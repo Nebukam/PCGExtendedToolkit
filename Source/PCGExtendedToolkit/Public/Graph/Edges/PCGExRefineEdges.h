@@ -20,7 +20,7 @@ namespace PCGExRefineEdges
 	const FName SourceSanitizeEdgeFilters = FName("SanitizeFilters");
 }
 
-UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Refine Sanitization"))
+UENUM(/*E--BlueprintType, meta=(DisplayName="[PCGEx] Refine Sanitization")--E*/)
 enum class EPCGExRefineSanitization : uint8
 {
 	None     = 0 UMETA(DisplayName = "None", ToolTip="No sanitization."),

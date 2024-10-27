@@ -55,6 +55,59 @@ public:
 
 	TSharedPtr<PCGExData::FFacade> PointDataFacade;
 
+protected:
+	TMap<FName, TSharedPtr<PCGExData::FBufferBase>> BufferMap;
+	mutable FRWLock BufferLock;
+
+	template <typename T>
+	TSharedPtr<PCGExData::TBuffer<T>> GetBuffer(const FName InName)
+	{
+		{
+			FReadScopeLock ReadScopeLock(BufferLock);
+			if (TSharedPtr<PCGExData::FBufferBase>* BufferPtr = BufferMap.Find(InName))
+			{
+				if(!(*BufferPtr)->IsA<T>())
+				{
+					UE_LOG(LogTemp, Error, TEXT("Attempted to create an attribute that already exist, with a different type (%s)"), *InName.ToString())
+					return nullptr;
+				}
+				
+				return StaticCastSharedPtr<PCGExData::TBuffer<T>>(*BufferPtr);
+			}
+		}
+		{
+			FWriteScopeLock WriteScopeLock(BufferLock);
+			TSharedPtr<PCGExData::TBuffer<T>> NewBuffer = PointDataFacade->GetWritable<T>(InName, true); 
+			BufferMap.Add(InName, StaticCastSharedPtr<PCGExData::FBufferBase>(NewBuffer));
+			return NewBuffer;
+		}
+	}
+
+	template <typename T>
+	TSharedPtr<PCGExData::TBuffer<T>> GetBuffer(const FName InName, const T& DefaultValue)
+	{
+		{
+			FReadScopeLock ReadScopeLock(BufferLock);
+			if (TSharedPtr<PCGExData::FBufferBase>* BufferPtr = BufferMap.Find(InName))
+			{
+				if(!(*BufferPtr)->IsA<T>())
+				{
+					UE_LOG(LogTemp, Error, TEXT("Attempted to create an attribute that already exist, with a different type (%s)"), *InName.ToString())
+					return nullptr;
+				}
+				
+				return StaticCastSharedPtr<PCGExData::TBuffer<T>>(*BufferPtr);
+			}
+		}
+		{
+			FWriteScopeLock WriteScopeLock(BufferLock);
+			TSharedPtr<PCGExData::TBuffer<T>> NewBuffer = PointDataFacade->GetWritable<T>(InName, DefaultValue, true, true); 
+			BufferMap.Add(InName, StaticCastSharedPtr<PCGExData::FBufferBase>(NewBuffer));
+			return NewBuffer;
+		}
+	}
+
+public:
 #pragma region Init
 
 	/**
@@ -364,7 +417,7 @@ public:
 	//~End UPCGExPointsProcessorSettings
 
 	/** Actor reference */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="Mode==EPCGExCustomGraphActorSourceMode::ActorReferences", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	FName ActorReferenceAttribute = FName(TEXT("ActorReference"));
 
 	/** Builder instance. */

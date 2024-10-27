@@ -152,7 +152,7 @@ namespace PCGExPathCrossings
 		bool bSelfIntersectionOnly = false;
 
 		TSharedPtr<PCGExPaths::FPath> Path;
-		
+
 		TArray<TSharedPtr<FCrossing>> Crossings;
 
 		TSharedPtr<PCGExPointFilter::FManager> CanCutFilterManager;

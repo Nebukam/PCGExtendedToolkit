@@ -13,7 +13,7 @@
 
 #include "PCGExEdgeNeighborsCountFilter.generated.h"
 
-UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Refine Edge Threshold Mode"))
+UENUM(/*E--BlueprintType, meta=(DisplayName="[PCGEx] Refine Edge Threshold Mode")--E*/)
 enum class EPCGExRefineEdgeThresholdMode : uint8
 {
 	Sum  = 0 UMETA(DisplayName = "Sum", Tooltip="The sum of adjacencies must be below the specified threshold"),

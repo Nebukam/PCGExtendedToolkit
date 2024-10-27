@@ -76,7 +76,7 @@ namespace PCGExSortPoints
 		TArray<FPCGExSortRuleConfig> RuleConfigs;
 		Settings->GetSortingRules(ExecutionContext, RuleConfigs);
 
-		Sorter = MakeShared<PointSorter<true>>(Context, PointDataFacade, RuleConfigs);
+		Sorter = MakeShared<PCGExSorting::PointSorter<true>>(Context, PointDataFacade, RuleConfigs);
 		Sorter->SortDirection = Settings->SortDirection;
 		Sorter->RegisterBuffersDependencies(FacadePreloader);
 	}

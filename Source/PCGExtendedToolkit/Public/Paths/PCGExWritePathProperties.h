@@ -247,7 +247,7 @@ namespace PCGExWritePathProperties
 
 		bool bClosedLoop = false;
 		TSharedPtr<PCGExPaths::FPath> Path;
-		
+
 		TArray<FPointDetails> Details;
 
 		FVector UpConstant = FVector::ZeroVector;
