@@ -832,6 +832,7 @@ protected:
 	{
 		Cache.Reset();
 		bCacheNeedsRebuild = true;
+		InvalidateCache();
 	}
 #endif
 
