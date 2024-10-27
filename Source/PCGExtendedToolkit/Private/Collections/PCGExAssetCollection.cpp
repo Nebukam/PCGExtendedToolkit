@@ -182,6 +182,53 @@ void UPCGExAssetCollection::EDITOR_RebuildStagingData_Project()
 	}
 }
 
+void UPCGExAssetCollection::EDITOR_SortByWeightAscending()
+{
+	Modify(true);
+	EDITOR_SortByWeightAscendingTyped();
+	EDITOR_SanitizeAndRebuildStagingData(false);
+	MarkPackageDirty();
+}
+
+void UPCGExAssetCollection::EDITOR_SortByWeightDescending()
+{
+	Modify(true);
+	EDITOR_SortByWeightDescendingTyped();
+	EDITOR_SanitizeAndRebuildStagingData(false);
+	MarkPackageDirty();
+}
+
+void UPCGExAssetCollection::EDITOR_SetWeightIndex()
+{
+	Modify(true);
+	EDITOR_SetWeightIndexTyped();
+	EDITOR_SanitizeAndRebuildStagingData(false);
+	MarkPackageDirty();
+}
+
+void UPCGExAssetCollection::EDITOR_PadWeight()
+{
+	Modify(true);
+	EDITOR_PadWeightTyped();
+	EDITOR_SanitizeAndRebuildStagingData(false);
+	MarkPackageDirty();
+}
+
+void UPCGExAssetCollection::EDITOR_WeightOne()
+{
+	Modify(true);
+	EDITOR_WeightOneTyped();
+	EDITOR_SanitizeAndRebuildStagingData(false);
+	MarkPackageDirty();
+}
+
+void UPCGExAssetCollection::EDITOR_WeightRandom()
+{
+	Modify(true);
+	EDITOR_WeightRandomTyped();
+	EDITOR_SanitizeAndRebuildStagingData(false);
+	MarkPackageDirty();
+}
 void UPCGExAssetCollection::EDITOR_SanitizeAndRebuildStagingData(const bool bRecursive)
 {
 	InvalidateCache();

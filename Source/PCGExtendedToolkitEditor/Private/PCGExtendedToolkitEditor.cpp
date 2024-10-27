@@ -20,7 +20,7 @@ void FPCGExtendedToolkitEditorModule::StartupModule()
 	static TSharedPtr<FSlateStyleSet> StyleSet = MakeShareable(new FSlateStyleSet("PCGExStyleSet"));
 	StyleSet->SetContentRoot(ContentDir);
 
-	const FVector2D SizeIcon = FVector2D(48.0f, 48.0f);
+	const FVector2D SizeIcon = FVector2D(16.0f, 16.0f);
 	const FVector2D SizeThumbnail = FVector2D(128.0f, 128.0f);
 	
 	PCGEX_ADD_ICON(PCGExAssetCollection)
