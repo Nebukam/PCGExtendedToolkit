@@ -563,7 +563,7 @@ public:
 		for (int i = 0; i < Entries.Num(); i++) { Entries[i].Weight += 1; }
 	}
 
-	UFUNCTION(CallInEditor, Category = Utils, meta=(DisplayName="Weigh = 100", ShortToolTip="Reset all weights to 100", DisplayOrder=21))
+	UFUNCTION(CallInEditor, Category = Utils, meta=(DisplayName="Weight = 100", ShortToolTip="Reset all weights to 100", DisplayOrder=21))
 	void EDITOR_WeightOne();
 
 	virtual void EDITOR_WeightOneTyped()
