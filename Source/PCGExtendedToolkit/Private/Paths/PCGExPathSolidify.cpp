@@ -155,7 +155,6 @@ if (!SolidificationRad##_AXIS){ PCGE_LOG_C(Warning, GraphAndLog, Context, FText:
 		Point.BoundsMin = TargetBoundsMin;
 		Point.BoundsMax = TargetBoundsMax;
 	}
-
 }
 
 #undef LOCTEXT_NAMESPACE

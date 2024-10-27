@@ -49,12 +49,10 @@ bool FPCGExSampleNeighborsElement::ExecuteInternal(
 	PCGEX_EXECUTION_CHECK
 	PCGEX_ON_INITIAL_EXECUTION
 	{
-		if (!Context->StartProcessingClusters<PCGExClusterMT::TBatch<PCGExSampleNeighbors::FProcessor>>(
+		if (!Context->StartProcessingClusters<PCGExSampleNeighbors::FProcessorBatch>(
 			[](const TSharedPtr<PCGExData::FPointIOTaggedEntries>& Entries) { return true; },
-			[&](const TSharedPtr<PCGExClusterMT::TBatch<PCGExSampleNeighbors::FProcessor>>& NewBatch)
+			[&](const TSharedPtr<PCGExSampleNeighbors::FProcessorBatch>& NewBatch)
 			{
-				NewBatch->bRequiresWriteStep = true;
-				NewBatch->bWriteVtxDataFacade = true;
 			}))
 		{
 			return Context->CancelExecution(TEXT("Could not build any clusters."));
@@ -128,6 +126,17 @@ namespace PCGExSampleNeighbors
 	{
 		for (UPCGExNeighborSampleOperation* Op : SamplingOperations) { Op->FinalizeOperation(); }
 		EdgeDataFacade->Write(AsyncManager);
+	}
+
+	void FProcessorBatch::RegisterBuffersDependencies(PCGExData::FFacadePreloader& FacadePreloader)
+	{
+		PCGEX_TYPED_CONTEXT_AND_SETTINGS(SampleNeighbors)
+		TBatch<FProcessor>::RegisterBuffersDependencies(FacadePreloader);
+
+		for (const UPCGExNeighborSamplerFactoryBase* Factory : Context->SamplerFactories)
+		{
+			Factory->RegisterBuffersDependencies(Context, VtxDataFacade, FacadePreloader);
+		}
 	}
 }
 

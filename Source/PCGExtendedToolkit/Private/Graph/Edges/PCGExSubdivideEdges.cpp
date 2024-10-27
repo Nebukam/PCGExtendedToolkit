@@ -138,7 +138,7 @@ namespace PCGExSubdivideEdges
 		PCGEX_TYPED_CONTEXT_AND_SETTINGS(SubdivideEdges)
 
 		DirectionSettings = Settings->DirectionSettings;
-		if (!DirectionSettings.Init(ExecutionContext))
+		if (!DirectionSettings.Init(ExecutionContext, VtxDataFacade, Context->GetEdgeSortingRules()))
 		{
 			bIsBatchValid = false;
 			return;

@@ -19,7 +19,7 @@ namespace PCGExFindContours
 	const FName OutputBadSeedsLabel = TEXT("SeedGenFailed");
 }
 
-UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Contour Shape Type Output"))
+UENUM(/*E--BlueprintType, meta=(DisplayName="[PCGEx] Contour Shape Type Output")--E*/)
 enum class EPCGExContourShapeTypeOutput : uint8
 {
 	Both        = 0 UMETA(DisplayName = "Convex & Concave", ToolTip="Output both convex and concave paths"),

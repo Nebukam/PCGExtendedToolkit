@@ -2,8 +2,6 @@
 // Released under the MIT license https://opensource.org/license/MIT/
 
 #include "Graph/Filters/Edges/PCGExIsoEdgeDirectionFilter.h"
-
-
 #include "Graph/PCGExGraph.h"
 
 #define LOCTEXT_NAMESPACE "PCGExIsoEdgeDirectionFilter"
@@ -12,7 +10,7 @@
 void UPCGExIsoEdgeDirectionFilterFactory::RegisterBuffersDependencies(FPCGExContext* InContext, PCGExData::FFacadePreloader& FacadePreloader) const
 {
 	Super::RegisterBuffersDependencies(InContext, FacadePreloader);
-	Config.DirectionSettings.RegisterBuffersDependencies(InContext, FacadePreloader);
+	Config.DirectionSettings.RegisterBuffersDependencies(InContext, FacadePreloader, &EdgeSortingRules);
 }
 
 TSharedPtr<PCGExPointFilter::FFilter> UPCGExIsoEdgeDirectionFilterFactory::CreateFilter() const
@@ -25,7 +23,8 @@ bool FIsoEdgeDirectionFilter::Init(FPCGExContext* InContext, const TSharedRef<PC
 	if (!FFilter::Init(InContext, InCluster, InPointDataFacade, InEdgeDataFacade)) { return false; }
 
 	DirectionSettings = TypedFilterFactory->Config.DirectionSettings;
-	if (!DirectionSettings.Init(InContext))
+
+	if (!DirectionSettings.Init(InContext, InPointDataFacade, &TypedFilterFactory->EdgeSortingRules))
 	{
 		PCGE_LOG_C(Warning, GraphAndLog, InContext, FTEXT("Some vtx are missing the specified Direction attribute."));
 		return false;
@@ -98,8 +97,30 @@ bool FIsoEdgeDirectionFilter::TestHash(const int32 PtIndex, const FVector& EdgeD
 	return PCGEx::I323(RefDir, CWTolerance) == PCGEx::I323(EdgeDir, CWTolerance);
 }
 
+TArray<FPCGPinProperties> UPCGExIsoEdgeDirectionFilterProviderSettings::InputPinProperties() const
+{
+	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
+	if (Config.DirectionSettings.DirectionMethod == EPCGExEdgeDirectionMethod::EndpointsSort)
+	{
+		PCGEX_PIN_PARAMS(PCGExGraph::SourceEdgeSortingRules, "Plug sorting rules here. Order is defined by each rule' priority value, in ascending order.", Required, {})
+	}
+	return PinProperties;
+}
 
-PCGEX_CREATE_FILTER_FACTORY(IsoEdgeDirection)
+UPCGExParamFactoryBase* UPCGExIsoEdgeDirectionFilterProviderSettings::CreateFactory(FPCGExContext* InContext, UPCGExParamFactoryBase* InFactory) const
+{
+	UPCGExIsoEdgeDirectionFilterFactory* NewFactory = InContext->ManagedObjects->New<UPCGExIsoEdgeDirectionFilterFactory>();
+	Super::CreateFactory(InContext, InFactory);
+	NewFactory->Config = Config;
+
+	if (Config.DirectionSettings.DirectionMethod == EPCGExEdgeDirectionMethod::EndpointsSort)
+	{
+		NewFactory->EdgeSortingRules = PCGExSorting::GetSortingRules(InContext, PCGExGraph::SourceEdgeSortingRules);
+	}
+
+	if (!NewFactory->Init(InContext)) { InContext->ManagedObjects->Destroy(NewFactory); }
+	return NewFactory;
+}
 
 #if WITH_EDITOR
 FString UPCGExIsoEdgeDirectionFilterProviderSettings::GetDisplayName() const

@@ -12,7 +12,6 @@
 #include "Graph/PCGExGraph.h"
 #include "PCGExOperation.h"
 
-
 #include "Graph/Filters/PCGExClusterFilter.h"
 
 #include "PCGExNeighborSampleFactoryProvider.generated.h"
@@ -180,6 +179,10 @@ public:
 	TArray<TObjectPtr<const UPCGExFilterFactoryBase>> ValueFilterFactories;
 
 	virtual UPCGExNeighborSampleOperation* CreateOperation(FPCGExContext* InContext) const;
+
+	virtual void RegisterBuffersDependencies(FPCGExContext* InContext, const TSharedRef<PCGExData::FFacade>& InDataFacade, PCGExData::FFacadePreloader& FacadePreloader) const
+	{
+	}
 };
 
 UCLASS(Abstract, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|NeighborSample")

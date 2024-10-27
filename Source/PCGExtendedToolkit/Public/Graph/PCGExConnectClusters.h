@@ -9,14 +9,14 @@
 
 #include "PCGExConnectClusters.generated.h"
 
-UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Bridge Cluster Mode"))
+UENUM(/*E--BlueprintType, meta=(DisplayName="[PCGEx] Bridge Cluster Mode")--E*/)
 enum class EPCGExBridgeClusterMethod : uint8
 {
 	Delaunay3D = 0 UMETA(DisplayName = "Delaunay 3D", ToolTip="Uses Delaunay 3D graph to find connections."),
 	Delaunay2D = 1 UMETA(DisplayName = "Delaunay 2D", ToolTip="Uses Delaunay 2D graph to find connections."),
 	LeastEdges = 2 UMETA(DisplayName = "Least Edges", ToolTip="Ensure all clusters are connected using the least possible number of bridges."),
 	MostEdges  = 3 UMETA(DisplayName = "Most Edges", ToolTip="Each cluster will have a bridge to every other cluster"),
-	Filters  = 4 UMETA(DisplayName = "Node Filters", ToolTip="Isolate nodes in each cluster as generators & connectable and connect by proximity.", Hidden),
+	Filters    = 4 UMETA(DisplayName = "Node Filters", ToolTip="Isolate nodes in each cluster as generators & connectable and connect by proximity.", Hidden),
 };
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Clusters")
@@ -38,7 +38,7 @@ protected:
 	//~Begin UPCGExPointsProcessorSettings
 public:
 	virtual TArray<FPCGPinProperties> InputPinProperties() const override;
-	
+
 	virtual PCGExData::EInit GetMainOutputInitMode() const override;
 	virtual PCGExData::EInit GetEdgeOutputInitMode() const override;
 	//~End UPCGExPointsProcessorSettings
@@ -51,7 +51,7 @@ public:
 	/** Connect settings. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="BridgeMethod==EPCGExBridgeClusterMethod::Filters", EditConditionHides))
 	FPCGExSourceFuseDetails ConnectDetails;
-	
+
 	/** Projection settings. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="BridgeMethod==EPCGExBridgeClusterMethod::Delaunay2D", EditConditionHides))
 	FPCGExGeo2DProjectionDetails ProjectionDetails = FPCGExGeo2DProjectionDetails(false);

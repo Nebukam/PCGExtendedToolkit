@@ -52,10 +52,15 @@ virtual bool BuildFromAttributeSet(FPCGExContext* InContext, const FName InputPi
 virtual void RebuildStagingData(const bool bRecursive) override{ for (_ENTRY_TYPE& Entry : Entries) { Entry.UpdateStaging(this, bRecursive); } Super::RebuildStagingData(bRecursive); }\
 virtual void BuildCache() override{ Super::BuildCache(Entries); }
 
-
 #if WITH_EDITOR
 #define PCGEX_ASSET_COLLECTION_BOILERPLATE(_TYPE, _ENTRY_TYPE)\
 PCGEX_ASSET_COLLECTION_BOILERPLATE_BASE(_TYPE, _ENTRY_TYPE)\
+virtual void EDITOR_SortByWeightAscendingTyped() override { EDITOR_SortByWeightAscendingInternal(Entries); }\
+virtual void EDITOR_SortByWeightDescendingTyped() override { EDITOR_SortByWeightDescendingInternal(Entries); }\
+virtual void EDITOR_SetWeightIndexTyped() override { EDITOR_SetWeightIndexInternal(Entries); }\
+virtual void EDITOR_PadWeightTyped() override { EDITOR_PadWeightInternal(Entries); }\
+virtual void EDITOR_WeightOneTyped() override { EDITOR_WeightOneInternal(Entries); }\
+virtual void EDITOR_WeightRandomTyped() override { EDITOR_WeightRandomInternal(Entries); }\
 virtual void EDITOR_SanitizeAndRebuildStagingData(const bool bRecursive) override{ for(_ENTRY_TYPE& Entry : Entries){ Entry.EDITOR_Sanitize(); Entry.UpdateStaging(this, bRecursive);} }
 #else
 #define PCGEX_ASSET_COLLECTION_BOILERPLATE(_TYPE, _ENTRY_TYPE)\
@@ -495,14 +500,97 @@ public:
 	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
 	virtual void EDITOR_RefreshDisplayNames();
 
-	UFUNCTION(CallInEditor, Category = Tools, meta=(DisplayName="Rebuild Staging", ShortToolTip="Rebuild Staging data just for this collection."))
+	UFUNCTION(CallInEditor, Category = Tools, meta=(DisplayName="Rebuild Staging", ShortToolTip="Rebuild Staging data just for this collection.", DisplayOrder=0))
 	virtual void EDITOR_RebuildStagingData();
 
-	UFUNCTION(CallInEditor, Category = Tools, meta=(DisplayName="Rebuild Staging (Recursive)", ShortToolTip="Rebuild Staging data for this collection and its sub-collections, recursively."))
+	UFUNCTION(CallInEditor, Category = Tools, meta=(DisplayName="Rebuild Staging (Recursive)", ShortToolTip="Rebuild Staging data for this collection and its sub-collections, recursively.", DisplayOrder=1))
 	virtual void EDITOR_RebuildStagingData_Recursive();
 
-	UFUNCTION(CallInEditor, Category = Tools, meta=(DisplayName="Rebuild Staging (Project)", ShortToolTip="Rebuild Staging data for all collection within this project."))
+	UFUNCTION(CallInEditor, Category = Tools, meta=(DisplayName="Rebuild Staging (Project)", ShortToolTip="Rebuild Staging data for all collection within this project.", DisplayOrder=2))
 	virtual void EDITOR_RebuildStagingData_Project();
+
+#pragma region Tools
+
+	UFUNCTION(CallInEditor, Category = Utils, meta=(DisplayName="Sort (Asc)", ShortToolTip="Sort collection by weights in ascending order.", DisplayOrder=10))
+	void EDITOR_SortByWeightAscending();
+
+	virtual void EDITOR_SortByWeightAscendingTyped()
+	{
+	}
+
+	template <typename T>
+	void EDITOR_SortByWeightAscendingInternal(TArray<T>& Entries)
+	{
+		Entries.Sort([](const T& A, const T& B) { return A.Weight < B.Weight; });
+	}
+
+	UFUNCTION(CallInEditor, Category = Utils, meta=(DisplayName="Sort (Desc)", ShortToolTip="Sort collection by weights in descending order.", DisplayOrder=11))
+	void EDITOR_SortByWeightDescending();
+
+	virtual void EDITOR_SortByWeightDescendingTyped()
+	{
+	}
+
+	template <typename T>
+	void EDITOR_SortByWeightDescendingInternal(TArray<T>& Entries)
+	{
+		Entries.Sort([](const T& A, const T& B) { return A.Weight > B.Weight; });
+	}
+
+	UFUNCTION(CallInEditor, Category = Utils, meta=(DisplayName="Index to Weight (Asc)", ShortToolTip="Assign entry index to entry weight", DisplayOrder=20))
+	void EDITOR_SetWeightIndex();
+
+	virtual void EDITOR_SetWeightIndexTyped()
+	{
+	}
+
+	template <typename T>
+	void EDITOR_SetWeightIndexInternal(TArray<T>& Entries)
+	{
+		for (int i = 0; i < Entries.Num(); i++) { Entries[i].Weight = i; }
+	}
+
+	UFUNCTION(CallInEditor, Category = Utils, meta=(DisplayName="Pad Weights", ShortToolTip="Add 1 to all weights so it's easier to weight down some assets", DisplayOrder=21))
+	void EDITOR_PadWeight();
+
+	virtual void EDITOR_PadWeightTyped()
+	{
+	}
+
+	template <typename T>
+	void EDITOR_PadWeightInternal(TArray<T>& Entries)
+	{
+		for (int i = 0; i < Entries.Num(); i++) { Entries[i].Weight += 1; }
+	}
+
+	UFUNCTION(CallInEditor, Category = Utils, meta=(DisplayName="Weight = 100", ShortToolTip="Reset all weights to 100", DisplayOrder=21))
+	void EDITOR_WeightOne();
+
+	virtual void EDITOR_WeightOneTyped()
+	{
+	}
+
+	template <typename T>
+	void EDITOR_WeightOneInternal(TArray<T>& Entries)
+	{
+		for (int i = 0; i < Entries.Num(); i++) { Entries[i].Weight = 100; }
+	}
+
+	UFUNCTION(CallInEditor, Category = Utils, meta=(DisplayName="Randomize Weights", ShortToolTip="Assign random weights to items", DisplayOrder=21))
+	void EDITOR_WeightRandom();
+
+	virtual void EDITOR_WeightRandomTyped()
+	{
+	}
+
+	template <typename T>
+	void EDITOR_WeightRandomInternal(TArray<T>& Entries)
+	{
+		FRandomStream RandomSource(FMath::Rand());
+		for (int i = 0; i < Entries.Num(); i++) { Entries[i].Weight = RandomSource.RandRange(1, Entries.Num() * 100); }
+	}
+
+#pragma endregion
 
 	virtual void EDITOR_SanitizeAndRebuildStagingData(const bool bRecursive);
 
@@ -744,6 +832,7 @@ protected:
 	{
 		Cache.Reset();
 		bCacheNeedsRebuild = true;
+		InvalidateCache();
 	}
 #endif
 

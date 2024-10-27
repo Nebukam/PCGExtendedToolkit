@@ -7,9 +7,8 @@
 
 #include "PCGExEdge.h"
 #include "PCGExGraph.h"
+#include "PCGExSorting.h"
 #include "Data/PCGExAttributeHelpers.h"
-
-
 #include "Geometry/PCGExGeo.h"
 
 #include "PCGExCluster.generated.h"
@@ -20,7 +19,7 @@ namespace PCGExCluster
 	struct FExpandedEdge;
 }
 
-UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Cluster Closest Search Mode"))
+UENUM(/*E--BlueprintType, meta=(DisplayName="[PCGEx] Cluster Closest Search Mode")--E*/)
 enum class EPCGExClusterClosestSearchMode : uint8
 {
 	Node = 0 UMETA(DisplayName = "Closest node", ToolTip="Proximity to node position"),
@@ -458,24 +457,36 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExEdgeDirectionSettings
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	EPCGExEdgeDirectionMethod DirectionMethod = EPCGExEdgeDirectionMethod::EndpointsOrder;
 
+	/** Attribute picker for the selected Direction Method.*/
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="DirectionMethod==EPCGExEdgeDirectionMethod::EdgeDotAttribute", EditConditionHides))
+	FPCGAttributePropertyInputSelector DirSourceAttribute;
+
 	/** Further refine the direction method. Not all methods make use of this property.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	EPCGExEdgeDirectionChoice DirectionChoice = EPCGExEdgeDirectionChoice::SmallestToGreatest;
 
-	/** Attribute picker for the selected Direction Method.*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="DirectionMethod==EPCGExEdgeDirectionMethod::EndpointsAttribute || DirectionMethod==EPCGExEdgeDirectionMethod::EdgeDotAttribute", EditConditionHides))
-	FPCGAttributePropertyInputSelector DirSourceAttribute;
-
 	bool bAscendingDesired = false;
-	TSharedPtr<PCGExData::TBuffer<double>> EndpointsReader;
 	TSharedPtr<PCGExData::TBuffer<FVector>> EdgeDirReader;
 
-	void RegisterBuffersDependencies(FPCGExContext* InContext, PCGExData::FFacadePreloader& FacadePreloader) const;
+	TSharedPtr<PCGExSorting::PointSorter<true>> Sorter;
 
-	bool Init(FPCGExContext* InContext);
-	bool InitFromParent(FPCGExContext* InContext, const FPCGExEdgeDirectionSettings& ParentSettings, const TSharedRef<PCGExData::FFacade>& InEdgeDataFacade);
+	void RegisterBuffersDependencies(
+		FPCGExContext* InContext,
+		PCGExData::FFacadePreloader& FacadePreloader,
+		const TArray<FPCGExSortRuleConfig>* InSortingRules = nullptr) const;
 
-	bool RequiresEndpointsMetadata() const { return DirectionMethod == EPCGExEdgeDirectionMethod::EndpointsAttribute; }
+	bool Init(
+		FPCGExContext* InContext,
+		const TSharedRef<PCGExData::FFacade>& InVtxDataFacade,
+		const TArray<FPCGExSortRuleConfig>* InSortingRules = nullptr);
+
+	bool InitFromParent(
+		FPCGExContext* InContext,
+		const FPCGExEdgeDirectionSettings& ParentSettings,
+		const TSharedRef<PCGExData::FFacade>& InEdgeDataFacade);
+
+	bool RequiresSortingRules() const { return DirectionMethod == EPCGExEdgeDirectionMethod::EndpointsSort; }
+	bool RequiresEndpointsMetadata() const { return DirectionMethod == EPCGExEdgeDirectionMethod::EndpointsSort; }
 	bool RequiresEdgeMetadata() const { return DirectionMethod == EPCGExEdgeDirectionMethod::EdgeDotAttribute; }
 
 	bool SortEndpoints(const PCGExCluster::FCluster* InCluster, PCGExGraph::FIndexedEdge& InEdge) const;

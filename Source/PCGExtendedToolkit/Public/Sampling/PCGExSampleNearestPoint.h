@@ -11,8 +11,6 @@
 #include "PCGExDetails.h"
 #include "Data/Blending/PCGExDataBlending.h"
 #include "Data/Blending/PCGExMetadataBlender.h"
-#include "Misc/PCGExSortPoints.h"
-
 
 #include "PCGExSampleNearestPoint.generated.h"
 
@@ -306,7 +304,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExSampleNearestPointContext final : FPCGEx
 	TSharedPtr<PCGExData::FFacadePreloader> TargetsPreloader;
 	TSharedPtr<PCGExData::FFacade> TargetsFacade;
 	const UPCGPointData::PointOctree* TargetOctree = nullptr;
-	TSharedPtr<PCGExSortPoints::PointSorter<false>> Sorter;
+	TSharedPtr<PCGExSorting::PointSorter<false>> Sorter;
 
 	FPCGExBlendingDetails BlendingDetails;
 	const TArray<FPCGPoint>* TargetPoints = nullptr;

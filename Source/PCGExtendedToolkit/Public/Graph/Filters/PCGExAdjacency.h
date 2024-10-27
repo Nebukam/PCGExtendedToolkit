@@ -12,14 +12,14 @@
 #include "PCGExAdjacency.generated.h"
 
 
-UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Adjacency Test Mode"))
+UENUM(/*E--BlueprintType, meta=(DisplayName="[PCGEx] Adjacency Test Mode")--E*/)
 enum class EPCGExAdjacencyTestMode : uint8
 {
 	All  = 0 UMETA(DisplayName = "All", Tooltip="Test a condition using all adjacent nodes."),
 	Some = 1 UMETA(DisplayName = "Some", Tooltip="Test a condition using some adjacent nodes only.")
 };
 
-UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Adjacency Gather Mode"))
+UENUM(/*E--BlueprintType, meta=(DisplayName="[PCGEx] Adjacency Gather Mode")--E*/)
 enum class EPCGExAdjacencyGatherMode : uint8
 {
 	Individual = 0 UMETA(DisplayName = "Individual", Tooltip="Test individual neighbors one by one"),
@@ -29,7 +29,7 @@ enum class EPCGExAdjacencyGatherMode : uint8
 	Sum        = 4 UMETA(DisplayName = "Sum", Tooltip="Test against Sum value of all neighbors"),
 };
 
-UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Adjacency Subset Mode"))
+UENUM(/*E--BlueprintType, meta=(DisplayName="[PCGEx] Adjacency Subset Mode")--E*/)
 enum class EPCGExAdjacencyThreshold : uint8
 {
 	AtLeast = 0 UMETA(DisplayName = "At Least", Tooltip="Requirements must be met by at least N adjacent nodes.  (Where N is the Threshold)"),
@@ -37,7 +37,7 @@ enum class EPCGExAdjacencyThreshold : uint8
 	Exactly = 2 UMETA(DisplayName = "Exactly", Tooltip="Requirements must be met by exactly N adjacent nodes, no more, no less.  (Where N is the Threshold)")
 };
 
-UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Relative Rounding Mode"))
+UENUM(/*E--BlueprintType, meta=(DisplayName="[PCGEx] Relative Rounding Mode")--E*/)
 enum class EPCGExRelativeThresholdRoundingMode : uint8
 {
 	Round = 0 UMETA(DisplayName = "Round", Tooltip="Rounds value to closest integer (0.1 = 0, 0.9 = 1)"),

@@ -15,7 +15,7 @@
 
 #include "PCGExCutClusters.generated.h"
 
-UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Cut Edges Mode"))
+UENUM(/*E--BlueprintType, meta=(DisplayName="[PCGEx] Cut Edges Mode")--E*/)
 enum class EPCGExCutEdgesMode : uint8
 {
 	Nodes         = 0 UMETA(DisplayName = "Nodes", ToolTip="Check for path overlap with nodes"),
@@ -56,12 +56,12 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	FPCGExPathClosedLoopDetails ClosedLoop;
 
-	
+
 	/**  */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	FPCGExPathEdgeIntersectionDetails IntersectionDetails = FPCGExPathEdgeIntersectionDetails(false);
 
-	
+
 	/** Keep intersections/proximity instead of removing. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	bool bInvert = false;
@@ -91,8 +91,8 @@ public:
 
 	/** */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bInvert && Mode!=EPCGExCutEdgesMode::Edges"))
-	bool bKeepEdgeThatConnectValidNodes = false;
-	
+	bool bKeepEdgesThatConnectValidNodes = false;
+
 	/** Graph & Edges output properties */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName="Cluster Output Settings"))
 	FPCGExGraphBuilderDetails GraphBuilderDetails;
@@ -138,7 +138,7 @@ namespace PCGExCutEdges
 
 		int8 EdgesProcessed = 0;
 		int8 NodesProcessed = 0;
-		
+
 		TArray<bool> EdgeFilterCache;
 		TArray<bool> NodeFilterCache;
 

@@ -182,9 +182,27 @@ void UPCGExAssetCollection::EDITOR_RebuildStagingData_Project()
 	}
 }
 
+#define PCGEX_ASSET_COLLECTION_UTIL_CALL(_BODY) \
+Modify(true); \
+_BODY \
+FPropertyChangedEvent EmptyEvent(nullptr); \
+PostEditChangeProperty(EmptyEvent); \
+MarkPackageDirty();
+
+void UPCGExAssetCollection::EDITOR_SortByWeightAscending() { PCGEX_ASSET_COLLECTION_UTIL_CALL(EDITOR_SortByWeightAscendingTyped();) }
+
+void UPCGExAssetCollection::EDITOR_SortByWeightDescending() { PCGEX_ASSET_COLLECTION_UTIL_CALL(EDITOR_SortByWeightDescendingTyped();) }
+
+void UPCGExAssetCollection::EDITOR_SetWeightIndex() { PCGEX_ASSET_COLLECTION_UTIL_CALL(EDITOR_SetWeightIndexTyped();) }
+
+void UPCGExAssetCollection::EDITOR_PadWeight() { PCGEX_ASSET_COLLECTION_UTIL_CALL(EDITOR_PadWeightTyped();) }
+
+void UPCGExAssetCollection::EDITOR_WeightOne() { PCGEX_ASSET_COLLECTION_UTIL_CALL(EDITOR_WeightOneTyped();) }
+
+void UPCGExAssetCollection::EDITOR_WeightRandom() { PCGEX_ASSET_COLLECTION_UTIL_CALL(EDITOR_WeightRandomTyped();) }
+
 void UPCGExAssetCollection::EDITOR_SanitizeAndRebuildStagingData(const bool bRecursive)
 {
-	InvalidateCache();
 }
 #endif
 

@@ -31,6 +31,8 @@ protected:
 
 	//~Begin UPCGExPointsProcessorSettings
 public:
+	virtual bool SupportsEdgeSorting() const;
+	virtual bool RequiresEdgeSorting() const;
 	virtual PCGExData::EInit GetMainOutputInitMode() const override;
 	virtual PCGExData::EInit GetEdgeOutputInitMode() const;
 
@@ -62,6 +64,8 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExEdgesProcessorContext : FPCGExPointsProc
 	TMap<uint32, int32> EndpointsLookup;
 	TArray<int32> EndpointsAdjacency;
 
+	const TArray<FPCGExSortRuleConfig>* GetEdgeSortingRules() const;
+
 	virtual bool AdvancePointsIO(const bool bCleanupKeys = true) override;
 	virtual bool AdvanceEdges(const bool bBuildCluster, const bool bCleanupKeys = true); // Advance edges within current points
 
@@ -89,6 +93,8 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExEdgesProcessorContext : FPCGExPointsProc
 protected:
 	virtual bool ProcessClusters(const PCGEx::AsyncState NextStateId, const bool bIsNextStateAsync = false);
 	virtual bool CompileGraphBuilders(const bool bOutputToContext, const PCGEx::AsyncState NextStateId);
+
+	TArray<FPCGExSortRuleConfig> EdgeSortingRules;
 
 	TArray<TSharedPtr<PCGExClusterMT::FClusterProcessorBatchBase>> Batches;
 

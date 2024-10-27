@@ -95,6 +95,21 @@ class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExNeighborSamplerFactoryAttribute : public 
 public:
 	FPCGExAttributeSamplerConfigBase Config;
 	virtual UPCGExNeighborSampleOperation* CreateOperation(FPCGExContext* InContext) const override;
+
+	virtual void RegisterBuffersDependencies(FPCGExContext* InContext, const TSharedRef<PCGExData::FFacade>& InDataFacade, PCGExData::FFacadePreloader& FacadePreloader) const override
+	{
+		TSharedPtr<PCGEx::FAttributesInfos> Infos = PCGEx::FAttributesInfos::Get(InDataFacade->GetIn()->Metadata);
+		for (FName AttrName : Config.SourceAttributes)
+		{
+			const PCGEx::FAttributeIdentity* Identity = Infos->Find(AttrName);
+			if (!Identity)
+			{
+				PCGE_LOG_C(Error, GraphAndLog, InContext, FText::Format(FTEXT("Missing attribute: \"{0}\"."), FText::FromName(AttrName)));
+				return;
+			}
+			FacadePreloader.Register(InContext, *Identity);
+		}
+	}
 };
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|NeighborSample")

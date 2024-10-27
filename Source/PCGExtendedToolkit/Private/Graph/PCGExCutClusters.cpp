@@ -364,7 +364,7 @@ namespace PCGExCutEdges
 
 	void FProcessor::TryConsolidate()
 	{
-		if (Settings->bInvert && EdgesProcessed && Settings->bKeepEdgeThatConnectValidNodes)
+		if (Settings->bInvert && EdgesProcessed && Settings->bKeepEdgesThatConnectValidNodes)
 		{
 			StartParallelLoopForRange(Cluster->Edges->Num());
 		}
