@@ -39,7 +39,3 @@ WIP
 <br>
 
 WIP / TBD
-
----
-## Cluster Output Settings
-*See [Working with Clusters - Cluster Output Settings](/PCGExtendedToolkit/doc-general/working-with-clusters.html#cluster-output-settings).*

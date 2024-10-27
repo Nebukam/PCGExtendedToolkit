@@ -21,6 +21,6 @@ The `Direction method`, combined with the `Direction Choice` determine which end
 |:-------------|:------------------|
 |<span class="ebit">Endpoints order</span>    | Will use the endpoints' as ordered during cluster construction. |
 |<span class="ebit">Endpoints indices</span> | Will use the endpoints' point index. |
-|<span class="ebit">Endpoints Attribute</span> | Will use an attribute (converted to a `Double`) from the endpoints'<br>*This method, combined with `Direction Choice` offers full control over direction.* |
+|<span class="ebit">Endpoints Sort</span> | Enables the use of any number of [Sorting Rules](/PCGExtendedToolkit/doc-misc/sort-points/sort-rule.html) to determine direction.<br>*This method, while more expensive, is the most efficient.* |
 | <span class="ebit">Edge Dot Attribute</span> | Will use an attribute (converted to an `FVector`) from the edges' and do a Dot Product with the edge' direction.<br>*This method, combined with `Direction Choice` offers full control over direction.* |
 {: .enum }

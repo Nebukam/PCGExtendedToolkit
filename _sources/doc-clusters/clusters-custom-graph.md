@@ -110,7 +110,7 @@ The custom graph settings are holding data & providing a handy way to cache per-
 ### InitializeSettings
 
 {% include img_link a='details/clusters-custom-graph/initialize-settings.png' %}
-*Example where initialization uses a property on an actor to drive the number of node for these settings.*
+*Example where initialization uses a property on an actor to drive the number of node for these settings. Note that there is no relationship whatsoever between input actors and graph, they're just a convenience thing.*
 
 ### BuildGraph
 
@@ -130,3 +130,8 @@ BuildGraph is where you call `AddEdge` appropriately. The method takes two `int6
 
 {% include img_link a='details/clusters-custom-graph/update-node-point.png' %}
 *Example where a point position is oriented forward in space using an actor' transform, and setting the point Color from a variable on the actor.*
+
+
+---
+## Cluster Output Settings
+*See [Working with Clusters - Cluster Output Settings](/PCGExtendedToolkit/doc-general/working-with-clusters.html#cluster-output-settings).*

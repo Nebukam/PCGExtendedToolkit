@@ -71,6 +71,20 @@ As such you will need to trigger a manual refresh from to time. You can do so us
 | <span class="ebit">Rebuild Staging (Project)</span> | Rebuild ALL the project' Asset Collection.<br>Use carefully as assets needs to be loaded temporarily in memory in order to compute their bounds. |
 
 ---
+## Utilitary methods
+
+There a few utils at the bottom of the detail window that my come in handy:
+
+| Button       | Effect          |
+|:-------------|:------------------|
+| <span class="ebit">Sort (Asc)</span> | Sort collection by weights in ascending order. |
+| <span class="ebit">Sort (Desc)</span> | Sort collection by weights in descending order. |
+| <span class="ebit">Index to Weight (Asc)</span> | Assign entry index to entry weight |
+| <span class="ebit">Pad Weights</span> | Add 1 to all weights so it's easier to weight down some assets |
+| <span class="ebit">Weight = 100</span> | Reset all weights to 100 |
+| <span class="ebit">Randomize Weights</span> | Assign random weights to items |
+
+---
 ## Available Collections
 <br>
 {% include card_childs tagged='assetcollection' %}

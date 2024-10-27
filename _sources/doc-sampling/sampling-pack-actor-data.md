@@ -25,8 +25,11 @@ outputs:
 
 {% include header_card_node %}
 
-WIP
-{: .fs-5 .fw-400 } 
+The **Pack Actor Data** provide a quick-and-dirty (yet highly customizable) way to extract per-actor data from a list of actor reference and write that data to these same points.
+{: .fs-5 .fw-400 }
+
+> If you're working with 5.5 and above, and just need a single property, have a look at the native `Get Property from Object Path` as it may fit your needs.
+{: .comment }
 
 {% include img a='details/sampling-pack-actor-data/lead.png' %}
 

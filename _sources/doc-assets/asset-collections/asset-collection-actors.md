@@ -6,7 +6,7 @@ title: 🝱 Actor Collection
 subtitle: Actor Collection DataAsset
 summary: The **Actor Collection** DataAsset is a list of Actors, that comes with all the Asset Collection goodies.
 color: blue
-splash: icons/icon_custom-graphs-params.svg
+splash: icons/PCGExAssetCollection.png
 see_also: 
     - Asset Collection
 tagged: 

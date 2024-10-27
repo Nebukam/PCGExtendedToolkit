@@ -55,3 +55,4 @@ The **Copy Clusters to points** is very much like the vanilla `Copy Points` node
 | **Transform Details**  | |
 | Inherit Scale          | If enabled, copied points will be scaled by the target' scale. |
 | Inherit Rotation          | If enabled, copied points will be scaled by the target' rotation. |
+
