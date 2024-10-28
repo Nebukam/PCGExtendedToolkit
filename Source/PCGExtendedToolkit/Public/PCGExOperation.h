@@ -40,7 +40,7 @@ class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExOperation : public UObject, public IPCGEx
 	//~Begin UPCGExOperation interface
 public:
 	void BindContext(FPCGExContext* InContext);
-	void FindSettingsOverrides(FPCGExContext* InContext);
+	void FindSettingsOverrides(FPCGExContext* InContext, FName InPinLabel);
 
 #if WITH_EDITOR
 	virtual void UpdateUserFacingInfos();
@@ -69,7 +69,7 @@ protected:
 	FPCGExContext* Context = nullptr;
 	TMap<FName, FPCGMetadataAttributeBase*> PossibleOverrides;
 
-	virtual void ApplyOverrides();
+	void ApplyOverrides();
 
 	template <typename T>
 	bool GetOverrideValue(const FName Name, T& OutValue)

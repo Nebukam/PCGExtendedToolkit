@@ -48,14 +48,6 @@ public:
 	double ElectrostaticConstant = 1000;
 
 protected:
-	virtual void ApplyOverrides() override
-	{
-		Super::ApplyOverrides();
-
-		PCGEX_OVERRIDE_OPERATION_PROPERTY(SpringConstant, "Relax/SpringConstant")
-		PCGEX_OVERRIDE_OPERATION_PROPERTY(ElectrostaticConstant, "Relax/ElectrostaticConstant")
-	}
-
 	FORCEINLINE void CalculateAttractiveForce(FVector& Force, const FVector& A, const FVector& B) const
 	{
 		// Calculate the displacement vector between the nodes

@@ -13,6 +13,13 @@
 
 PCGExData::EInit UPCGExSubdivideSettings::GetMainOutputInitMode() const { return PCGExData::EInit::NewOutput; }
 
+TArray<FPCGPinProperties> UPCGExSubdivideSettings::InputPinProperties() const
+{
+	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
+	PCGEX_PIN_OPERATION_OVERRIDES(PCGExDataBlending::SourceOverridesBlendingOps)
+	return PinProperties;
+}
+
 PCGEX_INITIALIZE_ELEMENT(Subdivide)
 
 bool FPCGExSubdivideElement::Boot(FPCGExContext* InContext) const
@@ -24,7 +31,7 @@ bool FPCGExSubdivideElement::Boot(FPCGExContext* InContext) const
 	if (Settings->bFlagSubPoints) { PCGEX_VALIDATE_NAME(Settings->SubPointFlagName) }
 	if (Settings->bWriteAlpha) { PCGEX_VALIDATE_NAME(Settings->AlphaAttributeName) }
 
-	PCGEX_OPERATION_BIND(Blending, UPCGExSubPointsBlendOperation)
+	PCGEX_OPERATION_BIND(Blending, UPCGExSubPointsBlendOperation, PCGExDataBlending::SourceOverridesBlendingOps)
 
 	return true;
 }

@@ -37,8 +37,8 @@ public:
 	{
 		Super::ProcessEdge(Edge);
 
-		const FVector From = Cluster->GetPos((*Cluster->NodeIndexLookup)[Edge.Start]);
-		const FVector To = Cluster->GetPos((*Cluster->NodeIndexLookup)[Edge.End]);
+		const FVector From = Cluster->GetStartPos(Edge);
+		const FVector To = Cluster->GetEndPos(Edge);
 
 		FHitResult HitResult;
 		if (!InitializedCollisionSettings.Linecast(From, To, HitResult))
@@ -62,12 +62,4 @@ public:
 
 protected:
 	FPCGExCollisionDetails InitializedCollisionSettings;
-
-	virtual void ApplyOverrides() override
-	{
-		Super::ApplyOverrides();
-
-		PCGEX_OVERRIDE_OPERATION_PROPERTY(bTwoWayCheck, "Refine/TwoWayCheck")
-		PCGEX_OVERRIDE_OPERATION_PROPERTY(bInvert, "Refine/Invert")
-	}
 };

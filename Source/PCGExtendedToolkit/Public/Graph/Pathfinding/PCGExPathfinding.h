@@ -173,3 +173,9 @@ public:
 
 	const TArray<TSharedPtr<PCGExPathfinding::FPathQuery>>* Queries = nullptr;
 };
+
+namespace PCGExPathfinding
+{
+	const FName SourceOverridesGoalPicker = TEXT("Overrides : Goal Picker");
+	const FName SourceOverridesSearch = TEXT("Overrides : Search");
+}

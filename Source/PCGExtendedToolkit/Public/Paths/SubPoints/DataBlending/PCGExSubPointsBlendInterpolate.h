@@ -39,11 +39,4 @@ public:
 
 protected:
 	virtual EPCGExDataBlendingType GetDefaultBlending() override { return EPCGExDataBlendingType::Lerp; }
-
-	virtual void ApplyOverrides() override
-	{
-		Super::ApplyOverrides();
-
-		PCGEX_OVERRIDE_OPERATION_PROPERTY(Lerp, "Blending/Weight");
-	}
 };

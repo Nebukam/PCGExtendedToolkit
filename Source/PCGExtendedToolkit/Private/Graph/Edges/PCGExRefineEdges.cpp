@@ -26,6 +26,8 @@ TArray<FPCGPinProperties> UPCGExRefineEdgesSettings::InputPinProperties() const
 		PCGEX_PIN_PARAMS(PCGExRefineEdges::SourceSanitizeEdgeFilters, "Filters that define which edges are to be kept. During the sanitization step, edges that pass the filters are restored if they were previously removed.", Required, {})
 	}
 
+	PCGEX_PIN_OPERATION_OVERRIDES(PCGExRefineEdges::SourceOverridesRefinement)
+
 	return PinProperties;
 }
 
@@ -56,7 +58,7 @@ bool FPCGExRefineEdgesElement::Boot(FPCGExContext* InContext) const
 		return false;
 	}
 
-	PCGEX_OPERATION_BIND(Refinement, UPCGExEdgeRefineOperation)
+	PCGEX_OPERATION_BIND(Refinement, UPCGExEdgeRefineOperation, PCGExRefineEdges::SourceOverridesRefinement)
 	PCGEX_FWD(GraphBuilderDetails)
 
 	if (Context->Refinement->RequiresHeuristics() && !Context->bHasValidHeuristics)
@@ -161,7 +163,9 @@ namespace PCGExRefineEdges
 	TSharedPtr<PCGExCluster::FCluster> FProcessor::HandleCachedCluster(const TSharedRef<PCGExCluster::FCluster>& InClusterRef)
 	{
 		// Create a light working copy with edges only, will be deleted.
-		return MakeShared<PCGExCluster::FCluster>(InClusterRef, VtxDataFacade->Source, EdgeDataFacade->Source, false, true, false);
+		return MakeShared<PCGExCluster::FCluster>(
+			InClusterRef, VtxDataFacade->Source, EdgeDataFacade->Source, NodeIndexLookup,
+			false, true, false);
 	}
 
 	FProcessor::~FProcessor()
@@ -373,18 +377,18 @@ namespace PCGExRefineEdges
 		{
 			for (int i = 0; i < NumIterations; i++)
 			{
-				const PCGExCluster::FNode& Node = *(Processor->Cluster->Nodes->GetData() + StartIndex + i);
+				const PCGExCluster::FNode* Node = (Processor->Cluster->Nodes->GetData() + StartIndex + i);
 
 				int32 BestIndex = -1;
 				double LongestDist = MIN_dbl;
 
-				for (const uint64 AdjacencyHash : Node.Adjacency)
+				for (const uint64 AdjacencyHash : Node->Adjacency)
 				{
 					uint32 OtherNodeIndex;
 					uint32 EdgeIndex;
 					PCGEx::H64(AdjacencyHash, OtherNodeIndex, EdgeIndex);
 
-					const double Dist = Processor->Cluster->GetDistSquared(Node.NodeIndex, OtherNodeIndex);
+					const double Dist = Processor->Cluster->GetDistSquared(Node->NodeIndex, OtherNodeIndex);
 					if (Dist > LongestDist)
 					{
 						LongestDist = Dist;
@@ -401,18 +405,18 @@ namespace PCGExRefineEdges
 		{
 			for (int i = 0; i < NumIterations; i++)
 			{
-				const PCGExCluster::FNode& Node = *(Processor->Cluster->Nodes->GetData() + StartIndex + i);
+				const PCGExCluster::FNode* Node = (Processor->Cluster->Nodes->GetData() + StartIndex + i);
 
 				int32 BestIndex = -1;
 				double ShortestDist = MAX_dbl;
 
-				for (const uint64 AdjacencyHash : Node.Adjacency)
+				for (const uint64 AdjacencyHash : Node->Adjacency)
 				{
 					uint32 OtherNodeIndex;
 					uint32 EdgeIndex;
 					PCGEx::H64(AdjacencyHash, OtherNodeIndex, EdgeIndex);
 
-					const double Dist = Processor->Cluster->GetDistSquared(Node.NodeIndex, OtherNodeIndex);
+					const double Dist = Processor->Cluster->GetDistSquared(Node->NodeIndex, OtherNodeIndex);
 					if (Dist < ShortestDist)
 					{
 						ShortestDist = Dist;

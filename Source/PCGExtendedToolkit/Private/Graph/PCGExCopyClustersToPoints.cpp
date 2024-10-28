@@ -111,7 +111,7 @@ namespace PCGExCopyClusters
 			{
 				EdgeDupeTypedData->SetBoundCluster(
 					MakeShared<PCGExCluster::FCluster>(
-						CachedCluster.ToSharedRef(), VtxDupe, EdgeDupe,
+						CachedCluster.ToSharedRef(), VtxDupe, EdgeDupe, nullptr,
 						false, false, false));
 			}
 		}
