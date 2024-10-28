@@ -233,8 +233,8 @@ namespace PCGExCutEdges
 			Path->GetEdgeOctree()->FindFirstElementWithBoundsTest(
 				EdgeBox, [&](const PCGExPaths::FPathEdge* PathEdge)
 				{
-					if (Settings->bInvert) { if (Edge.bValid) { return false; } }
-					else { if (!Edge.bValid) { return false; } }
+					//if (Settings->bInvert) { if (Edge.bValid) { return false; } }
+					//else if (!Edge.bValid) { return false; }
 
 					if (Context->IntersectionDetails.bUseMinAngle || Context->IntersectionDetails.bUseMaxAngle)
 					{
@@ -250,7 +250,7 @@ namespace PCGExCutEdges
 					FVector B = FVector::ZeroVector;
 
 					FMath::SegmentDistToSegment(A1, B1, A2, B2, A, B);
-					if (A == A1 || A == B1 || B == A2 || B == B2) { return true; }
+					//if (A == A1 || A == B1 || B == A2 || B == B2) { return true; }
 
 					if (FVector::DistSquared(A, B) >= Context->IntersectionDetails.ToleranceSquared) { return true; }
 
@@ -276,7 +276,7 @@ namespace PCGExCutEdges
 					return false;
 				});
 
-			if (!Edge.bValid) { return; }
+			if (Edge.bValid == static_cast<int8>(Settings->bInvert)) { return; }
 		}
 	}
 
@@ -309,8 +309,8 @@ namespace PCGExCutEdges
 			Path->GetEdgeOctree()->FindFirstElementWithBoundsTest(
 				PointBox, [&](const PCGExPaths::FPathEdge* PathEdge)
 				{
-					if (Settings->bInvert) { if (Node.bValid) { return false; } }
-					else { if (!Node.bValid) { return false; } }
+					//if (Settings->bInvert) { if (Node.bValid) { return false; } }
+					//else if (!Node.bValid) { return false; }
 
 					const FVector A2 = Path->GetPosUnsafe(PathEdge->Start);
 					const FVector B2 = Path->GetPosUnsafe(PathEdge->End);
@@ -346,7 +346,7 @@ namespace PCGExCutEdges
 					return false;
 				});
 
-			if (!Node.bValid) { return; }
+			if (Node.bValid == static_cast<int8>(Settings->bInvert)) { return; }
 		}
 	}
 
@@ -364,7 +364,20 @@ namespace PCGExCutEdges
 
 	void FProcessor::TryConsolidate()
 	{
-		if (Settings->bInvert && EdgesProcessed && Settings->bKeepEdgesThatConnectValidNodes)
+		switch (Settings->Mode)
+		{
+		case EPCGExCutEdgesMode::Nodes:
+			if (!NodesProcessed) { return; }
+			break;
+		case EPCGExCutEdgesMode::Edges:
+			if (!EdgesProcessed) { return; }
+			break;
+		case EPCGExCutEdgesMode::NodesAndEdges:
+			if (!EdgesProcessed || !NodesProcessed) { return; }
+			break;
+		}
+
+		if (Settings->bInvert && Settings->bKeepEdgesThatConnectValidNodes)
 		{
 			StartParallelLoopForRange(Cluster->Edges->Num());
 		}
@@ -374,7 +387,7 @@ namespace PCGExCutEdges
 	{
 		PCGExGraph::FIndexedEdge& Edge = *(Cluster->Edges->GetData() + Iteration);
 
-		if (Edge.bValid) { return; }
+		//if (Edge.bValid)		{			return;		}
 
 		const PCGExCluster::FNode* StartNode = Cluster->GetEdgeStart(Edge);
 		const PCGExCluster::FNode* EndNode = Cluster->GetEdgeEnd(Edge);
@@ -401,12 +414,6 @@ namespace PCGExCutEdges
 		PCGExPointFilter::RegisterBuffersDependencies(ExecutionContext, Context->NodeFilterFactories, FacadePreloader);
 	}
 
-	void FProcessorBatch::OnProcessingPreparationComplete()
-	{
-		PCGEX_TYPED_CONTEXT_AND_SETTINGS(CutEdges)
-
-		TBatch<FProcessor>::OnProcessingPreparationComplete();
-	}
 }
 
 #undef LOCTEXT_NAMESPACE

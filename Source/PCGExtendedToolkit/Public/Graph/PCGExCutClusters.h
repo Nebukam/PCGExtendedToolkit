@@ -177,6 +177,5 @@ namespace PCGExCutEdges
 		}
 
 		virtual void RegisterBuffersDependencies(PCGExData::FFacadePreloader& FacadePreloader) override;
-		virtual void OnProcessingPreparationComplete() override;
 	};
 }
