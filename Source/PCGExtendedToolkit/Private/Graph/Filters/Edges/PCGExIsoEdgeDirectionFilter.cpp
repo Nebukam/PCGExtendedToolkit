@@ -64,7 +64,7 @@ bool FIsoEdgeDirectionFilter::Test(const PCGExGraph::FIndexedEdge& Edge) const
 {
 	PCGExGraph::FIndexedEdge MutableEdge = Edge;
 	DirectionSettings.SortEndpoints(Cluster.Get(), MutableEdge);
-	
+
 	const FVector Direction = Cluster->GetEdgeDir(MutableEdge);
 
 	return bUseDot ? TestDot(Edge.PointIndex, Direction) : TestHash(Edge.PointIndex, Direction);

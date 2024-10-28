@@ -275,7 +275,7 @@ namespace PCGExGraph
 		AsyncManager = InAsyncManager;
 		MetadataDetailsPtr = MetadataDetails;
 		bWriteVtxDataFacadeWithCompile = bWriteNodeFacade;
-		
+
 		TRACE_CPUPROFILER_EVENT_SCOPE(FGraphBuilder::Compile);
 
 		NodeIndexLookup = MakeShared<PCGEx::FIndexLookup>(Graph->Nodes.Num()); // Likely larger than exported size; required for compilation.

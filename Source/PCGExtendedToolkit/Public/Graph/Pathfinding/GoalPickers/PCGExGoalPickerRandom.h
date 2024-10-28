@@ -56,5 +56,4 @@ public:
 
 protected:
 	TSharedPtr<PCGExData::TBuffer<int32>> NumGoalsGetter;
-
 };

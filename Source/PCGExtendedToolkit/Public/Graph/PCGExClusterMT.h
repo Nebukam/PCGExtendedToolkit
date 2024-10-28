@@ -52,7 +52,7 @@ namespace PCGExClusterMT
 	protected:
 		TSharedPtr<PCGExMT::FTaskManager> AsyncManager;
 		FPCGExContext* ExecutionContext = nullptr;
-	
+
 
 		FPCGExEdgeDirectionSettings DirectionSettings;
 
@@ -85,12 +85,12 @@ namespace PCGExClusterMT
 	public:
 		TSharedRef<PCGExData::FFacade> VtxDataFacade;
 		TSharedRef<PCGExData::FFacade> EdgeDataFacade;
-		
+
 		TSharedPtr<PCGEx::FIndexLookup> NodeIndexLookup;
-		
+
 		TWeakPtr<FClusterProcessorBatchBase> ParentBatch;
 		TSharedPtr<PCGExMT::FTaskManager> GetAsyncManager() { return AsyncManager; }
-		
+
 		bool bAllowEdgesDataFacadeScopedGet = false;
 
 		bool bIsProcessorValid = false;

@@ -11,22 +11,22 @@ namespace PCGExData
 {
 	class FBufferHelper : public TSharedFromThis<FBufferHelper>
 	{
-		TSharedPtr<PCGExData::FFacade> InDataFacade;
-		TMap<FName, TSharedPtr<PCGExData::FBufferBase>> BufferMap;
+		TSharedPtr<FFacade> DataFacade;
+		TMap<FName, TSharedPtr<FBufferBase>> BufferMap;
 		mutable FRWLock BufferLock;
 
 	public:
-		explicit FBufferHelper(TSharedRef<FFacade> InDataFacade):
-			InDataFacade()
+		explicit FBufferHelper(const TSharedRef<FFacade>& InDataFacade):
+			DataFacade(InDataFacade)
 		{
 		}
 
 		template <typename T>
-		TSharedPtr<PCGExData::TBuffer<T>> GetBuffer(const FName InName)
+		TSharedPtr<TBuffer<T>> GetBuffer(const FName InName)
 		{
 			{
 				FReadScopeLock ReadScopeLock(BufferLock);
-				if (TSharedPtr<PCGExData::FBufferBase>* BufferPtr = BufferMap.Find(InName))
+				if (TSharedPtr<FBufferBase>* BufferPtr = BufferMap.Find(InName))
 				{
 					if (!(*BufferPtr)->IsA<T>())
 					{
@@ -34,7 +34,7 @@ namespace PCGExData
 						return nullptr;
 					}
 
-					return StaticCastSharedPtr<PCGExData::TBuffer<T>>(*BufferPtr);
+					return StaticCastSharedPtr<TBuffer<T>>(*BufferPtr);
 				}
 			}
 			{
@@ -44,18 +44,18 @@ namespace PCGExData
 					UE_LOG(LogTemp, Error, TEXT("Attempted to create an attribute with a protected prefix (%s)"), *InName.ToString())
 					return nullptr;
 				}
-				TSharedPtr<PCGExData::TBuffer<T>> NewBuffer = InDataFacade->GetWritable<T>(InName, true);
-				BufferMap.Add(InName, StaticCastSharedPtr<PCGExData::FBufferBase>(NewBuffer));
+				TSharedPtr<TBuffer<T>> NewBuffer = DataFacade->GetWritable<T>(InName, true);
+				BufferMap.Add(InName, StaticCastSharedPtr<FBufferBase>(NewBuffer));
 				return NewBuffer;
 			}
 		}
 
 		template <typename T>
-		TSharedPtr<PCGExData::TBuffer<T>> GetBuffer(const FName InName, const T& DefaultValue)
+		TSharedPtr<TBuffer<T>> GetBuffer(const FName InName, const T& DefaultValue)
 		{
 			{
 				FReadScopeLock ReadScopeLock(BufferLock);
-				if (TSharedPtr<PCGExData::FBufferBase>* BufferPtr = BufferMap.Find(InName))
+				if (TSharedPtr<FBufferBase>* BufferPtr = BufferMap.Find(InName))
 				{
 					if (!(*BufferPtr)->IsA<T>())
 					{
@@ -63,7 +63,7 @@ namespace PCGExData
 						return nullptr;
 					}
 
-					return StaticCastSharedPtr<PCGExData::TBuffer<T>>(*BufferPtr);
+					return StaticCastSharedPtr<TBuffer<T>>(*BufferPtr);
 				}
 			}
 			{
@@ -73,16 +73,16 @@ namespace PCGExData
 					UE_LOG(LogTemp, Error, TEXT("Attempted to create an attribute with a protected prefix (%s)"), *InName.ToString())
 					return nullptr;
 				}
-				TSharedPtr<PCGExData::TBuffer<T>> NewBuffer = InDataFacade->GetWritable<T>(InName, DefaultValue, true, true);
-				BufferMap.Add(InName, StaticCastSharedPtr<PCGExData::FBufferBase>(NewBuffer));
+				TSharedPtr<TBuffer<T>> NewBuffer = DataFacade->GetWritable<T>(InName, DefaultValue, true, true);
+				BufferMap.Add(InName, StaticCastSharedPtr<FBufferBase>(NewBuffer));
 				return NewBuffer;
 			}
 		}
-		
+
 		template <typename T>
 		FORCEINLINE bool SetValue(const FName& InAttributeName, const int32 InIndex, const T& InValue)
 		{
-			TSharedPtr<PCGExData::TBuffer<T>> Buffer = GetBuffer<T>(InAttributeName);
+			TSharedPtr<TBuffer<T>> Buffer = GetBuffer<T>(InAttributeName);
 			if (!Buffer) { return false; }
 			Buffer->GetMutable(InIndex) = InValue;
 			return true;

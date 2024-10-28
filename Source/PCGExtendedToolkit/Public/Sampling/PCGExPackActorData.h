@@ -56,7 +56,6 @@ public:
 
 	TSharedPtr<PCGExData::FBufferHelper> Buffers;
 
-public:
 #pragma region Init
 
 	/**

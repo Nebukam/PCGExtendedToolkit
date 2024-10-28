@@ -72,9 +72,8 @@ protected:
 
 namespace PCGExRelaxClusters
 {
-
 	const FName SourceOverridesRelaxing = TEXT("Overrides : Relaxing");
-	
+
 	class FProcessor final : public PCGExClusterMT::TProcessor<FPCGExRelaxClustersContext, UPCGExRelaxClustersSettings>
 	{
 		int32 Iterations = 10;

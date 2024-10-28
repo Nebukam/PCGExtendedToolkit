@@ -105,7 +105,7 @@ protected:
 namespace PCGExOrient
 {
 	const FName SourceOverridesOrient = TEXT("Overrides : Orient");
-	
+
 	class FProcessor final : public PCGExPointsMT::TPointsProcessor<FPCGExOrientContext, UPCGExOrientSettings>
 	{
 		TSharedPtr<PCGExData::TBuffer<FTransform>> TransformWriter;

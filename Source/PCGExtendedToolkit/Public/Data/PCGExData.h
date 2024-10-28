@@ -94,7 +94,7 @@ namespace PCGExData
 
 		EPCGMetadataTypes GetType() const { return Type; }
 
-		template<typename T>
+		template <typename T>
 		bool IsA() const { return Type == PCGEx::GetMetadataType<T>(); }
 
 		virtual ~FBufferBase()

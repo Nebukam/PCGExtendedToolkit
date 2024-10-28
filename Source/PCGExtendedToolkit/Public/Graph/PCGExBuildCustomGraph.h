@@ -89,7 +89,7 @@ public:
 	 */
 	UFUNCTION(BlueprintNativeEvent, Category = "PCGEx|Execution")
 	void InitPointAttributes(UPARAM(ref)const FPCGContext& InContext, bool& OutSuccess);
-	
+
 	/**
 	 * Update Node Point is called on each node point after BuildGraph has been, and edges added. This method is executed in a multi-threaded context.
 	 * This is where point transform & properties should be set.
@@ -103,7 +103,7 @@ public:
 
 #pragma region Node Attributes
 
-	TSharedPtr<PCGExData::FBufferHelper> VtxBuffers;	
+	TSharedPtr<PCGExData::FBufferHelper> VtxBuffers;
 
 #pragma region Init
 
@@ -384,7 +384,6 @@ public:
 #pragma endregion
 
 #pragma endregion
-	
 };
 
 USTRUCT(BlueprintType)
@@ -452,7 +451,6 @@ public:
 
 	UPROPERTY(BlueprintReadOnly, Category = "PCGEx|Inputs")
 	bool DoEdgeAttributeStep = false;
-	
 };
 
 /**

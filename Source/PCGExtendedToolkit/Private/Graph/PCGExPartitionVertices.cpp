@@ -88,7 +88,7 @@ namespace PCGExPartitionVertices
 
 			KeptIndices[i] = Node.PointIndex;
 			Remapping.Add(Node.PointIndex, i);
-			
+
 			Node.PointIndex = i;
 		}
 

@@ -636,7 +636,7 @@ namespace PCGExGraph
 			NodeDataFacade->Source->Tags->Add(TagStr_ClusterPair, PairId, PairIdStr);
 
 			const int32 NumNodes = NodeDataFacade->Source->GetOutInNum();
-			
+
 			Graph = MakeShared<FGraph>(NumNodes, NumEdgeReserve);
 			Graph->bBuildClusters = InDetails->bBuildAndCacheClusters;
 			Graph->bExpandClusters = InDetails->bExpandClusters;

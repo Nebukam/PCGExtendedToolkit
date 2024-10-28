@@ -92,7 +92,7 @@ bool FPCGExDrawEdgesElement::ExecuteInternal(
 			Context->CurrentLerp++;
 		}
 		*/
-		
+
 		Context->SetState(PCGEx::State_ReadyForNextPoints);
 	}
 

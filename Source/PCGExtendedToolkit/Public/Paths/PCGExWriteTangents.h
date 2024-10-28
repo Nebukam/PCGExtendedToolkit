@@ -100,7 +100,7 @@ namespace PCGExWriteTangents
 	const FName SourceOverridesTangentsStart = TEXT("Overrides : Start Tangents");
 	const FName SourceOverridesTangentsEnd = TEXT("Overrides : End Tangents");
 
-	
+
 	class FProcessor final : public PCGExPointsMT::TPointsProcessor<FPCGExWriteTangentsContext, UPCGExWriteTangentsSettings>
 	{
 		bool bClosedLoop = false;

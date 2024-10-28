@@ -347,9 +347,9 @@ MACRO(FInt64Property, int64) \
 MACRO(FFloatProperty, float) \
 MACRO(FDoubleProperty, double) \
 MACRO(FStrProperty, FString) \
-MACRO(FNameProperty, FName) 
-//MACRO(FSoftClassProperty, FSoftClassPath) 
-//MACRO(FSoftObjectProperty, FSoftObjectPath)
+MACRO(FNameProperty, FName)
+	//MACRO(FSoftClassProperty, FSoftClassPath) 
+	//MACRO(FSoftObjectProperty, FSoftObjectPath)
 
 #define PCGEX_FOREACH_SUPPORTEDFSTRUCT(MACRO)\
 MACRO(FStructProperty, FVector2D) \

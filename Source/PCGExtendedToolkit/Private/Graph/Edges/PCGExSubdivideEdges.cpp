@@ -66,7 +66,6 @@ bool FPCGExSubdivideEdgesElement::ExecuteInternal(FPCGContext* InContext) const
 
 namespace PCGExSubdivideEdges
 {
-	
 	FProcessor::~FProcessor()
 	{
 	}
