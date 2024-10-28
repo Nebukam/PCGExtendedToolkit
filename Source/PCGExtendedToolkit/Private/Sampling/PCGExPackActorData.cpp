@@ -48,21 +48,21 @@ PCGEX_FOREACH_PACKER(PCGEX_SET_ATT_IMPL)
 bool UPCGExCustomActorDataPacker::InitSoftObjectPath(const FName& InAttributeName, const FSoftObjectPath& InValue)
 {
 #if PCGEX_ENGINE_VERSION <= 503
-	TSharedPtr<PCGExData::TBuffer<FString>> Buffer = Buffers->GetBuffer<FSoftClassPath>(InAttributeName, InValue.ToString());
+	TSharedPtr<PCGExData::TBuffer<FString>> Buffer = Buffers->GetBuffer<FString>(InAttributeName, InValue.ToString());
 #else
 	TSharedPtr<PCGExData::TBuffer<FSoftObjectPath>> Buffer = Buffers->GetBuffer<FSoftObjectPath>(InAttributeName, InValue);
-	return Buffer ? true : false;
 #endif
+	return Buffer ? true : false;
 }
 
 bool UPCGExCustomActorDataPacker::InitSoftClassPath(const FName& InAttributeName, const FSoftClassPath& InValue)
 {
 #if PCGEX_ENGINE_VERSION <= 503
-	TSharedPtr<PCGExData::TBuffer<FString>> Buffer = Buffers->GetBuffer<FSoftClassPath>(InAttributeName, InValue.ToString());
+	TSharedPtr<PCGExData::TBuffer<FString>> Buffer = Buffers->GetBuffer<FString>(InAttributeName, InValue.ToString());
 #else
 	TSharedPtr<PCGExData::TBuffer<FSoftClassPath>> Buffer = Buffers->GetBuffer<FSoftClassPath>(InAttributeName, InValue);
-	return Buffer ? true : false;
 #endif
+	return Buffer ? true : false;
 }
 
 #define PCGEX_SET_ATT_IMPL(_NAME, _TYPE)\
