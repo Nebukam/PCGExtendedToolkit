@@ -43,6 +43,7 @@ public:
 #endif
 
 protected:
+	virtual TArray<FPCGPinProperties> InputPinProperties() const override;
 	virtual FPCGElementPtr CreateElement() const override;
 	//~End UPCGSettings
 
@@ -103,6 +104,8 @@ protected:
 
 namespace PCGExOrient
 {
+	const FName SourceOverridesOrient = TEXT("Overrides : Orient");
+
 	class FProcessor final : public PCGExPointsMT::TPointsProcessor<FPCGExOrientContext, UPCGExOrientSettings>
 	{
 		TSharedPtr<PCGExData::TBuffer<FTransform>> TransformWriter;

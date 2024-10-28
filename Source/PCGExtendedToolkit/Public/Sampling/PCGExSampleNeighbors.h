@@ -91,7 +91,7 @@ namespace PCGExSampleNeighbors
 		virtual void CompleteWork() override;
 		virtual void Write() override;
 	};
-	
+
 	class FProcessorBatch final : public PCGExClusterMT::TBatch<FProcessor>
 	{
 	public:

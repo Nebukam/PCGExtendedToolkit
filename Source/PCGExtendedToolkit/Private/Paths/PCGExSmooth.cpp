@@ -13,6 +13,13 @@
 
 PCGExData::EInit UPCGExSmoothSettings::GetMainOutputInitMode() const { return PCGExData::EInit::DuplicateInput; }
 
+TArray<FPCGPinProperties> UPCGExSmoothSettings::InputPinProperties() const
+{
+	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
+	PCGEX_PIN_OPERATION_OVERRIDES(PCGExSmooth::SourceOverridesSmoothing)
+	return PinProperties;
+}
+
 PCGEX_INITIALIZE_ELEMENT(Smooth)
 
 bool FPCGExSmoothElement::Boot(FPCGExContext* InContext) const
@@ -20,7 +27,7 @@ bool FPCGExSmoothElement::Boot(FPCGExContext* InContext) const
 	if (!FPCGExPathProcessorElement::Boot(InContext)) { return false; }
 
 	PCGEX_CONTEXT_AND_SETTINGS(Smooth)
-	PCGEX_OPERATION_BIND(SmoothingMethod, UPCGExSmoothingOperation)
+	PCGEX_OPERATION_BIND(SmoothingMethod, UPCGExSmoothingOperation, PCGExSmooth::SourceOverridesSmoothing)
 
 	return true;
 }

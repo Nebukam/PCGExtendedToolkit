@@ -134,8 +134,8 @@ namespace PCGExWriteEdgeProperties
 	{
 		DirectionSettings.SortEndpoints(Cluster.Get(), Edge);
 
-		const PCGExCluster::FNode& StartNode = *(Cluster->Nodes->GetData() + (*Cluster->NodeIndexLookup)[Edge.Start]);
-		const PCGExCluster::FNode& EndNode = *(Cluster->Nodes->GetData() + (*Cluster->NodeIndexLookup)[Edge.End]);
+		const PCGExCluster::FNode& StartNode = *Cluster->GetEdgeStart(Edge);
+		const PCGExCluster::FNode& EndNode = *Cluster->GetEdgeEnd(Edge);
 
 		double BlendWeightStart = StartWeight;
 		double BlendWeightEnd = EndWeight;

@@ -9,10 +9,9 @@ void UPCGExOperation::BindContext(FPCGExContext* InContext)
 	Context = InContext;
 }
 
-void UPCGExOperation::FindSettingsOverrides(FPCGExContext* InContext)
+void UPCGExOperation::FindSettingsOverrides(FPCGExContext* InContext, FName InPinLabel)
 {
-	TArray<FPCGTaggedData> OverrideParams = Context->InputData.GetParamsByPin(PCGPinConstants::DefaultParamsLabel);
-
+	TArray<FPCGTaggedData> OverrideParams = Context->InputData.GetParamsByPin(InPinLabel);
 	for (FPCGTaggedData& InTaggedData : OverrideParams)
 	{
 		const UPCGParamData* ParamData = Cast<UPCGParamData>(InTaggedData.Data);
@@ -51,6 +50,22 @@ void UPCGExOperation::BeginDestroy()
 
 void UPCGExOperation::ApplyOverrides()
 {
+	UClass* ObjectClass = GetClass();
+
+	for (TPair<FName, FPCGMetadataAttributeBase*> PossibleOverride : PossibleOverrides)
+	{
+		// Find the property by name
+		FProperty* Property = ObjectClass->FindPropertyByName(PossibleOverride.Key);
+		if (!Property) { continue; }
+
+		PCGMetadataAttribute::CallbackWithRightType(
+			static_cast<uint16>(PossibleOverride.Value->GetTypeId()), [&](auto DummyValue)
+			{
+				using T = decltype(DummyValue);
+				const FPCGMetadataAttribute<T>* TypedAttribute = static_cast<FPCGMetadataAttribute<T>*>(PossibleOverride.Value);
+				bool bSuccess = PCGEx::TrySetFPropertyValue<T>(this, Property, TypedAttribute->GetValue(0));
+			});
+	}
 }
 
 void UPCGExOperation::CopySettingsFrom(const UPCGExOperation* Other)

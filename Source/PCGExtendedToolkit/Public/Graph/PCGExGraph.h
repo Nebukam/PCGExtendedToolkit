@@ -463,6 +463,7 @@ namespace PCGExGraph
 		TMap<uint64, int32> UniqueEdges;
 
 		TArray<TSharedPtr<FSubGraph>> SubGraphs;
+		TSharedPtr<PCGEx::FIndexLookup> NodeIndexLookup;
 
 		bool bWriteEdgePosition = true;
 		double EdgePosition = 0.5;
@@ -618,6 +619,7 @@ namespace PCGExGraph
 		TSharedPtr<FGraph> Graph;
 
 		TSharedRef<PCGExData::FFacade> NodeDataFacade;
+		TSharedPtr<PCGEx::FIndexLookup> NodeIndexLookup;
 
 		TSharedPtr<PCGExData::FPointIOCollection> EdgesIO;
 		TSharedPtr<PCGExData::FPointIOCollection> SourceEdgesIO;

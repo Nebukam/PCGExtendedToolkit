@@ -90,7 +90,7 @@ namespace PCGExMergeVertices
 	{
 		// Create a heavy copy we'll update and forward
 		return MakeShared<PCGExCluster::FCluster>(
-			InClusterRef, VtxDataFacade->Source, EdgeDataFacade->Source,
+			InClusterRef, VtxDataFacade->Source, EdgeDataFacade->Source, NodeIndexLookup,
 			true, true, true);
 	}
 
@@ -122,13 +122,6 @@ namespace PCGExMergeVertices
 
 	void FProcessor::CompleteWork()
 	{
-		const TSharedPtr<TMap<int32, int32>> OffsetLookup = MakeShared<TMap<int32, int32>>();
-
-		OffsetLookup->Reserve(Cluster->NodeIndexLookup->Num());
-		for (const TPair<int32, int32>& Lookup : (*Cluster->NodeIndexLookup)) { OffsetLookup->Add(Lookup.Key + StartIndexOffset, Lookup.Value); }
-
-		Cluster->NodeIndexLookup = OffsetLookup;
-
 		StartParallelLoopForNodes();
 		StartParallelLoopForEdges();
 	}

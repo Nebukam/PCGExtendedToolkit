@@ -9,6 +9,15 @@
 #define LOCTEXT_NAMESPACE "PCGExWriteTangentsElement"
 #define PCGEX_NAMESPACE BuildCustomGraph
 
+TArray<FPCGPinProperties> UPCGExWriteTangentsSettings::InputPinProperties() const
+{
+	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
+	PCGEX_PIN_OPERATION_OVERRIDES(PCGExWriteTangents::SourceOverridesTangents)
+	PCGEX_PIN_OPERATION_OVERRIDES(PCGExWriteTangents::SourceOverridesTangentsStart)
+	PCGEX_PIN_OPERATION_OVERRIDES(PCGExWriteTangents::SourceOverridesTangentsEnd)
+	return PinProperties;
+}
+
 PCGEX_INITIALIZE_ELEMENT(WriteTangents)
 
 FName UPCGExWriteTangentsSettings::GetPointFilterLabel() const
@@ -34,9 +43,9 @@ bool FPCGExWriteTangentsElement::Boot(FPCGExContext* InContext) const
 	PCGEX_VALIDATE_NAME(Settings->ArriveName)
 	PCGEX_VALIDATE_NAME(Settings->LeaveName)
 
-	PCGEX_OPERATION_BIND(Tangents, UPCGExTangentsOperation)
-	if (Settings->StartTangents) { Context->StartTangents = Context->RegisterOperation<UPCGExTangentsOperation>(Settings->StartTangents); }
-	if (Settings->EndTangents) { Context->EndTangents = Context->RegisterOperation<UPCGExTangentsOperation>(Settings->EndTangents); }
+	PCGEX_OPERATION_BIND(Tangents, UPCGExTangentsOperation, PCGExWriteTangents::SourceOverridesTangents)
+	if (Settings->StartTangents) { Context->StartTangents = Context->RegisterOperation<UPCGExTangentsOperation>(Settings->StartTangents, PCGExWriteTangents::SourceOverridesTangentsStart); }
+	if (Settings->EndTangents) { Context->EndTangents = Context->RegisterOperation<UPCGExTangentsOperation>(Settings->EndTangents, PCGExWriteTangents::SourceOverridesTangentsEnd); }
 
 	return true;
 }

@@ -22,12 +22,4 @@ public:
 	virtual void CopySettingsFrom(const UPCGExOperation* Other) override;
 
 	virtual FTransform ComputeOrientation(const PCGExData::FPointRef& Point, const PCGExData::FPointRef& Previous, const PCGExData::FPointRef& Next, const double DirectionMultiplier) const override;
-
-protected:
-	virtual void ApplyOverrides() override
-	{
-		Super::ApplyOverrides();
-
-		PCGEX_OVERRIDE_OPERATION_PROPERTY(bInverseWeight, "Orient/InverseWeight")
-	}
 };

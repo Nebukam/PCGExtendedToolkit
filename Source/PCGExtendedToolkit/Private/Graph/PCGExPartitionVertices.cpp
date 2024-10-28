@@ -61,7 +61,7 @@ namespace PCGExPartitionVertices
 	TSharedPtr<PCGExCluster::FCluster> FProcessor::HandleCachedCluster(const TSharedRef<PCGExCluster::FCluster>& InClusterRef)
 	{
 		// Create a heavy copy we'll update and forward
-		return MakeShared<PCGExCluster::FCluster>(InClusterRef, VtxDataFacade->Source, EdgeDataFacade->Source, true, true, true);
+		return MakeShared<PCGExCluster::FCluster>(InClusterRef, VtxDataFacade->Source, EdgeDataFacade->Source, nullptr, true, true, true);
 	}
 
 	bool FProcessor::Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager)
@@ -69,8 +69,6 @@ namespace PCGExPartitionVertices
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExPartitionVertices::Process);
 
 		if (!FClusterProcessor::Process(InAsyncManager)) { return false; }
-
-		Cluster->NodeIndexLookup->Empty();
 
 		PointPartitionIO = Context->VtxPartitions->Emplace_GetRef(VtxDataFacade->Source, PCGExData::EInit::NewOutput);
 		TArray<FPCGPoint>& MutablePoints = PointPartitionIO->GetOut()->GetMutablePoints();
@@ -82,7 +80,6 @@ namespace PCGExPartitionVertices
 		Cluster->WillModifyVtxIO();
 
 		Cluster->VtxIO = PointPartitionIO;
-		Cluster->NodeIndexLookup->Reserve(NumNodes);
 		Cluster->NumRawVtx = NumNodes;
 
 		for (PCGExCluster::FNode& Node : (*Cluster->Nodes))
@@ -91,7 +88,6 @@ namespace PCGExPartitionVertices
 
 			KeptIndices[i] = Node.PointIndex;
 			Remapping.Add(Node.PointIndex, i);
-			Cluster->NodeIndexLookup->Add(i, i); // most useless lookup in history of lookups
 
 			Node.PointIndex = i;
 		}

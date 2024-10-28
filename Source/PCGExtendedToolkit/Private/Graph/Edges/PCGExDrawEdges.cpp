@@ -65,6 +65,7 @@ bool FPCGExDrawEdgesElement::ExecuteInternal(
 	{
 		const UWorld* World = Context->SourceComponent->GetWorld();
 
+		/*
 		while (Context->AdvanceEdges(true))
 		{
 			if (!Context->CurrentCluster)
@@ -90,6 +91,7 @@ bool FPCGExDrawEdgesElement::ExecuteInternal(
 
 			Context->CurrentLerp++;
 		}
+		*/
 
 		Context->SetState(PCGEx::State_ReadyForNextPoints);
 	}

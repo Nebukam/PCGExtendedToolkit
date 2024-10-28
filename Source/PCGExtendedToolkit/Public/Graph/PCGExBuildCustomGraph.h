@@ -5,9 +5,12 @@
 
 #include "CoreMinimal.h"
 #include "PCGExPointsProcessor.h"
+#include "Data/PCGExBufferHelper.h"
 
 #include "Graph/PCGExGraph.h"
 #include "PCGExBuildCustomGraph.generated.h"
+
+#define PCGEX_CUSTOM_GRAPH_EDGE_SUPPORT false
 
 UENUM(/*E--BlueprintType, meta=(DisplayName="[PCGEx] Custom Graph Actor Source Mode")--E*/)
 enum class EPCGExCustomGraphActorSourceMode : uint8
@@ -79,6 +82,15 @@ public:
 	void BuildGraph(UPARAM(ref)const FPCGContext& InContext, bool& OutSuccess);
 
 	/**
+	 * This function is called after BuildGraph, when the point metadata has been initialized, so you can initialized default attribute values here.
+	 * Non-initialized attribute will still work, but the default value under the hood will be the first one set, which is not deterministic due to the multhreaded nature of the processing.
+	 * @param InContext Context of the execution
+	 * @param OutSuccess Whether initialization was successful or not
+	 */
+	UFUNCTION(BlueprintNativeEvent, Category = "PCGEx|Execution")
+	void InitPointAttributes(UPARAM(ref)const FPCGContext& InContext, bool& OutSuccess);
+
+	/**
 	 * Update Node Point is called on each node point after BuildGraph has been, and edges added. This method is executed in a multi-threaded context.
 	 * This is where point transform & properties should be set.
 	 * @param InPoint PCG Point that represents the node
@@ -87,7 +99,291 @@ public:
 	 * @param OutPoint Muted PCG Point that represents the node.
 	 */
 	UFUNCTION(BlueprintNativeEvent, Category = "PCGEx|Execution")
-	void UpdateNodePoint(const FPCGPoint& InPoint, int64 InNodeIdx, int32 InPointIndex, FPCGPoint& OutPoint) const;
+	void UpdateNodePoint(const FPCGPoint& InPoint, int64 InNodeIdx, int32 InPointIndex, FPCGPoint& OutPoint);
+
+#pragma region Node Attributes
+
+	TSharedPtr<PCGExData::FBufferHelper> VtxBuffers;
+
+#pragma region Init
+
+	/**
+	 * Initialize a point' attribute default value.
+	 * Must be called during initialization.
+	 * @param InAttributeName
+	 * @param InValue
+	 */
+	UFUNCTION(BlueprintCallable, Category = "PCGEx|Setter")
+	bool InitNodeInt32(const FName& InAttributeName, const int32& InValue);
+
+	/**
+	* Initialize a point' attribute default value.
+	 * Must be called during initialization.
+	 * @param InAttributeName
+	 * @param InValue
+	 */
+	UFUNCTION(BlueprintCallable, Category = "PCGEx|Setter")
+	bool InitNodeInt64(const FName& InAttributeName, const int64& InValue);
+
+	/**
+	* Initialize a point' attribute default value.
+	 * Must be called during initialization.
+	 * @param InAttributeName
+	 * @param InValue
+	 */
+	UFUNCTION(BlueprintCallable, Category = "PCGEx|Setter")
+	bool InitNodeFloat(const FName& InAttributeName, const float& InValue);
+
+	/**
+	* Initialize a point' attribute default value.
+	 * Must be called during initialization.
+	 * @param InAttributeName
+	 * @param InValue
+	 */
+	UFUNCTION(BlueprintCallable, Category = "PCGEx|Setter")
+	bool InitNodeDouble(const FName& InAttributeName, const double& InValue);
+
+	/**
+	* Initialize a point' attribute default value.
+	 * Must be called during initialization.
+	 * @param InAttributeName
+	 * @param InValue
+	 */
+	UFUNCTION(BlueprintCallable, Category = "PCGEx|Setter")
+	bool InitNodeVector2(const FName& InAttributeName, const FVector2D& InValue);
+
+	/**
+	* Initialize a point' attribute default value.
+	 * Must be called during initialization.
+	 * @param InAttributeName
+	 * @param InValue
+	 */
+	UFUNCTION(BlueprintCallable, Category = "PCGEx|Setter")
+	bool InitNodeVector(const FName& InAttributeName, const FVector& InValue);
+
+	/**
+	* Initialize a point' attribute default value.
+	 * Must be called during initialization.
+	 * @param InAttributeName
+	 * @param InValue
+	 */
+	UFUNCTION(BlueprintCallable, Category = "PCGEx|Setter")
+	bool InitNodeVector4(const FName& InAttributeName, const FVector4& InValue);
+
+	/**
+	* Initialize a point' attribute default value.
+	 * Must be called during initialization.
+	 * @param InAttributeName
+	 * @param InValue
+	 */
+	UFUNCTION(BlueprintCallable, Category = "PCGEx|Setter")
+	bool InitNodeQuat(const FName& InAttributeName, const FQuat& InValue);
+
+	/**
+	* Initialize a point' attribute default value.
+	 * Must be called during initialization.
+	 * @param InAttributeName
+	 * @param InValue
+	 */
+	UFUNCTION(BlueprintCallable, Category = "PCGEx|Execution")
+	bool InitNodeTransform(const FName& InAttributeName, const FTransform& InValue);
+
+	/**
+	* Initialize a point' attribute default value.
+	 * Must be called during initialization.
+	 * @param InAttributeName
+	 * @param InValue
+	 */
+	UFUNCTION(BlueprintCallable, Category = "PCGEx|Setter")
+	bool InitNodeString(const FName& InAttributeName, const FString& InValue);
+
+	/**
+	* Initialize a point' attribute default value.
+	 * Must be called during initialization.
+	 * @param InAttributeName
+	 * @param InValue
+	 */
+	UFUNCTION(BlueprintCallable, Category = "PCGEx|Setter")
+	bool InitNodeBool(const FName& InAttributeName, const bool& InValue);
+
+	/**
+	* Initialize a point' attribute default value.
+	 * Must be called during initialization.
+	 * @param InAttributeName
+	 * @param InValue
+	 */
+	UFUNCTION(BlueprintCallable, Category = "PCGEx|Setter")
+	bool InitNodeRotator(const FName& InAttributeName, const FRotator& InValue);
+
+	/**
+	* Initialize a point' attribute default value.
+	 * Must be called during initialization.
+	 * @param InAttributeName
+	 * @param InValue
+	 */
+	UFUNCTION(BlueprintCallable, Category = "PCGEx|Setter")
+	bool InitNodeName(const FName& InAttributeName, const FName& InValue);
+
+	/**
+	* Initialize a point' attribute default value.
+	 * Must be called during initialization.
+	 * @param InAttributeName
+	 * @param InValue
+	 */
+	UFUNCTION(BlueprintCallable, Category = "PCGEx|Setter")
+	bool InitNodeSoftObjectPath(const FName& InAttributeName, const FSoftObjectPath& InValue);
+
+	/**
+	* Initialize a point' attribute default value.
+	 * Must be called during initialization.
+	 * @param InAttributeName
+	 * @param InValue
+	 */
+	UFUNCTION(BlueprintCallable, Category = "PCGEx|Setter")
+	bool InitNodeSoftClassPath(const FName& InAttributeName, const FSoftClassPath& InValue);
+
+#pragma endregion
+
+#pragma region Setters
+
+	/**
+	 * Set a point' attribute value at a given index.
+	 * @param InAttributeName
+	 * @param InNodeIdx The node ID to set the value to.
+	 * @param InValue
+	 */
+	UFUNCTION(BlueprintCallable, Category = "PCGEx|Setter")
+	bool SetNodeInt32(const FName& InAttributeName, const int64 InNodeIdx, const int32& InValue);
+
+	/**
+	 * Set a point' attribute value at a given index.
+	 * @param InAttributeName
+	 * @param InNodeIdx The node ID to set the value to.
+	 * @param InValue
+	 */
+	UFUNCTION(BlueprintCallable, Category = "PCGEx|Setter")
+	bool SetNodeInt64(const FName& InAttributeName, const int64 InNodeIdx, const int64& InValue);
+
+	/**
+	 * Set a point' attribute value at a given index.
+	 * @param InAttributeName
+	 * @param InNodeIdx The node ID to set the value to.
+	 * @param InValue
+	 */
+	UFUNCTION(BlueprintCallable, Category = "PCGEx|Setter")
+	bool SetNodeFloat(const FName& InAttributeName, const int64 InNodeIdx, const float& InValue);
+
+	/**
+	 * Set a point' attribute value at a given index.
+	 * @param InAttributeName
+	 * @param InNodeIdx The node ID to set the value to.
+	 * @param InValue
+	 */
+	UFUNCTION(BlueprintCallable, Category = "PCGEx|Setter")
+	bool SetNodeDouble(const FName& InAttributeName, const int64 InNodeIdx, const double& InValue);
+
+	/**
+	 * Set a point' attribute value at a given index.
+	 * @param InAttributeName
+	 * @param InNodeIdx The node ID to set the value to.
+	 * @param InValue
+	 */
+	UFUNCTION(BlueprintCallable, Category = "PCGEx|Setter")
+	bool SetNodeVector2(const FName& InAttributeName, const int64 InNodeIdx, const FVector2D& InValue);
+
+	/**
+	 * Set a point' attribute value at a given index.
+	 * @param InAttributeName
+	 * @param InNodeIdx The node ID to set the value to.
+	 * @param InValue
+	 */
+	UFUNCTION(BlueprintCallable, Category = "PCGEx|Setter")
+	bool SetNodeVector(const FName& InAttributeName, const int64 InNodeIdx, const FVector& InValue);
+
+	/**
+	 * Set a point' attribute value at a given index.
+	 * @param InAttributeName
+	 * @param InNodeIdx The node ID to set the value to.
+	 * @param InValue
+	 */
+	UFUNCTION(BlueprintCallable, Category = "PCGEx|Setter")
+	bool SetNodeVector4(const FName& InAttributeName, const int64 InNodeIdx, const FVector4& InValue);
+
+	/**
+	 * Set a point' attribute value at a given index.
+	 * @param InAttributeName
+	 * @param InNodeIdx The node ID to set the value to.
+	 * @param InValue
+	 */
+	UFUNCTION(BlueprintCallable, Category = "PCGEx|Setter")
+	bool SetNodeQuat(const FName& InAttributeName, const int64 InNodeIdx, const FQuat& InValue);
+
+	/**
+	 * Set a point' attribute value at a given index.
+	 * @param InAttributeName
+	 * @param InNodeIdx The node ID to set the value to.
+	 * @param InValue
+	 */
+	UFUNCTION(BlueprintCallable, Category = "PCGEx|Execution")
+	bool SetNodeTransform(const FName& InAttributeName, const int64 InNodeIdx, const FTransform& InValue);
+
+	/**
+	 * Set a point' attribute value at a given index.
+	 * @param InAttributeName
+	 * @param InNodeIdx The node ID to set the value to.
+	 * @param InValue
+	 */
+	UFUNCTION(BlueprintCallable, Category = "PCGEx|Setter")
+	bool SetNodeString(const FName& InAttributeName, const int64 InNodeIdx, const FString& InValue);
+
+	/**
+	 * Set a point' attribute value at a given index.
+	 * @param InAttributeName
+	 * @param InNodeIdx The node ID to set the value to.
+	 * @param InValue
+	 */
+	UFUNCTION(BlueprintCallable, Category = "PCGEx|Setter")
+	bool SetNodeBool(const FName& InAttributeName, const int64 InNodeIdx, const bool& InValue);
+
+	/**
+	 * Set a point' attribute value at a given index.
+	 * @param InAttributeName
+	 * @param InNodeIdx The node ID to set the value to.
+	 * @param InValue
+	 */
+	UFUNCTION(BlueprintCallable, Category = "PCGEx|Setter")
+	bool SetNodeRotator(const FName& InAttributeName, const int64 InNodeIdx, const FRotator& InValue);
+
+	/**
+	 * Set a point' attribute value at a given index.
+	 * @param InAttributeName
+	 * @param InNodeIdx The node ID to set the value to.
+	 * @param InValue
+	 */
+	UFUNCTION(BlueprintCallable, Category = "PCGEx|Setter")
+	bool SetNodeName(const FName& InAttributeName, const int64 InNodeIdx, const FName& InValue);
+
+	/**
+	 * Set a point' attribute value at a given index.
+	 * @param InAttributeName
+	 * @param InNodeIdx The node ID to set the value to.
+	 * @param InValue
+	 */
+	UFUNCTION(BlueprintCallable, Category = "PCGEx|Setter")
+	bool SetNodeSoftObjectPath(const FName& InAttributeName, const int64 InNodeIdx, const FSoftObjectPath& InValue);
+
+	/**
+	 * Set a point' attribute value at a given index.
+	 * @param InAttributeName
+	 * @param InNodeIdx The node ID to set the value to.
+	 * @param InValue
+	 */
+	UFUNCTION(BlueprintCallable, Category = "PCGEx|Setter")
+	bool SetNodeSoftClassPath(const FName& InAttributeName, const int64 InNodeIdx, const FSoftClassPath& InValue);
+
+#pragma endregion
+
+#pragma endregion
 };
 
 USTRUCT(BlueprintType)
@@ -152,6 +448,9 @@ public:
 
 	UPROPERTY(BlueprintReadOnly, Category = "PCGEx|Outputs")
 	TArray<TObjectPtr<UPCGExCustomGraphSettings>> GraphSettings;
+
+	UPROPERTY(BlueprintReadOnly, Category = "PCGEx|Inputs")
+	bool DoEdgeAttributeStep = false;
 };
 
 /**
@@ -170,6 +469,7 @@ public:
 #endif
 
 protected:
+	virtual TArray<FPCGPinProperties> InputPinProperties() const override;
 	virtual TArray<FPCGPinProperties> OutputPinProperties() const override;
 	virtual FPCGElementPtr CreateElement() const override;
 	//~End UPCGSettings
@@ -223,6 +523,8 @@ protected:
 
 namespace PCGExBuildCustomGraph
 {
+	const FName SourceOverridesBuilder = TEXT("Overrides : Graph Builder");
+
 	class /*PCGEXTENDEDTOOLKIT_API*/ FBuildGraph final : public PCGExMT::FPCGExTask
 	{
 	public:

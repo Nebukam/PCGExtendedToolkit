@@ -29,6 +29,7 @@ public:
 #endif
 
 protected:
+	virtual TArray<FPCGPinProperties> InputPinProperties() const override;
 	virtual FPCGElementPtr CreateElement() const override;
 	//~End UPCGSettings
 
@@ -95,6 +96,11 @@ protected:
 
 namespace PCGExWriteTangents
 {
+	const FName SourceOverridesTangents = TEXT("Overrides : Tangents");
+	const FName SourceOverridesTangentsStart = TEXT("Overrides : Start Tangents");
+	const FName SourceOverridesTangentsEnd = TEXT("Overrides : End Tangents");
+
+
 	class FProcessor final : public PCGExPointsMT::TPointsProcessor<FPCGExWriteTangentsContext, UPCGExWriteTangentsSettings>
 	{
 		bool bClosedLoop = false;

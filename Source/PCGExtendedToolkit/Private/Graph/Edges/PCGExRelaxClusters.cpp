@@ -13,6 +13,13 @@ PCGExData::EInit UPCGExRelaxClustersSettings::GetMainOutputInitMode() const { re
 
 PCGExData::EInit UPCGExRelaxClustersSettings::GetEdgeOutputInitMode() const { return PCGExData::EInit::DuplicateInput; }
 
+TArray<FPCGPinProperties> UPCGExRelaxClustersSettings::InputPinProperties() const
+{
+	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
+	PCGEX_PIN_OPERATION_OVERRIDES(PCGExRelaxClusters::SourceOverridesRelaxing)
+	return PinProperties;
+}
+
 PCGEX_INITIALIZE_ELEMENT(RelaxClusters)
 
 bool FPCGExRelaxClustersElement::Boot(FPCGExContext* InContext) const
@@ -21,7 +28,7 @@ bool FPCGExRelaxClustersElement::Boot(FPCGExContext* InContext) const
 
 	PCGEX_CONTEXT_AND_SETTINGS(RelaxClusters)
 
-	PCGEX_OPERATION_BIND(Relaxing, UPCGExRelaxClusterOperation)
+	PCGEX_OPERATION_BIND(Relaxing, UPCGExRelaxClusterOperation, PCGExRelaxClusters::SourceOverridesRelaxing)
 
 	return true;
 }
@@ -61,7 +68,7 @@ namespace PCGExRelaxClusters
 	TSharedPtr<PCGExCluster::FCluster> FProcessor::HandleCachedCluster(const TSharedRef<PCGExCluster::FCluster>& InClusterRef)
 	{
 		return MakeShared<PCGExCluster::FCluster>(
-			InClusterRef, VtxDataFacade->Source, VtxDataFacade->Source,
+			InClusterRef, VtxDataFacade->Source, VtxDataFacade->Source, NodeIndexLookup,
 			true, false, false);
 	}
 
