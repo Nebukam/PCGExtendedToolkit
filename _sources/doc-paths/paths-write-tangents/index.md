@@ -9,8 +9,8 @@ subtitle: TBD
 color: white
 summary: The **Write Tangents** node computes and assign custom tangents to path points, with options for tangent math modules, scaling, and handling closed loops.
 splash: icons/icon_path-tangents.svg
-preview_img: previews/index-subdivide.png
 has_children: true
+use_child_thumbnails: true
 tagged: 
     - node
     - paths

@@ -18,7 +18,7 @@ While more advanced concepts are expanded on their own page, here are a few basi
 ---
 ## Points
 Points are smallest piece of data you work with within PCG. They have a list of **Static properties** such as `$Density`, `$Color`, `$Position`, `$Rotation` etc. While you can change their values, you can't remove any of them from a point. They're its DNA.  
-On top of static properties, point can have **Dynamic attributes**, which are custom, user-defined properties which type, names and value you control.  
+On top of static properties, point can have **Dynamic attributes**,  are custom, user-defined properties  type, names and value you control.  
 
 > PCGEx leverages attributes a lot, and doesn't deal too much in properties except for blending.
 {: .comment }  
@@ -47,5 +47,22 @@ PCGEx uses the terms **Paths**, **Vtx** and **Edges** for some inputs & ouputs. 
 Clusters is the word PCGEx uses to mean *Connected pair/groups of points*. Pairs/groups are identified & retrieved through tags at the moment; *that will change in the future for a more robust approach.*  While they are still *just points*, make sure to check out the {% include lk id='Clusters' %} specific documentation!
 > Cluster-related nodes uses tags to store internal data. These are prefixed `PCGEx/`. Try not do modify these unless you know exactly what you're doing.
 {: .warning }
+
+---
+## Module Overrides
+A few nodes require you to pick "modules" for specific behaviors, such as blending, goal picking, pathfinding search algorithm, etc.  
+You'll notice these modules don't expose per-property override pins -- this is a limitation of the way native PCG processes & generates input pin. In order to circumvent this limitation, said nodes have an override pin prefixed `Overrides : xxx` *Where xxx is the name of the module*. This pin accepts attribute set as inputs, and will forward their values to the module.  
+
+There is a couple limitations tho:
+- The value is read from index `0` of the attribute set, so any subsequent row will be ignored.
+- The name of the attribute must match perfectly the name of the property you're targeting. To get that name, right-click on the variable in the editor and select `Copy Internal Name`. *Sometime the displayed name is not the internal one*.
+- Only first-level properties are supported, as well as simple value types *(e.g, the basic types supported by PCG for attributes)*.
+- `FSoftObjectPath` is not supported as a value and will instead be resolved.
+- `FSoftObjectClass` is not supported at all.
+
+> If the target property is a UObject reference, the override process will try to read the override value as a path, load & resolve it.  
+> You can use this to your advantage to work with more complex types such as `DataAsset`, or actor references.
+{: .infos-hl }
+
 
 

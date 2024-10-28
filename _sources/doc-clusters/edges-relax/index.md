@@ -13,7 +13,7 @@ preview_img: previews/index-edges-relax.png
 has_children: true
 tagged: 
     - node
-    - edges
+    - clusters
 see_also: 
     - Working with Clusters
     - Relaxing

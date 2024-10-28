@@ -14,7 +14,7 @@ has_children: true
 #use_child_thumbnails: true
 tagged:
     - node
-    - edges
+    - clusters
 see_also: 
     - Working with Clusters
     - Refining

@@ -3,7 +3,7 @@ layout: page
 family: MiscAdd
 #grand_parent: All Nodes
 parent: Misc
-title: Find point on Bounds
+title: Find point on Bounds (Any)
 name_in_editor: "Find point on Bounds"
 subtitle: Find a point closest to a bound-relative position.
 summary: The **Find point on Bounds** node ...

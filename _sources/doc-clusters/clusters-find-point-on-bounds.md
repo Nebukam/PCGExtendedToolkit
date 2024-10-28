@@ -11,7 +11,7 @@ color: white
 splash: icons/icon_edges-bridge.svg
 tagged: 
     - node
-    - edges
+    - clusters
 nav_order: 100
 see_also: 
     - Working with Clusters
@@ -39,3 +39,7 @@ WIP
 <br>
 
 WIP / TBD
+
+---
+## Cluster Output Settings
+*See [Working with Clusters - Cluster Output Settings](/PCGExtendedToolkit/doc-general/working-with-clusters.html#cluster-output-settings).*

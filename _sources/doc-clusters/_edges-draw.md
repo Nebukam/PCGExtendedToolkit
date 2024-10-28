@@ -10,7 +10,7 @@ color: blue
 splash: icons/icon_edges-draw.svg
 tagged: 
     - node
-    - edges
+    - clusters
 see_also:
     - Working with Clusters
 nav_order: 1000

@@ -10,7 +10,7 @@ color: white
 splash: icons/icon_custom-graphs-find-clusters.svg
 tagged: 
     - node
-    - edges
+    - clusters
 nav_order: 4
 inputs:
     -   name : Vtx

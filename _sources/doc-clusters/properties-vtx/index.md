@@ -15,7 +15,7 @@ see_also:
     - Working with Clusters
 tagged: 
     - node
-    - edges
+    - clusters
 see_also: 
     - Interpolate
 nav_order: 6

@@ -11,7 +11,7 @@ color: blue
 splash: icons/icon_custom-graphs-promote-edges.svg
 tagged: 
     - node
-    - edges
+    - clusters
 see_also: 
     - Working with Clusters
     - Interpolate

@@ -11,7 +11,7 @@ color: white
 splash: icons/icon_edges-prune-by-length.svg
 tagged:
     - node
-    - edges
+    - clusters
 see_also:
     - Working with Clusters
 nav_order: 1000
