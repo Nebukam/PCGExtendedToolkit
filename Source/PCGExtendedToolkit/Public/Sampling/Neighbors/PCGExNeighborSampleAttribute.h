@@ -98,16 +98,19 @@ public:
 
 	virtual void RegisterBuffersDependencies(FPCGExContext* InContext, const TSharedRef<PCGExData::FFacade>& InDataFacade, PCGExData::FFacadePreloader& FacadePreloader) const override
 	{
-		TSharedPtr<PCGEx::FAttributesInfos> Infos = PCGEx::FAttributesInfos::Get(InDataFacade->GetIn()->Metadata);
-		for (FName AttrName : Config.SourceAttributes)
+		if(SamplingConfig.NeighborSource == EPCGExClusterComponentSource::Vtx)
 		{
-			const PCGEx::FAttributeIdentity* Identity = Infos->Find(AttrName);
-			if (!Identity)
+			TSharedPtr<PCGEx::FAttributesInfos> Infos = PCGEx::FAttributesInfos::Get(InDataFacade->GetIn()->Metadata);
+			for (FName AttrName : Config.SourceAttributes)
 			{
-				PCGE_LOG_C(Error, GraphAndLog, InContext, FText::Format(FTEXT("Missing attribute: \"{0}\"."), FText::FromName(AttrName)));
-				return;
+				const PCGEx::FAttributeIdentity* Identity = Infos->Find(AttrName);
+				if (!Identity)
+				{
+					PCGE_LOG_C(Error, GraphAndLog, InContext, FText::Format(FTEXT("Missing attribute: \"{0}\"."), FText::FromName(AttrName)));
+					return;
+				}
+				FacadePreloader.Register(InContext, *Identity);
 			}
-			FacadePreloader.Register(InContext, *Identity);
 		}
 	}
 };
