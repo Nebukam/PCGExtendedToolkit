@@ -35,7 +35,7 @@ namespace PCGExGraph
 
 	TSharedPtr<PCGExCluster::FCluster> FSubGraph::CreateCluster(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager) const
 	{
-		TSharedPtr<PCGExCluster::FCluster> NewCluster = MakeShared<PCGExCluster::FCluster>(VtxDataFacade->Source, EdgesDataFacade->Source);
+		TSharedPtr<PCGExCluster::FCluster> NewCluster = MakeShared<PCGExCluster::FCluster>(VtxDataFacade->Source, EdgesDataFacade->Source, ParentGraph->NodeIndexLookup);
 		NewCluster->BuildFrom(this);
 
 		// Look into the cost of this
@@ -275,8 +275,11 @@ namespace PCGExGraph
 		AsyncManager = InAsyncManager;
 		MetadataDetailsPtr = MetadataDetails;
 		bWriteVtxDataFacadeWithCompile = bWriteNodeFacade;
-
+		
 		TRACE_CPUPROFILER_EVENT_SCOPE(FGraphBuilder::Compile);
+
+		NodeIndexLookup = MakeShared<PCGEx::FIndexLookup>(Graph->Nodes.Num()); // Likely larger than exported size; required for compilation.
+		Graph->NodeIndexLookup = NodeIndexLookup;
 
 		Graph->BuildSubGraphs(*OutputDetails);
 
@@ -342,6 +345,8 @@ namespace PCGExGraph
 					ValidNodes.Add(Node.NodeIndex);
 				}
 			}
+
+			ValidNodes.Shrink();
 		}
 
 		const TSharedPtr<PCGExData::TBuffer<int64>> VtxEndpointWriter = NodeDataFacade->GetWritable<int64>(Tag_VtxEndpoint, 0, false, true);

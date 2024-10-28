@@ -3,6 +3,8 @@
 
 #pragma once
 
+#include <vector>
+
 
 namespace PCGEx
 {
@@ -146,4 +148,22 @@ namespace PCGEx
 		if (Y > Z) { Swap(Y, Z); }
 		return GetTypeHash(FInt32Vector3(X, Y, Z));
 	}
+
+	class FIndexLookup : public TSharedFromThis<FIndexLookup>
+	{
+	protected:
+		TArray<int32> Data;
+
+	public:
+		explicit FIndexLookup(const int32 Size)
+		{
+			Data.Init(-1, Size);
+		}
+
+		FORCEINLINE int32& operator[](const int32 At) { return Data[At]; }
+		FORCEINLINE int32 operator[](const int32 At) const { return Data[At]; }
+		FORCEINLINE void Set(const int32 At, const int32 Value) { Data[At] = Value; }
+		FORCEINLINE int32 Get(const int32 At) { return Data[At]; }
+		FORCEINLINE int32& GetMutable(const int32 At) { return Data[At]; }
+	};
 }

@@ -67,7 +67,6 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExEdgesProcessorContext : FPCGExPointsProc
 	const TArray<FPCGExSortRuleConfig>* GetEdgeSortingRules() const;
 
 	virtual bool AdvancePointsIO(const bool bCleanupKeys = true) override;
-	virtual bool AdvanceEdges(const bool bBuildCluster, const bool bCleanupKeys = true); // Advance edges within current points
 
 	TSharedPtr<PCGExCluster::FCluster> CurrentCluster;
 

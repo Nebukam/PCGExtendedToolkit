@@ -52,6 +52,7 @@ namespace PCGExClusterMT
 	protected:
 		TSharedPtr<PCGExMT::FTaskManager> AsyncManager;
 		FPCGExContext* ExecutionContext = nullptr;
+	
 
 		FPCGExEdgeDirectionSettings DirectionSettings;
 
@@ -69,7 +70,7 @@ namespace PCGExClusterMT
 		virtual TSharedPtr<PCGExCluster::FCluster> HandleCachedCluster(const TSharedRef<PCGExCluster::FCluster>& InClusterRef)
 		{
 			return MakeShared<PCGExCluster::FCluster>(
-				InClusterRef, VtxDataFacade->Source, EdgeDataFacade->Source,
+				InClusterRef, VtxDataFacade->Source, EdgeDataFacade->Source, NodeIndexLookup,
 				false, false, false);
 		}
 
@@ -82,12 +83,14 @@ namespace PCGExClusterMT
 		}
 
 	public:
-		TWeakPtr<FClusterProcessorBatchBase> ParentBatch;
-		TSharedPtr<PCGExMT::FTaskManager> GetAsyncManager() { return AsyncManager; }
-
 		TSharedRef<PCGExData::FFacade> VtxDataFacade;
 		TSharedRef<PCGExData::FFacade> EdgeDataFacade;
-
+		
+		TSharedPtr<PCGEx::FIndexLookup> NodeIndexLookup;
+		
+		TWeakPtr<FClusterProcessorBatchBase> ParentBatch;
+		TSharedPtr<PCGExMT::FTaskManager> GetAsyncManager() { return AsyncManager; }
+		
 		bool bAllowEdgesDataFacadeScopedGet = false;
 
 		bool bIsProcessorValid = false;
@@ -142,7 +145,7 @@ namespace PCGExClusterMT
 
 			if (!Cluster)
 			{
-				Cluster = MakeShared<PCGExCluster::FCluster>(VtxDataFacade->Source, EdgeDataFacade->Source);
+				Cluster = MakeShared<PCGExCluster::FCluster>(VtxDataFacade->Source, EdgeDataFacade->Source, NodeIndexLookup);
 				Cluster->bIsOneToOne = bIsOneToOne;
 
 				if (!Cluster->BuildFrom(*EndpointsLookup, ExpectedAdjacency))
@@ -355,6 +358,7 @@ namespace PCGExClusterMT
 	{
 	protected:
 		mutable FRWLock BatchLock;
+		TSharedPtr<PCGEx::FIndexLookup> NodeIndexLookup;
 
 		TSharedPtr<PCGExMT::FTaskManager> AsyncManager;
 		TSharedPtr<PCGExData::FFacadePreloader> VtxFacadePreloader;
@@ -419,6 +423,7 @@ namespace PCGExClusterMT
 			VtxDataFacade->bSupportsScopedGet = bAllowVtxDataFacadeScopedGet && ExecutionContext->bScopedAttributeGet;
 
 			const int32 NumVtx = VtxDataFacade->GetNum();
+			NodeIndexLookup = MakeShared<PCGEx::FIndexLookup>(NumVtx);
 
 			if (!bScopedIndexLookupBuild || NumVtx < GetDefault<UPCGExGlobalSettings>()->SmallClusterSize)
 			{
@@ -595,6 +600,7 @@ namespace PCGExClusterMT
 
 				NewProcessor->SetExecutionContext(ExecutionContext);
 				NewProcessor->ParentBatch = SelfPtr;
+				NewProcessor->NodeIndexLookup = NodeIndexLookup;
 				NewProcessor->EndpointsLookup = &EndpointsLookup;
 				NewProcessor->ExpectedAdjacency = &ExpectedAdjacency;
 				NewProcessor->BatchIndex = Processors.Num();

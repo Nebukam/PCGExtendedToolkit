@@ -8,6 +8,7 @@
 
 #include "PCGExPointsProcessor.h"
 #include "PCGExSampling.h"
+#include "Data/PCGExBufferHelper.h"
 #include "Data/Blending/PCGExDataBlending.h"
 
 #include "PCGExPackActorData.generated.h"
@@ -53,59 +54,7 @@ public:
 	UPROPERTY(BlueprintReadOnly, Category = "PCGEx|Inputs")
 	TArray<TObjectPtr<AActor>> InputActors;
 
-	TSharedPtr<PCGExData::FFacade> PointDataFacade;
-
-protected:
-	TMap<FName, TSharedPtr<PCGExData::FBufferBase>> BufferMap;
-	mutable FRWLock BufferLock;
-
-	template <typename T>
-	TSharedPtr<PCGExData::TBuffer<T>> GetBuffer(const FName InName)
-	{
-		{
-			FReadScopeLock ReadScopeLock(BufferLock);
-			if (TSharedPtr<PCGExData::FBufferBase>* BufferPtr = BufferMap.Find(InName))
-			{
-				if(!(*BufferPtr)->IsA<T>())
-				{
-					UE_LOG(LogTemp, Error, TEXT("Attempted to create an attribute that already exist, with a different type (%s)"), *InName.ToString())
-					return nullptr;
-				}
-				
-				return StaticCastSharedPtr<PCGExData::TBuffer<T>>(*BufferPtr);
-			}
-		}
-		{
-			FWriteScopeLock WriteScopeLock(BufferLock);
-			TSharedPtr<PCGExData::TBuffer<T>> NewBuffer = PointDataFacade->GetWritable<T>(InName, true); 
-			BufferMap.Add(InName, StaticCastSharedPtr<PCGExData::FBufferBase>(NewBuffer));
-			return NewBuffer;
-		}
-	}
-
-	template <typename T>
-	TSharedPtr<PCGExData::TBuffer<T>> GetBuffer(const FName InName, const T& DefaultValue)
-	{
-		{
-			FReadScopeLock ReadScopeLock(BufferLock);
-			if (TSharedPtr<PCGExData::FBufferBase>* BufferPtr = BufferMap.Find(InName))
-			{
-				if(!(*BufferPtr)->IsA<T>())
-				{
-					UE_LOG(LogTemp, Error, TEXT("Attempted to create an attribute that already exist, with a different type (%s)"), *InName.ToString())
-					return nullptr;
-				}
-				
-				return StaticCastSharedPtr<PCGExData::TBuffer<T>>(*BufferPtr);
-			}
-		}
-		{
-			FWriteScopeLock WriteScopeLock(BufferLock);
-			TSharedPtr<PCGExData::TBuffer<T>> NewBuffer = PointDataFacade->GetWritable<T>(InName, DefaultValue, true, true); 
-			BufferMap.Add(InName, StaticCastSharedPtr<PCGExData::FBufferBase>(NewBuffer));
-			return NewBuffer;
-		}
-	}
+	TSharedPtr<PCGExData::FBufferHelper> Buffers;
 
 public:
 #pragma region Init
@@ -403,6 +352,7 @@ public:
 #endif
 
 protected:
+	virtual TArray<FPCGPinProperties> InputPinProperties() const override;
 	virtual TArray<FPCGPinProperties> OutputPinProperties() const override;
 	virtual FPCGElementPtr CreateElement() const override;
 	//~End UPCGSettings
@@ -455,6 +405,8 @@ protected:
 
 namespace PCGExPackActorDatas
 {
+	const FName SourceOverridesPacker = TEXT("Overrides : Packer");
+
 	class FProcessor final : public PCGExPointsMT::TPointsProcessor<FPCGExPackActorDataContext, UPCGExPackActorDataSettings>
 	{
 		TArray<FPCGMetadataAttributeBase*> Attributes;

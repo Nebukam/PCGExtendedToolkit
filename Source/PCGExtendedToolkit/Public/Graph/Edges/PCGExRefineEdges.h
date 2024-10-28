@@ -102,6 +102,9 @@ protected:
 
 namespace PCGExRefineEdges
 {
+
+	const FName SourceOverridesRefinement = TEXT("Overrides : Refinement");
+	
 	class FProcessor final : public PCGExClusterMT::TProcessor<FPCGExRefineEdgesContext, UPCGExRefineEdgesSettings>
 	{
 		friend class FSanitizeRangeTask;

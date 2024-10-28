@@ -9,6 +9,13 @@
 #define LOCTEXT_NAMESPACE "PCGExOrientElement"
 #define PCGEX_NAMESPACE Orient
 
+TArray<FPCGPinProperties> UPCGExOrientSettings::InputPinProperties() const
+{
+	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
+	PCGEX_PIN_OPERATION_OVERRIDES(PCGExOrient::SourceOverridesOrient)
+	return PinProperties;
+}
+
 PCGEX_INITIALIZE_ELEMENT(Orient)
 
 bool FPCGExOrientElement::Boot(FPCGExContext* InContext) const
@@ -33,7 +40,7 @@ bool FPCGExOrientElement::Boot(FPCGExContext* InContext) const
 		PCGEX_VALIDATE_NAME(Settings->DotAttribute);
 	}
 
-	PCGEX_OPERATION_BIND(Orientation, UPCGExOrientOperation)
+	PCGEX_OPERATION_BIND(Orientation, UPCGExOrientOperation, PCGExOrient::SourceOverridesOrient)
 	Context->Orientation->OrientAxis = Settings->OrientAxis;
 	Context->Orientation->UpAxis = Settings->UpAxis;
 

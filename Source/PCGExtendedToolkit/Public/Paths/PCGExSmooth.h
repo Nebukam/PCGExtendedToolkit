@@ -27,6 +27,7 @@ public:
 #endif
 
 protected:
+	virtual TArray<FPCGPinProperties> InputPinProperties() const override;
 	virtual FPCGElementPtr CreateElement() const override;
 	//~End UPCGSettings
 
@@ -100,6 +101,8 @@ protected:
 
 namespace PCGExSmooth
 {
+	const FName SourceOverridesSmoothing = TEXT("Overrides : Smoothing");
+	
 	class FProcessor final : public PCGExPointsMT::TPointsProcessor<FPCGExSmoothContext, UPCGExSmoothSettings>
 	{
 		int32 NumPoints = 0;

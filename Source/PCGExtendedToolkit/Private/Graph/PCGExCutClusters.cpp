@@ -148,7 +148,7 @@ namespace PCGExCutEdges
 	{
 		// Create a light working copy with edges only, will be deleted.
 		return MakeShared<PCGExCluster::FCluster>(
-			InClusterRef, VtxDataFacade->Source, EdgeDataFacade->Source,
+			InClusterRef, VtxDataFacade->Source, EdgeDataFacade->Source, NodeIndexLookup,
 			Settings->Mode != EPCGExCutEdgesMode::Edges,
 			Settings->Mode != EPCGExCutEdgesMode::Nodes,
 			false);
@@ -254,22 +254,22 @@ namespace PCGExCutEdges
 
 					if (FVector::DistSquared(A, B) >= Context->IntersectionDetails.ToleranceSquared) { return true; }
 
-					PCGExCluster::FNode& StartNode = *(Cluster->Nodes->GetData() + (*Cluster->NodeIndexLookup)[Edge.Start]);
-					PCGExCluster::FNode& EndNode = *(Cluster->Nodes->GetData() + (*Cluster->NodeIndexLookup)[Edge.End]);
+					PCGExCluster::FNode* StartNode = Cluster->GetEdgeStart(Edge);
+					PCGExCluster::FNode* EndNode = Cluster->GetEdgeEnd(Edge);
 
 					if (Settings->bInvert)
 					{
 						FPlatformAtomics::InterlockedExchange(&Edge.bValid, 1);
-						FPlatformAtomics::InterlockedExchange(&StartNode.bValid, 1);
-						FPlatformAtomics::InterlockedExchange(&EndNode.bValid, 1);
+						FPlatformAtomics::InterlockedExchange(&StartNode->bValid, 1);
+						FPlatformAtomics::InterlockedExchange(&EndNode->bValid, 1);
 					}
 					else
 					{
 						FPlatformAtomics::InterlockedExchange(&Edge.bValid, 0);
 						if (Settings->bAffectedEdgesAffectEndpoints)
 						{
-							FPlatformAtomics::InterlockedExchange(&StartNode.bValid, 0);
-							FPlatformAtomics::InterlockedExchange(&EndNode.bValid, 0);
+							FPlatformAtomics::InterlockedExchange(&StartNode->bValid, 0);
+							FPlatformAtomics::InterlockedExchange(&EndNode->bValid, 0);
 						}
 					}
 
@@ -376,8 +376,8 @@ namespace PCGExCutEdges
 
 		if (Edge.bValid) { return; }
 
-		const PCGExCluster::FNode* StartNode = (Cluster->Nodes->GetData() + (*Cluster->NodeIndexLookup)[Edge.Start]);
-		const PCGExCluster::FNode* EndNode = (Cluster->Nodes->GetData() + (*Cluster->NodeIndexLookup)[Edge.End]);
+		const PCGExCluster::FNode* StartNode = Cluster->GetEdgeStart(Edge);
+		const PCGExCluster::FNode* EndNode = Cluster->GetEdgeEnd(Edge);
 
 		if (StartNode->bValid && EndNode->bValid) { Edge.bValid = true; }
 	}

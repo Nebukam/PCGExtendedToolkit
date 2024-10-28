@@ -333,6 +333,8 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExBlendingDetails
 
 namespace PCGExDataBlending
 {
+	const FName SourceOverridesBlendingOps = TEXT("Overrides : Blending");
+	
 	/**
 	 * 
 	 */

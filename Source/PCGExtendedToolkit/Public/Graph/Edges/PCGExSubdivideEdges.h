@@ -27,6 +27,7 @@ public:
 	virtual PCGExData::EInit GetEdgeOutputInitMode() const override;
 
 protected:
+	virtual TArray<FPCGPinProperties> InputPinProperties() const override;
 	virtual FPCGElementPtr CreateElement() const override;
 	//~End UPCGSettings
 
@@ -104,6 +105,7 @@ protected:
 
 namespace PCGExSubdivideEdges
 {
+	
 	struct FSubdivision
 	{
 		int32 NumSubdivisions = 0;
@@ -119,6 +121,7 @@ namespace PCGExSubdivideEdges
 
 	class FProcessor final : public PCGExClusterMT::TProcessor<FPCGExSubdivideEdgesContext, UPCGExSubdivideEdgesSettings>
 	{
+
 		TArray<FSubdivision> Subdivisions;
 
 		TSet<FName> ProtectedAttributes;

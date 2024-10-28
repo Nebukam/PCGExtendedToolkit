@@ -114,13 +114,13 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPointsProcessorContext : FPCGExContext
 	int32 ChunkSize = 0;
 
 	template <typename T>
-	T* RegisterOperation(UPCGExOperation* BaseOperation)
+	T* RegisterOperation(UPCGExOperation* BaseOperation, FName OverridePinLabel = NAME_None)
 	{
 		BaseOperation->BindContext(this); // Temp so Copy doesn't crash
 
 		T* RetValue = BaseOperation->CopyOperation<T>();
-		OwnedProcessorOperations.Add(RetValue);
-		RetValue->FindSettingsOverrides(this);
+		OwnedProcessorOperations.Add(RetValue);		
+		RetValue->FindSettingsOverrides(this, OverridePinLabel);
 		return RetValue;
 	}
 

@@ -96,44 +96,6 @@ bool FPCGExEdgesProcessorContext::AdvancePointsIO(const bool bCleanupKeys)
 	return true;
 }
 
-bool FPCGExEdgesProcessorContext::AdvanceEdges(const bool bBuildCluster, const bool bCleanupKeys)
-{
-	CurrentCluster.Reset();
-
-	if (bCleanupKeys && CurrentEdges) { CurrentEdges->CleanupKeys(); }
-
-	if (TaggedEdges && TaggedEdges->Entries.IsValidIndex(++CurrentEdgesIndex))
-	{
-		CurrentEdges = TaggedEdges->Entries[CurrentEdgesIndex];
-
-		if (!bBuildCluster) { return true; }
-
-		if (const TSharedPtr<PCGExCluster::FCluster> CachedCluster = PCGExClusterData::TryGetCachedCluster(CurrentIO.ToSharedRef(), CurrentEdges.ToSharedRef()))
-		{
-			CurrentCluster = MakeShared<PCGExCluster::FCluster>(
-				CachedCluster.ToSharedRef(), CurrentIO, CurrentEdges,
-				false, false, false);
-		}
-
-		if (!CurrentCluster)
-		{
-			CurrentCluster = MakeShared<PCGExCluster::FCluster>(CurrentIO, CurrentEdges);
-			CurrentCluster->bIsOneToOne = (TaggedEdges->Entries.Num() == 1);
-
-			if (!CurrentCluster->BuildFrom(EndpointsLookup, &EndpointsAdjacency))
-			{
-				PCGE_LOG_C(Warning, GraphAndLog, this, FTEXT("Some clusters are corrupted and will not be processed.  If you modified vtx/edges manually, make sure to use Sanitize Clusters first."));
-				CurrentCluster.Reset();
-			}
-		}
-
-		return true;
-	}
-
-	CurrentEdges.Reset();
-	return false;
-}
-
 void FPCGExEdgesProcessorContext::OutputBatches() const
 {
 	for (const TSharedPtr<PCGExClusterMT::FClusterProcessorBatchBase>& Batch : Batches) { Batch->Output(); }

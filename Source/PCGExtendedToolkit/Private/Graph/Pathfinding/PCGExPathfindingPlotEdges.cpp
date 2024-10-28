@@ -27,6 +27,7 @@ TArray<FPCGPinProperties> UPCGExPathfindingPlotEdgesSettings::InputPinProperties
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
 	PCGEX_PIN_POINTS(PCGExGraph::SourcePlotsLabel, "Plot points for pathfinding.", Required, {})
 	PCGEX_PIN_PARAMS(PCGExGraph::SourceHeuristicsLabel, "Heuristics.", Normal, {})
+	PCGEX_PIN_OPERATION_OVERRIDES(PCGExPathfinding::SourceOverridesSearch)
 	return PinProperties;
 }
 
@@ -144,7 +145,7 @@ bool FPCGExPathfindingPlotEdgesElement::Boot(FPCGExContext* InContext) const
 
 	PCGEX_CONTEXT_AND_SETTINGS(PathfindingPlotEdges)
 
-	PCGEX_OPERATION_BIND(SearchAlgorithm, UPCGExSearchOperation)
+	PCGEX_OPERATION_BIND(SearchAlgorithm, UPCGExSearchOperation, PCGExPathfinding::SourceOverridesSearch)
 
 	Context->OutputPaths = MakeShared<PCGExData::FPointIOCollection>(Context);
 	Context->Plots = MakeShared<PCGExData::FPointIOCollection>(Context);

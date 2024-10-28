@@ -34,8 +34,8 @@ namespace PCGExEdgeNeighborsCount
 
 	bool FNeighborsCountFilter::Test(const PCGExGraph::FIndexedEdge& Edge) const
 	{
-		const PCGExCluster::FNode* From = Cluster->Nodes->GetData() + (*Cluster->NodeIndexLookup)[Edge.Start];
-		const PCGExCluster::FNode* To = Cluster->Nodes->GetData() + (*Cluster->NodeIndexLookup)[Edge.End];
+		const PCGExCluster::FNode* From = Cluster->GetEdgeStart(Edge);
+		const PCGExCluster::FNode* To = Cluster->GetEdgeEnd(Edge);
 
 		// TODO : Make these lambdas
 

@@ -57,10 +57,4 @@ public:
 protected:
 	TSharedPtr<PCGExData::TBuffer<int32>> NumGoalsGetter;
 
-	virtual void ApplyOverrides() override
-	{
-		Super::ApplyOverrides();
-		PCGEX_OVERRIDE_OPERATION_PROPERTY(NumGoals, "Goals/NumGoals")
-		PCGEX_OVERRIDE_OPERATION_PROPERTY(bUseLocalNumGoals, "Goals/UseLocalNumGoals")
-	}
 };
