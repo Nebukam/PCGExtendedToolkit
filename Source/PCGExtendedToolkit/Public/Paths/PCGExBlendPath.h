@@ -17,7 +17,7 @@
 
 class UPCGExSubPointsBlendOperation;
 
-UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Path Split Action"))
+UENUM(/*E--BlueprintType, meta=(DisplayName="[PCGEx] Path Split Action")--E*/)
 enum class EPCGExPathBlendMode : uint8
 {
 	Full   = 0 UMETA(DisplayName = "Start to End", ToolTip="Blend properties & attributes of all path' points from start point to last point"),

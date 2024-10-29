@@ -76,24 +76,9 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output - Path", meta=(DisplayName="PathCentroid", PCG_Overridable, EditCondition="bWritePathCentroid"))
 	FName PathCentroidAttributeName = FName("PathCentroid");
 
-	///
-
-	/** Type of Up vector */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output - Points", meta=(PCG_Overridable))
-	EPCGExInputValueType UpVectorInput = EPCGExInputValueType::Constant;
-
-	/** Up Attribute read on points */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output - Points", meta = (PCG_Overridable, EditCondition="UpVectorInput==EPCGExInputValueType::Attribute", EditConditionHides))
-	FPCGAttributePropertyInputSelector UpVectorSourceAttribute;
-
 	/** Up Attribute constant */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output - Points", meta = (PCG_Overridable, EditCondition="UpVectorInput==EPCGExInputValueType::Constant", EditConditionHides))
-	FVector UpVectorConstant = FVector::UpVector;
-
-	/** Whether to average normal for computations */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output - Points", meta = (PCG_Overridable))
-	bool bAverageNormals = true;
-
+	FVector UpVector = FVector::UpVector;
 
 	/** Output Dot product of Prev/Next directions. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output - Points", meta=(PCG_Overridable, InlineEditConditionToggle))
@@ -247,6 +232,8 @@ namespace PCGExWritePathProperties
 
 		bool bClosedLoop = false;
 		TSharedPtr<PCGExPaths::FPath> Path;
+		TSharedPtr<PCGExPaths::FPathEdgeLength> PathLength;
+		TSharedPtr<PCGExPaths::FPathEdgeBinormal> PathBinormal;
 
 		TArray<FPointDetails> Details;
 

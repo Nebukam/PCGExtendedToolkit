@@ -422,7 +422,7 @@ public:
 	 * @param OutSettings
 	 */
 	UFUNCTION(BlueprintCallable, Category = "PCGEx|Execution", meta=(DeterminesOutputType="SettingsClass", DynamicOutputParam="OutSettings"))
-	void CreateGraphSettings(TSubclassOf<UPCGExCustomGraphSettings> SettingsClass, UPCGExCustomGraphSettings*& OutSettings);
+	void CreateGraphSettings(UPARAM(meta = (AllowAbstract = "false"))TSubclassOf<UPCGExCustomGraphSettings> SettingsClass, UPCGExCustomGraphSettings*& OutSettings);
 
 	/**
 	 * Main execution function. Called once per requested graphs. This method is executed in a multi-threaded context, Graph Settings are safe but the custom builder wrapper itself isn't.

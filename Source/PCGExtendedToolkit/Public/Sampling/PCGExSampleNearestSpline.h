@@ -28,7 +28,7 @@ MACRO(ClosedLoop, bool, false)
 
 class UPCGExFilterFactoryBase;
 
-UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Surface Source"))
+UENUM(/*E--BlueprintType, meta=(DisplayName="[PCGEx] Surface Source")--E*/)
 enum class EPCGExSplineSamplingIncludeMode : uint8
 {
 	All            = 0 UMETA(DisplayName = "All", ToolTip="Sample all input splines"),

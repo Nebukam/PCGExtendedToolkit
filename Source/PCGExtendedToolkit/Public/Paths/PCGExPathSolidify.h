@@ -136,6 +136,7 @@ namespace PCGExPathSolidify
 		TSharedPtr<PCGExData::TBuffer<double>> SolidificationLerpGetter;
 
 		TSharedPtr<PCGExPaths::FPath> Path;
+		TSharedPtr<PCGExPaths::FPathEdgeLength> PathLength;
 
 #define PCGEX_LOCAL_EDGE_GETTER_DECL(_AXIS) TSharedPtr<PCGExData::TBuffer<double>> SolidificationRad##_AXIS; bool bOwnSolidificationRad##_AXIS = true; double Rad##_AXIS##Constant = 1;
 		PCGEX_FOREACH_XYZ(PCGEX_LOCAL_EDGE_GETTER_DECL)

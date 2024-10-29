@@ -7,11 +7,12 @@
 #include "PCGExCompare.h"
 #include "Collections/PCGExMeshCollection.h"
 #include "Components/SplineMeshComponent.h"
+#include "Graph/PCGExCluster.h"
 #include "Graph/PCGExEdge.h"
 
 #include "PCGExPaths.generated.h"
 
-UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Path Shrink Distance Cut Type"))
+UENUM(/*E--BlueprintType, meta=(DisplayName="[PCGEx] Path Shrink Distance Cut Type")--E*/)
 enum class EPCGExInlinePathProcessingOrder : uint8
 {
 	FromStart       = 0 UMETA(DisplayName = "From Start", ToolTip="Start at the index 0 of the path. If inverted, start at the last index."),
@@ -20,7 +21,7 @@ enum class EPCGExInlinePathProcessingOrder : uint8
 	TaggedAll       = 4 UMETA(DisplayName = "Tagged (All)", ToolTip="Check for all tag matches on the input data. If all tags are found, start with first point."),
 };
 
-UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Input Scope"))
+UENUM(/*E--BlueprintType, meta=(DisplayName="[PCGEx] Input Scope")--E*/)
 enum class EPCGExInputScope : uint8
 {
 	All          = 0 UMETA(DisplayName = "All", Tooltip="All paths are considered to have the same open or closed status."),
@@ -266,8 +267,8 @@ namespace PCGExPaths
 			for (const FPCGPoint& Pt : Points) { Add(Pt.Transform.GetLocation()); }
 		}
 
-		FVector Start;
-		FVector Last;
+		FVector Start = FVector::ZeroVector;
+		FVector Last = FVector::ZeroVector;
 		double Length = -1;
 		int32 Count = 0;
 
@@ -400,6 +401,50 @@ namespace PCGExPaths
 		}
 	};
 
+	class FPath;
+
+	class FPathEdgeExtraBase : public TSharedFromThis<FPathEdgeExtraBase>
+	{
+	protected:
+		bool bClosedLoop = false;
+
+	public:
+		explicit FPathEdgeExtraBase(const int32 InNumSegments, bool InClosedLoop)
+			: bClosedLoop(InClosedLoop)
+		{
+		}
+
+		virtual ~FPathEdgeExtraBase() = default;
+
+		virtual void ProcessSingleEdge(const FPath* Path, const FPathEdge& Edge) { ProcessFirstEdge(Path, Edge); }
+		virtual void ProcessFirstEdge(const FPath* Path, const FPathEdge& Edge) { ProcessEdge(Path, Edge); };
+		virtual void ProcessEdge(const FPath* Path, const FPathEdge& Edge) = 0;
+		virtual void ProcessLastEdge(const FPath* Path, const FPathEdge& Edge) { ProcessEdge(Path, Edge); }
+	};
+
+	template <typename T>
+	class TPathEdgeExtra : public FPathEdgeExtraBase
+	{
+	protected:
+		TArray<T> Data;
+
+	public:
+		TArray<T> Values;
+
+		explicit TPathEdgeExtra(const int32 InNumSegments, bool InClosedLoop)
+			: FPathEdgeExtraBase(InNumSegments, InClosedLoop)
+		{
+			PCGEx::InitArray(Data, InNumSegments);
+		}
+
+		FORCEINLINE T& operator[](const int32 At) { return Data[At]; }
+		FORCEINLINE T operator[](const int32 At) const { return Data[At]; }
+		FORCEINLINE void Set(const int32 At, const T Value) { Data[At] = Value; }
+		FORCEINLINE T Get(const int32 At) { return Data[At]; }
+		FORCEINLINE T& GetMutable(const int32 At) { return Data[At]; }
+		FORCEINLINE T Get(const FPathEdge& At) { return Data[At.Start]; }
+	};
+
 	PCGEX_OCTREE_SEMANTICS(FPathEdge, { return Element->BSB;}, { return A == B; })
 
 	class FPath : public TSharedFromThis<FPath>
@@ -408,7 +453,7 @@ namespace PCGExPaths
 		bool bClosedLoop = false;
 		TArray<FVector> Positions;
 		TUniquePtr<FPathEdgeOctree> EdgeOctree;
-		TArray<double> Lengths;
+		TArray<TSharedPtr<FPathEdgeExtraBase>> Extras;
 
 	public:
 		virtual ~FPath() = default;
@@ -432,25 +477,21 @@ namespace PCGExPaths
 
 		virtual FVector DirToNextPoint(const int32 Index) const = 0;
 		FVector DirToPrevPoint(const int32 Index) const { return DirToNextPoint(SafePointIndex(Index - 1)) * -1; }
-		virtual double DistToNextPoint(const int32 Index) const = 0;
-		double DistToPrevPoint(const int32 Index) const { return DistToNextPoint(SafePointIndex(Index - 1)); }
 
 		virtual int32 NextPointIndex(const int32 Index) const { return SafePointIndex(Index + 1); }
 		virtual int32 PrevPointIndex(const int32 Index) const { return SafePointIndex(Index - 1); }
 
-		FORCEINLINE FVector GetEdgeDir(const FPathEdge& Edge) const { return (Positions[Edge.Start] - Positions[Edge.End]).GetSafeNormal(); }
+		FORCEINLINE FVector GetEdgeDir(const FPathEdge& Edge) const { return (Positions[Edge.End] - Positions[Edge.Start]).GetSafeNormal(); }
 		FORCEINLINE FVector GetEdgeDir(const int32 Index) const { return GetEdgeDir(Edges[Index]); }
-		FORCEINLINE virtual double GetEdgeLength(const FPathEdge& Edge) const = 0;
-		FORCEINLINE double GetEdgeLength(const int32 Index) const { return GetEdgeLength(Edges[Index]); }
-		FORCEINLINE FVector GetEdgePositionAtAlpha(const FPathEdge& Edge, const double Alpha) const { return FMath::Lerp(Positions[Edge.Start], Positions[Edge.End], Alpha); }
+		FORCEINLINE FVector GetEdgePositionAtAlpha(const FPathEdge& Edge, const double Alpha) const { return FMath::Lerp(Positions[Edge.End], Positions[Edge.Start], Alpha); }
 		FORCEINLINE FVector GetEdgePositionAtAlpha(const int32 Index, const double Alpha) const
 		{
 			const FPathEdge& Edge = Edges[Index];
 			return FMath::Lerp(Positions[Edge.Start], Positions[Edge.End], Alpha);
 		}
 
-		FORCEINLINE virtual bool IsEdgeValid(const FPathEdge& Edge) const { return GetEdgeLength(Edge) > 0; }
-		FORCEINLINE virtual bool IsEdgeValid(const int32 Index) const { return GetEdgeLength(Edges[Index]) > 0; }
+		FORCEINLINE virtual bool IsEdgeValid(const FPathEdge& Edge) const { return FVector::DistSquared(GetPosUnsafe(Edge.Start), GetPosUnsafe(Edge.End)) > 0; }
+		FORCEINLINE virtual bool IsEdgeValid(const int32 Index) const { return IsEdgeValid(Edges[Index]); }
 
 		void BuildEdgeOctree()
 		{
@@ -493,9 +534,45 @@ namespace PCGExPaths
 				Positions[A], Positions[Index], Positions[B],
 				bIsConvex, ConvexitySign);
 		}
+
+		template <typename T, typename... Args>
+		TSharedPtr<T> AddExtra(bool bImmediateCompute = false, Args&&... InArgs)
+		{
+			TSharedPtr<T> Extra = MakeShared<T>(NumEdges, bClosedLoop, std::forward<Args>(InArgs)...);
+
+			if (bImmediateCompute)
+			{
+				if (NumEdges == 1)
+				{
+					Extra->ProcessSingleEdge(this, Edges[0]);
+				}
+				else
+				{
+					if (bClosedLoop)
+					{
+						for (int i = 0; i < NumEdges; ++i) { Extra->ProcessEdge(this, Edges[i]); }
+					}
+					else
+					{
+						Extra->ProcessFirstEdge(this, Edges[0]);
+						for (int i = 1; i < LastEdge; ++i) { Extra->ProcessEdge(this, Edges[i]); }
+						Extra->ProcessLastEdge(this, Edges[LastEdge]);
+					}
+				}
+			}
+			else
+			{
+				Extras.Add(StaticCastSharedPtr<T>(Extra));
+			}
+
+			return Extra;
+		}
+
+		virtual void ComputeEdgeExtra(const int32 Index) = 0;
+		virtual void ComputeAllEdgeExtra() = 0;
 	};
 
-	template <bool ClosedLoop = false, bool CacheLength = false>
+	template <bool ClosedLoop = false>
 	class TPath : public FPath
 	{
 	public:
@@ -516,23 +593,10 @@ namespace PCGExPaths
 			LastEdge = NumEdges - 1;
 
 			Edges.SetNumUninitialized(NumEdges);
-			if constexpr (CacheLength)
+			for (int i = 0; i < NumEdges; i++)
 			{
-				Lengths.SetNumUninitialized(NumEdges);
-				for (int i = 0; i < NumEdges; i++)
-				{
-					const FPathEdge& E = (Edges[i] = FPathEdge(i, (i + 1) % NumPoints, Positions, Expansion));
-					Bounds += E.BSB.GetBox();
-					Lengths[i] = FVector::Dist(Positions[E.Start], Positions[E.End]);
-				}
-			}
-			else
-			{
-				for (int i = 0; i < NumEdges; i++)
-				{
-					const FPathEdge& E = (Edges[i] = FPathEdge(i, (i + 1) % NumPoints, Positions, Expansion));
-					Bounds += E.BSB.GetBox();
-				}
+				const FPathEdge& E = (Edges[i] = FPathEdge(i, (i + 1) % NumPoints, Positions, Expansion));
+				Bounds += E.BSB.GetBox();
 			}
 		}
 
@@ -545,52 +609,116 @@ namespace PCGExPaths
 		FORCEINLINE virtual FVector DirToNextPoint(const int32 Index) const override
 		{
 			if constexpr (ClosedLoop) { return GetEdgeDir(Index); }
-			else { return Index == LastIndex ? GetEdgeDir(Index - 1) * -1 : GetEdgeDir(Index); }
+			else { return Index == LastIndex ? GetEdgeDir(Index - 1) : GetEdgeDir(Index); }
 		}
 
-		FORCEINLINE virtual double DistToNextPoint(const int32 Index) const override
+		virtual void ComputeEdgeExtra(const int32 Index) override
 		{
-			if constexpr (CacheLength)
+			if (NumEdges == 1)
 			{
-				if constexpr (ClosedLoop) { return Lengths[Edges[Index].Start]; }
-				else { return Index >= NumEdges ? 0 : Lengths[Edges[Index].Start]; }
+				for (const TSharedPtr<FPathEdgeExtraBase> Extra : Extras) { Extra->ProcessSingleEdge(this, Edges[0]); }
 			}
 			else
 			{
-				if constexpr (ClosedLoop) { return FPath::GetEdgeLength(Index); }
-				else { return Index >= NumEdges ? 0 : FPath::GetEdgeLength(Index); }
+				if constexpr (ClosedLoop)
+				{
+					for (const TSharedPtr<FPathEdgeExtraBase> Extra : Extras) { Extra->ProcessEdge(this, Edges[Index]); }
+				}
+				else
+				{
+					if (Index == 0) { for (const TSharedPtr<FPathEdgeExtraBase> Extra : Extras) { Extra->ProcessFirstEdge(this, Edges[0]); } }
+					else if (Index == LastEdge) { for (const TSharedPtr<FPathEdgeExtraBase> Extra : Extras) { Extra->ProcessLastEdge(this, Edges[LastEdge]); } }
+					else { for (const TSharedPtr<FPathEdgeExtraBase> Extra : Extras) { Extra->ProcessEdge(this, Edges[Index]); } }
+				}
 			}
 		}
 
-		FORCEINLINE virtual double GetEdgeLength(const FPathEdge& Edge) const override
+		virtual void ComputeAllEdgeExtra() override
 		{
-			if constexpr (CacheLength) { return Lengths[Edge.Start]; }
-			else { return FVector::Dist(Positions[Edge.End], Positions[Edge.Start]); }
+			if (NumEdges == 1)
+			{
+				for (const TSharedPtr<FPathEdgeExtraBase> Extra : Extras) { Extra->ProcessSingleEdge(this, Edges[0]); }
+			}
+			else
+			{
+				if constexpr (ClosedLoop)
+				{
+					for (int i = 0; i < NumEdges; i++) { for (const TSharedPtr<FPathEdgeExtraBase> Extra : Extras) { Extra->ProcessEdge(this, Edges[i]); } }
+				}
+				else
+				{
+					for (const TSharedPtr<FPathEdgeExtraBase> Extra : Extras) { Extra->ProcessFirstEdge(this, Edges[0]); }
+					for (int i = 1; i < LastEdge; i++) { for (const TSharedPtr<FPathEdgeExtraBase> Extra : Extras) { Extra->ProcessEdge(this, Edges[i]); } }
+					for (const TSharedPtr<FPathEdgeExtraBase> Extra : Extras) { Extra->ProcessLastEdge(this, Edges[LastEdge]); }
+				}
+			}
+
+			Extras.Empty(); // So we don't update them anymore
 		}
 	};
 
-	static TSharedPtr<FPath> MakePath(
-		const TArray<FPCGPoint>& InPoints,
-		const double Expansion,
-		const bool bClosedLoop,
-		const bool bCacheLength)
+	class FPathEdgeLength : public TPathEdgeExtra<double>
+	{
+	public:
+		double TotalLength = 0;
+
+		explicit FPathEdgeLength(const int32 InNumSegments, const bool InClosedLoop)
+			: TPathEdgeExtra(InNumSegments, InClosedLoop)
+		{
+		}
+
+		virtual void ProcessEdge(const FPath* Path, const FPathEdge& Edge) override;
+	};
+
+	class FPathEdgeLengthSquared : public TPathEdgeExtra<double>
+	{
+	public:
+		explicit FPathEdgeLengthSquared(const int32 InNumSegments, const bool InClosedLoop)
+			: TPathEdgeExtra(InNumSegments, InClosedLoop)
+		{
+		}
+
+		virtual void ProcessEdge(const FPath* Path, const FPathEdge& Edge) override;
+	};
+
+	class FPathEdgeNormal : public TPathEdgeExtra<FVector>
+	{
+		FVector Up = FVector::UpVector;
+	public:
+		explicit FPathEdgeNormal(const int32 InNumSegments, const bool InClosedLoop, const FVector& InUp)
+			: TPathEdgeExtra(InNumSegments, InClosedLoop), Up(InUp)
+		{
+		}
+
+		virtual void ProcessEdge(const FPath* Path, const FPathEdge& Edge) override;
+	};
+
+	class FPathEdgeBinormal : public TPathEdgeExtra<FVector>
+	{
+		FVector Up = FVector::UpVector;
+	public:
+		TArray<FVector> Normals;
+		
+		explicit FPathEdgeBinormal(const int32 InNumSegments, const bool InClosedLoop, const FVector& InUp)
+			: TPathEdgeExtra(InNumSegments, InClosedLoop), Up(InUp)
+		{
+			Normals.SetNumUninitialized(InNumSegments);
+		}
+
+		virtual void ProcessFirstEdge(const FPath* Path, const FPathEdge& Edge) override;
+		virtual void ProcessEdge(const FPath* Path, const FPathEdge& Edge) override;
+		virtual void ProcessLastEdge(const FPath* Path, const FPathEdge& Edge) override;
+	};;
+
+	static TSharedPtr<FPath> MakePath(const TArray<FPCGPoint>& InPoints, const double Expansion, const bool bClosedLoop)
 	{
 		if (bClosedLoop)
 		{
-			if (bCacheLength)
-			{
-				TSharedPtr<TPath<true, true>> P = MakeShared<TPath<true, true>>(InPoints, Expansion);
-				return StaticCastSharedPtr<FPath>(P);
-			}
-			TSharedPtr<TPath<true, false>> P = MakeShared<TPath<true, false>>(InPoints, Expansion);
+			TSharedPtr<TPath<true>> P = MakeShared<TPath<true>>(InPoints, Expansion);
 			return StaticCastSharedPtr<FPath>(P);
 		}
-		if (bCacheLength)
-		{
-			TSharedPtr<TPath<false, true>> P = MakeShared<TPath<false, true>>(InPoints, Expansion);
-			return StaticCastSharedPtr<FPath>(P);
-		}
-		TSharedPtr<TPath<false, false>> P = MakeShared<TPath<false, false>>(InPoints, Expansion);
+
+		TSharedPtr<TPath<false>> P = MakeShared<TPath<false>>(InPoints, Expansion);
 		return StaticCastSharedPtr<FPath>(P);
 	}
 }
