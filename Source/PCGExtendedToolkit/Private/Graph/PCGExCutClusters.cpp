@@ -110,7 +110,7 @@ bool FPCGExCutEdgesElement::ExecuteInternal(
 			TSharedRef<PCGExData::FFacade> PathFacade = Context->PathFacades[StartIndex];
 			TSharedPtr<PCGExPaths::FPath> Path = PCGExPaths::MakePath(
 				PathFacade->Source->GetIn()->GetPoints(), 0,
-				Context->ClosedLoop.IsClosedLoop(PathFacade->Source), false);
+				Context->ClosedLoop.IsClosedLoop(PathFacade->Source));
 
 			Path->BuildEdgeOctree();
 
@@ -238,7 +238,7 @@ namespace PCGExCutEdges
 
 					if (Context->IntersectionDetails.bUseMinAngle || Context->IntersectionDetails.bUseMaxAngle)
 					{
-						if (!Context->IntersectionDetails.CheckDot(FMath::Abs(FVector::DotProduct(Path->GetEdgeDir(*PathEdge), Dir))))
+						if (!Context->IntersectionDetails.CheckDot(FMath::Abs(FVector::DotProduct(PathEdge->Dir, Dir))))
 						{
 							return true;
 						}

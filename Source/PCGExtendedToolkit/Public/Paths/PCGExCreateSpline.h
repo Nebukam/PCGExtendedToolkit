@@ -13,7 +13,7 @@
 
 #include "PCGExCreateSpline.generated.h"
 
-UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Spline Point Type"))
+UENUM(/*E--BlueprintType, meta=(DisplayName="[PCGEx] Spline Point Type")--E*/)
 enum class EPCGExSplinePointType : uint8
 {
 	Linear             = 0 UMETA(DisplayName = "Linear (0)", Tooltip="Linear (0)."),

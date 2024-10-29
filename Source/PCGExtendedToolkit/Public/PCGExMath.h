@@ -9,14 +9,14 @@
 
 #include "PCGExMath.generated.h"
 
-UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Mean Measure"))
+UENUM(/*E--BlueprintType, meta=(DisplayName="[PCGEx] Mean Measure")--E*/)
 enum class EPCGExMeanMeasure : uint8
 {
 	Relative = 0 UMETA(DisplayName = "Relative", ToolTip="Input value will be normalized between 0..1, or used as a factor. (what it means exactly depends on context. See node-specific documentation.)"),
 	Discrete = 1 UMETA(DisplayName = "Discrete", ToolTip="Raw value will be used, or used as absolute. (what it means exactly depends on context. See node-specific documentation.)"),
 };
 
-UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Mean Method"))
+UENUM(/*E--BlueprintType, meta=(DisplayName="[PCGEx] Mean Method")--E*/)
 enum class EPCGExMeanMethod : uint8
 {
 	Average = 0 UMETA(DisplayName = "Average", ToolTip="Average"),
@@ -27,7 +27,7 @@ enum class EPCGExMeanMethod : uint8
 	Fixed   = 5 UMETA(DisplayName = "Fixed", ToolTip="Fixed threshold"),
 };
 
-UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Point Bounds Source"))
+UENUM(/*E--BlueprintType, meta=(DisplayName="[PCGEx] Point Bounds Source")--E*/)
 enum class EPCGExPointBoundsSource : uint8
 {
 	ScaledBounds  = 0 UMETA(DisplayName = "Scaled Bounds", ToolTip="Scaled Bounds"),

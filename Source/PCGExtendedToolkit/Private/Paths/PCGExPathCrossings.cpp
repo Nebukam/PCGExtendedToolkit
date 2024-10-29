@@ -116,7 +116,9 @@ namespace PCGExPathCrossings
 		CanBeCutFilterManager = MakeShared<PCGExPointFilter::FManager>(PointDataFacade);
 		if (!CanBeCutFilterManager->Init(ExecutionContext, Context->CanBeCutFilterFactories)) { CanBeCutFilterManager.Reset(); }
 
-		Path = PCGExPaths::MakePath(PointIO->GetIn()->GetPoints(), Details.Tolerance * 2, bClosedLoop, true);
+		Path = PCGExPaths::MakePath(PointIO->GetIn()->GetPoints(), Details.Tolerance * 2, bClosedLoop);
+		PathLength = Path->AddExtra<PCGExPaths::FPathEdgeLength>();
+
 		Path->IOIndex = PointIO->IOIndex;
 
 		Crossings.Init(nullptr, Path->NumEdges);
@@ -152,6 +154,7 @@ namespace PCGExPathCrossings
 					{
 						CanCut[i] = CanCutFilterManager->Test(i);
 						CanBeCut[i] = CanBeCutFilterManager->Test(i);
+						Path->ComputeEdgeExtra(i);
 					}
 				}
 				else if (CanCutFilterManager)
@@ -160,6 +163,7 @@ namespace PCGExPathCrossings
 					{
 						CanCut[i] = CanCutFilterManager->Test(i);
 						CanBeCut[i] = true;
+						Path->ComputeEdgeExtra(i);
 					}
 				}
 				else if (CanBeCutFilterManager)
@@ -168,6 +172,7 @@ namespace PCGExPathCrossings
 					{
 						CanCut[i] = true;
 						CanBeCut[i] = CanBeCutFilterManager->Test(i);
+						Path->ComputeEdgeExtra(i);
 					}
 				}
 				else
@@ -176,6 +181,7 @@ namespace PCGExPathCrossings
 					{
 						CanCut[i] = true;
 						CanBeCut[i] = true;
+						Path->ComputeEdgeExtra(i);
 					}
 				}
 			};
@@ -225,7 +231,7 @@ namespace PCGExPathCrossings
 			NewCrossing->Crossings.Add(PCGEx::H64(E2.Start, CurrentIOIndex));
 			NewCrossing->Positions.Add(FMath::Lerp(A, B, 0.5));
 			NewCrossing->CrossingDirections.Add(CrossDir);
-			NewCrossing->Alphas.Add(FVector::Dist(A1, A) / Path->GetEdgeLength(E1));
+			NewCrossing->Alphas.Add(FVector::Dist(A1, A) / PathLength->Get(E1));
 		};
 
 		// Find crossings
@@ -271,6 +277,8 @@ namespace PCGExPathCrossings
 		{
 			NumPointsFinal++;
 
+			if (!Path->IsClosedLoop() && i == Path->LastIndex) { continue; }
+
 			const FCrossing* Crossing = Crossings[i].Get();
 			if (!Crossing) { continue; }
 
@@ -286,7 +294,7 @@ namespace PCGExPathCrossings
 		PCGEx::InitArray(OutPoints, NumPointsFinal);
 
 		int32 Index = 0;
-		for (int i = 0; i < Path->NumPoints; i++)
+		for (int i = 0; i < Path->NumEdges; i++)
 		{
 			Path->Edges[i].AltStart = Index;
 
@@ -303,6 +311,13 @@ namespace PCGExPathCrossings
 				OutPoints[Index] = OriginalPoint;
 				Metadata->InitializeOnSet(OutPoints[Index++].MetadataEntry);
 			}
+		}
+
+		if (!Path->IsClosedLoop())
+		{
+			const FPCGPoint& OriginalPoint = InPoints[Path->LastIndex];
+			OutPoints[Index] = OriginalPoint;
+			Metadata->InitializeOnSet(OutPoints[Index].MetadataEntry);
 		}
 
 		// Flag last so it doesn't get captured by blenders

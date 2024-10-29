@@ -45,17 +45,22 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="OffsetInput == EPCGExInputValueType::Attribute"))
 	FPCGAttributePropertyInputSelector OffsetAttribute;
 
-	/** Up Vector type.*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
-	EPCGExInputValueType UpVectorType = EPCGExInputValueType::Constant;
-
 	/** Up vector used to calculate Offset direction.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="UpVectorType == EPCGExInputValueType::Constant"))
 	FVector UpVectorConstant = FVector::UpVector;
 
-	/** Fetch the Up vector from a local point attribute. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="UpVectorType == EPCGExInputValueType::Attribute"))
-	FPCGAttributePropertyInputSelector UpVectorAttribute;
+	/** Direction Vector type.*/
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
+	EPCGExInputValueType DirectionType = EPCGExInputValueType::Constant;
+
+	/** Type of arithmetic path point offset direction.*/
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="DirectionType == EPCGExInputValueType::Constant"))
+	EPCGExPathNormalDirection DirectionConstant = EPCGExPathNormalDirection::AverageNormal;
+
+	/** Fetch the direction vector from a local point attribute. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="DirectionType == EPCGExInputValueType::Attribute"))
+	FPCGAttributePropertyInputSelector DirectionAttribute;
+	
 };
 
 struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExOffsetPathContext final : FPCGExPathProcessorContext
@@ -80,18 +85,15 @@ namespace PCGExOffsetPath
 {
 	class FProcessor final : public PCGExPointsMT::TPointsProcessor<FPCGExOffsetPathContext, UPCGExOffsetPathSettings>
 	{
-		int32 NumPoints = 0;
 
-		bool bClosedLoop = false;
-
+		TSharedPtr<PCGExPaths::FPath> Path;
+		TSharedPtr<PCGExPaths::TPathEdgeExtra<FVector>> Direction;
+		
 		double OffsetConstant = 0;
-		FVector UpConstant = FVector::UpVector;
-
-		TArray<FVector> Positions;
-		TArray<FVector> Normals;
+		FVector Up = FVector::UpVector;
 
 		TSharedPtr<PCGExData::TBuffer<double>> OffsetGetter;
-		TSharedPtr<PCGExData::TBuffer<FVector>> UpGetter;
+		TSharedPtr<PCGExData::TBuffer<FVector>> DirectionGetter;
 
 	public:
 		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade):
@@ -100,8 +102,8 @@ namespace PCGExOffsetPath
 		}
 
 		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager> InAsyncManager) override;
+		virtual void PrepareSingleLoopScopeForPoints(const uint32 StartIndex, const int32 Count) override;
 		virtual void ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const int32 LoopIdx, const int32 Count) override;
-		virtual void ProcessSingleRangeIteration(const int32 Iteration, const int32 LoopIdx, const int32 LoopCount) override;
 		virtual void CompleteWork() override;
 	};
 }

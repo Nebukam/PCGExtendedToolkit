@@ -13,7 +13,7 @@
 
 #include "PCGExBoundsFilter.generated.h"
 
-UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Fetch Type"))
+UENUM(/*E--BlueprintType, meta=(DisplayName="[PCGEx] Fetch Type")--E*/)
 enum class EPCGExBoundsCheckType : uint8
 {
 	Intersects           = 0 UMETA(DisplayName = "Intersects", Tooltip="..."),

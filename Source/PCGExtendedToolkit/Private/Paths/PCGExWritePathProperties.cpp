@@ -64,8 +64,11 @@ namespace PCGExWritePathProperties
 		const TSharedRef<PCGExData::FPointIO>& PointIO = PointDataFacade->Source;
 
 		bClosedLoop = Context->ClosedLoop.IsClosedLoop(PointIO);
-		Path = PCGExPaths::MakePath(PointDataFacade->GetIn()->GetPoints(), 0, bClosedLoop, true);
+		Path = PCGExPaths::MakePath(PointDataFacade->GetIn()->GetPoints(), 0, bClosedLoop);
 		Path->IOIndex = PointDataFacade->Source->IOIndex;
+		PathLength = Path->AddExtra<PCGExPaths::FPathEdgeLength>(true); // Force compute length
+		if (Settings->bWritePointNormal || Settings->bWritePointBinormal) { PathBinormal = Path->AddExtra<PCGExPaths::FPathEdgeBinormal>(false, Settings->UpVector); }
+		if (Settings->bWritePointAvgNormal) { PathAvgNormal = Path->AddExtra<PCGExPaths::FPathEdgeAvgNormal>(false, Settings->UpVector); }
 
 		{
 			const TSharedRef<PCGExData::FFacade>& OutputFacade = PointDataFacade;
@@ -78,16 +81,6 @@ namespace PCGExWritePathProperties
 		const int32 NumPoints = InPoints.Num();
 
 		PCGEx::InitArray(Details, NumPoints);
-
-		UpConstant = Settings->UpVectorConstant;
-		if (Settings->UpVectorInput == EPCGExInputValueType::Attribute)
-		{
-			UpGetter = PointDataFacade->GetScopedBroadcaster<FVector>(Settings->UpVectorSourceAttribute);
-			if (!UpGetter)
-			{
-				//TODO : Throw warning and fallback to constant
-			}
-		}
 
 		for (int i = 0; i < NumPoints; i++)
 		{
@@ -117,20 +110,18 @@ namespace PCGExWritePathProperties
 		Current.ToPrev = Path->DirToPrevPoint(Index);
 		Current.ToNext = Path->DirToNextPoint(Index);
 
-		Current.Normal = FVector::CrossProduct(Current.ToNext, FVector::CrossProduct(UpGetter ? UpGetter->Read(Index) : UpConstant, Current.ToNext)).GetSafeNormal();
-		Current.Binormal = FVector::CrossProduct(Current.ToNext, Current.Normal).GetSafeNormal();
-
-		if (!Settings->bAverageNormals)
-		{
-			PCGEX_OUTPUT_VALUE(PointNormal, Index, Current.Normal);
-			PCGEX_OUTPUT_VALUE(PointBinormal, Index, Current.Binormal);
-		}
+		int32 ExtraIndex = !bClosedLoop && Index == Path->LastIndex ? Path->LastEdge : Index;
+		Path->ComputeEdgeExtra(ExtraIndex);
+		
+		PCGEX_OUTPUT_VALUE(PointNormal, Index, PathBinormal->Normals[ExtraIndex]);
+		PCGEX_OUTPUT_VALUE(PointBinormal, Index, PathBinormal->Get(ExtraIndex));
+		PCGEX_OUTPUT_VALUE(PointAvgNormal, Index, PathAvgNormal->Get(ExtraIndex));
 
 		PCGEX_OUTPUT_VALUE(DirectionToNext, Index, Current.ToNext);
 		PCGEX_OUTPUT_VALUE(DirectionToPrev, Index, Current.ToPrev);
 
-		PCGEX_OUTPUT_VALUE(DistanceToNext, Index, Path->DistToNextPoint(Index));
-		PCGEX_OUTPUT_VALUE(DistanceToPrev, Index, Path->DistToPrevPoint(Index));
+		PCGEX_OUTPUT_VALUE(DistanceToNext, Index, !Path->IsClosedLoop() && Index == Path->LastIndex ? 0 : PathLength->Get(Index))
+		PCGEX_OUTPUT_VALUE(DistanceToPrev, Index, Index == 0 ? Path->IsClosedLoop() ? PathLength->Get(Path->LastEdge) : 0 : PathLength->Get(Index-1))
 
 		PCGEX_OUTPUT_VALUE(Dot, Index, FVector::DotProduct(Current.ToPrev, Current.ToNext));
 		PCGEX_OUTPUT_VALUE(Angle, Index, PCGExSampling::GetAngle(Settings->AngleRange, Current.ToPrev, Current.ToNext));
@@ -144,8 +135,6 @@ namespace PCGExWritePathProperties
 		FVector PathDir = Details[0].ToNext;
 
 		// Compute path-wide data
-		double TotalLength = 0;
-		for (int i = 0; i < Path->NumPoints; i++) { TotalLength += Path->DistToNextPoint(i); }
 
 		// Compute path-wide, per-point stuff
 		double TraversedDistance = 0;
@@ -156,12 +145,12 @@ namespace PCGExWritePathProperties
 			const FPointDetails& Detail = Details[i];
 			PathDir += Detail.ToNext;
 
-			PCGEX_OUTPUT_VALUE(PointTime, i, TraversedDistance / TotalLength);
+			PCGEX_OUTPUT_VALUE(PointTime, i, TraversedDistance / PathLength->TotalLength);
 
 			PCGEX_OUTPUT_VALUE(DistanceToStart, i, TraversedDistance);
-			PCGEX_OUTPUT_VALUE(DistanceToEnd, i, TotalLength - TraversedDistance);
+			PCGEX_OUTPUT_VALUE(DistanceToEnd, i, PathLength->TotalLength - TraversedDistance);
 
-			TraversedDistance += Path->DistToNextPoint(i);
+			TraversedDistance += !Path->IsClosedLoop() && i == Path->LastIndex ? 0 : PathLength->Get(i);
 			PathCentroid += Path->GetPosUnsafe(i);
 		}
 
@@ -177,19 +166,7 @@ namespace PCGExWritePathProperties
 			PCGEX_OUTPUT_VALUE(Angle, Path->LastIndex, PCGExSampling::GetAngle(Settings->AngleRange, Last.ToPrev *-1, Last.ToPrev));
 		}
 
-		if (Settings->bAverageNormals)
-		{
-			for (int i = 0; i < Path->NumPoints; i++)
-			{
-				const int32 PrevIndex = Path->PrevPointIndex(i);
-				const int32 NextIndex = Path->NextPointIndex(i);
-
-				PCGEX_OUTPUT_VALUE(PointNormal, i, ((Details[PrevIndex].Normal + Details[i].Normal + Details[NextIndex].Normal) / 3).GetSafeNormal());
-				PCGEX_OUTPUT_VALUE(PointBinormal, i, ((Details[PrevIndex].Binormal + Details[i].Binormal + Details[NextIndex].Binormal) / 3).GetSafeNormal());
-			}
-		}
-
-		if (Context->bWritePathLength) { WriteMark(PointIO, Settings->PathLengthAttributeName, TotalLength); }
+		if (Context->bWritePathLength) { WriteMark(PointIO, Settings->PathLengthAttributeName, PathLength->TotalLength); }
 		if (Context->bWritePathDirection) { WriteMark(PointIO, Settings->PathDirectionAttributeName, (PathDir / Path->NumPoints).GetSafeNormal()); }
 		if (Context->bWritePathCentroid) { WriteMark(PointIO, Settings->PathCentroidAttributeName, (PathCentroid / Path->NumPoints).GetSafeNormal()); }
 

@@ -12,7 +12,7 @@
 #include "Orient/PCGExOrientOperation.h"
 #include "PCGExOrient.generated.h"
 
-UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Transform Component Selector"))
+UENUM(/*E--BlueprintType, meta=(DisplayName="[PCGEx] Transform Component Selector")--E*/)
 enum class EPCGExOrientUsage : uint8
 {
 	ApplyToPoint      = 0 UMETA(DisplayName = "Apply to point", ToolTip="Applies the orientation transform to the point"),
@@ -108,6 +108,8 @@ namespace PCGExOrient
 
 	class FProcessor final : public PCGExPointsMT::TPointsProcessor<FPCGExOrientContext, UPCGExOrientSettings>
 	{
+		TSharedPtr<PCGExPaths::FPath> Path;
+		
 		TSharedPtr<PCGExData::TBuffer<FTransform>> TransformWriter;
 		TSharedPtr<PCGExData::TBuffer<double>> DotWriter;
 		UPCGExOrientOperation* Orient = nullptr;

@@ -64,13 +64,11 @@ namespace PCGExOffsetPath
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExOffsetPath::Process);
 
-		// TODO : Add Scoped Fetch
-
 		if (!FPointsProcessor::Process(InAsyncManager)) { return false; }
 
-		bClosedLoop = Context->ClosedLoop.IsClosedLoop(PointDataFacade->Source);
+		Path = PCGExPaths::MakePath(PointDataFacade->GetIn()->GetPoints(), 0, Context->ClosedLoop.IsClosedLoop(PointDataFacade->Source));
 
-		UpConstant = Settings->UpVectorConstant.GetSafeNormal();
+		Up = Settings->UpVectorConstant.GetSafeNormal();
 		OffsetConstant = Settings->OffsetConstant;
 
 		if (Settings->OffsetInput == EPCGExInputValueType::Attribute)
@@ -83,56 +81,50 @@ namespace PCGExOffsetPath
 			}
 		}
 
-		if (Settings->UpVectorType == EPCGExInputValueType::Attribute)
+		if (Settings->DirectionType == EPCGExInputValueType::Attribute)
 		{
-			UpGetter = PointDataFacade->GetScopedBroadcaster<FVector>(Settings->UpVectorAttribute);
-			if (!UpGetter)
+			DirectionGetter = PointDataFacade->GetScopedBroadcaster<FVector>(Settings->DirectionAttribute);
+			if (!DirectionGetter)
 			{
-				PCGE_LOG_C(Error, GraphAndLog, ExecutionContext, FText::Format(FTEXT("Input missing UpVector attribute: \"{0}\"."), FText::FromName(Settings->UpVectorAttribute.GetName())));
+				PCGE_LOG_C(Error, GraphAndLog, ExecutionContext, FText::Format(FTEXT("Input missing UpVector attribute: \"{0}\"."), FText::FromName(Settings->DirectionAttribute.GetName())));
 				return false;
 			}
 		}
+		else
+		{
+			switch (Settings->DirectionConstant)
+			{
+			case EPCGExPathNormalDirection::Normal:
+				Direction = StaticCastSharedPtr<PCGExPaths::TPathEdgeExtra<FVector>>(Path->AddExtra<PCGExPaths::FPathEdgeNormal>(false, Up));
+				break;
+			case EPCGExPathNormalDirection::Binormal:
+				Direction = StaticCastSharedPtr<PCGExPaths::TPathEdgeExtra<FVector>>(Path->AddExtra<PCGExPaths::FPathEdgeBinormal>(false, Up));
+				break;
+			case EPCGExPathNormalDirection::AverageNormal:
+				Direction = StaticCastSharedPtr<PCGExPaths::TPathEdgeExtra<FVector>>(Path->AddExtra<PCGExPaths::FPathEdgeAvgNormal>(false, Up));
+				break;
+			}
+		}
 
-		const TArray<FPCGPoint>& Points = PointDataFacade->GetIn()->GetPoints();
-		NumPoints = Points.Num();
-
-		Positions.SetNumUninitialized(NumPoints);
-		Normals.SetNumUninitialized(NumPoints);
-
-		for (int i = 0; i < NumPoints; i++) { Positions[i] = Points[i].Transform.GetLocation(); }
-
-		StartParallelLoopForRange(NumPoints - 2); // Compute all normals
-
+		StartParallelLoopForPoints();
 		return true;
+	}
+
+	void FProcessor::PrepareSingleLoopScopeForPoints(const uint32 StartIndex, const int32 Count)
+	{
+		PointDataFacade->Fetch(StartIndex, Count);
 	}
 
 	void FProcessor::ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const int32 LoopIdx, const int32 Count)
 	{
-		Point.Transform.SetLocation(Positions[Index] + (Normals[Index].GetSafeNormal() * (OffsetGetter ? OffsetGetter->Read(Index) : OffsetConstant)));
-	}
-
-	void FProcessor::ProcessSingleRangeIteration(const int32 Iteration, const int32 LoopIdx, const int32 LoopCount)
-	{
-		Normals[Iteration + 1] = PCGExMath::NRM(Iteration, Iteration + 1, Iteration + 2, Positions, UpGetter.Get(), UpConstant); // Offset by 1 because loop should be -1 / 0 / +1
+		const int32 EdgeIndex = (!Path->IsClosedLoop() && Index == Path->LastIndex) ? Path->LastEdge : Index;
+		Path->ComputeEdgeExtra(EdgeIndex);
+		const FVector Dir = Direction ? Direction->Get(EdgeIndex) : DirectionGetter->Read(Index);
+		Point.Transform.SetLocation(Path->GetPos(Index) + (Dir * (OffsetGetter ? OffsetGetter->Read(Index) : OffsetConstant)));
 	}
 
 	void FProcessor::CompleteWork()
 	{
-		const int32 LastIndex = NumPoints - 1;
-
-		// Update first & last Normals
-		if (bClosedLoop)
-		{
-			Normals[0] = PCGExMath::NRM(LastIndex, 0, 1, Positions, UpGetter.Get(), UpConstant);
-			Normals[LastIndex] = PCGExMath::NRM(NumPoints - 2, LastIndex, 0, Positions, UpGetter.Get(), UpConstant);
-		}
-		else
-		{
-			Normals[0] = PCGExMath::NRM(0, 0, 1, Positions, UpGetter.Get(), UpConstant);
-			Normals[LastIndex] = PCGExMath::NRM(NumPoints - 2, LastIndex, LastIndex, Positions, UpGetter.Get(), UpConstant);
-		}
-
-		StartParallelLoopForPoints();
 	}
 }
 

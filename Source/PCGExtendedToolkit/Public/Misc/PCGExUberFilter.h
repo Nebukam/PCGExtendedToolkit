@@ -11,7 +11,7 @@
 
 #include "PCGExUberFilter.generated.h"
 
-UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Uber Filter Mode"))
+UENUM(/*E--BlueprintType, meta=(DisplayName="[PCGEx] Uber Filter Mode")--E*/)
 enum class EPCGExUberFilterMode : uint8
 {
 	Partition = 0 UMETA(DisplayName = "Partition points", ToolTip="Create inside/outside dataset from the filter results."),

@@ -22,7 +22,7 @@ MACRO(SignedDistance, double, 0)\
 MACRO(Angle, double, 0)\
 MACRO(NumSamples, int32, 0)
 
-UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Sample Method"))
+UENUM(/*E--BlueprintType, meta=(DisplayName="[PCGEx] Sample Method")--E*/)
 enum class EPCGExBoundsSampleMethod : uint8
 {
 	WithinRange    = 0 UMETA(DisplayName = "All", ToolTip="Process all overlapping bounds"),

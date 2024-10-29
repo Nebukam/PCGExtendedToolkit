@@ -19,6 +19,7 @@ MACRO(DistanceToStart, double, 0)\
 MACRO(DistanceToEnd, double, 0)\
 MACRO(PointTime, double, 0)\
 MACRO(PointNormal, FVector, FVector::OneVector)\
+MACRO(PointAvgNormal, FVector, FVector::OneVector)\
 MACRO(PointBinormal, FVector, FVector::OneVector)\
 MACRO(DirectionToNext, FVector, FVector::OneVector)\
 MACRO(DirectionToPrev, FVector, FVector::OneVector)
@@ -76,24 +77,9 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output - Path", meta=(DisplayName="PathCentroid", PCG_Overridable, EditCondition="bWritePathCentroid"))
 	FName PathCentroidAttributeName = FName("PathCentroid");
 
-	///
-
-	/** Type of Up vector */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output - Points", meta=(PCG_Overridable))
-	EPCGExInputValueType UpVectorInput = EPCGExInputValueType::Constant;
-
-	/** Up Attribute read on points */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output - Points", meta = (PCG_Overridable, EditCondition="UpVectorInput==EPCGExInputValueType::Attribute", EditConditionHides))
-	FPCGAttributePropertyInputSelector UpVectorSourceAttribute;
-
 	/** Up Attribute constant */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output - Points", meta = (PCG_Overridable, EditCondition="UpVectorInput==EPCGExInputValueType::Constant", EditConditionHides))
-	FVector UpVectorConstant = FVector::UpVector;
-
-	/** Whether to average normal for computations */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output - Points", meta = (PCG_Overridable))
-	bool bAverageNormals = true;
-
+	FVector UpVector = FVector::UpVector;
 
 	/** Output Dot product of Prev/Next directions. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output - Points", meta=(PCG_Overridable, InlineEditConditionToggle))
@@ -167,6 +153,14 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output - Points", meta=(DisplayName="PointNormal", PCG_Overridable, EditCondition="bWritePointNormal"))
 	FName PointNormalAttributeName = FName("PointNormal");
 
+	/** Output point normal. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output - Points", meta=(PCG_Overridable, InlineEditConditionToggle))
+	bool bWritePointAvgNormal = false;
+
+	/** Name of the 'FVector' attribute to write point averaged normal to.*/
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output - Points", meta=(DisplayName="PointAverageNormal", PCG_Overridable, EditCondition="bWritePointAvgNormal"))
+	FName PointAvgNormalAttributeName = FName("PointAvgNormal");
+	
 	/** Output point normal. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output - Points", meta=(PCG_Overridable, InlineEditConditionToggle))
 	bool bWritePointBinormal = false;
@@ -247,6 +241,9 @@ namespace PCGExWritePathProperties
 
 		bool bClosedLoop = false;
 		TSharedPtr<PCGExPaths::FPath> Path;
+		TSharedPtr<PCGExPaths::FPathEdgeLength> PathLength;
+		TSharedPtr<PCGExPaths::FPathEdgeBinormal> PathBinormal;
+		TSharedPtr<PCGExPaths::FPathEdgeAvgNormal> PathAvgNormal;
 
 		TArray<FPointDetails> Details;
 

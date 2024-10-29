@@ -16,14 +16,14 @@ namespace PCGExBevelPath
 	const FName SourceCustomProfile = TEXT("Profile");
 }
 
-UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Bevel Mode"))
+UENUM(/*E--BlueprintType, meta=(DisplayName="[PCGEx] Bevel Mode")--E*/)
 enum class EPCGExBevelMode : uint8
 {
 	Radius   = 0 UMETA(DisplayName = "Radius", ToolTip="Width is used as a radius value to compute distance along each point neighboring segments"),
 	Distance = 1 UMETA(DisplayName = "Distance", ToolTip="Width is used as a distance along each point neighboring segments"),
 };
 
-UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Bevel Profile Type"))
+UENUM(/*E--BlueprintType, meta=(DisplayName="[PCGEx] Bevel Profile Type")--E*/)
 enum class EPCGExBevelProfileType : uint8
 {
 	Line   = 0 UMETA(DisplayName = "Line", ToolTip="Line profile"),
@@ -31,7 +31,7 @@ enum class EPCGExBevelProfileType : uint8
 	Custom = 2 UMETA(DisplayName = "Custom", ToolTip="Custom profile"),
 };
 
-UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Bevel Limit"))
+UENUM(/*E--BlueprintType, meta=(DisplayName="[PCGEx] Bevel Limit")--E*/)
 enum class EPCGExBevelLimit : uint8
 {
 	None            = 0 UMETA(DisplayName = "None", ToolTip="Bevel is not limited"),

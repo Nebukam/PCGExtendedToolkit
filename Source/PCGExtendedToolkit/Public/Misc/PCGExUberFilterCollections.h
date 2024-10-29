@@ -13,7 +13,7 @@
 
 #include "PCGExUberFilterCollections.generated.h"
 
-UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Uber Filter Mode"))
+UENUM(/*E--BlueprintType, meta=(DisplayName="[PCGEx] Uber Filter Mode")--E*/)
 enum class EPCGExUberFilterCollectionsMode : uint8
 {
 	All     = 0 UMETA(DisplayName = "All", ToolTip="All points must pass the filters."),
