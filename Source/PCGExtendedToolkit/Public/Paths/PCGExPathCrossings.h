@@ -152,6 +152,7 @@ namespace PCGExPathCrossings
 		bool bSelfIntersectionOnly = false;
 
 		TSharedPtr<PCGExPaths::FPath> Path;
+		TSharedPtr<PCGExPaths::FPathEdgeLength> PathLength;
 
 		TArray<TSharedPtr<FCrossing>> Crossings;
 

@@ -65,7 +65,8 @@ namespace PCGExPathSolidify
 		const TSharedRef<PCGExData::FPointIO>& PointIO = PointDataFacade->Source;
 		bClosedLoop = Context->ClosedLoop.IsClosedLoop(PointIO);
 
-		Path = PCGExPaths::MakePath(PointDataFacade->GetIn()->GetPoints(), 0, bClosedLoop, false);
+		Path = PCGExPaths::MakePath(PointDataFacade->GetIn()->GetPoints(), 0, bClosedLoop);
+		PathLength = Path->AddExtra<PCGExPaths::FPathEdgeLength>();
 		Path->IOIndex = PointDataFacade->Source->IOIndex;
 
 
@@ -107,7 +108,10 @@ if (!SolidificationRad##_AXIS){ PCGE_LOG_C(Warning, GraphAndLog, Context, FText:
 	{
 		if (!Path->IsValidEdgeIndex(Index)) { return; }
 
-		const double Length = Path->GetEdgeLength(Index);
+		const PCGExPaths::FPathEdge& Edge = Path->Edges[Index];
+		Path->ComputeEdgeExtra(Index);
+		
+		const double Length = PathLength->Get(Index);
 		const FVector Scale = Settings->bScaleBounds ? FVector::OneVector / Point.Transform.GetScale3D() : FVector::OneVector;
 
 		FRotator EdgeRot;
@@ -122,11 +126,11 @@ if (!SolidificationRad##_AXIS){ PCGE_LOG_C(Warning, GraphAndLog, Context, FText:
 		bProcessAxis = Settings->bWriteRadius##_AXIS || Settings->SolidificationAxis == EPCGExMinimalAxis::_AXIS;\
 		if (bProcessAxis){\
 			if (Settings->SolidificationAxis == EPCGExMinimalAxis::_AXIS){\
-				TargetBoundsMin._AXIS = (-Length * EdgeLerpInv)* Scale._AXIS;\
-				TargetBoundsMax._AXIS = (Length * EdgeLerp)* Scale._AXIS;\
+				TargetBoundsMin._AXIS = (-Length * EdgeLerp)* Scale._AXIS;\
+				TargetBoundsMax._AXIS = (Length * EdgeLerpInv)* Scale._AXIS;\
 			}else{\
 				double Rad = Rad##_AXIS##Constant;\
-				if(SolidificationRad##_AXIS){Rad = FMath::Lerp(SolidificationRad##_AXIS->Read(Index), SolidificationRad##_AXIS->Read(Index), EdgeLerp); }\
+				if(SolidificationRad##_AXIS){Rad = FMath::Lerp(SolidificationRad##_AXIS->Read(Index), SolidificationRad##_AXIS->Read(Index), EdgeLerpInv); }\
 				else{Rad=Settings->Radius##_AXIS##Constant;}\
 				TargetBoundsMin._AXIS = -Rad;\
 				TargetBoundsMax._AXIS = Rad;\
@@ -140,13 +144,13 @@ if (!SolidificationRad##_AXIS){ PCGE_LOG_C(Warning, GraphAndLog, Context, FText:
 		{
 		default:
 		case EPCGExMinimalAxis::X:
-			EdgeRot = FRotationMatrix::MakeFromX(Path->GetEdgeDir(Index)).Rotator();
+			EdgeRot = FRotationMatrix::MakeFromX(Edge.Dir).Rotator();
 			break;
 		case EPCGExMinimalAxis::Y:
-			EdgeRot = FRotationMatrix::MakeFromY(Path->GetEdgeDir(Index)).Rotator();
+			EdgeRot = FRotationMatrix::MakeFromY(Edge.Dir).Rotator();
 			break;
 		case EPCGExMinimalAxis::Z:
-			EdgeRot = FRotationMatrix::MakeFromZ(Path->GetEdgeDir(Index)).Rotator();
+			EdgeRot = FRotationMatrix::MakeFromZ(Edge.Dir).Rotator();
 			break;
 		}
 

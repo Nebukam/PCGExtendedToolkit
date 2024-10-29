@@ -15,7 +15,7 @@ namespace PCGExSplitPath
 	const FName SourceSplitFilters = TEXT("SplitConditions");
 }
 
-UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Path Split Action"))
+UENUM(/*E--BlueprintType, meta=(DisplayName="[PCGEx] Path Split Action")--E*/)
 enum class EPCGExPathSplitAction : uint8
 {
 	Split      = 0 UMETA(DisplayName = "Split", ToolTip="Duplicate the split point so the original becomes a new end, and the copy a new start."),
@@ -25,7 +25,7 @@ enum class EPCGExPathSplitAction : uint8
 	Switch     = 4 UMETA(DisplayName = "Switch", ToolTip="Use the result of the filter as a switch signal to change between keep/prune behavior."),
 };
 
-UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Path Split Initial Value"))
+UENUM(/*E--BlueprintType, meta=(DisplayName="[PCGEx] Path Split Initial Value")--E*/)
 enum class EPCGExPathSplitInitialValue : uint8
 {
 	Constant          = 0 UMETA(DisplayName = "Constant", ToolTip="Use a constant value."),
@@ -37,7 +37,7 @@ enum class EPCGExPathSplitInitialValue : uint8
 /**
  * 
  */
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Path")
+UCLASS(/*E--MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Path"--E*/)
 class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExSplitPathSettings : public UPCGExPathProcessorSettings
 {
 	GENERATED_BODY()

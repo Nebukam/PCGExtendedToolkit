@@ -11,7 +11,7 @@
 
 #include "PCGExCherryPickPoints.generated.h"
 
-UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Cherry Pick Source"))
+UENUM(/*E--BlueprintType, meta=(DisplayName="[PCGEx] Cherry Pick Source")--E*/)
 enum class EPCGExCherryPickSource : uint8
 {
 	Self   = 0 UMETA(DisplayName = "Self", ToolTip="Read indices from an attribute on the currently cherry-picked data set."),

@@ -30,8 +30,24 @@ FPCGExEdgesProcessorContext::~FPCGExEdgesProcessorContext()
 
 TArray<FPCGPinProperties> UPCGExEdgesProcessorSettings::InputPinProperties() const
 {
-	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
+	//TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
+
+	TArray<FPCGPinProperties> PinProperties;
+
+	if (!IsInputless())
+	{
+		if (GetMainAcceptMultipleData()) { PCGEX_PIN_POINTS(GetMainInputLabel(), "The point data to be processed.", Required, {}) }
+		else { PCGEX_PIN_POINT(GetMainInputLabel(), "The point data to be processed.", Required, {}) }
+	}
+	
 	PCGEX_PIN_POINTS(PCGExGraph::SourceEdgesLabel, "Edges associated with the main input points", Required, {})
+
+	if (SupportsPointFilters())
+	{
+		if (RequiresPointFilters()) { PCGEX_PIN_PARAMS(GetPointFilterLabel(), GetPointFilterTooltip(), Required, {}) }
+		else { PCGEX_PIN_PARAMS(GetPointFilterLabel(), GetPointFilterTooltip(), Normal, {}) }
+	}
+	
 	if (SupportsEdgeSorting())
 	{
 		if (RequiresEdgeSorting()) { PCGEX_PIN_PARAMS(PCGExGraph::SourceEdgeSortingRules, "Plug sorting rules here. Order is defined by each rule' priority value, in ascending order.", Required, {}) }

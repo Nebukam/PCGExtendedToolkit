@@ -27,7 +27,7 @@
 
 #include "PCGEx.generated.h"
 
-UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Ordered Field Selection"))
+UENUM(/*E--BlueprintType, meta=(DisplayName="[PCGEx] Ordered Field Selection")--E*/)
 enum class EPCGExOrderedFieldSelection : uint8
 {
 	X      = 0 UMETA(DisplayName = "X", ToolTip="X/Roll component if it exist, raw value otherwise."),
@@ -43,7 +43,7 @@ enum class EPCGExOrderedFieldSelection : uint8
 	Length = 10 UMETA(DisplayName = "Length", ToolTip="Length if vector, raw value otherwise."),
 };
 
-UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Transform Component Selector"))
+UENUM(/*E--BlueprintType, meta=(DisplayName="[PCGEx] Transform Component Selector")--E*/)
 enum class EPCGExTransformComponent : uint8
 {
 	Position = 0 UMETA(DisplayName = "Position", ToolTip="Position component."),
@@ -51,7 +51,7 @@ enum class EPCGExTransformComponent : uint8
 	Scale    = 2 UMETA(DisplayName = "Scale", ToolTip="Scale component."),
 };
 
-UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Minimal Axis"))
+UENUM(/*E--BlueprintType, meta=(DisplayName="[PCGEx] Minimal Axis")--E*/)
 enum class EPCGExMinimalAxis : uint8
 {
 	None = 0 UMETA(DisplayName = "None", ToolTip="None"),
@@ -60,7 +60,7 @@ enum class EPCGExMinimalAxis : uint8
 	Z    = 3 UMETA(DisplayName = "Z", ToolTip="Z Axis"),
 };
 
-UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Single Component Selector"))
+UENUM(/*E--BlueprintType, meta=(DisplayName="[PCGEx] Single Component Selector")--E*/)
 enum class EPCGExSingleField : uint8
 {
 	X      = 0 UMETA(DisplayName = "X/Roll", ToolTip="X/Roll component if it exist, raw value otherwise."),
@@ -70,7 +70,7 @@ enum class EPCGExSingleField : uint8
 	Length = 4 UMETA(DisplayName = "Length", ToolTip="Length if vector, raw value otherwise."),
 };
 
-UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Axis Selector"))
+UENUM(/*E--BlueprintType, meta=(DisplayName="[PCGEx] Axis Selector")--E*/)
 enum class EPCGExAxis : uint8
 {
 	Forward  = 0 UMETA(DisplayName = "Default (Forward)", ToolTip="Forward from Transform/FQuat/Rotator, or raw vector."),
@@ -81,7 +81,7 @@ enum class EPCGExAxis : uint8
 	Down     = 5 UMETA(DisplayName = "Down", ToolTip="Down from Transform/FQuat/Rotator, or raw vector."),
 };
 
-UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Axis Alignment Selector"))
+UENUM(/*E--BlueprintType, meta=(DisplayName="[PCGEx] Axis Alignment Selector")--E*/)
 enum class EPCGExAxisAlign : uint8
 {
 	Forward  = 0 UMETA(DisplayName = "Forward", ToolTip="..."),
@@ -92,7 +92,7 @@ enum class EPCGExAxisAlign : uint8
 	Down     = 5 UMETA(DisplayName = "Down", ToolTip="..."),
 };
 
-UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Extent Type Selector"))
+UENUM(/*E--BlueprintType, meta=(DisplayName="[PCGEx] Extent Type Selector")--E*/)
 enum class EPCGExExtension : uint8
 {
 	None          = 0 UMETA(DisplayName = "None", ToolTip="No Extension"),
@@ -101,7 +101,7 @@ enum class EPCGExExtension : uint8
 	ScaledExtents = 3 UMETA(DisplayName = "Scaled Extents", ToolTip="Scaled extents"),
 };
 
-UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Distance Reference Selector"))
+UENUM(/*E--BlueprintType, meta=(DisplayName="[PCGEx] Distance Reference Selector")--E*/)
 enum class EPCGExDistance : uint8
 {
 	Center       = 0 UMETA(DisplayName = "Center", ToolTip="Center"),
@@ -109,7 +109,7 @@ enum class EPCGExDistance : uint8
 	BoxBounds    = 2 UMETA(DisplayName = "Box Bounds", ToolTip="Point extents"),
 };
 
-UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Index Safety"))
+UENUM(/*E--BlueprintType, meta=(DisplayName="[PCGEx] Index Safety")--E*/)
 enum class EPCGExIndexSafety : uint8
 {
 	Ignore = 0 UMETA(DisplayName = "Ignore", Tooltip="Out of bounds indices are ignored."),
@@ -118,7 +118,7 @@ enum class EPCGExIndexSafety : uint8
 	Yoyo   = 3 UMETA(DisplayName = "Yoyo", Tooltip="Out of bounds indices are mirrored and back."),
 };
 
-UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Collision Type Filter"))
+UENUM(/*E--BlueprintType, meta=(DisplayName="[PCGEx] Collision Type Filter")--E*/)
 enum class EPCGExCollisionFilterType : uint8
 {
 	Channel    = 0 UMETA(DisplayName = "Channel", ToolTip="Channel"),
@@ -126,21 +126,21 @@ enum class EPCGExCollisionFilterType : uint8
 	Profile    = 2 UMETA(DisplayName = "Profile", ToolTip="Profile"),
 };
 
-UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Selector Type"))
+UENUM(/*E--BlueprintType, meta=(DisplayName="[PCGEx] Selector Type")--E*/)
 enum class EPCGExSelectorType : uint8
 {
 	SingleField = 0 UMETA(DisplayName = "Single Field", ToolTip="Forward from Transform/FQuat/Rotator, or raw vector."),
 	Direction   = 1 UMETA(DisplayName = "Direction", ToolTip="Backward from Transform/FQuat/Rotator, or raw vector."),
 };
 
-UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Range Type"))
+UENUM(/*E--BlueprintType, meta=(DisplayName="[PCGEx] Range Type")--E*/)
 enum class EPCGExRangeType : uint8
 {
 	FullRange      = 0 UMETA(DisplayName = "Full Range", ToolTip="Normalize in the [0..1] range using [0..Max Value] range."),
 	EffectiveRange = 1 UMETA(DisplayName = "Effective Range", ToolTip="Remap the input [Min..Max] range to [0..1]."),
 };
 
-UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Truncate Mode"))
+UENUM(/*E--BlueprintType, meta=(DisplayName="[PCGEx] Truncate Mode")--E*/)
 enum class EPCGExTruncateMode : uint8
 {
 	None  = 0 UMETA(DisplayName = "None", ToolTip="None"),

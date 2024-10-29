@@ -15,28 +15,28 @@
 
 #define PCGEX_SOFT_VALIDATE_NAME_DETAILS(_BOOL, _NAME, _CTX) if(_BOOL){if (!FPCGMetadataAttributeBase::IsValidName(_NAME) || _NAME.IsNone()){ PCGE_LOG_C(Warning, GraphAndLog, _CTX, FTEXT("Invalid user-defined attribute name for " #_NAME)); _BOOL = false; } }
 
-UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Adjacency Direction Mode"))
+UENUM(/*E--BlueprintType, meta=(DisplayName="[PCGEx] Adjacency Direction Mode")--E*/)
 enum class EPCGExAdjacencyDirectionOrigin : uint8
 {
 	FromNode     = 0 UMETA(DisplayName = "From Node to Neighbor", Tooltip="..."),
 	FromNeighbor = 1 UMETA(DisplayName = "From Neighbor to Node", Tooltip="..."),
 };
 
-UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Fetch Type"))
+UENUM(/*E--BlueprintType, meta=(DisplayName="[PCGEx] Fetch Type")--E*/)
 enum class EPCGExInputValueType : uint8
 {
 	Constant  = 0 UMETA(DisplayName = "Constant", Tooltip="Constant."),
 	Attribute = 1 UMETA(DisplayName = "Attribute", Tooltip="Attribute."),
 };
 
-UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Fetch Type"))
+UENUM(/*E--BlueprintType, meta=(DisplayName="[PCGEx] Fetch Type")--E*/)
 enum class EPCGExPrune : uint8
 {
 	Overlap  = 0 UMETA(DisplayName = "Overlap", Tooltip="Prune if there is the slightest overlap."),
 	Contains = 1 UMETA(DisplayName = "Contains", Tooltip="Prune if is fully contained by the target."),
 };
 
-UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Data Filter Action"))
+UENUM(/*E--BlueprintType, meta=(DisplayName="[PCGEx] Data Filter Action")--E*/)
 enum class EPCGExFilterDataAction : uint8
 {
 	Keep = 0 UMETA(DisplayName = "Keep", ToolTip="Keeps only selected data"),
@@ -44,7 +44,7 @@ enum class EPCGExFilterDataAction : uint8
 	Tag  = 2 UMETA(DisplayName = "Tag", ToolTip="Keep all and Tag"),
 };
 
-UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Subdivide Mode"))
+UENUM(/*E--BlueprintType, meta=(DisplayName="[PCGEx] Subdivide Mode")--E*/)
 enum class EPCGExSubdivideMode : uint8
 {
 	Distance = 0 UMETA(DisplayName = "Distance", ToolTip="Number of subdivisions depends on segment' length"),
@@ -340,7 +340,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExSourceFuseDetails : public FPCGExFuseDet
 };
 
 
-UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Fuse Precision"))
+UENUM(/*E--BlueprintType, meta=(DisplayName="[PCGEx] Fuse Precision")--E*/)
 enum class EPCGExFuseMethod : uint8
 {
 	Voxel  = 0 UMETA(DisplayName = "Voxel", Tooltip="Fast but blocky. Creates grid-looking approximation.Destructive toward initial topology."),

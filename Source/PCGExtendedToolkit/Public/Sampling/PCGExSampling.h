@@ -23,7 +23,7 @@ if(Context->bWrite##_NAME && !FPCGMetadataAttributeBase::IsValidName(Settings->_
 #define PCGEX_OUTPUT_INIT(_NAME, _TYPE, _DEFAULT_VALUE) if(Context->bWrite##_NAME){ _NAME##Writer = OutputFacade->GetWritable<_TYPE>(Settings->_NAME##AttributeName, _DEFAULT_VALUE, true, false); }
 #define PCGEX_OUTPUT_VALUE(_NAME, _INDEX, _VALUE) if(_NAME##Writer){_NAME##Writer->GetMutable(_INDEX) = _VALUE; }
 
-UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Surface Source"))
+UENUM(/*E--BlueprintType, meta=(DisplayName="[PCGEx] Surface Source")--E*/)
 enum class EPCGExSurfaceSource : uint8
 {
 	All             = 0 UMETA(DisplayName = "Any surface", ToolTip="Any surface within range will be tested"),
@@ -31,7 +31,7 @@ enum class EPCGExSurfaceSource : uint8
 };
 
 
-UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Sample Method"))
+UENUM(/*E--BlueprintType, meta=(DisplayName="[PCGEx] Sample Method")--E*/)
 enum class EPCGExSampleMethod : uint8
 {
 	WithinRange    = 0 UMETA(DisplayName = "All (Within range)", ToolTip="Use RangeMax = 0 to include all targets"),
@@ -40,7 +40,7 @@ enum class EPCGExSampleMethod : uint8
 	BestCandidate  = 3 UMETA(DisplayName = "Best Candidate", ToolTip="Picks & process the best candidate based on sorting rules"),
 };
 
-UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Sample Source"))
+UENUM(/*E--BlueprintType, meta=(DisplayName="[PCGEx] Sample Source")--E*/)
 enum class EPCGExSampleSource : uint8
 {
 	Source   = 0 UMETA(DisplayName = "Source", ToolTip="Read value on source"),
@@ -48,7 +48,7 @@ enum class EPCGExSampleSource : uint8
 	Constant = 2 UMETA(DisplayName = "Constant", ToolTip="Read constant"),
 };
 
-UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Angle Range"))
+UENUM(/*E--BlueprintType, meta=(DisplayName="[PCGEx] Angle Range")--E*/)
 enum class EPCGExAngleRange : uint8
 {
 	URadians   = 0 UMETA(DisplayName = "Radians (0..+PI)", ToolTip="0..+PI"),
@@ -59,7 +59,7 @@ enum class EPCGExAngleRange : uint8
 	TAUDegrees = 5 UMETA(DisplayName = "Degrees (0..+360)", ToolTip="0..+360"),
 };
 
-UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Sample Weight Mode"))
+UENUM(/*E--BlueprintType, meta=(DisplayName="[PCGEx] Sample Weight Mode")--E*/)
 enum class EPCGExSampleWeightMode : uint8
 {
 	Distance      = 0 UMETA(DisplayName = "Distance", ToolTip="Weight is computed using distance to targets"),

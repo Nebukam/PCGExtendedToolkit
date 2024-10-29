@@ -7,7 +7,7 @@
 #include "PCGExOrientOperation.h"
 #include "PCGExOrientLookAtMode.generated.h"
 
-UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Orient Look At Mode"))
+UENUM(/*E--BlueprintType, meta=(DisplayName="[PCGEx] Orient Look At Mode")--E*/)
 enum class EPCGExOrientLookAtMode : uint8
 {
 	NextPoint     = 0 UMETA(DisplayName = "Next Point", ToolTip="Look at next point in path"),
@@ -33,17 +33,85 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="LookAt==EPCGExOrientLookAtMode::Direction || LookAt==EPCGExOrientLookAtMode::Position", EditConditionHides))
 	FPCGAttributePropertyInputSelector LookAtAttribute;
 
-	virtual void CopySettingsFrom(const UPCGExOperation* Other) override;
+	virtual void CopySettingsFrom(const UPCGExOperation* Other) override
+	{
+		Super::CopySettingsFrom(Other);
+		if (const UPCGExOrientLookAt* TypedOther = Cast<UPCGExOrientLookAt>(Other))
+		{
+			LookAt = TypedOther->LookAt;
+			LookAtAttribute = TypedOther->LookAtAttribute;
+		}
+	}
 
-	virtual bool PrepareForData(const TSharedRef<PCGExData::FFacade>& InDataFacade) override;
+	virtual bool PrepareForData(const TSharedRef<PCGExData::FFacade>& InDataFacade, const TSharedRef<PCGExPaths::FPath>& InPath) override
+	{
+		if (!Super::PrepareForData(InDataFacade, InPath)) { return false; }
 
-	virtual FTransform ComputeOrientation(const PCGExData::FPointRef& Point, const PCGExData::FPointRef& Previous, const PCGExData::FPointRef& Next, const double DirectionMultiplier) const override;
+		if (LookAt == EPCGExOrientLookAtMode::Direction || LookAt == EPCGExOrientLookAtMode::Position)
+		{
+			LookAtGetter = InDataFacade->GetScopedBroadcaster<FVector>(LookAtAttribute);
+			if (!LookAtGetter)
+			{
+				PCGE_LOG_C(Warning, GraphAndLog, Context, FText::Format(FTEXT("LookAt Attribute ({0}) is not valid."), FText::FromString(LookAtAttribute.GetName().ToString())));
+				return false;
+			}
+		}
 
-	virtual FTransform LookAtWorldPos(FTransform InT, const FVector& WorldPos, const double DirectionMultiplier) const;
-	virtual FTransform LookAtDirection(FTransform InT, const int32 Index, const double DirectionMultiplier) const;
-	virtual FTransform LookAtPosition(FTransform InT, const int32 Index, const double DirectionMultiplier) const;
+		return true;
+	}
 
-	virtual void Cleanup() override;
+	virtual FTransform ComputeOrientation(const PCGExData::FPointRef& Point, const double DirectionMultiplier) const override
+	{
+		switch (LookAt)
+		{
+		default: ;
+		case EPCGExOrientLookAtMode::NextPoint:
+			return LookAtWorldPos(Point.Point->Transform, Path->GetPos(Point.Index + 1), DirectionMultiplier);
+		case EPCGExOrientLookAtMode::PreviousPoint:
+			return LookAtWorldPos(Point.Point->Transform, Path->GetPos(Point.Index - 1), DirectionMultiplier);
+		case EPCGExOrientLookAtMode::Direction:
+			return LookAtDirection(Point.Point->Transform, Point.Index, DirectionMultiplier);
+		case EPCGExOrientLookAtMode::Position:
+			return LookAtPosition(Point.Point->Transform, Point.Index, DirectionMultiplier);
+		}
+	}
+
+	virtual FTransform LookAtWorldPos(FTransform InT, const FVector& WorldPos, const double DirectionMultiplier) const
+	{
+		FTransform OutT = InT;
+		OutT.SetRotation(
+			PCGExMath::MakeDirection(
+				OrientAxis,
+				(InT.GetLocation() - WorldPos).GetSafeNormal() * DirectionMultiplier,
+				PCGExMath::GetDirection(UpAxis)));
+		return OutT;
+	}
+
+	virtual FTransform LookAtDirection(FTransform InT, const int32 Index, const double DirectionMultiplier) const
+	{
+		FTransform OutT = InT;
+		OutT.SetRotation(
+			PCGExMath::MakeDirection(
+				OrientAxis, LookAtGetter->Read(Index).GetSafeNormal() * DirectionMultiplier, PCGExMath::GetDirection(UpAxis)));
+		return OutT;
+	}
+
+	virtual FTransform LookAtPosition(FTransform InT, const int32 Index, const double DirectionMultiplier) const
+	{
+		FTransform OutT = InT;
+		const FVector Current = OutT.GetLocation();
+		const FVector Position = LookAtGetter->Read(Index);
+		OutT.SetRotation(
+			PCGExMath::MakeDirection(
+				OrientAxis, (Position - Current).GetSafeNormal() * DirectionMultiplier, PCGExMath::GetDirection(UpAxis)));
+		return OutT;
+	}
+
+	virtual void Cleanup() override
+	{
+		LookAtGetter.Reset();
+		Super::Cleanup();
+	}
 
 protected:
 	TSharedPtr<PCGExData::TBuffer<FVector>> LookAtGetter;

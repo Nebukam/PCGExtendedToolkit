@@ -10,14 +10,14 @@
 
 #include "PCGExShrinkPath.generated.h"
 
-UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Path Shrink Mode"))
+UENUM(/*E--BlueprintType, meta=(DisplayName="[PCGEx] Path Shrink Mode")--E*/)
 enum class EPCGExPathShrinkMode : uint8
 {
 	Count    = 0 UMETA(DisplayName = "Count", ToolTip="TBD"),
 	Distance = 1 UMETA(DisplayName = "Distance", ToolTip="TBD."),
 };
 
-UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Path Shrink Distance Cut Type"))
+UENUM(/*E--BlueprintType, meta=(DisplayName="[PCGEx] Path Shrink Distance Cut Type")--E*/)
 enum class EPCGExPathShrinkDistanceCutType : uint8
 {
 	NewPoint = 0 UMETA(DisplayName = "New Point", ToolTip="TBD"),
@@ -26,7 +26,7 @@ enum class EPCGExPathShrinkDistanceCutType : uint8
 	Closest  = 3 UMETA(DisplayName = "Closest (Round)", ToolTip="TBD."),
 };
 
-UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Path Shrink Endpoint"))
+UENUM(/*E--BlueprintType, meta=(DisplayName="[PCGEx] Path Shrink Endpoint")--E*/)
 enum class EPCGExShrinkEndpoint : uint8
 {
 	Both  = 0 UMETA(DisplayName = "Start and End", ToolTip="TBD"),
@@ -34,7 +34,7 @@ enum class EPCGExShrinkEndpoint : uint8
 	End   = 2 UMETA(DisplayName = "End", ToolTip="TBD."),
 };
 
-UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Path Shrink Constant Mode"))
+UENUM(/*E--BlueprintType, meta=(DisplayName="[PCGEx] Path Shrink Constant Mode")--E*/)
 enum class EPCGExShrinkConstantMode : uint8
 {
 	Shared   = 0 UMETA(DisplayName = "Shared", ToolTip="Both start & end distance use the primary value."),

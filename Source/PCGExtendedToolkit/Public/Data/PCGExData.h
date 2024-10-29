@@ -17,7 +17,7 @@
 
 #include "PCGExData.generated.h"
 
-UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Readable Config Mode"))
+UENUM(/*E--BlueprintType, meta=(DisplayName="[PCGEx] Readable Config Mode")--E*/)
 enum class EPCGExReadableConfigMode : uint8
 {
 	RawAttribute          = 0 UMETA(DisplayName = "RawAttribute", Tooltip="..."),
