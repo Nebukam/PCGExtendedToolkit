@@ -25,7 +25,7 @@ class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExSubdivideSettings : public UPCGExPathProc
 public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS(Subdivide, "Path : Subdivide", "Subdivide paths segments.");
+	PCGEX_NODE_INFOS(PathSubdivide, "Path : Subdivide", "Subdivide paths segments.");
 #endif
 
 protected:

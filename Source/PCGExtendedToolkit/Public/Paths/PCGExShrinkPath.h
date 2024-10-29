@@ -106,7 +106,7 @@ public:
 
 	//~Begin UPCGSettings
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS(ShrinkPath, "Path : Shrink", "Shrink path from its beginning and end.");
+	PCGEX_NODE_INFOS(PathShrink, "Path : Shrink", "Shrink path from its beginning and end.");
 #endif
 
 protected:

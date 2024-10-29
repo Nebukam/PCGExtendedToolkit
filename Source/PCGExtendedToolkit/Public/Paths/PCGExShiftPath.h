@@ -40,7 +40,7 @@ public:
 
 	//~Begin UPCGSettings
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS(ShiftPath, "Path : Shift", "Shift path points");
+	PCGEX_NODE_INFOS(PathShift, "Path : Shift", "Shift path points");
 #endif
 
 protected:

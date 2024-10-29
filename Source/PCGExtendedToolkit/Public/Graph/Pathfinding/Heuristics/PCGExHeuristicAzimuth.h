@@ -81,7 +81,7 @@ public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(
-		HeuristicsGoalFocused, "Heuristics : Azimuth", "Heuristics based on direction toward final goal (north star).",
+		HeuristicsAzimuth, "Heuristics : Azimuth", "Heuristics based on direction toward final goal (north star).",
 		FName(GetDisplayName()))
 #endif
 	//~End UPCGSettings

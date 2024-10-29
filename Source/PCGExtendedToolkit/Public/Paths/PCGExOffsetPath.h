@@ -21,7 +21,7 @@ class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExOffsetPathSettings : public UPCGExPathPro
 public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS(OffsetPath, "Path : Offset", "Offset paths points.");
+	PCGEX_NODE_INFOS(PathOffset, "Path : Offset", "Offset paths points.");
 #endif
 
 protected:

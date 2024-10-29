@@ -35,7 +35,8 @@ namespace PCGExFactories
 		Sampler,
 		Heuristics,
 		VtxProperty,
-		ConditionalActions
+		ConditionalActions,
+		ShapeBuilder
 	};
 
 	static inline TSet<EType> AnyFilters = {EType::FilterPoint, EType::FilterNode, EType::FilterEdge, EType::FilterGroup};
@@ -80,7 +81,7 @@ public:
 #if WITH_EDITOR
 	bool bCacheResult = false;
 	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(
-		FactoryProvider, "Factory : Proviader", "Creates an abstract factory provider.",
+		FactoryProvider, "Factory : Provider", "Creates an abstract factory provider.",
 		FName(GetDisplayName()))
 	virtual EPCGSettingsType GetType() const override { return EPCGSettingsType::Param; }
 	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->NodeColorFilter; }

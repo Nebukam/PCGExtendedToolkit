@@ -37,7 +37,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExHeuristicAttributeConfig : public FPCGEx
 /**
  * 
  */
-UCLASS(MinimalAPI, DisplayName = "Direction")
+UCLASS(MinimalAPI, DisplayName = "Attribute")
 class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExHeuristicAttribute : public UPCGExHeuristicOperation
 {
 	GENERATED_BODY()
