@@ -67,7 +67,8 @@ namespace PCGExWritePathProperties
 		Path = PCGExPaths::MakePath(PointDataFacade->GetIn()->GetPoints(), 0, bClosedLoop);
 		Path->IOIndex = PointDataFacade->Source->IOIndex;
 		PathLength = Path->AddExtra<PCGExPaths::FPathEdgeLength>(true); // Force compute length
-		PathBinormal = Path->AddExtra<PCGExPaths::FPathEdgeBinormal>(false, Settings->UpVector);
+		if (Settings->bWritePointNormal || Settings->bWritePointBinormal) { PathBinormal = Path->AddExtra<PCGExPaths::FPathEdgeBinormal>(false, Settings->UpVector); }
+		if (Settings->bWritePointAvgNormal) { PathAvgNormal = Path->AddExtra<PCGExPaths::FPathEdgeAvgNormal>(false, Settings->UpVector); }
 
 		{
 			const TSharedRef<PCGExData::FFacade>& OutputFacade = PointDataFacade;
@@ -109,21 +110,12 @@ namespace PCGExWritePathProperties
 		Current.ToPrev = Path->DirToPrevPoint(Index);
 		Current.ToNext = Path->DirToNextPoint(Index);
 
-		if (!bClosedLoop && Index == Path->LastIndex)
-		{
-			Path->ComputeEdgeExtra(Path->LastEdge);
-			Current.Normal = PathBinormal->Normals[Path->LastEdge];
-			Current.Binormal = PathBinormal->Get(Path->LastEdge);
-		}
-		else
-		{
-			Path->ComputeEdgeExtra(Index);
-			Current.Normal = PathBinormal->Normals[Index];
-			Current.Binormal = PathBinormal->Get(Index);
-		}
-
-		PCGEX_OUTPUT_VALUE(PointNormal, Index, Current.Normal);
-		PCGEX_OUTPUT_VALUE(PointBinormal, Index, Current.Binormal);
+		int32 ExtraIndex = !bClosedLoop && Index == Path->LastIndex ? Path->LastEdge : Index;
+		Path->ComputeEdgeExtra(ExtraIndex);
+		
+		PCGEX_OUTPUT_VALUE(PointNormal, Index, PathBinormal->Normals[ExtraIndex]);
+		PCGEX_OUTPUT_VALUE(PointBinormal, Index, PathBinormal->Get(ExtraIndex));
+		PCGEX_OUTPUT_VALUE(PointAvgNormal, Index, PathAvgNormal->Get(ExtraIndex));
 
 		PCGEX_OUTPUT_VALUE(DirectionToNext, Index, Current.ToNext);
 		PCGEX_OUTPUT_VALUE(DirectionToPrev, Index, Current.ToPrev);

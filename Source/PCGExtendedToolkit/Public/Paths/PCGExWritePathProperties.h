@@ -19,6 +19,7 @@ MACRO(DistanceToStart, double, 0)\
 MACRO(DistanceToEnd, double, 0)\
 MACRO(PointTime, double, 0)\
 MACRO(PointNormal, FVector, FVector::OneVector)\
+MACRO(PointAvgNormal, FVector, FVector::OneVector)\
 MACRO(PointBinormal, FVector, FVector::OneVector)\
 MACRO(DirectionToNext, FVector, FVector::OneVector)\
 MACRO(DirectionToPrev, FVector, FVector::OneVector)
@@ -154,6 +155,14 @@ public:
 
 	/** Output point normal. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output - Points", meta=(PCG_Overridable, InlineEditConditionToggle))
+	bool bWritePointAvgNormal = false;
+
+	/** Name of the 'FVector' attribute to write point averaged normal to.*/
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output - Points", meta=(DisplayName="PointAverageNormal", PCG_Overridable, EditCondition="bWritePointAvgNormal"))
+	FName PointAvgNormalAttributeName = FName("PointAvgNormal");
+	
+	/** Output point normal. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output - Points", meta=(PCG_Overridable, InlineEditConditionToggle))
 	bool bWritePointBinormal = false;
 
 	/** Name of the 'FVector' attribute to write point binormal to. Note that it's stabilized.*/
@@ -234,6 +243,7 @@ namespace PCGExWritePathProperties
 		TSharedPtr<PCGExPaths::FPath> Path;
 		TSharedPtr<PCGExPaths::FPathEdgeLength> PathLength;
 		TSharedPtr<PCGExPaths::FPathEdgeBinormal> PathBinormal;
+		TSharedPtr<PCGExPaths::FPathEdgeAvgNormal> PathAvgNormal;
 
 		TArray<FPointDetails> Details;
 

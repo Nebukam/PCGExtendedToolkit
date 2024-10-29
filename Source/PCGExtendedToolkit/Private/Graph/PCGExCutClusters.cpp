@@ -238,7 +238,7 @@ namespace PCGExCutEdges
 
 					if (Context->IntersectionDetails.bUseMinAngle || Context->IntersectionDetails.bUseMaxAngle)
 					{
-						if (!Context->IntersectionDetails.CheckDot(FMath::Abs(FVector::DotProduct(Path->GetEdgeDir(*PathEdge), Dir))))
+						if (!Context->IntersectionDetails.CheckDot(FMath::Abs(FVector::DotProduct(PathEdge->Dir, Dir))))
 						{
 							return true;
 						}

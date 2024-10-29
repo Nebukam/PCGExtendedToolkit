@@ -101,10 +101,12 @@ namespace PCGExOrient
 
 		if (!FPointsProcessor::Process(InAsyncManager)) { return false; }
 
+		Path = PCGExPaths::MakePath(PointDataFacade->GetIn()->GetPoints(), 0, Context->ClosedLoop.IsClosedLoop(PointDataFacade->Source));
+		//PathBinormal = Path->AddExtra<PCGExPaths::FPathEdgeBinormal>(false);
+
 		LastIndex = PointDataFacade->GetNum() - 1;
 		Orient = Cast<UPCGExOrientOperation>(PrimaryOperation);
-		Orient->bClosedLoop = Context->ClosedLoop.IsClosedLoop(PointDataFacade->Source);
-		if (!Orient->PrepareForData(PointDataFacade)) { return false; }
+		if (!Orient->PrepareForData(PointDataFacade, Path.ToSharedRef())) { return false; }
 
 		if (Settings->Output == EPCGExOrientUsage::OutputToAttribute)
 		{
@@ -129,25 +131,10 @@ namespace PCGExOrient
 
 	void FProcessor::ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const int32 LoopIdx, const int32 Count)
 	{
-		FTransform OutT;
+		if (Path->IsValidEdgeIndex(Index)) { Path->ComputeEdgeExtra(Index); }
 
-		const TSharedRef<PCGExData::FPointIO>& PointIO = PointDataFacade->Source;
-
-		const PCGExData::FPointRef Current = PointIO->GetOutPointRef(Index);
-		if (Orient->bClosedLoop)
-		{
-			const PCGExData::FPointRef Previous = Index == 0 ? PointIO->GetInPointRef(LastIndex) : PointIO->GetInPointRef(Index - 1);
-			const PCGExData::FPointRef Next = Index == LastIndex ? PointIO->GetInPointRef(0) : PointIO->GetInPointRef(Index + 1);
-			OutT = Orient->ComputeOrientation(Current, Previous, Next, PointFilterCache[Index] ? -1 : 1);
-			if (Settings->bOutputDot) { DotWriter->GetMutable(Index) = DotProduct(Current, Previous, Next); }
-		}
-		else
-		{
-			const PCGExData::FPointRef Previous = Index == 0 ? Current : PointIO->GetInPointRef(Index - 1);
-			const PCGExData::FPointRef Next = Index == LastIndex ? PointIO->GetInPointRef(LastIndex) : PointIO->GetInPointRef(Index + 1);
-			OutT = Orient->ComputeOrientation(Current, Previous, Next, PointFilterCache[Index] ? -1 : 1);
-			if (Settings->bOutputDot) { DotWriter->GetMutable(Index) = DotProduct(Current, Previous, Next); }
-		}
+		FTransform OutT = Orient->ComputeOrientation(PointDataFacade->Source->GetOutPointRef(Index), PointFilterCache[Index] ? -1 : 1);
+		if (Settings->bOutputDot) { DotWriter->GetMutable(Index) = FVector::DotProduct(Path->DirToPrevPoint(Index) * -1, Path->DirToNextPoint(Index)); }
 
 		if (TransformWriter) { TransformWriter->GetMutable(Index) = OutT; }
 		else { Point.Transform = OutT; }

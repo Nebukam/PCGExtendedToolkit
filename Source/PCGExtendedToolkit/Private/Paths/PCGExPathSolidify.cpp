@@ -108,6 +108,7 @@ if (!SolidificationRad##_AXIS){ PCGE_LOG_C(Warning, GraphAndLog, Context, FText:
 	{
 		if (!Path->IsValidEdgeIndex(Index)) { return; }
 
+		const PCGExPaths::FPathEdge& Edge = Path->Edges[Index];
 		Path->ComputeEdgeExtra(Index);
 		
 		const double Length = PathLength->Get(Index);
@@ -143,13 +144,13 @@ if (!SolidificationRad##_AXIS){ PCGE_LOG_C(Warning, GraphAndLog, Context, FText:
 		{
 		default:
 		case EPCGExMinimalAxis::X:
-			EdgeRot = FRotationMatrix::MakeFromX(Path->GetEdgeDir(Index)).Rotator();
+			EdgeRot = FRotationMatrix::MakeFromX(Edge.Dir).Rotator();
 			break;
 		case EPCGExMinimalAxis::Y:
-			EdgeRot = FRotationMatrix::MakeFromY(Path->GetEdgeDir(Index)).Rotator();
+			EdgeRot = FRotationMatrix::MakeFromY(Edge.Dir).Rotator();
 			break;
 		case EPCGExMinimalAxis::Z:
-			EdgeRot = FRotationMatrix::MakeFromZ(Path->GetEdgeDir(Index)).Rotator();
+			EdgeRot = FRotationMatrix::MakeFromZ(Edge.Dir).Rotator();
 			break;
 		}
 
