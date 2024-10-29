@@ -255,7 +255,7 @@ namespace PCGExDataBlending
 		TArray<int32> IdxIO;
 		TArray<int32> IdxPt;
 		TArray<double> Weights;
-		TArray<bool> InheritedTags;
+		TArray<int8> InheritedTags;
 
 		FPCGPoint& Target = CurrentTargetData->Source->GetMutablePoint(UnionIndex);
 
@@ -267,7 +267,7 @@ namespace PCGExDataBlending
 		const int32 NumUnions = IdxPt.Num();
 		if (NumUnions == 0) { return; }
 
-		InheritedTags.Init(false, TagAttributes.Num());
+		InheritedTags.Init(0, TagAttributes.Num());
 
 		// Blend Properties
 		BlendProperties(Target, IdxIO, IdxPt, Weights);

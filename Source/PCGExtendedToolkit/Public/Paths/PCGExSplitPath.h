@@ -133,7 +133,7 @@ namespace PCGExSplitPath
 
 		bool bWrapLastPath = false;
 		bool bAddOpenTag = false;
-		bool bLastResult = false;
+		int8 bLastResult = false;
 		bool bEven = true;
 
 		int32 LastIndex = -1;

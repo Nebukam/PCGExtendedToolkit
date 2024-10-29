@@ -58,7 +58,7 @@ namespace PCGExClusterTask
 	public:
 		FFindNodeChains(const TSharedPtr<PCGExData::FPointIO>& InPointIO,
 		                const TSharedPtr<PCGExCluster::FCluster>& InCluster,
-		                const TArray<bool>* InBreakpoints,
+		                const TArray<int8>* InBreakpoints,
 		                TArray<TSharedPtr<PCGExCluster::FNodeChain>>* InChains,
 		                const bool InSkipSingleEdgeChains = false,
 		                const bool InDeadEndsOnly = false) :
@@ -72,7 +72,7 @@ namespace PCGExClusterTask
 		}
 
 		TSharedPtr<PCGExCluster::FCluster> Cluster;
-		const TArray<bool>* Breakpoints = nullptr;
+		const TArray<int8>* Breakpoints = nullptr;
 		TArray<TSharedPtr<PCGExCluster::FNodeChain>>* Chains = nullptr;
 
 		const bool bSkipSingleEdgeChains = false;
@@ -86,7 +86,7 @@ namespace PCGExClusterTask
 	public:
 		FBuildChain(const TSharedPtr<PCGExData::FPointIO>& InPointIO,
 		            const TSharedPtr<const PCGExCluster::FCluster>& InCluster,
-		            const TArray<bool>* InBreakpoints,
+		            const TArray<int8>* InBreakpoints,
 		            TArray<TSharedPtr<PCGExCluster::FNodeChain>>* InChains,
 		            const int32 InStartIndex,
 		            const uint64 InAdjacencyHash) :
@@ -100,7 +100,7 @@ namespace PCGExClusterTask
 		}
 
 		TSharedPtr<const PCGExCluster::FCluster> Cluster;
-		const TArray<bool>* Breakpoints = nullptr;
+		const TArray<int8>* Breakpoints = nullptr;
 		TArray<TSharedPtr<PCGExCluster::FNodeChain>>* Chains = nullptr;
 		int32 StartIndex = 0;
 		uint64 AdjacencyHash = 0;
@@ -110,12 +110,12 @@ namespace PCGExClusterTask
 
 	static void BuildChain(
 		const TSharedPtr<PCGExCluster::FNodeChain>& Chain,
-		const TArray<bool>* Breakpoints,
+		const TArray<int8>* Breakpoints,
 		const TSharedPtr<const PCGExCluster::FCluster>& Cluster)
 	{
 		TArray<PCGExCluster::FNode>& Nodes = *Cluster->Nodes;
 
-		const TArray<bool>& Brkpts = *Breakpoints;
+		const TArray<int8>& Brkpts = *Breakpoints;
 		int32 LastIndex = Chain->First;
 		int32 NextIndex = Chain->Last;
 		Chain->Edges.Add(Nodes[LastIndex].GetEdgeIndex(NextIndex));

@@ -112,10 +112,10 @@ namespace PCGExSplitPath
 			{
 			default:
 			case EPCGExPathSplitInitialValue::Constant:
-				bLastResult = Settings->bInitialValue;
+				bLastResult = static_cast<int8>(Settings->bInitialValue);
 				break;
 			case EPCGExPathSplitInitialValue::ConstantPreserve:
-				bLastResult = Settings->bInitialValue == PointFilterCache[0] ? !bLastResult : bLastResult;
+				bLastResult = static_cast<int8>(Settings->bInitialValue) == PointFilterCache[0] ? !bLastResult : bLastResult;
 				break;
 			case EPCGExPathSplitInitialValue::FromPoint:
 				bLastResult = PointFilterCache[0];

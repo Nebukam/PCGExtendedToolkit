@@ -65,7 +65,7 @@ namespace PCGExDataBlending
 		const int32 PrimaryIndex = A.Index;
 		const int32 SecondaryIndex = B.Index;
 
-		const bool IsFirstOperation = FirstPointOperation[PrimaryIndex];
+		const int8 IsFirstOperation = FirstPointOperation[PrimaryIndex];
 		for (const TSharedPtr<FDataBlendingOperationBase>& Op : Operations) { Op->DoRangeOperation(PrimaryIndex, SecondaryIndex, StartIndex, Weights, IsFirstOperation); }
 		FirstPointOperation[PrimaryIndex] = false;
 
@@ -103,7 +103,7 @@ namespace PCGExDataBlending
 		const int32 PrimaryIndex = From.Index;
 		const int32 SecondaryIndex = To.Index;
 
-		const bool IsFirstOperation = FirstPointOperation[PrimaryIndex];
+		const int8 IsFirstOperation = FirstPointOperation[PrimaryIndex];
 
 		for (const FDataBlendingOperationBase* Op : OperationsToBePrepared)
 		{

@@ -70,7 +70,7 @@ const TSharedPtr<TBatch<T>> Batch = WeakBatch.Pin(); if(!Batch){return;}\
 		bool DefaultPointFilterValue = true;
 		bool bIsTrivial = false;
 
-		TArray<bool> PointFilterCache;
+		TArray<int8> PointFilterCache;
 
 		int32 BatchIndex = -1;
 

@@ -67,7 +67,7 @@ namespace PCGExBreakClustersToPaths
 
 		if (!FClusterProcessor::Process(InAsyncManager)) { return false; }
 
-		Breakpoints.Init(false, Cluster->Nodes->Num());
+		Breakpoints.Init(0, Cluster->Nodes->Num());
 
 		if (!DirectionSettings.InitFromParent(ExecutionContext, StaticCastWeakPtr<FProcessorBatch>(ParentBatch).Pin()->DirectionSettings, EdgeDataFacade))
 		{

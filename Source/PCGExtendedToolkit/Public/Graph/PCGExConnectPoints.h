@@ -100,7 +100,7 @@ namespace PCGExConnectPoints
 		int32 NumChainedOps = 0;
 		double SharedSearchRadius = MIN_dbl;
 
-		TArray<bool> CanGenerate;
+		TArray<int8> CanGenerate;
 		TUniquePtr<PCGEx::FIndexedItemOctree> Octree;
 
 		const TArray<FPCGPoint>* InPoints = nullptr;

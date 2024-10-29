@@ -326,7 +326,7 @@ namespace PCGExDiscardByOverlap
 
 		FORCEINLINE void RegisterPointBounds(const int32 Index, const TSharedPtr<FPointBounds>& InPointBounds)
 		{
-			const bool bValidPoint = PointFilterCache[Index];
+			const int8 bValidPoint = PointFilterCache[Index];
 			if (!bValidPoint && !Settings->bIncludeFilteredInMetrics) { return; }
 
 			const FBox& B = InPointBounds->BSB.GetBox();

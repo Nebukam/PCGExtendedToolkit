@@ -108,7 +108,7 @@ namespace PCGExBreakClustersToPaths
 {
 	class FProcessor final : public PCGExClusterMT::TProcessor<FPCGExBreakClustersToPathsContext, UPCGExBreakClustersToPathsSettings>
 	{
-		TArray<bool> Breakpoints;
+		TArray<int8> Breakpoints;
 
 		TArray<TSharedPtr<PCGExCluster::FNodeChain>> Chains;
 		FPCGExEdgeDirectionSettings DirectionSettings;
