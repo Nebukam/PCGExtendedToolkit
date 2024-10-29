@@ -118,7 +118,7 @@ namespace PCGExPathCrossings
 
 		Path = PCGExPaths::MakePath(PointIO->GetIn()->GetPoints(), Details.Tolerance * 2, bClosedLoop);
 		PathLength = Path->AddExtra<PCGExPaths::FPathEdgeLength>();
-		
+
 		Path->IOIndex = PointIO->IOIndex;
 
 		Crossings.Init(nullptr, Path->NumEdges);
@@ -277,6 +277,8 @@ namespace PCGExPathCrossings
 		{
 			NumPointsFinal++;
 
+			if (!Path->IsClosedLoop() && i == Path->LastIndex) { continue; }
+
 			const FCrossing* Crossing = Crossings[i].Get();
 			if (!Crossing) { continue; }
 
@@ -292,7 +294,7 @@ namespace PCGExPathCrossings
 		PCGEx::InitArray(OutPoints, NumPointsFinal);
 
 		int32 Index = 0;
-		for (int i = 0; i < Path->NumPoints; i++)
+		for (int i = 0; i < Path->NumEdges; i++)
 		{
 			Path->Edges[i].AltStart = Index;
 
@@ -309,6 +311,13 @@ namespace PCGExPathCrossings
 				OutPoints[Index] = OriginalPoint;
 				Metadata->InitializeOnSet(OutPoints[Index++].MetadataEntry);
 			}
+		}
+
+		if (!Path->IsClosedLoop())
+		{
+			const FPCGPoint& OriginalPoint = InPoints[Path->LastIndex];
+			OutPoints[Index] = OriginalPoint;
+			Metadata->InitializeOnSet(OutPoints[Index].MetadataEntry);
 		}
 
 		// Flag last so it doesn't get captured by blenders
