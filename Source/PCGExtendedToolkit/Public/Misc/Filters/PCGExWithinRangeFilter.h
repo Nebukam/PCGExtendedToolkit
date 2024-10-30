@@ -103,7 +103,7 @@ public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(
-		CompareFilterFactory, "Filter : Within Range", "Creates a filter definition check if a value is within a given range.",
+		RangeCompareFilterFactory, "Filter : Within Range", "Creates a filter definition check if a value is within a given range.",
 		PCGEX_FACTORY_NAME_PRIORITY)
 #endif
 	//~End UPCGSettings

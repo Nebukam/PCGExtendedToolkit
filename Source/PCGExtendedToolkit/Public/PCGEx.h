@@ -178,6 +178,18 @@ namespace PCGEx
 
 	static bool IsValidName(const FName Name) { return FPCGMetadataAttributeBase::IsValidName(Name) && !Name.IsNone(); }
 
+	FORCEINLINE double TruncateDbl(const double Value, const EPCGExTruncateMode Mode)
+	{
+		switch (Mode)
+		{
+		case EPCGExTruncateMode::Round: return FMath::RoundToInt(Value);
+		case EPCGExTruncateMode::Ceil: return FMath::CeilToDouble(Value);
+		case EPCGExTruncateMode::Floor: return FMath::FloorToDouble(Value);
+		default:
+		case EPCGExTruncateMode::None: return Value;
+		}
+	}
+
 	FORCEINLINE static void ArrayOfIndices(TArray<int32>& OutArray, const int32 InNum)
 	{
 		{

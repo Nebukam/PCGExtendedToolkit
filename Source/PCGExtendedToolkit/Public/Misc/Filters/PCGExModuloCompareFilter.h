@@ -119,7 +119,7 @@ public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(
-		CompareFilterFactory, "Filter : Modulo Compare", "Creates a filter definition that compares the modulo value of two attribute values againt a third operand.",
+		ModuloCompareFilterFactory, "Filter : Modulo Compare", "Creates a filter definition that compares the modulo value of two attribute values againt a third operand.",
 		PCGEX_FACTORY_NAME_PRIORITY)
 #endif
 	//~End UPCGSettings

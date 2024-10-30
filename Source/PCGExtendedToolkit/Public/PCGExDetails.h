@@ -182,23 +182,9 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExRemapDetails
 
 	FORCEINLINE double GetRemappedValue(const double Value) const
 	{
-		double OutValue = RemapCurveObj->GetFloatValue(PCGExMath::Remap(Value, InMin, InMax, 0, 1)) * Scale;
-		switch (TruncateOutput)
-		{
-		case EPCGExTruncateMode::Round:
-			OutValue = FMath::RoundToInt(OutValue) * PostTruncateScale;
-			break;
-		case EPCGExTruncateMode::Ceil:
-			OutValue = FMath::CeilToDouble(OutValue) * PostTruncateScale;
-			break;
-		case EPCGExTruncateMode::Floor:
-			OutValue = FMath::FloorToDouble(OutValue) * PostTruncateScale;
-			break;
-		default:
-		case EPCGExTruncateMode::None:
-			return OutValue;
-		}
-		return OutValue;
+		return PCGEx::TruncateDbl(
+			RemapCurveObj->GetFloatValue(PCGExMath::Remap(Value, InMin, InMax, 0, 1)) * Scale,
+			TruncateOutput);
 	}
 };
 

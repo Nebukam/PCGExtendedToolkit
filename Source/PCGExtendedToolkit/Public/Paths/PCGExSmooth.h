@@ -23,7 +23,7 @@ class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExSmoothSettings : public UPCGExPathProcess
 public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS(Smooth, "Path : Smooth", "Smooth paths points.");
+	PCGEX_NODE_INFOS(PathSmooth, "Path : Smooth", "Smooth paths points.");
 #endif
 
 protected:
