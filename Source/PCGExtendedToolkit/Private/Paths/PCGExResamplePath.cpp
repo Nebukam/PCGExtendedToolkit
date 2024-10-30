@@ -75,7 +75,6 @@ namespace PCGExResamplePath
 
 		if (Settings->Mode == EPCGExResampleMode::Sweep)
 		{
-			PointDataFacade->Source->InitializeOutput(Context, PCGExData::EInit::NewOutput);
 			if (Settings->ResolutionMode == EPCGExResolutionMode::Fixed)
 			{
 				NumSamples = Settings->Resolution;
@@ -85,6 +84,9 @@ namespace PCGExResamplePath
 				NumSamples = PCGEx::TruncateDbl(PathLength->TotalLength / Settings->Resolution, Settings->Truncate);
 			}
 
+			if (NumSamples < 2) { return false; }
+
+			PointDataFacade->Source->InitializeOutput(Context, PCGExData::EInit::NewOutput);
 			TArray<FPCGPoint>& OutPoints = PointDataFacade->GetMutablePoints();
 			OutPoints.SetNum(NumSamples);
 			OutPoints[0] = PointDataFacade->Source->GetIn()->GetPoints()[0]; // Copy first point
@@ -134,7 +136,7 @@ namespace PCGExResamplePath
 					StartIndex = EndIndex++;
 
 					if (EndIndex >= InPoints.Num()) { break; }
-					
+
 					NextPosition = InPoints[EndIndex].Transform.GetLocation();
 					DistToNext = FVector::Dist(PrevPosition, NextPosition);
 
