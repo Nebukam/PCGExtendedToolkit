@@ -237,6 +237,7 @@ namespace PCGExCreateShapes
 				FPCGPoint& Point = ShapePoints[i];
 				Point.Transform = (Point.Transform * TRB) * TRA;
 				Point.Transform.SetScale3D(FVector::OneVector);
+				PCGExRandom::ComputeSeed(Point, TRB.GetLocation());
 			}
 		};
 
