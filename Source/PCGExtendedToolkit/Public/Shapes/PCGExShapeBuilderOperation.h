@@ -7,6 +7,14 @@
 #include "UObject/Object.h"
 #include "PCGExOperation.h"
 #include "PCGExShapes.h"
+
+
+
+
+
+
+
+
 #include "PCGExShapeBuilderOperation.generated.h"
 
 /**
@@ -19,7 +27,7 @@ class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExShapeBuilderOperation : public UPCGExOper
 
 public:
 	virtual void CopySettingsFrom(const UPCGExOperation* Other) override;
-	virtual void PrepareForSeeds(const TSharedRef<PCGExData::FFacade>& InSeedDataFacade);
+	virtual bool PrepareForSeeds(FPCGExContext* InContext, const TSharedRef<PCGExData::FFacade>& InSeedDataFacade);
 
 	virtual void Cleanup() override
 	{
@@ -28,10 +36,11 @@ public:
 	}
 
 	TArray<TSharedPtr<PCGExShapes::FShape>> Shapes;
+	FTransform Transform;
 
 	virtual void PrepareShape(const PCGExData::FPointRef& Seed) { Shapes[Seed.Index] = MakeShared<PCGExShapes::FShape>(Seed); }
 
-	virtual void BuildShape(TSharedPtr<PCGExShapes::FShape> InShape, TSharedPtr<PCGExData::FFacade> InDataFacade, TArrayView<FPCGPoint> PointView)
+	virtual void BuildShape(const TSharedPtr<PCGExShapes::FShape> InShape, TSharedPtr<PCGExData::FFacade> InDataFacade, const TArrayView<FPCGPoint> PointView)
 	{
 	}
 

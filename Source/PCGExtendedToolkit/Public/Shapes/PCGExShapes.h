@@ -39,28 +39,28 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExShapeConfigBase
 	{
 	}
 
-	~FPCGExShapeConfigBase()
+	virtual ~FPCGExShapeConfigBase()
 	{
 	}
 
-	/** Shape resolution, or "point per unit" -- how it's used depends on shape implementation. */
+	/** Shape resolution, or "point per meter" -- how it's used depends on shape implementation. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayPriority=-1, ClampMin=0))
-	int32 Resolution = 10;
+	double Resolution = 1;
 
 	/** Axis on the source to remap to a target axis on the shape */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayPriority=-1))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Align", meta=(PCG_Overridable, DisplayPriority=-1))
 	EPCGExAxis SourceAxis = EPCGExAxis::Forward;
 
 	/** Shape axis to align to the source axis */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayPriority=-1))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Align", meta=(PCG_Overridable, DisplayPriority=-1))
 	EPCGExAxis TargetAxis = EPCGExAxis::Forward;
 
 	/** Points look at */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayPriority=-1))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Align", meta=(PCG_Overridable, DisplayPriority=-1))
 	EPCGExShapePointLookAt PointsLookAt = EPCGExShapePointLookAt::None;
 
 	/** Axis used to align the look at rotation */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayPriority=-1))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Align", meta=(PCG_Overridable, DisplayPriority=-1))
 	EPCGExAxis LookAtAxis = EPCGExAxis::Forward;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
@@ -68,8 +68,10 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExShapeConfigBase
 
 	FTransform LocalTransform = FTransform::Identity;
 
-	void Init()
+	virtual void Init()
 	{
+		Resolution = Resolution * 0.01; // Per meter
+
 		FQuat A = FQuat::Identity;
 		FQuat B = FQuat::Identity;
 		switch (SourceAxis)

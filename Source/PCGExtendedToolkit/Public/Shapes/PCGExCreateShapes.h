@@ -83,19 +83,16 @@ namespace PCGExCreateShapes
 	public:
 		FBuildShape(
 			const TSharedPtr<PCGExData::FPointIO>& InPointIO,
-			bool InSoloShape,
 			UPCGExShapeBuilderOperation* InOperation,
 			const TSharedRef<PCGExData::FFacade>& InShapeDataFacade,
 			const TSharedPtr<PCGExShapes::FShape>& InShape) :
 			FPCGExTask(InPointIO),
-			bSoloShape(InSoloShape),
 			ShapeDataFacade(InShapeDataFacade),
 			Operation(InOperation),
 			Shape(InShape)
 		{
 		}
 
-		bool bSoloShape = false;
 		TSharedRef<PCGExData::FFacade> ShapeDataFacade;
 		UPCGExShapeBuilderOperation* Operation;
 		TSharedPtr<PCGExShapes::FShape> Shape;

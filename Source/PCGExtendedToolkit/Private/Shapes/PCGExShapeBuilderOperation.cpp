@@ -3,7 +3,6 @@
 
 
 #include "Shapes/PCGExShapeBuilderOperation.h"
-
 #include "Shapes/PCGExShapeBuilderFactoryProvider.h"
 #include "Shapes/PCGExShapes.h"
 
@@ -15,9 +14,10 @@ void UPCGExShapeBuilderOperation::CopySettingsFrom(const UPCGExOperation* Other)
 	}
 }
 
-void UPCGExShapeBuilderOperation::PrepareForSeeds(const TSharedRef<PCGExData::FFacade>& InSeedDataFacade)
+bool UPCGExShapeBuilderOperation::PrepareForSeeds(FPCGExContext* InContext, const TSharedRef<PCGExData::FFacade>& InSeedDataFacade)
 {
 	SeedFacade = InSeedDataFacade;
 	const int32 NumSeeds = SeedFacade->GetNum();
 	PCGEx::InitArray(Shapes, NumSeeds);
+	return true;
 }

@@ -9,6 +9,18 @@
 
 #include "PCGExShapeBuilderFactoryProvider.generated.h"
 
+#define PCGEX_SHAPE_BUILDER_BOILERPLATE(_SHAPE) \
+UPCGExShapeBuilderOperation* UPCGExShape##_SHAPE##Factory::CreateOperation(FPCGExContext* InContext) const{ \
+	UPCGExShape##_SHAPE##Builder* NewOperation = InContext->ManagedObjects->New<UPCGExShape##_SHAPE##Builder>(); \
+	NewOperation->Config = Config; \
+	NewOperation->Config.Init(); \
+	NewOperation->Transform = NewOperation->Config.LocalTransform; \
+	return NewOperation; } \
+UPCGExParamFactoryBase* UPCGExCreateShape##_SHAPE##Settings::CreateFactory(FPCGExContext* InContext, UPCGExParamFactoryBase* InFactory) const{ \
+	UPCGExShape##_SHAPE##Factory* NewFactory = InContext->ManagedObjects->New<UPCGExShape##_SHAPE##Factory>(); \
+	NewFactory->Config = Config; \
+	return Super::CreateFactory(InContext, NewFactory);}
+
 class UPCGExShapeBuilderOperation;
 
 UCLASS(Abstract, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")

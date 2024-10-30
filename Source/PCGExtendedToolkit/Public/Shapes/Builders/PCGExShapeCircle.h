@@ -5,7 +5,6 @@
 
 #include "CoreMinimal.h"
 #include "PCGExPointsProcessor.h"
-
 #include "Shapes/PCGExShapeBuilderFactoryProvider.h"
 #include "Shapes/PCGExShapeBuilderOperation.h"
 
@@ -20,6 +19,31 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExShapeCircleConfig : public FPCGExShapeCo
 		FPCGExShapeConfigBase()
 	{
 	}
+
+	/** Start angle source. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_NotOverridable))
+	EPCGExInputValueType StartAngleInput = EPCGExInputValueType::Constant;
+
+	/** Start angle constant, in degrees. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="StartAngleInput == EPCGExInputValueType::Constant", EditConditionHides, Units="Degrees"))
+	double StartAngleConstant = 0;
+
+	/** Start angle attribute, in degrees. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="StartAngleInput == EPCGExInputValueType::Attribute", EditConditionHides))
+	FPCGAttributePropertyInputSelector StartAngleAttribute;
+
+
+	/** End angle source. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_NotOverridable))
+	EPCGExInputValueType EndAngleInput = EPCGExInputValueType::Constant;
+
+	/** End angle constant, in degrees. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="EndAngleInput == EPCGExInputValueType::Constant", EditConditionHides, Units="Degrees"))
+	double EndAngleConstant = 360;
+
+	/** End angle attribute, in degrees. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="EndAngleInput == EPCGExInputValueType::Attribute", EditConditionHides))
+	FPCGAttributePropertyInputSelector EndAngleAttribute;
 };
 
 namespace PCGExShapes
@@ -28,6 +52,9 @@ namespace PCGExShapes
 	{
 	public:
 		double Radius = 1;
+		double StartAngle = 0;
+		double EndAngle = TWO_PI;
+		double AngleRange = TWO_PI;
 
 		explicit FCircle(const PCGExData::FPointRef& InPointRef)
 			: FShape(InPointRef)
@@ -45,16 +72,22 @@ class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExShapeCircleBuilder : public UPCGExShapeBu
 	GENERATED_BODY()
 
 public:
+	FPCGExShapeCircleConfig Config;
+
+	virtual bool PrepareForSeeds(FPCGExContext* InContext, const TSharedRef<PCGExData::FFacade>& InSeedDataFacade) override;
+	virtual void PrepareShape(const PCGExData::FPointRef& Seed) override;
+	virtual void BuildShape(TSharedPtr<PCGExShapes::FShape> InShape, TSharedPtr<PCGExData::FFacade> InDataFacade, TArrayView<FPCGPoint> PointView) override;
+
 	virtual void Cleanup() override
 	{
+		StartAngleGetter.Reset();
+		EndAngleGetter.Reset();
 		Super::Cleanup();
 	}
 
-	FPCGExShapeCircleConfig Config;
-
-	virtual void PrepareShape(const PCGExData::FPointRef& Seed) override;
-	virtual void BuildShape(TSharedPtr<PCGExShapes::FShape> InShape, TSharedPtr<PCGExData::FFacade> InDataFacade, TArrayView<FPCGPoint> PointView) override;
-	
+protected:
+	TSharedPtr<PCGEx::TAttributeBroadcaster<double>> StartAngleGetter;
+	TSharedPtr<PCGEx::TAttributeBroadcaster<double>> EndAngleGetter;
 };
 
 
