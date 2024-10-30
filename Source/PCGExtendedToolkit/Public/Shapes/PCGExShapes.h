@@ -30,6 +30,13 @@ enum class EPCGExShapePointLookAt : uint8
 	Seed = 1 UMETA(DisplayName = "Seed", ToolTip="Look At Seed"),
 };
 
+UENUM(/*E--BlueprintType, meta=(DisplayName="[PCGEx] Resolution type")--E*/)
+enum class EPCGExResolutionMode : uint8
+{
+	Distance = 0 UMETA(DisplayName = "Distance", ToolTip="Points-per-meter"),
+	Fixed    = 1 UMETA(DisplayName = "Count", ToolTip="Fixed number of points"),
+};
+
 USTRUCT(BlueprintType)
 struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExShapeConfigBase
 {
@@ -43,9 +50,24 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExShapeConfigBase
 	{
 	}
 
-	/** Shape resolution, or "point per meter" -- how it's used depends on shape implementation. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayPriority=-1, ClampMin=0))
-	double Resolution = 1;
+	/** Resolution mode */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Resolution", meta = (PCG_NotOverridable))
+	EPCGExResolutionMode ResolutionMode = EPCGExResolutionMode::Distance;
+
+	/** Resolution input type */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Resolution", meta = (PCG_NotOverridable))
+	EPCGExInputValueType ResolutionInput = EPCGExInputValueType::Constant;
+
+	/** Resolution Constant. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Resolution", meta=(PCG_Overridable, EditCondition="ResolutionInput == EPCGExInputValueType::Constant", EditConditionHides, ClampMin=0))
+	double ResolutionConstant = 10;
+
+	/** Resolution Attribute. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Resolution", meta=(PCG_Overridable, EditCondition="ResolutionInput == EPCGExInputValueType::Attribute", EditConditionHides))
+	FPCGAttributePropertyInputSelector ResolutionAttribute;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	FPCGExScaleToFitDetails ScaleToFit;
 
 	/** Axis on the source to remap to a target axis on the shape */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Align", meta=(PCG_Overridable))
@@ -63,19 +85,15 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExShapeConfigBase
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Align", meta=(PCG_Overridable))
 	EPCGExAxisAlign LookAtAxis = EPCGExAxisAlign::Forward;
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
-	FPCGExScaleToFitDetails ScaleToFit;
 
 	/** Axis used to align the look at rotation */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Defaults", meta=(PCG_Overridable))
 	FVector DefaultExtents = FVector::OneVector * 0.5;
-	
+
 	FTransform LocalTransform = FTransform::Identity;
 
 	virtual void Init()
 	{
-		Resolution = Resolution * 0.01; // Per meter
-
 		FQuat A = FQuat::Identity;
 		FQuat B = FQuat::Identity;
 		switch (SourceAxis)

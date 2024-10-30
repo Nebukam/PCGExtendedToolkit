@@ -14,6 +14,7 @@ UPCGExShapeBuilderOperation* UPCGExShape##_SHAPE##Factory::CreateOperation(FPCGE
 	UPCGExShape##_SHAPE##Builder* NewOperation = InContext->ManagedObjects->New<UPCGExShape##_SHAPE##Builder>(); \
 	NewOperation->Config = Config; \
 	NewOperation->Config.Init(); \
+	NewOperation->BaseConfig = NewOperation->Config; \
 	NewOperation->Transform = NewOperation->Config.LocalTransform; \
 	return NewOperation; } \
 UPCGExParamFactoryBase* UPCGExCreateShape##_SHAPE##Settings::CreateFactory(FPCGExContext* InContext, UPCGExParamFactoryBase* InFactory) const{ \

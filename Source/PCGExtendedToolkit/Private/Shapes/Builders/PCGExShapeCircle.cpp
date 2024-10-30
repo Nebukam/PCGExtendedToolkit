@@ -10,6 +10,7 @@
 bool UPCGExShapeCircleBuilder::PrepareForSeeds(FPCGExContext* InContext, const TSharedRef<PCGExData::FFacade>& InSeedDataFacade)
 {
 	if (!Super::PrepareForSeeds(InContext, InSeedDataFacade)) { return false; }
+
 	if (Config.StartAngleInput == EPCGExInputValueType::Attribute)
 	{
 		StartAngleGetter = MakeShared<PCGEx::TAttributeBroadcaster<double>>();
@@ -35,7 +36,12 @@ void UPCGExShapeCircleBuilder::PrepareShape(const PCGExData::FPointRef& Seed)
 	Circle->AngleRange = FMath::Abs(Circle->EndAngle - Circle->StartAngle);
 
 	Circle->Radius = Circle->Fit.GetExtent().X;
-	Circle->NumPoints = (Circle->Radius * Circle->AngleRange) * Config.Resolution;
+
+	const double Resolution = GetResolution(Seed);
+
+	if (Config.ResolutionMode == EPCGExResolutionMode::Distance) { Circle->NumPoints = (Circle->Radius * Circle->AngleRange) * Resolution; }
+	else { Circle->NumPoints = Resolution; }
+	
 	Circle->Extents = Config.DefaultExtents;
 
 	Shapes[Seed.Index] = StaticCastSharedPtr<PCGExShapes::FShape>(Circle);

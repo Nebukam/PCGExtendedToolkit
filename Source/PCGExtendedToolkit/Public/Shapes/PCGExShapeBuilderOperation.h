@@ -7,14 +7,6 @@
 #include "UObject/Object.h"
 #include "PCGExOperation.h"
 #include "PCGExShapes.h"
-
-
-
-
-
-
-
-
 #include "PCGExShapeBuilderOperation.generated.h"
 
 /**
@@ -31,12 +23,14 @@ public:
 
 	virtual void Cleanup() override
 	{
+		ResolutionGetter.Reset();
 		Shapes.Empty();
 		Super::Cleanup();
 	}
 
 	TArray<TSharedPtr<PCGExShapes::FShape>> Shapes;
 	FTransform Transform;
+	FPCGExShapeConfigBase BaseConfig;
 
 	virtual void PrepareShape(const PCGExData::FPointRef& Seed) { Shapes[Seed.Index] = MakeShared<PCGExShapes::FShape>(Seed); }
 
@@ -45,6 +39,19 @@ public:
 	}
 
 protected:
-	TSharedPtr<PCGExData::FFacade> SeedFacade;
+	FORCEINLINE double GetResolution(const PCGExData::FPointRef& Seed) const
+	{
+		if (BaseConfig.ResolutionMode == EPCGExResolutionMode::Distance)
+		{
+			return FMath::Abs(ResolutionGetter ? ResolutionGetter->SoftGet(Seed, ResolutionConstant) : ResolutionConstant) * 0.01;
+		}
+		else
+		{
+			return FMath::Abs(ResolutionGetter ? ResolutionGetter->SoftGet(Seed, ResolutionConstant) : ResolutionConstant);
+		}
+	}
 
+	double ResolutionConstant = 1;
+	TSharedPtr<PCGEx::TAttributeBroadcaster<double>> ResolutionGetter;
+	TSharedPtr<PCGExData::FFacade> SeedFacade;
 };
