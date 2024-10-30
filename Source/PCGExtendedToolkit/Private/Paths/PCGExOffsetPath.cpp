@@ -3,13 +3,15 @@
 
 #include "Paths/PCGExOffsetPath.h"
 
+#include <Windows.Graphics.Display.h>
+
 #include "PCGExDataMath.h"
 
 
 #define LOCTEXT_NAMESPACE "PCGExOffsetPathElement"
 #define PCGEX_NAMESPACE OffsetPath
 
-PCGExData::EInit UPCGExOffsetPathSettings::GetMainOutputInitMode() const { return PCGExData::EInit::DuplicateInput; }
+PCGExData::EInit UPCGExOffsetPathSettings::GetMainOutputInitMode() const { return bCleanupPath ? PCGExData::EInit::NewOutput : PCGExData::EInit::DuplicateInput; }
 
 PCGEX_INITIALIZE_ELEMENT(OffsetPath)
 
@@ -18,6 +20,8 @@ bool FPCGExOffsetPathElement::Boot(FPCGExContext* InContext) const
 	if (!FPCGExPathProcessorElement::Boot(InContext)) { return false; }
 
 	PCGEX_CONTEXT_AND_SETTINGS(OffsetPath)
+
+	if (Settings->bCleanupPath && Settings->bFlagMutatedPoints) { PCGEX_VALIDATE_NAME(Settings->MutatedAttributeName) }
 
 	return true;
 }
@@ -66,7 +70,13 @@ namespace PCGExOffsetPath
 
 		if (!FPointsProcessor::Process(InAsyncManager)) { return false; }
 
-		Path = PCGExPaths::MakePath(PointDataFacade->GetIn()->GetPoints(), 0, Context->ClosedLoop.IsClosedLoop(PointDataFacade->Source));
+		const TArray<FPCGPoint>& InPoints = PointDataFacade->GetIn()->GetPoints();
+
+		Positions.SetNumUninitialized(InPoints.Num());
+		for (int i = 0; i < InPoints.Num(); i++) { Positions[i] = InPoints[i].Transform.GetLocation(); }
+
+		ToleranceSquared = Settings->IntersectionTolerance * Settings->IntersectionTolerance;
+		Path = PCGExPaths::MakePath(Positions, 0, Context->ClosedLoop.IsClosedLoop(PointDataFacade->Source));
 
 		Up = Settings->UpVectorConstant.GetSafeNormal();
 		OffsetConstant = Settings->OffsetConstant;
@@ -95,18 +105,18 @@ namespace PCGExOffsetPath
 			switch (Settings->DirectionConstant)
 			{
 			case EPCGExPathNormalDirection::Normal:
-				Direction = StaticCastSharedPtr<PCGExPaths::TPathEdgeExtra<FVector>>(Path->AddExtra<PCGExPaths::FPathEdgeNormal>(false, Up));
+				OffsetDirection = StaticCastSharedPtr<PCGExPaths::TPathEdgeExtra<FVector>>(Path->AddExtra<PCGExPaths::FPathEdgeNormal>(false, Up));
 				break;
 			case EPCGExPathNormalDirection::Binormal:
-				Direction = StaticCastSharedPtr<PCGExPaths::TPathEdgeExtra<FVector>>(Path->AddExtra<PCGExPaths::FPathEdgeBinormal>(false, Up));
+				OffsetDirection = StaticCastSharedPtr<PCGExPaths::TPathEdgeExtra<FVector>>(Path->AddExtra<PCGExPaths::FPathEdgeBinormal>(false, Up));
 				break;
 			case EPCGExPathNormalDirection::AverageNormal:
-				Direction = StaticCastSharedPtr<PCGExPaths::TPathEdgeExtra<FVector>>(Path->AddExtra<PCGExPaths::FPathEdgeAvgNormal>(false, Up));
+				OffsetDirection = StaticCastSharedPtr<PCGExPaths::TPathEdgeExtra<FVector>>(Path->AddExtra<PCGExPaths::FPathEdgeAvgNormal>(false, Up));
 				break;
 			}
 		}
 
-		StartParallelLoopForPoints();
+		StartParallelLoopForPoints(Settings->bCleanupPath ? PCGExData::ESource::In : PCGExData::ESource::Out);
 		return true;
 	}
 
@@ -119,12 +129,158 @@ namespace PCGExOffsetPath
 	{
 		const int32 EdgeIndex = (!Path->IsClosedLoop() && Index == Path->LastIndex) ? Path->LastEdge : Index;
 		Path->ComputeEdgeExtra(EdgeIndex);
-		const FVector Dir = Direction ? Direction->Get(EdgeIndex) : DirectionGetter->Read(Index);
-		Point.Transform.SetLocation(Path->GetPos(Index) + (Dir * (OffsetGetter ? OffsetGetter->Read(Index) : OffsetConstant)));
+
+		const FVector Dir = OffsetDirection ? OffsetDirection->Get(EdgeIndex) : DirectionGetter->Read(Index);
+		Positions[Index] = Path->GetPos(Index) + (Dir * (OffsetGetter ? OffsetGetter->Read(Index) : OffsetConstant));
+
+		if (!Settings->bCleanupPath) { Point.Transform.SetLocation(Positions[Index]); }
+	}
+
+	void FProcessor::OnPointsProcessingComplete()
+	{
+		if (Settings->bCleanupPath)
+		{
+			DirtyPath = PCGExPaths::MakePath(Positions, ToleranceSquared, Path->IsClosedLoop());
+			CleanEdge.Init(false, DirtyPath->NumEdges);
+
+			PCGEX_ASYNC_GROUP_CHKD_VOID(AsyncManager, FlipTestTask)
+
+			FlipTestTask->OnIterationCallback = [&](const int32 Index, const int32 Count, const int32 LoopIdx)
+			{
+				DirtyPath->ComputeEdgeExtra(Index);
+				CleanEdge[Index] = FVector::DotProduct(Path->Edges[Index].Dir, DirtyPath->Edges[Index].Dir) > 0;
+			};
+
+			FlipTestTask->StartIterations(DirtyPath->NumEdges, GetDefault<UPCGExGlobalSettings>()->GetPointsBatchChunkSize());
+		}
 	}
 
 	void FProcessor::CompleteWork()
 	{
+		if (Settings->bCleanupPath)
+		{
+			const TArray<FPCGPoint>& InPoints = PointDataFacade->GetIn()->GetPoints();
+			TArray<FPCGPoint>& OutPoints = PointDataFacade->GetMutablePoints();
+			OutPoints.Reserve(InPoints.Num());
+
+			TArray<int8> Mutated;
+			Mutated.Reserve(InPoints.Num());
+
+			int32 Last = 0;
+
+			if (DirtyPath->IsClosedLoop() && !CleanEdge[0])
+			{
+				//Starting with a flipped edge, should only ever happen with closed loops.
+				// Go back in the path until we find a valid end
+				for (int i = 0; i < CleanEdge.Num(); i++)
+				{
+					if (CleanEdge[i])
+					{
+						Last = i;
+						break;
+					}
+				}
+			}
+
+			FVector A = FVector::ZeroVector;
+			FVector B = FVector::ZeroVector;
+			FVector MutatedPosition = FVector::ZeroVector;
+
+			DirtyPath->BuildPartialEdgeOctree(CleanEdge);
+
+			if (Settings->CleanupMode == EPCGExOffsetCleanupMode::Balanced)
+			{
+				bool bWaitingForCleanEdge = false;
+
+				for (int i = Last; i < CleanEdge.Num(); i++)
+				{
+					if (bWaitingForCleanEdge)
+					{
+						if (!CleanEdge[i]) { continue; }
+
+						bWaitingForCleanEdge = false;
+
+						// Try to find if there is any upcoming intersection
+						// if not, resolve with current
+
+						if (!FindNextIntersection<false>(DirtyPath->Edges[i], i, MutatedPosition))
+						{
+							// Fallback to next clean edge, as there is no upcoming intersections.
+							const PCGExPaths::FPathEdge& E1 = DirtyPath->Edges[Last];
+
+							const FVector E11 = Positions[E1.Start];
+							const FVector E12 = Positions[E1.End];
+
+							const PCGExPaths::FPathEdge& E2 = DirtyPath->Edges[i];
+							FMath::SegmentDistToSegment(E11, E12, Positions[E2.Start], Positions[E2.End], A, MutatedPosition);
+						}
+
+						FPCGPoint& Pt = OutPoints.Add_GetRef(InPoints[i]);
+						Positions[i] = MutatedPosition; // FMath::Lerp(A, B, 0.5);
+						Pt.Transform.SetLocation(Positions[i]);
+						Mutated.Add(1);
+
+						Last = i;
+						continue;
+					}
+
+					if (CleanEdge[i])
+					{
+						Mutated.Add(0);
+						FPCGPoint& Pt = OutPoints.Add_GetRef(InPoints[i]);
+						Pt.Transform.SetLocation(Positions[i]);
+						Last = i;
+
+
+						if (Settings->bAdditionalIntersectionCheck)
+						{
+							// Additional intersection check on clean edge; will update the next starting position.
+							if (FindNextIntersection<true>(DirtyPath->Edges[i], i, MutatedPosition))
+							{
+								// Update next position and keep moving
+								Positions[i] = MutatedPosition;
+								i--;
+							}
+						}
+						continue;
+					}
+
+					bWaitingForCleanEdge = true;
+				}
+			}
+			else
+			{
+				for (int i = Last; i < CleanEdge.Num(); i++)
+				{
+					if (!CleanEdge[i]) { continue; }
+
+					FPCGPoint& Pt = OutPoints.Add_GetRef(InPoints[i]);
+					Pt.Transform.SetLocation(Positions[i]);
+					Mutated.Add(0);
+
+					if (FindNextIntersection<true>(DirtyPath->Edges[i], i, MutatedPosition))
+					{
+						// Update next position and keep moving
+						Positions[i] = MutatedPosition;
+						i--;
+					}
+				}
+			}
+
+			if (!Path->IsClosedLoop())
+			{
+				FPCGPoint& Pt = OutPoints.Add_GetRef(InPoints.Last());
+				Pt.Transform.SetLocation(Positions.Last());
+			}
+
+			if (OutPoints.Num() < 2) { PointDataFacade->Source->InitializeOutput(Context, PCGExData::EInit::NoOutput); }
+			else if (Settings->bFlagMutatedPoints)
+			{
+				TSharedPtr<PCGExData::TBuffer<bool>> MutatedFlag = PointDataFacade->GetWritable<bool>(Settings->MutatedAttributeName, false, true, false);
+				for (int i = 0; i < Mutated.Num(); i++) { MutatedFlag->GetMutable(i) = Mutated[i] ? true : false; }
+				PointDataFacade->Write(AsyncManager);
+			}
+		}
 	}
 }
 
