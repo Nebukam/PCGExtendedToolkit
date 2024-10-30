@@ -4,10 +4,6 @@
 #include "Shapes/Builders/PCGExShapeCircle.h"
 
 
-
-
-
-
 #define LOCTEXT_NAMESPACE "PCGExCreateBuilderCircle"
 #define PCGEX_NAMESPACE CreateBuilderCircle
 
@@ -40,6 +36,7 @@ void UPCGExShapeCircleBuilder::PrepareShape(const PCGExData::FPointRef& Seed)
 
 	Circle->Radius = Circle->Fit.GetExtent().X;
 	Circle->NumPoints = (Circle->Radius * Circle->AngleRange) * Config.Resolution;
+	Circle->Extents = Config.DefaultExtents;
 
 	Shapes[Seed.Index] = StaticCastSharedPtr<PCGExShapes::FShape>(Circle);
 }
@@ -50,15 +47,19 @@ void UPCGExShapeCircleBuilder::BuildShape(const TSharedPtr<PCGExShapes::FShape> 
 
 	const double Increment = Circle->AngleRange / Circle->NumPoints;
 	const double StartAngle = Circle->StartAngle + Increment * 0.5;
+	FVector Target = FVector::ZeroVector;
 
 	for (int32 i = 0; i < Circle->NumPoints; i++)
 	{
 		const double A = StartAngle + i * Increment;
 
-		const double X = Circle->Radius * FMath::Cos(A);
-		const double Y = Circle->Radius * FMath::Sin(A);
+		const FVector P = FVector(Circle->Radius * FMath::Cos(A), Circle->Radius * FMath::Sin(A), 0);
 
-		PointView[i].Transform.SetLocation(FVector(X, Y, 0));
+		if (Config.PointsLookAt == EPCGExShapePointLookAt::None) { Target = FVector(Circle->Radius * FMath::Cos(A + 0.001), Circle->Radius * FMath::Sin(A + 0.001), 0); }
+
+		PointView[i].Transform = FTransform(
+			PCGExMath::MakeLookAtTransform(P - Target, FVector::UpVector, Config.LookAtAxis).GetRotation(),
+			P, FVector::OneVector);
 	}
 }
 

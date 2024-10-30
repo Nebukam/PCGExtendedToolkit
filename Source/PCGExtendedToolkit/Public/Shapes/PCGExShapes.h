@@ -48,24 +48,28 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExShapeConfigBase
 	double Resolution = 1;
 
 	/** Axis on the source to remap to a target axis on the shape */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Align", meta=(PCG_Overridable, DisplayPriority=-1))
-	EPCGExAxis SourceAxis = EPCGExAxis::Forward;
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Align", meta=(PCG_Overridable))
+	EPCGExAxisAlign SourceAxis = EPCGExAxisAlign::Forward;
 
 	/** Shape axis to align to the source axis */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Align", meta=(PCG_Overridable, DisplayPriority=-1))
-	EPCGExAxis TargetAxis = EPCGExAxis::Forward;
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Align", meta=(PCG_Overridable))
+	EPCGExAxisAlign TargetAxis = EPCGExAxisAlign::Forward;
 
 	/** Points look at */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Align", meta=(PCG_Overridable, DisplayPriority=-1))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Align", meta=(PCG_Overridable))
 	EPCGExShapePointLookAt PointsLookAt = EPCGExShapePointLookAt::None;
 
 	/** Axis used to align the look at rotation */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Align", meta=(PCG_Overridable, DisplayPriority=-1))
-	EPCGExAxis LookAtAxis = EPCGExAxis::Forward;
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Align", meta=(PCG_Overridable))
+	EPCGExAxisAlign LookAtAxis = EPCGExAxisAlign::Forward;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	FPCGExScaleToFitDetails ScaleToFit;
 
+	/** Axis used to align the look at rotation */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	FVector DefaultExtents = FVector::OneVector * 0.5;
+	
 	FTransform LocalTransform = FTransform::Identity;
 
 	virtual void Init()
@@ -76,44 +80,44 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExShapeConfigBase
 		FQuat B = FQuat::Identity;
 		switch (SourceAxis)
 		{
-		case EPCGExAxis::Forward:
+		case EPCGExAxisAlign::Forward:
 			A = FRotationMatrix::MakeFromX(FVector::ForwardVector).ToQuat().Inverse();
 			break;
-		case EPCGExAxis::Backward:
+		case EPCGExAxisAlign::Backward:
 			A = FRotationMatrix::MakeFromX(FVector::BackwardVector).ToQuat().Inverse();
 			break;
-		case EPCGExAxis::Right:
+		case EPCGExAxisAlign::Right:
 			A = FRotationMatrix::MakeFromX(FVector::RightVector).ToQuat().Inverse();
 			break;
-		case EPCGExAxis::Left:
+		case EPCGExAxisAlign::Left:
 			A = FRotationMatrix::MakeFromX(FVector::LeftVector).ToQuat().Inverse();
 			break;
-		case EPCGExAxis::Up:
+		case EPCGExAxisAlign::Up:
 			A = FRotationMatrix::MakeFromX(FVector::UpVector).ToQuat().Inverse();
 			break;
-		case EPCGExAxis::Down:
+		case EPCGExAxisAlign::Down:
 			A = FRotationMatrix::MakeFromX(FVector::DownVector).ToQuat().Inverse();
 			break;
 		}
 
 		switch (TargetAxis)
 		{
-		case EPCGExAxis::Forward:
+		case EPCGExAxisAlign::Forward:
 			B = FRotationMatrix::MakeFromX(FVector::ForwardVector).ToQuat();
 			break;
-		case EPCGExAxis::Backward:
+		case EPCGExAxisAlign::Backward:
 			B = FRotationMatrix::MakeFromX(FVector::BackwardVector).ToQuat();
 			break;
-		case EPCGExAxis::Right:
+		case EPCGExAxisAlign::Right:
 			B = FRotationMatrix::MakeFromX(FVector::RightVector).ToQuat();
 			break;
-		case EPCGExAxis::Left:
+		case EPCGExAxisAlign::Left:
 			B = FRotationMatrix::MakeFromX(FVector::LeftVector).ToQuat();
 			break;
-		case EPCGExAxis::Up:
+		case EPCGExAxisAlign::Up:
 			B = FRotationMatrix::MakeFromX(FVector::UpVector).ToQuat();
 			break;
-		case EPCGExAxis::Down:
+		case EPCGExAxisAlign::Down:
 			B = FRotationMatrix::MakeFromX(FVector::DownVector).ToQuat();
 			break;
 		}
@@ -135,6 +139,7 @@ namespace PCGExShapes
 		int32 StartIndex = 0;
 		int32 NumPoints = 0;
 		FBox Fit = FBox(ForceInitToZero);
+		FVector Extents = FVector::OneVector * 0.5;
 
 		bool IsValid() const { return Fit.IsValid && NumPoints > 0; }
 

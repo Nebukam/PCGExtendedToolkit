@@ -189,7 +189,8 @@ namespace PCGExCreateShapes
 		for (int i = 0; i < ShapePoints.Num(); i++)
 		{
 			ShapePoints[i] = *Shape->Seed.Point;
-			ShapePoints[i].SetLocalBounds(BoundsOne);
+			ShapePoints[i].BoundsMin = Shape->Extents * -1;
+			ShapePoints[i].BoundsMax = Shape->Extents;
 		}
 
 		Operation->BuildShape(Shape, ShapeDataFacade, ShapePoints);
