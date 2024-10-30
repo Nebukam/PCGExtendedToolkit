@@ -33,12 +33,18 @@ public:
 	FPCGExShapeConfigBase BaseConfig;
 
 	virtual void PrepareShape(const PCGExData::FPointRef& Seed) { Shapes[Seed.Index] = MakeShared<PCGExShapes::FShape>(Seed); }
-
+	
 	virtual void BuildShape(const TSharedPtr<PCGExShapes::FShape> InShape, TSharedPtr<PCGExData::FFacade> InDataFacade, const TArrayView<FPCGPoint> PointView)
 	{
 	}
 
 protected:
+	virtual void ValidateShape(const TSharedPtr<PCGExShapes::FShape> Shape)
+	{
+		if (BaseConfig.bRemoveBelow && Shape->NumPoints < BaseConfig.MinPointCount) { Shape->bValid = 0; }
+		if (BaseConfig.bRemoveAbove && Shape->NumPoints > BaseConfig.MaxPointCount) { Shape->bValid = 0; }
+	}
+	
 	FORCEINLINE double GetResolution(const PCGExData::FPointRef& Seed) const
 	{
 		if (BaseConfig.ResolutionMode == EPCGExResolutionMode::Distance)

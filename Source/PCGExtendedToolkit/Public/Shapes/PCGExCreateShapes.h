@@ -19,6 +19,8 @@ UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc")
 class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExCreateShapesSettings : public UPCGExShapeProcessorSettings
 {
 	GENERATED_BODY()
+	
+	friend class FPCGExCreateShapesElement;
 
 public:
 	//~Begin UPCGSettings
@@ -35,8 +37,30 @@ protected:
 public:
 	//~End UPCGExPointsProcessorSettings
 
-private:
-	friend class FPCGExCreateShapesElement;
+	/** Should point have a ShapeID attribute */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	bool bWriteShapeId = false;
+
+	/** Name of the 'int32' attribute to write the ShapeId to */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	FName ShapeIdAttributeName = FName("ShapeId");
+
+	/** Don't output shape if they have less points than a specified amount. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Pruning", meta = (PCG_Overridable, InlineEditConditionToggle))
+	bool bRemoveBelow = true;
+
+	/** Discarded if point count is less than */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Pruning", meta=(PCG_Overridable, EditCondition="bRemoveBelow", ClampMin=0))
+	int32 MinPointCount = 2;
+
+	/** Don't output shape if they have more points than a specified amount. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Pruning", meta = (PCG_Overridable, InlineEditConditionToggle))
+	bool bRemoveAbove = false;
+
+	/** Discarded if point count is more than */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Pruning", meta=(PCG_Overridable, EditCondition="bRemoveAbove", ClampMin=0))
+	int32 MaxPointCount = 500;
+	
 };
 
 struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExCreateShapesContext final : FPCGExShapeProcessorContext
@@ -54,6 +78,7 @@ class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExCreateShapesElement final : public FPCGEx
 protected:
 	virtual bool Boot(FPCGExContext* InContext) const override;
 	virtual bool ExecuteInternal(FPCGContext* Context) const override;
+
 };
 
 namespace PCGExCreateShapes

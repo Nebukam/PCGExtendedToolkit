@@ -8,6 +8,7 @@
 #include "PCGExShapes.h"
 #include "PCGExPointsProcessor.h"
 #include "PCGExShapeBuilderFactoryProvider.h"
+#include "Data/PCGExDataForward.h"
 
 #include "PCGExShapeProcessor.generated.h"
 
@@ -40,12 +41,14 @@ public:
 	/** How to pick which path endpoint to start with */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	EPCGExShapeOutputMode OutputMode = EPCGExShapeOutputMode::PerSeed;
+
 };
 
 struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExShapeProcessorContext : FPCGExPointsProcessorContext
 {
 	friend class FPCGExShapeProcessorElement;
 	TArray<TObjectPtr<const UPCGExShapeBuilderFactoryBase>> BuilderFactories;
+	
 };
 
 class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExShapeProcessorElement : public FPCGExPointsProcessorElement

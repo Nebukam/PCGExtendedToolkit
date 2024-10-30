@@ -87,9 +87,32 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExShapeConfigBase
 
 
 	/** Axis used to align the look at rotation */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Defaults", meta=(PCG_Overridable))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Data", meta=(PCG_Overridable))
 	FVector DefaultExtents = FVector::OneVector * 0.5;
 
+	/** Shape ID used to identify this specific shape' points */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Data", meta=(PCG_Overridable))
+	int32 ShapeId = 0;
+
+	
+	/** Don't output shape if they have less points than a specified amount. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Pruning", meta = (PCG_Overridable, InlineEditConditionToggle))
+	bool bRemoveBelow = true;
+
+	/** Discarded if point count is less than */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Pruning", meta=(PCG_Overridable, EditCondition="bRemoveBelow", ClampMin=0))
+	int32 MinPointCount = 2;
+
+	/** Don't output shape if they have more points than a specified amount. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Pruning", meta = (PCG_Overridable, InlineEditConditionToggle))
+	bool bRemoveAbove = false;
+
+	/** Discarded if point count is more than */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Pruning", meta=(PCG_Overridable, EditCondition="bRemoveAbove", ClampMin=0))
+	int32 MaxPointCount = 500;
+
+	
+	
 	FTransform LocalTransform = FTransform::Identity;
 
 	virtual void Init()
@@ -154,12 +177,15 @@ namespace PCGExShapes
 	public:
 		virtual ~FShape() = default;
 		PCGExData::FPointRef Seed;
+		
 		int32 StartIndex = 0;
 		int32 NumPoints = 0;
+		int8 bValid = 1;
+		
 		FBox Fit = FBox(ForceInitToZero);
 		FVector Extents = FVector::OneVector * 0.5;
 
-		bool IsValid() const { return Fit.IsValid && NumPoints > 0; }
+		bool IsValid() const { return bValid && Fit.IsValid && NumPoints > 0; }
 
 		explicit FShape(const PCGExData::FPointRef& InPointRef)
 			: Seed(InPointRef)
@@ -175,6 +201,8 @@ namespace PCGExShapes
 			Fit.Min *= OutScale;
 			Fit.Max *= OutScale;
 			Fit = Fit.TransformBy(Config.LocalTransform);
+
+			Extents = Config.DefaultExtents;
 		}
 	};
 }
