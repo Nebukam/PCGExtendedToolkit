@@ -9,6 +9,13 @@
 
 #include "PCGExResamplePath.generated.h"
 
+UENUM(/*E--BlueprintType, meta=(DisplayName="[PCGEx] Path Normal Direction")--E*/)
+enum class EPCGExResampleMode : uint8
+{
+	Sweep        = 0 UMETA(DisplayName = "Sweep", ToolTip="..."),
+	Redistribute      = 1 UMETA(DisplayName = "Redistribute", ToolTip="..."),
+};
+
 /**
  * 
  */
@@ -32,28 +39,25 @@ public:
 	virtual PCGExData::EInit GetMainOutputInitMode() const override;
 	//~End UPCGExPointsProcessorSettings
 
-
-	
 	/** */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	EPCGExResampleMode Mode = EPCGExResampleMode::Sweep;
+	
+	/** */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="Mode==EPCGExResampleMode::Sweep"))
 	bool bPreserveLastPoint = true;
 
 	/** Resolution mode */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Resolution", meta = (PCG_NotOverridable))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_NotOverridable, EditCondition="Mode==EPCGExResampleMode::Sweep"))
 	EPCGExResolutionMode ResolutionMode = EPCGExResolutionMode::Distance;
 
-	/** Resolution input type */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Resolution", meta = (PCG_NotOverridable))
-	EPCGExInputValueType ResolutionInput = EPCGExInputValueType::Constant;
-
 	/** Resolution Constant. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Resolution", meta=(PCG_Overridable, EditCondition="ResolutionInput == EPCGExInputValueType::Constant", EditConditionHides, ClampMin=0))
-	double ResolutionConstant = 10;
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="Mode==EPCGExResampleMode::Sweep", EditConditionHides, ClampMin=0))
+	double Resolution = 10;
 
-	/** Resolution Attribute. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Resolution", meta=(PCG_Overridable, EditCondition="ResolutionInput == EPCGExInputValueType::Attribute", EditConditionHides))
-	FPCGAttributePropertyInputSelector ResolutionAttribute;
-	
+	/**  */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="Mode==EPCGExResampleMode::Sweep", EditConditionHides))
+	EPCGExTruncateMode Truncate = EPCGExTruncateMode::Round;
 	
 };
 
@@ -79,8 +83,18 @@ protected:
 namespace PCGExResamplePath
 {
 
+	struct FPointSample
+	{
+		int32 Start = 0;
+		int32 End = 1;
+		FVector Location = FVector::ZeroVector;
+	};
+
 	class FProcessor final : public PCGExPointsMT::TPointsProcessor<FPCGExResamplePathContext, UPCGExResamplePathSettings>
 	{
+		int32 NumSamples = 0;
+		double SampleLength = 0;
+		TArray<FPointSample> Samples;
 		
 		TSharedPtr<PCGExPaths::FPath> Path;
 		TSharedPtr<PCGExPaths::FPathEdgeLength> PathLength;

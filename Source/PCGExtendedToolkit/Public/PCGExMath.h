@@ -1247,6 +1247,7 @@ namespace PCGExMath
 		return R * FMath::Abs(FMath::Fmod(EndAngleRadians, TWO_PI) - FMath::Fmod(StartAngleRadians, TWO_PI));
 	}
 
+
 #pragma region Spatialized distances
 
 	// Stolen from PCGDistance

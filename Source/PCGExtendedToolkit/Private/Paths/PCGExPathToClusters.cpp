@@ -96,10 +96,16 @@ bool FPCGExPathToClustersElement::ExecuteInternal(FPCGContext* InContext) const
 	{
 		if (Settings->bFusePaths)
 		{
+			PCGEX_ON_INVALILD_INPUTS(FTEXT("Some input have less than 2 points and will be ignored."))
 			if (!Context->StartBatchProcessingPoints<PCGExPointsMT::TBatch<PCGExPathToClusters::FFusingProcessor>>(
 				[&](const TSharedPtr<PCGExData::FPointIO>& Entry)
 				{
-					return Entry->GetNum() >= 2;
+					if(Entry->GetNum() < 2)
+					{
+						bHasInvalidInputs = true;
+						return false;
+					}
+					return true;
 				},
 				[&](const TSharedPtr<PCGExPointsMT::TBatch<PCGExPathToClusters::FFusingProcessor>>& NewBatch)
 				{
@@ -111,10 +117,16 @@ bool FPCGExPathToClustersElement::ExecuteInternal(FPCGContext* InContext) const
 		}
 		else
 		{
+			PCGEX_ON_INVALILD_INPUTS(FTEXT("Some input have less than 2 points and will be ignored."))
 			if (!Context->StartBatchProcessingPoints<PCGExPointsMT::TBatch<PCGExPathToClusters::FNonFusingProcessor>>(
 				[&](const TSharedPtr<PCGExData::FPointIO>& Entry)
 				{
-					return Entry->GetNum() >= 2;
+					if(Entry->GetNum() < 2)
+					{
+						bHasInvalidInputs = true;
+						return false;
+					}
+					return true;
 				},
 				[&](const TSharedPtr<PCGExPointsMT::TBatch<PCGExPathToClusters::FNonFusingProcessor>>& NewBatch)
 				{
