@@ -440,6 +440,8 @@ namespace PCGExPaths
 		virtual void ProcessFirstEdge(const FPath* Path, const FPathEdge& Edge) { ProcessEdge(Path, Edge); };
 		virtual void ProcessEdge(const FPath* Path, const FPathEdge& Edge) = 0;
 		virtual void ProcessLastEdge(const FPath* Path, const FPathEdge& Edge) { ProcessEdge(Path, Edge); }
+
+		virtual void ProcessingDone(const FPath* Path){}
 	};
 
 	template <typename T>
@@ -579,6 +581,8 @@ namespace PCGExPaths
 						Extra->ProcessLastEdge(this, Edges[LastEdge]);
 					}
 				}
+
+				Extra->ProcessingDone(this);
 			}
 			else
 			{
@@ -589,6 +593,7 @@ namespace PCGExPaths
 		}
 
 		virtual void ComputeEdgeExtra(const int32 Index);
+		virtual void ExtraComputingDone();
 		virtual void ComputeAllEdgeExtra();
 
 		virtual void UpdateEdges(const TArray<FPCGPoint>& InPoints, const double Expansion)
@@ -705,6 +710,7 @@ namespace PCGExPaths
 	{
 	public:
 		double TotalLength = 0;
+		TArray<double> CumulativeLength;
 
 		explicit FPathEdgeLength(const int32 InNumSegments, const bool InClosedLoop)
 			: TPathEdgeExtra(InNumSegments, InClosedLoop)
@@ -712,6 +718,8 @@ namespace PCGExPaths
 		}
 
 		virtual void ProcessEdge(const FPath* Path, const FPathEdge& Edge) override;
+		virtual void ProcessingDone(const FPath* Path) override;
+		
 	};
 
 	class FPathEdgeLengthSquared : public TPathEdgeExtra<double>

@@ -29,6 +29,12 @@ void PCGExPaths::FPath::ComputeEdgeExtra(const int32 Index)
 	}
 }
 
+void PCGExPaths::FPath::ExtraComputingDone()
+{
+	for (const TSharedPtr<FPathEdgeExtraBase> Extra : Extras) { Extra->ProcessingDone(this); }
+	Extras.Empty(); // So we don't update them anymore
+}
+
 void PCGExPaths::FPath::ComputeAllEdgeExtra()
 {
 	if (NumEdges == 1)
@@ -42,7 +48,7 @@ void PCGExPaths::FPath::ComputeAllEdgeExtra()
 		for (const TSharedPtr<FPathEdgeExtraBase> Extra : Extras) { Extra->ProcessLastEdge(this, Edges[LastEdge]); }
 	}
 
-	Extras.Empty(); // So we don't update them anymore
+	ExtraComputingDone();
 }
 
 #pragma region FPathEdgeLength
@@ -52,6 +58,14 @@ void PCGExPaths::FPathEdgeLength::ProcessEdge(const FPath* Path, const FPathEdge
 	const double Dist = FVector::Dist(Path->GetPosUnsafe(Edge.Start), Path->GetPosUnsafe(Edge.End));
 	GetMutable(Edge.Start) = Dist;
 	TotalLength += Dist;
+}
+
+void PCGExPaths::FPathEdgeLength::ProcessingDone(const FPath* Path)
+{
+	TPathEdgeExtra<double>::ProcessingDone(Path);
+	CumulativeLength.SetNumUninitialized(Data.Num());
+	CumulativeLength[0] = Data[0];
+	for (int i = 1; i < Data.Num(); i++) { CumulativeLength[i] = CumulativeLength[i - 1] + Data[i]; }
 }
 
 #pragma endregion

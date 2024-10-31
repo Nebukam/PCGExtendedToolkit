@@ -5,6 +5,8 @@
 
 #include "CoreMinimal.h"
 #include "PCGExPathProcessor.h"
+#include "Data/Blending/PCGExDataBlending.h"
+#include "Data/Blending/PCGExMetadataBlender.h"
 #include "Shapes/PCGExShapes.h"
 
 #include "PCGExResamplePath.generated.h"
@@ -59,6 +61,10 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="Mode==EPCGExResampleMode::Sweep", EditConditionHides))
 	EPCGExTruncateMode Truncate = EPCGExTruncateMode::Round;
 	
+	/** Blending settings used to smooth attributes.*/
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
+	FPCGExBlendingDetails BlendingSettings = FPCGExBlendingDetails(EPCGExDataBlendingType::Weight, EPCGExDataBlendingType::None);
+	
 };
 
 struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExResamplePathContext final : FPCGExPathProcessorContext
@@ -88,6 +94,7 @@ namespace PCGExResamplePath
 		int32 Start = 0;
 		int32 End = 1;
 		FVector Location = FVector::ZeroVector;
+		double Distance = 0;
 	};
 
 	class FProcessor final : public PCGExPointsMT::TPointsProcessor<FPCGExResamplePathContext, UPCGExResamplePathSettings>
@@ -95,6 +102,8 @@ namespace PCGExResamplePath
 		int32 NumSamples = 0;
 		double SampleLength = 0;
 		TArray<FPointSample> Samples;
+
+		TSharedPtr<PCGExDataBlending::FMetadataBlender> MetadataBlender;
 		
 		TSharedPtr<PCGExPaths::FPath> Path;
 		TSharedPtr<PCGExPaths::FPathEdgeLength> PathLength;

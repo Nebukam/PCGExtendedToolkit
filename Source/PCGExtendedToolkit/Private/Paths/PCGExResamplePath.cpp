@@ -72,7 +72,6 @@ namespace PCGExResamplePath
 		Path->IOIndex = PointDataFacade->Source->IOIndex;
 		PathLength = Path->AddExtra<PCGExPaths::FPathEdgeLength>(true); // Force compute length
 
-
 		if (Settings->Mode == EPCGExResampleMode::Sweep)
 		{
 			if (Settings->ResolutionMode == EPCGExResolutionMode::Fixed)
@@ -107,11 +106,13 @@ namespace PCGExResamplePath
 		int32 StartIndex = 0;
 		int32 EndIndex = 1;
 		FVector PrevPosition = InPoints[0].Transform.GetLocation();
+		double TraversedDistance = 0;
 
 		FPointSample& FirstSample = Samples[0];
 		FirstSample.Start = StartIndex;
 		FirstSample.End = EndIndex;
 		FirstSample.Location = PrevPosition;
+		FirstSample.Distance = TraversedDistance;
 
 		for (int i = 1; i < NumSamples; i++)
 		{
@@ -126,6 +127,7 @@ namespace PCGExResamplePath
 			{
 				// Overshooting
 				PrevPosition = PrevPosition + (Path->DirToNextPoint(StartIndex) * SampleLength);
+				TraversedDistance += SampleLength;
 			}
 			else
 			{
@@ -142,13 +144,13 @@ namespace PCGExResamplePath
 
 					if (Remainder <= DistToNext) { PrevPosition = PrevPosition + (Path->DirToPrevPoint(EndIndex) * -Remainder); }
 					else { PrevPosition = NextPosition; }
-
 					Remainder -= DistToNext;
 				}
 			}
 
 			Sample.End = EndIndex;
 			Sample.Location = PrevPosition;
+			Sample.Distance = TraversedDistance;
 		}
 
 		if (Settings->bPreserveLastPoint)
@@ -157,7 +159,11 @@ namespace PCGExResamplePath
 			LastSample.Start = InPoints.Num() - 2;
 			LastSample.End = InPoints.Num() - 1;
 			LastSample.Location = InPoints.Last().Transform.GetLocation();
+			LastSample.Distance = TraversedDistance;
 		}
+
+		MetadataBlender = MakeShared<PCGExDataBlending::FMetadataBlender>(&Settings->BlendingSettings);
+		MetadataBlender->PrepareForData(PointDataFacade);
 
 		StartParallelLoopForPoints();
 
@@ -173,6 +179,35 @@ namespace PCGExResamplePath
 	{
 		const FPointSample& Sample = Samples[Index];
 		Point.Transform.SetLocation(Sample.Location);
+		const int32 SourcesRange = Sample.End - Sample.Start;
+
+		//if (SourcesRange == 1)
+		//{
+			const double Weight = FVector::DistSquared(Path->GetPos(Sample.Start), Sample.Location) / FVector::DistSquared(Path->GetPos(Sample.Start), Path->GetPos(Sample.End));
+			MetadataBlender->PrepareForBlending(Index);
+			MetadataBlender->Blend(Index, Sample.Start, Index, Weight);
+			MetadataBlender->Blend(Index, Sample.End, Index, 1 - Weight);
+			MetadataBlender->CompleteBlending(Index, 2, 1);
+		//}
+		
+		/*
+		// TODO : Complex blending
+		const double MinLength = Sample.Start == 0 ? 0 : PathLength->CumulativeLength[Sample.Start - 1];
+		const double MaxLength = PathLength->CumulativeLength[Path->IsValidEdgeIndex(Sample.End) ? PathLength->TotalLength : Sample.End - 1];
+		const double Range = MaxLength - MinLength;
+		
+		for (int i = 0; i < SourcesRange; i++)
+		{
+			const int 
+			PCGExPaths::FPathEdge& Edge = Path->Edges[Sample.Start + i - 1];
+			const double Weight =  
+		}
+
+		if (Path->IsValidEdgeIndex(Sample.End))
+		{
+			// Blend with end
+		}
+		*/
 	}
 
 	void FProcessor::CompleteWork()
