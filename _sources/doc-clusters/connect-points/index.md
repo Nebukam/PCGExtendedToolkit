@@ -11,13 +11,14 @@ color: white
 splash: icons/icon_path-to-edges.svg
 preview_img: previews/index-connect-points.png
 has_children: true
-#use_child_thumbnails: true
+use_child_thumbnails: true
 tagged: 
     - clusters
     - node
 nav_order: 0
 see_also:
     - Working with Clusters
+    - Custom Graph 
     - Filter Ecosystem
 inputs:
     -   name : Points

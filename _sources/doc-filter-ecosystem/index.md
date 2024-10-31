@@ -1,8 +1,8 @@
 ---
 layout: page
 title: Filter Ecosystem
-subtitle: Combine multiple filters
-summary: The **Uber Filter** node is a one-stop node for all your filtering needs.
+subtitle: PCGEx' handy filter system
+summary: The **Filter Ecosystem** is a collection of filter factory nodes that can be leveraged by numerous PCGEx nodes in a powerful and creative ways.
 color: red
 splash: icons/icon_misc-sort-points.svg
 preview_img: previews/index-filter-ecosystem.png
@@ -15,7 +15,7 @@ nav_order: 11
 
 {% include header_card_toc %}
 
-> PCGEx comes with its own filter ecosystem, that is used by a lot of nodes to check if specific conditions or requirements are met on a node in order to process it. It also has two standalone, very powerful nodes that lets you combine any number of filters in the same spot.
+> PCGEx comes with its own filter ecosystem, that is used by a lot of nodes to check if specific conditions or requirements are met on a node in order to process it. It also has two standalone, very handy nodes that lets you combine any number of filters in the same spot.
 {: .infos-hl }
 
 PCGEx' filter system can be slightly slower than the regular filters but saves a LOT of the extra nodes that would be required to achieve the same results. 

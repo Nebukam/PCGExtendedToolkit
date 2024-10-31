@@ -5,7 +5,7 @@ family: ClusterGen
 parent: Clusters
 title: Find point on Bounds
 name_in_editor: "Cluster : Find point on Bounds"
-subtitle: Find a point in each cluster that is the closest to that cluster' bounds.
+subtitle: Find a point in each cluster that is the closest to a bound-relative position.
 summary: The **Find point on Bounds** node find the point inside either edge or vtx points that is closest to that cluster' bounds. This is especially useful to use as a seed to find outer contours of individual clusters.
 color: white
 splash: icons/icon_edges-bridge.svg

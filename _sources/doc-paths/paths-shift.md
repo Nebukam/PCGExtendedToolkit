@@ -19,7 +19,7 @@ inputs:
         pin : points
 outputs:
     -   name : Paths
-        desc : Offset paths
+        desc : Shifted paths
         pin : points
 ---
 
