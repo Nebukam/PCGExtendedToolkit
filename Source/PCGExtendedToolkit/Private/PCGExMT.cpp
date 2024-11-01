@@ -3,7 +3,7 @@
 
 
 #include "PCGExMT.h"
-
+#include "CoreMinimal.h"
 
 namespace PCGExMT
 {
