@@ -3,12 +3,13 @@
 
 #include "Graph/Pathfinding/Heuristics/PCGExHeuristicAttribute.h"
 
+
 #include "Graph/Pathfinding/PCGExPathfinding.h"
 
 #define LOCTEXT_NAMESPACE "PCGExCreateHeuristicAttribute"
 #define PCGEX_NAMESPACE CreateHeuristicAttribute
 
-void UPCGExHeuristicAttribute::PrepareForCluster(const PCGExCluster::FCluster* InCluster)
+void UPCGExHeuristicAttribute::PrepareForCluster(const TSharedPtr<const PCGExCluster::FCluster>& InCluster)
 {
 	Super::PrepareForCluster(InCluster);
 

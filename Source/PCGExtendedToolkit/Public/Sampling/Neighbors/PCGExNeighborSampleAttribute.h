@@ -98,7 +98,7 @@ public:
 
 	virtual void RegisterBuffersDependencies(FPCGExContext* InContext, const TSharedRef<PCGExData::FFacade>& InDataFacade, PCGExData::FFacadePreloader& FacadePreloader) const override
 	{
-		if(SamplingConfig.NeighborSource == EPCGExClusterComponentSource::Vtx)
+		if (SamplingConfig.NeighborSource == EPCGExClusterComponentSource::Vtx)
 		{
 			TSharedPtr<PCGEx::FAttributesInfos> Infos = PCGEx::FAttributesInfos::Get(InDataFacade->GetIn()->Metadata);
 			for (FName AttrName : Config.SourceAttributes)

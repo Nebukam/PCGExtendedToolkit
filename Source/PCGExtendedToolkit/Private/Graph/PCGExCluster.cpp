@@ -123,8 +123,6 @@ namespace PCGExCluster
 
 		Bounds = OtherCluster->Bounds;
 
-		VtxPointIndices = OtherCluster->VtxPointIndices;
-
 		NodeOctree = OtherCluster->NodeOctree;
 		EdgeOctree = OtherCluster->EdgeOctree;
 	}
@@ -137,7 +135,6 @@ namespace PCGExCluster
 
 	void FCluster::WillModifyVtxIO(const bool bClearOwned)
 	{
-		VtxPointIndices.Reset();
 	}
 
 	void FCluster::WillModifyVtxPositions(const bool bClearOwned)
@@ -258,46 +255,6 @@ namespace PCGExCluster
 	bool FCluster::IsValidWith(const TSharedRef<PCGExData::FPointIO>& InVtxIO, const TSharedRef<PCGExData::FPointIO>& InEdgesIO) const
 	{
 		return NumRawVtx == InVtxIO->GetNum() && NumRawEdges == InEdgesIO->GetNum();
-	}
-
-	const TArray<int32>* FCluster::GetVtxPointIndicesPtr()
-	{
-		{
-			FReadScopeLock ReadScopeLock(ClusterLock);
-			if (VtxPointIndices) { return VtxPointIndices.Get(); }
-		}
-
-		CreateVtxPointIndices();
-		return VtxPointIndices.Get();
-	}
-
-	const TArray<int32>& FCluster::GetVtxPointIndices()
-	{
-		return *GetVtxPointIndicesPtr();
-	}
-
-	TArrayView<const int32> FCluster::GetVtxPointIndicesView()
-	{
-		GetVtxPointIndicesPtr();
-		return MakeArrayView(VtxPointIndices->GetData(), VtxPointIndices->Num());
-	}
-
-
-	TSharedPtr<TArray<uint64>> FCluster::GetVtxPointScopes()
-	{
-		{
-			FReadScopeLock ReadScopeLock(ClusterLock);
-			if (VtxPointScopes) { return VtxPointScopes; }
-		}
-
-		CreateVtxPointScopes();
-		return VtxPointScopes;
-	}
-
-	TArrayView<const uint64> FCluster::GetVtxPointScopesView()
-	{
-		GetVtxPointScopes();
-		return MakeArrayView(VtxPointScopes->GetData(), VtxPointScopes->Num());
 	}
 
 	void FCluster::RebuildNodeOctree()
@@ -835,29 +792,6 @@ namespace PCGExCluster
 		const TArray<FPCGPoint>& VtxPointsRef = *VtxPoints;
 		NodePositions.SetNumUninitialized(Nodes->Num());
 		for (const FNode& N : *Nodes) { NodePositions[N.NodeIndex] = VtxPointsRef[N.PointIndex].Transform.GetLocation(); }
-	}
-
-	void FCluster::CreateVtxPointIndices()
-	{
-		FWriteScopeLock WriteScopeLock(ClusterLock);
-
-		VtxPointIndices = MakeShared<TArray<int32>>();
-		VtxPointIndices->SetNum(Nodes->Num());
-
-		const TArray<FNode>& NodesRef = *Nodes;
-		TArray<int32>& VtxPointIndicesRef = *VtxPointIndices;
-		for (int i = 0; i < VtxPointIndices->Num(); i++) { VtxPointIndicesRef[i] = NodesRef[i].PointIndex; }
-	}
-
-	void FCluster::CreateVtxPointScopes()
-	{
-		if (!VtxPointIndices) { CreateVtxPointIndices(); }
-
-		{
-			FWriteScopeLock WriteScopeLock(ClusterLock);
-			VtxPointScopes = MakeShared<TArray<uint64>>();
-			PCGEx::ScopeIndices(*VtxPointIndices, *VtxPointScopes);
-		}
 	}
 
 #pragma endregion

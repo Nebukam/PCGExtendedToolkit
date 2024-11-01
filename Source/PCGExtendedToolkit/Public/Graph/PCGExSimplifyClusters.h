@@ -87,7 +87,7 @@ namespace PCGExSimplifyClusters
 {
 	class FProcessor final : public PCGExClusterMT::TProcessor<FPCGExSimplifyClustersContext, UPCGExSimplifyClustersSettings>
 	{
-		TArray<bool> Breakpoints;
+		TArray<int8> Breakpoints;
 
 		TArray<TSharedPtr<PCGExCluster::FNodeChain>> Chains;
 

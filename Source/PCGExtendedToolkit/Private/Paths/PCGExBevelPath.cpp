@@ -175,6 +175,8 @@ namespace PCGExBevelPath
 
 	void FBevel::Compute(const FProcessor* InProcessor)
 	{
+		if (InProcessor->Settings->Limit == EPCGExBevelLimit::Balanced) { Balance(InProcessor); }
+
 		Arrive = Corner + Width * ArriveDir;
 		Leave = Corner + Width * LeaveDir;
 
@@ -315,28 +317,48 @@ namespace PCGExBevelPath
 		}
 
 		PCGEX_ASYNC_GROUP_CHKD(AsyncManager, Preparation)
-		Preparation->OnCompleteCallback = [&]() { StartParallelLoopForPoints(PCGExData::ESource::In); };
-		Preparation->OnIterationRangeStartCallback =
-			[&](const int32 StartIndex, const int32 Count, const int32 LoopIdx)
-			{
-				PointDataFacade->Fetch(StartIndex, Count);
-				FilterScope(StartIndex, Count);
 
-				if (!bClosedLoop)
+		TWeakPtr<FProcessor> WeakPtr = SharedThis(this);
+		Preparation->OnCompleteCallback = [WeakPtr]()
+		{
+			if (const TSharedPtr<FProcessor> This = WeakPtr.Pin())
+			{
+				if (!This->bClosedLoop)
 				{
 					// Ensure bevel is disabled on start/end points
-					PointFilterCache[0] = false;
-					PointFilterCache[PointFilterCache.Num() - 1] = false;
+					This->PointFilterCache[0] = false;
+					This->PointFilterCache[This->PointFilterCache.Num() - 1] = false;
+				}
+
+				This->StartParallelLoopForPoints(PCGExData::ESource::In);
+			}
+		};
+		Preparation->OnIterationRangeStartCallback =
+			[WeakPtr](const int32 StartIndex, const int32 Count, const int32 LoopIdx)
+			{
+				const TSharedPtr<FProcessor> This = WeakPtr.Pin();
+				if (!This) { return; }
+
+				This->PointDataFacade->Fetch(StartIndex, Count);
+				This->FilterScope(StartIndex, Count);
+
+				const int32 MaxIndex = StartIndex + Count;
+
+				if (!This->bClosedLoop)
+				{
+					// Ensure bevel is disabled on start/end points
+					This->PointFilterCache[0] = false;
+					This->PointFilterCache[This->PointFilterCache.Num() - 1] = false;
+				}
+
+				for (int i = StartIndex; i < MaxIndex; i++)
+				{
+					if (!This->PointFilterCache[i]) { continue; }
+					This->Bevels[i] = MakeShared<FBevel>(i, This.Get()); // no need for SharedThis
 				}
 			};
 
-		Preparation->OnIterationCallback = [&](const int32 Index, const int32 Count, const int32 LoopIdx)
-		{
-			if (!PointFilterCache[Index]) { return; }
-			Bevels[Index] = MakeShared<FBevel>(Index, this); // no need for SharedThis
-		};
-
-		Preparation->StartIterations(PointDataFacade->GetNum(), 64);
+		Preparation->StartRangePrepareOnly(PointDataFacade->GetNum(), GetDefault<UPCGExGlobalSettings>()->PointsDefaultBatchChunkSize);
 
 		return true;
 	}
@@ -346,7 +368,6 @@ namespace PCGExBevelPath
 		const TSharedPtr<FBevel>& Bevel = Bevels[Index];
 		if (!Bevel) { return; }
 
-		if (Settings->Limit == EPCGExBevelLimit::Balanced) { Bevel->Balance(this); }
 		Bevel->Compute(this);
 	}
 

@@ -139,8 +139,8 @@ namespace PCGExCutEdges
 		int8 EdgesProcessed = 0;
 		int8 NodesProcessed = 0;
 
-		TArray<bool> EdgeFilterCache;
-		TArray<bool> NodeFilterCache;
+		TArray<int8> EdgeFilterCache;
+		TArray<int8> NodeFilterCache;
 
 		virtual TSharedPtr<PCGExCluster::FCluster> HandleCachedCluster(const TSharedRef<PCGExCluster::FCluster>& InClusterRef) override;
 

@@ -26,6 +26,14 @@ namespace PCGExCluster
 	class FCluster;
 }
 
+
+UENUM(/*E--BlueprintType, meta=(DisplayName="[PCGEx] Adjacency Direction Mode")--E*/)
+enum class EPCGExAdjacencyDirectionOrigin : uint8
+{
+	FromNode     = 0 UMETA(DisplayName = "From Node to Neighbor", Tooltip="..."),
+	FromNeighbor = 1 UMETA(DisplayName = "From Neighbor to Node", Tooltip="..."),
+};
+
 UENUM(/*E--BlueprintType, meta=(DisplayName="[PCGEx] Graph Value Source")--E*/)
 enum class EPCGExClusterComponentSource : uint8
 {

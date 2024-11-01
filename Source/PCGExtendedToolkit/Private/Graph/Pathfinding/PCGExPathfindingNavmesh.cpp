@@ -7,9 +7,6 @@
 
 #include "PCGExPointsProcessor.h"
 #include "Graph/PCGExGraph.h"
-#include "PCGExPathfinding.cpp"
-
-
 #include "Graph/Pathfinding/GoalPickers/PCGExGoalPickerRandom.h"
 #include "Paths/SubPoints/DataBlending/PCGExSubPointsBlendInterpolate.h"
 
@@ -84,10 +81,9 @@ bool FPCGExPathfindingNavmeshElement::Boot(FPCGExContext* InContext) const
 		Context->SeedsDataFacade, Context->GoalPicker,
 		[&](const int32 SeedIndex, const int32 GoalIndex)
 		{
-			Context->PathQueries.Add(
-				MakeShared<PCGExPathfinding::FPathQuery>(
-					SeedIndex, SeedsPoints->GetInPoint(SeedIndex).Transform.GetLocation(),
-					GoalIndex, GoalsPoints->GetInPoint(GoalIndex).Transform.GetLocation()));
+			Context->PathQueries.Emplace(
+				SeedIndex, Context->SeedsDataFacade->Source->GetInPoint(SeedIndex).Transform.GetLocation(),
+				GoalIndex, Context->GoalsDataFacade->Source->GetInPoint(GoalIndex).Transform.GetLocation());
 		});
 
 	return true;
@@ -103,10 +99,9 @@ bool FPCGExPathfindingNavmeshElement::ExecuteInternal(FPCGContext* InContext) co
 	{
 		auto NavClusterTask = [&](const int32 SeedIndex, const int32 GoalIndex)
 		{
-			const int32 PathIndex = Context->PathQueries.Add(
-				MakeShared<PCGExPathfinding::FPathQuery>(
-					SeedIndex, Context->SeedsDataFacade->Source->GetInPoint(SeedIndex).Transform.GetLocation(),
-					GoalIndex, Context->GoalsDataFacade->Source->GetInPoint(GoalIndex).Transform.GetLocation()));
+			const int32 PathIndex = Context->PathQueries.Emplace(
+				SeedIndex, Context->SeedsDataFacade->Source->GetInPoint(SeedIndex).Transform.GetLocation(),
+				GoalIndex, Context->GoalsDataFacade->Source->GetInPoint(GoalIndex).Transform.GetLocation());
 
 			Context->GetAsyncManager()->Start<FSampleNavmeshTask>(PathIndex, Context->SeedsDataFacade->Source, &Context->PathQueries);
 		};
@@ -134,16 +129,16 @@ bool FSampleNavmeshTask::ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& As
 
 	if (!NavSys || !NavSys->GetDefaultNavDataInstance()) { return false; }
 
-	TSharedPtr<PCGExPathfinding::FPathQuery> Query = (*Queries)[TaskIndex];
+	PCGExPathfinding::FSeedGoalPair Query = (*Queries)[TaskIndex];
 
-	const FPCGPoint* Seed = Context->SeedsDataFacade->Source->TryGetInPoint(Query->SeedIndex);
-	const FPCGPoint* Goal = Context->GoalsDataFacade->Source->TryGetInPoint(Query->GoalIndex);
+	const FPCGPoint* Seed = Context->SeedsDataFacade->Source->TryGetInPoint(Query.Seed);
+	const FPCGPoint* Goal = Context->GoalsDataFacade->Source->TryGetInPoint(Query.Goal);
 
 	if (!Seed || !Goal) { return false; }
 
 	FPathFindingQuery PathFindingQuery = FPathFindingQuery(
 		World, *NavSys->GetDefaultNavDataInstance(),
-		Query->SeedPosition, Query->GoalPosition, nullptr, nullptr,
+		Query.SeedPosition, Query.GoalPosition, nullptr, nullptr,
 		TNumericLimits<FVector::FReal>::Max(),
 		Context->bRequireNavigableEndLocation);
 
@@ -161,9 +156,9 @@ bool FSampleNavmeshTask::ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& As
 	TArray<FVector> PathLocations;
 	PathLocations.Reserve(Points.Num());
 
-	PathLocations.Add(Query->SeedPosition);
+	PathLocations.Add(Query.SeedPosition);
 	for (const FNavPathPoint& PathPoint : Points) { PathLocations.Add(PathPoint.Location); }
-	PathLocations.Add(Query->GoalPosition);
+	PathLocations.Add(Query.GoalPosition);
 
 	PCGExPaths::FPathMetrics Metrics = PCGExPaths::FPathMetrics(PathLocations[0]);
 	int32 FuseCountReduce = Settings->bAddGoalToPath ? 2 : 1;
@@ -213,11 +208,11 @@ bool FSampleNavmeshTask::ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& As
 	if (!Settings->bAddSeedToPath) { MutablePoints.RemoveAt(0); }
 	if (!Settings->bAddGoalToPath) { MutablePoints.Pop(); }
 
-	Context->SeedAttributesToPathTags.Tag(Query->SeedIndex, PathIO);
-	Context->GoalAttributesToPathTags.Tag(Query->GoalIndex, PathIO);
+	Context->SeedAttributesToPathTags.Tag(Query.Seed, PathIO);
+	Context->GoalAttributesToPathTags.Tag(Query.Goal, PathIO);
 
-	Context->SeedForwardHandler->Forward(Query->SeedIndex, PathDataFacade);
-	Context->GoalForwardHandler->Forward(Query->GoalIndex, PathDataFacade);
+	Context->SeedForwardHandler->Forward(Query.Seed, PathDataFacade);
+	Context->GoalForwardHandler->Forward(Query.Goal, PathDataFacade);
 
 	PathDataFacade->Write(ManagerPtr.Pin());
 

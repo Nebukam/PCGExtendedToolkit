@@ -393,6 +393,11 @@ namespace PCGExPaths
 		FPathEdge(const int32 InStart, const int32 InEnd, const TArrayView<FVector>& Positions, const double Expansion = 0):
 			Start(InStart), End(InEnd), AltStart(InStart)
 		{
+			Update(Positions, Expansion);
+		}
+
+		FORCEINLINE void Update(const TArrayView<FVector>& Positions, const double Expansion = 0)
+		{
 			FBox Box = FBox(ForceInit);
 			Box += Positions[Start];
 			Box += Positions[End];
@@ -403,6 +408,11 @@ namespace PCGExPaths
 		FORCEINLINE bool ShareIndices(const FPathEdge& Other) const
 		{
 			return Start == Other.Start || Start == Other.End || End == Other.Start || End == Other.End;
+		}
+
+		FORCEINLINE bool Connects(const FPathEdge& Other) const
+		{
+			return Start == Other.End || End == Other.Start;
 		}
 
 		FORCEINLINE bool ShareIndices(const FPathEdge* Other) const
@@ -430,6 +440,10 @@ namespace PCGExPaths
 		virtual void ProcessFirstEdge(const FPath* Path, const FPathEdge& Edge) { ProcessEdge(Path, Edge); };
 		virtual void ProcessEdge(const FPath* Path, const FPathEdge& Edge) = 0;
 		virtual void ProcessLastEdge(const FPath* Path, const FPathEdge& Edge) { ProcessEdge(Path, Edge); }
+
+		virtual void ProcessingDone(const FPath* Path)
+		{
+		}
 	};
 
 	template <typename T>
@@ -479,6 +493,7 @@ namespace PCGExPaths
 
 		int32 IOIndex = -1;
 
+		FORCEINLINE int32 LoopPointIndex(const int32 Index) const { return PCGExMath::Tile(Index, 0, LastIndex); };
 		virtual int32 SafePointIndex(const int32 Index) const = 0;
 
 		FORCEINLINE virtual const FVector& GetPos(const int32 Index) const { return Positions[SafePointIndex(Index)]; }
@@ -501,21 +516,6 @@ namespace PCGExPaths
 		FORCEINLINE virtual bool IsEdgeValid(const FPathEdge& Edge) const { return FVector::DistSquared(GetPosUnsafe(Edge.Start), GetPosUnsafe(Edge.End)) > 0; }
 		FORCEINLINE virtual bool IsEdgeValid(const int32 Index) const { return IsEdgeValid(Edges[Index]); }
 
-		void RecomputeBounds(const double Expansion = 0)
-		{
-			EdgeOctree.Reset();
-			Bounds = FBox(ForceInit);
-
-			for (FPathEdge& Edge : Edges)
-			{
-				FBox BSB = FBox(ForceInit);
-				BSB += GetPos(Edge.Start);
-				BSB += GetPos(Edge.End);
-				Edge.BSB = BSB.ExpandBy(Expansion);
-				Bounds += BSB.ExpandBy(Expansion);
-			}
-		}
-
 		void BuildEdgeOctree()
 		{
 			if (EdgeOctree) { return; }
@@ -527,14 +527,15 @@ namespace PCGExPaths
 			}
 		}
 
-		void BuildPartialEdgeOctree(const TArray<bool>& Filter)
+		void BuildPartialEdgeOctree(const TArray<int8>& Filter)
 		{
 			if (EdgeOctree) { return; }
 			EdgeOctree = MakeUnique<FPathEdgeOctree>(Bounds.GetCenter(), Bounds.GetExtent().Length() + 10);
-			for (FPathEdge& Edge : Edges)
+			for (int i = 0; i < Edges.Num(); i++)
 			{
-				if (!IsEdgeValid(Edge)) { continue; } // Skip zero-length edges
-				EdgeOctree->AddElement(&Edge);        // Might be a problem if edges gets reallocated
+				FPathEdge& Edge = Edges[i];
+				if (!Filter[i] || !IsEdgeValid(Edge)) { continue; } // Skip filtered out & zero-length edges
+				EdgeOctree->AddElement(&Edge);                      // Might be a problem if edges gets reallocated
 			}
 		}
 
@@ -582,6 +583,8 @@ namespace PCGExPaths
 						Extra->ProcessLastEdge(this, Edges[LastEdge]);
 					}
 				}
+
+				Extra->ProcessingDone(this);
 			}
 			else
 			{
@@ -592,7 +595,55 @@ namespace PCGExPaths
 		}
 
 		virtual void ComputeEdgeExtra(const int32 Index);
+		virtual void ExtraComputingDone();
 		virtual void ComputeAllEdgeExtra();
+
+		virtual void UpdateEdges(const TArray<FPCGPoint>& InPoints, const double Expansion)
+		{
+			Bounds = FBox(ForceInit);
+			EdgeOctree.Reset();
+
+			check(Positions.Num() == InPoints.Num())
+
+			Positions.SetNumUninitialized(NumPoints);
+			for (int i = 0; i < NumPoints; ++i) { Positions[i] = InPoints[i].Transform.GetLocation(); }
+			for (FPathEdge& Edge : Edges)
+			{
+				Edge.Update(Positions, Expansion);
+				Bounds += Edge.BSB.GetBox();
+			}
+		}
+
+		virtual void UpdateEdges(const TArrayView<FVector> InPositions, const double Expansion)
+		{
+			Bounds = FBox(ForceInit);
+			EdgeOctree.Reset();
+
+			check(Positions.Num() == InPositions.Num())
+			Positions.Reset(NumPoints);
+			Positions.Append(InPositions);
+
+			for (FPathEdge& Edge : Edges)
+			{
+				Edge.Update(Positions, Expansion);
+				Bounds += Edge.BSB.GetBox();
+			}
+		}
+
+	protected:
+		void BuildPath(const double Expansion)
+		{
+			if (bClosedLoop) { NumEdges = NumPoints; }
+			else { NumEdges = LastIndex; }
+			LastEdge = NumEdges - 1;
+
+			Edges.SetNumUninitialized(NumEdges);
+			for (int i = 0; i < NumEdges; i++)
+			{
+				const FPathEdge& E = (Edges[i] = FPathEdge(i, (i + 1) % NumPoints, Positions, Expansion));
+				Bounds += E.BSB.GetBox();
+			}
+		}
 	};
 
 	template <bool ClosedLoop = false>
@@ -609,18 +660,20 @@ namespace PCGExPaths
 			Positions.SetNumUninitialized(NumPoints);
 			for (int i = 0; i < NumPoints; i++) { *(Positions.GetData() + i) = InPoints[i].Transform.GetLocation(); }
 
-			Positions = MakeArrayView(Positions.GetData(), NumPoints);
+			BuildPath(Expansion);
+		}
 
-			if constexpr (ClosedLoop) { NumEdges = NumPoints; }
-			else { NumEdges = LastIndex; }
-			LastEdge = NumEdges - 1;
+		TPath(const TArrayView<FVector> InPositions, const double Expansion = 0)
+		{
+			bClosedLoop = ClosedLoop;
 
-			Edges.SetNumUninitialized(NumEdges);
-			for (int i = 0; i < NumEdges; i++)
-			{
-				const FPathEdge& E = (Edges[i] = FPathEdge(i, (i + 1) % NumPoints, Positions, Expansion));
-				Bounds += E.BSB.GetBox();
-			}
+			NumPoints = InPositions.Num();
+			LastIndex = NumPoints - 1;
+
+			Positions.Reset(NumPoints);
+			Positions.Append(InPositions);
+
+			BuildPath(Expansion);
 		}
 
 		FORCEINLINE virtual int32 SafePointIndex(const int32 Index) const override
@@ -636,10 +689,29 @@ namespace PCGExPaths
 		}
 	};
 
+	template <typename T>
+	class FPathEdgeCustomData : public TPathEdgeExtra<T>
+	{
+	public:
+		using ProcessEdgeFunc = std::function<T(const FPath*, const FPathEdge&)>;
+		ProcessEdgeFunc ProcessEdgeCallback;
+
+		explicit FPathEdgeCustomData(const int32 InNumSegments, const bool InClosedLoop, ProcessEdgeFunc&& Func)
+			: TPathEdgeExtra<T>(InNumSegments, InClosedLoop), ProcessEdgeCallback(Func)
+		{
+		}
+
+		virtual void ProcessEdge(const FPath* Path, const FPathEdge& Edge) override
+		{
+			this->GetMutable(Edge.Start) = ProcessEdgeCallback(Path, Edge);
+		}
+	};
+
 	class FPathEdgeLength : public TPathEdgeExtra<double>
 	{
 	public:
 		double TotalLength = 0;
+		TArray<double> CumulativeLength;
 
 		explicit FPathEdgeLength(const int32 InNumSegments, const bool InClosedLoop)
 			: TPathEdgeExtra(InNumSegments, InClosedLoop)
@@ -647,6 +719,7 @@ namespace PCGExPaths
 		}
 
 		virtual void ProcessEdge(const FPath* Path, const FPathEdge& Edge) override;
+		virtual void ProcessingDone(const FPath* Path) override;
 	};
 
 	class FPathEdgeLengthSquared : public TPathEdgeExtra<double>
@@ -715,6 +788,18 @@ namespace PCGExPaths
 		}
 
 		TSharedPtr<TPath<false>> P = MakeShared<TPath<false>>(InPoints, Expansion);
+		return StaticCastSharedPtr<FPath>(P);
+	}
+
+	static TSharedPtr<FPath> MakePath(const TArrayView<FVector> InPositions, const double Expansion, const bool bClosedLoop)
+	{
+		if (bClosedLoop)
+		{
+			TSharedPtr<TPath<true>> P = MakeShared<TPath<true>>(InPositions, Expansion);
+			return StaticCastSharedPtr<FPath>(P);
+		}
+
+		TSharedPtr<TPath<false>> P = MakeShared<TPath<false>>(InPositions, Expansion);
 		return StaticCastSharedPtr<FPath>(P);
 	}
 }

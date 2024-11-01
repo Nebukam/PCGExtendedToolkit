@@ -27,7 +27,7 @@ namespace PCGExClusterTask
 
 		for (const PCGExCluster::FNode& Node : NodesRefs)
 		{
-			const TArray<bool>& Brkpts = *Breakpoints;
+			const TArray<int8>& Brkpts = *Breakpoints;
 			if (Node.IsSimple())
 			{
 				// Keep earliest simple node index in case we find no good starting points

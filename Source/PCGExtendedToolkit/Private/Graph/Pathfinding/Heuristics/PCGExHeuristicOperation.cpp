@@ -4,7 +4,8 @@
 
 #include "Graph/Pathfinding/Heuristics/PCGExHeuristicOperation.h"
 
-void UPCGExHeuristicOperation::PrepareForCluster(const PCGExCluster::FCluster* InCluster)
+
+void UPCGExHeuristicOperation::PrepareForCluster(const TSharedPtr<const PCGExCluster::FCluster>& InCluster)
 {
 	Cluster = InCluster;
 	LocalWeightMultiplier.Empty();

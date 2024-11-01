@@ -7,6 +7,8 @@
 #include "PCGExHeuristicsFactoryProvider.h"
 #include "UObject/Object.h"
 #include "PCGExHeuristicOperation.h"
+
+
 #include "Graph/PCGExCluster.h"
 #include "PCGExHeuristicAzimuth.generated.h"
 
@@ -30,7 +32,7 @@ class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExHeuristicAzimuth : public UPCGExHeuristic
 	GENERATED_BODY()
 
 public:
-	virtual void PrepareForCluster(const PCGExCluster::FCluster* InCluster) override;
+	virtual void PrepareForCluster(const TSharedPtr<const PCGExCluster::FCluster>& InCluster) override;
 
 	FORCEINLINE virtual double GetGlobalScore(
 		const PCGExCluster::FNode& From,
@@ -81,7 +83,7 @@ public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(
-		HeuristicsGoalFocused, "Heuristics : Azimuth", "Heuristics based on direction toward final goal (north star).",
+		HeuristicsAzimuth, "Heuristics : Azimuth", "Heuristics based on direction toward final goal (north star).",
 		FName(GetDisplayName()))
 #endif
 	//~End UPCGSettings

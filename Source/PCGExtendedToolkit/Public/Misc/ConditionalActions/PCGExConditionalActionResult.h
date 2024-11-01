@@ -60,7 +60,7 @@ class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExConditionalActionResultProviderSettings :
 public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS(ConditionalActionWriteAttributes, "Action : Write Result", "Simply writes the filter result to an attribute.")
+	PCGEX_NODE_INFOS(ConditionalActionWriteResult, "Action : Write Result", "Simply writes the filter result to an attribute.")
 #endif
 	//~End UPCGSettings
 

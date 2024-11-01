@@ -39,7 +39,7 @@ class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExOrientSettings : public UPCGExPathProcess
 public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS(Orient, "Path : Orient", "Orient paths points");
+	PCGEX_NODE_INFOS(PathOrient, "Path : Orient", "Orient paths points");
 #endif
 
 protected:
@@ -109,7 +109,7 @@ namespace PCGExOrient
 	class FProcessor final : public PCGExPointsMT::TPointsProcessor<FPCGExOrientContext, UPCGExOrientSettings>
 	{
 		TSharedPtr<PCGExPaths::FPath> Path;
-		
+
 		TSharedPtr<PCGExData::TBuffer<FTransform>> TransformWriter;
 		TSharedPtr<PCGExData::TBuffer<double>> DotWriter;
 		UPCGExOrientOperation* Orient = nullptr;

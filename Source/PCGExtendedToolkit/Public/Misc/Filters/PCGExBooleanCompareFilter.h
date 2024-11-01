@@ -100,7 +100,7 @@ public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(
-		CompareFilterFactory, "Filter : Bool Compare", "Creates a filter definition that compares two boolean values.",
+		BoolCompareFilterFactory, "Filter : Bool Compare", "Creates a filter definition that compares two boolean values.",
 		PCGEX_FACTORY_NAME_PRIORITY)
 #endif
 	//~End UPCGSettings

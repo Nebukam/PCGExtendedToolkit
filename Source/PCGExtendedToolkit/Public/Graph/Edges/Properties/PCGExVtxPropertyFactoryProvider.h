@@ -215,7 +215,7 @@ class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExVtxPropertyProviderSettings : public UPCG
 public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS(VtxPropertyAttribute, "Vtx : Abstract", "Abstract vtx extra settings.")
+	PCGEX_NODE_INFOS(AbstractVtxProperty, "Vtx : Abstract", "Abstract vtx extra settings.")
 	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->NodeColorSamplerNeighbor; }
 #endif
 

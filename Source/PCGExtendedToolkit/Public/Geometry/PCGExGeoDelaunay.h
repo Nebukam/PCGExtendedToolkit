@@ -212,7 +212,7 @@ namespace PCGExGeo
 		uint32 Faces[4];
 		int32 Vtx[4];
 		int32 Id = -1;
-		bool bOnHull = false;
+		int8 bOnHull = 0;
 
 		explicit FDelaunaySite3(const FIntVector4& InVtx, const int32 InId = -1) : Id(InId)
 		{

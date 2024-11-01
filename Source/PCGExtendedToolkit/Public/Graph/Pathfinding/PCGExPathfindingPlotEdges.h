@@ -106,14 +106,12 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPathfindingPlotEdgesContext final : FPCG
 {
 	friend class FPCGExPathfindingPlotEdgesElement;
 
-	TSharedPtr<PCGExData::FPointIOCollection> Plots;
+	TArray<TSharedPtr<PCGExData::FFacade>> Plots;
 	TSharedPtr<PCGExData::FPointIOCollection> OutputPaths;
 
 	UPCGExSearchOperation* SearchAlgorithm = nullptr;
 
-	void TryFindPath(
-		const UPCGExSearchOperation* SearchOperation,
-		const TSharedPtr<PCGExData::FPointIO>& InPlotPoints, const TSharedPtr<PCGExHeuristics::THeuristicsHandler>& HeuristicsHandler) const;
+	void BuildPath(const TSharedPtr<PCGExPathfinding::FPlotQuery>& Query) const;
 };
 
 class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPathfindingPlotEdgesElement final : public FPCGExEdgesProcessorElement
@@ -131,32 +129,10 @@ protected:
 
 namespace PCGExPathfindingPlotEdge
 {
-	class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPlotClusterPathTask final : public FPCGExPathfindingTask
-	{
-	public:
-		FPCGExPlotClusterPathTask(const TSharedPtr<PCGExData::FPointIO>& InPointIO,
-		                          const UPCGExSearchOperation* InSearchOperation,
-		                          const TSharedPtr<PCGExData::FPointIOCollection>& InPlots,
-		                          const TSharedPtr<PCGExHeuristics::THeuristicsHandler>& InHeuristics,
-		                          const bool Inlined = false) :
-			FPCGExPathfindingTask(InPointIO, nullptr),
-			SearchOperation(InSearchOperation),
-			Plots(InPlots),
-			Heuristics(InHeuristics),
-			bInlined(Inlined)
-		{
-		}
-
-		const UPCGExSearchOperation* SearchOperation = nullptr;
-		TSharedPtr<PCGExData::FPointIOCollection> Plots;
-		TSharedPtr<PCGExHeuristics::THeuristicsHandler> Heuristics;
-		bool bInlined = false;
-
-		virtual bool ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager) override;
-	};
-
 	class FProcessor final : public PCGExClusterMT::TProcessor<FPCGExPathfindingPlotEdgesContext, UPCGExPathfindingPlotEdgesSettings>
 	{
+		TArray<TSharedPtr<PCGExPathfinding::FPlotQuery>> Queries;
+
 	public:
 		FProcessor(const TSharedRef<PCGExData::FFacade>& InVtxDataFacade, const TSharedRef<PCGExData::FFacade>& InEdgeDataFacade):
 			TProcessor(InVtxDataFacade, InEdgeDataFacade)

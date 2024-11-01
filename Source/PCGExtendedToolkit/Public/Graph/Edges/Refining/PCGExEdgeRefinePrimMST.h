@@ -47,7 +47,7 @@ public:
 		double CurrentNodeScore;
 		while (ScoredQueue->Dequeue(CurrentNodeIndex, CurrentNodeScore))
 		{
-			const PCGExCluster::FNode& Current = *(Cluster->Nodes->GetData() + CurrentNodeIndex);
+			const PCGExCluster::FNode& Current = *Cluster->GetNode(CurrentNodeIndex);
 			Visited[CurrentNodeIndex] = true;
 
 			for (const uint64 AdjacencyHash : Current.Adjacency)
@@ -58,8 +58,8 @@ public:
 
 				if (Visited[NeighborIndex]) { continue; } // Exit early
 
-				const PCGExCluster::FNode& AdjacentNode = *(Cluster->Nodes->GetData() + NeighborIndex);
-				PCGExGraph::FIndexedEdge& Edge = *(Cluster->Edges->GetData() + EdgeIndex);
+				const PCGExCluster::FNode& AdjacentNode = *Cluster->GetNode(NeighborIndex);
+				PCGExGraph::FIndexedEdge& Edge = *Cluster->GetEdge(EdgeIndex);
 
 				const double Score = Heuristics->GetEdgeScore(Current, AdjacentNode, Edge, NoNode, NoNode, nullptr, &TravelStack);
 
@@ -81,7 +81,7 @@ public:
 
 			if (NeighborIndex == i) { continue; }
 
-			(Cluster->Edges->GetData() + EdgeIndex)->bValid = true;
+			Cluster->GetEdge(EdgeIndex)->bValid = true;
 		}
 	}
 };

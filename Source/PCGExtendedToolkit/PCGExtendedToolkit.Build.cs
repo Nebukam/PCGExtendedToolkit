@@ -9,8 +9,6 @@ public class PCGExtendedToolkit : ModuleRules
 	{
 		PCHUsage = ModuleRules.PCHUsageMode.UseExplicitOrSharedPCHs;
 
-		// if (Target.Platform == UnrealTargetPlatform.Win64) { bUseRTTI = true; }
-
 		PublicIncludePaths.AddRange(
 			new string[]
 			{

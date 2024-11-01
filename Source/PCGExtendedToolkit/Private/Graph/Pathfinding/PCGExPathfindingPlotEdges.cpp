@@ -38,103 +38,81 @@ TArray<FPCGPinProperties> UPCGExPathfindingPlotEdgesSettings::OutputPinPropertie
 	return PinProperties;
 }
 
-void FPCGExPathfindingPlotEdgesContext::TryFindPath(
-	const UPCGExSearchOperation* SearchOperation,
-	const TSharedPtr<PCGExData::FPointIO>& InPlotPoints,
-	const TSharedPtr<PCGExHeuristics::THeuristicsHandler>& HeuristicsHandler) const
+void FPCGExPathfindingPlotEdgesContext::BuildPath(const TSharedPtr<PCGExPathfinding::FPlotQuery>& Query) const
 {
 	PCGEX_SETTINGS_LOCAL(PathfindingPlotEdges)
 
-	const PCGExCluster::FCluster* Cluster = SearchOperation->Cluster;
+	bool bAddGoal = Settings->bAddGoalToPath ? (!Query->bIsClosedLoop || !Settings->bAddSeedToPath) : false;
 
-	const TSharedPtr<PCGExHeuristics::FLocalFeedbackHandler> LocalFeedbackHandler = HeuristicsHandler->MakeLocalFeedbackHandler(Cluster);
-	TArray<int32> Path;
+	int32 NumPoints = Query->SubQueries.Num() + 2;
+	int32 ValidPlotIndex = 0;
 
-	const int32 NumPlots = InPlotPoints->GetNum();
-
-	for (int i = 1; i < NumPlots; i++)
+	for (TSharedPtr<PCGExPathfinding::FPathQuery> PathQuery : Query->SubQueries)
 	{
-		FVector SeedPosition = InPlotPoints->GetInPoint(i - 1).Transform.GetLocation();
-		FVector GoalPosition = InPlotPoints->GetInPoint(i).Transform.GetLocation();
-
-		if (!SearchOperation->FindPath(
-			SeedPosition, &Settings->SeedPicking,
-			GoalPosition, &Settings->GoalPicking, HeuristicsHandler, Path, LocalFeedbackHandler))
-		{
-			// Failed
-			if (Settings->bOmitCompletePathOnFailedPlot) { return; }
-		}
-
-		if (Settings->bAddPlotPointsToPath && i < NumPlots - 1) { Path.Add((i + 1) * -1); }
-		SeedPosition = GoalPosition;
+		if (!PathQuery->IsQuerySuccessful()) { continue; }
+		NumPoints += PathQuery->PathNodes.Num();
+		ValidPlotIndex++;
 	}
 
-	if (Settings->bClosedLoop)
+	if (ValidPlotIndex == 0) { return; } // No path could be resolved
+
+	//
+
+	TArray<FPCGPoint> MutablePoints;
+	MutablePoints.Reserve(NumPoints);
+
+	auto AddPlotPoint = [&](int32 Index)
 	{
-		const FVector SeedPosition = InPlotPoints->GetInPoint(InPlotPoints->GetNum() - 1).Transform.GetLocation();
-		const FVector GoalPosition = InPlotPoints->GetInPoint(0).Transform.GetLocation();
+		MutablePoints.Add_GetRef(Query->PlotFacade->Source->GetInPoint(Index)).MetadataEntry = PCGInvalidEntryKey;
+	};
+
+	if (Settings->bAddSeedToPath) { AddPlotPoint(Query->SubQueries[0]->Seed.SourceIndex); }
+
+	for (int i = 0; i < Query->SubQueries.Num(); i++)
+	{
+		TSharedPtr<PCGExPathfinding::FPathQuery> PathQuery = Query->SubQueries[i];
+		if (Settings->bAddPlotPointsToPath && i != 0) { AddPlotPoint(PathQuery->Seed.SourceIndex); }
+
+		if (!PathQuery->IsQuerySuccessful()) { continue; }
 
 		if (Settings->bAddPlotPointsToPath)
 		{
-			// Insert goal point as plot point
-			Path.Add(NumPlots * -1);
-		}
-
-		if (!SearchOperation->FindPath(
-			SeedPosition, &Settings->SeedPicking,
-			GoalPosition, &Settings->GoalPicking, HeuristicsHandler, Path, LocalFeedbackHandler))
-		{
-			// Failed
-			if (Settings->bOmitCompletePathOnFailedPlot) { return; }
-		}
-	}
-
-	if (Path.Num() < 2 && !Settings->bAddSeedToPath && !Settings->bAddGoalToPath) { return; }
-
-	const TSharedPtr<PCGExData::FPointIO> PathIO = OutputPaths->Emplace_GetRef<UPCGPointData>(Cluster->VtxIO.Pin()->GetIn(), PCGExData::EInit::NewOutput);
-	PCGExGraph::CleanupClusterTags(PathIO, true);
-
-	UPCGPointData* OutPathData = PathIO->GetOut();
-
-	PCGExGraph::CleanupVtxData(PathIO);
-
-	TArray<FPCGPoint>& MutablePoints = OutPathData->GetMutablePoints();
-	const TArray<FPCGPoint>& InPoints = Cluster->VtxIO.Pin()->GetIn()->GetPoints();
-
-	MutablePoints.Reserve(Path.Num() + 2);
-
-	if (Settings->bAddSeedToPath) { MutablePoints.Add_GetRef(InPlotPoints->GetInPoint(0)).MetadataEntry = PCGInvalidEntryKey; }
-
-	const TArray<int32>& VtxPointIndices = SearchOperation->Cluster->GetVtxPointIndices();
-	int32 LastIndex = -1;
-	for (const int32 VtxIndex : Path)
-	{
-		if (VtxIndex < 0) // Plot point
-		{
-			MutablePoints.Add_GetRef(InPlotPoints->GetInPoint((VtxIndex * -1) - 1)).MetadataEntry = PCGInvalidEntryKey;
+			PathQuery->AppendNodePoints(MutablePoints);
 			continue;
 		}
 
-		if (LastIndex == VtxIndex) { continue; } //Skip duplicates
-		MutablePoints.Add(InPoints[VtxPointIndices[VtxIndex]]);
-		LastIndex = VtxIndex;
+		if (i == 0)
+		{
+			// First path, full
+			PathQuery->AppendNodePoints(MutablePoints);
+		}
+		else if (Settings->bClosedLoop && i == Query->SubQueries.Num() - 1)
+		{
+			// Last path, if closed loop, truncated both start & end
+			PathQuery->AppendNodePoints(MutablePoints, 1, 1);
+		}
+		else
+		{
+			// Body path, truncated start
+			PathQuery->AppendNodePoints(MutablePoints, 1);
+		}
 	}
 
-	if (Settings->bAddGoalToPath && !Settings->bClosedLoop)
-	{
-		MutablePoints.Add_GetRef(InPlotPoints->GetInPoint(InPlotPoints->GetNum() - 1)).MetadataEntry = PCGInvalidEntryKey;
-	}
+	if (bAddGoal) { AddPlotPoint(Query->SubQueries.Last()->Goal.SourceIndex); }
 
-	PathIO->Tags->Append(InPlotPoints->Tags.ToSharedRef());
+	if (MutablePoints.Num() < 2) { return; }
 
-	if (!Settings->bClosedLoop)
-	{
-		if (Settings->bTagIfOpenPath) { PathIO->Tags->Add(Settings->IsOpenPathTag); }
-	}
-	else
-	{
-		if (Settings->bTagIfClosedLoop) { PathIO->Tags->Add(Settings->IsClosedLoopTag); }
-	}
+	const TSharedPtr<PCGExData::FPointIO> PathIO = OutputPaths->Emplace_GetRef<UPCGPointData>(Query->Cluster->VtxIO.Pin()->GetIn(), PCGExData::EInit::NewOutput);
+	const TSharedPtr<PCGExData::FFacade> PathDataFacade = MakeShared<PCGExData::FFacade>(PathIO.ToSharedRef());
+	PathDataFacade->GetMutablePoints() = MutablePoints;
+
+	PCGExGraph::CleanupClusterTags(PathIO, true);
+	PCGExGraph::CleanupVtxData(PathIO);
+
+	PathIO->Tags->Append(Query->PlotFacade->Source->Tags.ToSharedRef());
+
+	if (!Settings->bClosedLoop) { if (Settings->bTagIfOpenPath) { PathIO->Tags->Add(Settings->IsOpenPathTag); } }
+	else { if (Settings->bTagIfClosedLoop) { PathIO->Tags->Add(Settings->IsClosedLoopTag); } }
 }
 
 PCGEX_INITIALIZE_ELEMENT(PathfindingPlotEdges)
@@ -148,23 +126,20 @@ bool FPCGExPathfindingPlotEdgesElement::Boot(FPCGExContext* InContext) const
 	PCGEX_OPERATION_BIND(SearchAlgorithm, UPCGExSearchOperation, PCGExPathfinding::SourceOverridesSearch)
 
 	Context->OutputPaths = MakeShared<PCGExData::FPointIOCollection>(Context);
-	Context->Plots = MakeShared<PCGExData::FPointIOCollection>(Context);
+	TSharedPtr<PCGExData::FPointIOCollection> Plots = MakeShared<PCGExData::FPointIOCollection>(Context);
 
 	TArray<FPCGTaggedData> Sources = Context->InputData.GetInputsByPin(PCGExGraph::SourcePlotsLabel);
-	Context->Plots->Initialize(Sources, PCGExData::EInit::NoOutput);
+	Plots->Initialize(Sources, PCGExData::EInit::NoOutput);
 
-	for (int i = 0; i < Context->Plots->Num(); i++)
+	Context->Plots.Reserve(Plots->Num());
+	for (TSharedPtr<PCGExData::FPointIO> PlotIO : Plots->Pairs)
 	{
-		const PCGExData::FPointIO* Plot = Context->Plots->Pairs[i].Get();
-		if (Plot->GetNum() < 2)
-		{
-			PCGE_LOG(Warning, GraphAndLog, FTEXT("Pruned plot with < 2 points."));
-			Context->Plots->Pairs.RemoveAt(i);
-			i--;
-		}
+		if (PlotIO->GetNum() < 2) { PCGE_LOG(Warning, GraphAndLog, FTEXT("Pruned plot with < 2 points.")); }
+		TSharedPtr<PCGExData::FFacade> PlotFacade = MakeShared<PCGExData::FFacade>(PlotIO.ToSharedRef());
+		Context->Plots.Add(PlotFacade);
 	}
 
-	if (Context->Plots->IsEmpty())
+	if (Context->Plots.IsEmpty())
 	{
 		PCGE_LOG(Error, GraphAndLog, FTEXT("Missing valid Plots."));
 		return false;
@@ -200,21 +175,6 @@ bool FPCGExPathfindingPlotEdgesElement::ExecuteInternal(FPCGContext* InContext) 
 
 namespace PCGExPathfindingPlotEdge
 {
-	bool FPCGExPlotClusterPathTask::ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager)
-	{
-		const FPCGExPathfindingPlotEdgesContext* Context = AsyncManager->GetContext<FPCGExPathfindingPlotEdgesContext>();
-		PCGEX_SETTINGS(PathfindingPlotEdges)
-
-		Context->TryFindPath(SearchOperation, Plots->Pairs[TaskIndex], Heuristics);
-
-		if (bInlined && Plots->Pairs.IsValidIndex(TaskIndex + 1))
-		{
-			InternalStart<FPCGExPlotClusterPathTask>(TaskIndex + 1, PointIO, SearchOperation, Plots, Heuristics, true);
-		}
-
-		return true;
-	}
-
 	FProcessor::~FProcessor()
 	{
 	}
@@ -243,28 +203,34 @@ namespace PCGExPathfindingPlotEdge
 		SearchOperation = Context->SearchAlgorithm->CopyOperation<UPCGExSearchOperation>(); // Create a local copy
 		SearchOperation->PrepareForCluster(Cluster.Get());
 
-		if (IsTrivial())
+		PCGEx::InitArray(Queries, Context->Plots.Num());
+		for (int i = 0; i < Queries.Num(); i++)
 		{
-			// Naturally accounts for global heuristics
-			for (const TSharedPtr<PCGExData::FPointIO> PlotIO : Context->Plots->Pairs)
-			{
-				Context->TryFindPath(SearchOperation, PlotIO, HeuristicsHandler);
-			}
-
-			return true;
+			const TSharedPtr<PCGExPathfinding::FPlotQuery> Query = MakeShared<PCGExPathfinding::FPlotQuery>(Cluster.ToSharedRef(), Settings->bClosedLoop);
+			Queries[i] = Query;
 		}
 
-		if (HeuristicsHandler->HasGlobalFeedback())
+		PCGEX_ASYNC_GROUP_CHKD(AsyncManager, ResolveQueriesTask)
+		TWeakPtr<FProcessor> WeakPtr = SharedThis(this);
+		ResolveQueriesTask->OnIterationRangeStartCallback = [WeakPtr](const int32 StartIndex, const int32 Count, const int32 LoopIdx)
 		{
-			AsyncManager->Start<FPCGExPlotClusterPathTask>(0, VtxDataFacade->Source, SearchOperation, Context->Plots, HeuristicsHandler, true);
-		}
-		else
-		{
-			for (int i = 0; i < Context->Plots->Num(); i++)
+			TSharedPtr<FProcessor> This = WeakPtr.Pin();
+			if (!This) { return; }
+
+			TSharedPtr<PCGExPathfinding::FPlotQuery> Query = This->Queries[StartIndex];
+			Query->BuildPlotQuery(This->Context->Plots[StartIndex], This->Settings->SeedPicking, This->Settings->GoalPicking);
+			Query->FindPaths(This->AsyncManager, This->SearchOperation, This->HeuristicsHandler);
+			Query->OnCompleteCallback = [WeakPtr](const TSharedPtr<PCGExPathfinding::FPlotQuery>& Plot)
 			{
-				AsyncManager->Start<FPCGExPlotClusterPathTask>(i, VtxDataFacade->Source, SearchOperation, Context->Plots, HeuristicsHandler, false);
-			}
-		}
+				TSharedPtr<FProcessor> NestedThis = WeakPtr.Pin();
+				if (!NestedThis) { return; }
+				NestedThis->Context->BuildPath(Plot);
+				Plot->Cleanup();
+			};
+		};
+
+		ResolveQueriesTask->StartRangePrepareOnly(Queries.Num(), 1, HeuristicsHandler->HasGlobalFeedback());
+		return true;
 
 		return true;
 	}

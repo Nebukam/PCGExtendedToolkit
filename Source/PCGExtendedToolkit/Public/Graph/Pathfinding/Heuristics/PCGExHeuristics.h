@@ -7,6 +7,9 @@
 #include "PCGExHeuristicFeedback.h"
 #include "PCGExHeuristicsFactoryProvider.h"
 
+
+#include "Graph/Pathfinding/PCGExPathfinding.h"
+
 #include "PCGExHeuristics.generated.h"
 
 UENUM(/*E--BlueprintType, meta=(DisplayName="[PCGEx] Heuristic Score Mode")--E*/)
@@ -84,7 +87,7 @@ namespace PCGExHeuristics
 		TArray<UPCGExHeuristicFeedback*> Feedbacks;
 		TArray<TObjectPtr<const UPCGExHeuristicsFactoryBase>> LocalFeedbackFactories;
 
-		PCGExCluster::FCluster* CurrentCluster = nullptr;
+		TSharedPtr<PCGExCluster::FCluster> Cluster;
 
 		double ReferenceWeight = 1;
 		double TotalStaticWeight = 0;
@@ -97,7 +100,7 @@ namespace PCGExHeuristics
 		~THeuristicsHandler();
 
 		void BuildFrom(FPCGExContext* InContext, const TArray<TObjectPtr<const UPCGExHeuristicsFactoryBase>>& InFactories);
-		void PrepareForCluster(PCGExCluster::FCluster* InCluster);
+		void PrepareForCluster(const TSharedPtr<PCGExCluster::FCluster>& InCluster);
 		void CompleteClusterPreparation();
 
 		FORCEINLINE double GetGlobalScore(
@@ -122,7 +125,6 @@ namespace PCGExHeuristics
 			const FLocalFeedbackHandler* LocalFeedback = nullptr,
 			const TArray<uint64>* TravelStack = nullptr) const
 		{
-			//TODO : Account for custom weight here
 			double EScore = 0;
 			if (!bUseDynamicWeight)
 			{
@@ -151,6 +153,6 @@ namespace PCGExHeuristics
 			for (UPCGExHeuristicFeedback* Op : Feedbacks) { Op->FeedbackScore(Node, Edge); }
 		}
 
-		TSharedPtr<FLocalFeedbackHandler> MakeLocalFeedbackHandler(const PCGExCluster::FCluster* InCluster);
+		TSharedPtr<FLocalFeedbackHandler> MakeLocalFeedbackHandler(const TSharedPtr<const PCGExCluster::FCluster>& InCluster);
 	};
 }

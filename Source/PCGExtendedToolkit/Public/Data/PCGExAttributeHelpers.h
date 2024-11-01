@@ -498,6 +498,8 @@ namespace PCGEx
 			}
 		}
 
+		FORCEINLINE T SoftGet(const PCGExData::FPointRef& PointRef, const T& fallback) { return SoftGet(PointRef.Index, *PointRef.Point, fallback); }
+
 		FORCEINLINE T SafeGet(const int32 Index, const T& fallback) const { return !bValid ? fallback : Values[Index]; }
 		FORCEINLINE T operator[](int32 Index) const { return bValid ? Values[Index] : T{}; }
 
