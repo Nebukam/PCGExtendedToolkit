@@ -290,7 +290,7 @@ namespace PCGExRefineEdges
 					const int32 MaxIndex = StartIndex + Count;
 					for (int i = StartIndex; i < MaxIndex; i++)
 					{
-						PCGExGraph::FIndexedEdge& Edge = *(Cluster->Edges->GetData() + i);
+						PCGExGraph::FIndexedEdge& Edge = *Cluster->GetEdge(i);
 						if (SanitizationFilterManager->Test(Edge)) { Edge.bValid = true; }
 					}
 				};
@@ -377,7 +377,7 @@ namespace PCGExRefineEdges
 		{
 			for (int i = 0; i < NumIterations; i++)
 			{
-				const PCGExCluster::FNode* Node = (Processor->Cluster->Nodes->GetData() + StartIndex + i);
+				const PCGExCluster::FNode* Node = (Processor->Cluster->GetNode(StartIndex + i));
 
 				int32 BestIndex = -1;
 				double LongestDist = MIN_dbl;
@@ -398,14 +398,14 @@ namespace PCGExRefineEdges
 
 				if (BestIndex == -1) { continue; }
 
-				FPlatformAtomics::InterlockedExchange(&(Processor->Cluster->Edges->GetData() + BestIndex)->bValid, 1);
+				FPlatformAtomics::InterlockedExchange(&Processor->Cluster->GetEdge(BestIndex)->bValid, 1);
 			}
 		}
 		else if (Processor->Sanitization == EPCGExRefineSanitization::Shortest)
 		{
 			for (int i = 0; i < NumIterations; i++)
 			{
-				const PCGExCluster::FNode* Node = (Processor->Cluster->Nodes->GetData() + StartIndex + i);
+				const PCGExCluster::FNode* Node = Processor->Cluster->GetNode(StartIndex + i);
 
 				int32 BestIndex = -1;
 				double ShortestDist = MAX_dbl;
@@ -426,7 +426,7 @@ namespace PCGExRefineEdges
 
 				if (BestIndex == -1) { continue; }
 
-				FPlatformAtomics::InterlockedExchange(&(Processor->Cluster->Edges->GetData() + BestIndex)->bValid, 1);
+				FPlatformAtomics::InterlockedExchange(&Processor->Cluster->GetEdge(BestIndex)->bValid, 1);
 			}
 		}
 

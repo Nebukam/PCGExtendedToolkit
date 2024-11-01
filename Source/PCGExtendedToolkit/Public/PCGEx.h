@@ -27,22 +27,6 @@
 
 #include "PCGEx.generated.h"
 
-UENUM(/*E--BlueprintType, meta=(DisplayName="[PCGEx] Ordered Field Selection")--E*/)
-enum class EPCGExOrderedFieldSelection : uint8
-{
-	X      = 0 UMETA(DisplayName = "X", ToolTip="X/Roll component if it exist, raw value otherwise."),
-	Y      = 1 UMETA(DisplayName = "Y (→x)", ToolTip="Y/Pitch component if it exist, fallback to previous value otherwise."),
-	Z      = 2 UMETA(DisplayName = "Z (→y)", ToolTip="Z/Yaw component if it exist, fallback to previous value otherwise."),
-	W      = 3 UMETA(DisplayName = "W (→z)", ToolTip="W component if it exist, fallback to previous value otherwise."),
-	XYZ    = 4 UMETA(DisplayName = "X→Y→Z", ToolTip="X, then Y, then Z. Mostly for comparisons, fallback to X/Roll otherwise"),
-	XZY    = 5 UMETA(DisplayName = "X→Z→Y", ToolTip="X, then Z, then Y. Mostly for comparisons, fallback to X/Roll otherwise"),
-	YXZ    = 6 UMETA(DisplayName = "Y→X→Z", ToolTip="Y, then X, then Z. Mostly for comparisons, fallback to Y/Pitch otherwise"),
-	YZX    = 7 UMETA(DisplayName = "Y→Z→X", ToolTip="Y, then Z, then X. Mostly for comparisons, fallback to Y/Pitch otherwise"),
-	ZXY    = 8 UMETA(DisplayName = "Z→X→Y", ToolTip="Z, then X, then Y. Mostly for comparisons, fallback to Z/Yaw otherwise"),
-	ZYX    = 9 UMETA(DisplayName = "Z→Y→X", ToolTip="Z, then Y, then Z. Mostly for comparisons, fallback to Z/Yaw otherwise"),
-	Length = 10 UMETA(DisplayName = "Length", ToolTip="Length if vector, raw value otherwise."),
-};
-
 UENUM(/*E--BlueprintType, meta=(DisplayName="[PCGEx] Transform Component Selector")--E*/)
 enum class EPCGExTransformComponent : uint8
 {
@@ -92,15 +76,6 @@ enum class EPCGExAxisAlign : uint8
 	Down     = 5 UMETA(DisplayName = "Down", ToolTip="..."),
 };
 
-UENUM(/*E--BlueprintType, meta=(DisplayName="[PCGEx] Extent Type Selector")--E*/)
-enum class EPCGExExtension : uint8
-{
-	None          = 0 UMETA(DisplayName = "None", ToolTip="No Extension"),
-	Extents       = 1 UMETA(DisplayName = "Extents", ToolTip="Extents"),
-	Scale         = 2 UMETA(DisplayName = "Scale", ToolTip="Scale"),
-	ScaledExtents = 3 UMETA(DisplayName = "Scaled Extents", ToolTip="Scaled extents"),
-};
-
 UENUM(/*E--BlueprintType, meta=(DisplayName="[PCGEx] Distance Reference Selector")--E*/)
 enum class EPCGExDistance : uint8
 {
@@ -124,13 +99,6 @@ enum class EPCGExCollisionFilterType : uint8
 	Channel    = 0 UMETA(DisplayName = "Channel", ToolTip="Channel"),
 	ObjectType = 1 UMETA(DisplayName = "Object Type", ToolTip="Object Type"),
 	Profile    = 2 UMETA(DisplayName = "Profile", ToolTip="Profile"),
-};
-
-UENUM(/*E--BlueprintType, meta=(DisplayName="[PCGEx] Selector Type")--E*/)
-enum class EPCGExSelectorType : uint8
-{
-	SingleField = 0 UMETA(DisplayName = "Single Field", ToolTip="Forward from Transform/FQuat/Rotator, or raw vector."),
-	Direction   = 1 UMETA(DisplayName = "Direction", ToolTip="Backward from Transform/FQuat/Rotator, or raw vector."),
 };
 
 UENUM(/*E--BlueprintType, meta=(DisplayName="[PCGEx] Range Type")--E*/)

@@ -109,7 +109,7 @@ namespace PCGExOrient
 	class FProcessor final : public PCGExPointsMT::TPointsProcessor<FPCGExOrientContext, UPCGExOrientSettings>
 	{
 		TSharedPtr<PCGExPaths::FPath> Path;
-		
+
 		TSharedPtr<PCGExData::TBuffer<FTransform>> TransformWriter;
 		TSharedPtr<PCGExData::TBuffer<double>> DotWriter;
 		UPCGExOrientOperation* Orient = nullptr;

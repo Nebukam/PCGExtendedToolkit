@@ -49,7 +49,8 @@ MACRO(UnsignedMin) \
 MACRO(UnsignedMax) \
 MACRO(AbsoluteMin) \
 MACRO(AbsoluteMax) \
-MACRO(WeightedSubtract)
+MACRO(WeightedSubtract) \
+MACRO(CopyOther)
 
 UENUM(/*E--BlueprintType, meta=(DisplayName="[PCGEx] Blend Over Mode")--E*/)
 enum class EPCGExBlendOver : uint8
@@ -90,6 +91,7 @@ enum class EPCGExDataBlendingType : uint8
 	AbsoluteMin      = 12 UMETA(DisplayName = "Absolute Min", ToolTip="Component-wise MIN of absolute value."),
 	AbsoluteMax      = 13 UMETA(DisplayName = "Absolute Max", ToolTip="Component-wise MAX of absolute value."),
 	WeightedSubtract = 14 UMETA(DisplayName = "Weighted Subtract", ToolTip="Substraction of all the data, weighted"),
+	CopyOther        = 15 UMETA(DisplayName = "Copy (Other)", ToolTip="Same as copy, but uses the other value."),
 };
 
 USTRUCT(BlueprintType)

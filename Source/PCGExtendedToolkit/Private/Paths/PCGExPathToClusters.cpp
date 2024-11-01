@@ -100,7 +100,7 @@ bool FPCGExPathToClustersElement::ExecuteInternal(FPCGContext* InContext) const
 			if (!Context->StartBatchProcessingPoints<PCGExPointsMT::TBatch<PCGExPathToClusters::FFusingProcessor>>(
 				[&](const TSharedPtr<PCGExData::FPointIO>& Entry)
 				{
-					if(Entry->GetNum() < 2)
+					if (Entry->GetNum() < 2)
 					{
 						bHasInvalidInputs = true;
 						return false;
@@ -121,7 +121,7 @@ bool FPCGExPathToClustersElement::ExecuteInternal(FPCGContext* InContext) const
 			if (!Context->StartBatchProcessingPoints<PCGExPointsMT::TBatch<PCGExPathToClusters::FNonFusingProcessor>>(
 				[&](const TSharedPtr<PCGExData::FPointIO>& Entry)
 				{
-					if(Entry->GetNum() < 2)
+					if (Entry->GetNum() < 2)
 					{
 						bHasInvalidInputs = true;
 						return false;

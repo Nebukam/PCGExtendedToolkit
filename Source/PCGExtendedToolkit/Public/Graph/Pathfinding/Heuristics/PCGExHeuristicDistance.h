@@ -8,6 +8,8 @@
 #include "UObject/Object.h"
 #include "PCGExHeuristicOperation.h"
 #include "PCGExHeuristicsFactoryProvider.h"
+
+
 #include "PCGExHeuristicDistance.generated.h"
 
 USTRUCT(BlueprintType)
@@ -30,7 +32,7 @@ class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExHeuristicDistance : public UPCGExHeuristi
 	GENERATED_BODY()
 
 public:
-	virtual void PrepareForCluster(const PCGExCluster::FCluster* InCluster) override;
+	virtual void PrepareForCluster(const TSharedPtr<const PCGExCluster::FCluster>& InCluster) override;
 
 	FORCEINLINE virtual double GetGlobalScore(
 		const PCGExCluster::FNode& From,

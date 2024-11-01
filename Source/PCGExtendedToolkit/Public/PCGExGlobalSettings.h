@@ -38,6 +38,7 @@ enum class EPCGExDataBlendingTypeDefault : uint8
 	AbsoluteMin      = 12 UMETA(DisplayName = "Unsigned Min", ToolTip="Component-wise MIN on unsigned value, but keeps the sign on written data."),
 	AbsoluteMax      = 13 UMETA(DisplayName = "Unsigned Max", ToolTip="Component-wise MAX on unsigned value, but keeps the sign on written data."),
 	WeightedSubtract = 14 UMETA(DisplayName = "Weighted Subtract", ToolTip="Substraction of all the data, weighted"),
+	CopyOther        = 15 UMETA(DisplayName = "Copy (Other)", ToolTip="Same as copy, but copy the other value"),
 };
 
 UCLASS(DefaultConfig, config = Editor, defaultconfig)

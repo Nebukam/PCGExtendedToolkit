@@ -34,7 +34,7 @@ bool FPCGExPathSolidifyElement::ExecuteInternal(FPCGContext* InContext) const
 		if (!Context->StartBatchProcessingPoints<PCGExPointsMT::TBatch<PCGExPathSolidify::FProcessor>>(
 			[&](const TSharedPtr<PCGExData::FPointIO>& Entry)
 			{
-				if(Entry->GetNum() < 2)
+				if (Entry->GetNum() < 2)
 				{
 					bHasInvalidInputs = true;
 					return false;
@@ -119,7 +119,7 @@ if (!SolidificationRad##_AXIS){ PCGE_LOG_C(Warning, GraphAndLog, Context, FText:
 
 		const PCGExPaths::FPathEdge& Edge = Path->Edges[Index];
 		Path->ComputeEdgeExtra(Index);
-		
+
 		const double Length = PathLength->Get(Index);
 		const FVector Scale = Settings->bScaleBounds ? FVector::OneVector / Point.Transform.GetScale3D() : FVector::OneVector;
 

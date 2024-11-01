@@ -19,16 +19,15 @@ bool UPCGExShapeBuilderOperation::PrepareForSeeds(FPCGExContext* InContext, cons
 	SeedFacade = InSeedDataFacade;
 
 	ResolutionConstant = BaseConfig.ResolutionConstant;
-	
+
 	if (BaseConfig.ResolutionInput == EPCGExInputValueType::Attribute)
 	{
 		ResolutionGetter = MakeShared<PCGEx::TAttributeBroadcaster<double>>();
 		if (!ResolutionGetter->Prepare(BaseConfig.ResolutionAttribute, InSeedDataFacade->Source)) { return false; }
 	}
-	
-	
+
+
 	const int32 NumSeeds = SeedFacade->GetNum();
 	PCGEx::InitArray(Shapes, NumSeeds);
 	return true;
 }
-

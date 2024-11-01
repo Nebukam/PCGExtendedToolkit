@@ -3,6 +3,7 @@
 
 #include "Graph/Pathfinding/Heuristics/PCGExHeuristics.h"
 
+
 #include "Graph/Pathfinding/Heuristics/PCGExHeuristicDistance.h"
 #include "Graph/Pathfinding/Heuristics/PCGExHeuristicFeedback.h"
 #include "Graph/Pathfinding/Heuristics/PCGExHeuristicOperation.h"
@@ -74,11 +75,11 @@ namespace PCGExHeuristics
 		}
 	}
 
-	void THeuristicsHandler::PrepareForCluster(PCGExCluster::FCluster* InCluster)
+	void THeuristicsHandler::PrepareForCluster(const TSharedPtr<PCGExCluster::FCluster>& InCluster)
 	{
-		InCluster->ComputeEdgeLengths(true);
+		InCluster->ComputeEdgeLengths(true); // TODO : Make our own copy
 
-		CurrentCluster = InCluster;
+		Cluster = InCluster;
 		bUseDynamicWeight = false;
 		for (UPCGExHeuristicOperation* Operation : Operations)
 		{
@@ -93,7 +94,7 @@ namespace PCGExHeuristics
 		for (const UPCGExHeuristicOperation* Op : Operations) { TotalStaticWeight += Op->WeightFactor; }
 	}
 
-	TSharedPtr<FLocalFeedbackHandler> THeuristicsHandler::MakeLocalFeedbackHandler(const PCGExCluster::FCluster* InCluster)
+	TSharedPtr<FLocalFeedbackHandler> THeuristicsHandler::MakeLocalFeedbackHandler(const TSharedPtr<const PCGExCluster::FCluster>& InCluster)
 	{
 		if (!LocalFeedbackFactories.IsEmpty()) { return nullptr; }
 		TSharedPtr<FLocalFeedbackHandler> NewLocalFeedbackHandler = MakeShared<FLocalFeedbackHandler>(ExecutionContext);

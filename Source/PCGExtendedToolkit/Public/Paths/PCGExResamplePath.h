@@ -15,7 +15,7 @@ UENUM(/*E--BlueprintType, meta=(DisplayName="[PCGEx] Path Normal Direction")--E*
 enum class EPCGExResampleMode : uint8
 {
 	Sweep        = 0 UMETA(DisplayName = "Sweep", ToolTip="..."),
-	Redistribute      = 1 UMETA(DisplayName = "Redistribute", ToolTip="..."),
+	Redistribute = 1 UMETA(DisplayName = "Redistribute", ToolTip="..."),
 };
 
 /**
@@ -44,7 +44,7 @@ public:
 	/** */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	EPCGExResampleMode Mode = EPCGExResampleMode::Sweep;
-	
+
 	/** */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="Mode==EPCGExResampleMode::Sweep"))
 	bool bPreserveLastPoint = true;
@@ -60,17 +60,15 @@ public:
 	/**  */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="Mode==EPCGExResampleMode::Sweep", EditConditionHides))
 	EPCGExTruncateMode Truncate = EPCGExTruncateMode::Round;
-	
+
 	/** Blending settings used to smooth attributes.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	FPCGExBlendingDetails BlendingSettings = FPCGExBlendingDetails(EPCGExDataBlendingType::Weight, EPCGExDataBlendingType::None);
-	
 };
 
 struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExResamplePathContext final : FPCGExPathProcessorContext
 {
 	friend class FPCGExResamplePathElement;
-
 };
 
 class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExResamplePathElement final : public FPCGExPathProcessorElement
@@ -88,7 +86,6 @@ protected:
 
 namespace PCGExResamplePath
 {
-
 	struct FPointSample
 	{
 		int32 Start = 0;
@@ -104,7 +101,7 @@ namespace PCGExResamplePath
 		TArray<FPointSample> Samples;
 
 		TSharedPtr<PCGExDataBlending::FMetadataBlender> MetadataBlender;
-		
+
 		TSharedPtr<PCGExPaths::FPath> Path;
 		TSharedPtr<PCGExPaths::FPathEdgeLength> PathLength;
 

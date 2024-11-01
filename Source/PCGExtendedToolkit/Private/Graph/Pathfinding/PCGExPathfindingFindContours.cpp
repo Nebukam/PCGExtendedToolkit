@@ -73,7 +73,7 @@ bool FPCGExFindContoursContext::TryFindContours(
 	const FVector B = Cluster->GetPos(((ExpandedNodes->GetData() + NextIndex))->Node);
 
 	const double SanityAngle = PCGExMath::GetDegreesBetweenVectors((B - A).GetSafeNormal(), (B - Guide).GetSafeNormal());
-	const bool bStartIsDeadEnd = (Cluster->Nodes->GetData() + StartNodeIndex)->Adjacency.Num() == 1;
+	const bool bStartIsDeadEnd = Cluster->GetNode(StartNodeIndex)->Adjacency.Num() == 1;
 
 	if (bStartIsDeadEnd && !Settings->bKeepContoursWithDeadEnds) { return false; }
 
@@ -118,8 +118,8 @@ bool FPCGExFindContoursContext::TryFindContours(
 		//if (Current->Neighbors.Num() <= 1) { break; }
 		if (Current.Neighbors.Num() == 1 && Settings->bDuplicateDeadEndPoints) { Path.Add(NextIndex); }
 
-		const FVector Origin = Positions[(Cluster->Nodes->GetData() + NextIndex)->PointIndex];
-		const FVector GuideDir = (Origin - Positions[(Cluster->Nodes->GetData() + PrevIndex)->PointIndex]).GetSafeNormal();
+		const FVector Origin = Positions[Cluster->GetNodePointIndex(NextIndex)];
+		const FVector GuideDir = (Origin - Positions[Cluster->GetNodePointIndex(PrevIndex)]).GetSafeNormal();
 
 		if (Current.Neighbors.Num() > 1) { Exclusions.Add(PrevIndex); }
 
@@ -131,7 +131,7 @@ bool FPCGExFindContoursContext::TryFindContours(
 			if (NeighborIndex == StartNodeIndex) { bHasAdjacencyToStart = true; }
 			if (Exclusions.Contains(NeighborIndex)) { continue; }
 
-			const FVector OtherDir = (Origin - Positions[(Cluster->Nodes->GetData() + NeighborIndex)->PointIndex]).GetSafeNormal();
+			const FVector OtherDir = (Origin - Positions[Cluster->GetNodePointIndex(NeighborIndex)]).GetSafeNormal();
 			const double Angle = PCGExMath::GetDegreesBetweenVectors(OtherDir, GuideDir);
 
 			if (Angle > BestAngle)
@@ -151,7 +151,7 @@ bool FPCGExFindContoursContext::TryFindContours(
 
 		if (NextBest != -1)
 		{
-			if ((Cluster->Nodes->GetData() + NextBest)->Adjacency.Num() == 1 && !Settings->bKeepContoursWithDeadEnds) { return false; }
+			if (Cluster->GetNode(NextBest)->Adjacency.Num() == 1 && !Settings->bKeepContoursWithDeadEnds) { return false; }
 			if (Settings->bOmitAbovePointCount && Path.Num() >= Settings->MaxPointCount) { return false; }
 
 			if (Settings->OutputType != EPCGExContourShapeTypeOutput::Both && Path.Num() > 2)
@@ -199,11 +199,10 @@ bool FPCGExFindContoursContext::TryFindContours(
 	TSharedPtr<PCGExData::FFacade> PathDataFacade = MakeShared<PCGExData::FFacade>(PathIO.ToSharedRef());
 
 	TArray<FPCGPoint>& MutablePoints = PathIO->GetOut()->GetMutablePoints();
-	const TArray<FPCGPoint>& OriginPoints = PathIO->GetIn()->GetPoints();
 	MutablePoints.SetNumUninitialized(Path.Num());
 
 	//const TArray<int32>& VtxPointIndices = Cluster->GetVtxPointIndices();
-	for (int i = 0; i < Path.Num(); i++) { MutablePoints[i] = OriginPoints[(Cluster->Nodes->GetData() + Path[i])->PointIndex]; }
+	for (int i = 0; i < Path.Num(); i++) { MutablePoints[i] = *Cluster->GetNodePoint(Path[i]); }
 
 	ClusterProcessor->GetContext()->SeedAttributesToPathTags.Tag(SeedIndex, PathIO);
 	ClusterProcessor->GetContext()->SeedForwardHandler->Forward(SeedIndex, PathDataFacade);
@@ -212,7 +211,7 @@ bool FPCGExFindContoursContext::TryFindContours(
 	{
 		const TSharedPtr<PCGExData::TBuffer<bool>> DeadEndBuffer = PathDataFacade->GetWritable(Settings->DeadEndAttributeName, false, false, true);
 		TArray<bool>& OutValues = *DeadEndBuffer->GetOutValues();
-		for (int i = 0; i < Path.Num(); i++) { OutValues[i] = (Cluster->Nodes->GetData() + Path[i])->Adjacency.Num() == 1; }
+		for (int i = 0; i < Path.Num(); i++) { OutValues[i] = Cluster->GetNode(Path[i])->Adjacency.Num() == 1; }
 	}
 
 	if (Sign != 0)
@@ -289,7 +288,6 @@ bool FPCGExFindContoursElement::ExecuteInternal(
 				if (Settings->bFlagDeadEnds)
 				{
 					NewBatch->bRequiresWriteStep = true;
-					NewBatch->bWriteVtxDataFacade = true;
 				}
 			}))
 		{

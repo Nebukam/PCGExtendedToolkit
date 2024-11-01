@@ -29,9 +29,9 @@ bool UPCGExShapeCircleBuilder::PrepareForSeeds(FPCGExContext* InContext, const T
 void UPCGExShapeCircleBuilder::PrepareShape(const PCGExData::FPointRef& Seed)
 {
 	TSharedPtr<PCGExShapes::FCircle> Circle = MakeShared<PCGExShapes::FCircle>(Seed);
-	
+
 	Circle->ComputeFit(Config);
-	
+
 	Circle->StartAngle = FMath::DegreesToRadians(StartAngleGetter ? StartAngleGetter->SoftGet(Seed, Config.StartAngleConstant) : Config.StartAngleConstant);
 	Circle->EndAngle = FMath::DegreesToRadians(EndAngleGetter ? EndAngleGetter->SoftGet(Seed, Config.EndAngleConstant) : Config.EndAngleConstant);
 	Circle->AngleRange = FMath::Abs(Circle->EndAngle - Circle->StartAngle);

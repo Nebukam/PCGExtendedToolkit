@@ -3,7 +3,8 @@
 
 #include "Graph/Pathfinding/Heuristics/PCGExHeuristicAzimuth.h"
 
-void UPCGExHeuristicAzimuth::PrepareForCluster(const PCGExCluster::FCluster* InCluster)
+
+void UPCGExHeuristicAzimuth::PrepareForCluster(const TSharedPtr<const PCGExCluster::FCluster>& InCluster)
 {
 	if (bInvert)
 	{

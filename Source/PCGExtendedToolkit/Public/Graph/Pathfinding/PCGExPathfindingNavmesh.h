@@ -16,6 +16,14 @@
 class UPCGExSubPointsBlendOperation;
 class UPCGExGoalPicker;
 
+
+UENUM(/*E--BlueprintType, meta=(DisplayName="[PCGEx] Pathfinding Navmesh Mode")--E*/)
+enum class EPCGExPathfindingNavmeshMode : uint8
+{
+	Regular      = 0 UMETA(DisplayName = "Regular", ToolTip="Regular pathfinding"),
+	Hierarchical = 1 UMETA(DisplayName = "HIerarchical", ToolTip="Cell-based pathfinding"),
+};
+
 /**
  * Use PCGExTransform to manipulate the outgoing attributes instead of handling everything here.
  * This way we can multi-thread the various calculations instead of mixing everything along with async/game thread collision
@@ -117,7 +125,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPathfindingNavmeshContext final : FPCGEx
 	UPCGExGoalPicker* GoalPicker = nullptr;
 	UPCGExSubPointsBlendOperation* Blending = nullptr;
 
-	TArray<TSharedPtr<PCGExPathfinding::FPathQuery>> PathQueries;
+	TArray<PCGExPathfinding::FSeedGoalPair> PathQueries;
 
 	FNavAgentProperties NavAgentProperties;
 
@@ -150,7 +158,7 @@ class /*PCGEXTENDEDTOOLKIT_API*/ FSampleNavmeshTask final : public FPCGExPathfin
 {
 public:
 	FSampleNavmeshTask(
-		const TSharedPtr<PCGExData::FPointIO>& InPointIO, const TArray<TSharedPtr<PCGExPathfinding::FPathQuery>>* InQueries) :
+		const TSharedPtr<PCGExData::FPointIO>& InPointIO, const TArray<PCGExPathfinding::FSeedGoalPair>* InQueries) :
 		FPCGExPathfindingTask(InPointIO, InQueries)
 	{
 	}

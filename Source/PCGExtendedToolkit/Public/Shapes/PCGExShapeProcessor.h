@@ -37,18 +37,16 @@ public:
 	virtual FString GetPointFilterTooltip() const override { return TEXT("Path points processing filters"); }
 
 	//~End UPCGExPointsProcessorSettings
-	
+
 	/** How to pick which path endpoint to start with */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	EPCGExShapeOutputMode OutputMode = EPCGExShapeOutputMode::PerSeed;
-
 };
 
 struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExShapeProcessorContext : FPCGExPointsProcessorContext
 {
 	friend class FPCGExShapeProcessorElement;
 	TArray<TObjectPtr<const UPCGExShapeBuilderFactoryBase>> BuilderFactories;
-	
 };
 
 class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExShapeProcessorElement : public FPCGExPointsProcessorElement

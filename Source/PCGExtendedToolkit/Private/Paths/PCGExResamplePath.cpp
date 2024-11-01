@@ -183,13 +183,13 @@ namespace PCGExResamplePath
 
 		//if (SourcesRange == 1)
 		//{
-			const double Weight = FVector::DistSquared(Path->GetPos(Sample.Start), Sample.Location) / FVector::DistSquared(Path->GetPos(Sample.Start), Path->GetPos(Sample.End));
-			MetadataBlender->PrepareForBlending(Index);
-			MetadataBlender->Blend(Index, Sample.Start, Index, Weight);
-			MetadataBlender->Blend(Index, Sample.End, Index, 1 - Weight);
-			MetadataBlender->CompleteBlending(Index, 2, 1);
+		const double Weight = FVector::DistSquared(Path->GetPos(Sample.Start), Sample.Location) / FVector::DistSquared(Path->GetPos(Sample.Start), Path->GetPos(Sample.End));
+		MetadataBlender->PrepareForBlending(Index);
+		MetadataBlender->Blend(Index, Sample.Start, Index, Weight);
+		MetadataBlender->Blend(Index, Sample.End, Index, 1 - Weight);
+		MetadataBlender->CompleteBlending(Index, 2, 1);
 		//}
-		
+
 		/*
 		// TODO : Complex blending
 		const double MinLength = Sample.Start == 0 ? 0 : PathLength->CumulativeLength[Sample.Start - 1];

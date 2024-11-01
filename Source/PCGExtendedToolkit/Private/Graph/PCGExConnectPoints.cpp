@@ -72,7 +72,7 @@ bool FPCGExConnectPointsElement::ExecuteInternal(FPCGContext* InContext) const
 		if (!Context->StartBatchProcessingPoints<PCGExPointsMT::TBatch<PCGExConnectPoints::FProcessor>>(
 			[&](const TSharedPtr<PCGExData::FPointIO>& Entry)
 			{
-				if(Entry->GetNum() < 2)
+				if (Entry->GetNum() < 2)
 				{
 					bHasInvalidInputs = true;
 					return false;

@@ -68,6 +68,10 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="DirectionType == EPCGExInputValueType::Attribute"))
 	FPCGAttributePropertyInputSelector DirectionAttribute;
 
+	/** Inverts offset direction. Can also be achieved by using negative offset values, but this enable consistent inversion no matter the input.*/
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
+	bool bInvertDirection = false;
+	
 	/** Removes segments which direction has been flipped due to the offset.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	bool bCleanupPath = false;
@@ -126,6 +130,7 @@ namespace PCGExOffsetPath
 		TArray<int8> CleanEdge;
 		TSharedPtr<PCGExPaths::FPath> DirtyPath;
 
+		double DirectionFactor = -1; // Default to -1 because the normal maths changed at some point, inverting all existing value. Sorry for the lack of elegance.
 		double OffsetConstant = 0;
 		FVector Up = FVector::UpVector;
 		double ToleranceSquared = 1;

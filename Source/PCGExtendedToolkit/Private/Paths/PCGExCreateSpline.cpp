@@ -52,7 +52,7 @@ bool FPCGExCreateSplineElement::ExecuteInternal(FPCGContext* InContext) const
 		if (!Context->StartBatchProcessingPoints<PCGExCreateSpline::FBatch>(
 			[&](const TSharedPtr<PCGExData::FPointIO>& Entry)
 			{
-				if(Entry->GetNum() < 2)
+				if (Entry->GetNum() < 2)
 				{
 					bHasInvalidInputs = true;
 					return false;

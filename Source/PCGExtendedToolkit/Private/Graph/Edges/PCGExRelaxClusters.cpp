@@ -190,7 +190,7 @@ namespace PCGExRelaxClusters
 		for (int i = 0; i < NumIterations; i++)
 		{
 			const int32 Index = StartIndex + i;
-			Processor->ProcessSingleNode(Index, *(Processor->Cluster->Nodes->GetData() + Index), TaskIndex, NumIterations);
+			Processor->ProcessSingleNode(Index, *Processor->Cluster->GetNode(Index), TaskIndex, NumIterations);
 		}
 
 		return true;

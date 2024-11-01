@@ -70,6 +70,8 @@ namespace PCGExOffsetPath
 
 		if (!FPointsProcessor::Process(InAsyncManager)) { return false; }
 
+		if (Settings->bInvertDirection) { DirectionFactor *= -1; }
+
 		const TArray<FPCGPoint>& InPoints = PointDataFacade->GetIn()->GetPoints();
 
 		Positions.SetNumUninitialized(InPoints.Num());
@@ -130,7 +132,7 @@ namespace PCGExOffsetPath
 		const int32 EdgeIndex = (!Path->IsClosedLoop() && Index == Path->LastIndex) ? Path->LastEdge : Index;
 		Path->ComputeEdgeExtra(EdgeIndex);
 
-		const FVector Dir = OffsetDirection ? OffsetDirection->Get(EdgeIndex) : DirectionGetter->Read(Index);
+		const FVector Dir = (OffsetDirection ? OffsetDirection->Get(EdgeIndex) : DirectionGetter->Read(Index)) * DirectionFactor;
 		Positions[Index] = Path->GetPos(Index) + (Dir * (OffsetGetter ? OffsetGetter->Read(Index) : OffsetConstant));
 
 		if (!Settings->bCleanupPath) { Point.Transform.SetLocation(Positions[Index]); }

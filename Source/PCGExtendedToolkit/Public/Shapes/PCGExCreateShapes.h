@@ -19,7 +19,7 @@ UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc")
 class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExCreateShapesSettings : public UPCGExShapeProcessorSettings
 {
 	GENERATED_BODY()
-	
+
 	friend class FPCGExCreateShapesElement;
 
 public:
@@ -60,7 +60,6 @@ public:
 	/** Discarded if point count is more than */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Pruning", meta=(PCG_Overridable, EditCondition="bRemoveAbove", ClampMin=0))
 	int32 MaxPointCount = 500;
-	
 };
 
 struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExCreateShapesContext final : FPCGExShapeProcessorContext
@@ -78,7 +77,6 @@ class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExCreateShapesElement final : public FPCGEx
 protected:
 	virtual bool Boot(FPCGExContext* InContext) const override;
 	virtual bool ExecuteInternal(FPCGContext* Context) const override;
-
 };
 
 namespace PCGExCreateShapes

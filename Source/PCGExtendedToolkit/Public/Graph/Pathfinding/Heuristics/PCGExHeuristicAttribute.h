@@ -43,7 +43,7 @@ class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExHeuristicAttribute : public UPCGExHeurist
 	GENERATED_BODY()
 
 public:
-	virtual void PrepareForCluster(const PCGExCluster::FCluster* InCluster) override;
+	virtual void PrepareForCluster(const TSharedPtr<const PCGExCluster::FCluster>& InCluster) override;
 
 	FORCEINLINE virtual double GetGlobalScore(
 		const PCGExCluster::FNode& From,

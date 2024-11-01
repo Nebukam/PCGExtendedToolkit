@@ -38,7 +38,8 @@ case EPCGExDataBlendingType::WeightedSubtract:	_NAME##Func = [](const _TYPE& O, 
 case EPCGExDataBlendingType::UnsignedMin:		_NAME##Func = [](const _TYPE& O, const _TYPE& A, const _TYPE& B, const double W) -> _TYPE{ return PCGExMath::UnsignedMin(A, B); }; break; \
 case EPCGExDataBlendingType::UnsignedMax:		_NAME##Func = [](const _TYPE& O, const _TYPE& A, const _TYPE& B, const double W) -> _TYPE{ return PCGExMath::UnsignedMax(A, B); }; break; \
 case EPCGExDataBlendingType::AbsoluteMin:		_NAME##Func = [](const _TYPE& O, const _TYPE& A, const _TYPE& B, const double W) -> _TYPE{ return PCGExMath::AbsoluteMin(A, B); }; break; \
-case EPCGExDataBlendingType::AbsoluteMax:		_NAME##Func = [](const _TYPE& O, const _TYPE& A, const _TYPE& B, const double W) -> _TYPE{ return PCGExMath::AbsoluteMax(A, B); }; break; }
+case EPCGExDataBlendingType::AbsoluteMax:		_NAME##Func = [](const _TYPE& O, const _TYPE& A, const _TYPE& B, const double W) -> _TYPE{ return PCGExMath::AbsoluteMax(A, B); }; break; \
+case EPCGExDataBlendingType::CopyOther:			_NAME##Func = [](const _TYPE& O, const _TYPE& A, const _TYPE& B, const double W) -> _TYPE{ return PCGExMath::Copy(B, A); }; break; }
 
 		PCGEX_FOREACH_BLEND_POINTPROPERTY(PCGEX_BLEND_ASSIGNFUNC)
 #undef PCGEX_BLEND_ASSIGNFUNC

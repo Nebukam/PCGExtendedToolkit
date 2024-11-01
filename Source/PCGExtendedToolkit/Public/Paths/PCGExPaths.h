@@ -409,7 +409,7 @@ namespace PCGExPaths
 		{
 			return Start == Other.Start || Start == Other.End || End == Other.Start || End == Other.End;
 		}
-		
+
 		FORCEINLINE bool Connects(const FPathEdge& Other) const
 		{
 			return Start == Other.End || End == Other.Start;
@@ -441,7 +441,9 @@ namespace PCGExPaths
 		virtual void ProcessEdge(const FPath* Path, const FPathEdge& Edge) = 0;
 		virtual void ProcessLastEdge(const FPath* Path, const FPathEdge& Edge) { ProcessEdge(Path, Edge); }
 
-		virtual void ProcessingDone(const FPath* Path){}
+		virtual void ProcessingDone(const FPath* Path)
+		{
+		}
 	};
 
 	template <typename T>
@@ -674,7 +676,6 @@ namespace PCGExPaths
 			BuildPath(Expansion);
 		}
 
-	public:
 		FORCEINLINE virtual int32 SafePointIndex(const int32 Index) const override
 		{
 			if constexpr (ClosedLoop) { return PCGExMath::Tile(Index, 0, LastIndex); }
@@ -719,7 +720,6 @@ namespace PCGExPaths
 
 		virtual void ProcessEdge(const FPath* Path, const FPathEdge& Edge) override;
 		virtual void ProcessingDone(const FPath* Path) override;
-		
 	};
 
 	class FPathEdgeLengthSquared : public TPathEdgeExtra<double>

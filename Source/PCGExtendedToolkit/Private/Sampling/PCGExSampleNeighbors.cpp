@@ -109,7 +109,7 @@ namespace PCGExSampleNeighbors
 	void FProcessor::ProcessSingleRangeIteration(const int32 Iteration, const int32 LoopIdx, const int32 Count)
 	{
 		if (bBuildExpandedNodes) { *(ExpandedNodes->GetData() + Iteration) = PCGExCluster::FExpandedNode(Cluster, Iteration); }
-		for (const UPCGExNeighborSampleOperation* Op : OpsWithValueTest) { Op->ValueFilters->Results[Iteration] = Op->ValueFilters->Test(*(Cluster->Nodes->GetData() + Iteration)); }
+		for (const UPCGExNeighborSampleOperation* Op : OpsWithValueTest) { Op->ValueFilters->Results[Iteration] = Op->ValueFilters->Test(*Cluster->GetNode(Iteration)); }
 	}
 
 	void FProcessor::ProcessSingleNode(const int32 Index, PCGExCluster::FNode& Node, const int32 LoopIdx, const int32 Count)

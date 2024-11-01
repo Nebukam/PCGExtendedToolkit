@@ -3,7 +3,8 @@
 
 #include "Graph/Pathfinding/Heuristics/PCGExHeuristicInertia.h"
 
-void UPCGExHeuristicInertia::PrepareForCluster(const PCGExCluster::FCluster* InCluster)
+
+void UPCGExHeuristicInertia::PrepareForCluster(const TSharedPtr<const PCGExCluster::FCluster>& InCluster)
 {
 	if (bInvert)
 	{

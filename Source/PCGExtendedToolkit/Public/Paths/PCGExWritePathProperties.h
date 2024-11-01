@@ -160,7 +160,7 @@ public:
 	/** Name of the 'FVector' attribute to write point averaged normal to.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output - Points", meta=(DisplayName="PointAverageNormal", PCG_Overridable, EditCondition="bWritePointAvgNormal"))
 	FName PointAvgNormalAttributeName = FName("PointAvgNormal");
-	
+
 	/** Output point normal. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output - Points", meta=(PCG_Overridable, InlineEditConditionToggle))
 	bool bWritePointBinormal = false;

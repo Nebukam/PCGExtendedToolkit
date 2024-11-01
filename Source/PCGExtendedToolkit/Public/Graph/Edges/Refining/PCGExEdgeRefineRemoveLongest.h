@@ -41,6 +41,6 @@ public:
 		if (BestIndex == -1) { return; }
 		//if (!*(EdgesFilters->GetData() + BestIndex)) { return; }
 
-		FPlatformAtomics::InterlockedExchange(&(Cluster->Edges->GetData() + BestIndex)->bValid, 0);
+		FPlatformAtomics::InterlockedExchange(&Cluster->GetEdge(BestIndex)->bValid, 0);
 	}
 };
