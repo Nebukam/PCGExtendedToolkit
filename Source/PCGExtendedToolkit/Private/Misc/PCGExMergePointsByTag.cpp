@@ -19,7 +19,7 @@ namespace PCPGExMergePointsByTag
 		if (IOs.IsEmpty()) { return; }
 
 		const TSharedPtr<PCGExData::FPointIO> CompositeIO = IOs[0];
-		CompositeIO->InitializeOutput(AsyncManager->Context, PCGExData::EInit::NewOutput);
+		CompositeIO->InitializeOutput(PCGExData::EInit::NewOutput);
 
 		CompositeIODataFacade = MakeShared<PCGExData::FFacade>(CompositeIO.ToSharedRef());
 
@@ -67,7 +67,7 @@ namespace PCPGExMergePointsByTag
 			}
 		}
 
-		if (!bDistributed) { IO->InitializeOutput(InContext, PCGExData::EInit::Forward); }
+		if (!bDistributed) { IO->InitializeOutput(PCGExData::EInit::Forward); }
 	}
 
 	void FTagBuckets::AddToReverseMap(const TSharedPtr<PCGExData::FPointIO>& IO, const TSharedPtr<FTagBucket>& Bucket)
@@ -143,7 +143,7 @@ namespace PCPGExMergePointsByTag
 					Distributed.Add(IO, &bAlreadyDistributed);
 					if (bAlreadyDistributed) { continue; }
 
-					IO->InitializeOutput(InContext, PCGExData::EInit::Forward);
+					IO->InitializeOutput(PCGExData::EInit::Forward);
 					Bucket->IOs.Empty();
 
 					continue;
@@ -197,7 +197,7 @@ namespace PCPGExMergePointsByTag
 
 				if (NewMergeList->IOs.Num() <= 1)
 				{
-					if (NewMergeList->IOs.Num() == 1) { NewMergeList->IOs[0]->InitializeOutput(InContext, PCGExData::EInit::Forward); }
+					if (NewMergeList->IOs.Num() == 1) { NewMergeList->IOs[0]->InitializeOutput(PCGExData::EInit::Forward); }
 					continue;
 				}
 
@@ -254,7 +254,7 @@ bool FPCGExMergePointsByTagElement::ExecuteInternal(FPCGContext* InContext) cons
 						Context->FallbackMergeList->IOs.Add(IO);
 						break;
 					case EPCGExMergeByTagFallbackBehavior::Forward:
-						IO->InitializeOutput(Context, PCGExData::EInit::Forward);
+						IO->InitializeOutput(PCGExData::EInit::Forward);
 						break;
 					}
 					continue;

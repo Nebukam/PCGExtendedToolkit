@@ -171,7 +171,7 @@ namespace PCGExShrinkPath
 		{
 			if (PointIO->GetIn() != PointIO->GetOut() && PointIO->GetNum(PCGExData::ESource::Out) <= 1)
 			{
-				PointIO->InitializeOutput(Context, PCGExData::EInit::NoOutput);
+				PointIO->InitializeOutput(PCGExData::EInit::NoOutput);
 			}
 		};
 
@@ -223,11 +223,11 @@ namespace PCGExShrinkPath
 
 			if (StartAmount == 0 && EndAmount == 0)
 			{
-				PointIO->InitializeOutput(Context, PCGExData::EInit::Forward);
+				PointIO->InitializeOutput(PCGExData::EInit::Forward);
 				return false;
 			}
 
-			PointIO->InitializeOutput(Context, PCGExData::EInit::DuplicateInput);
+			PointIO->InitializeOutput(PCGExData::EInit::DuplicateInput);
 			TArray<FPCGPoint>& MutablePoints = PointIO->GetOut()->GetMutablePoints();
 
 			auto ShrinkOnce = [&](const int32 Direction)
@@ -292,11 +292,11 @@ namespace PCGExShrinkPath
 
 			if (StartAmount == 0 && EndAmount == 0)
 			{
-				PointIO->InitializeOutput(Context, PCGExData::EInit::Forward);
+				PointIO->InitializeOutput(PCGExData::EInit::Forward);
 				return false;
 			}
 
-			PointIO->InitializeOutput(Context, PCGExData::EInit::DuplicateInput);
+			PointIO->InitializeOutput(PCGExData::EInit::DuplicateInput);
 			TArray<FPCGPoint>& MutablePoints = PointIO->GetOut()->GetMutablePoints();
 
 			if ((StartAmount < 0 || EndAmount < 0) && NumPoints >= 2)

@@ -42,14 +42,13 @@ bool FPCGExFindPointOnBoundsClustersElement::Boot(FPCGExContext* InContext) cons
 		Context->BestIndices.Init(-1, Context->MainEdges->Num());
 		Context->IOMergeSources.Init(nullptr, Context->MainEdges->Num());
 
-		Context->MergedOut = MakeShared<PCGExData::FPointIO>(Context);
-		Context->MergedOut->SetInfos(0, Settings->GetMainOutputLabel());
+		Context->MergedOut = PCGExData::NewPointIO(Context, Settings->GetMainOutputLabel(), 0);
 		Context->MergedAttributesInfos = PCGEx::FAttributesInfos::Get(Collection, AttributeMismatches);
 
 		Context->CarryOverDetails.Attributes.Prune(*Context->MergedAttributesInfos);
 		Context->CarryOverDetails.Attributes.Prune(AttributeMismatches);
 
-		Context->MergedOut->InitializeOutput(InContext, PCGExData::EInit::NewOutput);
+		Context->MergedOut->InitializeOutput(PCGExData::EInit::NewOutput);
 		Context->MergedOut->GetOut()->GetMutablePoints().SetNum(Context->MainEdges->Num());
 		Context->MergedOut->GetOutKeys(true);
 
@@ -163,7 +162,7 @@ namespace PCGExFindPointOnBoundsClusters
 		}
 		else
 		{
-			IORef->InitializeOutput(Context, PCGExData::EInit::NewOutput);
+			IORef->InitializeOutput(PCGExData::EInit::NewOutput);
 			IORef->GetOut()->GetMutablePoints().SetNum(1);
 
 			FPCGPoint& OutPoint = (IORef->GetOut()->GetMutablePoints()[0] = IORef->GetInPoint(BestIndex));

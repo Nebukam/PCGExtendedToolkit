@@ -114,7 +114,7 @@ bool FPCGExPathSplineMeshElement::ExecuteInternal(FPCGContext* InContext) const
 				if (Entry->GetNum() < 2)
 				{
 					bHasInvalidInputs = true;
-					Entry->InitializeOutput(Context, PCGExData::EInit::Forward);
+					Entry->InitializeOutput(PCGExData::EInit::Forward);
 					return false;
 				}
 				return true;

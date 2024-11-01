@@ -547,7 +547,7 @@ public:
 	template <typename T>
 	void EDITOR_SetWeightIndexInternal(TArray<T>& Entries)
 	{
-		for (int i = 0; i < Entries.Num(); i++) { Entries[i].Weight = i; }
+		for (int i = 0; i < Entries.Num(); i++) { Entries[i].Weight = i+1; }
 	}
 
 	UFUNCTION(CallInEditor, Category = Utils, meta=(DisplayName="Pad Weights", ShortToolTip="Add 1 to all weights so it's easier to weight down some assets", DisplayOrder=21))
