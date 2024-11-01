@@ -3,6 +3,7 @@
 
 #include "Sampling/PCGExSampleInsideBounds.h"
 
+#include "CoreMinimal.h"
 #include "PCGExPointsProcessor.h"
 #include "Data/Blending/PCGExMetadataBlender.h"
 

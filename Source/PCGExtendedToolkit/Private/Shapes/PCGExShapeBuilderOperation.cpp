@@ -26,6 +26,7 @@ bool UPCGExShapeBuilderOperation::PrepareForSeeds(FPCGExContext* InContext, cons
 		if (!ResolutionGetter->Prepare(BaseConfig.ResolutionAttribute, InSeedDataFacade->Source)) { return false; }
 	}
 
+	if (!BaseConfig.Fitting.Init(InContext, InSeedDataFacade)) { return false; }
 
 	const int32 NumSeeds = SeedFacade->GetNum();
 	PCGEx::InitArray(Shapes, NumSeeds);

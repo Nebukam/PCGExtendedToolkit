@@ -68,7 +68,7 @@ public:
 
 	/** Target inherit behavior */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
-	FPCGExTransformDetails TransformDetails;
+	FPCGExTransformDetails TransformDetails = FPCGExTransformDetails(false);
 
 	/** Skip invalid meshes & do not throw warning about them. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))

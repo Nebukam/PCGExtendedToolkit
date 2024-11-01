@@ -5,6 +5,7 @@
 
 #include <functional>
 #include <atomic>
+#include "CoreMinimal.h"
 
 #include "Misc/ScopeRWLock.h"
 #include "UObject/ObjectPtr.h"

@@ -7,6 +7,7 @@
 #include "PCGEx.h"
 #include "PCGExMT.h"
 #include "PCGExDetails.h"
+#include "AssetStaging/PCGExFitting.h"
 #include "Data/PCGExData.h"
 
 
@@ -605,25 +606,46 @@ namespace PCGExGeoTasks
 			const FPCGPoint& TargetPoint = PointIO->GetInPoint(TaskIndex);
 			TArray<FPCGPoint>& MutableTargets = ToBeTransformedIO->GetMutablePoints();
 
-			for (FPCGPoint& InPoint : MutableTargets)
+			if (TransformDetails->bSupportFitting)
 			{
-				if (TransformDetails->bInheritRotation && TransformDetails->bInheritScale)
-				{
-					InPoint.Transform *= TargetPoint.Transform;
-					continue;
-				}
+				FTransform FittingTransform = FTransform::Identity;
+				FBox PointBounds = ToBeTransformedIO->GetOut()->GetBounds();
+				TransformDetails->ComputeTransform(TaskIndex, FittingTransform, PointBounds);
 
-				InPoint.Transform.SetLocation(TargetPoint.Transform.TransformPosition(InPoint.Transform.GetLocation()));
+				for (FPCGPoint& InPoint : MutableTargets)
+				{
+					InPoint.Transform *= FittingTransform;
 
-				if (TransformDetails->bInheritRotation)
-				{
-					InPoint.Transform.SetRotation(TargetPoint.Transform.TransformRotation(InPoint.Transform.GetRotation()));
-				}
-				else if (TransformDetails->bInheritScale)
-				{
-					InPoint.Transform.SetScale3D(TargetPoint.Transform.GetScale3D() * InPoint.Transform.GetScale3D());
+					if (TransformDetails->bInheritRotation)
+					{
+						InPoint.Transform.SetRotation(TargetPoint.Transform.TransformRotation(InPoint.Transform.GetRotation()));
+					}
+
+					if (TransformDetails->bInheritScale)
+					{
+						InPoint.Transform.SetScale3D(TargetPoint.Transform.GetScale3D() * InPoint.Transform.GetScale3D());
+					}
 				}
 			}
+			else
+			{
+				for (FPCGPoint& InPoint : MutableTargets)
+				{
+					
+					InPoint.Transform *= TargetPoint.Transform;
+
+					if (TransformDetails->bInheritRotation)
+					{
+						InPoint.Transform.SetRotation(TargetPoint.Transform.TransformRotation(InPoint.Transform.GetRotation()));
+					}
+
+					if (TransformDetails->bInheritScale)
+					{
+						InPoint.Transform.SetScale3D(TargetPoint.Transform.GetScale3D() * InPoint.Transform.GetScale3D());
+					}
+				}
+			}
+
 
 			return true;
 		}

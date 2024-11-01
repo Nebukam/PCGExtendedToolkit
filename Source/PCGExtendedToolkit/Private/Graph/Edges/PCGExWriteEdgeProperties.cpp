@@ -186,9 +186,11 @@ namespace PCGExWriteEdgeProperties
 		if (bSolidify)
 		{
 			FRotator EdgeRot;
-			FVector Extents = MutableTarget.GetExtents();
 			FVector TargetBoundsMin = MutableTarget.BoundsMin;
 			FVector TargetBoundsMax = MutableTarget.BoundsMax;
+
+			const FVector PtScale = MutableTarget.Transform.GetScale3D();
+			const FVector InvScale = FVector::One() / PtScale;
 
 			const double EdgeLerp = FMath::Clamp(SolidificationLerpGetter ? SolidificationLerpGetter->Read(Edge.PointIndex) : Settings->SolidificationLerpConstant, 0, 1);
 			const double EdgeLerpInv = 1 - EdgeLerp;
@@ -198,15 +200,15 @@ namespace PCGExWriteEdgeProperties
 				bProcessAxis = Settings->bWriteRadius##_AXIS || Settings->SolidificationAxis == EPCGExMinimalAxis::_AXIS;\
 				if (bProcessAxis){\
 					if (Settings->SolidificationAxis == EPCGExMinimalAxis::_AXIS){\
-						TargetBoundsMin._AXIS = -EdgeLength * EdgeLerpInv;\
-						TargetBoundsMax._AXIS = EdgeLength * EdgeLerp;\
+						TargetBoundsMin._AXIS = (-EdgeLength * EdgeLerpInv) * InvScale._AXIS;\
+						TargetBoundsMax._AXIS = (EdgeLength * EdgeLerp) * InvScale._AXIS;\
 					}else{\
 						double Rad = Rad##_AXIS##Constant;\
 						if(SolidificationRad##_AXIS){\
 						if (Settings->Radius##_AXIS##Source == EPCGExClusterComponentSource::Vtx) { Rad = FMath::Lerp(SolidificationRad##_AXIS->Read(Edge.Start), SolidificationRad##_AXIS->Read(Edge.End), EdgeLerp); }\
 						else { Rad = SolidificationRad##_AXIS->Read(Edge.PointIndex); }}\
-						TargetBoundsMin._AXIS = -Rad;\
-						TargetBoundsMax._AXIS = Rad;\
+						TargetBoundsMin._AXIS = (-Rad) * InvScale._AXIS;\
+						TargetBoundsMax._AXIS = (Rad) * InvScale._AXIS;\
 					}}
 
 			PCGEX_FOREACH_XYZ(PCGEX_SOLIDIFY_DIMENSION)

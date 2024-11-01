@@ -66,8 +66,9 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExShapeConfigBase
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Resolution", meta=(PCG_Overridable, EditCondition="ResolutionInput == EPCGExInputValueType::Attribute", EditConditionHides))
 	FPCGAttributePropertyInputSelector ResolutionAttribute;
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
-	FPCGExScaleToFitDetails ScaleToFit;
+	/** Fitting details */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
+	FPCGExFittingDetailsHandler Fitting;
 
 	/** Axis on the source to remap to a target axis on the shape */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Align", meta=(PCG_Overridable))
@@ -193,12 +194,12 @@ namespace PCGExShapes
 
 		virtual void ComputeFit(const FPCGExShapeConfigBase& Config)
 		{
-			FVector OutScale = Seed.Point->Transform.GetScale3D();
-			const FBox InBounds = Fit = FBox(FVector::OneVector * -0.5, FVector::OneVector * 0.5);
-			Config.ScaleToFit.Process(*Seed.Point, InBounds, OutScale, Fit);
+			Fit = FBox(FVector::OneVector * -0.5, FVector::OneVector * 0.5);
+			FTransform OutTransform = FTransform::Identity;
+			
+			Config.Fitting.ComputeTransform<false>(Seed.Index, OutTransform, Fit);
 
-			Fit.Min *= OutScale;
-			Fit.Max *= OutScale;
+			Fit = Fit.TransformBy(OutTransform);
 			Fit = Fit.TransformBy(Config.LocalTransform);
 
 			Extents = Config.DefaultExtents;
