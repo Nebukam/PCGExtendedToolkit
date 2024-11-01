@@ -3,7 +3,8 @@
 
 #include "Graph/Pathfinding/Heuristics/PCGExHeuristicFeedback.h"
 
-void UPCGExHeuristicFeedback::PrepareForCluster(const PCGExCluster::FCluster* InCluster)
+
+void UPCGExHeuristicFeedback::PrepareForCluster(const TSharedPtr<const PCGExCluster::FCluster>& InCluster)
 {
 	MaxNodeWeight = 0;
 	MaxEdgeWeight = 0;

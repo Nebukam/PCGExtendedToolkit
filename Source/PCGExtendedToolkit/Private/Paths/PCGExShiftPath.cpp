@@ -87,23 +87,9 @@ namespace PCGExShiftPath
 
 		if (Settings->InputMode == EPCGExShiftPathMode::Relative)
 		{
-			const double Pivot = static_cast<double>(MaxIndex) * static_cast<double>(Settings->RelativeConstant);
-			switch (Settings->Truncate)
-			{
-			case EPCGExTruncateMode::Round:
-				PivotIndex = FMath::RoundToInt(Pivot);
-				break;
-			case EPCGExTruncateMode::Ceil:
-				PivotIndex = FMath::CeilToDouble(Pivot);
-				break;
-			case EPCGExTruncateMode::Floor:
-				PivotIndex = FMath::FloorToDouble(Pivot);
-				break;
-			default:
-			case EPCGExTruncateMode::None:
-				PivotIndex = Pivot;
-				break;
-			}
+			PivotIndex = PCGEx::TruncateDbl(
+				static_cast<double>(MaxIndex) * static_cast<double>(Settings->RelativeConstant),
+				Settings->Truncate);
 		}
 		else if (Settings->InputMode == EPCGExShiftPathMode::Discrete)
 		{

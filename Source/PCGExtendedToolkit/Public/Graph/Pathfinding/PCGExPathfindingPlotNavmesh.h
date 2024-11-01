@@ -5,12 +5,28 @@
 
 #include "CoreMinimal.h"
 #include "PCGExPathfinding.h"
+#include "PCGExPathfindingNavmesh.h"
 #include "PCGExPointsProcessor.h"
 #include "AI/Navigation/NavigationTypes.h"
 
-
 #include "Paths/SubPoints/DataBlending/PCGExSubPointsBlendInterpolate.h"
+
 #include "PCGExPathfindingPlotNavmesh.generated.h"
+
+namespace PCGExPathfinding
+{
+	struct /*PCGEXTENDEDTOOLKIT_API*/ FPlotPoint
+	{
+		int32 PlotIndex;
+		FVector Position;
+		PCGMetadataEntryKey MetadataEntryKey = -1;
+
+		FPlotPoint(const int32 InPlotIndex, const FVector& InPosition, const PCGMetadataEntryKey InMetadataEntryKey)
+			: PlotIndex(InPlotIndex), Position(InPosition), MetadataEntryKey(InMetadataEntryKey)
+		{
+		}
+	};
+}
 
 /**
  * Use PCGExTransform to manipulate the outgoing attributes instead of handling everything here.

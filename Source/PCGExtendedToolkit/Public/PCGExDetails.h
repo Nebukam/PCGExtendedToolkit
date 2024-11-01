@@ -15,25 +15,11 @@
 
 #define PCGEX_SOFT_VALIDATE_NAME_DETAILS(_BOOL, _NAME, _CTX) if(_BOOL){if (!FPCGMetadataAttributeBase::IsValidName(_NAME) || _NAME.IsNone()){ PCGE_LOG_C(Warning, GraphAndLog, _CTX, FTEXT("Invalid user-defined attribute name for " #_NAME)); _BOOL = false; } }
 
-UENUM(/*E--BlueprintType, meta=(DisplayName="[PCGEx] Adjacency Direction Mode")--E*/)
-enum class EPCGExAdjacencyDirectionOrigin : uint8
-{
-	FromNode     = 0 UMETA(DisplayName = "From Node to Neighbor", Tooltip="..."),
-	FromNeighbor = 1 UMETA(DisplayName = "From Neighbor to Node", Tooltip="..."),
-};
-
 UENUM(/*E--BlueprintType, meta=(DisplayName="[PCGEx] Fetch Type")--E*/)
 enum class EPCGExInputValueType : uint8
 {
 	Constant  = 0 UMETA(DisplayName = "Constant", Tooltip="Constant."),
 	Attribute = 1 UMETA(DisplayName = "Attribute", Tooltip="Attribute."),
-};
-
-UENUM(/*E--BlueprintType, meta=(DisplayName="[PCGEx] Fetch Type")--E*/)
-enum class EPCGExPrune : uint8
-{
-	Overlap  = 0 UMETA(DisplayName = "Overlap", Tooltip="Prune if there is the slightest overlap."),
-	Contains = 1 UMETA(DisplayName = "Contains", Tooltip="Prune if is fully contained by the target."),
 };
 
 UENUM(/*E--BlueprintType, meta=(DisplayName="[PCGEx] Data Filter Action")--E*/)
@@ -47,8 +33,8 @@ enum class EPCGExFilterDataAction : uint8
 UENUM(/*E--BlueprintType, meta=(DisplayName="[PCGEx] Subdivide Mode")--E*/)
 enum class EPCGExSubdivideMode : uint8
 {
-	Distance = 0 UMETA(DisplayName = "Distance", ToolTip="Number of subdivisions depends on segment' length"),
-	Count    = 1 UMETA(DisplayName = "Count", ToolTip="Number of subdivisions is constant"),
+	Distance = 0 UMETA(DisplayName = "Distance", ToolTip="Number of subdivisions depends on length"),
+	Count    = 1 UMETA(DisplayName = "Count", ToolTip="Number of subdivisions is fixed"),
 };
 
 USTRUCT(BlueprintType)
@@ -182,23 +168,9 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExRemapDetails
 
 	FORCEINLINE double GetRemappedValue(const double Value) const
 	{
-		double OutValue = RemapCurveObj->GetFloatValue(PCGExMath::Remap(Value, InMin, InMax, 0, 1)) * Scale;
-		switch (TruncateOutput)
-		{
-		case EPCGExTruncateMode::Round:
-			OutValue = FMath::RoundToInt(OutValue) * PostTruncateScale;
-			break;
-		case EPCGExTruncateMode::Ceil:
-			OutValue = FMath::CeilToDouble(OutValue) * PostTruncateScale;
-			break;
-		case EPCGExTruncateMode::Floor:
-			OutValue = FMath::FloorToDouble(OutValue) * PostTruncateScale;
-			break;
-		default:
-		case EPCGExTruncateMode::None:
-			return OutValue;
-		}
-		return OutValue;
+		return PCGEx::TruncateDbl(
+			RemapCurveObj->GetFloatValue(PCGExMath::Remap(Value, InMin, InMax, 0, 1)) * Scale,
+			TruncateOutput);
 	}
 };
 

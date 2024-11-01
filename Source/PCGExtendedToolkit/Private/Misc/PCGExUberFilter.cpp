@@ -141,7 +141,7 @@ namespace PCGExUberFilter
 	void FProcessor::ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const int32 LoopIdx, const int32 LoopCount)
 	{
 		if (!Results) { return; }
-		Results->GetMutable(Index) = Settings->bSwap ? !PointFilterCache[Index] : PointFilterCache[Index];
+		Results->GetMutable(Index) = static_cast<bool>(Settings->bSwap ? !PointFilterCache[Index] : PointFilterCache[Index]);
 	}
 
 	TSharedPtr<PCGExData::FPointIO> FProcessor::CreateIO(const TSharedRef<PCGExData::FPointIOCollection>& InCollection, const PCGExData::EInit InitMode) const

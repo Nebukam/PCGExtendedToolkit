@@ -27,8 +27,8 @@ public:
 	virtual bool RequiresIndividualNodeProcessing() { return false; }
 	virtual bool RequiresIndividualEdgeProcessing() { return false; }
 
-	TArray<bool>* VtxFilters = nullptr;
-	TArray<bool>* EdgesFilters = nullptr;
+	TArray<int8>* VtxFilters = nullptr;
+	TArray<int8>* EdgesFilters = nullptr;
 
 	virtual void RegisterBuffersDependencies(FPCGExContext* InContext, PCGExData::FFacadePreloader& FacadePreloader)
 	{

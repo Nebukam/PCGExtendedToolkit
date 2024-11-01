@@ -38,6 +38,7 @@ enum class EPCGExDataBlendingTypeDefault : uint8
 	AbsoluteMin      = 12 UMETA(DisplayName = "Unsigned Min", ToolTip="Component-wise MIN on unsigned value, but keeps the sign on written data."),
 	AbsoluteMax      = 13 UMETA(DisplayName = "Unsigned Max", ToolTip="Component-wise MAX on unsigned value, but keeps the sign on written data."),
 	WeightedSubtract = 14 UMETA(DisplayName = "Weighted Subtract", ToolTip="Substraction of all the data, weighted"),
+	CopyOther        = 15 UMETA(DisplayName = "Copy (Other)", ToolTip="Same as copy, but copy the other value"),
 };
 
 UCLASS(DefaultConfig, config = Editor, defaultconfig)
@@ -50,7 +51,7 @@ public:
 	int32 SmallClusterSize = 256;
 
 	UPROPERTY(EditAnywhere, config, Category = "Performance|Cluster", meta=(ClampMin=1))
-	int32 ClusterDefaultBatchChunkSize = 1024;
+	int32 ClusterDefaultBatchChunkSize = 512;
 	int32 GetClusterBatchChunkSize(const int32 In = -1) const { return In <= -1 ? ClusterDefaultBatchChunkSize : In; }
 
 	/** Allow caching of clusters */
@@ -71,7 +72,7 @@ public:
 	bool IsSmallPointSize(const int32 InNum) const { return InNum <= SmallPointsSize; }
 
 	UPROPERTY(EditAnywhere, config, Category = "Performance|Points", meta=(ClampMin=1))
-	int32 PointsDefaultBatchChunkSize = 1024;
+	int32 PointsDefaultBatchChunkSize = 512;
 	int32 GetPointsBatchChunkSize(const int32 In = -1) const { return In <= -1 ? PointsDefaultBatchChunkSize : In; }
 
 	UPROPERTY(EditAnywhere, config, Category = "Performance|Async")
@@ -194,4 +195,7 @@ public:
 
 	UPROPERTY(EditAnywhere, config, Category = "Node Colors")
 	FLinearColor NodeColorTransform = FLinearColor(1.000000, 0.000000, 0.185865, 1.000000);
+
+	UPROPERTY(EditAnywhere, config, Category = "Node Colors")
+	FLinearColor NodeColorShapeBuilder = FLinearColor(1.000000, 0.000000, 0.185865, 1.000000);
 };

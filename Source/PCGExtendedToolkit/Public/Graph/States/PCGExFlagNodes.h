@@ -84,7 +84,6 @@ namespace PCGExFlagNodes
 		FProcessor(const TSharedRef<PCGExData::FFacade>& InVtxDataFacade, const TSharedRef<PCGExData::FFacade>& InEdgeDataFacade):
 			TProcessor(InVtxDataFacade, InEdgeDataFacade)
 		{
-			bCacheVtxPointIndices = true;
 		}
 
 		virtual ~FProcessor() override;

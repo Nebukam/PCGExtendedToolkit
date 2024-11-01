@@ -167,8 +167,7 @@ namespace PCGExGrowPaths
 
 		MutablePoints.Reserve(Path.Num());
 
-		const TArray<int32>& VtxPointIndices = Processor->Cluster->GetVtxPointIndices();
-		for (const int32 VtxIndex : Path) { MutablePoints.Add(InPoints[VtxPointIndices[VtxIndex]]); }
+		for (const int32 VtxIndex : Path) { MutablePoints.Add(*Processor->Cluster->GetNodePoint(VtxIndex)); }
 
 		PathIO->Tags->Append(VtxIO->Tags.ToSharedRef());
 

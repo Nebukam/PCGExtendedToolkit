@@ -147,8 +147,6 @@ namespace PCGExCluster
 
 		bool bEdgeLengthsDirty = true;
 		bool bIsCopyCluster = false;
-		TSharedPtr<TArray<int32>> VtxPointIndices;
-		TSharedPtr<TArray<uint64>> VtxPointScopes;
 
 		mutable FRWLock ClusterLock;
 
@@ -160,7 +158,7 @@ namespace PCGExCluster
 		bool bIsOneToOne = false; // Whether the input data has a single set of edges for a single set of vtx
 
 		int32 ClusterID = -1;
-		TSharedPtr<PCGEx::FIndexLookup> NodeIndexLookup; // Node index -> Point Index
+		TSharedPtr<PCGEx::FIndexLookup> NodeIndexLookup; // Point Index -> Node index
 		//TMap<uint64, int32> EdgeIndexLookup;   // Edge Hash -> Edge Index
 		TSharedPtr<TArray<FNode>> Nodes;
 		TSharedPtr<TArray<FExpandedNode>> ExpandedNodes;
@@ -201,12 +199,10 @@ namespace PCGExCluster
 
 		bool IsValidWith(const TSharedRef<PCGExData::FPointIO>& InVtxIO, const TSharedRef<PCGExData::FPointIO>& InEdgesIO) const;
 
-		TSharedPtr<TArray<uint64>> GetVtxPointScopes();
-		const TArray<int32>& GetVtxPointIndices();
-		TArrayView<const int32> GetVtxPointIndicesView();
-
-		const TArray<int32>* GetVtxPointIndicesPtr();
-		TArrayView<const uint64> GetVtxPointScopesView();
+		FORCEINLINE FNode* GetNode(const int32 Index) const { return (Nodes->GetData() + Index); }
+		FORCEINLINE double GetNodePointIndex(const int32 Index) const { return (Nodes->GetData() + Index)->PointIndex; }
+		FORCEINLINE const FPCGPoint* GetNodePoint(const int32 Index) const { return (VtxPoints->GetData() + (Nodes->GetData() + Index)->PointIndex); }
+		FORCEINLINE PCGExGraph::FIndexedEdge* GetEdge(const int32 Index) const { return (Edges->GetData() + Index); }
 
 		FORCEINLINE FNode* GetEdgeStart(const PCGExGraph::FIndexedEdge& InEdge) const { return (Nodes->GetData() + NodeIndexLookup->Get(InEdge.Start)); }
 		FORCEINLINE FNode* GetEdgeStart(const int32 InEdgeIndex) const { return (Nodes->GetData() + NodeIndexLookup->Get((Edges->GetData() + InEdgeIndex)->Start)); }
@@ -382,9 +378,6 @@ namespace PCGExCluster
 
 			return NewNode;
 		}
-
-		void CreateVtxPointIndices();
-		void CreateVtxPointScopes();
 	};
 
 	struct /*PCGEXTENDEDTOOLKIT_API*/ FExpandedNode

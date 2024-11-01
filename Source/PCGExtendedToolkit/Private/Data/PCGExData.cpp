@@ -37,7 +37,7 @@ namespace PCGExData
 
 	void FFacade::Write(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager)
 	{
-		if (!AsyncManager || !AsyncManager->IsAvailable()) { return; }
+		if (!AsyncManager || !AsyncManager->IsAvailable() || !Source->GetOut()) { return; }
 
 		//UE_LOG(LogTemp, Warning, TEXT("{%lld} Facade -> Write"), AsyncManager->Context->GetInputSettings<UPCGSettings>()->UID)
 

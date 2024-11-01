@@ -46,6 +46,14 @@ namespace PCGExDataBlending
 	};
 
 	template <typename T>
+	class /*PCGEXTENDEDTOOLKIT_API*/ TDataBlendingCopyOther final : public TDataBlendingOperation<T>
+	{
+	public:
+		FORCEINLINE virtual EPCGExDataBlendingType GetBlendingType() const override { return EPCGExDataBlendingType::Copy; };
+		FORCEINLINE virtual T SingleOperation(T A, T B, double Weight) const override { return A; }
+	};
+
+	template <typename T>
 	class /*PCGEXTENDEDTOOLKIT_API*/ TDataBlendingSum final : public TDataBlendingOperation<T>
 	{
 	public:

@@ -31,7 +31,7 @@ public:
 			uint32 EdgeIndex;
 			PCGEx::H64(AdjacencyHash, OtherNodeIndex, EdgeIndex);
 
-			const double Score = Heuristics->GetEdgeScore(Node, *(Cluster->Nodes->GetData() + OtherNodeIndex), *(Cluster->Edges->GetData() + EdgeIndex), Node, *(Cluster->Nodes->GetData() + OtherNodeIndex));
+			const double Score = Heuristics->GetEdgeScore(Node, *Cluster->GetNode(OtherNodeIndex), *Cluster->GetEdge(EdgeIndex), Node, *Cluster->GetNode(OtherNodeIndex));
 			if (Score < LowestScore)
 			{
 				LowestScore = Score;
@@ -42,6 +42,6 @@ public:
 		if (BestIndex == -1) { return; }
 		//if (!*(EdgesFilters->GetData() + BestIndex)) { return; }
 
-		FPlatformAtomics::InterlockedExchange(&(Cluster->Edges->GetData() + BestIndex)->bValid, 0);
+		FPlatformAtomics::InterlockedExchange(&Cluster->GetEdge(BestIndex)->bValid, 0);
 	}
 };

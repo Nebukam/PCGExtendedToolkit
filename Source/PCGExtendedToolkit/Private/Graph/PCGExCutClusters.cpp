@@ -327,8 +327,8 @@ namespace PCGExCutEdges
 						{
 							for (const uint64 Hash : Node.Adjacency)
 							{
-								FPlatformAtomics::InterlockedExchange(&((Cluster->Edges->GetData() + PCGEx::H64B(Hash)))->bValid, 1);
-								FPlatformAtomics::InterlockedExchange(&((Cluster->Nodes->GetData() + PCGEx::H64A(Hash)))->bValid, 1);
+								FPlatformAtomics::InterlockedExchange(&(Cluster->GetEdge(PCGEx::H64B(Hash)))->bValid, 1);
+								FPlatformAtomics::InterlockedExchange(&Cluster->GetNode(PCGEx::H64A(Hash))->bValid, 1);
 							}
 						}
 					}
@@ -339,7 +339,7 @@ namespace PCGExCutEdges
 						{
 							for (const uint64 Hash : Node.Adjacency)
 							{
-								FPlatformAtomics::InterlockedExchange(&((Cluster->Edges->GetData() + PCGEx::H64B(Hash)))->bValid, 0);
+								FPlatformAtomics::InterlockedExchange(&(Cluster->GetEdge(PCGEx::H64B(Hash)))->bValid, 0);
 							}
 						}
 					}
@@ -385,7 +385,7 @@ namespace PCGExCutEdges
 
 	void FProcessor::ProcessSingleRangeIteration(const int32 Iteration, const int32 LoopIdx, const int32 Count)
 	{
-		PCGExGraph::FIndexedEdge& Edge = *(Cluster->Edges->GetData() + Iteration);
+		PCGExGraph::FIndexedEdge& Edge = *Cluster->GetEdge(Iteration);
 
 		//if (Edge.bValid)		{			return;		}
 
@@ -413,7 +413,6 @@ namespace PCGExCutEdges
 		PCGExPointFilter::RegisterBuffersDependencies(ExecutionContext, Context->EdgeFilterFactories, FacadePreloader);
 		PCGExPointFilter::RegisterBuffersDependencies(ExecutionContext, Context->NodeFilterFactories, FacadePreloader);
 	}
-
 }
 
 #undef LOCTEXT_NAMESPACE

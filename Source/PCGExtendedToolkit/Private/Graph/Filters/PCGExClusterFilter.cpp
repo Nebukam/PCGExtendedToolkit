@@ -36,11 +36,11 @@ namespace PCGExClusterFilter
 		Results.Init(false, NumResults);
 	}
 
-	bool TNodeFilter::Test(const int32 Index) const { return FFilter::Test(*(Cluster->Nodes->GetData() + Index)); }
+	bool TNodeFilter::Test(const int32 Index) const { return FFilter::Test(*Cluster->GetNode(Index)); }
 	bool TNodeFilter::Test(const PCGExCluster::FNode& Node) const { return FFilter::Test(Node); }
 	bool TNodeFilter::Test(const PCGExGraph::FIndexedEdge& Edge) const PCGEX_NOT_IMPLEMENTED_RET(TVtxFilter::Test(const PCGExGraph::FIndexedEdge& Edge), false)
 
-	bool TEdgeFilter::Test(const int32 Index) const { return FFilter::Test(*(Cluster->Edges->GetData() + Index)); }
+	bool TEdgeFilter::Test(const int32 Index) const { return FFilter::Test(*Cluster->GetEdge(Index)); }
 	bool TEdgeFilter::Test(const PCGExCluster::FNode& Node) const PCGEX_NOT_IMPLEMENTED_RET(TEdgeFilter::Test(const PCGExCluster::FNode& Node), false)
 	bool TEdgeFilter::Test(const PCGExGraph::FIndexedEdge& Edge) const { return FFilter::Test(Edge); }
 

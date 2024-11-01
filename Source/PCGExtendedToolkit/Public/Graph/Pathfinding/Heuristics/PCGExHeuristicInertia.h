@@ -7,6 +7,8 @@
 #include "PCGExHeuristicsFactoryProvider.h"
 #include "UObject/Object.h"
 #include "PCGExHeuristicOperation.h"
+
+
 #include "Graph/PCGExCluster.h"
 #include "PCGExHeuristicInertia.generated.h"
 
@@ -41,7 +43,7 @@ public:
 	double GlobalInertiaScore = 0;
 	double FallbackInertiaScore = 0;
 
-	virtual void PrepareForCluster(const PCGExCluster::FCluster* InCluster) override;
+	virtual void PrepareForCluster(const TSharedPtr<const PCGExCluster::FCluster>& InCluster) override;
 
 	FORCEINLINE virtual double GetGlobalScore(
 		const PCGExCluster::FNode& From,
@@ -102,7 +104,7 @@ public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(
-		HeuristicsTurning, "Heuristics : Inertia", "Heuristics based on direction inertia from last visited node. NOTE: Can be quite expensive.",
+		HeuristicsInertia, "Heuristics : Inertia", "Heuristics based on direction inertia from last visited node. NOTE: Can be quite expensive.",
 		FName(GetDisplayName()))
 #endif
 	//~End UPCGSettings

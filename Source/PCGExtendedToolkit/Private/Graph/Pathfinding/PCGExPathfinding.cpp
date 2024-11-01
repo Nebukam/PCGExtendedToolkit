@@ -2,3 +2,201 @@
 // Released under the MIT license https://opensource.org/license/MIT/
 
 #include "Graph/Pathfinding/PCGExPathfinding.h"
+#include "Graph/Pathfinding/Heuristics/PCGExHeuristics.h"
+#include "Graph/Pathfinding/Search/PCGExSearchOperation.h"
+
+namespace PCGExPathfinding
+{
+	bool FNodePick::ResolveNode(const TSharedRef<PCGExCluster::FCluster>& InCluster, const FPCGExNodeSelectionDetails& SelectionDetails)
+	{
+		if (Node != nullptr) { return true; }
+
+		const int32 NodeIndex = InCluster->FindClosestNode(SourcePosition, SelectionDetails.PickingMethod, 1);
+		if (NodeIndex == -1) { return false; }
+		Node = InCluster->GetNode(NodeIndex);
+
+		return true;
+	}
+
+	EQueryPickResolution FPathQuery::ResolvePicks(const FPCGExNodeSelectionDetails& SeedSelectionDetails, const FPCGExNodeSelectionDetails& GoalSelectionDetails)
+	{
+		PickResolution = EQueryPickResolution::None;
+
+		if (!Seed.ResolveNode(Cluster, SeedSelectionDetails))
+		{
+			PickResolution = EQueryPickResolution::UnresolvedSeed;
+		}
+
+		if (!Goal.ResolveNode(Cluster, GoalSelectionDetails))
+		{
+			PickResolution = PickResolution == EQueryPickResolution::UnresolvedSeed ?
+				                 EQueryPickResolution::UnresolvedPicks :
+				                 EQueryPickResolution::UnresolvedGoal;
+		}
+
+		if (Seed.Node == Goal.Node && (PickResolution != EQueryPickResolution::UnresolvedSeed || PickResolution != EQueryPickResolution::UnresolvedGoal))
+		{
+			PickResolution = EQueryPickResolution::SameSeedAndGoal;
+		}
+
+		if (PickResolution == EQueryPickResolution::None) { PickResolution = EQueryPickResolution::Success; }
+
+		return PickResolution;
+	}
+
+	void FPathQuery::Reserve(const int32 NumReserve)
+	{
+		PathNodes.Reserve(NumReserve);
+		PathEdges.Reserve(NumReserve - 1);
+	}
+
+	void FPathQuery::AddPathNode(const int32 InNodeIndex, const int32 InEdgeIndex)
+	{
+		PathNodes.Add(InNodeIndex);
+		if (InEdgeIndex != -1) { PathEdges.Add(InEdgeIndex); }
+	}
+
+	void FPathQuery::SetResolution(const EPathfindingResolution InResolution)
+	{
+		Resolution = InResolution;
+		if (Resolution == EPathfindingResolution::Success)
+		{
+			Algo::Reverse(PathNodes);
+			Algo::Reverse(PathEdges);
+		}
+	}
+
+	void FPathQuery::FindPath(
+		const UPCGExSearchOperation* SearchOperation,
+		const TSharedPtr<PCGExHeuristics::THeuristicsHandler>& HeuristicsHandler,
+		const TSharedPtr<PCGExHeuristics::FLocalFeedbackHandler>& LocalFeedback)
+	{
+		if (PickResolution != EQueryPickResolution::Success)
+		{
+			SetResolution(EPathfindingResolution::Fail);
+			return;
+		}
+
+		if (SearchOperation->ResolveQuery(SharedThis(this), HeuristicsHandler, LocalFeedback))
+		{
+			SetResolution(HasValidPathPoints() ? EPathfindingResolution::Success : EPathfindingResolution::Fail);
+		}
+		else
+		{
+			SetResolution(EPathfindingResolution::Fail);
+		}
+
+		if (Resolution == EPathfindingResolution::Fail) { return; }
+
+		const TArray<PCGExCluster::FNode>& NodesRef = *Cluster->Nodes;
+		const TArray<PCGExGraph::FIndexedEdge>& EdgesRef = *Cluster->Edges;
+
+		// Feedback scores
+
+		if (LocalFeedback)
+		{
+			for (int i = 0; i < PathEdges.Num(); i++)
+			{
+				const PCGExCluster::FNode& Node = NodesRef[PathNodes[i]];
+				const PCGExGraph::FIndexedEdge& Edge = EdgesRef[PathEdges[i]];
+				HeuristicsHandler->FeedbackScore(Node, Edge);
+				LocalFeedback->FeedbackScore(Node, Edge);
+			}
+
+			HeuristicsHandler->FeedbackPointScore(NodesRef[PathNodes.Last()]);
+			LocalFeedback->FeedbackPointScore(NodesRef[PathNodes.Last()]);
+		}
+		else
+		{
+			for (int i = 0; i < PathEdges.Num(); i++) { HeuristicsHandler->FeedbackScore(NodesRef[PathNodes[i]], EdgesRef[PathEdges[i]]); }
+			HeuristicsHandler->FeedbackPointScore(NodesRef[PathNodes.Last()]);
+		}
+
+		PathEdges.Empty(); // TODO : Remove this in case we need edges for more than feedbacks
+	}
+
+	void FPathQuery::AppendNodePoints(
+		TArray<FPCGPoint>& OutPoints,
+		const int32 TruncateStart,
+		const int32 TruncateEnd) const
+	{
+		const int32 Count = PathNodes.Num() - TruncateEnd;
+		for (int i = TruncateStart; i < Count; i++) { OutPoints.Add(*Cluster->GetNodePoint(PathNodes[i])); }
+	}
+
+	void FPathQuery::Cleanup()
+	{
+		PathNodes.Empty();
+		PathEdges.Empty();
+	}
+
+	void FPlotQuery::BuildPlotQuery(
+		const TSharedPtr<PCGExData::FFacade>& InPlot,
+		const FPCGExNodeSelectionDetails& SeedSelectionDetails,
+		const FPCGExNodeSelectionDetails& GoalSelectionDetails)
+	{
+		PlotFacade = InPlot;
+		SubQueries.Reserve(InPlot->GetNum());
+
+		TSharedPtr<FPathQuery> PrevQuery = MakeShared<FPathQuery>(
+			Cluster,
+			PlotFacade->Source->GetInPointRef(0),
+			PlotFacade->Source->GetInPointRef(1));
+
+		PrevQuery->ResolvePicks(SeedSelectionDetails, GoalSelectionDetails);
+
+		SubQueries.Add(PrevQuery);
+
+		for (int i = 2; i < PlotFacade->GetNum(); i++)
+		{
+			TSharedPtr<FPathQuery> NextQuery = MakeShared<FPathQuery>(Cluster, PrevQuery, PlotFacade->Source->GetInPointRef(i));
+			NextQuery->ResolvePicks(SeedSelectionDetails, GoalSelectionDetails);
+
+			SubQueries.Add(NextQuery);
+			PrevQuery = NextQuery;
+		}
+
+		if (bIsClosedLoop)
+		{
+			TSharedPtr<FPathQuery> WrapQuery = MakeShared<FPathQuery>(Cluster, SubQueries.Last(), SubQueries[0]);
+			SubQueries.Add(PrevQuery);
+		}
+	}
+
+	void FPlotQuery::FindPaths(
+		const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager,
+		const UPCGExSearchOperation* SearchOperation,
+		const TSharedPtr<PCGExHeuristics::THeuristicsHandler>& HeuristicsHandler)
+	{
+		PCGEX_ASYNC_GROUP_CHKD_VOID(AsyncManager, PlotTasks)
+
+		LocalFeedbackHandler = HeuristicsHandler->MakeLocalFeedbackHandler(Cluster);
+
+		TWeakPtr<FPlotQuery> WeakPtr = SharedThis(this);
+		PlotTasks->OnCompleteCallback = [WeakPtr]()
+		{
+			if (const TSharedPtr<FPlotQuery> This = WeakPtr.Pin())
+			{
+				This->LocalFeedbackHandler.Reset();
+				if (This->OnCompleteCallback) { This->OnCompleteCallback(This); }
+			}
+		};
+
+		PlotTasks->OnIterationRangeStartCallback =
+			[WeakPtr, SearchOperation, HeuristicsHandler](const int32 StartIndex, const int32 Count, const int32 LoopIdx)
+			{
+				TSharedPtr<FPlotQuery> This = WeakPtr.Pin();
+				if (!This) { return; }
+
+				This->SubQueries[StartIndex]->FindPath(SearchOperation, HeuristicsHandler, This->LocalFeedbackHandler);
+			};
+
+		PlotTasks->StartRangePrepareOnly(SubQueries.Num(), 1, HeuristicsHandler->HasGlobalFeedback());
+	}
+
+	void FPlotQuery::Cleanup()
+	{
+		for (const TSharedPtr<FPathQuery> Query : SubQueries) { Query->Cleanup(); }
+		SubQueries.Empty();
+	}
+}

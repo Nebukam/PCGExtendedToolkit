@@ -37,7 +37,7 @@ class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExProbeFactoryProviderSettings : public UPC
 public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS(NodeFilter, "Probe Definition", "Creates a single probe to look for a nerbay connection.")
+	PCGEX_NODE_INFOS(AbstractProbe, "Probe Definition", "Creates a single probe to look for a nerbay connection.")
 	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->NodeColorProbe; }
 #endif
 	//~End UPCGSettings

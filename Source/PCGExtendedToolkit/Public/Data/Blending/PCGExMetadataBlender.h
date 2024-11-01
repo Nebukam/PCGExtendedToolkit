@@ -56,7 +56,7 @@ namespace PCGExDataBlending
 
 		FORCEINLINE void Blend(const PCGExData::FPointRef& A, const PCGExData::FPointRef& B, const PCGExData::FPointRef& Target, const double Weight)
 		{
-			const bool IsFirstOperation = FirstPointOperation[Target.Index];
+			const int8 IsFirstOperation = FirstPointOperation[Target.Index];
 			for (const TSharedPtr<FDataBlendingOperationBase>& Op : Operations) { Op->DoOperation(A.Index, B.Index, Target.Index, Weight, IsFirstOperation); }
 			FirstPointOperation[Target.Index] = false;
 			if (bSkipProperties) { return; }
@@ -65,7 +65,7 @@ namespace PCGExDataBlending
 
 		FORCEINLINE void Blend(const int32 PrimaryIndex, const int32 SecondaryIndex, const int32 TargetIndex, const double Weight)
 		{
-			const bool IsFirstOperation = FirstPointOperation[TargetIndex];
+			const int8 IsFirstOperation = FirstPointOperation[TargetIndex];
 			for (const TSharedPtr<FDataBlendingOperationBase>& Op : Operations) { Op->DoOperation(PrimaryIndex, SecondaryIndex, TargetIndex, Weight, IsFirstOperation); }
 			FirstPointOperation[TargetIndex] = false;
 			if (bSkipProperties) { return; }
@@ -129,7 +129,7 @@ namespace PCGExDataBlending
 		TArray<FPCGPoint>* PrimaryPoints = nullptr;
 		const TArray<FPCGPoint>* SecondaryPoints = nullptr;
 
-		TArray<bool> FirstPointOperation;
+		TArray<int8> FirstPointOperation;
 
 		void InternalPrepareForData(
 			const TSharedPtr<PCGExData::FFacade>& InPrimaryFacade,

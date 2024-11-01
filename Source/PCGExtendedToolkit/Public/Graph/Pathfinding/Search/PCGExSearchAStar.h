@@ -5,6 +5,8 @@
 
 #include "CoreMinimal.h"
 #include "PCGExSearchOperation.h"
+
+
 #include "UObject/Object.h"
 #include "PCGExSearchAStar.generated.h"
 
@@ -18,12 +20,7 @@ class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExSearchAStar : public UPCGExSearchOperatio
 	GENERATED_BODY()
 
 public:
-	virtual bool FindPath(
-		const FVector& SeedPosition,
-		const FPCGExNodeSelectionDetails* SeedSelection,
-		const FVector& GoalPosition,
-		const FPCGExNodeSelectionDetails* GoalSelection,
-		const TSharedPtr<PCGExHeuristics::THeuristicsHandler>& Heuristics,
-		TArray<int32>& OutPath,
-		const TSharedPtr<PCGExHeuristics::FLocalFeedbackHandler>& LocalFeedback) const override;
+	virtual bool ResolveQuery(
+		const TSharedPtr<PCGExPathfinding::FPathQuery>& InQuery,
+		const TSharedPtr<PCGExHeuristics::THeuristicsHandler>& Heuristics, const TSharedPtr<PCGExHeuristics::FLocalFeedbackHandler>& LocalFeedback) const override;
 };

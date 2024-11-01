@@ -229,7 +229,7 @@ namespace PCGExAttributeStats
 			const TSharedRef<PCGExData::FFacade> InDataFacade,
 			FPCGExAttributeStatsContext* Context,
 			const UPCGExAttributeStatsSettings* Settings,
-			const TArray<bool>& Filter)
+			const TArray<int8>& Filter)
 		{
 		}
 	};
@@ -260,7 +260,7 @@ namespace PCGExAttributeStats
 			const TSharedRef<PCGExData::FFacade> InDataFacade,
 			FPCGExAttributeStatsContext* Context,
 			const UPCGExAttributeStatsSettings* Settings,
-			const TArray<bool>& Filter) override
+			const TArray<int8>& Filter) override
 		{
 			UPCGParamData* ParamData = Context->OutputParamsMap[Identity.Name];
 

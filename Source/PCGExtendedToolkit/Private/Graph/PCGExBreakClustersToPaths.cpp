@@ -67,7 +67,7 @@ namespace PCGExBreakClustersToPaths
 
 		if (!FClusterProcessor::Process(InAsyncManager)) { return false; }
 
-		Breakpoints.Init(false, Cluster->Nodes->Num());
+		Breakpoints.Init(0, Cluster->Nodes->Num());
 
 		if (!DirectionSettings.InitFromParent(ExecutionContext, StaticCastWeakPtr<FProcessorBatch>(ParentBatch).Pin()->DirectionSettings, EdgeDataFacade))
 		{
@@ -119,10 +119,8 @@ namespace PCGExBreakClustersToPaths
 
 		const int32 ChainSize = Chain->Nodes.Num() + 2; // Skip last point
 
-		const TArray<int32>& VtxPointsIndicesRef = *VtxPointIndicesCache;
-
-		int32 StartIdx = VtxPointsIndicesRef[Chain->First];
-		int32 EndIdx = VtxPointsIndicesRef[Chain->Last];
+		int32 StartIdx = Cluster->GetNodePointIndex(Chain->First);
+		int32 EndIdx = Cluster->GetNodePointIndex(Chain->Last);
 
 		bool bReverse = false;
 
@@ -154,7 +152,7 @@ namespace PCGExBreakClustersToPaths
 		int32 PointCount = 0;
 
 		MutablePoints[PointCount++] = PathIO->GetInPoint(StartIdx);
-		for (const int32 NodeIndex : Chain->Nodes) { MutablePoints[PointCount++] = PathIO->GetInPoint(VtxPointsIndicesRef[NodeIndex]); }
+		for (const int32 NodeIndex : Chain->Nodes) { MutablePoints[PointCount++] = *Cluster->GetNodePoint(NodeIndex); }
 
 		if (!Chain->bClosedLoop)
 		{

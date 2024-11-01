@@ -58,7 +58,6 @@ namespace PCGExClusterMT
 
 		bool bBuildCluster = true;
 		bool bRequiresHeuristics = false;
-		bool bCacheVtxPointIndices = false;
 
 		bool bInlineProcessNodes = false;
 		bool bInlineProcessEdges = false;
@@ -99,8 +98,6 @@ namespace PCGExClusterMT
 
 		bool bIsTrivial = false;
 		bool bIsOneToOne = false;
-
-		const TArray<int32>* VtxPointIndicesCache = nullptr;
 
 		int32 BatchIndex = -1;
 
@@ -158,13 +155,11 @@ namespace PCGExClusterMT
 			NumNodes = Cluster->Nodes->Num();
 			NumEdges = Cluster->Edges->Num();
 
-			if (bCacheVtxPointIndices) { VtxPointIndicesCache = Cluster->GetVtxPointIndicesPtr(); }
-
 			if (bRequiresHeuristics)
 			{
 				TRACE_CPUPROFILER_EVENT_SCOPE(FClusterProcessor::Heuristics);
 				HeuristicsHandler = MakeShared<PCGExHeuristics::THeuristicsHandler>(ExecutionContext, VtxDataFacade, EdgeDataFacade);
-				HeuristicsHandler->PrepareForCluster(Cluster.Get());
+				HeuristicsHandler->PrepareForCluster(Cluster);
 				HeuristicsHandler->CompleteClusterPreparation();
 			}
 

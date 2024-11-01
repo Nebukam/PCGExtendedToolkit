@@ -1242,6 +1242,12 @@ namespace PCGExMath
 		}
 	}
 
+	FORCEINLINE double GetArcLength(const double R, const double StartAngleRadians, const double EndAngleRadians)
+	{
+		return R * FMath::Abs(FMath::Fmod(EndAngleRadians, TWO_PI) - FMath::Fmod(StartAngleRadians, TWO_PI));
+	}
+
+
 #pragma region Spatialized distances
 
 	// Stolen from PCGDistance

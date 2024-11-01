@@ -1076,22 +1076,9 @@ namespace PCGExAssetCollection
 				double PickedIndex = IndexGetter->Read(PointIndex);
 				if (Details.IndexSettings.bRemapIndexToCollectionSize)
 				{
-					PickedIndex = MaxInputIndex == 0 ? 0 : PCGExMath::Remap(PickedIndex, 0, MaxInputIndex, 0, MaxIndex);
-					switch (Details.IndexSettings.TruncateRemap)
-					{
-					case EPCGExTruncateMode::Round:
-						PickedIndex = FMath::RoundToInt(PickedIndex);
-						break;
-					case EPCGExTruncateMode::Ceil:
-						PickedIndex = FMath::CeilToDouble(PickedIndex);
-						break;
-					case EPCGExTruncateMode::Floor:
-						PickedIndex = FMath::FloorToDouble(PickedIndex);
-						break;
-					default:
-					case EPCGExTruncateMode::None:
-						break;
-					}
+					PickedIndex = PCGEx::TruncateDbl(
+						MaxInputIndex == 0 ? 0 : PCGExMath::Remap(PickedIndex, 0, MaxInputIndex, 0, MaxIndex),
+						Details.IndexSettings.TruncateRemap);
 				}
 
 				Collection->GetEntry(
@@ -1124,22 +1111,9 @@ namespace PCGExAssetCollection
 				double PickedIndex = IndexGetter->Read(PointIndex);
 				if (Details.IndexSettings.bRemapIndexToCollectionSize)
 				{
-					PickedIndex = MaxInputIndex == 0 ? 0 : PCGExMath::Remap(PickedIndex, 0, MaxInputIndex, 0, MaxIndex);
-					switch (Details.IndexSettings.TruncateRemap)
-					{
-					case EPCGExTruncateMode::Round:
-						PickedIndex = FMath::RoundToInt(PickedIndex);
-						break;
-					case EPCGExTruncateMode::Ceil:
-						PickedIndex = FMath::CeilToDouble(PickedIndex);
-						break;
-					case EPCGExTruncateMode::Floor:
-						PickedIndex = FMath::FloorToDouble(PickedIndex);
-						break;
-					default:
-					case EPCGExTruncateMode::None:
-						break;
-					}
+					PickedIndex = PCGEx::TruncateDbl(
+						MaxInputIndex == 0 ? 0 : PCGExMath::Remap(PickedIndex, 0, MaxInputIndex, 0, MaxIndex),
+						Details.IndexSettings.TruncateRemap);
 				}
 
 				Collection->GetEntry(

@@ -5,6 +5,8 @@
 
 #include "CoreMinimal.h"
 #include "PCGExOperation.h"
+
+
 #include "Graph/PCGExCluster.h"
 #include "UObject/Object.h"
 #include "PCGExHeuristicOperation.generated.h"
@@ -30,7 +32,7 @@ public:
 
 	bool bHasCustomLocalWeightMultiplier = false;
 
-	virtual void PrepareForCluster(const PCGExCluster::FCluster* InCluster);
+	virtual void PrepareForCluster(const TSharedPtr<const PCGExCluster::FCluster>& InCluster);
 
 	FORCEINLINE virtual double GetGlobalScore(
 		const PCGExCluster::FNode& From,
@@ -66,7 +68,7 @@ public:
 	}
 
 protected:
-	const PCGExCluster::FCluster* Cluster = nullptr;
+	TSharedPtr<const PCGExCluster::FCluster> Cluster;
 	TArray<double> LocalWeightMultiplier;
 
 	FORCEINLINE virtual double SampleCurve(const double InTime) const
