@@ -6,15 +6,6 @@
 #define LOCTEXT_NAMESPACE "PCGExPaths"
 #define PCGEX_NAMESPACE PCGExPaths
 
-void FPCGExPathFilterSettings::RegisterBuffersDependencies(FPCGExContext* InContext, PCGExData::FFacadePreloader& FacadePreloader) const
-{
-}
-
-bool FPCGExPathFilterSettings::Init(FPCGExContext* InContext)
-{
-	return true;
-}
-
 void PCGExPaths::FPath::ComputeEdgeExtra(const int32 Index)
 {
 	if (NumEdges == 1)

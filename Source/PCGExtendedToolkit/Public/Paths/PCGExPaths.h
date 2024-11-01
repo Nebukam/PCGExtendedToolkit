@@ -224,32 +224,6 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPathEdgeIntersectionDetails
 	FORCEINLINE bool CheckDot(const double InDot) const { return InDot <= MaxDot && InDot >= MinDot; }
 };
 
-USTRUCT(BlueprintType)
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPathFilterSettings
-{
-	GENERATED_BODY()
-
-	/** Method to pick the edge direction amongst various possibilities.*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
-	EPCGExEdgeDirectionMethod DirectionMethod = EPCGExEdgeDirectionMethod::EndpointsOrder;
-
-	/** Further refine the direction method. Not all methods make use of this property.*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
-	EPCGExEdgeDirectionChoice DirectionChoice = EPCGExEdgeDirectionChoice::SmallestToGreatest;
-
-	/** Attribute picker for the selected Direction Method.*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="DirectionMethod==EPCGExEdgeDirectionMethod::EndpointsAttribute || DirectionMethod==EPCGExEdgeDirectionMethod::EdgeDotAttribute", EditConditionHides))
-	FPCGAttributePropertyInputSelector DirSourceAttribute;
-
-	bool bAscendingDesired = false;
-	TSharedPtr<PCGExData::TBuffer<double>> EndpointsReader;
-	TSharedPtr<PCGExData::TBuffer<FVector>> EdgeDirReader;
-
-	void RegisterBuffersDependencies(FPCGExContext* InContext, PCGExData::FFacadePreloader& FacadePreloader) const;
-
-	bool Init(FPCGExContext* InContext);
-};
-
 namespace PCGExPaths
 {
 	PCGEX_ASYNC_STATE(State_BuildingPaths)

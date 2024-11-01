@@ -819,6 +819,7 @@ bool FPCGExEdgeDirectionSettings::Init(
 		if (!InSortingRules) { return false; }
 
 		Sorter = MakeShared<PCGExSorting::PointSorter<true>>(InContext, InVtxDataFacade, *InSortingRules);
+		Sorter->SortDirection = DirectionChoice == EPCGExEdgeDirectionChoice::GreatestToSmallest ? EPCGExSortDirection::Descending : EPCGExSortDirection::Ascending;
 		if (!Sorter->Init()) { return false; }
 	}
 	return true;
