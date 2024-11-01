@@ -25,7 +25,7 @@ namespace PCGExData
 		else if (!Tags) { Tags = MakeShared<FTags>(); }
 	}
 
-	void FPointIO::InitializeOutput(FPCGExContext* InContext, const EInit InitOut)
+	void FPointIO::InitializeOutput(const EInit InitOut)
 	{
 		if (Out && Out != In) { Context->ManagedObjects->Destroy(Out); }
 		OutKeys.Reset();
@@ -47,7 +47,7 @@ namespace PCGExData
 		{
 			if (In)
 			{
-				UObject* GenericInstance = InContext->ManagedObjects->New<UObject>(GetTransientPackage(), In->GetClass());
+				UObject* GenericInstance = Context->ManagedObjects->New<UObject>(GetTransientPackage(), In->GetClass());
 				Out = Cast<UPCGPointData>(GenericInstance);
 
 				// Input type was not a PointData child, should not happen.
@@ -232,7 +232,7 @@ namespace PCGExData
 		FWriteScopeLock WriteLock(PairsLock);
 		TSharedPtr<FPointIO> NewIO = Pairs.Add_GetRef(MakeShared<FPointIO>(Context, In));
 		NewIO->SetInfos(Pairs.Num() - 1, DefaultOutputLabel, Tags);
-		NewIO->InitializeOutput(Context, InitOut);
+		NewIO->InitializeOutput(InitOut);
 		return NewIO;
 	}
 
@@ -241,7 +241,7 @@ namespace PCGExData
 		FWriteScopeLock WriteLock(PairsLock);
 		TSharedPtr<FPointIO> NewIO = Pairs.Add_GetRef(MakeShared<FPointIO>(Context));
 		NewIO->SetInfos(Pairs.Num() - 1, DefaultOutputLabel);
-		NewIO->InitializeOutput(Context, InitOut);
+		NewIO->InitializeOutput(InitOut);
 		return NewIO;
 	}
 

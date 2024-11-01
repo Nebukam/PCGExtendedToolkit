@@ -106,8 +106,8 @@ namespace PCGExData
 			PCGEX_LOG_CTR(FPointIO)
 		}
 
-		explicit FPointIO(FPCGExContext* InContext, const TSharedRef<FPointIO>& InPointIO):
-			Context(InContext), In(InPointIO->GetIn())
+		explicit FPointIO(const TSharedRef<FPointIO>& InPointIO):
+			Context(InPointIO->GetContext()), In(InPointIO->GetIn())
 		{
 			PCGEX_LOG_CTR(FPointIO)
 			RootIO = InPointIO;
@@ -120,16 +120,16 @@ namespace PCGExData
 		              const FName InDefaultOutputLabel,
 		              const TSet<FString>* InTags = nullptr);
 
-		void InitializeOutput(FPCGExContext* InContext, EInit InitOut = EInit::NoOutput);
+		void InitializeOutput(EInit InitOut = EInit::NoOutput);
 
 		template <typename T>
-		void InitializeOutput(FPCGExContext* InContext, const EInit InitOut = EInit::NoOutput)
+		void InitializeOutput(const EInit InitOut = EInit::NoOutput)
 		{
 			if (Out && Out != In) { Context->ManagedObjects->Destroy(Out); }
 
 			if (InitOut == EInit::NewOutput)
 			{
-				T* TypedOut = InContext->ManagedObjects->New<T>();
+				T* TypedOut = Context->ManagedObjects->New<T>();
 
 				Out = Cast<UPCGPointData>(TypedOut);
 				check(Out)
@@ -149,7 +149,7 @@ namespace PCGExData
 
 				if (!TypedIn)
 				{
-					T* TypedOut = InContext->ManagedObjects->New<T>();
+					T* TypedOut = Context->ManagedObjects->New<T>();
 
 					if (UPCGExPointData* TypedPointData = Cast<UPCGExPointData>(TypedOut)) { TypedPointData->CopyFrom(In); }
 					else { TypedOut->InitializeFromData(In); } // This is a potentially failed duplicate
@@ -164,7 +164,7 @@ namespace PCGExData
 				return;
 			}
 
-			InitializeOutput(InContext, InitOut);
+			InitializeOutput(InitOut);
 		}
 
 		~FPointIO();
@@ -287,6 +287,27 @@ namespace PCGExData
 			return OutAttribute;
 		}
 	};
+	
+	static TSharedPtr<FPointIO> NewPointIO(FPCGExContext* InContext, FName OutputLabel = NAME_None, int32 Index = -1)
+	{
+		TSharedPtr<FPointIO> NewIO = MakeShared<PCGExData::FPointIO>(InContext);
+		NewIO->SetInfos(Index, OutputLabel);
+		return  NewIO;
+	}
+
+	static TSharedPtr<FPointIO> NewPointIO(FPCGExContext* InContext, const UPCGPointData* InData, FName OutputLabel = NAME_None, int32 Index = -1)
+	{
+		TSharedPtr<FPointIO> NewIO = MakeShared<PCGExData::FPointIO>(InContext, InData);
+		NewIO->SetInfos(Index, OutputLabel);
+		return NewIO;
+	}
+	
+	static TSharedPtr<FPointIO> NewPointIO(const TSharedRef<FPointIO>& InPointIO, FName OutputLabel = NAME_None, int32 Index = -1)
+	{
+		TSharedPtr<FPointIO> NewIO = MakeShared<PCGExData::FPointIO>(InPointIO);
+		NewIO->SetInfos(Index, OutputLabel);
+		return NewIO;
+	}
 
 	/**
 	 * 
@@ -330,7 +351,7 @@ namespace PCGExData
 			FWriteScopeLock WriteLock(PairsLock);
 			TSharedPtr<FPointIO> NewIO = Pairs.Add_GetRef(MakeShared<FPointIO>(Context, In));
 			NewIO->SetInfos(Pairs.Num() - 1, DefaultOutputLabel, Tags);
-			NewIO->InitializeOutput<T>(Context, InitOut);
+			NewIO->InitializeOutput<T>(InitOut);
 			return NewIO;
 		}
 
@@ -340,7 +361,7 @@ namespace PCGExData
 			FWriteScopeLock WriteLock(PairsLock);
 			TSharedPtr<FPointIO> NewIO = Pairs.Add_GetRef(MakeShared<FPointIO>(Context));
 			NewIO->SetInfos(Pairs.Num() - 1, DefaultOutputLabel);
-			NewIO->InitializeOutput<T>(Context, InitOut);
+			NewIO->InitializeOutput<T>(InitOut);
 			return NewIO;
 		}
 
@@ -437,4 +458,5 @@ namespace PCGExData
 
 		return SingleIO;
 	}
+	
 }

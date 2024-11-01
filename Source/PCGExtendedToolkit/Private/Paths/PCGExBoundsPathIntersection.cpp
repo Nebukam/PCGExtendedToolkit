@@ -55,12 +55,12 @@ bool FPCGExBoundsPathIntersectionElement::ExecuteInternal(FPCGContext* InContext
 					{
 						if (bWritesAny)
 						{
-							Entry->InitializeOutput(Context, PCGExData::EInit::DuplicateInput);
+							Entry->InitializeOutput(PCGExData::EInit::DuplicateInput);
 							Settings->OutputSettings.Mark(Entry.ToSharedRef());
 						}
 						else
 						{
-							Entry->InitializeOutput(Context, PCGExData::EInit::Forward);
+							Entry->InitializeOutput(PCGExData::EInit::Forward);
 						}
 					}
 					else { bHasInvalidInputs = true; }
@@ -175,7 +175,7 @@ namespace PCGExPathIntersections
 		{
 			if (Settings->OutputSettings.WillWriteAny())
 			{
-				PointDataFacade->Source->InitializeOutput(Context, PCGExData::EInit::DuplicateInput);
+				PointDataFacade->Source->InitializeOutput(PCGExData::EInit::DuplicateInput);
 
 				Details.Mark(PointDataFacade->Source);
 				Details.Init(PointDataFacade, Context->BoundsDataFacade);
@@ -184,13 +184,13 @@ namespace PCGExPathIntersections
 			}
 			else
 			{
-				PointDataFacade->Source->InitializeOutput(Context, PCGExData::EInit::Forward);
+				PointDataFacade->Source->InitializeOutput(PCGExData::EInit::Forward);
 			}
 
 			return;
 		}
 
-		PointDataFacade->Source->InitializeOutput(Context, PCGExData::EInit::NewOutput);
+		PointDataFacade->Source->InitializeOutput(PCGExData::EInit::NewOutput);
 		const TArray<FPCGPoint>& OriginalPoints = PointDataFacade->GetIn()->GetPoints();
 		TArray<FPCGPoint>& MutablePoints = PointDataFacade->GetOut()->GetMutablePoints();
 

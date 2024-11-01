@@ -45,9 +45,8 @@ bool FPCGExFuseClustersElement::Boot(FPCGExContext* InContext) const
 
 	const_cast<UPCGExFuseClustersSettings*>(Settings)->EdgeEdgeIntersectionDetails.Init();
 
-	const TSharedPtr<PCGExData::FPointIO> UnionIO = MakeShared<PCGExData::FPointIO>(Context);
-	UnionIO->SetInfos(-1, PCGExGraph::OutputVerticesLabel);
-	UnionIO->InitializeOutput<UPCGExClusterNodesData>(Context, PCGExData::EInit::NewOutput);
+	const TSharedPtr<PCGExData::FPointIO> UnionIO = PCGExData::NewPointIO(Context, PCGExGraph::OutputVerticesLabel);
+	UnionIO->InitializeOutput<UPCGExClusterNodesData>(PCGExData::EInit::NewOutput);
 
 	Context->UnionDataFacade = MakeShared<PCGExData::FFacade>(UnionIO.ToSharedRef());
 

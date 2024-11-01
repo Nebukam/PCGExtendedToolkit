@@ -40,7 +40,7 @@ bool FPCGExDiscardByPointCountElement::ExecuteInternal(FPCGContext* InContext) c
 		for (const TSharedPtr<PCGExData::FPointIO>& PointIO : Context->MainPoints->Pairs)
 		{
 			if (!FMath::IsWithin(PointIO->GetNum(), Min, Max)) { continue; }
-			PointIO->InitializeOutput(Context, PCGExData::EInit::Forward);
+			PointIO->InitializeOutput(PCGExData::EInit::Forward);
 		}
 
 		Context->MainPoints->StageOutputs();

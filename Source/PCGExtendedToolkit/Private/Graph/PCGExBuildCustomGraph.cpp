@@ -256,7 +256,7 @@ bool FPCGExBuildCustomGraphElement::ExecuteInternal(FPCGContext* InContext) cons
 			else
 			{
 				// Invalidate node IO
-				GraphSettings->GraphBuilder->NodeDataFacade->Source->InitializeOutput(Context, PCGExData::EInit::NoOutput);
+				GraphSettings->GraphBuilder->NodeDataFacade->Source->InitializeOutput(PCGExData::EInit::NoOutput);
 			}
 		}
 
@@ -288,7 +288,7 @@ namespace PCGExBuildCustomGraph
 				PCGE_LOG_C(Warning, GraphAndLog, Context, FTEXT("A graph builder settings has less than 2 max nodes and won't be processed."));
 			}
 
-			PointIO->InitializeOutput(Context, PCGExData::EInit::NoOutput);
+			PointIO->InitializeOutput(PCGExData::EInit::NoOutput);
 			GraphSettings->GraphBuilder->bCompiledSuccessfully = false;
 			return false;
 		}

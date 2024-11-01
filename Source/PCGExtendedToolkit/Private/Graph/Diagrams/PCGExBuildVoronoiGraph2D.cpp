@@ -161,12 +161,12 @@ namespace PCGExBuildVoronoi2D
 			};
 
 			SiteDataFacade = MakeShared<PCGExData::FFacade>(Context->SitesOutput->Pairs[PointDataFacade->Source->IOIndex].ToSharedRef());
-			SiteDataFacade->Source->InitializeOutput(Context, PCGExData::EInit::DuplicateInput);
+			SiteDataFacade->Source->InitializeOutput(PCGExData::EInit::DuplicateInput);
 
 			if (Settings->bPruneOutOfBounds && !Settings->bPruneOpenSites) { OpenSiteWriter = SiteDataFacade->GetWritable<bool>(Settings->OpenSiteFlag, true); }
 		}
 
-		PointDataFacade->Source->InitializeOutput<UPCGExClusterNodesData>(Context, PCGExData::EInit::NewOutput);
+		PointDataFacade->Source->InitializeOutput<UPCGExClusterNodesData>(PCGExData::EInit::NewOutput);
 
 		if (Settings->Method == EPCGExCellCenter::Circumcenter && Settings->bPruneOutOfBounds)
 		{
@@ -345,7 +345,7 @@ namespace PCGExBuildVoronoi2D
 		if (!GraphBuilder->bCompiledSuccessfully)
 		{
 			bIsProcessorValid = false;
-			PointDataFacade->Source->InitializeOutput(Context, PCGExData::EInit::NoOutput);
+			PointDataFacade->Source->InitializeOutput(PCGExData::EInit::NoOutput);
 			return;
 		}
 

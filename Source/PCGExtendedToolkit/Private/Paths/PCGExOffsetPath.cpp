@@ -275,7 +275,7 @@ namespace PCGExOffsetPath
 				Pt.Transform.SetLocation(Positions.Last());
 			}
 
-			if (OutPoints.Num() < 2) { PointDataFacade->Source->InitializeOutput(Context, PCGExData::EInit::NoOutput); }
+			if (OutPoints.Num() < 2) { PointDataFacade->Source->InitializeOutput(PCGExData::EInit::NoOutput); }
 			else if (Settings->bFlagMutatedPoints)
 			{
 				TSharedPtr<PCGExData::TBuffer<bool>> MutatedFlag = PointDataFacade->GetWritable<bool>(Settings->MutatedAttributeName, false, true, false);

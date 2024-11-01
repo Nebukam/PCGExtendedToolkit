@@ -53,7 +53,7 @@ bool FPCGExSubdivideElement::ExecuteInternal(FPCGContext* InContext) const
 				if (Entry->GetNum() < 2)
 				{
 					bHasInvalidInputs = true;
-					Entry->InitializeOutput(Context, PCGExData::EInit::Forward);
+					Entry->InitializeOutput(PCGExData::EInit::Forward);
 					return false;
 				}
 				return true;
@@ -206,13 +206,13 @@ namespace PCGExSubdivide
 
 		if (NumPoints == PointIO->GetNum())
 		{
-			PointIO->InitializeOutput(Context, PCGExData::EInit::DuplicateInput);
+			PointIO->InitializeOutput(PCGExData::EInit::DuplicateInput);
 			if (Settings->bFlagSubPoints) { WriteMark(PointIO, Settings->SubPointFlagName, false); }
 			if (Settings->bWriteAlpha) { WriteMark(PointIO, Settings->AlphaAttributeName, Settings->DefaultAlpha); }
 			return;
 		}
 
-		PointIO->InitializeOutput(Context, PCGExData::EInit::NewOutput);
+		PointIO->InitializeOutput(PCGExData::EInit::NewOutput);
 		TArray<FPCGPoint>& MutablePoints = PointIO->GetOut()->GetMutablePoints();
 		const TArray<FPCGPoint>& InPoints = PointIO->GetIn()->GetPoints();
 		UPCGMetadata* Metadata = PointIO->GetOut()->Metadata;

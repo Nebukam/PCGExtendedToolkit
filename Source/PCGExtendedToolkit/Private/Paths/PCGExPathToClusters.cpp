@@ -44,9 +44,8 @@ bool FPCGExPathToClustersElement::Boot(FPCGExContext* InContext) const
 
 	if (Settings->bFusePaths)
 	{
-		const TSharedPtr<PCGExData::FPointIO> UnionVtxPoints = MakeShared<PCGExData::FPointIO>(Context);
-		UnionVtxPoints->SetInfos(-1, Settings->GetMainOutputLabel());
-		UnionVtxPoints->InitializeOutput<UPCGExClusterNodesData>(Context, PCGExData::EInit::NewOutput);
+		const TSharedPtr<PCGExData::FPointIO> UnionVtxPoints = PCGExData::NewPointIO(Context, Settings->GetMainOutputLabel());
+		UnionVtxPoints->InitializeOutput<UPCGExClusterNodesData>(PCGExData::EInit::NewOutput);
 
 		Context->UnionDataFacade = MakeShared<PCGExData::FFacade>(UnionVtxPoints.ToSharedRef());
 
@@ -197,7 +196,7 @@ namespace PCGExPathToClusters
 		const TArray<FPCGPoint>& InPoints = PointIO->GetIn()->GetPoints();
 		const int32 NumPoints = InPoints.Num();
 
-		PointIO->InitializeOutput<UPCGExClusterNodesData>(Context, PCGExData::EInit::NewOutput);
+		PointIO->InitializeOutput<UPCGExClusterNodesData>(PCGExData::EInit::NewOutput);
 
 		TArray<PCGExGraph::FIndexedEdge> Edges;
 		PCGEx::InitArray(Edges, bClosedLoop ? NumPoints : NumPoints - 1);
@@ -226,7 +225,7 @@ namespace PCGExPathToClusters
 		if (!GraphBuilder->bCompiledSuccessfully)
 		{
 			bIsProcessorValid = false;
-			PointDataFacade->Source->InitializeOutput(Context, PCGExData::EInit::NoOutput);
+			PointDataFacade->Source->InitializeOutput(PCGExData::EInit::NoOutput);
 			return;
 		}
 
