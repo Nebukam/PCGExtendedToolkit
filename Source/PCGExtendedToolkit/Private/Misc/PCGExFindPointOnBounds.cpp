@@ -27,14 +27,13 @@ bool FPCGExFindPointOnBoundsElement::Boot(FPCGExContext* InContext) const
 
 		Context->BestIndices.Init(-1, Context->MainPoints->Num());
 
-		Context->MergedOut = MakeShared<PCGExData::FPointIO>(Context);
-		Context->MergedOut->SetInfos(0, Settings->GetMainOutputLabel());
+		Context->MergedOut = PCGExData::NewPointIO(Context, Settings->GetMainOutputLabel(), 0);
 		Context->MergedAttributesInfos = PCGEx::FAttributesInfos::Get(Context->MainPoints, AttributeMismatches);
 
 		Context->CarryOverDetails.Attributes.Prune(*Context->MergedAttributesInfos);
 		Context->CarryOverDetails.Attributes.Prune(AttributeMismatches);
 
-		Context->MergedOut->InitializeOutput(InContext, PCGExData::EInit::NewOutput);
+		Context->MergedOut->InitializeOutput(PCGExData::EInit::NewOutput);
 		Context->MergedOut->GetOut()->GetMutablePoints().SetNum(Context->MainPoints->Num());
 		Context->MergedOut->GetOutKeys(true);
 
@@ -130,7 +129,7 @@ namespace PCGExFindPointOnBounds
 		}
 		else
 		{
-			PointDataFacade->Source->InitializeOutput(Context, PCGExData::EInit::NewOutput);
+			PointDataFacade->Source->InitializeOutput(PCGExData::EInit::NewOutput);
 			PointDataFacade->Source->GetOut()->GetMutablePoints().SetNum(1);
 
 			FPCGPoint& OutPoint = (PointDataFacade->Source->GetOut()->GetMutablePoints()[0] = PointDataFacade->Source->GetInPoint(BestIndex));

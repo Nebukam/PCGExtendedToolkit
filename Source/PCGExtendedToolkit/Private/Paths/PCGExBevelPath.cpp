@@ -87,7 +87,7 @@ bool FPCGExBevelPathElement::ExecuteInternal(FPCGContext* InContext) const
 			{
 				if (Entry->GetNum() < 3)
 				{
-					Entry->InitializeOutput(Context, PCGExData::EInit::DuplicateInput);
+					Entry->InitializeOutput(PCGExData::EInit::DuplicateInput);
 					Settings->InitOutputFlags(Entry);
 					bHasInvalidInputs = true;
 					return false;
@@ -460,12 +460,12 @@ namespace PCGExBevelPath
 
 		if (NumBevels == 0)
 		{
-			PointIO->InitializeOutput(Context, PCGExData::EInit::DuplicateInput);
+			PointIO->InitializeOutput(PCGExData::EInit::DuplicateInput);
 			Settings->InitOutputFlags(PointIO);
 			return;
 		}
 
-		PointIO->InitializeOutput(Context, PCGExData::EInit::NewOutput);
+		PointIO->InitializeOutput(PCGExData::EInit::NewOutput);
 		Settings->InitOutputFlags(PointIO);
 
 		// Build output points

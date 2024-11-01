@@ -146,9 +146,8 @@ namespace PCGExUberFilter
 
 	TSharedPtr<PCGExData::FPointIO> FProcessor::CreateIO(const TSharedRef<PCGExData::FPointIOCollection>& InCollection, const PCGExData::EInit InitMode) const
 	{
-		TSharedPtr<PCGExData::FPointIO> NewPointIO = MakeShared<PCGExData::FPointIO>(ExecutionContext, PointDataFacade->Source);
-		NewPointIO->DefaultOutputLabel = InCollection->DefaultOutputLabel;
-		NewPointIO->InitializeOutput(Context, InitMode);
+		TSharedPtr<PCGExData::FPointIO> NewPointIO = PCGExData::NewPointIO(PointDataFacade->Source, InCollection->DefaultOutputLabel);
+		NewPointIO->InitializeOutput(InitMode);
 		InCollection->Pairs[BatchIndex] = NewPointIO;
 		return NewPointIO;
 	}

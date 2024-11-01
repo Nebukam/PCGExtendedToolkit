@@ -65,10 +65,6 @@ public:
 	PCGEX_NODE_POINT_FILTER(PCGExSplitPath::SourceSplitFilters, "Filters used to know if a point should be split", PCGExFactories::PointFilters, true)
 	//~End UPCGExPointsProcessorSettings
 
-	/** When processing closed loop paths, paths that aren't looping anymore will be tagged. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditConditionHides))
-	FPCGExPathClosedLoopUpdateDetails UpdateTags;
-
 	/** If both split and remove are true, the selected behavior takes priority */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	EPCGExPathSplitAction SplitAction = EPCGExPathSplitAction::Split;
@@ -78,7 +74,7 @@ public:
 	EPCGExPathSplitInitialValue InitialBehavior = EPCGExPathSplitInitialValue::Constant;
 
 	/** The initial switch value to start from. If false, will only starting to create paths after the first true result. If false, will start to create paths from the beginning and stop at the first true result instead.*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="InitialBehavior == EPCGExPathSplitSwitchInitialBehavior::Constant && (SplitAction==EPCGExPathSplitAction::Switch || SplitAction==EPCGExPathSplitAction::Partition)", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="InitialBehavior == EPCGExPathSplitInitialValue::Constant && (SplitAction==EPCGExPathSplitAction::Switch || SplitAction==EPCGExPathSplitAction::Partition)", EditConditionHides))
 	bool bInitialValue = false;
 
 	/** Should point insertion be inclusive of the behavior change */
@@ -88,6 +84,26 @@ public:
 	/** Whether to output single-point data or not */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	bool bOmitSinglePointOutputs = true;
+
+	/** When processing closed loop paths, paths that aren't looping anymore will be tagged. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging", meta = (PCG_Overridable))
+	FPCGExPathClosedLoopUpdateDetails UpdateTags;
+	
+	/** */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging", meta=(PCG_Overridable, InlineEditConditionToggle))
+	bool bTagIfEvenSplit = true;
+
+	/** ... */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging", meta=(PCG_Overridable, EditCondition="bTagIfEvenSplit"))
+	FString IsEvenTag = TEXT("EvenSplit");
+
+	/** */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging", meta=(PCG_Overridable, InlineEditConditionToggle))
+	bool bTagIfOddSplit = false;
+
+	/** ... */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging", meta=(PCG_Overridable, EditCondition="bTagIfOddSplit"))
+	FString IsOddTag = TEXT("OddSplit");
 };
 
 struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExSplitPathContext final : FPCGExPathProcessorContext

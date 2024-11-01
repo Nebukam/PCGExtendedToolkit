@@ -53,7 +53,7 @@ bool FPCGExSplitPathElement::ExecuteInternal(FPCGContext* InContext) const
 			{
 				if (Entry->GetNum() < 2)
 				{
-					if (!Settings->bOmitSinglePointOutputs) { Entry->InitializeOutput(Context, PCGExData::EInit::Forward); }
+					if (!Settings->bOmitSinglePointOutputs) { Entry->InitializeOutput(PCGExData::EInit::Forward); }
 					else { bHasInvalidInputs = true; }
 					return false;
 				}
@@ -165,8 +165,8 @@ namespace PCGExSplitPath
 
 		if (NumPathPoints == 1 && Settings->bOmitSinglePointOutputs) { return; }
 
-		const TSharedPtr<PCGExData::FPointIO> PathIO = MakeShared<PCGExData::FPointIO>(ExecutionContext, PointDataFacade->Source);
-		PathIO->InitializeOutput(Context, PCGExData::EInit::NewOutput);
+		const TSharedPtr<PCGExData::FPointIO> PathIO = PCGExData::NewPointIO(PointDataFacade->Source);
+		PathIO->InitializeOutput(PCGExData::EInit::NewOutput);
 		PathsIOs[Iteration] = PathIO;
 
 		const TArray<FPCGPoint>& OriginalPoints = PointDataFacade->GetIn()->GetPoints();
@@ -202,11 +202,16 @@ namespace PCGExSplitPath
 
 	void FProcessor::Output()
 	{
+		int32 OddEven = 0;
 		for (const TSharedPtr<PCGExData::FPointIO>& PathIO : PathsIOs)
 		{
 			if (!PathIO) { continue; }
 			if (bAddOpenTag) { Context->UpdateTags.Update(PathIO); }
+
+			if((OddEven & 1) == 0){ if(Settings->bTagIfEvenSplit){PathIO->Tags->Add(Settings->IsEvenTag);} }
+			else if(Settings->bTagIfOddSplit){PathIO->Tags->Add(Settings->IsOddTag);}
 			Context->MainPaths->AddUnsafe(PathIO);
+			OddEven++;
 		}
 
 		PathsIOs.Empty(); // So they don't get deleted

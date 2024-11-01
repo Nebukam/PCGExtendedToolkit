@@ -226,13 +226,13 @@ namespace PCGExPickClosestClusters
 
 		if (!Settings->TargetForwarding.bEnabled)
 		{
-			EdgeDataFacade->Source->InitializeOutput(Context, PCGExData::EInit::Forward);
-			if (!VtxDataFacade->Source->GetOut()) { VtxDataFacade->Source->InitializeOutput(Context, PCGExData::EInit::Forward); }
+			EdgeDataFacade->Source->InitializeOutput(PCGExData::EInit::Forward);
+			if (!VtxDataFacade->Source->GetOut()) { VtxDataFacade->Source->InitializeOutput(PCGExData::EInit::Forward); }
 		}
 		else
 		{
-			EdgeDataFacade->Source->InitializeOutput(Context, PCGExData::EInit::DuplicateInput);
-			if (!VtxDataFacade->Source->GetOut()) { VtxDataFacade->Source->InitializeOutput(Context, PCGExData::EInit::DuplicateInput); }
+			EdgeDataFacade->Source->InitializeOutput(PCGExData::EInit::DuplicateInput);
+			if (!VtxDataFacade->Source->GetOut()) { VtxDataFacade->Source->InitializeOutput(PCGExData::EInit::DuplicateInput); }
 
 			Context->TargetForwardHandler->Forward(Picker, EdgeDataFacade);
 			Context->TargetForwardHandler->Forward(Picker, VtxDataFacade);
