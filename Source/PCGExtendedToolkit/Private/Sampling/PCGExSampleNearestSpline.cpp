@@ -3,8 +3,6 @@
 
 #include "Sampling/PCGExSampleNearestSpline.h"
 
-#include "CoreMinimal.h"
-
 #define LOCTEXT_NAMESPACE "PCGExSampleNearestSplineElement"
 #define PCGEX_NAMESPACE SampleNearestPolyLine
 

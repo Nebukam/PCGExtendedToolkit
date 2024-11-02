@@ -631,6 +631,7 @@ namespace PCGExGeoTasks
 			{
 				for (FPCGPoint& InPoint : MutableTargets)
 				{
+					
 					InPoint.Transform *= TargetPoint.Transform;
 
 					if (TransformDetails->bInheritRotation)

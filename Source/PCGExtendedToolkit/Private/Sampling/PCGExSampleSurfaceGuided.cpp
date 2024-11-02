@@ -3,8 +3,6 @@
 
 #include "Sampling/PCGExSampleSurfaceGuided.h"
 
-#include "CoreMinimal.h"
-
 #define LOCTEXT_NAMESPACE "PCGExSampleSurfaceGuidedElement"
 #define PCGEX_NAMESPACE SampleSurfaceGuided
 
