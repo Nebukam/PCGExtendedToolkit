@@ -8,7 +8,7 @@ name_in_editor: "Cluster : Build Custom Graph"
 subtitle: Build clusters using custom blueprints!
 summary: The **Build Custom Graph** node allows users to create clusters and their edges using custom blueprints, offering flexibility to generate and manage graphs through blueprint base classes that can be extended.
 color: white
-splash: icons/icon_edges-bridge.svg
+splash: icons/icon_blueprint.svg
 tagged: 
     - node
     - clusters

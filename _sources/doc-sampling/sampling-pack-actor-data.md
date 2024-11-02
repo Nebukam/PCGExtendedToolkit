@@ -8,7 +8,7 @@ name_in_editor: "Pack Actor Data"
 subtitle: Conveniently process actors and output data using custom blueprints
 color: white
 summary: The **Pack Actor Data** node is a quick and dirty way to fetch custom data from actor references and write then to points.
-splash: icons/icon_sampling-point.svg
+splash: icons/icon_blueprint.svg
 tagged: 
     - node
     - sampling

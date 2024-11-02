@@ -3,7 +3,7 @@ layout: page
 grand_parent: Clusters
 parent: Refine
 title: 🝔 Gabriel
-subtitle: Appliels Gabrield Graph transformation
+subtitle: Applies Gabrield Graph transformation
 #summary: The **Remove Overlap** refinement ...
 color: blue
 splash: icons/icon_edges-refine.svg
