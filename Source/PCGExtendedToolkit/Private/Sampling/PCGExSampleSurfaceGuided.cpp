@@ -3,6 +3,8 @@
 
 #include "Sampling/PCGExSampleSurfaceGuided.h"
 
+/*BUILD_TOOL_BUG_55_TOGGLE*/#include "CoreMinimal.h"
+
 #define LOCTEXT_NAMESPACE "PCGExSampleSurfaceGuidedElement"
 #define PCGEX_NAMESPACE SampleSurfaceGuided
 

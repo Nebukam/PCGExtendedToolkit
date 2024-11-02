@@ -3,6 +3,8 @@
 
 #include "Sampling/PCGExSampleOverlapStats.h"
 
+/*BUILD_TOOL_BUG_55_TOGGLE*/#include "CoreMinimal.h"
+
 #define LOCTEXT_NAMESPACE "PCGExSampleOverlapStatsElement"
 #define PCGEX_NAMESPACE SampleOverlapStats
 
