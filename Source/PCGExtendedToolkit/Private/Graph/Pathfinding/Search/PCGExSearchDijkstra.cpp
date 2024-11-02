@@ -16,7 +16,7 @@ void UPCGExSearchDijkstra::CopySettingsFrom(const UPCGExOperation* Other)
 
 bool UPCGExSearchDijkstra::ResolveQuery(
 	const TSharedPtr<PCGExPathfinding::FPathQuery>& InQuery,
-	const TSharedPtr<PCGExHeuristics::THeuristicsHandler>& Heuristics,
+	const TSharedPtr<PCGExHeuristics::FHeuristicsHandler>& Heuristics,
 	const TSharedPtr<PCGExHeuristics::FLocalFeedbackHandler>& LocalFeedback) const
 {
 	const TArray<PCGExCluster::FNode>& NodesRef = *Cluster->Nodes;
@@ -39,8 +39,6 @@ bool UPCGExSearchDijkstra::ResolveQuery(
 
 	const TUniquePtr<PCGExSearch::TScoredQueue> ScoredQueue = MakeUnique<PCGExSearch::TScoredQueue>(
 		NumNodes, SeedNode.NodeIndex, 0);
-
-	ScoredQueue->Scores[SeedNode.NodeIndex] = 0;
 
 	const PCGExHeuristics::FLocalFeedbackHandler* Feedback = LocalFeedback.Get();
 
@@ -87,6 +85,8 @@ bool UPCGExSearchDijkstra::ResolveQuery(
 		bSuccess = true;
 		InQuery->Reserve(VisitedNum);
 
+		InQuery->AddPathNode(GoalNode.NodeIndex);
+		
 		while (PathNodeIndex != -1)
 		{
 			const int32 CurrentIndex = PathNodeIndex;

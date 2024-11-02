@@ -59,6 +59,7 @@ namespace PCGExPathfinding
 	void FPathQuery::SetResolution(const EPathfindingResolution InResolution)
 	{
 		Resolution = InResolution;
+		
 		if (Resolution == EPathfindingResolution::Success)
 		{
 			Algo::Reverse(PathNodes);
@@ -68,7 +69,7 @@ namespace PCGExPathfinding
 
 	void FPathQuery::FindPath(
 		const UPCGExSearchOperation* SearchOperation,
-		const TSharedPtr<PCGExHeuristics::THeuristicsHandler>& HeuristicsHandler,
+		const TSharedPtr<PCGExHeuristics::FHeuristicsHandler>& HeuristicsHandler,
 		const TSharedPtr<PCGExHeuristics::FLocalFeedbackHandler>& LocalFeedback)
 	{
 		if (PickResolution != EQueryPickResolution::Success)
@@ -93,7 +94,9 @@ namespace PCGExPathfinding
 
 		// Feedback scores
 
-		if (LocalFeedback)
+		if (!HeuristicsHandler->HasAnyFeedback()) { return; }
+
+		if (HeuristicsHandler->HasGlobalFeedback() && LocalFeedback)
 		{
 			for (int i = 0; i < PathEdges.Num(); i++)
 			{
@@ -104,6 +107,11 @@ namespace PCGExPathfinding
 			}
 
 			HeuristicsHandler->FeedbackPointScore(NodesRef[PathNodes.Last()]);
+			LocalFeedback->FeedbackPointScore(NodesRef[PathNodes.Last()]);
+		}
+		else if (LocalFeedback)
+		{
+			for (int i = 0; i < PathEdges.Num(); i++) { LocalFeedback->FeedbackScore(NodesRef[PathNodes[i]], EdgesRef[PathEdges[i]]); }
 			LocalFeedback->FeedbackPointScore(NodesRef[PathNodes.Last()]);
 		}
 		else
@@ -159,14 +167,15 @@ namespace PCGExPathfinding
 		if (bIsClosedLoop)
 		{
 			TSharedPtr<FPathQuery> WrapQuery = MakeShared<FPathQuery>(Cluster, SubQueries.Last(), SubQueries[0]);
-			SubQueries.Add(PrevQuery);
+			WrapQuery->ResolvePicks(SeedSelectionDetails, GoalSelectionDetails);
+			SubQueries.Add(WrapQuery);
 		}
 	}
 
 	void FPlotQuery::FindPaths(
 		const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager,
 		const UPCGExSearchOperation* SearchOperation,
-		const TSharedPtr<PCGExHeuristics::THeuristicsHandler>& HeuristicsHandler)
+		const TSharedPtr<PCGExHeuristics::FHeuristicsHandler>& HeuristicsHandler)
 	{
 		PCGEX_ASYNC_GROUP_CHKD_VOID(AsyncManager, PlotTasks)
 
@@ -191,7 +200,7 @@ namespace PCGExPathfinding
 				This->SubQueries[StartIndex]->FindPath(SearchOperation, HeuristicsHandler, This->LocalFeedbackHandler);
 			};
 
-		PlotTasks->StartRangePrepareOnly(SubQueries.Num(), 1, HeuristicsHandler->HasGlobalFeedback());
+		PlotTasks->StartRangePrepareOnly(SubQueries.Num(), 1, HeuristicsHandler->HasAnyFeedback());
 	}
 
 	void FPlotQuery::Cleanup()

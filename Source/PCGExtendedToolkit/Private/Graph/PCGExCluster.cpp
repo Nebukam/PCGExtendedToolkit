@@ -139,7 +139,6 @@ namespace PCGExCluster
 
 	void FCluster::WillModifyVtxPositions(const bool bClearOwned)
 	{
-		EdgeLengths.Reset();
 		NodeOctree.Reset();
 		EdgeOctree.Reset();
 		ExpandedNodes.Reset();
@@ -592,14 +591,13 @@ namespace PCGExCluster
 		for (int i = 0; i < NumEdges; i++)
 		{
 			const PCGExGraph::FIndexedEdge& Edge = EdgesRef[i];
-			const double Dist = GetDistSquared(Edge);
+			const double Dist = GetDist(Edge);
 			LengthsRef[i] = Dist;
 			Min = FMath::Min(Dist, Min);
 			Max = FMath::Max(Dist, Max);
 		}
 
-		//Normalized to 0 instead of min
-		if (bNormalize) { for (int i = 0; i < NumEdges; i++) { LengthsRef[i] = PCGExMath::Remap(LengthsRef[i], 0, Max, 0, 1); } }
+		if (bNormalize) { for (int i = 0; i < NumEdges; i++) { LengthsRef[i] /= Max; } }
 
 		bEdgeLengthsDirty = false;
 	}

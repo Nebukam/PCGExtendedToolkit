@@ -29,7 +29,7 @@ public:
 	virtual bool RequiresIndividualEdgeProcessing() override { return true; }
 	virtual bool RequiresEdgeOctree() override { return true; }
 
-	virtual void PrepareForCluster(const TSharedPtr<PCGExCluster::FCluster>& InCluster, const TSharedPtr<PCGExHeuristics::THeuristicsHandler>& InHeuristics) override
+	virtual void PrepareForCluster(const TSharedPtr<PCGExCluster::FCluster>& InCluster, const TSharedPtr<PCGExHeuristics::FHeuristicsHandler>& InHeuristics) override
 	{
 		Super::PrepareForCluster(InCluster, InHeuristics);
 		MinDot = bUseMinAngle ? PCGExMath::DegreesToDot(MinAngle) : 1;

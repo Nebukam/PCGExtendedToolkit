@@ -307,14 +307,11 @@ namespace PCGExMT
 		}
 
 		template <typename T>
-		void InternalStartInlineRange(const int32 Index, const int32 MaxItems, const int32 ChunkSize)
+		void InternalStartInlineRange(const int32 Index, const TArray<uint64>& Loops)
 		{
-			check(MaxItems > 0);
-
 			FAsyncTask<T>* NextRange = new FAsyncTask<T>(nullptr);
 			NextRange->GetTask().GroupPtr = SharedThis(this);
-			NextRange->GetTask().MaxItems = MaxItems;
-			NextRange->GetTask().ChunkSize = FMath::Max(1, ChunkSize);
+			NextRange->GetTask().Loops = Loops;
 
 			if (Manager->ForceSync) { Manager->StartSynchronousTask<T>(NextRange, Index); }
 			else { Manager->StartBackgroundTask<T>(NextRange, Index); }
@@ -423,8 +420,7 @@ namespace PCGExMT
 		{
 		}
 
-		int32 MaxItems = 0;
-		int32 ChunkSize = 0;
+		TArray<uint64> Loops;
 		virtual bool ExecuteTask(const TSharedPtr<FTaskManager>& AsyncManager) override;
 	};
 
@@ -436,8 +432,7 @@ namespace PCGExMT
 		{
 		}
 
-		int32 MaxItems = 0;
-		int32 ChunkSize = 0;
+		TArray<uint64> Loops;
 		virtual bool ExecuteTask(const TSharedPtr<FTaskManager>& AsyncManager) override;
 	};
 

@@ -38,7 +38,7 @@ public:
 	{
 	}
 
-	virtual void PrepareForCluster(const TSharedPtr<PCGExCluster::FCluster>& InCluster, const TSharedPtr<PCGExHeuristics::THeuristicsHandler>& InHeuristics = nullptr)
+	virtual void PrepareForCluster(const TSharedPtr<PCGExCluster::FCluster>& InCluster, const TSharedPtr<PCGExHeuristics::FHeuristicsHandler>& InHeuristics = nullptr)
 	{
 		Cluster = InCluster;
 		Heuristics = InHeuristics;
@@ -68,7 +68,7 @@ public:
 
 protected:
 	TSharedPtr<PCGExCluster::FCluster> Cluster;
-	TSharedPtr<PCGExHeuristics::THeuristicsHandler> Heuristics;
+	TSharedPtr<PCGExHeuristics::FHeuristicsHandler> Heuristics;
 	mutable FRWLock EdgeLock;
 	mutable FRWLock NodeLock;
 };

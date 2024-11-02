@@ -44,6 +44,7 @@ class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExHeuristicFeedback : public UPCGExHeuristi
 {
 	GENERATED_BODY()
 
+	mutable FRWLock FeedbackLock;
 	TMap<int32, double> NodeExtraWeight;
 	TMap<int32, double> EdgeExtraWeight;
 
@@ -61,7 +62,8 @@ public:
 		const PCGExCluster::FNode& Seed,
 		const PCGExCluster::FNode& Goal) const override
 	{
-		return NodeExtraWeight[From.NodeIndex];
+		const double* N = NodeExtraWeight.Find(From.NodeIndex);
+		return N ? SampleCurve(*N / MaxNodeWeight) * ReferenceWeight : SampleCurve(0) * ReferenceWeight;
 	}
 
 	FORCEINLINE virtual double GetEdgeScore(
@@ -72,24 +74,27 @@ public:
 		const PCGExCluster::FNode& Goal,
 		const TArray<uint64>* TravelStack) const override
 	{
-		const double* NodePtr = NodeExtraWeight.Find(To.NodeIndex);
-		const double* EdgePtr = EdgeExtraWeight.Find(Edge.EdgeIndex);
+		const double* N = NodeExtraWeight.Find(To.NodeIndex);
+		const double* E = EdgeExtraWeight.Find(Edge.EdgeIndex);
 
-		return ((NodePtr ? SampleCurve(*NodePtr / MaxNodeWeight) * ReferenceWeight : 0) + (EdgePtr ? SampleCurve(*EdgePtr / MaxEdgeWeight) * ReferenceWeight : 0));
+		const double NW = N ? SampleCurve(*N / MaxNodeWeight) * ReferenceWeight : SampleCurve(0) * ReferenceWeight;
+		const double EW = E ? SampleCurve(*E / MaxEdgeWeight) * ReferenceWeight : SampleCurve(0) * ReferenceWeight;
+
+		return (NW + EW) * 2;
 	}
 
 	FORCEINLINE void FeedbackPointScore(const PCGExCluster::FNode& Node)
 	{
-		double& NodeWeight = NodeExtraWeight.FindOrAdd(Node.PointIndex);
+		double& NodeWeight = NodeExtraWeight.FindOrAdd(Node.NodeIndex);
 		MaxNodeWeight = FMath::Max(MaxNodeWeight, NodeWeight += ReferenceWeight * NodeScale);
 	}
 
 	FORCEINLINE void FeedbackScore(const PCGExCluster::FNode& Node, const PCGExGraph::FIndexedEdge& Edge)
 	{
-		double& NodeWeight = NodeExtraWeight.FindOrAdd(Node.PointIndex);
-		double& EdgeWeight = NodeExtraWeight.FindOrAdd(Edge.EdgeIndex);
-		MaxNodeWeight = FMath::Max(MaxNodeWeight, NodeWeight += ReferenceWeight * NodeScale);
-		MaxEdgeWeight = FMath::Max(MaxEdgeWeight, EdgeWeight += ReferenceWeight * EdgeScale);
+		double& N = NodeExtraWeight.FindOrAdd(Node.NodeIndex);
+		double& E = EdgeExtraWeight.FindOrAdd(Edge.EdgeIndex);
+		MaxNodeWeight = FMath::Max(MaxNodeWeight, (N += ReferenceWeight * NodeScale));
+		MaxEdgeWeight = FMath::Max(MaxEdgeWeight, (E += ReferenceWeight * EdgeScale));
 	}
 
 	virtual void Cleanup() override;

@@ -10,7 +10,7 @@
 
 bool UPCGExSearchAStar::ResolveQuery(
 	const TSharedPtr<PCGExPathfinding::FPathQuery>& InQuery,
-	const TSharedPtr<PCGExHeuristics::THeuristicsHandler>& Heuristics,
+	const TSharedPtr<PCGExHeuristics::FHeuristicsHandler>& Heuristics,
 	const TSharedPtr<PCGExHeuristics::FLocalFeedbackHandler>& LocalFeedback) const
 {
 	check(InQuery->PickResolution == PCGExPathfinding::EQueryPickResolution::Success)
@@ -103,6 +103,8 @@ bool UPCGExSearchAStar::ResolveQuery(
 		bSuccess = true;
 		InQuery->Reserve(VisitedNum);
 
+		InQuery->AddPathNode(GoalNode.NodeIndex);
+		
 		while (PathNodeIndex != -1)
 		{
 			const int32 CurrentIndex = PathNodeIndex;
@@ -110,6 +112,7 @@ bool UPCGExSearchAStar::ResolveQuery(
 
 			InQuery->AddPathNode(CurrentIndex, PathEdgeIndex);
 		}
+
 	}
 
 	TravelStack.Empty();

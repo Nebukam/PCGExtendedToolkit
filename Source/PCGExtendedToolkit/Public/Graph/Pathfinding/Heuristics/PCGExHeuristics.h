@@ -21,15 +21,16 @@ enum class EPCGExHeuristicScoreMode : uint8
 
 namespace PCGExHeuristics
 {
-	struct /*PCGEXTENDEDTOOLKIT_API*/ FLocalFeedbackHandler
+	class /*PCGEXTENDEDTOOLKIT_API*/ FLocalFeedbackHandler : public TSharedFromThis<FLocalFeedbackHandler>
 	{
+	public:
 		FPCGExContext* ExecutionContext = nullptr;
 
 		TSharedPtr<PCGExData::FFacade> VtxDataFacade;
 		TSharedPtr<PCGExData::FFacade> EdgeDataFacade;
 
 		TArray<UPCGExHeuristicFeedback*> Feedbacks;
-		double TotalWeight = 0;
+		double TotalStaticWeight = 0;
 
 		explicit FLocalFeedbackHandler(FPCGExContext* InContext):
 			ExecutionContext(InContext)
@@ -75,11 +76,13 @@ namespace PCGExHeuristics
 		}
 	};
 
-	class /*PCGEXTENDEDTOOLKIT_API*/ THeuristicsHandler
+	class /*PCGEXTENDEDTOOLKIT_API*/ FHeuristicsHandler : public TSharedFromThis<FHeuristicsHandler>
 	{
 		FPCGExContext* ExecutionContext = nullptr;
+		bool bIsValidHandler = false;
 
 	public:
+		mutable FRWLock HandlerLock;
 		TSharedPtr<PCGExData::FFacade> VtxDataFacade;
 		TSharedPtr<PCGExData::FFacade> EdgeDataFacade;
 
@@ -93,15 +96,18 @@ namespace PCGExHeuristics
 		double TotalStaticWeight = 0;
 		bool bUseDynamicWeight = false;
 
+		bool IsValidHandler() const { return bIsValidHandler; }
 		bool HasGlobalFeedback() const { return !Feedbacks.IsEmpty(); };
+		bool HasLocalFeedback() const { return !LocalFeedbackFactories.IsEmpty(); };
+		bool HasAnyFeedback() const { return HasGlobalFeedback() || HasLocalFeedback(); };
 
-		explicit THeuristicsHandler(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade>& InVtxDataFacade, const TSharedPtr<PCGExData::FFacade>& InEdgeDataFacade);
-		explicit THeuristicsHandler(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade>& InVtxDataCache, const TSharedPtr<PCGExData::FFacade>& InEdgeDataCache, const TArray<TObjectPtr<const UPCGExHeuristicsFactoryBase>>& InFactories);
-		~THeuristicsHandler();
+		FHeuristicsHandler(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade>& InVtxDataCache, const TSharedPtr<PCGExData::FFacade>& InEdgeDataCache, const TArray<TObjectPtr<const UPCGExHeuristicsFactoryBase>>& InFactories);
+		~FHeuristicsHandler();
 
-		void BuildFrom(FPCGExContext* InContext, const TArray<TObjectPtr<const UPCGExHeuristicsFactoryBase>>& InFactories);
+		bool BuildFrom(FPCGExContext* InContext, const TArray<TObjectPtr<const UPCGExHeuristicsFactoryBase>>& InFactories);
 		void PrepareForCluster(const TSharedPtr<PCGExCluster::FCluster>& InCluster);
 		void CompleteClusterPreparation();
+
 
 		FORCEINLINE double GetGlobalScore(
 			const PCGExCluster::FNode& From,
@@ -111,9 +117,15 @@ namespace PCGExHeuristics
 		{
 			//TODO : Account for custom weight here
 			double GScore = 0;
+			double EWeight = TotalStaticWeight;
+			
 			for (const UPCGExHeuristicOperation* Op : Operations) { GScore += Op->GetGlobalScore(From, Seed, Goal); }
-			if (LocalFeedback) { return (GScore + LocalFeedback->GetGlobalScore(From, Seed, Goal)) / (TotalStaticWeight + LocalFeedback->TotalWeight); }
-			return GScore / TotalStaticWeight;
+			if (LocalFeedback)
+			{
+				GScore += LocalFeedback->GetGlobalScore(From, Seed, Goal);
+				EWeight += LocalFeedback->TotalStaticWeight;
+			}
+			return GScore / EWeight;
 		}
 
 		FORCEINLINE double GetEdgeScore(
@@ -126,21 +138,36 @@ namespace PCGExHeuristics
 			const TArray<uint64>* TravelStack = nullptr) const
 		{
 			double EScore = 0;
+			double EWeight = TotalStaticWeight;
+			
 			if (!bUseDynamicWeight)
 			{
 				for (const UPCGExHeuristicOperation* Op : Operations) { EScore += Op->GetEdgeScore(From, To, Edge, Seed, Goal, TravelStack); }
-				if (LocalFeedback) { return (EScore + LocalFeedback->GetEdgeScore(From, To, Edge, Seed, Goal, TravelStack)) / (TotalStaticWeight + LocalFeedback->TotalWeight); }
-				return EScore / TotalStaticWeight;
+
+				if (LocalFeedback)
+				{
+					EScore += LocalFeedback->GetEdgeScore(From, To, Edge, Seed, Goal, TravelStack);
+					EWeight += LocalFeedback->TotalStaticWeight;
+				}
+
+				return EScore / EWeight;
 			}
 
-			double DynamicWeight = 0;
+			EWeight = 0;
+
 			for (const UPCGExHeuristicOperation* Op : Operations)
 			{
 				EScore += Op->GetEdgeScore(From, To, Edge, Seed, Goal, TravelStack);
-				DynamicWeight += (Op->WeightFactor * Op->GetCustomWeightMultiplier(To.NodeIndex, Edge.PointIndex));
+				EWeight += (Op->WeightFactor * Op->GetCustomWeightMultiplier(To.NodeIndex, Edge.PointIndex));
 			}
-			if (LocalFeedback) { return (EScore + LocalFeedback->GetEdgeScore(From, To, Edge, Seed, Goal, TravelStack)) / (DynamicWeight + LocalFeedback->TotalWeight); }
-			return EScore / DynamicWeight;
+
+			if (LocalFeedback)
+			{
+				EScore += LocalFeedback->GetEdgeScore(From, To, Edge, Seed, Goal, TravelStack);
+				EWeight += LocalFeedback->TotalStaticWeight;
+			}
+
+			return EScore / EWeight;
 		}
 
 		FORCEINLINE void FeedbackPointScore(const PCGExCluster::FNode& Node)

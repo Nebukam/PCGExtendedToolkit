@@ -4,7 +4,7 @@
 
 #include "PCGExMT.h"
 
-/*BUILD_TOOL_BUG_55_TOGGLE*/#include "CoreMinimal.h"
+///*BUILD_TOOL_BUG_55_TOGGLE*/#include "CoreMinimal.h"
 
 namespace PCGExMT
 {
@@ -135,7 +135,7 @@ namespace PCGExMT
 			TArray<uint64> Loops;
 			GrowNumStarted(SubRanges(Loops, MaxItems, SanitizedChunkSize));
 			if (OnIterationRangePrepareCallback) { OnIterationRangePrepareCallback(Loops); }
-			InternalStartInlineRange<FGroupRangeInlineIterationTask>(0, MaxItems, SanitizedChunkSize);
+			InternalStartInlineRange<FGroupRangeInlineIterationTask>(0, Loops);
 		}
 		else
 		{
@@ -156,7 +156,7 @@ namespace PCGExMT
 			TArray<uint64> Loops;
 			GrowNumStarted(SubRanges(Loops, MaxItems, SanitizedChunkSize));
 			if (OnIterationRangePrepareCallback) { OnIterationRangePrepareCallback(Loops); }
-			InternalStartInlineRange<FGroupPrepareRangeInlineTask>(0, MaxItems, SanitizedChunkSize);
+			InternalStartInlineRange<FGroupPrepareRangeInlineTask>(0, Loops);
 		}
 		else { StartRanges<FGroupPrepareRangeTask>(MaxItems, SanitizedChunkSize, nullptr); }
 	}
@@ -261,11 +261,10 @@ namespace PCGExMT
 
 	bool FGroupPrepareRangeInlineTask::ExecuteTask(const TSharedPtr<FTaskManager>& AsyncManager)
 	{
+		ON_SCOPE_EXIT { Loops.Empty(); };
+		
 		if (const TSharedPtr<FTaskGroup> Group = GroupPtr.Pin())
 		{
-			TArray<uint64> Loops;
-			SubRanges(Loops, MaxItems, ChunkSize);
-
 			uint32 StartIndex;
 			uint32 Count;
 			PCGEx::H64(Loops[TaskIndex], StartIndex, Count);
@@ -274,18 +273,17 @@ namespace PCGExMT
 
 			if (!Loops.IsValidIndex(TaskIndex + 1)) { return false; }
 
-			Group->InternalStartInlineRange<FGroupPrepareRangeInlineTask>(TaskIndex + 1, MaxItems, ChunkSize);
+			Group->InternalStartInlineRange<FGroupPrepareRangeInlineTask>(TaskIndex + 1, Loops);
 		}
 		return true;
 	}
 
 	bool FGroupRangeInlineIterationTask::ExecuteTask(const TSharedPtr<FTaskManager>& AsyncManager)
 	{
+		ON_SCOPE_EXIT { Loops.Empty(); };
+		
 		if (const TSharedPtr<FTaskGroup> Group = GroupPtr.Pin())
 		{
-			TArray<uint64> Loops;
-			SubRanges(Loops, MaxItems, ChunkSize);
-
 			uint32 StartIndex;
 			uint32 Count;
 			PCGEx::H64(Loops[TaskIndex], StartIndex, Count);
@@ -294,7 +292,8 @@ namespace PCGExMT
 
 			if (!Loops.IsValidIndex(TaskIndex + 1)) { return false; }
 
-			Group->InternalStartInlineRange<FGroupRangeInlineIterationTask>(TaskIndex + 1, MaxItems, ChunkSize);
+			Group->InternalStartInlineRange<FGroupRangeInlineIterationTask>(TaskIndex + 1, Loops);
+			Loops.Empty();
 		}
 		return true;
 	}
