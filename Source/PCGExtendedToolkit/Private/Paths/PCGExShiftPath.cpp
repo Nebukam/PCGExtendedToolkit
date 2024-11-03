@@ -130,14 +130,14 @@ namespace PCGExShiftPath
 				}
 			};
 
-			FilterTask->OnIterationRangeStartCallback = [WeakPtr](const int32 StartIndex, const int32 Count, const int32 LoopIdx)
+			FilterTask->OnSubLoopStartCallback = [WeakPtr](const int32 StartIndex, const int32 Count, const int32 LoopIdx)
 			{
 				const TSharedPtr<FProcessor> This = WeakPtr.Pin();
 				if (!This) { return; }
 				This->PrepareSingleLoopScopeForPoints(StartIndex, Count);
 			};
 
-			FilterTask->StartRangePrepareOnly(PointDataFacade->GetNum(), GetDefault<UPCGExGlobalSettings>()->GetPointsBatchChunkSize());
+			FilterTask->StartSubLoops(PointDataFacade->GetNum(), GetDefault<UPCGExGlobalSettings>()->GetPointsBatchChunkSize());
 			return true;
 		}
 

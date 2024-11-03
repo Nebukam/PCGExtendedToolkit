@@ -227,10 +227,10 @@ namespace PCGExRefineEdges
 					else { Refinement->Process(); }
 				};
 
-			EdgeScopeLoop->OnIterationRangeStartCallback =
+			EdgeScopeLoop->OnSubLoopStartCallback =
 				[&](const int32 StartIndex, const int32 Count, const int32 LoopIdx) { PrepareSingleLoopScopeForEdges(StartIndex, Count); };
 
-			EdgeScopeLoop->StartRangePrepareOnly(EdgeDataFacade->GetNum(), PLI);
+			EdgeScopeLoop->StartSubLoops(EdgeDataFacade->GetNum(), PLI);
 		}
 
 		return true;
@@ -275,34 +275,35 @@ namespace PCGExRefineEdges
 
 	void FProcessor::OnEdgesProcessingComplete()
 	{
-		TWeakPtr<FProcessor> WeakPtr = SharedThis(this);
+		if (!Settings->bRestoreEdgesThatConnectToValidNodes) { return; }
 
 		PCGEX_ASYNC_GROUP_CHKD_VOID(AsyncManager, InvalidateNodes)
 
-		InvalidateNodes->OnIterationRangeStartCallback = [WeakPtr](const int32 StartIndex, const int32 Count, const int32 LoopIdx)
-		{
-			const TSharedPtr<FProcessor> This = WeakPtr.Pin();
-			if (!This) { return; }
-
-			const PCGExCluster::FCluster* Cluster = This->Cluster.Get();
-			const int32 MaxIndex = StartIndex + Count;
-			for (int i = StartIndex; i < MaxIndex; i++)
+		InvalidateNodes->OnSubLoopStartCallback =
+			[WeakThis = TWeakPtr<FProcessor>(SharedThis(this))]
+			(const int32 StartIndex, const int32 Count, const int32 LoopIdx)
 			{
-				if (PCGExCluster::FNode* Node = Cluster->GetNode(i); !Node->HasAnyValidEdges(Cluster)) { Node->bValid = false; }
-			}
-		};
+				const TSharedPtr<FProcessor> This = WeakThis.Pin();
+				if (!This) { return; }
 
-		if (Settings->bRestoreEdgesThatConnectToValidNodes)
-		{
-			InvalidateNodes->OnCompleteCallback = [WeakPtr]()
+				const PCGExCluster::FCluster* Cluster = This->Cluster.Get();
+				const int32 MaxIndex = StartIndex + Count;
+				for (int i = StartIndex; i < MaxIndex; i++)
+				{
+					if (PCGExCluster::FNode* Node = Cluster->GetNode(i); !Node->HasAnyValidEdges(Cluster)) { Node->bValid = false; }
+				}
+			};
+
+		InvalidateNodes->OnCompleteCallback =
+			[WeakThis = TWeakPtr<FProcessor>(SharedThis(this))]()
 			{
-				const TSharedPtr<FProcessor> This = WeakPtr.Pin();
+				const TSharedPtr<FProcessor> This = WeakThis.Pin();
 				if (!This) { return; }
 
 				PCGEX_ASYNC_GROUP_CHKD_VOID(This->AsyncManager, RestoreEdges)
-				RestoreEdges->OnIterationRangeStartCallback = [WeakPtr](const int32 StartIndex, const int32 Count, const int32 LoopIdx)
+				RestoreEdges->OnSubLoopStartCallback = [WeakThis](const int32 StartIndex, const int32 Count, const int32 LoopIdx)
 				{
-					const TSharedPtr<FProcessor> NestedThis = WeakPtr.Pin();
+					const TSharedPtr<FProcessor> NestedThis = WeakThis.Pin();
 					if (!NestedThis) { return; }
 
 					const PCGExCluster::FCluster* Cluster = NestedThis->Cluster.Get();
@@ -316,11 +317,11 @@ namespace PCGExRefineEdges
 					}
 				};
 
-				RestoreEdges->StartRangePrepareOnly(This->Cluster->Edges->Num(), GetDefault<UPCGExGlobalSettings>()->GetPointsBatchChunkSize());
+				RestoreEdges->StartSubLoops(This->Cluster->Edges->Num(), GetDefault<UPCGExGlobalSettings>()->GetPointsBatchChunkSize());
 			};
-		}
 
-		InvalidateNodes->StartRangePrepareOnly(Cluster->Nodes->Num(), GetDefault<UPCGExGlobalSettings>()->GetPointsBatchChunkSize());
+
+		InvalidateNodes->StartSubLoops(Cluster->Nodes->Num(), GetDefault<UPCGExGlobalSettings>()->GetPointsBatchChunkSize());
 	}
 
 	void FProcessor::Sanitize()
@@ -334,7 +335,7 @@ namespace PCGExRefineEdges
 		if (Settings->Sanitization == EPCGExRefineSanitization::Filters)
 		{
 			const int32 PLI = GetDefault<UPCGExGlobalSettings>()->GetClusterBatchChunkSize();
-			SanitizeTaskGroup->OnIterationRangeStartCallback =
+			SanitizeTaskGroup->OnSubLoopStartCallback =
 				[&](const int32 StartIndex, const int32 Count, const int32 LoopIdx)
 				{
 					const int32 MaxIndex = StartIndex + Count;
@@ -344,7 +345,7 @@ namespace PCGExRefineEdges
 						if (SanitizationFilterManager->Test(Edge)) { Edge.bValid = true; }
 					}
 				};
-			SanitizeTaskGroup->StartRangePrepareOnly(EdgeDataFacade->GetNum(), PLI);
+			SanitizeTaskGroup->StartSubLoops(EdgeDataFacade->GetNum(), PLI);
 		}
 		else
 		{

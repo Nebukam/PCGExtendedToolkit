@@ -53,7 +53,7 @@ public:
 	FPCGAttributePropertyInputSelector OffsetAttribute;
 
 	/** Up vector used to calculate Offset direction.*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="UpVectorType == EPCGExInputValueType::Constant"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	FVector UpVectorConstant = FVector::UpVector;
 
 	/** Direction Vector type.*/

@@ -38,6 +38,20 @@ const TSharedPtr<TBatch<T>> Batch = WeakBatch.Pin(); if(!Batch){return;}\
 		_ID##Trivial->StartIterations( TrivialProcessors.Num(), 32, false, false); }\
 	}
 
+#define PCGEX_ASYNC_PROCESSOR_LOOP(_TYPE, _NAME, _NUM, _PREPARE, _PROCESS, _COMPLETE, _INLINE, _PLI) \
+	if (IsTrivial()){ _PREPARE({PCGEx::H64(0, _NUM)}); _PROCESS(0, _NUM, 0); _COMPLETE(); return; } \
+	const int32 PLI = GetDefault<UPCGExGlobalSettings>()->_PLI(PerLoopIterations); \
+	PCGEX_ASYNC_GROUP_CHKD_VOID(AsyncManager, ParallelLoopFor##_NAME) \
+	ParallelLoopFor##_NAME->OnCompleteCallback = [WeakThis = TWeakPtr<_TYPE>(SharedThis(this))]() { \
+	if(const TSharedPtr<_TYPE> This = WeakThis.Pin()){ This->_COMPLETE(); } }; \
+	ParallelLoopFor##_NAME->OnPrepareSubLoopsCallback = [WeakThis = TWeakPtr<_TYPE>(SharedThis(this))](const TArray<uint64>& Loops) { \
+	if(const TSharedPtr<_TYPE> This = WeakThis.Pin()){ This->_PREPARE(Loops); }}; \
+	ParallelLoopFor##_NAME->OnSubLoopStartCallback =[WeakThis = TWeakPtr<_TYPE>(SharedThis(this))](const int32 StartIndex, const int32 Count, const int32 LoopIdx) { \
+	if(const TSharedPtr<_TYPE> This = WeakThis.Pin()){ This->_PROCESS(StartIndex, Count, LoopIdx); } }; \
+ParallelLoopFor##_NAME->StartSubLoops(_NUM, PLI, _INLINE);
+
+#define PCGEX_ASYNC_POINT_PROCESSOR_LOOP(_TYPE, _NAME, _NUM, _PREPARE, _PROCESS, _COMPLETE, _INLINE) PCGEX_ASYNC_PROCESSOR_LOOP(_TYPE, _NAME, _NUM, _PREPARE, _PROCESS, _COMPLETE, _INLINE, GetPointsBatchChunkSize)
+
 #define PCGEX_ASYNC_MT_LOOP_VALID_PROCESSORS(_ID, _INLINE_CONDITION, _BODY) PCGEX_ASYNC_MT_LOOP_TPL(_ID, _INLINE_CONDITION, if(Processor->bIsProcessorValid){ _BODY })
 
 	class FPointsProcessorBatchBase;
@@ -144,22 +158,11 @@ const TSharedPtr<TBatch<T>> Batch = WeakBatch.Pin(); if(!Batch){return;}\
 
 			const int32 NumPoints = PointDataFacade->Source->GetNum(Source);
 
-			if (IsTrivial())
-			{
-				PrepareLoopScopesForPoints({PCGEx::H64(0, NumPoints)});
-				ProcessPoints(0, NumPoints, 0);
-				OnPointsProcessingComplete();
-				return;
-			}
-
-			const int32 PLI = GetDefault<UPCGExGlobalSettings>()->GetPointsBatchChunkSize(PerLoopIterations);
-
-			PCGEX_ASYNC_GROUP_CHKD_VOID(AsyncManager, ParallelLoopForPoints)
-			ParallelLoopForPoints->OnCompleteCallback = [&]() { OnPointsProcessingComplete(); };
-			ParallelLoopForPoints->OnIterationRangePrepareCallback = [&](const TArray<uint64>& Loops) { PrepareLoopScopesForPoints(Loops); };
-			ParallelLoopForPoints->OnIterationRangeStartCallback =
-				[&](const int32 StartIndex, const int32 Count, const int32 LoopIdx) { ProcessPoints(StartIndex, Count, LoopIdx); };
-			ParallelLoopForPoints->StartRangePrepareOnly(NumPoints, PLI, bInlineProcessPoints);
+			PCGEX_ASYNC_POINT_PROCESSOR_LOOP(
+				FPointsProcessor, Points, NumPoints,
+				PrepareLoopScopesForPoints, ProcessPoints,
+				OnPointsProcessingComplete,
+				bInlineProcessPoints)
 		}
 
 		virtual void PrepareLoopScopesForPoints(const TArray<uint64>& Loops)
@@ -197,22 +200,11 @@ const TSharedPtr<TBatch<T>> Batch = WeakBatch.Pin(); if(!Batch){return;}\
 
 		void StartParallelLoopForRange(const int32 NumIterations, const int32 PerLoopIterations = -1)
 		{
-			if (IsTrivial())
-			{
-				PrepareLoopScopesForRanges({PCGEx::H64(0, NumIterations)});
-				ProcessRange(0, NumIterations, 0);
-				OnRangeProcessingComplete();
-				return;
-			}
-
-			const int32 PLI = GetDefault<UPCGExGlobalSettings>()->GetClusterBatchChunkSize(PerLoopIterations);
-
-			PCGEX_ASYNC_GROUP_CHKD_VOID(AsyncManager, ParallelLoopForRanges)
-			ParallelLoopForRanges->OnCompleteCallback = [&]() { OnRangeProcessingComplete(); };
-			ParallelLoopForRanges->OnIterationRangePrepareCallback = [&](const TArray<uint64>& Loops) { PrepareLoopScopesForRanges(Loops); };
-			ParallelLoopForRanges->OnIterationRangeStartCallback =
-				[&](const int32 StartIndex, const int32 Count, const int32 LoopIdx) { ProcessRange(StartIndex, Count, LoopIdx); };
-			ParallelLoopForRanges->StartRangePrepareOnly(NumIterations, PLI, bInlineProcessRange);
+			PCGEX_ASYNC_POINT_PROCESSOR_LOOP(
+				FPointsProcessor, Ranges, NumIterations,
+				PrepareLoopScopesForRanges, ProcessRange,
+				OnRangeProcessingComplete,
+				bInlineProcessRange)
 		}
 
 		virtual void PrepareLoopScopesForRanges(const TArray<uint64>& Loops)
@@ -451,7 +443,7 @@ const TSharedPtr<TBatch<T>> Batch = WeakBatch.Pin(); if(!Batch){return;}\
 					This->OnProcessingPreparationComplete();
 				};
 
-				ParallelAttributeRead->OnIterationRangeStartCallback =
+				ParallelAttributeRead->OnSubLoopStartCallback =
 					[WeakPtr, ParallelAttributeRead](const int32 StartIndex, const int32 Count, const int32 LoopIdx)
 					{
 						const TSharedPtr<TBatch<T>> This = WeakPtr.Pin();
@@ -460,7 +452,7 @@ const TSharedPtr<TBatch<T>> Batch = WeakBatch.Pin(); if(!Batch){return;}\
 						This->Processors[StartIndex]->PrefetchData(This->AsyncManager, ParallelAttributeRead);
 					};
 
-				ParallelAttributeRead->StartRangePrepareOnly(Processors.Num(), 1);
+				ParallelAttributeRead->StartSubLoops(Processors.Num(), 1);
 			}
 			else
 			{

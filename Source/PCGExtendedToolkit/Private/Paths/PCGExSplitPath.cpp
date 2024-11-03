@@ -95,7 +95,7 @@ namespace PCGExSplitPath
 		const int32 ChunkSize = GetDefault<UPCGExGlobalSettings>()->GetPointsBatchChunkSize();
 
 		PCGEX_ASYNC_GROUP_CHKD(AsyncManager, TaskGroup)
-		TaskGroup->OnIterationRangeStartCallback =
+		TaskGroup->OnSubLoopStartCallback =
 			[&](const int32 StartIndex, const int32 Count, const int32 LoopIdx)
 			{
 				PointDataFacade->Fetch(StartIndex, Count);

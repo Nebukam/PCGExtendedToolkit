@@ -153,22 +153,23 @@ namespace PCGExData
 			PCGEX_ASYNC_GROUP_CHKD_VOID(AsyncManager, PrefetchAttributesTask)
 
 			if (InTaskGroup) { InTaskGroup->GrowNumStarted(); }
-			TWeakPtr<FFacadePreloader> WeakPtr = SharedThis(this);
 
-			PrefetchAttributesTask->OnCompleteCallback = [WeakPtr]()
-			{
-				const TSharedPtr<FFacadePreloader> This = WeakPtr.Pin();
-				if (!This) { return; }
+			PrefetchAttributesTask->OnCompleteCallback =
+				[WeakThis = TWeakPtr<FFacadePreloader>(SharedThis(this))]()
+				{
+					const TSharedPtr<FFacadePreloader> This = WeakThis.Pin();
+					if (!This) { return; }
 
-				This->OnLoadingEnd();
-			};
+					This->OnLoadingEnd();
+				};
 
 			if (InDataFacade->bSupportsScopedGet)
 			{
-				PrefetchAttributesTask->OnIterationRangeStartCallback =
-					[WeakPtr](const int32 StartIndex, const int32 Count, const int32 LoopIdx)
+				PrefetchAttributesTask->OnSubLoopStartCallback =
+					[WeakThis = TWeakPtr<FFacadePreloader>(SharedThis(this))]
+					(const int32 StartIndex, const int32 Count, const int32 LoopIdx)
 					{
-						const TSharedPtr<FFacadePreloader> This = WeakPtr.Pin();
+						const TSharedPtr<FFacadePreloader> This = WeakThis.Pin();
 						if (!This) { return; }
 						if (TSharedPtr<FFacade> InternalFacade = This->InternalDataFacadePtr.Pin())
 						{
@@ -176,14 +177,15 @@ namespace PCGExData
 						}
 					};
 
-				PrefetchAttributesTask->StartRangePrepareOnly(InDataFacade->GetNum(), GetDefault<UPCGExGlobalSettings>()->GetPointsBatchChunkSize());
+				PrefetchAttributesTask->StartSubLoops(InDataFacade->GetNum(), GetDefault<UPCGExGlobalSettings>()->GetPointsBatchChunkSize());
 			}
 			else
 			{
-				PrefetchAttributesTask->OnIterationRangeStartCallback =
-					[WeakPtr](const int32 StartIndex, const int32 Count, const int32 LoopIdx)
+				PrefetchAttributesTask->OnSubLoopStartCallback =
+					[WeakThis = TWeakPtr<FFacadePreloader>(SharedThis(this))]
+					(const int32 StartIndex, const int32 Count, const int32 LoopIdx)
 					{
-						const TSharedPtr<FFacadePreloader> This = WeakPtr.Pin();
+						const TSharedPtr<FFacadePreloader> This = WeakThis.Pin();
 						if (!This) { return; }
 						if (TSharedPtr<FFacade> InternalFacade = This->InternalDataFacadePtr.Pin())
 						{
@@ -191,7 +193,7 @@ namespace PCGExData
 						}
 					};
 
-				PrefetchAttributesTask->StartRangePrepareOnly(Num(), 1);
+				PrefetchAttributesTask->StartSubLoops(Num(), 1);
 			}
 		}
 		else

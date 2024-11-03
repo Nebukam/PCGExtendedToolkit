@@ -105,7 +105,7 @@ bool FPCGExCutEdgesElement::ExecuteInternal(
 		Context->SetAsyncState(PCGExPaths::State_BuildingPaths);
 		PCGEX_ASYNC_GROUP_CHKD(Context->GetAsyncManager(), BuildPathsTask)
 
-		BuildPathsTask->OnIterationRangeStartCallback = [Settings, Context](const int32 StartIndex, const int32 Count, const int32 LoopIdx)
+		BuildPathsTask->OnSubLoopStartCallback = [Settings, Context](const int32 StartIndex, const int32 Count, const int32 LoopIdx)
 		{
 			TSharedRef<PCGExData::FFacade> PathFacade = Context->PathFacades[StartIndex];
 			TSharedPtr<PCGExPaths::FPath> Path = PCGExPaths::MakePath(
@@ -117,7 +117,7 @@ bool FPCGExCutEdgesElement::ExecuteInternal(
 			Context->Paths.Add(Path.ToSharedRef());
 		};
 
-		BuildPathsTask->StartRangePrepareOnly(Context->PathFacades.Num(), 1);
+		BuildPathsTask->StartSubLoops(Context->PathFacades.Num(), 1);
 	}
 
 	PCGEX_ON_ASYNC_STATE_READY(PCGExPaths::State_BuildingPaths)
