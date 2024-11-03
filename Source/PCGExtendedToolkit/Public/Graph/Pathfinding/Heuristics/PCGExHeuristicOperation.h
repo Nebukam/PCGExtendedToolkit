@@ -39,7 +39,7 @@ public:
 		const PCGExCluster::FNode& Seed,
 		const PCGExCluster::FNode& Goal) const
 	{
-		return 0;
+		return GetScoreInternal(0);
 	}
 
 	FORCEINLINE virtual double GetEdgeScore(
@@ -50,7 +50,7 @@ public:
 		const PCGExCluster::FNode& Goal,
 		const TArray<uint64>* TravelStack = nullptr) const
 	{
-		return 0;
+		return GetScoreInternal(0);
 	}
 
 	FORCEINLINE double GetCustomWeightMultiplier(const int32 PointIndex, const int32 EdgeIndex) const
@@ -71,8 +71,8 @@ protected:
 	TSharedPtr<const PCGExCluster::FCluster> Cluster;
 	TArray<double> LocalWeightMultiplier;
 
-	FORCEINLINE virtual double SampleCurve(const double InTime) const
+	FORCEINLINE virtual double GetScoreInternal(const double InTime) const
 	{
-		return FMath::Max(0, ScoreCurveObj->GetFloatValue(bInvert ? 1 - InTime : InTime));
+		return FMath::Max(0, ScoreCurveObj->GetFloatValue(bInvert ? 1 - InTime : InTime)) * ReferenceWeight;
 	}
 };

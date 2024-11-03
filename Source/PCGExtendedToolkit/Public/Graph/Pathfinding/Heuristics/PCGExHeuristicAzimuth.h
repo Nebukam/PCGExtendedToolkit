@@ -41,7 +41,7 @@ public:
 	{
 		const FVector Dir = Cluster->GetDir(Seed, Goal);
 		const double Dot = FVector::DotProduct(Dir, Cluster->GetDir(From, Goal)) * -1;
-		return FMath::Max(0, ScoreCurveObj->GetFloatValue(PCGExMath::Remap(Dot, -1, 1, OutMin, OutMax))) * ReferenceWeight;
+		return GetScoreInternal(PCGExMath::Remap(Dot, -1, 1, OutMin, OutMax));
 	}
 
 	FORCEINLINE virtual double GetEdgeScore(
@@ -53,7 +53,7 @@ public:
 		const TArray<uint64>* TravelStack) const override
 	{
 		const double Dot = (FVector::DotProduct(Cluster->GetDir(From, To), Cluster->GetDir(From, Goal)) * -1);
-		return FMath::Max(0, ScoreCurveObj->GetFloatValue(PCGExMath::Remap(Dot, -1, 1, OutMin, OutMax))) * ReferenceWeight;
+		return GetScoreInternal(PCGExMath::Remap(Dot, -1, 1, OutMin, OutMax));
 	}
 
 protected:

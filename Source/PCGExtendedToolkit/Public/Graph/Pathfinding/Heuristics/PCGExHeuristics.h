@@ -115,7 +115,6 @@ namespace PCGExHeuristics
 			const PCGExCluster::FNode& Goal,
 			const FLocalFeedbackHandler* LocalFeedback = nullptr) const
 		{
-			//TODO : Account for custom weight here
 			double GScore = 0;
 			double EWeight = TotalStaticWeight;
 			
@@ -164,7 +163,7 @@ namespace PCGExHeuristics
 			if (LocalFeedback)
 			{
 				EScore += LocalFeedback->GetEdgeScore(From, To, Edge, Seed, Goal, TravelStack);
-				EWeight += LocalFeedback->TotalStaticWeight;
+				//EWeight += LocalFeedback->TotalStaticWeight;
 			}
 
 			return EScore / EWeight;

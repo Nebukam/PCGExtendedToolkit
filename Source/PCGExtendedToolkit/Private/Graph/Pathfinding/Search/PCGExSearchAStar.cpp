@@ -34,17 +34,6 @@ bool UPCGExSearchAStar::ResolveQuery(
 	GScore.Init(-1, NumNodes);
 	TravelStack.Init(PCGEx::NH64(-1, -1), NumNodes);
 
-	double MinGScore = MAX_dbl;
-	double MaxGScore = MIN_dbl;
-
-	// TODO : Global score can be computed & cached once 
-	for (int i = 0; i < NodesRef.Num(); i++)
-	{
-		const double GS = Heuristics->GetGlobalScore(NodesRef[i], SeedNode, GoalNode);
-		MinGScore = FMath::Min(MinGScore, GS);
-		MaxGScore = FMath::Max(MaxGScore, GS);
-	}
-
 	const TUniquePtr<PCGExSearch::TScoredQueue> ScoredQueue = MakeUnique<PCGExSearch::TScoredQueue>(
 		NumNodes, SeedNode.NodeIndex, Heuristics->GetGlobalScore(SeedNode, SeedNode, GoalNode));
 
@@ -86,8 +75,8 @@ bool UPCGExSearchAStar::ResolveQuery(
 			TravelStack[NeighborIndex] = PCGEx::NH64(CurrentNodeIndex, EdgeIndex);
 			GScore[NeighborIndex] = TentativeGScore;
 
-			const double GS = PCGExMath::Remap(Heuristics->GetGlobalScore(AdjacentNode, SeedNode, GoalNode), MinGScore, MaxGScore, 0, 1);
-			const double FScore = TentativeGScore + GS * Heuristics->ReferenceWeight; //TODO: Need to weight this properly
+			const double GS = Heuristics->GetGlobalScore(AdjacentNode, SeedNode, GoalNode, Feedback);
+			const double FScore = TentativeGScore + GS * Heuristics->ReferenceWeight;
 
 			ScoredQueue->Enqueue(NeighborIndex, FScore);
 		}
@@ -101,7 +90,7 @@ bool UPCGExSearchAStar::ResolveQuery(
 	if (PathNodeIndex != -1)
 	{
 		bSuccess = true;
-		InQuery->Reserve(VisitedNum);
+		//InQuery->Reserve(VisitedNum);
 
 		InQuery->AddPathNode(GoalNode.NodeIndex);
 		

@@ -603,49 +603,51 @@ namespace PCGExGeoTasks
 
 		virtual bool ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager) override
 		{
-			const FPCGPoint& TargetPoint = PointIO->GetInPoint(TaskIndex);
 			TArray<FPCGPoint>& MutableTargets = ToBeTransformedIO->GetMutablePoints();
 
+			FTransform TargetTransform = FTransform::Identity;
 			if (TransformDetails->bSupportFitting)
 			{
-				FTransform FittingTransform = FTransform::Identity;
 				FBox PointBounds = ToBeTransformedIO->GetOut()->GetBounds();
-				TransformDetails->ComputeTransform(TaskIndex, FittingTransform, PointBounds);
-
-				for (FPCGPoint& InPoint : MutableTargets)
-				{
-					InPoint.Transform *= FittingTransform;
-
-					if (TransformDetails->bInheritRotation)
-					{
-						InPoint.Transform.SetRotation(TargetPoint.Transform.TransformRotation(InPoint.Transform.GetRotation()));
-					}
-
-					if (TransformDetails->bInheritScale)
-					{
-						InPoint.Transform.SetScale3D(TargetPoint.Transform.GetScale3D() * InPoint.Transform.GetScale3D());
-					}
-				}
+				TransformDetails->ComputeTransform(TaskIndex, TargetTransform, PointBounds);
 			}
 			else
 			{
-				for (FPCGPoint& InPoint : MutableTargets)
+				TargetTransform = PointIO->GetInPoint(TaskIndex).Transform;
+			}
+
+			if (TransformDetails->bInheritRotation && TransformDetails->bInheritScale)
+			{
+				for (FPCGPoint& InPoint : MutableTargets) { InPoint.Transform *= TargetTransform; }
+			}
+			else
+			{
+				if (TransformDetails->bInheritRotation)
 				{
-					
-					InPoint.Transform *= TargetPoint.Transform;
-
-					if (TransformDetails->bInheritRotation)
+					for (FPCGPoint& InPoint : MutableTargets)
 					{
-						InPoint.Transform.SetRotation(TargetPoint.Transform.TransformRotation(InPoint.Transform.GetRotation()));
+						FVector OriginalScale = InPoint.Transform.GetScale3D();
+						InPoint.Transform *= TargetTransform;
+						InPoint.Transform.SetScale3D(OriginalScale);
 					}
-
-					if (TransformDetails->bInheritScale)
+				}
+				else if (TransformDetails->bInheritScale)
+				{
+					for (FPCGPoint& InPoint : MutableTargets)
 					{
-						InPoint.Transform.SetScale3D(TargetPoint.Transform.GetScale3D() * InPoint.Transform.GetScale3D());
+						FQuat OriginalRot = InPoint.Transform.GetRotation();
+						InPoint.Transform *= TargetTransform;
+						InPoint.Transform.SetRotation(OriginalRot);
+					}
+				}
+				else
+				{
+					for (FPCGPoint& InPoint : MutableTargets)
+					{
+						InPoint.Transform.SetLocation(TargetTransform.TransformPosition(InPoint.Transform.GetLocation()));
 					}
 				}
 			}
-
 
 			return true;
 		}

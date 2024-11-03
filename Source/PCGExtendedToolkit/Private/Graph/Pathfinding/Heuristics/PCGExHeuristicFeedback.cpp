@@ -3,18 +3,10 @@
 
 #include "Graph/Pathfinding/Heuristics/PCGExHeuristicFeedback.h"
 
-
-void UPCGExHeuristicFeedback::PrepareForCluster(const TSharedPtr<const PCGExCluster::FCluster>& InCluster)
-{
-	MaxNodeWeight = 0;
-	MaxEdgeWeight = 0;
-	Super::PrepareForCluster(InCluster);
-}
-
 void UPCGExHeuristicFeedback::Cleanup()
 {
-	NodeExtraWeight.Empty();
-	EdgeExtraWeight.Empty();
+	NodeFeedbackNum.Empty();
+	EdgeFeedbackNum.Empty();
 	Super::Cleanup();
 }
 
@@ -24,6 +16,7 @@ UPCGExHeuristicOperation* UPCGExHeuristicsFactoryFeedback::CreateOperation(FPCGE
 	PCGEX_FORWARD_HEURISTIC_CONFIG
 	NewOperation->NodeScale = Config.VisitedPointsWeightFactor;
 	NewOperation->EdgeScale = Config.VisitedEdgesWeightFactor;
+	NewOperation->bBleed = Config.bAffectAllConnectedEdges;
 	return NewOperation;
 }
 

@@ -146,7 +146,7 @@ namespace PCGExFindPointOnBounds
 		FVector SearchPosition = FVector::ZeroVector;
 		FVector BestPosition = FVector::ZeroVector;
 		int32 BestIndex = -1;
-		double BestDistance = DBL_MAX;
+		double BestDistance = MAX_dbl;
 
 	public:
 		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade):

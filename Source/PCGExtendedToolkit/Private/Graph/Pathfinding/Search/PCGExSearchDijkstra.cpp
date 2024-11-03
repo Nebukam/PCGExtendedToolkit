@@ -47,7 +47,7 @@ bool UPCGExSearchDijkstra::ResolveQuery(
 	double CurrentScore;
 	while (ScoredQueue->Dequeue(CurrentNodeIndex, CurrentScore))
 	{
-		if (CurrentNodeIndex == GoalNode.NodeIndex) { break; } // Exit early
+		if (CurrentNodeIndex == GoalNode.NodeIndex && bEarlyExit) { break; } // Exit early
 
 		const PCGExCluster::FNode& Current = NodesRef[CurrentNodeIndex];
 
@@ -67,11 +67,10 @@ bool UPCGExSearchDijkstra::ResolveQuery(
 			const PCGExGraph::FIndexedEdge& Edge = EdgesRef[EdgeIndex];
 
 			const double AltScore = CurrentScore + Heuristics->GetEdgeScore(Current, AdjacentNode, Edge, SeedNode, GoalNode, Feedback, &TravelStack);
-			const double PreviousScore = ScoredQueue->Scores[NeighborIndex];
-			if (PreviousScore != -1 && AltScore >= PreviousScore) { continue; }
-
-			ScoredQueue->Enqueue(NeighborIndex, AltScore);
-			TravelStack[NeighborIndex] = PCGEx::NH64(CurrentNodeIndex, EdgeIndex);
+			if (ScoredQueue->Enqueue(NeighborIndex, AltScore))
+			{
+				TravelStack[NeighborIndex] = PCGEx::NH64(CurrentNodeIndex, EdgeIndex);
+			}
 		}
 	}
 
@@ -83,10 +82,10 @@ bool UPCGExSearchDijkstra::ResolveQuery(
 	if (PathNodeIndex != -1)
 	{
 		bSuccess = true;
-		InQuery->Reserve(VisitedNum);
+		//InQuery->Reserve(VisitedNum);
 
 		InQuery->AddPathNode(GoalNode.NodeIndex);
-		
+
 		while (PathNodeIndex != -1)
 		{
 			const int32 CurrentIndex = PathNodeIndex;
