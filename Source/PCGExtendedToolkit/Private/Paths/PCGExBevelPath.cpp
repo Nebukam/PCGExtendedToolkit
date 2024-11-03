@@ -333,7 +333,7 @@ namespace PCGExBevelPath
 				This->StartParallelLoopForPoints(PCGExData::ESource::In);
 			}
 		};
-		Preparation->OnIterationRangeStartCallback =
+		Preparation->OnSubLoopStartCallback =
 			[WeakPtr](const int32 StartIndex, const int32 Count, const int32 LoopIdx)
 			{
 				const TSharedPtr<FProcessor> This = WeakPtr.Pin();
@@ -358,7 +358,7 @@ namespace PCGExBevelPath
 				}
 			};
 
-		Preparation->StartRangePrepareOnly(PointDataFacade->GetNum(), GetDefault<UPCGExGlobalSettings>()->PointsDefaultBatchChunkSize);
+		Preparation->StartSubLoops(PointDataFacade->GetNum(), GetDefault<UPCGExGlobalSettings>()->PointsDefaultBatchChunkSize);
 
 		return true;
 	}
@@ -499,14 +499,27 @@ namespace PCGExBevelPath
 		}
 
 		PCGEX_ASYNC_GROUP_CHKD_VOID(AsyncManager, WriteFlagsTask)
-		WriteFlagsTask->OnCompleteCallback = [&]() { PointDataFacade->Write(AsyncManager); };
-		WriteFlagsTask->OnIterationCallback = [&](const int32 Index, const int32 Count, const int32 LoopIdx)
-		{
-			if (!PointFilterCache[Index]) { return; }
-			WriteFlags(Index);
-		};
+		WriteFlagsTask->OnCompleteCallback =
+			[WeakThis = TWeakPtr<FProcessor>(SharedThis(this))]()
+			{
+				if (const TSharedPtr<FProcessor> This = WeakThis.Pin()) { This->PointDataFacade->Write(This->AsyncManager); }
+			};
+		WriteFlagsTask->OnSubLoopStartCallback =
+			[WeakThis = TWeakPtr<FProcessor>(SharedThis(this))]
+			(const int32 StartIndex, const int32 Count, const int32 LoopIdx)
+			{
+				const TSharedPtr<FProcessor> This = WeakThis.Pin();
+				if (!This) { return; }
 
-		WriteFlagsTask->StartIterations(PointDataFacade->GetNum(), GetDefault<UPCGExGlobalSettings>()->GetPointsBatchChunkSize());
+				const int32 MaxIndex = StartIndex + Count;
+				for (int i = StartIndex; i < MaxIndex; i++)
+				{
+					if (!This->PointFilterCache[i]) { return; }
+					This->WriteFlags(i);
+				}
+			};
+
+		WriteFlagsTask->StartSubLoops(PointDataFacade->GetNum(), GetDefault<UPCGExGlobalSettings>()->GetPointsBatchChunkSize());
 
 		FPointsProcessor::Write();
 	}

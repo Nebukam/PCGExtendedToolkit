@@ -59,7 +59,7 @@ namespace PCGExPathfinding
 	void FPathQuery::SetResolution(const EPathfindingResolution InResolution)
 	{
 		Resolution = InResolution;
-		
+
 		if (Resolution == EPathfindingResolution::Success)
 		{
 			Algo::Reverse(PathNodes);
@@ -181,26 +181,27 @@ namespace PCGExPathfinding
 
 		LocalFeedbackHandler = HeuristicsHandler->MakeLocalFeedbackHandler(Cluster);
 
-		TWeakPtr<FPlotQuery> WeakPtr = SharedThis(this);
-		PlotTasks->OnCompleteCallback = [WeakPtr]()
-		{
-			if (const TSharedPtr<FPlotQuery> This = WeakPtr.Pin())
+		PlotTasks->OnCompleteCallback =
+			[WeakThis = TWeakPtr<FPlotQuery>(SharedThis(this))]()
 			{
-				This->LocalFeedbackHandler.Reset();
-				if (This->OnCompleteCallback) { This->OnCompleteCallback(This); }
-			}
-		};
+				if (const TSharedPtr<FPlotQuery> This = WeakThis.Pin())
+				{
+					This->LocalFeedbackHandler.Reset();
+					if (This->OnCompleteCallback) { This->OnCompleteCallback(This); }
+				}
+			};
 
-		PlotTasks->OnIterationRangeStartCallback =
-			[WeakPtr, SearchOperation, HeuristicsHandler](const int32 StartIndex, const int32 Count, const int32 LoopIdx)
+		PlotTasks->OnSubLoopStartCallback =
+			[WeakThis = TWeakPtr<FPlotQuery>(SharedThis(this)), SearchOperation, HeuristicsHandler]
+			(const int32 StartIndex, const int32 Count, const int32 LoopIdx)
 			{
-				TSharedPtr<FPlotQuery> This = WeakPtr.Pin();
+				TSharedPtr<FPlotQuery> This = WeakThis.Pin();
 				if (!This) { return; }
 
 				This->SubQueries[StartIndex]->FindPath(SearchOperation, HeuristicsHandler, This->LocalFeedbackHandler);
 			};
 
-		PlotTasks->StartRangePrepareOnly(SubQueries.Num(), 1, HeuristicsHandler->HasAnyFeedback());
+		PlotTasks->StartSubLoops(SubQueries.Num(), 1, HeuristicsHandler->HasAnyFeedback());
 	}
 
 	void FPlotQuery::Cleanup()

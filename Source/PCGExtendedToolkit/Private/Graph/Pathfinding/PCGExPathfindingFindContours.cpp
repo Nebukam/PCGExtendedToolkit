@@ -3,6 +3,8 @@
 
 #include "Graph/Pathfinding/PCGExPathfindingFindContours.h"
 
+#include <ThirdParty/OpenSubdiv/Deploy/OpenSubdiv-3.6.0/include/opensubdiv/far/types.h>
+
 
 #define LOCTEXT_NAMESPACE "PCGExFindContours"
 #define PCGEX_NAMESPACE FindContours
@@ -262,7 +264,7 @@ bool FPCGExFindContoursElement::Boot(FPCGExContext* InContext) const
 		Context->GoodSeeds->InitializeOutput(PCGExData::EInit::NewOutput);
 		Context->GoodSeeds->GetOut()->GetMutablePoints().Reserve(NumSeeds);
 
-		Context->BadSeeds = PCGExData::NewPointIO(SeedsPoints.ToSharedRef(),  PCGExFindContours::OutputBadSeedsLabel);
+		Context->BadSeeds = PCGExData::NewPointIO(SeedsPoints.ToSharedRef(), PCGExFindContours::OutputBadSeedsLabel);
 		Context->BadSeeds->InitializeOutput(PCGExData::EInit::NewOutput);
 		Context->BadSeeds->GetOut()->GetMutablePoints().Reserve(NumSeeds);
 	}
@@ -396,12 +398,22 @@ namespace PCGExFindContours
 
 		PCGEX_ASYNC_GROUP_CHKD_VOID(AsyncManager, ProjectionTaskGroup)
 
-		ProjectionTaskGroup->OnIterationCallback = [&](const int32 Index, const int32 Count, const int32 LoopIdx)
-		{
-			ProjectedPositions[Index] = ProjectionDetails.ProjectFlat(VtxDataFacade->Source->GetInPoint(Index).Transform.GetLocation(), Index);
-		};
+		ProjectionTaskGroup->OnSubLoopStartCallback =
+			[WeakThis = TWeakPtr<FBatch>(SharedThis(this))]
+			(const int32 StartIndex, const int32 Count, const int32 LoopIdx)
+			{
+				TSharedPtr<FBatch> This = WeakThis.Pin();
+				if (!This) { return; }
 
-		ProjectionTaskGroup->StartIterations(VtxDataFacade->GetNum(), GetDefault<UPCGExGlobalSettings>()->GetPointsBatchChunkSize());
+				const int32 MaxIndex = StartIndex + Count;
+
+				for (int i = StartIndex; i < MaxIndex; i++)
+				{
+					This->ProjectedPositions[i] = This->ProjectionDetails.ProjectFlat(This->VtxDataFacade->Source->GetInPoint(i).Transform.GetLocation(), i);
+				}
+			};
+
+		ProjectionTaskGroup->StartSubLoops(VtxDataFacade->GetNum(), GetDefault<UPCGExGlobalSettings>()->GetPointsBatchChunkSize());
 
 		TBatch<FProcessor>::Process();
 	}

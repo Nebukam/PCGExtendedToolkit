@@ -229,11 +229,11 @@ namespace PCGExMT
 		using IterationCallback = std::function<void(const int32, const int32, const int32)>;
 		IterationCallback OnIterationCallback;
 
-		using IterationRangePrepareCallback = std::function<void(const TArray<uint64>&)>;
-		IterationRangePrepareCallback OnIterationRangePrepareCallback;
+		using PrepareSubLoopsCallback = std::function<void(const TArray<uint64>&)>;
+		PrepareSubLoopsCallback OnPrepareSubLoopsCallback;
 
-		using IterationRangeStartCallback = std::function<void(const int32, const int32, const int32)>;
-		IterationRangeStartCallback OnIterationRangeStartCallback;
+		using SubLoopStartCallback = std::function<void(const int32, const int32, const int32)>;
+		SubLoopStartCallback OnSubLoopStartCallback;
 
 		explicit FTaskGroup(const TSharedPtr<FTaskManager>& InManager, const FName InGroupName):
 			GroupName(InGroupName), Manager(InManager)
@@ -255,7 +255,7 @@ namespace PCGExMT
 			TArray<uint64> Loops;
 			GrowNumStarted(SubRanges(Loops, MaxItems, ChunkSize));
 
-			if (OnIterationRangePrepareCallback) { OnIterationRangePrepareCallback(Loops); }
+			if (OnPrepareSubLoopsCallback) { OnPrepareSubLoopsCallback(Loops); }
 
 			TSharedPtr<FTaskGroup> SharedPtr = SharedThis(this);
 			int32 LoopIdx = 0;
@@ -272,7 +272,7 @@ namespace PCGExMT
 
 		void StartIterations(const int32 MaxItems, const int32 ChunkSize, const bool bInlined = false, const bool bExecuteSmallSynchronously = true);
 
-		void StartRangePrepareOnly(const int32 MaxItems, const int32 ChunkSize, const bool bInline = false);
+		void StartSubLoops(const int32 MaxItems, const int32 ChunkSize, const bool bInline = false);
 
 		void AddSimpleCallback(SimpleCallback&& InCallback);
 		void StartSimpleCallbacks();

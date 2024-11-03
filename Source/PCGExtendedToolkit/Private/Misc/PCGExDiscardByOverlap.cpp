@@ -277,7 +277,7 @@ namespace PCGExDiscardByOverlap
 				VolumeDensity = NumPoints / TotalVolume;
 			};
 
-		BoundsPreparationTask->OnIterationRangeStartCallback =
+		BoundsPreparationTask->OnSubLoopStartCallback =
 			[&](const int32 StartIndex, const int32 Count, const int32 LoopIdx)
 			{
 				PointDataFacade->Fetch(StartIndex, Count);
@@ -397,11 +397,14 @@ namespace PCGExDiscardByOverlap
 
 		PCGEX_ASYNC_GROUP_CHKD_VOID(AsyncManager, PreparationTask)
 		PreparationTask->OnCompleteCallback =
-			[&]()
+			[WeakThis = TWeakPtr<FProcessor>(SharedThis(this))]()
 			{
-				if (Settings->TestMode == EPCGExOverlapTestMode::Fast)
+				TSharedPtr<FProcessor> This = WeakThis.Pin();
+				if (!This) { return; }
+
+				if (This->Settings->TestMode == EPCGExOverlapTestMode::Fast)
 				{
-					for (const TSharedPtr<FOverlap>& Overlap : Overlaps)
+					for (const TSharedPtr<FOverlap>& Overlap : This->Overlaps)
 					{
 						Overlap->Stats.OverlapCount = 1;
 						Overlap->Stats.OverlapVolume = Overlap->Intersection.GetVolume();
@@ -410,22 +413,27 @@ namespace PCGExDiscardByOverlap
 				else
 				{
 					// Require one more expensive step...
-					StartParallelLoopForRange(ManagedOverlaps.Num(), 8);
+					This->StartParallelLoopForRange(This->ManagedOverlaps.Num(), 8);
 				}
 			};
-		PreparationTask->OnIterationCallback = [&](const int32 Index, const int32 Count, const int32 LoopIdx)
-		{
-			const TSharedPtr<PCGExPointsMT::FPointsProcessorBatchBase> Parent = ParentBatch.Pin();
-			const TSharedPtr<PCGExData::FFacade> OtherFacade = Parent->ProcessorFacades[Index];
-			if (PointDataFacade == OtherFacade) { return; } // Skip self
+		PreparationTask->OnIterationCallback =
+			[WeakThis = TWeakPtr<FProcessor>(SharedThis(this))]
+			(const int32 Index, const int32 Count, const int32 LoopIdx)
+			{
+				TSharedPtr<FProcessor> This = WeakThis.Pin();
+				if (!This) { return; }
 
-			const TSharedRef<FProcessor> OtherProcessor = StaticCastSharedRef<FProcessor>(*Parent->SubProcessorMap->Find(&OtherFacade->Source.Get()));
+				const TSharedPtr<PCGExPointsMT::FPointsProcessorBatchBase> Parent = This->ParentBatch.Pin();
+				const TSharedPtr<PCGExData::FFacade> OtherFacade = Parent->ProcessorFacades[Index];
+				if (This->PointDataFacade == OtherFacade) { return; } // Skip self
 
-			const FBox Intersection = Bounds.Overlap(OtherProcessor->GetBounds());
-			if (!Intersection.IsValid) { return; } // No overlap
+				const TSharedRef<FProcessor> OtherProcessor = StaticCastSharedRef<FProcessor>(*Parent->SubProcessorMap->Find(&OtherFacade->Source.Get()));
 
-			RegisterOverlap(&OtherProcessor.Get(), Intersection);
-		};
+				const FBox Intersection = This->Bounds.Overlap(OtherProcessor->GetBounds());
+				if (!Intersection.IsValid) { return; } // No overlap
+
+				This->RegisterOverlap(&OtherProcessor.Get(), Intersection);
+			};
 
 		PreparationTask->StartIterations(ParentBatch.Pin()->ProcessorFacades.Num(), 64);
 	}

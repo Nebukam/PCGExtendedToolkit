@@ -123,7 +123,11 @@ namespace PCGExRelaxClusters
 		RelaxOperation->WriteBuffer = SecondaryBuffer.Get();
 
 		PCGEX_ASYNC_GROUP_CHKD_VOID(AsyncManager, IterationGroup)
-		IterationGroup->OnCompleteCallback = [&]() { StartRelaxIteration(); };
+		IterationGroup->OnCompleteCallback =
+			[WeakThis = TWeakPtr<FProcessor>(SharedThis(this))]()
+			{
+				if (const TSharedPtr<FProcessor> This = WeakThis.Pin()) { This->StartRelaxIteration(); }
+			};
 		IterationGroup->StartRanges<FRelaxRangeTask>(
 			NumNodes, GetDefault<UPCGExGlobalSettings>()->GetPointsBatchChunkSize(),
 			nullptr, SharedThis(this));
