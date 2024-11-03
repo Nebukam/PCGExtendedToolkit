@@ -34,7 +34,7 @@ public:
 		const FVector& ArriveScale, FVector& OutArrive,
 		const FVector& LeaveScale, FVector& OutLeave) const override
 	{
-		const FVector Dir = PCGExMath::GetDirection(InPoints[0].Transform.GetRotation(), Axis);
+		const FVector Dir = PCGExMath::GetDirection(InPoints[0].Transform.GetRotation(), Axis) * -1;
 		OutArrive = Dir * ArriveScale;
 		OutLeave = Dir * LeaveScale;
 	}
@@ -44,7 +44,7 @@ public:
 		const FVector& ArriveScale, FVector& OutArrive,
 		const FVector& LeaveScale, FVector& OutLeave) const override
 	{
-		const FVector Dir = PCGExMath::GetDirection(InPoints.Last().Transform.GetRotation(), Axis);
+		const FVector Dir = PCGExMath::GetDirection(InPoints.Last().Transform.GetRotation(), Axis) * -1;
 		OutArrive = Dir * ArriveScale;
 		OutLeave = Dir * LeaveScale;
 	}
@@ -55,7 +55,7 @@ public:
 		const FVector& ArriveScale, FVector& OutArrive,
 		const FVector& LeaveScale, FVector& OutLeave) const override
 	{
-		const FVector Dir = PCGExMath::GetDirection(InPoints[Index].Transform.GetRotation(), Axis);
+		const FVector Dir = PCGExMath::GetDirection(InPoints[Index].Transform.GetRotation(), Axis) * -1;
 		OutArrive = Dir * ArriveScale;
 		OutLeave = Dir * LeaveScale;
 	}

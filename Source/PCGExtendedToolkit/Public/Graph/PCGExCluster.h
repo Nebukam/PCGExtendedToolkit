@@ -116,6 +116,8 @@ namespace PCGExCluster
 		void ComputeNormal(const FCluster* InCluster, const TArray<FAdjacencyData>& AdjacencyData, FVector& OutNormal) const;
 
 		FORCEINLINE void Add(const FNode& Neighbor, const int32 EdgeIndex) { Adjacency.Add(PCGEx::H64(Neighbor.NodeIndex, EdgeIndex)); }
+		int32 ValidEdges(const FCluster* InCluster);
+		bool HasAnyValidEdges(const FCluster* InCluster);
 	};
 
 	struct /*PCGEXTENDEDTOOLKIT_API*/ FExpandedNeighbor

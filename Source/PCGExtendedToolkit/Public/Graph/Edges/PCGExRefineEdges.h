@@ -65,9 +65,14 @@ public:
 	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = Settings, meta = (PCG_NotOverridable))
 	EPCGExRefineSanitization Sanitization = EPCGExRefineSanitization::None;
 
+	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = Settings, meta = (PCG_NotOverridable))
+	bool bRestoreEdgesThatConnectToValidNodes = false;
+	
 	/** Graph & Edges output properties */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName="Cluster Output Settings", EditCondition="!bOutputEdgesOnly", EditConditionHides))
 	FPCGExGraphBuilderDetails GraphBuilderDetails;
+
+	
 
 private:
 	friend class FPCGExRefineEdgesElement;
@@ -132,6 +137,7 @@ namespace PCGExRefineEdges
 
 		virtual void PrepareSingleLoopScopeForEdges(const uint32 StartIndex, const int32 Count) override;
 		virtual void ProcessSingleEdge(const int32 EdgeIndex, PCGExGraph::FIndexedEdge& Edge, const int32 LoopIdx, const int32 Count) override;
+		virtual void OnEdgesProcessingComplete() override;
 		void Sanitize();
 		void InsertEdges() const;
 		virtual void CompleteWork() override;

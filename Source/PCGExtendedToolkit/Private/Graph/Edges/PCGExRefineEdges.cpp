@@ -273,6 +273,56 @@ namespace PCGExRefineEdges
 		Refinement->ProcessEdge(Edge);
 	}
 
+	void FProcessor::OnEdgesProcessingComplete()
+	{
+		TWeakPtr<FProcessor> WeakPtr = SharedThis(this);
+
+		PCGEX_ASYNC_GROUP_CHKD_VOID(AsyncManager, InvalidateNodes)
+
+		InvalidateNodes->OnIterationRangeStartCallback = [WeakPtr](const int32 StartIndex, const int32 Count, const int32 LoopIdx)
+		{
+			const TSharedPtr<FProcessor> This = WeakPtr.Pin();
+			if (!This) { return; }
+
+			const PCGExCluster::FCluster* Cluster = This->Cluster.Get();
+			const int32 MaxIndex = StartIndex + Count;
+			for (int i = StartIndex; i < MaxIndex; i++)
+			{
+				if (PCGExCluster::FNode* Node = Cluster->GetNode(i); !Node->HasAnyValidEdges(Cluster)) { Node->bValid = false; }
+			}
+		};
+
+		if (Settings->bRestoreEdgesThatConnectToValidNodes)
+		{
+			InvalidateNodes->OnCompleteCallback = [WeakPtr]()
+			{
+				const TSharedPtr<FProcessor> This = WeakPtr.Pin();
+				if (!This) { return; }
+
+				PCGEX_ASYNC_GROUP_CHKD_VOID(This->AsyncManager, RestoreEdges)
+				RestoreEdges->OnIterationRangeStartCallback = [WeakPtr](const int32 StartIndex, const int32 Count, const int32 LoopIdx)
+				{
+					const TSharedPtr<FProcessor> NestedThis = WeakPtr.Pin();
+					if (!NestedThis) { return; }
+
+					const PCGExCluster::FCluster* Cluster = NestedThis->Cluster.Get();
+
+					const int32 MaxIndex = StartIndex + Count;
+					for (int i = StartIndex; i < MaxIndex; i++)
+					{
+						PCGExGraph::FIndexedEdge* Edge = NestedThis->Cluster->GetEdge(i);
+						if (Edge->bValid) { continue; }
+						if (Cluster->GetEdgeStart(Edge->EdgeIndex)->bValid && Cluster->GetEdgeStart(Edge->EdgeIndex)->bValid) { Edge->bValid = true; }
+					}
+				};
+
+				RestoreEdges->StartRangePrepareOnly(This->Cluster->Edges->Num(), GetDefault<UPCGExGlobalSettings>()->GetPointsBatchChunkSize());
+			};
+		}
+
+		InvalidateNodes->StartRangePrepareOnly(Cluster->Nodes->Num(), GetDefault<UPCGExGlobalSettings>()->GetPointsBatchChunkSize());
+	}
+
 	void FProcessor::Sanitize()
 	{
 		PCGEX_ASYNC_GROUP_CHKD_VOID(AsyncManager, SanitizeTaskGroup)
@@ -373,6 +423,14 @@ namespace PCGExRefineEdges
 		const int32 StartIndex = PCGEx::H64A(Scope);
 		const int32 NumIterations = PCGEx::H64B(Scope);
 
+		auto RestoreEdge = [&](const int32 EdgeIndex)
+		{
+			if (EdgeIndex == -1) { return; }
+			FPlatformAtomics::InterlockedExchange(&Processor->Cluster->GetEdge(EdgeIndex)->bValid, 1);
+			FPlatformAtomics::InterlockedExchange(&Processor->Cluster->GetEdgeStart(EdgeIndex)->bValid, 1);
+			FPlatformAtomics::InterlockedExchange(&Processor->Cluster->GetEdgeEnd(EdgeIndex)->bValid, 1);
+		};
+
 		if (Processor->Sanitization == EPCGExRefineSanitization::Longest)
 		{
 			for (int i = 0; i < NumIterations; i++)
@@ -396,9 +454,7 @@ namespace PCGExRefineEdges
 					}
 				}
 
-				if (BestIndex == -1) { continue; }
-
-				FPlatformAtomics::InterlockedExchange(&Processor->Cluster->GetEdge(BestIndex)->bValid, 1);
+				RestoreEdge(BestIndex);
 			}
 		}
 		else if (Processor->Sanitization == EPCGExRefineSanitization::Shortest)
@@ -424,9 +480,7 @@ namespace PCGExRefineEdges
 					}
 				}
 
-				if (BestIndex == -1) { continue; }
-
-				FPlatformAtomics::InterlockedExchange(&Processor->Cluster->GetEdge(BestIndex)->bValid, 1);
+				RestoreEdge(BestIndex);
 			}
 		}
 

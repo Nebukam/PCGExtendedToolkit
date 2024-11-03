@@ -56,6 +56,19 @@ namespace PCGExCluster
 		OutNormal /= NumNeighbors;
 	}
 
+	int32 FNode::ValidEdges(const FCluster* InCluster)
+	{
+		int32 ValidNum = 0;
+		for (const uint64 H : Adjacency) { if (InCluster->GetEdge(PCGEx::H64B(H))->bValid) { ValidNum++; } }
+		return ValidNum;
+	}
+
+	bool FNode::HasAnyValidEdges(const FCluster* InCluster)
+	{
+		for (const uint64 H : Adjacency) { if (InCluster->GetEdge(PCGEx::H64B(H))->bValid) { return true; } }
+		return false;
+	}
+
 #pragma endregion
 
 #pragma region FCluster
