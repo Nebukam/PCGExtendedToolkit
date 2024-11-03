@@ -142,7 +142,7 @@ namespace PCGExPathCrossings
 				CanCut.Empty();
 			};
 
-		Preparation->OnIterationRangeStartCallback =
+		Preparation->OnSubLoopStartCallback =
 			[&](const int32 StartIndex, const int32 Count, const int32 LoopIdx)
 			{
 				PointDataFacade->Fetch(StartIndex, Count);
@@ -186,7 +186,7 @@ namespace PCGExPathCrossings
 				}
 			};
 
-		Preparation->StartRangePrepareOnly(Path->NumEdges, GetDefault<UPCGExGlobalSettings>()->GetPointsBatchChunkSize());
+		Preparation->StartSubLoops(Path->NumEdges, GetDefault<UPCGExGlobalSettings>()->GetPointsBatchChunkSize());
 
 		return true;
 	}
@@ -345,9 +345,22 @@ namespace PCGExPathCrossings
 		else { if (Settings->bTagIfHasNoCrossings) { PointIO->Tags->Add(Settings->HasNoCrossingsTag); } }
 
 		PCGEX_ASYNC_GROUP_CHKD_VOID(AsyncManager, CollapseTask)
-		CollapseTask->OnCompleteCallback = [&]() { PointDataFacade->Write(AsyncManager); };
-		CollapseTask->OnIterationCallback = [&](const int32 CollapseIndex, const int32 Count, const int32 LoopIdx) { CollapseCrossing(CollapseIndex); };
-		CollapseTask->StartIterations(Path->NumEdges, GetDefault<UPCGExGlobalSettings>()->GetPointsBatchChunkSize());
+		CollapseTask->OnCompleteCallback =
+			[WeakThis = TWeakPtr<FProcessor>(SharedThis(this))]()
+			{
+				if (const TSharedPtr<FProcessor> This = WeakThis.Pin()) { This->PointDataFacade->Write(This->AsyncManager); }
+			};
+		CollapseTask->OnSubLoopStartCallback =
+			[WeakThis = TWeakPtr<FProcessor>(SharedThis(this))]
+			(const int32 StartIndex, const int32 Count, const int32 LoopIdx)
+			{
+				const TSharedPtr<FProcessor> This = WeakThis.Pin();
+				if (!This) { return; }
+
+				const int32 MaxIndex = StartIndex + Count;
+				for (int i = StartIndex; i < MaxIndex; i++) { This->CollapseCrossing(i); }
+			};
+		CollapseTask->StartSubLoops(Path->NumEdges, GetDefault<UPCGExGlobalSettings>()->GetPointsBatchChunkSize());
 	}
 
 	void FProcessor::CollapseCrossing(const int32 Index)
@@ -447,12 +460,21 @@ namespace PCGExPathCrossings
 		UnionBlender->PrepareSoftMerge(PointDataFacade, UnionMetadata, &ProtectedAttributes);
 
 		PCGEX_ASYNC_GROUP_CHKD_VOID(AsyncManager, CrossBlendTask)
-		CrossBlendTask->OnIterationCallback = [&](const int32 Index, const int32 Count, const int32 LoopIdx)
-		{
-			if (!Crossings[Index]) { return; }
-			CrossBlendPoint(Index);
-		};
-		CrossBlendTask->StartIterations(Path->NumEdges, GetDefault<UPCGExGlobalSettings>()->GetPointsBatchChunkSize());
+		CrossBlendTask->OnSubLoopStartCallback =
+			[WeakThis = TWeakPtr<FProcessor>(SharedThis(this))]
+			(const int32 StartIndex, const int32 Count, const int32 LoopIdx)
+			{
+				const TSharedPtr<FProcessor> This = WeakThis.Pin();
+				if (!This) { return; }
+
+				const int32 MaxIndex = StartIndex + Count;
+				for (int i = StartIndex; i < MaxIndex; i++)
+				{
+					if (!This->Crossings[i]) { return; }
+					This->CrossBlendPoint(i);
+				}
+			};
+		CrossBlendTask->StartSubLoops(Path->NumEdges, GetDefault<UPCGExGlobalSettings>()->GetPointsBatchChunkSize());
 	}
 }
 

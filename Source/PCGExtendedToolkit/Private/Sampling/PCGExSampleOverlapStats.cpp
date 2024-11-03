@@ -3,7 +3,7 @@
 
 #include "Sampling/PCGExSampleOverlapStats.h"
 
-/*BUILD_TOOL_BUG_55_TOGGLE*/#include "CoreMinimal.h"
+///*BUILD_TOOL_BUG_55_TOGGLE*/#include "CoreMinimal.h"
 
 #define LOCTEXT_NAMESPACE "PCGExSampleOverlapStatsElement"
 #define PCGEX_NAMESPACE SampleOverlapStats
@@ -144,7 +144,7 @@ namespace PCGExSampleOverlapStats
 				}
 			};
 
-		BoundsPreparationTask->OnIterationRangeStartCallback =
+		BoundsPreparationTask->OnSubLoopStartCallback =
 			[&](const int32 StartIndex, const int32 Count, const int32 LoopIdx)
 			{
 				PointDataFacade->Fetch(StartIndex, Count);
@@ -295,43 +295,65 @@ namespace PCGExSampleOverlapStats
 
 		PCGEX_ASYNC_GROUP_CHKD_VOID(AsyncManager, PreparationTask)
 		PreparationTask->OnCompleteCallback =
-			[&]()
+			[WeakThis = TWeakPtr<FProcessor>(SharedThis(this))]()
 			{
-				auto WrapUp = [&]()
+				const TSharedPtr<FProcessor> This = WeakThis.Pin();
+				if (!This) { return; }
+
+				auto WrapUp = [WeakThis]()
 				{
-					for (int i = 0; i < NumPoints; i++)
+					const TSharedPtr<FProcessor> NestedThis = WeakThis.Pin();
+					if (!NestedThis) { return; }
+
+					for (int i = 0; i < NestedThis->NumPoints; i++)
 					{
-						LocalOverlapSubCountMax = FMath::Max(LocalOverlapSubCountMax, OverlapSubCount[i]);
-						LocalOverlapCountMax = FMath::Max(LocalOverlapCountMax, OverlapCount[i]);
+						NestedThis->LocalOverlapSubCountMax = FMath::Max(NestedThis->LocalOverlapSubCountMax, NestedThis->OverlapSubCount[i]);
+						NestedThis->LocalOverlapCountMax = FMath::Max(NestedThis->LocalOverlapCountMax, NestedThis->OverlapCount[i]);
 					}
 				};
 
-				if (ManagedOverlaps.IsEmpty())
+				if (This->ManagedOverlaps.IsEmpty())
 				{
 					WrapUp();
 					return;
 				}
 
-				PCGEX_ASYNC_GROUP_CHKD_VOID(AsyncManager, SearchTask)
+				PCGEX_ASYNC_GROUP_CHKD_VOID(This->AsyncManager, SearchTask)
 				SearchTask->OnCompleteCallback = WrapUp;
-				SearchTask->OnIterationCallback = [&](const int32 Index, const int32 Count, const int32 LoopIdx) { ResolveOverlap(Index); };
-				SearchTask->StartIterations(Overlaps.Num(), 8);
+				SearchTask->OnSubLoopStartCallback = [WeakThis]
+					(const int32 StartIndex, const int32 Count, const int32 LoopIdx)
+					{
+						const TSharedPtr<FProcessor> NestedThis = WeakThis.Pin();
+						if (!NestedThis) { return; }
+
+						const int32 MaxIndex = StartIndex + Count;
+						for (int i = StartIndex; i < MaxIndex; i++) { NestedThis->ResolveOverlap(i); }
+					};
+				SearchTask->StartSubLoops(This->Overlaps.Num(), 8);
 			};
 
-		PreparationTask->OnIterationCallback = [&](const int32 Index, const int32 Count, const int32 LoopIdx)
+		PreparationTask->OnSubLoopStartCallback = [WeakThis = TWeakPtr<FProcessor>(SharedThis(this))](const int32 StartIndex, const int32 Count, const int32 LoopIdx)
 		{
-			const TSharedPtr<PCGExPointsMT::FPointsProcessorBatchBase> Parent = ParentBatch.Pin();
-			const TSharedPtr<PCGExData::FFacade> OtherFacade = Parent->ProcessorFacades[Index];
-			if (PointDataFacade == OtherFacade) { return; } // Skip self
+			const TSharedPtr<FProcessor> This = WeakThis.Pin();
+			if (!This) { return; }
 
-			const TSharedRef<FProcessor> OtherProcessor = StaticCastSharedRef<FProcessor>(*Parent->SubProcessorMap->Find(&OtherFacade->Source.Get()));
+			const TSharedPtr<PCGExPointsMT::FPointsProcessorBatchBase> Parent = This->ParentBatch.Pin();
 
-			const FBox Intersection = Bounds.Overlap(OtherProcessor->GetBounds());
-			if (!Intersection.IsValid) { return; } // No overlap
+			const int32 MaxIndex = StartIndex + Count;
+			for (int i = StartIndex; i < MaxIndex; i++)
+			{
+				const TSharedPtr<PCGExData::FFacade> OtherFacade = Parent->ProcessorFacades[i];
+				if (This->PointDataFacade == OtherFacade) { return; } // Skip self
 
-			RegisterOverlap(&OtherProcessor.Get(), Intersection);
+				const TSharedRef<FProcessor> OtherProcessor = StaticCastSharedRef<FProcessor>(*Parent->SubProcessorMap->Find(&OtherFacade->Source.Get()));
+
+				const FBox Intersection = This->Bounds.Overlap(OtherProcessor->GetBounds());
+				if (!Intersection.IsValid) { return; } // No overlap
+
+				This->RegisterOverlap(&OtherProcessor.Get(), Intersection);
+			}
 		};
-		PreparationTask->StartIterations(ParentBatch.Pin()->ProcessorFacades.Num(), 64);
+		PreparationTask->StartSubLoops(ParentBatch.Pin()->ProcessorFacades.Num(), 64);
 	}
 
 	void FProcessor::Write()

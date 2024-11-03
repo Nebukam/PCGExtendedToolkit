@@ -56,6 +56,19 @@ namespace PCGExCluster
 		OutNormal /= NumNeighbors;
 	}
 
+	int32 FNode::ValidEdges(const FCluster* InCluster)
+	{
+		int32 ValidNum = 0;
+		for (const uint64 H : Adjacency) { if (InCluster->GetEdge(PCGEx::H64B(H))->bValid) { ValidNum++; } }
+		return ValidNum;
+	}
+
+	bool FNode::HasAnyValidEdges(const FCluster* InCluster)
+	{
+		for (const uint64 H : Adjacency) { if (InCluster->GetEdge(PCGEx::H64B(H))->bValid) { return true; } }
+		return false;
+	}
+
 #pragma endregion
 
 #pragma region FCluster
@@ -736,15 +749,19 @@ namespace PCGExCluster
 		ExpandedNodes = MakeShared<TArray<FExpandedNode>>();
 		PCGEx::InitArray(ExpandedNodes, Nodes->Num());
 
-		ExpandNodesTask->OnIterationRangeStartCallback = [&](const int32 StartIndex, const int32 Count, const int32 LoopIdx)
-		{
-			TArray<FExpandedNode>& ExpandedNodesRef = (*ExpandedNodes);
-			const int32 MaxIndex = StartIndex + Count;
-			const TSharedPtr<FCluster> SharedPtr = SharedThis(this);
-			for (int i = StartIndex; i < MaxIndex; i++) { ExpandedNodesRef[i] = FExpandedNode(SharedPtr, i); }
-		};
+		ExpandNodesTask->OnSubLoopStartCallback =
+			[WeakThis = TWeakPtr<FCluster>(SharedThis(this))]
+			(const int32 StartIndex, const int32 Count, const int32 LoopIdx)
+			{
+				const TSharedPtr<FCluster> This = WeakThis.Pin();
+				if (!This) { return; }
 
-		ExpandNodesTask->StartRangePrepareOnly(Nodes->Num(), 256);
+				TArray<FExpandedNode>& ExpandedNodesRef = (*This->ExpandedNodes);
+				const int32 MaxIndex = StartIndex + Count;
+				for (int i = StartIndex; i < MaxIndex; i++) { ExpandedNodesRef[i] = FExpandedNode(This, i); }
+			};
+
+		ExpandNodesTask->StartSubLoops(Nodes->Num(), 256);
 	}
 
 	TSharedPtr<TArray<FExpandedEdge>> FCluster::GetExpandedEdges(const bool bBuild)
@@ -775,14 +792,20 @@ namespace PCGExCluster
 		ExpandedEdges = MakeShared<TArray<FExpandedEdge>>();
 		PCGEx::InitArray(ExpandedEdges, Edges->Num());
 
-		ExpandEdgesTask->OnIterationRangeStartCallback = [&](const int32 StartIndex, const int32 Count, const int32 LoopIdx)
-		{
-			TArray<FExpandedEdge>& ExpandedEdgesRef = (*ExpandedEdges);
-			const int32 MaxIndex = StartIndex + Count;
-			for (int i = StartIndex; i < MaxIndex; i++) { ExpandedEdgesRef[i] = FExpandedEdge(this, i); }
-		};
+		ExpandEdgesTask->OnSubLoopStartCallback =
+			[WeakThis = TWeakPtr<FCluster>(SharedThis(this))]
+			(const int32 StartIndex, const int32 Count, const int32 LoopIdx)
+			{
+				const TSharedPtr<FCluster> This = WeakThis.Pin();
+				if (!This) { return; }
 
-		ExpandEdgesTask->StartRangePrepareOnly(Edges->Num(), 256);
+				TArray<FExpandedEdge>& ExpandedEdgesRef = (*This->ExpandedEdges);
+				const FCluster* Cluster = This.Get();
+				const int32 MaxIndex = StartIndex + Count;
+				for (int i = StartIndex; i < MaxIndex; i++) { ExpandedEdgesRef[i] = FExpandedEdge(Cluster, i); }
+			};
+
+		ExpandEdgesTask->StartSubLoops(Edges->Num(), 256);
 	}
 
 	void FCluster::UpdatePositions()

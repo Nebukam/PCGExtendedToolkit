@@ -182,13 +182,13 @@ namespace PCGExConnectPoints
 
 		PCGEX_ASYNC_GROUP_CHKD(AsyncManager, PrepTask)
 		PrepTask->OnCompleteCallback = [&]() { OnPreparationComplete(); };
-		PrepTask->OnIterationRangeStartCallback =
+		PrepTask->OnSubLoopStartCallback =
 			[&](const int32 StartIndex, const int32 Count, const int32 LoopIdx)
 			{
 				PointDataFacade->Fetch(StartIndex, Count);
 			};
 
-		PrepTask->StartRangePrepareOnly(NumPoints, GetDefault<UPCGExGlobalSettings>()->GetPointsBatchChunkSize());
+		PrepTask->StartSubLoops(NumPoints, GetDefault<UPCGExGlobalSettings>()->GetPointsBatchChunkSize());
 
 		return true;
 	}

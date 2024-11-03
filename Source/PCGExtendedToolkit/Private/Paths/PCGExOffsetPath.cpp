@@ -147,13 +147,22 @@ namespace PCGExOffsetPath
 
 			PCGEX_ASYNC_GROUP_CHKD_VOID(AsyncManager, FlipTestTask)
 
-			FlipTestTask->OnIterationCallback = [&](const int32 Index, const int32 Count, const int32 LoopIdx)
-			{
-				DirtyPath->ComputeEdgeExtra(Index);
-				CleanEdge[Index] = FVector::DotProduct(Path->Edges[Index].Dir, DirtyPath->Edges[Index].Dir) > 0;
-			};
+			FlipTestTask->OnSubLoopStartCallback =
+				[WeakThis = TWeakPtr<FProcessor>(SharedThis(this))]
+				(const int32 StartIndex, const int32 Count, const int32 LoopIdx)
+				{
+					const TSharedPtr<FProcessor> This = WeakThis.Pin();
+					if (!This) { return; }
 
-			FlipTestTask->StartIterations(DirtyPath->NumEdges, GetDefault<UPCGExGlobalSettings>()->GetPointsBatchChunkSize());
+					const int32 MaxIndex = StartIndex + Count;
+					for (int i = StartIndex; i < MaxIndex; i++)
+					{
+						This->DirtyPath->ComputeEdgeExtra(i);
+						This->CleanEdge[i] = FVector::DotProduct(This->Path->Edges[i].Dir, This->DirtyPath->Edges[i].Dir) > 0;
+					}
+				};
+
+			FlipTestTask->StartSubLoops(DirtyPath->NumEdges, GetDefault<UPCGExGlobalSettings>()->GetPointsBatchChunkSize());
 		}
 	}
 

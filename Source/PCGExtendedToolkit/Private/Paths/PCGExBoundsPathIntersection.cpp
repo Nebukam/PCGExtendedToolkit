@@ -106,7 +106,7 @@ namespace PCGExPathIntersections
 		Details = Settings->OutputSettings;
 
 		PCGEX_ASYNC_GROUP_CHKD(AsyncManager, FindIntersectionsTaskGroup)
-		FindIntersectionsTaskGroup->OnIterationRangeStartCallback =
+		FindIntersectionsTaskGroup->OnSubLoopStartCallback =
 			[&](const int32 StartIndex, const int32 Count, const int32 LoopIdx)
 			{
 				PointDataFacade->Fetch(StartIndex, Count);
@@ -240,9 +240,21 @@ namespace PCGExPathIntersections
 		Segmentation->ReduceToArray();
 
 		PCGEX_ASYNC_GROUP_CHKD_VOID(AsyncManager, InsertionTaskGroup)
-		InsertionTaskGroup->OnCompleteCallback = [&]() { OnInsertionComplete(); };
-		InsertionTaskGroup->OnIterationCallback = [&](const int32 Index, const int32 Count, const int32 LoopIdx) { InsertIntersections(Index); };
-		InsertionTaskGroup->StartIterations(Segmentation->IntersectionsList.Num(), GetDefault<UPCGExGlobalSettings>()->GetPointsBatchChunkSize());
+		InsertionTaskGroup->OnCompleteCallback =
+			[WeakThis = TWeakPtr<FProcessor>(SharedThis(this))]()
+			{
+				if (const TSharedPtr<FProcessor> This = WeakThis.Pin()) { This->OnInsertionComplete(); }
+			};
+		InsertionTaskGroup->OnSubLoopStartCallback = [WeakThis = TWeakPtr<FProcessor>(SharedThis(this))]
+			(const int32 StartIndex, const int32 Count, const int32 LoopIdx)
+			{
+				const TSharedPtr<FProcessor> This = WeakThis.Pin();
+				if (!This) { return; }
+
+				const int32 MaxIndex = StartIndex + Count;
+				for (int i = StartIndex; i < MaxIndex; i++) { This->InsertIntersections(i); }
+			};
+		InsertionTaskGroup->StartSubLoops(Segmentation->IntersectionsList.Num(), GetDefault<UPCGExGlobalSettings>()->GetPointsBatchChunkSize());
 
 		FPointsProcessor::CompleteWork();
 	}

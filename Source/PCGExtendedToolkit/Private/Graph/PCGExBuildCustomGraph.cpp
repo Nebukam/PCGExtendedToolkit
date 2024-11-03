@@ -353,7 +353,7 @@ namespace PCGExBuildCustomGraph
 		};
 
 		UPCGExCustomGraphSettings* CustomGraphSettings = GraphSettings;
-		InitNodesGroup->OnIterationRangeStartCallback = [WeakIO, CustomGraphSettings](const int32 StartIndex, const int32 Count, const int32 LoopIdx)
+		InitNodesGroup->OnSubLoopStartCallback = [WeakIO, CustomGraphSettings](const int32 StartIndex, const int32 Count, const int32 LoopIdx)
 		{
 			const TSharedPtr<PCGExData::FPointIO> IO = WeakIO.Pin();
 			if (!IO) { return; }
@@ -369,7 +369,7 @@ namespace PCGExBuildCustomGraph
 			}
 		};
 
-		InitNodesGroup->StartRangePrepareOnly(CustomGraphSettings->Idx.Num(), GetDefault<UPCGExGlobalSettings>()->ClusterDefaultBatchChunkSize);
+		InitNodesGroup->StartSubLoops(CustomGraphSettings->Idx.Num(), GetDefault<UPCGExGlobalSettings>()->ClusterDefaultBatchChunkSize);
 
 		return true;
 	}

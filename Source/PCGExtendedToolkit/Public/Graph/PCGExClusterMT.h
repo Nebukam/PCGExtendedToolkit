@@ -23,6 +23,8 @@ namespace PCGExClusterMT
 
 #pragma region Tasks
 
+#define PCGEX_ASYNC_CLUSTER_PROCESSOR_LOOP(_TYPE, _NAME, _NUM, _PREPARE, _PROCESS, _COMPLETE, _INLINE) PCGEX_ASYNC_PROCESSOR_LOOP(_TYPE, _NAME, _NUM, _PREPARE, _PROCESS, _COMPLETE, _INLINE, GetClusterBatchChunkSize)
+
 	template <typename T>
 	class FStartClusterBatchProcessing final : public PCGExMT::FPCGExTask
 	{
@@ -166,7 +168,7 @@ namespace PCGExClusterMT
 				HeuristicsHandler = MakeShared<PCGExHeuristics::FHeuristicsHandler>(ExecutionContext, VtxDataFacade, EdgeDataFacade, *HeuristicsFactories);
 
 				if (!HeuristicsHandler->IsValidHandler()) { return false; }
-				
+
 				HeuristicsHandler->PrepareForCluster(Cluster);
 				HeuristicsHandler->CompleteClusterPreparation();
 			}
@@ -178,22 +180,11 @@ namespace PCGExClusterMT
 
 		void StartParallelLoopForNodes(const int32 PerLoopIterations = -1)
 		{
-			if (IsTrivial())
-			{
-				PrepareLoopScopesForNodes({PCGEx::H64(0, NumNodes)});
-				ProcessNodes(0, NumNodes, 0);
-				OnNodesProcessingComplete();
-				return;
-			}
-
-			const int32 PLI = GetDefault<UPCGExGlobalSettings>()->GetClusterBatchChunkSize(PerLoopIterations);
-
-			PCGEX_ASYNC_GROUP_CHKD_VOID(AsyncManager, ParallelLoopForNodes)
-			ParallelLoopForNodes->OnCompleteCallback = [&]() { OnNodesProcessingComplete(); };
-			ParallelLoopForNodes->OnIterationRangePrepareCallback = [&](const TArray<uint64>& Loops) { PrepareLoopScopesForNodes(Loops); };
-			ParallelLoopForNodes->OnIterationRangeStartCallback =
-				[&](const int32 StartIndex, const int32 Count, const int32 LoopIdx) { ProcessNodes(StartIndex, Count, LoopIdx); };
-			ParallelLoopForNodes->StartRangePrepareOnly(NumNodes, PLI, bInlineProcessNodes);
+			PCGEX_ASYNC_CLUSTER_PROCESSOR_LOOP(
+				FClusterProcessor, Nodes, NumNodes,
+				PrepareLoopScopesForNodes, ProcessNodes,
+				OnNodesProcessingComplete,
+				bInlineProcessNodes)
 		}
 
 		virtual void PrepareLoopScopesForNodes(const TArray<uint64>& Loops)
@@ -226,22 +217,11 @@ namespace PCGExClusterMT
 
 		void StartParallelLoopForEdges(const int32 PerLoopIterations = -1)
 		{
-			if (IsTrivial())
-			{
-				PrepareLoopScopesForEdges({PCGEx::H64(0, NumEdges)});
-				ProcessEdges(0, NumEdges, 0);
-				OnEdgesProcessingComplete();
-				return;
-			}
-
-			const int32 PLI = GetDefault<UPCGExGlobalSettings>()->GetClusterBatchChunkSize(PerLoopIterations);
-
-			PCGEX_ASYNC_GROUP_CHKD_VOID(AsyncManager, ParallelLoopForEdges)
-			ParallelLoopForEdges->OnCompleteCallback = [&]() { OnEdgesProcessingComplete(); };
-			ParallelLoopForEdges->OnIterationRangePrepareCallback = [&](const TArray<uint64>& Loops) { PrepareLoopScopesForEdges(Loops); };
-			ParallelLoopForEdges->OnIterationRangeStartCallback =
-				[&](const int32 StartIndex, const int32 Count, const int32 LoopIdx) { ProcessEdges(StartIndex, Count, LoopIdx); };
-			ParallelLoopForEdges->StartRangePrepareOnly(NumEdges, PLI, bInlineProcessEdges);
+			PCGEX_ASYNC_CLUSTER_PROCESSOR_LOOP(
+				FClusterProcessor, Edges, NumEdges,
+				PrepareLoopScopesForEdges, ProcessEdges,
+				OnEdgesProcessingComplete,
+				bInlineProcessEdges)
 		}
 
 		virtual void PrepareLoopScopesForEdges(const TArray<uint64>& Loops)
@@ -273,22 +253,11 @@ namespace PCGExClusterMT
 
 		void StartParallelLoopForRange(const int32 NumIterations, const int32 PerLoopIterations = -1)
 		{
-			if (IsTrivial())
-			{
-				PrepareLoopScopesForRanges({PCGEx::H64(0, NumIterations)});
-				ProcessRange(0, NumIterations, 0);
-				OnRangeProcessingComplete();
-				return;
-			}
-
-			const int32 PLI = GetDefault<UPCGExGlobalSettings>()->GetClusterBatchChunkSize(PerLoopIterations);
-
-			PCGEX_ASYNC_GROUP_CHKD_VOID(AsyncManager, ParallelLoopForRanges)
-			ParallelLoopForRanges->OnCompleteCallback = [&]() { OnRangeProcessingComplete(); };
-			ParallelLoopForRanges->OnIterationRangePrepareCallback = [&](const TArray<uint64>& Loops) { PrepareLoopScopesForRanges(Loops); };
-			ParallelLoopForRanges->OnIterationRangeStartCallback =
-				[&](const int32 StartIndex, const int32 Count, const int32 LoopIdx) { ProcessRange(StartIndex, Count, LoopIdx); };
-			ParallelLoopForRanges->StartRangePrepareOnly(NumIterations, PLI, bInlineProcessRange);
+			PCGEX_ASYNC_CLUSTER_PROCESSOR_LOOP(
+				FClusterProcessor, Ranges, NumIterations,
+				PrepareLoopScopesForRanges, ProcessRange,
+				OnRangeProcessingComplete,
+				bInlineProcessRange)
 		}
 
 		virtual void PrepareLoopScopesForRanges(const TArray<uint64>& Loops)
@@ -452,42 +421,49 @@ namespace PCGExClusterMT
 				if (!RawLookupAttribute) { return; } // FAIL
 
 				BuildEndpointLookupTask->OnCompleteCallback =
-					[&]()
+					[WeakThis = TWeakPtr<FClusterProcessorBatchBase>(SharedThis(this))]()
 					{
 						TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExGraph::BuildLookupTable::Complete);
 
-						const int32 Num = VtxDataFacade->GetNum();
-						EndpointsLookup.Reserve(Num);
-						for (int i = 0; i < Num; i++) { EndpointsLookup.Add(ReverseLookup[i], i); }
-						ReverseLookup.Empty();
+						const TSharedPtr<FClusterProcessorBatchBase> This = WeakThis.Pin();
+						if (!This) { return; }
 
-						if (RequiresGraphBuilder())
+						const int32 Num = This->VtxDataFacade->GetNum();
+						This->EndpointsLookup.Reserve(Num);
+						for (int i = 0; i < Num; i++) { This->EndpointsLookup.Add(This->ReverseLookup[i], i); }
+						This->ReverseLookup.Empty();
+
+						if (This->RequiresGraphBuilder())
 						{
-							GraphBuilder = MakeShared<PCGExGraph::FGraphBuilder>(VtxDataFacade, &GraphBuilderDetails, 6, EdgeCollection);
+							This->GraphBuilder = MakeShared<PCGExGraph::FGraphBuilder>(This->VtxDataFacade, &This->GraphBuilderDetails, 6, This->EdgeCollection);
 						}
 
-						OnProcessingPreparationComplete();
+						This->OnProcessingPreparationComplete();
 					};
 
-				BuildEndpointLookupTask->OnIterationRangeStartCallback =
-					[&](const int32 StartIndex, const int32 Count, const int32 LoopIdx)
+				BuildEndpointLookupTask->OnSubLoopStartCallback =
+					[WeakThis = TWeakPtr<FClusterProcessorBatchBase>(SharedThis(this))]
+					(const int32 StartIndex, const int32 Count, const int32 LoopIdx)
 					{
 						TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExGraph::BuildLookupTable::Range);
 
-						const TArray<FPCGPoint>& InKeys = VtxDataFacade->GetIn()->GetPoints();
+						const TSharedPtr<FClusterProcessorBatchBase> This = WeakThis.Pin();
+						if (!This) { return; }
+
+						const TArray<FPCGPoint>& InKeys = This->VtxDataFacade->GetIn()->GetPoints();
 
 						const int32 MaxIndex = StartIndex + Count;
 						for (int i = StartIndex; i < MaxIndex; i++)
 						{
 							uint32 A;
 							uint32 B;
-							PCGEx::H64(RawLookupAttribute->GetValueFromItemKey(InKeys[i].MetadataEntry), A, B);
+							PCGEx::H64(This->RawLookupAttribute->GetValueFromItemKey(InKeys[i].MetadataEntry), A, B);
 
-							ReverseLookup[i] = A;
-							ExpectedAdjacency[i] = B;
+							This->ReverseLookup[i] = A;
+							This->ExpectedAdjacency[i] = B;
 						}
 					};
-				BuildEndpointLookupTask->StartRangePrepareOnly(VtxDataFacade->GetNum(), 4096);
+				BuildEndpointLookupTask->StartSubLoops(VtxDataFacade->GetNum(), 4096);
 			}
 		}
 

@@ -4,7 +4,7 @@
 
 #include "PCGExMT.h"
 
-/*BUILD_TOOL_BUG_55_TOGGLE*/#include "CoreMinimal.h"
+///*BUILD_TOOL_BUG_55_TOGGLE*/#include "CoreMinimal.h"
 
 namespace PCGExMT
 {
@@ -124,7 +124,7 @@ namespace PCGExMT
 		if (MaxItems <= SanitizedChunkSize && bExecuteSmallSynchronously)
 		{
 			GrowNumStarted();
-			if (OnIterationRangePrepareCallback) { OnIterationRangePrepareCallback({PCGEx::H64(0, MaxItems)}); }
+			if (OnPrepareSubLoopsCallback) { OnPrepareSubLoopsCallback({PCGEx::H64(0, MaxItems)}); }
 			DoRangeIteration(0, MaxItems, 0);
 			GrowNumCompleted();
 			return;
@@ -134,7 +134,7 @@ namespace PCGExMT
 		{
 			TArray<uint64> Loops;
 			GrowNumStarted(SubRanges(Loops, MaxItems, SanitizedChunkSize));
-			if (OnIterationRangePrepareCallback) { OnIterationRangePrepareCallback(Loops); }
+			if (OnPrepareSubLoopsCallback) { OnPrepareSubLoopsCallback(Loops); }
 			InternalStartInlineRange<FGroupRangeInlineIterationTask>(0, Loops);
 		}
 		else
@@ -143,7 +143,7 @@ namespace PCGExMT
 		}
 	}
 
-	void FTaskGroup::StartRangePrepareOnly(const int32 MaxItems, const int32 ChunkSize, const bool bInline)
+	void FTaskGroup::StartSubLoops(const int32 MaxItems, const int32 ChunkSize, const bool bInline)
 	{
 		if (!IsAvailable()) { return; }
 
@@ -155,7 +155,7 @@ namespace PCGExMT
 		{
 			TArray<uint64> Loops;
 			GrowNumStarted(SubRanges(Loops, MaxItems, SanitizedChunkSize));
-			if (OnIterationRangePrepareCallback) { OnIterationRangePrepareCallback(Loops); }
+			if (OnPrepareSubLoopsCallback) { OnPrepareSubLoopsCallback(Loops); }
 			InternalStartInlineRange<FGroupPrepareRangeInlineTask>(0, Loops);
 		}
 		else { StartRanges<FGroupPrepareRangeTask>(MaxItems, SanitizedChunkSize, nullptr); }
@@ -202,7 +202,7 @@ namespace PCGExMT
 	void FTaskGroup::PrepareRangeIteration(const int32 StartIndex, const int32 Count, const int32 LoopIdx) const
 	{
 		if (!IsAvailable()) { return; }
-		if (OnIterationRangeStartCallback) { OnIterationRangeStartCallback(StartIndex, Count, LoopIdx); }
+		if (OnSubLoopStartCallback) { OnSubLoopStartCallback(StartIndex, Count, LoopIdx); }
 	}
 
 	void FTaskGroup::DoRangeIteration(const int32 StartIndex, const int32 Count, const int32 LoopIdx) const

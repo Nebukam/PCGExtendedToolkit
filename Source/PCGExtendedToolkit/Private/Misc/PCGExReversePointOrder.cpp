@@ -80,7 +80,7 @@ namespace PCGExReversePointOrder
 
 		PCGEX_ASYNC_GROUP_CHKD(AsyncManager, FetchWritersTask)
 		FetchWritersTask->OnCompleteCallback = [&]() { StartParallelLoopForPoints(); };
-		FetchWritersTask->OnIterationRangeStartCallback =
+		FetchWritersTask->OnSubLoopStartCallback =
 			[&](const int32 StartIndex, const int32 Count, const int32 LoopIdx)
 			{
 				TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExAttributeRemap::FetchWriters);
@@ -96,7 +96,7 @@ namespace PCGExReversePointOrder
 					});
 			};
 
-		FetchWritersTask->StartRangePrepareOnly(SwapPairs.Num(), 1);
+		FetchWritersTask->StartSubLoops(SwapPairs.Num(), 1);
 
 		return true;
 	}

@@ -161,7 +161,7 @@ namespace PCGExAttributeRemap
 				OnPreparationComplete();
 			};
 
-		FetchTask->OnIterationRangePrepareCallback =
+		FetchTask->OnPrepareSubLoopsCallback =
 			[&](const TArray<uint64>& Loops)
 			{
 				for (FPCGExComponentRemapRule& Rule : Rules)
@@ -171,7 +171,7 @@ namespace PCGExAttributeRemap
 				}
 			};
 
-		FetchTask->OnIterationRangeStartCallback =
+		FetchTask->OnSubLoopStartCallback =
 			[&](const int32 StartIndex, const int32 Count, const int32 LoopIdx)
 			{
 				TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExAttributeRemap::Fetch);
@@ -227,7 +227,7 @@ namespace PCGExAttributeRemap
 					});
 			};
 
-		FetchTask->StartRangePrepareOnly(PointDataFacade->GetNum(), GetDefault<UPCGExGlobalSettings>()->GetPointsBatchChunkSize());
+		FetchTask->StartSubLoops(PointDataFacade->GetNum(), GetDefault<UPCGExGlobalSettings>()->GetPointsBatchChunkSize());
 
 		return true;
 	}
@@ -235,17 +235,21 @@ namespace PCGExAttributeRemap
 	void FProcessor::OnPreparationComplete()
 	{
 		PCGEX_ASYNC_GROUP_CHKD_VOID(AsyncManager, RemapTask)
-		RemapTask->OnIterationRangeStartCallback =
-			[&](const int32 StartIndex, const int32 Count, const int32 LoopIdx)
+		RemapTask->OnSubLoopStartCallback =
+			[WeakThis = TWeakPtr<FProcessor>(SharedThis(this))]
+			(const int32 StartIndex, const int32 Count, const int32 LoopIdx)
 			{
+				TSharedPtr<FProcessor> This = WeakThis.Pin();
+				if (!This) { return; }
+
 				PCGMetadataAttribute::CallbackWithRightType(
-					static_cast<uint16>(UnderlyingType), [&](auto DummyValue) -> void
+					static_cast<uint16>(This->UnderlyingType), [&](auto DummyValue) -> void
 					{
-						RemapRange(StartIndex, Count, DummyValue);
+						This->RemapRange(StartIndex, Count, DummyValue);
 					});
 			};
 
-		RemapTask->StartRangePrepareOnly(PointDataFacade->GetNum(), GetDefault<UPCGExGlobalSettings>()->GetPointsBatchChunkSize());
+		RemapTask->StartSubLoops(PointDataFacade->GetNum(), GetDefault<UPCGExGlobalSettings>()->GetPointsBatchChunkSize());
 	}
 
 	void FProcessor::CompleteWork()
