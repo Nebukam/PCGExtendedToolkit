@@ -45,8 +45,7 @@ public:
 
 	/** Point transform */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
-	FPCGExTransformDetails TransformDetails;
-
+	FPCGExTransformDetails TransformDetails = FPCGExTransformDetails(false);
 
 	/** Sample inputs.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta=(PCG_Overridable))

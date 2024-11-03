@@ -8,7 +8,7 @@
 void UPCGExHeuristicDistance::PrepareForCluster(const TSharedPtr<const PCGExCluster::FCluster>& InCluster)
 {
 	Super::PrepareForCluster(InCluster);
-	MaxDistSquared = FVector::DistSquared(InCluster->Bounds.Min, InCluster->Bounds.Max);
+	BoundsSize = InCluster->Bounds.GetSize().Length();
 }
 
 UPCGExHeuristicOperation* UPCGExHeuristicsFactoryShortestDistance::CreateOperation(FPCGExContext* InContext) const

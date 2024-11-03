@@ -111,7 +111,11 @@ namespace PCGExData
 		{
 			PCGEX_LOG_CTR(FPointIO)
 			RootIO = InPointIO;
-			Tags = MakeShared<FTags>(InPointIO->Tags);
+
+			TSet<FString> TagDump;
+			InPointIO->Tags->DumpTo(TagDump); // Not ideal.
+			
+			Tags = MakeShared<FTags>(TagDump);
 		}
 
 		FPCGExContext* GetContext() const { return Context; }

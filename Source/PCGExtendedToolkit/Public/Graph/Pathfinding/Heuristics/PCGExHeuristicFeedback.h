@@ -23,17 +23,21 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExHeuristicConfigFeedback : public FPCGExH
 	{
 	}
 
-	/** Weight to add to points that are already part of the plotted path. This is a multplier of the Reference Weight.*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	/** Weight to add to points that are already part of the plotted path. This is used to sample the weight curve.*/
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ClampMin=0, ClampMax=1))
 	double VisitedPointsWeightFactor = 1;
 
-	/** Weight to add to edges that are already part of the plotted path. This is a multplier of the Reference Weight.*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	/** Weight to add to edges that are already part of the plotted path. This is used to sample the weight curve.*/
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ClampMin=0, ClampMax=1))
 	double VisitedEdgesWeightFactor = 1;
 
 	/** Global feedback weight persist between path query in a single pathfinding node.  IMPORTANT NOTE: This break parallelism, and may be slower.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	bool bGlobalFeedback = false;
+
+	/** */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	bool bAffectAllConnectedEdges = true;
 };
 
 /**
@@ -44,24 +48,22 @@ class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExHeuristicFeedback : public UPCGExHeuristi
 {
 	GENERATED_BODY()
 
-	TMap<int32, double> NodeExtraWeight;
-	TMap<int32, double> EdgeExtraWeight;
-
-	double MaxNodeWeight = 0;
-	double MaxEdgeWeight = 0;
+	mutable FRWLock FeedbackLock;
+	TMap<int32, uint32> NodeFeedbackNum;
+	TMap<int32, uint32> EdgeFeedbackNum;
 
 public:
 	double NodeScale = 1;
 	double EdgeScale = 1;
-
-	virtual void PrepareForCluster(const TSharedPtr<const PCGExCluster::FCluster>& InCluster) override;
+	bool bBleed = true;
 
 	FORCEINLINE virtual double GetGlobalScore(
 		const PCGExCluster::FNode& From,
 		const PCGExCluster::FNode& Seed,
 		const PCGExCluster::FNode& Goal) const override
 	{
-		return NodeExtraWeight[From.NodeIndex];
+		const uint32* N = NodeFeedbackNum.Find(From.NodeIndex);
+		return N ? GetScoreInternal(NodeScale) * *N : GetScoreInternal(0);
 	}
 
 	FORCEINLINE virtual double GetEdgeScore(
@@ -72,24 +74,48 @@ public:
 		const PCGExCluster::FNode& Goal,
 		const TArray<uint64>* TravelStack) const override
 	{
-		const double* NodePtr = NodeExtraWeight.Find(To.NodeIndex);
-		const double* EdgePtr = EdgeExtraWeight.Find(Edge.EdgeIndex);
+		const uint32* N = NodeFeedbackNum.Find(To.NodeIndex);
+		const uint32* E = EdgeFeedbackNum.Find(Edge.EdgeIndex);
 
-		return ((NodePtr ? SampleCurve(*NodePtr / MaxNodeWeight) * ReferenceWeight : 0) + (EdgePtr ? SampleCurve(*EdgePtr / MaxEdgeWeight) * ReferenceWeight : 0));
+		const double NW = N ? GetScoreInternal(NodeScale) * *N : GetScoreInternal(0);
+		const double EW = E ? GetScoreInternal(EdgeScale) * *E : GetScoreInternal(0);
+
+		return (NW + EW);
 	}
 
 	FORCEINLINE void FeedbackPointScore(const PCGExCluster::FNode& Node)
 	{
-		double& NodeWeight = NodeExtraWeight.FindOrAdd(Node.PointIndex);
-		MaxNodeWeight = FMath::Max(MaxNodeWeight, NodeWeight += ReferenceWeight * NodeScale);
+		uint32& N = NodeFeedbackNum.FindOrAdd(Node.NodeIndex, 0);
+		N++;
+
+		if (bBleed)
+		{
+			for (const uint64 AdjacencyHash : Node.Adjacency)
+			{
+				uint32& E = EdgeFeedbackNum.FindOrAdd(PCGEx::H64B(AdjacencyHash), 0);
+				E++;
+			}
+		}
 	}
 
 	FORCEINLINE void FeedbackScore(const PCGExCluster::FNode& Node, const PCGExGraph::FIndexedEdge& Edge)
 	{
-		double& NodeWeight = NodeExtraWeight.FindOrAdd(Node.PointIndex);
-		double& EdgeWeight = NodeExtraWeight.FindOrAdd(Edge.EdgeIndex);
-		MaxNodeWeight = FMath::Max(MaxNodeWeight, NodeWeight += ReferenceWeight * NodeScale);
-		MaxEdgeWeight = FMath::Max(MaxEdgeWeight, EdgeWeight += ReferenceWeight * EdgeScale);
+		uint32& N = NodeFeedbackNum.FindOrAdd(Node.NodeIndex, 0);
+		N++;
+
+		if (bBleed)
+		{
+			for (const uint64 AdjacencyHash : Node.Adjacency)
+			{
+				uint32& E = EdgeFeedbackNum.FindOrAdd(PCGEx::H64B(AdjacencyHash), 0);
+				E++;
+			}
+		}
+		else
+		{
+			uint32& E = EdgeFeedbackNum.FindOrAdd(Edge.EdgeIndex, 0);
+			E++;
+		}
 	}
 
 	virtual void Cleanup() override;

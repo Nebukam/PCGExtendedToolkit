@@ -204,16 +204,6 @@ bool FPCGExEdgesProcessorContext::CompileGraphBuilders(const bool bOutputToConte
 	return true;
 }
 
-bool FPCGExEdgesProcessorContext::HasValidHeuristics() const
-{
-	TArray<TObjectPtr<const UPCGExParamFactoryBase>> InputFactories;
-	const bool bFoundAny = PCGExFactories::GetInputFactories(
-		this, PCGExGraph::SourceHeuristicsLabel, InputFactories,
-		{PCGExFactories::EType::Heuristics}, false);
-	InputFactories.Empty();
-	return bFoundAny;
-}
-
 void FPCGExEdgesProcessorContext::AdvanceBatch(const PCGEx::AsyncState NextStateId, const bool bIsNextStateAsync)
 {
 	CurrentBatchIndex++;
@@ -269,8 +259,10 @@ bool FPCGExEdgesProcessorElement::Boot(FPCGExContext* InContext) const
 
 	PCGEX_CONTEXT_AND_SETTINGS(EdgesProcessor)
 
-	Context->bHasValidHeuristics = Context->HasValidHeuristics();
-
+	Context->bHasValidHeuristics = PCGExFactories::GetInputFactories(
+		Context, PCGExGraph::SourceHeuristicsLabel, Context->HeuristicsFactories,
+		{PCGExFactories::EType::Heuristics}, false);
+	
 	Context->InputDictionary = MakeShared<PCGExData::FPointIOTaggedDictionary>(PCGExGraph::TagStr_ClusterPair);
 
 	TArray<TSharedPtr<PCGExData::FPointIO>> TaggedVtx;

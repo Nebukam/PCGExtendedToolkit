@@ -115,7 +115,7 @@ namespace PCGExAssetStaging
 		bool bOneMinusWeight = false;
 		bool bNormalizedWeight = false;
 
-		FPCGExJustificationDetails Justification;
+		FPCGExFittingDetailsHandler FittingHandler;
 		FPCGExFittingVariationsDetails Variations;
 
 		TUniquePtr<PCGExAssetCollection::TDistributionHelper<UPCGExAssetCollection, FPCGExAssetCollectionEntry>> Helper;

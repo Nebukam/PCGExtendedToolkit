@@ -79,14 +79,16 @@ namespace PCGExData
 			if (InTags) { Append(InTags.ToSharedRef()); }
 		}
 
-		void Dump(TSet<FString>& InTags) const
+		void DumpTo(TSet<FString>& InTags) const
 		{
+			FReadScopeLock ReadScopeLock(TagsLock);
 			InTags.Append(RawTags);
 			for (const TPair<FString, FString>& Tag : Tags) { InTags.Add((Tag.Key + TagSeparator + Tag.Value)); }
 		}
 
-		void Dump(TArray<FName>& InTags) const
+		void DumpTo(TArray<FName>& InTags) const
 		{
+			FReadScopeLock ReadScopeLock(TagsLock);
 			TArray<FName> NameDump = ToFNameList();
 			InTags.Reserve(InTags.Num() + NameDump.Num());
 			InTags.Append(NameDump);
@@ -150,6 +152,7 @@ namespace PCGExData
 
 		bool GetValue(const FString& Key, FString& OutValue)
 		{
+			FReadScopeLock ReadScopeLock(TagsLock);
 			if (FString* Value = Tags.Find(Key))
 			{
 				OutValue = *Value;
@@ -177,9 +180,22 @@ namespace PCGExData
 			GetOrSet(Key, OutValue);
 		}
 
-		bool IsTagged(const FString& Key) const { return Tags.Contains(Key) || RawTags.Contains(Key); }
-		bool IsTagged(const FString& Key, const FString& Value) const { return RawTags.Contains(Key + TagSeparator + Value); }
-		bool IsTagged(const FString& Key, const uint32 Value) const { return IsTagged(Key, FString::Printf(TEXT("%u"), Value)); }
+		bool IsTagged(const FString& Key) const
+		{
+			FReadScopeLock ReadScopeLock(TagsLock);	
+			return Tags.Contains(Key) || RawTags.Contains(Key);
+		}
+		
+		bool IsTagged(const FString& Key, const FString& Value) const
+		{
+			FReadScopeLock ReadScopeLock(TagsLock);
+			return RawTags.Contains(Key + TagSeparator + Value);
+		}
+		
+		bool IsTagged(const FString& Key, const uint32 Value) const
+		{
+			return IsTagged(Key, FString::Printf(TEXT("%u"), Value));
+		}
 
 	protected:
 		// NAME::VALUE

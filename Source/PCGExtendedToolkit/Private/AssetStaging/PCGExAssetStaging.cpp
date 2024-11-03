@@ -135,8 +135,10 @@ namespace PCGExAssetStaging
 
 		if (!FPointsProcessor::Process(InAsyncManager)) { return false; }
 
-		Justification = Settings->Justification;
-		Justification.Init(ExecutionContext, PointDataFacade);
+		FittingHandler.ScaleToFit = Settings->ScaleToFit;
+		FittingHandler.Justification = Settings->Justification;
+
+		if (!FittingHandler.Init(ExecutionContext, PointDataFacade)) { return false; }
 
 		Variations = Settings->Variations;
 		Variations.Init(Settings->Seed);
@@ -237,23 +239,14 @@ namespace PCGExAssetStaging
 
 		if (Variations.bEnabledBefore) { Variations.Apply(Point, Entry->Variations, EPCGExVariationMode::Before); }
 
-		const FBox& StBox = Entry->Staging.Bounds;
-		FVector OutScale = Point.Transform.GetScale3D();
-		const FBox InBounds = FBox(Point.BoundsMin * OutScale, Point.BoundsMax * OutScale);
-		FBox OutBounds = StBox;
+		FTransform OutTransform = Point.Transform;
+		FBox OutBounds = Entry->Staging.Bounds;
 
-		Settings->ScaleToFit.Process(Point, Entry->Staging.Bounds, OutScale, OutBounds);
+		FittingHandler.ComputeTransform(Index, OutTransform, OutBounds);
 
 		Point.BoundsMin = OutBounds.Min;
 		Point.BoundsMax = OutBounds.Max;
-
-		FVector OutTranslation = FVector::ZeroVector;
-		OutBounds = FBox(OutBounds.Min * OutScale, OutBounds.Max * OutScale);
-
-		Justification.Process(Index, InBounds, OutBounds, OutTranslation);
-
-		Point.Transform.AddToTranslation(Point.Transform.GetRotation().RotateVector(OutTranslation));
-		Point.Transform.SetScale3D(OutScale);
+		Point.Transform = OutTransform;
 
 		if (Variations.bEnabledAfter) { Variations.Apply(Point, Entry->Variations, EPCGExVariationMode::After); }
 	}

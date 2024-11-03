@@ -28,10 +28,18 @@ bool FPCGExCopyClustersToPointsElement::Boot(FPCGExContext* InContext) const
 
 	PCGEX_CONTEXT_AND_SETTINGS(CopyClustersToPoints)
 
-	PCGEX_FWD(TransformDetails)
+	const TSharedPtr<PCGExData::FPointIO> Targets = PCGExData::TryGetSingleInput(Context, PCGEx::SourceTargetsLabel, true);
+	if (!Targets) { return false; }
 
-	Context->Targets = PCGExData::TryGetSingleInput(Context, PCGEx::SourceTargetsLabel, true);
-	if (!Context->Targets) { return false; }
+	Context->TargetsDataFacade = MakeShared<PCGExData::FFacade>(Targets.ToSharedRef());
+
+	PCGEX_FWD(TransformDetails)
+	if (!Context->TransformDetails.Init(Context, Context->TargetsDataFacade.ToSharedRef())) { return false; }
+
+	PCGEX_FWD(TargetsAttributesToPathTags)
+	if (!Context->TargetsAttributesToPathTags.Init(Context, Context->TargetsDataFacade)) { return false; }
+
+	Context->TargetsForwardHandler = Settings->TargetsForwarding.GetHandler(Context->TargetsDataFacade);
 
 	return true;
 }
@@ -72,7 +80,7 @@ namespace PCGExCopyClusters
 	{
 		if (!FClusterProcessor::Process(InAsyncManager)) { return false; }
 
-		const TArray<FPCGPoint>& Targets = Context->Targets->GetIn()->GetPoints();
+		const TArray<FPCGPoint>& Targets = Context->TargetsDataFacade->GetIn()->GetPoints();
 		const int32 NumTargets = Targets.Num();
 
 		PCGEx::InitArray(EdgesDupes, NumTargets);
@@ -85,7 +93,7 @@ namespace PCGExCopyClusters
 			EdgesDupes[i] = EdgeDupe;
 			PCGExGraph::MarkClusterEdges(EdgeDupe, *(VtxTag->GetData() + i));
 
-			AsyncManager->Start<PCGExGeoTasks::FTransformPointIO>(i, Context->Targets, EdgeDupe, &Context->TransformDetails);
+			AsyncManager->Start<PCGExGeoTasks::FTransformPointIO>(i, Context->TargetsDataFacade->Source, EdgeDupe, &Context->TransformDetails);
 		}
 
 		return true;
@@ -93,13 +101,21 @@ namespace PCGExCopyClusters
 
 	void FProcessor::CompleteWork()
 	{
+		const TArray<FPCGPoint>& Targets = Context->TargetsDataFacade->GetIn()->GetPoints();
+		const int32 NumTargets = Targets.Num();
+
 		// Once work is complete, check if there are cached clusters we can forward
 		const TSharedPtr<PCGExCluster::FCluster> CachedCluster = PCGExClusterData::TryGetCachedCluster(VtxDataFacade->Source, EdgeDataFacade->Source);
 
-		if (!CachedCluster) { return; }
+		for (int i = 0; i < NumTargets; i++)
+		{
+			TSharedPtr<PCGExData::FPointIO> EdgeDupe = EdgesDupes[i];
 
-		const TArray<FPCGPoint>& Targets = Context->Targets->GetIn()->GetPoints();
-		const int32 NumTargets = Targets.Num();
+			Context->TargetsAttributesToPathTags.Tag(i, EdgeDupe);
+			Context->TargetsForwardHandler->Forward(i, EdgeDupe->GetOut()->Metadata);
+		}
+
+		if (!CachedCluster) { return; }
 
 		for (int i = 0; i < NumTargets; i++)
 		{
@@ -111,7 +127,7 @@ namespace PCGExCopyClusters
 			{
 				EdgeDupeTypedData->SetBoundCluster(
 					MakeShared<PCGExCluster::FCluster>(
-						CachedCluster.ToSharedRef(), VtxDupe, EdgeDupe, nullptr,
+						CachedCluster.ToSharedRef(), VtxDupe, EdgeDupe, CachedCluster->NodeIndexLookup,
 						false, false, false));
 			}
 		}
@@ -125,7 +141,7 @@ namespace PCGExCopyClusters
 	{
 		PCGEX_TYPED_CONTEXT_AND_SETTINGS(CopyClustersToPoints)
 
-		const TArray<FPCGPoint>& Targets = Context->Targets->GetIn()->GetPoints();
+		const TArray<FPCGPoint>& Targets = Context->TargetsDataFacade->GetIn()->GetPoints();
 		const int32 NumTargets = Targets.Num();
 
 		PCGEx::InitArray(VtxDupes, NumTargets);
@@ -142,7 +158,10 @@ namespace PCGExCopyClusters
 			VtxDupes[i] = VtxDupe;
 			VtxTag.Add(OutId);
 
-			AsyncManager->Start<PCGExGeoTasks::FTransformPointIO>(i, Context->Targets, VtxDupe, &Context->TransformDetails);
+			AsyncManager->Start<PCGExGeoTasks::FTransformPointIO>(i, Context->TargetsDataFacade->Source, VtxDupe, &Context->TransformDetails);
+
+			Context->TargetsAttributesToPathTags.Tag(i, VtxDupe);
+			Context->TargetsForwardHandler->Forward(i, VtxDupe->GetOut()->Metadata);
 		}
 
 		TBatch<FProcessor>::Process();

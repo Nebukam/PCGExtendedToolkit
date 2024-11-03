@@ -132,4 +132,29 @@ namespace PCGExData
 				});
 		}
 	}
+
+	void FDataForwardHandler::Forward(const int32 SourceIndex, UPCGMetadata* InTargetMetadata)
+	{
+		if (Identities.IsEmpty()) { return; }
+
+		for (const PCGEx::FAttributeIdentity& Identity : Identities)
+		{
+			PCGMetadataAttribute::CallbackWithRightType(
+				static_cast<uint16>(Identity.UnderlyingType), [&](auto DummyValue)
+				{
+					using T = decltype(DummyValue);
+
+					// 'template' spec required for clang on mac, not sure why.
+					// ReSharper disable once CppRedundantTemplateKeyword
+					const FPCGMetadataAttribute<T>* SourceAtt = SourceDataFacade->GetIn()->Metadata->template GetConstTypedAttribute<T>(Identity.Name);
+					if (!SourceAtt) { return; }
+
+					InTargetMetadata->DeleteAttribute(Identity.Name);
+					FPCGMetadataAttribute<T>* Mark = InTargetMetadata->FindOrCreateAttribute<T>(
+						Identity.Name,
+						SourceAtt->GetValueFromItemKey(SourceDataFacade->Source->GetInPoint(SourceIndex).MetadataEntry),
+						SourceAtt->AllowsInterpolation(), true, true);
+				});
+		}
+	}
 }

@@ -407,20 +407,6 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExFuseDetails : public FPCGExSourceFuseDet
 };
 
 USTRUCT(BlueprintType)
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExTransformDetails
-{
-	GENERATED_BODY()
-
-	/** If enabled, copied point will be scaled by the target' scale. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
-	bool bInheritScale = false;
-
-	/** If enabled, copied points will be rotated by the target' rotation. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
-	bool bInheritRotation = false;
-};
-
-USTRUCT(BlueprintType)
 struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExCollisionDetails
 {
 	GENERATED_BODY()

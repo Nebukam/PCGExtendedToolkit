@@ -6,6 +6,7 @@
 #include "CoreMinimal.h"
 #include "PCGExCluster.h"
 #include "PCGExEdgesProcessor.h"
+#include "Data/PCGExDataForward.h"
 
 
 #include "PCGExCopyClustersToPoints.generated.h"
@@ -34,8 +35,16 @@ public:
 	//~End UPCGExEdgesProcessorSettings interface
 
 	/** Target inherit behavior */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, ShowOnlyInnerProperties))
 	FPCGExTransformDetails TransformDetails;
+
+	/** TBD */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging & Forwarding")
+	FPCGExAttributeToTagDetails TargetsAttributesToPathTags;
+
+	/** Which Seed attributes to forward on paths. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging & Forwarding")
+	FPCGExForwardDetails TargetsForwarding;
 };
 
 struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExCopyClustersToPointsContext final : FPCGExEdgesProcessorContext
@@ -45,7 +54,10 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExCopyClustersToPointsContext final : FPCG
 
 	FPCGExTransformDetails TransformDetails;
 
-	TSharedPtr<PCGExData::FPointIO> Targets;
+	TSharedPtr<PCGExData::FFacade> TargetsDataFacade;
+
+	FPCGExAttributeToTagDetails TargetsAttributesToPathTags;
+	TSharedPtr<PCGExData::FDataForwardHandler> TargetsForwardHandler;
 };
 
 class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExCopyClustersToPointsElement final : public FPCGExEdgesProcessorElement

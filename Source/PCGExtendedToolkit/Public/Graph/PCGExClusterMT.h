@@ -54,6 +54,7 @@ namespace PCGExClusterMT
 		FPCGExContext* ExecutionContext = nullptr;
 
 
+		const TArray<TObjectPtr<const UPCGExHeuristicsFactoryBase>>* HeuristicsFactories = nullptr;
 		FPCGExEdgeDirectionSettings DirectionSettings;
 
 		bool bBuildCluster = true;
@@ -94,7 +95,7 @@ namespace PCGExClusterMT
 
 		bool bIsProcessorValid = false;
 
-		TSharedPtr<PCGExHeuristics::THeuristicsHandler> HeuristicsHandler;
+		TSharedPtr<PCGExHeuristics::FHeuristicsHandler> HeuristicsHandler;
 
 		bool bIsTrivial = false;
 		bool bIsOneToOne = false;
@@ -127,7 +128,11 @@ namespace PCGExClusterMT
 
 		bool IsTrivial() const { return bIsTrivial; }
 
-		void SetRequiresHeuristics(const bool bRequired = false) { bRequiresHeuristics = bRequired; }
+		void SetRequiresHeuristics(const bool bRequired, const TArray<TObjectPtr<const UPCGExHeuristicsFactoryBase>>* InHeuristicsFactories)
+		{
+			HeuristicsFactories = InHeuristicsFactories;
+			bRequiresHeuristics = bRequired;
+		}
 
 		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager> InAsyncManager)
 		{
@@ -158,7 +163,10 @@ namespace PCGExClusterMT
 			if (bRequiresHeuristics)
 			{
 				TRACE_CPUPROFILER_EVENT_SCOPE(FClusterProcessor::Heuristics);
-				HeuristicsHandler = MakeShared<PCGExHeuristics::THeuristicsHandler>(ExecutionContext, VtxDataFacade, EdgeDataFacade);
+				HeuristicsHandler = MakeShared<PCGExHeuristics::FHeuristicsHandler>(ExecutionContext, VtxDataFacade, EdgeDataFacade, *HeuristicsFactories);
+
+				if (!HeuristicsHandler->IsValidHandler()) { return false; }
+				
 				HeuristicsHandler->PrepareForCluster(Cluster);
 				HeuristicsHandler->CompleteClusterPreparation();
 			}
@@ -371,6 +379,7 @@ namespace PCGExClusterMT
 	public:
 		bool bIsBatchValid = true;
 		FPCGExContext* ExecutionContext = nullptr;
+		const TArray<TObjectPtr<const UPCGExHeuristicsFactoryBase>>* HeuristicsFactories = nullptr;
 
 		const TSharedRef<PCGExData::FFacade> VtxDataFacade;
 		bool bAllowVtxDataFacadeScopedGet = false;
@@ -391,7 +400,7 @@ namespace PCGExClusterMT
 		bool PreparationSuccessful() const { return bPreparationSuccessful; }
 		bool RequiresGraphBuilder() const { return bRequiresGraphBuilder; }
 		bool RequiresHeuristics() const { return bRequiresHeuristics; }
-		virtual void SetRequiresHeuristics(const bool bRequired = false) { bRequiresHeuristics = bRequired; }
+		virtual void SetRequiresHeuristics(const bool bRequired) { bRequiresHeuristics = bRequired; }
 
 		bool bInlineProcessing = false;
 		bool bInlineCompletion = false;
@@ -601,7 +610,7 @@ namespace PCGExClusterMT
 				NewProcessor->BatchIndex = Processors.Num();
 
 				if (RequiresGraphBuilder()) { NewProcessor->GraphBuilder = GraphBuilder; }
-				NewProcessor->SetRequiresHeuristics(RequiresHeuristics());
+				NewProcessor->SetRequiresHeuristics(RequiresHeuristics(), HeuristicsFactories);
 
 				if (!PrepareSingle(NewProcessor)) { continue; }
 				Processors.Add(NewProcessor.ToSharedRef());

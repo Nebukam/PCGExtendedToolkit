@@ -212,7 +212,7 @@ namespace PCGExCreateSpline
 			const EObjectFlags ObjectFlags = (bIsPreviewMode ? RF_Transient : RF_NoFlags);
 			USplineComponent* SplineComponent = NewObject<USplineComponent>(SplineActor, MakeUniqueObjectName(SplineActor, USplineComponent::StaticClass(), FName(ComponentName)), ObjectFlags);
 
-			PointDataFacade->Source->Tags->Dump(SplineComponent->ComponentTags);
+			PointDataFacade->Source->Tags->DumpTo(SplineComponent->ComponentTags);
 
 			SplineData->ApplyTo(SplineComponent);
 

@@ -16,7 +16,7 @@ void UPCGExSearchDijkstra::CopySettingsFrom(const UPCGExOperation* Other)
 
 bool UPCGExSearchDijkstra::ResolveQuery(
 	const TSharedPtr<PCGExPathfinding::FPathQuery>& InQuery,
-	const TSharedPtr<PCGExHeuristics::THeuristicsHandler>& Heuristics,
+	const TSharedPtr<PCGExHeuristics::FHeuristicsHandler>& Heuristics,
 	const TSharedPtr<PCGExHeuristics::FLocalFeedbackHandler>& LocalFeedback) const
 {
 	const TArray<PCGExCluster::FNode>& NodesRef = *Cluster->Nodes;
@@ -40,8 +40,6 @@ bool UPCGExSearchDijkstra::ResolveQuery(
 	const TUniquePtr<PCGExSearch::TScoredQueue> ScoredQueue = MakeUnique<PCGExSearch::TScoredQueue>(
 		NumNodes, SeedNode.NodeIndex, 0);
 
-	ScoredQueue->Scores[SeedNode.NodeIndex] = 0;
-
 	const PCGExHeuristics::FLocalFeedbackHandler* Feedback = LocalFeedback.Get();
 
 	int32 VisitedNum = 0;
@@ -49,7 +47,7 @@ bool UPCGExSearchDijkstra::ResolveQuery(
 	double CurrentScore;
 	while (ScoredQueue->Dequeue(CurrentNodeIndex, CurrentScore))
 	{
-		if (CurrentNodeIndex == GoalNode.NodeIndex) { break; } // Exit early
+		if (CurrentNodeIndex == GoalNode.NodeIndex && bEarlyExit) { break; } // Exit early
 
 		const PCGExCluster::FNode& Current = NodesRef[CurrentNodeIndex];
 
@@ -69,11 +67,10 @@ bool UPCGExSearchDijkstra::ResolveQuery(
 			const PCGExGraph::FIndexedEdge& Edge = EdgesRef[EdgeIndex];
 
 			const double AltScore = CurrentScore + Heuristics->GetEdgeScore(Current, AdjacentNode, Edge, SeedNode, GoalNode, Feedback, &TravelStack);
-			const double PreviousScore = ScoredQueue->Scores[NeighborIndex];
-			if (PreviousScore != -1 && AltScore >= PreviousScore) { continue; }
-
-			ScoredQueue->Enqueue(NeighborIndex, AltScore);
-			TravelStack[NeighborIndex] = PCGEx::NH64(CurrentNodeIndex, EdgeIndex);
+			if (ScoredQueue->Enqueue(NeighborIndex, AltScore))
+			{
+				TravelStack[NeighborIndex] = PCGEx::NH64(CurrentNodeIndex, EdgeIndex);
+			}
 		}
 	}
 
@@ -85,7 +82,9 @@ bool UPCGExSearchDijkstra::ResolveQuery(
 	if (PathNodeIndex != -1)
 	{
 		bSuccess = true;
-		InQuery->Reserve(VisitedNum);
+		//InQuery->Reserve(VisitedNum);
+
+		InQuery->AddPathNode(GoalNode.NodeIndex);
 
 		while (PathNodeIndex != -1)
 		{

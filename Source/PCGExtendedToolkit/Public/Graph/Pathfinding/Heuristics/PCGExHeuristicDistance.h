@@ -39,7 +39,7 @@ public:
 		const PCGExCluster::FNode& Seed,
 		const PCGExCluster::FNode& Goal) const override
 	{
-		return SampleCurve(Cluster->GetDistSquared(From, Goal) / MaxDistSquared) * ReferenceWeight;
+		return GetScoreInternal(Cluster->GetDist(From, Goal) / BoundsSize);
 	}
 
 	FORCEINLINE virtual double GetEdgeScore(
@@ -50,11 +50,11 @@ public:
 		const PCGExCluster::FNode& Goal,
 		const TArray<uint64>* TravelStack) const override
 	{
-		return SampleCurve((*Cluster->EdgeLengths)[Edge.EdgeIndex]) * ReferenceWeight;
+		return GetScoreInternal((*Cluster->EdgeLengths)[Edge.EdgeIndex]);
 	}
 
 protected:
-	double MaxDistSquared = 0;
+	double BoundsSize = 0;
 };
 
 ////

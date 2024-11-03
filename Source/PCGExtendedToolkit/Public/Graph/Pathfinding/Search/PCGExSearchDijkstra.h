@@ -24,5 +24,9 @@ public:
 
 	virtual bool ResolveQuery(
 		const TSharedPtr<PCGExPathfinding::FPathQuery>& InQuery,
-		const TSharedPtr<PCGExHeuristics::THeuristicsHandler>& Heuristics, const TSharedPtr<PCGExHeuristics::FLocalFeedbackHandler>& LocalFeedback) const override;
+		const TSharedPtr<PCGExHeuristics::FHeuristicsHandler>& Heuristics, const TSharedPtr<PCGExHeuristics::FLocalFeedbackHandler>& LocalFeedback) const override;
+
+	/** Early exit */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	bool bEarlyExit = true;
 };

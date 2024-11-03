@@ -17,7 +17,7 @@ void UPCGExSearchOperation::PrepareForCluster(PCGExCluster::FCluster* InCluster)
 
 bool UPCGExSearchOperation::ResolveQuery(
 	const TSharedPtr<PCGExPathfinding::FPathQuery>& InQuery,
-	const TSharedPtr<PCGExHeuristics::THeuristicsHandler>& Heuristics, const TSharedPtr<PCGExHeuristics::FLocalFeedbackHandler>& LocalFeedback) const
+	const TSharedPtr<PCGExHeuristics::FHeuristicsHandler>& Heuristics, const TSharedPtr<PCGExHeuristics::FLocalFeedbackHandler>& LocalFeedback) const
 {
 	return false;
 }

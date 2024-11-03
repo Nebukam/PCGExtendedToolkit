@@ -13,7 +13,7 @@ namespace PCGExSearch
 			double Score = 0;
 
 			/** Creates and initializes a new node. */
-			explicit FScoredNode(const int32& InItem, const double InScore)
+			explicit FScoredNode(const int32 InItem, const double InScore)
 				: Id(InItem), Score(InScore)
 			{
 			}
@@ -36,7 +36,7 @@ namespace PCGExSearch
 
 		TScoredQueue(const int32 Size, const int32& Item, const double Score)
 		{
-			Scores.Init(-1, Size);
+			Scores.Init(MAX_dbl, Size);
 			Enqueue(Item, Score);
 		}
 
@@ -46,10 +46,14 @@ namespace PCGExSearch
 			std::swap(InternalQueue, EmptyQueue);
 		}
 
-		FORCEINLINE void Enqueue(const int32& Id, const double Score)
+		FORCEINLINE bool Enqueue(const int32 Index, const double InScore)
 		{
-			Scores[Id] = Score;
-			InternalQueue.push(FScoredNode(Id, Score));
+			double& RegisteredScore = Scores[Index];
+			if (RegisteredScore <= InScore) { return false; }
+			
+			RegisteredScore = InScore;
+			InternalQueue.push(FScoredNode(Index, InScore));
+			return true;
 		}
 
 		FORCEINLINE bool Dequeue(int32& Item, double& OutScore)

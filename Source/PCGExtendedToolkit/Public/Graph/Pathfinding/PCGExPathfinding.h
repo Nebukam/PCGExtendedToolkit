@@ -12,14 +12,14 @@
 
 namespace PCGExHeuristics
 {
-	struct FLocalFeedbackHandler;
+	class FLocalFeedbackHandler;
 }
 
 class UPCGExSearchOperation;
 
 namespace PCGExHeuristics
 {
-	class THeuristicsHandler;
+	class FHeuristicsHandler;
 }
 
 USTRUCT(BlueprintType)
@@ -151,7 +151,7 @@ namespace PCGExPathfinding
 
 		void FindPath(
 			const UPCGExSearchOperation* SearchOperation,
-			const TSharedPtr<PCGExHeuristics::THeuristicsHandler>& HeuristicsHandler,
+			const TSharedPtr<PCGExHeuristics::FHeuristicsHandler>& HeuristicsHandler,
 			const TSharedPtr<PCGExHeuristics::FLocalFeedbackHandler>& LocalFeedback);
 
 		void AppendNodePoints(
@@ -189,7 +189,7 @@ namespace PCGExPathfinding
 		void FindPaths(
 			const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager,
 			const UPCGExSearchOperation* SearchOperation,
-			const TSharedPtr<PCGExHeuristics::THeuristicsHandler>& HeuristicsHandler);
+			const TSharedPtr<PCGExHeuristics::FHeuristicsHandler>& HeuristicsHandler);
 
 		void Cleanup();
 	};
