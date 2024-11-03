@@ -98,7 +98,7 @@ namespace PCGExFindPointOnBoundsClusters
 		FVector BestPosition = FVector::ZeroVector;
 		FVector SearchPosition = FVector::ZeroVector;
 		int32 BestIndex = -1;
-		double BestDistance = DBL_MAX;
+		double BestDistance = MAX_dbl;
 
 	public:
 		int32 Picker = -1;

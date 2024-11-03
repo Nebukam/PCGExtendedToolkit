@@ -9,7 +9,6 @@
 
 #include "PCGExFitting.generated.h"
 
-
 UENUM(/*E--BlueprintType, meta=(DisplayName="[PCGEx] Transform Component Selector")--E*/)
 enum class EPCGExFitMode : uint8
 {
@@ -588,6 +587,81 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExFittingVariationsDetails
 
 		InPoint.Transform = FinalTransform;
 	}
+};
+
+USTRUCT(BlueprintType)
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExFittingDetailsHandler
+{
+	GENERATED_BODY()
+
+	explicit FPCGExFittingDetailsHandler(const bool InSupportFitting = true)
+		: bSupportFitting(InSupportFitting)
+	{
+	}
+
+	UPROPERTY()
+	bool bSupportFitting = true;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bSupportFitting", EditConditionHides, HideEditConditionToggle))
+	FPCGExScaleToFitDetails ScaleToFit;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bSupportFitting", EditConditionHides, HideEditConditionToggle))
+	FPCGExJustificationDetails Justification;
+
+	TSharedPtr<PCGExData::FFacade> TargetDataFacade;
+
+	bool Init(FPCGExContext* InContext, const TSharedRef<PCGExData::FFacade>& InTargetFacade)
+	{
+		TargetDataFacade = InTargetFacade;
+		return Justification.Init(InContext, InTargetFacade);
+	}
+
+	template <bool bWorldSpace = true>
+	void ComputeTransform(const int32 TargetIndex, FTransform& OutTransform, FBox& InOutBounds) const
+	{
+
+		//
+		check(TargetDataFacade);
+		const FPCGPoint& TargetPoint = TargetDataFacade->Source->GetInPoint(TargetIndex);
+
+		if constexpr (bWorldSpace) { OutTransform = TargetPoint.Transform; }
+
+		FVector OutScale = TargetPoint.Transform.GetScale3D();
+		const FBox RefBounds = PCGExMath::GetLocalBounds<EPCGExPointBoundsSource::ScaledBounds>(TargetPoint);
+		const FBox& OriginalInBounds = InOutBounds;
+		
+		ScaleToFit.Process(TargetPoint, OriginalInBounds, OutScale, InOutBounds);
+		
+		//
+				
+		FVector OutTranslation = FVector::ZeroVector;
+		Justification.Process(
+			TargetIndex, RefBounds,
+			FBox(InOutBounds.Min * OutScale, InOutBounds.Max * OutScale),
+			OutTranslation);
+
+		OutTransform.AddToTranslation(TargetPoint.Transform.GetRotation().RotateVector(OutTranslation));
+		OutTransform.SetScale3D(OutScale);
+	}
+};
+
+USTRUCT(BlueprintType)
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExTransformDetails : public FPCGExFittingDetailsHandler
+{
+	GENERATED_BODY()
+
+	explicit FPCGExTransformDetails(const bool InSupportFitting = true)
+		: FPCGExFittingDetailsHandler(InSupportFitting)
+	{
+	}
+
+	/** If enabled, copied point will be scaled by the target' scale. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayAfter="Justification"))
+	bool bInheritScale = false;
+
+	/** If enabled, copied points will be rotated by the target' rotation. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayAfter="bInheritScale"))
+	bool bInheritRotation = false;
 };
 
 namespace PCGExGeo

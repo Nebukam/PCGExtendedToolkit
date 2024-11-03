@@ -45,14 +45,6 @@ class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExHeuristicAttribute : public UPCGExHeurist
 public:
 	virtual void PrepareForCluster(const TSharedPtr<const PCGExCluster::FCluster>& InCluster) override;
 
-	FORCEINLINE virtual double GetGlobalScore(
-		const PCGExCluster::FNode& From,
-		const PCGExCluster::FNode& Seed,
-		const PCGExCluster::FNode& Goal) const override
-	{
-		return 0;
-	}
-
 	FORCEINLINE virtual double GetEdgeScore(
 		const PCGExCluster::FNode& From,
 		const PCGExCluster::FNode& To,

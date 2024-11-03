@@ -50,7 +50,7 @@ public:
 		const PCGExCluster::FNode& Seed,
 		const PCGExCluster::FNode& Goal) const override
 	{
-		return FMath::Max(0, ScoreCurveObj->GetFloatValue(GlobalInertiaScore)) * ReferenceWeight;
+		return GetScoreInternal(GlobalInertiaScore);
 	}
 
 	FORCEINLINE virtual double GetEdgeScore(
@@ -70,11 +70,11 @@ public:
 					Cluster->GetDir(PreviousNodeIndex, From.NodeIndex),
 					Cluster->GetDir(From.NodeIndex, To.NodeIndex));
 
-				return FMath::Max(0, ScoreCurveObj->GetFloatValue(PCGExMath::Remap(Dot, -1, 1, OutMin, OutMax))) * ReferenceWeight;
+				return GetScoreInternal(PCGExMath::Remap(Dot, -1, 1, OutMin, OutMax)) * ReferenceWeight;
 			}
 		}
 
-		return FMath::Max(0, ScoreCurveObj->GetFloatValue(FallbackInertiaScore)) * ReferenceWeight;
+		return GetScoreInternal(FallbackInertiaScore);
 	}
 
 protected:

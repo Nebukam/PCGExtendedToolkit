@@ -104,7 +104,7 @@ public:
 	/** Align the edge point to the edge direction over the selected axis. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Solidification", meta = (PCG_Overridable))
 	EPCGExMinimalAxis SolidificationAxis = EPCGExMinimalAxis::None;
-
+	
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Solidification", meta=(PCG_Overridable, EditCondition="SolidificationAxis != EPCGExMinimalAxis::None"))
 	EPCGExInputValueType SolidificationLerpInput = EPCGExInputValueType::Constant;
 

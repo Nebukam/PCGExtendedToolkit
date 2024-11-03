@@ -49,7 +49,7 @@ public:
 		const PCGExCluster::FNode& Seed,
 		const PCGExCluster::FNode& Goal) const override
 	{
-		return SampleCurve(GetDot(Cluster->GetPos(From), Cluster->GetPos(Goal))) * ReferenceWeight;
+		return GetScoreInternal(GetDot(Cluster->GetPos(From), Cluster->GetPos(Goal)));
 	}
 
 	FORCEINLINE virtual double GetEdgeScore(
@@ -60,7 +60,7 @@ public:
 		const PCGExCluster::FNode& Goal,
 		const TArray<uint64>* TravelStack) const override
 	{
-		return SampleCurve(GetDot(Cluster->GetPos(From), Cluster->GetPos(To))) * ReferenceWeight;
+		return GetScoreInternal(GetDot(Cluster->GetPos(From), Cluster->GetPos(To)));
 	}
 
 protected:

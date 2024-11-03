@@ -42,9 +42,8 @@ namespace PCGExMath
 	{
 		if constexpr (S == EPCGExPointBoundsSource::ScaledBounds)
 		{
-			const FBox LocalBounds = Point.GetLocalBounds();
 			const FVector Scale = Point.Transform.GetScale3D();
-			return FBox(LocalBounds.Min * Scale, LocalBounds.Max * Scale);
+			return FBox(Point.BoundsMin * Scale, Point.BoundsMax * Scale);
 		}
 		else if constexpr (S == EPCGExPointBoundsSource::Bounds)
 		{

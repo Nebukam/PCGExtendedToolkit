@@ -33,13 +33,7 @@ public:
 		const TUniquePtr<PCGExSearch::TScoredQueue> ScoredQueue = MakeUnique<PCGExSearch::TScoredQueue>(NumNodes, 0, 0);
 
 		TArray<uint64> TravelStack;
-		TravelStack.SetNum(NumNodes);
-
-		for (int i = 0; i < NumNodes; i++)
-		{
-			ScoredQueue->Scores[i] = MAX_dbl;
-			TravelStack[i] = 0;
-		}
+		TravelStack.Init(0, NumNodes);
 
 		ScoredQueue->Scores[0] = 0;
 
@@ -62,24 +56,20 @@ public:
 				PCGExGraph::FIndexedEdge& Edge = *Cluster->GetEdge(EdgeIndex);
 
 				const double Score = Heuristics->GetEdgeScore(Current, AdjacentNode, Edge, NoNode, NoNode, nullptr, &TravelStack);
+				if (!ScoredQueue->Enqueue(NeighborIndex, Score)) { continue; }
 
-				if (Score >= ScoredQueue->Scores[NeighborIndex]) { continue; }
-
-				ScoredQueue->Scores[NeighborIndex] = Score;
 				TravelStack[NeighborIndex] = PCGEx::H64(CurrentNodeIndex, EdgeIndex);
-
-				ScoredQueue->Enqueue(NeighborIndex, Score);
+				
 			}
 		}
 
 		for (int32 i = 0; i < NumNodes; i++)
 		{
-			uint32 NeighborIndex;
+			uint32 Node;
 			uint32 EdgeIndex;
 
-			PCGEx::H64(TravelStack[i], NeighborIndex, EdgeIndex);
-
-			if (NeighborIndex == i) { continue; }
+			PCGEx::H64(TravelStack[i], Node, EdgeIndex);
+			if (Node == i) { continue; }
 
 			Cluster->GetEdge(EdgeIndex)->bValid = true;
 		}

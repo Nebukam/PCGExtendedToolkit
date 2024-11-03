@@ -29,7 +29,8 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExSortRuleConfig : public FPCGExInputConfi
 
 	FPCGExSortRuleConfig(const FPCGExSortRuleConfig& Other)
 		: FPCGExInputConfig(Other),
-		  Tolerance(Other.Tolerance)
+		  Tolerance(Other.Tolerance),
+		  bInvertRule(Other.bInvertRule)
 	{
 	}
 
@@ -49,6 +50,13 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExSortRuleConfig : public FPCGExInputConfi
 struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExSortRule
 {
 	FPCGExSortRule()
+	{
+	}
+
+	explicit FPCGExSortRule(const FPCGExSortRuleConfig& Config):
+		Selector(Config.Selector),
+		Tolerance(Config.Tolerance),
+		bInvertRule(Config.bInvertRule)
 	{
 	}
 
@@ -134,10 +142,7 @@ namespace PCGExSorting
 
 			for (const FPCGExSortRuleConfig& RuleConfig : InRuleConfigs)
 			{
-				TSharedPtr<FPCGExSortRule> NewRule = MakeShared<FPCGExSortRule>();
-				NewRule->Selector = RuleConfig.Selector;
-				NewRule->Tolerance = RuleConfig.Tolerance;
-				NewRule->bInvertRule = RuleConfig.bInvertRule;
+				TSharedPtr<FPCGExSortRule> NewRule = MakeShared<FPCGExSortRule>(RuleConfig);
 				Rules.Add(NewRule.ToSharedRef());
 			}
 		}

@@ -14,6 +14,8 @@
 #include "Data/PCGExData.h"
 #include "PCGExGraph.generated.h"
 
+struct FPCGExTransformDetails;
+
 namespace PCGExGraph
 {
 	struct FSubGraph;

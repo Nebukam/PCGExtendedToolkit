@@ -90,6 +90,8 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExEdgesProcessorContext : FPCGExPointsProc
 	void OutputBatches() const;
 
 protected:
+	TArray<TObjectPtr<const UPCGExHeuristicsFactoryBase>> HeuristicsFactories;
+
 	virtual bool ProcessClusters(const PCGEx::AsyncState NextStateId, const bool bIsNextStateAsync = false);
 	virtual bool CompileGraphBuilders(const bool bOutputToContext, const PCGEx::AsyncState NextStateId);
 
@@ -145,7 +147,12 @@ protected:
 			if (NewBatch->RequiresHeuristics())
 			{
 				bClusterRequiresHeuristics = true;
-				if (!bHasValidHeuristics) { continue; }
+				if (!bHasValidHeuristics)
+				{
+					PCGE_LOG_C(Error, GraphAndLog, this, FTEXT("Missing Heuristics."));
+					return false;
+				}
+				NewBatch->HeuristicsFactories = &HeuristicsFactories;
 			}
 
 			NewBatch->EdgeCollection = MainEdges;
@@ -181,8 +188,6 @@ protected:
 	virtual void ClusterProcessing_GraphCompilationDone()
 	{
 	}
-
-	bool HasValidHeuristics() const;
 
 	void AdvanceBatch(const PCGEx::AsyncState NextStateId, const bool bIsNextStateAsync);
 

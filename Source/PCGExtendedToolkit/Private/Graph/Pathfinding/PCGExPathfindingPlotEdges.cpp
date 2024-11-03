@@ -60,7 +60,7 @@ void FPCGExPathfindingPlotEdgesContext::BuildPath(const TSharedPtr<PCGExPathfind
 
 	TArray<FPCGPoint> MutablePoints;
 	MutablePoints.Reserve(NumPoints);
-
+	
 	auto AddPlotPoint = [&](int32 Index)
 	{
 		MutablePoints.Add_GetRef(Query->PlotFacade->Source->GetInPoint(Index)).MetadataEntry = PCGInvalidEntryKey;
@@ -138,12 +138,14 @@ bool FPCGExPathfindingPlotEdgesElement::Boot(FPCGExContext* InContext) const
 		TSharedPtr<PCGExData::FFacade> PlotFacade = MakeShared<PCGExData::FFacade>(PlotIO.ToSharedRef());
 		Context->Plots.Add(PlotFacade);
 	}
-
+	
 	if (Context->Plots.IsEmpty())
 	{
 		PCGE_LOG(Error, GraphAndLog, FTEXT("Missing valid Plots."));
 		return false;
 	}
+
+	
 
 	return true;
 }
@@ -212,13 +214,13 @@ namespace PCGExPathfindingPlotEdge
 
 		PCGEX_ASYNC_GROUP_CHKD(AsyncManager, ResolveQueriesTask)
 		TWeakPtr<FProcessor> WeakPtr = SharedThis(this);
-		ResolveQueriesTask->OnIterationRangeStartCallback = [WeakPtr](const int32 StartIndex, const int32 Count, const int32 LoopIdx)
+		ResolveQueriesTask->OnIterationCallback = [WeakPtr](const int32 Index, const int32 Count, const int32 LoopIdx)
 		{
 			TSharedPtr<FProcessor> This = WeakPtr.Pin();
 			if (!This) { return; }
 
-			TSharedPtr<PCGExPathfinding::FPlotQuery> Query = This->Queries[StartIndex];
-			Query->BuildPlotQuery(This->Context->Plots[StartIndex], This->Settings->SeedPicking, This->Settings->GoalPicking);
+			TSharedPtr<PCGExPathfinding::FPlotQuery> Query = This->Queries[Index];
+			Query->BuildPlotQuery(This->Context->Plots[Index], This->Settings->SeedPicking, This->Settings->GoalPicking);
 			Query->FindPaths(This->AsyncManager, This->SearchOperation, This->HeuristicsHandler);
 			Query->OnCompleteCallback = [WeakPtr](const TSharedPtr<PCGExPathfinding::FPlotQuery>& Plot)
 			{
@@ -229,9 +231,7 @@ namespace PCGExPathfindingPlotEdge
 			};
 		};
 
-		ResolveQueriesTask->StartRangePrepareOnly(Queries.Num(), 1, HeuristicsHandler->HasGlobalFeedback());
-		return true;
-
+		ResolveQueriesTask->StartIterations(Queries.Num(), 1, HeuristicsHandler->HasGlobalFeedback(), false);
 		return true;
 	}
 }

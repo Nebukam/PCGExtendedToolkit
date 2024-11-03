@@ -188,12 +188,12 @@ namespace PCGExPathfindingEdge
 
 		PCGEX_ASYNC_GROUP_CHKD(AsyncManager, ResolveQueriesTask)
 		TWeakPtr<FProcessor> WeakPtr = SharedThis(this);
-		ResolveQueriesTask->OnIterationRangeStartCallback = [WeakPtr](const int32 StartIndex, const int32 Count, const int32 LoopIdx)
+		ResolveQueriesTask->OnIterationCallback = [WeakPtr](const int32 Index, const int32 Count, const int32 LoopIdx)
 		{
 			TSharedPtr<FProcessor> This = WeakPtr.Pin();
 			if (!This) { return; }
 
-			TSharedPtr<PCGExPathfinding::FPathQuery> Query = This->Queries[StartIndex];
+			TSharedPtr<PCGExPathfinding::FPathQuery> Query = This->Queries[Index];
 			Query->ResolvePicks(This->Settings->SeedPicking, This->Settings->GoalPicking);
 
 			if (!Query->HasValidEndpoints()) { return; }
@@ -206,7 +206,7 @@ namespace PCGExPathfindingEdge
 			Query->Cleanup();
 		};
 
-		ResolveQueriesTask->StartRangePrepareOnly(Queries.Num(), 1, HeuristicsHandler->HasGlobalFeedback());
+		ResolveQueriesTask->StartIterations(Queries.Num(), 1, HeuristicsHandler->HasGlobalFeedback(), false);
 		return true;
 	}
 }

@@ -121,7 +121,6 @@ if (!SolidificationRad##_AXIS){ PCGE_LOG_C(Warning, GraphAndLog, Context, FText:
 		Path->ComputeEdgeExtra(Index);
 
 		const double Length = PathLength->Get(Index);
-		const FVector Scale = Settings->bScaleBounds ? FVector::OneVector / Point.Transform.GetScale3D() : FVector::OneVector;
 
 		FRotator EdgeRot;
 		FVector TargetBoundsMin = Point.BoundsMin;
@@ -131,18 +130,21 @@ if (!SolidificationRad##_AXIS){ PCGE_LOG_C(Warning, GraphAndLog, Context, FText:
 		const double EdgeLerpInv = 1 - EdgeLerp;
 		bool bProcessAxis;
 
+		const FVector PtScale = Point.Transform.GetScale3D();
+		const FVector InvScale = FVector::One() / PtScale;
+		
 #define PCGEX_SOLIDIFY_DIMENSION(_AXIS)\
 		bProcessAxis = Settings->bWriteRadius##_AXIS || Settings->SolidificationAxis == EPCGExMinimalAxis::_AXIS;\
 		if (bProcessAxis){\
 			if (Settings->SolidificationAxis == EPCGExMinimalAxis::_AXIS){\
-				TargetBoundsMin._AXIS = (-Length * EdgeLerp)* Scale._AXIS;\
-				TargetBoundsMax._AXIS = (Length * EdgeLerpInv)* Scale._AXIS;\
+				TargetBoundsMin._AXIS = (-Length * EdgeLerp)* InvScale._AXIS;\
+				TargetBoundsMax._AXIS = (Length * EdgeLerpInv) * InvScale._AXIS;\
 			}else{\
 				double Rad = Rad##_AXIS##Constant;\
 				if(SolidificationRad##_AXIS){Rad = FMath::Lerp(SolidificationRad##_AXIS->Read(Index), SolidificationRad##_AXIS->Read(Index), EdgeLerpInv); }\
 				else{Rad=Settings->Radius##_AXIS##Constant;}\
-				TargetBoundsMin._AXIS = -Rad;\
-				TargetBoundsMax._AXIS = Rad;\
+				TargetBoundsMin._AXIS = (-Rad) * InvScale._AXIS;\
+				TargetBoundsMax._AXIS = (Rad) * InvScale._AXIS;\
 			}\
 		}
 

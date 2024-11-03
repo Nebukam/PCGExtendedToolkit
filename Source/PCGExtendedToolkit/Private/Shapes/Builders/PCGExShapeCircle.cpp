@@ -30,13 +30,13 @@ void UPCGExShapeCircleBuilder::PrepareShape(const PCGExData::FPointRef& Seed)
 {
 	TSharedPtr<PCGExShapes::FCircle> Circle = MakeShared<PCGExShapes::FCircle>(Seed);
 
-	Circle->ComputeFit(Config);
+	Circle->ComputeFit(BaseConfig);
 
 	Circle->StartAngle = FMath::DegreesToRadians(StartAngleGetter ? StartAngleGetter->SoftGet(Seed, Config.StartAngleConstant) : Config.StartAngleConstant);
 	Circle->EndAngle = FMath::DegreesToRadians(EndAngleGetter ? EndAngleGetter->SoftGet(Seed, Config.EndAngleConstant) : Config.EndAngleConstant);
 	Circle->AngleRange = FMath::Abs(Circle->EndAngle - Circle->StartAngle);
 
-	Circle->Radius = Circle->Fit.GetExtent().X;
+	Circle->Radius = Circle->Fit.GetExtent().Length();
 
 	const double Resolution = GetResolution(Seed);
 
@@ -56,13 +56,19 @@ void UPCGExShapeCircleBuilder::BuildShape(const TSharedPtr<PCGExShapes::FShape> 
 	const double StartAngle = Circle->StartAngle + Increment * 0.5;
 	FVector Target = FVector::ZeroVector;
 
+	const FVector Extents = Circle->Fit.GetExtent();
+	const FVector Center = Circle->Fit.GetCenter();
+		
 	for (int32 i = 0; i < Circle->NumPoints; i++)
 	{
 		const double A = StartAngle + i * Increment;
 
-		const FVector P = FVector(Circle->Radius * FMath::Cos(A), Circle->Radius * FMath::Sin(A), 0);
+		const FVector P = Center + FVector(Extents.X * FMath::Cos(A), Extents.Y * FMath::Sin(A), 0);
 
-		if (Config.PointsLookAt == EPCGExShapePointLookAt::None) { Target = FVector(Circle->Radius * FMath::Cos(A + 0.001), Circle->Radius * FMath::Sin(A + 0.001), 0); }
+		if (Config.PointsLookAt == EPCGExShapePointLookAt::None)
+		{
+			Target = Center + FVector(Extents.X * FMath::Cos(A + 0.001), Extents.Y * FMath::Sin(A + 0.001), 0);
+		}
 
 		PointView[i].Transform = FTransform(
 			PCGExMath::MakeLookAtTransform(P - Target, FVector::UpVector, Config.LookAtAxis).GetRotation(),

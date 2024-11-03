@@ -73,6 +73,7 @@ namespace PCGExData
 		FORCEINLINE bool IsEmpty() const { return Identities.IsEmpty(); }
 		void Forward(const int32 SourceIndex, const int32 TargetIndex);
 		void Forward(int32 SourceIndex, const TSharedPtr<FFacade>& InTargetDataFacade);
+		void Forward(int32 SourceIndex, UPCGMetadata* InTargetMetadata);
 	};
 }
 
