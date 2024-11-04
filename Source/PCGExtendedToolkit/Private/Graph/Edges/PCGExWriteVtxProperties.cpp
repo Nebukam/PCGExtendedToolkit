@@ -78,7 +78,10 @@ namespace PCGExWriteVtxProperties
 
 		if (!ExtraOperations->IsEmpty())
 		{
-			for (UPCGExVtxPropertyOperation* Op : (*ExtraOperations)) { Op->PrepareForCluster(ExecutionContext, BatchIndex, Cluster, VtxDataFacade, EdgeDataFacade); }
+			for (UPCGExVtxPropertyOperation* Op : (*ExtraOperations))
+			{
+				Op->PrepareForCluster(ExecutionContext, BatchIndex, Cluster, VtxDataFacade, EdgeDataFacade);
+			}
 		}
 
 		StartParallelLoopForNodes();

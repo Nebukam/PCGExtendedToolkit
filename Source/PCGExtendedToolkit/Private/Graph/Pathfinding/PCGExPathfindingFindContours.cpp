@@ -3,6 +3,9 @@
 
 #include "Graph/Pathfinding/PCGExPathfindingFindContours.h"
 
+#include <ThirdParty/OpenSubdiv/Deploy/OpenSubdiv-3.6.0/include/opensubdiv/far/types.h>
+
+
 #define LOCTEXT_NAMESPACE "PCGExFindContours"
 #define PCGEX_NAMESPACE FindContours
 

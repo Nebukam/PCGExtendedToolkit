@@ -39,7 +39,7 @@ TArray<FPCGPinProperties> UPCGExAttributeStatsSettings::OutputPinProperties() co
 	return PinProperties;
 }
 
-PCGExData::EInit UPCGExAttributeStatsSettings::GetMainOutputInitMode() const { return PCGExData::EInit::Forward; }
+PCGExData::EInit UPCGExAttributeStatsSettings::GetMainOutputInitMode() const { return OutputToPoints == EPCGExStatsOutputToPoints::None ? PCGExData::EInit::Forward : PCGExData::EInit::DuplicateInput; }
 
 PCGEX_INITIALIZE_ELEMENT(AttributeStats)
 
@@ -54,7 +54,10 @@ bool FPCGExAttributeStatsElement::Boot(FPCGExContext* InContext) const
 	Context->AttributesInfos = MakeShared<PCGEx::FAttributesInfos>();
 	TSet<FName> OutMismatch;
 
-#define PCGEX_STAT_CHECK(_NAME, _TYPE, _DEFAULT) if(Settings->bOutput##_NAME){ PCGEX_VALIDATE_NAME(Settings->_NAME##AttributeName); }
+	TSet<FName> UniqueNames;
+#define PCGEX_STAT_CHECK(_NAME, _TYPE, _DEFAULT) if(Settings->bOutput##_NAME){	PCGEX_VALIDATE_NAME(Settings->_NAME##AttributeName);\
+	bool bAlreadySet = false; UniqueNames.Add(Settings->_NAME##AttributeName, &bAlreadySet);\
+	if(bAlreadySet){ PCGE_LOG(Error, GraphAndLog, FText::Format(FTEXT("Duplicate attribute name: {0}."), FText::FromName(Settings->_NAME##AttributeName))); }}
 	PCGEX_FOREACH_STAT(PCGEX_STAT_CHECK, nullptr)
 #undef PCGEX_STAT_CHECK
 
