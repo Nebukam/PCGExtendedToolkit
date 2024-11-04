@@ -470,7 +470,7 @@ namespace PCGExPathCrossings
 				const int32 MaxIndex = StartIndex + Count;
 				for (int i = StartIndex; i < MaxIndex; i++)
 				{
-					if (!This->Crossings[i]) { return; }
+					if (!This->Crossings[i]) { continue; }
 					This->CrossBlendPoint(i);
 				}
 			};

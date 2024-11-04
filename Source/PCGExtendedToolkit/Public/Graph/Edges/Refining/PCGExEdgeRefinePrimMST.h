@@ -20,7 +20,7 @@ class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExEdgeRefinePrimMST : public UPCGExEdgeRefi
 public:
 	virtual bool GetDefaultEdgeValidity() override { return false; }
 	virtual bool RequiresHeuristics() override { return true; }
-
+	
 	virtual void Process() override
 	{
 		const TUniquePtr<PCGExCluster::FNode> NoNodePtr = MakeUnique<PCGExCluster::FNode>();
@@ -59,7 +59,6 @@ public:
 				if (!ScoredQueue->Enqueue(NeighborIndex, Score)) { continue; }
 
 				TravelStack[NeighborIndex] = PCGEx::H64(CurrentNodeIndex, EdgeIndex);
-				
 			}
 		}
 
