@@ -62,9 +62,12 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	EPCGExStatsOutputToPoints OutputToPoints = EPCGExStatsOutputToPoints::None;
 
-	bool bOutputIdentifier = true;
 	/** */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta = (PCG_Overridable, DisplayName = "Identifier"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta = (PCG_Overridable, InlineEditConditionToggle))
+	bool bOutputIdentifier = true;
+	
+	/** */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta = (PCG_Overridable, DisplayName = "Identifier", EditCondition="bOutputIdentifier"))
 	FName IdentifierAttributeName = FName(TEXT("Identifier"));
 
 	/** */
@@ -176,7 +179,7 @@ public:
 	bool bOutputIsValid = true;
 
 	/** */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta = (PCG_Overridable, DisplayName = "Is Valid", EditCondition="bOutputPerUniqueValuesStats"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta = (PCG_Overridable, DisplayName = "Is Valid", EditCondition="bOutputIsValid"))
 	FName IsValidAttributeName = FName(TEXT("IsValid"));
 
 
