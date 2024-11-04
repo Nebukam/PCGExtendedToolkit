@@ -514,7 +514,7 @@ namespace PCGExBevelPath
 				const int32 MaxIndex = StartIndex + Count;
 				for (int i = StartIndex; i < MaxIndex; i++)
 				{
-					if (!This->PointFilterCache[i]) { return; }
+					if (!This->PointFilterCache[i]) { continue; }
 					This->WriteFlags(i);
 				}
 			};

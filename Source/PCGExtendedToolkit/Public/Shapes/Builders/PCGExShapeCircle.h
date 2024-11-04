@@ -109,7 +109,7 @@ class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExCreateShapeCircleSettings : public UPCGEx
 public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(ShapeBuilderCircle, "Shape Builder", "Create points in a circular shape.", FName("Circle"))
+	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(ShapeBuilderCircle, "Shape : Circle", "Create points in a circular shape.", FName("Circle"))
 
 #endif
 	//~End UPCGSettings

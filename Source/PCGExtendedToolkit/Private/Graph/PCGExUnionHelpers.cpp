@@ -237,7 +237,7 @@ namespace PCGExGraph
 				for (int i = StartIndex; i < MaxIndex; i++)
 				{
 					const FIndexedEdge& Edge = This->GraphBuilder->Graph->Edges[i];
-					if (!Edge.bValid) { return; }
+					if (!Edge.bValid) { continue; }
 					FindCollinearNodes(This->PointEdgeIntersections, i, This->UnionDataFacade->Source->GetOut());
 				}
 			};
