@@ -3,7 +3,7 @@
 
 #include "Sampling/PCGExSampleOverlapStats.h"
 
-///*BUILD_TOOL_BUG_55_TOGGLE*/#include "CoreMinimal.h"
+/*BUILD_TOOL_BUG_55_TOGGLE*/#include "CoreMinimal.h"
 
 #define LOCTEXT_NAMESPACE "PCGExSampleOverlapStatsElement"
 #define PCGEX_NAMESPACE SampleOverlapStats
@@ -343,12 +343,12 @@ namespace PCGExSampleOverlapStats
 			for (int i = StartIndex; i < MaxIndex; i++)
 			{
 				const TSharedPtr<PCGExData::FFacade> OtherFacade = Parent->ProcessorFacades[i];
-				if (This->PointDataFacade == OtherFacade) { return; } // Skip self
+				if (This->PointDataFacade == OtherFacade) { continue; } // Skip self
 
 				const TSharedRef<FProcessor> OtherProcessor = StaticCastSharedRef<FProcessor>(*Parent->SubProcessorMap->Find(&OtherFacade->Source.Get()));
 
 				const FBox Intersection = This->Bounds.Overlap(OtherProcessor->GetBounds());
-				if (!Intersection.IsValid) { return; } // No overlap
+				if (!Intersection.IsValid) { continue; } // No overlap
 
 				This->RegisterOverlap(&OtherProcessor.Get(), Intersection);
 			}

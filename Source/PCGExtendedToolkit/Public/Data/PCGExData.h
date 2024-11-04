@@ -194,8 +194,7 @@ namespace PCGExData
 			OutPoints = MakeArrayView(OutPts.GetData(), NumPoints);
 
 			OutValues = MakeShared<TArray<T>>();
-			if (bUninitialized) { PCGEx::InitArray(OutValues, NumPoints); }
-			else { OutValues->Init(InDefaultValue, NumPoints); }
+			OutValues->Init(InDefaultValue, NumPoints);
 
 			OutAttribute = Attribute;
 			TypedOutAttribute = Attribute ? static_cast<FPCGMetadataAttribute<T>*>(Attribute) : nullptr;
@@ -497,19 +496,18 @@ namespace PCGExData
 #pragma region Writable
 
 		template <typename T>
-		TSharedPtr<TBuffer<T>> GetWritable(const FPCGMetadataAttribute<T>* InAttribute, bool bUninitialized)
-		{
-			TSharedPtr<TBuffer<T>> Buffer = GetBuffer<T>(InAttribute->Name);
-			return Buffer->PrepareWrite(InAttribute->GetValue(PCGDefaultValueKey), InAttribute->AllowsInterpolation(), bUninitialized) ? Buffer : nullptr;
-		}
-
-		template <typename T>
 		TSharedPtr<TBuffer<T>> GetWritable(const FName InName, T DefaultValue, bool bAllowInterpolation, bool bUninitialized)
 		{
 			TSharedPtr<TBuffer<T>> Buffer = GetBuffer<T>(InName);
 			return Buffer->PrepareWrite(DefaultValue, bAllowInterpolation, bUninitialized) ? Buffer : nullptr;
 		}
 
+		template <typename T>
+		TSharedPtr<TBuffer<T>> GetWritable(const FPCGMetadataAttribute<T>* InAttribute, bool bUninitialized)
+		{
+			return GetWritable(InAttribute->Name, InAttribute->GetValue(PCGDefaultValueKey), InAttribute->AllowsInterpolation(), bUninitialized);
+		}
+		
 		template <typename T>
 		TSharedPtr<TBuffer<T>> GetWritable(const FName InName, bool bUninitialized)
 		{
