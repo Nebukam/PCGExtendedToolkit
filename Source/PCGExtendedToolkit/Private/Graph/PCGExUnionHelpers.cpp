@@ -3,8 +3,6 @@
 
 #include "Graph/PCGExUnionHelpers.h"
 
-#include <ThirdParty/OpenSubdiv/Deploy/OpenSubdiv-3.6.0/include/opensubdiv/far/types.h>
-
 namespace PCGExGraph
 {
 	FUnionProcessor::FUnionProcessor(
