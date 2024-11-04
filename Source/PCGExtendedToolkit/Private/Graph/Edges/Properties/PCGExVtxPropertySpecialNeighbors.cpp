@@ -67,10 +67,10 @@ void UPCGExVtxPropertySpecialNeighbors::ProcessNode(PCGExCluster::FNode& Node, c
 		}
 	}
 
-	if (ILargest != -1) { Config.LargestNeighbor.Set(Node.PointIndex, Adjacency[ISmallest], Cluster->GetNode(Adjacency[ISmallest].NodeIndex)->Adjacency.Num()); }
+	if (ILargest != -1) { Config.LargestNeighbor.Set(Node.PointIndex, Adjacency[ILargest], Cluster->GetNode(Adjacency[ILargest].NodeIndex)->Adjacency.Num()); }
 	else { Config.LargestNeighbor.Set(Node.PointIndex, 0, FVector::ZeroVector, -1, -1, 0); }
 
-	if (ISmallest != -1) { Config.SmallestNeighbor.Set(Node.PointIndex, Adjacency[ILargest], Cluster->GetNode(Adjacency[ILargest].NodeIndex)->Adjacency.Num()); }
+	if (ISmallest != -1) { Config.SmallestNeighbor.Set(Node.PointIndex, Adjacency[ISmallest], Cluster->GetNode(Adjacency[ISmallest].NodeIndex)->Adjacency.Num()); }
 	else { Config.SmallestNeighbor.Set(Node.PointIndex, 0, FVector::ZeroVector, -1, -1, 0); }
 }
 
