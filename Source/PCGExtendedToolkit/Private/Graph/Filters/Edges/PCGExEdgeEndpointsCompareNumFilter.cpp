@@ -48,26 +48,7 @@ PCGEX_CREATE_FILTER_FACTORY(EdgeEndpointsCompareNum)
 #if WITH_EDITOR
 FString UPCGExEdgeEndpointsCompareNumFilterProviderSettings::GetDisplayName() const
 {
-	FString DisplayName = "Compare Endpoints"; //" (";
-	/*
-		switch (Config.Mode)
-		{
-		case EPCGExRefineEdgeThresholdMode::Sum:
-			DisplayName += "Sum";
-			break;
-		case EPCGExRefineEdgeThresholdMode::Any:
-			DisplayName += "Any";
-			break;
-		case EPCGExRefineEdgeThresholdMode::Both:
-			DisplayName += "Both";
-			break;
-		}
-	
-		DisplayName += ")" + PCGExCompare::ToString(Config.Comparison);
-		if (Config.ThresholdSource == EPCGExInputValueType::Constant) { DisplayName += FString::Printf(TEXT("%d"), Config.ThresholdConstant); }
-		else { DisplayName += Config.ThresholdAttribute.GetName().ToString(); }
-	*/
-	return DisplayName;
+	return Config.Attribute.GetName().ToString() + PCGExCompare::ToString(Config.Comparison);
 }
 #endif
 

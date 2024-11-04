@@ -15,7 +15,7 @@ namespace PCGExCluster
 /**
  * 
  */
-UCLASS(MinimalAPI, BlueprintType, meta=(DisplayName="Refine by Filter"))
+UCLASS(MinimalAPI, BlueprintType, meta=(DisplayName="Refine : Filter"))
 class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExEdgeRefineByFilter : public UPCGExEdgeRefineOperation
 {
 	GENERATED_BODY()
