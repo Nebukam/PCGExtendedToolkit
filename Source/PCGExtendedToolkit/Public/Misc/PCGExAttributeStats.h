@@ -282,11 +282,11 @@ namespace PCGExAttributeStats
 			if (Settings->OutputToPoints != EPCGExStatsOutputToPoints::None) { PointsMetadata = InDataFacade->GetOut()->Metadata; }
 			
 #define PCGEX_OUTPUT_STAT(_NAME, _TYPE, _VALUE) \
-	if(Settings->bOutput##_NAME){ ParamData->Metadata->GetMutableTypedAttribute<_TYPE>(Settings->_NAME##AttributeName)->SetValue(Key, _VALUE); }\
+	if(Settings->bOutput##_NAME){ ParamData->Metadata->GetMutableTypedAttribute<_TYPE>(Settings->_NAME##AttributeName)->SetValue(Key, _VALUE); \
 	if (PointsMetadata){\
 		FName PrintName = Settings->OutputToPoints == EPCGExStatsOutputToPoints::Prefix ? FName(Settings->_NAME##AttributeName.ToString() + StrName) : FName(StrName + Settings->_NAME##AttributeName.ToString());\
 		if (PointsMetadata->GetConstTypedAttribute<_TYPE>(PrintName)) { PointsMetadata->DeleteAttribute(PrintName); }\
-		PointsMetadata->FindOrCreateAttribute<_TYPE>(PrintName, _VALUE);}\
+		PointsMetadata->FindOrCreateAttribute<_TYPE>(PrintName, _VALUE);} }\
 
 			TSharedPtr<PCGExData::TBuffer<T>> Buffer = InDataFacade->GetReadable<T>(Identity.Name);
 			PCGExMath::TypeMinMax(MinValue, MaxValue);
