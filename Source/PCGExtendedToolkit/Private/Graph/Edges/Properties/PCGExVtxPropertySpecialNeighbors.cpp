@@ -21,9 +21,13 @@ void UPCGExVtxPropertySpecialNeighbors::CopySettingsFrom(const UPCGExOperation* 
 	}
 }
 
-bool UPCGExVtxPropertySpecialNeighbors::PrepareForVtx(const FPCGContext* InContext, const TSharedPtr<PCGExData::FFacade>& InVtxDataFacade)
+bool UPCGExVtxPropertySpecialNeighbors::PrepareForCluster(
+	const FPCGContext* InContext,
+	TSharedPtr<PCGExCluster::FCluster> InCluster,
+	const TSharedPtr<PCGExData::FFacade>& InVtxDataFacade,
+	const TSharedPtr<PCGExData::FFacade>& InEdgeDataFacade)
 {
-	if (!Super::PrepareForVtx(InContext, InVtxDataFacade)) { return false; }
+	if (!Super::PrepareForCluster(InContext, InCluster, InVtxDataFacade, InEdgeDataFacade)) { return false; }
 
 	if (!Config.LargestNeighbor.Validate(InContext) ||
 		!Config.SmallestNeighbor.Validate(InContext))
@@ -38,7 +42,7 @@ bool UPCGExVtxPropertySpecialNeighbors::PrepareForVtx(const FPCGContext* InConte
 	return bIsValidOperation;
 }
 
-void UPCGExVtxPropertySpecialNeighbors::ProcessNode(const int32 ClusterIdx, const PCGExCluster::FCluster* Cluster, PCGExCluster::FNode& Node, const TArray<PCGExCluster::FAdjacencyData>& Adjacency)
+void UPCGExVtxPropertySpecialNeighbors::ProcessNode(PCGExCluster::FNode& Node, const TArray<PCGExCluster::FAdjacencyData>& Adjacency)
 {
 	double LLargest = MIN_dbl;
 	int32 ILargest = -1;
@@ -63,10 +67,10 @@ void UPCGExVtxPropertySpecialNeighbors::ProcessNode(const int32 ClusterIdx, cons
 		}
 	}
 
-	if (ILargest != -1) { Config.LargestNeighbor.Set(Node.PointIndex, Adjacency[ISmallest], (*Cluster->Nodes)[Adjacency[ISmallest].NodeIndex].Adjacency.Num()); }
+	if (ILargest != -1) { Config.LargestNeighbor.Set(Node.PointIndex, Adjacency[ISmallest], Cluster->GetNode(Adjacency[ISmallest].NodeIndex)->Adjacency.Num()); }
 	else { Config.LargestNeighbor.Set(Node.PointIndex, 0, FVector::ZeroVector, -1, -1, 0); }
 
-	if (ISmallest != -1) { Config.SmallestNeighbor.Set(Node.PointIndex, Adjacency[ILargest], (*Cluster->Nodes)[Adjacency[ILargest].NodeIndex].Adjacency.Num()); }
+	if (ISmallest != -1) { Config.SmallestNeighbor.Set(Node.PointIndex, Adjacency[ILargest], Cluster->GetNode(Adjacency[ILargest].NodeIndex)->Adjacency.Num()); }
 	else { Config.SmallestNeighbor.Set(Node.PointIndex, 0, FVector::ZeroVector, -1, -1, 0); }
 }
 

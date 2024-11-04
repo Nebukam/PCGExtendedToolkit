@@ -22,9 +22,11 @@ void UPCGExVtxPropertySpecialEdges::CopySettingsFrom(const UPCGExOperation* Othe
 	}
 }
 
-bool UPCGExVtxPropertySpecialEdges::PrepareForVtx(const FPCGContext* InContext, const TSharedPtr<PCGExData::FFacade>& InVtxDataFacade)
+bool UPCGExVtxPropertySpecialEdges::PrepareForCluster(const FPCGContext* InContext, TSharedPtr<PCGExCluster::FCluster> InCluster, const TSharedPtr<PCGExData::FFacade>& InVtxDataFacade, const TSharedPtr<PCGExData::FFacade>& InEdgeDataFacade)
 {
-	if (!Super::PrepareForVtx(InContext, InVtxDataFacade)) { return false; }
+	Super::PrepareForCluster(InContext, InCluster, InVtxDataFacade, InEdgeDataFacade);
+
+	if (!Super::PrepareForCluster(InContext, InCluster, InVtxDataFacade, InEdgeDataFacade)) { return false; }
 
 	if (!Config.ShortestEdge.Validate(InContext) ||
 		!Config.LongestEdge.Validate(InContext) ||
@@ -41,7 +43,7 @@ bool UPCGExVtxPropertySpecialEdges::PrepareForVtx(const FPCGContext* InContext, 
 	return bIsValidOperation;
 }
 
-void UPCGExVtxPropertySpecialEdges::ProcessNode(const int32 ClusterIdx, const PCGExCluster::FCluster* Cluster, PCGExCluster::FNode& Node, const TArray<PCGExCluster::FAdjacencyData>& Adjacency)
+void UPCGExVtxPropertySpecialEdges::ProcessNode(PCGExCluster::FNode& Node, const TArray<PCGExCluster::FAdjacencyData>& Adjacency)
 {
 	double LLongest = MIN_dbl;
 	int32 ILongest = -1;
@@ -77,10 +79,10 @@ void UPCGExVtxPropertySpecialEdges::ProcessNode(const int32 ClusterIdx, const PC
 
 	Config.AverageEdge.Set(Node.PointIndex, LAverage, VAverage);
 
-	if (ILongest != -1) { Config.LongestEdge.Set(Node.PointIndex, Adjacency[IShortest], (*Cluster->Nodes)[Adjacency[IShortest].NodeIndex].Adjacency.Num()); }
+	if (ILongest != -1) { Config.LongestEdge.Set(Node.PointIndex, Adjacency[IShortest], Cluster->GetNode(Adjacency[IShortest].NodeIndex)->Adjacency.Num()); }
 	else { Config.LongestEdge.Set(Node.PointIndex, 0, FVector::ZeroVector, -1, -1, 0); }
 
-	if (IShortest != -1) { Config.ShortestEdge.Set(Node.PointIndex, Adjacency[ILongest], (*Cluster->Nodes)[Adjacency[ILongest].NodeIndex].Adjacency.Num()); }
+	if (IShortest != -1) { Config.ShortestEdge.Set(Node.PointIndex, Adjacency[ILongest], Cluster->GetNode(Adjacency[ILongest].NodeIndex)->Adjacency.Num()); }
 	else { Config.ShortestEdge.Set(Node.PointIndex, 0, FVector::ZeroVector, -1, -1, 0); }
 }
 
