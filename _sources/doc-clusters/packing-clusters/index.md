@@ -7,8 +7,8 @@ subtitle: Two nodes to conveniently pack/unpack cluster data.
 summary: TBD
 color: red
 splash: icons/icon_edges-extras.svg
+preview_img: previews/index-cluster-packing.png
 has_children: true
-use_child_thumbnails: true
 tagged: 
     - clusters
     - node

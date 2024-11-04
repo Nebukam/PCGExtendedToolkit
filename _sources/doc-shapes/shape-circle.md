@@ -4,7 +4,7 @@ family: Shapes
 #grand_parent: Misc
 parent: Shape Ecosystem
 title: 🜛 Circle
-name_in_editor: "Shape : Circle"
+name_in_editor: "Shape : Circle, Arc"
 subtitle: Circle, Arc, and more
 color: param
 summary: "-"

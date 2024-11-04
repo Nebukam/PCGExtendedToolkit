@@ -4,11 +4,12 @@ title: Sampling
 subtitle: Data from nearest points, polylines, surfaces, ...
 summary: Extract data from surroundings
 splash: icons/icon_cat-sampling.svg
+color: red
 preview_img: previews/index-sampling.png
 nav_order: 40
 has_children: true
 tagged:
-    - category
+    - category-index
 ---
 
 {% include header_card %}

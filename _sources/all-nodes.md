@@ -47,6 +47,10 @@ nav_order: 200
 <br>
 {% include card_childs reference="Sampling" tagged='sampling' %}
 
+---
+## {% include lk id='Shape Ecosystem' %}
+<br>
+{% include card_childs reference="Shape Ecosystem" %}
 
 ---
 # Filters

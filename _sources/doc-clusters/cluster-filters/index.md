@@ -17,16 +17,13 @@ see_also:
 tagged: 
     - node
     - clusters
-nav_order: 100
+nav_order: 200
 ---
 
 {% include header_card %}
 
-WIP
+Cluster filters are primarily designed to be used with nodes like {% include lk id='Refine' %} and {% include lk id='Node Flag' %}.
 {: .fs-5 .fw-400 }  
-
-> WIP
-{: .warning }
 
 ---
 ## Available Filters (Node/Vtx)

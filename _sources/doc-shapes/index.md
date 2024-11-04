@@ -7,7 +7,8 @@ color: red
 splash: icons/icon_misc-sort-points.svg
 preview_img: previews/index-shape-ecosystem.png
 has_children: true
-tagged: 
+tagged:
+    - category-index
     - node
     - misc
 nav_order: 110

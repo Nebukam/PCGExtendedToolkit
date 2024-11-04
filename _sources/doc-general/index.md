@@ -17,3 +17,8 @@ has_children: true
 <br>
 
 {% include card_childs tagged="basics" wrappercss="duo" %}
+
+---
+## Nodes Categories
+<br>
+{% include card_any tagged='category-index' wrappercss="duo" %}

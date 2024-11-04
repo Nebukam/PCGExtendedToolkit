@@ -3,7 +3,7 @@ layout: page
 parent: ∷ General
 title: Blending
 subtitle: PCGEx' blendings overview
-summary: This page lists the blending used by a bunch of different nodes.
+summary: This page centralizes documentation for Blending, allowing us to keep relevant content accessible without duplicating extensive details across individual pages; as many nodes have blending capabilities.
 splash: icons/icon_view-grid.svg
 nav_order: 11
 tagged:

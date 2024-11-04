@@ -17,7 +17,7 @@ tagged:
     - clusters
 see_also: 
     - Working with Clusters
-    - Refining
+    - Cut Clusters
     - Filter Ecosystem
 nav_order: 10
 inputs:
@@ -43,6 +43,12 @@ outputs:
     -   name : Edges
         desc : Edges associated with the output Vtxs
         pin : points
+    -   name : Kept Edges
+        desc : Edges kept by the filter
+        pin : points
+    -   name : Removed Edges
+        desc : Edges removed by the filter
+        pin : points
 ---
 
 {% include header_card_node %}
@@ -64,7 +70,8 @@ The **Cluster Refine** node lets you refine connections inside individual cluste
 |:-------------|:------------------|
 |**Settings**||
 | Refinement           | This property lets you select which kind of refinement you want to apply to the input clusters.<br>**Specifics of the instanced module will be available under its inner Settings section, if any.**  |
-| Output Only Edges As Points | If enabled, this node will output edges as raw points, without the usually associated cluster.<br>*This can be significantly faster and less greedy depending on your need for the output edges.* |
+| Output Edges Only | If enabled, this node will output edges as raw points, without the usually associated cluster.<br>*This can be significantly faster and less greedy depending on your need for the output edges.* |
+| Restore Edges that connects to Valid Nodes | If enabled, any removed edge that connects valid nodes will be restored.<br>*This happens after the initial refinement and before sanitization.* |
 
 ---
 ## Sanitization

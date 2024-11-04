@@ -9,7 +9,7 @@ color: red
 nav_order: 30
 has_children: true
 tagged:
-    - category
+    - category-index
 ---
 
 {% include header_card %}
