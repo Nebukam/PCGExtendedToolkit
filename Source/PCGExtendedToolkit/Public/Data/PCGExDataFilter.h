@@ -170,46 +170,8 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExNameFiltersDetails
 
 	void Prune(PCGEx::FAttributesInfos& InAttributeInfos, bool bInvert = false) const
 	{
-		TArray<FName> FilteredOutNames;
-		FilteredOutNames.Reserve(InAttributeInfos.Identities.Num());
-
-		if (bInvert)
-		{
-			for (const TPair<FName, int32>& Pair : InAttributeInfos.Map)
-			{
-				if (Test(Pair.Key.ToString())) { continue; }
-				FilteredOutNames.Add(Pair.Key);
-			}
-		}
-		else
-		{
-			for (const TPair<FName, int32>& Pair : InAttributeInfos.Map)
-			{
-				if (!Test(Pair.Key.ToString())) { continue; }
-				FilteredOutNames.Add(Pair.Key);
-			}
-		}
-
-		// Filter out identities & attributes
-		for (FName FilteredOutName : FilteredOutNames)
-		{
-			InAttributeInfos.Map.Remove(FilteredOutName);
-			for (int i = 0; i < InAttributeInfos.Identities.Num(); i++)
-			{
-				if (InAttributeInfos.Identities[i].Name == FilteredOutName)
-				{
-					InAttributeInfos.Identities.RemoveAt(i);
-					InAttributeInfos.Attributes.RemoveAt(i);
-					break;
-				}
-			}
-		}
-
-		// Refresh indices
-		for (int i = 0; i < InAttributeInfos.Identities.Num(); i++)
-		{
-			InAttributeInfos.Map.Add(InAttributeInfos.Identities[i].Name, i);
-		}
+		if (bInvert) { InAttributeInfos.Filter([&](const FName& InName) { return Test(InName.ToString()); }); }
+		else { InAttributeInfos.Filter([&](const FName& InName) { return !Test(InName.ToString()); }); }
 	}
 };
 

@@ -16,9 +16,9 @@
 UENUM(/*E--BlueprintType, meta=(DisplayName="[PCGEx] Refine Edge Threshold Mode")--E*/)
 enum class EPCGExRefineEdgeThresholdMode : uint8
 {
-	Sum  = 0 UMETA(DisplayName = "Sum", Tooltip="The sum of adjacencies must be below the specified threshold"),
-	Any  = 1 UMETA(DisplayName = "Any Endpoint", Tooltip="At least one endpoint adjacency count must be below the specified threshold"),
-	Both = 2 UMETA(DisplayName = "Both Endpoints", Tooltip="Both endpoint adjacency count must be below the specified threshold"),
+	Sum  = 0 UMETA(DisplayName = "Sum", Tooltip="The sum of adjacencies will be compared against the specified threshold"),
+	Any  = 1 UMETA(DisplayName = "Any Endpoint", Tooltip="At least one endpoint adjacency count must pass the comparison against the specified threshold"),
+	Both = 2 UMETA(DisplayName = "Both Endpoints", Tooltip="Both endpoint adjacency count must individually pass the comparison against the specified threshold"),
 };
 
 USTRUCT(BlueprintType)

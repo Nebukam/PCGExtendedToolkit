@@ -211,7 +211,7 @@ FString UPCGExNodeEdgeDirectionFilterProviderSettings::GetDisplayName() const
 
 	UPCGExNodeEdgeDirectionFilterProviderSettings* MutableSelf = const_cast<UPCGExNodeEdgeDirectionFilterProviderSettings*>(this);
 
-	DisplayName += Config.Direction.GetName().ToString();
+	DisplayName += PCGEx::GetSelectorDisplayName(Config.Direction);
 	DisplayName += TEXT(" (");
 
 	switch (Config.Adjacency.Mode)

@@ -67,7 +67,7 @@ namespace PCGExWriteVtxProperties
 {
 	FProcessor::~FProcessor()
 	{
-		ExtraOperations->Empty();
+		ExtraOperations.Empty();
 	}
 
 	bool FProcessor::Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager)
@@ -76,9 +76,12 @@ namespace PCGExWriteVtxProperties
 
 		if (!FClusterProcessor::Process(InAsyncManager)) { return false; }
 
-		if (!ExtraOperations->IsEmpty())
+		for (const UPCGExVtxPropertyFactoryBase* Factory : Context->ExtraFactories)
 		{
-			for (UPCGExVtxPropertyOperation* Op : (*ExtraOperations)) { Op->PrepareForCluster(ExecutionContext, BatchIndex, Cluster, VtxDataFacade, EdgeDataFacade); }
+			UPCGExVtxPropertyOperation* NewOperation = Factory->CreateOperation(Context);
+
+			if (!NewOperation->PrepareForCluster(Context, Cluster, VtxDataFacade, EdgeDataFacade)) { return false; }
+			ExtraOperations.Add(NewOperation);
 		}
 
 		StartParallelLoopForNodes();
@@ -90,14 +93,11 @@ namespace PCGExWriteVtxProperties
 	{
 		if (VtxEdgeCountWriter) { VtxEdgeCountWriter->GetMutable(Node.PointIndex) = Node.Adjacency.Num(); }
 
-		if (ExtraOperations->IsEmpty()) { return; }
-
 		TArray<PCGExCluster::FAdjacencyData> Adjacency;
 		GetAdjacencyData(Cluster.Get(), Node, Adjacency);
-
 		if (VtxNormalWriter) { Node.ComputeNormal(Cluster.Get(), Adjacency, VtxNormalWriter->GetMutable(Node.PointIndex)); }
 
-		for (UPCGExVtxPropertyOperation* Op : (*ExtraOperations)) { Op->ProcessNode(BatchIndex, Cluster.Get(), Node, Adjacency); }
+		for (UPCGExVtxPropertyOperation* Op : ExtraOperations) { Op->ProcessNode(Node, Adjacency); }
 	}
 
 	void FProcessor::CompleteWork()
@@ -124,23 +124,11 @@ namespace PCGExWriteVtxProperties
 			PCGEX_FOREACH_FIELD_VTXEXTRAS(PCGEX_OUTPUT_INIT)
 		}
 
-		for (const UPCGExVtxPropertyFactoryBase* Factory : Context->ExtraFactories)
-		{
-			UPCGExVtxPropertyOperation* NewOperation = Factory->CreateOperation(Context);
-
-			if (!NewOperation->PrepareForVtx(Context, VtxDataFacade)) { continue; }
-
-			NewOperation->ClusterReserve(Edges.Num());
-			ExtraOperations.Add(NewOperation);
-		}
-
 		TBatch<FProcessor>::OnProcessingPreparationComplete();
 	}
 
 	bool FProcessorBatch::PrepareSingle(const TSharedPtr<FProcessor>& ClusterProcessor)
 	{
-		ClusterProcessor->ExtraOperations = &ExtraOperations;
-
 #define PCGEX_FWD_VTX(_NAME, _TYPE, _DEFAULT_VALUE) ClusterProcessor->_NAME##Writer = _NAME##Writer;
 		PCGEX_FOREACH_FIELD_VTXEXTRAS(PCGEX_FWD_VTX)
 #undef PCGEX_ASSIGN_AXIS_GETTER
@@ -150,8 +138,8 @@ namespace PCGExWriteVtxProperties
 
 	void FProcessorBatch::Write()
 	{
-		//	TBatch<FProcessor>::Write();
 		VtxDataFacade->Write(AsyncManager);
+		TBatch<FProcessor>::Write();
 	}
 }
 

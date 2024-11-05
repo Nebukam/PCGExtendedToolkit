@@ -22,14 +22,12 @@ void UPCGExProbeAnisotropic::ProcessCandidates(const int32 Index, const FPCGPoin
 	FVector D[16];
 	int32 BestCandidate[16] = {-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,};
 	double BestDot[16];
-	double BestDist[16];
 	if (Config.bTransformDirection)
 	{
 		for (int d = 0; d < 16; d++)
 		{
 			D[d] = Directions[d];
-			BestDot[d] = 0.92;
-			BestDist[d] = MAX_dbl;
+			BestDot[d] = 0.95;
 		}
 	}
 	else
@@ -37,8 +35,7 @@ void UPCGExProbeAnisotropic::ProcessCandidates(const int32 Index, const FPCGPoin
 		for (int d = 0; d < 16; d++)
 		{
 			D[d] = Point.Transform.TransformVectorNoScale(Directions[d]);
-			BestDot[d] = 0.92;
-			BestDist[d] = MAX_dbl;
+			BestDot[d] = 0.95;
 		}
 	}
 
@@ -49,29 +46,27 @@ void UPCGExProbeAnisotropic::ProcessCandidates(const int32 Index, const FPCGPoin
 		if (C.Distance > R) { break; }
 		if (Coincidence && Coincidence->Contains(C.GH)) { continue; }
 
-		double BatchBestDot = 0.92;
-		double BatchBestDist = MAX_dbl;
-		int32 BatchBest = -1;
+		int32 BestIndex = -1;
 
 		for (int d = 0; d < 16; d++)
 		{
 			const double TempDot = FVector::DotProduct(D[d], C.Direction);
-			if (TempDot >= BestDot[d]) // 22.5 degree tolerance
+			if (TempDot > BestDot[d])
 			{
-				if (C.Distance < BatchBestDist)
-				{
-					BatchBest = d;
-					BatchBestDot = TempDot;
-					BatchBestDist = C.Distance;
-				}
+				BestIndex = d;
+				BestDot[d] = TempDot;
 			}
 		}
 
-		if (BatchBest != -1)
+		if (BestIndex != -1)
 		{
-			BestDist[BatchBest] = BatchBestDist;
-			BestDot[BatchBest] = BatchBestDot;
-			BestCandidate[BatchBest] = i;
+			if (Coincidence)
+			{
+				Coincidence->Add(C.GH, &bIsAlreadyConnected);
+				if (bIsAlreadyConnected) { continue; }
+			}
+
+			BestCandidate[BestIndex] = i;
 		}
 	}
 
@@ -79,13 +74,6 @@ void UPCGExProbeAnisotropic::ProcessCandidates(const int32 Index, const FPCGPoin
 	{
 		if (BestCandidate[d] == -1) { continue; }
 		const PCGExProbing::FCandidate& C = Candidates[BestCandidate[d]];
-
-		if (Coincidence)
-		{
-			Coincidence->Add(C.GH, &bIsAlreadyConnected);
-			if (bIsAlreadyConnected) { continue; }
-		}
-
 		OutEdges->Add(PCGEx::H64U(Index, C.PointIndex));
 	}
 }

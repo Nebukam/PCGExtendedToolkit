@@ -105,8 +105,8 @@ namespace PCPGExMergePointsByTag
 					{
 						int32 RatingA = Priorities.Find(A->Tag);
 						int32 RatingB = Priorities.Find(B->Tag);
-						if (RatingA < 0) { RatingA = TNumericLimits<int32>::Max(); }
-						if (RatingB < 0) { RatingB = TNumericLimits<int32>::Max(); }
+						if (RatingA < 0) { RatingA = MAX_int32; }
+						if (RatingB < 0) { RatingB = MAX_int32; }
 						return RatingA == RatingB ? A->IOs.Num() < B->IOs.Num() : RatingA < RatingB;
 					});
 			}
@@ -117,8 +117,8 @@ namespace PCPGExMergePointsByTag
 					{
 						int32 RatingA = Priorities.Find(A->Tag);
 						int32 RatingB = Priorities.Find(B->Tag);
-						if (RatingA < 0) { RatingA = TNumericLimits<int32>::Max(); }
-						if (RatingB < 0) { RatingB = TNumericLimits<int32>::Max(); }
+						if (RatingA < 0) { RatingA = MAX_int32; }
+						if (RatingB < 0) { RatingB = MAX_int32; }
 						return RatingA == RatingB ? A->IOs.Num() > B->IOs.Num() : RatingA < RatingB;
 					});
 			}

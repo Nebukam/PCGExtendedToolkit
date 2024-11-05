@@ -19,24 +19,9 @@ void UPCGExVtxPropertyEdgeMatch::CopySettingsFrom(const UPCGExOperation* Other)
 	}
 }
 
-void UPCGExVtxPropertyEdgeMatch::ClusterReserve(const int32 NumClusters)
+bool UPCGExVtxPropertyEdgeMatch::PrepareForCluster(const FPCGContext* InContext, TSharedPtr<PCGExCluster::FCluster> InCluster, const TSharedPtr<PCGExData::FFacade>& InVtxDataFacade, const TSharedPtr<PCGExData::FFacade>& InEdgeDataFacade)
 {
-	Super::ClusterReserve(NumClusters);
-	FilterManagers.SetNum(NumClusters);
-}
-
-void UPCGExVtxPropertyEdgeMatch::PrepareForCluster(const FPCGContext* InContext, const int32 ClusterIdx, TSharedPtr<PCGExCluster::FCluster> Cluster, TSharedPtr<PCGExData::FFacade> VtxDataFacade, TSharedPtr<PCGExData::FFacade> EdgeDataFacade)
-{
-	Super::PrepareForCluster(InContext, ClusterIdx, Cluster, VtxDataFacade, EdgeDataFacade);
-	if (FilterFactories && !FilterFactories->IsEmpty())
-	{
-		// TODO
-	}
-}
-
-bool UPCGExVtxPropertyEdgeMatch::PrepareForVtx(const FPCGContext* InContext, const TSharedPtr<PCGExData::FFacade>& InVtxDataFacade)
-{
-	if (!Super::PrepareForVtx(InContext, InVtxDataFacade)) { return false; }
+	if (!Super::PrepareForCluster(InContext, InCluster, InVtxDataFacade, InEdgeDataFacade)) { return false; }
 
 	if (!Config.MatchingEdge.Validate(InContext))
 	{
@@ -66,10 +51,8 @@ bool UPCGExVtxPropertyEdgeMatch::PrepareForVtx(const FPCGContext* InContext, con
 	return bIsValidOperation;
 }
 
-void UPCGExVtxPropertyEdgeMatch::ProcessNode(const int32 ClusterIdx, const PCGExCluster::FCluster* Cluster, PCGExCluster::FNode& Node, const TArray<PCGExCluster::FAdjacencyData>& Adjacency)
+void UPCGExVtxPropertyEdgeMatch::ProcessNode(PCGExCluster::FNode& Node, const TArray<PCGExCluster::FAdjacencyData>& Adjacency)
 {
-	//PCGExPointFilter::FManager* EdgeFilters = FilterManagers[ClusterIdx]; //TODO : Implement properly
-
 	const FPCGPoint& Point = PrimaryDataFacade->Source->GetInPoint(Node.PointIndex);
 
 	double BestDot = MIN_dbl;
@@ -94,17 +77,8 @@ void UPCGExVtxPropertyEdgeMatch::ProcessNode(const int32 ClusterIdx, const PCGEx
 		}
 	}
 
-	if (IBest != -1) { Config.MatchingEdge.Set(Node.PointIndex, Adjacency[IBest], (*Cluster->Nodes)[Adjacency[IBest].NodeIndex].Adjacency.Num()); }
+	if (IBest != -1) { Config.MatchingEdge.Set(Node.PointIndex, Adjacency[IBest], Cluster->GetNode(Adjacency[IBest].NodeIndex)->Adjacency.Num()); }
 	else { Config.MatchingEdge.Set(Node.PointIndex, 0, FVector::ZeroVector, -1, -1, 0); }
-}
-
-void UPCGExVtxPropertyEdgeMatch::InitEdgeFilters()
-{
-	if (bEdgeFilterInitialized) { return; }
-
-	FWriteScopeLock WriteScopeLock(FilterLock);
-
-	bEdgeFilterInitialized = true;
 }
 
 #if WITH_EDITOR
@@ -127,19 +101,12 @@ UPCGExVtxPropertyOperation* UPCGExVtxPropertyEdgeMatchFactory::CreateOperation(F
 {
 	UPCGExVtxPropertyEdgeMatch* NewOperation = InContext->ManagedObjects->New<UPCGExVtxPropertyEdgeMatch>();
 	PCGEX_VTX_EXTRA_CREATE
-
-	if (!FilterFactories.IsEmpty())
-	{
-		NewOperation->FilterFactories = const_cast<TArray<TObjectPtr<const UPCGExFilterFactoryBase>>*>(&FilterFactories);
-	}
-
 	return NewOperation;
 }
 
 TArray<FPCGPinProperties> UPCGExVtxPropertyEdgeMatchSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
-	PCGEX_PIN_PARAMS(PCGEx::SourceAdditionalReq, "Additional Requirements for the match", Advanced, {})
 	return PinProperties;
 }
 
@@ -148,9 +115,6 @@ UPCGExParamFactoryBase* UPCGExVtxPropertyEdgeMatchSettings::CreateFactory(FPCGEx
 	UPCGExVtxPropertyEdgeMatchFactory* NewFactory = InContext->ManagedObjects->New<UPCGExVtxPropertyEdgeMatchFactory>();
 	NewFactory->Config = Config;
 	NewFactory->Config.Sanitize();
-	GetInputFactories(
-		InContext, PCGEx::SourceAdditionalReq, NewFactory->FilterFactories,
-		PCGExFactories::ClusterEdgeFilters, false);
 	return Super::CreateFactory(InContext, NewFactory);
 }
 

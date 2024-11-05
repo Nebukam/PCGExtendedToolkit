@@ -75,7 +75,7 @@ UPCGExParamFactoryBase* UPCGExCreateHeuristicAttributeSettings::CreateFactory(FP
 #if WITH_EDITOR
 FString UPCGExCreateHeuristicAttributeSettings::GetDisplayName() const
 {
-	return Config.Attribute.GetName().ToString()
+	return PCGEx::GetSelectorDisplayName(Config.Attribute)
 		+ TEXT(" @ ")
 		+ FString::Printf(TEXT("%.3f"), (static_cast<int32>(1000 * Config.WeightFactor) / 1000.0));
 }

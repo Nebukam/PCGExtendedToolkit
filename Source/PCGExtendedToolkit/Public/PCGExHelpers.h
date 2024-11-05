@@ -38,7 +38,7 @@ public:
 };
 
 namespace PCGExHelpers
-{
+{	
 	static TArray<FString> GetStringArrayFromCommaSeparatedList(const FString& InCommaSeparatedString)
 	{
 		TArray<FString> Result;

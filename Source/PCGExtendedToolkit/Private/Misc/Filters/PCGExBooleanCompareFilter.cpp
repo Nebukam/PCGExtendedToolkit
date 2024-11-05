@@ -43,9 +43,9 @@ PCGEX_CREATE_FILTER_FACTORY(BooleanCompare)
 #if WITH_EDITOR
 FString UPCGExBooleanCompareFilterProviderSettings::GetDisplayName() const
 {
-	FString DisplayName = Config.OperandA.GetName().ToString() + (Config.Comparison == EPCGExEquality::Equal ? TEXT(" == ") : TEXT(" != "));
+	FString DisplayName = PCGEx::GetSelectorDisplayName(Config.OperandA) + (Config.Comparison == EPCGExEquality::Equal ? TEXT(" == ") : TEXT(" != "));
 
-	if (Config.CompareAgainst == EPCGExInputValueType::Attribute) { DisplayName += Config.OperandB.GetName().ToString(); }
+	if (Config.CompareAgainst == EPCGExInputValueType::Attribute) { DisplayName += PCGEx::GetSelectorDisplayName(Config.OperandB); }
 	else { DisplayName += FString::Printf(TEXT("%s"), Config.OperandBConstant ? TEXT("true") : TEXT("false")); }
 
 	return DisplayName;
