@@ -10,12 +10,13 @@ PCGEx allows you to create edge-based structures from points dataset, inside of 
 It also comes with a set of lower-level, more generic features to manipulate attributes & points with a performance boost that can be up to 150x faster than some vanilla PCG Nodes; as well as highly granular parameters & tweaks.
 
 ## Getting Started
-* **[Example Project](https://github.com/Nebukam/PCGExExampleProject)**
-* **[Full documentation](https://nebukam.github.io/PCGExtendedToolkit/)**
+* **[Full documentation](https://nebukam.github.io/PCGExtendedToolkit/)** / Overview of [All the Nodes](https://nebukam.github.io/PCGExtendedToolkit/all-nodes.html)
 * [Installation](https://nebukam.github.io/PCGExtendedToolkit/installation/) in your own project
-* Overview of [All the Nodes](https://nebukam.github.io/PCGExtendedToolkit/all-nodes.html)!
 
 For questions & support, join the [PCGEx Discord Server](https://discord.gg/mde2vC5gbE)!
+
+## **[Example Project](https://github.com/Nebukam/PCGExExampleProject)**
+![image](https://github.com/user-attachments/assets/b8bd713e-0b60-4cdc-84d9-dd776d452bf8)
 
 # Highlights
 ### Vtx/Edge structures
