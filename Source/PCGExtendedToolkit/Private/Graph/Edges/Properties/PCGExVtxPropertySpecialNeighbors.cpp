@@ -7,11 +7,6 @@
 #define LOCTEXT_NAMESPACE "PCGExVtxPropertySpecialNeighbors"
 #define PCGEX_NAMESPACE PCGExVtxPropertySpecialNeighbors
 
-#define PCGEX_FOREACH_FIELD_SPECIALEDGE(MACRO)\
-MACRO(Shortest)\
-MACRO(Longest)\
-MACRO(Average)
-
 void UPCGExVtxPropertySpecialNeighbors::CopySettingsFrom(const UPCGExOperation* Other)
 {
 	Super::CopySettingsFrom(Other);
@@ -44,26 +39,27 @@ bool UPCGExVtxPropertySpecialNeighbors::PrepareForCluster(
 
 void UPCGExVtxPropertySpecialNeighbors::ProcessNode(PCGExCluster::FNode& Node, const TArray<PCGExCluster::FAdjacencyData>& Adjacency)
 {
-	double LLargest = MIN_dbl;
+	int32 LLargest = MIN_int32;
 	int32 ILargest = -1;
 
-	double LSmallest = MAX_dbl;
+	int32 LSmallest = MAX_int32;
 	int32 ISmallest = -1;
 
 	for (int i = 0; i < Adjacency.Num(); i++)
 	{
 		const PCGExCluster::FAdjacencyData& A = Adjacency[i];
-
-		if (A.Length > LLargest)
+		const int32 NumAdj = Cluster->GetNode(A.NodeIndex)->Adjacency.Num(); 
+		
+		if (NumAdj > LLargest)
 		{
 			ILargest = i;
-			LLargest = A.Length;
+			LLargest = NumAdj;
 		}
 
-		if (A.Length < LSmallest)
+		if (NumAdj < LSmallest)
 		{
 			ISmallest = i;
-			LSmallest = A.Length;
+			LSmallest = NumAdj;
 		}
 	}
 
@@ -95,6 +91,5 @@ UPCGExParamFactoryBase* UPCGExVtxPropertySpecialNeighborsSettings::CreateFactory
 	return Super::CreateFactory(InContext, NewFactory);
 }
 
-#undef PCGEX_FOREACH_FIELD_SPECIALEDGE
 #undef LOCTEXT_NAMESPACE
 #undef PCGEX_NAMESPACE

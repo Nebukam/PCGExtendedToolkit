@@ -7,11 +7,6 @@
 #define LOCTEXT_NAMESPACE "PCGExVtxPropertySpecialEdges"
 #define PCGEX_NAMESPACE PCGExVtxPropertySpecialEdges
 
-#define PCGEX_FOREACH_FIELD_SPECIALEDGE(MACRO)\
-MACRO(Shortest)\
-MACRO(Longest)\
-MACRO(Average)
-
 void UPCGExVtxPropertySpecialEdges::CopySettingsFrom(const UPCGExOperation* Other)
 {
 	Super::CopySettingsFrom(Other);
@@ -107,6 +102,5 @@ UPCGExParamFactoryBase* UPCGExVtxPropertySpecialEdgesSettings::CreateFactory(FPC
 	return Super::CreateFactory(InContext, NewFactory);
 }
 
-#undef PCGEX_FOREACH_FIELD_SPECIALEDGE
 #undef LOCTEXT_NAMESPACE
 #undef PCGEX_NAMESPACE
