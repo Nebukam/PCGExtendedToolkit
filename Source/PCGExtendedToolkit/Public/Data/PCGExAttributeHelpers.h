@@ -151,6 +151,7 @@ namespace PCGEx
 		void Update(const FAttributesInfos* Other, const FPCGExAttributeGatherDetails& InGatherDetails, TSet<FName>& OutTypeMismatch);
 
 		using FilterCallback = std::function<bool(const FName&)>;
+
 		void Filter(const FilterCallback& FilterFn)
 		{
 			TArray<FName> FilteredOutNames;
@@ -225,7 +226,8 @@ namespace PCGEx
 
 		if constexpr (bInitialized)
 		{
-			return FName(InSelector.GetName().ToString() + FString::Join(InSelector.GetExtraNames(), TEXT(".")));
+			if (InSelector.GetExtraNames().IsEmpty()) { return FName(InSelector.GetName().ToString()); }
+			return FName(InSelector.GetName().ToString() + TEXT(".") + FString::Join(InSelector.GetExtraNames(), TEXT(".")));
 		}
 		else
 		{
@@ -240,7 +242,8 @@ namespace PCGEx
 
 	static FString GetSelectorDisplayName(const FPCGAttributePropertyInputSelector& InSelector)
 	{
-		return InSelector.GetName().ToString() + FString::Join(InSelector.GetExtraNames(), TEXT("."));
+		if (InSelector.GetExtraNames().IsEmpty()) { return InSelector.GetName().ToString(); }
+		return InSelector.GetName().ToString() + TEXT(".") + FString::Join(InSelector.GetExtraNames(), TEXT("."));
 	}
 
 	class /*PCGEXTENDEDTOOLKIT_API*/ FAttributeBroadcasterBase
