@@ -12,6 +12,18 @@
 #include "PCGExOperation.h"
 
 
+
+
+
+
+
+
+
+
+
+
+
+
 #include "PCGExVtxPropertyFactoryProvider.generated.h"
 
 #define PCGEX_VTX_EXTRA_CREATE \
@@ -49,7 +61,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExSimpleEdgeOutputSettings
 	TSharedPtr<PCGExData::TBuffer<FVector>> DirWriter;
 
 	/** Invert the direction */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bWriteDirection"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName=" └─ Invert", EditCondition="bWriteDirection", HideEditConditionToggle))
 	bool bInvertDirection = false;
 
 	/**  */
@@ -149,7 +161,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExEdgeOutputWithIndexSettings : public FPC
 		if (bWriteNeighborCount) { NCountWriter = InFacade->GetWritable<int32>(NeighborCountAttribute, true); }
 	}
 
-	void Set(const int32 EntryIndex, const double InLength, const FVector& InDir, const int32 EIndex, const int32 VIndex, const int32 NeighborCount)
+	void Set(const int32 EntryIndex, const double InLength, const FVector& InDir, const int32 EIndex, const int32 VIndex, const int32 NeighborCount) const
 	{
 		FPCGExSimpleEdgeOutputSettings::Set(EntryIndex, InLength, InDir);
 		if (EIdxWriter) { EIdxWriter->GetMutable(EntryIndex) = EIndex; }
@@ -182,18 +194,15 @@ class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExVtxPropertyOperation : public UPCGExOpera
 public:
 	virtual void CopySettingsFrom(const UPCGExOperation* Other) override;
 
-	virtual bool PrepareForVtx(const FPCGContext* InContext, const TSharedPtr<PCGExData::FFacade>& InVtxDataFacade);
-
-	virtual void ClusterReserve(const int32 NumClusters);
-	virtual void PrepareForCluster(const FPCGContext* InContext, const int32 ClusterIdx, TSharedPtr<PCGExCluster::FCluster> Cluster, TSharedPtr<PCGExData::FFacade> VtxDataFacade, TSharedPtr<PCGExData::FFacade> EdgeDataFacade);
-
+	virtual bool PrepareForCluster(const FPCGContext* InContext, TSharedPtr<PCGExCluster::FCluster> InCluster, const TSharedPtr<PCGExData::FFacade>& InVtxDataFacade, const TSharedPtr<PCGExData::FFacade>& InEdgeDataFacade);
 	virtual bool IsOperationValid();
-
-	virtual void ProcessNode(const int32 ClusterIdx, const PCGExCluster::FCluster* Cluster, PCGExCluster::FNode& Node, const TArray<PCGExCluster::FAdjacencyData>& Adjacency);
+	
+	virtual void ProcessNode(PCGExCluster::FNode& Node, const TArray<PCGExCluster::FAdjacencyData>& Adjacency);
 
 	virtual void Cleanup() override;
 
 protected:
+	const PCGExCluster::FCluster* Cluster = nullptr;
 	bool bIsValidOperation = true;
 };
 

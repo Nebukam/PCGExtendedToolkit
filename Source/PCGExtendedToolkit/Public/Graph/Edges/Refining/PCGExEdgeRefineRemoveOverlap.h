@@ -20,7 +20,7 @@ enum class EPCGExEdgeOverlapPick : uint8
 /**
  * 
  */
-UCLASS(MinimalAPI, BlueprintType, meta=(DisplayName="Remove Overlap"))
+UCLASS(MinimalAPI, BlueprintType, meta=(DisplayName="Refine : Overlap"))
 class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExEdgeRemoveOverlap : public UPCGExEdgeRefineOperation
 {
 	GENERATED_BODY()

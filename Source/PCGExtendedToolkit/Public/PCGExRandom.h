@@ -91,6 +91,6 @@ namespace PCGExRandom
 	{
 		return static_cast<int>(PCGExMath::Remap(
 			FMath::PerlinNoise3D(PCGExMath::Tile(Point.Transform.GetLocation() * 0.001 + Offset, FVector(-1), FVector(1))),
-			-1, 1, TNumericLimits<int32>::Min(), TNumericLimits<int32>::Max()));
+			-1, 1, MIN_int32, MAX_int32));
 	}
 }

@@ -11,7 +11,7 @@
 /**
  * 
  */
-UCLASS(MinimalAPI, BlueprintType, meta=(DisplayName="Gabriel"))
+UCLASS(MinimalAPI, BlueprintType, meta=(DisplayName="Refine : Gabriel"))
 class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExEdgeRefineGabriel : public UPCGExEdgeRefineOperation
 {
 	GENERATED_BODY()

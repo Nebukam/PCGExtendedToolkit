@@ -13,6 +13,14 @@
 
 #include "PCGExAttributeStats.generated.h"
 
+UENUM(/*E--BlueprintType, meta=(DisplayName="[PCGEx] Mean Measure")--E*/)
+enum class EPCGExStatsOutputToPoints : uint8
+{
+	None   = 0 UMETA(DisplayName = "No output", ToolTip="Writes nothing to input points"),
+	Prefix = 1 UMETA(DisplayName = "Prefix", ToolTip="Write stats values to points, using selected name as a prefix to the attribute' name"),
+	Suffix = 2 UMETA(DisplayName = "Suffix", ToolTip="Write stats values to points, using selected name as a suffix to the attribute' name"),
+};
+
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc")
 class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExAttributeStatsSettings : public UPCGExPointsProcessorSettings
 {
@@ -50,9 +58,16 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	bool bOutputPerUniqueValuesStats = false;
 
-	bool bOutputIdentifier = true;
 	/** */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta = (PCG_Overridable, DisplayName = "Is Valid"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
+	EPCGExStatsOutputToPoints OutputToPoints = EPCGExStatsOutputToPoints::None;
+
+	/** */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta = (PCG_Overridable, InlineEditConditionToggle))
+	bool bOutputIdentifier = true;
+	
+	/** */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta = (PCG_Overridable, DisplayName = "Identifier", EditCondition="bOutputIdentifier"))
 	FName IdentifierAttributeName = FName(TEXT("Identifier"));
 
 	/** */
@@ -117,7 +132,7 @@ public:
 
 	/** */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta = (PCG_Overridable, DisplayName = "Unique Set Values Num", EditCondition="bOutputUniqueSetValuesNum"))
-	FName UniqueSetValuesNumAttributeName = FName(TEXT("UniqueValues"));
+	FName UniqueSetValuesNumAttributeName = FName(TEXT("UniqueSetValues"));
 
 	/** */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta = (PCG_Overridable, InlineEditConditionToggle))
@@ -133,7 +148,7 @@ public:
 
 	/** */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta = (PCG_Overridable, DisplayName = "Has only Default Values", EditCondition="bOutputHasOnlyDefaultValues"))
-	FName HasOnlyDefaultValuesAttributeName = FName(TEXT("bOnlyDefaults"));
+	FName HasOnlyDefaultValuesAttributeName = FName(TEXT("HasOnlyDefaultValues"));
 
 	/** */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta = (PCG_Overridable, InlineEditConditionToggle))
@@ -141,7 +156,7 @@ public:
 
 	/** */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta = (PCG_Overridable, DisplayName = "Has only Set Values", EditCondition="bOutputHasOnlySetValues"))
-	FName HasOnlySetValuesAttributeName = FName(TEXT("bOnlyUniques"));
+	FName HasOnlySetValuesAttributeName = FName(TEXT("HasOnlySetValues"));
 
 	/** */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta = (PCG_Overridable, InlineEditConditionToggle))
@@ -149,20 +164,23 @@ public:
 
 	/** */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta = (PCG_Overridable, DisplayName = "Has only Unique Values", EditCondition="bOutputHasOnlyUniqueValues"))
-	FName HasOnlyUniqueValuesAttributeName = FName(TEXT("bOnlyUniques"));
+	FName HasOnlyUniqueValuesAttributeName = FName(TEXT("HasOnlyUniqueValues"));
 
 	/** */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta = (PCG_Overridable, InlineEditConditionToggle))
 	bool bOutputSamples = true;
 
 	/** */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta = (PCG_Overridable, DisplayName = "Has only Unique Values", EditCondition="bOutputSamples"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta = (PCG_Overridable, DisplayName = "Samples", EditCondition="bOutputSamples"))
 	FName SamplesAttributeName = FName(TEXT("Samples"));
 
-	bool bOutputIsValid = true;
 	/** */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta = (PCG_Overridable, DisplayName = "Is Valid"))
-	FName IsValidAttributeName = FName(TEXT("Valid"));
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta = (PCG_Overridable, InlineEditConditionToggle))
+	bool bOutputIsValid = true;
+
+	/** */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta = (PCG_Overridable, DisplayName = "Is Valid", EditCondition="bOutputIsValid"))
+	FName IsValidAttributeName = FName(TEXT("IsValid"));
 
 
 	/** */
@@ -181,6 +199,10 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	bool bQuietTypeMismatchWarning = false;
 
+	/** */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_NotOverridable))
+	bool bFeedbackLoopFailsafe = true;
+
 private:
 	friend class FPCGExAttributeStatsElement;
 };
@@ -193,6 +215,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExAttributeStatsContext final : FPCGExPoin
 	TArray<UPCGParamData*> OutputParams;
 	TMap<FName, UPCGParamData*> OutputParamsMap;
 	TArray<int64> Rows;
+
 };
 
 class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExAttributeStatsElement final : public FPCGExPointsProcessorElement
@@ -264,8 +287,16 @@ namespace PCGExAttributeStats
 		{
 			UPCGParamData* ParamData = Context->OutputParamsMap[Identity.Name];
 
-
-#define PCGEX_OUTPUT_STAT(_NAME, _TYPE, _VALUE) if(Settings->bOutput##_NAME){ ParamData->Metadata->GetMutableTypedAttribute<_TYPE>(Settings->_NAME##AttributeName)->SetValue(Key, _VALUE); }
+			FString StrName = Identity.Name.ToString();
+			UPCGMetadata* PointsMetadata = nullptr;
+			if (Settings->OutputToPoints != EPCGExStatsOutputToPoints::None) { PointsMetadata = InDataFacade->GetOut()->Metadata; }
+			
+#define PCGEX_OUTPUT_STAT(_NAME, _TYPE, _VALUE) \
+	if(Settings->bOutput##_NAME){ ParamData->Metadata->GetMutableTypedAttribute<_TYPE>(Settings->_NAME##AttributeName)->SetValue(Key, _VALUE); \
+	if (PointsMetadata){\
+		FName PrintName = Settings->OutputToPoints == EPCGExStatsOutputToPoints::Prefix ? FName(Settings->_NAME##AttributeName.ToString() + StrName) : FName(StrName + Settings->_NAME##AttributeName.ToString());\
+		if (PointsMetadata->GetConstTypedAttribute<_TYPE>(PrintName)) { PointsMetadata->DeleteAttribute(PrintName); }\
+		PointsMetadata->FindOrCreateAttribute<_TYPE>(PrintName, _VALUE);} }\
 
 			TSharedPtr<PCGExData::TBuffer<T>> Buffer = InDataFacade->GetReadable<T>(Identity.Name);
 			PCGExMath::TypeMinMax(MinValue, MaxValue);
@@ -305,6 +336,15 @@ namespace PCGExAttributeStats
 				DefaultValue = Buffer->GetTypedInAttribute()->GetValueFromItemKey(PCGDefaultValueKey);
 				int32 NumValues = 0;
 
+				/*
+				auto ProcessBasics = [&](const T& InValue)
+				{
+					MinValue = PCGExMath::Min(MinValue, InValue);
+					MaxValue = PCGExMath::Max(MaxValue, InValue);
+					AverageValue = PCGExMath::Add(AverageValue, InValue);
+				};
+				*/
+				
 				for (int i = 0; i < NumPoints; i++)
 				{
 					if (!Filter[i]) { continue; }
@@ -314,7 +354,6 @@ namespace PCGExAttributeStats
 
 					MinValue = PCGExMath::Min(MinValue, Value);
 					MaxValue = PCGExMath::Max(MaxValue, Value);
-
 					AverageValue = PCGExMath::Add(AverageValue, Value);
 
 					const int32 Count = ValuesCount.FindOrAdd(Value, 0);

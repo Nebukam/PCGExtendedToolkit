@@ -29,7 +29,7 @@ namespace PCGExEdgeEndpointsCompareStr
 		StringBuffer = InPointDataFacade->GetBroadcaster<FString>(TypedFilterFactory->Config.Attribute);
 		if (!StringBuffer)
 		{
-			PCGE_LOG_C(Warning, GraphAndLog, InContext, FText::Format(FTEXT("Comparison Attribute ({0}) is not valid."), FText::FromString(TypedFilterFactory->Config.Attribute.GetName().ToString())));
+			PCGE_LOG_C(Warning, GraphAndLog, InContext, FText::Format(FTEXT("Comparison Attribute ({0}) is not valid."), FText::FromString(PCGEx::GetSelectorDisplayName(TypedFilterFactory->Config.Attribute))));
 			return false;
 		}
 
@@ -48,26 +48,7 @@ PCGEX_CREATE_FILTER_FACTORY(EdgeEndpointsCompareStr)
 #if WITH_EDITOR
 FString UPCGExEdgeEndpointsCompareStrFilterProviderSettings::GetDisplayName() const
 {
-	FString DisplayName = "Compare Endpoints"; //" (";
-	/*
-		switch (Config.Mode)
-		{
-		case EPCGExRefineEdgeThresholdMode::Sum:
-			DisplayName += "Sum";
-			break;
-		case EPCGExRefineEdgeThresholdMode::Any:
-			DisplayName += "Any";
-			break;
-		case EPCGExRefineEdgeThresholdMode::Both:
-			DisplayName += "Both";
-			break;
-		}
-	
-		DisplayName += ")" + PCGExCompare::ToString(Config.Comparison);
-		if (Config.ThresholdSource == EPCGExInputValueType::Constant) { DisplayName += FString::Printf(TEXT("%d"), Config.ThresholdConstant); }
-		else { DisplayName += Config.ThresholdAttribute.GetName().ToString(); }
-	*/
-	return DisplayName;
+	return PCGEx::GetSelectorDisplayName(Config.Attribute) + PCGExCompare::ToString(Config.Comparison);
 }
 #endif
 

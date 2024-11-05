@@ -141,8 +141,8 @@ virtual FText GetNodeTooltipText() const override{ return NSLOCTEXT("PCGEx" #_SH
 #define PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(_SHORTNAME, _NAME, _TOOLTIP, _TASK_NAME)\
 virtual FName GetDefaultNodeName() const override { return FName(TEXT(#_SHORTNAME)); } \
 virtual FName AdditionalTaskName() const override{ return FName(GetDefaultNodeTitle().ToString()); }\
-virtual FString GetAdditionalTitleInformation() const override{ return _TASK_NAME.IsNone() ? FString() : _TASK_NAME.ToString(); }\
-virtual bool HasFlippedTitleLines() const { return !_TASK_NAME.IsNone(); }\
+virtual FString GetAdditionalTitleInformation() const override{ FName N = _TASK_NAME; return N.IsNone() ? FString() : N.ToString(); }\
+virtual bool HasFlippedTitleLines() const { FName N = _TASK_NAME; return !N.IsNone(); }\
 virtual FText GetDefaultNodeTitle() const override { return NSLOCTEXT("PCGEx" #_SHORTNAME, "NodeTitle", "PCGEx | " _NAME);} \
 virtual FText GetNodeTooltipText() const override{ return NSLOCTEXT("PCGEx" #_SHORTNAME "Tooltip", "NodeTooltip", _TOOLTIP); }
 #endif

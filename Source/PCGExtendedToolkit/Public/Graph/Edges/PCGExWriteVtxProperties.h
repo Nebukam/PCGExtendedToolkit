@@ -91,7 +91,7 @@ namespace PCGExWriteVtxProperties
 	{
 		friend class FProcessorBatch;
 
-		TArray<UPCGExVtxPropertyOperation*>* ExtraOperations = nullptr;
+		TArray<UPCGExVtxPropertyOperation*> ExtraOperations;
 
 	public:
 		FProcessor(const TSharedRef<PCGExData::FFacade>& InVtxDataFacade, const TSharedRef<PCGExData::FFacade>& InEdgeDataFacade)
@@ -110,7 +110,6 @@ namespace PCGExWriteVtxProperties
 
 	class FProcessorBatch final : public PCGExClusterMT::TBatch<FProcessor>
 	{
-		TArray<UPCGExVtxPropertyOperation*> ExtraOperations;
 
 		PCGEX_FOREACH_FIELD_VTXEXTRAS(PCGEX_OUTPUT_DECL)
 

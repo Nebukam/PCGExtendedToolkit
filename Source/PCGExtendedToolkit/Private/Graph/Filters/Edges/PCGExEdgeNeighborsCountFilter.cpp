@@ -25,7 +25,7 @@ namespace PCGExEdgeNeighborsCount
 			ThresholdBuffer = PointDataFacade->GetScopedBroadcaster<int32>(TypedFilterFactory->Config.ThresholdAttribute);
 			if (!ThresholdBuffer)
 			{
-				PCGE_LOG_C(Warning, GraphAndLog, InContext, FText::Format(FTEXT("Threshold Attribute ({0}) is not valid."), FText::FromString(TypedFilterFactory->Config.ThresholdAttribute.GetName().ToString())));
+				PCGE_LOG_C(Warning, GraphAndLog, InContext, FText::Format(FTEXT("Threshold Attribute ({0}) is not valid."), FText::FromString(PCGEx::GetSelectorDisplayName(TypedFilterFactory->Config.ThresholdAttribute))));
 			}
 		}
 
@@ -84,7 +84,7 @@ FString UPCGExEdgeNeighborsCountFilterProviderSettings::GetDisplayName() const
 
 	DisplayName += ")" + PCGExCompare::ToString(Config.Comparison);
 	if (Config.ThresholdInput == EPCGExInputValueType::Constant) { DisplayName += FString::Printf(TEXT("%d"), Config.ThresholdConstant); }
-	else { DisplayName += Config.ThresholdAttribute.GetName().ToString(); }
+	else { DisplayName += PCGEx::GetSelectorDisplayName(Config.ThresholdAttribute); }
 
 	return DisplayName;
 }

@@ -104,7 +104,7 @@ FString UPCGExMeanFilterProviderSettings::GetDisplayName() const
 	if (Config.bDoExcludeBelowMean && Config.bDoExcludeAboveMean) { DisplayName += "&& "; }
 	if (Config.bDoExcludeAboveMean) { DisplayName += FString::Printf(TEXT("> %.3f "), (static_cast<int32>(1000 * Config.ExcludeAbove) / 1000.0)); }
 
-	DisplayName += Config.Target.GetName().ToString() + "' ";
+	DisplayName += PCGEx::GetSelectorDisplayName(Config.Target) + "' ";
 
 	switch (Config.MeanMethod)
 	{

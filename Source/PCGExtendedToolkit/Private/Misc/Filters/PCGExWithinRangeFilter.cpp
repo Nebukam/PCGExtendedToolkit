@@ -38,7 +38,7 @@ PCGEX_CREATE_FILTER_FACTORY(WithinRange)
 #if WITH_EDITOR
 FString UPCGExWithinRangeFilterProviderSettings::GetDisplayName() const
 {
-	FString DisplayName = Config.OperandA.GetName().ToString() + TEXT("[");
+	FString DisplayName = PCGEx::GetSelectorDisplayName(Config.OperandA) + TEXT("[");
 
 	DisplayName += FString::Printf(TEXT("%.3f"), (static_cast<int32>(1000 * Config.RangeMin) / 1000.0));
 	DisplayName += TEXT(" .. ");
