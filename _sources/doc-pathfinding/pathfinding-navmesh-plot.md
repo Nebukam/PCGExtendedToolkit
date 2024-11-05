@@ -8,12 +8,13 @@ subtitle: Sample the navmesh to find a path that goes through multiple chained p
 summary: The **Plot Navmesh** node ...
 color: white
 splash: icons/icon_pathfinding-navmesh-plot.svg
+nav_exclude: true
 tagged: 
     - node
     - pathfinder
 see_also: 
     - Blending
-nav_order: 6
+nav_order: 100
 inputs:
     -   name : Plots
         desc : Plot points in the form of points collections.

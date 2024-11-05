@@ -5,7 +5,7 @@ family: Cluster
 parent: Clusters
 title: Copy Cluster to Points
 name_in_editor: "Cluster : Copy to Points"
-subtitle: Creates copies of entire clusters to target points; much like Copy Points does.
+subtitle: Creates copies of entire clusters to a set of target points
 summary: The **Copy Cluster to Points** node duplicates entire clusters at specified target points, applying transformations like rotation and scale from the target points, similar to the Copy Points node but for clusters.
 color: white
 splash: icons/icon_graphs-sanitize.svg
@@ -55,4 +55,4 @@ The **Copy Clusters to points** is very much like the vanilla `Copy Points` node
 | **Transform Details**  | |
 | Inherit Scale          | If enabled, copied points will be scaled by the target' scale. |
 | Inherit Rotation          | If enabled, copied points will be scaled by the target' rotation. |
-
+| Scale to Fit & Justification | See [Fitting Details](/PCGExtendedToolkit/doc-general/general-fitting.html). |

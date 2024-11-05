@@ -40,7 +40,7 @@ The **Cut Cluster** node is a path/cluster interop node. It uses input paths to 
 It can operate on clusters edges only, nodes only, or both.
 {: .fs-5 .fw-400 } 
 
-{% include img a='details/clusters-copy-to-points/lead.png' %}
+{% include img a='details/clusters-cut-clusters/lead.png' %}
 
 # Properties
 <br>

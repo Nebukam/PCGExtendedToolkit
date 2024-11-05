@@ -34,5 +34,3 @@ The **Unpack Cluster** nodes recreates clusters' `Vtx` and `Edges` pairs from pa
 {: .fs-5 .fw-400 } 
 
 ... and that's it. That's the node.
-
-{% include img a='details/packing-clusters/clusters-unpack-clusters-lead.png' %}

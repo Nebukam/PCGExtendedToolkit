@@ -33,7 +33,7 @@ outputs:
 
 {% include header_card_node %}
 
-The **Sanitize Cluster** is an imperative post-processing node when you "manually" remove `Vtx` or `Edge` from datasets. It ensure that the cluster data is properly usable inside PCGEx' ecosystem of cluster-related nodes.
+The **Sanitize Cluster** is a required post-processing node when you "manually" remove `Vtx` or `Edge` from datasets. <u>It ensure that the cluster data is properly usable inside PCGEx' ecosystem of cluster-related nodes</u>.
 {: .fs-5 .fw-400 } 
 
 As mentionned in the {% include lk id='Working with Clusters' %} page, `Vtx` and `Edge` points are storing critical attributes & informations about the topology of a cluster. **Sanitize** removes `Edges` which `Vtx` have been removed, as well as prune `Vtx` that aren't participating to any `Edge`.  

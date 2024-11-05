@@ -38,7 +38,7 @@ The adjacency filter does a simple numeric comparison on each individual connect
 | Priority           | Defines the order in which this flag operation will be processed.<br>*See {% include lk id='Flag Nodes' %}* |
 | Adjacency Settings          | Defines how to deal with the number of adjacent nodes *as a criteria to the filter success*.<br>*Covered in more depth later in this page* |
 
-| Compare Against           |  |
+| Compare Against           | TBD |
 | Operand A Constant           | TBD |
 | Operand A Attribute           | TBD |
 | Comparison           | How to compare Operand A against Operand B<br>*See [Numeric comparisons](/PCGExtendedToolkit/doc-general/comparisons.html#numeric-comparisons).* |

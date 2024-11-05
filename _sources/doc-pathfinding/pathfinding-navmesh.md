@@ -8,10 +8,11 @@ subtitle: Sample the navmesh to find paths
 summary: The **Navmesh** node ...
 color: white
 splash: icons/icon_pathfinding-navmesh.svg
+nav_exclude: true
 tagged: 
     - node
     - pathfinder
-nav_order: 5
+nav_order: 101
 inputs:
     -   name : Seeds
         desc : Seed points

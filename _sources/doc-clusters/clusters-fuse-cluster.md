@@ -69,6 +69,9 @@ The Fuse node has a very specific order of operation:
 
 {% include img a='details/clusters-fuse-cluster/point-point-voxel-vs-octree.png' %}
 
+> `Voxel` is faster but will snap vtx on a grid; `Octree` is slower but is much more conservative of the original aspect.
+{: .infos }
+
 ---
 ## Point/Edge Intersections
 <br>

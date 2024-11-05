@@ -36,7 +36,8 @@ outputs:
 
 {% include header_card_node %}
 
-The **Find Clusters** node is a handy helper to find matching `Vtx` and `Edges` data from more-or-less scrambled collections of data.
+The **Find Clusters** node is a handy helper to find matching `Vtx` and `Edges` data from more-or-less scrambled collections of data. It basically makes it easy to do non-destructive operations *(i.e attribute ops)* on both Vtx & Edges at the same time without and then "restore" the working pairs.  
+Alternatively, it also makes it easy to cherry pick Vtx or Edges if you have single key data to restore from. *(i.e loop subgraphs)*
 {: .fs-5 .fw-400 } 
 
 > Note that this node is not an alternative to {% include lk id='Sanitize Clusters' %}, it only works at the collection level and doesn't inspect per-point data.
@@ -56,6 +57,9 @@ The **Find Clusters** node is a handy helper to find matching `Vtx` and `Edges` 
 The ability to skip warning is there mostly because I found this node to be often purposefully used with "bad" data, and you don't want to be spammed with infos you already know. **Just don't forget to uncheck these if for some reason the node is not generating the output you'd expect;** it will definitely provide some details on why.
 
 ## Search modes
+
+{% include img a='details/clusters-find-cluster-data/alt.png' %}
+
 ### All
 
 This search mode finds all valid `Vtx` & `Edges` pair and output the workable ones.  
@@ -80,5 +84,5 @@ Looping over individual clusters can look like a needlessly complex task: how do
 In order to loop over individual clusters, you need to loop over the `Edges` dataset, not the `Vtx`; **because `Vtx` dataset may be bound to more than one `Edges` set.** *Check out {% include lk id='Working with Clusters' %} for more infos on that.*  
 Forward `Vtx` groups to another loop input and use the **Vtx from Edges** input, like so:
 
-{% include img a='placeholder-wide.jpg' %}
+{% include img a='details/clusters-find-cluster-data/loop.png' %}
 

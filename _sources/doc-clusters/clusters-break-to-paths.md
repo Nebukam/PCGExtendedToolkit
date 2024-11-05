@@ -61,7 +61,6 @@ The **Break Cluster to Path** turns all `Edges` chains to individual paths. It's
 ---
 ## Direction Settings
 <br>
-{% include img a='details/clusters-break-to-paths/direction.png' %}
 
 {% include embed id='settings-edge-direction' %}
 {% include img_link a='explainers/edge-direction-method.png' %}

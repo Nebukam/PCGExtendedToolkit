@@ -10,7 +10,6 @@ nav_exclude: true
 | Direction Choice | Further refines the direction method, based on the above selection.<br>-`Smallest to Greatest` will order direction reference metrics in ascending order.<br>-`Greatest to Smallest` will order direction reference metrics in descending order.<br>*Really it's how the endpoint reference value is sorted, but I couldn't call that Direction' direction.*|
 | Dir Source Attribute     |  The attribute that will be used by the selected method. |
 
-> If the selected method is `Endpoints Attribute`, the attribute is will be read from `Vtx` as a `double`.
 > If the selected method is `Edge Dot Attribute`, the attribute will be read from `Edges` as an `FVector` direction.
 
 ### Method

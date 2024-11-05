@@ -35,38 +35,37 @@ outputs:
 
 {% include header_card_node %}
 
-> DOC TDB -- Heuristics underwent a thorough refactor that isn't documented yet. Each heuristic has its own node and they can be combined into the heuristic input of the pathfinding node. See the example project!
-{: .warning }
+The **Plot Edges Pathfinding** node takes multiple input dataset as "plot" and finds a path that connects each point in a given plot, in order.  It's very straightforward to use, and should generally be preferred over its {% include lk id='Edges Pathfinding' %} alternative.
+{: .fs-5 .fw-400 } 
 
 {% include img a='details/details-pathfinding-edges-plot.png' %} 
 
+---
+# Properties
+<br>
+
 | Property       | Description          |
 |:-------------|:------------------|
-|**Settings**||
+|**Plot inclusiong**||
 | Add Seed to Path           | Prepends the *seed position* at the beginning of the output path.<br>*This will create a point with the position of the seed.* |
 | Add Goal to Path           | Appends the *goal position* at the end of the output path.<br>*This will create a point with the position of the goal.* |
-| Add Plot Points to Path           | Include plot points positions as part of the output path. |
+| Add Plot Points to Path           | Include plot points positions as part of the output path.<br>*Does not includes seed or goal points.* |
 
-|**Modules**||
-|**Search Algorithm**| The search algorithm that will be used to solve pathfinding.<br>*Each module has individual settings and documentation -- See [Available Search Algorithms](#available-search-modules).* |
-|**Heuristics**| The base heuristics module that will be used during pathfinding.<br>*Each module has individual settings and documentation -- See [Available Heuristics](#available--heuristics-modules).* |
-|**Heuristics Modifiers**| This property group is available no matter what **Heuristics** have been picked.<br>*See {% include lk id='🝰 Heuristic Attribute' %}.*|
-  
-### Statistics
-{% include embed id='settings-statistics' %}
+|**Settings**||
+| Closed Loop           | Whether the plots should generate closed paths.<br>If enabled, the last plot point will create a path that wraps with the first plot point. |
+| Seed Picking         | Lets you control how the seed node (`Vtx`) will be picked based on the provided seed position. |
+| Goal Picking         | Lets you control how the goal node (`Vtx`) will be picked based on the provided goal position. |
+| **Search Algorithm**         | Let you pick which {% include lk id='⊚ Search' %} algorithm to use to resolve pathfinding. |
 
-|**Extra Weighting**||
-|Weight up Visited| If enabled, points and edges will accumulate additional weight are paths are found.<br>This allows you to make "already in use" points & edges either more or less desirable for the next internal execution.<br>*Note that accumulated weight is consolidated between each plot points, as opposed to between each plotted path.* |
-|Visited Points Weight Factor| The weight to add to points that have been visited. This is a multiplier of the Heuristic' Modifiers `Reference Weight`.<br>*The weight is added each time a point is used.*|
-|Visited Edges Weight Factor| The weight to add to edges that have been visited. This is a multiplier of the Heuristic' Modifiers `Reference Weight`.<br>*The weight is added each time an edge is used.*|
-|Global Visited Weight| If enabled, additive weight will be shared across the different plotted path. |
+> Seed/Goal picking is resolved for each pair of point in a given plot.
 
-> **Important note on weighting up visited `Vtx` and `Edges`:**  
-> - The weight is only computed for the pathfinding node and isn't carried over or cached.  
-> - Enabling `Global Visited Weight` breaks parallelism. Tasks are still ran asynchronously, but each path must wait for the previous one to be computed. Impact is usually negligible, but if you have *lots* of paths, it may take noticeably more time to process.
+|**Misc**||
+| Use Octree Search         | Whether or not to search for closest node using an octree. Depending on your dataset, enabling this may be either much faster, or much slower.<br>*I highly recommend enabling it if you resolve a lot of paths at the same time, but as a rule of thumb just profile it with/without and pick what works best in your setup.* |
+| Omit Complete Path on Failed Plot         | If enabled, a single seed/goal pair fail will invalidate the full plotted path. *If disabled, failed segments will ungracefully connect plot points with a straight line.* |
 
----
-# Modules
+|: **Tagging** ||
+| Is Closed Loop Tag | If enabled, will tag closed loop paths data with the specified tag. |
+| Is Open Path Tag | If enabled, will tag open paths data with the specified tag. |
 
 ## Available {% include lk id='⊚ Search' %} modules
 <br>

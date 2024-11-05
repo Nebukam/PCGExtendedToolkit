@@ -14,8 +14,6 @@ tagged:
 
 {% include header_card %}
 
-> Pathfinding modules for {% include lk id='Pathfinding' %} nodes. Key steps include heuristic computation, goal picking, and search algorithms finding the best path based on weighted connections. {% include lk id='🝰 Heuristics' %} and their weights are key to the operation. *Note: Plot nodes handle point datasets differently, finding a path through each point in order.*
-
 ---
 ## {% include lk id='Pathfinding' %}  
 <br>  
@@ -51,7 +49,17 @@ While the selected search algorithm is important, {% include lk id='🝰 Heurist
 ---
 ## Pathfinding Nodes
 <br>
-{% include card_childs tagged='node' %}
+{% include card_childs tagged='pathfinder' %}
+
+> Note that there is also two hidden node that enable pathfinding using the existing navmesh: {% include lk id='Navmesh Pathfinding' %} and {% include lk id='Plot Navmesh' %}. They're not part of the main pool because they're *very* legacy.
+{: .infos-hl }
 
 ---
-{% include embed id='all-pathfinding-modules' %}
+## Available {% include lk id='🝰 Heuristics' %} modules
+<br>
+{% include card_any tagged="heuristics" %}
+
+---
+## Available {% include lk id='⊚ Search' %} modules
+<br>
+{% include card_any tagged="search" %}
