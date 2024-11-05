@@ -130,7 +130,7 @@ FString UPCGExIsoEdgeDirectionFilterProviderSettings::GetDisplayName() const
 	UPCGExIsoEdgeDirectionFilterProviderSettings* MutableSelf = const_cast<UPCGExIsoEdgeDirectionFilterProviderSettings*>(this);
 	MutableSelf->Config.DirectionConstant = Config.DirectionConstant.GetSafeNormal();
 
-	DisplayName += Config.Direction.GetName().ToString();
+	DisplayName += PCGEx::GetSelectorDisplayName(Config.Direction);
 	return DisplayName;
 }
 #endif

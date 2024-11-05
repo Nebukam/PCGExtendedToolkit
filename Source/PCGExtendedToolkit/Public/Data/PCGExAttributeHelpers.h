@@ -3,6 +3,8 @@
 
 #pragma once
 
+#include <functional>
+
 #include "CoreMinimal.h"
 #include "PCGParamData.h"
 #include "Data/PCGPointData.h"
@@ -234,6 +236,11 @@ namespace PCGEx
 
 			return GetSelectorFullName<true>(InSelector, InData);
 		}
+	}
+
+	static FString GetSelectorDisplayName(const FPCGAttributePropertyInputSelector& InSelector)
+	{
+		return InSelector.GetName().ToString() + FString::Join(InSelector.GetExtraNames(), TEXT("."));
 	}
 
 	class /*PCGEXTENDEDTOOLKIT_API*/ FAttributeBroadcasterBase

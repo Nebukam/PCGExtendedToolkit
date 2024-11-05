@@ -215,6 +215,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExAttributeStatsContext final : FPCGExPoin
 	TArray<UPCGParamData*> OutputParams;
 	TMap<FName, UPCGParamData*> OutputParamsMap;
 	TArray<int64> Rows;
+
 };
 
 class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExAttributeStatsElement final : public FPCGExPointsProcessorElement
@@ -335,6 +336,15 @@ namespace PCGExAttributeStats
 				DefaultValue = Buffer->GetTypedInAttribute()->GetValueFromItemKey(PCGDefaultValueKey);
 				int32 NumValues = 0;
 
+				/*
+				auto ProcessBasics = [&](const T& InValue)
+				{
+					MinValue = PCGExMath::Min(MinValue, InValue);
+					MaxValue = PCGExMath::Max(MaxValue, InValue);
+					AverageValue = PCGExMath::Add(AverageValue, InValue);
+				};
+				*/
+				
 				for (int i = 0; i < NumPoints; i++)
 				{
 					if (!Filter[i]) { continue; }
@@ -344,7 +354,6 @@ namespace PCGExAttributeStats
 
 					MinValue = PCGExMath::Min(MinValue, Value);
 					MaxValue = PCGExMath::Max(MaxValue, Value);
-
 					AverageValue = PCGExMath::Add(AverageValue, Value);
 
 					const int32 Count = ValuesCount.FindOrAdd(Value, 0);

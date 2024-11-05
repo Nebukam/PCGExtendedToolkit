@@ -90,7 +90,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExAttributeDebugDrawConfig : public FPCGEx
 
 	FString GetNestedStructDisplayText() const
 	{
-		return Selector.GetName().ToString();
+		return PCGEx::GetSelectorDisplayName(Selector);
 	}
 };
 

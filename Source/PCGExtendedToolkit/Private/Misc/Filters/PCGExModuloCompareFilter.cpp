@@ -54,14 +54,14 @@ PCGEX_CREATE_FILTER_FACTORY(ModuloCompare)
 #if WITH_EDITOR
 FString UPCGExModuloCompareFilterProviderSettings::GetDisplayName() const
 {
-	FString DisplayName = Config.OperandA.GetName().ToString() + " % ";
+	FString DisplayName = PCGEx::GetSelectorDisplayName(Config.OperandA) + " % ";
 
-	if (Config.OperandBSource == EPCGExInputValueType::Attribute) { DisplayName += Config.OperandB.GetName().ToString(); }
+	if (Config.OperandBSource == EPCGExInputValueType::Attribute) { DisplayName += PCGEx::GetSelectorDisplayName(Config.OperandB); }
 	else { DisplayName += FString::Printf(TEXT("%.3f "), (static_cast<int32>(1000 * Config.OperandBConstant) / 1000.0)); }
 
 	DisplayName += PCGExCompare::ToString(Config.Comparison);
 
-	if (Config.CompareAgainst == EPCGExInputValueType::Attribute) { DisplayName += Config.OperandC.GetName().ToString(); }
+	if (Config.CompareAgainst == EPCGExInputValueType::Attribute) { DisplayName += PCGEx::GetSelectorDisplayName(Config.OperandC); }
 	else { DisplayName += FString::Printf(TEXT(" %.3f"), (static_cast<int32>(1000 * Config.OperandCConstant) / 1000.0)); }
 
 	return DisplayName;

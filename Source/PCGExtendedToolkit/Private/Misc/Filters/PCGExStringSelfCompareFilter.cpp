@@ -57,7 +57,7 @@ FString UPCGExStringSelfCompareFilterProviderSettings::GetDisplayName() const
 	if (Config.IndexMode == EPCGExIndexMode::Pick) { DisplayName += TEXT(" @ "); }
 	else { DisplayName += TEXT(" i+ "); }
 
-	if (Config.CompareAgainst == EPCGExInputValueType::Attribute) { DisplayName += Config.IndexAttribute.GetName().ToString(); }
+	if (Config.CompareAgainst == EPCGExInputValueType::Attribute) { DisplayName += PCGEx::GetSelectorDisplayName(Config.IndexAttribute); }
 	else { DisplayName += FString::Printf(TEXT("%d"), Config.IndexConstant); }
 
 	return DisplayName;

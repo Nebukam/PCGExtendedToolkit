@@ -236,9 +236,9 @@ PCGEX_CREATE_FILTER_FACTORY(NodeAdjacency)
 #if WITH_EDITOR
 FString UPCGExNodeAdjacencyFilterProviderSettings::GetDisplayName() const
 {
-	FString DisplayName = Config.OperandA.GetName().ToString() + PCGExCompare::ToString(Config.Comparison);
+	FString DisplayName = PCGEx::GetSelectorDisplayName(Config.OperandA) + PCGExCompare::ToString(Config.Comparison);
 
-	DisplayName += Config.OperandB.GetName().ToString();
+	DisplayName += PCGEx::GetSelectorDisplayName(Config.OperandB);
 	DisplayName += TEXT(" (");
 
 	switch (Config.Adjacency.Mode)

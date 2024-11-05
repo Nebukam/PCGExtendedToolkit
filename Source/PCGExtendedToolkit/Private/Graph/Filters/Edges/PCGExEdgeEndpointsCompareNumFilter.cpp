@@ -29,7 +29,7 @@ namespace PCGExEdgeEndpointsCompareNum
 		NumericBuffer = InPointDataFacade->GetBroadcaster<double>(TypedFilterFactory->Config.Attribute);
 		if (!NumericBuffer)
 		{
-			PCGE_LOG_C(Warning, GraphAndLog, InContext, FText::Format(FTEXT("Comparison Attribute ({0}) is not valid."), FText::FromString(TypedFilterFactory->Config.Attribute.GetName().ToString())));
+			PCGE_LOG_C(Warning, GraphAndLog, InContext, FText::Format(FTEXT("Comparison Attribute ({0}) is not valid."), FText::FromString(PCGEx::GetSelectorDisplayName(TypedFilterFactory->Config.Attribute))));
 			return false;
 		}
 
@@ -48,7 +48,7 @@ PCGEX_CREATE_FILTER_FACTORY(EdgeEndpointsCompareNum)
 #if WITH_EDITOR
 FString UPCGExEdgeEndpointsCompareNumFilterProviderSettings::GetDisplayName() const
 {
-	return Config.Attribute.GetName().ToString() + PCGExCompare::ToString(Config.Comparison);
+	return PCGEx::GetSelectorDisplayName(Config.Attribute) + PCGExCompare::ToString(Config.Comparison);
 }
 #endif
 
