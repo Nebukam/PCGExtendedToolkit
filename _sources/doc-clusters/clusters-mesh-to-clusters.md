@@ -14,7 +14,7 @@ tagged:
     - clusters
 see_also:
     - Working with Clusters
-nav_order: 2
+nav_order: 10
 inputs:
     -   name : In Targets
         desc : Target points to copy mesh cluster to.

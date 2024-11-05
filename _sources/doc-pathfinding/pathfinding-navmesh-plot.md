@@ -11,7 +11,7 @@ splash: icons/icon_pathfinding-navmesh-plot.svg
 nav_exclude: true
 tagged: 
     - node
-    - pathfinder
+    - pathfinder_legacy
 see_also: 
     - Blending
 nav_order: 100

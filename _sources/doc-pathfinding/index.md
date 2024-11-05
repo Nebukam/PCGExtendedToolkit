@@ -51,7 +51,7 @@ While the selected search algorithm is important, {% include lk id='🝰 Heurist
 <br>
 {% include card_childs tagged='pathfinder' %}
 
-> Note that there is also two hidden node that enable pathfinding using the existing navmesh: {% include lk id='Navmesh Pathfinding' %} and {% include lk id='Plot Navmesh' %}. They're not part of the main pool because they're *very* legacy.
+> Note that there is also two hidden node that enable pathfinding using the existing navmesh: {% include lk id='Navmesh Pathfinding' %} and {% include lk id='Plot Navmesh' %}. They're not part of the main pool because they're *very* legacy. *They can still be very useful if you do level blocking with a navmesh, not so much for open world.*
 {: .infos-hl }
 
 ---

@@ -7,18 +7,28 @@ splash: icons/icon_directory-download.svg
 preview_img: placeholder.jpg
 has_children: true
 nav_order: 1
+hidden_link: '{% include link_btn title="PCGEx on **FAB**" color="white" link="https://www.fab.com/listings/a5061972-6875-4052-a7fd-7c33f6531ec3" icon="load-arrow" %}'
 ---
 
 {% include header_card %}
 
+## FAB Plugin
+
+The easiest way to install PCGEx is to get it from FAB.  
+> FAB Release is coming Soon(tm)
+{: .error }
+
+> The FAB release matches the latest Github release.
+
+---
 ## Drop-in Package
 
-The easiest way to install PCGExtendedToolkit is to download the packaged version of the plugin.  
+The second easiest way to install PCGEx is to download the packaged version of the plugin.  
 However, for the sake of simplicity (and size), a packaged version only exist for the latest *launcher* minor release of the engine, at the time the PCGEx release was published.  
 
-{% include link_btn title="PCGEx for Unreal **5.5** (Package)" color="blue" link="https://github.com/Nebukam/PCGExtendedToolkit/releases/latest/download/PCGExtendedToolkit-5.5.zip" icon="load-arrow" %}
-{% include link_btn title="PCGEx for Unreal **5.4** (Package)" color="blue" link="https://github.com/Nebukam/PCGExtendedToolkit/releases/latest/download/PCGExtendedToolkit-5.4.zip" icon="load-arrow" %}
-{% include link_btn title="PCGEx for Unreal **5.3** (Package)" color="blue" link="https://github.com/Nebukam/PCGExtendedToolkit/releases/latest/download/PCGExtendedToolkit-5.3.zip" icon="load-arrow" %}
+{% include link_btn title="PCGEx for Unreal **5.5**" color="blue" link="https://github.com/Nebukam/PCGExtendedToolkit/releases/latest/download/PCGExtendedToolkit-5.5.zip" icon="load-arrow" %}
+{% include link_btn title="PCGEx for Unreal **5.4**" color="blue" link="https://github.com/Nebukam/PCGExtendedToolkit/releases/latest/download/PCGExtendedToolkit-5.4.zip" icon="load-arrow" %}
+{% include link_btn title="PCGEx for Unreal **5.3**" color="blue" link="https://github.com/Nebukam/PCGExtendedToolkit/releases/latest/download/PCGExtendedToolkit-5.3.zip" icon="load-arrow" %}
 
 Simply download one of the .zip above and put `PCGExtendedToolkit` directly in your `YourProject/Plugins/` folder.
 {: .fs-5 }

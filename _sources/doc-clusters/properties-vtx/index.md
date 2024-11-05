@@ -18,7 +18,7 @@ tagged:
     - clusters
 see_also: 
     - Interpolate
-nav_order: 6
+nav_order: 12
 inputs:
     -   name : Vtx
         desc : Endpoints of the input Edges

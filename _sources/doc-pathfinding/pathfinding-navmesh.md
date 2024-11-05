@@ -11,7 +11,7 @@ splash: icons/icon_pathfinding-navmesh.svg
 nav_exclude: true
 tagged: 
     - node
-    - pathfinder
+    - pathfinder_legacy
 nav_order: 101
 inputs:
     -   name : Seeds

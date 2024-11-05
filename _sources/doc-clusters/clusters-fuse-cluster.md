@@ -14,7 +14,7 @@ tagged:
     - clusters
 see_also:
     - Working with Clusters
-nav_order: 30
+nav_order: 2
 has_children: false
 inputs:
     -   name : Vtx

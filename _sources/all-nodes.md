@@ -8,16 +8,9 @@ preview_img: placeholder.jpg
 nav_order: 200
 ---
 
-{% include header_card %}
+{% include header_card_toc %}
 
 # All Nodes
-
----
-## {% include lk id='Filter Ecosystem' %}
-<br>
-{% include card_childs reference="Filter Ecosystem" tagged='filter-ecosystem' %}
-
----
 ## {% include lk id='Clusters' %}
 <br>
 {% include card_childs reference="Clusters" tagged='clusters' %}
@@ -53,9 +46,24 @@ nav_order: 200
 {% include card_childs reference="Shape Ecosystem" %}
 
 ---
+## {% include lk id='Filter Ecosystem' %}
+<br>
+{% include card_childs reference="Filter Ecosystem" tagged='filter-ecosystem' %}
+
+---
 # Filters
+*There are here to enable `ctrl+f` users. You can find all about them in the {% include lk id='Filter Ecosystem' %} section.*
 
 ## Regular Filters
-*There are here to enable `ctrl+f` users. You can find all about them in the {% include lk id='Filter Ecosystem' %} section.*
 <br>
 {% include card_any tagged='filter' %}
+
+---
+## Edges Filters
+<br>
+{% include card_any tagged='edgefilter' %}
+
+---
+## Node Filters
+<br>
+{% include card_any tagged='nodefilter' %}
