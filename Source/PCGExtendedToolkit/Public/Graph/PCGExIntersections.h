@@ -622,7 +622,7 @@ namespace PCGExGraph
 				}
 
 				// Check overlap last as it's the most expensive op
-				if (InIntersections->UnionGraph->PointsUnion->IOIndexOverlap(InIntersections->Graph->FindEdgeMetadataUnsafe(OtherEdge.EdgeIndex)->RootIndex, RootIOIndices)) { return; }
+				if (InIntersections->UnionGraph->EdgesUnion->IOIndexOverlap(InIntersections->Graph->FindEdgeMetadataUnsafe(OtherEdge.EdgeIndex)->RootIndex, RootIOIndices)) { return; }
 
 				if (!Edge.FindSplit(OtherEdge, OutSplits))
 				{

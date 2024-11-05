@@ -3,7 +3,7 @@
 
 #include "Sampling/PCGExSampleNearestSurface.h"
 
-/////*BUILD_TOOL_BUG_55_TOGGLE*/#include "CoreMinimal.h"
+/*BUILD_TOOL_BUG_55_TOGGLE*/#include "CoreMinimal.h"
 
 #if PCGEX_ENGINE_VERSION > 503
 #include "Engine/OverlapResult.h"
