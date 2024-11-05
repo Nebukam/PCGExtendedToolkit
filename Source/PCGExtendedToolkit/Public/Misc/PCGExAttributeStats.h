@@ -199,6 +199,10 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	bool bQuietTypeMismatchWarning = false;
 
+	/** */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_NotOverridable))
+	bool bFeedbackLoopFailsafe = true;
+
 private:
 	friend class FPCGExAttributeStatsElement;
 };

@@ -148,6 +148,37 @@ namespace PCGEx
 		void Append(const TSharedPtr<FAttributesInfos>& Other, TSet<FName>& OutTypeMismatch, const TSet<FName>* InIgnoredAttributes = nullptr);
 		void Update(const FAttributesInfos* Other, const FPCGExAttributeGatherDetails& InGatherDetails, TSet<FName>& OutTypeMismatch);
 
+		using FilterCallback = std::function<bool(const FName&)>;
+		void Filter(const FilterCallback& FilterFn)
+		{
+			TArray<FName> FilteredOutNames;
+			FilteredOutNames.Reserve(Identities.Num());
+
+			for (const TPair<FName, int32>& Pair : Map)
+			{
+				if (FilterFn(Pair.Key)) { continue; }
+				FilteredOutNames.Add(Pair.Key);
+			}
+
+			// Filter out identities & attributes
+			for (FName FilteredOutName : FilteredOutNames)
+			{
+				Map.Remove(FilteredOutName);
+				for (int i = 0; i < Identities.Num(); i++)
+				{
+					if (Identities[i].Name == FilteredOutName)
+					{
+						Identities.RemoveAt(i);
+						Attributes.RemoveAt(i);
+						break;
+					}
+				}
+			}
+
+			// Refresh indices
+			for (int i = 0; i < Identities.Num(); i++) { Map.Add(Identities[i].Name, i); }
+		}
+
 		~FAttributesInfos() = default;
 
 		static TSharedPtr<FAttributesInfos> Get(const UPCGMetadata* InMetadata, const TSet<FName>* IgnoredAttributes = nullptr);

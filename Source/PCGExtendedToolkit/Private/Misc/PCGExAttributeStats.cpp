@@ -80,6 +80,23 @@ bool FPCGExAttributeStatsElement::Boot(FPCGExContext* InContext) const
 
 	Filters.Prune(*Context->AttributesInfos, true);
 
+	if (Settings->bFeedbackLoopFailsafe)
+	{
+		TArray<FString> Affixes;
+		Affixes.Reserve(15);
+#define PCGEX_STAT_FILTER(_NAME, _TYPE, _DEFAULT) if(Settings->bOutput##_NAME){ Affixes.Add(Settings->_NAME##AttributeName.ToString()); }
+		PCGEX_FOREACH_STAT(PCGEX_STAT_FILTER, bool)
+#undef PCGEX_STAT_FILTER
+
+		Context->AttributesInfos->Filter(
+			[&Affixes](const FName& InName)
+			{
+				const FString StrName = InName.ToString();
+				for (const FString& Affix : Affixes) { if (StrName.StartsWith(Affix) || StrName.EndsWith(Affix)) { return false; } }
+				return true;
+			});
+	}
+
 	if (Context->AttributesInfos->Identities.IsEmpty())
 	{
 		PCGE_LOG(Error, GraphAndLog, FTEXT("The node does not output any data after filtering is applied."));
