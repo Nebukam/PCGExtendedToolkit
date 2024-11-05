@@ -57,7 +57,7 @@ This probes creates a single connections to another point in a specific directio
 |: Favor     ||
 |:-------------|:------------------|
 | {% include img a='placeholder.jpg' %}           | **Closest Position**<br>Favors closer points over better angular alignment. |
-| {% include img a='placeholder.jpg' %}           | **Best Alignment **<br>Favors better aligned points over closer ones. |
+| {% include img a='placeholder.jpg' %}           | **Best Alignment**<br>Favors better aligned points over closer ones. |
 
 ## Angles
 

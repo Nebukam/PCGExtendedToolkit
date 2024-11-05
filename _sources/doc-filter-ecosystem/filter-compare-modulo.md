@@ -48,7 +48,7 @@ The **Modulo Filter** compares the modulo of two values against a third.
 | Compare Against | Type of operand C. Can be a per-point `Attribute`, or an easily overridable `Constant`. |
 | Operand C | Attribute that contains the per-point operand B value. |
 | Operand C <br>*(Constant or Attribute)* | Operand C. *This value will be tested against the modulo' result.* |
-| Tolerance | Equality tolerance using an approximative comparison. |
+| Tolerance | Equality tolerance for near-value comparisons. |
 
 ---
 ## Comparison modes

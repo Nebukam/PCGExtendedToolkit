@@ -10,7 +10,7 @@ tagged:
     - basics
 ---
 
-{% include header_card %}
+{% include header_card_toc %}
 
 Throrough this doc, you will find mention of **points**, **Dataset**, **vtx**, **edges**, **clusters**, **paths** and more.  
 While more advanced concepts are expanded on their own page, here are a few basics:

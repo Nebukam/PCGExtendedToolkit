@@ -43,4 +43,4 @@ An anisotropic probe is a preset to find connection in 16 different directions o
 
 > Contrary to {% include lk id='🝆 Direction' %}, the anisotropic probe will *always* favor alignment over distance.
 > *Because of that, it often yields more 'canon' results with grid-aligned points.*
-{: .comment }
+{: .warning }

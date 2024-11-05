@@ -53,6 +53,7 @@ The **Mesh to Cluster** node converts raw geometry from meshes (either specific 
 | **Transform Details**  | |
 | Inherit Scale          | If enabled, cluster points will be scaled by the target' scale. |
 | Inherit Rotation          | If enabled, cluster points will be scaled by the target' rotation. |
+| Scale to Fit & Justification | See [Fitting Details](/PCGExtendedToolkit/doc-general/general-fitting.html). |
 
 | **Misc**  | |
 | Ignore Mesh Warning          | If enabled, skips over invalid meshes path without warning. |
@@ -67,7 +68,7 @@ The **Mesh to Cluster** node converts raw geometry from meshes (either specific 
 |:-------------|:------------------|
 | {% include img a='details/clusters-mesh-to-clusters/enum-raw.png' %}           | <span class="ebit">Raw</span><br>Uses the raw, unedited mesh topology. |
 | {% include img a='details/clusters-mesh-to-clusters/enum-dual.png' %}           | <span class="ebit">Dual</span><br>Uses the dual graph of the mesh topology. |
-| {% include img a='details/clusters-mesh-to-clusters/enum-hollow.png' %}           | <span class="ebit">Hollow</span><br>Uses a special combination of both raw and dual graph to create more edges. |
+| {% include img a='details/clusters-mesh-to-clusters/enum-hollow.png' %}           | <span class="ebit">Hollow</span><br>Create edges from faces' centroid to faces vertices. |
 {: .enum }
 
 ---

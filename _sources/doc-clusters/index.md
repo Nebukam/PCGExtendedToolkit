@@ -22,3 +22,13 @@ tagged:
 ## Clusters Nodes
 <br>
 {% include card_childs tagged='node' %}
+
+---
+## Node(Vtx) Filters
+<br>
+{% include card_any tagged="nodefilter" %}
+
+---
+## Edge filters
+<br>
+{% include card_any tagged='edgefilter' %}

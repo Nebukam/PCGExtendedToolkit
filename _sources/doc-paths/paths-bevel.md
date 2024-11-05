@@ -36,3 +36,10 @@ outputs:
 
 > DOC TDB
 {: .warning }
+
+| Mode       | |
+|:-------------|:------------------|
+| {% include img a='details/paths-bevel/enum-bvl-line.png' %} | **None**<br>Outputs canon Delaunay sites. |
+| {% include img a='details/paths-bevel/enum-bvl-arc.png' %} | **Merge Sites**<br>The output site is the average of all the canon Delaunay sites that are abstracted by the Urquhart pass. |
+| {% include img a='details/paths-bevel/enum-bvl-custom.png' %} | **Merge Edges**<br>The output site is the average of all the edges removed by the Urquhart pass. |
+{: .enum }

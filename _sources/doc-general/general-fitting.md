@@ -10,7 +10,7 @@ tagged:
     - basics
 ---
 
-{% include header_card %}
+{% include header_card_toc %}
 
 There's a few node in PCGEx that offer fitting settings -- and while *what* is fitted is highly contextual, they all share the same settings.  
 Fitting is broken down in two parts: **Scale to Fit**, which is responsible for scaling something against a reference point' bounds & scale, and **Justification**, which is responsible for the placement of the fitted *something* against the same reference bounds.  

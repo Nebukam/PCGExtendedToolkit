@@ -52,8 +52,6 @@ WIP
 
 ---
 ## Comparison Quality
-
-{% include img a='details/settings/edge-direction.png' %}
 <br>
 {% include img a='details/settings/comparison-quality.png' %}
 

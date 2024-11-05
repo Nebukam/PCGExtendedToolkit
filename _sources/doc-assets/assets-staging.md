@@ -58,7 +58,8 @@ When using the `Attribute Set` source, the node will create a temp, internal {% 
 ---
 ## Scale to Fit & Justification
 
-*See [Fitting](/PCGExtendedToolkit/doc-general/general-fitting.html).*
+*See [Fitting Details](/PCGExtendedToolkit/doc-general/general-fitting.html).*
+{: .fs-5 .fw-400 } 
 
 ---
 ## Variations

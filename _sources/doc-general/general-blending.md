@@ -10,7 +10,7 @@ tagged:
     - basics
 ---
 
-{% include header_card %}
+{% include header_card_toc %}
 
 There's a lot of node in PCGEx that offer blending settings -- and while *what* is blended is highly contextual, they all share the same settings. 
 {: .fs-5 .fw-400 } 
@@ -45,8 +45,9 @@ When a node creates new points, the final point' properties and attributes is us
 | {% include img a='placeholder.jpg' %}           | <span class="ebit">Weighted Sum</span><br>Component-wise weighted sum of all the inputs.<br>*What qualify as weight depends on context*. |
 | {% include img a='placeholder.jpg' %}           | <span class="ebit">Lerp</span><br>Uses weight as lerp. If the results are unexpected, try 'Weight' instead.<br>*Lerp only works properly for nodes that do a simple two-point blending.*. |
 | {% include img a='placeholder.jpg' %}           | <span class="ebit">Substract</span><br>Opposite of `Sum`, but substract all inputs. |
-| {% include img a='placeholder.jpg' %}           | <span class="ebit">Unsigned Min</span><br>Component-wise MIN operation on the **absolute** values, but writes the signed value.<br>*Keeps the smallest value of all inputs, per-component.* |
-| {% include img a='placeholder.jpg' %}           | <span class="ebit">Unsigned Max</span><br>Component-wise MAX operation on the **absolute** values, but writes the signed value.<br>*Keeps the smallest value of all inputs, per-component.* |
+| {% include img a='placeholder.jpg' %}           | <span class="ebit">Unsigned Min</span><br>Component-wise MIN operation on the **absolute** values, but preserve the value sign.<br>*Keeps the smallest value of all inputs, per-component.* |
+| {% include img a='placeholder.jpg' %}           | <span class="ebit">Unsigned Max</span><br>Component-wise MAX operation on the **absolute** values, but preserve the value sign.<br>*Keeps the smallest value of all inputs, per-component.* |
 | {% include img a='placeholder.jpg' %}           | <span class="ebit">Absolute Min</span><br>Component-wise MIN operation on the **absolute** values.<br>*Keeps the smallest value of all inputs, per-component.* |
 | {% include img a='placeholder.jpg' %}           | <span class="ebit">Absolute Max</span><br>Component-wise MAX operation on the **absolute** values.<br>*Keeps the smallest value of all inputs, per-component.* |
+| {% include img a='placeholder.jpg' %}           | <span class="ebit">Copy (Other)</span><br>Same as `Copy`, but copies the first incoming value.<br>*Mostly only useful during attribute rolling and certain specific nodes.* |
 {: .enum }

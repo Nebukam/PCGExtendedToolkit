@@ -42,7 +42,7 @@ The **Compare (String)** compares two string-like attributes against each other.
 | **Operand B**          ||
 | Compare Against | Type of operand B. Can be a per-point `Attribute`, or an easily overridable `Constant`. |
 | Operand B <br>*(Constant or Attribute)* | Operand B' value. |
-| Tolerance | Equality tolerance using an approximative comparison. |
+| Tolerance | Equality tolerance for near-value comparisons. |
 
 ---
 ## Comparison modes

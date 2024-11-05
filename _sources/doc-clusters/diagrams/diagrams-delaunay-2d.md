@@ -69,6 +69,7 @@ It has very *very* interesting properties, and this node also offers the ability
 | {% include img a='details/diagrams/enum-sitemerge-none.png' %} | **None**<br>Outputs canon Delaunay sites. |
 | {% include img a='details/diagrams/enum-sitemerge-sites.png' %} | **Merge Sites**<br>The output site is the average of all the canon Delaunay sites that are abstracted by the Urquhart pass. |
 | {% include img a='details/diagrams/enum-sitemerge-edges.png' %} | **Merge Edges**<br>The output site is the average of all the edges removed by the Urquhart pass. |
+{: .enum }
 
 > Which merge mode to use, if any, depends on your final intent. **If your goal is find the contours of an Urquhart "cell", then Merge Edges offer usually more interesting sites positions.**
 {: .infos-hl }
@@ -91,7 +92,8 @@ It has very *very* interesting properties, and this node also offers the ability
 The delaunay algorithm creates a convex hull of very, *very* long edges, so you'll often need to remove them to "clean" the graph. There are multiple approaches to to that, the two most straighfoward approaches being:
 
 ### Hull pruning
-- Simply enable the Hull mark, filter these `Vtx` out and sanitize the cluster afterward.
+Simply enable the Hull mark, filter these `Vtx` out and sanitize the cluster afterward.
 
-{% include img_link a='details/diagrams/diagrams-delaunay-2d-hull-pruning.png' %}
+### Outliers edge cleaning
+Compute edge length' using {% include lk id='Properties : Edge' %}, then use {% include lk id='Refine' %} with a {% include lk id='🝖 Mean Value' %} on the edge' length property to get rid of longer edges on the outskirts of the graph.
 

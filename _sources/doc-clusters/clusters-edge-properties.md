@@ -46,7 +46,7 @@ The **Edge Properties** node lets you extract & write cluster-related properties
 ## Direction
 
 {% include embed id='settings-edge-direction' %}
-{% include img_link a='explainers/edge-direction-method.png' %}
+{% include img a='explainers/edge-direction-method.png' %}
 
 ---
 ## Outputs

@@ -56,13 +56,11 @@ This node creates a 3D Voronoi diagram from the input points. If you'd like to k
 ## Voronoi site position
 <br>
 
-{% include img a='details/diagrams/diagrams-voronoi-2d-sites.png' %}
-
 | Mode       | |
 |:-------------|:------------------|
-| {% include img a='placeholder.jpg' %} | **Centroid**<br>Uses the centroid of the Delaunay site.<br>*While more visually pleasing, some concave sites may appear depending on the initial topology.* |
-| {% include img a='placeholder.jpg' %} | **Canon (Circumcenter)**<br>Uses the [circumcenter](https://en.wikipedia.org/wiki/Circumcircle) of the Delaunay triangle.<br>*This is the true voronoi algorithm, it guarantees only convex sites.* |
-| {% include img a='placeholder.jpg' %} | **Centroid**<br>Uses the centroid of the Delaunay site for the point that are outside the bounds, otherwise use circumcenters.<br>*Best of both worlds, or worst of both worlds; depending on how you look at it.* |
+| {% include img a='details/diagrams/enum-voro3-balanced.png' %} | **Balanced**<br>Uses the centroid of the Delaunay tethrahedra for the point that are outside the bounds, otherwise use circumsphere centers.<br>*Best of both worlds, or worst of both worlds; depending on how you look at it.* |
+| {% include img a='details/diagrams/enum-voro3-canon.png' %} | **Canon (Circumsphere center)**<br>Uses the [circumcenter](https://en.wikipedia.org/wiki/Circumcircle) of the Delaunay tethrahedra. |
+| {% include img a='details/diagrams/enum-voro3-centroid.png' %} | **Centroid**<br>Uses the centroid of the Delaunay tethrahedra.<br>*While more visually pleasing, some concave sites may appear depending on the initial topology.* |
 
 
 ---

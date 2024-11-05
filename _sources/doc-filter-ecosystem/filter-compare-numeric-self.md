@@ -41,7 +41,7 @@ The **Self Compare (Numeric)** compares the point' value of a single attribute a
 
 | **Comparison**          ||
 | Comparison | How to compare A against B.<br>*See [Numeric comparisons](/PCGExtendedToolkit/doc-general/comparisons.html#numeric-comparisons).* |
-| Tolerance | Equality tolerance using an approximative comparison. |
+| Tolerance | Equality tolerance for near-value comparisons. |
 
 | **Index**          ||
 | Index Mode          | Choose how to process the Index value as either a `Pick` (specific index), or an `Offset` applied to the currently tested point' index. |

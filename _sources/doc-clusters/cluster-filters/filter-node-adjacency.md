@@ -44,7 +44,7 @@ The adjacency filter does a simple numeric comparison on each individual connect
 | Comparison           | How to compare Operand A against Operand B<br>*See [Numeric comparisons](/PCGExtendedToolkit/doc-general/comparisons.html#numeric-comparisons).* |
 | Operand B Source           | TBD |
 | Operand B (Neighbor)           | TBD |
-| Tolerance           | Comparison tolerance, for non-strict comparison modes. |
+| Tolerance           | Equality tolerance for near-value comparisons. |
 
 
 {% include embed id='settings-adjacency' %}
