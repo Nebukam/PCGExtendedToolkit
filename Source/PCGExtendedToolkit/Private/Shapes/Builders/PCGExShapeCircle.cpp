@@ -58,7 +58,7 @@ void UPCGExShapeCircleBuilder::BuildShape(const TSharedPtr<PCGExShapes::FShape> 
 
 	const FVector Extents = Circle->Fit.GetExtent();
 	const FVector Center = Circle->Fit.GetCenter();
-		
+
 	for (int32 i = 0; i < Circle->NumPoints; i++)
 	{
 		const double A = StartAngle + i * Increment;

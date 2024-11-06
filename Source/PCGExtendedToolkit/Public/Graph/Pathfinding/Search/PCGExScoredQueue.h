@@ -50,7 +50,7 @@ namespace PCGExSearch
 		{
 			double& RegisteredScore = Scores[Index];
 			if (RegisteredScore <= InScore) { return false; }
-			
+
 			RegisteredScore = InScore;
 			InternalQueue.push(FScoredNode(Index, InScore));
 			return true;

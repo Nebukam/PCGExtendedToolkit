@@ -119,8 +119,6 @@ namespace PCGExPathfinding
 			for (int i = 0; i < PathEdges.Num(); i++) { HeuristicsHandler->FeedbackScore(NodesRef[PathNodes[i]], EdgesRef[PathEdges[i]]); }
 			HeuristicsHandler->FeedbackPointScore(NodesRef[PathNodes.Last()]);
 		}
-
-		PathEdges.Empty(); // TODO : Remove this in case we need edges for more than feedbacks
 	}
 
 	void FPathQuery::AppendNodePoints(
@@ -130,6 +128,13 @@ namespace PCGExPathfinding
 	{
 		const int32 Count = PathNodes.Num() - TruncateEnd;
 		for (int i = TruncateStart; i < Count; i++) { OutPoints.Add(*Cluster->GetNodePoint(PathNodes[i])); }
+	}
+
+	void FPathQuery::AppendEdgePoints(TArray<FPCGPoint>& OutPoints) const
+	{
+		const int32 Count = PathEdges.Num();
+		TSharedPtr<PCGExData::FPointIO> EdgesIO = Cluster->EdgesIO.Pin();
+		for (int i = 0; i < Count; i++) { OutPoints.Add(EdgesIO->GetInPoint(PathEdges[i])); }
 	}
 
 	void FPathQuery::Cleanup()

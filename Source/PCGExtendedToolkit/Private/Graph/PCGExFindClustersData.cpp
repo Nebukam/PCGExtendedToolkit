@@ -38,7 +38,7 @@ bool FPCGExFindClustersDataElement::Boot(FPCGExContext* InContext) const
 	Context->MainEdges = MakeShared<PCGExData::FPointIOCollection>(Context);
 	Context->MainEdges->DefaultOutputLabel = PCGExGraph::OutputEdgesLabel;
 
-	
+
 	if (Settings->SearchMode != EPCGExClusterDataSearchMode::All)
 	{
 		Context->SearchKeyIO = PCGExData::TryGetSingleInput(Context, Settings->GetSearchOutputLabel(), true);

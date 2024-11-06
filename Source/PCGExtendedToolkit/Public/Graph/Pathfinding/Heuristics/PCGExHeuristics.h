@@ -117,7 +117,7 @@ namespace PCGExHeuristics
 		{
 			double GScore = 0;
 			double EWeight = TotalStaticWeight;
-			
+
 			for (const UPCGExHeuristicOperation* Op : Operations) { GScore += Op->GetGlobalScore(From, Seed, Goal); }
 			if (LocalFeedback)
 			{
@@ -138,7 +138,7 @@ namespace PCGExHeuristics
 		{
 			double EScore = 0;
 			double EWeight = TotalStaticWeight;
-			
+
 			if (!bUseDynamicWeight)
 			{
 				for (const UPCGExHeuristicOperation* Op : Operations) { EScore += Op->GetEdgeScore(From, To, Edge, Seed, Goal, TravelStack); }

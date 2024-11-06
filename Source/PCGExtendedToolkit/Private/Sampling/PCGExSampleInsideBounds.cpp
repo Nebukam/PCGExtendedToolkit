@@ -3,7 +3,8 @@
 
 #include "Sampling/PCGExSampleInsideBounds.h"
 
-/*BUILD_TOOL_BUG_55_TOGGLE*/#include "CoreMinimal.h"
+/*BUILD_TOOL_BUG_55_TOGGLE*/
+#include "CoreMinimal.h"
 #include "PCGExPointsProcessor.h"
 #include "Data/Blending/PCGExMetadataBlender.h"
 

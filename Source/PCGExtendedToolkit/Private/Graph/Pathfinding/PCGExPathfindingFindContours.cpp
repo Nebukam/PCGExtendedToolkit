@@ -4,8 +4,6 @@
 #include "Graph/Pathfinding/PCGExPathfindingFindContours.h"
 
 
-
-
 #define LOCTEXT_NAMESPACE "PCGExFindContours"
 #define PCGEX_NAMESPACE FindContours
 
@@ -260,11 +258,11 @@ bool FPCGExFindContoursElement::Boot(FPCGExContext* InContext) const
 		const int32 NumSeeds = SeedsPoints->GetNum();
 		Context->SeedQuality.Init(false, NumSeeds);
 
-		Context->GoodSeeds = PCGExData::NewPointIO(SeedsPoints.ToSharedRef(), PCGExFindContours::OutputGoodSeedsLabel);
+		Context->GoodSeeds = NewPointIO(SeedsPoints.ToSharedRef(), PCGExFindContours::OutputGoodSeedsLabel);
 		Context->GoodSeeds->InitializeOutput(PCGExData::EInit::NewOutput);
 		Context->GoodSeeds->GetOut()->GetMutablePoints().Reserve(NumSeeds);
 
-		Context->BadSeeds = PCGExData::NewPointIO(SeedsPoints.ToSharedRef(), PCGExFindContours::OutputBadSeedsLabel);
+		Context->BadSeeds = NewPointIO(SeedsPoints.ToSharedRef(), PCGExFindContours::OutputBadSeedsLabel);
 		Context->BadSeeds->InitializeOutput(PCGExData::EInit::NewOutput);
 		Context->BadSeeds->GetOut()->GetMutablePoints().Reserve(NumSeeds);
 	}

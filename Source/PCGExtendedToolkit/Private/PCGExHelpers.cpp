@@ -83,7 +83,7 @@ namespace PCGEx
 			//UPCGSpatialData* SpatialData = Cast<UPCGSpatialData>(InObject);
 			//if(SpatialData && SpatialData->Metadata){SpatialData->Metadata->ClearInternalFlags(EInternalObjectFlags::Async);}
 			return;
-		} 
+		}
 #endif
 
 		if (InObject->HasAnyInternalFlags(EInternalObjectFlags::Async))

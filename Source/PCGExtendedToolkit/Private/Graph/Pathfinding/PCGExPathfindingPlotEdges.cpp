@@ -60,7 +60,7 @@ void FPCGExPathfindingPlotEdgesContext::BuildPath(const TSharedPtr<PCGExPathfind
 
 	TArray<FPCGPoint> MutablePoints;
 	MutablePoints.Reserve(NumPoints);
-	
+
 	auto AddPlotPoint = [&](int32 Index)
 	{
 		MutablePoints.Add_GetRef(Query->PlotFacade->Source->GetInPoint(Index)).MetadataEntry = PCGInvalidEntryKey;
@@ -75,34 +75,50 @@ void FPCGExPathfindingPlotEdgesContext::BuildPath(const TSharedPtr<PCGExPathfind
 
 		if (!PathQuery->IsQuerySuccessful()) { continue; }
 
-		if (Settings->bAddPlotPointsToPath)
-		{
-			PathQuery->AppendNodePoints(MutablePoints);
-			continue;
-		}
+		int32 TruncateStart = 0;
+		int32 TruncateEnd = 0;
 
-		if (i == 0)
+		// First path, full
+		if (Settings->bAddPlotPointsToPath || i == 0) { TruncateStart = TruncateEnd = 0; }
+		// Last path, if closed loop, truncated both start & end
+		else if (Settings->bClosedLoop && i == Query->SubQueries.Num() - 1) { TruncateStart = TruncateEnd = 1; }
+		// Body path, truncated start
+		else { TruncateStart = 1; }
+
+		if (Settings->PathComposition == EPCGExPathComposition::Vtx)
 		{
-			// First path, full
-			PathQuery->AppendNodePoints(MutablePoints);
+			PathQuery->AppendNodePoints(MutablePoints, TruncateStart, TruncateEnd);
 		}
-		else if (Settings->bClosedLoop && i == Query->SubQueries.Num() - 1)
+		else if (Settings->PathComposition == EPCGExPathComposition::Edges)
 		{
-			// Last path, if closed loop, truncated both start & end
-			PathQuery->AppendNodePoints(MutablePoints, 1, 1);
+			PathQuery->AppendEdgePoints(MutablePoints);
 		}
-		else
+		else if (Settings->PathComposition == EPCGExPathComposition::VtxAndEdges)
 		{
-			// Body path, truncated start
-			PathQuery->AppendNodePoints(MutablePoints, 1);
+			// TODO : Implement
 		}
 	}
 
 	if (bAddGoal) { AddPlotPoint(Query->SubQueries.Last()->Goal.SourceIndex); }
 
-	if (MutablePoints.Num() < 2) { return; }
+	TSharedPtr<PCGExData::FPointIO> ReferenceIO = nullptr;
 
-	const TSharedPtr<PCGExData::FPointIO> PathIO = OutputPaths->Emplace_GetRef<UPCGPointData>(Query->Cluster->VtxIO.Pin()->GetIn(), PCGExData::EInit::NewOutput);
+	if (Settings->PathComposition == EPCGExPathComposition::Vtx)
+	{
+		if (MutablePoints.Num() < 2) { return; }
+		ReferenceIO = Query->Cluster->VtxIO.Pin();
+	}
+	else if (Settings->PathComposition == EPCGExPathComposition::Edges)
+	{
+		if (MutablePoints.Num() < 1) { return; }
+		ReferenceIO = Query->Cluster->EdgesIO.Pin();
+	}
+	else if (Settings->PathComposition == EPCGExPathComposition::VtxAndEdges)
+	{
+		// TODO : Implement
+	}
+
+	const TSharedPtr<PCGExData::FPointIO> PathIO = OutputPaths->Emplace_GetRef<UPCGPointData>(ReferenceIO->GetIn(), PCGExData::EInit::NewOutput);
 	const TSharedPtr<PCGExData::FFacade> PathDataFacade = MakeShared<PCGExData::FFacade>(PathIO.ToSharedRef());
 	PathDataFacade->GetMutablePoints() = MutablePoints;
 
@@ -138,14 +154,13 @@ bool FPCGExPathfindingPlotEdgesElement::Boot(FPCGExContext* InContext) const
 		TSharedPtr<PCGExData::FFacade> PlotFacade = MakeShared<PCGExData::FFacade>(PlotIO.ToSharedRef());
 		Context->Plots.Add(PlotFacade);
 	}
-	
+
 	if (Context->Plots.IsEmpty())
 	{
 		PCGE_LOG(Error, GraphAndLog, FTEXT("Missing valid Plots."));
 		return false;
 	}
 
-	
 
 	return true;
 }

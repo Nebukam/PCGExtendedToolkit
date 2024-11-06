@@ -22,6 +22,14 @@ namespace PCGExHeuristics
 	class FHeuristicsHandler;
 }
 
+UENUM(/*E--BlueprintType, meta=(DisplayName="[PCGEx] Adjacency Direction Mode")--E*/)
+enum class EPCGExPathComposition : uint8
+{
+	Vtx         = 0 UMETA(DisplayName = "Vtx", Tooltip="..."),
+	Edges       = 1 UMETA(DisplayName = "Edge", Tooltip="..."),
+	VtxAndEdges = 2 UMETA(Hidden, DisplayName = "Vtx & Edges", Tooltip="..."),
+};
+
 USTRUCT(BlueprintType)
 struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPathStatistics
 {
@@ -158,6 +166,8 @@ namespace PCGExPathfinding
 			TArray<FPCGPoint>& OutPoints,
 			const int32 TruncateStart = 0,
 			const int32 TruncateEnd = 0) const;
+
+		void AppendEdgePoints(TArray<FPCGPoint>& OutPoints) const;
 
 		void Cleanup();
 	};

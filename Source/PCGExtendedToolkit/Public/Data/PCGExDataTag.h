@@ -182,16 +182,16 @@ namespace PCGExData
 
 		bool IsTagged(const FString& Key) const
 		{
-			FReadScopeLock ReadScopeLock(TagsLock);	
+			FReadScopeLock ReadScopeLock(TagsLock);
 			return Tags.Contains(Key) || RawTags.Contains(Key);
 		}
-		
+
 		bool IsTagged(const FString& Key, const FString& Value) const
 		{
 			FReadScopeLock ReadScopeLock(TagsLock);
 			return RawTags.Contains(Key + TagSeparator + Value);
 		}
-		
+
 		bool IsTagged(const FString& Key, const uint32 Value) const
 		{
 			return IsTagged(Key, FString::Printf(TEXT("%u"), Value));

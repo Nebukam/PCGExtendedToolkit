@@ -88,7 +88,7 @@ public:
 	/** When processing closed loop paths, paths that aren't looping anymore will be tagged. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging", meta = (PCG_Overridable))
 	FPCGExPathClosedLoopUpdateDetails UpdateTags;
-	
+
 	/** */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging", meta=(PCG_Overridable, InlineEditConditionToggle))
 	bool bTagIfEvenSplit = true;

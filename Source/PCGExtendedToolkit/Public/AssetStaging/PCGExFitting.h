@@ -619,7 +619,6 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExFittingDetailsHandler
 	template <bool bWorldSpace = true>
 	void ComputeTransform(const int32 TargetIndex, FTransform& OutTransform, FBox& InOutBounds) const
 	{
-
 		//
 		check(TargetDataFacade);
 		const FPCGPoint& TargetPoint = TargetDataFacade->Source->GetInPoint(TargetIndex);
@@ -629,11 +628,11 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExFittingDetailsHandler
 		FVector OutScale = TargetPoint.Transform.GetScale3D();
 		const FBox RefBounds = PCGExMath::GetLocalBounds<EPCGExPointBoundsSource::ScaledBounds>(TargetPoint);
 		const FBox& OriginalInBounds = InOutBounds;
-		
+
 		ScaleToFit.Process(TargetPoint, OriginalInBounds, OutScale, InOutBounds);
-		
+
 		//
-				
+
 		FVector OutTranslation = FVector::ZeroVector;
 		Justification.Process(
 			TargetIndex, RefBounds,

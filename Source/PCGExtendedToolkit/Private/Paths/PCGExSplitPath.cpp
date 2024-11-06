@@ -165,7 +165,7 @@ namespace PCGExSplitPath
 
 		if (NumPathPoints == 1 && Settings->bOmitSinglePointOutputs) { return; }
 
-		const TSharedPtr<PCGExData::FPointIO> PathIO = PCGExData::NewPointIO(PointDataFacade->Source);
+		const TSharedPtr<PCGExData::FPointIO> PathIO = NewPointIO(PointDataFacade->Source);
 		PathIO->InitializeOutput(PCGExData::EInit::NewOutput);
 		PathsIOs[Iteration] = PathIO;
 
@@ -208,8 +208,8 @@ namespace PCGExSplitPath
 			if (!PathIO) { continue; }
 			if (bAddOpenTag) { Context->UpdateTags.Update(PathIO); }
 
-			if((OddEven & 1) == 0){ if(Settings->bTagIfEvenSplit){PathIO->Tags->Add(Settings->IsEvenTag);} }
-			else if(Settings->bTagIfOddSplit){PathIO->Tags->Add(Settings->IsOddTag);}
+			if ((OddEven & 1) == 0) { if (Settings->bTagIfEvenSplit) { PathIO->Tags->Add(Settings->IsEvenTag); } }
+			else if (Settings->bTagIfOddSplit) { PathIO->Tags->Add(Settings->IsOddTag); }
 			Context->MainPaths->AddUnsafe(PathIO);
 			OddEven++;
 		}

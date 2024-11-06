@@ -22,7 +22,8 @@ public:
 
 	//~Begin UPCGSettings
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(RelaxClusters, "Cluster : Relax", "Relax point positions using edges connecting them.",
+	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(
+		RelaxClusters, "Cluster : Relax", "Relax point positions using edges connecting them.",
 		(Relaxing ? FName(Relaxing.GetClass()->GetMetaData(TEXT("DisplayName"))) : FName("...")));
 #endif
 

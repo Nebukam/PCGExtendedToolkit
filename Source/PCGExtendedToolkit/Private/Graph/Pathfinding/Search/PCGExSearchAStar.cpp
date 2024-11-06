@@ -93,7 +93,7 @@ bool UPCGExSearchAStar::ResolveQuery(
 		//InQuery->Reserve(VisitedNum);
 
 		InQuery->AddPathNode(GoalNode.NodeIndex);
-		
+
 		while (PathNodeIndex != -1)
 		{
 			const int32 CurrentIndex = PathNodeIndex;
@@ -101,7 +101,6 @@ bool UPCGExSearchAStar::ResolveQuery(
 
 			InQuery->AddPathNode(CurrentIndex, PathEdgeIndex);
 		}
-
 	}
 
 	TravelStack.Empty();
