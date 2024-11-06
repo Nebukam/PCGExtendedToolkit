@@ -50,9 +50,10 @@ The **Plot Edges Pathfinding** node takes multiple input dataset as "plot" and f
 | Add Seed to Path           | Prepends the *seed position* at the beginning of the output path.<br>*This will create a point with the position of the seed.* |
 | Add Goal to Path           | Appends the *goal position* at the end of the output path.<br>*This will create a point with the position of the goal.* |
 | Add Plot Points to Path           | Include plot points positions as part of the output path.<br>*Does not includes seed or goal points.* |
-
-|**Settings**||
 | Closed Loop           | Whether the plots should generate closed paths.<br>If enabled, the last plot point will create a path that wraps with the first plot point. |
+| Path Composition           | Whether the output paths are made from `Vtx` or `Edges` points. |
+
+|**Picking**||
 | Seed Picking         | Lets you control how the seed node (`Vtx`) will be picked based on the provided seed position. |
 | Goal Picking         | Lets you control how the goal node (`Vtx`) will be picked based on the provided goal position. |
 | **Search Algorithm**         | Let you pick which {% include lk id='⊚ Search' %} algorithm to use to resolve pathfinding. |

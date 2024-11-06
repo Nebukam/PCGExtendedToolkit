@@ -14,7 +14,6 @@ tagged:
 
 {% include header_card %}
 
----
 ## {% include lk id='Pathfinding' %}  
 <br>  
 <div class="card-ctnr duo" markdown="1">
@@ -26,12 +25,15 @@ tagged:
 
 ## How pathfinding works
 Although details vary a bit depending on the selected {% include lk id='⊚ Search' %} algorithm, the basic gist is, for each path & cluster:
-1. {% include lk id='🝓 Goal Pickers' %} will find a suitable `Seed` and `Goal` point within the cluster.
-2. The Search Algorithm will then find the best path that goes from `Seed` to `Goal`, accounting for its internal maths, and using {% include lk id='🝰 Heuristics' %} as to determine whether one connection is better than another.
+1. A suitable `Seed` and `Goal` point (Vtx) are picked within the cluster.
+2. The Search Algorithm will then find the best path that goes from `Seed` to `Goal`, accounting for its internal maths, relying on {% include lk id='🝰 Heuristics' %} to determine whether one connection is better than another.
+3. Once a path is found between a given `Seed` and its `Goal`, traversed points are then added to a dataset, in order from `Seed` (start) to `Goal` (end).
 
 {% include imgc a='pathfinding/heuristic-score.png' %} 
 
->Note: The `Seed` and `Goal` node are picked based on closest distance to input *positions*.
+
+
+>Note: The `Seed` and `Goal` node are picked based on closest distance to input *positions* only (point bounds are ignored)
 {: .comment }
 
 Starting from the seed, each "next step" is weighted according to the `V` Vertex weight and the `E` Edge weight that connects to it.  

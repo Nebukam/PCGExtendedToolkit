@@ -3655,7 +3655,7 @@
   },"609": {
     "doc": "Pathfinding",
     "title": "How pathfinding works",
-    "content": "Although details vary a bit depending on the selected ⊚ Search algorithm, the basic gist is, for each path &amp; cluster: . | 🝓 Goal Pickers will find a suitable Seed and Goal point within the cluster. | The Search Algorithm will then find the best path that goes from Seed to Goal, accounting for its internal maths, and using 🝰 Heuristics as to determine whether one connection is better than another. | . Note: The Seed and Goal node are picked based on closest distance to input positions. Starting from the seed, each “next step” is weighted according to the V Vertex weight and the E Edge weight that connects to it. The search returns the path found with the lowest possible weight, or score. While the selected search algorithm is important, 🝰 Heuristics are more critical to the operation, as user-defined weights can drastically change and shape the path deemed best by the search. Note: The Plot nodes variations don’t have a goal picker and instead process each point Dataset as a list of points to go through from start to finish. The first point is the initial seed, the last point is the final goal, and then a path is found that goes through each point in-between, in order. ",
+    "content": "Although details vary a bit depending on the selected ⊚ Search algorithm, the basic gist is, for each path &amp; cluster: . | A suitable Seed and Goal point (Vtx) are picked within the cluster. | The Search Algorithm will then find the best path that goes from Seed to Goal, accounting for its internal maths, relying on 🝰 Heuristics to determine whether one connection is better than another. | Once a path is found between a given Seed and its Goal, traversed points are then added to a dataset, in order from Seed (start) to Goal (end). | . Note: The Seed and Goal node are picked based on closest distance to input positions only (point bounds are ignored) . Starting from the seed, each “next step” is weighted according to the V Vertex weight and the E Edge weight that connects to it. The search returns the path found with the lowest possible weight, or score. While the selected search algorithm is important, 🝰 Heuristics are more critical to the operation, as user-defined weights can drastically change and shape the path deemed best by the search. Note: The Plot nodes variations don’t have a goal picker and instead process each point Dataset as a list of points to go through from start to finish. The first point is the initial seed, the last point is the final goal, and then a path is found that goes through each point in-between, in order. ",
     "url": "https://nebukam.github.io/PCGExtendedToolkit/doc-pathfinding/#how-pathfinding-works",
     "relUrl": "/doc-pathfinding/#how-pathfinding-works"
   },"610": {
@@ -6715,7 +6715,7 @@
   },"1119": {
     "doc": "Plot Edges Pathfinding",
     "title": "Properties",
-    "content": ". | Property | Description | . | **Plot inclusiong**| |   | . | Add Seed to Path | Prepends the *seed position* at the beginning of the output path.*This will create a point with the position of the seed.* | . | Add Goal to Path | Appends the *goal position* at the end of the output path.*This will create a point with the position of the goal.* | . | Add Plot Points to Path | Include plot points positions as part of the output path.*Does not includes seed or goal points.* | . | **Settings**| |   | . | Closed Loop | Whether the plots should generate closed paths.If enabled, the last plot point will create a path that wraps with the first plot point. | . | Seed Picking | Lets you control how the seed node (Vtx) will be picked based on the provided seed position. | . | Goal Picking | Lets you control how the goal node (Vtx) will be picked based on the provided goal position. | . | **Search Algorithm** | Let you pick which ⊚ Search algorithm to use to resolve pathfinding. | . Seed/Goal picking is resolved for each pair of point in a given plot. | **Misc**| |   | . | Use Octree Search | Whether or not to search for closest node using an octree. Depending on your dataset, enabling this may be either much faster, or much slower.*I highly recommend enabling it if you resolve a lot of paths at the same time, but as a rule of thumb just profile it with/without and pick what works best in your setup.* | . | Omit Complete Path on Failed Plot | If enabled, a single seed/goal pair fail will invalidate the full plotted path. *If disabled, failed segments will ungracefully connect plot points with a straight line.* | . | : **Tagging** | |   | . | Is Closed Loop Tag | If enabled, will tag closed loop paths data with the specified tag. | . | Is Open Path Tag | If enabled, will tag open paths data with the specified tag. | . ",
+    "content": ". | Property | Description | . | **Plot inclusiong**| |   | . | Add Seed to Path | Prepends the *seed position* at the beginning of the output path.*This will create a point with the position of the seed.* | . | Add Goal to Path | Appends the *goal position* at the end of the output path.*This will create a point with the position of the goal.* | . | Add Plot Points to Path | Include plot points positions as part of the output path.*Does not includes seed or goal points.* | . | Closed Loop | Whether the plots should generate closed paths.If enabled, the last plot point will create a path that wraps with the first plot point. | . | Path Composition | Whether the output paths are made from Vtx or Edges points. | . | **Picking**| |   | . | Seed Picking | Lets you control how the seed node (Vtx) will be picked based on the provided seed position. | . | Goal Picking | Lets you control how the goal node (Vtx) will be picked based on the provided goal position. | . | **Search Algorithm** | Let you pick which ⊚ Search algorithm to use to resolve pathfinding. | . Seed/Goal picking is resolved for each pair of point in a given plot. | **Misc**| |   | . | Use Octree Search | Whether or not to search for closest node using an octree. Depending on your dataset, enabling this may be either much faster, or much slower.*I highly recommend enabling it if you resolve a lot of paths at the same time, but as a rule of thumb just profile it with/without and pick what works best in your setup.* | . | Omit Complete Path on Failed Plot | If enabled, a single seed/goal pair fail will invalidate the full plotted path. *If disabled, failed segments will ungracefully connect plot points with a straight line.* | . | : **Tagging** | |   | . | Is Closed Loop Tag | If enabled, will tag closed loop paths data with the specified tag. | . | Is Open Path Tag | If enabled, will tag open paths data with the specified tag. | . ",
     "url": "https://nebukam.github.io/PCGExtendedToolkit/doc-pathfinding/pathfinding-edges-plot.html#properties",
     "relUrl": "/doc-pathfinding/pathfinding-edges-plot.html#properties"
   },"1120": {
@@ -6793,7 +6793,7 @@
   },"1132": {
     "doc": "Edges Pathfinding",
     "title": "Edges Pathfinding",
-    "content": "Find paths connecting seeds to goals. The Edges Pathfinding mode … . VtxEndpoints of the input Edges EdgesEdges associated with the input Vtxs SeedsSeed points GoalsGoal points Heuristics🝰 Heuristics nodes that will be used by the pathfinding search algorithm PathsA point collection per path found . Related . | Pathfinding | . Table of content . | Statistics | Modules . | Available 🝓 Goal Pickers modules | Available ⊚ Search modules | Available 🝰 Heuristics modules | . | . DOC TDB – Heuristics underwent a thorough refactor that isn’t documented yet. Each heuristic has its own node and they can be combined into the heuristic input of the pathfinding node. See the example project! . | Property | Description | . | **Goal Picker** | The module that will be used to interpret and manipulate goals and seeds inputs.*Each module has individual settings and documentation – See [Available Goal Pickers](#available–goal-pickers-modules).* | . | **Settings**| |   | . | Add Seed to Path | Prepends the *seed position* at the beginning of the output path.*This will create a point with the position of the seed.* | . | Add Goal to Path | Appends the *goal position* at the end of the output path.*This will create a point with the position of the goal.* | . | **Modules**| |   | . | **Search Algorithm** | The search algorithm that will be used to solve pathfinding.*Each module has individual settings and documentation – See [Available Search Algorithms](#available-search-modules).* | . | **Heuristics** | The base heuristics module that will be used during pathfinding.*Each module has individual settings and documentation – See [Available Heuristics](#available–heuristics-modules).* | . | **Heuristics Modifiers** | This property group is available no matter what **Heuristics** have been picked.*See 🝰 Heuristic Attribute.* | . Statistics . | Statistics |   | . | — | | . | **Extra Weighting**| |   | . | Weight up Visited | If enabled, points and edges will accumulate additional weight are paths are found.This allows you to make \"already in use\" points &amp; edges either more or less desirable for the next internal execution. | . | Visited Points Weight Factor | The weight to add to points that have been visited. This is a multiplier of the Heuristic’ Modifiers Reference Weight.*The weight is added each time a point is used.* | . | Visited Edges Weight Factor | The weight to add to edges that have been visited. This is a multiplier of the Heuristic’ Modifiers Reference Weight.*The weight is added each time an edge is used.* | . Important note on weighting up visited Vtx and Edges: . | The weight is only computed for the pathfinding node and isn’t carried over or cached. | Enabling this feature breaks parallelism. Tasks are still ran asynchronously, but each path must wait for the previous one to be computed. Impact is usually negligible, but if you have lots of paths, it may take noticeably more time to process. | . ",
+    "content": "Find paths connecting seeds to goals. The Edges Pathfinding mode … . VtxEndpoints of the input Edges EdgesEdges associated with the input Vtxs SeedsSeed points GoalsGoal points Heuristics🝰 Heuristics nodes that will be used by the pathfinding search algorithm PathsA point collection per path found . Related . | Pathfinding | . Table of content . | Modules . | Available 🝓 Goal Pickers modules | Available 🝰 Heuristics modules | Available ⊚ Search modules | . | . The Edges Pathfinding node … . | Property | Description | . | **Goal Picker** | The module that will be used to interpret and manipulate goals and seeds inputs.*Each module has individual settings and documentation – See [Available Goal Pickers](#available–goal-pickers-modules).* | . | Property | Description | . | **Plot inclusiong**| |   | . | Add Seed to Path | Prepends the *seed position* at the beginning of the output path.*This will create a point with the position of the seed.* | . | Add Goal to Path | Appends the *goal position* at the end of the output path.*This will create a point with the position of the goal.* | . | Path Composition | Whether the output paths are made from Vtx or Edges points. | . | **Picking**| |   | . | Seed Picking | Lets you control how the seed node (Vtx) will be picked based on the provided seed position. | . | Goal Picking | Lets you control how the goal node (Vtx) will be picked based on the provided goal position. | . | **Search Algorithm** | Let you pick which ⊚ Search algorithm to use to resolve pathfinding. | . ",
     "url": "https://nebukam.github.io/PCGExtendedToolkit/doc-pathfinding/pathfinding-edges.html#edges-pathfinding",
     "relUrl": "/doc-pathfinding/pathfinding-edges.html#edges-pathfinding"
   },"1133": {
@@ -6828,70 +6828,70 @@
     "relUrl": "/doc-pathfinding/pathfinding-edges.html#goal-from-attribute"
   },"1138": {
     "doc": "Edges Pathfinding",
-    "title": "Available ⊚ Search modules",
-    "content": ". ",
-    "url": "https://nebukam.github.io/PCGExtendedToolkit/doc-pathfinding/pathfinding-edges.html#available--search-modules",
-    "relUrl": "/doc-pathfinding/pathfinding-edges.html#available--search-modules"
-  },"1139": {
-    "doc": "Edges Pathfinding",
-    "title": "Dijkstra",
-    "content": "Dijkstra’s Algorithm . The Dijkstra’s Algorithm search mode … . ",
-    "url": "https://nebukam.github.io/PCGExtendedToolkit/doc-pathfinding/pathfinding-edges.html#dijkstra",
-    "relUrl": "/doc-pathfinding/pathfinding-edges.html#dijkstra"
-  },"1140": {
-    "doc": "Edges Pathfinding",
-    "title": "A* Star",
-    "content": "A* Algorithm . The A* Algorithm search mode … . ",
-    "url": "https://nebukam.github.io/PCGExtendedToolkit/doc-pathfinding/pathfinding-edges.html#a-star",
-    "relUrl": "/doc-pathfinding/pathfinding-edges.html#a-star"
-  },"1141": {
-    "doc": "Edges Pathfinding",
     "title": "Available 🝰 Heuristics modules",
     "content": ". ",
     "url": "https://nebukam.github.io/PCGExtendedToolkit/doc-pathfinding/pathfinding-edges.html#available--heuristics-modules",
     "relUrl": "/doc-pathfinding/pathfinding-edges.html#available--heuristics-modules"
-  },"1142": {
+  },"1139": {
     "doc": "Edges Pathfinding",
     "title": "🝰 Heuristic Attribute",
     "content": "Attribute-driven heuristics . The Heuristic Attribute heuristic node … . ",
     "url": "https://nebukam.github.io/PCGExtendedToolkit/doc-pathfinding/pathfinding-edges.html#heuristic-attribute",
     "relUrl": "/doc-pathfinding/pathfinding-edges.html#heuristic-attribute"
-  },"1143": {
+  },"1140": {
     "doc": "Edges Pathfinding",
     "title": "🝰 Shortest Distance",
     "content": "Subtitle . The Shortest Distance heuristic node … . ",
     "url": "https://nebukam.github.io/PCGExtendedToolkit/doc-pathfinding/pathfinding-edges.html#shortest-distance",
     "relUrl": "/doc-pathfinding/pathfinding-edges.html#shortest-distance"
-  },"1144": {
+  },"1141": {
     "doc": "Edges Pathfinding",
     "title": "🝰 Feedback",
     "content": "Subtitle . The Feedback heuristic node … . ",
     "url": "https://nebukam.github.io/PCGExtendedToolkit/doc-pathfinding/pathfinding-edges.html#feedback",
     "relUrl": "/doc-pathfinding/pathfinding-edges.html#feedback"
-  },"1145": {
+  },"1142": {
     "doc": "Edges Pathfinding",
     "title": "🝰 Inertia",
     "content": "Subtitle . The Inertia heuristic node … . ",
     "url": "https://nebukam.github.io/PCGExtendedToolkit/doc-pathfinding/pathfinding-edges.html#inertia",
     "relUrl": "/doc-pathfinding/pathfinding-edges.html#inertia"
-  },"1146": {
+  },"1143": {
     "doc": "Edges Pathfinding",
     "title": "🝰 Steepness",
     "content": "Favor flat paths . The Steepness heuristic node … . ",
     "url": "https://nebukam.github.io/PCGExtendedToolkit/doc-pathfinding/pathfinding-edges.html#steepness",
     "relUrl": "/doc-pathfinding/pathfinding-edges.html#steepness"
-  },"1147": {
+  },"1144": {
     "doc": "Edges Pathfinding",
     "title": "🝰 Azimuth",
     "content": "Subtitle . The Azimuth heuristic node … . ",
     "url": "https://nebukam.github.io/PCGExtendedToolkit/doc-pathfinding/pathfinding-edges.html#azimuth",
     "relUrl": "/doc-pathfinding/pathfinding-edges.html#azimuth"
-  },"1148": {
+  },"1145": {
     "doc": "Edges Pathfinding",
     "title": "🝰 Least Nodes",
     "content": "Subtitle . The Least Nodes heuristic node … . ",
     "url": "https://nebukam.github.io/PCGExtendedToolkit/doc-pathfinding/pathfinding-edges.html#least-nodes",
     "relUrl": "/doc-pathfinding/pathfinding-edges.html#least-nodes"
+  },"1146": {
+    "doc": "Edges Pathfinding",
+    "title": "Available ⊚ Search modules",
+    "content": ". ",
+    "url": "https://nebukam.github.io/PCGExtendedToolkit/doc-pathfinding/pathfinding-edges.html#available--search-modules",
+    "relUrl": "/doc-pathfinding/pathfinding-edges.html#available--search-modules"
+  },"1147": {
+    "doc": "Edges Pathfinding",
+    "title": "Dijkstra",
+    "content": "Dijkstra’s Algorithm . The Dijkstra’s Algorithm search mode … . ",
+    "url": "https://nebukam.github.io/PCGExtendedToolkit/doc-pathfinding/pathfinding-edges.html#dijkstra",
+    "relUrl": "/doc-pathfinding/pathfinding-edges.html#dijkstra"
+  },"1148": {
+    "doc": "Edges Pathfinding",
+    "title": "A* Star",
+    "content": "A* Algorithm . The A* Algorithm search mode … . ",
+    "url": "https://nebukam.github.io/PCGExtendedToolkit/doc-pathfinding/pathfinding-edges.html#a-star",
+    "relUrl": "/doc-pathfinding/pathfinding-edges.html#a-star"
   },"1149": {
     "doc": "Edges Pathfinding",
     "title": "Edges Pathfinding",
