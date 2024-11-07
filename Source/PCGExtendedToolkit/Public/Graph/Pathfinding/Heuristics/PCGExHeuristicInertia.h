@@ -9,6 +9,8 @@
 #include "PCGExHeuristicOperation.h"
 
 
+
+
 #include "Graph/PCGExCluster.h"
 #include "PCGExHeuristicInertia.generated.h"
 
@@ -59,11 +61,11 @@ public:
 		const PCGExGraph::FIndexedEdge& Edge,
 		const PCGExCluster::FNode& Seed,
 		const PCGExCluster::FNode& Goal,
-		const TArray<uint64>* TravelStack) const override
+		const TSharedPtr<PCGEx::FHashLookup> TravelStack) const override
 	{
 		if (TravelStack)
 		{
-			if (const int32 PreviousNodeIndex = PCGEx::NH64A(*(TravelStack->GetData() + From.NodeIndex));
+			if (const int32 PreviousNodeIndex = PCGEx::NH64A(TravelStack->Get(From.NodeIndex));
 				PreviousNodeIndex != -1)
 			{
 				const double Dot = FVector::DotProduct(

@@ -38,10 +38,11 @@ class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExRefineEdgesSettings : public UPCGExEdgesP
 public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(RefineEdges, "Cluster : Refine", "Refine edges according to special rules.",
+	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(
+		RefineEdges, "Cluster : Refine", "Refine edges according to special rules.",
 		(Refinement ? FName(Refinement.GetClass()->GetMetaData(TEXT("DisplayName"))) : FName("...")));
 #endif
-	
+
 protected:
 	virtual TArray<FPCGPinProperties> InputPinProperties() const override;
 	virtual TArray<FPCGPinProperties> OutputPinProperties() const override;
@@ -68,12 +69,10 @@ public:
 
 	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = Settings, meta = (PCG_NotOverridable))
 	bool bRestoreEdgesThatConnectToValidNodes = false;
-	
+
 	/** Graph & Edges output properties */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName="Cluster Output Settings", EditCondition="!bOutputEdgesOnly", EditConditionHides))
 	FPCGExGraphBuilderDetails GraphBuilderDetails;
-
-	
 
 private:
 	friend class FPCGExRefineEdgesElement;

@@ -48,7 +48,7 @@ public:
 		const PCGExGraph::FIndexedEdge& Edge,
 		const PCGExCluster::FNode& Seed,
 		const PCGExCluster::FNode& Goal,
-		const TArray<uint64>* TravelStack = nullptr) const
+		const TSharedPtr<PCGEx::FHashLookup> TravelStack = nullptr) const
 	{
 		return GetScoreInternal(0);
 	}

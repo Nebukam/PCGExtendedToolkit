@@ -29,13 +29,41 @@ void FPCGExPathfindingEdgesContext::BuildPath(const TSharedPtr<PCGExPathfinding:
 	TArray<FPCGPoint> MutablePoints;
 	MutablePoints.Reserve(Query->PathNodes.Num() + 2);
 
+	TSharedPtr<PCGExData::FPointIO> ReferenceIO = nullptr;
+
 	if (Settings->bAddSeedToPath) { MutablePoints.Add_GetRef(Seed).MetadataEntry = PCGInvalidEntryKey; }
-	Query->AppendNodePoints(MutablePoints);
+
+	if (Settings->PathComposition == EPCGExPathComposition::Vtx)
+	{
+		ReferenceIO = Query->Cluster->VtxIO.Pin();
+		Query->AppendNodePoints(MutablePoints);
+	}
+	else if (Settings->PathComposition == EPCGExPathComposition::Edges)
+	{
+		ReferenceIO = Query->Cluster->EdgesIO.Pin();
+		Query->AppendEdgePoints(MutablePoints);
+	}
+	else if (Settings->PathComposition == EPCGExPathComposition::VtxAndEdges)
+	{
+		// TODO : Implement
+	}
+
 	if (Settings->bAddGoalToPath) { MutablePoints.Add_GetRef(Goal).MetadataEntry = PCGInvalidEntryKey; }
 
-	if (MutablePoints.Num() < 2) { return; }
+	if (Settings->PathComposition == EPCGExPathComposition::Vtx)
+	{
+		if (MutablePoints.Num() < 2) { return; }
+	}
+	else if (Settings->PathComposition == EPCGExPathComposition::Edges)
+	{
+		if (MutablePoints.Num() < 1) { return; }
+	}
+	else if (Settings->PathComposition == EPCGExPathComposition::VtxAndEdges)
+	{
+		// TODO : Implement
+	}
 
-	const TSharedPtr<PCGExData::FPointIO> PathIO = OutputPaths->Emplace_GetRef<UPCGPointData>(Query->Cluster->VtxIO.Pin()->GetIn(), PCGExData::EInit::NewOutput);
+	const TSharedPtr<PCGExData::FPointIO> PathIO = OutputPaths->Emplace_GetRef<UPCGPointData>(ReferenceIO, PCGExData::EInit::NewOutput);
 
 	PCGExGraph::CleanupClusterTags(PathIO, true);
 	PCGExGraph::CleanupVtxData(PathIO);

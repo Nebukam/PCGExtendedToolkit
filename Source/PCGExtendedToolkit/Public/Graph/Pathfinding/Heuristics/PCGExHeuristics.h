@@ -58,7 +58,7 @@ namespace PCGExHeuristics
 			const PCGExGraph::FIndexedEdge& Edge,
 			const PCGExCluster::FNode& Seed,
 			const PCGExCluster::FNode& Goal,
-			const TArray<uint64>* TravelStack = nullptr) const
+			const TSharedPtr<PCGEx::FHashLookup> TravelStack = nullptr) const
 		{
 			double EScore = 0;
 			for (const UPCGExHeuristicFeedback* Feedback : Feedbacks) { EScore += Feedback->GetEdgeScore(From, To, Edge, Seed, Goal, TravelStack); }
@@ -117,7 +117,7 @@ namespace PCGExHeuristics
 		{
 			double GScore = 0;
 			double EWeight = TotalStaticWeight;
-			
+
 			for (const UPCGExHeuristicOperation* Op : Operations) { GScore += Op->GetGlobalScore(From, Seed, Goal); }
 			if (LocalFeedback)
 			{
@@ -134,11 +134,11 @@ namespace PCGExHeuristics
 			const PCGExCluster::FNode& Seed,
 			const PCGExCluster::FNode& Goal,
 			const FLocalFeedbackHandler* LocalFeedback = nullptr,
-			const TArray<uint64>* TravelStack = nullptr) const
+			const TSharedPtr<PCGEx::FHashLookup> TravelStack = nullptr) const
 		{
 			double EScore = 0;
 			double EWeight = TotalStaticWeight;
-			
+
 			if (!bUseDynamicWeight)
 			{
 				for (const UPCGExHeuristicOperation* Op : Operations) { EScore += Op->GetEdgeScore(From, To, Edge, Seed, Goal, TravelStack); }

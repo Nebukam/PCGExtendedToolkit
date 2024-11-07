@@ -71,7 +71,7 @@ public:
 	/** Inverts offset direction. Can also be achieved by using negative offset values, but this enable consistent inversion no matter the input.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	bool bInvertDirection = false;
-	
+
 	/** Removes segments which direction has been flipped due to the offset.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	bool bCleanupPath = false;

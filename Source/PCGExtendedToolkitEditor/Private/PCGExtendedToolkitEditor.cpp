@@ -22,7 +22,7 @@ void FPCGExtendedToolkitEditorModule::StartupModule()
 
 	const FVector2D SizeIcon = FVector2D(16.0f, 16.0f);
 	const FVector2D SizeThumbnail = FVector2D(128.0f, 128.0f);
-	
+
 	PCGEX_ADD_ICON(PCGExAssetCollection)
 	PCGEX_ADD_ICON(PCGExCustomGraphSettings)
 	PCGEX_ADD_ICON(PCGExCustomGraphBuilder)
@@ -39,5 +39,5 @@ void FPCGExtendedToolkitEditorModule::ShutdownModule()
 }
 
 #undef LOCTEXT_NAMESPACE
-    
+
 IMPLEMENT_MODULE(FPCGExtendedToolkitEditorModule, PCGExtendedToolkitEditor)

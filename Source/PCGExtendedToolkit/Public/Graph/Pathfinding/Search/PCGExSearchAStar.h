@@ -22,5 +22,6 @@ class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExSearchAStar : public UPCGExSearchOperatio
 public:
 	virtual bool ResolveQuery(
 		const TSharedPtr<PCGExPathfinding::FPathQuery>& InQuery,
-		const TSharedPtr<PCGExHeuristics::FHeuristicsHandler>& Heuristics, const TSharedPtr<PCGExHeuristics::FLocalFeedbackHandler>& LocalFeedback) const override;
+		const TSharedPtr<PCGExHeuristics::FHeuristicsHandler>& Heuristics,
+		const TSharedPtr<PCGExHeuristics::FLocalFeedbackHandler>& LocalFeedback) const override;
 };

@@ -48,8 +48,8 @@ void UPCGExVtxPropertySpecialNeighbors::ProcessNode(PCGExCluster::FNode& Node, c
 	for (int i = 0; i < Adjacency.Num(); i++)
 	{
 		const PCGExCluster::FAdjacencyData& A = Adjacency[i];
-		const int32 NumAdj = Cluster->GetNode(A.NodeIndex)->Adjacency.Num(); 
-		
+		const int32 NumAdj = Cluster->GetNode(A.NodeIndex)->Adjacency.Num();
+
 		if (NumAdj > LLargest)
 		{
 			ILargest = i;

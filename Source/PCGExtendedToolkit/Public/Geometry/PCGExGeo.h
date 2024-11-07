@@ -608,7 +608,7 @@ namespace PCGExGeoTasks
 			FTransform TargetTransform = FTransform::Identity;
 			if (TransformDetails->bSupportFitting)
 			{
-				FBox PointBounds = FBox(EForceInit::ForceInit);
+				FBox PointBounds = FBox(ForceInit);
 				for (const FPCGPoint& Pt : MutableTargets) { PointBounds += PCGExMath::GetLocalBounds<EPCGExPointBoundsSource::Bounds>(Pt).TransformBy(Pt.Transform); }
 				PointBounds = PointBounds.ExpandBy(1); // Avoid NaN
 				TransformDetails->ComputeTransform(TaskIndex, TargetTransform, PointBounds);

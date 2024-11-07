@@ -110,7 +110,6 @@ namespace PCGExWriteVtxProperties
 
 	class FProcessorBatch final : public PCGExClusterMT::TBatch<FProcessor>
 	{
-
 		PCGEX_FOREACH_FIELD_VTXEXTRAS(PCGEX_OUTPUT_DECL)
 
 	public:

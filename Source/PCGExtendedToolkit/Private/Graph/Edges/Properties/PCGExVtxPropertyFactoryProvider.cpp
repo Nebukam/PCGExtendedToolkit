@@ -4,13 +4,6 @@
 #include "Graph/Edges/Properties/PCGExVtxPropertyFactoryProvider.h"
 
 
-
-
-
-
-
-
-
 #define LOCTEXT_NAMESPACE "PCGExWriteVtxProperties"
 #define PCGEX_NAMESPACE PCGExWriteVtxProperties
 

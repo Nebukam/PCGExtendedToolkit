@@ -262,7 +262,7 @@ namespace PCGExMT
 	bool FGroupPrepareRangeInlineTask::ExecuteTask(const TSharedPtr<FTaskManager>& AsyncManager)
 	{
 		ON_SCOPE_EXIT { Loops.Empty(); };
-		
+
 		if (const TSharedPtr<FTaskGroup> Group = GroupPtr.Pin())
 		{
 			uint32 StartIndex;
@@ -281,7 +281,7 @@ namespace PCGExMT
 	bool FGroupRangeInlineIterationTask::ExecuteTask(const TSharedPtr<FTaskManager>& AsyncManager)
 	{
 		ON_SCOPE_EXIT { Loops.Empty(); };
-		
+
 		if (const TSharedPtr<FTaskGroup> Group = GroupPtr.Pin())
 		{
 			uint32 StartIndex;

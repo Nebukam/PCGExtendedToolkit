@@ -12,18 +12,6 @@
 #include "PCGExOperation.h"
 
 
-
-
-
-
-
-
-
-
-
-
-
-
 #include "PCGExVtxPropertyFactoryProvider.generated.h"
 
 #define PCGEX_VTX_EXTRA_CREATE \
@@ -196,7 +184,7 @@ public:
 
 	virtual bool PrepareForCluster(const FPCGContext* InContext, TSharedPtr<PCGExCluster::FCluster> InCluster, const TSharedPtr<PCGExData::FFacade>& InVtxDataFacade, const TSharedPtr<PCGExData::FFacade>& InEdgeDataFacade);
 	virtual bool IsOperationValid();
-	
+
 	virtual void ProcessNode(PCGExCluster::FNode& Node, const TArray<PCGExCluster::FAdjacencyData>& Adjacency);
 
 	virtual void Cleanup() override;

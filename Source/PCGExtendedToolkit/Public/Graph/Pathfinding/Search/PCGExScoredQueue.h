@@ -5,7 +5,8 @@
 
 namespace PCGExSearch
 {
-	class TScoredQueue
+	
+	class FScoredQueue
 	{
 		struct FScoredNode
 		{
@@ -34,13 +35,13 @@ namespace PCGExSearch
 	public:
 		TArray<double> Scores;
 
-		TScoredQueue(const int32 Size, const int32& Item, const double Score)
+		FScoredQueue(const int32 Size, const int32& Item, const double Score)
 		{
 			Scores.Init(MAX_dbl, Size);
 			Enqueue(Item, Score);
 		}
 
-		~TScoredQueue()
+		~FScoredQueue()
 		{
 			std::priority_queue<FScoredNode, std::vector<FScoredNode>, std::greater<FScoredNode>> EmptyQueue;
 			std::swap(InternalQueue, EmptyQueue);
@@ -50,7 +51,7 @@ namespace PCGExSearch
 		{
 			double& RegisteredScore = Scores[Index];
 			if (RegisteredScore <= InScore) { return false; }
-			
+
 			RegisteredScore = InScore;
 			InternalQueue.push(FScoredNode(Index, InScore));
 			return true;

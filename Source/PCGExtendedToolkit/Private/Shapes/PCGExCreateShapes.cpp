@@ -158,7 +158,7 @@ namespace PCGExCreateShapes
 
 				if (NumPoints <= 0) { continue; }
 
-				TSharedPtr<PCGExData::FPointIO> IO = PCGExData::NewPointIO(PointDataFacade->Source, Settings->GetMainOutputLabel(), i);
+				TSharedPtr<PCGExData::FPointIO> IO = NewPointIO(PointDataFacade->Source, Settings->GetMainOutputLabel(), i);
 				IO->InitializeOutput(PCGExData::EInit::NewOutput);
 
 				TSharedPtr<PCGExData::FFacade> IOFacade = MakeShared<PCGExData::FFacade>(IO.ToSharedRef());

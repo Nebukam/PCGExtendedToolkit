@@ -45,10 +45,10 @@ bool FPCGExMeshToClustersElement::Boot(FPCGExContext* InContext) const
 	Context->TargetsDataFacade = MakeShared<PCGExData::FFacade>(Context->MainPoints->Pairs[0].ToSharedRef());
 
 	PCGEX_FWD(GraphBuilderDetails)
-	
+
 	PCGEX_FWD(TransformDetails)
 	if (!Context->TransformDetails.Init(Context, Context->TargetsDataFacade.ToSharedRef())) { return false; }
-	
+
 	if (Settings->StaticMeshInput == EPCGExInputValueType::Attribute)
 	{
 		PCGEX_VALIDATE_NAME(Settings->StaticMeshAttribute)
