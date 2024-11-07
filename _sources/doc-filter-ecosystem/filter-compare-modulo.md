@@ -42,7 +42,7 @@ The **Modulo Filter** compares the modulo of two values against a third.
 | Compare B <br>*(Constant or Attribute)* | Operand B used for modulo. |
 
 | **Comparison**          ||
-| Comparison | How to compare the two `A % B` against `C`.<br>*See [Numeric comparisons](/PCGExtendedToolkit/doc-general/comparisons.html#numeric-comparisons).* |
+| Comparison | How to compare the two `A % B` against `C`.<br>*See [Numeric comparisons](/PCGExtendedToolkit/doc-general/general-comparisons.html#numeric-comparisons).* |
 
 | **Operand C**          ||
 | Compare Against | Type of operand C. Can be a per-point `Attribute`, or an easily overridable `Constant`. |

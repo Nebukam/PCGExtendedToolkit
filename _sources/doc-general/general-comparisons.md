@@ -7,7 +7,7 @@ summary: This page lists the comparison used by a bunch of different nodes.
 splash: icons/icon_view-grid.svg
 nav_order: 10
 tagged:
-    - basics
+    - centralized
 ---
 
 {% include header_card %}

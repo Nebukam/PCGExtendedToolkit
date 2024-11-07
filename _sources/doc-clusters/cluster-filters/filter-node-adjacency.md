@@ -41,7 +41,7 @@ The adjacency filter does a simple numeric comparison on each individual connect
 | Compare Against           | TBD |
 | Operand A Constant           | TBD |
 | Operand A Attribute           | TBD |
-| Comparison           | How to compare Operand A against Operand B<br>*See [Numeric comparisons](/PCGExtendedToolkit/doc-general/comparisons.html#numeric-comparisons).* |
+| Comparison           | How to compare Operand A against Operand B<br>*See [Numeric comparisons](/PCGExtendedToolkit/doc-general/general-comparisons.html#numeric-comparisons).* |
 | Operand B Source           | TBD |
 | Operand B (Neighbor)           | TBD |
 | Tolerance           | Equality tolerance for near-value comparisons. |

@@ -40,7 +40,7 @@ The **Compare (Numeric)** compares two attributes against each other.
 | Operand A          | The first attribute of the comparison. |
 
 | **Comparison**          ||
-| Comparison | How to compare A against B.<br>*See [Numeric comparisons](/PCGExtendedToolkit/doc-general/comparisons.html#numeric-comparisons).* |
+| Comparison | How to compare A against B.<br>*See [Numeric comparisons](/PCGExtendedToolkit/doc-general/general-comparisons.html#numeric-comparisons).* |
 
 | **Operand B**          ||
 | Compare Against | Type of operand B. Can be a per-point `Attribute`, or an easily overridable `Constant`. |

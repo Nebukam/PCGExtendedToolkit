@@ -39,7 +39,7 @@ This filter takes the start & end points of an edge and compares the number of c
 | Threshold Constant           | Constant threshold value. |
 | Threshold Attribute<br>`int32` | Attribute to read the threshold to compare the number of connections against. |
 | Mode | Define how the number of endpoint' connections should be aggregated (or not) before the comparison is processed. |
-| Comparison | How the number of neighbors should be compared against the threshold.<br>*See [Numeric comparisons](/PCGExtendedToolkit/doc-general/comparisons.html#numeric-comparisons).* |
+| Comparison | How the number of neighbors should be compared against the threshold.<br>*See [Numeric comparisons](/PCGExtendedToolkit/doc-general/general-comparisons.html#numeric-comparisons).* |
 | Tolerance | Equality tolerance for near-value comparisons. |
 | Invert | If enabled, invert the result of the filter. |
 

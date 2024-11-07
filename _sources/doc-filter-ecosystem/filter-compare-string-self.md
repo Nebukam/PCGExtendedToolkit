@@ -37,7 +37,7 @@ The **Self Compare (String)** compares the point' value of a single attribute ag
 | Operand A          | The attribute to read compared values from. |
 
 | **Comparison**          ||
-| Comparison | How to compare A against B.<br>*See [Numeric comparisons](/PCGExtendedToolkit/doc-general/comparisons.html#string-comparisons).* |
+| Comparison | How to compare A against B.<br>*See [Numeric comparisons](/PCGExtendedToolkit/doc-general/general-comparisons.html#string-comparisons).* |
 | Tolerance | Equality tolerance for near-value comparisons. |
 
 | **Index**          ||

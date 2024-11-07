@@ -9,14 +9,19 @@ nav_order: 10
 has_children: true
 ---
 
-{% include header_card %}
+{% include header_card_toc %}
 
 >When working with specific nodes, make sure to check out the home of the category they belong to as it often contains important infos pertaining to their family of nodes as a whole!
 {: .infos-hl }
 
 <br>
 
-{% include card_childs tagged="basics" wrappercss="duo" %}
+{% include card_any tagged='basics' wrappercss="duo" %}
+
+---
+## Recurring settings
+<br>
+{% include card_any tagged='centralized' %}
 
 ---
 ## Nodes Categories

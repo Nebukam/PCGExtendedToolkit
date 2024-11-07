@@ -7,7 +7,7 @@ summary: This page centralizes documentation for Fitting, allowing us to keep re
 splash: icons/icon_view-grid.svg
 nav_order: 12
 tagged:
-    - basics
+    - centralized
 ---
 
 {% include header_card_toc %}
@@ -46,7 +46,7 @@ You can use the following rules:
 {% include img a='details/assets-staging/justification.png' %}
 
 Offset the spawned asset bounds relative to the host point' bounds.  
-Justification is done & tweaked per-component.  
+<u>Justification is processed per-component, after the scale-to-fit pass.</u>
 
 |: **Per component** :||
 | From          | The location within the **Asset** bounds that will be justified *To* the point' bounds. <br>*i.e, from which location in the asset do i start moving.*  |

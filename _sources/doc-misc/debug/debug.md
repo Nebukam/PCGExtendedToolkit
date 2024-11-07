@@ -6,9 +6,8 @@ subtitle: Working with PCGEx Debug nodes
 color: red
 summary: Need-to-know stuff regarding internal visual debugging tools available in PCGEx.
 splash: icons/icon_misc-draw-attributes.svg
-nav_order: 100
+nav_order: 10000
 tagged:
-    - basics
 has_children: true
 ---
 

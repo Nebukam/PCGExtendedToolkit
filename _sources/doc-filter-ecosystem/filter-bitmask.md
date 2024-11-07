@@ -36,7 +36,7 @@ The **Bitmask Filter** lets you check whether certain flags are set or not in an
 |:-------------|:------------------|
 | Flags Attributes          | The is the name of the attribtue which value will be tested.<br>*It is expected to be an `int64`.* |
 | Mask Type | Type of source mask. Can be a per-point `Attribute`, or an easily overridable `Constant`. |
-| Comparison | *See [Bitmask comparisons](/PCGExtendedToolkit/doc-general/comparisons.html#bitmask-comparisons).* |
+| Comparison | *See [Bitmask comparisons](/PCGExtendedToolkit/doc-general/general-comparisons.html#bitmask-comparisons).* |
 | Bitmask <br>*(Constant or Attribute)* | Mask value.<br>*Strictly expects an `int64`.* |
 | Invert Result | If enabled, invert the result of the filter. |
 

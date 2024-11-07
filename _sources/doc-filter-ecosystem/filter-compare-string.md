@@ -37,7 +37,7 @@ The **Compare (String)** compares two string-like attributes against each other.
 | Operand A          | The first attribute of the comparison. |
 
 | **Comparison**          ||
-| Comparison | How to compare A against B.<br>*See [String comparisons](/PCGExtendedToolkit/doc-general/comparisons.html#string-comparisons).* |
+| Comparison | How to compare A against B.<br>*See [String comparisons](/PCGExtendedToolkit/doc-general/general-comparisons.html#string-comparisons).* |
 
 | **Operand B**          ||
 | Compare Against | Type of operand B. Can be a per-point `Attribute`, or an easily overridable `Constant`. |

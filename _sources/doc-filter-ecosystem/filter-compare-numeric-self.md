@@ -40,7 +40,7 @@ The **Self Compare (Numeric)** compares the point' value of a single attribute a
 | Operand A          | The attribute to read compared values from. |
 
 | **Comparison**          ||
-| Comparison | How to compare A against B.<br>*See [Numeric comparisons](/PCGExtendedToolkit/doc-general/comparisons.html#numeric-comparisons).* |
+| Comparison | How to compare A against B.<br>*See [Numeric comparisons](/PCGExtendedToolkit/doc-general/general-comparisons.html#numeric-comparisons).* |
 | Tolerance | Equality tolerance for near-value comparisons. |
 
 | **Index**          ||

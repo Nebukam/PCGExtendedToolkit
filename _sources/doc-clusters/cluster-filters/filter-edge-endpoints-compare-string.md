@@ -39,6 +39,6 @@ This filter takes the start & end points of an edge and compare the value of a s
 |:-------------|:------------------|
 |: **Settings** ||
 | Attribute | Attribute to read on edges' endpoints |
-| Comparison           | How to compare each endpoint value against the other.<br>*See [String comparisons](/PCGExtendedToolkit/doc-general/comparisons.html#string-comparisons).* |
+| Comparison           | How to compare each endpoint value against the other.<br>*See [String comparisons](/PCGExtendedToolkit/doc-general/general-comparisons.html#string-comparisons).* |
 | Tolerance | Equality tolerance for near-value comparisons. |
 | Invert | If enabled, invert the result of the filter. |

@@ -38,7 +38,7 @@ outputs:
 The **Plot Edges Pathfinding** node takes multiple input dataset as "plot" and finds a path that connects each point in a given plot, in order.  It's very straightforward to use, and should generally be preferred over its {% include lk id='Edges Pathfinding' %} alternative.
 {: .fs-5 .fw-400 } 
 
-{% include img a='details/details-pathfinding-edges-plot.png' %} 
+{% include img a='details/pathfinding/pathfinding-edges-plot-lead.png' %} 
 
 ---
 # Properties

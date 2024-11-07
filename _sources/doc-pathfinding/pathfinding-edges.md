@@ -23,10 +23,10 @@ inputs:
         pin : points
     -   name : Seeds
         desc : Seed points
-        pin : points
+        pin : point
     -   name : Goals
         desc : Goal points
-        pin : points
+        pin : point
     -   name : Heuristics
         desc : 🝰 Heuristics nodes that will be used by the pathfinding search algorithm
         pin : params
@@ -38,10 +38,10 @@ outputs:
 
 {% include header_card_node %}
 
-The **Edges Pathfinding** node ...
+The **Edges Pathfinding** node connects goal points to seed points. Contrary to the {% include lk id='Plot Edges Pathfinding' %}, this node uses an external module (*Goal Picker*) to match seeds and goal, and cannot generate closed paths; it only supports A to B (many of them as well).
 {: .fs-5 .fw-400 } 
 
-{% include img a='details/details-pathfinding-edges-plot.png' %} 
+{% include img a='details/pathfinding/pathfinding-edges-lead.png' %} 
 
 | Property       | Description          |
 |:-------------|:------------------|

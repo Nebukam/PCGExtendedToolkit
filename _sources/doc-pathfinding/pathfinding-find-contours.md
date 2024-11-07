@@ -33,8 +33,11 @@ outputs:
 # Properties
 <br>
 
+
 > DOC TDB
 {: .warning }
+
+{% include img a='details/pathfinding/pathfinding-find-contours.png' %} 
 
 ---
 ## Projection Settings

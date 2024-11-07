@@ -7,7 +7,7 @@ summary: This page centralizes documentation for Blending, allowing us to keep r
 splash: icons/icon_view-grid.svg
 nav_order: 11
 tagged:
-    - basics
+    - centralized
 ---
 
 {% include header_card_toc %}
