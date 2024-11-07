@@ -100,7 +100,7 @@ namespace PCGExGrowPaths
 	{
 		if (NextGrowthIndex <= -1 || Path.Contains(NextGrowthIndex)) { return false; }
 
-		TravelStack->Set(NextGrowthEdgeIndex, PCGEx::NH64(LastGrowthIndex, NextGrowthEdgeIndex));
+		TravelStack->Set(NextGrowthIndex, PCGEx::NH64(LastGrowthIndex, NextGrowthEdgeIndex));
 		
 		const TArray<PCGExCluster::FNode>& NodesRef = *Processor->Cluster->Nodes;
 		const TArray<PCGExGraph::FIndexedEdge>& EdgesRef = *Processor->Cluster->Edges;
@@ -183,7 +183,7 @@ namespace PCGExGrowPaths
 	{
 		SeedNode = &(*Processor->Cluster->Nodes)[LastGrowthIndex];
 		GoalNode = MakeUnique<PCGExCluster::FNode>();
-		GoalNode->NodeIndex = Processor->Cluster->NodePositions.Add(Processor->Cluster->GetPos(SeedNode) + GrowthDirection * 100);
+		GoalNode->NodeIndex = Processor->Cluster->NodePositions.Add(Processor->Cluster->GetPos(SeedNode) + GrowthDirection * 10000);
 		Metrics.Reset(Processor->Cluster->GetPos(SeedNode));
 		TravelStack = PCGEx::NewHashLookup<PCGEx::FMapHashLookup>(PCGEx::NH64(-1, -1), 0);
 	}
