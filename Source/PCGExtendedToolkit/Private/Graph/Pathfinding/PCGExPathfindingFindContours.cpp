@@ -214,6 +214,9 @@ bool FPCGExFindContoursContext::TryFindContours(
 		for (int i = 0; i < Path.Num(); i++) { OutValues[i] = Cluster->GetNode(Path[i])->Adjacency.Num() == 1; }
 	}
 
+	if (!bGracefullyClosed) { if (Settings->bTagIfOpenPath) { PathIO->Tags->Add(Settings->IsOpenPathTag); } }
+	else { if (Settings->bTagIfClosedLoop) { PathIO->Tags->Add(Settings->IsClosedLoopTag); } }
+
 	if (Sign != 0)
 	{
 		if (Settings->bTagConcave && !bIsConvex) { PathIO->Tags->Add(Settings->ConcaveTag); }
