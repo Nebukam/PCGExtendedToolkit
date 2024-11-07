@@ -262,7 +262,7 @@ bool FPCGExEdgesProcessorElement::Boot(FPCGExContext* InContext) const
 	Context->bHasValidHeuristics = PCGExFactories::GetInputFactories(
 		Context, PCGExGraph::SourceHeuristicsLabel, Context->HeuristicsFactories,
 		{PCGExFactories::EType::Heuristics}, false);
-	
+
 	Context->InputDictionary = MakeShared<PCGExData::FPointIOTaggedDictionary>(PCGExGraph::TagStr_ClusterPair);
 
 	TArray<TSharedPtr<PCGExData::FPointIO>> TaggedVtx;

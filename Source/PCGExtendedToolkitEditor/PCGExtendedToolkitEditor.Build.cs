@@ -5,30 +5,30 @@ using UnrealBuildTool;
 
 public class PCGExtendedToolkitEditor : ModuleRules
 {
-    public PCGExtendedToolkitEditor(ReadOnlyTargetRules Target) : base(Target)
-    {
-        PCHUsage = ModuleRules.PCHUsageMode.UseExplicitOrSharedPCHs;
+	public PCGExtendedToolkitEditor(ReadOnlyTargetRules Target) : base(Target)
+	{
+		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
 
-        PublicDependencyModuleNames.AddRange(
-            new string[]
-            {
-                "Core",
-                "UnrealEd", 
-                "Slate", 
-                "SlateCore",
-                "EditorStyle",
-                "Projects"
-            }
-        );
+		PublicDependencyModuleNames.AddRange(
+			new[]
+			{
+				"Core",
+				"UnrealEd",
+				"Slate",
+				"SlateCore",
+				"EditorStyle",
+				"Projects"
+			}
+		);
 
-        PrivateDependencyModuleNames.AddRange(
-            new string[]
-            {
-                "CoreUObject",
-                "Engine",
-                "Slate",
-                "SlateCore"
-            }
-        );
-    }
+		PrivateDependencyModuleNames.AddRange(
+			new[]
+			{
+				"CoreUObject",
+				"Engine",
+				"Slate",
+				"SlateCore"
+			}
+		);
+	}
 }

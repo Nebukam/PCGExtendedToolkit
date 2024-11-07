@@ -7,7 +7,7 @@ public class PCGExtendedToolkit : ModuleRules
 {
 	public PCGExtendedToolkit(ReadOnlyTargetRules Target) : base(Target)
 	{
-		PCHUsage = ModuleRules.PCHUsageMode.UseExplicitOrSharedPCHs;
+		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
 
 		PublicIncludePaths.AddRange(
 			new string[]
@@ -24,7 +24,7 @@ public class PCGExtendedToolkit : ModuleRules
 
 
 		PublicDependencyModuleNames.AddRange(
-			new string[]
+			new[]
 			{
 				"Core",
 				"CoreUObject",
@@ -51,14 +51,11 @@ public class PCGExtendedToolkit : ModuleRules
 		);
 
 		if (Target.bBuildEditor)
-		{
 			// Editor only modules
 			PrivateDependencyModuleNames.AddRange(
 				new string[]
 				{
-					
 				}
 			);
-		}
 	}
 }

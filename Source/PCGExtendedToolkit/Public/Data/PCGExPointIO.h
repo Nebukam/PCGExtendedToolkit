@@ -114,7 +114,7 @@ namespace PCGExData
 
 			TSet<FString> TagDump;
 			InPointIO->Tags->DumpTo(TagDump); // Not ideal.
-			
+
 			Tags = MakeShared<FTags>(TagDump);
 		}
 
@@ -291,24 +291,24 @@ namespace PCGExData
 			return OutAttribute;
 		}
 	};
-	
+
 	static TSharedPtr<FPointIO> NewPointIO(FPCGExContext* InContext, FName OutputLabel = NAME_None, int32 Index = -1)
 	{
-		TSharedPtr<FPointIO> NewIO = MakeShared<PCGExData::FPointIO>(InContext);
+		TSharedPtr<FPointIO> NewIO = MakeShared<FPointIO>(InContext);
 		NewIO->SetInfos(Index, OutputLabel);
-		return  NewIO;
+		return NewIO;
 	}
 
 	static TSharedPtr<FPointIO> NewPointIO(FPCGExContext* InContext, const UPCGPointData* InData, FName OutputLabel = NAME_None, int32 Index = -1)
 	{
-		TSharedPtr<FPointIO> NewIO = MakeShared<PCGExData::FPointIO>(InContext, InData);
+		TSharedPtr<FPointIO> NewIO = MakeShared<FPointIO>(InContext, InData);
 		NewIO->SetInfos(Index, OutputLabel);
 		return NewIO;
 	}
-	
+
 	static TSharedPtr<FPointIO> NewPointIO(const TSharedRef<FPointIO>& InPointIO, FName OutputLabel = NAME_None, int32 Index = -1)
 	{
-		TSharedPtr<FPointIO> NewIO = MakeShared<PCGExData::FPointIO>(InPointIO);
+		TSharedPtr<FPointIO> NewIO = MakeShared<FPointIO>(InPointIO);
 		NewIO->SetInfos(Index, OutputLabel);
 		return NewIO;
 	}
@@ -462,5 +462,4 @@ namespace PCGExData
 
 		return SingleIO;
 	}
-	
 }

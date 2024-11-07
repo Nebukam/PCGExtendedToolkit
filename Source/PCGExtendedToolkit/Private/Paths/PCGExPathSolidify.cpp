@@ -132,7 +132,7 @@ if (!SolidificationRad##_AXIS){ PCGE_LOG_C(Warning, GraphAndLog, Context, FText:
 
 		const FVector PtScale = Point.Transform.GetScale3D();
 		const FVector InvScale = FVector::One() / PtScale;
-		
+
 #define PCGEX_SOLIDIFY_DIMENSION(_AXIS)\
 		bProcessAxis = Settings->bWriteRadius##_AXIS || Settings->SolidificationAxis == EPCGExMinimalAxis::_AXIS;\
 		if (bProcessAxis){\

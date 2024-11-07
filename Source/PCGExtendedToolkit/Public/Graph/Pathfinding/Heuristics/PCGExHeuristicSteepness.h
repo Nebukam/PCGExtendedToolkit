@@ -9,6 +9,8 @@
 #include "PCGExHeuristicOperation.h"
 
 
+
+
 #include "Graph/PCGExCluster.h"
 #include "PCGExHeuristicSteepness.generated.h"
 
@@ -58,7 +60,7 @@ public:
 		const PCGExGraph::FIndexedEdge& Edge,
 		const PCGExCluster::FNode& Seed,
 		const PCGExCluster::FNode& Goal,
-		const TArray<uint64>* TravelStack) const override
+		const TSharedPtr<PCGEx::FHashLookup> TravelStack) const override
 	{
 		return GetScoreInternal(GetDot(Cluster->GetPos(From), Cluster->GetPos(To)));
 	}

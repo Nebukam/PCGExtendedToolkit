@@ -100,38 +100,54 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	FPCGExGeo2DProjectionDetails ProjectionDetails;
 
-	/** TBD */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging & Forwarding")
-	FPCGExAttributeToTagDetails SeedAttributesToPathTags;
-
-	/** Which Seed attributes to forward on paths. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging & Forwarding")
-	FPCGExForwardDetails SeedForwarding;
-
 	/** . */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging & Forwarding", meta=(InlineEditConditionToggle))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging", meta=(InlineEditConditionToggle))
 	bool bTagConcave = false;
 
 	/** . */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging & Forwarding", meta=(EditCondition="bTagConcave"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging", meta=(EditCondition="bTagConcave"))
 	FString ConcaveTag = TEXT("Concave");
 
 	/** . */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging & Forwarding", meta=(InlineEditConditionToggle))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging", meta=(InlineEditConditionToggle))
 	bool bTagConvex = false;
 
 	/** . */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging & Forwarding", meta=(EditCondition="bTagConvex"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging", meta=(EditCondition="bTagConvex"))
 	FString ConvexTag = TEXT("Convex");
 
 	/** Whether to flag path points generated from "dead ends" */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging & Forwarding", meta=(InlineEditConditionToggle))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging", meta=(InlineEditConditionToggle))
 	bool bFlagDeadEnds = false;
 
 	/** . */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging & Forwarding", meta=(EditCondition="bFlagDeadEnds"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging", meta=(DisplayName="DeadEnd Flag", EditCondition="bFlagDeadEnds"))
 	FName DeadEndAttributeName = TEXT("IsDeadEnd");
 
+	/** */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging", meta=(PCG_Overridable, InlineEditConditionToggle))
+	bool bTagIfClosedLoop = true;
+
+	/** ... */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging", meta=(PCG_Overridable, EditCondition="bTagIfClosedLoop"))
+	FString IsClosedLoopTag = TEXT("ClosedLoop");
+
+	/** */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging", meta=(PCG_Overridable, InlineEditConditionToggle))
+	bool bTagIfOpenPath = false;
+
+	/** ... */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging", meta=(PCG_Overridable, EditCondition="bTagIfOpenPath"))
+	FString IsOpenPathTag = TEXT("OpenPath");
+
+	/** TBD */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Forwarding")
+	FPCGExAttributeToTagDetails SeedAttributesToPathTags;
+
+	/** Which Seed attributes to forward on paths. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Forwarding")
+	FPCGExForwardDetails SeedForwarding;
+	
 	/** Whether or not to search for closest node using an octree. Depending on your dataset, enabling this may be either much faster, or much slower. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Performance", meta=(PCG_NotOverridable, AdvancedDisplay))
 	bool bUseOctreeSearch = false;

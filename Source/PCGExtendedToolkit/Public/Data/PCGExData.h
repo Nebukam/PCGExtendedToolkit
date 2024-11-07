@@ -507,7 +507,7 @@ namespace PCGExData
 		{
 			return GetWritable(InAttribute->Name, InAttribute->GetValue(PCGDefaultValueKey), InAttribute->AllowsInterpolation(), bUninitialized);
 		}
-		
+
 		template <typename T>
 		TSharedPtr<TBuffer<T>> GetWritable(const FName InName, bool bUninitialized)
 		{

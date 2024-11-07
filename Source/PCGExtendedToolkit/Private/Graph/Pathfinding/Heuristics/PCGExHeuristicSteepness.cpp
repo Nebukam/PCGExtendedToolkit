@@ -30,7 +30,7 @@ UPCGExParamFactoryBase* UPCGExHeuristicsSteepnessProviderSettings::CreateFactory
 #if WITH_EDITOR
 FString UPCGExHeuristicsSteepnessProviderSettings::GetDisplayName() const
 {
-	return GetDefaultNodeName().ToString()
+	return GetDefaultNodeTitle().ToString().Replace(TEXT("PCGEx | Heuristics"), TEXT("HX"))
 		+ TEXT(" @ ")
 		+ FString::Printf(TEXT("%.3f"), (static_cast<int32>(1000 * Config.WeightFactor) / 1000.0));
 }

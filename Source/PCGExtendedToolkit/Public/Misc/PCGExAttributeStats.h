@@ -65,7 +65,7 @@ public:
 	/** */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta = (PCG_Overridable, InlineEditConditionToggle))
 	bool bOutputIdentifier = true;
-	
+
 	/** */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta = (PCG_Overridable, DisplayName = "Identifier", EditCondition="bOutputIdentifier"))
 	FName IdentifierAttributeName = FName(TEXT("Identifier"));
@@ -215,7 +215,6 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExAttributeStatsContext final : FPCGExPoin
 	TArray<UPCGParamData*> OutputParams;
 	TMap<FName, UPCGParamData*> OutputParamsMap;
 	TArray<int64> Rows;
-
 };
 
 class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExAttributeStatsElement final : public FPCGExPointsProcessorElement
@@ -290,14 +289,13 @@ namespace PCGExAttributeStats
 			FString StrName = Identity.Name.ToString();
 			UPCGMetadata* PointsMetadata = nullptr;
 			if (Settings->OutputToPoints != EPCGExStatsOutputToPoints::None) { PointsMetadata = InDataFacade->GetOut()->Metadata; }
-			
+
 #define PCGEX_OUTPUT_STAT(_NAME, _TYPE, _VALUE) \
 	if(Settings->bOutput##_NAME){ ParamData->Metadata->GetMutableTypedAttribute<_TYPE>(Settings->_NAME##AttributeName)->SetValue(Key, _VALUE); \
 	if (PointsMetadata){\
 		FName PrintName = Settings->OutputToPoints == EPCGExStatsOutputToPoints::Prefix ? FName(Settings->_NAME##AttributeName.ToString() + StrName) : FName(StrName + Settings->_NAME##AttributeName.ToString());\
 		if (PointsMetadata->GetConstTypedAttribute<_TYPE>(PrintName)) { PointsMetadata->DeleteAttribute(PrintName); }\
-		PointsMetadata->FindOrCreateAttribute<_TYPE>(PrintName, _VALUE);} }\
-
+		PointsMetadata->FindOrCreateAttribute<_TYPE>(PrintName, _VALUE);} }
 			TSharedPtr<PCGExData::TBuffer<T>> Buffer = InDataFacade->GetReadable<T>(Identity.Name);
 			PCGExMath::TypeMinMax(MinValue, MaxValue);
 			PCGExMath::TypeMinMax(SetMinValue, SetMaxValue);
@@ -344,7 +342,7 @@ namespace PCGExAttributeStats
 					AverageValue = PCGExMath::Add(AverageValue, InValue);
 				};
 				*/
-				
+
 				for (int i = 0; i < NumPoints; i++)
 				{
 					if (!Filter[i]) { continue; }

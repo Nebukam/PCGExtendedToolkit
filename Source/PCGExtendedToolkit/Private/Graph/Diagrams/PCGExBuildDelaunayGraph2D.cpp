@@ -180,7 +180,7 @@ namespace PCGExBuildDelaunay2D
 		FPCGExBuildDelaunayGraph2DContext* Context = AsyncManager->GetContext<FPCGExBuildDelaunayGraph2DContext>();
 		PCGEX_SETTINGS(BuildDelaunayGraph2D)
 
-		const TSharedPtr<PCGExData::FPointIO> SitesIO = PCGExData::NewPointIO(PointIO.ToSharedRef());
+		const TSharedPtr<PCGExData::FPointIO> SitesIO = NewPointIO(PointIO.ToSharedRef());
 		SitesIO->InitializeOutput(PCGExData::EInit::NewOutput);
 
 		Context->MainSites->InsertUnsafe(Processor->BatchIndex, SitesIO);
@@ -224,7 +224,7 @@ namespace PCGExBuildDelaunay2D
 		FPCGExBuildDelaunayGraph2DContext* Context = AsyncManager->GetContext<FPCGExBuildDelaunayGraph2DContext>();
 		PCGEX_SETTINGS(BuildDelaunayGraph2D)
 
-		TSharedPtr<PCGExData::FPointIO> SitesIO = PCGExData::NewPointIO(PointIO.ToSharedRef());
+		TSharedPtr<PCGExData::FPointIO> SitesIO = NewPointIO(PointIO.ToSharedRef());
 		SitesIO->InitializeOutput(PCGExData::EInit::NewOutput);
 
 		Context->MainSites->InsertUnsafe(Processor->BatchIndex, SitesIO);
