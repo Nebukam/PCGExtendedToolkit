@@ -4,8 +4,8 @@ family: Heuristics
 grand_parent: Pathfinding
 parent: 🝰 Heuristics
 title: 🝰 Feedback
-subtitle: Subtitle
-summary: The **Feedback** heuristic node ...
+subtitle: Favor uncharted points & edges.
+summary: The **Feedback** heuristic weights up points & edges that are "in use" by other previously computed paths.
 splash: icons/icon_pathfinding-edges.svg
 color: param
 tagged: 

@@ -47,7 +47,7 @@ The relax point node smoothes cluster' topology by iteratively applying a given 
 
 | Property       | Description          |
 |:-------------|:------------------|
-|**Settings**||
+|:**Settings**||
 | Iterations | The number of time to additively apply the relaxing algorithm.<br>Each iteration uses the previous' iteration results. |
 | Relaxing           | This property lets you select which kind of relaxing you want to apply to the input clusters.<br>**Specifics of the instanced module will be available under its inner Settings section.**<br>*See {% include lk id='Relaxing' %}.*  |
 

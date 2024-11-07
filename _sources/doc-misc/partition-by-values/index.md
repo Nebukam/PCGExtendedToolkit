@@ -34,7 +34,7 @@ outputs:
 
 | Property       | Description          |
 |:-------------|:------------------|
-|**Settings**||
+|:**Settings**||
 | Split Output           | Whether to output individual partitions or simply write the unique partition `key` to an attribute.  |
 | **Rules**           | A list of ordered individual rules used for sorting the points.|
 | Key Sum           | Outputs the sum of all partition keys to a `int64` attribute.<br>**This value is unlikely to be unique, but can come in handy for filtering purposes.**<br>See [Key Sum](#key-sum) |

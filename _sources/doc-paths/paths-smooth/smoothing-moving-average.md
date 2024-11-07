@@ -21,5 +21,5 @@ nav_order: 1
 
 | Property       | Description          |
 |:-------------|:------------------|
-|**Settings**||
+|:**Settings**||
 | Window Size           | The number of leading & trailing points to sample.<br>*The larger the window, the more uniform the result.* |

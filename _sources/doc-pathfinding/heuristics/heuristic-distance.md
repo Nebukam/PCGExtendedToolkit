@@ -4,7 +4,7 @@ family: Heuristics
 grand_parent: Pathfinding
 parent: 🝰 Heuristics
 title: 🝰 Shortest Distance
-subtitle: Subtitle
+subtitle: Favor shortest distance.
 summary: The **Shortest Distance** heuristic node ...
 splash: icons/icon_pathfinding-edges.svg
 color: param

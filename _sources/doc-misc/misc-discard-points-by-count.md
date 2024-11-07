@@ -25,6 +25,6 @@ nav_order: 20
 
 | Property       | Description          |
 |:-------------|:------------------|
-|**Settings**||
+|:**Settings**||
 | Min Point Count      | If enabled, does not output data with a point count smaller than the specified amount.  |
 | Max Point Count      | If enabled, does not output data with a point count larger than the specified amount. |

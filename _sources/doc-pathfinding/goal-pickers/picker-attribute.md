@@ -20,7 +20,7 @@ nav_order: 1
 
 | Property       | Description          |
 |:-------------|:------------------|
-|**Settings**||
+|:**Settings**||
 | Goal Count           | Either a `Single Goal` or `Multiple Goals` |
 | Attribute           | If `Single Goal` is specified, lets you specify a property or attribute which value will be used as an index within the input goals. |
 | Attributes           | If `Multiple Goal` is specified, lets you specify a list of property or attribute which values will be used as an index within the input goals. |

@@ -34,7 +34,7 @@ An anisotropic probe is a preset to find connection in 16 different directions o
 
 | Property       | Description          |
 |:-------------|:------------------|
-|: **Settings** :|
+|:**Settings** :|
 | Transform Direction          | If enabled, the direction of the probe will be adjusted by the current probing point' transform.<br>*If disabled, the direction is in world space.* |
 
 |: **Search Radius** :|

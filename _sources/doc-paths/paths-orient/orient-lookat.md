@@ -19,7 +19,7 @@ nav_order: 1
 
 | Property       | Description          |
 |:-------------|:------------------|
-|**Settings**||
+|:**Settings**||
 | LookAt           | Select what the point should look at.<br>*See [LookAt Target](#lookat-target).*|
 | Look at Selector           | The attribute to fetch as a LookAt target if `LookAt == Attribute`.|
 | Attribute as Offset           | If enabled, the attribute specified above will be used as a translation offset from the point location, as opposed to a world space position. |

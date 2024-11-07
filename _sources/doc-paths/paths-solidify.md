@@ -53,7 +53,7 @@ Solidification is fairly straightforward on paper, but in order to be flexible i
 
 | Property       | Description          |
 |:-------------|:------------------|
-|**Settings**||
+|:**Settings**||
 | Solidification Axis          | |
 | Soldification Lerp Operand          | |
 | Soldification Lerp <br>*(Constant or Attribute)*          | |

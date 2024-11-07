@@ -25,7 +25,7 @@ Force-directed relaxation simulates physical forces on connected nodes, adjustin
 
 | Property       | Description          |
 |:-------------|:------------------|
-|**Settings**||
+|:**Settings**||
 | Spring Constant           | Controls the "springness" of the edges.<br>*Keep this value very small* |
 | Electrostatic          | Controls the "attractiveness" of the vtx.<br>*Keep this value very large* |
 

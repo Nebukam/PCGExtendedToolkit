@@ -24,7 +24,7 @@ The **From Transform** writes the selected transform axis (in world space) of th
 
 | Property       | Description          |
 |:-------------|:------------------|
-|**Settings**||
+|:**Settings**||
 | Axis           | Lets you pick the transform axis  |
 
 |**Axis**||

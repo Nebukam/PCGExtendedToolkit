@@ -33,6 +33,6 @@ outputs:
 
 | Property       | Description          |
 |:-------------|:------------------|
-|**Settings**||
+|:**Settings**||
 | Threshold           | Threshold in degree under which the deviation is considered small enough to be collinear.  |
 | Fuse Distance           | In addition to collinearity, this value allows to fuse points that are close enough. |

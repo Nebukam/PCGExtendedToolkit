@@ -4,6 +4,7 @@ family: Pathfinding
 #grand_parent: All Nodes
 parent: Pathfinding
 title: Edges Pathfinding
+name_in_editor: "Pathfinding : Edges"
 subtitle: Find paths connecting seeds to goals.
 summary: The **Edges Pathfinding** mode ...
 color: white
@@ -43,18 +44,22 @@ The **Edges Pathfinding** node connects goal points to seed points. Contrary to 
 
 {% include img a='details/pathfinding/pathfinding-edges-lead.png' %} 
 
+---
+# Properties
+<br>
+
 | Property       | Description          |
 |:-------------|:------------------|
 |**Goal Picker**| The module that will be used to interpret and manipulate goals and seeds inputs.<br>*Each module has individual settings and documentation -- See [Available Goal Pickers](#available--goal-pickers-modules).*|
 
 | Property       | Description          |
 |:-------------|:------------------|
-|**Plot inclusiong**||
+|: **Plot inclusiong**||
 | Add Seed to Path           | Prepends the *seed position* at the beginning of the output path.<br>*This will create a point with the position of the seed.* |
 | Add Goal to Path           | Appends the *goal position* at the end of the output path.<br>*This will create a point with the position of the goal.* |
 | Path Composition           | Whether the output paths are made from `Vtx` or `Edges` points. |
 
-|**Picking**||
+|: **Picking**||
 | Seed Picking         | Lets you control how the seed node (`Vtx`) will be picked based on the provided seed position. |
 | Goal Picking         | Lets you control how the goal node (`Vtx`) will be picked based on the provided goal position. |
 | **Search Algorithm**         | Let you pick which {% include lk id='⊚ Search' %} algorithm to use to resolve pathfinding. |

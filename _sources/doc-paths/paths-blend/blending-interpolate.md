@@ -19,7 +19,7 @@ nav_order: 1
 
 | Property       | Description          |
 |:-------------|:------------------|
-|**Settings**||
+|:**Settings**||
 | Blending Over           | Defines the method used to compute the alpha value for the interpolation. |
 | Blending Settings           | See{% include lk id='Blending' a='#common-properties' %} *(Common properties)* |
 

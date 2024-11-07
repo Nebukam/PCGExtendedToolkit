@@ -40,7 +40,7 @@ It is primarily designed for `PCGDataAsset` workflows, **to check overlaps again
 
 | Property       | Description          |
 |:-------------|:------------------|
-|**Settings**||
+|:**Settings**||
 | Bounds Source          | Which point bounds to use. |
 | Min Threshold          | Minimum overlap threhsold required for an overlap to be registered. |
 | Threshold Measure          | Let you pick how the overlap threshold is measured. Either as a `Relative` measure (*in which case the Min Threhsold is treated as an overlap percentage*), or a fixed, `Discrete` penetration measurement, *in which case the threshold is treated as world units.* |

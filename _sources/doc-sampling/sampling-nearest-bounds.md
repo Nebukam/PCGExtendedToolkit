@@ -42,7 +42,7 @@ The **Sample Nearest Point** grabs and blends attributes & properties from a tar
 
 | Property       | Description          |
 |:-------------|:------------------|
-|**Settings**||
+|:**Settings**||
 | Sample Method          | Selects the sampling method. See [Sampling Methods](#sampling-methods). |
 | Bounds Source          | TBD |
 | Weight Remap          | TBD |

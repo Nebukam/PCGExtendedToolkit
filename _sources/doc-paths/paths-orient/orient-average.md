@@ -19,6 +19,6 @@ nav_order: 1
 
 | Property       | Description          |
 |:-------------|:------------------|
-|**Settings**||
+|:**Settings**||
 | Orient Axis           | The transform' axis that will be *oriented*. |
 | Up Axis           | The Up axis used for the orientation maths. |

@@ -23,7 +23,7 @@ Seed index `0` will be matched to goal index `0`, and so on.
 
 | Property       | Description          |
 |:-------------|:------------------|
-|**Settings**||
+|:**Settings**||
 | Index Safety           | Failsafe method if there are more `Seeds` than there are `Goals`.<br>Note that extra `Goals` are simply ignored.<br>*See [Index Safety](#index-safety)* |
 
 ### Index Safety

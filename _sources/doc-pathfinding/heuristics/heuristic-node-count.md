@@ -4,8 +4,8 @@ family: Heuristics
 grand_parent: Pathfinding
 parent: 🝰 Heuristics
 title: 🝰 Least Nodes
-subtitle: Subtitle
-summary: The **Least Nodes** heuristic node ...
+subtitle: Favor traversing the least amount of nodes.
+summary: The **Least Nodes** heuristic favor node count traversal over anything else. 
 splash: icons/icon_pathfinding-edges.svg
 color: param
 tagged: 

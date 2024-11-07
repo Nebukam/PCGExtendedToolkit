@@ -26,7 +26,7 @@ This test each edge for possible overlap/intersection with other edges in the sa
 
 | Property       | Description          |
 |:-------------|:------------------|
-|: **Settings** :|
+|:**Settings** :|
 | Keep          | When checking two edges, defines which one will be preserved, and which one will be removed. |
 | Tolerance           | The distance at which two edges are considered to be overlapping.<br>*The higher the value, the more aggressive the pruning.* |
 

@@ -25,6 +25,6 @@ nav_order: 1
 
 | Property       | Description          |
 |:-------------|:------------------|
-|**Settings**||
+|:**Settings**||
 | Blend Radius           | Radius within which neighbor points will be sampled. |
 

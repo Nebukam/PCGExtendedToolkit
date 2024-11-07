@@ -40,7 +40,7 @@ The **Write Tangents** help you compute & write custom tangents on your paths so
 
 {% include embed id='settings-index-safety' %}
 
-|**Settings**||
+|: **Settings**||
 | Arrive Name<br>*FVector*           | Attribute to write the `Arrive` tangent to.  |
 | Leave Name<br>*FVector*           | Attribute to write the `Leave` tangent to.  |
 

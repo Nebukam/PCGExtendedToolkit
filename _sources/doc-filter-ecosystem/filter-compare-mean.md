@@ -33,7 +33,7 @@ The **Mean Filter** node is useful to filter out statistical aberrations.
 
 | Property       | Description          |
 |:-------------|:------------------|
-|**Settings**||
+|:**Settings**||
 | Measure           | The "unit" system to use for measuring data.<br>*See [Measure](#measure).*  |
 | Mean Method           | The method used to compute the **mean value** for a given attribute.<br>**The mean is what will be used as a reference values by the filter.**<br>*See [Mean Methods](#mean-methods).* |
 | Mode Tolerance           | Value used for equality tolerance.<br>*Only available when using `Mode (Shortest)` or `Mode (Longest)` mean methods.* |

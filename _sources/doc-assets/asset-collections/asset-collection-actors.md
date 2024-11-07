@@ -35,7 +35,7 @@ nav_order: 7
 
 | Property       | Description          |
 |:-------------|:------------------|
-|: **Settings** :||
+|:**Settings** :||
 | Actor           | The actor associated with this entry. |
 
 {% include embed id='settings-col-asset' %}

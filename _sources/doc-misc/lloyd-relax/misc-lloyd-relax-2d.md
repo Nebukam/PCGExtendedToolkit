@@ -24,6 +24,6 @@ See [Lloyd Relaxation](https://en.wikipedia.org/wiki/Lloyd%27s_algorithm) on Wik
 
 | Property       | Description          |
 |:-------------|:------------------|
-|**Settings**||
+|:**Settings**||
 | Output Normalized Index           | If enabled, the index will be written as a `double` *(instead of `int32`)*, as a normalized value in the range `[0..1]`.  |
 | Output Attribute Name           | Name of the attribute to write the point index to. |

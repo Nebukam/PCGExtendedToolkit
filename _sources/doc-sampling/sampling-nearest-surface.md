@@ -48,7 +48,7 @@ The **Sample Nearest Surface** node allows you to perform a single per-point sph
 
 | Property       | Description          |
 |:-------------|:------------------|
-|**Settings**||
+|:**Settings**||
 | Surface Source     | Select where you want to read surfaces from: either `All` (revealing additional actors picking parameters), or `Actor References`, to sample only specific actors. |
 | Actor Reference     | Attribute to read actor reference from the Actor References input data. |
 | Max Distance     | Maximum radius of the overlapping sphere |

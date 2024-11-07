@@ -47,7 +47,7 @@ It has very *very* interesting properties, and this node also offers the ability
 
 | Property       | Description          |
 |:-------------|:------------------|
-|: **Settings** :|
+|:**Settings** :|
 | Urquhart           | If enabled, the node will output the Urquhart version of the Delaunay graph.<br>*This enables additional options for site output.* |
 | <span class="eout">Hull Attribute Name</span><br>`Boolean`          | If enabled, will flag output `Vtx` points that lie on the convex hull of the graph. |
 | Mark Edge on Touch          | If enabled, edges that have at least a point on the Hull as marked as being on the hull; *as opposed to only be marked as hull edges if both endpoints are on the hull.* |

@@ -64,6 +64,6 @@ You can connect as many properties node as you'd like to the `Properties` input.
 
 | Property       | Description          |
 |:-------------|:------------------|
-|**Settings**||
+|:**Settings**||
 | Edge Count           | If enabled, output the number of `edges` this `vtx` is connected to.  |
 | Normal | If enabled, output the averaged normal of the `vtx` based on all connected `edges`.<br>*This output is hardly usable for highly 3-dimensional nodes.* |

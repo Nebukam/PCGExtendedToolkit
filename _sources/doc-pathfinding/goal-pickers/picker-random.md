@@ -22,7 +22,7 @@ The random goal picker match each `Seed` with one or multiple `Goals`.
 
 | Property       | Description          |
 |:-------------|:------------------|
-|**Settings**||
+|:**Settings**||
 | Goal Count           | How many random goals each seed should connect to.<br>*See [Index Safety](#index-safety)* |
 | Num Goals           | When specifying multiple goals, this is the maximum number of goals to connect each seeds to. |
 | Index Safety           | Failsafe method if the picked `Goal` index is out of bounds.<br>*See [Index Safety](#index-safety)* |

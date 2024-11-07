@@ -32,7 +32,7 @@ outputs:
 
 {% include embed id='settings-index-safety' %}
 
-|**Settings**||
+|: **Settings**||
 | **Orientation**           | This property lets you select which kind of orientation arithmetics you want to apply to the input paths.<br>*See [Available Orientation Modules](#available-orienting-modules).*|
 
 ---

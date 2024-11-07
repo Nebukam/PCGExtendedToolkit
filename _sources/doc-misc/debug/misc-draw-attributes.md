@@ -33,7 +33,7 @@ Each **Draw Attribute** node can display any number of things by fetching values
 
 | Property       | Description          |
 |:-------------|:------------------|
-|**Settings**||
+|:**Settings**||
 | Enabled           | Whether these settings are enabled or not. Allows to quickly turn a debug display on/off without deleting the entire entry. |
 | Selector          | The attribute or property to draw. |
 | Expressed As          | The type of shape/form that will be used to express the selected attribute or property. |

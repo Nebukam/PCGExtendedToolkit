@@ -36,7 +36,7 @@ outputs:
 
 | Property       | Description          |
 |:-------------|:------------------|
-|**Settings**||
+|:**Settings**||
 | Add Seed to Path           | Prepends the *seed position* at the beginning of the output path.<br>*This will create a point with the position of the seed.* |
 | Add Goal to Path           | Appends the *goal position* at the end of the output path.<br>*This will create a point with the position of the goal.* |
 | Require Naviguable End Location           | Ensures the picked goal is close enough to an naviguable location, otherwise doesn't generate a path. |

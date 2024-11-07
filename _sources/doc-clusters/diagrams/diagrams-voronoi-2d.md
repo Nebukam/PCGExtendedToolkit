@@ -45,7 +45,7 @@ This node creates a 2D Voronoi diagram from the input points. If you'd like to k
 
 | Property       | Description          |
 |:-------------|:------------------|
-|: **Settings** :|
+|:**Settings** :|
 | Method           | Defines how the position of the Voronoi site is computed. *See below for more infos.* |
 | Expand Bounds           | Value added on each axis of the initial input points bounds, used for maths & processes involving bounds. |
 | Prune Out of Bounds           | Depending on the selected method, the diagram will produce out-of-bounds points *(up to ±inf)*. Enabling this option lets you remove those points from the output. |

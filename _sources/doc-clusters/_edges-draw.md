@@ -40,7 +40,7 @@ outputs:
 
 | Property       | Description          |
 |:-------------|:------------------|
-|**Settings**||
+|:**Settings**||
 | Color           | Primary debug color  |
 | Secondary Color           | If enabled, each cluster will have a different color ranging from the primary color to the secondary color, based on the dataset index in the inputs. |
 | Thickness           | Line thickness  |

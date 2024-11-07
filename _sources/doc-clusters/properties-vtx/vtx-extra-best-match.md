@@ -36,7 +36,7 @@ The **Edge Match** property outputs the properties of the single connected edges
 
 | Property       | Description          |
 |:-------------|:------------------|
-|**Settings**||
+|:**Settings**||
 | Origin           | Defines how the base direction is computed, either from the Node to the neighbor (*going outward*), or from the Neighbor to the node (*going inward*).  |
 | Direction Source | Select where to read the direction to compare to from; either `Constant` or `Attribute`. |
 | Direction <br>*(Constant or Attribute)* | Test Direction. |

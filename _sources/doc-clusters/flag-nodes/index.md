@@ -63,7 +63,7 @@ What this means is higher priorities have the ability to radically change the en
 
 | Property       | Description          |
 |:-------------|:------------------|
-|**Settings**||
+|:**Settings**||
 | Flag Attribute<br>`int64`           | This is the name of the attribute the final bitmask will be written to.  |
 | Initial Flag | This is the flag to start operating from.<br>*Setting this value manually isn't recommended, instead use a {% include lk id='Bitmask' %} and plug it into the override pin.*  |
 

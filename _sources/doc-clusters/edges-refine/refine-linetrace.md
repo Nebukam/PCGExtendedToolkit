@@ -25,7 +25,7 @@ This does linetraces using the edge' start & end point.
 
 | Property       | Description          |
 |:-------------|:------------------|
-|: **Settings** :|
+|:**Settings** :|
 | Collision Settings         | *See details below.* |
 | Two Way Check           | If enabled, when the first linecast (From the edge' start to end) fails, it tries the other way around (From the edge' end to start).<br>*While expensive, this ensures the refinement doesn't fail on backface hits.*|
 

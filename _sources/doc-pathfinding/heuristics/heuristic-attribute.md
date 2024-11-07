@@ -5,7 +5,7 @@ grand_parent: Pathfinding
 parent: 🝰 Heuristics
 title: 🝰 Heuristic Attribute
 subtitle: Attribute-driven heuristics
-summary: The **Heuristic Attribute** heuristic node ...
+summary: The **Attribute** heuristics uses custom point or edge value as raw score.
 splash: icons/icon_pathfinding-edges.svg
 nav_order: -1
 color: param
@@ -26,7 +26,7 @@ outputs:
 Heuristics Attribute allows fine-grained and precise control over pathfinding constraints by leveraging user-defined attributes.
 {: .fs-5 .fw-400 } 
 
->When dealing with modifiers, keep in mind that **lower values are considered better** than higher ones by the {% include lk id='⊚ Search' %} algorithms.
+>When dealing with values, keep in mind that **lower numbers are better** than higher ones by the {% include lk id='⊚ Search' %} algorithms.
 {: .error }
 
 #### Checklist

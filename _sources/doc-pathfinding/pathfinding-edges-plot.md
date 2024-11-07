@@ -4,6 +4,7 @@ family: Pathfinding
 #grand_parent: All Nodes
 parent: Pathfinding
 title: Plot Edges Pathfinding
+name_in_editor: "Pathfinding : Plot Edges"
 subtitle: Find a path that goes through multiple chained points.
 summary: The **Plot Edges Pathfinding** mode ...
 color: white
@@ -65,8 +66,8 @@ The **Plot Edges Pathfinding** node takes multiple input dataset as "plot" and f
 | Omit Complete Path on Failed Plot         | If enabled, a single seed/goal pair fail will invalidate the full plotted path. *If disabled, failed segments will ungracefully connect plot points with a straight line.* |
 
 |: **Tagging** ||
-| Is Closed Loop Tag | If enabled, will tag closed loop paths data with the specified tag. |
-| Is Open Path Tag | If enabled, will tag open paths data with the specified tag. |
+| <span class="etag">Is Closed Loop Tag</span> | If enabled, will tag closed loop paths data with the specified tag. |
+| <span class="etag">Is Open Path Tag</span> | If enabled, will tag open paths data with the specified tag. |
 
 ## Available {% include lk id='⊚ Search' %} modules
 <br>

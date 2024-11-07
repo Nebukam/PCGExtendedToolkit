@@ -24,7 +24,7 @@ nav_order: 3
 
 | Property       | Description          |
 |:-------------|:------------------|
-|**Settings**||
+|:**Settings**||
 | Component Wise Radius           | Whether to use a component-wise radius or a spherical one.<br>When component-wise is enabled, distance is checked individually on `X`, `Y` and `Z` axis in world-space.  |
 | Radius          | Radius within which multiple points are to be fused into a single one. |
 | Preserve Order          | If enabled, fused points will be sorted to maintain their original order. |

@@ -36,7 +36,7 @@ outputs:
 
 | Property       | Description          |
 |:-------------|:------------------|
-|**Settings**||
+|:**Settings**||
 | Sort Direction           | The output sorting direction -- `Ascending` *(small values first)* or `Descending` *(high values first)*.  |
 | **Rules**           | A list of ordered individual rules used for sorting the points.|
 

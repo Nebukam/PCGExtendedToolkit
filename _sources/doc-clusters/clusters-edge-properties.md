@@ -84,7 +84,7 @@ Solidification is fairly straightforward on paper, but in order to be flexible i
 
 | Property       | Description          |
 |:-------------|:------------------|
-|**Settings**||
+|:**Settings**||
 | Write Edge Position          | |
 | Edge Position Lerp          | |
 | Solidification Axis          | |

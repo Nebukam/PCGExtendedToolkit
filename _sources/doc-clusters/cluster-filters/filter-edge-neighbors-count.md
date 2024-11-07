@@ -34,7 +34,7 @@ This filter takes the start & end points of an edge and compares the number of c
 
 | Property       | Description          |
 |:-------------|:------------------|
-|: **Settings** ||
+|:**Settings** ||
 | Threshold Input | Type of threshold value. Can be a per-edge point `Attribute`, or an easily overridable `Constant`. |
 | Threshold Constant           | Constant threshold value. |
 | Threshold Attribute<br>`int32` | Attribute to read the threshold to compare the number of connections against. |

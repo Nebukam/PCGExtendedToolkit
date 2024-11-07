@@ -41,7 +41,7 @@ The **Sample Nearest Splines** finds nearest(s) target splines and extract relat
 
 | Property       | Description          |
 |:-------------|:------------------|
-|**Settings**||
+|:**Settings**||
 | Sample Inputs          | Choose which input splines are to be sampled based on whether they're closed loop or not. |
 | Sample Method          | Selects the sampling method. See [Sampling Methods](#sampling-methods). |
 | Range Min          | Minimum sampling range. |

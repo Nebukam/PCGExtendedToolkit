@@ -45,7 +45,7 @@ The **Node Flag**, *not to be confused with  {% include lk id='Flag Nodes' %}*, 
 
 | Property       | Description          |
 |:-------------|:------------------|
-|: **Settings** :|
+|:**Settings** :|
 | Name          | If enabled, the direction of the probe will be adjusted by the current probing point' transform.<br>*If disabled, the direction is in world space.* |
 | Priority           | Fixed maximum connections for every point. |
 
@@ -57,7 +57,7 @@ The **Node Flag**, *not to be confused with  {% include lk id='Flag Nodes' %}*, 
 
 | Property       | Description          |
 |:-------------|:------------------|
-|: **Settings** :|
+|:**Settings** :|
 | Mode          | The mode lets you choose how to set the flags value, as a user.<br>- `Direct` is probably the most useful, as it can be set using an override pin.<br>- `Individual` lets you use an array where you can set individual bits by their position (index), and whether they're true or false.<br>- `Composite` lets you set individual bits using dropdowns. |
 
 

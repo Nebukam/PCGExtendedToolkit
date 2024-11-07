@@ -34,7 +34,7 @@ The adjacency filter does a simple numeric comparison on each individual connect
 
 | Property       | Description          |
 |:-------------|:------------------|
-|: **Settings** :|
+|:**Settings** :|
 | Priority           | Defines the order in which this flag operation will be processed.<br>*See {% include lk id='Flag Nodes' %}* |
 | Adjacency Settings          | Defines how to deal with the number of adjacent nodes *as a criteria to the filter success*.<br>*Covered in more depth later in this page* |
 

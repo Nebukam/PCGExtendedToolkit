@@ -22,5 +22,5 @@ nav_order: 15
 
 | Property       | Description          |
 |:-------------|:------------------|
-|**Settings**||
+|:**Settings**||
 | Base           | A value added to the seed calculation to offset the output value.  |

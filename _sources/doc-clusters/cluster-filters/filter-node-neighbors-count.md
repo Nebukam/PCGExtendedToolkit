@@ -36,7 +36,7 @@ The Neighbors Count filter does a simple numeric comparison of it's number of ne
 
 | Property       | Description          |
 |:-------------|:------------------|
-|: **Settings** :|
+|:**Settings** :|
 | Priority           | Defines the order in which this flag operation will be processed.<br>*See {% include lk id='Flag Nodes' %}* |
 | Comparison          | TBD |
 | Compare Against           | TBD |

@@ -48,15 +48,15 @@ The **Break Cluster to Path** turns all `Edges` chains to individual paths. It's
 
 | Property       | Description          |
 |:-------------|:------------------|
-|: **Settings** ||
+|:**Settings** ||
 | Operate On           | Lets you choose how to break cluster down.<br>- `Paths` : Operate on edge chains which form paths with no crossings.  e.g, nodes with only two neighbors.<br>- `Edges` : Operate on each edge individually (very expensive)  |
 |: Direction Settings | Drive how path points should be ordered.<br>*See below.* |
 |: **Pruning** ||
 | Min Point Count | This lets you filter out output paths that have less that the specified number of points. |
 | Max Point Count | If enabled, this lets you filter out output paths that have more that the specified number of points. |
 |: **Tagging** ||
-| Is Closed Loop Tag | If enabled, will tag closed loop paths data with the specified tag. |
-| Is Open Path Tag | If enabled, will tag open paths data with the specified tag. |
+| <span class="etag">Is Closed Loop Tag</span> | If enabled, will tag closed loop paths data with the specified tag. |
+| <span class="etag">Is Open Path Tag</span> | If enabled, will tag open paths data with the specified tag. |
 
 ---
 ## Direction Settings

@@ -32,7 +32,7 @@ outputs:
 
 {% include embed id='settings-index-safety' %}
 
-|**Settings**||
+|: **Settings**||
 | **Blending**           | This property lets you select which kind of blending you want to apply to the input paths.<br>*See [Available Blending Modules](#available-blending-modules).*|
 
 ---

@@ -4,8 +4,8 @@ family: Heuristics
 grand_parent: Pathfinding
 parent: 🝰 Heuristics
 title: 🝰 Azimuth
-subtitle: Subtitle
-summary: The **Azimuth** heuristic node ...
+subtitle: Favor edges directed toward the goal.
+summary: The **Azimuth** heuristic attempt to force the path to always aim toward the goal.
 splash: icons/icon_pathfinding-edges.svg
 color: param
 tagged: 

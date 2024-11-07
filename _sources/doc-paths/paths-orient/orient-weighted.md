@@ -22,7 +22,7 @@ Weighted orientation balances the orientation of the point between the previous 
 
 | Property       | Description          |
 |:-------------|:------------------|
-|**Settings**||
+|:**Settings**||
 | Inverse Weight           | Reverse the orientation weight.<br>*Weight to next will be used for previous, and vice-versa.* |  
 
 |**Orienting**||

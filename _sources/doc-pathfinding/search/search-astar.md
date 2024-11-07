@@ -4,7 +4,7 @@ grand_parent: Pathfinding
 parent: ⊚ Search
 title: A* Star
 subtitle: A* Algorithm
-summary: The **A* Algorithm** search mode ...
+summary: "**A* Algorithm** implementation."
 color: blue
 splash: icons/icon_pathfinding-navmesh.svg
 tagged: 
@@ -13,12 +13,7 @@ tagged:
 nav_order: 1
 ---
 
-{% include header_card_node %}
+{% include header_card %}
 
 [A* on Wikipedia](https://en.wikipedia.org/wiki/A*_search_algorithm)
 {: .fs-5 .fw-400 }
-
-{% include img a='details/modules/search-astar.png' %} 
-
-> DOC TDB
-{: .warning }

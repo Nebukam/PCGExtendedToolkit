@@ -37,7 +37,7 @@ This filter takes the start & end points of an edge and compare the value of a s
 
 | Property       | Description          |
 |:-------------|:------------------|
-|: **Settings** ||
+|:**Settings** ||
 | Attribute | Attribute to read on edges' endpoints |
 | Comparison           | How to compare each endpoint value against the other.<br>*See [Numeric comparisons](/PCGExtendedToolkit/doc-general/general-comparisons.html#numeric-comparisons).* |
 | Tolerance | Equality tolerance for near-value comparisons. |

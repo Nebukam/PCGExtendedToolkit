@@ -36,7 +36,7 @@ The Edge Direction filter does a simple dot product comparison on each individua
 
 | Property       | Description          |
 |:-------------|:------------------|
-|: **Settings** :|
+|:**Settings** :|
 | Priority           | Defines the order in which this flag operation will be processed.<br>*See {% include lk id='Flag Nodes' %}* |
 | Comparison Quality          | Defines the method used for comparison.<br>- `Dot` is precise *(easily returns false)*<br>- `Hash` method is approximative *(easily returns true)* |
 

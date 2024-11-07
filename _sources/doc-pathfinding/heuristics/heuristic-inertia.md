@@ -4,8 +4,8 @@ family: Heuristics
 grand_parent: Pathfinding
 parent: 🝰 Heuristics
 title: 🝰 Inertia
-subtitle: Subtitle
-summary: The **Inertia** heuristic node ...
+subtitle: Favor active direction preservation.
+summary: The **Inertia** heuristic uses the ongoing traversal data to try and maintain a consistent direction, as if the algorithm had "inertia".
 splash: icons/icon_pathfinding-edges.svg
 color: param
 tagged: 

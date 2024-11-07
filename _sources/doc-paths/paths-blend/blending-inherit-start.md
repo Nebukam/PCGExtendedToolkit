@@ -19,5 +19,5 @@ nav_order: 2
 
 | Property       | Description          |
 |:-------------|:------------------|
-|**Settings**||
+|:**Settings**||
 | Blending Settings           | See{% include lk id='Blending' a='#common-properties' %} *(Common properties)* |
