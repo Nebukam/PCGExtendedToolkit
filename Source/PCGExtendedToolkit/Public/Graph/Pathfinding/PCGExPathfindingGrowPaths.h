@@ -122,104 +122,104 @@ public:
 #endif
 	//~End UObject interface
 
+	/** Drive how a seed selects a node. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	FPCGExNodeSelectionDetails SeedPicking = FPCGExNodeSelectionDetails(200);
+	
 	/** Controls how iterative growth is managed. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Growth")
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
 	EPCGExGrowthIterationMode GrowthMode = EPCGExGrowthIterationMode::Parallel;
 
 	/** The maximum number of growth iterations for a given seed. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Growth")
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
 	EPCGExGrowthValueSource NumIterations = EPCGExGrowthValueSource::Constant;
 
 	/** Num iteration attribute name. (will be translated to int32) */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Growth", meta = (PCG_Overridable, EditCondition="NumIterations != EPCGExGrowthValueSource::Constant", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="NumIterations != EPCGExGrowthValueSource::Constant", EditConditionHides))
 	FPCGAttributePropertyInputSelector NumIterationsAttribute;
 
 	/** Num iteration constant */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Growth", meta = (PCG_Overridable, EditCondition="NumIterations == EPCGExGrowthValueSource::Constant", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="NumIterations == EPCGExGrowthValueSource::Constant", EditConditionHides))
 	int32 NumIterationsConstant = 3;
 
 
 	/** How to update the number of iteration for each seed.  Note: No matter what is selected, will never exceed the Max iteration. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Growth", meta = (PCG_Overridable, EditCondition="NumIterations != EPCGExGrowthValueSource::Constant && NumIterations == EPCGExGrowthValueSource::VtxAttribute", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="NumIterations != EPCGExGrowthValueSource::Constant && NumIterations == EPCGExGrowthValueSource::VtxAttribute", EditConditionHides))
 	EPCGExGrowthUpdateMode NumIterationsUpdateMode = EPCGExGrowthUpdateMode::Once;
 
 	/** The maximum number of growth started by a given seed. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Growth")
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
 	EPCGExGrowthValueSource SeedNumBranches = EPCGExGrowthValueSource::Constant;
 
 	/** How the NumBranches value is to be interpreted against the actual number of neighbors. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Growth")
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
 	EPCGExMeanMeasure SeedNumBranchesMean = EPCGExMeanMeasure::Discrete;
 
 	/** Num branches constant */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Growth", meta = (PCG_Overridable, EditCondition="SeedNumBranches == EPCGExGrowthValueSource::Constant", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="SeedNumBranches == EPCGExGrowthValueSource::Constant", EditConditionHides))
 	int32 NumBranchesConstant = 1;
 
 	/** Num branches attribute name. (will be translated to int32) */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Growth", meta = (PCG_Overridable, EditCondition="SeedNumBranches != EPCGExGrowthValueSource::Constant", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="SeedNumBranches != EPCGExGrowthValueSource::Constant", EditConditionHides))
 	FPCGAttributePropertyInputSelector NumBranchesAttribute;
 
 
 	/** The maximum number of growth iterations for a given seed. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Growth")
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
 	EPCGExGrowthValueSource GrowthDirection = EPCGExGrowthValueSource::Constant;
 
 	/** Growth direction attribute name. (will be translated to a FVector) */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Growth", meta = (PCG_Overridable, EditCondition="GrowthDirection != EPCGExGrowthValueSource::Constant", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="GrowthDirection != EPCGExGrowthValueSource::Constant", EditConditionHides))
 	FPCGAttributePropertyInputSelector GrowthDirectionAttribute;
 
 	/** Growth direction constant */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Growth", meta = (PCG_Overridable, EditCondition="GrowthDirection == EPCGExGrowthValueSource::Constant", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="GrowthDirection == EPCGExGrowthValueSource::Constant", EditConditionHides))
 	FVector GrowthDirectionConstant = FVector::UpVector;
 
 	/** How to update the number of iteration for each seed.  Note: No matter what is selected, will never exceed the Max iteration. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Growth")
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
 	EPCGExGrowthUpdateMode GrowthDirectionUpdateMode = EPCGExGrowthUpdateMode::Once;
 
 
 	/** The maximum growth distance for a given seed. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Growth")
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
 	EPCGExGrowthValueSource GrowthMaxDistance = EPCGExGrowthValueSource::Constant;
 
 	/** Max growth distance attribute name. (will be translated to a FVector) */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Growth", meta = (PCG_Overridable, EditCondition="GrowthMaxDistance != EPCGExGrowthValueSource::Constant", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="GrowthMaxDistance != EPCGExGrowthValueSource::Constant", EditConditionHides))
 	FPCGAttributePropertyInputSelector GrowthMaxDistanceAttribute;
 
 	/** Max growth distance constant */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Growth", meta = (PCG_Overridable, EditCondition="GrowthMaxDistance == EPCGExGrowthValueSource::Constant", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="GrowthMaxDistance == EPCGExGrowthValueSource::Constant", EditConditionHides))
 	double GrowthMaxDistanceConstant = 500;
 
 	/**  */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Growth|Limits", meta = (PCG_Overridable))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Limits", meta = (PCG_Overridable))
 	bool bUseGrowthStop = false;
 
 	/** An attribute read on the Vtx as a boolean. If true and this node is used in a path, the path stops there. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Growth|Limits", meta = (PCG_Overridable, EditCondition="bUseGrowthStop"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Limits", meta = (PCG_Overridable, EditCondition="bUseGrowthStop"))
 	FPCGAttributePropertyInputSelector GrowthStopAttribute;
 
 	/** Inverse Growth Stop behavior */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Growth|Limits", meta = (PCG_Overridable, EditCondition="bUseGrowthStop"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Limits", meta = (PCG_Overridable, EditCondition="bUseGrowthStop"))
 	bool bInvertGrowthStop = false;
 
 	/**  */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Growth|Limits", meta = (PCG_Overridable))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Limits", meta = (PCG_Overridable))
 	bool bUseNoGrowth = false;
 
 	/** An attribute read on the Vtx as a boolean. If true, this point will never be grown on, but may be still used as seed. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Growth|Limits", meta = (PCG_Overridable, EditCondition="bUseNoGrowth"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Limits", meta = (PCG_Overridable, EditCondition="bUseNoGrowth"))
 	FPCGAttributePropertyInputSelector NoGrowthAttribute;
 
 	/** Inverse No Growth behavior */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Growth|Limits", meta = (PCG_Overridable, EditCondition="bUseNoGrowth"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Limits", meta = (PCG_Overridable, EditCondition="bUseNoGrowth"))
 	bool bInvertNoGrowth = false;
 
-	/** Drive how a seed selects a node. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Heuristics", meta=(PCG_Overridable))
-	FPCGExNodeSelectionDetails SeedPicking = FPCGExNodeSelectionDetails(200);
-
 	/** Visited weight threshold over which the growth is stopped if that's the only available option. -1 ignores.*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Extra Weighting", meta=(EditCondition="bWeightUpVisited"))
-	double VisitedStopThreshold = -1;
+	//UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Extra Weighting", meta=(EditCondition="bWeightUpVisited"))
+	//double VisitedStopThreshold = -1;
 
 	/** TBD */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging & Forwarding")
