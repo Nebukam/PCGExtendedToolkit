@@ -56,6 +56,7 @@ namespace PCGExGrowPaths
 
 		double BestScore = MAX_dbl;
 		NextGrowthIndex = -1;
+		NextGrowthEdgeIndex = -1;
 
 		for (const uint64 AdjacencyHash : CurrentNode.Adjacency)
 		{
@@ -84,15 +85,13 @@ namespace PCGExGrowPaths
 			}
 			*/
 
-			if (const double Score = GetGrowthScore(
-					CurrentNode, OtherNode, EdgesRef[EdgeIndex]);
-				Score < BestScore)
+			if (const double Score = GetGrowthScore(CurrentNode, OtherNode, EdgesRef[EdgeIndex]); Score < BestScore)
 			{
 				BestScore = Score;
 				NextGrowthIndex = OtherNode.NodeIndex;
+				NextGrowthEdgeIndex = EdgeIndex;
 			}
 		}
-
 
 		return NextGrowthIndex;
 	}
@@ -101,6 +100,8 @@ namespace PCGExGrowPaths
 	{
 		if (NextGrowthIndex <= -1 || Path.Contains(NextGrowthIndex)) { return false; }
 
+		TravelStack->Set(NextGrowthEdgeIndex, PCGEx::NH64(LastGrowthIndex, NextGrowthEdgeIndex));
+		
 		const TArray<PCGExCluster::FNode>& NodesRef = *Processor->Cluster->Nodes;
 		const TArray<PCGExGraph::FIndexedEdge>& EdgesRef = *Processor->Cluster->Edges;
 
@@ -110,7 +111,8 @@ namespace PCGExGrowPaths
 		Metrics.Add(Processor->Cluster->GetPos(NextNode));
 		if (MaxDistance > 0 && Metrics.Length > MaxDistance) { return false; }
 
-		Processor->HeuristicsHandler->FeedbackScore(NextNode, EdgesRef[CurrentNode.GetEdgeIndex(NextNode.NodeIndex)]);
+		
+		Processor->HeuristicsHandler->FeedbackScore(NextNode, EdgesRef[NextGrowthEdgeIndex]);
 
 		Iteration++;
 		Path.Add(NextGrowthIndex);
@@ -183,11 +185,12 @@ namespace PCGExGrowPaths
 		GoalNode = MakeUnique<PCGExCluster::FNode>();
 		GoalNode->NodeIndex = Processor->Cluster->NodePositions.Add(Processor->Cluster->GetPos(SeedNode) + GrowthDirection * 100);
 		Metrics.Reset(Processor->Cluster->GetPos(SeedNode));
+		TravelStack = PCGEx::NewHashLookup<PCGEx::FMapHashLookup>(PCGEx::NH64(-1, -1), 0);
 	}
 
 	double FGrowth::GetGrowthScore(const PCGExCluster::FNode& From, const PCGExCluster::FNode& To, const PCGExGraph::FIndexedEdge& Edge) const
 	{
-		return Processor->HeuristicsHandler->GetEdgeScore(From, To, Edge, *SeedNode, *GoalNode.Get());
+		return Processor->HeuristicsHandler->GetEdgeScore(From, To, Edge, *SeedNode, *GoalNode.Get(), nullptr, TravelStack);
 	}
 }
 

@@ -10,6 +10,8 @@
 #include "PCGExHeuristicsFactoryProvider.h"
 
 
+
+
 #include "PCGExHeuristicDistance.generated.h"
 
 USTRUCT(BlueprintType)
@@ -48,7 +50,7 @@ public:
 		const PCGExGraph::FIndexedEdge& Edge,
 		const PCGExCluster::FNode& Seed,
 		const PCGExCluster::FNode& Goal,
-		const TArray<uint64>* TravelStack) const override
+		const TSharedPtr<PCGEx::FHashLookup> TravelStack) const override
 	{
 		return GetScoreInternal((*Cluster->EdgeLengths)[Edge.EdgeIndex]);
 	}

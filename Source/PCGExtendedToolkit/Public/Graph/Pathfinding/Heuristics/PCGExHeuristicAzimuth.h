@@ -9,6 +9,8 @@
 #include "PCGExHeuristicOperation.h"
 
 
+
+
 #include "Graph/PCGExCluster.h"
 #include "PCGExHeuristicAzimuth.generated.h"
 
@@ -50,7 +52,7 @@ public:
 		const PCGExGraph::FIndexedEdge& Edge,
 		const PCGExCluster::FNode& Seed,
 		const PCGExCluster::FNode& Goal,
-		const TArray<uint64>* TravelStack) const override
+		const TSharedPtr<PCGEx::FHashLookup> TravelStack) const override
 	{
 		const double Dot = (FVector::DotProduct(Cluster->GetDir(From, To), Cluster->GetDir(From, Goal)) * -1);
 		return GetScoreInternal(PCGExMath::Remap(Dot, -1, 1, OutMin, OutMax));

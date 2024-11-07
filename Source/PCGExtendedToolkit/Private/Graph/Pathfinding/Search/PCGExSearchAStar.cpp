@@ -28,13 +28,12 @@ bool UPCGExSearchAStar::ResolveQuery(
 	TBitArray<> Visited;
 	Visited.Init(false, NumNodes);
 
-	TArray<uint64> TravelStack;
+	const TSharedPtr<PCGEx::FHashLookup> TravelStack = PCGEx::NewHashLookup<PCGEx::FArrayHashLookup>(PCGEx::NH64(-1, -1), NumNodes);
+
 	TArray<double> GScore;
-
 	GScore.Init(-1, NumNodes);
-	TravelStack.Init(PCGEx::NH64(-1, -1), NumNodes);
 
-	const TUniquePtr<PCGExSearch::TScoredQueue> ScoredQueue = MakeUnique<PCGExSearch::TScoredQueue>(
+	const TUniquePtr<PCGExSearch::FScoredQueue> ScoredQueue = MakeUnique<PCGExSearch::FScoredQueue>(
 		NumNodes, SeedNode.NodeIndex, Heuristics->GetGlobalScore(SeedNode, SeedNode, GoalNode));
 
 	GScore[SeedNode.NodeIndex] = 0;
@@ -66,13 +65,13 @@ bool UPCGExSearchAStar::ResolveQuery(
 			const PCGExCluster::FNode& AdjacentNode = NodesRef[NeighborIndex];
 			const PCGExGraph::FIndexedEdge& Edge = EdgesRef[EdgeIndex];
 
-			const double EScore = Heuristics->GetEdgeScore(Current, AdjacentNode, Edge, SeedNode, GoalNode, Feedback, &TravelStack);
+			const double EScore = Heuristics->GetEdgeScore(Current, AdjacentNode, Edge, SeedNode, GoalNode, Feedback, TravelStack);
 			const double TentativeGScore = CurrentGScore + EScore;
 
 			const double PreviousGScore = GScore[NeighborIndex];
 			if (PreviousGScore != -1 && TentativeGScore >= PreviousGScore) { continue; }
 
-			TravelStack[NeighborIndex] = PCGEx::NH64(CurrentNodeIndex, EdgeIndex);
+			TravelStack->Set(NeighborIndex, PCGEx::NH64(CurrentNodeIndex, EdgeIndex));
 			GScore[NeighborIndex] = TentativeGScore;
 
 			const double GS = Heuristics->GetGlobalScore(AdjacentNode, SeedNode, GoalNode, Feedback);
@@ -84,7 +83,7 @@ bool UPCGExSearchAStar::ResolveQuery(
 
 	bool bSuccess = false;
 
-	int32 PathNodeIndex = PCGEx::NH64A(TravelStack[GoalNode.NodeIndex]);
+	int32 PathNodeIndex = PCGEx::NH64A(TravelStack->Get(GoalNode.NodeIndex));
 	int32 PathEdgeIndex = -1;
 
 	if (PathNodeIndex != -1)
@@ -97,14 +96,11 @@ bool UPCGExSearchAStar::ResolveQuery(
 		while (PathNodeIndex != -1)
 		{
 			const int32 CurrentIndex = PathNodeIndex;
-			PCGEx::NH64(TravelStack[CurrentIndex], PathNodeIndex, PathEdgeIndex);
+			PCGEx::NH64(TravelStack->Get(CurrentIndex), PathNodeIndex, PathEdgeIndex);
 
 			InQuery->AddPathNode(CurrentIndex, PathEdgeIndex);
 		}
 	}
-
-	TravelStack.Empty();
-	GScore.Empty();
 
 	return bSuccess;
 }

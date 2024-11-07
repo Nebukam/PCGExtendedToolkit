@@ -9,6 +9,8 @@
 #include "PCGExPointsProcessor.h"
 
 
+
+
 #include "Graph/PCGExCluster.h"
 
 #include "PCGExHeuristicAttribute.generated.h"
@@ -51,7 +53,7 @@ public:
 		const PCGExGraph::FIndexedEdge& Edge,
 		const PCGExCluster::FNode& Seed,
 		const PCGExCluster::FNode& Goal,
-		const TArray<uint64>* TravelStack) const override
+		const TSharedPtr<PCGEx::FHashLookup> TravelStack) const override
 	{
 		return CachedScores[Source == EPCGExClusterComponentSource::Edge ? Edge.PointIndex : To.NodeIndex];
 	}

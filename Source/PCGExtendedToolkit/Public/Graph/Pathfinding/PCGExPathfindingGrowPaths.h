@@ -37,9 +37,9 @@ enum class EPCGExGrowthValueSource : uint8
 UENUM(/*E--BlueprintType, meta=(DisplayName="[PCGEx] Growth Update Mode")--E*/)
 enum class EPCGExGrowthUpdateMode : uint8
 {
-	Once UMETA(DisplayName = "Once", ToolTip="Read once at the beginning of the computation."),
-	SetEachIteration = 0 UMETA(DisplayName = "Set Each Iteration", ToolTip="Set the remaining number of iteration after each iteration."),
-	AddEachIteration = 1 UMETA(DisplayName = "Add Each Iteration", ToolTip="Add to the remaning number of iterations after each iteration."),
+	Once = 0 UMETA(DisplayName = "Once", ToolTip="Read once at the beginning of the computation."),
+	SetEachIteration = 1 UMETA(DisplayName = "Set Each Iteration", ToolTip="Set the remaining number of iteration after each iteration."),
+	AddEachIteration = 2 UMETA(DisplayName = "Add Each Iteration", ToolTip="Add to the remaning number of iterations after each iteration."),
 };
 
 namespace PCGExGrowPaths
@@ -52,6 +52,7 @@ namespace PCGExGrowPaths
 		const TSharedPtr<FProcessor> Processor;
 		const PCGExCluster::FNode* SeedNode = nullptr;
 		TUniquePtr<PCGExCluster::FNode> GoalNode;
+		TSharedPtr<PCGEx::FHashLookup> TravelStack;
 
 		int32 SeedPointIndex = -1;
 		int32 MaxIterations = 0;
@@ -59,6 +60,7 @@ namespace PCGExGrowPaths
 		int32 Iteration = 0;
 		int32 LastGrowthIndex = 0;
 		int32 NextGrowthIndex = 0;
+		int32 NextGrowthEdgeIndex = 0;
 		FVector GrowthDirection = FVector::UpVector;
 		PCGExPaths::FPathMetrics Metrics;
 

@@ -166,4 +166,64 @@ namespace PCGEx
 		FORCEINLINE int32 Get(const int32 At) { return Data[At]; }
 		FORCEINLINE int32& GetMutable(const int32 At) { return Data[At]; }
 	};
+
+	class FHashLookup : public TSharedFromThis<FHashLookup>
+	{
+	protected:
+		uint64 InternalInitValue;
+
+	public:
+		virtual ~FHashLookup() = default;
+
+		explicit FHashLookup(const uint64 InitValue, const int32 Size)
+			: InternalInitValue(InitValue)
+		{
+		}
+
+		FORCEINLINE virtual void Set(const int32 At, const uint64 Value) = 0;
+		FORCEINLINE virtual uint64 Get(const int32 At) = 0;
+		FORCEINLINE virtual bool IsInitValue(const uint64 InValue) { return InValue == InternalInitValue; }
+	};
+
+	class FArrayHashLookup : public FHashLookup
+	{
+	protected:
+		TArray<uint64> Data;
+
+	public:
+		explicit FArrayHashLookup(const uint64 InitValue, const int32 Size)
+			: FHashLookup(InitValue, Size)
+		{
+			Data.Init(InitValue, Size);
+		}
+
+		FORCEINLINE virtual void Set(const int32 At, const uint64 Value) override { Data[At] = Value; }
+		FORCEINLINE virtual uint64 Get(const int32 At) override { return Data[At]; }
+	};
+
+	class FMapHashLookup : public FHashLookup
+	{
+	protected:
+		TMap<int32, uint64> Data;
+
+	public:
+		explicit FMapHashLookup(const uint64 InitValue, const int32 Size)
+			: FHashLookup(InitValue, Size)
+		{
+		}
+
+		FORCEINLINE virtual void Set(const int32 At, const uint64 Value) override { Data.Add(At, Value); }
+		FORCEINLINE virtual uint64 Get(const int32 At) override
+		{
+			if (const uint64* Value = Data.Find(At)) { return *Value; }
+			return InternalInitValue;
+		}
+	};
+
+	template <typename T>
+	static TSharedPtr<FHashLookup> NewHashLookup(const uint64 InitValue, const int32 Size)
+	{
+		TSharedPtr<T> TypedPtr = MakeShared<T>(InitValue, Size);
+		return StaticCastSharedPtr<FHashLookup>(TypedPtr);
+	}
 }
