@@ -174,6 +174,83 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExRemapDetails
 	}
 };
 
+namespace PCGExDetails
+{
+	class /*PCGEXTENDEDTOOLKIT_API*/ FDistances : public TSharedFromThis<FDistances>
+	{
+	public:
+		virtual ~FDistances() = default;
+
+		FDistances()
+		{
+		}
+
+		FORCEINLINE virtual FVector GetSourceCenter(const FPCGPoint& FromPoint, const FVector& FromCenter, const FVector& ToCenter) const = 0;
+		FORCEINLINE virtual FVector GetTargetCenter(const FPCGPoint& FromPoint, const FVector& FromCenter, const FVector& ToCenter) const = 0;
+		FORCEINLINE virtual void GetCenters(const FPCGPoint& SourcePoint, const FPCGPoint& TargetPoint, FVector& OutSource, FVector& OutTarget) const = 0;
+		FORCEINLINE virtual double GetDistance(const FPCGPoint& SourcePoint, const FPCGPoint& TargetPoint) const = 0;
+	};
+
+	template <EPCGExDistance Source, EPCGExDistance Target>
+	class /*PCGEXTENDEDTOOLKIT_API*/ TDistances final : public FDistances
+	{
+	public:
+		TDistances()
+		{
+		}
+
+		FORCEINLINE virtual FVector GetSourceCenter(const FPCGPoint& FromPoint, const FVector& FromCenter, const FVector& ToCenter) const override
+		{
+			return PCGExMath::GetSpatializedCenter<Source>(FromPoint, FromCenter, ToCenter);
+		}
+
+		FORCEINLINE virtual FVector GetTargetCenter(const FPCGPoint& FromPoint, const FVector& FromCenter, const FVector& ToCenter) const override
+		{
+			return PCGExMath::GetSpatializedCenter<Target>(FromPoint, FromCenter, ToCenter);
+		}
+
+		FORCEINLINE virtual void GetCenters(const FPCGPoint& SourcePoint, const FPCGPoint& TargetPoint, FVector& OutSource, FVector& OutTarget) const override
+		{
+			const FVector TargetLocation = TargetPoint.Transform.GetLocation();
+			OutSource = PCGExMath::GetSpatializedCenter<Source>(SourcePoint, SourcePoint.Transform.GetLocation(), TargetLocation);
+			OutTarget = PCGExMath::GetSpatializedCenter<Target>(TargetPoint, TargetLocation, OutSource);
+		}
+
+		FORCEINLINE virtual double GetDistance(const FPCGPoint& SourcePoint, const FPCGPoint& TargetPoint) const override
+		{
+			const FVector TargetLocation = TargetPoint.Transform.GetLocation();
+			const FVector OutSource = PCGExMath::GetSpatializedCenter<Source>(SourcePoint, SourcePoint.Transform.GetLocation(), TargetLocation);
+			return FVector::DistSquared(OutSource, PCGExMath::GetSpatializedCenter<Target>(TargetPoint, TargetLocation, OutSource));
+		}
+	};
+
+	static TSharedPtr<FDistances> MakeDistances(
+		const EPCGExDistance Source = EPCGExDistance::Center,
+		const EPCGExDistance Target = EPCGExDistance::Center)
+	{
+		if (Source == EPCGExDistance::Center)
+		{
+			if (Target == EPCGExDistance::Center) { return MakeShared<PCGExDetails::TDistances<EPCGExDistance::Center, EPCGExDistance::Center>>(); }
+			else if (Target == EPCGExDistance::SphereBounds) { return MakeShared<PCGExDetails::TDistances<EPCGExDistance::Center, EPCGExDistance::SphereBounds>>(); }
+			else if (Target == EPCGExDistance::BoxBounds) { return MakeShared<PCGExDetails::TDistances<EPCGExDistance::Center, EPCGExDistance::BoxBounds>>(); }
+		}
+		else if (Source == EPCGExDistance::SphereBounds)
+		{
+			if (Target == EPCGExDistance::Center) { return MakeShared<PCGExDetails::TDistances<EPCGExDistance::SphereBounds, EPCGExDistance::Center>>(); }
+			else if (Target == EPCGExDistance::SphereBounds) { return MakeShared<PCGExDetails::TDistances<EPCGExDistance::SphereBounds, EPCGExDistance::SphereBounds>>(); }
+			else if (Target == EPCGExDistance::BoxBounds) { return MakeShared<PCGExDetails::TDistances<EPCGExDistance::SphereBounds, EPCGExDistance::BoxBounds>>(); }
+		}
+		else if (Source == EPCGExDistance::BoxBounds)
+		{
+			if (Target == EPCGExDistance::Center) { return MakeShared<PCGExDetails::TDistances<EPCGExDistance::BoxBounds, EPCGExDistance::Center>>(); }
+			else if (Target == EPCGExDistance::SphereBounds) { return MakeShared<PCGExDetails::TDistances<EPCGExDistance::BoxBounds, EPCGExDistance::SphereBounds>>(); }
+			else if (Target == EPCGExDistance::BoxBounds) { return MakeShared<PCGExDetails::TDistances<EPCGExDistance::BoxBounds, EPCGExDistance::BoxBounds>>(); }
+		}
+
+		return nullptr;
+	}
+}
+
 USTRUCT(BlueprintType)
 struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExDistanceDetails
 {
@@ -194,29 +271,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExDistanceDetails
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ShowOnlyInnerProperties))
 	EPCGExDistance Target = EPCGExDistance::Center;
 
-	FORCEINLINE FVector GetSourceCenter(const FPCGPoint& FromPoint, const FVector& FromCenter, const FVector& ToCenter) const
-	{
-		return PCGExMath::GetSpatializedCenter(Source, FromPoint, FromCenter, ToCenter);
-	}
-
-	FORCEINLINE FVector GetTargetCenter(const FPCGPoint& FromPoint, const FVector& FromCenter, const FVector& ToCenter) const
-	{
-		return PCGExMath::GetSpatializedCenter(Target, FromPoint, FromCenter, ToCenter);
-	}
-
-	FORCEINLINE void GetCenters(const FPCGPoint& SourcePoint, const FPCGPoint& TargetPoint, FVector& OutSource, FVector& OutTarget) const
-	{
-		const FVector TargetLocation = TargetPoint.Transform.GetLocation();
-		OutSource = PCGExMath::GetSpatializedCenter(Source, SourcePoint, SourcePoint.Transform.GetLocation(), TargetLocation);
-		OutTarget = PCGExMath::GetSpatializedCenter(Target, TargetPoint, TargetLocation, OutSource);
-	}
-
-	FORCEINLINE double GetDistance(const FPCGPoint& SourcePoint, const FPCGPoint& TargetPoint) const
-	{
-		const FVector TargetLocation = TargetPoint.Transform.GetLocation();
-		const FVector OutSource = PCGExMath::GetSpatializedCenter(Source, SourcePoint, SourcePoint.Transform.GetLocation(), TargetLocation);
-		return FVector::DistSquared(OutSource, PCGExMath::GetSpatializedCenter(Target, TargetPoint, TargetLocation, OutSource));
-	}
+	TSharedPtr<PCGExDetails::FDistances> MakeDistances() const { return PCGExDetails::MakeDistances(Source, Target); }
 };
 
 USTRUCT(BlueprintType)
@@ -293,22 +348,6 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExSourceFuseDetails : public FPCGExFuseDet
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	EPCGExDistance SourceDistance = EPCGExDistance::Center;
-
-	///
-	FORCEINLINE double GetSourceDistSquared(const FPCGPoint& SourcePoint, const FVector& SourceCenter, const FVector& TargetCenter) const
-	{
-		return FVector::DistSquared(PCGExMath::GetSpatializedCenter(SourceDistance, SourcePoint, SourceCenter, TargetCenter), TargetCenter);
-	}
-
-	FORCEINLINE bool IsWithinTolerance(const FPCGPoint& SourcePoint, const FVector& SourceCenter, const FVector& TargetCenter) const
-	{
-		return FPCGExFuseDetailsBase::IsWithinTolerance(PCGExMath::GetSpatializedCenter(SourceDistance, SourcePoint, SourceCenter, TargetCenter), TargetCenter);
-	}
-
-	FORCEINLINE bool IsWithinToleranceComponentWise(const FPCGPoint& SourcePoint, const FVector& SourceCenter, const FVector& TargetCenter) const
-	{
-		return FPCGExFuseDetailsBase::IsWithinToleranceComponentWise(PCGExMath::GetSpatializedCenter(SourceDistance, SourcePoint, SourceCenter, TargetCenter), TargetCenter);
-	}
 };
 
 
@@ -360,6 +399,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExFuseDetails : public FPCGExSourceFuseDet
 
 
 	FVector CWTolerance = FVector::OneVector;
+	TSharedPtr<PCGExDetails::FDistances> DistanceDetails;
 
 	void Init()
 	{
@@ -376,6 +416,8 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExFuseDetails : public FPCGExSourceFuseDet
 			if (bComponentWiseTolerance) { CWTolerance = Tolerances; }
 			else { CWTolerance = FVector(Tolerance); }
 		}
+
+		DistanceDetails = PCGExDetails::MakeDistances(SourceDistance, TargetDistance);
 	}
 
 	bool DoInlineInsertion() const { return FuseMethod == EPCGExFuseMethod::Octree && bInlineInsertion; }
@@ -385,8 +427,8 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExFuseDetails : public FPCGExSourceFuseDet
 
 	FORCEINLINE void GetCenters(const FPCGPoint& SourcePoint, const FPCGPoint& TargetPoint, FVector& OutSource, FVector& OutTarget) const
 	{
-		OutSource = PCGExMath::GetSpatializedCenter(SourceDistance, SourcePoint, SourcePoint.Transform.GetLocation(), TargetPoint.Transform.GetLocation());
-		OutTarget = PCGExMath::GetSpatializedCenter(TargetDistance, TargetPoint, TargetPoint.Transform.GetLocation(), OutSource);
+		OutSource = DistanceDetails->GetSourceCenter(SourcePoint, SourcePoint.Transform.GetLocation(), TargetPoint.Transform.GetLocation());
+		OutTarget = DistanceDetails->GetTargetCenter(TargetPoint, TargetPoint.Transform.GetLocation(), OutSource);
 	}
 
 	FORCEINLINE bool IsWithinTolerance(const FPCGPoint& SourcePoint, const FPCGPoint& TargetPoint) const
@@ -453,18 +495,5 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExCollisionDetails
 	void Update(FCollisionQueryParams& InCollisionParams) const;
 	bool Linecast(const FVector& From, const FVector& To, FHitResult& HitResult) const;
 };
-
-
-namespace PCGExDetails
-{
-#pragma region Distance Settings
-
-	static FPCGExDistanceDetails GetDistanceDetails(const EPCGExDistance InDistance)
-	{
-		return FPCGExDistanceDetails(InDistance, InDistance);
-	}
-
-#pragma endregion
-}
 
 #undef PCGEX_SOFT_VALIDATE_NAME_DETAILS

@@ -67,6 +67,7 @@ bool FPCGExSampleNearestPointElement::Boot(FPCGExContext* InContext) const
 		return false;
 	}
 
+	Context->DistanceDetails = Settings->DistanceDetails.MakeDistances();
 	Context->TargetPoints = &Context->TargetsFacade->Source->GetIn()->GetPoints();
 	Context->NumTargets = Context->TargetPoints->Num();
 
@@ -227,7 +228,7 @@ namespace PCGExSampleNearestPoints
 			FVector A;
 			FVector B;
 
-			Settings->DistanceDetails.GetCenters(Point, Target, A, B);
+			Context->DistanceDetails->GetCenters(Point, Target, A, B);
 
 			double Dist = FVector::DistSquared(A, B);
 

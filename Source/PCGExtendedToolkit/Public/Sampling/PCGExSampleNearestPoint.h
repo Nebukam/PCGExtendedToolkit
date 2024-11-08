@@ -306,6 +306,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExSampleNearestPointContext final : FPCGEx
 	const UPCGPointData::PointOctree* TargetOctree = nullptr;
 	TSharedPtr<PCGExSorting::PointSorter<false>> Sorter;
 
+	TSharedPtr<PCGExDetails::FDistances> DistanceDetails;
 	FPCGExBlendingDetails BlendingDetails;
 	const TArray<FPCGPoint>* TargetPoints = nullptr;
 	int32 NumTargets = 0;

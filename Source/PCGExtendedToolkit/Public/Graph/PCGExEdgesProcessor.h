@@ -98,6 +98,7 @@ protected:
 	TArray<FPCGExSortRuleConfig> EdgeSortingRules;
 
 	TArray<TSharedPtr<PCGExClusterMT::FClusterProcessorBatchBase>> Batches;
+	TArray<TSharedRef<PCGExData::FFacade>> EdgesDataFacades;
 
 	bool bScopedIndexLookupBuild = false;
 	bool bHasValidHeuristics = false;
@@ -125,6 +126,13 @@ protected:
 		bBuildEndpointsLookup = false;
 
 		Batches.Reserve(MainPoints->Pairs.Num());
+
+		EdgesDataFacades.Reserve(MainEdges->Pairs.Num());
+		for (TSharedPtr<PCGExData::FPointIO> EdgeIO : MainEdges->Pairs)
+		{
+			TSharedPtr<PCGExData::FFacade> EdgeFacade = MakeShared<PCGExData::FFacade>(EdgeIO.ToSharedRef());
+			EdgesDataFacades.Add(EdgeFacade.ToSharedRef());
+		}
 
 		while (AdvancePointsIO(false))
 		{
@@ -155,7 +163,7 @@ protected:
 				NewBatch->HeuristicsFactories = &HeuristicsFactories;
 			}
 
-			NewBatch->EdgeCollection = MainEdges;
+			NewBatch->EdgesDataFacades = &EdgesDataFacades;
 
 			if (NewBatch->RequiresGraphBuilder())
 			{

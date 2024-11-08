@@ -5,7 +5,7 @@
 
 #include "PCGExPointsProcessor.h"
 #include "PCGExRandom.h"
-
+#include "Data/Blending/PCGExUnionBlender.h"
 
 #include "Graph/PCGExCluster.h"
 #include "Graph/Data/PCGExClusterData.h"
@@ -394,9 +394,9 @@ namespace PCGExGraph
 			const TSharedPtr<FSubGraph>& SubGraph = Graph->SubGraphs[i];
 			TSharedPtr<PCGExData::FPointIO> EdgeIO;
 
-			if (const int32 IOIndex = SubGraph->GetFirstInIOIndex(); SourceEdgesIO && SourceEdgesIO->Pairs.IsValidIndex(IOIndex))
+			if (const int32 IOIndex = SubGraph->GetFirstInIOIndex(); SourceEdgeFacades && SourceEdgeFacades->IsValidIndex(IOIndex))
 			{
-				EdgeIO = EdgesIO->Emplace_GetRef<UPCGExClusterEdgesData>(SourceEdgesIO->Pairs[IOIndex], PCGExData::EInit::NewOutput);
+				EdgeIO = EdgesIO->Emplace_GetRef<UPCGExClusterEdgesData>((*SourceEdgeFacades)[IOIndex]->Source, PCGExData::EInit::NewOutput);
 			}
 			else
 			{
@@ -433,7 +433,7 @@ namespace PCGExGraph
 				if (const TSharedPtr<FGraphBuilder> Builder = WeakThis.Pin())
 				{
 					const TSharedPtr<FSubGraph> SubGraph = Builder->Graph->SubGraphs[Index];
-					PCGExGraphTask::WriteSubGraphEdges(Builder->AsyncManager, SubGraph, Builder->MetadataDetailsPtr);
+					PCGExGraphTask::WriteSubGraphEdges(Builder->AsyncManager, SubGraph, Builder);
 				}
 			};
 
@@ -451,10 +451,11 @@ namespace PCGExGraphTask
 	void WriteSubGraphEdges(
 		const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager,
 		const TSharedPtr<PCGExGraph::FSubGraph>& SubGraph,
-		const PCGExGraph::FGraphMetadataDetails* MetadataDetails)
+		const TSharedPtr<PCGExGraph::FGraphBuilder>& Builder)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(FWriteSubGraphEdges::ExecuteTask);
 
+		const PCGExGraph::FGraphMetadataDetails* MetadataDetails = Builder->GetMetadataDetails();
 		const TSharedPtr<PCGExData::FFacade> VtxDataFacade = SubGraph->VtxDataFacade;
 
 		const TArray<FPCGPoint>& Vertices = VtxDataFacade->GetOut()->GetPoints();
@@ -462,9 +463,6 @@ namespace PCGExGraphTask
 		PCGExGraph::FGraph* Graph = SubGraph->ParentGraph;
 		TArray<int32> EdgeDump = SubGraph->Edges.Array();
 		const int32 NumEdges = EdgeDump.Num();
-
-		TArray<int32> RootEdgeIndices;
-		RootEdgeIndices.SetNumUninitialized(NumEdges);
 
 		TArray<PCGExGraph::FIndexedEdge>& FlattenedEdges = SubGraph->FlattenedEdges;
 		PCGEx::InitArray(FlattenedEdges, NumEdges);
@@ -486,8 +484,7 @@ namespace PCGExGraphTask
 			for (int i = 0; i < NumEdges; i++)
 			{
 				const PCGExGraph::FIndexedEdge& OE = Graph->Edges[EdgeDump[i]];
-				FlattenedEdges[i] = PCGExGraph::FIndexedEdge(i, Graph->Nodes[OE.Start].PointIndex, Graph->Nodes[OE.End].PointIndex, i);
-				RootEdgeIndices[i] = OE.EdgeIndex;
+				FlattenedEdges[i] = PCGExGraph::FIndexedEdge(i, Graph->Nodes[OE.Start].PointIndex, Graph->Nodes[OE.End].PointIndex, i, OE.EdgeIndex); // Use flat edge IOIndex to store original edge index
 				if (InPoints.IsValidIndex(OE.PointIndex)) { MutablePoints[i] = InPoints[OE.PointIndex]; }
 				Metadata->InitializeOnSet(MutablePoints[i].MetadataEntry);
 			}
@@ -501,8 +498,7 @@ namespace PCGExGraphTask
 			for (int i = 0; i < NumEdges; i++)
 			{
 				const PCGExGraph::FIndexedEdge& E = Graph->Edges[EdgeDump[i]];
-				FlattenedEdges[i] = PCGExGraph::FIndexedEdge(i, Graph->Nodes[E.Start].PointIndex, Graph->Nodes[E.End].PointIndex, i);
-				RootEdgeIndices[i] = E.EdgeIndex;
+				FlattenedEdges[i] = PCGExGraph::FIndexedEdge(i, Graph->Nodes[E.Start].PointIndex, Graph->Nodes[E.End].PointIndex, i, i);
 				Metadata->InitializeOnSet(MutablePoints[i].MetadataEntry);
 			}
 		}
@@ -515,15 +511,37 @@ namespace PCGExGraphTask
 		const int32 ClusterId = SubGraph->UID;
 		const uint32 BaseGUID = VtxDataFacade->Source->GetOut()->GetUniqueID();
 
+		const bool bHasUnionMetadata = (MetadataDetails && Builder && !Graph->EdgeMetadata.IsEmpty());
+
+#define PCGEX_FOREACH_EDGE_METADATA(MACRO)\
+MACRO(IsEdgeUnion, bool, false, IsUnion()) \
+MACRO(EdgeUnionSize, int32, 0, UnionSize)
+
+#define PCGEX_EDGE_METADATA_DECL(_NAME, _TYPE, _DEFAULT, _ACCESSOR) const TSharedPtr<PCGExData::TBuffer<_TYPE>> _NAME##Buffer = (bHasUnionMetadata && MetadataDetails->bWrite##_NAME) ? SubGraph->EdgesDataFacade->GetWritable<_TYPE>(MetadataDetails->_NAME##AttributeName, _DEFAULT, true, true) : nullptr;
+		PCGEX_FOREACH_EDGE_METADATA(PCGEX_EDGE_METADATA_DECL)
+#undef PCGEX_EDGE_METADATA_DECL
+
+		TSharedPtr<PCGExData::FUnionMetadata> EdgesUnion = SubGraph->ParentGraph->EdgesUnion;
+		TSharedPtr<PCGExDataBlending::FUnionBlender> UnionBlender = nullptr;
+		TSharedPtr<PCGExDetails::FDistances> Distances = PCGExDetails::MakeDistances();
+
+		if (Builder->SourceEdgeFacades && EdgesUnion)
+		{
+			UnionBlender = MakeShared<PCGExDataBlending::FUnionBlender>(MetadataDetails->EdgesBlendingDetailsPtr, MetadataDetails->EdgesCarryOverDetails);
+			UnionBlender->AddSources(*Builder->SourceEdgeFacades);
+			UnionBlender->PrepareMerge(SubGraph->EdgesDataFacade, EdgesUnion);
+		}
+
 		for (const PCGExGraph::FIndexedEdge& E : FlattenedEdges)
 		{
-			FPCGPoint& EdgePt = MutablePoints[E.EdgeIndex];
+			const int32 EdgeIndex = E.EdgeIndex;
+			FPCGPoint& EdgePt = MutablePoints[EdgeIndex];
 
 			// Mark matching Vtx
 			NumClusterIdWriter->GetMutable(E.Start) = ClusterId;
 			NumClusterIdWriter->GetMutable(E.End) = ClusterId;
 
-			EdgeEndpointsWriter->GetMutable(E.EdgeIndex) = PCGEx::H64(PCGExGraph::NodeGUID(BaseGUID, E.Start), PCGExGraph::NodeGUID(BaseGUID, E.End));
+			EdgeEndpointsWriter->GetMutable(EdgeIndex) = PCGEx::H64(PCGExGraph::NodeGUID(BaseGUID, E.Start), PCGExGraph::NodeGUID(BaseGUID, E.End));
 
 			if (Graph->bWriteEdgePosition)
 			{
@@ -535,33 +553,36 @@ namespace PCGExGraphTask
 			}
 
 			if (EdgePt.Seed == 0 || Graph->bRefreshEdgeSeed) { EdgePt.Seed = PCGExRandom::ComputeSeed(EdgePt, SeedOffset); }
-		}
 
-		if (MetadataDetails && !Graph->EdgeMetadata.IsEmpty())
-		{
-			// Note : better move & write this in the UnionHelper, we'll inherit properties during edge/edge intersections that way.
-			// Less edges to manage, even tho more attributes.
-#define PCGEX_FOREACH_EDGE_METADATA(MACRO)\
-MACRO(IsEdgeUnion, bool, false, IsUnion()) \
-MACRO(EdgeUnionSize, int32, 0, UnionSize)
-#define PCGEX_EDGE_METADATA_DECL(_NAME, _TYPE, _DEFAULT, _ACCESSOR) const TSharedPtr<PCGExData::TBuffer<_TYPE>> _NAME##Buffer = MetadataDetails->bWrite##_NAME ? SubGraph->EdgesDataFacade->GetWritable<_TYPE>(MetadataDetails->_NAME##AttributeName, _DEFAULT, true, true) : nullptr;
-#define PCGEX_EDGE_METADATA_OUTPUT(_NAME, _TYPE, _DEFAULT, _ACCESSOR) if(_NAME##Buffer){_NAME##Buffer->GetMutable(PointIndex) = EdgeMeta->_ACCESSOR;}
-
-			PCGEX_FOREACH_EDGE_METADATA(PCGEX_EDGE_METADATA_DECL)
-
-			for (const PCGExGraph::FIndexedEdge& E : FlattenedEdges)
+			if(bHasUnionMetadata)
 			{
-				const int32 PointIndex = E.EdgeIndex;
-				if (const PCGExGraph::FGraphEdgeMetadata* EdgeMeta = Graph->FindRootEdgeMetadataUnsafe(RootEdgeIndices[E.EdgeIndex]))
+				const PCGExGraph::FGraphEdgeMetadata* EdgeMeta = Graph->FindRootEdgeMetadataUnsafe(E.IOIndex);
+				if (EdgeMeta)
 				{
+					
+#define PCGEX_EDGE_METADATA_OUTPUT(_NAME, _TYPE, _DEFAULT, _ACCESSOR) if(_NAME##Buffer){_NAME##Buffer->GetMutable(EdgeIndex) = EdgeMeta->_ACCESSOR;}
 					PCGEX_FOREACH_EDGE_METADATA(PCGEX_EDGE_METADATA_OUTPUT)
+	#undef PCGEX_EDGE_METADATA_OUTPUT
+					
+					if (UnionBlender)
+					{
+						// Retrieve ItemHashSet from Edge' UnionData in the Graph.
+						// Edge UnionData contains all original edges from various sources that got merged into a final "edge" inside the UnionGraph
+						// ItemHashSet of the Edge UnionData contains hash in the form const uint64 H = PCGEx::H64(IOIndex, ItemIndex)
+						// So need to grab IOIndex@ItemIndex from SourceGraphIO
+						// and merge.
+						// Check UnionDataBlender, it just needs the EdgesIO and the right UnionData. We'll need to write the facade tho
+						UnionBlender->MergeSingle(EdgeIndex, EdgesUnion->Get(EdgeMeta->RootIndex), Distances);
+					}
+				}else
+				{
+					UE_LOG(LogTemp, Warning, TEXT("No Meta foor RootIndex = %d"), E.IOIndex)
 				}
 			}
+		}
 
 #undef PCGEX_FOREACH_EDGE_METADATA
-#undef PCGEX_EDGE_METADATA_DECL
-#undef PCGEX_EDGE_METADATA_OUTPUT
-		}
+
 
 		if (GetDefault<UPCGExGlobalSettings>()->bCacheClusters && Graph->bBuildClusters)
 		{

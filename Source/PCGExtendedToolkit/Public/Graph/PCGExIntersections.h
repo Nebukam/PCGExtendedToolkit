@@ -186,7 +186,7 @@ namespace PCGExGraph
 	{
 		TMap<uint32, FUnionNode*> GridTree;
 
-		TSharedPtr<PCGExData::FUnionMetadata> PointsUnion;
+		TSharedPtr<PCGExData::FUnionMetadata> NodesUnion;
 		TSharedPtr<PCGExData::FUnionMetadata> EdgesUnion;
 		TArray<FUnionNode*> Nodes;
 		TMap<uint64, FIndexedEdge> Edges;
@@ -209,7 +209,7 @@ namespace PCGExGraph
 
 			FuseDetails.Init();
 
-			PointsUnion = MakeShared<PCGExData::FUnionMetadata>();
+			NodesUnion = MakeShared<PCGExData::FUnionMetadata>();
 			EdgesUnion = MakeShared<PCGExData::FUnionMetadata>();
 
 			if (InFuseDetails.FuseMethod == EPCGExFuseMethod::Octree) { Octree = MakeUnique<FUnionNodeOctree>(Bounds.GetCenter(), Bounds.GetExtent().Length() + 10); }
@@ -220,7 +220,7 @@ namespace PCGExGraph
 			for (const FUnionNode* Node : Nodes) { delete Node; }
 		}
 
-		int32 NumNodes() const { return PointsUnion->Num(); }
+		int32 NumNodes() const { return NodesUnion->Num(); }
 		int32 NumEdges() const { return EdgesUnion->Num(); }
 
 		FUnionNode* InsertPoint(const FPCGPoint& Point, const int32 IOIndex, const int32 PointIndex);
@@ -320,14 +320,12 @@ namespace PCGExGraph
 		mutable FRWLock InsertionLock;
 		const TSharedPtr<PCGExData::FPointIO> PointIO;
 		TSharedPtr<FGraph> Graph;
-		TSharedPtr<FUnionGraph> UnionGraph;
 
 		const FPCGExPointEdgeIntersectionDetails* Details;
 		TArray<FPointEdgeProxy> Edges;
 
 		FPointEdgeIntersections(
 			const TSharedPtr<FGraph>& InGraph,
-			const TSharedPtr<FUnionGraph>& InUnionGraph,
 			const TSharedPtr<PCGExData::FPointIO>& InPointIO,
 			const FPCGExPointEdgeIntersectionDetails* InDetails);
 
@@ -355,13 +353,15 @@ namespace PCGExGraph
 		const TArray<FPCGPoint>& Points = PointsData->GetPoints();
 
 		const FPointEdgeProxy& Edge = InIntersections->Edges[EdgeIndex];
-		const FIndexedEdge& IEdge = InIntersections->Graph->Edges[EdgeIndex];
+		const TSharedPtr<FGraph> Graph = InIntersections->Graph;
+
+		const FIndexedEdge& IEdge = Graph->Edges[EdgeIndex];
 		FPESplit Split = FPESplit{};
 
 		if (!InIntersections->Details->bEnableSelfIntersection)
 		{
 			const int32 RootIndex = InIntersections->Graph->FindEdgeMetadataUnsafe(Edge.EdgeIndex)->RootIndex;
-			const TSet<int32>& RootIOIndices = InIntersections->UnionGraph->EdgesUnion->Entries[RootIndex]->IOIndices;
+			const TSet<int32>& RootIOIndices = Graph->EdgesUnion->Entries[RootIndex]->IOIndices;
 
 			auto ProcessPointRef = [&](const FPCGPointRef& PointRef)
 			{
@@ -378,7 +378,7 @@ namespace PCGExGraph
 				if (IEdge.Start == Node.PointIndex || IEdge.End == Node.PointIndex) { return; }
 				if (!Edge.FindSplit(Position, Split)) { return; }
 
-				if (InIntersections->UnionGraph->PointsUnion->IOIndexOverlap(Node.NodeIndex, RootIOIndices)) { return; }
+				if (Graph->NodesUnion->IOIndexOverlap(Node.NodeIndex, RootIOIndices)) { return; }
 
 				Split.NodeIndex = Node.NodeIndex;
 				InIntersections->Add(EdgeIndex, Split);
@@ -533,7 +533,6 @@ namespace PCGExGraph
 		mutable FRWLock InsertionLock;
 		const TSharedPtr<PCGExData::FPointIO> PointIO;
 		TSharedPtr<FGraph> Graph;
-		TSharedPtr<FUnionGraph> UnionGraph;
 
 		const FPCGExEdgeEdgeIntersectionDetails* Details;
 
@@ -608,7 +607,8 @@ namespace PCGExGraph
 		if (!InIntersections->Details->bEnableSelfIntersection)
 		{
 			const int32 RootIndex = InIntersections->Graph->FindEdgeMetadataUnsafe(Edge.EdgeIndex)->RootIndex;
-			const TSet<int32>& RootIOIndices = InIntersections->UnionGraph->EdgesUnion->Entries[RootIndex]->IOIndices;
+			TSharedPtr<PCGExData::FUnionMetadata> EdgesUnion = InIntersections->Graph->EdgesUnion;
+			const TSet<int32>& RootIOIndices = EdgesUnion->Entries[RootIndex]->IOIndices;
 
 			auto ProcessEdge = [&](const FEdgeEdgeProxy* Proxy)
 			{
@@ -622,7 +622,7 @@ namespace PCGExGraph
 				}
 
 				// Check overlap last as it's the most expensive op
-				if (InIntersections->UnionGraph->EdgesUnion->IOIndexOverlap(InIntersections->Graph->FindEdgeMetadataUnsafe(OtherEdge.EdgeIndex)->RootIndex, RootIOIndices)) { return; }
+				if (EdgesUnion->IOIndexOverlap(InIntersections->Graph->FindEdgeMetadataUnsafe(OtherEdge.EdgeIndex)->RootIndex, RootIOIndices)) { return; }
 
 				if (!Edge.FindSplit(OtherEdge, OutSplits))
 				{

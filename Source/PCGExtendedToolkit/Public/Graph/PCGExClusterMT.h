@@ -357,7 +357,7 @@ namespace PCGExClusterMT
 		bool bWriteVtxDataFacade = false;
 
 		TArray<TSharedPtr<PCGExData::FPointIO>> Edges;
-		TSharedPtr<PCGExData::FPointIOCollection> EdgeCollection;
+		TArray<TSharedRef<PCGExData::FFacade>>* EdgesDataFacades = nullptr;
 
 		TSharedPtr<PCGExGraph::FGraphBuilder> GraphBuilder;
 		FPCGExGraphBuilderDetails GraphBuilderDetails;
@@ -404,7 +404,8 @@ namespace PCGExClusterMT
 				PCGExGraph::BuildEndpointsLookup(VtxDataFacade->Source, EndpointsLookup, ExpectedAdjacency);
 				if (RequiresGraphBuilder())
 				{
-					GraphBuilder = MakeShared<PCGExGraph::FGraphBuilder>(VtxDataFacade, &GraphBuilderDetails, 6, EdgeCollection);
+					GraphBuilder = MakeShared<PCGExGraph::FGraphBuilder>(VtxDataFacade, &GraphBuilderDetails, 6);
+					GraphBuilder->SourceEdgeFacades = EdgesDataFacades;
 				}
 
 				OnProcessingPreparationComplete();
@@ -435,7 +436,8 @@ namespace PCGExClusterMT
 
 						if (This->RequiresGraphBuilder())
 						{
-							This->GraphBuilder = MakeShared<PCGExGraph::FGraphBuilder>(This->VtxDataFacade, &This->GraphBuilderDetails, 6, This->EdgeCollection);
+							This->GraphBuilder = MakeShared<PCGExGraph::FGraphBuilder>(This->VtxDataFacade, &This->GraphBuilderDetails, 6);
+							This->GraphBuilder->SourceEdgeFacades = This->EdgesDataFacades;
 						}
 
 						This->OnProcessingPreparationComplete();
@@ -575,8 +577,7 @@ namespace PCGExClusterMT
 
 			for (const TSharedPtr<PCGExData::FPointIO>& IO : Edges)
 			{
-				const TSharedPtr<PCGExData::FFacade> EdgeDataFacade = MakeShared<PCGExData::FFacade>(IO.ToSharedRef());
-				const TSharedPtr<T> NewProcessor = MakeShared<T>(VtxDataFacade, EdgeDataFacade.ToSharedRef());
+				const TSharedPtr<T> NewProcessor = MakeShared<T>(VtxDataFacade, (*EdgesDataFacades)[IO->IOIndex]);
 
 				NewProcessor->SetExecutionContext(ExecutionContext);
 				NewProcessor->ParentBatch = SelfPtr;

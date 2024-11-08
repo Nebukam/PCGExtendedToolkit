@@ -30,42 +30,6 @@ namespace PCGExNeighborSample
 }
 
 USTRUCT(BlueprintType)
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExDistanceSamplingDetails : public FPCGExDistanceDetails
-{
-	GENERATED_BODY()
-
-	FPCGExDistanceSamplingDetails()
-	{
-	}
-
-	explicit FPCGExDistanceSamplingDetails(const double InMaxDistance):
-		MaxDistance(InMaxDistance)
-	{
-	}
-
-	~FPCGExDistanceSamplingDetails()
-	{
-	}
-
-	/** Max distance at which a node can be selected. Use <= 0 to ignore distance check. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
-	double MaxDistance = -1;
-
-	FORCEINLINE bool WithinDistance(const FVector& NodePosition, const FVector& TargetPosition) const
-	{
-		if (MaxDistance <= 0) { return true; }
-		return FVector::Distance(NodePosition, TargetPosition) < MaxDistance;
-	}
-
-	FORCEINLINE bool WithinDistanceOut(const FVector& NodePosition, const FVector& TargetPosition, double& OutDistance) const
-	{
-		OutDistance = FVector::Distance(NodePosition, TargetPosition);
-		if (MaxDistance <= 0) { return true; }
-		return OutDistance < MaxDistance;
-	}
-};
-
-USTRUCT(BlueprintType)
 struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExSamplingConfig
 {
 	GENERATED_BODY()

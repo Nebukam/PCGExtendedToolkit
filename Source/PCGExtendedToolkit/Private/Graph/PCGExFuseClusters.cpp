@@ -64,6 +64,9 @@ bool FPCGExFuseClustersElement::Boot(FPCGExContext* InContext) const
 		Settings->DefaultPointsBlendingDetails,
 		Settings->DefaultEdgesBlendingDetails);
 
+	Context->UnionProcessor->VtxCarryOverDetails = &Context->VtxCarryOverDetails;
+	Context->UnionProcessor->EdgesCarryOverDetails = &Context->EdgesCarryOverDetails;
+
 	if (Settings->bFindPointEdgeIntersections)
 	{
 		Context->UnionProcessor->InitPointEdge(
@@ -111,16 +114,14 @@ bool FPCGExFuseClustersElement::ExecuteInternal(FPCGContext* InContext) const
 		const int32 NumFacades = Context->Batches.Num();
 
 		Context->VtxFacades.Reserve(NumFacades);
+		Context->UnionProcessor->SourceEdgesIO = &Context->EdgesDataFacades;
 
 		for (const TSharedPtr<PCGExClusterMT::FClusterProcessorBatchBase>& Batch : Context->Batches)
 		{
 			Context->VtxFacades.Add(Batch->VtxDataFacade);
 		}
 
-		if (!Context->UnionProcessor->StartExecution(
-			Context->VtxFacades,
-			Settings->GraphBuilderDetails,
-			&Settings->VtxCarryOverDetails)) { return true; }
+		if (!Context->UnionProcessor->StartExecution(Context->VtxFacades, Settings->GraphBuilderDetails)) { return true; }
 	}
 
 	if (!Context->UnionProcessor->Execute()) { return false; }
