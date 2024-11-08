@@ -396,7 +396,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExFuseDetails : public FPCGExSourceFuseDet
 	EPCGExDistance TargetDistance = EPCGExDistance::Center;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
-	EPCGExFuseMethod FuseMethod = EPCGExFuseMethod::Octree;
+	EPCGExFuseMethod FuseMethod = EPCGExFuseMethod::Voxel;
 
 	/** Offset the voxelized grid by an amount */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="FuseMethod==EPCGExFuseMethod::Voxel", EditConditionHides))
@@ -407,7 +407,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExFuseDetails : public FPCGExSourceFuseDet
 
 	/** Check this box if you're fusing over a very large radius and want to ensure determinism. NOTE : Will make things slower. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Force Determinism"))
-	bool bInlineInsertion = true;
+	bool bInlineInsertion = false;
 	
 	void Init()
 	{
