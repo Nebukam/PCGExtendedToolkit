@@ -389,13 +389,16 @@ namespace PCGExGraph
 
 		// Subgraphs
 
+		const bool bHasMetadata = MetadataDetails && !Graph->EdgeMetadata.IsEmpty();
+		
 		for (int i = 0; i < Graph->SubGraphs.Num(); i++)
 		{
 			const TSharedPtr<FSubGraph>& SubGraph = Graph->SubGraphs[i];
 			TSharedPtr<PCGExData::FPointIO> EdgeIO;
 
-			if (const int32 IOIndex = SubGraph->GetFirstInIOIndex(); SourceEdgeFacades && SourceEdgeFacades->IsValidIndex(IOIndex))
+			if (const int32 IOIndex = SubGraph->GetFirstInIOIndex(); bHasMetadata && SourceEdgeFacades && SourceEdgeFacades->IsValidIndex(IOIndex))
 			{
+				// Don't grab original point IO if we have metadata.
 				EdgeIO = EdgesIO->Emplace_GetRef<UPCGExClusterEdgesData>((*SourceEdgeFacades)[IOIndex]->Source, PCGExData::EInit::NewOutput);
 			}
 			else
@@ -498,7 +501,7 @@ namespace PCGExGraphTask
 			for (int i = 0; i < NumEdges; i++)
 			{
 				const PCGExGraph::FIndexedEdge& E = Graph->Edges[EdgeDump[i]];
-				FlattenedEdges[i] = PCGExGraph::FIndexedEdge(i, Graph->Nodes[E.Start].PointIndex, Graph->Nodes[E.End].PointIndex, i, i);
+				FlattenedEdges[i] = PCGExGraph::FIndexedEdge(i, Graph->Nodes[E.Start].PointIndex, Graph->Nodes[E.End].PointIndex, i, E.EdgeIndex);
 				Metadata->InitializeOnSet(MutablePoints[i].MetadataEntry);
 			}
 		}
@@ -523,12 +526,12 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 
 		TSharedPtr<PCGExData::FUnionMetadata> EdgesUnion = SubGraph->ParentGraph->EdgesUnion;
 		TSharedPtr<PCGExDataBlending::FUnionBlender> UnionBlender = nullptr;
-		TSharedPtr<PCGExDetails::FDistances> Distances = PCGExDetails::MakeDistances();
+		TSharedPtr<PCGExDetails::FDistances> Distances = PCGExDetails::MakeNoneDistances();
 
 		if (Builder->SourceEdgeFacades && EdgesUnion)
 		{
 			UnionBlender = MakeShared<PCGExDataBlending::FUnionBlender>(MetadataDetails->EdgesBlendingDetailsPtr, MetadataDetails->EdgesCarryOverDetails);
-			UnionBlender->AddSources(*Builder->SourceEdgeFacades);
+			UnionBlender->AddSources(*Builder->SourceEdgeFacades, &PCGExGraph::ProtectedClusterAttributes);
 			UnionBlender->PrepareMerge(SubGraph->EdgesDataFacade, EdgesUnion);
 		}
 
@@ -541,8 +544,25 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 			NumClusterIdWriter->GetMutable(E.Start) = ClusterId;
 			NumClusterIdWriter->GetMutable(E.End) = ClusterId;
 
-			EdgeEndpointsWriter->GetMutable(EdgeIndex) = PCGEx::H64(PCGExGraph::NodeGUID(BaseGUID, E.Start), PCGExGraph::NodeGUID(BaseGUID, E.End));
+			if(bHasUnionMetadata)
+			{
+				const PCGExGraph::FGraphEdgeMetadata* EdgeMeta = Graph->FindRootEdgeMetadataUnsafe(E.IOIndex);
+				if (EdgeMeta)
+				{
+					if (UnionBlender)
+					{
+						UnionBlender->MergeSingle(EdgeIndex, EdgesUnion->Get(EdgeMeta->RootIndex), Distances);
+					}
+					
+#define PCGEX_EDGE_METADATA_OUTPUT(_NAME, _TYPE, _DEFAULT, _ACCESSOR) if(_NAME##Buffer){_NAME##Buffer->GetMutable(EdgeIndex) = EdgeMeta->_ACCESSOR;}
+					PCGEX_FOREACH_EDGE_METADATA(PCGEX_EDGE_METADATA_OUTPUT)
+	#undef PCGEX_EDGE_METADATA_OUTPUT
+										
+				}
+			}
 
+			EdgeEndpointsWriter->GetMutable(EdgeIndex) = PCGEx::H64(PCGExGraph::NodeGUID(BaseGUID, E.Start), PCGExGraph::NodeGUID(BaseGUID, E.End));
+			
 			if (Graph->bWriteEdgePosition)
 			{
 				EdgePt.Transform.SetLocation(
@@ -551,34 +571,8 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 						Vertices[E.End].Transform.GetLocation(),
 						Graph->EdgePosition));
 			}
-
+			
 			if (EdgePt.Seed == 0 || Graph->bRefreshEdgeSeed) { EdgePt.Seed = PCGExRandom::ComputeSeed(EdgePt, SeedOffset); }
-
-			if(bHasUnionMetadata)
-			{
-				const PCGExGraph::FGraphEdgeMetadata* EdgeMeta = Graph->FindRootEdgeMetadataUnsafe(E.IOIndex);
-				if (EdgeMeta)
-				{
-					
-#define PCGEX_EDGE_METADATA_OUTPUT(_NAME, _TYPE, _DEFAULT, _ACCESSOR) if(_NAME##Buffer){_NAME##Buffer->GetMutable(EdgeIndex) = EdgeMeta->_ACCESSOR;}
-					PCGEX_FOREACH_EDGE_METADATA(PCGEX_EDGE_METADATA_OUTPUT)
-	#undef PCGEX_EDGE_METADATA_OUTPUT
-					
-					if (UnionBlender)
-					{
-						// Retrieve ItemHashSet from Edge' UnionData in the Graph.
-						// Edge UnionData contains all original edges from various sources that got merged into a final "edge" inside the UnionGraph
-						// ItemHashSet of the Edge UnionData contains hash in the form const uint64 H = PCGEx::H64(IOIndex, ItemIndex)
-						// So need to grab IOIndex@ItemIndex from SourceGraphIO
-						// and merge.
-						// Check UnionDataBlender, it just needs the EdgesIO and the right UnionData. We'll need to write the facade tho
-						UnionBlender->MergeSingle(EdgeIndex, EdgesUnion->Get(EdgeMeta->RootIndex), Distances);
-					}
-				}else
-				{
-					UE_LOG(LogTemp, Warning, TEXT("No Meta foor RootIndex = %d"), E.IOIndex)
-				}
-			}
 		}
 
 #undef PCGEX_FOREACH_EDGE_METADATA

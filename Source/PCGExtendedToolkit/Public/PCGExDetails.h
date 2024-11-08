@@ -223,12 +223,17 @@ namespace PCGExDetails
 			return FVector::DistSquared(OutSource, PCGExMath::GetSpatializedCenter<Target>(TargetPoint, TargetLocation, OutSource));
 		}
 	};
+	
 
 	static TSharedPtr<FDistances> MakeDistances(
 		const EPCGExDistance Source = EPCGExDistance::Center,
 		const EPCGExDistance Target = EPCGExDistance::Center)
 	{
-		if (Source == EPCGExDistance::Center)
+		if (Source == EPCGExDistance::None || Target == EPCGExDistance::None)
+		{
+			return MakeShared<PCGExDetails::TDistances<EPCGExDistance::None, EPCGExDistance::None>>();
+		}
+		else if (Source == EPCGExDistance::Center)
 		{
 			if (Target == EPCGExDistance::Center) { return MakeShared<PCGExDetails::TDistances<EPCGExDistance::Center, EPCGExDistance::Center>>(); }
 			else if (Target == EPCGExDistance::SphereBounds) { return MakeShared<PCGExDetails::TDistances<EPCGExDistance::Center, EPCGExDistance::SphereBounds>>(); }
@@ -248,6 +253,10 @@ namespace PCGExDetails
 		}
 
 		return nullptr;
+	}
+
+	static TSharedPtr<FDistances> MakeNoneDistances()	{
+		return MakeShared<PCGExDetails::TDistances<EPCGExDistance::None, EPCGExDistance::None>>();
 	}
 }
 

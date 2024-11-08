@@ -1255,7 +1255,11 @@ namespace PCGExMath
 		const FVector& FromCenter,
 		const FVector& ToCenter)
 	{
-		if constexpr (Mode == EPCGExDistance::SphereBounds)
+		if constexpr (Mode == EPCGExDistance::None)
+		{
+			return FVector::OneVector;
+		}
+		else if constexpr (Mode == EPCGExDistance::SphereBounds)
 		{
 			FVector Dir = ToCenter - FromCenter;
 			Dir.Normalize();

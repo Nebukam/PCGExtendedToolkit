@@ -68,8 +68,8 @@ namespace PCGExGraph
 		TArray<FPCGPoint>& MutablePoints = UnionDataFacade->GetOut()->GetMutablePoints();
 		MutablePoints.SetNum(NumUnionNodes);
 
-		UnionPointsBlender->AddSources(InFacades);
-		UnionPointsBlender->PrepareMerge(UnionDataFacade, UnionGraph->NodesUnion, nullptr); // TODO : Check if we want to ignore specific attributes // Answer : yes, cluster IDs etc
+		UnionPointsBlender->AddSources(InFacades, &PCGExGraph::ProtectedClusterAttributes);
+		UnionPointsBlender->PrepareMerge(UnionDataFacade, UnionGraph->NodesUnion); // TODO : Check if we want to ignore specific attributes // Answer : yes, cluster IDs etc
 
 		PCGEX_ASYNC_GROUP_CHKD(Context->GetAsyncManager(), ProcessNodesGroup)
 		TWeakPtr<FUnionProcessor> WeakPtr = SharedThis(this);
@@ -124,7 +124,7 @@ namespace PCGExGraph
 		GraphMetadataDetails.Grab(Context, PointPointIntersectionDetails);
 		GraphMetadataDetails.Grab(Context, PointEdgeIntersectionDetails);
 		GraphMetadataDetails.Grab(Context, EdgeEdgeIntersectionDetails);
-		GraphMetadataDetails.EdgesBlendingDetailsPtr = &DefaultEdgesBlendingDetails;
+		GraphMetadataDetails.EdgesBlendingDetailsPtr = bUseCustomEdgeEdgeBlending ? &CustomEdgeEdgeBlendingDetails : &DefaultEdgesBlendingDetails;
 		GraphMetadataDetails.EdgesCarryOverDetails = EdgesCarryOverDetails;
 
 		GraphBuilder = MakeShared<FGraphBuilder>(UnionDataFacade, &BuilderDetails, 4);
@@ -300,7 +300,7 @@ namespace PCGExGraph
 		if (bUseCustomPointEdgeBlending) { MetadataBlender = MakeShared<PCGExDataBlending::FMetadataBlender>(&CustomPointEdgeBlendingDetails); }
 		else { MetadataBlender = MakeShared<PCGExDataBlending::FMetadataBlender>(&DefaultPointsBlendingDetails); }
 
-		MetadataBlender->PrepareForData(UnionDataFacade, PCGExData::ESource::Out);
+		MetadataBlender->PrepareForData(UnionDataFacade, PCGExData::ESource::Out, true, &PCGExGraph::ProtectedClusterAttributes);
 
 		BlendPointEdgeGroup->OnCompleteCallback = [WeakPtr = TWeakPtr<FUnionProcessor>(SharedThis(this))]()
 		{
@@ -435,7 +435,7 @@ namespace PCGExGraph
 		if (bUseCustomEdgeEdgeBlending) { MetadataBlender = MakeShared<PCGExDataBlending::FMetadataBlender>(&CustomEdgeEdgeBlendingDetails); }
 		else { MetadataBlender = MakeShared<PCGExDataBlending::FMetadataBlender>(&DefaultPointsBlendingDetails); }
 
-		MetadataBlender->PrepareForData(UnionDataFacade, PCGExData::ESource::Out);
+		MetadataBlender->PrepareForData(UnionDataFacade, PCGExData::ESource::Out, true, &PCGExGraph::ProtectedClusterAttributes);
 
 		BlendEdgeEdgeGroup->OnCompleteCallback = [WeakThis = TWeakPtr<FUnionProcessor>(SharedThis(this))]()
 		{

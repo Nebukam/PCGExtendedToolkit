@@ -150,7 +150,7 @@ namespace PCGExGraph
 	PCGEX_ASYNC_STATE(State_Pathfinding)
 	PCGEX_ASYNC_STATE(State_WaitingPathfinding)
 
-	const TSet<FName> IgnoreGraphBlendAttributes = {Tag_EdgeEndpoints, Tag_VtxEndpoint, Tag_ClusterIndex, Tag_ClusterId};
+	const TSet<FName> ProtectedClusterAttributes = {Tag_EdgeEndpoints, Tag_VtxEndpoint, Tag_ClusterIndex, Tag_ClusterId};
 
 	class FGraph;
 

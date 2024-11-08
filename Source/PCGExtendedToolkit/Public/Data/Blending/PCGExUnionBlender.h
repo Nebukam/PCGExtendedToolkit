@@ -62,8 +62,8 @@ namespace PCGExDataBlending
 		explicit FUnionBlender(const FPCGExBlendingDetails* InBlendingDetails, const FPCGExCarryOverDetails* InCarryOverDetails);
 		~FUnionBlender();
 
-		void AddSource(const TSharedPtr<PCGExData::FFacade>& InFacade);
-		void AddSources(const TArray<TSharedRef<PCGExData::FFacade>>& InFacades);
+		void AddSource(const TSharedPtr<PCGExData::FFacade>& InFacade, const TSet<FName>* IgnoreAttributeSet = nullptr);
+		void AddSources(const TArray<TSharedRef<PCGExData::FFacade>>& InFacades, const TSet<FName>* IgnoreAttributeSet = nullptr);
 
 		void PrepareMerge(const TSharedPtr<PCGExData::FFacade>& TargetData, const TSharedPtr<PCGExData::FUnionMetadata>& InUnionMetadata, const TSet<FName>* IgnoreAttributeSet = nullptr);
 		void MergeSingle(const int32 UnionIndex, const TSharedPtr<PCGExDetails::FDistances>& InDistanceDetails);
@@ -80,6 +80,8 @@ namespace PCGExDataBlending
 		const FPCGExBlendingDetails* BlendingDetails = nullptr;
 
 		TArray<TSharedPtr<FAttributeSourceMap>> AttributeSourceMaps;
+		TArray<TSharedPtr<FAttributeSourceMap>> PreparedSourceMaps;
+
 		TSet<FString> UniqueTags;
 		TArray<FString> UniqueTagsList;
 		TArray<FPCGMetadataAttribute<bool>*> TagAttributes;
