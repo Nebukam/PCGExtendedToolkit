@@ -82,6 +82,7 @@ enum class EPCGExDistance : uint8
 	Center       = 0 UMETA(DisplayName = "Center", ToolTip="Center"),
 	SphereBounds = 1 UMETA(DisplayName = "Sphere Bounds", ToolTip="Point sphere which radius is scaled extent"),
 	BoxBounds    = 2 UMETA(DisplayName = "Box Bounds", ToolTip="Point extents"),
+	None         = 3 UMETA(Hidden, DisplayName = "None", ToolTip="Used for union blending with full weight."),
 };
 
 UENUM(/*E--BlueprintType, meta=(DisplayName="[PCGEx] Index Safety")--E*/)

@@ -323,6 +323,8 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExSampleNearestSplineContext final : FPCGE
 {
 	friend class FPCGExSampleNearestSplineElement;
 
+	TSharedPtr<PCGExDetails::FDistances> DistanceDetails;
+	
 	TArray<const UPCGSplineData*> Targets;
 	TArray<FPCGSplineStruct> Splines;
 	TArray<double> SegmentCounts;

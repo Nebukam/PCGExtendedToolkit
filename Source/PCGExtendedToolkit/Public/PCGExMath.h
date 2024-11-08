@@ -1249,21 +1249,24 @@ namespace PCGExMath
 
 #pragma region Spatialized distances
 
-	// Stolen from PCGDistance
+	template <EPCGExDistance Mode>
 	FORCEINLINE static FVector GetSpatializedCenter(
-		const EPCGExDistance Shape,
 		const FPCGPoint& FromPoint,
 		const FVector& FromCenter,
 		const FVector& ToCenter)
 	{
-		if (Shape == EPCGExDistance::SphereBounds)
+		if constexpr (Mode == EPCGExDistance::None)
+		{
+			return FVector::OneVector;
+		}
+		else if constexpr (Mode == EPCGExDistance::SphereBounds)
 		{
 			FVector Dir = ToCenter - FromCenter;
 			Dir.Normalize();
 
 			return FromCenter + Dir * FromPoint.GetScaledExtents().Length();
 		}
-		if (Shape == EPCGExDistance::BoxBounds)
+		else if constexpr (Mode == EPCGExDistance::BoxBounds)
 		{
 			const FVector LocalTargetCenter = FromPoint.Transform.InverseTransformPosition(ToCenter);
 
@@ -1276,9 +1279,10 @@ namespace PCGExMath
 
 			return FromPoint.Transform.TransformPosition(LocalClosestPoint);
 		}
-
-		// EPCGExDistance::Center
-		return FromCenter;
+		else
+		{
+			return FromCenter;
+		}
 	}
 
 #pragma endregion

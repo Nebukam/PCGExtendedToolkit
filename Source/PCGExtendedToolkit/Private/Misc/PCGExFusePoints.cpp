@@ -21,6 +21,8 @@ bool FPCGExFusePointsElement::Boot(FPCGExContext* InContext) const
 
 	PCGEX_CONTEXT_AND_SETTINGS(FusePoints)
 
+	Context->Distances = PCGExDetails::MakeDistances(Settings->PointPointIntersectionDetails.FuseDetails.SourceDistance, Settings->PointPointIntersectionDetails.FuseDetails.TargetDistance);
+
 	PCGEX_FWD(CarryOverDetails)
 	Context->CarryOverDetails.Init();
 
@@ -94,8 +96,8 @@ namespace PCGExFusePoints
 		FPCGPoint& Point = MutablePoints[Iteration];
 		Point.MetadataEntry = Key; // Restore key
 
-		Point.Transform.SetLocation(UnionNode->UpdateCenter(UnionGraph->PointsUnion, Context->MainPoints));
-		UnionBlender->MergeSingle(Iteration, PCGExDetails::GetDistanceDetails(Settings->PointPointIntersectionDetails));
+		Point.Transform.SetLocation(UnionNode->UpdateCenter(UnionGraph->NodesUnion, Context->MainPoints));
+		UnionBlender->MergeSingle(Iteration, Context->Distances);
 	}
 
 	void FProcessor::CompleteWork()
@@ -104,8 +106,8 @@ namespace PCGExFusePoints
 		PointDataFacade->Source->GetOut()->GetMutablePoints().SetNum(NumUnionNodes);
 
 		UnionBlender = MakeShared<PCGExDataBlending::FUnionBlender>(const_cast<FPCGExBlendingDetails*>(&Settings->BlendingDetails), &Context->CarryOverDetails);
-		UnionBlender->AddSource(PointDataFacade);
-		UnionBlender->PrepareMerge(PointDataFacade, UnionGraph->PointsUnion);
+		UnionBlender->AddSource(PointDataFacade, &PCGExGraph::ProtectedClusterAttributes);
+		UnionBlender->PrepareMerge(PointDataFacade, UnionGraph->NodesUnion);
 
 		StartParallelLoopForRange(NumUnionNodes);
 	}

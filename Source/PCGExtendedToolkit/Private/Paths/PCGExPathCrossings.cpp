@@ -39,6 +39,7 @@ bool FPCGExPathCrossingsElement::Boot(FPCGExContext* InContext) const
 	GetInputFactories(Context, PCGExPaths::SourceCanCutFilters, Context->CanCutFilterFactories, PCGExFactories::PointFilters, false);
 	GetInputFactories(Context, PCGExPaths::SourceCanBeCutFilters, Context->CanBeCutFilterFactories, PCGExFactories::PointFilters, false);
 
+	Context->Distances = PCGExDetails::MakeDistances();
 	Context->CrossingBlending = Settings->CrossingBlending;
 
 	if (Settings->bOrientCrossing)
@@ -439,7 +440,7 @@ namespace PCGExPathCrossings
 			Union->Reset();
 			Union->Add(IOIdx, PtIdx);
 			Union->Add(IOIdx, SecondIndex);
-			UnionBlender->SoftMergeSingle(Edge.AltStart + i + 1, Union.Get(), Settings->CrossingBlendingDistance);
+			UnionBlender->SoftMergeSingle(Edge.AltStart + i + 1, Union.Get(), Context->Distances);
 		}
 	}
 

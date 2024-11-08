@@ -3,7 +3,7 @@
 
 #include "Sampling/PCGExSampleNearestSpline.h"
 
-/*BUILD_TOOL_BUG_55_TOGGLE*/#include "CoreMinimal.h"
+///*BUILD_TOOL_BUG_55_TOGGLE*/#include "CoreMinimal.h"
 #define LOCTEXT_NAMESPACE "PCGExSampleNearestSplineElement"
 #define PCGEX_NAMESPACE SampleNearestPolyLine
 
@@ -35,6 +35,8 @@ bool FPCGExSampleNearestSplineElement::Boot(FPCGExContext* InContext) const
 	PCGEX_CONTEXT_AND_SETTINGS(SampleNearestSpline)
 
 	TArray<FPCGTaggedData> Targets = Context->InputData.GetInputsByPin(PCGEx::SourceTargetsLabel);
+
+	Context->DistanceDetails = PCGExDetails::MakeDistances(Settings->DistanceSettings, Settings->DistanceSettings);
 
 	if (!Targets.IsEmpty())
 	{
@@ -195,7 +197,6 @@ namespace PCGExSampleNearestSpline
 			return;
 		}
 
-
 		int32 NumInside = 0;
 		int32 NumSampled = 0;
 		int32 NumInClosed = 0;
@@ -214,7 +215,7 @@ namespace PCGExSampleNearestSpline
 		FVector Origin = Point.Transform.GetLocation();
 		auto ProcessTarget = [&](const FTransform& Transform, const double& Time, const FPCGSplineStruct& InSpline)
 		{
-			const FVector ModifiedOrigin = PCGExMath::GetSpatializedCenter(Settings->DistanceSettings, Point, Origin, Transform.GetLocation());
+			const FVector ModifiedOrigin = Context->DistanceDetails->GetSourceCenter(Point, Origin, Transform.GetLocation());
 			const double Dist = FVector::DistSquared(ModifiedOrigin, Transform.GetLocation());
 
 			if (RangeMax > 0 && (Dist < RangeMin || Dist > RangeMax)) { return; }

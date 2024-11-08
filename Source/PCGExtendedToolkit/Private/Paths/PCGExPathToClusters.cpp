@@ -63,6 +63,8 @@ bool FPCGExPathToClustersElement::Boot(FPCGExContext* InContext) const
 			Settings->DefaultPointsBlendingDetails,
 			Settings->DefaultEdgesBlendingDetails);
 
+		Context->UnionProcessor->VtxCarryOverDetails = &Context->CarryOverDetails;
+
 		if (Settings->bFindPointEdgeIntersections)
 		{
 			Context->UnionProcessor->InitPointEdge(
@@ -155,11 +157,8 @@ bool FPCGExPathToClustersElement::ExecuteInternal(FPCGContext* InContext) const
 			}
 
 			Context->MainBatch.Reset();
-
-			if (!Context->UnionProcessor->StartExecution(
-				Context->PathsFacades,
-				Settings->GraphBuilderDetails,
-				&Settings->CarryOverDetails)) { return true; }
+			
+			if (!Context->UnionProcessor->StartExecution(Context->PathsFacades, Settings->GraphBuilderDetails)) { return true; }
 		}
 
 		if (!Context->UnionProcessor->Execute()) { return false; }

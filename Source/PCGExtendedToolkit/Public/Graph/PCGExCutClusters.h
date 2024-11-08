@@ -105,6 +105,8 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExCutEdgesContext final : FPCGExEdgesProce
 {
 	friend class FPCGExCutEdgesElement;
 
+	TSharedPtr<PCGExDetails::FDistances> DistanceDetails;
+	
 	FPCGExPathClosedLoopDetails ClosedLoop;
 	FPCGExPathEdgeIntersectionDetails IntersectionDetails;
 

@@ -4,7 +4,6 @@
 #include "Paths/PCGExSplineToPath.h"
 
 #include "VectorTypes.h"
-#include "Misc/PCGExRefreshSeed.h"
 #include "Sampling/PCGExSampleNearestSpline.h"
 
 #define LOCTEXT_NAMESPACE "PCGExSplineToPathElement"

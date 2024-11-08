@@ -90,6 +90,7 @@ private:
 struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExFusePointsContext final : FPCGExPointsProcessorContext
 {
 	friend class FPCGExFusePointsElement;
+	TSharedPtr<PCGExDetails::FDistances> Distances;
 	FPCGExCarryOverDetails CarryOverDetails;
 };
 

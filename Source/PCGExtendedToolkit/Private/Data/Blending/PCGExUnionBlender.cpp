@@ -24,7 +24,7 @@ namespace PCGExDataBlending
 	{
 	}
 
-	void FUnionBlender::AddSource(const TSharedPtr<PCGExData::FFacade>& InFacade)
+	void FUnionBlender::AddSource(const TSharedPtr<PCGExData::FFacade>& InFacade, const TSet<FName>* IgnoreAttributeSet)
 	{
 		const int32 SourceIdx = Sources.Add(InFacade);
 		const int32 NumSources = Sources.Num();
@@ -44,7 +44,7 @@ namespace PCGExDataBlending
 		for (const PCGEx::FAttributeIdentity& Identity : SourceAttributes)
 		{
 			FPCGMetadataAttributeBase* SourceAttribute = SourceMetadata->GetMutableAttribute(Identity.Name);
-			if (!SourceAttribute) { continue; }
+			if (!SourceAttribute || (IgnoreAttributeSet && IgnoreAttributeSet->Contains(SourceAttribute->Name))) { continue; }
 
 			FAttributeSourceMap* Map = nullptr;
 			const EPCGExDataBlendingType* BlendTypePtr = BlendingDetails->AttributesOverrides.Find(Identity.Name);
@@ -88,20 +88,23 @@ namespace PCGExDataBlending
 		}
 	}
 
-	void FUnionBlender::AddSources(const TArray<TSharedRef<PCGExData::FFacade>>& InFacades)
+	void FUnionBlender::AddSources(const TArray<TSharedRef<PCGExData::FFacade>>& InFacades, const TSet<FName>* IgnoreAttributeSet)
 	{
-		for (TSharedRef<PCGExData::FFacade> Facade : InFacades) { AddSource(Facade); }
+		for (TSharedRef<PCGExData::FFacade> Facade : InFacades) { AddSource(Facade, IgnoreAttributeSet); }
 	}
 
 	void FUnionBlender::PrepareMerge(
 		const TSharedPtr<PCGExData::FFacade>& TargetData,
-		const TSharedPtr<PCGExData::FUnionMetadata>& InUnionMetadata, const TSet<FName>* IgnoreAttributeSet)
+		const TSharedPtr<PCGExData::FUnionMetadata>& InUnionMetadata,
+		const TSet<FName>* IgnoreAttributeSet)
 	{
 		CurrentUnionMetadata = InUnionMetadata;
 		CurrentTargetData = TargetData;
 
 		const FPCGExPropertiesBlendingDetails PropertiesBlendingDetails = BlendingDetails->GetPropertiesBlendingDetails();
 		PropertiesBlender = PropertiesBlendingDetails.HasNoBlending() ? nullptr : MakeUnique<FPropertiesBlender>(PropertiesBlendingDetails);
+
+		PreparedSourceMaps.Reset(AttributeSourceMaps.Num());
 
 		// Create blending operations
 		for (const TSharedPtr<FAttributeSourceMap>& SrcMap : AttributeSourceMaps)
@@ -133,16 +136,17 @@ namespace PCGExDataBlending
 					}
 
 					SrcMap->TargetBlendOp->PrepareForData(Writer, CurrentTargetData, PCGExData::ESource::Out);
+					PreparedSourceMaps.Add(SrcMap);
 				});
 		}
 	}
 
-	void FUnionBlender::MergeSingle(const int32 UnionIndex, const FPCGExDistanceDetails& InDistanceDetails)
+	void FUnionBlender::MergeSingle(const int32 UnionIndex, const TSharedPtr<PCGExDetails::FDistances>& InDistanceDetails)
 	{
 		MergeSingle(UnionIndex, CurrentUnionMetadata->Get(UnionIndex), InDistanceDetails);
 	}
 
-	void FUnionBlender::MergeSingle(const int32 WriteIndex, const PCGExData::FUnionData* InUnionData, const FPCGExDistanceDetails& InDistanceDetails)
+	void FUnionBlender::MergeSingle(const int32 WriteIndex, const PCGExData::FUnionData* InUnionData, const TSharedPtr<PCGExDetails::FDistances>& InDistanceDetails)
 	{
 		TArray<int32> IdxIO;
 		TArray<int32> IdxPt;
@@ -167,7 +171,7 @@ namespace PCGExDataBlending
 
 		// Blend Attributes
 
-		for (const TSharedPtr<FAttributeSourceMap>& SrcMap : AttributeSourceMaps)
+		for (const TSharedPtr<FAttributeSourceMap>& SrcMap : PreparedSourceMaps)
 		{
 			SrcMap->TargetBlendOp->PrepareOperation(WriteIndex);
 
@@ -210,6 +214,8 @@ namespace PCGExDataBlending
 
 		CarryOverDetails->Reduce(UniqueTags);
 
+		PreparedSourceMaps.Reset(AttributeSourceMaps.Num());
+
 		// Create blending operations
 		for (const TSharedPtr<FAttributeSourceMap>& SrcMap : AttributeSourceMaps)
 		{
@@ -227,6 +233,7 @@ namespace PCGExDataBlending
 					}
 
 					SrcMap->TargetBlendOp->SoftPrepareForData(CurrentTargetData, CurrentTargetData, PCGExData::ESource::Out);
+					PreparedSourceMaps.Add(SrcMap);
 				});
 		}
 
@@ -245,12 +252,12 @@ namespace PCGExDataBlending
 		}
 	}
 
-	void FUnionBlender::SoftMergeSingle(const int32 UnionIndex, const FPCGExDistanceDetails& InDistanceDetails)
+	void FUnionBlender::SoftMergeSingle(const int32 UnionIndex, const TSharedPtr<PCGExDetails::FDistances>& InDistanceDetails)
 	{
 		SoftMergeSingle(UnionIndex, CurrentUnionMetadata->Get(UnionIndex), InDistanceDetails);
 	}
 
-	void FUnionBlender::SoftMergeSingle(const int32 UnionIndex, const PCGExData::FUnionData* InUnionData, const FPCGExDistanceDetails& InDistanceDetails)
+	void FUnionBlender::SoftMergeSingle(const int32 UnionIndex, const PCGExData::FUnionData* InUnionData, const TSharedPtr<PCGExDetails::FDistances>& InDistanceDetails)
 	{
 		TArray<int32> IdxIO;
 		TArray<int32> IdxPt;
@@ -273,7 +280,7 @@ namespace PCGExDataBlending
 		BlendProperties(Target, IdxIO, IdxPt, Weights);
 
 		// Blend Attributes
-		for (const TSharedPtr<FAttributeSourceMap>& SrcMap : AttributeSourceMaps)
+		for (const TSharedPtr<FAttributeSourceMap>& SrcMap : PreparedSourceMaps)
 		{
 			SrcMap->TargetBlendOp->PrepareOperation(Target.MetadataEntry);
 
