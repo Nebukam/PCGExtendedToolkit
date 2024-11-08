@@ -334,15 +334,16 @@ namespace PCGExData
 			if (!bUninitialized)
 			{
 				const int32 ExistingEntryCount = TypedOutAttribute->GetNumberOfEntries();
-				if(ExistingEntryCount != 0)
+				const bool bHasIn = Source->GetIn() ? true : false;
+				if(!bHasIn && ExistingEntryCount != 0)
 				{
-					// We have values to grab from the existing attribute!
-					UPCGMetadata* InMetadata = Source->GetOut()->Metadata;
+					// We have values to grab from the existing attribute and no input
+					// only for very specific situations (Union blender)
 					TUniquePtr<FPCGAttributeAccessorKeysPoints> TempOutKeys = MakeUnique<FPCGAttributeAccessorKeysPoints>(MakeArrayView(Source->GetMutablePoints().GetData(), ExistingEntryCount));
 					TArrayView<T> OutRange = MakeArrayView(OutValues->GetData(), FMath::Min(OutValues->Num(), ExistingEntryCount));
 					OutAccessor->GetRange(OutRange, 0, *TempOutKeys.Get());
 				}
-				else if(Source->GetIn())
+				else if(bHasIn)
 				{
 					if (InValues && bReadComplete)
 					{
