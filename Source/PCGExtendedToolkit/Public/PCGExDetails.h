@@ -402,14 +402,13 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExFuseDetails : public FPCGExSourceFuseDet
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="FuseMethod==EPCGExFuseMethod::Voxel", EditConditionHides))
 	FVector VoxelGridOffset = FVector::ZeroVector;
 
-	/** Check this box if you're fusing over a very large radius and want to ensure determinism. NOTE : Will make things slower. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Force Determinism", EditCondition="FuseMethod==EPCGExFuseMethod::Octree", EditConditionHides))
-	bool bInlineInsertion = false;
-
-
 	FVector CWTolerance = FVector::OneVector;
 	TSharedPtr<PCGExDetails::FDistances> DistanceDetails;
 
+	/** Check this box if you're fusing over a very large radius and want to ensure determinism. NOTE : Will make things slower. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Force Determinism"))
+	bool bInlineInsertion = true;
+	
 	void Init()
 	{
 		if (FuseMethod == EPCGExFuseMethod::Voxel)
@@ -429,7 +428,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExFuseDetails : public FPCGExSourceFuseDet
 		DistanceDetails = PCGExDetails::MakeDistances(SourceDistance, TargetDistance);
 	}
 
-	bool DoInlineInsertion() const { return FuseMethod == EPCGExFuseMethod::Octree && bInlineInsertion; }
+	bool DoInlineInsertion() const { return bInlineInsertion; }
 
 	FORCEINLINE uint32 GetGridKey(const FVector& Location) const { return PCGEx::GH(Location + VoxelGridOffset, CWTolerance); }
 	FORCEINLINE FBoxCenterAndExtent GetOctreeBox(const FVector& Location) const { return FBoxCenterAndExtent(Location, CWTolerance); }
