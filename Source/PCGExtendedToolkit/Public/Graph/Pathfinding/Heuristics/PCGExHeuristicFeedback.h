@@ -148,6 +148,7 @@ public:
 	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(
 		HeuristicsFeedback, "Heuristics : Feedback", "Heuristics based on visited score feedback.",
 		FName(GetDisplayName()))
+	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->NodeColorHeuristicsFeedback; }
 #endif
 	//~End UPCGSettings
 
