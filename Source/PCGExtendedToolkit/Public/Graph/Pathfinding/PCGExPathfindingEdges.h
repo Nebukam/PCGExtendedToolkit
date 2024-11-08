@@ -47,7 +47,7 @@ public:
 	//~End UObject interface
 
 	/** Controls how goals are picked.*/
-	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = GoalPicker, Instanced, meta = (PCG_Overridable, NoResetToDefault, ShowOnlyInnerProperties))
+	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "Settings|GoalPicker", Instanced, meta = (PCG_Overridable, NoResetToDefault, ShowOnlyInnerProperties))
 	TObjectPtr<UPCGExGoalPicker> GoalPicker;
 
 	/** Add seed point at the beginning of the path */
@@ -71,7 +71,7 @@ public:
 	FPCGExNodeSelectionDetails GoalPicking;
 
 	/** Search algorithm. */
-	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = Search, Instanced, meta = (PCG_Overridable, NoResetToDefault, ShowOnlyInnerProperties))
+	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = Settings, Instanced, meta = (PCG_Overridable, NoResetToDefault, ShowOnlyInnerProperties))
 	TObjectPtr<UPCGExSearchOperation> SearchAlgorithm;
 
 	/** TBD */
