@@ -61,9 +61,6 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Cross Blending", meta=(PCG_Overridable, EditCondition="bDoCrossBlending"))
 	FPCGExBlendingDetails CrossingBlending = FPCGExBlendingDetails(EPCGExDataBlendingType::Average, EPCGExDataBlendingType::None);
 
-	FPCGExDistanceDetails CrossingBlendingDistance;
-
-
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(PCG_Overridable, InlineEditConditionToggle))
 	bool bWriteAlpha = false;
 
@@ -113,6 +110,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPathCrossingsContext final : FPCGExPathP
 
 	UPCGExSubPointsBlendOperation* Blending = nullptr;
 
+	TSharedPtr<PCGExDetails::FDistances> Distances;
 	FPCGExBlendingDetails CrossingBlending;
 };
 

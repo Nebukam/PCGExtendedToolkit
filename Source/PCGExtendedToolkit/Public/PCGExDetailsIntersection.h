@@ -177,26 +177,4 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExEdgeEdgeIntersectionDetails
 	FORCEINLINE bool CheckDot(const double InDot) const { return InDot <= MaxDot && InDot >= MinDot; }
 };
 
-namespace PCGExDetails
-{
-#pragma region Distance Settings
-
-	static FPCGExDistanceDetails GetDistanceDetails(const FPCGExEdgeEdgeIntersectionDetails& InSettings)
-	{
-		return FPCGExDistanceDetails(EPCGExDistance::Center, EPCGExDistance::Center);
-	}
-
-	static FPCGExDistanceDetails GetDistanceDetails(const FPCGExPointPointIntersectionDetails& InSettings)
-	{
-		return FPCGExDistanceDetails(InSettings.FuseDetails.SourceDistance, InSettings.FuseDetails.TargetDistance);
-	}
-
-	static FPCGExDistanceDetails GetDistanceDetails(const FPCGExPointEdgeIntersectionDetails& InSettings)
-	{
-		return FPCGExDistanceDetails(InSettings.FuseDetails.SourceDistance, EPCGExDistance::Center);
-	}
-
-#pragma endregion
-}
-
 #undef PCGEX_SOFT_VALIDATE_NAME_DETAILS

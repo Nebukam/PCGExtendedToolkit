@@ -803,7 +803,7 @@ namespace PCGExData
 			const TArray<TSharedPtr<FFacade>>& Sources,
 			const TMap<uint32, int32>& SourcesIdx,
 			const FPCGPoint& Target,
-			const FPCGExDistanceDetails& InDistanceDetails,
+			const TSharedPtr<PCGExDetails::FDistances>& InDistanceDetails,
 			TArray<int32>& OutIOIdx,
 			TArray<int32>& OutPointsIdx,
 			TArray<double>& OutWeights) const;

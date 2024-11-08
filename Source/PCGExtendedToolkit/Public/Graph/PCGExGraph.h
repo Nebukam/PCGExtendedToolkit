@@ -14,6 +14,7 @@
 #include "Data/PCGExData.h"
 #include "PCGExGraph.generated.h"
 
+struct FPCGExBlendingDetails;
 struct FPCGExTransformDetails;
 
 namespace PCGExGraph
@@ -149,7 +150,7 @@ namespace PCGExGraph
 	PCGEX_ASYNC_STATE(State_Pathfinding)
 	PCGEX_ASYNC_STATE(State_WaitingPathfinding)
 
-	const TSet<FName> IgnoreGraphBlendAttributes = {Tag_EdgeEndpoints, Tag_VtxEndpoint, Tag_ClusterIndex, Tag_ClusterId};
+	const TSet<FName> ProtectedClusterAttributes = {Tag_EdgeEndpoints, Tag_VtxEndpoint, Tag_ClusterIndex, Tag_ClusterId};
 
 	class FGraph;
 
@@ -294,6 +295,10 @@ namespace PCGExGraph
 
 	struct /*PCGEXTENDEDTOOLKIT_API*/ FGraphMetadataDetails
 	{
+		
+		const FPCGExBlendingDetails* EdgesBlendingDetailsPtr = nullptr;
+		const FPCGExCarryOverDetails* EdgesCarryOverDetails = nullptr;
+		
 #define PCGEX_FOREACH_POINTPOINT_METADATA(MACRO)\
 		MACRO(IsPointUnion, PointUnionData.bWriteIsUnion, PointUnionData.IsUnion, TEXT("bIsUnion"))\
 		MACRO(PointUnionSize, PointUnionData.bWriteUnionSize, PointUnionData.UnionSize, TEXT("UnionSize"))\
@@ -467,7 +472,10 @@ namespace PCGExGraph
 		TArray<FNode> Nodes;
 		TArray<FIndexedEdge> Edges;
 
+		TSharedPtr<PCGExData::FUnionMetadata> NodesUnion;
 		TMap<int32, FGraphNodeMetadata> NodeMetadata;
+
+		TSharedPtr<PCGExData::FUnionMetadata> EdgesUnion;
 		TMap<int32, FGraphEdgeMetadata> EdgeMetadata;
 
 		TMap<uint64, int32> UniqueEdges;
@@ -568,6 +576,37 @@ namespace PCGExGraph
 			}
 		}
 
+		FORCEINLINE void AddNodeAndEdgeMetadata(
+			const int32 InNodeIndex,
+			const int32 InEdgeIndex,
+			const FGraphEdgeMetadata* InParentMetadata,
+			const EPCGExIntersectionType InType)
+		{
+			FGraphNodeMetadata& N = GetOrCreateNodeMetadataUnsafe(InNodeIndex);
+			N.Type = InType;
+
+			FGraphEdgeMetadata& E = GetOrCreateEdgeMetadataUnsafe(InEdgeIndex, InParentMetadata);
+			E.Type = InType;
+		}
+
+		FORCEINLINE void AddNodeMetadata(
+			const int32 InNodeIndex,
+			const FGraphEdgeMetadata* InParentMetadata,
+			const EPCGExIntersectionType InType)
+		{
+			FGraphNodeMetadata& N = GetOrCreateNodeMetadataUnsafe(InNodeIndex);
+			N.Type = InType;
+		}
+
+		FORCEINLINE void AddEdgeMetadata(
+			const int32 InEdgeIndex,
+			const FGraphEdgeMetadata* InParentMetadata,
+			const EPCGExIntersectionType InType)
+		{
+			FGraphEdgeMetadata& E = GetOrCreateEdgeMetadataUnsafe(InEdgeIndex, InParentMetadata);
+			E.Type = InType;
+		}
+
 		FORCEINLINE FGraphNodeMetadata* FindNodeMetadataUnsafe(const int32 NodeIndex) { return NodeMetadata.Find(NodeIndex); }
 		FORCEINLINE FGraphEdgeMetadata* FindEdgeMetadataUnsafe(const int32 EdgeIndex) { return EdgeMetadata.Find(EdgeIndex); }
 		FORCEINLINE FGraphEdgeMetadata* FindRootEdgeMetadataUnsafe(const int32 EdgeIndex)
@@ -632,13 +671,18 @@ namespace PCGExGraph
 		TSharedPtr<PCGEx::FIndexLookup> NodeIndexLookup;
 
 		TSharedPtr<PCGExData::FPointIOCollection> EdgesIO;
-		TSharedPtr<PCGExData::FPointIOCollection> SourceEdgesIO;
+		const TArray<TSharedRef<PCGExData::FFacade>>* SourceEdgeFacades = nullptr;
+
 		TSharedPtr<TArray<int32>> OutputNodeIndices;
 
 		bool bCompiledSuccessfully = false;
 
-		FGraphBuilder(const TSharedRef<PCGExData::FFacade>& InNodeDataFacade, const FPCGExGraphBuilderDetails* InDetails, const int32 NumEdgeReserve = 6, const TSharedPtr<PCGExData::FPointIOCollection>& InSourceEdges = nullptr)
-			: OutputDetails(InDetails), NodeDataFacade(InNodeDataFacade), SourceEdgesIO(InSourceEdges)
+		FGraphBuilder(
+			const TSharedRef<PCGExData::FFacade>& InNodeDataFacade,
+			const FPCGExGraphBuilderDetails* InDetails,
+			const int32 NumEdgeReserve = 6)
+			: OutputDetails(InDetails),
+			  NodeDataFacade(InNodeDataFacade)
 		{
 			PCGEX_LOG_CTR(FGraphBuilder)
 
@@ -657,6 +701,8 @@ namespace PCGExGraph
 			EdgesIO = MakeShared<PCGExData::FPointIOCollection>(NodeDataFacade->Source->GetContext());
 			EdgesIO->DefaultOutputLabel = OutputEdgesLabel;
 		}
+
+		const FGraphMetadataDetails* GetMetadataDetails() const { return MetadataDetailsPtr; }
 
 		void CompileAsync(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager, const bool bWriteNodeFacade, const FGraphMetadataDetails* MetadataDetails = nullptr);
 		void Compile(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager, const bool bWriteNodeFacade, const FGraphMetadataDetails* MetadataDetails = nullptr);
@@ -779,7 +825,7 @@ namespace PCGExGraphTask
 	static void WriteSubGraphEdges(
 		const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager,
 		const TSharedPtr<PCGExGraph::FSubGraph>& SubGraph,
-		const PCGExGraph::FGraphMetadataDetails* MetadataDetails);
+		const TSharedPtr<PCGExGraph::FGraphBuilder>& Builder);
 
 	class /*PCGEXTENDEDTOOLKIT_API*/ FWriteSubGraphCluster final : public PCGExMT::FPCGExTask
 	{

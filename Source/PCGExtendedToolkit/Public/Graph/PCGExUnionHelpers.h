@@ -22,8 +22,11 @@ namespace PCGExGraph
 
 		TSharedRef<PCGExData::FFacade> UnionDataFacade;
 		TSharedPtr<FUnionGraph> UnionGraph;
+		const TArray<TSharedRef<PCGExData::FFacade>>* SourceEdgesIO = nullptr;
 
 		FPCGExPointPointIntersectionDetails PointPointIntersectionDetails;
+		const FPCGExCarryOverDetails* VtxCarryOverDetails = nullptr;
+		const FPCGExCarryOverDetails* EdgesCarryOverDetails = nullptr;
 
 		bool bDoPointEdge = false;
 		FPCGExPointEdgeIntersectionDetails PointEdgeIntersectionDetails;
@@ -62,8 +65,7 @@ namespace PCGExGraph
 
 		bool StartExecution(
 			const TArray<TSharedRef<PCGExData::FFacade>>& InFacades,
-			const FPCGExGraphBuilderDetails& InBuilderDetails,
-			const FPCGExCarryOverDetails* InCarryOverDetails);
+			const FPCGExGraphBuilderDetails& InBuilderDetails);
 
 		bool Execute();
 
@@ -85,7 +87,6 @@ namespace PCGExGraph
 		TSharedPtr<FPointEdgeIntersections> PointEdgeIntersections;
 		TSharedPtr<FEdgeEdgeIntersections> EdgeEdgeIntersections;
 		TSharedPtr<PCGExDataBlending::FMetadataBlender> MetadataBlender;
-
 
 		void FindPointEdgeIntersections();
 		void FindPointEdgeIntersectionsFound();
