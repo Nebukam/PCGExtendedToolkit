@@ -100,6 +100,8 @@ namespace PCGExCluster
 		NumRawVtx = InVtxIO->GetNum();
 		NumRawEdges = InEdgesIO->GetNum();
 
+		Bounds = OtherCluster->Bounds;
+		
 		ExpandedNodes = OtherCluster->ExpandedNodes;
 		ExpandedEdges = OtherCluster->ExpandedEdges;
 
@@ -115,6 +117,7 @@ namespace PCGExCluster
 		{
 			Nodes = OtherCluster->Nodes;
 		}
+		
 
 		// Update index lookup
 		for (const FNode& Node : *Nodes) { NodeIndexLookup->GetMutable(Node.PointIndex) = Node.NodeIndex; }
@@ -133,8 +136,6 @@ namespace PCGExCluster
 		{
 			Edges = OtherCluster->Edges;
 		}
-
-		Bounds = OtherCluster->Bounds;
 
 		NodeOctree = OtherCluster->NodeOctree;
 		EdgeOctree = OtherCluster->EdgeOctree;
@@ -812,7 +813,13 @@ namespace PCGExCluster
 	{
 		const TArray<FPCGPoint>& VtxPointsRef = *VtxPoints;
 		NodePositions.SetNumUninitialized(Nodes->Num());
-		for (const FNode& N : *Nodes) { NodePositions[N.NodeIndex] = VtxPointsRef[N.PointIndex].Transform.GetLocation(); }
+		Bounds = FBox(ForceInit);
+		for (const FNode& N : *Nodes)
+		{
+			const FVector Pos = VtxPointsRef[N.PointIndex].Transform.GetLocation();
+			NodePositions[N.NodeIndex] =Pos;
+			Bounds += Pos;
+		}
 	}
 
 #pragma endregion
