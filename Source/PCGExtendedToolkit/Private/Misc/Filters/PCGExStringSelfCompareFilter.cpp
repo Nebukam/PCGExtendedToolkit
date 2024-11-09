@@ -17,6 +17,12 @@ void UPCGExStringSelfCompareFilterFactory::RegisterBuffersDependencies(FPCGExCon
 	Super::RegisterBuffersDependencies(InContext, FacadePreloader);
 }
 
+void UPCGExStringSelfCompareFilterFactory::RegisterConsumableAttributes(FPCGExContext* InContext) const
+{
+	Super::RegisterConsumableAttributes(InContext);
+	//TODO : Implement Consumable
+}
+
 bool PCGExPointsFilter::TStringSelfComparisonFilter::Init(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade> InPointDataFacade)
 {
 	if (!FFilter::Init(InContext, InPointDataFacade)) { return false; }

@@ -66,7 +66,7 @@ bool FPCGExSampleInsideBoundsElement::Boot(FPCGExContext* InContext) const
 	}
 
 	Context->DistanceDetails = Settings->DistanceDetails.MakeDistances();
-	
+
 	Context->TargetPoints = &Context->TargetsFacade->Source->GetIn()->GetPoints();
 
 	Context->NumTargets = Context->TargetPoints->Num();

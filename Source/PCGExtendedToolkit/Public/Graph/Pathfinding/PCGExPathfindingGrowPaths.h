@@ -37,7 +37,7 @@ enum class EPCGExGrowthValueSource : uint8
 UENUM(/*E--BlueprintType, meta=(DisplayName="[PCGEx] Growth Update Mode")--E*/)
 enum class EPCGExGrowthUpdateMode : uint8
 {
-	Once = 0 UMETA(DisplayName = "Once", ToolTip="Read once at the beginning of the computation."),
+	Once             = 0 UMETA(DisplayName = "Once", ToolTip="Read once at the beginning of the computation."),
 	SetEachIteration = 1 UMETA(DisplayName = "Set Each Iteration", ToolTip="Set the remaining number of iteration after each iteration."),
 	AddEachIteration = 2 UMETA(DisplayName = "Add Each Iteration", ToolTip="Add to the remaning number of iterations after each iteration."),
 };
@@ -127,7 +127,7 @@ public:
 	/** Drive how a seed selects a node. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	FPCGExNodeSelectionDetails SeedPicking = FPCGExNodeSelectionDetails(200);
-	
+
 	/** Controls how iterative growth is managed. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
 	EPCGExGrowthIterationMode GrowthMode = EPCGExGrowthIterationMode::Parallel;

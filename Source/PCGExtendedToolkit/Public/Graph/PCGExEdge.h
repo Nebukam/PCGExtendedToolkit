@@ -46,7 +46,6 @@ namespace PCGExGraph
 
 	const FName Tag_ClusterPair = FName(PCGEx::PCGExPrefix + TEXT("ClusterPair"));
 	const FString TagStr_ClusterPair = Tag_ClusterPair.ToString();
-	const FName Tag_ClusterId = FName(PCGEx::PCGExPrefix + TEXT("ClusterId"));
 
 	const FName Tag_PCGExVtx = FName(PCGEx::PCGExPrefix + TEXT("ClusterVtx"));
 	const FString TagStr_PCGExVtx = Tag_PCGExVtx.ToString();

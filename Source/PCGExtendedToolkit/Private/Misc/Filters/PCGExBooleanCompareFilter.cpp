@@ -12,6 +12,13 @@ TSharedPtr<PCGExPointFilter::FFilter> UPCGExBooleanCompareFilterFactory::CreateF
 	return MakeShared<PCGExPointsFilter::FBooleanComparisonFilter>(this);
 }
 
+void UPCGExBooleanCompareFilterFactory::RegisterConsumableAttributes(FPCGExContext* InContext) const
+{
+	Super::RegisterConsumableAttributes(InContext);
+	//InContext->AddConsumableAttributeName(Config.OperandA.GetName());
+	//InContext->AddConsumableAttributeName(Config.OperandB.GetName());
+}
+
 bool PCGExPointsFilter::FBooleanComparisonFilter::Init(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade> InPointDataFacade)
 {
 	if (!FFilter::Init(InContext, InPointDataFacade)) { return false; }

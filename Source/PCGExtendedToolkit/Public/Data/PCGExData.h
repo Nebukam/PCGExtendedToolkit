@@ -320,6 +320,7 @@ namespace PCGExData
 			if (OutValues) { return true; }
 
 			TypedOutAttribute = Source->FindOrCreateAttribute(FullName, DefaultValue, bAllowInterpolation);
+
 			OutAccessor = MakeUnique<FPCGAttributeAccessor<T>>(TypedOutAttribute, Source->GetOut()->Metadata);
 
 			if (!TypedOutAttribute || !OutAccessor.IsValid())
@@ -330,32 +331,45 @@ namespace PCGExData
 
 			PrepareWriteInternal(TypedOutAttribute, bUninitialized, DefaultValue);
 
-			if (!bUninitialized && Source->GetIn())
+			if (!bUninitialized)
 			{
-				if (InValues && bReadComplete)
+				const int32 ExistingEntryCount = TypedOutAttribute->GetNumberOfEntries();
+				const bool bHasIn = Source->GetIn() ? true : false;
+				if (!bHasIn && ExistingEntryCount != 0)
 				{
-					// Leverage prefetched data					
-					int32 NumToCopy = FMath::Min(InValues->Num(), OutValues->Num());
-					if constexpr (std::is_trivial_v<T>)
+					// We have values to grab from the existing attribute and no input
+					// only for very specific situations (Union blender)
+					TUniquePtr<FPCGAttributeAccessorKeysPoints> TempOutKeys = MakeUnique<FPCGAttributeAccessorKeysPoints>(MakeArrayView(Source->GetMutablePoints().GetData(), ExistingEntryCount));
+					TArrayView<T> OutRange = MakeArrayView(OutValues->GetData(), FMath::Min(OutValues->Num(), ExistingEntryCount));
+					OutAccessor->GetRange(OutRange, 0, *TempOutKeys.Get());
+				}
+				else if (bHasIn)
+				{
+					if (InValues && bReadComplete)
 					{
-						FMemory::Memcpy(OutValues->GetData(), InValues->GetData(), NumToCopy * sizeof(T));
+						// Leverage prefetched data					
+						int32 NumToCopy = FMath::Min(InValues->Num(), OutValues->Num());
+						if constexpr (std::is_trivial_v<T>)
+						{
+							FMemory::Memcpy(OutValues->GetData(), InValues->GetData(), NumToCopy * sizeof(T));
+						}
+						else
+						{
+							for (int32 i = 0; i < NumToCopy; i++) { *(OutValues->GetData() + i) = *(InValues->GetData() + i); }
+						}
 					}
 					else
 					{
-						for (int32 i = 0; i < NumToCopy; i++) { *(OutValues->GetData() + i) = *(InValues->GetData() + i); }
-					}
-				}
-				else
-				{
-					UPCGMetadata* InMetadata = Source->GetIn()->Metadata;
+						UPCGMetadata* InMetadata = Source->GetIn()->Metadata;
 
-					// 'template' spec required for clang on mac, not sure why.
-					// ReSharper disable once CppRedundantTemplateKeyword
-					if (const FPCGMetadataAttribute<T>* TempInAttribute = InMetadata->template GetConstTypedAttribute<T>(FullName))
-					{
-						TUniquePtr<FPCGAttributeAccessor<T>> TempInAccessor = MakeUnique<FPCGAttributeAccessor<T>>(TempInAttribute, InMetadata);
-						TArrayView<T> OutRange = MakeArrayView(OutValues->GetData(), FMath::Min(Source->GetNum(), OutValues->Num()));
-						TempInAccessor->GetRange(OutRange, 0, *Source->GetInKeys());
+						// 'template' spec required for clang on mac, not sure why.
+						// ReSharper disable once CppRedundantTemplateKeyword
+						if (const FPCGMetadataAttribute<T>* TempInAttribute = InMetadata->template GetConstTypedAttribute<T>(FullName))
+						{
+							TUniquePtr<FPCGAttributeAccessor<T>> TempInAccessor = MakeUnique<FPCGAttributeAccessor<T>>(TempInAttribute, InMetadata);
+							TArrayView<T> OutRange = MakeArrayView(OutValues->GetData(), FMath::Min(Source->GetNum(), OutValues->Num()));
+							TempInAccessor->GetRange(OutRange, 0, *Source->GetInKeys());
+						}
 					}
 				}
 			}

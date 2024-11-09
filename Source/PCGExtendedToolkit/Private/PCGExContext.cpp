@@ -12,7 +12,7 @@
 
 #define LOCTEXT_NAMESPACE "PCGExContext"
 
-void FPCGExContext::StageOutput(const FName Pin, UPCGData* InData, const TSet<FString>& InTags, const bool bManaged)
+void FPCGExContext::StageOutput(const FName Pin, UPCGData* InData, const TSet<FString>& InTags, const bool bManaged, const bool bIsMutable)
 {
 	if (!IsInGameThread())
 	{
@@ -34,6 +34,13 @@ void FPCGExContext::StageOutput(const FName Pin, UPCGData* InData, const TSet<FS
 	}
 
 	if (bManaged) { ManagedObjects->Add(InData); }
+	if (bIsMutable && bDeleteConsumableAttributes)
+	{
+		if (UPCGMetadata* Metadata = InData->MutableMetadata())
+		{
+			for (const FName ConsumableName : ConsumableAttributesSet) { Metadata->DeleteAttribute(ConsumableName); }
+		}
+	}
 }
 
 void FPCGExContext::StageOutput(const FName Pin, UPCGData* InData, const bool bManaged)
@@ -272,6 +279,11 @@ void FPCGExContext::AttachManageComponent(AActor* InParent, USceneComponent* InC
 	InComponent->RegisterComponent();
 	InParent->AddInstanceComponent(InComponent);
 	InComponent->AttachToComponent(InParent->GetRootComponent(), AttachmentRules);
+}
+
+void FPCGExContext::AddConsumableAttributeName(const FName InName)
+{
+	ConsumableAttributesSet.Add(InName);
 }
 
 bool FPCGExContext::CanExecute() const

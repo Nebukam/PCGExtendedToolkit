@@ -101,7 +101,7 @@ namespace PCGExCluster
 		NumRawEdges = InEdgesIO->GetNum();
 
 		Bounds = OtherCluster->Bounds;
-		
+
 		ExpandedNodes = OtherCluster->ExpandedNodes;
 		ExpandedEdges = OtherCluster->ExpandedEdges;
 
@@ -117,7 +117,7 @@ namespace PCGExCluster
 		{
 			Nodes = OtherCluster->Nodes;
 		}
-		
+
 
 		// Update index lookup
 		for (const FNode& Node : *Nodes) { NodeIndexLookup->GetMutable(Node.PointIndex) = Node.NodeIndex; }
@@ -817,7 +817,7 @@ namespace PCGExCluster
 		for (const FNode& N : *Nodes)
 		{
 			const FVector Pos = VtxPointsRef[N.PointIndex].Transform.GetLocation();
-			NodePositions[N.NodeIndex] =Pos;
+			NodePositions[N.NodeIndex] = Pos;
 			Bounds += Pos;
 		}
 	}

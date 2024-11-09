@@ -20,8 +20,8 @@ TArray<FPCGPinProperties> UPCGExFindContoursSettings::OutputPinProperties() cons
 	PCGEX_PIN_POINTS(PCGExGraph::OutputPathsLabel, "Contours", Required, {})
 	if (bOutputFilteredSeeds)
 	{
-		PCGEX_PIN_POINTS(PCGExFindContours::OutputGoodSeedsLabel, "GoodSeeds", Required, {})
-		PCGEX_PIN_POINTS(PCGExFindContours::OutputBadSeedsLabel, "BadSeeds", Required, {})
+		PCGEX_PIN_POINT(PCGExFindContours::OutputGoodSeedsLabel, "GoodSeeds", Required, {})
+		PCGEX_PIN_POINT(PCGExFindContours::OutputBadSeedsLabel, "BadSeeds", Required, {})
 	}
 	return PinProperties;
 }

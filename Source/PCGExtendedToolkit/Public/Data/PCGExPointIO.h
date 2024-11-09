@@ -69,6 +69,7 @@ namespace PCGExData
 		friend class FPointIOCollection;
 
 	protected:
+		bool bMutable = false;
 		FPCGExContext* Context = nullptr;
 
 		mutable FRWLock PointsLock;
@@ -131,6 +132,8 @@ namespace PCGExData
 		{
 			if (Out && Out != In) { Context->ManagedObjects->Destroy(Out); }
 
+			bMutable = true;
+			
 			if (InitOut == EInit::NewOutput)
 			{
 				T* TypedOut = Context->ManagedObjects->New<T>();

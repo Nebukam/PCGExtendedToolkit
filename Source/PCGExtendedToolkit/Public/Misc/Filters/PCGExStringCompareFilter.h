@@ -59,6 +59,7 @@ public:
 	FPCGExStringCompareFilterConfig Config;
 
 	virtual TSharedPtr<PCGExPointFilter::FFilter> CreateFilter() const override;
+	virtual void RegisterConsumableAttributes(FPCGExContext* InContext) const override;
 };
 
 namespace PCGExPointsFilter

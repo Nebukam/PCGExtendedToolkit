@@ -321,7 +321,7 @@ namespace PCGExAttributeStats
 				if (Settings->bOutputPerUniqueValuesStats)
 				{
 					UniqueValuesParamData = Context->ManagedObjects->New<UPCGParamData>();
-					Context->StageOutput(OutputAttributeUniqueValues, UniqueValuesParamData, {Identifier, Identity.Name.ToString()}, false);
+					Context->StageOutput(OutputAttributeUniqueValues, UniqueValuesParamData, {Identifier, Identity.Name.ToString()}, false, false);
 					InDataFacade->Source->Tags->Add(Identifier);
 				}
 

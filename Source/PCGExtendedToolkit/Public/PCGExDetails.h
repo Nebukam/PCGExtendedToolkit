@@ -223,7 +223,7 @@ namespace PCGExDetails
 			return FVector::DistSquared(OutSource, PCGExMath::GetSpatializedCenter<Target>(TargetPoint, TargetLocation, OutSource));
 		}
 	};
-	
+
 
 	static TSharedPtr<FDistances> MakeDistances(
 		const EPCGExDistance Source = EPCGExDistance::Center,
@@ -231,32 +231,33 @@ namespace PCGExDetails
 	{
 		if (Source == EPCGExDistance::None || Target == EPCGExDistance::None)
 		{
-			return MakeShared<PCGExDetails::TDistances<EPCGExDistance::None, EPCGExDistance::None>>();
+			return MakeShared<TDistances<EPCGExDistance::None, EPCGExDistance::None>>();
 		}
-		else if (Source == EPCGExDistance::Center)
+		if (Source == EPCGExDistance::Center)
 		{
-			if (Target == EPCGExDistance::Center) { return MakeShared<PCGExDetails::TDistances<EPCGExDistance::Center, EPCGExDistance::Center>>(); }
-			else if (Target == EPCGExDistance::SphereBounds) { return MakeShared<PCGExDetails::TDistances<EPCGExDistance::Center, EPCGExDistance::SphereBounds>>(); }
-			else if (Target == EPCGExDistance::BoxBounds) { return MakeShared<PCGExDetails::TDistances<EPCGExDistance::Center, EPCGExDistance::BoxBounds>>(); }
+			if (Target == EPCGExDistance::Center) { return MakeShared<TDistances<EPCGExDistance::Center, EPCGExDistance::Center>>(); }
+			if (Target == EPCGExDistance::SphereBounds) { return MakeShared<TDistances<EPCGExDistance::Center, EPCGExDistance::SphereBounds>>(); }
+			if (Target == EPCGExDistance::BoxBounds) { return MakeShared<TDistances<EPCGExDistance::Center, EPCGExDistance::BoxBounds>>(); }
 		}
 		else if (Source == EPCGExDistance::SphereBounds)
 		{
-			if (Target == EPCGExDistance::Center) { return MakeShared<PCGExDetails::TDistances<EPCGExDistance::SphereBounds, EPCGExDistance::Center>>(); }
-			else if (Target == EPCGExDistance::SphereBounds) { return MakeShared<PCGExDetails::TDistances<EPCGExDistance::SphereBounds, EPCGExDistance::SphereBounds>>(); }
-			else if (Target == EPCGExDistance::BoxBounds) { return MakeShared<PCGExDetails::TDistances<EPCGExDistance::SphereBounds, EPCGExDistance::BoxBounds>>(); }
+			if (Target == EPCGExDistance::Center) { return MakeShared<TDistances<EPCGExDistance::SphereBounds, EPCGExDistance::Center>>(); }
+			if (Target == EPCGExDistance::SphereBounds) { return MakeShared<TDistances<EPCGExDistance::SphereBounds, EPCGExDistance::SphereBounds>>(); }
+			if (Target == EPCGExDistance::BoxBounds) { return MakeShared<TDistances<EPCGExDistance::SphereBounds, EPCGExDistance::BoxBounds>>(); }
 		}
 		else if (Source == EPCGExDistance::BoxBounds)
 		{
-			if (Target == EPCGExDistance::Center) { return MakeShared<PCGExDetails::TDistances<EPCGExDistance::BoxBounds, EPCGExDistance::Center>>(); }
-			else if (Target == EPCGExDistance::SphereBounds) { return MakeShared<PCGExDetails::TDistances<EPCGExDistance::BoxBounds, EPCGExDistance::SphereBounds>>(); }
-			else if (Target == EPCGExDistance::BoxBounds) { return MakeShared<PCGExDetails::TDistances<EPCGExDistance::BoxBounds, EPCGExDistance::BoxBounds>>(); }
+			if (Target == EPCGExDistance::Center) { return MakeShared<TDistances<EPCGExDistance::BoxBounds, EPCGExDistance::Center>>(); }
+			if (Target == EPCGExDistance::SphereBounds) { return MakeShared<TDistances<EPCGExDistance::BoxBounds, EPCGExDistance::SphereBounds>>(); }
+			if (Target == EPCGExDistance::BoxBounds) { return MakeShared<TDistances<EPCGExDistance::BoxBounds, EPCGExDistance::BoxBounds>>(); }
 		}
 
 		return nullptr;
 	}
 
-	static TSharedPtr<FDistances> MakeNoneDistances()	{
-		return MakeShared<PCGExDetails::TDistances<EPCGExDistance::None, EPCGExDistance::None>>();
+	static TSharedPtr<FDistances> MakeNoneDistances()
+	{
+		return MakeShared<TDistances<EPCGExDistance::None, EPCGExDistance::None>>();
 	}
 }
 
@@ -408,7 +409,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExFuseDetails : public FPCGExSourceFuseDet
 	/** Check this box if you're fusing over a very large radius and want to ensure determinism. NOTE : Will make things slower. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Force Determinism"))
 	bool bInlineInsertion = false;
-	
+
 	void Init()
 	{
 		if (FuseMethod == EPCGExFuseMethod::Voxel)
