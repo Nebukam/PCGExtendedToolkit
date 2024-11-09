@@ -36,10 +36,12 @@ void FPCGExContext::StageOutput(const FName Pin, UPCGData* InData, const TSet<FS
 	if (bManaged) { ManagedObjects->Add(InData); }
 	if (bIsMutable && bDeleteConsumableAttributes)
 	{
+		/*
 		if (UPCGMetadata* Metadata = InData->MutableMetadata())
 		{
 			for (const FName ConsumableName : ConsumableAttributesSet) { Metadata->DeleteAttribute(ConsumableName); }
 		}
+		*/
 	}
 }
 
