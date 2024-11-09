@@ -228,7 +228,7 @@ namespace PCGExPathSplineMesh
 #if PCGEX_ENGINE_VERSION > 503
 		PathWriter = PointDataFacade->GetWritable<FSoftObjectPath>(Settings->AssetPathAttributeName, PCGExData::EBufferInit::New);
 #else
-		PathWriter = PointDataFacade->GetWritable<FString>(Settings->AssetPathAttributeName, true);
+		PathWriter = PointDataFacade->GetWritable<FString>(Settings->AssetPathAttributeName, PCGExData::EBufferInit::New);
 #endif
 
 		DataTags = PointDataFacade->Source->Tags->ToFNameList();
