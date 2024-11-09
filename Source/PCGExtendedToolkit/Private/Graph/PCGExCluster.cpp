@@ -173,6 +173,7 @@ namespace PCGExCluster
 
 		const TSharedPtr<PCGExData::FPointIO> PinnedVtxIO = VtxIO.Pin();
 		const TSharedPtr<PCGExData::FPointIO> PinnedEdgesIO = EdgesIO.Pin();
+		const int32 EdgeIOIndex = PinnedEdgesIO ? PinnedEdgesIO->IOIndex : -1;
 
 		if (!PinnedVtxIO || !PinnedEdgesIO) { return false; }
 
@@ -218,7 +219,7 @@ namespace PCGExCluster
 			StartNode.Add(EndNode, i);
 			EndNode.Add(StartNode, i);
 
-			(*Edges)[i] = PCGExGraph::FIndexedEdge(i, *StartPointIndexPtr, *EndPointIndexPtr, i, PinnedEdgesIO->IOIndex);
+			*(Edges->GetData() + i) = PCGExGraph::FIndexedEdge(i, *StartPointIndexPtr, *EndPointIndexPtr, i, EdgeIOIndex);
 		}
 
 		if (InExpectedAdjacency)
@@ -690,11 +691,18 @@ namespace PCGExCluster
 
 	void FCluster::GetValidEdges(TArray<PCGExGraph::FIndexedEdge>& OutValidEdges) const
 	{
+		const TSharedPtr<PCGExData::FPointIO> PinnedEdgesIO = EdgesIO.Pin();
+		OutValidEdges.Reserve(Edges->Num());
+
+		const int32 IOIndex = PinnedEdgesIO ? PinnedEdgesIO->IOIndex : -1;
+
 		for (const PCGExGraph::FIndexedEdge& Edge : (*Edges))
 		{
 			if (!Edge.bValid || !GetEdgeStart(Edge)->bValid || !GetEdgeEnd(Edge)->bValid) { continue; }
-			OutValidEdges.Add(Edge);
+			OutValidEdges.Add_GetRef(Edge).IOIndex = IOIndex;
 		}
+
+		OutValidEdges.Shrink();
 	}
 
 	int32 FCluster::FindClosestNeighborInDirection(const int32 NodeIndex, const FVector& Direction, const int32 MinNeighborCount) const
