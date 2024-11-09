@@ -152,7 +152,7 @@ namespace PCGExGraph
 	PCGEX_ASYNC_STATE(State_Pathfinding)
 	PCGEX_ASYNC_STATE(State_WaitingPathfinding)
 
-	const TSet<FName> ProtectedClusterAttributes = {Tag_EdgeEndpoints, Tag_VtxEndpoint, Tag_ClusterIndex, Tag_ClusterId};
+	const TSet<FName> ProtectedClusterAttributes = {Tag_EdgeEndpoints, Tag_VtxEndpoint, Tag_ClusterIndex};
 
 	class FGraph;
 
@@ -779,30 +779,12 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 
 	static bool IsPointDataVtxReady(const UPCGMetadata* Metadata)
 	{
-		constexpr int16 I64 = static_cast<uint16>(EPCGMetadataTypes::Integer64);
-		constexpr int16 I32 = static_cast<uint16>(EPCGMetadataTypes::Integer32);
-
-		const FPCGMetadataAttributeBase* EndpointAttribute = Metadata->GetConstAttribute(Tag_VtxEndpoint);
-		if (!EndpointAttribute || EndpointAttribute->GetTypeId() != I64) { return false; }
-
-		const FPCGMetadataAttributeBase* ClusterIdAttribute = Metadata->GetConstAttribute(Tag_ClusterId);
-		if (!ClusterIdAttribute || ClusterIdAttribute->GetTypeId() != I32) { return false; }
-
-		return true;
+		return Metadata->GetConstTypedAttribute<int64>(Tag_VtxEndpoint) ? true : false;
 	}
 
 	static bool IsPointDataEdgeReady(const UPCGMetadata* Metadata)
 	{
-		constexpr int16 I64 = static_cast<uint16>(EPCGMetadataTypes::Integer64);
-		constexpr int16 I32 = static_cast<uint16>(EPCGMetadataTypes::Integer32);
-
-		const FPCGMetadataAttributeBase* EndpointAttribute = Metadata->GetConstAttribute(Tag_EdgeEndpoints);
-		if (!EndpointAttribute || EndpointAttribute->GetTypeId() != I64) { return false; }
-
-		const FPCGMetadataAttributeBase* ClusterIdAttribute = Metadata->GetConstAttribute(Tag_ClusterId);
-		if (!ClusterIdAttribute || ClusterIdAttribute->GetTypeId() != I32) { return false; }
-
-		return true;
+		return Metadata->GetConstTypedAttribute<int64>(Tag_EdgeEndpoints) ? true : false;
 	}
 
 	static bool GetReducedVtxIndices(const TSharedPtr<PCGExData::FPointIO>& InEdges, const TMap<uint32, int32>* NodeIndicesMap, TArray<int32>& OutVtxIndices, int32& OutEdgeNum)

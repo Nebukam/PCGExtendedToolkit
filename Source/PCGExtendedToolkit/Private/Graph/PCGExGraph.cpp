@@ -70,8 +70,6 @@ namespace PCGExGraph
 
 		PCGEx::InitArray(FlattenedEdges, NumEdges);
 
-		WriteMark(EdgesDataFacade->Source, Tag_ClusterId, UID);
-
 		TArray<FPCGPoint>& MutablePoints = EdgesDataFacade->Source->GetOut()->GetMutablePoints();
 		MutablePoints.SetNum(NumEdges);
 
@@ -146,7 +144,6 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 
 		if (!Builder) { return; }
 
-		const TSharedPtr<PCGExData::TBuffer<int32>> NumClusterIdWriter = VtxDataFacade->GetWritable<int32>(Tag_ClusterId, -1, false, true);
 		const TSharedPtr<PCGExData::TBuffer<int64>> EdgeEndpointsWriter = EdgesDataFacade->GetWritable<int64>(Tag_EdgeEndpoints, -1, false, true);
 
 		const TArray<FPCGPoint>& Vertices = VtxDataFacade->GetOut()->GetPoints();
@@ -161,10 +158,6 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 			const FIndexedEdge& E = FlattenedEdges[i];
 			const int32 EdgeIndex = E.EdgeIndex;
 			FPCGPoint& EdgePt = MutablePoints[EdgeIndex];
-
-			// Mark matching Vtx
-			NumClusterIdWriter->GetMutable(E.Start) = UID;
-			NumClusterIdWriter->GetMutable(E.End) = UID;
 
 			if (bHasUnionMetadata)
 			{

@@ -44,6 +44,7 @@ protected:
 
 	int32 LastReserve = 0;
 	int32 AdditionsSinceLastReserve = 0;
+	TSet<FName> ConsumableAttributesSet;
 
 	void CommitStagedOutputs();
 
@@ -58,7 +59,7 @@ public:
 
 	void StagedOutputReserve(const int32 NumAdditions);
 
-	void StageOutput(const FName Pin, UPCGData* InData, const TSet<FString>& InTags, bool bManaged);
+	void StageOutput(const FName Pin, UPCGData* InData, const TSet<FString>& InTags, bool bManaged, bool bIsMutable);
 	void StageOutput(const FName Pin, UPCGData* InData, bool bManaged);
 
 #pragma region State
@@ -119,6 +120,10 @@ public:
 	void AttachManageComponent(AActor* InParent, USceneComponent* InComponent, const FAttachmentTransformRules& AttachmentRules) const;
 
 #pragma endregion
+
+	bool bDeleteConsumableAttributes = false;
+	TSet<FName>& GetConsumableAttributesSet() { return ConsumableAttributesSet; }
+	void AddConsumableAttributeName(FName InName);
 
 	bool CanExecute() const;
 	bool CancelExecution(const FString& InReason);

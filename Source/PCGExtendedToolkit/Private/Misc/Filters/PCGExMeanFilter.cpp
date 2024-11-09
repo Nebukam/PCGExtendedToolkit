@@ -18,6 +18,12 @@ void UPCGExMeanFilterFactory::RegisterBuffersDependencies(FPCGExContext* InConte
 	//FacadePreloader.Register<double>(InContext, Config.Target); // TODO SUPPORT MIN MAX FETCH
 }
 
+void UPCGExMeanFilterFactory::RegisterConsumableAttributes(FPCGExContext* InContext) const
+{
+	Super::RegisterConsumableAttributes(InContext);
+	//TODO : Implement Consumable
+}
+
 bool PCGExPointsFilter::TMeanFilter::Init(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade> InPointDataFacade)
 {
 	if (!FFilter::Init(InContext, InPointDataFacade)) { return false; }

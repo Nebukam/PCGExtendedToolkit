@@ -12,6 +12,13 @@ TSharedPtr<PCGExPointFilter::FFilter> UPCGExBitmaskFilterFactory::CreateFilter()
 	return MakeShared<PCGExPointsFilter::TBitmaskFilter>(this);
 }
 
+void UPCGExBitmaskFilterFactory::RegisterConsumableAttributes(FPCGExContext* InContext) const
+{
+	Super::RegisterConsumableAttributes(InContext);
+	InContext->AddConsumableAttributeName(Config.FlagsAttribute);
+	InContext->AddConsumableAttributeName(Config.BitmaskAttribute);
+}
+
 bool PCGExPointsFilter::TBitmaskFilter::Init(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade> InPointDataFacade)
 {
 	if (!FFilter::Init(InContext, InPointDataFacade)) { return false; }

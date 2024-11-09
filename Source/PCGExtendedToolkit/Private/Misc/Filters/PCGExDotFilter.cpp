@@ -19,6 +19,12 @@ TSharedPtr<PCGExPointFilter::FFilter> UPCGExDotFilterFactory::CreateFilter() con
 	return MakeShared<PCGExPointsFilter::TDotFilter>(this);
 }
 
+void UPCGExDotFilterFactory::RegisterConsumableAttributes(FPCGExContext* InContext) const
+{
+	Super::RegisterConsumableAttributes(InContext);
+	//TODO : Implement Consumable
+}
+
 bool PCGExPointsFilter::TDotFilter::Init(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade> InPointDataFacade)
 {
 	if (!FFilter::Init(InContext, InPointDataFacade)) { return false; }

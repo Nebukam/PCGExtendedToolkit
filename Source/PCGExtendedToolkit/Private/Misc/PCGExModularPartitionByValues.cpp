@@ -27,7 +27,7 @@ TArray<FPCGPinProperties> UPCGExModularPartitionByValuesSettings::InputPinProper
 	return PinProperties;
 }
 
-bool UPCGExModularPartitionByValuesSettings::GetPartitionRules(const FPCGContext* InContext, TArray<FPCGExPartitonRuleConfig>& OutRules) const
+bool UPCGExModularPartitionByValuesSettings::GetPartitionRules(FPCGExContext* InContext, TArray<FPCGExPartitonRuleConfig>& OutRules) const
 {
 	TArray<TObjectPtr<const UPCGExPartitionRule>> Factories;
 	if (!PCGExFactories::GetInputFactories(

@@ -95,9 +95,6 @@ bool FPCGExConnectClustersElement::ExecuteInternal(FPCGContext* InContext) const
 	for (const TSharedPtr<PCGExClusterMT::FClusterProcessorBatchBase>& Batch : Context->Batches)
 	{
 		const TSharedPtr<PCGExBridgeClusters::FProcessorBatch> BridgeBatch = StaticCastSharedPtr<PCGExBridgeClusters::FProcessorBatch>(Batch);
-		const int32 ClusterId = BridgeBatch->VtxDataFacade->GetOut()->GetUniqueID();
-		WriteMark(BridgeBatch->CompoundedEdgesDataFacade->Source, PCGExGraph::Tag_ClusterId, ClusterId);
-
 		FString OutId;
 		PCGExGraph::SetClusterVtx(BridgeBatch->VtxDataFacade->Source, OutId);
 		PCGExGraph::MarkClusterEdges(BridgeBatch->CompoundedEdgesDataFacade->Source, OutId);
@@ -146,8 +143,6 @@ namespace PCGExBridgeClusters
 		TBatch<FProcessor>::Process();
 
 		// Start merging right away
-		TSet<FName> IgnoreAttributes = {PCGExGraph::Tag_ClusterId};
-
 		Merger = MakeShared<FPCGExPointIOMerger>(CompoundedEdgesDataFacade.ToSharedRef());
 		Merger->Append(Edges);
 		Merger->Merge(AsyncManager, &Context->CarryOverDetails);
@@ -278,12 +273,6 @@ namespace PCGExBridgeClusters
 
 			AsyncManager->Start<FPCGExCreateBridgeTask>(EdgePointIndex, ConsolidatedEdges, SharedThis(this), ValidClusters[Start], ValidClusters[End]);
 		}
-
-		// Force writing cluster ID to Vtx, otherwise we inherit from previous metadata.
-		const uint32 ClusterId = VtxDataFacade->GetOut()->GetUniqueID();
-		const TSharedPtr<PCGExData::TBuffer<int32>> ClusterIdBuffer = CompoundedEdgesDataFacade->GetWritable<int32>(PCGExGraph::Tag_ClusterId, true);
-		for (TArray<int32>& OutValues = *ClusterIdBuffer->GetOutValues(); int32& Id : OutValues) { Id = ClusterId; }
-		PCGExMT::Write(AsyncManager, ClusterIdBuffer);
 	}
 
 

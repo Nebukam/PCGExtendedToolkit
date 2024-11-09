@@ -68,7 +68,12 @@ class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExParamFactoryBase : public UPCGExParamData
 
 public:
 	int32 Priority = 0;
+	bool bDoRegisterConsumableAttributes = false;
 	virtual PCGExFactories::EType GetFactoryType() const { return PCGExFactories::EType::None; }
+
+	virtual void RegisterConsumableAttributes(FPCGExContext* InContext) const
+	{
+	}
 };
 
 UCLASS(Abstract, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Filter")
@@ -102,6 +107,10 @@ public:
 	virtual FString GetDisplayName() const;
 #endif
 	//~End UPCGExFactoryProviderSettings
+
+	/** Whether this factory can register consumable attributes or not. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable), AdvancedDisplay)
+	bool bDoRegisterConsumableAttributes = true;
 };
 
 class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExFactoryProviderElement final : public IPCGElement
@@ -121,7 +130,7 @@ public:
 namespace PCGExFactories
 {
 	template <typename T_DEF>
-	static bool GetInputFactories(const FPCGContext* InContext, const FName InLabel, TArray<TObjectPtr<const T_DEF>>& OutFactories, const TSet<EType>& Types, const bool bThrowError = true)
+	static bool GetInputFactories(FPCGExContext* InContext, const FName InLabel, TArray<TObjectPtr<const T_DEF>>& OutFactories, const TSet<EType>& Types, const bool bThrowError = true)
 	{
 		const TArray<FPCGTaggedData>& Inputs = InContext->InputData.GetInputsByPin(InLabel);
 		TSet<uint32> UniqueData;
@@ -133,15 +142,16 @@ namespace PCGExFactories
 			UniqueData.Add(TaggedData.Data->GetUniqueID(), &bIsAlreadyInSet);
 			if (bIsAlreadyInSet) { continue; }
 
-			if (const T_DEF* State = Cast<T_DEF>(TaggedData.Data))
+			if (const T_DEF* Factory = Cast<T_DEF>(TaggedData.Data))
 			{
-				if (!Types.Contains(State->GetFactoryType()))
+				if (!Types.Contains(Factory->GetFactoryType()))
 				{
-					PCGE_LOG_C(Warning, GraphAndLog, InContext, FText::Format(FTEXT("Input '{0}' is not supported."), FText::FromString(State->GetClass()->GetName())));
+					PCGE_LOG_C(Warning, GraphAndLog, InContext, FText::Format(FTEXT("Input '{0}' is not supported."), FText::FromString(Factory->GetClass()->GetName())));
 					continue;
 				}
 
-				OutFactories.AddUnique(const_cast<T_DEF*>(State));
+				OutFactories.AddUnique(const_cast<T_DEF*>(Factory));
+				if (Factory->bDoRegisterConsumableAttributes) { Factory->RegisterConsumableAttributes(InContext); }
 			}
 			else
 			{
