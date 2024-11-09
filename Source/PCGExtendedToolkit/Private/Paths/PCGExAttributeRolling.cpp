@@ -17,7 +17,7 @@ UPCGExAttributeRollingSettings::UPCGExAttributeRollingSettings(
 	bSupportPathDirection = true;
 }
 
-PCGExData::EInit UPCGExAttributeRollingSettings::GetMainOutputInitMode() const { return PCGExData::EInit::DuplicateInput; }
+PCGExData::EIOInit UPCGExAttributeRollingSettings::GetMainOutputInitMode() const { return PCGExData::EIOInit::DuplicateInput; }
 
 PCGEX_INITIALIZE_ELEMENT(AttributeRolling)
 

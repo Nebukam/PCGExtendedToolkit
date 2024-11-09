@@ -50,7 +50,7 @@ void FPCGExOverlapScoresWeighting::Max(const FPCGExOverlapScoresWeighting& Other
 	CustomTagScore = FMath::Max(CustomTagScore, Other.CustomTagScore);
 }
 
-PCGExData::EInit UPCGExDiscardByOverlapSettings::GetMainOutputInitMode() const { return PCGExData::EInit::NoOutput; }
+PCGExData::EIOInit UPCGExDiscardByOverlapSettings::GetMainOutputInitMode() const { return PCGExData::EIOInit::NoOutput; }
 
 TSharedPtr<PCGExDiscardByOverlap::FOverlap> FPCGExDiscardByOverlapContext::RegisterOverlap(
 	PCGExDiscardByOverlap::FProcessor* InA,
@@ -98,7 +98,7 @@ void FPCGExDiscardByOverlapContext::Prune()
 			continue;
 		}
 
-		P->PointDataFacade->Source->InitializeOutput(PCGExData::EInit::Forward);
+		P->PointDataFacade->Source->InitializeOutput(PCGExData::EIOInit::Forward);
 	}
 
 	UpdateMaxScores(Remaining);
@@ -128,7 +128,7 @@ void FPCGExDiscardByOverlapContext::Prune()
 		PCGExDiscardByOverlap::FProcessor* Candidate = Remaining.Pop();
 
 		if (Candidate->HasOverlaps()) { Candidate->Prune(Remaining); }
-		else { Candidate->PointDataFacade->Source->InitializeOutput(PCGExData::EInit::Forward); }
+		else { Candidate->PointDataFacade->Source->InitializeOutput(PCGExData::EIOInit::Forward); }
 
 		UpdateMaxScores(Remaining);
 
@@ -226,7 +226,7 @@ namespace PCGExDiscardByOverlap
 		if (Overlaps.IsEmpty())
 		{
 			// Remove from stack & output.
-			PointDataFacade->Source->InitializeOutput(PCGExData::EInit::Forward);
+			PointDataFacade->Source->InitializeOutput(PCGExData::EIOInit::Forward);
 			Stack.Remove(this);
 			return;
 		}

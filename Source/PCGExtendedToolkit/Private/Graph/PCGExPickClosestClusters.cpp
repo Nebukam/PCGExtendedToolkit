@@ -8,8 +8,8 @@
 #define LOCTEXT_NAMESPACE "PCGExPickClosestClusters"
 #define PCGEX_NAMESPACE PickClosestClusters
 
-PCGExData::EInit UPCGExPickClosestClustersSettings::GetEdgeOutputInitMode() const { return PCGExData::EInit::NoOutput; }
-PCGExData::EInit UPCGExPickClosestClustersSettings::GetMainOutputInitMode() const { return PCGExData::EInit::NoOutput; }
+PCGExData::EIOInit UPCGExPickClosestClustersSettings::GetEdgeOutputInitMode() const { return PCGExData::EIOInit::NoOutput; }
+PCGExData::EIOInit UPCGExPickClosestClustersSettings::GetMainOutputInitMode() const { return PCGExData::EIOInit::NoOutput; }
 
 TArray<FPCGPinProperties> UPCGExPickClosestClustersSettings::InputPinProperties() const
 {
@@ -226,13 +226,13 @@ namespace PCGExPickClosestClusters
 
 		if (!Settings->TargetForwarding.bEnabled)
 		{
-			EdgeDataFacade->Source->InitializeOutput(PCGExData::EInit::Forward);
-			if (!VtxDataFacade->Source->GetOut()) { VtxDataFacade->Source->InitializeOutput(PCGExData::EInit::Forward); }
+			EdgeDataFacade->Source->InitializeOutput(PCGExData::EIOInit::Forward);
+			if (!VtxDataFacade->Source->GetOut()) { VtxDataFacade->Source->InitializeOutput(PCGExData::EIOInit::Forward); }
 		}
 		else
 		{
-			EdgeDataFacade->Source->InitializeOutput(PCGExData::EInit::DuplicateInput);
-			if (!VtxDataFacade->Source->GetOut()) { VtxDataFacade->Source->InitializeOutput(PCGExData::EInit::DuplicateInput); }
+			EdgeDataFacade->Source->InitializeOutput(PCGExData::EIOInit::DuplicateInput);
+			if (!VtxDataFacade->Source->GetOut()) { VtxDataFacade->Source->InitializeOutput(PCGExData::EIOInit::DuplicateInput); }
 
 			Context->TargetForwardHandler->Forward(Picker, EdgeDataFacade);
 			Context->TargetForwardHandler->Forward(Picker, VtxDataFacade);

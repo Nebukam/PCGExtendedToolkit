@@ -25,20 +25,20 @@ namespace PCGExData
 		else if (!Tags) { Tags = MakeShared<FTags>(); }
 	}
 
-	void FPointIO::InitializeOutput(const EInit InitOut)
+	void FPointIO::InitializeOutput(const EIOInit InitOut)
 	{
 		if (Out && Out != In) { Context->ManagedObjects->Destroy(Out); }
 		OutKeys.Reset();
 
 		bMutable = false;
 		
-		if (InitOut == EInit::NoOutput)
+		if (InitOut == EIOInit::NoOutput)
 		{
 			Out = nullptr;
 			return;
 		}
 
-		if (InitOut == EInit::Forward)
+		if (InitOut == EIOInit::Forward)
 		{
 			check(In);
 			Out = const_cast<UPCGPointData*>(In);
@@ -47,7 +47,7 @@ namespace PCGExData
 
 		bMutable = true;
 		
-		if (InitOut == EInit::NewOutput)
+		if (InitOut == EIOInit::NewOutput)
 		{
 			if (In)
 			{
@@ -64,7 +64,7 @@ namespace PCGExData
 
 				if (TypedInPointData && TypedOutPointData)
 				{
-					TypedOutPointData->InitializeFromPCGExData(TypedInPointData, EInit::NewOutput);
+					TypedOutPointData->InitializeFromPCGExData(TypedInPointData, EIOInit::NewOutput);
 				}
 			}
 			else
@@ -75,7 +75,7 @@ namespace PCGExData
 			return;
 		}
 
-		if (InitOut == EInit::DuplicateInput)
+		if (InitOut == EIOInit::DuplicateInput)
 		{
 			check(In)
 			Out = Context->ManagedObjects->Duplicate<UPCGPointData>(In);
@@ -189,14 +189,14 @@ namespace PCGExData
 		PCGEX_LOG_CTR(FPointIOCollection)
 	}
 
-	FPointIOCollection::FPointIOCollection(FPCGExContext* InContext, const FName InputLabel, const EInit InitOut)
+	FPointIOCollection::FPointIOCollection(FPCGExContext* InContext, const FName InputLabel, const EIOInit InitOut)
 		: FPointIOCollection(InContext)
 	{
 		TArray<FPCGTaggedData> Sources = Context->InputData.GetInputsByPin(InputLabel);
 		Initialize(Sources, InitOut);
 	}
 
-	FPointIOCollection::FPointIOCollection(FPCGExContext* InContext, TArray<FPCGTaggedData>& Sources, const EInit InitOut)
+	FPointIOCollection::FPointIOCollection(FPCGExContext* InContext, TArray<FPCGTaggedData>& Sources, const EIOInit InitOut)
 		: FPointIOCollection(InContext)
 	{
 		Initialize(Sources, InitOut);
@@ -209,7 +209,7 @@ namespace PCGExData
 
 	void FPointIOCollection::Initialize(
 		TArray<FPCGTaggedData>& Sources,
-		const EInit InitOut)
+		const EIOInit InitOut)
 	{
 		Pairs.Empty(Sources.Num());
 		TSet<uint64> UniqueData;
@@ -230,7 +230,7 @@ namespace PCGExData
 
 	TSharedPtr<FPointIO> FPointIOCollection::Emplace_GetRef(
 		const UPCGPointData* In,
-		const EInit InitOut,
+		const EIOInit InitOut,
 		const TSet<FString>* Tags)
 	{
 		FWriteScopeLock WriteLock(PairsLock);
@@ -240,7 +240,7 @@ namespace PCGExData
 		return NewIO;
 	}
 
-	TSharedPtr<FPointIO> FPointIOCollection::Emplace_GetRef(const EInit InitOut)
+	TSharedPtr<FPointIO> FPointIOCollection::Emplace_GetRef(const EIOInit InitOut)
 	{
 		FWriteScopeLock WriteLock(PairsLock);
 		TSharedPtr<FPointIO> NewIO = Pairs.Add_GetRef(MakeShared<FPointIO>(Context));
@@ -249,7 +249,7 @@ namespace PCGExData
 		return NewIO;
 	}
 
-	TSharedPtr<FPointIO> FPointIOCollection::Emplace_GetRef(const TSharedPtr<FPointIO>& PointIO, const EInit InitOut)
+	TSharedPtr<FPointIO> FPointIOCollection::Emplace_GetRef(const TSharedPtr<FPointIO>& PointIO, const EIOInit InitOut)
 	{
 		TSharedPtr<FPointIO> Branch = Emplace_GetRef(PointIO->GetIn(), InitOut);
 		Branch->Tags->Reset(PointIO->Tags);

@@ -19,7 +19,7 @@ TArray<FPCGPinProperties> UPCGExUberFilterCollectionsSettings::OutputPinProperti
 	return PinProperties;
 }
 
-PCGExData::EInit UPCGExUberFilterCollectionsSettings::GetMainOutputInitMode() const { return PCGExData::EInit::NoOutput; }
+PCGExData::EIOInit UPCGExUberFilterCollectionsSettings::GetMainOutputInitMode() const { return PCGExData::EIOInit::NoOutput; }
 
 PCGEX_INITIALIZE_ELEMENT(UberFilterCollections)
 
@@ -105,7 +105,7 @@ namespace PCGExUberFilterCollections
 				NumPoints < Settings->IntThreshold)
 			{
 				// Not enough points to meet requirements.
-				Context->Outside->Emplace_GetRef(PointDataFacade->Source, PCGExData::EInit::Forward);
+				Context->Outside->Emplace_GetRef(PointDataFacade->Source, PCGExData::EIOInit::Forward);
 				return true;
 			}
 		}
@@ -135,24 +135,24 @@ namespace PCGExUberFilterCollections
 		{
 		default:
 		case EPCGExUberFilterCollectionsMode::All:
-			if (NumInside == NumPoints) { Context->Inside->Emplace_GetRef(PointDataFacade->Source, PCGExData::EInit::Forward); }
-			else { Context->Outside->Emplace_GetRef(PointDataFacade->Source, PCGExData::EInit::Forward); }
+			if (NumInside == NumPoints) { Context->Inside->Emplace_GetRef(PointDataFacade->Source, PCGExData::EIOInit::Forward); }
+			else { Context->Outside->Emplace_GetRef(PointDataFacade->Source, PCGExData::EIOInit::Forward); }
 			break;
 		case EPCGExUberFilterCollectionsMode::Any:
-			if (NumInside != 0) { Context->Inside->Emplace_GetRef(PointDataFacade->Source, PCGExData::EInit::Forward); }
-			else { Context->Outside->Emplace_GetRef(PointDataFacade->Source, PCGExData::EInit::Forward); }
+			if (NumInside != 0) { Context->Inside->Emplace_GetRef(PointDataFacade->Source, PCGExData::EIOInit::Forward); }
+			else { Context->Outside->Emplace_GetRef(PointDataFacade->Source, PCGExData::EIOInit::Forward); }
 			break;
 		case EPCGExUberFilterCollectionsMode::Partial:
 			if (Settings->Measure == EPCGExMeanMeasure::Discrete)
 			{
-				if (PCGExCompare::Compare(Settings->Comparison, NumInside, Settings->IntThreshold, 0)) { Context->Inside->Emplace_GetRef(PointDataFacade->Source, PCGExData::EInit::Forward); }
-				else { Context->Outside->Emplace_GetRef(PointDataFacade->Source, PCGExData::EInit::Forward); }
+				if (PCGExCompare::Compare(Settings->Comparison, NumInside, Settings->IntThreshold, 0)) { Context->Inside->Emplace_GetRef(PointDataFacade->Source, PCGExData::EIOInit::Forward); }
+				else { Context->Outside->Emplace_GetRef(PointDataFacade->Source, PCGExData::EIOInit::Forward); }
 			}
 			else
 			{
 				const double Ratio = static_cast<double>(NumInside) / static_cast<double>(NumPoints);
-				if (PCGExCompare::Compare(Settings->Comparison, Ratio, Settings->DblThreshold, Settings->Tolerance)) { Context->Inside->Emplace_GetRef(PointDataFacade->Source, PCGExData::EInit::Forward); }
-				else { Context->Outside->Emplace_GetRef(PointDataFacade->Source, PCGExData::EInit::Forward); }
+				if (PCGExCompare::Compare(Settings->Comparison, Ratio, Settings->DblThreshold, Settings->Tolerance)) { Context->Inside->Emplace_GetRef(PointDataFacade->Source, PCGExData::EIOInit::Forward); }
+				else { Context->Outside->Emplace_GetRef(PointDataFacade->Source, PCGExData::EIOInit::Forward); }
 			}
 			break;
 		}

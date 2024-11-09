@@ -11,7 +11,7 @@
 #define LOCTEXT_NAMESPACE "PCGExSubdivideElement"
 #define PCGEX_NAMESPACE Subdivide
 
-PCGExData::EInit UPCGExSubdivideSettings::GetMainOutputInitMode() const { return PCGExData::EInit::NewOutput; }
+PCGExData::EIOInit UPCGExSubdivideSettings::GetMainOutputInitMode() const { return PCGExData::EIOInit::NewOutput; }
 
 TArray<FPCGPinProperties> UPCGExSubdivideSettings::InputPinProperties() const
 {
@@ -53,7 +53,7 @@ bool FPCGExSubdivideElement::ExecuteInternal(FPCGContext* InContext) const
 				if (Entry->GetNum() < 2)
 				{
 					bHasInvalidInputs = true;
-					Entry->InitializeOutput(PCGExData::EInit::Forward);
+					Entry->InitializeOutput(PCGExData::EIOInit::Forward);
 					return false;
 				}
 				return true;
@@ -206,13 +206,13 @@ namespace PCGExSubdivide
 
 		if (NumPoints == PointIO->GetNum())
 		{
-			PointIO->InitializeOutput(PCGExData::EInit::DuplicateInput);
+			PointIO->InitializeOutput(PCGExData::EIOInit::DuplicateInput);
 			if (Settings->bFlagSubPoints) { WriteMark(PointIO, Settings->SubPointFlagName, false); }
 			if (Settings->bWriteAlpha) { WriteMark(PointIO, Settings->AlphaAttributeName, Settings->DefaultAlpha); }
 			return;
 		}
 
-		PointIO->InitializeOutput(PCGExData::EInit::NewOutput);
+		PointIO->InitializeOutput(PCGExData::EIOInit::NewOutput);
 		TArray<FPCGPoint>& MutablePoints = PointIO->GetOut()->GetMutablePoints();
 		const TArray<FPCGPoint>& InPoints = PointIO->GetIn()->GetPoints();
 		UPCGMetadata* Metadata = PointIO->GetOut()->Metadata;
@@ -239,13 +239,13 @@ namespace PCGExSubdivide
 
 		if (Settings->bFlagSubPoints)
 		{
-			FlagWriter = PointDataFacade->GetWritable<bool>(Settings->SubPointFlagName, false, false, true);
+			FlagWriter = PointDataFacade->GetWritable<bool>(Settings->SubPointFlagName, false, false, PCGExData::EBufferInit::New);
 			ProtectedAttributes.Add(Settings->SubPointFlagName);
 		}
 
 		if (Settings->bWriteAlpha)
 		{
-			AlphaWriter = PointDataFacade->GetWritable<double>(Settings->AlphaAttributeName, Settings->DefaultAlpha, true, true);
+			AlphaWriter = PointDataFacade->GetWritable<double>(Settings->AlphaAttributeName, Settings->DefaultAlpha, true, PCGExData::EBufferInit::New);
 			ProtectedAttributes.Add(Settings->AlphaAttributeName);
 		}
 

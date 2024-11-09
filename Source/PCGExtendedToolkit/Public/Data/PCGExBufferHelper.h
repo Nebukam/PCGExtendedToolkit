@@ -44,7 +44,7 @@ namespace PCGExData
 					UE_LOG(LogTemp, Error, TEXT("Attempted to create an attribute with a protected prefix (%s)"), *InName.ToString())
 					return nullptr;
 				}
-				TSharedPtr<TBuffer<T>> NewBuffer = DataFacade->GetWritable<T>(InName, true);
+				TSharedPtr<TBuffer<T>> NewBuffer = DataFacade->GetWritable<T>(InName, PCGExData::EBufferInit::New);
 				BufferMap.Add(InName, StaticCastSharedPtr<FBufferBase>(NewBuffer));
 				return NewBuffer;
 			}
@@ -73,7 +73,7 @@ namespace PCGExData
 					UE_LOG(LogTemp, Error, TEXT("Attempted to create an attribute with a protected prefix (%s)"), *InName.ToString())
 					return nullptr;
 				}
-				TSharedPtr<TBuffer<T>> NewBuffer = DataFacade->GetWritable<T>(InName, DefaultValue, true, true);
+				TSharedPtr<TBuffer<T>> NewBuffer = DataFacade->GetWritable<T>(InName, DefaultValue, true, PCGExData::EBufferInit::New);
 				BufferMap.Add(InName, StaticCastSharedPtr<FBufferBase>(NewBuffer));
 				return NewBuffer;
 			}

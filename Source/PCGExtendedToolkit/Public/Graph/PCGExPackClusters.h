@@ -29,10 +29,10 @@ protected:
 
 	//~Begin UPCGExPointsProcessorSettings
 public:
-	virtual PCGExData::EInit GetMainOutputInitMode() const override;
+	virtual PCGExData::EIOInit GetMainOutputInitMode() const override;
 	//~End UPCGExPointsProcessorSettings
 
-	virtual PCGExData::EInit GetEdgeOutputInitMode() const override;
+	virtual PCGExData::EIOInit GetEdgeOutputInitMode() const override;
 
 	/** Meta filter settings. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName="Carry Over Settings"))

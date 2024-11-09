@@ -31,7 +31,7 @@ protected:
 public:
 	virtual FName GetMainInputLabel() const override { return PCGExGraph::SourcePackedClustersLabel; }
 	virtual FName GetMainOutputLabel() const override { return PCGExGraph::OutputVerticesLabel; }
-	virtual PCGExData::EInit GetMainOutputInitMode() const override;
+	virtual PCGExData::EIOInit GetMainOutputInitMode() const override;
 	//~End UPCGExPointsProcessorSettings
 
 	/** Flatten unpacked metadata  Depending on your setup this is a tradeoff between memory and speed.*/

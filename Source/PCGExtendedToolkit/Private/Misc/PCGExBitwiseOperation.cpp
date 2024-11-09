@@ -9,7 +9,7 @@
 #define LOCTEXT_NAMESPACE "PCGExBitwiseOperationElement"
 #define PCGEX_NAMESPACE BitwiseOperation
 
-PCGExData::EInit UPCGExBitwiseOperationSettings::GetMainOutputInitMode() const { return PCGExData::EInit::DuplicateInput; }
+PCGExData::EIOInit UPCGExBitwiseOperationSettings::GetMainOutputInitMode() const { return PCGExData::EIOInit::DuplicateInput; }
 
 PCGEX_INITIALIZE_ELEMENT(BitwiseOperation)
 
@@ -74,7 +74,7 @@ namespace PCGExBitwiseOperation
 
 		if (!FPointsProcessor::Process(InAsyncManager)) { return false; }
 
-		Writer = PointDataFacade->GetWritable<int64>(Settings->FlagAttribute, 0, false, false);
+		Writer = PointDataFacade->GetWritable<int64>(Settings->FlagAttribute, 0, false, PCGExData::EBufferInit::Inherit);
 
 		if (Settings->MaskInput == EPCGExInputValueType::Attribute)
 		{

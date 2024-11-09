@@ -16,6 +16,7 @@ void UPCGExHeuristicInertia::PrepareForCluster(const TSharedPtr<const PCGExClust
 		OutMin = 1;
 		OutMax = 0;
 	}
+
 	Super::PrepareForCluster(InCluster);
 }
 
@@ -25,6 +26,8 @@ UPCGExHeuristicOperation* UPCGExHeuristicsFactoryInertia::CreateOperation(FPCGEx
 	PCGEX_FORWARD_HEURISTIC_CONFIG
 	NewOperation->GlobalInertiaScore = Config.GlobalInertiaScore;
 	NewOperation->FallbackInertiaScore = Config.FallbackInertiaScore;
+	NewOperation->MaxSamples = Config.Samples;
+	NewOperation->bIgnoreIfNotEnoughSamples = Config.bIgnoreIfNotEnoughSamples;
 	return NewOperation;
 }
 

@@ -31,7 +31,7 @@ TArray<FPCGPinProperties> UPCGExConnectPointsSettings::OutputPinProperties() con
 	return PinProperties;
 }
 
-PCGExData::EInit UPCGExConnectPointsSettings::GetMainOutputInitMode() const { return PCGExData::EInit::NoOutput; }
+PCGExData::EIOInit UPCGExConnectPointsSettings::GetMainOutputInitMode() const { return PCGExData::EIOInit::NoOutput; }
 
 PCGEX_INITIALIZE_ELEMENT(ConnectPoints)
 
@@ -148,7 +148,7 @@ namespace PCGExConnectPoints
 
 		if (ProbeOperations.IsEmpty() && DirectProbeOperations.IsEmpty()) { return false; }
 
-		PointDataFacade->Source->InitializeOutput<UPCGExClusterNodesData>(PCGExData::EInit::NewOutput);
+		PointDataFacade->Source->InitializeOutput<UPCGExClusterNodesData>(PCGExData::EIOInit::NewOutput);
 		GraphBuilder = MakeShared<PCGExGraph::FGraphBuilder>(PointDataFacade, &Settings->GraphBuilderDetails, 2);
 
 		CanGenerate.Init(true, NumPoints);
@@ -335,7 +335,7 @@ namespace PCGExConnectPoints
 	{
 		if (!GraphBuilder->bCompiledSuccessfully)
 		{
-			PointDataFacade->Source->InitializeOutput(PCGExData::EInit::NoOutput);
+			PointDataFacade->Source->InitializeOutput(PCGExData::EIOInit::NoOutput);
 			return;
 		}
 

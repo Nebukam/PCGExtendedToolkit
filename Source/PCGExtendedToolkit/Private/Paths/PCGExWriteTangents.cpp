@@ -67,7 +67,7 @@ bool FPCGExWriteTangentsElement::ExecuteInternal(FPCGContext* InContext) const
 				if (Entry->GetNum() < 2)
 				{
 					bHasInvalidInputs = true;
-					Entry->InitializeOutput(PCGExData::EInit::Forward);
+					Entry->InitializeOutput(PCGExData::EIOInit::Forward);
 					return false;
 				}
 				return true;
@@ -147,8 +147,8 @@ namespace PCGExWriteTangents
 		}
 		else { EndTangents = Tangents; }
 
-		ArriveWriter = PointDataFacade->GetWritable(Settings->ArriveName, FVector::ZeroVector, true, false);
-		LeaveWriter = PointDataFacade->GetWritable(Settings->LeaveName, FVector::ZeroVector, true, false);
+		ArriveWriter = PointDataFacade->GetWritable(Settings->ArriveName, FVector::ZeroVector, true, PCGExData::EBufferInit::Inherit);
+		LeaveWriter = PointDataFacade->GetWritable(Settings->LeaveName, FVector::ZeroVector, true, PCGExData::EBufferInit::Inherit);
 
 		LastIndex = PointDataFacade->GetNum() - 1;
 

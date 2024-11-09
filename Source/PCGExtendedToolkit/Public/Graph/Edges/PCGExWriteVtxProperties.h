@@ -40,8 +40,8 @@ protected:
 	//~End UPCGSettings
 
 public:
-	virtual PCGExData::EInit GetMainOutputInitMode() const override;
-	virtual PCGExData::EInit GetEdgeOutputInitMode() const override;
+	virtual PCGExData::EIOInit GetMainOutputInitMode() const override;
+	virtual PCGExData::EIOInit GetEdgeOutputInitMode() const override;
 
 	/** Write normal from edges on vertices. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable, InlineEditConditionToggle))

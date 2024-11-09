@@ -8,7 +8,7 @@
 #define LOCTEXT_NAMESPACE "PCGExResamplePathElement"
 #define PCGEX_NAMESPACE ResamplePath
 
-PCGExData::EInit UPCGExResamplePathSettings::GetMainOutputInitMode() const { return PCGExData::EInit::NoOutput; }
+PCGExData::EIOInit UPCGExResamplePathSettings::GetMainOutputInitMode() const { return PCGExData::EIOInit::NoOutput; }
 
 PCGEX_INITIALIZE_ELEMENT(ResamplePath)
 
@@ -85,14 +85,14 @@ namespace PCGExResamplePath
 
 			if (NumSamples < 2) { return false; }
 
-			PointDataFacade->Source->InitializeOutput(PCGExData::EInit::NewOutput);
+			PointDataFacade->Source->InitializeOutput(PCGExData::EIOInit::NewOutput);
 			TArray<FPCGPoint>& OutPoints = PointDataFacade->GetMutablePoints();
 			OutPoints.SetNum(NumSamples);
 			OutPoints[0] = PointDataFacade->Source->GetIn()->GetPoints()[0]; // Copy first point
 		}
 		else
 		{
-			PointDataFacade->Source->InitializeOutput(PCGExData::EInit::DuplicateInput);
+			PointDataFacade->Source->InitializeOutput(PCGExData::EIOInit::DuplicateInput);
 			NumSamples = PointDataFacade->GetNum();
 		}
 

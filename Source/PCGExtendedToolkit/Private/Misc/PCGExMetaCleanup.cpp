@@ -6,7 +6,7 @@
 #define LOCTEXT_NAMESPACE "PCGExMetaCleanupElement"
 #define PCGEX_NAMESPACE MetaCleanup
 
-PCGExData::EInit UPCGExMetaCleanupSettings::GetMainOutputInitMode() const { return PCGExData::EInit::NoOutput; }
+PCGExData::EIOInit UPCGExMetaCleanupSettings::GetMainOutputInitMode() const { return PCGExData::EIOInit::NoOutput; }
 
 PCGEX_INITIALIZE_ELEMENT(MetaCleanup)
 
@@ -34,7 +34,7 @@ bool FPCGExMetaCleanupElement::ExecuteInternal(FPCGContext* InContext) const
 	{
 		while (Context->AdvancePointsIO())
 		{
-			Context->CurrentIO->InitializeOutput(PCGExData::EInit::Forward);
+			Context->CurrentIO->InitializeOutput(PCGExData::EIOInit::Forward);
 			Context->Filters.Filter(Context->CurrentIO->Tags.Get());
 		}
 	}
@@ -43,7 +43,7 @@ bool FPCGExMetaCleanupElement::ExecuteInternal(FPCGContext* InContext) const
 		while (Context->AdvancePointsIO())
 		{
 			// TODO : Check if any attribute is affected first, and forward instead of duplicate if not.
-			Context->CurrentIO->InitializeOutput(PCGExData::EInit::DuplicateInput);
+			Context->CurrentIO->InitializeOutput(PCGExData::EIOInit::DuplicateInput);
 			Context->Filters.Filter(Context->CurrentIO.Get());
 		}
 	}

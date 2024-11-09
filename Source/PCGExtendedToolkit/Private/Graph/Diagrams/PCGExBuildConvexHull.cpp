@@ -10,7 +10,7 @@
 #define LOCTEXT_NAMESPACE "PCGExGraph"
 #define PCGEX_NAMESPACE BuildConvexHull
 
-PCGExData::EInit UPCGExBuildConvexHullSettings::GetMainOutputInitMode() const { return PCGExData::EInit::NoOutput; }
+PCGExData::EIOInit UPCGExBuildConvexHullSettings::GetMainOutputInitMode() const { return PCGExData::EIOInit::NoOutput; }
 
 TArray<FPCGPinProperties> UPCGExBuildConvexHullSettings::OutputPinProperties() const
 {
@@ -90,7 +90,7 @@ namespace PCGExConvexHull
 
 		ActivePositions.Empty();
 
-		PointDataFacade->Source->InitializeOutput(PCGExData::EInit::DuplicateInput);
+		PointDataFacade->Source->InitializeOutput(PCGExData::EIOInit::DuplicateInput);
 		Edges = Delaunay->DelaunayEdges.Array();
 
 		GraphBuilder = MakeShared<PCGExGraph::FGraphBuilder>(PointDataFacade, &Settings->GraphBuilderDetails);
@@ -130,7 +130,7 @@ namespace PCGExConvexHull
 		if (!GraphBuilder->bCompiledSuccessfully)
 		{
 			bIsProcessorValid = false;
-			PointDataFacade->Source->InitializeOutput(PCGExData::EInit::NoOutput);
+			PointDataFacade->Source->InitializeOutput(PCGExData::EIOInit::NoOutput);
 			return;
 		}
 

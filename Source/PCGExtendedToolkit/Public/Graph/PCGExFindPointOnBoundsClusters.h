@@ -28,11 +28,11 @@ protected:
 	//~Begin UPCGExPointsProcessorSettings
 public:
 	virtual TArray<FPCGPinProperties> OutputPinProperties() const override;
-	virtual PCGExData::EInit GetMainOutputInitMode() const override;
+	virtual PCGExData::EIOInit GetMainOutputInitMode() const override;
 	virtual FName GetMainOutputLabel() const override { return PCGEx::OutputPointsLabel; }
 	//~End UPCGExPointsProcessorSettings
 
-	virtual PCGExData::EInit GetEdgeOutputInitMode() const override;
+	virtual PCGExData::EIOInit GetEdgeOutputInitMode() const override;
 
 	/** What type of proximity to look for */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)

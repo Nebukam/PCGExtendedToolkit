@@ -9,7 +9,7 @@
 #define LOCTEXT_NAMESPACE "PCGExPointsToBoundsElement"
 #define PCGEX_NAMESPACE PointsToBounds
 
-PCGExData::EInit UPCGExPointsToBoundsSettings::GetMainOutputInitMode() const { return PCGExData::EInit::NewOutput; }
+PCGExData::EIOInit UPCGExPointsToBoundsSettings::GetMainOutputInitMode() const { return PCGExData::EIOInit::NewOutput; }
 
 PCGEX_INITIALIZE_ELEMENT(PointsToBounds)
 

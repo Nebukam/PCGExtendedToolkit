@@ -25,7 +25,7 @@ TArray<FPCGPinProperties> UPCGExFindClustersDataSettings::OutputPinProperties() 
 	return PinProperties;
 }
 
-PCGExData::EInit UPCGExFindClustersDataSettings::GetMainOutputInitMode() const { return PCGExData::EInit::NoOutput; }
+PCGExData::EIOInit UPCGExFindClustersDataSettings::GetMainOutputInitMode() const { return PCGExData::EIOInit::NoOutput; }
 
 PCGEX_INITIALIZE_ELEMENT(FindClustersData)
 
@@ -96,7 +96,7 @@ bool FPCGExFindClustersDataElement::ExecuteInternal(FPCGContext* InContext) cons
 
 			// Add to main edges & forward
 			Context->MainEdges->AddUnsafe(InputIO);
-			InputIO->InitializeOutput(PCGExData::EInit::Forward);
+			InputIO->InitializeOutput(PCGExData::EIOInit::Forward);
 		}
 
 		if (Context->MainEdges->IsEmpty())
@@ -107,7 +107,7 @@ bool FPCGExFindClustersDataElement::ExecuteInternal(FPCGContext* InContext) cons
 
 		// Add vtx key to main output & forward
 		Context->MainPoints->AddUnsafe(Context->SearchKeyIO);
-		Context->SearchKeyIO->InitializeOutput(PCGExData::EInit::Forward);
+		Context->SearchKeyIO->InitializeOutput(PCGExData::EIOInit::Forward);
 		Context->SearchKeyIO = nullptr;
 
 		Context->MainPoints->StageOutputs();
@@ -130,7 +130,7 @@ bool FPCGExFindClustersDataElement::ExecuteInternal(FPCGContext* InContext) cons
 			if (!InputIO->Tags->IsTagged(PCGExGraph::TagStr_PCGExVtx)) { continue; }
 
 			// Output vtx
-			InputIO->InitializeOutput(PCGExData::EInit::Forward);
+			InputIO->InitializeOutput(PCGExData::EIOInit::Forward);
 			bFoundMatch = true;
 			break;
 		}
@@ -143,7 +143,7 @@ bool FPCGExFindClustersDataElement::ExecuteInternal(FPCGContext* InContext) cons
 
 		// Move edge key to edges output and forward
 		Context->MainEdges->AddUnsafe(Context->SearchKeyIO);
-		Context->SearchKeyIO->InitializeOutput(PCGExData::EInit::Forward);
+		Context->SearchKeyIO->InitializeOutput(PCGExData::EIOInit::Forward);
 		Context->SearchKeyIO = nullptr;
 
 		Context->MainPoints->StageOutputs();
@@ -237,7 +237,7 @@ bool FPCGExFindClustersDataElement::ExecuteInternal(FPCGContext* InContext) cons
 
 		if (EdgesEntries)
 		{
-			Vtx->InitializeOutput(PCGExData::EInit::Forward);
+			Vtx->InitializeOutput(PCGExData::EIOInit::Forward);
 			Vtx->DefaultOutputLabel = PCGExGraph::OutputVerticesLabel;
 
 			for (TSharedPtr<PCGExData::FPointIO> ValidEdges : EdgesEntries->Entries)
@@ -246,7 +246,7 @@ bool FPCGExFindClustersDataElement::ExecuteInternal(FPCGContext* InContext) cons
 				Context->MainEdges->Pairs.Add(ValidEdges);
 				ValidEdges->DefaultOutputLabel = PCGExGraph::OutputEdgesLabel;
 
-				ValidEdges->InitializeOutput(PCGExData::EInit::Forward);
+				ValidEdges->InitializeOutput(PCGExData::EIOInit::Forward);
 			}
 		}
 		else

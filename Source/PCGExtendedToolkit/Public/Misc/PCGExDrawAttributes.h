@@ -172,7 +172,7 @@ public:
 	bool bPCGExDebug = true;
 
 protected:
-	virtual PCGExData::EInit GetMainOutputInitMode() const override;
+	virtual PCGExData::EIOInit GetMainOutputInitMode() const override;
 
 private:
 	friend class FPCGExDrawAttributesElement;

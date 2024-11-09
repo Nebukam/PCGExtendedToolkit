@@ -443,8 +443,8 @@ namespace PCGExDataBlending
 
 			SourceAttribute = InSecondaryFacade->FindConstAttribute<T>(AttributeName, SecondarySource);
 
-			if (SourceAttribute) { Writer = InPrimaryFacade->GetWritable<T>(SourceAttribute, false); }
-			else { Writer = InPrimaryFacade->GetWritable<T>(AttributeName, T{}, true, false); }
+			if (SourceAttribute) { Writer = InPrimaryFacade->GetWritable<T>(SourceAttribute, PCGExData::EBufferInit::Inherit); }
+			else { Writer = InPrimaryFacade->GetWritable<T>(AttributeName, T{}, true, PCGExData::EBufferInit::Inherit); }
 
 			Reader = InSecondaryFacade->GetReadable<T>(AttributeName, SecondarySource); // Will return writer if sources ==
 

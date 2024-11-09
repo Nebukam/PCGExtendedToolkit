@@ -26,8 +26,8 @@ TArray<FPCGPinProperties> UPCGExFindContoursSettings::OutputPinProperties() cons
 	return PinProperties;
 }
 
-PCGExData::EInit UPCGExFindContoursSettings::GetEdgeOutputInitMode() const { return PCGExData::EInit::NoOutput; }
-PCGExData::EInit UPCGExFindContoursSettings::GetMainOutputInitMode() const { return PCGExData::EInit::NoOutput; }
+PCGExData::EIOInit UPCGExFindContoursSettings::GetEdgeOutputInitMode() const { return PCGExData::EIOInit::NoOutput; }
+PCGExData::EIOInit UPCGExFindContoursSettings::GetMainOutputInitMode() const { return PCGExData::EIOInit::NoOutput; }
 
 bool FPCGExFindContoursContext::TryFindContours(
 	const TSharedPtr<PCGExData::FPointIO>& PathIO,
@@ -209,7 +209,7 @@ bool FPCGExFindContoursContext::TryFindContours(
 
 	if (Settings->bFlagDeadEnds)
 	{
-		const TSharedPtr<PCGExData::TBuffer<bool>> DeadEndBuffer = PathDataFacade->GetWritable(Settings->DeadEndAttributeName, false, false, true);
+		const TSharedPtr<PCGExData::TBuffer<bool>> DeadEndBuffer = PathDataFacade->GetWritable(Settings->DeadEndAttributeName, false, false, PCGExData::EBufferInit::New);
 		TArray<bool>& OutValues = *DeadEndBuffer->GetOutValues();
 		for (int i = 0; i < Path.Num(); i++) { OutValues[i] = Cluster->GetNode(Path[i])->Adjacency.Num() == 1; }
 	}
@@ -262,11 +262,11 @@ bool FPCGExFindContoursElement::Boot(FPCGExContext* InContext) const
 		Context->SeedQuality.Init(false, NumSeeds);
 
 		Context->GoodSeeds = NewPointIO(SeedsPoints.ToSharedRef(), PCGExFindContours::OutputGoodSeedsLabel);
-		Context->GoodSeeds->InitializeOutput(PCGExData::EInit::NewOutput);
+		Context->GoodSeeds->InitializeOutput(PCGExData::EIOInit::NewOutput);
 		Context->GoodSeeds->GetOut()->GetMutablePoints().Reserve(NumSeeds);
 
 		Context->BadSeeds = NewPointIO(SeedsPoints.ToSharedRef(), PCGExFindContours::OutputBadSeedsLabel);
-		Context->BadSeeds->InitializeOutput(PCGExData::EInit::NewOutput);
+		Context->BadSeeds->InitializeOutput(PCGExData::EIOInit::NewOutput);
 		Context->BadSeeds->GetOut()->GetMutablePoints().Reserve(NumSeeds);
 	}
 
@@ -359,14 +359,14 @@ namespace PCGExFindContours
 		{
 			for (int i = 0; i < Context->SeedsDataFacade->Source->GetNum(); i++)
 			{
-				Context->TryFindContours(Context->Paths->Emplace_GetRef<UPCGPointData>(VtxDataFacade->Source, PCGExData::EInit::NewOutput), i, SharedThis(this));
+				Context->TryFindContours(Context->Paths->Emplace_GetRef<UPCGPointData>(VtxDataFacade->Source, PCGExData::EIOInit::NewOutput), i, SharedThis(this));
 			}
 		}
 		else
 		{
 			for (int i = 0; i < Context->SeedsDataFacade->Source->GetNum(); i++)
 			{
-				AsyncManager->Start<FPCGExFindContourTask>(i, Context->Paths->Emplace_GetRef<UPCGPointData>(VtxDataFacade->Source, PCGExData::EInit::NewOutput), SharedThis(this));
+				AsyncManager->Start<FPCGExFindContourTask>(i, Context->Paths->Emplace_GetRef<UPCGPointData>(VtxDataFacade->Source, PCGExData::EIOInit::NewOutput), SharedThis(this));
 			}
 		}
 	}

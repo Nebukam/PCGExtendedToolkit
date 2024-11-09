@@ -8,7 +8,7 @@
 #define LOCTEXT_NAMESPACE "PCGExSampleOverlapStatsElement"
 #define PCGEX_NAMESPACE SampleOverlapStats
 
-PCGExData::EInit UPCGExSampleOverlapStatsSettings::GetMainOutputInitMode() const { return PCGExData::EInit::DuplicateInput; }
+PCGExData::EIOInit UPCGExSampleOverlapStatsSettings::GetMainOutputInitMode() const { return PCGExData::EIOInit::DuplicateInput; }
 
 TSharedPtr<PCGExSampleOverlapStats::FOverlap> FPCGExSampleOverlapStatsContext::RegisterOverlap(
 	PCGExSampleOverlapStats::FProcessor* InA,

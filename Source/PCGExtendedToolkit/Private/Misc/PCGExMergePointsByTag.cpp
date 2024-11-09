@@ -19,7 +19,7 @@ namespace PCPGExMergePointsByTag
 		if (IOs.IsEmpty()) { return; }
 
 		const TSharedPtr<PCGExData::FPointIO> CompositeIO = IOs[0];
-		CompositeIO->InitializeOutput(PCGExData::EInit::NewOutput);
+		CompositeIO->InitializeOutput(PCGExData::EIOInit::NewOutput);
 
 		CompositeIODataFacade = MakeShared<PCGExData::FFacade>(CompositeIO.ToSharedRef());
 
@@ -67,7 +67,7 @@ namespace PCPGExMergePointsByTag
 			}
 		}
 
-		if (!bDistributed) { IO->InitializeOutput(PCGExData::EInit::Forward); }
+		if (!bDistributed) { IO->InitializeOutput(PCGExData::EIOInit::Forward); }
 	}
 
 	void FTagBuckets::AddToReverseMap(const TSharedPtr<PCGExData::FPointIO>& IO, const TSharedPtr<FTagBucket>& Bucket)
@@ -143,7 +143,7 @@ namespace PCPGExMergePointsByTag
 					Distributed.Add(IO, &bAlreadyDistributed);
 					if (bAlreadyDistributed) { continue; }
 
-					IO->InitializeOutput(PCGExData::EInit::Forward);
+					IO->InitializeOutput(PCGExData::EIOInit::Forward);
 					Bucket->IOs.Empty();
 
 					continue;
@@ -197,7 +197,7 @@ namespace PCPGExMergePointsByTag
 
 				if (NewMergeList->IOs.Num() <= 1)
 				{
-					if (NewMergeList->IOs.Num() == 1) { NewMergeList->IOs[0]->InitializeOutput(PCGExData::EInit::Forward); }
+					if (NewMergeList->IOs.Num() == 1) { NewMergeList->IOs[0]->InitializeOutput(PCGExData::EIOInit::Forward); }
 					continue;
 				}
 
@@ -208,7 +208,7 @@ namespace PCPGExMergePointsByTag
 	}
 }
 
-PCGExData::EInit UPCGExMergePointsByTagSettings::GetMainOutputInitMode() const { return PCGExData::EInit::NoOutput; }
+PCGExData::EIOInit UPCGExMergePointsByTagSettings::GetMainOutputInitMode() const { return PCGExData::EIOInit::NoOutput; }
 
 PCGEX_INITIALIZE_ELEMENT(MergePointsByTag)
 
@@ -254,7 +254,7 @@ bool FPCGExMergePointsByTagElement::ExecuteInternal(FPCGContext* InContext) cons
 						Context->FallbackMergeList->IOs.Add(IO);
 						break;
 					case EPCGExMergeByTagFallbackBehavior::Forward:
-						IO->InitializeOutput(PCGExData::EInit::Forward);
+						IO->InitializeOutput(PCGExData::EIOInit::Forward);
 						break;
 					}
 					continue;

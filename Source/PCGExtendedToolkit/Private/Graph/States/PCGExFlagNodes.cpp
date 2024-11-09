@@ -13,8 +13,8 @@
 
 int32 UPCGExFlagNodesSettings::GetPreferredChunkSize() const { return PCGExMT::GAsyncLoop_M; }
 
-PCGExData::EInit UPCGExFlagNodesSettings::GetMainOutputInitMode() const { return PCGExData::EInit::DuplicateInput; }
-PCGExData::EInit UPCGExFlagNodesSettings::GetEdgeOutputInitMode() const { return PCGExData::EInit::Forward; }
+PCGExData::EIOInit UPCGExFlagNodesSettings::GetMainOutputInitMode() const { return PCGExData::EIOInit::DuplicateInput; }
+PCGExData::EIOInit UPCGExFlagNodesSettings::GetEdgeOutputInitMode() const { return PCGExData::EIOInit::Forward; }
 
 TArray<FPCGPinProperties> UPCGExFlagNodesSettings::InputPinProperties() const
 {
@@ -132,7 +132,7 @@ namespace PCGExFlagNodes
 	{
 		PCGEX_TYPED_CONTEXT_AND_SETTINGS(FlagNodes)
 
-		const TSharedPtr<PCGExData::TBuffer<int64>> Writer = VtxDataFacade->GetWritable(Settings->FlagAttribute, Settings->InitialFlags, false, false);
+		const TSharedPtr<PCGExData::TBuffer<int64>> Writer = VtxDataFacade->GetWritable(Settings->FlagAttribute, Settings->InitialFlags, false, PCGExData::EBufferInit::Inherit);
 		StateFlags = Writer->GetOutValues();
 
 		TBatch<FProcessor>::OnProcessingPreparationComplete();

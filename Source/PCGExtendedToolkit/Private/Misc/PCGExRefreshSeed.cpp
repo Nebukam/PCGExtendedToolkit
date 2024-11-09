@@ -9,7 +9,7 @@
 #define LOCTEXT_NAMESPACE "PCGExRefreshSeedElement"
 #define PCGEX_NAMESPACE RefreshSeed
 
-PCGExData::EInit UPCGExRefreshSeedSettings::GetMainOutputInitMode() const { return PCGExData::EInit::DuplicateInput; }
+PCGExData::EIOInit UPCGExRefreshSeedSettings::GetMainOutputInitMode() const { return PCGExData::EIOInit::DuplicateInput; }
 
 PCGEX_INITIALIZE_ELEMENT(RefreshSeed)
 

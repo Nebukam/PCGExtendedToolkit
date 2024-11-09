@@ -8,8 +8,8 @@
 #define LOCTEXT_NAMESPACE "PCGExFindPointOnBoundsClusters"
 #define PCGEX_NAMESPACE FindPointOnBoundsClusters
 
-PCGExData::EInit UPCGExFindPointOnBoundsClustersSettings::GetEdgeOutputInitMode() const { return PCGExData::EInit::NoOutput; }
-PCGExData::EInit UPCGExFindPointOnBoundsClustersSettings::GetMainOutputInitMode() const { return PCGExData::EInit::NoOutput; }
+PCGExData::EIOInit UPCGExFindPointOnBoundsClustersSettings::GetEdgeOutputInitMode() const { return PCGExData::EIOInit::NoOutput; }
+PCGExData::EIOInit UPCGExFindPointOnBoundsClustersSettings::GetMainOutputInitMode() const { return PCGExData::EIOInit::NoOutput; }
 
 void FPCGExFindPointOnBoundsClustersContext::ClusterProcessing_InitialProcessingDone()
 {
@@ -48,7 +48,7 @@ bool FPCGExFindPointOnBoundsClustersElement::Boot(FPCGExContext* InContext) cons
 		Context->CarryOverDetails.Attributes.Prune(*Context->MergedAttributesInfos);
 		Context->CarryOverDetails.Attributes.Prune(AttributeMismatches);
 
-		Context->MergedOut->InitializeOutput(PCGExData::EInit::NewOutput);
+		Context->MergedOut->InitializeOutput(PCGExData::EIOInit::NewOutput);
 		Context->MergedOut->GetOut()->GetMutablePoints().SetNum(Context->MainEdges->Num());
 		Context->MergedOut->GetOutKeys(true);
 
@@ -162,7 +162,7 @@ namespace PCGExFindPointOnBoundsClusters
 		}
 		else
 		{
-			IORef->InitializeOutput(PCGExData::EInit::NewOutput);
+			IORef->InitializeOutput(PCGExData::EIOInit::NewOutput);
 			IORef->GetOut()->GetMutablePoints().SetNum(1);
 
 			FPCGPoint& OutPoint = (IORef->GetOut()->GetMutablePoints()[0] = IORef->GetInPoint(BestIndex));

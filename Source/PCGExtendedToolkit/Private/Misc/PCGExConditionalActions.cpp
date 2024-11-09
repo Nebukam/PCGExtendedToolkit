@@ -12,7 +12,7 @@
 
 int32 UPCGExConditionalActionsSettings::GetPreferredChunkSize() const { return PCGExMT::GAsyncLoop_M; }
 
-PCGExData::EInit UPCGExConditionalActionsSettings::GetMainOutputInitMode() const { return PCGExData::EInit::DuplicateInput; }
+PCGExData::EIOInit UPCGExConditionalActionsSettings::GetMainOutputInitMode() const { return PCGExData::EIOInit::DuplicateInput; }
 
 TArray<FPCGPinProperties> UPCGExConditionalActionsSettings::InputPinProperties() const
 {
@@ -114,7 +114,7 @@ namespace PCGExConditionalActions
 				{
 					using T = decltype(DummyValue);
 					const FPCGMetadataAttribute<T>* TypedAttribute = static_cast<FPCGMetadataAttribute<T>*>(AttributeBase);
-					PointDataFacade->GetWritable<T>(TypedAttribute, false);
+					PointDataFacade->GetWritable<T>(TypedAttribute, PCGExData::EBufferInit::Inherit);
 				});
 		}
 
