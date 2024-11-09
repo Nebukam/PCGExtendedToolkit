@@ -556,7 +556,7 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 			const TSharedPtr<FSubGraph>& SubGraph = Graph->SubGraphs[i];
 			TSharedPtr<PCGExData::FPointIO> EdgeIO;
 
-			if (const int32 IOIndex = SubGraph->GetFirstInIOIndex(); bHasMetadata && SourceEdgeFacades && SourceEdgeFacades->IsValidIndex(IOIndex))
+			if (const int32 IOIndex = SubGraph->GetFirstInIOIndex(); SubGraph->EdgesInIOIndices.Num() == 1 && SourceEdgeFacades && SourceEdgeFacades->IsValidIndex(IOIndex))
 			{
 				// Don't grab original point IO if we have metadata.
 				EdgeIO = EdgesIO->Emplace_GetRef<UPCGExClusterEdgesData>((*SourceEdgeFacades)[IOIndex]->Source, PCGExData::EIOInit::NewOutput);
