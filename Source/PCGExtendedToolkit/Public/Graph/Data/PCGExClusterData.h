@@ -13,7 +13,7 @@
 
 namespace PCGExData
 {
-	enum class EInit : uint8;
+	enum class EIOInit : uint8;
 }
 
 namespace PCGExCluster
@@ -43,7 +43,7 @@ class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExClusterNodesData : public UPCGExClusterDa
 public:
 	TSet<PCGExCluster::FCluster*> BoundClusters;
 
-	virtual void InitializeFromPCGExData(const UPCGExPointData* InPCGExPointData, const PCGExData::EInit InitMode) override;
+	virtual void InitializeFromPCGExData(const UPCGExPointData* InPCGExPointData, const PCGExData::EIOInit InitMode) override;
 
 	void AddBoundCluster(PCGExCluster::FCluster* InCluster);
 
@@ -66,7 +66,7 @@ class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExClusterEdgesData : public UPCGExClusterDa
 	GENERATED_BODY()
 
 public:
-	virtual void InitializeFromPCGExData(const UPCGExPointData* InPCGExPointData, const PCGExData::EInit InitMode) override;
+	virtual void InitializeFromPCGExData(const UPCGExPointData* InPCGExPointData, const PCGExData::EIOInit InitMode) override;
 
 	virtual void SetBoundCluster(const TSharedPtr<PCGExCluster::FCluster>& InCluster);
 	const TSharedPtr<PCGExCluster::FCluster>& GetBoundCluster() const;

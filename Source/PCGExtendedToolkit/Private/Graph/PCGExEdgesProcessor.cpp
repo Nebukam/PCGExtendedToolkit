@@ -9,9 +9,9 @@
 #pragma region UPCGSettings interface
 
 
-PCGExData::EInit UPCGExEdgesProcessorSettings::GetMainOutputInitMode() const { return PCGExData::EInit::Forward; }
+PCGExData::EIOInit UPCGExEdgesProcessorSettings::GetMainOutputInitMode() const { return PCGExData::EIOInit::Forward; }
 
-PCGExData::EInit UPCGExEdgesProcessorSettings::GetEdgeOutputInitMode() const { return PCGExData::EInit::Forward; }
+PCGExData::EIOInit UPCGExEdgesProcessorSettings::GetEdgeOutputInitMode() const { return PCGExData::EIOInit::Forward; }
 
 bool UPCGExEdgesProcessorSettings::GetMainAcceptMultipleData() const { return true; }
 

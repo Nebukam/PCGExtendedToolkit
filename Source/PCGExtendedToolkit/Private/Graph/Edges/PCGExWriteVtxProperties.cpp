@@ -16,8 +16,8 @@ TArray<FPCGPinProperties> UPCGExWriteVtxPropertiesSettings::InputPinProperties()
 	return PinProperties;
 }
 
-PCGExData::EInit UPCGExWriteVtxPropertiesSettings::GetMainOutputInitMode() const { return PCGExData::EInit::DuplicateInput; }
-PCGExData::EInit UPCGExWriteVtxPropertiesSettings::GetEdgeOutputInitMode() const { return PCGExData::EInit::Forward; }
+PCGExData::EIOInit UPCGExWriteVtxPropertiesSettings::GetMainOutputInitMode() const { return PCGExData::EIOInit::DuplicateInput; }
+PCGExData::EIOInit UPCGExWriteVtxPropertiesSettings::GetEdgeOutputInitMode() const { return PCGExData::EIOInit::Forward; }
 
 PCGEX_INITIALIZE_ELEMENT(WriteVtxProperties)
 

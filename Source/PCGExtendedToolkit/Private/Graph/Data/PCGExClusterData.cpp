@@ -8,7 +8,7 @@
 #include "PCGExGlobalSettings.h"
 #include "Graph/PCGExCluster.h"
 
-void UPCGExClusterNodesData::InitializeFromPCGExData(const UPCGExPointData* InPCGExPointData, const PCGExData::EInit InitMode)
+void UPCGExClusterNodesData::InitializeFromPCGExData(const UPCGExPointData* InPCGExPointData, const PCGExData::EIOInit InitMode)
 {
 	Super::InitializeFromPCGExData(InPCGExPointData, InitMode);
 	if (const UPCGExClusterNodesData* InNodeData = Cast<UPCGExClusterNodesData>(InPCGExPointData))
@@ -50,15 +50,15 @@ UPCGSpatialData* UPCGExClusterNodesData::CopyInternal(FPCGContext* Context) cons
 #endif
 
 
-void UPCGExClusterEdgesData::InitializeFromPCGExData(const UPCGExPointData* InPCGExPointData, const PCGExData::EInit InitMode)
+void UPCGExClusterEdgesData::InitializeFromPCGExData(const UPCGExPointData* InPCGExPointData, const PCGExData::EIOInit InitMode)
 {
 	Super::InitializeFromPCGExData(InPCGExPointData, InitMode);
 	if (const UPCGExClusterEdgesData* InEdgeData = Cast<UPCGExClusterEdgesData>(InPCGExPointData))
 	{
 		if (GetDefault<UPCGExGlobalSettings>()->bCacheClusters)
 		{
-			if (InitMode != PCGExData::EInit::NoOutput &&
-				InitMode != PCGExData::EInit::NewOutput)
+			if (InitMode != PCGExData::EIOInit::NoOutput &&
+				InitMode != PCGExData::EIOInit::NewOutput)
 			{
 				SetBoundCluster(InEdgeData->Cluster);
 			}

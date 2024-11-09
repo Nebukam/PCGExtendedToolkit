@@ -14,7 +14,7 @@
 #define LOCTEXT_NAMESPACE "PCGExGraph"
 #define PCGEX_NAMESPACE BuildVoronoiGraph2D
 
-PCGExData::EInit UPCGExBuildVoronoiGraph2DSettings::GetMainOutputInitMode() const { return PCGExData::EInit::NewOutput; }
+PCGExData::EIOInit UPCGExBuildVoronoiGraph2DSettings::GetMainOutputInitMode() const { return PCGExData::EIOInit::NewOutput; }
 
 TArray<FPCGPinProperties> UPCGExBuildVoronoiGraph2DSettings::OutputPinProperties() const
 {
@@ -43,7 +43,7 @@ bool FPCGExBuildVoronoiGraph2DElement::Boot(FPCGExContext* InContext) const
 
 		for (TSharedPtr<PCGExData::FPointIO> IO : Context->MainPoints->Pairs)
 		{
-			Context->SitesOutput->Emplace_GetRef(IO, PCGExData::EInit::NoOutput);
+			Context->SitesOutput->Emplace_GetRef(IO, PCGExData::EIOInit::NoOutput);
 		}
 	}
 
@@ -161,12 +161,12 @@ namespace PCGExBuildVoronoi2D
 			};
 
 			SiteDataFacade = MakeShared<PCGExData::FFacade>(Context->SitesOutput->Pairs[PointDataFacade->Source->IOIndex].ToSharedRef());
-			SiteDataFacade->Source->InitializeOutput(PCGExData::EInit::DuplicateInput);
+			SiteDataFacade->Source->InitializeOutput(PCGExData::EIOInit::DuplicateInput);
 
-			if (Settings->bPruneOutOfBounds && !Settings->bPruneOpenSites) { OpenSiteWriter = SiteDataFacade->GetWritable<bool>(Settings->OpenSiteFlag, true); }
+			if (Settings->bPruneOutOfBounds && !Settings->bPruneOpenSites) { OpenSiteWriter = SiteDataFacade->GetWritable<bool>(Settings->OpenSiteFlag, PCGExData::EBufferInit::New); }
 		}
 
-		PointDataFacade->Source->InitializeOutput<UPCGExClusterNodesData>(PCGExData::EInit::NewOutput);
+		PointDataFacade->Source->InitializeOutput<UPCGExClusterNodesData>(PCGExData::EIOInit::NewOutput);
 
 		if (Settings->Method == EPCGExCellCenter::Circumcenter && Settings->bPruneOutOfBounds)
 		{
@@ -345,7 +345,7 @@ namespace PCGExBuildVoronoi2D
 		if (!GraphBuilder->bCompiledSuccessfully)
 		{
 			bIsProcessorValid = false;
-			PointDataFacade->Source->InitializeOutput(PCGExData::EInit::NoOutput);
+			PointDataFacade->Source->InitializeOutput(PCGExData::EIOInit::NoOutput);
 			return;
 		}
 

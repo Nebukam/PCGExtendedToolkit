@@ -7,7 +7,7 @@
 #define LOCTEXT_NAMESPACE "PCGExWriteIndexElement"
 #define PCGEX_NAMESPACE WriteIndex
 
-PCGExData::EInit UPCGExWriteIndexSettings::GetMainOutputInitMode() const { return PCGExData::EInit::DuplicateInput; }
+PCGExData::EIOInit UPCGExWriteIndexSettings::GetMainOutputInitMode() const { return PCGExData::EIOInit::DuplicateInput; }
 
 PCGEX_INITIALIZE_ELEMENT(WriteIndex)
 
@@ -64,11 +64,11 @@ namespace PCGExWriteIndex
 
 		if (Settings->bOutputNormalizedIndex)
 		{
-			DoubleWriter = PointDataFacade->GetWritable<double>(Settings->OutputAttributeName, -1, false, false);
+			DoubleWriter = PointDataFacade->GetWritable<double>(Settings->OutputAttributeName, -1, false, PCGExData::EBufferInit::Inherit);
 		}
 		else
 		{
-			IntWriter = PointDataFacade->GetWritable<int32>(Settings->OutputAttributeName, -1, false, false);
+			IntWriter = PointDataFacade->GetWritable<int32>(Settings->OutputAttributeName, -1, false, PCGExData::EBufferInit::Inherit);
 		}
 
 		if (Settings->bOutputCollectionIndex)

@@ -7,7 +7,7 @@
 #define LOCTEXT_NAMESPACE "PCGExUnpackClusters"
 #define PCGEX_NAMESPACE UnpackClusters
 
-PCGExData::EInit UPCGExUnpackClustersSettings::GetMainOutputInitMode() const { return PCGExData::EInit::NoOutput; }
+PCGExData::EIOInit UPCGExUnpackClustersSettings::GetMainOutputInitMode() const { return PCGExData::EIOInit::NoOutput; }
 
 TArray<FPCGPinProperties> UPCGExUnpackClustersSettings::InputPinProperties() const
 {
@@ -87,7 +87,7 @@ bool FPCGExUnpackClusterTask::ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager
 
 	const TArray<FPCGPoint>& PackedPoints = PointIO->GetIn()->GetPoints();
 
-	const TSharedPtr<PCGExData::FPointIO> NewEdges = Context->OutEdges->Emplace_GetRef(PointIO, PCGExData::EInit::NewOutput);
+	const TSharedPtr<PCGExData::FPointIO> NewEdges = Context->OutEdges->Emplace_GetRef(PointIO, PCGExData::EIOInit::NewOutput);
 	TArray<FPCGPoint> MutableEdgePoints = NewEdges->GetOut()->GetMutablePoints();
 	MutableEdgePoints.Append(&PackedPoints[0], NumEdges);
 	NewEdges->GetOut()->SetPoints(MutableEdgePoints);
@@ -96,7 +96,7 @@ bool FPCGExUnpackClusterTask::ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager
 	NewEdges->DeleteAttribute(PCGExGraph::Tag_PackedClusterPointCount);
 	NewEdges->DeleteAttribute(PCGExGraph::Tag_VtxEndpoint);
 
-	const TSharedPtr<PCGExData::FPointIO> NewVtx = Context->OutPoints->Emplace_GetRef(PointIO, PCGExData::EInit::NewOutput);
+	const TSharedPtr<PCGExData::FPointIO> NewVtx = Context->OutPoints->Emplace_GetRef(PointIO, PCGExData::EIOInit::NewOutput);
 	TArray<FPCGPoint> MutableVtxPoints = NewVtx->GetOut()->GetMutablePoints();
 	MutableVtxPoints.Append(&PackedPoints[NumEdges], NumVtx);
 	NewVtx->GetOut()->SetPoints(MutableVtxPoints);

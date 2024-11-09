@@ -11,7 +11,7 @@
 
 PCGEX_INITIALIZE_ELEMENT(PathSplineMeshSimple)
 
-PCGExData::EInit UPCGExPathSplineMeshSimpleSettings::GetMainOutputInitMode() const { return PCGExData::EInit::DuplicateInput; }
+PCGExData::EIOInit UPCGExPathSplineMeshSimpleSettings::GetMainOutputInitMode() const { return PCGExData::EIOInit::DuplicateInput; }
 
 bool FPCGExPathSplineMeshSimpleElement::Boot(FPCGExContext* InContext) const
 {
@@ -61,7 +61,7 @@ bool FPCGExPathSplineMeshSimpleElement::ExecuteInternal(FPCGContext* InContext) 
 				if (Entry->GetNum() < 2)
 				{
 					bHasInvalidInputs = true;
-					Entry->InitializeOutput(PCGExData::EInit::Forward);
+					Entry->InitializeOutput(PCGExData::EIOInit::Forward);
 					return false;
 				}
 				return true;

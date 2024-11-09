@@ -33,8 +33,8 @@ protected:
 public:
 	virtual bool SupportsEdgeSorting() const;
 	virtual bool RequiresEdgeSorting() const;
-	virtual PCGExData::EInit GetMainOutputInitMode() const override;
-	virtual PCGExData::EInit GetEdgeOutputInitMode() const;
+	virtual PCGExData::EIOInit GetMainOutputInitMode() const override;
+	virtual PCGExData::EIOInit GetEdgeOutputInitMode() const;
 
 	virtual FName GetMainInputLabel() const override { return PCGExGraph::SourceVerticesLabel; }
 	virtual FName GetMainOutputLabel() const override { return PCGExGraph::OutputVerticesLabel; }

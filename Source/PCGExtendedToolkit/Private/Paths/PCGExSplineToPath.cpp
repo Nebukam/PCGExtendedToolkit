@@ -99,7 +99,7 @@ bool FPCGExSplineToPathElement::ExecuteInternal(FPCGContext* InContext) const
 	{
 		for (int i = 0; i < Context->NumTargets; i++)
 		{
-			TSharedPtr<PCGExData::FPointIO> NewOutput = Context->MainPoints->Emplace_GetRef(PCGExData::EInit::NewOutput);
+			TSharedPtr<PCGExData::FPointIO> NewOutput = Context->MainPoints->Emplace_GetRef(PCGExData::EIOInit::NewOutput);
 			TSharedPtr<PCGExData::FFacade> PointDataFacade = MakeShared<PCGExData::FFacade>(NewOutput.ToSharedRef());
 			Context->GetAsyncManager()->Start<PCGExSplineToPath::FWriteTask>(i, NewOutput, PointDataFacade);
 

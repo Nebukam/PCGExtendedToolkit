@@ -18,7 +18,7 @@ namespace PCGExGeoTask
 	class FLloydRelax3;
 }
 
-PCGExData::EInit UPCGExMeshToClustersSettings::GetMainOutputInitMode() const { return PCGExData::EInit::NoOutput; }
+PCGExData::EIOInit UPCGExMeshToClustersSettings::GetMainOutputInitMode() const { return PCGExData::EIOInit::NoOutput; }
 
 TArray<FPCGPinProperties> UPCGExMeshToClustersSettings::OutputPinProperties() const
 {

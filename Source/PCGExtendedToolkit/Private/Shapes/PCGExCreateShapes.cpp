@@ -102,7 +102,7 @@ namespace PCGExCreateShapes
 
 		if (Settings->OutputMode == EPCGExShapeOutputMode::PerDataset)
 		{
-			PointDataFacade->Source->InitializeOutput(PCGExData::EInit::NewOutput);
+			PointDataFacade->Source->InitializeOutput(PCGExData::EIOInit::NewOutput);
 			int32 StartIndex = 0;
 			int32 NumPoints = 0;
 
@@ -159,7 +159,7 @@ namespace PCGExCreateShapes
 				if (NumPoints <= 0) { continue; }
 
 				TSharedPtr<PCGExData::FPointIO> IO = NewPointIO(PointDataFacade->Source, Settings->GetMainOutputLabel(), i);
-				IO->InitializeOutput(PCGExData::EInit::NewOutput);
+				IO->InitializeOutput(PCGExData::EIOInit::NewOutput);
 
 				TSharedPtr<PCGExData::FFacade> IOFacade = MakeShared<PCGExData::FFacade>(IO.ToSharedRef());
 				PerSeedFacades.Add(IOFacade);
@@ -217,13 +217,14 @@ namespace PCGExCreateShapes
 
 		if (Settings->bWriteShapeId)
 		{
-			TSharedPtr<PCGExData::TBuffer<double>> ShapeIdBuffer = ShapeDataFacade->GetWritable<double>(Settings->ShapeIdAttributeName, true);
+			TSharedPtr<PCGExData::TBuffer<double>> ShapeIdBuffer = ShapeDataFacade->GetWritable<double>(Settings->ShapeIdAttributeName, PCGExData::EBufferInit::New);
 			const int32 MaxIndex = Shape->StartIndex + Shape->NumPoints;
 			for (int i = Shape->StartIndex; i < MaxIndex; i++) { ShapeIdBuffer->GetMutable(i) = Operation->BaseConfig.ShapeId; }
 		}
 
 		FTransform TRA = Operation->Transform;
 		FTransform TRB = Shape->Seed.Point->Transform;
+
 		TRB.SetScale3D(FVector::OneVector);
 
 		PCGEX_ASYNC_GROUP_CHKD(AsyncManager, TransformPointsTask);

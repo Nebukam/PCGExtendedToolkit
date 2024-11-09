@@ -11,7 +11,7 @@
 #define LOCTEXT_NAMESPACE "PCGExOffsetPathElement"
 #define PCGEX_NAMESPACE OffsetPath
 
-PCGExData::EInit UPCGExOffsetPathSettings::GetMainOutputInitMode() const { return bCleanupPath ? PCGExData::EInit::NewOutput : PCGExData::EInit::DuplicateInput; }
+PCGExData::EIOInit UPCGExOffsetPathSettings::GetMainOutputInitMode() const { return bCleanupPath ? PCGExData::EIOInit::NewOutput : PCGExData::EIOInit::DuplicateInput; }
 
 PCGEX_INITIALIZE_ELEMENT(OffsetPath)
 
@@ -284,10 +284,10 @@ namespace PCGExOffsetPath
 				Pt.Transform.SetLocation(Positions.Last());
 			}
 
-			if (OutPoints.Num() < 2) { PointDataFacade->Source->InitializeOutput(PCGExData::EInit::NoOutput); }
+			if (OutPoints.Num() < 2) { PointDataFacade->Source->InitializeOutput(PCGExData::EIOInit::NoOutput); }
 			else if (Settings->bFlagMutatedPoints)
 			{
-				TSharedPtr<PCGExData::TBuffer<bool>> MutatedFlag = PointDataFacade->GetWritable<bool>(Settings->MutatedAttributeName, false, true, false);
+				TSharedPtr<PCGExData::TBuffer<bool>> MutatedFlag = PointDataFacade->GetWritable<bool>(Settings->MutatedAttributeName, false, true, PCGExData::EBufferInit::Inherit);
 				for (int i = 0; i < Mutated.Num(); i++) { MutatedFlag->GetMutable(i) = Mutated[i] ? true : false; }
 				PointDataFacade->Write(AsyncManager);
 			}

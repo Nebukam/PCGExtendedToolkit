@@ -478,7 +478,7 @@ protected:
 
 	//~Begin UPCGExPointsProcessorSettings
 public:
-	virtual PCGExData::EInit GetMainOutputInitMode() const override;
+	virtual PCGExData::EIOInit GetMainOutputInitMode() const override;
 	virtual FName GetMainOutputLabel() const override { return PCGExGraph::OutputVerticesLabel; }
 	virtual bool IsInputless() const override { return Mode == EPCGExCustomGraphActorSourceMode::Owner; }
 	//~End UPCGExPointsProcessorSettings

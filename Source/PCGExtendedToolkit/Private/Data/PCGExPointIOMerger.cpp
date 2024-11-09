@@ -89,10 +89,10 @@ void FPCGExPointIOMerger::Merge(const TSharedPtr<PCGExMT::FTaskManager>& AsyncMa
 							// 'template' spec required for clang on mac, not sure why.
 							// ReSharper disable once CppRedundantTemplateKeyword
 							const FPCGMetadataAttribute<T>* SourceAttribute = Metadata->template GetConstTypedAttribute<T>(SourceAtt.Name);
-							Buffer = UnionDataFacade->GetWritable(SourceAttribute, false);
+							Buffer = UnionDataFacade->GetWritable(SourceAttribute, PCGExData::EBufferInit::Inherit);
 						}
 
-						if (!Buffer) { Buffer = UnionDataFacade->GetWritable(SourceAtt.Name, T{}, SourceAtt.bAllowsInterpolation, false); }
+						if (!Buffer) { Buffer = UnionDataFacade->GetWritable(SourceAtt.Name, T{}, SourceAtt.bAllowsInterpolation, PCGExData::EBufferInit::Inherit); }
 						Buffers.Add(StaticCastSharedPtr<PCGExData::FBufferBase>(Buffer));
 						UniqueIdentities.Add(SourceAtt);
 					});

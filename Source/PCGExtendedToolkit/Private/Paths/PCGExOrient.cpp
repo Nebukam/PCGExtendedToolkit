@@ -63,7 +63,7 @@ bool FPCGExOrientElement::ExecuteInternal(FPCGContext* InContext) const
 				if (Entry->GetNum() < 2)
 				{
 					bHasInvalidInputs = true;
-					Entry->InitializeOutput(PCGExData::EInit::Forward);
+					Entry->InitializeOutput(PCGExData::EIOInit::Forward);
 					return false;
 				}
 				return true;
@@ -110,12 +110,12 @@ namespace PCGExOrient
 
 		if (Settings->Output == EPCGExOrientUsage::OutputToAttribute)
 		{
-			TransformWriter = PointDataFacade->GetWritable<FTransform>(Settings->OutputAttribute, false);
+			TransformWriter = PointDataFacade->GetWritable<FTransform>(Settings->OutputAttribute, PCGExData::EBufferInit::Inherit);
 		}
 
 		if (Settings->bOutputDot)
 		{
-			DotWriter = PointDataFacade->GetWritable<double>(Settings->DotAttribute, false);
+			DotWriter = PointDataFacade->GetWritable<double>(Settings->DotAttribute, PCGExData::EBufferInit::Inherit);
 		}
 
 		StartParallelLoopForPoints();

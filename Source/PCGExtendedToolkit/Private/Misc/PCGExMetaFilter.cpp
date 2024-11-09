@@ -8,7 +8,7 @@
 #define LOCTEXT_NAMESPACE "PCGExMetaFilterElement"
 #define PCGEX_NAMESPACE MetaFilter
 
-PCGExData::EInit UPCGExMetaFilterSettings::GetMainOutputInitMode() const { return PCGExData::EInit::NoOutput; }
+PCGExData::EIOInit UPCGExMetaFilterSettings::GetMainOutputInitMode() const { return PCGExData::EIOInit::NoOutput; }
 
 TArray<FPCGPinProperties> UPCGExMetaFilterSettings::OutputPinProperties() const
 {
@@ -57,7 +57,7 @@ bool FPCGExMetaFilterElement::ExecuteInternal(FPCGContext* InContext) const
 		while (Context->AdvancePointsIO())
 		{
 			const TSharedPtr<PCGExData::FPointIOCollection> Target = Context->Filters.Test(Context->CurrentIO->Tags.Get()) ? Context->Inside : Context->Outside;
-			Target->Emplace_GetRef(Context->CurrentIO, PCGExData::EInit::Forward);
+			Target->Emplace_GetRef(Context->CurrentIO, PCGExData::EIOInit::Forward);
 		}
 	}
 	else
@@ -65,7 +65,7 @@ bool FPCGExMetaFilterElement::ExecuteInternal(FPCGContext* InContext) const
 		while (Context->AdvancePointsIO())
 		{
 			const TSharedPtr<PCGExData::FPointIOCollection> Target = Context->Filters.Test(Context->CurrentIO.Get()) ? Context->Inside : Context->Outside;
-			Target->Emplace_GetRef(Context->CurrentIO, PCGExData::EInit::Forward);
+			Target->Emplace_GetRef(Context->CurrentIO, PCGExData::EIOInit::Forward);
 		}
 	}
 

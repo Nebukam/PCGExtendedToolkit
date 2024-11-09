@@ -37,7 +37,7 @@ public:
 	//~End UPCGSettings
 
 	//~Begin UPCGExPointsProcessorSettings
-	virtual PCGExData::EInit GetMainOutputInitMode() const override;
+	virtual PCGExData::EIOInit GetMainOutputInitMode() const override;
 	virtual FName GetMainInputLabel() const override { return PCGExGraph::SourcePathsLabel; }
 	virtual FName GetMainOutputLabel() const override { return PCGExGraph::OutputPathsLabel; }
 	virtual FString GetPointFilterTooltip() const override { return TEXT("Path points processing filters"); }

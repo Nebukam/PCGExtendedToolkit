@@ -17,7 +17,7 @@ TArray<FPCGPinProperties> UPCGExBevelPathSettings::InputPinProperties() const
 	return PinProperties;
 }
 
-PCGExData::EInit UPCGExBevelPathSettings::GetMainOutputInitMode() const { return PCGExData::EInit::NoOutput; }
+PCGExData::EIOInit UPCGExBevelPathSettings::GetMainOutputInitMode() const { return PCGExData::EIOInit::NoOutput; }
 
 PCGEX_INITIALIZE_ELEMENT(BevelPath)
 
@@ -87,7 +87,7 @@ bool FPCGExBevelPathElement::ExecuteInternal(FPCGContext* InContext) const
 			{
 				if (Entry->GetNum() < 3)
 				{
-					Entry->InitializeOutput(PCGExData::EInit::DuplicateInput);
+					Entry->InitializeOutput(PCGExData::EIOInit::DuplicateInput);
 					Settings->InitOutputFlags(Entry);
 					bHasInvalidInputs = true;
 					return false;
@@ -460,12 +460,12 @@ namespace PCGExBevelPath
 
 		if (NumBevels == 0)
 		{
-			PointIO->InitializeOutput(PCGExData::EInit::DuplicateInput);
+			PointIO->InitializeOutput(PCGExData::EIOInit::DuplicateInput);
 			Settings->InitOutputFlags(PointIO);
 			return;
 		}
 
-		PointIO->InitializeOutput(PCGExData::EInit::NewOutput);
+		PointIO->InitializeOutput(PCGExData::EIOInit::NewOutput);
 		Settings->InitOutputFlags(PointIO);
 
 		// Build output points
@@ -480,22 +480,22 @@ namespace PCGExBevelPath
 	{
 		if (Settings->bFlagEndpoints)
 		{
-			EndpointsWriter = PointDataFacade->GetWritable<bool>(Settings->EndpointsFlagName, false, true, true);
+			EndpointsWriter = PointDataFacade->GetWritable<bool>(Settings->EndpointsFlagName, false, true, PCGExData::EBufferInit::New);
 		}
 
 		if (Settings->bFlagStartPoint)
 		{
-			StartPointWriter = PointDataFacade->GetWritable<bool>(Settings->StartPointFlagName, false, true, true);
+			StartPointWriter = PointDataFacade->GetWritable<bool>(Settings->StartPointFlagName, false, true, PCGExData::EBufferInit::New);
 		}
 
 		if (Settings->bFlagEndPoint)
 		{
-			EndPointWriter = PointDataFacade->GetWritable<bool>(Settings->EndPointFlagName, false, true, true);
+			EndPointWriter = PointDataFacade->GetWritable<bool>(Settings->EndPointFlagName, false, true, PCGExData::EBufferInit::New);
 		}
 
 		if (Settings->bFlagSubdivision)
 		{
-			SubdivisionWriter = PointDataFacade->GetWritable<bool>(Settings->SubdivisionFlagName, false, true, true);
+			SubdivisionWriter = PointDataFacade->GetWritable<bool>(Settings->SubdivisionFlagName, false, true, PCGExData::EBufferInit::New);
 		}
 
 		PCGEX_ASYNC_GROUP_CHKD_VOID(AsyncManager, WriteFlagsTask)

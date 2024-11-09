@@ -9,7 +9,7 @@
 #define PCGEX_NAMESPACE AttributeRemap
 
 
-PCGExData::EInit UPCGExAttributeRemapSettings::GetMainOutputInitMode() const { return PCGExData::EInit::DuplicateInput; }
+PCGExData::EIOInit UPCGExAttributeRemapSettings::GetMainOutputInitMode() const { return PCGExData::EIOInit::DuplicateInput; }
 
 PCGEX_INITIALIZE_ELEMENT(AttributeRemap)
 
@@ -130,7 +130,7 @@ namespace PCGExAttributeRemap
 			static_cast<uint16>(UnderlyingType), [&](auto DummyValue) -> void
 			{
 				using RawT = decltype(DummyValue);
-				CacheWriter = PointDataFacade->GetWritable<RawT>(Settings->TargetAttributeName, true);
+				CacheWriter = PointDataFacade->GetWritable<RawT>(Settings->TargetAttributeName, PCGExData::EBufferInit::New);
 				CacheReader = PointDataFacade->GetScopedReadable<RawT>(Identity->Name);
 			});
 

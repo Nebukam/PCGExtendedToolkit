@@ -59,7 +59,7 @@ public:
 	//~End UObject interface
 
 	//~Begin UPCGExPointsProcessorSettings
-	virtual PCGExData::EInit GetMainOutputInitMode() const override;
+	virtual PCGExData::EIOInit GetMainOutputInitMode() const override;
 
 	virtual FName GetMainInputLabel() const override { return PCGExGraph::SourcePlotsLabel; }
 	virtual FName GetMainOutputLabel() const override { return PCGExGraph::OutputPathsLabel; }

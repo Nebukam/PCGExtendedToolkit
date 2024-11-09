@@ -11,7 +11,7 @@
 #define LOCTEXT_NAMESPACE "PCGExFusePointsElement"
 #define PCGEX_NAMESPACE FusePoints
 
-PCGExData::EInit UPCGExFusePointsSettings::GetMainOutputInitMode() const { return PCGExData::EInit::NewOutput; }
+PCGExData::EIOInit UPCGExFusePointsSettings::GetMainOutputInitMode() const { return PCGExData::EIOInit::NewOutput; }
 
 PCGEX_INITIALIZE_ELEMENT(FusePoints)
 
@@ -107,7 +107,7 @@ namespace PCGExFusePoints
 
 		UnionBlender = MakeShared<PCGExDataBlending::FUnionBlender>(const_cast<FPCGExBlendingDetails*>(&Settings->BlendingDetails), &Context->CarryOverDetails);
 		UnionBlender->AddSource(PointDataFacade, &PCGExGraph::ProtectedClusterAttributes);
-		UnionBlender->PrepareMerge(PointDataFacade, UnionGraph->NodesUnion);
+		UnionBlender->PrepareMerge(Context, PointDataFacade, UnionGraph->NodesUnion);
 
 		StartParallelLoopForRange(NumUnionNodes);
 	}

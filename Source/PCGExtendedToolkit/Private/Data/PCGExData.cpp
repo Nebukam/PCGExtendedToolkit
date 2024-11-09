@@ -43,8 +43,9 @@ namespace PCGExData
 
 		Source->GetOutKeys(true);
 
-		for (const TSharedPtr<FBufferBase> Buffer : Buffers)
+		for (int i = 0; i < Buffers.Num(); i++)
 		{
+			const TSharedPtr<FBufferBase> Buffer = Buffers[i];
 			if (!Buffer.IsValid() || !Buffer->IsWritable()) { continue; }
 			PCGExMT::Write(AsyncManager, Buffer);
 		}
@@ -84,13 +85,13 @@ namespace PCGExData
 				TSharedPtr<TBuffer<T>> Reader = nullptr;
 				switch (Mode)
 				{
-				case EPCGExReadableConfigMode::RawAttribute:
+				case EBufferPreloadType::RawAttribute:
 					Reader = InFacade->GetScopedReadable<T>(Identity.Name);
 					break;
-				case EPCGExReadableConfigMode::BroadcastFromName:
+				case EBufferPreloadType::BroadcastFromName:
 					Reader = InFacade->GetScopedBroadcaster<T>(Identity.Name);
 					break;
-				case EPCGExReadableConfigMode::BroadcastFromSelector:
+				case EBufferPreloadType::BroadcastFromSelector:
 					Reader = InFacade->GetScopedBroadcaster<T>(Selector);
 					break;
 				}
@@ -107,13 +108,13 @@ namespace PCGExData
 				TSharedPtr<TBuffer<T>> Reader = nullptr;
 				switch (Mode)
 				{
-				case EPCGExReadableConfigMode::RawAttribute:
+				case EBufferPreloadType::RawAttribute:
 					Reader = InFacade->GetReadable<T>(Identity.Name);
 					break;
-				case EPCGExReadableConfigMode::BroadcastFromName:
+				case EBufferPreloadType::BroadcastFromName:
 					Reader = InFacade->GetBroadcaster<T>(Identity.Name);
 					break;
-				case EPCGExReadableConfigMode::BroadcastFromSelector:
+				case EBufferPreloadType::BroadcastFromSelector:
 					Reader = InFacade->GetBroadcaster<T>(Selector);
 					break;
 				}

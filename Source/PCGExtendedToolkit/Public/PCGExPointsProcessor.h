@@ -58,7 +58,7 @@ public:
 	virtual FName GetMainInputLabel() const { return PCGEx::SourcePointsLabel; }
 	virtual FName GetMainOutputLabel() const { return PCGEx::OutputPointsLabel; }
 	virtual bool GetMainAcceptMultipleData() const { return true; }
-	virtual PCGExData::EInit GetMainOutputInitMode() const;
+	virtual PCGExData::EIOInit GetMainOutputInitMode() const;
 
 	virtual FName GetPointFilterLabel() const { return NAME_None; }
 	virtual FString GetPointFilterTooltip() const { return TEXT("Filters"); }

@@ -8,8 +8,8 @@
 
 #pragma region UPCGSettings interface
 
-PCGExData::EInit UPCGExPartitionVerticesSettings::GetMainOutputInitMode() const { return PCGExData::EInit::NoOutput; }
-PCGExData::EInit UPCGExPartitionVerticesSettings::GetEdgeOutputInitMode() const { return PCGExData::EInit::Forward; }
+PCGExData::EIOInit UPCGExPartitionVerticesSettings::GetMainOutputInitMode() const { return PCGExData::EIOInit::NoOutput; }
+PCGExData::EIOInit UPCGExPartitionVerticesSettings::GetEdgeOutputInitMode() const { return PCGExData::EIOInit::Forward; }
 
 #pragma endregion
 
@@ -70,7 +70,7 @@ namespace PCGExPartitionVertices
 
 		if (!FClusterProcessor::Process(InAsyncManager)) { return false; }
 
-		PointPartitionIO = Context->VtxPartitions->Emplace_GetRef(VtxDataFacade->Source, PCGExData::EInit::NewOutput);
+		PointPartitionIO = Context->VtxPartitions->Emplace_GetRef(VtxDataFacade->Source, PCGExData::EIOInit::NewOutput);
 		TArray<FPCGPoint>& MutablePoints = PointPartitionIO->GetOut()->GetMutablePoints();
 
 		MutablePoints.SetNumUninitialized(NumNodes);

@@ -7,7 +7,7 @@
 #define LOCTEXT_NAMESPACE "PCGExCollocationCountElement"
 #define PCGEX_NAMESPACE CollocationCount
 
-PCGExData::EInit UPCGExCollocationCountSettings::GetMainOutputInitMode() const { return PCGExData::EInit::DuplicateInput; }
+PCGExData::EIOInit UPCGExCollocationCountSettings::GetMainOutputInitMode() const { return PCGExData::EIOInit::DuplicateInput; }
 
 PCGEX_INITIALIZE_ELEMENT(CollocationCount)
 
@@ -59,11 +59,11 @@ namespace PCGExCollocationCount
 		NumPoints = PointDataFacade->GetNum();
 		ToleranceConstant = Settings->Tolerance;
 
-		CollocationWriter = PointDataFacade->GetWritable(Settings->CollicationNumAttributeName, 0, true, true);
+		CollocationWriter = PointDataFacade->GetWritable(Settings->CollicationNumAttributeName, 0, true, PCGExData::EBufferInit::New);
 
 		if (Settings->bWriteLinearOccurences)
 		{
-			LinearOccurencesWriter = PointDataFacade->GetWritable(Settings->LinearOccurencesAttributeName, 0, true, true);
+			LinearOccurencesWriter = PointDataFacade->GetWritable(Settings->LinearOccurencesAttributeName, 0, true, PCGExData::EBufferInit::New);
 		}
 
 		Octree = &PointDataFacade->Source->GetIn()->GetOctree();
