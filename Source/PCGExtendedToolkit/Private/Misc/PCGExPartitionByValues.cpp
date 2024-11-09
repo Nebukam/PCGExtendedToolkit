@@ -109,12 +109,12 @@ bool UPCGExPartitionByValuesBaseSettings::GetMainAcceptMultipleData() const { re
 
 PCGExData::EInit UPCGExPartitionByValuesBaseSettings::GetMainOutputInitMode() const { return bSplitOutput ? PCGExData::EInit::NoOutput : PCGExData::EInit::DuplicateInput; }
 
-bool UPCGExPartitionByValuesBaseSettings::GetPartitionRules(const FPCGContext* InContext, TArray<FPCGExPartitonRuleConfig>& OutRules) const
+bool UPCGExPartitionByValuesBaseSettings::GetPartitionRules(FPCGExContext* InContext, TArray<FPCGExPartitonRuleConfig>& OutRules) const
 {
 	return true;
 }
 
-bool UPCGExPartitionByValuesSettings::GetPartitionRules(const FPCGContext* InContext, TArray<FPCGExPartitonRuleConfig>& OutRules) const
+bool UPCGExPartitionByValuesSettings::GetPartitionRules(FPCGExContext* InContext, TArray<FPCGExPartitonRuleConfig>& OutRules) const
 {
 	if (PartitionRules.IsEmpty()) { return false; }
 	for (const FPCGExPartitonRuleConfig& Config : PartitionRules) { OutRules.Add(Config); }

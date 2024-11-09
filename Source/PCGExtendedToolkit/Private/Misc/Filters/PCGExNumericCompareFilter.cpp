@@ -12,6 +12,12 @@ TSharedPtr<PCGExPointFilter::FFilter> UPCGExNumericCompareFilterFactory::CreateF
 	return MakeShared<PCGExPointsFilter::TNumericComparisonFilter>(this);
 }
 
+void UPCGExNumericCompareFilterFactory::RegisterConsumableAttributes(FPCGExContext* InContext) const
+{
+	Super::RegisterConsumableAttributes(InContext);
+	//TODO : Implement Consumable
+}
+
 bool PCGExPointsFilter::TNumericComparisonFilter::Init(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade> InPointDataFacade)
 {
 	if (!FFilter::Init(InContext, InPointDataFacade)) { return false; }

@@ -101,7 +101,7 @@ namespace PCGExGrowPaths
 		if (NextGrowthIndex <= -1 || Path.Contains(NextGrowthIndex)) { return false; }
 
 		TravelStack->Set(NextGrowthIndex, PCGEx::NH64(LastGrowthIndex, NextGrowthEdgeIndex));
-		
+
 		const TArray<PCGExCluster::FNode>& NodesRef = *Processor->Cluster->Nodes;
 		const TArray<PCGExGraph::FIndexedEdge>& EdgesRef = *Processor->Cluster->Edges;
 
@@ -111,7 +111,7 @@ namespace PCGExGrowPaths
 		Metrics.Add(Processor->Cluster->GetPos(NextNode));
 		if (MaxDistance > 0 && Metrics.Length > MaxDistance) { return false; }
 
-		
+
 		Processor->HeuristicsHandler->FeedbackScore(NextNode, EdgesRef[NextGrowthEdgeIndex]);
 
 		Iteration++;

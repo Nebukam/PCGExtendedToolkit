@@ -293,7 +293,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExSampleInsideBoundsContext final : FPCGEx
 {
 	friend class FPCGExSampleInsideBoundsElement;
 
-	
+
 	TSharedPtr<PCGExData::FFacadePreloader> TargetsPreloader;
 	TSharedPtr<PCGExData::FFacade> TargetsFacade;
 	const UPCGPointData::PointOctree* TargetOctree = nullptr;

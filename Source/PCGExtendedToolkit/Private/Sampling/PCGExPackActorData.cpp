@@ -171,7 +171,7 @@ bool FPCGExPackActorDataElement::ExecuteInternal(FPCGContext* InContext) const
 	{
 		UPCGParamData* ParamData = Context->OutputParams[i];
 		if (!ParamData) { continue; }
-		Context->StageOutput(TEXT("AttributeSet"), ParamData, Context->MainPoints->Pairs[i]->Tags->ToSet(), false);
+		Context->StageOutput(TEXT("AttributeSet"), ParamData, Context->MainPoints->Pairs[i]->Tags->ToSet(), false, false);
 	}
 
 	return Context->TryComplete();

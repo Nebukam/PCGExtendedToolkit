@@ -157,7 +157,7 @@ bool FPCGExAttributeStatsElement::ExecuteInternal(FPCGContext* InContext) const
 		Context->StageOutput(
 			PCGExAttributeStats::OutputAttributeStats, ParamData,
 			{Context->AttributesInfos->Attributes[i]->Name.ToString()},
-			false);
+			false, false);
 	}
 
 	return Context->TryComplete();

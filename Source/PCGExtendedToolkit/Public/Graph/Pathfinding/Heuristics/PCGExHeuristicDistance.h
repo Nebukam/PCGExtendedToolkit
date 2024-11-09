@@ -10,8 +10,6 @@
 #include "PCGExHeuristicsFactoryProvider.h"
 
 
-
-
 #include "PCGExHeuristicDistance.generated.h"
 
 USTRUCT(BlueprintType)

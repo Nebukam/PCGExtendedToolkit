@@ -171,7 +171,7 @@ public:
 
 	UPROPERTY(EditAnywhere, config, Category = "Node Colors")
 	FLinearColor NodeColorHeuristicsFeedback = FLinearColor(1.000000, 0.316174, 0.000000, 1.000000);
-	
+
 	UPROPERTY(EditAnywhere, config, Category = "Node Colors")
 	FLinearColor NodeColorClusterFilter = FLinearColor(0.351486, 0.744792, 0.647392, 1.000000);
 

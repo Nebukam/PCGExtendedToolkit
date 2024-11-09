@@ -157,7 +157,7 @@ bool FPCGExPathToClustersElement::ExecuteInternal(FPCGContext* InContext) const
 			}
 
 			Context->MainBatch.Reset();
-			
+
 			if (!Context->UnionProcessor->StartExecution(Context->PathsFacades, Settings->GraphBuilderDetails)) { return true; }
 		}
 

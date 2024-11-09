@@ -30,6 +30,8 @@ namespace PCGExData
 		if (Out && Out != In) { Context->ManagedObjects->Destroy(Out); }
 		OutKeys.Reset();
 
+		bMutable = false;
+		
 		if (InitOut == EInit::NoOutput)
 		{
 			Out = nullptr;
@@ -43,6 +45,8 @@ namespace PCGExData
 			return;
 		}
 
+		bMutable = true;
+		
 		if (InitOut == EInit::NewOutput)
 		{
 			if (In)
@@ -148,7 +152,7 @@ namespace PCGExData
 	{
 		if (!bEnabled || !Out || (!bAllowEmptyOutput && Out->GetPoints().IsEmpty())) { return false; }
 
-		Context->StageOutput(DefaultOutputLabel, Out, Tags->ToSet(), Out != In);
+		Context->StageOutput(DefaultOutputLabel, Out, Tags->ToSet(), Out != In, bMutable);
 		return true;
 	}
 

@@ -48,6 +48,7 @@ bool FPCGExFactoryProviderElement::ExecuteInternal(FPCGContext* Context) const
 
 	if (!OutFactory) { return true; }
 
+	OutFactory->bDoRegisterConsumableAttributes = Settings->bDoRegisterConsumableAttributes;
 	PCGExContext->StageOutput(Settings->GetMainOutputLabel(), OutFactory, false);
 	PCGExContext->OnComplete();
 

@@ -5,7 +5,6 @@
 
 namespace PCGExSearch
 {
-	
 	class FScoredQueue
 	{
 		struct FScoredNode

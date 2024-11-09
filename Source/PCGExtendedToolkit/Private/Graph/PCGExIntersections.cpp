@@ -375,7 +375,7 @@ namespace PCGExGraph
 
 				Graph->InsertEdge(PrevIndex, NodeIndex, NewEdge, SplitEdge.IOIndex); //TODO: IOIndex required
 				Graph->AddNodeAndEdgeMetadata(NodeIndex, NewEdge.EdgeIndex, ParentEdgeMeta, EPCGExIntersectionType::PointEdge);
-				
+
 				PrevIndex = NodeIndex;
 
 				if (Details->bSnapOnEdge)
@@ -482,12 +482,11 @@ namespace PCGExGraph
 				const FEECrossing& Crossing = Crossings[IntersectionIndex];
 
 				NodeIndex = Crossing.NodeIndex;
-				
+
 				Graph->InsertEdgeUnsafe(PrevIndex, NodeIndex, NewEdge, SplitEdge.IOIndex); //BUG: this is the wrong edge IOIndex
 				Graph->AddNodeAndEdgeMetadata(NodeIndex, NewEdge.EdgeIndex, ParentEdgeMeta, EPCGExIntersectionType::EdgeEdge);
-				
-				PrevIndex = NodeIndex;
 
+				PrevIndex = NodeIndex;
 			}
 
 			Graph->InsertEdgeUnsafe(PrevIndex, SplitEdge.End, NewEdge, SplitEdge.IOIndex); // Insert last edge
