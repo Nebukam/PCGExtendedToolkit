@@ -6,7 +6,7 @@ parent: Clusters
 title: Cut Clusters
 name_in_editor: "Cluster : Cut"
 subtitle: Cut clusters using paths
-summary: The **Cut Cluster** node ...
+summary: The **Cut Cluster** node allows selective cutting of clusters by intersecting paths, with options to retain or remove affected edges and nodes, and includes adjustable behaviors for node and edge proximity, making it versatile for dividing clusters into distinct parts.
 color: white
 splash: icons/icon_graphs-sanitize.svg
 tagged:

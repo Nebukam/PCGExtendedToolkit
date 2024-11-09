@@ -6,7 +6,7 @@ parent: Misc
 title: Discard by Points Count
 name_in_editor: "Discard By Points Count"
 subtitle: Filter point dataset by their point count.
-summary: The **Discard Points by Count** node ...
+summary: The **Discard Points by Count** node filters point datasets by minimum and maximum point counts, potentially removing entire datasets if they fall outside the defined range, which may also prevent further nodes from processing any data.
 color: white
 splash: icons/icon_misc-discard-by-count.svg
 tagged: 

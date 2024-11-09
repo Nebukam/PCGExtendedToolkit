@@ -6,7 +6,7 @@ parent: Paths
 title: Blend
 name_in_editor: "Path : Blend"
 subtitle: Blend individual points between from paths' start and end points.
-summary: The **Path Blend** node...
+summary: The **Path Blend** node blends attributes and properties of points between the start and end of given paths, offering customizable blending modes to smoothly transition values along the path.
 color: white
 splash: icons/icon_paths-orient.svg
 preview_img: previews/paths-blend.png

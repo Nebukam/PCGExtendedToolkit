@@ -5,7 +5,7 @@ family: Debug
 parent: Clusters
 title: Draw Edges
 subtitle: Draw debug edge lines of a given vtx/edge pair.
-summary: The **Draw Edges** node ...
+summary: The **Draw Edges** node visualizes debug lines between vertex and edge pairs, with customizable color, thickness, and depth options for debugging cluster structure
 color: blue
 splash: icons/icon_edges-draw.svg
 tagged: 

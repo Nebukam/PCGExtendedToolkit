@@ -19,8 +19,16 @@ outputs:
 
 {% include header_card_node %}
 
+The **Shortest Distance** is the most basic heuristics of all. Scores are directly tied to edge' length, favoring shorter distances at all times.
+{: .fs-5 .fw-400 } 
+
+---
 # Properties
 <br>
 
-> DOC TDB
-{: .warning }
+{% include embed id='settings-heuristics' %}
+
+|**Distance Settings**||
+| TBD     | TBD |
+
+{% include embed id='settings-heuristics-local-weight' %}

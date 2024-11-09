@@ -5,7 +5,7 @@ family: Pathfinding
 parent: Pathfinding
 title: Plot Navmesh
 subtitle: Sample the navmesh to find a path that goes through multiple chained points.
-summary: The **Plot Navmesh** node ...
+summary: The **Plot Navmesh** node samples a navmesh to create paths that pass through multiple linked points, with options to include seed, goal, and plot points in the path, as well as settings to simplify or blend path data; it requires a pre-built and loaded navmesh to function correctly.
 color: white
 splash: icons/icon_pathfinding-navmesh-plot.svg
 nav_exclude: true

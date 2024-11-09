@@ -19,8 +19,15 @@ outputs:
 
 {% include header_card_node %}
 
+The **Least Node** heuristic score the number of traversed nodes with an equal, constant value, favoring paths traverse the fewest amount of node.
+{: .fs-5 .fw-400 } 
+
+> Note that fewer nodes doesn't means shortest paths!
+
+---
 # Properties
 <br>
 
-> DOC TDB
-{: .warning }
+{% include embed id='settings-heuristics' %}
+
+{% include embed id='settings-heuristics-local-weight' %}

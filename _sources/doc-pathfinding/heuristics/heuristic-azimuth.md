@@ -19,8 +19,15 @@ outputs:
 
 {% include header_card_node %}
 
+The **Azimuth** heuristic favors traversing edges that are directed toward the search goal.  
+{: .fs-5 .fw-400 } 
+
+From a purely result perspective, it may *look* like a shortest path because it tend to produce more "straight" results going from seed to goal (if the topologies allows for it), but under the hood it's a very different logic.  This heuristics works best when combined with other more intricate ones to enforce some visual stability to the path.  
+
+---
 # Properties
 <br>
 
-> DOC TDB
-{: .warning }
+{% include embed id='settings-heuristics' %}
+
+{% include embed id='settings-heuristics-local-weight' %}
