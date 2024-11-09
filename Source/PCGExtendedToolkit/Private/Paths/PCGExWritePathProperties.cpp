@@ -9,7 +9,7 @@
 #define LOCTEXT_NAMESPACE "PCGExWritePathPropertiesElement"
 #define PCGEX_NAMESPACE WritePathProperties
 
-PCGExData::EInit UPCGExWritePathPropertiesSettings::GetMainOutputInitMode() const { return PCGExData::EInit::DuplicateInput; }
+PCGExData::EIOInit UPCGExWritePathPropertiesSettings::GetMainOutputInitMode() const { return PCGExData::EIOInit::DuplicateInput; }
 
 PCGEX_INITIALIZE_ELEMENT(WritePathProperties)
 

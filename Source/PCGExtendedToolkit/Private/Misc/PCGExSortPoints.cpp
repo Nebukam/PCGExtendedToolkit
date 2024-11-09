@@ -20,7 +20,7 @@ void UPCGExSortPointsSettings::PostEditChangeProperty(FPropertyChangedEvent& Pro
 
 FPCGElementPtr UPCGExSortPointsBaseSettings::CreateElement() const { return MakeShared<FPCGExSortPointsBaseElement>(); }
 
-PCGExData::EInit UPCGExSortPointsBaseSettings::GetMainOutputInitMode() const { return PCGExData::EInit::DuplicateInput; }
+PCGExData::EIOInit UPCGExSortPointsBaseSettings::GetMainOutputInitMode() const { return PCGExData::EIOInit::DuplicateInput; }
 
 bool UPCGExSortPointsBaseSettings::GetSortingRules(FPCGExContext* InContext, TArray<FPCGExSortRuleConfig>& OutRules) const
 {

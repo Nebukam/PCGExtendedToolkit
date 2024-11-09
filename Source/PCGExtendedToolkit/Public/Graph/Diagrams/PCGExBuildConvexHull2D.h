@@ -34,7 +34,7 @@ protected:
 	//~Begin UPCGExPointsProcessorSettings
 public:
 	virtual FName GetMainOutputLabel() const override { return PCGExGraph::OutputVerticesLabel; }
-	virtual PCGExData::EInit GetMainOutputInitMode() const override;
+	virtual PCGExData::EIOInit GetMainOutputInitMode() const override;
 	//~End UPCGExPointsProcessorSettings
 
 	/** Projection settings. */

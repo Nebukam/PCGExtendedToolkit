@@ -11,7 +11,7 @@
 
 namespace PCGExData
 {
-	enum class EInit : uint8;
+	enum class EIOInit : uint8;
 }
 
 /**
@@ -24,7 +24,7 @@ class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExPointData : public UPCGPointData
 
 public:
 	virtual void CopyFrom(const UPCGPointData* InPointData);
-	virtual void InitializeFromPCGExData(const UPCGExPointData* InPCGExPointData, const PCGExData::EInit InitMode);
+	virtual void InitializeFromPCGExData(const UPCGExPointData* InPCGExPointData, const PCGExData::EIOInit InitMode);
 
 	virtual void BeginDestroy() override;
 

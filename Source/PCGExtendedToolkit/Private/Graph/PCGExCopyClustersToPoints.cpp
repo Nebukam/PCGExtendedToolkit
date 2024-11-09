@@ -8,8 +8,8 @@
 
 #pragma region UPCGSettings interface
 
-PCGExData::EInit UPCGExCopyClustersToPointsSettings::GetMainOutputInitMode() const { return PCGExData::EInit::NoOutput; }
-PCGExData::EInit UPCGExCopyClustersToPointsSettings::GetEdgeOutputInitMode() const { return PCGExData::EInit::NoOutput; }
+PCGExData::EIOInit UPCGExCopyClustersToPointsSettings::GetMainOutputInitMode() const { return PCGExData::EIOInit::NoOutput; }
+PCGExData::EIOInit UPCGExCopyClustersToPointsSettings::GetEdgeOutputInitMode() const { return PCGExData::EIOInit::NoOutput; }
 
 #pragma endregion
 
@@ -88,7 +88,7 @@ namespace PCGExCopyClusters
 		for (int i = 0; i < NumTargets; i++)
 		{
 			// Create an edge copy per target point
-			TSharedPtr<PCGExData::FPointIO> EdgeDupe = Context->MainEdges->Emplace_GetRef(EdgeDataFacade->Source, PCGExData::EInit::DuplicateInput);
+			TSharedPtr<PCGExData::FPointIO> EdgeDupe = Context->MainEdges->Emplace_GetRef(EdgeDataFacade->Source, PCGExData::EIOInit::DuplicateInput);
 
 			EdgesDupes[i] = EdgeDupe;
 			PCGExGraph::MarkClusterEdges(EdgeDupe, *(VtxTag->GetData() + i));
@@ -150,7 +150,7 @@ namespace PCGExCopyClusters
 		for (int i = 0; i < NumTargets; i++)
 		{
 			// Create a vtx copy per target point
-			TSharedPtr<PCGExData::FPointIO> VtxDupe = Context->MainPoints->Emplace_GetRef(VtxDataFacade->Source, PCGExData::EInit::DuplicateInput);
+			TSharedPtr<PCGExData::FPointIO> VtxDupe = Context->MainPoints->Emplace_GetRef(VtxDataFacade->Source, PCGExData::EIOInit::DuplicateInput);
 
 			FString OutId;
 			PCGExGraph::SetClusterVtx(VtxDupe, OutId);

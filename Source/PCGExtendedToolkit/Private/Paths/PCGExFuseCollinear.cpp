@@ -6,7 +6,7 @@
 #define LOCTEXT_NAMESPACE "PCGExFuseCollinearElement"
 #define PCGEX_NAMESPACE FuseCollinear
 
-PCGExData::EInit UPCGExFuseCollinearSettings::GetMainOutputInitMode() const { return PCGExData::EInit::NoOutput; }
+PCGExData::EIOInit UPCGExFuseCollinearSettings::GetMainOutputInitMode() const { return PCGExData::EIOInit::NoOutput; }
 
 PCGEX_INITIALIZE_ELEMENT(FuseCollinear)
 
@@ -41,7 +41,7 @@ bool FPCGExFuseCollinearElement::ExecuteInternal(FPCGContext* InContext) const
 				if (Entry->GetNum() < 2)
 				{
 					bHasInvalidInputs = true;
-					Entry->InitializeOutput(PCGExData::EInit::Forward);
+					Entry->InitializeOutput(PCGExData::EIOInit::Forward);
 					return false;
 				}
 				return true;
@@ -77,7 +77,7 @@ namespace PCGExFuseCollinear
 
 
 		MaxIndex = PointDataFacade->GetNum() - 1;
-		PointDataFacade->Source->InitializeOutput(PCGExData::EInit::NewOutput);
+		PointDataFacade->Source->InitializeOutput(PCGExData::EIOInit::NewOutput);
 
 		const TArray<FPCGPoint>& InPoints = PointDataFacade->GetIn()->GetPoints();
 		OutPoints = &PointDataFacade->GetOut()->GetMutablePoints();

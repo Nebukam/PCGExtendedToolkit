@@ -8,7 +8,7 @@
 #define LOCTEXT_NAMESPACE "PCGExDiscardByPointCountElement"
 #define PCGEX_NAMESPACE DiscardByPointCount
 
-PCGExData::EInit UPCGExDiscardByPointCountSettings::GetMainOutputInitMode() const { return PCGExData::EInit::NoOutput; }
+PCGExData::EIOInit UPCGExDiscardByPointCountSettings::GetMainOutputInitMode() const { return PCGExData::EIOInit::NoOutput; }
 
 FPCGElementPtr UPCGExDiscardByPointCountSettings::CreateElement() const { return MakeShared<FPCGExDiscardByPointCountElement>(); }
 
@@ -40,7 +40,7 @@ bool FPCGExDiscardByPointCountElement::ExecuteInternal(FPCGContext* InContext) c
 		for (const TSharedPtr<PCGExData::FPointIO>& PointIO : Context->MainPoints->Pairs)
 		{
 			if (!FMath::IsWithin(PointIO->GetNum(), Min, Max)) { continue; }
-			PointIO->InitializeOutput(PCGExData::EInit::Forward);
+			PointIO->InitializeOutput(PCGExData::EIOInit::Forward);
 		}
 
 		Context->MainPoints->StageOutputs();

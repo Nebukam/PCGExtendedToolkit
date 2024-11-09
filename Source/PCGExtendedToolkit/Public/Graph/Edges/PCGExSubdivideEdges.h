@@ -23,8 +23,8 @@ public:
 	PCGEX_NODE_INFOS(SubdivideEdges, "Cluster : Subdivide Edges", "Subdivide edges.");
 #endif
 	virtual bool SupportsEdgeSorting() const override { return DirectionSettings.RequiresSortingRules(); }
-	virtual PCGExData::EInit GetMainOutputInitMode() const override;
-	virtual PCGExData::EInit GetEdgeOutputInitMode() const override;
+	virtual PCGExData::EIOInit GetMainOutputInitMode() const override;
+	virtual PCGExData::EIOInit GetEdgeOutputInitMode() const override;
 
 protected:
 	virtual TArray<FPCGPinProperties> InputPinProperties() const override;

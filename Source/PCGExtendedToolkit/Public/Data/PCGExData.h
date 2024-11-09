@@ -17,14 +17,6 @@
 
 #include "PCGExData.generated.h"
 
-UENUM(/*E--BlueprintType, meta=(DisplayName="[PCGEx] Readable Config Mode")--E*/)
-enum class EPCGExReadableConfigMode : uint8
-{
-	RawAttribute          = 0 UMETA(DisplayName = "RawAttribute", Tooltip="..."),
-	BroadcastFromName     = 1 UMETA(DisplayName = "BroadcastFromName", Tooltip="..."),
-	BroadcastFromSelector = 2 UMETA(DisplayName = "BroadcastFromSelector", Tooltip="..."),
-};
-
 USTRUCT(BlueprintType)
 struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExAttributeGatherDetails : public FPCGExNameFiltersDetails
 {
@@ -40,6 +32,19 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExAttributeGatherDetails : public FPCGExNa
 
 namespace PCGExData
 {
+	enum class EBufferPreloadType : uint8
+	{
+		RawAttribute = 0,
+		BroadcastFromName,
+		BroadcastFromSelector,
+	};
+
+	enum class EBufferInit : uint8
+	{
+		Inherit = 0,
+		New,
+	};
+
 	PCGEX_ASYNC_STATE(State_MergingData);
 
 #pragma region Pool & Buffers
@@ -185,7 +190,7 @@ namespace PCGExData
 			bScopedBuffer = bScoped;
 		}
 
-		void PrepareWriteInternal(FPCGMetadataAttributeBase* Attribute, const bool bUninitialized, const T& InDefaultValue)
+		void PrepareWriteInternal(FPCGMetadataAttributeBase* Attribute, const T& InDefaultValue, const EBufferInit Init)
 		{
 			if (OutValues) { return; }
 
@@ -313,7 +318,7 @@ namespace PCGExData
 			return true;
 		}
 
-		bool PrepareWrite(const T& DefaultValue, bool bAllowInterpolation, const bool bUninitialized = false)
+		bool PrepareWrite(const T& DefaultValue, bool bAllowInterpolation, EBufferInit Init = EBufferInit::Inherit)
 		{
 			FWriteScopeLock WriteScopeLock(BufferLock);
 
@@ -329,20 +334,21 @@ namespace PCGExData
 				return false;
 			}
 
-			PrepareWriteInternal(TypedOutAttribute, bUninitialized, DefaultValue);
+			PrepareWriteInternal(TypedOutAttribute, DefaultValue, Init);
 
-			if (!bUninitialized)
+			const int32 ExistingEntryCount = TypedOutAttribute->GetNumberOfEntries();
+			const bool bHasIn = Source->GetIn() ? true : false;
+
+			auto GrabExistingValues = [&]()
 			{
-				const int32 ExistingEntryCount = TypedOutAttribute->GetNumberOfEntries();
-				const bool bHasIn = Source->GetIn() ? true : false;
-				if (!bHasIn && ExistingEntryCount != 0)
-				{
-					// We have values to grab from the existing attribute and no input
-					// only for very specific situations (Union blender)
-					TUniquePtr<FPCGAttributeAccessorKeysPoints> TempOutKeys = MakeUnique<FPCGAttributeAccessorKeysPoints>(MakeArrayView(Source->GetMutablePoints().GetData(), ExistingEntryCount));
-					TArrayView<T> OutRange = MakeArrayView(OutValues->GetData(), FMath::Min(OutValues->Num(), ExistingEntryCount));
-					OutAccessor->GetRange(OutRange, 0, *TempOutKeys.Get());
-				}
+				TUniquePtr<FPCGAttributeAccessorKeysPoints> TempOutKeys = MakeUnique<FPCGAttributeAccessorKeysPoints>(MakeArrayView(Source->GetMutablePoints().GetData(), ExistingEntryCount));
+				TArrayView<T> OutRange = MakeArrayView(OutValues->GetData(), FMath::Min(OutValues->Num(), ExistingEntryCount));
+				OutAccessor->GetRange(OutRange, 0, *TempOutKeys.Get());
+			};
+
+			if (Init == EBufferInit::Inherit)
+			{
+				if (!bHasIn && ExistingEntryCount != 0) { GrabExistingValues(); }
 				else if (bHasIn)
 				{
 					if (InValues && bReadComplete)
@@ -373,11 +379,12 @@ namespace PCGExData
 					}
 				}
 			}
+			else if (!bHasIn && ExistingEntryCount != 0) { GrabExistingValues(); }
 
 			return true;
 		}
 
-		bool PrepareWrite(const bool bUninitialized = false)
+		bool PrepareWrite(const EBufferInit Init = EBufferInit::Inherit)
 		{
 			{
 				FWriteScopeLock WriteScopeLock(BufferLock);
@@ -393,11 +400,11 @@ namespace PCGExData
 					return PrepareWrite(
 						ExistingAttribute->GetValue(PCGDefaultValueKey),
 						ExistingAttribute->AllowsInterpolation(),
-						bUninitialized);
+						Init);
 				}
 			}
 
-			return PrepareWrite(T{}, true, bUninitialized);
+			return PrepareWrite(T{}, true, Init);
 		}
 
 		virtual void Write() override
@@ -510,23 +517,23 @@ namespace PCGExData
 #pragma region Writable
 
 		template <typename T>
-		TSharedPtr<TBuffer<T>> GetWritable(const FName InName, T DefaultValue, bool bAllowInterpolation, bool bUninitialized)
+		TSharedPtr<TBuffer<T>> GetWritable(const FName InName, T DefaultValue, bool bAllowInterpolation, EBufferInit Init)
 		{
 			TSharedPtr<TBuffer<T>> Buffer = GetBuffer<T>(InName);
-			return Buffer->PrepareWrite(DefaultValue, bAllowInterpolation, bUninitialized) ? Buffer : nullptr;
+			return Buffer->PrepareWrite(DefaultValue, bAllowInterpolation, Init) ? Buffer : nullptr;
 		}
 
 		template <typename T>
-		TSharedPtr<TBuffer<T>> GetWritable(const FPCGMetadataAttribute<T>* InAttribute, bool bUninitialized)
+		TSharedPtr<TBuffer<T>> GetWritable(const FPCGMetadataAttribute<T>* InAttribute, EBufferInit Init)
 		{
-			return GetWritable(InAttribute->Name, InAttribute->GetValue(PCGDefaultValueKey), InAttribute->AllowsInterpolation(), bUninitialized);
+			return GetWritable(InAttribute->Name, InAttribute->GetValue(PCGDefaultValueKey), InAttribute->AllowsInterpolation(), Init);
 		}
 
 		template <typename T>
-		TSharedPtr<TBuffer<T>> GetWritable(const FName InName, bool bUninitialized)
+		TSharedPtr<TBuffer<T>> GetWritable(const FName InName, EBufferInit Init)
 		{
 			TSharedPtr<TBuffer<T>> Buffer = GetBuffer<T>(InName);
-			return Buffer->PrepareWrite(bUninitialized) ? Buffer : nullptr;
+			return Buffer->PrepareWrite(Init) ? Buffer : nullptr;
 		}
 
 		template <typename T>
@@ -688,7 +695,7 @@ namespace PCGExData
 
 	struct /*PCGEXTENDEDTOOLKIT_API*/ FReadableBufferConfig
 	{
-		EPCGExReadableConfigMode Mode = EPCGExReadableConfigMode::RawAttribute;
+		EBufferPreloadType Mode = EBufferPreloadType::RawAttribute;
 		FPCGAttributePropertyInputSelector Selector;
 		PCGEx::FAttributeIdentity Identity;
 
@@ -697,18 +704,18 @@ namespace PCGExData
 		{
 		}
 
-		FReadableBufferConfig(const PCGEx::FAttributeIdentity& InIdentity, EPCGExReadableConfigMode InMode = EPCGExReadableConfigMode::RawAttribute)
+		FReadableBufferConfig(const PCGEx::FAttributeIdentity& InIdentity, EBufferPreloadType InMode = EBufferPreloadType::RawAttribute)
 			: Mode(InMode), Identity(InIdentity)
 		{
 		}
 
-		FReadableBufferConfig(const FName InName, const EPCGMetadataTypes InUnderlyingType, EPCGExReadableConfigMode InMode = EPCGExReadableConfigMode::RawAttribute)
+		FReadableBufferConfig(const FName InName, const EPCGMetadataTypes InUnderlyingType, EBufferPreloadType InMode = EBufferPreloadType::RawAttribute)
 			: Mode(InMode), Identity(InName, InUnderlyingType, false)
 		{
 		}
 
 		FReadableBufferConfig(const FPCGAttributePropertyInputSelector& InSelector, const EPCGMetadataTypes InUnderlyingType)
-			: Mode(EPCGExReadableConfigMode::BroadcastFromSelector), Selector(InSelector), Identity(InSelector.GetName(), InUnderlyingType, false)
+			: Mode(EBufferPreloadType::BroadcastFromSelector), Selector(InSelector), Identity(InSelector.GetName(), InUnderlyingType, false)
 		{
 		}
 
@@ -762,7 +769,7 @@ namespace PCGExData
 		}
 
 		template <typename T>
-		void Register(FPCGExContext* InContext, const FName InName, EPCGExReadableConfigMode InMode = EPCGExReadableConfigMode::RawAttribute)
+		void Register(FPCGExContext* InContext, const FName InName, EBufferPreloadType InMode = EBufferPreloadType::RawAttribute)
 		{
 			EPCGMetadataTypes Type = PCGEx::GetMetadataType<T>();
 			for (const FReadableBufferConfig& ExistingConfig : BufferConfigs)
@@ -922,7 +929,7 @@ namespace PCGExData
 				const FPCGMetadataAttribute<T>* SourceAttribute = Source->GetIn()->Metadata->template GetConstTypedAttribute<T>(Identity.Name);
 
 				const TSharedPtr<TBuffer<T>> TargetBuffer = MakeShared<TBuffer<T>>(Target.ToSharedRef(), Identity.Name);
-				TargetBuffer->PrepareWrite(SourceAttribute->GetValue(PCGDefaultValueKey), SourceAttribute->AllowsInterpolation(), true);
+				TargetBuffer->PrepareWrite(SourceAttribute->GetValue(PCGDefaultValueKey), SourceAttribute->AllowsInterpolation(), PCGExData::EBufferInit::New);
 
 				TUniquePtr<FPCGAttributeAccessor<T>> InAccessor = MakeUnique<FPCGAttributeAccessor<T>>(SourceAttribute, Source->GetIn()->Metadata);
 				TArrayView<T> InRange = MakeArrayView(TargetBuffer->GetOutValues()->GetData() + TargetIndex, SourceIndices.Num());

@@ -118,7 +118,7 @@ void FPCGExPathfindingPlotEdgesContext::BuildPath(const TSharedPtr<PCGExPathfind
 		// TODO : Implement
 	}
 
-	const TSharedPtr<PCGExData::FPointIO> PathIO = OutputPaths->Emplace_GetRef<UPCGPointData>(ReferenceIO->GetIn(), PCGExData::EInit::NewOutput);
+	const TSharedPtr<PCGExData::FPointIO> PathIO = OutputPaths->Emplace_GetRef<UPCGPointData>(ReferenceIO->GetIn(), PCGExData::EIOInit::NewOutput);
 	const TSharedPtr<PCGExData::FFacade> PathDataFacade = MakeShared<PCGExData::FFacade>(PathIO.ToSharedRef());
 	PathDataFacade->GetMutablePoints() = MutablePoints;
 
@@ -145,7 +145,7 @@ bool FPCGExPathfindingPlotEdgesElement::Boot(FPCGExContext* InContext) const
 	TSharedPtr<PCGExData::FPointIOCollection> Plots = MakeShared<PCGExData::FPointIOCollection>(Context);
 
 	TArray<FPCGTaggedData> Sources = Context->InputData.GetInputsByPin(PCGExGraph::SourcePlotsLabel);
-	Plots->Initialize(Sources, PCGExData::EInit::NoOutput);
+	Plots->Initialize(Sources, PCGExData::EIOInit::NoOutput);
 
 	Context->Plots.Reserve(Plots->Num());
 	for (TSharedPtr<PCGExData::FPointIO> PlotIO : Plots->Pairs)

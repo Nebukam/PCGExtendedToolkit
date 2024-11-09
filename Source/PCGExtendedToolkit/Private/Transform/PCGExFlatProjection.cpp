@@ -7,7 +7,7 @@
 #define LOCTEXT_NAMESPACE "PCGExFlatProjectionElement"
 #define PCGEX_NAMESPACE FlatProjection
 
-PCGExData::EInit UPCGExFlatProjectionSettings::GetMainOutputInitMode() const { return PCGExData::EInit::DuplicateInput; }
+PCGExData::EIOInit UPCGExFlatProjectionSettings::GetMainOutputInitMode() const { return PCGExData::EIOInit::DuplicateInput; }
 
 PCGEX_INITIALIZE_ELEMENT(FlatProjection)
 
@@ -91,7 +91,7 @@ namespace PCGExFlatProjection
 		{
 			ProjectionDetails = Settings->ProjectionDetails;
 			ProjectionDetails.Init(ExecutionContext, PointDataFacade);
-			TransformWriter = PointDataFacade->GetWritable<FTransform>(Context->CachedTransformAttributeName, true);
+			TransformWriter = PointDataFacade->GetWritable<FTransform>(Context->CachedTransformAttributeName, PCGExData::EBufferInit::New);
 		}
 
 		StartParallelLoopForPoints();

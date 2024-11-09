@@ -6,7 +6,7 @@
 #define LOCTEXT_NAMESPACE "PCGExDrawAttributes"
 #define PCGEX_NAMESPACE DrawAttributes
 
-PCGExData::EInit UPCGExDrawAttributesSettings::GetMainOutputInitMode() const { return PCGExData::EInit::Forward; }
+PCGExData::EIOInit UPCGExDrawAttributesSettings::GetMainOutputInitMode() const { return PCGExData::EIOInit::Forward; }
 
 #if WITH_EDITOR
 FString FPCGExAttributeDebugDrawConfig::GetDisplayName() const

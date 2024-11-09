@@ -32,7 +32,7 @@ TArray<FPCGPinProperties> UPCGExShapeProcessorSettings::InputPinProperties() con
 	return PinProperties;
 }
 
-PCGExData::EInit UPCGExShapeProcessorSettings::GetMainOutputInitMode() const { return PCGExData::EInit::NoOutput; }
+PCGExData::EIOInit UPCGExShapeProcessorSettings::GetMainOutputInitMode() const { return PCGExData::EIOInit::NoOutput; }
 
 PCGEX_INITIALIZE_CONTEXT(ShapeProcessor)
 

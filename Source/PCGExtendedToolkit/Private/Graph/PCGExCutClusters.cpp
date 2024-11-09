@@ -22,8 +22,8 @@ TArray<FPCGPinProperties> UPCGExCutEdgesSettings::InputPinProperties() const
 	return PinProperties;
 }
 
-PCGExData::EInit UPCGExCutEdgesSettings::GetMainOutputInitMode() const { return PCGExData::EInit::NewOutput; }
-PCGExData::EInit UPCGExCutEdgesSettings::GetEdgeOutputInitMode() const { return PCGExData::EInit::NoOutput; }
+PCGExData::EIOInit UPCGExCutEdgesSettings::GetMainOutputInitMode() const { return PCGExData::EIOInit::NewOutput; }
+PCGExData::EIOInit UPCGExCutEdgesSettings::GetEdgeOutputInitMode() const { return PCGExData::EIOInit::NoOutput; }
 
 PCGEX_INITIALIZE_ELEMENT(CutEdges)
 

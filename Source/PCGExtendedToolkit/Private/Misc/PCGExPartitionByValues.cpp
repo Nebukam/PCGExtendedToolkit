@@ -107,7 +107,7 @@ void UPCGExPartitionByValuesSettings::PostEditChangeProperty(FPropertyChangedEve
 bool UPCGExPartitionByValuesBaseSettings::GetMainAcceptMultipleData() const { return false; }
 
 
-PCGExData::EInit UPCGExPartitionByValuesBaseSettings::GetMainOutputInitMode() const { return bSplitOutput ? PCGExData::EInit::NoOutput : PCGExData::EInit::DuplicateInput; }
+PCGExData::EIOInit UPCGExPartitionByValuesBaseSettings::GetMainOutputInitMode() const { return bSplitOutput ? PCGExData::EIOInit::NoOutput : PCGExData::EIOInit::DuplicateInput; }
 
 bool UPCGExPartitionByValuesBaseSettings::GetPartitionRules(FPCGExContext* InContext, TArray<FPCGExPartitonRuleConfig>& OutRules) const
 {
@@ -307,7 +307,7 @@ namespace PCGExPartitionByValues
 			for (int i = 0; i < Partitions.Num(); i++)
 			{
 				Partitions[i]->IOIndex = InsertOffset + i;
-				Context->MainPoints->Emplace_GetRef(PointDataFacade->Source, PCGExData::EInit::NewOutput);
+				Context->MainPoints->Emplace_GetRef(PointDataFacade->Source, PCGExData::EIOInit::NewOutput);
 				SumPts += Partitions[i]->Points.Num();
 			}
 
@@ -340,7 +340,7 @@ namespace PCGExPartitionByValues
 				IndiceMap.Empty();
 			}
 
-			const TSharedPtr<PCGExData::TBuffer<int32>> KeyWriter = PointDataFacade->GetWritable(Rule.RuleConfig->KeyAttributeName, 0, false, true);
+			const TSharedPtr<PCGExData::TBuffer<int32>> KeyWriter = PointDataFacade->GetWritable(Rule.RuleConfig->KeyAttributeName, 0, false, PCGExData::EBufferInit::New);
 			for (int i = 0; i < Rule.FilteredValues.Num(); i++)
 			{
 				KeyWriter->GetMutable(i) = Rule.FilteredValues[i];
@@ -350,7 +350,7 @@ namespace PCGExPartitionByValues
 
 		if (Settings->bWriteKeySum)
 		{
-			const TSharedPtr<PCGExData::TBuffer<int32>> KeySumWriter = PointDataFacade->GetWritable(Settings->KeySumAttributeName, 0, false, true);
+			const TSharedPtr<PCGExData::TBuffer<int32>> KeySumWriter = PointDataFacade->GetWritable(Settings->KeySumAttributeName, 0, false, PCGExData::EBufferInit::New);
 			for (int i = 0; i < KeySums.Num(); i++) { KeySumWriter->GetMutable(i) = KeySums[i]; }
 		}
 

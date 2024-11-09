@@ -9,9 +9,9 @@
 #define LOCTEXT_NAMESPACE "PCGExRelaxClusters"
 #define PCGEX_NAMESPACE RelaxClusters
 
-PCGExData::EInit UPCGExRelaxClustersSettings::GetMainOutputInitMode() const { return PCGExData::EInit::DuplicateInput; }
+PCGExData::EIOInit UPCGExRelaxClustersSettings::GetMainOutputInitMode() const { return PCGExData::EIOInit::DuplicateInput; }
 
-PCGExData::EInit UPCGExRelaxClustersSettings::GetEdgeOutputInitMode() const { return PCGExData::EInit::DuplicateInput; }
+PCGExData::EIOInit UPCGExRelaxClustersSettings::GetEdgeOutputInitMode() const { return PCGExData::EIOInit::DuplicateInput; }
 
 TArray<FPCGPinProperties> UPCGExRelaxClustersSettings::InputPinProperties() const
 {

@@ -8,8 +8,8 @@
 #define LOCTEXT_NAMESPACE "PCGExConnectClusters"
 #define PCGEX_NAMESPACE ConnectClusters
 
-PCGExData::EInit UPCGExConnectClustersSettings::GetMainOutputInitMode() const { return PCGExData::EInit::NoOutput; }
-PCGExData::EInit UPCGExConnectClustersSettings::GetEdgeOutputInitMode() const { return PCGExData::EInit::NoOutput; }
+PCGExData::EIOInit UPCGExConnectClustersSettings::GetMainOutputInitMode() const { return PCGExData::EIOInit::NoOutput; }
+PCGExData::EIOInit UPCGExConnectClustersSettings::GetEdgeOutputInitMode() const { return PCGExData::EIOInit::NoOutput; }
 
 PCGEX_INITIALIZE_ELEMENT(ConnectClusters)
 
@@ -71,8 +71,8 @@ bool FPCGExConnectClustersElement::ExecuteInternal(FPCGContext* InContext) const
 				if (Entries->Entries.Num() == 1)
 				{
 					// No clusters to consolidate, just dump existing points
-					Context->CurrentIO->InitializeOutput(PCGExData::EInit::Forward);
-					Entries->Entries[0]->InitializeOutput(PCGExData::EInit::Forward);
+					Context->CurrentIO->InitializeOutput(PCGExData::EIOInit::Forward);
+					Entries->Entries[0]->InitializeOutput(PCGExData::EIOInit::Forward);
 					return false;
 				}
 
@@ -130,14 +130,14 @@ namespace PCGExBridgeClusters
 	FProcessorBatch::FProcessorBatch(FPCGExContext* InContext, const TSharedRef<PCGExData::FPointIO>& InVtx, const TArrayView<TSharedRef<PCGExData::FPointIO>> InEdges):
 		TBatch(InContext, InVtx, InEdges)
 	{
-		InVtx->InitializeOutput(PCGExData::EInit::DuplicateInput);
+		InVtx->InitializeOutput(PCGExData::EIOInit::DuplicateInput);
 	}
 
 	void FProcessorBatch::Process()
 	{
 		PCGEX_TYPED_CONTEXT_AND_SETTINGS(ConnectClusters)
 
-		const TSharedPtr<PCGExData::FPointIO> ConsolidatedEdges = Context->MainEdges->Emplace_GetRef(PCGExData::EInit::NewOutput);
+		const TSharedPtr<PCGExData::FPointIO> ConsolidatedEdges = Context->MainEdges->Emplace_GetRef(PCGExData::EIOInit::NewOutput);
 		CompoundedEdgesDataFacade = MakeShared<PCGExData::FFacade>(ConsolidatedEdges.ToSharedRef());
 
 		TBatch<FProcessor>::Process();

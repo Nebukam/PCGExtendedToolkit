@@ -20,7 +20,7 @@ TArray<FPCGPinProperties> UPCGExPathCrossingsSettings::InputPinProperties() cons
 	return PinProperties;
 }
 
-PCGExData::EInit UPCGExPathCrossingsSettings::GetMainOutputInitMode() const { return PCGExData::EInit::NoOutput; }
+PCGExData::EIOInit UPCGExPathCrossingsSettings::GetMainOutputInitMode() const { return PCGExData::EIOInit::NoOutput; }
 
 PCGEX_INITIALIZE_ELEMENT(PathCrossings)
 
@@ -66,7 +66,7 @@ bool FPCGExPathCrossingsElement::ExecuteInternal(FPCGContext* InContext) const
 			{
 				if (Entry->GetNum() < 2)
 				{
-					Entry->InitializeOutput(PCGExData::EInit::Forward); // TODO : This is no good as we'll be missing template attributes
+					Entry->InitializeOutput(PCGExData::EIOInit::Forward); // TODO : This is no good as we'll be missing template attributes
 					bHasInvalidInputs = true;
 
 					if (Settings->bTagIfHasNoCrossings) { Entry->Tags->Add(Settings->HasNoCrossingsTag); }
@@ -286,7 +286,7 @@ namespace PCGExPathCrossings
 			NumPointsFinal += Crossing->Crossings.Num();
 		}
 
-		PointIO->InitializeOutput(PCGExData::EInit::NewOutput);
+		PointIO->InitializeOutput(PCGExData::EIOInit::NewOutput);
 
 		const TArray<FPCGPoint>& InPoints = PointIO->GetIn()->GetPoints();
 		TArray<FPCGPoint>& OutPoints = PointIO->GetOut()->GetMutablePoints();
@@ -324,19 +324,19 @@ namespace PCGExPathCrossings
 		// Flag last so it doesn't get captured by blenders
 		if (Settings->IntersectionDetails.bWriteCrossing)
 		{
-			FlagWriter = PointDataFacade->GetWritable(Settings->IntersectionDetails.CrossingAttributeName, false, true, true);
+			FlagWriter = PointDataFacade->GetWritable(Settings->IntersectionDetails.CrossingAttributeName, false, true, PCGExData::EBufferInit::New);
 			ProtectedAttributes.Add(Settings->IntersectionDetails.CrossingAttributeName);
 		}
 
 		if (Settings->bWriteAlpha)
 		{
-			AlphaWriter = PointDataFacade->GetWritable<double>(Settings->CrossingAlphaAttributeName, Settings->DefaultAlpha, true, true);
+			AlphaWriter = PointDataFacade->GetWritable<double>(Settings->CrossingAlphaAttributeName, Settings->DefaultAlpha, true, PCGExData::EBufferInit::New);
 			ProtectedAttributes.Add(Settings->CrossingAlphaAttributeName);
 		}
 
 		if (Settings->bWriteCrossDirection)
 		{
-			CrossWriter = PointDataFacade->GetWritable<FVector>(Settings->CrossDirectionAttributeName, Settings->DefaultCrossDirection, true, true);
+			CrossWriter = PointDataFacade->GetWritable<FVector>(Settings->CrossDirectionAttributeName, Settings->DefaultCrossDirection, true, PCGExData::EBufferInit::New);
 			ProtectedAttributes.Add(Settings->CrossDirectionAttributeName);
 		}
 
@@ -455,10 +455,10 @@ namespace PCGExPathCrossings
 		UnionBlender = MakeShared<PCGExDataBlending::FUnionBlender>(&Settings->CrossingBlending, &Settings->CrossingCarryOver);
 		for (const TSharedPtr<PCGExData::FPointIO> IO : Context->MainPoints->Pairs)
 		{
-			if (IO && CrossIOIndices.Contains(IO->IOIndex)) { UnionBlender->AddSource(Context->SubProcessorMap[IO.Get()]->PointDataFacade); }
+			if (IO && CrossIOIndices.Contains(IO->IOIndex)) { UnionBlender->AddSource(Context->SubProcessorMap[IO.Get()]->PointDataFacade, &ProtectedAttributes); }
 		}
 
-		UnionBlender->PrepareSoftMerge(PointDataFacade, UnionMetadata, &ProtectedAttributes);
+		UnionBlender->PrepareSoftMerge(Context, PointDataFacade, UnionMetadata);
 
 		PCGEX_ASYNC_GROUP_CHKD_VOID(AsyncManager, CrossBlendTask)
 		CrossBlendTask->OnSubLoopStartCallback =

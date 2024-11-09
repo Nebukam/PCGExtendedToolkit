@@ -7,7 +7,7 @@
 #define LOCTEXT_NAMESPACE "PCGExFindSplinesElement"
 #define PCGEX_NAMESPACE FindSplines
 
-PCGExData::EInit UPCGExFindSplinesSettings::GetMainOutputInitMode() const { return PCGExData::EInit::DuplicateInput; }
+PCGExData::EIOInit UPCGExFindSplinesSettings::GetMainOutputInitMode() const { return PCGExData::EIOInit::DuplicateInput; }
 
 PCGEX_INITIALIZE_ELEMENT(FindSplines)
 

@@ -27,8 +27,8 @@ public:
 		(Relaxing ? FName(Relaxing.GetClass()->GetMetaData(TEXT("DisplayName"))) : FName("...")));
 #endif
 
-	virtual PCGExData::EInit GetMainOutputInitMode() const override;
-	virtual PCGExData::EInit GetEdgeOutputInitMode() const override;
+	virtual PCGExData::EIOInit GetMainOutputInitMode() const override;
+	virtual PCGExData::EIOInit GetEdgeOutputInitMode() const override;
 
 protected:
 	virtual TArray<FPCGPinProperties> InputPinProperties() const override;

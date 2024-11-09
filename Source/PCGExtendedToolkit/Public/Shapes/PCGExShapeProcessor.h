@@ -32,7 +32,7 @@ public:
 
 	//~Begin UPCGExPointsProcessorSettings
 	virtual TArray<FPCGPinProperties> InputPinProperties() const override;
-	virtual PCGExData::EInit GetMainOutputInitMode() const override;
+	virtual PCGExData::EIOInit GetMainOutputInitMode() const override;
 	virtual FName GetMainInputLabel() const override { return PCGExGraph::SourceSeedsLabel; }
 	virtual FString GetPointFilterTooltip() const override { return TEXT("Path points processing filters"); }
 

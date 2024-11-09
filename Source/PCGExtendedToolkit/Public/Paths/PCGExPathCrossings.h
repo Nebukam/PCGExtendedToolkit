@@ -35,7 +35,7 @@ protected:
 
 	//~Begin UPCGExPointsProcessorSettings
 public:
-	virtual PCGExData::EInit GetMainOutputInitMode() const override;
+	virtual PCGExData::EIOInit GetMainOutputInitMode() const override;
 	//~End UPCGExPointsProcessorSettings
 
 	/** If enabled, crossings are only computed per path, against themselves only. Note: this ignores the "bEnableSelfIntersection" from details below. */

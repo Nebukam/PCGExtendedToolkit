@@ -23,7 +23,7 @@ TArray<FPCGPinProperties> UPCGExPathSplineMeshSettings::InputPinProperties() con
 	return PinProperties;
 }
 
-PCGExData::EInit UPCGExPathSplineMeshSettings::GetMainOutputInitMode() const { return PCGExData::EInit::DuplicateInput; }
+PCGExData::EIOInit UPCGExPathSplineMeshSettings::GetMainOutputInitMode() const { return PCGExData::EIOInit::DuplicateInput; }
 
 bool FPCGExPathSplineMeshElement::Boot(FPCGExContext* InContext) const
 {
@@ -114,7 +114,7 @@ bool FPCGExPathSplineMeshElement::ExecuteInternal(FPCGContext* InContext) const
 				if (Entry->GetNum() < 2)
 				{
 					bHasInvalidInputs = true;
-					Entry->InitializeOutput(PCGExData::EInit::Forward);
+					Entry->InitializeOutput(PCGExData::EIOInit::Forward);
 					return false;
 				}
 				return true;
@@ -218,15 +218,15 @@ namespace PCGExPathSplineMesh
 
 		if (Settings->WeightToAttribute == EPCGExWeightOutputMode::Raw)
 		{
-			WeightWriter = PointDataFacade->GetWritable<int32>(Settings->WeightAttributeName, true);
+			WeightWriter = PointDataFacade->GetWritable<int32>(Settings->WeightAttributeName, PCGExData::EBufferInit::New);
 		}
 		else if (Settings->WeightToAttribute == EPCGExWeightOutputMode::Normalized)
 		{
-			NormalizedWeightWriter = PointDataFacade->GetWritable<double>(Settings->WeightAttributeName, true);
+			NormalizedWeightWriter = PointDataFacade->GetWritable<double>(Settings->WeightAttributeName, PCGExData::EBufferInit::New);
 		}
 
 #if PCGEX_ENGINE_VERSION > 503
-		PathWriter = PointDataFacade->GetWritable<FSoftObjectPath>(Settings->AssetPathAttributeName, true);
+		PathWriter = PointDataFacade->GetWritable<FSoftObjectPath>(Settings->AssetPathAttributeName, PCGExData::EBufferInit::New);
 #else
 		PathWriter = PointDataFacade->GetWritable<FString>(Settings->AssetPathAttributeName, true);
 #endif

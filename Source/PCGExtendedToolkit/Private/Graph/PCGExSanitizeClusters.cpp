@@ -8,8 +8,8 @@
 
 #pragma region UPCGSettings interface
 
-PCGExData::EInit UPCGExSanitizeClustersSettings::GetMainOutputInitMode() const { return PCGExData::EInit::DuplicateInput; }
-PCGExData::EInit UPCGExSanitizeClustersSettings::GetEdgeOutputInitMode() const { return PCGExData::EInit::NoOutput; }
+PCGExData::EIOInit UPCGExSanitizeClustersSettings::GetMainOutputInitMode() const { return PCGExData::EIOInit::DuplicateInput; }
+PCGExData::EIOInit UPCGExSanitizeClustersSettings::GetEdgeOutputInitMode() const { return PCGExData::EIOInit::NoOutput; }
 
 #pragma endregion
 
@@ -83,7 +83,7 @@ namespace PCGExSanitizeClusters
 	void FProcessorBatch::Output()
 	{
 		if (GraphBuilder->bCompiledSuccessfully) { GraphBuilder->StageEdgesOutputs(); }
-		else { GraphBuilder->NodeDataFacade->Source->InitializeOutput(PCGExData::EInit::NoOutput); }
+		else { GraphBuilder->NodeDataFacade->Source->InitializeOutput(PCGExData::EIOInit::NoOutput); }
 		//TBatchWithGraphBuilder<FProcessor>::Output();
 	}
 }

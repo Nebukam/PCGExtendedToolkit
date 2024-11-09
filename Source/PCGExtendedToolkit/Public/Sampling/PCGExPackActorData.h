@@ -362,7 +362,7 @@ protected:
 
 public:
 	virtual FName GetMainInputLabel() const override;
-	virtual PCGExData::EInit GetMainOutputInitMode() const override;
+	virtual PCGExData::EIOInit GetMainOutputInitMode() const override;
 	virtual int32 GetPreferredChunkSize() const override;
 
 	//~End UPCGExPointsProcessorSettings

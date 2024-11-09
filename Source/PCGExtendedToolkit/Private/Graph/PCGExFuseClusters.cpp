@@ -14,14 +14,14 @@
 
 #pragma region UPCGSettings interface
 
-PCGExData::EInit UPCGExFuseClustersSettings::GetMainOutputInitMode() const
+PCGExData::EIOInit UPCGExFuseClustersSettings::GetMainOutputInitMode() const
 {
-	return PCGExData::EInit::NoOutput;
+	return PCGExData::EIOInit::NoOutput;
 }
 
-PCGExData::EInit UPCGExFuseClustersSettings::GetEdgeOutputInitMode() const
+PCGExData::EIOInit UPCGExFuseClustersSettings::GetEdgeOutputInitMode() const
 {
-	return PCGExData::EInit::NoOutput;
+	return PCGExData::EIOInit::NoOutput;
 }
 
 #pragma endregion
@@ -46,7 +46,7 @@ bool FPCGExFuseClustersElement::Boot(FPCGExContext* InContext) const
 	const_cast<UPCGExFuseClustersSettings*>(Settings)->EdgeEdgeIntersectionDetails.Init();
 
 	const TSharedPtr<PCGExData::FPointIO> UnionIO = PCGExData::NewPointIO(Context, PCGExGraph::OutputVerticesLabel);
-	UnionIO->InitializeOutput<UPCGExClusterNodesData>(PCGExData::EInit::NewOutput);
+	UnionIO->InitializeOutput<UPCGExClusterNodesData>(PCGExData::EIOInit::NewOutput);
 
 	Context->UnionDataFacade = MakeShared<PCGExData::FFacade>(UnionIO.ToSharedRef());
 

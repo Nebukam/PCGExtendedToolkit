@@ -69,7 +69,7 @@ namespace PCGExGraph
 		MutablePoints.SetNum(NumUnionNodes);
 
 		UnionPointsBlender->AddSources(InFacades, &ProtectedClusterAttributes);
-		UnionPointsBlender->PrepareMerge(UnionDataFacade, UnionGraph->NodesUnion); // TODO : Check if we want to ignore specific attributes // Answer : yes, cluster IDs etc
+		UnionPointsBlender->PrepareMerge(Context, UnionDataFacade, UnionGraph->NodesUnion);
 
 		PCGEX_ASYNC_GROUP_CHKD(Context->GetAsyncManager(), ProcessNodesGroup)
 		TWeakPtr<FUnionProcessor> WeakPtr = SharedThis(this);
@@ -474,7 +474,7 @@ namespace PCGExGraph
 		{
 			if (const TSharedPtr<FUnionProcessor> This = WeakPtr.Pin())
 			{
-				if (!bSuccess) { This->UnionDataFacade->Source->InitializeOutput(PCGExData::EInit::NoOutput); }
+				if (!bSuccess) { This->UnionDataFacade->Source->InitializeOutput(PCGExData::EIOInit::NoOutput); }
 				else { This->GraphBuilder->StageEdgesOutputs(); }
 			}
 		};

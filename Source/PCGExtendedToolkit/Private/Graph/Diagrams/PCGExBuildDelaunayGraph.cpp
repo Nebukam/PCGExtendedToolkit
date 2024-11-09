@@ -12,7 +12,7 @@
 #define LOCTEXT_NAMESPACE "PCGExGraph"
 #define PCGEX_NAMESPACE BuildDelaunayGraph
 
-PCGExData::EInit UPCGExBuildDelaunayGraphSettings::GetMainOutputInitMode() const { return PCGExData::EInit::NoOutput; }
+PCGExData::EIOInit UPCGExBuildDelaunayGraphSettings::GetMainOutputInitMode() const { return PCGExData::EIOInit::NoOutput; }
 
 TArray<FPCGPinProperties> UPCGExBuildDelaunayGraphSettings::OutputPinProperties() const
 {
@@ -109,7 +109,7 @@ namespace PCGExBuildDelaunay
 			return false;
 		}
 
-		PointDataFacade->Source->InitializeOutput<UPCGExClusterNodesData>(PCGExData::EInit::DuplicateInput);
+		PointDataFacade->Source->InitializeOutput<UPCGExClusterNodesData>(PCGExData::EIOInit::DuplicateInput);
 
 		if (Settings->bUrquhart)
 		{
@@ -144,7 +144,7 @@ namespace PCGExBuildDelaunay
 		if (!GraphBuilder->bCompiledSuccessfully)
 		{
 			bIsProcessorValid = false;
-			PointDataFacade->Source->InitializeOutput(PCGExData::EInit::NoOutput);
+			PointDataFacade->Source->InitializeOutput(PCGExData::EIOInit::NoOutput);
 			return;
 		}
 
@@ -152,7 +152,7 @@ namespace PCGExBuildDelaunay
 
 		if (Settings->bMarkHull)
 		{
-			HullMarkPointWriter = PointDataFacade->GetWritable<bool>(Settings->HullAttributeName, false, false, true);
+			HullMarkPointWriter = PointDataFacade->GetWritable<bool>(Settings->HullAttributeName, false, false, PCGExData::EBufferInit::New);
 			StartParallelLoopForPoints();
 		}
 	}
@@ -168,7 +168,7 @@ namespace PCGExBuildDelaunay
 		PCGEX_SETTINGS(BuildDelaunayGraph)
 
 		const TSharedPtr<PCGExData::FPointIO> SitesIO = NewPointIO(PointIO.ToSharedRef());
-		SitesIO->InitializeOutput(PCGExData::EInit::NewOutput);
+		SitesIO->InitializeOutput(PCGExData::EIOInit::NewOutput);
 
 		Context->MainSites->InsertUnsafe(Processor->BatchIndex, SitesIO);
 
@@ -195,7 +195,7 @@ namespace PCGExBuildDelaunay
 		if (Settings->bMarkSiteHull)
 		{
 			const TSharedPtr<PCGExData::TBuffer<bool>> HullBuffer = MakeShared<PCGExData::TBuffer<bool>>(SitesIO.ToSharedRef(), Settings->SiteHullAttributeName);
-			HullBuffer->PrepareWrite(false, true, true);
+			HullBuffer->PrepareWrite(false, true, PCGExData::EBufferInit::New);
 			{
 				TArray<bool>& OutValues = *HullBuffer->GetOutValues();
 				for (int i = 0; i < NumSites; i++) { OutValues[i] = static_cast<bool>(Delaunay->Sites[i].bOnHull); }
@@ -212,7 +212,7 @@ namespace PCGExBuildDelaunay
 		PCGEX_SETTINGS(BuildDelaunayGraph)
 
 		const TSharedPtr<PCGExData::FPointIO> SitesIO = NewPointIO(PointIO.ToSharedRef());
-		SitesIO->InitializeOutput(PCGExData::EInit::NewOutput);
+		SitesIO->InitializeOutput(PCGExData::EIOInit::NewOutput);
 
 		Context->MainSites->InsertUnsafe(Processor->BatchIndex, SitesIO);
 
@@ -239,7 +239,7 @@ namespace PCGExBuildDelaunay
 		if (Settings->bMarkSiteHull)
 		{
 			const TSharedPtr<PCGExData::TBuffer<bool>> HullBuffer = MakeShared<PCGExData::TBuffer<bool>>(SitesIO.ToSharedRef(), Settings->SiteHullAttributeName);
-			HullBuffer->PrepareWrite(false, true, true);
+			HullBuffer->PrepareWrite(false, true, PCGExData::EBufferInit::New);
 			{
 				TArray<bool>& OutValues = *HullBuffer->GetOutValues();
 				for (int i = 0; i < NumSites; i++) { OutValues[i] = static_cast<bool>(Delaunay->Sites[i].bOnHull); }

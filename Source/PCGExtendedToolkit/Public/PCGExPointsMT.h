@@ -109,6 +109,8 @@ ParallelLoopFor##_NAME->StartSubLoops(_NUM, PLI, _INLINE);
 
 		virtual bool IsTrivial() const { return bIsTrivial; }
 
+		bool HasFilters() const { return FilterFactories != nullptr; }
+		
 		void SetPointsFilterData(TArray<TObjectPtr<const UPCGExFilterFactoryBase>>* InFactories)
 		{
 			FilterFactories = InFactories;
@@ -116,7 +118,7 @@ ParallelLoopFor##_NAME->StartSubLoops(_NUM, PLI, _INLINE);
 
 		virtual void RegisterBuffersDependencies(PCGExData::FFacadePreloader& FacadePreloader)
 		{
-			if (FilterFactories) { PCGExPointFilter::RegisterBuffersDependencies(ExecutionContext, *FilterFactories, FacadePreloader); }
+			if (HasFilters()) { PCGExPointFilter::RegisterBuffersDependencies(ExecutionContext, *FilterFactories, FacadePreloader); }
 		}
 
 		void PrefetchData(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager, const TSharedPtr<PCGExMT::FTaskGroup>& InPrefetchDataTaskGroup)
