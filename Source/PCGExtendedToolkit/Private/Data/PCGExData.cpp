@@ -63,7 +63,7 @@ namespace PCGExData
 		}
 
 		Source->GetOutKeys(true);
-		
+
 		for (const TSharedPtr<FBufferBase> Buffer : Buffers)
 		{
 			if (Buffer->IsWritable()) { TaskGroup->AddSimpleCallback([BufferRef = Buffer]() { BufferRef->Write(); }); }

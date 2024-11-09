@@ -68,7 +68,7 @@ namespace PCGExGraph
 		TArray<FPCGPoint>& MutablePoints = UnionDataFacade->GetOut()->GetMutablePoints();
 		MutablePoints.SetNum(NumUnionNodes);
 
-		UnionPointsBlender->AddSources(InFacades, &PCGExGraph::ProtectedClusterAttributes);
+		UnionPointsBlender->AddSources(InFacades, &ProtectedClusterAttributes);
 		UnionPointsBlender->PrepareMerge(UnionDataFacade, UnionGraph->NodesUnion); // TODO : Check if we want to ignore specific attributes // Answer : yes, cluster IDs etc
 
 		PCGEX_ASYNC_GROUP_CHKD(Context->GetAsyncManager(), ProcessNodesGroup)
@@ -131,7 +131,7 @@ namespace PCGExGraph
 		GraphBuilder->SourceEdgeFacades = SourceEdgesIO;
 		GraphBuilder->Graph->NodesUnion = UnionGraph->NodesUnion;
 		GraphBuilder->Graph->EdgesUnion = UnionGraph->EdgesUnion;
-		
+
 		//TSet<uint64> UniqueEdges;
 		//UnionGraph->GetUniqueEdges(UniqueEdges);
 		//GraphBuilder->Graph->InsertEdges(UniqueEdges, -1);
@@ -300,7 +300,7 @@ namespace PCGExGraph
 		if (bUseCustomPointEdgeBlending) { MetadataBlender = MakeShared<PCGExDataBlending::FMetadataBlender>(&CustomPointEdgeBlendingDetails); }
 		else { MetadataBlender = MakeShared<PCGExDataBlending::FMetadataBlender>(&DefaultPointsBlendingDetails); }
 
-		MetadataBlender->PrepareForData(UnionDataFacade, PCGExData::ESource::Out, true, &PCGExGraph::ProtectedClusterAttributes);
+		MetadataBlender->PrepareForData(UnionDataFacade, PCGExData::ESource::Out, true, &ProtectedClusterAttributes);
 
 		BlendPointEdgeGroup->OnCompleteCallback = [WeakPtr = TWeakPtr<FUnionProcessor>(SharedThis(this))]()
 		{
@@ -435,7 +435,7 @@ namespace PCGExGraph
 		if (bUseCustomEdgeEdgeBlending) { MetadataBlender = MakeShared<PCGExDataBlending::FMetadataBlender>(&CustomEdgeEdgeBlendingDetails); }
 		else { MetadataBlender = MakeShared<PCGExDataBlending::FMetadataBlender>(&DefaultPointsBlendingDetails); }
 
-		MetadataBlender->PrepareForData(UnionDataFacade, PCGExData::ESource::Out, true, &PCGExGraph::ProtectedClusterAttributes);
+		MetadataBlender->PrepareForData(UnionDataFacade, PCGExData::ESource::Out, true, &ProtectedClusterAttributes);
 
 		BlendEdgeEdgeGroup->OnCompleteCallback = [WeakThis = TWeakPtr<FUnionProcessor>(SharedThis(this))]()
 		{

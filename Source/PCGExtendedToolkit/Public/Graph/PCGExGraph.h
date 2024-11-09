@@ -12,6 +12,7 @@
 #include "PCGExDetails.h"
 #include "PCGExDetailsIntersection.h"
 #include "Data/PCGExData.h"
+#include "Data/Blending/PCGExUnionBlender.h"
 #include "PCGExGraph.generated.h"
 
 struct FPCGExBlendingDetails;
@@ -19,7 +20,8 @@ struct FPCGExTransformDetails;
 
 namespace PCGExGraph
 {
-	struct FSubGraph;
+	class FGraphBuilder;
+	class FSubGraph;
 
 	using SubGraphPostProcessCallback = std::function<void(const TSharedRef<FSubGraph>& InSubGraph)>;
 }
@@ -295,10 +297,9 @@ namespace PCGExGraph
 
 	struct /*PCGEXTENDEDTOOLKIT_API*/ FGraphMetadataDetails
 	{
-		
 		const FPCGExBlendingDetails* EdgesBlendingDetailsPtr = nullptr;
 		const FPCGExCarryOverDetails* EdgesCarryOverDetails = nullptr;
-		
+
 #define PCGEX_FOREACH_POINTPOINT_METADATA(MACRO)\
 		MACRO(IsPointUnion, PointUnionData.bWriteIsUnion, PointUnionData.IsUnion, TEXT("bIsUnion"))\
 		MACRO(PointUnionSize, PointUnionData.bWriteUnionSize, PointUnionData.UnionSize, TEXT("UnionSize"))\
@@ -422,8 +423,9 @@ namespace PCGExGraph
 		~FNode() = default;
 	};
 
-	struct /*PCGEXTENDEDTOOLKIT_API*/ FSubGraph
+	class /*PCGEXTENDEDTOOLKIT_API*/ FSubGraph : public TSharedFromThis<FSubGraph>
 	{
+	public:
 		int64 Id = -1;
 		FGraph* ParentGraph = nullptr;
 		TSet<int32> Nodes;
@@ -434,6 +436,7 @@ namespace PCGExGraph
 		TArray<FIndexedEdge> FlattenedEdges;
 		int32 UID = 0;
 		SubGraphPostProcessCallback OnSubGraphPostProcess;
+
 
 		FSubGraph()
 		{
@@ -456,6 +459,34 @@ namespace PCGExGraph
 		void Invalidate(FGraph* InGraph);
 		TSharedPtr<PCGExCluster::FCluster> CreateCluster(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager) const;
 		int32 GetFirstInIOIndex();
+
+		void Compile(
+			const TWeakPtr<PCGExMT::FTaskGroup>& InWeakParentTask,
+			const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager,
+			const TSharedPtr<FGraphBuilder>& InBuilder);
+
+	protected:
+		TWeakPtr<PCGExMT::FTaskManager> WeakAsyncManager;
+		TWeakPtr<PCGExMT::FTaskGroup> WeakParentTask;
+		TWeakPtr<FGraphBuilder> WeakBuilder;
+
+		const FGraphMetadataDetails* MetadataDetails = nullptr;
+
+		TSharedPtr<PCGExDataBlending::FUnionBlender> UnionBlender;
+		TSharedPtr<PCGExDetails::FDistances> Distances;
+
+#define PCGEX_FOREACH_EDGE_METADATA(MACRO)\
+MACRO(IsEdgeUnion, bool, false, IsUnion()) \
+MACRO(EdgeUnionSize, int32, 0, UnionSize)
+
+#define PCGEX_EDGE_METADATA_DECL(_NAME, _TYPE, _DEFAULT, _ACCESSOR) TSharedPtr<PCGExData::TBuffer<_TYPE>> _NAME##Buffer;
+		PCGEX_FOREACH_EDGE_METADATA(PCGEX_EDGE_METADATA_DECL)
+#undef PCGEX_EDGE_METADATA_DECL
+
+#undef PCGEX_FOREACH_EDGE_METADATA
+
+		void CompileRange(const int32 StartIndex, const int32 EndIndex);
+		void CompilationComplete();
 	};
 
 	class /*PCGEXTENDEDTOOLKIT_API*/ FGraph
@@ -821,11 +852,6 @@ namespace PCGExGraph
 namespace PCGExGraphTask
 {
 #pragma region Graph tasks
-
-	static void WriteSubGraphEdges(
-		const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager,
-		const TSharedPtr<PCGExGraph::FSubGraph>& SubGraph,
-		const TSharedPtr<PCGExGraph::FGraphBuilder>& Builder);
 
 	class /*PCGEXTENDEDTOOLKIT_API*/ FWriteSubGraphCluster final : public PCGExMT::FPCGExTask
 	{

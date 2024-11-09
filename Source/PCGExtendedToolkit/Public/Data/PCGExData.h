@@ -320,7 +320,7 @@ namespace PCGExData
 			if (OutValues) { return true; }
 
 			TypedOutAttribute = Source->FindOrCreateAttribute(FullName, DefaultValue, bAllowInterpolation);
-			
+
 			OutAccessor = MakeUnique<FPCGAttributeAccessor<T>>(TypedOutAttribute, Source->GetOut()->Metadata);
 
 			if (!TypedOutAttribute || !OutAccessor.IsValid())
@@ -335,7 +335,7 @@ namespace PCGExData
 			{
 				const int32 ExistingEntryCount = TypedOutAttribute->GetNumberOfEntries();
 				const bool bHasIn = Source->GetIn() ? true : false;
-				if(!bHasIn && ExistingEntryCount != 0)
+				if (!bHasIn && ExistingEntryCount != 0)
 				{
 					// We have values to grab from the existing attribute and no input
 					// only for very specific situations (Union blender)
@@ -343,7 +343,7 @@ namespace PCGExData
 					TArrayView<T> OutRange = MakeArrayView(OutValues->GetData(), FMath::Min(OutValues->Num(), ExistingEntryCount));
 					OutAccessor->GetRange(OutRange, 0, *TempOutKeys.Get());
 				}
-				else if(bHasIn)
+				else if (bHasIn)
 				{
 					if (InValues && bReadComplete)
 					{
