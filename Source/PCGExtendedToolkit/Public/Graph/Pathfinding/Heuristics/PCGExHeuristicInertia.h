@@ -22,10 +22,18 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExHeuristicConfigInertia : public FPCGExHe
 	{
 	}
 
+	/** How many previous edges should be averaged to compute the inertia. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ClampMin=1))
+	int32 Samples = 1;
+
+	/** If enabled, use fallback score if there is less samples than the specified number. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ClampMin=1))
+	bool bIgnoreIfNotEnoughSamples = true;
+	
 	/** Value used for global score. Primarily used by A* Star to do initial sorting. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Fallbacks", meta=(PCG_Overridable, DisplayPriority=-1, ClampMin=0, ClampMax=1))
 	double GlobalInertiaScore = 0;
-
+	
 	/** Fallback heuristic score for when no inertia value can be computed (no previous node). */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Fallbacks", meta=(PCG_Overridable, DisplayPriority=-1, ClampMin=0, ClampMax=1))
 	double FallbackInertiaScore = 0;
@@ -42,6 +50,8 @@ class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExHeuristicInertia : public UPCGExHeuristic
 public:
 	double GlobalInertiaScore = 0;
 	double FallbackInertiaScore = 0;
+	int32 MaxSamples = 1;
+	bool bIgnoreIfNotEnoughSamples = true;
 
 	virtual void PrepareForCluster(const TSharedPtr<const PCGExCluster::FCluster>& InCluster) override;
 
@@ -63,14 +73,32 @@ public:
 	{
 		if (TravelStack)
 		{
-			if (const int32 PreviousNodeIndex = PCGEx::NH64A(TravelStack->Get(From.NodeIndex));
-				PreviousNodeIndex != -1)
+			int32 PathNodeIndex = PCGEx::NH64A(TravelStack->Get(From.NodeIndex));
+			int32 PathEdgeIndex = -1;
+
+			if (PathNodeIndex != -1)
 			{
-				const double Dot = FVector::DotProduct(
-					Cluster->GetDir(PreviousNodeIndex, From.NodeIndex),
+				FVector Avg = Cluster->GetDir(PathNodeIndex, From.NodeIndex);
+				int32 Sampled = 1;
+				while (PathNodeIndex != -1 && Sampled < MaxSamples)
+				{
+					const int32 CurrentIndex = PathNodeIndex;
+					PCGEx::NH64(TravelStack->Get(CurrentIndex), PathNodeIndex, PathEdgeIndex);
+					if (PathNodeIndex != -1)
+					{
+						Avg += Cluster->GetDir(PathNodeIndex, CurrentIndex);
+						Sampled++;
+					}
+				}
+
+				if(!bIgnoreIfNotEnoughSamples || Sampled == MaxSamples)
+				{
+					const double Dot = FVector::DotProduct(
+					(Avg / Sampled).GetSafeNormal(),
 					Cluster->GetDir(From.NodeIndex, To.NodeIndex));
 
-				return GetScoreInternal(PCGExMath::Remap(Dot, -1, 1, OutMin, OutMax)) * ReferenceWeight;
+					return GetScoreInternal(PCGExMath::Remap(Dot, -1, 1, OutMin, OutMax)) * ReferenceWeight;
+				}
 			}
 		}
 
