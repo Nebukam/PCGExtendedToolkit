@@ -340,7 +340,7 @@ namespace PCGExPartitionByValues
 				IndiceMap.Empty();
 			}
 
-			const TSharedPtr<PCGExData::TBuffer<int32>> KeyWriter = PointDataFacade->GetWritable(Rule.RuleConfig->KeyAttributeName, 0, false, PCGExData::EBufferInit::New);
+			const TSharedPtr<PCGExData::TBuffer<int32>> KeyWriter = PointDataFacade->GetWritable(Rule.RuleConfig->KeyAttributeName, 0, true, PCGExData::EBufferInit::New);
 			for (int i = 0; i < Rule.FilteredValues.Num(); i++)
 			{
 				KeyWriter->GetMutable(i) = Rule.FilteredValues[i];
@@ -350,7 +350,7 @@ namespace PCGExPartitionByValues
 
 		if (Settings->bWriteKeySum)
 		{
-			const TSharedPtr<PCGExData::TBuffer<int32>> KeySumWriter = PointDataFacade->GetWritable(Settings->KeySumAttributeName, 0, false, PCGExData::EBufferInit::New);
+			const TSharedPtr<PCGExData::TBuffer<int32>> KeySumWriter = PointDataFacade->GetWritable(Settings->KeySumAttributeName, 0, true, PCGExData::EBufferInit::New);
 			for (int i = 0; i < KeySums.Num(); i++) { KeySumWriter->GetMutable(i) = KeySums[i]; }
 		}
 

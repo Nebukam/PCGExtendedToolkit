@@ -54,9 +54,9 @@ void UPCGExNeighborSampleAttribute::PrepareForCluster(FPCGExContext* InContext, 
 	bIsValidOperation = true;
 }
 
-void UPCGExNeighborSampleAttribute::FinalizeOperation()
+void UPCGExNeighborSampleAttribute::CompleteOperation()
 {
-	Super::FinalizeOperation();
+	Super::CompleteOperation();
 	Blender.Reset();
 }
 

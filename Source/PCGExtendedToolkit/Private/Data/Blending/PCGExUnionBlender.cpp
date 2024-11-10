@@ -174,7 +174,7 @@ namespace PCGExDataBlending
 
 			if (ValidUnions == 0) { continue; } // No valid attribute to merge on any union source
 
-			MultiAttribute->MainBlendingOp->FinalizeOperation(WriteIndex, ValidUnions, TotalWeight);
+			MultiAttribute->MainBlendingOp->CompleteOperation(WriteIndex, ValidUnions, TotalWeight);
 		}
 	}
 
@@ -275,7 +275,7 @@ namespace PCGExDataBlending
 
 			if (ValidUnions == 0) { continue; } // No valid attribute to merge on any union source
 
-			MultiAttribute->MainBlendingOp->FinalizeOperation(Target.MetadataEntry, ValidUnions, TotalWeight);
+			MultiAttribute->MainBlendingOp->CompleteOperation(Target.MetadataEntry, ValidUnions, TotalWeight);
 		}
 
 		// Tag flags

@@ -209,7 +209,7 @@ bool FPCGExFindContoursContext::TryFindContours(
 
 	if (Settings->bFlagDeadEnds)
 	{
-		const TSharedPtr<PCGExData::TBuffer<bool>> DeadEndBuffer = PathDataFacade->GetWritable(Settings->DeadEndAttributeName, false, false, PCGExData::EBufferInit::New);
+		const TSharedPtr<PCGExData::TBuffer<bool>> DeadEndBuffer = PathDataFacade->GetWritable(Settings->DeadEndAttributeName, false, true, PCGExData::EBufferInit::New);
 		TArray<bool>& OutValues = *DeadEndBuffer->GetOutValues();
 		for (int i = 0; i < Path.Num(); i++) { OutValues[i] = Cluster->GetNode(Path[i])->Adjacency.Num() == 1; }
 	}

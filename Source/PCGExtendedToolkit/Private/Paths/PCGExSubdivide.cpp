@@ -128,6 +128,8 @@ namespace PCGExSubdivide
 		FSubdivision& Sub = Subdivisions[Index];
 
 		Sub.NumSubdivisions = 0;
+		Sub.InStart = Index;
+		Sub.InEnd = Index + 1 == PointIO->GetNum() ? 0 : Index + 1;
 		Sub.Start = PointIO->GetInPoint(Index).Transform.GetLocation();
 		Sub.End = PointIO->GetInPoint(Index + 1 == PointIO->GetNum() ? 0 : Index + 1).Transform.GetLocation();
 		Sub.Dist = FVector::Distance(Sub.Start, Sub.End);
@@ -232,14 +234,14 @@ namespace PCGExSubdivide
 
 			for (int s = 0; s < Sub.NumSubdivisions; s++)
 			{
-				MutablePoints[SubStart + s] = OriginalPoint;
+				(MutablePoints[SubStart + s] = OriginalPoint).MetadataEntry = PCGInvalidEntryKey;
 				Metadata->InitializeOnSet(MutablePoints[SubStart + s].MetadataEntry);
 			}
 		}
 
 		if (Settings->bFlagSubPoints)
 		{
-			FlagWriter = PointDataFacade->GetWritable<bool>(Settings->SubPointFlagName, false, false, PCGExData::EBufferInit::New);
+			FlagWriter = PointDataFacade->GetWritable<bool>(Settings->SubPointFlagName, false, true, PCGExData::EBufferInit::New);
 			ProtectedAttributes.Add(Settings->SubPointFlagName);
 		}
 

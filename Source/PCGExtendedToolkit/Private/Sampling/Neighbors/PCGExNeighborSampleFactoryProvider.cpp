@@ -143,7 +143,7 @@ void UPCGExNeighborSampleOperation::ProcessNode(const int32 NodeIndex) const
 	FinalizeNode(Node, Count, TotalWeight);
 }
 
-void UPCGExNeighborSampleOperation::FinalizeOperation()
+void UPCGExNeighborSampleOperation::CompleteOperation()
 {
 }
 

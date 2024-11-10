@@ -23,17 +23,13 @@ public:
 
 	virtual void Process() override
 	{
-		const TUniquePtr<PCGExCluster::FNode> NoNodePtr = MakeUnique<PCGExCluster::FNode>();
-		const PCGExCluster::FNode& NoNode = *NoNodePtr.Get();
 		const int32 NumNodes = Cluster->Nodes->Num();
 
 		TBitArray<> Visited;
 		Visited.Init(false, NumNodes);
 
-		const TUniquePtr<PCGExSearch::FScoredQueue> ScoredQueue = MakeUnique<PCGExSearch::FScoredQueue>(NumNodes, 0, 0);
+		const TUniquePtr<PCGExSearch::FScoredQueue> ScoredQueue = MakeUnique<PCGExSearch::FScoredQueue>(NumNodes, RoamingSeedNode->NodeIndex, 0);
 		const TSharedPtr<PCGEx::FHashLookup> TravelStack = PCGEx::NewHashLookup<PCGEx::FArrayHashLookup>(PCGEx::NH64(-1, -1), NumNodes);
-
-		ScoredQueue->Scores[0] = 0;
 
 		int32 CurrentNodeIndex;
 		double CurrentNodeScore;
@@ -53,7 +49,7 @@ public:
 				const PCGExCluster::FNode& AdjacentNode = *Cluster->GetNode(NeighborIndex);
 				PCGExGraph::FIndexedEdge& Edge = *Cluster->GetEdge(EdgeIndex);
 
-				const double Score = Heuristics->GetEdgeScore(Current, AdjacentNode, Edge, NoNode, NoNode, nullptr, TravelStack);
+				const double Score = Heuristics->GetEdgeScore(Current, AdjacentNode, Edge, *RoamingSeedNode, *RoamingGoalNode, nullptr, TravelStack);
 				if (!ScoredQueue->Enqueue(NeighborIndex, Score)) { continue; }
 
 				TravelStack->Set(NeighborIndex, PCGEx::H64(CurrentNodeIndex, EdgeIndex));

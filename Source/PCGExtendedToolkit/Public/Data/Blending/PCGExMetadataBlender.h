@@ -42,14 +42,14 @@ namespace PCGExDataBlending
 
 		FORCEINLINE void PrepareForBlending(const PCGExData::FPointRef& Target, const FPCGPoint* Defaults = nullptr) const
 		{
-			for (const FDataBlendingOperationBase* Op : OperationsToBePrepared) { Op->PrepareOperation(Target.Index); }
+			for (const TSharedPtr<FDataBlendingOperationBase> Op : Operations) { Op->PrepareOperation(Target.Index); }
 			if (bSkipProperties || !PropertiesBlender->bRequiresPrepare) { return; }
 			PropertiesBlender->PrepareBlending(Target.MutablePoint(), Defaults ? *Defaults : *Target.Point);
 		}
 
 		FORCEINLINE void PrepareForBlending(const int32 PrimaryIndex, const FPCGPoint* Defaults = nullptr) const
 		{
-			for (const FDataBlendingOperationBase* Op : OperationsToBePrepared) { Op->PrepareOperation(PrimaryIndex); }
+			for (const TSharedPtr<FDataBlendingOperationBase> Op : Operations) { Op->PrepareOperation(PrimaryIndex); }
 			if (bSkipProperties || !PropertiesBlender->bRequiresPrepare) { return; }
 			PropertiesBlender->PrepareBlending(*(PrimaryPoints->GetData() + PrimaryIndex), Defaults ? *Defaults : *(PrimaryPoints->GetData() + PrimaryIndex));
 		}
@@ -72,9 +72,14 @@ namespace PCGExDataBlending
 			PropertiesBlender->Blend(*(PrimaryPoints->GetData() + PrimaryIndex), *(SecondaryPoints->GetData() + SecondaryIndex), (*PrimaryPoints)[TargetIndex], Weight);
 		}
 
+		FORCEINLINE void Copy(const int32 TargetIndex, const int32 SecondaryIndex)
+		{
+			for (const TSharedPtr<FDataBlendingOperationBase>& Op : Operations) { Op->Copy(TargetIndex, SecondaryIndex); }
+		}
+
 		FORCEINLINE void CompleteBlending(const PCGExData::FPointRef& Target, const int32 Count, const double TotalWeight) const
 		{
-			for (const FDataBlendingOperationBase* Op : OperationsToBeCompleted) { Op->FinalizeOperation(Target.Index, Count, TotalWeight); }
+			for (const TSharedPtr<FDataBlendingOperationBase> Op : Operations) { Op->CompleteOperation(Target.Index, Count, TotalWeight); }
 			if (bSkipProperties || !PropertiesBlender->bRequiresPrepare) { return; }
 			PropertiesBlender->CompleteBlending(Target.MutablePoint(), Count, TotalWeight);
 		}
@@ -82,7 +87,7 @@ namespace PCGExDataBlending
 		FORCEINLINE void CompleteBlending(const int32 PrimaryIndex, const int32 Count, const double TotalWeight) const
 		{
 			//check(Count > 0) // Ugh, there's a check missing in a blender user...
-			for (const FDataBlendingOperationBase* Op : OperationsToBeCompleted) { Op->FinalizeOperation(PrimaryIndex, Count, TotalWeight); }
+			for (const TSharedPtr<FDataBlendingOperationBase> Op : Operations) { Op->CompleteOperation(PrimaryIndex, Count, TotalWeight); }
 			if (bSkipProperties || !PropertiesBlender->bRequiresPrepare) { return; }
 			PropertiesBlender->CompleteBlending(*(PrimaryPoints->GetData() + PrimaryIndex), Count, TotalWeight);
 		}
@@ -97,9 +102,14 @@ namespace PCGExDataBlending
 
 		FORCEINLINE void PrepareForBlending(FPCGPoint& Target, const FPCGPoint* Defaults = nullptr) const
 		{
-			for (const FDataBlendingOperationBase* Op : OperationsToBePrepared) { Op->PrepareOperation(Target.MetadataEntry); }
+			for (const TSharedPtr<FDataBlendingOperationBase> Op : Operations) { Op->PrepareOperation(Target.MetadataEntry); }
 			if (bSkipProperties || !PropertiesBlender->bRequiresPrepare) { return; }
 			PropertiesBlender->PrepareBlending(Target, Defaults ? *Defaults : Target);
+		}
+
+		FORCEINLINE void Copy(const FPCGPoint& Target, const FPCGPoint& Source)
+		{
+			for (const TSharedPtr<FDataBlendingOperationBase>& Op : Operations) { Op->Copy(Target.MetadataEntry, Source.MetadataEntry); }
 		}
 
 		FORCEINLINE void Blend(const FPCGPoint& A, const FPCGPoint& B, FPCGPoint& Target, const double Weight, const bool bIsFirstOperation = false)
@@ -111,7 +121,7 @@ namespace PCGExDataBlending
 
 		FORCEINLINE void CompleteBlending(FPCGPoint& Target, const int32 Count, const double TotalWeight) const
 		{
-			for (const FDataBlendingOperationBase* Op : OperationsToBeCompleted) { Op->FinalizeOperation(Target.MetadataEntry, Count, TotalWeight); }
+			for (const TSharedPtr<FDataBlendingOperationBase> Op : Operations) { Op->CompleteOperation(Target.MetadataEntry, Count, TotalWeight); }
 			if (bSkipProperties || !PropertiesBlender->bRequiresPrepare) { return; }
 			PropertiesBlender->CompleteBlending(Target, Count, TotalWeight);
 		}
@@ -123,8 +133,6 @@ namespace PCGExDataBlending
 		TUniquePtr<FPropertiesBlender> PropertiesBlender;
 		bool bSkipProperties = false;
 		TArray<TSharedPtr<FDataBlendingOperationBase>> Operations;
-		TArray<FDataBlendingOperationBase*> OperationsToBePrepared;
-		TArray<FDataBlendingOperationBase*> OperationsToBeCompleted;
 
 		TArray<FPCGPoint>* PrimaryPoints = nullptr;
 		const TArray<FPCGPoint>* SecondaryPoints = nullptr;

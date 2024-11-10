@@ -179,6 +179,23 @@ namespace PCGExHeuristics
 			for (UPCGExHeuristicFeedback* Op : Feedbacks) { Op->FeedbackScore(Node, Edge); }
 		}
 
+		FORCEINLINE FVector GetSeedUVW() const
+		{
+			FVector UVW = FVector::ZeroVector;
+			for (const UPCGExHeuristicOperation* Op : Operations) { UVW += Op->GetSeedUVW(); }
+			return UVW;
+		}
+
+		FORCEINLINE FVector GetGoalUVW() const
+		{
+			FVector UVW = FVector::ZeroVector;
+			for (const UPCGExHeuristicOperation* Op : Operations) { UVW += Op->GetGoalUVW(); }
+			return UVW;
+		}
+
+		FORCEINLINE const PCGExCluster::FNode* GetRoamingSeed() const { return Cluster->GetRoamingNode(GetSeedUVW()); }
+		FORCEINLINE const PCGExCluster::FNode* GetRoamingGoal() const { return Cluster->GetRoamingNode(GetGoalUVW()); }
+
 		TSharedPtr<FLocalFeedbackHandler> MakeLocalFeedbackHandler(const TSharedPtr<const PCGExCluster::FCluster>& InCluster);
 	};
 }
