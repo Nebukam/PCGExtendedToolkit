@@ -24,6 +24,8 @@ public:
 	double ReferenceWeight = 1;
 	double WeightFactor = 1;
 	bool bUseLocalWeightMultiplier = false;
+	FVector UVWSeed = FVector::OneVector * -1;
+	FVector UVWGoal = FVector::OneVector;
 	EPCGExClusterComponentSource LocalWeightMultiplierSource = EPCGExClusterComponentSource::Vtx;
 	FPCGAttributePropertyInputSelector WeightMultiplierAttribute;
 
@@ -59,6 +61,13 @@ public:
 		if (!bUseLocalWeightMultiplier || LocalWeightMultiplier.IsEmpty()) { return 1; }
 		return FMath::Abs(LocalWeightMultiplier[LocalWeightMultiplierSource == EPCGExClusterComponentSource::Vtx ? PointIndex : EdgeIndex]);
 	}
+
+
+	FORCEINLINE FVector GetSeedUVW() const { return UVWSeed; }
+	FORCEINLINE FVector GetGoalUVW() const { return UVWGoal; }
+	
+	FORCEINLINE const PCGExCluster::FNode* GetRoamingSeed() const { return Cluster->GetRoamingNode(UVWSeed); }
+	FORCEINLINE const PCGExCluster::FNode* GetRoamingGoal() const { return Cluster->GetRoamingNode(UVWGoal); }
 
 	virtual void Cleanup() override
 	{

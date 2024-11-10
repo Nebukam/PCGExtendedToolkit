@@ -64,11 +64,11 @@ namespace PCGExWriteIndex
 
 		if (Settings->bOutputNormalizedIndex)
 		{
-			DoubleWriter = PointDataFacade->GetWritable<double>(Settings->OutputAttributeName, -1, false, PCGExData::EBufferInit::Inherit);
+			DoubleWriter = PointDataFacade->GetWritable<double>(Settings->OutputAttributeName, -1, Settings->bAllowInterpolation, PCGExData::EBufferInit::Inherit);
 		}
 		else
 		{
-			IntWriter = PointDataFacade->GetWritable<int32>(Settings->OutputAttributeName, -1, false, PCGExData::EBufferInit::Inherit);
+			IntWriter = PointDataFacade->GetWritable<int32>(Settings->OutputAttributeName, -1, Settings->bAllowInterpolation, PCGExData::EBufferInit::Inherit);
 		}
 
 		if (Settings->bOutputCollectionIndex)

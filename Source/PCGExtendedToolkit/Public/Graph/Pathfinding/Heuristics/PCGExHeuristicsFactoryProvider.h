@@ -16,6 +16,8 @@
 #define PCGEX_FORWARD_HEURISTIC_CONFIG \
 	NewOperation->WeightFactor = Config.WeightFactor; \
 	NewOperation->bInvert = Config.bInvert; \
+	NewOperation->UVWSeed = Config.UVWSeed; \
+	NewOperation->UVWGoal = Config.UVWGoal; \
 	NewOperation->ScoreCurveObj = Config.ScoreCurveObj; \
 	NewOperation->bUseLocalWeightMultiplier = Config.bUseLocalWeightMultiplier; \
 	NewOperation->LocalWeightMultiplierSource = Config.LocalWeightMultiplierSource; \
@@ -56,6 +58,14 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExHeuristicConfigBase
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Local Weight", meta=(PCG_Overridable))
 	bool bUseLocalWeightMultiplier = false;
 
+	/** Bound-relative seed position used when this heuristic is used in a "roaming" context */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Roaming", meta=(PCG_Overridable))
+	FVector UVWSeed = FVector::ZeroVector;
+
+	/** Bound-relative goal position used when this heuristic is used in a "roaming" context */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Roaming", meta=(PCG_Overridable))
+	FVector UVWGoal = FVector::ZeroVector;
+	
 	/** Local multiplier attribute source */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Local Weight", meta=(PCG_Overridable, EditCondition="bUseLocalWeightMultiplier", EditConditionHides))
 	EPCGExClusterComponentSource LocalWeightMultiplierSource = EPCGExClusterComponentSource::Vtx;
@@ -63,6 +73,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExHeuristicConfigBase
 	/** Attribute to read multiplier value from. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Local Weight", meta=(PCG_Overridable, EditCondition="bUseLocalWeightMultiplier", EditConditionHides))
 	FPCGAttributePropertyInputSelector WeightMultiplierAttribute;
+
 };
 
 UCLASS(Abstract, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")

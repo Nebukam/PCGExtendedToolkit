@@ -163,7 +163,7 @@ namespace PCGExBuildDelaunay2D
 
 		if (HullMarkPointWriter) // BUG
 		{
-			HullMarkPointWriter = PointDataFacade->GetWritable<bool>(Settings->HullAttributeName, false, false, PCGExData::EBufferInit::New);
+			HullMarkPointWriter = PointDataFacade->GetWritable<bool>(Settings->HullAttributeName, false, true, PCGExData::EBufferInit::New);
 			StartParallelLoopForPoints();
 		}
 	}

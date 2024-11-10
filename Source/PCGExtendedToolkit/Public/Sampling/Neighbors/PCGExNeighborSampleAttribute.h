@@ -60,7 +60,7 @@ public:
 		Blender->CompleteBlending(PrimaryIndex, Count, TotalWeight);
 	}
 
-	virtual void FinalizeOperation() override;
+	virtual void CompleteOperation() override;
 
 	virtual void Cleanup() override;
 
