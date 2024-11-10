@@ -89,7 +89,7 @@ bool FPCGExConnectClustersElement::ExecuteInternal(FPCGContext* InContext) const
 			for (const TSharedPtr<PCGExData::FPointIO> Edges : Context->MainEdges->Pairs) { Edges->InitializeOutput(PCGExData::EIOInit::Forward); }
 
 			Context->OutputPointsAndEdges();
-			return true;
+			return Context->TryComplete(true);
 		}
 	}
 
