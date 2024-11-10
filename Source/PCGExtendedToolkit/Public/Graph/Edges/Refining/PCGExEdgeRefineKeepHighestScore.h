@@ -33,7 +33,7 @@ public:
 			uint32 EdgeIndex;
 			PCGEx::H64(AdjacencyHash, OtherNodeIndex, EdgeIndex);
 
-			const double Score = Heuristics->GetEdgeScore(Node, *Cluster->GetNode(OtherNodeIndex), *Cluster->GetEdge(EdgeIndex), Node, *Cluster->GetNode(OtherNodeIndex));
+			const double Score = Heuristics->GetEdgeScore(Node, *Cluster->GetNode(OtherNodeIndex), *Cluster->GetEdge(EdgeIndex), *RoamingSeedNode, *RoamingGoalNode);
 			if (Score > HighestScore)
 			{
 				HighestScore = Score;
