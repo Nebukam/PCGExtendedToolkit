@@ -19,7 +19,7 @@ void UPCGExConditionalActionResultOperation::CopySettingsFrom(const UPCGExOperat
 bool UPCGExConditionalActionResultOperation::PrepareForData(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade>& InPointDataFacade)
 {
 	if (!Super::PrepareForData(InContext, InPointDataFacade)) { return false; }
-	ResultWriter = InPointDataFacade->GetWritable(TypedFactory->ResultAttributeName, false, false, PCGExData::EBufferInit::New);
+	ResultWriter = InPointDataFacade->GetWritable(TypedFactory->ResultAttributeName, false, true, PCGExData::EBufferInit::New);
 	return true;
 }
 

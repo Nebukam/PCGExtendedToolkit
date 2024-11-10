@@ -99,6 +99,8 @@ namespace PCGExSubdivide
 	struct FSubdivision
 	{
 		int32 NumSubdivisions = 0;
+		int32 InStart = -1;
+		int32 InEnd = -1;
 		int32 OutStart = -1;
 		int32 OutEnd = -1;
 		double Dist = 0;

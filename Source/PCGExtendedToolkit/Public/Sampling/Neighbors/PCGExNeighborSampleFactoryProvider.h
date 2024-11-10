@@ -115,7 +115,7 @@ public:
 	{
 	}
 
-	virtual void FinalizeOperation();
+	virtual void CompleteOperation();
 
 	virtual void Cleanup() override;
 

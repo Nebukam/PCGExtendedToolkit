@@ -120,7 +120,7 @@ namespace PCGExUberFilter
 
 		if (Settings->Mode == EPCGExUberFilterMode::Write)
 		{
-			Results = PointDataFacade->GetWritable<bool>(Settings->ResultAttributeName, false, false, PCGExData::EBufferInit::New);
+			Results = PointDataFacade->GetWritable<bool>(Settings->ResultAttributeName, false, true, PCGExData::EBufferInit::New);
 		}
 		else
 		{

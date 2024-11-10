@@ -341,13 +341,15 @@ namespace PCGExData
 
 			auto GrabExistingValues = [&]()
 			{
-				TUniquePtr<FPCGAttributeAccessorKeysPoints> TempOutKeys = MakeUnique<FPCGAttributeAccessorKeysPoints>(MakeArrayView(Source->GetMutablePoints().GetData(), ExistingEntryCount));
-				TArrayView<T> OutRange = MakeArrayView(OutValues->GetData(), FMath::Min(OutValues->Num(), ExistingEntryCount));
+				TUniquePtr<FPCGAttributeAccessorKeysPoints> TempOutKeys = MakeUnique<FPCGAttributeAccessorKeysPoints>(MakeArrayView(Source->GetMutablePoints().GetData(), OutValues->Num()));
+				TArrayView<T> OutRange = MakeArrayView(OutValues->GetData(), OutValues->Num());
 				OutAccessor->GetRange(OutRange, 0, *TempOutKeys.Get());
 			};
 
 			if (Init == EBufferInit::Inherit)
 			{
+				GrabExistingValues();
+				/*
 				if (!bHasIn && ExistingEntryCount != 0) { GrabExistingValues(); }
 				else if (bHasIn)
 				{
@@ -378,6 +380,7 @@ namespace PCGExData
 						}
 					}
 				}
+				*/
 			}
 			else if (!bHasIn && ExistingEntryCount != 0) { GrabExistingValues(); }
 
