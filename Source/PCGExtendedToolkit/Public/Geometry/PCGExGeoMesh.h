@@ -21,6 +21,30 @@ enum class EPCGExTriangulationType : uint8
 
 namespace PCGExGeo
 {
+	class FMeshLookup : public TSharedFromThis<FMeshLookup>
+	{
+	protected:
+		uint32 InternalIdx = 0;
+
+	public:
+		TMap<uint32, TTuple<int32, uint32>> Data;
+		
+		explicit FMeshLookup(const int32 Size)
+		{
+			Data.Reserve(Size);
+		}
+
+		FORCEINLINE uint32 Add_GetIdx(const uint32 Key, const int32 Value)
+		{
+			if (TTuple<int32, uint32>* Tuple = Data.Find(Key)) { return Tuple->Get<1>(); }
+			const int32 SnapIdx = InternalIdx;
+			Data.Add(Key, TTuple<int32, uint32>(Value, InternalIdx++));
+			return SnapIdx;
+		}
+
+		FORCEINLINE int32 Num() const { return Data.Num(); }
+	};
+
 	class FExtractStaticMeshTask;
 
 	class /*PCGEXTENDEDTOOLKIT_API*/ FGeoMesh : public TSharedFromThis<FGeoMesh>
@@ -100,6 +124,7 @@ namespace PCGExGeo
 	{
 	public:
 		TObjectPtr<UStaticMesh> StaticMesh;
+		FVector CWTolerance = FVector(1 / 0.001);
 
 		explicit FGeoStaticMesh(const TSoftObjectPtr<UStaticMesh>& InSoftStaticMesh)
 		{
@@ -131,35 +156,28 @@ namespace PCGExGeo
 
 			const FPositionVertexBuffer& VertexBuffer = LODResources.VertexBuffers.PositionVertexBuffer;
 
-			TMap<FVector, int32> IndexedUniquePositions;
+			TUniquePtr<FMeshLookup> MeshLookup = MakeUnique<FMeshLookup>(VertexBuffer.GetNumVertices() / 3);
 			Edges.Empty();
-
-			//for (int i = 0; i < GSM->Vertices.Num(); i++) { GSM->Vertices[i] = FVector(VertexBuffer.VertexPosition(i)); }
 
 			int32 Idx = 0;
 			const FIndexArrayView& Indices = LODResources.IndexBuffer.GetArrayView();
 			for (int i = 0; i < Indices.Num(); i += 3)
 			{
-				const FVector VA = PCGExMath::Round10(FVector(VertexBuffer.VertexPosition(Indices[i])));
-				const FVector VB = PCGExMath::Round10(FVector(VertexBuffer.VertexPosition(Indices[i + 1])));
-				const FVector VC = PCGExMath::Round10(FVector(VertexBuffer.VertexPosition(Indices[i + 2])));
+				const int32 AIdx = Indices[i];
+				const int32 BIdx = Indices[i + 1];
+				const int32 CIdx = Indices[i + 2];
 
-				const int32* APtr = IndexedUniquePositions.Find(VA);
-				const int32* BPtr = IndexedUniquePositions.Find(VB);
-				const int32* CPtr = IndexedUniquePositions.Find(VC);
-
-				const uint32 A = APtr ? *APtr : IndexedUniquePositions.Add(VA, Idx++);
-				const uint32 B = BPtr ? *BPtr : IndexedUniquePositions.Add(VB, Idx++);
-				const uint32 C = CPtr ? *CPtr : IndexedUniquePositions.Add(VC, Idx++);
+				const uint32 A = MeshLookup->Add_GetIdx(PCGEx::GH(VertexBuffer.VertexPosition(AIdx), CWTolerance), AIdx);
+				const uint32 B = MeshLookup->Add_GetIdx(PCGEx::GH(VertexBuffer.VertexPosition(BIdx), CWTolerance), BIdx);
+				const uint32 C = MeshLookup->Add_GetIdx(PCGEx::GH(VertexBuffer.VertexPosition(CIdx), CWTolerance), CIdx);
 
 				Edges.Add(PCGEx::H64U(A, B));
 				Edges.Add(PCGEx::H64U(B, C));
 				Edges.Add(PCGEx::H64U(C, A));
 			}
 
-			PCGEx::InitArray(Vertices, IndexedUniquePositions.Num());
-
-			for (const TPair<FVector, int32>& Pair : IndexedUniquePositions) { Vertices[IndexedUniquePositions[Pair.Key]] = Pair.Key; }
+			PCGEx::InitArray(Vertices, MeshLookup->Num());
+			for (const TPair<uint32, TTuple<int32, uint32>>& Pair : MeshLookup->Data) { Vertices[Pair.Value.Get<1>()] = FVector(VertexBuffer.VertexPosition(Pair.Value.Get<0>())); }
 
 			bIsLoaded = true;
 		}
@@ -175,7 +193,7 @@ namespace PCGExGeo
 
 			const FPositionVertexBuffer& VertexBuffer = LODResources.VertexBuffers.PositionVertexBuffer;
 
-			TMap<FVector, int32> IndexedUniquePositions;
+			TUniquePtr<FMeshLookup> MeshLookup = MakeUnique<FMeshLookup>(VertexBuffer.GetNumVertices() / 3);
 			TMap<uint64, uint64> EdgeAdjacency;
 
 			int32 Idx = 0;
@@ -186,17 +204,17 @@ namespace PCGExGeo
 
 			for (int i = 0; i < Indices.Num(); i += 3)
 			{
-				const FVector VA = PCGExMath::Round10(FVector(VertexBuffer.VertexPosition(Indices[i])));
-				const FVector VB = PCGExMath::Round10(FVector(VertexBuffer.VertexPosition(Indices[i + 1])));
-				const FVector VC = PCGExMath::Round10(FVector(VertexBuffer.VertexPosition(Indices[i + 2])));
+				const int32 AIdx = Indices[i];
+				const int32 BIdx = Indices[i + 1];
+				const int32 CIdx = Indices[i + 2];
 
-				const int32* APtr = IndexedUniquePositions.Find(VA);
-				const int32* BPtr = IndexedUniquePositions.Find(VB);
-				const int32* CPtr = IndexedUniquePositions.Find(VC);
+				const uint32 A = MeshLookup->Add_GetIdx(PCGEx::GH(VertexBuffer.VertexPosition(AIdx), CWTolerance), AIdx);
+				const uint32 B = MeshLookup->Add_GetIdx(PCGEx::GH(VertexBuffer.VertexPosition(BIdx), CWTolerance), BIdx);
+				const uint32 C = MeshLookup->Add_GetIdx(PCGEx::GH(VertexBuffer.VertexPosition(CIdx), CWTolerance), CIdx);
 
-				const uint32 A = APtr ? *APtr : IndexedUniquePositions.Add(VA, Idx++);
-				const uint32 B = BPtr ? *BPtr : IndexedUniquePositions.Add(VB, Idx++);
-				const uint32 C = CPtr ? *CPtr : IndexedUniquePositions.Add(VC, Idx++);
+				Edges.Add(PCGEx::H64U(A, B));
+				Edges.Add(PCGEx::H64U(B, C));
+				Edges.Add(PCGEx::H64U(C, A));
 
 				const uint64 AB = PCGEx::H64U(A, B);
 				const uint64 BC = PCGEx::H64U(B, C);
@@ -247,9 +265,8 @@ namespace PCGExGeo
 
 			EdgeAdjacency.Empty();
 
-			PCGEx::InitArray(Vertices, IndexedUniquePositions.Num());
-
-			for (const TPair<FVector, int32>& Pair : IndexedUniquePositions) { Vertices[IndexedUniquePositions[Pair.Key]] = Pair.Key; }
+			PCGEx::InitArray(Vertices, MeshLookup->Num());
+			for (const TPair<uint32, TTuple<int32, uint32>>& Pair : MeshLookup->Data) { Vertices[Pair.Value.Get<1>()] = FVector(VertexBuffer.VertexPosition(Pair.Value.Get<0>())); }
 
 			bIsLoaded = true;
 		}
