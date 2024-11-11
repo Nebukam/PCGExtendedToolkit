@@ -31,7 +31,7 @@ namespace PCGExData
 		OutKeys.Reset();
 
 		bMutable = false;
-		
+
 		if (InitOut == EIOInit::NoOutput)
 		{
 			Out = nullptr;
@@ -46,7 +46,7 @@ namespace PCGExData
 		}
 
 		bMutable = true;
-		
+
 		if (InitOut == EIOInit::NewOutput)
 		{
 			if (In)

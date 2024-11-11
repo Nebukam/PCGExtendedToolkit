@@ -3,12 +3,56 @@
 
 #include "Sampling/PCGExSampleNearestBounds.h"
 
-/*BUILD_TOOL_BUG_55_TOGGLE*/#include "CoreMinimal.h"
+///*BUILD_TOOL_BUG_55_TOGGLE*/#include "CoreMinimal.h"
 #include "PCGExPointsProcessor.h"
 #include "Data/Blending/PCGExMetadataBlender.h"
 
 #define LOCTEXT_NAMESPACE "PCGExSampleNearestBoundsElement"
 #define PCGEX_NAMESPACE SampleNearestBounds
+
+namespace PCGExNearestBounds
+{
+	void FSamplesStats::Update(const FSample& InSample)
+	{
+		UpdateCount++;
+
+		if (InSample.Distance < SampledRangeMin)
+		{
+			Closest = InSample;
+			SampledRangeMin = InSample.Distance;
+		}
+		else if (InSample.Distance > SampledRangeMax)
+		{
+			Farthest = InSample;
+			SampledRangeMax = InSample.Distance;
+		}
+
+		if (InSample.Length > SampledLengthMax)
+		{
+			Largest = InSample;
+			SampledLengthMax = InSample.Length;
+		}
+		else if (InSample.Length < SampledLengthMin)
+		{
+			Smallest = InSample;
+			SampledLengthMin = InSample.Length;
+		}
+	}
+
+	void FSamplesStats::Replace(const FSample& InSample)
+	{
+		UpdateCount++;
+
+		Closest = InSample;
+		SampledRangeMin = InSample.Distance;
+		Farthest = InSample;
+		SampledRangeMax = InSample.Distance;
+		Largest = InSample;
+		SampledLengthMax = InSample.Length;
+		Smallest = InSample;
+		SampledLengthMin = InSample.Length;
+	}
+}
 
 UPCGExSampleNearestBoundsSettings::UPCGExSampleNearestBoundsSettings(
 	const FObjectInitializer& ObjectInitializer)
@@ -182,11 +226,8 @@ namespace PCGExSampleNearestBounds
 			return;
 		}
 
-		TArray<PCGExNearestBounds::FTargetInfos> TargetsInfos;
-		//TargetsInfos.Reserve(Context->Targets->GetNum());
-
-
-		PCGExNearestBounds::FTargetsCompoundInfos TargetsCompoundInfos;
+		TArray<PCGExNearestBounds::FSample> Samples;
+		PCGExNearestBounds::FSamplesStats Stats;
 		PCGExGeo::FSample CurrentSample;
 
 		const FBoxCenterAndExtent BCAE = FBoxCenterAndExtent(Point.Transform.GetLocation(), PCGExMath::GetLocalBounds(Point, BoundsSource).GetExtent());
@@ -200,25 +241,25 @@ namespace PCGExSampleNearestBounds
 
 				if (bSingleSample)
 				{
-					if (Settings->SampleMethod == EPCGExBoundsSampleMethod::BestCandidate && TargetsCompoundInfos.IsValid())
+					if (Settings->SampleMethod == EPCGExBoundsSampleMethod::BestCandidate && Stats.IsValid())
 					{
-						if (!Context->Sorter->Sort(NearbyBox->Index, TargetsCompoundInfos.Closest.Index)) { return; }
-						TargetsCompoundInfos.SetCompound(PCGExNearestBounds::FTargetInfos(CurrentSample, NearbyBox->Len));
+						if (!Context->Sorter->Sort(NearbyBox->Index, Stats.Closest.Index)) { return; }
+						Stats.Replace(PCGExNearestBounds::FSample(CurrentSample, NearbyBox->Len));
 					}
 					else
 					{
-						TargetsCompoundInfos.UpdateCompound(PCGExNearestBounds::FTargetInfos(CurrentSample, NearbyBox->Len));
+						Stats.Update(PCGExNearestBounds::FSample(CurrentSample, NearbyBox->Len));
 					}
 				}
 				else
 				{
-					const PCGExNearestBounds::FTargetInfos& Infos = TargetsInfos.Emplace_GetRef(CurrentSample, NearbyBox->Len);
-					TargetsCompoundInfos.UpdateCompound(Infos);
+					const PCGExNearestBounds::FSample& Infos = Samples.Emplace_GetRef(CurrentSample, NearbyBox->Len);
+					Stats.Update(Infos);
 				}
 			});
 
 		// Compound never got updated, meaning we couldn't find target in range
-		if (TargetsCompoundInfos.UpdateCount <= 0)
+		if (Stats.UpdateCount <= 0)
 		{
 			SamplingFailed(Index, Point);
 			return;
@@ -234,11 +275,11 @@ namespace PCGExSampleNearestBounds
 		double TotalWeight = 0;
 		double TotalSamples = 0;
 
-		auto ProcessTargetInfos = [&]
-			(const PCGExNearestBounds::FTargetInfos& TargetInfos)
+		auto ProcessSample = [&]
+			(const PCGExNearestBounds::FSample& InSample)
 		{
-			const double Weight = TargetInfos.Weight;
-			const FPCGPoint& Target = Context->BoundsFacade->Source->GetInPoint(TargetInfos.Index);
+			const double Weight = InSample.Weight;
+			const FPCGPoint& Target = Context->BoundsFacade->Source->GetInPoint(InSample.Index);
 
 			const FTransform TargetTransform = Target.Transform;
 			const FQuat TargetRotation = TargetTransform.GetRotation();
@@ -247,7 +288,7 @@ namespace PCGExSampleNearestBounds
 			WeightedTransform.SetScale3D(WeightedTransform.GetScale3D() + (TargetTransform.GetScale3D() * Weight));
 			WeightedTransform.SetLocation(WeightedTransform.GetLocation() + (TargetTransform.GetLocation() * Weight));
 
-			if (Settings->LookAtUpSelection == EPCGExSampleSource::Target) { WeightedUp += (LookAtUpGetter ? LookAtUpGetter->Read(TargetInfos.Index) : SafeUpVector) * Weight; }
+			if (Settings->LookAtUpSelection == EPCGExSampleSource::Target) { WeightedUp += (LookAtUpGetter ? LookAtUpGetter->Read(InSample.Index) : SafeUpVector) * Weight; }
 
 			WeightedSignAxis += PCGExMath::GetDirection(TargetRotation, Settings->SignAxis) * Weight;
 			WeightedAngleAxis += PCGExMath::GetDirection(TargetRotation, Settings->AngleAxis) * Weight;
@@ -255,7 +296,7 @@ namespace PCGExSampleNearestBounds
 			TotalWeight += Weight;
 			TotalSamples++;
 
-			if (Blender) { Blender->Blend(Index, TargetInfos.Index, Index, Weight); }
+			if (Blender) { Blender->Blend(Index, InSample.Index, Index, Weight); }
 		};
 
 		if (Blender) { Blender->PrepareForBlending(Index, &Point); }
@@ -270,25 +311,25 @@ namespace PCGExSampleNearestBounds
 				break;
 			case EPCGExBoundsSampleMethod::BestCandidate:
 			case EPCGExBoundsSampleMethod::ClosestBounds:
-				ProcessTargetInfos(TargetsCompoundInfos.Closest);
+				ProcessSample(Stats.Closest);
 				break;
 			case EPCGExBoundsSampleMethod::FarthestBounds:
-				ProcessTargetInfos(TargetsCompoundInfos.Farthest);
+				ProcessSample(Stats.Farthest);
 				break;
 			case EPCGExBoundsSampleMethod::LargestBounds:
-				ProcessTargetInfos(TargetsCompoundInfos.Largest);
+				ProcessSample(Stats.Largest);
 				break;
 			case EPCGExBoundsSampleMethod::SmallestBounds:
-				ProcessTargetInfos(TargetsCompoundInfos.Smallest);
+				ProcessSample(Stats.Smallest);
 				break;
 			}
 		}
 		else
 		{
-			for (PCGExNearestBounds::FTargetInfos& TargetInfos : TargetsInfos)
+			for (PCGExNearestBounds::FSample& TargetInfos : Samples)
 			{
 				if (TargetInfos.Weight == 0) { continue; }
-				ProcessTargetInfos(TargetInfos);
+				ProcessSample(TargetInfos);
 			}
 		}
 
@@ -308,7 +349,7 @@ namespace PCGExSampleNearestBounds
 		FVector LookAt = (Point.Transform.GetLocation() - WeightedTransform.GetLocation()).GetSafeNormal();
 		const double WeightedDistance = FVector::Dist(Point.Transform.GetLocation(), WeightedTransform.GetLocation());
 
-		PCGEX_OUTPUT_VALUE(Success, Index, TargetsCompoundInfos.IsValid())
+		PCGEX_OUTPUT_VALUE(Success, Index, Stats.IsValid())
 		PCGEX_OUTPUT_VALUE(Transform, Index, WeightedTransform)
 		PCGEX_OUTPUT_VALUE(LookAtTransform, Index, PCGExMath::MakeLookAtTransform(LookAt, WeightedUp, Settings->LookAtAxisAlign))
 		PCGEX_OUTPUT_VALUE(Distance, Index, WeightedDistance)

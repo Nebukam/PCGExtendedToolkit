@@ -69,38 +69,38 @@ public:
 	// Output
 
 	/** Write the unique overlap count to an int32 attribute. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable, InlineEditConditionToggle))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(PCG_Overridable, InlineEditConditionToggle))
 	bool bWriteOverlapCount = false;
 
 	/** Name of the 'int32' attribute to write unique overlap count to. Unique overlap count is the number of time a different point data set overlapped this point. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(DisplayName="Overlap Count", PCG_Overridable, EditCondition="bWriteOverlapCount"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(DisplayName="Overlap Count", PCG_Overridable, EditCondition="bWriteOverlapCount"))
 	FName OverlapCountAttributeName = FName("OverlapCount");
 
 
 	/** Write the total number of overlaps. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable, InlineEditConditionToggle))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(PCG_Overridable, InlineEditConditionToggle))
 	bool bWriteOverlapSubCount = false;
 
 	/** Name of the 'int32' attribute to write total overlap sub-count to. Total overlap count is the number of time another point overlapped this point. This count can get really high, really fast. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(DisplayName="Overlap Sub Count", PCG_Overridable, EditCondition="bWriteOverlapSubCount"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(DisplayName="Overlap Sub Count", PCG_Overridable, EditCondition="bWriteOverlapSubCount"))
 	FName OverlapSubCountAttributeName = FName("OverlapSubCount");
 
 
 	/** Write the relative unique overlap count to an int32 attribute. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable, InlineEditConditionToggle))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(PCG_Overridable, InlineEditConditionToggle))
 	bool bWriteRelativeOverlapCount = false;
 
 	/** Name of the 'int32' attribute to write relative unique overlap count to. Relative Unique overlap count is this collection' OverlapSubCount divided by the max of all collections combined */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(DisplayName="Relative Overlap Count", PCG_Overridable, EditCondition="bWriteRelativeOverlapCount"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(DisplayName="Relative Overlap Count", PCG_Overridable, EditCondition="bWriteRelativeOverlapCount"))
 	FName RelativeOverlapCountAttributeName = FName("RelOverlapCount");
 
 
 	/** Write the total number of overlaps. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable, InlineEditConditionToggle))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(PCG_Overridable, InlineEditConditionToggle))
 	bool bWriteRelativeOverlapSubCount = false;
 
 	/** Name of the 'int32' attribute to write relative total overlap sub-count to. Relative Total overlap count is is this collection' OverlapCount divided by the max of all collections combined */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(DisplayName="Relative Overlap Sub Count", PCG_Overridable, EditCondition="bWriteRelativeOverlapSubCount"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(DisplayName="Relative Overlap Sub Count", PCG_Overridable, EditCondition="bWriteRelativeOverlapSubCount"))
 	FName RelativeOverlapSubCountAttributeName = FName("RelOverlapSubCount");
 
 	//

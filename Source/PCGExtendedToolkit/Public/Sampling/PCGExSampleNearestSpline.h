@@ -37,15 +37,23 @@ enum class EPCGExSplineSamplingIncludeMode : uint8
 	OpenSplineOnly = 2 UMETA(DisplayName = "Open splines only", ToolTip="Sample only open splines"),
 };
 
+UENUM(/*E--BlueprintType, meta=(DisplayName="[PCGEx] Surface Source")--E*/)
+enum class EPCGExSplineDepthMode : uint8
+{
+	Min     = 0 UMETA(DisplayName = "Min", ToolTip="..."),
+	Max     = 1 UMETA(DisplayName = "Max", ToolTip="..."),
+	Average = 2 UMETA(DisplayName = "Average", ToolTip="..."),
+};
+
 namespace PCGExPolyLine
 {
-	struct /*PCGEXTENDEDTOOLKIT_API*/ FSampleInfos
+	struct /*PCGEXTENDEDTOOLKIT_API*/ FSample
 	{
-		FSampleInfos()
+		FSample()
 		{
 		}
 
-		FSampleInfos(const FTransform& InTransform, const double InDistance, const double InTime):
+		FSample(const FTransform& InTransform, const double InDistance, const double InTime):
 			Transform(InTransform), Distance(InDistance), Time(InTime)
 		{
 		}
@@ -55,9 +63,9 @@ namespace PCGExPolyLine
 		double Time = 0;
 	};
 
-	struct /*PCGEXTENDEDTOOLKIT_API*/ FTargetsCompoundInfos
+	struct /*PCGEXTENDEDTOOLKIT_API*/ FSamplesStats
 	{
-		FTargetsCompoundInfos()
+		FSamplesStats()
 		{
 		}
 
@@ -68,36 +76,13 @@ namespace PCGExPolyLine
 		double SampledRangeWidth = 0;
 		int32 UpdateCount = 0;
 
-		FSampleInfos Closest;
-		FSampleInfos Farthest;
+		FSample Closest;
+		FSample Farthest;
 
-		FORCEINLINE void UpdateCompound(const FSampleInfos& Infos, bool& IsNewClosest, bool& IsNewFarthest)
-		{
-			UpdateCount++;
+		void Update(const FSample& Infos, bool& IsNewClosest, bool& IsNewFarthest);
 
-			if (Infos.Distance < SampledRangeMin)
-			{
-				Closest = Infos;
-				SampledRangeMin = Infos.Distance;
-				IsNewClosest = true;
-			}
-
-			if (Infos.Distance > SampledRangeMax)
-			{
-				Farthest = Infos;
-				SampledRangeMax = Infos.Distance;
-				IsNewFarthest = true;
-			}
-
-			SampledRangeWidth = SampledRangeMax - SampledRangeMin;
-		}
-
-		FORCEINLINE double GetRangeRatio(const double Distance) const
-		{
-			return FMath::Clamp(Distance - SampledRangeMin, 0, SampledRangeWidth) / SampledRangeWidth;
-		}
-
-		bool IsValid() const { return UpdateCount > 0; }
+		FORCEINLINE double GetRangeRatio(const double Distance) const { return FMath::Clamp(Distance - SampledRangeMin, 0, SampledRangeWidth) / SampledRangeWidth; }
+		FORCEINLINE bool IsValid() const { return UpdateCount > 0; }
 	};
 }
 
@@ -180,139 +165,145 @@ public:
 	TSoftObjectPtr<UCurveFloat> WeightOverDistance;
 
 	/** Write whether the sampling was sucessful or not to a boolean attribute. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable, InlineEditConditionToggle))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(PCG_Overridable, InlineEditConditionToggle))
 	bool bWriteSuccess = false;
 
 	/** Name of the 'boolean' attribute to write sampling success to.*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(DisplayName="Success", PCG_Overridable, EditCondition="bWriteSuccess"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(DisplayName="Success", PCG_Overridable, EditCondition="bWriteSuccess"))
 	FName SuccessAttributeName = FName("bSamplingSuccess");
 
 	/** Write the sampled transform. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable, InlineEditConditionToggle))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(PCG_Overridable, InlineEditConditionToggle))
 	bool bWriteTransform = false;
 
 	/** Name of the 'transform' attribute to write sampled Transform to.*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(DisplayName="Transform", PCG_Overridable, EditCondition="bWriteTransform"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(DisplayName="Transform", PCG_Overridable, EditCondition="bWriteTransform"))
 	FName TransformAttributeName = FName("WeightedTransform");
 
 
 	/** Write the sampled transform. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable, InlineEditConditionToggle))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(PCG_Overridable, InlineEditConditionToggle))
 	bool bWriteLookAtTransform = false;
 
 	/** Name of the 'transform' attribute to write sampled Transform to.*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(DisplayName="LookAt", PCG_Overridable, EditCondition="bWriteLookAtTransform"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(DisplayName="LookAt", PCG_Overridable, EditCondition="bWriteLookAtTransform"))
 	FName LookAtTransformAttributeName = FName("WeightedLookAt");
 
 	/** The axis to align transform the look at vector to.*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable, DisplayName=" └─ Align", EditCondition="bWriteLookAtTransform", EditConditionHides, HideEditConditionToggle))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(PCG_Overridable, DisplayName=" └─ Align", EditCondition="bWriteLookAtTransform", EditConditionHides, HideEditConditionToggle))
 	EPCGExAxisAlign LookAtAxisAlign = EPCGExAxisAlign::Forward;
 
 	/** Up vector source.*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable, DisplayName=" └─ Use Up from...", EditCondition="bWriteLookAtTransform", EditConditionHides, HideEditConditionToggle))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(PCG_Overridable, DisplayName=" └─ Use Up from...", EditCondition="bWriteLookAtTransform", EditConditionHides, HideEditConditionToggle))
 	EPCGExSampleSource LookAtUpSelection = EPCGExSampleSource::Constant;
 
 	/** The attribute or property on selected source to use as Up vector for the look at transform.*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable, DisplayName=" └─ Up Vector", EditCondition="bWriteLookAtTransform && LookAtUpSelection==EPCGExSampleSource::Source", EditConditionHides, HideEditConditionToggle))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(PCG_Overridable, DisplayName=" └─ Up Vector", EditCondition="bWriteLookAtTransform && LookAtUpSelection==EPCGExSampleSource::Source", EditConditionHides, HideEditConditionToggle))
 	FPCGAttributePropertyInputSelector LookAtUpSource;
 
 	/** The axis on the target to use as Up vector for the look at transform.*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable, DisplayName=" └─ Up Vector", EditCondition="bWriteLookAtTransform && LookAtUpSelection==EPCGExSampleSource::Target", EditConditionHides, HideEditConditionToggle))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(PCG_Overridable, DisplayName=" └─ Up Vector", EditCondition="bWriteLookAtTransform && LookAtUpSelection==EPCGExSampleSource::Target", EditConditionHides, HideEditConditionToggle))
 	EPCGExAxis LookAtUpAxis = EPCGExAxis::Up;
 
 	/** The constant to use as Up vector for the look at transform.*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable, DisplayName=" └─ Up Vector", EditCondition="bWriteLookAtTransform && LookAtUpSelection==EPCGExSampleSource::Constant", EditConditionHides, HideEditConditionToggle))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(PCG_Overridable, DisplayName=" └─ Up Vector", EditCondition="bWriteLookAtTransform && LookAtUpSelection==EPCGExSampleSource::Constant", EditConditionHides, HideEditConditionToggle))
 	FVector LookAtUpConstant = FVector::UpVector;
 
-	/** Write the sampled depth. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable, InlineEditConditionToggle))
-	bool bWriteDepth = false;
-
-	/** Name of the 'double' attribute to write sampled depth to.*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(DisplayName="Depth", PCG_Overridable, EditCondition="bWriteDepth"))
-	FName DepthAttributeName = FName("Depth");
-	
-	/** Inverts depth */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable, DisplayName=" └─ Invert", EditCondition="bWriteDepth", EditConditionHides, HideEditConditionToggle))
-	bool bInvertDepth = false;
-
 	/** Write the sampled distance. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable, InlineEditConditionToggle))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(PCG_Overridable, InlineEditConditionToggle))
 	bool bWriteDistance = false;
 
 	/** Name of the 'double' attribute to write sampled distance to.*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(DisplayName="Distance", PCG_Overridable, EditCondition="bWriteDistance"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(DisplayName="Distance", PCG_Overridable, EditCondition="bWriteDistance"))
 	FName DistanceAttributeName = FName("WeightedDistance");
 
 	/** Write the sampled Signed distance. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable, InlineEditConditionToggle))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(PCG_Overridable, InlineEditConditionToggle))
 	bool bWriteSignedDistance = false;
 
 	/** Name of the 'double' attribute to write sampled Signed distance to.*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(DisplayName="SignedDistance", PCG_Overridable, EditCondition="bWriteSignedDistance"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(DisplayName="SignedDistance", PCG_Overridable, EditCondition="bWriteSignedDistance"))
 	FName SignedDistanceAttributeName = FName("WeightedSignedDistance");
 
 	/** Axis to use to calculate the distance' sign*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable, DisplayName=" └─ Axis", EditCondition="bWriteSignedDistance", EditConditionHides, HideEditConditionToggle))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(PCG_Overridable, DisplayName=" └─ Axis", EditCondition="bWriteSignedDistance", EditConditionHides, HideEditConditionToggle))
 	EPCGExAxis SignAxis = EPCGExAxis::Forward;
 
 	/** Only sign the distance if at least one sampled spline is a bClosedLoop spline. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable, DisplayName=" └─ Only if Closed Spline", EditCondition="bWriteSignedDistance && SampleInputs==EPCGExSplineSamplingIncludeMode::All", EditConditionHides, HideEditConditionToggle))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(PCG_Overridable, DisplayName=" └─ Only if Closed Spline", EditCondition="bWriteSignedDistance && SampleInputs==EPCGExSplineSamplingIncludeMode::All", EditConditionHides, HideEditConditionToggle))
 	bool bOnlySignIfClosed = false;
 
 	/** Write the sampled angle. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable, InlineEditConditionToggle))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(PCG_Overridable, InlineEditConditionToggle))
 	bool bWriteAngle = false;
 
 	/** Name of the 'double' attribute to write sampled Signed distance to.*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(DisplayName="Angle", PCG_Overridable, EditCondition="bWriteAngle"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(DisplayName="Angle", PCG_Overridable, EditCondition="bWriteAngle"))
 	FName AngleAttributeName = FName("WeightedAngle");
 
 	/** Axis to use to calculate the angle*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable, DisplayName=" └─ Axis", EditCondition="bWriteAngle", EditConditionHides, HideEditConditionToggle))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(PCG_Overridable, DisplayName=" └─ Axis", EditCondition="bWriteAngle", EditConditionHides, HideEditConditionToggle))
 	EPCGExAxis AngleAxis = EPCGExAxis::Forward;
 
 	/** Unit/range to output the angle to.*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable, DisplayName=" └─ Range", EditCondition="bWriteAngle", EditConditionHides, HideEditConditionToggle))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(PCG_Overridable, DisplayName=" └─ Range", EditCondition="bWriteAngle", EditConditionHides, HideEditConditionToggle))
 	EPCGExAngleRange AngleRange = EPCGExAngleRange::PIRadians;
 
 	/** Write the sampled time (spline space). */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable, InlineEditConditionToggle))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(PCG_Overridable, InlineEditConditionToggle))
 	bool bWriteTime = false;
 
 	/** Name of the 'double' attribute to write sampled spline Time to.*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(DisplayName="Time", PCG_Overridable, EditCondition="bWriteTime"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(DisplayName="Time", PCG_Overridable, EditCondition="bWriteTime"))
 	FName TimeAttributeName = FName("WeightedTime");
 
 	/** Write the inside/outside status of the point toward any sampled spline. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable, InlineEditConditionToggle))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(PCG_Overridable, InlineEditConditionToggle))
 	bool bWriteNumInside = false;
 
 	/** Name of the 'int32' attribute to write the number of spline this point lies inside*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(DisplayName="NumInside", PCG_Overridable, EditCondition="bWriteNumInside"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(DisplayName="NumInside", PCG_Overridable, EditCondition="bWriteNumInside"))
 	FName NumInsideAttributeName = FName("NumInside");
 
 	/** Only increment num inside count when comes from a bClosedLoop spline. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable, DisplayName=" └─ Only if Closed Spline", EditCondition="bWriteNumInside && SampleInputs==EPCGExSplineSamplingIncludeMode::All", EditConditionHides, HideEditConditionToggle))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(PCG_Overridable, DisplayName=" └─ Only if Closed Spline", EditCondition="bWriteNumInside && SampleInputs==EPCGExSplineSamplingIncludeMode::All", EditConditionHides, HideEditConditionToggle))
 	bool bOnlyIncrementInsideNumIfClosed = false;
 
 	/** Write the sampled distance. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable, InlineEditConditionToggle))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(PCG_Overridable, InlineEditConditionToggle))
 	bool bWriteNumSamples = false;
 
 	/** Name of the 'int32' attribute to write the number of sampled neighbors to.*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(DisplayName="NumSamples", PCG_Overridable, EditCondition="bWriteNumSamples"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(DisplayName="NumSamples", PCG_Overridable, EditCondition="bWriteNumSamples"))
 	FName NumSamplesAttributeName = FName("NumSamples");
 
 	/** Write the whether the sampled spline is closed or not. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable, InlineEditConditionToggle))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(PCG_Overridable, InlineEditConditionToggle))
 	bool bWriteClosedLoop = false;
 
 	/** Name of the 'bool' attribute to write whether a closed spline was sampled or not.*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(DisplayName="ClosedLoop", PCG_Overridable, EditCondition="bWriteClosedLoop"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(DisplayName="ClosedLoop", PCG_Overridable, EditCondition="bWriteClosedLoop"))
 	FName ClosedLoopAttributeName = FName("ClosedLoop");
 
-	//
+	/** Write the sampled depth. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Additional Outputs", meta=(PCG_Overridable, InlineEditConditionToggle))
+	bool bWriteDepth = false;
+
+	/** Name of the 'double' attribute to write sampled depth to.*/
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Additional Outputs", meta=(DisplayName="Depth", PCG_Overridable, EditCondition="bWriteDepth"))
+	FName DepthAttributeName = FName("Depth");
+
+	/** Depth range */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Additional Outputs", meta=(PCG_Overridable, DisplayName=" └─ Range", EditCondition="bWriteDepth", EditConditionHides, HideEditConditionToggle))
+	double DepthRange = 100;
+
+	/** Inverts depth */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Additional Outputs", meta=(PCG_Overridable, DisplayName=" └─ Invert", EditCondition="bWriteDepth", EditConditionHides, HideEditConditionToggle))
+	bool bInvertDepth = false;
+
+	/** Depth mode */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Additional Outputs", meta=(PCG_Overridable, DisplayName=" └─ Mode", EditCondition="bWriteDepth", EditConditionHides, HideEditConditionToggle))
+	EPCGExSplineDepthMode DepthMode = EPCGExSplineDepthMode::Min;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging", meta=(PCG_Overridable, InlineEditConditionToggle))
 	bool bTagIfHasSuccesses = false;
@@ -376,6 +367,8 @@ namespace PCGExSampleNearestSpline
 		FVector SafeUpVector = FVector::UpVector;
 		int8 bAnySuccess = 0;
 
+		bool bSingleSample = false;
+		bool bClosestSample = false;
 		bool bOnlySignIfClosed = false;
 		bool bOnlyIncrementInsideNumIfClosed = false;
 
@@ -391,6 +384,7 @@ namespace PCGExSampleNearestSpline
 
 		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager> InAsyncManager) override;
 		virtual void PrepareSingleLoopScopeForPoints(const uint32 StartIndex, const int32 Count) override;
+		void SamplingFailed(const int32 Index, const FPCGPoint& Point, double InDepth = 0) const;
 		virtual void ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const int32 LoopIdx, const int32 Count) override;
 		virtual void CompleteWork() override;
 	};

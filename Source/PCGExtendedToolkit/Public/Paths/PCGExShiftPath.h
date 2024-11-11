@@ -65,7 +65,7 @@ public:
 	/**  */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	EPCGExShiftType ShiftType = EPCGExShiftType::Index;
-	
+
 	/**  */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	EPCGExShiftPathMode InputMode = EPCGExShiftPathMode::Relative;

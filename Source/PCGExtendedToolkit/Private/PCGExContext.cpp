@@ -36,10 +36,17 @@ void FPCGExContext::StageOutput(const FName Pin, UPCGData* InData, const TSet<FS
 	if (bManaged) { ManagedObjects->Add(InData); }
 	if (bIsMutable && bDeleteConsumableAttributes)
 	{
+#if PCGEX_ENGINE_VERSION >= 504
 		if (UPCGMetadata* Metadata = InData->MutableMetadata())
 		{
 			for (const FName ConsumableName : ConsumableAttributesSet) { Metadata->DeleteAttribute(ConsumableName); }
 		}
+#else
+		if(const UPCGSpatialData* SpatialData = Cast<UPCGSpatialData>(InData); SpatialData->Metadata)
+		{
+			for (const FName ConsumableName : ConsumableAttributesSet) { SpatialData->Metadata->DeleteAttribute(ConsumableName); }
+		}
+#endif
 	}
 }
 

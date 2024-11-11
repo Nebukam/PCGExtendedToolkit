@@ -61,39 +61,39 @@ public:
 	bool bDuplicateDeadEndPoints = false;
 
 	/**  */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta = (PCG_Overridable))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta = (PCG_Overridable))
 	EPCGExContourShapeTypeOutput OutputType = EPCGExContourShapeTypeOutput::Both;
 
 	/** Ensure the node doesn't output duplicate path. Can be expensive. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta = (PCG_Overridable))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta = (PCG_Overridable))
 	bool bDedupePaths = true;
 
 	/** Keep only contours that closed gracefully; i.e connect to their start node */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta = (PCG_Overridable))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta = (PCG_Overridable))
 	bool bKeepOnlyGracefulContours = true;
 
 	/** Whether to keep contour that include dead ends wrapping */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta = (PCG_Overridable))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta = (PCG_Overridable))
 	bool bKeepContoursWithDeadEnds = true;
 
 	/** Output a filtered out set of points containing only those that generated a path */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta = (PCG_Overridable))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta = (PCG_Overridable))
 	bool bOutputFilteredSeeds = false;
 
 	/**  */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta = (PCG_Overridable, InlineEditConditionToggle))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta = (PCG_Overridable, InlineEditConditionToggle))
 	bool bOmitBelowPointCount = false;
 
 	/** Paths with a point count below the specified threshold will be omitted */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta = (PCG_Overridable, EditCondition="bOmitBelowPointCount", ClampMin=0))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta = (PCG_Overridable, EditCondition="bOmitBelowPointCount", ClampMin=0))
 	int32 MinPointCount = 3;
 
 	/**  */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta = (PCG_Overridable, InlineEditConditionToggle))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta = (PCG_Overridable, InlineEditConditionToggle))
 	bool bOmitAbovePointCount = false;
 
 	/** Paths with a point count below the specified threshold will be omitted */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta = (PCG_Overridable, EditCondition="bOmitAbovePointCount", ClampMin=0))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta = (PCG_Overridable, EditCondition="bOmitAbovePointCount", ClampMin=0))
 	int32 MaxPointCount = 500;
 
 	/** Projection settings. */

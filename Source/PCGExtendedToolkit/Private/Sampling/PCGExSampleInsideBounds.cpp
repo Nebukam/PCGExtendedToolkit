@@ -3,12 +3,46 @@
 
 #include "Sampling/PCGExSampleInsideBounds.h"
 
-/*BUILD_TOOL_BUG_55_TOGGLE*/#include "CoreMinimal.h"
+///*BUILD_TOOL_BUG_55_TOGGLE*/#include "CoreMinimal.h"
 #include "PCGExPointsProcessor.h"
 #include "Data/Blending/PCGExMetadataBlender.h"
 
 #define LOCTEXT_NAMESPACE "PCGExSampleInsideBoundsElement"
 #define PCGEX_NAMESPACE SampleInsideBounds
+
+namespace PCGExInsideBounds
+{
+	void FSamplesStats::Update(const FSample& InSample)
+	{
+		UpdateCount++;
+
+		if (InSample.Distance < SampledRangeMin)
+		{
+			Closest = InSample;
+			SampledRangeMin = InSample.Distance;
+		}
+
+		if (InSample.Distance > SampledRangeMax)
+		{
+			Farthest = InSample;
+			SampledRangeMax = InSample.Distance;
+		}
+
+		SampledRangeWidth = SampledRangeMax - SampledRangeMin;
+	}
+
+	void FSamplesStats::Replace(const FSample& InSample)
+	{
+		UpdateCount++;
+
+		Closest = InSample;
+		SampledRangeMin = InSample.Distance;
+		Farthest = InSample;
+		SampledRangeMax = InSample.Distance;
+
+		SampledRangeWidth = SampledRangeMax - SampledRangeMin;
+	}
+}
 
 UPCGExSampleInsideBoundsSettings::UPCGExSampleInsideBoundsSettings(
 	const FObjectInitializer& ObjectInitializer)
@@ -205,11 +239,11 @@ namespace PCGExSampleInsideBoundss
 
 		if (RangeMin > RangeMax) { std::swap(RangeMin, RangeMax); }
 
-		TArray<PCGExInsideBounds::FTargetInfos> TargetsInfos;
+		TArray<PCGExInsideBounds::FSample> TargetsInfos;
 		//TargetsInfos.Reserve(Context->Targets->GetNum());
 
 
-		PCGExInsideBounds::FTargetsCompoundInfos TargetsCompoundInfos;
+		PCGExInsideBounds::FSamplesStats Stats;
 		auto SampleTarget = [&](const int32 PointIndex, const FPCGPoint& Target)
 		{
 			//if (Context->ValueFilterManager && !Context->ValueFilterManager->Results[PointIndex]) { return; } // TODO : Implement
@@ -225,20 +259,20 @@ namespace PCGExSampleInsideBoundss
 
 			if (bSingleSample)
 			{
-				if (Settings->SampleMethod == EPCGExSampleMethod::BestCandidate && TargetsCompoundInfos.IsValid())
+				if (Settings->SampleMethod == EPCGExSampleMethod::BestCandidate && Stats.IsValid())
 				{
-					if (!Context->Sorter->Sort(PointIndex, TargetsCompoundInfos.Closest.Index)) { return; }
-					TargetsCompoundInfos.SetCompound(PCGExInsideBounds::FTargetInfos(PointIndex, Dist));
+					if (!Context->Sorter->Sort(PointIndex, Stats.Closest.Index)) { return; }
+					Stats.Replace(PCGExInsideBounds::FSample(PointIndex, Dist));
 				}
 				else
 				{
-					TargetsCompoundInfos.UpdateCompound(PCGExInsideBounds::FTargetInfos(PointIndex, Dist));
+					Stats.Update(PCGExInsideBounds::FSample(PointIndex, Dist));
 				}
 			}
 			else
 			{
-				const PCGExInsideBounds::FTargetInfos& Infos = TargetsInfos.Emplace_GetRef(PointIndex, Dist);
-				TargetsCompoundInfos.UpdateCompound(Infos);
+				const PCGExInsideBounds::FSample& Infos = TargetsInfos.Emplace_GetRef(PointIndex, Dist);
+				Stats.Update(Infos);
 			}
 		};
 
@@ -260,7 +294,7 @@ namespace PCGExSampleInsideBoundss
 		}
 
 		// Compound never got updated, meaning we couldn't find target in range
-		if (TargetsCompoundInfos.UpdateCount <= 0)
+		if (Stats.UpdateCount <= 0)
 		{
 			SamplingFailed(Index, Point);
 			return;
@@ -270,9 +304,9 @@ namespace PCGExSampleInsideBoundss
 		if (Settings->WeightMethod == EPCGExRangeType::FullRange && RangeMax > 0)
 		{
 			// Reset compounded infos to full range
-			TargetsCompoundInfos.SampledRangeMin = RangeMin;
-			TargetsCompoundInfos.SampledRangeMax = RangeMax;
-			TargetsCompoundInfos.SampledRangeWidth = RangeMax - RangeMin;
+			Stats.SampledRangeMin = RangeMin;
+			Stats.SampledRangeMax = RangeMax;
+			Stats.SampledRangeWidth = RangeMax - RangeMin;
 		}
 
 		FTransform WeightedTransform = FTransform::Identity;
@@ -286,7 +320,7 @@ namespace PCGExSampleInsideBoundss
 		double TotalSamples = 0;
 
 		auto ProcessTargetInfos = [&]
-			(const PCGExInsideBounds::FTargetInfos& TargetInfos, const double Weight)
+			(const PCGExInsideBounds::FSample& TargetInfos, const double Weight)
 		{
 			const FPCGPoint& Target = Context->TargetsFacade->Source->GetInPoint(TargetInfos.Index);
 
@@ -312,15 +346,15 @@ namespace PCGExSampleInsideBoundss
 
 		if (bSingleSample)
 		{
-			const PCGExInsideBounds::FTargetInfos& TargetInfos = bSampleClosest ? TargetsCompoundInfos.Closest : TargetsCompoundInfos.Farthest;
-			const double Weight = Context->WeightCurve->GetFloatValue(TargetsCompoundInfos.GetRangeRatio(TargetInfos.Distance));
+			const PCGExInsideBounds::FSample& TargetInfos = bSampleClosest ? Stats.Closest : Stats.Farthest;
+			const double Weight = Context->WeightCurve->GetFloatValue(Stats.GetRangeRatio(TargetInfos.Distance));
 			ProcessTargetInfos(TargetInfos, Weight);
 		}
 		else
 		{
-			for (PCGExInsideBounds::FTargetInfos& TargetInfos : TargetsInfos)
+			for (PCGExInsideBounds::FSample& TargetInfos : TargetsInfos)
 			{
-				const double Weight = Context->WeightCurve->GetFloatValue(TargetsCompoundInfos.GetRangeRatio(TargetInfos.Distance));
+				const double Weight = Context->WeightCurve->GetFloatValue(Stats.GetRangeRatio(TargetInfos.Distance));
 				if (Weight == 0) { continue; }
 				ProcessTargetInfos(TargetInfos, Weight);
 			}
@@ -342,7 +376,7 @@ namespace PCGExSampleInsideBoundss
 		FVector LookAt = (Point.Transform.GetLocation() - WeightedTransform.GetLocation()).GetSafeNormal();
 		const double WeightedDistance = FVector::Dist(Point.Transform.GetLocation(), WeightedTransform.GetLocation());
 
-		PCGEX_OUTPUT_VALUE(Success, Index, TargetsCompoundInfos.IsValid())
+		PCGEX_OUTPUT_VALUE(Success, Index, Stats.IsValid())
 		PCGEX_OUTPUT_VALUE(Transform, Index, WeightedTransform)
 		PCGEX_OUTPUT_VALUE(LookAtTransform, Index, PCGExMath::MakeLookAtTransform(LookAt, WeightedUp, Settings->LookAtAxisAlign))
 		PCGEX_OUTPUT_VALUE(Distance, Index, WeightedDistance)

@@ -133,7 +133,7 @@ namespace PCGExData
 			if (Out && Out != In) { Context->ManagedObjects->Destroy(Out); }
 
 			bMutable = true;
-			
+
 			if (InitOut == EIOInit::NewOutput)
 			{
 				T* TypedOut = Context->ManagedObjects->New<T>();

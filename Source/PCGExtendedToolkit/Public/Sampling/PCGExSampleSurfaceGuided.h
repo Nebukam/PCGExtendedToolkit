@@ -90,51 +90,51 @@ public:
 	FPCGAttributePropertyInputSelector LocalMaxDistance;
 
 	/** Write whether the sampling was sucessful or not to a boolean attribute. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_NotOverridable, InlineEditConditionToggle))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(PCG_NotOverridable, InlineEditConditionToggle))
 	bool bWriteSuccess = false;
 
 	/** Name of the 'boolean' attribute to write sampling success to.*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(DisplayName="Success", PCG_Overridable, EditCondition="bWriteSuccess"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(DisplayName="Success", PCG_Overridable, EditCondition="bWriteSuccess"))
 	FName SuccessAttributeName = FName("bSamplingSuccess");
 
 	/** Write the sample location. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable, InlineEditConditionToggle))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(PCG_Overridable, InlineEditConditionToggle))
 	bool bWriteLocation = false;
 
 	/** Name of the 'vector' attribute to write sampled Location to.*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(DisplayName="Location", PCG_Overridable, EditCondition="bWriteLocation"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(DisplayName="Location", PCG_Overridable, EditCondition="bWriteLocation"))
 	FName LocationAttributeName = FName("TracedLocation");
 
 	/** Write the sample "look at" direction from the point. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable, InlineEditConditionToggle))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(PCG_Overridable, InlineEditConditionToggle))
 	bool bWriteLookAt = false;
 
 	/** Name of the 'vector' attribute to write sampled LookAt to.*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(DisplayName="LookAt", PCG_Overridable, EditCondition="bWriteLookAt"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(DisplayName="LookAt", PCG_Overridable, EditCondition="bWriteLookAt"))
 	FName LookAtAttributeName = FName("TracedLookAt");
 
 	/** Write the sampled normal. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable, InlineEditConditionToggle))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(PCG_Overridable, InlineEditConditionToggle))
 	bool bWriteNormal = false;
 
 	/** Name of the 'vector' attribute to write sampled Normal to.*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(DisplayName="Normal", PCG_Overridable, EditCondition="bWriteNormal"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(DisplayName="Normal", PCG_Overridable, EditCondition="bWriteNormal"))
 	FName NormalAttributeName = FName("TracedNormal");
 
 	/** Write the sampled distance. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable, InlineEditConditionToggle))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(PCG_Overridable, InlineEditConditionToggle))
 	bool bWriteDistance = false;
 
 	/** Name of the 'double' attribute to write sampled distance to.*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(DisplayName="Distance", PCG_Overridable, EditCondition="bWriteDistance"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(DisplayName="Distance", PCG_Overridable, EditCondition="bWriteDistance"))
 	FName DistanceAttributeName = FName("TracedDistance");
 
 	/** Write the inside/outside status of the point. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable, InlineEditConditionToggle))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(PCG_Overridable, InlineEditConditionToggle))
 	bool bWriteIsInside = false;
 
 	/** Name of the 'bool' attribute to write sampled point inside or outside the collision.*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(DisplayName="IsInside", PCG_Overridable, EditCondition="bWriteIsInside"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(DisplayName="IsInside", PCG_Overridable, EditCondition="bWriteIsInside"))
 	FName IsInsideAttributeName = FName("IsInside");
 
 	/** Write the actor reference hit. */

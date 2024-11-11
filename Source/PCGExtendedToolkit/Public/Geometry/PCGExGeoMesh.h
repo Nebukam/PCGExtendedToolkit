@@ -28,7 +28,7 @@ namespace PCGExGeo
 
 	public:
 		TMap<uint32, TTuple<int32, uint32>> Data;
-		
+
 		explicit FMeshLookup(const int32 Size)
 		{
 			Data.Reserve(Size);

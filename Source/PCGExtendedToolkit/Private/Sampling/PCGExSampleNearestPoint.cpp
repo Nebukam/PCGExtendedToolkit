@@ -3,7 +3,7 @@
 
 #include "Sampling/PCGExSampleNearestPoint.h"
 
-/*BUILD_TOOL_BUG_55_TOGGLE*/#include "CoreMinimal.h"
+///*BUILD_TOOL_BUG_55_TOGGLE*/#include "CoreMinimal.h"
 #include "PCGExPointsProcessor.h"
 #include "Data/Blending/PCGExMetadataBlender.h"
 #include "Misc/PCGExSortPoints.h"
@@ -11,6 +11,40 @@
 
 #define LOCTEXT_NAMESPACE "PCGExSampleNearestPointElement"
 #define PCGEX_NAMESPACE SampleNearestPoint
+
+namespace PCGExNearestPoint
+{
+	void FSamplesStats::Update(const FSample& InSample)
+	{
+		UpdateCount++;
+
+		if (InSample.Distance < SampledRangeMin)
+		{
+			Closest = InSample;
+			SampledRangeMin = InSample.Distance;
+		}
+
+		if (InSample.Distance > SampledRangeMax)
+		{
+			Farthest = InSample;
+			SampledRangeMax = InSample.Distance;
+		}
+
+		SampledRangeWidth = SampledRangeMax - SampledRangeMin;
+	}
+
+	void FSamplesStats::Replace(const FSample& InSample)
+	{
+		UpdateCount++;
+
+		Closest = InSample;
+		SampledRangeMin = InSample.Distance;
+		Farthest = InSample;
+		SampledRangeMax = InSample.Distance;
+
+		SampledRangeWidth = SampledRangeMax - SampledRangeMin;
+	}
+}
 
 UPCGExSampleNearestPointSettings::UPCGExSampleNearestPointSettings(
 	const FObjectInitializer& ObjectInitializer)
@@ -216,11 +250,9 @@ namespace PCGExSampleNearestPoints
 
 		if (RangeMin > RangeMax) { std::swap(RangeMin, RangeMax); }
 
-		TArray<PCGExNearestPoint::FTargetInfos> TargetsInfos;
-		//TargetsInfos.Reserve(Context->Targets->GetNum());
+		TArray<PCGExNearestPoint::FSample> Samples;
+		PCGExNearestPoint::FSamplesStats Stats;
 
-
-		PCGExNearestPoint::FTargetsCompoundInfos TargetsCompoundInfos;
 		auto SampleTarget = [&](const int32 TargetPtIndex, const FPCGPoint& Target)
 		{
 			//if (Context->ValueFilterManager && !Context->ValueFilterManager->Results[PointIndex]) { return; } // TODO : Implement
@@ -239,20 +271,20 @@ namespace PCGExSampleNearestPoints
 
 			if (bSingleSample)
 			{
-				if (Settings->SampleMethod == EPCGExSampleMethod::BestCandidate && TargetsCompoundInfos.IsValid())
+				if (Settings->SampleMethod == EPCGExSampleMethod::BestCandidate && Stats.IsValid())
 				{
-					if (!Context->Sorter->Sort(TargetPtIndex, TargetsCompoundInfos.Closest.Index)) { return; }
-					TargetsCompoundInfos.SetCompound(PCGExNearestPoint::FTargetInfos(TargetPtIndex, Dist));
+					if (!Context->Sorter->Sort(TargetPtIndex, Stats.Closest.Index)) { return; }
+					Stats.Replace(PCGExNearestPoint::FSample(TargetPtIndex, Dist));
 				}
 				else
 				{
-					TargetsCompoundInfos.UpdateCompound(PCGExNearestPoint::FTargetInfos(TargetPtIndex, Dist));
+					Stats.Update(PCGExNearestPoint::FSample(TargetPtIndex, Dist));
 				}
 			}
 			else
 			{
-				const PCGExNearestPoint::FTargetInfos& Infos = TargetsInfos.Emplace_GetRef(TargetPtIndex, Dist);
-				TargetsCompoundInfos.UpdateCompound(Infos);
+				const PCGExNearestPoint::FSample& Infos = Samples.Emplace_GetRef(TargetPtIndex, Dist);
+				Stats.Update(Infos);
 			}
 		};
 
@@ -269,12 +301,12 @@ namespace PCGExSampleNearestPoints
 		}
 		else
 		{
-			TargetsInfos.Reserve(Context->NumTargets);
+			Samples.Reserve(Context->NumTargets);
 			for (int i = 0; i < Context->NumTargets; i++) { SampleTarget(i, *(Context->TargetPoints->GetData() + i)); }
 		}
 
 		// Compound never got updated, meaning we couldn't find target in range
-		if (TargetsCompoundInfos.UpdateCount <= 0)
+		if (Stats.UpdateCount <= 0)
 		{
 			SamplingFailed(Index, Point);
 			return;
@@ -284,9 +316,9 @@ namespace PCGExSampleNearestPoints
 		if (Settings->WeightMethod == EPCGExRangeType::FullRange && RangeMax > 0)
 		{
 			// Reset compounded infos to full range
-			TargetsCompoundInfos.SampledRangeMin = RangeMin;
-			TargetsCompoundInfos.SampledRangeMax = FMath::Max(TargetsCompoundInfos.SampledRangeMax, RangeMax);
-			TargetsCompoundInfos.SampledRangeWidth = RangeMax - RangeMin;
+			Stats.SampledRangeMin = RangeMin;
+			Stats.SampledRangeMax = FMath::Max(Stats.SampledRangeMax, RangeMax);
+			Stats.SampledRangeWidth = RangeMax - RangeMin;
 		}
 
 		FTransform WeightedTransform = FTransform::Identity;
@@ -300,7 +332,7 @@ namespace PCGExSampleNearestPoints
 		double TotalSamples = 0;
 
 		auto ProcessTargetInfos = [&]
-			(const PCGExNearestPoint::FTargetInfos& TargetInfos, const double Weight)
+			(const PCGExNearestPoint::FSample& TargetInfos, const double Weight)
 		{
 			const FPCGPoint& Target = Context->TargetsFacade->Source->GetInPoint(TargetInfos.Index);
 
@@ -326,15 +358,15 @@ namespace PCGExSampleNearestPoints
 
 		if (bSingleSample)
 		{
-			const PCGExNearestPoint::FTargetInfos& TargetInfos = bSampleClosest ? TargetsCompoundInfos.Closest : TargetsCompoundInfos.Farthest;
-			const double Weight = Context->WeightCurve->GetFloatValue(TargetsCompoundInfos.GetRangeRatio(TargetInfos.Distance));
+			const PCGExNearestPoint::FSample& TargetInfos = bSampleClosest ? Stats.Closest : Stats.Farthest;
+			const double Weight = Context->WeightCurve->GetFloatValue(Stats.GetRangeRatio(TargetInfos.Distance));
 			ProcessTargetInfos(TargetInfos, Weight);
 		}
 		else
 		{
-			for (PCGExNearestPoint::FTargetInfos& TargetInfos : TargetsInfos)
+			for (PCGExNearestPoint::FSample& TargetInfos : Samples)
 			{
-				const double Weight = Context->WeightCurve->GetFloatValue(TargetsCompoundInfos.GetRangeRatio(TargetInfos.Distance));
+				const double Weight = Context->WeightCurve->GetFloatValue(Stats.GetRangeRatio(TargetInfos.Distance));
 				if (Weight == 0) { continue; }
 				ProcessTargetInfos(TargetInfos, Weight);
 			}
@@ -356,7 +388,7 @@ namespace PCGExSampleNearestPoints
 		FVector LookAt = (Point.Transform.GetLocation() - WeightedTransform.GetLocation()).GetSafeNormal();
 		const double WeightedDistance = FVector::Dist(Point.Transform.GetLocation(), WeightedTransform.GetLocation());
 
-		PCGEX_OUTPUT_VALUE(Success, Index, TargetsCompoundInfos.IsValid())
+		PCGEX_OUTPUT_VALUE(Success, Index, Stats.IsValid())
 		PCGEX_OUTPUT_VALUE(Transform, Index, WeightedTransform)
 		PCGEX_OUTPUT_VALUE(LookAtTransform, Index, PCGExMath::MakeLookAtTransform(LookAt, WeightedUp, Settings->LookAtAxisAlign))
 		PCGEX_OUTPUT_VALUE(Distance, Index, WeightedDistance)
