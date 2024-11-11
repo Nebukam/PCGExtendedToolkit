@@ -28,7 +28,6 @@ namespace PCGExDataBlending
 	class /*PCGEXTENDEDTOOLKIT_API*/ TDataBlendingAverage final : public TDataBlendingOperation<T, EPCGExDataBlendingType::Average, true, true>
 	{
 	public:
-		FORCEINLINE virtual void SinglePrepare(T& A) const override { A = T{}; }
 		FORCEINLINE virtual T SingleOperation(T A, T B, double Weight) const override { return PCGExMath::Add(A, B); }
 		FORCEINLINE virtual void SingleComplete(T& A, const int32 Count, const double Weight) const override { A = PCGExMath::Div(A, static_cast<double>(Count)); }
 	};
@@ -59,7 +58,6 @@ namespace PCGExDataBlending
 	class /*PCGEXTENDEDTOOLKIT_API*/ TDataBlendingSubtract final : public TDataBlendingOperation<T, EPCGExDataBlendingType::Subtract, true, false>
 	{
 	public:
-		FORCEINLINE virtual void SinglePrepare(T& A) const override { A = T{}; }
 		FORCEINLINE virtual T SingleOperation(T A, T B, double Weight) const override { return PCGExMath::Sub(A, B); }
 	};
 
@@ -81,7 +79,6 @@ namespace PCGExDataBlending
 	class /*PCGEXTENDEDTOOLKIT_API*/ TDataBlendingWeight final : public TDataBlendingOperation<T, EPCGExDataBlendingType::Weight, true, true>
 	{
 	public:
-		FORCEINLINE virtual void SinglePrepare(T& A) const override { A = A = T{}; }
 		FORCEINLINE virtual T SingleOperation(T A, T B, double Weight) const override { return PCGExMath::WeightedAdd(A, B, Weight); } // PCGExMath::Lerp(A, B, Alpha); }
 		FORCEINLINE virtual void SingleComplete(T& A, const int32 Count, const double Weight) const override { A = PCGExMath::Div(A, Weight); }
 	};
@@ -90,7 +87,6 @@ namespace PCGExDataBlending
 	class /*PCGEXTENDEDTOOLKIT_API*/ TDataBlendingWeightedSum final : public TDataBlendingOperation<T, EPCGExDataBlendingType::WeightedSum, true, false>
 	{
 	public:
-		FORCEINLINE virtual void SinglePrepare(T& A) const override { A = T{}; }
 		FORCEINLINE virtual T SingleOperation(T A, T B, double Weight) const override { return PCGExMath::WeightedAdd(A, B, Weight); }
 	};
 
@@ -140,10 +136,6 @@ namespace PCGExDataBlending
 	class /*PCGEXTENDEDTOOLKIT_API*/ TDataBlendingWeightedSubtract final : public TDataBlendingOperation<T, EPCGExDataBlendingType::WeightedSubtract>
 	{
 	public:
-		FORCEINLINE virtual bool GetRequiresPreparation() const override { return true; }
-		FORCEINLINE virtual bool GetRequiresFinalization() const override { return false; }
-
-		FORCEINLINE virtual void SinglePrepare(T& A) const override { A = T{}; }
 		FORCEINLINE virtual T SingleOperation(T A, T B, double Weight) const override { return PCGExMath::WeightedSub(A, B, Weight); }
 	};
 

@@ -61,6 +61,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExSortRule
 	}
 
 	TSharedPtr<PCGExData::TBuffer<double>> Cache;
+	TSharedPtr<PCGEx::TAttributeBroadcaster<double>> SoftCache;
 
 	FPCGAttributePropertyInputSelector Selector;
 	double Tolerance = DBL_COMPARE_TOLERANCE;
@@ -120,8 +121,8 @@ namespace PCGExSorting
 {
 	const FName SourceSortingRules = TEXT("SortRules");
 
-	template <bool bUsePointIndices = false>
-	class PointSorter : public TSharedFromThis<PointSorter<bUsePointIndices>>
+	template <bool bUsePointIndices = false, bool bSoftMode = false>
+	class PointSorter : public TSharedFromThis<PointSorter<bUsePointIndices, bSoftMode>>
 	{
 	protected:
 		FPCGExContext* ExecutionContext = nullptr;
@@ -149,48 +150,93 @@ namespace PCGExSorting
 
 		void RegisterBuffersDependencies(PCGExData::FFacadePreloader& FacadePreloader)
 		{
+			if constexpr (bSoftMode) { return; }
 			for (const TSharedRef<FPCGExSortRule> Rule : Rules) { FacadePreloader.Register<double>(ExecutionContext, Rule->Selector); }
 		}
 
 		bool Init()
 		{
-			for (int i = 0; i < Rules.Num(); i++)
+			if constexpr (bSoftMode)
 			{
-				TSharedPtr<FPCGExSortRule> Rule = Rules[i];
-				const TSharedPtr<PCGExData::TBuffer<double>> Cache = DataFacade->GetBroadcaster<double>(Rule->Selector);
-
-				if (!Cache)
+				for (int i = 0; i < Rules.Num(); i++)
 				{
-					Rules.RemoveAt(i);
-					i--;
+					const TSharedPtr<FPCGExSortRule> Rule = Rules[i];
+					const TSharedPtr<PCGEx::TAttributeBroadcaster<double>> SoftCache = MakeShared<PCGEx::TAttributeBroadcaster<double>>();
 
-					PCGE_LOG_C(Warning, GraphAndLog, ExecutionContext, FTEXT("Some points are missing attributes used for sorting."));
-					continue;
+					if (!SoftCache->Prepare(Rule->Selector, DataFacade->Source))
+					{
+						Rules.RemoveAt(i);
+						i--;
+
+						PCGE_LOG_C(Warning, GraphAndLog, ExecutionContext, FTEXT("Some points are missing attributes used for sorting."));
+						continue;
+					}
+
+					Rule->SoftCache = SoftCache;
 				}
-
-				Rule->Cache = Cache;
 			}
+			else
+			{
+				for (int i = 0; i < Rules.Num(); i++)
+				{
+					const TSharedPtr<FPCGExSortRule> Rule = Rules[i];
+					const TSharedPtr<PCGExData::TBuffer<double>> Cache = DataFacade->GetBroadcaster<double>(Rule->Selector);
+
+					if (!Cache)
+					{
+						Rules.RemoveAt(i);
+						i--;
+
+						PCGE_LOG_C(Warning, GraphAndLog, ExecutionContext, FTEXT("Some points are missing attributes used for sorting."));
+						continue;
+					}
+
+					Rule->Cache = Cache;
+				}
+			}
+
 
 			return !Rules.IsEmpty();
 		}
 
 		FORCEINLINE bool Sort(const int32 A, const int32 B)
 		{
-			int Result = 0;
-			for (const TSharedRef<FPCGExSortRule>& Rule : Rules)
+			if constexpr (bSoftMode)
 			{
-				const double ValueA = Rule->Cache->Read(A);
-				const double ValueB = Rule->Cache->Read(B);
-				Result = FMath::IsNearlyEqual(ValueA, ValueB, Rule->Tolerance) ? 0 : ValueA < ValueB ? -1 : 1;
-				if (Result != 0)
+				int Result = 0;
+				for (const TSharedRef<FPCGExSortRule>& Rule : Rules)
 				{
-					if (Rule->bInvertRule) { Result *= -1; }
-					break;
+					const double ValueA = Rule->SoftCache->SoftGet(DataFacade->Source->GetInPointRef(A), 0);
+					const double ValueB = Rule->SoftCache->SoftGet(DataFacade->Source->GetInPointRef(B), 0);
+					Result = FMath::IsNearlyEqual(ValueA, ValueB, Rule->Tolerance) ? 0 : ValueA < ValueB ? -1 : 1;
+					if (Result != 0)
+					{
+						if (Rule->bInvertRule) { Result *= -1; }
+						break;
+					}
 				}
-			}
 
-			if (SortDirection == EPCGExSortDirection::Descending) { Result *= -1; }
-			return Result < 0;
+				if (SortDirection == EPCGExSortDirection::Descending) { Result *= -1; }
+				return Result < 0;
+			}
+			else
+			{
+				int Result = 0;
+				for (const TSharedRef<FPCGExSortRule>& Rule : Rules)
+				{
+					const double ValueA = Rule->Cache->Read(A);
+					const double ValueB = Rule->Cache->Read(B);
+					Result = FMath::IsNearlyEqual(ValueA, ValueB, Rule->Tolerance) ? 0 : ValueA < ValueB ? -1 : 1;
+					if (Result != 0)
+					{
+						if (Rule->bInvertRule) { Result *= -1; }
+						break;
+					}
+				}
+
+				if (SortDirection == EPCGExSortDirection::Descending) { Result *= -1; }
+				return Result < 0;
+			}
 		}
 
 		FORCEINLINE bool Sort(const FPCGPoint& A, const FPCGPoint& B)

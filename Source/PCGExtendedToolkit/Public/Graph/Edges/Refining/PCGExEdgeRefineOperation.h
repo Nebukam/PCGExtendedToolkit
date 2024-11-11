@@ -46,12 +46,11 @@ public:
 		if (RequiresNodeOctree()) { Cluster->RebuildOctree(EPCGExClusterClosestSearchMode::Node); }
 		if (RequiresEdgeOctree()) { Cluster->RebuildOctree(EPCGExClusterClosestSearchMode::Edge); }
 
-		if(RequiresHeuristics() && Heuristics)
+		if (RequiresHeuristics() && Heuristics)
 		{
 			RoamingSeedNode = Heuristics->GetRoamingSeed();
 			RoamingGoalNode = Heuristics->GetRoamingGoal();
 		}
-		
 	}
 
 	virtual void Process()

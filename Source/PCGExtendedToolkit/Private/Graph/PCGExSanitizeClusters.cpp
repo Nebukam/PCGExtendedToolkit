@@ -65,7 +65,7 @@ namespace PCGExSanitizeClusters
 		if (!FClusterProcessor::Process(InAsyncManager)) { return false; }
 
 		TArray<PCGExGraph::FIndexedEdge> IndexedEdges;
-		
+
 		BuildIndexedEdges(EdgeDataFacade->Source, *EndpointsLookup, IndexedEdges);
 		if (!IndexedEdges.IsEmpty()) { GraphBuilder->Graph->InsertEdges(IndexedEdges); }
 

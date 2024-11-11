@@ -577,9 +577,7 @@ namespace PCGExDataBlending
 			}
 		};
 
-		FORCEINLINE virtual void SinglePrepare(T& A) const
-		{
-		};
+		FORCEINLINE virtual void SinglePrepare(T& A) const { A = T{}; };
 
 		FORCEINLINE virtual T SingleOperation(T A, T B, double Weight) const = 0;
 

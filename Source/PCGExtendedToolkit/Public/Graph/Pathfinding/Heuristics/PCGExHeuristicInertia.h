@@ -29,11 +29,11 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExHeuristicConfigInertia : public FPCGExHe
 	/** If enabled, use fallback score if there is less samples than the specified number. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ClampMin=1))
 	bool bIgnoreIfNotEnoughSamples = true;
-	
+
 	/** Value used for global score. Primarily used by A* Star to do initial sorting. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Fallbacks", meta=(PCG_Overridable, DisplayPriority=-1, ClampMin=0, ClampMax=1))
 	double GlobalInertiaScore = 0;
-	
+
 	/** Fallback heuristic score for when no inertia value can be computed (no previous node). */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Fallbacks", meta=(PCG_Overridable, DisplayPriority=-1, ClampMin=0, ClampMax=1))
 	double FallbackInertiaScore = 0;
@@ -91,11 +91,11 @@ public:
 					}
 				}
 
-				if(!bIgnoreIfNotEnoughSamples || Sampled == MaxSamples)
+				if (!bIgnoreIfNotEnoughSamples || Sampled == MaxSamples)
 				{
 					const double Dot = FVector::DotProduct(
-					(Avg / Sampled).GetSafeNormal(),
-					Cluster->GetDir(From.NodeIndex, To.NodeIndex));
+						(Avg / Sampled).GetSafeNormal(),
+						Cluster->GetDir(From.NodeIndex, To.NodeIndex));
 
 					return GetScoreInternal(PCGExMath::Remap(Dot, -1, 1, OutMin, OutMax)) * ReferenceWeight;
 				}

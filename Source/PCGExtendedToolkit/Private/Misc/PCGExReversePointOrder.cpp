@@ -7,7 +7,17 @@
 #define LOCTEXT_NAMESPACE "PCGExReversePointOrderElement"
 #define PCGEX_NAMESPACE ReversePointOrder
 
-PCGExData::EIOInit UPCGExReversePointOrderSettings::GetMainOutputInitMode() const { return PCGExData::EIOInit::DuplicateInput; }
+PCGExData::EIOInit UPCGExReversePointOrderSettings::GetMainOutputInitMode() const { return PCGExData::EIOInit::NoOutput; }
+
+TArray<FPCGPinProperties> UPCGExReversePointOrderSettings::InputPinProperties() const
+{
+	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
+	if (bReverseUsingSortingRules)
+	{
+		PCGEX_PIN_PARAMS(PCGExSorting::SourceSortingRules, "Plug sorting rules here. Order is defined by each rule' priority value, in ascending order.", Required, {})
+	}
+	return PinProperties;
+}
 
 PCGEX_INITIALIZE_ELEMENT(ReversePointOrder)
 
@@ -29,7 +39,7 @@ bool FPCGExReversePointOrderElement::ExecuteInternal(FPCGContext* InContext) con
 {
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExReversePointOrderElement::Execute);
 
-	PCGEX_CONTEXT(ReversePointOrder)
+	PCGEX_CONTEXT_AND_SETTINGS(ReversePointOrder)
 	PCGEX_EXECUTION_CHECK
 	PCGEX_ON_INITIAL_EXECUTION
 	{
@@ -37,6 +47,7 @@ bool FPCGExReversePointOrderElement::ExecuteInternal(FPCGContext* InContext) con
 			[&](const TSharedPtr<PCGExData::FPointIO>& Entry) { return true; },
 			[&](const TSharedPtr<PCGExPointsMT::TBatch<PCGExReversePointOrder::FProcessor>>& NewBatch)
 			{
+				NewBatch->bPrefetchData = Settings->bReverseUsingSortingRules || !Settings->SwapAttributesValues.IsEmpty();
 			}))
 		{
 			return Context->CancelExecution(TEXT("Could not find any points to process."));
@@ -52,16 +63,11 @@ bool FPCGExReversePointOrderElement::ExecuteInternal(FPCGContext* InContext) con
 
 namespace PCGExReversePointOrder
 {
-	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager> InAsyncManager)
+	void FProcessor::RegisterBuffersDependencies(PCGExData::FFacadePreloader& FacadePreloader)
 	{
-		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExWriteIndex::Process);
+		TPointsProcessor<FPCGExReversePointOrderContext, UPCGExReversePointOrderSettings>::RegisterBuffersDependencies(FacadePreloader);
 
-		if (!FPointsProcessor::Process(InAsyncManager)) { return false; }
-
-		TArray<FPCGPoint>& MutablePoints = PointDataFacade->GetOut()->GetMutablePoints();
-		Algo::Reverse(MutablePoints);
-
-		AttributesInfos = PCGEx::FAttributesInfos::Get(PointDataFacade->GetIn()->Metadata);
+		const TSharedPtr<PCGEx::FAttributesInfos> AttributesInfos = PCGEx::FAttributesInfos::Get(PointDataFacade->GetIn()->Metadata);
 
 		for (const FPCGExSwapAttributePairDetails& OriginalPair : Settings->SwapAttributesValues)
 		{
@@ -74,9 +80,49 @@ namespace PCGExReversePointOrder
 
 			SwapPairs[AddIndex].FirstIdentity = FirstIdentity;
 			SwapPairs[AddIndex].SecondIdentity = SecondIdentity;
+
+			FacadePreloader.Register(Context, *FirstIdentity);
+			FacadePreloader.Register(Context, *SecondIdentity);
 		}
 
-		if (SwapPairs.IsEmpty()) { return true; }
+		if (Settings->bReverseUsingSortingRules)
+		{
+			Sorter = MakeShared<PCGExSorting::PointSorter<false, true>>(Context, PointDataFacade, PCGExSorting::GetSortingRules(Context, PCGExSorting::SourceSortingRules));
+			Sorter->SortDirection = Settings->SortDirection;
+			Sorter->RegisterBuffersDependencies(FacadePreloader);
+		}
+	}
+
+	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager> InAsyncManager)
+	{
+		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExWriteIndex::Process);
+
+		if (!FPointsProcessor::Process(InAsyncManager)) { return false; }
+
+		if (Sorter)
+		{
+			if (!Sorter->Init())
+			{
+				PCGE_LOG_C(Warning, GraphAndLog, Context, FTEXT("Some sorting rules could not be processed."));
+				bReversed = false;
+				PointDataFacade->Source->InitializeOutput(PCGExData::EIOInit::Forward);
+				return false;
+			}
+
+			if (!Sorter->Sort(0, PointDataFacade->GetNum() - 1))
+			{
+				bReversed = false;
+				PointDataFacade->Source->InitializeOutput(PCGExData::EIOInit::Forward);
+				return true;
+			}
+		}
+
+		PointDataFacade->Source->InitializeOutput(PCGExData::EIOInit::DuplicateInput);
+
+		TArray<FPCGPoint>& MutablePoints = PointDataFacade->GetOut()->GetMutablePoints();
+		Algo::Reverse(MutablePoints);
+
+		if (SwapPairs.IsEmpty()) { return true; } // Swap pairs are built during data prefetch
 
 		PCGEX_ASYNC_GROUP_CHKD(AsyncManager, FetchWritersTask)
 		FetchWritersTask->OnCompleteCallback = [&]() { StartParallelLoopForPoints(); };
@@ -139,7 +185,15 @@ namespace PCGExReversePointOrder
 
 	void FProcessor::CompleteWork()
 	{
-		PointDataFacade->Write(AsyncManager);
+		if (bReversed)
+		{
+			if (!SwapPairs.IsEmpty()) { PointDataFacade->Write(AsyncManager); }
+			if (Settings->bTagIfReversed) { PointDataFacade->Source->Tags->Add(Settings->IsReversedTag); }
+		}
+		else
+		{
+			if (Settings->bTagIfNotReversed) { PointDataFacade->Source->Tags->Add(Settings->IsNotReversedTag); }
+		}
 	}
 }
 

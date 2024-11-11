@@ -110,7 +110,7 @@ ParallelLoopFor##_NAME->StartSubLoops(_NUM, PLI, _INLINE);
 		virtual bool IsTrivial() const { return bIsTrivial; }
 
 		bool HasFilters() const { return FilterFactories != nullptr; }
-		
+
 		void SetPointsFilterData(TArray<TObjectPtr<const UPCGExFilterFactoryBase>>* InFactories)
 		{
 			FilterFactories = InFactories;

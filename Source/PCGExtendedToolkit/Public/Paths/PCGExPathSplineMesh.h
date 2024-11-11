@@ -26,7 +26,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExSplineParamsMapping
 	}
 
 	/** Write whether the sampling was sucessful or not to a boolean attribute. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_NotOverridable, InlineEditConditionToggle))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(PCG_NotOverridable, InlineEditConditionToggle))
 	bool bLocalParam = false;
 };
 
