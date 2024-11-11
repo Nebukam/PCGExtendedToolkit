@@ -148,7 +148,7 @@ namespace PCGExSubdivide
 		{
 			Sub.NumSubdivisions = FMath::Floor(Sub.Dist / Amount);
 			Sub.StepSize = Amount;
-			Sub.StartOffset = (Sub.Dist - (Sub.StepSize * Sub.NumSubdivisions)) * 0.5;
+			Sub.StartOffset = (Sub.Dist - (Sub.StepSize * (Sub.NumSubdivisions - 1))) * 0.5;
 		}
 
 		Sub.Dir = (Sub.End - Sub.Start).GetSafeNormal();

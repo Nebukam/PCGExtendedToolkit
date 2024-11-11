@@ -120,7 +120,7 @@ namespace PCGExDataBlending
 		void BlendProperties(FPCGPoint& TargetPoint, TArray<int32>& IdxIO, TArray<int32>& IdxPt, TArray<double>& Weights);
 
 		bool Validate(FPCGExContext* InContext, const bool bQuiet) const;
-		
+
 	protected:
 		TSet<FString> TypeMismatches;
 

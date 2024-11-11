@@ -104,7 +104,7 @@ namespace PCGEx
 
 	FORCEINLINE static uint32 GH(const FInt64Vector3& Seed) { return GetTypeHash(Seed); }
 
-	template<typename T>
+	template <typename T>
 	FORCEINLINE static FInt32Vector3 I323(const T& Seed, const T& Tolerance)
 	{
 		return FInt32Vector3(
@@ -113,7 +113,7 @@ namespace PCGEx
 			FMath::RoundToDouble(Seed.Z * Tolerance.Z));
 	}
 
-	template<typename S, typename T>
+	template <typename S, typename T>
 	FORCEINLINE static FInt32Vector3 I323(const S& Seed, const T& Tolerance)
 	{
 		return FInt32Vector3(
@@ -122,7 +122,7 @@ namespace PCGEx
 			FMath::RoundToDouble(Seed.Z * Tolerance.Z));
 	}
 
-	template<typename T>
+	template <typename T>
 	FORCEINLINE static FInt64Vector3 I643(const T& Seed, const T& Tolerance)
 	{
 		return FInt64Vector3(
@@ -130,8 +130,8 @@ namespace PCGEx
 			FMath::RoundToDouble(Seed.Y * Tolerance.Y),
 			FMath::RoundToDouble(Seed.Z * Tolerance.Z));
 	}
-	
-	template<typename S, typename T>
+
+	template <typename S, typename T>
 	FORCEINLINE static FInt64Vector3 I643(const S& Seed, const T& Tolerance)
 	{
 		return FInt64Vector3(
@@ -140,10 +140,10 @@ namespace PCGEx
 			FMath::RoundToDouble(Seed.Z * Tolerance.Z));
 	}
 
-	template<typename T>
+	template <typename T>
 	FORCEINLINE static uint32 GH(const T& Seed, const T& Tolerance) { return GetTypeHash(I643(Seed, Tolerance)); }
 
-	template<typename S, typename T>
+	template <typename S, typename T>
 	FORCEINLINE static uint32 GH(const S& Seed, const T& Tolerance) { return GetTypeHash(I643(Seed, Tolerance)); }
 
 	FORCEINLINE static uint32 UH3(const int32 A, const int32 B, const int32 C)

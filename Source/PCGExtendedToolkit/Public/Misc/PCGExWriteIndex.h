@@ -49,7 +49,7 @@ public:
 	/** The name of the attribute to write the collection index to.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bOutputCollectionIndex"))
 	FName CollectionIndexAttributeName = "CollectionIndex";
-	
+
 	/** Whether the created attribute allows interpolation or not.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	bool bAllowInterpolation = true;

@@ -65,7 +65,7 @@ public:
 
 	FORCEINLINE FVector GetSeedUVW() const { return UVWSeed; }
 	FORCEINLINE FVector GetGoalUVW() const { return UVWGoal; }
-	
+
 	FORCEINLINE const PCGExCluster::FNode* GetRoamingSeed() const { return Cluster->GetRoamingNode(UVWSeed); }
 	FORCEINLINE const PCGExCluster::FNode* GetRoamingGoal() const { return Cluster->GetRoamingNode(UVWGoal); }
 

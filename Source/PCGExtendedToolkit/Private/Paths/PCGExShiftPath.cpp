@@ -183,6 +183,38 @@ namespace PCGExShiftPath
 		}
 
 		Algo::Reverse(MutablePoints);
+
+		if (Settings->ShiftType == EPCGExShiftType::Index) { return; }
+
+		const int32 NumPoints = MutablePoints.Num();
+		const TArray<FPCGPoint>& InPoints = PointDataFacade->GetIn()->GetPoints();
+
+		if (Settings->ShiftType == EPCGExShiftType::Metadata)
+		{
+			for (int i = 0; i < NumPoints; i++)
+			{
+				FPCGPoint& OutPoint = MutablePoints[i];
+				const FPCGPoint& InPoint = InPoints[i];
+				const PCGMetadataEntryKey OutKey = MutablePoints[i].MetadataEntry;
+				OutPoint = InPoint;
+				OutPoint.MetadataEntry = OutKey;
+			}
+		}
+		else if (Settings->ShiftType == EPCGExShiftType::Properties)
+		{
+			for (int i = 0; i < NumPoints; i++)
+			{
+				FPCGPoint& OutPoint = MutablePoints[i];
+				OutPoint.MetadataEntry = InPoints[i].MetadataEntry;
+			}
+		}
+		else if (Settings->ShiftType == EPCGExShiftType::MetadataAndProperties)
+		{
+			for (int i = 0; i < NumPoints; i++)
+			{
+				MutablePoints[i].Transform = InPoints[i].Transform;
+			}
+		}
 	}
 }
 

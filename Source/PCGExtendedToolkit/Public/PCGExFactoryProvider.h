@@ -110,7 +110,7 @@ public:
 
 	/** Whether this factory can register consumable attributes or not. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable), AdvancedDisplay)
-	bool bDoRegisterConsumableAttributes = true;
+	bool bDoRegisterConsumableAttributes = false;
 };
 
 class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExFactoryProviderElement final : public IPCGElement
