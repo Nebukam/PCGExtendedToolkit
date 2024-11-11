@@ -19,6 +19,7 @@ MACRO(Success, bool, false)\
 MACRO(Transform, FTransform, FTransform::Identity)\
 MACRO(LookAtTransform, FTransform, FTransform::Identity)\
 MACRO(Distance, double, 0)\
+MACRO(Depth, double, -1)\
 MACRO(SignedDistance, double, 0)\
 MACRO(Angle, double, 0)\
 MACRO(Time, double, 0)\
@@ -146,6 +147,10 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta=(PCG_Overridable, ClampMin=0))
 	double RangeMax = 300;
 
+	/** If enabled, spline scale affect range. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta=(PCG_Overridable, ClampMin=0))
+	bool bSplineScalesRanges = false;
+
 	/** Use a per-point minimum range*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta=(PCG_Overridable, InlineEditConditionToggle))
 	bool bUseLocalRangeMin = false;
@@ -219,6 +224,17 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable, DisplayName=" └─ Up Vector", EditCondition="bWriteLookAtTransform && LookAtUpSelection==EPCGExSampleSource::Constant", EditConditionHides, HideEditConditionToggle))
 	FVector LookAtUpConstant = FVector::UpVector;
 
+	/** Write the sampled depth. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable, InlineEditConditionToggle))
+	bool bWriteDepth = false;
+
+	/** Name of the 'double' attribute to write sampled depth to.*/
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(DisplayName="Depth", PCG_Overridable, EditCondition="bWriteDepth"))
+	FName DepthAttributeName = FName("Depth");
+	
+	/** Inverts depth */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable, DisplayName=" └─ Invert", EditCondition="bWriteDepth", EditConditionHides, HideEditConditionToggle))
+	bool bInvertDepth = false;
 
 	/** Write the sampled distance. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable, InlineEditConditionToggle))

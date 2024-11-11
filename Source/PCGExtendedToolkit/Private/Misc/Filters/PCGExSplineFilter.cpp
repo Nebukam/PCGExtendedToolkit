@@ -60,91 +60,102 @@ void UPCGExSplineFilterFactory::RegisterConsumableAttributes(FPCGExContext* InCo
 	//TODO : Implement Consumable
 }
 
-bool PCGExPointsFilter::TSplineFilter::Init(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade> InPointDataFacade)
+namespace PCGExPointsFilter
 {
-	if (!FFilter::Init(InContext, InPointDataFacade)) { return false; }
-
-	ToleranceSquared = FMath::Square(TypedFilterFactory->Config.Tolerance);
-
-	return true;
-}
-
-bool PCGExPointsFilter::TSplineFilter::Test(const int32 PointIndex) const
-{
-	const FTransform PtTransform = PointDataFacade->Source->GetInPoint(PointIndex).Transform;
-	const FVector PtLoc = PtTransform.GetLocation();
-
-	const double Tolerance = TypedFilterFactory->Config.Tolerance;
-	double ClosestDist = MAX_dbl;
-	bool bIsOn = false;
-	bool bIsInsideAny = false;
-	bool bIsOutsideAny = false;
-
-	if (TypedFilterFactory->Config.Favor == EPCGExInsideOutFavor::Closest)
+	bool TSplineFilter::Init(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade> InPointDataFacade)
 	{
-		for (const FPCGSplineStruct* Spline : Splines)
+		if (!FFilter::Init(InContext, InPointDataFacade)) { return false; }
+
+		ToleranceSquared = FMath::Square(TypedFilterFactory->Config.Tolerance);
+
+		switch (TypedFilterFactory->Config.CheckType)
 		{
-			const FTransform SampledTransform = Spline->GetTransformAtSplineInputKey(Spline->FindInputKeyClosestToWorldLocation(PtLoc), ESplineCoordinateSpace::World, TypedFilterFactory->Config.bSplineScaleTolerance);
-			double Dist = FVector::DistSquared(SampledTransform.GetLocation(), PtLoc);
+		case EPCGExSplineCheckType::IsInside:
+			CheckFlag = Inside;
+			Match = Any;
+			break;
+		case EPCGExSplineCheckType::IsInsideOrOn:
+			CheckFlag = static_cast<ESplineCheckFlags>(Inside | On);
+			Match = Any;
+			break;
+		case EPCGExSplineCheckType::IsInsideAndOn:
+			CheckFlag = static_cast<ESplineCheckFlags>(Inside | On);
+			Match = All;
+			break;
+		case EPCGExSplineCheckType::IsOutside:
+			CheckFlag = Outside;
+			Match = Any;
+			break;
+		case EPCGExSplineCheckType::IsOutsideOrOn:
+			CheckFlag = static_cast<ESplineCheckFlags>(Outside | On);
+			Match = Any;
+			break;
+		case EPCGExSplineCheckType::IsOutsideAndOn:
+			CheckFlag = static_cast<ESplineCheckFlags>(Outside | On);
+			Match = All;
+			break;
+		case EPCGExSplineCheckType::IsOn:
+			CheckFlag = On;
+			Match = Any;
+			break;
+		case EPCGExSplineCheckType::IsNotOn:
+			CheckFlag = On;
+			Match = Not;
+			break;
+		}
 
-			if (Dist > ClosestDist) { continue; }
+		return true;
+	}
 
-			bIsOn = Dist < SampledTransform.GetScale3D().Length() * ToleranceSquared;
+	bool TSplineFilter::Test(const int32 PointIndex) const
+	{
+		uint8 State = None;
 
-			const FVector Dir = (SampledTransform.GetLocation() - PtLoc).GetSafeNormal();
-			const double Dot = FVector::DotProduct(SampledTransform.GetRotation().GetRightVector(), Dir);
+		const FVector Pos = PointDataFacade->Source->GetInPoint(PointIndex).Transform.GetLocation();
 
-			if (Dot > 0)
+		if (TypedFilterFactory->Config.Pick == EPCGExSplineFilterPick::Closest)
+		{
+			double ClosestDist = MAX_dbl;
+			for (const FPCGSplineStruct* Spline : Splines)
 			{
-				bIsInsideAny = true;
-				bIsOutsideAny = false;
-			}
-			else
-			{
-				bIsOutsideAny = true;
-				bIsInsideAny = false;
+				const FTransform T = Spline->GetTransformAtSplineInputKey(Spline->FindInputKeyClosestToWorldLocation(Pos), ESplineCoordinateSpace::World, TypedFilterFactory->Config.bSplineScalesTolerance);
+				const double D = FVector::DistSquared(T.GetLocation(), Pos);
+
+				if (D > ClosestDist) { continue; }
+
+				if (const FVector S = T.GetScale3D(); D < FVector2D(S.Y, S.Z).Length() * ToleranceSquared) { State |= On; }
+				else { State &= ~On; }
+
+				if (FVector::DotProduct(T.GetRotation().GetRightVector(), (T.GetLocation() - Pos).GetSafeNormal()) > 0)
+				{
+					State |= Inside;
+					State &= ~Outside;
+				}
+				else
+				{
+					State |= Outside;
+					State &= ~Inside;
+				}
 			}
 		}
-	}
-	else
-	{
-		for (const FPCGSplineStruct* Spline : Splines)
+		else
 		{
-			const FTransform SampledTransform = Spline->GetTransformAtSplineInputKey(Spline->FindInputKeyClosestToWorldLocation(PtLoc), ESplineCoordinateSpace::World, TypedFilterFactory->Config.bSplineScaleTolerance);
-
-			double Dist = FVector::DistSquared(SampledTransform.GetLocation(), PtLoc);
-
-			if (!bIsOn) { bIsOn = Dist < SampledTransform.GetScale3D().Length() * ToleranceSquared; }
-
-			const FVector Dir = (SampledTransform.GetLocation() - PtLoc).GetSafeNormal();
-			const double Dot = FVector::DotProduct(SampledTransform.GetRotation().GetRightVector(), Dir);
-
-			if (Dot > 0) { bIsInsideAny = true; }
-			else { bIsOutsideAny = true; }
+			for (const FPCGSplineStruct* Spline : Splines)
+			{
+				const FTransform T = Spline->GetTransformAtSplineInputKey(Spline->FindInputKeyClosestToWorldLocation(Pos), ESplineCoordinateSpace::World, TypedFilterFactory->Config.bSplineScalesTolerance);
+				if (const FVector S = T.GetScale3D(); FVector::DistSquared(T.GetLocation(), Pos) < FVector2D(S.Y, S.Z).Length() * ToleranceSquared) { State |= On; }
+				if (FVector::DotProduct(T.GetRotation().GetRightVector(), (T.GetLocation() - Pos).GetSafeNormal()) > 0) { State |= Inside; }
+				else { State |= Outside; }
+			}
 		}
-	}
 
-	bool bPass = false;
-	switch (TypedFilterFactory->Config.CheckType)
-	{
-	case EPCGExSplineCheckType::IsInside:
-		bPass = bIsInsideAny && !bIsOn;
-		break;
-	case EPCGExSplineCheckType::IsInsideOrOn:
-		bPass = bIsInsideAny || bIsOn;
-		break;
-	case EPCGExSplineCheckType::IsOutside:
-		bPass = bIsOutsideAny && !bIsOn;
-		break;
-	case EPCGExSplineCheckType::IsOutsideOrOn:
-		bPass = bIsOutsideAny || bIsOn;
-		break;
-	case EPCGExSplineCheckType::IsOn:
-		bPass = bIsOn;
-		break;
-	}
+		bool bPass = true;
+		if (Match == Not) { bPass = (State & CheckFlag) == 0; }
+		else if (Match == Any) { bPass = (State & CheckFlag) != 0; }
+		else if (Match == All) { bPass = (State & CheckFlag) == CheckFlag; }
 
-	return TypedFilterFactory->Config.bInvert ? !bPass : bPass;
+		return TypedFilterFactory->Config.bInvert ? !bPass : bPass;
+	}
 }
 
 TArray<FPCGPinProperties> UPCGExSplineFilterProviderSettings::InputPinProperties() const
@@ -164,9 +175,12 @@ FString UPCGExSplineFilterProviderSettings::GetDisplayName() const
 	default:
 	case EPCGExSplineCheckType::IsInside: return TEXT("Is Inside");
 	case EPCGExSplineCheckType::IsInsideOrOn: return TEXT("Is Inside or On");
+	case EPCGExSplineCheckType::IsInsideAndOn: return TEXT("Is Outside and On");
 	case EPCGExSplineCheckType::IsOutside: return TEXT("Is Outside");
 	case EPCGExSplineCheckType::IsOutsideOrOn: return TEXT("Is Outside or On");
+	case EPCGExSplineCheckType::IsOutsideAndOn: return TEXT("Is Outside and On");
 	case EPCGExSplineCheckType::IsOn: return TEXT("Is On");
+	case EPCGExSplineCheckType::IsNotOn: return TEXT("Is not On");
 	}
 }
 #endif

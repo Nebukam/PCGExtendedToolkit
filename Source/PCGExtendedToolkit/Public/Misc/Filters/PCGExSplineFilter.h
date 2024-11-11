@@ -18,18 +18,21 @@
 UENUM(/*E--BlueprintType, meta=(DisplayName="[PCGEx] Fetch Type")--E*/)
 enum class EPCGExSplineCheckType : uint8
 {
-	IsInside      = 0 UMETA(DisplayName = "Is Inside", Tooltip="..."),
-	IsInsideOrOn  = 1 UMETA(DisplayName = "Is Inside or On", Tooltip="..."),
-	IsOutside     = 2 UMETA(DisplayName = "Is Outside", Tooltip="..."),
-	IsOutsideOrOn = 3 UMETA(DisplayName = "Is Outside or On", Tooltip="..."),
-	IsOn          = 4 UMETA(DisplayName = "Is On", Tooltip="..."),
+	IsInside       = 0 UMETA(DisplayName = "Is Inside", Tooltip="..."),
+	IsInsideOrOn   = 1 UMETA(DisplayName = "Is Inside or On", Tooltip="..."),
+	IsInsideAndOn  = 2 UMETA(DisplayName = "Is Inside and On", Tooltip="..."),
+	IsOutside      = 3 UMETA(DisplayName = "Is Outside", Tooltip="..."),
+	IsOutsideOrOn  = 4 UMETA(DisplayName = "Is Outside or On", Tooltip="..."),
+	IsOutsideAndOn = 5 UMETA(DisplayName = "Is Outside and On", Tooltip="..."),
+	IsOn           = 6 UMETA(DisplayName = "Is On", Tooltip="..."),
+	IsNotOn        = 7 UMETA(DisplayName = "Is not On", Tooltip="..."),
 };
 
 UENUM(/*E--BlueprintType, meta=(DisplayName="[PCGEx] Fetch Type")--E*/)
-enum class EPCGExInsideOutFavor : uint8
+enum class EPCGExSplineFilterPick : uint8
 {
 	Closest = 0 UMETA(DisplayName = "Closest", Tooltip="..."),
-	Any  = 1 UMETA(DisplayName = "Inside", Tooltip="...")
+	All     = 1 UMETA(DisplayName = "All", Tooltip="...")
 };
 
 USTRUCT(BlueprintType)
@@ -51,7 +54,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExSplineFilterConfig
 
 	/** If a point is both inside and outside a spline (if there are multiple ones), decide what value to favor. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
-	EPCGExInsideOutFavor Favor = EPCGExInsideOutFavor::Closest;
+	EPCGExSplineFilterPick Pick = EPCGExSplineFilterPick::Closest;
 
 	/** Tolerance value used to determine whether a point is considered on the spline or not */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
@@ -59,7 +62,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExSplineFilterConfig
 
 	/** Scale the tolerance with spline' "thickness" (Scale' length)  */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
-	bool bSplineScaleTolerance = false;
+	bool bSplineScalesTolerance = false;
 
 	/** If enabled, invert the result of the test */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
@@ -87,6 +90,21 @@ public:
 
 namespace PCGExPointsFilter
 {
+	enum ESplineCheckFlags : uint8
+	{
+		None    = 0,
+		Inside  = 1 << 0,
+		Outside = 1 << 1,
+		On      = 1 << 2,
+	};
+
+	enum ESplineMatch : uint8
+	{
+		Any = 0,
+		All,
+		Not
+	};
+
 	class /*PCGEXTENDEDTOOLKIT_API*/ TSplineFilter final : public PCGExPointFilter::FSimpleFilter
 	{
 	public:
@@ -98,8 +116,11 @@ namespace PCGExPointsFilter
 
 		const TObjectPtr<const UPCGExSplineFilterFactory> TypedFilterFactory;
 
-		double ToleranceSquared = MAX_dbl;
 		TArray<const FPCGSplineStruct*> Splines;
+
+		double ToleranceSquared = MAX_dbl;
+		ESplineCheckFlags CheckFlag = None;
+		ESplineMatch Match = Any;
 
 		using SplineCheckCallback = std::function<bool(const FPCGPoint&)>;
 		SplineCheckCallback SplineCheck;
