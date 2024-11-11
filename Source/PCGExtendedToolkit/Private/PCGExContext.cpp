@@ -36,7 +36,7 @@ void FPCGExContext::StageOutput(const FName Pin, UPCGData* InData, const TSet<FS
 	if (bManaged) { ManagedObjects->Add(InData); }
 	if (bIsMutable && bDeleteConsumableAttributes)
 	{
-#if PCGEX_ENGINE_VERSION >= 504
+#if PCGEX_ENGINE_VERSION > 503
 		if (UPCGMetadata* Metadata = InData->MutableMetadata())
 		{
 			for (const FName ConsumableName : ConsumableAttributesSet) { Metadata->DeleteAttribute(ConsumableName); }
