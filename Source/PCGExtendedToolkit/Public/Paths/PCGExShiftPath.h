@@ -13,6 +13,15 @@
 #include "PCGExShiftPath.generated.h"
 
 UENUM(/*E--BlueprintType, meta=(DisplayName="[PCGEx] Shift Path Mode")--E*/)
+enum class EPCGExShiftType : uint8
+{
+	Index                 = 0 UMETA(DisplayName = "Index", ToolTip="..."),
+	Metadata              = 1 UMETA(DisplayName = "Metadata", ToolTip="..."),
+	Properties            = 2 UMETA(DisplayName = "Properties", ToolTip="..."),
+	MetadataAndProperties = 3 UMETA(DisplayName = "Metadata and Properties", ToolTip="...")
+};
+
+UENUM(/*E--BlueprintType, meta=(DisplayName="[PCGEx] Shift Path Mode")--E*/)
 enum class EPCGExShiftPathMode : uint8
 {
 	Discrete = 0 UMETA(DisplayName = "Discrete", ToolTip="Shift point is selected using a discrete value"),
@@ -53,6 +62,10 @@ public:
 	PCGEX_NODE_POINT_FILTER(InputMode == EPCGExShiftPathMode::Filter ? PCGExPaths::SourceShiftFilters : NAME_None, "Filters used to find the shift starting point.", PCGExFactories::PointFilters, InputMode == EPCGExShiftPathMode::Filter)
 	//~End UPCGExPointsProcessorSettings
 
+	/**  */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
+	EPCGExShiftType ShiftType = EPCGExShiftType::Index;
+	
 	/**  */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	EPCGExShiftPathMode InputMode = EPCGExShiftPathMode::Relative;

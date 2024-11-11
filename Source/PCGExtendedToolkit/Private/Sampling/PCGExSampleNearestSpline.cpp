@@ -3,7 +3,7 @@
 
 #include "Sampling/PCGExSampleNearestSpline.h"
 
-///*BUILD_TOOL_BUG_55_TOGGLE*/#include "CoreMinimal.h"
+/*BUILD_TOOL_BUG_55_TOGGLE*/#include "CoreMinimal.h"
 #define LOCTEXT_NAMESPACE "PCGExSampleNearestSplineElement"
 #define PCGEX_NAMESPACE SampleNearestPolyLine
 
@@ -70,7 +70,7 @@ bool FPCGExSampleNearestSplineElement::Boot(FPCGExContext* InContext) const
 	}
 
 	Context->Splines.Reserve(Context->NumTargets);
-	for (const UPCGSplineData* SplineData : Context->Targets) { Context->Splines.Add(SplineData->SplineStruct); }
+	for (const UPCGSplineData* SplineData : Context->Targets) { Context->Splines.Add(&SplineData->SplineStruct); }
 
 	Context->SegmentCounts.SetNumUninitialized(Context->NumTargets);
 	for (int i = 0; i < Context->NumTargets; i++) { Context->SegmentCounts[i] = Context->Targets[i]->SplineStruct.GetNumberOfSplineSegments(); }
@@ -213,7 +213,7 @@ namespace PCGExSampleNearestSpline
 		PCGExPolyLine::FTargetsCompoundInfos TargetsCompoundInfos;
 
 		FVector Origin = Point.Transform.GetLocation();
-		auto ProcessTarget = [&](const FTransform& Transform, const double& Time, const FPCGSplineStruct& InSpline)
+		auto ProcessTarget = [&](const FTransform& Transform, const double& Time, const FPCGSplineStruct* InSpline)
 		{
 			const FVector ModifiedOrigin = Context->DistanceDetails->GetSourceCenter(Point, Origin, Transform.GetLocation());
 			const double Dist = FVector::DistSquared(ModifiedOrigin, Transform.GetLocation());
@@ -226,7 +226,7 @@ namespace PCGExSampleNearestSpline
 				(Transform.GetLocation() - ModifiedOrigin).GetSafeNormal(),
 				Transform.GetRotation().GetRightVector()) > 0)
 			{
-				if (!bOnlyIncrementInsideNumIfClosed || InSpline.bClosedLoop) { NumInsideIncrement = 1; }
+				if (!bOnlyIncrementInsideNumIfClosed || InSpline->bClosedLoop) { NumInsideIncrement = 1; }
 			}
 
 			bool IsNewClosest = false;
@@ -237,7 +237,7 @@ namespace PCGExSampleNearestSpline
 				TargetsCompoundInfos.UpdateCompound(PCGExPolyLine::FSampleInfos(Transform, Dist, Time), IsNewClosest, IsNewFarthest);
 				if (IsNewClosest)
 				{
-					bClosed = InSpline.bClosedLoop;
+					bClosed = InSpline->bClosedLoop;
 					NumInside = NumInsideIncrement;
 					NumInClosed = NumInsideIncrement;
 				}
@@ -249,7 +249,7 @@ namespace PCGExSampleNearestSpline
 				TargetsCompoundInfos.UpdateCompound(PCGExPolyLine::FSampleInfos(Transform, Dist, Time), IsNewClosest, IsNewFarthest);
 				if (IsNewFarthest)
 				{
-					bClosed = InSpline.bClosedLoop;
+					bClosed = InSpline->bClosedLoop;
 					NumInside = NumInsideIncrement;
 					NumInClosed = NumInsideIncrement;
 				}
@@ -257,7 +257,7 @@ namespace PCGExSampleNearestSpline
 			}
 
 			NumInside += NumInsideIncrement;
-			if (InSpline.bClosedLoop)
+			if (InSpline->bClosedLoop)
 			{
 				NumInClosed++;
 				bClosed = true;
@@ -272,10 +272,10 @@ namespace PCGExSampleNearestSpline
 		{
 			for (int i = 0; i < Context->NumTargets; i++)
 			{
-				const FPCGSplineStruct& Line = Context->Splines[i];
+				const FPCGSplineStruct* Line = Context->Splines[i];
 				FTransform SampledTransform;
-				double Time = Line.FindInputKeyClosestToWorldLocation(Origin);
-				SampledTransform = Line.GetTransformAtSplineInputKey(static_cast<float>(Time), ESplineCoordinateSpace::World, false);
+				double Time = Line->FindInputKeyClosestToWorldLocation(Origin);
+				SampledTransform = Line->GetTransformAtSplineInputKey(static_cast<float>(Time), ESplineCoordinateSpace::World, false);
 				ProcessTarget(SampledTransform, Time / Context->SegmentCounts[i], Line);
 			}
 		}
@@ -283,10 +283,10 @@ namespace PCGExSampleNearestSpline
 		{
 			for (int i = 0; i < Context->NumTargets; i++)
 			{
-				const FPCGSplineStruct& Line = Context->Splines[i];
+				const FPCGSplineStruct* Line = Context->Splines[i];
 				FTransform SampledTransform;
-				double Time = Line.FindInputKeyClosestToWorldLocation(Origin);
-				SampledTransform = Line.GetTransformAtSplineInputKey(static_cast<float>(Time), ESplineCoordinateSpace::World, false);
+				double Time = Line->FindInputKeyClosestToWorldLocation(Origin);
+				SampledTransform = Line->GetTransformAtSplineInputKey(static_cast<float>(Time), ESplineCoordinateSpace::World, false);
 				ProcessTarget(SampledTransform, Time / Context->SegmentCounts[i], Line);
 			}
 		}
