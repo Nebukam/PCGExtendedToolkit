@@ -57,7 +57,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExSplineInclusionFilterConfig
 	EPCGExSplineFilterPick Pick = EPCGExSplineFilterPick::Closest;
 
 	/** Tolerance value used to determine whether a point is considered on the spline or not */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ClampMin=0))
 	double Tolerance = 1;
 
 	/** Scale the tolerance with spline' "thickness" (Scale' length)  */

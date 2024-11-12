@@ -3,8 +3,6 @@
 
 #include "Paths/PCGExOffsetPath.h"
 
-#include <Windows.Graphics.Display.h>
-
 #include "PCGExDataMath.h"
 
 
