@@ -14,14 +14,12 @@ UPCGExShiftPathSettings::UPCGExShiftPathSettings(
 	: Super(ObjectInitializer)
 {
 	bSupportClosedLoops = false;
-	bSupportPathDirection = InputMode != EPCGExShiftPathMode::Filter;
 }
 
 #if WITH_EDITOR
 void UPCGExShiftPathSettings::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
 {
 	Super::PostEditChangeProperty(PropertyChangedEvent);
-	bSupportPathDirection = InputMode != EPCGExShiftPathMode::Filter;
 }
 #endif
 
@@ -81,9 +79,8 @@ namespace PCGExShiftPath
 
 		if (!FPointsProcessor::Process(InAsyncManager)) { return false; }
 
-		bInvertOrientation = !Context->PathDirection.StartWithFirstIndex(PointDataFacade->Source);
 		MaxIndex = PointDataFacade->GetNum(PCGExData::ESource::In) - 1;
-		PivotIndex = bInvertOrientation ? MaxIndex : 0;
+		PivotIndex = Settings->bReverseShift ? MaxIndex : 0;
 
 		if (Settings->InputMode == EPCGExShiftPathMode::Relative)
 		{
@@ -106,7 +103,7 @@ namespace PCGExShiftPath
 				const TSharedPtr<FProcessor> This = WeakPtr.Pin();
 				if (!This) { return; }
 
-				if (This->bInvertOrientation)
+				if (This->Settings->bReverseShift)
 				{
 					for (int i = This->MaxIndex; i >= 0; i--)
 					{
@@ -141,7 +138,7 @@ namespace PCGExShiftPath
 			return true;
 		}
 
-		if (bInvertOrientation) { PivotIndex = MaxIndex - PivotIndex; }
+		if (Settings->bReverseShift) { PivotIndex = MaxIndex - PivotIndex; }
 		PivotIndex = PCGExMath::SanitizeIndex(PivotIndex, MaxIndex, Settings->IndexSafety);
 
 		if (!FMath::IsWithinInclusive(PivotIndex, 0, MaxIndex))
@@ -171,7 +168,7 @@ namespace PCGExShiftPath
 
 		TArray<FPCGPoint>& MutablePoints = PointDataFacade->GetMutablePoints();
 
-		if (bInvertOrientation)
+		if (Settings->bReverseShift)
 		{
 			PCGExMath::ReverseRange(MutablePoints, 0, PivotIndex);
 			PCGExMath::ReverseRange(MutablePoints, PivotIndex + 1, MaxIndex);

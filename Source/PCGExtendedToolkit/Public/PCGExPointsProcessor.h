@@ -92,7 +92,7 @@ public:
 	bool bScopedAttributeGet = true;
 
 	/** If the node registers consumable attributes, these will be deleted from the output data. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Performance, meta=(PCG_NotOverridable, AdvancedDisplay))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Performance|Cleanup", meta=(PCG_NotOverridable, AdvancedDisplay))
 	bool bDeleteConsumableAttributes = false;
 
 protected:

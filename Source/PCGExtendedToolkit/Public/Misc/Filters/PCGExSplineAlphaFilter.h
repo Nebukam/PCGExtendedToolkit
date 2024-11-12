@@ -5,29 +5,46 @@
 
 #include "CoreMinimal.h"
 #include "PCGExCompare.h"
-#include "PCGExConstants.h"
 #include "PCGExFilterFactoryProvider.h"
 #include "UObject/Object.h"
 
 #include "Data/PCGExPointFilter.h"
 #include "PCGExPointsProcessor.h"
+#include "PCGExSplineInclusionFilter.h"
+#include "Data/PCGSplineData.h"
+#include "Sampling/PCGExSampleNearestSpline.h"
 
 
-#include "PCGExNumericCompareFilter.generated.h"
+#include "PCGExSplineAlphaFilter.generated.h"
 
+UENUM(/*E--BlueprintType, meta=(DisplayName="[PCGEx] Fetch Type")--E*/)
+enum class EPCGExSplineTimeConsolidation : uint8
+{
+	Min     = 0 UMETA(DisplayName = "Min", Tooltip="..."),
+	Max     = 1 UMETA(DisplayName = "Max", Tooltip="..."),
+	Average = 2 UMETA(DisplayName = "Average", Tooltip="...")
+};
 
 USTRUCT(BlueprintType)
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExNumericCompareFilterConfig
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExSplineAlphaFilterConfig
 {
 	GENERATED_BODY()
 
-	FPCGExNumericCompareFilterConfig()
+	FPCGExSplineAlphaFilterConfig()
 	{
 	}
 
-	/** Operand A for testing -- Will be translated to `double` under the hood. */
+	/** Sample inputs.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
-	FPCGAttributePropertyInputSelector OperandA;
+	EPCGExSplineSamplingIncludeMode SampleInputs = EPCGExSplineSamplingIncludeMode::All;
+
+	/** If a point is both inside and outside a spline (if there are multiple ones), decide what value to favor. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
+	EPCGExSplineFilterPick Pick = EPCGExSplineFilterPick::Closest;
+
+	/**  */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="Pick != EPCGExSplineFilterPick::Closest", EditConditionHides))
+	EPCGExSplineTimeConsolidation TimeConsolidation = EPCGExSplineTimeConsolidation::Min;
 
 	/** Comparison */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
@@ -50,46 +67,50 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExNumericCompareFilterConfig
 	double Tolerance = DBL_COMPARE_TOLERANCE;
 };
 
-
 /**
  * 
  */
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Filter")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExNumericCompareFilterFactory : public UPCGExFilterFactoryBase
+class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExSplineAlphaFilterFactory : public UPCGExFilterFactoryBase
 {
 	GENERATED_BODY()
 
 public:
-	FPCGExNumericCompareFilterConfig Config;
+	FPCGExSplineAlphaFilterConfig Config;
+	TArray<const FPCGSplineStruct*> Splines;
+	TArray<double> SegmentsNum;
 
+	virtual bool Init(FPCGExContext* InContext) override;
 	virtual TSharedPtr<PCGExPointFilter::FFilter> CreateFilter() const override;
+
+	virtual void BeginDestroy() override;
+
 	virtual void RegisterConsumableAttributes(FPCGExContext* InContext) const override;
 };
 
 namespace PCGExPointsFilter
 {
-	class /*PCGEXTENDEDTOOLKIT_API*/ TNumericComparisonFilter final : public PCGExPointFilter::FSimpleFilter
+	class /*PCGEXTENDEDTOOLKIT_API*/ TSplineAlphaFilter final : public PCGExPointFilter::FSimpleFilter
 	{
 	public:
-		explicit TNumericComparisonFilter(const TObjectPtr<const UPCGExNumericCompareFilterFactory>& InDefinition)
-			: FSimpleFilter(InDefinition), TypedFilterFactory(InDefinition)
+		explicit TSplineAlphaFilter(const TObjectPtr<const UPCGExSplineAlphaFilterFactory>& InFactory)
+			: FSimpleFilter(InFactory), TypedFilterFactory(InFactory)
 		{
+			Splines = TypedFilterFactory->Splines;
+			SegmentsNum = TypedFilterFactory->SegmentsNum;
 		}
 
-		const TObjectPtr<const UPCGExNumericCompareFilterFactory> TypedFilterFactory;
+		const TObjectPtr<const UPCGExSplineAlphaFilterFactory> TypedFilterFactory;
 
-		TSharedPtr<PCGExData::TBuffer<double>> OperandA;
+		TArray<const FPCGSplineStruct*> Splines;
+		TArray<double> SegmentsNum;
+
 		TSharedPtr<PCGExData::TBuffer<double>> OperandB;
 
 		virtual bool Init(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade> InPointDataFacade) override;
-		FORCEINLINE virtual bool Test(const int32 PointIndex) const override
-		{
-			const double A = OperandA->Read(PointIndex);
-			const double B = OperandB ? OperandB->Read(PointIndex) : TypedFilterFactory->Config.OperandBConstant;
-			return PCGExCompare::Compare(TypedFilterFactory->Config.Comparison, A, B, TypedFilterFactory->Config.Tolerance);
-		}
+		virtual bool Test(const int32 PointIndex) const override;
 
-		virtual ~TNumericComparisonFilter() override
+		virtual ~TSplineAlphaFilter() override
 		{
 		}
 	};
@@ -98,7 +119,7 @@ namespace PCGExPointsFilter
 ///
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Filter")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExNumericCompareFilterProviderSettings : public UPCGExFilterProviderSettings
+class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExSplineAlphaFilterProviderSettings : public UPCGExFilterProviderSettings
 {
 	GENERATED_BODY()
 
@@ -106,14 +127,18 @@ public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(
-		NumericCompareFilterFactory, "Filter : Compare (Numeric)", "Creates a filter definition that compares two numeric attribute values.",
+		SplineAlphaFilterFactory, "Filter : Spline Alpha", "Creates a filter definition that checks points position against a spline' closest alpha.",
 		PCGEX_FACTORY_NAME_PRIORITY)
 #endif
+
+protected:
+	virtual TArray<FPCGPinProperties> InputPinProperties() const override;
 	//~End UPCGSettings
 
+public:
 	/** Filter Config.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ShowOnlyInnerProperties))
-	FPCGExNumericCompareFilterConfig Config;
+	FPCGExSplineAlphaFilterConfig Config;
 
 	virtual UPCGExParamFactoryBase* CreateFactory(FPCGExContext* InContext, UPCGExParamFactoryBase* InFactory) const override;
 

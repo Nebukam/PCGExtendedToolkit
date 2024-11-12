@@ -9,6 +9,7 @@
 #include "PCGExMacros.h"
 #include "PCGExGlobalSettings.h"
 #include "PCGParamData.h"
+#include "Data/PCGExData.h"
 #include "Data/PCGPointData.h"
 #include "UObject/Object.h"
 
