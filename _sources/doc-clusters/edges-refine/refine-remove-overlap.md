@@ -20,7 +20,7 @@ This test each edge for possible overlap/intersection with other edges in the sa
 *By design, the output is guaranteed to be sanitized (e.g, each cluster will retains its existing connectivity properties).*
 {: .fs-5 .fw-400 } 
 
-{% include img a='placeholder-wide.jpg' %}
+{% include img a='details/edges-refine/refine-remove-overlap.png' %}
 
 # Properties
 

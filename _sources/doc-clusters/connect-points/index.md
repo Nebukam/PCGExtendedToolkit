@@ -63,7 +63,9 @@ The connect point node allows you to create connected clusters using different *
 These two inputs accept any of filters available as part of the {% include lk id='Filter Ecosystem' %}.  
 - **Generators** are points that will use the probes to find neighbors they can connect to.
 - **Connectables** are points that will be seen by the probes.
-All points
+
+> Using these filters if **optional** !
+{: .comment }
 
 ---
 ## Available Probes

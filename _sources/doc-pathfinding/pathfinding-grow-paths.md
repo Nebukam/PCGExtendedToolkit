@@ -38,3 +38,5 @@ outputs:
 
 The **Grow Path** node is still heavily WIP. It's an old node that wasn't properly updated after a major heuristic refactor, and doesn't handle them really well. It can still produce interesting results, but it's *very* hard to control.
 {: .fs-5 .fw-400 } 
+
+{% include img a='details/pathfinding/pathfinding-grow-paths-lead.png' %}

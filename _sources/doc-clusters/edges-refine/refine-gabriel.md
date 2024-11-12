@@ -20,4 +20,4 @@ See [Gabriel graph](https://en.wikipedia.org/wiki/Gabriel_graph) on Wikipedia.
 *Note that while it's initially theorized for Delaunay, the principle work on any graph -- but only a Delaunay will guarantee final connectivity.*
 {: .fs-5 .fw-400 } 
 
-{% include img a='placeholder-wide.jpg' %}
+{% include img a='details/edges-refine/refine-gabriel.png' %}

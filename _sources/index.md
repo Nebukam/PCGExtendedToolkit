@@ -6,7 +6,7 @@ has_children: true
 ---
 <div class="product-header large" style="--img:url('{{ site.baseurl }}/assets/images/logo.png');"><div class="infos" markdown="1">
 # PCGEx {% include github.html repo="PCGExtendedToolkit" %}  
-The PCG Extended Toolkit is a free (libre) plugin that extends Unreal Engine' Procedural Content Generation pipeline, with a focus on **building clusters & pathfinding**.  
+The PCG Extended Toolkit is a free (libre) plugin that extends Unreal Engine' Procedural Content Generation pipeline, with a focus on **building spatial relationships between points** and **path manipulation** *(and a boatload more things & QoL)*.  
 {: .fs-6 .fw-300 }  
    
 {% include link_btn title="Installation" color="white" link="installation" %} 

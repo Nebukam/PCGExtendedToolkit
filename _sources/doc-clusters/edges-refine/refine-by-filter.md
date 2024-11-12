@@ -20,6 +20,8 @@ nav_order: 2
 This refinement is amongst the most straightforward to use, as it **keeps edges that pass the Refine' input filters.**
 {: .fs-5 .fw-400 } 
 
+{% include img a='details/edges-refine/refine-by-filter.png' %}
+
 ---
 ## Edge-specific filters
 <br>

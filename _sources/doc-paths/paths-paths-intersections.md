@@ -17,16 +17,16 @@ inputs:
     -   name : Paths
         desc : Paths which edges will be checked for crossings
         pin : points
-outputs:
-    -   name : Paths
-        desc : Paths with additional points & informations
-        pin : points
     -   name : Can Cut Conditions
         desc : Filters used to determine whether a segment can "cut" other segments
         pin : params
     -   name : Can Cut Conditions
         desc : Filters used to determine whether a segment can be "cut" by cutter segments
         pin : params
+outputs:
+    -   name : Paths
+        desc : Paths with additional points & informations
+        pin : points
 ---
 
 {% include header_card_node %}

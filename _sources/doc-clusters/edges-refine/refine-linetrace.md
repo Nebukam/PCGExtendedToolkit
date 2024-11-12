@@ -19,7 +19,7 @@ nav_order: 3
 This does linetraces using the edge' start & end point.
 {: .fs-5 .fw-400 } 
 
-{% include img a='placeholder-wide.jpg' %}
+{% include img a='details/edges-refine/refine-linetrace.png' %}
 
 # Properties
 

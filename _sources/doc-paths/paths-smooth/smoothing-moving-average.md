@@ -14,7 +14,7 @@ nav_order: 1
 
 {% include header_card_node %}
 
-{% include img a='docs/smooth/moving.png' %} 
+{% include img a='details/smooth/smoothing-moving-average-lead.png' %}
 
 # Properties
 <br>

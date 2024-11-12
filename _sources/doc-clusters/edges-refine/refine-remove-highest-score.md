@@ -25,7 +25,7 @@ This refinement **removes a single connected edge for each point** for each poin
 >Not all heuristics can be yield usable scores outside of a search context. For example, {% include lk id='🝰 Azimuth' %} and {% include lk id='🝰 Inertia' %} require clear seed/goals and search history to assign a given score. Such heuristics will yield a default score based on their own settings.
 {: .warning }
 
-{% include img a='placeholder-wide.jpg' %}
+{% include img a='details/edges-refine/refine-remove-highest-score.png' %}
 
 ---
 ## Available Heuristics Modules

@@ -22,4 +22,4 @@ This refinement **removes a single connected edge for each point**: the one with
 
 >Note that the remaining `Edge` can be the same for multiple, different `Vtx`.
 
-{% include img a='placeholder-wide.jpg' %}
+{% include img a='details/edges-refine/refine-remove-longest.png' %}
