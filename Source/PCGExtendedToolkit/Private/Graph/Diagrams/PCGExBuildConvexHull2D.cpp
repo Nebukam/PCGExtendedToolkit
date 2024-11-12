@@ -106,7 +106,7 @@ void FPCGExBuildConvexHull2DContext::BuildPath(const PCGExGraph::FGraphBuilder* 
 				EdgeIndex = i;
 				if (VisitedEdges.Contains(EdgeIndex)) { continue; }
 
-				const PCGExGraph::FUnsignedEdge& Edge = Edges[EdgeIndex];
+				const PCGExGraph::FIndexedEdge& Edge = Edges[EdgeIndex];
 				if (!Edge.Contains(CurrentIndex)) { continue; }
 
 				CurrentIndex = Edge.Other(CurrentIndex);

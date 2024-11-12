@@ -337,7 +337,6 @@ namespace PCGExGraph
 		FNode(const int32 InNodeIndex, const int32 InPointIndex):
 			NodeIndex(InNodeIndex), PointIndex(InPointIndex)
 		{
-			Adjacency.Empty();
 		}
 
 		int8 bValid = 1; // int for atomic operations
@@ -348,10 +347,33 @@ namespace PCGExGraph
 
 		TArray<uint64> Adjacency;
 
+		~FNode() = default;
+
 		FORCEINLINE void SetAdjacency(const TSet<uint64>& InAdjacency) { Adjacency = InAdjacency.Array(); }
 		FORCEINLINE void Add(const int32 EdgeIndex) { Adjacency.AddUnique(EdgeIndex); }
 
-		~FNode() = default;
+		FORCEINLINE bool IsDeadEnd() const { return Adjacency.Num() == 1; }
+		FORCEINLINE bool IsSimple() const { return Adjacency.Num() == 2; }
+		FORCEINLINE bool IsComplex() const { return Adjacency.Num() > 2; }
+
+		FORCEINLINE bool IsAdjacentTo(const int32 OtherNodeIndex) const
+		{
+			for (const uint64 AdjacencyHash : Adjacency) { if (OtherNodeIndex == PCGEx::H64A(AdjacencyHash)) { return true; } }
+			return false;
+		}
+
+		FORCEINLINE void AddConnection(const int32 InNodeIndex, const int32 InEdgeIndex)
+		{
+			Adjacency.AddUnique(PCGEx::H64(InNodeIndex, InEdgeIndex));
+		}
+
+		FORCEINLINE int32 GetEdgeIndex(const int32 AdjacentNodeIndex) const
+		{
+			for (const uint64 AdjacencyHash : Adjacency) { if (PCGEx::H64A(AdjacencyHash) == AdjacentNodeIndex) { return PCGEx::H64B(AdjacencyHash); } }
+			return -1;
+		}
+
+		FORCEINLINE void Add(const FNode& Neighbor, const int32 EdgeIndex) { Adjacency.Add(PCGEx::H64(Neighbor.NodeIndex, EdgeIndex)); }
 	};
 
 	class /*PCGEXTENDEDTOOLKIT_API*/ FSubGraph : public TSharedFromThis<FSubGraph>

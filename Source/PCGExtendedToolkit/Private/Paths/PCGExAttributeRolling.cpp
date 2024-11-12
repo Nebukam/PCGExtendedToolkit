@@ -14,7 +14,6 @@ UPCGExAttributeRollingSettings::UPCGExAttributeRollingSettings(
 	: Super(ObjectInitializer)
 {
 	bSupportClosedLoops = false;
-	bSupportPathDirection = true;
 }
 
 PCGExData::EIOInit UPCGExAttributeRollingSettings::GetMainOutputInitMode() const { return PCGExData::EIOInit::DuplicateInput; }
@@ -83,9 +82,8 @@ namespace PCGExAttributeRolling
 
 		if (!FPointsProcessor::Process(InAsyncManager)) { return false; }
 
-		bInvertOrientation = !Context->PathDirection.StartWithFirstIndex(PointDataFacade->Source);
 		MaxIndex = PointDataFacade->GetNum(PCGExData::ESource::In) - 1;
-		LastTriggerIndex = bInvertOrientation ? MaxIndex : 0;
+		LastTriggerIndex = Settings->bReverseRolling ? MaxIndex : 0;
 
 		MetadataBlender = MakeShared<PCGExDataBlending::FMetadataBlender>(&Context->BlendingSettings);
 		MetadataBlender->PrepareForData(PointDataFacade, PCGExData::ESource::In, true, nullptr);
@@ -143,7 +141,7 @@ namespace PCGExAttributeRolling
 		int32 TargetIndex = -1;
 		int32 PrevIndex = -1;
 
-		if (bInvertOrientation)
+		if (Settings->bReverseRolling)
 		{
 			TargetIndex = MaxIndex - Iteration;
 			PrevIndex = TargetIndex + 1;

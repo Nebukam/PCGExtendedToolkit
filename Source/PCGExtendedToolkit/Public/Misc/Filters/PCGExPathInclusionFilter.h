@@ -9,41 +9,40 @@
 
 #include "Data/PCGExPointFilter.h"
 #include "PCGExPointsProcessor.h"
+#include "PCGExSplineInclusionFilter.h"
 #include "Data/PCGSplineData.h"
+#include "Paths/PCGExPaths.h"
 #include "Sampling/PCGExSampleNearestSpline.h"
 
 
-#include "PCGExSplineFilter.generated.h"
+#include "PCGExPathInclusionFilter.generated.h"
 
-UENUM(/*E--BlueprintType, meta=(DisplayName="[PCGEx] Fetch Type")--E*/)
-enum class EPCGExSplineCheckType : uint8
+UENUM(/*E--BlueprintType, meta=(DisplayName="[PCGEx] Spline Point Type")--E*/)
+enum class EPCGExSplinePointTypeRedux : uint8
 {
-	IsInside       = 0 UMETA(DisplayName = "Is Inside", Tooltip="..."),
-	IsInsideOrOn   = 1 UMETA(DisplayName = "Is Inside or On", Tooltip="..."),
-	IsInsideAndOn  = 2 UMETA(DisplayName = "Is Inside and On", Tooltip="..."),
-	IsOutside      = 3 UMETA(DisplayName = "Is Outside", Tooltip="..."),
-	IsOutsideOrOn  = 4 UMETA(DisplayName = "Is Outside or On", Tooltip="..."),
-	IsOutsideAndOn = 5 UMETA(DisplayName = "Is Outside and On", Tooltip="..."),
-	IsOn           = 6 UMETA(DisplayName = "Is On", Tooltip="..."),
-	IsNotOn        = 7 UMETA(DisplayName = "Is not On", Tooltip="..."),
-};
-
-UENUM(/*E--BlueprintType, meta=(DisplayName="[PCGEx] Fetch Type")--E*/)
-enum class EPCGExSplineFilterPick : uint8
-{
-	Closest = 0 UMETA(DisplayName = "Closest", Tooltip="..."),
-	All     = 1 UMETA(DisplayName = "All", Tooltip="...")
+	Linear             = 0 UMETA(DisplayName = "Linear (0)", Tooltip="Linear (0)."),
+	Curve              = 1 UMETA(DisplayName = "Curve (1)", Tooltip="Curve (1)."),
+	Constant           = 2 UMETA(DisplayName = "Constant (2)", Tooltip="Constant (2)."),
+	CurveClamped       = 3 UMETA(DisplayName = "CurveClamped (3)", Tooltip="CurveClamped (3)."),
 };
 
 USTRUCT(BlueprintType)
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExSplineFilterConfig
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPathInclusionFilterConfig
 {
 	GENERATED_BODY()
 
-	FPCGExSplineFilterConfig()
+	FPCGExPathInclusionFilterConfig()
 	{
 	}
 
+	/** Closed loop handling.*/
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	FPCGExPathClosedLoopDetails ClosedLoop;
+
+	/** Which point type to use. Shared amongst all points; if you want tight control, create a fully-fledged spline instead. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	EPCGExSplinePointTypeRedux PointType = EPCGExSplinePointTypeRedux::Linear;
+	
 	/** Sample inputs.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	EPCGExSplineSamplingIncludeMode SampleInputs = EPCGExSplineSamplingIncludeMode::All;
@@ -73,15 +72,16 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExSplineFilterConfig
  * 
  */
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Filter")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExSplineFilterFactory : public UPCGExFilterFactoryBase
+class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExPathInclusionFilterFactory : public UPCGExFilterFactoryBase
 {
 	GENERATED_BODY()
 
 public:
-	FPCGExSplineFilterConfig Config;
-	TArray<const FPCGSplineStruct*> Splines;
+	FPCGExPathInclusionFilterConfig Config;
+	TArray<TSharedPtr<const FPCGSplineStruct>> Splines;
 	virtual bool Init(FPCGExContext* InContext) override;
 	virtual TSharedPtr<PCGExPointFilter::FFilter> CreateFilter() const override;
+	void CreateSpline(const UPCGPointData* InData, const bool bClosedLoop);
 
 	virtual void BeginDestroy() override;
 
@@ -90,37 +90,23 @@ public:
 
 namespace PCGExPointsFilter
 {
-	enum ESplineCheckFlags : uint8
-	{
-		None    = 0,
-		Inside  = 1 << 0,
-		Outside = 1 << 1,
-		On      = 1 << 2,
-	};
-
-	enum ESplineMatch : uint8
-	{
-		Any = 0,
-		All,
-		Not
-	};
-
-	class /*PCGEXTENDEDTOOLKIT_API*/ TSplineFilter final : public PCGExPointFilter::FSimpleFilter
+	class /*PCGEXTENDEDTOOLKIT_API*/ TPathInclusionFilter final : public PCGExPointFilter::FSimpleFilter
 	{
 	public:
-		explicit TSplineFilter(const TObjectPtr<const UPCGExSplineFilterFactory>& InFactory)
+		explicit TPathInclusionFilter(const TObjectPtr<const UPCGExPathInclusionFilterFactory>& InFactory)
 			: FSimpleFilter(InFactory), TypedFilterFactory(InFactory)
 		{
 			Splines = TypedFilterFactory->Splines;
 		}
 
-		const TObjectPtr<const UPCGExSplineFilterFactory> TypedFilterFactory;
+		const TObjectPtr<const UPCGExPathInclusionFilterFactory> TypedFilterFactory;
 
-		TArray<const FPCGSplineStruct*> Splines;
+		TArray<TSharedPtr<const FPCGSplineStruct>> Splines;
 
 		double ToleranceSquared = MAX_dbl;
-		ESplineCheckFlags CheckFlag = None;
-		ESplineMatch Match = Any;
+		ESplineCheckFlags GoodFlags = None;
+		ESplineCheckFlags BadFlags = None;
+		ESplineMatch GoodMatch = Any;
 
 		using SplineCheckCallback = std::function<bool(const FPCGPoint&)>;
 		SplineCheckCallback SplineCheck;
@@ -128,7 +114,7 @@ namespace PCGExPointsFilter
 		virtual bool Init(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade> InPointDataFacade) override;
 		virtual bool Test(const int32 PointIndex) const override;
 
-		virtual ~TSplineFilter() override
+		virtual ~TPathInclusionFilter() override
 		{
 		}
 	};
@@ -137,7 +123,7 @@ namespace PCGExPointsFilter
 ///
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Filter")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExSplineFilterProviderSettings : public UPCGExFilterProviderSettings
+class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExPathInclusionFilterProviderSettings : public UPCGExFilterProviderSettings
 {
 	GENERATED_BODY()
 
@@ -145,7 +131,7 @@ public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(
-		SplineFilterFactory, "Filter : Spline", "Creates a filter definition that checks points against a spline.",
+		PathInclusionFilterFactory, "Filter : Path Inclusion", "Creates a filter definition that checks points inclusion against a path.",
 		PCGEX_FACTORY_NAME_PRIORITY)
 #endif
 
@@ -156,7 +142,7 @@ protected:
 public:
 	/** Filter Config.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ShowOnlyInnerProperties))
-	FPCGExSplineFilterConfig Config;
+	FPCGExPathInclusionFilterConfig Config;
 
 	virtual UPCGExParamFactoryBase* CreateFactory(FPCGExContext* InContext, UPCGExParamFactoryBase* InFactory) const override;
 

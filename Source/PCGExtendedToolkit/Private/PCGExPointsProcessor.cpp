@@ -280,6 +280,8 @@ bool FPCGExPointsProcessorElement::Boot(FPCGExContext* InContext) const
 	FPCGExPointsProcessorContext* Context = static_cast<FPCGExPointsProcessorContext*>(InContext);
 	PCGEX_SETTINGS(PointsProcessor)
 
+	Context->bDeleteConsumableAttributes = Settings->bDeleteConsumableAttributes;
+
 	if (Context->InputData.GetInputs().IsEmpty() && !Settings->IsInputless()) { return false; } //Get rid of errors and warning when there is no input
 
 	Context->MainPoints = MakeShared<PCGExData::FPointIOCollection>(Context);

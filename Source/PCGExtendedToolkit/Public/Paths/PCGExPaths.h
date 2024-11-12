@@ -7,6 +7,7 @@
 #include "PCGExCompare.h"
 #include "Collections/PCGExMeshCollection.h"
 #include "Components/SplineMeshComponent.h"
+#include "Data/PCGSplineStruct.h"
 #include "Graph/PCGExCluster.h"
 #include "Graph/PCGExEdge.h"
 
@@ -67,6 +68,14 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPathClosedLoopDetails
 		for (const FString& Tag : Tags) { if (InPointIO->Tags->IsTagged(Tag)) { return !bClosedLoop; } }
 		return bClosedLoop;
 	}
+
+	bool IsClosedLoop(const FPCGTaggedData& InTaggedData) const
+	{
+		if (Scope == EPCGExInputScope::All) { return bClosedLoop; }
+		if (Tags.IsEmpty()) { return !bClosedLoop; }
+		for (const FString& Tag : Tags) { if (InTaggedData.Tags.Contains(Tag)) { return !bClosedLoop; } }
+		return bClosedLoop;
+	}
 };
 
 USTRUCT(BlueprintType)
@@ -96,72 +105,6 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPathClosedLoopUpdateDetails
 	{
 		for (const FString& Add : AddTags) { InPointIO->Tags->Add(Add); }
 		for (const FString& Rem : RemoveTags) { InPointIO->Tags->Remove(Rem); }
-	}
-};
-
-USTRUCT(BlueprintType)
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPathProcessingDirectionDetails
-{
-	GENERATED_BODY()
-
-	/** How to pick which path endpoint to start with */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
-	EPCGExInlinePathProcessingOrder Mode = EPCGExInlinePathProcessingOrder::FromStart;
-
-	/** Invert the select mode to go with the opposite endpoint. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
-	bool bInvert = false;
-
-	/** Comma separated tags */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="Mode==EPCGExInlinePathProcessingOrder::TaggedAny || Mode==EPCGExInlinePathProcessingOrder::TaggedAll", EditConditionHides))
-	FString CommaSeparatedTags = TEXT("First");
-
-	/** Comma separated tags */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="Mode==EPCGExInlinePathProcessingOrder::EndpointCompare", EditConditionHides))
-	FPCGAttributePropertyInputSelector ComparisonAttribute;
-
-	/** Comparison */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="Mode==EPCGExInlinePathProcessingOrder::EndpointCompare", EditConditionHides))
-	EPCGExComparison Comparison = EPCGExComparison::NearlyEqual;
-
-	/** Rounding mode for near measures */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="Mode==EPCGExInlinePathProcessingOrder::EndpointCompare && (Comparison==EPCGExComparison::NearlyEqual || Comparison==EPCGExComparison::NearlyNotEqual)", EditConditionHides))
-	double Tolerance = DBL_COMPARE_TOLERANCE;
-
-	TArray<FString> Tags;
-
-	void Init()
-	{
-		Tags = PCGExHelpers::GetStringArrayFromCommaSeparatedList(CommaSeparatedTags);
-	}
-
-	bool StartWithFirstIndex(const TSharedRef<PCGExData::FPointIO>& InPointIO)
-	{
-		if (Mode == EPCGExInlinePathProcessingOrder::FromStart) { return !bInvert; }
-		if (Mode == EPCGExInlinePathProcessingOrder::EndpointCompare)
-		{
-			const TSharedPtr<PCGEx::TAttributeBroadcaster<double>> Value = PCGEx::TAttributeBroadcaster<double>::Make(ComparisonAttribute, InPointIO);
-			if (!Value) { return bInvert; }
-			const int32 LastIndex = InPointIO->GetNum() - 1;
-			const bool Result = PCGExCompare::Compare(
-				Comparison,
-				Value->SoftGet(0, InPointIO->GetInPoint(0), 0),
-				Value->SoftGet(LastIndex, InPointIO->GetInPoint(LastIndex), LastIndex),
-				Tolerance);
-			return bInvert ? !Result : Result;
-		}
-		if (Mode == EPCGExInlinePathProcessingOrder::TaggedAny)
-		{
-			for (const FString& Tag : Tags) { if (InPointIO->Tags->IsTagged(Tag)) { return !bInvert; } }
-			return bInvert;
-		}
-		if (Mode == EPCGExInlinePathProcessingOrder::TaggedAll)
-		{
-			for (const FString& Tag : Tags) { if (!InPointIO->Tags->IsTagged(Tag)) { return bInvert; } }
-			return !bInvert;
-		}
-
-		return !bInvert;
 	}
 };
 
@@ -802,4 +745,15 @@ namespace PCGExPaths
 		TSharedPtr<TPath<false>> P = MakeShared<TPath<false>>(InPositions, Expansion);
 		return StaticCastSharedPtr<FPath>(P);
 	}
+
+	static FTransform GetClosestTransform(const FPCGSplineStruct* InSpline, const FVector& InLocation, const bool bUseScale = true)
+	{
+		return InSpline->GetTransformAtSplineInputKey(InSpline->FindInputKeyClosestToWorldLocation(InLocation), ESplineCoordinateSpace::World, bUseScale);
+	}
+
+	static FTransform GetClosestTransform(const TSharedPtr<const FPCGSplineStruct>& InSpline, const FVector& InLocation, const bool bUseScale = true)
+	{
+		return InSpline->GetTransformAtSplineInputKey(InSpline->FindInputKeyClosestToWorldLocation(InLocation), ESplineCoordinateSpace::World, bUseScale);
+	}
+	
 }

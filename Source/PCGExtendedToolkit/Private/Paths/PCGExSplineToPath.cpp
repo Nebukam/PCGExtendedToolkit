@@ -170,12 +170,15 @@ namespace PCGExSplineToPath
 		for (int i = 0; i < NumSegments; i++)
 		{
 			const double LengthAtPoint = Spline.GetDistanceAlongSplineAtSplinePoint(i);
+			const FTransform SplineTransform = Spline.GetTransform();
+			const FVector Scale = SplineTransform.GetScale3D();
+			
 			ApplyTransform(MutablePoints[i], Spline.GetTransformAtDistanceAlongSpline(LengthAtPoint, ESplineCoordinateSpace::Type::World, true));
 
 			PCGEX_OUTPUT_VALUE(LengthAtPoint, i, LengthAtPoint);
 			PCGEX_OUTPUT_VALUE(Alpha, i, LengthAtPoint / TotalLength);
-			PCGEX_OUTPUT_VALUE(ArriveTangent, i, Spline.SplineCurves.Position.Points[i].ArriveTangent);
-			PCGEX_OUTPUT_VALUE(LeaveTangent, i, Spline.SplineCurves.Position.Points[i].LeaveTangent);
+			PCGEX_OUTPUT_VALUE(ArriveTangent, i, SplineTransform.TransformVector(Spline.SplineCurves.Position.Points[i].ArriveTangent));
+			PCGEX_OUTPUT_VALUE(LeaveTangent, i, SplineTransform.TransformVector(Spline.SplineCurves.Position.Points[i].LeaveTangent));
 		}
 
 		if (Spline.bClosedLoop)

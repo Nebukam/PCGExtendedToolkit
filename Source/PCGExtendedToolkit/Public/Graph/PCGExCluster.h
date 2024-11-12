@@ -77,45 +77,17 @@ namespace PCGExCluster
 
 	class FCluster;
 
-	struct /*PCGEXTENDEDTOOLKIT_API*/ FNode : PCGExGraph::FNode
+	struct /*PCGEXTENDEDTOOLKIT_API*/ FNode : public PCGExGraph::FNode
 	{
-		FNode(): PCGExGraph::FNode()
-		{
-		}
+		FNode() = default;
 
 		FNode(const int32 InNodeIndex, const int32 InPointIndex):
 			PCGExGraph::FNode(InNodeIndex, InPointIndex)
 		{
 		}
 
-		~FNode() = default;
-
-		FORCEINLINE bool IsDeadEnd() const { return Adjacency.Num() == 1; }
-		FORCEINLINE bool IsSimple() const { return Adjacency.Num() == 2; }
-		FORCEINLINE bool IsComplex() const { return Adjacency.Num() > 2; }
-
-		FORCEINLINE bool IsAdjacentTo(const int32 OtherNodeIndex) const
-		{
-			for (const uint64 AdjacencyHash : Adjacency) { if (OtherNodeIndex == PCGEx::H64A(AdjacencyHash)) { return true; } }
-			return false;
-		}
-
-		FORCEINLINE void AddConnection(const int32 InNodeIndex, const int32 InEdgeIndex)
-		{
-			Adjacency.AddUnique(PCGEx::H64(InNodeIndex, InEdgeIndex));
-		}
-
 		FVector GetCentroid(const FCluster* InCluster) const;
-
-		FORCEINLINE int32 GetEdgeIndex(const int32 AdjacentNodeIndex) const
-		{
-			for (const uint64 AdjacencyHash : Adjacency) { if (PCGEx::H64A(AdjacencyHash) == AdjacentNodeIndex) { return PCGEx::H64B(AdjacencyHash); } }
-			return -1;
-		}
-
 		void ComputeNormal(const FCluster* InCluster, const TArray<FAdjacencyData>& AdjacencyData, FVector& OutNormal) const;
-
-		FORCEINLINE void Add(const FNode& Neighbor, const int32 EdgeIndex) { Adjacency.Add(PCGEx::H64(Neighbor.NodeIndex, EdgeIndex)); }
 		int32 ValidEdges(const FCluster* InCluster);
 		bool HasAnyValidEdges(const FCluster* InCluster);
 	};

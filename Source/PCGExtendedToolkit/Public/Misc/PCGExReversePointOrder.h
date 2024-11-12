@@ -73,7 +73,7 @@ public:
 	/** Sort direction */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bReverseUsingSortingRules"))
 	EPCGExSortDirection SortDirection = EPCGExSortDirection::Ascending;
-	
+
 	/**  */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	TArray<FPCGExSwapAttributePairDetails> SwapAttributesValues;
@@ -93,7 +93,6 @@ public:
 	/** ... */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging", meta=(PCG_Overridable, EditCondition="bTagIfNotReversed"))
 	FString IsNotReversedTag = TEXT("NotReversed");
-	
 };
 
 struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExReversePointOrderContext final : FPCGExPointsProcessorContext
@@ -133,7 +132,7 @@ namespace PCGExReversePointOrder
 		TSharedPtr<PCGExSorting::PointSorter<false, true>> Sorter;
 
 		bool bReversed = true;
-		
+
 	public:
 		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade):
 			TPointsProcessor(InPointDataFacade)
@@ -143,9 +142,9 @@ namespace PCGExReversePointOrder
 		virtual ~FProcessor() override
 		{
 		}
-		
+
 		virtual void RegisterBuffersDependencies(PCGExData::FFacadePreloader& FacadePreloader) override;
-		
+
 		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager> InAsyncManager) override;
 		virtual void PrepareSingleLoopScopeForPoints(const uint32 StartIndex, const int32 Count) override;
 		virtual void CompleteWork() override;
