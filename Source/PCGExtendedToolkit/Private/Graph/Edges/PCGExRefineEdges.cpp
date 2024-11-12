@@ -313,7 +313,7 @@ namespace PCGExRefineEdges
 					{
 						PCGExGraph::FIndexedEdge* Edge = NestedThis->Cluster->GetEdge(i);
 						if (Edge->bValid) { continue; }
-						if (Cluster->GetEdgeStart(Edge->EdgeIndex)->bValid && Cluster->GetEdgeStart(Edge->EdgeIndex)->bValid) { Edge->bValid = true; }
+						if (Cluster->GetEdgeStart(i)->bValid && Cluster->GetEdgeEnd(i)->bValid) { Edge->bValid = true; }
 					}
 				};
 

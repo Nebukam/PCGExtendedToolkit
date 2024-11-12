@@ -112,6 +112,7 @@ namespace PCGExCreateSpline
 		int32 LastIndex = 0;
 		bool bClosedLoop = false;
 		bool bApplyTangents = false;
+		float MaxIndex = 0.0;
 
 		TSharedPtr<PCGExData::TBuffer<FVector>> ArriveTangent;
 		TSharedPtr<PCGExData::TBuffer<FVector>> LeaveTangent;
@@ -119,7 +120,7 @@ namespace PCGExCreateSpline
 		TSharedPtr<PCGExData::TBuffer<int32>> CustomPointType;
 
 		TArray<FSplinePoint> SplinePoints;
-		FVector PositionOffset;
+		FVector PositionOffset = FVector::ZeroVector;
 
 	public:
 		TObjectPtr<UPCGSplineData> SplineData = nullptr;

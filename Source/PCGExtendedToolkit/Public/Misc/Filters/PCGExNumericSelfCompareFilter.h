@@ -120,7 +120,7 @@ public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(
-		NumericSelfCompareFilterFactory, "Filter : Self Compare (Numeric)", "Creates a filter definition that compares an attribute value against iTNumericSelf at another index.",
+		NumericSelfCompareFilterFactory, "Filter : Self Compare (Numeric)", "Creates a filter definition that compares an attribute numeric value against itself at another index.",
 		PCGEX_FACTORY_NAME_PRIORITY)
 #endif
 	//~End UPCGSettings

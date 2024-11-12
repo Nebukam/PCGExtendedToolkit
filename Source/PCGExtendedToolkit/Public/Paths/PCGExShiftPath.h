@@ -85,6 +85,10 @@ public:
 	/**  */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="InputMode != EPCGExShiftPathMode::Filter", EditConditionHides))
 	EPCGExIndexSafety IndexSafety = EPCGExIndexSafety::Tile;
+
+	/** Reverse shift order */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
+	bool bReverseShift = false;
 };
 
 struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExShiftPathContext final : FPCGExPathProcessorContext
@@ -112,7 +116,6 @@ namespace PCGExShiftPath
 	{
 		int32 MaxIndex = 0;
 		int32 PivotIndex = -1;
-		bool bInvertOrientation = false;
 
 	public:
 		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade):

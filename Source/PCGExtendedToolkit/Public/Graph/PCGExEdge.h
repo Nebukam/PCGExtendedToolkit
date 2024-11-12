@@ -62,26 +62,19 @@ namespace PCGExGraph
 		return HashCombineFast(A == 0 ? B : A, Index);
 	}
 
-	struct /*PCGEXTENDEDTOOLKIT_API*/ FUnsignedEdge
+	struct /*PCGEXTENDEDTOOLKIT_API*/ FIndexedEdge
 	{
-		int8 bValid = 1; // int for atomic operations
 		uint32 Start = 0;
 		uint32 End = 0;
+		int32 EdgeIndex = -1;
+		int32 PointIndex = -1;
+		int32 IOIndex = -1;
+		int8 bValid = 1;
 
-		FUnsignedEdge():
-			bValid(0)
-		{
-		}
+		FIndexedEdge() = default;
 
-		FUnsignedEdge(const int32 InStart, const int32 InEnd):
-			bValid(InStart != InEnd && InStart != -1 && InEnd != -1),
-			Start(InStart),
-			End(InEnd)
-		{
-		}
-
-		explicit FUnsignedEdge(const uint64 Hash):
-			FUnsignedEdge(PCGEx::H64A(Hash), PCGEx::H64B(Hash))
+		FIndexedEdge(const int32 InIndex, const uint32 InStart, const uint32 InEnd, const int32 InPointIndex = -1, const int32 InIOIndex = -1)
+			: Start(InStart), End(InEnd), EdgeIndex(InIndex), PointIndex(InPointIndex), IOIndex(InIOIndex)
 		{
 		}
 
@@ -93,7 +86,7 @@ namespace PCGExGraph
 
 		bool Contains(const int32 InIndex) const { return Start == InIndex || End == InIndex; }
 
-		bool operator==(const FUnsignedEdge& Other) const
+		bool operator==(const FIndexedEdge& Other) const
 		{
 			return H64U() == Other.H64U();
 		}
@@ -104,29 +97,6 @@ namespace PCGExGraph
 		}
 
 		FORCEINLINE uint64 H64U() const { return PCGEx::H64U(Start, End); }
-	};
-
-	struct /*PCGEXTENDEDTOOLKIT_API*/ FIndexedEdge : FUnsignedEdge
-	{
-		int32 EdgeIndex = -1;
-		int32 PointIndex = -1;
-		int32 IOIndex = -1;
-
-		FIndexedEdge()
-		{
-		}
-
-		FIndexedEdge(const FIndexedEdge& Other)
-			: FUnsignedEdge(Other.Start, Other.End),
-			  EdgeIndex(Other.EdgeIndex), PointIndex(Other.PointIndex), IOIndex(Other.IOIndex)
-		{
-		}
-
-		FIndexedEdge(const int32 InIndex, const int32 InStart, const int32 InEnd, const int32 InPointIndex = -1, const int32 InIOIndex = -1)
-			: FUnsignedEdge(InStart, InEnd),
-			  EdgeIndex(InIndex), PointIndex(InPointIndex), IOIndex(InIOIndex)
-		{
-		}
 	};
 
 	static void SetClusterVtx(const TSharedPtr<PCGExData::FPointIO>& IO, FString& OutId)

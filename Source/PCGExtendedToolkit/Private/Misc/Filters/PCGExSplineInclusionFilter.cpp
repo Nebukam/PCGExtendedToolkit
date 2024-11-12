@@ -1,13 +1,15 @@
 ﻿// Copyright Timothé Lapetite 2024
 // Released under the MIT license https://opensource.org/license/MIT/
 
-#include "Misc/Filters/PCGExSplineFilter.h"
+#include "Misc/Filters/PCGExSplineInclusionFilter.h"
+
+#include "Paths/PCGExPaths.h"
 
 
-#define LOCTEXT_NAMESPACE "PCGExSplineFilterDefinition"
-#define PCGEX_NAMESPACE PCGExSplineFilterDefinition
+#define LOCTEXT_NAMESPACE "PCGExSplineInclusionFilterDefinition"
+#define PCGEX_NAMESPACE PCGExSplineInclusionFilterDefinition
 
-bool UPCGExSplineFilterFactory::Init(FPCGExContext* InContext)
+bool UPCGExSplineInclusionFilterFactory::Init(FPCGExContext* InContext)
 {
 	if (!Super::Init(InContext)) { return false; }
 
@@ -19,19 +21,11 @@ bool UPCGExSplineFilterFactory::Init(FPCGExContext* InContext)
 			const UPCGSplineData* SplineData = Cast<UPCGSplineData>(TaggedData.Data);
 			if (!SplineData) { continue; }
 
-			switch (Config.SampleInputs)
-			{
-			default:
-			case EPCGExSplineSamplingIncludeMode::All:
-				Splines.Add(&SplineData->SplineStruct);
-				break;
-			case EPCGExSplineSamplingIncludeMode::ClosedLoopOnly:
-				if (SplineData->SplineStruct.bClosedLoop) { Splines.Add(&SplineData->SplineStruct); }
-				break;
-			case EPCGExSplineSamplingIncludeMode::OpenSplineOnly:
-				if (!SplineData->SplineStruct.bClosedLoop) { Splines.Add(&SplineData->SplineStruct); }
-				break;
-			}
+			const bool bIsClosedLoop = SplineData->SplineStruct.bClosedLoop;
+			if (Config.SampleInputs == EPCGExSplineSamplingIncludeMode::ClosedLoopOnly && !bIsClosedLoop) { continue; }
+			if (Config.SampleInputs == EPCGExSplineSamplingIncludeMode::OpenSplineOnly && bIsClosedLoop) { continue; }
+
+			Splines.Add(&SplineData->SplineStruct);
 		}
 	}
 
@@ -44,17 +38,17 @@ bool UPCGExSplineFilterFactory::Init(FPCGExContext* InContext)
 	return true;
 }
 
-TSharedPtr<PCGExPointFilter::FFilter> UPCGExSplineFilterFactory::CreateFilter() const
+TSharedPtr<PCGExPointFilter::FFilter> UPCGExSplineInclusionFilterFactory::CreateFilter() const
 {
-	return MakeShared<PCGExPointsFilter::TSplineFilter>(this);
+	return MakeShared<PCGExPointsFilter::TSplineInclusionFilter>(this);
 }
 
-void UPCGExSplineFilterFactory::BeginDestroy()
+void UPCGExSplineInclusionFilterFactory::BeginDestroy()
 {
 	Super::BeginDestroy();
 }
 
-void UPCGExSplineFilterFactory::RegisterConsumableAttributes(FPCGExContext* InContext) const
+void UPCGExSplineInclusionFilterFactory::RegisterConsumableAttributes(FPCGExContext* InContext) const
 {
 	Super::RegisterConsumableAttributes(InContext);
 	//TODO : Implement Consumable
@@ -62,7 +56,7 @@ void UPCGExSplineFilterFactory::RegisterConsumableAttributes(FPCGExContext* InCo
 
 namespace PCGExPointsFilter
 {
-	bool TSplineFilter::Init(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade> InPointDataFacade)
+	bool TSplineInclusionFilter::Init(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade> InPointDataFacade)
 	{
 		if (!FFilter::Init(InContext, InPointDataFacade)) { return false; }
 
@@ -71,43 +65,45 @@ namespace PCGExPointsFilter
 		switch (TypedFilterFactory->Config.CheckType)
 		{
 		case EPCGExSplineCheckType::IsInside:
-			CheckFlag = Inside;
-			Match = Any;
+			GoodFlags = Inside;
+			BadFlags = On;
+			GoodMatch = Any;
 			break;
 		case EPCGExSplineCheckType::IsInsideOrOn:
-			CheckFlag = static_cast<ESplineCheckFlags>(Inside | On);
-			Match = Any;
+			GoodFlags = static_cast<ESplineCheckFlags>(Inside | On);
+			GoodMatch = Any;
 			break;
 		case EPCGExSplineCheckType::IsInsideAndOn:
-			CheckFlag = static_cast<ESplineCheckFlags>(Inside | On);
-			Match = All;
+			GoodFlags = static_cast<ESplineCheckFlags>(Inside | On);
+			GoodMatch = All;
 			break;
 		case EPCGExSplineCheckType::IsOutside:
-			CheckFlag = Outside;
-			Match = Any;
+			GoodFlags = Outside;
+			BadFlags = On;
+			GoodMatch = Any;
 			break;
 		case EPCGExSplineCheckType::IsOutsideOrOn:
-			CheckFlag = static_cast<ESplineCheckFlags>(Outside | On);
-			Match = Any;
+			GoodFlags = static_cast<ESplineCheckFlags>(Outside | On);
+			GoodMatch = Any;
 			break;
 		case EPCGExSplineCheckType::IsOutsideAndOn:
-			CheckFlag = static_cast<ESplineCheckFlags>(Outside | On);
-			Match = All;
+			GoodFlags = static_cast<ESplineCheckFlags>(Outside | On);
+			GoodMatch = All;
 			break;
 		case EPCGExSplineCheckType::IsOn:
-			CheckFlag = On;
-			Match = Any;
+			GoodFlags = On;
+			GoodMatch = Any;
 			break;
 		case EPCGExSplineCheckType::IsNotOn:
-			CheckFlag = On;
-			Match = Not;
+			BadFlags = On;
+			GoodMatch = Skip;
 			break;
 		}
 
 		return true;
 	}
 
-	bool TSplineFilter::Test(const int32 PointIndex) const
+	bool TSplineInclusionFilter::Test(const int32 PointIndex) const
 	{
 		uint8 State = None;
 
@@ -118,7 +114,7 @@ namespace PCGExPointsFilter
 			double ClosestDist = MAX_dbl;
 			for (const FPCGSplineStruct* Spline : Splines)
 			{
-				const FTransform T = Spline->GetTransformAtSplineInputKey(Spline->FindInputKeyClosestToWorldLocation(Pos), ESplineCoordinateSpace::World, TypedFilterFactory->Config.bSplineScalesTolerance);
+				const FTransform T = PCGExPaths::GetClosestTransform(Spline, Pos, TypedFilterFactory->Config.bSplineScalesTolerance);
 				const double D = FVector::DistSquared(T.GetLocation(), Pos);
 
 				if (D > ClosestDist) { continue; }
@@ -142,33 +138,31 @@ namespace PCGExPointsFilter
 		{
 			for (const FPCGSplineStruct* Spline : Splines)
 			{
-				const FTransform T = Spline->GetTransformAtSplineInputKey(Spline->FindInputKeyClosestToWorldLocation(Pos), ESplineCoordinateSpace::World, TypedFilterFactory->Config.bSplineScalesTolerance);
+				const FTransform T = PCGExPaths::GetClosestTransform(Spline, Pos, TypedFilterFactory->Config.bSplineScalesTolerance);
 				if (const FVector S = T.GetScale3D(); FVector::DistSquared(T.GetLocation(), Pos) < FVector2D(S.Y, S.Z).Length() * ToleranceSquared) { State |= On; }
 				if (FVector::DotProduct(T.GetRotation().GetRightVector(), (T.GetLocation() - Pos).GetSafeNormal()) > 0) { State |= Inside; }
 				else { State |= Outside; }
 			}
 		}
 
-		bool bPass = true;
-		if (Match == Not) { bPass = (State & CheckFlag) == 0; }
-		else if (Match == Any) { bPass = (State & CheckFlag) != 0; }
-		else if (Match == All) { bPass = (State & CheckFlag) == CheckFlag; }
+		bool bPass = (State & BadFlags) == 0;
+		if (GoodMatch != Skip) { if (bPass) { bPass = GoodMatch == Any ? (State & GoodFlags) != 0 : (State & GoodFlags) == GoodFlags; } }
 
 		return TypedFilterFactory->Config.bInvert ? !bPass : bPass;
 	}
 }
 
-TArray<FPCGPinProperties> UPCGExSplineFilterProviderSettings::InputPinProperties() const
+TArray<FPCGPinProperties> UPCGExSplineInclusionFilterProviderSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
 	PCGEX_PIN_POLYLINES(FName("Splines"), TEXT("Splines will be used for testing"), Required, {})
 	return PinProperties;
 }
 
-PCGEX_CREATE_FILTER_FACTORY(Spline)
+PCGEX_CREATE_FILTER_FACTORY(SplineInclusion)
 
 #if WITH_EDITOR
-FString UPCGExSplineFilterProviderSettings::GetDisplayName() const
+FString UPCGExSplineInclusionFilterProviderSettings::GetDisplayName() const
 {
 	switch (Config.CheckType)
 	{
