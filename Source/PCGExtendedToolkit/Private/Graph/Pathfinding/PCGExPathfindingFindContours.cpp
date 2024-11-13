@@ -3,6 +3,8 @@
 
 #include "Graph/Pathfinding/PCGExPathfindingFindContours.h"
 
+#include "PCGExCompare.h"
+
 
 #define LOCTEXT_NAMESPACE "PCGExFindContours"
 #define PCGEX_NAMESPACE FindContours
@@ -100,6 +102,8 @@ bool FPCGExFindContoursContext::TryFindContours(
 
 	PathBox += Cluster->GetPos(((ExpandedNodes->GetData() + PrevIndex))->Node);
 
+	const bool bFilterOutMaxBounds = Settings->OmitPathsByBounds == EPCGExOmitPathsByBounds::SizeCheck && Settings->bOmitAboveBoundsSize;
+
 	bool bGracefullyClosed = false;
 	while (NextIndex != -1)
 	{
@@ -114,6 +118,8 @@ bool FPCGExFindContoursContext::TryFindContours(
 		const PCGExCluster::FExpandedNode& Current = *(ExpandedNodes->GetData() + NextIndex);
 
 		PathBox += Cluster->GetPos(Current.Node);
+
+		if (bFilterOutMaxBounds) { if (PathBox.GetSize().Length() > Settings->MaxBoundsSize) { return false; } }
 
 		//if (Current->Neighbors.Num() <= 1) { break; }
 		if (Current.Neighbors.Num() == 1 && Settings->bDuplicateDeadEndPoints) { Path.Add(NextIndex); }
@@ -193,6 +199,19 @@ bool FPCGExFindContoursContext::TryFindContours(
 		if (!ClusterProcessor->RegisterBoxHash(HashCombineFast(GetTypeHash(PathBox.Min), GetTypeHash(PathBox.Max)))) { return false; }
 	}
 
+	if (Settings->OmitPathsByBounds != EPCGExOmitPathsByBounds::None)
+	{
+		if (Settings->OmitPathsByBounds == EPCGExOmitPathsByBounds::NearlyEqualClusterBounds)
+		{
+			if (PCGExCompare::NearlyEqual(PathBox.GetSize().Length(), ClusterProcessor->Cluster->Bounds.GetSize().Length(), Settings->BoundsSizeTolerance)) { return false; }
+		}
+		else if (Settings->OmitPathsByBounds == EPCGExOmitPathsByBounds::SizeCheck && Settings->bOmitBelowBoundsSize)
+		{
+			if (PathBox.GetSize().Length() < Settings->MinBoundsSize) { return false; }
+		}
+	}
+
+	PathIO->InitializeOutput(PCGExData::EIOInit::NewOutput);
 	PCGExGraph::CleanupClusterTags(PathIO, true);
 	PCGExGraph::CleanupVtxData(PathIO);
 
@@ -225,7 +244,29 @@ bool FPCGExFindContoursContext::TryFindContours(
 
 	PathDataFacade->Write(ClusterProcessor->GetAsyncManager());
 
-	if (Settings->bOutputFilteredSeeds) { ClusterProcessor->GetContext()->SeedQuality[SeedIndex] = true; }
+	if (Settings->bOutputFilteredSeeds)
+	{
+		ClusterProcessor->GetContext()->SeedQuality[SeedIndex] = true;
+		FPCGPoint SeedPoint = ClusterProcessor->GetContext()->SeedsDataFacade->Source->GetInPoint(SeedIndex);
+
+		FVector Placement = SeedPosition;
+		if (Settings->SeedPlacement == EPCGExGoodSeedPlacement::FirstPoint) { Placement = MutablePoints[0].Transform.GetLocation(); }
+		else if (Settings->SeedPlacement == EPCGExGoodSeedPlacement::Centroid) { Placement = PCGEx::GetPointsCentroid(MutablePoints); }
+		else if (Settings->SeedPlacement == EPCGExGoodSeedPlacement::PathBoundsCenter) { Placement = PathBox.GetCenter(); }
+
+		if (Settings->SeedBounds != EPCGExGoodSeedBounds::Original)
+		{
+			SeedPoint.Transform.SetScale3D(FVector::OneVector);
+
+			if (Settings->SeedBounds == EPCGExGoodSeedBounds::MatchPathResetQuat) { SeedPoint.Transform.SetRotation(FQuat::Identity); }
+
+			SeedPoint.BoundsMin = PathBox.Min - Placement;
+			SeedPoint.BoundsMax = PathBox.Max - Placement;
+		}
+
+		SeedPoint.Transform.SetLocation(Placement);
+		ClusterProcessor->GetContext()->UdpatedSeedPoints[SeedIndex] = SeedPoint;
+	}
 
 	return true;
 }
@@ -259,7 +300,9 @@ bool FPCGExFindContoursElement::Boot(FPCGExContext* InContext) const
 	if (Settings->bOutputFilteredSeeds)
 	{
 		const int32 NumSeeds = SeedsPoints->GetNum();
+
 		Context->SeedQuality.Init(false, NumSeeds);
+		PCGEx::InitArray(Context->UdpatedSeedPoints, NumSeeds);
 
 		Context->GoodSeeds = NewPointIO(SeedsPoints.ToSharedRef(), PCGExFindContours::OutputGoodSeedsLabel);
 		Context->GoodSeeds->InitializeOutput(PCGExData::EIOInit::NewOutput);
@@ -305,7 +348,7 @@ bool FPCGExFindContoursElement::ExecuteInternal(
 		TArray<FPCGPoint>& BadSeeds = Context->BadSeeds->GetOut()->GetMutablePoints();
 		for (int i = 0; i < Context->SeedQuality.Num(); i++)
 		{
-			if (Context->SeedQuality[i]) { GoodSeeds.Add(InSeeds[i]); }
+			if (Context->SeedQuality[i]) { GoodSeeds.Add(Context->UdpatedSeedPoints[i]); }
 			else { BadSeeds.Add(InSeeds[i]); }
 		}
 		Context->GoodSeeds->StageOutput();
@@ -359,14 +402,14 @@ namespace PCGExFindContours
 		{
 			for (int i = 0; i < Context->SeedsDataFacade->Source->GetNum(); i++)
 			{
-				Context->TryFindContours(Context->Paths->Emplace_GetRef<UPCGPointData>(VtxDataFacade->Source, PCGExData::EIOInit::NewOutput), i, SharedThis(this));
+				Context->TryFindContours(Context->Paths->Emplace_GetRef<UPCGPointData>(VtxDataFacade->Source, PCGExData::EIOInit::NoOutput), i, SharedThis(this));
 			}
 		}
 		else
 		{
 			for (int i = 0; i < Context->SeedsDataFacade->Source->GetNum(); i++)
 			{
-				AsyncManager->Start<FPCGExFindContourTask>(i, Context->Paths->Emplace_GetRef<UPCGPointData>(VtxDataFacade->Source, PCGExData::EIOInit::NewOutput), SharedThis(this));
+				AsyncManager->Start<FPCGExFindContourTask>(i, Context->Paths->Emplace_GetRef<UPCGPointData>(VtxDataFacade->Source, PCGExData::EIOInit::NoOutput), SharedThis(this));
 			}
 		}
 	}

@@ -237,6 +237,13 @@ namespace PCGEx
 		void RecursivelyClearAsyncFlag(UObject* InObject) const;
 	};
 
+	static FVector GetPointsCentroid(const TArray<FPCGPoint>& InPoints)
+	{
+		FVector Position = FVector::ZeroVector;
+		for (const FPCGPoint& Pt : InPoints) { Position += Pt.Transform.GetLocation(); }
+		return Position / static_cast<double>(InPoints.Num());
+	}
+
 #pragma region Metadata Type
 
 	template <typename T>

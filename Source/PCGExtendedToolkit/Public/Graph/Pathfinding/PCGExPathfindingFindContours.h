@@ -27,6 +27,31 @@ enum class EPCGExContourShapeTypeOutput : uint8
 	ConcaveOnly = 2 UMETA(DisplayName = "Concave Only", ToolTip="Output only concave paths")
 };
 
+UENUM(/*E--BlueprintType, meta=(DisplayName="[PCGEx] Contour Shape Type Output")--E*/)
+enum class EPCGExGoodSeedPlacement : uint8
+{
+	Original         = 0 UMETA(DisplayName = "Original", ToolTip="Seed position is unchanged"),
+	Centroid         = 1 UMETA(DisplayName = "Centroid", ToolTip="Place the seed at the centroid of the path"),
+	FirstPoint       = 2 UMETA(DisplayName = "First point", ToolTip="Place the seed at the first point of the path"),
+	PathBoundsCenter = 3 UMETA(DisplayName = "Path bounds center", ToolTip="Place the seed at the center of the path' bounds")
+};
+
+UENUM(/*E--BlueprintType, meta=(DisplayName="[PCGEx] Contour Shape Type Output")--E*/)
+enum class EPCGExGoodSeedBounds : uint8
+{
+	Original           = 0 UMETA(DisplayName = "Original", ToolTip="Seed bounds is unchanged"),
+	MatchPath          = 1 UMETA(DisplayName = "Match Path", ToolTip="Seed bounds match path bounds"),
+	MatchPathResetQuat = 1 UMETA(DisplayName = "Match Path (with rotation reset)", ToolTip="Seed bounds match path bounds, and rotation is reset"),
+};
+
+UENUM(/*E--BlueprintType, meta=(DisplayName="[PCGEx] Contour Shape Type Output")--E*/)
+enum class EPCGExOmitPathsByBounds : uint8
+{
+	None                     = 0 UMETA(DisplayName = "None", ToolTip="Seed position is unchanged"),
+	NearlyEqualClusterBounds = 1 UMETA(DisplayName = "Nearly Equal to Cluster", ToolTip="Remove path whose bounds are nearly equal to cluster's"),
+	SizeCheck                = 2 UMETA(DisplayName = "Size Check", ToolTip="Puts limits based on bounds' size length"),
+};
+
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Clusters")
 class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExFindContoursSettings : public UPCGExEdgesProcessorSettings
 {
@@ -80,6 +105,38 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta = (PCG_Overridable))
 	bool bOutputFilteredSeeds = false;
 
+	/** Change the good seed position */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta = (PCG_Overridable, EditCondition="bOutputFilteredSeeds", EditConditionHides))
+	EPCGExGoodSeedPlacement SeedPlacement = EPCGExGoodSeedPlacement::Centroid;
+
+	/** Change the good seed bounds */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta = (PCG_Overridable, EditCondition="bOutputFilteredSeeds", EditConditionHides))
+	EPCGExGoodSeedBounds SeedBounds = EPCGExGoodSeedBounds::MatchPath;
+
+	/** Change the good seed bounds */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta = (PCG_Overridable, EditCondition="bOutputFilteredSeeds", EditConditionHides))
+	EPCGExOmitPathsByBounds OmitPathsByBounds = EPCGExOmitPathsByBounds::None;
+
+	/** Size tolerance */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta = (PCG_Overridable, EditCondition="OmitPathsByBounds==EPCGExOmitPathsByBounds::NearlyEqualClusterBounds", EditConditionHides, ClampMin=0))
+	double BoundsSizeTolerance = 100;
+
+	/**  */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs|Bounds Limits", meta = (PCG_Overridable, EditCondition="OmitPathsByBounds==EPCGExOmitPathsByBounds::NearlyEqualClusterBounds", EditConditionHides))
+	bool bOmitBelowBoundsSize = false;
+
+	/** Paths with a point count below the specified threshold will be omitted */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs|Bounds Limits", meta = (PCG_Overridable, EditCondition="bOmitBelowBoundsSize && OmitPathsByBounds==EPCGExOmitPathsByBounds::NearlyEqualClusterBounds", EditConditionHides, ClampMin=0))
+	double MinBoundsSize = 3;
+
+	/**  */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs|Bounds Limits", meta = (PCG_Overridable, EditCondition="OmitPathsByBounds==EPCGExOmitPathsByBounds::NearlyEqualClusterBounds", EditConditionHides))
+	bool bOmitAboveBoundsSize = false;
+
+	/** Paths with a point count below the specified threshold will be omitted */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs|Bounds Limits", meta = (PCG_Overridable, EditCondition="bOmitAboveBoundsSize && OmitPathsByBounds==EPCGExOmitPathsByBounds::NearlyEqualClusterBounds", EditConditionHides, ClampMin=0))
+	double MaxBoundsSize = 500;
+	
 	/**  */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta = (PCG_Overridable, InlineEditConditionToggle))
 	bool bOmitBelowPointCount = false;
@@ -169,6 +226,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExFindContoursContext final : FPCGExEdgesP
 	TSharedPtr<PCGExData::FPointIO> BadSeeds;
 
 	TArray<int8> SeedQuality;
+	TArray<FPCGPoint> UdpatedSeedPoints;
 
 	FPCGExAttributeToTagDetails SeedAttributesToPathTags;
 	TSharedPtr<PCGExData::FDataForwardHandler> SeedForwardHandler;

@@ -44,7 +44,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExProbeConfigDirection : public FPCGExProb
 	EPCGExInputValueType DirectionInput = EPCGExInputValueType::Constant;
 
 	/** Constant direction */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ClampMin=0, EditCondition="DirectionInput==EPCGExInputValueType::Constant", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="DirectionInput==EPCGExInputValueType::Constant", EditConditionHides))
 	FVector DirectionConstant = FVector::ForwardVector;
 
 	/** Attribute to read the direction from */
