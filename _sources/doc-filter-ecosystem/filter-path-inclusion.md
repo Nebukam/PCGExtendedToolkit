@@ -33,7 +33,7 @@ The **Path Inclusion** filter checks the spatial relationship of a point against
 > Note that to simplify operations, this node create a temporary spline in memory from the input paths; althought it does not support custom tangents. Should you need custom tangents, use {% include lk id='Create Spline' %} with {% include lk id='🝖 Spline Inclusion' %} instead.
 {: .warning }
 
-{% include img a='details/filter-ecosystem/filter-path-inclusion-lead.png' %}
+{% include img a='details/filter-ecosystem/inclusion.png' %}
 
 # Properties
 <br>

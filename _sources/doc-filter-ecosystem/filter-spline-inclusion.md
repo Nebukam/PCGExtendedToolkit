@@ -30,7 +30,7 @@ outputs:
 The **Spline Inclusion** filter checks the spatial relationship of a point against input splines; i.e are they inside, outside, on, or a combination.
 {: .fs-5 .fw-400 } 
 
-{% include img a='details/filter-ecosystem/filter-spline-inclusion-lead.png' %}
+{% include img a='details/filter-ecosystem/inclusion.png' %}
 
 # Properties
 <br>

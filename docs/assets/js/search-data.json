@@ -4110,16 +4110,16 @@
     "relUrl": "/doc-paths/paths-smooth/#smoothing-modules"
   },"685": {
     "doc": "Smooth",
-    "title": "Radius",
-    "content": "Radius &amp; position-based sampling . ",
-    "url": "https://nebukam.github.io/PCGExtendedToolkit/doc-paths/paths-smooth/#radius",
-    "relUrl": "/doc-paths/paths-smooth/#radius"
-  },"686": {
-    "doc": "Smooth",
     "title": "Moving Average",
     "content": "Index-based moving-average sampling . ",
     "url": "https://nebukam.github.io/PCGExtendedToolkit/doc-paths/paths-smooth/#moving-average",
     "relUrl": "/doc-paths/paths-smooth/#moving-average"
+  },"686": {
+    "doc": "Smooth",
+    "title": "Radius",
+    "content": "Radius &amp; position-based sampling . ",
+    "url": "https://nebukam.github.io/PCGExtendedToolkit/doc-paths/paths-smooth/#radius",
+    "relUrl": "/doc-paths/paths-smooth/#radius"
   },"687": {
     "doc": "Smooth",
     "title": "Smooth",

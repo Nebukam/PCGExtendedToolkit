@@ -9,7 +9,7 @@ color: blue
 splash: icons/icon_path-smooth.svg
 tagged: 
     - pathsmoothing
-nav_order: 1
+nav_order: 2
 ---
 
 {% include header_card_node %}
