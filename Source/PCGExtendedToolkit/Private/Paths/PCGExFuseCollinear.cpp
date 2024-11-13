@@ -16,7 +16,7 @@ bool FPCGExFuseCollinearElement::Boot(FPCGExContext* InContext) const
 
 	PCGEX_CONTEXT_AND_SETTINGS(FuseCollinear)
 
-	Context->DotThreshold = Settings->bInvertThreshold ? PCGExMath::DegreesToDot(180 - Settings->Threshold) : PCGExMath::DegreesToDot(Settings->Threshold);
+	Context->DotThreshold = PCGExMath::DegreesToDot(Settings->Threshold);
 	Context->FuseDistSquared = Settings->FuseDistance * Settings->FuseDistance;
 
 	return true;
@@ -75,17 +75,18 @@ namespace PCGExFuseCollinear
 
 		if (!FPointsProcessor::Process(InAsyncManager)) { return false; }
 
+		Path = PCGExPaths::MakePath(
+			PointDataFacade->Source->GetIn()->GetPoints(), 0,
+			Context->ClosedLoop.IsClosedLoop(PointDataFacade->Source));
 
-		MaxIndex = PointDataFacade->GetNum() - 1;
 		PointDataFacade->Source->InitializeOutput(PCGExData::EIOInit::NewOutput);
 
 		const TArray<FPCGPoint>& InPoints = PointDataFacade->GetIn()->GetPoints();
 		OutPoints = &PointDataFacade->GetOut()->GetMutablePoints();
-		OutPoints->Reserve(MaxIndex + 1);
+		OutPoints->Reserve(Path->NumPoints);
 		OutPoints->Add(InPoints[0]);
 
-		LastPosition = InPoints[0].Transform.GetLocation();
-		CurrentDirection = (InPoints[1].Transform.GetLocation() - LastPosition).GetSafeNormal();
+		LastPosition = Path->GetPos(0);
 
 		bInlineProcessPoints = true;
 		StartParallelLoopForPoints(PCGExData::ESource::In);
@@ -101,28 +102,51 @@ namespace PCGExFuseCollinear
 
 	void FProcessor::ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const int32 LoopIdx, const int32 LoopCount)
 	{
-		if (Index == 0 || Index == MaxIndex) { return; }
+#define PCGEX_INSERT_CURRENT_POINT\
+		OutPoints->Add_GetRef(Point);\
+		LastPosition = Path->GetPos(Index);
 
-		const FVector CurrentPosition = Point.Transform.GetLocation();
-		const FVector NextPosition = PointDataFacade->Source->GetInPoint(Index + 1).Transform.GetLocation();
-		const FVector DirToNext = (NextPosition - CurrentPosition).GetSafeNormal();
+		if (PointFilterCache[Index])
+		{
+			// Kept point, as per filters
+			PCGEX_INSERT_CURRENT_POINT
+			return;
+		}
 
-		const double Dot = FVector::DotProduct(CurrentDirection, DirToNext);
-		const bool bWithinThreshold = Dot > Context->DotThreshold;
-		if (FVector::DistSquared(CurrentPosition, LastPosition) <= Context->FuseDistSquared || bWithinThreshold)
+		if (Index == 0) { return; }
+
+		if (Settings->bFuseCollocated && FVector::DistSquared(LastPosition, Path->GetPos(Index)) <= Context->FuseDistSquared)
+		{
+			// Collocated points
+			return;
+		}
+
+		const double Dot = FVector::DotProduct(Path->DirToPrevPoint(Index) * -1, Path->DirToNextPoint(Index));
+		if ((!Settings->bInvertThreshold && Dot > Context->DotThreshold) ||
+			(Settings->bInvertThreshold && Dot < Context->DotThreshold))
 		{
 			// Collinear with previous, keep moving
 			return;
 		}
 
-		OutPoints->Add_GetRef(Point);
-		CurrentDirection = DirToNext;
-		LastPosition = CurrentPosition;
+		PCGEX_INSERT_CURRENT_POINT
+
+#undef PCGEX_INSERT_CURRENT_POINT
 	}
 
 	void FProcessor::CompleteWork()
 	{
-		OutPoints->Add(PointDataFacade->Source->GetInPoint(MaxIndex));
+		if (Path->IsClosedLoop())
+		{
+
+				const double Dot = FVector::DotProduct(Path->DirToPrevPoint(0) * -1, Path->DirToNextPoint(0));
+				if ((!Settings->bInvertThreshold && Dot > Context->DotThreshold) ||
+					(Settings->bInvertThreshold && Dot < Context->DotThreshold))
+				{
+					OutPoints->RemoveAt(0);
+				}
+		}
+		
 		OutPoints->Shrink();
 	}
 }

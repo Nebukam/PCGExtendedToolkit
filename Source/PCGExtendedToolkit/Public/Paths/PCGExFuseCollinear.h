@@ -43,9 +43,13 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	bool bInvertThreshold = false;
 
+	/** If enabled, will consider collocated points as collinear */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	bool bFuseCollocated = true;
+
 	/** Distance used to consider point to be overlapping. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(ClampMin=0.001))
-	double FuseDistance = 0.01;
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(ClampMin=0.001, EditCondition="bFuseCollocated"))
+	double FuseDistance = 0.001;
 
 	//UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, InlineEditConditionToggle))
 	//bool bDoBlend = false;
@@ -81,19 +85,16 @@ namespace PCGExFuseCollinear
 {
 	class FProcessor final : public PCGExPointsMT::TPointsProcessor<FPCGExFuseCollinearContext, UPCGExFuseCollinearSettings>
 	{
-		bool bClosedLoop = false;
+		TSharedPtr<PCGExPaths::FPath> Path;
 
 		TArray<FPCGPoint>* OutPoints = nullptr;
-
 		FVector LastPosition = FVector::ZeroVector;
-		FVector CurrentDirection = FVector::ZeroVector;
-
-		int32 MaxIndex = 0;
 
 	public:
 		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade):
 			TPointsProcessor(InPointDataFacade)
 		{
+			DefaultPointFilterValue = false;
 		}
 
 		virtual ~FProcessor() override;
