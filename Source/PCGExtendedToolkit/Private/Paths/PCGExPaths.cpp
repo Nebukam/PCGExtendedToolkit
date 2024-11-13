@@ -166,5 +166,36 @@ void PCGExPaths::FPathEdgeAvgNormal::ProcessLastEdge(const FPath* Path, const FP
 
 #pragma endregion
 
+#pragma region FPathEdgeAngle
+
+void PCGExPaths::FPathEdgeAngle::ProcessFirstEdge(const FPath* Path, const FPathEdge& Edge)
+{
+	if (Path->IsClosedLoop())
+	{
+		ProcessEdge(Path, Edge);
+		return;
+	}
+
+	GetMutable(Edge.Start) = PI;
+}
+
+void PCGExPaths::FPathEdgeAngle::ProcessEdge(const FPath* Path, const FPathEdge& Edge)
+{
+	GetMutable(Edge.Start) = FMath::Acos(FVector::DotProduct(Path->DirToPrevPoint(Edge.Start) * -1, Edge.Dir));
+}
+
+void PCGExPaths::FPathEdgeAngle::ProcessLastEdge(const FPath* Path, const FPathEdge& Edge)
+{
+	if (Path->IsClosedLoop())
+	{
+		ProcessEdge(Path, Edge);
+		return;
+	}
+
+	GetMutable(Edge.Start) = PI;
+}
+
+#pragma endregion
+
 #undef LOCTEXT_NAMESPACE
 #undef PCGEX_NAMESPACE

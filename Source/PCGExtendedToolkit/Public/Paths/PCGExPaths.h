@@ -722,6 +722,21 @@ namespace PCGExPaths
 		virtual void ProcessLastEdge(const FPath* Path, const FPathEdge& Edge) override;
 	};
 
+	class FPathEdgeAngle : public TPathEdgeExtra<double>
+	{
+		FVector Up = FVector::UpVector;
+		
+	public:
+		explicit FPathEdgeAngle(const int32 InNumSegments, const bool InClosedLoop, const FVector& InUp = FVector::UpVector)
+			: TPathEdgeExtra(InNumSegments, InClosedLoop), Up(InUp)
+		{
+		}
+
+		virtual void ProcessFirstEdge(const FPath* Path, const FPathEdge& Edge) override;
+		virtual void ProcessEdge(const FPath* Path, const FPathEdge& Edge) override;
+		virtual void ProcessLastEdge(const FPath* Path, const FPathEdge& Edge) override;
+	};
+
 	static TSharedPtr<FPath> MakePath(const TArray<FPCGPoint>& InPoints, const double Expansion, const bool bClosedLoop)
 	{
 		if (bClosedLoop)

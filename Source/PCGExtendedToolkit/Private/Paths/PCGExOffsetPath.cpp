@@ -72,14 +72,19 @@ namespace PCGExOffsetPath
 
 		const TArray<FPCGPoint>& InPoints = PointDataFacade->GetIn()->GetPoints();
 
+		Up = Settings->UpVectorConstant.GetSafeNormal();
+		OffsetConstant = Settings->OffsetConstant;
+
 		Positions.SetNumUninitialized(InPoints.Num());
 		for (int i = 0; i < InPoints.Num(); i++) { Positions[i] = InPoints[i].Transform.GetLocation(); }
 
 		ToleranceSquared = Settings->IntersectionTolerance * Settings->IntersectionTolerance;
 		Path = PCGExPaths::MakePath(Positions, 0, Context->ClosedLoop.IsClosedLoop(PointDataFacade->Source));
 
-		Up = Settings->UpVectorConstant.GetSafeNormal();
-		OffsetConstant = Settings->OffsetConstant;
+		if (Settings->Adjustment != EPCGExOffsetAdjustment::None)
+		{
+			PathAngles = Path->AddExtra<PCGExPaths::FPathEdgeAngle>(false, Up);
+		}
 
 		if (Settings->OffsetInput == EPCGExInputValueType::Attribute)
 		{
@@ -131,7 +136,26 @@ namespace PCGExOffsetPath
 		Path->ComputeEdgeExtra(EdgeIndex);
 
 		const FVector Dir = (OffsetDirection ? OffsetDirection->Get(EdgeIndex) : DirectionGetter->Read(Index)) * DirectionFactor;
-		Positions[Index] = Path->GetPos(Index) + (Dir * (OffsetGetter ? OffsetGetter->Read(Index) : OffsetConstant));
+		double Offset = (OffsetGetter ? OffsetGetter->Read(Index) : OffsetConstant);
+
+		if (PathAngles)
+		{
+			if (Settings->Adjustment == EPCGExOffsetAdjustment::SmoothUp)
+			{
+				Offset *= FMath::Clamp(1 - PathAngles->Get(EdgeIndex) / PI, 0, 1);
+			}
+			else if (Settings->Adjustment == EPCGExOffsetAdjustment::SmoothDown)
+			{
+				Offset *= FMath::Clamp(PathAngles->Get(EdgeIndex) / PI, 0.5, 1);
+			}
+			else if (Settings->Adjustment == EPCGExOffsetAdjustment::Mitre)
+			{
+				double MitreLength = Offset / FMath::Sin(PathAngles->Get(EdgeIndex) / 2);
+				if (MitreLength > Settings->MitreLimit * Offset) { Offset *= Settings->MitreLimit; } // Should bevel :(
+			}
+		}
+
+		Positions[Index] = Path->GetPos(Index) + (Dir * Offset);
 
 		if (!Settings->bCleanupPath) { Point.Transform.SetLocation(Positions[Index]); }
 	}

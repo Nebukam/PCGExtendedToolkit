@@ -41,7 +41,7 @@ enum class EPCGExGoodSeedBounds : uint8
 {
 	Original           = 0 UMETA(DisplayName = "Original", ToolTip="Seed bounds is unchanged"),
 	MatchPath          = 1 UMETA(DisplayName = "Match Path", ToolTip="Seed bounds match path bounds"),
-	MatchPathResetQuat = 1 UMETA(DisplayName = "Match Path (with rotation reset)", ToolTip="Seed bounds match path bounds, and rotation is reset"),
+	MatchPathResetQuat = 2 UMETA(DisplayName = "Match Path (with rotation reset)", ToolTip="Seed bounds match path bounds, and rotation is reset"),
 };
 
 UENUM(/*E--BlueprintType, meta=(DisplayName="[PCGEx] Contour Shape Type Output")--E*/)
