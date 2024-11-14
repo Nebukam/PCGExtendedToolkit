@@ -182,6 +182,7 @@ namespace PCGExCluster
 		FORCEINLINE FNode* GetEdgeStart(const int32 InEdgeIndex) const { return (Nodes->GetData() + NodeIndexLookup->Get((Edges->GetData() + InEdgeIndex)->Start)); }
 		FORCEINLINE FNode* GetEdgeEnd(const PCGExGraph::FIndexedEdge& InEdge) const { return (Nodes->GetData() + NodeIndexLookup->Get(InEdge.End)); }
 		FORCEINLINE FNode* GetEdgeEnd(const int32 InEdgeIndex) const { return (Nodes->GetData() + NodeIndexLookup->Get((Edges->GetData() + InEdgeIndex)->End)); }
+		FORCEINLINE FNode* GetEdgeOtherNode(const int32 InEdgeIndex, const int32 InNodeIndex) const { return (Nodes->GetData() + NodeIndexLookup->Get((Edges->GetData() + InEdgeIndex)->Other((Nodes->GetData() + InNodeIndex)->PointIndex))); }
 
 		FORCEINLINE FVector GetStartPos(const PCGExGraph::FIndexedEdge& InEdge) const { return *(NodePositions.GetData() + NodeIndexLookup->Get(InEdge.Start)); }
 		FORCEINLINE FVector GetStartPos(const int32 InEdgeIndex) const { return GetStartPos(*(Edges->GetData() + InEdgeIndex)); }
@@ -389,6 +390,9 @@ namespace PCGExCluster
 		}
 
 		~FExpandedNode() = default;
+
+		operator int32() const { return Node->NodeIndex; }
+		
 	};
 
 	struct /*PCGEXTENDEDTOOLKIT_API*/ FExpandedEdge

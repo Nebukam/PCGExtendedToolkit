@@ -6,9 +6,9 @@
 #include "CoreMinimal.h"
 #include "Data/PCGExDataForward.h"
 
-
 #include "Geometry/PCGExGeo.h"
 #include "Graph/PCGExEdgesProcessor.h"
+#include "Topology/PCGExTopology.h"
 
 #include "PCGExPathfindingFindContours.generated.h"
 
@@ -33,7 +33,8 @@ enum class EPCGExGoodSeedPlacement : uint8
 	Original         = 0 UMETA(DisplayName = "Original", ToolTip="Seed position is unchanged"),
 	Centroid         = 1 UMETA(DisplayName = "Centroid", ToolTip="Place the seed at the centroid of the path"),
 	FirstPoint       = 2 UMETA(DisplayName = "First point", ToolTip="Place the seed at the first point of the path"),
-	PathBoundsCenter = 3 UMETA(DisplayName = "Path bounds center", ToolTip="Place the seed at the center of the path' bounds")
+	PathBoundsCenter = 3 UMETA(DisplayName = "Path bounds center", ToolTip="Place the seed at the center of the path' bounds"),
+	StartNode        = 4 UMETA(DisplayName = "Start Node", ToolTip="Place the seed on the position of the node that started the path.")
 };
 
 UENUM(/*E--BlueprintType, meta=(DisplayName="[PCGEx] Contour Shape Type Output")--E*/)
@@ -136,7 +137,7 @@ public:
 	/** Paths with a point count below the specified threshold will be omitted */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs|Bounds Limits", meta = (PCG_Overridable, EditCondition="bOmitAboveBoundsSize && OmitPathsByBounds==EPCGExOmitPathsByBounds::NearlyEqualClusterBounds", EditConditionHides, ClampMin=0))
 	double MaxBoundsSize = 500;
-	
+
 	/**  */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta = (PCG_Overridable, InlineEditConditionToggle))
 	bool bOmitBelowPointCount = false;
@@ -231,7 +232,11 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExFindContoursContext final : FPCGExEdgesP
 	FPCGExAttributeToTagDetails SeedAttributesToPathTags;
 	TSharedPtr<PCGExData::FDataForwardHandler> SeedForwardHandler;
 
-	bool TryFindContours(const TSharedPtr<PCGExData::FPointIO>& PathIO, const int32 SeedIndex, TSharedPtr<PCGExFindContours::FProcessor> ClusterProcessor);
+	bool TryFindContours(
+		const TSharedPtr<PCGExData::FPointIO>& PathIO,
+		const int32 SeedIndex,
+		const FVector& ProjectedSeedPosition,
+		TSharedPtr<PCGExFindContours::FProcessor> ClusterProcessor);
 };
 
 class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExFindContoursElement final : public FPCGExEdgesProcessorElement
@@ -254,18 +259,14 @@ namespace PCGExFindContours
 		friend struct FPCGExFindContoursContext;
 		friend class FBatch;
 
-		mutable FRWLock UniquePathsBoxHashLock;
-		mutable FRWLock UniquePathsStartHashLock;
-		TSet<uint32> UniquePathsBoxHash;
-		TSet<uint64> UniquePathsStartHash;
-
 	protected:
 		bool bBuildExpandedNodes = false;
 
 	public:
+		TSharedPtr<PCGExTopology::FCellConstraints> TopologyConstraints;
+
 		TArray<FVector>* ProjectedPositions = nullptr;
 		TSharedPtr<TArray<PCGExCluster::FExpandedNode>> ExpandedNodes;
-		TSharedPtr<TArray<PCGExCluster::FExpandedEdge>> ExpandedEdges;
 
 		FProcessor(const TSharedRef<PCGExData::FFacade>& InVtxDataFacade, const TSharedRef<PCGExData::FFacade>& InEdgeDataFacade):
 			TProcessor(InVtxDataFacade, InEdgeDataFacade)
@@ -277,9 +278,6 @@ namespace PCGExFindContours
 		virtual bool Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager) override;
 		virtual void ProcessSingleRangeIteration(int32 Iteration, const int32 LoopIdx, const int32 Count) override;
 		virtual void CompleteWork() override;
-
-		bool RegisterStartHash(const uint64 Hash);
-		bool RegisterBoxHash(const uint64 Hash);
 	};
 
 	class FBatch final : public PCGExClusterMT::TBatch<FProcessor>
@@ -298,21 +296,6 @@ namespace PCGExFindContours
 
 		virtual void Process() override;
 		virtual bool PrepareSingle(const TSharedPtr<FProcessor>& ClusterProcessor) override;
-	};
-
-	class FProjectRangeTask final : public PCGExMT::FPCGExTask
-	{
-	public:
-		FProjectRangeTask(const TSharedPtr<PCGExData::FPointIO>& InPointIO,
-		                  const TSharedPtr<FBatch>& InBatch):
-			FPCGExTask(InPointIO),
-			Batch(InBatch)
-		{
-		}
-
-		TSharedPtr<FBatch> Batch;
-		int32 NumIterations = 0;
-		virtual bool ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager) override;
 	};
 
 	class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExFindContourTask final : public PCGExMT::FPCGExTask

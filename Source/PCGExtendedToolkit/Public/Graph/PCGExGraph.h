@@ -139,6 +139,9 @@ namespace PCGExGraph
 	const FName OutputHeuristicsLabel = TEXT("Heuristics");
 	const FName OutputModifiersLabel = TEXT("Modifiers");
 
+	const FName SourceVtxFiltersLabel = FName("VtxFilters");
+	const FName SourceEdgeFiltersLabel = FName("EdgeFilters");
+
 	PCGEX_ASYNC_STATE(State_PreparingUnion)
 	PCGEX_ASYNC_STATE(State_ProcessingUnion)
 
@@ -683,7 +686,7 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 			Graph->bRefreshEdgeSeed = OutputDetails->bRefreshEdgeSeed;
 
 			EdgesIO = MakeShared<PCGExData::FPointIOCollection>(NodeDataFacade->Source->GetContext());
-			EdgesIO->DefaultOutputLabel = OutputEdgesLabel;
+			EdgesIO->OutputPin = OutputEdgesLabel;
 		}
 
 		const FGraphMetadataDetails* GetMetadataDetails() const { return MetadataDetailsPtr; }

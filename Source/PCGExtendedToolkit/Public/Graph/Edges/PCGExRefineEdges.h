@@ -15,8 +15,6 @@
 
 namespace PCGExRefineEdges
 {
-	const FName SourceVtxFilters = FName("VtxFilters");
-	const FName SourceEdgeFilters = FName("EdgeFilters");
 	const FName SourceSanitizeEdgeFilters = FName("SanitizeFilters");
 }
 

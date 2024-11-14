@@ -147,6 +147,8 @@ public:
 	UPROPERTY(EditAnywhere, config, Category = "Node Colors")
 	FLinearColor NodeColorSamplerNeighbor = FLinearColor(0.447917, 0.000000, 0.065891, 1.000000);
 
+	UPROPERTY(EditAnywhere, config, Category = "Node Colors")
+	FLinearColor NodeColorTopology = FLinearColor(0.447917, 0.000000, 0.065891, 1.000000);
 
 	UPROPERTY(EditAnywhere, config, Category = "Node Colors")
 	FLinearColor NodeColorClusterGen = FLinearColor(0.000000, 0.318537, 1.000000, 1.000000);

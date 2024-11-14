@@ -42,7 +42,7 @@ protected:
 
 	//~Begin UPCGExPointsProcessorSettings
 public:
-	virtual FName GetMainOutputLabel() const override { return PCGExGraph::OutputVerticesLabel; }
+	virtual FName GetMainOutputPin() const override { return PCGExGraph::OutputVerticesLabel; }
 	virtual PCGExData::EIOInit GetMainOutputInitMode() const override;
 	//~End UPCGExPointsProcessorSettings
 

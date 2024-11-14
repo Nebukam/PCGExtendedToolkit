@@ -18,7 +18,7 @@ TArray<FPCGPinProperties> UPCGExRefineEdgesSettings::InputPinProperties() const
 	if (Refinement && Refinement->SupportFilters())
 	{
 		//PCGEX_PIN_PARAMS(PCGExRefineEdges::SourceVtxFilters, "Filters used to check if a vtx should be processed.", Normal, {})
-		PCGEX_PIN_PARAMS(PCGExRefineEdges::SourceEdgeFilters, "Refinements filters.", Normal, {})
+		PCGEX_PIN_PARAMS(PCGExGraph::SourceEdgeFiltersLabel, "Refinements filters.", Normal, {})
 	}
 
 	if (Sanitization == EPCGExRefineSanitization::Filters)
@@ -70,7 +70,7 @@ bool FPCGExRefineEdgesElement::Boot(FPCGExContext* InContext) const
 	if (Context->Refinement->SupportFilters())
 	{
 		//GetInputFactories(Context, PCGExRefineEdges::SourceVtxFilters, Context->VtxFilterFactories, PCGExFactories::ClusterNodeFilters, false);
-		GetInputFactories(Context, PCGExRefineEdges::SourceEdgeFilters, Context->EdgeFilterFactories, PCGExFactories::ClusterEdgeFilters, false);
+		GetInputFactories(Context, PCGExGraph::SourceEdgeFiltersLabel, Context->EdgeFilterFactories, PCGExFactories::ClusterEdgeFilters, false);
 	}
 
 	if (Settings->Sanitization == EPCGExRefineSanitization::Filters)
@@ -84,10 +84,10 @@ bool FPCGExRefineEdgesElement::Boot(FPCGExContext* InContext) const
 	if (Settings->bOutputEdgesOnly)
 	{
 		Context->KeptEdges = MakeShared<PCGExData::FPointIOCollection>(Context);
-		Context->KeptEdges->DefaultOutputLabel = PCGExGraph::OutputKeptEdgesLabel;
+		Context->KeptEdges->OutputPin = PCGExGraph::OutputKeptEdgesLabel;
 
 		Context->RemovedEdges = MakeShared<PCGExData::FPointIOCollection>(Context);
-		Context->RemovedEdges->DefaultOutputLabel = PCGExGraph::OutputRemovedEdgesLabel;
+		Context->RemovedEdges->OutputPin = PCGExGraph::OutputRemovedEdgesLabel;
 
 		int32 NumEdgesInputs = Context->MainEdges->Num();
 		Context->KeptEdges->Pairs.Reserve(NumEdgesInputs);

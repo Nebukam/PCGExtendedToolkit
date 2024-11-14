@@ -221,7 +221,7 @@ protected:
 	//~End UPCGSettings
 
 public:
-	virtual FName GetMainOutputLabel() const override { return PCGExVtxProperty::OutputPropertyLabel; }
+	virtual FName GetMainOutputPin() const override { return PCGExVtxProperty::OutputPropertyLabel; }
 	virtual UPCGExParamFactoryBase* CreateFactory(FPCGExContext* InContext, UPCGExParamFactoryBase* InFactory) const override;
 
 #if WITH_EDITOR

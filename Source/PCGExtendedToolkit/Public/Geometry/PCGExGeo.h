@@ -431,6 +431,19 @@ namespace PCGExGeo
 		return FVector(U, V, W);
 	}
 
+	static bool IsPointInTriangle(const FVector& P, const FVector& A, const FVector& B, const FVector& C)
+	{
+		const FVector AB = B - A;
+		const FVector AC = C - A;
+		const FVector AP = P - A;
+
+		const double ABxAC = FVector::CrossProduct(AB, AC).Z;
+		const double ABxAP = FVector::CrossProduct(AB, AP).Z;
+		const double ACxAP = FVector::CrossProduct(AC, AP).Z;
+
+		return (ABxAC > 0 ? (ABxAP >= 0 && ACxAP <= 0) : (ABxAP <= 0 && ACxAP >= 0));
+	}
+
 	/**
 		 *	 Leave <---.Apex-----> Arrive (Direction)
 		 *		   . '   |    '  .  

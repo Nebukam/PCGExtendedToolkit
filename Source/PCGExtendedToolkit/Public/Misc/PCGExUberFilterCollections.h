@@ -46,7 +46,7 @@ protected:
 
 	//~Begin UPCGExPointsProcessorSettings
 public:
-	virtual FName GetMainOutputLabel() const override;
+	virtual FName GetMainOutputPin() const override;
 	virtual PCGExData::EIOInit GetMainOutputInitMode() const override;
 	PCGEX_NODE_POINT_FILTER(PCGExPointFilter::SourceFiltersLabel, "Filters", PCGExFactories::PointFilters, true)
 	//~End UPCGExPointsProcessorSettings

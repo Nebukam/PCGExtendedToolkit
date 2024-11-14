@@ -10,10 +10,10 @@
 TArray<FPCGPinProperties> UPCGExFindClustersDataSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties;
-	PCGEX_PIN_ANY(GetMainInputLabel(), "The point data to be processed.", Required, {})
+	PCGEX_PIN_ANY(GetMainInputPin(), "The point data to be processed.", Required, {})
 	if (SearchMode != EPCGExClusterDataSearchMode::All)
 	{
-		PCGEX_PIN_POINT(GetSearchOutputLabel(), "The search data to match against.", Required, {})
+		PCGEX_PIN_POINT(GetSearchOutputPin(), "The search data to match against.", Required, {})
 	}
 	return PinProperties;
 }
@@ -36,12 +36,12 @@ bool FPCGExFindClustersDataElement::Boot(FPCGExContext* InContext) const
 	PCGEX_CONTEXT_AND_SETTINGS(FindClustersData)
 
 	Context->MainEdges = MakeShared<PCGExData::FPointIOCollection>(Context);
-	Context->MainEdges->DefaultOutputLabel = PCGExGraph::OutputEdgesLabel;
+	Context->MainEdges->OutputPin = PCGExGraph::OutputEdgesLabel;
 
 
 	if (Settings->SearchMode != EPCGExClusterDataSearchMode::All)
 	{
-		Context->SearchKeyIO = PCGExData::TryGetSingleInput(Context, Settings->GetSearchOutputLabel(), true);
+		Context->SearchKeyIO = PCGExData::TryGetSingleInput(Context, Settings->GetSearchOutputPin(), true);
 		if (!Context->SearchKeyIO)
 		{
 			PCGE_LOG_C(Error, GraphAndLog, InContext, FTEXT("Invalid reference input."));
@@ -238,13 +238,13 @@ bool FPCGExFindClustersDataElement::ExecuteInternal(FPCGContext* InContext) cons
 		if (EdgesEntries)
 		{
 			Vtx->InitializeOutput(PCGExData::EIOInit::Forward);
-			Vtx->DefaultOutputLabel = PCGExGraph::OutputVerticesLabel;
+			Vtx->OutputPin = PCGExGraph::OutputVerticesLabel;
 
 			for (TSharedPtr<PCGExData::FPointIO> ValidEdges : EdgesEntries->Entries)
 			{
 				Context->MainPoints->Pairs.Remove(ValidEdges);
 				Context->MainEdges->Pairs.Add(ValidEdges);
-				ValidEdges->DefaultOutputLabel = PCGExGraph::OutputEdgesLabel;
+				ValidEdges->OutputPin = PCGExGraph::OutputEdgesLabel;
 
 				ValidEdges->InitializeOutput(PCGExData::EIOInit::Forward);
 			}

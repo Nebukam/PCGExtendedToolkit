@@ -72,7 +72,7 @@ bool FPCGExPathfindingNavmeshElement::Boot(FPCGExContext* InContext) const
 	Context->FuseDistance = Settings->FuseDistance;
 
 	Context->OutputPaths = MakeShared<PCGExData::FPointIOCollection>(Context);
-	Context->OutputPaths->DefaultOutputLabel = PCGExGraph::OutputPathsLabel;
+	Context->OutputPaths->OutputPin = PCGExGraph::OutputPathsLabel;
 
 	// Prepare path queries
 

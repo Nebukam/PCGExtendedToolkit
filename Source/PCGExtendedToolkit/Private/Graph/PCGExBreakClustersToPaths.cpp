@@ -29,7 +29,7 @@ bool FPCGExBreakClustersToPathsElement::Boot(FPCGExContext* InContext) const
 	PCGEX_CONTEXT_AND_SETTINGS(BreakClustersToPaths)
 
 	Context->Paths = MakeShared<PCGExData::FPointIOCollection>(Context);
-	Context->Paths->DefaultOutputLabel = PCGExGraph::OutputPathsLabel;
+	Context->Paths->OutputPin = PCGExGraph::OutputPathsLabel;
 
 	return true;
 }

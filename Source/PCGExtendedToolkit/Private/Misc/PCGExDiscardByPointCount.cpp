@@ -8,7 +8,14 @@
 #define LOCTEXT_NAMESPACE "PCGExDiscardByPointCountElement"
 #define PCGEX_NAMESPACE DiscardByPointCount
 
-PCGExData::EIOInit UPCGExDiscardByPointCountSettings::GetMainOutputInitMode() const { return PCGExData::EIOInit::NoOutput; }
+PCGExData::EIOInit UPCGExDiscardByPointCountSettings::GetMainOutputInitMode() const { return PCGExData::EIOInit::Forward; }
+
+TArray<FPCGPinProperties> UPCGExDiscardByPointCountSettings::OutputPinProperties() const
+{
+	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
+	PCGEX_PIN_PARAMS(PCGExDiscardByPointCount::OutputDiscardedLabel, "Discarded outputs.", Normal, {})
+	return PinProperties;
+}
 
 FPCGElementPtr UPCGExDiscardByPointCountSettings::CreateElement() const { return MakeShared<FPCGExDiscardByPointCountElement>(); }
 
@@ -18,9 +25,9 @@ bool FPCGExDiscardByPointCountElement::Boot(FPCGExContext* InContext) const
 	PCGEX_SETTINGS(PointsProcessor)
 
 	Context->MainPoints = MakeShared<PCGExData::FPointIOCollection>(Context);
-	Context->MainPoints->DefaultOutputLabel = Settings->GetMainOutputLabel();
+	Context->MainPoints->OutputPin = Settings->GetMainOutputPin();
 
-	TArray<FPCGTaggedData> Sources = Context->InputData.GetInputsByPin(Settings->GetMainInputLabel());
+	TArray<FPCGTaggedData> Sources = Context->InputData.GetInputsByPin(Settings->GetMainInputPin());
 	Context->MainPoints->Initialize(Sources, Settings->GetMainOutputInitMode());
 
 	return true;
@@ -39,8 +46,11 @@ bool FPCGExDiscardByPointCountElement::ExecuteInternal(FPCGContext* InContext) c
 
 		for (const TSharedPtr<PCGExData::FPointIO>& PointIO : Context->MainPoints->Pairs)
 		{
-			if (!FMath::IsWithin(PointIO->GetNum(), Min, Max)) { continue; }
-			PointIO->InitializeOutput(PCGExData::EIOInit::Forward);
+			PointIO->bAllowEmptyOutput = Settings->bAllowEmptyOutputs;
+			if (!FMath::IsWithin(PointIO->GetNum(), Min, Max))
+			{
+				PointIO->OutputPin = PCGExDiscardByPointCount::OutputDiscardedLabel;
+			}
 		}
 
 		Context->MainPoints->StageOutputs();

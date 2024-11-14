@@ -32,13 +32,13 @@ bool FPCGExMetaFilterElement::Boot(FPCGExContext* InContext) const
 	Context->Inside = MakeShared<PCGExData::FPointIOCollection>(Context);
 	Context->Outside = MakeShared<PCGExData::FPointIOCollection>(Context);
 
-	Context->Inside->DefaultOutputLabel = PCGExPointFilter::OutputInsideFiltersLabel;
-	Context->Outside->DefaultOutputLabel = PCGExPointFilter::OutputOutsideFiltersLabel;
+	Context->Inside->OutputPin = PCGExPointFilter::OutputInsideFiltersLabel;
+	Context->Outside->OutputPin = PCGExPointFilter::OutputOutsideFiltersLabel;
 
 	if (Settings->bSwap)
 	{
-		Context->Inside->DefaultOutputLabel = PCGExPointFilter::OutputOutsideFiltersLabel;
-		Context->Outside->DefaultOutputLabel = PCGExPointFilter::OutputInsideFiltersLabel;
+		Context->Inside->OutputPin = PCGExPointFilter::OutputOutsideFiltersLabel;
+		Context->Outside->OutputPin = PCGExPointFilter::OutputInsideFiltersLabel;
 	}
 
 	return true;

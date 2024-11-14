@@ -34,7 +34,7 @@ protected:
 	//~End UPCGSettings
 
 public:
-	virtual FName GetPointFilterLabel() const override;
+	virtual FName GetPointFilterPin() const override;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	FName ArriveName = "ArriveTangent";

@@ -39,7 +39,7 @@ bool FPCGExBuildVoronoiGraph2DElement::Boot(FPCGExContext* InContext) const
 		if (!Settings->bPruneOpenSites) { PCGEX_VALIDATE_NAME(Settings->OpenSiteFlag) }
 
 		Context->SitesOutput = MakeShared<PCGExData::FPointIOCollection>(Context);
-		Context->SitesOutput->DefaultOutputLabel = PCGExGraph::OutputSitesLabel;
+		Context->SitesOutput->OutputPin = PCGExGraph::OutputSitesLabel;
 
 		for (TSharedPtr<PCGExData::FPointIO> IO : Context->MainPoints->Pairs)
 		{

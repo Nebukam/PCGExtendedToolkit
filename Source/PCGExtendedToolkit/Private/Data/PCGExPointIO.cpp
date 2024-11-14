@@ -14,11 +14,11 @@ namespace PCGExData
 
 	void FPointIO::SetInfos(
 		const int32 InIndex,
-		const FName InDefaultOutputLabel,
+		const FName InOutputPin,
 		const TSet<FString>* InTags)
 	{
 		IOIndex = InIndex;
-		DefaultOutputLabel = InDefaultOutputLabel;
+		OutputPin = InOutputPin;
 		NumInPoints = In ? In->GetPoints().Num() : 0;
 
 		if (InTags) { Tags = MakeShared<FTags>(*InTags); }
@@ -152,7 +152,7 @@ namespace PCGExData
 	{
 		if (!bEnabled || !Out || (!bAllowEmptyOutput && Out->GetPoints().IsEmpty())) { return false; }
 
-		Context->StageOutput(DefaultOutputLabel, Out, Tags->ToSet(), Out != In, bMutable);
+		Context->StageOutput(OutputPin, Out, Tags->ToSet(), Out != In, bMutable);
 		return true;
 	}
 
@@ -235,7 +235,7 @@ namespace PCGExData
 	{
 		FWriteScopeLock WriteLock(PairsLock);
 		TSharedPtr<FPointIO> NewIO = Pairs.Add_GetRef(MakeShared<FPointIO>(Context, In));
-		NewIO->SetInfos(Pairs.Num() - 1, DefaultOutputLabel, Tags);
+		NewIO->SetInfos(Pairs.Num() - 1, OutputPin, Tags);
 		NewIO->InitializeOutput(InitOut);
 		return NewIO;
 	}
@@ -244,7 +244,7 @@ namespace PCGExData
 	{
 		FWriteScopeLock WriteLock(PairsLock);
 		TSharedPtr<FPointIO> NewIO = Pairs.Add_GetRef(MakeShared<FPointIO>(Context));
-		NewIO->SetInfos(Pairs.Num() - 1, DefaultOutputLabel);
+		NewIO->SetInfos(Pairs.Num() - 1, OutputPin);
 		NewIO->InitializeOutput(InitOut);
 		return NewIO;
 	}
@@ -261,13 +261,13 @@ namespace PCGExData
 	{
 		check(!Pairs[Index]) // should be an empty spot
 		Pairs[Index] = PointIO;
-		PointIO->SetInfos(Index, DefaultOutputLabel);
+		PointIO->SetInfos(Index, OutputPin);
 		return PointIO;
 	}
 
 	TSharedPtr<FPointIO> FPointIOCollection::AddUnsafe(const TSharedPtr<FPointIO>& PointIO)
 	{
-		PointIO->SetInfos(Pairs.Add(PointIO), DefaultOutputLabel);
+		PointIO->SetInfos(Pairs.Add(PointIO), OutputPin);
 		return PointIO;
 	}
 

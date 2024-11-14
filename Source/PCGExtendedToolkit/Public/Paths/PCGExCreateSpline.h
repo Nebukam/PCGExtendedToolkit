@@ -42,7 +42,7 @@ protected:
 
 	//~Begin UPCGExPointsProcessorSettings
 public:
-	virtual FName GetMainOutputLabel() const override { return FName(TEXT("Splines")); }
+	virtual FName GetMainOutputPin() const override { return FName(TEXT("Splines")); }
 	virtual PCGExData::EIOInit GetMainOutputInitMode() const override;
 	//~End UPCGExPointsProcessorSettings
 

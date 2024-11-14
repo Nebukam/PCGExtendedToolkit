@@ -32,7 +32,7 @@ protected:
 	virtual TArray<FPCGPinProperties> InputPinProperties() const override;
 
 public:
-	virtual FName GetMainOutputLabel() const override { return PCGExPointFilter::OutputFilterLabel; }
+	virtual FName GetMainOutputPin() const override { return PCGExPointFilter::OutputFilterLabel; }
 	virtual UPCGExParamFactoryBase* CreateFactory(FPCGExContext* InContext, UPCGExParamFactoryBase* InFactory) const override;
 
 #if WITH_EDITOR

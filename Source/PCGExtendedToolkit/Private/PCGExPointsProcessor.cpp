@@ -20,14 +20,14 @@ TArray<FPCGPinProperties> UPCGExPointsProcessorSettings::InputPinProperties() co
 
 	if (!IsInputless())
 	{
-		if (GetMainAcceptMultipleData()) { PCGEX_PIN_POINTS(GetMainInputLabel(), "The point data to be processed.", Required, {}) }
-		else { PCGEX_PIN_POINT(GetMainInputLabel(), "The point data to be processed.", Required, {}) }
+		if (GetMainAcceptMultipleData()) { PCGEX_PIN_POINTS(GetMainInputPin(), "The point data to be processed.", Required, {}) }
+		else { PCGEX_PIN_POINT(GetMainInputPin(), "The point data to be processed.", Required, {}) }
 	}
 
 	if (SupportsPointFilters())
 	{
-		if (RequiresPointFilters()) { PCGEX_PIN_PARAMS(GetPointFilterLabel(), GetPointFilterTooltip(), Required, {}) }
-		else { PCGEX_PIN_PARAMS(GetPointFilterLabel(), GetPointFilterTooltip(), Normal, {}) }
+		if (RequiresPointFilters()) { PCGEX_PIN_PARAMS(GetPointFilterPin(), GetPointFilterTooltip(), Required, {}) }
+		else { PCGEX_PIN_PARAMS(GetPointFilterPin(), GetPointFilterTooltip(), Normal, {}) }
 	}
 
 	return PinProperties;
@@ -37,7 +37,7 @@ TArray<FPCGPinProperties> UPCGExPointsProcessorSettings::InputPinProperties() co
 TArray<FPCGPinProperties> UPCGExPointsProcessorSettings::OutputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties;
-	PCGEX_PIN_POINTS(GetMainOutputLabel(), "The processed points.", Required, {})
+	PCGEX_PIN_POINTS(GetMainOutputPin(), "The processed points.", Required, {})
 	return PinProperties;
 }
 
@@ -239,13 +239,13 @@ void FPCGExPointsProcessorElement::DisabledPassThroughData(FPCGContext* Context)
 	check(Settings);
 
 	//Forward main points
-	TArray<FPCGTaggedData> MainSources = Context->InputData.GetInputsByPin(Settings->GetMainInputLabel());
+	TArray<FPCGTaggedData> MainSources = Context->InputData.GetInputsByPin(Settings->GetMainInputPin());
 	for (const FPCGTaggedData& TaggedData : MainSources)
 	{
 		FPCGTaggedData& TaggedDataCopy = Context->OutputData.TaggedData.Emplace_GetRef();
 		TaggedDataCopy.Data = TaggedData.Data;
 		TaggedDataCopy.Tags.Append(TaggedData.Tags);
-		TaggedDataCopy.Pin = Settings->GetMainOutputLabel();
+		TaggedDataCopy.Pin = Settings->GetMainOutputPin();
 	}
 }
 
@@ -285,31 +285,31 @@ bool FPCGExPointsProcessorElement::Boot(FPCGExContext* InContext) const
 	if (Context->InputData.GetInputs().IsEmpty() && !Settings->IsInputless()) { return false; } //Get rid of errors and warning when there is no input
 
 	Context->MainPoints = MakeShared<PCGExData::FPointIOCollection>(Context);
-	Context->MainPoints->DefaultOutputLabel = Settings->GetMainOutputLabel();
+	Context->MainPoints->OutputPin = Settings->GetMainOutputPin();
 
 	if (Settings->GetMainAcceptMultipleData())
 	{
-		TArray<FPCGTaggedData> Sources = Context->InputData.GetInputsByPin(Settings->GetMainInputLabel());
+		TArray<FPCGTaggedData> Sources = Context->InputData.GetInputsByPin(Settings->GetMainInputPin());
 		Context->MainPoints->Initialize(Sources, Settings->GetMainOutputInitMode());
 	}
 	else
 	{
-		const TSharedPtr<PCGExData::FPointIO> SingleInput = PCGExData::TryGetSingleInput(Context, Settings->GetMainInputLabel(), false);
+		const TSharedPtr<PCGExData::FPointIO> SingleInput = PCGExData::TryGetSingleInput(Context, Settings->GetMainInputPin(), false);
 		if (SingleInput) { Context->MainPoints->AddUnsafe(SingleInput); }
 	}
 
 	if (Context->MainPoints->IsEmpty() && !Settings->IsInputless())
 	{
-		PCGE_LOG(Error, GraphAndLog, FText::Format(FText::FromString(TEXT("Missing {0} inputs (either no data or no points)")), FText::FromName(Settings->GetMainInputLabel())));
+		PCGE_LOG(Error, GraphAndLog, FText::Format(FText::FromString(TEXT("Missing {0} inputs (either no data or no points)")), FText::FromName(Settings->GetMainInputPin())));
 		return false;
 	}
 
 	if (Settings->SupportsPointFilters())
 	{
-		GetInputFactories(Context, Settings->GetPointFilterLabel(), Context->FilterFactories, Settings->GetPointFilterTypes(), false);
+		GetInputFactories(Context, Settings->GetPointFilterPin(), Context->FilterFactories, Settings->GetPointFilterTypes(), false);
 		if (Settings->RequiresPointFilters() && Context->FilterFactories.IsEmpty())
 		{
-			PCGE_LOG(Error, GraphAndLog, FText::Format(FTEXT("Missing {0}."), FText::FromName(Settings->GetPointFilterLabel())));
+			PCGE_LOG(Error, GraphAndLog, FText::Format(FTEXT("Missing {0}."), FText::FromName(Settings->GetPointFilterPin())));
 			return false;
 		}
 	}

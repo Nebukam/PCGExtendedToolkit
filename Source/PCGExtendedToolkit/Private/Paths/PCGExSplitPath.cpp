@@ -33,7 +33,7 @@ bool FPCGExSplitPathElement::Boot(FPCGExContext* InContext) const
 	Context->UpdateTags.Init();
 
 	Context->MainPaths = MakeShared<PCGExData::FPointIOCollection>(Context);
-	Context->MainPaths->DefaultOutputLabel = Settings->GetMainOutputLabel();
+	Context->MainPaths->OutputPin = Settings->GetMainOutputPin();
 
 	return true;
 }
