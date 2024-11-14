@@ -8,9 +8,10 @@
 #include "Graph/PCGExEdgesProcessor.h"
 
 #include "PCGExTopologyEdgesProcessor.h"
+#include "Components/DynamicMeshComponent.h"
 #include "PCGExTopologyClusterSurface.generated.h"
 
-UCLASS(Abstract, MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Clusters")
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Clusters")
 class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExTopologyClusterSurfaceSettings : public UPCGExTopologyEdgesProcessorSettings
 {
 	GENERATED_BODY()
@@ -70,5 +71,40 @@ namespace PCGExTopologyClusterSurface
 		virtual void PrepareSingleLoopScopeForEdges(const uint32 StartIndex, const int32 Count) override;
 		virtual void ProcessSingleEdge(const int32 EdgeIndex, PCGExGraph::FIndexedEdge& Edge, const int32 LoopIdx, const int32 Count) override;
 		virtual void OnEdgesProcessingComplete() override;
+
+		virtual void Output() override
+		{
+			if (!bIsProcessorValid) { return; }
+
+			TRACE_CPUPROFILER_EVENT_SCOPE(UPCGExPathSplineMesh::FProcessor::Output);
+
+			// TODO : Resolve per-point target actor...? irk.
+			AActor* TargetActor = Settings->TargetActor.Get() ? Settings->TargetActor.Get() : ExecutionContext->GetTargetActor(nullptr);
+
+			if (!TargetActor)
+			{
+				PCGE_LOG_C(Error, GraphAndLog, ExecutionContext, FTEXT("Invalid target actor."));
+				return;
+			}
+
+			const FString ComponentName = TEXT("PCGDynamicMeshComponent");
+			const EObjectFlags ObjectFlags = (bIsPreviewMode ? RF_Transient : RF_NoFlags);
+			UDynamicMeshComponent* DynamicMeshComponent = NewObject<UDynamicMeshComponent>(TargetActor, MakeUniqueObjectName(TargetActor, UDynamicMeshComponent::StaticClass(), FName(ComponentName)), ObjectFlags);
+
+			if(Settings->Topology.bFlipOrientation)
+			{
+				GetInternalMesh()->GetMeshPtr()->ReverseOrientation();	
+			}
+			
+			DynamicMeshComponent->SetDynamicMesh(GetInternalMesh());
+			DynamicMeshComponent->SetDistanceFieldMode(Settings->Topology.DistanceFieldMode);
+			Context->ManagedObjects->Remove(GetInternalMesh());
+			
+			Context->AttachManageComponent(
+				TargetActor, DynamicMeshComponent,
+				FAttachmentTransformRules(EAttachmentRule::KeepWorld, EAttachmentRule::KeepWorld, EAttachmentRule::KeepWorld, false));
+
+			Context->NotifyActors.Add(TargetActor);
+		}
 	};
 }

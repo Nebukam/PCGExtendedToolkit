@@ -28,11 +28,9 @@ public class PCGExtendedToolkit : ModuleRules
 			{
 				"Core",
 				"CoreUObject",
-				"GeometryCore",
 				"NavigationSystem",
-				"Landscape",
 				"Engine",
-				"PCG"
+				"PCG",
 			}
 		);
 
@@ -40,6 +38,8 @@ public class PCGExtendedToolkit : ModuleRules
 		PrivateDependencyModuleNames.AddRange(
 			new string[]
 			{
+				"GeometryCore",
+				"GeometryFramework"
 			}
 		);
 

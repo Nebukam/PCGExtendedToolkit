@@ -6,6 +6,115 @@
 #include "CoreMinimal.h"
 #include "Geometry/PCGExGeoPrimtives.h"
 #include "Graph/PCGExCluster.h"
+#include "Components/BaseDynamicMeshComponent.h"
+
+#include "PCGExTopology.generated.h"
+
+UENUM(/*E--BlueprintType--E*/)
+enum class EPCGExTopologyOutputType : uint8
+{
+	PerItem = 1 UMETA(DisplayName = "Per-item Geometry", Tooltip="Output a geometry object per-item"),
+	Merged  = 0 UMETA(DisplayName = "Merged Geometry", Tooltip="Output a single geometry that merges all generated topologies"),
+};
+
+UENUM(/*E--BlueprintType, meta=(DisplayName="[PCGEx] Contour Shape Type Output")--E*/)
+enum class EPCGExOmitCellByBounds : uint8
+{
+	None      = 0 UMETA(DisplayName = "None", ToolTip="No bounds filtering"),
+	SizeCheck = 1 UMETA(DisplayName = "Size Check", ToolTip="Puts limits based on bounds' size length"),
+};
+
+
+UENUM(/*E--BlueprintType, meta=(DisplayName="[PCGEx] Contour Shape Type Output")--E*/)
+enum class EPCGExCellShapeTypeOutput : uint8
+{
+	Both        = 0 UMETA(DisplayName = "Convex & Concave", ToolTip="Output both convex and concave cells"),
+	ConvexOnly  = 1 UMETA(DisplayName = "Convex Only", ToolTip="Output only convex cells"),
+	ConcaveOnly = 2 UMETA(DisplayName = "Concave Only", ToolTip="Output only concave cells")
+};
+
+
+USTRUCT(BlueprintType)
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExCellConstraintsDetails
+{
+	GENERATED_BODY()
+
+	FPCGExCellConstraintsDetails()
+	{
+	}
+
+	/**  */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
+	EPCGExCellShapeTypeOutput AspectFilter = EPCGExCellShapeTypeOutput::Both;
+
+	/** Keep only contours that closed gracefully; i.e connect to their start node */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
+	bool bClosedCellsOnly = true;
+
+	/** Whether to keep contour that include dead ends wrapping */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
+	bool bKeepCellsWithDeadEnds = true;
+
+	/** Change the good seed bounds */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
+	EPCGExOmitCellByBounds OmitPathsByBounds = EPCGExOmitCellByBounds::None;
+
+	/** Size tolerance */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="OmitPathsByBounds==EPCGExOmitPathsByBounds::NearlyEqualClusterBounds", EditConditionHides, ClampMin=0))
+	double BoundsSizeTolerance = 100;
+
+	/**  */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Bounds Limits", meta = (PCG_Overridable, EditCondition="OmitPathsByBounds==EPCGExOmitPathsByBounds::NearlyEqualClusterBounds", EditConditionHides))
+	bool bOmitBelowBoundsSize = false;
+
+	/** Paths with a point count below the specified threshold will be omitted */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Bounds Limits", meta = (PCG_Overridable, EditCondition="bOmitBelowBoundsSize && OmitPathsByBounds==EPCGExOmitPathsByBounds::NearlyEqualClusterBounds", EditConditionHides, ClampMin=0))
+	double MinBoundsSize = 3;
+
+	/**  */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Bounds Limits", meta = (PCG_Overridable, EditCondition="OmitPathsByBounds==EPCGExOmitPathsByBounds::NearlyEqualClusterBounds", EditConditionHides))
+	bool bOmitAboveBoundsSize = false;
+
+	/** Paths with a point count below the specified threshold will be omitted */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Bounds Limits", meta = (PCG_Overridable, EditCondition="bOmitAboveBoundsSize && OmitPathsByBounds==EPCGExOmitPathsByBounds::NearlyEqualClusterBounds", EditConditionHides, ClampMin=0))
+	double MaxBoundsSize = 500;
+
+	/**  */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, InlineEditConditionToggle))
+	bool bOmitBelowPointCount = false;
+
+	/** Paths with a point count below the specified threshold will be omitted */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bOmitBelowPointCount", ClampMin=0))
+	int32 MinPointCount = 3;
+
+	/**  */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, InlineEditConditionToggle))
+	bool bOmitAbovePointCount = false;
+
+	/** Paths with a point count below the specified threshold will be omitted */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bOmitAbovePointCount", ClampMin=0))
+	int32 MaxPointCount = 500;
+
+	/** Projection settings. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
+	FPCGExGeo2DProjectionDetails ProjectionDetails;
+};
+
+USTRUCT(BlueprintType)
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExTopologyDetails
+{
+	GENERATED_BODY()
+
+	FPCGExTopologyDetails()
+	{
+	}
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
+	bool bFlipOrientation = false;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
+	EDynamicMeshComponentDistanceFieldMode DistanceFieldMode = EDynamicMeshComponentDistanceFieldMode::NoDistanceField;
+};
 
 namespace PCGExTopology
 {
@@ -72,6 +181,23 @@ namespace PCGExTopology
 		{
 		}
 
+		explicit FCellConstraints(const FPCGExCellConstraintsDetails& InDetails)
+		{
+			bDedupe = true;
+			bConcaveOnly = InDetails.AspectFilter == EPCGExCellShapeTypeOutput::ConcaveOnly;
+			bConvexOnly = InDetails.AspectFilter == EPCGExCellShapeTypeOutput::ConvexOnly;
+			bClosedLoopOnly = InDetails.bClosedCellsOnly;
+			bKeepContoursWithDeadEnds = InDetails.bKeepCellsWithDeadEnds;
+
+			if (InDetails.bOmitBelowPointCount) { MinPointCount = InDetails.MinPointCount; }
+			if (InDetails.bOmitAbovePointCount) { MaxPointCount = InDetails.MaxPointCount; }
+			if (InDetails.OmitPathsByBounds != EPCGExOmitCellByBounds::None)
+			{
+				if (InDetails.bOmitBelowBoundsSize) { MinBoundsSize = InDetails.MinBoundsSize; }
+				if (InDetails.bOmitAboveBoundsSize) { MaxBoundsSize = InDetails.MaxBoundsSize; }
+			}
+		}
+
 		bool ContainsSignedEdgeHash(const uint64 Hash) const;
 		bool IsUniqueStartHash(const uint64 Hash);
 		bool IsUniqueCellHash(const FCell* InCell);
@@ -118,7 +244,7 @@ namespace PCGExTopology
 			if constexpr (bMarkTriangles) { if (!InCluster) { return ETriangulationResult::InvalidCluster; } }
 			if (!bCompiledSuccessfully) { return ETriangulationResult::InvalidCell; }
 			if (Nodes.Num() < 3) { return ETriangulationResult::TooFewPoints; }
-			if (bIsConvex) { return TriangulateFan<bMarkTriangles>(ProjectedPositions, OutTriangles, InCluster); }
+			if (bIsConvex || Nodes.Num() == 3) { return TriangulateFan<bMarkTriangles>(ProjectedPositions, OutTriangles, InCluster); }
 			else { return TriangulateEarClipping<bMarkTriangles>(ProjectedPositions, OutTriangles, InCluster); }
 		}
 
@@ -127,15 +253,25 @@ namespace PCGExTopology
 	protected:
 		template <bool bMarkTriangles = false>
 		ETriangulationResult TriangulateFan(
+			const TArray<FVector>& ProjectedPositions,
 			TArray<PCGExGeo::FTriangle>& OutTriangles,
 			const TSharedPtr<PCGExCluster::FCluster> InCluster = nullptr)
 		{
 			if (!bCompiledSuccessfully) { return ETriangulationResult::InvalidCell; }
 			if (!bIsConvex) { return ETriangulationResult::UnsupportedAspect; }
 			if (Nodes.Num() < 3) { return ETriangulationResult::TooFewPoints; }
-			for (int i = 1; i < Nodes.Num(); i++)
+			const int32 MaxIndex = Nodes.Num() - 1;
+
+			TArrayView<const FVector> Positions = MakeArrayView(ProjectedPositions);
+
+			for (int i = 1; i < MaxIndex; i++)
 			{
-				const PCGExGeo::FTriangle& T = OutTriangles.Emplace_GetRef(Nodes[0], Nodes[i], Nodes[i + 1]);
+				PCGExGeo::FTriangle& T = OutTriangles.Emplace_GetRef(
+					InCluster->GetNode(Nodes[0])->PointIndex,
+					InCluster->GetNode(Nodes[i])->PointIndex,
+					InCluster->GetNode(Nodes[i + 1])->PointIndex);
+				T.FixWinding(Positions);
+
 				if constexpr (bMarkTriangles) { MarkTriangle(InCluster, T); }
 			}
 
@@ -152,6 +288,8 @@ namespace PCGExTopology
 
 			int32 NumNodes = Nodes.Num();
 			if (NumNodes < 3) { return ETriangulationResult::TooFewPoints; }
+
+			TArrayView<const FVector> Positions = MakeArrayView(ProjectedPositions);
 
 			TArray<int32> NodeQueue;
 			PCGEx::ArrayOfIndices(NodeQueue, NumNodes);
@@ -170,9 +308,9 @@ namespace PCGExTopology
 					int32 BIdx = NodeQueue[CurrIndex];
 					int32 CIdx = NodeQueue[NextIndex];
 
-					FVector A = ProjectedPositions[AIdx];
-					FVector B = ProjectedPositions[BIdx];
-					FVector C = ProjectedPositions[CIdx];
+					FVector A = ProjectedPositions[InCluster->GetNode(Nodes[AIdx])->PointIndex];
+					FVector B = ProjectedPositions[InCluster->GetNode(Nodes[BIdx])->PointIndex];
+					FVector C = ProjectedPositions[InCluster->GetNode(Nodes[CIdx])->PointIndex];
 
 					FBox TBox = FBox(ForceInit);
 					TBox += A;
@@ -186,7 +324,7 @@ namespace PCGExTopology
 					{
 						if (j == AIdx || j == BIdx || j == CIdx) { continue; }
 
-						const FVector& P = ProjectedPositions[NodeQueue[j]];
+						const FVector& P = ProjectedPositions[InCluster->GetNode(Nodes[NodeQueue[j]])->PointIndex];
 						if (!TBox.IsInside(P)) { continue; }
 
 						if (PCGExGeo::IsPointInTriangle(P, A, B, C))
@@ -199,7 +337,13 @@ namespace PCGExTopology
 					if (bIsEar)
 					{
 						// Add the ear triangle to the result
-						const PCGExGeo::FTriangle& T = OutTriangles.Emplace_GetRef(Nodes[0], Nodes[i], Nodes[i + 1]);
+						PCGExGeo::FTriangle& T = OutTriangles.Emplace_GetRef(
+							InCluster->GetNode(Nodes[0])->PointIndex,
+							InCluster->GetNode(Nodes[i])->PointIndex,
+							InCluster->GetNode(Nodes[i + 1])->PointIndex);
+
+						T.FixWinding(Positions);
+
 						if constexpr (bMarkTriangles) { MarkTriangle(InCluster, T); }
 
 						NodeQueue.RemoveAtSwap(CurrIndex);

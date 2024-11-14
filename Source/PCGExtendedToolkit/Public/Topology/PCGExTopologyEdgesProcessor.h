@@ -26,7 +26,7 @@ public:
 	virtual PCGExData::EIOInit GetMainOutputInitMode() const override;
 	virtual PCGExData::EIOInit GetEdgeOutputInitMode() const override;
 
-	virtual bool SupportsEdgeConstraints() const { return false; }
+	virtual bool SupportsEdgeConstraints() const { return true; }
 
 protected:
 	virtual TArray<FPCGPinProperties> InputPinProperties() const override;
@@ -37,6 +37,21 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	FPCGExGeo2DProjectionDetails ProjectionDetails;
 
+	/** Projection settings. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
+	FPCGExCellConstraintsDetails CellConstraints;
+	
+	/** Projection settings. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
+	FPCGExTopologyDetails Topology;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
+	TSoftObjectPtr<AActor> TargetActor;
+
+	/** Specify a list of functions to be called on the target actor after dynamic mesh creation. Functions need to be parameter-less and with "CallInEditor" flag enabled. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
+	TArray<FName> PostProcessFunctionNames;
+
 private:
 	friend class FPCGExTopologyEdgesProcessorElement;
 };
@@ -45,6 +60,8 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExTopologyEdgesProcessorContext : FPCGExEd
 {
 	friend class FPCGExTopologyEdgesProcessorElement;
 	TArray<TObjectPtr<const UPCGExFilterFactoryBase>> EdgeConstraintsFilterFactories;
+
+	TSet<AActor*> NotifyActors;
 };
 
 class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExTopologyEdgesProcessorElement : public FPCGExEdgesProcessorElement
@@ -62,8 +79,11 @@ namespace PCGExTopologyEdges
 	{
 	protected:
 		bool bBuildExpandedNodes = false;
+		bool bIsPreviewMode = false;
 
-		TSharedPtr<PCGEx::FIndexLookup> ValidIndexLookup;
+		TObjectPtr<UDynamicMesh> InternalMesh;
+
+		TSharedPtr<PCGEx::FIndexLookup> VerticesLookup;
 		TSharedPtr<TArray<PCGExCluster::FExpandedNode>> ExpandedNodes;
 
 		TSharedPtr<PCGExTopology::FCellConstraints> CellConstraints;
@@ -74,6 +94,8 @@ namespace PCGExTopologyEdges
 
 	public:
 		TArray<FVector>* ProjectedPositions = nullptr;
+
+		TObjectPtr<UDynamicMesh> GetInternalMesh() { return InternalMesh; }
 
 		TProcessor(const TSharedRef<PCGExData::FFacade>& InVtxDataFacade, const TSharedRef<PCGExData::FFacade>& InEdgeDataFacade)
 			: PCGExClusterMT::TProcessor<TContext, TSettings>(InVtxDataFacade, InEdgeDataFacade)
@@ -104,9 +126,13 @@ namespace PCGExTopologyEdges
 
 			if (!PCGExClusterMT::TProcessor<TContext, TSettings>::Process(InAsyncManager)) { return false; }
 
+#if PCGEX_ENGINE_VERSION > 503
+			bIsPreviewMode = this->ExecutionContext->SourceComponent.Get()->IsInPreviewMode();
+#endif
+
 			ConstrainedEdgeFilterCache.Init(false, this->EdgeDataFacade->Source->GetNum());
 
-			CellConstraints = MakeShared<PCGExTopology::FCellConstraints>();
+			CellConstraints = MakeShared<PCGExTopology::FCellConstraints>(this->Settings->CellConstraints);
 			InitConstraints();
 
 			for (PCGExCluster::FNode& Node : *this->Cluster->Nodes) { Node.bValid = false; } // Invalidate all edges, triangulation will mark valid nodes to rebuild an index
@@ -130,6 +156,14 @@ namespace PCGExTopologyEdges
 				this->StartParallelLoopForRange(this->NumNodes);
 			}
 
+			InternalMesh = this->Context->ManagedObjects->template New<UDynamicMesh>();
+			InternalMesh->EditMesh(
+				[&](FDynamicMesh3& InMesh)
+				{
+					InMesh.EnableVertexNormals(FVector3f(0, 0, 1));
+				}, EDynamicMeshChangeType::GeneralEdit, EDynamicMeshAttributeChangeFlags::MeshTopology, true);
+
+
 			return true;
 		}
 
@@ -140,17 +174,24 @@ namespace PCGExTopologyEdges
 
 		bool BuildValidNodeLookup()
 		{
-			ValidIndexLookup = MakeShared<PCGEx::FIndexLookup>(this->NumNodes);
+			VerticesLookup = MakeShared<PCGEx::FIndexLookup>(this->NumNodes);
 			int32 ValidIndex = 0;
-			for (int i = 0; i < this->NumNodes; i++)
-			{
-				if (!this->Cluster->GetNode(i)->bValid) { continue; }
-				ValidIndexLookup->Set(i, ValidIndex++);
-			}
+
+			InternalMesh->EditMesh(
+				[&](FDynamicMesh3& InMesh)
+				{
+					for (int i = 0; i < this->NumNodes; i++)
+					{
+						if (!this->Cluster->GetNode(i)->bValid) { continue; }
+						VerticesLookup->Set(i, InMesh.AppendVertex(this->Cluster->GetPos(i)));
+						ValidIndex++;
+					}
+				}, EDynamicMeshChangeType::GeneralEdit, EDynamicMeshAttributeChangeFlags::MeshTopology, true);
+
 
 			if (ValidIndex == 0)
 			{
-				ValidIndexLookup.Reset();
+				VerticesLookup.Reset();
 				return false;
 			}
 

@@ -3,9 +3,6 @@
 
 #include "Topology/PCGExTopologyClusterSurface.h"
 
-#include "CompGeom/Delaunay2.h"
-#include "Components/BaseDynamicMeshComponent.h"
-
 #define LOCTEXT_NAMESPACE "PCGExEdgesToPaths"
 #define PCGEX_NAMESPACE TopologyEdgesProcessor
 
@@ -41,6 +38,7 @@ bool FPCGExTopologyClusterSurfaceElement::ExecuteInternal(
 	PCGEX_CLUSTER_BATCH_PROCESSING(PCGEx::State_Done)
 
 	Context->OutputPointsAndEdges();
+	Context->OutputBatches();
 
 	return Context->TryComplete();
 }
@@ -77,7 +75,7 @@ namespace PCGExTopologyClusterSurface
 			Cluster->GetPos(EndNode), Cluster.ToSharedRef(),
 			*ProjectedPositions, ExpandedNodes) == PCGExTopology::ECellResult::Success)
 		{
-			//Cell->Triangulate<true>()
+			Cell->Triangulate<true>(*ProjectedPositions, *SubTriangulations[LoopIdx].Get(), Cluster);
 		}
 
 		Cell.Reset();
@@ -87,16 +85,32 @@ namespace PCGExTopologyClusterSurface
 			Cluster->GetPos(StartNode), Cluster.ToSharedRef(),
 			*ProjectedPositions, ExpandedNodes) == PCGExTopology::ECellResult::Success)
 		{
-			//Cell->Triangulate<true>()
+			Cell->Triangulate<true>(*ProjectedPositions, *SubTriangulations[LoopIdx].Get(), Cluster);
 		}
 	}
 
 	void FProcessor::OnEdgesProcessingComplete()
 	{
-		if (BuildValidNodeLookup())
-		{
-			// Merge & update subtriangulations
-		}
+		if (!BuildValidNodeLookup()) { return; }
+
+		InternalMesh->EditMesh(
+			[&](FDynamicMesh3& InMesh)
+			{
+				for (TSharedPtr<TArray<PCGExGeo::FTriangle>> SubTriangulation : SubTriangulations)
+				{
+					const TArray<PCGExGeo::FTriangle>& Triangles = *SubTriangulation;
+
+					for (const PCGExGeo::FTriangle& T : Triangles)
+					{
+						// Very slow, just checking if things work
+						//InMesh.AppendTriangle(VerticesLookup->Get(T.Vtx[0]), VerticesLookup->Get(T.Vtx[1]), VerticesLookup->Get(T.Vtx[2]));
+						InMesh.AppendTriangle(
+							VerticesLookup->Get(Cluster->NodeIndexLookup->Get(T.Vtx[0])),
+							VerticesLookup->Get(Cluster->NodeIndexLookup->Get(T.Vtx[1])),
+							VerticesLookup->Get(Cluster->NodeIndexLookup->Get(T.Vtx[2])));
+					}
+				}
+			}, EDynamicMeshChangeType::GeneralEdit, EDynamicMeshAttributeChangeFlags::MeshTopology, false);
 	}
 
 	void FProcessor::CompleteWork()
