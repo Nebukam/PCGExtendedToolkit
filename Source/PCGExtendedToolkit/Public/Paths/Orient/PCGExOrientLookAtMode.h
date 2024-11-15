@@ -7,7 +7,7 @@
 #include "PCGExOrientOperation.h"
 #include "PCGExOrientLookAtMode.generated.h"
 
-UENUM(/*E--BlueprintType, meta=(DisplayName="[PCGEx] Orient Look At Mode")--E*/)
+UENUM()
 enum class EPCGExOrientLookAtMode : uint8
 {
 	NextPoint     = 0 UMETA(DisplayName = "Next Point", ToolTip="Look at next point in path"),

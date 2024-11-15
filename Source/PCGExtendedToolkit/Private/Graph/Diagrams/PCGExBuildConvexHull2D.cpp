@@ -30,7 +30,7 @@ bool FPCGExBuildConvexHull2DElement::Boot(FPCGExContext* InContext) const
 	PCGEX_CONTEXT_AND_SETTINGS(BuildConvexHull2D)
 
 	Context->PathsIO = MakeShared<PCGExData::FPointIOCollection>(Context);
-	Context->PathsIO->DefaultOutputLabel = PCGExGraph::OutputPathsLabel;
+	Context->PathsIO->OutputPin = PCGExGraph::OutputPathsLabel;
 
 	return true;
 }

@@ -8,7 +8,7 @@
 #include "PCGExPointsProcessor.h"
 #include "PCGExDiscardByOverlap.generated.h"
 
-UENUM(/*E--BlueprintType, meta=(DisplayName="[PCGEx] Overlap Test Mode")--E*/)
+UENUM()
 enum class EPCGExOverlapTestMode : uint8
 {
 	Fast   = 0 UMETA(DisplayName = "Fast", ToolTip="Only test using datasets' overall bounds"),
@@ -16,7 +16,7 @@ enum class EPCGExOverlapTestMode : uint8
 	Sphere = 2 UMETA(DisplayName = "Sphere", ToolTip="Test every points' bounds as spheres. Will have some false positve."),
 };
 
-UENUM(/*E--BlueprintType, meta=(DisplayName="[PCGEx] Overlap Pruning Logic")--E*/)
+UENUM()
 enum class EPCGExOverlapPruningLogic : uint8
 {
 	LowFirst  = 0 UMETA(DisplayName = "Low to High", ToolTip="Lower weights are pruned first."),

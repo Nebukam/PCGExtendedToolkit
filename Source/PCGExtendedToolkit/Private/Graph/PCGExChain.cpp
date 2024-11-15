@@ -68,7 +68,7 @@ namespace PCGExClusterTask
 				else
 				{
 					// Requires extended Search
-					InternalStart<FBuildChain>(
+					AsyncManager->Start<FBuildChain>(
 						Chains->Add(nullptr), nullptr,
 						Cluster, Breakpoints, Chains, Node.NodeIndex, AdjacencyHash);
 				}
@@ -83,7 +83,7 @@ namespace PCGExClusterTask
 
 			if (StartNode.Adjacency.IsEmpty()) { return false; }
 
-			InternalStart<FBuildChain>(
+			AsyncManager->Start<FBuildChain>(
 				Chains->Add(nullptr), nullptr,
 				Cluster, Breakpoints, Chains, StartNode.NodeIndex, StartNode.Adjacency[0]);
 		}

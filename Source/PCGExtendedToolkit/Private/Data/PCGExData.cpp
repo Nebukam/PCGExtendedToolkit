@@ -28,7 +28,7 @@ namespace PCGExData
 
 	void FFacade::MarkCurrentBuffersReadAsComplete()
 	{
-		for (const TSharedPtr<FBufferBase> Buffer : Buffers)
+		for (const TSharedPtr<FBufferBase>& Buffer : Buffers)
 		{
 			if (!Buffer.IsValid() || !Buffer->IsReadable()) { continue; }
 			Buffer->bReadComplete = true;
@@ -65,7 +65,7 @@ namespace PCGExData
 
 		Source->GetOutKeys(true);
 
-		for (const TSharedPtr<FBufferBase> Buffer : Buffers)
+		for (const TSharedPtr<FBufferBase>& Buffer : Buffers)
 		{
 			if (Buffer->IsWritable()) { TaskGroup->AddSimpleCallback([BufferRef = Buffer]() { BufferRef->Write(); }); }
 		}
@@ -280,14 +280,10 @@ namespace PCGExData
 		return H;
 	}
 
-	FUnionData* FUnionMetadata::NewEntry(const int32 IOIndex, const int32 ItemIndex)
+	TSharedPtr<FUnionData> FUnionMetadata::NewEntry(const int32 IOIndex, const int32 ItemIndex)
 	{
-		FUnionData* NewUnionData = Entries.Add_GetRef(new FUnionData());
-		//NewUnionData->Index = Items.Num() - 1;
-		NewUnionData->IOIndices.Add(IOIndex);
-		const uint64 H = PCGEx::H64(IOIndex, ItemIndex);
-		NewUnionData->ItemHashSet.Add(H);
-
+		TSharedPtr<FUnionData> NewUnionData = Entries.Add_GetRef(MakeShared<FUnionData>());
+		NewUnionData->Add(IOIndex, ItemIndex);
 		return NewUnionData;
 	}
 

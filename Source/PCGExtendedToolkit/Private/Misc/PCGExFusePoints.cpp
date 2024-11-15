@@ -89,7 +89,7 @@ namespace PCGExFusePoints
 	{
 		TArray<FPCGPoint>& MutablePoints = PointDataFacade->GetOut()->GetMutablePoints();
 
-		PCGExGraph::FUnionNode* UnionNode = UnionGraph->Nodes[Iteration];
+		const TSharedPtr<PCGExGraph::FUnionNode> UnionNode = UnionGraph->Nodes[Iteration];
 		const PCGMetadataEntryKey Key = MutablePoints[Iteration].MetadataEntry;
 		MutablePoints[Iteration] = UnionNode->Point; // Copy "original" point properties, in case there's only one
 

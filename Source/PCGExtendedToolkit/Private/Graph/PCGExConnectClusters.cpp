@@ -85,8 +85,8 @@ bool FPCGExConnectClustersElement::ExecuteInternal(FPCGContext* InContext) const
 		{
 			if (!Settings->bMuteNoBridgeWarning) { PCGE_LOG(Warning, GraphAndLog, FTEXT("No bridge was created.")); }
 
-			for (const TSharedPtr<PCGExData::FPointIO> Vtx : Context->MainPoints->Pairs) { Vtx->InitializeOutput(PCGExData::EIOInit::Forward); }
-			for (const TSharedPtr<PCGExData::FPointIO> Edges : Context->MainEdges->Pairs) { Edges->InitializeOutput(PCGExData::EIOInit::Forward); }
+			for (const TSharedPtr<PCGExData::FPointIO>& Vtx : Context->MainPoints->Pairs) { Vtx->InitializeOutput(PCGExData::EIOInit::Forward); }
+			for (const TSharedPtr<PCGExData::FPointIO>& Edges : Context->MainEdges->Pairs) { Edges->InitializeOutput(PCGExData::EIOInit::Forward); }
 
 			Context->OutputPointsAndEdges();
 			return Context->TryComplete(true);

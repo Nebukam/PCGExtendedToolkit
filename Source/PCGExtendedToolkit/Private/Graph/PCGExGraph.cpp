@@ -33,9 +33,13 @@ namespace PCGExGraph
 		for (const int32 NodeIndex : Nodes) { InGraph->Nodes[NodeIndex].bValid = false; }
 	}
 
-	TSharedPtr<PCGExCluster::FCluster> FSubGraph::CreateCluster(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager) const
+	TSharedPtr<PCGExCluster::FCluster> FSubGraph::CreateCluster(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager)
 	{
 		TSharedPtr<PCGExCluster::FCluster> NewCluster = MakeShared<PCGExCluster::FCluster>(VtxDataFacade->Source, EdgesDataFacade->Source, ParentGraph->NodeIndexLookup);
+
+		// Correct edge IO Index that has been overwritten during subgraph processing
+		for (FIndexedEdge& E : FlattenedEdges) { E.IOIndex = -1; }
+
 		NewCluster->BuildFrom(this);
 
 		// Look into the cost of this
@@ -261,14 +265,14 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 		return InsertEdgeUnsafe(Edge);
 	}
 
-	bool FGraph::InsertEdgeUnsafe(const FIndexedEdge& Edge, FIndexedEdge& OutEdge)
+	bool FGraph::InsertEdgeUnsafe(const FIndexedEdge& Edge, FIndexedEdge& OutEdge, const int32 InIOIndex)
 	{
-		return InsertEdgeUnsafe(Edge.Start, Edge.End, OutEdge, Edge.IOIndex);
+		return InsertEdgeUnsafe(Edge.Start, Edge.End, OutEdge, InIOIndex);
 	}
 
-	bool FGraph::InsertEdge(const FIndexedEdge& Edge, FIndexedEdge& OutEdge)
+	bool FGraph::InsertEdge(const FIndexedEdge& Edge, FIndexedEdge& OutEdge, const int32 InIOIndex)
 	{
-		return InsertEdge(Edge.Start, Edge.End, OutEdge, Edge.IOIndex);
+		return InsertEdge(Edge.Start, Edge.End, OutEdge, InIOIndex);
 	}
 
 	void FGraph::InsertEdges(const TArray<uint64>& InEdges, const int32 InIOIndex)

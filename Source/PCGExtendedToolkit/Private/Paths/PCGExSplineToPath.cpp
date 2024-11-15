@@ -31,7 +31,7 @@ bool FPCGExSplineToPathElement::Boot(FPCGExContext* InContext) const
 	Context->TagForwarding.Init();
 
 	Context->MainPoints = MakeShared<PCGExData::FPointIOCollection>(Context);
-	Context->MainPoints->DefaultOutputLabel = Settings->GetMainOutputLabel();
+	Context->MainPoints->OutputPin = Settings->GetMainOutputPin();
 
 	auto AddTags = [&](const TSet<FString>& SourceTags)
 	{

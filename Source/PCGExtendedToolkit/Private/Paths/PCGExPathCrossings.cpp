@@ -428,7 +428,7 @@ namespace PCGExPathCrossings
 		PCGEx::ArrayOfIndices(Order, NumCrossings);
 		Order.Sort([&](const int32 A, const int32 B) { return Crossing->Alphas[A] < Crossing->Alphas[B]; });
 
-		const TUniquePtr<PCGExData::FUnionData> Union = MakeUnique<PCGExData::FUnionData>();
+		const TSharedPtr<PCGExData::FUnionData> Union = MakeShared<PCGExData::FUnionData>();
 		for (int i = 0; i < NumCrossings; i++)
 		{
 			uint32 PtIdx;
@@ -440,7 +440,7 @@ namespace PCGExPathCrossings
 			Union->Reset();
 			Union->Add(IOIdx, PtIdx);
 			Union->Add(IOIdx, SecondIndex);
-			UnionBlender->SoftMergeSingle(Edge.AltStart + i + 1, Union.Get(), Context->Distances);
+			UnionBlender->SoftMergeSingle(Edge.AltStart + i + 1, Union, Context->Distances);
 		}
 	}
 

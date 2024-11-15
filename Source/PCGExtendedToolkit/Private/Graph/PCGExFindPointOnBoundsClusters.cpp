@@ -42,7 +42,7 @@ bool FPCGExFindPointOnBoundsClustersElement::Boot(FPCGExContext* InContext) cons
 		Context->BestIndices.Init(-1, Context->MainEdges->Num());
 		Context->IOMergeSources.Init(nullptr, Context->MainEdges->Num());
 
-		Context->MergedOut = PCGExData::NewPointIO(Context, Settings->GetMainOutputLabel(), 0);
+		Context->MergedOut = PCGExData::NewPointIO(Context, Settings->GetMainOutputPin(), 0);
 		Context->MergedAttributesInfos = PCGEx::FAttributesInfos::Get(Collection, AttributeMismatches);
 
 		Context->CarryOverDetails.Attributes.Prune(*Context->MergedAttributesInfos);

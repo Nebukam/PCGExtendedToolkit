@@ -14,7 +14,7 @@
 #include "Graph/Filters/PCGExClusterFilter.h"
 #include "PCGExFilterGroup.generated.h"
 
-UENUM(/*E--BlueprintType, meta=(DisplayName="[PCGEx] Filter Group Mode")--E*/)
+UENUM()
 enum class EPCGExFilterGroupMode : uint8
 {
 	AND = 0 UMETA(DisplayName = "And", ToolTip="All connected filters must pass."),

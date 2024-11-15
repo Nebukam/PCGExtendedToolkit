@@ -33,7 +33,6 @@ UPCGExParamFactoryBase* UPCGExFilterGroupProviderSettings::CreateFactory(FPCGExC
 
 	NewFactory->Priority = Priority;
 	NewFactory->bInvert = bInvert;
-	NewFactory->FilterFactories;
 
 	if (!GetInputFactories(
 		InContext, PCGExPointFilter::SourceFiltersLabel, NewFactory->FilterFactories,

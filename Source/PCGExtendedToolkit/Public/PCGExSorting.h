@@ -11,7 +11,7 @@
 
 #include "PCGExSorting.generated.h"
 
-UENUM(/*E--BlueprintType, meta=(DisplayName="[PCGEx] Sort Direction")--E*/)
+UENUM()
 enum class EPCGExSortDirection : uint8
 {
 	Ascending  = 0 UMETA(DisplayName = "Ascending"),
@@ -100,7 +100,7 @@ public:
 	//~End UPCGSettings
 
 	//~Begin UPCGExFactoryProviderSettings
-	virtual FName GetMainOutputLabel() const override { return FName("SortingRule"); }
+	virtual FName GetMainOutputPin() const override { return FName("SortingRule"); }
 	virtual UPCGExParamFactoryBase* CreateFactory(FPCGExContext* InContext, UPCGExParamFactoryBase* InFactory) const override;
 
 #if WITH_EDITOR
@@ -150,8 +150,7 @@ namespace PCGExSorting
 
 		void RegisterBuffersDependencies(PCGExData::FFacadePreloader& FacadePreloader)
 		{
-			if constexpr (bSoftMode) { return; }
-			for (const TSharedRef<FPCGExSortRule> Rule : Rules) { FacadePreloader.Register<double>(ExecutionContext, Rule->Selector); }
+			if constexpr (!bSoftMode) { for (const TSharedRef<FPCGExSortRule>& Rule : Rules) { FacadePreloader.Register<double>(ExecutionContext, Rule->Selector); } }
 		}
 
 		bool Init()

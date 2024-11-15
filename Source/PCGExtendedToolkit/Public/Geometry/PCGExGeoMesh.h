@@ -11,7 +11,7 @@
 
 //#include "PCGExGeoMesh.generated.h"
 
-UENUM(/*E--BlueprintType, meta=(DisplayName="[PCGEx] Graph Triangulation Type")--E*/)
+UENUM()
 enum class EPCGExTriangulationType : uint8
 {
 	Raw    = 0 UMETA(DisplayName = "Raw Triangles", ToolTip="Make a graph from raw triangles."),

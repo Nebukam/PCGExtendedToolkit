@@ -13,7 +13,7 @@
 
 #include "PCGExCreateSpline.generated.h"
 
-UENUM(/*E--BlueprintType, meta=(DisplayName="[PCGEx] Spline Point Type")--E*/)
+UENUM()
 enum class EPCGExSplinePointType : uint8
 {
 	Linear             = 0 UMETA(DisplayName = "Linear (0)", Tooltip="Linear (0)."),
@@ -42,7 +42,7 @@ protected:
 
 	//~Begin UPCGExPointsProcessorSettings
 public:
-	virtual FName GetMainOutputLabel() const override { return FName(TEXT("Splines")); }
+	virtual FName GetMainOutputPin() const override { return FName(TEXT("Splines")); }
 	virtual PCGExData::EIOInit GetMainOutputInitMode() const override;
 	//~End UPCGExPointsProcessorSettings
 

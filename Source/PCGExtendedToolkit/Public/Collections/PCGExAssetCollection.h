@@ -69,14 +69,14 @@ PCGEX_ASSET_COLLECTION_BOILERPLATE_BASE(_TYPE, _ENTRY_TYPE)
 
 class UPCGExAssetCollection;
 
-UENUM(/*E--BlueprintType--E*/)
+UENUM()
 enum class EPCGExCollectionSource : uint8
 {
 	Asset        = 0 UMETA(DisplayName = "Asset", Tooltip="..."),
 	AttributeSet = 1 UMETA(DisplayName = "Attribute Set", Tooltip="..."),
 };
 
-UENUM(/*E--BlueprintType--E*/)
+UENUM()
 enum class EPCGExIndexPickMode : uint8
 {
 	Ascending        = 0 UMETA(DisplayName = "Collection order (Ascending)", Tooltip="..."),
@@ -85,7 +85,7 @@ enum class EPCGExIndexPickMode : uint8
 	WeightDescending = 3 UMETA(DisplayName = "Weight (Ascending)", Tooltip="..."),
 };
 
-UENUM(/*E--BlueprintType, meta=(DisplayName="[PCGEx] Distribution")--E*/)
+UENUM()
 enum class EPCGExDistribution : uint8
 {
 	Index          = 0 UMETA(DisplayName = "Index", ToolTip="Distribution by index"),
@@ -93,7 +93,7 @@ enum class EPCGExDistribution : uint8
 	WeightedRandom = 2 UMETA(DisplayName = "Weighted random", ToolTip="Update the point bounds so it reflects the bounds of the final asset"),
 };
 
-UENUM(/*E--BlueprintType, meta=(DisplayName="[PCGEx] Weight Output Mode")--E*/)
+UENUM()
 enum class EPCGExWeightOutputMode : uint8
 {
 	NoOutput           = 0 UMETA(DisplayName = "No Output", ToolTip="Don't output weight as an attribute"),
@@ -105,7 +105,7 @@ enum class EPCGExWeightOutputMode : uint8
 	NormalizedInvertedToDensity = 5 UMETA(DisplayName = "Normalized (Inverted) to Density", ToolTip="One Minus normalized weight value (1 - (Weight / WeightSum))"),
 };
 
-UENUM(/*E--BlueprintType, meta=(Bitflags, UseEnumValuesAsMaskValuesInEditor="true", DisplayName="[PCGEx] Asset Tag Inheritance")--E*/)
+UENUM()
 enum class EPCGExAssetTagInheritance : uint8
 {
 	None           = 0,
@@ -337,8 +337,9 @@ namespace PCGExAssetCollection
 		RecursiveCollectionsOnly,
 	};
 
-	struct /*PCGEXTENDEDTOOLKIT_API*/ FCategory
+	class /*PCGEXTENDEDTOOLKIT_API*/ FCategory : public TSharedFromThis<FCategory>
 	{
+	public:
 		FName Name = NAME_None;
 		double WeightSum = 0;
 		TArray<int32> Indices;

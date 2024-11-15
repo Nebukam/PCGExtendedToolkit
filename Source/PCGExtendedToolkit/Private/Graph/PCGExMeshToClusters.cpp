@@ -63,10 +63,10 @@ bool FPCGExMeshToClustersElement::Boot(FPCGExContext* InContext) const
 	Context->RootVtx = MakeShared<PCGExData::FPointIOCollection>(Context); // Make this pinless
 
 	Context->VtxChildCollection = MakeShared<PCGExData::FPointIOCollection>(Context);
-	Context->VtxChildCollection->DefaultOutputLabel = Settings->GetMainOutputLabel();
+	Context->VtxChildCollection->OutputPin = Settings->GetMainOutputPin();
 
 	Context->EdgeChildCollection = MakeShared<PCGExData::FPointIOCollection>(Context);
-	Context->EdgeChildCollection->DefaultOutputLabel = PCGExGraph::OutputEdgesLabel;
+	Context->EdgeChildCollection->OutputPin = PCGExGraph::OutputEdgesLabel;
 
 	return true;
 }

@@ -47,6 +47,6 @@ public:
 #endif
 	//~End UPCGSettings
 
-	virtual FName GetMainOutputLabel() const override { return PCGExShapes::OutputShapeBuilderLabel; }
+	virtual FName GetMainOutputPin() const override { return PCGExShapes::OutputShapeBuilderLabel; }
 	virtual UPCGExParamFactoryBase* CreateFactory(FPCGExContext* InContext, UPCGExParamFactoryBase* InFactory) const override;
 };

@@ -55,17 +55,17 @@ protected:
 public:
 	virtual bool IsInputless() const { return false; }
 
-	virtual FName GetMainInputLabel() const { return PCGEx::SourcePointsLabel; }
-	virtual FName GetMainOutputLabel() const { return PCGEx::OutputPointsLabel; }
+	virtual FName GetMainInputPin() const { return PCGEx::SourcePointsLabel; }
+	virtual FName GetMainOutputPin() const { return PCGEx::OutputPointsLabel; }
 	virtual bool GetMainAcceptMultipleData() const { return true; }
 	virtual PCGExData::EIOInit GetMainOutputInitMode() const;
 
-	virtual FName GetPointFilterLabel() const { return NAME_None; }
+	virtual FName GetPointFilterPin() const { return NAME_None; }
 	virtual FString GetPointFilterTooltip() const { return TEXT("Filters"); }
 	virtual TSet<PCGExFactories::EType> GetPointFilterTypes() const { return PCGExFactories::PointFilters; }
 	virtual bool RequiresPointFilters() const { return false; }
 
-	bool SupportsPointFilters() const { return !GetPointFilterLabel().IsNone(); }
+	bool SupportsPointFilters() const { return !GetPointFilterPin().IsNone(); }
 
 	/** Forces execution on main thread. Work is still chunked. Turning this off ensure linear order of operations, and, in most case, determinism.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Performance, meta=(PCG_NotOverridable, AdvancedDisplay))

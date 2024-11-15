@@ -125,7 +125,7 @@ namespace PCGExDataBlending
 		MergeSingle(UnionIndex, CurrentUnionMetadata->Get(UnionIndex), InDistanceDetails);
 	}
 
-	void FUnionBlender::MergeSingle(const int32 WriteIndex, const PCGExData::FUnionData* InUnionData, const TSharedPtr<PCGExDetails::FDistances>& InDistanceDetails)
+	void FUnionBlender::MergeSingle(const int32 WriteIndex, const TSharedPtr<PCGExData::FUnionData>& InUnionData, const TSharedPtr<PCGExDetails::FDistances>& InDistanceDetails)
 	{
 		TArray<int32> IdxIO;
 		TArray<int32> IdxPt;
@@ -228,7 +228,7 @@ namespace PCGExDataBlending
 		SoftMergeSingle(UnionIndex, CurrentUnionMetadata->Get(UnionIndex), InDistanceDetails);
 	}
 
-	void FUnionBlender::SoftMergeSingle(const int32 UnionIndex, const PCGExData::FUnionData* InUnionData, const TSharedPtr<PCGExDetails::FDistances>& InDistanceDetails)
+	void FUnionBlender::SoftMergeSingle(const int32 UnionIndex, const TSharedPtr<PCGExData::FUnionData>& InUnionData, const TSharedPtr<PCGExDetails::FDistances>& InDistanceDetails)
 	{
 		TArray<int32> IdxIO;
 		TArray<int32> IdxPt;

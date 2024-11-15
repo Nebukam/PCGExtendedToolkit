@@ -15,7 +15,7 @@ struct FPCGExInputConfig;
 struct FPCGPoint;
 class UPCGPointData;
 
-UENUM(/*E--BlueprintType, meta=(DisplayName="[PCGEx] Goal Pick Random - Amount")--E*/)
+UENUM()
 enum class EPCGExGoalPickRandomAmount : uint8
 {
 	Single = 0 UMETA(DisplayName = "Single", Tooltip="A single random goal is picked"),

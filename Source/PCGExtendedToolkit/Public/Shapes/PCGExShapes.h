@@ -8,7 +8,7 @@
 #include "Data/PCGExData.h"
 #include "PCGExShapes.generated.h"
 
-UENUM(/*E--BlueprintType, meta=(DisplayName="[PCGEx] Shape Output Mode")--E*/)
+UENUM()
 enum class EPCGExShapeOutputMode : uint8
 {
 	PerDataset = 0 UMETA(DisplayName = "Per Dataset", ToolTip="Merge all shapes into the original dataset"),
@@ -16,21 +16,21 @@ enum class EPCGExShapeOutputMode : uint8
 };
 
 
-UENUM(/*E--BlueprintType, meta=(DisplayName="[PCGEx] Shape Output Mode")--E*/)
+UENUM()
 enum class EPCGExShapeResolutionMode : uint8
 {
 	Absolute = 0 UMETA(DisplayName = "Absolute", ToolTip="Resolution is absolute."),
 	Scaled   = 1 UMETA(DisplayName = "Scaled", ToolTip="Resolution is scaled by the seed' scale"),
 };
 
-UENUM(/*E--BlueprintType, meta=(DisplayName="[PCGEx] Shape Output Mode")--E*/)
+UENUM()
 enum class EPCGExShapePointLookAt : uint8
 {
 	None = 0 UMETA(DisplayName = "None", ToolTip="Point look at will be as per 'canon' shape definition"),
 	Seed = 1 UMETA(DisplayName = "Seed", ToolTip="Look At Seed"),
 };
 
-UENUM(/*E--BlueprintType, meta=(DisplayName="[PCGEx] Resolution type")--E*/)
+UENUM()
 enum class EPCGExResolutionMode : uint8
 {
 	Distance = 0 UMETA(DisplayName = "Distance", ToolTip="Points-per-meter"),
@@ -59,11 +59,11 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExShapeConfigBase
 	EPCGExInputValueType ResolutionInput = EPCGExInputValueType::Constant;
 
 	/** Resolution Constant. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Resolution", meta=(PCG_Overridable, EditCondition="ResolutionInput == EPCGExInputValueType::Constant", EditConditionHides, ClampMin=0))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Resolution", meta=(PCG_Overridable, DisplayName="Resolution", EditCondition="ResolutionInput == EPCGExInputValueType::Constant", EditConditionHides, ClampMin=0))
 	double ResolutionConstant = 10;
 
 	/** Resolution Attribute. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Resolution", meta=(PCG_Overridable, EditCondition="ResolutionInput == EPCGExInputValueType::Attribute", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Resolution", meta=(PCG_Overridable, DisplayName="Resolution", EditCondition="ResolutionInput == EPCGExInputValueType::Attribute", EditConditionHides))
 	FPCGAttributePropertyInputSelector ResolutionAttribute;
 
 	/** Fitting details */

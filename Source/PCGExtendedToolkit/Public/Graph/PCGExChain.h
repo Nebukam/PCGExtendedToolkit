@@ -12,8 +12,10 @@
 
 namespace PCGExCluster
 {
-	struct /*PCGEXTENDEDTOOLKIT_API*/ FNodeChain
+	class /*PCGEXTENDEDTOOLKIT_API*/ FNodeChain : public TSharedFromThis<FNodeChain>
 	{
+	public:
+		
 		bool bClosedLoop = false;
 		int32 First = -1;
 		int32 Last = -1;

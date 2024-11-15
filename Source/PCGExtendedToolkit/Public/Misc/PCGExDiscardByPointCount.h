@@ -10,6 +10,10 @@
 
 #include "PCGExDiscardByPointCount.generated.h"
 
+namespace PCGExDiscardByPointCount
+{
+	const FName OutputDiscardedLabel = TEXT("Discarded");
+}
 /**
  * 
  */
@@ -26,6 +30,7 @@ public:
 #endif
 
 protected:
+	virtual TArray<FPCGPinProperties> OutputPinProperties() const override;
 	virtual FPCGElementPtr CreateElement() const override;
 	//~End UPCGSettings
 
@@ -49,6 +54,10 @@ public:
 	/** Discarded if point count is more than */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bRemoveAbove", ClampMin=0))
 	int32 MaxPointCount = 500;
+
+	/** Whether or not to allow empty outputs (either discarded or not) */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, InlineEditConditionToggle))
+	bool bAllowEmptyOutputs = true;
 };
 
 class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExDiscardByPointCountElement final : public FPCGExPointsProcessorElement

@@ -144,7 +144,7 @@ namespace PCGExGraph
 {
 #pragma region Compound Graph
 
-	struct /*PCGEXTENDEDTOOLKIT_API*/ FUnionNode
+	class /*PCGEXTENDEDTOOLKIT_API*/ FUnionNode : public TSharedFromThis<FUnionNode>
 	{
 	protected:
 		mutable FRWLock AdjacencyLock;
@@ -184,11 +184,11 @@ namespace PCGExGraph
 
 	struct /*PCGEXTENDEDTOOLKIT_API*/ FUnionGraph
 	{
-		TMap<uint32, FUnionNode*> GridTree;
+		TMap<uint32, TSharedPtr<FUnionNode>> GridTree;
 
 		TSharedPtr<PCGExData::FUnionMetadata> NodesUnion;
 		TSharedPtr<PCGExData::FUnionMetadata> EdgesUnion;
-		TArray<FUnionNode*> Nodes;
+		TArray<TSharedPtr<FUnionNode>> Nodes;
 		TMap<uint64, FIndexedEdge> Edges;
 
 		FPCGExFuseDetails FuseDetails;
@@ -217,18 +217,17 @@ namespace PCGExGraph
 
 		~FUnionGraph()
 		{
-			for (const FUnionNode* Node : Nodes) { delete Node; }
 		}
 
 		int32 NumNodes() const { return NodesUnion->Num(); }
 		int32 NumEdges() const { return EdgesUnion->Num(); }
 
-		FUnionNode* InsertPoint(const FPCGPoint& Point, const int32 IOIndex, const int32 PointIndex);
-		FUnionNode* InsertPointUnsafe(const FPCGPoint& Point, const int32 IOIndex, const int32 PointIndex);
-		PCGExData::FUnionData* InsertEdge(const FPCGPoint& From, const int32 FromIOIndex, const int32 FromPointIndex,
+		TSharedPtr<FUnionNode> InsertPoint(const FPCGPoint& Point, const int32 IOIndex, const int32 PointIndex);
+		TSharedPtr<FUnionNode> InsertPointUnsafe(const FPCGPoint& Point, const int32 IOIndex, const int32 PointIndex);
+		TSharedPtr<PCGExData::FUnionData> InsertEdge(const FPCGPoint& From, const int32 FromIOIndex, const int32 FromPointIndex,
 		                                  const FPCGPoint& To, const int32 ToIOIndex, const int32 ToPointIndex,
 		                                  const int32 EdgeIOIndex = -1, const int32 EdgePointIndex = -1);
-		PCGExData::FUnionData* InsertEdgeUnsafe(const FPCGPoint& From, const int32 FromIOIndex, const int32 FromPointIndex,
+		TSharedPtr<PCGExData::FUnionData> InsertEdgeUnsafe(const FPCGPoint& From, const int32 FromIOIndex, const int32 FromPointIndex,
 		                                        const FPCGPoint& To, const int32 ToIOIndex, const int32 ToPointIndex,
 		                                        const int32 EdgeIOIndex = -1, const int32 EdgePointIndex = -1);
 		void GetUniqueEdges(TSet<uint64>& OutEdges);

@@ -69,7 +69,7 @@ namespace PCGExCreateShapes
 		if (!FPointsProcessor::Process(InAsyncManager)) { return false; }
 
 		Builders.Reserve(Context->BuilderFactories.Num());
-		for (const TObjectPtr<const UPCGExShapeBuilderFactoryBase> Factory : Context->BuilderFactories)
+		for (const TObjectPtr<const UPCGExShapeBuilderFactoryBase>& Factory : Context->BuilderFactories)
 		{
 			UPCGExShapeBuilderOperation* Op = Factory->CreateOperation(Context);
 			if (!Op->PrepareForSeeds(Context, PointDataFacade)) { return false; }
@@ -158,7 +158,7 @@ namespace PCGExCreateShapes
 
 				if (NumPoints <= 0) { continue; }
 
-				TSharedPtr<PCGExData::FPointIO> IO = NewPointIO(PointDataFacade->Source, Settings->GetMainOutputLabel(), i);
+				TSharedPtr<PCGExData::FPointIO> IO = NewPointIO(PointDataFacade->Source, Settings->GetMainOutputPin(), i);
 				IO->InitializeOutput(PCGExData::EIOInit::NewOutput);
 
 				TSharedPtr<PCGExData::FFacade> IOFacade = MakeShared<PCGExData::FFacade>(IO.ToSharedRef());
@@ -186,7 +186,7 @@ namespace PCGExCreateShapes
 		}
 		else
 		{
-			for (const TSharedPtr<PCGExData::FFacade> Facade : PerSeedFacades)
+			for (const TSharedPtr<PCGExData::FFacade>& Facade : PerSeedFacades)
 			{
 				Facade->Write(AsyncManager);
 			}
@@ -195,7 +195,7 @@ namespace PCGExCreateShapes
 
 	void FProcessor::Output()
 	{
-		for (const TSharedPtr<PCGExData::FFacade> IO : PerSeedFacades) { IO->Source->StageOutput(); }
+		for (const TSharedPtr<PCGExData::FFacade>& IO : PerSeedFacades) { IO->Source->StageOutput(); }
 	}
 
 	bool FBuildShape::ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager)

@@ -37,7 +37,7 @@ void FPCGExSampleOverlapStatsContext::BatchProcessing_WorkComplete()
 	FPCGExPointsProcessorContext::BatchProcessing_WorkComplete();
 
 	const TSharedPtr<PCGExPointsMT::TBatch<PCGExSampleOverlapStats::FProcessor>> TypedBatch = StaticCastSharedPtr<PCGExPointsMT::TBatch<PCGExSampleOverlapStats::FProcessor>>(MainBatch);
-	for (const TSharedPtr<PCGExSampleOverlapStats::FProcessor>& P : TypedBatch->Processors)
+	for (const TSharedRef<PCGExSampleOverlapStats::FProcessor>& P : TypedBatch->Processors)
 	{
 		if (!P->bIsProcessorValid) { continue; }
 		SharedOverlapSubCountMax = FMath::Max(SharedOverlapSubCountMax, P->LocalOverlapSubCountMax);

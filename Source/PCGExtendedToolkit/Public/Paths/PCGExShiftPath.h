@@ -12,7 +12,7 @@
 
 #include "PCGExShiftPath.generated.h"
 
-UENUM(/*E--BlueprintType, meta=(DisplayName="[PCGEx] Shift Path Mode")--E*/)
+UENUM()
 enum class EPCGExShiftType : uint8
 {
 	Index                 = 0 UMETA(DisplayName = "Index", ToolTip="..."),
@@ -21,7 +21,7 @@ enum class EPCGExShiftType : uint8
 	MetadataAndProperties = 3 UMETA(DisplayName = "Metadata and Properties", ToolTip="...")
 };
 
-UENUM(/*E--BlueprintType, meta=(DisplayName="[PCGEx] Shift Path Mode")--E*/)
+UENUM()
 enum class EPCGExShiftPathMode : uint8
 {
 	Discrete = 0 UMETA(DisplayName = "Discrete", ToolTip="Shift point is selected using a discrete value"),

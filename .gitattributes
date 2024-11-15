@@ -1,4 +1,5 @@
 # Auto detect text files and perform LF normalization
+*.uplugin text
 * text=auto
 *.cpp text eol=lf
 *.h text eol=lf

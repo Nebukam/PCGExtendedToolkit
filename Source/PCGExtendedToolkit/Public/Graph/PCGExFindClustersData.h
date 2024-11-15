@@ -11,7 +11,7 @@
 #include "Graph/PCGExIntersections.h"
 #include "PCGExFindClustersData.generated.h"
 
-UENUM(/*E--BlueprintType, meta=(BDisplayName="[PCGEx] Cluster Data Search Mode")--E*/)
+UENUM()
 enum class EPCGExClusterDataSearchMode : uint8
 {
 	All          = 0 UMETA(DisplayName = "All"),
@@ -43,8 +43,8 @@ protected:
 	//~Begin UPCGExPointsProcessorSettings
 public:
 	virtual PCGExData::EIOInit GetMainOutputInitMode() const override;
-	virtual FName GetMainOutputLabel() const override { return PCGExGraph::OutputVerticesLabel; }
-	FName GetSearchOutputLabel() const { return SearchMode == EPCGExClusterDataSearchMode::VtxFromEdges ? FName("Edges") : FName("Vtx"); }
+	virtual FName GetMainOutputPin() const override { return PCGExGraph::OutputVerticesLabel; }
+	FName GetSearchOutputPin() const { return SearchMode == EPCGExClusterDataSearchMode::VtxFromEdges ? FName("Edges") : FName("Vtx"); }
 	//~End UPCGExPointsProcessorSettings
 
 	/** Search mode. */

@@ -34,11 +34,11 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExModuloCompareFilterConfig
 	EPCGExInputValueType OperandBSource = EPCGExInputValueType::Constant;
 
 	/** Operand B for testing (Modulo base) -- Will be translated to `double` under the hood. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="OperandBSource==EPCGExInputValueType::Attribute", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Operand B", EditCondition="OperandBSource==EPCGExInputValueType::Attribute", EditConditionHides))
 	FPCGAttributePropertyInputSelector OperandB;
 
 	/** Operand B for testing */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="OperandBSource==EPCGExInputValueType::Constant", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Operand B", EditCondition="OperandBSource==EPCGExInputValueType::Constant", EditConditionHides))
 	double OperandBConstant = 0;
 
 	/** Comparison */

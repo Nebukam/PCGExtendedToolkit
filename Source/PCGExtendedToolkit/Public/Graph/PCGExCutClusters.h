@@ -4,18 +4,15 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Data/Blending/PCGExDataBlending.h"
-
 
 #include "Graph/PCGExClusterMT.h"
 #include "Graph/PCGExEdgesProcessor.h"
 #include "Graph/Filters/PCGExClusterFilter.h"
 #include "Paths/PCGExPaths.h"
-#include "Paths/SubPoints/DataBlending/PCGExSubPointsBlendOperation.h"
 
 #include "PCGExCutClusters.generated.h"
 
-UENUM(/*E--BlueprintType, meta=(DisplayName="[PCGEx] Cut Edges Mode")--E*/)
+UENUM()
 enum class EPCGExCutEdgesMode : uint8
 {
 	Nodes         = 0 UMETA(DisplayName = "Nodes", ToolTip="Check for path overlap with nodes"),

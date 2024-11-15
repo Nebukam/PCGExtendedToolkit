@@ -15,14 +15,14 @@
 
 #define PCGEX_SOFT_VALIDATE_NAME_DETAILS(_BOOL, _NAME, _CTX) if(_BOOL){if (!FPCGMetadataAttributeBase::IsValidName(_NAME) || _NAME.IsNone()){ PCGE_LOG_C(Warning, GraphAndLog, _CTX, FTEXT("Invalid user-defined attribute name for " #_NAME)); _BOOL = false; } }
 
-UENUM(/*E--BlueprintType, meta=(DisplayName="[PCGEx] Fetch Type")--E*/)
+UENUM()
 enum class EPCGExInputValueType : uint8
 {
 	Constant  = 0 UMETA(DisplayName = "Constant", Tooltip="Constant."),
 	Attribute = 1 UMETA(DisplayName = "Attribute", Tooltip="Attribute."),
 };
 
-UENUM(/*E--BlueprintType, meta=(DisplayName="[PCGEx] Data Filter Action")--E*/)
+UENUM()
 enum class EPCGExFilterDataAction : uint8
 {
 	Keep = 0 UMETA(DisplayName = "Keep", ToolTip="Keeps only selected data"),
@@ -30,7 +30,7 @@ enum class EPCGExFilterDataAction : uint8
 	Tag  = 2 UMETA(DisplayName = "Tag", ToolTip="Keep all and Tag"),
 };
 
-UENUM(/*E--BlueprintType, meta=(DisplayName="[PCGEx] Subdivide Mode")--E*/)
+UENUM()
 enum class EPCGExSubdivideMode : uint8
 {
 	Distance = 0 UMETA(DisplayName = "Distance", ToolTip="Number of subdivisions depends on length"),
@@ -361,7 +361,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExSourceFuseDetails : public FPCGExFuseDet
 };
 
 
-UENUM(/*E--BlueprintType, meta=(DisplayName="[PCGEx] Fuse Precision")--E*/)
+UENUM()
 enum class EPCGExFuseMethod : uint8
 {
 	Voxel  = 0 UMETA(DisplayName = "Voxel", Tooltip="Fast but blocky. Creates grid-looking approximation.Destructive toward initial topology."),
@@ -408,7 +408,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExFuseDetails : public FPCGExSourceFuseDet
 
 	/** Check this box if you're fusing over a very large radius and want to ensure determinism. NOTE : Will make things slower. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Force Determinism"))
-	bool bInlineInsertion = false;
+	bool bInlineInsertion = true;
 
 	void Init()
 	{

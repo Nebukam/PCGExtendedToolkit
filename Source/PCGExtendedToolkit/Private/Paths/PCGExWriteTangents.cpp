@@ -20,7 +20,7 @@ TArray<FPCGPinProperties> UPCGExWriteTangentsSettings::InputPinProperties() cons
 
 PCGEX_INITIALIZE_ELEMENT(WriteTangents)
 
-FName UPCGExWriteTangentsSettings::GetPointFilterLabel() const
+FName UPCGExWriteTangentsSettings::GetPointFilterPin() const
 {
 	return PCGExPointFilter::SourcePointFiltersLabel;
 }

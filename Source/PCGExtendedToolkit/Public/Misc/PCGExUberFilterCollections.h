@@ -13,7 +13,7 @@
 
 #include "PCGExUberFilterCollections.generated.h"
 
-UENUM(/*E--BlueprintType, meta=(DisplayName="[PCGEx] Uber Filter Mode")--E*/)
+UENUM()
 enum class EPCGExUberFilterCollectionsMode : uint8
 {
 	All     = 0 UMETA(DisplayName = "All", ToolTip="All points must pass the filters."),
@@ -46,7 +46,7 @@ protected:
 
 	//~Begin UPCGExPointsProcessorSettings
 public:
-	virtual FName GetMainOutputLabel() const override;
+	virtual FName GetMainOutputPin() const override;
 	virtual PCGExData::EIOInit GetMainOutputInitMode() const override;
 	PCGEX_NODE_POINT_FILTER(PCGExPointFilter::SourceFiltersLabel, "Filters", PCGExFactories::PointFilters, true)
 	//~End UPCGExPointsProcessorSettings

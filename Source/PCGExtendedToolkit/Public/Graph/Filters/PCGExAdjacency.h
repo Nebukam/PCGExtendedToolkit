@@ -12,14 +12,14 @@
 #include "PCGExAdjacency.generated.h"
 
 
-UENUM(/*E--BlueprintType, meta=(DisplayName="[PCGEx] Adjacency Test Mode")--E*/)
+UENUM()
 enum class EPCGExAdjacencyTestMode : uint8
 {
 	All  = 0 UMETA(DisplayName = "All", Tooltip="Test a condition using all adjacent nodes."),
 	Some = 1 UMETA(DisplayName = "Some", Tooltip="Test a condition using some adjacent nodes only.")
 };
 
-UENUM(/*E--BlueprintType, meta=(DisplayName="[PCGEx] Adjacency Gather Mode")--E*/)
+UENUM()
 enum class EPCGExAdjacencyGatherMode : uint8
 {
 	Individual = 0 UMETA(DisplayName = "Individual", Tooltip="Test individual neighbors one by one"),
@@ -29,7 +29,7 @@ enum class EPCGExAdjacencyGatherMode : uint8
 	Sum        = 4 UMETA(DisplayName = "Sum", Tooltip="Test against Sum value of all neighbors"),
 };
 
-UENUM(/*E--BlueprintType, meta=(DisplayName="[PCGEx] Adjacency Subset Mode")--E*/)
+UENUM()
 enum class EPCGExAdjacencyThreshold : uint8
 {
 	AtLeast = 0 UMETA(DisplayName = "At Least", Tooltip="Requirements must be met by at least N adjacent nodes.  (Where N is the Threshold)"),
@@ -37,7 +37,7 @@ enum class EPCGExAdjacencyThreshold : uint8
 	Exactly = 2 UMETA(DisplayName = "Exactly", Tooltip="Requirements must be met by exactly N adjacent nodes, no more, no less.  (Where N is the Threshold)")
 };
 
-UENUM(/*E--BlueprintType, meta=(DisplayName="[PCGEx] Relative Rounding Mode")--E*/)
+UENUM()
 enum class EPCGExRelativeThresholdRoundingMode : uint8
 {
 	Round = 0 UMETA(DisplayName = "Round", Tooltip="Rounds value to closest integer (0.1 = 0, 0.9 = 1)"),
@@ -75,11 +75,11 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExAdjacencySettings
 	EPCGExInputValueType ThresholdInput = EPCGExInputValueType::Constant;
 
 	/** Discrete threshold value */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="Mode==EPCGExAdjacencyTestMode::Some && ThresholdInput==EPCGExInputValueType::Constant && ThresholdType == EPCGExMeanMeasure::Discrete", EditConditionHides, ClampMin=0))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Threshold", EditCondition="Mode==EPCGExAdjacencyTestMode::Some && ThresholdInput==EPCGExInputValueType::Constant && ThresholdType == EPCGExMeanMeasure::Discrete", EditConditionHides, ClampMin=0))
 	int32 DiscreteThreshold = 1;
 
 	/** Relative threshold value */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="Mode==EPCGExAdjacencyTestMode::Some && ThresholdInput==EPCGExInputValueType::Constant && ThresholdType == EPCGExMeanMeasure::Relative", EditConditionHides, ClampMin=0, ClampMax=1))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Threshold", EditCondition="Mode==EPCGExAdjacencyTestMode::Some && ThresholdInput==EPCGExInputValueType::Constant && ThresholdType == EPCGExMeanMeasure::Relative", EditConditionHides, ClampMin=0, ClampMax=1))
 	double RelativeThreshold = 0.5;
 
 	/** Local measure attribute */
