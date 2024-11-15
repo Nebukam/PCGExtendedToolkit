@@ -194,7 +194,8 @@ namespace PCGExFindContours
 
 		//const TArray<int32>& VtxPointIndices = Cluster->GetVtxPointIndices();
 		for (int i = 0; i < Cell->Nodes.Num(); i++) { MutablePoints[i] = *Cluster->GetNodePoint(Cell->Nodes[i]); }
-
+		Cell->PostProcessPoints(MutablePoints);
+		
 		Context->SeedAttributesToPathTags.Tag(SeedIndex, PathIO);
 		Context->SeedForwardHandler->Forward(SeedIndex, PathDataFacade);
 

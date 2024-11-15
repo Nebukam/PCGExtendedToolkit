@@ -307,7 +307,7 @@ namespace PCGExGraph
 	{
 		InGraph->NodeMetadata.Reserve(Nodes.Num());
 
-		for (const TSharedPtr<FUnionNode> Node : Nodes)
+		for (const TSharedPtr<FUnionNode>& Node : Nodes)
 		{
 			const TSharedPtr<PCGExData::FUnionData>& UnionData = NodesUnion->Entries[Node->Index];
 			FGraphNodeMetadata& NodeMeta = InGraph->GetOrCreateNodeMetadataUnsafe(Node->Index);

@@ -249,7 +249,7 @@ namespace PCGExPathCrossings
 		}
 
 		for (const TSharedPtr<PCGExPointsMT::FPointsProcessorBatchBase> Parent = ParentBatch.Pin();
-		     const TSharedPtr<PCGExData::FFacade> Facade : Parent->ProcessorFacades)
+		     const TSharedRef<PCGExData::FFacade>& Facade : Parent->ProcessorFacades)
 		{
 			const TSharedRef<FPointsProcessor>* OtherProcessorPtr = Parent->SubProcessorMap->Find(&Facade->Source.Get());
 			if (!OtherProcessorPtr) { continue; }
@@ -453,7 +453,7 @@ namespace PCGExPathCrossings
 	{
 		UnionMetadata = MakeShared<PCGExData::FUnionMetadata>();
 		UnionBlender = MakeShared<PCGExDataBlending::FUnionBlender>(&Settings->CrossingBlending, &Settings->CrossingCarryOver);
-		for (const TSharedPtr<PCGExData::FPointIO> IO : Context->MainPoints->Pairs)
+		for (const TSharedPtr<PCGExData::FPointIO>& IO : Context->MainPoints->Pairs)
 		{
 			if (IO && CrossIOIndices.Contains(IO->IOIndex)) { UnionBlender->AddSource(Context->SubProcessorMap[IO.Get()]->PointDataFacade, &ProtectedAttributes); }
 		}

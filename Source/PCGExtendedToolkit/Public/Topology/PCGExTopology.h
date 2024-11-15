@@ -324,6 +324,8 @@ namespace PCGExTopology
 
 		int32 GetTriangleNumEstimate() const;
 
+		void PostProcessPoints(TArray<FPCGPoint>& InMutablePoints);
+
 	protected:
 		template <bool bMarkTriangles = false>
 		ETriangulationResult TriangulateFan(

@@ -248,4 +248,30 @@ namespace PCGExTopology
 		if (bIsConvex || Nodes.Num() < 3) { return Nodes.Num(); }
 		return Nodes.Num() + 2; // TODO : That's 100% arbitrary, need a better way to estimate concave triangulation
 	}
+
+	void FCell::PostProcessPoints(TArray<FPCGPoint>& InMutablePoints)
+	{
+		if (!Constraints->bKeepCellsWithDeadEnds) { return; }
+
+		const int32 NumPoints = InMutablePoints.Num();
+		
+		FVector A = InMutablePoints[0].Transform.GetLocation();
+		FVector B = InMutablePoints[1].Transform.GetLocation();
+		int32 BIdx = Nodes[0];
+		int32 AIdx = -1;
+		
+		for (int i = 2; i < NumPoints; i++)
+		{
+			FVector C = InMutablePoints[i].Transform.GetLocation();
+
+			if(B == C)
+			{
+				// Duplicate point, most likely a dead end. Could also be collocated points.
+				//InMutablePoints[i].Transform.SetLocation(C + PCGExMath::GetNormalUp(A, B, FVector::UpVector) * 0.01); //Slightly offset
+			}
+			
+			A = B;
+			B = C;
+		}
+	}
 }

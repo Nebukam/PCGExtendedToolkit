@@ -189,8 +189,16 @@ namespace PCGExOffsetPath
 			const double Dot = FMath::Clamp(FMath::Abs(FVector::DotProduct(Path->DirToPrevPoint(Index), Path->DirToNextPoint(Index))), 0, 1);
 
 
-			if (FMath::IsNearlyZero(1 - Dot)) { Positions[Index] = A; }
-			else { Positions[Index] = FMath::LinePlaneIntersection(A, A + Path->DirToNextPoint(Index) * 10, PlaneOrigin, PlaneDir * -1); }
+			if (FMath::IsNearlyZero(1 - Dot))
+			{
+				Positions[Index] = A;
+			}
+			else
+			{
+				const FVector Candidate = FMath::LinePlaneIntersection(A, A + Path->DirToNextPoint(Index) * 10, PlaneOrigin, PlaneDir * -1);
+				if (Candidate.ContainsNaN()) { Positions[Index] = A; }
+				else { Positions[Index] = Candidate; }
+			}
 		}
 
 
