@@ -413,7 +413,7 @@ namespace PCGExGraph
 		}
 
 		void Invalidate(FGraph* InGraph);
-		TSharedPtr<PCGExCluster::FCluster> CreateCluster(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager) const;
+		TSharedPtr<PCGExCluster::FCluster> CreateCluster(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager);
 		int32 GetFirstInIOIndex();
 
 		void Compile(
@@ -497,8 +497,8 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 
 		bool InsertEdgeUnsafe(const FIndexedEdge& Edge);
 		bool InsertEdge(const FIndexedEdge& Edge);
-		bool InsertEdgeUnsafe(const FIndexedEdge& Edge, FIndexedEdge& OutEdge);
-		bool InsertEdge(const FIndexedEdge& Edge, FIndexedEdge& OutEdge);
+		bool InsertEdgeUnsafe(const FIndexedEdge& Edge, FIndexedEdge& OutEdge, const int32 InIOIndex);
+		bool InsertEdge(const FIndexedEdge& Edge, FIndexedEdge& OutEdge, const int32 InIOIndex);
 
 		void InsertEdgesUnsafe(const TSet<uint64>& InEdges, int32 InIOIndex);
 		void InsertEdges(const TSet<uint64>& InEdges, int32 InIOIndex);

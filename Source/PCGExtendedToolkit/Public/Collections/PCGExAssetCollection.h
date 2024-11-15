@@ -337,8 +337,9 @@ namespace PCGExAssetCollection
 		RecursiveCollectionsOnly,
 	};
 
-	struct /*PCGEXTENDEDTOOLKIT_API*/ FCategory
+	class /*PCGEXTENDEDTOOLKIT_API*/ FCategory : public TSharedFromThis<FCategory>
 	{
+	public:
 		FName Name = NAME_None;
 		double WeightSum = 0;
 		TArray<int32> Indices;

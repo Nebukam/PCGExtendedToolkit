@@ -21,7 +21,8 @@ MACRO(LookAtTransform, FTransform, FTransform::Identity)\
 MACRO(Distance, double, 0)\
 MACRO(SignedDistance, double, 0)\
 MACRO(Angle, double, 0)\
-MACRO(NumSamples, int32, 0)
+MACRO(NumSamples, int32, 0)\
+MACRO(SampledIndex, int32, -1)
 
 class UPCGExNodeStateFactory;
 
@@ -240,6 +241,13 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(DisplayName="NumSamples", PCG_Overridable, EditCondition="bWriteNumSamples"))
 	FName NumSamplesAttributeName = FName("NumSamples");
 
+	/**  */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(PCG_Overridable, InlineEditConditionToggle))
+	bool bWriteSampledIndex = false;
+
+	/** Name of the 'int32' attribute to write the sampled index to. Will use the closest index when sampling multiple points. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(DisplayName="SampledIndex", PCG_Overridable, EditCondition="bWriteSampledIndex"))
+	FName SampledIndexAttributeName = FName("SampledIndex");
 
 	//
 

@@ -70,7 +70,7 @@ struct FPCGExPointPointIntersectionDetails;
 
 namespace PCGExData
 {
-	struct FUnionMetadata;
+	class FUnionMetadata;
 }
 
 UENUM()

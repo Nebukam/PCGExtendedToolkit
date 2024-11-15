@@ -214,7 +214,7 @@ namespace PCGExSplitPath
 			OddEven++;
 		}
 
-		PathsIOs.Empty(); // So they don't get deleted
+		PathsIOs.Empty();
 	}
 }
 

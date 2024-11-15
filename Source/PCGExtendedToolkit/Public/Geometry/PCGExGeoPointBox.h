@@ -403,7 +403,7 @@ namespace PCGExGeo
 
 	PCGEX_OCTREE_SEMANTICS(FPointBox, { return Element->BSB;}, { return A->Index == B->Index; })
 
-	class /*PCGEXTENDEDTOOLKIT_API*/ FPointBoxCloud
+	class /*PCGEXTENDEDTOOLKIT_API*/ FPointBoxCloud : public TSharedFromThis<FPointBoxCloud>
 	{
 		TUniquePtr<FPointBoxOctree> Octree;
 		TArray<TSharedPtr<FPointBox>> Boxes;

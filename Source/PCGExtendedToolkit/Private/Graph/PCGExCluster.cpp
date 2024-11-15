@@ -107,28 +107,51 @@ namespace PCGExCluster
 
 		if (bCopyNodes)
 		{
+			const int32 NumNewNodes = OtherCluster->Nodes->Num();
+
 			Nodes = MakeShared<TArray<FNode>>();
-			Nodes->Reserve(OtherCluster->Nodes->Num());
-			Nodes->Append(*OtherCluster->Nodes);
+			TArray<FNode>& NewNodes = *Nodes;
+			TArray<FNode>& SourceNodes = *OtherCluster->Nodes;
+
+			PCGEx::InitArray(NewNodes, NumNewNodes);
+
+			for (int i = 0; i < NumNewNodes; i++)
+			{
+				const FNode& NewNode = (NewNodes[i] = SourceNodes[i]);
+
+				// Update index lookup
+				NodeIndexLookup->GetMutable(NewNode.PointIndex) = NewNode.NodeIndex;
+			}
 
 			ExpandedNodes.Reset();
 		}
 		else
 		{
 			Nodes = OtherCluster->Nodes;
+
+			// Update index lookup
+			for (const FNode& Node : *Nodes) { NodeIndexLookup->GetMutable(Node.PointIndex) = Node.NodeIndex; }
 		}
-
-
-		// Update index lookup
-		for (const FNode& Node : *Nodes) { NodeIndexLookup->GetMutable(Node.PointIndex) = Node.NodeIndex; }
 
 		UpdatePositions();
 
 		if (bCopyEdges)
 		{
+			const int32 NumNewEdges = OtherCluster->Edges->Num();
+
 			Edges = MakeShared<TArray<PCGExGraph::FIndexedEdge>>();
-			Edges->Reserve(OtherCluster->Edges->Num());
-			Edges->Append(*OtherCluster->Edges);
+			TArray<PCGExGraph::FIndexedEdge>& NewEdges = *Edges;
+			TArray<PCGExGraph::FIndexedEdge>& SourceEdges = *OtherCluster->Edges;
+
+			PCGEx::InitArray(NewEdges, NumNewEdges);
+
+			const int32 EdgeIOIndex = InEdgesIO->IOIndex;
+			for (int i = 0; i < NumNewEdges; i++)
+			{
+				const PCGExGraph::FIndexedEdge& SourceEdge = SourceEdges[i];
+				PCGExGraph::FIndexedEdge& NewEdge = (NewEdges[i] = SourceEdge);
+				NewEdge.IOIndex = EdgeIOIndex;
+			}
 
 			ExpandedEdges.Reset();
 		}

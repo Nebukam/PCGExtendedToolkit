@@ -13,7 +13,7 @@ PCGExData::EIOInit UPCGExDiscardByPointCountSettings::GetMainOutputInitMode() co
 TArray<FPCGPinProperties> UPCGExDiscardByPointCountSettings::OutputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
-	PCGEX_PIN_PARAMS(PCGExDiscardByPointCount::OutputDiscardedLabel, "Discarded outputs.", Normal, {})
+	PCGEX_PIN_POINTS(PCGExDiscardByPointCount::OutputDiscardedLabel, "Discarded outputs.", Normal, {})
 	return PinProperties;
 }
 

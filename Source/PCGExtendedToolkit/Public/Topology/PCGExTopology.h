@@ -10,14 +10,14 @@
 
 #include "PCGExTopology.generated.h"
 
-UENUM(/*E--BlueprintType--E*/)
+UENUM()
 enum class EPCGExTopologyOutputType : uint8
 {
 	PerItem = 1 UMETA(DisplayName = "Per-item Geometry", Tooltip="Output a geometry object per-item"),
 	Merged  = 0 UMETA(DisplayName = "Merged Geometry", Tooltip="Output a single geometry that merges all generated topologies"),
 };
 
-UENUM(/*E--BlueprintType, meta=(DisplayName="[PCGEx] Contour Shape Type Output")--E*/)
+UENUM()
 enum class EPCGExCellShapeTypeOutput : uint8
 {
 	Both        = 0 UMETA(DisplayName = "Convex & Concave", ToolTip="Output both convex and concave cells"),
@@ -25,17 +25,17 @@ enum class EPCGExCellShapeTypeOutput : uint8
 	ConcaveOnly = 2 UMETA(DisplayName = "Concave Only", ToolTip="Output only concave cells")
 };
 
-UENUM(/*E--BlueprintType, meta=(DisplayName="[PCGEx] Contour Shape Type Output")--E*/)
+UENUM()
 enum class EPCGExCellSeedLocation : uint8
 {
 	Original         = 0 UMETA(DisplayName = "Original", ToolTip="Seed position is unchanged"),
 	Centroid         = 1 UMETA(DisplayName = "Centroid", ToolTip="Place the seed at the centroid of the path"),
 	PathBoundsCenter = 2 UMETA(DisplayName = "Path bounds center", ToolTip="Place the seed at the center of the path' bounds"),
 	FirstNode        = 3 UMETA(DisplayName = "First Node", ToolTip="Place the seed on the position of the node that started the cell."),
-	LastNode        = 4 UMETA(DisplayName = "Last Node", ToolTip="Place the seed on the position of the node that ends the cell.")
+	LastNode         = 4 UMETA(DisplayName = "Last Node", ToolTip="Place the seed on the position of the node that ends the cell.")
 };
 
-UENUM(/*E--BlueprintType, meta=(DisplayName="[PCGEx] Contour Shape Type Output")--E*/)
+UENUM()
 enum class EPCGExCellSeedBounds : uint8
 {
 	Original           = 0 UMETA(DisplayName = "Original", ToolTip="Seed bounds is unchanged"),
@@ -67,7 +67,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExCellConstraintsDetails
 	/** Ensure there's no duplicate cells. This can happen when using seed-based search where multiple seed yield the same final cell. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bUsedForPaths", EditConditionHides, HideEditConditionToggle))
 	bool bDedupeCells = true;
-	
+
 	/** Keep only cells that closed gracefully; i.e connect to their start node */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	bool bClosedCellsOnly = true;
@@ -119,7 +119,6 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExCellConstraintsDetails
 	/** Omit cells whose point count is larger than the specified amount */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bOmitAbovePointCount", ClampMin=0))
 	int32 MaxPointCount = 500;
-
 };
 
 namespace PCGExTopology
@@ -163,9 +162,8 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExCellSeedMutationDetails
 	/** */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	bool bResetRotation = true;
-	
-	void ApplyToPoint(const PCGExTopology::FCell* InCell, FPCGPoint& OutPoint, const TArray<FPCGPoint>& CellPoints) const;
 
+	void ApplyToPoint(const PCGExTopology::FCell* InCell, FPCGPoint& OutPoint, const TArray<FPCGPoint>& CellPoints) const;
 };
 
 USTRUCT(BlueprintType)

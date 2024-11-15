@@ -531,7 +531,7 @@ namespace PCGExPaths
 			}
 			else
 			{
-				Extras.Add(StaticCastSharedPtr<T>(Extra));
+				Extras.Add(Extra);
 			}
 
 			return Extra;
@@ -725,7 +725,7 @@ namespace PCGExPaths
 	class FPathEdgeHalfAngle : public TPathEdgeExtra<double>
 	{
 		FVector Up = FVector::UpVector;
-		
+
 	public:
 		explicit FPathEdgeHalfAngle(const int32 InNumSegments, const bool InClosedLoop, const FVector& InUp = FVector::UpVector)
 			: TPathEdgeExtra(InNumSegments, InClosedLoop), Up(InUp)
@@ -740,7 +740,7 @@ namespace PCGExPaths
 	class FPathEdgeFullAngle : public TPathEdgeExtra<double>
 	{
 		FVector Up = FVector::UpVector;
-		
+
 	public:
 		explicit FPathEdgeFullAngle(const int32 InNumSegments, const bool InClosedLoop, const FVector& InUp = FVector::UpVector)
 			: TPathEdgeExtra(InNumSegments, InClosedLoop), Up(InUp)
@@ -785,5 +785,4 @@ namespace PCGExPaths
 	{
 		return InSpline->GetTransformAtSplineInputKey(InSpline->FindInputKeyClosestToWorldLocation(InLocation), ESplineCoordinateSpace::World, bUseScale);
 	}
-	
 }

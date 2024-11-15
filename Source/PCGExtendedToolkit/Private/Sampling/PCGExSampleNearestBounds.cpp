@@ -177,6 +177,7 @@ namespace PCGExSampleNearestBounds
 		PCGEX_OUTPUT_VALUE(Distance, Index, FailSafeDist)
 		PCGEX_OUTPUT_VALUE(SignedDistance, Index, FailSafeDist)
 		PCGEX_OUTPUT_VALUE(NumSamples, Index, 0)
+		PCGEX_OUTPUT_VALUE(SampledIndex, Index, -1)
 	}
 
 	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager> InAsyncManager)
@@ -356,6 +357,7 @@ namespace PCGExSampleNearestBounds
 		PCGEX_OUTPUT_VALUE(SignedDistance, Index, FMath::Sign(WeightedSignAxis.Dot(LookAt)) * WeightedDistance)
 		PCGEX_OUTPUT_VALUE(Angle, Index, PCGExSampling::GetAngle(Settings->AngleRange, WeightedAngleAxis, LookAt))
 		PCGEX_OUTPUT_VALUE(NumSamples, Index, TotalSamples)
+		PCGEX_OUTPUT_VALUE(SampledIndex, Index, Stats.IsValid() ? Stats.Closest.Index : -1)
 
 		FPlatformAtomics::InterlockedExchange(&bAnySuccess, 1);
 	}

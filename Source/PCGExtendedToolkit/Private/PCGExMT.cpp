@@ -52,7 +52,7 @@ namespace PCGExMT
 
 		FWriteScopeLock WriteLock(ManagerLock);
 
-		for (const TSharedPtr<FTaskGroup> Group : Groups) { FPlatformAtomics::InterlockedExchange(&Group->bAvailable, 0); }
+		for (const TSharedPtr<FTaskGroup>& Group : Groups) { FPlatformAtomics::InterlockedExchange(&Group->bAvailable, 0); }
 
 		for (FAsyncTaskBase* Task : QueuedTasks)
 		{

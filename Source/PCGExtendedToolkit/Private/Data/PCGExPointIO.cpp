@@ -275,7 +275,7 @@ namespace PCGExData
 	{
 		if (IOs.IsEmpty()) { return; }
 		Pairs.Reserve(Pairs.Num() + IOs.Num());
-		for (const TSharedPtr<FPointIO> IO : IOs)
+		for (const TSharedPtr<FPointIO>& IO : IOs)
 		{
 			if (!IO) { continue; }
 			AddUnsafe(IO);
@@ -363,7 +363,7 @@ namespace PCGExData
 		}
 
 		bool bFoundDupe = false;
-		for (const TSharedPtr<FPointIOTaggedEntries> Binding : Entries)
+		for (const TSharedPtr<FPointIOTaggedEntries>& Binding : Entries)
 		{
 			// TagValue shouldn't exist already
 			if (Binding->TagValue == TagValue) { return false; }

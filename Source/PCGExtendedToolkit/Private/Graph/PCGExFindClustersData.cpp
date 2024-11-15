@@ -213,7 +213,7 @@ bool FPCGExFindClustersDataElement::ExecuteInternal(FPCGContext* InContext) cons
 		}
 	}
 
-	for (TSharedPtr<PCGExData::FPointIO> Edges : TaggedEdges)
+	for (const TSharedPtr<PCGExData::FPointIO>& Edges : TaggedEdges)
 	{
 		if (!InputDictionary->TryAddEntry(Edges.ToSharedRef()))
 		{
@@ -221,7 +221,7 @@ bool FPCGExFindClustersDataElement::ExecuteInternal(FPCGContext* InContext) cons
 		}
 	}
 
-	for (const TSharedPtr<PCGExData::FPointIO> Vtx : TaggedVtx)
+	for (const TSharedPtr<PCGExData::FPointIO>& Vtx : TaggedVtx)
 	{
 		if (!Vtx->IsEnabled()) { continue; }
 
@@ -240,7 +240,7 @@ bool FPCGExFindClustersDataElement::ExecuteInternal(FPCGContext* InContext) cons
 			Vtx->InitializeOutput(PCGExData::EIOInit::Forward);
 			Vtx->OutputPin = PCGExGraph::OutputVerticesLabel;
 
-			for (TSharedPtr<PCGExData::FPointIO> ValidEdges : EdgesEntries->Entries)
+			for (const TSharedRef<PCGExData::FPointIO>& ValidEdges : EdgesEntries->Entries)
 			{
 				Context->MainPoints->Pairs.Remove(ValidEdges);
 				Context->MainEdges->Pairs.Add(ValidEdges);

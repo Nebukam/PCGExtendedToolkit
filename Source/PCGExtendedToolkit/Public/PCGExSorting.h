@@ -150,8 +150,7 @@ namespace PCGExSorting
 
 		void RegisterBuffersDependencies(PCGExData::FFacadePreloader& FacadePreloader)
 		{
-			if constexpr (bSoftMode) { return; }
-			for (const TSharedRef<FPCGExSortRule> Rule : Rules) { FacadePreloader.Register<double>(ExecutionContext, Rule->Selector); }
+			if constexpr (!bSoftMode) { for (const TSharedRef<FPCGExSortRule>& Rule : Rules) { FacadePreloader.Register<double>(ExecutionContext, Rule->Selector); } }
 		}
 
 		bool Init()
