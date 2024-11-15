@@ -35,7 +35,7 @@ bool FPCGExBuildDelaunayGraphElement::Boot(FPCGExContext* InContext) const
 	{
 		if (Settings->bMarkSiteHull) { PCGEX_VALIDATE_NAME(Settings->SiteHullAttributeName) }
 		Context->MainSites = MakeShared<PCGExData::FPointIOCollection>(Context);
-		Context->MainSites->DefaultOutputLabel = PCGExGraph::OutputSitesLabel;
+		Context->MainSites->OutputPin = PCGExGraph::OutputSitesLabel;
 		Context->MainSites->Pairs.Init(nullptr, Context->MainPoints->Num());
 	}
 

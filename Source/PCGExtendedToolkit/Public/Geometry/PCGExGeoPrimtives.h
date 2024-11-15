@@ -56,7 +56,7 @@ namespace PCGExGeo
 				(Vtx[0] == A && Vtx[2] == B);
 		}
 
-		FORCEINLINE void GetLongestEdge(const TArrayView<FVector>& Positions, uint64& Edge) const
+		FORCEINLINE void GetLongestEdge(const TArrayView<const FVector>& Positions, uint64& Edge) const
 		{
 			const double L[3] = {
 				FVector::DistSquared(Positions[Vtx[0]], Positions[Vtx[1]]),
@@ -69,7 +69,7 @@ namespace PCGExGeo
 			else { Edge = PCGEx::H64U(L[1], L[2]); }
 		}
 
-		FORCEINLINE void GetLongestEdge(const TArrayView<FVector2D>& Positions, uint64& Edge) const
+		FORCEINLINE void GetLongestEdge(const TArrayView<const FVector2D>& Positions, uint64& Edge) const
 		{
 			const double L[3] = {
 				FVector2D::DistSquared(Positions[Vtx[0]], Positions[Vtx[1]]),
@@ -82,7 +82,7 @@ namespace PCGExGeo
 			else { Edge = PCGEx::H64U(L[1], L[2]); }
 		}
 
-		FORCEINLINE void GetBounds(const TArrayView<FVector>& Positions, FBox& Bounds) const
+		FORCEINLINE void GetBounds(const TArrayView<const FVector>& Positions, FBox& Bounds) const
 		{
 			Bounds = FBox(ForceInit);
 			Bounds += Positions[Vtx[0]];
@@ -90,7 +90,7 @@ namespace PCGExGeo
 			Bounds += Positions[Vtx[2]];
 		}
 
-		FORCEINLINE void GetBounds(const TArrayView<FVector2D>& Positions, FBox& Bounds) const
+		FORCEINLINE void GetBounds(const TArrayView<const FVector2D>& Positions, FBox& Bounds) const
 		{
 			Bounds = FBox(ForceInit);
 			Bounds += FVector(Positions[Vtx[0]], 0);
@@ -101,6 +101,22 @@ namespace PCGExGeo
 		bool operator==(const FTriangle& Other) const
 		{
 			return Vtx[0] == Other.Vtx[0] && Vtx[1] == Other.Vtx[1] && Vtx[2] == Other.Vtx[2];
+		}
+
+		FORCEINLINE void FixWinding(const TArrayView<const FVector2D>& Positions)
+		{
+			FVector2D A = Positions[Vtx[0]];
+			FVector2D B = Positions[Vtx[1]];
+			FVector2D C = Positions[Vtx[2]];
+			if ((B.X - A.X) * (C.Y - A.Y) - (C.X - A.X) * (B.Y - A.Y) > 0) { Swap(Vtx[1], Vtx[2]); }
+		}
+
+		FORCEINLINE void FixWinding(const TArrayView<const FVector>& Positions, const FVector& Up = FVector::UpVector)
+		{
+			if (FVector::DotProduct(FVector::CrossProduct(Positions[Vtx[1]] - Positions[Vtx[0]], Positions[Vtx[2]] - Positions[Vtx[0]]), Up) > 0)
+			{
+				Swap(Vtx[1], Vtx[2]);
+			}
 		}
 	};
 

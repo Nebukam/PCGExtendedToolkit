@@ -17,7 +17,7 @@ TArray<FPCGPinProperties> UPCGExFactoryProviderSettings::InputPinProperties() co
 TArray<FPCGPinProperties> UPCGExFactoryProviderSettings::OutputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties;
-	PCGEX_PIN_PARAM(GetMainOutputLabel(), GetMainOutputLabel().ToString(), Required, {})
+	PCGEX_PIN_PARAM(GetMainOutputPin(), GetMainOutputPin().ToString(), Required, {})
 	return PinProperties;
 }
 
@@ -49,7 +49,7 @@ bool FPCGExFactoryProviderElement::ExecuteInternal(FPCGContext* Context) const
 	if (!OutFactory) { return true; }
 
 	OutFactory->bDoRegisterConsumableAttributes = Settings->bDoRegisterConsumableAttributes;
-	PCGExContext->StageOutput(Settings->GetMainOutputLabel(), OutFactory, false);
+	PCGExContext->StageOutput(Settings->GetMainOutputPin(), OutFactory, false);
 	PCGExContext->OnComplete();
 
 	return true;

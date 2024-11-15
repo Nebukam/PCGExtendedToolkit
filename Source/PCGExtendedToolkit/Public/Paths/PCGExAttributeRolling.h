@@ -13,7 +13,7 @@
 
 #include "PCGExAttributeRolling.generated.h"
 
-UENUM(/*E--BlueprintType, meta=(DisplayName="[PCGEx] Path Shrink Distance Cut Type")--E*/)
+UENUM()
 enum class EPCGExRollingTriggerMode : uint8
 {
 	None  = 0 UMETA(DisplayName = "None", ToolTip="Ignore triggers"),

@@ -40,7 +40,7 @@ bool FPCGExBuildVoronoiGraphElement::Boot(FPCGExContext* InContext) const
 	PCGEX_VALIDATE_NAME(Settings->HullAttributeName)
 
 	Context->SitesOutput = MakeShared<PCGExData::FPointIOCollection>(Context);
-	Context->SitesOutput->DefaultOutputLabel = PCGExGraph::OutputSitesLabel;
+	Context->SitesOutput->OutputPin = PCGExGraph::OutputSitesLabel;
 
 	return true;
 }

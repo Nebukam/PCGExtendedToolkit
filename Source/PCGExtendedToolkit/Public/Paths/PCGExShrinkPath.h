@@ -10,14 +10,14 @@
 
 #include "PCGExShrinkPath.generated.h"
 
-UENUM(/*E--BlueprintType, meta=(DisplayName="[PCGEx] Path Shrink Mode")--E*/)
+UENUM()
 enum class EPCGExPathShrinkMode : uint8
 {
 	Count    = 0 UMETA(DisplayName = "Count", ToolTip="TBD"),
 	Distance = 1 UMETA(DisplayName = "Distance", ToolTip="TBD."),
 };
 
-UENUM(/*E--BlueprintType, meta=(DisplayName="[PCGEx] Path Shrink Distance Cut Type")--E*/)
+UENUM()
 enum class EPCGExPathShrinkDistanceCutType : uint8
 {
 	NewPoint = 0 UMETA(DisplayName = "New Point", ToolTip="TBD"),
@@ -26,7 +26,7 @@ enum class EPCGExPathShrinkDistanceCutType : uint8
 	Closest  = 3 UMETA(DisplayName = "Closest (Round)", ToolTip="TBD."),
 };
 
-UENUM(/*E--BlueprintType, meta=(DisplayName="[PCGEx] Path Shrink Endpoint")--E*/)
+UENUM()
 enum class EPCGExShrinkEndpoint : uint8
 {
 	Both  = 0 UMETA(DisplayName = "Start and End", ToolTip="TBD"),
@@ -34,7 +34,7 @@ enum class EPCGExShrinkEndpoint : uint8
 	End   = 2 UMETA(DisplayName = "End", ToolTip="TBD."),
 };
 
-UENUM(/*E--BlueprintType, meta=(DisplayName="[PCGEx] Path Shrink Constant Mode")--E*/)
+UENUM()
 enum class EPCGExShrinkConstantMode : uint8
 {
 	Shared   = 0 UMETA(DisplayName = "Shared", ToolTip="Both start & end distance use the primary value."),
@@ -51,11 +51,11 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExShrinkPathEndpointDistanceDetails
 	EPCGExInputValueType AmountInput = EPCGExInputValueType::Constant;
 
 	/** TBD */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="AmountInput==EPCGExInputValueType::Constant", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName="Distance", EditCondition="AmountInput==EPCGExInputValueType::Constant", EditConditionHides))
 	double Distance = 10;
 
 	/** Distance or count */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="AmountInput==EPCGExInputValueType::Attribute", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName="Distance", EditCondition="AmountInput==EPCGExInputValueType::Attribute", EditConditionHides))
 	FPCGAttributePropertyInputSelector DistanceAttribute;
 
 	/** TBD */

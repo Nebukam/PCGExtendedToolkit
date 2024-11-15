@@ -148,7 +148,7 @@ virtual FText GetNodeTooltipText() const override{ return NSLOCTEXT("PCGEx" #_SH
 #endif
 
 #define PCGEX_NODE_POINT_FILTER(_LABEL, _TOOLTIP, _TYPE, _REQUIRED) \
-virtual FName GetPointFilterLabel() const override { return _LABEL; } \
+virtual FName GetPointFilterPin() const override { return _LABEL; } \
 virtual FString GetPointFilterTooltip() const override { return TEXT(_TOOLTIP); } \
 virtual TSet<PCGExFactories::EType> GetPointFilterTypes() const override { return _TYPE; } \
 virtual bool RequiresPointFilters() const override { return _REQUIRED; }

@@ -12,7 +12,7 @@
 
 #include "PCGExBuildDelaunayGraph2D.generated.h"
 
-UENUM(/*E--BlueprintType, meta=(DisplayName="[PCGEx] Urquhart Site Merge Mode")--E*/)
+UENUM()
 enum class EPCGExUrquhartSiteMergeMode : uint8
 {
 	None       = 0 UMETA(DisplayName = "None", ToolTip="Do not merge sites."),
@@ -42,7 +42,7 @@ protected:
 
 	//~Begin UPCGExPointsProcessorSettings
 public:
-	virtual FName GetMainOutputLabel() const override { return PCGExGraph::OutputVerticesLabel; }
+	virtual FName GetMainOutputPin() const override { return PCGExGraph::OutputVerticesLabel; }
 	virtual PCGExData::EIOInit GetMainOutputInitMode() const override;
 	//~End UPCGExPointsProcessorSettings
 

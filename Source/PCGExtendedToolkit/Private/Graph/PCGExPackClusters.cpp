@@ -34,7 +34,7 @@ bool FPCGExPackClustersElement::Boot(FPCGExContext* InContext) const
 	Context->CarryOverDetails.Init();
 
 	Context->PackedClusters = MakeShared<PCGExData::FPointIOCollection>(Context);
-	Context->PackedClusters->DefaultOutputLabel = PCGExGraph::OutputPackedClustersLabel;
+	Context->PackedClusters->OutputPin = PCGExGraph::OutputPackedClustersLabel;
 
 	return true;
 }

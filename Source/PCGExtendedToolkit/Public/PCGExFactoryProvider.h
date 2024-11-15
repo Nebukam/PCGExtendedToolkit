@@ -101,7 +101,7 @@ protected:
 
 	//~Begin UPCGExFactoryProviderSettings
 public:
-	virtual FName GetMainOutputLabel() const { return TEXT(""); }
+	virtual FName GetMainOutputPin() const { return TEXT(""); }
 	virtual UPCGExParamFactoryBase* CreateFactory(FPCGExContext* InContext, UPCGExParamFactoryBase* InFactory = nullptr) const;
 
 #if WITH_EDITOR

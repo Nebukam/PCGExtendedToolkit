@@ -132,7 +132,7 @@ bool FPCGExPathfindingEdgesElement::Boot(FPCGExContext* InContext) const
 	Context->GoalForwardHandler = Settings->GoalForwarding.GetHandler(Context->GoalsDataFacade);
 
 	Context->OutputPaths = MakeShared<PCGExData::FPointIOCollection>(Context);
-	Context->OutputPaths->DefaultOutputLabel = PCGExGraph::OutputPathsLabel;
+	Context->OutputPaths->OutputPin = PCGExGraph::OutputPathsLabel;
 
 	// Prepare path seed/goal pairs
 

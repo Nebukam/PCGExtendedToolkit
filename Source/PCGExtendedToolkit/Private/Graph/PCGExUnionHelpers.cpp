@@ -95,7 +95,7 @@ namespace PCGExGraph
 				const int32 MaxIndex = StartIndex + Count;
 				for (int i = StartIndex; i < MaxIndex; i++)
 				{
-					FUnionNode* UnionNode = P->UnionGraph->Nodes[i];
+					TSharedPtr<FUnionNode> UnionNode = P->UnionGraph->Nodes[i];
 					const PCGMetadataEntryKey Key = Points[i].MetadataEntry;
 					Points[i] = UnionNode->Point; // Copy "original" point properties, in case  there's only one
 

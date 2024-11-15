@@ -25,10 +25,10 @@ PCGExData::EIOInit UPCGExUberFilterSettings::GetMainOutputInitMode() const { ret
 
 PCGEX_INITIALIZE_ELEMENT(UberFilter)
 
-FName UPCGExUberFilterSettings::GetMainOutputLabel() const
+FName UPCGExUberFilterSettings::GetMainOutputPin() const
 {
 	// Ensure proper forward when node is disabled
-	return Mode == EPCGExUberFilterMode::Partition ? PCGExPointFilter::OutputInsideFiltersLabel : Super::GetMainOutputLabel();
+	return Mode == EPCGExUberFilterMode::Partition ? PCGExPointFilter::OutputInsideFiltersLabel : Super::GetMainOutputPin();
 }
 
 bool FPCGExUberFilterElement::Boot(FPCGExContext* InContext) const
@@ -46,13 +46,13 @@ bool FPCGExUberFilterElement::Boot(FPCGExContext* InContext) const
 	Context->Inside = MakeShared<PCGExData::FPointIOCollection>(Context);
 	Context->Outside = MakeShared<PCGExData::FPointIOCollection>(Context);
 
-	Context->Inside->DefaultOutputLabel = PCGExPointFilter::OutputInsideFiltersLabel;
-	Context->Outside->DefaultOutputLabel = PCGExPointFilter::OutputOutsideFiltersLabel;
+	Context->Inside->OutputPin = PCGExPointFilter::OutputInsideFiltersLabel;
+	Context->Outside->OutputPin = PCGExPointFilter::OutputOutsideFiltersLabel;
 
 	if (Settings->bSwap)
 	{
-		Context->Inside->DefaultOutputLabel = PCGExPointFilter::OutputOutsideFiltersLabel;
-		Context->Outside->DefaultOutputLabel = PCGExPointFilter::OutputInsideFiltersLabel;
+		Context->Inside->OutputPin = PCGExPointFilter::OutputOutsideFiltersLabel;
+		Context->Outside->OutputPin = PCGExPointFilter::OutputInsideFiltersLabel;
 	}
 
 	return true;
@@ -146,7 +146,7 @@ namespace PCGExUberFilter
 
 	TSharedPtr<PCGExData::FPointIO> FProcessor::CreateIO(const TSharedRef<PCGExData::FPointIOCollection>& InCollection, const PCGExData::EIOInit InitMode) const
 	{
-		TSharedPtr<PCGExData::FPointIO> NewPointIO = PCGExData::NewPointIO(PointDataFacade->Source, InCollection->DefaultOutputLabel);
+		TSharedPtr<PCGExData::FPointIO> NewPointIO = PCGExData::NewPointIO(PointDataFacade->Source, InCollection->OutputPin);
 		NewPointIO->InitializeOutput(InitMode);
 		InCollection->Pairs[BatchIndex] = NewPointIO;
 		return NewPointIO;

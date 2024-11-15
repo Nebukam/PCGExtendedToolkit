@@ -12,7 +12,7 @@
 
 #define PCGEX_CUSTOM_GRAPH_EDGE_SUPPORT false
 
-UENUM(/*E--BlueprintType, meta=(DisplayName="[PCGEx] Custom Graph Actor Source Mode")--E*/)
+UENUM()
 enum class EPCGExCustomGraphActorSourceMode : uint8
 {
 	Owner           = 0 UMETA(DisplayName = "Owner", ToolTip="PCG Component owner"),
@@ -479,7 +479,7 @@ protected:
 	//~Begin UPCGExPointsProcessorSettings
 public:
 	virtual PCGExData::EIOInit GetMainOutputInitMode() const override;
-	virtual FName GetMainOutputLabel() const override { return PCGExGraph::OutputVerticesLabel; }
+	virtual FName GetMainOutputPin() const override { return PCGExGraph::OutputVerticesLabel; }
 	virtual bool IsInputless() const override { return Mode == EPCGExCustomGraphActorSourceMode::Owner; }
 	//~End UPCGExPointsProcessorSettings
 

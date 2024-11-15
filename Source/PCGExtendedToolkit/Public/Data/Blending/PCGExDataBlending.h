@@ -52,7 +52,7 @@ MACRO(AbsoluteMax) \
 MACRO(WeightedSubtract) \
 MACRO(CopyOther)
 
-UENUM(/*E--BlueprintType, meta=(DisplayName="[PCGEx] Blend Over Mode")--E*/)
+UENUM()
 enum class EPCGExBlendOver : uint8
 {
 	Distance = 0 UMETA(DisplayName = "Distance", ToolTip="Blend is based on distance over max distance"),
@@ -70,10 +70,10 @@ struct FPCGExPointPointIntersectionDetails;
 
 namespace PCGExData
 {
-	struct FUnionMetadata;
+	class FUnionMetadata;
 }
 
-UENUM(/*E--BlueprintType, meta=(DisplayName="/*E--[PCGEx] Data Blending Type")--E*/)
+UENUM()
 enum class EPCGExDataBlendingType : uint8
 {
 	None             = 0 UMETA(DisplayName = "None", ToolTip="No blending is applied, keep the original value."),

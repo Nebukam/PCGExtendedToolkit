@@ -22,7 +22,7 @@ bool FPCGExPartitionVerticesElement::Boot(FPCGExContext* InContext) const
 	PCGEX_CONTEXT_AND_SETTINGS(PartitionVertices)
 
 	Context->VtxPartitions = MakeShared<PCGExData::FPointIOCollection>(Context);
-	Context->VtxPartitions->DefaultOutputLabel = PCGExGraph::OutputVerticesLabel;
+	Context->VtxPartitions->OutputPin = PCGExGraph::OutputVerticesLabel;
 
 	return true;
 }

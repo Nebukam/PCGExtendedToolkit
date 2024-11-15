@@ -32,21 +32,21 @@ namespace PCGExCluster
 }
 
 
-UENUM(/*E--BlueprintType, meta=(DisplayName="[PCGEx] Adjacency Direction Mode")--E*/)
+UENUM()
 enum class EPCGExAdjacencyDirectionOrigin : uint8
 {
 	FromNode     = 0 UMETA(DisplayName = "From Node to Neighbor", Tooltip="..."),
 	FromNeighbor = 1 UMETA(DisplayName = "From Neighbor to Node", Tooltip="..."),
 };
 
-UENUM(/*E--BlueprintType, meta=(DisplayName="[PCGEx] Graph Value Source")--E*/)
+UENUM()
 enum class EPCGExClusterComponentSource : uint8
 {
 	Vtx  = 0 UMETA(DisplayName = "Point", Tooltip="Value is fetched from the point being evaluated."),
 	Edge = 1 UMETA(DisplayName = "Edge", Tooltip="Value is fetched from the edge connecting to the point being evaluated."),
 };
 
-UENUM(/*E--BlueprintType, meta=(DisplayName="[PCGEx] Intersection Type")--E*/)
+UENUM()
 enum class EPCGExIntersectionType : uint8
 {
 	Unknown   = 0 UMETA(DisplayName = "Unknown", ToolTip="Unknown"),
@@ -138,6 +138,9 @@ namespace PCGExGraph
 	const FName SourceHeuristicsLabel = TEXT("Heuristics");
 	const FName OutputHeuristicsLabel = TEXT("Heuristics");
 	const FName OutputModifiersLabel = TEXT("Modifiers");
+
+	const FName SourceVtxFiltersLabel = FName("VtxFilters");
+	const FName SourceEdgeFiltersLabel = FName("EdgeFilters");
 
 	PCGEX_ASYNC_STATE(State_PreparingUnion)
 	PCGEX_ASYNC_STATE(State_ProcessingUnion)
@@ -410,7 +413,7 @@ namespace PCGExGraph
 		}
 
 		void Invalidate(FGraph* InGraph);
-		TSharedPtr<PCGExCluster::FCluster> CreateCluster(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager) const;
+		TSharedPtr<PCGExCluster::FCluster> CreateCluster(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager);
 		int32 GetFirstInIOIndex();
 
 		void Compile(
@@ -494,8 +497,8 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 
 		bool InsertEdgeUnsafe(const FIndexedEdge& Edge);
 		bool InsertEdge(const FIndexedEdge& Edge);
-		bool InsertEdgeUnsafe(const FIndexedEdge& Edge, FIndexedEdge& OutEdge);
-		bool InsertEdge(const FIndexedEdge& Edge, FIndexedEdge& OutEdge);
+		bool InsertEdgeUnsafe(const FIndexedEdge& Edge, FIndexedEdge& OutEdge, const int32 InIOIndex);
+		bool InsertEdge(const FIndexedEdge& Edge, FIndexedEdge& OutEdge, const int32 InIOIndex);
 
 		void InsertEdgesUnsafe(const TSet<uint64>& InEdges, int32 InIOIndex);
 		void InsertEdges(const TSet<uint64>& InEdges, int32 InIOIndex);
@@ -683,7 +686,7 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 			Graph->bRefreshEdgeSeed = OutputDetails->bRefreshEdgeSeed;
 
 			EdgesIO = MakeShared<PCGExData::FPointIOCollection>(NodeDataFacade->Source->GetContext());
-			EdgesIO->DefaultOutputLabel = OutputEdgesLabel;
+			EdgesIO->OutputPin = OutputEdgesLabel;
 		}
 
 		const FGraphMetadataDetails* GetMetadataDetails() const { return MetadataDetailsPtr; }

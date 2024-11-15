@@ -27,7 +27,7 @@ bool FPCGExFindPointOnBoundsElement::Boot(FPCGExContext* InContext) const
 
 		Context->BestIndices.Init(-1, Context->MainPoints->Num());
 
-		Context->MergedOut = PCGExData::NewPointIO(Context, Settings->GetMainOutputLabel(), 0);
+		Context->MergedOut = PCGExData::NewPointIO(Context, Settings->GetMainOutputPin(), 0);
 		Context->MergedAttributesInfos = PCGEx::FAttributesInfos::Get(Context->MainPoints, AttributeMismatches);
 
 		Context->CarryOverDetails.Attributes.Prune(*Context->MergedAttributesInfos);

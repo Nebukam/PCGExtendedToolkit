@@ -33,11 +33,11 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExNodeAdjacencyFilterConfig
 	EPCGExInputValueType CompareAgainst = EPCGExInputValueType::Constant;
 
 	/** Operand A for testing -- Will be translated to `double` under the hood. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(EditCondition="CompareAgainst==EPCGExInputValueType::Attribute", EditConditionHides, ShowOnlyInnerProperties, DisplayName="Operand A (First)"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Operand A", EditCondition="CompareAgainst==EPCGExInputValueType::Attribute", EditConditionHides, ShowOnlyInnerProperties))
 	FPCGAttributePropertyInputSelector OperandA;
 
 	/** Constant Operand A for testing. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="CompareAgainst==EPCGExInputValueType::Constant", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Operand A", EditCondition="CompareAgainst==EPCGExInputValueType::Constant", EditConditionHides))
 	double OperandAConstant = 0;
 
 	/** Comparison */
@@ -121,7 +121,7 @@ public:
 	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->NodeColorClusterFilter; }
 #endif
 
-	virtual FName GetMainOutputLabel() const override { return PCGExPointFilter::OutputFilterLabelNode; }
+	virtual FName GetMainOutputPin() const override { return PCGExPointFilter::OutputFilterLabelNode; }
 
 	/** Test Config.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ShowOnlyInnerProperties))

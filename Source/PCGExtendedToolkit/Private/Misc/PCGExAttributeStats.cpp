@@ -61,7 +61,7 @@ bool FPCGExAttributeStatsElement::Boot(FPCGExContext* InContext) const
 	PCGEX_FOREACH_STAT(PCGEX_STAT_CHECK, nullptr)
 #undef PCGEX_STAT_CHECK
 
-	for (const TSharedPtr<PCGExData::FPointIO> IO : Context->MainPoints->Pairs)
+	for (const TSharedPtr<PCGExData::FPointIO>& IO : Context->MainPoints->Pairs)
 	{
 		TSharedPtr<PCGEx::FAttributesInfos> Infos = PCGEx::FAttributesInfos::Get(IO->GetIn()->Metadata);
 		Context->AttributesInfos->Append(Infos, OutMismatch);

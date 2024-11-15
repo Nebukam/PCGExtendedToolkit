@@ -227,7 +227,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExLloydSettings
 	FORCEINLINE bool IsValid() const { return Iterations > 0 && Influence > 0; }
 };
 
-UENUM(/*E--BlueprintType, meta=(DisplayName="[PCGEx] Cell Center")--E*/)
+UENUM()
 enum class EPCGExCellCenter : uint8
 {
 	Balanced     = 0 UMETA(DisplayName = "Balanced", ToolTip="Pick centroid if circumcenter is out of bounds, otherwise uses circumcenter."),
@@ -429,6 +429,19 @@ namespace PCGExGeo
 		const double U = 1.0f - V - W;
 
 		return FVector(U, V, W);
+	}
+
+	static bool IsPointInTriangle(const FVector& P, const FVector& A, const FVector& B, const FVector& C)
+	{
+		const FVector AB = B - A;
+		const FVector AC = C - A;
+		const FVector AP = P - A;
+
+		const double ABxAC = FVector::CrossProduct(AB, AC).Z;
+		const double ABxAP = FVector::CrossProduct(AB, AP).Z;
+		const double ACxAP = FVector::CrossProduct(AC, AP).Z;
+
+		return (ABxAC > 0 ? (ABxAP >= 0 && ACxAP <= 0) : (ABxAP <= 0 && ACxAP >= 0));
 	}
 
 	/**

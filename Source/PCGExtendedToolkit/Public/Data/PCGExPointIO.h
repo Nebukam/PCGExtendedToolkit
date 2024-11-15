@@ -122,7 +122,7 @@ namespace PCGExData
 		FPCGExContext* GetContext() const { return Context; }
 
 		void SetInfos(const int32 InIndex,
-		              const FName InDefaultOutputLabel,
+		              const FName InOutputPin,
 		              const TSet<FString>* InTags = nullptr);
 
 		void InitializeOutput(EIOInit InitOut = EIOInit::NoOutput);
@@ -193,7 +193,7 @@ namespace PCGExData
 		TSharedPtr<FPCGAttributeAccessorKeysPoints> GetOutKeys(const bool bEnsureValidKeys = false);
 		void PrintOutKeysMap(TMap<PCGMetadataEntryKey, int32>& InMap) const;
 
-		FName DefaultOutputLabel = PCGEx::OutputPointsLabel;
+		FName OutputPin = PCGEx::OutputPointsLabel;
 
 		FORCEINLINE const PCGMetadataEntryKey& GetInItemKey(const int32 Index) const { return (In->GetPoints().GetData() + Index)->MetadataEntry; }
 		FORCEINLINE const PCGMetadataEntryKey& GetOutItemKey(const int32 Index) const { return (Out->GetPoints().GetData() + Index)->MetadataEntry; }
@@ -295,24 +295,24 @@ namespace PCGExData
 		}
 	};
 
-	static TSharedPtr<FPointIO> NewPointIO(FPCGExContext* InContext, FName OutputLabel = NAME_None, int32 Index = -1)
+	static TSharedPtr<FPointIO> NewPointIO(FPCGExContext* InContext, FName InOutputPin = NAME_None, int32 Index = -1)
 	{
 		TSharedPtr<FPointIO> NewIO = MakeShared<FPointIO>(InContext);
-		NewIO->SetInfos(Index, OutputLabel);
+		NewIO->SetInfos(Index, InOutputPin);
 		return NewIO;
 	}
 
-	static TSharedPtr<FPointIO> NewPointIO(FPCGExContext* InContext, const UPCGPointData* InData, FName OutputLabel = NAME_None, int32 Index = -1)
+	static TSharedPtr<FPointIO> NewPointIO(FPCGExContext* InContext, const UPCGPointData* InData, FName InOutputPin = NAME_None, int32 Index = -1)
 	{
 		TSharedPtr<FPointIO> NewIO = MakeShared<FPointIO>(InContext, InData);
-		NewIO->SetInfos(Index, OutputLabel);
+		NewIO->SetInfos(Index, InOutputPin);
 		return NewIO;
 	}
 
-	static TSharedPtr<FPointIO> NewPointIO(const TSharedRef<FPointIO>& InPointIO, FName OutputLabel = NAME_None, int32 Index = -1)
+	static TSharedPtr<FPointIO> NewPointIO(const TSharedRef<FPointIO>& InPointIO, FName InOutputPin = NAME_None, int32 Index = -1)
 	{
 		TSharedPtr<FPointIO> NewIO = MakeShared<FPointIO>(InPointIO);
-		NewIO->SetInfos(Index, OutputLabel);
+		NewIO->SetInfos(Index, InOutputPin);
 		return NewIO;
 	}
 
@@ -332,7 +332,7 @@ namespace PCGExData
 
 		~FPointIOCollection();
 
-		FName DefaultOutputLabel = PCGEx::OutputPointsLabel;
+		FName OutputPin = PCGEx::OutputPointsLabel;
 		TArray<TSharedPtr<FPointIO>> Pairs;
 
 		/**
@@ -357,7 +357,7 @@ namespace PCGExData
 		{
 			FWriteScopeLock WriteLock(PairsLock);
 			TSharedPtr<FPointIO> NewIO = Pairs.Add_GetRef(MakeShared<FPointIO>(Context, In));
-			NewIO->SetInfos(Pairs.Num() - 1, DefaultOutputLabel, Tags);
+			NewIO->SetInfos(Pairs.Num() - 1, OutputPin, Tags);
 			NewIO->InitializeOutput<T>(InitOut);
 			return NewIO;
 		}
@@ -367,7 +367,7 @@ namespace PCGExData
 		{
 			FWriteScopeLock WriteLock(PairsLock);
 			TSharedPtr<FPointIO> NewIO = Pairs.Add_GetRef(MakeShared<FPointIO>(Context));
-			NewIO->SetInfos(Pairs.Num() - 1, DefaultOutputLabel);
+			NewIO->SetInfos(Pairs.Num() - 1, OutputPin);
 			NewIO->InitializeOutput<T>(InitOut);
 			return NewIO;
 		}

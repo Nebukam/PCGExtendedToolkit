@@ -14,7 +14,7 @@
 
 #include "PCGExEdgeEndpointsCompareNumFilter.generated.h"
 
-UENUM(/*E--BlueprintType, meta=(DisplayName="[PCGEx] Refine Edge Compare Against Mode")--E*/)
+UENUM()
 enum class EPCGExRefineEdgeCompareAgainstMode : uint8
 {
 	EndEnd  = 0 UMETA(DisplayName = "Endpoints", Tooltip="Numeric comparison"),
@@ -105,7 +105,7 @@ public:
 #endif
 	//~End UPCGSettings
 
-	virtual FName GetMainOutputLabel() const override { return PCGExPointFilter::OutputFilterLabelEdge; }
+	virtual FName GetMainOutputPin() const override { return PCGExPointFilter::OutputFilterLabelEdge; }
 
 	/** Test Config.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ShowOnlyInnerProperties))

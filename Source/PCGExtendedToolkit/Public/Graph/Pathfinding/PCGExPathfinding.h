@@ -22,7 +22,7 @@ namespace PCGExHeuristics
 	class FHeuristicsHandler;
 }
 
-UENUM(/*E--BlueprintType, meta=(DisplayName="[PCGEx] Adjacency Direction Mode")--E*/)
+UENUM()
 enum class EPCGExPathComposition : uint8
 {
 	Vtx         = 0 UMETA(DisplayName = "Vtx", Tooltip="..."),

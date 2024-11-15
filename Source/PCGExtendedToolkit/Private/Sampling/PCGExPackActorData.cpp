@@ -118,7 +118,7 @@ int32 UPCGExPackActorDataSettings::GetPreferredChunkSize() const { return PCGExM
 
 PCGEX_INITIALIZE_ELEMENT(PackActorData)
 
-FName UPCGExPackActorDataSettings::GetMainInputLabel() const
+FName UPCGExPackActorDataSettings::GetMainInputPin() const
 {
 	return PCGEx::SourceTargetsLabel;
 }

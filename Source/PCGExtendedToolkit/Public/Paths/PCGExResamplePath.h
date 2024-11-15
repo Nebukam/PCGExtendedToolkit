@@ -11,7 +11,7 @@
 
 #include "PCGExResamplePath.generated.h"
 
-UENUM(/*E--BlueprintType, meta=(DisplayName="[PCGEx] Path Normal Direction")--E*/)
+UENUM()
 enum class EPCGExResampleMode : uint8
 {
 	Sweep        = 0 UMETA(DisplayName = "Sweep", ToolTip="..."),

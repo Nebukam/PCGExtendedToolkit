@@ -17,7 +17,7 @@
 
 class UPCGExSubPointsBlendOperation;
 
-UENUM(/*E--BlueprintType, meta=(DisplayName="[PCGEx] Path Split Action")--E*/)
+UENUM()
 enum class EPCGExPathBlendMode : uint8
 {
 	Full   = 0 UMETA(DisplayName = "Start to End", ToolTip="Blend properties & attributes of all path' points from start point to last point"),
@@ -57,11 +57,11 @@ public:
 	EPCGExInputValueType LerpInput = EPCGExInputValueType::Constant;
 
 	/** Constant direction */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ClampMin=0, EditCondition="BlendOver==EPCGExBlendOver::Fixed && LerpInput==EPCGExInputValueType::Constant", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Lerp", ClampMin=0, EditCondition="BlendOver==EPCGExBlendOver::Fixed && LerpInput==EPCGExInputValueType::Constant", EditConditionHides))
 	double LerpConstant = 0.5;
 
 	/** Attribute to read the direction from */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="BlendOver==EPCGExBlendOver::Fixed && LerpInput==EPCGExInputValueType::Attribute", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Lerp", EditCondition="BlendOver==EPCGExBlendOver::Fixed && LerpInput==EPCGExInputValueType::Attribute", EditConditionHides))
 	FPCGAttributePropertyInputSelector LerpAttribute;
 
 	/** Blending settings used to smooth attributes.*/

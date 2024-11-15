@@ -211,7 +211,7 @@ namespace PCGExPathfinding
 
 	void FPlotQuery::Cleanup()
 	{
-		for (const TSharedPtr<FPathQuery> Query : SubQueries) { Query->Cleanup(); }
+		for (const TSharedPtr<FPathQuery>& Query : SubQueries) { Query->Cleanup(); }
 		SubQueries.Empty();
 	}
 }

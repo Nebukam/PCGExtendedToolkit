@@ -121,26 +121,26 @@ namespace PCGExSimplifyClusters
 
 		PCGExGraph::FIndexedEdge OutEdge = PCGExGraph::FIndexedEdge{};
 
+		const int32 IOIndex = EdgeDataFacade->Source->IOIndex;
+		
 		if (Settings->bOperateOnDeadEndsOnly && !bIsDeadEnd)
 		{
 			// Dump edges
 			if (Chain->SingleEdge != -1)
 			{
-				GraphBuilder->Graph->InsertEdge(EdgesRef[Chain->SingleEdge], OutEdge);
+				GraphBuilder->Graph->InsertEdge(EdgesRef[Chain->SingleEdge], OutEdge, IOIndex);
 				if (bComputeMeta) { GraphBuilder->Graph->GetOrCreateEdgeMetadata(OutEdge.EdgeIndex).UnionSize = 1; }
 			}
 			else
 			{
 				for (const int32 EdgeIndex : Chain->Edges)
 				{
-					GraphBuilder->Graph->InsertEdge(EdgesRef[EdgeIndex], OutEdge);
+					GraphBuilder->Graph->InsertEdge(EdgesRef[EdgeIndex], OutEdge, IOIndex);
 					if (bComputeMeta) { GraphBuilder->Graph->GetOrCreateEdgeMetadata(OutEdge.EdgeIndex).UnionSize = 1; }
 				}
 			}
 			return;
 		}
-
-		const int32 IOIndex = Cluster->EdgesIO.Pin()->IOIndex;
 
 		int32 StartIndex = Chain->First;
 		const int32 LastIndex = Chain->Nodes.Num() - 1;
@@ -158,7 +158,7 @@ namespace PCGExSimplifyClusters
 
 		if (Chain->SingleEdge != -1)
 		{
-			GraphBuilder->Graph->InsertEdge(EdgesRef[Chain->SingleEdge], OutEdge);
+			GraphBuilder->Graph->InsertEdge(EdgesRef[Chain->SingleEdge], OutEdge, IOIndex);
 			if (bComputeMeta) { GraphBuilder->Graph->GetOrCreateEdgeMetadata(OutEdge.EdgeIndex).UnionSize = Chain->Nodes.Num() + 1; }
 			return;
 		}

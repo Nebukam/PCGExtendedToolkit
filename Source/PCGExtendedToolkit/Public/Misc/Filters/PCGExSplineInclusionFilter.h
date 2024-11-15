@@ -15,7 +15,7 @@
 
 #include "PCGExSplineInclusionFilter.generated.h"
 
-UENUM(/*E--BlueprintType, meta=(DisplayName="[PCGEx] Fetch Type")--E*/)
+UENUM()
 enum class EPCGExSplineCheckType : uint8
 {
 	IsInside       = 0 UMETA(DisplayName = "Is Inside", Tooltip="..."),
@@ -28,7 +28,7 @@ enum class EPCGExSplineCheckType : uint8
 	IsNotOn        = 7 UMETA(DisplayName = "Is not On", Tooltip="..."),
 };
 
-UENUM(/*E--BlueprintType, meta=(DisplayName="[PCGEx] Fetch Type")--E*/)
+UENUM()
 enum class EPCGExSplineFilterPick : uint8
 {
 	Closest = 0 UMETA(DisplayName = "Closest", Tooltip="..."),

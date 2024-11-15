@@ -36,11 +36,11 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExBitmaskFilterConfig
 	EPCGExInputValueType MaskInput = EPCGExInputValueType::Constant;
 
 	/** Mask for testing -- Must be int64. (Operand B) */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="MaskInput==EPCGExInputValueType::Attribute", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Bitmask", EditCondition="MaskInput==EPCGExInputValueType::Attribute", EditConditionHides))
 	FName BitmaskAttribute = FName("Mask");
 
 	/** (Operand B) */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="MaskInput==EPCGExInputValueType::Constant", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Bitmask", EditCondition="MaskInput==EPCGExInputValueType::Constant", EditConditionHides))
 	int64 Bitmask = 0;
 
 	/** TBD */

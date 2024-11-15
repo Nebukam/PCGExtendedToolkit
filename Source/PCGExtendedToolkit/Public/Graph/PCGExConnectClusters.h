@@ -9,7 +9,7 @@
 
 #include "PCGExConnectClusters.generated.h"
 
-UENUM(/*E--BlueprintType, meta=(DisplayName="[PCGEx] Bridge Cluster Mode")--E*/)
+UENUM()
 enum class EPCGExBridgeClusterMethod : uint8
 {
 	Delaunay3D = 0 UMETA(DisplayName = "Delaunay 3D", ToolTip="Uses Delaunay 3D graph to find connections."),

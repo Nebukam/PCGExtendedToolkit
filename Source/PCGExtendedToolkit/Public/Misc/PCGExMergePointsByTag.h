@@ -12,7 +12,7 @@
 
 #include "PCGExMergePointsByTag.generated.h"
 
-UENUM(/*E--BlueprintType, meta=(DisplayName="[PCGEx] Merge by Tag | Reoslution Mode")--E*/)
+UENUM()
 enum class EPCGExMergeByTagOverlapResolutionMode : uint8
 {
 	Strict           = 0 UMETA(DisplayName = "Strict", ToolTip="Merge happens per-tag, and higher priority tags are removed from lower priority overlaps."),
@@ -20,7 +20,7 @@ enum class EPCGExMergeByTagOverlapResolutionMode : uint8
 	Flatten          = 2 UMETA(DisplayName = "Flatten", ToolTip="Flatten all tags into a unique identifier and match-merge based on that identifier."),
 };
 
-UENUM(/*E--BlueprintType, meta=(DisplayName="[PCGEx] Merge by Tag | Fallback Behavior")--E*/)
+UENUM()
 enum class EPCGExMergeByTagFallbackBehavior : uint8
 {
 	Omit    = 0 UMETA(DisplayName = "Omit", ToolTip="Do not output data that didn't pass filters"),

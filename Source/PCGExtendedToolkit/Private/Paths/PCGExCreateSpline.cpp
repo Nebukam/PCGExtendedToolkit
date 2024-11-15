@@ -16,7 +16,7 @@ PCGEX_INITIALIZE_ELEMENT(CreateSpline)
 TArray<FPCGPinProperties> UPCGExCreateSplineSettings::OutputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties;
-	PCGEX_PIN_POLYLINES(GetMainOutputLabel(), "Spline data.", Required, {})
+	PCGEX_PIN_POLYLINES(GetMainOutputPin(), "Spline data.", Required, {})
 	return PinProperties;
 }
 
@@ -198,7 +198,7 @@ namespace PCGExCreateSpline
 
 		// Output spline data
 		SplineData->Initialize(SplinePoints, bClosedLoop, FTransform(PositionOffset));
-		Context->StageOutput(Settings->GetMainOutputLabel(), SplineData, PointDataFacade->Source->Tags->ToSet(), true, false);
+		Context->StageOutput(Settings->GetMainOutputPin(), SplineData, PointDataFacade->Source->Tags->ToSet(), true, false);
 
 		// Output spline component
 		if (Settings->Mode != EPCGCreateSplineMode::CreateDataOnly)

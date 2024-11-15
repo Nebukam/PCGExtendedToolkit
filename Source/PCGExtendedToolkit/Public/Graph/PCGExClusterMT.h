@@ -556,7 +556,7 @@ namespace PCGExClusterMT
 		{
 			ValidClusters.Empty();
 
-			for (const TSharedPtr<T> P : Processors)
+			for (const TSharedPtr<T>& P : Processors)
 			{
 				if (!P->Cluster) { continue; }
 				ValidClusters.Add(P->Cluster);

@@ -19,8 +19,9 @@ namespace PCGExPointsToBounds
 {
 	class FComputeIOBoundsTask;
 
-	struct /*PCGEXTENDEDTOOLKIT_API*/ FBounds
+	class /*PCGEXTENDEDTOOLKIT_API*/ FBounds : public TSharedFromThis<FBounds>
 	{
+	public:
 		FBox Bounds = FBox(ForceInit);
 		const TSharedPtr<PCGExData::FPointIO> PointIO;
 

@@ -10,20 +10,27 @@
 
 #include "PCGExOffsetPath.generated.h"
 
-UENUM(/*E--BlueprintType, meta=(DisplayName="[PCGEx] Offset Cleanup Mode")--E*/)
+UENUM()
 enum class EPCGExOffsetCleanupMode : uint8
 {
 	Balanced      = 0 UMETA(DisplayName = "Balanced", ToolTip="..."),
 	Intersections = 1 UMETA(DisplayName = "Intersections", ToolTip="..."),
 };
 
-UENUM(/*E--BlueprintType, meta=(DisplayName="[PCGEx] Offset Cleanup Mode")--E*/)
+UENUM()
 enum class EPCGExOffsetAdjustment : uint8
 {
-	None       = 0 UMETA(DisplayName = "Raw", ToolTip="..."),
-	SmoothUp   = 1 UMETA(DisplayName = "Smooth Up", ToolTip="..."),
-	SmoothDown = 2 UMETA(DisplayName = "Smooth Down", ToolTip="..."),
-	Mitre      = 3 UMETA(DisplayName = "Mitre", ToolTip="..."),
+	None         = 0 UMETA(DisplayName = "Raw", ToolTip="..."),
+	SmoothCustom = 1 UMETA(DisplayName = "Custom Smooth", ToolTip="..."),
+	SmoothAuto   = 2 UMETA(DisplayName = "Auto Smooth", ToolTip="..."),
+	Mitre        = 3 UMETA(DisplayName = "Mitre", ToolTip="..."),
+};
+
+UENUM()
+enum class EPCGExOffsetMethod : uint8
+{
+	Slide     = 0 UMETA(DisplayName = "Slide", ToolTip="..."),
+	LinePlane = 1 UMETA(DisplayName = "Line/Plane", ToolTip="..."),
 };
 
 /**
@@ -49,16 +56,20 @@ public:
 	virtual PCGExData::EIOInit GetMainOutputInitMode() const override;
 	//~End UPCGExPointsProcessorSettings
 
+	/** */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
+	EPCGExOffsetMethod OffsetMethod = EPCGExOffsetMethod::Slide;
+	
 	/** Offset type.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	EPCGExInputValueType OffsetInput = EPCGExInputValueType::Constant;
 
 	/** Offset size.*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="OffsetInput == EPCGExInputValueType::Constant"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Offset", EditCondition="OffsetInput == EPCGExInputValueType::Constant", EditConditionHides))
 	double OffsetConstant = 1.0;
 
 	/** Fetch the offset size from a local attribute. The regular Size parameter then act as a scale.*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="OffsetInput == EPCGExInputValueType::Attribute"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName="Offset", EditCondition="OffsetInput == EPCGExInputValueType::Attribute", EditConditionHides))
 	FPCGAttributePropertyInputSelector OffsetAttribute;
 
 	/** Up vector used to calculate Offset direction.*/
@@ -70,26 +81,31 @@ public:
 	EPCGExInputValueType DirectionType = EPCGExInputValueType::Constant;
 
 	/** Type of arithmetic path point offset direction.*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="DirectionType == EPCGExInputValueType::Constant", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Direction", EditCondition="OffsetMethod == EPCGExOffsetMethod::Slide && DirectionType == EPCGExInputValueType::Constant", EditConditionHides))
 	EPCGExPathNormalDirection DirectionConstant = EPCGExPathNormalDirection::AverageNormal;
 
 	/** Fetch the direction vector from a local point attribute. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="DirectionType == EPCGExInputValueType::Attribute", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName="Direction", EditCondition="DirectionType == EPCGExInputValueType::Attribute", EditConditionHides))
 	FPCGAttributePropertyInputSelector DirectionAttribute;
 
 	/** Inverts offset direction. Can also be achieved by using negative offset values, but this enable consistent inversion no matter the input.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	bool bInvertDirection = false;
+
+	
 	
 	/** Adjust aspect in tight angles */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
-	EPCGExOffsetAdjustment Adjustment = EPCGExOffsetAdjustment::None;
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="OffsetMethod == EPCGExOffsetMethod::Slide"))
+	EPCGExOffsetAdjustment Adjustment = EPCGExOffsetAdjustment::SmoothAuto;
+
+	/** Adjust aspect in tight angles */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="OffsetMethod == EPCGExOffsetMethod::Slide && Adjustment == EPCGExOffsetAdjustment::SmoothCustom", EditConditionHides))
+	double AdjustmentScale = -0.5;
 
 	/** Offset size.*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="Adjustment == EPCGExOffsetAdjustment::Mitre", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="OffsetMethod == EPCGExOffsetMethod::Slide && Adjustment == EPCGExOffsetAdjustment::Mitre", EditConditionHides))
 	double MitreLimit = 4.0;
 	
-
 	/** Removes segments which direction has been flipped due to the offset.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	bool bCleanupPath = false;
@@ -143,7 +159,7 @@ namespace PCGExOffsetPath
 		TArray<FVector> Positions;
 
 		TSharedPtr<PCGExPaths::FPath> Path;
-		TSharedPtr<PCGExPaths::FPathEdgeAngle> PathAngles;
+		TSharedPtr<PCGExPaths::FPathEdgeHalfAngle> PathAngles;
 		TSharedPtr<PCGExPaths::TPathEdgeExtra<FVector>> OffsetDirection;
 
 		TArray<int8> CleanEdge;

@@ -13,7 +13,7 @@
 
 #include "PCGExAttributeStats.generated.h"
 
-UENUM(/*E--BlueprintType, meta=(DisplayName="[PCGEx] Mean Measure")--E*/)
+UENUM()
 enum class EPCGExStatsOutputToPoints : uint8
 {
 	None   = 0 UMETA(DisplayName = "No output", ToolTip="Writes nothing to input points"),

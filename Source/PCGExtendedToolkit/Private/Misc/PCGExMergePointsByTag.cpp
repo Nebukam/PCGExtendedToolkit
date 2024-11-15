@@ -131,7 +131,7 @@ namespace PCPGExMergePointsByTag
 		{
 		default: ;
 		case EPCGExMergeByTagOverlapResolutionMode::Strict:
-			for (const TSharedPtr<FTagBucket> Bucket : Buckets)
+			for (const TSharedPtr<FTagBucket>& Bucket : Buckets)
 			{
 				if (Bucket->IOs.IsEmpty()) { continue; }
 				bool bAlreadyDistributed;
@@ -288,13 +288,13 @@ bool FPCGExMergePointsByTagElement::ExecuteInternal(FPCGContext* InContext) cons
 		}
 
 		if (Context->FallbackMergeList) { Context->FallbackMergeList->Merge(Context->GetAsyncManager(), &Context->CarryOverDetails); }
-		for (const TSharedPtr<PCPGExMergePointsByTag::FMergeList> List : Context->MergeLists) { List->Merge(Context->GetAsyncManager(), &Context->CarryOverDetails); }
+		for (const TSharedPtr<PCPGExMergePointsByTag::FMergeList>& List : Context->MergeLists) { List->Merge(Context->GetAsyncManager(), &Context->CarryOverDetails); }
 		Context->SetAsyncState(PCGExData::State_MergingData);
 	}
 
 	PCGEX_ON_ASYNC_STATE_READY(PCGExData::State_MergingData)
 	{
-		for (const TSharedPtr<PCPGExMergePointsByTag::FMergeList> List : Context->MergeLists) { List->Write(Context->GetAsyncManager()); }
+		for (const TSharedPtr<PCPGExMergePointsByTag::FMergeList>& List : Context->MergeLists) { List->Write(Context->GetAsyncManager()); }
 		Context->SetAsyncState(PCGEx::State_Writing);
 	}
 

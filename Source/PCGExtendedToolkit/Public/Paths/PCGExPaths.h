@@ -13,7 +13,7 @@
 
 #include "PCGExPaths.generated.h"
 
-UENUM(/*E--BlueprintType, meta=(DisplayName="[PCGEx] Path Shrink Distance Cut Type")--E*/)
+UENUM()
 enum class EPCGExInlinePathProcessingOrder : uint8
 {
 	FromStart       = 0 UMETA(DisplayName = "From Start", ToolTip="Start at the index 0 of the path. If inverted, start at the last index."),
@@ -22,14 +22,14 @@ enum class EPCGExInlinePathProcessingOrder : uint8
 	TaggedAll       = 4 UMETA(DisplayName = "Tagged (All)", ToolTip="Check for all tag matches on the input data. If all tags are found, start with first point."),
 };
 
-UENUM(/*E--BlueprintType, meta=(DisplayName="[PCGEx] Input Scope")--E*/)
+UENUM()
 enum class EPCGExInputScope : uint8
 {
 	All          = 0 UMETA(DisplayName = "All", Tooltip="All paths are considered to have the same open or closed status."),
 	AllButTagged = 2 UMETA(DisplayName = "All but tagged", Tooltip="All paths are considered open or closed by default, except the ones with the specified tags which will use the opposite value."),
 };
 
-UENUM(/*E--BlueprintType, meta=(DisplayName="[PCGEx] Path Normal Direction")--E*/)
+UENUM()
 enum class EPCGExPathNormalDirection : uint8
 {
 	Normal        = 0 UMETA(DisplayName = "Normal", ToolTip="..."),
@@ -531,7 +531,7 @@ namespace PCGExPaths
 			}
 			else
 			{
-				Extras.Add(StaticCastSharedPtr<T>(Extra));
+				Extras.Add(Extra);
 			}
 
 			return Extra;
@@ -722,12 +722,27 @@ namespace PCGExPaths
 		virtual void ProcessLastEdge(const FPath* Path, const FPathEdge& Edge) override;
 	};
 
-	class FPathEdgeAngle : public TPathEdgeExtra<double>
+	class FPathEdgeHalfAngle : public TPathEdgeExtra<double>
 	{
 		FVector Up = FVector::UpVector;
-		
+
 	public:
-		explicit FPathEdgeAngle(const int32 InNumSegments, const bool InClosedLoop, const FVector& InUp = FVector::UpVector)
+		explicit FPathEdgeHalfAngle(const int32 InNumSegments, const bool InClosedLoop, const FVector& InUp = FVector::UpVector)
+			: TPathEdgeExtra(InNumSegments, InClosedLoop), Up(InUp)
+		{
+		}
+
+		virtual void ProcessFirstEdge(const FPath* Path, const FPathEdge& Edge) override;
+		virtual void ProcessEdge(const FPath* Path, const FPathEdge& Edge) override;
+		virtual void ProcessLastEdge(const FPath* Path, const FPathEdge& Edge) override;
+	};
+
+	class FPathEdgeFullAngle : public TPathEdgeExtra<double>
+	{
+		FVector Up = FVector::UpVector;
+
+	public:
+		explicit FPathEdgeFullAngle(const int32 InNumSegments, const bool InClosedLoop, const FVector& InUp = FVector::UpVector)
 			: TPathEdgeExtra(InNumSegments, InClosedLoop), Up(InUp)
 		{
 		}
@@ -770,5 +785,4 @@ namespace PCGExPaths
 	{
 		return InSpline->GetTransformAtSplineInputKey(InSpline->FindInputKeyClosestToWorldLocation(InLocation), ESplineCoordinateSpace::World, bUseScale);
 	}
-	
 }

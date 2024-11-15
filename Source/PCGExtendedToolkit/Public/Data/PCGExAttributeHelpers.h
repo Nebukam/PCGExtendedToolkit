@@ -133,8 +133,9 @@ namespace PCGEx
 		static void Get(const UPCGMetadata* InMetadata, TArray<FName>& OutNames, TMap<FName, FAttributeIdentity>& OutIdentities);
 	};
 
-	struct FAttributesInfos
+	class FAttributesInfos : public TSharedFromThis<FAttributesInfos>
 	{
+	public:
 		TMap<FName, int32> Map;
 		TArray<FAttributeIdentity> Identities;
 		TArray<FPCGMetadataAttributeBase*> Attributes;

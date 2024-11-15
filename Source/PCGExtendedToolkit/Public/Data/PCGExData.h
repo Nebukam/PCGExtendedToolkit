@@ -805,7 +805,7 @@ namespace PCGExData
 
 #pragma region Compound
 
-	struct /*PCGEXTENDEDTOOLKIT_API*/ FUnionData
+	class /*PCGEXTENDEDTOOLKIT_API*/ FUnionData : public TSharedFromThis<FUnionData>
 	{
 	protected:
 		mutable FRWLock UnionLock;
@@ -841,26 +841,26 @@ namespace PCGExData
 		}
 	};
 
-	struct /*PCGEXTENDEDTOOLKIT_API*/ FUnionMetadata
+	class /*PCGEXTENDEDTOOLKIT_API*/ FUnionMetadata : public TSharedFromThis<FUnionMetadata>
 	{
-		TArray<FUnionData*> Entries;
+	public:
+		TArray<TSharedPtr<FUnionData>> Entries;
 		bool bIsAbstract = false;
 
 		FUnionMetadata() { Entries.Empty(); }
 
 		~FUnionMetadata()
 		{
-			for (const FUnionData* Entry : Entries) { delete Entry; }
 		}
 
 		int32 Num() const { return Entries.Num(); }
 
-		FUnionData* NewEntry(const int32 IOIndex, const int32 ItemIndex);
+		TSharedPtr<FUnionData> NewEntry(const int32 IOIndex, const int32 ItemIndex);
 
 		uint64 Append(const int32 Index, const int32 IOIndex, const int32 ItemIndex);
 		bool IOIndexOverlap(const int32 InIdx, const TSet<int32>& InIndices);
 
-		FORCEINLINE FUnionData* Get(const int32 Index) const { return Entries[Index]; }
+		FORCEINLINE TSharedPtr<FUnionData> Get(const int32 Index) const { return Entries[Index]; }
 	};
 
 #pragma endregion
