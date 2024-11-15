@@ -33,11 +33,11 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExNodeNeighborsCountFilterConfig
 	EPCGExInputValueType CompareAgainst = EPCGExInputValueType::Constant;
 
 	/** Operand A for testing -- Will be translated to `double` under the hood. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(EditCondition="CompareAgainst==EPCGExInputValueType::Attribute", EditConditionHides, ShowOnlyInnerProperties, DisplayName="Operand A (First)"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Operand A", EditCondition="CompareAgainst==EPCGExInputValueType::Attribute", EditConditionHides, ShowOnlyInnerProperties))
 	FPCGAttributePropertyInputSelector LocalCount;
 
 	/** Constant Operand A for testing. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="CompareAgainst==EPCGExInputValueType::Constant", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Operand A", EditCondition="CompareAgainst==EPCGExInputValueType::Constant", EditConditionHides))
 	int32 Count = 0;
 
 	/** Rounding mode for near measures */

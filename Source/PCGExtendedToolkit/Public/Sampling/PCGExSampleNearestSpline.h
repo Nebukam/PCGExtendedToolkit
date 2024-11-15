@@ -29,7 +29,7 @@ MACRO(ClosedLoop, bool, false)
 
 class UPCGExFilterFactoryBase;
 
-UENUM(/*E--BlueprintType, meta=(DisplayName="[PCGEx] Surface Source")--E*/)
+UENUM()
 enum class EPCGExSplineSamplingIncludeMode : uint8
 {
 	All            = 0 UMETA(DisplayName = "All", ToolTip="Sample all input splines"),
@@ -37,7 +37,7 @@ enum class EPCGExSplineSamplingIncludeMode : uint8
 	OpenSplineOnly = 2 UMETA(DisplayName = "Open splines only", ToolTip="Sample only open splines"),
 };
 
-UENUM(/*E--BlueprintType, meta=(DisplayName="[PCGEx] Surface Source")--E*/)
+UENUM()
 enum class EPCGExSplineDepthMode : uint8
 {
 	Min     = 0 UMETA(DisplayName = "Min", ToolTip="..."),

@@ -17,7 +17,7 @@ class UPCGExSubPointsBlendOperation;
 class UPCGExGoalPicker;
 
 
-UENUM(/*E--BlueprintType, meta=(DisplayName="[PCGEx] Pathfinding Navmesh Mode")--E*/)
+UENUM()
 enum class EPCGExPathfindingNavmeshMode : uint8
 {
 	Regular      = 0 UMETA(DisplayName = "Regular", ToolTip="Regular pathfinding"),

@@ -9,7 +9,7 @@
 
 #include "PCGExFitting.generated.h"
 
-UENUM(/*E--BlueprintType, meta=(DisplayName="[PCGEx] Transform Component Selector")--E*/)
+UENUM()
 enum class EPCGExFitMode : uint8
 {
 	None       = 0 UMETA(DisplayName = "None", ToolTip="No fitting"),
@@ -17,7 +17,7 @@ enum class EPCGExFitMode : uint8
 	Individual = 2 UMETA(DisplayName = "Individual", ToolTip="Per-component fit"),
 };
 
-UENUM(/*E--BlueprintType, meta=(DisplayName="[PCGEx] Scale to fit")--E*/)
+UENUM()
 enum class EPCGExScaleToFit : uint8
 {
 	None = 0 UMETA(DisplayName = "None", ToolTip="No fitting"),
@@ -27,7 +27,7 @@ enum class EPCGExScaleToFit : uint8
 	Avg  = 4 UMETA(DisplayName = "Average", ToolTip="..."),
 };
 
-UENUM(/*E--BlueprintType, meta=(DisplayName="[PCGEx] Justify From")--E*/)
+UENUM()
 enum class EPCGExJustifyFrom : uint8
 {
 	Min    = 0 UMETA(DisplayName = "Min", ToolTip="..."),
@@ -37,7 +37,7 @@ enum class EPCGExJustifyFrom : uint8
 	Custom = 4 UMETA(DisplayName = "Custom", ToolTip="..."),
 };
 
-UENUM(/*E--BlueprintType, meta=(DisplayName="[PCGEx] Justify To")--E*/)
+UENUM()
 enum class EPCGExJustifyTo : uint8
 {
 	Same   = 0 UMETA(DisplayName = "Same", ToolTip="..."),
@@ -48,7 +48,7 @@ enum class EPCGExJustifyTo : uint8
 	Custom = 5 UMETA(DisplayName = "Custom", ToolTip="..."),
 };
 
-UENUM(/*E--BlueprintType, meta=(DisplayName="[PCGEx] Justify From")--E*/)
+UENUM()
 enum class EPCGExVariationMode : uint8
 {
 	Disabled = 0 UMETA(DisplayName = "Disabled", ToolTip="..."),
@@ -181,11 +181,11 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExSingleJustifyDetails
 	EPCGExInputValueType FromInput = EPCGExInputValueType::Constant;
 
 	/**  Value is expected to be 0-1 normalized, 0 being bounds min and 1 being bounds min + size. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="From==EPCGExJustifyFrom::Custom && FromInput==EPCGExInputValueType::Attribute", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName="From", EditCondition="From==EPCGExJustifyFrom::Custom && FromInput==EPCGExInputValueType::Attribute", EditConditionHides))
 	FPCGAttributePropertyInputSelector FromSourceAttribute;
 
 	/**  Value is expected to be 0-1 normalized, 0 being bounds min and 1 being bounds min + size. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="From==EPCGExJustifyFrom::Custom && FromInput==EPCGExInputValueType::Constant", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName="From", EditCondition="From==EPCGExJustifyFrom::Custom && FromInput==EPCGExInputValueType::Constant", EditConditionHides))
 	double FromConstant = 0.5;
 
 	TSharedPtr<PCGExData::TBuffer<double>> FromGetter;
@@ -200,11 +200,11 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExSingleJustifyDetails
 	EPCGExInputValueType ToInput = EPCGExInputValueType::Constant;
 
 	/**  Value is expected to be 0-1 normalized, 0 being bounds min and 1 being bounds min + size. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="To==EPCGExJustifyTo::Custom && ToInput==EPCGExInputValueType::Attribute", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName="To", EditCondition="To==EPCGExJustifyTo::Custom && ToInput==EPCGExInputValueType::Attribute", EditConditionHides))
 	FPCGAttributePropertyInputSelector ToSourceAttribute;
 
 	/**  Value is expected to be 0-1 normalized, 0 being bounds min and 1 being bounds min + size. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="To==EPCGExJustifyTo::Custom && ToInput==EPCGExInputValueType::Constant", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName="To", EditCondition="To==EPCGExJustifyTo::Custom && ToInput==EPCGExInputValueType::Constant", EditConditionHides))
 	double ToConstant = 0.5;
 
 	TSharedPtr<PCGExData::TBuffer<double>> ToGetter;

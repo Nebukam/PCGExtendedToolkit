@@ -3,6 +3,41 @@
 
 #include "Topology/PCGExTopology.h"
 
+#include "PCGExCompare.h"
+
+void FPCGExCellSeedMutationDetails::ApplyToPoint(const PCGExTopology::FCell* InCell, FPCGPoint& OutPoint, const TArray<FPCGPoint>& CellPoints) const
+{
+	switch (Location)
+	{
+	default:
+	case EPCGExCellSeedLocation::Original:
+		break;
+	case EPCGExCellSeedLocation::Centroid:
+		OutPoint.Transform.SetLocation(InCell->Centroid);
+		break;
+	case EPCGExCellSeedLocation::PathBoundsCenter:
+		OutPoint.Transform.SetLocation(InCell->Bounds.GetCenter());
+		break;
+	case EPCGExCellSeedLocation::FirstNode:
+		OutPoint.Transform.SetLocation(CellPoints[0].Transform.GetLocation());
+		break;
+	case EPCGExCellSeedLocation::LastNode:
+		OutPoint.Transform.SetLocation(CellPoints.Last().Transform.GetLocation());
+		break;
+	}
+
+	if (bResetScale) { OutPoint.Transform.SetScale3D(FVector::OneVector); }
+
+	if (bResetRotation) { OutPoint.Transform.SetRotation(FQuat::Identity); }
+
+	if (bMatchCellBounds)
+	{
+		FVector Offset = OutPoint.Transform.GetLocation();
+		OutPoint.BoundsMin = InCell->Bounds.Min - Offset;
+		OutPoint.BoundsMax = InCell->Bounds.Max - Offset;
+	}
+}
+
 namespace PCGExTopology
 {
 	bool FCellConstraints::ContainsSignedEdgeHash(const uint64 Hash) const
@@ -20,10 +55,17 @@ namespace PCGExTopology
 		if (!bDedupe) { return true; }
 		else
 		{
-			bool bAlreadyExists;
-			FWriteScopeLock WriteScopeLock(UniquePathsStartHashLock);
-			UniquePathsStartHash.Add(Hash, &bAlreadyExists);
-			return !bAlreadyExists;
+			bool bAlreadyExists = false;
+			{
+				FReadScopeLock ReadScopeLock(UniquePathsStartHashLock);
+				bAlreadyExists = UniquePathsStartHash.Contains(Hash);
+				if (bAlreadyExists) { return false; }
+			}
+			{
+				FWriteScopeLock WriteScopeLock(UniquePathsStartHashLock);
+				UniquePathsStartHash.Add(Hash, &bAlreadyExists);
+				return !bAlreadyExists;
+			}
 		}
 	}
 
@@ -32,6 +74,8 @@ namespace PCGExTopology
 		if (!bDedupe) { return true; }
 		else
 		{
+			FWriteScopeLock WriteScopeLock(UniquePathsStartHashLock);
+
 			TArray<int32> Nodes = InCell->Nodes;
 			Nodes.Sort();
 
@@ -39,7 +83,6 @@ namespace PCGExTopology
 			for (int32 i = 0; i < Nodes.Num(); i++) { Hash = HashCombineFast(Hash, Nodes[i]); }
 
 			bool bAlreadyExists;
-			FWriteScopeLock WriteScopeLock(UniquePathsStartHashLock);
 			UniquePathsBoxHash.Add(Hash, &bAlreadyExists);
 			return !bAlreadyExists;
 		}
@@ -66,7 +109,7 @@ namespace PCGExTopology
 		const double SanityAngle = PCGExMath::GetDegreesBetweenVectors((B - A).GetSafeNormal(), (B - Guide).GetSafeNormal());
 		const bool bStartIsDeadEnd = InCluster->GetNode(StartNodeIndex)->Adjacency.Num() == 1;
 
-		if (bStartIsDeadEnd && !Constraints->bKeepContoursWithDeadEnds) { return ECellResult::DeadEnd; }
+		if (bStartIsDeadEnd && !Constraints->bKeepCellsWithDeadEnds) { return ECellResult::DeadEnd; }
 
 		if (SanityAngle > 180 && !bStartIsDeadEnd)
 		{
@@ -80,7 +123,9 @@ namespace PCGExTopology
 		if (!Constraints->IsUniqueStartHash(UniqueStartEdgeHash)) { return ECellResult::Duplicate; }
 
 		Bounds += InCluster->GetPos(PrevIndex);
-		int32 NumNodes = Nodes.Add(PrevIndex) + 1;
+		Nodes.Add(PrevIndex);
+
+		int32 NumUniqueNodes = 1;
 
 		TSet<int32> Exclusions = {PrevIndex, NextIndex};
 		TSet<uint64> SignedEdges;
@@ -91,7 +136,7 @@ namespace PCGExTopology
 			bool bEdgeAlreadyExists;
 			uint64 SignedEdgeHash = PCGEx::H64(PrevIndex, NextIndex);
 
-			if (SignedEdgeHash != UniqueStartEdgeHash && Constraints->ContainsSignedEdgeHash(SignedEdgeHash)) { return ECellResult::Duplicate; }
+			//if (SignedEdgeHash != UniqueStartEdgeHash && Constraints->ContainsSignedEdgeHash(SignedEdgeHash)) { return ECellResult::Duplicate; }
 
 			SignedEdges.Add(SignedEdgeHash, &bEdgeAlreadyExists);
 			if (bEdgeAlreadyExists) { break; }
@@ -103,8 +148,11 @@ namespace PCGExTopology
 
 			const PCGExCluster::FExpandedNode& Current = *(ExpandedNodes->GetData() + NextIndex);
 
-			NumNodes = Nodes.Add(Current) + 1;
-			if (NumNodes > Constraints->MaxPointCount) { return ECellResult::ExceedPointsLimit; }
+			Nodes.Add(Current);
+			NumUniqueNodes++;
+			Centroid += InCluster->GetPos(Current);
+
+			if (NumUniqueNodes > Constraints->MaxPointCount) { return ECellResult::ExceedPointsLimit; }
 
 			Bounds += InCluster->GetPos(Current.Node);
 			if (Bounds.GetSize().Length() > Constraints->MaxBoundsSize) { return ECellResult::ExceedBoundsLimit; }
@@ -113,6 +161,7 @@ namespace PCGExTopology
 			const FVector GuideDir = (P - ProjectedPositions[InCluster->GetNode(PrevIndex)->PointIndex]).GetSafeNormal();
 
 			if (Current.Neighbors.Num() == 1 && Constraints->bDuplicateDeadEndPoints) { Nodes.Add(Current); }
+
 			if (Current.Neighbors.Num() > 1) { Exclusions.Add(PrevIndex); }
 
 			PrevIndex = NextIndex;
@@ -144,10 +193,10 @@ namespace PCGExTopology
 
 			if (NextBest != -1)
 			{
-				if (InCluster->GetNode(NextBest)->Adjacency.Num() == 1 && !Constraints->bKeepContoursWithDeadEnds) { return ECellResult::DeadEnd; }
-				if (NumNodes > Constraints->MaxPointCount) { return ECellResult::ExceedBoundsLimit; }
+				if (InCluster->GetNode(NextBest)->Adjacency.Num() == 1 && !Constraints->bKeepCellsWithDeadEnds) { return ECellResult::DeadEnd; }
+				if (NumUniqueNodes > Constraints->MaxPointCount) { return ECellResult::ExceedBoundsLimit; }
 
-				if (NumNodes > 2)
+				if (NumUniqueNodes > 2)
 				{
 					PCGExMath::CheckConvex(
 						InCluster->GetPos(Nodes.Last(2)),
@@ -166,13 +215,22 @@ namespace PCGExTopology
 			}
 		}
 
+		if (NumUniqueNodes <= 2) { return ECellResult::DeadEnd; }
+
 		bIsClosedLoop = bHasAdjacencyToStart;
+		Centroid /= NumUniqueNodes;
 
 		if (Constraints->bClosedLoopOnly && !bIsClosedLoop) { return ECellResult::OpenCell; }
 		if (Constraints->bConcaveOnly && bIsConvex) { return ECellResult::WrongAspect; }
-		if (NumNodes < Constraints->MinPointCount) { return ECellResult::BelowPointsLimit; }
+		if (NumUniqueNodes < Constraints->MinPointCount) { return ECellResult::BelowPointsLimit; }
 		if (Bounds.GetSize().Length() < Constraints->MinBoundsSize) { return ECellResult::BelowBoundsLimit; }
-
+		if (Constraints->bDoWrapperCheck)
+		{
+			if (PCGExCompare::NearlyEqual(Bounds.GetSize().Length(), Constraints->DataBounds.GetSize().Length(), Constraints->WrapperCheckTolerance))
+			{
+				return ECellResult::ExceedBoundsLimit;
+			}
+		}
 		if (!Constraints->IsUniqueCellHash(this)) { return ECellResult::Duplicate; }
 
 		bCompiledSuccessfully = true;

@@ -37,10 +37,16 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	FPCGExGeo2DProjectionDetails ProjectionDetails;
 
-	/** Projection settings. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
-	FPCGExCellConstraintsDetails CellConstraints;
-	
+	FPCGExCellConstraintsDetails Constraints = FPCGExCellConstraintsDetails(true);
+
+	/** Output a per-cell point in a new dataset */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
+	bool bOutputCellSeeds = false;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bOutputCellSeeds"))
+	FPCGExCellSeedMutationDetails SeedMutations = FPCGExCellSeedMutationDetails(true);
+
 	/** Projection settings. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	FPCGExTopologyDetails Topology;
@@ -78,6 +84,10 @@ namespace PCGExTopologyEdges
 	class TProcessor : public PCGExClusterMT::TProcessor<TContext, TSettings>
 	{
 	protected:
+		using PCGExClusterMT::TProcessor<TContext, TSettings>::ExecutionContext;
+		using PCGExClusterMT::TProcessor<TContext, TSettings>::Settings;
+		using PCGExClusterMT::TProcessor<TContext, TSettings>::Context;
+
 		bool bBuildExpandedNodes = false;
 		bool bIsPreviewMode = false;
 
@@ -93,6 +103,11 @@ namespace PCGExTopologyEdges
 		int32 ConstrainedEdgesNum = 0;
 
 	public:
+		using PCGExClusterMT::TProcessor<TContext, TSettings>::NodeIndexLookup;
+		using PCGExClusterMT::TProcessor<TContext, TSettings>::Cluster;
+		using PCGExClusterMT::TProcessor<TContext, TSettings>::VtxDataFacade;
+		using PCGExClusterMT::TProcessor<TContext, TSettings>::EdgeDataFacade;
+
 		TArray<FVector>* ProjectedPositions = nullptr;
 
 		TObjectPtr<UDynamicMesh> GetInternalMesh() { return InternalMesh; }
@@ -116,47 +131,47 @@ namespace PCGExTopologyEdges
 		{
 			// Create a light working copy with nodes only, will be deleted.
 			return MakeShared<PCGExCluster::FCluster>(
-				InClusterRef, this->VtxDataFacade->Source, this->EdgeDataFacade->Source, this->NodeIndexLookup,
+				InClusterRef, VtxDataFacade->Source, EdgeDataFacade->Source, NodeIndexLookup,
 				true, false, false);
 		}
 
 		virtual bool Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager) override
 		{
-			this->EdgeDataFacade->bSupportsScopedGet = true;
+			EdgeDataFacade->bSupportsScopedGet = true;
 
 			if (!PCGExClusterMT::TProcessor<TContext, TSettings>::Process(InAsyncManager)) { return false; }
 
 #if PCGEX_ENGINE_VERSION > 503
-			bIsPreviewMode = this->ExecutionContext->SourceComponent.Get()->IsInPreviewMode();
+			bIsPreviewMode = ExecutionContext->SourceComponent.Get()->IsInPreviewMode();
 #endif
 
-			ConstrainedEdgeFilterCache.Init(false, this->EdgeDataFacade->Source->GetNum());
+			ConstrainedEdgeFilterCache.Init(false, EdgeDataFacade->Source->GetNum());
 
-			CellConstraints = MakeShared<PCGExTopology::FCellConstraints>(this->Settings->CellConstraints);
+			CellConstraints = MakeShared<PCGExTopology::FCellConstraints>(Settings->Constraints);
 			InitConstraints();
 
-			for (PCGExCluster::FNode& Node : *this->Cluster->Nodes) { Node.bValid = false; } // Invalidate all edges, triangulation will mark valid nodes to rebuild an index
+			for (PCGExCluster::FNode& Node : *Cluster->Nodes) { Node.bValid = false; } // Invalidate all edges, triangulation will mark valid nodes to rebuild an index
 
-			if (!this->Context->EdgeConstraintsFilterFactories.IsEmpty())
+			if (!Context->EdgeConstraintsFilterFactories.IsEmpty())
 			{
-				EdgeFilterManager = MakeShared<PCGExClusterFilter::FManager>(this->Cluster.ToSharedRef(), this->VtxDataFacade, this->EdgeDataFacade);
+				EdgeFilterManager = MakeShared<PCGExClusterFilter::FManager>(Cluster.ToSharedRef(), VtxDataFacade, EdgeDataFacade);
 				EdgeFilterManager->bUseEdgeAsPrimary = true;
-				if (!EdgeFilterManager->Init(this->Context, this->Context->EdgeConstraintsFilterFactories)) { return false; }
+				if (!EdgeFilterManager->Init(Context, Context->EdgeConstraintsFilterFactories)) { return false; }
 			}
 
 			// IMPORTANT : Need to wait for projection to be completed.
 			// Children should start work only in CompleteWork!!
 
-			ExpandedNodes = this->Cluster->ExpandedNodes;
+			ExpandedNodes = Cluster->ExpandedNodes;
 
 			if (!ExpandedNodes)
 			{
-				ExpandedNodes = this->Cluster->GetExpandedNodes(false);
+				ExpandedNodes = Cluster->GetExpandedNodes(false);
 				bBuildExpandedNodes = true;
 				this->StartParallelLoopForRange(this->NumNodes);
 			}
 
-			InternalMesh = this->Context->ManagedObjects->template New<UDynamicMesh>();
+			InternalMesh = Context->ManagedObjects->template New<UDynamicMesh>();
 			InternalMesh->EditMesh(
 				[&](FDynamicMesh3& InMesh)
 				{
@@ -169,7 +184,7 @@ namespace PCGExTopologyEdges
 
 		virtual void ProcessSingleRangeIteration(int32 Iteration, const int32 LoopIdx, const int32 Count) override
 		{
-			*(ExpandedNodes->GetData() + Iteration) = PCGExCluster::FExpandedNode(this->Cluster, Iteration);
+			*(ExpandedNodes->GetData() + Iteration) = PCGExCluster::FExpandedNode(Cluster, Iteration);
 		}
 
 		bool BuildValidNodeLookup()
@@ -182,8 +197,8 @@ namespace PCGExTopologyEdges
 				{
 					for (int i = 0; i < this->NumNodes; i++)
 					{
-						if (!this->Cluster->GetNode(i)->bValid) { continue; }
-						VerticesLookup->Set(i, InMesh.AppendVertex(this->Cluster->GetPos(i)));
+						if (!Cluster->GetNode(i)->bValid) { continue; }
+						VerticesLookup->Set(i, InMesh.AppendVertex(Cluster->GetPos(i)));
 						ValidIndex++;
 					}
 				}, EDynamicMeshChangeType::GeneralEdit, EDynamicMeshAttributeChangeFlags::MeshTopology, true);
@@ -208,7 +223,7 @@ namespace PCGExTopologyEdges
 				const int32 MaxIndex = StartIndex + Count;
 				for (int i = StartIndex; i < MaxIndex; i++)
 				{
-					ConstrainedEdgeFilterCache[i] = EdgeFilterManager->Test(*this->Cluster->GetEdge(i));
+					ConstrainedEdgeFilterCache[i] = EdgeFilterManager->Test(*Cluster->GetEdge(i));
 					if (ConstrainedEdgeFilterCache[i]) { LocalConstrainedEdgesNum++; }
 				}
 			}
@@ -221,10 +236,18 @@ namespace PCGExTopologyEdges
 	class TBatch : public PCGExClusterMT::TBatch<T>
 	{
 	protected:
+		using PCGExClusterMT::TBatch<T>::SharedThis;
+		using PCGExClusterMT::TBatch<T>::AsyncManager;
+
+		using PCGExClusterMT::TBatch<T>::ExecutionContext;
+		using PCGExClusterMT::TBatch<T>::NodeIndexLookup;
+
 		FPCGExGeo2DProjectionDetails ProjectionDetails;
 		TArray<FVector> ProjectedPositions;
 
 	public:
+		using PCGExClusterMT::TBatch<T>::VtxDataFacade;
+
 		TBatch(FPCGExContext* InContext, const TSharedRef<PCGExData::FPointIO>& InVtx, const TArrayView<TSharedRef<PCGExData::FPointIO>> InEdges):
 			PCGExClusterMT::TBatch<T>(InContext, InVtx, InEdges)
 		{
@@ -233,32 +256,37 @@ namespace PCGExTopologyEdges
 		virtual void RegisterBuffersDependencies(PCGExData::FFacadePreloader& FacadePreloader) override
 		{
 			PCGExClusterMT::TBatch<T>::RegisterBuffersDependencies(FacadePreloader);
-			FPCGExTopologyEdgesProcessorContext* Context = static_cast<FPCGExTopologyEdgesProcessorContext*>(this->ExecutionContext);
-			const UPCGExTopologyEdgesProcessorSettings* Settings = Context->GetInputSettings<UPCGExTopologyEdgesProcessorSettings>();
+
+			PCGEX_TYPED_CONTEXT_AND_SETTINGS(TopologyEdgesProcessor)
+
 			check(Settings);
 
 			if (Settings->SupportsEdgeConstraints())
 			{
-				PCGExPointFilter::RegisterBuffersDependencies(this->ExecutionContext, Context->EdgeConstraintsFilterFactories, FacadePreloader);
+				PCGExPointFilter::RegisterBuffersDependencies(ExecutionContext, Context->EdgeConstraintsFilterFactories, FacadePreloader);
 			}
 		}
 
 		virtual void Process() override
 		{
-			FPCGExTopologyEdgesProcessorContext* Context = static_cast<FPCGExTopologyEdgesProcessorContext*>(this->ExecutionContext);
-			const UPCGExTopologyEdgesProcessorSettings* Settings = Context->GetInputSettings<UPCGExTopologyEdgesProcessorSettings>();
-			check(Settings);
+			PCGEX_TYPED_CONTEXT_AND_SETTINGS(TopologyEdgesProcessor)
 
 			// Project positions
 			ProjectionDetails = Settings->ProjectionDetails;
-			if (!ProjectionDetails.Init(Context, this->VtxDataFacade)) { return; }
+			if (!ProjectionDetails.Init(Context, VtxDataFacade)) { return; }
 
-			PCGEx::InitArray(ProjectedPositions, this->VtxDataFacade->GetNum());
+			PCGEx::InitArray(ProjectedPositions, VtxDataFacade->GetNum());
 
-			PCGEX_ASYNC_GROUP_CHKD_VOID(this->AsyncManager, ProjectionTaskGroup)
+			PCGEX_ASYNC_GROUP_CHKD_VOID(AsyncManager, ProjectionTaskGroup)
+
+			ProjectionTaskGroup->OnCompleteCallback =
+				[WeakThis = TWeakPtr<TBatch>(SharedThis(this))]()
+				{
+					if (TSharedPtr<TBatch> This = WeakThis.Pin()) { This->OnProjectionComplete(); }
+				};
 
 			ProjectionTaskGroup->OnSubLoopStartCallback =
-				[WeakThis = TWeakPtr<TBatch<T>>(this->SharedThis(this))]
+				[WeakThis = TWeakPtr<TBatch>(SharedThis(this))]
 				(const int32 StartIndex, const int32 Count, const int32 LoopIdx)
 				{
 					TSharedPtr<TBatch<T>> This = WeakThis.Pin();
@@ -272,9 +300,7 @@ namespace PCGExTopologyEdges
 					}
 				};
 
-			ProjectionTaskGroup->StartSubLoops(this->VtxDataFacade->GetNum(), GetDefault<UPCGExGlobalSettings>()->GetPointsBatchChunkSize());
-
-			PCGExClusterMT::TBatch<T>::Process();
+			ProjectionTaskGroup->StartSubLoops(VtxDataFacade->GetNum(), GetDefault<UPCGExGlobalSettings>()->GetPointsBatchChunkSize());
 		}
 
 		virtual bool PrepareSingle(const TSharedPtr<T>& ClusterProcessor) override
@@ -282,6 +308,12 @@ namespace PCGExTopologyEdges
 			ClusterProcessor->ProjectedPositions = &ProjectedPositions;
 			PCGExClusterMT::TBatch<T>::PrepareSingle(ClusterProcessor);
 			return true;
+		}
+
+	protected:
+		void OnProjectionComplete()
+		{
+			PCGExClusterMT::TBatch<T>::Process();
 		}
 	};
 }

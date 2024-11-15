@@ -66,6 +66,11 @@ namespace PCGExOffsetPath
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExOffsetPath::Process);
 
+		if (Settings->OffsetMethod == EPCGExOffsetMethod::Slide)
+		{
+			//PointDataFacade->bSupportsScopedGet = Context->bScopedAttributeGet;
+		}
+
 		if (!FPointsProcessor::Process(InAsyncManager)) { return false; }
 
 		if (Settings->bInvertDirection) { DirectionFactor *= -1; }
@@ -81,9 +86,12 @@ namespace PCGExOffsetPath
 		ToleranceSquared = Settings->IntersectionTolerance * Settings->IntersectionTolerance;
 		Path = PCGExPaths::MakePath(Positions, 0, Context->ClosedLoop.IsClosedLoop(PointDataFacade->Source));
 
-		if (Settings->Adjustment != EPCGExOffsetAdjustment::None)
+		if (Settings->OffsetMethod == EPCGExOffsetMethod::Slide)
 		{
-			PathAngles = Path->AddExtra<PCGExPaths::FPathEdgeAngle>(false, Up);
+			if (Settings->Adjustment != EPCGExOffsetAdjustment::None)
+			{
+				PathAngles = Path->AddExtra<PCGExPaths::FPathEdgeHalfAngle>(false, Up);
+			}
 		}
 
 		if (Settings->OffsetInput == EPCGExInputValueType::Attribute)
@@ -107,17 +115,24 @@ namespace PCGExOffsetPath
 		}
 		else
 		{
-			switch (Settings->DirectionConstant)
+			if (Settings->OffsetMethod == EPCGExOffsetMethod::LinePlane)
 			{
-			case EPCGExPathNormalDirection::Normal:
 				OffsetDirection = StaticCastSharedPtr<PCGExPaths::TPathEdgeExtra<FVector>>(Path->AddExtra<PCGExPaths::FPathEdgeNormal>(false, Up));
-				break;
-			case EPCGExPathNormalDirection::Binormal:
-				OffsetDirection = StaticCastSharedPtr<PCGExPaths::TPathEdgeExtra<FVector>>(Path->AddExtra<PCGExPaths::FPathEdgeBinormal>(false, Up));
-				break;
-			case EPCGExPathNormalDirection::AverageNormal:
-				OffsetDirection = StaticCastSharedPtr<PCGExPaths::TPathEdgeExtra<FVector>>(Path->AddExtra<PCGExPaths::FPathEdgeAvgNormal>(false, Up));
-				break;
+			}
+			else
+			{
+				switch (Settings->DirectionConstant)
+				{
+				case EPCGExPathNormalDirection::Normal:
+					OffsetDirection = StaticCastSharedPtr<PCGExPaths::TPathEdgeExtra<FVector>>(Path->AddExtra<PCGExPaths::FPathEdgeNormal>(false, Up));
+					break;
+				case EPCGExPathNormalDirection::Binormal:
+					OffsetDirection = StaticCastSharedPtr<PCGExPaths::TPathEdgeExtra<FVector>>(Path->AddExtra<PCGExPaths::FPathEdgeBinormal>(false, Up));
+					break;
+				case EPCGExPathNormalDirection::AverageNormal:
+					OffsetDirection = StaticCastSharedPtr<PCGExPaths::TPathEdgeExtra<FVector>>(Path->AddExtra<PCGExPaths::FPathEdgeAvgNormal>(false, Up));
+					break;
+				}
 			}
 		}
 
@@ -138,24 +153,40 @@ namespace PCGExOffsetPath
 		const FVector Dir = (OffsetDirection ? OffsetDirection->Get(EdgeIndex) : DirectionGetter->Read(Index)) * DirectionFactor;
 		double Offset = (OffsetGetter ? OffsetGetter->Read(Index) : OffsetConstant);
 
-		if (PathAngles)
+		if (Settings->OffsetMethod == EPCGExOffsetMethod::Slide)
 		{
-			if (Settings->Adjustment == EPCGExOffsetAdjustment::SmoothUp)
+			if (PathAngles)
 			{
-				Offset *= FMath::Clamp(1 - PathAngles->Get(EdgeIndex) / PI, 0, 1);
+				if (Settings->Adjustment == EPCGExOffsetAdjustment::SmoothCustom)
+				{
+					Offset *= (1 + Settings->AdjustmentScale * FMath::Cos(PathAngles->Get(EdgeIndex)));
+				}
+				else if (Settings->Adjustment == EPCGExOffsetAdjustment::SmoothAuto)
+				{
+					const double Dot = FMath::Clamp(FVector::DotProduct(Path->DirToPrevPoint(Index) * -1, Path->DirToNextPoint(Index)), -1, 0);
+					Offset *= 1 + (FMath::Abs(Dot) * FMath::Acos(Dot)) * FMath::Abs(Dot);
+				}
+				else if (Settings->Adjustment == EPCGExOffsetAdjustment::Mitre)
+				{
+					double MitreLength = Offset / FMath::Sin(PathAngles->Get(EdgeIndex) / 2);
+					if (MitreLength > Settings->MitreLimit * Offset) { Offset *= Settings->MitreLimit; } // Should bevel :(
+				}
 			}
-			else if (Settings->Adjustment == EPCGExOffsetAdjustment::SmoothDown)
-			{
-				Offset *= FMath::Clamp(PathAngles->Get(EdgeIndex) / PI, 0.5, 1);
-			}
-			else if (Settings->Adjustment == EPCGExOffsetAdjustment::Mitre)
-			{
-				double MitreLength = Offset / FMath::Sin(PathAngles->Get(EdgeIndex) / 2);
-				if (MitreLength > Settings->MitreLimit * Offset) { Offset *= Settings->MitreLimit; } // Should bevel :(
-			}
+
+			Positions[Index] = Path->GetPosUnsafe(Index) + (Dir * Offset);
+		}
+		else
+		{
+			const int32 PrevIndex = Path->SafePointIndex(Index - 1);
+			const FVector PlaneDir = (OffsetDirection ? OffsetDirection->Get(PrevIndex) : DirectionGetter->Read(PrevIndex)) * DirectionFactor;
+			const FVector PlaneOrigin = Path->GetPosUnsafe(PrevIndex) + (PlaneDir * (OffsetGetter ? OffsetGetter->Read(PrevIndex) : OffsetConstant));
+
+			const FVector A = Path->GetPosUnsafe(Index) + (Dir * Offset);
+
+			if (FMath::IsNearlyZero(1 - FMath::Abs(FVector::DotProduct(Dir, PlaneDir)))) { Positions[Index] = A; }
+			else { Positions[Index] = FMath::LinePlaneIntersection(A, A + Path->DirToNextPoint(Index) * 10, PlaneOrigin, PlaneDir * -1); }
 		}
 
-		Positions[Index] = Path->GetPos(Index) + (Dir * Offset);
 
 		if (!Settings->bCleanupPath) { Point.Transform.SetLocation(Positions[Index]); }
 	}

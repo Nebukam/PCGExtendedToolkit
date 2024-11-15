@@ -12,7 +12,7 @@
 
 #include "PCGExBuildDelaunayGraph2D.generated.h"
 
-UENUM(/*E--BlueprintType, meta=(DisplayName="[PCGEx] Urquhart Site Merge Mode")--E*/)
+UENUM()
 enum class EPCGExUrquhartSiteMergeMode : uint8
 {
 	None       = 0 UMETA(DisplayName = "None", ToolTip="Do not merge sites."),

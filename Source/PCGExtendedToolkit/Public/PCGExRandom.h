@@ -5,7 +5,7 @@
 
 #include "PCGExMath.h"
 
-UENUM(/*E--BlueprintType,--E*/ meta=(Bitflags, UseEnumValuesAsMaskValuesInEditor="true", DisplayName="[PCGEx] Seed Components"))
+UENUM(meta=(Bitflags, UseEnumValuesAsMaskValuesInEditor="true", DisplayName="[PCGEx] Seed Components"))
 enum class EPCGExSeedComponents : uint8
 {
 	None      = 0,

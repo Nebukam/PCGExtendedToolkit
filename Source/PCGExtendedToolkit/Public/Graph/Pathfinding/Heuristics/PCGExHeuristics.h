@@ -12,7 +12,7 @@
 
 #include "PCGExHeuristics.generated.h"
 
-UENUM(/*E--BlueprintType, meta=(DisplayName="[PCGEx] Heuristic Score Mode")--E*/)
+UENUM()
 enum class EPCGExHeuristicScoreMode : uint8
 {
 	LowerIsBetter  = 0 UMETA(DisplayName = "Lower is Better", Tooltip="Lower values are considered more desirable."),

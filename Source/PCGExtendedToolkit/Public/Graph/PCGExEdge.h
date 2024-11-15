@@ -9,7 +9,7 @@
 #include "Data/PCGExPointIO.h"
 #include "PCGExEdge.generated.h"
 
-UENUM(/*E--BlueprintType, meta=(DisplayName="[PCGEx] Edge Direction Mode")--E*/)
+UENUM()
 enum class EPCGExEdgeDirectionMethod : uint8
 {
 	EndpointsOrder   = 0 UMETA(DisplayName = "Endpoints Order", ToolTip="Uses the edge' Start & End properties"),
@@ -18,7 +18,7 @@ enum class EPCGExEdgeDirectionMethod : uint8
 	EdgeDotAttribute = 3 UMETA(DisplayName = "Edge Dot Attribute", ToolTip="Chooses the highest dot product against a vector property or attribute on the edge point"),
 };
 
-UENUM(/*E--BlueprintType, meta=(DisplayName="[PCGEx] Edge Direction Choice")--E*/)
+UENUM()
 enum class EPCGExEdgeDirectionChoice : uint8
 {
 	SmallestToGreatest = 0 UMETA(DisplayName = "Smallest to Greatest", ToolTip="Direction points from smallest to greatest value"),

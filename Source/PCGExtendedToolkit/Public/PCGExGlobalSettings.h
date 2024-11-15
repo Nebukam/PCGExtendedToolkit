@@ -7,7 +7,7 @@
 #include "CoreMinimal.h"
 #include "PCGExGlobalSettings.generated.h"
 
-UENUM(/*E--BlueprintType, meta=(DisplayName="[PCGEx] Async Priority")--E*/)
+UENUM()
 enum class EPCGExAsyncPriority : uint8
 {
 	Blocking = 0 UMETA(DisplayName = "Blocking", ToolTip="Position component."),
@@ -19,7 +19,7 @@ enum class EPCGExAsyncPriority : uint8
 	Default  = 6 UMETA(DisplayName = "Default", ToolTip="Position component."),
 };
 
-UENUM(/*E--BlueprintType, meta=(DisplayName="[PCGEx] Data Blending Type (With Defaults)")--E*/)
+UENUM()
 enum class EPCGExDataBlendingTypeDefault : uint8
 {
 	Default          = 100 UMETA(DisplayName = "Default", ToolTip="Use the node' default"),

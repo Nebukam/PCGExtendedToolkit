@@ -11,7 +11,7 @@
 
 #include "PCGExMeshToClusters.generated.h"
 
-UENUM(/*E--BlueprintType, meta=(DisplayName="[PCGEx] Mesh Source Type")--E*/)
+UENUM()
 enum class EPCGExMeshAttributeHandling : uint8
 {
 	StaticMeshSoftPath = 0 UMETA(DisplayName = "StaticMesh Soft Path", ToolTip="Read the attribute as a StaticMesh soft path."),
@@ -55,11 +55,11 @@ public:
 	EPCGExInputValueType StaticMeshInput = EPCGExInputValueType::Constant;
 
 	/** Static mesh constant */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="StaticMeshInput==EPCGExInputValueType::Constant", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName="Static Mesh", EditCondition="StaticMeshInput==EPCGExInputValueType::Constant", EditConditionHides))
 	TSoftObjectPtr<UStaticMesh> StaticMeshConstant;
 
 	/** Static mesh path attribute -- Either FString, FName or FSoftObjectPath*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="StaticMeshInput==EPCGExInputValueType::Attribute", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName="Static Mesh", EditCondition="StaticMeshInput==EPCGExInputValueType::Attribute", EditConditionHides))
 	FName StaticMeshAttribute;
 
 	/** Static mesh path attribute type*/

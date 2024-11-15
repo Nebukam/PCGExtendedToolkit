@@ -11,7 +11,7 @@
 
 #include "PCGExBreakClustersToPaths.generated.h"
 
-UENUM(/*E--BlueprintType, meta=(DisplayName="[PCGEx] Break Cluster Operation Target")--E*/)
+UENUM()
 enum class EPCGExBreakClusterOperationTarget : uint8
 {
 	Paths = 0 UMETA(DisplayName = "Paths", ToolTip="Operate on edge chains which form paths with no crossings.  e.g, nodes with only two neighbors."),

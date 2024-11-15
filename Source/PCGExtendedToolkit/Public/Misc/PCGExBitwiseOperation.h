@@ -46,11 +46,11 @@ public:
 	EPCGExInputValueType MaskInput = EPCGExInputValueType::Constant;
 
 	/** Mask -- Must be int64. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="MaskInput==EPCGExInputValueType::Attribute", DisplayName="Mask", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Bitmask", EditCondition="MaskInput==EPCGExInputValueType::Attribute", EditConditionHides))
 	FName MaskAttribute;
 
 	/**  */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="MaskInput==EPCGExInputValueType::Constant", DisplayName="Mask", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Bitmask", EditCondition="MaskInput==EPCGExInputValueType::Constant", EditConditionHides))
 	int64 Bitmask;
 };
 

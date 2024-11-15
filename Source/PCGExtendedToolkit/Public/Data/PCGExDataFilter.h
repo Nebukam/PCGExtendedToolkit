@@ -14,7 +14,7 @@
 class UPCGMetadata;
 enum class EPCGMetadataTypes : uint8;
 
-UENUM(/*E--BlueprintType, meta=(DisplayName="[PCGEx] Attribute Filter")--E*/)
+UENUM()
 enum class EPCGExAttributeFilter : uint8
 {
 	All     = 0 UMETA(DisplayName = "All", ToolTip="All attributes"),
@@ -22,7 +22,7 @@ enum class EPCGExAttributeFilter : uint8
 	Include = 2 UMETA(DisplayName = "Include", ToolTip="Only listed attributes"),
 };
 
-UENUM(/*E--BlueprintType, meta=(DisplayName="[PCGEx] String Match Mode")--E*/)
+UENUM()
 enum class EPCGExStringMatchMode : uint8
 {
 	Equals     = 0 UMETA(DisplayName = "Equals", ToolTip=""),

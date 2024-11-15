@@ -13,7 +13,7 @@
 
 #include "PCGExEdgeNeighborsCountFilter.generated.h"
 
-UENUM(/*E--BlueprintType, meta=(DisplayName="[PCGEx] Refine Edge Threshold Mode")--E*/)
+UENUM()
 enum class EPCGExRefineEdgeThresholdMode : uint8
 {
 	Sum  = 0 UMETA(DisplayName = "Sum", Tooltip="The sum of adjacencies will be compared against the specified threshold"),
@@ -35,7 +35,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExEdgeNeighborsCountFilterConfig
 	EPCGExInputValueType ThresholdInput = EPCGExInputValueType::Constant;
 
 	/** The number of connection endpoints must have to be considered a Bridge. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ClampMin="1", DisplayName="Threshold", EditCondition="ThresholdInput == EPCGExInputValueType::Constant", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Threshold", ClampMin=1, EditCondition="ThresholdInput == EPCGExInputValueType::Constant", EditConditionHides))
 	int32 ThresholdConstant = 2;
 
 	/** Attribute to fetch threshold from */

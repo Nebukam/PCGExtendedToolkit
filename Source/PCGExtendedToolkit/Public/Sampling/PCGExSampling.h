@@ -23,7 +23,7 @@ if(Context->bWrite##_NAME && !FPCGMetadataAttributeBase::IsValidName(Settings->_
 #define PCGEX_OUTPUT_INIT(_NAME, _TYPE, _DEFAULT_VALUE) if(Context->bWrite##_NAME){ _NAME##Writer = OutputFacade->GetWritable<_TYPE>(Settings->_NAME##AttributeName, _DEFAULT_VALUE, true, PCGExData::EBufferInit::Inherit); }
 #define PCGEX_OUTPUT_VALUE(_NAME, _INDEX, _VALUE) if(_NAME##Writer){_NAME##Writer->GetMutable(_INDEX) = _VALUE; }
 
-UENUM(/*E--BlueprintType, meta=(DisplayName="[PCGEx] Surface Source")--E*/)
+UENUM()
 enum class EPCGExSurfaceSource : uint8
 {
 	All             = 0 UMETA(DisplayName = "Any surface", ToolTip="Any surface within range will be tested"),
@@ -31,7 +31,7 @@ enum class EPCGExSurfaceSource : uint8
 };
 
 
-UENUM(/*E--BlueprintType, meta=(DisplayName="[PCGEx] Sample Method")--E*/)
+UENUM()
 enum class EPCGExSampleMethod : uint8
 {
 	WithinRange    = 0 UMETA(DisplayName = "All (Within range)", ToolTip="Use RangeMax = 0 to include all targets"),
@@ -40,7 +40,7 @@ enum class EPCGExSampleMethod : uint8
 	BestCandidate  = 3 UMETA(DisplayName = "Best Candidate", ToolTip="Picks & process the best candidate based on sorting rules"),
 };
 
-UENUM(/*E--BlueprintType, meta=(DisplayName="[PCGEx] Sample Source")--E*/)
+UENUM()
 enum class EPCGExSampleSource : uint8
 {
 	Source   = 0 UMETA(DisplayName = "Source", ToolTip="Read value on source"),
@@ -48,7 +48,7 @@ enum class EPCGExSampleSource : uint8
 	Constant = 2 UMETA(DisplayName = "Constant", ToolTip="Read constant"),
 };
 
-UENUM(/*E--BlueprintType, meta=(DisplayName="[PCGEx] Angle Range")--E*/)
+UENUM()
 enum class EPCGExAngleRange : uint8
 {
 	URadians   = 0 UMETA(DisplayName = "Radians (0..+PI)", ToolTip="0..+PI"),
@@ -59,7 +59,7 @@ enum class EPCGExAngleRange : uint8
 	TAUDegrees = 5 UMETA(DisplayName = "Degrees (0..+360)", ToolTip="0..+360"),
 };
 
-UENUM(/*E--BlueprintType, meta=(DisplayName="[PCGEx] Sample Weight Mode")--E*/)
+UENUM()
 enum class EPCGExSampleWeightMode : uint8
 {
 	Distance      = 0 UMETA(DisplayName = "Distance", ToolTip="Weight is computed using distance to targets"),
@@ -81,6 +81,7 @@ namespace PCGExSampling
 		const FVector N2 = B.GetSafeNormal();
 
 		const double MainDot = N1.Dot(N2);
+		const FVector C = FVector::CrossProduct(N1, N2);
 
 		switch (Mode)
 		{
@@ -91,14 +92,8 @@ namespace PCGExSampling
 			OutAngle = FMath::Acos(MainDot) * FMath::Sign(MainDot);
 			break;
 		case EPCGExAngleRange::TAURadians: // 0 .. 6.28
-			if (FVector::CrossProduct(N1, N2).Z < 0)
-			{
-				OutAngle = (PI * 2) - FMath::Atan2(FVector::CrossProduct(N1, N2).Size(), MainDot);
-			}
-			else
-			{
-				OutAngle = FMath::Atan2(FVector::CrossProduct(N1, N2).Size(), MainDot);
-			}
+			if (C.Z < 0) { OutAngle = TWO_PI - FMath::Atan2(C.Size(), MainDot); }
+			else { OutAngle = FMath::Atan2(C.Size(), MainDot); }
 			break;
 		case EPCGExAngleRange::UDegrees: // 0 .. 180
 			OutAngle = FMath::RadiansToDegrees(FMath::Acos(MainDot));
@@ -107,14 +102,8 @@ namespace PCGExSampling
 			OutAngle = FMath::RadiansToDegrees(FMath::Acos(MainDot)) * FMath::Sign(MainDot);
 			break;
 		case EPCGExAngleRange::TAUDegrees: // 0 .. 360
-			if (FVector::CrossProduct(N1, N2).Z < 0)
-			{
-				OutAngle = 360 - FMath::RadiansToDegrees(FMath::Atan2(FVector::CrossProduct(N1, N2).Size(), MainDot));
-			}
-			else
-			{
-				OutAngle = FMath::RadiansToDegrees(FMath::Atan2(FVector::CrossProduct(N1, N2).Size(), MainDot));
-			}
+			if (C.Z < 0) { OutAngle = 360 - FMath::RadiansToDegrees(FMath::Atan2(C.Size(), MainDot)); }
+			else { OutAngle = FMath::RadiansToDegrees(FMath::Atan2(C.Size(), MainDot)); }
 			break;
 		default: ;
 		}

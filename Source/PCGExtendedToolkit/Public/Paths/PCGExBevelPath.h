@@ -16,14 +16,14 @@ namespace PCGExBevelPath
 	const FName SourceCustomProfile = TEXT("Profile");
 }
 
-UENUM(/*E--BlueprintType, meta=(DisplayName="[PCGEx] Bevel Mode")--E*/)
+UENUM()
 enum class EPCGExBevelMode : uint8
 {
 	Radius   = 0 UMETA(DisplayName = "Radius", ToolTip="Width is used as a radius value to compute distance along each point neighboring segments"),
 	Distance = 1 UMETA(DisplayName = "Distance", ToolTip="Width is used as a distance along each point neighboring segments"),
 };
 
-UENUM(/*E--BlueprintType, meta=(DisplayName="[PCGEx] Bevel Profile Type")--E*/)
+UENUM()
 enum class EPCGExBevelProfileType : uint8
 {
 	Line   = 0 UMETA(DisplayName = "Line", ToolTip="Line profile"),
@@ -31,7 +31,7 @@ enum class EPCGExBevelProfileType : uint8
 	Custom = 2 UMETA(DisplayName = "Custom", ToolTip="Custom profile"),
 };
 
-UENUM(/*E--BlueprintType, meta=(DisplayName="[PCGEx] Bevel Limit")--E*/)
+UENUM()
 enum class EPCGExBevelLimit : uint8
 {
 	None            = 0 UMETA(DisplayName = "None", ToolTip="Bevel is not limited"),
@@ -85,11 +85,11 @@ public:
 	EPCGExInputValueType WidthInput = EPCGExInputValueType::Constant;
 
 	/** Bevel width constant.*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="WidthInput == EPCGExInputValueType::Constant", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Width", EditCondition="WidthInput == EPCGExInputValueType::Constant", EditConditionHides))
 	double WidthConstant = 0.1;
 
 	/** Bevel width attribute.*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="WidthInput == EPCGExInputValueType::Attribute", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Width", EditCondition="WidthInput == EPCGExInputValueType::Attribute", EditConditionHides))
 	FPCGAttributePropertyInputSelector WidthAttribute;
 
 	/** Bevel limit type */

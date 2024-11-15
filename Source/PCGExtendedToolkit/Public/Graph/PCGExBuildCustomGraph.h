@@ -12,7 +12,7 @@
 
 #define PCGEX_CUSTOM_GRAPH_EDGE_SUPPORT false
 
-UENUM(/*E--BlueprintType, meta=(DisplayName="[PCGEx] Custom Graph Actor Source Mode")--E*/)
+UENUM()
 enum class EPCGExCustomGraphActorSourceMode : uint8
 {
 	Owner           = 0 UMETA(DisplayName = "Owner", ToolTip="PCG Component owner"),

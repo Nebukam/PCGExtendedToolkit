@@ -11,7 +11,7 @@
 #include "Graph/PCGExIntersections.h"
 #include "PCGExFindClustersData.generated.h"
 
-UENUM(/*E--BlueprintType, meta=(BDisplayName="[PCGEx] Cluster Data Search Mode")--E*/)
+UENUM()
 enum class EPCGExClusterDataSearchMode : uint8
 {
 	All          = 0 UMETA(DisplayName = "All"),

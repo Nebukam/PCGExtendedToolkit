@@ -11,7 +11,7 @@
 
 #include "PCGExAssetCollectionToSet.generated.h"
 
-UENUM(/*E--BlueprintType--E*/)
+UENUM()
 enum class EPCGExSubCollectionToSet : uint8
 {
 	Ignore             = 0 UMETA(DisplayName = "Ignore", Tooltip="Ignore sub-collections"),

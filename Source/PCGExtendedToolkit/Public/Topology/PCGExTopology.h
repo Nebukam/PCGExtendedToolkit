@@ -18,14 +18,6 @@ enum class EPCGExTopologyOutputType : uint8
 };
 
 UENUM(/*E--BlueprintType, meta=(DisplayName="[PCGEx] Contour Shape Type Output")--E*/)
-enum class EPCGExOmitCellByBounds : uint8
-{
-	None      = 0 UMETA(DisplayName = "None", ToolTip="No bounds filtering"),
-	SizeCheck = 1 UMETA(DisplayName = "Size Check", ToolTip="Puts limits based on bounds' size length"),
-};
-
-
-UENUM(/*E--BlueprintType, meta=(DisplayName="[PCGEx] Contour Shape Type Output")--E*/)
 enum class EPCGExCellShapeTypeOutput : uint8
 {
 	Both        = 0 UMETA(DisplayName = "Convex & Concave", ToolTip="Output both convex and concave cells"),
@@ -33,6 +25,23 @@ enum class EPCGExCellShapeTypeOutput : uint8
 	ConcaveOnly = 2 UMETA(DisplayName = "Concave Only", ToolTip="Output only concave cells")
 };
 
+UENUM(/*E--BlueprintType, meta=(DisplayName="[PCGEx] Contour Shape Type Output")--E*/)
+enum class EPCGExCellSeedLocation : uint8
+{
+	Original         = 0 UMETA(DisplayName = "Original", ToolTip="Seed position is unchanged"),
+	Centroid         = 1 UMETA(DisplayName = "Centroid", ToolTip="Place the seed at the centroid of the path"),
+	PathBoundsCenter = 2 UMETA(DisplayName = "Path bounds center", ToolTip="Place the seed at the center of the path' bounds"),
+	FirstNode        = 3 UMETA(DisplayName = "First Node", ToolTip="Place the seed on the position of the node that started the cell."),
+	LastNode        = 4 UMETA(DisplayName = "Last Node", ToolTip="Place the seed on the position of the node that ends the cell.")
+};
+
+UENUM(/*E--BlueprintType, meta=(DisplayName="[PCGEx] Contour Shape Type Output")--E*/)
+enum class EPCGExCellSeedBounds : uint8
+{
+	Original           = 0 UMETA(DisplayName = "Original", ToolTip="Seed bounds is unchanged"),
+	MatchCell          = 1 UMETA(DisplayName = "Match Cell", ToolTip="Seed bounds match cell bounds"),
+	MatchPathResetQuat = 2 UMETA(DisplayName = "Match Cell (with rotation reset)", ToolTip="Seed bounds match cell bounds, and rotation is reset"),
+};
 
 USTRUCT(BlueprintType)
 struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExCellConstraintsDetails
@@ -43,47 +52,63 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExCellConstraintsDetails
 	{
 	}
 
+	explicit FPCGExCellConstraintsDetails(bool InUsedForPaths)
+		: bUsedForPaths(InUsedForPaths)
+	{
+	}
+
+	UPROPERTY()
+	bool bUsedForPaths = false;
+
 	/**  */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	EPCGExCellShapeTypeOutput AspectFilter = EPCGExCellShapeTypeOutput::Both;
 
-	/** Keep only contours that closed gracefully; i.e connect to their start node */
+	/** Ensure there's no duplicate cells. This can happen when using seed-based search where multiple seed yield the same final cell. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bUsedForPaths", EditConditionHides, HideEditConditionToggle))
+	bool bDedupeCells = true;
+	
+	/** Keep only cells that closed gracefully; i.e connect to their start node */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	bool bClosedCellsOnly = true;
 
-	/** Whether to keep contour that include dead ends wrapping */
+	/** Whether to keep cells that include dead ends wrapping */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	bool bKeepCellsWithDeadEnds = true;
 
-	/** Change the good seed bounds */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
-	EPCGExOmitCellByBounds OmitPathsByBounds = EPCGExOmitCellByBounds::None;
-
-	/** Size tolerance */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="OmitPathsByBounds==EPCGExOmitPathsByBounds::NearlyEqualClusterBounds", EditConditionHides, ClampMin=0))
-	double BoundsSizeTolerance = 100;
+	/** Whether to duplicate dead end points */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bKeepCellsWithDeadEnds && bUsedForPaths", EditConditionHides, HideEditConditionToggle))
+	bool bDuplicateDeadEnds = false;
 
 	/**  */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Bounds Limits", meta = (PCG_Overridable, EditCondition="OmitPathsByBounds==EPCGExOmitPathsByBounds::NearlyEqualClusterBounds", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditConditionHides))
+	bool bOmitWrappingBounds = true;
+
+	/** Omit cells with bounds that closely match the ones from the input set */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bOmitWrappingBounds", ClampMin=0))
+	double WrappingBoundsSizeTolerance = 100;
+
+	/**  */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, InlineEditConditionToggle))
 	bool bOmitBelowBoundsSize = false;
 
-	/** Paths with a point count below the specified threshold will be omitted */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Bounds Limits", meta = (PCG_Overridable, EditCondition="bOmitBelowBoundsSize && OmitPathsByBounds==EPCGExOmitPathsByBounds::NearlyEqualClusterBounds", EditConditionHides, ClampMin=0))
+	/** Omit cells whose bounds size.length is smaller than the specified amount */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bOmitBelowBoundsSize", ClampMin=0))
 	double MinBoundsSize = 3;
 
 	/**  */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Bounds Limits", meta = (PCG_Overridable, EditCondition="OmitPathsByBounds==EPCGExOmitPathsByBounds::NearlyEqualClusterBounds", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, InlineEditConditionToggle))
 	bool bOmitAboveBoundsSize = false;
 
-	/** Paths with a point count below the specified threshold will be omitted */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Bounds Limits", meta = (PCG_Overridable, EditCondition="bOmitAboveBoundsSize && OmitPathsByBounds==EPCGExOmitPathsByBounds::NearlyEqualClusterBounds", EditConditionHides, ClampMin=0))
+	/** Omit cells whose bounds size.length is larger than the specified amount */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bOmitAboveBoundsSize", ClampMin=0))
 	double MaxBoundsSize = 500;
 
 	/**  */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, InlineEditConditionToggle))
 	bool bOmitBelowPointCount = false;
 
-	/** Paths with a point count below the specified threshold will be omitted */
+	/** Omit cells whose point count is smaller than the specified amount */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bOmitBelowPointCount", ClampMin=0))
 	int32 MinPointCount = 3;
 
@@ -91,13 +116,56 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExCellConstraintsDetails
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, InlineEditConditionToggle))
 	bool bOmitAbovePointCount = false;
 
-	/** Paths with a point count below the specified threshold will be omitted */
+	/** Omit cells whose point count is larger than the specified amount */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bOmitAbovePointCount", ClampMin=0))
 	int32 MaxPointCount = 500;
 
-	/** Projection settings. */
+};
+
+namespace PCGExTopology
+{
+	class FCell;
+}
+
+USTRUCT(BlueprintType)
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExCellSeedMutationDetails
+{
+	GENERATED_BODY()
+
+	FPCGExCellSeedMutationDetails()
+	{
+	}
+
+	explicit FPCGExCellSeedMutationDetails(bool InUsedForPaths)
+		: bUsedForPaths(InUsedForPaths)
+	{
+	}
+
+	UPROPERTY()
+	bool bUsedForPaths = false;
+
+	/**  */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
-	FPCGExGeo2DProjectionDetails ProjectionDetails;
+	EPCGExCellShapeTypeOutput AspectFilter = EPCGExCellShapeTypeOutput::Both;
+
+	/** Change the good seed position */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
+	EPCGExCellSeedLocation Location = EPCGExCellSeedLocation::Centroid;
+
+	/** */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
+	bool bMatchCellBounds = true;
+
+	/** */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
+	bool bResetScale = true;
+
+	/** */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
+	bool bResetRotation = true;
+	
+	void ApplyToPoint(const PCGExTopology::FCell* InCell, FPCGPoint& OutPoint, const TArray<FPCGPoint>& CellPoints) const;
+
 };
 
 USTRUCT(BlueprintType)
@@ -165,7 +233,7 @@ namespace PCGExTopology
 
 		bool bConcaveOnly = false;
 		bool bConvexOnly = false;
-		bool bKeepContoursWithDeadEnds = true;
+		bool bKeepCellsWithDeadEnds = true;
 		bool bDuplicateDeadEndPoints = false;
 		bool bClosedLoopOnly = false;
 
@@ -174,6 +242,10 @@ namespace PCGExTopology
 
 		double MaxBoundsSize = MAX_dbl;
 		double MinBoundsSize = MIN_dbl;
+
+		FBox DataBounds = FBox(ForceInit);
+		bool bDoWrapperCheck = false;
+		double WrapperCheckTolerance = MAX_dbl;
 
 		bool bDedupe = true;
 
@@ -187,15 +259,18 @@ namespace PCGExTopology
 			bConcaveOnly = InDetails.AspectFilter == EPCGExCellShapeTypeOutput::ConcaveOnly;
 			bConvexOnly = InDetails.AspectFilter == EPCGExCellShapeTypeOutput::ConvexOnly;
 			bClosedLoopOnly = InDetails.bClosedCellsOnly;
-			bKeepContoursWithDeadEnds = InDetails.bKeepCellsWithDeadEnds;
+			bKeepCellsWithDeadEnds = InDetails.bKeepCellsWithDeadEnds;
+			bDuplicateDeadEndPoints = InDetails.bDuplicateDeadEnds;
 
 			if (InDetails.bOmitBelowPointCount) { MinPointCount = InDetails.MinPointCount; }
 			if (InDetails.bOmitAbovePointCount) { MaxPointCount = InDetails.MaxPointCount; }
-			if (InDetails.OmitPathsByBounds != EPCGExOmitCellByBounds::None)
-			{
-				if (InDetails.bOmitBelowBoundsSize) { MinBoundsSize = InDetails.MinBoundsSize; }
-				if (InDetails.bOmitAboveBoundsSize) { MaxBoundsSize = InDetails.MaxBoundsSize; }
-			}
+
+			if (InDetails.bOmitBelowBoundsSize) { MinBoundsSize = InDetails.MinBoundsSize; }
+			if (InDetails.bOmitAboveBoundsSize) { MaxBoundsSize = InDetails.MaxBoundsSize; }
+
+			bDoWrapperCheck = InDetails.bOmitWrappingBounds;
+			WrapperCheckTolerance = InDetails.WrappingBoundsSizeTolerance;
+			bDedupe = InDetails.bDedupeCells;
 		}
 
 		bool ContainsSignedEdgeHash(const uint64 Hash) const;
@@ -212,6 +287,7 @@ namespace PCGExTopology
 		TArray<int32> Nodes;
 		FBox Bounds = FBox(ForceInit);
 		TSharedRef<FCellConstraints> Constraints;
+		FVector Centroid = FVector::ZeroVector;
 
 		bool bIsConvex = true;
 		bool bCompiledSuccessfully = false;

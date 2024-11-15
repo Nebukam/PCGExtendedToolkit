@@ -21,21 +21,21 @@ MACRO(FSoftClassPath)
 MACRO(FSoftObjectPath)\
 MACRO(FSoftClassPath)
 
-UENUM(/*E--BlueprintType, meta=(DisplayName="[PCGEx] Index Mode")--E*/)
+UENUM()
 enum class EPCGExIndexMode : uint8
 {
 	Pick   = 0 UMETA(DisplayName = "Pick", ToolTip="Index value represent a specific pick"),
 	Offset = 1 UMETA(DisplayName = "Offset", ToolTip="Index value represent an offset from current point' index"),
 };
 
-UENUM(/*E--BlueprintType, meta=(DisplayName="[PCGEx] Dot Units")--E*/)
+UENUM()
 enum class EPCGExDotUnits : uint8
 {
 	Raw     = 0 UMETA(DisplayName = "Normal (-1::1)", Tooltip="Read the value as a raw dot product result"),
 	Degrees = 1 UMETA(DisplayName = "Degrees", Tooltip="Read the value as degrees"),
 };
 
-UENUM(/*E--BlueprintType, meta=(DisplayName="[PCGEx] Comparison")--E*/)
+UENUM()
 enum class EPCGExComparison : uint8
 {
 	StrictlyEqual    = 0 UMETA(DisplayName = " == ", Tooltip="Operand A Strictly Equal to Operand B"),
@@ -48,14 +48,14 @@ enum class EPCGExComparison : uint8
 	NearlyNotEqual   = 7 UMETA(DisplayName = " !~= ", Tooltip="Operand A Nearly Not Equal to Operand B"),
 };
 
-UENUM(/*E--BlueprintType, meta=(DisplayName="[PCGEx] Equality")--E*/)
+UENUM()
 enum class EPCGExEquality : uint8
 {
 	Equal    = 0 UMETA(DisplayName = " == ", Tooltip="Operand A Equal to Operand B"),
 	NotEqual = 1 UMETA(DisplayName = " != ", Tooltip="Operand A Not Equal to Operand B"),
 };
 
-UENUM(/*E--BlueprintType, meta=(DisplayName="[PCGEx] String Comparison")--E*/)
+UENUM()
 enum class EPCGExStringComparison : uint8
 {
 	StrictlyEqual         = 0 UMETA(DisplayName = " == ", Tooltip="Operand A Strictly Equal to Operand B"),
@@ -73,7 +73,7 @@ enum class EPCGExStringComparison : uint8
 	EndsWith              = 12 UMETA(DisplayName = " Ends With ", Tooltip="Operand A ends with Operand B"),
 };
 
-UENUM(/*E--BlueprintType, meta=(DisplayName="[PCGEx] Bitflag Comparison")--E*/)
+UENUM()
 enum class EPCGExBitflagComparison : uint8
 {
 	MatchPartial   = 0 UMETA(DisplayName = "Match (any)", Tooltip="Value & Mask != 0 (At least some flags in the mask are set)"),
@@ -534,7 +534,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExComparisonDetails
 };
 
 
-UENUM(/*E--BlueprintType, meta=(DisplayName="[PCGEx] Direction Check Mode")--E*/)
+UENUM()
 enum class EPCGExDirectionCheckMode : uint8
 {
 	Dot  = 0 UMETA(DisplayName = "Dot (Precise)", Tooltip="Extensive comparison using Dot product"),
@@ -556,11 +556,11 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExVectorHashComparisonDetails
 	EPCGExInputValueType HashToleranceInput = EPCGExInputValueType::Constant;
 
 	/** Tolerance value use for comparison */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="HashToleranceInput==EPCGExInputValueType::Attribute", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Hash Tolerance", EditCondition="HashToleranceInput==EPCGExInputValueType::Attribute", EditConditionHides))
 	FPCGAttributePropertyInputSelector HashToleranceAttribute;
 
 	/** Tolerance value use for comparison */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="HashToleranceInput==EPCGExInputValueType::Constant", EditConditionHides, ClampMin=0.00001))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Hash Tolerance", EditCondition="HashToleranceInput==EPCGExInputValueType::Constant", EditConditionHides, ClampMin=0.00001))
 	double HashToleranceConstant = 0.001;
 
 	FVector CWTolerance = FVector::ZeroVector;
@@ -618,11 +618,11 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExDotComparisonDetails
 	EPCGExInputValueType DotValue = EPCGExInputValueType::Constant;
 
 	/** Dot value use for comparison */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="DotValue==EPCGExInputValueType::Attribute", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Dot or Degrees", EditCondition="DotValue==EPCGExInputValueType::Attribute", EditConditionHides))
 	FPCGAttributePropertyInputSelector DotOrDegreesAttribute;
 
 	/** Dot value use for comparison (In raw -1/1 range) */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="DotValue==EPCGExInputValueType::Constant && DotUnits==EPCGExDotUnits::Raw", EditConditionHides, ClampMin=-1, ClampMax=1))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Dot", EditCondition="DotValue==EPCGExInputValueType::Constant && DotUnits==EPCGExDotUnits::Raw", EditConditionHides, ClampMin=-1, ClampMax=1))
 	double DotConstant = 1;
 
 	/** Tolerance for dot comparison. */
@@ -630,11 +630,11 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExDotComparisonDetails
 	double DotTolerance = 0.1;
 
 	/** Dot value use for comparison (In degrees) */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="DotValue==EPCGExInputValueType::Constant && DotUnits==EPCGExDotUnits::Degrees", EditConditionHides, ClampMin=0, ClampMax=180, Units="Degrees"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Degrees", EditCondition="DotValue==EPCGExInputValueType::Constant && DotUnits==EPCGExDotUnits::Degrees", EditConditionHides, ClampMin=0, ClampMax=180, Units="Degrees"))
 	double DegreesConstant = 0;
 
 	/** Tolerance for dot comparison. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="(Comparison==EPCGExComparison::NearlyEqual || Comparison==EPCGExComparison::NearlyNotEqual) && DotUnits==EPCGExDotUnits::Degrees", EditConditionHides, ClampMin=0, ClampMax=180, Units="Degrees"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Degrees", EditCondition="(Comparison==EPCGExComparison::NearlyEqual || Comparison==EPCGExComparison::NearlyNotEqual) && DotUnits==EPCGExDotUnits::Degrees", EditConditionHides, ClampMin=0, ClampMax=180, Units="Degrees"))
 	double DegreesTolerance = 0.1;
 
 	bool bUseLocalDot = false;
@@ -685,7 +685,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExDotComparisonDetails
 	}
 };
 
-UENUM(/*E--BlueprintType, meta=(DisplayName="[PCGEx] Bit Operation")--E*/)
+UENUM()
 enum class EPCGExBitOp : uint8
 {
 	Set = 0 UMETA(DisplayName = "=", ToolTip="(Flags = Mask) Set the bit with the specified value."),
@@ -695,7 +695,7 @@ enum class EPCGExBitOp : uint8
 	XOR = 4 UMETA(DisplayName = "XOR", ToolTip="(Flags ^= Mask) Invert the flag bit where the mask == 1."),
 };
 
-UENUM(/*E--BlueprintType, meta=(DisplayName="[PCGEx] Bitmask Source")--E*/)
+UENUM()
 enum class EPCGExBitmaskMode : uint8
 {
 	Direct     = 0 UMETA(DisplayName = "Direct", ToolTip="Used for easy override mostly"),
@@ -779,7 +779,7 @@ enum class EPCGExBitflag64 : int64
 ENUM_CLASS_FLAGS(EPCGExBitflag64)
 */
 
-UENUM(/*E--BlueprintType, --E*/meta=(Bitflags, UseEnumValuesAsMaskValuesInEditor="true", DisplayName="[PCGEx] Bitflag 0-8 Bits Range"))
+UENUM(meta=(Bitflags, UseEnumValuesAsMaskValuesInEditor="true", DisplayName="[PCGEx] Bitflag 0-8 Bits Range"))
 enum class EPCGExBitmask8_00_08 : uint8
 {
 	None   = 0,
@@ -796,7 +796,7 @@ enum class EPCGExBitmask8_00_08 : uint8
 ENUM_CLASS_FLAGS(EPCGExBitmask8_00_08)
 using EPCGExBitmask8_00_08Bitmask = TEnumAsByte<EPCGExBitmask8_00_08>;
 
-UENUM(/*E--BlueprintType, --E*/meta=(Bitflags, UseEnumValuesAsMaskValuesInEditor="true", DisplayName="[PCGEx] Bitflag 8-16 Bits Range"))
+UENUM(meta=(Bitflags, UseEnumValuesAsMaskValuesInEditor="true", DisplayName="[PCGEx] Bitflag 8-16 Bits Range"))
 enum class EPCGExBitmask8_08_16 : uint8
 {
 	None    = 0,
@@ -813,7 +813,7 @@ enum class EPCGExBitmask8_08_16 : uint8
 ENUM_CLASS_FLAGS(EPCGExBitmask8_08_16)
 using EPCGExBitmask8_08_16Bitmask = TEnumAsByte<EPCGExBitmask8_08_16>;
 
-UENUM(/*E--BlueprintType, --E*/meta=(Bitflags, UseEnumValuesAsMaskValuesInEditor="true", DisplayName="[PCGEx] Bitflag 16-24 Bits Range"))
+UENUM(meta=(Bitflags, UseEnumValuesAsMaskValuesInEditor="true", DisplayName="[PCGEx] Bitflag 16-24 Bits Range"))
 enum class EPCGExBitmask8_16_24 : uint8
 {
 	None    = 0,
@@ -830,7 +830,7 @@ enum class EPCGExBitmask8_16_24 : uint8
 ENUM_CLASS_FLAGS(EPCGExBitmask8_16_24)
 using EPCGExBitmask8_16_24Bitmask = TEnumAsByte<EPCGExBitmask8_16_24>;
 
-UENUM(/*E--BlueprintType, --E*/meta=(Bitflags, UseEnumValuesAsMaskValuesInEditor="true", DisplayName="[PCGEx] Bitflag 24-32 Bits Range"))
+UENUM(meta=(Bitflags, UseEnumValuesAsMaskValuesInEditor="true", DisplayName="[PCGEx] Bitflag 24-32 Bits Range"))
 enum class EPCGExBitmask8_24_32 : uint8
 {
 	None    = 0,
@@ -847,7 +847,7 @@ enum class EPCGExBitmask8_24_32 : uint8
 ENUM_CLASS_FLAGS(EPCGExBitmask8_24_32)
 using EPCGExBitmask8_24_32Bitmask = TEnumAsByte<EPCGExBitmask8_24_32>;
 
-UENUM(/*E--BlueprintType, --E*/meta=(Bitflags, UseEnumValuesAsMaskValuesInEditor="true", DisplayName="[PCGEx] Bitflag 32-40 Bits Range"))
+UENUM(meta=(Bitflags, UseEnumValuesAsMaskValuesInEditor="true", DisplayName="[PCGEx] Bitflag 32-40 Bits Range"))
 enum class EPCGExBitmask8_32_40 : uint8
 {
 	None    = 0,
@@ -864,7 +864,7 @@ enum class EPCGExBitmask8_32_40 : uint8
 ENUM_CLASS_FLAGS(EPCGExBitmask8_32_40)
 using EPCGExBitmask8_32_40Bitmask = TEnumAsByte<EPCGExBitmask8_32_40>;
 
-UENUM(/*E--BlueprintType, --E*/meta=(Bitflags, UseEnumValuesAsMaskValuesInEditor="true", DisplayName="[PCGEx] Bitflag 40-48 Bits Range"))
+UENUM(meta=(Bitflags, UseEnumValuesAsMaskValuesInEditor="true", DisplayName="[PCGEx] Bitflag 40-48 Bits Range"))
 enum class EPCGExBitmask8_40_48 : uint8
 {
 	None    = 0,
@@ -881,7 +881,7 @@ enum class EPCGExBitmask8_40_48 : uint8
 ENUM_CLASS_FLAGS(EPCGExBitmask8_40_48)
 using EPCGExBitmask8_40_48Bitmask = TEnumAsByte<EPCGExBitmask8_40_48>;
 
-UENUM(/*E--BlueprintType, --E*/meta=(Bitflags, UseEnumValuesAsMaskValuesInEditor="true", DisplayName="[PCGEx] Bitflag 48-56 Bits Range"))
+UENUM(meta=(Bitflags, UseEnumValuesAsMaskValuesInEditor="true", DisplayName="[PCGEx] Bitflag 48-56 Bits Range"))
 enum class EPCGExBitmask8_48_56 : uint8
 {
 	None    = 0,
@@ -898,7 +898,7 @@ enum class EPCGExBitmask8_48_56 : uint8
 ENUM_CLASS_FLAGS(EPCGExBitmask8_48_56)
 using EPCGExBitmask8_48_56Bitmask = TEnumAsByte<EPCGExBitmask8_48_56>;
 
-UENUM(/*E--BlueprintType, --E*/meta=(Bitflags, UseEnumValuesAsMaskValuesInEditor="true", DisplayName="[PCGEx] Bitflag 56-64 Bits Range"))
+UENUM(meta=(Bitflags, UseEnumValuesAsMaskValuesInEditor="true", DisplayName="[PCGEx] Bitflag 56-64 Bits Range"))
 enum class EPCGExBitmask8_56_64 : uint8
 {
 	None    = 0,

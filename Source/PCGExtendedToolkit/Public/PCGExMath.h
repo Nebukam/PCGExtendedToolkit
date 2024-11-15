@@ -9,14 +9,14 @@
 
 #include "PCGExMath.generated.h"
 
-UENUM(/*E--BlueprintType, meta=(DisplayName="[PCGEx] Mean Measure")--E*/)
+UENUM()
 enum class EPCGExMeanMeasure : uint8
 {
 	Relative = 0 UMETA(DisplayName = "Relative", ToolTip="Input value will be normalized between 0..1, or used as a factor. (what it means exactly depends on context. See node-specific documentation.)"),
 	Discrete = 1 UMETA(DisplayName = "Discrete", ToolTip="Raw value will be used, or used as absolute. (what it means exactly depends on context. See node-specific documentation.)"),
 };
 
-UENUM(/*E--BlueprintType, meta=(DisplayName="[PCGEx] Mean Method")--E*/)
+UENUM()
 enum class EPCGExMeanMethod : uint8
 {
 	Average = 0 UMETA(DisplayName = "Average", ToolTip="Average"),
@@ -27,7 +27,7 @@ enum class EPCGExMeanMethod : uint8
 	Fixed   = 5 UMETA(DisplayName = "Fixed", ToolTip="Fixed threshold"),
 };
 
-UENUM(/*E--BlueprintType, meta=(DisplayName="[PCGEx] Point Bounds Source")--E*/)
+UENUM()
 enum class EPCGExPointBoundsSource : uint8
 {
 	ScaledBounds  = 0 UMETA(DisplayName = "Scaled Bounds", ToolTip="Scaled Bounds"),
@@ -1138,7 +1138,7 @@ namespace PCGExMath
 	{
 		const FVector Cross = FVector::CrossProduct(A, B);
 		const double Atan2 = FMath::Atan2(Cross.Size(), A.Dot(B));
-		return Cross.Z < 0 ? (PI * 2) - Atan2 : Atan2;
+		return Cross.Z < 0 ? TWO_PI - Atan2 : Atan2;
 	}
 
 	// Expects normalized vectors

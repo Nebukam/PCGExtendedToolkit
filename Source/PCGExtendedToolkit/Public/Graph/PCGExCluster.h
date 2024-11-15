@@ -19,7 +19,7 @@ namespace PCGExCluster
 	struct FExpandedEdge;
 }
 
-UENUM(/*E--BlueprintType, meta=(DisplayName="[PCGEx] Cluster Closest Search Mode")--E*/)
+UENUM()
 enum class EPCGExClusterClosestSearchMode : uint8
 {
 	Node = 0 UMETA(DisplayName = "Closest node", ToolTip="Proximity to node position"),

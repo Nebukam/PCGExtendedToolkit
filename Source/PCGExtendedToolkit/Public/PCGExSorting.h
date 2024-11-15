@@ -11,7 +11,7 @@
 
 #include "PCGExSorting.generated.h"
 
-UENUM(/*E--BlueprintType, meta=(DisplayName="[PCGEx] Sort Direction")--E*/)
+UENUM()
 enum class EPCGExSortDirection : uint8
 {
 	Ascending  = 0 UMETA(DisplayName = "Ascending"),

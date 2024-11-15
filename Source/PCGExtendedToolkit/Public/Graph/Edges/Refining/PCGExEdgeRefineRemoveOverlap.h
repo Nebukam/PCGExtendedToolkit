@@ -10,7 +10,7 @@
 #include "Graph/Pathfinding/Heuristics/PCGExHeuristics.h"
 #include "PCGExEdgeRefineRemoveOverlap.generated.h"
 
-UENUM(/*E--BlueprintType, meta=(DisplayName="[PCGEx] Edge Overlap Pick")--E*/)
+UENUM()
 enum class EPCGExEdgeOverlapPick : uint8
 {
 	Shortest = 0 UMETA(DisplayName = "Shortest", ToolTip="Keep the shortest edge"),

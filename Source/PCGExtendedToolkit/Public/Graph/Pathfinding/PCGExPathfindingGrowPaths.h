@@ -19,14 +19,14 @@
 struct FPCGExPathfindingGrowPathsContext;
 class UPCGExPathfindingGrowPathsSettings;
 
-UENUM(/*E--BlueprintType, meta=(DisplayName="[PCGEx] Growth Value Source")--E*/)
+UENUM()
 enum class EPCGExGrowthIterationMode : uint8
 {
 	Parallel = 0 UMETA(DisplayName = "Parallel", ToolTip="Does one growth iteration on each seed until none remain"),
 	Sequence = 1 UMETA(DisplayName = "Sequence", ToolTip="Grow a seed to its end, then move to the next seed"),
 };
 
-UENUM(/*E--BlueprintType, meta=(DisplayName="[PCGEx] Growth Value Source")--E*/)
+UENUM()
 enum class EPCGExGrowthValueSource : uint8
 {
 	Constant      = 0 UMETA(DisplayName = "Constant", ToolTip="Use a single constant for all seeds"),
@@ -34,7 +34,7 @@ enum class EPCGExGrowthValueSource : uint8
 	VtxAttribute  = 2 UMETA(DisplayName = "Vtx Attribute", ToolTip="Attribute read on the vtx."),
 };
 
-UENUM(/*E--BlueprintType, meta=(DisplayName="[PCGEx] Growth Update Mode")--E*/)
+UENUM()
 enum class EPCGExGrowthUpdateMode : uint8
 {
 	Once             = 0 UMETA(DisplayName = "Once", ToolTip="Read once at the beginning of the computation."),

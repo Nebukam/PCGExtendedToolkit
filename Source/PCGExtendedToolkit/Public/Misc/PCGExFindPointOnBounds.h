@@ -15,7 +15,7 @@
 
 class FPCGExComputeIOBounds;
 
-UENUM(/*E--BlueprintType, meta=(DisplayName="[PCGEx] Point On Bounds Output Mode")--E*/)
+UENUM()
 enum class EPCGExPointOnBoundsOutputMode : uint8
 {
 	Merged     = 0 UMETA(DisplayName = "Merged Points", Tooltip="..."),
