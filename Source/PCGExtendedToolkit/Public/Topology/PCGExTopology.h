@@ -74,11 +74,11 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExCellConstraintsDetails
 
 	/** Whether to keep cells that include dead ends wrapping */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
-	bool bKeepCellsWithDeadEnds = true;
+	bool bKeepCellsWithLeaves = true;
 
 	/** Whether to duplicate dead end points */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bKeepCellsWithDeadEnds && bUsedForPaths", EditConditionHides, HideEditConditionToggle))
-	bool bDuplicateDeadEnds = false;
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bKeepCellsWithLeaves && bUsedForPaths", EditConditionHides, HideEditConditionToggle))
+	bool bDuplicateLeafPoints = false;
 
 	/**  */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditConditionHides))
@@ -194,20 +194,6 @@ namespace PCGExTopology
 		InvalidCluster,
 	};
 
-	enum class ECellResult : uint8
-	{
-		Unknown = 0,
-		Success,
-		Duplicate,
-		DeadEnd,
-		WrongAspect,
-		ExceedPointsLimit,
-		BelowPointsLimit,
-		ExceedBoundsLimit,
-		BelowBoundsLimit,
-		OpenCell,
-	};
-
 	const FName SourceEdgeConstrainsFiltersLabel = FName("ConstrainedEdgeFilters");
 
 	static FORCEINLINE void MarkTriangle(
@@ -218,6 +204,22 @@ namespace PCGExTopology
 		FPlatformAtomics::InterlockedExchange(&InCluster->GetNode(InTriangle.Vtx[1])->bValid, 1);
 		FPlatformAtomics::InterlockedExchange(&InCluster->GetNode(InTriangle.Vtx[2])->bValid, 1);
 	}
+
+#pragma region Cell
+
+	enum class ECellResult : uint8
+	{
+		Unknown = 0,
+		Success,
+		Duplicate,
+		Leaf,
+		WrongAspect,
+		ExceedPointsLimit,
+		BelowPointsLimit,
+		ExceedBoundsLimit,
+		BelowBoundsLimit,
+		OpenCell,
+	};
 
 	class FCell;
 
@@ -231,8 +233,8 @@ namespace PCGExTopology
 
 		bool bConcaveOnly = false;
 		bool bConvexOnly = false;
-		bool bKeepCellsWithDeadEnds = true;
-		bool bDuplicateDeadEndPoints = false;
+		bool bKeepCellsWithLeaves = true;
+		bool bDuplicateLeafPoints = false;
 		bool bClosedLoopOnly = false;
 
 		int32 MaxPointCount = MAX_int32;
@@ -257,8 +259,8 @@ namespace PCGExTopology
 			bConcaveOnly = InDetails.AspectFilter == EPCGExCellShapeTypeOutput::ConcaveOnly;
 			bConvexOnly = InDetails.AspectFilter == EPCGExCellShapeTypeOutput::ConvexOnly;
 			bClosedLoopOnly = InDetails.bClosedCellsOnly;
-			bKeepCellsWithDeadEnds = InDetails.bKeepCellsWithDeadEnds;
-			bDuplicateDeadEndPoints = InDetails.bDuplicateDeadEnds;
+			bKeepCellsWithLeaves = InDetails.bKeepCellsWithLeaves;
+			bDuplicateLeafPoints = InDetails.bDuplicateLeafPoints;
 
 			if (InDetails.bOmitBelowPointCount) { MinPointCount = InDetails.MinPointCount; }
 			if (InDetails.bOmitAbovePointCount) { MaxPointCount = InDetails.MaxPointCount; }
@@ -319,7 +321,7 @@ namespace PCGExTopology
 			if (!bCompiledSuccessfully) { return ETriangulationResult::InvalidCell; }
 			if (Nodes.Num() < 3) { return ETriangulationResult::TooFewPoints; }
 			if (bIsConvex || Nodes.Num() == 3) { return TriangulateFan<bMarkTriangles>(ProjectedPositions, OutTriangles, InCluster); }
-			else { return TriangulateEarClipping<bMarkTriangles>(ProjectedPositions, OutTriangles, InCluster); }
+			return TriangulateEarClipping<bMarkTriangles>(ProjectedPositions, OutTriangles, InCluster);
 		}
 
 		int32 GetTriangleNumEstimate() const;
@@ -443,4 +445,6 @@ namespace PCGExTopology
 			return ETriangulationResult::Success;
 		}
 	};
+
+#pragma endregion
 }

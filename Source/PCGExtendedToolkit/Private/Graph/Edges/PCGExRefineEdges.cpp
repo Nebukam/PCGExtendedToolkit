@@ -114,9 +114,9 @@ bool FPCGExRefineEdgesElement::ExecuteInternal(
 	{
 		if (Settings->bOutputEdgesOnly)
 		{
-			if (!Context->StartProcessingClusters<PCGExRefineEdges::FProcessorBatch>(
+			if (!Context->StartProcessingClusters<PCGExRefineEdges::FBatch>(
 				[](const TSharedPtr<PCGExData::FPointIOTaggedEntries>& Entries) { return true; },
-				[&](const TSharedPtr<PCGExRefineEdges::FProcessorBatch>& NewBatch)
+				[&](const TSharedPtr<PCGExRefineEdges::FBatch>& NewBatch)
 				{
 					if (Context->Refinement->RequiresHeuristics()) { NewBatch->SetRequiresHeuristics(true); }
 				}))
@@ -126,9 +126,9 @@ bool FPCGExRefineEdgesElement::ExecuteInternal(
 		}
 		else
 		{
-			if (!Context->StartProcessingClusters<PCGExRefineEdges::FProcessorBatch>(
+			if (!Context->StartProcessingClusters<PCGExRefineEdges::FBatch>(
 				[](const TSharedPtr<PCGExData::FPointIOTaggedEntries>& Entries) { return true; },
-				[&](const TSharedPtr<PCGExRefineEdges::FProcessorBatch>& NewBatch)
+				[&](const TSharedPtr<PCGExRefineEdges::FBatch>& NewBatch)
 				{
 					NewBatch->GraphBuilderDetails = Context->GraphBuilderDetails;
 					if (Context->Refinement->RequiresHeuristics()) { NewBatch->SetRequiresHeuristics(true); }
@@ -247,7 +247,7 @@ namespace PCGExRefineEdges
 
 		EdgeDataFacade->Fetch(StartIndex, Count);
 
-		TArray<PCGExGraph::FIndexedEdge>& Edges = *Cluster->Edges;
+		TArray<PCGExGraph::FEdge>& Edges = *Cluster->Edges;
 
 		const bool bDefaultValidity = Refinement->GetDefaultEdgeValidity();
 
@@ -268,7 +268,7 @@ namespace PCGExRefineEdges
 		}
 	}
 
-	void FProcessor::ProcessSingleEdge(const int32 EdgeIndex, PCGExGraph::FIndexedEdge& Edge, const int32 LoopIdx, const int32 Count)
+	void FProcessor::ProcessSingleEdge(const int32 EdgeIndex, PCGExGraph::FEdge& Edge, const int32 LoopIdx, const int32 Count)
 	{
 		Refinement->ProcessEdge(Edge);
 	}
@@ -311,7 +311,7 @@ namespace PCGExRefineEdges
 					const int32 MaxIndex = StartIndex + Count;
 					for (int i = StartIndex; i < MaxIndex; i++)
 					{
-						PCGExGraph::FIndexedEdge* Edge = NestedThis->Cluster->GetEdge(i);
+						PCGExGraph::FEdge* Edge = NestedThis->Cluster->GetEdge(i);
 						if (Edge->bValid) { continue; }
 						if (Cluster->GetEdgeStart(i)->bValid && Cluster->GetEdgeEnd(i)->bValid) { Edge->bValid = true; }
 					}
@@ -341,7 +341,7 @@ namespace PCGExRefineEdges
 					const int32 MaxIndex = StartIndex + Count;
 					for (int i = StartIndex; i < MaxIndex; i++)
 					{
-						PCGExGraph::FIndexedEdge& Edge = *Cluster->GetEdge(i);
+						PCGExGraph::FEdge& Edge = *Cluster->GetEdge(i);
 						if (SanitizationFilterManager->Test(Edge)) { Edge.bValid = true; }
 					}
 				};
@@ -359,7 +359,7 @@ namespace PCGExRefineEdges
 	{
 		if (GraphBuilder)
 		{
-			TArray<PCGExGraph::FIndexedEdge> ValidEdges;
+			TArray<PCGExGraph::FEdge> ValidEdges;
 			Cluster->GetValidEdges(ValidEdges);
 
 			if (ValidEdges.IsEmpty()) { return; }
@@ -377,7 +377,7 @@ namespace PCGExRefineEdges
 		KeptEdges.Reserve(EdgesNum);
 		RemovedEdges.Reserve(EdgesNum);
 
-		const TArray<PCGExGraph::FIndexedEdge>& Edges = *Cluster->Edges;
+		const TArray<PCGExGraph::FEdge>& Edges = *Cluster->Edges;
 		for (int i = 0; i < EdgesNum; i++)
 		{
 			if (Edges[i].bValid) { KeptEdges.Add(OriginalEdges[i]); }
@@ -399,7 +399,7 @@ namespace PCGExRefineEdges
 		InsertEdges();
 	}
 
-	void FProcessorBatch::RegisterBuffersDependencies(PCGExData::FFacadePreloader& FacadePreloader)
+	void FBatch::RegisterBuffersDependencies(PCGExData::FFacadePreloader& FacadePreloader)
 	{
 		TBatch<FProcessor>::RegisterBuffersDependencies(FacadePreloader);
 		PCGEX_TYPED_CONTEXT_AND_SETTINGS(RefineEdges)
@@ -411,7 +411,7 @@ namespace PCGExRefineEdges
 		PCGExPointFilter::RegisterBuffersDependencies(ExecutionContext, Context->SanitizationFilterFactories, FacadePreloader);
 	}
 
-	void FProcessorBatch::OnProcessingPreparationComplete()
+	void FBatch::OnProcessingPreparationComplete()
 	{
 		PCGEX_TYPED_CONTEXT_AND_SETTINGS(RefineEdges)
 
@@ -441,17 +441,13 @@ namespace PCGExRefineEdges
 				int32 BestIndex = -1;
 				double LongestDist = MIN_dbl;
 
-				for (const uint64 AdjacencyHash : Node->Adjacency)
+				for (const PCGExGraph::FLink Lk : Node->Links)
 				{
-					uint32 OtherNodeIndex;
-					uint32 EdgeIndex;
-					PCGEx::H64(AdjacencyHash, OtherNodeIndex, EdgeIndex);
-
-					const double Dist = Processor->Cluster->GetDistSquared(Node->NodeIndex, OtherNodeIndex);
+					const double Dist = Processor->Cluster->GetDistSquared(Node->NodeIndex, Lk.Node);
 					if (Dist > LongestDist)
 					{
 						LongestDist = Dist;
-						BestIndex = EdgeIndex;
+						BestIndex = Lk.Edge;
 					}
 				}
 
@@ -467,17 +463,13 @@ namespace PCGExRefineEdges
 				int32 BestIndex = -1;
 				double ShortestDist = MAX_dbl;
 
-				for (const uint64 AdjacencyHash : Node->Adjacency)
+				for (const PCGExGraph::FLink Lk : Node->Links)
 				{
-					uint32 OtherNodeIndex;
-					uint32 EdgeIndex;
-					PCGEx::H64(AdjacencyHash, OtherNodeIndex, EdgeIndex);
-
-					const double Dist = Processor->Cluster->GetDistSquared(Node->NodeIndex, OtherNodeIndex);
+					const double Dist = Processor->Cluster->GetDistSquared(Node->NodeIndex, Lk.Node);
 					if (Dist < ShortestDist)
 					{
 						ShortestDist = Dist;
-						BestIndex = EdgeIndex;
+						BestIndex = Lk.Edge;
 					}
 				}
 

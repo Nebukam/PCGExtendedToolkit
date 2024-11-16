@@ -59,7 +59,7 @@ public:
 	/** */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	EPCGExOffsetMethod OffsetMethod = EPCGExOffsetMethod::Slide;
-	
+
 	/** Offset type.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	EPCGExInputValueType OffsetInput = EPCGExInputValueType::Constant;
@@ -92,8 +92,7 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	bool bInvertDirection = false;
 
-	
-	
+
 	/** Adjust aspect in tight angles */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="OffsetMethod == EPCGExOffsetMethod::Slide"))
 	EPCGExOffsetAdjustment Adjustment = EPCGExOffsetAdjustment::SmoothAuto;
@@ -105,7 +104,7 @@ public:
 	/** Offset size.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="OffsetMethod == EPCGExOffsetMethod::Slide && Adjustment == EPCGExOffsetAdjustment::Mitre", EditConditionHides))
 	double MitreLimit = 4.0;
-	
+
 	/** Removes segments which direction has been flipped due to the offset.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	bool bCleanupPath = false;

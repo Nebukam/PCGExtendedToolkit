@@ -28,17 +28,13 @@ public:
 		int32 BestIndex = -1;
 		double ShortestDist = MAX_dbl;
 
-		for (const uint64 AdjacencyHash : Node.Adjacency)
+		for (const PCGExGraph::FLink Lk : Node.Links)
 		{
-			uint32 OtherNodeIndex;
-			uint32 EdgeIndex;
-			PCGEx::H64(AdjacencyHash, OtherNodeIndex, EdgeIndex);
-
-			const double Dist = Cluster->GetDistSquared(Node.NodeIndex, OtherNodeIndex);
+			const double Dist = Cluster->GetDistSquared(Node.NodeIndex, Lk.Node);
 			if (Dist < ShortestDist)
 			{
 				ShortestDist = Dist;
-				BestIndex = EdgeIndex;
+				BestIndex = Lk.Edge;
 			}
 		}
 

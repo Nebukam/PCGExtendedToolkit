@@ -114,7 +114,7 @@ namespace PCGExPickClosestClusters
 {
 	class FProcessor final : public PCGExClusterMT::TProcessor<FPCGExPickClosestClustersContext, UPCGExPickClosestClustersSettings>
 	{
-		friend class FProcessorBatch;
+		friend class FBatch;
 
 	public:
 		TArray<double> Distances;
@@ -137,10 +137,10 @@ namespace PCGExPickClosestClusters
 	//
 
 
-	class FProcessorBatch final : public PCGExClusterMT::TBatch<FProcessor>
+	class FBatch final : public PCGExClusterMT::TBatch<FProcessor>
 	{
 	public:
-		FProcessorBatch(FPCGExContext* InContext, const TSharedRef<PCGExData::FPointIO>& InVtx, const TArrayView<TSharedRef<PCGExData::FPointIO>> InEdges):
+		FBatch(FPCGExContext* InContext, const TSharedRef<PCGExData::FPointIO>& InVtx, const TArrayView<TSharedRef<PCGExData::FPointIO>> InEdges):
 			TBatch<FProcessor>(InContext, InVtx, InEdges)
 		{
 		}

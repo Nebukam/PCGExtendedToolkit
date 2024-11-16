@@ -14,6 +14,7 @@ namespace PCGExDiscardByPointCount
 {
 	const FName OutputDiscardedLabel = TEXT("Discarded");
 }
+
 /**
  * 
  */

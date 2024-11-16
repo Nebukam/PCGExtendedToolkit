@@ -73,10 +73,10 @@ namespace PCGExSanitizeClusters
 		virtual bool Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager) override;
 	};
 
-	class FProcessorBatch final : public PCGExClusterMT::TBatchWithGraphBuilder<FProcessor>
+	class FBatch final : public PCGExClusterMT::TBatchWithGraphBuilder<FProcessor>
 	{
 	public:
-		FProcessorBatch(FPCGExContext* InContext, const TSharedRef<PCGExData::FPointIO>& InVtx, const TArrayView<TSharedRef<PCGExData::FPointIO>> InEdges):
+		FBatch(FPCGExContext* InContext, const TSharedRef<PCGExData::FPointIO>& InVtx, const TArrayView<TSharedRef<PCGExData::FPointIO>> InEdges):
 			TBatchWithGraphBuilder<FProcessor>(InContext, InVtx, InEdges)
 		{
 		}

@@ -229,7 +229,7 @@ public:
 	/** Name of the 'int32' attribute to write the sampled index to. Will use the closest index when sampling multiple points. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(DisplayName="SampledIndex", PCG_Overridable, EditCondition="bWriteSampledIndex"))
 	FName SampledIndexAttributeName = FName("SampledIndex");
-	
+
 	//
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging", meta=(PCG_Overridable, InlineEditConditionToggle))

@@ -41,7 +41,7 @@ bool FPCGExFindContoursElement::Boot(FPCGExContext* InContext) const
 
 	PCGEX_FWD(ProjectionDetails)
 
-	if (Settings->bFlagDeadEnds) { PCGEX_VALIDATE_NAME(Settings->DeadEndAttributeName); }
+	if (Settings->bFlagLeaves) { PCGEX_VALIDATE_NAME(Settings->LeafAttributeName); }
 
 	const TSharedPtr<PCGExData::FPointIO> SeedsPoints = PCGExData::TryGetSingleInput(Context, PCGExGraph::SourceSeedsLabel, true);
 	if (!SeedsPoints) { return false; }
@@ -89,7 +89,7 @@ bool FPCGExFindContoursElement::ExecuteInternal(
 			[](const TSharedPtr<PCGExData::FPointIOTaggedEntries>& Entries) { return true; },
 			[&](const TSharedPtr<PCGExFindContours::FBatch>& NewBatch)
 			{
-				if (Settings->bFlagDeadEnds)
+				if (Settings->bFlagLeaves)
 				{
 					NewBatch->bRequiresWriteStep = true;
 				}
@@ -162,7 +162,6 @@ namespace PCGExFindContours
 
 	void FProcessor::TryFindContours(const int32 SeedIndex)
 	{
-		
 		const TSharedPtr<PCGExData::FPointIO>& PathIO = Context->Paths->Pairs[SeedIndex];
 		const FVector ProjectedSeedPosition = Context->ProjectionDetails.Project(Context->SeedsDataFacade->Source->GetInPoint(SeedIndex).Transform.GetLocation(), SeedIndex);
 
@@ -195,15 +194,15 @@ namespace PCGExFindContours
 		//const TArray<int32>& VtxPointIndices = Cluster->GetVtxPointIndices();
 		for (int i = 0; i < Cell->Nodes.Num(); i++) { MutablePoints[i] = *Cluster->GetNodePoint(Cell->Nodes[i]); }
 		Cell->PostProcessPoints(MutablePoints);
-		
+
 		Context->SeedAttributesToPathTags.Tag(SeedIndex, PathIO);
 		Context->SeedForwardHandler->Forward(SeedIndex, PathDataFacade);
 
-		if (Settings->bFlagDeadEnds)
+		if (Settings->bFlagLeaves)
 		{
-			const TSharedPtr<PCGExData::TBuffer<bool>> DeadEndBuffer = PathDataFacade->GetWritable(Settings->DeadEndAttributeName, false, true, PCGExData::EBufferInit::New);
-			TArray<bool>& OutValues = *DeadEndBuffer->GetOutValues();
-			for (int i = 0; i < Cell->Nodes.Num(); i++) { OutValues[i] = Cluster->GetNode(Cell->Nodes[i])->Adjacency.Num() == 1; }
+			const TSharedPtr<PCGExData::TBuffer<bool>> LeavesBuffer = PathDataFacade->GetWritable(Settings->LeafAttributeName, false, true, PCGExData::EBufferInit::New);
+			TArray<bool>& OutValues = *LeavesBuffer->GetOutValues();
+			for (int i = 0; i < Cell->Nodes.Num(); i++) { OutValues[i] = Cluster->GetNode(Cell->Nodes[i])->Num() == 1; }
 		}
 
 		if (!Cell->bIsClosedLoop) { if (Settings->bTagIfOpenPath) { PathIO->Tags->Add(Settings->IsOpenPathTag); } }
@@ -227,7 +226,7 @@ namespace PCGExFindContours
 		TWeakPtr<FProcessor> WeakPtr = SharedThis(this);
 
 		const int32 NumSeeds = Context->SeedsDataFacade->Source->GetNum();
-		
+
 		for (int i = 0; i < NumSeeds; i++)
 		{
 			Context->Paths->Emplace_GetRef<UPCGPointData>(VtxDataFacade->Source, PCGExData::EIOInit::NoOutput);
@@ -288,7 +287,6 @@ namespace PCGExFindContours
 	{
 		TBatch<FProcessor>::Process();
 	}
-
 }
 
 #undef LOCTEXT_NAMESPACE

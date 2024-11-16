@@ -62,7 +62,7 @@ namespace PCGExClusterStates
 		return bResult;
 	}
 
-	bool FState::Test(const PCGExGraph::FIndexedEdge& Edge) const
+	bool FState::Test(const PCGExGraph::FEdge& Edge) const
 	{
 		const bool bResult = Manager->Test(Edge);
 		Manager->Results[Edge.PointIndex] = bResult;

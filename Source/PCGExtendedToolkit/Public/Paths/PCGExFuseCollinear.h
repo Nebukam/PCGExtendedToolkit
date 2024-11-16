@@ -56,6 +56,10 @@ public:
 
 	//UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = Settings, Instanced, meta=(PCG_Overridable, NoResetToDefault, ShowOnlyInnerProperties, EditCondition="bDoBlend"))
 	//TObjectPtr<UPCGExSubPointsBlendOperation> Blending;
+
+	/** Distance used to consider point to be overlapping. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	bool bOmitInvalidPathsFromOutput = true;
 };
 
 struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExFuseCollinearContext final : FPCGExPathProcessorContext

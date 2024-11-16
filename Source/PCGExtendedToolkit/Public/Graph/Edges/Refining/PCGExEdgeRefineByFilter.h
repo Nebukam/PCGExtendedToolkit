@@ -34,7 +34,7 @@ public:
 		}
 	}
 
-	virtual void ProcessEdge(PCGExGraph::FIndexedEdge& Edge) override
+	virtual void ProcessEdge(PCGExGraph::FEdge& Edge) override
 	{
 		FPlatformAtomics::InterlockedExchange(&Edge.bValid, *(EdgesFilters->GetData() + Edge.EdgeIndex) ? !bInvert : bInvert);
 	}

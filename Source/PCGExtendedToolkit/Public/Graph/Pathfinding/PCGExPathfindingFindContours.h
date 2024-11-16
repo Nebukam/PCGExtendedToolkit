@@ -88,11 +88,11 @@ public:
 
 	/** Whether to flag path points generated from "dead ends" */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging", meta=(InlineEditConditionToggle))
-	bool bFlagDeadEnds = false;
+	bool bFlagLeaves = false;
 
 	/** . */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging", meta=(DisplayName="DeadEnd Flag", EditCondition="bFlagDeadEnds"))
-	FName DeadEndAttributeName = TEXT("IsDeadEnd");
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging", meta=(DisplayName="Leaf Flag", EditCondition="bFlagLeaves"))
+	FName LeafAttributeName = TEXT("IsLeaf");
 
 	/** */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging", meta=(PCG_Overridable, InlineEditConditionToggle))

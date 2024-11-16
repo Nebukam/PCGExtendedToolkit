@@ -68,9 +68,9 @@ bool FNodeAdjacencyFilter::Init(FPCGExContext* InContext, const TSharedRef<PCGEx
 				TestSubFunc = [&](const PCGExCluster::FNode& Node, const TArray<PCGExCluster::FNode>& NodesRef, const double A)
 				{
 					double B = 0;
-					for (const uint64 AdjacencyHash : Node.Adjacency)
+					for (const PCGExGraph::FLink Lk : Node.Links)
 					{
-						B = OperandA->Read(NodesRef[PCGEx::H64A(AdjacencyHash)].PointIndex);
+						B = OperandA->Read(NodesRef[Lk.Node].PointIndex);
 						if (!PCGExCompare::Compare(TypedFilterFactory->Config.Comparison, A, B, TypedFilterFactory->Config.Tolerance)) { return false; }
 					}
 					return true;
@@ -81,9 +81,9 @@ bool FNodeAdjacencyFilter::Init(FPCGExContext* InContext, const TSharedRef<PCGEx
 				TestSubFunc = [&](const PCGExCluster::FNode& Node, const TArray<PCGExCluster::FNode>& NodesRef, const double A)
 				{
 					double B = 0;
-					for (const uint64 AdjacencyHash : Node.Adjacency)
+					for (const PCGExGraph::FLink Lk : Node.Links)
 					{
-						B = OperandA->Read(PCGEx::H64B(AdjacencyHash));
+						B = OperandA->Read(Lk.Edge);
 						if (!PCGExCompare::Compare(TypedFilterFactory->Config.Comparison, A, B, TypedFilterFactory->Config.Tolerance)) { return false; }
 					}
 					return true;
@@ -100,8 +100,8 @@ bool FNodeAdjacencyFilter::Init(FPCGExContext* InContext, const TSharedRef<PCGEx
 				TestSubFunc = [&](const PCGExCluster::FNode& Node, const TArray<PCGExCluster::FNode>& NodesRef, const double A)
 				{
 					double B = 0;
-					for (const uint64 AdjacencyHash : Node.Adjacency) { B += OperandB->Read(NodesRef[PCGEx::H64A(AdjacencyHash)].PointIndex); }
-					return PCGExCompare::Compare(TypedFilterFactory->Config.Comparison, A, B = Node.Adjacency.Num(), TypedFilterFactory->Config.Tolerance);
+					for (const PCGExGraph::FLink Lk : Node.Links) { B += OperandB->Read(NodesRef[Lk.Node].PointIndex); }
+					return PCGExCompare::Compare(TypedFilterFactory->Config.Comparison, A, B = Node.Links.Num(), TypedFilterFactory->Config.Tolerance);
 				};
 			}
 			else
@@ -109,8 +109,8 @@ bool FNodeAdjacencyFilter::Init(FPCGExContext* InContext, const TSharedRef<PCGEx
 				TestSubFunc = [&](const PCGExCluster::FNode& Node, const TArray<PCGExCluster::FNode>& NodesRef, const double A)
 				{
 					double B = 0;
-					for (const uint64 AdjacencyHash : Node.Adjacency) { B += OperandB->Read(PCGEx::H64B(AdjacencyHash)); }
-					return PCGExCompare::Compare(TypedFilterFactory->Config.Comparison, A, B = Node.Adjacency.Num(), TypedFilterFactory->Config.Tolerance);
+					for (const PCGExGraph::FLink Lk : Node.Links) { B += OperandB->Read(Lk.Edge); }
+					return PCGExCompare::Compare(TypedFilterFactory->Config.Comparison, A, B = Node.Links.Num(), TypedFilterFactory->Config.Tolerance);
 				};
 			}
 
@@ -121,8 +121,8 @@ bool FNodeAdjacencyFilter::Init(FPCGExContext* InContext, const TSharedRef<PCGEx
 				TestSubFunc = [&](const PCGExCluster::FNode& Node, const TArray<PCGExCluster::FNode>& NodesRef, const double A)
 				{
 					double B = MAX_dbl;
-					for (const uint64 AdjacencyHash : Node.Adjacency) { B = FMath::Min(B, OperandB->Read(NodesRef[PCGEx::H64A(AdjacencyHash)].PointIndex)); }
-					return PCGExCompare::Compare(TypedFilterFactory->Config.Comparison, A, B = Node.Adjacency.Num(), TypedFilterFactory->Config.Tolerance);
+					for (const PCGExGraph::FLink Lk : Node.Links) { B = FMath::Min(B, OperandB->Read(NodesRef[Lk.Node].PointIndex)); }
+					return PCGExCompare::Compare(TypedFilterFactory->Config.Comparison, A, B = Node.Links.Num(), TypedFilterFactory->Config.Tolerance);
 				};
 			}
 			else
@@ -130,8 +130,8 @@ bool FNodeAdjacencyFilter::Init(FPCGExContext* InContext, const TSharedRef<PCGEx
 				TestSubFunc = [&](const PCGExCluster::FNode& Node, const TArray<PCGExCluster::FNode>& NodesRef, const double A)
 				{
 					double B = MAX_dbl;
-					for (const uint64 AdjacencyHash : Node.Adjacency) { B = FMath::Min(B, OperandB->Read(PCGEx::H64B(AdjacencyHash))); }
-					return PCGExCompare::Compare(TypedFilterFactory->Config.Comparison, A, B = Node.Adjacency.Num(), TypedFilterFactory->Config.Tolerance);
+					for (const PCGExGraph::FLink Lk : Node.Links) { B = FMath::Min(B, OperandB->Read(Lk.Edge)); }
+					return PCGExCompare::Compare(TypedFilterFactory->Config.Comparison, A, B = Node.Links.Num(), TypedFilterFactory->Config.Tolerance);
 				};
 			}
 			break;
@@ -141,8 +141,8 @@ bool FNodeAdjacencyFilter::Init(FPCGExContext* InContext, const TSharedRef<PCGEx
 				TestSubFunc = [&](const PCGExCluster::FNode& Node, const TArray<PCGExCluster::FNode>& NodesRef, const double A)
 				{
 					double B = MIN_dbl;
-					for (const uint64 AdjacencyHash : Node.Adjacency) { B = FMath::Max(B, OperandB->Read(NodesRef[PCGEx::H64A(AdjacencyHash)].PointIndex)); }
-					return PCGExCompare::Compare(TypedFilterFactory->Config.Comparison, A, B = Node.Adjacency.Num(), TypedFilterFactory->Config.Tolerance);
+					for (const PCGExGraph::FLink Lk : Node.Links) { B = FMath::Max(B, OperandB->Read(NodesRef[Lk.Node].PointIndex)); }
+					return PCGExCompare::Compare(TypedFilterFactory->Config.Comparison, A, B = Node.Links.Num(), TypedFilterFactory->Config.Tolerance);
 				};
 			}
 			else
@@ -150,8 +150,8 @@ bool FNodeAdjacencyFilter::Init(FPCGExContext* InContext, const TSharedRef<PCGEx
 				TestSubFunc = [&](const PCGExCluster::FNode& Node, const TArray<PCGExCluster::FNode>& NodesRef, const double A)
 				{
 					double B = MIN_dbl;
-					for (const uint64 AdjacencyHash : Node.Adjacency) { B = FMath::Max(B, OperandB->Read(PCGEx::H64B(AdjacencyHash))); }
-					return PCGExCompare::Compare(TypedFilterFactory->Config.Comparison, A, B = Node.Adjacency.Num(), TypedFilterFactory->Config.Tolerance);
+					for (const PCGExGraph::FLink Lk : Node.Links) { B = FMath::Max(B, OperandB->Read(Lk.Edge)); }
+					return PCGExCompare::Compare(TypedFilterFactory->Config.Comparison, A, B = Node.Links.Num(), TypedFilterFactory->Config.Tolerance);
 				};
 			}
 			break;
@@ -161,8 +161,8 @@ bool FNodeAdjacencyFilter::Init(FPCGExContext* InContext, const TSharedRef<PCGEx
 				TestSubFunc = [&](const PCGExCluster::FNode& Node, const TArray<PCGExCluster::FNode>& NodesRef, const double A)
 				{
 					double B = MIN_dbl;
-					for (const uint64 AdjacencyHash : Node.Adjacency) { B += FMath::Max(B, OperandB->Read(NodesRef[PCGEx::H64A(AdjacencyHash)].PointIndex)); }
-					return PCGExCompare::Compare(TypedFilterFactory->Config.Comparison, A, B = Node.Adjacency.Num(), TypedFilterFactory->Config.Tolerance);
+					for (const PCGExGraph::FLink Lk : Node.Links) { B += FMath::Max(B, OperandB->Read(NodesRef[Lk.Node].PointIndex)); }
+					return PCGExCompare::Compare(TypedFilterFactory->Config.Comparison, A, B = Node.Links.Num(), TypedFilterFactory->Config.Tolerance);
 				};
 			}
 			else
@@ -170,8 +170,8 @@ bool FNodeAdjacencyFilter::Init(FPCGExContext* InContext, const TSharedRef<PCGEx
 				TestSubFunc = [&](const PCGExCluster::FNode& Node, const TArray<PCGExCluster::FNode>& NodesRef, const double A)
 				{
 					double B = MIN_dbl;
-					for (const uint64 AdjacencyHash : Node.Adjacency) { B += FMath::Max(B, OperandB->Read(PCGEx::H64B(AdjacencyHash))); }
-					return PCGExCompare::Compare(TypedFilterFactory->Config.Comparison, A, B = Node.Adjacency.Num(), TypedFilterFactory->Config.Tolerance);
+					for (const PCGExGraph::FLink Lk : Node.Links) { B += FMath::Max(B, OperandB->Read(Lk.Edge)); }
+					return PCGExCompare::Compare(TypedFilterFactory->Config.Comparison, A, B = Node.Links.Num(), TypedFilterFactory->Config.Tolerance);
 				};
 			}
 			break;
@@ -193,9 +193,9 @@ bool FNodeAdjacencyFilter::Init(FPCGExContext* InContext, const TSharedRef<PCGEx
 			int32 LocalSuccessCount = 0;
 			double B = 0;
 
-			for (const uint64 AdjacencyHash : Node.Adjacency)
+			for (const PCGExGraph::FLink Lk : Node.Links)
 			{
-				B = OperandA->Read(NodesRef[PCGEx::H64A(AdjacencyHash)].PointIndex);
+				B = OperandA->Read(NodesRef[Lk.Node].PointIndex);
 				if (PCGExCompare::Compare(TypedFilterFactory->Config.Comparison, A, B, TypedFilterFactory->Config.Tolerance)) { LocalSuccessCount++; }
 			}
 
@@ -212,9 +212,9 @@ bool FNodeAdjacencyFilter::Init(FPCGExContext* InContext, const TSharedRef<PCGEx
 			int32 LocalSuccessCount = 0;
 			double B = 0;
 
-			for (const uint64 AdjacencyHash : Node.Adjacency)
+			for (const PCGExGraph::FLink Lk : Node.Links)
 			{
-				B = OperandA->Read(PCGEx::H64B(AdjacencyHash));
+				B = OperandA->Read(Lk.Edge);
 				if (PCGExCompare::Compare(TypedFilterFactory->Config.Comparison, A, B, TypedFilterFactory->Config.Tolerance)) { LocalSuccessCount++; }
 			}
 

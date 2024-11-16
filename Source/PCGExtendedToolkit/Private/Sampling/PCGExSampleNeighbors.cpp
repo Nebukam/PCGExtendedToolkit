@@ -49,9 +49,9 @@ bool FPCGExSampleNeighborsElement::ExecuteInternal(
 	PCGEX_EXECUTION_CHECK
 	PCGEX_ON_INITIAL_EXECUTION
 	{
-		if (!Context->StartProcessingClusters<PCGExSampleNeighbors::FProcessorBatch>(
+		if (!Context->StartProcessingClusters<PCGExSampleNeighbors::FBatch>(
 			[](const TSharedPtr<PCGExData::FPointIOTaggedEntries>& Entries) { return true; },
-			[&](const TSharedPtr<PCGExSampleNeighbors::FProcessorBatch>& NewBatch)
+			[&](const TSharedPtr<PCGExSampleNeighbors::FBatch>& NewBatch)
 			{
 			}))
 		{
@@ -128,7 +128,7 @@ namespace PCGExSampleNeighbors
 		EdgeDataFacade->Write(AsyncManager);
 	}
 
-	void FProcessorBatch::RegisterBuffersDependencies(PCGExData::FFacadePreloader& FacadePreloader)
+	void FBatch::RegisterBuffersDependencies(PCGExData::FFacadePreloader& FacadePreloader)
 	{
 		PCGEX_TYPED_CONTEXT_AND_SETTINGS(SampleNeighbors)
 		TBatch<FProcessor>::RegisterBuffersDependencies(FacadePreloader);

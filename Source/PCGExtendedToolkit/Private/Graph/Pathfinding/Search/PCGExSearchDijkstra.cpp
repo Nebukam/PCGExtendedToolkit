@@ -20,7 +20,7 @@ bool UPCGExSearchDijkstra::ResolveQuery(
 	const TSharedPtr<PCGExHeuristics::FLocalFeedbackHandler>& LocalFeedback) const
 {
 	const TArray<PCGExCluster::FNode>& NodesRef = *Cluster->Nodes;
-	const TArray<PCGExGraph::FIndexedEdge>& EdgesRef = *Cluster->Edges;
+	const TArray<PCGExGraph::FEdge>& EdgesRef = *Cluster->Edges;
 
 	const PCGExCluster::FNode& SeedNode = *InQuery->Seed.Node;
 	const PCGExCluster::FNode& GoalNode = *InQuery->Goal.Node;
@@ -54,16 +54,15 @@ bool UPCGExSearchDijkstra::ResolveQuery(
 		Visited[CurrentNodeIndex] = true;
 		VisitedNum++;
 
-		for (const uint64 AdjacencyHash : Current.Adjacency)
+		for (const PCGExGraph::FLink Lk : Current.Links)
 		{
-			uint32 NeighborIndex;
-			uint32 EdgeIndex;
-			PCGEx::H64(AdjacencyHash, NeighborIndex, EdgeIndex);
+			const uint32 NeighborIndex = Lk.Node;
+			const uint32 EdgeIndex = Lk.Edge;
 
 			if (Visited[NeighborIndex]) { continue; }
 
 			const PCGExCluster::FNode& AdjacentNode = NodesRef[NeighborIndex];
-			const PCGExGraph::FIndexedEdge& Edge = EdgesRef[EdgeIndex];
+			const PCGExGraph::FEdge& Edge = EdgesRef[EdgeIndex];
 
 			const double AltScore = CurrentScore + Heuristics->GetEdgeScore(Current, AdjacentNode, Edge, SeedNode, GoalNode, Feedback, TravelStack);
 			if (ScoredQueue->Enqueue(NeighborIndex, AltScore))

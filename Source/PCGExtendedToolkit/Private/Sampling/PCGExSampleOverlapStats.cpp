@@ -4,7 +4,6 @@
 #include "Sampling/PCGExSampleOverlapStats.h"
 
 
-
 #define LOCTEXT_NAMESPACE "PCGExSampleOverlapStatsElement"
 #define PCGEX_NAMESPACE SampleOverlapStats
 

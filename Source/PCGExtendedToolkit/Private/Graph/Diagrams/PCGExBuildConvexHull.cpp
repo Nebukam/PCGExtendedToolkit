@@ -101,7 +101,7 @@ namespace PCGExConvexHull
 
 	void FProcessor::ProcessSingleRangeIteration(const int32 Iteration, const int32 LoopIdx, const int32 LoopCount)
 	{
-		PCGExGraph::FIndexedEdge E;
+		PCGExGraph::FEdge E;
 		const uint64 Edge = Edges[Iteration];
 
 		uint32 A;

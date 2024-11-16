@@ -172,7 +172,7 @@ namespace PCGExSplineToPath
 			const double LengthAtPoint = Spline.GetDistanceAlongSplineAtSplinePoint(i);
 			const FTransform SplineTransform = Spline.GetTransform();
 			const FVector Scale = SplineTransform.GetScale3D();
-			
+
 			ApplyTransform(MutablePoints[i], Spline.GetTransformAtDistanceAlongSpline(LengthAtPoint, ESplineCoordinateSpace::Type::World, true));
 
 			PCGEX_OUTPUT_VALUE(LengthAtPoint, i, LengthAtPoint);

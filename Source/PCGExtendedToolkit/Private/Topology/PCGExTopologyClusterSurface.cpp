@@ -25,6 +25,7 @@ bool FPCGExTopologyClusterSurfaceElement::ExecuteInternal(
 	PCGEX_EXECUTION_CHECK
 	PCGEX_ON_INITIAL_EXECUTION
 	{
+		UE_LOG(LogTemp, Warning, TEXT("Start %llu"), Settings->UID)
 		if (!Context->StartProcessingClusters<PCGExTopologyEdges::TBatch<PCGExTopologyClusterSurface::FProcessor>>(
 			[](const TSharedPtr<PCGExData::FPointIOTaggedEntries>& Entries) { return true; },
 			[&](const TSharedPtr<PCGExTopologyEdges::TBatch<PCGExTopologyClusterSurface::FProcessor>>& NewBatch)
@@ -37,9 +38,11 @@ bool FPCGExTopologyClusterSurfaceElement::ExecuteInternal(
 
 	PCGEX_CLUSTER_BATCH_PROCESSING(PCGEx::State_Done)
 
+	UE_LOG(LogTemp, Warning, TEXT("Done %llu"), Settings->UID)
 	Context->OutputPointsAndEdges();
 	Context->OutputBatches();
 
+	UE_LOG(LogTemp, Warning, TEXT("End... %llu"), Settings->UID)
 	return Context->TryComplete();
 }
 
@@ -62,7 +65,7 @@ namespace PCGExTopologyClusterSurface
 		FilterConstrainedEdgeScope(StartIndex, Count);
 	}
 
-	void FProcessor::ProcessSingleEdge(const int32 EdgeIndex, PCGExGraph::FIndexedEdge& Edge, const int32 LoopIdx, const int32 Count)
+	void FProcessor::ProcessSingleEdge(const int32 EdgeIndex, PCGExGraph::FEdge& Edge, const int32 LoopIdx, const int32 Count)
 	{
 		if (ConstrainedEdgeFilterCache[EdgeIndex]) { return; }
 		TSharedPtr<PCGExTopology::FCell> Cell = MakeShared<PCGExTopology::FCell>(CellConstraints.ToSharedRef());
@@ -115,6 +118,7 @@ namespace PCGExTopologyClusterSurface
 
 	void FProcessor::CompleteWork()
 	{
+		UE_LOG(LogTemp, Warning, TEXT("Complete %llu | %d"), Settings->UID, EdgeDataFacade->Source->IOIndex)
 		StartParallelLoopForEdges(128);
 	}
 }

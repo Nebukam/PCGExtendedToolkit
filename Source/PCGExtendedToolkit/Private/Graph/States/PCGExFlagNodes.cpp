@@ -45,9 +45,9 @@ bool FPCGExFlagNodesElement::ExecuteInternal(
 	PCGEX_EXECUTION_CHECK
 	PCGEX_ON_INITIAL_EXECUTION
 	{
-		if (!Context->StartProcessingClusters<PCGExFlagNodes::FProcessorBatch>(
+		if (!Context->StartProcessingClusters<PCGExFlagNodes::FBatch>(
 			[](const TSharedPtr<PCGExData::FPointIOTaggedEntries>& Entries) { return true; },
-			[&](const TSharedPtr<PCGExFlagNodes::FProcessorBatch>& NewBatch)
+			[&](const TSharedPtr<PCGExFlagNodes::FBatch>& NewBatch)
 			{
 				NewBatch->bRequiresWriteStep = true;
 				NewBatch->bWriteVtxDataFacade = true;
@@ -116,19 +116,19 @@ namespace PCGExFlagNodes
 
 	//////// BATCH
 
-	FProcessorBatch::~FProcessorBatch()
+	FBatch::~FBatch()
 	{
 		StateFlags = nullptr;
 	}
 
-	void FProcessorBatch::RegisterBuffersDependencies(PCGExData::FFacadePreloader& FacadePreloader)
+	void FBatch::RegisterBuffersDependencies(PCGExData::FFacadePreloader& FacadePreloader)
 	{
 		TBatch<FProcessor>::RegisterBuffersDependencies(FacadePreloader);
 		PCGEX_TYPED_CONTEXT_AND_SETTINGS(FlagNodes)
 		PCGExPointFilter::RegisterBuffersDependencies(ExecutionContext, Context->StateFactories, FacadePreloader);
 	}
 
-	void FProcessorBatch::OnProcessingPreparationComplete()
+	void FBatch::OnProcessingPreparationComplete()
 	{
 		PCGEX_TYPED_CONTEXT_AND_SETTINGS(FlagNodes)
 
@@ -138,7 +138,7 @@ namespace PCGExFlagNodes
 		TBatch<FProcessor>::OnProcessingPreparationComplete();
 	}
 
-	bool FProcessorBatch::PrepareSingle(const TSharedPtr<FProcessor>& ClusterProcessor)
+	bool FBatch::PrepareSingle(const TSharedPtr<FProcessor>& ClusterProcessor)
 	{
 		ClusterProcessor->StateFlags = StateFlags;
 		return true;

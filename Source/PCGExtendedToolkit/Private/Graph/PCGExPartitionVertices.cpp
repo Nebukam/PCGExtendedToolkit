@@ -103,7 +103,7 @@ namespace PCGExPartitionVertices
 		PointPartitionIO->GetOut()->GetMutablePoints()[Node.NodeIndex] = VtxDataFacade->Source->GetInPoint(KeptIndices[Node.NodeIndex]);
 	}
 
-	void FProcessor::ProcessSingleEdge(const int32 EdgeIndex, PCGExGraph::FIndexedEdge& Edge, const int32 LoopIdx, const int32 Count)
+	void FProcessor::ProcessSingleEdge(const int32 EdgeIndex, PCGExGraph::FEdge& Edge, const int32 LoopIdx, const int32 Count)
 	{
 		Edge.Start = Remapping[Edge.Start];
 		Edge.End = Remapping[Edge.End];

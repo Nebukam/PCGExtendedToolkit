@@ -52,7 +52,7 @@ public:
 		}
 	}
 
-	virtual void ProcessEdge(PCGExGraph::FIndexedEdge& Edge) override
+	virtual void ProcessEdge(PCGExGraph::FEdge& Edge) override
 	{
 		const PCGExCluster::FExpandedEdge& EEdge = *(Cluster->ExpandedEdges->GetData() + Edge.EdgeIndex);
 		const double Length = EEdge.GetEdgeLengthSquared(Cluster.Get());

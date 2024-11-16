@@ -189,7 +189,7 @@ namespace PCGExGraph
 		TSharedPtr<PCGExData::FUnionMetadata> NodesUnion;
 		TSharedPtr<PCGExData::FUnionMetadata> EdgesUnion;
 		TArray<TSharedPtr<FUnionNode>> Nodes;
-		TMap<uint64, FIndexedEdge> Edges;
+		TMap<uint64, FEdge> Edges;
 
 		FPCGExFuseDetails FuseDetails;
 
@@ -225,13 +225,13 @@ namespace PCGExGraph
 		TSharedPtr<FUnionNode> InsertPoint(const FPCGPoint& Point, const int32 IOIndex, const int32 PointIndex);
 		TSharedPtr<FUnionNode> InsertPointUnsafe(const FPCGPoint& Point, const int32 IOIndex, const int32 PointIndex);
 		TSharedPtr<PCGExData::FUnionData> InsertEdge(const FPCGPoint& From, const int32 FromIOIndex, const int32 FromPointIndex,
-		                                  const FPCGPoint& To, const int32 ToIOIndex, const int32 ToPointIndex,
-		                                  const int32 EdgeIOIndex = -1, const int32 EdgePointIndex = -1);
+		                                             const FPCGPoint& To, const int32 ToIOIndex, const int32 ToPointIndex,
+		                                             const int32 EdgeIOIndex = -1, const int32 EdgePointIndex = -1);
 		TSharedPtr<PCGExData::FUnionData> InsertEdgeUnsafe(const FPCGPoint& From, const int32 FromIOIndex, const int32 FromPointIndex,
-		                                        const FPCGPoint& To, const int32 ToIOIndex, const int32 ToPointIndex,
-		                                        const int32 EdgeIOIndex = -1, const int32 EdgePointIndex = -1);
+		                                                   const FPCGPoint& To, const int32 ToIOIndex, const int32 ToPointIndex,
+		                                                   const int32 EdgeIOIndex = -1, const int32 EdgePointIndex = -1);
 		void GetUniqueEdges(TSet<uint64>& OutEdges);
-		void GetUniqueEdges(TArray<FIndexedEdge>& OutEdges);
+		void GetUniqueEdges(TArray<FEdge>& OutEdges);
 		void WriteNodeMetadata(const TSharedPtr<FGraph>& InGraph) const;
 		void WriteEdgeMetadata(const TSharedPtr<FGraph>& InGraph) const;
 	};
@@ -354,7 +354,7 @@ namespace PCGExGraph
 		const FPointEdgeProxy& Edge = InIntersections->Edges[EdgeIndex];
 		const TSharedPtr<FGraph> Graph = InIntersections->Graph;
 
-		const FIndexedEdge& IEdge = Graph->Edges[EdgeIndex];
+		const FEdge& IEdge = Graph->Edges[EdgeIndex];
 		FPESplit Split = FPESplit{};
 
 		if (!InIntersections->Details->bEnableSelfIntersection)

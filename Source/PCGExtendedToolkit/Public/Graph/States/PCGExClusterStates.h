@@ -71,7 +71,7 @@ namespace PCGExClusterStates
 
 		virtual bool Test(const int32 Index) const override;
 		virtual bool Test(const PCGExCluster::FNode& Node) const override;
-		virtual bool Test(const PCGExGraph::FIndexedEdge& Edge) const override;
+		virtual bool Test(const PCGExGraph::FEdge& Edge) const override;
 
 		void ProcessFlags(const bool bSuccess, int64& InFlags) const;
 
@@ -105,7 +105,7 @@ namespace PCGExClusterStates
 			return true;
 		}
 
-		FORCEINLINE virtual bool Test(const PCGExGraph::FIndexedEdge& Edge) override
+		FORCEINLINE virtual bool Test(const PCGExGraph::FEdge& Edge) override
 		{
 			int64& Flags = *(FlagsCache->GetData() + Edge.PointIndex);
 			for (const TSharedPtr<FState>& State : States) { State->ProcessFlags(State->Test(Edge), Flags); }

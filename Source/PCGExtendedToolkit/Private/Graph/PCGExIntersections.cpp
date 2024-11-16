@@ -208,7 +208,7 @@ namespace PCGExGraph
 
 		{
 			FReadScopeLock ReadLockEdges(EdgesLock);
-			if (const FIndexedEdge* Edge = Edges.Find(H)) { EdgeUnion = EdgesUnion->Entries[Edge->EdgeIndex]; }
+			if (const FEdge* Edge = Edges.Find(H)) { EdgeUnion = EdgesUnion->Entries[Edge->EdgeIndex]; }
 		}
 
 		if (EdgeUnion)
@@ -221,7 +221,7 @@ namespace PCGExGraph
 		{
 			FWriteScopeLock WriteLockEdges(EdgesLock);
 
-			if (const FIndexedEdge* Edge = Edges.Find(H)) { EdgeUnion = EdgesUnion->Entries[Edge->EdgeIndex]; }
+			if (const FEdge* Edge = Edges.Find(H)) { EdgeUnion = EdgesUnion->Entries[Edge->EdgeIndex]; }
 
 			if (EdgeUnion)
 			{
@@ -231,7 +231,7 @@ namespace PCGExGraph
 			}
 
 			EdgeUnion = EdgesUnion->NewEntry(EdgeIOIndex, EdgePointIndex == -1 ? 0 : EdgePointIndex);
-			Edges.Add(H, FIndexedEdge(Edges.Num(), StartVtx->Index, EndVtx->Index));
+			Edges.Add(H, FEdge(Edges.Num(), StartVtx->Index, EndVtx->Index));
 		}
 
 		return EdgeUnion;
@@ -254,7 +254,7 @@ namespace PCGExGraph
 		{
 			// Abstract edge management, so we have some valid metadata even tho there are no valid input edges
 			// So EdgeIOIndex will be invalid, be we can still track union data
-			if (const FIndexedEdge* Edge = Edges.Find(H))
+			if (const FEdge* Edge = Edges.Find(H))
 			{
 				EdgeUnion = EdgesUnion->Entries[Edge->EdgeIndex];
 				EdgeUnion->Add(EdgeIOIndex, EdgeUnion->Num());
@@ -262,13 +262,13 @@ namespace PCGExGraph
 			else
 			{
 				EdgeUnion = EdgesUnion->NewEntry(EdgeIOIndex, 0);
-				Edges.Add(H, FIndexedEdge(Edges.Num(), StartVtx->Index, EndVtx->Index));
+				Edges.Add(H, FEdge(Edges.Num(), StartVtx->Index, EndVtx->Index));
 			}
 		}
 		else
 		{
 			// Concrete edge management, we have valild input edges			
-			if (const FIndexedEdge* Edge = Edges.Find(H))
+			if (const FEdge* Edge = Edges.Find(H))
 			{
 				EdgeUnion = EdgesUnion->Entries[Edge->EdgeIndex];
 				EdgeUnion->Add(EdgeIOIndex, EdgePointIndex);
@@ -276,7 +276,7 @@ namespace PCGExGraph
 			else
 			{
 				EdgeUnion = EdgesUnion->NewEntry(EdgeIOIndex, EdgePointIndex);
-				Edges.Add(H, FIndexedEdge(Edges.Num(), StartVtx->Index, EndVtx->Index));
+				Edges.Add(H, FEdge(Edges.Num(), StartVtx->Index, EndVtx->Index));
 			}
 		}
 
@@ -296,11 +296,11 @@ namespace PCGExGraph
 		}
 	}
 
-	void FUnionGraph::GetUniqueEdges(TArray<FIndexedEdge>& OutEdges)
+	void FUnionGraph::GetUniqueEdges(TArray<FEdge>& OutEdges)
 	{
 		const int32 NumEdges = Edges.Num();
 		OutEdges.SetNumUninitialized(NumEdges);
-		for (const TPair<uint64, FIndexedEdge>& Pair : Edges) { OutEdges[Pair.Value.EdgeIndex] = Pair.Value; }
+		for (const TPair<uint64, FEdge>& Pair : Edges) { OutEdges[Pair.Value.EdgeIndex] = Pair.Value; }
 	}
 
 	void FUnionGraph::WriteNodeMetadata(const TSharedPtr<FGraph>& InGraph) const
@@ -348,7 +348,7 @@ namespace PCGExGraph
 		const int32 NumEdges = InGraph->Edges.Num();
 		Edges.SetNum(NumEdges);
 
-		for (const FIndexedEdge& Edge : InGraph->Edges)
+		for (const FEdge& Edge : InGraph->Edges)
 		{
 			if (!Edge.bValid) { continue; }
 			Edges[Edge.EdgeIndex].Init(
@@ -361,13 +361,13 @@ namespace PCGExGraph
 
 	void FPointEdgeIntersections::Insert()
 	{
-		FIndexedEdge NewEdge = FIndexedEdge{};
+		FEdge NewEdge = FEdge{};
 
 		for (FPointEdgeProxy& PointEdgeProxy : Edges)
 		{
 			if (PointEdgeProxy.CollinearPoints.IsEmpty()) { continue; }
 
-			const FIndexedEdge& SplitEdge = Graph->Edges[PointEdgeProxy.EdgeIndex];
+			const FEdge& SplitEdge = Graph->Edges[PointEdgeProxy.EdgeIndex];
 			const FGraphEdgeMetadata* ParentEdgeMeta = Graph->FindEdgeMetadataUnsafe(SplitEdge.EdgeIndex);
 
 			int32 NodeIndex = -1;
@@ -401,7 +401,7 @@ namespace PCGExGraph
 
 		if (PointEdgeProxy.CollinearPoints.IsEmpty()) { return; }
 
-		const FIndexedEdge& SplitEdge = Graph->Edges[PointEdgeProxy.EdgeIndex];
+		const FEdge& SplitEdge = Graph->Edges[PointEdgeProxy.EdgeIndex];
 
 		const PCGExData::FPointRef A = PointIO->GetOutPointRef(SplitEdge.Start);
 		const PCGExData::FPointRef B = PointIO->GetOutPointRef(SplitEdge.End);
@@ -435,7 +435,7 @@ namespace PCGExGraph
 
 		Octree = MakeUnique<FEdgeEdgeProxyOctree>(InUnionGraph->Bounds.GetCenter(), InUnionGraph->Bounds.GetExtent().Length() + (Details->Tolerance * 2));
 
-		for (const FIndexedEdge& Edge : InGraph->Edges)
+		for (const FEdge& Edge : InGraph->Edges)
 		{
 			if (!Edge.bValid) { continue; }
 			Edges[Edge.EdgeIndex].Init(
@@ -469,13 +469,13 @@ namespace PCGExGraph
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(FEdgeEdgeIntersections::Insert);
 
-		FIndexedEdge NewEdge = FIndexedEdge{};
+		FEdge NewEdge = FEdge{};
 
 		for (FEdgeEdgeProxy& EdgeProxy : Edges)
 		{
 			if (EdgeProxy.Intersections.IsEmpty()) { continue; }
 
-			const FIndexedEdge SplitEdge = Graph->Edges[EdgeProxy.EdgeIndex];
+			const FEdge SplitEdge = Graph->Edges[EdgeProxy.EdgeIndex];
 			const FGraphEdgeMetadata* ParentEdgeMeta = Graph->FindEdgeMetadataUnsafe(SplitEdge.EdgeIndex);
 
 			int32 NodeIndex = -1;

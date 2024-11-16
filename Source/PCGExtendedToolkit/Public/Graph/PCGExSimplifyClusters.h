@@ -32,12 +32,12 @@ protected:
 public:
 	virtual PCGExData::EIOInit GetMainOutputInitMode() const override;
 	virtual PCGExData::EIOInit GetEdgeOutputInitMode() const override;
-	PCGEX_NODE_POINT_FILTER(PCGExPointFilter::SourceKeepConditionLabel, "Prevents vtx from being pruned by the simplification process", PCGExFactories::ClusterNodeFilters, false)
+	PCGEX_NODE_POINT_FILTER(PCGExPointFilter::SourceKeepConditionLabel, "Prevents vtx from being pruned by the simplification process", PCGExFactories::PointFilters, false)
 	//~End UPCGExEdgesProcessorSettings interface
 
 	/** If enabled, only check for dead ends. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
-	bool bOperateOnDeadEndsOnly = false;
+	bool bOperateOnLeavesOnly = false;
 
 	/**  */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, InlineEditConditionToggle))
@@ -53,7 +53,7 @@ public:
 
 	/** If enabled, prune dead ends. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
-	bool bPruneDeadEnds = false;
+	bool bPruneLeaves = false;
 
 	/**  Edge Union Data */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditConditionHides, HideEditConditionToggle))
@@ -87,9 +87,11 @@ namespace PCGExSimplifyClusters
 {
 	class FProcessor final : public PCGExClusterMT::TProcessor<FPCGExSimplifyClustersContext, UPCGExSimplifyClustersSettings>
 	{
-		TArray<int8> Breakpoints;
+		friend class FBatch;
 
-		TArray<TSharedPtr<PCGExCluster::FNodeChain>> Chains;
+	protected:
+		TSharedPtr<TArray<int8>> Breakpoints;
+		TSharedPtr<PCGExCluster::FNodeChainBuilder> ChainBuilder;
 
 	public:
 		FProcessor(const TSharedRef<PCGExData::FFacade>& InVtxDataFacade, const TSharedRef<PCGExData::FFacade>& InEdgeDataFacade):
@@ -105,13 +107,16 @@ namespace PCGExSimplifyClusters
 		virtual void ProcessSingleRangeIteration(const int32 Iteration, const int32 LoopIdx, const int32 Count) override;
 	};
 
-	class FProcessorBatch final : public PCGExClusterMT::TBatch<FProcessor>
+	class FBatch final : public PCGExClusterMT::TBatch<FProcessor>
 	{
-		PCGExGraph::FGraphMetadataDetails GraphMetadataDetails;
 		friend class FProcessor;
 
+	protected:
+		PCGExGraph::FGraphMetadataDetails GraphMetadataDetails;
+		TSharedPtr<TArray<int8>> Breakpoints;
+
 	public:
-		FProcessorBatch(FPCGExContext* InContext, const TSharedRef<PCGExData::FPointIO>& InVtx, const TArrayView<TSharedRef<PCGExData::FPointIO>> InEdges):
+		FBatch(FPCGExContext* InContext, const TSharedRef<PCGExData::FPointIO>& InVtx, const TArrayView<TSharedRef<PCGExData::FPointIO>> InEdges):
 			TBatch<FProcessor>(InContext, InVtx, InEdges)
 		{
 			bAllowVtxDataFacadeScopedGet = true;
@@ -120,5 +125,7 @@ namespace PCGExSimplifyClusters
 
 		virtual const PCGExGraph::FGraphMetadataDetails* GetGraphMetadataDetails() override;
 		virtual void RegisterBuffersDependencies(PCGExData::FFacadePreloader& FacadePreloader) override;
+		virtual void Process() override;
+		virtual bool PrepareSingle(const TSharedPtr<FProcessor>& ClusterProcessor) override;
 	};
 }

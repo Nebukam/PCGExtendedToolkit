@@ -34,7 +34,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPathAlphaFilterConfig
 	/** Which point type to use. Shared amongst all points; if you want tight control, create a fully-fledged spline instead. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	EPCGExSplinePointTypeRedux PointType = EPCGExSplinePointTypeRedux::Linear;
-		
+
 	/** Sample inputs.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	EPCGExSplineSamplingIncludeMode SampleInputs = EPCGExSplineSamplingIncludeMode::All;
@@ -84,7 +84,7 @@ public:
 	virtual bool Init(FPCGExContext* InContext) override;
 	virtual TSharedPtr<PCGExPointFilter::FFilter> CreateFilter() const override;
 	void CreateSpline(const UPCGPointData* InData, const bool bClosedLoop);
-	
+
 	virtual void BeginDestroy() override;
 
 	virtual void RegisterConsumableAttributes(FPCGExContext* InContext) const override;

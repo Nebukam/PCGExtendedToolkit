@@ -123,9 +123,9 @@ bool FPCGExCutEdgesElement::ExecuteInternal(
 
 	PCGEX_ON_ASYNC_STATE_READY(PCGExPaths::State_BuildingPaths)
 	{
-		if (!Context->StartProcessingClusters<PCGExCutEdges::FProcessorBatch>(
+		if (!Context->StartProcessingClusters<PCGExCutEdges::FBatch>(
 			[](const TSharedPtr<PCGExData::FPointIOTaggedEntries>& Entries) { return true; },
-			[&](const TSharedPtr<PCGExCutEdges::FProcessorBatch>& NewBatch)
+			[&](const TSharedPtr<PCGExCutEdges::FBatch>& NewBatch)
 			{
 				NewBatch->GraphBuilderDetails = Context->GraphBuilderDetails;
 			}))
@@ -170,7 +170,7 @@ namespace PCGExCutEdges
 
 		if (Settings->bInvert)
 		{
-			if (Settings->Mode != EPCGExCutEdgesMode::Nodes) { for (PCGExGraph::FIndexedEdge& E : *Cluster->Edges) { E.bValid = false; } }
+			if (Settings->Mode != EPCGExCutEdgesMode::Nodes) { for (PCGExGraph::FEdge& E : *Cluster->Edges) { E.bValid = false; } }
 			if (Settings->Mode != EPCGExCutEdgesMode::Edges) { for (PCGExCluster::FNode& N : *Cluster->Nodes) { N.bValid = false; } }
 		}
 
@@ -206,11 +206,11 @@ namespace PCGExCutEdges
 
 		EdgeDataFacade->Fetch(StartIndex, Count);
 
-		TArray<PCGExGraph::FIndexedEdge>& Edges = *Cluster->Edges;
+		TArray<PCGExGraph::FEdge>& Edges = *Cluster->Edges;
 		if (EdgeFilterManager) { for (int i = StartIndex; i < MaxIndex; i++) { EdgeFilterCache[i] = EdgeFilterManager->Test(Edges[i]); } }
 	}
 
-	void FProcessor::ProcessSingleEdge(const int32 EdgeIndex, PCGExGraph::FIndexedEdge& Edge, const int32 LoopIdx, const int32 Count)
+	void FProcessor::ProcessSingleEdge(const int32 EdgeIndex, PCGExGraph::FEdge& Edge, const int32 LoopIdx, const int32 Count)
 	{
 		if (EdgeFilterCache[EdgeIndex])
 		{
@@ -326,10 +326,10 @@ namespace PCGExCutEdges
 						FPlatformAtomics::InterlockedExchange(&Node.bValid, 1);
 						if (Settings->bAffectedNodesAffectConnectedEdges)
 						{
-							for (const uint64 Hash : Node.Adjacency)
+							for (const PCGExGraph::FLink Lk : Node.Links)
 							{
-								FPlatformAtomics::InterlockedExchange(&(Cluster->GetEdge(PCGEx::H64B(Hash)))->bValid, 1);
-								FPlatformAtomics::InterlockedExchange(&Cluster->GetNode(PCGEx::H64A(Hash))->bValid, 1);
+								FPlatformAtomics::InterlockedExchange(&(Cluster->GetEdge(Lk))->bValid, 1);
+								FPlatformAtomics::InterlockedExchange(&Cluster->GetNode(Lk)->bValid, 1);
 							}
 						}
 					}
@@ -338,9 +338,9 @@ namespace PCGExCutEdges
 						FPlatformAtomics::InterlockedExchange(&Node.bValid, 0);
 						if (Settings->bAffectedNodesAffectConnectedEdges)
 						{
-							for (const uint64 Hash : Node.Adjacency)
+							for (const PCGExGraph::FLink Lk : Node.Links)
 							{
-								FPlatformAtomics::InterlockedExchange(&(Cluster->GetEdge(PCGEx::H64B(Hash)))->bValid, 0);
+								FPlatformAtomics::InterlockedExchange(&(Cluster->GetEdge(Lk))->bValid, 0);
 							}
 						}
 					}
@@ -386,7 +386,7 @@ namespace PCGExCutEdges
 
 	void FProcessor::ProcessSingleRangeIteration(const int32 Iteration, const int32 LoopIdx, const int32 Count)
 	{
-		PCGExGraph::FIndexedEdge& Edge = *Cluster->GetEdge(Iteration);
+		PCGExGraph::FEdge& Edge = *Cluster->GetEdge(Iteration);
 
 		//if (Edge.bValid)		{			return;		}
 
@@ -398,7 +398,7 @@ namespace PCGExCutEdges
 
 	void FProcessor::CompleteWork()
 	{
-		TArray<PCGExGraph::FIndexedEdge> ValidEdges;
+		TArray<PCGExGraph::FEdge> ValidEdges;
 		Cluster->GetValidEdges(ValidEdges);
 
 		if (ValidEdges.IsEmpty()) { return; }
@@ -406,7 +406,7 @@ namespace PCGExCutEdges
 		GraphBuilder->Graph->InsertEdges(ValidEdges);
 	}
 
-	void FProcessorBatch::RegisterBuffersDependencies(PCGExData::FFacadePreloader& FacadePreloader)
+	void FBatch::RegisterBuffersDependencies(PCGExData::FFacadePreloader& FacadePreloader)
 	{
 		TBatch<FProcessor>::RegisterBuffersDependencies(FacadePreloader);
 		PCGEX_TYPED_CONTEXT_AND_SETTINGS(CutEdges)

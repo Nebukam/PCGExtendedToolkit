@@ -32,7 +32,7 @@ namespace PCGExEdgeNeighborsCount
 		return true;
 	}
 
-	bool FNeighborsCountFilter::Test(const PCGExGraph::FIndexedEdge& Edge) const
+	bool FNeighborsCountFilter::Test(const PCGExGraph::FEdge& Edge) const
 	{
 		const PCGExCluster::FNode* From = Cluster->GetEdgeStart(Edge);
 		const PCGExCluster::FNode* To = Cluster->GetEdgeEnd(Edge);
@@ -47,15 +47,15 @@ namespace PCGExEdgeNeighborsCount
 
 		if (Mode == EPCGExRefineEdgeThresholdMode::Both)
 		{
-			bResult = PCGExCompare::Compare(Comparison, From->Adjacency.Num(), Threshold) && PCGExCompare::Compare(Comparison, To->Adjacency.Num(), Threshold, Tolerance);
+			bResult = PCGExCompare::Compare(Comparison, From->Num(), Threshold) && PCGExCompare::Compare(Comparison, To->Num(), Threshold, Tolerance);
 		}
 		else if (Mode == EPCGExRefineEdgeThresholdMode::Any)
 		{
-			bResult = PCGExCompare::Compare(Comparison, From->Adjacency.Num(), Threshold) || PCGExCompare::Compare(Comparison, To->Adjacency.Num(), Threshold, Tolerance);
+			bResult = PCGExCompare::Compare(Comparison, From->Num(), Threshold) || PCGExCompare::Compare(Comparison, To->Num(), Threshold, Tolerance);
 		}
 		else if (Mode == EPCGExRefineEdgeThresholdMode::Sum)
 		{
-			bResult = PCGExCompare::Compare(Comparison, (From->Adjacency.Num() + To->Adjacency.Num()), Threshold, Tolerance);
+			bResult = PCGExCompare::Compare(Comparison, (From->Num() + To->Num()), Threshold, Tolerance);
 		}
 
 		return TypedFilterFactory->Config.bInvert ? !bResult : bResult;

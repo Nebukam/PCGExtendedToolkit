@@ -14,7 +14,7 @@
 
 namespace PCGExGraph
 {
-	struct FIndexedEdge;
+	struct FEdge;
 }
 
 namespace PCGExPointFilter
@@ -87,7 +87,7 @@ namespace PCGExClusterFilter
 		virtual PCGExFilters::EType GetFilterType() const override { return PCGExFilters::EType::Node; }
 		virtual bool Test(const int32 Index) const override final;
 		virtual bool Test(const PCGExCluster::FNode& Node) const override;
-		virtual bool Test(const PCGExGraph::FIndexedEdge& Edge) const override final;
+		virtual bool Test(const PCGExGraph::FEdge& Edge) const override final;
 	};
 
 	class /*PCGEXTENDEDTOOLKIT_API*/ TEdgeFilter : public FFilter
@@ -101,7 +101,7 @@ namespace PCGExClusterFilter
 		virtual PCGExFilters::EType GetFilterType() const override { return PCGExFilters::EType::Edge; }
 		virtual bool Test(const int32 Index) const override final;
 		virtual bool Test(const PCGExCluster::FNode& Node) const override final;
-		virtual bool Test(const PCGExGraph::FIndexedEdge& Edge) const override;
+		virtual bool Test(const PCGExGraph::FEdge& Edge) const override;
 	};
 
 	class /*PCGEXTENDEDTOOLKIT_API*/ FManager : public PCGExPointFilter::FManager

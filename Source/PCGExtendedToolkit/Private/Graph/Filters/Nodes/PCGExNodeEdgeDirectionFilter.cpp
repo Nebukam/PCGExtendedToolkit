@@ -65,7 +65,7 @@ bool FNodeEdgeDirectionFilter::TestDot(const PCGExCluster::FNode& Node) const
 	double B = 0;
 
 	TArray<double> Dots;
-	Dots.SetNumUninitialized(Node.Adjacency.Num());
+	Dots.SetNumUninitialized(Node.Num());
 
 	// Precompute all dot products
 
@@ -75,14 +75,14 @@ bool FNodeEdgeDirectionFilter::TestDot(const PCGExCluster::FNode& Node) const
 		{
 			for (int i = 0; i < Dots.Num(); i++)
 			{
-				Dots[i] = FMath::Abs(FVector::DotProduct(RefDir, Cluster->GetDir(Node.NodeIndex, PCGEx::H64A(Node.Adjacency[i]))));
+				Dots[i] = FMath::Abs(FVector::DotProduct(RefDir, Cluster->GetDir(Node.NodeIndex, Node.Links[i].Node)));
 			}
 		}
 		else
 		{
 			for (int i = 0; i < Dots.Num(); i++)
 			{
-				Dots[i] = FVector::DotProduct(RefDir, Cluster->GetDir(Node.NodeIndex, PCGEx::H64A(Node.Adjacency[i])));
+				Dots[i] = FVector::DotProduct(RefDir, Cluster->GetDir(Node.NodeIndex, Node.Links[i].Node));
 			}
 		}
 	}
@@ -92,14 +92,14 @@ bool FNodeEdgeDirectionFilter::TestDot(const PCGExCluster::FNode& Node) const
 		{
 			for (int i = 0; i < Dots.Num(); i++)
 			{
-				Dots[i] = FMath::Abs(FVector::DotProduct(RefDir, Cluster->GetDir(Node.NodeIndex, PCGEx::H64A(Node.Adjacency[i]))));
+				Dots[i] = FMath::Abs(FVector::DotProduct(RefDir, Cluster->GetDir(Node.NodeIndex, Node.Links[i].Node)));
 			}
 		}
 		else
 		{
 			for (int i = 0; i < Dots.Num(); i++)
 			{
-				Dots[i] = FVector::DotProduct(RefDir, Cluster->GetDir(Node.NodeIndex, PCGEx::H64A(Node.Adjacency[i])));
+				Dots[i] = FVector::DotProduct(RefDir, Cluster->GetDir(Node.NodeIndex, Node.Links[i].Node));
 			}
 		}
 	}
@@ -118,7 +118,7 @@ bool FNodeEdgeDirectionFilter::TestDot(const PCGExCluster::FNode& Node) const
 		default:
 		case EPCGExAdjacencyGatherMode::Average:
 			for (const double Dot : Dots) { B += Dot; }
-			B /= Node.Adjacency.Num();
+			B /= Node.Links.Num();
 			break;
 		case EPCGExAdjacencyGatherMode::Min:
 			B = MAX_dbl;
@@ -164,7 +164,7 @@ bool FNodeEdgeDirectionFilter::TestHash(const PCGExCluster::FNode& Node) const
 	const FInt32Vector A = PCGEx::I323(RefDir, CWTolerance);
 
 	TArray<FInt32Vector> Hashes;
-	Hashes.SetNumUninitialized(Node.Adjacency.Num());
+	Hashes.SetNumUninitialized(Node.Links.Num());
 
 	// Precompute all dot products
 
@@ -172,14 +172,14 @@ bool FNodeEdgeDirectionFilter::TestHash(const PCGExCluster::FNode& Node) const
 	{
 		for (int i = 0; i < Hashes.Num(); i++)
 		{
-			Hashes[i] = PCGEx::I323(Cluster->GetDir(Node.NodeIndex, PCGEx::H64A(Node.Adjacency[i])), CWTolerance);
+			Hashes[i] = PCGEx::I323(Cluster->GetDir(Node.NodeIndex, Node.Links[i].Node), CWTolerance);
 		}
 	}
 	else
 	{
 		for (int i = 0; i < Hashes.Num(); i++)
 		{
-			Hashes[i] = PCGEx::I323(Cluster->GetDir(Node.NodeIndex, PCGEx::H64A(Node.Adjacency[i])), CWTolerance);
+			Hashes[i] = PCGEx::I323(Cluster->GetDir(Node.NodeIndex, Node.Links[i].Node), CWTolerance);
 		}
 	}
 

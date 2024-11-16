@@ -91,7 +91,7 @@ namespace PCGExFilterGroup
 
 		virtual bool Test(const int32 Index) const override = 0;
 		virtual bool Test(const PCGExCluster::FNode& Node) const override = 0;
-		virtual bool Test(const PCGExGraph::FIndexedEdge& Edge) const override = 0;
+		virtual bool Test(const PCGExGraph::FEdge& Edge) const override = 0;
 
 	protected:
 		TArray<TSharedPtr<PCGExPointFilter::FFilter>> ManagedFilters;
@@ -122,7 +122,7 @@ namespace PCGExFilterGroup
 			return !bInvert;
 		}
 
-		FORCEINLINE virtual bool Test(const PCGExGraph::FIndexedEdge& Edge) const override
+		FORCEINLINE virtual bool Test(const PCGExGraph::FEdge& Edge) const override
 		{
 			for (const TSharedPtr<PCGExPointFilter::FFilter>& Filter : ManagedFilters) { if (!Filter->Test(Edge)) { return bInvert; } }
 			return !bInvert;
@@ -149,7 +149,7 @@ namespace PCGExFilterGroup
 			return bInvert;
 		}
 
-		FORCEINLINE virtual bool Test(const PCGExGraph::FIndexedEdge& Edge) const override
+		FORCEINLINE virtual bool Test(const PCGExGraph::FEdge& Edge) const override
 		{
 			for (const TSharedPtr<PCGExPointFilter::FFilter>& Filter : ManagedFilters) { if (Filter->Test(Edge)) { return !bInvert; } }
 			return bInvert;

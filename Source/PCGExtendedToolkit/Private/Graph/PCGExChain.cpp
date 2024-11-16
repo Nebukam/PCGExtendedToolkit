@@ -2,111 +2,228 @@
 // Released under the MIT license https://opensource.org/license/MIT/
 
 #include "Graph/PCGExChain.h"
+
 #include "Graph/PCGExCluster.h"
 #include "Geometry/PCGExGeo.h"
 
 namespace PCGExCluster
 {
-}
-
-namespace PCGExClusterTask
-{
-	bool FFindNodeChains::ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager)
+	void FNodeChain::FixUniqueHash()
 	{
-		TRACE_CPUPROFILER_EVENT_SCOPE(FFindNodeChains::ExecuteTask);
+		UniqueHash = 0;
+		SingleEdge = -1;
 
-		//TArray<uint64> AdjacencyHashes;
-		//AdjacencyHashes.Reserve(Cluster->Nodes.Num());
+		if (Links.Num() <= 1) { SingleEdge = Seed.Edge; }
 
-		TArray<PCGExCluster::FNode>& NodesRefs = *Cluster->Nodes;
-		TSet<int32> IgnoredEdges;
-		IgnoredEdges.Reserve(Cluster->Nodes->Num());
-
-		bool bIsAlreadyIgnored;
-		int32 LastSimpleNodeIndex = -1;
-
-		for (const PCGExCluster::FNode& Node : NodesRefs)
-		{
-			const TArray<int8>& Brkpts = *Breakpoints;
-			if (Node.IsSimple())
-			{
-				// Keep earliest simple node index in case we find no good starting points
-				LastSimpleNodeIndex = LastSimpleNodeIndex == -1 ? Node.NodeIndex : FMath::Min(LastSimpleNodeIndex, Node.NodeIndex);
-				if (!Brkpts[Node.NodeIndex]) { continue; }
-			}
-
-			const bool bIsValidStartNode =
-				bDeadEndsOnly ?
-					Node.IsDeadEnd() && !Brkpts[Node.NodeIndex] :
-					(Node.IsDeadEnd() || Brkpts[Node.NodeIndex] || Node.IsComplex());
-
-			if (!bIsValidStartNode) { continue; }
-
-			for (const uint64 AdjacencyHash : Node.Adjacency)
-			{
-				uint32 OtherNodeIndex;
-				uint32 EdgeIndex;
-				PCGEx::H64(AdjacencyHash, OtherNodeIndex, EdgeIndex);
-
-				IgnoredEdges.Add(EdgeIndex, &bIsAlreadyIgnored);
-				if (bIsAlreadyIgnored) { continue; }
-
-				const PCGExCluster::FNode& OtherNode = NodesRefs[OtherNodeIndex];
-
-				if (Brkpts[OtherNode.NodeIndex] || OtherNode.IsDeadEnd() || OtherNode.IsComplex())
-				{
-					// Single edge chain					
-					if (bSkipSingleEdgeChains) { continue; }
-
-					TSharedPtr<PCGExCluster::FNodeChain> NewChain = MakeShared<PCGExCluster::FNodeChain>();
-					NewChain->First = Node.NodeIndex;
-					NewChain->Last = OtherNodeIndex;
-					NewChain->SingleEdge = EdgeIndex;
-
-					Chains->Add(NewChain);
-				}
-				else
-				{
-					// Requires extended Search
-					AsyncManager->Start<FBuildChain>(
-						Chains->Add(nullptr), nullptr,
-						Cluster, Breakpoints, Chains, Node.NodeIndex, AdjacencyHash);
-				}
-			}
-		}
-
-		if (Chains->IsEmpty() && LastSimpleNodeIndex != -1)
-		{
-			// Assume isolated closed loop, probably contour
-
-			PCGExCluster::FNode& StartNode = NodesRefs[LastSimpleNodeIndex];
-
-			if (StartNode.Adjacency.IsEmpty()) { return false; }
-
-			AsyncManager->Start<FBuildChain>(
-				Chains->Add(nullptr), nullptr,
-				Cluster, Breakpoints, Chains, StartNode.NodeIndex, StartNode.Adjacency[0]);
-		}
-
-		return !Chains->IsEmpty();
+		if (SingleEdge != -1) { UniqueHash = PCGEx::H64U(SingleEdge, SingleEdge); }
+		else { UniqueHash = PCGEx::H64U(bIsClosedLoop ? Seed.Edge : Links[0].Edge, Links.Last().Edge); }
 	}
 
-	bool FBuildChain::ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager)
+	void FNodeChain::BuildChain(const TSharedRef<FCluster>& Cluster, const TSharedPtr<TArray<int8>>& Breakpoints)
 	{
-		TRACE_CPUPROFILER_EVENT_SCOPE(FBuildChain::ExecuteTask);
+		ON_SCOPE_EXIT
+		{
+			FixUniqueHash();
+			bIsLeaf = Cluster->GetNode(Seed.Node)->IsLeaf() || Cluster->GetNode(Links.Last().Node)->IsLeaf();
+			if (bIsClosedLoop) { bIsLeaf = false; }
+		};
 
-		const TSharedPtr<PCGExCluster::FNodeChain> NewChain = MakeShared<PCGExCluster::FNodeChain>();
+		TSet<int32> Visited;
 
-		uint32 NodeIndex;
-		uint32 EdgeIndex;
-		PCGEx::H64(AdjacencyHash, NodeIndex, EdgeIndex);
+		FLink Last = Seed;
+		FNode* FromNode = Cluster->GetEdgeOtherNode(Seed);
+		Links.Add(FLink(FromNode->NodeIndex, Seed.Edge));
 
-		NewChain->First = StartIndex;
-		NewChain->Last = NodeIndex;
+		Visited.Add(Seed.Node);
+		Visited.Add(Links.Last().Node);
 
-		BuildChain(NewChain, Breakpoints, Cluster);
-		(*Chains)[TaskIndex] = NewChain;
+		while (FromNode)
+		{
+			if (FromNode->IsLeaf() ||
+				FromNode->IsComplex() ||
+				(Breakpoints && (*Breakpoints)[FromNode->PointIndex]))
+			{
+				bIsClosedLoop = false;
+				break;
+			}
 
+			FLink NextLink = FromNode->Links[0];                               // Get next node
+			if (NextLink.Node == Last.Node) { NextLink = FromNode->Links[1]; } // Get other next
+
+			bool bAlreadyVisited = false;
+			Visited.Add(NextLink.Node, &bAlreadyVisited);
+
+			if (bAlreadyVisited || NextLink.Node == Seed.Node)
+			{
+				Seed.Edge = NextLink.Edge; // !
+				bIsClosedLoop = true;
+				break;
+			}
+
+			Last = Links.Last();
+			Links.Add(NextLink);
+
+			FromNode = Cluster->GetNode(NextLink.Node);
+		}
+	}
+
+	void FNodeChain::Dump(const TSharedRef<FCluster>& Cluster, const TSharedPtr<PCGExGraph::FGraph>& Graph, const bool bAddMetadata) const
+	{
+		const int32 IOIndex = Cluster->EdgesIO.Pin()->IOIndex;
+		FEdge OutEdge = FEdge{};
+
+		if (SingleEdge != -1)
+		{
+			Graph->InsertEdge(*Cluster->GetEdge(Seed.Edge), OutEdge, IOIndex);
+			if (bAddMetadata) { Graph->GetOrCreateEdgeMetadata(OutEdge.EdgeIndex).UnionSize = 1; }
+		}
+		else
+		{
+			if (bAddMetadata)
+			{
+				if (bIsClosedLoop)
+				{
+					Graph->InsertEdge(*Cluster->GetEdge(Seed.Edge), OutEdge, IOIndex);
+					Graph->GetOrCreateEdgeMetadata(OutEdge.EdgeIndex).UnionSize = 1;
+				}
+
+				for (const FLink& Link : Links)
+				{
+					Graph->InsertEdge(*Cluster->GetEdge(Link.Edge), OutEdge, IOIndex);
+					Graph->GetOrCreateEdgeMetadata(OutEdge.EdgeIndex).UnionSize = 1;
+				}
+			}
+			else
+			{
+				if (bIsClosedLoop) { Graph->InsertEdge(*Cluster->GetEdge(Seed.Edge), OutEdge, IOIndex); }
+				for (const FLink& Link : Links) { Graph->InsertEdge(*Cluster->GetEdge(Link.Edge), OutEdge, IOIndex); }
+			}
+		}
+	}
+
+	void FNodeChain::DumpReduced(const TSharedRef<FCluster>& Cluster, const TSharedPtr<PCGExGraph::FGraph>& Graph, const bool bAddMetadata) const
+	{
+		const int32 IOIndex = Cluster->EdgesIO.Pin()->IOIndex;
+		FEdge OutEdge = FEdge{};
+
+		if (SingleEdge != -1)
+		{
+			Graph->InsertEdge(*Cluster->GetEdge(SingleEdge), OutEdge, IOIndex);
+			if (bAddMetadata) { Graph->GetOrCreateEdgeMetadata(OutEdge.EdgeIndex).UnionSize = 1; }
+		}
+		else
+		{
+			if (bAddMetadata)
+			{
+				Graph->InsertEdge(
+					Cluster->GetNodePointIndex(Seed.Node),
+					Cluster->GetNodePointIndex(Links.Last().Node),
+					OutEdge, IOIndex);
+
+				Graph->GetOrCreateEdgeMetadata(OutEdge.EdgeIndex).UnionSize = Links.Num();
+			}
+			else
+			{
+				Graph->InsertEdge(
+					Cluster->GetNodePointIndex(Seed.Node),
+					Cluster->GetNodePointIndex(Links.Last().Node),
+					OutEdge, IOIndex);
+			}
+		}
+	}
+
+	bool FNodeChainBuilder::Compile(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager)
+	{
+		Chains.Reserve(Cluster->Edges->Num());
+
+		for (int i = 0; i < Cluster->Nodes->Num(); i++)
+		{
+			FNode* Node = Cluster->GetNode(i);
+			ensure(!Node->IsEmpty());
+
+			if (Node->IsEmpty()) { continue; }
+			if (Node->IsLeaf())
+			{
+				TSharedPtr<FNodeChain> NewChain = MakeShared<FNodeChain>(FLink(Node->NodeIndex, Node->Links[0].Edge));
+				Chains.Add(NewChain);
+				continue;
+			}
+
+			if (Node->IsBinary()) { continue; }
+			if (Breakpoints && !(*Breakpoints)[Node->PointIndex])
+
+			{
+				for (const FLink& Lk : Node->Links)
+				{
+					// Skip immediately known leaves or already seeded nodes. Avoid double-sampling simple cases
+					if (Cluster->GetNode(Lk.Node)->IsLeaf()) { continue; }
+
+					TSharedPtr<FNodeChain> NewChain = MakeShared<FNodeChain>(FLink(Node->NodeIndex, Lk.Edge));
+					Chains.Add(NewChain);
+				}
+			}
+		}
+
+		Chains.Shrink();
+		if (Chains.IsEmpty()) { return false; }
+		return DispatchTasks(AsyncManager);
+	}
+
+	bool FNodeChainBuilder::CompileLeavesOnly(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager)
+	{
+		Chains.Reserve(Cluster->Edges->Num());
+
+		for (int i = 0; i < Cluster->Nodes->Num(); i++)
+		{
+			FNode* Node = Cluster->GetNode(i);
+			ensure(!Node->IsEmpty());
+			if (!Node->IsLeaf() || Node->IsEmpty()) { continue; }
+
+			TSharedPtr<FNodeChain> NewChain = MakeShared<FNodeChain>(FLink(Node->NodeIndex, Node->Links[0].Edge));
+			Chains.Add(NewChain);
+		}
+
+		Chains.Shrink();
+		if (Chains.IsEmpty()) { return false; }
+		return DispatchTasks(AsyncManager);
+	}
+
+	bool FNodeChainBuilder::DispatchTasks(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager)
+	{
+		PCGEX_ASYNC_GROUP_CHKD(AsyncManager, ChainSearchTask)
+
+		ChainSearchTask->OnCompleteCallback =
+			[WeakThis = TWeakPtr<FNodeChainBuilder>(SharedThis(this))]()
+			{
+				if (const TSharedPtr<FNodeChainBuilder> This = WeakThis.Pin()) { This->Dedupe(); }
+			};
+		ChainSearchTask->OnIterationCallback =
+			[WeakThis = TWeakPtr<FNodeChainBuilder>(SharedThis(this))]
+			(const int32 Index, const int32 Count, const int32 LoopIdx)
+			{
+				if (const TSharedPtr<FNodeChainBuilder> This = WeakThis.Pin())
+				{
+					This->Chains[Index]->BuildChain(This->Cluster, This->Breakpoints);
+				}
+			};
+
+		ChainSearchTask->StartIterations(Chains.Num(), 64, false, false);
 		return true;
+	}
+
+	void FNodeChainBuilder::Dedupe()
+	{
+		TSet<uint64> UniqueHashSet;
+		UniqueHashSet.Reserve(Chains.Num());
+
+		for (int i = 0; i < Chains.Num(); i++)
+		{
+			const TSharedPtr<FNodeChain>& Chain = Chains[i];
+
+			bool bAlreadySet = false;
+			UniqueHashSet.Add(Chain->UniqueHash, &bAlreadySet);
+
+			if (bAlreadySet) { Chains[i] = nullptr; }
+		}
 	}
 }

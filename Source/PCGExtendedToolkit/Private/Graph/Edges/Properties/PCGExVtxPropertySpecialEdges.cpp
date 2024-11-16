@@ -74,10 +74,10 @@ void UPCGExVtxPropertySpecialEdges::ProcessNode(PCGExCluster::FNode& Node, const
 
 	Config.AverageEdge.Set(Node.PointIndex, LAverage, VAverage);
 
-	if (ILongest != -1) { Config.LongestEdge.Set(Node.PointIndex, Adjacency[ILongest], Cluster->GetNode(Adjacency[ILongest].NodeIndex)->Adjacency.Num()); }
+	if (ILongest != -1) { Config.LongestEdge.Set(Node.PointIndex, Adjacency[ILongest], Cluster->GetNode(Adjacency[ILongest].NodeIndex)->Num()); }
 	else { Config.LongestEdge.Set(Node.PointIndex, 0, FVector::ZeroVector, -1, -1, 0); }
 
-	if (IShortest != -1) { Config.ShortestEdge.Set(Node.PointIndex, Adjacency[IShortest], Cluster->GetNode(Adjacency[IShortest].NodeIndex)->Adjacency.Num()); }
+	if (IShortest != -1) { Config.ShortestEdge.Set(Node.PointIndex, Adjacency[IShortest], Cluster->GetNode(Adjacency[IShortest].NodeIndex)->Num()); }
 	else { Config.ShortestEdge.Set(Node.PointIndex, 0, FVector::ZeroVector, -1, -1, 0); }
 }
 

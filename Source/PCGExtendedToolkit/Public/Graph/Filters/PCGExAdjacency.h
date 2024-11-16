@@ -126,15 +126,15 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExAdjacencySettings
 			switch (ThresholdComparison)
 			{
 			case EPCGExComparison::StrictlyEqual:
-				return Node.Adjacency.Num() < Value ? -1 : Value;
+				return Node.Num() < Value ? -1 : Value;
 			case EPCGExComparison::StrictlyNotEqual:
 				return Value;
 			case EPCGExComparison::EqualOrGreater:
-				return Node.Adjacency.Num() < Value ? -1 : Value;
+				return Node.Num() < Value ? -1 : Value;
 			case EPCGExComparison::EqualOrSmaller:
 				return Value;
 			case EPCGExComparison::StrictlyGreater:
-				return Node.Adjacency.Num() <= Value ? -1 : Value;
+				return Node.Num() <= Value ? -1 : Value;
 			case EPCGExComparison::StrictlySmaller:
 				return Value;
 			case EPCGExComparison::NearlyEqual:
@@ -159,11 +159,11 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExAdjacencySettings
 			{
 			default: ;
 			case EPCGExRelativeThresholdRoundingMode::Round:
-				return FMath::RoundToInt32(LocalThreshold->Read(Node.PointIndex) * Node.Adjacency.Num());
+				return FMath::RoundToInt32(LocalThreshold->Read(Node.PointIndex) * Node.Num());
 			case EPCGExRelativeThresholdRoundingMode::Floor:
-				return FMath::FloorToInt32(LocalThreshold->Read(Node.PointIndex) * Node.Adjacency.Num());
+				return FMath::FloorToInt32(LocalThreshold->Read(Node.PointIndex) * Node.Num());
 			case EPCGExRelativeThresholdRoundingMode::Ceil:
-				return FMath::CeilToInt32(LocalThreshold->Read(Node.PointIndex) * Node.Adjacency.Num());
+				return FMath::CeilToInt32(LocalThreshold->Read(Node.PointIndex) * Node.Num());
 			}
 		}
 
@@ -177,11 +177,11 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExAdjacencySettings
 		{
 		default: ;
 		case EPCGExRelativeThresholdRoundingMode::Round:
-			return FMath::RoundToInt32(RelativeThreshold * Node.Adjacency.Num());
+			return FMath::RoundToInt32(RelativeThreshold * Node.Num());
 		case EPCGExRelativeThresholdRoundingMode::Floor:
-			return FMath::FloorToInt32(RelativeThreshold * Node.Adjacency.Num());
+			return FMath::FloorToInt32(RelativeThreshold * Node.Num());
 		case EPCGExRelativeThresholdRoundingMode::Ceil:
-			return FMath::CeilToInt32(RelativeThreshold * Node.Adjacency.Num());
+			return FMath::CeilToInt32(RelativeThreshold * Node.Num());
 		}
 	}
 };
