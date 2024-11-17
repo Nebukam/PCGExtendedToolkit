@@ -240,7 +240,7 @@ namespace PCGExPathCrossings
 		{
 			OtherPath = Path.Get();
 			Path->GetEdgeOctree()->FindElementsWithBoundsTest(
-				Edge.BSB.GetBox(), [&](const PCGExPaths::FPathEdge* OtherEdge)
+				Edge.Bounds.GetBox(), [&](const PCGExPaths::FPathEdge* OtherEdge)
 				{
 					if (Edge.ShareIndices(OtherEdge)) { return; }
 					FindSplit(Edge, *OtherEdge);
@@ -249,7 +249,7 @@ namespace PCGExPathCrossings
 		}
 
 		for (const TSharedPtr<PCGExPointsMT::FPointsProcessorBatchBase> Parent = ParentBatch.Pin();
-		     const TSharedPtr<PCGExData::FFacade> Facade : Parent->ProcessorFacades)
+		     const TSharedRef<PCGExData::FFacade>& Facade : Parent->ProcessorFacades)
 		{
 			const TSharedRef<FPointsProcessor>* OtherProcessorPtr = Parent->SubProcessorMap->Find(&Facade->Source.Get());
 			if (!OtherProcessorPtr) { continue; }
@@ -261,7 +261,7 @@ namespace PCGExPathCrossings
 			CurrentIOIndex = TypedProcessor->PointDataFacade->Source->IOIndex;
 
 			OtherPath = TypedProcessor->Path.Get();
-			TypedProcessor->GetEdgeOctree()->FindElementsWithBoundsTest(Edge.BSB.GetBox(), [&](const PCGExPaths::FPathEdge* OtherEdge) { FindSplit(Edge, *OtherEdge); });
+			TypedProcessor->GetEdgeOctree()->FindElementsWithBoundsTest(Edge.Bounds.GetBox(), [&](const PCGExPaths::FPathEdge* OtherEdge) { FindSplit(Edge, *OtherEdge); });
 		}
 
 		if (!NewCrossing->Crossings.IsEmpty()) { Crossings[Iteration] = NewCrossing; }
@@ -453,7 +453,7 @@ namespace PCGExPathCrossings
 	{
 		UnionMetadata = MakeShared<PCGExData::FUnionMetadata>();
 		UnionBlender = MakeShared<PCGExDataBlending::FUnionBlender>(&Settings->CrossingBlending, &Settings->CrossingCarryOver);
-		for (const TSharedPtr<PCGExData::FPointIO> IO : Context->MainPoints->Pairs)
+		for (const TSharedPtr<PCGExData::FPointIO>& IO : Context->MainPoints->Pairs)
 		{
 			if (IO && CrossIOIndices.Contains(IO->IOIndex)) { UnionBlender->AddSource(Context->SubProcessorMap[IO.Get()]->PointDataFacade, &ProtectedAttributes); }
 		}

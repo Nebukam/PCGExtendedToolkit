@@ -4,7 +4,6 @@
 #include "Sampling/PCGExSampleNearestSurface.h"
 
 
-
 #if PCGEX_ENGINE_VERSION > 503
 #include "Engine/OverlapResult.h"
 #endif

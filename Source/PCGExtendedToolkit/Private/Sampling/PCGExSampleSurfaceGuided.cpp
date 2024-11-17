@@ -4,7 +4,6 @@
 #include "Sampling/PCGExSampleSurfaceGuided.h"
 
 
-
 #define LOCTEXT_NAMESPACE "PCGExSampleSurfaceGuidedElement"
 #define PCGEX_NAMESPACE SampleSurfaceGuided
 

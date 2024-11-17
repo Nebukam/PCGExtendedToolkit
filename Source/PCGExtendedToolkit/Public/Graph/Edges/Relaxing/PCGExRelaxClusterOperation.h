@@ -40,12 +40,11 @@ public:
 		Cluster = InCluster;
 	}
 
-	virtual void ProcessExpandedNode(const PCGExCluster::FExpandedNode& ExpandedNode)
+	virtual void ProcessExpandedNode(const PCGExCluster::FNode& Node)
 	{
 	}
 
 	PCGExCluster::FCluster* Cluster = nullptr;
-	TArray<PCGExCluster::FExpandedNode>* ExpandedNodes = nullptr;
 	TArray<FVector>* ReadBuffer = nullptr;
 	TArray<FVector>* WriteBuffer = nullptr;
 

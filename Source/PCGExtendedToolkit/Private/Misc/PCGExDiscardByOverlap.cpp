@@ -237,7 +237,7 @@ namespace PCGExDiscardByOverlap
 
 	void FProcessor::Prune(TArray<FProcessor*>& Stack)
 	{
-		for (TSharedPtr<FOverlap> Overlap : Overlaps)
+		for (const TSharedPtr<FOverlap>& Overlap : Overlaps)
 		{
 			Overlap->GetOther(this)->RemoveOverlap(Overlap, Stack);
 		}
@@ -340,7 +340,7 @@ namespace PCGExDiscardByOverlap
 					const FMatrix InvMatrix = OwnedPoint->Point->Transform.ToMatrixNoScale().Inverse();
 
 					OtherProcessor->GetOctree()->FindElementsWithBoundsTest(
-						FBoxCenterAndExtent(OwnedPoint->BSB.GetBox()), [&](const FPointBounds* OtherPoint)
+						FBoxCenterAndExtent(OwnedPoint->Bounds.GetBox()), [&](const FPointBounds* OtherPoint)
 						{
 							const FBox Intersection = OwnedPoint->LocalBounds.Overlap(OtherPoint->TransposedBounds(InvMatrix));
 
@@ -367,13 +367,13 @@ namespace PCGExDiscardByOverlap
 				FBoxCenterAndExtent(ManagedOverlap->Intersection.GetCenter(), ManagedOverlap->Intersection.GetExtent()),
 				[&](const FPointBounds* OwnedPoint)
 				{
-					const FSphere S1 = OwnedPoint->BSB.GetSphere();
+					const FSphere S1 = OwnedPoint->Bounds.GetSphere();
 
 					OtherProcessor->GetOctree()->FindElementsWithBoundsTest(
-						FBoxCenterAndExtent(OwnedPoint->BSB.GetBox()), [&](const FPointBounds* OtherPoint)
+						FBoxCenterAndExtent(OwnedPoint->Bounds.GetBox()), [&](const FPointBounds* OtherPoint)
 						{
 							double Overlap = 0;
-							if (!PCGExMath::SphereOverlap(S1, OtherPoint->BSB.GetSphere(), Overlap)) { return; }
+							if (!PCGExMath::SphereOverlap(S1, OtherPoint->Bounds.GetSphere(), Overlap)) { return; }
 
 							if (Settings->ThresholdMeasure == EPCGExMeanMeasure::Relative)
 							{

@@ -12,8 +12,6 @@
 #include "Data/Blending/PCGExUnionBlender.h"
 #include "Data/Blending/PCGExDataBlending.h"
 
-
-#include "Graph/PCGExGraph.h"
 #include "Graph/PCGExIntersections.h"
 
 #include "PCGExFusePoints.generated.h"

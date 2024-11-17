@@ -25,17 +25,13 @@ public:
 		int32 BestIndex = -1;
 		double HighestScore = MIN_dbl;
 
-		for (const uint64 AdjacencyHash : Node.Adjacency)
+		for (const PCGExGraph::FLink Lk : Node.Links)
 		{
-			uint32 OtherNodeIndex;
-			uint32 EdgeIndex;
-			PCGEx::H64(AdjacencyHash, OtherNodeIndex, EdgeIndex);
-
-			const double Score = Heuristics->GetEdgeScore(Node, *Cluster->GetNode(OtherNodeIndex), *Cluster->GetEdge(EdgeIndex), *RoamingSeedNode, *RoamingGoalNode);
+			const double Score = Heuristics->GetEdgeScore(Node, *Cluster->GetNode(Lk), *Cluster->GetEdge(Lk), *RoamingSeedNode, *RoamingGoalNode);
 			if (Score > HighestScore)
 			{
 				HighestScore = Score;
-				BestIndex = EdgeIndex;
+				BestIndex = Lk.Edge;
 			}
 		}
 

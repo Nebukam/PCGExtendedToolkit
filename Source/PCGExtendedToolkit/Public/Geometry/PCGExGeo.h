@@ -6,7 +6,6 @@
 #include "CoreMinimal.h"
 #include "PCGEx.h"
 #include "PCGExMT.h"
-#include "PCGExDetails.h"
 #include "AssetStaging/PCGExFitting.h"
 #include "Data/PCGExData.h"
 
@@ -239,6 +238,10 @@ namespace PCGExGeo
 {
 	PCGEX_ASYNC_STATE(State_ExtractingMesh)
 
+	template <typename T>
+	FORCEINLINE double Det(const T& A, const T& B) { return A.X * B.Y - A.Y * B.X; }
+
+
 	FORCEINLINE static double S_U(
 		const FVector& A, const FVector& B, const FVector& C, const FVector& D,
 		const FVector& E, const FVector& F, const FVector& G, const FVector& H)
@@ -433,15 +436,16 @@ namespace PCGExGeo
 
 	static bool IsPointInTriangle(const FVector& P, const FVector& A, const FVector& B, const FVector& C)
 	{
-		const FVector AB = B - A;
-		const FVector AC = C - A;
-		const FVector AP = P - A;
+		const FVector& D = FVector::CrossProduct(B - A, P - A);
+		return (FVector::DotProduct(D, FVector::CrossProduct(C - B, P - B)) >= 0) &&
+			(FVector::DotProduct(D, FVector::CrossProduct(A - C, P - C)) >= 0);
+	}
 
-		const double ABxAC = FVector::CrossProduct(AB, AC).Z;
-		const double ABxAP = FVector::CrossProduct(AB, AP).Z;
-		const double ACxAP = FVector::CrossProduct(AC, AP).Z;
-
-		return (ABxAC > 0 ? (ABxAP >= 0 && ACxAP <= 0) : (ABxAP <= 0 && ACxAP >= 0));
+	template <typename T>
+	static double AngleCCW(const T& A, const T& B)
+	{
+		double Angle = FMath::Atan2((A[0] * B[1] - A[1] * B[0]), (A[0] * B[0] + A[1] * B[1]));
+		return Angle < 0 ? Angle = TWO_PI + Angle : Angle;
 	}
 
 	/**

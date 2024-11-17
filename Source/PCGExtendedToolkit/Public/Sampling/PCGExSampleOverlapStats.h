@@ -257,7 +257,7 @@ namespace PCGExSampleOverlapStats
 
 		FORCEINLINE void RegisterPointBounds(const int32 Index, const TSharedPtr<PCGExDiscardByOverlap::FPointBounds>& InPointBounds)
 		{
-			Bounds += InPointBounds->BSB.GetBox();
+			Bounds += InPointBounds->Bounds.GetBox();
 			LocalPointBounds[Index] = InPointBounds;
 		}
 

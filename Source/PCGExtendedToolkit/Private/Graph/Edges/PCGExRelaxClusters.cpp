@@ -95,20 +95,9 @@ namespace PCGExRelaxClusters
 
 		for (int i = 0; i < NumNodes; i++) { PBufferRef[i] = SBufferRef[i] = Cluster->GetPos(i); }
 
-		ExpandedNodes = Cluster->ExpandedNodes;
 		Iterations = Settings->Iterations;
 
-		if (!ExpandedNodes)
-		{
-			ExpandedNodes = Cluster->GetExpandedNodes(false);
-			bBuildExpandedNodes = true;
-			StartParallelLoopForRange(NumNodes);
-		}
-		else
-		{
-			StartRelaxIteration();
-		}
-
+		StartRelaxIteration();
 		return true;
 	}
 
@@ -133,14 +122,9 @@ namespace PCGExRelaxClusters
 			nullptr, SharedThis(this));
 	}
 
-	void FProcessor::ProcessSingleRangeIteration(const int32 Iteration, const int32 LoopIdx, const int32 Count)
-	{
-		*(ExpandedNodes->GetData() + Iteration) = PCGExCluster::FExpandedNode(Cluster, Iteration);
-	}
-
 	void FProcessor::ProcessSingleNode(const int32 Index, PCGExCluster::FNode& Node, const int32 LoopIdx, const int32 Count)
 	{
-		RelaxOperation->ProcessExpandedNode(*(ExpandedNodes->GetData() + Index));
+		RelaxOperation->ProcessExpandedNode(Node);
 
 		if (!InfluenceDetails.bProgressiveInfluence) { return; }
 
@@ -148,12 +132,6 @@ namespace PCGExRelaxClusters
 			*(RelaxOperation->ReadBuffer->GetData() + Index),
 			*(RelaxOperation->WriteBuffer->GetData() + Index),
 			InfluenceDetails.GetInfluence(Node.PointIndex));
-	}
-
-	void FProcessor::CompleteWork()
-	{
-		if (!bBuildExpandedNodes) { return; }
-		StartRelaxIteration();
 	}
 
 	void FProcessor::Write()
@@ -168,7 +146,7 @@ namespace PCGExRelaxClusters
 			{
 				FVector Position = FMath::Lerp(
 					OriginalPoints[Node.PointIndex].Transform.GetLocation(),
-					*(RelaxOperation->WriteBuffer->GetData() + Node.NodeIndex),
+					*(RelaxOperation->WriteBuffer->GetData() + Node.Index),
 					InfluenceDetails.GetInfluence(Node.PointIndex));
 				MutablePoints[Node.PointIndex].Transform.SetLocation(Position);
 			}
@@ -177,7 +155,7 @@ namespace PCGExRelaxClusters
 		{
 			for (const PCGExCluster::FNode& Node : *Cluster->Nodes)
 			{
-				FVector Position = *(RelaxOperation->WriteBuffer->GetData() + Node.NodeIndex);
+				FVector Position = *(RelaxOperation->WriteBuffer->GetData() + Node.Index);
 				MutablePoints[Node.PointIndex].Transform.SetLocation(Position);
 			}
 		}

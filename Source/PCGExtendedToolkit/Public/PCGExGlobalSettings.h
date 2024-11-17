@@ -62,11 +62,6 @@ public:
 	UPROPERTY(EditAnywhere, config, Category = "Performance|Cluster", meta=(EditCondition="bCacheClusters"))
 	bool bDefaultBuildAndCacheClusters = true;
 
-	/** Default value for new nodes (Editable per-node in the Graph Output Settings) */
-	UPROPERTY(EditAnywhere, config, Category = "Performance|Cluster", meta=(EditCondition="bDefaultBuildAndCacheClusters&&bCacheClusters"))
-	bool bDefaultCacheExpandedClusters = false;
-
-
 	UPROPERTY(EditAnywhere, config, Category = "Performance|Points", meta=(ClampMin=1))
 	int32 SmallPointsSize = 256;
 	bool IsSmallPointSize(const int32 InNum) const { return InNum <= SmallPointsSize; }

@@ -5,6 +5,7 @@
 
 #include "CoreMinimal.h"
 #include "PCGEx.h"
+#include "PCGExGeo.h"
 
 namespace PCGExGeo
 {
@@ -30,6 +31,13 @@ namespace PCGExGeo
 			Vtx[0] = ABC[0];
 			Vtx[1] = ABC[1];
 			Vtx[2] = ABC[2];
+		}
+
+		FORCEINLINE void Remap(const TArrayView<const int32> Map)
+		{
+			Vtx[0] = Map[Vtx[0]];
+			Vtx[1] = Map[Vtx[1]];
+			Vtx[2] = Map[Vtx[2]];
 		}
 
 		FORCEINLINE bool Equals(const int32 A, const int32 B, const int32 C) const
@@ -103,20 +111,35 @@ namespace PCGExGeo
 			return Vtx[0] == Other.Vtx[0] && Vtx[1] == Other.Vtx[1] && Vtx[2] == Other.Vtx[2];
 		}
 
+		FORCEINLINE bool ContainsPoint(const FVector& P, const TArrayView<const FVector> Positions) const
+		{
+			return IsPointInTriangle(P, Positions[Vtx[0]], Positions[Vtx[1]], Positions[Vtx[2]]);
+		}
+
 		FORCEINLINE void FixWinding(const TArrayView<const FVector2D>& Positions)
 		{
-			FVector2D A = Positions[Vtx[0]];
-			FVector2D B = Positions[Vtx[1]];
-			FVector2D C = Positions[Vtx[2]];
+			const FVector2D& A = Positions[Vtx[0]];
+			const FVector2D& B = Positions[Vtx[1]];
+			const FVector2D& C = Positions[Vtx[2]];
 			if ((B.X - A.X) * (C.Y - A.Y) - (C.X - A.X) * (B.Y - A.Y) > 0) { Swap(Vtx[1], Vtx[2]); }
 		}
 
+		template <typename T>
+		FORCEINLINE bool IsConvex(const TArrayView<const T> Positions)
+		{
+			const FVector& V = Positions[Vtx[1]];
+			return AngleCCW(Positions[Vtx[2]] - V, Positions[Vtx[0]] - V) > PI;
+		}
+
+
 		FORCEINLINE void FixWinding(const TArrayView<const FVector>& Positions, const FVector& Up = FVector::UpVector)
 		{
-			if (FVector::DotProduct(FVector::CrossProduct(Positions[Vtx[1]] - Positions[Vtx[0]], Positions[Vtx[2]] - Positions[Vtx[0]]), Up) > 0)
-			{
-				Swap(Vtx[1], Vtx[2]);
-			}
+			FixWinding(Positions[Vtx[0]], Positions[Vtx[1]], Positions[Vtx[2]], Up);
+		}
+
+		FORCEINLINE void FixWinding(const FVector& A, const FVector& B, const FVector& C, const FVector& Up = FVector::UpVector)
+		{
+			if (FVector::DotProduct(FVector::CrossProduct(B - A, C - A), Up) > 0) { Swap(Vtx[1], Vtx[2]); }
 		}
 	};
 

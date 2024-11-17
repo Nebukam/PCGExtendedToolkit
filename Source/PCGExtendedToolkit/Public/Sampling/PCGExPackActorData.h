@@ -9,7 +9,6 @@
 #include "PCGExPointsProcessor.h"
 #include "PCGExSampling.h"
 #include "Data/PCGExBufferHelper.h"
-#include "Data/Blending/PCGExDataBlending.h"
 
 #include "PCGExPackActorData.generated.h"
 

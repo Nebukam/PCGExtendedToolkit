@@ -76,7 +76,7 @@ bool FPCGExBuildConvexHull2DElement::ExecuteInternal(
 void FPCGExBuildConvexHull2DContext::BuildPath(const PCGExGraph::FGraphBuilder* GraphBuilder) const
 {
 	TSet<uint64> UniqueEdges;
-	const TArray<PCGExGraph::FIndexedEdge>& Edges = GraphBuilder->Graph->Edges;
+	const TArray<PCGExGraph::FEdge>& Edges = GraphBuilder->Graph->Edges;
 
 	const TArray<FPCGPoint>& InPoints = GraphBuilder->NodeDataFacade->GetIn()->GetPoints();
 	const TSharedPtr<PCGExData::FPointIO> PathIO = PathsIO->Emplace_GetRef(GraphBuilder->NodeDataFacade->GetIn(), PCGExData::EIOInit::NewOutput);
@@ -106,7 +106,7 @@ void FPCGExBuildConvexHull2DContext::BuildPath(const PCGExGraph::FGraphBuilder* 
 				EdgeIndex = i;
 				if (VisitedEdges.Contains(EdgeIndex)) { continue; }
 
-				const PCGExGraph::FIndexedEdge& Edge = Edges[EdgeIndex];
+				const PCGExGraph::FEdge& Edge = Edges[EdgeIndex];
 				if (!Edge.Contains(CurrentIndex)) { continue; }
 
 				CurrentIndex = Edge.Other(CurrentIndex);
@@ -160,7 +160,7 @@ namespace PCGExConvexHull2D
 
 	void FProcessor::ProcessSingleRangeIteration(const int32 Iteration, const int32 LoopIdx, const int32 LoopCount)
 	{
-		PCGExGraph::FIndexedEdge E;
+		PCGExGraph::FEdge E;
 		const uint64 Edge = Edges[Iteration];
 
 		uint32 A;

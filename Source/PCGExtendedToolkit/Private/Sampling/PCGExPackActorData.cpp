@@ -4,7 +4,6 @@
 #include "Sampling/PCGExPackActorData.h"
 
 #include "PCGExPointsProcessor.h"
-#include "Data/Blending/PCGExMetadataBlender.h"
 #include "Misc/PCGExSortPoints.h"
 
 
@@ -226,7 +225,7 @@ namespace PCGExPackActorDatas
 	void FProcessor::CompleteWork()
 	{
 		Attributes.Reserve(PointDataFacade->Buffers.Num());
-		for (TSharedPtr<PCGExData::FBufferBase> Buffer : PointDataFacade->Buffers)
+		for (const TSharedPtr<PCGExData::FBufferBase>& Buffer : PointDataFacade->Buffers)
 		{
 			if (!Buffer->IsWritable()) { continue; }
 			Attributes.Add(Buffer->OutAttribute);

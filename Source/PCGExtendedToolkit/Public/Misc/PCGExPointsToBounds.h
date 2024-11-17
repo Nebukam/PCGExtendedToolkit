@@ -100,7 +100,7 @@ namespace PCGExPointsToBounds
 		TArray<TSharedPtr<FBounds>>& OutBounds,
 		const EPCGExPointBoundsSource BoundsSource)
 	{
-		for (TSharedPtr<PCGExData::FPointIO> PointIO : IOGroup->Pairs)
+		for (const TSharedPtr<PCGExData::FPointIO>& PointIO : IOGroup->Pairs)
 		{
 			TSharedPtr<FBounds> Bounds = MakeShared<FBounds>(PointIO);
 			OutBounds.Add(Bounds);

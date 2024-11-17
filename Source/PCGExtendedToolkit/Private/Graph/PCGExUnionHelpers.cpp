@@ -135,7 +135,7 @@ namespace PCGExGraph
 		//TSet<uint64> UniqueEdges;
 		//UnionGraph->GetUniqueEdges(UniqueEdges);
 		//GraphBuilder->Graph->InsertEdges(UniqueEdges, -1);
-		TArray<FIndexedEdge> UniqueEdges;
+		TArray<FEdge> UniqueEdges;
 		UnionGraph->GetUniqueEdges(UniqueEdges);
 		GraphBuilder->Graph->InsertEdges(UniqueEdges);
 
@@ -240,7 +240,7 @@ namespace PCGExGraph
 				const int32 MaxIndex = StartIndex + Count;
 				for (int i = StartIndex; i < MaxIndex; i++)
 				{
-					const FIndexedEdge& Edge = This->GraphBuilder->Graph->Edges[i];
+					const FEdge& Edge = This->GraphBuilder->Graph->Edges[i];
 					if (!Edge.bValid) { continue; }
 					FindCollinearNodes(This->PointEdgeIntersections, i, This->UnionDataFacade->Source->GetOut());
 				}
@@ -271,7 +271,7 @@ namespace PCGExGraph
 
 					FPlatformAtomics::InterlockedAdd(&This->NewEdgesNum, (CollinearNum + 1));
 
-					FIndexedEdge& SplitEdge = This->GraphBuilder->Graph->Edges[PointEdgeProxy.EdgeIndex];
+					FEdge& SplitEdge = This->GraphBuilder->Graph->Edges[PointEdgeProxy.EdgeIndex];
 					FPlatformAtomics::InterlockedExchange(&SplitEdge.bValid, 0); // Invalidate existing edge
 					PointEdgeProxy.CollinearPoints.Sort([](const FPESplit& A, const FPESplit& B) { return A.Time < B.Time; });
 				}
@@ -358,7 +358,7 @@ namespace PCGExGraph
 				const int32 MaxIndex = StartIndex + Count;
 				for (int i = StartIndex; i < MaxIndex; i++)
 				{
-					const FIndexedEdge& Edge = This->GraphBuilder->Graph->Edges[i];
+					const FEdge& Edge = This->GraphBuilder->Graph->Edges[i];
 					if (!Edge.bValid) { continue; }
 					FindOverlappingEdges(EEI, i);
 				}

@@ -3,7 +3,6 @@
 
 #include "Graph/States/PCGExFlagNodes.h"
 
-
 #include "Elements/Metadata/PCGMetadataElementCommon.h"
 #include "Graph/PCGExCluster.h"
 #include "Graph/States/PCGExClusterStates.h"
@@ -45,9 +44,9 @@ bool FPCGExFlagNodesElement::ExecuteInternal(
 	PCGEX_EXECUTION_CHECK
 	PCGEX_ON_INITIAL_EXECUTION
 	{
-		if (!Context->StartProcessingClusters<PCGExFlagNodes::FProcessorBatch>(
+		if (!Context->StartProcessingClusters<PCGExFlagNodes::FBatch>(
 			[](const TSharedPtr<PCGExData::FPointIOTaggedEntries>& Entries) { return true; },
-			[&](const TSharedPtr<PCGExFlagNodes::FProcessorBatch>& NewBatch)
+			[&](const TSharedPtr<PCGExFlagNodes::FBatch>& NewBatch)
 			{
 				NewBatch->bRequiresWriteStep = true;
 				NewBatch->bWriteVtxDataFacade = true;
@@ -76,28 +75,14 @@ namespace PCGExFlagNodes
 
 		if (!FClusterProcessor::Process(InAsyncManager)) { return false; }
 
-		ExpandedNodes = Cluster->ExpandedNodes;
-
-		if (!ExpandedNodes)
-		{
-			ExpandedNodes = Cluster->GetExpandedNodes(false);
-			bBuildExpandedNodes = true;
-		}
-
 		Cluster->ComputeEdgeLengths();
 
 		StateManager = MakeShared<PCGExClusterStates::FStateManager>(StateFlags, Cluster.ToSharedRef(), VtxDataFacade, EdgeDataFacade);
 		StateManager->Init(ExecutionContext, Context->StateFactories);
 
-		if (bBuildExpandedNodes) { StartParallelLoopForRange(NumNodes); }
-		else { StartParallelLoopForNodes(); }
+		StartParallelLoopForNodes();
 
 		return true;
-	}
-
-	void FProcessor::ProcessSingleRangeIteration(const int32 Iteration, const int32 LoopIdx, const int32 Count)
-	{
-		*(ExpandedNodes->GetData() + Iteration) = PCGExCluster::FExpandedNode(Cluster, Iteration);
 	}
 
 	void FProcessor::ProcessSingleNode(const int32 Index, PCGExCluster::FNode& Node, const int32 LoopIdx, const int32 Count)
@@ -107,7 +92,6 @@ namespace PCGExFlagNodes
 
 	void FProcessor::CompleteWork()
 	{
-		if (bBuildExpandedNodes) { StartParallelLoopForNodes(); }
 	}
 
 	void FProcessor::Write()
@@ -116,19 +100,19 @@ namespace PCGExFlagNodes
 
 	//////// BATCH
 
-	FProcessorBatch::~FProcessorBatch()
+	FBatch::~FBatch()
 	{
 		StateFlags = nullptr;
 	}
 
-	void FProcessorBatch::RegisterBuffersDependencies(PCGExData::FFacadePreloader& FacadePreloader)
+	void FBatch::RegisterBuffersDependencies(PCGExData::FFacadePreloader& FacadePreloader)
 	{
 		TBatch<FProcessor>::RegisterBuffersDependencies(FacadePreloader);
 		PCGEX_TYPED_CONTEXT_AND_SETTINGS(FlagNodes)
 		PCGExPointFilter::RegisterBuffersDependencies(ExecutionContext, Context->StateFactories, FacadePreloader);
 	}
 
-	void FProcessorBatch::OnProcessingPreparationComplete()
+	void FBatch::OnProcessingPreparationComplete()
 	{
 		PCGEX_TYPED_CONTEXT_AND_SETTINGS(FlagNodes)
 
@@ -138,7 +122,7 @@ namespace PCGExFlagNodes
 		TBatch<FProcessor>::OnProcessingPreparationComplete();
 	}
 
-	bool FProcessorBatch::PrepareSingle(const TSharedPtr<FProcessor>& ClusterProcessor)
+	bool FBatch::PrepareSingle(const TSharedPtr<FProcessor>& ClusterProcessor)
 	{
 		ClusterProcessor->StateFlags = StateFlags;
 		return true;

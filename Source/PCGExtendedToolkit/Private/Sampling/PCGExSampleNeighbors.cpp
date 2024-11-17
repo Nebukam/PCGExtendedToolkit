@@ -49,9 +49,9 @@ bool FPCGExSampleNeighborsElement::ExecuteInternal(
 	PCGEX_EXECUTION_CHECK
 	PCGEX_ON_INITIAL_EXECUTION
 	{
-		if (!Context->StartProcessingClusters<PCGExSampleNeighbors::FProcessorBatch>(
+		if (!Context->StartProcessingClusters<PCGExSampleNeighbors::FBatch>(
 			[](const TSharedPtr<PCGExData::FPointIOTaggedEntries>& Entries) { return true; },
-			[&](const TSharedPtr<PCGExSampleNeighbors::FProcessorBatch>& NewBatch)
+			[&](const TSharedPtr<PCGExSampleNeighbors::FBatch>& NewBatch)
 			{
 			}))
 		{
@@ -91,16 +91,7 @@ namespace PCGExSampleNeighbors
 			if (SamplingOperation->ValueFilters) { OpsWithValueTest.Add(SamplingOperation); }
 		}
 
-		ExpandedNodes = Cluster->ExpandedNodes;
-
-		if (!ExpandedNodes)
-		{
-			ExpandedNodes = Cluster->GetExpandedNodes(false);
-			bBuildExpandedNodes = true;
-		}
-
 		Cluster->ComputeEdgeLengths();
-
 		StartParallelLoopForRange(NumNodes);
 
 		return true;
@@ -108,7 +99,6 @@ namespace PCGExSampleNeighbors
 
 	void FProcessor::ProcessSingleRangeIteration(const int32 Iteration, const int32 LoopIdx, const int32 Count)
 	{
-		if (bBuildExpandedNodes) { *(ExpandedNodes->GetData() + Iteration) = PCGExCluster::FExpandedNode(Cluster, Iteration); }
 		for (const UPCGExNeighborSampleOperation* Op : OpsWithValueTest) { Op->ValueFilters->Results[Iteration] = Op->ValueFilters->Test(*Cluster->GetNode(Iteration)); }
 	}
 
@@ -128,7 +118,7 @@ namespace PCGExSampleNeighbors
 		EdgeDataFacade->Write(AsyncManager);
 	}
 
-	void FProcessorBatch::RegisterBuffersDependencies(PCGExData::FFacadePreloader& FacadePreloader)
+	void FBatch::RegisterBuffersDependencies(PCGExData::FFacadePreloader& FacadePreloader)
 	{
 		PCGEX_TYPED_CONTEXT_AND_SETTINGS(SampleNeighbors)
 		TBatch<FProcessor>::RegisterBuffersDependencies(FacadePreloader);

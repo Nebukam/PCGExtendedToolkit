@@ -65,7 +65,7 @@ bool FPCGExConnectClustersElement::ExecuteInternal(FPCGContext* InContext) const
 	PCGEX_EXECUTION_CHECK
 	PCGEX_ON_INITIAL_EXECUTION
 	{
-		if (!Context->StartProcessingClusters<PCGExBridgeClusters::FProcessorBatch>(
+		if (!Context->StartProcessingClusters<PCGExBridgeClusters::FBatch>(
 			[&](const TSharedPtr<PCGExData::FPointIOTaggedEntries>& Entries)
 			{
 				if (Entries->Entries.Num() == 1)
@@ -78,7 +78,7 @@ bool FPCGExConnectClustersElement::ExecuteInternal(FPCGContext* InContext) const
 
 				return true;
 			},
-			[&](const TSharedPtr<PCGExBridgeClusters::FProcessorBatch>& NewBatch)
+			[&](const TSharedPtr<PCGExBridgeClusters::FBatch>& NewBatch)
 			{
 				NewBatch->bRequiresWriteStep = true;
 			}))
@@ -98,7 +98,7 @@ bool FPCGExConnectClustersElement::ExecuteInternal(FPCGContext* InContext) const
 
 	for (const TSharedPtr<PCGExClusterMT::FClusterProcessorBatchBase>& Batch : Context->Batches)
 	{
-		const TSharedPtr<PCGExBridgeClusters::FProcessorBatch> BridgeBatch = StaticCastSharedPtr<PCGExBridgeClusters::FProcessorBatch>(Batch);
+		const TSharedPtr<PCGExBridgeClusters::FBatch> BridgeBatch = StaticCastSharedPtr<PCGExBridgeClusters::FBatch>(Batch);
 		FString OutId;
 		PCGExGraph::SetClusterVtx(BridgeBatch->VtxDataFacade->Source, OutId);
 		PCGExGraph::MarkClusterEdges(BridgeBatch->CompoundedEdgesDataFacade->Source, OutId);
@@ -120,7 +120,7 @@ namespace PCGExBridgeClusters
 		return true;
 	}
 
-	void FProcessor::ProcessSingleEdge(const int32 EdgeIndex, PCGExGraph::FIndexedEdge& Edge, const int32 LoopIdx, const int32 Count)
+	void FProcessor::ProcessSingleEdge(const int32 EdgeIndex, PCGExGraph::FEdge& Edge, const int32 LoopIdx, const int32 Count)
 	{
 	}
 
@@ -131,13 +131,13 @@ namespace PCGExBridgeClusters
 
 	//////// BATCH
 
-	FProcessorBatch::FProcessorBatch(FPCGExContext* InContext, const TSharedRef<PCGExData::FPointIO>& InVtx, const TArrayView<TSharedRef<PCGExData::FPointIO>> InEdges):
+	FBatch::FBatch(FPCGExContext* InContext, const TSharedRef<PCGExData::FPointIO>& InVtx, const TArrayView<TSharedRef<PCGExData::FPointIO>> InEdges):
 		TBatch(InContext, InVtx, InEdges)
 	{
 		InVtx->InitializeOutput(PCGExData::EIOInit::DuplicateInput);
 	}
 
-	void FProcessorBatch::Process()
+	void FBatch::Process()
 	{
 		PCGEX_TYPED_CONTEXT_AND_SETTINGS(ConnectClusters)
 
@@ -152,13 +152,13 @@ namespace PCGExBridgeClusters
 		Merger->Merge(AsyncManager, &Context->CarryOverDetails);
 	}
 
-	bool FProcessorBatch::PrepareSingle(const TSharedPtr<FProcessor>& ClusterProcessor)
+	bool FBatch::PrepareSingle(const TSharedPtr<FProcessor>& ClusterProcessor)
 	{
 		CompoundedEdgesDataFacade->Source->Tags->Append(ClusterProcessor->EdgeDataFacade->Source->Tags.ToSharedRef());
 		return true;
 	}
 
-	void FProcessorBatch::CompleteWork()
+	void FBatch::CompleteWork()
 	{
 		PCGEX_TYPED_CONTEXT_AND_SETTINGS(ConnectClusters)
 
@@ -262,7 +262,7 @@ namespace PCGExBridgeClusters
 		}
 	}
 
-	void FProcessorBatch::Write()
+	void FBatch::Write()
 	{
 		const TSharedRef<PCGExData::FPointIO> ConsolidatedEdges = CompoundedEdgesDataFacade->Source;
 

@@ -27,7 +27,7 @@ bool FPCGExFuseCollinearElement::ExecuteInternal(FPCGContext* InContext) const
 {
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExFuseCollinearElement::Execute);
 
-	PCGEX_CONTEXT(FuseCollinear)
+	PCGEX_CONTEXT_AND_SETTINGS(FuseCollinear)
 	PCGEX_EXECUTION_CHECK
 	PCGEX_ON_INITIAL_EXECUTION
 	{
@@ -41,7 +41,7 @@ bool FPCGExFuseCollinearElement::ExecuteInternal(FPCGContext* InContext) const
 				if (Entry->GetNum() < 2)
 				{
 					bHasInvalidInputs = true;
-					Entry->InitializeOutput(PCGExData::EIOInit::Forward);
+					if (!Settings->bOmitInvalidPathsFromOutput) { Entry->InitializeOutput(PCGExData::EIOInit::Forward); }
 					return false;
 				}
 				return true;
@@ -138,16 +138,19 @@ namespace PCGExFuseCollinear
 	{
 		if (Path->IsClosedLoop())
 		{
-
-				const double Dot = FVector::DotProduct(Path->DirToPrevPoint(0) * -1, Path->DirToNextPoint(0));
-				if ((!Settings->bInvertThreshold && Dot > Context->DotThreshold) ||
-					(Settings->bInvertThreshold && Dot < Context->DotThreshold))
-				{
-					OutPoints->RemoveAt(0);
-				}
+			const double Dot = FVector::DotProduct(Path->DirToPrevPoint(0) * -1, Path->DirToNextPoint(0));
+			if ((!Settings->bInvertThreshold && Dot > Context->DotThreshold) ||
+				(Settings->bInvertThreshold && Dot < Context->DotThreshold))
+			{
+				OutPoints->RemoveAt(0);
+			}
 		}
-		
+
 		OutPoints->Shrink();
+		if (Settings->bOmitInvalidPathsFromOutput && OutPoints->Num() < 2)
+		{
+			PointDataFacade->Source->InitializeOutput(PCGExData::EIOInit::NoOutput);
+		}
 	}
 }
 

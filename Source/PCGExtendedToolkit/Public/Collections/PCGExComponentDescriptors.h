@@ -4,7 +4,6 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "PCGEx.h"
 
 #include "PCGExComponentDescriptors.generated.h"
 

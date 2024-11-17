@@ -74,9 +74,6 @@ namespace PCGExSampleNeighbors
 		TArray<UPCGExNeighborSampleOperation*> SamplingOperations;
 		TArray<UPCGExNeighborSampleOperation*> OpsWithValueTest;
 
-		bool bBuildExpandedNodes = false;
-		TSharedPtr<TArray<PCGExCluster::FExpandedNode>> ExpandedNodes;
-
 	public:
 		FProcessor(const TSharedRef<PCGExData::FFacade>& InVtxDataFacade, const TSharedRef<PCGExData::FFacade>& InEdgeDataFacade):
 			TProcessor(InVtxDataFacade, InEdgeDataFacade)
@@ -92,11 +89,11 @@ namespace PCGExSampleNeighbors
 		virtual void Write() override;
 	};
 
-	class FProcessorBatch final : public PCGExClusterMT::TBatch<FProcessor>
+	class FBatch final : public PCGExClusterMT::TBatch<FProcessor>
 	{
 	public:
-		FProcessorBatch(FPCGExContext* InContext, const TSharedRef<PCGExData::FPointIO>& InVtx, const TArrayView<TSharedRef<PCGExData::FPointIO>> InEdges)
-			: TBatch<FProcessor>(InContext, InVtx, InEdges)
+		FBatch(FPCGExContext* InContext, const TSharedRef<PCGExData::FPointIO>& InVtx, const TArrayView<TSharedRef<PCGExData::FPointIO>> InEdges)
+			: TBatch(InContext, InVtx, InEdges)
 		{
 			PCGEX_TYPED_CONTEXT_AND_SETTINGS(SampleNeighbors)
 			bRequiresWriteStep = true;

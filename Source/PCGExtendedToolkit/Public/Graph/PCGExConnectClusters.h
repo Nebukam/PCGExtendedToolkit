@@ -104,18 +104,18 @@ namespace PCGExBridgeClusters
 		}
 
 		virtual bool Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager) override;
-		virtual void ProcessSingleEdge(const int32 EdgeIndex, PCGExGraph::FIndexedEdge& Edge, const int32 LoopIdx, const int32 Count) override;
+		virtual void ProcessSingleEdge(const int32 EdgeIndex, PCGExGraph::FEdge& Edge, const int32 LoopIdx, const int32 Count) override;
 		virtual void CompleteWork() override;
 	};
 
-	class FProcessorBatch final : public PCGExClusterMT::TBatch<FProcessor>
+	class FBatch final : public PCGExClusterMT::TBatch<FProcessor>
 	{
 	public:
 		TSharedPtr<PCGExData::FFacade> CompoundedEdgesDataFacade;
 		TSharedPtr<FPCGExPointIOMerger> Merger;
 		TSet<uint64> Bridges;
 
-		FProcessorBatch(FPCGExContext* InContext, const TSharedRef<PCGExData::FPointIO>& InVtx, TArrayView<TSharedRef<PCGExData::FPointIO>> InEdges);
+		FBatch(FPCGExContext* InContext, const TSharedRef<PCGExData::FPointIO>& InVtx, TArrayView<TSharedRef<PCGExData::FPointIO>> InEdges);
 
 		virtual void Process() override;
 		virtual bool PrepareSingle(const TSharedPtr<FProcessor>& ClusterProcessor) override;
@@ -128,7 +128,7 @@ namespace PCGExBridgeClusters
 	public:
 		FPCGExCreateBridgeTask(
 			const TSharedPtr<PCGExData::FPointIO>& InPointIO,
-			const TSharedPtr<FProcessorBatch>& InBatch,
+			const TSharedPtr<FBatch>& InBatch,
 			const TSharedPtr<PCGExCluster::FCluster>& A,
 			const TSharedPtr<PCGExCluster::FCluster>& B) :
 			FPCGExTask(InPointIO),
@@ -138,7 +138,7 @@ namespace PCGExBridgeClusters
 		{
 		}
 
-		TSharedPtr<FProcessorBatch> Batch;
+		TSharedPtr<FBatch> Batch;
 
 		TSharedPtr<PCGExCluster::FCluster> ClusterA;
 		TSharedPtr<PCGExCluster::FCluster> ClusterB;

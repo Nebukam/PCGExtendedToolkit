@@ -90,7 +90,7 @@ namespace PCGExPathfinding
 		if (Resolution == EPathfindingResolution::Fail) { return; }
 
 		const TArray<PCGExCluster::FNode>& NodesRef = *Cluster->Nodes;
-		const TArray<PCGExGraph::FIndexedEdge>& EdgesRef = *Cluster->Edges;
+		const TArray<PCGExGraph::FEdge>& EdgesRef = *Cluster->Edges;
 
 		// Feedback scores
 
@@ -101,7 +101,7 @@ namespace PCGExPathfinding
 			for (int i = 0; i < PathEdges.Num(); i++)
 			{
 				const PCGExCluster::FNode& Node = NodesRef[PathNodes[i]];
-				const PCGExGraph::FIndexedEdge& Edge = EdgesRef[PathEdges[i]];
+				const PCGExGraph::FEdge& Edge = EdgesRef[PathEdges[i]];
 				HeuristicsHandler->FeedbackScore(Node, Edge);
 				LocalFeedback->FeedbackScore(Node, Edge);
 			}

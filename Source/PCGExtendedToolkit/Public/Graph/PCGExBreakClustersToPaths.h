@@ -18,6 +18,14 @@ enum class EPCGExBreakClusterOperationTarget : uint8
 	Edges = 1 UMETA(DisplayName = "Edges", ToolTip="Operate on each edge individually (very expensive)"),
 };
 
+UENUM()
+enum class EPCGExBreakClusterLeavesHandling : uint8
+{
+	Include = 0 UMETA(DisplayName = "Include Leaves", ToolTip="Include leaves."),
+	Exclude = 1 UMETA(DisplayName = "Exclude Leaves", ToolTip="Exclude leaves."),
+	Only    = 2 UMETA(DisplayName = "Only Leaves", ToolTip="Only process leaves."),
+};
+
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Clusters")
 class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExBreakClustersToPathsSettings : public UPCGExEdgesProcessorSettings
 {
@@ -40,8 +48,12 @@ public:
 	virtual bool SupportsEdgeSorting() const override { return DirectionSettings.RequiresSortingRules(); }
 	virtual PCGExData::EIOInit GetMainOutputInitMode() const override;
 	virtual PCGExData::EIOInit GetEdgeOutputInitMode() const override;
-	PCGEX_NODE_POINT_FILTER(FName("Break Conditions"), "Filters used to know which points are 'break' points.", PCGExFactories::ClusterNodeFilters, false)
+	PCGEX_NODE_POINT_FILTER(FName("Break Conditions"), "Filters used to know which points are 'break' points.", PCGExFactories::PointFilters, false)
 	//~End UPCGExPointsProcessorSettings
+
+	/** How to handle leaves */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	EPCGExBreakClusterLeavesHandling LeavesHandling = EPCGExBreakClusterLeavesHandling::Include;
 
 	/** Operation target mode */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
@@ -108,9 +120,12 @@ namespace PCGExBreakClustersToPaths
 {
 	class FProcessor final : public PCGExClusterMT::TProcessor<FPCGExBreakClustersToPathsContext, UPCGExBreakClustersToPathsSettings>
 	{
-		TArray<int8> Breakpoints;
+		friend class FBatch;
 
-		TArray<TSharedPtr<PCGExCluster::FNodeChain>> Chains;
+	protected:
+		TSharedPtr<TArray<int8>> Breakpoints;
+		TSharedPtr<PCGExCluster::FNodeChainBuilder> ChainBuilder;
+
 		FPCGExEdgeDirectionSettings DirectionSettings;
 
 	public:
@@ -121,25 +136,28 @@ namespace PCGExBreakClustersToPaths
 
 		virtual bool Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager) override;
 		virtual void CompleteWork() override;
-
 		virtual void ProcessSingleRangeIteration(const int32 Iteration, const int32 LoopIdx, const int32 Count) override;
-		virtual void ProcessSingleEdge(const int32 EdgeIndex, PCGExGraph::FIndexedEdge& Edge, const int32 LoopIdx, const int32 Count) override;
+		virtual void ProcessSingleEdge(const int32 EdgeIndex, PCGExGraph::FEdge& Edge, const int32 LoopIdx, const int32 Count) override;
 	};
 
-	class FProcessorBatch final : public PCGExClusterMT::TBatch<FProcessor>
+	class FBatch final : public PCGExClusterMT::TBatch<FProcessor>
 	{
 		friend class FProcessor;
 
+	protected:
 		FPCGExEdgeDirectionSettings DirectionSettings;
+		TSharedPtr<TArray<int8>> Breakpoints;
 
 	public:
-		FProcessorBatch(FPCGExContext* InContext, const TSharedRef<PCGExData::FPointIO>& InVtx, const TArrayView<TSharedRef<PCGExData::FPointIO>> InEdges):
-			TBatch<FProcessor>(InContext, InVtx, InEdges)
+		FBatch(FPCGExContext* InContext, const TSharedRef<PCGExData::FPointIO>& InVtx, const TArrayView<TSharedRef<PCGExData::FPointIO>> InEdges):
+			TBatch(InContext, InVtx, InEdges)
 		{
 			bAllowVtxDataFacadeScopedGet = true;
 		}
 
 		virtual void RegisterBuffersDependencies(PCGExData::FFacadePreloader& FacadePreloader) override;
+		virtual void Process() override;
+		virtual bool PrepareSingle(const TSharedPtr<FProcessor>& ClusterProcessor) override;
 		virtual void OnProcessingPreparationComplete() override;
 	};
 }

@@ -16,7 +16,7 @@ bool UPCGExSearchAStar::ResolveQuery(
 	check(InQuery->PickResolution == PCGExPathfinding::EQueryPickResolution::Success)
 
 	const TArray<PCGExCluster::FNode>& NodesRef = *Cluster->Nodes;
-	const TArray<PCGExGraph::FIndexedEdge>& EdgesRef = *Cluster->Edges;
+	const TArray<PCGExGraph::FEdge>& EdgesRef = *Cluster->Edges;
 
 	const PCGExCluster::FNode& SeedNode = *InQuery->Seed.Node;
 	const PCGExCluster::FNode& GoalNode = *InQuery->Goal.Node;
@@ -34,9 +34,9 @@ bool UPCGExSearchAStar::ResolveQuery(
 	GScore.Init(-1, NumNodes);
 
 	const TUniquePtr<PCGExSearch::FScoredQueue> ScoredQueue = MakeUnique<PCGExSearch::FScoredQueue>(
-		NumNodes, SeedNode.NodeIndex, Heuristics->GetGlobalScore(SeedNode, SeedNode, GoalNode));
+		NumNodes, SeedNode.Index, Heuristics->GetGlobalScore(SeedNode, SeedNode, GoalNode));
 
-	GScore[SeedNode.NodeIndex] = 0;
+	GScore[SeedNode.Index] = 0;
 
 	const PCGExHeuristics::FLocalFeedbackHandler* Feedback = LocalFeedback.Get();
 
@@ -45,7 +45,7 @@ bool UPCGExSearchAStar::ResolveQuery(
 	double CurrentFScore;
 	while (ScoredQueue->Dequeue(CurrentNodeIndex, CurrentFScore))
 	{
-		if (CurrentNodeIndex == GoalNode.NodeIndex) { break; } // Exit early
+		if (CurrentNodeIndex == GoalNode.Index) { break; } // Exit early
 
 		const double CurrentGScore = GScore[CurrentNodeIndex];
 		const PCGExCluster::FNode& Current = NodesRef[CurrentNodeIndex];
@@ -54,16 +54,15 @@ bool UPCGExSearchAStar::ResolveQuery(
 		Visited[CurrentNodeIndex] = true;
 		VisitedNum++;
 
-		for (const uint64 AdjacencyHash : Current.Adjacency)
+		for (const PCGExGraph::FLink Lk : Current.Links)
 		{
-			uint32 NeighborIndex;
-			uint32 EdgeIndex;
-			PCGEx::H64(AdjacencyHash, NeighborIndex, EdgeIndex);
+			const uint32 NeighborIndex = Lk.Node;
+			const uint32 EdgeIndex = Lk.Edge;
 
 			if (Visited[NeighborIndex]) { continue; }
 
 			const PCGExCluster::FNode& AdjacentNode = NodesRef[NeighborIndex];
-			const PCGExGraph::FIndexedEdge& Edge = EdgesRef[EdgeIndex];
+			const PCGExGraph::FEdge& Edge = EdgesRef[EdgeIndex];
 
 			const double EScore = Heuristics->GetEdgeScore(Current, AdjacentNode, Edge, SeedNode, GoalNode, Feedback, TravelStack);
 			const double TentativeGScore = CurrentGScore + EScore;
@@ -83,7 +82,7 @@ bool UPCGExSearchAStar::ResolveQuery(
 
 	bool bSuccess = false;
 
-	int32 PathNodeIndex = PCGEx::NH64A(TravelStack->Get(GoalNode.NodeIndex));
+	int32 PathNodeIndex = PCGEx::NH64A(TravelStack->Get(GoalNode.Index));
 	int32 PathEdgeIndex = -1;
 
 	if (PathNodeIndex != -1)
@@ -91,7 +90,7 @@ bool UPCGExSearchAStar::ResolveQuery(
 		bSuccess = true;
 		//InQuery->Reserve(VisitedNum);
 
-		InQuery->AddPathNode(GoalNode.NodeIndex);
+		InQuery->AddPathNode(GoalNode.Index);
 
 		while (PathNodeIndex != -1)
 		{

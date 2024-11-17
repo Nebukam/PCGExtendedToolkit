@@ -60,9 +60,9 @@ bool FIsoEdgeDirectionFilter::Init(FPCGExContext* InContext, const TSharedRef<PC
 	return true;
 }
 
-bool FIsoEdgeDirectionFilter::Test(const PCGExGraph::FIndexedEdge& Edge) const
+bool FIsoEdgeDirectionFilter::Test(const PCGExGraph::FEdge& Edge) const
 {
-	PCGExGraph::FIndexedEdge MutableEdge = Edge;
+	PCGExGraph::FEdge MutableEdge = Edge;
 	DirectionSettings.SortEndpoints(Cluster.Get(), MutableEdge);
 
 	const FVector Direction = Cluster->GetEdgeDir(MutableEdge);

@@ -43,7 +43,7 @@ bool PCGExPointsFilter::TNumericComparisonNearestFilter::Init(FPCGExContext* InC
 	if (!TargetDataFacade) { return false; }
 
 	Distances = TypedFilterFactory->Config.DistanceDetails.MakeDistances();
-	
+
 	OperandA = TargetDataFacade->GetScopedBroadcaster<double>(TypedFilterFactory->Config.OperandA);
 
 	if (!OperandA)

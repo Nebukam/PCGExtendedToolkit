@@ -5,7 +5,6 @@
 #include "PCGExMT.h"
 
 
-
 namespace PCGExMT
 {
 	FTaskManager::~FTaskManager()

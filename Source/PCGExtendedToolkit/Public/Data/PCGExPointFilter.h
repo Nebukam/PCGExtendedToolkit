@@ -14,7 +14,7 @@
 
 namespace PCGExGraph
 {
-	struct FIndexedEdge;
+	struct FEdge;
 }
 
 namespace PCGExPointFilter
@@ -97,7 +97,7 @@ namespace PCGExPointFilter
 
 		virtual bool Test(const int32 Index) const;
 		virtual bool Test(const PCGExCluster::FNode& Node) const;
-		virtual bool Test(const PCGExGraph::FIndexedEdge& Edge) const;
+		virtual bool Test(const PCGExGraph::FEdge& Edge) const;
 
 		virtual ~FFilter() = default;
 	};
@@ -112,7 +112,7 @@ namespace PCGExPointFilter
 
 		virtual bool Test(const int32 Index) const override;
 		virtual bool Test(const PCGExCluster::FNode& Node) const override final;
-		virtual bool Test(const PCGExGraph::FIndexedEdge& Edge) const override final;
+		virtual bool Test(const PCGExGraph::FEdge& Edge) const override final;
 	};
 
 	class /*PCGEXTENDEDTOOLKIT_API*/ FManager : public TSharedFromThis<FManager>
@@ -132,7 +132,7 @@ namespace PCGExPointFilter
 
 		virtual bool Test(const int32 Index);
 		virtual bool Test(const PCGExCluster::FNode& Node);
-		virtual bool Test(const PCGExGraph::FIndexedEdge& Edge);
+		virtual bool Test(const PCGExGraph::FEdge& Edge);
 
 		virtual ~FManager()
 		{

@@ -4,7 +4,6 @@
 #include "Sampling/PCGExSampleOverlapStats.h"
 
 
-
 #define LOCTEXT_NAMESPACE "PCGExSampleOverlapStatsElement"
 #define PCGEX_NAMESPACE SampleOverlapStats
 
@@ -137,7 +136,7 @@ namespace PCGExSampleOverlapStats
 			[&]()
 			{
 				Octree = MakeUnique<PCGExDiscardByOverlap::FPointBoundsOctree>(Bounds.GetCenter(), Bounds.GetExtent().Length());
-				for (TSharedPtr<PCGExDiscardByOverlap::FPointBounds> PtBounds : LocalPointBounds)
+				for (const TSharedPtr<PCGExDiscardByOverlap::FPointBounds>& PtBounds : LocalPointBounds)
 				{
 					if (!PtBounds) { continue; }
 					Octree->AddElement(PtBounds.Get());
@@ -213,7 +212,7 @@ namespace PCGExSampleOverlapStats
 					int32 Count = 0;
 
 					OtherProcessor->GetOctree()->FindElementsWithBoundsTest(
-						FBoxCenterAndExtent(OwnedPoint->BSB.GetBox()), [&](const PCGExDiscardByOverlap::FPointBounds* OtherPoint)
+						FBoxCenterAndExtent(OwnedPoint->Bounds.GetBox()), [&](const PCGExDiscardByOverlap::FPointBounds* OtherPoint)
 						{
 							const FBox Intersection = OwnedPoint->LocalBounds.Overlap(OtherPoint->TransposedBounds(InvMatrix));
 
@@ -246,15 +245,15 @@ namespace PCGExSampleOverlapStats
 				FBoxCenterAndExtent(Overlap->Intersection.GetCenter(), Overlap->Intersection.GetExtent()),
 				[&](const PCGExDiscardByOverlap::FPointBounds* OwnedPoint)
 				{
-					const FSphere S1 = OwnedPoint->BSB.GetSphere();
+					const FSphere S1 = OwnedPoint->Bounds.GetSphere();
 
 					int32 Count = 0;
 
 					OtherProcessor->GetOctree()->FindElementsWithBoundsTest(
-						FBoxCenterAndExtent(OwnedPoint->BSB.GetBox()), [&](const PCGExDiscardByOverlap::FPointBounds* OtherPoint)
+						FBoxCenterAndExtent(OwnedPoint->Bounds.GetBox()), [&](const PCGExDiscardByOverlap::FPointBounds* OtherPoint)
 						{
 							double OverlapAmount = 0;
-							if (!PCGExMath::SphereOverlap(S1, OtherPoint->BSB.GetSphere(), OverlapAmount)) { return; }
+							if (!PCGExMath::SphereOverlap(S1, OtherPoint->Bounds.GetSphere(), OverlapAmount)) { return; }
 
 							if (Settings->ThresholdMeasure == EPCGExMeanMeasure::Relative) { if ((OverlapAmount / S1.W) < Settings->MinThreshold) { return; } }
 							else if (OverlapAmount < Settings->MinThreshold) { return; }
