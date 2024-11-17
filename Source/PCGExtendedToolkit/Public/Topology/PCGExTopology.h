@@ -243,6 +243,15 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExCellSeedMutationDetails
 	void ApplyToPoint(const PCGExTopology::FCell* InCell, FPCGPoint& OutPoint, const TArray<FPCGPoint>& CellPoints) const;
 };
 
+UENUM(BlueprintType)
+enum class EPCGExDynamicMeshComponentDistanceFieldMode : uint8
+{
+	NoDistanceField = 0 UMETA(DisplayName = "No Distance Field"),
+#if PCGEX_ENGINE_VERSION > 503
+	AsyncCPUDistanceField = 1 UMETA(DisplayName = "Async CPU Distance Field"),
+#endif
+};
+
 USTRUCT(BlueprintType)
 struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExTopologyDetails
 {
@@ -256,7 +265,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExTopologyDetails
 	bool bFlipOrientation = false;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
-	EDynamicMeshComponentDistanceFieldMode DistanceFieldMode = EDynamicMeshComponentDistanceFieldMode::NoDistanceField;
+	EPCGExDynamicMeshComponentDistanceFieldMode DistanceFieldMode = EPCGExDynamicMeshComponentDistanceFieldMode::NoDistanceField;
 };
 
 namespace PCGExTopology

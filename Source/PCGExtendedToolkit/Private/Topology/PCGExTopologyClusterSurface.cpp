@@ -138,6 +138,47 @@ namespace PCGExTopologyClusterSurface
 			}, EDynamicMeshChangeType::GeneralEdit, EDynamicMeshAttributeChangeFlags::MeshTopology, false);
 	}
 
+	void FProcessor::Output()
+	{
+		if (!bIsProcessorValid) { return; }
+
+		UE_LOG(LogTemp, Warning, TEXT("Output %llu | %d"), Settings->UID, EdgeDataFacade->Source->IOIndex)
+
+		TRACE_CPUPROFILER_EVENT_SCOPE(UPCGExPathSplineMesh::FProcessor::Output);
+
+		// TODO : Resolve per-point target actor...? irk.
+		AActor* TargetActor = Settings->TargetActor.Get() ? Settings->TargetActor.Get() : ExecutionContext->GetTargetActor(nullptr);
+
+		if (!TargetActor)
+		{
+			PCGE_LOG_C(Error, GraphAndLog, ExecutionContext, FTEXT("Invalid target actor."));
+			return;
+		}
+
+		const FString ComponentName = TEXT("PCGDynamicMeshComponent");
+		const EObjectFlags ObjectFlags = (bIsPreviewMode ? RF_Transient : RF_NoFlags);
+		UDynamicMeshComponent* DynamicMeshComponent = NewObject<UDynamicMeshComponent>(TargetActor, MakeUniqueObjectName(TargetActor, UDynamicMeshComponent::StaticClass(), FName(ComponentName)), ObjectFlags);
+
+		if (Settings->Topology.bFlipOrientation)
+		{
+			GetInternalMesh()->GetMeshPtr()->ReverseOrientation();
+		}
+
+		DynamicMeshComponent->SetDynamicMesh(GetInternalMesh());
+		
+#if PCGEX_ENGINE_VERSION > 503
+		DynamicMeshComponent->SetDistanceFieldMode(Settings->Topology.DistanceFieldMode);
+#endif
+		
+		Context->ManagedObjects->Remove(GetInternalMesh());
+
+		Context->AttachManageComponent(
+			TargetActor, DynamicMeshComponent,
+			FAttachmentTransformRules(EAttachmentRule::KeepWorld, EAttachmentRule::KeepWorld, EAttachmentRule::KeepWorld, false));
+
+		Context->NotifyActors.Add(TargetActor);
+	}
+
 	void FProcessor::CompleteWork()
 	{
 		UE_LOG(LogTemp, Warning, TEXT("Complete %llu | %d"), Settings->UID, EdgeDataFacade->Source->IOIndex)
