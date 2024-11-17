@@ -65,7 +65,7 @@ public:
 	bool bTagIfAnyPointPassed = false;
 
 	/** ... */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging", meta=(PCG_Overridable, EditCondition="bTagIfAnyPass"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging", meta=(PCG_Overridable, EditCondition="bTagIfAnyPointPassed"))
 	FString HasAnyPointPassedTag = TEXT("SomePointsPassed");
 
 	/** */
