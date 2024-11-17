@@ -75,14 +75,14 @@ bool FNodeEdgeDirectionFilter::TestDot(const PCGExCluster::FNode& Node) const
 		{
 			for (int i = 0; i < Dots.Num(); i++)
 			{
-				Dots[i] = FMath::Abs(FVector::DotProduct(RefDir, Cluster->GetDir(Node.NodeIndex, Node.Links[i].Node)));
+				Dots[i] = FMath::Abs(FVector::DotProduct(RefDir, Cluster->GetDir(Node.Index, Node.Links[i].Node)));
 			}
 		}
 		else
 		{
 			for (int i = 0; i < Dots.Num(); i++)
 			{
-				Dots[i] = FVector::DotProduct(RefDir, Cluster->GetDir(Node.NodeIndex, Node.Links[i].Node));
+				Dots[i] = FVector::DotProduct(RefDir, Cluster->GetDir(Node.Index, Node.Links[i].Node));
 			}
 		}
 	}
@@ -92,14 +92,14 @@ bool FNodeEdgeDirectionFilter::TestDot(const PCGExCluster::FNode& Node) const
 		{
 			for (int i = 0; i < Dots.Num(); i++)
 			{
-				Dots[i] = FMath::Abs(FVector::DotProduct(RefDir, Cluster->GetDir(Node.NodeIndex, Node.Links[i].Node)));
+				Dots[i] = FMath::Abs(FVector::DotProduct(RefDir, Cluster->GetDir(Node.Index, Node.Links[i].Node)));
 			}
 		}
 		else
 		{
 			for (int i = 0; i < Dots.Num(); i++)
 			{
-				Dots[i] = FVector::DotProduct(RefDir, Cluster->GetDir(Node.NodeIndex, Node.Links[i].Node));
+				Dots[i] = FVector::DotProduct(RefDir, Cluster->GetDir(Node.Index, Node.Links[i].Node));
 			}
 		}
 	}
@@ -172,14 +172,14 @@ bool FNodeEdgeDirectionFilter::TestHash(const PCGExCluster::FNode& Node) const
 	{
 		for (int i = 0; i < Hashes.Num(); i++)
 		{
-			Hashes[i] = PCGEx::I323(Cluster->GetDir(Node.NodeIndex, Node.Links[i].Node), CWTolerance);
+			Hashes[i] = PCGEx::I323(Cluster->GetDir(Node.Index, Node.Links[i].Node), CWTolerance);
 		}
 	}
 	else
 	{
 		for (int i = 0; i < Hashes.Num(); i++)
 		{
-			Hashes[i] = PCGEx::I323(Cluster->GetDir(Node.NodeIndex, Node.Links[i].Node), CWTolerance);
+			Hashes[i] = PCGEx::I323(Cluster->GetDir(Node.Index, Node.Links[i].Node), CWTolerance);
 		}
 	}
 

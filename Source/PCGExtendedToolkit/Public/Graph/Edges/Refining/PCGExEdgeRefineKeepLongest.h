@@ -30,7 +30,7 @@ public:
 
 		for (const PCGExGraph::FLink Lk : Node.Links)
 		{
-			const double Dist = Cluster->GetDistSquared(Node.NodeIndex, Lk.Node);
+			const double Dist = Cluster->GetDistSquared(Node.Index, Lk.Node);
 			if (Dist > LongestDist)
 			{
 				LongestDist = Dist;

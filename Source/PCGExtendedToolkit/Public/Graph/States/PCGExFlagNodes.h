@@ -77,9 +77,6 @@ namespace PCGExFlagNodes
 		TSharedPtr<TArray<int64>> StateFlags;
 		TSharedPtr<PCGExClusterStates::FStateManager> StateManager;
 
-		bool bBuildExpandedNodes = false;
-		TSharedPtr<TArray<PCGExCluster::FExpandedNode>> ExpandedNodes;
-
 	public:
 		FProcessor(const TSharedRef<PCGExData::FFacade>& InVtxDataFacade, const TSharedRef<PCGExData::FFacade>& InEdgeDataFacade):
 			TProcessor(InVtxDataFacade, InEdgeDataFacade)
@@ -89,7 +86,6 @@ namespace PCGExFlagNodes
 		virtual ~FProcessor() override;
 
 		virtual bool Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager) override;
-		virtual void ProcessSingleRangeIteration(const int32 Iteration, const int32 LoopIdx, const int32 Count) override;
 		virtual void ProcessSingleNode(const int32 Index, PCGExCluster::FNode& Node, const int32 LoopIdx, const int32 Count) override;
 		virtual void CompleteWork() override;
 		virtual void Write() override;

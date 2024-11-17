@@ -84,7 +84,7 @@ namespace PCGExGrowPaths
 			if (const double Score = GetGrowthScore(CurrentNode, OtherNode, EdgesRef[Lk.Edge]); Score < BestScore)
 			{
 				BestScore = Score;
-				NextGrowthIndex = OtherNode.NodeIndex;
+				NextGrowthIndex = OtherNode.Index;
 				NextGrowthEdgeIndex = Lk.Edge;
 			}
 		}
@@ -138,7 +138,7 @@ namespace PCGExGrowPaths
 			}
 		}
 
-		Processor->Cluster->NodePositions[GoalNode->NodeIndex] = Processor->Cluster->GetPos(NextNode) + GrowthDirection * 10000;
+		Processor->Cluster->NodePositions[GoalNode->Index] = Processor->Cluster->GetPos(NextNode) + GrowthDirection * 10000;
 
 		if (Processor->GetSettings()->bUseGrowthStop)
 		{
@@ -179,7 +179,7 @@ namespace PCGExGrowPaths
 	{
 		SeedNode = &(*Processor->Cluster->Nodes)[LastGrowthIndex];
 		GoalNode = MakeUnique<PCGExCluster::FNode>();
-		GoalNode->NodeIndex = Processor->Cluster->NodePositions.Add(Processor->Cluster->GetPos(SeedNode) + GrowthDirection * 10000);
+		GoalNode->Index = Processor->Cluster->NodePositions.Add(Processor->Cluster->GetPos(SeedNode) + GrowthDirection * 10000);
 		Metrics.Reset(Processor->Cluster->GetPos(SeedNode));
 		TravelStack = PCGEx::NewHashLookup<PCGEx::FMapHashLookup>(PCGEx::NH64(-1, -1), 0);
 	}
@@ -393,7 +393,7 @@ namespace PCGExGrowPaths
 
 			for (int j = 0; j < StartGrowthNumBranches; j++)
 			{
-				TSharedPtr<FGrowth> NewGrowth = MakeShared<FGrowth>(SharedThis(this), StartNumIterations, Node.NodeIndex, StartGrowthDirection);
+				TSharedPtr<FGrowth> NewGrowth = MakeShared<FGrowth>(SharedThis(this), StartNumIterations, Node.Index, StartGrowthDirection);
 				NewGrowth->MaxDistance = StartGrowthMaxDistance;
 				NewGrowth->SeedPointIndex = i;
 

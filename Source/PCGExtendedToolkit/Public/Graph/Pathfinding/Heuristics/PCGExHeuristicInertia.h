@@ -73,12 +73,12 @@ public:
 	{
 		if (TravelStack)
 		{
-			int32 PathNodeIndex = PCGEx::NH64A(TravelStack->Get(From.NodeIndex));
+			int32 PathNodeIndex = PCGEx::NH64A(TravelStack->Get(From.Index));
 			int32 PathEdgeIndex = -1;
 
 			if (PathNodeIndex != -1)
 			{
-				FVector Avg = Cluster->GetDir(PathNodeIndex, From.NodeIndex);
+				FVector Avg = Cluster->GetDir(PathNodeIndex, From.Index);
 				int32 Sampled = 1;
 				while (PathNodeIndex != -1 && Sampled < MaxSamples)
 				{
@@ -95,7 +95,7 @@ public:
 				{
 					const double Dot = FVector::DotProduct(
 						(Avg / Sampled).GetSafeNormal(),
-						Cluster->GetDir(From.NodeIndex, To.NodeIndex));
+						Cluster->GetDir(From.Index, To.Index));
 
 					return GetScoreInternal(PCGExMath::Remap(Dot, -1, 1, OutMin, OutMax)) * ReferenceWeight;
 				}

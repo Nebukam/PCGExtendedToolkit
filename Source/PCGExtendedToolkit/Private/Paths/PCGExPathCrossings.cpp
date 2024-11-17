@@ -240,7 +240,7 @@ namespace PCGExPathCrossings
 		{
 			OtherPath = Path.Get();
 			Path->GetEdgeOctree()->FindElementsWithBoundsTest(
-				Edge.BSB.GetBox(), [&](const PCGExPaths::FPathEdge* OtherEdge)
+				Edge.Bounds.GetBox(), [&](const PCGExPaths::FPathEdge* OtherEdge)
 				{
 					if (Edge.ShareIndices(OtherEdge)) { return; }
 					FindSplit(Edge, *OtherEdge);
@@ -261,7 +261,7 @@ namespace PCGExPathCrossings
 			CurrentIOIndex = TypedProcessor->PointDataFacade->Source->IOIndex;
 
 			OtherPath = TypedProcessor->Path.Get();
-			TypedProcessor->GetEdgeOctree()->FindElementsWithBoundsTest(Edge.BSB.GetBox(), [&](const PCGExPaths::FPathEdge* OtherEdge) { FindSplit(Edge, *OtherEdge); });
+			TypedProcessor->GetEdgeOctree()->FindElementsWithBoundsTest(Edge.Bounds.GetBox(), [&](const PCGExPaths::FPathEdge* OtherEdge) { FindSplit(Edge, *OtherEdge); });
 		}
 
 		if (!NewCrossing->Crossings.IsEmpty()) { Crossings[Iteration] = NewCrossing; }

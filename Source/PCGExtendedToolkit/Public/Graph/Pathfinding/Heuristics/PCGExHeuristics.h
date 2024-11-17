@@ -157,7 +157,7 @@ namespace PCGExHeuristics
 			for (const UPCGExHeuristicOperation* Op : Operations)
 			{
 				EScore += Op->GetEdgeScore(From, To, Edge, Seed, Goal, TravelStack);
-				EWeight += (Op->WeightFactor * Op->GetCustomWeightMultiplier(To.NodeIndex, Edge.PointIndex));
+				EWeight += (Op->WeightFactor * Op->GetCustomWeightMultiplier(To.Index, Edge.PointIndex));
 			}
 
 			if (LocalFeedback)

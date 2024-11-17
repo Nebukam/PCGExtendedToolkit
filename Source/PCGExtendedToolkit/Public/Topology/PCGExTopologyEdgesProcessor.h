@@ -38,16 +38,9 @@ public:
 	FPCGExGeo2DProjectionDetails ProjectionDetails;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
-	FPCGExCellConstraintsDetails Constraints = FPCGExCellConstraintsDetails(true);
+	FPCGExCellConstraintsDetails Constraints;
 
-	/** Output a per-cell point in a new dataset */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
-	bool bOutputCellSeeds = false;
-
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bOutputCellSeeds"))
-	FPCGExCellSeedMutationDetails SeedMutations = FPCGExCellSeedMutationDetails(true);
-
-	/** Projection settings. */
+	/** Topology settings. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	FPCGExTopologyDetails Topology;
 
@@ -88,15 +81,13 @@ namespace PCGExTopologyEdges
 		using PCGExClusterMT::TProcessor<TContext, TSettings>::Settings;
 		using PCGExClusterMT::TProcessor<TContext, TSettings>::Context;
 
-		bool bBuildExpandedNodes = false;
 		bool bIsPreviewMode = false;
 
 		TObjectPtr<UDynamicMesh> InternalMesh;
 
 		TSharedPtr<PCGEx::FIndexLookup> VerticesLookup;
-		TSharedPtr<TArray<PCGExCluster::FExpandedNode>> ExpandedNodes;
 
-		TSharedPtr<PCGExTopology::FCellConstraints> CellConstraints;
+		TSharedPtr<PCGExTopology::FCellConstraints> CellsConstraints;
 		TArray<int8> ConstrainedEdgeFilterCache;
 
 		TSharedPtr<PCGExClusterFilter::FManager> EdgeFilterManager;
@@ -147,7 +138,7 @@ namespace PCGExTopologyEdges
 
 			ConstrainedEdgeFilterCache.Init(false, EdgeDataFacade->Source->GetNum());
 
-			CellConstraints = MakeShared<PCGExTopology::FCellConstraints>(Settings->Constraints);
+			CellsConstraints = MakeShared<PCGExTopology::FCellConstraints>(Settings->Constraints);
 			InitConstraints();
 
 			for (PCGExCluster::FNode& Node : *Cluster->Nodes) { Node.bValid = false; } // Invalidate all edges, triangulation will mark valid nodes to rebuild an index
@@ -162,15 +153,6 @@ namespace PCGExTopologyEdges
 			// IMPORTANT : Need to wait for projection to be completed.
 			// Children should start work only in CompleteWork!!
 
-			ExpandedNodes = Cluster->ExpandedNodes;
-
-			if (!ExpandedNodes)
-			{
-				ExpandedNodes = Cluster->GetExpandedNodes(false);
-				bBuildExpandedNodes = true;
-				this->StartParallelLoopForRange(this->NumNodes);
-			}
-
 			InternalMesh = Context->ManagedObjects->template New<UDynamicMesh>();
 			InternalMesh->EditMesh(
 				[&](FDynamicMesh3& InMesh)
@@ -180,11 +162,6 @@ namespace PCGExTopologyEdges
 
 
 			return true;
-		}
-
-		virtual void ProcessSingleRangeIteration(int32 Iteration, const int32 LoopIdx, const int32 Count) override
-		{
-			*(ExpandedNodes->GetData() + Iteration) = PCGExCluster::FExpandedNode(Cluster, Iteration);
 		}
 
 		bool BuildValidNodeLookup()
@@ -289,6 +266,7 @@ namespace PCGExTopologyEdges
 				[WeakThis = TWeakPtr<TBatch>(SharedThis(this))]
 				(const int32 StartIndex, const int32 Count, const int32 LoopIdx)
 				{
+					FRandomStream Random(StartIndex + Count + LoopIdx);
 					TSharedPtr<TBatch<T>> This = WeakThis.Pin();
 					if (!This) { return; }
 
@@ -296,7 +274,8 @@ namespace PCGExTopologyEdges
 
 					for (int i = StartIndex; i < MaxIndex; i++)
 					{
-						This->ProjectedPositions[i] = This->ProjectionDetails.ProjectFlat(This->VtxDataFacade->Source->GetInPoint(i).Transform.GetLocation(), i);
+						FVector V = This->ProjectionDetails.ProjectFlat(This->VtxDataFacade->Source->GetInPoint(i).Transform.GetLocation(), i);
+						This->ProjectedPositions[i] = V + (Random.VRand() * 0.1); // Cheap triangulation edge case prevention
 					}
 				};
 

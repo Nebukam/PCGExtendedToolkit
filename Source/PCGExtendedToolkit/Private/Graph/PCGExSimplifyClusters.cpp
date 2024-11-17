@@ -128,14 +128,14 @@ namespace PCGExSimplifyClusters
 			else { if (FVector::DotProduct(A, B) < DotThreshold) { continue; } }
 
 			GraphBuilder->Graph->InsertEdge(
-				Cluster->GetNodePointIndex(LastIndex),
-				Cluster->GetNodePointIndex(Lk.Node),
+				Cluster->GetNode(LastIndex)->PointIndex,
+				Cluster->GetNode(Lk)->PointIndex,
 				OutEdge, IOIndex);
 
 			if (bComputeMeta)
 			{
 				// TODO : Compute UnionData to carry over attributes & properties
-				GraphBuilder->Graph->GetOrCreateEdgeMetadata(OutEdge.EdgeIndex).UnionSize = UnionCount;
+				GraphBuilder->Graph->GetOrCreateEdgeMetadata(OutEdge.Index).UnionSize = UnionCount;
 				UnionCount = 0;
 			}
 
@@ -144,14 +144,14 @@ namespace PCGExSimplifyClusters
 
 		UnionCount++;
 		GraphBuilder->Graph->InsertEdge(
-			Cluster->GetNodePointIndex(LastIndex),
-			Cluster->GetNodePointIndex(Chain->Links.Last().Node),
+			Cluster->GetNode(LastIndex)->PointIndex,
+			Cluster->GetNode(Chain->Links.Last())->PointIndex,
 			OutEdge, IOIndex);
 
 		if (bComputeMeta)
 		{
 			// TODO : Compute UnionData to carry over attributes & properties
-			GraphBuilder->Graph->GetOrCreateEdgeMetadata(OutEdge.EdgeIndex).UnionSize = UnionCount;
+			GraphBuilder->Graph->GetOrCreateEdgeMetadata(OutEdge.Index).UnionSize = UnionCount;
 		}
 	}
 

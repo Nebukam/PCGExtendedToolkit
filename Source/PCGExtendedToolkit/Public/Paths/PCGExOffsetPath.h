@@ -196,7 +196,7 @@ namespace PCGExOffsetPath
 			bool bFound = false;
 
 			DirtyPath->GetEdgeOctree()->FindElementsWithBoundsTest(
-				FBoxCenterAndExtent(FromEdge.BSB.Origin, FromEdge.BSB.BoxExtent), [&](const PCGExPaths::FPathEdge* OtherEdge)
+				FBoxCenterAndExtent(FromEdge.Bounds.Origin, FromEdge.Bounds.BoxExtent), [&](const PCGExPaths::FPathEdge* OtherEdge)
 				{
 					if (OtherEdge->Start <= NextIteration ||
 						OtherEdge->Start > (NextIteration + Settings->LookupSize) ||

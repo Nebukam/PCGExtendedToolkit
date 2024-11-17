@@ -36,7 +36,7 @@ public:
 
 	virtual void ProcessEdge(PCGExGraph::FEdge& Edge) override
 	{
-		FPlatformAtomics::InterlockedExchange(&Edge.bValid, *(EdgesFilters->GetData() + Edge.EdgeIndex) ? !bInvert : bInvert);
+		FPlatformAtomics::InterlockedExchange(&Edge.bValid, *(EdgesFilters->GetData() + Edge.Index) ? !bInvert : bInvert);
 	}
 
 	/** If enabled, filtered out edges are kept, while edges that pass the filter are removed. */

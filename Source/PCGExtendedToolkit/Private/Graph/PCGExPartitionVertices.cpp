@@ -84,7 +84,7 @@ namespace PCGExPartitionVertices
 
 		for (PCGExCluster::FNode& Node : (*Cluster->Nodes))
 		{
-			int32 i = Node.NodeIndex;
+			int32 i = Node.Index;
 
 			KeptIndices[i] = Node.PointIndex;
 			Remapping.Add(Node.PointIndex, i);
@@ -100,7 +100,7 @@ namespace PCGExPartitionVertices
 
 	void FProcessor::ProcessSingleNode(const int32 Index, PCGExCluster::FNode& Node, const int32 LoopIdx, const int32 Count)
 	{
-		PointPartitionIO->GetOut()->GetMutablePoints()[Node.NodeIndex] = VtxDataFacade->Source->GetInPoint(KeptIndices[Node.NodeIndex]);
+		PointPartitionIO->GetOut()->GetMutablePoints()[Node.Index] = VtxDataFacade->Source->GetInPoint(KeptIndices[Node.Index]);
 	}
 
 	void FProcessor::ProcessSingleEdge(const int32 EdgeIndex, PCGExGraph::FEdge& Edge, const int32 LoopIdx, const int32 Count)

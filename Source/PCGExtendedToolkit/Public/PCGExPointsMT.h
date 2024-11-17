@@ -71,6 +71,7 @@ ParallelLoopFor##_NAME->StartSubLoops(_NUM, PLI, _INLINE);
 		bool bInlineProcessRange = false;
 
 		PCGExData::ESource CurrentProcessingSource = PCGExData::ESource::Out;
+		int32 LocalPointProcessingChunkSize = -1;
 
 	public:
 		TWeakPtr<FPointsProcessorBatchBase> ParentBatch;
@@ -150,7 +151,7 @@ ParallelLoopFor##_NAME->StartSubLoops(_NUM, PLI, _INLINE);
 			return true;
 		}
 
-#pragma region Simple range loop
+#pragma region Parallel loop for points
 
 		void StartParallelLoopForPoints(const PCGExData::ESource Source = PCGExData::ESource::Out, const int32 PerLoopIterations = -1)
 		{
@@ -198,7 +199,7 @@ ParallelLoopFor##_NAME->StartSubLoops(_NUM, PLI, _INLINE);
 
 #pragma endregion
 
-#pragma region Simple range loop
+#pragma region Parallel loop for Range
 
 		void StartParallelLoopForRange(const int32 NumIterations, const int32 PerLoopIterations = -1)
 		{

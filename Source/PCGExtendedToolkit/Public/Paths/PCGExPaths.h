@@ -244,6 +244,20 @@ namespace PCGExPaths
 			return Length;
 		}
 
+		double Add(const FVector& Location, double& OutDistToLast)
+		{
+			if (Length == -1)
+			{
+				Reset(Location);
+				return 0;
+			}
+			OutDistToLast = DistToLast(Location);
+			Length += OutDistToLast;
+			Last = Location;
+			Count++;
+			return Length;
+		}
+
 		bool IsValid() const { return Length > 0; }
 		double GetTime(const double Distance) const { return (!Distance || !Length) ? 0 : Distance / Length; }
 		double DistToLast(const FVector& Location) const { return FVector::Dist(Last, Location); }
@@ -323,28 +337,27 @@ namespace PCGExPaths
 		}
 	};
 
-
 	struct FPathEdge
 	{
 		int32 Start = -1;
 		int32 End = -1;
 		FVector Dir = FVector::ZeroVector;
-		FBoxSphereBounds BSB = FBoxSphereBounds{};
+		FBoxSphereBounds Bounds = FBoxSphereBounds{};
 
 		int32 AltStart = -1;
 
-		FPathEdge(const int32 InStart, const int32 InEnd, const TArrayView<FVector>& Positions, const double Expansion = 0):
+		FPathEdge(const int32 InStart, const int32 InEnd, const TArrayView<const FVector>& Positions, const double Expansion = 0):
 			Start(InStart), End(InEnd), AltStart(InStart)
 		{
 			Update(Positions, Expansion);
 		}
 
-		FORCEINLINE void Update(const TArrayView<FVector>& Positions, const double Expansion = 0)
+		FORCEINLINE void Update(const TArrayView<const FVector>& Positions, const double Expansion = 0)
 		{
 			FBox Box = FBox(ForceInit);
 			Box += Positions[Start];
 			Box += Positions[End];
-			BSB = Box.ExpandBy(Expansion);
+			Bounds = Box.ExpandBy(Expansion);
 			Dir = (Positions[End] - Positions[Start]).GetSafeNormal();
 		}
 
@@ -412,7 +425,7 @@ namespace PCGExPaths
 		FORCEINLINE T Get(const FPathEdge& At) { return Data[At.Start]; }
 	};
 
-	PCGEX_OCTREE_SEMANTICS(FPathEdge, { return Element->BSB;}, { return A == B; })
+	PCGEX_OCTREE_SEMANTICS(FPathEdge, { return Element->Bounds;}, { return A == B; })
 
 	class FPath : public TSharedFromThis<FPath>
 	{
@@ -553,11 +566,11 @@ namespace PCGExPaths
 			for (FPathEdge& Edge : Edges)
 			{
 				Edge.Update(Positions, Expansion);
-				Bounds += Edge.BSB.GetBox();
+				Bounds += Edge.Bounds.GetBox();
 			}
 		}
 
-		virtual void UpdateEdges(const TArrayView<FVector> InPositions, const double Expansion)
+		virtual void UpdateEdges(const TArrayView<const FVector> InPositions, const double Expansion)
 		{
 			Bounds = FBox(ForceInit);
 			EdgeOctree.Reset();
@@ -569,7 +582,7 @@ namespace PCGExPaths
 			for (FPathEdge& Edge : Edges)
 			{
 				Edge.Update(Positions, Expansion);
-				Bounds += Edge.BSB.GetBox();
+				Bounds += Edge.Bounds.GetBox();
 			}
 		}
 
@@ -584,7 +597,7 @@ namespace PCGExPaths
 			for (int i = 0; i < NumEdges; i++)
 			{
 				const FPathEdge& E = (Edges[i] = FPathEdge(i, (i + 1) % NumPoints, Positions, Expansion));
-				Bounds += E.BSB.GetBox();
+				Bounds += E.Bounds.GetBox();
 			}
 		}
 	};
@@ -606,7 +619,7 @@ namespace PCGExPaths
 			BuildPath(Expansion);
 		}
 
-		TPath(const TArrayView<FVector> InPositions, const double Expansion = 0)
+		TPath(const TArrayView<const FVector> InPositions, const double Expansion = 0)
 		{
 			bClosedLoop = ClosedLoop;
 
@@ -764,7 +777,7 @@ namespace PCGExPaths
 		return StaticCastSharedPtr<FPath>(P);
 	}
 
-	static TSharedPtr<FPath> MakePath(const TArrayView<FVector> InPositions, const double Expansion, const bool bClosedLoop)
+	static TSharedPtr<FPath> MakePath(const TArrayView<const FVector> InPositions, const double Expansion, const bool bClosedLoop)
 	{
 		if (bClosedLoop)
 		{

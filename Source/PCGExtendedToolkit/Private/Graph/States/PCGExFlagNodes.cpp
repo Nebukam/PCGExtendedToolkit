@@ -76,28 +76,14 @@ namespace PCGExFlagNodes
 
 		if (!FClusterProcessor::Process(InAsyncManager)) { return false; }
 
-		ExpandedNodes = Cluster->ExpandedNodes;
-
-		if (!ExpandedNodes)
-		{
-			ExpandedNodes = Cluster->GetExpandedNodes(false);
-			bBuildExpandedNodes = true;
-		}
-
 		Cluster->ComputeEdgeLengths();
 
 		StateManager = MakeShared<PCGExClusterStates::FStateManager>(StateFlags, Cluster.ToSharedRef(), VtxDataFacade, EdgeDataFacade);
 		StateManager->Init(ExecutionContext, Context->StateFactories);
 
-		if (bBuildExpandedNodes) { StartParallelLoopForRange(NumNodes); }
-		else { StartParallelLoopForNodes(); }
+		StartParallelLoopForNodes();
 
 		return true;
-	}
-
-	void FProcessor::ProcessSingleRangeIteration(const int32 Iteration, const int32 LoopIdx, const int32 Count)
-	{
-		*(ExpandedNodes->GetData() + Iteration) = PCGExCluster::FExpandedNode(Cluster, Iteration);
 	}
 
 	void FProcessor::ProcessSingleNode(const int32 Index, PCGExCluster::FNode& Node, const int32 LoopIdx, const int32 Count)
@@ -107,7 +93,6 @@ namespace PCGExFlagNodes
 
 	void FProcessor::CompleteWork()
 	{
-		if (bBuildExpandedNodes) { StartParallelLoopForNodes(); }
 	}
 
 	void FProcessor::Write()

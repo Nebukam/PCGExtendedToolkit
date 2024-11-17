@@ -37,7 +37,7 @@ bool UPCGExSearchDijkstra::ResolveQuery(
 	const TSharedPtr<PCGEx::FHashLookup> TravelStack = PCGEx::NewHashLookup<PCGEx::FArrayHashLookup>(PCGEx::NH64(-1, -1), NumNodes);
 
 	const TUniquePtr<PCGExSearch::FScoredQueue> ScoredQueue = MakeUnique<PCGExSearch::FScoredQueue>(
-		NumNodes, SeedNode.NodeIndex, 0);
+		NumNodes, SeedNode.Index, 0);
 
 	const PCGExHeuristics::FLocalFeedbackHandler* Feedback = LocalFeedback.Get();
 
@@ -46,7 +46,7 @@ bool UPCGExSearchDijkstra::ResolveQuery(
 	double CurrentScore;
 	while (ScoredQueue->Dequeue(CurrentNodeIndex, CurrentScore))
 	{
-		if (CurrentNodeIndex == GoalNode.NodeIndex && bEarlyExit) { break; } // Exit early
+		if (CurrentNodeIndex == GoalNode.Index && bEarlyExit) { break; } // Exit early
 
 		const PCGExCluster::FNode& Current = NodesRef[CurrentNodeIndex];
 
@@ -74,7 +74,7 @@ bool UPCGExSearchDijkstra::ResolveQuery(
 
 	bool bSuccess = false;
 
-	int32 PathNodeIndex = PCGEx::NH64A(TravelStack->Get(GoalNode.NodeIndex));
+	int32 PathNodeIndex = PCGEx::NH64A(TravelStack->Get(GoalNode.Index));
 	int32 PathEdgeIndex = -1;
 
 	if (PathNodeIndex != -1)
@@ -82,7 +82,7 @@ bool UPCGExSearchDijkstra::ResolveQuery(
 		bSuccess = true;
 		//InQuery->Reserve(VisitedNum);
 
-		InQuery->AddPathNode(GoalNode.NodeIndex);
+		InQuery->AddPathNode(GoalNode.Index);
 
 		while (PathNodeIndex != -1)
 		{

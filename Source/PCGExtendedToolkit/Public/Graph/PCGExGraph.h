@@ -104,10 +104,6 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExGraphBuilderDetails
 	UPROPERTY(BlueprintReadWrite, Category = Settings, EditAnywhere, meta = (PCG_Overridable))
 	bool bBuildAndCacheClusters = GetDefault<UPCGExGlobalSettings>()->bDefaultBuildAndCacheClusters;
 
-	/** Expands the cluster data. Takes more space in memory but can be a very effective improvement depending on the operations you're doing on the cluster. */
-	UPROPERTY(BlueprintReadWrite, Category = Settings, EditAnywhere, meta = (PCG_Overridable, EditCondition="bBuildAndCacheClusters"))
-	bool bExpandClusters = GetDefault<UPCGExGlobalSettings>()->bDefaultCacheExpandedClusters;
-
 	bool IsValid(const TSharedPtr<PCGExGraph::FSubGraph>& InSubgraph) const;
 };
 
@@ -338,13 +334,13 @@ namespace PCGExGraph
 		}
 
 		FNode(const int32 InNodeIndex, const int32 InPointIndex):
-			NodeIndex(InNodeIndex), PointIndex(InPointIndex)
+			Index(InNodeIndex), PointIndex(InPointIndex)
 		{
 		}
 
 		int8 bValid = 1; // int for atomic operations
 
-		int32 NodeIndex = -1;  // Index in the context of the list that helds the node
+		int32 Index = -1;      // Index in the context of the list that helds the node
 		int32 PointIndex = -1; // Index in the context of the UPCGPointData that helds the vtx
 		int32 NumExportedEdges = 0;
 
@@ -360,7 +356,7 @@ namespace PCGExGraph
 		FORCEINLINE bool IsComplex() const { return Links.Num() > 2; }
 
 		FORCEINLINE void LinkEdge(const int32 EdgeIndex) { Links.AddUnique(FLink(0, EdgeIndex)); }
-		FORCEINLINE void Link(const FNode& Neighbor, const int32 EdgeIndex) { Links.Emplace(Neighbor.NodeIndex, EdgeIndex); }
+		FORCEINLINE void Link(const FNode& Neighbor, const int32 EdgeIndex) { Links.Emplace(Neighbor.Index, EdgeIndex); }
 
 		FORCEINLINE bool IsAdjacentTo(const int32 OtherNodeIndex) const
 		{
@@ -404,7 +400,7 @@ namespace PCGExGraph
 		{
 			Nodes.Add(Edge.Start);
 			Nodes.Add(Edge.End);
-			Edges.Add(Edge.EdgeIndex);
+			Edges.Add(Edge.Index);
 			if (Edge.IOIndex >= 0) { EdgesInIOIndices.Add(Edge.IOIndex); }
 		}
 
@@ -450,7 +446,6 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 
 	public:
 		bool bBuildClusters = false;
-		bool bExpandClusters = false;
 
 		TArray<FNode> Nodes;
 		TArray<FEdge> Edges;
@@ -481,7 +476,7 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 			for (int i = 0; i < InNumNodes; i++)
 			{
 				FNode& Node = Nodes[i];
-				Node.NodeIndex = Node.PointIndex = i;
+				Node.Index = Node.PointIndex = i;
 				Node.Links.Reserve(NumEdgesReserve);
 			}
 		}
@@ -676,7 +671,6 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 
 			Graph = MakeShared<FGraph>(NumNodes, NumEdgeReserve);
 			Graph->bBuildClusters = InDetails->bBuildAndCacheClusters;
-			Graph->bExpandClusters = InDetails->bExpandClusters;
 			Graph->bWriteEdgePosition = OutputDetails->bWriteEdgePosition;
 			Graph->EdgePosition = OutputDetails->EdgePosition;
 			Graph->bRefreshEdgeSeed = OutputDetails->bRefreshEdgeSeed;

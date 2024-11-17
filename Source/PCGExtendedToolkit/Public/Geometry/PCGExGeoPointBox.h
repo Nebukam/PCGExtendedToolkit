@@ -167,7 +167,7 @@ namespace PCGExGeo
 	{
 		FMatrix Matrix;
 		FMatrix InvMatrix;
-		FBoxSphereBounds BSB;
+		FBoxSphereBounds Bounds;
 		FVector Extents;
 		FBox Box;
 		FBox EpsilonBox;
@@ -186,7 +186,7 @@ namespace PCGExGeo
 			Box = FBox(Extents * -1, Extents);
 
 			EpsilonBox = Box.ExpandBy(-Epsilon);
-			BSB = FBoxSphereBounds(InPoint.Transform.GetLocation(), FVector(Len), Len);
+			Bounds = FBoxSphereBounds(InPoint.Transform.GetLocation(), FVector(Len), Len);
 		}
 
 #pragma region Position checks
@@ -401,7 +401,7 @@ namespace PCGExGeo
 #pragma endregion
 	};
 
-	PCGEX_OCTREE_SEMANTICS(FPointBox, { return Element->BSB;}, { return A->Index == B->Index; })
+	PCGEX_OCTREE_SEMANTICS(FPointBox, { return Element->Bounds;}, { return A->Index == B->Index; })
 
 	class /*PCGEXTENDEDTOOLKIT_API*/ FPointBoxCloud : public TSharedFromThis<FPointBoxCloud>
 	{

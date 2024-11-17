@@ -53,7 +53,7 @@ public:
 		const PCGExCluster::FNode& Goal,
 		const TSharedPtr<PCGEx::FHashLookup> TravelStack) const override
 	{
-		return CachedScores[Source == EPCGExClusterComponentSource::Edge ? Edge.PointIndex : To.NodeIndex];
+		return CachedScores[Source == EPCGExClusterComponentSource::Edge ? Edge.PointIndex : To.Index];
 	}
 
 	virtual void Cleanup() override

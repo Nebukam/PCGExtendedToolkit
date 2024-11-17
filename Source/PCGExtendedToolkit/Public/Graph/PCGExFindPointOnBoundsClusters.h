@@ -44,7 +44,7 @@ public:
 
 	/** UVW position of the target within bounds. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
-	FVector UVW = FVector::OneVector;
+	FVector UVW = FVector(-1, -1, 0);
 
 	/** Offset to apply to the closest point, away from the bounds center. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))

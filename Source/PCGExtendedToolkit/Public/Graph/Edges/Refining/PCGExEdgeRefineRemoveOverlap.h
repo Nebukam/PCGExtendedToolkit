@@ -35,7 +35,7 @@ public:
 		MinDot = bUseMinAngle ? PCGExMath::DegreesToDot(MinAngle) : 1;
 		MaxDot = bUseMaxAngle ? PCGExMath::DegreesToDot(MaxAngle) : -1;
 		ToleranceSquared = Tolerance * Tolerance;
-		Cluster->GetExpandedEdges(true); // Let's hope it was cached ^_^
+		Cluster->GetBoundedEdges(true); // Let's hope it was cached ^_^
 	}
 
 	virtual void CopySettingsFrom(const UPCGExOperation* Other) override
@@ -54,31 +54,30 @@ public:
 
 	virtual void ProcessEdge(PCGExGraph::FEdge& Edge) override
 	{
-		const PCGExCluster::FExpandedEdge& EEdge = *(Cluster->ExpandedEdges->GetData() + Edge.EdgeIndex);
-		const double Length = EEdge.GetEdgeLengthSquared(Cluster.Get());
+		const double Length = Cluster->GetDistSquared(Edge);
 
 		auto ProcessOverlap = [&](const PCGEx::FIndexedItem& Item)
 		{
 			//if (!Edge.bValid) { return false; }
 
-			const PCGExCluster::FExpandedEdge& OtherEEdge = *(Cluster->ExpandedEdges->GetData() + Item.Index);
+			const PCGExGraph::FEdge& OtherEdge = *Cluster->GetEdge(Item.Index);
 
-			if (EEdge == OtherEEdge ||
-				EEdge.Start == OtherEEdge.Start || EEdge.Start == OtherEEdge.End ||
-				EEdge.End == OtherEEdge.End || EEdge.End == OtherEEdge.Start) { return true; }
+			if (Edge.Index == OtherEdge.Index ||
+				Edge.Start == OtherEdge.Start || Edge.Start == OtherEdge.End ||
+				Edge.End == OtherEdge.End || Edge.End == OtherEdge.Start) { return true; }
 
 
 			if (bUseMinAngle || bUseMaxAngle)
 			{
-				const double Dot = FMath::Abs(FVector::DotProduct(Cluster->GetDir(*EEdge.Start, *EEdge.End), Cluster->GetDir(*OtherEEdge.Start, *OtherEEdge.End)));
+				const double Dot = FMath::Abs(FVector::DotProduct(Cluster->GetEdgeDir(Edge), Cluster->GetEdgeDir(OtherEdge)));
 				if (!(Dot >= MaxDot && Dot <= MinDot)) { return true; }
 			}
 
-			const double OtherLength = OtherEEdge.GetEdgeLengthSquared(Cluster.Get());
+			const double OtherLength = Cluster->GetDistSquared(OtherEdge);
 
 			FVector A;
 			FVector B;
-			if (Cluster->EdgeDistToEdgeSquared(EEdge.GetNodes(), OtherEEdge.GetNodes(), A, B) >= ToleranceSquared) { return true; }
+			if (Cluster->EdgeDistToEdgeSquared(&Edge, Cluster->GetEdge(OtherEdge.Index), A, B) >= ToleranceSquared) { return true; }
 
 			// Overlap!
 			if (Keep == EPCGExEdgeOverlapPick::Longest)
@@ -101,7 +100,9 @@ public:
 			return true;
 		};
 
-		Cluster->EdgeOctree->FindFirstElementWithBoundsTest(FBoxCenterAndExtent(EEdge.BSB), ProcessOverlap);
+		Cluster->EdgeOctree->FindFirstElementWithBoundsTest(
+			(Cluster->BoundedEdges->GetData() + Edge.Index)->Bounds.GetBox(),
+			ProcessOverlap);
 	}
 
 	//virtual void Process() override;

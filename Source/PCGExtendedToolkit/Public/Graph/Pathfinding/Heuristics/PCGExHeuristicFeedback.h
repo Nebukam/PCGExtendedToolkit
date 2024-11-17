@@ -62,7 +62,7 @@ public:
 		const PCGExCluster::FNode& Seed,
 		const PCGExCluster::FNode& Goal) const override
 	{
-		const uint32* N = NodeFeedbackNum.Find(From.NodeIndex);
+		const uint32* N = NodeFeedbackNum.Find(From.Index);
 		return N ? GetScoreInternal(NodeScale) * *N : GetScoreInternal(0);
 	}
 
@@ -74,8 +74,8 @@ public:
 		const PCGExCluster::FNode& Goal,
 		const TSharedPtr<PCGEx::FHashLookup> TravelStack) const override
 	{
-		const uint32* N = NodeFeedbackNum.Find(To.NodeIndex);
-		const uint32* E = EdgeFeedbackNum.Find(Edge.EdgeIndex);
+		const uint32* N = NodeFeedbackNum.Find(To.Index);
+		const uint32* E = EdgeFeedbackNum.Find(Edge.Index);
 
 		const double NW = N ? GetScoreInternal(NodeScale) * *N : GetScoreInternal(0);
 		const double EW = E ? GetScoreInternal(EdgeScale) * *E : GetScoreInternal(0);
@@ -85,7 +85,7 @@ public:
 
 	FORCEINLINE void FeedbackPointScore(const PCGExCluster::FNode& Node)
 	{
-		uint32& N = NodeFeedbackNum.FindOrAdd(Node.NodeIndex, 0);
+		uint32& N = NodeFeedbackNum.FindOrAdd(Node.Index, 0);
 		N++;
 
 		if (bBleed)
@@ -100,7 +100,7 @@ public:
 
 	FORCEINLINE void FeedbackScore(const PCGExCluster::FNode& Node, const PCGExGraph::FEdge& Edge)
 	{
-		uint32& N = NodeFeedbackNum.FindOrAdd(Node.NodeIndex, 0);
+		uint32& N = NodeFeedbackNum.FindOrAdd(Node.Index, 0);
 		N++;
 
 		if (bBleed)
@@ -113,7 +113,7 @@ public:
 		}
 		else
 		{
-			uint32& E = EdgeFeedbackNum.FindOrAdd(Edge.EdgeIndex, 0);
+			uint32& E = EdgeFeedbackNum.FindOrAdd(Edge.Index, 0);
 			E++;
 		}
 	}

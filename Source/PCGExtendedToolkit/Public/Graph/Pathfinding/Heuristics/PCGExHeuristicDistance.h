@@ -50,7 +50,7 @@ public:
 		const PCGExCluster::FNode& Goal,
 		const TSharedPtr<PCGEx::FHashLookup> TravelStack) const override
 	{
-		return GetScoreInternal((*Cluster->EdgeLengths)[Edge.EdgeIndex]);
+		return GetScoreInternal((*Cluster->EdgeLengths)[Edge.Index]);
 	}
 
 protected:

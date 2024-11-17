@@ -25,7 +25,6 @@ bool FPCGExTopologyClusterSurfaceElement::ExecuteInternal(
 	PCGEX_EXECUTION_CHECK
 	PCGEX_ON_INITIAL_EXECUTION
 	{
-		UE_LOG(LogTemp, Warning, TEXT("Start %llu"), Settings->UID)
 		if (!Context->StartProcessingClusters<PCGExTopologyEdges::TBatch<PCGExTopologyClusterSurface::FProcessor>>(
 			[](const TSharedPtr<PCGExData::FPointIOTaggedEntries>& Entries) { return true; },
 			[&](const TSharedPtr<PCGExTopologyEdges::TBatch<PCGExTopologyClusterSurface::FProcessor>>& NewBatch)
@@ -38,11 +37,9 @@ bool FPCGExTopologyClusterSurfaceElement::ExecuteInternal(
 
 	PCGEX_CLUSTER_BATCH_PROCESSING(PCGEx::State_Done)
 
-	UE_LOG(LogTemp, Warning, TEXT("Done %llu"), Settings->UID)
 	Context->OutputPointsAndEdges();
 	Context->OutputBatches();
 
-	UE_LOG(LogTemp, Warning, TEXT("End... %llu"), Settings->UID)
 	return Context->TryComplete();
 }
 
@@ -68,32 +65,62 @@ namespace PCGExTopologyClusterSurface
 	void FProcessor::ProcessSingleEdge(const int32 EdgeIndex, PCGExGraph::FEdge& Edge, const int32 LoopIdx, const int32 Count)
 	{
 		if (ConstrainedEdgeFilterCache[EdgeIndex]) { return; }
-		TSharedPtr<PCGExTopology::FCell> Cell = MakeShared<PCGExTopology::FCell>(CellConstraints.ToSharedRef());
+		TSharedPtr<PCGExTopology::FCell> Cell = MakeShared<PCGExTopology::FCell>(CellsConstraints.ToSharedRef());
 
-		const int32 StartNode = Cluster->GetEdgeStart(Edge)->NodeIndex;
-		const int32 EndNode = Cluster->GetEdgeEnd(Edge)->NodeIndex;
+		FVector G1 = FVector::ZeroVector;
+		FVector G2 = FVector::ZeroVector;
 
-		if (Cell->BuildFromCluster(
-			Cluster->GetNode(StartNode)->NodeIndex, EdgeIndex,
-			Cluster->GetPos(EndNode), Cluster.ToSharedRef(),
-			*ProjectedPositions, ExpandedNodes) == PCGExTopology::ECellResult::Success)
+		Cluster->GetProjectedEdgeGuides(Edge.Index, *ProjectedPositions, G1, G2);
+
+		ProcessNodeCandidate(*Cluster->GetEdgeStart(Edge), Edge, G1, LoopIdx);
+		ProcessNodeCandidate(*Cluster->GetEdgeEnd(Edge), Edge, G2, LoopIdx);
+	}
+
+	bool FProcessor::ProcessNodeCandidate(
+		const PCGExCluster::FNode& Node,
+		const PCGExGraph::FEdge& Edge,
+		const FVector& Guide,
+		const int32 LoopIdx,
+		const bool bSkipBinary)
+	{
+		if (Node.IsBinary() && bSkipBinary)
 		{
-			Cell->Triangulate<true>(*ProjectedPositions, *SubTriangulations[LoopIdx].Get(), Cluster);
+			FPlatformAtomics::InterlockedExchange(&LastBinary, Node.Index);
+			return false;
 		}
+		if (!CellsConstraints->bKeepCellsWithLeaves && Node.IsLeaf()) { return false; }
 
-		Cell.Reset();
-		Cell = MakeShared<PCGExTopology::FCell>(CellConstraints.ToSharedRef());
-		if (Cell->BuildFromCluster(
-			Cluster->GetNode(EndNode)->NodeIndex, EdgeIndex,
-			Cluster->GetPos(StartNode), Cluster.ToSharedRef(),
-			*ProjectedPositions, ExpandedNodes) == PCGExTopology::ECellResult::Success)
+		FPlatformAtomics::InterlockedAdd(&NumAttempts, 1);
+		const TSharedPtr<PCGExTopology::FCell> Cell = MakeShared<PCGExTopology::FCell>(CellsConstraints.ToSharedRef());
+
+		const PCGExTopology::ECellResult Result = Cell->BuildFromCluster(Node.Index, Edge.Index, Guide, Cluster.ToSharedRef(), *ProjectedPositions);
+		if (Result != PCGExTopology::ECellResult::Success) { return false; }
+
+		if (Cell->Triangulate<true>(*SubTriangulations[LoopIdx].Get(), Cluster) != PCGExTopology::ETriangulationResult::Success) { return false; }
+
+		return true;
+	}
+
+	void FProcessor::EnsureRoamingClosedLoopProcessing()
+	{
+		if (NumAttempts == 0 && LastBinary != -1)
 		{
-			Cell->Triangulate<true>(*ProjectedPositions, *SubTriangulations[LoopIdx].Get(), Cluster);
+			TSharedPtr<PCGExTopology::FCell> Cell = MakeShared<PCGExTopology::FCell>(CellsConstraints.ToSharedRef());
+
+			FVector G1 = FVector::ZeroVector;
+			FVector G2 = FVector::ZeroVector;
+
+			PCGExGraph::FEdge& Edge = *Cluster->GetEdge(Cluster->GetNode(LastBinary)->Links[0].Edge);
+			Cluster->GetProjectedEdgeGuides(Edge.Index, *ProjectedPositions, G1, G2);
+
+			ProcessNodeCandidate(*Cluster->GetEdgeStart(Edge), Edge, G1, 0, false);
 		}
 	}
 
 	void FProcessor::OnEdgesProcessingComplete()
 	{
+		EnsureRoamingClosedLoopProcessing();
+
 		if (!BuildValidNodeLookup()) { return; }
 
 		InternalMesh->EditMesh(
@@ -105,12 +132,7 @@ namespace PCGExTopologyClusterSurface
 
 					for (const PCGExGeo::FTriangle& T : Triangles)
 					{
-						// Very slow, just checking if things work
-						//InMesh.AppendTriangle(VerticesLookup->Get(T.Vtx[0]), VerticesLookup->Get(T.Vtx[1]), VerticesLookup->Get(T.Vtx[2]));
-						InMesh.AppendTriangle(
-							VerticesLookup->Get(Cluster->NodeIndexLookup->Get(T.Vtx[0])),
-							VerticesLookup->Get(Cluster->NodeIndexLookup->Get(T.Vtx[1])),
-							VerticesLookup->Get(Cluster->NodeIndexLookup->Get(T.Vtx[2])));
+						InMesh.AppendTriangle(VerticesLookup->Get(T.Vtx[0]), VerticesLookup->Get(T.Vtx[1]), VerticesLookup->Get(T.Vtx[2]));
 					}
 				}
 			}, EDynamicMeshChangeType::GeneralEdit, EDynamicMeshAttributeChangeFlags::MeshTopology, false);

@@ -328,7 +328,7 @@ namespace PCGExRefineEdges
 	{
 		PCGEX_ASYNC_GROUP_CHKD_VOID(AsyncManager, SanitizeTaskGroup)
 
-		Cluster->GetExpandedEdges(true); //Oof
+		Cluster->GetBoundedEdges(true); //Oof
 
 		SanitizeTaskGroup->OnCompleteCallback = [&]() { InsertEdges(); };
 
@@ -443,7 +443,7 @@ namespace PCGExRefineEdges
 
 				for (const PCGExGraph::FLink Lk : Node->Links)
 				{
-					const double Dist = Processor->Cluster->GetDistSquared(Node->NodeIndex, Lk.Node);
+					const double Dist = Processor->Cluster->GetDistSquared(Node->Index, Lk.Node);
 					if (Dist > LongestDist)
 					{
 						LongestDist = Dist;
@@ -465,7 +465,7 @@ namespace PCGExRefineEdges
 
 				for (const PCGExGraph::FLink Lk : Node->Links)
 				{
-					const double Dist = Processor->Cluster->GetDistSquared(Node->NodeIndex, Lk.Node);
+					const double Dist = Processor->Cluster->GetDistSquared(Node->Index, Lk.Node);
 					if (Dist < ShortestDist)
 					{
 						ShortestDist = Dist;

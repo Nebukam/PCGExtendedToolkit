@@ -58,7 +58,7 @@ namespace PCGExClusterStates
 	bool FState::Test(const PCGExCluster::FNode& Node) const
 	{
 		const bool bResult = Manager->Test(Node);
-		Manager->Results[Node.NodeIndex] = bResult;
+		Manager->Results[Node.Index] = bResult;
 		return bResult;
 	}
 

@@ -87,7 +87,7 @@ namespace PCGExGraph
 			for (int i = 0; i < NumEdges; i++)
 			{
 				const FEdge& OE = ParentGraph->Edges[EdgeDump[i]];
-				FlattenedEdges[i] = FEdge(i, ParentGraph->Nodes[OE.Start].PointIndex, ParentGraph->Nodes[OE.End].PointIndex, i, OE.EdgeIndex); // Use flat edge IOIndex to store original edge index
+				FlattenedEdges[i] = FEdge(i, ParentGraph->Nodes[OE.Start].PointIndex, ParentGraph->Nodes[OE.End].PointIndex, i, OE.Index); // Use flat edge IOIndex to store original edge index
 				if (InPoints.IsValidIndex(OE.PointIndex)) { MutablePoints[i] = InPoints[OE.PointIndex]; }
 				Metadata->InitializeOnSet(MutablePoints[i].MetadataEntry);
 			}
@@ -101,7 +101,7 @@ namespace PCGExGraph
 			for (int i = 0; i < NumEdges; i++)
 			{
 				const FEdge& E = ParentGraph->Edges[EdgeDump[i]];
-				FlattenedEdges[i] = FEdge(i, ParentGraph->Nodes[E.Start].PointIndex, ParentGraph->Nodes[E.End].PointIndex, i, E.EdgeIndex);
+				FlattenedEdges[i] = FEdge(i, ParentGraph->Nodes[E.Start].PointIndex, ParentGraph->Nodes[E.End].PointIndex, i, E.Index);
 				Metadata->InitializeOnSet(MutablePoints[i].MetadataEntry);
 			}
 		}
@@ -160,7 +160,7 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 		for (int i = StartIndex; i < EndIndex; i++)
 		{
 			const FEdge& E = FlattenedEdges[i];
-			const int32 EdgeIndex = E.EdgeIndex;
+			const int32 EdgeIndex = E.Index;
 			FPCGPoint& EdgePt = MutablePoints[EdgeIndex];
 
 			if (bHasUnionMetadata)
@@ -233,10 +233,10 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 		if (UniqueEdges.Contains(Hash)) { return false; }
 
 		OutEdge = Edges.Emplace_GetRef(Edges.Num(), A, B, -1, IOIndex);
-		UniqueEdges.Add(Hash, (OutEdge.EdgeIndex = Edges.Num() - 1));
+		UniqueEdges.Add(Hash, (OutEdge.Index = Edges.Num() - 1));
 
-		Nodes[A].LinkEdge(OutEdge.EdgeIndex);
-		Nodes[B].LinkEdge(OutEdge.EdgeIndex);
+		Nodes[A].LinkEdge(OutEdge.Index);
+		Nodes[B].LinkEdge(OutEdge.Index);
 
 		return true;
 	}
@@ -249,13 +249,14 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 
 	bool FGraph::InsertEdgeUnsafe(const FEdge& Edge)
 	{
-		if (UniqueEdges.Contains(Edge)) { return false; }
+		uint64 H = Edge.H64U();
+		if (UniqueEdges.Contains(H)) { return false; }
 
 		FEdge& NewEdge = Edges.Emplace_GetRef(Edge);
-		UniqueEdges.Add(Edge, (NewEdge.EdgeIndex = Edges.Num() - 1));
+		UniqueEdges.Add(H, (NewEdge.Index = Edges.Num() - 1));
 
-		Nodes[Edge.Start].LinkEdge(NewEdge.EdgeIndex);
-		Nodes[Edge.End].LinkEdge(NewEdge.EdgeIndex);
+		Nodes[Edge.Start].LinkEdge(NewEdge.Index);
+		Nodes[Edge.End].LinkEdge(NewEdge.Index);
 
 		return true;
 	}
@@ -333,7 +334,7 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 		for (int i = 0; i < NumNewNodes; i++)
 		{
 			FNode& Node = Nodes[StartIndex + i];
-			Node.NodeIndex = Node.PointIndex = StartIndex + i;
+			Node.Index = Node.PointIndex = StartIndex + i;
 			Node.Links.Reserve(NumEdgesReserve);
 		}
 
@@ -489,7 +490,7 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 				{
 					if (!Node.bValid || Node.IsEmpty()) { continue; }
 					Node.PointIndex = PrunedPoints.Add(MutablePoints[Node.PointIndex]);
-					ValidNodes.Add(Node.NodeIndex);
+					ValidNodes.Add(Node.Index);
 				}
 
 				NodeDataFacade->GetOut()->SetPoints(PrunedPoints);
@@ -508,7 +509,7 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 					if (!Node.bValid || Node.IsEmpty()) { continue; }
 					Node.PointIndex = MutablePoints.Add(OriginalPoints[Node.PointIndex]);
 					OutPointsMetadata->InitializeOnSet(MutablePoints.Last().MetadataEntry);
-					ValidNodes.Add(Node.NodeIndex);
+					ValidNodes.Add(Node.Index);
 				}
 			}
 
@@ -621,7 +622,6 @@ namespace PCGExGraphTask
 	{
 		UPCGExClusterEdgesData* ClusterEdgesData = Cast<UPCGExClusterEdgesData>(SubGraph->EdgesDataFacade->GetOut());
 		const TSharedPtr<PCGExCluster::FCluster> Cluster = SubGraph->CreateCluster(AsyncManager);
-		if (SubGraph->ParentGraph->bExpandClusters) { Cluster->ExpandNodes(AsyncManager); }
 
 		ClusterEdgesData->SetBoundCluster(Cluster);
 		return true;

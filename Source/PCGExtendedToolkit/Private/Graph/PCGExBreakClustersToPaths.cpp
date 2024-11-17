@@ -95,6 +95,12 @@ namespace PCGExBreakClustersToPaths
 	{
 		if (Settings->OperateOn == EPCGExBreakClusterOperationTarget::Paths)
 		{
+			if (ChainBuilder->Chains.IsEmpty())
+			{
+				bIsProcessorValid = false;
+				return;
+			}
+
 			StartParallelLoopForRange(ChainBuilder->Chains.Num());
 		}
 	}
@@ -111,7 +117,7 @@ namespace PCGExBreakClustersToPaths
 		if (ChainSize < Settings->MinPointCount) { return; }
 		if (Settings->bOmitAbovePointCount && ChainSize > Settings->MaxPointCount) { return; }
 
-		PCGExGraph::FEdge ChainDir = PCGExGraph::FEdge(Chain->Seed.Edge, Cluster->GetNodePointIndex(Chain->Seed.Node), Cluster->GetNodePointIndex(Chain->Links.Last().Node));
+		PCGExGraph::FEdge ChainDir = PCGExGraph::FEdge(Chain->Seed.Edge, Cluster->GetNode(Chain->Seed)->PointIndex, Cluster->GetNode(Chain->Links.Last())->PointIndex);
 		const bool bReverse = DirectionSettings.SortEndpoints(Cluster.Get(), ChainDir);
 
 		const TSharedPtr<PCGExData::FPointIO> PathIO = Context->Paths->Emplace_GetRef<UPCGPointData>(VtxDataFacade->Source, PCGExData::EIOInit::NewOutput);
@@ -121,8 +127,8 @@ namespace PCGExBreakClustersToPaths
 
 		int32 PtIndex = 0;
 
-		MutablePoints[PtIndex++] = PathIO->GetInPoint(Cluster->GetNodePointIndex(Chain->Seed.Node));
-		for (const PCGExGraph::FLink& Link : Chain->Links) { MutablePoints[PtIndex++] = PathIO->GetInPoint(Cluster->GetNodePointIndex(Link.Node)); }
+		MutablePoints[PtIndex++] = PathIO->GetInPoint(Cluster->GetNode(Chain->Seed)->PointIndex);
+		for (const PCGExGraph::FLink& Lk : Chain->Links) { MutablePoints[PtIndex++] = PathIO->GetInPoint(Cluster->GetNode(Lk)->PointIndex); }
 
 		if (!Chain->bIsClosedLoop) { if (Settings->bTagIfOpenPath) { PathIO->Tags->Add(Settings->IsOpenPathTag); } }
 		else { if (Settings->bTagIfClosedLoop) { PathIO->Tags->Add(Settings->IsClosedLoopTag); } }
@@ -153,8 +159,6 @@ namespace PCGExBreakClustersToPaths
 	void FBatch::OnProcessingPreparationComplete()
 	{
 		PCGEX_TYPED_CONTEXT_AND_SETTINGS(BreakClustersToPaths)
-
-		if (Settings->OperateOn == EPCGExBreakClusterOperationTarget::Edges) { return; }
 
 		DirectionSettings = Settings->DirectionSettings;
 		if (!DirectionSettings.Init(Context, VtxDataFacade, Context->GetEdgeSortingRules()))

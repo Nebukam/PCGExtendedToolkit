@@ -32,7 +32,7 @@ namespace PCGExCluster
 
 		FLink Last = Seed;
 		FNode* FromNode = Cluster->GetEdgeOtherNode(Seed);
-		Links.Add(FLink(FromNode->NodeIndex, Seed.Edge));
+		Links.Add(FLink(FromNode->Index, Seed.Edge));
 
 		Visited.Add(Seed.Node);
 		Visited.Add(Links.Last().Node);
@@ -75,7 +75,7 @@ namespace PCGExCluster
 		if (SingleEdge != -1)
 		{
 			Graph->InsertEdge(*Cluster->GetEdge(Seed.Edge), OutEdge, IOIndex);
-			if (bAddMetadata) { Graph->GetOrCreateEdgeMetadata(OutEdge.EdgeIndex).UnionSize = 1; }
+			if (bAddMetadata) { Graph->GetOrCreateEdgeMetadata(OutEdge.Index).UnionSize = 1; }
 		}
 		else
 		{
@@ -84,13 +84,13 @@ namespace PCGExCluster
 				if (bIsClosedLoop)
 				{
 					Graph->InsertEdge(*Cluster->GetEdge(Seed.Edge), OutEdge, IOIndex);
-					Graph->GetOrCreateEdgeMetadata(OutEdge.EdgeIndex).UnionSize = 1;
+					Graph->GetOrCreateEdgeMetadata(OutEdge.Index).UnionSize = 1;
 				}
 
 				for (const FLink& Link : Links)
 				{
 					Graph->InsertEdge(*Cluster->GetEdge(Link.Edge), OutEdge, IOIndex);
-					Graph->GetOrCreateEdgeMetadata(OutEdge.EdgeIndex).UnionSize = 1;
+					Graph->GetOrCreateEdgeMetadata(OutEdge.Index).UnionSize = 1;
 				}
 			}
 			else
@@ -109,24 +109,24 @@ namespace PCGExCluster
 		if (SingleEdge != -1)
 		{
 			Graph->InsertEdge(*Cluster->GetEdge(SingleEdge), OutEdge, IOIndex);
-			if (bAddMetadata) { Graph->GetOrCreateEdgeMetadata(OutEdge.EdgeIndex).UnionSize = 1; }
+			if (bAddMetadata) { Graph->GetOrCreateEdgeMetadata(OutEdge.Index).UnionSize = 1; }
 		}
 		else
 		{
 			if (bAddMetadata)
 			{
 				Graph->InsertEdge(
-					Cluster->GetNodePointIndex(Seed.Node),
-					Cluster->GetNodePointIndex(Links.Last().Node),
+					Cluster->GetNode(Seed)->PointIndex,
+					Cluster->GetNode(Links.Last())->PointIndex,
 					OutEdge, IOIndex);
 
-				Graph->GetOrCreateEdgeMetadata(OutEdge.EdgeIndex).UnionSize = Links.Num();
+				Graph->GetOrCreateEdgeMetadata(OutEdge.Index).UnionSize = Links.Num();
 			}
 			else
 			{
 				Graph->InsertEdge(
-					Cluster->GetNodePointIndex(Seed.Node),
-					Cluster->GetNodePointIndex(Links.Last().Node),
+					Cluster->GetNode(Seed)->PointIndex,
+					Cluster->GetNode(Links.Last())->PointIndex,
 					OutEdge, IOIndex);
 			}
 		}
@@ -144,7 +144,7 @@ namespace PCGExCluster
 			if (Node->IsEmpty()) { continue; }
 			if (Node->IsLeaf())
 			{
-				TSharedPtr<FNodeChain> NewChain = MakeShared<FNodeChain>(FLink(Node->NodeIndex, Node->Links[0].Edge));
+				TSharedPtr<FNodeChain> NewChain = MakeShared<FNodeChain>(FLink(Node->Index, Node->Links[0].Edge));
 				Chains.Add(NewChain);
 				continue;
 			}
@@ -158,7 +158,7 @@ namespace PCGExCluster
 					// Skip immediately known leaves or already seeded nodes. Avoid double-sampling simple cases
 					if (Cluster->GetNode(Lk.Node)->IsLeaf()) { continue; }
 
-					TSharedPtr<FNodeChain> NewChain = MakeShared<FNodeChain>(FLink(Node->NodeIndex, Lk.Edge));
+					TSharedPtr<FNodeChain> NewChain = MakeShared<FNodeChain>(FLink(Node->Index, Lk.Edge));
 					Chains.Add(NewChain);
 				}
 			}
@@ -179,7 +179,7 @@ namespace PCGExCluster
 			ensure(!Node->IsEmpty());
 			if (!Node->IsLeaf() || Node->IsEmpty()) { continue; }
 
-			TSharedPtr<FNodeChain> NewChain = MakeShared<FNodeChain>(FLink(Node->NodeIndex, Node->Links[0].Edge));
+			TSharedPtr<FNodeChain> NewChain = MakeShared<FNodeChain>(FLink(Node->Index, Node->Links[0].Edge));
 			Chains.Add(NewChain);
 		}
 

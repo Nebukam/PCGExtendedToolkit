@@ -356,13 +356,13 @@ namespace PCGEx
 	struct FIndexedItem
 	{
 		int32 Index;
-		FBoxSphereBounds BSB;
+		FBoxSphereBounds Bounds;
 
 		FIndexedItem(const int32 InIndex, const FBoxSphereBounds& InBounds)
-			: Index(InIndex), BSB(InBounds)
+			: Index(InIndex), Bounds(InBounds)
 		{
 		}
 	};
 
-	PCGEX_OCTREE_SEMANTICS_REF(FIndexedItem, { return Element.BSB;}, { return A.Index == B.Index; })
+	PCGEX_OCTREE_SEMANTICS_REF(FIndexedItem, { return Element.Bounds;}, { return A.Index == B.Index; })
 }

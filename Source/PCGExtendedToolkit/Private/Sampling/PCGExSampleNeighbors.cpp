@@ -91,16 +91,7 @@ namespace PCGExSampleNeighbors
 			if (SamplingOperation->ValueFilters) { OpsWithValueTest.Add(SamplingOperation); }
 		}
 
-		ExpandedNodes = Cluster->ExpandedNodes;
-
-		if (!ExpandedNodes)
-		{
-			ExpandedNodes = Cluster->GetExpandedNodes(false);
-			bBuildExpandedNodes = true;
-		}
-
 		Cluster->ComputeEdgeLengths();
-
 		StartParallelLoopForRange(NumNodes);
 
 		return true;
@@ -108,7 +99,6 @@ namespace PCGExSampleNeighbors
 
 	void FProcessor::ProcessSingleRangeIteration(const int32 Iteration, const int32 LoopIdx, const int32 Count)
 	{
-		if (bBuildExpandedNodes) { *(ExpandedNodes->GetData() + Iteration) = PCGExCluster::FExpandedNode(Cluster, Iteration); }
 		for (const UPCGExNeighborSampleOperation* Op : OpsWithValueTest) { Op->ValueFilters->Results[Iteration] = Op->ValueFilters->Test(*Cluster->GetNode(Iteration)); }
 	}
 

@@ -74,9 +74,6 @@ namespace PCGExSampleNeighbors
 		TArray<UPCGExNeighborSampleOperation*> SamplingOperations;
 		TArray<UPCGExNeighborSampleOperation*> OpsWithValueTest;
 
-		bool bBuildExpandedNodes = false;
-		TSharedPtr<TArray<PCGExCluster::FExpandedNode>> ExpandedNodes;
-
 	public:
 		FProcessor(const TSharedRef<PCGExData::FFacade>& InVtxDataFacade, const TSharedRef<PCGExData::FFacade>& InEdgeDataFacade):
 			TProcessor(InVtxDataFacade, InEdgeDataFacade)
