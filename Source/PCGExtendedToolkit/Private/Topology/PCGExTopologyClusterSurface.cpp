@@ -166,8 +166,8 @@ namespace PCGExTopologyClusterSurface
 
 		DynamicMeshComponent->SetDynamicMesh(GetInternalMesh());
 		
-#if PCGEX_ENGINE_VERSION > 503
-		DynamicMeshComponent->SetDistanceFieldMode(Settings->Topology.DistanceFieldMode);
+#if PCGEX_ENGINE_VERSION > 504
+		DynamicMeshComponent->SetDistanceFieldMode(static_cast<EDynamicMeshComponentDistanceFieldMode>(static_cast<uint8>(Settings->Topology.DistanceFieldMode)));
 #endif
 		
 		Context->ManagedObjects->Remove(GetInternalMesh());

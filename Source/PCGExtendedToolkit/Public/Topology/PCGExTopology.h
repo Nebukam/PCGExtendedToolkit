@@ -247,7 +247,7 @@ UENUM(BlueprintType)
 enum class EPCGExDynamicMeshComponentDistanceFieldMode : uint8
 {
 	NoDistanceField = 0 UMETA(DisplayName = "No Distance Field"),
-#if PCGEX_ENGINE_VERSION > 503
+#if PCGEX_ENGINE_VERSION > 504
 	AsyncCPUDistanceField = 1 UMETA(DisplayName = "Async CPU Distance Field"),
 #endif
 };
