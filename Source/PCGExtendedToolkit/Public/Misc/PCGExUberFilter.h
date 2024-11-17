@@ -60,6 +60,14 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	bool bSwap = false;
 
+	/** */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging", meta=(PCG_Overridable, InlineEditConditionToggle))
+	bool bTagIfAnyPointPassed = true;
+
+	/** ... */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging", meta=(PCG_Overridable, EditCondition="bTagIfAnyPass"))
+	FString HasAnyPointPassedTag = TEXT("SomePointsPassed");
+
 private:
 	friend class FPCGExUberFilterElement;
 };

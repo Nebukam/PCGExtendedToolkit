@@ -166,9 +166,9 @@ namespace PCGExGeo
 				const int32 BIdx = Indices[i + 1];
 				const int32 CIdx = Indices[i + 2];
 
-				const uint32 A = MeshLookup->Add_GetIdx(PCGEx::GH(VertexBuffer.VertexPosition(AIdx), CWTolerance), AIdx);
-				const uint32 B = MeshLookup->Add_GetIdx(PCGEx::GH(VertexBuffer.VertexPosition(BIdx), CWTolerance), BIdx);
-				const uint32 C = MeshLookup->Add_GetIdx(PCGEx::GH(VertexBuffer.VertexPosition(CIdx), CWTolerance), CIdx);
+				const uint32 A = MeshLookup->Add_GetIdx(PCGEx::GH3(VertexBuffer.VertexPosition(AIdx), CWTolerance), AIdx);
+				const uint32 B = MeshLookup->Add_GetIdx(PCGEx::GH3(VertexBuffer.VertexPosition(BIdx), CWTolerance), BIdx);
+				const uint32 C = MeshLookup->Add_GetIdx(PCGEx::GH3(VertexBuffer.VertexPosition(CIdx), CWTolerance), CIdx);
 
 				Edges.Add(PCGEx::H64U(A, B));
 				Edges.Add(PCGEx::H64U(B, C));
@@ -207,9 +207,9 @@ namespace PCGExGeo
 				const int32 BIdx = Indices[i + 1];
 				const int32 CIdx = Indices[i + 2];
 
-				const uint32 A = MeshLookup->Add_GetIdx(PCGEx::GH(VertexBuffer.VertexPosition(AIdx), CWTolerance), AIdx);
-				const uint32 B = MeshLookup->Add_GetIdx(PCGEx::GH(VertexBuffer.VertexPosition(BIdx), CWTolerance), BIdx);
-				const uint32 C = MeshLookup->Add_GetIdx(PCGEx::GH(VertexBuffer.VertexPosition(CIdx), CWTolerance), CIdx);
+				const uint32 A = MeshLookup->Add_GetIdx(PCGEx::GH3(VertexBuffer.VertexPosition(AIdx), CWTolerance), AIdx);
+				const uint32 B = MeshLookup->Add_GetIdx(PCGEx::GH3(VertexBuffer.VertexPosition(BIdx), CWTolerance), BIdx);
+				const uint32 C = MeshLookup->Add_GetIdx(PCGEx::GH3(VertexBuffer.VertexPosition(CIdx), CWTolerance), CIdx);
 
 				Edges.Add(PCGEx::H64U(A, B));
 				Edges.Add(PCGEx::H64U(B, C));
