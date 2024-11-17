@@ -4,7 +4,6 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "PCGExCompare.h"
 #include "Collections/PCGExMeshCollection.h"
 #include "Components/SplineMeshComponent.h"
 #include "Data/PCGSplineStruct.h"

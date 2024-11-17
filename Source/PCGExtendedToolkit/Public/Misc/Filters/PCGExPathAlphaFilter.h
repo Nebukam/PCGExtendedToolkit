@@ -13,7 +13,6 @@
 #include "PCGExPointsProcessor.h"
 #include "PCGExSplineAlphaFilter.h"
 #include "PCGExSplineInclusionFilter.h"
-#include "Data/PCGSplineData.h"
 #include "Sampling/PCGExSampleNearestSpline.h"
 
 #include "PCGExPathAlphaFilter.generated.h"

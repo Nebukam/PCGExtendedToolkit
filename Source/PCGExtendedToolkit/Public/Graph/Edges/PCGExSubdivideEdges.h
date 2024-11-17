@@ -157,7 +157,7 @@ namespace PCGExSubdivideEdges
 
 	public:
 		FBatch(FPCGExContext* InContext, const TSharedRef<PCGExData::FPointIO>& InVtx, const TArrayView<TSharedRef<PCGExData::FPointIO>> InEdges)
-			: TBatchWithGraphBuilder<FProcessor>(InContext, InVtx, InEdges)
+			: TBatchWithGraphBuilder(InContext, InVtx, InEdges)
 		{
 			bAllowVtxDataFacadeScopedGet = true;
 		}

@@ -128,7 +128,7 @@ protected:
 		Batches.Reserve(MainPoints->Pairs.Num());
 
 		EdgesDataFacades.Reserve(MainEdges->Pairs.Num());
-		for (TSharedPtr<PCGExData::FPointIO> EdgeIO : MainEdges->Pairs)
+		for (const TSharedPtr<PCGExData::FPointIO>& EdgeIO : MainEdges->Pairs)
 		{
 			TSharedPtr<PCGExData::FFacade> EdgeFacade = MakeShared<PCGExData::FFacade>(EdgeIO.ToSharedRef());
 			EdgesDataFacades.Add(EdgeFacade.ToSharedRef());

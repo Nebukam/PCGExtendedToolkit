@@ -3,9 +3,6 @@
 
 #include "Paths/PCGExPathToClusters.h"
 #include "Graph/PCGExGraph.h"
-#include "Data/Blending/PCGExUnionBlender.h"
-
-
 #include "Graph/Data/PCGExClusterData.h"
 #include "Graph/PCGExUnionHelpers.h"
 

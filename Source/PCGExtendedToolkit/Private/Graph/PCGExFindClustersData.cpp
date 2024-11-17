@@ -159,7 +159,7 @@ bool FPCGExFindClustersDataElement::ExecuteInternal(FPCGContext* InContext) cons
 	TArray<TSharedPtr<PCGExData::FPointIO>> TaggedVtx;
 	TArray<TSharedPtr<PCGExData::FPointIO>> TaggedEdges;
 
-	for (TSharedPtr<PCGExData::FPointIO> MainIO : Context->MainPoints->Pairs)
+	for (const TSharedPtr<PCGExData::FPointIO>& MainIO : Context->MainPoints->Pairs)
 	{
 		// Vtx ?
 
@@ -204,7 +204,7 @@ bool FPCGExFindClustersDataElement::ExecuteInternal(FPCGContext* InContext) cons
 		if (!Settings->bSkipTrivialWarnings) { PCGE_LOG(Warning, GraphAndLog, FTEXT("An input data is neither tagged Vtx or Edges and will be ignored.")); }
 	}
 
-	for (TSharedPtr<PCGExData::FPointIO> Vtx : TaggedVtx)
+	for (const TSharedPtr<PCGExData::FPointIO>& Vtx : TaggedVtx)
 	{
 		if (!InputDictionary->CreateKey(Vtx.ToSharedRef()))
 		{

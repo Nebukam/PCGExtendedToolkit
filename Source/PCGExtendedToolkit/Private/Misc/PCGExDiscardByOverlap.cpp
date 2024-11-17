@@ -237,7 +237,7 @@ namespace PCGExDiscardByOverlap
 
 	void FProcessor::Prune(TArray<FProcessor*>& Stack)
 	{
-		for (TSharedPtr<FOverlap> Overlap : Overlaps)
+		for (const TSharedPtr<FOverlap>& Overlap : Overlaps)
 		{
 			Overlap->GetOther(this)->RemoveOverlap(Overlap, Stack);
 		}

@@ -126,7 +126,7 @@ namespace PCGExTopologyClusterSurface
 		InternalMesh->EditMesh(
 			[&](FDynamicMesh3& InMesh)
 			{
-				for (TSharedPtr<TArray<PCGExGeo::FTriangle>> SubTriangulation : SubTriangulations)
+				for (const TSharedPtr<TArray<PCGExGeo::FTriangle>>& SubTriangulation : SubTriangulations)
 				{
 					const TArray<PCGExGeo::FTriangle>& Triangles = *SubTriangulation;
 

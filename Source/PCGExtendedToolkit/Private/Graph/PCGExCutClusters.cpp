@@ -62,7 +62,7 @@ bool FPCGExCutEdgesElement::Boot(FPCGExContext* InContext) const
 
 	int32 ExcludedNum = 0;
 
-	for (TSharedPtr<PCGExData::FPointIO> PathIO : PathCollection->Pairs)
+	for (const TSharedPtr<PCGExData::FPointIO>& PathIO : PathCollection->Pairs)
 	{
 		if (PathIO->GetNum() < 2)
 		{
@@ -106,7 +106,7 @@ bool FPCGExCutEdgesElement::ExecuteInternal(
 		Context->SetAsyncState(PCGExPaths::State_BuildingPaths);
 		PCGEX_ASYNC_GROUP_CHKD(Context->GetAsyncManager(), BuildPathsTask)
 
-		BuildPathsTask->OnSubLoopStartCallback = [Settings, Context](const int32 StartIndex, const int32 Count, const int32 LoopIdx)
+		BuildPathsTask->OnSubLoopStartCallback = [Context](const int32 StartIndex, const int32 Count, const int32 LoopIdx)
 		{
 			TSharedRef<PCGExData::FFacade> PathFacade = Context->PathFacades[StartIndex];
 			TSharedPtr<PCGExPaths::FPath> Path = PCGExPaths::MakePath(
@@ -226,7 +226,7 @@ namespace PCGExCutEdges
 		EdgeBox += A1;
 		EdgeBox += B1;
 
-		for (TSharedPtr<PCGExPaths::FPath> Path : Context->Paths)
+		for (const TSharedRef<PCGExPaths::FPath>& Path : Context->Paths)
 		{
 			if (!Path->Bounds.Intersect(EdgeBox)) { continue; }
 
@@ -302,7 +302,7 @@ namespace PCGExCutEdges
 		const FVector A1 = NodePoint.Transform.GetLocation();
 		FBox PointBox = PCGExMath::GetLocalBounds<EPCGExPointBoundsSource::Bounds>(NodePoint).ExpandBy(Settings->NodeExpansion + Settings->IntersectionDetails.ToleranceSquared).TransformBy(NodePoint.Transform);
 
-		for (TSharedPtr<PCGExPaths::FPath> Path : Context->Paths)
+		for (const TSharedRef<PCGExPaths::FPath>& Path : Context->Paths)
 		{
 			if (!Path->Bounds.Intersect(PointBox)) { continue; }
 

@@ -136,7 +136,7 @@ namespace PCGExSampleOverlapStats
 			[&]()
 			{
 				Octree = MakeUnique<PCGExDiscardByOverlap::FPointBoundsOctree>(Bounds.GetCenter(), Bounds.GetExtent().Length());
-				for (TSharedPtr<PCGExDiscardByOverlap::FPointBounds> PtBounds : LocalPointBounds)
+				for (const TSharedPtr<PCGExDiscardByOverlap::FPointBounds>& PtBounds : LocalPointBounds)
 				{
 					if (!PtBounds) { continue; }
 					Octree->AddElement(PtBounds.Get());

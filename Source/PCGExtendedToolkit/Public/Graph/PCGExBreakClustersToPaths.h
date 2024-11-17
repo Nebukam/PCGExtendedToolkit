@@ -150,7 +150,7 @@ namespace PCGExBreakClustersToPaths
 
 	public:
 		FBatch(FPCGExContext* InContext, const TSharedRef<PCGExData::FPointIO>& InVtx, const TArrayView<TSharedRef<PCGExData::FPointIO>> InEdges):
-			TBatch<FProcessor>(InContext, InVtx, InEdges)
+			TBatch(InContext, InVtx, InEdges)
 		{
 			bAllowVtxDataFacadeScopedGet = true;
 		}

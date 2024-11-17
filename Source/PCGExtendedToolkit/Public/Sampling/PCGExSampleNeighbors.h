@@ -93,7 +93,7 @@ namespace PCGExSampleNeighbors
 	{
 	public:
 		FBatch(FPCGExContext* InContext, const TSharedRef<PCGExData::FPointIO>& InVtx, const TArrayView<TSharedRef<PCGExData::FPointIO>> InEdges)
-			: TBatch<FProcessor>(InContext, InVtx, InEdges)
+			: TBatch(InContext, InVtx, InEdges)
 		{
 			PCGEX_TYPED_CONTEXT_AND_SETTINGS(SampleNeighbors)
 			bRequiresWriteStep = true;

@@ -267,7 +267,7 @@ namespace PCGExTopologyEdges
 				(const int32 StartIndex, const int32 Count, const int32 LoopIdx)
 				{
 					FRandomStream Random(StartIndex + Count + LoopIdx);
-					TSharedPtr<TBatch<T>> This = WeakThis.Pin();
+					TSharedPtr<TBatch> This = WeakThis.Pin();
 					if (!This) { return; }
 
 					const int32 MaxIndex = StartIndex + Count;

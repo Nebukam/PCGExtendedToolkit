@@ -3,7 +3,6 @@
 
 #include "Graph/PCGExIntersections.h"
 
-#include "IntVectorTypes.h"
 #include "PCGExPointsProcessor.h"
 #include "Graph/PCGExCluster.h"
 

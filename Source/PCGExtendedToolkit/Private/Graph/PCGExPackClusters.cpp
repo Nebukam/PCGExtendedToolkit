@@ -59,7 +59,7 @@ bool FPCGExPackClustersElement::ExecuteInternal(
 		{
 			if (!Context->TaggedEdges) { continue; }
 
-			for (TSharedPtr<PCGExData::FPointIO> EdgeIO : Context->TaggedEdges->Entries)
+			for (const TSharedRef<PCGExData::FPointIO>& EdgeIO : Context->TaggedEdges->Entries)
 			{
 				Context->GetAsyncManager()->Start<FPCGExPackClusterTask>(IOIndex++, Context->CurrentIO, EdgeIO, Context->EndpointsLookup);
 			}

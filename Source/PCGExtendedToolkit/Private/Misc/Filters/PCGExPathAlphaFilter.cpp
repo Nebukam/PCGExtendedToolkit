@@ -37,8 +37,6 @@ bool UPCGExPathAlphaFilterFactory::Init(FPCGExContext* InContext)
 	}
 
 	return true;
-
-	return true;
 }
 
 TSharedPtr<PCGExPointFilter::FFilter> UPCGExPathAlphaFilterFactory::CreateFilter() const

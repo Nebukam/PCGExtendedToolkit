@@ -72,7 +72,7 @@ namespace PCGEx
 
 			bool bAnyDiscovery = false;
 
-			for (TSharedPtr<PCGExData::FPointIO> PointIO : IOCollection->Pairs)
+			for (const TSharedPtr<PCGExData::FPointIO>& PointIO : IOCollection->Pairs)
 			{
 				TSharedRef<PCGExData::FPointIO> PointIORef = PointIO.ToSharedRef();
 				for (const FName& AssetAttributeName : AttributeNames)

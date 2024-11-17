@@ -75,6 +75,7 @@ MACRO(FSoftClassPath, SoftClassPath, __VA_ARGS__)
  * Enum, Point.[Getter]
  * @param MACRO 
  */
+#if PCGEX_ENGINE_VERSION <= 504
 #define PCGEX_FOREACH_POINTPROPERTY(MACRO)\
 MACRO(EPCGPointProperties::Density, Density) \
 MACRO(EPCGPointProperties::BoundsMin, BoundsMin) \
@@ -88,30 +89,23 @@ MACRO(EPCGPointProperties::Transform, Transform) \
 MACRO(EPCGPointProperties::Steepness, Steepness) \
 MACRO(EPCGPointProperties::LocalCenter, GetLocalCenter()) \
 MACRO(EPCGPointProperties::Seed, Seed)
-
-#define PCGEX_FOREACH_POINTPROPERTY_LEAN(MACRO)\
-MACRO(Density) \
-MACRO(BoundsMin) \
-MACRO(BoundsMax) \
-MACRO(Color) \
-MACRO(Position) \
-MACRO(Rotation) \
-MACRO(Scale) \
-MACRO(Steepness) \
-MACRO(Seed)
-
-/**
- * Name
- * @param MACRO 
- */
-#define PCGEX_FOREACH_GETSET_POINTPROPERTY(MACRO)\
-MACRO(Density) \
-MACRO(BoundsMin) \
-MACRO(BoundsMax) \
-MACRO(Color) \
-MACRO(Transform) \
-MACRO(Steepness) \
-MACRO(Seed)
+#else
+#define PCGEX_FOREACH_POINTPROPERTY(MACRO)\
+MACRO(EPCGPointProperties::Density, Density) \
+MACRO(EPCGPointProperties::BoundsMin, BoundsMin) \
+MACRO(EPCGPointProperties::BoundsMax, BoundsMax) \
+MACRO(EPCGPointProperties::Extents, GetExtents()) \
+MACRO(EPCGPointProperties::Color, Color) \
+MACRO(EPCGPointProperties::Position, Transform.GetLocation()) \
+MACRO(EPCGPointProperties::Rotation, Transform.Rotator()) \
+MACRO(EPCGPointProperties::Scale, Transform.GetScale3D()) \
+MACRO(EPCGPointProperties::Transform, Transform) \
+MACRO(EPCGPointProperties::Steepness, Steepness) \
+MACRO(EPCGPointProperties::LocalCenter, GetLocalCenter()) \
+MACRO(EPCGPointProperties::Seed, Seed)\
+MACRO(EPCGPointProperties::LocalSize, GetLocalSize())\
+MACRO(EPCGPointProperties::ScaledLocalSize, GetScaledLocalSize())
+#endif
 
 #define PCGEX_FOREACH_POINTEXTRAPROPERTY(MACRO)\
 MACRO(EPCGExtraProperties::Index, MetadataEntry)
