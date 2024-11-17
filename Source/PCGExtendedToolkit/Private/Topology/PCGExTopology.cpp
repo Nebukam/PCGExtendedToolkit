@@ -249,7 +249,8 @@ namespace PCGExTopology
 		if (!Constraints->IsUniqueCellHash(this)) { return ECellResult::Duplicate; }
 
 		Polygon.Reset();
-		TArray<FVector2D> Vertices = *Polygon.Vertices;
+		TArray<FVector2D>& Vertices = *Polygon.Vertices;
+		Vertices.SetNumUninitialized(Nodes.Num());
 		for (int i = 0; i < Nodes.Num(); ++i) { Vertices[i] = FVector2D(ProjectedPositions[InCluster->GetNode(Nodes[i])->PointIndex]); }
 
 		Area = ComputeArea(Polygon);

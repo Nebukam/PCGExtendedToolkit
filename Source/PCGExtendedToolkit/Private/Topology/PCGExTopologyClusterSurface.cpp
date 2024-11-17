@@ -123,8 +123,6 @@ namespace PCGExTopologyClusterSurface
 	{
 		EnsureRoamingClosedLoopProcessing();
 
-		if (!BuildValidNodeLookup()) { return; }
-
 		FGeometryScriptGeneralPolygonList ClusterPolygonList;
 		ClusterPolygonList.Reset();
 
@@ -136,16 +134,18 @@ namespace PCGExTopologyClusterSurface
 		}
 
 		bool bTriangulationError = false;
-		
+
 		UGeometryScriptLibrary_MeshPrimitiveFunctions::AppendPolygonListTriangulation(
 			GetInternalMesh(),
 			Settings->Topology.PrimitiveOptions, FTransform::Identity, ClusterPolygonList, Settings->Topology.TriangulationOptions,
 			bTriangulationError);
 
-		if(bTriangulationError && !Settings->Topology.bQuietTriangulationError)
+		if (bTriangulationError && !Settings->Topology.bQuietTriangulationError)
 		{
 			PCGE_LOG_C(Error, GraphAndLog, ExecutionContext, FTEXT("Triangulation error."));
 		}
+
+		DeprojectDynamicMesh();
 	}
 
 	void FProcessor::Output()
@@ -168,11 +168,6 @@ namespace PCGExTopologyClusterSurface
 		const FString ComponentName = TEXT("PCGDynamicMeshComponent");
 		const EObjectFlags ObjectFlags = (bIsPreviewMode ? RF_Transient : RF_NoFlags);
 		UDynamicMeshComponent* DynamicMeshComponent = NewObject<UDynamicMeshComponent>(TargetActor, MakeUniqueObjectName(TargetActor, UDynamicMeshComponent::StaticClass(), FName(ComponentName)), ObjectFlags);
-
-		if (Settings->Topology.bFlipOrientation)
-		{
-			GetInternalMesh()->GetMeshPtr()->ReverseOrientation();
-		}
 
 		DynamicMeshComponent->SetDynamicMesh(GetInternalMesh());
 
