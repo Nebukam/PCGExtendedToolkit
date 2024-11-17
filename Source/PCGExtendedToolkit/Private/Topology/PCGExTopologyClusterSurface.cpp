@@ -2,6 +2,8 @@
 // Released under the MIT license https://opensource.org/license/MIT/
 
 #include "Topology/PCGExTopologyClusterSurface.h"
+#include "GeometryScript/PolygonFunctions.h"
+#include "GeometryScript/MeshPrimitiveFunctions.h"
 
 #define LOCTEXT_NAMESPACE "PCGExEdgesToPaths"
 #define PCGEX_NAMESPACE TopologyEdgesProcessor
@@ -48,11 +50,11 @@ namespace PCGExTopologyClusterSurface
 	void FProcessor::PrepareLoopScopesForEdges(const TArray<uint64>& Loops)
 	{
 		TProcessor<FPCGExTopologyClusterSurfaceContext, UPCGExTopologyClusterSurfaceSettings>::PrepareLoopScopesForEdges(Loops);
-		PCGEx::InitArray(SubTriangulations, Loops.Num());
+		SubTriangulations.Reserve(Loops.Num());
 		for (int i = 0; i < Loops.Num(); i++)
 		{
-			// TODO : Find a way to pre-allocate memory here
-			SubTriangulations[i] = MakeShared<TArray<PCGExGeo::FTriangle>>();
+			TSharedPtr<TArray<FGeometryScriptSimplePolygon>> A = MakeShared<TArray<FGeometryScriptSimplePolygon>>();
+			SubTriangulations.Add(A.ToSharedRef());
 		}
 	}
 
@@ -96,7 +98,7 @@ namespace PCGExTopologyClusterSurface
 		const PCGExTopology::ECellResult Result = Cell->BuildFromCluster(Node.Index, Edge.Index, Guide, Cluster.ToSharedRef(), *ProjectedPositions);
 		if (Result != PCGExTopology::ECellResult::Success) { return false; }
 
-		if (Cell->Triangulate<true>(*SubTriangulations[LoopIdx].Get(), Cluster) != PCGExTopology::ETriangulationResult::Success) { return false; }
+		SubTriangulations[LoopIdx]->Add(Cell->Polygon);
 
 		return true;
 	}
@@ -121,21 +123,29 @@ namespace PCGExTopologyClusterSurface
 	{
 		EnsureRoamingClosedLoopProcessing();
 
-		if (!BuildValidNodeLookup()) { return; }
+		FGeometryScriptGeneralPolygonList ClusterPolygonList;
+		ClusterPolygonList.Reset();
 
-		InternalMesh->EditMesh(
-			[&](FDynamicMesh3& InMesh)
-			{
-				for (const TSharedPtr<TArray<PCGExGeo::FTriangle>>& SubTriangulation : SubTriangulations)
-				{
-					const TArray<PCGExGeo::FTriangle>& Triangles = *SubTriangulation;
+		for (const TSharedRef<TArray<FGeometryScriptSimplePolygon>>& SubTriangulation : SubTriangulations)
+		{
+			UGeometryScriptLibrary_PolygonListFunctions::AppendPolygonList(
+				ClusterPolygonList,
+				UGeometryScriptLibrary_PolygonListFunctions::CreatePolygonListFromSimplePolygons(*SubTriangulation));
+		}
 
-					for (const PCGExGeo::FTriangle& T : Triangles)
-					{
-						InMesh.AppendTriangle(VerticesLookup->Get(T.Vtx[0]), VerticesLookup->Get(T.Vtx[1]), VerticesLookup->Get(T.Vtx[2]));
-					}
-				}
-			}, EDynamicMeshChangeType::GeneralEdit, EDynamicMeshAttributeChangeFlags::MeshTopology, false);
+		bool bTriangulationError = false;
+
+		UGeometryScriptLibrary_MeshPrimitiveFunctions::AppendPolygonListTriangulation(
+			GetInternalMesh(),
+			Settings->Topology.PrimitiveOptions, FTransform::Identity, ClusterPolygonList, Settings->Topology.TriangulationOptions,
+			bTriangulationError);
+
+		if (bTriangulationError && !Settings->Topology.bQuietTriangulationError)
+		{
+			PCGE_LOG_C(Error, GraphAndLog, ExecutionContext, FTEXT("Triangulation error."));
+		}
+
+		DeprojectDynamicMesh();
 	}
 
 	void FProcessor::Output()
@@ -159,17 +169,12 @@ namespace PCGExTopologyClusterSurface
 		const EObjectFlags ObjectFlags = (bIsPreviewMode ? RF_Transient : RF_NoFlags);
 		UDynamicMeshComponent* DynamicMeshComponent = NewObject<UDynamicMeshComponent>(TargetActor, MakeUniqueObjectName(TargetActor, UDynamicMeshComponent::StaticClass(), FName(ComponentName)), ObjectFlags);
 
-		if (Settings->Topology.bFlipOrientation)
-		{
-			GetInternalMesh()->GetMeshPtr()->ReverseOrientation();
-		}
-
 		DynamicMeshComponent->SetDynamicMesh(GetInternalMesh());
-		
+
 #if PCGEX_ENGINE_VERSION > 504
 		DynamicMeshComponent->SetDistanceFieldMode(static_cast<EDynamicMeshComponentDistanceFieldMode>(static_cast<uint8>(Settings->Topology.DistanceFieldMode)));
 #endif
-		
+
 		Context->ManagedObjects->Remove(GetInternalMesh());
 
 		Context->AttachManageComponent(

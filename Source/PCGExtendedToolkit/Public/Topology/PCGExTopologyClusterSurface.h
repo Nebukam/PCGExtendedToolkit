@@ -52,7 +52,7 @@ namespace PCGExTopologyClusterSurface
 {
 	class FProcessor final : public PCGExTopologyEdges::TProcessor<FPCGExTopologyClusterSurfaceContext, UPCGExTopologyClusterSurfaceSettings>
 	{
-		TArray<TSharedPtr<TArray<PCGExGeo::FTriangle>>> SubTriangulations;
+		TArray<TSharedRef<TArray<FGeometryScriptSimplePolygon>>> SubTriangulations;
 		int32 NumAttempts = 0;
 		int32 LastBinary = -1;
 

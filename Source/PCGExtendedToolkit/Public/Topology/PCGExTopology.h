@@ -7,7 +7,9 @@
 #include "Geometry/PCGExGeoPrimtives.h"
 #include "Graph/PCGExCluster.h"
 #include "Components/BaseDynamicMeshComponent.h"
+#include "GeometryScript/MeshPrimitiveFunctions.h"
 #include "Paths/PCGExPaths.h"
+#include "GeometryScript/PolygonFunctions.h"
 
 #include "PCGExTopology.generated.h"
 
@@ -260,10 +262,16 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExTopologyDetails
 	FPCGExTopologyDetails()
 	{
 	}
+	
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_NotOverridable))
+	FGeometryScriptPrimitiveOptions PrimitiveOptions;
+	
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_NotOverridable))
+	FGeometryScriptPolygonsTriangulationOptions TriangulationOptions;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
-	bool bFlipOrientation = false;
-
+	bool bQuietTriangulationError = false;
+	
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	EPCGExDynamicMeshComponentDistanceFieldMode DistanceFieldMode = EPCGExDynamicMeshComponentDistanceFieldMode::NoDistanceField;
 };
@@ -291,18 +299,19 @@ namespace PCGExTopology
 		FPlatformAtomics::InterlockedExchange(&InCluster->GetNode(InTriangle.Vtx[2])->bValid, 1);
 	}
 
-	static double ComputeArea(const TArray<FVector>& NodePositions)
+	static double ComputeArea(const FGeometryScriptSimplePolygon& Polygon)
 	{
-		int32 NumNodes = NodePositions.Num();
-		if (NumNodes < 3) { return 0; }
+		int32 NumVtx = Polygon.Vertices->Num();
+		if (NumVtx < 3) { return 0; }
 
 		double Area = 0;
+		const TArray<FVector2D>& Vertices = *Polygon.Vertices;
 
 		// Shoelace formula
-		for (int i = 0; i < NumNodes; ++i)
+		for (int i = 0; i < NumVtx; ++i)
 		{
-			const FVector& Current = NodePositions[i];
-			const FVector& Next = NodePositions[(i + 1) % NumNodes];
+			const FVector2D& Current = Vertices[i];
+			const FVector2D& Next = Vertices[(i + 1) % NumVtx];
 			Area += (Current.X * Next.Y) - (Next.X * Current.Y);
 		}
 
@@ -411,7 +420,6 @@ namespace PCGExTopology
 	{
 	protected:
 		int32 Sign = 0;
-		TArray<FVector> Positions;
 
 	public:
 		TArray<int32> Nodes;
@@ -425,6 +433,8 @@ namespace PCGExTopology
 		bool bIsConvex = true;
 		bool bCompiledSuccessfully = false;
 		bool bIsClosedLoop = false;
+
+		FGeometryScriptSimplePolygon Polygon;
 
 		explicit FCell(const TSharedRef<FCellConstraints>& InConstraints)
 			: Constraints(InConstraints)
@@ -443,126 +453,8 @@ namespace PCGExTopology
 		ECellResult BuildFromPath(
 			const TArray<FVector>& ProjectedPositions);
 
-
-		bool IsClockwise() const;
-
-		template <bool bMarkTriangles = false>
-		ETriangulationResult Triangulate(
-			TArray<PCGExGeo::FTriangle>& OutTriangles,
-			const TSharedPtr<PCGExCluster::FCluster> InCluster = nullptr)
-		{
-			if constexpr (bMarkTriangles) { if (!InCluster) { return ETriangulationResult::InvalidCluster; } }
-			if (!bCompiledSuccessfully) { return ETriangulationResult::InvalidCell; }
-			if (Nodes.Num() < 3) { return ETriangulationResult::TooFewPoints; }
-
-			if (!IsClockwise())
-			{
-				Algo::Reverse(Nodes);
-				Algo::Reverse(Positions);
-			}
-
-			if (bIsConvex || Nodes.Num() == 3) { return TriangulateFan<bMarkTriangles>(OutTriangles, InCluster); }
-			return TriangulateEarClipping<bMarkTriangles>(OutTriangles, InCluster);
-		}
-
-		int32 GetTriangleNumEstimate() const;
-
 		void PostProcessPoints(TArray<FPCGPoint>& InMutablePoints);
 
-	protected:
-		template <bool bMarkTriangles = false>
-		ETriangulationResult TriangulateFan(
-			TArray<PCGExGeo::FTriangle>& OutTriangles,
-			const TSharedPtr<PCGExCluster::FCluster> InCluster = nullptr)
-		{
-			if (!bCompiledSuccessfully) { return ETriangulationResult::InvalidCell; }
-			if (!bIsConvex) { return ETriangulationResult::UnsupportedAspect; }
-			if (Nodes.Num() < 3) { return ETriangulationResult::TooFewPoints; }
-
-			const int32 MaxIndex = Nodes.Num() - 1;
-			const TArrayView<const FVector> Pos = Positions;
-			const TArrayView<const int32> Ns = Nodes;
-
-			for (int i = 1; i < MaxIndex; i++)
-			{
-				constexpr int32 A = 0;
-				const int32 B = i;
-				const int32 C = i + 1;
-
-				PCGExGeo::FTriangle& T = OutTriangles.Emplace_GetRef(A, B, C);
-				T.FixWinding(Pos);
-				T.Remap(Ns);
-
-				if constexpr (bMarkTriangles) { MarkTriangle(InCluster, T); }
-			}
-
-			return ETriangulationResult::Success;
-		}
-
-		template <bool bMarkTriangles = false>
-		ETriangulationResult TriangulateEarClipping(
-			TArray<PCGExGeo::FTriangle>& OutTriangles,
-			const TSharedPtr<PCGExCluster::FCluster> InCluster = nullptr)
-		{
-			if (!bCompiledSuccessfully) { return ETriangulationResult::InvalidCell; }
-
-			const int32 NumNodes = Nodes.Num();
-			if (NumNodes < 3) { return ETriangulationResult::TooFewPoints; }
-
-			TArray<int32> Poly;
-			PCGEx::ArrayOfIndices(Poly, NumNodes);
-			const TArrayView<const FVector> Pos = Positions;
-			const TArrayView<const int32> Ns = Nodes;
-
-			while (Poly.Num() > 2)
-			{
-				bool bEarFound = false;
-
-				const int32 NumVtx = Poly.Num();
-
-				for (int i = 0; i < NumVtx; i++)
-				{
-					const int32 A = Poly[(i - 1 + NumVtx) % NumVtx];
-					const int32 B = Poly[i];
-					const int32 C = Poly[(i + 1) % NumVtx];
-
-					PCGExGeo::FTriangle T = PCGExGeo::FTriangle(A, B, C);
-
-					bool bIsEar = T.IsConvex(Pos);
-					if (bIsEar)
-					{
-						for (int j = 0; j < NumVtx; j++)
-						{
-							const int32 N = Poly[j];
-							if (N == A || N == B || N == C) { continue; }
-
-							if (T.ContainsPoint(Pos[N], Pos))
-							{
-								bIsEar = false;
-								break;
-							}
-						}
-					}
-
-					if (bIsEar)
-					{
-						T.FixWinding(Pos);
-						T.Remap(Ns);
-						if constexpr (bMarkTriangles) { MarkTriangle(InCluster, T); }
-
-						OutTriangles.Add(T);
-
-						Poly.RemoveAt(i);
-						bEarFound = true;
-						break;
-					}
-				}
-
-				if (!bEarFound) { return ETriangulationResult::InvalidCell; }
-			}
-
-			return ETriangulationResult::Success;
-		}
 	};
 
 #pragma endregion

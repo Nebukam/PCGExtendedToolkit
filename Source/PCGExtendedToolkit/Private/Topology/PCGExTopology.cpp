@@ -248,10 +248,12 @@ namespace PCGExTopology
 
 		if (!Constraints->IsUniqueCellHash(this)) { return ECellResult::Duplicate; }
 
-		Positions.SetNumUninitialized(Nodes.Num());
-		for (int i = 0; i < Nodes.Num(); ++i) { Positions[i] = ProjectedPositions[InCluster->GetNode(Nodes[i])->PointIndex]; }
+		Polygon.Reset();
+		TArray<FVector2D>& Vertices = *Polygon.Vertices;
+		Vertices.SetNumUninitialized(Nodes.Num());
+		for (int i = 0; i < Nodes.Num(); ++i) { Vertices[i] = FVector2D(ProjectedPositions[InCluster->GetNode(Nodes[i])->PointIndex]); }
 
-		Area = ComputeArea(Positions);
+		Area = ComputeArea(Polygon);
 
 		if (Perimeter == 0.0f) { Compactness = 0; }
 		else { Compactness = (4.0f * PI * Area) / (Perimeter * Perimeter); }
@@ -269,26 +271,6 @@ namespace PCGExTopology
 	ECellResult FCell::BuildFromPath(const TArray<FVector>& ProjectedPositions)
 	{
 		return ECellResult::Unknown;
-	}
-
-	bool FCell::IsClockwise() const
-	{
-		double Sum = 0;
-		const int32 NumNodes = Nodes.Num();
-		for (int i = 0; i < NumNodes; ++i)
-		{
-			const FVector& Current = Positions[i];
-			const FVector& Next = Positions[(i + 1) % NumNodes];
-			Sum += (Next.X - Current.X) * (Next.Y + Current.Y);
-		}
-		return Sum > 0;
-	}
-
-	int32 FCell::GetTriangleNumEstimate() const
-	{
-		if (!bCompiledSuccessfully) { return 0; }
-		if (bIsConvex || Nodes.Num() < 3) { return Nodes.Num(); }
-		return Nodes.Num() + 2; // TODO : That's 100% arbitrary, need a better way to estimate concave triangulation
 	}
 
 	void FCell::PostProcessPoints(TArray<FPCGPoint>& InMutablePoints)

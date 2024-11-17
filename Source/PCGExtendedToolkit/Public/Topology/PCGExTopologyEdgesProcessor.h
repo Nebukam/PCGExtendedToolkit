@@ -5,6 +5,7 @@
 
 #include "CoreMinimal.h"
 #include "PCGExTopology.h"
+#include "Geometry/PCGExGeoMesh.h"
 #include "Graph/PCGExClusterMT.h"
 #include "Graph/PCGExEdgesProcessor.h"
 #include "Graph/Filters/PCGExClusterFilter.h"
@@ -81,6 +82,7 @@ namespace PCGExTopologyEdges
 		using PCGExClusterMT::TProcessor<TContext, TSettings>::Settings;
 		using PCGExClusterMT::TProcessor<TContext, TSettings>::Context;
 
+		const FVector2D CWTolerance = FVector2D(1 / 0.001);
 		bool bIsPreviewMode = false;
 
 		TObjectPtr<UDynamicMesh> InternalMesh;
@@ -100,6 +102,7 @@ namespace PCGExTopologyEdges
 		using PCGExClusterMT::TProcessor<TContext, TSettings>::EdgeDataFacade;
 
 		TArray<FVector>* ProjectedPositions = nullptr;
+		TMap<uint32, int32>* ProjectedHashMap = nullptr;
 
 		TObjectPtr<UDynamicMesh> GetInternalMesh() { return InternalMesh; }
 
@@ -164,32 +167,6 @@ namespace PCGExTopologyEdges
 			return true;
 		}
 
-		bool BuildValidNodeLookup()
-		{
-			VerticesLookup = MakeShared<PCGEx::FIndexLookup>(this->NumNodes);
-			int32 ValidIndex = 0;
-
-			InternalMesh->EditMesh(
-				[&](FDynamicMesh3& InMesh)
-				{
-					for (int i = 0; i < this->NumNodes; i++)
-					{
-						if (!Cluster->GetNode(i)->bValid) { continue; }
-						VerticesLookup->Set(i, InMesh.AppendVertex(Cluster->GetPos(i)));
-						ValidIndex++;
-					}
-				}, EDynamicMeshChangeType::GeneralEdit, EDynamicMeshAttributeChangeFlags::MeshTopology, true);
-
-
-			if (ValidIndex == 0)
-			{
-				VerticesLookup.Reset();
-				return false;
-			}
-
-			return true;
-		}
-
 	protected:
 		void FilterConstrainedEdgeScope(const int32 StartIndex, const int32 Count)
 		{
@@ -207,12 +184,30 @@ namespace PCGExTopologyEdges
 
 			FPlatformAtomics::InterlockedAdd(&ConstrainedEdgesNum, LocalConstrainedEdgesNum);
 		}
+
+		void DeprojectDynamicMesh()
+		{
+			InternalMesh->EditMesh(
+				[&](FDynamicMesh3& InMesh)
+				{
+					const int32 VtxCount = InMesh.VertexCount();
+					const TArray<FPCGPoint>& InPoints = VtxDataFacade->GetIn()->GetPoints();
+					const TMap<uint32, int32>& HashMapRef = *ProjectedHashMap;
+					for (int i = 0; i < VtxCount; i++)
+					{
+						const int32* WP = HashMapRef.Find(PCGEx::GH2(InMesh.GetVertex(i), CWTolerance));
+						if (WP) { InMesh.SetVertex(i, InPoints[*WP].Transform.GetLocation()); }
+					}
+				}, EDynamicMeshChangeType::DeformationEdit, EDynamicMeshAttributeChangeFlags::VertexPositions, true);
+		}
 	};
 
 	template <typename T>
 	class TBatch : public PCGExClusterMT::TBatch<T>
 	{
 	protected:
+		const FVector2D CWTolerance = FVector2D(1 / 0.001);
+
 		using PCGExClusterMT::TBatch<T>::SharedThis;
 		using PCGExClusterMT::TBatch<T>::AsyncManager;
 
@@ -221,6 +216,7 @@ namespace PCGExTopologyEdges
 
 		FPCGExGeo2DProjectionDetails ProjectionDetails;
 		TArray<FVector> ProjectedPositions;
+		TMap<uint32, int32> ProjectedHashMap;
 
 	public:
 		using PCGExClusterMT::TBatch<T>::VtxDataFacade;
@@ -285,6 +281,7 @@ namespace PCGExTopologyEdges
 		virtual bool PrepareSingle(const TSharedPtr<T>& ClusterProcessor) override
 		{
 			ClusterProcessor->ProjectedPositions = &ProjectedPositions;
+			ClusterProcessor->ProjectedHashMap = &ProjectedHashMap;
 			PCGExClusterMT::TBatch<T>::PrepareSingle(ClusterProcessor);
 			return true;
 		}
@@ -292,6 +289,10 @@ namespace PCGExTopologyEdges
 	protected:
 		void OnProjectionComplete()
 		{
+			const int32 NumVtx = VtxDataFacade->GetNum();
+			ProjectedHashMap.Reserve(NumVtx);
+			for (int i = 0; i < NumVtx; i++) { ProjectedHashMap.Add(PCGEx::GH2(FVector2D(ProjectedPositions[i]), CWTolerance), i); }
+
 			PCGExClusterMT::TBatch<T>::Process();
 		}
 	};

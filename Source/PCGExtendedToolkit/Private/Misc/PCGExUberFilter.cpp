@@ -140,8 +140,13 @@ namespace PCGExUberFilter
 
 	void FProcessor::ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const int32 LoopIdx, const int32 LoopCount)
 	{
+		int8 bPass = PointFilterCache[Index];
+
+		if (bPass) { FPlatformAtomics::InterlockedAdd(&NumInside, 1); }
+		else { FPlatformAtomics::InterlockedAdd(&NumOutside, 1); }
+
 		if (!Results) { return; }
-		Results->GetMutable(Index) = static_cast<bool>(Settings->bSwap ? !PointFilterCache[Index] : PointFilterCache[Index]);
+		Results->GetMutable(Index) = bPass ? !Settings->bSwap : Settings->bSwap;
 	}
 
 	TSharedPtr<PCGExData::FPointIO> FProcessor::CreateIO(const TSharedRef<PCGExData::FPointIOCollection>& InCollection, const PCGExData::EIOInit InitMode) const
@@ -158,7 +163,30 @@ namespace PCGExUberFilter
 
 		if (Settings->Mode == EPCGExUberFilterMode::Write)
 		{
+			const bool bHasAnyPass = Settings->bSwap ? NumOutside != 0 : NumInside != 0;
+			const bool bAllPass = Settings->bSwap ? NumOutside == PointDataFacade->GetNum() : NumInside == PointDataFacade->GetNum();
+			if (bHasAnyPass && Settings->bTagIfAnyPointPassed) { PointDataFacade->Source->Tags->Add(Settings->HasAnyPointPassedTag); }
+			if (bAllPass && Settings->bTagIfAllPointsPassed) { PointDataFacade->Source->Tags->Add(Settings->AllPointsPassedTag); }
+			if (!bHasAnyPass && Settings->bTagIfNoPointPassed) { PointDataFacade->Source->Tags->Add(Settings->NoPointPassedTag); }
+
+
 			PointDataFacade->Write(AsyncManager);
+			return;
+		}
+
+		if (NumInside == 0 || NumOutside == 0)
+		{
+			if (NumInside == 0)
+			{
+				Outside = CreateIO(Context->Outside.ToSharedRef(), PCGExData::EIOInit::Forward);
+				if (Settings->bTagIfNoPointPassed) { Outside->Tags->Add(Settings->NoPointPassedTag); }
+			}
+			else
+			{
+				Inside = CreateIO(Context->Inside.ToSharedRef(), PCGExData::EIOInit::Forward);
+				if (Settings->bTagIfAnyPointPassed) { Inside->Tags->Add(Settings->HasAnyPointPassedTag); }
+				if (Settings->bTagIfAllPointsPassed) { Inside->Tags->Add(Settings->AllPointsPassedTag); }
+			}
 			return;
 		}
 
@@ -166,14 +194,8 @@ namespace PCGExUberFilter
 		TArray<int32> Indices;
 		PCGEx::InitArray(Indices, NumPoints);
 
+		NumInside = NumOutside = 0;
 		for (int i = 0; i < NumPoints; i++) { Indices[i] = PointFilterCache[i] ? NumInside++ : NumOutside++; }
-
-		if (NumInside == 0 || NumOutside == 0)
-		{
-			if (NumInside == 0) { Outside = CreateIO(Context->Outside.ToSharedRef(), PCGExData::EIOInit::Forward); }
-			else { Inside = CreateIO(Context->Inside.ToSharedRef(), PCGExData::EIOInit::Forward); }
-			return;
-		}
 
 		const TArray<FPCGPoint>& OriginalPoints = PointDataFacade->GetIn()->GetPoints();
 
@@ -184,6 +206,8 @@ namespace PCGExUberFilter
 		Outside = CreateIO(Context->Outside.ToSharedRef(), PCGExData::EIOInit::NewOutput);
 		TArray<FPCGPoint>& OutsidePoints = Outside->GetOut()->GetMutablePoints();
 		PCGEx::InitArray(OutsidePoints, NumOutside);
+
+		if (Settings->bTagIfAnyPointPassed) { Inside->Tags->Add(Settings->HasAnyPointPassedTag); }
 
 		for (int i = 0; i < NumPoints; i++)
 		{
