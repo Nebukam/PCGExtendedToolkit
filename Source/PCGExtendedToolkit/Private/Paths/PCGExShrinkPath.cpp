@@ -304,7 +304,7 @@ namespace PCGExShrinkPath
 				if (StartAmount < 0)
 				{
 					const FVector Pos = MutablePoints[0].Transform.GetLocation();
-					const FVector Direction = (Pos - MutablePoints[1].Transform.GetLocation()).GetSafeNormal() * StartAmount;
+					const FVector Direction = (MutablePoints[1].Transform.GetLocation() - Pos).GetSafeNormal() * StartAmount;
 					MutablePoints[0].Transform.SetLocation(Pos + Direction);
 					StartAmount = 0;
 				}
@@ -312,11 +312,13 @@ namespace PCGExShrinkPath
 				if (EndAmount < 0)
 				{
 					const FVector Pos = MutablePoints.Last().Transform.GetLocation();
-					const FVector Direction = (Pos - MutablePoints[LastPointIndex - 1].Transform.GetLocation()).GetSafeNormal() * EndAmount;
-					MutablePoints[0].Transform.SetLocation(Pos + Direction);
+					const FVector Direction = (MutablePoints.Last(1).Transform.GetLocation() - Pos).GetSafeNormal() * EndAmount;
+					MutablePoints.Last().Transform.SetLocation(Pos + Direction);
 					EndAmount = 0;
 				}
 			}
+
+			if (StartAmount == 0 && EndAmount == 0) { return true; }
 
 			auto ShrinkBy = [&](double Distance, const EPCGExPathShrinkDistanceCutType CutType)-> double
 			{
