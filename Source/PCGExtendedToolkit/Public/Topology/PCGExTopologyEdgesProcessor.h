@@ -167,6 +167,45 @@ namespace PCGExTopologyEdges
 			return true;
 		}
 
+		virtual void Output() override
+		{
+			if (!this->bIsProcessorValid) { return; }
+
+			UE_LOG(LogTemp, Warning, TEXT("Output %llu | %d"), Settings->UID, EdgeDataFacade->Source->IOIndex)
+
+			TRACE_CPUPROFILER_EVENT_SCOPE(UPCGExPathSplineMesh::FProcessor::Output);
+
+			// TODO : Resolve per-point target actor...? irk.
+			AActor* TargetActor = Settings->TargetActor.Get() ? Settings->TargetActor.Get() : ExecutionContext->GetTargetActor(nullptr);
+
+			if (!TargetActor)
+			{
+				PCGE_LOG_C(Error, GraphAndLog, ExecutionContext, FTEXT("Invalid target actor."));
+				return;
+			}
+
+			const FString ComponentName = TEXT("PCGDynamicMeshComponent");
+			const EObjectFlags ObjectFlags = (bIsPreviewMode ? RF_Transient : RF_NoFlags);
+			UDynamicMeshComponent* DynamicMeshComponent = NewObject<UDynamicMeshComponent>(TargetActor, MakeUniqueObjectName(TargetActor, UDynamicMeshComponent::StaticClass(), FName(ComponentName)), ObjectFlags);
+
+			Settings->Topology.TemplateDescriptor.InitComponent(DynamicMeshComponent);
+
+			DynamicMeshComponent->SetDynamicMesh(InternalMesh);
+			if (UMaterialInterface* Material = Settings->Topology.Material.LoadSynchronous())
+			{
+				DynamicMeshComponent->SetMaterial(0, Material);
+			}
+
+			Context->ManagedObjects->Remove(InternalMesh);
+
+
+			Context->AttachManageComponent(
+				TargetActor, DynamicMeshComponent,
+				FAttachmentTransformRules(EAttachmentRule::KeepWorld, EAttachmentRule::KeepWorld, EAttachmentRule::KeepWorld, false));
+
+			Context->NotifyActors.Add(TargetActor);
+		}
+
 	protected:
 		void FilterConstrainedEdgeScope(const int32 StartIndex, const int32 Count)
 		{
@@ -185,20 +224,32 @@ namespace PCGExTopologyEdges
 			FPlatformAtomics::InterlockedAdd(&ConstrainedEdgesNum, LocalConstrainedEdgesNum);
 		}
 
-		void DeprojectDynamicMesh()
+		void ApplyPointData()
 		{
 			InternalMesh->EditMesh(
 				[&](FDynamicMesh3& InMesh)
 				{
+					InMesh.EnableVertexColors(
+						FVector3f(
+							Settings->Topology.DefaultVertexColor.Component(0),
+							Settings->Topology.DefaultVertexColor.Component(1),
+							Settings->Topology.DefaultVertexColor.Component(2)));
+					
 					const int32 VtxCount = InMesh.VertexCount();
 					const TArray<FPCGPoint>& InPoints = VtxDataFacade->GetIn()->GetPoints();
 					const TMap<uint32, int32>& HashMapRef = *ProjectedHashMap;
+
 					for (int i = 0; i < VtxCount; i++)
 					{
 						const int32* WP = HashMapRef.Find(PCGEx::GH2(InMesh.GetVertex(i), CWTolerance));
-						if (WP) { InMesh.SetVertex(i, InPoints[*WP].Transform.GetLocation()); }
+						if (WP)
+						{
+							const FPCGPoint& Point = InPoints[*WP];
+							InMesh.SetVertex(i, Point.Transform.GetLocation());
+							InMesh.SetVertexColor(i, FVector3f(Point.Color[0], Point.Color[1], Point.Color[2]));
+						}
 					}
-				}, EDynamicMeshChangeType::DeformationEdit, EDynamicMeshAttributeChangeFlags::VertexPositions, true);
+				}, EDynamicMeshChangeType::GeneralEdit, EDynamicMeshAttributeChangeFlags::VertexColors | EDynamicMeshAttributeChangeFlags::VertexPositions, true);
 		}
 	};
 

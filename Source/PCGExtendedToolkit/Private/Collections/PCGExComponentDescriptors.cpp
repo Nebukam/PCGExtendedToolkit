@@ -5,6 +5,7 @@
 #include "PCGExMacros.h"
 
 FPCGExPrimitiveComponentDescriptor::FPCGExPrimitiveComponentDescriptor()
+	: FPCGExPrimitiveComponentDescriptor(NoInit)
 {
 	// Make sure we have proper defaults
 	InitFrom(UPrimitiveComponent::StaticClass()->GetDefaultObject<UPrimitiveComponent>());
@@ -179,7 +180,7 @@ void FPCGExPrimitiveComponentDescriptor::InitComponent(UPrimitiveComponent* InCo
 }
 
 FPCGExMeshComponentDescriptor::FPCGExMeshComponentDescriptor()
-	: FPCGExPrimitiveComponentDescriptor(NoInit)
+	: FPCGExMeshComponentDescriptor(NoInit)
 {
 	// Make sure we have proper defaults
 	InitFrom(UMeshComponent::StaticClass()->GetDefaultObject<UMeshComponent>(), false);
@@ -210,7 +211,7 @@ void FPCGExMeshComponentDescriptor::InitComponent(UPrimitiveComponent* InCompone
 }
 
 FPCGExStaticMeshComponentDescriptor::FPCGExStaticMeshComponentDescriptor()
-	: FPCGExMeshComponentDescriptor(NoInit)
+	: FPCGExStaticMeshComponentDescriptor(NoInit)
 {
 	// Make sure we have proper defaults
 	InitFrom(UStaticMeshComponent::StaticClass()->GetDefaultObject<UStaticMeshComponent>(), false);
@@ -302,4 +303,57 @@ void FPCGExStaticMeshComponentDescriptor::InitComponent(UPrimitiveComponent* InC
 	TargetComponent->bCustomOverrideVertexColorPerLOD = bCustomOverrideVertexColorPerLOD;
 	TargetComponent->bDisplayNaniteFallbackMesh = bDisplayNaniteFallbackMesh;
 #endif
+}
+
+FPCGExDynamicMeshDescriptor::FPCGExDynamicMeshDescriptor()
+	: FPCGExDynamicMeshDescriptor(NoInit)
+{
+	// Make sure we have proper defaults
+	InitFrom(UDynamicMeshComponent::StaticClass()->GetDefaultObject<UDynamicMeshComponent>(), false);
+}
+
+void FPCGExDynamicMeshDescriptor::InitFrom(const UPrimitiveComponent* Component, bool bInitBodyInstance)
+{
+	FPCGExMeshComponentDescriptor::InitFrom(Component, bInitBodyInstance);
+
+	const UDynamicMeshComponent* SourceComponent = Cast<UDynamicMeshComponent>(Component);
+	if (!SourceComponent) { return; }
+
+#if PCGEX_ENGINE_VERSION > 504
+	DistanceFieldMode = static_cast<EPCGExDynamicMeshComponentDistanceFieldMode>(static_cast<uint8>(SourceComponent->GetDistanceFieldMode()));
+#endif
+
+	bExplicitShowWireframe = SourceComponent->bExplicitShowWireframe;
+	WireframeColor = SourceComponent->WireframeColor;
+	ColorMode = SourceComponent->ColorMode;
+	ConstantColor = SourceComponent->ConstantColor;
+	ColorSpaceMode = SourceComponent->ColorSpaceMode;
+	bEnableFlatShading = SourceComponent->bEnableFlatShading;
+	bEnableViewModeOverrides = SourceComponent->bEnableViewModeOverrides;
+	bEnableRaytracing = SourceComponent->bEnableRaytracing;
+}
+
+void FPCGExDynamicMeshDescriptor::InitComponent(UPrimitiveComponent* InComponent) const
+{
+	FPCGExMeshComponentDescriptor::InitComponent(InComponent);
+
+	UDynamicMeshComponent* TargetComponent = Cast<UDynamicMeshComponent>(InComponent);
+	if (!TargetComponent) { return; }
+
+#if PCGEX_ENGINE_VERSION > 504
+	TargetComponent->SetDistanceFieldMode(static_cast<EDynamicMeshComponentDistanceFieldMode>(static_cast<uint8>(DistanceFieldMode)));
+#endif
+
+	TargetComponent->bUseAsyncCooking = bUseAsyncCooking;
+	TargetComponent->bDeferCollisionUpdates = bDeferCollisionUpdates;
+	TargetComponent->SetComplexAsSimpleCollisionEnabled(bEnableComplexCollision, false);
+
+	TargetComponent->bExplicitShowWireframe = bExplicitShowWireframe;
+	TargetComponent->WireframeColor = WireframeColor;
+	TargetComponent->ColorMode = ColorMode;
+	TargetComponent->ConstantColor = ConstantColor;
+	TargetComponent->ColorSpaceMode = ColorSpaceMode;
+	TargetComponent->bEnableFlatShading = bEnableFlatShading;
+	TargetComponent->bEnableViewModeOverrides = bEnableViewModeOverrides;
+	TargetComponent->bEnableRaytracing = bEnableRaytracing;
 }

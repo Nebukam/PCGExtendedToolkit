@@ -8,7 +8,6 @@
 #include "Graph/PCGExEdgesProcessor.h"
 
 #include "PCGExTopologyEdgesProcessor.h"
-#include "Components/DynamicMeshComponent.h"
 #include "PCGExTopologyClusterSurface.generated.h"
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Clusters")
@@ -73,7 +72,6 @@ namespace PCGExTopologyClusterSurface
 		bool ProcessNodeCandidate(const PCGExCluster::FNode& Node, const PCGExGraph::FEdge& Edge, const FVector& Guide, int32 LoopIdx, const bool bSkipBinary = true);
 		void EnsureRoamingClosedLoopProcessing();
 		virtual void OnEdgesProcessingComplete() override;
-		virtual void Output() override;
 		
 	};
 }
