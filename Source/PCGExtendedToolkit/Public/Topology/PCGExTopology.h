@@ -273,9 +273,6 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExTopologyDetails
 	bool bQuietTriangulationError = false;
 	
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
-	bool bFlipOrientation = false;
-
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	EPCGExDynamicMeshComponentDistanceFieldMode DistanceFieldMode = EPCGExDynamicMeshComponentDistanceFieldMode::NoDistanceField;
 };
 

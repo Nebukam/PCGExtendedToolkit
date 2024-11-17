@@ -164,9 +164,29 @@ namespace PCGExUberFilter
 		if (Settings->Mode == EPCGExUberFilterMode::Write)
 		{
 			const bool bHasAnyPass = Settings->bSwap ? NumOutside != 0 : NumInside != 0;
+			const bool bAllPass = Settings->bSwap ? NumOutside == PointDataFacade->GetNum() : NumInside == PointDataFacade->GetNum();
 			if (bHasAnyPass && Settings->bTagIfAnyPointPassed) { PointDataFacade->Source->Tags->Add(Settings->HasAnyPointPassedTag); }
+			if (bAllPass && Settings->bTagIfAllPointsPassed) { PointDataFacade->Source->Tags->Add(Settings->AllPointsPassedTag); }
+			if (!bHasAnyPass && Settings->bTagIfNoPointPassed) { PointDataFacade->Source->Tags->Add(Settings->NoPointPassedTag); }
+
 
 			PointDataFacade->Write(AsyncManager);
+			return;
+		}
+
+		if (NumInside == 0 || NumOutside == 0)
+		{
+			if (NumInside == 0)
+			{
+				Outside = CreateIO(Context->Outside.ToSharedRef(), PCGExData::EIOInit::Forward);
+				if (Settings->bTagIfNoPointPassed) { Outside->Tags->Add(Settings->NoPointPassedTag); }
+			}
+			else
+			{
+				Inside = CreateIO(Context->Inside.ToSharedRef(), PCGExData::EIOInit::Forward);
+				if (Settings->bTagIfAnyPointPassed) { Inside->Tags->Add(Settings->HasAnyPointPassedTag); }
+				if (Settings->bTagIfAllPointsPassed) { Inside->Tags->Add(Settings->AllPointsPassedTag); }
+			}
 			return;
 		}
 
@@ -174,19 +194,8 @@ namespace PCGExUberFilter
 		TArray<int32> Indices;
 		PCGEx::InitArray(Indices, NumPoints);
 
-		if (NumInside == 0 || NumOutside == 0)
-		{
-			if (NumInside == 0)
-			{
-				Outside = CreateIO(Context->Outside.ToSharedRef(), PCGExData::EIOInit::Forward);
-			}
-			else
-			{
-				Inside = CreateIO(Context->Inside.ToSharedRef(), PCGExData::EIOInit::Forward);
-				if (Settings->bTagIfAnyPointPassed) { Inside->Tags->Add(Settings->HasAnyPointPassedTag); }
-			}
-			return;
-		}
+		NumInside = NumOutside = 0;
+		for (int i = 0; i < NumPoints; i++) { Indices[i] = PointFilterCache[i] ? NumInside++ : NumOutside++; }
 
 		const TArray<FPCGPoint>& OriginalPoints = PointDataFacade->GetIn()->GetPoints();
 
