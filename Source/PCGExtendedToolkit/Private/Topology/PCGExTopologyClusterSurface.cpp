@@ -2,6 +2,8 @@
 // Released under the MIT license https://opensource.org/license/MIT/
 
 #include "Topology/PCGExTopologyClusterSurface.h"
+
+#include "Components/DynamicMeshComponent.h"
 #include "GeometryScript/PolygonFunctions.h"
 #include "GeometryScript/MeshPrimitiveFunctions.h"
 
@@ -145,43 +147,7 @@ namespace PCGExTopologyClusterSurface
 			PCGE_LOG_C(Error, GraphAndLog, ExecutionContext, FTEXT("Triangulation error."));
 		}
 
-		DeprojectDynamicMesh();
-	}
-
-	void FProcessor::Output()
-	{
-		if (!bIsProcessorValid) { return; }
-
-		UE_LOG(LogTemp, Warning, TEXT("Output %llu | %d"), Settings->UID, EdgeDataFacade->Source->IOIndex)
-
-		TRACE_CPUPROFILER_EVENT_SCOPE(UPCGExPathSplineMesh::FProcessor::Output);
-
-		// TODO : Resolve per-point target actor...? irk.
-		AActor* TargetActor = Settings->TargetActor.Get() ? Settings->TargetActor.Get() : ExecutionContext->GetTargetActor(nullptr);
-
-		if (!TargetActor)
-		{
-			PCGE_LOG_C(Error, GraphAndLog, ExecutionContext, FTEXT("Invalid target actor."));
-			return;
-		}
-
-		const FString ComponentName = TEXT("PCGDynamicMeshComponent");
-		const EObjectFlags ObjectFlags = (bIsPreviewMode ? RF_Transient : RF_NoFlags);
-		UDynamicMeshComponent* DynamicMeshComponent = NewObject<UDynamicMeshComponent>(TargetActor, MakeUniqueObjectName(TargetActor, UDynamicMeshComponent::StaticClass(), FName(ComponentName)), ObjectFlags);
-
-		DynamicMeshComponent->SetDynamicMesh(GetInternalMesh());
-
-#if PCGEX_ENGINE_VERSION > 504
-		DynamicMeshComponent->SetDistanceFieldMode(static_cast<EDynamicMeshComponentDistanceFieldMode>(static_cast<uint8>(Settings->Topology.DistanceFieldMode)));
-#endif
-
-		Context->ManagedObjects->Remove(GetInternalMesh());
-
-		Context->AttachManageComponent(
-			TargetActor, DynamicMeshComponent,
-			FAttachmentTransformRules(EAttachmentRule::KeepWorld, EAttachmentRule::KeepWorld, EAttachmentRule::KeepWorld, false));
-
-		Context->NotifyActors.Add(TargetActor);
+		ApplyPointData();
 	}
 
 	void FProcessor::CompleteWork()

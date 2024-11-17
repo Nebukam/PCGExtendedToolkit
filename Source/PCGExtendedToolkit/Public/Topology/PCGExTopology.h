@@ -6,7 +6,6 @@
 #include "CoreMinimal.h"
 #include "Geometry/PCGExGeoPrimtives.h"
 #include "Graph/PCGExCluster.h"
-#include "Components/BaseDynamicMeshComponent.h"
 #include "GeometryScript/MeshPrimitiveFunctions.h"
 #include "Paths/PCGExPaths.h"
 #include "GeometryScript/PolygonFunctions.h"
@@ -245,15 +244,6 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExCellSeedMutationDetails
 	void ApplyToPoint(const PCGExTopology::FCell* InCell, FPCGPoint& OutPoint, const TArray<FPCGPoint>& CellPoints) const;
 };
 
-UENUM(BlueprintType)
-enum class EPCGExDynamicMeshComponentDistanceFieldMode : uint8
-{
-	NoDistanceField = 0 UMETA(DisplayName = "No Distance Field"),
-#if PCGEX_ENGINE_VERSION > 504
-	AsyncCPUDistanceField = 1 UMETA(DisplayName = "Async CPU Distance Field"),
-#endif
-};
-
 USTRUCT(BlueprintType)
 struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExTopologyDetails
 {
@@ -262,7 +252,13 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExTopologyDetails
 	FPCGExTopologyDetails()
 	{
 	}
-	
+
+	UPROPERTY(EditAnywhere, Category = Settings, meta = (PCG_Overridable))
+	TSoftObjectPtr<UMaterialInterface> Material;
+
+	UPROPERTY(EditAnywhere, Category = Settings, meta = (PCG_Overridable))
+	FLinearColor DefaultVertexColor = FLinearColor::White;
+		
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_NotOverridable))
 	FGeometryScriptPrimitiveOptions PrimitiveOptions;
 	
@@ -271,9 +267,10 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExTopologyDetails
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	bool bQuietTriangulationError = false;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_NotOverridable))
+	FPCGExDynamicMeshDescriptor TemplateDescriptor;
 	
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
-	EPCGExDynamicMeshComponentDistanceFieldMode DistanceFieldMode = EPCGExDynamicMeshComponentDistanceFieldMode::NoDistanceField;
 };
 
 namespace PCGExTopology
