@@ -4,7 +4,6 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Data/PCGExDataForward.h"
 #include "Graph/PCGExEdgesProcessor.h"
 #include "Misc/PCGExFindPointOnBounds.h"
 #include "PCGExFindPointOnBoundsClusters.generated.h"
@@ -44,7 +43,7 @@ public:
 
 	/** UVW position of the target within bounds. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
-	FVector UVW = FVector::OneVector;
+	FVector UVW = FVector(-1, -1, 0);
 
 	/** Offset to apply to the closest point, away from the bounds center. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
@@ -113,7 +112,7 @@ namespace PCGExFindPointOnBoundsClusters
 		virtual bool Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager) override;
 		void UpdateCandidate(const FVector& InPosition, const int32 InIndex);
 		virtual void ProcessSingleNode(const int32 Index, PCGExCluster::FNode& Node, const int32 LoopIdx, const int32 Count) override;
-		virtual void ProcessSingleEdge(const int32 EdgeIndex, PCGExGraph::FIndexedEdge& Edge, const int32 LoopIdx, const int32 Count) override;
+		virtual void ProcessSingleEdge(const int32 EdgeIndex, PCGExGraph::FEdge& Edge, const int32 LoopIdx, const int32 Count) override;
 		virtual void CompleteWork() override;
 	};
 }

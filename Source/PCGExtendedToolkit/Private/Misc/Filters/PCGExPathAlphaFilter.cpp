@@ -37,8 +37,6 @@ bool UPCGExPathAlphaFilterFactory::Init(FPCGExContext* InContext)
 	}
 
 	return true;
-
-	return true;
 }
 
 TSharedPtr<PCGExPointFilter::FFilter> UPCGExPathAlphaFilterFactory::CreateFilter() const
@@ -57,7 +55,7 @@ void UPCGExPathAlphaFilterFactory::CreateSpline(const UPCGPointData* InData, con
 	PCGEx::InitArray(SplinePoints, NumPoints);
 
 	ESplinePointType::Type PointType = ESplinePointType::Linear;
-	
+
 	switch (Config.PointType)
 	{
 	case EPCGExSplinePointTypeRedux::Linear:

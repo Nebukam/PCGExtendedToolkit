@@ -127,7 +127,7 @@ namespace PCGExFuseClusters
 	{
 		int32 VtxIOIndex = 0;
 		int32 EdgesIOIndex = 0;
-		TArray<PCGExGraph::FIndexedEdge> IndexedEdges;
+		TArray<PCGExGraph::FEdge> IndexedEdges;
 		const TArray<FPCGPoint>* InPoints = nullptr;
 
 	public:
@@ -148,7 +148,7 @@ namespace PCGExFuseClusters
 			ProcessSingleEdge(Iteration, IndexedEdges[Iteration], LoopIdx, Count);
 		}
 
-		FORCEINLINE virtual void ProcessSingleEdge(const int32 EdgeIndex, PCGExGraph::FIndexedEdge& Edge, const int32 LoopIdx, const int32 Count) override
+		FORCEINLINE virtual void ProcessSingleEdge(const int32 EdgeIndex, PCGExGraph::FEdge& Edge, const int32 LoopIdx, const int32 Count) override
 		{
 			TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExFusePointsElement::ProcessSingleEdge);
 

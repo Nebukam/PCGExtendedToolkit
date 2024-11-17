@@ -8,8 +8,6 @@
 
 #include "PCGExPointsProcessor.h"
 #include "Data/PCGExAttributeHelpers.h"
-#include "Data/Blending/PCGExMetadataBlender.h"
-
 
 #include "PCGExFindPointOnBounds.generated.h"
 

@@ -46,9 +46,9 @@ bool FPCGExSubdivideEdgesElement::ExecuteInternal(FPCGContext* InContext) const
 	PCGEX_EXECUTION_CHECK
 	PCGEX_ON_INITIAL_EXECUTION
 	{
-		if (!Context->StartProcessingClusters<PCGExSubdivideEdges::FProcessorBatch>(
+		if (!Context->StartProcessingClusters<PCGExSubdivideEdges::FBatch>(
 			[](const TSharedPtr<PCGExData::FPointIOTaggedEntries>& Entries) { return true; },
-			[&](const TSharedPtr<PCGExSubdivideEdges::FProcessorBatch>& NewBatch)
+			[&](const TSharedPtr<PCGExSubdivideEdges::FBatch>& NewBatch)
 			{
 				NewBatch->bRequiresWriteStep = true;
 			}))
@@ -83,7 +83,7 @@ namespace PCGExSubdivideEdges
 
 		if (!FClusterProcessor::Process(InAsyncManager)) { return false; }
 
-		if (!DirectionSettings.InitFromParent(ExecutionContext, StaticCastWeakPtr<FProcessorBatch>(ParentBatch).Pin()->DirectionSettings, EdgeDataFacade))
+		if (!DirectionSettings.InitFromParent(ExecutionContext, StaticCastWeakPtr<FBatch>(ParentBatch).Pin()->DirectionSettings, EdgeDataFacade))
 		{
 			return false;
 		}
@@ -96,7 +96,7 @@ namespace PCGExSubdivideEdges
 		return true;
 	}
 
-	void FProcessor::ProcessSingleEdge(const int32 EdgeIndex, PCGExGraph::FIndexedEdge& Edge, const int32 LoopIdx, const int32 Count)
+	void FProcessor::ProcessSingleEdge(const int32 EdgeIndex, PCGExGraph::FEdge& Edge, const int32 LoopIdx, const int32 Count)
 	{
 		const TSharedRef<PCGExData::FPointIO>& PointIO = EdgeDataFacade->Source;
 
@@ -130,7 +130,7 @@ namespace PCGExSubdivideEdges
 		FClusterProcessor::Write();
 	}
 
-	void FProcessorBatch::RegisterBuffersDependencies(PCGExData::FFacadePreloader& FacadePreloader)
+	void FBatch::RegisterBuffersDependencies(PCGExData::FFacadePreloader& FacadePreloader)
 	{
 		TBatchWithGraphBuilder<FProcessor>::RegisterBuffersDependencies(FacadePreloader);
 
@@ -140,7 +140,7 @@ namespace PCGExSubdivideEdges
 		DirectionSettings.RegisterBuffersDependencies(ExecutionContext, FacadePreloader);
 	}
 
-	void FProcessorBatch::OnProcessingPreparationComplete()
+	void FBatch::OnProcessingPreparationComplete()
 	{
 		PCGEX_TYPED_CONTEXT_AND_SETTINGS(SubdivideEdges)
 

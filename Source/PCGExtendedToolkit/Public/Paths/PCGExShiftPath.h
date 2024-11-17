@@ -8,7 +8,6 @@
 #include "PCGExPaths.h"
 #include "PCGExPointsProcessor.h"
 #include "Data/Blending/PCGExDataBlending.h"
-#include "Data/Blending/PCGExMetadataBlender.h"
 
 #include "PCGExShiftPath.generated.h"
 

@@ -3,9 +3,6 @@
 
 #include "Paths/PCGExPathToClusters.h"
 #include "Graph/PCGExGraph.h"
-#include "Data/Blending/PCGExUnionBlender.h"
-
-
 #include "Graph/Data/PCGExClusterData.h"
 #include "Graph/PCGExUnionHelpers.h"
 
@@ -197,18 +194,18 @@ namespace PCGExPathToClusters
 
 		PointIO->InitializeOutput<UPCGExClusterNodesData>(PCGExData::EIOInit::NewOutput);
 
-		TArray<PCGExGraph::FIndexedEdge> Edges;
+		TArray<PCGExGraph::FEdge> Edges;
 		PCGEx::InitArray(Edges, bClosedLoop ? NumPoints : NumPoints - 1);
 
 		for (int i = 0; i < Edges.Num(); i++)
 		{
-			Edges[i] = PCGExGraph::FIndexedEdge(i, i, i + 1, PointIO->IOIndex);
+			Edges[i] = PCGExGraph::FEdge(i, i, i + 1, PointIO->IOIndex);
 		}
 
 		if (bClosedLoop)
 		{
 			const int32 LastIndex = Edges.Num() - 1;
-			Edges[LastIndex] = PCGExGraph::FIndexedEdge(LastIndex, LastIndex, 0, PointIO->IOIndex);
+			Edges[LastIndex] = PCGExGraph::FEdge(LastIndex, LastIndex, 0, PointIO->IOIndex);
 		}
 
 		GraphBuilder->Graph->InsertEdges(Edges);

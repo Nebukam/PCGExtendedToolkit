@@ -96,7 +96,7 @@ public:
 	TSharedPtr<PCGExData::TBuffer<FVector>> OperandDirection;
 
 	virtual bool Init(FPCGExContext* InContext, const TSharedRef<PCGExCluster::FCluster>& InCluster, const TSharedRef<PCGExData::FFacade>& InPointDataFacade, const TSharedRef<PCGExData::FFacade>& InEdgeDataFacade) override;
-	virtual bool Test(const PCGExGraph::FIndexedEdge& Edge) const override;
+	virtual bool Test(const PCGExGraph::FEdge& Edge) const override;
 
 	bool TestDot(const int32 PtIndex, const FVector& EdgeDir) const;
 	bool TestHash(const int32 PtIndex, const FVector& EdgeDir) const;

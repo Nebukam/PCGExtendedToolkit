@@ -5,7 +5,6 @@
 
 #include "CoreMinimal.h"
 #include "PCGExOperation.h"
-#include "Data/Blending/PCGExDataBlending.h"
 #include "Data/Blending/PCGExMetadataBlender.h"
 #include "PCGExSmoothingOperation.generated.h"
 

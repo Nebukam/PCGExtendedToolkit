@@ -26,19 +26,19 @@ public:
 		}
 	}
 
-	virtual void ProcessExpandedNode(const PCGExCluster::FExpandedNode& ExpandedNode) override
+	virtual void ProcessExpandedNode(const PCGExCluster::FNode& Node) override
 	{
-		const FVector Position = *(ReadBuffer->GetData() + ExpandedNode.Node->NodeIndex);
+		const FVector Position = *(ReadBuffer->GetData() + Node.Index);
 		FVector Force = FVector::Zero();
 
-		for (const PCGExCluster::FExpandedNeighbor& Neighbor : ExpandedNode.Neighbors)
+		for (const PCGExGraph::FLink& Lk : Node.Links)
 		{
-			const FVector OtherPosition = *(ReadBuffer->GetData() + Neighbor.Node->NodeIndex);
+			const FVector OtherPosition = *(ReadBuffer->GetData() + Lk.Node);
 			CalculateAttractiveForce(Force, Position, OtherPosition);
 			CalculateRepulsiveForce(Force, Position, OtherPosition);
 		}
 
-		(*WriteBuffer)[ExpandedNode.Node->NodeIndex] = Position + Force;
+		(*WriteBuffer)[Node.Index] = Position + Force;
 	}
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))

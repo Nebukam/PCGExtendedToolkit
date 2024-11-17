@@ -10,7 +10,6 @@
 #include "Data/PCGExPointFilter.h"
 #include "PCGExPointsProcessor.h"
 #include "PCGExSplineInclusionFilter.h"
-#include "Data/PCGSplineData.h"
 #include "Paths/PCGExPaths.h"
 #include "Sampling/PCGExSampleNearestSpline.h"
 
@@ -20,10 +19,10 @@
 UENUM()
 enum class EPCGExSplinePointTypeRedux : uint8
 {
-	Linear             = 0 UMETA(DisplayName = "Linear (0)", Tooltip="Linear (0)."),
-	Curve              = 1 UMETA(DisplayName = "Curve (1)", Tooltip="Curve (1)."),
-	Constant           = 2 UMETA(DisplayName = "Constant (2)", Tooltip="Constant (2)."),
-	CurveClamped       = 3 UMETA(DisplayName = "CurveClamped (3)", Tooltip="CurveClamped (3)."),
+	Linear       = 0 UMETA(DisplayName = "Linear (0)", Tooltip="Linear (0)."),
+	Curve        = 1 UMETA(DisplayName = "Curve (1)", Tooltip="Curve (1)."),
+	Constant     = 2 UMETA(DisplayName = "Constant (2)", Tooltip="Constant (2)."),
+	CurveClamped = 3 UMETA(DisplayName = "CurveClamped (3)", Tooltip="CurveClamped (3)."),
 };
 
 USTRUCT(BlueprintType)
@@ -42,7 +41,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPathInclusionFilterConfig
 	/** Which point type to use. Shared amongst all points; if you want tight control, create a fully-fledged spline instead. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	EPCGExSplinePointTypeRedux PointType = EPCGExSplinePointTypeRedux::Linear;
-	
+
 	/** Sample inputs.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	EPCGExSplineSamplingIncludeMode SampleInputs = EPCGExSplineSamplingIncludeMode::All;

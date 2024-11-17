@@ -47,7 +47,7 @@ namespace PCGExDataBlending
 		const int32 StartIndex,
 		const int32 Range) const
 	{
-		for (const TSharedPtr<FDataBlendingOperationBase> Op : Operations) { Op->PrepareRangeOperation(StartIndex, Range); }
+		for (const TSharedPtr<FDataBlendingOperationBase>& Op : Operations) { Op->PrepareRangeOperation(StartIndex, Range); }
 
 		if (bSkipProperties) { return; }
 
@@ -81,7 +81,7 @@ namespace PCGExDataBlending
 		const TArrayView<const int32>& Counts,
 		const TArrayView<double>& TotalWeights) const
 	{
-		for (const TSharedPtr<FDataBlendingOperationBase> Op : Operations) { Op->CompleteRangeOperation(StartIndex, Counts, TotalWeights); }
+		for (const TSharedPtr<FDataBlendingOperationBase>& Op : Operations) { Op->CompleteRangeOperation(StartIndex, Counts, TotalWeights); }
 
 		if (bSkipProperties) { return; }
 
@@ -105,7 +105,7 @@ namespace PCGExDataBlending
 
 		const int8 IsFirstOperation = FirstPointOperation[PrimaryIndex];
 
-		for (const TSharedPtr<FDataBlendingOperationBase> Op : Operations) { Op->DoRangeOperation(PrimaryIndex, SecondaryIndex, StartIndex, Weights, IsFirstOperation); }
+		for (const TSharedPtr<FDataBlendingOperationBase>& Op : Operations) { Op->DoRangeOperation(PrimaryIndex, SecondaryIndex, StartIndex, Weights, IsFirstOperation); }
 		for (int i = 0; i < Weights.Num(); i++) { FirstPointOperation[StartIndex + i] = false; }
 
 		if (bSkipProperties) { return; }

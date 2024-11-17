@@ -3,9 +3,6 @@
 
 #include "Paths/PCGExShiftPath.h"
 
-#include "Data/Blending/PCGExMetadataBlender.h"
-
-
 #define LOCTEXT_NAMESPACE "PCGExShiftPathElement"
 #define PCGEX_NAMESPACE ShiftPath
 

@@ -33,7 +33,7 @@ public:
 
 	virtual bool RequiresIndividualEdgeProcessing() override { return true; }
 
-	virtual void ProcessEdge(PCGExGraph::FIndexedEdge& Edge) override
+	virtual void ProcessEdge(PCGExGraph::FEdge& Edge) override
 	{
 		Super::ProcessEdge(Edge);
 

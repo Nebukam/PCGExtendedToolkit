@@ -58,6 +58,9 @@ case EPCGExDataBlendingType::CopyOther:			_NAME##Func = [](const _TYPE& O, const
 		if (ScaleBlending != EPCGExDataBlendingType::None) { Target.Transform.SetScale3D(bResetScale ? FVector::ZeroVector : Default.Transform.GetScale3D()); }
 		if (SteepnessBlending != EPCGExDataBlendingType::None) { Target.Steepness = bResetSteepness ? 0 : Default.Steepness; }
 		if (SeedBlending != EPCGExDataBlendingType::None) { Target.Seed = bResetSeed ? 0 : Default.Seed; }
+#if PCGEX_ENGINE_VERSION >= 505
+		// TODO : Support new stuff
+#endif
 	}
 
 	void FPropertiesBlender::Blend(const FPCGPoint& A, const FPCGPoint& B, FPCGPoint& Target, double Weight) const

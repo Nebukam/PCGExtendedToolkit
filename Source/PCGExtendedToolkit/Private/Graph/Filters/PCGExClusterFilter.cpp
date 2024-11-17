@@ -38,11 +38,11 @@ namespace PCGExClusterFilter
 
 	bool TNodeFilter::Test(const int32 Index) const { return FFilter::Test(*Cluster->GetNode(Index)); }
 	bool TNodeFilter::Test(const PCGExCluster::FNode& Node) const { return FFilter::Test(Node); }
-	bool TNodeFilter::Test(const PCGExGraph::FIndexedEdge& Edge) const PCGEX_NOT_IMPLEMENTED_RET(TVtxFilter::Test(const PCGExGraph::FIndexedEdge& Edge), false)
+	bool TNodeFilter::Test(const PCGExGraph::FEdge& Edge) const PCGEX_NOT_IMPLEMENTED_RET(TVtxFilter::Test(const PCGExGraph::FIndexedEdge& Edge), false)
 
 	bool TEdgeFilter::Test(const int32 Index) const { return FFilter::Test(*Cluster->GetEdge(Index)); }
 	bool TEdgeFilter::Test(const PCGExCluster::FNode& Node) const PCGEX_NOT_IMPLEMENTED_RET(TEdgeFilter::Test(const PCGExCluster::FNode& Node), false)
-	bool TEdgeFilter::Test(const PCGExGraph::FIndexedEdge& Edge) const { return FFilter::Test(Edge); }
+	bool TEdgeFilter::Test(const PCGExGraph::FEdge& Edge) const { return FFilter::Test(Edge); }
 
 	FManager::FManager(const TSharedRef<PCGExCluster::FCluster>& InCluster, const TSharedRef<PCGExData::FFacade>& InPointDataFacade, const TSharedRef<PCGExData::FFacade>& InEdgeDataFacade)
 		: PCGExPointFilter::FManager(InPointDataFacade), Cluster(InCluster), EdgeDataFacade(InEdgeDataFacade)

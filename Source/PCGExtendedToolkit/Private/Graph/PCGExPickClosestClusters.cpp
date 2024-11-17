@@ -107,9 +107,9 @@ bool FPCGExPickClosestClustersElement::ExecuteInternal(
 	PCGEX_EXECUTION_CHECK
 	PCGEX_ON_INITIAL_EXECUTION
 	{
-		if (!Context->StartProcessingClusters<PCGExPickClosestClusters::FProcessorBatch>(
+		if (!Context->StartProcessingClusters<PCGExPickClosestClusters::FBatch>(
 			[](const TSharedPtr<PCGExData::FPointIOTaggedEntries>& Entries) { return true; },
-			[&](const TSharedPtr<PCGExPickClosestClusters::FProcessorBatch>& NewBatch)
+			[&](const TSharedPtr<PCGExPickClosestClusters::FBatch>& NewBatch)
 			{
 			}))
 		{
@@ -242,7 +242,7 @@ namespace PCGExPickClosestClusters
 		Context->TargetAttributesToTags.Tag(Picker, VtxDataFacade->Source);
 	}
 
-	void FProcessorBatch::Output()
+	void FBatch::Output()
 	{
 		int32 Picks = 0;
 		const int32 MaxPicks = Processors.Num();

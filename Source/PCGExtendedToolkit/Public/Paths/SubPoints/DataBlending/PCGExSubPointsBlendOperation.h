@@ -5,9 +5,6 @@
 
 #include "CoreMinimal.h"
 #include "PCGPoint.h"
-#include "Data/Blending/PCGExPropertiesBlender.h"
-
-
 #include "Paths/SubPoints/PCGExSubPointsOperation.h"
 #include "PCGExSubPointsBlendOperation.generated.h"
 

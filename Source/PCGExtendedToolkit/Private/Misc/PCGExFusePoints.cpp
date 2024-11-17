@@ -72,8 +72,6 @@ namespace PCGExFusePoints
 			Settings->PointPointIntersectionDetails.FuseDetails,
 			PointDataFacade->GetIn()->GetBounds().ExpandBy(10));
 
-		const TArray<FPCGPoint>& Points = PointDataFacade->GetIn()->GetPoints();
-
 		bInlineProcessPoints = Settings->PointPointIntersectionDetails.FuseDetails.DoInlineInsertion();
 		StartParallelLoopForPoints(PCGExData::ESource::In);
 

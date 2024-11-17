@@ -34,11 +34,11 @@ namespace PCGExPointFilter
 
 	bool FFilter::Test(const int32 Index) const PCGEX_NOT_IMPLEMENTED_RET(FFilter::Test(const int32 Index), false)
 	bool FFilter::Test(const PCGExCluster::FNode& Node) const { return Test(Node.PointIndex); }
-	bool FFilter::Test(const PCGExGraph::FIndexedEdge& Edge) const { return Test(Edge.PointIndex); }
+	bool FFilter::Test(const PCGExGraph::FEdge& Edge) const { return Test(Edge.PointIndex); }
 
 	bool FSimpleFilter::Test(const int32 Index) const PCGEX_NOT_IMPLEMENTED_RET(TEdgeFilter::Test(const PCGExCluster::FNode& Node), false)
 	bool FSimpleFilter::Test(const PCGExCluster::FNode& Node) const { return Test(Node.PointIndex); }
-	bool FSimpleFilter::Test(const PCGExGraph::FIndexedEdge& Edge) const { return Test(Edge.PointIndex); }
+	bool FSimpleFilter::Test(const PCGExGraph::FEdge& Edge) const { return Test(Edge.PointIndex); }
 
 	FManager::FManager(const TSharedRef<PCGExData::FFacade>& InPointDataFacade)
 		: PointDataFacade(InPointDataFacade)
@@ -70,7 +70,7 @@ namespace PCGExPointFilter
 		return true;
 	}
 
-	bool FManager::Test(const PCGExGraph::FIndexedEdge& Edge)
+	bool FManager::Test(const PCGExGraph::FEdge& Edge)
 	{
 		for (const TSharedPtr<FFilter>& Handler : ManagedFilters) { if (!Handler->Test(Edge)) { return false; } }
 		return true;

@@ -23,6 +23,20 @@
 	ON_SCOPE_EXIT { _CONTEXT->AsyncState.bIsRunningOnMainThread = bRestoreTo; };\
 	_CONTEXT->AsyncState.bIsRunningOnMainThread = IsInGameThread(); // dirty trick
 
+
+UENUM()
+enum class EPCGExPointPropertyOutput : uint8
+{
+	None      = 0 UMETA(DisplayName = "None", Tooltip="..."),
+	Density   = 1 UMETA(DisplayName = "Density", Tooltip="..."),
+	Steepness = 2 UMETA(DisplayName = "Steepness", Tooltip="..."),
+	ColorR    = 3 UMETA(DisplayName = "R Channel", Tooltip="..."),
+	ColorG    = 4 UMETA(DisplayName = "G Channel", Tooltip="..."),
+	ColorB    = 5 UMETA(DisplayName = "B Channel", Tooltip="..."),
+	ColorA    = 6 UMETA(DisplayName = "A Channel", Tooltip="..."),
+};
+
+
 UINTERFACE(MinimalAPI)
 class UPCGExManagedObjectInterface : public UInterface
 {
@@ -39,6 +53,34 @@ public:
 
 namespace PCGExHelpers
 {
+	static void SetPointProperty(FPCGPoint& InPoint, const double InValue, const EPCGExPointPropertyOutput InProperty)
+	{
+		switch (InProperty)
+		{
+		default:
+		case EPCGExPointPropertyOutput::None:
+			break;
+		case EPCGExPointPropertyOutput::Density:
+			InPoint.Density = InValue;
+			break;
+		case EPCGExPointPropertyOutput::Steepness:
+			InPoint.Steepness = InValue;
+			break;
+		case EPCGExPointPropertyOutput::ColorR:
+			InPoint.Color.Component(0) = InValue;
+			break;
+		case EPCGExPointPropertyOutput::ColorG:
+			InPoint.Color.Component(1) = InValue;
+			break;
+		case EPCGExPointPropertyOutput::ColorB:
+			InPoint.Color.Component(2) = InValue;
+			break;
+		case EPCGExPointPropertyOutput::ColorA:
+			InPoint.Color.Component(3) = InValue;
+			break;
+		}
+	}
+
 	static TArray<FString> GetStringArrayFromCommaSeparatedList(const FString& InCommaSeparatedString)
 	{
 		TArray<FString> Result;

@@ -61,7 +61,7 @@ public:
 	{
 	}
 
-	virtual void ProcessEdge(PCGExGraph::FIndexedEdge& Edge)
+	virtual void ProcessEdge(PCGExGraph::FEdge& Edge)
 	{
 	}
 

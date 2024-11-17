@@ -104,10 +104,6 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExGraphBuilderDetails
 	UPROPERTY(BlueprintReadWrite, Category = Settings, EditAnywhere, meta = (PCG_Overridable))
 	bool bBuildAndCacheClusters = GetDefault<UPCGExGlobalSettings>()->bDefaultBuildAndCacheClusters;
 
-	/** Expands the cluster data. Takes more space in memory but can be a very effective improvement depending on the operations you're doing on the cluster. */
-	UPROPERTY(BlueprintReadWrite, Category = Settings, EditAnywhere, meta = (PCG_Overridable, EditCondition="bBuildAndCacheClusters"))
-	bool bExpandClusters = GetDefault<UPCGExGlobalSettings>()->bDefaultCacheExpandedClusters;
-
 	bool IsValid(const TSharedPtr<PCGExGraph::FSubGraph>& InSubgraph) const;
 };
 
@@ -164,7 +160,7 @@ namespace PCGExGraph
 	static bool BuildIndexedEdges(
 		const TSharedPtr<PCGExData::FPointIO>& EdgeIO,
 		const TMap<uint32, int32>& EndpointsLookup,
-		TArray<FIndexedEdge>& OutEdges,
+		TArray<FEdge>& OutEdges,
 		const bool bStopOnError = false)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExEdge::BuildIndexedEdges-Vanilla);
@@ -195,7 +191,7 @@ namespace PCGExGraph
 
 				if ((!StartPointIndexPtr || !EndPointIndexPtr)) { continue; }
 
-				OutEdges[EdgeIndex] = FIndexedEdge(EdgeIndex, *StartPointIndexPtr, *EndPointIndexPtr, i, EdgeIOIndex);
+				OutEdges[EdgeIndex] = FEdge(EdgeIndex, *StartPointIndexPtr, *EndPointIndexPtr, i, EdgeIOIndex);
 				EdgeIndex++;
 			}
 
@@ -218,7 +214,7 @@ namespace PCGExGraph
 					break;
 				}
 
-				OutEdges[i] = FIndexedEdge(i, *StartPointIndexPtr, *EndPointIndexPtr, i, EdgeIOIndex);
+				OutEdges[i] = FEdge(i, *StartPointIndexPtr, *EndPointIndexPtr, i, EdgeIOIndex);
 			}
 		}
 
@@ -338,45 +334,41 @@ namespace PCGExGraph
 		}
 
 		FNode(const int32 InNodeIndex, const int32 InPointIndex):
-			NodeIndex(InNodeIndex), PointIndex(InPointIndex)
+			Index(InNodeIndex), PointIndex(InPointIndex)
 		{
 		}
 
 		int8 bValid = 1; // int for atomic operations
 
-		int32 NodeIndex = -1;  // Index in the context of the list that helds the node
+		int32 Index = -1;      // Index in the context of the list that helds the node
 		int32 PointIndex = -1; // Index in the context of the UPCGPointData that helds the vtx
 		int32 NumExportedEdges = 0;
 
-		TArray<uint64> Adjacency;
+		TArray<FLink> Links;
 
 		~FNode() = default;
 
-		FORCEINLINE void SetAdjacency(const TSet<uint64>& InAdjacency) { Adjacency = InAdjacency.Array(); }
-		FORCEINLINE void Add(const int32 EdgeIndex) { Adjacency.AddUnique(EdgeIndex); }
+		FORCEINLINE int32 Num() const { return Links.Num(); }
+		FORCEINLINE int32 IsEmpty() const { return Links.IsEmpty(); }
 
-		FORCEINLINE bool IsDeadEnd() const { return Adjacency.Num() == 1; }
-		FORCEINLINE bool IsSimple() const { return Adjacency.Num() == 2; }
-		FORCEINLINE bool IsComplex() const { return Adjacency.Num() > 2; }
+		FORCEINLINE bool IsLeaf() const { return Links.Num() == 1; }
+		FORCEINLINE bool IsBinary() const { return Links.Num() == 2; }
+		FORCEINLINE bool IsComplex() const { return Links.Num() > 2; }
+
+		FORCEINLINE void LinkEdge(const int32 EdgeIndex) { Links.AddUnique(FLink(0, EdgeIndex)); }
+		FORCEINLINE void Link(const FNode& Neighbor, const int32 EdgeIndex) { Links.Emplace(Neighbor.Index, EdgeIndex); }
 
 		FORCEINLINE bool IsAdjacentTo(const int32 OtherNodeIndex) const
 		{
-			for (const uint64 AdjacencyHash : Adjacency) { if (OtherNodeIndex == PCGEx::H64A(AdjacencyHash)) { return true; } }
+			for (const FLink Lk : Links) { if (Lk.Node == OtherNodeIndex) { return true; } }
 			return false;
-		}
-
-		FORCEINLINE void AddConnection(const int32 InNodeIndex, const int32 InEdgeIndex)
-		{
-			Adjacency.AddUnique(PCGEx::H64(InNodeIndex, InEdgeIndex));
 		}
 
 		FORCEINLINE int32 GetEdgeIndex(const int32 AdjacentNodeIndex) const
 		{
-			for (const uint64 AdjacencyHash : Adjacency) { if (PCGEx::H64A(AdjacencyHash) == AdjacentNodeIndex) { return PCGEx::H64B(AdjacencyHash); } }
+			for (const FLink Lk : Links) { if (Lk.Node == AdjacentNodeIndex) { return Lk.Edge; } }
 			return -1;
 		}
-
-		FORCEINLINE void Add(const FNode& Neighbor, const int32 EdgeIndex) { Adjacency.Add(PCGEx::H64(Neighbor.NodeIndex, EdgeIndex)); }
 	};
 
 	class /*PCGEXTENDEDTOOLKIT_API*/ FSubGraph : public TSharedFromThis<FSubGraph>
@@ -389,7 +381,7 @@ namespace PCGExGraph
 		TSet<int32> EdgesInIOIndices;
 		TSharedPtr<PCGExData::FFacade> VtxDataFacade;
 		TSharedPtr<PCGExData::FFacade> EdgesDataFacade;
-		TArray<FIndexedEdge> FlattenedEdges;
+		TArray<FEdge> FlattenedEdges;
 		int32 UID = 0;
 		SubGraphPostProcessCallback OnSubGraphPostProcess;
 
@@ -404,11 +396,11 @@ namespace PCGExGraph
 			PCGEX_LOG_DTR(FSubGraph)
 		}
 
-		FORCEINLINE void Add(const FIndexedEdge& Edge, FGraph* InGraph)
+		FORCEINLINE void Add(const FEdge& Edge, FGraph* InGraph)
 		{
 			Nodes.Add(Edge.Start);
 			Nodes.Add(Edge.End);
-			Edges.Add(Edge.EdgeIndex);
+			Edges.Add(Edge.Index);
 			if (Edge.IOIndex >= 0) { EdgesInIOIndices.Add(Edge.IOIndex); }
 		}
 
@@ -454,10 +446,9 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 
 	public:
 		bool bBuildClusters = false;
-		bool bExpandClusters = false;
 
 		TArray<FNode> Nodes;
-		TArray<FIndexedEdge> Edges;
+		TArray<FEdge> Edges;
 
 		TSharedPtr<PCGExData::FUnionMetadata> NodesUnion;
 		TMap<int32, FGraphNodeMetadata> NodeMetadata;
@@ -485,37 +476,37 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 			for (int i = 0; i < InNumNodes; i++)
 			{
 				FNode& Node = Nodes[i];
-				Node.NodeIndex = Node.PointIndex = i;
-				Node.Adjacency.Reserve(NumEdgesReserve);
+				Node.Index = Node.PointIndex = i;
+				Node.Links.Reserve(NumEdgesReserve);
 			}
 		}
 
 		void ReserveForEdges(const int32 UpcomingAdditionCount);
 
-		bool InsertEdgeUnsafe(int32 A, int32 B, FIndexedEdge& OutEdge, int32 IOIndex);
-		bool InsertEdge(const int32 A, const int32 B, FIndexedEdge& OutEdge, const int32 IOIndex = -1);
+		bool InsertEdgeUnsafe(int32 A, int32 B, FEdge& OutEdge, int32 IOIndex);
+		bool InsertEdge(const int32 A, const int32 B, FEdge& OutEdge, const int32 IOIndex = -1);
 
-		bool InsertEdgeUnsafe(const FIndexedEdge& Edge);
-		bool InsertEdge(const FIndexedEdge& Edge);
-		bool InsertEdgeUnsafe(const FIndexedEdge& Edge, FIndexedEdge& OutEdge, const int32 InIOIndex);
-		bool InsertEdge(const FIndexedEdge& Edge, FIndexedEdge& OutEdge, const int32 InIOIndex);
+		bool InsertEdgeUnsafe(const FEdge& Edge);
+		bool InsertEdge(const FEdge& Edge);
+		bool InsertEdgeUnsafe(const FEdge& Edge, FEdge& OutEdge, const int32 InIOIndex);
+		bool InsertEdge(const FEdge& Edge, FEdge& OutEdge, const int32 InIOIndex);
 
 		void InsertEdgesUnsafe(const TSet<uint64>& InEdges, int32 InIOIndex);
 		void InsertEdges(const TSet<uint64>& InEdges, int32 InIOIndex);
 
 		void InsertEdges(const TArray<uint64>& InEdges, int32 InIOIndex);
-		int32 InsertEdges(const TArray<FIndexedEdge>& InEdges);
+		int32 InsertEdges(const TArray<FEdge>& InEdges);
 
-		FORCEINLINE FIndexedEdge* FindEdgeUnsafe(const uint64 Hash)
+		FORCEINLINE FEdge* FindEdgeUnsafe(const uint64 Hash)
 		{
 			const int32* Index = UniqueEdges.Find(Hash);
 			if (!Index) { return nullptr; }
 			return (Edges.GetData() + *Index);
 		}
 
-		FORCEINLINE FIndexedEdge* FindEdgeUnsafe(const int32 A, const int32 B) { return FindEdge(PCGEx::H64U(A, B)); }
+		FORCEINLINE FEdge* FindEdgeUnsafe(const int32 A, const int32 B) { return FindEdge(PCGEx::H64U(A, B)); }
 
-		FORCEINLINE FIndexedEdge* FindEdge(const uint64 Hash)
+		FORCEINLINE FEdge* FindEdge(const uint64 Hash)
 		{
 			FReadScopeLock ReadScopeLock(GraphLock);
 			const int32* Index = UniqueEdges.Find(Hash);
@@ -523,7 +514,7 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 			return (Edges.GetData() + *Index);
 		}
 
-		FORCEINLINE FIndexedEdge* FindEdge(const int32 A, const int32 B) { return FindEdge(PCGEx::H64U(A, B)); }
+		FORCEINLINE FEdge* FindEdge(const int32 A, const int32 B) { return FindEdge(PCGEx::H64U(A, B)); }
 
 		FORCEINLINE FGraphEdgeMetadata& GetOrCreateEdgeMetadataUnsafe(const int32 EdgeIndex, const FGraphEdgeMetadata* Parent = nullptr)
 		{
@@ -680,7 +671,6 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 
 			Graph = MakeShared<FGraph>(NumNodes, NumEdgeReserve);
 			Graph->bBuildClusters = InDetails->bBuildAndCacheClusters;
-			Graph->bExpandClusters = InDetails->bExpandClusters;
 			Graph->bWriteEdgePosition = OutputDetails->bWriteEdgePosition;
 			Graph->EdgePosition = OutputDetails->EdgePosition;
 			Graph->bRefreshEdgeSeed = OutputDetails->bRefreshEdgeSeed;

@@ -67,11 +67,11 @@ namespace PCGExClusterStates
 		virtual ~FState() override;
 
 		virtual bool Init(FPCGExContext* InContext, const TSharedRef<PCGExCluster::FCluster>& InCluster, const TSharedRef<PCGExData::FFacade>& InPointDataFacade, const TSharedRef<PCGExData::FFacade>& InEdgeDataFacade) override;
-		virtual bool InitInternalManager(FPCGExContext* InContext, const TArray<TObjectPtr<const UPCGExFilterFactoryBase>>& InFactories);
+		bool InitInternalManager(FPCGExContext* InContext, const TArray<TObjectPtr<const UPCGExFilterFactoryBase>>& InFactories);
 
 		virtual bool Test(const int32 Index) const override;
 		virtual bool Test(const PCGExCluster::FNode& Node) const override;
-		virtual bool Test(const PCGExGraph::FIndexedEdge& Edge) const override;
+		virtual bool Test(const PCGExGraph::FEdge& Edge) const override;
 
 		void ProcessFlags(const bool bSuccess, int64& InFlags) const;
 
@@ -105,7 +105,7 @@ namespace PCGExClusterStates
 			return true;
 		}
 
-		FORCEINLINE virtual bool Test(const PCGExGraph::FIndexedEdge& Edge) override
+		FORCEINLINE virtual bool Test(const PCGExGraph::FEdge& Edge) override
 		{
 			int64& Flags = *(FlagsCache->GetData() + Edge.PointIndex);
 			for (const TSharedPtr<FState>& State : States) { State->ProcessFlags(State->Test(Edge), Flags); }

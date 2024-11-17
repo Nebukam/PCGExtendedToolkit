@@ -261,14 +261,14 @@ namespace PCGExDiscardByOverlap
 	struct /*PCGEXTENDEDTOOLKIT_API*/ FPointBounds
 	{
 		FPointBounds(const int32 InIndex, const FPCGPoint* InPoint, const FBox& InBounds):
-			Index(InIndex), Point(InPoint), LocalBounds(InBounds), BSB(InBounds.TransformBy(InPoint->Transform.ToMatrixNoScale()))
+			Index(InIndex), Point(InPoint), LocalBounds(InBounds), Bounds(InBounds.TransformBy(InPoint->Transform.ToMatrixNoScale()))
 		{
 		}
 
 		const int32 Index;
 		const FPCGPoint* Point;
 		FBox LocalBounds;
-		FBoxSphereBounds BSB;
+		FBoxSphereBounds Bounds;
 
 		FORCEINLINE FBox TransposedBounds(const FMatrix& InMatrix) const
 		{
@@ -276,7 +276,7 @@ namespace PCGExDiscardByOverlap
 		}
 	};
 
-	PCGEX_OCTREE_SEMANTICS(FPointBounds, { return Element->BSB; }, { return A->Point == B->Point; })
+	PCGEX_OCTREE_SEMANTICS(FPointBounds, { return Element->Bounds; }, { return A->Point == B->Point; })
 
 	class FProcessor final : public PCGExPointsMT::TPointsProcessor<FPCGExDiscardByOverlapContext, UPCGExDiscardByOverlapSettings>
 	{
@@ -329,7 +329,7 @@ namespace PCGExDiscardByOverlap
 			const int8 bValidPoint = PointFilterCache[Index];
 			if (!bValidPoint && !Settings->bIncludeFilteredInMetrics) { return; }
 
-			const FBox& B = InPointBounds->BSB.GetBox();
+			const FBox& B = InPointBounds->Bounds.GetBox();
 			Bounds += B;
 			TotalVolume += B.GetVolume();
 

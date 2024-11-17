@@ -47,7 +47,7 @@ void FPCGExPathfindingPlotEdgesContext::BuildPath(const TSharedPtr<PCGExPathfind
 	int32 NumPoints = Query->SubQueries.Num() + 2;
 	int32 ValidPlotIndex = 0;
 
-	for (TSharedPtr<PCGExPathfinding::FPathQuery> PathQuery : Query->SubQueries)
+	for (const TSharedPtr<PCGExPathfinding::FPathQuery>& PathQuery : Query->SubQueries)
 	{
 		if (!PathQuery->IsQuerySuccessful()) { continue; }
 		NumPoints += PathQuery->PathNodes.Num();
@@ -148,7 +148,7 @@ bool FPCGExPathfindingPlotEdgesElement::Boot(FPCGExContext* InContext) const
 	Plots->Initialize(Sources, PCGExData::EIOInit::NoOutput);
 
 	Context->Plots.Reserve(Plots->Num());
-	for (TSharedPtr<PCGExData::FPointIO> PlotIO : Plots->Pairs)
+	for (const TSharedPtr<PCGExData::FPointIO>& PlotIO : Plots->Pairs)
 	{
 		if (PlotIO->GetNum() < 2) { PCGE_LOG(Warning, GraphAndLog, FTEXT("Pruned plot with < 2 points.")); }
 		TSharedPtr<PCGExData::FFacade> PlotFacade = MakeShared<PCGExData::FFacade>(PlotIO.ToSharedRef());

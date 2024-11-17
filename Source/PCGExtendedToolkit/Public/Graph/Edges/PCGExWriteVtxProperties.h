@@ -19,7 +19,7 @@ class UPCGExVtxPropertyFactoryBase;
 
 namespace PCGExWriteVtxProperties
 {
-	class FProcessorBatch;
+	class FBatch;
 }
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Clusters")
@@ -89,7 +89,7 @@ namespace PCGExWriteVtxProperties
 {
 	class FProcessor final : public PCGExClusterMT::TProcessor<FPCGExWriteVtxPropertiesContext, UPCGExWriteVtxPropertiesSettings>
 	{
-		friend class FProcessorBatch;
+		friend class FBatch;
 
 		TArray<UPCGExVtxPropertyOperation*> ExtraOperations;
 
@@ -108,13 +108,13 @@ namespace PCGExWriteVtxProperties
 		PCGEX_FOREACH_FIELD_VTXEXTRAS(PCGEX_OUTPUT_DECL)
 	};
 
-	class FProcessorBatch final : public PCGExClusterMT::TBatch<FProcessor>
+	class FBatch final : public PCGExClusterMT::TBatch<FProcessor>
 	{
 		PCGEX_FOREACH_FIELD_VTXEXTRAS(PCGEX_OUTPUT_DECL)
 
 	public:
-		FProcessorBatch(FPCGExContext* InContext, const TSharedRef<PCGExData::FPointIO>& InVtx, TArrayView<TSharedRef<PCGExData::FPointIO>> InEdges);
-		virtual ~FProcessorBatch() override;
+		FBatch(FPCGExContext* InContext, const TSharedRef<PCGExData::FPointIO>& InVtx, TArrayView<TSharedRef<PCGExData::FPointIO>> InEdges);
+		virtual ~FBatch() override;
 
 		virtual void OnProcessingPreparationComplete() override;
 		virtual bool PrepareSingle(const TSharedPtr<FProcessor>& ClusterProcessor) override;

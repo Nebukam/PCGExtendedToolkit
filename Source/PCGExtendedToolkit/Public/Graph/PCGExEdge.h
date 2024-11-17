@@ -62,19 +62,38 @@ namespace PCGExGraph
 		return HashCombineFast(A == 0 ? B : A, Index);
 	}
 
-	struct /*PCGEXTENDEDTOOLKIT_API*/ FIndexedEdge
+	struct FLink
+	{
+		uint32 Node;
+		uint32 Edge;
+
+		constexpr FLink(const uint64 Hash) : Node(PCGEx::H64A(Hash)), Edge(PCGEx::H64A(Hash))
+		{
+		}
+
+		constexpr FLink(const uint32 InNode, const uint32 InEdge) : Node(InNode), Edge(InEdge)
+		{
+		}
+
+		FORCEINLINE uint64 H64() const { return PCGEx::H64U(Node, Edge); }
+
+		bool operator==(const FLink& Other) const { return Node == Other.Node && Edge == Other.Edge; }
+		FORCEINLINE uint32 GetTypeHash(const FLink& Key) { return HashCombineFast(Key.Node, Key.Edge); }
+	};
+
+	struct /*PCGEXTENDEDTOOLKIT_API*/ FEdge
 	{
 		uint32 Start = 0;
 		uint32 End = 0;
-		int32 EdgeIndex = -1;
+		int32 Index = -1;
 		int32 PointIndex = -1;
 		int32 IOIndex = -1;
 		int8 bValid = 1;
 
-		FIndexedEdge() = default;
+		FEdge() = default;
 
-		FIndexedEdge(const int32 InIndex, const uint32 InStart, const uint32 InEnd, const int32 InPointIndex = -1, const int32 InIOIndex = -1)
-			: Start(InStart), End(InEnd), EdgeIndex(InIndex), PointIndex(InPointIndex), IOIndex(InIOIndex)
+		FEdge(const int32 InIndex, const uint32 InStart, const uint32 InEnd, const int32 InPointIndex = -1, const int32 InIOIndex = -1)
+			: Start(InStart), End(InEnd), Index(InIndex), PointIndex(InPointIndex), IOIndex(InIOIndex)
 		{
 		}
 
@@ -86,17 +105,10 @@ namespace PCGExGraph
 
 		bool Contains(const int32 InIndex) const { return Start == InIndex || End == InIndex; }
 
-		bool operator==(const FIndexedEdge& Other) const
-		{
-			return H64U() == Other.H64U();
-		}
-
-		explicit operator uint64() const
-		{
-			return static_cast<uint64>(Start) | (static_cast<uint64>(End) << 32);
-		}
-
+		bool operator==(const FEdge& Other) const { return PCGEx::H64U(Start, End) == PCGEx::H64U(Other.Start, Other.End); }
 		FORCEINLINE uint64 H64U() const { return PCGEx::H64U(Start, End); }
+
+		FORCEINLINE uint32 GetTypeHash(const FLink& Key) { return HashCombineFast(Key.Node, Key.Edge); }
 	};
 
 	static void SetClusterVtx(const TSharedPtr<PCGExData::FPointIO>& IO, FString& OutId)

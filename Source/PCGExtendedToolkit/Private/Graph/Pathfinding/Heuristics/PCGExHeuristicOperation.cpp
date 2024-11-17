@@ -28,7 +28,7 @@ void UPCGExHeuristicOperation::PrepareForCluster(const TSharedPtr<const PCGExClu
 		if (LocalWeightMultiplierSource == EPCGExClusterComponentSource::Vtx)
 		{
 			LocalWeightMultiplier.SetNumZeroed(InCluster->Nodes->Num());
-			for (const PCGExCluster::FNode& Node : (*InCluster->Nodes)) { LocalWeightMultiplier[Node.NodeIndex] = LocalWeightCache->Read(Node.PointIndex); }
+			for (const PCGExCluster::FNode& Node : (*InCluster->Nodes)) { LocalWeightMultiplier[Node.Index] = LocalWeightCache->Read(Node.PointIndex); }
 		}
 		else
 		{

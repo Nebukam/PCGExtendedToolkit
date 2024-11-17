@@ -88,7 +88,7 @@ namespace PCGExGrowPaths
 		double GetGrowthScore(
 			const PCGExCluster::FNode& From,
 			const PCGExCluster::FNode& To,
-			const PCGExGraph::FIndexedEdge& Edge) const;
+			const PCGExGraph::FEdge& Edge) const;
 	};
 }
 

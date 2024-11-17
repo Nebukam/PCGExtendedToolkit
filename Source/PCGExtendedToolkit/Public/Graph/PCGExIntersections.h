@@ -152,7 +152,7 @@ namespace PCGExGraph
 	public:
 		const FPCGPoint Point;
 		FVector Center;
-		FBoxSphereBounds BSB;
+		FBoxSphereBounds Bounds;
 		int32 Index;
 
 		TSet<int32> Adjacency;
@@ -163,7 +163,7 @@ namespace PCGExGraph
 			  Index(InIndex)
 		{
 			Adjacency.Empty();
-			BSB = FBoxSphereBounds(InPoint.GetLocalBounds().TransformBy(InPoint.Transform));
+			Bounds = FBoxSphereBounds(InPoint.GetLocalBounds().TransformBy(InPoint.Transform));
 		}
 
 		~FUnionNode()
@@ -180,7 +180,7 @@ namespace PCGExGraph
 		}
 	};
 
-	PCGEX_OCTREE_SEMANTICS(FUnionNode, { return Element->BSB;}, { return A->Index == B->Index; })
+	PCGEX_OCTREE_SEMANTICS(FUnionNode, { return Element->Bounds;}, { return A->Index == B->Index; })
 
 	struct /*PCGEXTENDEDTOOLKIT_API*/ FUnionGraph
 	{
@@ -189,7 +189,7 @@ namespace PCGExGraph
 		TSharedPtr<PCGExData::FUnionMetadata> NodesUnion;
 		TSharedPtr<PCGExData::FUnionMetadata> EdgesUnion;
 		TArray<TSharedPtr<FUnionNode>> Nodes;
-		TMap<uint64, FIndexedEdge> Edges;
+		TMap<uint64, FEdge> Edges;
 
 		FPCGExFuseDetails FuseDetails;
 
@@ -225,13 +225,13 @@ namespace PCGExGraph
 		TSharedPtr<FUnionNode> InsertPoint(const FPCGPoint& Point, const int32 IOIndex, const int32 PointIndex);
 		TSharedPtr<FUnionNode> InsertPointUnsafe(const FPCGPoint& Point, const int32 IOIndex, const int32 PointIndex);
 		TSharedPtr<PCGExData::FUnionData> InsertEdge(const FPCGPoint& From, const int32 FromIOIndex, const int32 FromPointIndex,
-		                                  const FPCGPoint& To, const int32 ToIOIndex, const int32 ToPointIndex,
-		                                  const int32 EdgeIOIndex = -1, const int32 EdgePointIndex = -1);
+		                                             const FPCGPoint& To, const int32 ToIOIndex, const int32 ToPointIndex,
+		                                             const int32 EdgeIOIndex = -1, const int32 EdgePointIndex = -1);
 		TSharedPtr<PCGExData::FUnionData> InsertEdgeUnsafe(const FPCGPoint& From, const int32 FromIOIndex, const int32 FromPointIndex,
-		                                        const FPCGPoint& To, const int32 ToIOIndex, const int32 ToPointIndex,
-		                                        const int32 EdgeIOIndex = -1, const int32 EdgePointIndex = -1);
+		                                                   const FPCGPoint& To, const int32 ToIOIndex, const int32 ToPointIndex,
+		                                                   const int32 EdgeIOIndex = -1, const int32 EdgePointIndex = -1);
 		void GetUniqueEdges(TSet<uint64>& OutEdges);
-		void GetUniqueEdges(TArray<FIndexedEdge>& OutEdges);
+		void GetUniqueEdges(TArray<FEdge>& OutEdges);
 		void WriteNodeMetadata(const TSharedPtr<FGraph>& InGraph) const;
 		void WriteEdgeMetadata(const TSharedPtr<FGraph>& InGraph) const;
 	};
@@ -354,7 +354,7 @@ namespace PCGExGraph
 		const FPointEdgeProxy& Edge = InIntersections->Edges[EdgeIndex];
 		const TSharedPtr<FGraph> Graph = InIntersections->Graph;
 
-		const FIndexedEdge& IEdge = Graph->Edges[EdgeIndex];
+		const FEdge& IEdge = Graph->Edges[EdgeIndex];
 		FPESplit Split = FPESplit{};
 
 		if (!InIntersections->Details->bEnableSelfIntersection)
@@ -377,9 +377,9 @@ namespace PCGExGraph
 				if (IEdge.Start == Node.PointIndex || IEdge.End == Node.PointIndex) { return; }
 				if (!Edge.FindSplit(Position, Split)) { return; }
 
-				if (Graph->NodesUnion->IOIndexOverlap(Node.NodeIndex, RootIOIndices)) { return; }
+				if (Graph->NodesUnion->IOIndexOverlap(Node.Index, RootIOIndices)) { return; }
 
-				Split.NodeIndex = Node.NodeIndex;
+				Split.NodeIndex = Node.Index;
 				InIntersections->Add(EdgeIndex, Split);
 			};
 
@@ -402,7 +402,7 @@ namespace PCGExGraph
 				if (IEdge.Start == Node.PointIndex || IEdge.End == Node.PointIndex) { return; }
 				if (Edge.FindSplit(Position, Split))
 				{
-					Split.NodeIndex = Node.NodeIndex;
+					Split.NodeIndex = Node.Index;
 					InIntersections->Add(EdgeIndex, Split);
 				}
 			};
@@ -449,7 +449,7 @@ namespace PCGExGraph
 		double LengthSquared = -1;
 		double ToleranceSquared = -1;
 		FBox Box = FBox(NoInit);
-		FBoxSphereBounds BSB = FBoxSphereBounds{};
+		FBoxSphereBounds Bounds = FBoxSphereBounds{};
 
 		FVector Start = FVector::ZeroVector;
 		FVector End = FVector::ZeroVector;
@@ -488,7 +488,7 @@ namespace PCGExGraph
 			Box = Box.ExpandBy(Tolerance);
 
 			LengthSquared = FVector::DistSquared(Start, End);
-			BSB = Box;
+			Bounds = Box;
 
 			Direction = (Start - End).GetSafeNormal();
 		}
@@ -525,7 +525,7 @@ namespace PCGExGraph
 		}
 	};
 
-	PCGEX_OCTREE_SEMANTICS(FEdgeEdgeProxy, { return Element->BSB;}, { return A == B; })
+	PCGEX_OCTREE_SEMANTICS(FEdgeEdgeProxy, { return Element->Bounds;}, { return A == B; })
 
 	struct /*PCGEXTENDEDTOOLKIT_API*/ FEdgeEdgeIntersections
 	{

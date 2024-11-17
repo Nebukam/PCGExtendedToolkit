@@ -50,7 +50,7 @@ namespace PCGExGrowPaths
 		}
 
 		const TArray<PCGExCluster::FNode>& NodesRef = *Processor->Cluster->Nodes;
-		const TArray<PCGExGraph::FIndexedEdge>& EdgesRef = *Processor->Cluster->Edges;
+		const TArray<PCGExGraph::FEdge>& EdgesRef = *Processor->Cluster->Edges;
 
 		const PCGExCluster::FNode& CurrentNode = NodesRef[LastGrowthIndex];
 
@@ -58,13 +58,9 @@ namespace PCGExGrowPaths
 		NextGrowthIndex = -1;
 		NextGrowthEdgeIndex = -1;
 
-		for (const uint64 AdjacencyHash : CurrentNode.Adjacency)
+		for (const PCGExGraph::FLink Lk : CurrentNode.Links)
 		{
-			uint32 NeighborIndex;
-			uint32 EdgeIndex;
-			PCGEx::H64(AdjacencyHash, NeighborIndex, EdgeIndex);
-
-			const PCGExCluster::FNode& OtherNode = NodesRef[NeighborIndex];
+			const PCGExCluster::FNode& OtherNode = NodesRef[Lk.Node];
 
 			if (Processor->GetSettings()->bUseNoGrowth)
 			{
@@ -74,22 +70,22 @@ namespace PCGExGrowPaths
 				if (bNoGrowth) { continue; }
 			}
 
-			if (Path.Contains(NeighborIndex)) { continue; }
+			if (Path.Contains(Lk.Node)) { continue; }
 
 			/*
 			// TODO : Implement
 			if (Settings->VisitedStopThreshold > 0 && Context->GlobalExtraWeights &&
-				Context->GlobalExtraWeights->GetExtraWeight(AdjacentNodeIndex, EdgeIndex) > Settings->VisitedStopThreshold)
+				Context->GlobalExtraWeights->GetExtraWeight(AdjacentNodeIndex, Lk.Edge) > Settings->VisitedStopThreshold)
 			{
 				continue;
 			}
 			*/
 
-			if (const double Score = GetGrowthScore(CurrentNode, OtherNode, EdgesRef[EdgeIndex]); Score < BestScore)
+			if (const double Score = GetGrowthScore(CurrentNode, OtherNode, EdgesRef[Lk.Edge]); Score < BestScore)
 			{
 				BestScore = Score;
-				NextGrowthIndex = OtherNode.NodeIndex;
-				NextGrowthEdgeIndex = EdgeIndex;
+				NextGrowthIndex = OtherNode.Index;
+				NextGrowthEdgeIndex = Lk.Edge;
 			}
 		}
 
@@ -103,7 +99,7 @@ namespace PCGExGrowPaths
 		TravelStack->Set(NextGrowthIndex, PCGEx::NH64(LastGrowthIndex, NextGrowthEdgeIndex));
 
 		const TArray<PCGExCluster::FNode>& NodesRef = *Processor->Cluster->Nodes;
-		const TArray<PCGExGraph::FIndexedEdge>& EdgesRef = *Processor->Cluster->Edges;
+		const TArray<PCGExGraph::FEdge>& EdgesRef = *Processor->Cluster->Edges;
 
 		const PCGExCluster::FNode& CurrentNode = NodesRef[LastGrowthIndex];
 		const PCGExCluster::FNode& NextNode = NodesRef[NextGrowthIndex];
@@ -142,7 +138,7 @@ namespace PCGExGrowPaths
 			}
 		}
 
-		Processor->Cluster->NodePositions[GoalNode->NodeIndex] = Processor->Cluster->GetPos(NextNode) + GrowthDirection * 10000;
+		Processor->Cluster->NodePositions[GoalNode->Index] = Processor->Cluster->GetPos(NextNode) + GrowthDirection * 10000;
 
 		if (Processor->GetSettings()->bUseGrowthStop)
 		{
@@ -183,12 +179,12 @@ namespace PCGExGrowPaths
 	{
 		SeedNode = &(*Processor->Cluster->Nodes)[LastGrowthIndex];
 		GoalNode = MakeUnique<PCGExCluster::FNode>();
-		GoalNode->NodeIndex = Processor->Cluster->NodePositions.Add(Processor->Cluster->GetPos(SeedNode) + GrowthDirection * 10000);
+		GoalNode->Index = Processor->Cluster->NodePositions.Add(Processor->Cluster->GetPos(SeedNode) + GrowthDirection * 10000);
 		Metrics.Reset(Processor->Cluster->GetPos(SeedNode));
 		TravelStack = PCGEx::NewHashLookup<PCGEx::FMapHashLookup>(PCGEx::NH64(-1, -1), 0);
 	}
 
-	double FGrowth::GetGrowthScore(const PCGExCluster::FNode& From, const PCGExCluster::FNode& To, const PCGExGraph::FIndexedEdge& Edge) const
+	double FGrowth::GetGrowthScore(const PCGExCluster::FNode& From, const PCGExCluster::FNode& To, const PCGExGraph::FEdge& Edge) const
 	{
 		return Processor->HeuristicsHandler->GetEdgeScore(From, To, Edge, *SeedNode, *GoalNode.Get(), nullptr, TravelStack);
 	}
@@ -325,7 +321,7 @@ namespace PCGExGrowPaths
 
 			const PCGExCluster::FNode& Node = (*Cluster->Nodes)[NodeIndex];
 			if (!Settings->SeedPicking.WithinDistance(Cluster->GetPos(Node), SeedPosition) ||
-				Node.Adjacency.IsEmpty()) { continue; }
+				Node.IsEmpty()) { continue; }
 
 			double StartNumIterations;
 			double StartGrowthNumBranches;
@@ -392,12 +388,12 @@ namespace PCGExGrowPaths
 
 			if (Settings->SeedNumBranchesMean == EPCGExMeanMeasure::Relative)
 			{
-				StartGrowthNumBranches = FMath::Max(1, static_cast<double>(Node.Adjacency.Num()) * StartGrowthNumBranches);
+				StartGrowthNumBranches = FMath::Max(1, static_cast<double>(Node.Num()) * StartGrowthNumBranches);
 			}
 
 			for (int j = 0; j < StartGrowthNumBranches; j++)
 			{
-				TSharedPtr<FGrowth> NewGrowth = MakeShared<FGrowth>(SharedThis(this), StartNumIterations, Node.NodeIndex, StartGrowthDirection);
+				TSharedPtr<FGrowth> NewGrowth = MakeShared<FGrowth>(SharedThis(this), StartNumIterations, Node.Index, StartGrowthDirection);
 				NewGrowth->MaxDistance = StartGrowthMaxDistance;
 				NewGrowth->SeedPointIndex = i;
 

@@ -235,7 +235,7 @@ namespace PCGExClusterMT
 		virtual void ProcessEdges(const int32 StartIndex, const int32 Count, const int32 LoopIdx)
 		{
 			PrepareSingleLoopScopeForEdges(StartIndex, Count);
-			TArray<PCGExGraph::FIndexedEdge>& ClusterEdges = *Cluster->Edges;
+			TArray<PCGExGraph::FEdge>& ClusterEdges = *Cluster->Edges;
 			for (int i = 0; i < Count; i++)
 			{
 				const int32 PtIndex = StartIndex + i;
@@ -243,7 +243,7 @@ namespace PCGExClusterMT
 			}
 		}
 
-		virtual void ProcessSingleEdge(const int32 EdgeIndex, PCGExGraph::FIndexedEdge& Edge, const int32 LoopIdx, const int32 Count)
+		virtual void ProcessSingleEdge(const int32 EdgeIndex, PCGExGraph::FEdge& Edge, const int32 LoopIdx, const int32 Count)
 		{
 		}
 

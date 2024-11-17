@@ -54,7 +54,7 @@ void UPCGExPathInclusionFilterFactory::CreateSpline(const UPCGPointData* InData,
 	PCGEx::InitArray(SplinePoints, NumPoints);
 
 	ESplinePointType::Type PointType = ESplinePointType::Linear;
-	
+
 	switch (Config.PointType)
 	{
 	case EPCGExSplinePointTypeRedux::Linear:

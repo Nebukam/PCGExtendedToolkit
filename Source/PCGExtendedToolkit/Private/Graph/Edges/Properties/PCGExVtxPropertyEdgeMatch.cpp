@@ -4,8 +4,6 @@
 #include "Graph/Edges/Properties/PCGExVtxPropertyEdgeMatch.h"
 
 #include "PCGPin.h"
-#include "Data/PCGExPointFilter.h"
-
 
 #define LOCTEXT_NAMESPACE "PCGExVtxPropertyEdgeMatch"
 #define PCGEX_NAMESPACE PCGExVtxPropertyEdgeMatch
@@ -77,7 +75,7 @@ void UPCGExVtxPropertyEdgeMatch::ProcessNode(PCGExCluster::FNode& Node, const TA
 		}
 	}
 
-	if (IBest != -1) { Config.MatchingEdge.Set(Node.PointIndex, Adjacency[IBest], Cluster->GetNode(Adjacency[IBest].NodeIndex)->Adjacency.Num()); }
+	if (IBest != -1) { Config.MatchingEdge.Set(Node.PointIndex, Adjacency[IBest], Cluster->GetNode(Adjacency[IBest].NodeIndex)->Num()); }
 	else { Config.MatchingEdge.Set(Node.PointIndex, 0, FVector::ZeroVector, -1, -1, 0); }
 }
 

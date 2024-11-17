@@ -3,9 +3,6 @@
 
 #include "Graph/Edges/PCGExDrawEdges.h"
 
-#include "Data/Blending/PCGExMetadataBlender.h"
-
-
 #define LOCTEXT_NAMESPACE "PCGExEdgesToPaths"
 #define PCGEX_NAMESPACE DrawEdges
 
