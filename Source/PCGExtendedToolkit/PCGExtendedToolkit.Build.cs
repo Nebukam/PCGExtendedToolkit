@@ -39,7 +39,8 @@ public class PCGExtendedToolkit : ModuleRules
 			new string[]
 			{
 				"GeometryCore",
-				"GeometryFramework"
+				"GeometryFramework",
+				"GeometryScriptingCore"
 			}
 		);
 
