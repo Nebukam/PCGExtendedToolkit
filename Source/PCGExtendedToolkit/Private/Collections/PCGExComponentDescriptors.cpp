@@ -17,7 +17,6 @@ void FPCGExPrimitiveComponentDescriptor::InitFrom(const UPrimitiveComponent* Com
 
 	MinDrawDistance = SourceComponent->MinDrawDistance;
 	LDMaxDrawDistance = SourceComponent->LDMaxDrawDistance;
-	CachedMaxDrawDistance = SourceComponent->CachedMaxDrawDistance;
 	IndirectLightingCacheQuality = SourceComponent->IndirectLightingCacheQuality;
 #if PCGEX_ENGINE_VERSION < 505
 	LightmapType = SourceComponent->LightmapType;
@@ -70,22 +69,16 @@ void FPCGExPrimitiveComponentDescriptor::InitFrom(const UPrimitiveComponent* Com
 	bApplyImpulseOnDamage = SourceComponent->bApplyImpulseOnDamage;
 	bReplicatePhysicsToAutonomousProxy = SourceComponent->bReplicatePhysicsToAutonomousProxy;
 	bFillCollisionUnderneathForNavmesh = SourceComponent->bFillCollisionUnderneathForNavmesh;
-	AlwaysLoadOnClient = SourceComponent->AlwaysLoadOnClient;
-	AlwaysLoadOnServer = SourceComponent->AlwaysLoadOnServer;
-	bUseEditorCompositing = SourceComponent->bUseEditorCompositing;
 	bRenderCustomDepth = SourceComponent->bRenderCustomDepth;
 	bVisibleInSceneCaptureOnly = SourceComponent->bVisibleInSceneCaptureOnly;
 	bHiddenInSceneCapture = SourceComponent->bHiddenInSceneCapture;
-	bRayTracingFarField = SourceComponent->bRayTracingFarField;
-	bHasCustomNavigableGeometry = SourceComponent->bHasCustomNavigableGeometry;
 	CanCharacterStepUpOn = SourceComponent->CanCharacterStepUpOn;
 	LightingChannels = SourceComponent->LightingChannels;
 	RayTracingGroupId = SourceComponent->RayTracingGroupId;
-	VisibilityId = SourceComponent->VisibilityId;
 	CustomDepthStencilValue = SourceComponent->CustomDepthStencilValue;
 	TranslucencySortPriority = SourceComponent->TranslucencySortPriority;
 	TranslucencySortDistanceOffset = SourceComponent->TranslucencySortDistanceOffset;
-	RuntimeVirtualTextures = SourceComponent->RuntimeVirtualTextures;
+	//RuntimeVirtualTextures = SourceComponent->RuntimeVirtualTextures; // TODO : Load and forward
 	VirtualTextureLodBias = SourceComponent->VirtualTextureLodBias;
 	VirtualTextureCullMips = SourceComponent->VirtualTextureCullMips;
 	VirtualTextureMinCoverage = SourceComponent->VirtualTextureMinCoverage;
@@ -101,7 +94,6 @@ void FPCGExPrimitiveComponentDescriptor::InitComponent(UPrimitiveComponent* InCo
 
 	TargetComponent->MinDrawDistance = MinDrawDistance;
 	TargetComponent->LDMaxDrawDistance = LDMaxDrawDistance;
-	TargetComponent->CachedMaxDrawDistance = CachedMaxDrawDistance;
 	TargetComponent->IndirectLightingCacheQuality = IndirectLightingCacheQuality;
 #if PCGEX_ENGINE_VERSION < 505
 	TargetComponent->LightmapType = LightmapType;
@@ -154,22 +146,16 @@ void FPCGExPrimitiveComponentDescriptor::InitComponent(UPrimitiveComponent* InCo
 	TargetComponent->bApplyImpulseOnDamage = bApplyImpulseOnDamage;
 	TargetComponent->bReplicatePhysicsToAutonomousProxy = bReplicatePhysicsToAutonomousProxy;
 	TargetComponent->bFillCollisionUnderneathForNavmesh = bFillCollisionUnderneathForNavmesh;
-	TargetComponent->AlwaysLoadOnClient = AlwaysLoadOnClient;
-	TargetComponent->AlwaysLoadOnServer = AlwaysLoadOnServer;
-	TargetComponent->bUseEditorCompositing = bUseEditorCompositing;
 	TargetComponent->bRenderCustomDepth = bRenderCustomDepth;
 	TargetComponent->bVisibleInSceneCaptureOnly = bVisibleInSceneCaptureOnly;
 	TargetComponent->bHiddenInSceneCapture = bHiddenInSceneCapture;
-	TargetComponent->bRayTracingFarField = bRayTracingFarField;
-	TargetComponent->bHasCustomNavigableGeometry = bHasCustomNavigableGeometry;
 	TargetComponent->CanCharacterStepUpOn = CanCharacterStepUpOn;
 	TargetComponent->LightingChannels = LightingChannels;
 	TargetComponent->RayTracingGroupId = RayTracingGroupId;
-	TargetComponent->VisibilityId = VisibilityId;
 	TargetComponent->CustomDepthStencilValue = CustomDepthStencilValue;
 	TargetComponent->TranslucencySortPriority = TranslucencySortPriority;
 	TargetComponent->TranslucencySortDistanceOffset = TranslucencySortDistanceOffset;
-	TargetComponent->RuntimeVirtualTextures = RuntimeVirtualTextures;
+	//TargetComponent->RuntimeVirtualTextures = RuntimeVirtualTextures; // TODO : Load & Forward
 	TargetComponent->VirtualTextureLodBias = VirtualTextureLodBias;
 	TargetComponent->VirtualTextureCullMips = VirtualTextureCullMips;
 	TargetComponent->VirtualTextureMinCoverage = VirtualTextureMinCoverage;
@@ -193,7 +179,7 @@ void FPCGExMeshComponentDescriptor::InitFrom(const UPrimitiveComponent* Componen
 	const UMeshComponent* SourceComponent = Cast<UMeshComponent>(Component);
 	if (!SourceComponent) { return; }
 
-	OverrideMaterials = SourceComponent->OverrideMaterials;
+	// OverrideMaterials = SourceComponent->OverrideMaterials; // TODO!!
 	OverlayMaterial = SourceComponent->OverlayMaterial;
 	OverlayMaterialMaxDrawDistance = SourceComponent->OverlayMaterialMaxDrawDistance;
 }
@@ -205,8 +191,8 @@ void FPCGExMeshComponentDescriptor::InitComponent(UPrimitiveComponent* InCompone
 	UMeshComponent* TargetComponent = Cast<UMeshComponent>(InComponent);
 	if (!TargetComponent) { return; }
 
-	TargetComponent->OverrideMaterials = OverrideMaterials;
-	TargetComponent->OverlayMaterial = OverlayMaterial;
+	//TargetComponent->OverrideMaterials = OverrideMaterials; // TODO : Load & forward
+	//TargetComponent->OverlayMaterial = OverlayMaterial; // TODO : Load & forward
 	TargetComponent->OverlayMaterialMaxDrawDistance = OverlayMaterialMaxDrawDistance;
 }
 
@@ -226,11 +212,9 @@ void FPCGExStaticMeshComponentDescriptor::InitFrom(const UPrimitiveComponent* Co
 
 	ForcedLodModel = SourceComponent->ForcedLodModel;
 	MinLOD = SourceComponent->MinLOD;
-	SubDivisionStepSize = SourceComponent->SubDivisionStepSize;
 	WireframeColorOverride = SourceComponent->WireframeColorOverride;
 	bForceNaniteForMasked = SourceComponent->bForceNaniteForMasked;
 	bDisallowNanite = SourceComponent->bDisallowNanite;
-	bForceDisableNanite = SourceComponent->bForceDisableNanite;
 	bEvaluateWorldPositionOffset = SourceComponent->bEvaluateWorldPositionOffset;
 	bWorldPositionOffsetWritesVelocity = SourceComponent->bWorldPositionOffsetWritesVelocity;
 	bEvaluateWorldPositionOffsetInRayTracing = SourceComponent->bEvaluateWorldPositionOffsetInRayTracing;
@@ -244,7 +228,6 @@ void FPCGExStaticMeshComponentDescriptor::InitFrom(const UPrimitiveComponent* Co
 	bOverrideLightMapRes = SourceComponent->bOverrideLightMapRes;
 	bCastDistanceFieldIndirectShadow = SourceComponent->bCastDistanceFieldIndirectShadow;
 	bOverrideDistanceFieldSelfShadowBias = SourceComponent->bOverrideDistanceFieldSelfShadowBias;
-	bUseSubDivisions = SourceComponent->bUseSubDivisions;
 	bUseDefaultCollision = SourceComponent->bUseDefaultCollision;
 	bGenerateOverlapEvents = SourceComponent->GetGenerateOverlapEvents();
 	bSortTriangles = SourceComponent->bSortTriangles;
@@ -255,10 +238,6 @@ void FPCGExStaticMeshComponentDescriptor::InitFrom(const UPrimitiveComponent* Co
 	StreamingDistanceMultiplier = SourceComponent->StreamingDistanceMultiplier;
 	LightmassSettings = SourceComponent->LightmassSettings;
 
-#if WITH_EDITOR
-	bCustomOverrideVertexColorPerLOD = SourceComponent->bCustomOverrideVertexColorPerLOD;
-	bDisplayNaniteFallbackMesh = SourceComponent->bDisplayNaniteFallbackMesh;
-#endif
 }
 
 void FPCGExStaticMeshComponentDescriptor::InitComponent(UPrimitiveComponent* InComponent) const
@@ -270,11 +249,9 @@ void FPCGExStaticMeshComponentDescriptor::InitComponent(UPrimitiveComponent* InC
 
 	TargetComponent->ForcedLodModel = ForcedLodModel;
 	TargetComponent->MinLOD = MinLOD;
-	TargetComponent->SubDivisionStepSize = SubDivisionStepSize;
 	TargetComponent->WireframeColorOverride = WireframeColorOverride;
 	TargetComponent->bForceNaniteForMasked = bForceNaniteForMasked;
 	TargetComponent->bDisallowNanite = bDisallowNanite;
-	TargetComponent->bForceDisableNanite = bForceDisableNanite;
 	TargetComponent->bEvaluateWorldPositionOffset = bEvaluateWorldPositionOffset;
 	TargetComponent->bWorldPositionOffsetWritesVelocity = bWorldPositionOffsetWritesVelocity;
 	TargetComponent->bEvaluateWorldPositionOffsetInRayTracing = bEvaluateWorldPositionOffsetInRayTracing;
@@ -288,7 +265,6 @@ void FPCGExStaticMeshComponentDescriptor::InitComponent(UPrimitiveComponent* InC
 	TargetComponent->bOverrideLightMapRes = bOverrideLightMapRes;
 	TargetComponent->bCastDistanceFieldIndirectShadow = bCastDistanceFieldIndirectShadow;
 	TargetComponent->bOverrideDistanceFieldSelfShadowBias = bOverrideDistanceFieldSelfShadowBias;
-	TargetComponent->bUseSubDivisions = bUseSubDivisions;
 	TargetComponent->bUseDefaultCollision = bUseDefaultCollision;
 	TargetComponent->SetGenerateOverlapEvents(bGenerateOverlapEvents);
 	TargetComponent->bSortTriangles = bSortTriangles;
@@ -299,10 +275,6 @@ void FPCGExStaticMeshComponentDescriptor::InitComponent(UPrimitiveComponent* InC
 	TargetComponent->StreamingDistanceMultiplier = StreamingDistanceMultiplier;
 	TargetComponent->LightmassSettings = LightmassSettings;
 
-#if WITH_EDITOR
-	TargetComponent->bCustomOverrideVertexColorPerLOD = bCustomOverrideVertexColorPerLOD;
-	TargetComponent->bDisplayNaniteFallbackMesh = bDisplayNaniteFallbackMesh;
-#endif
 }
 
 FPCGExDynamicMeshDescriptor::FPCGExDynamicMeshDescriptor()

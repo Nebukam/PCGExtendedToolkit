@@ -157,6 +157,7 @@ namespace PCGExTopologyEdges
 			// Children should start work only in CompleteWork!!
 
 			InternalMesh = Context->ManagedObjects->template New<UDynamicMesh>();
+			InternalMesh->InitializeMesh();
 			InternalMesh->EditMesh(
 				[&](FDynamicMesh3& InMesh)
 				{
@@ -249,7 +250,7 @@ namespace PCGExTopologyEdges
 							InMesh.SetVertexColor(i, FVector3f(Point.Color[0], Point.Color[1], Point.Color[2]));
 						}
 					}
-				}, EDynamicMeshChangeType::GeneralEdit, EDynamicMeshAttributeChangeFlags::VertexColors | EDynamicMeshAttributeChangeFlags::VertexPositions, true);
+				}, EDynamicMeshChangeType::GeneralEdit, EDynamicMeshAttributeChangeFlags::VertexColors | EDynamicMeshAttributeChangeFlags::VertexPositions, false);
 		}
 	};
 
