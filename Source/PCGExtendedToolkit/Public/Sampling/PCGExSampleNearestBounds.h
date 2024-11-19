@@ -249,6 +249,10 @@ public:
 	/** If enabled, mark filtered out points as "failed". Otherwise, just skip the processing altogether. Only uncheck this if you want to ensure existing attribute values are preserved. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable), AdvancedDisplay)
 	bool bProcessFilteredOutAsFails = true;
+
+	/** If enabled, points that failed to sample anything will be pruned. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable), AdvancedDisplay)
+	bool bPruneFailedSamples = false;
 };
 
 struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExSampleNearestBoundsContext final : FPCGExPointsProcessorContext
@@ -288,6 +292,8 @@ namespace PCGExSampleNearestBounds
 		TSharedPtr<PCGExGeo::FPointBoxCloud> Cloud;
 		EPCGExPointBoundsSource BoundsSource = EPCGExPointBoundsSource::Bounds;
 
+		TArray<int8> SampleState;
+		
 		bool bSingleSample = false;
 
 		TSharedPtr<PCGExData::TBuffer<FVector>> LookAtUpGetter;
@@ -309,11 +315,12 @@ namespace PCGExSampleNearestBounds
 
 		virtual ~FProcessor() override;
 
-		void SamplingFailed(const int32 Index, const FPCGPoint& Point) const;
+		void SamplingFailed(const int32 Index, const FPCGPoint& Point);
 
 		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager> InAsyncManager) override;
 		virtual void PrepareSingleLoopScopeForPoints(const uint32 StartIndex, const int32 Count) override;
 		virtual void ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const int32 LoopIdx, const int32 Count) override;
 		virtual void CompleteWork() override;
+		virtual void Write() override;
 	};
 }

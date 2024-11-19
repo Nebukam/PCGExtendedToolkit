@@ -85,6 +85,7 @@ bool FPCGExSampleNearestSurfaceElement::ExecuteInternal(FPCGContext* InContext) 
 			[&](const TSharedPtr<PCGExData::FPointIO>& Entry) { return true; },
 			[&](const TSharedPtr<PCGExPointsMT::TBatch<PCGExSampleNearestSurface::FProcessor>>& NewBatch)
 			{
+				if (Settings->bPruneFailedSamples) { NewBatch->bRequiresWriteStep = true; }
 			}))
 		{
 			return Context->CancelExecution(TEXT("Could not find any points to sample."));
@@ -115,6 +116,8 @@ namespace PCGExSampleNearestSurface
 
 		if (!FPointsProcessor::Process(InAsyncManager)) { return false; }
 
+		SampleState.SetNumUninitialized(PointDataFacade->GetNum());
+		
 		{
 			const TSharedRef<PCGExData::FFacade>& OutputFacade = PointDataFacade;
 			PCGEX_FOREACH_FIELD_NEARESTSURFACE(PCGEX_OUTPUT_INIT)
@@ -147,6 +150,8 @@ namespace PCGExSampleNearestSurface
 
 		auto SamplingFailed = [&]()
 		{
+			SampleState[Index] = false;
+			
 			const FVector Direction = FVector::UpVector;
 			PCGEX_OUTPUT_VALUE(Location, Index, Point.Transform.GetLocation())
 			PCGEX_OUTPUT_VALUE(Normal, Index, Direction*-1) // TODO: expose "precise normal" in which case we line trace to location
@@ -254,6 +259,7 @@ namespace PCGExSampleNearestSurface
 				PCGEX_OUTPUT_VALUE(IsInside, Index, bIsInside)
 				PCGEX_OUTPUT_VALUE(Distance, Index, MinDist)
 				PCGEX_OUTPUT_VALUE(Success, Index, true)
+				SampleState[Index] = true;
 
 				FPlatformAtomics::InterlockedExchange(&bAnySuccess, 1);
 			}
@@ -317,6 +323,11 @@ namespace PCGExSampleNearestSurface
 
 		if (Settings->bTagIfHasSuccesses && bAnySuccess) { PointDataFacade->Source->Tags->Add(Settings->HasSuccessesTag); }
 		if (Settings->bTagIfHasNoSuccesses && !bAnySuccess) { PointDataFacade->Source->Tags->Add(Settings->HasNoSuccessesTag); }
+	}
+
+	void FProcessor::Write()
+	{
+		PCGExSampling::PruneFailedSamples(PointDataFacade->GetMutablePoints(), SampleState);
 	}
 }
 
