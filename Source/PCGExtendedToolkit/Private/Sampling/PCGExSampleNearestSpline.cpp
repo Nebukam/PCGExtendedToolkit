@@ -123,6 +123,7 @@ bool FPCGExSampleNearestSplineElement::ExecuteInternal(FPCGContext* InContext) c
 			[&](const TSharedPtr<PCGExData::FPointIO>& Entry) { return true; },
 			[&](const TSharedPtr<PCGExPointsMT::TBatch<PCGExSampleNearestSpline::FProcessor>>& NewBatch)
 			{
+				if (Settings->bPruneFailedSamples) { NewBatch->bRequiresWriteStep = true; }
 			}))
 		{
 			return Context->CancelExecution(TEXT("Could not find any paths to split."));
@@ -151,6 +152,8 @@ namespace PCGExSampleNearestSpline
 
 		if (!FPointsProcessor::Process(InAsyncManager)) { return false; }
 
+		SampleState.SetNumUninitialized(PointDataFacade->GetNum());
+		
 		if (Settings->SampleInputs != EPCGExSplineSamplingIncludeMode::All)
 		{
 			bOnlySignIfClosed = Settings->bOnlySignIfClosed;
@@ -201,8 +204,10 @@ namespace PCGExSampleNearestSpline
 		FilterScope(StartIndex, Count);
 	}
 
-	void FProcessor::SamplingFailed(const int32 Index, const FPCGPoint& Point, const double InDepth) const
+	void FProcessor::SamplingFailed(const int32 Index, const FPCGPoint& Point, const double InDepth)
 	{
+		SampleState[Index] = false;
+		
 		const double FailSafeDist = RangeMaxGetter ? FMath::Sqrt(RangeMaxGetter->Read(Index)) : Settings->RangeMax;
 		PCGEX_OUTPUT_VALUE(Success, Index, false)
 		PCGEX_OUTPUT_VALUE(Transform, Index, Point.Transform)
@@ -424,6 +429,7 @@ namespace PCGExSampleNearestSpline
 		FVector LookAt = (Point.Transform.GetLocation() - WeightedTransform.GetLocation()).GetSafeNormal();
 		const double WeightedDistance = FVector::Dist(Origin, WeightedTransform.GetLocation());
 
+		SampleState[Index] = Stats.IsValid();
 		PCGEX_OUTPUT_VALUE(Success, Index, Stats.IsValid())
 		PCGEX_OUTPUT_VALUE(Transform, Index, WeightedTransform)
 		PCGEX_OUTPUT_VALUE(LookAtTransform, Index, PCGExMath::MakeLookAtTransform(LookAt, WeightedUp, Settings->LookAtAxisAlign))
@@ -445,6 +451,11 @@ namespace PCGExSampleNearestSpline
 
 		if (Settings->bTagIfHasSuccesses && bAnySuccess) { PointDataFacade->Source->Tags->Add(Settings->HasSuccessesTag); }
 		if (Settings->bTagIfHasNoSuccesses && !bAnySuccess) { PointDataFacade->Source->Tags->Add(Settings->HasNoSuccessesTag); }
+	}
+
+	void FProcessor::Write()
+	{
+		PCGExSampling::PruneFailedSamples(PointDataFacade->GetMutablePoints(), SampleState);
 	}
 }
 

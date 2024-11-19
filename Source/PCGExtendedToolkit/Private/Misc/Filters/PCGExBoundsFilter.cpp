@@ -57,22 +57,45 @@ if(TypedFilterFactory->Config.bInvert){\
 	case EPCGExPointBoundsSource::DensityBounds: BoundCheck = [&](const FPCGPoint& Point) { return Cloud->_NAME<EPCGExPointBoundsSource::DensityBounds>(Point); }; break;\
 	case EPCGExPointBoundsSource::Bounds: BoundCheck = [&](const FPCGPoint& Point) { return Cloud->_NAME<EPCGExPointBoundsSource::Bounds>(Point); }; break;} }
 
-	switch (TypedFilterFactory->Config.CheckType)
+	if (TypedFilterFactory->Config.Mode == EPCGExBoundsFilterCompareMode::PerPointBounds)
 	{
-	default:
-	case EPCGExBoundsCheckType::Intersects:
-		PCGEX_FOREACH_BOUNDTYPE(Intersect)
-		break;
-	case EPCGExBoundsCheckType::IsInside:
-		PCGEX_FOREACH_BOUNDTYPE(IsInside)
-		break;
-	case EPCGExBoundsCheckType::IsInsideOrOn:
-		PCGEX_FOREACH_BOUNDTYPE(IsInsideOrOn)
-		break;
-	case EPCGExBoundsCheckType::IsInsideOrIntersects:
-		PCGEX_FOREACH_BOUNDTYPE(IsInsideOrIntersects)
-		break;
+		switch (TypedFilterFactory->Config.CheckType)
+		{
+		default:
+		case EPCGExBoundsCheckType::Intersects:
+			PCGEX_FOREACH_BOUNDTYPE(Intersect)
+			break;
+		case EPCGExBoundsCheckType::IsInside:
+			PCGEX_FOREACH_BOUNDTYPE(IsInside)
+			break;
+		case EPCGExBoundsCheckType::IsInsideOrOn:
+			PCGEX_FOREACH_BOUNDTYPE(IsInsideOrOn)
+			break;
+		case EPCGExBoundsCheckType::IsInsideOrIntersects:
+			PCGEX_FOREACH_BOUNDTYPE(IsInsideOrIntersects)
+			break;
+		}
 	}
+	else
+	{
+		switch (TypedFilterFactory->Config.CheckType)
+		{
+		default:
+		case EPCGExBoundsCheckType::Intersects:
+			PCGEX_FOREACH_BOUNDTYPE(IntersectCloud)
+			break;
+		case EPCGExBoundsCheckType::IsInside:
+			PCGEX_FOREACH_BOUNDTYPE(IsInsideCloud)
+			break;
+		case EPCGExBoundsCheckType::IsInsideOrOn:
+			PCGEX_FOREACH_BOUNDTYPE(IsInsideOrOnCloud)
+			break;
+		case EPCGExBoundsCheckType::IsInsideOrIntersects:
+			PCGEX_FOREACH_BOUNDTYPE(IsInsideOrIntersectsCloud)
+			break;
+		}
+	}
+
 
 #undef PCGEX_FOREACH_BOUNDTYPE
 
