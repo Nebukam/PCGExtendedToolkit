@@ -98,7 +98,7 @@ bool FPCGExPathfindingNavmeshElement::ExecuteInternal(FPCGContext* InContext) co
 	{
 		auto NavClusterTask = [&](const int32 SeedIndex, const int32 GoalIndex)
 		{
-			const int32 PathIndex = Context->PathQueries.Emplace(PCGExPathfinding::FSeedGoalPair(
+			const int32 PathIndex = Context->PathQueries.Add(PCGExPathfinding::FSeedGoalPair(
 				SeedIndex, Context->SeedsDataFacade->Source->GetInPoint(SeedIndex).Transform.GetLocation(),
 				GoalIndex, Context->GoalsDataFacade->Source->GetInPoint(GoalIndex).Transform.GetLocation()));
 
