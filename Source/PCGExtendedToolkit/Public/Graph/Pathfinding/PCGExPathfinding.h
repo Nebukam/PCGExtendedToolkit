@@ -106,6 +106,13 @@ namespace PCGExPathfinding
 		FVector SeedPosition = FVector::ZeroVector;
 		int32 Goal = -1;
 		FVector GoalPosition = FVector::ZeroVector;
+
+		FSeedGoalPair() = default;
+
+		FSeedGoalPair(const int32 InSeed, const FVector& InSeedPosition, const int32 InGoal, const FVector& InGoalPosition):
+			Seed(InSeed), SeedPosition(InSeedPosition), Goal(InGoal), GoalPosition(InGoalPosition)
+		{
+		}
 	};
 
 	class /*PCGEXTENDEDTOOLKIT_API*/ FPathQuery : public TSharedFromThis<FPathQuery>
