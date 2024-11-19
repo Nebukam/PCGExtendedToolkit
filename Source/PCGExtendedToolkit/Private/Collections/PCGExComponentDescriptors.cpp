@@ -223,6 +223,8 @@ void FPCGExStaticMeshComponentDescriptor::InitFrom(const UPrimitiveComponent* Co
 	bOverrideMinLOD = SourceComponent->bOverrideMinLOD;
 #if PCGEX_ENGINE_VERSION < 505
 	bDisallowMeshPaintPerInstance = SourceComponent->bDisallowMeshPaintPerInstance;
+#else
+	bDisallowMeshPaintPerInstance = 0;
 #endif
 	bIgnoreInstanceForTextureStreaming = SourceComponent->bIgnoreInstanceForTextureStreaming;
 	bOverrideLightMapRes = SourceComponent->bOverrideLightMapRes;
@@ -237,7 +239,6 @@ void FPCGExStaticMeshComponentDescriptor::InitFrom(const UPrimitiveComponent* Co
 	DistanceFieldSelfShadowBias = SourceComponent->DistanceFieldSelfShadowBias;
 	StreamingDistanceMultiplier = SourceComponent->StreamingDistanceMultiplier;
 	LightmassSettings = SourceComponent->LightmassSettings;
-
 }
 
 void FPCGExStaticMeshComponentDescriptor::InitComponent(UPrimitiveComponent* InComponent) const
@@ -274,7 +275,6 @@ void FPCGExStaticMeshComponentDescriptor::InitComponent(UPrimitiveComponent* InC
 	TargetComponent->DistanceFieldSelfShadowBias = DistanceFieldSelfShadowBias;
 	TargetComponent->StreamingDistanceMultiplier = StreamingDistanceMultiplier;
 	TargetComponent->LightmassSettings = LightmassSettings;
-
 }
 
 FPCGExDynamicMeshDescriptor::FPCGExDynamicMeshDescriptor()
