@@ -80,9 +80,9 @@ bool FPCGExPathfindingNavmeshElement::Boot(FPCGExContext* InContext) const
 		Context->SeedsDataFacade, Context->GoalPicker,
 		[&](const int32 SeedIndex, const int32 GoalIndex)
 		{
-			Context->PathQueries.Add(PCGExPathfinding::FSeedGoalPair(
+			Context->PathQueries.Emplace(
 				SeedIndex, Context->SeedsDataFacade->Source->GetInPoint(SeedIndex).Transform.GetLocation(),
-				GoalIndex, Context->GoalsDataFacade->Source->GetInPoint(GoalIndex).Transform.GetLocation()));
+				GoalIndex, Context->GoalsDataFacade->Source->GetInPoint(GoalIndex).Transform.GetLocation());
 		});
 
 	return true;
@@ -98,9 +98,9 @@ bool FPCGExPathfindingNavmeshElement::ExecuteInternal(FPCGContext* InContext) co
 	{
 		auto NavClusterTask = [&](const int32 SeedIndex, const int32 GoalIndex)
 		{
-			const int32 PathIndex = Context->PathQueries.Add(PCGExPathfinding::FSeedGoalPair(
+			const int32 PathIndex = Context->PathQueries.Emplace(
 				SeedIndex, Context->SeedsDataFacade->Source->GetInPoint(SeedIndex).Transform.GetLocation(),
-				GoalIndex, Context->GoalsDataFacade->Source->GetInPoint(GoalIndex).Transform.GetLocation()));
+				GoalIndex, Context->GoalsDataFacade->Source->GetInPoint(GoalIndex).Transform.GetLocation());
 
 			Context->GetAsyncManager()->Start<FSampleNavmeshTask>(PathIndex, Context->SeedsDataFacade->Source, &Context->PathQueries);
 		};
