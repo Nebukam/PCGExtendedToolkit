@@ -27,6 +27,7 @@ bool FPCGExTopologyEdgesProcessorElement::Boot(FPCGExContext* InContext) const
 
 	PCGEX_CONTEXT_AND_SETTINGS(TopologyEdgesProcessor)
 
+	Context->ComponentTags = PCGExHelpers::GetStringArrayFromCommaSeparatedList(Settings->CommaSeparatedComponentTags);
 	GetInputFactories(Context, PCGExTopology::SourceEdgeConstrainsFiltersLabel, Context->EdgeConstraintsFilterFactories, PCGExFactories::ClusterEdgeFilters, false);
 	return true;
 }

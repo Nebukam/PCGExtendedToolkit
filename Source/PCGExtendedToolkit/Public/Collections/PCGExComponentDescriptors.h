@@ -8,7 +8,6 @@
 #include "Components/DynamicMeshComponent.h"
 #include "SceneTypes.h"
 #include "PhysicsEngine/BodyInstance.h"
-#include "NavigationSystemTypes.h"
 #include "VT/RuntimeVirtualTexture.h"
 #include "VT/RuntimeVirtualTextureEnum.h"
 #include "Engine/EngineTypes.h"
@@ -31,6 +30,9 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPrimitiveComponentDescriptor
 
 #pragma region Properties
 
+	UPROPERTY(EditAnywhere, AdvancedDisplay, BlueprintReadOnly, Category=Rendering)
+	bool bVisible = true;
+	
 	/**
 	 * The minimum distance at which the primitive should be rendered, 
 	 * measured in world space units from the center of the primitive's bounding sphere to the camera position.

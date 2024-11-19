@@ -92,6 +92,9 @@ void FPCGExPrimitiveComponentDescriptor::InitComponent(UPrimitiveComponent* InCo
 {
 	UPrimitiveComponent* TargetComponent = InComponent;
 
+	// Only update visibility if it's set to false to avoid massive overhead.
+	if (!bVisible) { TargetComponent->SetVisibility(false, false); }
+	
 	TargetComponent->MinDrawDistance = MinDrawDistance;
 	TargetComponent->LDMaxDrawDistance = LDMaxDrawDistance;
 	TargetComponent->IndirectLightingCacheQuality = IndirectLightingCacheQuality;

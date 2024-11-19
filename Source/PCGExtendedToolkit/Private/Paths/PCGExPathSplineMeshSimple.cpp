@@ -291,7 +291,7 @@ namespace PCGExPathSplineMeshSimple
 
 			Settings->StaticMeshDescriptor.InitComponent(SplineMeshComponent);
 
-			Context->AttachManageComponent(
+			Context->AttachManagedComponent(
 				TargetActor, SplineMeshComponent,
 				FAttachmentTransformRules(EAttachmentRule::KeepWorld, EAttachmentRule::KeepWorld, EAttachmentRule::KeepWorld, false));
 

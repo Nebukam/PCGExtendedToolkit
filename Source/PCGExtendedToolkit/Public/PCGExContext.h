@@ -116,7 +116,7 @@ protected:
 #pragma region Managed Components
 
 public:
-	void AttachManageComponent(AActor* InParent, USceneComponent* InComponent, const FAttachmentTransformRules& AttachmentRules) const;
+	void AttachManagedComponent(AActor* InParent, USceneComponent* InComponent, const FAttachmentTransformRules& AttachmentRules) const;
 
 #pragma endregion
 
