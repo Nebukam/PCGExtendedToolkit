@@ -498,10 +498,12 @@ namespace PCGExGeo
 		bool bIntersectFound = false; \
 		Octree->FindFirstElementWithBoundsTest(FBoxCenterAndExtent(Point.Transform.GetLocation(), Point.GetScaledExtents()), [&](const FPointBox* NearbyBox){ \
 				if (NearbyBox->_NAME(Point, BoundsSource)){ bIntersectFound = true; return false;} return true; }); return bIntersectFound;
+		
 #define PCGEX_POINT_BOUNDS_CHECK_T(_NAME) \
 		bool bIntersectFound = false; \
 		Octree->FindFirstElementWithBoundsTest(FBoxCenterAndExtent(Point.Transform.GetLocation(), Point.GetScaledExtents()), [&](const FPointBox* NearbyBox){ \
 		if (NearbyBox->_NAME<S>(Point)){ bIntersectFound = true; return false;} return true; }); return bIntersectFound;
+		
 		FORCEINLINE bool Intersect(const FPCGPoint& Point, const EPCGExPointBoundsSource BoundsSource) const
 		{
 			PCGEX_POINT_BOUNDS_CHECK(Intersect)
@@ -544,6 +546,40 @@ namespace PCGExGeo
 		FORCEINLINE bool IsInsideOrIntersects(const FPCGPoint& Point) const
 		{
 			PCGEX_POINT_BOUNDS_CHECK_T(IsInsideOrIntersects)
+		}
+
+		//
+		
+		template <EPCGExPointBoundsSource S = EPCGExPointBoundsSource::ScaledBounds>
+		FORCEINLINE bool IntersectCloud(const FPCGPoint& Point) const
+		{
+			const FBox PtBox = PCGExMath::GetLocalBounds<S>(Point).TransformBy(Point.Transform.ToMatrixNoScale());
+			return PtBox.Intersect(CloudBounds);
+		}
+
+		template <EPCGExPointBoundsSource S = EPCGExPointBoundsSource::ScaledBounds>
+		FORCEINLINE bool IsInsideCloud(const FPCGPoint& Point) const
+		{
+			const FBox PtBox = PCGExMath::GetLocalBounds<S>(Point).TransformBy(Point.Transform.ToMatrixNoScale());
+			return PtBox.IsInside(CloudBounds);
+		}
+
+		template <EPCGExPointBoundsSource S = EPCGExPointBoundsSource::ScaledBounds>
+		FORCEINLINE bool IsInsideOrOnCloud(const FPCGPoint& Point) const
+		{
+			const FBox PtBox = PCGExMath::GetLocalBounds<S>(Point).TransformBy(Point.Transform.ToMatrixNoScale());
+			return PtBox.IsInsideOrOn(CloudBounds);
+		}
+
+		template <EPCGExPointBoundsSource S = EPCGExPointBoundsSource::ScaledBounds>
+		FORCEINLINE bool IsInsideOrIntersectsCloud(const FPCGPoint& Point) const
+		{
+			const FBox PtBox = PCGExMath::GetLocalBounds<S>(Point).TransformBy(Point.Transform.ToMatrixNoScale());
+#if PCGEX_ENGINE_VERSION <= 503
+			return PtBox.IsInside(CloudBounds) || PtBox.Intersect(CloudBounds);
+#else
+			return PtBox.IsInsideOrOn(CloudBounds) || PtBox.Intersect(CloudBounds);
+#endif
 		}
 
 #undef PCGEX_POINT_BOUNDS_CHECK

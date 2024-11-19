@@ -138,4 +138,15 @@ namespace PCGExSampling
 
 		return true;
 	}
+
+	static void PruneFailedSamples(TArray<FPCGPoint>& InMutablePoints, const TArray<int8>& InSampleState)
+	{
+		const int32 NumSamples = InMutablePoints.Num();
+
+		check(InMutablePoints.Num() == NumSamples);
+
+		int32 WriteIndex = 0;
+		for (int32 i = 0; i < NumSamples; i++) { if (InSampleState[i]) { InMutablePoints[WriteIndex++] = InMutablePoints[i]; } }
+		InMutablePoints.SetNum(WriteIndex);
+	}
 }

@@ -138,7 +138,7 @@ bool FPCGExSampleNearestPointElement::ExecuteInternal(FPCGContext* InContext) co
 	PCGEX_ON_INITIAL_EXECUTION
 	{
 		Context->SetAsyncState(PCGEx::State_FacadePreloading);
-		Context->TargetsPreloader->OnCompleteCallback = [Context]()
+		Context->TargetsPreloader->OnCompleteCallback = [Settings, Context]()
 		{
 			if (Context->Sorter && !Context->Sorter->Init())
 			{
@@ -150,6 +150,7 @@ bool FPCGExSampleNearestPointElement::ExecuteInternal(FPCGContext* InContext) co
 				[&](const TSharedPtr<PCGExData::FPointIO>& Entry) { return true; },
 				[&](const TSharedPtr<PCGExPointsMT::TBatch<PCGExSampleNearestPoints::FProcessor>>& NewBatch)
 				{
+					if (Settings->bPruneFailedSamples) { NewBatch->bRequiresWriteStep = true; }
 				}))
 			{
 				Context->CancelExecution(TEXT("Could not find any points to sample."));
@@ -173,8 +174,10 @@ namespace PCGExSampleNearestPoints
 	{
 	}
 
-	void FProcessor::SamplingFailed(const int32 Index, FPCGPoint& Point) const
+	void FProcessor::SamplingFailed(const int32 Index, const FPCGPoint& Point)
 	{
+		SampleState[Index] = false;
+		
 		const double FailSafeDist = RangeMaxGetter ? FMath::Sqrt(RangeMaxGetter->Read(Index)) : Settings->RangeMax;
 		PCGEX_OUTPUT_VALUE(Success, Index, false)
 		PCGEX_OUTPUT_VALUE(Transform, Index, Point.Transform)
@@ -191,6 +194,8 @@ namespace PCGExSampleNearestPoints
 
 		if (!FPointsProcessor::Process(InAsyncManager)) { return false; }
 
+		SampleState.SetNumUninitialized(PointDataFacade->GetNum());
+		
 		{
 			const TSharedRef<PCGExData::FFacade>& OutputFacade = PointDataFacade;
 			PCGEX_FOREACH_FIELD_NEARESTPOINT(PCGEX_OUTPUT_INIT)
@@ -389,6 +394,7 @@ namespace PCGExSampleNearestPoints
 		FVector LookAt = (Point.Transform.GetLocation() - WeightedTransform.GetLocation()).GetSafeNormal();
 		const double WeightedDistance = FVector::Dist(Point.Transform.GetLocation(), WeightedTransform.GetLocation());
 
+		SampleState[Index] = Stats.IsValid();
 		PCGEX_OUTPUT_VALUE(Success, Index, Stats.IsValid())
 		PCGEX_OUTPUT_VALUE(Transform, Index, WeightedTransform)
 		PCGEX_OUTPUT_VALUE(LookAtTransform, Index, PCGExMath::MakeLookAtTransform(LookAt, WeightedUp, Settings->LookAtAxisAlign))
@@ -407,6 +413,11 @@ namespace PCGExSampleNearestPoints
 
 		if (Settings->bTagIfHasSuccesses && bAnySuccess) { PointDataFacade->Source->Tags->Add(Settings->HasSuccessesTag); }
 		if (Settings->bTagIfHasNoSuccesses && !bAnySuccess) { PointDataFacade->Source->Tags->Add(Settings->HasNoSuccessesTag); }
+	}
+
+	void FProcessor::Write()
+	{
+		PCGExSampling::PruneFailedSamples(PointDataFacade->GetMutablePoints(), SampleState);
 	}
 }
 

@@ -133,7 +133,7 @@ bool FPCGExSampleNearestBoundsElement::ExecuteInternal(FPCGContext* InContext) c
 	{
 		Context->SetAsyncState(PCGEx::State_FacadePreloading);
 		Context->PauseContext();
-		Context->BoundsPreloader->OnCompleteCallback = [Context]()
+		Context->BoundsPreloader->OnCompleteCallback = [Settings, Context]()
 		{
 			if (Context->Sorter && !Context->Sorter->Init())
 			{
@@ -145,6 +145,7 @@ bool FPCGExSampleNearestBoundsElement::ExecuteInternal(FPCGContext* InContext) c
 				[&](const TSharedPtr<PCGExData::FPointIO>& Entry) { return true; },
 				[&](const TSharedPtr<PCGExPointsMT::TBatch<PCGExSampleNearestBounds::FProcessor>>& NewBatch)
 				{
+					if (Settings->bPruneFailedSamples) { NewBatch->bRequiresWriteStep = true; }
 				}))
 			{
 				Context->CancelExecution(TEXT("Could not find any points to sample."));
@@ -168,8 +169,10 @@ namespace PCGExSampleNearestBounds
 	{
 	}
 
-	void FProcessor::SamplingFailed(const int32 Index, const FPCGPoint& Point) const
+	void FProcessor::SamplingFailed(const int32 Index, const FPCGPoint& Point)
 	{
+		SampleState[Index] = false;
+		
 		constexpr double FailSafeDist = -1;
 		PCGEX_OUTPUT_VALUE(Success, Index, false)
 		PCGEX_OUTPUT_VALUE(Transform, Index, Point.Transform)
@@ -185,6 +188,8 @@ namespace PCGExSampleNearestBounds
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExSampleNearestBounds::Process);
 
 		if (!FPointsProcessor::Process(InAsyncManager)) { return false; }
+
+		SampleState.SetNumUninitialized(PointDataFacade->GetNum());
 
 		{
 			const TSharedRef<PCGExData::FFacade>& OutputFacade = PointDataFacade;
@@ -350,6 +355,7 @@ namespace PCGExSampleNearestBounds
 		FVector LookAt = (Point.Transform.GetLocation() - WeightedTransform.GetLocation()).GetSafeNormal();
 		const double WeightedDistance = FVector::Dist(Point.Transform.GetLocation(), WeightedTransform.GetLocation());
 
+		SampleState[Index] = Stats.IsValid();
 		PCGEX_OUTPUT_VALUE(Success, Index, Stats.IsValid())
 		PCGEX_OUTPUT_VALUE(Transform, Index, WeightedTransform)
 		PCGEX_OUTPUT_VALUE(LookAtTransform, Index, PCGExMath::MakeLookAtTransform(LookAt, WeightedUp, Settings->LookAtAxisAlign))
@@ -368,6 +374,11 @@ namespace PCGExSampleNearestBounds
 
 		if (Settings->bTagIfHasSuccesses && bAnySuccess) { PointDataFacade->Source->Tags->Add(Settings->HasSuccessesTag); }
 		if (Settings->bTagIfHasNoSuccesses && !bAnySuccess) { PointDataFacade->Source->Tags->Add(Settings->HasNoSuccessesTag); }
+	}
+
+	void FProcessor::Write()
+	{
+		PCGExSampling::PruneFailedSamples(PointDataFacade->GetMutablePoints(), SampleState);
 	}
 }
 

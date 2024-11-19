@@ -63,6 +63,7 @@ bool FPCGExSampleSurfaceGuidedElement::ExecuteInternal(FPCGContext* InContext) c
 			[&](const TSharedPtr<PCGExData::FPointIO>& Entry) { return true; },
 			[&](const TSharedPtr<PCGExPointsMT::TBatch<PCGExSampleSurfaceGuided::FProcessor>>& NewBatch)
 			{
+				if (Settings->bPruneFailedSamples) { NewBatch->bRequiresWriteStep = true; }
 			}))
 		{
 			return Context->CancelExecution(TEXT("Could not find any points to sample."));
@@ -93,6 +94,8 @@ namespace PCGExSampleSurfaceGuided
 
 		if (!FPointsProcessor::Process(InAsyncManager)) { return false; }
 
+		SampleState.SetNumUninitialized(PointDataFacade->GetNum());
+		
 		DirectionGetter = PointDataFacade->GetScopedBroadcaster<FVector>(Settings->Direction);
 
 		if (!DirectionGetter)
@@ -135,6 +138,8 @@ namespace PCGExSampleSurfaceGuided
 
 		auto SamplingFailed = [&]()
 		{
+			SampleState[Index] = false;
+			
 			PCGEX_OUTPUT_VALUE(Location, Index, Point.Transform.GetLocation())
 			PCGEX_OUTPUT_VALUE(Normal, Index, Direction*-1)
 			PCGEX_OUTPUT_VALUE(LookAt, Index, Direction)
@@ -175,6 +180,8 @@ namespace PCGExSampleSurfaceGuided
 			PCGEX_OUTPUT_VALUE(Distance, Index, FVector::Distance(HitResult.ImpactPoint, Origin))
 			PCGEX_OUTPUT_VALUE(IsInside, Index, FVector::DotProduct(Direction, HitResult.Normal) > 0)
 			PCGEX_OUTPUT_VALUE(Success, Index, bSuccess)
+			
+			SampleState[Index] = bSuccess;
 
 #if PCGEX_ENGINE_VERSION <= 503
 			if (const AActor* HitActor = HitResult.GetActor())
@@ -281,6 +288,11 @@ namespace PCGExSampleSurfaceGuided
 
 		if (Settings->bTagIfHasSuccesses && bAnySuccess) { PointDataFacade->Source->Tags->Add(Settings->HasSuccessesTag); }
 		if (Settings->bTagIfHasNoSuccesses && !bAnySuccess) { PointDataFacade->Source->Tags->Add(Settings->HasNoSuccessesTag); }
+	}
+
+	void FProcessor::Write()
+	{
+		PCGExSampling::PruneFailedSamples(PointDataFacade->GetMutablePoints(), SampleState);
 	}
 }
 
