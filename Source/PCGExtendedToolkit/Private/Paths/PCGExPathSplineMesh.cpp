@@ -406,7 +406,7 @@ namespace PCGExPathSplineMesh
 			if (Settings->bForceDefaultDescriptor) { Settings->DefaultDescriptor.InitComponent(SplineMeshComponent); }
 			else { Segment.MeshEntry->SMDescriptor.InitComponent(SplineMeshComponent); }
 
-			Context->AttachManageComponent(
+			Context->AttachManagedComponent(
 				TargetActor, SplineMeshComponent,
 				FAttachmentTransformRules(EAttachmentRule::KeepWorld, EAttachmentRule::KeepWorld, EAttachmentRule::KeepWorld, false));
 

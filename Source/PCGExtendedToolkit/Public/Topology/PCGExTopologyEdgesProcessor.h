@@ -4,6 +4,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "PCGExDynamicMeshComponent.h"
 #include "PCGExTopology.h"
 #include "Geometry/PCGExGeoMesh.h"
 #include "Graph/PCGExClusterMT.h"
@@ -48,6 +49,10 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	TSoftObjectPtr<AActor> TargetActor;
 
+	/** Comma separated tags */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	FString CommaSeparatedComponentTags = TEXT("PCGExTopology");
+
 	/** Specify a list of functions to be called on the target actor after dynamic mesh creation. Functions need to be parameter-less and with "CallInEditor" flag enabled. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
 	TArray<FName> PostProcessFunctionNames;
@@ -61,6 +66,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExTopologyEdgesProcessorContext : FPCGExEd
 	friend class FPCGExTopologyEdgesProcessorElement;
 	TArray<TObjectPtr<const UPCGExFilterFactoryBase>> EdgeConstraintsFilterFactories;
 
+	TArray<FString> ComponentTags;
 	TSet<AActor*> NotifyActors;
 };
 
@@ -157,6 +163,7 @@ namespace PCGExTopologyEdges
 			// Children should start work only in CompleteWork!!
 
 			InternalMesh = Context->ManagedObjects->template New<UDynamicMesh>();
+			InternalMesh->InitializeMesh();
 			InternalMesh->EditMesh(
 				[&](FDynamicMesh3& InMesh)
 				{
@@ -170,12 +177,10 @@ namespace PCGExTopologyEdges
 		virtual void Output() override
 		{
 			if (!this->bIsProcessorValid) { return; }
-
-			UE_LOG(LogTemp, Warning, TEXT("Output %llu | %d"), Settings->UID, EdgeDataFacade->Source->IOIndex)
+			if (Settings->Topology.bCombinesAllTopologies) { return; }
 
 			TRACE_CPUPROFILER_EVENT_SCOPE(UPCGExPathSplineMesh::FProcessor::Output);
 
-			// TODO : Resolve per-point target actor...? irk.
 			AActor* TargetActor = Settings->TargetActor.Get() ? Settings->TargetActor.Get() : ExecutionContext->GetTargetActor(nullptr);
 
 			if (!TargetActor)
@@ -186,7 +191,7 @@ namespace PCGExTopologyEdges
 
 			const FString ComponentName = TEXT("PCGDynamicMeshComponent");
 			const EObjectFlags ObjectFlags = (bIsPreviewMode ? RF_Transient : RF_NoFlags);
-			UDynamicMeshComponent* DynamicMeshComponent = NewObject<UDynamicMeshComponent>(TargetActor, MakeUniqueObjectName(TargetActor, UDynamicMeshComponent::StaticClass(), FName(ComponentName)), ObjectFlags);
+			UPCGExDynamicMeshComponent* DynamicMeshComponent = NewObject<UPCGExDynamicMeshComponent>(TargetActor, MakeUniqueObjectName(TargetActor, UPCGExDynamicMeshComponent::StaticClass(), FName(ComponentName)), ObjectFlags);
 
 			Settings->Topology.TemplateDescriptor.InitComponent(DynamicMeshComponent);
 
@@ -196,10 +201,12 @@ namespace PCGExTopologyEdges
 				DynamicMeshComponent->SetMaterial(0, Material);
 			}
 
+			DynamicMeshComponent->ComponentTags.Reserve(DynamicMeshComponent->ComponentTags.Num() + Context->ComponentTags.Num());
+			for (const FString& ComponentTag : Context->ComponentTags) { DynamicMeshComponent->ComponentTags.Add(FName(ComponentTag)); }
+
 			Context->ManagedObjects->Remove(InternalMesh);
 
-
-			Context->AttachManageComponent(
+			Context->AttachManagedComponent(
 				TargetActor, DynamicMeshComponent,
 				FAttachmentTransformRules(EAttachmentRule::KeepWorld, EAttachmentRule::KeepWorld, EAttachmentRule::KeepWorld, false));
 
@@ -234,7 +241,7 @@ namespace PCGExTopologyEdges
 							Settings->Topology.DefaultVertexColor.Component(0),
 							Settings->Topology.DefaultVertexColor.Component(1),
 							Settings->Topology.DefaultVertexColor.Component(2)));
-					
+
 					const int32 VtxCount = InMesh.VertexCount();
 					const TArray<FPCGPoint>& InPoints = VtxDataFacade->GetIn()->GetPoints();
 					const TMap<uint32, int32>& HashMapRef = *ProjectedHashMap;
@@ -249,7 +256,7 @@ namespace PCGExTopologyEdges
 							InMesh.SetVertexColor(i, FVector3f(Point.Color[0], Point.Color[1], Point.Color[2]));
 						}
 					}
-				}, EDynamicMeshChangeType::GeneralEdit, EDynamicMeshAttributeChangeFlags::VertexColors | EDynamicMeshAttributeChangeFlags::VertexPositions, true);
+				}, EDynamicMeshChangeType::GeneralEdit, EDynamicMeshAttributeChangeFlags::VertexColors | EDynamicMeshAttributeChangeFlags::VertexPositions, false);
 		}
 	};
 
@@ -335,6 +342,69 @@ namespace PCGExTopologyEdges
 			ClusterProcessor->ProjectedHashMap = &ProjectedHashMap;
 			PCGExClusterMT::TBatch<T>::PrepareSingle(ClusterProcessor);
 			return true;
+		}
+
+		virtual void Output() override
+		{
+			if (!this->bIsBatchValid) { return; }
+
+			PCGEX_TYPED_CONTEXT_AND_SETTINGS(TopologyEdgesProcessor)
+
+			if (Settings->Topology.bCombinesAllTopologies)
+			{
+				PCGE_LOG_C(Error, GraphAndLog, ExecutionContext, FTEXT("Merged topology is not implemented yet."));
+				/*
+								TObjectPtr<UDynamicMesh> InternalMesh = Context->ManagedObjects->template New<UDynamicMesh>();
+								InternalMesh->InitializeMesh();
+								InternalMesh->EditMesh(
+									[&](FDynamicMesh3& InMesh)
+									{
+										
+										InMesh.EnableVertexNormals(FVector3f(0, 0, 1));
+									}, EDynamicMeshChangeType::GeneralEdit, EDynamicMeshAttributeChangeFlags::MeshTopology, true);
+								
+								bool bIsPreviewMode = false;
+								
+				#if PCGEX_ENGINE_VERSION > 503
+								bIsPreviewMode = ExecutionContext->SourceComponent.Get()->IsInPreviewMode();
+				#endif
+								
+								TRACE_CPUPROFILER_EVENT_SCOPE(UPCGExPathSplineMesh::FProcessor::Output);
+				
+								// TODO : Resolve per-point target actor...? irk.
+								AActor* TargetActor = Settings->TargetActor.Get() ? Settings->TargetActor.Get() : ExecutionContext->GetTargetActor(nullptr);
+				
+								if (!TargetActor)
+								{
+									PCGE_LOG_C(Error, GraphAndLog, ExecutionContext, FTEXT("Invalid target actor."));
+									return;
+								}
+				
+								const FString ComponentName = TEXT("PCGDynamicMeshComponent");
+								const EObjectFlags ObjectFlags = (bIsPreviewMode ? RF_Transient : RF_NoFlags);
+								UPCGExDynamicMeshComponent* DynamicMeshComponent = NewObject<UPCGExDynamicMeshComponent>(TargetActor, MakeUniqueObjectName(TargetActor, UPCGExDynamicMeshComponent::StaticClass(), FName(ComponentName)), ObjectFlags);
+				
+								Settings->Topology.TemplateDescriptor.InitComponent(DynamicMeshComponent);
+				
+								DynamicMeshComponent->SetDynamicMesh(InternalMesh);
+								if (UMaterialInterface* Material = Settings->Topology.Material.LoadSynchronous())
+								{
+									DynamicMeshComponent->SetMaterial(0, Material);
+								}
+				
+								Context->ManagedObjects->Remove(InternalMesh);
+				
+								Context->AttachManagedComponent(
+									TargetActor, DynamicMeshComponent,
+									FAttachmentTransformRules(EAttachmentRule::KeepWorld, EAttachmentRule::KeepWorld, EAttachmentRule::KeepWorld, false));
+				
+								Context->NotifyActors.Add(TargetActor);
+								*/
+			}
+			else
+			{
+				PCGExClusterMT::TBatch<T>::Output();
+			}
 		}
 
 	protected:

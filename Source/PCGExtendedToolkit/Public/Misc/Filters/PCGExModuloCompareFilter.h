@@ -39,7 +39,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExModuloCompareFilterConfig
 
 	/** Operand B for testing */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Operand B", EditCondition="OperandBSource==EPCGExInputValueType::Constant", EditConditionHides))
-	double OperandBConstant = 0;
+	double OperandBConstant = 2;
 
 	/** Comparison */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
@@ -54,12 +54,16 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExModuloCompareFilterConfig
 	FPCGAttributePropertyInputSelector OperandC;
 
 	/** Operand C for testing */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="CompareAgainst==EPCGExInputValueType::Constant", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Operand C", EditCondition="CompareAgainst==EPCGExInputValueType::Constant", EditConditionHides))
 	double OperandCConstant = 0;
 
 	/** Rounding mode for relative measures */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="Comparison==EPCGExComparison::NearlyEqual || Comparison==EPCGExComparison::NearlyNotEqual", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Operand C", EditCondition="Comparison==EPCGExComparison::NearlyEqual || Comparison==EPCGExComparison::NearlyNotEqual", EditConditionHides))
 	double Tolerance = DBL_COMPARE_TOLERANCE;
+
+	/** Which value to return when dealing with zero-values */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	bool ZeroResult = true;
 };
 
 
@@ -100,6 +104,7 @@ namespace PCGExPointsFilter
 			const double A = OperandA->Read(PointIndex);
 			const double B = OperandB ? OperandB->Read(PointIndex) : TypedFilterFactory->Config.OperandBConstant;
 			const double C = OperandC ? OperandC->Read(PointIndex) : TypedFilterFactory->Config.OperandCConstant;
+			if (A == 0 || B == 0) { return TypedFilterFactory->Config.ZeroResult; }
 			return PCGExCompare::Compare(TypedFilterFactory->Config.Comparison, FMath::Fmod(A, B), C, TypedFilterFactory->Config.Tolerance);
 		}
 
@@ -120,7 +125,7 @@ public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(
-		ModuloCompareFilterFactory, "Filter : Modulo Compare", "Creates a filter definition that compares the modulo value of two attribute values againt a third operand.",
+		ModuloCompareFilterFactory, "Filter : Modulo Compare", "A % B != C",
 		PCGEX_FACTORY_NAME_PRIORITY)
 #endif
 	//~End UPCGSettings

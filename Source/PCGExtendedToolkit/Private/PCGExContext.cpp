@@ -257,7 +257,7 @@ void FPCGExContext::LoadAssets()
 	}
 }
 
-void FPCGExContext::AttachManageComponent(AActor* InParent, USceneComponent* InComponent, const FAttachmentTransformRules& AttachmentRules) const
+void FPCGExContext::AttachManagedComponent(AActor* InParent, USceneComponent* InComponent, const FAttachmentTransformRules& AttachmentRules) const
 {
 	UPCGComponent* SrcComp = SourceComponent.Get();
 

@@ -4,8 +4,13 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "Components/PrimitiveComponent.h"
 #include "Components/DynamicMeshComponent.h"
-#include "PCGExMacros.h"
+#include "SceneTypes.h"
+#include "PhysicsEngine/BodyInstance.h"
+#include "VT/RuntimeVirtualTexture.h"
+#include "VT/RuntimeVirtualTextureEnum.h"
+#include "Engine/EngineTypes.h"
 
 #include "PCGExComponentDescriptors.generated.h"
 
@@ -25,6 +30,9 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPrimitiveComponentDescriptor
 
 #pragma region Properties
 
+	UPROPERTY(EditAnywhere, AdvancedDisplay, BlueprintReadOnly, Category=Rendering)
+	bool bVisible = true;
+	
 	/**
 	 * The minimum distance at which the primitive should be rendered, 
 	 * measured in world space units from the center of the primitive's bounding sphere to the camera position.
@@ -35,13 +43,6 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPrimitiveComponentDescriptor
 	/**  Max draw distance exposed to LDs. The real max draw distance is the min (disregarding 0) of this and volumes affecting this object. */
 	UPROPERTY(EditAnywhere, AdvancedDisplay, BlueprintReadOnly, Category=LOD, meta=(DisplayName="Desired Max Draw Distance"))
 	float LDMaxDrawDistance = 0.0;
-
-	/**
-	 * The distance to cull this primitive at.  
-	 * A CachedMaxDrawDistance of 0 indicates that the primitive should not be culled by distance.
-	 */
-	UPROPERTY(Category=LOD, AdvancedDisplay, VisibleAnywhere, BlueprintReadOnly, meta=(DisplayName="Current Max Draw Distance"))
-	float CachedMaxDrawDistance = 0.0;
 
 	/** Quality of indirect lighting for Movable primitives.  This has a large effect on Indirect Lighting Cache update time. */
 	UPROPERTY(EditAnywhere, AdvancedDisplay, BlueprintReadOnly, Category=Lighting)
@@ -298,18 +299,6 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPrimitiveComponentDescriptor
 
 	// General flags.
 
-	/** If this is True, this component must always be loaded on clients, even if Hidden and CollisionEnabled is NoCollision. */
-	UPROPERTY()
-	uint8 AlwaysLoadOnClient : 1;
-
-	/** If this is True, this component must always be loaded on servers, even if Hidden and CollisionEnabled is NoCollision */
-	UPROPERTY()
-	uint8 AlwaysLoadOnServer : 1;
-
-	/** Composite the drawing of this component onto the scene after post processing (only applies to editor drawing) */
-	UPROPERTY()
-	uint8 bUseEditorCompositing : 1;
-
 	/** If true, this component will be rendered in the CustomDepth pass (usually used for outlines) */
 	UPROPERTY(EditAnywhere, AdvancedDisplay, BlueprintReadOnly, Category=Rendering, meta=(DisplayName = "Render CustomDepth Pass"))
 	uint8 bRenderCustomDepth : 1;
@@ -320,21 +309,13 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPrimitiveComponentDescriptor
 	UPROPERTY(EditAnywhere, AdvancedDisplay, BlueprintReadOnly, Category = Rendering, meta = (DisplayName = "Hidden In Scene Capture", ToolTip = "When true, will not be captured by Scene Capture"))
 	uint8 bHiddenInSceneCapture : 1;
 
-	/** If true, this component will be available to ray trace as a far field primitive even if hidden. */
-	UPROPERTY()
-	uint8 bRayTracingFarField : 1;
-
-	/** If true then DoCustomNavigableGeometryExport will be called to collect navigable geometry of this component. */
-	UPROPERTY()
-	TEnumAsByte<EHasCustomNavigableGeometry::Type> bHasCustomNavigableGeometry;
-
 	/**
 	 * Determine whether a Character can step up onto this component.
 	 * This controls whether they can try to step up on it when they bump in to it, not whether they can walk on it after landing on it.
 	 * @see FWalkableSlopeOverride
 	 */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Collision)
-	TEnumAsByte<enum ECanBeCharacterBase> CanCharacterStepUpOn;
+	TEnumAsByte<ECanBeCharacterBase> CanCharacterStepUpOn;
 
 	/** 
 	 * Channels that this component should be in.  Lights with matching channels will affect the component.  
@@ -349,10 +330,6 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPrimitiveComponentDescriptor
 	 */
 	UPROPERTY(EditAnywhere, AdvancedDisplay, BlueprintReadOnly, Category = RayTracing)
 	int32 RayTracingGroupId;
-
-	/** Used for precomputed visibility */
-	UPROPERTY()
-	int32 VisibilityId = 0;
 
 	/** Optionally write this 0-255 value to the stencil buffer in CustomDepth pass (Requires project setting or r.CustomDepth == 3) */
 	UPROPERTY(EditAnywhere, AdvancedDisplay, BlueprintReadOnly, Category=Rendering, meta=(UIMin = "0", UIMax = "255", editcondition = "bRenderCustomDepth", DisplayName = "CustomDepth Stencil Value"))
@@ -385,7 +362,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPrimitiveComponentDescriptor
 	 * The material also needs to be set up to output to a virtual texture. 
 	 */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = VirtualTexture, meta = (DisplayName = "Draw in Virtual Textures"))
-	TArray<TObjectPtr<URuntimeVirtualTexture>> RuntimeVirtualTextures;
+	TArray<TSoftObjectPtr<URuntimeVirtualTexture>> RuntimeVirtualTextures;
 
 	/** Bias to the LOD selected for rendering to runtime virtual textures. */
 	UPROPERTY(EditAnywhere, AdvancedDisplay, Category = VirtualTexture, meta = (DisplayName = "Virtual Texture LOD Bias", UIMin = "-7", UIMax = "8"))
@@ -452,11 +429,11 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExMeshComponentDescriptor : public FPCGExP
 
 	/** Per-Component material overrides.  These must NOT be set directly or a race condition can occur between GC and the rendering thread. */
 	UPROPERTY(EditAnywhere, AdvancedDisplay, Category=Rendering, Meta=(ToolTip="Material overrides."))
-	TArray<TObjectPtr<class UMaterialInterface>> OverrideMaterials;
+	TArray<TSoftObjectPtr<UMaterialInterface>> OverrideMaterials;
 
 	/** Translucent material to blend on top of this mesh. Mesh will be rendered twice - once with a base material and once with overlay material */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, AdvancedDisplay, Category=Rendering)
-	TObjectPtr<class UMaterialInterface> OverlayMaterial;
+	TSoftObjectPtr<UMaterialInterface> OverlayMaterial;
 
 	/** The max draw distance for overlay material. A distance of 0 indicates that overlay will be culled using primitive max distance. */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, AdvancedDisplay, Category=Rendering)
@@ -492,10 +469,6 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExStaticMeshComponentDescriptor : public F
 	UPROPERTY(EditAnywhere, AdvancedDisplay, BlueprintReadOnly, Category=LOD, meta=(editcondition = "bOverrideMinLOD"))
 	int32 MinLOD;
 
-	/** Subdivision step size for static vertex lighting. */
-	UPROPERTY()
-	int32 SubDivisionStepSize;
-
 	/** Wireframe color to use if bOverrideWireframeColor is true */
 	UPROPERTY(EditAnywhere, AdvancedDisplay, BlueprintReadOnly, Category=Rendering, meta=(editcondition = "bOverrideWireframeColor"))
 	FColor WireframeColorOverride;
@@ -507,10 +480,6 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExStaticMeshComponentDescriptor : public F
 	/** Forces this component to use fallback mesh for rendering if Nanite is enabled on the mesh. */
 	UPROPERTY(EditAnywhere, AdvancedDisplay, BlueprintReadWrite, Category = Rendering)
 	uint8 bDisallowNanite : 1;
-
-	/** Forces this component to use fallback mesh for rendering if Nanite is enabled on the mesh (run-time override) */
-	UPROPERTY()
-	uint8 bForceDisableNanite : 1;
 
 	/** 
 	 * Whether to evaluate World Position Offset. 
@@ -575,26 +544,12 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExStaticMeshComponentDescriptor : public F
 	UPROPERTY(EditAnywhere, AdvancedDisplay, BlueprintReadOnly, Category=Lighting)
 	uint8 bOverrideDistanceFieldSelfShadowBias : 1;
 
-	/** Whether to use subdivisions or just the triangle's vertices.	*/
-	UPROPERTY()
-	uint8 bUseSubDivisions : 1;
-
 	/** Use the collision profile specified in the StaticMesh asset.*/
 	UPROPERTY(EditAnywhere, Category = Collision)
 	uint8 bUseDefaultCollision : 1;
 
 	UPROPERTY(EditAnywhere, Category = Collision)
 	uint8 bGenerateOverlapEvents : 1;
-
-#if WITH_EDITORONLY_DATA
-	/** The component has some custom painting on LODs or not. */
-	UPROPERTY()
-	uint8 bCustomOverrideVertexColorPerLOD : 1;
-
-	/** For Nanite enabled meshes, we'll only show the proxy mesh if this is true */
-	UPROPERTY()
-	uint8 bDisplayNaniteFallbackMesh : 1;
-#endif
 
 	/** Enable dynamic sort mesh's triangles to remove ordering issue when rendered with a translucent material */
 	UPROPERTY(EditAnywhere, AdvancedDisplay, BlueprintReadOnly, Category = Lighting, meta = (UIMin = "0", UIMax = "1", DisplayName = "Sort Triangles"))
@@ -631,7 +586,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExStaticMeshComponentDescriptor : public F
 
 	/** The Lightmass settings for this object. */
 	UPROPERTY(EditAnywhere, Category=Lighting)
-	struct FLightmassPrimitiveSettings LightmassSettings;
+	FLightmassPrimitiveSettings LightmassSettings;
 
 #pragma endregion
 
