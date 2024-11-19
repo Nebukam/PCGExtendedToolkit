@@ -86,7 +86,16 @@ namespace PCGExHelpers
 		TArray<FString> Result;
 		InCommaSeparatedString.ParseIntoArray(Result, TEXT(","));
 		// Trim leading and trailing spaces
-		for (FString& String : Result) { String.TrimStartAndEndInline(); }
+		for (int i = 0; i < Result.Num(); i++)
+		{
+			FString& String = Result[i];
+			String.TrimStartAndEndInline();
+			if (String.IsEmpty())
+			{
+				Result.RemoveAt(i);
+				i--;
+			}
+		}
 
 		return Result;
 	}

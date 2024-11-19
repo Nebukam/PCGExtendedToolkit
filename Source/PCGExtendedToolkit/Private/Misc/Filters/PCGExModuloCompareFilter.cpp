@@ -47,7 +47,7 @@ bool PCGExPointsFilter::TModuloComparisonFilter::Init(FPCGExContext* InContext, 
 
 		if (!OperandC)
 		{
-			PCGE_LOG_C(Error, GraphAndLog, InContext, FText::Format(FTEXT("Invalid Operand C attribute: \"{0}\"."), FText::FromName(TypedFilterFactory->Config.OperandB.GetName())));
+			PCGE_LOG_C(Error, GraphAndLog, InContext, FText::Format(FTEXT("Invalid Operand C attribute: \"{0}\"."), FText::FromName(TypedFilterFactory->Config.OperandC.GetName())));
 			return false;
 		}
 	}

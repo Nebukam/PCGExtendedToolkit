@@ -268,6 +268,10 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExTopologyDetails
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	bool bQuietTriangulationError = false;
 
+	/** Combines all topologies generated into a single dynamic mesh component */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
+	bool bCombinesAllTopologies = false;
+	
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_NotOverridable))
 	FPCGExDynamicMeshDescriptor TemplateDescriptor;
 	
