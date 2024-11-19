@@ -57,8 +57,8 @@ public:
 	int32 MaxPointCount = 500;
 
 	/** Whether or not to allow empty outputs (either discarded or not) */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, InlineEditConditionToggle))
-	bool bAllowEmptyOutputs = true;
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
+	bool bAllowEmptyOutputs = false;
 };
 
 class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExDiscardByPointCountElement final : public FPCGExPointsProcessorElement
