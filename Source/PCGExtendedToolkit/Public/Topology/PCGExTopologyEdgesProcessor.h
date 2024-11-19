@@ -164,13 +164,6 @@ namespace PCGExTopologyEdges
 
 			InternalMesh = Context->ManagedObjects->template New<UDynamicMesh>();
 			InternalMesh->InitializeMesh();
-			InternalMesh->EditMesh(
-				[&](FDynamicMesh3& InMesh)
-				{
-					InMesh.EnableVertexNormals(FVector3f(0, 0, 1));
-				}, EDynamicMeshChangeType::GeneralEdit, EDynamicMeshAttributeChangeFlags::MeshTopology, true);
-
-
 			return true;
 		}
 
@@ -236,15 +229,19 @@ namespace PCGExTopologyEdges
 			InternalMesh->EditMesh(
 				[&](FDynamicMesh3& InMesh)
 				{
-					InMesh.EnableVertexColors(
-						FVector3f(
-							Settings->Topology.DefaultVertexColor.Component(0),
-							Settings->Topology.DefaultVertexColor.Component(1),
-							Settings->Topology.DefaultVertexColor.Component(2)));
-
-					const int32 VtxCount = InMesh.VertexCount();
+					const int32 VtxCount = InMesh.MaxVertexID();
 					const TArray<FPCGPoint>& InPoints = VtxDataFacade->GetIn()->GetPoints();
 					const TMap<uint32, int32>& HashMapRef = *ProjectedHashMap;
+
+
+					FVector4f DefaultVertexColor = FVector4f(Settings->Topology.DefaultVertexColor);
+
+					InMesh.EnableAttributes();
+					InMesh.Attributes()->EnablePrimaryColors();
+					UE::Geometry::FDynamicMeshColorOverlay* Colors = InMesh.Attributes()->PrimaryColors();
+
+					TArray<int32> ElemIDs;
+					ElemIDs.SetNum(VtxCount);
 
 					for (int i = 0; i < VtxCount; i++)
 					{
@@ -253,10 +250,20 @@ namespace PCGExTopologyEdges
 						{
 							const FPCGPoint& Point = InPoints[*WP];
 							InMesh.SetVertex(i, Point.Transform.GetLocation());
-							InMesh.SetVertexColor(i, FVector3f(Point.Color[0], Point.Color[1], Point.Color[2]));
+							ElemIDs[i] = Colors->AppendElement(FVector4f(Point.Color));
+						}
+						else
+						{
+							ElemIDs[i] = Colors->AppendElement(DefaultVertexColor);
 						}
 					}
-				}, EDynamicMeshChangeType::GeneralEdit, EDynamicMeshAttributeChangeFlags::VertexColors | EDynamicMeshAttributeChangeFlags::VertexPositions, false);
+
+					for (int32 TriangleID : InMesh.TriangleIndicesItr())
+					{
+						UE::Geometry::FIndex3i Triangle = InMesh.GetTriangle(TriangleID);
+						Colors->SetTriangle(TriangleID, UE::Geometry::FIndex3i(ElemIDs[Triangle.A], ElemIDs[Triangle.B], ElemIDs[Triangle.C]));
+					}
+				}, EDynamicMeshChangeType::GeneralEdit, EDynamicMeshAttributeChangeFlags::VertexColors | EDynamicMeshAttributeChangeFlags::VertexPositions, true);
 		}
 	};
 
