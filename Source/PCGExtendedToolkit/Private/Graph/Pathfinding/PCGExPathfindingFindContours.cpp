@@ -28,8 +28,8 @@ TArray<FPCGPinProperties> UPCGExFindContoursSettings::OutputPinProperties() cons
 	return PinProperties;
 }
 
-PCGExData::EIOInit UPCGExFindContoursSettings::GetEdgeOutputInitMode() const { return PCGExData::EIOInit::NoOutput; }
-PCGExData::EIOInit UPCGExFindContoursSettings::GetMainOutputInitMode() const { return PCGExData::EIOInit::NoOutput; }
+PCGExData::EIOInit UPCGExFindContoursSettings::GetEdgeOutputInitMode() const { return PCGExData::EIOInit::None; }
+PCGExData::EIOInit UPCGExFindContoursSettings::GetMainOutputInitMode() const { return PCGExData::EIOInit::None; }
 
 PCGEX_INITIALIZE_ELEMENT(FindContours)
 
@@ -65,11 +65,11 @@ bool FPCGExFindContoursElement::Boot(FPCGExContext* InContext) const
 		PCGEx::InitArray(Context->UdpatedSeedPoints, NumSeeds);
 
 		Context->GoodSeeds = NewPointIO(SeedsPoints.ToSharedRef(), PCGExFindContours::OutputGoodSeedsLabel);
-		Context->GoodSeeds->InitializeOutput(PCGExData::EIOInit::NewOutput);
+		Context->GoodSeeds->InitializeOutput(PCGExData::EIOInit::New);
 		Context->GoodSeeds->GetOut()->GetMutablePoints().Reserve(NumSeeds);
 
 		Context->BadSeeds = NewPointIO(SeedsPoints.ToSharedRef(), PCGExFindContours::OutputBadSeedsLabel);
-		Context->BadSeeds->InitializeOutput(PCGExData::EIOInit::NewOutput);
+		Context->BadSeeds->InitializeOutput(PCGExData::EIOInit::New);
 		Context->BadSeeds->GetOut()->GetMutablePoints().Reserve(NumSeeds);
 	}
 
@@ -174,7 +174,7 @@ namespace PCGExFindContours
 		const PCGExTopology::ECellResult Result = Cell->BuildFromCluster(StartNodeIndex, NextEdge, ProjectedSeedPosition, Cluster.ToSharedRef(), *ProjectedPositions);
 		if (Result != PCGExTopology::ECellResult::Success) { return; }
 
-		TSharedRef<PCGExData::FPointIO> PathIO = Context->Paths->Emplace_GetRef<UPCGPointData>(VtxDataFacade->Source, PCGExData::EIOInit::NewOutput).ToSharedRef();
+		TSharedRef<PCGExData::FPointIO> PathIO = Context->Paths->Emplace_GetRef<UPCGPointData>(VtxDataFacade->Source, PCGExData::EIOInit::New).ToSharedRef();
 		PathIO->IOIndex = SeedIndex; // Enforce seed order for collection output
 
 		PCGExGraph::CleanupClusterTags(PathIO, true);

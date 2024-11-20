@@ -11,13 +11,13 @@ bool FPCGExMeshCollectionEntry::Validate(const UPCGExAssetCollection* ParentColl
 	return Super::Validate(ParentCollection);
 }
 
-void FPCGExMeshCollectionEntry::UpdateStaging(const UPCGExAssetCollection* OwningCollection, const bool bRecursive)
+void FPCGExMeshCollectionEntry::UpdateStaging(const UPCGExAssetCollection* OwningCollection, const int32 InInternalIndex, const bool bRecursive)
 {
 	if (bIsSubCollection)
 	{
 		Staging.Path = SubCollection.ToSoftObjectPath();
 		if (bRecursive && SubCollection.LoadSynchronous()) { SubCollection.Get()->RebuildStagingData(true); }
-		Super::UpdateStaging(OwningCollection, bRecursive);
+		Super::UpdateStaging(OwningCollection, InInternalIndex, bRecursive);
 		return;
 	}
 
@@ -26,7 +26,7 @@ void FPCGExMeshCollectionEntry::UpdateStaging(const UPCGExAssetCollection* Ownin
 	const UStaticMesh* M = StaticMesh.LoadSynchronous();
 	PCGExAssetCollection::UpdateStagingBounds(Staging, M);
 
-	Super::UpdateStaging(OwningCollection, bRecursive);
+	Super::UpdateStaging(OwningCollection, InInternalIndex, bRecursive);
 }
 
 void FPCGExMeshCollectionEntry::SetAssetPath(const FSoftObjectPath& InPath)

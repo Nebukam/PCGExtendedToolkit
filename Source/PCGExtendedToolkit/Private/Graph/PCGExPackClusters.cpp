@@ -11,9 +11,9 @@
 #define LOCTEXT_NAMESPACE "PCGExPackClusters"
 #define PCGEX_NAMESPACE PackClusters
 
-PCGExData::EIOInit UPCGExPackClustersSettings::GetMainOutputInitMode() const { return PCGExData::EIOInit::NoOutput; }
+PCGExData::EIOInit UPCGExPackClustersSettings::GetMainOutputInitMode() const { return PCGExData::EIOInit::None; }
 
-PCGExData::EIOInit UPCGExPackClustersSettings::GetEdgeOutputInitMode() const { return PCGExData::EIOInit::NoOutput; }
+PCGExData::EIOInit UPCGExPackClustersSettings::GetEdgeOutputInitMode() const { return PCGExData::EIOInit::None; }
 
 TArray<FPCGPinProperties> UPCGExPackClustersSettings::OutputPinProperties() const
 {
@@ -85,7 +85,7 @@ bool FPCGExPackClusterTask::ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>&
 	const TSharedPtr<PCGEx::FAttributesInfos> VtxAttributes = PCGEx::FAttributesInfos::Get(PointIO->GetIn()->Metadata);
 
 	const TSharedPtr<PCGExData::FPointIO> PackedIO = Context->PackedClusters->Emplace_GetRef(InEdges);
-	PackedIO->InitializeOutput<UPCGPointData>(PCGExData::EIOInit::DuplicateInput);
+	PackedIO->InitializeOutput<UPCGPointData>(PCGExData::EIOInit::Duplicate);
 
 	int32 NumEdges = 0;
 	TArray<int32> ReducedVtxIndices;

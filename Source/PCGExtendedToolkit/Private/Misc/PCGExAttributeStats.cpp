@@ -39,7 +39,7 @@ TArray<FPCGPinProperties> UPCGExAttributeStatsSettings::OutputPinProperties() co
 	return PinProperties;
 }
 
-PCGExData::EIOInit UPCGExAttributeStatsSettings::GetMainOutputInitMode() const { return OutputToPoints == EPCGExStatsOutputToPoints::None ? PCGExData::EIOInit::Forward : PCGExData::EIOInit::DuplicateInput; }
+PCGExData::EIOInit UPCGExAttributeStatsSettings::GetMainOutputInitMode() const { return OutputToPoints == EPCGExStatsOutputToPoints::None ? PCGExData::EIOInit::Forward : PCGExData::EIOInit::Duplicate; }
 
 PCGEX_INITIALIZE_ELEMENT(AttributeStats)
 

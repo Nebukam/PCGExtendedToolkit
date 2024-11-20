@@ -16,7 +16,7 @@ UPCGExAttributeRollingSettings::UPCGExAttributeRollingSettings(
 	bSupportClosedLoops = false;
 }
 
-PCGExData::EIOInit UPCGExAttributeRollingSettings::GetMainOutputInitMode() const { return PCGExData::EIOInit::DuplicateInput; }
+PCGExData::EIOInit UPCGExAttributeRollingSettings::GetMainOutputInitMode() const { return PCGExData::EIOInit::None; }
 
 PCGEX_INITIALIZE_ELEMENT(AttributeRolling)
 
@@ -35,7 +35,7 @@ bool FPCGExAttributeRollingElement::ExecuteInternal(FPCGContext* InContext) cons
 {
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExAttributeRollingElement::Execute);
 
-	PCGEX_CONTEXT(AttributeRolling)
+	PCGEX_CONTEXT_AND_SETTINGS(AttributeRolling)
 	PCGEX_EXECUTION_CHECK
 	PCGEX_ON_INITIAL_EXECUTION
 	{
@@ -44,7 +44,18 @@ bool FPCGExAttributeRollingElement::ExecuteInternal(FPCGContext* InContext) cons
 		// TODO : Skip completion
 
 		if (!Context->StartBatchProcessingPoints<PCGExPointsMT::TBatch<PCGExAttributeRolling::FProcessor>>(
-			[&](const TSharedPtr<PCGExData::FPointIO>& Entry) { return true; },
+			[&](const TSharedPtr<PCGExData::FPointIO>& Entry)
+			{
+				if (Entry->GetNum() < 2)
+				{
+					if (!Settings->bOmitInvalidPathsOutputs) { Entry->InitializeOutput(PCGExData::EIOInit::Forward); }
+					bHasInvalidInputs = true;
+					return false;
+				}
+				
+				Entry->InitializeOutput(PCGExData::EIOInit::Duplicate);
+				return true;
+			},
 			[&](const TSharedPtr<PCGExPointsMT::TBatch<PCGExAttributeRolling::FProcessor>>& NewBatch)
 			{
 				NewBatch->bPrefetchData = true;

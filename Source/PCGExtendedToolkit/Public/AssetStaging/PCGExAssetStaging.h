@@ -9,9 +9,16 @@
 #include "PCGExPointsProcessor.h"
 #include "Collections/PCGExMeshCollection.h"
 #include "PCGExFitting.h"
-
+#include "Collections/PCGExStaging.h"
 
 #include "PCGExAssetStaging.generated.h"
+
+UENUM()
+enum class EPCGExStagingOutputMode : uint8
+{
+	Attributes    = 0 UMETA(DisplayName = "Point Attributes", ToolTip="Write asset data on the point"),
+	CollectionMap = 1 UMETA(DisplayName = "Collection Map", ToolTip="Write collection reference & pick for later use"),
+};
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc")
 class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExAssetStagingSettings : public UPCGExPointsProcessorSettings
@@ -30,6 +37,7 @@ public:
 protected:
 	virtual FPCGElementPtr CreateElement() const override;
 	virtual TArray<FPCGPinProperties> InputPinProperties() const override;
+	virtual TArray<FPCGPinProperties> OutputPinProperties() const override;
 	PCGEX_NODE_POINT_FILTER(PCGExPointFilter::SourcePointFiltersLabel, "Filters which points get staged.", PCGExFactories::PointFilters, false)
 	//~End UPCGSettings
 
@@ -47,13 +55,16 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="CollectionSource == EPCGExCollectionSource::AttributeSet", EditConditionHides))
 	FPCGExRoamingAssetCollectionDetails AttributeSetDetails;
 
-	/** Distribution details */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Distribution", meta=(PCG_Overridable, ShowOnlyInnerProperties))
-	FPCGExAssetDistributionDetails DistributionSettings;
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	EPCGExStagingOutputMode OutputMode = EPCGExStagingOutputMode::Attributes;
 
 	/** The name of the attribute to write asset path to.*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Distribution", meta=(PCG_Overridable))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="OutputMode==EPCGExStagingOutputMode::AssetData"))
 	FName AssetPathAttributeName = "AssetPath";
+
+	/** Distribution details */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Distribution", ShowOnlyInnerProperties))
+	FPCGExAssetDistributionDetails DistributionSettings;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	FPCGExScaleToFitDetails ScaleToFit;
@@ -88,6 +99,8 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExAssetStagingContext final : FPCGExPoints
 	virtual void RegisterAssetDependencies() override;
 
 	TObjectPtr<UPCGExAssetCollection> MainCollection;
+
+	TSharedPtr<PCGExStaging::FCollectionPickDatasetPacker> CollectionPickDatasetPacker;
 };
 
 class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExAssetStagingElement final : public FPCGExPointsProcessorElement
@@ -128,6 +141,8 @@ namespace PCGExAssetStaging
 #else
 		TSharedPtr<PCGExData::TBuffer<FString>> PathWriter;
 #endif
+		
+		TSharedPtr<PCGExData::TBuffer<int64>> HashWriter;
 
 	public:
 		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade):

@@ -20,7 +20,7 @@ TArray<FPCGPinProperties> UPCGExPathCrossingsSettings::InputPinProperties() cons
 	return PinProperties;
 }
 
-PCGExData::EIOInit UPCGExPathCrossingsSettings::GetMainOutputInitMode() const { return PCGExData::EIOInit::NoOutput; }
+PCGExData::EIOInit UPCGExPathCrossingsSettings::GetMainOutputInitMode() const { return PCGExData::EIOInit::None; }
 
 PCGEX_INITIALIZE_ELEMENT(PathCrossings)
 
@@ -42,6 +42,9 @@ bool FPCGExPathCrossingsElement::Boot(FPCGExContext* InContext) const
 	Context->Distances = PCGExDetails::MakeDistances();
 	Context->CrossingBlending = Settings->CrossingBlending;
 
+	Context->CanCutTag = PCGEx::StringTagFromName(Settings->CanCutTag);
+	Context->CanBeCutTag = PCGEx::StringTagFromName(Settings->CanBeCutTag);
+
 	if (Settings->bOrientCrossing)
 	{
 		Context->CrossingBlending.PropertiesOverrides.bOverrideRotation = true;
@@ -61,6 +64,8 @@ bool FPCGExPathCrossingsElement::ExecuteInternal(FPCGContext* InContext) const
 	{
 		PCGEX_ON_INVALILD_INPUTS(FTEXT("Some inputs have less than 2 points and won't be processed."))
 
+		const bool bIsCanBeCutTagValid = PCGEx::IsValidStringTag(Context->CanBeCutTag);
+
 		if (!Context->StartBatchProcessingPoints<PCGExPointsMT::TBatch<PCGExPathCrossings::FProcessor>>(
 			[&](const TSharedPtr<PCGExData::FPointIO>& Entry)
 			{
@@ -69,7 +74,8 @@ bool FPCGExPathCrossingsElement::ExecuteInternal(FPCGContext* InContext) const
 					Entry->InitializeOutput(PCGExData::EIOInit::Forward); // TODO : This is no good as we'll be missing template attributes
 					bHasInvalidInputs = true;
 
-					if (Settings->bTagIfHasNoCrossings) { Entry->Tags->Add(Settings->HasNoCrossingsTag); }
+					if (bIsCanBeCutTagValid) { if (Settings->bTagIfHasNoCrossings && Entry->Tags->IsTagged(Context->CanBeCutTag)) { Entry->Tags->Add(Settings->HasNoCrossingsTag); } }
+					else if (Settings->bTagIfHasNoCrossings) { Entry->Tags->Add(Settings->HasNoCrossingsTag); }
 
 					return false;
 				}
@@ -132,6 +138,9 @@ namespace PCGExPathCrossings
 		if (Settings->bOrientCrossing) { Blending->bPreserveRotation = true; }
 
 		//TWeakPtr<FProcessor> WeakPtr = SharedThis(this);
+
+		bCanBeCut = PCGEx::IsValidStringTag(Context->CanBeCutTag) ? PointDataFacade->Source->Tags->IsTagged(Context->CanBeCutTag) : true;
+		bCanCut = PCGEx::IsValidStringTag(Context->CanCutTag) ? PointDataFacade->Source->Tags->IsTagged(Context->CanCutTag) : true;
 
 		PCGEX_ASYNC_GROUP_CHKD(AsyncManager, Preparation)
 		Preparation->OnCompleteCallback =
@@ -253,10 +262,12 @@ namespace PCGExPathCrossings
 		{
 			const TSharedRef<FPointsProcessor>* OtherProcessorPtr = Parent->SubProcessorMap->Find(&Facade->Source.Get());
 			if (!OtherProcessorPtr) { continue; }
+
 			TSharedRef<FPointsProcessor> OtherProcessor = *OtherProcessorPtr;
 			if (!Details.bEnableSelfIntersection && &OtherProcessor.Get() == this) { continue; }
 
 			const TSharedRef<FProcessor> TypedProcessor = StaticCastSharedRef<FProcessor>(OtherProcessor);
+			if (!TypedProcessor->bCanCut) { return; }
 
 			CurrentIOIndex = TypedProcessor->PointDataFacade->Source->IOIndex;
 
@@ -286,7 +297,7 @@ namespace PCGExPathCrossings
 			NumPointsFinal += Crossing->Crossings.Num();
 		}
 
-		PointIO->InitializeOutput(PCGExData::EIOInit::NewOutput);
+		PointIO->InitializeOutput(PCGExData::EIOInit::New);
 
 		const TArray<FPCGPoint>& InPoints = PointIO->GetIn()->GetPoints();
 		TArray<FPCGPoint>& OutPoints = PointIO->GetOut()->GetMutablePoints();
@@ -446,11 +457,18 @@ namespace PCGExPathCrossings
 
 	void FProcessor::CompleteWork()
 	{
+		if (!bCanBeCut) { return; }
 		StartParallelLoopForRange(Path->NumEdges);
 	}
 
 	void FProcessor::Write()
 	{
+		if (!bCanBeCut)
+		{
+			PointDataFacade->Source->InitializeOutput(PCGExData::EIOInit::Forward);
+			return;
+		}
+
 		UnionMetadata = MakeShared<PCGExData::FUnionMetadata>();
 		UnionBlender = MakeShared<PCGExDataBlending::FUnionBlender>(&Settings->CrossingBlending, &Settings->CrossingCarryOver);
 		for (const TSharedPtr<PCGExData::FPointIO>& IO : Context->MainPoints->Pairs)

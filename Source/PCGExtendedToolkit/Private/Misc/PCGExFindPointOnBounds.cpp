@@ -8,7 +8,7 @@
 #define LOCTEXT_NAMESPACE "PCGExFindPointOnBoundsElement"
 #define PCGEX_NAMESPACE FindPointOnBounds
 
-PCGExData::EIOInit UPCGExFindPointOnBoundsSettings::GetMainOutputInitMode() const { return PCGExData::EIOInit::NewOutput; }
+PCGExData::EIOInit UPCGExFindPointOnBoundsSettings::GetMainOutputInitMode() const { return PCGExData::EIOInit::New; }
 
 PCGEX_INITIALIZE_ELEMENT(FindPointOnBounds)
 
@@ -33,7 +33,7 @@ bool FPCGExFindPointOnBoundsElement::Boot(FPCGExContext* InContext) const
 		Context->CarryOverDetails.Attributes.Prune(*Context->MergedAttributesInfos);
 		Context->CarryOverDetails.Attributes.Prune(AttributeMismatches);
 
-		Context->MergedOut->InitializeOutput(PCGExData::EIOInit::NewOutput);
+		Context->MergedOut->InitializeOutput(PCGExData::EIOInit::New);
 		Context->MergedOut->GetOut()->GetMutablePoints().SetNum(Context->MainPoints->Num());
 		Context->MergedOut->GetOutKeys(true);
 
@@ -129,7 +129,7 @@ namespace PCGExFindPointOnBounds
 		}
 		else
 		{
-			PointDataFacade->Source->InitializeOutput(PCGExData::EIOInit::NewOutput);
+			PointDataFacade->Source->InitializeOutput(PCGExData::EIOInit::New);
 			PointDataFacade->Source->GetOut()->GetMutablePoints().SetNum(1);
 
 			FPCGPoint& OutPoint = (PointDataFacade->Source->GetOut()->GetMutablePoints()[0] = PointDataFacade->Source->GetInPoint(BestIndex));

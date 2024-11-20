@@ -8,8 +8,8 @@
 
 #pragma region UPCGSettings interface
 
-PCGExData::EIOInit UPCGExMergeVerticesSettings::GetMainOutputInitMode() const { return PCGExData::EIOInit::NoOutput; }
-PCGExData::EIOInit UPCGExMergeVerticesSettings::GetEdgeOutputInitMode() const { return PCGExData::EIOInit::NoOutput; }
+PCGExData::EIOInit UPCGExMergeVerticesSettings::GetMainOutputInitMode() const { return PCGExData::EIOInit::None; }
+PCGExData::EIOInit UPCGExMergeVerticesSettings::GetEdgeOutputInitMode() const { return PCGExData::EIOInit::None; }
 
 #pragma endregion
 
@@ -50,7 +50,7 @@ bool FPCGExMergeVerticesElement::Boot(FPCGExContext* InContext) const
 
 	TSharedPtr<PCGExData::FPointIO> CompositeIO = PCGExData::NewPointIO(Context, PCGExGraph::OutputVerticesLabel, 0);
 	Context->CompositeIODataFacade = MakeShared<PCGExData::FFacade>(CompositeIO.ToSharedRef());
-	CompositeIO->InitializeOutput<UPCGExClusterNodesData>(PCGExData::EIOInit::NewOutput);
+	CompositeIO->InitializeOutput<UPCGExClusterNodesData>(PCGExData::EIOInit::New);
 
 	return true;
 }
@@ -129,7 +129,7 @@ namespace PCGExMergeVertices
 		Cluster->VtxIO = Context->CompositeIODataFacade->Source;
 		Cluster->NumRawVtx = Context->CompositeIODataFacade->Source->GetNum(PCGExData::ESource::Out);
 
-		EdgeDataFacade->Source->InitializeOutput(PCGExData::EIOInit::DuplicateInput);
+		EdgeDataFacade->Source->InitializeOutput(PCGExData::EIOInit::Duplicate);
 		PCGExGraph::MarkClusterEdges(EdgeDataFacade->Source, Context->OutVtxId);
 
 		ForwardCluster();

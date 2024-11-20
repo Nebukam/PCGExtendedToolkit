@@ -8,7 +8,7 @@
 #define LOCTEXT_NAMESPACE "PCGExMetaFilterElement"
 #define PCGEX_NAMESPACE MetaFilter
 
-PCGExData::EIOInit UPCGExMetaFilterSettings::GetMainOutputInitMode() const { return PCGExData::EIOInit::NoOutput; }
+PCGExData::EIOInit UPCGExMetaFilterSettings::GetMainOutputInitMode() const { return PCGExData::EIOInit::None; }
 
 TArray<FPCGPinProperties> UPCGExMetaFilterSettings::OutputPinProperties() const
 {

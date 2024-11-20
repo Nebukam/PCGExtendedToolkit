@@ -12,7 +12,7 @@
 #define LOCTEXT_NAMESPACE "PCGExGraph"
 #define PCGEX_NAMESPACE BuildDelaunayGraph
 
-PCGExData::EIOInit UPCGExBuildDelaunayGraphSettings::GetMainOutputInitMode() const { return PCGExData::EIOInit::NoOutput; }
+PCGExData::EIOInit UPCGExBuildDelaunayGraphSettings::GetMainOutputInitMode() const { return PCGExData::EIOInit::None; }
 
 TArray<FPCGPinProperties> UPCGExBuildDelaunayGraphSettings::OutputPinProperties() const
 {
@@ -109,7 +109,7 @@ namespace PCGExBuildDelaunay
 			return false;
 		}
 
-		PointDataFacade->Source->InitializeOutput<UPCGExClusterNodesData>(PCGExData::EIOInit::DuplicateInput);
+		PointDataFacade->Source->InitializeOutput<UPCGExClusterNodesData>(PCGExData::EIOInit::Duplicate);
 
 		if (Settings->bUrquhart)
 		{
@@ -144,7 +144,7 @@ namespace PCGExBuildDelaunay
 		if (!GraphBuilder->bCompiledSuccessfully)
 		{
 			bIsProcessorValid = false;
-			PointDataFacade->Source->InitializeOutput(PCGExData::EIOInit::NoOutput);
+			PointDataFacade->Source->InitializeOutput(PCGExData::EIOInit::None);
 			return;
 		}
 
@@ -168,7 +168,7 @@ namespace PCGExBuildDelaunay
 		PCGEX_SETTINGS(BuildDelaunayGraph)
 
 		const TSharedPtr<PCGExData::FPointIO> SitesIO = NewPointIO(PointIO.ToSharedRef());
-		SitesIO->InitializeOutput(PCGExData::EIOInit::NewOutput);
+		SitesIO->InitializeOutput(PCGExData::EIOInit::New);
 
 		Context->MainSites->InsertUnsafe(Processor->BatchIndex, SitesIO);
 
@@ -212,7 +212,7 @@ namespace PCGExBuildDelaunay
 		PCGEX_SETTINGS(BuildDelaunayGraph)
 
 		const TSharedPtr<PCGExData::FPointIO> SitesIO = NewPointIO(PointIO.ToSharedRef());
-		SitesIO->InitializeOutput(PCGExData::EIOInit::NewOutput);
+		SitesIO->InitializeOutput(PCGExData::EIOInit::New);
 
 		Context->MainSites->InsertUnsafe(Processor->BatchIndex, SitesIO);
 

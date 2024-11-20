@@ -263,7 +263,7 @@ namespace PCGExTopologyEdges
 						UE::Geometry::FIndex3i Triangle = InMesh.GetTriangle(TriangleID);
 						Colors->SetTriangle(TriangleID, UE::Geometry::FIndex3i(ElemIDs[Triangle.A], ElemIDs[Triangle.B], ElemIDs[Triangle.C]));
 					}
-				}, EDynamicMeshChangeType::GeneralEdit, EDynamicMeshAttributeChangeFlags::VertexColors | EDynamicMeshAttributeChangeFlags::VertexPositions, true);
+				}, EDynamicMeshChangeType::GeneralEdit, EDynamicMeshAttributeChangeFlags::Unknown, true);
 		}
 	};
 
@@ -336,7 +336,7 @@ namespace PCGExTopologyEdges
 					for (int i = StartIndex; i < MaxIndex; i++)
 					{
 						FVector V = This->ProjectionDetails.ProjectFlat(This->VtxDataFacade->Source->GetInPoint(i).Transform.GetLocation(), i);
-						This->ProjectedPositions[i] = V + (Random.VRand() * 0.1); // Cheap triangulation edge case prevention
+						This->ProjectedPositions[i] = V;// + (Random.VRand() * 0.01); // Cheap triangulation edge case prevention
 					}
 				};
 

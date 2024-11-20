@@ -474,7 +474,7 @@ namespace PCGExGraph
 		{
 			if (const TSharedPtr<FUnionProcessor> This = WeakPtr.Pin())
 			{
-				if (!bSuccess) { This->UnionDataFacade->Source->InitializeOutput(PCGExData::EIOInit::NoOutput); }
+				if (!bSuccess) { This->UnionDataFacade->Source->InitializeOutput(PCGExData::EIOInit::None); }
 				else { This->GraphBuilder->StageEdgesOutputs(); }
 			}
 		};

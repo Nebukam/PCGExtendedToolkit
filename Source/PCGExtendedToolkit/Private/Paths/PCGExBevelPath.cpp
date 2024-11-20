@@ -17,7 +17,7 @@ TArray<FPCGPinProperties> UPCGExBevelPathSettings::InputPinProperties() const
 	return PinProperties;
 }
 
-PCGExData::EIOInit UPCGExBevelPathSettings::GetMainOutputInitMode() const { return PCGExData::EIOInit::NoOutput; }
+PCGExData::EIOInit UPCGExBevelPathSettings::GetMainOutputInitMode() const { return PCGExData::EIOInit::None; }
 
 PCGEX_INITIALIZE_ELEMENT(BevelPath)
 
@@ -85,9 +85,16 @@ bool FPCGExBevelPathElement::ExecuteInternal(FPCGContext* InContext) const
 		if (!Context->StartBatchProcessingPoints<PCGExPointsMT::TBatch<PCGExBevelPath::FProcessor>>(
 			[&](const TSharedPtr<PCGExData::FPointIO>& Entry)
 			{
+				if (Entry->GetNum() < 2)
+				{
+					if (!Settings->bOmitInvalidPathsOutputs) { Entry->InitializeOutput(PCGExData::EIOInit::Forward); }
+					bHasInvalidInputs = true;
+					return false;
+				}
+				
 				if (Entry->GetNum() < 3)
 				{
-					Entry->InitializeOutput(PCGExData::EIOInit::DuplicateInput);
+					Entry->InitializeOutput(PCGExData::EIOInit::Duplicate);
 					Settings->InitOutputFlags(Entry);
 					bHasInvalidInputs = true;
 					return false;
@@ -460,12 +467,12 @@ namespace PCGExBevelPath
 
 		if (NumBevels == 0)
 		{
-			PointIO->InitializeOutput(PCGExData::EIOInit::DuplicateInput);
+			PointIO->InitializeOutput(PCGExData::EIOInit::Duplicate);
 			Settings->InitOutputFlags(PointIO);
 			return;
 		}
 
-		PointIO->InitializeOutput(PCGExData::EIOInit::NewOutput);
+		PointIO->InitializeOutput(PCGExData::EIOInit::New);
 		Settings->InitOutputFlags(PointIO);
 
 		// Build output points

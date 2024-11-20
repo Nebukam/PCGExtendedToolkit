@@ -11,7 +11,7 @@
 #define LOCTEXT_NAMESPACE "PCGExSubdivideElement"
 #define PCGEX_NAMESPACE Subdivide
 
-PCGExData::EIOInit UPCGExSubdivideSettings::GetMainOutputInitMode() const { return PCGExData::EIOInit::NewOutput; }
+PCGExData::EIOInit UPCGExSubdivideSettings::GetMainOutputInitMode() const { return PCGExData::EIOInit::New; }
 
 TArray<FPCGPinProperties> UPCGExSubdivideSettings::InputPinProperties() const
 {
@@ -208,13 +208,13 @@ namespace PCGExSubdivide
 
 		if (NumPoints == PointIO->GetNum())
 		{
-			PointIO->InitializeOutput(PCGExData::EIOInit::DuplicateInput);
+			PointIO->InitializeOutput(PCGExData::EIOInit::Duplicate);
 			if (Settings->bFlagSubPoints) { WriteMark(PointIO, Settings->SubPointFlagName, false); }
 			if (Settings->bWriteAlpha) { WriteMark(PointIO, Settings->AlphaAttributeName, Settings->DefaultAlpha); }
 			return;
 		}
 
-		PointIO->InitializeOutput(PCGExData::EIOInit::NewOutput);
+		PointIO->InitializeOutput(PCGExData::EIOInit::New);
 		TArray<FPCGPoint>& MutablePoints = PointIO->GetOut()->GetMutablePoints();
 		const TArray<FPCGPoint>& InPoints = PointIO->GetIn()->GetPoints();
 		UPCGMetadata* Metadata = PointIO->GetOut()->Metadata;

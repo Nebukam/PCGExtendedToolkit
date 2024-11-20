@@ -154,7 +154,7 @@ TArray<FPCGPinProperties> UPCGExBuildCustomGraphSettings::OutputPinProperties() 
 	return PinProperties;
 }
 
-PCGExData::EIOInit UPCGExBuildCustomGraphSettings::GetMainOutputInitMode() const { return PCGExData::EIOInit::NoOutput; }
+PCGExData::EIOInit UPCGExBuildCustomGraphSettings::GetMainOutputInitMode() const { return PCGExData::EIOInit::None; }
 
 PCGEX_INITIALIZE_ELEMENT(BuildCustomGraph)
 
@@ -256,7 +256,7 @@ bool FPCGExBuildCustomGraphElement::ExecuteInternal(FPCGContext* InContext) cons
 			else
 			{
 				// Invalidate node IO
-				GraphSettings->GraphBuilder->NodeDataFacade->Source->InitializeOutput(PCGExData::EIOInit::NoOutput);
+				GraphSettings->GraphBuilder->NodeDataFacade->Source->InitializeOutput(PCGExData::EIOInit::None);
 			}
 		}
 
@@ -288,7 +288,7 @@ namespace PCGExBuildCustomGraph
 				PCGE_LOG_C(Warning, GraphAndLog, Context, FTEXT("A graph builder settings has less than 2 max nodes and won't be processed."));
 			}
 
-			PointIO->InitializeOutput(PCGExData::EIOInit::NoOutput);
+			PointIO->InitializeOutput(PCGExData::EIOInit::None);
 			GraphSettings->GraphBuilder->bCompiledSuccessfully = false;
 			return false;
 		}
