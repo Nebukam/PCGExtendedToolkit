@@ -4,7 +4,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "AssetStaging/PCGExFitting.h"
+#include "PCGExFitting.h"
 #include "Data/PCGExData.h"
 #include "PCGExShapes.generated.h"
 

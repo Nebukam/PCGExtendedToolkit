@@ -110,7 +110,7 @@ public:
 	//~End UPCGExFactoryProviderSettings
 
 	/** Whether this factory can register consumable attributes or not. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable), AdvancedDisplay)
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_NotOverridable), AdvancedDisplay)
 	bool bDoRegisterConsumableAttributes = false;
 };
 
