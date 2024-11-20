@@ -57,7 +57,7 @@ namespace PCGExStaging
 #if PCGEX_ENGINE_VERSION > 503
 			FPCGMetadataAttribute<FSoftObjectPath>* CollectionPath = InAttributeSet->Metadata->FindOrCreateAttribute<FSoftObjectPath>(Tag_CollectionPath, FSoftObjectPath(), false, true, true);
 #else
-			FPCGMetadataAttribute<FString>* CollectionPath  = InAttributeSet->Metadata->FindOrCreateAttribute<FString>(Tag_CollectionPath, TEXT(""), false, true, true);
+			FPCGMetadataAttribute<FString>* CollectionPath = InAttributeSet->Metadata->FindOrCreateAttribute<FString>(Tag_CollectionPath, TEXT(""), false, true, true);
 #endif
 
 			for (const TPair<const UPCGExAssetCollection*, uint32>& Pair : CollectionMap)
@@ -91,6 +91,12 @@ namespace PCGExStaging
 #if PCGEX_ENGINE_VERSION > 503
 			TUniquePtr<FPCGAttributeAccessorKeysEntries> Keys = MakeUnique<FPCGAttributeAccessorKeysEntries>(Metadata);
 #else
+			const TSharedPtr<PCGEx::FAttributesInfos> Infos = PCGEx::FAttributesInfos::Get(Metadata);
+			if (Infos->Attributes.IsEmpty())
+			{
+				PCGE_LOG_C(Error, GraphAndLog, InContext, FTEXT("Missing required attributes."));
+				return false;
+			}
 			TUniquePtr<FPCGAttributeAccessorKeysEntries> Keys = MakeUnique<FPCGAttributeAccessorKeysEntries>(Infos->Attributes[0]); // Probably not reliable, but make 5.3 compile -_-
 #endif
 
@@ -108,7 +114,7 @@ namespace PCGExStaging
 #if PCGEX_ENGINE_VERSION > 503
 			const FPCGMetadataAttribute<FSoftObjectPath>* CollectionPath = InAttributeSet->Metadata->GetConstTypedAttribute<FSoftObjectPath>(Tag_CollectionPath);
 #else
-			const FPCGMetadataAttribute<FString>* CollectionPath  = InParamData->Metadata->GetConstTypedAttribute<FString>(Tag_CollectionPath);
+			const FPCGMetadataAttribute<FString>* CollectionPath = InAttributeSet->Metadata->GetConstTypedAttribute<FString>(Tag_CollectionPath);
 #endif
 
 			if (!CollectionIdx || !CollectionPath)

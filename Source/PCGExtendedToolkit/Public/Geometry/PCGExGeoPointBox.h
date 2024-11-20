@@ -568,7 +568,11 @@ namespace PCGExGeo
 		FORCEINLINE bool IsInsideOrOnCloud(const FPCGPoint& Point) const
 		{
 			const FBox PtBox = PCGExMath::GetLocalBounds<S>(Point).TransformBy(Point.Transform.ToMatrixNoScale());
+#if PCGEX_ENGINE_VERSION <= 503
+			return PtBox.IsInside(CloudBounds);
+#else
 			return PtBox.IsInsideOrOn(CloudBounds);
+#endif
 		}
 
 		template <EPCGExPointBoundsSource S = EPCGExPointBoundsSource::ScaledBounds>

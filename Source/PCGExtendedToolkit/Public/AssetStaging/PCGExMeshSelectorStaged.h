@@ -4,7 +4,10 @@
 #pragma once
 
 #include "MeshSelectors/PCGMeshSelectorBase.h"
+
+#if PCGEX_ENGINE_VERSION > 503
 #include "MeshSelectors/PCGISMDescriptor.h"
+#endif
 
 #include "PCGExMeshSelectorStaged.generated.h"
 
