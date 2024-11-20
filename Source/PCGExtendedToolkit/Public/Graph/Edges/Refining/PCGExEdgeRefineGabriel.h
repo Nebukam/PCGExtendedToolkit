@@ -52,6 +52,4 @@ public:
 			});
 	}
 
-protected:
-	FPCGExCollisionDetails InitializedCollisionSettings;
 };

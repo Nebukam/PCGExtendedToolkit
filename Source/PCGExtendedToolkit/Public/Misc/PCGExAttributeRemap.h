@@ -14,6 +14,145 @@
 
 #include "PCGExAttributeRemap.generated.h"
 
+
+USTRUCT(BlueprintType)
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExClampDetails
+{
+	GENERATED_BODY()
+
+	FPCGExClampDetails()
+	{
+	}
+
+	FPCGExClampDetails(const FPCGExClampDetails& Other):
+		bApplyClampMin(Other.bApplyClampMin),
+		ClampMinValue(Other.ClampMinValue),
+		bApplyClampMax(Other.bApplyClampMax),
+		ClampMaxValue(Other.ClampMaxValue)
+	{
+	}
+
+	/** Clamp minimum value. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, InlineEditConditionToggle))
+	bool bApplyClampMin = false;
+
+	/** Clamp minimum value. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bApplyClampMin"))
+	double ClampMinValue = 0;
+
+	/** Clamp maximum value. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, InlineEditConditionToggle))
+	bool bApplyClampMax = false;
+
+	/** Clamp maximum value. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bApplyClampMax"))
+	double ClampMaxValue = 0;
+
+	FORCEINLINE double GetClampMin(const double InValue) const { return InValue < ClampMinValue ? ClampMinValue : InValue; }
+	FORCEINLINE double GetClampMax(const double InValue) const { return InValue > ClampMaxValue ? ClampMaxValue : InValue; }
+	FORCEINLINE double GetClampMinMax(const double InValue) const { return InValue > ClampMaxValue ? ClampMaxValue : InValue < ClampMinValue ? ClampMinValue : InValue; }
+
+	FORCEINLINE double GetClampedValue(const double InValue) const
+	{
+		if (bApplyClampMin && InValue < ClampMinValue) { return ClampMinValue; }
+		if (bApplyClampMax && InValue > ClampMaxValue) { return ClampMaxValue; }
+		return InValue;
+	}
+};
+
+
+USTRUCT(BlueprintType)
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExRemapDetails
+{
+	GENERATED_BODY()
+
+	FPCGExRemapDetails()
+	{
+	}
+
+	FPCGExRemapDetails(const FPCGExRemapDetails& Other):
+		bUseAbsoluteRange(Other.bUseAbsoluteRange),
+		bPreserveSign(Other.bPreserveSign),
+		bUseInMin(Other.bUseInMin),
+		InMin(Other.InMin),
+		CachedInMin(Other.InMin),
+		bUseInMax(Other.bUseInMax),
+		InMax(Other.InMax),
+		CachedInMax(Other.InMax),
+		RangeMethod(Other.RangeMethod),
+		Scale(Other.Scale),
+		RemapCurveObj(Other.RemapCurveObj),
+		TruncateOutput(Other.TruncateOutput),
+		PostTruncateScale(Other.PostTruncateScale)
+	{
+	}
+
+	~FPCGExRemapDetails()
+	{
+	}
+
+	/** Whether or not to use only positive values to compute range.*/
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
+	bool bUseAbsoluteRange = true;
+
+	/** Whether or not to preserve value sign when using absolute range.*/
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bUseAbsoluteRange"))
+	bool bPreserveSign = true;
+
+	/** Fixed In Min value. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, InlineEditConditionToggle))
+	bool bUseInMin = false;
+
+	/** Fixed In Min value. If disabled, will use the lowest input value.*/
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bUseInMin"))
+	double InMin = 0;
+	double CachedInMin = 0;
+
+	/** Fixed In Max value. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, InlineEditConditionToggle))
+	bool bUseInMax = false;
+
+	/** Fixed In Max value. If disabled, will use the highest input value.*/
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bUseInMax"))
+	double InMax = 0;
+	double CachedInMax = 0;
+
+	/** How to remap before sampling the curve. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
+	EPCGExRangeType RangeMethod = EPCGExRangeType::EffectiveRange;
+
+	/** Scale output value. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
+	double Scale = 1;
+
+	UPROPERTY(EditAnywhere, Category = Settings, BlueprintReadWrite)
+	TSoftObjectPtr<UCurveFloat> RemapCurve = TSoftObjectPtr<UCurveFloat>(PCGEx::WeightDistributionLinear);
+
+	UPROPERTY(Transient)
+	TObjectPtr<UCurveFloat> RemapCurveObj = nullptr;
+
+
+	/** Whether and how to truncate output value. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
+	EPCGExTruncateMode TruncateOutput = EPCGExTruncateMode::None;
+
+	/** Scale the value after it's been truncated. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="TruncateOutput != EPCGExTruncateMode::None", EditConditionHides))
+	double PostTruncateScale = 1;
+
+	void LoadCurve()
+	{
+		PCGEX_LOAD_SOFTOBJECT(UCurveFloat, RemapCurve, RemapCurveObj, PCGEx::WeightDistributionLinear)
+	}
+
+	FORCEINLINE double GetRemappedValue(const double Value) const
+	{
+		return PCGEx::TruncateDbl(
+			RemapCurveObj->GetFloatValue(PCGExMath::Remap(Value, InMin, InMax, 0, 1)) * Scale,
+			TruncateOutput);
+	}
+};
+
 USTRUCT(BlueprintType)
 struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExComponentRemapRule
 {
