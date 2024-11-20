@@ -6,7 +6,7 @@
 #include "CoreMinimal.h"
 #include "PCGEx.h"
 #include "PCGExMT.h"
-#include "AssetStaging/PCGExFitting.h"
+#include "PCGExFitting.h"
 #include "Data/PCGExData.h"
 
 

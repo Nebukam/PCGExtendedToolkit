@@ -10,7 +10,7 @@
 #include "Data/PCGExData.h"
 #include "Engine/AssetManager.h"
 #include "Engine/DataAsset.h"
-#include "AssetStaging/PCGExFitting.h"
+#include "PCGExFitting.h"
 
 #include "PCGExAssetCollection.generated.h"
 
