@@ -53,6 +53,24 @@ public:
 
 namespace PCGExHelpers
 {
+	static void CopyStructProperties(const void* SourceStruct, void* TargetStruct, const UStruct* SourceStructType, const UStruct* TargetStructType)
+	{
+		for (TFieldIterator<FProperty> SourceIt(SourceStructType); SourceIt; ++SourceIt)
+		{
+			const FProperty* SourceProperty = *SourceIt;
+			const FProperty* TargetProperty = TargetStructType->FindPropertyByName(SourceProperty->GetFName());
+			if (!TargetProperty || SourceProperty->GetClass() != TargetProperty->GetClass()) { continue; }
+
+			if (SourceProperty->SameType(TargetProperty))
+			{
+				const void* SourceValue = SourceProperty->ContainerPtrToValuePtr<void>(SourceStruct);
+				void* TargetValue = TargetProperty->ContainerPtrToValuePtr<void>(TargetStruct);
+
+				SourceProperty->CopyCompleteValue(TargetValue, SourceValue);
+			}
+		}
+	}
+	
 	static void SetPointProperty(FPCGPoint& InPoint, const double InValue, const EPCGExPointPropertyOutput InProperty)
 	{
 		switch (InProperty)

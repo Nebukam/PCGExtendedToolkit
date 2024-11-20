@@ -35,12 +35,17 @@ namespace PCGExMeshSelectorStaged
 			}
 		}
 
+#if PCGEX_ENGINE_VERSION > 503
+		FPCGSoftISMComponentDescriptor TemplateDescriptor = FPCGSoftISMComponentDescriptor();
+		Entry->InitPCGSoftISMDescriptor(TemplateDescriptor);
+
+		FPCGMeshInstanceList& NewInstanceList = InstanceLists.Emplace_GetRef(TemplateDescriptor);
+		NewInstanceList.Descriptor = TemplateDescriptor;
+		NewInstanceList.PointData = InPointData;
+#else
 		FSoftISMComponentDescriptor TemplateDescriptor = FSoftISMComponentDescriptor(Entry->ISMDescriptor);
 		FPCGMeshInstanceList& NewInstanceList = InstanceLists.Emplace_GetRef(TemplateDescriptor);
 		NewInstanceList.Descriptor = TemplateDescriptor;
-		
-#if PCGEX_ENGINE_VERSION > 503
-		NewInstanceList.PointData = InPointData;
 #endif
 
 		return NewInstanceList;

@@ -6,20 +6,19 @@
 bool FPCGExMeshCollectionEntry::Validate(const UPCGExAssetCollection* ParentCollection)
 {
 	if (bIsSubCollection) { LoadSubCollection(SubCollection); }
-	else if (!ISMDescriptor.StaticMesh.ToSoftObjectPath().IsValid() && ParentCollection->bDoNotIgnoreInvalidEntries) { return false; }
+	else if (!StaticMesh.ToSoftObjectPath().IsValid() && ParentCollection->bDoNotIgnoreInvalidEntries) { return false; }
 
 	return Super::Validate(ParentCollection);
 }
 
 void FPCGExMeshCollectionEntry::UpdateStaging(const UPCGExAssetCollection* OwningCollection, const int32 InInternalIndex, const bool bRecursive)
 {
-
-	if(Staging.InternalIndex == -1 && GetDefault<UPCGExGlobalSettings>()->bDisableCollisionByDefault)
+	if (Staging.InternalIndex == -1 && GetDefault<UPCGExGlobalSettings>()->bDisableCollisionByDefault)
 	{
 		ISMDescriptor.BodyInstance.SetCollisionEnabled(ECollisionEnabled::Type::NoCollision);
 		SMDescriptor.BodyInstance.SetCollisionEnabled(ECollisionEnabled::Type::NoCollision);
 	}
-	
+
 	if (bIsSubCollection)
 	{
 		Staging.Path = SubCollection.ToSoftObjectPath();
@@ -41,6 +40,17 @@ void FPCGExMeshCollectionEntry::SetAssetPath(const FSoftObjectPath& InPath)
 	StaticMesh = TSoftObjectPtr<UStaticMesh>(InPath);
 	ISMDescriptor.StaticMesh = StaticMesh;
 }
+
+#if PCGEX_ENGINE_VERSION > 503
+void FPCGExMeshCollectionEntry::InitPCGSoftISMDescriptor(FPCGSoftISMComponentDescriptor& TargetDescriptor) const
+{
+	PCGExHelpers::CopyStructProperties(
+		&ISMDescriptor,
+		&TargetDescriptor,
+		FSoftISMComponentDescriptor::StaticStruct(),
+		FPCGSoftISMComponentDescriptor::StaticStruct());
+}
+#endif
 
 #if WITH_EDITOR
 void FPCGExMeshCollectionEntry::EDITOR_Sanitize()
@@ -109,7 +119,7 @@ void UPCGExMeshCollection::GetAssetPaths(TSet<FSoftObjectPath>& OutPaths, const 
 
 		if (bCollectionOnly) { continue; }
 
-		OutPaths.Add(Entry.ISMDescriptor.StaticMesh.ToSoftObjectPath());
+		OutPaths.Add(Entry.StaticMesh.ToSoftObjectPath());
 
 		for (int i = 0; i < Entry.ISMDescriptor.OverrideMaterials.Num(); i++)
 		{
