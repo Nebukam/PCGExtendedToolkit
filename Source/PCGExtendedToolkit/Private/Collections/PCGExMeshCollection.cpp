@@ -13,6 +13,13 @@ bool FPCGExMeshCollectionEntry::Validate(const UPCGExAssetCollection* ParentColl
 
 void FPCGExMeshCollectionEntry::UpdateStaging(const UPCGExAssetCollection* OwningCollection, const int32 InInternalIndex, const bool bRecursive)
 {
+
+	if(Staging.InternalIndex == -1 && GetDefault<UPCGExGlobalSettings>()->bDisableCollisionByDefault)
+	{
+		ISMDescriptor.BodyInstance.SetCollisionEnabled(ECollisionEnabled::Type::NoCollision);
+		SMDescriptor.BodyInstance.SetCollisionEnabled(ECollisionEnabled::Type::NoCollision);
+	}
+	
 	if (bIsSubCollection)
 	{
 		Staging.Path = SubCollection.ToSoftObjectPath();
@@ -63,6 +70,22 @@ void UPCGExMeshCollection::EDITOR_RefreshDisplayNames()
 		Entry.DisplayName = FName(DisplayName);
 	}
 }
+
+void UPCGExMeshCollection::EDITOR_DisableCollisions()
+{
+	Modify(true);
+
+	for (FPCGExMeshCollectionEntry& Entry : Entries)
+	{
+		Entry.ISMDescriptor.BodyInstance.SetCollisionEnabled(ECollisionEnabled::Type::NoCollision);
+		Entry.SMDescriptor.BodyInstance.SetCollisionEnabled(ECollisionEnabled::Type::NoCollision);
+	}
+
+	FPropertyChangedEvent EmptyEvent(nullptr);
+	PostEditChangeProperty(EmptyEvent);
+	MarkPackageDirty();
+}
+
 #endif
 
 void UPCGExMeshCollection::GetAssetPaths(TSet<FSoftObjectPath>& OutPaths, const PCGExAssetCollection::ELoadingFlags Flags) const

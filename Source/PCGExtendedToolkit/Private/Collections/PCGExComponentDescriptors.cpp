@@ -26,7 +26,10 @@ void FPCGExPrimitiveComponentDescriptor::InitFrom(const UPrimitiveComponent* Com
 	HLODBatchingPolicy = SourceComponent->HLODBatchingPolicy;
 	bEnableAutoLODGeneration = SourceComponent->bEnableAutoLODGeneration;
 	bNeverDistanceCull = SourceComponent->bNeverDistanceCull;
+
 	if (bInitBodyInstance) { BodyInstance.CopyBodyInstancePropertiesFrom(SourceComponent->GetBodyInstance()); }
+	else { BodyInstance.SetCollisionEnabled(ECollisionEnabled::Type::NoCollision); }
+
 	bAlwaysCreatePhysicsState = SourceComponent->bAlwaysCreatePhysicsState;
 	bMultiBodyOverlap = SourceComponent->bMultiBodyOverlap;
 	bTraceComplexOnMove = SourceComponent->bTraceComplexOnMove;
@@ -94,7 +97,7 @@ void FPCGExPrimitiveComponentDescriptor::InitComponent(UPrimitiveComponent* InCo
 
 	// Only update visibility if it's set to false to avoid massive overhead.
 	if (!bVisible) { TargetComponent->SetVisibility(false, false); }
-	
+
 	TargetComponent->MinDrawDistance = MinDrawDistance;
 	TargetComponent->LDMaxDrawDistance = LDMaxDrawDistance;
 	TargetComponent->IndirectLightingCacheQuality = IndirectLightingCacheQuality;

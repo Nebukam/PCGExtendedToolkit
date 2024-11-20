@@ -28,7 +28,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExMeshCollectionEntry : public FPCGExAsset
 
 	/** Config used when this entry is consumed as an instanced static mesh */
 	UPROPERTY(EditAnywhere, Category = Settings, meta=(EditCondition="!bIsSubCollection", EditConditionHides))
-	FSoftISMComponentDescriptor ISMDescriptor;
+	FPCGSoftISMComponentDescriptor ISMDescriptor;
 
 	/** Config used when this entry is consumed as a regular static mesh primitive (i.e Spline Mesh)*/
 	UPROPERTY(EditAnywhere, Category = Settings, meta=(EditCondition="!bIsSubCollection", EditConditionHides))
@@ -77,6 +77,10 @@ class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExMeshCollection : public UPCGExAssetCollec
 public:
 #if WITH_EDITOR
 	virtual void EDITOR_RefreshDisplayNames() override;
+
+	UFUNCTION(CallInEditor, Category = Utils, meta=(DisplayName="Disable Collisions", ShortToolTip="Disabbe collision on all entries.", DisplayOrder=100))
+	void EDITOR_DisableCollisions();
+	
 #endif
 
 	PCGEX_ASSET_COLLECTION_BOILERPLATE(UPCGExMeshCollection, FPCGExMeshCollectionEntry)

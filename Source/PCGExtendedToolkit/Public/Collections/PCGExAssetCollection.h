@@ -43,7 +43,7 @@ FORCEINLINE bool GetEntryRandom(const _ENTRY_TYPE*& OutEntry, const int32 Seed, 
 FORCEINLINE bool GetEntryWeightedRandom(const _ENTRY_TYPE*& OutEntry, const int32 Seed, uint8 TagInheritance, TSet<FName>& OutTags, const UPCGExAssetCollection*& OutHost) { return GetEntryWeightedRandomTpl(OutEntry, Entries, Seed, TagInheritance, OutTags, OutHost); }
 
 #define PCGEX_ASSET_COLLECTION_BOILERPLATE_BASE(_TYPE, _ENTRY_TYPE)\
-FORCEINLINE virtual bool IsValidEntryIndex(const int32 InIndex) const { return Entries.IsValidIndex(InIndex); }\
+FORCEINLINE virtual bool IsValidIndex(const int32 InIndex) const { return Entries.IsValidIndex(InIndex); }\
 FORCEINLINE virtual int32 NumEntries() const override {return Entries.Num(); }\
 PCGEX_ASSET_COLLECTION_GET_ENTRY_TYPED(_TYPE, _ENTRY_TYPE)\
 PCGEX_ASSET_COLLECTION_GET_ENTRY(_TYPE, _ENTRY_TYPE)\
@@ -622,7 +622,7 @@ public:
 
 	virtual void BuildCache();
 
-	FORCEINLINE virtual bool IsValidEntryIndex(const int32 InIndex) const { return false; }
+	FORCEINLINE virtual bool IsValidIndex(const int32 InIndex) const { return false; }
 	FORCEINLINE virtual int32 NumEntries() const { return 0; }
 
 	FORCEINLINE virtual bool GetEntryAt(const FPCGExAssetCollectionEntry*& OutEntry, const int32 Index, const UPCGExAssetCollection*& OutHost)

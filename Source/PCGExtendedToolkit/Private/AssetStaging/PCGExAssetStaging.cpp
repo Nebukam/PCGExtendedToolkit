@@ -54,7 +54,7 @@ bool FPCGExAssetStagingElement::Boot(FPCGExContext* InContext) const
 			PCGE_LOG(Error, GraphAndLog, FTEXT("Collection Map output is not supported with collections built from attribute sets."));
 			return false;
 		}
-		
+
 		Context->MainCollection = Settings->AttributeSetDetails.TryBuildCollection(Context, PCGExAssetCollection::SourceAssetCollection, false);
 		if (!Context->MainCollection)
 		{
@@ -72,7 +72,7 @@ bool FPCGExAssetStagingElement::Boot(FPCGExContext* InContext) const
 
 	if (Settings->OutputMode == EPCGExStagingOutputMode::CollectionMap)
 	{
-		Context->CollectionPickDatasetPacker = MakeShared<PCGExStaging::FCollectionPickDatasetPacker>();
+		Context->CollectionPickDatasetPacker = MakeShared<PCGExStaging::FPickPacker>(Context);
 	}
 
 	return true;
@@ -193,15 +193,17 @@ namespace PCGExAssetStaging
 
 		if (Settings->OutputMode == EPCGExStagingOutputMode::Attributes)
 		{
+			bInherit = PointDataFacade->GetIn()->Metadata->HasAttribute(Settings->AssetPathAttributeName);
 #if PCGEX_ENGINE_VERSION > 503
-			PathWriter = PointDataFacade->GetWritable<FSoftObjectPath>(Settings->AssetPathAttributeName, PCGExData::EBufferInit::New);
+			PathWriter = PointDataFacade->GetWritable<FSoftObjectPath>(Settings->AssetPathAttributeName, bInherit ? PCGExData::EBufferInit::Inherit : PCGExData::EBufferInit::New);
 #else
-			PathWriter = PointDataFacade->GetWritable<FString>(Settings->AssetPathAttributeName, PCGExData::EBufferInit::New);
+			PathWriter = PointDataFacade->GetWritable<FString>(Settings->AssetPathAttributeName, bInherit ? PCGExData::EBufferInit::Inherit : PCGExData::EBufferInit::New);
 #endif
 		}
 		else
 		{
-			HashWriter = PointDataFacade->GetWritable<int64>(PCGExStaging::Tag_EntryIdx, PCGExData::EBufferInit::New);
+			bInherit = PointDataFacade->GetIn()->Metadata->HasAttribute(PCGExStaging::Tag_EntryIdx);
+			HashWriter = PointDataFacade->GetWritable<int64>(PCGExStaging::Tag_EntryIdx, bInherit ? PCGExData::EBufferInit::Inherit : PCGExData::EBufferInit::New);
 		}
 
 		StartParallelLoopForPoints();
@@ -219,6 +221,8 @@ namespace PCGExAssetStaging
 	{
 		auto InvalidPoint = [&]()
 		{
+			if (bInherit) { return; }
+			
 			if (Settings->bPruneEmptyPoints)
 			{
 				Point.MetadataEntry = -2;

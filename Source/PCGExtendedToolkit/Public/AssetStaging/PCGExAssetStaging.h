@@ -9,7 +9,7 @@
 #include "PCGExPointsProcessor.h"
 #include "Collections/PCGExMeshCollection.h"
 #include "PCGExFitting.h"
-#include "Collections/PCGExStaging.h"
+#include "PCGExStaging.h"
 
 #include "PCGExAssetStaging.generated.h"
 
@@ -59,7 +59,7 @@ public:
 	EPCGExStagingOutputMode OutputMode = EPCGExStagingOutputMode::Attributes;
 
 	/** The name of the attribute to write asset path to.*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="OutputMode==EPCGExStagingOutputMode::AssetData"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="OutputMode==EPCGExStagingOutputMode::Attributes"))
 	FName AssetPathAttributeName = "AssetPath";
 
 	/** Distribution details */
@@ -100,7 +100,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExAssetStagingContext final : FPCGExPoints
 
 	TObjectPtr<UPCGExAssetCollection> MainCollection;
 
-	TSharedPtr<PCGExStaging::FCollectionPickDatasetPacker> CollectionPickDatasetPacker;
+	TSharedPtr<PCGExStaging::FPickPacker> CollectionPickDatasetPacker;
 };
 
 class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExAssetStagingElement final : public FPCGExPointsProcessorElement
@@ -124,6 +124,7 @@ namespace PCGExAssetStaging
 	{
 		int32 NumPoints = 0;
 
+		bool bInherit = false;
 		bool bOutputWeight = false;
 		bool bOneMinusWeight = false;
 		bool bNormalizedWeight = false;
