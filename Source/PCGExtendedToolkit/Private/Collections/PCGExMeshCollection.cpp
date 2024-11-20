@@ -41,7 +41,7 @@ void FPCGExMeshCollectionEntry::SetAssetPath(const FSoftObjectPath& InPath)
 	ISMDescriptor.StaticMesh = StaticMesh;
 }
 
-#if PCGEX_ENGINE_VERSION > 503
+#if PCGEX_ENGINE_VERSION > 504
 void FPCGExMeshCollectionEntry::InitPCGSoftISMDescriptor(FPCGSoftISMComponentDescriptor& TargetDescriptor) const
 {
 	PCGExHelpers::CopyStructProperties(

@@ -6,7 +6,7 @@
 #include "MeshSelectors/PCGMeshSelectorBase.h"
 #include "PCGExMacros.h"
 
-#if PCGEX_ENGINE_VERSION > 503
+#if PCGEX_ENGINE_VERSION > 504
 #include "MeshSelectors/PCGISMDescriptor.h"
 #endif
 

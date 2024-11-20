@@ -58,7 +58,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExMeshCollectionEntry : public FPCGExAsset
 	virtual void UpdateStaging(const UPCGExAssetCollection* OwningCollection, int32 InInternalIndex, const bool bRecursive) override;
 	virtual void SetAssetPath(const FSoftObjectPath& InPath) override;
 
-#if PCGEX_ENGINE_VERSION > 503
+#if PCGEX_ENGINE_VERSION > 504
 	void InitPCGSoftISMDescriptor(FPCGSoftISMComponentDescriptor& TargetDescriptor) const;
 #endif
 	

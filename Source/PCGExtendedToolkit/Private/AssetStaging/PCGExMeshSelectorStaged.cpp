@@ -35,7 +35,7 @@ namespace PCGExMeshSelectorStaged
 			}
 		}
 
-#if PCGEX_ENGINE_VERSION > 503
+#if PCGEX_ENGINE_VERSION > 504
 		FPCGSoftISMComponentDescriptor TemplateDescriptor = FPCGSoftISMComponentDescriptor();
 		Entry->InitPCGSoftISMDescriptor(TemplateDescriptor);
 
