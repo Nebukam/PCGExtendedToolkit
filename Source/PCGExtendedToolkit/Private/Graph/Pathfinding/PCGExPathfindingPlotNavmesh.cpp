@@ -35,7 +35,7 @@ void UPCGExPathfindingPlotNavmeshSettings::PostEditChangeProperty(FPropertyChang
 }
 #endif
 
-PCGExData::EIOInit UPCGExPathfindingPlotNavmeshSettings::GetMainOutputInitMode() const { return PCGExData::EIOInit::NoOutput; }
+PCGExData::EIOInit UPCGExPathfindingPlotNavmeshSettings::GetMainOutputInitMode() const { return PCGExData::EIOInit::None; }
 
 PCGEX_INITIALIZE_ELEMENT(PathfindingPlotNavmesh)
 
@@ -216,7 +216,7 @@ bool FPCGExPlotNavmeshTask::ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>&
 
 	const int32 NumPositions = PathLocations.Num();
 
-	TSharedPtr<PCGExData::FPointIO> PathIO = Context->OutputPaths->Emplace_GetRef(PointIO, PCGExData::EIOInit::NewOutput);
+	TSharedPtr<PCGExData::FPointIO> PathIO = Context->OutputPaths->Emplace_GetRef(PointIO, PCGExData::EIOInit::New);
 	TSharedPtr<PCGExData::FFacade> PathDataFacade = MakeShared<PCGExData::FFacade>(PathIO.ToSharedRef());
 
 	UPCGPointData* OutData = PathIO->GetOut();

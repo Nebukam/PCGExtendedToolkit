@@ -17,8 +17,8 @@ TArray<FPCGPinProperties> UPCGExFindAllCellsSettings::OutputPinProperties() cons
 	return PinProperties;
 }
 
-PCGExData::EIOInit UPCGExFindAllCellsSettings::GetEdgeOutputInitMode() const { return PCGExData::EIOInit::NoOutput; }
-PCGExData::EIOInit UPCGExFindAllCellsSettings::GetMainOutputInitMode() const { return PCGExData::EIOInit::NoOutput; }
+PCGExData::EIOInit UPCGExFindAllCellsSettings::GetEdgeOutputInitMode() const { return PCGExData::EIOInit::None; }
+PCGExData::EIOInit UPCGExFindAllCellsSettings::GetMainOutputInitMode() const { return PCGExData::EIOInit::None; }
 
 PCGEX_INITIALIZE_ELEMENT(FindAllCells)
 
@@ -157,7 +157,7 @@ namespace PCGExFindAllCells
 		const PCGExTopology::ECellResult Result = Cell->BuildFromCluster(Node.Index, Edge.Index, Guide, Cluster.ToSharedRef(), *ProjectedPositions);
 		if (Result != PCGExTopology::ECellResult::Success) { return false; }
 
-		TSharedRef<PCGExData::FPointIO> PathIO = Context->Paths->Emplace_GetRef<UPCGPointData>(VtxDataFacade->Source, PCGExData::EIOInit::NewOutput).ToSharedRef();
+		TSharedRef<PCGExData::FPointIO> PathIO = Context->Paths->Emplace_GetRef<UPCGPointData>(VtxDataFacade->Source, PCGExData::EIOInit::New).ToSharedRef();
 		PathIO->IOIndex = Edge.IOIndex; // Enforce seed order for collection output-ish
 
 		PCGExGraph::CleanupClusterTags(PathIO, true);

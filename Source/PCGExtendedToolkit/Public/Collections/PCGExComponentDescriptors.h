@@ -441,7 +441,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExMeshComponentDescriptor : public FPCGExP
 
 #pragma endregion
 
-	virtual void InitFrom(const UPrimitiveComponent* Component, bool bInitBodyInstance) override;
+	virtual void InitFrom(const UPrimitiveComponent* Component, bool bInitBodyInstance = false) override;
 	virtual void InitComponent(UPrimitiveComponent* InComponent) const override;
 };
 
@@ -590,7 +590,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExStaticMeshComponentDescriptor : public F
 
 #pragma endregion
 
-	virtual void InitFrom(const UPrimitiveComponent* Component, bool bInitBodyInstance) override;
+	virtual void InitFrom(const UPrimitiveComponent* Component, bool bInitBodyInstance = false) override;
 	virtual void InitComponent(UPrimitiveComponent* InComponent) const override;
 };
 
@@ -693,6 +693,6 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExDynamicMeshDescriptor : public FPCGExMes
 
 #pragma endregion
 
-	virtual void InitFrom(const UPrimitiveComponent* Component, bool bInitBodyInstance) override;
+	virtual void InitFrom(const UPrimitiveComponent* Component, bool bInitBodyInstance = false) override;
 	virtual void InitComponent(UPrimitiveComponent* InComponent) const override;
 };

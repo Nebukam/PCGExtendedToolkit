@@ -10,9 +10,9 @@
 #define LOCTEXT_NAMESPACE "PCGExSubdivideEdges"
 #define PCGEX_NAMESPACE SubdivideEdges
 
-PCGExData::EIOInit UPCGExSubdivideEdgesSettings::GetMainOutputInitMode() const { return PCGExData::EIOInit::DuplicateInput; }
+PCGExData::EIOInit UPCGExSubdivideEdgesSettings::GetMainOutputInitMode() const { return PCGExData::EIOInit::Duplicate; }
 
-PCGExData::EIOInit UPCGExSubdivideEdgesSettings::GetEdgeOutputInitMode() const { return PCGExData::EIOInit::DuplicateInput; }
+PCGExData::EIOInit UPCGExSubdivideEdgesSettings::GetEdgeOutputInitMode() const { return PCGExData::EIOInit::Duplicate; }
 
 TArray<FPCGPinProperties> UPCGExSubdivideEdgesSettings::InputPinProperties() const
 {

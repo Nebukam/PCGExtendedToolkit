@@ -21,7 +21,7 @@ TArray<FPCGPinProperties> UPCGExUberFilterSettings::OutputPinProperties() const
 	return PinProperties;
 }
 
-PCGExData::EIOInit UPCGExUberFilterSettings::GetMainOutputInitMode() const { return Mode == EPCGExUberFilterMode::Write ? PCGExData::EIOInit::DuplicateInput : PCGExData::EIOInit::NoOutput; }
+PCGExData::EIOInit UPCGExUberFilterSettings::GetMainOutputInitMode() const { return Mode == EPCGExUberFilterMode::Write ? PCGExData::EIOInit::Duplicate : PCGExData::EIOInit::None; }
 
 PCGEX_INITIALIZE_ELEMENT(UberFilter)
 
@@ -199,11 +199,11 @@ namespace PCGExUberFilter
 
 		const TArray<FPCGPoint>& OriginalPoints = PointDataFacade->GetIn()->GetPoints();
 
-		Inside = CreateIO(Context->Inside.ToSharedRef(), PCGExData::EIOInit::NewOutput);
+		Inside = CreateIO(Context->Inside.ToSharedRef(), PCGExData::EIOInit::New);
 		TArray<FPCGPoint>& InsidePoints = Inside->GetOut()->GetMutablePoints();
 		PCGEx::InitArray(InsidePoints, NumInside);
 
-		Outside = CreateIO(Context->Outside.ToSharedRef(), PCGExData::EIOInit::NewOutput);
+		Outside = CreateIO(Context->Outside.ToSharedRef(), PCGExData::EIOInit::New);
 		TArray<FPCGPoint>& OutsidePoints = Outside->GetOut()->GetMutablePoints();
 		PCGEx::InitArray(OutsidePoints, NumOutside);
 

@@ -20,7 +20,7 @@ void UPCGExShiftPathSettings::PostEditChangeProperty(FPropertyChangedEvent& Prop
 }
 #endif
 
-PCGExData::EIOInit UPCGExShiftPathSettings::GetMainOutputInitMode() const { return PCGExData::EIOInit::DuplicateInput; }
+PCGExData::EIOInit UPCGExShiftPathSettings::GetMainOutputInitMode() const { return PCGExData::EIOInit::Duplicate; }
 
 PCGEX_INITIALIZE_ELEMENT(ShiftPath)
 

@@ -74,6 +74,10 @@ public:
 	EPCGExAsyncPriority DefaultWorkPriority = EPCGExAsyncPriority::Normal;
 	EPCGExAsyncPriority GetDefaultWorkPriority() const { return DefaultWorkPriority == EPCGExAsyncPriority::Default ? EPCGExAsyncPriority::Normal : DefaultWorkPriority; }
 
+	/** Disable collision on new entries */
+	UPROPERTY(EditAnywhere, config, Category = "Collections")
+	bool bDisableCollisionByDefault = true;
+	
 	UPROPERTY(EditAnywhere, config, Category = "Blending|Attribute Types Defaults|Simple Types", meta=(DisplayName="Boolean"))
 	EPCGExDataBlendingTypeDefault DefaultBooleanBlendMode = EPCGExDataBlendingTypeDefault::Default;
 

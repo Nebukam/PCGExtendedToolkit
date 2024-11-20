@@ -11,7 +11,7 @@
 #define LOCTEXT_NAMESPACE "PCGExGraph"
 #define PCGEX_NAMESPACE BuildConvexHull2D
 
-PCGExData::EIOInit UPCGExBuildConvexHull2DSettings::GetMainOutputInitMode() const { return PCGExData::EIOInit::NewOutput; }
+PCGExData::EIOInit UPCGExBuildConvexHull2DSettings::GetMainOutputInitMode() const { return PCGExData::EIOInit::New; }
 
 TArray<FPCGPinProperties> UPCGExBuildConvexHull2DSettings::OutputPinProperties() const
 {
@@ -79,7 +79,7 @@ void FPCGExBuildConvexHull2DContext::BuildPath(const PCGExGraph::FGraphBuilder* 
 	const TArray<PCGExGraph::FEdge>& Edges = GraphBuilder->Graph->Edges;
 
 	const TArray<FPCGPoint>& InPoints = GraphBuilder->NodeDataFacade->GetIn()->GetPoints();
-	const TSharedPtr<PCGExData::FPointIO> PathIO = PathsIO->Emplace_GetRef(GraphBuilder->NodeDataFacade->GetIn(), PCGExData::EIOInit::NewOutput);
+	const TSharedPtr<PCGExData::FPointIO> PathIO = PathsIO->Emplace_GetRef(GraphBuilder->NodeDataFacade->GetIn(), PCGExData::EIOInit::New);
 
 	TArray<FPCGPoint>& MutablePathPoints = PathIO->GetOut()->GetMutablePoints();
 	TSet<int32> VisitedEdges;
@@ -149,7 +149,7 @@ namespace PCGExConvexHull2D
 
 		ActivePositions.Empty();
 
-		PointDataFacade->Source->InitializeOutput(PCGExData::EIOInit::DuplicateInput);
+		PointDataFacade->Source->InitializeOutput(PCGExData::EIOInit::Duplicate);
 		Edges = Delaunay->DelaunayEdges.Array();
 
 		GraphBuilder = MakeShared<PCGExGraph::FGraphBuilder>(PointDataFacade, &Settings->GraphBuilderDetails);
@@ -194,7 +194,7 @@ namespace PCGExConvexHull2D
 		if (!GraphBuilder->bCompiledSuccessfully)
 		{
 			bIsProcessorValid = false;
-			PointDataFacade->Source->InitializeOutput(PCGExData::EIOInit::NoOutput);
+			PointDataFacade->Source->InitializeOutput(PCGExData::EIOInit::None);
 			return;
 		}
 

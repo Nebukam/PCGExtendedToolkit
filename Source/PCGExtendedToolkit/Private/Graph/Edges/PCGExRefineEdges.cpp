@@ -41,8 +41,8 @@ TArray<FPCGPinProperties> UPCGExRefineEdgesSettings::OutputPinProperties() const
 	return PinProperties;
 }
 
-PCGExData::EIOInit UPCGExRefineEdgesSettings::GetMainOutputInitMode() const { return bOutputEdgesOnly ? PCGExData::EIOInit::NoOutput : PCGExData::EIOInit::NewOutput; }
-PCGExData::EIOInit UPCGExRefineEdgesSettings::GetEdgeOutputInitMode() const { return PCGExData::EIOInit::NoOutput; }
+PCGExData::EIOInit UPCGExRefineEdgesSettings::GetMainOutputInitMode() const { return bOutputEdgesOnly ? PCGExData::EIOInit::None : PCGExData::EIOInit::New; }
+PCGExData::EIOInit UPCGExRefineEdgesSettings::GetEdgeOutputInitMode() const { return PCGExData::EIOInit::None; }
 
 PCGEX_INITIALIZE_ELEMENT(RefineEdges)
 
@@ -95,8 +95,8 @@ bool FPCGExRefineEdgesElement::Boot(FPCGExContext* InContext) const
 
 		for (const TSharedPtr<PCGExData::FPointIO>& EdgeIO : Context->MainEdges->Pairs)
 		{
-			Context->KeptEdges->Emplace_GetRef(EdgeIO, PCGExData::EIOInit::NewOutput)->bAllowEmptyOutput = Settings->bAllowZeroPointOutputs;
-			Context->RemovedEdges->Emplace_GetRef(EdgeIO, PCGExData::EIOInit::NewOutput)->bAllowEmptyOutput = Settings->bAllowZeroPointOutputs;
+			Context->KeptEdges->Emplace_GetRef(EdgeIO, PCGExData::EIOInit::New)->bAllowEmptyOutput = Settings->bAllowZeroPointOutputs;
+			Context->RemovedEdges->Emplace_GetRef(EdgeIO, PCGExData::EIOInit::New)->bAllowEmptyOutput = Settings->bAllowZeroPointOutputs;
 		}
 	}
 

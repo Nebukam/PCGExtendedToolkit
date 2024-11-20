@@ -6,8 +6,8 @@
 #define LOCTEXT_NAMESPACE "PCGExEdgesToPaths"
 #define PCGEX_NAMESPACE DrawEdges
 
-PCGExData::EIOInit UPCGExDrawEdgesSettings::GetMainOutputInitMode() const { return PCGExData::EIOInit::NoOutput; }
-PCGExData::EIOInit UPCGExDrawEdgesSettings::GetEdgeOutputInitMode() const { return PCGExData::EIOInit::NoOutput; }
+PCGExData::EIOInit UPCGExDrawEdgesSettings::GetMainOutputInitMode() const { return PCGExData::EIOInit::None; }
+PCGExData::EIOInit UPCGExDrawEdgesSettings::GetEdgeOutputInitMode() const { return PCGExData::EIOInit::None; }
 
 
 PCGEX_INITIALIZE_ELEMENT(DrawEdges)

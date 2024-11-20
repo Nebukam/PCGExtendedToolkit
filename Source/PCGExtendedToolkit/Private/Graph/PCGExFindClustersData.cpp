@@ -25,7 +25,7 @@ TArray<FPCGPinProperties> UPCGExFindClustersDataSettings::OutputPinProperties() 
 	return PinProperties;
 }
 
-PCGExData::EIOInit UPCGExFindClustersDataSettings::GetMainOutputInitMode() const { return PCGExData::EIOInit::NoOutput; }
+PCGExData::EIOInit UPCGExFindClustersDataSettings::GetMainOutputInitMode() const { return PCGExData::EIOInit::None; }
 
 PCGEX_INITIALIZE_ELEMENT(FindClustersData)
 

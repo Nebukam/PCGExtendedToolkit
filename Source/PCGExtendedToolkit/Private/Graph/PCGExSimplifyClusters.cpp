@@ -12,8 +12,8 @@
 
 #pragma region UPCGSettings interface
 
-PCGExData::EIOInit UPCGExSimplifyClustersSettings::GetMainOutputInitMode() const { return PCGExData::EIOInit::NewOutput; }
-PCGExData::EIOInit UPCGExSimplifyClustersSettings::GetEdgeOutputInitMode() const { return PCGExData::EIOInit::NoOutput; }
+PCGExData::EIOInit UPCGExSimplifyClustersSettings::GetMainOutputInitMode() const { return PCGExData::EIOInit::New; }
+PCGExData::EIOInit UPCGExSimplifyClustersSettings::GetEdgeOutputInitMode() const { return PCGExData::EIOInit::None; }
 
 #pragma endregion
 

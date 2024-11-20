@@ -7,7 +7,7 @@
 #define LOCTEXT_NAMESPACE "PCGExBoundsToPointsElement"
 #define PCGEX_NAMESPACE BoundsToPoints
 
-PCGExData::EIOInit UPCGExBoundsToPointsSettings::GetMainOutputInitMode() const { return bGeneratePerPointData ? PCGExData::EIOInit::NoOutput : PCGExData::EIOInit::DuplicateInput; }
+PCGExData::EIOInit UPCGExBoundsToPointsSettings::GetMainOutputInitMode() const { return bGeneratePerPointData ? PCGExData::EIOInit::None : PCGExData::EIOInit::Duplicate; }
 
 PCGEX_INITIALIZE_ELEMENT(BoundsToPoints)
 
@@ -76,7 +76,7 @@ namespace PCGExBoundsToPoints
 			NewOutputs.SetNum(PointDataFacade->GetNum());
 			for (int i = 0; i < NewOutputs.Num(); i++)
 			{
-				NewOutputs[i] = Context->MainPoints->Emplace_GetRef(PointDataFacade->Source, PCGExData::EIOInit::NewOutput);
+				NewOutputs[i] = Context->MainPoints->Emplace_GetRef(PointDataFacade->Source, PCGExData::EIOInit::New);
 			}
 
 			if (bSymmetry)

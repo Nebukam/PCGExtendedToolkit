@@ -18,7 +18,7 @@ TArray<FPCGPinProperties> UPCGExSampleNeighborsSettings::InputPinProperties() co
 }
 
 PCGExData::EIOInit UPCGExSampleNeighborsSettings::GetEdgeOutputInitMode() const { return PCGExData::EIOInit::Forward; }
-PCGExData::EIOInit UPCGExSampleNeighborsSettings::GetMainOutputInitMode() const { return PCGExData::EIOInit::DuplicateInput; }
+PCGExData::EIOInit UPCGExSampleNeighborsSettings::GetMainOutputInitMode() const { return PCGExData::EIOInit::Duplicate; }
 
 PCGEX_INITIALIZE_ELEMENT(SampleNeighbors)
 

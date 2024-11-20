@@ -9,7 +9,7 @@
 #define LOCTEXT_NAMESPACE "PCGExLloydRelax2DElement"
 #define PCGEX_NAMESPACE LloydRelax2D
 
-PCGExData::EIOInit UPCGExLloydRelax2DSettings::GetMainOutputInitMode() const { return PCGExData::EIOInit::NoOutput; }
+PCGExData::EIOInit UPCGExLloydRelax2DSettings::GetMainOutputInitMode() const { return PCGExData::EIOInit::None; }
 
 PCGEX_INITIALIZE_ELEMENT(LloydRelax2D)
 
@@ -73,7 +73,7 @@ namespace PCGExLloydRelax2D
 		InfluenceDetails = Settings->InfluenceDetails;
 		if (!InfluenceDetails.Init(ExecutionContext, PointDataFacade)) { return false; }
 
-		PointDataFacade->Source->InitializeOutput(PCGExData::EIOInit::DuplicateInput);
+		PointDataFacade->Source->InitializeOutput(PCGExData::EIOInit::Duplicate);
 		PCGExGeo::PointsToPositions(PointDataFacade->GetIn()->GetPoints(), ActivePositions);
 
 		AsyncManager->Start<FLloydRelaxTask>(0, PointDataFacade->Source, SharedThis(this), &InfluenceDetails, Settings->Iterations);

@@ -19,7 +19,7 @@ TArray<FPCGPinProperties> UPCGExUberFilterCollectionsSettings::OutputPinProperti
 	return PinProperties;
 }
 
-PCGExData::EIOInit UPCGExUberFilterCollectionsSettings::GetMainOutputInitMode() const { return PCGExData::EIOInit::NoOutput; }
+PCGExData::EIOInit UPCGExUberFilterCollectionsSettings::GetMainOutputInitMode() const { return PCGExData::EIOInit::None; }
 
 PCGEX_INITIALIZE_ELEMENT(UberFilterCollections)
 

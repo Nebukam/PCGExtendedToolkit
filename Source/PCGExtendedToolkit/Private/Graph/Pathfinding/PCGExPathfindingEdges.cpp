@@ -63,7 +63,7 @@ void FPCGExPathfindingEdgesContext::BuildPath(const TSharedPtr<PCGExPathfinding:
 		// TODO : Implement
 	}
 
-	const TSharedPtr<PCGExData::FPointIO> PathIO = OutputPaths->Emplace_GetRef<UPCGPointData>(ReferenceIO, PCGExData::EIOInit::NewOutput);
+	const TSharedPtr<PCGExData::FPointIO> PathIO = OutputPaths->Emplace_GetRef<UPCGPointData>(ReferenceIO, PCGExData::EIOInit::New);
 
 	PCGExGraph::CleanupClusterTags(PathIO, true);
 	PCGExGraph::CleanupVtxData(PathIO);
@@ -100,8 +100,8 @@ TArray<FPCGPinProperties> UPCGExPathfindingEdgesSettings::OutputPinProperties() 
 	return PinProperties;
 }
 
-PCGExData::EIOInit UPCGExPathfindingEdgesSettings::GetMainOutputInitMode() const { return PCGExData::EIOInit::NoOutput; }
-PCGExData::EIOInit UPCGExPathfindingEdgesSettings::GetEdgeOutputInitMode() const { return PCGExData::EIOInit::NoOutput; }
+PCGExData::EIOInit UPCGExPathfindingEdgesSettings::GetMainOutputInitMode() const { return PCGExData::EIOInit::None; }
+PCGExData::EIOInit UPCGExPathfindingEdgesSettings::GetEdgeOutputInitMode() const { return PCGExData::EIOInit::None; }
 
 bool FPCGExPathfindingEdgesElement::Boot(FPCGExContext* InContext) const
 {

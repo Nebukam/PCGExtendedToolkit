@@ -9,7 +9,7 @@
 #define LOCTEXT_NAMESPACE "PCGExLloydRelaxElement"
 #define PCGEX_NAMESPACE LloydRelax
 
-PCGExData::EIOInit UPCGExLloydRelaxSettings::GetMainOutputInitMode() const { return PCGExData::EIOInit::NoOutput; }
+PCGExData::EIOInit UPCGExLloydRelaxSettings::GetMainOutputInitMode() const { return PCGExData::EIOInit::None; }
 
 PCGEX_INITIALIZE_ELEMENT(LloydRelax)
 
@@ -69,7 +69,7 @@ namespace PCGExLloydRelax
 		InfluenceDetails = Settings->InfluenceDetails;
 		if (!InfluenceDetails.Init(ExecutionContext, PointDataFacade)) { return false; }
 
-		PointDataFacade->Source->InitializeOutput(PCGExData::EIOInit::DuplicateInput);
+		PointDataFacade->Source->InitializeOutput(PCGExData::EIOInit::Duplicate);
 		PCGExGeo::PointsToPositions(PointDataFacade->GetIn()->GetPoints(), ActivePositions);
 
 		AsyncManager->Start<FLloydRelaxTask>(0, PointDataFacade->Source, SharedThis(this), &InfluenceDetails, Settings->Iterations);

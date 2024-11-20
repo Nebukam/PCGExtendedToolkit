@@ -102,7 +102,7 @@ namespace PCGExCreateShapes
 
 		if (Settings->OutputMode == EPCGExShapeOutputMode::PerDataset)
 		{
-			PointDataFacade->Source->InitializeOutput(PCGExData::EIOInit::NewOutput);
+			PointDataFacade->Source->InitializeOutput(PCGExData::EIOInit::New);
 			int32 StartIndex = 0;
 			int32 NumPoints = 0;
 
@@ -159,7 +159,7 @@ namespace PCGExCreateShapes
 				if (NumPoints <= 0) { continue; }
 
 				TSharedPtr<PCGExData::FPointIO> IO = NewPointIO(PointDataFacade->Source, Settings->GetMainOutputPin(), i);
-				IO->InitializeOutput(PCGExData::EIOInit::NewOutput);
+				IO->InitializeOutput(PCGExData::EIOInit::New);
 
 				TSharedPtr<PCGExData::FFacade> IOFacade = MakeShared<PCGExData::FFacade>(IO.ToSharedRef());
 				PerSeedFacades.Add(IOFacade);

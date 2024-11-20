@@ -97,13 +97,14 @@ bool FPCGExAssetCollectionToSetElement::ExecuteInternal(FPCGContext* Context) co
 	TArray<const FPCGExAssetCollectionEntry*> Entries;
 
 	const FPCGExAssetCollectionEntry* Entry = nullptr;
+	const UPCGExAssetCollection* EntryHost = nullptr;
 
 	TSet<uint64> GUIDS;
 
 	for (int i = 0; i < MainCache->Main->Order.Num(); i++)
 	{
 		GUIDS.Empty();
-		MainCollection->GetEntryAt(Entry, i);
+		MainCollection->GetEntryAt(Entry, i, EntryHost);
 		ProcessEntry(Entry, Entries, Settings->bOmitInvalidAndEmpty, !Settings->bAllowDuplicates, Settings->SubCollectionHandling, GUIDS);
 	}
 
@@ -177,28 +178,29 @@ void FPCGExAssetCollectionToSetElement::ProcessEntry(
 		if (bVisited) { return; } // !! Circular dependency !!
 
 		const FPCGExAssetCollectionEntry* NestedEntry = nullptr;
-
+		const UPCGExAssetCollection* EntryHost = nullptr;
+		
 		switch (SubHandling)
 		{
 		default: ;
 		case EPCGExSubCollectionToSet::Expand:
 			for (int i = 0; i < SubCache->Main->Order.Num(); i++)
 			{
-				SubCollection->GetEntryAt(NestedEntry, i);
+				SubCollection->GetEntryAt(NestedEntry, i, EntryHost);
 				ProcessEntry(NestedEntry, OutEntries, bOmitInvalidAndEmpty, bNoDuplicates, SubHandling, GUIDS);
 			}
 			return;
 		case EPCGExSubCollectionToSet::PickRandom:
-			SubCollection->GetEntryRandom(NestedEntry, 0);
+			SubCollection->GetEntryRandom(NestedEntry, 0, EntryHost);
 			break;
 		case EPCGExSubCollectionToSet::PickRandomWeighted:
-			SubCollection->GetEntryWeightedRandom(NestedEntry, 0);
+			SubCollection->GetEntryWeightedRandom(NestedEntry, 0, EntryHost);
 			break;
 		case EPCGExSubCollectionToSet::PickFirstItem:
-			SubCollection->GetEntryAt(NestedEntry, 0);
+			SubCollection->GetEntryAt(NestedEntry, 0, EntryHost);
 			break;
 		case EPCGExSubCollectionToSet::PickLastItem:
-			SubCollection->GetEntryAt(NestedEntry, SubCache->Main->Indices.Num() - 1);
+			SubCollection->GetEntryAt(NestedEntry, SubCache->Main->Indices.Num() - 1, EntryHost);
 			break;
 		}
 

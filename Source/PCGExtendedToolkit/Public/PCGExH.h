@@ -43,6 +43,19 @@ namespace PCGEx
 			       static_cast<uint64>(B) << 32 | A;
 	}
 
+	// Signed uint32 hash
+	constexpr FORCEINLINE static uint32 H32(const uint16 A, const uint16 B) { return static_cast<uint32>(A) << 16 | B; }
+
+	// Expand uint32 hash
+	constexpr FORCEINLINE static uint32 H32A(const uint32 Hash) { return static_cast<uint16>(Hash >> 16); }
+	constexpr FORCEINLINE static uint32 H32B(const uint32 Hash) { return static_cast<uint16>(Hash); }
+
+	constexpr FORCEINLINE static void H32(const uint32 Hash, uint16& A, uint16& B)
+	{
+		A = H32A(Hash);
+		B = H32B(Hash);
+	}
+
 	// Signed uint64 hash
 	constexpr FORCEINLINE static uint64 H64(const uint32 A, const uint32 B) { return static_cast<uint64>(A) << 32 | B; }
 	constexpr FORCEINLINE static uint64 NH64(const int32 A, const int32 B) { return H64(A + 1, B + 1); }

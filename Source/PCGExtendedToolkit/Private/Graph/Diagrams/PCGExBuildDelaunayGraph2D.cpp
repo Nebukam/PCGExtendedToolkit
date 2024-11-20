@@ -17,7 +17,7 @@ namespace PCGExGeoTask
 	class FLloydRelax2;
 }
 
-PCGExData::EIOInit UPCGExBuildDelaunayGraph2DSettings::GetMainOutputInitMode() const { return PCGExData::EIOInit::NoOutput; }
+PCGExData::EIOInit UPCGExBuildDelaunayGraph2DSettings::GetMainOutputInitMode() const { return PCGExData::EIOInit::None; }
 
 TArray<FPCGPinProperties> UPCGExBuildDelaunayGraph2DSettings::OutputPinProperties() const
 {
@@ -115,7 +115,7 @@ namespace PCGExBuildDelaunay2D
 			return false;
 		}
 
-		PointDataFacade->Source->InitializeOutput<UPCGExClusterNodesData>(PCGExData::EIOInit::DuplicateInput);
+		PointDataFacade->Source->InitializeOutput<UPCGExClusterNodesData>(PCGExData::EIOInit::Duplicate);
 
 		if (Settings->bUrquhart)
 		{
@@ -155,7 +155,7 @@ namespace PCGExBuildDelaunay2D
 		if (!GraphBuilder->bCompiledSuccessfully)
 		{
 			bIsProcessorValid = false;
-			PointDataFacade->Source->InitializeOutput(PCGExData::EIOInit::NoOutput);
+			PointDataFacade->Source->InitializeOutput(PCGExData::EIOInit::None);
 			return;
 		}
 
@@ -181,7 +181,7 @@ namespace PCGExBuildDelaunay2D
 		PCGEX_SETTINGS(BuildDelaunayGraph2D)
 
 		const TSharedPtr<PCGExData::FPointIO> SitesIO = NewPointIO(PointIO.ToSharedRef());
-		SitesIO->InitializeOutput(PCGExData::EIOInit::NewOutput);
+		SitesIO->InitializeOutput(PCGExData::EIOInit::New);
 
 		Context->MainSites->InsertUnsafe(Processor->BatchIndex, SitesIO);
 
@@ -225,7 +225,7 @@ namespace PCGExBuildDelaunay2D
 		PCGEX_SETTINGS(BuildDelaunayGraph2D)
 
 		TSharedPtr<PCGExData::FPointIO> SitesIO = NewPointIO(PointIO.ToSharedRef());
-		SitesIO->InitializeOutput(PCGExData::EIOInit::NewOutput);
+		SitesIO->InitializeOutput(PCGExData::EIOInit::New);
 
 		Context->MainSites->InsertUnsafe(Processor->BatchIndex, SitesIO);
 

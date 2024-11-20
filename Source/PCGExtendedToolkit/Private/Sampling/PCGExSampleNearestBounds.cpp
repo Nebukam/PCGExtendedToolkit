@@ -73,7 +73,7 @@ TArray<FPCGPinProperties> UPCGExSampleNearestBoundsSettings::InputPinProperties(
 	return PinProperties;
 }
 
-PCGExData::EIOInit UPCGExSampleNearestBoundsSettings::GetMainOutputInitMode() const { return PCGExData::EIOInit::DuplicateInput; }
+PCGExData::EIOInit UPCGExSampleNearestBoundsSettings::GetMainOutputInitMode() const { return PCGExData::EIOInit::Duplicate; }
 
 int32 UPCGExSampleNearestBoundsSettings::GetPreferredChunkSize() const { return PCGExMT::GAsyncLoop_L; }
 

@@ -19,7 +19,7 @@ void UPCGExSplitPathSettings::PostEditChangeProperty(FPropertyChangedEvent& Prop
 }
 #endif
 
-PCGExData::EIOInit UPCGExSplitPathSettings::GetMainOutputInitMode() const { return PCGExData::EIOInit::NoOutput; }
+PCGExData::EIOInit UPCGExSplitPathSettings::GetMainOutputInitMode() const { return PCGExData::EIOInit::None; }
 
 PCGEX_INITIALIZE_ELEMENT(SplitPath)
 
@@ -166,7 +166,7 @@ namespace PCGExSplitPath
 		if (NumPathPoints == 1 && Settings->bOmitSinglePointOutputs) { return; }
 
 		const TSharedPtr<PCGExData::FPointIO> PathIO = NewPointIO(PointDataFacade->Source);
-		PathIO->InitializeOutput(PCGExData::EIOInit::NewOutput);
+		PathIO->InitializeOutput(PCGExData::EIOInit::New);
 		PathsIOs[Iteration] = PathIO;
 
 		const TArray<FPCGPoint>& OriginalPoints = PointDataFacade->GetIn()->GetPoints();

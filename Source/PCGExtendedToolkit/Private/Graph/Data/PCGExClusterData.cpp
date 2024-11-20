@@ -57,8 +57,8 @@ void UPCGExClusterEdgesData::InitializeFromPCGExData(const UPCGExPointData* InPC
 	{
 		if (GetDefault<UPCGExGlobalSettings>()->bCacheClusters)
 		{
-			if (InitMode != PCGExData::EIOInit::NoOutput &&
-				InitMode != PCGExData::EIOInit::NewOutput)
+			if (InitMode != PCGExData::EIOInit::None &&
+				InitMode != PCGExData::EIOInit::New)
 			{
 				SetBoundCluster(InEdgeData->Cluster);
 			}
