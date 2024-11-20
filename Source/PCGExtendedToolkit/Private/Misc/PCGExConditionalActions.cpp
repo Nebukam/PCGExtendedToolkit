@@ -12,7 +12,7 @@
 
 int32 UPCGExConditionalActionsSettings::GetPreferredChunkSize() const { return PCGExMT::GAsyncLoop_M; }
 
-PCGExData::EIOInit UPCGExConditionalActionsSettings::GetMainOutputInitMode() const { return PCGExData::EIOInit::DuplicateInput; }
+PCGExData::EIOInit UPCGExConditionalActionsSettings::GetMainOutputInitMode() const { return PCGExData::EIOInit::Duplicate; }
 
 TArray<FPCGPinProperties> UPCGExConditionalActionsSettings::InputPinProperties() const
 {

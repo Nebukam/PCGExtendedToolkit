@@ -12,18 +12,6 @@
 
 #include "PCGExOperation.generated.h"
 
-#define PCGEX_OVERRIDE_OPERATION_PROPERTY(_ACCESSOR, _NAME) { using T = decltype(_ACCESSOR); T OutValue = T{}; if(GetOverrideValue<T>(FName(TEXT(_NAME)), OutValue)){ _ACCESSOR = OutValue; }}
-#define PCGEX_OVERRIDE_OPERATION_PROPERTY_SELECTOR(_ACCESSOR, _NAME)\
-{\
-	FString OutValue = TEXT("");\
-	if (GetOverrideValue<FString>(FName(TEXT(_NAME)), OutValue))\
-	{\
-		FPCGAttributePropertyInputSelector NewSelector = FPCGAttributePropertyInputSelector();\
-		NewSelector.Update(OutValue);\
-		_ACCESSOR = NewSelector;\
-	}\
-}
-
 namespace PCGExMT
 {
 	class FTaskManager;
@@ -70,23 +58,6 @@ protected:
 	TMap<FName, FPCGMetadataAttributeBase*> PossibleOverrides;
 
 	void ApplyOverrides();
-
-	template <typename T>
-	bool GetOverrideValue(const FName Name, T& OutValue)
-	{
-		FPCGMetadataAttributeBase** Att = PossibleOverrides.Find(Name);
-		if (!Att) { return false; }
-
-		PCGMetadataAttribute::CallbackWithRightType(
-			static_cast<uint16>((*Att)->GetTypeId()), [&](auto DummyValue)
-			{
-				using RawT = decltype(DummyValue);
-				FPCGMetadataAttribute<RawT>* TypedAttribute = static_cast<FPCGMetadataAttribute<RawT>*>(*Att);
-				OutValue = PCGEx::Broadcast<T>(TypedAttribute->GetValue(PCGDefaultValueKey));
-			});
-
-		return true;
-	}
 
 	//~End UPCGExOperation interface
 };

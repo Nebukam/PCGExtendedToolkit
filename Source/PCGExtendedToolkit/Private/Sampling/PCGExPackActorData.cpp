@@ -111,7 +111,7 @@ TArray<FPCGPinProperties> UPCGExPackActorDataSettings::OutputPinProperties() con
 	return PinProperties;
 }
 
-PCGExData::EIOInit UPCGExPackActorDataSettings::GetMainOutputInitMode() const { return PCGExData::EIOInit::DuplicateInput; }
+PCGExData::EIOInit UPCGExPackActorDataSettings::GetMainOutputInitMode() const { return PCGExData::EIOInit::Duplicate; }
 
 int32 UPCGExPackActorDataSettings::GetPreferredChunkSize() const { return PCGExMT::GAsyncLoop_L; }
 

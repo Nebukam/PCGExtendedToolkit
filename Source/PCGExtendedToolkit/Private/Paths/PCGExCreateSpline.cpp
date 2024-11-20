@@ -9,7 +9,7 @@
 #define LOCTEXT_NAMESPACE "PCGExCreateSplineElement"
 #define PCGEX_NAMESPACE CreateSpline
 
-PCGExData::EIOInit UPCGExCreateSplineSettings::GetMainOutputInitMode() const { return PCGExData::EIOInit::NoOutput; }
+PCGExData::EIOInit UPCGExCreateSplineSettings::GetMainOutputInitMode() const { return PCGExData::EIOInit::None; }
 
 PCGEX_INITIALIZE_ELEMENT(CreateSpline)
 

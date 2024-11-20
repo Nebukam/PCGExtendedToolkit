@@ -9,7 +9,7 @@
 #define LOCTEXT_NAMESPACE "PCGExMovePivotElement"
 #define PCGEX_NAMESPACE MovePivot
 
-PCGExData::EIOInit UPCGExMovePivotSettings::GetMainOutputInitMode() const { return PCGExData::EIOInit::DuplicateInput; }
+PCGExData::EIOInit UPCGExMovePivotSettings::GetMainOutputInitMode() const { return PCGExData::EIOInit::Duplicate; }
 
 PCGEX_INITIALIZE_ELEMENT(MovePivot)
 

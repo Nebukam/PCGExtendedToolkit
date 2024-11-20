@@ -107,7 +107,7 @@ void UPCGExPartitionByValuesSettings::PostEditChangeProperty(FPropertyChangedEve
 bool UPCGExPartitionByValuesBaseSettings::GetMainAcceptMultipleData() const { return false; }
 
 
-PCGExData::EIOInit UPCGExPartitionByValuesBaseSettings::GetMainOutputInitMode() const { return bSplitOutput ? PCGExData::EIOInit::NoOutput : PCGExData::EIOInit::DuplicateInput; }
+PCGExData::EIOInit UPCGExPartitionByValuesBaseSettings::GetMainOutputInitMode() const { return bSplitOutput ? PCGExData::EIOInit::None : PCGExData::EIOInit::Duplicate; }
 
 bool UPCGExPartitionByValuesBaseSettings::GetPartitionRules(FPCGExContext* InContext, TArray<FPCGExPartitonRuleConfig>& OutRules) const
 {
@@ -307,7 +307,7 @@ namespace PCGExPartitionByValues
 			for (int i = 0; i < Partitions.Num(); i++)
 			{
 				Partitions[i]->IOIndex = InsertOffset + i;
-				Context->MainPoints->Emplace_GetRef(PointDataFacade->Source, PCGExData::EIOInit::NewOutput);
+				Context->MainPoints->Emplace_GetRef(PointDataFacade->Source, PCGExData::EIOInit::New);
 				SumPts += Partitions[i]->Points.Num();
 			}
 

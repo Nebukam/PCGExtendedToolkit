@@ -32,7 +32,7 @@ namespace PCGExData
 
 		bMutable = false;
 
-		if (InitOut == EIOInit::NoOutput)
+		if (InitOut == EIOInit::None)
 		{
 			Out = nullptr;
 			return;
@@ -47,7 +47,7 @@ namespace PCGExData
 
 		bMutable = true;
 
-		if (InitOut == EIOInit::NewOutput)
+		if (InitOut == EIOInit::New)
 		{
 			if (In)
 			{
@@ -64,7 +64,7 @@ namespace PCGExData
 
 				if (TypedInPointData && TypedOutPointData)
 				{
-					TypedOutPointData->InitializeFromPCGExData(TypedInPointData, EIOInit::NewOutput);
+					TypedOutPointData->InitializeFromPCGExData(TypedInPointData, EIOInit::New);
 				}
 			}
 			else
@@ -75,7 +75,7 @@ namespace PCGExData
 			return;
 		}
 
-		if (InitOut == EIOInit::DuplicateInput)
+		if (InitOut == EIOInit::Duplicate)
 		{
 			check(In)
 			Out = Context->ManagedObjects->Duplicate<UPCGPointData>(In);

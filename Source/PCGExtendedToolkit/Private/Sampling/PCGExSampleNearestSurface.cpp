@@ -18,7 +18,7 @@ TArray<FPCGPinProperties> UPCGExSampleNearestSurfaceSettings::InputPinProperties
 	return PinProperties;
 }
 
-PCGExData::EIOInit UPCGExSampleNearestSurfaceSettings::GetMainOutputInitMode() const { return PCGExData::EIOInit::DuplicateInput; }
+PCGExData::EIOInit UPCGExSampleNearestSurfaceSettings::GetMainOutputInitMode() const { return PCGExData::EIOInit::Duplicate; }
 
 int32 UPCGExSampleNearestSurfaceSettings::GetPreferredChunkSize() const { return PCGExMT::GAsyncLoop_L; }
 

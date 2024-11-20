@@ -11,7 +11,7 @@
 
 PCGEX_INITIALIZE_ELEMENT(PathSplineMeshSimple)
 
-PCGExData::EIOInit UPCGExPathSplineMeshSimpleSettings::GetMainOutputInitMode() const { return PCGExData::EIOInit::DuplicateInput; }
+PCGExData::EIOInit UPCGExPathSplineMeshSimpleSettings::GetMainOutputInitMode() const { return PCGExData::EIOInit::Duplicate; }
 
 bool FPCGExPathSplineMeshSimpleElement::Boot(FPCGExContext* InContext) const
 {

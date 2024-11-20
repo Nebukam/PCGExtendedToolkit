@@ -64,7 +64,7 @@ TArray<FPCGPinProperties> UPCGExSampleInsideBoundsSettings::InputPinProperties()
 	return PinProperties;
 }
 
-PCGExData::EIOInit UPCGExSampleInsideBoundsSettings::GetMainOutputInitMode() const { return PCGExData::EIOInit::DuplicateInput; }
+PCGExData::EIOInit UPCGExSampleInsideBoundsSettings::GetMainOutputInitMode() const { return PCGExData::EIOInit::Duplicate; }
 
 int32 UPCGExSampleInsideBoundsSettings::GetPreferredChunkSize() const { return PCGExMT::GAsyncLoop_L; }
 

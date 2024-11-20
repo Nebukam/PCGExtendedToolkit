@@ -7,7 +7,7 @@
 #define LOCTEXT_NAMESPACE "PCGExCherryPickPointsElement"
 #define PCGEX_NAMESPACE CherryPickPoints
 
-PCGExData::EIOInit UPCGExCherryPickPointsSettings::GetMainOutputInitMode() const { return PCGExData::EIOInit::NoOutput; }
+PCGExData::EIOInit UPCGExCherryPickPointsSettings::GetMainOutputInitMode() const { return PCGExData::EIOInit::None; }
 
 PCGEX_INITIALIZE_ELEMENT(CherryPickPoints)
 
@@ -133,7 +133,7 @@ namespace PCGExCherryPickPoints
 
 	void FProcessor::CompleteWork()
 	{
-		PointDataFacade->Source->InitializeOutput(PCGExData::EIOInit::NewOutput);
+		PointDataFacade->Source->InitializeOutput(PCGExData::EIOInit::New);
 		const TArray<FPCGPoint>& PickablePoints = PointDataFacade->GetIn()->GetPoints();
 		TArray<FPCGPoint>& MutablePoints = PointDataFacade->GetOut()->GetMutablePoints();
 

@@ -23,7 +23,7 @@ TArray<FPCGPinProperties> UPCGExPathSplineMeshSettings::InputPinProperties() con
 	return PinProperties;
 }
 
-PCGExData::EIOInit UPCGExPathSplineMeshSettings::GetMainOutputInitMode() const { return PCGExData::EIOInit::DuplicateInput; }
+PCGExData::EIOInit UPCGExPathSplineMeshSettings::GetMainOutputInitMode() const { return PCGExData::EIOInit::Duplicate; }
 
 bool FPCGExPathSplineMeshElement::Boot(FPCGExContext* InContext) const
 {
@@ -276,6 +276,7 @@ namespace PCGExPathSplineMesh
 		}
 
 		const FPCGExMeshCollectionEntry* MeshEntry = nullptr;
+		const UPCGExAssetCollection* EntryHost = nullptr;
 
 		const int32 Seed = PCGExRandom::GetSeedFromPoint(
 			Helper->Details.SeedComponents, Point,
@@ -285,8 +286,8 @@ namespace PCGExPathSplineMesh
 		Segments[Index] = PCGExPaths::FSplineMeshSegment();
 		PCGExPaths::FSplineMeshSegment& Segment = Segments[Index];
 
-		if (bUseTags) { Helper->GetEntry(MeshEntry, Index, Seed, Settings->TaggingDetails.GrabTags, Segment.Tags); }
-		else { Helper->GetEntry(MeshEntry, Index, Seed); }
+		if (bUseTags) { Helper->GetEntry(MeshEntry, Index, Seed, Settings->TaggingDetails.GrabTags, Segment.Tags, EntryHost); }
+		else { Helper->GetEntry(MeshEntry, Index, Seed, EntryHost); }
 
 		Segment.MeshEntry = MeshEntry;
 

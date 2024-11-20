@@ -7,7 +7,7 @@
 #define LOCTEXT_NAMESPACE "PCGExFlatProjectionElement"
 #define PCGEX_NAMESPACE FlatProjection
 
-PCGExData::EIOInit UPCGExFlatProjectionSettings::GetMainOutputInitMode() const { return PCGExData::EIOInit::DuplicateInput; }
+PCGExData::EIOInit UPCGExFlatProjectionSettings::GetMainOutputInitMode() const { return PCGExData::EIOInit::Duplicate; }
 
 PCGEX_INITIALIZE_ELEMENT(FlatProjection)
 

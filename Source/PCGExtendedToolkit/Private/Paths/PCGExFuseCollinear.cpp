@@ -6,7 +6,7 @@
 #define LOCTEXT_NAMESPACE "PCGExFuseCollinearElement"
 #define PCGEX_NAMESPACE FuseCollinear
 
-PCGExData::EIOInit UPCGExFuseCollinearSettings::GetMainOutputInitMode() const { return PCGExData::EIOInit::NoOutput; }
+PCGExData::EIOInit UPCGExFuseCollinearSettings::GetMainOutputInitMode() const { return PCGExData::EIOInit::None; }
 
 PCGEX_INITIALIZE_ELEMENT(FuseCollinear)
 
@@ -79,7 +79,7 @@ namespace PCGExFuseCollinear
 			PointDataFacade->Source->GetIn()->GetPoints(), 0,
 			Context->ClosedLoop.IsClosedLoop(PointDataFacade->Source));
 
-		PointDataFacade->Source->InitializeOutput(PCGExData::EIOInit::NewOutput);
+		PointDataFacade->Source->InitializeOutput(PCGExData::EIOInit::New);
 
 		const TArray<FPCGPoint>& InPoints = PointDataFacade->GetIn()->GetPoints();
 		OutPoints = &PointDataFacade->GetOut()->GetMutablePoints();
@@ -149,7 +149,7 @@ namespace PCGExFuseCollinear
 		OutPoints->Shrink();
 		if (Settings->bOmitInvalidPathsFromOutput && OutPoints->Num() < 2)
 		{
-			PointDataFacade->Source->InitializeOutput(PCGExData::EIOInit::NoOutput);
+			PointDataFacade->Source->InitializeOutput(PCGExData::EIOInit::None);
 		}
 	}
 }

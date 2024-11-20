@@ -12,7 +12,7 @@
 
 int32 UPCGExFlagNodesSettings::GetPreferredChunkSize() const { return PCGExMT::GAsyncLoop_M; }
 
-PCGExData::EIOInit UPCGExFlagNodesSettings::GetMainOutputInitMode() const { return PCGExData::EIOInit::DuplicateInput; }
+PCGExData::EIOInit UPCGExFlagNodesSettings::GetMainOutputInitMode() const { return PCGExData::EIOInit::Duplicate; }
 PCGExData::EIOInit UPCGExFlagNodesSettings::GetEdgeOutputInitMode() const { return PCGExData::EIOInit::Forward; }
 
 TArray<FPCGPinProperties> UPCGExFlagNodesSettings::InputPinProperties() const

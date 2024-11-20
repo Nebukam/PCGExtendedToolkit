@@ -15,7 +15,7 @@ TArray<FPCGPinProperties> UPCGExBoundsPathIntersectionSettings::InputPinProperti
 	return PinProperties;
 }
 
-PCGExData::EIOInit UPCGExBoundsPathIntersectionSettings::GetMainOutputInitMode() const { return PCGExData::EIOInit::NoOutput; }
+PCGExData::EIOInit UPCGExBoundsPathIntersectionSettings::GetMainOutputInitMode() const { return PCGExData::EIOInit::None; }
 
 PCGEX_INITIALIZE_ELEMENT(BoundsPathIntersection)
 
@@ -51,11 +51,11 @@ bool FPCGExBoundsPathIntersectionElement::ExecuteInternal(FPCGContext* InContext
 			{
 				if (Entry->GetNum() < 2)
 				{
-					if (!Settings->bOmitSinglePointOutputs)
+					if (!Settings->bOmitInvalidPathsOutputs)
 					{
 						if (bWritesAny)
 						{
-							Entry->InitializeOutput(PCGExData::EIOInit::DuplicateInput);
+							Entry->InitializeOutput(PCGExData::EIOInit::Duplicate);
 							Settings->OutputSettings.Mark(Entry.ToSharedRef());
 						}
 						else
@@ -63,7 +63,8 @@ bool FPCGExBoundsPathIntersectionElement::ExecuteInternal(FPCGContext* InContext
 							Entry->InitializeOutput(PCGExData::EIOInit::Forward);
 						}
 					}
-					else { bHasInvalidInputs = true; }
+
+					bHasInvalidInputs = true;
 					return false;
 				}
 				return true;
@@ -175,7 +176,7 @@ namespace PCGExPathIntersections
 		{
 			if (Settings->OutputSettings.WillWriteAny())
 			{
-				PointDataFacade->Source->InitializeOutput(PCGExData::EIOInit::DuplicateInput);
+				PointDataFacade->Source->InitializeOutput(PCGExData::EIOInit::Duplicate);
 
 				Details.Mark(PointDataFacade->Source);
 				Details.Init(PointDataFacade, Context->BoundsDataFacade);
@@ -190,7 +191,7 @@ namespace PCGExPathIntersections
 			return;
 		}
 
-		PointDataFacade->Source->InitializeOutput(PCGExData::EIOInit::NewOutput);
+		PointDataFacade->Source->InitializeOutput(PCGExData::EIOInit::New);
 		const TArray<FPCGPoint>& OriginalPoints = PointDataFacade->GetIn()->GetPoints();
 		TArray<FPCGPoint>& MutablePoints = PointDataFacade->GetOut()->GetMutablePoints();
 

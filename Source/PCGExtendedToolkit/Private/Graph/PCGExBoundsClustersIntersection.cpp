@@ -15,8 +15,8 @@ TArray<FPCGPinProperties> UPCGExBoundsClustersIntersectionSettings::InputPinProp
 	return PinProperties;
 }
 
-PCGExData::EIOInit UPCGExBoundsClustersIntersectionSettings::GetMainOutputInitMode() const { return PCGExData::EIOInit::DuplicateInput; }
-PCGExData::EIOInit UPCGExBoundsClustersIntersectionSettings::GetEdgeOutputInitMode() const { return PCGExData::EIOInit::DuplicateInput; }
+PCGExData::EIOInit UPCGExBoundsClustersIntersectionSettings::GetMainOutputInitMode() const { return PCGExData::EIOInit::Duplicate; }
+PCGExData::EIOInit UPCGExBoundsClustersIntersectionSettings::GetEdgeOutputInitMode() const { return PCGExData::EIOInit::Duplicate; }
 
 #pragma endregion
 

@@ -19,9 +19,9 @@ namespace PCGExData
 {
 	enum class EIOInit : uint8
 	{
-		NoOutput UMETA(DisplayName = "No Output"),
-		NewOutput UMETA(DisplayName = "Create Empty Output Object"),
-		DuplicateInput UMETA(DisplayName = "Duplicate Input Object"),
+		None UMETA(DisplayName = "No Output"),
+		New UMETA(DisplayName = "Create Empty Output Object"),
+		Duplicate UMETA(DisplayName = "Duplicate Input Object"),
 		Forward UMETA(DisplayName = "Forward Input Object")
 	};
 
@@ -125,16 +125,16 @@ namespace PCGExData
 		              const FName InOutputPin,
 		              const TSet<FString>* InTags = nullptr);
 
-		void InitializeOutput(EIOInit InitOut = EIOInit::NoOutput);
+		void InitializeOutput(EIOInit InitOut = EIOInit::None);
 
 		template <typename T>
-		void InitializeOutput(const EIOInit InitOut = EIOInit::NoOutput)
+		void InitializeOutput(const EIOInit InitOut = EIOInit::None)
 		{
 			if (Out && Out != In) { Context->ManagedObjects->Destroy(Out); }
 
 			bMutable = true;
 
-			if (InitOut == EIOInit::NewOutput)
+			if (InitOut == EIOInit::New)
 			{
 				T* TypedOut = Context->ManagedObjects->New<T>();
 
@@ -144,12 +144,12 @@ namespace PCGExData
 				if (In) { Out->InitializeFromData(In); }
 				const UPCGExPointData* TypedPointData = Cast<UPCGExPointData>(In);
 				UPCGExPointData* TypedOutPointData = Cast<UPCGExPointData>(TypedOut);
-				if (TypedPointData && TypedOutPointData) { TypedOutPointData->InitializeFromPCGExData(TypedPointData, EIOInit::NewOutput); }
+				if (TypedPointData && TypedOutPointData) { TypedOutPointData->InitializeFromPCGExData(TypedPointData, EIOInit::New); }
 
 				return;
 			}
 
-			if (InitOut == EIOInit::DuplicateInput)
+			if (InitOut == EIOInit::Duplicate)
 			{
 				check(In)
 				const T* TypedIn = Cast<T>(In);
@@ -327,8 +327,8 @@ namespace PCGExData
 
 	public:
 		explicit FPointIOCollection(FPCGExContext* InContext);
-		FPointIOCollection(FPCGExContext* InContext, FName InputLabel, EIOInit InitOut = EIOInit::NoOutput);
-		FPointIOCollection(FPCGExContext* InContext, TArray<FPCGTaggedData>& Sources, EIOInit InitOut = EIOInit::NoOutput);
+		FPointIOCollection(FPCGExContext* InContext, FName InputLabel, EIOInit InitOut = EIOInit::None);
+		FPointIOCollection(FPCGExContext* InContext, TArray<FPCGTaggedData>& Sources, EIOInit InitOut = EIOInit::None);
 
 		~FPointIOCollection();
 
@@ -342,18 +342,18 @@ namespace PCGExData
 		 */
 		void Initialize(
 			TArray<FPCGTaggedData>& Sources,
-			EIOInit InitOut = EIOInit::NoOutput);
+			EIOInit InitOut = EIOInit::None);
 
-		TSharedPtr<FPointIO> Emplace_GetRef(const UPCGPointData* In, const EIOInit InitOut = EIOInit::NoOutput, const TSet<FString>* Tags = nullptr);
-		TSharedPtr<FPointIO> Emplace_GetRef(EIOInit InitOut = EIOInit::NewOutput);
-		TSharedPtr<FPointIO> Emplace_GetRef(const TSharedPtr<FPointIO>& PointIO, const EIOInit InitOut = EIOInit::NoOutput);
+		TSharedPtr<FPointIO> Emplace_GetRef(const UPCGPointData* In, const EIOInit InitOut = EIOInit::None, const TSet<FString>* Tags = nullptr);
+		TSharedPtr<FPointIO> Emplace_GetRef(EIOInit InitOut = EIOInit::New);
+		TSharedPtr<FPointIO> Emplace_GetRef(const TSharedPtr<FPointIO>& PointIO, const EIOInit InitOut = EIOInit::None);
 		TSharedPtr<FPointIO> InsertUnsafe(const int32 Index, const TSharedPtr<FPointIO>& PointIO);
 		TSharedPtr<FPointIO> AddUnsafe(const TSharedPtr<FPointIO>& PointIO);
 		void AddUnsafe(const TArray<TSharedPtr<FPointIO>>& IOs);
 
 
 		template <typename T>
-		TSharedPtr<FPointIO> Emplace_GetRef(const UPCGPointData* In, const EIOInit InitOut = EIOInit::NoOutput, const TSet<FString>* Tags = nullptr)
+		TSharedPtr<FPointIO> Emplace_GetRef(const UPCGPointData* In, const EIOInit InitOut = EIOInit::None, const TSet<FString>* Tags = nullptr)
 		{
 			FWriteScopeLock WriteLock(PairsLock);
 			TSharedPtr<FPointIO> NewIO = Pairs.Add_GetRef(MakeShared<FPointIO>(Context, In));
@@ -363,7 +363,7 @@ namespace PCGExData
 		}
 
 		template <typename T>
-		TSharedPtr<FPointIO> Emplace_GetRef(const EIOInit InitOut = EIOInit::NewOutput)
+		TSharedPtr<FPointIO> Emplace_GetRef(const EIOInit InitOut = EIOInit::New)
 		{
 			FWriteScopeLock WriteLock(PairsLock);
 			TSharedPtr<FPointIO> NewIO = Pairs.Add_GetRef(MakeShared<FPointIO>(Context));
@@ -373,7 +373,7 @@ namespace PCGExData
 		}
 
 		template <typename T>
-		TSharedPtr<FPointIO> Emplace_GetRef(const TSharedPtr<FPointIO>& PointIO, const EIOInit InitOut = EIOInit::NoOutput)
+		TSharedPtr<FPointIO> Emplace_GetRef(const TSharedPtr<FPointIO>& PointIO, const EIOInit InitOut = EIOInit::None)
 		{
 			TSharedPtr<FPointIO> Branch = Emplace_GetRef<T>(PointIO->GetIn(), InitOut);
 			Branch->Tags->Reset(PointIO->Tags);

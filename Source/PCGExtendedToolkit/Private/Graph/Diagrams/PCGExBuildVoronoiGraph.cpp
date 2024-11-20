@@ -19,7 +19,7 @@ namespace PCGExGeoTask
 	class FLloydRelax3;
 }
 
-PCGExData::EIOInit UPCGExBuildVoronoiGraphSettings::GetMainOutputInitMode() const { return PCGExData::EIOInit::NoOutput; }
+PCGExData::EIOInit UPCGExBuildVoronoiGraphSettings::GetMainOutputInitMode() const { return PCGExData::EIOInit::None; }
 
 TArray<FPCGPinProperties> UPCGExBuildVoronoiGraphSettings::OutputPinProperties() const
 {
@@ -65,7 +65,7 @@ bool FPCGExBuildVoronoiGraphElement::ExecuteInternal(
 					return false;
 				}
 
-				Context->SitesOutput->Emplace_GetRef(Entry, PCGExData::EIOInit::NewOutput);
+				Context->SitesOutput->Emplace_GetRef(Entry, PCGExData::EIOInit::New);
 				return true;
 			},
 			[&](const TSharedPtr<PCGExPointsMT::TBatch<PCGExBuildVoronoi::FProcessor>>& NewBatch)
@@ -126,7 +126,7 @@ namespace PCGExBuildVoronoi
 
 		ActivePositions.Empty();
 
-		PointDataFacade->Source->InitializeOutput<UPCGExClusterNodesData>(PCGExData::EIOInit::NewOutput);
+		PointDataFacade->Source->InitializeOutput<UPCGExClusterNodesData>(PCGExData::EIOInit::New);
 		const FBox Bounds = PointDataFacade->Source->GetIn()->GetBounds().ExpandBy(Settings->ExpandBounds);
 
 		if (Settings->Method == EPCGExCellCenter::Circumcenter && Settings->bPruneOutOfBounds)
@@ -228,7 +228,7 @@ namespace PCGExBuildVoronoi
 		if (!GraphBuilder->bCompiledSuccessfully)
 		{
 			bIsProcessorValid = false;
-			PointDataFacade->Source->InitializeOutput(PCGExData::EIOInit::NoOutput);
+			PointDataFacade->Source->InitializeOutput(PCGExData::EIOInit::None);
 			return;
 		}
 

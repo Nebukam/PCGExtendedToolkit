@@ -8,8 +8,8 @@
 #define LOCTEXT_NAMESPACE "PCGExPickClosestClusters"
 #define PCGEX_NAMESPACE PickClosestClusters
 
-PCGExData::EIOInit UPCGExPickClosestClustersSettings::GetEdgeOutputInitMode() const { return PCGExData::EIOInit::NoOutput; }
-PCGExData::EIOInit UPCGExPickClosestClustersSettings::GetMainOutputInitMode() const { return PCGExData::EIOInit::NoOutput; }
+PCGExData::EIOInit UPCGExPickClosestClustersSettings::GetEdgeOutputInitMode() const { return PCGExData::EIOInit::None; }
+PCGExData::EIOInit UPCGExPickClosestClustersSettings::GetMainOutputInitMode() const { return PCGExData::EIOInit::None; }
 
 TArray<FPCGPinProperties> UPCGExPickClosestClustersSettings::InputPinProperties() const
 {
@@ -231,8 +231,8 @@ namespace PCGExPickClosestClusters
 		}
 		else
 		{
-			EdgeDataFacade->Source->InitializeOutput(PCGExData::EIOInit::DuplicateInput);
-			if (!VtxDataFacade->Source->GetOut()) { VtxDataFacade->Source->InitializeOutput(PCGExData::EIOInit::DuplicateInput); }
+			EdgeDataFacade->Source->InitializeOutput(PCGExData::EIOInit::Duplicate);
+			if (!VtxDataFacade->Source->GetOut()) { VtxDataFacade->Source->InitializeOutput(PCGExData::EIOInit::Duplicate); }
 
 			Context->TargetForwardHandler->Forward(Picker, EdgeDataFacade);
 			Context->TargetForwardHandler->Forward(Picker, VtxDataFacade);

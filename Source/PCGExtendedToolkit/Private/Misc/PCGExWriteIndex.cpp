@@ -7,7 +7,7 @@
 #define LOCTEXT_NAMESPACE "PCGExWriteIndexElement"
 #define PCGEX_NAMESPACE WriteIndex
 
-PCGExData::EIOInit UPCGExWriteIndexSettings::GetMainOutputInitMode() const { return PCGExData::EIOInit::DuplicateInput; }
+PCGExData::EIOInit UPCGExWriteIndexSettings::GetMainOutputInitMode() const { return PCGExData::EIOInit::Duplicate; }
 
 PCGEX_INITIALIZE_ELEMENT(WriteIndex)
 

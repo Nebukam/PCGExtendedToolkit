@@ -662,7 +662,3 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExTransformDetails : public FPCGExFittingD
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayAfter="bInheritScale"))
 	bool bInheritRotation = false;
 };
-
-namespace PCGExGeo
-{
-}

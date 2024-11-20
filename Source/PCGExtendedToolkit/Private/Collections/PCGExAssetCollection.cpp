@@ -47,8 +47,9 @@ bool FPCGExAssetCollectionEntry::Validate(const UPCGExAssetCollection* ParentCol
 	return true;
 }
 
-void FPCGExAssetCollectionEntry::UpdateStaging(const UPCGExAssetCollection* OwningCollection, const bool bRecursive)
+void FPCGExAssetCollectionEntry::UpdateStaging(const UPCGExAssetCollection* OwningCollection, const int32 InInternalIndex, const bool bRecursive)
 {
+	Staging.InternalIndex = InInternalIndex;
 	if (bIsSubCollection) { Staging.Bounds = FBox(ForceInitToZero); }
 }
 

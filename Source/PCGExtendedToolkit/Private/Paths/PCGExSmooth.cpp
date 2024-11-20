@@ -11,7 +11,7 @@
 #define LOCTEXT_NAMESPACE "PCGExSmoothElement"
 #define PCGEX_NAMESPACE Smooth
 
-PCGExData::EIOInit UPCGExSmoothSettings::GetMainOutputInitMode() const { return PCGExData::EIOInit::DuplicateInput; }
+PCGExData::EIOInit UPCGExSmoothSettings::GetMainOutputInitMode() const { return PCGExData::EIOInit::Duplicate; }
 
 TArray<FPCGPinProperties> UPCGExSmoothSettings::InputPinProperties() const
 {

@@ -147,6 +147,18 @@ namespace PCGEx
 
 	static bool IsValidName(const FName Name) { return FPCGMetadataAttributeBase::IsValidName(Name) && !Name.IsNone(); }
 
+	static FString StringTagFromName(const FName Name)
+	{
+		if (Name.IsNone()) { return TEXT(""); }
+		return Name.ToString().TrimStartAndEnd();
+	}
+
+	static bool IsValidStringTag(const FString& Tag)
+	{
+		if (Tag.TrimStartAndEnd().IsEmpty()) { return false; }
+		return true;
+	}
+
 	FORCEINLINE double TruncateDbl(const double Value, const EPCGExTruncateMode Mode)
 	{
 		switch (Mode)

@@ -16,7 +16,7 @@ UPCGExBlendPathSettings::UPCGExBlendPathSettings(
 	bSupportClosedLoops = false;
 }
 
-PCGExData::EIOInit UPCGExBlendPathSettings::GetMainOutputInitMode() const { return PCGExData::EIOInit::DuplicateInput; }
+PCGExData::EIOInit UPCGExBlendPathSettings::GetMainOutputInitMode() const { return PCGExData::EIOInit::None; }
 
 PCGEX_INITIALIZE_ELEMENT(BlendPath)
 
@@ -46,10 +46,12 @@ bool FPCGExBlendPathElement::ExecuteInternal(FPCGContext* InContext) const
 			{
 				if (Entry->GetNum() < 2)
 				{
+					if (!Settings->bOmitInvalidPathsOutputs) { Entry->InitializeOutput(PCGExData::EIOInit::Forward); }
 					bHasInvalidInputs = true;
-					Entry->InitializeOutput(PCGExData::EIOInit::Forward);
 					return false;
 				}
+
+				Entry->InitializeOutput(PCGExData::EIOInit::Duplicate);
 				return true;
 			},
 			[&](const TSharedPtr<PCGExPointsMT::TBatch<PCGExBlendPath::FProcessor>>& NewBatch)

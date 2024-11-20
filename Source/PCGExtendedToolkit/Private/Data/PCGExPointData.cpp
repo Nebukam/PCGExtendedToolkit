@@ -12,7 +12,7 @@ void UPCGExPointData::CopyFrom(const UPCGPointData* InPointData)
 	InitializeFromData(InPointData);
 	if (const UPCGExPointData* TypedData = Cast<UPCGExPointData>(InPointData))
 	{
-		InitializeFromPCGExData(TypedData, PCGExData::EIOInit::DuplicateInput);
+		InitializeFromPCGExData(TypedData, PCGExData::EIOInit::Duplicate);
 	}
 }
 

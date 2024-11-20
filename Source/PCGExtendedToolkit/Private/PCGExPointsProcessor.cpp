@@ -41,7 +41,7 @@ TArray<FPCGPinProperties> UPCGExPointsProcessorSettings::OutputPinProperties() c
 	return PinProperties;
 }
 
-PCGExData::EIOInit UPCGExPointsProcessorSettings::GetMainOutputInitMode() const { return PCGExData::EIOInit::NewOutput; }
+PCGExData::EIOInit UPCGExPointsProcessorSettings::GetMainOutputInitMode() const { return PCGExData::EIOInit::New; }
 
 FPCGExPointsProcessorContext::~FPCGExPointsProcessorContext()
 {

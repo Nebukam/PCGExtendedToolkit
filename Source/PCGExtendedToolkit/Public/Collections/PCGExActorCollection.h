@@ -43,7 +43,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExActorCollectionEntry : public FPCGExAsse
 	}
 
 	virtual bool Validate(const UPCGExAssetCollection* ParentCollection) override;
-	virtual void UpdateStaging(const UPCGExAssetCollection* OwningCollection, const bool bRecursive) override;
+	virtual void UpdateStaging(const UPCGExAssetCollection* OwningCollection, int32 InInternalIndex, const bool bRecursive) override;
 	virtual void SetAssetPath(const FSoftObjectPath& InPath) override;
 
 protected:

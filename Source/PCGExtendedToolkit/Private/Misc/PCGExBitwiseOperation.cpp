@@ -9,7 +9,7 @@
 #define LOCTEXT_NAMESPACE "PCGExBitwiseOperationElement"
 #define PCGEX_NAMESPACE BitwiseOperation
 
-PCGExData::EIOInit UPCGExBitwiseOperationSettings::GetMainOutputInitMode() const { return PCGExData::EIOInit::DuplicateInput; }
+PCGExData::EIOInit UPCGExBitwiseOperationSettings::GetMainOutputInitMode() const { return PCGExData::EIOInit::Duplicate; }
 
 PCGEX_INITIALIZE_ELEMENT(BitwiseOperation)
 

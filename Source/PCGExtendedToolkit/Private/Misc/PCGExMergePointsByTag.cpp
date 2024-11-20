@@ -19,7 +19,7 @@ namespace PCPGExMergePointsByTag
 		if (IOs.IsEmpty()) { return; }
 
 		const TSharedPtr<PCGExData::FPointIO> CompositeIO = IOs[0];
-		CompositeIO->InitializeOutput(PCGExData::EIOInit::NewOutput);
+		CompositeIO->InitializeOutput(PCGExData::EIOInit::New);
 
 		CompositeIODataFacade = MakeShared<PCGExData::FFacade>(CompositeIO.ToSharedRef());
 
@@ -208,7 +208,7 @@ namespace PCPGExMergePointsByTag
 	}
 }
 
-PCGExData::EIOInit UPCGExMergePointsByTagSettings::GetMainOutputInitMode() const { return PCGExData::EIOInit::NoOutput; }
+PCGExData::EIOInit UPCGExMergePointsByTagSettings::GetMainOutputInitMode() const { return PCGExData::EIOInit::None; }
 
 PCGEX_INITIALIZE_ELEMENT(MergePointsByTag)
 
