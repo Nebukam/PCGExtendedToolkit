@@ -1144,8 +1144,8 @@ namespace PCGExMath
 	// Expects normalized vectors
 	FORCEINLINE static double GetRadiansBetweenVectors(const FVector& A, const FVector& B, const FVector& UpVector = FVector::UpVector)
 	{
-		const double Angle = FMath::Acos(FMath::Clamp(FVector::DotProduct(A, B), -1.0f, 1.0f));
-		return FVector::DotProduct(FVector::CrossProduct(A, B), UpVector) < 0.0f ? -Angle : Angle;
+		double Radians = FMath::Acos(FVector::DotProduct(A, B));
+		return FVector::CrossProduct(A, B).Z < 0 ? TWO_PI - Radians : Radians;
 	}
 
 	FORCEINLINE static double GetDegreesBetweenVectors(const FVector& A, const FVector& B, const FVector& UpVector = FVector::UpVector)

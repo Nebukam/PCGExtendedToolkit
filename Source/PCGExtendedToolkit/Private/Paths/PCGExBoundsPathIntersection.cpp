@@ -27,10 +27,8 @@ bool FPCGExBoundsPathIntersectionElement::Boot(FPCGExContext* InContext) const
 
 	if (!Settings->OutputSettings.Validate(Context)) { return false; }
 
-	const TSharedPtr<PCGExData::FPointIO> BoundsIO = PCGExData::TryGetSingleInput(InContext, PCGEx::SourceBoundsLabel, true);
-	if (!BoundsIO) { return false; }
-
-	Context->BoundsDataFacade = MakeShared<PCGExData::FFacade>(BoundsIO.ToSharedRef());
+	Context->BoundsDataFacade = PCGExData::TryGetSingleFacade(InContext, PCGEx::SourceBoundsLabel, true);
+	if (!Context->BoundsDataFacade) { return false; }
 
 	return true;
 }

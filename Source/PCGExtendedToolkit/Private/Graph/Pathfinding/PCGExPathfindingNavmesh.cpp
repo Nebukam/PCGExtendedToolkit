@@ -51,13 +51,13 @@ bool FPCGExPathfindingNavmeshElement::Boot(FPCGExContext* InContext) const
 	PCGEX_OPERATION_BIND(GoalPicker, UPCGExGoalPicker, PCGExPathfinding::SourceOverridesGoalPicker)
 	PCGEX_OPERATION_BIND(Blending, UPCGExSubPointsBlendOperation, PCGExDataBlending::SourceOverridesBlendingOps)
 
-	const TSharedPtr<PCGExData::FPointIO> SeedsPoints = PCGExData::TryGetSingleInput(Context, PCGExGraph::SourceSeedsLabel, true);
-	const TSharedPtr<PCGExData::FPointIO> GoalsPoints = PCGExData::TryGetSingleInput(Context, PCGExGraph::SourceGoalsLabel, true);
+	Context->SeedsDataFacade = PCGExData::TryGetSingleFacade(Context, PCGExGraph::SourceSeedsLabel, true);
+	Context->GoalsDataFacade = PCGExData::TryGetSingleFacade(Context, PCGExGraph::SourceGoalsLabel, true);
 
-	if (!SeedsPoints || !GoalsPoints) { return false; }
+	if (!Context->SeedsDataFacade || !Context->GoalsDataFacade) { return false; }
 
-	Context->SeedsDataFacade = MakeShared<PCGExData::FFacade>(SeedsPoints.ToSharedRef());
-	Context->GoalsDataFacade = MakeShared<PCGExData::FFacade>(GoalsPoints.ToSharedRef());
+	Context->SeedsDataFacade = MakeShared<PCGExData::FFacade>(Context->SeedsDataFacade->Source);
+	Context->GoalsDataFacade = MakeShared<PCGExData::FFacade>(Context->GoalsDataFacade->Source);
 
 	PCGEX_FWD(SeedAttributesToPathTags)
 	PCGEX_FWD(GoalAttributesToPathTags)

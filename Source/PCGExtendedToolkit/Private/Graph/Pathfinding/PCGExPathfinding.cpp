@@ -11,7 +11,7 @@ namespace PCGExPathfinding
 	{
 		if (Node != nullptr) { return true; }
 
-		const int32 NodeIndex = InCluster->FindClosestNode(SourcePosition, SelectionDetails.PickingMethod, 1);
+		const int32 NodeIndex = InCluster->FindClosestNode(SourcePosition, SelectionDetails.PickingMethod);
 		if (NodeIndex == -1) { return false; }
 		Node = InCluster->GetNode(NodeIndex);
 

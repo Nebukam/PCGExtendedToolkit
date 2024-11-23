@@ -115,14 +115,16 @@ namespace PCGExPointsFilter
 			for (const FPCGSplineStruct* Spline : Splines)
 			{
 				const FTransform T = PCGExPaths::GetClosestTransform(Spline, Pos, TypedFilterFactory->Config.bSplineScalesTolerance);
-				const double D = FVector::DistSquared(T.GetLocation(), Pos);
+				const FVector& TLoc = T.GetLocation();
+				const double D = FVector::DistSquared(Pos, TLoc);
 
 				if (D > ClosestDist) { continue; }
-
+				ClosestDist = D;
+				
 				if (const FVector S = T.GetScale3D(); D < FVector2D(S.Y, S.Z).Length() * ToleranceSquared) { State |= On; }
 				else { State &= ~On; }
 
-				if (FVector::DotProduct(T.GetRotation().GetRightVector(), (T.GetLocation() - Pos).GetSafeNormal()) > 0)
+				if (FVector::DotProduct(T.GetRotation().GetRightVector(), (TLoc - Pos).GetSafeNormal()) > TypedFilterFactory->Config.CurvatureThreshold)
 				{
 					State |= Inside;
 					State &= ~Outside;
@@ -139,8 +141,9 @@ namespace PCGExPointsFilter
 			for (const FPCGSplineStruct* Spline : Splines)
 			{
 				const FTransform T = PCGExPaths::GetClosestTransform(Spline, Pos, TypedFilterFactory->Config.bSplineScalesTolerance);
+				const FVector& TLoc = T.GetLocation();
 				if (const FVector S = T.GetScale3D(); FVector::DistSquared(T.GetLocation(), Pos) < FVector2D(S.Y, S.Z).Length() * ToleranceSquared) { State |= On; }
-				if (FVector::DotProduct(T.GetRotation().GetRightVector(), (T.GetLocation() - Pos).GetSafeNormal()) > 0) { State |= Inside; }
+				if (FVector::DotProduct(T.GetRotation().GetRightVector(), (TLoc - Pos).GetSafeNormal()) > TypedFilterFactory->Config.CurvatureThreshold) { State |= Inside; }
 				else { State |= Outside; }
 			}
 		}

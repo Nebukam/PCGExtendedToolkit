@@ -66,6 +66,8 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExTopologyEdgesProcessorContext : FPCGExEd
 	friend class FPCGExTopologyEdgesProcessorElement;
 	TArray<TObjectPtr<const UPCGExFilterFactoryBase>> EdgeConstraintsFilterFactories;
 
+	TSharedPtr<PCGExTopology::FHoles> Holes;
+
 	TArray<FString> ComponentTags;
 	TSet<AActor*> NotifyActors;
 };
@@ -91,6 +93,7 @@ namespace PCGExTopologyEdges
 		const FVector2D CWTolerance = FVector2D(1 / 0.001);
 		bool bIsPreviewMode = false;
 
+		TSharedPtr<PCGExTopology::FCell> WrapperCell;
 		TObjectPtr<UDynamicMesh> InternalMesh;
 
 		TSharedPtr<PCGEx::FIndexLookup> VerticesLookup;
@@ -107,8 +110,8 @@ namespace PCGExTopologyEdges
 		using PCGExClusterMT::TProcessor<TContext, TSettings>::VtxDataFacade;
 		using PCGExClusterMT::TProcessor<TContext, TSettings>::EdgeDataFacade;
 
-		TArray<FVector>* ProjectedPositions = nullptr;
-		TMap<uint32, int32>* ProjectedHashMap = nullptr;
+		TSharedPtr<TArray<FVector>> ProjectedPositions;
+		TSharedPtr<TMap<uint32, int32>> ProjectedHashMap;
 
 		TObjectPtr<UDynamicMesh> GetInternalMesh() { return InternalMesh; }
 
@@ -148,6 +151,9 @@ namespace PCGExTopologyEdges
 			ConstrainedEdgeFilterCache.Init(false, EdgeDataFacade->Source->GetNum());
 
 			CellsConstraints = MakeShared<PCGExTopology::FCellConstraints>(Settings->Constraints);
+			if (Settings->Constraints.bOmitWrappingBounds) { CellsConstraints->BuildWrapperCell(Cluster.ToSharedRef(), *ProjectedPositions); }
+			CellsConstraints->Holes = Context->Holes;
+
 			InitConstraints();
 
 			for (PCGExCluster::FNode& Node : *Cluster->Nodes) { Node.bValid = false; } // Invalidate all edges, triangulation will mark valid nodes to rebuild an index
@@ -204,6 +210,12 @@ namespace PCGExTopologyEdges
 				FAttachmentTransformRules(EAttachmentRule::KeepWorld, EAttachmentRule::KeepWorld, EAttachmentRule::KeepWorld, false));
 
 			Context->NotifyActors.Add(TargetActor);
+		}
+
+		virtual void Cleanup() override
+		{
+			PCGExClusterMT::TProcessor<TContext, TSettings>::Cleanup();
+			CellsConstraints->Cleanup();
 		}
 
 	protected:
@@ -280,8 +292,8 @@ namespace PCGExTopologyEdges
 		using PCGExClusterMT::TBatch<T>::NodeIndexLookup;
 
 		FPCGExGeo2DProjectionDetails ProjectionDetails;
-		TArray<FVector> ProjectedPositions;
-		TMap<uint32, int32> ProjectedHashMap;
+		TSharedPtr<TArray<FVector>> ProjectedPositions;
+		TSharedPtr<TMap<uint32, int32>> ProjectedHashMap;
 
 	public:
 		using PCGExClusterMT::TBatch<T>::VtxDataFacade;
@@ -312,7 +324,7 @@ namespace PCGExTopologyEdges
 			// Project positions
 			ProjectionDetails = Settings->ProjectionDetails;
 			if (!ProjectionDetails.Init(Context, VtxDataFacade)) { return; }
-
+			
 			PCGEx::InitArray(ProjectedPositions, VtxDataFacade->GetNum());
 
 			PCGEX_ASYNC_GROUP_CHKD_VOID(AsyncManager, ProjectionTaskGroup)
@@ -327,17 +339,11 @@ namespace PCGExTopologyEdges
 				[WeakThis = TWeakPtr<TBatch>(SharedThis(this))]
 				(const int32 StartIndex, const int32 Count, const int32 LoopIdx)
 				{
-					FRandomStream Random(StartIndex + Count + LoopIdx);
 					TSharedPtr<TBatch> This = WeakThis.Pin();
 					if (!This) { return; }
 
-					const int32 MaxIndex = StartIndex + Count;
-
-					for (int i = StartIndex; i < MaxIndex; i++)
-					{
-						FVector V = This->ProjectionDetails.ProjectFlat(This->VtxDataFacade->Source->GetInPoint(i).Transform.GetLocation(), i);
-						This->ProjectedPositions[i] = V;// + (Random.VRand() * 0.01); // Cheap triangulation edge case prevention
-					}
+					TArray<FVector>& PP = *This->ProjectedPositions;
+					This->ProjectionDetails.ProjectFlat(This->VtxDataFacade, PP, StartIndex, Count);
 				};
 
 			ProjectionTaskGroup->StartSubLoops(VtxDataFacade->GetNum(), GetDefault<UPCGExGlobalSettings>()->GetPointsBatchChunkSize());
@@ -345,8 +351,8 @@ namespace PCGExTopologyEdges
 
 		virtual bool PrepareSingle(const TSharedPtr<T>& ClusterProcessor) override
 		{
-			ClusterProcessor->ProjectedPositions = &ProjectedPositions;
-			ClusterProcessor->ProjectedHashMap = &ProjectedHashMap;
+			ClusterProcessor->ProjectedPositions = ProjectedPositions;
+			ClusterProcessor->ProjectedHashMap = ProjectedHashMap;
 			PCGExClusterMT::TBatch<T>::PrepareSingle(ClusterProcessor);
 			return true;
 		}
@@ -418,8 +424,12 @@ namespace PCGExTopologyEdges
 		void OnProjectionComplete()
 		{
 			const int32 NumVtx = VtxDataFacade->GetNum();
-			ProjectedHashMap.Reserve(NumVtx);
-			for (int i = 0; i < NumVtx; i++) { ProjectedHashMap.Add(PCGEx::GH2(FVector2D(ProjectedPositions[i]), CWTolerance), i); }
+			ProjectedHashMap = MakeShared<TMap<uint32, int32>>();
+			ProjectedHashMap->Reserve(NumVtx);
+
+			TMap<uint32, int32>& MP = *ProjectedHashMap;
+			const TArray<FVector>& PP = *ProjectedPositions;
+			for (int i = 0; i < NumVtx; i++) { MP.Add(PCGEx::GH2(FVector2D(PP[i]), CWTolerance), i); }
 
 			PCGExClusterMT::TBatch<T>::Process();
 		}

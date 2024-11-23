@@ -37,10 +37,8 @@ bool FPCGExSampleNearestSurfaceElement::Boot(FPCGExContext* InContext) const
 	{
 		PCGEX_VALIDATE_NAME(Settings->ActorReference)
 
-		const TSharedPtr<PCGExData::FPointIO> ActorRefIO = PCGExData::TryGetSingleInput(Context, PCGExSampling::SourceActorReferencesLabel, true);
-		if (!ActorRefIO) { return false; }
-
-		Context->ActorReferenceDataFacade = MakeShared<PCGExData::FFacade>(ActorRefIO.ToSharedRef());
+		Context->ActorReferenceDataFacade = PCGExData::TryGetSingleFacade(Context, PCGExSampling::SourceActorReferencesLabel, true);
+		if (!Context->ActorReferenceDataFacade) { return false; }
 
 		if (!PCGExSampling::GetIncludedActors(
 			Context, Context->ActorReferenceDataFacade.ToSharedRef(),
@@ -117,7 +115,7 @@ namespace PCGExSampleNearestSurface
 		if (!FPointsProcessor::Process(InAsyncManager)) { return false; }
 
 		SampleState.SetNumUninitialized(PointDataFacade->GetNum());
-		
+
 		{
 			const TSharedRef<PCGExData::FFacade>& OutputFacade = PointDataFacade;
 			PCGEX_FOREACH_FIELD_NEARESTSURFACE(PCGEX_OUTPUT_INIT)
@@ -151,7 +149,7 @@ namespace PCGExSampleNearestSurface
 		auto SamplingFailed = [&]()
 		{
 			SampleState[Index] = false;
-			
+
 			const FVector Direction = FVector::UpVector;
 			PCGEX_OUTPUT_VALUE(Location, Index, Point.Transform.GetLocation())
 			PCGEX_OUTPUT_VALUE(Normal, Index, Direction*-1) // TODO: expose "precise normal" in which case we line trace to location

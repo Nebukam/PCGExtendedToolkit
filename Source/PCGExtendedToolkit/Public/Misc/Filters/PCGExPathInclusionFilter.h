@@ -22,7 +22,7 @@ enum class EPCGExSplinePointTypeRedux : uint8
 	Linear       = 0 UMETA(DisplayName = "Linear (0)", Tooltip="Linear (0)."),
 	Curve        = 1 UMETA(DisplayName = "Curve (1)", Tooltip="Curve (1)."),
 	Constant     = 2 UMETA(DisplayName = "Constant (2)", Tooltip="Constant (2)."),
-	CurveClamped = 3 UMETA(DisplayName = "CurveClamped (3)", Tooltip="CurveClamped (3)."),
+	CurveClamped = 3 UMETA(DisplayName = "CurveClamped (3)", Tooltip="CurveClamped (3).")
 };
 
 USTRUCT(BlueprintType)
@@ -62,6 +62,10 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPathInclusionFilterConfig
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	bool bSplineScalesTolerance = false;
 
+	/**  Min dot product threshold for a point to be considered inside the spline. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ClampMin=-1, ClampMax=1))
+	double CurvatureThreshold = 0.5;
+	
 	/** If enabled, invert the result of the test */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	bool bInvert = false;

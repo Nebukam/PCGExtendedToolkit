@@ -10,6 +10,16 @@
 #include "Sampling/PCGExSampling.h"
 #include "PCGExWritePathProperties.generated.h"
 
+#define PCGEX_FOREACH_FIELD_PATH_MARKS(MACRO)\
+MACRO(PathLength, double, 0)\
+MACRO(PathDirection, FVector, FVector::OneVector)\
+MACRO(PathCentroid, FVector, FVector::ZeroVector)\
+MACRO(IsClockwise, bool, true)\
+MACRO(Area, double, 0)\
+MACRO(Perimeter, double, 0)\
+MACRO(Compactness, double, 0)
+
+
 #define PCGEX_FOREACH_FIELD_PATH(MACRO)\
 MACRO(Dot, double, 0)\
 MACRO(Angle, double, 0)\
@@ -23,11 +33,6 @@ MACRO(PointAvgNormal, FVector, FVector::OneVector)\
 MACRO(PointBinormal, FVector, FVector::OneVector)\
 MACRO(DirectionToNext, FVector, FVector::OneVector)\
 MACRO(DirectionToPrev, FVector, FVector::OneVector)
-
-#define PCGEX_FOREACH_FIELD_PATH_MARKS(MACRO)\
-MACRO(PathLength, double, 0)\
-MACRO(PathDirection, FVector, FVector::OneVector)\
-MACRO(PathCentroid, FVector, FVector::ZeroVector)
 
 /**
  * 
@@ -44,6 +49,7 @@ public:
 #endif
 
 protected:
+	virtual TArray<FPCGPinProperties> OutputPinProperties() const override;
 	virtual FPCGElementPtr CreateElement() const override;
 	//~End UPCGSettings
 
@@ -52,6 +58,20 @@ public:
 	virtual PCGExData::EIOInit GetMainOutputInitMode() const override;
 	//~End UPCGExPointsProcessorSettings
 
+#pragma region Path attributes
+
+	/** Projection settings. Some path data must be computed on a 2D plane. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
+	FPCGExGeo2DProjectionDetails ProjectionDetails = FPCGExGeo2DProjectionDetails();
+
+	/** Attribute set packing */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output - Path", meta=(PCG_Overridable, DisplayName="Packing"))
+	EPCGExAttributeSetPackingMode PathAttributePackingMode = EPCGExAttributeSetPackingMode::Merged;
+	
+	/** Whether to also write path attribute to the data set. Looks appealing, but can have massive memory cost -- this is legacy only.*/
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output - Path", meta=(PCG_Overridable))
+	bool bWritePathDataToPoints = false;
+
 	/** Output Path Length. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output - Path", meta=(PCG_Overridable, InlineEditConditionToggle))
 	bool bWritePathLength = false;
@@ -59,8 +79,7 @@ public:
 	/** Name of the 'double' attribute to write path length to.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output - Path", meta=(DisplayName="PathLength", PCG_Overridable, EditCondition="bWritePathLength"))
 	FName PathLengthAttributeName = FName("PathLength");
-
-
+	
 	/** Output averaged path direction. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output - Path", meta=(PCG_Overridable, InlineEditConditionToggle))
 	bool bWritePathDirection = false;
@@ -76,6 +95,42 @@ public:
 	/** Name of the 'FVector' attribute to write averaged direction to.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output - Path", meta=(DisplayName="PathCentroid", PCG_Overridable, EditCondition="bWritePathCentroid"))
 	FName PathCentroidAttributeName = FName("PathCentroid");
+
+	/** Output path winding. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output - Path", meta=(PCG_Overridable, InlineEditConditionToggle))
+	bool bWriteIsClockwise = false;
+
+	/** Name of the 'bool' attribute to write winding to.*/
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output - Path", meta=(DisplayName="Clockwise", PCG_Overridable, EditCondition="bWriteIsClockwise"))
+	FName IsClockwiseAttributeName = FName("Clockwise");
+
+	/** Output path area. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output - Path", meta=(PCG_Overridable, InlineEditConditionToggle))
+	bool bWriteArea = false;
+
+	/** Name of the 'double' attribute to write area to.*/
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output - Path", meta=(DisplayName="Area", PCG_Overridable, EditCondition="bWriteArea"))
+	FName AreaAttributeName = FName("Area");
+
+	/** Output path perimeter. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output - Path", meta=(PCG_Overridable, InlineEditConditionToggle))
+	bool bWritePerimeter = false;
+
+	/** Name of the 'double' attribute to write perimeter to (differ from length because this is the 2D projected value used to infer other values).*/
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output - Path", meta=(DisplayName="Perimeter", PCG_Overridable, EditCondition="bWritePerimeter"))
+	FName PerimeterAttributeName = FName("Perimeter");
+	
+	/** Output path compactness. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output - Path", meta=(PCG_Overridable, InlineEditConditionToggle))
+	bool bWriteCompactness = false;
+
+	/** Name of the 'double' attribute to write compactness to.*/
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output - Path", meta=(DisplayName="Compactness", PCG_Overridable, EditCondition="bWriteCompactness"))
+	FName CompactnessAttributeName = FName("Compactness");
+
+#pragma endregion
+
+#pragma region Points attributes
 
 	/** Up Attribute constant */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output - Points", meta = (PCG_Overridable))
@@ -186,6 +241,8 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output - Points", meta=(DisplayName="DirectionToPrev", PCG_Overridable, EditCondition="bWriteDirectionToPrev"))
 	FName DirectionToPrevAttributeName = FName("DirectionToPrev");
 
+#pragma endregion
+
 	/** . */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tags", meta=(InlineEditConditionToggle))
 	bool bTagConcave = false;
@@ -201,6 +258,8 @@ public:
 	/** . */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tags", meta=(EditCondition="bTagConvex"))
 	FString ConvexTag = TEXT("Convex");
+
+	bool WriteAnyPathData() const;
 };
 
 struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExWritePathPropertiesContext final : FPCGExPathProcessorContext
@@ -209,6 +268,10 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExWritePathPropertiesContext final : FPCGE
 
 	PCGEX_FOREACH_FIELD_PATH(PCGEX_OUTPUT_DECL_TOGGLE)
 	PCGEX_FOREACH_FIELD_PATH_MARKS(PCGEX_OUTPUT_DECL_TOGGLE)
+
+	TObjectPtr<UPCGParamData> PathAttributeSet;
+	TArray<int64> MergedAttributeSetKeys;
+	
 };
 
 class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExWritePathPropertiesElement final : public FPCGExPathProcessorElement
@@ -226,6 +289,8 @@ protected:
 
 namespace PCGExWritePathProperties
 {
+	const FName OutputPathProperties = TEXT("PathProperties");
+	
 	struct /*PCGEXTENDEDTOOLKIT_API*/ FPointDetails
 	{
 		int32 Index;
@@ -239,6 +304,10 @@ namespace PCGExWritePathProperties
 	{
 		PCGEX_FOREACH_FIELD_PATH(PCGEX_OUTPUT_DECL)
 
+		FPCGExGeo2DProjectionDetails ProjectionDetails;
+
+		UPCGParamData* PathAttributeSet = nullptr;
+		
 		bool bClosedLoop = false;
 		TSharedPtr<PCGExPaths::FPath> Path;
 		TSharedPtr<PCGExPaths::FPathEdgeLength> PathLength;
@@ -249,6 +318,7 @@ namespace PCGExWritePathProperties
 
 		FVector UpConstant = FVector::ZeroVector;
 		TSharedPtr<PCGExData::TBuffer<FVector>> UpGetter;
+		
 
 	public:
 		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade):
@@ -260,5 +330,7 @@ namespace PCGExWritePathProperties
 		virtual void PrepareSingleLoopScopeForPoints(const uint32 StartIndex, const int32 Count) override;
 		virtual void ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const int32 LoopIdx, const int32 Count) override;
 		virtual void CompleteWork() override;
+		virtual void Output() override;
+		
 	};
 }

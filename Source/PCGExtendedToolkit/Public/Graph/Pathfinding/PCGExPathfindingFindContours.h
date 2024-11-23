@@ -102,14 +102,6 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging", meta=(PCG_Overridable, EditCondition="bTagIfClosedLoop"))
 	FString IsClosedLoopTag = TEXT("ClosedLoop");
 
-	/** */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging", meta=(PCG_Overridable, InlineEditConditionToggle))
-	bool bTagIfOpenPath = false;
-
-	/** ... */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging", meta=(PCG_Overridable, EditCondition="bTagIfOpenPath"))
-	FString IsOpenPathTag = TEXT("OpenPath");
-
 	/** TBD */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Forwarding")
 	FPCGExAttributeToTagDetails SeedAttributesToPathTags;
@@ -166,10 +158,12 @@ namespace PCGExFindContours
 
 	protected:
 		bool bBuildExpandedNodes = false;
+		int32 WrapperSeed = -1;
+		TSharedPtr<PCGExTopology::FCell> WrapperCell;
 
 	public:
 		TSharedPtr<PCGExTopology::FCellConstraints> CellsConstraints;
-		TArray<FVector>* ProjectedPositions = nullptr;
+		TSharedPtr<TArray<FVector>> ProjectedPositions;
 
 		FProcessor(const TSharedRef<PCGExData::FFacade>& InVtxDataFacade, const TSharedRef<PCGExData::FFacade>& InEdgeDataFacade):
 			TProcessor(InVtxDataFacade, InEdgeDataFacade)
@@ -180,8 +174,9 @@ namespace PCGExFindContours
 
 		virtual bool Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager) override;
 		virtual void ProcessSingleRangeIteration(int32 Iteration, const int32 LoopIdx, const int32 Count) override;
-		void TryFindContours(const int32 SeedIndex) const;
+		void ProcessCell(const int32 SeedIndex, const TSharedPtr<PCGExTopology::FCell>& InCell) const;
 		virtual void CompleteWork() override;
+		virtual void Cleanup() override;
 	};
 
 	class FBatch final : public PCGExClusterMT::TBatch<FProcessor>
@@ -190,7 +185,7 @@ namespace PCGExFindContours
 
 	protected:
 		FPCGExGeo2DProjectionDetails ProjectionDetails;
-		TArray<FVector> ProjectedPositions;
+		TSharedPtr<TArray<FVector>> ProjectedPositions;
 
 	public:
 		FBatch(FPCGExContext* InContext, const TSharedRef<PCGExData::FPointIO>& InVtx, const TArrayView<TSharedRef<PCGExData::FPointIO>> InEdges):

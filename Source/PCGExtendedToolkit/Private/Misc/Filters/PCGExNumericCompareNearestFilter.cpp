@@ -11,10 +11,8 @@ bool UPCGExNumericCompareNearestFilterFactory::Init(FPCGExContext* InContext)
 {
 	if (!Super::Init(InContext)) { return false; }
 
-	const TSharedPtr<PCGExData::FPointIO> TargetPoints = PCGExData::TryGetSingleInput(InContext, PCGEx::SourceTargetsLabel, true);
-	if (!TargetPoints) { return false; }
-
-	TargetDataFacade = MakeShared<PCGExData::FFacade>(TargetPoints.ToSharedRef());
+	TargetDataFacade = PCGExData::TryGetSingleFacade(InContext, PCGEx::SourceTargetsLabel, true);
+	if (!TargetDataFacade) { return false; }
 
 	return false;
 }

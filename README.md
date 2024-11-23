@@ -11,7 +11,7 @@ It also comes with a set of lower-level, more generic features to manipulate att
 
 ## Getting Started
 — **[Documentation](https://nebukam.github.io/PCGExtendedToolkit/)**  
-— **[Installation](https://nebukam.github.io/PCGExtendedToolkit/installation/) in your own project**  
+— **[Installation](https://nebukam.github.io/PCGExtendedToolkit/installation.html) in your own project**  
 — Overview of [All the Nodes](https://nebukam.github.io/PCGExtendedToolkit/all-nodes.html)  
 
 For questions & support, join the [PCGEx Discord Server](https://discord.gg/mde2vC5gbE)!

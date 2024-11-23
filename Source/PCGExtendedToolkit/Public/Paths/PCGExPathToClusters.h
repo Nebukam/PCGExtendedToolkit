@@ -40,7 +40,7 @@ public:
 	//~End UPCGExPointsProcessorSettings
 
 	/** Whether to fuse paths into a single graph or not. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, NoEditInline))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	bool bFusePaths = true;
 
 	/** Fuse Settings */

@@ -63,6 +63,18 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	FPCGExEdgeDirectionSettings DirectionSettings;
 
+	/** Enforce a winding order for paths. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	EPCGExWindingMutation Winding = EPCGExWindingMutation::Unchanged;
+
+	/** Whether to apply winding on closed loops only or all paths. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	bool bWindOnlyClosedLoops = true;
+	
+	/** Projection settings. Winding is computed on a 2D plane. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="Winding!=EPCGExWindingMutation::Unchanged", EditConditionHides))
+	FPCGExGeo2DProjectionDetails ProjectionDetails = FPCGExGeo2DProjectionDetails();
+	
 	/** Do not output paths that have less points that this value */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ClampMin=2))
 	int32 MinPointCount = 2;
@@ -124,6 +136,7 @@ namespace PCGExBreakClustersToPaths
 
 	protected:
 		TSharedPtr<TArray<int8>> Breakpoints;
+		TSharedPtr<TArray<FVector2D>> ProjectedPositions;
 		TSharedPtr<PCGExCluster::FNodeChainBuilder> ChainBuilder;
 
 		FPCGExEdgeDirectionSettings DirectionSettings;
@@ -146,7 +159,11 @@ namespace PCGExBreakClustersToPaths
 
 	protected:
 		FPCGExEdgeDirectionSettings DirectionSettings;
+		TSharedPtr<PCGExPointFilter::FManager> BreakpointFilterManager;
 		TSharedPtr<TArray<int8>> Breakpoints;
+
+		FPCGExGeo2DProjectionDetails ProjectionDetails;
+		TSharedPtr<TArray<FVector2D>> ProjectedPositions;
 
 	public:
 		FBatch(FPCGExContext* InContext, const TSharedRef<PCGExData::FPointIO>& InVtx, const TArrayView<TSharedRef<PCGExData::FPointIO>> InEdges):
@@ -157,6 +174,7 @@ namespace PCGExBreakClustersToPaths
 
 		virtual void RegisterBuffersDependencies(PCGExData::FFacadePreloader& FacadePreloader) override;
 		virtual void Process() override;
+		void OnProjectionComplete();
 		virtual bool PrepareSingle(const TSharedPtr<FProcessor>& ClusterProcessor) override;
 		virtual void OnProcessingPreparationComplete() override;
 	};
