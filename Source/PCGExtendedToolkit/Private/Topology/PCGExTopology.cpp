@@ -141,17 +141,6 @@ namespace PCGExTopology
 		int32 PrevIndex = SeedNodeIndex;
 		int32 NextIndex = InCluster->GetEdgeOtherNode(SeedEdgeIndex, PrevIndex)->Index;
 
-		const FVector A = ProjectedPositions[InCluster->GetNode(PrevIndex)->PointIndex];
-		const FVector B = ProjectedPositions[InCluster->GetNode(NextIndex)->PointIndex];
-		/*
-				if (InCluster->GetNode(StartNodeIndex)->IsLeaf())
-				{
-					// Swap search orientation since we're starting with a dead end
-					PrevIndex = NextIndex;
-					NextIndex = StartNodeIndex;
-					StartNodeIndex = PrevIndex;
-				}
-		*/
 		SeedEdge = SeedEdgeIndex;
 		SeedNode = StartNodeIndex;
 
@@ -291,19 +280,19 @@ namespace PCGExTopology
 		Vertices.SetNumUninitialized(Nodes.Num());
 		for (int i = 0; i < Nodes.Num(); ++i) { Vertices[i] = FVector2D(ProjectedPositions[InCluster->GetNode(Nodes[i])->PointIndex]); }
 
-		Area = UE::Geometry::CurveUtil::SignedArea2<double, FVector2D>(Vertices);
-		if (Area < 0)
+		PCGExGeo::FPolygonInfos PolyInfos = PCGExGeo::FPolygonInfos(Vertices);
+
+		Area = PolyInfos.Area;
+		bIsClockwise = PolyInfos.bIsClockwise;
+		Compactness = PolyInfos.Compactness;
+
+		if (!PolyInfos.IsWinded(Constraints->Winding))
 		{
-			Area = FMath::Abs(Area);
 			Algo::Reverse(Nodes);
 			Algo::Reverse(Vertices);
 		}
 
 		if (Constraints->Holes && Constraints->Holes->Overlaps(Polygon)) { return ECellResult::Hole; }
-
-		if (Perimeter == 0.0f) { Compactness = 0; }
-		else { Compactness = (4.0f * PI * Area) / (Perimeter * Perimeter); }
-
 		if (Compactness < Constraints->MinCompactness || Compactness > Constraints->MaxCompactness) { return ECellResult::Unknown; }
 
 		Area *= 0.01; // QoL to avoid extra 000 in the detail panel.

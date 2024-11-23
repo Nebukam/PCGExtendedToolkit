@@ -28,6 +28,28 @@
 #include "PCGEx.generated.h"
 
 UENUM()
+enum class EPCGExAttributeSetPackingMode : uint8
+{
+	PerInput = 0 UMETA(DisplayName = "Per Input", ToolTip="..."),
+	Merged   = 1 UMETA(DisplayName = "Merged", ToolTip="..."),
+};
+
+UENUM()
+enum class EPCGExWinding : uint8
+{
+	Clockwise        = 1 UMETA(DisplayName = "Clockwise", ToolTip="..."),
+	CounterClockwise = 2 UMETA(DisplayName = "Counter Clockwise", ToolTip="..."),
+};
+
+UENUM()
+enum class EPCGExWindingMutation : uint8
+{
+	Unchanged        = 0 UMETA(DisplayName = "Unchanged", ToolTip="..."),
+	Clockwise        = 1 UMETA(DisplayName = "Clockwise", ToolTip="..."),
+	CounterClockwise = 2 UMETA(DisplayName = "CounterClockwise", ToolTip="..."),
+};
+
+UENUM()
 enum class EPCGExTransformComponent : uint8
 {
 	Position = 0 UMETA(DisplayName = "Position", ToolTip="Position component."),

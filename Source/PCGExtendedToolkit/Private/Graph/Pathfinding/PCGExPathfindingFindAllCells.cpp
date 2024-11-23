@@ -250,7 +250,7 @@ namespace PCGExFindAllCells
 		// Project positions
 		ProjectionDetails = Settings->ProjectionDetails;
 		if (!ProjectionDetails.Init(Context, VtxDataFacade)) { return; }
-
+		
 		PCGEx::InitArray(ProjectedPositions, VtxDataFacade->GetNum());
 
 		PCGEX_ASYNC_GROUP_CHKD_VOID(AsyncManager, ProjectionTaskGroup)
@@ -268,12 +268,8 @@ namespace PCGExFindAllCells
 				TSharedPtr<FBatch> This = WeakThis.Pin();
 				if (!This) { return; }
 
-				const int32 MaxIndex = StartIndex + Count;
-
-				for (int i = StartIndex; i < MaxIndex; i++)
-				{
-					This->ProjectedPositions[i] = This->ProjectionDetails.ProjectFlat(This->VtxDataFacade->Source->GetInPoint(i).Transform.GetLocation(), i);
-				}
+				TArray<FVector>& PP = *This->ProjectedPositions;
+				This->ProjectionDetails.ProjectFlat(This->VtxDataFacade, PP, StartIndex, Count);
 			};
 
 		ProjectionTaskGroup->StartSubLoops(VtxDataFacade->GetNum(), GetDefault<UPCGExGlobalSettings>()->GetPointsBatchChunkSize());
@@ -281,7 +277,7 @@ namespace PCGExFindAllCells
 
 	bool FBatch::PrepareSingle(const TSharedPtr<FProcessor>& ClusterProcessor)
 	{
-		ClusterProcessor->ProjectedPositions = &ProjectedPositions;
+		ClusterProcessor->ProjectedPositions = ProjectedPositions;
 		TBatch<FProcessor>::PrepareSingle(ClusterProcessor);
 		return true;
 	}

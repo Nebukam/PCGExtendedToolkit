@@ -166,7 +166,7 @@ namespace PCGExSplineToPath
 
 			Point.Seed = PCGExRandom::ComputeSeed(Point);
 		};
-
+		
 		for (int i = 0; i < NumSegments; i++)
 		{
 			const double LengthAtPoint = Spline.GetDistanceAlongSplineAtSplinePoint(i);

@@ -7,6 +7,7 @@
 #include "PCGEx.h"
 #include "PCGExMT.h"
 #include "PCGExFitting.h"
+#include "Curve/CurveUtil.h"
 #include "Data/PCGExData.h"
 
 
@@ -124,12 +125,24 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExGeo2DProjectionDetails
 		return FTransform(FQuat::FindBetweenNormals(Quat.GetUpVector(), FVector::UpVector) * Quat, Position);
 	}
 
-	void ProjectFlat(const TSharedPtr<PCGExData::FFacade>& InFacade, TArray<FVector2D>& OutPositions) const
+	template <typename T>
+	void ProjectFlat(const TSharedPtr<PCGExData::FFacade>& InFacade, TArray<T>& OutPositions) const
 	{
-		const int32 NumVectors = InFacade->GetNum();
-		const TArray<FPCGPoint>& InPoints = InFacade->GetIn()->GetPoints();
+		const TArray<FPCGPoint>& InPoints = InFacade->Source->GetInOut()->GetPoints();
+		const int32 NumVectors = InPoints.Num();
 		PCGEx::InitArray(OutPositions, NumVectors);
-		for (int i = 0; i < NumVectors; i++) { OutPositions[i] = FVector2D(ProjectFlat(InPoints[i].Transform.GetLocation(), i)); }
+		for (int i = 0; i < NumVectors; i++) { OutPositions[i] = T(ProjectFlat(InPoints[i].Transform.GetLocation(), i)); }
+	}
+
+	template <typename T>
+	void ProjectFlat(const TSharedPtr<PCGExData::FFacade>& InFacade, TArray<T>& OutPositions, const int32 StartIndex, const int32 Count) const
+	{
+		const TArray<FPCGPoint>& InPoints = InFacade->Source->GetInOut()->GetPoints();
+		const int32 NumVectors = InPoints.Num();
+		if (OutPositions.Num() < NumVectors) { PCGEx::InitArray(OutPositions, NumVectors); }
+
+		const int32 MaxIndex = StartIndex + Count;
+		for (int i = StartIndex; i < MaxIndex; i++) { OutPositions[i] = T(ProjectFlat(InPoints[i].Transform.GetLocation(), i)); }
 	}
 
 	void Project(const TArray<FVector>& InPositions, TArray<FVector>& OutPositions) const
@@ -245,6 +258,47 @@ enum class EPCGExCellCenter : uint8
 namespace PCGExGeo
 {
 	PCGEX_ASYNC_STATE(State_ExtractingMesh)
+
+	FORCEINLINE static bool IsWinded(const EPCGExWinding Winding, const bool bIsInputClockwise)
+	{
+		if (Winding == EPCGExWinding::Clockwise) { return bIsInputClockwise; }
+		return !bIsInputClockwise;
+	}
+
+	FORCEINLINE static bool IsWinded(const EPCGExWindingMutation Winding, const bool bIsInputClockwise)
+	{
+		if (Winding == EPCGExWindingMutation::Clockwise) { return bIsInputClockwise; }
+		return !bIsInputClockwise;
+	}
+	
+	struct /*PCGEXTENDEDTOOLKIT_API*/ FPolygonInfos
+	{
+		double Area = 0;
+		bool bIsClockwise = false;
+		double Perimeter = 0;
+		double Compactness = 0;
+
+		explicit FPolygonInfos(const TArray<FVector2D>& InPolygon)
+		{
+			Area = UE::Geometry::CurveUtil::SignedArea2<double, FVector2D>(InPolygon);
+			Perimeter = UE::Geometry::CurveUtil::ArcLength<double, FVector2D>(InPolygon, true);
+
+			if (Area < 0)
+			{
+				bIsClockwise = true;
+				Area = FMath::Abs(Area);
+			}
+			else
+			{
+				bIsClockwise = false;
+			}
+
+			if (Perimeter == 0.0f) { Compactness = 0; }
+			else { Compactness = (4.0f * PI * Area) / (Perimeter * Perimeter); }
+		}
+
+		FORCEINLINE bool IsWinded(const EPCGExWinding Winding) const { return PCGExGeo::IsWinded(Winding, bIsClockwise); }
+	};
 
 	template <typename T>
 	FORCEINLINE double Det(const T& A, const T& B) { return A.X * B.Y - A.Y * B.X; }

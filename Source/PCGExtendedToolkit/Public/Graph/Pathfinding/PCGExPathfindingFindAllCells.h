@@ -133,7 +133,7 @@ namespace PCGExFindAllCells
 	public:
 		TSharedPtr<PCGExTopology::FCellConstraints> CellsConstraints;
 
-		TArray<FVector>* ProjectedPositions = nullptr;
+		TSharedPtr<TArray<FVector>> ProjectedPositions;
 
 		FProcessor(const TSharedRef<PCGExData::FFacade>& InVtxDataFacade, const TSharedRef<PCGExData::FFacade>& InEdgeDataFacade):
 			TProcessor(InVtxDataFacade, InEdgeDataFacade)
@@ -158,7 +158,7 @@ namespace PCGExFindAllCells
 
 	protected:
 		FPCGExGeo2DProjectionDetails ProjectionDetails;
-		TArray<FVector> ProjectedPositions;
+		TSharedPtr<TArray<FVector>> ProjectedPositions;
 
 	public:
 		FBatch(FPCGExContext* InContext, const TSharedRef<PCGExData::FPointIO>& InVtx, const TArrayView<TSharedRef<PCGExData::FPointIO>> InEdges):

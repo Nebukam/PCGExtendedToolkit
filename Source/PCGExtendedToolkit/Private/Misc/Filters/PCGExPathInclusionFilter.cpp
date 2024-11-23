@@ -73,17 +73,20 @@ void UPCGExPathInclusionFilterFactory::CreateSpline(const UPCGPointData* InData,
 		break;
 	}
 
+	TArray<FTransform> PointTransforms;
+	PCGExData::GetTransforms(InPoints, PointTransforms);
+
 	if (bComputeTangents)
 	{
 		const int32 MaxIndex = NumPoints - 1;
 
 		for (int i = 0; i < NumPoints; i++)
 		{
-			const FTransform TR = InPoints[i].Transform;
-			const FVector PtLoc = InPoints[i].Transform.GetLocation();
+			const FTransform TR = PointTransforms[i];
+			const FVector PtLoc = TR.GetLocation();
 
-			const FVector PrevDir = (InPoints[i == 0 ? bClosedLoop ? MaxIndex : 0 : i - 1].Transform.GetLocation() - PtLoc) * -1;
-			const FVector NextDir = InPoints[i == MaxIndex ? bClosedLoop ? 0 : i : i + 1].Transform.GetLocation() - PtLoc;
+			const FVector PrevDir = (PointTransforms[i == 0 ? bClosedLoop ? MaxIndex : 0 : i - 1].GetLocation() - PtLoc) * -1;
+			const FVector NextDir = PointTransforms[i == MaxIndex ? bClosedLoop ? 0 : i : i + 1].GetLocation() - PtLoc;
 			const FVector Tangent = FMath::Lerp(PrevDir, NextDir, 0.5).GetSafeNormal() * 0.01;
 
 			SplinePoints[i] = FSplinePoint(
@@ -100,7 +103,7 @@ void UPCGExPathInclusionFilterFactory::CreateSpline(const UPCGPointData* InData,
 	{
 		for (int i = 0; i < NumPoints; i++)
 		{
-			const FTransform TR = InPoints[i].Transform;
+			const FTransform TR = PointTransforms[i];
 			SplinePoints[i] = FSplinePoint(
 				static_cast<float>(i),
 				TR.GetLocation(),
@@ -190,14 +193,15 @@ namespace PCGExPointsFilter
 			for (const TSharedPtr<const FPCGSplineStruct>& Spline : Splines)
 			{
 				const FTransform T = PCGExPaths::GetClosestTransform(Spline, Pos, TypedFilterFactory->Config.bSplineScalesTolerance);
-				const double D = FVector::DistSquared(T.GetLocation(), Pos);
+				const FVector& TLoc = T.GetLocation();
+				const double D = FVector::DistSquared(Pos, TLoc);
 
 				if (D > ClosestDist) { continue; }
 
 				if (const FVector S = T.GetScale3D(); D < FVector2D(S.Y, S.Z).Length() * ToleranceSquared) { State |= On; }
 				else { State &= ~On; }
 
-				if (FVector::DotProduct(T.GetRotation().GetRightVector(), (T.GetLocation() - Pos).GetSafeNormal()) > TypedFilterFactory->Config.CurvatureThreshold)
+				if (FVector::DotProduct(T.GetRotation().GetRightVector(), (TLoc - Pos).GetSafeNormal()) > TypedFilterFactory->Config.CurvatureThreshold)
 				{
 					State |= Inside;
 					State &= ~Outside;
@@ -214,8 +218,9 @@ namespace PCGExPointsFilter
 			for (const TSharedPtr<const FPCGSplineStruct>& Spline : Splines)
 			{
 				const FTransform T = PCGExPaths::GetClosestTransform(Spline, Pos, TypedFilterFactory->Config.bSplineScalesTolerance);
-				if (const FVector S = T.GetScale3D(); FVector::DistSquared(T.GetLocation(), Pos) < FVector2D(S.Y, S.Z).Length() * ToleranceSquared) { State |= On; }
-				if (FVector::DotProduct(T.GetRotation().GetRightVector(), (T.GetLocation() - Pos).GetSafeNormal()) > TypedFilterFactory->Config.CurvatureThreshold) { State |= Inside; }
+				const FVector& TLoc = T.GetLocation();
+				if (const FVector S = T.GetScale3D(); FVector::DistSquared(Pos, TLoc) < FVector2D(S.Y, S.Z).Length() * ToleranceSquared) { State |= On; }
+				if (FVector::DotProduct(T.GetRotation().GetRightVector(), (TLoc - Pos).GetSafeNormal()) > TypedFilterFactory->Config.CurvatureThreshold) { State |= Inside; }
 				else { State |= Outside; }
 			}
 		}

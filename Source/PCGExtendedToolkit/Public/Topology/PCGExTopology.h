@@ -69,6 +69,10 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExCellConstraintsDetails
 
 	UPROPERTY()
 	bool bUsedForPaths = false;
+
+	/**  */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bUsedForPaths", EditConditionHides, HideEditConditionToggle))
+	EPCGExWinding OutputWinding = EPCGExWinding::CounterClockwise;
 	
 	/**  */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
@@ -400,6 +404,8 @@ namespace PCGExTopology
 		TSet<uint64> UniqueStartHalfEdgesHash;
 		
 	public:
+		EPCGExWinding Winding = EPCGExWinding::CounterClockwise;
+		
 		bool bConcaveOnly = false;
 		bool bConvexOnly = false;
 		bool bKeepCellsWithLeaves = true;
@@ -435,6 +441,7 @@ namespace PCGExTopology
 
 		explicit FCellConstraints(const FPCGExCellConstraintsDetails& InDetails)
 		{
+			Winding = InDetails.OutputWinding;
 			bConcaveOnly = InDetails.AspectFilter == EPCGExCellShapeTypeOutput::ConcaveOnly;
 			bConvexOnly = InDetails.AspectFilter == EPCGExCellShapeTypeOutput::ConvexOnly;
 			bKeepCellsWithLeaves = InDetails.bKeepCellsWithLeaves;
@@ -481,7 +488,7 @@ namespace PCGExTopology
 		FBox Bounds = FBox(ForceInit);
 		TSharedRef<FCellConstraints> Constraints;
 		FVector Centroid = FVector::ZeroVector;
-
+		
 		int32 SeedNode = -1;
 		int32 SeedEdge = -1;
 
@@ -489,6 +496,7 @@ namespace PCGExTopology
 		double Perimeter = 0;
 		double Compactness = 0;
 		bool bIsConvex = true;
+		bool bIsClockwise = false;
 		bool bBuiltSuccessfully = false;
 		bool bIsClosedLoop = false;
 
