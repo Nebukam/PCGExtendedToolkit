@@ -69,10 +69,6 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExCellConstraintsDetails
 
 	UPROPERTY()
 	bool bUsedForPaths = false;
-
-	/** */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName="CW/CCW", EditCondition="bUsedForPaths", EditConditionHides))
-	EPCGExCellOutputOrientation OutputOrientation = EPCGExCellOutputOrientation::CW;
 	
 	/**  */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
