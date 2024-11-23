@@ -69,21 +69,16 @@ namespace PCGExTopologyClusterSurface
 	void FProcessor::ProcessSingleEdge(const int32 EdgeIndex, PCGExGraph::FEdge& Edge, const int32 LoopIdx, const int32 Count)
 	{
 		if (ConstrainedEdgeFilterCache[EdgeIndex]) { return; }
+
 		TSharedPtr<PCGExTopology::FCell> Cell = MakeShared<PCGExTopology::FCell>(CellsConstraints.ToSharedRef());
 
-		FVector G1 = FVector::ZeroVector;
-		FVector G2 = FVector::ZeroVector;
-
-		Cluster->GetProjectedEdgeGuides(Edge.Index, *ProjectedPositions, G1, G2);
-
-		ProcessNodeCandidate(*Cluster->GetEdgeStart(Edge), Edge, G1, LoopIdx);
-		ProcessNodeCandidate(*Cluster->GetEdgeEnd(Edge), Edge, G2, LoopIdx);
+		FindCell(*Cluster->GetEdgeStart(Edge), Edge, LoopIdx);
+		FindCell(*Cluster->GetEdgeEnd(Edge), Edge, LoopIdx);
 	}
 
-	bool FProcessor::ProcessNodeCandidate(
+	bool FProcessor::FindCell(
 		const PCGExCluster::FNode& Node,
 		const PCGExGraph::FEdge& Edge,
-		const FVector& Guide,
 		const int32 LoopIdx,
 		const bool bSkipBinary)
 	{
@@ -92,15 +87,18 @@ namespace PCGExTopologyClusterSurface
 			FPlatformAtomics::InterlockedExchange(&LastBinary, Node.Index);
 			return false;
 		}
+
 		if (!CellsConstraints->bKeepCellsWithLeaves && Node.IsLeaf()) { return false; }
 
 		FPlatformAtomics::InterlockedAdd(&NumAttempts, 1);
 		const TSharedPtr<PCGExTopology::FCell> Cell = MakeShared<PCGExTopology::FCell>(CellsConstraints.ToSharedRef());
 
-		const PCGExTopology::ECellResult Result = Cell->BuildFromCluster(Node.Index, Edge.Index, Guide, Cluster.ToSharedRef(), *ProjectedPositions);
+		const PCGExTopology::ECellResult Result = Cell->BuildFromCluster(Node.Index, Edge.Index, Cluster.ToSharedRef(), *ProjectedPositions);
 		if (Result != PCGExTopology::ECellResult::Success) { return false; }
 
 		SubTriangulations[LoopIdx]->Add(Cell->Polygon);
+
+		FPlatformAtomics::InterlockedAdd(&NumTriangulations, 1);
 
 		return true;
 	}
@@ -110,14 +108,8 @@ namespace PCGExTopologyClusterSurface
 		if (NumAttempts == 0 && LastBinary != -1)
 		{
 			TSharedPtr<PCGExTopology::FCell> Cell = MakeShared<PCGExTopology::FCell>(CellsConstraints.ToSharedRef());
-
-			FVector G1 = FVector::ZeroVector;
-			FVector G2 = FVector::ZeroVector;
-
 			PCGExGraph::FEdge& Edge = *Cluster->GetEdge(Cluster->GetNode(LastBinary)->Links[0].Edge);
-			Cluster->GetProjectedEdgeGuides(Edge.Index, *ProjectedPositions, G1, G2);
-
-			ProcessNodeCandidate(*Cluster->GetEdgeStart(Edge), Edge, G1, 0, false);
+			FindCell(*Cluster->GetEdgeStart(Edge), Edge, 0, false);
 		}
 	}
 
@@ -127,6 +119,12 @@ namespace PCGExTopologyClusterSurface
 
 		FGeometryScriptGeneralPolygonList ClusterPolygonList;
 		ClusterPolygonList.Reset();
+
+		if (NumTriangulations == 0 && CellsConstraints->WrapperCell && Settings->Constraints.bKeepWrapperIfSolePath)
+		{
+			SubTriangulations[0]->Add(CellsConstraints->WrapperCell->Polygon);
+			FPlatformAtomics::InterlockedAdd(&NumTriangulations, 1);
+		}
 
 		for (const TSharedRef<TArray<FGeometryScriptSimplePolygon>>& SubTriangulation : SubTriangulations)
 		{

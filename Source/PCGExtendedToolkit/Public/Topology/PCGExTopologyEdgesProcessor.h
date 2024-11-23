@@ -66,6 +66,8 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExTopologyEdgesProcessorContext : FPCGExEd
 	friend class FPCGExTopologyEdgesProcessorElement;
 	TArray<TObjectPtr<const UPCGExFilterFactoryBase>> EdgeConstraintsFilterFactories;
 
+	TSharedPtr<PCGExTopology::FHoles> Holes;
+
 	TArray<FString> ComponentTags;
 	TSet<AActor*> NotifyActors;
 };
@@ -91,6 +93,7 @@ namespace PCGExTopologyEdges
 		const FVector2D CWTolerance = FVector2D(1 / 0.001);
 		bool bIsPreviewMode = false;
 
+		TSharedPtr<PCGExTopology::FCell> WrapperCell;
 		TObjectPtr<UDynamicMesh> InternalMesh;
 
 		TSharedPtr<PCGEx::FIndexLookup> VerticesLookup;
@@ -148,6 +151,9 @@ namespace PCGExTopologyEdges
 			ConstrainedEdgeFilterCache.Init(false, EdgeDataFacade->Source->GetNum());
 
 			CellsConstraints = MakeShared<PCGExTopology::FCellConstraints>(Settings->Constraints);
+			if (Settings->Constraints.bOmitWrappingBounds) { CellsConstraints->BuildWrapperCell(Cluster.ToSharedRef(), *ProjectedPositions); }
+			CellsConstraints->Holes = Context->Holes;
+
 			InitConstraints();
 
 			for (PCGExCluster::FNode& Node : *Cluster->Nodes) { Node.bValid = false; } // Invalidate all edges, triangulation will mark valid nodes to rebuild an index
@@ -206,6 +212,12 @@ namespace PCGExTopologyEdges
 			Context->NotifyActors.Add(TargetActor);
 		}
 
+		virtual void Cleanup() override
+		{
+			PCGExClusterMT::TProcessor<TContext, TSettings>::Cleanup();
+			CellsConstraints->Cleanup();
+		}
+		
 	protected:
 		void FilterConstrainedEdgeScope(const int32 StartIndex, const int32 Count)
 		{
@@ -336,7 +348,7 @@ namespace PCGExTopologyEdges
 					for (int i = StartIndex; i < MaxIndex; i++)
 					{
 						FVector V = This->ProjectionDetails.ProjectFlat(This->VtxDataFacade->Source->GetInPoint(i).Transform.GetLocation(), i);
-						This->ProjectedPositions[i] = V;// + (Random.VRand() * 0.01); // Cheap triangulation edge case prevention
+						This->ProjectedPositions[i] = V; // + (Random.VRand() * 0.01); // Cheap triangulation edge case prevention
 					}
 				};
 

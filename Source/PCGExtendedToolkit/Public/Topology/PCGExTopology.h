@@ -4,6 +4,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "GeomTools.h"
 #include "Geometry/PCGExGeoPrimtives.h"
 #include "Graph/PCGExCluster.h"
 #include "GeometryScript/MeshPrimitiveFunctions.h"
@@ -17,6 +18,13 @@ enum class EPCGExTopologyOutputType : uint8
 {
 	PerItem = 1 UMETA(DisplayName = "Per-item Geometry", Tooltip="Output a geometry object per-item"),
 	Merged  = 0 UMETA(DisplayName = "Merged Geometry", Tooltip="Output a single geometry that merges all generated topologies"),
+};
+
+UENUM()
+enum class EPCGExCellOutputOrientation : uint8
+{
+	CCW = 0 UMETA(DisplayName = "Clockwise", Tooltip="..."),
+	CW  = 1 UMETA(DisplayName = "Counter Clockwise", Tooltip="..."),
 };
 
 UENUM()
@@ -62,33 +70,33 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExCellConstraintsDetails
 	UPROPERTY()
 	bool bUsedForPaths = false;
 
+	/** */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName="CW/CCW", EditCondition="bUsedForPaths", EditConditionHides))
+	EPCGExCellOutputOrientation OutputOrientation = EPCGExCellOutputOrientation::CW;
+	
 	/**  */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	EPCGExCellShapeTypeOutput AspectFilter = EPCGExCellShapeTypeOutput::Both;
-
-	/** Ensure there's no duplicate cells. This can happen when using seed-based search where multiple seed yield the same final cell. Just leave that on, honestly.*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bUsedForPaths", EditConditionHides, HideEditConditionToggle), AdvancedDisplay)
-	bool bDedupeCells = true;
-
-	/** Keep only cells that closed gracefully; i.e connect to their start node */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
-	bool bClosedCellsOnly = true;
 
 	/** Whether to keep cells that include dead ends wrapping */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	bool bKeepCellsWithLeaves = true;
 
 	/** Whether to duplicate dead end points */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bKeepCellsWithLeaves && bUsedForPaths", EditConditionHides, HideEditConditionToggle))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName=" └─ Duplicate Leaf points", EditCondition="bKeepCellsWithLeaves && bUsedForPaths", EditConditionHides, HideEditConditionToggle))
 	bool bDuplicateLeafPoints = false;
 
 	/**  */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	bool bOmitWrappingBounds = true;
 
-	/** Omit cells with bounds that closely match the ones from the input set */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bOmitWrappingBounds", ClampMin=0))
-	double WrappingBoundsSizeTolerance = 100;
+	/** Omit cells with areas that closely match the computed wrapper. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName=" └─ Classification Tolerance", EditCondition="bOmitWrappingBounds", ClampMin=0.001))
+	double WrapperClassificationTolerance = 1;
+
+	/** */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName=" └─ Keep if Sole", EditCondition="bOmitWrappingBounds", EditConditionHides))
+	bool bKeepWrapperIfSolePath = true;
 
 	/**  */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, InlineEditConditionToggle))
@@ -258,10 +266,10 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExTopologyDetails
 
 	UPROPERTY(EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	FLinearColor DefaultVertexColor = FLinearColor::White;
-		
+
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_NotOverridable))
 	FGeometryScriptPrimitiveOptions PrimitiveOptions;
-	
+
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_NotOverridable))
 	FGeometryScriptPolygonsTriangulationOptions TriangulationOptions;
 
@@ -271,10 +279,9 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExTopologyDetails
 	/** Combines all topologies generated into a single dynamic mesh component */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	bool bCombinesAllTopologies = false;
-	
+
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_NotOverridable))
 	FPCGExDynamicMeshDescriptor TemplateDescriptor;
-	
 };
 
 namespace PCGExTopology
@@ -290,6 +297,33 @@ namespace PCGExTopology
 	};
 
 	const FName SourceEdgeConstrainsFiltersLabel = FName("ConstrainedEdgeFilters");
+	const FName SourceHolesLabel = FName("Holes");
+
+
+	template <typename T>
+	static bool IsPointInPolygon(const T& Point, const FGeometryScriptSimplePolygon& Polygon)
+	{
+		return FGeomTools2D::IsPointInPolygon(FVector2D(Point[0], Point[1]), *Polygon.Vertices);
+	}
+
+	static bool IsAnyPointInPolygon(const TArray<FVector2D>& Points, const FGeometryScriptSimplePolygon& Polygon)
+	{
+		if (Points.IsEmpty()) { return false; }
+		const TArray<FVector2D>& Vertices = *Polygon.Vertices;
+		for (const FVector2D& P : Points) { if (FGeomTools2D::IsPointInPolygon(P, Vertices)) { return true; } }
+		return false;
+	}
+
+	static bool IsPolygonInPolygon(const FGeometryScriptSimplePolygon& ContainerPolygon, const FGeometryScriptSimplePolygon& Polygon)
+	{
+		const TArray<FVector2D>& ContainerPoints = *ContainerPolygon.Vertices;
+		const TArray<FVector2D>& PolyPoints = *Polygon.Vertices;
+		for (const FVector2D& Point : PolyPoints)
+		{
+			if (!FGeomTools2D::IsPointInPolygon(Point, ContainerPoints)) { return false; }
+		}
+		return true;
+	}
 
 	static FORCEINLINE void MarkTriangle(
 		const TSharedPtr<PCGExCluster::FCluster>& InCluster,
@@ -327,6 +361,7 @@ namespace PCGExTopology
 		Success,
 		Duplicate,
 		Leaf,
+		Hole,
 		WrongAspect,
 		AbovePointsLimit,
 		BelowPointsLimit,
@@ -335,23 +370,44 @@ namespace PCGExTopology
 		AboveAreaLimit,
 		BelowAreaLimit,
 		OpenCell,
+		WrapperCell,
 	};
 
 	class FCell;
 
+	class FHoles : public TSharedFromThis<FHoles>
+	{
+	protected:
+		mutable FRWLock ProjectionLock;
+
+		TSharedRef<PCGExData::FFacade> PointDataFacade;
+		FPCGExGeo2DProjectionDetails ProjectionDetails;
+		TArray<FVector2D> ProjectedPoints;
+
+	public:
+		explicit FHoles(FPCGExContext* InContext, const TSharedRef<PCGExData::FFacade>& InPointDataFacade, const FPCGExGeo2DProjectionDetails& InProjectionDetails)
+			: PointDataFacade(InPointDataFacade), ProjectionDetails(InProjectionDetails)
+		{
+			ProjectionDetails.Init(InContext, PointDataFacade);
+		}
+
+		bool Overlaps(const FGeometryScriptSimplePolygon& Polygon);
+	};
+
 	class FCellConstraints : public TSharedFromThis<FCellConstraints>
 	{
+	protected:
+		mutable FRWLock UniquePathsHashSetLock;
+		TSet<uint32> UniquePathsHashSet;
+		
+		mutable FRWLock UniqueStartHalfEdgesHashLock;
+		TSet<uint64> UniqueStartHalfEdgesHash;
+		
 	public:
-		mutable FRWLock UniquePathsBoxHashLock;
-		mutable FRWLock UniquePathsStartHashLock;
-		TSet<uint32> UniquePathsBoxHash;
-		TSet<uint64> UniquePathsStartHash;
-
 		bool bConcaveOnly = false;
 		bool bConvexOnly = false;
 		bool bKeepCellsWithLeaves = true;
 		bool bDuplicateLeafPoints = false;
-		bool bClosedLoopOnly = false;
 
 		int32 MaxPointCount = MAX_int32;
 		int32 MinPointCount = MIN_int32;
@@ -371,11 +427,11 @@ namespace PCGExTopology
 		double MaxCompactness = MAX_dbl;
 		double MinCompactness = MIN_dbl;
 
-		FBox DataBounds = FBox(ForceInit);
-		bool bDoWrapperCheck = false;
-		double WrapperCheckTolerance = MAX_dbl;
+		double WrapperClassificationTolerance = 0.1;
+		bool bBuildWrapper = true;
 
-		bool bDedupe = true;
+		TSharedPtr<FCell> WrapperCell;
+		TSharedPtr<FHoles> Holes;
 
 		FCellConstraints()
 		{
@@ -383,12 +439,13 @@ namespace PCGExTopology
 
 		explicit FCellConstraints(const FPCGExCellConstraintsDetails& InDetails)
 		{
-			bDedupe = InDetails.bDedupeCells;
 			bConcaveOnly = InDetails.AspectFilter == EPCGExCellShapeTypeOutput::ConcaveOnly;
 			bConvexOnly = InDetails.AspectFilter == EPCGExCellShapeTypeOutput::ConvexOnly;
-			bClosedLoopOnly = InDetails.bClosedCellsOnly;
 			bKeepCellsWithLeaves = InDetails.bKeepCellsWithLeaves;
 			bDuplicateLeafPoints = InDetails.bDuplicateLeafPoints;
+
+			WrapperClassificationTolerance = InDetails.WrapperClassificationTolerance;
+			bBuildWrapper = InDetails.bOmitWrappingBounds;
 
 			if (InDetails.bOmitBelowPointCount) { MinPointCount = InDetails.MinPointCount; }
 			if (InDetails.bOmitAbovePointCount) { MaxPointCount = InDetails.MaxPointCount; }
@@ -407,20 +464,21 @@ namespace PCGExTopology
 
 			if (InDetails.bOmitBelowCompactness) { MinCompactness = InDetails.MinCompactness; }
 			if (InDetails.bOmitAboveCompactness) { MaxCompactness = InDetails.MaxCompactness; }
-
-			bDoWrapperCheck = InDetails.bOmitWrappingBounds;
-			WrapperCheckTolerance = InDetails.WrappingBoundsSizeTolerance;
 		}
 
 		bool ContainsSignedEdgeHash(const uint64 Hash) const;
 		bool IsUniqueStartHash(const uint64 Hash);
-		bool IsUniqueCellHash(const FCell* InCell);
+		bool IsUniqueCellHash(const TSharedPtr<FCell>& InCell);
+		void BuildWrapperCell(TSharedRef<PCGExCluster::FCluster> InCluster, const TArray<FVector>& ProjectedPositions);
+
+		void Cleanup();
 	};
 
 	class FCell : public TSharedFromThis<FCell>
 	{
 	protected:
 		int32 Sign = 0;
+		uint32 CellHash = 0;
 
 	public:
 		TArray<int32> Nodes;
@@ -428,11 +486,14 @@ namespace PCGExTopology
 		TSharedRef<FCellConstraints> Constraints;
 		FVector Centroid = FVector::ZeroVector;
 
+		int32 SeedNode = -1;
+		int32 SeedEdge = -1;
+
 		double Area = 0;
 		double Perimeter = 0;
 		double Compactness = 0;
 		bool bIsConvex = true;
-		bool bCompiledSuccessfully = false;
+		bool bBuiltSuccessfully = false;
 		bool bIsClosedLoop = false;
 
 		FGeometryScriptSimplePolygon Polygon;
@@ -444,18 +505,24 @@ namespace PCGExTopology
 
 		~FCell() = default;
 
+		uint32 GetCellHash();
+
 		ECellResult BuildFromCluster(
 			const int32 SeedNodeIndex,
 			const int32 SeedEdgeIndex,
-			const FVector& Guide,
 			TSharedRef<PCGExCluster::FCluster> InCluster,
 			const TArray<FVector>& ProjectedPositions);
+
+		ECellResult BuildFromCluster(
+			const FVector& SeedPosition,
+			const TSharedRef<PCGExCluster::FCluster>& InCluster,
+			const TArray<FVector>& ProjectedPositions,
+			const FPCGExNodeSelectionDetails* Picking = nullptr);
 
 		ECellResult BuildFromPath(
 			const TArray<FVector>& ProjectedPositions);
 
 		void PostProcessPoints(TArray<FPCGPoint>& InMutablePoints);
-
 	};
 
 #pragma endregion

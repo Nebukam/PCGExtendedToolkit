@@ -124,6 +124,14 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExGeo2DProjectionDetails
 		return FTransform(FQuat::FindBetweenNormals(Quat.GetUpVector(), FVector::UpVector) * Quat, Position);
 	}
 
+	void ProjectFlat(const TSharedPtr<PCGExData::FFacade>& InFacade, TArray<FVector2D>& OutPositions) const
+	{
+		const int32 NumVectors = InFacade->GetNum();
+		const TArray<FPCGPoint>& InPoints = InFacade->GetIn()->GetPoints();
+		PCGEx::InitArray(OutPositions, NumVectors);
+		for (int i = 0; i < NumVectors; i++) { OutPositions[i] = FVector2D(ProjectFlat(InPoints[i].Transform.GetLocation(), i)); }
+	}
+
 	void Project(const TArray<FVector>& InPositions, TArray<FVector>& OutPositions) const
 	{
 		const int32 NumVectors = InPositions.Num();

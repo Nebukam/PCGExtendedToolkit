@@ -213,10 +213,9 @@ bool FPCGExPathfindingGrowPathsElement::Boot(FPCGExContext* InContext) const
 
 	PCGEX_CONTEXT_AND_SETTINGS(PathfindingGrowPaths)
 
-	const TSharedPtr<PCGExData::FPointIO> SeedsPoints = PCGExData::TryGetSingleInput(Context, PCGExGraph::SourceSeedsLabel, true);
-	if (!SeedsPoints) { return false; }
+	Context->SeedsDataFacade = PCGExData::TryGetSingleFacade(Context, PCGExGraph::SourceSeedsLabel, true);
+	if (!Context->SeedsDataFacade) { return false; }
 
-	Context->SeedsDataFacade = MakeShared<PCGExData::FFacade>(SeedsPoints.ToSharedRef());
 	Context->OutputPaths = MakeShared<PCGExData::FPointIOCollection>(Context);
 
 	if (Settings->NumIterations == EPCGExGrowthValueSource::SeedAttribute)
@@ -315,7 +314,7 @@ namespace PCGExGrowPaths
 		for (int i = 0; i < SeedCount; i++)
 		{
 			const FVector SeedPosition = Context->SeedsDataFacade->Source->GetInPoint(i).Transform.GetLocation();
-			const int32 NodeIndex = Cluster->FindClosestNode(SeedPosition, Settings->SeedPicking.PickingMethod, 1);
+			const int32 NodeIndex = Cluster->FindClosestNode(SeedPosition, Settings->SeedPicking.PickingMethod);
 
 			if (NodeIndex == -1) { continue; }
 

@@ -32,10 +32,8 @@ bool FPCGExSampleSurfaceGuidedElement::Boot(FPCGExContext* InContext) const
 	if (Context->bUseInclude)
 	{
 		PCGEX_VALIDATE_NAME(Settings->ActorReference)
-		const TSharedPtr<PCGExData::FPointIO> ActorRefIO = PCGExData::TryGetSingleInput(Context, PCGExSampling::SourceActorReferencesLabel, true);
-		if (!ActorRefIO) { return false; }
-
-		Context->ActorReferenceDataFacade = MakeShared<PCGExData::FFacade>(ActorRefIO.ToSharedRef());
+		Context->ActorReferenceDataFacade = PCGExData::TryGetSingleFacade(Context, PCGExSampling::SourceActorReferencesLabel, true);
+		if (!Context->ActorReferenceDataFacade) { return false; }
 
 		if (!PCGExSampling::GetIncludedActors(
 			Context, Context->ActorReferenceDataFacade.ToSharedRef(),
@@ -95,7 +93,7 @@ namespace PCGExSampleSurfaceGuided
 		if (!FPointsProcessor::Process(InAsyncManager)) { return false; }
 
 		SampleState.SetNumUninitialized(PointDataFacade->GetNum());
-		
+
 		DirectionGetter = PointDataFacade->GetScopedBroadcaster<FVector>(Settings->Direction);
 
 		if (!DirectionGetter)
@@ -139,7 +137,7 @@ namespace PCGExSampleSurfaceGuided
 		auto SamplingFailed = [&]()
 		{
 			SampleState[Index] = false;
-			
+
 			PCGEX_OUTPUT_VALUE(Location, Index, Point.Transform.GetLocation())
 			PCGEX_OUTPUT_VALUE(Normal, Index, Direction*-1)
 			PCGEX_OUTPUT_VALUE(LookAt, Index, Direction)
@@ -180,7 +178,7 @@ namespace PCGExSampleSurfaceGuided
 			PCGEX_OUTPUT_VALUE(Distance, Index, FVector::Distance(HitResult.ImpactPoint, Origin))
 			PCGEX_OUTPUT_VALUE(IsInside, Index, FVector::DotProduct(Direction, HitResult.Normal) > 0)
 			PCGEX_OUTPUT_VALUE(Success, Index, bSuccess)
-			
+
 			SampleState[Index] = bSuccess;
 
 #if PCGEX_ENGINE_VERSION <= 503

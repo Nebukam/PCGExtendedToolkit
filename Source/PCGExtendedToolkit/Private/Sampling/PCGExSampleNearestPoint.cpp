@@ -78,10 +78,9 @@ bool FPCGExSampleNearestPointElement::Boot(FPCGExContext* InContext) const
 
 	PCGEX_CONTEXT_AND_SETTINGS(SampleNearestPoint)
 
-	const TSharedPtr<PCGExData::FPointIO> Targets = PCGExData::TryGetSingleInput(Context, PCGEx::SourceTargetsLabel, true);
-	if (!Targets) { return false; }
+	Context->TargetsFacade = PCGExData::TryGetSingleFacade(Context, PCGEx::SourceTargetsLabel, true);
+	if (!Context->TargetsFacade) { return false; }
 
-	Context->TargetsFacade = MakeShared<PCGExData::FFacade>(Targets.ToSharedRef());
 	Context->TargetsPreloader = MakeShared<PCGExData::FFacadePreloader>();
 
 	TSet<FName> MissingTargetAttributes;

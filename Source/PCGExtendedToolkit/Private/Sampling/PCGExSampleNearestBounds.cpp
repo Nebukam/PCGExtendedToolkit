@@ -85,10 +85,8 @@ bool FPCGExSampleNearestBoundsElement::Boot(FPCGExContext* InContext) const
 
 	PCGEX_CONTEXT_AND_SETTINGS(SampleNearestBounds)
 
-	const TSharedPtr<PCGExData::FPointIO> Bounds = PCGExData::TryGetSingleInput(Context, PCGEx::SourceBoundsLabel, true);
-	if (!Bounds) { return false; }
-
-	Context->BoundsFacade = MakeShared<PCGExData::FFacade>(Bounds.ToSharedRef());
+	Context->BoundsFacade = PCGExData::TryGetSingleFacade(Context, PCGEx::SourceBoundsLabel, true);
+	if (!Context->BoundsFacade) { return false; }
 
 	TSet<FName> MissingTargetAttributes;
 	PCGExDataBlending::AssembleBlendingDetails(
@@ -172,7 +170,7 @@ namespace PCGExSampleNearestBounds
 	void FProcessor::SamplingFailed(const int32 Index, const FPCGPoint& Point)
 	{
 		SampleState[Index] = false;
-		
+
 		constexpr double FailSafeDist = -1;
 		PCGEX_OUTPUT_VALUE(Success, Index, false)
 		PCGEX_OUTPUT_VALUE(Transform, Index, Point.Transform)

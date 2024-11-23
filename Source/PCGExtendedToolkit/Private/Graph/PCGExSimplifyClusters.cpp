@@ -115,7 +115,7 @@ namespace PCGExSimplifyClusters
 		const int32 MaxIndex = Links.Num() - 1;
 		const int32 NumIterations = Chain->bIsClosedLoop ? Links.Num() : MaxIndex;
 
-		for (int i = 0; i < NumIterations; ++i)
+		for (int i = 1; i < NumIterations; ++i)
 		{
 			UnionCount++;
 

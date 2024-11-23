@@ -31,6 +31,7 @@ public:
 #endif
 
 protected:
+	virtual TArray<FPCGPinProperties> InputPinProperties() const override;
 	virtual TArray<FPCGPinProperties> OutputPinProperties() const override;
 	virtual FPCGElementPtr CreateElement() const override;
 	//~End UPCGSettings
@@ -77,14 +78,6 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging", meta=(PCG_Overridable, EditCondition="bTagIfClosedLoop"))
 	FString IsClosedLoopTag = TEXT("ClosedLoop");
 
-	/** */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging", meta=(PCG_Overridable, InlineEditConditionToggle))
-	bool bTagIfOpenPath = false;
-
-	/** ... */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging", meta=(PCG_Overridable, EditCondition="bTagIfOpenPath"))
-	FString IsOpenPathTag = TEXT("OpenPath");
-
 	/** TBD */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Forwarding")
 	FPCGExAttributeToTagDetails SeedAttributesToPathTags;
@@ -106,7 +99,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExFindAllCellsContext final : FPCGExEdgesP
 	friend class FPCGExFindAllCellsElement;
 	friend class FPCGExCreateBridgeTask;
 
-	FPCGExGeo2DProjectionDetails ProjectionDetails;
+	TSharedPtr<PCGExTopology::FHoles> Holes;
 
 	TSharedPtr<PCGExData::FPointIOCollection> Paths;
 	TSharedPtr<PCGExData::FPointIO> Seeds;
@@ -135,6 +128,7 @@ namespace PCGExFindAllCells
 
 	protected:
 		bool bBuildExpandedNodes = false;
+		TSharedPtr<PCGExTopology::FCell> WrapperCell;
 
 	public:
 		TSharedPtr<PCGExTopology::FCellConstraints> CellsConstraints;
@@ -150,10 +144,12 @@ namespace PCGExFindAllCells
 
 		virtual bool Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager) override;
 		virtual void ProcessSingleEdge(const int32 EdgeIndex, PCGExGraph::FEdge& Edge, const int32 LoopIdx, const int32 Count) override;
-		bool ProcessNodeCandidate(const PCGExCluster::FNode& Node, const PCGExGraph::FEdge& Edge, const FVector& Guide, const bool bSkipBinary = true);
+		bool FindCell(const PCGExCluster::FNode& Node, const PCGExGraph::FEdge& Edge, const bool bSkipBinary = true);
+		void ProcessCell(const TSharedPtr<PCGExTopology::FCell>& InCell) const;
 		void EnsureRoamingClosedLoopProcessing();
 		virtual void OnEdgesProcessingComplete() override;
 		virtual void CompleteWork() override;
+		virtual void Cleanup() override;
 	};
 
 	class FBatch final : public PCGExClusterMT::TBatch<FProcessor>

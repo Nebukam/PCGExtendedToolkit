@@ -112,15 +112,11 @@ bool FPCGExPathfindingEdgesElement::Boot(FPCGExContext* InContext) const
 	PCGEX_OPERATION_BIND(GoalPicker, UPCGExGoalPicker, PCGExPathfinding::SourceOverridesGoalPicker)
 	PCGEX_OPERATION_BIND(SearchAlgorithm, UPCGExSearchOperation, PCGExPathfinding::SourceOverridesSearch)
 
-	const TSharedPtr<PCGExData::FPointIO> SeedsPoints = PCGExData::TryGetSingleInput(Context, PCGExGraph::SourceSeedsLabel, true);
-	if (!SeedsPoints) { return false; }
+	Context->SeedsDataFacade = PCGExData::TryGetSingleFacade(Context, PCGExGraph::SourceSeedsLabel, true);
+	if (!Context->SeedsDataFacade) { return false; }
 
-	Context->SeedsDataFacade = MakeShared<PCGExData::FFacade>(SeedsPoints.ToSharedRef());
-
-	const TSharedPtr<PCGExData::FPointIO> GoalsPoints = PCGExData::TryGetSingleInput(Context, PCGExGraph::SourceGoalsLabel, true);
-	if (!GoalsPoints) { return false; }
-
-	Context->GoalsDataFacade = MakeShared<PCGExData::FFacade>(GoalsPoints.ToSharedRef());
+	Context->GoalsDataFacade = PCGExData::TryGetSingleFacade(Context, PCGExGraph::SourceGoalsLabel, true);
+	if (!Context->GoalsDataFacade) { return false; }
 
 	PCGEX_FWD(SeedAttributesToPathTags)
 	PCGEX_FWD(GoalAttributesToPathTags)

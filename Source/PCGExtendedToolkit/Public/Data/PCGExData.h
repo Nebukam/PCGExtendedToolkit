@@ -943,4 +943,15 @@ namespace PCGExData
 	}
 
 #pragma endregion
+
+	static TSharedPtr<FFacade> TryGetSingleFacade(FPCGExContext* InContext, const FName InputPinLabel, const bool bThrowError)
+	{
+		TSharedPtr<FFacade> SingleFacade;
+		if (const TSharedPtr<FPointIO> SingleIO = TryGetSingleInput(InContext, InputPinLabel, bThrowError))
+		{
+			SingleFacade = MakeShared<FFacade>(SingleIO.ToSharedRef());
+		}
+
+		return SingleFacade;
+	}
 }

@@ -74,7 +74,6 @@ bool FPCGExCherryPickPointsElement::Boot(FPCGExContext* InContext) const
 		if (!Context->TryGetUniqueIndices(Targets.ToSharedRef(), Context->SharedTargetIndices)) { return false; }
 	}
 
-
 	return true;
 }
 

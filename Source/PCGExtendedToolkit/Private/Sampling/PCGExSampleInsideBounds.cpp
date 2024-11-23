@@ -76,10 +76,9 @@ bool FPCGExSampleInsideBoundsElement::Boot(FPCGExContext* InContext) const
 
 	PCGEX_CONTEXT_AND_SETTINGS(SampleInsideBounds)
 
-	const TSharedPtr<PCGExData::FPointIO> Targets = PCGExData::TryGetSingleInput(Context, PCGEx::SourceTargetsLabel, true);
-	if (!Targets) { return false; }
+	Context->TargetsFacade = PCGExData::TryGetSingleFacade(Context, PCGEx::SourceTargetsLabel, true);
+	if (!Context->TargetsFacade) { return false; }
 
-	Context->TargetsFacade = MakeShared<PCGExData::FFacade>(Targets.ToSharedRef());
 	Context->TargetsPreloader = MakeShared<PCGExData::FFacadePreloader>();
 
 	TSet<FName> MissingTargetAttributes;
@@ -166,7 +165,7 @@ namespace PCGExSampleInsideBoundss
 	void FProcessor::SamplingFailed(const int32 Index, const FPCGPoint& Point)
 	{
 		SampleState[Index] = false;
-		
+
 		const double FailSafeDist = RangeMaxGetter ? FMath::Sqrt(RangeMaxGetter->Read(Index)) : Settings->RangeMax;
 		PCGEX_OUTPUT_VALUE(Success, Index, false)
 		PCGEX_OUTPUT_VALUE(Transform, Index, Point.Transform)

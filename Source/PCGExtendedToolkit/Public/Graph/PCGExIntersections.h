@@ -558,24 +558,19 @@ namespace PCGExGraph
 			bool bAlreadySet = false;
 			CheckedPairs.Add(PCGEx::H64U(Split.A, Split.B), &bAlreadySet);
 
+			// Do not register a crossing that was already found in another test pair
 			if (bAlreadySet) { return; }
 
+			const int32 CrossingIndex = Crossings.Num();
 			FEECrossing& OutSplit = Crossings.Emplace_GetRef(Split);
-			OutSplit.NodeIndex = Graph->Nodes.Num() + Crossings.Num() - 1;
+			OutSplit.NodeIndex = Graph->Nodes.Num() + CrossingIndex;
 
-			if (Split.A < Split.B)
-			{
-				OutSplit.EdgeA = Split.A;
-				OutSplit.EdgeB = Split.B;
-			}
-			else
-			{
-				OutSplit.EdgeA = Split.B;
-				OutSplit.EdgeB = Split.A;
-			}
+			OutSplit.EdgeA = Split.A;
+			OutSplit.EdgeB = Split.B;
 
-			Edges[Split.A].Intersections.AddUnique(Crossings.Num() - 1);
-			Edges[Split.B].Intersections.AddUnique(Crossings.Num() - 1);
+			// Register crossing index to crossed edges
+			Edges[Split.A].Intersections.AddUnique(CrossingIndex);
+			Edges[Split.B].Intersections.AddUnique(CrossingIndex);
 		}
 
 		FORCEINLINE void BatchAdd(TArray<FEESplit>& Splits, const int32 A)
@@ -602,6 +597,8 @@ namespace PCGExGraph
 
 		const FEdgeEdgeProxy& Edge = InIntersections->Edges[EdgeIndex];
 		TArray<FEESplit> OutSplits;
+
+		// Find all split points then register crossings that don't exist already
 
 		if (!InIntersections->Details->bEnableSelfIntersection)
 		{
@@ -646,6 +643,7 @@ namespace PCGExGraph
 			InIntersections->Octree->FindElementsWithBoundsTest(Edge.Box, ProcessEdge);
 		}
 
+		// Register crossings
 		InIntersections->BatchAdd(OutSplits, EdgeIndex);
 	}
 
