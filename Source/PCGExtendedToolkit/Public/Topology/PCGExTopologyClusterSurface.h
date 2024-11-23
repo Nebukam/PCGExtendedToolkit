@@ -54,6 +54,7 @@ namespace PCGExTopologyClusterSurface
 		TArray<TSharedRef<TArray<FGeometryScriptSimplePolygon>>> SubTriangulations;
 		int32 NumAttempts = 0;
 		int32 LastBinary = -1;
+		int32 NumTriangulations = 0;
 
 	public:
 		FProcessor(const TSharedRef<PCGExData::FFacade>& InVtxDataFacade, const TSharedRef<PCGExData::FFacade>& InEdgeDataFacade)
@@ -69,7 +70,7 @@ namespace PCGExTopologyClusterSurface
 		virtual void PrepareLoopScopesForEdges(const TArray<uint64>& Loops) override;
 		virtual void PrepareSingleLoopScopeForEdges(const uint32 StartIndex, const int32 Count) override;
 		virtual void ProcessSingleEdge(const int32 EdgeIndex, PCGExGraph::FEdge& Edge, const int32 LoopIdx, const int32 Count) override;
-		bool ProcessNodeCandidate(const PCGExCluster::FNode& Node, const PCGExGraph::FEdge& Edge, const FVector& Guide, int32 LoopIdx, const bool bSkipBinary = true);
+		bool FindCell(const PCGExCluster::FNode& Node, const PCGExGraph::FEdge& Edge, int32 LoopIdx, const bool bSkipBinary = true);
 		void EnsureRoamingClosedLoopProcessing();
 		virtual void OnEdgesProcessingComplete() override;
 		

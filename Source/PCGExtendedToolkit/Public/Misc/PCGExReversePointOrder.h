@@ -11,6 +11,14 @@
 
 #include "PCGExReversePointOrder.generated.h"
 
+UENUM()
+enum class EPCGExPointReverseMethod : uint8
+{
+	None         = 0 UMETA(DisplayName = "None", ToolTip="..."),
+	SortingRules = 1 UMETA(DisplayName = "Sorting Rules", ToolTip="..."),
+	Winding      = 2 UMETA(DisplayName = "Winding", ToolTip="..."),
+};
+
 USTRUCT(BlueprintType)
 struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExSwapAttributePairDetails
 {
@@ -68,11 +76,19 @@ public:
 
 	/**  */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
-	bool bReverseUsingSortingRules;
+	EPCGExPointReverseMethod Method = EPCGExPointReverseMethod::None;
 
 	/** Sort direction */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bReverseUsingSortingRules"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="Method==EPCGExPointReverseMethod::SortingRules", EditConditionHides))
 	EPCGExSortDirection SortDirection = EPCGExSortDirection::Ascending;
+
+	/** Winding */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="Method==EPCGExPointReverseMethod::Winding", EditConditionHides))
+	EPCGExWinding Winding = EPCGExWinding::CounterClockwise;
+
+	/** Projection settings. Winding is computed on a 2D plane. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="Method==EPCGExPointReverseMethod::Winding", EditConditionHides))
+	FPCGExGeo2DProjectionDetails ProjectionDetails = FPCGExGeo2DProjectionDetails();
 
 	/**  */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
@@ -131,6 +147,8 @@ namespace PCGExReversePointOrder
 		TArray<FPCGExSwapAttributePairDetails> SwapPairs;
 		TSharedPtr<PCGExSorting::PointSorter<false, true>> Sorter;
 
+		FPCGExGeo2DProjectionDetails ProjectionDetails;
+		
 		bool bReversed = true;
 
 	public:

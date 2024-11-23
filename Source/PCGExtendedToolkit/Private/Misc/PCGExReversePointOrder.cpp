@@ -3,6 +3,8 @@
 
 #include "Misc/PCGExReversePointOrder.h"
 
+#include "Curve/CurveUtil.h"
+
 
 #define LOCTEXT_NAMESPACE "PCGExReversePointOrderElement"
 #define PCGEX_NAMESPACE ReversePointOrder
@@ -12,7 +14,7 @@ PCGExData::EIOInit UPCGExReversePointOrderSettings::GetMainOutputInitMode() cons
 TArray<FPCGPinProperties> UPCGExReversePointOrderSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
-	if (bReverseUsingSortingRules)
+	if (Method == EPCGExPointReverseMethod::SortingRules)
 	{
 		PCGEX_PIN_PARAMS(PCGExSorting::SourceSortingRules, "Plug sorting rules here. Order is defined by each rule' priority value, in ascending order.", Required, {})
 	}
@@ -47,7 +49,7 @@ bool FPCGExReversePointOrderElement::ExecuteInternal(FPCGContext* InContext) con
 			[&](const TSharedPtr<PCGExData::FPointIO>& Entry) { return true; },
 			[&](const TSharedPtr<PCGExPointsMT::TBatch<PCGExReversePointOrder::FProcessor>>& NewBatch)
 			{
-				NewBatch->bPrefetchData = Settings->bReverseUsingSortingRules || !Settings->SwapAttributesValues.IsEmpty();
+				NewBatch->bPrefetchData = Settings->Method != EPCGExPointReverseMethod::None || !Settings->SwapAttributesValues.IsEmpty();
 			}))
 		{
 			return Context->CancelExecution(TEXT("Could not find any points to process."));
@@ -85,17 +87,29 @@ namespace PCGExReversePointOrder
 			FacadePreloader.Register(Context, *SecondIdentity);
 		}
 
-		if (Settings->bReverseUsingSortingRules)
+		if (Settings->Method == EPCGExPointReverseMethod::SortingRules)
 		{
 			Sorter = MakeShared<PCGExSorting::PointSorter<false, true>>(Context, PointDataFacade, PCGExSorting::GetSortingRules(Context, PCGExSorting::SourceSortingRules));
 			Sorter->SortDirection = Settings->SortDirection;
 			Sorter->RegisterBuffersDependencies(FacadePreloader);
+		}
+		else if (Settings->Method == EPCGExPointReverseMethod::Winding && Settings->ProjectionDetails.bLocalProjectionNormal)
+		{
+			FacadePreloader.Register<FVector>(Context, Settings->ProjectionDetails.LocalNormal);
 		}
 	}
 
 	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager> InAsyncManager)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExWriteIndex::Process);
+
+		ON_SCOPE_EXIT
+		{
+			if (!bReversed)
+			{
+				PointDataFacade->Source->InitializeOutput(PCGExData::EIOInit::Forward);
+			}
+		};
 
 		if (!FPointsProcessor::Process(InAsyncManager)) { return false; }
 
@@ -105,16 +119,26 @@ namespace PCGExReversePointOrder
 			{
 				PCGE_LOG_C(Warning, GraphAndLog, Context, FTEXT("Some sorting rules could not be processed."));
 				bReversed = false;
-				PointDataFacade->Source->InitializeOutput(PCGExData::EIOInit::Forward);
 				return false;
 			}
 
 			if (!Sorter->Sort(0, PointDataFacade->GetNum() - 1))
 			{
 				bReversed = false;
-				PointDataFacade->Source->InitializeOutput(PCGExData::EIOInit::Forward);
 				return true;
 			}
+		}
+
+		if (Settings->Method == EPCGExPointReverseMethod::Winding)
+		{
+			FPCGExGeo2DProjectionDetails Proj = FPCGExGeo2DProjectionDetails(Settings->ProjectionDetails);
+			if (!Proj.Init(Context, PointDataFacade)) { return false; }
+
+			TArray<FVector2D> ProjectedPoints;
+			Proj.ProjectFlat(PointDataFacade, ProjectedPoints);
+
+			bReversed = !PCGExGeo::IsWinded(Settings->Winding, UE::Geometry::CurveUtil::SignedArea2<double, FVector2D>(ProjectedPoints) < 0);
+			if (!bReversed) { return true; }
 		}
 
 		PointDataFacade->Source->InitializeOutput(PCGExData::EIOInit::Duplicate);

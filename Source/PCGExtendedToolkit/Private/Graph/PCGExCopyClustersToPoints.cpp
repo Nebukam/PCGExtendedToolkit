@@ -28,10 +28,8 @@ bool FPCGExCopyClustersToPointsElement::Boot(FPCGExContext* InContext) const
 
 	PCGEX_CONTEXT_AND_SETTINGS(CopyClustersToPoints)
 
-	const TSharedPtr<PCGExData::FPointIO> Targets = PCGExData::TryGetSingleInput(Context, PCGEx::SourceTargetsLabel, true);
-	if (!Targets) { return false; }
-
-	Context->TargetsDataFacade = MakeShared<PCGExData::FFacade>(Targets.ToSharedRef());
+	Context->TargetsDataFacade = PCGExData::TryGetSingleFacade(Context, PCGEx::SourceTargetsLabel, true);
+	if (!Context->TargetsDataFacade) { return false; }
 
 	PCGEX_FWD(TransformDetails)
 	if (!Context->TransformDetails.Init(Context, Context->TargetsDataFacade.ToSharedRef())) { return false; }

@@ -40,7 +40,7 @@ public:
 	FPCGExPointPointIntersectionDetails PointPointIntersectionDetails;
 
 	/** Find Point-Edge intersection */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, InlineEditConditionToggle))
 	bool bFindPointEdgeIntersections;
 
 	/** Point-Edge intersection settings */
@@ -48,7 +48,7 @@ public:
 	FPCGExPointEdgeIntersectionDetails PointEdgeIntersectionDetails;
 
 	/** Find Edge-Edge intersection */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, InlineEditConditionToggle))
 	bool bFindEdgeEdgeIntersections;
 
 	/** Edge-Edge intersection */

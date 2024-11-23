@@ -4,6 +4,7 @@
 #include "Graph/PCGExBreakClustersToPaths.h"
 
 
+#include "Curve/CurveUtil.h"
 #include "Graph/PCGExChain.h"
 #include "Graph/Filters/PCGExClusterFilter.h"
 
@@ -134,6 +135,26 @@ namespace PCGExBreakClustersToPaths
 		else { if (Settings->bTagIfClosedLoop) { PathIO->Tags->Add(Settings->IsClosedLoopTag); } }
 
 		if (bReverse) { Algo::Reverse(MutablePoints); }
+
+		if (ProjectedPositions)
+		{
+			// TODO : Reverse once only
+
+			if (!Settings->bWindOnlyClosedLoops || Chain->bIsClosedLoop)
+			{
+				const TArray<FVector2D>& PP = *ProjectedPositions;
+				TArray<FVector2D> WindingPoints;
+				PCGEx::InitArray(WindingPoints, PtIndex);
+				WindingPoints[0] = PP[Cluster->GetNode(Chain->Seed)->PointIndex];
+				for (int i = 0; i < PtIndex; i++) { WindingPoints[i + 1] = PP[Cluster->GetNode(Chain->Links[i])->PointIndex]; }
+
+				if (!PCGExGeo::IsWinded(Settings->Winding, UE::Geometry::CurveUtil::SignedArea2<double, FVector2D>(WindingPoints) < 0)
+					&& !bReverse)
+				{
+					Algo::Reverse(MutablePoints);
+				}
+			}
+		}
 	}
 
 	void FProcessor::ProcessSingleEdge(const int32 EdgeIndex, PCGExGraph::FEdge& Edge, const int32 LoopIdx, const int32 Count)
@@ -154,6 +175,11 @@ namespace PCGExBreakClustersToPaths
 		PCGEX_TYPED_CONTEXT_AND_SETTINGS(BreakClustersToPaths)
 		PCGExPointFilter::RegisterBuffersDependencies(ExecutionContext, Context->FilterFactories, FacadePreloader);
 		DirectionSettings.RegisterBuffersDependencies(ExecutionContext, FacadePreloader);
+
+		if (Settings->Winding != EPCGExWindingMutation::Unchanged && Settings->ProjectionDetails.bLocalProjectionNormal)
+		{
+			FacadePreloader.Register<FVector>(Context, Settings->ProjectionDetails.LocalNormal);
+		}
 	}
 
 	void FBatch::OnProcessingPreparationComplete()
@@ -184,23 +210,71 @@ namespace PCGExBreakClustersToPaths
 		Breakpoints = MakeShared<TArray<int8>>();
 		Breakpoints->Init(false, NumPoints);
 
-		if (Context->FilterFactories.IsEmpty())
+		if (Context->FilterFactories.IsEmpty() || Settings->Winding != EPCGExWindingMutation::Unchanged)
 		{
-			// Process breakpoint filters
-			const TSharedPtr<PCGExPointFilter::FManager> FilterManager = MakeShared<PCGExPointFilter::FManager>(VtxDataFacade);
-			TArray<int8>& Breaks = *Breakpoints;
-			if (FilterManager->Init(ExecutionContext, Context->FilterFactories))
+			if (!Context->FilterFactories.IsEmpty())
 			{
-				for (int i = 0; i < NumPoints; i++) { Breaks[i] = FilterManager->Test(i); }
+				// Process breakpoint filters
+				BreakpointFilterManager = MakeShared<PCGExPointFilter::FManager>(VtxDataFacade);
+				if (!BreakpointFilterManager->Init(ExecutionContext, Context->FilterFactories)) { return; }
 			}
-		}
 
+			if (Settings->Winding != EPCGExWindingMutation::Unchanged)
+			{
+				ProjectionDetails = Settings->ProjectionDetails;
+				if (!ProjectionDetails.Init(Context, VtxDataFacade)) { return; }
+
+				PCGEx::InitArray(ProjectedPositions, VtxDataFacade->GetNum());
+			}
+
+			PCGEX_ASYNC_GROUP_CHKD_VOID(AsyncManager, ProjectionTaskGroup)
+
+			ProjectionTaskGroup->OnCompleteCallback =
+				[WeakThis = TWeakPtr<FBatch>(SharedThis(this))]()
+				{
+					if (TSharedPtr<FBatch> This = WeakThis.Pin()) { This->OnProjectionComplete(); }
+				};
+
+			ProjectionTaskGroup->OnSubLoopStartCallback =
+				[WeakThis = TWeakPtr<FBatch>(SharedThis(this))]
+				(const int32 StartIndex, const int32 Count, const int32 LoopIdx)
+				{
+					TSharedPtr<FBatch> This = WeakThis.Pin();
+					if (!This) { return; }
+
+					if (This->BreakpointFilterManager)
+					{
+						TArray<int8>& Breaks = *This->Breakpoints;
+						const int32 MaxIndex = StartIndex + Count;
+						for (int i = StartIndex; i < MaxIndex; i++)
+						{
+							Breaks[i] = This->BreakpointFilterManager->Test(i);
+						}
+					}
+
+					if (This->ProjectedPositions)
+					{
+						This->ProjectionDetails.ProjectFlat(This->VtxDataFacade, *This->ProjectedPositions, StartIndex, Count);
+					}
+				};
+
+			ProjectionTaskGroup->StartSubLoops(VtxDataFacade->GetNum(), GetDefault<UPCGExGlobalSettings>()->GetPointsBatchChunkSize());
+		}
+		else
+		{
+			TBatch<FProcessor>::Process();
+		}
+	}
+
+	void FBatch::OnProjectionComplete()
+	{
 		TBatch<FProcessor>::Process();
 	}
 
 	bool FBatch::PrepareSingle(const TSharedPtr<FProcessor>& ClusterProcessor)
 	{
 		ClusterProcessor->Breakpoints = Breakpoints;
+		ClusterProcessor->ProjectedPositions = ProjectedPositions;
 		return TBatch<FProcessor>::PrepareSingle(ClusterProcessor);
 	}
 }

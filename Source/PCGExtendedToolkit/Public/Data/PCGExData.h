@@ -943,4 +943,24 @@ namespace PCGExData
 	}
 
 #pragma endregion
+
+	static TSharedPtr<FFacade> TryGetSingleFacade(FPCGExContext* InContext, const FName InputPinLabel, const bool bThrowError)
+	{
+		TSharedPtr<FFacade> SingleFacade;
+		if (const TSharedPtr<FPointIO> SingleIO = TryGetSingleInput(InContext, InputPinLabel, bThrowError))
+		{
+			SingleFacade = MakeShared<FFacade>(SingleIO.ToSharedRef());
+		}
+
+		return SingleFacade;
+	}
+
+	template <bool bReverse = false>
+	static void GetTransforms(const TArray<FPCGPoint>& InPoints, TArray<FTransform>& OutTransforms)
+	{
+		PCGEx::InitArray(OutTransforms, InPoints.Num());
+		const int32 MaxIndex = InPoints.Num() - 1;
+		if constexpr (bReverse) { for (int i = 0; i <= MaxIndex; i++) { OutTransforms[i] = InPoints[i].Transform; } }
+		else { for (int i = 0; i <= MaxIndex; i++) { OutTransforms[MaxIndex - i] = InPoints[i].Transform; } }
+	}
 }

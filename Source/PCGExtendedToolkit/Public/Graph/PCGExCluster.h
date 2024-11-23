@@ -94,6 +94,26 @@ namespace PCGExCluster
 		bool HasAnyValidEdges(const FCluster* InCluster);
 	};
 
+	struct /*PCGEXTENDEDTOOLKIT_API*/ FBoundedEdge
+	{
+		int32 Index;
+		FBoxSphereBounds Bounds;
+
+		FBoundedEdge(const FCluster* Cluster, const int32 InEdgeIndex);
+
+		FBoundedEdge():
+			Index(-1), Bounds(FBoxSphereBounds(ForceInit))
+		{
+		}
+
+		~FBoundedEdge() = default;
+
+		bool operator==(const FBoundedEdge& ExpandedEdge) const
+		{
+			return (Index == ExpandedEdge.Index && Bounds == ExpandedEdge.Bounds);
+		};
+	};
+
 	class /*PCGEXTENDEDTOOLKIT_API*/ FCluster : public TSharedFromThis<FCluster>
 	{
 	protected:
@@ -187,7 +207,7 @@ namespace PCGExCluster
 		FORCEINLINE double GetDistSquared(const int32 NodeA, const int32 NodeB) const { return FVector::DistSquared(*(NodePositions.GetData() + NodeA), *(NodePositions.GetData() + NodeB)); }
 		FORCEINLINE double GetDistSquared(const FNode& A, const FNode& B) const { return GetDistSquared(A.Index, B.Index); }
 
-		void GetProjectedEdgeGuides(const int32 Edge, const TArray<FVector>& ProjectedPositions, FVector& OutAB, FVector& OutBA, const FVector& Up = FVector::UpVector) const;
+		FNode* GetGuidedHalfEdge(const int32 Edge, const FVector& Guide, const FVector& Up = FVector::UpVector) const;
 
 		FORCEINLINE FNode* GetRoamingNode(const FVector& UVW) const { return GetNode(FindClosestNode(Bounds.GetCenter() + Bounds.GetExtent() * UVW, EPCGExClusterClosestSearchMode::Edge)); }
 
@@ -229,15 +249,187 @@ namespace PCGExCluster
 			return ((*(NodePositions.GetData() + NodeIndexLookup->Get(InEdge.Start))) - (*(NodePositions.GetData() + NodeIndexLookup->Get(InEdge.End)))).GetSafeNormal();
 		}
 
+		TSharedPtr<PCGEx::FIndexedItemOctree> GetNodeOctree();
+		TSharedPtr<PCGEx::FIndexedItemOctree> GetEdgeOctree();
+
 		void RebuildNodeOctree();
 		void RebuildEdgeOctree();
 		void RebuildOctree(EPCGExClusterClosestSearchMode Mode, const bool bForceRebuild = false);
 
-		int32 FindClosestNode(const FVector& Position, EPCGExClusterClosestSearchMode Mode, const int32 MinNeighbors = 0) const;
-		int32 FindClosestNode(const FVector& Position, const int32 MinNeighbors = 0) const;
-		int32 FindClosestNodeFromEdge(const FVector& Position, const int32 MinNeighbors = 0) const;
+		template <int32 MinNeighbors = 0>
+		int32 FindClosestNode(const FVector& Position, EPCGExClusterClosestSearchMode Mode) const
+		{
+			switch (Mode)
+			{
+			default: ;
+			case EPCGExClusterClosestSearchMode::Node:
+				return FindClosestNode<MinNeighbors>(Position);
+			case EPCGExClusterClosestSearchMode::Edge:
+				return FindClosestNodeFromEdge<MinNeighbors>(Position);
+			}
+		}
 
-		int32 FindClosestEdge(const int32 InNodeIndex, const FVector& InPosition) const;
+		template <int32 MinNeighbors = 0>
+		int32 FindClosestNode(const FVector& Position) const
+		{
+			double MaxDistance = MAX_dbl;
+			int32 ClosestIndex = -1;
+
+			const TArray<FNode>& NodesRef = *Nodes;
+
+			if (NodeOctree)
+			{
+				auto ProcessCandidate = [&](const PCGEx::FIndexedItem& Item)
+				{
+					const FNode& Node = NodesRef[Item.Index];
+					if constexpr (MinNeighbors > 0) { if (Node.Num() < MinNeighbors) { return; } }
+					const double Dist = FVector::DistSquared(Position, GetPos(Node));
+					if (Dist < MaxDistance)
+					{
+						MaxDistance = Dist;
+						ClosestIndex = Node.Index;
+					}
+				};
+
+				NodeOctree->FindNearbyElements(Position, ProcessCandidate);
+			}
+			else
+			{
+				for (const FNode& Node : (*Nodes))
+				{
+					if constexpr (MinNeighbors > 0) { if (Node.Num() < MinNeighbors) { continue; } }
+					const double Dist = FVector::DistSquared(Position, GetPos(Node));
+					if (Dist < MaxDistance)
+					{
+						MaxDistance = Dist;
+						ClosestIndex = Node.Index;
+					}
+				}
+			}
+
+			return ClosestIndex;
+		}
+
+		template <int32 MinNeighbors = 0>
+		int32 FindClosestNodeFromEdge(const FVector& Position) const
+		{
+			double MaxDistance = MAX_dbl;
+			int32 ClosestIndex = -1;
+
+			const TArray<FNode>& NodesRef = *Nodes;
+			const TArray<FEdge>& EdgesRef = *Edges;
+
+			if (EdgeOctree)
+			{
+				auto ProcessCandidate = [&](const PCGEx::FIndexedItem& Item)
+				{
+					const double Dist = GetPointDistToEdgeSquared(Item.Index, Position);
+					if (Dist < MaxDistance)
+					{
+						if constexpr (MinNeighbors > 0)
+						{
+							if (GetEdgeStart(Item.Index)->Links.Num() < MinNeighbors &&
+								GetEdgeEnd(Item.Index)->Links.Num() < MinNeighbors)
+							{
+								return;
+							}
+						}
+						MaxDistance = Dist;
+						ClosestIndex = Item.Index;
+					}
+				};
+
+				EdgeOctree->FindNearbyElements(Position, ProcessCandidate);
+			}
+			else if (BoundedEdges)
+			{
+				for (const FBoundedEdge& Edge : (*BoundedEdges))
+				{
+					const double Dist = GetPointDistToEdgeSquared(Edge.Index, Position);
+					if (Dist < MaxDistance)
+					{
+						if constexpr (MinNeighbors > 0)
+						{
+							if (GetEdgeStart(Edge.Index)->Links.Num() < MinNeighbors &&
+								GetEdgeEnd(Edge.Index)->Links.Num() < MinNeighbors)
+							{
+								continue;
+							}
+						}
+
+						MaxDistance = Dist;
+						ClosestIndex = Edge.Index;
+					}
+				}
+			}
+			else
+			{
+				for (const FEdge& Edge : (*Edges))
+				{
+					const double Dist = GetPointDistToEdgeSquared(Edge, Position);
+					if (Dist < MaxDistance)
+					{
+						if constexpr (MinNeighbors > 0)
+						{
+							if (GetEdgeStart(Edge.Index)->Links.Num() < MinNeighbors &&
+								GetEdgeEnd(Edge.Index)->Links.Num() < MinNeighbors)
+							{
+								continue;
+							}
+						}
+
+						MaxDistance = Dist;
+						ClosestIndex = Edge.Index;
+					}
+				}
+			}
+
+			if (ClosestIndex == -1) { return -1; }
+
+			const FEdge& Edge = EdgesRef[ClosestIndex];
+			const FNode* Start = GetEdgeStart(Edge);
+			const FNode* End = GetEdgeEnd(Edge);
+
+			ClosestIndex = FVector::DistSquared(Position, GetPos(Start)) < FVector::DistSquared(Position, GetPos(End)) ? Start->Index : End->Index;
+
+			return ClosestIndex;
+		}
+
+		template <int32 MinNeighbors = 0>
+		int32 FindClosestEdge(const int32 InNodeIndex, const FVector& InPosition) const
+		{
+			if (!Nodes->IsValidIndex(InNodeIndex) || (Nodes->GetData() + InNodeIndex)->IsEmpty()) { return -1; }
+			const FNode& Node = *(Nodes->GetData() + InNodeIndex);
+
+			double BestDist = MAX_dbl;
+			double BestDot = MAX_dbl;
+
+			int32 BestIndex = -1;
+
+			const FVector Position = GetPos(Node);
+			const FVector SearchDirection = (GetPos(Node) - InPosition).GetSafeNormal();
+
+			for (const FLink Lk : Node.Links)
+			{
+				if constexpr (MinNeighbors > 0)
+				{
+					if (GetNode(Lk)->Links.Num() < MinNeighbors) { continue; }
+				}
+
+				FVector NPos = GetPos(Lk.Node);
+				const double Dist = FMath::PointDistToSegmentSquared(InPosition, Position, NPos);
+				if (Dist <= BestDist)
+				{
+					const double Dot = FMath::Abs(FVector::DotProduct(SearchDirection, (NPos - Position).GetSafeNormal()));
+					if (Dist == BestDist && Dot > BestDot) { continue; }
+					BestDot = Dot;
+					BestDist = Dist;
+					BestIndex = Lk.Edge;
+				}
+			}
+
+			return BestIndex;
+		}
 
 		int32 FindClosestNeighbor(const int32 NodeIndex, const FVector& Position, int32 MinNeighborCount = 1) const;
 		int32 FindClosestNeighbor(const int32 NodeIndex, const FVector& Position, const TSet<int32>& Exclusion, int32 MinNeighborCount = 1) const;
@@ -341,33 +533,6 @@ namespace PCGExCluster
 		}
 	};
 
-	struct /*PCGEXTENDEDTOOLKIT_API*/ FBoundedEdge
-	{
-		int32 Index;
-		FBoxSphereBounds Bounds;
-
-		FBoundedEdge(const FCluster* Cluster, const int32 InEdgeIndex):
-			Index(InEdgeIndex),
-			Bounds(
-				FBoxSphereBounds(
-					FSphere(
-						FMath::Lerp(Cluster->GetStartPos(InEdgeIndex), Cluster->GetEndPos(InEdgeIndex), 0.5),
-						Cluster->GetDist(InEdgeIndex) * 0.5)))
-		{
-		}
-
-		FBoundedEdge():
-			Index(-1), Bounds(FBoxSphereBounds(ForceInit))
-		{
-		}
-
-		~FBoundedEdge() = default;
-
-		bool operator==(const FBoundedEdge& ExpandedEdge) const
-		{
-			return (Index == ExpandedEdge.Index && Bounds == ExpandedEdge.Bounds);
-		};
-	};
 
 	static void GetAdjacencyData(const FCluster* InCluster, FNode& InNode, TArray<FAdjacencyData>& OutData)
 	{

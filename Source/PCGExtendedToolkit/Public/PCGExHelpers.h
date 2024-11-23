@@ -70,7 +70,7 @@ namespace PCGExHelpers
 			}
 		}
 	}
-	
+
 	static void SetPointProperty(FPCGPoint& InPoint, const double InValue, const EPCGExPointPropertyOutput InProperty)
 	{
 		switch (InProperty)
@@ -379,8 +379,9 @@ namespace PCGEx
 	}
 
 	template <typename T>
-	FORCEINLINE static void InitArray(TSharedPtr<TArray<T>> InArray, const int32 Num)
+	FORCEINLINE static void InitArray(TSharedPtr<TArray<T>>& InArray, const int32 Num)
 	{
+		if (!InArray) { InArray = MakeShared<TArray<T>>(); }
 		if constexpr (std::is_trivially_copyable_v<T>) { InArray->SetNumUninitialized(Num); }
 		else { InArray->SetNum(Num); }
 	}

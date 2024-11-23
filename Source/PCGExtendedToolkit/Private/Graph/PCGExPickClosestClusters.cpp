@@ -81,10 +81,8 @@ bool FPCGExPickClosestClustersElement::Boot(FPCGExContext* InContext) const
 
 	PCGEX_CONTEXT_AND_SETTINGS(PickClosestClusters)
 
-	const TSharedPtr<PCGExData::FPointIO> Targets = PCGExData::TryGetSingleInput(Context, PCGExGraph::SourcePickersLabel, true);
-	if (!Targets) { return false; }
-
-	Context->TargetDataFacade = MakeShared<PCGExData::FFacade>(Targets.ToSharedRef());
+	Context->TargetDataFacade = PCGExData::TryGetSingleFacade(Context, PCGExGraph::SourcePickersLabel, true);
+	if (!Context->TargetDataFacade) { return false; }
 
 	PCGEX_FWD(TargetAttributesToTags)
 
