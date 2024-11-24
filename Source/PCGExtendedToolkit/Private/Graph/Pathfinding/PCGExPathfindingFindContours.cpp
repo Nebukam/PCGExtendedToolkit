@@ -154,7 +154,11 @@ namespace PCGExFindContours
 
 		if (Result != PCGExTopology::ECellResult::Success)
 		{
-			if (Result == PCGExTopology::ECellResult::WrapperCell) { FPlatformAtomics::InterlockedExchange(&WrapperSeed, Iteration); }
+			if (Result == PCGExTopology::ECellResult::WrapperCell ||
+				(CellsConstraints->WrapperCell && CellsConstraints->WrapperCell->GetCellHash() == Cell->GetCellHash()))
+			{
+				FPlatformAtomics::InterlockedExchange(&WrapperSeed, Iteration);
+			}
 			return;
 		}
 

@@ -73,7 +73,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExCellConstraintsDetails
 	/**  */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bUsedForPaths", EditConditionHides, HideEditConditionToggle))
 	EPCGExWinding OutputWinding = EPCGExWinding::CounterClockwise;
-	
+
 	/**  */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	EPCGExCellShapeTypeOutput AspectFilter = EPCGExCellShapeTypeOutput::Both;
@@ -363,14 +363,15 @@ namespace PCGExTopology
 		Leaf,
 		Hole,
 		WrongAspect,
-		AbovePointsLimit,
-		BelowPointsLimit,
-		AboveBoundsLimit,
-		BelowBoundsLimit,
-		AboveAreaLimit,
-		BelowAreaLimit,
+		OutsidePointsLimit,
+		OutsideBoundsLimit,
+		OutsideAreaLimit,
+		OutsidePerimeterLimit,
+		OutsideCompactnessLimit,
+		OutsideSegmentsLimit,
 		OpenCell,
 		WrapperCell,
+		MalformedCluster,
 	};
 
 	class FCell;
@@ -399,13 +400,13 @@ namespace PCGExTopology
 	protected:
 		mutable FRWLock UniquePathsHashSetLock;
 		TSet<uint32> UniquePathsHashSet;
-		
+
 		mutable FRWLock UniqueStartHalfEdgesHashLock;
 		TSet<uint64> UniqueStartHalfEdgesHash;
-		
+
 	public:
 		EPCGExWinding Winding = EPCGExWinding::CounterClockwise;
-		
+
 		bool bConcaveOnly = false;
 		bool bConvexOnly = false;
 		bool bKeepCellsWithLeaves = true;
@@ -470,7 +471,7 @@ namespace PCGExTopology
 		}
 
 		bool ContainsSignedEdgeHash(const uint64 Hash) const;
-		bool IsUniqueStartHash(const uint64 Hash);
+		bool IsUniqueStartHalfEdge(const uint64 Hash);
 		bool IsUniqueCellHash(const TSharedPtr<FCell>& InCell);
 		void BuildWrapperCell(TSharedRef<PCGExCluster::FCluster> InCluster, const TArray<FVector>& ProjectedPositions);
 
@@ -488,9 +489,8 @@ namespace PCGExTopology
 		FBox Bounds = FBox(ForceInit);
 		TSharedRef<FCellConstraints> Constraints;
 		FVector Centroid = FVector::ZeroVector;
-		
-		int32 SeedNode = -1;
-		int32 SeedEdge = -1;
+
+		PCGExGraph::FLink Seed = PCGExGraph::FLink(-1, -1);
 
 		double Area = 0;
 		double Perimeter = 0;
@@ -512,8 +512,7 @@ namespace PCGExTopology
 		uint32 GetCellHash();
 
 		ECellResult BuildFromCluster(
-			const int32 SeedNodeIndex,
-			const int32 SeedEdgeIndex,
+			const PCGExGraph::FLink InSeedLink,
 			TSharedRef<PCGExCluster::FCluster> InCluster,
 			const TArray<FVector>& ProjectedPositions);
 
