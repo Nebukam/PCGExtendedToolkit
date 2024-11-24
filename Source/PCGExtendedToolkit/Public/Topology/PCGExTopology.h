@@ -90,9 +90,9 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExCellConstraintsDetails
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	bool bOmitWrappingBounds = true;
 
-	/** Omit cells with areas that closely match the computed wrapper. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName=" └─ Classification Tolerance", EditCondition="bOmitWrappingBounds", ClampMin=0.001))
-	double WrapperClassificationTolerance = 1;
+	/** Omit cells with areas that closely match the computed wrapper. 0 to disable. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName=" └─ Classification Tolerance", EditCondition="bOmitWrappingBounds", ClampMin=0, HideInDetailPanel))
+	double WrapperClassificationTolerance = 0;
 
 	/** */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName=" └─ Keep if Sole", EditCondition="bOmitWrappingBounds", EditConditionHides))
@@ -334,25 +334,6 @@ namespace PCGExTopology
 		FPlatformAtomics::InterlockedExchange(&InCluster->GetNode(InTriangle.Vtx[2])->bValid, 1);
 	}
 
-	static double ComputeArea(const FGeometryScriptSimplePolygon& Polygon)
-	{
-		int32 NumVtx = Polygon.Vertices->Num();
-		if (NumVtx < 3) { return 0; }
-
-		double Area = 0;
-		const TArray<FVector2D>& Vertices = *Polygon.Vertices;
-
-		// Shoelace formula
-		for (int i = 0; i < NumVtx; ++i)
-		{
-			const FVector2D& Current = Vertices[i];
-			const FVector2D& Next = Vertices[(i + 1) % NumVtx];
-			Area += (Current.X * Next.Y) - (Next.X * Current.Y);
-		}
-
-		return FMath::Abs(Area) * 0.5;
-	}
-
 #pragma region Cell
 
 	enum class ECellResult : uint8
@@ -416,21 +397,21 @@ namespace PCGExTopology
 		int32 MinPointCount = MIN_int32;
 
 		double MaxBoundsSize = MAX_dbl;
-		double MinBoundsSize = MIN_dbl;
+		double MinBoundsSize = MIN_dbl_neg;
 
 		double MaxArea = MAX_dbl;
-		double MinArea = MIN_dbl;
+		double MinArea = MIN_dbl_neg;
 
 		double MaxPerimeter = MAX_dbl;
-		double MinPerimeter = MIN_dbl;
+		double MinPerimeter = MIN_dbl_neg;
 
 		double MaxSegmentLength = MAX_dbl;
-		double MinSegmentLength = MIN_dbl;
+		double MinSegmentLength = MIN_dbl_neg;
 
 		double MaxCompactness = MAX_dbl;
-		double MinCompactness = MIN_dbl;
+		double MinCompactness = MIN_dbl_neg;
 
-		double WrapperClassificationTolerance = 0.1;
+		double WrapperClassificationTolerance = 0;
 		bool bBuildWrapper = true;
 
 		TSharedPtr<FCell> WrapperCell;
@@ -478,6 +459,24 @@ namespace PCGExTopology
 		void Cleanup();
 	};
 
+	USTRUCT(BlueprintType)
+	struct /*PCGEXTENDEDTOOLKIT_API*/ FCellData
+	{
+		int8 bIsValid = 0;
+		uint32 CellHash = 0;
+		FBox Bounds = FBox(ForceInit);
+		FVector Centroid = FVector::ZeroVector;
+		double Area = 0;
+		double Perimeter = 0;
+		double Compactness = 0;
+		bool bIsConvex = true;
+		bool bIsClockwise = false;
+		bool bIsClosedLoop = false;
+
+		FCellData() = default;
+				
+	};
+	
 	class FCell : public TSharedFromThis<FCell>
 	{
 	protected:
@@ -486,25 +485,20 @@ namespace PCGExTopology
 
 	public:
 		TArray<int32> Nodes;
-		FBox Bounds = FBox(ForceInit);
 		TSharedRef<FCellConstraints> Constraints;
-		FVector Centroid = FVector::ZeroVector;
+		
+		FCellData Data = FCellData();
 
 		PCGExGraph::FLink Seed = PCGExGraph::FLink(-1, -1);
 
-		double Area = 0;
-		double Perimeter = 0;
-		double Compactness = 0;
-		bool bIsConvex = true;
-		bool bIsClockwise = false;
 		bool bBuiltSuccessfully = false;
-		bool bIsClosedLoop = false;
 
 		FGeometryScriptSimplePolygon Polygon;
 
 		explicit FCell(const TSharedRef<FCellConstraints>& InConstraints)
 			: Constraints(InConstraints)
 		{
+			Data.bIsValid = true;
 		}
 
 		~FCell() = default;
@@ -530,3 +524,66 @@ namespace PCGExTopology
 
 #pragma endregion
 }
+
+USTRUCT(BlueprintType)
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExCellArtifactsDetails
+{
+	GENERATED_BODY()
+
+	FPCGExCellArtifactsDetails()
+	{
+	}
+
+	/**  */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, InlineEditConditionToggle))
+	bool bFlagTerminalPoint = false;
+
+	/** Flag terminal points */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName = "Flag Terminal", EditCondition="bFlagTerminalPoint"))
+	FName TerminalFlagAttributeName = FName("IsTerminal");
+
+	/**  */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, InlineEditConditionToggle))
+	bool bWriteNumRepeat = false;
+
+	/** Number of time a point is repeated in the cell */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName = "Repeat", EditCondition="bWriteNumRepeat"))
+	FName NumRepeatAttributeName = FName("Repeat");
+
+
+	/** . */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging", meta=(InlineEditConditionToggle))
+	bool bTagConcave = false;
+
+	/** . */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging", meta=(EditCondition="bTagConcave"))
+	FString ConcaveTag = TEXT("Concave");
+
+	/** . */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging", meta=(InlineEditConditionToggle))
+	bool bTagConvex = false;
+
+	/** . */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging", meta=(EditCondition="bTagConvex"))
+	FString ConvexTag = TEXT("Convex");
+
+	/** */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging", meta=(PCG_Overridable, InlineEditConditionToggle))
+	bool bTagIfClosedLoop = true;
+
+	/** ... */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging", meta=(PCG_Overridable, EditCondition="bTagIfClosedLoop"))
+	FString IsClosedLoopTag = TEXT("ClosedLoop");
+
+	/** Tags to be forwarded from clusters */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging", meta=(PCG_Overridable))
+	FPCGExNameFiltersDetails TagForwarding;
+	
+	bool WriteAny() const;
+	bool Init(FPCGExContext* InContext);
+
+	void Process(
+		const TSharedPtr<PCGExCluster::FCluster>& InCluster,
+		const TSharedPtr<PCGExData::FFacade>& InDataFacade,
+		const TSharedPtr<PCGExTopology::FCell>& InCell) const;
+};

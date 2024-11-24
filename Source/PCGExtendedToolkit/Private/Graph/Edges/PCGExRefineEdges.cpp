@@ -439,7 +439,7 @@ namespace PCGExRefineEdges
 				const PCGExCluster::FNode* Node = (Processor->Cluster->GetNode(StartIndex + i));
 
 				int32 BestIndex = -1;
-				double LongestDist = MIN_dbl;
+				double LongestDist = MIN_dbl_neg;
 
 				for (const PCGExGraph::FLink Lk : Node->Links)
 				{

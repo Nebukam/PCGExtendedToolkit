@@ -9,6 +9,8 @@
 
 #include "PCGExMath.generated.h"
 
+#define MIN_dbl_neg MAX_dbl *-1
+
 UENUM()
 enum class EPCGExMeanMeasure : uint8
 {
@@ -1207,32 +1209,32 @@ namespace PCGExMath
 		else if constexpr (std::is_same_v<T, FVector2D>)
 		{
 			Min = FVector2D(MAX_dbl);
-			Max = FVector2D(MIN_dbl);
+			Max = FVector2D(MIN_dbl_neg);
 		}
 		else if constexpr (std::is_same_v<T, FVector>)
 		{
 			Min = FVector(MAX_dbl);
-			Max = FVector(MIN_dbl);
+			Max = FVector(MIN_dbl_neg);
 		}
 		else if constexpr (std::is_same_v<T, FVector4>)
 		{
 			Min = FVector4(MAX_dbl, MAX_dbl, MAX_dbl, MAX_dbl);
-			Max = FVector4(MIN_dbl, MIN_dbl, MIN_dbl, MIN_dbl);
+			Max = FVector4(MIN_dbl_neg, MIN_dbl_neg, MIN_dbl_neg, MIN_dbl_neg);
 		}
 		else if constexpr (std::is_same_v<T, FQuat>)
 		{
 			Min = FRotator(MAX_dbl, MAX_dbl, MAX_dbl).Quaternion();
-			Max = FRotator(MIN_dbl, MIN_dbl, MIN_dbl).Quaternion();
+			Max = FRotator(MIN_dbl_neg, MIN_dbl_neg, MIN_dbl_neg).Quaternion();
 		}
 		else if constexpr (std::is_same_v<T, FRotator>)
 		{
 			Min = FRotator(MAX_dbl, MAX_dbl, MAX_dbl);
-			Max = FRotator(MIN_dbl, MIN_dbl, MIN_dbl);
+			Max = FRotator(MIN_dbl_neg, MIN_dbl_neg, MIN_dbl_neg);
 		}
 		else if constexpr (std::is_same_v<T, FTransform>)
 		{
 			Min = FTransform(FRotator(MAX_dbl, MAX_dbl, MAX_dbl).Quaternion(), FVector(MAX_dbl), FVector(MAX_dbl));
-			Max = FTransform(FRotator(MIN_dbl, MIN_dbl, MIN_dbl).Quaternion(), FVector(MIN_dbl), FVector(MIN_dbl));
+			Max = FTransform(FRotator(MIN_dbl_neg, MIN_dbl_neg, MIN_dbl_neg).Quaternion(), FVector(MIN_dbl_neg), FVector(MIN_dbl_neg));
 		}
 		else
 		{

@@ -40,8 +40,8 @@ bool FPCGExFindContoursElement::Boot(FPCGExContext* InContext) const
 	PCGEX_CONTEXT_AND_SETTINGS(FindContours)
 
 	PCGEX_FWD(ProjectionDetails)
-
-	if (Settings->bFlagLeaves) { PCGEX_VALIDATE_NAME(Settings->LeafAttributeName); }
+	PCGEX_FWD(Artifacts)
+	if (!Context->Artifacts.Init(Context)) { return false; }
 
 	Context->SeedsDataFacade = PCGExData::TryGetSingleFacade(Context, PCGExGraph::SourceSeedsLabel, true);
 	if (!Context->SeedsDataFacade) { return false; }
@@ -87,10 +87,7 @@ bool FPCGExFindContoursElement::ExecuteInternal(
 			[](const TSharedPtr<PCGExData::FPointIOTaggedEntries>& Entries) { return true; },
 			[&](const TSharedPtr<PCGExFindContours::FBatch>& NewBatch)
 			{
-				if (Settings->bFlagLeaves)
-				{
-					NewBatch->bRequiresWriteStep = true;
-				}
+				//NewBatch->bRequiresWriteStep = Settings->Artifacts.WriteAny();
 			}))
 		{
 			return Context->CancelExecution(TEXT("Could not build any clusters."));
@@ -168,6 +165,7 @@ namespace PCGExFindContours
 	void FProcessor::ProcessCell(const int32 SeedIndex, const TSharedPtr<PCGExTopology::FCell>& InCell) const
 	{
 		TSharedRef<PCGExData::FPointIO> PathIO = Context->Paths->Emplace_GetRef<UPCGPointData>(VtxDataFacade->Source, PCGExData::EIOInit::New).ToSharedRef();
+		PathIO->Tags->Reset(); // Tag forwarding handled by artifacts
 		PathIO->IOIndex = SeedIndex; // Enforce seed order for collection output
 
 		PCGExGraph::CleanupClusterTags(PathIO, true);
@@ -187,18 +185,7 @@ namespace PCGExFindContours
 		Context->SeedAttributesToPathTags.Tag(SeedIndex, PathIO);
 		Context->SeedForwardHandler->Forward(SeedIndex, PathDataFacade);
 
-		if (Settings->bFlagLeaves)
-		{
-			const TSharedPtr<PCGExData::TBuffer<bool>> LeavesBuffer = PathDataFacade->GetWritable(Settings->LeafAttributeName, false, true, PCGExData::EBufferInit::New);
-			TArray<bool>& OutValues = *LeavesBuffer->GetOutValues();
-			for (int i = 0; i < InCell->Nodes.Num(); i++) { OutValues[i] = Cluster->GetNode(InCell->Nodes[i])->Num() == 1; }
-		}
-
-		if (Settings->bTagIfClosedLoop) { PathIO->Tags->Add(Settings->IsClosedLoopTag); }
-
-		if (InCell->bIsConvex) { if (Settings->bTagConvex) { PathIO->Tags->Add(Settings->ConvexTag); } }
-		else { if (Settings->bTagConcave) { PathIO->Tags->Add(Settings->ConcaveTag); } }
-
+		Context->Artifacts.Process(Cluster, PathDataFacade, InCell);
 		PathDataFacade->Write(AsyncManager);
 
 		if (Settings->bOutputFilteredSeeds)

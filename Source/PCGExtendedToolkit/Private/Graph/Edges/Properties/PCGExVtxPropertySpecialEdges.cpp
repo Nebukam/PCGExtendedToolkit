@@ -40,7 +40,7 @@ bool UPCGExVtxPropertySpecialEdges::PrepareForCluster(const FPCGContext* InConte
 
 void UPCGExVtxPropertySpecialEdges::ProcessNode(PCGExCluster::FNode& Node, const TArray<PCGExCluster::FAdjacencyData>& Adjacency)
 {
-	double LLongest = MIN_dbl;
+	double LLongest = MIN_dbl_neg;
 	int32 ILongest = -1;
 
 	double LShortest = MAX_dbl;

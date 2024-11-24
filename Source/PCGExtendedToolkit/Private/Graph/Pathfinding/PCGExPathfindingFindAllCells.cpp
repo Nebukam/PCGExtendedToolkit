@@ -35,6 +35,9 @@ bool FPCGExFindAllCellsElement::Boot(FPCGExContext* InContext) const
 
 	PCGEX_CONTEXT_AND_SETTINGS(FindAllCells)
 
+	PCGEX_FWD(Artifacts)
+	if (!Context->Artifacts.Init(Context)) { return false; }
+
 	if (TSharedPtr<PCGExData::FFacade> HoleDataFacade = PCGExData::TryGetSingleFacade(Context, PCGExTopology::SourceHolesLabel, false))
 	{
 		Context->Holes = MakeShared<PCGExTopology::FHoles>(Context, HoleDataFacade.ToSharedRef(), Settings->ProjectionDetails);
@@ -168,6 +171,7 @@ namespace PCGExFindAllCells
 	void FProcessor::ProcessCell(const TSharedPtr<PCGExTopology::FCell>& InCell) const
 	{
 		TSharedRef<PCGExData::FPointIO> PathIO = Context->Paths->Emplace_GetRef<UPCGPointData>(VtxDataFacade->Source, PCGExData::EIOInit::New).ToSharedRef();
+		PathIO->Tags->Reset(); // Tag forwarding handled by artifacts
 		PathIO->IOIndex = Cluster->GetEdge(InCell->Seed.Edge)->IOIndex; // Enforce seed order for collection output-ish
 
 		PCGExGraph::CleanupClusterTags(PathIO, true);
@@ -183,11 +187,9 @@ namespace PCGExFindAllCells
 		InCell->PostProcessPoints(MutablePoints);
 
 		PathIO->GetOut()->SetPoints(MutablePoints);
-
-		if (Settings->bTagIfClosedLoop) { PathIO->Tags->Add(Settings->IsClosedLoopTag); }
-
-		if (InCell->bIsConvex) { if (Settings->bTagConvex) { PathIO->Tags->Add(Settings->ConvexTag); } }
-		else { if (Settings->bTagConcave) { PathIO->Tags->Add(Settings->ConcaveTag); } }
+		
+		Context->Artifacts.Process(Cluster, PathDataFacade, InCell);
+		PathDataFacade->Write(AsyncManager);		
 
 		/*
 		Context->SeedAttributesToPathTags.Tag(SeedIndex, PathIO);

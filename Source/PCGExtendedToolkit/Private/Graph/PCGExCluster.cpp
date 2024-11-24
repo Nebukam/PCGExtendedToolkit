@@ -470,7 +470,7 @@ namespace PCGExCluster
 
 		const int32 NumEdges = Edges->Num();
 		double Min = MAX_dbl;
-		double Max = MIN_dbl;
+		double Max = MIN_dbl_neg;
 		EdgeLengths->SetNumUninitialized(NumEdges);
 
 		for (int i = 0; i < NumEdges; i++)
