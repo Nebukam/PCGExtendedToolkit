@@ -273,7 +273,7 @@ namespace PCGExConnectPoints
 
 		if (!ProbeOperations.IsEmpty())
 		{
-			double MaxRadius = MIN_dbl;
+			double MaxRadius = MIN_dbl_neg;
 			if (!bUseVariableRadius) { MaxRadius = SharedSearchRadius; }
 			else
 			{

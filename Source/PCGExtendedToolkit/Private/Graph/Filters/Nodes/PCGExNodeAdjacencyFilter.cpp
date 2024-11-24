@@ -140,7 +140,7 @@ bool FNodeAdjacencyFilter::Init(FPCGExContext* InContext, const TSharedRef<PCGEx
 			{
 				TestSubFunc = [&](const PCGExCluster::FNode& Node, const TArray<PCGExCluster::FNode>& NodesRef, const double A)
 				{
-					double B = MIN_dbl;
+					double B = MIN_dbl_neg;
 					for (const PCGExGraph::FLink Lk : Node.Links) { B = FMath::Max(B, OperandB->Read(NodesRef[Lk.Node].PointIndex)); }
 					return PCGExCompare::Compare(TypedFilterFactory->Config.Comparison, A, B = Node.Links.Num(), TypedFilterFactory->Config.Tolerance);
 				};
@@ -149,7 +149,7 @@ bool FNodeAdjacencyFilter::Init(FPCGExContext* InContext, const TSharedRef<PCGEx
 			{
 				TestSubFunc = [&](const PCGExCluster::FNode& Node, const TArray<PCGExCluster::FNode>& NodesRef, const double A)
 				{
-					double B = MIN_dbl;
+					double B = MIN_dbl_neg;
 					for (const PCGExGraph::FLink Lk : Node.Links) { B = FMath::Max(B, OperandB->Read(Lk.Edge)); }
 					return PCGExCompare::Compare(TypedFilterFactory->Config.Comparison, A, B = Node.Links.Num(), TypedFilterFactory->Config.Tolerance);
 				};
@@ -160,7 +160,7 @@ bool FNodeAdjacencyFilter::Init(FPCGExContext* InContext, const TSharedRef<PCGEx
 			{
 				TestSubFunc = [&](const PCGExCluster::FNode& Node, const TArray<PCGExCluster::FNode>& NodesRef, const double A)
 				{
-					double B = MIN_dbl;
+					double B = MIN_dbl_neg;
 					for (const PCGExGraph::FLink Lk : Node.Links) { B += FMath::Max(B, OperandB->Read(NodesRef[Lk.Node].PointIndex)); }
 					return PCGExCompare::Compare(TypedFilterFactory->Config.Comparison, A, B = Node.Links.Num(), TypedFilterFactory->Config.Tolerance);
 				};
@@ -169,7 +169,7 @@ bool FNodeAdjacencyFilter::Init(FPCGExContext* InContext, const TSharedRef<PCGEx
 			{
 				TestSubFunc = [&](const PCGExCluster::FNode& Node, const TArray<PCGExCluster::FNode>& NodesRef, const double A)
 				{
-					double B = MIN_dbl;
+					double B = MIN_dbl_neg;
 					for (const PCGExGraph::FLink Lk : Node.Links) { B += FMath::Max(B, OperandB->Read(Lk.Edge)); }
 					return PCGExCompare::Compare(TypedFilterFactory->Config.Comparison, A, B = Node.Links.Num(), TypedFilterFactory->Config.Tolerance);
 				};

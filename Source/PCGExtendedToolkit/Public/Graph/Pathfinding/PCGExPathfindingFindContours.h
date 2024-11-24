@@ -59,6 +59,10 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	FPCGExCellConstraintsDetails Constraints = FPCGExCellConstraintsDetails(true);
 
+	/** Cell artifacts. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
+	FPCGExCellArtifactsDetails Artifacts;
+	
 	/** Output a filtered set of points containing only seeds that generated a valid path */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	bool bOutputFilteredSeeds = false;
@@ -69,39 +73,7 @@ public:
 	/** Projection settings. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	FPCGExGeo2DProjectionDetails ProjectionDetails;
-
-	/** . */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging", meta=(InlineEditConditionToggle))
-	bool bTagConcave = false;
-
-	/** . */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging", meta=(EditCondition="bTagConcave"))
-	FString ConcaveTag = TEXT("Concave");
-
-	/** . */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging", meta=(InlineEditConditionToggle))
-	bool bTagConvex = false;
-
-	/** . */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging", meta=(EditCondition="bTagConvex"))
-	FString ConvexTag = TEXT("Convex");
-
-	/** Whether to flag path points generated from "dead ends" */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging", meta=(InlineEditConditionToggle))
-	bool bFlagLeaves = false;
-
-	/** . */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging", meta=(DisplayName="Leaf Flag", EditCondition="bFlagLeaves"))
-	FName LeafAttributeName = TEXT("IsLeaf");
-
-	/** */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging", meta=(PCG_Overridable, InlineEditConditionToggle))
-	bool bTagIfClosedLoop = true;
-
-	/** ... */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging", meta=(PCG_Overridable, EditCondition="bTagIfClosedLoop"))
-	FString IsClosedLoopTag = TEXT("ClosedLoop");
-
+		
 	/** TBD */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Forwarding")
 	FPCGExAttributeToTagDetails SeedAttributesToPathTags;
@@ -123,6 +95,8 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExFindContoursContext final : FPCGExEdgesP
 	friend class FPCGExFindContoursElement;
 	friend class FPCGExCreateBridgeTask;
 
+	FPCGExCellArtifactsDetails Artifacts;
+	
 	FPCGExGeo2DProjectionDetails ProjectionDetails;
 	TSharedPtr<PCGExData::FFacade> SeedsDataFacade;
 

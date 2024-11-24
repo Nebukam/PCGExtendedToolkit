@@ -211,8 +211,7 @@ namespace PCGEx
 		bool Remove(UObject* InObject);
 
 		template <class T, typename... Args>
-		T*
-		New(Args&&... InArgs)
+		T* New(Args&&... InArgs)
 		{
 			T* Object = nullptr;
 			if (!IsInGameThread())
@@ -245,17 +244,18 @@ namespace PCGEx
 					FWriteScopeLock WriteScopeLock(ManagedObjectLock);
 					PCGEX_FORCE_CONTEXT_ASYNCSTATE(Context)
 					Object = Cast<T>(InData->DuplicateData(Context, true));
+					check(Object);
 					DuplicateObjects.Add(Object);
 				}
-				check(Object);
 			}
 			else
 			{
 				FWriteScopeLock WriteScopeLock(ManagedObjectLock);
 				Object = Cast<T>(InData->DuplicateData(Context, true));
+				check(Object);
+				DuplicateObjects.Add(Object);
 			}
 
-			DuplicateObjects.Add(Object);
 
 #elif PCGEX_ENGINE_VERSION == 504
 			if (!IsInGameThread())

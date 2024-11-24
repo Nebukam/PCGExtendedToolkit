@@ -9,7 +9,7 @@
 #define LOCTEXT_NAMESPACE "PCGExOffsetPathElement"
 #define PCGEX_NAMESPACE OffsetPath
 
-PCGExData::EIOInit UPCGExOffsetPathSettings::GetMainOutputInitMode() const { return bCleanupPath ? PCGExData::EIOInit::New : PCGExData::EIOInit::Duplicate; }
+PCGExData::EIOInit UPCGExOffsetPathSettings::GetMainOutputInitMode() const { return PCGExData::EIOInit::None; }
 
 PCGEX_INITIALIZE_ELEMENT(OffsetPath)
 
@@ -39,6 +39,7 @@ bool FPCGExOffsetPathElement::ExecuteInternal(FPCGContext* InContext) const
 			{
 				if (Entry->GetNum() < 2)
 				{
+					if (!Settings->bOmitInvalidPathsOutputs) { Entry->InitializeOutput(PCGExData::EIOInit::Forward); }
 					bHasInvalidInputs = true;
 					return false;
 				}
@@ -49,7 +50,7 @@ bool FPCGExOffsetPathElement::ExecuteInternal(FPCGContext* InContext) const
 				//NewBatch->SetPointsFilterData(&Context->FilterFactories);
 			}))
 		{
-			Context->CancelExecution(TEXT("Could not find any paths to shrink."));
+			Context->CancelExecution(TEXT("Could not find any paths to offset."));
 		}
 	}
 
@@ -76,6 +77,8 @@ namespace PCGExOffsetPath
 		}
 
 		if (!FPointsProcessor::Process(InAsyncManager)) { return false; }
+
+		PointDataFacade->Source->InitializeOutput(Settings->bCleanupPath ? PCGExData::EIOInit::New : PCGExData::EIOInit::Duplicate);
 
 		if (Settings->bInvertDirection) { DirectionFactor *= -1; }
 
