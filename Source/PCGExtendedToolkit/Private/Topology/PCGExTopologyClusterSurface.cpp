@@ -93,7 +93,7 @@ namespace PCGExTopologyClusterSurface
 		FPlatformAtomics::InterlockedAdd(&NumAttempts, 1);
 		const TSharedPtr<PCGExTopology::FCell> Cell = MakeShared<PCGExTopology::FCell>(CellsConstraints.ToSharedRef());
 
-		const PCGExTopology::ECellResult Result = Cell->BuildFromCluster(Node.Index, Edge.Index, Cluster.ToSharedRef(), *ProjectedPositions);
+		const PCGExTopology::ECellResult Result = Cell->BuildFromCluster(PCGExGraph::FLink(Node.Index, Edge.Index), Cluster.ToSharedRef(), *ProjectedPositions);
 		if (Result != PCGExTopology::ECellResult::Success) { return false; }
 
 		SubTriangulations[LoopIdx]->Add(Cell->Polygon);

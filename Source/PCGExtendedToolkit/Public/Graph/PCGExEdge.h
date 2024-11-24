@@ -64,8 +64,8 @@ namespace PCGExGraph
 
 	struct FLink
 	{
-		uint32 Node;
-		uint32 Edge;
+		int32 Node = -1;
+		int32 Edge = -1;
 
 		constexpr FLink(const uint64 Hash) : Node(PCGEx::H64A(Hash)), Edge(PCGEx::H64A(Hash))
 		{
@@ -78,7 +78,7 @@ namespace PCGExGraph
 		FORCEINLINE uint64 H64() const { return PCGEx::H64U(Node, Edge); }
 
 		bool operator==(const FLink& Other) const { return Node == Other.Node && Edge == Other.Edge; }
-		FORCEINLINE uint32 GetTypeHash(const FLink& Key) { return HashCombineFast(Key.Node, Key.Edge); }
+		FORCEINLINE friend uint32 GetTypeHash(const FLink& Key) { return HashCombineFast(Key.Node, Key.Edge); }
 	};
 
 	struct /*PCGEXTENDEDTOOLKIT_API*/ FEdge
