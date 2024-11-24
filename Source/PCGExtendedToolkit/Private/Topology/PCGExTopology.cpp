@@ -105,6 +105,7 @@ namespace PCGExTopology
 
 		TSharedPtr<FCellConstraints> TempConstraints = MakeShared<FCellConstraints>();
 		TempConstraints->bKeepCellsWithLeaves = bKeepCellsWithLeaves;
+		TempConstraints->bDuplicateLeafPoints = bDuplicateLeafPoints;
 
 		WrapperCell = MakeShared<PCGExTopology::FCell>(TempConstraints.ToSharedRef());
 		if (WrapperCell->BuildFromCluster(SeedWP, InCluster, ProjectedPositions) != ECellResult::Success) { WrapperCell = nullptr; }
