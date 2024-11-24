@@ -53,7 +53,7 @@ void UPCGExVtxPropertyEdgeMatch::ProcessNode(PCGExCluster::FNode& Node, const TA
 {
 	const FPCGPoint& Point = PrimaryDataFacade->Source->GetInPoint(Node.PointIndex);
 
-	double BestDot = MIN_dbl;
+	double BestDot = MIN_dbl_neg;
 	int32 IBest = -1;
 	const double DotB = Config.DotComparisonDetails.GetDot(Node.PointIndex);
 

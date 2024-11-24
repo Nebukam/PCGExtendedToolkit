@@ -125,7 +125,7 @@ bool FNodeEdgeDirectionFilter::TestDot(const PCGExCluster::FNode& Node) const
 			for (const double Dot : Dots) { B = FMath::Min(B, Dot); }
 			break;
 		case EPCGExAdjacencyGatherMode::Max:
-			B = MIN_dbl;
+			B = MIN_dbl_neg;
 			for (const double Dot : Dots) { B = FMath::Max(B, Dot); }
 			break;
 		case EPCGExAdjacencyGatherMode::Sum:
