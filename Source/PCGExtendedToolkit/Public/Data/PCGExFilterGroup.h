@@ -78,10 +78,6 @@ namespace PCGExFilterGroup
 		const UPCGExFilterGroupFactoryBase* GroupFactory;
 		const TArray<TObjectPtr<const UPCGExFilterFactoryBase>>* ManagedFactories;
 
-		TSharedPtr<PCGExCluster::FCluster> Cluster;
-		TSharedPtr<PCGExData::FFacade> EdgeDataCache;
-
-
 		virtual PCGExFilters::EType GetFilterType() const override { return PCGExFilters::EType::Group; }
 
 		virtual bool Init(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade> InPointDataFacade) override;
