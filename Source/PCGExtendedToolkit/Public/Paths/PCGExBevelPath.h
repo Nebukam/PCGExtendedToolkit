@@ -216,8 +216,8 @@ namespace PCGExBevelPath
 		void Balance(const FProcessor* InProcessor);
 		void Compute(const FProcessor* InProcessor);
 
-		void SubdivideLine(const double Factor, const double bIsCount);
-		void SubdivideArc(const double Factor, const double bIsCount);
+		void SubdivideLine(const double Factor, bool bIsCount);
+		void SubdivideArc(const double Factor, bool bIsCount);
 		void SubdivideCustom(const FProcessor* InProcessor);
 	};
 

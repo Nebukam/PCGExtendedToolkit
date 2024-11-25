@@ -98,7 +98,7 @@ namespace PCGExConnectPoints
 		TArray<UPCGExProbeOperation*> SharedProbeOperations;
 		bool bUseVariableRadius = false;
 		int32 NumChainedOps = 0;
-		double SharedSearchRadius = MIN_dbl_neg;
+		double SharedSearchRadius = 0;
 
 		TArray<int8> CanGenerate;
 		TUniquePtr<PCGEx::FIndexedItemOctree> Octree;
