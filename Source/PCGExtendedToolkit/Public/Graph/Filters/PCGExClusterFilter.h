@@ -109,7 +109,6 @@ namespace PCGExClusterFilter
 	public:
 		FManager(const TSharedRef<PCGExCluster::FCluster>& InCluster, const TSharedRef<PCGExData::FFacade>& InPointDataFacade, const TSharedRef<PCGExData::FFacade>& InEdgeDataFacade);
 
-		bool bUseEdgeAsPrimary = false;
 		TSharedRef<PCGExCluster::FCluster> Cluster;
 		TSharedRef<PCGExData::FFacade> EdgeDataFacade;
 

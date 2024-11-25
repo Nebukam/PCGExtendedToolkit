@@ -50,20 +50,19 @@ namespace PCGExFilterGroup
 
 	bool FFilterGroup::InitManagedFilter(FPCGExContext* InContext, const TSharedPtr<PCGExPointFilter::FFilter>& Filter) const
 	{
-		if (Filter->GetFilterType() == PCGExFilters::EType::Point) { return Filter->Init(InContext, PointDataFacade); }
-
 		if (Filter->GetFilterType() == PCGExFilters::EType::Group)
 		{
 			if (bInitForCluster)
 			{
 				FFilterGroup* FilterGroup = static_cast<FFilterGroup*>(Filter.Get());
-				return FilterGroup->Init(InContext, Cluster.ToSharedRef(), PointDataFacade.ToSharedRef(), EdgeDataCache.ToSharedRef());
+				FilterGroup->bUseEdgeAsPrimary = bUseEdgeAsPrimary;
+				return FilterGroup->Init(InContext, Cluster.ToSharedRef(), PointDataFacade.ToSharedRef(), EdgeDataFacade.ToSharedRef());
 			}
 
 			return Filter->Init(InContext, PointDataFacade);
 		}
 
-		if (PCGExFactories::ClusterSpecificFilters.Contains(Filter->Factory->GetFactoryType()))
+		if (PCGExFactories::ClusterOnlyFilters.Contains(Filter->Factory->GetFactoryType()))
 		{
 			if (!bInitForCluster)
 			{
@@ -73,10 +72,11 @@ namespace PCGExFilterGroup
 			}
 
 			FFilter* ClusterFilter = static_cast<FFilter*>(Filter.Get());
-			return ClusterFilter->Init(InContext, Cluster.ToSharedRef(), PointDataFacade.ToSharedRef(), EdgeDataCache.ToSharedRef());
+			ClusterFilter->bUseEdgeAsPrimary = bUseEdgeAsPrimary;
+			return ClusterFilter->Init(InContext, Cluster.ToSharedRef(), PointDataFacade.ToSharedRef(), EdgeDataFacade.ToSharedRef());
 		}
 
-		return false;
+		return Filter->Init(InContext, bUseEdgeAsPrimary ? EdgeDataFacade : PointDataFacade);
 	}
 
 	bool FFilterGroup::PostInitManaged(FPCGExContext* InContext)
