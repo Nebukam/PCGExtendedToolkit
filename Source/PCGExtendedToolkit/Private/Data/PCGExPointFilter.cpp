@@ -51,6 +51,7 @@ namespace PCGExPointFilter
 		{
 			TSharedPtr<FFilter> NewFilter = Factory->CreateFilter();
 			NewFilter->bCacheResults = bCacheResultsPerFilter;
+			NewFilter->bUseEdgeAsPrimary = bUseEdgeAsPrimary;
 			if (!InitFilter(InContext, NewFilter)) { continue; }
 			ManagedFilters.Add(NewFilter);
 		}

@@ -44,7 +44,8 @@ namespace PCGExFactories
 	static inline TSet<EType> PointFilters = {EType::FilterPoint, EType::FilterGroup};
 	static inline TSet<EType> ClusterNodeFilters = {EType::FilterPoint, EType::FilterNode, EType::FilterGroup};
 	static inline TSet<EType> ClusterEdgeFilters = {EType::FilterPoint, EType::FilterEdge, EType::FilterGroup};
-	static inline TSet<EType> ClusterSpecificFilters = {EType::FilterEdge, EType::FilterNode, EType::NodeState};
+	static inline TSet<EType> SupportsClusterFilters = {EType::FilterEdge, EType::FilterNode, EType::NodeState, EType::FilterGroup};
+	static inline TSet<EType> ClusterOnlyFilters = {EType::FilterEdge, EType::FilterNode, EType::NodeState};
 }
 
 /**
