@@ -18,24 +18,28 @@ void UPCGExProbeAnisotropic::ProcessCandidates(const int32 Index, const FPCGPoin
 {
 	bool bIsAlreadyConnected;
 	const double R = SearchRadiusCache ? SearchRadiusCache->Read(Index) : SearchRadiusSquared;
+	const FVector* SampleDirections = Config.CardinalDirectionsOnly ? CardinalDirections : Directions;
+	const int32 NumDirections = Config.CardinalDirectionsOnly ? 4 : 16;
 
-	FVector D[16];
-	int32 BestCandidate[16] = {-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,};
-	double BestDot[16];
-	if (Config.bTransformDirection)
+	TArray<FVector> D;
+	D.Init(FVector(0), NumDirections);
+
+	TArray<int32> BestCandidate;
+	BestCandidate.Init(-1, NumDirections);
+
+	TArray<double> BestDot;
+	BestDot.Init( 0.95, NumDirections);
+
+	for (int d = 0; d < NumDirections; d++)
 	{
-		for (int d = 0; d < 16; d++)
+		if (Config.bTransformDirection)
 		{
-			D[d] = Directions[d];
-			BestDot[d] = 0.95;
+			D[d] = SampleDirections[d];
 		}
-	}
-	else
-	{
-		for (int d = 0; d < 16; d++)
+
+		else
 		{
-			D[d] = Point.Transform.TransformVectorNoScale(Directions[d]);
-			BestDot[d] = 0.95;
+			D[d] = Point.Transform.TransformVectorNoScale(SampleDirections[d]);
 		}
 	}
 
@@ -48,7 +52,7 @@ void UPCGExProbeAnisotropic::ProcessCandidates(const int32 Index, const FPCGPoin
 
 		int32 BestIndex = -1;
 
-		for (int d = 0; d < 16; d++)
+		for (int d = 0; d < NumDirections; d++)
 		{
 			const double TempDot = FVector::DotProduct(D[d], C.Direction);
 			if (TempDot > BestDot[d])
@@ -70,7 +74,7 @@ void UPCGExProbeAnisotropic::ProcessCandidates(const int32 Index, const FPCGPoin
 		}
 	}
 
-	for (int d = 0; d < 16; d++)
+	for (int d = 0; d < NumDirections; d++)
 	{
 		if (BestCandidate[d] == -1) { continue; }
 		const PCGExProbing::FCandidate& C = Candidates[BestCandidate[d]];

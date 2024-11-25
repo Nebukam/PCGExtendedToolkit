@@ -24,12 +24,16 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExProbeConfigAnisotropic : public FPCGExPr
 	/** Transform the direction with the point's */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	bool bTransformDirection = true;
+
+	// If enabled, only the four cardinal directions (i.e. +x, -x, +y, -y) will be checked, rather than all 16
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category=Settings, meta=(PCG_Overridable))
+	bool CardinalDirectionsOnly = false;
 };
 
 /**
  * 
  */
-UCLASS(MinimalAPI, DisplayName = "Anisotrophic")
+UCLASS(MinimalAPI, DisplayName = "Anisotropic")
 class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExProbeAnisotropic : public UPCGExProbeOperation
 {
 	GENERATED_BODY()
@@ -58,6 +62,13 @@ protected:
 		FVector(0.3827, -0.9239, 0),  // 292.5 degrees
 		FVector(0.7071, -0.7071, 0),  // 315 degrees (Southeast)
 		FVector(0.9239, -0.3827, 0)   // 337.5 degrees
+	};
+
+	const FVector CardinalDirections[4] = {
+		FVector(1, 0, 0), // East
+		FVector(-1, 0, 0), // West
+		FVector(0, 1, 0), // North
+		FVector(0, -1, 0) // South
 	};
 };
 
@@ -88,7 +99,7 @@ public:
 	//~End UPCGSettings
 
 	virtual UPCGExParamFactoryBase* CreateFactory(FPCGExContext* InContext, UPCGExParamFactoryBase* InFactory) const override;
-
+	
 	/** Filter Config.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ShowOnlyInnerProperties))
 	FPCGExProbeConfigAnisotropic Config;
