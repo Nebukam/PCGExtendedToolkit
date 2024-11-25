@@ -11,7 +11,7 @@
 
 namespace PCGExData
 {
-	const FString TagSeparator = FSTRING("::");
+	const FString TagSeparator = FSTRING(":");
 
 	struct FTags
 	{
