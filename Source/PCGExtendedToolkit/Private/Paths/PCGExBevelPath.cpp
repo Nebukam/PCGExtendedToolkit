@@ -203,7 +203,7 @@ namespace PCGExBevelPath
 		else { SubdivideArc(Amount, InProcessor->bSubdivideCount); }
 	}
 
-	void FBevel::SubdivideLine(const double Factor, const double bIsCount)
+	void FBevel::SubdivideLine(const double Factor, const bool bIsCount)
 	{
 		const double Dist = FVector::Dist(Arrive, Leave);
 		const FVector Dir = (Leave - Arrive).GetSafeNormal();
@@ -228,7 +228,7 @@ namespace PCGExBevelPath
 		for (int i = 0; i < SubdivCount; i++) { Subdivisions[i] = Arrive + Dir * (StepSize + i * StepSize); }
 	}
 
-	void FBevel::SubdivideArc(const double Factor, const double bIsCount)
+	void FBevel::SubdivideArc(const double Factor, const bool bIsCount)
 	{
 		const PCGExGeo::FExCenterArc Arc = PCGExGeo::FExCenterArc(Arrive, Corner, Leave);
 

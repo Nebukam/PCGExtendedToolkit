@@ -101,7 +101,7 @@ bool FNodeAdjacencyFilter::Init(FPCGExContext* InContext, const TSharedRef<PCGEx
 				{
 					double B = 0;
 					for (const PCGExGraph::FLink Lk : Node.Links) { B += OperandB->Read(NodesRef[Lk.Node].PointIndex); }
-					return PCGExCompare::Compare(TypedFilterFactory->Config.Comparison, A, B = Node.Links.Num(), TypedFilterFactory->Config.Tolerance);
+					return PCGExCompare::Compare(TypedFilterFactory->Config.Comparison, A, B, TypedFilterFactory->Config.Tolerance);
 				};
 			}
 			else
@@ -110,7 +110,7 @@ bool FNodeAdjacencyFilter::Init(FPCGExContext* InContext, const TSharedRef<PCGEx
 				{
 					double B = 0;
 					for (const PCGExGraph::FLink Lk : Node.Links) { B += OperandB->Read(Lk.Edge); }
-					return PCGExCompare::Compare(TypedFilterFactory->Config.Comparison, A, B = Node.Links.Num(), TypedFilterFactory->Config.Tolerance);
+					return PCGExCompare::Compare(TypedFilterFactory->Config.Comparison, A, B, TypedFilterFactory->Config.Tolerance);
 				};
 			}
 
@@ -122,7 +122,7 @@ bool FNodeAdjacencyFilter::Init(FPCGExContext* InContext, const TSharedRef<PCGEx
 				{
 					double B = MAX_dbl;
 					for (const PCGExGraph::FLink Lk : Node.Links) { B = FMath::Min(B, OperandB->Read(NodesRef[Lk.Node].PointIndex)); }
-					return PCGExCompare::Compare(TypedFilterFactory->Config.Comparison, A, B = Node.Links.Num(), TypedFilterFactory->Config.Tolerance);
+					return PCGExCompare::Compare(TypedFilterFactory->Config.Comparison, A, B, TypedFilterFactory->Config.Tolerance);
 				};
 			}
 			else
@@ -131,7 +131,7 @@ bool FNodeAdjacencyFilter::Init(FPCGExContext* InContext, const TSharedRef<PCGEx
 				{
 					double B = MAX_dbl;
 					for (const PCGExGraph::FLink Lk : Node.Links) { B = FMath::Min(B, OperandB->Read(Lk.Edge)); }
-					return PCGExCompare::Compare(TypedFilterFactory->Config.Comparison, A, B = Node.Links.Num(), TypedFilterFactory->Config.Tolerance);
+					return PCGExCompare::Compare(TypedFilterFactory->Config.Comparison, A, B, TypedFilterFactory->Config.Tolerance);
 				};
 			}
 			break;
@@ -142,7 +142,7 @@ bool FNodeAdjacencyFilter::Init(FPCGExContext* InContext, const TSharedRef<PCGEx
 				{
 					double B = MIN_dbl_neg;
 					for (const PCGExGraph::FLink Lk : Node.Links) { B = FMath::Max(B, OperandB->Read(NodesRef[Lk.Node].PointIndex)); }
-					return PCGExCompare::Compare(TypedFilterFactory->Config.Comparison, A, B = Node.Links.Num(), TypedFilterFactory->Config.Tolerance);
+					return PCGExCompare::Compare(TypedFilterFactory->Config.Comparison, A, B, TypedFilterFactory->Config.Tolerance);
 				};
 			}
 			else
@@ -151,7 +151,7 @@ bool FNodeAdjacencyFilter::Init(FPCGExContext* InContext, const TSharedRef<PCGEx
 				{
 					double B = MIN_dbl_neg;
 					for (const PCGExGraph::FLink Lk : Node.Links) { B = FMath::Max(B, OperandB->Read(Lk.Edge)); }
-					return PCGExCompare::Compare(TypedFilterFactory->Config.Comparison, A, B = Node.Links.Num(), TypedFilterFactory->Config.Tolerance);
+					return PCGExCompare::Compare(TypedFilterFactory->Config.Comparison, A, B, TypedFilterFactory->Config.Tolerance);
 				};
 			}
 			break;
@@ -162,7 +162,7 @@ bool FNodeAdjacencyFilter::Init(FPCGExContext* InContext, const TSharedRef<PCGEx
 				{
 					double B = MIN_dbl_neg;
 					for (const PCGExGraph::FLink Lk : Node.Links) { B += FMath::Max(B, OperandB->Read(NodesRef[Lk.Node].PointIndex)); }
-					return PCGExCompare::Compare(TypedFilterFactory->Config.Comparison, A, B = Node.Links.Num(), TypedFilterFactory->Config.Tolerance);
+					return PCGExCompare::Compare(TypedFilterFactory->Config.Comparison, A, B, TypedFilterFactory->Config.Tolerance);
 				};
 			}
 			else
@@ -171,7 +171,7 @@ bool FNodeAdjacencyFilter::Init(FPCGExContext* InContext, const TSharedRef<PCGEx
 				{
 					double B = MIN_dbl_neg;
 					for (const PCGExGraph::FLink Lk : Node.Links) { B += FMath::Max(B, OperandB->Read(Lk.Edge)); }
-					return PCGExCompare::Compare(TypedFilterFactory->Config.Comparison, A, B = Node.Links.Num(), TypedFilterFactory->Config.Tolerance);
+					return PCGExCompare::Compare(TypedFilterFactory->Config.Comparison, A, B, TypedFilterFactory->Config.Tolerance);
 				};
 			}
 			break;
