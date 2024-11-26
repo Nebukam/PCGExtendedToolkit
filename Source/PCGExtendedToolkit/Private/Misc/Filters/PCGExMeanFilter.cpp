@@ -56,7 +56,7 @@ void PCGExPointsFilter::TMeanFilter::PostInit()
 	if (TypedFilterFactory->Config.Measure == EPCGExMeanMeasure::Relative)
 	{
 		double RelativeMinEdgeLength = MAX_dbl;
-		double RelativeMaxEdgeLength = MIN_dbl_neg;
+		double RelativeMaxEdgeLength = MIN_dbl;
 		SumValue = 0;
 		for (int i = 0; i < NumPoints; i++)
 		{
