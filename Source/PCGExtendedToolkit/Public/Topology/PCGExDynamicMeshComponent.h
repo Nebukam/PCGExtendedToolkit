@@ -6,14 +6,20 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "PCGExHelpers.h"
 #include "Components/DynamicMeshComponent.h"
 #include "PCGExDynamicMeshComponent.generated.h"
 
 
 UCLASS(Hidden, meta=(BlueprintSpawnableComponent), ClassGroup = Rendering, MinimalAPI)
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExDynamicMeshComponent : public UDynamicMeshComponent
+class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExDynamicMeshComponent : public UDynamicMeshComponent, public IPCGExManagedComponentInterface
 {
 	GENERATED_BODY()
 
 public:
+	virtual UPCGManagedComponent* GetManagedComponent() override;
+	virtual void SetManagedComponent(UPCGManagedComponent* InManagedComponent) override;
+	
+	UPROPERTY()
+	UPCGManagedComponent* ManagedComponent = nullptr;
 };
