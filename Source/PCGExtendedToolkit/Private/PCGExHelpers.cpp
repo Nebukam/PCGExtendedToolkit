@@ -21,8 +21,7 @@ namespace PCGEx
 
 			if (ObjectPtr->Implements<UPCGExManagedObjectInterface>())
 			{
-				IPCGExManagedObjectInterface* ManagedObject = Cast<IPCGExManagedObjectInterface>(ObjectPtr);
-				if (ManagedObject) { ManagedObject->Cleanup(); }
+				if (IPCGExManagedObjectInterface* ManagedObject = Cast<IPCGExManagedObjectInterface>(ObjectPtr)) { ManagedObject->Cleanup(); }
 			}
 
 

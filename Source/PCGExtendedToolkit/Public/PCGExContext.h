@@ -6,6 +6,7 @@
 #include "CoreMinimal.h"
 #include "PCGContext.h"
 #include "PCGExHelpers.h"
+#include "PCGManagedResource.h"
 #include "Engine/StreamableManager.h"
 
 namespace PCGEx
@@ -116,7 +117,7 @@ protected:
 #pragma region Managed Components
 
 public:
-	void AttachManagedComponent(AActor* InParent, USceneComponent* InComponent, const FAttachmentTransformRules& AttachmentRules) const;
+	UPCGManagedComponent* AttachManagedComponent(AActor* InParent, USceneComponent* InComponent, const FAttachmentTransformRules& AttachmentRules) const;
 
 #pragma endregion
 
