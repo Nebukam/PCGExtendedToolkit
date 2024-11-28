@@ -10,6 +10,13 @@
 
 #include "PCGExToggleTopology.generated.h"
 
+UENUM()
+enum class EPCGExToggleTopologyAction : uint8
+{
+	Toggle = 0 UMETA(DisplayName = "Toggle", ToolTip="..."),
+	Remove = 1 UMETA(DisplayName = "Remove", ToolTip="..."),
+};
+
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural))
 class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExToggleTopologySettings : public UPCGSettings
 {
@@ -21,7 +28,7 @@ public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
 	bool bCacheResult = false;
-	PCGEX_NODE_INFOS(ToggleTopology, "Topology : Toggle", "Registers or unregister PCGEx spawned dynamic meshes.");
+	PCGEX_NODE_INFOS(ToggleTopology, "Topology : Toggle", "Registers/unregister or Removes PCGEx spawned dynamic meshes.");
 	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->NodeColorPrimitives; }
 #endif
 
@@ -32,12 +39,15 @@ protected:
 	//~End UPCGSettings
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	EPCGExToggleTopologyAction Action = EPCGExToggleTopologyAction::Toggle;
+	
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="Action==EPCGExToggleTopologyAction::Toggle", EditConditionHides))
 	bool bToggle = false;
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, InlineEditConditionToggle))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	bool bFilterByTag = false;
-	
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bFilterByTag"))
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bFilterByTag", EditConditionHides))
 	FName FilterByTag = FName("PCGExTopology");
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable), AdvancedDisplay)
