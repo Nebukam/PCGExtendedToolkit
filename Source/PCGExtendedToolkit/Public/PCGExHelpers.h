@@ -12,6 +12,7 @@
 #include "PCGContext.h"
 #include "PCGElement.h"
 #include "PCGExMacros.h"
+#include "PCGManagedResource.h"
 #include "PCGModule.h"
 #include "Data/PCGSpatialData.h"
 #include "Metadata/PCGMetadataAttributeTraits.h"
@@ -49,6 +50,21 @@ class IPCGExManagedObjectInterface
 
 public:
 	virtual void Cleanup() = 0;
+};
+
+UINTERFACE(MinimalAPI)
+class UPCGExManagedComponentInterface : public UInterface
+{
+	GENERATED_BODY()
+};
+
+class IPCGExManagedComponentInterface
+{
+	GENERATED_BODY()
+
+public:
+	virtual void SetManagedComponent(UPCGManagedComponent* InManagedComponent) = 0;
+	virtual UPCGManagedComponent* GetManagedComponent() = 0;
 };
 
 namespace PCGExHelpers

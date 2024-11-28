@@ -64,12 +64,23 @@ bool FPCGExToggleTopologyElement::ExecuteInternal(FPCGContext* InContext) const
 		TArray<UPCGExDynamicMeshComponent*> Components;
 		TargetActor->GetComponents<UPCGExDynamicMeshComponent>(Components);
 
+		TSet<TSoftObjectPtr<AActor>> OutActorsToDelete;
+
 		for (UPCGExDynamicMeshComponent* Component : Components)
 		{
 			if (!Component) { continue; }
+
 			if (Settings->bFilterByTag && !Component->ComponentHasTag(Settings->FilterByTag)) { continue; }
-			if (Settings->bToggle) { if (!Component->IsRegistered()) { Component->RegisterComponent(); } }
-			else { if (Component->IsRegistered()) { Component->UnregisterComponent(); } }
+
+			if (Settings->Action == EPCGExToggleTopologyAction::Remove)
+			{
+				if (Component->GetManagedComponent()) { Component->GetManagedComponent()->Release(true, OutActorsToDelete); }
+			}
+			else
+			{
+				if (Settings->bToggle) { if (!Component->IsRegistered()) { Component->RegisterComponent(); } }
+				else { if (Component->IsRegistered()) { Component->UnregisterComponent(); } }
+			}
 		}
 	}
 	else

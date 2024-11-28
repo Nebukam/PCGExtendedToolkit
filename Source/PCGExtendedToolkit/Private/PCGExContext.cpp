@@ -257,7 +257,7 @@ void FPCGExContext::LoadAssets()
 	}
 }
 
-void FPCGExContext::AttachManagedComponent(AActor* InParent, USceneComponent* InComponent, const FAttachmentTransformRules& AttachmentRules) const
+UPCGManagedComponent* FPCGExContext::AttachManagedComponent(AActor* InParent, USceneComponent* InComponent, const FAttachmentTransformRules& AttachmentRules) const
 {
 	UPCGComponent* SrcComp = SourceComponent.Get();
 
@@ -281,11 +281,18 @@ void FPCGExContext::AttachManagedComponent(AActor* InParent, USceneComponent* In
 	ManagedComponent->GeneratedComponent = InComponent;
 	SrcComp->AddToManagedResources(ManagedComponent);
 
+	if (InComponent->Implements<UPCGExManagedComponentInterface>())
+	{
+		if (IPCGExManagedComponentInterface* Managed = Cast<IPCGExManagedComponentInterface>(InComponent)) { Managed->SetManagedComponent(ManagedComponent); }
+	}
+
 	InParent->Modify(!bIsPreviewMode);
 
 	InComponent->RegisterComponent();
 	InParent->AddInstanceComponent(InComponent);
 	InComponent->AttachToComponent(InParent->GetRootComponent(), AttachmentRules);
+
+	return ManagedComponent;
 }
 
 void FPCGExContext::AddConsumableAttributeName(const FName InName)
