@@ -193,15 +193,15 @@ namespace PCGExCluster
 		PCGEX_ASYNC_GROUP_CHKD(AsyncManager, ChainSearchTask)
 
 		ChainSearchTask->OnCompleteCallback =
-			[WeakThis = TWeakPtr<FNodeChainBuilder>(SharedThis(this))]()
+			[WeakThisPtr = TWeakPtr<FNodeChainBuilder>(SharedThis(this))]()
 			{
-				if (const TSharedPtr<FNodeChainBuilder> This = WeakThis.Pin()) { This->Dedupe(); }
+				if (const TSharedPtr<FNodeChainBuilder> This = WeakThisPtr.Pin()) { This->Dedupe(); }
 			};
 		ChainSearchTask->OnIterationCallback =
-			[WeakThis = TWeakPtr<FNodeChainBuilder>(SharedThis(this))]
+			[WeakThisPtr = TWeakPtr<FNodeChainBuilder>(SharedThis(this))]
 			(const int32 Index, const int32 Count, const int32 LoopIdx)
 			{
-				if (const TSharedPtr<FNodeChainBuilder> This = WeakThis.Pin())
+				if (const TSharedPtr<FNodeChainBuilder> This = WeakThisPtr.Pin())
 				{
 					This->Chains[Index]->BuildChain(This->Cluster, This->Breakpoints);
 				}

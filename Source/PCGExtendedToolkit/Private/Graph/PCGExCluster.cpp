@@ -616,10 +616,10 @@ namespace PCGExCluster
 		PCGEx::InitArray(BoundedEdges, Edges->Num());
 
 		ExpandEdgesTask->OnSubLoopStartCallback =
-			[WeakThis = TWeakPtr<FCluster>(SharedThis(this))]
+			[WeakThisPtr = TWeakPtr<FCluster>(SharedThis(this))]
 			(const int32 StartIndex, const int32 Count, const int32 LoopIdx)
 			{
-				const TSharedPtr<FCluster> This = WeakThis.Pin();
+				const TSharedPtr<FCluster> This = WeakThisPtr.Pin();
 				if (!This) { return; }
 
 				TArray<FBoundedEdge>& ExpandedEdgesRef = (*This->BoundedEdges);

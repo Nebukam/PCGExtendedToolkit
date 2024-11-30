@@ -157,10 +157,12 @@ namespace PCGExData
 
 			if (InTaskGroup) { InTaskGroup->GrowNumStarted(); }
 
+			TWeakPtr<FFacadePreloader> WeakThisPtr = SharedThis(this);
+			
 			PrefetchAttributesTask->OnCompleteCallback =
-				[WeakThis = TWeakPtr<FFacadePreloader>(SharedThis(this))]()
+				[WeakThisPtr]()
 				{
-					const TSharedPtr<FFacadePreloader> This = WeakThis.Pin();
+					const TSharedPtr<FFacadePreloader> This = WeakThisPtr.Pin();
 					if (!This) { return; }
 
 					This->OnLoadingEnd();
@@ -169,10 +171,10 @@ namespace PCGExData
 			if (InDataFacade->bSupportsScopedGet)
 			{
 				PrefetchAttributesTask->OnSubLoopStartCallback =
-					[WeakThis = TWeakPtr<FFacadePreloader>(SharedThis(this))]
+					[WeakThisPtr]
 					(const int32 StartIndex, const int32 Count, const int32 LoopIdx)
 					{
-						const TSharedPtr<FFacadePreloader> This = WeakThis.Pin();
+						const TSharedPtr<FFacadePreloader> This = WeakThisPtr.Pin();
 						if (!This) { return; }
 						if (TSharedPtr<FFacade> InternalFacade = This->InternalDataFacadePtr.Pin())
 						{
@@ -185,10 +187,10 @@ namespace PCGExData
 			else
 			{
 				PrefetchAttributesTask->OnSubLoopStartCallback =
-					[WeakThis = TWeakPtr<FFacadePreloader>(SharedThis(this))]
+					[WeakThisPtr]
 					(const int32 StartIndex, const int32 Count, const int32 LoopIdx)
 					{
-						const TSharedPtr<FFacadePreloader> This = WeakThis.Pin();
+						const TSharedPtr<FFacadePreloader> This = WeakThisPtr.Pin();
 						if (!This) { return; }
 						if (TSharedPtr<FFacade> InternalFacade = This->InternalDataFacadePtr.Pin())
 						{

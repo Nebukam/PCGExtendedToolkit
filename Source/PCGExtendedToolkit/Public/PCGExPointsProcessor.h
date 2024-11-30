@@ -95,6 +95,10 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Performance|Cleanup", meta=(PCG_NotOverridable, AdvancedDisplay))
 	bool bDeleteConsumableAttributes = false;
 
+	/** */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Warning and Errors", meta=(PCG_NotOverridable, AdvancedDisplay))
+	bool bQuietMissingInputError = false;
+	
 protected:
 	virtual int32 GetPreferredChunkSize() const { return PCGExMT::GAsyncLoop_M; }
 	//~End UPCGExPointsProcessorSettings

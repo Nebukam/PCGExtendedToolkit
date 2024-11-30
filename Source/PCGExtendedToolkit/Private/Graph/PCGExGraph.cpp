@@ -127,16 +127,16 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 		}
 
 		PCGEX_ASYNC_GROUP_CHKD_VOID(AsyncManager, ProcessSubGraphEdges)
-		ProcessSubGraphEdges->OnCompleteCallback =
-			[WeakThis = TWeakPtr<FSubGraph>(SharedThis(this))]()
-			{
-				if (const TSharedPtr<FSubGraph> This = WeakThis.Pin()) { This->CompilationComplete(); }
-			};
 
-		ProcessSubGraphEdges->OnSubLoopStartCallback = [WeakThis = TWeakPtr<FSubGraph>(SharedThis(this))]
-			(const int32 StartIndex, const int32 Count, const int32 LoopIdx)
+		TWeakPtr<FSubGraph> WeakThisPtr = SharedThis(this);
+
+		ProcessSubGraphEdges->OnCompleteCallback =
+			[WeakThisPtr]() { if (const TSharedPtr<FSubGraph> This = WeakThisPtr.Pin()) { This->CompilationComplete(); } };
+
+		ProcessSubGraphEdges->OnSubLoopStartCallback =
+			[WeakThisPtr](const int32 StartIndex, const int32 Count, const int32 LoopIdx)
 			{
-				if (const TSharedPtr<FSubGraph> This = WeakThis.Pin()) { This->CompileRange(StartIndex, StartIndex + Count); }
+				if (const TSharedPtr<FSubGraph> This = WeakThisPtr.Pin()) { This->CompileRange(StartIndex, StartIndex + Count); }
 			};
 
 		ProcessSubGraphEdges->StartSubLoops(FlattenedEdges.Num(), GetDefault<UPCGExGlobalSettings>()->GetPointsBatchChunkSize());
@@ -408,9 +408,8 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 				}
 			}
 
-
 			if (!Limits.IsValid(SubGraph)) { SubGraph->Invalidate(this); } // Will invalidate isolated points
-			else { SubGraphs.Add(SubGraph); }
+			else if (!SubGraph->Edges.IsEmpty()) { SubGraphs.Add(SubGraph); }
 		}
 	}
 
@@ -561,6 +560,9 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 		for (int i = 0; i < Graph->SubGraphs.Num(); i++)
 		{
 			const TSharedPtr<FSubGraph>& SubGraph = Graph->SubGraphs[i];
+
+			check(!SubGraph->Edges.IsEmpty())
+
 			TSharedPtr<PCGExData::FPointIO> EdgeIO;
 
 			if (const int32 IOIndex = SubGraph->GetFirstInIOIndex(); SubGraph->EdgesInIOIndices.Num() == 1 && SourceEdgeFacades && SourceEdgeFacades->IsValidIndex(IOIndex))
@@ -585,10 +587,13 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 		MarkClusterVtx(NodeDataFacade->Source, PairIdStr);
 
 		PCGEX_ASYNC_GROUP_CHKD_VOID(AsyncManager, ProcessSubGraphTask)
+
+		TWeakPtr<FGraphBuilder> WeakThisPtr = SharedThis(this);
+		
 		ProcessSubGraphTask->OnCompleteCallback =
-			[WeakThis = TWeakPtr<FGraphBuilder>(SharedThis(this))]()
+			[WeakThisPtr]()
 			{
-				if (const TSharedPtr<FGraphBuilder> Builder = WeakThis.Pin())
+				if (const TSharedPtr<FGraphBuilder> Builder = WeakThisPtr.Pin())
 				{
 					if (Builder->OnCompilationEndCallback) { Builder->OnCompilationEndCallback(Builder.ToSharedRef(), Builder->bCompiledSuccessfully); }
 					if (!Builder->bCompiledSuccessfully) { return; }
@@ -598,9 +603,9 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 			};
 
 		ProcessSubGraphTask->OnIterationCallback =
-			[WeakThis = TWeakPtr<FGraphBuilder>(SharedThis(this)), WeakGroup = ProcessSubGraphTask](const int32 Index, const int32 Count, const int32 LoopIdx)
+			[WeakThisPtr, WeakGroup = ProcessSubGraphTask](const int32 Index, const int32 Count, const int32 LoopIdx)
 			{
-				if (const TSharedPtr<FGraphBuilder> Builder = WeakThis.Pin())
+				if (const TSharedPtr<FGraphBuilder> Builder = WeakThisPtr.Pin())
 				{
 					const TSharedPtr<FSubGraph> SubGraph = Builder->Graph->SubGraphs[Index];
 					SubGraph->Compile(WeakGroup, Builder->AsyncManager, Builder);

@@ -228,23 +228,24 @@ namespace PCGExPathfindingPlotEdge
 		}
 
 		PCGEX_ASYNC_GROUP_CHKD(AsyncManager, ResolveQueriesTask)
-		TWeakPtr<FProcessor> WeakPtr = SharedThis(this);
-		ResolveQueriesTask->OnIterationCallback = [WeakPtr](const int32 Index, const int32 Count, const int32 LoopIdx)
-		{
-			TSharedPtr<FProcessor> This = WeakPtr.Pin();
-			if (!This) { return; }
-
-			TSharedPtr<PCGExPathfinding::FPlotQuery> Query = This->Queries[Index];
-			Query->BuildPlotQuery(This->Context->Plots[Index], This->Settings->SeedPicking, This->Settings->GoalPicking);
-			Query->FindPaths(This->AsyncManager, This->SearchOperation, This->HeuristicsHandler);
-			Query->OnCompleteCallback = [WeakPtr](const TSharedPtr<PCGExPathfinding::FPlotQuery>& Plot)
+		TWeakPtr<FProcessor> WeakThisPtr = SharedThis(this);
+		ResolveQueriesTask->OnIterationCallback =
+			[WeakThisPtr](const int32 Index, const int32 Count, const int32 LoopIdx)
 			{
-				TSharedPtr<FProcessor> NestedThis = WeakPtr.Pin();
-				if (!NestedThis) { return; }
-				NestedThis->Context->BuildPath(Plot);
-				Plot->Cleanup();
+				const TSharedPtr<FProcessor> This = WeakThisPtr.Pin();
+				if (!This) { return; }
+
+				TSharedPtr<PCGExPathfinding::FPlotQuery> Query = This->Queries[Index];
+				Query->BuildPlotQuery(This->Context->Plots[Index], This->Settings->SeedPicking, This->Settings->GoalPicking);
+				Query->FindPaths(This->AsyncManager, This->SearchOperation, This->HeuristicsHandler);
+				Query->OnCompleteCallback = [WeakThisPtr](const TSharedPtr<PCGExPathfinding::FPlotQuery>& Plot)
+				{
+					TSharedPtr<FProcessor> NestedThis = WeakThisPtr.Pin();
+					if (!NestedThis) { return; }
+					NestedThis->Context->BuildPath(Plot);
+					Plot->Cleanup();
+				};
 			};
-		};
 
 		ResolveQueriesTask->StartIterations(Queries.Num(), 1, HeuristicsHandler->HasGlobalFeedback(), false);
 		return true;

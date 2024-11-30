@@ -143,55 +143,64 @@ namespace PCGExPathCrossings
 		bCanCut = PCGEx::IsValidStringTag(Context->CanCutTag) ? PointDataFacade->Source->Tags->IsTagged(Context->CanCutTag) : true;
 
 		PCGEX_ASYNC_GROUP_CHKD(AsyncManager, Preparation)
+		
+		TWeakPtr<FProcessor> WeakThisPtr = SharedThis(this);
+
 		Preparation->OnCompleteCallback =
-			[&]()
+			[WeakThisPtr]()
 			{
-				CanCutFilterManager.Reset();
-				CanBeCutFilterManager.Reset();
-				Path->BuildPartialEdgeOctree(CanCut);
-				CanCut.Empty();
+				const TSharedPtr<FProcessor> This = WeakThisPtr.Pin();
+				if (!This) { return; }
+
+				This->CanCutFilterManager.Reset();
+				This->CanBeCutFilterManager.Reset();
+				This->Path->BuildPartialEdgeOctree(This->CanCut);
+				This->CanCut.Empty();
 			};
 
 		Preparation->OnSubLoopStartCallback =
-			[&](const int32 StartIndex, const int32 Count, const int32 LoopIdx)
+			[WeakThisPtr](const int32 StartIndex, const int32 Count, const int32 LoopIdx)
 			{
-				PointDataFacade->Fetch(StartIndex, Count);
+				const TSharedPtr<FProcessor> This = WeakThisPtr.Pin();
+				if (!This) { return; }
+
+				This->PointDataFacade->Fetch(StartIndex, Count);
 				const int32 MaxIndex = StartIndex + Count;
 
-				if (CanCutFilterManager && CanBeCutFilterManager)
+				if (This->CanCutFilterManager && This->CanBeCutFilterManager)
 				{
 					for (int i = StartIndex; i < MaxIndex; i++)
 					{
-						CanCut[i] = CanCutFilterManager->Test(i);
-						CanBeCut[i] = CanBeCutFilterManager->Test(i);
-						Path->ComputeEdgeExtra(i);
+						This->CanCut[i] = This->CanCutFilterManager->Test(i);
+						This->CanBeCut[i] = This->CanBeCutFilterManager->Test(i);
+						This->Path->ComputeEdgeExtra(i);
 					}
 				}
-				else if (CanCutFilterManager)
+				else if (This->CanCutFilterManager)
 				{
 					for (int i = StartIndex; i < MaxIndex; i++)
 					{
-						CanCut[i] = CanCutFilterManager->Test(i);
-						CanBeCut[i] = true;
-						Path->ComputeEdgeExtra(i);
+						This->CanCut[i] = This->CanCutFilterManager->Test(i);
+						This->CanBeCut[i] = true;
+						This->Path->ComputeEdgeExtra(i);
 					}
 				}
-				else if (CanBeCutFilterManager)
+				else if (This->CanBeCutFilterManager)
 				{
 					for (int i = StartIndex; i < MaxIndex; i++)
 					{
-						CanCut[i] = true;
-						CanBeCut[i] = CanBeCutFilterManager->Test(i);
-						Path->ComputeEdgeExtra(i);
+						This->CanCut[i] = true;
+						This->CanBeCut[i] = This->CanBeCutFilterManager->Test(i);
+						This->Path->ComputeEdgeExtra(i);
 					}
 				}
 				else
 				{
 					for (int i = StartIndex; i < MaxIndex; i++)
 					{
-						CanCut[i] = true;
-						CanBeCut[i] = true;
-						Path->ComputeEdgeExtra(i);
+						This->CanCut[i] = true;
+						This->CanBeCut[i] = true;
+						This->Path->ComputeEdgeExtra(i);
 					}
 				}
 			};
@@ -358,15 +367,15 @@ namespace PCGExPathCrossings
 
 		PCGEX_ASYNC_GROUP_CHKD_VOID(AsyncManager, CollapseTask)
 		CollapseTask->OnCompleteCallback =
-			[WeakThis = TWeakPtr<FProcessor>(SharedThis(this))]()
+			[WeakThisPtr = TWeakPtr<FProcessor>(SharedThis(this))]()
 			{
-				if (const TSharedPtr<FProcessor> This = WeakThis.Pin()) { This->PointDataFacade->Write(This->AsyncManager); }
+				if (const TSharedPtr<FProcessor> This = WeakThisPtr.Pin()) { This->PointDataFacade->Write(This->AsyncManager); }
 			};
 		CollapseTask->OnSubLoopStartCallback =
-			[WeakThis = TWeakPtr<FProcessor>(SharedThis(this))]
+			[WeakThisPtr = TWeakPtr<FProcessor>(SharedThis(this))]
 			(const int32 StartIndex, const int32 Count, const int32 LoopIdx)
 			{
-				const TSharedPtr<FProcessor> This = WeakThis.Pin();
+				const TSharedPtr<FProcessor> This = WeakThisPtr.Pin();
 				if (!This) { return; }
 
 				const int32 MaxIndex = StartIndex + Count;
@@ -480,10 +489,10 @@ namespace PCGExPathCrossings
 
 		PCGEX_ASYNC_GROUP_CHKD_VOID(AsyncManager, CrossBlendTask)
 		CrossBlendTask->OnSubLoopStartCallback =
-			[WeakThis = TWeakPtr<FProcessor>(SharedThis(this))]
+			[WeakThisPtr = TWeakPtr<FProcessor>(SharedThis(this))]
 			(const int32 StartIndex, const int32 Count, const int32 LoopIdx)
 			{
-				const TSharedPtr<FProcessor> This = WeakThis.Pin();
+				const TSharedPtr<FProcessor> This = WeakThisPtr.Pin();
 				if (!This) { return; }
 
 				const int32 MaxIndex = StartIndex + Count;

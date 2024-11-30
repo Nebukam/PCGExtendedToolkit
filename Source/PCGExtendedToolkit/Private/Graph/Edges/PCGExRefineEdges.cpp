@@ -220,15 +220,24 @@ namespace PCGExRefineEdges
 		else
 		{
 			PCGEX_ASYNC_GROUP_CHKD(AsyncManager, EdgeScopeLoop)
+
+			TWeakPtr<FProcessor> WeakThisPtr = SharedThis(this);
+
 			EdgeScopeLoop->OnCompleteCallback =
-				[&]()
+				[WeakThisPtr]()
 				{
-					if (Refinement->RequiresIndividualNodeProcessing()) { StartParallelLoopForNodes(); }
-					else { Refinement->Process(); }
+					const TSharedPtr<FProcessor> This = WeakThisPtr.Pin();
+					if (!This) { return; }
+
+					if (This->Refinement->RequiresIndividualNodeProcessing()) { This->StartParallelLoopForNodes(); }
+					else { This->Refinement->Process(); }
 				};
 
 			EdgeScopeLoop->OnSubLoopStartCallback =
-				[&](const int32 StartIndex, const int32 Count, const int32 LoopIdx) { PrepareSingleLoopScopeForEdges(StartIndex, Count); };
+				[WeakThisPtr](const int32 StartIndex, const int32 Count, const int32 LoopIdx)
+				{
+					if (const TSharedPtr<FProcessor> This = WeakThisPtr.Pin()) { This->PrepareSingleLoopScopeForEdges(StartIndex, Count); }
+				};
 
 			EdgeScopeLoop->StartSubLoops(EdgeDataFacade->GetNum(), PLI);
 		}
@@ -279,11 +288,12 @@ namespace PCGExRefineEdges
 
 		PCGEX_ASYNC_GROUP_CHKD_VOID(AsyncManager, InvalidateNodes)
 
+		TWeakPtr<FProcessor> WeakThisPtr = SharedThis(this);
+
 		InvalidateNodes->OnSubLoopStartCallback =
-			[WeakThis = TWeakPtr<FProcessor>(SharedThis(this))]
-			(const int32 StartIndex, const int32 Count, const int32 LoopIdx)
+			[WeakThisPtr](const int32 StartIndex, const int32 Count, const int32 LoopIdx)
 			{
-				const TSharedPtr<FProcessor> This = WeakThis.Pin();
+				const TSharedPtr<FProcessor> This = WeakThisPtr.Pin();
 				if (!This) { return; }
 
 				const PCGExCluster::FCluster* Cluster = This->Cluster.Get();
@@ -295,27 +305,28 @@ namespace PCGExRefineEdges
 			};
 
 		InvalidateNodes->OnCompleteCallback =
-			[WeakThis = TWeakPtr<FProcessor>(SharedThis(this))]()
+			[WeakThisPtr]()
 			{
-				const TSharedPtr<FProcessor> This = WeakThis.Pin();
+				const TSharedPtr<FProcessor> This = WeakThisPtr.Pin();
 				if (!This) { return; }
 
 				PCGEX_ASYNC_GROUP_CHKD_VOID(This->AsyncManager, RestoreEdges)
-				RestoreEdges->OnSubLoopStartCallback = [WeakThis](const int32 StartIndex, const int32 Count, const int32 LoopIdx)
-				{
-					const TSharedPtr<FProcessor> NestedThis = WeakThis.Pin();
-					if (!NestedThis) { return; }
-
-					const PCGExCluster::FCluster* Cluster = NestedThis->Cluster.Get();
-
-					const int32 MaxIndex = StartIndex + Count;
-					for (int i = StartIndex; i < MaxIndex; i++)
+				RestoreEdges->OnSubLoopStartCallback =
+					[WeakThisPtr](const int32 StartIndex, const int32 Count, const int32 LoopIdx)
 					{
-						PCGExGraph::FEdge* Edge = NestedThis->Cluster->GetEdge(i);
-						if (Edge->bValid) { continue; }
-						if (Cluster->GetEdgeStart(i)->bValid && Cluster->GetEdgeEnd(i)->bValid) { Edge->bValid = true; }
-					}
-				};
+						const TSharedPtr<FProcessor> NestedThis = WeakThisPtr.Pin();
+						if (!NestedThis) { return; }
+
+						const PCGExCluster::FCluster* Cluster = NestedThis->Cluster.Get();
+
+						const int32 MaxIndex = StartIndex + Count;
+						for (int i = StartIndex; i < MaxIndex; i++)
+						{
+							PCGExGraph::FEdge* Edge = NestedThis->Cluster->GetEdge(i);
+							if (Edge->bValid) { continue; }
+							if (Cluster->GetEdgeStart(i)->bValid && Cluster->GetEdgeEnd(i)->bValid) { Edge->bValid = true; }
+						}
+					};
 
 				RestoreEdges->StartSubLoops(This->Cluster->Edges->Num(), GetDefault<UPCGExGlobalSettings>()->GetPointsBatchChunkSize());
 			};
@@ -330,14 +341,21 @@ namespace PCGExRefineEdges
 
 		Cluster->GetBoundedEdges(true); //Oof
 
-		SanitizeTaskGroup->OnCompleteCallback = [&]() { InsertEdges(); };
+		TWeakPtr<FProcessor> WeakThisPtr = SharedThis(this);
+		SanitizeTaskGroup->OnCompleteCallback = [WeakThisPtr]() { if (const TSharedPtr<FProcessor> This = WeakThisPtr.Pin()) { This->InsertEdges(); } };
 
 		if (Settings->Sanitization == EPCGExRefineSanitization::Filters)
 		{
 			const int32 PLI = GetDefault<UPCGExGlobalSettings>()->GetClusterBatchChunkSize();
 			SanitizeTaskGroup->OnSubLoopStartCallback =
-				[&](const int32 StartIndex, const int32 Count, const int32 LoopIdx)
+				[WeakThisPtr](const int32 StartIndex, const int32 Count, const int32 LoopIdx)
 				{
+					const TSharedPtr<FProcessor> This = WeakThisPtr.Pin();
+					if (!This) { return; }
+
+					const TSharedPtr<PCGExCluster::FCluster> Cluster = This->Cluster;
+					const TSharedPtr<PCGExClusterFilter::FManager> SanitizationFilterManager = This->SanitizationFilterManager;
+
 					const int32 MaxIndex = StartIndex + Count;
 					for (int i = StartIndex; i < MaxIndex; i++)
 					{

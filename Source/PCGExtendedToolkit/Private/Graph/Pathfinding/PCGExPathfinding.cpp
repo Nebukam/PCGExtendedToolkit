@@ -184,12 +184,14 @@ namespace PCGExPathfinding
 	{
 		PCGEX_ASYNC_GROUP_CHKD_VOID(AsyncManager, PlotTasks)
 
+		TWeakPtr<FPlotQuery> WeakThisPtr = SharedThis(this);
+
 		LocalFeedbackHandler = HeuristicsHandler->MakeLocalFeedbackHandler(Cluster);
 
 		PlotTasks->OnCompleteCallback =
-			[WeakThis = TWeakPtr<FPlotQuery>(SharedThis(this))]()
+			[WeakThisPtr]()
 			{
-				if (const TSharedPtr<FPlotQuery> This = WeakThis.Pin())
+				if (const TSharedPtr<FPlotQuery> This = WeakThisPtr.Pin())
 				{
 					This->LocalFeedbackHandler.Reset();
 					if (This->OnCompleteCallback) { This->OnCompleteCallback(This); }
@@ -197,10 +199,9 @@ namespace PCGExPathfinding
 			};
 
 		PlotTasks->OnSubLoopStartCallback =
-			[WeakThis = TWeakPtr<FPlotQuery>(SharedThis(this)), SearchOperation, HeuristicsHandler]
-			(const int32 StartIndex, const int32 Count, const int32 LoopIdx)
+			[WeakThisPtr, SearchOperation, HeuristicsHandler](const int32 StartIndex, const int32 Count, const int32 LoopIdx)
 			{
-				TSharedPtr<FPlotQuery> This = WeakThis.Pin();
+				const TSharedPtr<FPlotQuery> This = WeakThisPtr.Pin();
 				if (!This) { return; }
 
 				This->SubQueries[StartIndex]->FindPath(SearchOperation, HeuristicsHandler, This->LocalFeedbackHandler);

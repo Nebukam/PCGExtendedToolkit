@@ -321,15 +321,24 @@ namespace PCGExBuildVoronoi2D
 		{
 			PCGEX_ASYNC_GROUP_CHKD(AsyncManager, OutputSites)
 
-			OutputSites->OnIterationCallback = [&](const int32 Index, const int32 Count, const int32 LoopIdx)
-			{
-				const bool bIsWithinBounds = IsVtxValid[Index];
-				if (OpenSiteWriter) { OpenSiteWriter->GetMutable(Index) = bIsWithinBounds; }
-				if (DelaunaySitesInfluenceCount[Index] == 0) { return; }
-				SiteDataFacade->GetOut()->GetMutablePoints()[Index].Transform.SetLocation(DelaunaySitesLocations[Index] / DelaunaySitesInfluenceCount[Index]);
-			};
+			TWeakPtr<FProcessor> WeakThisPtr = SharedThis(this);
+			OutputSites->OnSubLoopStartCallback =
+				[WeakThisPtr](const int32 StartIndex, const int32 Count, const int32 LoopIdx)
+				{
+					const TSharedPtr<FProcessor> This = WeakThisPtr.Pin();
+					if (!This) { return; }
 
-			OutputSites->StartIterations(DelaunaySitesNum, GetDefault<UPCGExGlobalSettings>()->GetPointsBatchChunkSize());
+					const int32 MaxIndex = StartIndex + Count;
+					for (int i = StartIndex; i < MaxIndex; i++)
+					{
+						const bool bIsWithinBounds = This->IsVtxValid[i];
+						if (This->OpenSiteWriter) { This->OpenSiteWriter->GetMutable(i) = bIsWithinBounds; }
+						if (This->DelaunaySitesInfluenceCount[i] == 0) { continue; }
+						This->SiteDataFacade->GetOut()->GetMutablePoints()[i].Transform.SetLocation(This->DelaunaySitesLocations[i] / This->DelaunaySitesInfluenceCount[i]);
+					}
+				};
+
+			OutputSites->StartSubLoops(DelaunaySitesNum, GetDefault<UPCGExGlobalSettings>()->GetPointsBatchChunkSize());
 		}
 
 		return true;

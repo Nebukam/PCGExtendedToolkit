@@ -203,16 +203,16 @@ namespace PCGExAttributeStats
 
 
 		PCGEX_ASYNC_GROUP_CHKD(AsyncManager, FilterScope)
-
-		TWeakPtr<FProcessor> WeakPtr = SharedThis(this);
-		FilterScope->OnSubLoopStartCallback = [WeakPtr](const int32 StartIndex, const int32 Count, const int32 LoopIdx)
-		{
-			if (const TSharedPtr<FProcessor> This = WeakPtr.Pin())
+		TWeakPtr<FProcessor> WeakThisPtr = SharedThis(this);
+		FilterScope->OnSubLoopStartCallback =
+			[WeakThisPtr](const int32 StartIndex, const int32 Count, const int32 LoopIdx)
 			{
-				This->PointDataFacade->Fetch(StartIndex, Count);
-				This->FilterScope(StartIndex, Count);
-			}
-		};
+				if (const TSharedPtr<FProcessor> This = WeakThisPtr.Pin())
+				{
+					This->PointDataFacade->Fetch(StartIndex, Count);
+					This->FilterScope(StartIndex, Count);
+				}
+			};
 
 		FilterScope->StartSubLoops(PointDataFacade->GetNum(), GetDefault<UPCGExGlobalSettings>()->GetPointsBatchChunkSize());
 
@@ -222,12 +222,11 @@ namespace PCGExAttributeStats
 	void FProcessor::CompleteWork()
 	{
 		PCGEX_ASYNC_GROUP_CHKD_VOID(AsyncManager, AttributeStatProcessing)
-
+		TWeakPtr<FProcessor> WeakThisPtr = SharedThis(this);
 		AttributeStatProcessing->OnSubLoopStartCallback =
-			[WeakThis = TWeakPtr<FProcessor>(SharedThis(this))]
-			(const int32 StartIndex, const int32 Count, const int32 LoopIdx)
+			[WeakThisPtr](const int32 StartIndex, const int32 Count, const int32 LoopIdx)
 			{
-				if (const TSharedPtr<FProcessor> This = WeakThis.Pin())
+				if (const TSharedPtr<FProcessor> This = WeakThisPtr.Pin())
 				{
 					This->Stats[StartIndex]->Process(This->PointDataFacade, This->Context, This->Settings, This->PointFilterCache);
 				}

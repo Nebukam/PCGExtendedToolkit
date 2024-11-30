@@ -217,11 +217,13 @@ namespace PCGExOffsetPath
 
 		PCGEX_ASYNC_GROUP_CHKD_VOID(AsyncManager, FlipTestTask)
 
+		TWeakPtr<FProcessor> WeakThisPtr = SharedThis(this);
+		
 		FlipTestTask->OnSubLoopStartCallback =
-			[WeakThis = TWeakPtr<FProcessor>(SharedThis(this))]
+			[WeakThisPtr]
 			(const int32 StartIndex, const int32 Count, const int32 LoopIdx)
 			{
-				const TSharedPtr<FProcessor> This = WeakThis.Pin();
+				const TSharedPtr<FProcessor> This = WeakThisPtr.Pin();
 				if (!This) { return; }
 
 				const int32 MaxIndex = StartIndex + Count;

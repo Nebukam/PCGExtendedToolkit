@@ -211,24 +211,25 @@ namespace PCGExPathfindingEdge
 		}
 
 		PCGEX_ASYNC_GROUP_CHKD(AsyncManager, ResolveQueriesTask)
-		TWeakPtr<FProcessor> WeakPtr = SharedThis(this);
-		ResolveQueriesTask->OnIterationCallback = [WeakPtr](const int32 Index, const int32 Count, const int32 LoopIdx)
-		{
-			TSharedPtr<FProcessor> This = WeakPtr.Pin();
-			if (!This) { return; }
+		TWeakPtr<FProcessor> WeakThisPtr = SharedThis(this);
+		ResolveQueriesTask->OnIterationCallback =
+			[WeakThisPtr](const int32 Index, const int32 Count, const int32 LoopIdx)
+			{
+				const TSharedPtr<FProcessor> This = WeakThisPtr.Pin();
+				if (!This) { return; }
 
-			TSharedPtr<PCGExPathfinding::FPathQuery> Query = This->Queries[Index];
-			Query->ResolvePicks(This->Settings->SeedPicking, This->Settings->GoalPicking);
+				TSharedPtr<PCGExPathfinding::FPathQuery> Query = This->Queries[Index];
+				Query->ResolvePicks(This->Settings->SeedPicking, This->Settings->GoalPicking);
 
-			if (!Query->HasValidEndpoints()) { return; }
+				if (!Query->HasValidEndpoints()) { return; }
 
-			Query->FindPath(This->SearchOperation, This->HeuristicsHandler, nullptr);
+				Query->FindPath(This->SearchOperation, This->HeuristicsHandler, nullptr);
 
-			if (!Query->IsQuerySuccessful()) { return; }
+				if (!Query->IsQuerySuccessful()) { return; }
 
-			This->Context->BuildPath(Query);
-			Query->Cleanup();
-		};
+				This->Context->BuildPath(Query);
+				Query->Cleanup();
+			};
 
 		ResolveQueriesTask->StartIterations(Queries.Num(), 1, HeuristicsHandler->HasGlobalFeedback(), false);
 		return true;

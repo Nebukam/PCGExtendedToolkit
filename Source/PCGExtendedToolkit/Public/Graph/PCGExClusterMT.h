@@ -422,11 +422,11 @@ namespace PCGExClusterMT
 				if (!RawLookupAttribute) { return; } // FAIL
 
 				BuildEndpointLookupTask->OnCompleteCallback =
-					[WeakThis = TWeakPtr<FClusterProcessorBatchBase>(SharedThis(this))]()
+					[WeakThisPtr = TWeakPtr<FClusterProcessorBatchBase>(SharedThis(this))]()
 					{
 						TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExGraph::BuildLookupTable::Complete);
 
-						const TSharedPtr<FClusterProcessorBatchBase> This = WeakThis.Pin();
+						const TSharedPtr<FClusterProcessorBatchBase> This = WeakThisPtr.Pin();
 						if (!This) { return; }
 
 						const int32 Num = This->VtxDataFacade->GetNum();
@@ -444,12 +444,12 @@ namespace PCGExClusterMT
 					};
 
 				BuildEndpointLookupTask->OnSubLoopStartCallback =
-					[WeakThis = TWeakPtr<FClusterProcessorBatchBase>(SharedThis(this))]
+					[WeakThisPtr = TWeakPtr<FClusterProcessorBatchBase>(SharedThis(this))]
 					(const int32 StartIndex, const int32 Count, const int32 LoopIdx)
 					{
 						TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExGraph::BuildLookupTable::Range);
 
-						const TSharedPtr<FClusterProcessorBatchBase> This = WeakThis.Pin();
+						const TSharedPtr<FClusterProcessorBatchBase> This = WeakThisPtr.Pin();
 						if (!This) { return; }
 
 						const TArray<FPCGPoint>& InKeys = This->VtxDataFacade->GetIn()->GetPoints();
@@ -480,10 +480,10 @@ namespace PCGExClusterMT
 			VtxFacadePreloader = MakeShared<PCGExData::FFacadePreloader>();
 			RegisterBuffersDependencies(*VtxFacadePreloader);
 
-			TWeakPtr<FClusterProcessorBatchBase> WeakPtr = SharedThis(this);
-			VtxFacadePreloader->OnCompleteCallback = [WeakPtr]
+			TWeakPtr<FClusterProcessorBatchBase> WeakThisPtr = SharedThis(this);
+			VtxFacadePreloader->OnCompleteCallback = [WeakThisPtr]
 			{
-				const TSharedPtr<FClusterProcessorBatchBase> This = WeakPtr.Pin();
+				const TSharedPtr<FClusterProcessorBatchBase> This = WeakThisPtr.Pin();
 				if (!This) { return; }
 				This->Process();
 			};
@@ -512,8 +512,12 @@ namespace PCGExClusterMT
 
 			if (bOutputToContext)
 			{
-				GraphBuilder->OnCompilationEndCallback = [&](const TSharedRef<PCGExGraph::FGraphBuilder>& InBuilder, const bool bSuccess)
+				TWeakPtr<FClusterProcessorBatchBase> WeakThisPtr = SharedThis(this);
+				GraphBuilder->OnCompilationEndCallback = [WeakThisPtr](const TSharedRef<PCGExGraph::FGraphBuilder>& InBuilder, const bool bSuccess)
 				{
+					const TSharedPtr<FClusterProcessorBatchBase> This = WeakThisPtr.Pin();
+					if (!This) { return; }
+					
 					if (!bSuccess)
 					{
 						// TODO : Log error

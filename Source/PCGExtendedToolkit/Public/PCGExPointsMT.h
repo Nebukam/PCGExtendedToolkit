@@ -42,12 +42,12 @@ const TSharedPtr<TBatch<T>> Batch = WeakBatch.Pin(); if(!Batch){return;}\
 	if (IsTrivial()){ _PREPARE({PCGEx::H64(0, _NUM)}); _PROCESS(0, _NUM, 0); _COMPLETE(); return; } \
 	const int32 PLI = GetDefault<UPCGExGlobalSettings>()->_PLI(PerLoopIterations); \
 	PCGEX_ASYNC_GROUP_CHKD_VOID(AsyncManager, ParallelLoopFor##_NAME) \
-	ParallelLoopFor##_NAME->OnCompleteCallback = [WeakThis = TWeakPtr<_TYPE>(SharedThis(this))]() { \
-	if(const TSharedPtr<_TYPE> This = WeakThis.Pin()){ This->_COMPLETE(); } }; \
-	ParallelLoopFor##_NAME->OnPrepareSubLoopsCallback = [WeakThis = TWeakPtr<_TYPE>(SharedThis(this))](const TArray<uint64>& Loops) { \
-	if(const TSharedPtr<_TYPE> This = WeakThis.Pin()){ This->_PREPARE(Loops); }}; \
-	ParallelLoopFor##_NAME->OnSubLoopStartCallback =[WeakThis = TWeakPtr<_TYPE>(SharedThis(this))](const int32 StartIndex, const int32 Count, const int32 LoopIdx) { \
-	if(const TSharedPtr<_TYPE> This = WeakThis.Pin()){ This->_PROCESS(StartIndex, Count, LoopIdx); } }; \
+	ParallelLoopFor##_NAME->OnCompleteCallback = [WeakThisPtr = TWeakPtr<_TYPE>(SharedThis(this))]() { \
+	if(const TSharedPtr<_TYPE> This = WeakThisPtr.Pin()){ This->_COMPLETE(); } }; \
+	ParallelLoopFor##_NAME->OnPrepareSubLoopsCallback = [WeakThisPtr = TWeakPtr<_TYPE>(SharedThis(this))](const TArray<uint64>& Loops) { \
+	if(const TSharedPtr<_TYPE> This = WeakThisPtr.Pin()){ This->_PREPARE(Loops); }}; \
+	ParallelLoopFor##_NAME->OnSubLoopStartCallback =[WeakThisPtr = TWeakPtr<_TYPE>(SharedThis(this))](const int32 StartIndex, const int32 Count, const int32 LoopIdx) { \
+	if(const TSharedPtr<_TYPE> This = WeakThisPtr.Pin()){ This->_PROCESS(StartIndex, Count, LoopIdx); } }; \
 ParallelLoopFor##_NAME->StartSubLoops(_NUM, PLI, _INLINE);
 
 #define PCGEX_ASYNC_POINT_PROCESSOR_LOOP(_TYPE, _NAME, _NUM, _PREPARE, _PROCESS, _COMPLETE, _INLINE) PCGEX_ASYNC_PROCESSOR_LOOP(_TYPE, _NAME, _NUM, _PREPARE, _PROCESS, _COMPLETE, _INLINE, GetPointsBatchChunkSize)
@@ -436,20 +436,20 @@ ParallelLoopFor##_NAME->StartSubLoops(_NUM, PLI, _INLINE);
 
 			if (bPrefetchData)
 			{
-				TWeakPtr<TBatch<T>> WeakPtr = SharedThis(this);
+				TWeakPtr<TBatch<T>> WeakThisPtr = SharedThis(this);
 				PCGEX_ASYNC_GROUP_CHKD_VOID(AsyncManager, ParallelAttributeRead)
 
-				ParallelAttributeRead->OnCompleteCallback = [WeakPtr]()
+				ParallelAttributeRead->OnCompleteCallback = [WeakThisPtr]()
 				{
-					const TSharedPtr<TBatch<T>> This = WeakPtr.Pin();
+					const TSharedPtr<TBatch<T>> This = WeakThisPtr.Pin();
 					if (!This) { return; }
 					This->OnProcessingPreparationComplete();
 				};
 
 				ParallelAttributeRead->OnSubLoopStartCallback =
-					[WeakPtr, ParallelAttributeRead](const int32 StartIndex, const int32 Count, const int32 LoopIdx)
+					[WeakThisPtr, ParallelAttributeRead](const int32 StartIndex, const int32 Count, const int32 LoopIdx)
 					{
-						const TSharedPtr<TBatch<T>> This = WeakPtr.Pin();
+						const TSharedPtr<TBatch<T>> This = WeakThisPtr.Pin();
 						if (!This) { return; }
 
 						This->Processors[StartIndex]->PrefetchData(This->AsyncManager, ParallelAttributeRead);

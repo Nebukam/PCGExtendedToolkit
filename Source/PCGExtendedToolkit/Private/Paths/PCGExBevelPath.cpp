@@ -91,7 +91,7 @@ bool FPCGExBevelPathElement::ExecuteInternal(FPCGContext* InContext) const
 					bHasInvalidInputs = true;
 					return false;
 				}
-				
+
 				if (Entry->GetNum() < 3)
 				{
 					Entry->InitializeOutput(PCGExData::EIOInit::Duplicate);
@@ -325,25 +325,28 @@ namespace PCGExBevelPath
 
 		PCGEX_ASYNC_GROUP_CHKD(AsyncManager, Preparation)
 
-		TWeakPtr<FProcessor> WeakPtr = SharedThis(this);
-		Preparation->OnCompleteCallback = [WeakPtr]()
-		{
-			if (const TSharedPtr<FProcessor> This = WeakPtr.Pin())
+		TWeakPtr<FProcessor> WeakThisPtr = SharedThis(this);
+		
+		Preparation->OnCompleteCallback =
+			[WeakThisPtr]()
 			{
-				if (!This->bClosedLoop)
+				if (const TSharedPtr<FProcessor> This = WeakThisPtr.Pin())
 				{
-					// Ensure bevel is disabled on start/end points
-					This->PointFilterCache[0] = false;
-					This->PointFilterCache[This->PointFilterCache.Num() - 1] = false;
-				}
+					if (!This->bClosedLoop)
+					{
+						// Ensure bevel is disabled on start/end points
+						This->PointFilterCache[0] = false;
+						This->PointFilterCache[This->PointFilterCache.Num() - 1] = false;
+					}
 
-				This->StartParallelLoopForPoints(PCGExData::ESource::In);
-			}
-		};
+					This->StartParallelLoopForPoints(PCGExData::ESource::In);
+				}
+			};
+		
 		Preparation->OnSubLoopStartCallback =
-			[WeakPtr](const int32 StartIndex, const int32 Count, const int32 LoopIdx)
+			[WeakThisPtr](const int32 StartIndex, const int32 Count, const int32 LoopIdx)
 			{
-				const TSharedPtr<FProcessor> This = WeakPtr.Pin();
+				const TSharedPtr<FProcessor> This = WeakThisPtr.Pin();
 				if (!This) { return; }
 
 				This->PointDataFacade->Fetch(StartIndex, Count);
@@ -507,15 +510,15 @@ namespace PCGExBevelPath
 
 		PCGEX_ASYNC_GROUP_CHKD_VOID(AsyncManager, WriteFlagsTask)
 		WriteFlagsTask->OnCompleteCallback =
-			[WeakThis = TWeakPtr<FProcessor>(SharedThis(this))]()
+			[WeakThisPtr = TWeakPtr<FProcessor>(SharedThis(this))]()
 			{
-				if (const TSharedPtr<FProcessor> This = WeakThis.Pin()) { This->PointDataFacade->Write(This->AsyncManager); }
+				if (const TSharedPtr<FProcessor> This = WeakThisPtr.Pin()) { This->PointDataFacade->Write(This->AsyncManager); }
 			};
 		WriteFlagsTask->OnSubLoopStartCallback =
-			[WeakThis = TWeakPtr<FProcessor>(SharedThis(this))]
+			[WeakThisPtr = TWeakPtr<FProcessor>(SharedThis(this))]
 			(const int32 StartIndex, const int32 Count, const int32 LoopIdx)
 			{
-				const TSharedPtr<FProcessor> This = WeakThis.Pin();
+				const TSharedPtr<FProcessor> This = WeakThisPtr.Pin();
 				if (!This) { return; }
 
 				const int32 MaxIndex = StartIndex + Count;

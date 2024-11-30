@@ -72,17 +72,17 @@ namespace PCGExGraph
 		UnionPointsBlender->PrepareMerge(Context, UnionDataFacade, UnionGraph->NodesUnion);
 
 		PCGEX_ASYNC_GROUP_CHKD(Context->GetAsyncManager(), ProcessNodesGroup)
-		TWeakPtr<FUnionProcessor> WeakPtr = SharedThis(this);
+		TWeakPtr<FUnionProcessor> WeakThisPtr = SharedThis(this);
 		ProcessNodesGroup->OnCompleteCallback =
-			[WeakPtr]()
+			[WeakThisPtr]()
 			{
-				if (const TSharedPtr<FUnionProcessor> This = WeakPtr.Pin()) { This->OnNodesProcessingComplete(); }
+				if (const TSharedPtr<FUnionProcessor> This = WeakThisPtr.Pin()) { This->OnNodesProcessingComplete(); }
 			};
 
 		ProcessNodesGroup->OnSubLoopStartCallback =
-			[WeakPtr](const int32 StartIndex, const int32 Count, const int32 LoopIdx)
+			[WeakThisPtr](const int32 StartIndex, const int32 Count, const int32 LoopIdx)
 			{
-				const TSharedPtr<FUnionProcessor> P = WeakPtr.Pin();
+				const TSharedPtr<FUnionProcessor> P = WeakThisPtr.Pin();
 				if (!P) { return; }
 
 				const TSharedPtr<PCGExData::FUnionMetadata> PointsUnion = P->UnionGraph->NodesUnion;
@@ -141,9 +141,9 @@ namespace PCGExGraph
 
 		PCGEX_ASYNC_GROUP_CHKD_VOID(Context->GetAsyncManager(), WriteMetadataTask);
 		WriteMetadataTask->OnCompleteCallback =
-			[WeakThis = TWeakPtr<FUnionProcessor>(SharedThis(this))]()
+			[WeakThisPtr = TWeakPtr<FUnionProcessor>(SharedThis(this))]()
 			{
-				if (const TSharedPtr<FUnionProcessor> This = WeakThis.Pin())
+				if (const TSharedPtr<FUnionProcessor> This = WeakThisPtr.Pin())
 				{
 					This->UnionDataFacade->Flush();
 					This->InternalStartExecution();
@@ -152,16 +152,16 @@ namespace PCGExGraph
 
 		UnionDataFacade->WriteBuffersAsCallbacks(WriteMetadataTask);
 		WriteMetadataTask->AddSimpleCallback(
-			[WeakThis = TWeakPtr<FUnionProcessor>(SharedThis(this))]
+			[WeakThisPtr = TWeakPtr<FUnionProcessor>(SharedThis(this))]
 			()
 			{
-				if (const TSharedPtr<FUnionProcessor> This = WeakThis.Pin()) { This->UnionGraph->WriteNodeMetadata(This->GraphBuilder->Graph); }
+				if (const TSharedPtr<FUnionProcessor> This = WeakThisPtr.Pin()) { This->UnionGraph->WriteNodeMetadata(This->GraphBuilder->Graph); }
 			});
 		WriteMetadataTask->AddSimpleCallback(
-			[WeakThis = TWeakPtr<FUnionProcessor>(SharedThis(this))]
+			[WeakThisPtr = TWeakPtr<FUnionProcessor>(SharedThis(this))]
 			()
 			{
-				if (const TSharedPtr<FUnionProcessor> This = WeakThis.Pin()) { This->UnionGraph->WriteEdgeMetadata(This->GraphBuilder->Graph); }
+				if (const TSharedPtr<FUnionProcessor> This = WeakThisPtr.Pin()) { This->UnionGraph->WriteEdgeMetadata(This->GraphBuilder->Graph); }
 			});
 
 		WriteMetadataTask->StartSimpleCallbacks();
@@ -220,21 +220,23 @@ namespace PCGExGraph
 
 		PCGEX_ASYNC_GROUP_CHKD_VOID(Context->GetAsyncManager(), FindPointEdgeGroup)
 
+		TWeakPtr<FUnionProcessor> WeakThisPtr = SharedThis(this);
+
 		PointEdgeIntersections = MakeShared<FPointEdgeIntersections>(
 			GraphBuilder->Graph, UnionDataFacade->Source, &PointEdgeIntersectionDetails);
 
 		Context->SetAsyncState(State_ProcessingPointEdgeIntersections);
 
 		FindPointEdgeGroup->OnCompleteCallback =
-			[WeakThis = TWeakPtr<FUnionProcessor>(SharedThis(this))]()
+			[WeakThisPtr]()
 			{
-				if (const TSharedPtr<FUnionProcessor> This = WeakThis.Pin()) { This->FindPointEdgeIntersectionsFound(); }
+				if (const TSharedPtr<FUnionProcessor> This = WeakThisPtr.Pin()) { This->FindPointEdgeIntersectionsFound(); }
 			};
 		FindPointEdgeGroup->OnSubLoopStartCallback =
-			[WeakThis = TWeakPtr<FUnionProcessor>(SharedThis(this))]
+			[WeakThisPtr]
 			(const int32 StartIndex, const int32 Count, const int32 LoopIdx)
 			{
-				const TSharedPtr<FUnionProcessor> This = WeakThis.Pin();
+				const TSharedPtr<FUnionProcessor> This = WeakThisPtr.Pin();
 				if (!This) { return; }
 
 				const int32 MaxIndex = StartIndex + Count;
@@ -254,11 +256,13 @@ namespace PCGExGraph
 
 		PCGEX_ASYNC_GROUP_CHKD_VOID(Context->GetAsyncManager(), SortCrossingsGroup)
 
+		TWeakPtr<FUnionProcessor> WeakThisPtr = SharedThis(this);
+
 		SortCrossingsGroup->OnSubLoopStartCallback =
-			[WeakThis = TWeakPtr<FUnionProcessor>(SharedThis(this))]
+			[WeakThisPtr]
 			(const int32 StartIndex, const int32 Count, const int32 LoopIdx)
 			{
-				const TSharedPtr<FUnionProcessor> This = WeakThis.Pin();
+				const TSharedPtr<FUnionProcessor> This = WeakThisPtr.Pin();
 				if (!This) { return; }
 
 				const int32 MaxIndex = StartIndex + Count;
@@ -277,10 +281,8 @@ namespace PCGExGraph
 				}
 			};
 
-		SortCrossingsGroup->OnCompleteCallback = [WeakThis = TWeakPtr<FUnionProcessor>(SharedThis(this))]()
-		{
-			if (const TSharedPtr<FUnionProcessor> This = WeakThis.Pin()) { This->OnPointEdgeSortingComplete(); }
-		};
+		SortCrossingsGroup->OnCompleteCallback =
+			[WeakThisPtr]() { if (const TSharedPtr<FUnionProcessor> This = WeakThisPtr.Pin()) { This->OnPointEdgeSortingComplete(); } };
 
 		SortCrossingsGroup->StartSubLoops(PointEdgeIntersections->Edges.Num(), GetDefault<UPCGExGlobalSettings>()->ClusterDefaultBatchChunkSize);
 
@@ -302,16 +304,20 @@ namespace PCGExGraph
 
 		MetadataBlender->PrepareForData(UnionDataFacade, PCGExData::ESource::Out, true, &ProtectedClusterAttributes);
 
-		BlendPointEdgeGroup->OnCompleteCallback = [WeakPtr = TWeakPtr<FUnionProcessor>(SharedThis(this))]()
+		TWeakPtr<FUnionProcessor> WeakThisPtr = SharedThis(this);
+		BlendPointEdgeGroup->OnCompleteCallback = [WeakThisPtr]()
 		{
-			if (const TSharedPtr<FUnionProcessor> This = WeakPtr.Pin()) { This->OnPointEdgeIntersectionsComplete(); }
+			if (const TSharedPtr<FUnionProcessor> This = WeakThisPtr.Pin()) { This->OnPointEdgeIntersectionsComplete(); }
 		};
 
 		BlendPointEdgeGroup->OnSubLoopStartCallback =
-			[&](const int32 StartIndex, const int32 Count, const int32 LoopIdx)
+			[WeakThisPtr](const int32 StartIndex, const int32 Count, const int32 LoopIdx)
 			{
-				if (!MetadataBlender) { return; }
-				const TSharedRef<PCGExDataBlending::FMetadataBlender> Blender = MetadataBlender.ToSharedRef();
+				TSharedPtr<FUnionProcessor> This = WeakThisPtr.Pin();
+				if (!This) { return; }
+
+				if (!This->MetadataBlender) { return; }
+				const TSharedRef<PCGExDataBlending::FMetadataBlender> Blender = This->MetadataBlender.ToSharedRef();
 
 				const int32 MaxIndex = StartIndex + Count;
 				for (int i = StartIndex; i < MaxIndex; i++)
@@ -337,20 +343,20 @@ namespace PCGExGraph
 
 		PCGEX_ASYNC_GROUP_CHKD_VOID(Context->GetAsyncManager(), FindEdgeEdgeGroup)
 
+		TWeakPtr<FUnionProcessor> WeakThisPtr = SharedThis(this);
+
 		EdgeEdgeIntersections = MakeShared<FEdgeEdgeIntersections>(
 			GraphBuilder->Graph, UnionGraph, UnionDataFacade->Source, &EdgeEdgeIntersectionDetails);
 
 		Context->SetAsyncState(State_ProcessingEdgeEdgeIntersections);
 
-		FindEdgeEdgeGroup->OnCompleteCallback = [WeakThis = TWeakPtr<FUnionProcessor>(SharedThis(this))]()
-		{
-			if (const TSharedPtr<FUnionProcessor> This = WeakThis.Pin()) { This->OnEdgeEdgeIntersectionsFound(); }
-		};
+		FindEdgeEdgeGroup->OnCompleteCallback =
+			[WeakThisPtr]() { if (const TSharedPtr<FUnionProcessor> This = WeakThisPtr.Pin()) { This->OnEdgeEdgeIntersectionsFound(); } };
+
 		FindEdgeEdgeGroup->OnSubLoopStartCallback =
-			[WeakThis = TWeakPtr<FUnionProcessor>(SharedThis(this))]
-			(const int32 StartIndex, const int32 Count, const int32 LoopIdx)
+			[WeakThisPtr](const int32 StartIndex, const int32 Count, const int32 LoopIdx)
 			{
-				const TSharedPtr<FUnionProcessor> This = WeakThis.Pin();
+				const TSharedPtr<FUnionProcessor> This = WeakThisPtr.Pin();
 				if (!This) { return; }
 
 				if (!This->EdgeEdgeIntersections) { return; }
@@ -379,12 +385,13 @@ namespace PCGExGraph
 
 		PCGEX_ASYNC_GROUP_CHKD_VOID(Context->GetAsyncManager(), SortCrossingsGroup)
 
+		TWeakPtr<FUnionProcessor> WeakThisPtr = SharedThis(this);
+
 		// Insert new nodes
 		SortCrossingsGroup->OnSubLoopStartCallback =
-			[WeakThis = TWeakPtr<FUnionProcessor>(SharedThis(this))]
-			(const int32 StartIndex, const int32 Count, const int32 LoopIdx)
+			[WeakThisPtr](const int32 StartIndex, const int32 Count, const int32 LoopIdx)
 			{
-				TSharedPtr<FUnionProcessor> This = WeakThis.Pin();
+				const TSharedPtr<FUnionProcessor> This = WeakThisPtr.Pin();
 				if (!This) { return; }
 
 				if (!This->EdgeEdgeIntersections) { return; }
@@ -409,10 +416,8 @@ namespace PCGExGraph
 				}
 			};
 
-		SortCrossingsGroup->OnCompleteCallback = [WeakThis = TWeakPtr<FUnionProcessor>(SharedThis(this))]()
-		{
-			if (const TSharedPtr<FUnionProcessor> This = WeakThis.Pin()) { This->OnEdgeEdgeSortingComplete(); }
-		};
+		SortCrossingsGroup->OnCompleteCallback =
+			[WeakThisPtr]() { if (const TSharedPtr<FUnionProcessor> This = WeakThisPtr.Pin()) { This->OnEdgeEdgeSortingComplete(); } };
 
 		SortCrossingsGroup->StartSubLoops(EdgeEdgeIntersections->Edges.Num(), GetDefault<UPCGExGlobalSettings>()->ClusterDefaultBatchChunkSize);
 	}
@@ -437,15 +442,15 @@ namespace PCGExGraph
 
 		MetadataBlender->PrepareForData(UnionDataFacade, PCGExData::ESource::Out, true, &ProtectedClusterAttributes);
 
-		BlendEdgeEdgeGroup->OnCompleteCallback = [WeakThis = TWeakPtr<FUnionProcessor>(SharedThis(this))]()
+		BlendEdgeEdgeGroup->OnCompleteCallback = [WeakThisPtr = TWeakPtr<FUnionProcessor>(SharedThis(this))]()
 		{
-			if (const TSharedPtr<FUnionProcessor> This = WeakThis.Pin()) { This->OnEdgeEdgeIntersectionsComplete(); }
+			if (const TSharedPtr<FUnionProcessor> This = WeakThisPtr.Pin()) { This->OnEdgeEdgeIntersectionsComplete(); }
 		};
 		BlendEdgeEdgeGroup->OnSubLoopStartCallback =
-			[WeakThis = TWeakPtr<FUnionProcessor>(SharedThis(this))]
+			[WeakThisPtr = TWeakPtr<FUnionProcessor>(SharedThis(this))]
 			(const int32 StartIndex, const int32 Count, const int32 LoopIdx)
 			{
-				TSharedPtr<FUnionProcessor> This = WeakThis.Pin();
+				TSharedPtr<FUnionProcessor> This = WeakThisPtr.Pin();
 				if (!This) { return; }
 
 				if (!This->MetadataBlender) { return; }
@@ -470,9 +475,9 @@ namespace PCGExGraph
 	void FUnionProcessor::CompileFinalGraph()
 	{
 		Context->SetAsyncState(State_WritingClusters);
-		GraphBuilder->OnCompilationEndCallback = [WeakPtr = TWeakPtr<FUnionProcessor>(SharedThis(this))](const TSharedRef<FGraphBuilder>& InBuilder, const bool bSuccess)
+		GraphBuilder->OnCompilationEndCallback = [WeakThisPtr = TWeakPtr<FUnionProcessor>(SharedThis(this))](const TSharedRef<FGraphBuilder>& InBuilder, const bool bSuccess)
 		{
-			if (const TSharedPtr<FUnionProcessor> This = WeakPtr.Pin())
+			if (const TSharedPtr<FUnionProcessor> This = WeakThisPtr.Pin())
 			{
 				if (!bSuccess) { This->UnionDataFacade->Source->InitializeOutput(PCGExData::EIOInit::None); }
 				else { This->GraphBuilder->StageEdgesOutputs(); }

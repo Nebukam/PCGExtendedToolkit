@@ -105,17 +105,23 @@ namespace PCGExPathIntersections
 		Details = Settings->OutputSettings;
 
 		PCGEX_ASYNC_GROUP_CHKD(AsyncManager, FindIntersectionsTaskGroup)
+
+		TWeakPtr<FProcessor> WeakThisPtr = SharedThis(this);
+
 		FindIntersectionsTaskGroup->OnSubLoopStartCallback =
-			[&](const int32 StartIndex, const int32 Count, const int32 LoopIdx)
+			[WeakThisPtr](const int32 StartIndex, const int32 Count, const int32 LoopIdx)
 			{
-				PointDataFacade->Fetch(StartIndex, Count);
-				FilterScope(StartIndex, Count);
+				const TSharedPtr<FProcessor> This = WeakThisPtr.Pin();
+				if (!This) { return; }
+
+				This->PointDataFacade->Fetch(StartIndex, Count);
+				This->FilterScope(StartIndex, Count);
+
+				const int32 MaxIndex = StartIndex + Count;
+				for (int i = StartIndex; i < MaxIndex; i++) { This->FindIntersections(i); }
 			};
 
-		FindIntersectionsTaskGroup->OnIterationCallback = [&](const int32 Index, const int32 Count, const int32 LoopIdx) { FindIntersections(Index); };
-		FindIntersectionsTaskGroup->StartIterations(PointDataFacade->GetNum(), GetDefault<UPCGExGlobalSettings>()->GetPointsBatchChunkSize());
-
-		//StartParallelLoopForPoints(PCGExData::ESource::In);
+		FindIntersectionsTaskGroup->StartSubLoops(PointDataFacade->GetNum(), GetDefault<UPCGExGlobalSettings>()->GetPointsBatchChunkSize());
 
 		return true;
 	}
@@ -239,20 +245,22 @@ namespace PCGExPathIntersections
 		Segmentation->ReduceToArray();
 
 		PCGEX_ASYNC_GROUP_CHKD_VOID(AsyncManager, InsertionTaskGroup)
+
+		TWeakPtr<FProcessor> WeakThisPtr = SharedThis(this);
+
 		InsertionTaskGroup->OnCompleteCallback =
-			[WeakThis = TWeakPtr<FProcessor>(SharedThis(this))]()
+			[WeakThisPtr]() { if (const TSharedPtr<FProcessor> This = WeakThisPtr.Pin()) { This->OnInsertionComplete(); } };
+
+		InsertionTaskGroup->OnSubLoopStartCallback =
+			[WeakThisPtr](const int32 StartIndex, const int32 Count, const int32 LoopIdx)
 			{
-				if (const TSharedPtr<FProcessor> This = WeakThis.Pin()) { This->OnInsertionComplete(); }
-			};
-		InsertionTaskGroup->OnSubLoopStartCallback = [WeakThis = TWeakPtr<FProcessor>(SharedThis(this))]
-			(const int32 StartIndex, const int32 Count, const int32 LoopIdx)
-			{
-				const TSharedPtr<FProcessor> This = WeakThis.Pin();
+				const TSharedPtr<FProcessor> This = WeakThisPtr.Pin();
 				if (!This) { return; }
 
 				const int32 MaxIndex = StartIndex + Count;
 				for (int i = StartIndex; i < MaxIndex; i++) { This->InsertIntersections(i); }
 			};
+
 		InsertionTaskGroup->StartSubLoops(Segmentation->IntersectionsList.Num(), GetDefault<UPCGExGlobalSettings>()->GetPointsBatchChunkSize());
 
 		FPointsProcessor::CompleteWork();

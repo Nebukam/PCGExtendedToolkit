@@ -171,7 +171,7 @@ namespace PCGExFindAllCells
 	void FProcessor::ProcessCell(const TSharedPtr<PCGExTopology::FCell>& InCell) const
 	{
 		TSharedRef<PCGExData::FPointIO> PathIO = Context->Paths->Emplace_GetRef<UPCGPointData>(VtxDataFacade->Source, PCGExData::EIOInit::New).ToSharedRef();
-		PathIO->Tags->Reset(); // Tag forwarding handled by artifacts
+		PathIO->Tags->Reset();                                          // Tag forwarding handled by artifacts
 		PathIO->IOIndex = Cluster->GetEdge(InCell->Seed.Edge)->IOIndex; // Enforce seed order for collection output-ish
 
 		PCGExGraph::CleanupClusterTags(PathIO, true);
@@ -187,9 +187,9 @@ namespace PCGExFindAllCells
 		InCell->PostProcessPoints(MutablePoints);
 
 		PathIO->GetOut()->SetPoints(MutablePoints);
-		
+
 		Context->Artifacts.Process(Cluster, PathDataFacade, InCell);
-		PathDataFacade->Write(AsyncManager);		
+		PathDataFacade->Write(AsyncManager);
 
 		/*
 		Context->SeedAttributesToPathTags.Tag(SeedIndex, PathIO);
@@ -252,22 +252,20 @@ namespace PCGExFindAllCells
 		// Project positions
 		ProjectionDetails = Settings->ProjectionDetails;
 		if (!ProjectionDetails.Init(Context, VtxDataFacade)) { return; }
-		
+
 		PCGEx::InitArray(ProjectedPositions, VtxDataFacade->GetNum());
 
 		PCGEX_ASYNC_GROUP_CHKD_VOID(AsyncManager, ProjectionTaskGroup)
 
+		TWeakPtr<FBatch> WeakThisPtr = SharedThis(this);
+
 		ProjectionTaskGroup->OnCompleteCallback =
-			[WeakThis = TWeakPtr<FBatch>(SharedThis(this))]()
-			{
-				if (TSharedPtr<FBatch> This = WeakThis.Pin()) { This->OnProjectionComplete(); }
-			};
+			[WeakThisPtr]() { if (const TSharedPtr<FBatch> This = WeakThisPtr.Pin()) { This->OnProjectionComplete(); } };
 
 		ProjectionTaskGroup->OnSubLoopStartCallback =
-			[WeakThis = TWeakPtr<FBatch>(SharedThis(this))]
-			(const int32 StartIndex, const int32 Count, const int32 LoopIdx)
+			[WeakThisPtr](const int32 StartIndex, const int32 Count, const int32 LoopIdx)
 			{
-				TSharedPtr<FBatch> This = WeakThis.Pin();
+				const TSharedPtr<FBatch> This = WeakThisPtr.Pin();
 				if (!This) { return; }
 
 				TArray<FVector>& PP = *This->ProjectedPositions;

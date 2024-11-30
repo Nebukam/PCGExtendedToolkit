@@ -95,13 +95,18 @@ namespace PCGExSplitPath
 		const int32 ChunkSize = GetDefault<UPCGExGlobalSettings>()->GetPointsBatchChunkSize();
 
 		PCGEX_ASYNC_GROUP_CHKD(AsyncManager, TaskGroup)
-		TaskGroup->OnSubLoopStartCallback =
-			[&](const int32 StartIndex, const int32 Count, const int32 LoopIdx)
-			{
-				PointDataFacade->Fetch(StartIndex, Count);
-				FilterScope(StartIndex, Count);
-			};
 
+		TWeakPtr<FProcessor> WeakThisPtr = SharedThis(this);
+
+#define PCGEX_SPLIT_ACTION(_NAME)\
+		TaskGroup->OnSubLoopStartCallback = [WeakThisPtr](const int32 StartIndex, const int32 Count, const int32 LoopIdx){\
+					const TSharedPtr<FProcessor> This = WeakThisPtr.Pin();\
+					if (!This) { return; }\
+					This->PointDataFacade->Fetch(StartIndex, Count);\
+					This->FilterScope(StartIndex, Count);\
+					const int32 MaxIndex = StartIndex + Count;\
+					for (int i = StartIndex; i < MaxIndex; i++) { This->_NAME(i); }};
+		
 		if (Settings->SplitAction == EPCGExPathSplitAction::Partition ||
 			Settings->SplitAction == EPCGExPathSplitAction::Switch)
 		{
@@ -129,24 +134,26 @@ namespace PCGExSplitPath
 		switch (Settings->SplitAction)
 		{
 		case EPCGExPathSplitAction::Split:
-			TaskGroup->OnIterationCallback = [&](const int32 Index, const int32 Count, const int32 LoopIdx) { DoActionSplit(Index); };
+			PCGEX_SPLIT_ACTION(DoActionSplit)
 			break;
 		case EPCGExPathSplitAction::Remove:
-			TaskGroup->OnIterationCallback = [&](const int32 Index, const int32 Count, const int32 LoopIdx) { DoActionRemove(Index); };
+			PCGEX_SPLIT_ACTION(DoActionRemove)
 			break;
 		case EPCGExPathSplitAction::Disconnect:
-			TaskGroup->OnIterationCallback = [&](const int32 Index, const int32 Count, const int32 LoopIdx) { DoActionDisconnect(Index); };
+			PCGEX_SPLIT_ACTION(DoActionDisconnect)
 			break;
 		case EPCGExPathSplitAction::Partition:
-			TaskGroup->OnIterationCallback = [&](const int32 Index, const int32 Count, const int32 LoopIdx) { DoActionPartition(Index); };
+			PCGEX_SPLIT_ACTION(DoActionPartition)
 			break;
 		case EPCGExPathSplitAction::Switch:
-			TaskGroup->OnIterationCallback = [&](const int32 Index, const int32 Count, const int32 LoopIdx) { DoActionSwitch(Index); };
+			PCGEX_SPLIT_ACTION(DoActionSwitch)
 			break;
 		default: ;
 		}
 
-		TaskGroup->StartIterations(NumPoints, ChunkSize, true);
+#undef PCGEX_SPLIT_ACTION
+		
+		TaskGroup->StartSubLoops(NumPoints, ChunkSize, true);
 
 		return true;
 	}

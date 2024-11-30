@@ -50,6 +50,8 @@ public:
 	virtual void BeginDestroy() override;
 
 protected:
+	//TSharedPtr<TMap<uint32, int32>> EndpointsLookup;
+	
 #if PCGEX_ENGINE_VERSION < 505
 	virtual UPCGSpatialData* CopyInternal() const override;
 #else
@@ -75,6 +77,7 @@ public:
 
 protected:
 	TSharedPtr<PCGExCluster::FCluster> Cluster;
+	
 #if PCGEX_ENGINE_VERSION < 505
 	virtual UPCGSpatialData* CopyInternal() const override;
 #else

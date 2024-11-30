@@ -113,9 +113,9 @@ namespace PCGExRelaxClusters
 
 		PCGEX_ASYNC_GROUP_CHKD_VOID(AsyncManager, IterationGroup)
 		IterationGroup->OnCompleteCallback =
-			[WeakThis = TWeakPtr<FProcessor>(SharedThis(this))]()
+			[WeakThisPtr = TWeakPtr<FProcessor>(SharedThis(this))]()
 			{
-				if (const TSharedPtr<FProcessor> This = WeakThis.Pin()) { This->StartRelaxIteration(); }
+				if (const TSharedPtr<FProcessor> This = WeakThisPtr.Pin()) { This->StartRelaxIteration(); }
 			};
 		IterationGroup->StartRanges<FRelaxRangeTask>(
 			NumNodes, GetDefault<UPCGExGlobalSettings>()->GetPointsBatchChunkSize(),
