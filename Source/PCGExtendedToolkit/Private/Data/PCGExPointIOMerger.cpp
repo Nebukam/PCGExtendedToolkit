@@ -78,8 +78,8 @@ void FPCGExPointIOMerger::Merge(const TSharedPtr<PCGExMT::FTaskManager>& AsyncMa
 			{
 				ExpectedTypes.Add(SourceAtt.Name, SourceAtt.UnderlyingType);
 
-				PCGMetadataAttribute::CallbackWithRightType(
-					static_cast<uint16>(SourceAtt.UnderlyingType), [&](auto DummyValue)
+				PCGEx::ExecuteWithRightType(
+					SourceAtt.UnderlyingType, [&](auto DummyValue)
 					{
 						using T = decltype(DummyValue);
 						TSharedPtr<PCGExData::TBuffer<T>> Buffer;
@@ -119,8 +119,8 @@ namespace PCGExPointIOMerger
 		const PCGEx::FAttributeIdentity& Identity = Merger->UniqueIdentities[TaskIndex];
 		const TSharedPtr<PCGExData::FBufferBase> Buffer = Merger->Buffers[TaskIndex];
 
-		PCGMetadataAttribute::CallbackWithRightType(
-			Identity.GetTypeId(), [&](auto DummyValue)
+		PCGEx::ExecuteWithRightType(
+			Identity.UnderlyingType, [&](auto DummyValue)
 			{
 				using T = decltype(DummyValue);
 				TSharedPtr<PCGExData::TBuffer<T>> TypedBuffer = StaticCastSharedPtr<PCGExData::TBuffer<T>>(Buffer);

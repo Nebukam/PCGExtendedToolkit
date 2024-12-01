@@ -164,9 +164,9 @@ namespace PCGExReversePointOrder
 				PCGEX_ASYNC_THIS
 				FPCGExSwapAttributePairDetails& WorkingPair = This->SwapPairs[StartIndex];
 
-				PCGMetadataAttribute::CallbackWithRightType(
-					static_cast<uint16>(WorkingPair.FirstIdentity->UnderlyingType), [&](auto DummyValue) -> void
-					{
+					PCGEx::ExecuteWithRightType(
+                    						WorkingPair.FirstIdentity->UnderlyingType, [&](auto DummyValue)
+                    						{
 						using RawT = decltype(DummyValue);
 						WorkingPair.FirstWriter = This->PointDataFacade->GetWritable<RawT>(WorkingPair.FirstAttributeName, PCGExData::EBufferInit::Inherit);
 						WorkingPair.SecondWriter = This->PointDataFacade->GetWritable<RawT>(WorkingPair.SecondAttributeName, PCGExData::EBufferInit::Inherit);
@@ -183,9 +183,9 @@ namespace PCGExReversePointOrder
 		FPointsProcessor::PrepareSingleLoopScopeForPoints(StartIndex, Count);
 		for (const FPCGExSwapAttributePairDetails& WorkingPair : SwapPairs)
 		{
-			PCGMetadataAttribute::CallbackWithRightType(
-				static_cast<uint16>(WorkingPair.FirstIdentity->UnderlyingType), [&](auto DummyValue) -> void
-				{
+				PCGEx::ExecuteWithRightType(
+                                    						WorkingPair.FirstIdentity->UnderlyingType, [&](auto DummyValue)
+                                    						{
 					using RawT = decltype(DummyValue);
 					TSharedPtr<PCGExData::TBuffer<RawT>> FirstWriter = StaticCastSharedPtr<PCGExData::TBuffer<RawT>>(WorkingPair.FirstWriter);
 					TSharedPtr<PCGExData::TBuffer<RawT>> SecondWriter = StaticCastSharedPtr<PCGExData::TBuffer<RawT>>(WorkingPair.SecondWriter);

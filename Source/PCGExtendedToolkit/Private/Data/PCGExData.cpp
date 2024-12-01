@@ -78,8 +78,8 @@ namespace PCGExData
 
 	void FReadableBufferConfig::Fetch(const TSharedRef<FFacade>& InFacade, const int32 StartIndex, const int32 Count) const
 	{
-		PCGMetadataAttribute::CallbackWithRightType(
-			static_cast<uint16>(Identity.UnderlyingType), [&](auto DummyValue)
+		PCGEx::ExecuteWithRightType(
+			Identity.UnderlyingType, [&](auto DummyValue)
 			{
 				using T = decltype(DummyValue);
 				TSharedPtr<TBuffer<T>> Reader = nullptr;
@@ -101,8 +101,8 @@ namespace PCGExData
 
 	void FReadableBufferConfig::Read(const TSharedRef<FFacade>& InFacade) const
 	{
-		PCGMetadataAttribute::CallbackWithRightType(
-			static_cast<uint16>(Identity.UnderlyingType), [&](auto DummyValue)
+		PCGEx::ExecuteWithRightType(
+			Identity.UnderlyingType, [&](auto DummyValue)
 			{
 				using T = decltype(DummyValue);
 				TSharedPtr<TBuffer<T>> Reader = nullptr;

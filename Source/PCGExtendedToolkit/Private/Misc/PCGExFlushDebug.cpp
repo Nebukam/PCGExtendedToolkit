@@ -14,25 +14,14 @@
 TArray<FPCGPinProperties> UPCGExDebugSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties;
-
-	FPCGPinProperties& PinPropertySource = PinProperties.Emplace_GetRef(PCGEx::SourcePointsLabel, EPCGDataType::Any, true, true);
-
-#if WITH_EDITOR
-	PinPropertySource.Tooltip = FTEXT("In.");
-#endif
-
+	PCGEX_PIN_ANY(PCGEx::SourcePointsLabel, "In.", Required, {})
 	return PinProperties;
 }
 
 TArray<FPCGPinProperties> UPCGExDebugSettings::OutputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties;
-	FPCGPinProperties& PinPointsOutput = PinProperties.Emplace_GetRef(PCGEx::OutputPointsLabel, EPCGDataType::Any);
-
-#if WITH_EDITOR
-	PinPointsOutput.Tooltip = FTEXT("Out.");
-#endif
-
+	PCGEX_PIN_ANY(PCGEx::SourcePointsLabel, "Out.", Required, {})
 	return PinProperties;
 }
 

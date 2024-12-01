@@ -304,13 +304,10 @@ namespace PCGExRefineEdges
 				RestoreEdges->OnSubLoopStartCallback =
 					[AsyncThis](const int32 StartIndex, const int32 Count, const int32 LoopIdx)
 					{
-						const TSharedPtr<FProcessor> NestedThis = AsyncThis.Pin();
-						if (!NestedThis) { return; }
-
+						PCGEX_ASYNC_NESTED_THIS
 						const PCGExCluster::FCluster* Cluster = NestedThis->Cluster.Get();
 
-						const int32 MaxIndex = StartIndex + Count;
-						for (int i = StartIndex; i < MaxIndex; i++)
+						PCGEX_ASYNC_SUB_LOOP
 						{
 							PCGExGraph::FEdge* Edge = NestedThis->Cluster->GetEdge(i);
 							if (Edge->bValid) { continue; }
@@ -331,11 +328,12 @@ namespace PCGExRefineEdges
 
 		Cluster->GetBoundedEdges(true); //Oof
 
-		SanitizeTaskGroup->OnCompleteCallback = [PCGEX_ASYNC_THIS_CAPTURE]()
-		{
-			PCGEX_ASYNC_THIS
-			This->InsertEdges();
-		};
+		SanitizeTaskGroup->OnCompleteCallback =
+			[PCGEX_ASYNC_THIS_CAPTURE]()
+			{
+				PCGEX_ASYNC_THIS
+				This->InsertEdges();
+			};
 
 		if (Settings->Sanitization == EPCGExRefineSanitization::Filters)
 		{

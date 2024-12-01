@@ -182,11 +182,12 @@ namespace PCGExConnectPoints
 
 		PCGEX_ASYNC_GROUP_CHKD(AsyncManager, PrepTask)
 
-		PrepTask->OnCompleteCallback = [PCGEX_ASYNC_THIS_CAPTURE]()
-		{
-			PCGEX_ASYNC_THIS
-			This->OnPreparationComplete();
-		};
+		PrepTask->OnCompleteCallback =
+			[PCGEX_ASYNC_THIS_CAPTURE]()
+			{
+				PCGEX_ASYNC_THIS
+				This->OnPreparationComplete();
+			};
 
 		PrepTask->OnSubLoopStartCallback =
 			[PCGEX_ASYNC_THIS_CAPTURE](const int32 StartIndex, const int32 Count, const int32 LoopIdx)
