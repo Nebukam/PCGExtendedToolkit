@@ -48,7 +48,6 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExNumericCompareFilterConfig
 	/** Rounding mode for relative measures */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="Comparison==EPCGExComparison::NearlyEqual || Comparison==EPCGExComparison::NearlyNotEqual", EditConditionHides))
 	double Tolerance = DBL_COMPARE_TOLERANCE;
-
 };
 
 

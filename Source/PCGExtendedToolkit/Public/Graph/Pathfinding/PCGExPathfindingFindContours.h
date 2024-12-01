@@ -62,7 +62,7 @@ public:
 	/** Cell artifacts. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	FPCGExCellArtifactsDetails Artifacts;
-	
+
 	/** Output a filtered set of points containing only seeds that generated a valid path */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	bool bOutputFilteredSeeds = false;
@@ -73,7 +73,7 @@ public:
 	/** Projection settings. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	FPCGExGeo2DProjectionDetails ProjectionDetails;
-		
+
 	/** TBD */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Forwarding")
 	FPCGExAttributeToTagDetails SeedAttributesToPathTags;
@@ -96,7 +96,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExFindContoursContext final : FPCGExEdgesP
 	friend class FPCGExCreateBridgeTask;
 
 	FPCGExCellArtifactsDetails Artifacts;
-	
+
 	FPCGExGeo2DProjectionDetails ProjectionDetails;
 	TSharedPtr<PCGExData::FFacade> SeedsDataFacade;
 

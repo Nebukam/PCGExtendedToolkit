@@ -81,7 +81,7 @@ namespace PCGExPointFilter
 		}
 
 		bool bUseEdgeAsPrimary = false; // This shouldn't be there but...
-		
+
 		bool DefaultResult = true;
 		TSharedPtr<PCGExData::FFacade> PointDataFacade;
 
@@ -123,7 +123,7 @@ namespace PCGExPointFilter
 		explicit FManager(const TSharedRef<PCGExData::FFacade>& InPointDataFacade);
 
 		bool bUseEdgeAsPrimary = false; // This shouldn't be there...
-		
+
 		bool bCacheResultsPerFilter = false;
 		bool bCacheResults = false;
 		TArray<int8> Results;

@@ -176,7 +176,7 @@ namespace PCGExSampleNearestPoints
 	void FProcessor::SamplingFailed(const int32 Index, const FPCGPoint& Point)
 	{
 		SampleState[Index] = false;
-		
+
 		const double FailSafeDist = RangeMaxGetter ? FMath::Sqrt(RangeMaxGetter->Read(Index)) : Settings->RangeMax;
 		PCGEX_OUTPUT_VALUE(Success, Index, false)
 		PCGEX_OUTPUT_VALUE(Transform, Index, Point.Transform)
@@ -194,7 +194,7 @@ namespace PCGExSampleNearestPoints
 		if (!FPointsProcessor::Process(InAsyncManager)) { return false; }
 
 		SampleState.SetNumUninitialized(PointDataFacade->GetNum());
-		
+
 		{
 			const TSharedRef<PCGExData::FFacade>& OutputFacade = PointDataFacade;
 			PCGEX_FOREACH_FIELD_NEARESTPOINT(PCGEX_OUTPUT_INIT)

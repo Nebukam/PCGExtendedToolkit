@@ -165,7 +165,7 @@ namespace PCGExFindContours
 	void FProcessor::ProcessCell(const int32 SeedIndex, const TSharedPtr<PCGExTopology::FCell>& InCell) const
 	{
 		TSharedRef<PCGExData::FPointIO> PathIO = Context->Paths->Emplace_GetRef<UPCGPointData>(VtxDataFacade->Source, PCGExData::EIOInit::New).ToSharedRef();
-		PathIO->Tags->Reset(); // Tag forwarding handled by artifacts
+		PathIO->Tags->Reset();       // Tag forwarding handled by artifacts
 		PathIO->IOIndex = SeedIndex; // Enforce seed order for collection output
 
 		PCGExGraph::CleanupClusterTags(PathIO, true);
@@ -221,18 +221,16 @@ namespace PCGExFindContours
 		PCGEX_ASYNC_GROUP_CHKD_VOID(AsyncManager, ProjectionTaskGroup)
 
 		ProjectionTaskGroup->OnCompleteCallback =
-			[WeakThis = TWeakPtr<FBatch>(SharedThis(this))]()
+			[PCGEX_ASYNC_THIS_CAPTURE]()
 			{
-				if (TSharedPtr<FBatch> This = WeakThis.Pin()) { This->OnProjectionComplete(); }
+				PCGEX_ASYNC_THIS
+				This->OnProjectionComplete();
 			};
 
 		ProjectionTaskGroup->OnSubLoopStartCallback =
-			[WeakThis = TWeakPtr<FBatch>(SharedThis(this))]
-			(const int32 StartIndex, const int32 Count, const int32 LoopIdx)
+			[PCGEX_ASYNC_THIS_CAPTURE](const int32 StartIndex, const int32 Count, const int32 LoopIdx)
 			{
-				TSharedPtr<FBatch> This = WeakThis.Pin();
-				if (!This) { return; }
-
+				PCGEX_ASYNC_THIS
 				TArray<FVector>& PP = *This->ProjectedPositions;
 				This->ProjectionDetails.ProjectFlat(This->VtxDataFacade, PP, StartIndex, Count);
 			};

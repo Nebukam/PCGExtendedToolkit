@@ -52,7 +52,7 @@ bool FPCGExAttributeRollingElement::ExecuteInternal(FPCGContext* InContext) cons
 					bHasInvalidInputs = true;
 					return false;
 				}
-				
+
 				Entry->InitializeOutput(PCGExData::EIOInit::Duplicate);
 				return true;
 			},
@@ -116,22 +116,21 @@ namespace PCGExAttributeRolling
 			}
 			else
 			{
-				TWeakPtr<FProcessor> WeakPtr = SharedThis(this);
 				PCGEX_ASYNC_GROUP_CHKD(AsyncManager, FilterTask)
 
-				FilterTask->OnCompleteCallback = [WeakPtr]()
-				{
-					const TSharedPtr<FProcessor> This = WeakPtr.Pin();
-					if (!This) { return; }
-					This->StartParallelLoopForRange(This->PointDataFacade->GetNum());
-				};
+				FilterTask->OnCompleteCallback =
+					[PCGEX_ASYNC_THIS_CAPTURE]()
+					{
+						PCGEX_ASYNC_THIS
+						This->StartParallelLoopForRange(This->PointDataFacade->GetNum());
+					};
 
-				FilterTask->OnSubLoopStartCallback = [WeakPtr](const int32 StartIndex, const int32 Count, const int32 LoopIdx)
-				{
-					const TSharedPtr<FProcessor> This = WeakPtr.Pin();
-					if (!This) { return; }
-					This->PrepareSingleLoopScopeForPoints(StartIndex, Count);
-				};
+				FilterTask->OnSubLoopStartCallback =
+					[PCGEX_ASYNC_THIS_CAPTURE](const int32 StartIndex, const int32 Count, const int32 LoopIdx)
+					{
+						PCGEX_ASYNC_THIS
+						This->PrepareSingleLoopScopeForPoints(StartIndex, Count);
+					};
 
 				FilterTask->StartSubLoops(PointDataFacade->GetNum(), GetDefault<UPCGExGlobalSettings>()->GetPointsBatchChunkSize());
 			}

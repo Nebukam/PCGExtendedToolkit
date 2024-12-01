@@ -12,4 +12,3 @@ UPCGManagedComponent* UPCGExDynamicMeshComponent::GetManagedComponent()
 {
 	return ManagedComponent;
 }
-
