@@ -622,8 +622,7 @@ namespace PCGExCluster
 
 				TArray<FBoundedEdge>& ExpandedEdgesRef = (*This->BoundedEdges);
 				const FCluster* Cluster = This.Get();
-				const int32 MaxIndex = StartIndex + Count;
-				for (int i = StartIndex; i < MaxIndex; i++) { ExpandedEdgesRef[i] = FBoundedEdge(Cluster, i); }
+				PCGEX_ASYNC_SUB_LOOP { ExpandedEdgesRef[i] = FBoundedEdge(Cluster, i); }
 			};
 
 		ExpandEdgesTask->StartSubLoops(Edges->Num(), 256);

@@ -15,25 +15,14 @@
 TArray<FPCGPinProperties> UPCGExToggleTopologySettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties;
-
-	FPCGPinProperties& PinPropertySource = PinProperties.Emplace_GetRef(PCGEx::SourcePointsLabel, EPCGDataType::Any, true, true);
-
-#if WITH_EDITOR
-	PinPropertySource.Tooltip = FTEXT("In.");
-#endif
-
+	PCGEX_PIN_ANY(PCGEx::SourcePointsLabel, "In. Not used for anything except ordering operations.", Required, {})
 	return PinProperties;
 }
 
 TArray<FPCGPinProperties> UPCGExToggleTopologySettings::OutputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties;
-	FPCGPinProperties& PinPointsOutput = PinProperties.Emplace_GetRef(PCGEx::OutputPointsLabel, EPCGDataType::Any);
-
-#if WITH_EDITOR
-	PinPointsOutput.Tooltip = FTEXT("Out.");
-#endif
-
+	PCGEX_PIN_ANY(PCGEx::SourcePointsLabel, "Out. Forwards In.", Required, {})
 	return PinProperties;
 }
 

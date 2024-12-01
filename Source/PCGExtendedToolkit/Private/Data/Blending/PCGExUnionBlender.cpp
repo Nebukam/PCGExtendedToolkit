@@ -109,8 +109,8 @@ namespace PCGExDataBlending
 		// Initialize blending operations
 		for (const TSharedPtr<FMultiSourceAttribute>& MultiAttribute : MultiSourceAttributes)
 		{
-			PCGMetadataAttribute::CallbackWithRightType(
-				static_cast<uint16>(MultiAttribute->Identity.UnderlyingType), [&](auto DummyValue)
+			PCGEx::ExecuteWithRightType(
+				MultiAttribute->Identity.UnderlyingType, [&](auto DummyValue)
 				{
 					using T = decltype(DummyValue);
 					MultiAttribute->PrepareMerge<T>(CurrentTargetData, Sources);
@@ -198,8 +198,8 @@ namespace PCGExDataBlending
 		{
 			MultiAttribute->Buffer = nullptr;
 
-			PCGMetadataAttribute::CallbackWithRightType(
-				static_cast<uint16>(MultiAttribute->Identity.UnderlyingType), [&](auto DummyValue)
+			PCGEx::ExecuteWithRightType(
+				MultiAttribute->Identity.UnderlyingType, [&](auto DummyValue)
 				{
 					using T = decltype(DummyValue);
 					MultiAttribute->PrepareSoftMerge<T>(CurrentTargetData, Sources);

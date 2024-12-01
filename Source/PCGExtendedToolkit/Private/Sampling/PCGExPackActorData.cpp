@@ -100,6 +100,7 @@ UPCGExPackActorDataSettings::UPCGExPackActorDataSettings(
 TArray<FPCGPinProperties> UPCGExPackActorDataSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
+	PCGEX_PIN_DEPENDENCIES
 	PCGEX_PIN_OPERATION_OVERRIDES(PCGExPackActorDatas::SourceOverridesPacker)
 	return PinProperties;
 }
@@ -275,9 +276,9 @@ namespace PCGExPackActorDatas
 
 			for (FPCGMetadataAttributeBase* OutAttribute : Attributes)
 			{
-				PCGMetadataAttribute::CallbackWithRightType(
-					static_cast<uint16>(OutAttribute->GetTypeId()), [ParamMetadata, ItemKey, Key, OutAttribute](auto DummyValue)
-					{
+					PCGEx::ExecuteWithRightType(
+                                                    						OutAttribute->GetTypeId(), [&](auto DummyValue)
+                                                    						{
 						using RawT = decltype(DummyValue);
 						FPCGMetadataAttribute<RawT>* A = static_cast<FPCGMetadataAttribute<RawT>*>(OutAttribute);
 						FPCGMetadataAttribute<RawT>* B = ParamMetadata->FindOrCreateAttribute(A->Name, A->GetValueFromItemKey(PCGDefaultValueKey), A->AllowsInterpolation());

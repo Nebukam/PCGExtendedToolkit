@@ -301,9 +301,9 @@ namespace PCGEx
 					Attribute = AsSpatial->Metadata->GetConstAttribute(InternalSelector.GetName());
 					if (Attribute)
 					{
-						PCGMetadataAttribute::CallbackWithRightType(
 							Attribute->GetTypeId(),
-							[&](auto DummyValue) -> void
+						PCGEx::ExecuteWithRightType(
+							Attribute->GetTypeId(), [&](auto DummyValue)
 							{
 								using RawT = decltype(DummyValue);
 								InternalAccessor = MakeShared<FPCGAttributeAccessor<RawT>>(static_cast<const FPCGMetadataAttribute<RawT>*>(Attribute), AsSpatial->Metadata);
@@ -370,9 +370,8 @@ namespace PCGEx
 
 			if (InternalSelector.GetSelection() == EPCGAttributePropertySelection::Attribute)
 			{
-				PCGMetadataAttribute::CallbackWithRightType(
-					Attribute->GetTypeId(),
-					[&](auto DummyValue) -> void
+				PCGEx::ExecuteWithRightType(
+					Attribute->GetTypeId(), [&](auto DummyValue)
 					{
 						using RawT = decltype(DummyValue);
 
@@ -429,9 +428,8 @@ namespace PCGEx
 
 			if (InternalSelector.GetSelection() == EPCGAttributePropertySelection::Attribute)
 			{
-				PCGMetadataAttribute::CallbackWithRightType(
-					Attribute->GetTypeId(),
-					[&](auto DummyValue) -> void
+				PCGEx::ExecuteWithRightType(
+					Attribute->GetTypeId(), [&](auto DummyValue)
 					{
 						using RawT = decltype(DummyValue);
 						TArray<RawT> RawValues;

@@ -143,6 +143,7 @@ void UPCGExCustomGraphBuilder::BuildGraph_Implementation(const FPCGContext& InCo
 TArray<FPCGPinProperties> UPCGExBuildCustomGraphSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
+	PCGEX_PIN_DEPENDENCIES
 	PCGEX_PIN_OPERATION_OVERRIDES(PCGExBuildCustomGraph::SourceOverridesBuilder)
 	return PinProperties;
 }
@@ -344,30 +345,31 @@ namespace PCGExBuildCustomGraph
 		TWeakPtr<PCGExData::FPointIO> WeakIO = PointIO;
 		TWeakPtr<PCGExGraph::FGraphBuilder> WeakGraphBuilder = GraphBuilder;
 
-		InitNodesGroup->OnCompleteCallback = [WeakGraphBuilder, AsyncManager]()
-		{
-			const TSharedPtr<PCGExGraph::FGraphBuilder> GBuilder = WeakGraphBuilder.Pin();
-			if (!GBuilder) { return; }
+		InitNodesGroup->OnCompleteCallback =
+			[WeakGraphBuilder, AsyncManager]()
+			{
+				const TSharedPtr<PCGExGraph::FGraphBuilder> GBuilder = WeakGraphBuilder.Pin();
+				if (!GBuilder) { return; }
 
-			GBuilder->CompileAsync(AsyncManager, true);
-		};
+				GBuilder->CompileAsync(AsyncManager, true);
+			};
 
 		UPCGExCustomGraphSettings* CustomGraphSettings = GraphSettings;
-		InitNodesGroup->OnSubLoopStartCallback = [WeakIO, CustomGraphSettings](const int32 StartIndex, const int32 Count, const int32 LoopIdx)
-		{
-			const TSharedPtr<PCGExData::FPointIO> IO = WeakIO.Pin();
-			if (!IO) { return; }
-
-			const int32 MaxIndex = StartIndex + Count;
-			TArray<FPCGPoint>& MutablePoints = IO->GetOut()->GetMutablePoints();
-			IO->GetOutKeys(true); // Generate out keys
-
-			for (int i = StartIndex; i < MaxIndex; i++)
+		InitNodesGroup->OnSubLoopStartCallback =
+			[WeakIO, CustomGraphSettings](const int32 StartIndex, const int32 Count, const int32 LoopIdx)
 			{
-				FPCGPoint& Point = MutablePoints[i];
-				CustomGraphSettings->UpdateNodePoint(Point, CustomGraphSettings->Idx[i], i, Point);
-			}
-		};
+				const TSharedPtr<PCGExData::FPointIO> IO = WeakIO.Pin();
+				if (!IO) { return; }
+
+				TArray<FPCGPoint>& MutablePoints = IO->GetOut()->GetMutablePoints();
+				IO->GetOutKeys(true); // Generate out keys
+
+				PCGEX_ASYNC_SUB_LOOP
+				{
+					FPCGPoint& Point = MutablePoints[i];
+					CustomGraphSettings->UpdateNodePoint(Point, CustomGraphSettings->Idx[i], i, Point);
+				}
+			};
 
 		InitNodesGroup->StartSubLoops(CustomGraphSettings->Idx.Num(), GetDefault<UPCGExGlobalSettings>()->ClusterDefaultBatchChunkSize);
 
