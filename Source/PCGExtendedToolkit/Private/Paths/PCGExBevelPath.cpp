@@ -510,8 +510,7 @@ namespace PCGExBevelPath
 			};
 
 		WriteFlagsTask->OnSubLoopStartCallback =
-			[PCGEX_ASYNC_THIS_CAPTURE]
-			(const int32 StartIndex, const int32 Count, const int32 LoopIdx)
+			[PCGEX_ASYNC_THIS_CAPTURE](const int32 StartIndex, const int32 Count, const int32 LoopIdx)
 			{
 				PCGEX_ASYNC_THIS
 				PCGEX_ASYNC_SUB_LOOP

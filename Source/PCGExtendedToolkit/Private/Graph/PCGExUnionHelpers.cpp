@@ -91,8 +91,8 @@ namespace PCGExGraph
 				TSharedPtr<PCGExDetails::FDistances> Distances = PCGExDetails::MakeDistances(This->PointPointIntersectionDetails.FuseDetails.SourceDistance, This->PointPointIntersectionDetails.FuseDetails.TargetDistance);
 
 				TArray<FPCGPoint>& Points = This->UnionDataFacade->GetOut()->GetMutablePoints();
-				const int32 MaxIndex = StartIndex + Count;
-				for (int i = StartIndex; i < MaxIndex; i++)
+				
+				PCGEX_ASYNC_SUB_LOOP
 				{
 					TSharedPtr<FUnionNode> UnionNode = This->UnionGraph->Nodes[i];
 					const PCGMetadataEntryKey Key = Points[i].MetadataEntry;

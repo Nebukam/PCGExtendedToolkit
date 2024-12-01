@@ -106,17 +106,18 @@ bool FPCGExCutEdgesElement::ExecuteInternal(
 		Context->SetAsyncState(PCGExPaths::State_BuildingPaths);
 		PCGEX_ASYNC_GROUP_CHKD(Context->GetAsyncManager(), BuildPathsTask)
 
-		BuildPathsTask->OnSubLoopStartCallback = [Context](const int32 StartIndex, const int32 Count, const int32 LoopIdx)
-		{
-			TSharedRef<PCGExData::FFacade> PathFacade = Context->PathFacades[StartIndex];
-			TSharedPtr<PCGExPaths::FPath> Path = PCGExPaths::MakePath(
-				PathFacade->Source->GetIn()->GetPoints(), 0,
-				Context->ClosedLoop.IsClosedLoop(PathFacade->Source));
+		BuildPathsTask->OnSubLoopStartCallback =
+			[Context](const int32 StartIndex, const int32 Count, const int32 LoopIdx)
+			{
+				const TSharedRef<PCGExData::FFacade> PathFacade = Context->PathFacades[StartIndex];
+				const TSharedPtr<PCGExPaths::FPath> Path = PCGExPaths::MakePath(
+					PathFacade->Source->GetIn()->GetPoints(), 0,
+					Context->ClosedLoop.IsClosedLoop(PathFacade->Source));
 
-			Path->BuildEdgeOctree();
+				Path->BuildEdgeOctree();
 
-			Context->Paths.Add(Path.ToSharedRef());
-		};
+				Context->Paths.Add(Path.ToSharedRef());
+			};
 
 		BuildPathsTask->StartSubLoops(Context->PathFacades.Num(), 1);
 	}
