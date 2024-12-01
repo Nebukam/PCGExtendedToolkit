@@ -498,12 +498,12 @@ namespace PCGExGeo
 		bool bIntersectFound = false; \
 		Octree->FindFirstElementWithBoundsTest(FBoxCenterAndExtent(Point.Transform.GetLocation(), Point.GetScaledExtents()), [&](const FPointBox* NearbyBox){ \
 				if (NearbyBox->_NAME(Point, BoundsSource)){ bIntersectFound = true; return false;} return true; }); return bIntersectFound;
-		
+
 #define PCGEX_POINT_BOUNDS_CHECK_T(_NAME) \
 		bool bIntersectFound = false; \
 		Octree->FindFirstElementWithBoundsTest(FBoxCenterAndExtent(Point.Transform.GetLocation(), Point.GetScaledExtents()), [&](const FPointBox* NearbyBox){ \
 		if (NearbyBox->_NAME<S>(Point)){ bIntersectFound = true; return false;} return true; }); return bIntersectFound;
-		
+
 		FORCEINLINE bool Intersect(const FPCGPoint& Point, const EPCGExPointBoundsSource BoundsSource) const
 		{
 			PCGEX_POINT_BOUNDS_CHECK(Intersect)
@@ -549,7 +549,7 @@ namespace PCGExGeo
 		}
 
 		//
-		
+
 		template <EPCGExPointBoundsSource S = EPCGExPointBoundsSource::ScaledBounds>
 		FORCEINLINE bool IntersectCloud(const FPCGPoint& Point) const
 		{

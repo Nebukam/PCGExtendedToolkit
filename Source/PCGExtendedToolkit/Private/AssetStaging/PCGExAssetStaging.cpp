@@ -222,7 +222,7 @@ namespace PCGExAssetStaging
 		auto InvalidPoint = [&]()
 		{
 			if (bInherit) { return; }
-			
+
 			if (Settings->bPruneEmptyPoints)
 			{
 				Point.MetadataEntry = -2;

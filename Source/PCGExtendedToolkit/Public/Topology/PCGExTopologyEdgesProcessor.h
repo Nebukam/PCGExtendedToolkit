@@ -324,24 +324,22 @@ namespace PCGExTopologyEdges
 			// Project positions
 			ProjectionDetails = Settings->ProjectionDetails;
 			if (!ProjectionDetails.Init(Context, VtxDataFacade)) { return; }
-			
+
 			PCGEx::InitArray(ProjectedPositions, VtxDataFacade->GetNum());
 
 			PCGEX_ASYNC_GROUP_CHKD_VOID(AsyncManager, ProjectionTaskGroup)
 
 			ProjectionTaskGroup->OnCompleteCallback =
-				[WeakThis = TWeakPtr<TBatch>(SharedThis(this))]()
+				[PCGEX_ASYNC_THIS_CAPTURE]()
 				{
-					if (TSharedPtr<TBatch> This = WeakThis.Pin()) { This->OnProjectionComplete(); }
+					PCGEX_ASYNC_THIS
+					This->OnProjectionComplete();
 				};
 
 			ProjectionTaskGroup->OnSubLoopStartCallback =
-				[WeakThis = TWeakPtr<TBatch>(SharedThis(this))]
-				(const int32 StartIndex, const int32 Count, const int32 LoopIdx)
+				[PCGEX_ASYNC_THIS_CAPTURE](const int32 StartIndex, const int32 Count, const int32 LoopIdx)
 				{
-					TSharedPtr<TBatch> This = WeakThis.Pin();
-					if (!This) { return; }
-
+					PCGEX_ASYNC_THIS
 					TArray<FVector>& PP = *This->ProjectedPositions;
 					This->ProjectionDetails.ProjectFlat(This->VtxDataFacade, PP, StartIndex, Count);
 				};

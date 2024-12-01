@@ -293,7 +293,7 @@ namespace PCGExSampleNearestBounds
 		EPCGExPointBoundsSource BoundsSource = EPCGExPointBoundsSource::Bounds;
 
 		TArray<int8> SampleState;
-		
+
 		bool bSingleSample = false;
 
 		TSharedPtr<PCGExData::TBuffer<FVector>> LookAtUpGetter;

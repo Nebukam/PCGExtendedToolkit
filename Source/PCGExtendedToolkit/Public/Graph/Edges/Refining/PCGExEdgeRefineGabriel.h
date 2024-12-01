@@ -51,5 +51,4 @@ public:
 				return true;
 			});
 	}
-
 };

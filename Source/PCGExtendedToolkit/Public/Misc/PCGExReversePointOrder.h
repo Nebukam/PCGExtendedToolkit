@@ -148,7 +148,7 @@ namespace PCGExReversePointOrder
 		TSharedPtr<PCGExSorting::PointSorter<false, true>> Sorter;
 
 		FPCGExGeo2DProjectionDetails ProjectionDetails;
-		
+
 		bool bReversed = true;
 
 	public:

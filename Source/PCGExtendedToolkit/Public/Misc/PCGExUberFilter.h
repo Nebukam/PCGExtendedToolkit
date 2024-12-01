@@ -83,7 +83,7 @@ public:
 	/** ... */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging", meta=(PCG_Overridable, EditCondition="bTagIfNoPointPassed"))
 	FString NoPointPassedTag = TEXT("NoPointPassed");
-	
+
 private:
 	friend class FPCGExUberFilterElement;
 };

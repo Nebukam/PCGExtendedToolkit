@@ -217,7 +217,7 @@ namespace PCGExSampleNearestSurface
 	class FProcessor final : public PCGExPointsMT::TPointsProcessor<FPCGExSampleNearestSurfaceContext, UPCGExSampleNearestSurfaceSettings>
 	{
 		TArray<int8> SampleState;
-		
+
 		TSharedPtr<PCGExData::FDataForwardHandler> SurfacesForward;
 
 		TSharedPtr<PCGExData::TBuffer<double>> MaxDistanceGetter;

@@ -92,44 +92,44 @@ namespace PCGExShiftPath
 		else if (Settings->InputMode == EPCGExShiftPathMode::Filter)
 		{
 			if (Context->FilterFactories.IsEmpty()) { return false; }
-			TWeakPtr<FProcessor> WeakPtr = SharedThis(this);
+
 			PCGEX_ASYNC_GROUP_CHKD(AsyncManager, FilterTask)
 
-			FilterTask->OnCompleteCallback = [WeakPtr]()
-			{
-				const TSharedPtr<FProcessor> This = WeakPtr.Pin();
-				if (!This) { return; }
-
-				if (This->Settings->bReverseShift)
+			FilterTask->OnCompleteCallback =
+				[PCGEX_ASYNC_THIS_CAPTURE]()
 				{
-					for (int i = This->MaxIndex; i >= 0; i--)
+					PCGEX_ASYNC_THIS
+
+					if (This->Settings->bReverseShift)
 					{
-						if (This->PointFilterCache[i])
+						for (int i = This->MaxIndex; i >= 0; i--)
 						{
-							This->PivotIndex = i;
-							return;
+							if (This->PointFilterCache[i])
+							{
+								This->PivotIndex = i;
+								return;
+							}
 						}
 					}
-				}
-				else
-				{
-					for (int i = 0; i <= This->MaxIndex; i++)
+					else
 					{
-						if (This->PointFilterCache[i])
+						for (int i = 0; i <= This->MaxIndex; i++)
 						{
-							This->PivotIndex = i;
-							return;
+							if (This->PointFilterCache[i])
+							{
+								This->PivotIndex = i;
+								return;
+							}
 						}
 					}
-				}
-			};
+				};
 
-			FilterTask->OnSubLoopStartCallback = [WeakPtr](const int32 StartIndex, const int32 Count, const int32 LoopIdx)
-			{
-				const TSharedPtr<FProcessor> This = WeakPtr.Pin();
-				if (!This) { return; }
-				This->PrepareSingleLoopScopeForPoints(StartIndex, Count);
-			};
+			FilterTask->OnSubLoopStartCallback =
+				[PCGEX_ASYNC_THIS_CAPTURE](const int32 StartIndex, const int32 Count, const int32 LoopIdx)
+				{
+					PCGEX_ASYNC_THIS
+					This->PrepareSingleLoopScopeForPoints(StartIndex, Count);
+				};
 
 			FilterTask->StartSubLoops(PointDataFacade->GetNum(), GetDefault<UPCGExGlobalSettings>()->GetPointsBatchChunkSize());
 			return true;

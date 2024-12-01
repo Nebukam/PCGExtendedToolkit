@@ -158,23 +158,19 @@ namespace PCGExData
 			if (InTaskGroup) { InTaskGroup->GrowNumStarted(); }
 
 			PrefetchAttributesTask->OnCompleteCallback =
-				[WeakThis = TWeakPtr<FFacadePreloader>(SharedThis(this))]()
+				[PCGEX_ASYNC_THIS_CAPTURE]()
 				{
-					const TSharedPtr<FFacadePreloader> This = WeakThis.Pin();
-					if (!This) { return; }
-
+					PCGEX_ASYNC_THIS
 					This->OnLoadingEnd();
 				};
 
 			if (InDataFacade->bSupportsScopedGet)
 			{
 				PrefetchAttributesTask->OnSubLoopStartCallback =
-					[WeakThis = TWeakPtr<FFacadePreloader>(SharedThis(this))]
-					(const int32 StartIndex, const int32 Count, const int32 LoopIdx)
+					[PCGEX_ASYNC_THIS_CAPTURE](const int32 StartIndex, const int32 Count, const int32 LoopIdx)
 					{
-						const TSharedPtr<FFacadePreloader> This = WeakThis.Pin();
-						if (!This) { return; }
-						if (TSharedPtr<FFacade> InternalFacade = This->InternalDataFacadePtr.Pin())
+						PCGEX_ASYNC_THIS
+						if (const TSharedPtr<FFacade> InternalFacade = This->InternalDataFacadePtr.Pin())
 						{
 							This->Fetch(InternalFacade.ToSharedRef(), StartIndex, Count);
 						}
@@ -185,12 +181,11 @@ namespace PCGExData
 			else
 			{
 				PrefetchAttributesTask->OnSubLoopStartCallback =
-					[WeakThis = TWeakPtr<FFacadePreloader>(SharedThis(this))]
+					[PCGEX_ASYNC_THIS_CAPTURE]
 					(const int32 StartIndex, const int32 Count, const int32 LoopIdx)
 					{
-						const TSharedPtr<FFacadePreloader> This = WeakThis.Pin();
-						if (!This) { return; }
-						if (TSharedPtr<FFacade> InternalFacade = This->InternalDataFacadePtr.Pin())
+						PCGEX_ASYNC_THIS
+						if (const TSharedPtr<FFacade> InternalFacade = This->InternalDataFacadePtr.Pin())
 						{
 							This->Read(InternalFacade.ToSharedRef(), StartIndex);
 						}
@@ -206,7 +201,7 @@ namespace PCGExData
 		}
 	}
 
-	void FFacadePreloader::OnLoadingEnd()
+	void FFacadePreloader::OnLoadingEnd() const
 	{
 		if (TSharedPtr<FFacade> InternalFacade = InternalDataFacadePtr.Pin()) { InternalFacade->MarkCurrentBuffersReadAsComplete(); }
 		if (OnCompleteCallback) { OnCompleteCallback(); }

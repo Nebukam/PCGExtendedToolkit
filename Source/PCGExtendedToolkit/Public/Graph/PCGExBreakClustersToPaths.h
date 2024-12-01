@@ -70,11 +70,11 @@ public:
 	/** Whether to apply winding on closed loops only or all paths. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	bool bWindOnlyClosedLoops = true;
-	
+
 	/** Projection settings. Winding is computed on a 2D plane. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="Winding!=EPCGExWindingMutation::Unchanged", EditConditionHides))
 	FPCGExGeo2DProjectionDetails ProjectionDetails = FPCGExGeo2DProjectionDetails();
-	
+
 	/** Do not output paths that have less points that this value */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ClampMin=2))
 	int32 MinPointCount = 2;

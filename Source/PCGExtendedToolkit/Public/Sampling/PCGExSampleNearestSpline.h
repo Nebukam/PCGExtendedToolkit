@@ -365,7 +365,7 @@ namespace PCGExSampleNearestSpline
 	class FProcessor final : public PCGExPointsMT::TPointsProcessor<FPCGExSampleNearestSplineContext, UPCGExSampleNearestSplineSettings>
 	{
 		TArray<int8> SampleState;
-		
+
 		TSharedPtr<PCGExData::TBuffer<double>> RangeMinGetter;
 		TSharedPtr<PCGExData::TBuffer<double>> RangeMaxGetter;
 		TSharedPtr<PCGExData::TBuffer<FVector>> LookAtUpGetter;
@@ -390,9 +390,9 @@ namespace PCGExSampleNearestSpline
 
 		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager> InAsyncManager) override;
 		virtual void PrepareSingleLoopScopeForPoints(const uint32 StartIndex, const int32 Count) override;
-		
+
 		void SamplingFailed(const int32 Index, const FPCGPoint& Point, double InDepth = 0);
-		
+
 		virtual void ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const int32 LoopIdx, const int32 Count) override;
 		virtual void CompleteWork() override;
 		virtual void Write() override;
