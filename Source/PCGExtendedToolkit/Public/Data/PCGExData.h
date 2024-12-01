@@ -920,9 +920,8 @@ namespace PCGExData
 		const TArrayView<const int32>& SourceIndices,
 		const int32 TargetIndex = 0)
 	{
-		PCGMetadataAttribute::CallbackWithRightType(
-			static_cast<uint16>(Identity.UnderlyingType),
-			[&](auto DummyValue) -> void
+		PCGEx::ExecuteWithRightType(
+			Identity.UnderlyingType, [&](auto DummyValue)
 			{
 				using T = decltype(DummyValue);
 				TArray<T> RawValues;

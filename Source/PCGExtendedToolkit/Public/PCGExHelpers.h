@@ -332,7 +332,7 @@ namespace PCGEx
 #pragma region Metadata Type
 
 	template <typename T>
-	static EPCGMetadataTypes GetMetadataType()
+	FORCEINLINE static EPCGMetadataTypes GetMetadataType()
 	{
 		if constexpr (std::is_same_v<T, bool>) { return EPCGMetadataTypes::Boolean; }
 		else if constexpr (std::is_same_v<T, int32>) { return EPCGMetadataTypes::Integer32; }
@@ -354,7 +354,7 @@ namespace PCGEx
 		else { return EPCGMetadataTypes::Unknown; }
 	}
 
-	static EPCGMetadataTypes GetPropertyType(const EPCGPointProperties Property)
+	FORCEINLINE static EPCGMetadataTypes GetPropertyType(const EPCGPointProperties Property)
 	{
 		switch (Property)
 		{
@@ -385,6 +385,63 @@ namespace PCGEx
 		default:
 			return EPCGMetadataTypes::Unknown;
 		}
+	}
+
+	constexpr bool DummyBoolean = bool{};
+	constexpr int32 DummyInteger32 = int32{};
+	constexpr int64 DummyInteger64 = int64{};
+	constexpr float DummyFloat = float{};
+	constexpr double DummyDouble = double{};
+	const FVector2D DummyVector2 = FVector2D::ZeroVector;
+	const FVector DummyVector = FVector::ZeroVector;
+	const FVector4 DummyVector4 = FVector4::Zero();
+	const FQuat DummyQuaternion = FQuat::Identity;
+	const FRotator DummyRotator = FRotator::ZeroRotator;
+	const FTransform DummyTransform = FTransform::Identity;
+	const FString DummyString = TEXT("");
+	const FName DummyName = NAME_None;
+	const FSoftClassPath DummySoftClassPath = FSoftClassPath{};
+	const FSoftObjectPath DummySoftObjectPath = FSoftObjectPath{};
+
+	template <typename T, typename Func>
+	FORCEINLINE static void ExecuteWithRightType(Func&& Callback)
+	{
+		if constexpr (std::is_same_v<T, bool>) { Callback(DummyBoolean); }
+		else if constexpr (std::is_same_v<T, int32>) { Callback(DummyInteger32); }
+		else if constexpr (std::is_same_v<T, int64>) { Callback(DummyInteger64); }
+		else if constexpr (std::is_same_v<T, float>) { Callback(DummyFloat); }
+		else if constexpr (std::is_same_v<T, double>) { Callback(DummyDouble); }
+		else if constexpr (std::is_same_v<T, FVector2D>) { Callback(DummyVector2); }
+		else if constexpr (std::is_same_v<T, FVector>) { Callback(DummyVector); }
+		else if constexpr (std::is_same_v<T, FVector4>) { Callback(DummyVector4); }
+		else if constexpr (std::is_same_v<T, FQuat>) { Callback(DummyQuaternion); }
+		else if constexpr (std::is_same_v<T, FRotator>) { Callback(DummyRotator); }
+		else if constexpr (std::is_same_v<T, FTransform>) { Callback(DummyTransform); }
+		else if constexpr (std::is_same_v<T, FString>) { Callback(DummyString); }
+		else if constexpr (std::is_same_v<T, FName>) { Callback(DummyName); }
+#if PCGEX_ENGINE_VERSION > 503
+		else if constexpr (std::is_same_v<T, FSoftClassPath>) { Callback(DummySoftClassPath); }
+		else if constexpr (std::is_same_v<T, FSoftObjectPath>) { Callback(DummySoftObjectPath); }
+#endif
+		else { static_assert("Unsupported type"); }
+	}
+
+	template <typename Func>
+	FORCEINLINE static void ExecuteWithRightType(const EPCGMetadataTypes Type, Func&& Callback)
+	{
+#define PCGEX_EXECUTE_WITH_TYPE(_TYPE, _ID, ...) case EPCGMetadataTypes::_ID : ExecuteWithRightType<_TYPE>(Callback); break;
+
+		switch (Type) { PCGEX_FOREACH_SUPPORTEDTYPES(PCGEX_EXECUTE_WITH_TYPE)
+		default: ;
+		}
+
+#undef PCGEX_EXECUTE_WITH_TYPE
+	}
+
+	template <typename Func>
+	FORCEINLINE static void ExecuteWithRightType(const int16 Type, Func&& Callback)
+	{
+		ExecuteWithRightType(static_cast<EPCGMetadataTypes>(Type), Callback);
 	}
 
 	template <typename T>

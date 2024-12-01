@@ -109,9 +109,9 @@ namespace PCGExFindPointOnBounds
 			UPCGMetadata* InMetadata = IO->GetIn()->Metadata;
 			for (const PCGEx::FAttributeIdentity& Identity : InAttributesInfos.Identities)
 			{
-				PCGMetadataAttribute::CallbackWithRightType(
-					static_cast<uint16>(Identity.GetTypeId()), [&](auto DummyValue)
-					{
+					PCGEx::ExecuteWithRightType(
+						Identity.GetTypeId(), [&](auto DummyValue)
+						{
 						using T = decltype(DummyValue);
 						const FPCGMetadataAttribute<T>* InAttribute = InMetadata->GetConstTypedAttribute<T>(Identity.Name);
 						const FPCGMetadataAttributeBase* OutAttributeBase = OutMetadata->GetMutableAttribute(Identity.Name);

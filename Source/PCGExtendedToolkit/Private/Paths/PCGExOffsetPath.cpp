@@ -157,8 +157,10 @@ namespace PCGExOffsetPath
 		const int32 EdgeIndex = (!Path->IsClosedLoop() && Index == Path->LastIndex) ? Path->LastEdge : Index;
 		Path->ComputeEdgeExtra(EdgeIndex);
 
-		const FVector Dir = (OffsetDirection ? OffsetDirection->Get(EdgeIndex) : DirectionGetter->Read(Index)) * DirectionFactor;
+		FVector Dir = (OffsetDirection ? OffsetDirection->Get(EdgeIndex) : DirectionGetter->Read(Index)) * DirectionFactor;
 		double Offset = (OffsetGetter ? OffsetGetter->Read(Index) : OffsetConstant);
+
+		if (Settings->bApplyPointScaleToOffset) { Dir *= Point.Transform.GetScale3D(); }
 
 		if (Settings->OffsetMethod == EPCGExOffsetMethod::Slide)
 		{

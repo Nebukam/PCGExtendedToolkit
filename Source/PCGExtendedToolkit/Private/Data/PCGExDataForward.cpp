@@ -53,8 +53,8 @@ namespace PCGExData
 		{
 			const PCGEx::FAttributeIdentity& Identity = Identities[i];
 
-			PCGMetadataAttribute::CallbackWithRightType(
-				static_cast<uint16>(Identity.UnderlyingType), [&](auto DummyValue)
+			PCGEx::ExecuteWithRightType(
+				Identity.UnderlyingType, [&](auto DummyValue)
 				{
 					using T = decltype(DummyValue);
 					TSharedPtr<TBuffer<T>> Reader = SourceDataFacade->GetReadable<T>(Identity.Name);
@@ -72,8 +72,8 @@ namespace PCGExData
 		{
 			const PCGEx::FAttributeIdentity& Identity = Identities[i];
 
-			PCGMetadataAttribute::CallbackWithRightType(
-				static_cast<uint16>(Identity.UnderlyingType), [&](auto DummyValue)
+			PCGEx::ExecuteWithRightType(
+				Identity.UnderlyingType, [&](auto DummyValue)
 				{
 					using T = decltype(DummyValue);
 					TSharedPtr<TBuffer<T>> Reader = StaticCastSharedPtr<TBuffer<T>>(Readers[i]);
@@ -91,11 +91,10 @@ namespace PCGExData
 		{
 			for (const PCGEx::FAttributeIdentity& Identity : Identities)
 			{
-				PCGMetadataAttribute::CallbackWithRightType(
-					static_cast<uint16>(Identity.UnderlyingType), [&](auto DummyValue)
+				PCGEx::ExecuteWithRightType(
+					Identity.UnderlyingType, [&](auto DummyValue)
 					{
 						using T = decltype(DummyValue);
-
 						// 'template' spec required for clang on mac, not sure why.
 						// ReSharper disable once CppRedundantTemplateKeyword
 						const FPCGMetadataAttribute<T>* SourceAtt = SourceDataFacade->GetIn()->Metadata->template GetConstTypedAttribute<T>(Identity.Name);
@@ -114,8 +113,8 @@ namespace PCGExData
 
 		for (const PCGEx::FAttributeIdentity& Identity : Identities)
 		{
-			PCGMetadataAttribute::CallbackWithRightType(
-				static_cast<uint16>(Identity.UnderlyingType), [&](auto DummyValue)
+			PCGEx::ExecuteWithRightType(
+				Identity.UnderlyingType, [&](auto DummyValue)
 				{
 					using T = decltype(DummyValue);
 
@@ -139,11 +138,11 @@ namespace PCGExData
 
 		for (const PCGEx::FAttributeIdentity& Identity : Identities)
 		{
-			PCGMetadataAttribute::CallbackWithRightType(
-				static_cast<uint16>(Identity.UnderlyingType), [&](auto DummyValue)
+			PCGEx::ExecuteWithRightType(
+				Identity.UnderlyingType, [&](auto DummyValue)
 				{
 					using T = decltype(DummyValue);
-
+					
 					// 'template' spec required for clang on mac, not sure why.
 					// ReSharper disable once CppRedundantTemplateKeyword
 					const FPCGMetadataAttribute<T>* SourceAtt = SourceDataFacade->GetIn()->Metadata->template GetConstTypedAttribute<T>(Identity.Name);

@@ -229,17 +229,17 @@ namespace PCGExCreateShapes
 
 		PCGEX_ASYNC_GROUP_CHKD(AsyncManager, TransformPointsTask);
 
-		TransformPointsTask->OnSubLoopStartCallback = [ShapePoints, TRA, TRB](const int32 StartIndex, const int32 Count, const int32 LoopIdx)
-		{
-			const int32 MaxIndex = StartIndex + Count;
-			for (int i = StartIndex; i < MaxIndex; i++)
+		TransformPointsTask->OnSubLoopStartCallback =
+			[ShapePoints, TRA, TRB](const int32 StartIndex, const int32 Count, const int32 LoopIdx)
 			{
-				FPCGPoint& Point = ShapePoints[i];
-				Point.Transform = (Point.Transform * TRB) * TRA;
-				Point.Transform.SetScale3D(FVector::OneVector);
-				Point.Seed = PCGExRandom::ComputeSeed(Point, TRB.GetLocation());
-			}
-		};
+				PCGEX_ASYNC_SUB_LOOP
+				{
+					FPCGPoint& Point = ShapePoints[i];
+					Point.Transform = (Point.Transform * TRB) * TRA;
+					Point.Transform.SetScale3D(FVector::OneVector);
+					Point.Seed = PCGExRandom::ComputeSeed(Point, TRB.GetLocation());
+				}
+			};
 
 		TransformPointsTask->StartSubLoops(ShapePoints.Num(), GetDefault<UPCGExGlobalSettings>()->GetPointsBatchChunkSize());
 
