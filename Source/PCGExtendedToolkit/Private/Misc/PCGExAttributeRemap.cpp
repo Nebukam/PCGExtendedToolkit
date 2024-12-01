@@ -143,11 +143,14 @@ namespace PCGExAttributeRemap
 		}
 
 		PCGEX_ASYNC_GROUP_CHKD(AsyncManager, FetchTask)
+
 		FetchTask->OnCompleteCallback =
-			[&]()
+			[PCGEX_ASYNC_THIS_CAPTURE]()
 			{
+				PCGEX_ASYNC_THIS
+
 				// Fix min/max range
-				for (FPCGExComponentRemapRule& Rule : Rules)
+				for (FPCGExComponentRemapRule& Rule : This->Rules)
 				{
 					if (Rule.RemapDetails.bUseInMin) { Rule.RemapDetails.InMin = Rule.RemapDetails.CachedInMin; }
 					else { for (const double Min : Rule.MinCache) { Rule.RemapDetails.InMin = FMath::Min(Rule.RemapDetails.InMin, Min); } }
@@ -158,13 +161,15 @@ namespace PCGExAttributeRemap
 					if (Rule.RemapDetails.RangeMethod == EPCGExRangeType::FullRange) { Rule.RemapDetails.InMin = 0; }
 				}
 
-				OnPreparationComplete();
+				This->OnPreparationComplete();
 			};
 
 		FetchTask->OnPrepareSubLoopsCallback =
-			[&](const TArray<uint64>& Loops)
+			[PCGEX_ASYNC_THIS_CAPTURE](const TArray<uint64>& Loops)
 			{
-				for (FPCGExComponentRemapRule& Rule : Rules)
+				PCGEX_ASYNC_THIS
+
+				for (FPCGExComponentRemapRule& Rule : This->Rules)
 				{
 					Rule.MinCache.Init(MAX_dbl, Loops.Num());
 					Rule.MaxCache.Init(MIN_dbl_neg, Loops.Num());
@@ -172,26 +177,28 @@ namespace PCGExAttributeRemap
 			};
 
 		FetchTask->OnSubLoopStartCallback =
-			[&](const int32 StartIndex, const int32 Count, const int32 LoopIdx)
+			[PCGEX_ASYNC_THIS_CAPTURE](const int32 StartIndex, const int32 Count, const int32 LoopIdx)
 			{
 				TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExAttributeRemap::Fetch);
 
-				PointDataFacade->Fetch(StartIndex, Count);
+				PCGEX_ASYNC_THIS
+
+				This->PointDataFacade->Fetch(StartIndex, Count);
 				PCGMetadataAttribute::CallbackWithRightType(
-					static_cast<uint16>(UnderlyingType), [&](auto DummyValue) -> void
+					static_cast<uint16>(This->UnderlyingType), [&](auto DummyValue) -> void
 					{
 						using RawT = decltype(DummyValue);
-						TSharedPtr<PCGExData::TBuffer<RawT>> Writer = StaticCastSharedPtr<PCGExData::TBuffer<RawT>>(CacheWriter);
-						TSharedPtr<PCGExData::TBuffer<RawT>> Reader = StaticCastSharedPtr<PCGExData::TBuffer<RawT>>(CacheReader);
+						TSharedPtr<PCGExData::TBuffer<RawT>> Writer = StaticCastSharedPtr<PCGExData::TBuffer<RawT>>(This->CacheWriter);
+						TSharedPtr<PCGExData::TBuffer<RawT>> Reader = StaticCastSharedPtr<PCGExData::TBuffer<RawT>>(This->CacheReader);
 
 						// TODO : Swap for a scoped accessor since we don't need to keep readable values in memory
 						for (int i = StartIndex; i < StartIndex + Count; i++) { Writer->GetMutable(i) = Reader->Read(i); } // Copy range to writer
 
 						// Find min/max & clamp values
 
-						for (int d = 0; d < Dimensions; d++)
+						for (int d = 0; d < This->Dimensions; d++)
 						{
-							FPCGExComponentRemapRule& Rule = Rules[d];
+							FPCGExComponentRemapRule& Rule = This->Rules[d];
 
 							double Min = MAX_dbl;
 							double Max = MIN_dbl_neg;
@@ -236,11 +243,9 @@ namespace PCGExAttributeRemap
 	{
 		PCGEX_ASYNC_GROUP_CHKD_VOID(AsyncManager, RemapTask)
 		RemapTask->OnSubLoopStartCallback =
-			[WeakThis = TWeakPtr<FProcessor>(SharedThis(this))]
-			(const int32 StartIndex, const int32 Count, const int32 LoopIdx)
+			[PCGEX_ASYNC_THIS_CAPTURE](const int32 StartIndex, const int32 Count, const int32 LoopIdx)
 			{
-				TSharedPtr<FProcessor> This = WeakThis.Pin();
-				if (!This) { return; }
+				PCGEX_ASYNC_THIS
 
 				PCGMetadataAttribute::CallbackWithRightType(
 					static_cast<uint16>(This->UnderlyingType), [&](auto DummyValue) -> void

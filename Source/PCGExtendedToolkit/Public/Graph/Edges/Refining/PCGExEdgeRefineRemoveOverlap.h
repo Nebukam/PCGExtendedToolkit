@@ -56,6 +56,9 @@ public:
 	{
 		const double Length = Cluster->GetDistSquared(Edge);
 
+		const FVector A1 = Cluster->GetStartPos(Edge);
+		const FVector B1 = Cluster->GetEndPos(Edge);
+
 		auto ProcessOverlap = [&](const PCGEx::FIndexedItem& Item)
 		{
 			//if (!Edge.bValid) { return false; }
@@ -77,7 +80,13 @@ public:
 
 			FVector A;
 			FVector B;
-			if (Cluster->EdgeDistToEdgeSquared(&Edge, Cluster->GetEdge(OtherEdge.Index), A, B) >= ToleranceSquared) { return true; }
+			if (Cluster->EdgeDistToEdgeSquared(&Edge, &OtherEdge, A, B) >= ToleranceSquared) { return true; }
+
+			const FVector A2 = Cluster->GetStartPos(OtherEdge);
+			const FVector B2 = Cluster->GetEndPos(OtherEdge);
+
+			if (A == A1 || A == B1 || A == A2 || A == B2 ||
+				B == A2 || B == B2 || B == A1 || B == B1) { return true; }
 
 			// Overlap!
 			if (Keep == EPCGExEdgeOverlapPick::Longest)
@@ -100,7 +109,7 @@ public:
 			return true;
 		};
 
-		Cluster->EdgeOctree->FindFirstElementWithBoundsTest(
+		Cluster->GetEdgeOctree()->FindFirstElementWithBoundsTest(
 			(Cluster->BoundedEdges->GetData() + Edge.Index)->Bounds.GetBox(),
 			ProcessOverlap);
 	}

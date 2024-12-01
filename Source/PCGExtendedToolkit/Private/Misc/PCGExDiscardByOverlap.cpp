@@ -264,61 +264,83 @@ namespace PCGExDiscardByOverlap
 		// TODO : Optimisation for huge data set would be to first compute rough overlap
 		// and then only add points within the overlap to the octree, as opposed to every single point.
 		BoundsPreparationTask->OnCompleteCallback =
-			[&]()
+			[PCGEX_ASYNC_THIS_CAPTURE]()
 			{
-				Octree = MakeUnique<FPointBoundsOctree>(Bounds.GetCenter(), Bounds.GetExtent().Length());
-				for (const TSharedPtr<FPointBounds>& PtBounds : LocalPointBounds)
+				PCGEX_ASYNC_THIS
+
+				This->Octree = MakeUnique<FPointBoundsOctree>(This->Bounds.GetCenter(), This->Bounds.GetExtent().Length());
+				for (const TSharedPtr<FPointBounds>& PtBounds : This->LocalPointBounds)
 				{
 					if (!PtBounds) { continue; }
-					Octree->AddElement(PtBounds.Get());
-					TotalDensity += PtBounds->Point->Density;
+					This->Octree->AddElement(PtBounds.Get());
+					This->TotalDensity += PtBounds->Point->Density;
 				}
 
-				VolumeDensity = NumPoints / TotalVolume;
-			};
-
-		BoundsPreparationTask->OnSubLoopStartCallback =
-			[&](const int32 StartIndex, const int32 Count, const int32 LoopIdx)
-			{
-				PointDataFacade->Fetch(StartIndex, Count);
-				FilterScope(StartIndex, Count);
+				This->VolumeDensity = This->NumPoints / This->TotalVolume;
 			};
 
 		if (Settings->BoundsSource == EPCGExPointBoundsSource::ScaledBounds)
 		{
-			BoundsPreparationTask->OnIterationCallback = [&](const int32 Index, const int32 Count, const int32 LoopIdx)
-			{
-				const FPCGPoint* Point = InPoints->GetData() + Index;
-				RegisterPointBounds(
-					Index, MakeShared<FPointBounds>(
-						Index, Point,
-						PCGExMath::GetLocalBounds<EPCGExPointBoundsSource::ScaledBounds>(Point).ExpandBy(Settings->Expansion)));
-			};
+			BoundsPreparationTask->OnSubLoopStartCallback =
+				[PCGEX_ASYNC_THIS_CAPTURE](const int32 StartIndex, const int32 Count, const int32 LoopIdx)
+				{
+					PCGEX_ASYNC_THIS
+
+					This->PointDataFacade->Fetch(StartIndex, Count);
+					This->FilterScope(StartIndex, Count);
+
+					PCGEX_ASYNC_SUB_LOOP
+					{
+						const FPCGPoint* Point = This->InPoints->GetData() + i;
+						This->RegisterPointBounds(
+							i, MakeShared<FPointBounds>(
+								i, Point,
+								PCGExMath::GetLocalBounds<EPCGExPointBoundsSource::ScaledBounds>(Point).ExpandBy(This->Settings->Expansion)));
+					}
+				};
 		}
 		else if (Settings->BoundsSource == EPCGExPointBoundsSource::DensityBounds)
 		{
-			BoundsPreparationTask->OnIterationCallback = [&](const int32 Index, const int32 Count, const int32 LoopIdx)
-			{
-				const FPCGPoint* Point = InPoints->GetData() + Index;
-				RegisterPointBounds(
-					Index, MakeShared<FPointBounds>(
-						Index, Point,
-						PCGExMath::GetLocalBounds<EPCGExPointBoundsSource::DensityBounds>(Point).ExpandBy(Settings->Expansion)));
-			};
+			BoundsPreparationTask->OnSubLoopStartCallback =
+				[PCGEX_ASYNC_THIS_CAPTURE](const int32 StartIndex, const int32 Count, const int32 LoopIdx)
+				{
+					PCGEX_ASYNC_THIS
+
+					This->PointDataFacade->Fetch(StartIndex, Count);
+					This->FilterScope(StartIndex, Count);
+
+					PCGEX_ASYNC_SUB_LOOP
+					{
+						const FPCGPoint* Point = This->InPoints->GetData() + i;
+						This->RegisterPointBounds(
+							i, MakeShared<FPointBounds>(
+								i, Point,
+								PCGExMath::GetLocalBounds<EPCGExPointBoundsSource::DensityBounds>(Point).ExpandBy(This->Settings->Expansion)));
+					}
+				};
 		}
 		else
 		{
-			BoundsPreparationTask->OnIterationCallback = [&](const int32 Index, const int32 Count, const int32 LoopIdx)
-			{
-				const FPCGPoint* Point = InPoints->GetData() + Index;
-				RegisterPointBounds(
-					Index, MakeShared<FPointBounds>(
-						Index, Point,
-						PCGExMath::GetLocalBounds<EPCGExPointBoundsSource::Bounds>(Point).ExpandBy(Settings->Expansion)));
-			};
+			BoundsPreparationTask->OnSubLoopStartCallback =
+				[PCGEX_ASYNC_THIS_CAPTURE](const int32 StartIndex, const int32 Count, const int32 LoopIdx)
+				{
+					PCGEX_ASYNC_THIS
+
+					This->PointDataFacade->Fetch(StartIndex, Count);
+					This->FilterScope(StartIndex, Count);
+
+					PCGEX_ASYNC_SUB_LOOP
+					{
+						const FPCGPoint* Point = This->InPoints->GetData() + i;
+						This->RegisterPointBounds(
+							i, MakeShared<FPointBounds>(
+								i, Point,
+								PCGExMath::GetLocalBounds<EPCGExPointBoundsSource::Bounds>(Point).ExpandBy(This->Settings->Expansion)));
+					}
+				};
 		}
 
-		BoundsPreparationTask->StartIterations(NumPoints, PrimaryFilters ? GetDefault<UPCGExGlobalSettings>()->GetPointsBatchChunkSize() : 1024, true);
+		BoundsPreparationTask->StartSubLoops(NumPoints, PrimaryFilters ? GetDefault<UPCGExGlobalSettings>()->GetPointsBatchChunkSize() : 1024, true);
 
 		return true;
 	}
@@ -397,10 +419,9 @@ namespace PCGExDiscardByOverlap
 
 		PCGEX_ASYNC_GROUP_CHKD_VOID(AsyncManager, PreparationTask)
 		PreparationTask->OnCompleteCallback =
-			[WeakThis = TWeakPtr<FProcessor>(SharedThis(this))]()
+			[PCGEX_ASYNC_THIS_CAPTURE]()
 			{
-				TSharedPtr<FProcessor> This = WeakThis.Pin();
-				if (!This) { return; }
+				PCGEX_ASYNC_THIS
 
 				if (This->Settings->TestMode == EPCGExOverlapTestMode::Fast)
 				{
@@ -416,12 +437,11 @@ namespace PCGExDiscardByOverlap
 					This->StartParallelLoopForRange(This->ManagedOverlaps.Num(), 8);
 				}
 			};
+
 		PreparationTask->OnIterationCallback =
-			[WeakThis = TWeakPtr<FProcessor>(SharedThis(this))]
-			(const int32 Index, const int32 Count, const int32 LoopIdx)
+			[PCGEX_ASYNC_THIS_CAPTURE](const int32 Index, const int32 Count, const int32 LoopIdx)
 			{
-				TSharedPtr<FProcessor> This = WeakThis.Pin();
-				if (!This) { return; }
+				PCGEX_ASYNC_THIS
 
 				const TSharedPtr<PCGExPointsMT::FPointsProcessorBatchBase> Parent = This->ParentBatch.Pin();
 				const TSharedPtr<PCGExData::FFacade> OtherFacade = Parent->ProcessorFacades[Index];

@@ -13,7 +13,7 @@
 #include "PCGExMeshSelectorStaged.generated.h"
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), DisplayName="[PCGEx] Staging Data")
-class UPCGExMeshSelectorStaged : public UPCGMeshSelectorBase 
+class UPCGExMeshSelectorStaged : public UPCGMeshSelectorBase
 {
 	GENERATED_BODY()
 
@@ -25,11 +25,9 @@ public:
 		TArray<FPCGMeshInstanceList>& OutMeshInstances,
 		UPCGPointData* OutPointData) const override;
 
-public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = MeshSelector, meta = (InlineEditConditionToggle))
 	bool bUseAttributeMaterialOverrides = false;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, DisplayName = "By Attribute Material Overrides", Category = MeshSelector, meta = (EditCondition = "bUseAttributeMaterialOverrides"))
 	TArray<FName> MaterialOverrideAttributes;
-
 };

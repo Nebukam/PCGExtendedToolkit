@@ -315,7 +315,7 @@ namespace PCGExSampleNearestPoints
 	class FProcessor final : public PCGExPointsMT::TPointsProcessor<FPCGExSampleNearestPointContext, UPCGExSampleNearestPointSettings>
 	{
 		TArray<int8> SampleState;
-		
+
 		bool bSingleSample = false;
 		bool bSampleClosest = false;
 

@@ -264,7 +264,7 @@ public:
 	FString HasNoSuccessesTag = TEXT("HasNoSuccesses");
 
 	//
-	
+
 	/** If enabled, mark filtered out points as "failed". Otherwise, just skip the processing altogether. Only uncheck this if you want to ensure existing attribute values are preserved. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable), AdvancedDisplay)
 	bool bProcessFilteredOutAsFails = true;
@@ -312,7 +312,7 @@ namespace PCGExSampleInsideBoundss
 	class FProcessor final : public PCGExPointsMT::TPointsProcessor<FPCGExSampleInsideBoundsContext, UPCGExSampleInsideBoundsSettings>
 	{
 		TArray<int8> SampleState;
-		
+
 		bool bSingleSample = false;
 		bool bSampleClosest = false;
 

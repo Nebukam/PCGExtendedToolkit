@@ -59,7 +59,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExSplineInclusionFilterConfig
 	/** Tolerance value used to determine whether a point is considered on the spline or not */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ClampMin=0))
 	double Tolerance = 1;
-	
+
 	/** Scale the tolerance with spline' "thickness" (Scale' length)  */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	bool bSplineScalesTolerance = false;
@@ -67,11 +67,10 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExSplineInclusionFilterConfig
 	/**  Min dot product threshold for a point to be considered inside the spline. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ClampMin=-1, ClampMax=1))
 	double CurvatureThreshold = 0.5;
-	
+
 	/** If enabled, invert the result of the test */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	bool bInvert = false;
-
 };
 
 /**

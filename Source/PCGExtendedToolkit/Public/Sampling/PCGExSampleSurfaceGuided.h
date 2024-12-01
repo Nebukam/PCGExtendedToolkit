@@ -217,7 +217,7 @@ namespace PCGExSampleSurfaceGuided
 	class FProcessor final : public PCGExPointsMT::TPointsProcessor<FPCGExSampleSurfaceGuidedContext, UPCGExSampleSurfaceGuidedSettings>
 	{
 		TArray<int8> SampleState;
-		
+
 		TSharedPtr<PCGExData::FDataForwardHandler> SurfacesForward;
 
 		TSharedPtr<PCGExData::TBuffer<double>> MaxDistanceGetter;

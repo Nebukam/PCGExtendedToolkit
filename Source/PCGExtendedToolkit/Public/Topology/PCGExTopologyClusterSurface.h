@@ -73,6 +73,5 @@ namespace PCGExTopologyClusterSurface
 		bool FindCell(const PCGExCluster::FNode& Node, const PCGExGraph::FEdge& Edge, int32 LoopIdx, const bool bSkipBinary = true);
 		void EnsureRoamingClosedLoopProcessing();
 		virtual void OnEdgesProcessingComplete() override;
-		
 	};
 }

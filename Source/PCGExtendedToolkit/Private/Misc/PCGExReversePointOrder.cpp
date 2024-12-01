@@ -149,20 +149,27 @@ namespace PCGExReversePointOrder
 		if (SwapPairs.IsEmpty()) { return true; } // Swap pairs are built during data prefetch
 
 		PCGEX_ASYNC_GROUP_CHKD(AsyncManager, FetchWritersTask)
-		FetchWritersTask->OnCompleteCallback = [&]() { StartParallelLoopForPoints(); };
+
+		FetchWritersTask->OnCompleteCallback =
+			[PCGEX_ASYNC_THIS_CAPTURE]()
+			{
+				PCGEX_ASYNC_THIS
+				This->StartParallelLoopForPoints();
+			};
+
 		FetchWritersTask->OnSubLoopStartCallback =
-			[&](const int32 StartIndex, const int32 Count, const int32 LoopIdx)
+			[PCGEX_ASYNC_THIS_CAPTURE](const int32 StartIndex, const int32 Count, const int32 LoopIdx)
 			{
 				TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExAttributeRemap::FetchWriters);
-
-				FPCGExSwapAttributePairDetails& WorkingPair = SwapPairs[StartIndex];
+				PCGEX_ASYNC_THIS
+				FPCGExSwapAttributePairDetails& WorkingPair = This->SwapPairs[StartIndex];
 
 				PCGMetadataAttribute::CallbackWithRightType(
 					static_cast<uint16>(WorkingPair.FirstIdentity->UnderlyingType), [&](auto DummyValue) -> void
 					{
 						using RawT = decltype(DummyValue);
-						WorkingPair.FirstWriter = PointDataFacade->GetWritable<RawT>(WorkingPair.FirstAttributeName, PCGExData::EBufferInit::Inherit);
-						WorkingPair.SecondWriter = PointDataFacade->GetWritable<RawT>(WorkingPair.SecondAttributeName, PCGExData::EBufferInit::Inherit);
+						WorkingPair.FirstWriter = This->PointDataFacade->GetWritable<RawT>(WorkingPair.FirstAttributeName, PCGExData::EBufferInit::Inherit);
+						WorkingPair.SecondWriter = This->PointDataFacade->GetWritable<RawT>(WorkingPair.SecondAttributeName, PCGExData::EBufferInit::Inherit);
 					});
 			};
 

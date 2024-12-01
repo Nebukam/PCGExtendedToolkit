@@ -142,7 +142,7 @@ namespace PCGExAssetStaging
 #else
 		TSharedPtr<PCGExData::TBuffer<FString>> PathWriter;
 #endif
-		
+
 		TSharedPtr<PCGExData::TBuffer<int64>> HashWriter;
 
 	public:

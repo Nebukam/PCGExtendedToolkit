@@ -19,7 +19,7 @@ class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExDynamicMeshComponent : public UDynamicMes
 public:
 	virtual UPCGManagedComponent* GetManagedComponent() override;
 	virtual void SetManagedComponent(UPCGManagedComponent* InManagedComponent) override;
-	
+
 	UPROPERTY()
 	UPCGManagedComponent* ManagedComponent = nullptr;
 };

@@ -49,7 +49,7 @@ public:
 	/** Filter entire dataset. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="!bSelfIntersectionOnly"))
 	FName CanCutTag = NAME_None;
-	
+
 	/**  */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	FPCGExPathEdgeIntersectionDetails IntersectionDetails;
@@ -64,7 +64,7 @@ public:
 	/** If enabled, blend in properties & attributes from external sources. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Cross Blending", meta=(PCG_Overridable, EditCondition="bDoCrossBlending"))
 	FPCGExCarryOverDetails CrossingCarryOver;
-	
+
 	/** If enabled, blend in properties & attributes from external sources. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Cross Blending", meta=(PCG_Overridable, EditCondition="bDoCrossBlending"))
 	FPCGExBlendingDetails CrossingBlending = FPCGExBlendingDetails(EPCGExDataBlendingType::Average, EPCGExDataBlendingType::None);
@@ -115,7 +115,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPathCrossingsContext final : FPCGExPathP
 
 	FString CanCutTag = TEXT("");
 	FString CanBeCutTag = TEXT("");
-	
+
 	TArray<TObjectPtr<const UPCGExFilterFactoryBase>> CanCutFilterFactories;
 	TArray<TObjectPtr<const UPCGExFilterFactoryBase>> CanBeCutFilterFactories;
 
@@ -132,7 +132,7 @@ public:
 		const FPCGDataCollection& InputData,
 		TWeakObjectPtr<UPCGComponent> SourceComponent,
 		const UPCGNode* Node) override;
-	
+
 protected:
 	virtual bool Boot(FPCGExContext* InContext) const override;
 	virtual bool ExecuteInternal(FPCGContext* Context) const override;

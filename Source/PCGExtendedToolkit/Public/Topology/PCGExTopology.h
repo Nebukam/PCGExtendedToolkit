@@ -474,9 +474,8 @@ namespace PCGExTopology
 		bool bIsClosedLoop = false;
 
 		FCellData() = default;
-				
 	};
-	
+
 	class FCell : public TSharedFromThis<FCell>
 	{
 	protected:
@@ -486,7 +485,7 @@ namespace PCGExTopology
 	public:
 		TArray<int32> Nodes;
 		TSharedRef<FCellConstraints> Constraints;
-		
+
 		FCellData Data = FCellData();
 
 		PCGExGraph::FLink Seed = PCGExGraph::FLink(-1, -1);
@@ -578,7 +577,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExCellArtifactsDetails
 	/** Tags to be forwarded from clusters */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging", meta=(PCG_Overridable))
 	FPCGExNameFiltersDetails TagForwarding;
-	
+
 	bool WriteAny() const;
 	bool Init(FPCGExContext* InContext);
 

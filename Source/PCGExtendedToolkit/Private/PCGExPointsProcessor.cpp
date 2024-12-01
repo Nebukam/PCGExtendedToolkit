@@ -300,7 +300,10 @@ bool FPCGExPointsProcessorElement::Boot(FPCGExContext* InContext) const
 
 	if (Context->MainPoints->IsEmpty() && !Settings->IsInputless())
 	{
-		PCGE_LOG(Error, GraphAndLog, FText::Format(FText::FromString(TEXT("Missing {0} inputs (either no data or no points)")), FText::FromName(Settings->GetMainInputPin())));
+		if (!Settings->bQuietMissingInputError)
+		{
+			PCGE_LOG(Error, GraphAndLog, FText::Format(FText::FromString(TEXT("Missing {0} inputs (either no data or no points)")), FText::FromName(Settings->GetMainInputPin())));
+		}
 		return false;
 	}
 
