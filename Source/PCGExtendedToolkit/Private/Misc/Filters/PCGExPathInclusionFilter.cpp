@@ -198,7 +198,7 @@ namespace PCGExPointsFilter
 
 				if (D > ClosestDist) { continue; }
 				ClosestDist = D;
-				
+
 				if (const FVector S = T.GetScale3D(); D < FVector2D(S.Y, S.Z).Length() * ToleranceSquared) { State |= On; }
 				else { State &= ~On; }
 

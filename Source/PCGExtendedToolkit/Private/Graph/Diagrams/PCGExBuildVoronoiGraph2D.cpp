@@ -321,15 +321,11 @@ namespace PCGExBuildVoronoi2D
 		{
 			PCGEX_ASYNC_GROUP_CHKD(AsyncManager, OutputSites)
 
-			TWeakPtr<FProcessor> WeakThisPtr = SharedThis(this);
 			OutputSites->OnSubLoopStartCallback =
-				[WeakThisPtr](const int32 StartIndex, const int32 Count, const int32 LoopIdx)
+				[PCGEX_ASYNC_THIS_CAPTURE](const int32 StartIndex, const int32 Count, const int32 LoopIdx)
 				{
-					const TSharedPtr<FProcessor> This = WeakThisPtr.Pin();
-					if (!This) { return; }
-
-					const int32 MaxIndex = StartIndex + Count;
-					for (int i = StartIndex; i < MaxIndex; i++)
+					PCGEX_ASYNC_THIS
+					PCGEX_ASYNC_SUB_LOOP
 					{
 						const bool bIsWithinBounds = This->IsVtxValid[i];
 						if (This->OpenSiteWriter) { This->OpenSiteWriter->GetMutable(i) = bIsWithinBounds; }

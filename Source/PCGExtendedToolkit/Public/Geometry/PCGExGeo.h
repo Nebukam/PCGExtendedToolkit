@@ -270,7 +270,7 @@ namespace PCGExGeo
 		if (Winding == EPCGExWindingMutation::Clockwise) { return bIsInputClockwise; }
 		return !bIsInputClockwise;
 	}
-	
+
 	struct /*PCGEXTENDEDTOOLKIT_API*/ FPolygonInfos
 	{
 		double Area = 0;

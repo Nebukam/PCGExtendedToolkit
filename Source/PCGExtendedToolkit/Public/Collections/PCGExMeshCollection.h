@@ -38,7 +38,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExMeshCollectionEntry : public FPCGExAsset
 	TSoftObjectPtr<UPCGExMeshCollection> SubCollection;
 
 	TObjectPtr<UPCGExMeshCollection> SubCollectionPtr;
-	
+
 	bool Matches(const FPCGMeshInstanceList& InstanceList) const
 	{
 		// TODO : This is way too weak
@@ -61,7 +61,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExMeshCollectionEntry : public FPCGExAsset
 #if PCGEX_ENGINE_VERSION > 504
 	void InitPCGSoftISMDescriptor(FPCGSoftISMComponentDescriptor& TargetDescriptor) const;
 #endif
-	
+
 #if WITH_EDITOR
 	virtual void EDITOR_Sanitize() override;
 #endif
@@ -84,7 +84,7 @@ public:
 
 	UFUNCTION(CallInEditor, Category = Utils, meta=(DisplayName="Disable Collisions", ShortToolTip="Disabbe collision on all entries.", DisplayOrder=100))
 	void EDITOR_DisableCollisions();
-	
+
 #endif
 
 	PCGEX_ASSET_COLLECTION_BOILERPLATE(UPCGExMeshCollection, FPCGExMeshCollectionEntry)

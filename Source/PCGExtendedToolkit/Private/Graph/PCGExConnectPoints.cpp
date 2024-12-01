@@ -182,14 +182,17 @@ namespace PCGExConnectPoints
 
 		PCGEX_ASYNC_GROUP_CHKD(AsyncManager, PrepTask)
 
-		TWeakPtr<FProcessor> WeakThisPtr = SharedThis(this);
-
-		PrepTask->OnCompleteCallback = [WeakThisPtr]() { if (const TSharedPtr<FProcessor> This = WeakThisPtr.Pin()) { This->OnPreparationComplete(); } };
+		PrepTask->OnCompleteCallback = [PCGEX_ASYNC_THIS_CAPTURE]()
+		{
+			PCGEX_ASYNC_THIS
+			This->OnPreparationComplete();
+		};
 
 		PrepTask->OnSubLoopStartCallback =
-			[WeakThisPtr](const int32 StartIndex, const int32 Count, const int32 LoopIdx)
+			[PCGEX_ASYNC_THIS_CAPTURE](const int32 StartIndex, const int32 Count, const int32 LoopIdx)
 			{
-				if (const TSharedPtr<FProcessor> This = WeakThisPtr.Pin()) { This->PointDataFacade->Fetch(StartIndex, Count); }
+				PCGEX_ASYNC_THIS
+				This->PointDataFacade->Fetch(StartIndex, Count);
 			};
 
 		PrepTask->StartSubLoops(NumPoints, GetDefault<UPCGExGlobalSettings>()->GetPointsBatchChunkSize());

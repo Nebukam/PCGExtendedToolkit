@@ -616,11 +616,9 @@ namespace PCGExCluster
 		PCGEx::InitArray(BoundedEdges, Edges->Num());
 
 		ExpandEdgesTask->OnSubLoopStartCallback =
-			[WeakThisPtr = TWeakPtr<FCluster>(SharedThis(this))]
-			(const int32 StartIndex, const int32 Count, const int32 LoopIdx)
+			[PCGEX_ASYNC_THIS_CAPTURE](const int32 StartIndex, const int32 Count, const int32 LoopIdx)
 			{
-				const TSharedPtr<FCluster> This = WeakThisPtr.Pin();
-				if (!This) { return; }
+				PCGEX_ASYNC_THIS
 
 				TArray<FBoundedEdge>& ExpandedEdgesRef = (*This->BoundedEdges);
 				const FCluster* Cluster = This.Get();

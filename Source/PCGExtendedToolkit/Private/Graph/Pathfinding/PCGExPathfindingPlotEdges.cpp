@@ -228,19 +228,16 @@ namespace PCGExPathfindingPlotEdge
 		}
 
 		PCGEX_ASYNC_GROUP_CHKD(AsyncManager, ResolveQueriesTask)
-		TWeakPtr<FProcessor> WeakThisPtr = SharedThis(this);
 		ResolveQueriesTask->OnIterationCallback =
-			[WeakThisPtr](const int32 Index, const int32 Count, const int32 LoopIdx)
+			[PCGEX_ASYNC_THIS_CAPTURE](const int32 Index, const int32 Count, const int32 LoopIdx)
 			{
-				const TSharedPtr<FProcessor> This = WeakThisPtr.Pin();
-				if (!This) { return; }
-
+				PCGEX_ASYNC_THIS
 				TSharedPtr<PCGExPathfinding::FPlotQuery> Query = This->Queries[Index];
 				Query->BuildPlotQuery(This->Context->Plots[Index], This->Settings->SeedPicking, This->Settings->GoalPicking);
 				Query->FindPaths(This->AsyncManager, This->SearchOperation, This->HeuristicsHandler);
-				Query->OnCompleteCallback = [WeakThisPtr](const TSharedPtr<PCGExPathfinding::FPlotQuery>& Plot)
+				Query->OnCompleteCallback = [AsyncThis](const TSharedPtr<PCGExPathfinding::FPlotQuery>& Plot)
 				{
-					TSharedPtr<FProcessor> NestedThis = WeakThisPtr.Pin();
+					TSharedPtr<FProcessor> NestedThis = AsyncThis.Pin();
 					if (!NestedThis) { return; }
 					NestedThis->Context->BuildPath(Plot);
 					Plot->Cleanup();

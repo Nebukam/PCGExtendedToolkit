@@ -118,21 +118,17 @@ namespace PCGExAttributeRolling
 			{
 				PCGEX_ASYNC_GROUP_CHKD(AsyncManager, FilterTask)
 
-				TWeakPtr<FProcessor> WeakThisPtr = SharedThis(this);
-
 				FilterTask->OnCompleteCallback =
-					[WeakThisPtr]()
+					[PCGEX_ASYNC_THIS_CAPTURE]()
 					{
-						const TSharedPtr<FProcessor> This = WeakThisPtr.Pin();
-						if (!This) { return; }
+						PCGEX_ASYNC_THIS
 						This->StartParallelLoopForRange(This->PointDataFacade->GetNum());
 					};
 
 				FilterTask->OnSubLoopStartCallback =
-					[WeakThisPtr](const int32 StartIndex, const int32 Count, const int32 LoopIdx)
+					[PCGEX_ASYNC_THIS_CAPTURE](const int32 StartIndex, const int32 Count, const int32 LoopIdx)
 					{
-						const TSharedPtr<FProcessor> This = WeakThisPtr.Pin();
-						if (!This) { return; }
+						PCGEX_ASYNC_THIS
 						This->PrepareSingleLoopScopeForPoints(StartIndex, Count);
 					};
 

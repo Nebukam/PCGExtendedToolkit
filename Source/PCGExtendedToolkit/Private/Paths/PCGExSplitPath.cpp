@@ -96,17 +96,13 @@ namespace PCGExSplitPath
 
 		PCGEX_ASYNC_GROUP_CHKD(AsyncManager, TaskGroup)
 
-		TWeakPtr<FProcessor> WeakThisPtr = SharedThis(this);
-
 #define PCGEX_SPLIT_ACTION(_NAME)\
-		TaskGroup->OnSubLoopStartCallback = [WeakThisPtr](const int32 StartIndex, const int32 Count, const int32 LoopIdx){\
-					const TSharedPtr<FProcessor> This = WeakThisPtr.Pin();\
-					if (!This) { return; }\
+		TaskGroup->OnSubLoopStartCallback = [PCGEX_ASYNC_THIS_CAPTURE](const int32 StartIndex, const int32 Count, const int32 LoopIdx){\
+					PCGEX_ASYNC_THIS \
 					This->PointDataFacade->Fetch(StartIndex, Count);\
 					This->FilterScope(StartIndex, Count);\
-					const int32 MaxIndex = StartIndex + Count;\
-					for (int i = StartIndex; i < MaxIndex; i++) { This->_NAME(i); }};
-		
+					PCGEX_ASYNC_SUB_LOOP { This->_NAME(i); } };
+
 		if (Settings->SplitAction == EPCGExPathSplitAction::Partition ||
 			Settings->SplitAction == EPCGExPathSplitAction::Switch)
 		{
@@ -152,7 +148,7 @@ namespace PCGExSplitPath
 		}
 
 #undef PCGEX_SPLIT_ACTION
-		
+
 		TaskGroup->StartSubLoops(NumPoints, ChunkSize, true);
 
 		return true;

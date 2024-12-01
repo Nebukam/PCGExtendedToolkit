@@ -92,43 +92,42 @@ namespace PCGExShiftPath
 		else if (Settings->InputMode == EPCGExShiftPathMode::Filter)
 		{
 			if (Context->FilterFactories.IsEmpty()) { return false; }
-			TWeakPtr<FProcessor> WeakThisPtr = SharedThis(this);
+
 			PCGEX_ASYNC_GROUP_CHKD(AsyncManager, FilterTask)
 
-			FilterTask->OnCompleteCallback = [WeakThisPtr]()
-			{
-				const TSharedPtr<FProcessor> This = WeakThisPtr.Pin();
-				if (!This) { return; }
+			FilterTask->OnCompleteCallback =
+				[PCGEX_ASYNC_THIS_CAPTURE]()
+				{
+					PCGEX_ASYNC_THIS
 
-				if (This->Settings->bReverseShift)
-				{
-					for (int i = This->MaxIndex; i >= 0; i--)
+					if (This->Settings->bReverseShift)
 					{
-						if (This->PointFilterCache[i])
+						for (int i = This->MaxIndex; i >= 0; i--)
 						{
-							This->PivotIndex = i;
-							return;
+							if (This->PointFilterCache[i])
+							{
+								This->PivotIndex = i;
+								return;
+							}
 						}
 					}
-				}
-				else
-				{
-					for (int i = 0; i <= This->MaxIndex; i++)
+					else
 					{
-						if (This->PointFilterCache[i])
+						for (int i = 0; i <= This->MaxIndex; i++)
 						{
-							This->PivotIndex = i;
-							return;
+							if (This->PointFilterCache[i])
+							{
+								This->PivotIndex = i;
+								return;
+							}
 						}
 					}
-				}
-			};
+				};
 
 			FilterTask->OnSubLoopStartCallback =
-				[WeakThisPtr](const int32 StartIndex, const int32 Count, const int32 LoopIdx)
+				[PCGEX_ASYNC_THIS_CAPTURE](const int32 StartIndex, const int32 Count, const int32 LoopIdx)
 				{
-					const TSharedPtr<FProcessor> This = WeakThisPtr.Pin();
-					if (!This) { return; }
+					PCGEX_ASYNC_THIS
 					This->PrepareSingleLoopScopeForPoints(StartIndex, Count);
 				};
 

@@ -78,12 +78,12 @@ namespace PCGExMT
 		TryComplete();
 
 		//const TSharedPtr<FTaskManager> SharedSelf = SharedThis(this);
-		//TWeakPtr<FTaskManager> WeakThisPtr = SharedSelf;
+		//TWeakPtr<FTaskManager> AsyncThis = SharedSelf;
 
 		//AsyncTask(
-		//	ENamedThreads::BackgroundThreadPriority, [WeakThisPtr]()
+		//	ENamedThreads::BackgroundThreadPriority, [AsyncThis]()
 		//	{
-		//		const TSharedPtr<FTaskManager> Manager = WeakThisPtr.Pin();
+		//		const TSharedPtr<FTaskManager> Manager = AsyncThis.Pin();
 		//		if (!Manager || !Manager->IsAvailable()) { return; }
 		//		Manager->TryComplete();
 		//	});

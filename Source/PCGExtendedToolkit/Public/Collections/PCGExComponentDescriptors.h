@@ -25,14 +25,14 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPrimitiveComponentDescriptor
 	explicit FPCGExPrimitiveComponentDescriptor(ENoInit)
 	{
 	}
-	
+
 	virtual ~FPCGExPrimitiveComponentDescriptor() = default;
 
 #pragma region Properties
 
 	UPROPERTY(EditAnywhere, AdvancedDisplay, BlueprintReadOnly, Category=Rendering)
 	bool bVisible = true;
-	
+
 	/**
 	 * The minimum distance at which the primitive should be rendered, 
 	 * measured in world space units from the center of the primitive's bounding sphere to the camera position.
@@ -598,7 +598,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExStaticMeshComponentDescriptor : public F
 UENUM(BlueprintType)
 enum class EPCGExDynamicMeshComponentDistanceFieldMode : uint8
 {
-	NoDistanceField = 0 UMETA(DisplayName = "No Distance Field"),
+	NoDistanceField       = 0 UMETA(DisplayName = "No Distance Field"),
 	AsyncCPUDistanceField = 1 UMETA(DisplayName = "Async CPU Distance Field"),
 };
 
@@ -612,7 +612,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExDynamicMeshDescriptor : public FPCGExMes
 		: FPCGExMeshComponentDescriptor(NoInit)
 	{
 	}
-	
+
 	FPCGExDynamicMeshDescriptor();
 
 #pragma region Properties

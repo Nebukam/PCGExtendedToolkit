@@ -221,22 +221,19 @@ namespace PCGExRefineEdges
 		{
 			PCGEX_ASYNC_GROUP_CHKD(AsyncManager, EdgeScopeLoop)
 
-			TWeakPtr<FProcessor> WeakThisPtr = SharedThis(this);
-
 			EdgeScopeLoop->OnCompleteCallback =
-				[WeakThisPtr]()
+				[PCGEX_ASYNC_THIS_CAPTURE]()
 				{
-					const TSharedPtr<FProcessor> This = WeakThisPtr.Pin();
-					if (!This) { return; }
-
+					PCGEX_ASYNC_THIS
 					if (This->Refinement->RequiresIndividualNodeProcessing()) { This->StartParallelLoopForNodes(); }
 					else { This->Refinement->Process(); }
 				};
 
 			EdgeScopeLoop->OnSubLoopStartCallback =
-				[WeakThisPtr](const int32 StartIndex, const int32 Count, const int32 LoopIdx)
+				[PCGEX_ASYNC_THIS_CAPTURE](const int32 StartIndex, const int32 Count, const int32 LoopIdx)
 				{
-					if (const TSharedPtr<FProcessor> This = WeakThisPtr.Pin()) { This->PrepareSingleLoopScopeForEdges(StartIndex, Count); }
+					PCGEX_ASYNC_THIS
+					This->PrepareSingleLoopScopeForEdges(StartIndex, Count);
 				};
 
 			EdgeScopeLoop->StartSubLoops(EdgeDataFacade->GetNum(), PLI);
@@ -288,33 +285,26 @@ namespace PCGExRefineEdges
 
 		PCGEX_ASYNC_GROUP_CHKD_VOID(AsyncManager, InvalidateNodes)
 
-		TWeakPtr<FProcessor> WeakThisPtr = SharedThis(this);
-
 		InvalidateNodes->OnSubLoopStartCallback =
-			[WeakThisPtr](const int32 StartIndex, const int32 Count, const int32 LoopIdx)
+			[PCGEX_ASYNC_THIS_CAPTURE](const int32 StartIndex, const int32 Count, const int32 LoopIdx)
 			{
-				const TSharedPtr<FProcessor> This = WeakThisPtr.Pin();
-				if (!This) { return; }
-
+				PCGEX_ASYNC_THIS
 				const PCGExCluster::FCluster* Cluster = This->Cluster.Get();
-				const int32 MaxIndex = StartIndex + Count;
-				for (int i = StartIndex; i < MaxIndex; i++)
+				PCGEX_ASYNC_SUB_LOOP
 				{
 					if (PCGExCluster::FNode* Node = Cluster->GetNode(i); !Node->HasAnyValidEdges(Cluster)) { Node->bValid = false; }
 				}
 			};
 
 		InvalidateNodes->OnCompleteCallback =
-			[WeakThisPtr]()
+			[PCGEX_ASYNC_THIS_CAPTURE]()
 			{
-				const TSharedPtr<FProcessor> This = WeakThisPtr.Pin();
-				if (!This) { return; }
-
+				PCGEX_ASYNC_THIS
 				PCGEX_ASYNC_GROUP_CHKD_VOID(This->AsyncManager, RestoreEdges)
 				RestoreEdges->OnSubLoopStartCallback =
-					[WeakThisPtr](const int32 StartIndex, const int32 Count, const int32 LoopIdx)
+					[AsyncThis](const int32 StartIndex, const int32 Count, const int32 LoopIdx)
 					{
-						const TSharedPtr<FProcessor> NestedThis = WeakThisPtr.Pin();
+						const TSharedPtr<FProcessor> NestedThis = AsyncThis.Pin();
 						if (!NestedThis) { return; }
 
 						const PCGExCluster::FCluster* Cluster = NestedThis->Cluster.Get();
@@ -341,23 +331,24 @@ namespace PCGExRefineEdges
 
 		Cluster->GetBoundedEdges(true); //Oof
 
-		TWeakPtr<FProcessor> WeakThisPtr = SharedThis(this);
-		SanitizeTaskGroup->OnCompleteCallback = [WeakThisPtr]() { if (const TSharedPtr<FProcessor> This = WeakThisPtr.Pin()) { This->InsertEdges(); } };
+		SanitizeTaskGroup->OnCompleteCallback = [PCGEX_ASYNC_THIS_CAPTURE]()
+		{
+			PCGEX_ASYNC_THIS
+			This->InsertEdges();
+		};
 
 		if (Settings->Sanitization == EPCGExRefineSanitization::Filters)
 		{
 			const int32 PLI = GetDefault<UPCGExGlobalSettings>()->GetClusterBatchChunkSize();
 			SanitizeTaskGroup->OnSubLoopStartCallback =
-				[WeakThisPtr](const int32 StartIndex, const int32 Count, const int32 LoopIdx)
+				[PCGEX_ASYNC_THIS_CAPTURE](const int32 StartIndex, const int32 Count, const int32 LoopIdx)
 				{
-					const TSharedPtr<FProcessor> This = WeakThisPtr.Pin();
-					if (!This) { return; }
+					PCGEX_ASYNC_THIS
 
 					const TSharedPtr<PCGExCluster::FCluster> Cluster = This->Cluster;
 					const TSharedPtr<PCGExClusterFilter::FManager> SanitizationFilterManager = This->SanitizationFilterManager;
 
-					const int32 MaxIndex = StartIndex + Count;
-					for (int i = StartIndex; i < MaxIndex; i++)
+					PCGEX_ASYNC_SUB_LOOP
 					{
 						PCGExGraph::FEdge& Edge = *Cluster->GetEdge(i);
 						if (SanitizationFilterManager->Test(Edge)) { Edge.bValid = true; }

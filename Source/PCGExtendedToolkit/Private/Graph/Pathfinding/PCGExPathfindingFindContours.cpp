@@ -220,18 +220,17 @@ namespace PCGExFindContours
 
 		PCGEX_ASYNC_GROUP_CHKD_VOID(AsyncManager, ProjectionTaskGroup)
 
-		TWeakPtr<FBatch> WeakThisPtr = SharedThis(this);
-
 		ProjectionTaskGroup->OnCompleteCallback =
-			[WeakThisPtr]() { if (const TSharedPtr<FBatch> This = WeakThisPtr.Pin()) { This->OnProjectionComplete(); } };
+			[PCGEX_ASYNC_THIS_CAPTURE]()
+			{
+				PCGEX_ASYNC_THIS
+				This->OnProjectionComplete();
+			};
 
 		ProjectionTaskGroup->OnSubLoopStartCallback =
-			[WeakThisPtr]
-			(const int32 StartIndex, const int32 Count, const int32 LoopIdx)
+			[PCGEX_ASYNC_THIS_CAPTURE](const int32 StartIndex, const int32 Count, const int32 LoopIdx)
 			{
-				const TSharedPtr<FBatch> This = WeakThisPtr.Pin();
-				if (!This) { return; }
-
+				PCGEX_ASYNC_THIS
 				TArray<FVector>& PP = *This->ProjectedPositions;
 				This->ProjectionDetails.ProjectFlat(This->VtxDataFacade, PP, StartIndex, Count);
 			};

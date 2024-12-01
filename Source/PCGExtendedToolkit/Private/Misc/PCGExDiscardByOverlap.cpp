@@ -261,15 +261,12 @@ namespace PCGExDiscardByOverlap
 
 		PCGEX_ASYNC_GROUP_CHKD(AsyncManager, BoundsPreparationTask)
 
-		TWeakPtr<FProcessor> WeakThisPtr = SharedThis(this);
-
 		// TODO : Optimisation for huge data set would be to first compute rough overlap
 		// and then only add points within the overlap to the octree, as opposed to every single point.
 		BoundsPreparationTask->OnCompleteCallback =
-			[WeakThisPtr]()
+			[PCGEX_ASYNC_THIS_CAPTURE]()
 			{
-				const TSharedPtr<FProcessor> This = WeakThisPtr.Pin();
-				if (!This) { return; }
+				PCGEX_ASYNC_THIS
 
 				This->Octree = MakeUnique<FPointBoundsOctree>(This->Bounds.GetCenter(), This->Bounds.GetExtent().Length());
 				for (const TSharedPtr<FPointBounds>& PtBounds : This->LocalPointBounds)
@@ -285,16 +282,14 @@ namespace PCGExDiscardByOverlap
 		if (Settings->BoundsSource == EPCGExPointBoundsSource::ScaledBounds)
 		{
 			BoundsPreparationTask->OnSubLoopStartCallback =
-				[WeakThisPtr](const int32 StartIndex, const int32 Count, const int32 LoopIdx)
+				[PCGEX_ASYNC_THIS_CAPTURE](const int32 StartIndex, const int32 Count, const int32 LoopIdx)
 				{
-					const TSharedPtr<FProcessor> This = WeakThisPtr.Pin();
-					if (!This) { return; }
+					PCGEX_ASYNC_THIS
 
 					This->PointDataFacade->Fetch(StartIndex, Count);
 					This->FilterScope(StartIndex, Count);
 
-					const int32 MaxIndex = StartIndex + Count;
-					for (int i = StartIndex; i < MaxIndex; i++)
+					PCGEX_ASYNC_SUB_LOOP
 					{
 						const FPCGPoint* Point = This->InPoints->GetData() + i;
 						This->RegisterPointBounds(
@@ -307,16 +302,14 @@ namespace PCGExDiscardByOverlap
 		else if (Settings->BoundsSource == EPCGExPointBoundsSource::DensityBounds)
 		{
 			BoundsPreparationTask->OnSubLoopStartCallback =
-				[WeakThisPtr](const int32 StartIndex, const int32 Count, const int32 LoopIdx)
+				[PCGEX_ASYNC_THIS_CAPTURE](const int32 StartIndex, const int32 Count, const int32 LoopIdx)
 				{
-					const TSharedPtr<FProcessor> This = WeakThisPtr.Pin();
-					if (!This) { return; }
+					PCGEX_ASYNC_THIS
 
 					This->PointDataFacade->Fetch(StartIndex, Count);
 					This->FilterScope(StartIndex, Count);
 
-					const int32 MaxIndex = StartIndex + Count;
-					for (int i = StartIndex; i < MaxIndex; i++)
+					PCGEX_ASYNC_SUB_LOOP
 					{
 						const FPCGPoint* Point = This->InPoints->GetData() + i;
 						This->RegisterPointBounds(
@@ -329,15 +322,14 @@ namespace PCGExDiscardByOverlap
 		else
 		{
 			BoundsPreparationTask->OnSubLoopStartCallback =
-				[WeakThisPtr](const int32 StartIndex, const int32 Count, const int32 LoopIdx)
+				[PCGEX_ASYNC_THIS_CAPTURE](const int32 StartIndex, const int32 Count, const int32 LoopIdx)
 				{
-					const TSharedPtr<FProcessor> This = WeakThisPtr.Pin();
-					if (!This) { return; }
+					PCGEX_ASYNC_THIS
 
 					This->PointDataFacade->Fetch(StartIndex, Count);
 					This->FilterScope(StartIndex, Count);
-					const int32 MaxIndex = StartIndex + Count;
-					for (int i = StartIndex; i < MaxIndex; i++)
+
+					PCGEX_ASYNC_SUB_LOOP
 					{
 						const FPCGPoint* Point = This->InPoints->GetData() + i;
 						This->RegisterPointBounds(
@@ -427,10 +419,9 @@ namespace PCGExDiscardByOverlap
 
 		PCGEX_ASYNC_GROUP_CHKD_VOID(AsyncManager, PreparationTask)
 		PreparationTask->OnCompleteCallback =
-			[WeakThisPtr = TWeakPtr<FProcessor>(SharedThis(this))]()
+			[PCGEX_ASYNC_THIS_CAPTURE]()
 			{
-				TSharedPtr<FProcessor> This = WeakThisPtr.Pin();
-				if (!This) { return; }
+				PCGEX_ASYNC_THIS
 
 				if (This->Settings->TestMode == EPCGExOverlapTestMode::Fast)
 				{
@@ -446,12 +437,11 @@ namespace PCGExDiscardByOverlap
 					This->StartParallelLoopForRange(This->ManagedOverlaps.Num(), 8);
 				}
 			};
+
 		PreparationTask->OnIterationCallback =
-			[WeakThisPtr = TWeakPtr<FProcessor>(SharedThis(this))]
-			(const int32 Index, const int32 Count, const int32 LoopIdx)
+			[PCGEX_ASYNC_THIS_CAPTURE](const int32 Index, const int32 Count, const int32 LoopIdx)
 			{
-				TSharedPtr<FProcessor> This = WeakThisPtr.Pin();
-				if (!This) { return; }
+				PCGEX_ASYNC_THIS
 
 				const TSharedPtr<PCGExPointsMT::FPointsProcessorBatchBase> Parent = This->ParentBatch.Pin();
 				const TSharedPtr<PCGExData::FFacade> OtherFacade = Parent->ProcessorFacades[Index];

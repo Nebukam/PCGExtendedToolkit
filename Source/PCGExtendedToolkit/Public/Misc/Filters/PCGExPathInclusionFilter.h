@@ -65,7 +65,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPathInclusionFilterConfig
 	/**  Min dot product threshold for a point to be considered inside the spline. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ClampMin=-1, ClampMax=1))
 	double CurvatureThreshold = 0.5;
-	
+
 	/** If enabled, invert the result of the test */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	bool bInvert = false;

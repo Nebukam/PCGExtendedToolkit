@@ -106,19 +106,15 @@ namespace PCGExPathIntersections
 
 		PCGEX_ASYNC_GROUP_CHKD(AsyncManager, FindIntersectionsTaskGroup)
 
-		TWeakPtr<FProcessor> WeakThisPtr = SharedThis(this);
-
 		FindIntersectionsTaskGroup->OnSubLoopStartCallback =
-			[WeakThisPtr](const int32 StartIndex, const int32 Count, const int32 LoopIdx)
+			[PCGEX_ASYNC_THIS_CAPTURE](const int32 StartIndex, const int32 Count, const int32 LoopIdx)
 			{
-				const TSharedPtr<FProcessor> This = WeakThisPtr.Pin();
-				if (!This) { return; }
+				PCGEX_ASYNC_THIS
 
 				This->PointDataFacade->Fetch(StartIndex, Count);
 				This->FilterScope(StartIndex, Count);
 
-				const int32 MaxIndex = StartIndex + Count;
-				for (int i = StartIndex; i < MaxIndex; i++) { This->FindIntersections(i); }
+				PCGEX_ASYNC_SUB_LOOP { This->FindIntersections(i); }
 			};
 
 		FindIntersectionsTaskGroup->StartSubLoops(PointDataFacade->GetNum(), GetDefault<UPCGExGlobalSettings>()->GetPointsBatchChunkSize());
@@ -246,19 +242,18 @@ namespace PCGExPathIntersections
 
 		PCGEX_ASYNC_GROUP_CHKD_VOID(AsyncManager, InsertionTaskGroup)
 
-		TWeakPtr<FProcessor> WeakThisPtr = SharedThis(this);
-
 		InsertionTaskGroup->OnCompleteCallback =
-			[WeakThisPtr]() { if (const TSharedPtr<FProcessor> This = WeakThisPtr.Pin()) { This->OnInsertionComplete(); } };
+			[PCGEX_ASYNC_THIS_CAPTURE]()
+			{
+				PCGEX_ASYNC_THIS
+				This->OnInsertionComplete();
+			};
 
 		InsertionTaskGroup->OnSubLoopStartCallback =
-			[WeakThisPtr](const int32 StartIndex, const int32 Count, const int32 LoopIdx)
+			[PCGEX_ASYNC_THIS_CAPTURE](const int32 StartIndex, const int32 Count, const int32 LoopIdx)
 			{
-				const TSharedPtr<FProcessor> This = WeakThisPtr.Pin();
-				if (!This) { return; }
-
-				const int32 MaxIndex = StartIndex + Count;
-				for (int i = StartIndex; i < MaxIndex; i++) { This->InsertIntersections(i); }
+				PCGEX_ASYNC_THIS
+				PCGEX_ASYNC_SUB_LOOP { This->InsertIntersections(i); }
 			};
 
 		InsertionTaskGroup->StartSubLoops(Segmentation->IntersectionsList.Num(), GetDefault<UPCGExGlobalSettings>()->GetPointsBatchChunkSize());

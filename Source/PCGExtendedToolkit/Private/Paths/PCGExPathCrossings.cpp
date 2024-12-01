@@ -143,14 +143,11 @@ namespace PCGExPathCrossings
 		bCanCut = PCGEx::IsValidStringTag(Context->CanCutTag) ? PointDataFacade->Source->Tags->IsTagged(Context->CanCutTag) : true;
 
 		PCGEX_ASYNC_GROUP_CHKD(AsyncManager, Preparation)
-		
-		TWeakPtr<FProcessor> WeakThisPtr = SharedThis(this);
 
 		Preparation->OnCompleteCallback =
-			[WeakThisPtr]()
+			[PCGEX_ASYNC_THIS_CAPTURE]()
 			{
-				const TSharedPtr<FProcessor> This = WeakThisPtr.Pin();
-				if (!This) { return; }
+				PCGEX_ASYNC_THIS
 
 				This->CanCutFilterManager.Reset();
 				This->CanBeCutFilterManager.Reset();
@@ -159,17 +156,15 @@ namespace PCGExPathCrossings
 			};
 
 		Preparation->OnSubLoopStartCallback =
-			[WeakThisPtr](const int32 StartIndex, const int32 Count, const int32 LoopIdx)
+			[PCGEX_ASYNC_THIS_CAPTURE](const int32 StartIndex, const int32 Count, const int32 LoopIdx)
 			{
-				const TSharedPtr<FProcessor> This = WeakThisPtr.Pin();
-				if (!This) { return; }
+				PCGEX_ASYNC_THIS
 
 				This->PointDataFacade->Fetch(StartIndex, Count);
-				const int32 MaxIndex = StartIndex + Count;
 
 				if (This->CanCutFilterManager && This->CanBeCutFilterManager)
 				{
-					for (int i = StartIndex; i < MaxIndex; i++)
+					PCGEX_ASYNC_SUB_LOOP
 					{
 						This->CanCut[i] = This->CanCutFilterManager->Test(i);
 						This->CanBeCut[i] = This->CanBeCutFilterManager->Test(i);
@@ -178,7 +173,7 @@ namespace PCGExPathCrossings
 				}
 				else if (This->CanCutFilterManager)
 				{
-					for (int i = StartIndex; i < MaxIndex; i++)
+					PCGEX_ASYNC_SUB_LOOP
 					{
 						This->CanCut[i] = This->CanCutFilterManager->Test(i);
 						This->CanBeCut[i] = true;
@@ -187,7 +182,7 @@ namespace PCGExPathCrossings
 				}
 				else if (This->CanBeCutFilterManager)
 				{
-					for (int i = StartIndex; i < MaxIndex; i++)
+					PCGEX_ASYNC_SUB_LOOP
 					{
 						This->CanCut[i] = true;
 						This->CanBeCut[i] = This->CanBeCutFilterManager->Test(i);
@@ -196,7 +191,7 @@ namespace PCGExPathCrossings
 				}
 				else
 				{
-					for (int i = StartIndex; i < MaxIndex; i++)
+					PCGEX_ASYNC_SUB_LOOP
 					{
 						This->CanCut[i] = true;
 						This->CanBeCut[i] = true;
@@ -367,19 +362,17 @@ namespace PCGExPathCrossings
 
 		PCGEX_ASYNC_GROUP_CHKD_VOID(AsyncManager, CollapseTask)
 		CollapseTask->OnCompleteCallback =
-			[WeakThisPtr = TWeakPtr<FProcessor>(SharedThis(this))]()
+			[PCGEX_ASYNC_THIS_CAPTURE]()
 			{
-				if (const TSharedPtr<FProcessor> This = WeakThisPtr.Pin()) { This->PointDataFacade->Write(This->AsyncManager); }
+				PCGEX_ASYNC_THIS
+				This->PointDataFacade->Write(This->AsyncManager);
 			};
-		CollapseTask->OnSubLoopStartCallback =
-			[WeakThisPtr = TWeakPtr<FProcessor>(SharedThis(this))]
-			(const int32 StartIndex, const int32 Count, const int32 LoopIdx)
-			{
-				const TSharedPtr<FProcessor> This = WeakThisPtr.Pin();
-				if (!This) { return; }
 
-				const int32 MaxIndex = StartIndex + Count;
-				for (int i = StartIndex; i < MaxIndex; i++) { This->CollapseCrossing(i); }
+		CollapseTask->OnSubLoopStartCallback =
+			[PCGEX_ASYNC_THIS_CAPTURE](const int32 StartIndex, const int32 Count, const int32 LoopIdx)
+			{
+				PCGEX_ASYNC_THIS
+				PCGEX_ASYNC_SUB_LOOP { This->CollapseCrossing(i); }
 			};
 		CollapseTask->StartSubLoops(Path->NumEdges, GetDefault<UPCGExGlobalSettings>()->GetPointsBatchChunkSize());
 	}
@@ -489,14 +482,10 @@ namespace PCGExPathCrossings
 
 		PCGEX_ASYNC_GROUP_CHKD_VOID(AsyncManager, CrossBlendTask)
 		CrossBlendTask->OnSubLoopStartCallback =
-			[WeakThisPtr = TWeakPtr<FProcessor>(SharedThis(this))]
-			(const int32 StartIndex, const int32 Count, const int32 LoopIdx)
+			[PCGEX_ASYNC_THIS_CAPTURE](const int32 StartIndex, const int32 Count, const int32 LoopIdx)
 			{
-				const TSharedPtr<FProcessor> This = WeakThisPtr.Pin();
-				if (!This) { return; }
-
-				const int32 MaxIndex = StartIndex + Count;
-				for (int i = StartIndex; i < MaxIndex; i++)
+				PCGEX_ASYNC_THIS
+				PCGEX_ASYNC_SUB_LOOP
 				{
 					if (!This->Crossings[i]) { continue; }
 					This->CrossBlendPoint(i);

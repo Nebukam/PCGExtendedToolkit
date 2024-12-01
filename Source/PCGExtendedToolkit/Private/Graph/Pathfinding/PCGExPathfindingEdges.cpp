@@ -211,12 +211,10 @@ namespace PCGExPathfindingEdge
 		}
 
 		PCGEX_ASYNC_GROUP_CHKD(AsyncManager, ResolveQueriesTask)
-		TWeakPtr<FProcessor> WeakThisPtr = SharedThis(this);
 		ResolveQueriesTask->OnIterationCallback =
-			[WeakThisPtr](const int32 Index, const int32 Count, const int32 LoopIdx)
+			[PCGEX_ASYNC_THIS_CAPTURE](const int32 Index, const int32 Count, const int32 LoopIdx)
 			{
-				const TSharedPtr<FProcessor> This = WeakThisPtr.Pin();
-				if (!This) { return; }
+				PCGEX_ASYNC_THIS
 
 				TSharedPtr<PCGExPathfinding::FPathQuery> Query = This->Queries[Index];
 				Query->ResolvePicks(This->Settings->SeedPicking, This->Settings->GoalPicking);

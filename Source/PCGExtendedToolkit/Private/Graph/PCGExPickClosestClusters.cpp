@@ -148,15 +148,12 @@ namespace PCGExPickClosestClusters
 
 		PCGEX_ASYNC_GROUP_CHKD_VOID(AsyncManager, ProcessTargets)
 
-		TWeakPtr<FProcessor> WeakThisPtr = SharedThis(this);
-
 		if (Settings->SearchMode == EPCGExClusterClosestSearchMode::Edge)
 		{
 			ProcessTargets->OnIterationCallback =
-				[WeakThisPtr](const int32 Index, const int32 Count, const int32 LoopIdx)
+				[PCGEX_ASYNC_THIS_CAPTURE](const int32 Index, const int32 Count, const int32 LoopIdx)
 				{
-					const TSharedPtr<FProcessor> This = WeakThisPtr.Pin();
-					if (!This) { return; }
+					PCGEX_ASYNC_THIS
 
 					This->Distances[Index] = MAX_dbl;
 
@@ -165,11 +162,13 @@ namespace PCGExPickClosestClusters
 
 					bool bFound = false;
 					This->Cluster->GetEdgeOctree()->FindElementsWithBoundsTest(
-						FBoxCenterAndExtent(TargetLocation, Point.GetScaledExtents() + FVector(This->Settings->TargetBoundsExpansion)), [&](const PCGEx::FIndexedItem& Item)
+						FBoxCenterAndExtent(TargetLocation, Point.GetScaledExtents() + FVector(This->Settings->TargetBoundsExpansion)),
+						[&](const PCGEx::FIndexedItem& Item)
 						{
 							This->Distances[Index] = FMath::Min(This->Distances[Index], FVector::DistSquared(TargetLocation, This->Cluster->GetClosestPointOnEdge(Item.Index, TargetLocation)));
 							bFound = true;
 						});
+
 					if (!bFound && This->Settings->bExpandSearchOutsideTargetBounds)
 					{
 						This->Cluster->GetEdgeOctree()->FindNearbyElements(
@@ -184,10 +183,9 @@ namespace PCGExPickClosestClusters
 		else
 		{
 			ProcessTargets->OnIterationCallback =
-				[WeakThisPtr](const int32 Index, const int32 Count, const int32 LoopIdx)
+				[PCGEX_ASYNC_THIS_CAPTURE](const int32 Index, const int32 Count, const int32 LoopIdx)
 				{
-					const TSharedPtr<FProcessor> This = WeakThisPtr.Pin();
-					if (!This) { return; }
+					PCGEX_ASYNC_THIS
 
 					This->Distances[Index] = MAX_dbl;
 
@@ -196,7 +194,8 @@ namespace PCGExPickClosestClusters
 
 					bool bFound = false;
 					This->Cluster->NodeOctree->FindElementsWithBoundsTest(
-						FBoxCenterAndExtent(TargetLocation, Point.GetScaledExtents() + FVector(This->Settings->TargetBoundsExpansion)), [&](const PCGEx::FIndexedItem& Item)
+						FBoxCenterAndExtent(TargetLocation, Point.GetScaledExtents() + FVector(This->Settings->TargetBoundsExpansion)),
+						[&](const PCGEx::FIndexedItem& Item)
 						{
 							This->Distances[Index] = FMath::Min(This->Distances[Index], FVector::DistSquared(TargetLocation, This->Cluster->GetPos(Item.Index)));
 							bFound = true;

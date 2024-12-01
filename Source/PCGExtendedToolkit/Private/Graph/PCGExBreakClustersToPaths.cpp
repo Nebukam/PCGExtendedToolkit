@@ -229,29 +229,21 @@ namespace PCGExBreakClustersToPaths
 
 			PCGEX_ASYNC_GROUP_CHKD_VOID(AsyncManager, ProjectionTaskGroup)
 
-			TWeakPtr<FBatch> WeakThisPtr = SharedThis(this);
-			
 			ProjectionTaskGroup->OnCompleteCallback =
-				[WeakThisPtr]()
+				[PCGEX_ASYNC_THIS_CAPTURE]()
 				{
-					if (TSharedPtr<FBatch> This = WeakThisPtr.Pin()) { This->OnProjectionComplete(); }
+					PCGEX_ASYNC_THIS
+					This->OnProjectionComplete();
 				};
 
 			ProjectionTaskGroup->OnSubLoopStartCallback =
-				[WeakThisPtr]
-				(const int32 StartIndex, const int32 Count, const int32 LoopIdx)
+				[PCGEX_ASYNC_THIS_CAPTURE](const int32 StartIndex, const int32 Count, const int32 LoopIdx)
 				{
-					TSharedPtr<FBatch> This = WeakThisPtr.Pin();
-					if (!This) { return; }
-
+					PCGEX_ASYNC_THIS
 					if (This->BreakpointFilterManager)
 					{
 						TArray<int8>& Breaks = *This->Breakpoints;
-						const int32 MaxIndex = StartIndex + Count;
-						for (int i = StartIndex; i < MaxIndex; i++)
-						{
-							Breaks[i] = This->BreakpointFilterManager->Test(i);
-						}
+						PCGEX_ASYNC_SUB_LOOP { Breaks[i] = This->BreakpointFilterManager->Test(i); }
 					}
 
 					if (This->ProjectedPositions)

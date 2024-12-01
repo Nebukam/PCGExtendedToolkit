@@ -258,7 +258,7 @@ namespace PCGExWritePathProperties
 		TPointsProcessor<FPCGExWritePathPropertiesContext, UPCGExWritePathPropertiesSettings>::Output();
 		if (PathAttributeSet && !Context->PathAttributeSet)
 		{
-			Context->StageOutput(PCGExWritePathProperties::OutputPathProperties, PathAttributeSet, {}, false, false);
+			Context->StageOutput(OutputPathProperties, PathAttributeSet, {}, false, false);
 		}
 	}
 }

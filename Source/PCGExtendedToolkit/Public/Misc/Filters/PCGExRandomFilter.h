@@ -85,7 +85,7 @@ class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExRandomFilterProviderSettings : public UPC
 public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS(RandomCompareFilterFactory, "Filter : Random", "Filter using a random value.")
+	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(RandomCompareFilterFactory, "Filter : Random", "Filter using a random value.", FName("Random"))
 #endif
 	//~End UPCGSettings
 

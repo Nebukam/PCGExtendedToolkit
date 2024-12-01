@@ -150,17 +150,18 @@ namespace PCGExReversePointOrder
 
 		PCGEX_ASYNC_GROUP_CHKD(AsyncManager, FetchWritersTask)
 
-		TWeakPtr<FProcessor> WeakThisPtr = SharedThis(this);
+		FetchWritersTask->OnCompleteCallback =
+			[PCGEX_ASYNC_THIS_CAPTURE]()
+			{
+				PCGEX_ASYNC_THIS
+				This->StartParallelLoopForPoints();
+			};
 
-		FetchWritersTask->OnCompleteCallback = [WeakThisPtr]() { if (const TSharedPtr<FProcessor> This = WeakThisPtr.Pin()) { This->StartParallelLoopForPoints(); } };
 		FetchWritersTask->OnSubLoopStartCallback =
-			[WeakThisPtr](const int32 StartIndex, const int32 Count, const int32 LoopIdx)
+			[PCGEX_ASYNC_THIS_CAPTURE](const int32 StartIndex, const int32 Count, const int32 LoopIdx)
 			{
 				TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExAttributeRemap::FetchWriters);
-
-				const TSharedPtr<FProcessor> This = WeakThisPtr.Pin();
-				if (!This) { return; }
-
+				PCGEX_ASYNC_THIS
 				FPCGExSwapAttributePairDetails& WorkingPair = This->SwapPairs[StartIndex];
 
 				PCGMetadataAttribute::CallbackWithRightType(

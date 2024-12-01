@@ -179,7 +179,7 @@ void FPCGExAssetCollectionToSetElement::ProcessEntry(
 
 		const FPCGExAssetCollectionEntry* NestedEntry = nullptr;
 		const UPCGExAssetCollection* EntryHost = nullptr;
-		
+
 		switch (SubHandling)
 		{
 		default: ;

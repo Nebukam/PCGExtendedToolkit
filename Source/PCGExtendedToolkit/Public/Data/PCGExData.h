@@ -798,7 +798,7 @@ namespace PCGExData
 		void StartLoading(TSharedPtr<PCGExMT::FTaskManager> AsyncManager, const TSharedRef<FFacade>& InDataFacade, TSharedPtr<PCGExMT::FTaskGroup> InTaskGroup = nullptr);
 
 	protected:
-		void OnLoadingEnd();
+		void OnLoadingEnd() const;
 	};
 
 #pragma endregion

@@ -128,15 +128,18 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 
 		PCGEX_ASYNC_GROUP_CHKD_VOID(AsyncManager, ProcessSubGraphEdges)
 
-		TWeakPtr<FSubGraph> WeakThisPtr = SharedThis(this);
-
 		ProcessSubGraphEdges->OnCompleteCallback =
-			[WeakThisPtr]() { if (const TSharedPtr<FSubGraph> This = WeakThisPtr.Pin()) { This->CompilationComplete(); } };
+			[PCGEX_ASYNC_THIS_CAPTURE]()
+			{
+				PCGEX_ASYNC_THIS
+				This->CompilationComplete();
+			};
 
 		ProcessSubGraphEdges->OnSubLoopStartCallback =
-			[WeakThisPtr](const int32 StartIndex, const int32 Count, const int32 LoopIdx)
+			[PCGEX_ASYNC_THIS_CAPTURE](const int32 StartIndex, const int32 Count, const int32 LoopIdx)
 			{
-				if (const TSharedPtr<FSubGraph> This = WeakThisPtr.Pin()) { This->CompileRange(StartIndex, StartIndex + Count); }
+				PCGEX_ASYNC_THIS
+				This->CompileRange(StartIndex, StartIndex + Count);
 			};
 
 		ProcessSubGraphEdges->StartSubLoops(FlattenedEdges.Num(), GetDefault<UPCGExGlobalSettings>()->GetPointsBatchChunkSize());
@@ -588,28 +591,21 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 
 		PCGEX_ASYNC_GROUP_CHKD_VOID(AsyncManager, ProcessSubGraphTask)
 
-		TWeakPtr<FGraphBuilder> WeakThisPtr = SharedThis(this);
-		
 		ProcessSubGraphTask->OnCompleteCallback =
-			[WeakThisPtr]()
+			[PCGEX_ASYNC_THIS_CAPTURE]()
 			{
-				if (const TSharedPtr<FGraphBuilder> Builder = WeakThisPtr.Pin())
-				{
-					if (Builder->OnCompilationEndCallback) { Builder->OnCompilationEndCallback(Builder.ToSharedRef(), Builder->bCompiledSuccessfully); }
-					if (!Builder->bCompiledSuccessfully) { return; }
-
-					if (Builder->bWriteVtxDataFacadeWithCompile) { Builder->NodeDataFacade->Write(Builder->AsyncManager); }
-				}
+				PCGEX_ASYNC_THIS
+				if (This->OnCompilationEndCallback) { This->OnCompilationEndCallback(This.ToSharedRef(), This->bCompiledSuccessfully); }
+				if (!This->bCompiledSuccessfully) { return; }
+				if (This->bWriteVtxDataFacadeWithCompile) { This->NodeDataFacade->Write(This->AsyncManager); }
 			};
 
 		ProcessSubGraphTask->OnIterationCallback =
-			[WeakThisPtr, WeakGroup = ProcessSubGraphTask](const int32 Index, const int32 Count, const int32 LoopIdx)
+			[PCGEX_ASYNC_THIS_CAPTURE, WeakGroup = ProcessSubGraphTask](const int32 Index, const int32 Count, const int32 LoopIdx)
 			{
-				if (const TSharedPtr<FGraphBuilder> Builder = WeakThisPtr.Pin())
-				{
-					const TSharedPtr<FSubGraph> SubGraph = Builder->Graph->SubGraphs[Index];
-					SubGraph->Compile(WeakGroup, Builder->AsyncManager, Builder);
-				}
+				PCGEX_ASYNC_THIS
+				const TSharedPtr<FSubGraph> SubGraph = This->Graph->SubGraphs[Index];
+				SubGraph->Compile(WeakGroup, This->AsyncManager, This);
 			};
 
 		ProcessSubGraphTask->StartIterations(Graph->SubGraphs.Num(), 1, false, false);

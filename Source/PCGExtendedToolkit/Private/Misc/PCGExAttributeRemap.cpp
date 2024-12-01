@@ -144,13 +144,10 @@ namespace PCGExAttributeRemap
 
 		PCGEX_ASYNC_GROUP_CHKD(AsyncManager, FetchTask)
 
-		TWeakPtr<FProcessor> WeakThisPtr = SharedThis(this);
-
 		FetchTask->OnCompleteCallback =
-			[WeakThisPtr]()
+			[PCGEX_ASYNC_THIS_CAPTURE]()
 			{
-				const TSharedPtr<FProcessor> This = WeakThisPtr.Pin();
-				if (!This) { return; }
+				PCGEX_ASYNC_THIS
 
 				// Fix min/max range
 				for (FPCGExComponentRemapRule& Rule : This->Rules)
@@ -168,10 +165,9 @@ namespace PCGExAttributeRemap
 			};
 
 		FetchTask->OnPrepareSubLoopsCallback =
-			[WeakThisPtr](const TArray<uint64>& Loops)
+			[PCGEX_ASYNC_THIS_CAPTURE](const TArray<uint64>& Loops)
 			{
-				const TSharedPtr<FProcessor> This = WeakThisPtr.Pin();
-				if (!This) { return; }
+				PCGEX_ASYNC_THIS
 
 				for (FPCGExComponentRemapRule& Rule : This->Rules)
 				{
@@ -181,12 +177,11 @@ namespace PCGExAttributeRemap
 			};
 
 		FetchTask->OnSubLoopStartCallback =
-			[WeakThisPtr](const int32 StartIndex, const int32 Count, const int32 LoopIdx)
+			[PCGEX_ASYNC_THIS_CAPTURE](const int32 StartIndex, const int32 Count, const int32 LoopIdx)
 			{
 				TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExAttributeRemap::Fetch);
 
-				const TSharedPtr<FProcessor> This = WeakThisPtr.Pin();
-				if (!This) { return; }
+				PCGEX_ASYNC_THIS
 
 				This->PointDataFacade->Fetch(StartIndex, Count);
 				PCGMetadataAttribute::CallbackWithRightType(
@@ -248,11 +243,9 @@ namespace PCGExAttributeRemap
 	{
 		PCGEX_ASYNC_GROUP_CHKD_VOID(AsyncManager, RemapTask)
 		RemapTask->OnSubLoopStartCallback =
-			[WeakThisPtr = TWeakPtr<FProcessor>(SharedThis(this))]
-			(const int32 StartIndex, const int32 Count, const int32 LoopIdx)
+			[PCGEX_ASYNC_THIS_CAPTURE](const int32 StartIndex, const int32 Count, const int32 LoopIdx)
 			{
-				TSharedPtr<FProcessor> This = WeakThisPtr.Pin();
-				if (!This) { return; }
+				PCGEX_ASYNC_THIS
 
 				PCGMetadataAttribute::CallbackWithRightType(
 					static_cast<uint16>(This->UnderlyingType), [&](auto DummyValue) -> void

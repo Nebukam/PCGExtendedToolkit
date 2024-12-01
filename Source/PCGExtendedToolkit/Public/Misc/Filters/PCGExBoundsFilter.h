@@ -25,8 +25,8 @@ enum class EPCGExBoundsCheckType : uint8
 UENUM()
 enum class EPCGExBoundsFilterCompareMode : uint8
 {
-	PerPointBounds           = 0 UMETA(DisplayName = "Per Point Bounds", Tooltip="..."),
-	CollectionBounds             = 1 UMETA(DisplayName = "Collection Bounds", Tooltip="..."),
+	PerPointBounds   = 0 UMETA(DisplayName = "Per Point Bounds", Tooltip="..."),
+	CollectionBounds = 1 UMETA(DisplayName = "Collection Bounds", Tooltip="..."),
 };
 
 USTRUCT(BlueprintType)
@@ -41,11 +41,11 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExBoundsFilterConfig
 	/** Bounds to use on input points. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	EPCGExBoundsFilterCompareMode Mode = EPCGExBoundsFilterCompareMode::PerPointBounds;
-	
+
 	/** Bounds to use on input points. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	EPCGExPointBoundsSource BoundsSource = EPCGExPointBoundsSource::ScaledBounds;
-		
+
 	/** Bounds to use on input bounds. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	EPCGExPointBoundsSource BoundsTarget = EPCGExPointBoundsSource::ScaledBounds;

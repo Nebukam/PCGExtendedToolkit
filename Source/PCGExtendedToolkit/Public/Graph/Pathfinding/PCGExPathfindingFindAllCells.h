@@ -80,7 +80,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExFindAllCellsContext final : FPCGExEdgesP
 	friend class FPCGExCreateBridgeTask;
 
 	FPCGExCellArtifactsDetails Artifacts;
-	
+
 	TSharedPtr<PCGExTopology::FHoles> Holes;
 
 	TSharedPtr<PCGExData::FPointIOCollection> Paths;

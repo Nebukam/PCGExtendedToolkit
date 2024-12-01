@@ -217,17 +217,11 @@ namespace PCGExOffsetPath
 
 		PCGEX_ASYNC_GROUP_CHKD_VOID(AsyncManager, FlipTestTask)
 
-		TWeakPtr<FProcessor> WeakThisPtr = SharedThis(this);
-		
 		FlipTestTask->OnSubLoopStartCallback =
-			[WeakThisPtr]
-			(const int32 StartIndex, const int32 Count, const int32 LoopIdx)
+			[PCGEX_ASYNC_THIS_CAPTURE](const int32 StartIndex, const int32 Count, const int32 LoopIdx)
 			{
-				const TSharedPtr<FProcessor> This = WeakThisPtr.Pin();
-				if (!This) { return; }
-
-				const int32 MaxIndex = StartIndex + Count;
-				for (int i = StartIndex; i < MaxIndex; i++)
+				PCGEX_ASYNC_THIS
+				PCGEX_ASYNC_SUB_LOOP
 				{
 					This->DirtyPath->ComputeEdgeExtra(i);
 					This->CleanEdge[i] = FVector::DotProduct(This->Path->Edges[i].Dir, This->DirtyPath->Edges[i].Dir) > 0;

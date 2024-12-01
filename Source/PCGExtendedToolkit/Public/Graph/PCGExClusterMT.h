@@ -23,7 +23,7 @@ namespace PCGExClusterMT
 
 #pragma region Tasks
 
-#define PCGEX_ASYNC_CLUSTER_PROCESSOR_LOOP(_TYPE, _NAME, _NUM, _PREPARE, _PROCESS, _COMPLETE, _INLINE) PCGEX_ASYNC_PROCESSOR_LOOP(_TYPE, _NAME, _NUM, _PREPARE, _PROCESS, _COMPLETE, _INLINE, GetClusterBatchChunkSize)
+#define PCGEX_ASYNC_CLUSTER_PROCESSOR_LOOP(_NAME, _NUM, _PREPARE, _PROCESS, _COMPLETE, _INLINE) PCGEX_ASYNC_PROCESSOR_LOOP(_NAME, _NUM, _PREPARE, _PROCESS, _COMPLETE, _INLINE, GetClusterBatchChunkSize)
 
 	template <typename T>
 	class FStartClusterBatchProcessing final : public PCGExMT::FPCGExTask
@@ -181,7 +181,7 @@ namespace PCGExClusterMT
 		void StartParallelLoopForNodes(const int32 PerLoopIterations = -1)
 		{
 			PCGEX_ASYNC_CLUSTER_PROCESSOR_LOOP(
-				FClusterProcessor, Nodes, NumNodes,
+				Nodes, NumNodes,
 				PrepareLoopScopesForNodes, ProcessNodes,
 				OnNodesProcessingComplete,
 				bInlineProcessNodes)
@@ -218,7 +218,7 @@ namespace PCGExClusterMT
 		void StartParallelLoopForEdges(const int32 PerLoopIterations = -1)
 		{
 			PCGEX_ASYNC_CLUSTER_PROCESSOR_LOOP(
-				FClusterProcessor, Edges, NumEdges,
+				Edges, NumEdges,
 				PrepareLoopScopesForEdges, ProcessEdges,
 				OnEdgesProcessingComplete,
 				bInlineProcessEdges)
@@ -254,7 +254,7 @@ namespace PCGExClusterMT
 		void StartParallelLoopForRange(const int32 NumIterations, const int32 PerLoopIterations = -1)
 		{
 			PCGEX_ASYNC_CLUSTER_PROCESSOR_LOOP(
-				FClusterProcessor, Ranges, NumIterations,
+				Ranges, NumIterations,
 				PrepareLoopScopesForRanges, ProcessRange,
 				OnRangeProcessingComplete,
 				bInlineProcessRange)
@@ -422,12 +422,11 @@ namespace PCGExClusterMT
 				if (!RawLookupAttribute) { return; } // FAIL
 
 				BuildEndpointLookupTask->OnCompleteCallback =
-					[WeakThisPtr = TWeakPtr<FClusterProcessorBatchBase>(SharedThis(this))]()
+					[PCGEX_ASYNC_THIS_CAPTURE]()
 					{
 						TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExGraph::BuildLookupTable::Complete);
 
-						const TSharedPtr<FClusterProcessorBatchBase> This = WeakThisPtr.Pin();
-						if (!This) { return; }
+						PCGEX_ASYNC_THIS
 
 						const int32 Num = This->VtxDataFacade->GetNum();
 						This->EndpointsLookup.Reserve(Num);
@@ -444,18 +443,13 @@ namespace PCGExClusterMT
 					};
 
 				BuildEndpointLookupTask->OnSubLoopStartCallback =
-					[WeakThisPtr = TWeakPtr<FClusterProcessorBatchBase>(SharedThis(this))]
-					(const int32 StartIndex, const int32 Count, const int32 LoopIdx)
+					[PCGEX_ASYNC_THIS_CAPTURE](const int32 StartIndex, const int32 Count, const int32 LoopIdx)
 					{
 						TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExGraph::BuildLookupTable::Range);
 
-						const TSharedPtr<FClusterProcessorBatchBase> This = WeakThisPtr.Pin();
-						if (!This) { return; }
-
+						PCGEX_ASYNC_THIS
 						const TArray<FPCGPoint>& InKeys = This->VtxDataFacade->GetIn()->GetPoints();
-
-						const int32 MaxIndex = StartIndex + Count;
-						for (int i = StartIndex; i < MaxIndex; i++)
+						PCGEX_ASYNC_SUB_LOOP
 						{
 							uint32 A;
 							uint32 B;
@@ -480,11 +474,9 @@ namespace PCGExClusterMT
 			VtxFacadePreloader = MakeShared<PCGExData::FFacadePreloader>();
 			RegisterBuffersDependencies(*VtxFacadePreloader);
 
-			TWeakPtr<FClusterProcessorBatchBase> WeakThisPtr = SharedThis(this);
-			VtxFacadePreloader->OnCompleteCallback = [WeakThisPtr]
+			VtxFacadePreloader->OnCompleteCallback = [PCGEX_ASYNC_THIS_CAPTURE]
 			{
-				const TSharedPtr<FClusterProcessorBatchBase> This = WeakThisPtr.Pin();
-				if (!This) { return; }
+				PCGEX_ASYNC_THIS
 				This->Process();
 			};
 
@@ -512,20 +504,19 @@ namespace PCGExClusterMT
 
 			if (bOutputToContext)
 			{
-				TWeakPtr<FClusterProcessorBatchBase> WeakThisPtr = SharedThis(this);
-				GraphBuilder->OnCompilationEndCallback = [WeakThisPtr](const TSharedRef<PCGExGraph::FGraphBuilder>& InBuilder, const bool bSuccess)
-				{
-					const TSharedPtr<FClusterProcessorBatchBase> This = WeakThisPtr.Pin();
-					if (!This) { return; }
-					
-					if (!bSuccess)
+				GraphBuilder->OnCompilationEndCallback =
+					[PCGEX_ASYNC_THIS_CAPTURE](const TSharedRef<PCGExGraph::FGraphBuilder>& InBuilder, const bool bSuccess)
 					{
-						// TODO : Log error
-						return;
-					}
+						PCGEX_ASYNC_THIS
 
-					InBuilder->StageEdgesOutputs();
-				};
+						if (!bSuccess)
+						{
+							// TODO : Log error
+							return;
+						}
+
+						InBuilder->StageEdgesOutputs();
+					};
 			}
 
 			GraphBuilder->CompileAsync(AsyncManager, true, GetGraphMetadataDetails());
@@ -606,8 +597,7 @@ namespace PCGExClusterMT
 		virtual void StartProcessing()
 		{
 			if (!bIsBatchValid) { return; }
-
-			PCGEX_ASYNC_MT_LOOP_TPL(Process, bInlineProcessing, { Processor->bIsProcessorValid = Processor->Process(Batch->AsyncManager); })
+			PCGEX_ASYNC_MT_LOOP_TPL(Process, bInlineProcessing, { Processor->bIsProcessorValid = Processor->Process(This->AsyncManager); })
 		}
 
 		virtual bool PrepareSingle(const TSharedPtr<T>& ClusterProcessor) { return true; }
