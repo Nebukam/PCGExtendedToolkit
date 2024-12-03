@@ -250,7 +250,7 @@ namespace PCGExSampleNearestPoints
 
 		const FVector SourceCenter = Point.Transform.GetLocation();
 
-		double RangeMin = FMath::Square(RangeMaxGetter ? RangeMinGetter->Read(Index) : Settings->RangeMin);
+		double RangeMin = FMath::Square(RangeMinGetter ? RangeMinGetter->Read(Index) : Settings->RangeMin);
 		double RangeMax = FMath::Square(RangeMaxGetter ? RangeMaxGetter->Read(Index) : Settings->RangeMax);
 
 		if (RangeMin > RangeMax) { std::swap(RangeMin, RangeMax); }

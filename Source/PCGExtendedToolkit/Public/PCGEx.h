@@ -69,11 +69,12 @@ enum class EPCGExMinimalAxis : uint8
 UENUM()
 enum class EPCGExSingleField : uint8
 {
-	X      = 0 UMETA(DisplayName = "X/Roll", ToolTip="X/Roll component if it exist, raw value otherwise."),
-	Y      = 1 UMETA(DisplayName = "Y/Pitch", ToolTip="Y/Pitch component if it exist, fallback to previous value otherwise."),
-	Z      = 2 UMETA(DisplayName = "Z/Yaw", ToolTip="Z/Yaw component if it exist, fallback to previous value otherwise."),
-	W      = 3 UMETA(DisplayName = "W", ToolTip="W component if it exist, fallback to previous value otherwise."),
-	Length = 4 UMETA(DisplayName = "Length", ToolTip="Length if vector, raw value otherwise."),
+	X             = 0 UMETA(DisplayName = "X/Roll", ToolTip="X/Roll component if it exist, raw value otherwise."),
+	Y             = 1 UMETA(DisplayName = "Y/Pitch", ToolTip="Y/Pitch component if it exist, fallback to previous value otherwise."),
+	Z             = 2 UMETA(DisplayName = "Z/Yaw", ToolTip="Z/Yaw component if it exist, fallback to previous value otherwise."),
+	W             = 3 UMETA(DisplayName = "W", ToolTip="W component if it exist, fallback to previous value otherwise."),
+	Length        = 4 UMETA(DisplayName = "Length", ToolTip="Length if vector, raw value otherwise."),
+	SquaredLength = 5 UMETA(DisplayName = "SquaredLength", ToolTip="SquaredLength if vector, raw value otherwise."),
 };
 
 UENUM()
@@ -283,6 +284,8 @@ namespace PCGEx
 		{TEXT("L"), EPCGExSingleField::Length},
 		{TEXT("LEN"), EPCGExSingleField::Length},
 		{TEXT("LENGTH"), EPCGExSingleField::Length},
+		{TEXT("SQUAREDLENGTH"), EPCGExSingleField::SquaredLength},
+		{TEXT("LENSQR"), EPCGExSingleField::SquaredLength}
 	};
 
 	static const TMap<FString, EPCGExAxis> STRMAP_AXIS = {

@@ -233,7 +233,7 @@ namespace PCGExWritePathProperties
 
 			PCGEX_OUTPUT_PATH_VALUE(PathLength, double, PathLength->TotalLength)
 			PCGEX_OUTPUT_PATH_VALUE(PathDirection, FVector, (PathDir / Path->NumPoints).GetSafeNormal())
-			PCGEX_OUTPUT_PATH_VALUE(PathCentroid, FVector, (PathCentroid / Path->NumPoints).GetSafeNormal())
+			PCGEX_OUTPUT_PATH_VALUE(PathCentroid, FVector, (PathCentroid / Path->NumPoints))
 			PCGEX_OUTPUT_PATH_VALUE(IsClockwise, bool, PolyInfos.bIsClockwise)
 			PCGEX_OUTPUT_PATH_VALUE(Area, double, PolyInfos.Area * 0.01)
 			PCGEX_OUTPUT_PATH_VALUE(Perimeter, double, PolyInfos.Perimeter)
