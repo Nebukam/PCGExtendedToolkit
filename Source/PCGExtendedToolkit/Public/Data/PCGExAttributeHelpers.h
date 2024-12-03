@@ -697,6 +697,7 @@ namespace PCGEx
 				case EPCGExSingleField::W:
 					return Value.Y > 0;
 				case EPCGExSingleField::Length:
+				case EPCGExSingleField::SquaredLength:
 					return Value.SquaredLength() > 0;
 				}
 			}
@@ -712,6 +713,8 @@ namespace PCGEx
 				case EPCGExSingleField::W:
 					return Value.Y;
 				case EPCGExSingleField::Length:
+					return Value.Length();
+				case EPCGExSingleField::SquaredLength:
 					return Value.SquaredLength();
 				}
 			}
@@ -747,6 +750,7 @@ namespace PCGEx
 				case EPCGExSingleField::W:
 					return Value.Z > 0;
 				case EPCGExSingleField::Length:
+				case EPCGExSingleField::SquaredLength:
 					return Value.SquaredLength() > 0;
 				}
 			}
@@ -763,6 +767,8 @@ namespace PCGEx
 				case EPCGExSingleField::W:
 					return Value.Z;
 				case EPCGExSingleField::Length:
+					return Value.Length();
+				case EPCGExSingleField::SquaredLength:
 					return Value.SquaredLength();
 				}
 			}
@@ -799,6 +805,7 @@ namespace PCGEx
 				case EPCGExSingleField::W:
 					return Value.W > 0;
 				case EPCGExSingleField::Length:
+				case EPCGExSingleField::SquaredLength:
 					return FVector(Value).SquaredLength() > 0;
 				}
 			}
@@ -816,6 +823,7 @@ namespace PCGEx
 				case EPCGExSingleField::W:
 					return Value.W > 0;
 				case EPCGExSingleField::Length:
+				case EPCGExSingleField::SquaredLength:
 					return FVector(Value).SquaredLength() > 0;
 				}
 			}
@@ -852,6 +860,7 @@ namespace PCGEx
 				case EPCGExSingleField::W:
 					return Dir.Z > 0;
 				case EPCGExSingleField::Length:
+				case EPCGExSingleField::SquaredLength:
 					return Dir.SquaredLength() > 0;
 				}
 			}
@@ -869,6 +878,8 @@ namespace PCGEx
 				case EPCGExSingleField::W:
 					return Dir.Z;
 				case EPCGExSingleField::Length:
+					return Dir.Length();
+				case EPCGExSingleField::SquaredLength:
 					return Dir.SquaredLength();
 				}
 			}
@@ -908,6 +919,7 @@ namespace PCGEx
 				case EPCGExSingleField::W:
 					return Value.Roll > 0;
 				case EPCGExSingleField::Length:
+				case EPCGExSingleField::SquaredLength:
 					return Value.Euler().SquaredLength() > 0;
 				}
 			}
@@ -924,6 +936,7 @@ namespace PCGEx
 				case EPCGExSingleField::W:
 					return Value.Roll > 0;
 				case EPCGExSingleField::Length:
+				case EPCGExSingleField::SquaredLength:
 					return Value.Euler().SquaredLength() > 0;
 				}
 			}
