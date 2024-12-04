@@ -37,6 +37,10 @@ public:
 	FPCGAttributePropertyInputSelector SingleSelector;
 	TSharedPtr<PCGExData::TBuffer<double>> SingleGetter;
 
+	/** A list of attribute names separated by a comma, for easy overrides. They will be added to the in-place array of selectors. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	FString CommaSeparatedNames = TEXT("");
+	
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = GoalPicker, meta=(EditCondition="GoalCount==EPCGExGoalPickAttributeAmount::List", EditConditionHides, TitleProperty="{TitlePropertyName}"))
 	TArray<FPCGAttributePropertyInputSelector> AttributeSelectors;
 	TArray<TSharedPtr<PCGExData::TBuffer<double>>> AttributeGetters;
