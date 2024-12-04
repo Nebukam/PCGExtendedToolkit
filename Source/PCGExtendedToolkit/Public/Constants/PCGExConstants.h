@@ -4,6 +4,7 @@
 #pragma once
 #include "PCGSettings.h"
 #include "PCGExConstantsDefinitions.h"
+#include "PCGExGlobalSettings.h"
 #include "PCGExMacros.h"
 #include "PCGExConstants.generated.h"
 
@@ -33,7 +34,7 @@ public:
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(Constant, "Constant", "Constants.", GetEnumName());
 	virtual EPCGSettingsType GetType() const override { return EPCGSettingsType::Param; }
-	virtual FLinearColor GetNodeTitleColor() const override { return FLinearColor(0.2, 0.2, 0.2, 1.0); }
+	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->NodeColorConstant; }
 
 	FName GetEnumName() const;
 
@@ -41,7 +42,6 @@ public:
 
 #if PCGEX_ENGINE_VERSION > 503
 	virtual bool CanUserEditTitle() const override { return false; }
-	virtual bool HasFlippedTitleLines() const override { return true; }
 #endif
 	virtual TArray<FPCGPreConfiguredSettingsInfo> GetPreconfiguredInfo() const override;
 
@@ -86,7 +86,7 @@ public:
 	}
 };
 
-class FPCGConstantsElement : public IPCGElement
+class FPCGExConstantsElement : public IPCGElement
 {
 protected:
 	virtual bool ExecuteInternal(FPCGContext* Context) const override;

@@ -57,10 +57,10 @@ TArray<FPCGPinProperties> UPCGExConstantsSettings::OutputPinProperties() const
 
 FPCGElementPtr UPCGExConstantsSettings::CreateElement() const
 {
-	return MakeShared<FPCGConstantsElement>();
+	return MakeShared<FPCGExConstantsElement>();
 }
 
-bool FPCGConstantsElement::ExecuteInternal(FPCGContext* InContext) const
+bool FPCGExConstantsElement::ExecuteInternal(FPCGContext* InContext) const
 {
 	PCGEX_CONTEXT()
 	PCGEX_SETTINGS(Constants)
@@ -96,10 +96,11 @@ bool FPCGConstantsElement::ExecuteInternal(FPCGContext* InContext) const
 #undef PCGEX_POST_PROCESS_NUMERIC
 	}
 
-	return true;
+	Context->Done();
+	return Context->TryComplete();
 }
 
-FPCGContext* FPCGConstantsElement::Initialize(const FPCGDataCollection& InputData, TWeakObjectPtr<UPCGComponent> SourceComponent, const UPCGNode* Node)
+FPCGContext* FPCGExConstantsElement::Initialize(const FPCGDataCollection& InputData, TWeakObjectPtr<UPCGComponent> SourceComponent, const UPCGNode* Node)
 {
 	FPCGExContext* Context = new FPCGExContext();
 
