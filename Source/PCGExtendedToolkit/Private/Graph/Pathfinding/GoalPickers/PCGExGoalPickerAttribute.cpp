@@ -13,6 +13,17 @@ void UPCGExGoalPickerAttribute::CopySettingsFrom(const UPCGExOperation* Other)
 		GoalCount = TypedOther->GoalCount;
 		SingleSelector = TypedOther->SingleSelector;
 		AttributeSelectors = TypedOther->AttributeSelectors;
+
+		if (!TypedOther->CommaSeparatedNames.IsEmpty())
+		{
+			for (const TArray<FString> Names = PCGExHelpers::GetStringArrayFromCommaSeparatedList(CommaSeparatedNames);
+			     const FString& Name : Names)
+			{
+				FPCGAttributePropertyInputSelector NewSelector = FPCGAttributePropertyInputSelector();
+				NewSelector.Update(Name);
+				AttributeSelectors.AddUnique(NewSelector);
+			}
+		}
 	}
 }
 
