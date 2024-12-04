@@ -1,4 +1,4 @@
-﻿// Copyright Timothé Lapetite 2024
+﻿// Copyright 2024 Timothé Lapetite and contributors
 // Released under the MIT license https://opensource.org/license/MIT/
 
 #include "Sampling/PCGExSampleNearestPoint.h"
@@ -262,12 +262,18 @@ namespace PCGExSampleNearestPoints
 		{
 			//if (Context->ValueFilterManager && !Context->ValueFilterManager->Results[PointIndex]) { return; } // TODO : Implement
 
-			FVector A;
-			FVector B;
+			double Dist = 0;
 
-			Context->DistanceDetails->GetCenters(Point, Target, A, B);
-
-			double Dist = FVector::DistSquared(A, B);
+			if (Settings->DistanceDetails.bOverlapIsZero)
+			{
+				bool bOverlap = false;
+				Dist = Context->DistanceDetails->GetDistSquared(Point, Target, bOverlap);
+				if (bOverlap) { Dist = 0; }
+			}
+			else
+			{
+				Dist = Context->DistanceDetails->GetDistSquared(Point, Target);
+			}
 
 			if (RangeMax > 0 && (Dist < RangeMin || Dist > RangeMax)) { return; }
 
