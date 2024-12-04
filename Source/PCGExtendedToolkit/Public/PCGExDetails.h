@@ -1,4 +1,4 @@
-﻿// Copyright Timothé Lapetite 2024
+﻿// Copyright 2024 Timothé Lapetite and contributors
 // Released under the MIT license https://opensource.org/license/MIT/
 
 #pragma once
@@ -44,14 +44,24 @@ namespace PCGExDetails
 	public:
 		virtual ~FDistances() = default;
 
+		bool bOverlapIsZero = false;
+
 		FDistances()
 		{
 		}
 
-		FORCEINLINE virtual FVector GetSourceCenter(const FPCGPoint& FromPoint, const FVector& FromCenter, const FVector& ToCenter) const = 0;
-		FORCEINLINE virtual FVector GetTargetCenter(const FPCGPoint& FromPoint, const FVector& FromCenter, const FVector& ToCenter) const = 0;
+		explicit FDistances(const bool InOverlapIsZero)
+			: bOverlapIsZero(InOverlapIsZero)
+		{
+		}
+
+		FORCEINLINE virtual FVector GetSourceCenter(const FPCGPoint& OriginPoint, const FVector& OriginLocation, const FVector& ToCenter) const = 0;
+		FORCEINLINE virtual FVector GetTargetCenter(const FPCGPoint& OriginPoint, const FVector& OriginLocation, const FVector& ToCenter) const = 0;
 		FORCEINLINE virtual void GetCenters(const FPCGPoint& SourcePoint, const FPCGPoint& TargetPoint, FVector& OutSource, FVector& OutTarget) const = 0;
-		FORCEINLINE virtual double GetDistance(const FPCGPoint& SourcePoint, const FPCGPoint& TargetPoint) const = 0;
+		FORCEINLINE virtual double GetDistSquared(const FPCGPoint& SourcePoint, const FPCGPoint& TargetPoint) const = 0;
+		FORCEINLINE virtual double GetDist(const FPCGPoint& SourcePoint, const FPCGPoint& TargetPoint) const = 0;
+		FORCEINLINE virtual double GetDistSquared(const FPCGPoint& SourcePoint, const FPCGPoint& TargetPoint, bool& bOverlap) const = 0;
+		FORCEINLINE virtual double GetDist(const FPCGPoint& SourcePoint, const FPCGPoint& TargetPoint, bool& bOverlap) const = 0;
 	};
 
 	template <EPCGExDistance Source, EPCGExDistance Target>
@@ -59,6 +69,11 @@ namespace PCGExDetails
 	{
 	public:
 		TDistances()
+		{
+		}
+
+		explicit TDistances(const bool InOverlapIsZero)
+			: FDistances(InOverlapIsZero)
 		{
 		}
 
@@ -74,23 +89,53 @@ namespace PCGExDetails
 
 		FORCEINLINE virtual void GetCenters(const FPCGPoint& SourcePoint, const FPCGPoint& TargetPoint, FVector& OutSource, FVector& OutTarget) const override
 		{
-			const FVector TargetLocation = TargetPoint.Transform.GetLocation();
-			OutSource = PCGExMath::GetSpatializedCenter<Source>(SourcePoint, SourcePoint.Transform.GetLocation(), TargetLocation);
-			OutTarget = PCGExMath::GetSpatializedCenter<Target>(TargetPoint, TargetLocation, OutSource);
+			const FVector TargetOrigin = TargetPoint.Transform.GetLocation();
+			OutSource = PCGExMath::GetSpatializedCenter<Source>(SourcePoint, SourcePoint.Transform.GetLocation(), TargetOrigin);
+			OutTarget = PCGExMath::GetSpatializedCenter<Target>(TargetPoint, TargetOrigin, OutSource);
 		}
 
-		FORCEINLINE virtual double GetDistance(const FPCGPoint& SourcePoint, const FPCGPoint& TargetPoint) const override
+		FORCEINLINE virtual double GetDistSquared(const FPCGPoint& SourcePoint, const FPCGPoint& TargetPoint) const override
 		{
-			const FVector TargetLocation = TargetPoint.Transform.GetLocation();
-			const FVector OutSource = PCGExMath::GetSpatializedCenter<Source>(SourcePoint, SourcePoint.Transform.GetLocation(), TargetLocation);
-			return FVector::DistSquared(OutSource, PCGExMath::GetSpatializedCenter<Target>(TargetPoint, TargetLocation, OutSource));
+			const FVector TargetOrigin = TargetPoint.Transform.GetLocation();
+			const FVector OutSource = PCGExMath::GetSpatializedCenter<Source>(SourcePoint, SourcePoint.Transform.GetLocation(), TargetOrigin);
+			return FVector::DistSquared(OutSource, PCGExMath::GetSpatializedCenter<Target>(TargetPoint, TargetOrigin, OutSource));
+		}
+
+		FORCEINLINE virtual double GetDist(const FPCGPoint& SourcePoint, const FPCGPoint& TargetPoint) const override
+		{
+			const FVector TargetOrigin = TargetPoint.Transform.GetLocation();
+			const FVector OutSource = PCGExMath::GetSpatializedCenter<Source>(SourcePoint, SourcePoint.Transform.GetLocation(), TargetOrigin);
+			return FVector::Dist(OutSource, PCGExMath::GetSpatializedCenter<Target>(TargetPoint, TargetOrigin, OutSource));
+		}
+
+		FORCEINLINE virtual double GetDistSquared(const FPCGPoint& SourcePoint, const FPCGPoint& TargetPoint, bool& bOverlap) const override
+		{
+			const FVector TargetOrigin = TargetPoint.Transform.GetLocation();
+			const FVector SourceOrigin = SourcePoint.Transform.GetLocation();
+			const FVector OutSource = PCGExMath::GetSpatializedCenter<Source>(SourcePoint, SourceOrigin, TargetOrigin);
+			const FVector OutTarget = PCGExMath::GetSpatializedCenter<Target>(TargetPoint, TargetOrigin, OutSource);
+
+			bOverlap = FVector::DotProduct((TargetOrigin - SourceOrigin), (OutTarget - OutSource)) < 0;
+			return FVector::DistSquared(OutSource, OutTarget);
+		}
+
+		FORCEINLINE virtual double GetDist(const FPCGPoint& SourcePoint, const FPCGPoint& TargetPoint, bool& bOverlap) const override
+		{
+			const FVector TargetOrigin = TargetPoint.Transform.GetLocation();
+			const FVector SourceOrigin = SourcePoint.Transform.GetLocation();
+			const FVector OutSource = PCGExMath::GetSpatializedCenter<Source>(SourcePoint, SourceOrigin, TargetOrigin);
+			const FVector OutTarget = PCGExMath::GetSpatializedCenter<Target>(TargetPoint, TargetOrigin, OutSource);
+
+			bOverlap = FVector::DotProduct((TargetOrigin - SourceOrigin), (OutTarget - OutSource)) < 0;
+			return FVector::Dist(OutSource, OutTarget);
 		}
 	};
 
 
 	static TSharedPtr<FDistances> MakeDistances(
 		const EPCGExDistance Source = EPCGExDistance::Center,
-		const EPCGExDistance Target = EPCGExDistance::Center)
+		const EPCGExDistance Target = EPCGExDistance::Center,
+		const bool bOverlapIsZero = false)
 	{
 		if (Source == EPCGExDistance::None || Target == EPCGExDistance::None)
 		{
@@ -98,21 +143,21 @@ namespace PCGExDetails
 		}
 		if (Source == EPCGExDistance::Center)
 		{
-			if (Target == EPCGExDistance::Center) { return MakeShared<TDistances<EPCGExDistance::Center, EPCGExDistance::Center>>(); }
-			if (Target == EPCGExDistance::SphereBounds) { return MakeShared<TDistances<EPCGExDistance::Center, EPCGExDistance::SphereBounds>>(); }
-			if (Target == EPCGExDistance::BoxBounds) { return MakeShared<TDistances<EPCGExDistance::Center, EPCGExDistance::BoxBounds>>(); }
+			if (Target == EPCGExDistance::Center) { return MakeShared<TDistances<EPCGExDistance::Center, EPCGExDistance::Center>>(bOverlapIsZero); }
+			if (Target == EPCGExDistance::SphereBounds) { return MakeShared<TDistances<EPCGExDistance::Center, EPCGExDistance::SphereBounds>>(bOverlapIsZero); }
+			if (Target == EPCGExDistance::BoxBounds) { return MakeShared<TDistances<EPCGExDistance::Center, EPCGExDistance::BoxBounds>>(bOverlapIsZero); }
 		}
 		else if (Source == EPCGExDistance::SphereBounds)
 		{
-			if (Target == EPCGExDistance::Center) { return MakeShared<TDistances<EPCGExDistance::SphereBounds, EPCGExDistance::Center>>(); }
-			if (Target == EPCGExDistance::SphereBounds) { return MakeShared<TDistances<EPCGExDistance::SphereBounds, EPCGExDistance::SphereBounds>>(); }
-			if (Target == EPCGExDistance::BoxBounds) { return MakeShared<TDistances<EPCGExDistance::SphereBounds, EPCGExDistance::BoxBounds>>(); }
+			if (Target == EPCGExDistance::Center) { return MakeShared<TDistances<EPCGExDistance::SphereBounds, EPCGExDistance::Center>>(bOverlapIsZero); }
+			if (Target == EPCGExDistance::SphereBounds) { return MakeShared<TDistances<EPCGExDistance::SphereBounds, EPCGExDistance::SphereBounds>>(bOverlapIsZero); }
+			if (Target == EPCGExDistance::BoxBounds) { return MakeShared<TDistances<EPCGExDistance::SphereBounds, EPCGExDistance::BoxBounds>>(bOverlapIsZero); }
 		}
 		else if (Source == EPCGExDistance::BoxBounds)
 		{
-			if (Target == EPCGExDistance::Center) { return MakeShared<TDistances<EPCGExDistance::BoxBounds, EPCGExDistance::Center>>(); }
-			if (Target == EPCGExDistance::SphereBounds) { return MakeShared<TDistances<EPCGExDistance::BoxBounds, EPCGExDistance::SphereBounds>>(); }
-			if (Target == EPCGExDistance::BoxBounds) { return MakeShared<TDistances<EPCGExDistance::BoxBounds, EPCGExDistance::BoxBounds>>(); }
+			if (Target == EPCGExDistance::Center) { return MakeShared<TDistances<EPCGExDistance::BoxBounds, EPCGExDistance::Center>>(bOverlapIsZero); }
+			if (Target == EPCGExDistance::SphereBounds) { return MakeShared<TDistances<EPCGExDistance::BoxBounds, EPCGExDistance::SphereBounds>>(bOverlapIsZero); }
+			if (Target == EPCGExDistance::BoxBounds) { return MakeShared<TDistances<EPCGExDistance::BoxBounds, EPCGExDistance::BoxBounds>>(bOverlapIsZero); }
 		}
 
 		return nullptr;
@@ -138,11 +183,14 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExDistanceDetails
 	{
 	}
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ShowOnlyInnerProperties))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	EPCGExDistance Source = EPCGExDistance::Center;
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ShowOnlyInnerProperties))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	EPCGExDistance Target = EPCGExDistance::Center;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	bool bOverlapIsZero = true;
 
 	TSharedPtr<PCGExDetails::FDistances> MakeDistances() const { return PCGExDetails::MakeDistances(Source, Target); }
 };
