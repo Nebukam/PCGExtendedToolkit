@@ -2,192 +2,110 @@
 // Released under the MIT license https://opensource.org/license/MIT/
 
 #include "Constants/PCGExConstants.h"
+
+#include "PCGComponent.h"
 #include "PCGContext.h"
+#include "PCGExContext.h"
 #include "PCGParamData.h"
+#include "PCGPin.h"
 #include "Elements/Metadata/PCGMetadataElementCommon.h"
 
 #if WITH_EDITOR
-FName UPCGExConstantsSettings::GetDefaultNodeName() const {
-	return FName("Constant");
+FName UPCGExConstantsSettings::GetEnumName() const
+{
+	if (const UEnum* EnumPtr = StaticEnum<EPCGExConstantListID>())
+	{
+		return FName(EnumPtr->GetDisplayNameTextByValue(static_cast<int64>(ConstantList)).ToString());
+	}
+	return NAME_None;
 }
 
-FLinearColor UPCGExConstantsSettings::GetNodeTitleColor() const {
-	return FLinearColor(0.2, 0.2, 0.2, 1.0);
-}
-
-FText UPCGExConstantsSettings::GetDefaultNodeTitle() const {
-	return FText::FromString("PGCEx | Constant");
-}
-
-TArray<FPCGPreConfiguredSettingsInfo> UPCGExConstantsSettings::GetPreconfiguredInfo() const {
-	return PCGMetadataElementCommon::FillPreconfiguredSettingsInfoFromEnum<EConstantListID>();
+TArray<FPCGPreConfiguredSettingsInfo> UPCGExConstantsSettings::GetPreconfiguredInfo() const
+{
+	return PCGMetadataElementCommon::FillPreconfiguredSettingsInfoFromEnum<EPCGExConstantListID>();
 }
 #endif
 
-FString UPCGExConstantsSettings::GetAdditionalTitleInformation() const {
-	if (const UEnum* EnumPtr = StaticEnum<EConstantListID>()) {
-		return EnumPtr->GetDisplayNameTextByValue(static_cast<int64>(ConstantList)).ToString();
-	};
-	return FString();
-}
-
-void UPCGExConstantsSettings::ApplyPreconfiguredSettings(const FPCGPreConfiguredSettingsInfo& PreconfigureInfo) {
-	if (const UEnum* EnumPtr = StaticEnum<EConstantListID>()) {
-		if (EnumPtr->IsValidEnumValue(PreconfigureInfo.PreconfiguredIndex)) {
-			ConstantList = static_cast<EConstantListID>(PreconfigureInfo.PreconfiguredIndex);
+void UPCGExConstantsSettings::ApplyPreconfiguredSettings(const FPCGPreConfiguredSettingsInfo& PreconfigureInfo)
+{
+	if (const UEnum* EnumPtr = StaticEnum<EPCGExConstantListID>())
+	{
+		if (EnumPtr->IsValidEnumValue(PreconfigureInfo.PreconfiguredIndex))
+		{
+			ConstantList = static_cast<EPCGExConstantListID>(PreconfigureInfo.PreconfiguredIndex);
 		}
 	}
 }
 
-TArray<FPCGPinProperties> UPCGExConstantsSettings::OutputPinProperties() const {
-	
-	TArray<FPCGPinProperties> Out;
+TArray<FPCGPinProperties> UPCGExConstantsSettings::OutputPinProperties() const
+{
+	TArray<FPCGPinProperties> PinProperties;
+
+#define PCGEX_CONST_PIN_LOOP(_LIST) auto List = _LIST; for (const auto Constant : List) { PCGEX_PIN_PARAM(Constant.Name, "...", Normal, {}) }
 
 	// Boolean pins
-	if (ConstantList == EConstantListID::Booleans) {
-		for (const auto Constant : PCGExConstants::Booleans) {
-			auto Pin = Out.Emplace_GetRef(Constant.Name, EPCGDataType::Param, true, false);
-		}
-		return Out;
-	}
-
+	if (ConstantList == EPCGExConstantListID::Booleans) { PCGEX_CONST_PIN_LOOP(PCGExConstants::Booleans) }
 	// Vector pins (just axes for now)
-	if (ConstantList == EConstantListID::Vectors) {
-		auto ConstantsList = GetVectorConstantList(ConstantList);
-		for (const auto Constant : ConstantsList.Constants) {
-			auto Pin = Out.Emplace_GetRef(Constant.Name, EPCGDataType::Param, true, false);
-		}
-		return Out;
-	}
-	
+	else if (ConstantList == EPCGExConstantListID::Vectors) { PCGEX_CONST_PIN_LOOP(GetVectorConstantList(ConstantList).Constants) }
 	// Numerics
-	auto ConstantsList = GetNumericConstantList(ConstantList);
-	for (const auto Constant : ConstantsList.Constants) {
-		auto Pin = Out.Emplace_GetRef(Constant.Name, EPCGDataType::Param, true, false);
-	}
-	
+	else { PCGEX_CONST_PIN_LOOP(GetNumericConstantList(ConstantList).Constants) }
 
-	return Out;
+#undef PCGEX_CONST_PIN_LOOP
+
+	return PinProperties;
 }
 
-FPCGElementPtr UPCGExConstantsSettings::CreateElement() const {
+FPCGElementPtr UPCGExConstantsSettings::CreateElement() const
+{
 	return MakeShared<FPCGConstantsElement>();
 }
 
-FConstantDescriptorList<double> UPCGExConstantsSettings::GetNumericConstantList(EConstantListID ConstantList) {
-	return PCGExConstants::Numbers.ExportedConstants[static_cast<uint8>(ConstantList)];
-}
+bool FPCGConstantsElement::ExecuteInternal(FPCGContext* InContext) const
+{
+	PCGEX_CONTEXT()
+	PCGEX_SETTINGS(Constants)
 
-FConstantDescriptorList<FVector> UPCGExConstantsSettings::GetVectorConstantList(EConstantListID ConstantList) {
-	return PCGExConstants::Vectors.ExportedConstants[0];
-}
-
-bool FPCGConstantsElement::ExecuteInternal(FPCGContext* Context) const {
-
-	check (Context);
-
-	const UPCGExConstantsSettings* Settings = Context->GetInputSettings<UPCGExConstantsSettings>();
-	check(Settings);
+#define PCGEX_OUTPUT_PARAM_DATA(_TYPE, _BODY)\
+	UPCGParamData* OutputData = Context->ManagedObjects->New<UPCGParamData>();\
+	check(OutputData && OutputData->Metadata);\
+	_TYPE Value = static_cast<_TYPE>(Constant.Value); _BODY\
+	FPCGMetadataAttribute<_TYPE>* Attrib = OutputData->Metadata->CreateAttribute<_TYPE>(Constant.Name, Value, true, false);\
+	Attrib->SetValue(OutputData->Metadata->AddEntry(), Value);\
+	Context->StageOutput(Constant.Name, OutputData, true);
 
 	// Boolean constant outputs
-	if (Settings->ConstantList == EConstantListID::Booleans) {
-		for (const auto Constant : PCGExConstants::Booleans) {
-			UPCGParamData* OutputData = FPCGContext::NewObject_AnyThread<UPCGParamData>(Context);
-			check(OutputData && OutputData->Metadata);
-
-			auto Attrib = OutputData->Metadata->CreateAttribute<bool>(Constant.Name, Constant.Value, true, false);
-			OutputData->Metadata->AddEntry();
-			auto Value = Constant.Value;
-			Attrib->AddValue(Value);
-		
-			FPCGTaggedData& NewData = Context->OutputData.TaggedData.Emplace_GetRef();
-			NewData.Data = OutputData;
-			NewData.Pin = Constant.Name;
-		}
+	if (Settings->ConstantList == EPCGExConstantListID::Booleans)
+	{
+		for (const auto Constant : PCGExConstants::Booleans) { PCGEX_OUTPUT_PARAM_DATA(bool, {}) }
 	}
-	
 	// Vector constant output
-	else if (Settings->ConstantList == EConstantListID::Vectors) {
+	else if (Settings->ConstantList == EPCGExConstantListID::Vectors)
+	{
 		auto ConstantsList = UPCGExConstantsSettings::GetVectorConstantList(Settings->ConstantList);
-		for (const auto Constant : ConstantsList.Constants) {
-			UPCGParamData* OutputData = FPCGContext::NewObject_AnyThread<UPCGParamData>(Context);
-			check(OutputData && OutputData->Metadata);
-
-			auto Attrib = OutputData->Metadata->CreateAttribute<FVector>(Constant.Name, Constant.Value, true, false);
-			OutputData->Metadata->AddEntry();
-
-			auto Value = Constant.Value;
-
-			if (Settings->NegateOutput) {
-				Value = Value * -1.0;
-			}
-
-			Attrib->AddValue(Value * Settings->CustomMultiplier);
-		
-			FPCGTaggedData& NewData = Context->OutputData.TaggedData.Emplace_GetRef();
-			NewData.Data = OutputData;
-			NewData.Pin = Constant.Name;
-		}
+		for (const auto Constant : ConstantsList.Constants) { PCGEX_OUTPUT_PARAM_DATA(FVector, {if (Settings->NegateOutput) { Value = Value * -1.0; }}) }
 	}
-	
 	// Numeric constant output
-	else {
+	else
+	{
+#define PCGEX_POST_PROCESS_NUMERIC(_ID, _TYPE)\
+		if(Settings->NumericOutputType == EPCGExNumericOutput::_ID){ PCGEX_OUTPUT_PARAM_DATA(_TYPE, { PostProcessNumericValue(Value, Settings->NegateOutput, Settings->OutputReciprocal, Settings->CustomMultiplier); }) }
+
 		auto ConstantsList = UPCGExConstantsSettings::GetNumericConstantList(Settings->ConstantList);
-		for (const auto Constant : ConstantsList.Constants) {
-			UPCGParamData* OutputData = FPCGContext::NewObject_AnyThread<UPCGParamData>(Context);
-			check(OutputData && OutputData->Metadata);
-			
-			auto Value = Constant.Value;
+		for (const auto Constant : ConstantsList.Constants) { PCGEX_FOREACH_NUMERIC_OUTPUT(PCGEX_POST_PROCESS_NUMERIC) }
 
-			if (Settings->NegateOutput) {
-				Value = Value * -1.0;
-			}
-			
-			if (Settings->OutputReciprocal) {
-				if (!FMath::IsNearlyZero(Value)) {
-					Value = 1.0 / Value;
-				}
-				else {
-					Value = 0.0;
-				}
-				
-			}
-			
-			Value = Value * Settings->CustomMultiplier;
-
-			FPCGMetadataAttribute<double>* DoubleAttrib = nullptr;
-			FPCGMetadataAttribute<float>* FloatAttrib = nullptr;
-			FPCGMetadataAttribute<int>* Int32Attrib = nullptr;
-			FPCGMetadataAttribute<int64>* Int64Attrib = nullptr;
-
-			switch (Settings->NumericOutputType) {
-				case ENumericOutput::Double:
-					DoubleAttrib = OutputData->Metadata->CreateAttribute<double>(Constant.Name, Value, true, false);
-					DoubleAttrib->AddValue(Value);
-					break;
-			
-				case ENumericOutput::Float:
-					FloatAttrib = OutputData->Metadata->CreateAttribute<float>(Constant.Name, Value, true, false);
-					FloatAttrib->AddValue(Value);
-					break;
-
-				case ENumericOutput::Int32:
-					Int32Attrib = OutputData->Metadata->CreateAttribute<int32>(Constant.Name, FMath::RoundToInt32(Value), true, false);
-					Int32Attrib->AddValue(FMath::RoundToInt32(Value));
-					break;
-
-				case ENumericOutput::Int64:
-					Int64Attrib = OutputData->Metadata->CreateAttribute<int64>(Constant.Name, FMath::RoundToInt64(Value), true, false);
-					Int64Attrib->AddValue(FMath::RoundToInt64(Value));
-					break;
-			}
-			
-			OutputData->Metadata->AddEntry();
-			FPCGTaggedData& NewData = Context->OutputData.TaggedData.Emplace_GetRef();
-			NewData.Data = OutputData;
-			NewData.Pin = Constant.Name;
-		}
+#undef PCGEX_POST_PROCESS_NUMERIC
 	}
-	
+
 	return true;
+}
+
+FPCGContext* FPCGConstantsElement::Initialize(const FPCGDataCollection& InputData, TWeakObjectPtr<UPCGComponent> SourceComponent, const UPCGNode* Node)
+{
+	FPCGExContext* Context = new FPCGExContext();
+
+	Context->InputData = InputData;
+	Context->SourceComponent = SourceComponent;
+	Context->Node = Node;
+
+	return Context;
 }
