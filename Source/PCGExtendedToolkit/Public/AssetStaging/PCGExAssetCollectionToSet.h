@@ -1,4 +1,4 @@
-﻿// Copyright Timothé Lapetite 2024
+﻿// Copyright 2024 Timothé Lapetite and contributors
 // Released under the MIT license https://opensource.org/license/MIT/
 
 #pragma once
@@ -21,7 +21,6 @@ enum class EPCGExSubCollectionToSet : uint8
 	PickFirstItem      = 4 UMETA(DisplayName = "First item", Tooltip="Pick the first item"),
 	PickLastItem       = 5 UMETA(DisplayName = "Last item", Tooltip="Pick the last item"),
 };
-
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural))
 class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExAssetCollectionToSetSettings : public UPCGSettings
 {

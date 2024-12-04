@@ -1,4 +1,8 @@
-﻿// Copyright Epic Games, Inc. All Rights Reserved.
+﻿// Copyright 2024 Timothé Lapetite and contributors
+// Released under the MIT license https://opensource.org/license/MIT/
+
+// Some of it Copyright Epic Games, Inc. All Rights Reserved.
+// Needed for backward compatibility with 5.3 as some members weren't exposed
 
 #pragma once
 

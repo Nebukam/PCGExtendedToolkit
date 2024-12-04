@@ -1,4 +1,4 @@
-﻿// Copyright Timothé Lapetite 2024
+﻿// Copyright 2024 Timothé Lapetite and contributors
 // Released under the MIT license https://opensource.org/license/MIT/
 
 #include "Data/PCGExData.h"
@@ -233,7 +233,7 @@ namespace PCGExData
 			OutIOIdx[Index] = *IOIdx;
 			OutPointsIdx[Index] = PtIndex;
 
-			const double Weight = InDistanceDetails->GetDistance(Sources[*IOIdx]->Source->GetInPoint(PtIndex), Target);
+			const double Weight = InDistanceDetails->GetDistSquared(Sources[*IOIdx]->Source->GetInPoint(PtIndex), Target);
 			OutWeights[Index] = Weight;
 			TotalWeight += Weight;
 
