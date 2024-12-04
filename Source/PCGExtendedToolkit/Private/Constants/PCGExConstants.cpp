@@ -94,6 +94,7 @@ bool FPCGExConstantsElement::ExecuteInternal(FPCGContext* InContext) const
 		for (const auto Constant : ConstantsList.Constants) { PCGEX_FOREACH_NUMERIC_OUTPUT(PCGEX_POST_PROCESS_NUMERIC) }
 
 #undef PCGEX_POST_PROCESS_NUMERIC
+#undef PCGEX_OUTPUT_PARAM_DATA
 	}
 
 	Context->Done();
