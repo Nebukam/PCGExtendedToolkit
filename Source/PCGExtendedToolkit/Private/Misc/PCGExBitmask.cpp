@@ -33,7 +33,7 @@ FPCGContext* FPCGExBitmaskElement::Initialize(
 	const TWeakObjectPtr<UPCGComponent> SourceComponent,
 	const UPCGNode* Node)
 {
-	FPCGContext* Context = new FPCGContext();
+	FPCGExContext* Context = new FPCGExContext();
 
 	Context->InputData = InputData;
 	Context->SourceComponent = SourceComponent;
@@ -42,21 +42,19 @@ FPCGContext* FPCGExBitmaskElement::Initialize(
 	return Context;
 }
 
-bool FPCGExBitmaskElement::ExecuteInternal(FPCGContext* Context) const
+bool FPCGExBitmaskElement::ExecuteInternal(FPCGContext* InContext) const
 {
+	PCGEX_CONTEXT()
 	PCGEX_SETTINGS(Bitmask)
 
-	UPCGParamData* BitmaskData;
 	const int64 Bitmask = Settings->Bitmask.Get();
 
-	BitmaskData = NewObject<UPCGParamData>();
+	UPCGParamData* BitmaskData = Context->ManagedObjects->New<UPCGParamData>();
 	BitmaskData->Metadata->CreateAttribute<int64>(FName("Bitmask"), Bitmask, false, true);
 	BitmaskData->Metadata->AddEntry();
 
-	FPCGTaggedData& OutData = Context->OutputData.TaggedData.Emplace_GetRef();
-	OutData.Pin = FName("Bitmask");
-	OutData.Data = BitmaskData;
-
+	Context->StageOutput(FName("Bitmask"), BitmaskData, true);
+	
 	return true;
 }
 
