@@ -125,6 +125,9 @@ public:
 
 
 	UPROPERTY(EditAnywhere, config, Category = "Node Colors")
+	FLinearColor NodeColorConstant = FLinearColor(0.2, 0.2, 0.2, 1.0);
+	
+	UPROPERTY(EditAnywhere, config, Category = "Node Colors")
 	FLinearColor NodeColorDebug = FLinearColor(1.0f, 0.0f, 0.0f, 1.0f);
 
 	UPROPERTY(EditAnywhere, config, Category = "Node Colors")
