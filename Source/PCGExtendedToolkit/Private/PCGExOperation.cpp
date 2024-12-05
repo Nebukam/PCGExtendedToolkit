@@ -52,7 +52,7 @@ void UPCGExOperation::ApplyOverrides()
 {
 	UClass* ObjectClass = GetClass();
 
-	for (TPair<FName, FPCGMetadataAttributeBase*> PossibleOverride : PossibleOverrides)
+	for (const TPair<FName, FPCGMetadataAttributeBase*>& PossibleOverride : PossibleOverrides)
 	{
 		// Find the property by name
 		FProperty* Property = ObjectClass->FindPropertyByName(PossibleOverride.Key);
