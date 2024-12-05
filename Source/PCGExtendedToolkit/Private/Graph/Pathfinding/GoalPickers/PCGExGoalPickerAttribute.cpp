@@ -16,21 +16,21 @@ void UPCGExGoalPickerAttribute::CopySettingsFrom(const UPCGExOperation* Other)
 
 		if (!TypedOther->CommaSeparatedNames.IsEmpty())
 		{
-			for (const TArray<FString> Names = PCGExHelpers::GetStringArrayFromCommaSeparatedList(CommaSeparatedNames);
-			     const FString& Name : Names)
+			for (const TArray<FString> Names = PCGExHelpers::GetStringArrayFromCommaSeparatedList(TypedOther->CommaSeparatedNames);
+				 const FString& Name : Names)
 			{
 				FPCGAttributePropertyInputSelector NewSelector = FPCGAttributePropertyInputSelector();
 				NewSelector.Update(Name);
 				AttributeSelectors.AddUnique(NewSelector);
 			}
-		}
+		}		
 	}
 }
 
 bool UPCGExGoalPickerAttribute::PrepareForData(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade>& InSeedsDataFacade, const TSharedPtr<PCGExData::FFacade>& InGoalsDataFacade)
 {
 	if (!Super::PrepareForData(InContext, InSeedsDataFacade, InGoalsDataFacade)) { return false; }
-
+	
 	if (GoalCount == EPCGExGoalPickAttributeAmount::Single)
 	{
 		SingleGetter = InSeedsDataFacade->GetBroadcaster<int32>(SingleSelector);
@@ -43,6 +43,17 @@ bool UPCGExGoalPickerAttribute::PrepareForData(FPCGExContext* InContext, const T
 	}
 	else
 	{
+		if (!CommaSeparatedNames.IsEmpty())
+		{
+			for (const TArray<FString> Names = PCGExHelpers::GetStringArrayFromCommaSeparatedList(CommaSeparatedNames);
+				 const FString& Name : Names)
+			{
+				FPCGAttributePropertyInputSelector NewSelector = FPCGAttributePropertyInputSelector();
+				NewSelector.Update(Name);
+				AttributeSelectors.AddUnique(NewSelector);
+			}
+		}
+		
 		AttributeGetters.Reset(AttributeSelectors.Num());
 		for (const FPCGAttributePropertyInputSelector& Selector : AttributeSelectors)
 		{
