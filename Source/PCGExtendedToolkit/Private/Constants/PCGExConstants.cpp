@@ -2,7 +2,6 @@
 // Released under the MIT license https://opensource.org/license/MIT/
 
 #include "Constants/PCGExConstants.h"
-
 #include "PCGComponent.h"
 #include "PCGContext.h"
 #include "PCGExContext.h"
@@ -41,16 +40,33 @@ TArray<FPCGPinProperties> UPCGExConstantsSettings::OutputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties;
 
-#define PCGEX_CONST_PIN_LOOP(_LIST) auto List = _LIST; for (const auto Constant : List) { PCGEX_PIN_PARAM(Constant.Name, "...", Normal, {}) }
-
 	// Boolean pins
-	if (ConstantList == EPCGExConstantListID::Booleans) { PCGEX_CONST_PIN_LOOP(PCGExConstants::Booleans) }
+	if (ConstantList == EPCGExConstantListID::Booleans)
+	{
+		for (auto List = PCGExConstants::Booleans;
+		     const auto Constant : List)
+		{
+			PCGEX_PIN_PARAM(Constant.Name, "...", Normal, {})
+		}
+	}
 	// Vector pins (just axes for now)
-	else if (ConstantList == EPCGExConstantListID::Vectors) { PCGEX_CONST_PIN_LOOP(GetVectorConstantList(ConstantList).Constants) }
+	else if (ConstantList == EPCGExConstantListID::Vectors)
+	{
+		for (auto List = GetVectorConstantList(ConstantList).Constants;
+		     const auto Constant : List)
+		{
+			PCGEX_PIN_PARAM(Constant.Name, "...", Normal, {})
+		}
+	}
 	// Numerics
-	else { PCGEX_CONST_PIN_LOOP(GetNumericConstantList(ConstantList).Constants) }
-
-#undef PCGEX_CONST_PIN_LOOP
+	else
+	{
+		for (auto List = GetNumericConstantList(ConstantList).Constants;
+		     const auto Constant : List)
+		{
+			PCGEX_PIN_PARAM(Constant.Name, "...", Normal, {})
+		}
+	}
 
 	return PinProperties;
 }
@@ -65,36 +81,43 @@ bool FPCGExConstantsElement::ExecuteInternal(FPCGContext* InContext) const
 	PCGEX_CONTEXT()
 	PCGEX_SETTINGS(Constants)
 
-#define PCGEX_OUTPUT_PARAM_DATA(_TYPE, _BODY)\
-	UPCGParamData* OutputData = Context->ManagedObjects->New<UPCGParamData>();\
-	check(OutputData && OutputData->Metadata);\
-	_TYPE Value = static_cast<_TYPE>(Constant.Value); _BODY\
-	FPCGMetadataAttribute<_TYPE>* Attrib = OutputData->Metadata->CreateAttribute<_TYPE>(Constant.Name, Value, true, false);\
-	Attrib->SetValue(OutputData->Metadata->AddEntry(), Value);\
-	Context->StageOutput(Constant.Name, OutputData, true);
-
 	// Boolean constant outputs
 	if (Settings->ConstantList == EPCGExConstantListID::Booleans)
 	{
-		for (const auto Constant : PCGExConstants::Booleans) { PCGEX_OUTPUT_PARAM_DATA(bool, {}) }
+		for (const auto Constant : PCGExConstants::Booleans)
+		{
+			StageConstant(Context, Constant.Name, Constant.Value);
+		}
 	}
 	// Vector constant output
 	else if (Settings->ConstantList == EPCGExConstantListID::Vectors)
 	{
-		auto ConstantsList = UPCGExConstantsSettings::GetVectorConstantList(Settings->ConstantList);
-		for (const auto Constant : ConstantsList.Constants) { PCGEX_OUTPUT_PARAM_DATA(FVector, {if (Settings->NegateOutput) { Value = Value * -1.0; }}) }
+		for (auto ConstantsList = UPCGExConstantsSettings::GetVectorConstantList(Settings->ConstantList);
+		     const auto Constant : ConstantsList.Constants)
+		{
+			StageConstant(Context, Constant.Name, Settings->NegateOutput ? Constant.Value * -1 : Constant.Value);
+		}
 	}
 	// Numeric constant output
 	else
 	{
-#define PCGEX_POST_PROCESS_NUMERIC(_ID, _TYPE)\
-		if(Settings->NumericOutputType == EPCGExNumericOutput::_ID){ PCGEX_OUTPUT_PARAM_DATA(_TYPE, { PostProcessNumericValue(Value, Settings->NegateOutput, Settings->OutputReciprocal, Settings->CustomMultiplier); }) }
-
 		auto ConstantsList = UPCGExConstantsSettings::GetNumericConstantList(Settings->ConstantList);
-		for (const auto Constant : ConstantsList.Constants) { PCGEX_FOREACH_NUMERIC_OUTPUT(PCGEX_POST_PROCESS_NUMERIC) }
+		for (const auto Constant : ConstantsList.Constants)
+		{
+			auto Value = Settings->ApplyNumericValueSettings(Constant.Value);
 
-#undef PCGEX_POST_PROCESS_NUMERIC
-#undef PCGEX_OUTPUT_PARAM_DATA
+			switch (Settings->NumericOutputType)
+			{
+			case EPCGExNumericOutput::Double: StageConstant<double>(Context, Constant.Name, Value);
+				break;
+			case EPCGExNumericOutput::Float: StageConstant<float>(Context, Constant.Name, Value);
+				break;
+			case EPCGExNumericOutput::Int32: StageConstant<int32>(Context, Constant.Name, Value);
+				break;
+			case EPCGExNumericOutput::Int64: StageConstant<int64>(Context, Constant.Name, Value);
+				break;
+			}
+		}
 	}
 
 	Context->Done();

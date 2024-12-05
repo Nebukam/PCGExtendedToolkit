@@ -4,7 +4,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "PCGExConstants.h"
+
 #include "Graph/Filters/PCGExAdjacency.h"
 #include "PCGExDetails.h"
 

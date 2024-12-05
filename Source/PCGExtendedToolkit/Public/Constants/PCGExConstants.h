@@ -4,8 +4,10 @@
 #pragma once
 #include "PCGSettings.h"
 #include "PCGExConstantsDefinitions.h"
+#include "PCGExContext.h"
 #include "PCGExGlobalSettings.h"
 #include "PCGExMacros.h"
+#include "PCGParamData.h"
 #include "PCGExConstants.generated.h"
 
 UENUM(BlueprintType)
@@ -16,12 +18,6 @@ enum class EPCGExNumericOutput : uint8
 	Int32,
 	Int64,
 };
-
-#define PCGEX_FOREACH_NUMERIC_OUTPUT(_MACRO)\
-_MACRO(Double, double)\
-_MACRO(Float, float)\
-_MACRO(Int32, int32)\
-_MACRO(Int64, int64)
 
 UCLASS(BlueprintType, ClassGroup=(Procedural))
 class UPCGExConstantsSettings : public UPCGSettings
@@ -84,6 +80,25 @@ public:
 	{
 		return PCGExConstants::Vectors.ExportedConstants[0];
 	}
+
+	template <typename T>
+	T ApplyNumericValueSettings(const T& InValue) const
+	{
+		T Value = InValue;
+		if (NegateOutput) { Value *= -1; }
+
+		if constexpr (std::is_floating_point_v<T>)
+		{
+			if (OutputReciprocal)
+			{
+				if (!FMath::IsNearlyZero(Value)) { Value = 1 / Value; }
+				else { Value = 0; }
+			}
+		}
+
+		Value *= CustomMultiplier;
+		return Value;
+	}
 };
 
 class FPCGExConstantsElement : public IPCGElement
@@ -91,23 +106,19 @@ class FPCGExConstantsElement : public IPCGElement
 protected:
 	virtual bool ExecuteInternal(FPCGContext* Context) const override;
 
+	
 	template <typename T>
-	void PostProcessNumericValue(T& InValue, const bool bNegate, const bool bReciprocal, const double Scale) const
+	void StageConstant(FPCGExContext* InContext, const FName InName, const T& InValue) const
 	{
-		if (bNegate) { InValue *= -1; }
+		UPCGParamData* OutputData = InContext->ManagedObjects->New<UPCGParamData>();
+		check(OutputData && OutputData->Metadata);
 
-		if constexpr (std::is_floating_point_v<T>)
-		{
-			if (bReciprocal)
-			{
-				if (!FMath::IsNearlyZero(InValue)) { InValue = 1 / InValue; }
-				else { InValue = 0; }
-			}
-		}
+		FPCGMetadataAttribute<T>* Attrib = OutputData->Metadata->CreateAttribute<T>(InName, InValue, true, false);\
+		Attrib->SetValue(OutputData->Metadata->AddEntry(), InValue);
 
-		InValue *= Scale;
+		InContext->StageOutput(InName, OutputData, true);
 	}
-
+	
 public:
 	virtual FPCGContext* Initialize(const FPCGDataCollection& InputData, TWeakObjectPtr<UPCGComponent> SourceComponent, const UPCGNode* Node) override;
 	virtual bool IsCacheable(const UPCGSettings* InSettings) const override { return true; }
