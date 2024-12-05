@@ -132,13 +132,20 @@ bool FPCGExPathfindingEdgesElement::Boot(FPCGExContext* InContext) const
 
 	// Prepare path seed/goal pairs
 
-	Context->GoalPicker->PrepareForData(Context->SeedsDataFacade, Context->GoalsDataFacade);
+	if (!Context->GoalPicker->PrepareForData(Context, Context->SeedsDataFacade, Context->GoalsDataFacade)) { return false; }
+
 	PCGExPathfinding::ProcessGoals(
 		Context->SeedsDataFacade, Context->GoalPicker,
 		[&](const int32 SeedIndex, const int32 GoalIndex)
 		{
 			Context->SeedGoalPairs.Add(PCGEx::H64(SeedIndex, GoalIndex));
 		});
+
+	if (Context->SeedGoalPairs.IsEmpty())
+	{
+		PCGE_LOG(Error, GraphAndLog, FTEXT("Could not generate any seed/goal pairs."));
+		return false;
+	}
 
 	return true;
 }

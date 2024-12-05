@@ -9,6 +9,14 @@
 #include "Data/PCGExAttributeHelpers.h"
 
 
+
+
+
+
+
+
+
+
 #include "PCGExGoalPickerAttribute.generated.h"
 
 struct FPCGPoint;
@@ -30,24 +38,24 @@ class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExGoalPickerAttribute : public UPCGExGoalPi
 	GENERATED_BODY()
 
 public:
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = GoalPicker)
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
 	EPCGExGoalPickAttributeAmount GoalCount = EPCGExGoalPickAttributeAmount::Single;
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = GoalPicker, meta=(EditCondition="GoalCount==EPCGExGoalPickAttributeAmount::Single", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(EditCondition="GoalCount==EPCGExGoalPickAttributeAmount::Single", EditConditionHides))
 	FPCGAttributePropertyInputSelector SingleSelector;
-	TSharedPtr<PCGExData::TBuffer<double>> SingleGetter;
+	TSharedPtr<PCGExData::TBuffer<int32>> SingleGetter;
 
 	/** A list of attribute names separated by a comma, for easy overrides. They will be added to the in-place array of selectors. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="GoalCount==EPCGExGoalPickAttributeAmount::List"))
 	FString CommaSeparatedNames = TEXT("");
 	
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = GoalPicker, meta=(EditCondition="GoalCount==EPCGExGoalPickAttributeAmount::List", EditConditionHides, TitleProperty="{TitlePropertyName}"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(EditCondition="GoalCount==EPCGExGoalPickAttributeAmount::List", EditConditionHides, TitleProperty="{TitlePropertyName}"))
 	TArray<FPCGAttributePropertyInputSelector> AttributeSelectors;
-	TArray<TSharedPtr<PCGExData::TBuffer<double>>> AttributeGetters;
+	TArray<TSharedPtr<PCGExData::TBuffer<int32>>> AttributeGetters;
 
 	virtual void CopySettingsFrom(const UPCGExOperation* Other) override;
 
-	virtual void PrepareForData(const TSharedPtr<PCGExData::FFacade>& InSeedsDataFacade, const TSharedPtr<PCGExData::FFacade>& InGoalsDataFacade) override;
+	virtual bool PrepareForData(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade>& InSeedsDataFacade, const TSharedPtr<PCGExData::FFacade>& InGoalsDataFacade) override;
 	virtual int32 GetGoalIndex(const PCGExData::FPointRef& Seed) const override;
 	virtual void GetGoalIndices(const PCGExData::FPointRef& Seed, TArray<int32>& OutIndices) const override;
 	virtual bool OutputMultipleGoals() const override;

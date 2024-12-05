@@ -14,15 +14,25 @@ void UPCGExGoalPickerRandom::CopySettingsFrom(const UPCGExOperation* Other)
 	{
 		GoalCount = TypedOther->GoalCount;
 		NumGoals = TypedOther->NumGoals;
-		bUseLocalNumGoals = TypedOther->bUseLocalNumGoals;
-		LocalNumGoalAttribute = TypedOther->LocalNumGoalAttribute;
+		bUseNumGoalsAttribute = TypedOther->bUseNumGoalsAttribute;
+		NumGoalAttribute = TypedOther->NumGoalAttribute;
 	}
 }
 
-void UPCGExGoalPickerRandom::PrepareForData(const TSharedPtr<PCGExData::FFacade>& InSeedsDataFacade, const TSharedPtr<PCGExData::FFacade>& InGoalsDataFacade)
+bool UPCGExGoalPickerRandom::PrepareForData(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade>& InSeedsDataFacade, const TSharedPtr<PCGExData::FFacade>& InGoalsDataFacade)
 {
-	if (bUseLocalNumGoals) { NumGoalsGetter = InSeedsDataFacade->GetBroadcaster<int32>(LocalNumGoalAttribute); }
-	Super::PrepareForData(InSeedsDataFacade, InGoalsDataFacade);
+	if (!Super::PrepareForData(InContext, InSeedsDataFacade, InGoalsDataFacade)) { return false; }
+
+	if (bUseNumGoalsAttribute)
+	{
+		NumGoalsGetter = InSeedsDataFacade->GetBroadcaster<int32>(NumGoalAttribute);
+		if (!NumGoalsGetter)
+		{
+			PCGE_LOG_C(Error, GraphAndLog, Context, FText::Format(FTEXT("Invalid NumGoals selector on Seeds: \"{0}\"."), FText::FromString(PCGEx::GetSelectorDisplayName(NumGoalAttribute))));
+			return false;
+		}
+	}
+	return true;
 }
 
 int32 UPCGExGoalPickerRandom::GetGoalIndex(const PCGExData::FPointRef& Seed) const
