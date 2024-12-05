@@ -91,7 +91,7 @@ namespace PCGExGraph
 				TSharedPtr<PCGExDetails::FDistances> Distances = PCGExDetails::MakeDistances(This->PointPointIntersectionDetails.FuseDetails.SourceDistance, This->PointPointIntersectionDetails.FuseDetails.TargetDistance);
 
 				TArray<FPCGPoint>& Points = This->UnionDataFacade->GetOut()->GetMutablePoints();
-				
+
 				PCGEX_ASYNC_SUB_LOOP
 				{
 					TSharedPtr<FUnionNode> UnionNode = This->UnionGraph->Nodes[i];
@@ -148,14 +148,14 @@ namespace PCGExGraph
 			};
 
 		UnionDataFacade->WriteBuffersAsCallbacks(WriteMetadataTask);
-		
+
 		WriteMetadataTask->AddSimpleCallback(
 			[PCGEX_ASYNC_THIS_CAPTURE]()
 			{
 				PCGEX_ASYNC_THIS
 				This->UnionGraph->WriteNodeMetadata(This->GraphBuilder->Graph);
 			});
-			
+
 		WriteMetadataTask->AddSimpleCallback(
 			[PCGEX_ASYNC_THIS_CAPTURE]()
 			{

@@ -21,6 +21,7 @@ enum class EPCGExSubCollectionToSet : uint8
 	PickFirstItem      = 4 UMETA(DisplayName = "First item", Tooltip="Pick the first item"),
 	PickLastItem       = 5 UMETA(DisplayName = "Last item", Tooltip="Pick the last item"),
 };
+
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural))
 class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExAssetCollectionToSetSettings : public UPCGSettings
 {

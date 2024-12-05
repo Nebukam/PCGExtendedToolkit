@@ -106,7 +106,7 @@ class FPCGExConstantsElement : public IPCGElement
 protected:
 	virtual bool ExecuteInternal(FPCGContext* Context) const override;
 
-	
+
 	template <typename T>
 	void StageConstant(FPCGExContext* InContext, const FName InName, const T& InValue) const
 	{
@@ -118,7 +118,7 @@ protected:
 
 		InContext->StageOutput(InName, OutputData, true);
 	}
-	
+
 public:
 	virtual FPCGContext* Initialize(const FPCGDataCollection& InputData, TWeakObjectPtr<UPCGComponent> SourceComponent, const UPCGNode* Node) override;
 	virtual bool IsCacheable(const UPCGSettings* InSettings) const override { return true; }

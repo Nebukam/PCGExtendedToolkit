@@ -109,9 +109,9 @@ namespace PCGExConditionalActions
 		// Initialize writers with provided default value
 		for (FPCGMetadataAttributeBase* AttributeBase : Context->DefaultAttributes->Attributes)
 		{
-				PCGEx::ExecuteWithRightType(
-						AttributeBase->GetTypeId(), [&](auto DummyValue)
-						{
+			PCGEx::ExecuteWithRightType(
+				AttributeBase->GetTypeId(), [&](auto DummyValue)
+				{
 					using T = decltype(DummyValue);
 					const FPCGMetadataAttribute<T>* TypedAttribute = static_cast<FPCGMetadataAttribute<T>*>(AttributeBase);
 					PointDataFacade->GetWritable<T>(TypedAttribute, PCGExData::EBufferInit::Inherit);

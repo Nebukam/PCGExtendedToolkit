@@ -58,9 +58,9 @@ void UPCGExOperation::ApplyOverrides()
 		FProperty* Property = ObjectClass->FindPropertyByName(PossibleOverride.Key);
 		if (!Property) { continue; }
 
-			PCGEx::ExecuteWithRightType(
-                                						PossibleOverride.Value->GetTypeId(), [&](auto DummyValue)
-                                						{
+		PCGEx::ExecuteWithRightType(
+			PossibleOverride.Value->GetTypeId(), [&](auto DummyValue)
+			{
 				using T = decltype(DummyValue);
 				const FPCGMetadataAttribute<T>* TypedAttribute = static_cast<FPCGMetadataAttribute<T>*>(PossibleOverride.Value);
 				bool bSuccess = PCGEx::TrySetFPropertyValue<T>(this, Property, TypedAttribute->GetValue(0));

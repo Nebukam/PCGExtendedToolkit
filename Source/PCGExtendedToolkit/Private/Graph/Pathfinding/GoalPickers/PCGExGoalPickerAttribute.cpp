@@ -17,24 +17,24 @@ void UPCGExGoalPickerAttribute::CopySettingsFrom(const UPCGExOperation* Other)
 		if (!TypedOther->CommaSeparatedNames.IsEmpty())
 		{
 			for (const TArray<FString> Names = PCGExHelpers::GetStringArrayFromCommaSeparatedList(TypedOther->CommaSeparatedNames);
-				 const FString& Name : Names)
+			     const FString& Name : Names)
 			{
 				FPCGAttributePropertyInputSelector NewSelector = FPCGAttributePropertyInputSelector();
 				NewSelector.Update(Name);
 				AttributeSelectors.AddUnique(NewSelector);
 			}
-		}		
+		}
 	}
 }
 
 bool UPCGExGoalPickerAttribute::PrepareForData(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade>& InSeedsDataFacade, const TSharedPtr<PCGExData::FFacade>& InGoalsDataFacade)
 {
 	if (!Super::PrepareForData(InContext, InSeedsDataFacade, InGoalsDataFacade)) { return false; }
-	
+
 	if (GoalCount == EPCGExGoalPickAttributeAmount::Single)
 	{
 		SingleGetter = InSeedsDataFacade->GetBroadcaster<int32>(SingleSelector);
-		
+
 		if (!SingleGetter)
 		{
 			PCGE_LOG_C(Error, GraphAndLog, Context, FText::Format(FTEXT("Invalid Index selector on Seeds: \"{0}\"."), FText::FromString(PCGEx::GetSelectorDisplayName(SingleSelector))));
@@ -46,14 +46,14 @@ bool UPCGExGoalPickerAttribute::PrepareForData(FPCGExContext* InContext, const T
 		if (!CommaSeparatedNames.IsEmpty())
 		{
 			for (const TArray<FString> Names = PCGExHelpers::GetStringArrayFromCommaSeparatedList(CommaSeparatedNames);
-				 const FString& Name : Names)
+			     const FString& Name : Names)
 			{
 				FPCGAttributePropertyInputSelector NewSelector = FPCGAttributePropertyInputSelector();
 				NewSelector.Update(Name);
 				AttributeSelectors.AddUnique(NewSelector);
 			}
 		}
-		
+
 		AttributeGetters.Reset(AttributeSelectors.Num());
 		for (const FPCGAttributePropertyInputSelector& Selector : AttributeSelectors)
 		{
@@ -63,7 +63,7 @@ bool UPCGExGoalPickerAttribute::PrepareForData(FPCGExContext* InContext, const T
 				PCGE_LOG_C(Error, GraphAndLog, Context, FText::Format(FTEXT("Invalid Index selector on Seeds: \"{0}\"."), FText::FromString(PCGEx::GetSelectorDisplayName(Selector))));
 				return false;
 			}
-			
+
 			AttributeGetters.Add(Getter);
 		}
 	}
@@ -73,7 +73,7 @@ bool UPCGExGoalPickerAttribute::PrepareForData(FPCGExContext* InContext, const T
 
 int32 UPCGExGoalPickerAttribute::GetGoalIndex(const PCGExData::FPointRef& Seed) const
 {
-	return PCGExMath::SanitizeIndex(static_cast<int32>(SingleGetter ? SingleGetter->Read(Seed.Index) : -1), MaxGoalIndex, IndexSafety);
+	return PCGExMath::SanitizeIndex(SingleGetter ? SingleGetter->Read(Seed.Index) : -1, MaxGoalIndex, IndexSafety);
 }
 
 void UPCGExGoalPickerAttribute::GetGoalIndices(const PCGExData::FPointRef& Seed, TArray<int32>& OutIndices) const

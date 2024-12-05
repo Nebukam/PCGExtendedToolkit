@@ -125,9 +125,9 @@ namespace PCGExAttributeRemap
 			return false;
 		}
 
-			PCGEx::ExecuteWithRightType(
-                                					UnderlyingType, [&](auto DummyValue)
-                                					{
+		PCGEx::ExecuteWithRightType(
+			UnderlyingType, [&](auto DummyValue)
+			{
 				using RawT = decltype(DummyValue);
 				CacheWriter = PointDataFacade->GetWritable<RawT>(Settings->TargetAttributeName, PCGExData::EBufferInit::New);
 				CacheReader = PointDataFacade->GetScopedReadable<RawT>(Identity->Name);
@@ -184,14 +184,14 @@ namespace PCGExAttributeRemap
 
 				This->PointDataFacade->Fetch(StartIndex, Count);
 				PCGEx::ExecuteWithRightType(
-                                                					This->UnderlyingType, [&](auto DummyValue)
-                                                					{
+					This->UnderlyingType, [&](auto DummyValue)
+					{
 						using RawT = decltype(DummyValue);
 						TSharedPtr<PCGExData::TBuffer<RawT>> Writer = StaticCastSharedPtr<PCGExData::TBuffer<RawT>>(This->CacheWriter);
 						TSharedPtr<PCGExData::TBuffer<RawT>> Reader = StaticCastSharedPtr<PCGExData::TBuffer<RawT>>(This->CacheReader);
 
 						const int32 MaxIndex = StartIndex + Count;
-						
+
 						// TODO : Swap for a scoped accessor since we don't need to keep readable values in memory
 						for (int i = StartIndex; i < MaxIndex; i++) { Writer->GetMutable(i) = Reader->Read(i); } // Copy range to writer
 
@@ -248,9 +248,9 @@ namespace PCGExAttributeRemap
 			{
 				PCGEX_ASYNC_THIS
 
-PCGEx::ExecuteWithRightType(
-                                                					This->UnderlyingType, [&](auto DummyValue)
-                                                					{
+				PCGEx::ExecuteWithRightType(
+					This->UnderlyingType, [&](auto DummyValue)
+					{
 						This->RemapRange(StartIndex, Count, DummyValue);
 					});
 			};
