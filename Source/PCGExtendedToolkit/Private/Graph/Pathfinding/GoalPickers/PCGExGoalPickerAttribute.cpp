@@ -27,19 +27,37 @@ void UPCGExGoalPickerAttribute::CopySettingsFrom(const UPCGExOperation* Other)
 	}
 }
 
-void UPCGExGoalPickerAttribute::PrepareForData(const TSharedPtr<PCGExData::FFacade>& InSeedsDataFacade, const TSharedPtr<PCGExData::FFacade>& InGoalsDataFacade)
+bool UPCGExGoalPickerAttribute::PrepareForData(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade>& InSeedsDataFacade, const TSharedPtr<PCGExData::FFacade>& InGoalsDataFacade)
 {
-	Super::PrepareForData(InSeedsDataFacade, InGoalsDataFacade);
+	if (!Super::PrepareForData(InContext, InSeedsDataFacade, InGoalsDataFacade)) { return false; }
 
 	if (GoalCount == EPCGExGoalPickAttributeAmount::Single)
 	{
-		SingleGetter = InSeedsDataFacade->GetBroadcaster<double>(SingleSelector);
+		SingleGetter = InSeedsDataFacade->GetBroadcaster<int32>(SingleSelector);
+		
+		if (!SingleGetter)
+		{
+			PCGE_LOG_C(Error, GraphAndLog, Context, FText::Format(FTEXT("Invalid Index selector on Seeds: \"{0}\"."), FText::FromString(PCGEx::GetSelectorDisplayName(SingleSelector))));
+			return false;
+		}
 	}
 	else
 	{
 		AttributeGetters.Reset(AttributeSelectors.Num());
-		for (const FPCGAttributePropertyInputSelector& Selector : AttributeSelectors) { AttributeGetters.Add(InSeedsDataFacade->GetBroadcaster<double>(Selector)); }
+		for (const FPCGAttributePropertyInputSelector& Selector : AttributeSelectors)
+		{
+			TSharedPtr<PCGExData::TBuffer<int32>> Getter = InSeedsDataFacade->GetBroadcaster<int32>(Selector);
+			if (!Getter)
+			{
+				PCGE_LOG_C(Error, GraphAndLog, Context, FText::Format(FTEXT("Invalid Index selector on Seeds: \"{0}\"."), FText::FromString(PCGEx::GetSelectorDisplayName(Selector))));
+				return false;
+			}
+			
+			AttributeGetters.Add(Getter);
+		}
 	}
+
+	return true;
 }
 
 int32 UPCGExGoalPickerAttribute::GetGoalIndex(const PCGExData::FPointRef& Seed) const
@@ -49,10 +67,10 @@ int32 UPCGExGoalPickerAttribute::GetGoalIndex(const PCGExData::FPointRef& Seed) 
 
 void UPCGExGoalPickerAttribute::GetGoalIndices(const PCGExData::FPointRef& Seed, TArray<int32>& OutIndices) const
 {
-	for (const TSharedPtr<PCGExData::TBuffer<double>>& Getter : AttributeGetters)
+	for (const TSharedPtr<PCGExData::TBuffer<int32>>& Getter : AttributeGetters)
 	{
 		if (!Getter) { continue; }
-		OutIndices.Add(PCGExMath::SanitizeIndex(static_cast<int32>(Getter->Read(Seed.Index)), MaxGoalIndex, IndexSafety));
+		OutIndices.Add(PCGExMath::SanitizeIndex(Getter->Read(Seed.Index), MaxGoalIndex, IndexSafety));
 	}
 }
 
