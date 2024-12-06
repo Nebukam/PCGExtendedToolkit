@@ -51,12 +51,16 @@ enum class EPCGExSampleSource : uint8
 UENUM()
 enum class EPCGExAngleRange : uint8
 {
-	URadians   = 0 UMETA(DisplayName = "Radians (0..+PI)", ToolTip="0..+PI"),
-	PIRadians  = 1 UMETA(DisplayName = "Radians (-PI..+PI)", ToolTip="-PI..+PI"),
-	TAURadians = 2 UMETA(DisplayName = "Radians (0..+TAU)", ToolTip="0..TAU"),
-	UDegrees   = 3 UMETA(DisplayName = "Degrees (0..+180)", ToolTip="0..+180"),
-	PIDegrees  = 4 UMETA(DisplayName = "Degrees (-180..+180)", ToolTip="-180..+180"),
-	TAUDegrees = 5 UMETA(DisplayName = "Degrees (0..+360)", ToolTip="0..+360"),
+	URadians               = 0 UMETA(DisplayName = "Radians (0..+PI)", ToolTip="0..+PI"),
+	PIRadians              = 1 UMETA(DisplayName = "Radians (-PI..+PI)", ToolTip="-PI..+PI"),
+	TAURadians             = 2 UMETA(DisplayName = "Radians (0..+TAU)", ToolTip="0..TAU"),
+	UDegrees               = 3 UMETA(DisplayName = "Degrees (0..+180)", ToolTip="0..+180"),
+	PIDegrees              = 4 UMETA(DisplayName = "Degrees (-180..+180)", ToolTip="-180..+180"),
+	TAUDegrees             = 5 UMETA(DisplayName = "Degrees (0..+360)", ToolTip="0..+360"),
+	NormalizedHalf         = 6 UMETA(DisplayName = "Normalized Half (0..180 -> 0..1)", ToolTip="0..180 -> 0..1"),
+	Normalized             = 7 UMETA(DisplayName = "Normalized (0..+360 -> 0..1)", ToolTip="0..+360 -> 0..1"),
+	InvertedNormalizedHalf = 8 UMETA(DisplayName = "Inv. Normalized Half (0..180 -> 1..0)", ToolTip="0..180 -> 1..0"),
+	InvertedNormalized     = 9 UMETA(DisplayName = "Inv. Normalized (0..+360 -> 1..0)", ToolTip="0..+360 -> 1..0"),
 };
 
 UENUM()
@@ -104,6 +108,23 @@ namespace PCGExSampling
 		case EPCGExAngleRange::TAUDegrees: // 0 .. 360
 			if (C.Z < 0) { OutAngle = 360 - FMath::RadiansToDegrees(FMath::Atan2(C.Size(), MainDot)); }
 			else { OutAngle = FMath::RadiansToDegrees(FMath::Atan2(C.Size(), MainDot)); }
+			break;
+		case EPCGExAngleRange::NormalizedHalf: // 0 .. 180 -> 0 .. 1
+			OutAngle = FMath::RadiansToDegrees(FMath::Acos(MainDot)) / 180;
+			break;
+		case EPCGExAngleRange::Normalized: // 0 .. 360 -> 0 .. 1
+			if (C.Z < 0) { OutAngle = 360 - FMath::RadiansToDegrees(FMath::Atan2(C.Size(), MainDot)); }
+			else { OutAngle = FMath::RadiansToDegrees(FMath::Atan2(C.Size(), MainDot)); }
+			OutAngle /= 360;
+			break;
+		case EPCGExAngleRange::InvertedNormalizedHalf: // 0 .. 180 -> 1 .. 0
+			OutAngle = 1 - (FMath::RadiansToDegrees(FMath::Acos(MainDot)) / 180);
+			break;
+		case EPCGExAngleRange::InvertedNormalized: // 0 .. 360 -> 1 .. 0
+			if (C.Z < 0) { OutAngle = 360 - FMath::RadiansToDegrees(FMath::Atan2(C.Size(), MainDot)); }
+			else { OutAngle = FMath::RadiansToDegrees(FMath::Atan2(C.Size(), MainDot)); }
+			OutAngle /= 360;
+			OutAngle = 1 - OutAngle;
 			break;
 		default: ;
 		}
