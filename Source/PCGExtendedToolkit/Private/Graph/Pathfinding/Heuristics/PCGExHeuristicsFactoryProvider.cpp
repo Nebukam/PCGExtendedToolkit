@@ -6,6 +6,17 @@
 #define LOCTEXT_NAMESPACE "PCGExCreateHeuristics"
 #define PCGEX_NAMESPACE CreateHeuristics
 
+void FPCGExHeuristicConfigBase::Init()
+{
+	if (!bUseLocalCurve)
+	{
+		if (!ScoreCurve.ToSoftObjectPath().IsValid()) { LocalScoreCurve.ExternalCurve = TSoftObjectPtr<UCurveFloat>(PCGEx::WeightDistributionLinear).LoadSynchronous(); }
+		else { LocalScoreCurve.ExternalCurve = ScoreCurve.LoadSynchronous(); }
+	}
+
+	ScoreCurveObj = LocalScoreCurve.GetRichCurveConst();
+}
+
 UPCGExHeuristicOperation* UPCGExHeuristicsFactoryBase::CreateOperation(FPCGExContext* InContext) const
 {
 	return nullptr; // Create heuristic operation

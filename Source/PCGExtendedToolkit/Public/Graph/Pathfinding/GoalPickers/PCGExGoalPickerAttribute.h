@@ -9,14 +9,6 @@
 #include "Data/PCGExAttributeHelpers.h"
 
 
-
-
-
-
-
-
-
-
 #include "PCGExGoalPickerAttribute.generated.h"
 
 struct FPCGPoint;
@@ -48,7 +40,7 @@ public:
 	/** A list of attribute names separated by a comma, for easy overrides. They will be added to the in-place array of selectors. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="GoalCount==EPCGExGoalPickAttributeAmount::List"))
 	FString CommaSeparatedNames = TEXT("");
-	
+
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(EditCondition="GoalCount==EPCGExGoalPickAttributeAmount::List", EditConditionHides, TitleProperty="{TitlePropertyName}"))
 	TArray<FPCGAttributePropertyInputSelector> AttributeSelectors;
 	TArray<TSharedPtr<PCGExData::TBuffer<int32>>> AttributeGetters;

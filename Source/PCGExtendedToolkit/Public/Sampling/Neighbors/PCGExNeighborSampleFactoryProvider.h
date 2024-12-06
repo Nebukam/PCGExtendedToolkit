@@ -19,7 +19,10 @@
 /// 
 #define PCGEX_SAMPLER_CREATE\
 	NewOperation->SamplingConfig = SamplingConfig; \
-	PCGEX_LOAD_SOFTOBJECT(UCurveFloat, NewOperation->SamplingConfig.WeightCurve, NewOperation->WeightCurveObj, PCGEx::WeightDistributionLinear) \
+	if (!SamplingConfig.bUseLocalCurve)\
+	{if (!NewOperation->SamplingConfig.WeightCurve.ToSoftObjectPath().IsValid()) { NewOperation->SamplingConfig.LocalWeightCurve.ExternalCurve = TSoftObjectPtr<UCurveFloat>(PCGEx::WeightDistributionLinear).LoadSynchronous(); }\
+	else { NewOperation->SamplingConfig.LocalWeightCurve.ExternalCurve = NewOperation->SamplingConfig.WeightCurve.LoadSynchronous(); }}\
+	NewOperation->WeightCurveObj = NewOperation->SamplingConfig.LocalWeightCurve.GetRichCurveConst();\
 	NewOperation->PointFilterFactories.Append(PointFilterFactories); \
 	NewOperation->ValueFilterFactories.Append(ValueFilterFactories);
 
@@ -34,9 +37,10 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExSamplingConfig
 {
 	GENERATED_BODY()
 
-	FPCGExSamplingConfig():
-		WeightCurve(PCGEx::WeightDistributionLinear)
+	FPCGExSamplingConfig()
 	{
+		LocalWeightCurve.EditorCurveData.AddKey(0, 0);
+		LocalWeightCurve.EditorCurveData.AddKey(1, 1);
 	}
 
 	/** Type of range for weight blending computation */
@@ -59,8 +63,17 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExSamplingConfig
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ClampMin=0.001, EditCondition="BlendOver==EPCGExBlendOver::Fixed", EditConditionHides))
 	double FixedBlend = 1;
 
+	/** Whether to use in-editor curve or an external asset. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable, DisplayPriority=-1))
+	bool bUseLocalCurve = false;
+	
+	// TODO: DirtyCache for OnDependencyChanged when this float curve is an external asset
 	/** Curve over which the blending weight will be remapped  */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_NotOverridable, DisplayName="Weight Curve", EditCondition = "bUseLocalCurve", EditConditionHides))
+	FRuntimeFloatCurve LocalWeightCurve;
+
+	/** Curve over which the blending weight will be remapped  */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Weight Curve", EditCondition="!bUseLocalCurve", EditConditionHides))
 	TSoftObjectPtr<UCurveFloat> WeightCurve = TSoftObjectPtr<UCurveFloat>(PCGEx::WeightDistributionLinear);
 
 	/** Which type of neighbor to sample */
@@ -86,8 +99,7 @@ public:
 
 	FPCGExSamplingConfig SamplingConfig;
 
-	UPROPERTY(Transient)
-	TObjectPtr<UCurveFloat> WeightCurveObj = nullptr;
+	const FRichCurve* WeightCurveObj = nullptr;
 
 	virtual void CopySettingsFrom(const UPCGExOperation* Other) override;
 
@@ -126,7 +138,7 @@ protected:
 	bool bIsValidOperation = true;
 	TSharedPtr<PCGExCluster::FCluster> Cluster;
 
-	FORCEINLINE virtual double SampleCurve(const double InTime) const { return WeightCurveObj->GetFloatValue(InTime); }
+	FORCEINLINE virtual double SampleCurve(const double InTime) const { return WeightCurveObj->Eval(InTime); }
 };
 
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")

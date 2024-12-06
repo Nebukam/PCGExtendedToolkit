@@ -301,13 +301,13 @@ namespace PCGEx
 					Attribute = AsSpatial->Metadata->GetConstAttribute(InternalSelector.GetName());
 					if (Attribute)
 					{
-							Attribute->GetTypeId(),
-						PCGEx::ExecuteWithRightType(
-							Attribute->GetTypeId(), [&](auto DummyValue)
-							{
-								using RawT = decltype(DummyValue);
-								InternalAccessor = MakeShared<FPCGAttributeAccessor<RawT>>(static_cast<const FPCGMetadataAttribute<RawT>*>(Attribute), AsSpatial->Metadata);
-							});
+						Attribute->GetTypeId(),
+							PCGEx::ExecuteWithRightType(
+								Attribute->GetTypeId(), [&](auto DummyValue)
+								{
+									using RawT = decltype(DummyValue);
+									InternalAccessor = MakeShared<FPCGAttributeAccessor<RawT>>(static_cast<const FPCGMetadataAttribute<RawT>*>(Attribute), AsSpatial->Metadata);
+								});
 
 						bValid = true;
 					}

@@ -75,11 +75,11 @@ public:
 	bool bOutputSites = true;
 
 	/** If enabled, sites that belong to an removed (out-of-bound) cell will be removed from the output. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Additional Outputs", meta = (PCG_Overridable, EditCondition="bPruneOutOfBounds"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Additional Outputs", meta = (PCG_Overridable, EditCondition="bOutputSites && bPruneOutOfBounds"))
 	bool bPruneOpenSites = true;
 
 	/** Flag sites belonging to an open cell with a boolean attribute. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Additional Outputs", meta = (PCG_Overridable, EditCondition="bPruneOutOfBounds && !bPruneOpenSites"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Additional Outputs", meta = (PCG_Overridable, EditCondition="bOutputSites && bPruneOutOfBounds && !bPruneOpenSites"))
 	FName OpenSiteFlag = "OpenSite";
 
 private:
