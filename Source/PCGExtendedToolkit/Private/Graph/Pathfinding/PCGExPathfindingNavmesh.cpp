@@ -76,7 +76,7 @@ bool FPCGExPathfindingNavmeshElement::Boot(FPCGExContext* InContext) const
 	// Prepare path queries
 
 	if (!Context->GoalPicker->PrepareForData(Context, Context->SeedsDataFacade, Context->GoalsDataFacade)) { return false; }
-	
+
 	PCGExPathfinding::ProcessGoals(
 		Context->SeedsDataFacade, Context->GoalPicker,
 		[&](const int32 SeedIndex, const int32 GoalIndex)
@@ -86,12 +86,12 @@ bool FPCGExPathfindingNavmeshElement::Boot(FPCGExContext* InContext) const
 				GoalIndex, Context->GoalsDataFacade->Source->GetInPoint(GoalIndex).Transform.GetLocation());
 		});
 
-	if(Context->PathQueries.IsEmpty())
+	if (Context->PathQueries.IsEmpty())
 	{
 		PCGE_LOG(Error, GraphAndLog, FTEXT("Could not generate any queries."));
 		return false;
 	}
-	
+
 	return true;
 }
 

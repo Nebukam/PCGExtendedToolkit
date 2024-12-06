@@ -93,12 +93,14 @@ bool FPCGExSampleNearestPointElement::Boot(FPCGExContext* InContext) const
 
 	PCGEX_FOREACH_FIELD_NEARESTPOINT(PCGEX_OUTPUT_VALIDATE_NAME)
 
-	Context->WeightCurve = Settings->WeightOverDistance.LoadSynchronous();
-	if (!Context->WeightCurve)
+	Context->RuntimeWeightCurve = Settings->LocalWeightOverDistance;
+	if (!Settings->bUseLocalCurve)
 	{
-		PCGE_LOG(Error, GraphAndLog, FTEXT("Weight Curve asset could not be loaded."));
-		return false;
+		Context->RuntimeWeightCurve.EditorCurveData.AddKey(0, 0);
+		Context->RuntimeWeightCurve.EditorCurveData.AddKey(1, 1);
+		Context->RuntimeWeightCurve.ExternalCurve = Settings->WeightOverDistance.LoadSynchronous();
 	}
+	Context->WeightCurve = Context->RuntimeWeightCurve.GetRichCurveConst();
 
 	Context->DistanceDetails = Settings->DistanceDetails.MakeDistances();
 	Context->TargetPoints = &Context->TargetsFacade->Source->GetIn()->GetPoints();
@@ -370,14 +372,14 @@ namespace PCGExSampleNearestPoints
 		if (bSingleSample)
 		{
 			const PCGExNearestPoint::FSample& TargetInfos = bSampleClosest ? Stats.Closest : Stats.Farthest;
-			const double Weight = Context->WeightCurve->GetFloatValue(Stats.GetRangeRatio(TargetInfos.Distance));
+			const double Weight = Context->WeightCurve->Eval(Stats.GetRangeRatio(TargetInfos.Distance));
 			ProcessTargetInfos(TargetInfos, Weight);
 		}
 		else
 		{
 			for (PCGExNearestPoint::FSample& TargetInfos : Samples)
 			{
-				const double Weight = Context->WeightCurve->GetFloatValue(Stats.GetRangeRatio(TargetInfos.Distance));
+				const double Weight = Context->WeightCurve->Eval(Stats.GetRangeRatio(TargetInfos.Distance));
 				if (Weight == 0) { continue; }
 				ProcessTargetInfos(TargetInfos, Weight);
 			}

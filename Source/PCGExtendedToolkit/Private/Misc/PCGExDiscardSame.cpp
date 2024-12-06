@@ -59,7 +59,7 @@ bool FPCGExDiscardSameElement::ExecuteInternal(FPCGContext* InContext) const
 		}
 
 		PointIO->StageOutput();
-	};
+	}
 
 	return Context->TryComplete();
 }
@@ -124,11 +124,11 @@ namespace PCGExDiscardSame
 		TArray<TSharedRef<FProcessor>> SameAs;
 		SameAs.Reserve(Context->MainPoints->Num());
 
-		const TSharedPtr<PCGExPointsMT::TBatch<PCGExDiscardSame::FProcessor>> Batch = StaticCastSharedPtr<PCGExPointsMT::TBatch<PCGExDiscardSame::FProcessor>>(ParentBatch.Pin());
+		const TSharedPtr<PCGExPointsMT::TBatch<FProcessor>> Batch = StaticCastSharedPtr<PCGExPointsMT::TBatch<FProcessor>>(ParentBatch.Pin());
 
 		TSharedRef<FProcessor> ThisRef = SharedThis(this);
 
-		const double Tol = static_cast<double>(Settings->TestPointCountTolerance);
+		const double Tol = Settings->TestPointCountTolerance;
 
 		if (Settings->TestMode == EPCGExFilterGroupMode::AND)
 		{

@@ -5,7 +5,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "PCGExConstants.h"
+
 #include "PCGExDetails.h"
 #include "Data/PCGExData.h"
 

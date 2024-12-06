@@ -31,7 +31,7 @@ enum class EPCGExConstantListID : uint8
 ENUM_CLASS_FLAGS(EPCGExConstantListID)
 
 namespace PCGExConstants
-{	
+{
 	template <typename T>
 	struct TDescriptor
 	{

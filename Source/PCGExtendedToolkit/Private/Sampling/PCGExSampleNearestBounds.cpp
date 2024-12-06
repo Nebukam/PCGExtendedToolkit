@@ -98,14 +98,15 @@ bool FPCGExSampleNearestBoundsElement::Boot(FPCGExContext* InContext) const
 
 	PCGEX_FOREACH_FIELD_NEARESTBOUNDS(PCGEX_OUTPUT_VALIDATE_NAME)
 
-	Context->WeightCurve = Settings->WeightRemap.LoadSynchronous();
-
-	if (!Context->WeightCurve)
+	Context->RuntimeWeightCurve = Settings->LocalWeightRemap;
+	if (!Settings->bUseLocalCurve)
 	{
-		PCGE_LOG(Error, GraphAndLog, FTEXT("Weight Curve asset could not be loaded."));
-		return false;
+		Context->RuntimeWeightCurve.EditorCurveData.AddKey(0, 0);
+		Context->RuntimeWeightCurve.EditorCurveData.AddKey(1, 1);
+		Context->RuntimeWeightCurve.ExternalCurve = Settings->WeightRemap.LoadSynchronous();
 	}
-
+	Context->WeightCurve = Context->RuntimeWeightCurve.GetRichCurveConst();
+	
 	Context->BoundsPoints = &Context->BoundsFacade->Source->GetIn()->GetPoints();
 	Context->BoundsPreloader = MakeShared<PCGExData::FFacadePreloader>();
 
@@ -239,7 +240,7 @@ namespace PCGExSampleNearestBounds
 			BCAE, [&](const PCGExGeo::FPointBox* NearbyBox)
 			{
 				NearbyBox->Sample(Point, CurrentSample);
-				CurrentSample.Weight = Context->WeightCurve->GetFloatValue(CurrentSample.Weight);
+				CurrentSample.Weight = Context->WeightCurve->Eval(CurrentSample.Weight);
 
 				if (!CurrentSample.bIsInside) { return; }
 

@@ -5,7 +5,7 @@
 
 #include "CoreMinimal.h"
 #include "PCGExCompare.h"
-#include "PCGExConstants.h"
+
 #include "PCGExFilterFactoryProvider.h"
 #include "UObject/Object.h"
 

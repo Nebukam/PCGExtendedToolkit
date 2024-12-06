@@ -75,7 +75,7 @@ public:
 	/** Scale offset direction & distance using point scale.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	bool bApplyPointScaleToOffset = false;
-	
+
 	/** Up vector used to calculate Offset direction.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	FVector UpVectorConstant = FVector::UpVector;

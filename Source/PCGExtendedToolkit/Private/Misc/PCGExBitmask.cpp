@@ -54,7 +54,7 @@ bool FPCGExBitmaskElement::ExecuteInternal(FPCGContext* InContext) const
 	BitmaskData->Metadata->AddEntry();
 
 	Context->StageOutput(FName("Bitmask"), BitmaskData, true);
-	
+
 	return true;
 }
 

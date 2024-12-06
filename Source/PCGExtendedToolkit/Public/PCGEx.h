@@ -27,6 +27,15 @@
 
 #include "PCGEx.generated.h"
 
+#ifndef PCGEX_CONSTANTS
+#define PCGEX_CONSTANTS
+
+#define DBL_INTERSECTION_TOLERANCE 0.01
+#define DBL_COLLOCATION_TOLERANCE 0.01
+#define DBL_COMPARE_TOLERANCE 0.001
+
+#endif
+
 UENUM()
 enum class EPCGExAttributeSetPackingMode : uint8
 {
