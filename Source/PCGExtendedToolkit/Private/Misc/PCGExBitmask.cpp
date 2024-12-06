@@ -55,7 +55,8 @@ bool FPCGExBitmaskElement::ExecuteInternal(FPCGContext* InContext) const
 
 	Context->StageOutput(FName("Bitmask"), BitmaskData, true);
 
-	return true;
+	Context->Done();
+	return Context->TryComplete();
 }
 
 #undef LOCTEXT_NAMESPACE

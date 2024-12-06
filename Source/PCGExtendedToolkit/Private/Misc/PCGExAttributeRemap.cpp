@@ -164,7 +164,7 @@ namespace PCGExAttributeRemap
 			};
 
 		FetchTask->OnPrepareSubLoopsCallback =
-			[PCGEX_ASYNC_THIS_CAPTURE](const TArray<uint64>& Loops)
+			[PCGEX_ASYNC_THIS_CAPTURE](const TArray<PCGExMT::FScope>& Loops)
 			{
 				PCGEX_ASYNC_THIS
 
@@ -176,13 +176,13 @@ namespace PCGExAttributeRemap
 			};
 
 		FetchTask->OnSubLoopStartCallback =
-			[PCGEX_ASYNC_THIS_CAPTURE](const int32 StartIndex, const int32 Count, const int32 LoopIdx)
+			[PCGEX_ASYNC_THIS_CAPTURE](const PCGExMT::FScope& Scope)
 			{
 				TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExAttributeRemap::Fetch);
 
 				PCGEX_ASYNC_THIS
 
-				This->PointDataFacade->Fetch(StartIndex, Count);
+				This->PointDataFacade->Fetch(Scope);
 				PCGEx::ExecuteWithRightType(
 					This->UnderlyingType, [&](auto DummyValue)
 					{
@@ -190,10 +190,8 @@ namespace PCGExAttributeRemap
 						TSharedPtr<PCGExData::TBuffer<RawT>> Writer = StaticCastSharedPtr<PCGExData::TBuffer<RawT>>(This->CacheWriter);
 						TSharedPtr<PCGExData::TBuffer<RawT>> Reader = StaticCastSharedPtr<PCGExData::TBuffer<RawT>>(This->CacheReader);
 
-						const int32 MaxIndex = StartIndex + Count;
-
 						// TODO : Swap for a scoped accessor since we don't need to keep readable values in memory
-						for (int i = StartIndex; i < MaxIndex; i++) { Writer->GetMutable(i) = Reader->Read(i); } // Copy range to writer
+						for (int i = Scope.Start; i < Scope.End; i++) { Writer->GetMutable(i) = Reader->Read(i); } // Copy range to writer
 
 						// Find min/max & clamp values
 
@@ -206,7 +204,7 @@ namespace PCGExAttributeRemap
 
 							if (Rule.RemapDetails.bUseAbsoluteRange)
 							{
-								for (int i = StartIndex; i < MaxIndex; i++)
+								for (int i = Scope.Start; i < Scope.End; i++)
 								{
 									RawT& V = Writer->GetMutable(i);
 									const double VAL = Rule.InputClampDetails.GetClampedValue(PCGExMath::GetComponent(V, d));
@@ -218,7 +216,7 @@ namespace PCGExAttributeRemap
 							}
 							else
 							{
-								for (int i = StartIndex; i < StartIndex + Count; i++)
+								for (int i = Scope.Start; i < Scope.End; i++)
 								{
 									RawT& V = Writer->GetMutable(i);
 									const double VAL = Rule.InputClampDetails.GetClampedValue(PCGExMath::GetComponent(V, d));
@@ -229,8 +227,8 @@ namespace PCGExAttributeRemap
 								}
 							}
 
-							Rule.MinCache[LoopIdx] = Min;
-							Rule.MaxCache[LoopIdx] = Max;
+							Rule.MinCache[Scope.LoopIndex] = Min;
+							Rule.MaxCache[Scope.LoopIndex] = Max;
 						}
 					});
 			};
@@ -244,14 +242,14 @@ namespace PCGExAttributeRemap
 	{
 		PCGEX_ASYNC_GROUP_CHKD_VOID(AsyncManager, RemapTask)
 		RemapTask->OnSubLoopStartCallback =
-			[PCGEX_ASYNC_THIS_CAPTURE](const int32 StartIndex, const int32 Count, const int32 LoopIdx)
+			[PCGEX_ASYNC_THIS_CAPTURE](const PCGExMT::FScope& Scope)
 			{
 				PCGEX_ASYNC_THIS
 
 				PCGEx::ExecuteWithRightType(
 					This->UnderlyingType, [&](auto DummyValue)
 					{
-						This->RemapRange(StartIndex, Count, DummyValue);
+						This->RemapRange(Scope, DummyValue);
 					});
 			};
 

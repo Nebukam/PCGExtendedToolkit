@@ -76,7 +76,7 @@ namespace PCGExData
 		return true;
 	}
 
-	void FReadableBufferConfig::Fetch(const TSharedRef<FFacade>& InFacade, const int32 StartIndex, const int32 Count) const
+	void FReadableBufferConfig::Fetch(const TSharedRef<FFacade>& InFacade, const PCGExMT::FScope& Scope) const
 	{
 		PCGEx::ExecuteWithRightType(
 			Identity.UnderlyingType, [&](auto DummyValue)
@@ -95,7 +95,7 @@ namespace PCGExData
 					Reader = InFacade->GetScopedBroadcaster<T>(Selector);
 					break;
 				}
-				Reader->Fetch(StartIndex, Count);
+				Reader->Fetch(Scope);
 			});
 	}
 
@@ -128,9 +128,9 @@ namespace PCGExData
 		return true;
 	}
 
-	void FFacadePreloader::Fetch(const TSharedRef<FFacade>& InFacade, const int32 StartIndex, const int32 Count) const
+	void FFacadePreloader::Fetch(const TSharedRef<FFacade>& InFacade, const PCGExMT::FScope& Scope) const
 	{
-		for (const FReadableBufferConfig& ExistingConfig : BufferConfigs) { ExistingConfig.Fetch(InFacade, StartIndex, Count); }
+		for (const FReadableBufferConfig& ExistingConfig : BufferConfigs) { ExistingConfig.Fetch(InFacade, Scope); }
 	}
 
 	void FFacadePreloader::Read(const TSharedRef<FFacade>& InFacade, const int32 ConfigIndex) const
@@ -167,12 +167,12 @@ namespace PCGExData
 			if (InDataFacade->bSupportsScopedGet)
 			{
 				PrefetchAttributesTask->OnSubLoopStartCallback =
-					[PCGEX_ASYNC_THIS_CAPTURE](const int32 StartIndex, const int32 Count, const int32 LoopIdx)
+					[PCGEX_ASYNC_THIS_CAPTURE](const PCGExMT::FScope& Scope)
 					{
 						PCGEX_ASYNC_THIS
 						if (const TSharedPtr<FFacade> InternalFacade = This->InternalDataFacadePtr.Pin())
 						{
-							This->Fetch(InternalFacade.ToSharedRef(), StartIndex, Count);
+							This->Fetch(InternalFacade.ToSharedRef(), Scope);
 						}
 					};
 
@@ -181,13 +181,12 @@ namespace PCGExData
 			else
 			{
 				PrefetchAttributesTask->OnSubLoopStartCallback =
-					[PCGEX_ASYNC_THIS_CAPTURE]
-					(const int32 StartIndex, const int32 Count, const int32 LoopIdx)
+					[PCGEX_ASYNC_THIS_CAPTURE](const PCGExMT::FScope& Scope)
 					{
 						PCGEX_ASYNC_THIS
 						if (const TSharedPtr<FFacade> InternalFacade = This->InternalDataFacadePtr.Pin())
 						{
-							This->Read(InternalFacade.ToSharedRef(), StartIndex);
+							This->Read(InternalFacade.ToSharedRef(), Scope.Start);
 						}
 					};
 

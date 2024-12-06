@@ -136,16 +136,16 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 			};
 
 		ProcessSubGraphEdges->OnSubLoopStartCallback =
-			[PCGEX_ASYNC_THIS_CAPTURE](const int32 StartIndex, const int32 Count, const int32 LoopIdx)
+			[PCGEX_ASYNC_THIS_CAPTURE](const PCGExMT::FScope& Scope)
 			{
 				PCGEX_ASYNC_THIS
-				This->CompileRange(StartIndex, StartIndex + Count);
+				This->CompileRange(Scope);
 			};
 
 		ProcessSubGraphEdges->StartSubLoops(FlattenedEdges.Num(), GetDefault<UPCGExGlobalSettings>()->GetPointsBatchChunkSize());
 	}
 
-	void FSubGraph::CompileRange(const int32 StartIndex, const int32 EndIndex)
+	void FSubGraph::CompileRange(const PCGExMT::FScope& Scope)
 	{
 		const TSharedPtr<FGraphBuilder> Builder = WeakBuilder.Pin();
 
@@ -160,7 +160,7 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 		const FVector SeedOffset = FVector(EdgesDataFacade->Source->IOIndex);
 		const uint32 BaseGUID = VtxDataFacade->Source->GetOut()->GetUniqueID();
 
-		for (int i = StartIndex; i < EndIndex; i++)
+		for (int i = Scope.Start; i < Scope.End; i++)
 		{
 			const FEdge& E = FlattenedEdges[i];
 			const int32 EdgeIndex = E.Index;
@@ -601,7 +601,7 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 			};
 
 		ProcessSubGraphTask->OnIterationCallback =
-			[PCGEX_ASYNC_THIS_CAPTURE, WeakGroup = ProcessSubGraphTask](const int32 Index, const int32 Count, const int32 LoopIdx)
+			[PCGEX_ASYNC_THIS_CAPTURE, WeakGroup = ProcessSubGraphTask](const int32 Index, const PCGExMT::FScope& Scope)
 			{
 				PCGEX_ASYNC_THIS
 				const TSharedPtr<FSubGraph> SubGraph = This->Graph->SubGraphs[Index];

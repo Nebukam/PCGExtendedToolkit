@@ -81,7 +81,7 @@ namespace PCGExCreateShapes
 		return true;
 	}
 
-	void FProcessor::ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const int32 LoopIdx, const int32 LoopCount)
+	void FProcessor::ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const PCGExMT::FScope& Scope)
 	{
 		const PCGExData::FPointRef PointRef = PointDataFacade->Source->GetInPointRef(Index);
 		for (UPCGExShapeBuilderOperation* Op : Builders) { Op->PrepareShape(PointRef); }
@@ -230,9 +230,9 @@ namespace PCGExCreateShapes
 		PCGEX_ASYNC_GROUP_CHKD(AsyncManager, TransformPointsTask);
 
 		TransformPointsTask->OnSubLoopStartCallback =
-			[ShapePoints, TRA, TRB](const int32 StartIndex, const int32 Count, const int32 LoopIdx)
+			[ShapePoints, TRA, TRB](const PCGExMT::FScope& Scope)
 			{
-				PCGEX_ASYNC_SUB_LOOP
+				for (int i = Scope.Start; i < Scope.End; i++)
 				{
 					FPCGPoint& Point = ShapePoints[i];
 					Point.Transform = (Point.Transform * TRB) * TRA;

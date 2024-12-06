@@ -135,14 +135,13 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExGeo2DProjectionDetails
 	}
 
 	template <typename T>
-	void ProjectFlat(const TSharedPtr<PCGExData::FFacade>& InFacade, TArray<T>& OutPositions, const int32 StartIndex, const int32 Count) const
+	void ProjectFlat(const TSharedPtr<PCGExData::FFacade>& InFacade, TArray<T>& OutPositions, const PCGExMT::FScope& Scope) const
 	{
 		const TArray<FPCGPoint>& InPoints = InFacade->Source->GetInOut()->GetPoints();
 		const int32 NumVectors = InPoints.Num();
 		if (OutPositions.Num() < NumVectors) { PCGEx::InitArray(OutPositions, NumVectors); }
 
-		const int32 MaxIndex = StartIndex + Count;
-		for (int i = StartIndex; i < MaxIndex; i++) { OutPositions[i] = T(ProjectFlat(InPoints[i].Transform.GetLocation(), i)); }
+		for (int i = Scope.Start; i < Scope.End; i++) { OutPositions[i] = T(ProjectFlat(InPoints[i].Transform.GetLocation(), i)); }
 	}
 
 	void Project(const TArray<FVector>& InPositions, TArray<FVector>& OutPositions) const

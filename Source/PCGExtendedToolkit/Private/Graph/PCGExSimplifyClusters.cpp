@@ -81,7 +81,7 @@ namespace PCGExSimplifyClusters
 		StartParallelLoopForRange(ChainBuilder->Chains.Num());
 	}
 
-	void FProcessor::ProcessSingleRangeIteration(const int32 Iteration, const int32 LoopIdx, const int32 Count)
+	void FProcessor::ProcessSingleRangeIteration(const int32 Iteration, const PCGExMT::FScope& Scope)
 	{
 		const TSharedPtr<PCGExCluster::FNodeChain> Chain = ChainBuilder->Chains[Iteration];
 		if (!Chain) { return; }

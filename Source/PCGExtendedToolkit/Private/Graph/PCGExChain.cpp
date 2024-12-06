@@ -201,7 +201,7 @@ namespace PCGExCluster
 
 		ChainSearchTask->OnIterationCallback =
 			[PCGEX_ASYNC_THIS_CAPTURE]
-			(const int32 Index, const int32 Count, const int32 LoopIdx)
+			(const int32 Index, const PCGExMT::FScope& Scope)
 			{
 				PCGEX_ASYNC_THIS
 				This->Chains[Index]->BuildChain(This->Cluster, This->Breakpoints);

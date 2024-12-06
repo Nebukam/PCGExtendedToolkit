@@ -137,7 +137,7 @@ namespace PCGExFindAllCells
 		return true;
 	}
 
-	void FProcessor::ProcessSingleEdge(const int32 EdgeIndex, PCGExGraph::FEdge& Edge, const int32 LoopIdx, const int32 Count)
+	void FProcessor::ProcessSingleEdge(const int32 EdgeIndex, PCGExGraph::FEdge& Edge, const PCGExMT::FScope& Scope)
 	{
 		//Check endpoints
 		FindCell(*Cluster->GetEdgeStart(Edge), Edge);
@@ -265,11 +265,11 @@ namespace PCGExFindAllCells
 			};
 
 		ProjectionTaskGroup->OnSubLoopStartCallback =
-			[PCGEX_ASYNC_THIS_CAPTURE](const int32 StartIndex, const int32 Count, const int32 LoopIdx)
+			[PCGEX_ASYNC_THIS_CAPTURE](const PCGExMT::FScope& Scope)
 			{
 				PCGEX_ASYNC_THIS
 				TArray<FVector>& PP = *This->ProjectedPositions;
-				This->ProjectionDetails.ProjectFlat(This->VtxDataFacade, PP, StartIndex, Count);
+				This->ProjectionDetails.ProjectFlat(This->VtxDataFacade, PP, Scope);
 			};
 
 		ProjectionTaskGroup->StartSubLoops(VtxDataFacade->GetNum(), GetDefault<UPCGExGlobalSettings>()->GetPointsBatchChunkSize());

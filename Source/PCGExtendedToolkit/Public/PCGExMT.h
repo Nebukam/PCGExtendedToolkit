@@ -32,7 +32,6 @@
 #define PCGEX_ASYNC_THIS_CAPTURE AsyncThis = TWeakPtr<std::remove_reference_t<decltype(*this)>>(SharedThis(this))
 #define PCGEX_ASYNC_THIS const TSharedPtr<std::remove_reference_t<decltype(*this)>> This = AsyncThis.Pin(); if (!This) { return; }
 #define PCGEX_ASYNC_NESTED_THIS const TSharedPtr<std::remove_reference_t<decltype(*this)>> NestedThis = AsyncThis.Pin(); if (!NestedThis) { return; }
-#define PCGEX_ASYNC_SUB_LOOP const int32 MaxIndex = StartIndex + Count; for (int i = StartIndex; i < MaxIndex; i++)
 
 #pragma endregion
 
@@ -73,18 +72,38 @@ namespace PCGExMT
 	constexpr int32 GAsyncLoop_L = 512;
 	constexpr int32 GAsyncLoop_XL = 1024;
 
-	static int32 SubRanges(TArray<uint64>& OutSubRanges, const int32 MaxItems, const int32 RangeSize)
+	struct FScope
+	{
+		int32 Start = -1;
+		int32 Count = -1;
+		int32 End = -1;
+		int32 LoopIndex = -1;
+
+		FScope() = default;
+
+		FScope(const int32 InStart, const int32 InCount, const int32 InLoopIndex = -1)
+			: Start(InStart), Count(InCount), End(InStart + InCount), LoopIndex(InLoopIndex)
+		{
+		}
+
+		~FScope() = default;
+		bool IsValid() const { return Start != -1 && Count > 0; }
+		int32 GetNextScopeIndex() const { return LoopIndex + 1; }
+	};
+
+	static int32 SubLoopScopes(TArray<FScope>& OutSubRanges, const int32 MaxItems, const int32 RangeSize)
 	{
 		OutSubRanges.Empty();
 		OutSubRanges.Reserve((MaxItems + RangeSize - 1) / RangeSize);
 
 		for (int32 CurrentCount = 0; CurrentCount < MaxItems; CurrentCount += RangeSize)
 		{
-			OutSubRanges.Add(PCGEx::H64(CurrentCount, FMath::Min(RangeSize, MaxItems - CurrentCount)));
+			OutSubRanges.Emplace(CurrentCount, FMath::Min(RangeSize, MaxItems - CurrentCount), OutSubRanges.Num());
 		}
 
 		return OutSubRanges.Num();
 	}
+
 
 	class FPCGExTask;
 	class FTaskGroup;
@@ -233,13 +252,13 @@ namespace PCGExMT
 		using CompletionCallback = std::function<void()>;
 		CompletionCallback OnCompleteCallback;
 
-		using IterationCallback = std::function<void(const int32, const int32, const int32)>;
+		using IterationCallback = std::function<void(const int32, const FScope&)>;
 		IterationCallback OnIterationCallback;
 
-		using PrepareSubLoopsCallback = std::function<void(const TArray<uint64>&)>;
+		using PrepareSubLoopsCallback = std::function<void(const TArray<FScope>&)>;
 		PrepareSubLoopsCallback OnPrepareSubLoopsCallback;
 
-		using SubLoopStartCallback = std::function<void(const int32, const int32, const int32)>;
+		using SubLoopStartCallback = std::function<void(const FScope&)>;
 		SubLoopStartCallback OnSubLoopStartCallback;
 
 		explicit FTaskGroup(const TSharedPtr<FTaskManager>& InManager, const FName InGroupName):
@@ -259,18 +278,18 @@ namespace PCGExMT
 		{
 			if (!IsAvailable()) { return; }
 
-			TArray<uint64> Loops;
-			GrowNumStarted(SubRanges(Loops, MaxItems, ChunkSize));
+			TArray<FScope> Loops;
+			GrowNumStarted(SubLoopScopes(Loops, MaxItems, ChunkSize));
 
 			if (OnPrepareSubLoopsCallback) { OnPrepareSubLoopsCallback(Loops); }
 
 			TSharedPtr<FTaskGroup> SharedPtr = SharedThis(this);
 			int32 LoopIdx = 0;
-			for (const uint64 H : Loops)
+			for (const FScope& Scope : Loops)
 			{
 				FAsyncTask<T>* ATask = new FAsyncTask<T>(InPointsIO, std::forward<Args>(InArgs)...);
 				ATask->GetTask().GroupPtr = SharedPtr;
-				ATask->GetTask().Scope = H;
+				ATask->GetTask().Scope = Scope;
 
 				if (Manager->ForceSync) { Manager->StartSynchronousTask<T>(ATask, LoopIdx++); }
 				else { Manager->StartBackgroundTask<T>(ATask, LoopIdx++); }
@@ -298,8 +317,8 @@ namespace PCGExMT
 		int32 NumStarted = 0;
 		int32 NumCompleted = 0;
 
-		void PrepareRangeIteration(const int32 StartIndex, const int32 Count, const int32 LoopIdx) const;
-		void DoRangeIteration(const int32 StartIndex, const int32 Count, const int32 LoopIdx) const;
+		void PrepareRangeIteration(const FScope& Scope) const;
+		void DoRangeIteration(const FScope& Scope) const;
 
 		template <typename T, typename... Args>
 		void InternalStart(const bool bGrowNumStarted, const int32 TaskIndex, const TSharedPtr<PCGExData::FPointIO>& InPointsIO, Args&&... InArgs)
@@ -314,7 +333,7 @@ namespace PCGExMT
 		}
 
 		template <typename T>
-		void InternalStartInlineRange(const int32 Index, const TArray<uint64>& Loops)
+		void InternalStartInlineRange(const int32 Index, const TArray<FScope>& Loops)
 		{
 			FAsyncTask<T>* NextRange = new FAsyncTask<T>(nullptr);
 			NextRange->GetTask().GroupPtr = SharedThis(this);
@@ -403,7 +422,7 @@ namespace PCGExMT
 		{
 		}
 
-		uint64 Scope = 0;
+		FScope Scope = FScope{};
 		virtual bool ExecuteTask(const TSharedPtr<FTaskManager>& AsyncManager) override;
 	};
 
@@ -415,7 +434,7 @@ namespace PCGExMT
 		{
 		}
 
-		uint64 Scope = 0;
+		FScope Scope = FScope{};
 		virtual bool ExecuteTask(const TSharedPtr<FTaskManager>& AsyncManager) override;
 	};
 
@@ -427,7 +446,7 @@ namespace PCGExMT
 		{
 		}
 
-		TArray<uint64> Loops;
+		TArray<FScope> Loops;
 		virtual bool ExecuteTask(const TSharedPtr<FTaskManager>& AsyncManager) override;
 	};
 
@@ -439,7 +458,7 @@ namespace PCGExMT
 		{
 		}
 
-		TArray<uint64> Loops;
+		TArray<FScope> Loops;
 		virtual bool ExecuteTask(const TSharedPtr<FTaskManager>& AsyncManager) override;
 	};
 

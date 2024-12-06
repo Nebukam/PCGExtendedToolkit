@@ -147,7 +147,7 @@ namespace PCGExFindContours
 		virtual ~FProcessor() override;
 
 		virtual bool Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager) override;
-		virtual void ProcessSingleRangeIteration(int32 Iteration, const int32 LoopIdx, const int32 Count) override;
+		virtual void ProcessSingleRangeIteration(int32 Iteration, const PCGExMT::FScope& Scope) override;
 		void ProcessCell(const int32 SeedIndex, const TSharedPtr<PCGExTopology::FCell>& InCell) const;
 		virtual void CompleteWork() override;
 		virtual void Cleanup() override;

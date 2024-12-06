@@ -187,26 +187,22 @@ namespace PCGExClusterMT
 				bInlineProcessNodes)
 		}
 
-		virtual void PrepareLoopScopesForNodes(const TArray<uint64>& Loops)
+		virtual void PrepareLoopScopesForNodes(const TArray<PCGExMT::FScope>& Loops)
 		{
 		}
 
-		virtual void PrepareSingleLoopScopeForNodes(const uint32 StartIndex, const int32 Count)
+		virtual void PrepareSingleLoopScopeForNodes(const PCGExMT::FScope& Scope)
 		{
 		}
 
-		virtual void ProcessNodes(const int32 StartIndex, const int32 Count, const int32 LoopIdx)
+		virtual void ProcessNodes(const PCGExMT::FScope& Scope)
 		{
-			PrepareSingleLoopScopeForNodes(StartIndex, Count);
+			PrepareSingleLoopScopeForNodes(Scope);
 			TArray<PCGExCluster::FNode>& Nodes = *Cluster->Nodes;
-			for (int i = 0; i < Count; i++)
-			{
-				const int32 PtIndex = StartIndex + i;
-				ProcessSingleNode(PtIndex, Nodes[PtIndex], LoopIdx, Count);
-			}
+			for (int i = Scope.Start; i < Scope.End; i++) { ProcessSingleNode(i, Nodes[i], Scope); }
 		}
 
-		virtual void ProcessSingleNode(const int32 Index, PCGExCluster::FNode& Node, const int32 LoopIdx, const int32 Count)
+		virtual void ProcessSingleNode(const int32 Index, PCGExCluster::FNode& Node, const PCGExMT::FScope& Scope)
 		{
 		}
 
@@ -224,26 +220,22 @@ namespace PCGExClusterMT
 				bInlineProcessEdges)
 		}
 
-		virtual void PrepareLoopScopesForEdges(const TArray<uint64>& Loops)
+		virtual void PrepareLoopScopesForEdges(const TArray<PCGExMT::FScope>& Loops)
 		{
 		}
 
-		virtual void PrepareSingleLoopScopeForEdges(const uint32 StartIndex, const int32 Count)
+		virtual void PrepareSingleLoopScopeForEdges(const PCGExMT::FScope& Scope)
 		{
 		}
 
-		virtual void ProcessEdges(const int32 StartIndex, const int32 Count, const int32 LoopIdx)
+		virtual void ProcessEdges(const PCGExMT::FScope& Scope)
 		{
-			PrepareSingleLoopScopeForEdges(StartIndex, Count);
+			PrepareSingleLoopScopeForEdges(Scope);
 			TArray<PCGExGraph::FEdge>& ClusterEdges = *Cluster->Edges;
-			for (int i = 0; i < Count; i++)
-			{
-				const int32 PtIndex = StartIndex + i;
-				ProcessSingleEdge(PtIndex, ClusterEdges[PtIndex], LoopIdx, Count);
-			}
+			for (int i = Scope.Start; i < Scope.End; i++) { ProcessSingleEdge(i, ClusterEdges[i], Scope); }
 		}
 
-		virtual void ProcessSingleEdge(const int32 EdgeIndex, PCGExGraph::FEdge& Edge, const int32 LoopIdx, const int32 Count)
+		virtual void ProcessSingleEdge(const int32 EdgeIndex, PCGExGraph::FEdge& Edge, const PCGExMT::FScope& Scope)
 		{
 		}
 
@@ -260,21 +252,21 @@ namespace PCGExClusterMT
 				bInlineProcessRange)
 		}
 
-		virtual void PrepareLoopScopesForRanges(const TArray<uint64>& Loops)
+		virtual void PrepareLoopScopesForRanges(const TArray<PCGExMT::FScope>& Loops)
 		{
 		}
 
-		virtual void PrepareSingleLoopScopeForRange(const uint32 StartIndex, const int32 Count)
+		virtual void PrepareSingleLoopScopeForRange(const PCGExMT::FScope& Scope)
 		{
 		}
 
-		virtual void ProcessRange(const int32 StartIndex, const int32 Count, const int32 LoopIdx)
+		virtual void ProcessRange(const PCGExMT::FScope& Scope)
 		{
-			PrepareSingleLoopScopeForRange(StartIndex, Count);
-			for (int i = 0; i < Count; i++) { ProcessSingleRangeIteration(StartIndex + i, LoopIdx, Count); }
+			PrepareSingleLoopScopeForRange(Scope);
+			for (int i = Scope.Start; i < Scope.End; i++) { ProcessSingleRangeIteration(i, Scope); }
 		}
 
-		virtual void ProcessSingleRangeIteration(const int32 Iteration, const int32 LoopIdx, const int32 Count)
+		virtual void ProcessSingleRangeIteration(const int32 Iteration, const PCGExMT::FScope& Scope)
 		{
 		}
 
@@ -443,13 +435,13 @@ namespace PCGExClusterMT
 					};
 
 				BuildEndpointLookupTask->OnSubLoopStartCallback =
-					[PCGEX_ASYNC_THIS_CAPTURE](const int32 StartIndex, const int32 Count, const int32 LoopIdx)
+					[PCGEX_ASYNC_THIS_CAPTURE](const PCGExMT::FScope& Scope)
 					{
 						TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExGraph::BuildLookupTable::Range);
 
 						PCGEX_ASYNC_THIS
 						const TArray<FPCGPoint>& InKeys = This->VtxDataFacade->GetIn()->GetPoints();
-						PCGEX_ASYNC_SUB_LOOP
+						for (int i = Scope.Start; i < Scope.End; i++)
 						{
 							uint32 A;
 							uint32 B;

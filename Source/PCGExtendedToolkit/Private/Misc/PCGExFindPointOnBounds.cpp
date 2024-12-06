@@ -105,7 +105,7 @@ namespace PCGExFindPointOnBounds
 		return true;
 	}
 
-	void FProcessor::ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const int32 LoopIdx, const int32 LoopCount)
+	void FProcessor::ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const PCGExMT::FScope& Scope)
 	{
 		if (const double Dist = FVector::Dist(Point.Transform.GetLocation(), SearchPosition); Dist < BestDistance)
 		{

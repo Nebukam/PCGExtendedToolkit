@@ -147,12 +147,12 @@ namespace PCGExOffsetPath
 		return true;
 	}
 
-	void FProcessor::PrepareSingleLoopScopeForPoints(const uint32 StartIndex, const int32 Count)
+	void FProcessor::PrepareSingleLoopScopeForPoints(const PCGExMT::FScope& Scope)
 	{
-		PointDataFacade->Fetch(StartIndex, Count);
+		PointDataFacade->Fetch(Scope);
 	}
 
-	void FProcessor::ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const int32 LoopIdx, const int32 Count)
+	void FProcessor::ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const PCGExMT::FScope& Scope)
 	{
 		const int32 EdgeIndex = (!Path->IsClosedLoop() && Index == Path->LastIndex) ? Path->LastEdge : Index;
 		Path->ComputeEdgeExtra(EdgeIndex);
@@ -220,10 +220,10 @@ namespace PCGExOffsetPath
 		PCGEX_ASYNC_GROUP_CHKD_VOID(AsyncManager, FlipTestTask)
 
 		FlipTestTask->OnSubLoopStartCallback =
-			[PCGEX_ASYNC_THIS_CAPTURE](const int32 StartIndex, const int32 Count, const int32 LoopIdx)
+			[PCGEX_ASYNC_THIS_CAPTURE](const PCGExMT::FScope& Scope)
 			{
 				PCGEX_ASYNC_THIS
-				PCGEX_ASYNC_SUB_LOOP
+				for (int i = Scope.Start; i < Scope.End; i++)
 				{
 					This->DirtyPath->ComputeEdgeExtra(i);
 					This->CleanEdge[i] = FVector::DotProduct(This->Path->Edges[i].Dir, This->DirtyPath->Edges[i].Dir) > 0;

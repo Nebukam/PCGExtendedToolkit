@@ -356,7 +356,7 @@ namespace PCGExBuildCustomGraph
 
 		UPCGExCustomGraphSettings* CustomGraphSettings = GraphSettings;
 		InitNodesGroup->OnSubLoopStartCallback =
-			[WeakIO, CustomGraphSettings](const int32 StartIndex, const int32 Count, const int32 LoopIdx)
+			[WeakIO, CustomGraphSettings](const PCGExMT::FScope& Scope)
 			{
 				const TSharedPtr<PCGExData::FPointIO> IO = WeakIO.Pin();
 				if (!IO) { return; }
@@ -364,7 +364,7 @@ namespace PCGExBuildCustomGraph
 				TArray<FPCGPoint>& MutablePoints = IO->GetOut()->GetMutablePoints();
 				IO->GetOutKeys(true); // Generate out keys
 
-				PCGEX_ASYNC_SUB_LOOP
+				for (int i = Scope.Start; i < Scope.End; i++)
 				{
 					FPCGPoint& Point = MutablePoints[i];
 					CustomGraphSettings->UpdateNodePoint(Point, CustomGraphSettings->Idx[i], i, Point);

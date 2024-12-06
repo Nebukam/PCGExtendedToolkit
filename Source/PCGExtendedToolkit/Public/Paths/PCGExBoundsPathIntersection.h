@@ -85,7 +85,7 @@ namespace PCGExPathIntersections
 		void InsertIntersections(const int32 Index) const;
 		void OnInsertionComplete();
 
-		FORCEINLINE virtual void ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const int32 LoopIdx, const int32 LoopCount) override
+		FORCEINLINE virtual void ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const PCGExMT::FScope& Scope) override
 		{
 			if (Details.InsideForwardHandler)
 			{

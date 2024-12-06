@@ -433,7 +433,7 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 
 #undef PCGEX_FOREACH_EDGE_METADATA
 
-		void CompileRange(const int32 StartIndex, const int32 EndIndex);
+		void CompileRange(const PCGExMT::FScope& Scope);
 		void CompilationComplete();
 	};
 

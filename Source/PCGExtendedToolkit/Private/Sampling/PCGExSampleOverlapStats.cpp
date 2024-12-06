@@ -149,14 +149,14 @@ namespace PCGExSampleOverlapStats
 		if (Settings->BoundsSource == EPCGExPointBoundsSource::ScaledBounds)
 		{
 			BoundsPreparationTask->OnSubLoopStartCallback =
-				[PCGEX_ASYNC_THIS_CAPTURE](const int32 StartIndex, const int32 Count, const int32 LoopIdx)
+				[PCGEX_ASYNC_THIS_CAPTURE](const PCGExMT::FScope& Scope)
 				{
 					PCGEX_ASYNC_THIS
 
-					This->PointDataFacade->Fetch(StartIndex, Count);
-					This->FilterScope(StartIndex, Count);
+					This->PointDataFacade->Fetch(Scope);
+					This->FilterScope(Scope);
 
-					PCGEX_ASYNC_SUB_LOOP
+					for (int i = Scope.Start; i < Scope.End; i++)
 					{
 						if (!This->PointFilterCache[i]) { continue; }
 						const FPCGPoint* Point = This->InPoints->GetData() + i;
@@ -170,14 +170,14 @@ namespace PCGExSampleOverlapStats
 		else if (Settings->BoundsSource == EPCGExPointBoundsSource::DensityBounds)
 		{
 			BoundsPreparationTask->OnSubLoopStartCallback =
-				[PCGEX_ASYNC_THIS_CAPTURE](const int32 StartIndex, const int32 Count, const int32 LoopIdx)
+				[PCGEX_ASYNC_THIS_CAPTURE](const PCGExMT::FScope& Scope)
 				{
 					PCGEX_ASYNC_THIS
 
-					This->PointDataFacade->Fetch(StartIndex, Count);
-					This->FilterScope(StartIndex, Count);
+					This->PointDataFacade->Fetch(Scope);
+					This->FilterScope(Scope);
 
-					PCGEX_ASYNC_SUB_LOOP
+					for (int i = Scope.Start; i < Scope.End; i++)
 					{
 						if (!This->PointFilterCache[i]) { continue; }
 						const FPCGPoint* Point = This->InPoints->GetData() + i;
@@ -191,14 +191,14 @@ namespace PCGExSampleOverlapStats
 		else
 		{
 			BoundsPreparationTask->OnSubLoopStartCallback =
-				[PCGEX_ASYNC_THIS_CAPTURE](const int32 StartIndex, const int32 Count, const int32 LoopIdx)
+				[PCGEX_ASYNC_THIS_CAPTURE](const PCGExMT::FScope& Scope)
 				{
 					PCGEX_ASYNC_THIS
 
-					This->PointDataFacade->Fetch(StartIndex, Count);
-					This->FilterScope(StartIndex, Count);
+					This->PointDataFacade->Fetch(Scope);
+					This->FilterScope(Scope);
 
-					PCGEX_ASYNC_SUB_LOOP
+					for (int i = Scope.Start; i < Scope.End; i++)
 					{
 						if (!This->PointFilterCache[i]) { continue; }
 						const FPCGPoint* Point = This->InPoints->GetData() + i;
@@ -338,21 +338,20 @@ namespace PCGExSampleOverlapStats
 
 				PCGEX_ASYNC_GROUP_CHKD_VOID(This->AsyncManager, SearchTask)
 				SearchTask->OnCompleteCallback = WrapUp;
-				SearchTask->OnSubLoopStartCallback = [AsyncThis]
-					(const int32 StartIndex, const int32 Count, const int32 LoopIdx)
+				SearchTask->OnSubLoopStartCallback = [AsyncThis](const PCGExMT::FScope& Scope)
 					{
 						PCGEX_ASYNC_NESTED_THIS
-						PCGEX_ASYNC_SUB_LOOP { NestedThis->ResolveOverlap(i); }
+						for (int i = Scope.Start; i < Scope.End; i++) { NestedThis->ResolveOverlap(i); }
 					};
 				SearchTask->StartSubLoops(This->Overlaps.Num(), 8);
 			};
 
 		PreparationTask->OnSubLoopStartCallback =
-			[PCGEX_ASYNC_THIS_CAPTURE](const int32 StartIndex, const int32 Count, const int32 LoopIdx)
+			[PCGEX_ASYNC_THIS_CAPTURE](const PCGExMT::FScope& Scope)
 			{
 				PCGEX_ASYNC_THIS
 				const TSharedPtr<PCGExPointsMT::FPointsProcessorBatchBase> Parent = This->ParentBatch.Pin();
-				PCGEX_ASYNC_SUB_LOOP
+				for (int i = Scope.Start; i < Scope.End; i++)
 				{
 					const TSharedPtr<PCGExData::FFacade> OtherFacade = Parent->ProcessorFacades[i];
 					if (This->PointDataFacade == OtherFacade) { continue; } // Skip self
@@ -382,7 +381,7 @@ namespace PCGExSampleOverlapStats
 			};
 
 		SearchTask->OnIterationCallback =
-			[PCGEX_ASYNC_THIS_CAPTURE](const int32 Index, const int32 Count, const int32 LoopIdx)
+			[PCGEX_ASYNC_THIS_CAPTURE](const int32 Index, const PCGExMT::FScope& Scope)
 			{
 				PCGEX_ASYNC_THIS
 				This->WriteSingleData(Index);

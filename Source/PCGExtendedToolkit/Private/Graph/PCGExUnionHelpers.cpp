@@ -80,7 +80,7 @@ namespace PCGExGraph
 			};
 
 		ProcessNodesGroup->OnSubLoopStartCallback =
-			[PCGEX_ASYNC_THIS_CAPTURE](const int32 StartIndex, const int32 Count, const int32 LoopIdx)
+			[PCGEX_ASYNC_THIS_CAPTURE](const PCGExMT::FScope& Scope)
 			{
 				PCGEX_ASYNC_THIS
 
@@ -92,7 +92,7 @@ namespace PCGExGraph
 
 				TArray<FPCGPoint>& Points = This->UnionDataFacade->GetOut()->GetMutablePoints();
 
-				PCGEX_ASYNC_SUB_LOOP
+				for (int i = Scope.Start; i < Scope.End; i++)
 				{
 					TSharedPtr<FUnionNode> UnionNode = This->UnionGraph->Nodes[i];
 					const PCGMetadataEntryKey Key = Points[i].MetadataEntry;
@@ -231,11 +231,10 @@ namespace PCGExGraph
 				This->FindPointEdgeIntersectionsFound();
 			};
 		FindPointEdgeGroup->OnSubLoopStartCallback =
-			[PCGEX_ASYNC_THIS_CAPTURE]
-			(const int32 StartIndex, const int32 Count, const int32 LoopIdx)
+			[PCGEX_ASYNC_THIS_CAPTURE](const PCGExMT::FScope& Scope)
 			{
 				PCGEX_ASYNC_THIS
-				PCGEX_ASYNC_SUB_LOOP
+				for (int i = Scope.Start; i < Scope.End; i++)
 				{
 					const FEdge& Edge = This->GraphBuilder->Graph->Edges[i];
 					if (!Edge.bValid) { continue; }
@@ -252,11 +251,10 @@ namespace PCGExGraph
 		PCGEX_ASYNC_GROUP_CHKD_VOID(Context->GetAsyncManager(), SortCrossingsGroup)
 
 		SortCrossingsGroup->OnSubLoopStartCallback =
-			[PCGEX_ASYNC_THIS_CAPTURE]
-			(const int32 StartIndex, const int32 Count, const int32 LoopIdx)
+			[PCGEX_ASYNC_THIS_CAPTURE](const PCGExMT::FScope& Scope)
 			{
 				PCGEX_ASYNC_THIS
-				PCGEX_ASYNC_SUB_LOOP
+				for (int i = Scope.Start; i < Scope.End; i++)
 				{
 					FPointEdgeProxy& PointEdgeProxy = This->PointEdgeIntersections->Edges[i];
 					const int32 CollinearNum = PointEdgeProxy.CollinearPoints.Num();
@@ -306,14 +304,14 @@ namespace PCGExGraph
 			};
 
 		BlendPointEdgeGroup->OnSubLoopStartCallback =
-			[PCGEX_ASYNC_THIS_CAPTURE](const int32 StartIndex, const int32 Count, const int32 LoopIdx)
+			[PCGEX_ASYNC_THIS_CAPTURE](const PCGExMT::FScope& Scope)
 			{
 				PCGEX_ASYNC_THIS
 
 				if (!This->MetadataBlender) { return; }
 				const TSharedRef<PCGExDataBlending::FMetadataBlender> Blender = This->MetadataBlender.ToSharedRef();
 
-				PCGEX_ASYNC_SUB_LOOP
+				for (int i = Scope.Start; i < Scope.End; i++)
 				{
 					// TODO
 				}
@@ -349,13 +347,13 @@ namespace PCGExGraph
 			};
 
 		FindEdgeEdgeGroup->OnSubLoopStartCallback =
-			[PCGEX_ASYNC_THIS_CAPTURE](const int32 StartIndex, const int32 Count, const int32 LoopIdx)
+			[PCGEX_ASYNC_THIS_CAPTURE](const PCGExMT::FScope& Scope)
 			{
 				PCGEX_ASYNC_THIS
 				if (!This->EdgeEdgeIntersections) { return; }
 				const TSharedRef<FEdgeEdgeIntersections> EEI = This->EdgeEdgeIntersections.ToSharedRef();
 
-				PCGEX_ASYNC_SUB_LOOP
+				for (int i = Scope.Start; i < Scope.End; i++)
 				{
 					const FEdge& Edge = This->GraphBuilder->Graph->Edges[i];
 					if (!Edge.bValid) { continue; }
@@ -380,11 +378,11 @@ namespace PCGExGraph
 
 		// Insert new nodes
 		SortCrossingsGroup->OnSubLoopStartCallback =
-			[PCGEX_ASYNC_THIS_CAPTURE](const int32 StartIndex, const int32 Count, const int32 LoopIdx)
+			[PCGEX_ASYNC_THIS_CAPTURE](const PCGExMT::FScope& Scope)
 			{
 				PCGEX_ASYNC_THIS
 				if (!This->EdgeEdgeIntersections) { return; }
-				PCGEX_ASYNC_SUB_LOOP
+				for (int i = Scope.Start; i < Scope.End; i++)
 				{
 					FEdgeEdgeProxy& EdgeProxy = This->EdgeEdgeIntersections->Edges[i];
 					const int32 IntersectionsNum = EdgeProxy.Intersections.Num();
@@ -440,15 +438,14 @@ namespace PCGExGraph
 		};
 
 		BlendEdgeEdgeGroup->OnSubLoopStartCallback =
-			[PCGEX_ASYNC_THIS_CAPTURE]
-			(const int32 StartIndex, const int32 Count, const int32 LoopIdx)
+			[PCGEX_ASYNC_THIS_CAPTURE](const PCGExMT::FScope& Scope)
 			{
 				PCGEX_ASYNC_THIS
 
 				if (!This->MetadataBlender) { return; }
 				const TSharedRef<PCGExDataBlending::FMetadataBlender> Blender = This->MetadataBlender.ToSharedRef();
 
-				PCGEX_ASYNC_SUB_LOOP { This->EdgeEdgeIntersections->BlendIntersection(i, Blender); }
+				for (int i = Scope.Start; i < Scope.End; i++) { This->EdgeEdgeIntersections->BlendIntersection(i, Blender); }
 			};
 		BlendEdgeEdgeGroup->StartSubLoops(EdgeEdgeIntersections->Crossings.Num(), GetDefault<UPCGExGlobalSettings>()->ClusterDefaultBatchChunkSize);
 	}

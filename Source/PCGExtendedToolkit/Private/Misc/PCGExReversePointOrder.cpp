@@ -158,11 +158,11 @@ namespace PCGExReversePointOrder
 			};
 
 		FetchWritersTask->OnSubLoopStartCallback =
-			[PCGEX_ASYNC_THIS_CAPTURE](const int32 StartIndex, const int32 Count, const int32 LoopIdx)
+			[PCGEX_ASYNC_THIS_CAPTURE](const PCGExMT::FScope& Scope)
 			{
 				TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExAttributeRemap::FetchWriters);
 				PCGEX_ASYNC_THIS
-				FPCGExSwapAttributePairDetails& WorkingPair = This->SwapPairs[StartIndex];
+				FPCGExSwapAttributePairDetails& WorkingPair = This->SwapPairs[Scope.Start];
 
 				PCGEx::ExecuteWithRightType(
 					WorkingPair.FirstIdentity->UnderlyingType, [&](auto DummyValue)
@@ -178,9 +178,9 @@ namespace PCGExReversePointOrder
 		return true;
 	}
 
-	void FProcessor::PrepareSingleLoopScopeForPoints(const uint32 StartIndex, const int32 Count)
+	void FProcessor::PrepareSingleLoopScopeForPoints(const PCGExMT::FScope& Scope)
 	{
-		FPointsProcessor::PrepareSingleLoopScopeForPoints(StartIndex, Count);
+		FPointsProcessor::PrepareSingleLoopScopeForPoints(Scope);
 		for (const FPCGExSwapAttributePairDetails& WorkingPair : SwapPairs)
 		{
 			PCGEx::ExecuteWithRightType(
@@ -192,22 +192,20 @@ namespace PCGExReversePointOrder
 
 					if (WorkingPair.bMultiplyByMinusOne)
 					{
-						for (int i = 0; i < Count; i++)
+						for (int i = Scope.Start; i < Scope.End; i++)
 						{
-							const int32 Index = StartIndex + i;
-							const RawT FirstValue = FirstWriter->Read(Index);
-							FirstWriter->GetMutable(Index) = PCGExMath::DblMult(SecondWriter->GetConst(Index), -1);
-							SecondWriter->GetMutable(Index) = PCGExMath::DblMult(FirstValue, -1);
+							const RawT FirstValue = FirstWriter->Read(i);
+							FirstWriter->GetMutable(i) = PCGExMath::DblMult(SecondWriter->GetConst(i), -1);
+							SecondWriter->GetMutable(i) = PCGExMath::DblMult(FirstValue, -1);
 						}
 					}
 					else
 					{
-						for (int i = 0; i < Count; i++)
+						for (int i = Scope.Start; i < Scope.End; i++)
 						{
-							const int32 Index = StartIndex + i;
-							const RawT FirstValue = FirstWriter->Read(Index);
-							FirstWriter->GetMutable(Index) = SecondWriter->GetConst(Index);
-							SecondWriter->GetMutable(Index) = FirstValue;
+							const RawT FirstValue = FirstWriter->Read(i);
+							FirstWriter->GetMutable(i) = SecondWriter->GetConst(i);
+							SecondWriter->GetMutable(i) = FirstValue;
 						}
 					}
 				});

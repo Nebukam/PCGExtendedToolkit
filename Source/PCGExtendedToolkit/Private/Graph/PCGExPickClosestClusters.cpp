@@ -151,7 +151,7 @@ namespace PCGExPickClosestClusters
 		if (Settings->SearchMode == EPCGExClusterClosestSearchMode::Edge)
 		{
 			ProcessTargets->OnIterationCallback =
-				[PCGEX_ASYNC_THIS_CAPTURE](const int32 Index, const int32 Count, const int32 LoopIdx)
+				[PCGEX_ASYNC_THIS_CAPTURE](const int32 Index, const PCGExMT::FScope& Scope)
 				{
 					PCGEX_ASYNC_THIS
 
@@ -183,7 +183,7 @@ namespace PCGExPickClosestClusters
 		else
 		{
 			ProcessTargets->OnIterationCallback =
-				[PCGEX_ASYNC_THIS_CAPTURE](const int32 Index, const int32 Count, const int32 LoopIdx)
+				[PCGEX_ASYNC_THIS_CAPTURE](const int32 Index, const PCGExMT::FScope& Scope)
 				{
 					PCGEX_ASYNC_THIS
 

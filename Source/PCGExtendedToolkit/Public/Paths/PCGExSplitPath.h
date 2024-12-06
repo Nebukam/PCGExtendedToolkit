@@ -319,7 +319,7 @@ namespace PCGExSplitPath
 			ClosePath();
 		}
 
-		virtual void ProcessSingleRangeIteration(const int32 Iteration, const int32 LoopIdx, const int32 LoopCount) override;
+		virtual void ProcessSingleRangeIteration(const int32 Iteration, const PCGExMT::FScope& Scope) override;
 		virtual void CompleteWork() override;
 		virtual void Output() override;
 	};

@@ -142,7 +142,7 @@ namespace PCGExFindContours
 		return true;
 	}
 
-	void FProcessor::ProcessSingleRangeIteration(int32 Iteration, const int32 LoopIdx, const int32 Count)
+	void FProcessor::ProcessSingleRangeIteration(int32 Iteration, const PCGExMT::FScope& Scope)
 	{
 		const FVector SeedWP = Context->SeedsDataFacade->Source->GetInPoint(Iteration).Transform.GetLocation();
 
@@ -228,11 +228,11 @@ namespace PCGExFindContours
 			};
 
 		ProjectionTaskGroup->OnSubLoopStartCallback =
-			[PCGEX_ASYNC_THIS_CAPTURE](const int32 StartIndex, const int32 Count, const int32 LoopIdx)
+			[PCGEX_ASYNC_THIS_CAPTURE](const PCGExMT::FScope& Scope)
 			{
 				PCGEX_ASYNC_THIS
 				TArray<FVector>& PP = *This->ProjectedPositions;
-				This->ProjectionDetails.ProjectFlat(This->VtxDataFacade, PP, StartIndex, Count);
+				This->ProjectionDetails.ProjectFlat(This->VtxDataFacade, PP, Scope);
 			};
 
 		ProjectionTaskGroup->StartSubLoops(VtxDataFacade->GetNum(), GetDefault<UPCGExGlobalSettings>()->GetPointsBatchChunkSize());

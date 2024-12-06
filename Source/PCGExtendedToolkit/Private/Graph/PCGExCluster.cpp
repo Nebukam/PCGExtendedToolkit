@@ -150,14 +150,13 @@ namespace PCGExCluster
 			}
 
 			BoundedEdges.Reset();
+		
 		}
 		else
 		{
 			Edges = OtherCluster->Edges;
 		}
 
-		NodeOctree = OtherCluster->NodeOctree;
-		EdgeOctree = OtherCluster->EdgeOctree;
 	}
 
 	void FCluster::ClearInheritedForChanges(const bool bClearOwned)
@@ -354,8 +353,7 @@ namespace PCGExCluster
 		{
 			for (int i = 0; i < Edges->Num(); i++)
 			{
-				const FBoundedEdge& ExpandedEdge = *(BoundedEdges->GetData() + i);
-				EdgeOctree->AddElement(PCGEx::FIndexedItem(i, ExpandedEdge.Bounds));
+				EdgeOctree->AddElement(PCGEx::FIndexedItem(i, (BoundedEdges->GetData() + i)->Bounds));
 			}
 		}
 	}
@@ -616,13 +614,13 @@ namespace PCGExCluster
 		PCGEx::InitArray(BoundedEdges, Edges->Num());
 
 		ExpandEdgesTask->OnSubLoopStartCallback =
-			[PCGEX_ASYNC_THIS_CAPTURE](const int32 StartIndex, const int32 Count, const int32 LoopIdx)
+			[PCGEX_ASYNC_THIS_CAPTURE](const PCGExMT::FScope& Scope)
 			{
 				PCGEX_ASYNC_THIS
 
 				TArray<FBoundedEdge>& ExpandedEdgesRef = (*This->BoundedEdges);
 				const FCluster* Cluster = This.Get();
-				PCGEX_ASYNC_SUB_LOOP { ExpandedEdgesRef[i] = FBoundedEdge(Cluster, i); }
+				for (int i = Scope.Start; i < Scope.End; i++) { ExpandedEdgesRef[i] = FBoundedEdge(Cluster, i); }
 			};
 
 		ExpandEdgesTask->StartSubLoops(Edges->Num(), 256);

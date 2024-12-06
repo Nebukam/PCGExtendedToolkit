@@ -123,16 +123,16 @@ namespace PCGExMT
 		if (MaxItems <= SanitizedChunkSize && bExecuteSmallSynchronously)
 		{
 			GrowNumStarted();
-			if (OnPrepareSubLoopsCallback) { OnPrepareSubLoopsCallback({PCGEx::H64(0, MaxItems)}); }
-			DoRangeIteration(0, MaxItems, 0);
+			if (OnPrepareSubLoopsCallback) { OnPrepareSubLoopsCallback({FScope(0, MaxItems)}); }
+			DoRangeIteration(FScope(0, MaxItems));
 			GrowNumCompleted();
 			return;
 		}
 
 		if (bInlined)
 		{
-			TArray<uint64> Loops;
-			GrowNumStarted(SubRanges(Loops, MaxItems, SanitizedChunkSize));
+			TArray<FScope> Loops;
+			GrowNumStarted(SubLoopScopes(Loops, MaxItems, SanitizedChunkSize));
 			if (OnPrepareSubLoopsCallback) { OnPrepareSubLoopsCallback(Loops); }
 			InternalStartInlineRange<FGroupRangeInlineIterationTask>(0, Loops);
 		}
@@ -152,8 +152,8 @@ namespace PCGExMT
 
 		if (bInline)
 		{
-			TArray<uint64> Loops;
-			GrowNumStarted(SubRanges(Loops, MaxItems, SanitizedChunkSize));
+			TArray<FScope> Loops;
+			GrowNumStarted(SubLoopScopes(Loops, MaxItems, SanitizedChunkSize));
 			if (OnPrepareSubLoopsCallback) { OnPrepareSubLoopsCallback(Loops); }
 			InternalStartInlineRange<FGroupPrepareRangeInlineTask>(0, Loops);
 		}
@@ -198,17 +198,17 @@ namespace PCGExMT
 		}
 	}
 
-	void FTaskGroup::PrepareRangeIteration(const int32 StartIndex, const int32 Count, const int32 LoopIdx) const
+	void FTaskGroup::PrepareRangeIteration(const FScope& Scope) const
 	{
 		if (!IsAvailable()) { return; }
-		if (OnSubLoopStartCallback) { OnSubLoopStartCallback(StartIndex, Count, LoopIdx); }
+		if (OnSubLoopStartCallback) { OnSubLoopStartCallback(Scope); }
 	}
 
-	void FTaskGroup::DoRangeIteration(const int32 StartIndex, const int32 Count, const int32 LoopIdx) const
+	void FTaskGroup::DoRangeIteration(const FScope& Scope) const
 	{
 		if (!IsAvailable()) { return; }
-		PrepareRangeIteration(StartIndex, Count, LoopIdx);
-		for (int i = 0; i < Count; i++) { OnIterationCallback(StartIndex + i, Count, LoopIdx); }
+		PrepareRangeIteration(Scope);
+		for (int i = Scope.Start; i < Scope.End; i++) { OnIterationCallback(i, Scope); }
 	}
 
 	void FPCGExTask::DoWork()
@@ -244,7 +244,7 @@ namespace PCGExMT
 	{
 		if (const TSharedPtr<FTaskGroup> Group = GroupPtr.Pin())
 		{
-			Group->DoRangeIteration(PCGEx::H64A(Scope), PCGEx::H64B(Scope), TaskIndex);
+			Group->DoRangeIteration(Scope);
 		}
 		return true;
 	}
@@ -253,7 +253,7 @@ namespace PCGExMT
 	{
 		if (const TSharedPtr<FTaskGroup> Group = GroupPtr.Pin())
 		{
-			Group->PrepareRangeIteration(PCGEx::H64A(Scope), PCGEx::H64B(Scope), TaskIndex);
+			Group->PrepareRangeIteration(Scope);
 		}
 		return true;
 	}
@@ -264,15 +264,10 @@ namespace PCGExMT
 
 		if (const TSharedPtr<FTaskGroup> Group = GroupPtr.Pin())
 		{
-			uint32 StartIndex;
-			uint32 Count;
-			PCGEx::H64(Loops[TaskIndex], StartIndex, Count);
-
-			Group->PrepareRangeIteration(StartIndex, Count, TaskIndex);
-
-			if (!Loops.IsValidIndex(TaskIndex + 1)) { return false; }
-
-			Group->InternalStartInlineRange<FGroupPrepareRangeInlineTask>(TaskIndex + 1, Loops);
+			const FScope& Scope = Loops[TaskIndex];
+			Group->PrepareRangeIteration(Scope);
+			if (!Loops.IsValidIndex(Scope.GetNextScopeIndex())) { return false; }
+			Group->InternalStartInlineRange<FGroupPrepareRangeInlineTask>(Scope.GetNextScopeIndex(), Loops);
 		}
 		return true;
 	}
@@ -283,15 +278,12 @@ namespace PCGExMT
 
 		if (const TSharedPtr<FTaskGroup> Group = GroupPtr.Pin())
 		{
-			uint32 StartIndex;
-			uint32 Count;
-			PCGEx::H64(Loops[TaskIndex], StartIndex, Count);
+			const FScope& Scope = Loops[TaskIndex];
+			Group->DoRangeIteration(Scope);
 
-			Group->DoRangeIteration(StartIndex, Count, TaskIndex);
+			if (!Loops.IsValidIndex(Scope.GetNextScopeIndex())) { return false; }
 
-			if (!Loops.IsValidIndex(TaskIndex + 1)) { return false; }
-
-			Group->InternalStartInlineRange<FGroupRangeInlineIterationTask>(TaskIndex + 1, Loops);
+			Group->InternalStartInlineRange<FGroupRangeInlineIterationTask>(Scope.GetNextScopeIndex(), Loops);
 			Loops.Empty();
 		}
 		return true;

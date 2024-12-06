@@ -281,7 +281,7 @@ namespace PCGExAttributeRemap
 		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager> InAsyncManager) override;
 
 		template <typename T>
-		void RemapRange(const int32 StartIndex, const int32 Count, T DummyValue)
+		void RemapRange(const PCGExMT::FScope& Scope, T DummyValue)
 		{
 			TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExAttributeRemap::RemapRange);
 
@@ -297,7 +297,7 @@ namespace PCGExAttributeRemap
 				{
 					if (Rule.RemapDetails.bPreserveSign)
 					{
-						for (int i = StartIndex; i < StartIndex + Count; i++)
+						for (int i = Scope.Start; i < Scope.End; i++)
 						{
 							T& V = Writer->GetMutable(i);
 							VAL = PCGExMath::GetComponent(V, d);
@@ -309,7 +309,7 @@ namespace PCGExAttributeRemap
 					}
 					else
 					{
-						for (int i = StartIndex; i < StartIndex + Count; i++)
+						for (int i = Scope.Start; i < Scope.End; i++)
 						{
 							T& V = Writer->GetMutable(i);
 							VAL = PCGExMath::GetComponent(V, d);
@@ -324,7 +324,7 @@ namespace PCGExAttributeRemap
 				{
 					if (Rule.RemapDetails.bPreserveSign)
 					{
-						for (int i = StartIndex; i < StartIndex + Count; i++)
+						for (int i = Scope.Start; i < Scope.End; i++)
 						{
 							T& V = Writer->GetMutable(i);
 							VAL = PCGExMath::GetComponent(V, d);
@@ -336,7 +336,7 @@ namespace PCGExAttributeRemap
 					}
 					else
 					{
-						for (int i = StartIndex; i < StartIndex + Count; i++)
+						for (int i = Scope.Start; i < Scope.End; i++)
 						{
 							T& V = Writer->GetMutable(i);
 							VAL = PCGExMath::GetComponent(V, d);

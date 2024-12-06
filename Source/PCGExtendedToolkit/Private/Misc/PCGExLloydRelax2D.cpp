@@ -81,7 +81,7 @@ namespace PCGExLloydRelax2D
 		return true;
 	}
 
-	void FProcessor::ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const int32 LoopIdx, const int32 Count)
+	void FProcessor::ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const PCGExMT::FScope& Scope)
 	{
 		FVector TargetPosition = Point.Transform.GetLocation();
 		TargetPosition.X = ActivePositions[Index].X;

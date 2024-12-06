@@ -96,7 +96,7 @@ namespace PCGExSubdivideEdges
 		return true;
 	}
 
-	void FProcessor::ProcessSingleEdge(const int32 EdgeIndex, PCGExGraph::FEdge& Edge, const int32 LoopIdx, const int32 Count)
+	void FProcessor::ProcessSingleEdge(const int32 EdgeIndex, PCGExGraph::FEdge& Edge, const PCGExMT::FScope& Scope)
 	{
 		const TSharedRef<PCGExData::FPointIO>& PointIO = EdgeDataFacade->Source;
 

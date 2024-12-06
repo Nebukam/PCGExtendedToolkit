@@ -23,7 +23,7 @@ void FPCGExPointIOMerger::Append(const TSharedPtr<PCGExData::FPointIO>& InData)
 	if (NumPoints <= 0) { return; }
 
 	IOSources.Add(InData);
-	Scopes.Add(PCGEx::H64(NumCompositePoints, NumPoints));
+	Scopes.Add(PCGExMT::FScope(NumCompositePoints, NumPoints));
 	NumCompositePoints += NumPoints;
 }
 
@@ -54,7 +54,7 @@ void FPCGExPointIOMerger::Merge(const TSharedPtr<PCGExMT::FTaskManager>& AsyncMa
 
 		const TArray<FPCGPoint>& SourcePoints = Source->GetIn()->GetPoints();
 
-		const uint32 StartIndex = PCGEx::H64A(Scopes[i]);
+		const uint32 StartIndex = Scopes[i].Start;
 
 		for (int j = 0; j < SourcePoints.Num(); j++)
 		{

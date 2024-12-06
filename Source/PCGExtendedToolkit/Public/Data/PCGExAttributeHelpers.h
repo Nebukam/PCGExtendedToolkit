@@ -16,6 +16,7 @@
 #include "PCGEx.h"
 #include "PCGExHelpers.h"
 #include "PCGExMath.h"
+#include "PCGExMT.h"
 #include "PCGExPointIO.h"
 
 #include "Metadata/Accessors/PCGAttributeAccessor.h"
@@ -357,16 +358,13 @@ namespace PCGEx
 		/**
 		 * Build and validate a property/attribute accessor for the selected
 		 * @param Dump
-		 * @param StartIndex
-		 * @param Count
 		 */
-		void Fetch(TArray<T>& Dump, const int32 StartIndex, const int32 Count)
+		void Fetch(TArray<T>& Dump, const PCGExMT::FScope& Scope)
 		{
 			check(bValid)
 			check(Dump.Num() == PointIO->GetNum(PCGExData::ESource::In)) // Dump target should be initialized at full length before using Fetch
 
 			const UPCGPointData* InData = PointIO->GetIn();
-			const int32 LastIndex = StartIndex + Count;
 
 			if (InternalSelector.GetSelection() == EPCGAttributePropertySelection::Attribute)
 			{
@@ -376,18 +374,18 @@ namespace PCGEx
 						using RawT = decltype(DummyValue);
 
 						TArray<RawT> RawValues;
-						PCGEx::InitArray(RawValues, Count);
+						PCGEx::InitArray(RawValues, Scope.Count);
 
 						TArrayView<RawT> RawView(RawValues);
-						InternalAccessor->GetRange(RawView, StartIndex, *PointIO->GetInKeys().Get(), EPCGAttributeAccessorFlags::AllowBroadcast);
+						InternalAccessor->GetRange(RawView, Scope.Start, *PointIO->GetInKeys().Get(), EPCGAttributeAccessorFlags::AllowBroadcast);
 
-						for (int i = 0; i < Count; i++) { Dump[StartIndex + i] = Convert(RawValues[i]); }
+						for (int i = 0; i < Scope.Count; i++) { Dump[Scope.Start + i] = Convert(RawValues[i]); }
 					});
 			}
 			else if (InternalSelector.GetSelection() == EPCGAttributePropertySelection::PointProperty)
 			{
 				const TArray<FPCGPoint>& InPoints = InData->GetPoints();
-#define PCGEX_GET_BY_ACCESSOR(_ENUM, _ACCESSOR) case _ENUM: for (int i = StartIndex; i < LastIndex; i++) { Dump[i] = Convert(InPoints[i]._ACCESSOR); } break;
+#define PCGEX_GET_BY_ACCESSOR(_ENUM, _ACCESSOR) case _ENUM: for (int i = Scope.Start; i < Scope.End; i++) { Dump[i] = Convert(InPoints[i]._ACCESSOR); } break;
 
 				switch (InternalSelector.GetPointProperty()) { PCGEX_FOREACH_POINTPROPERTY(PCGEX_GET_BY_ACCESSOR) }
 #undef PCGEX_GET_BY_ACCESSOR
@@ -397,7 +395,7 @@ namespace PCGEx
 				switch (InternalSelector.GetExtraProperty())
 				{
 				case EPCGExtraProperties::Index:
-					for (int i = StartIndex; i < LastIndex; i++) { Dump[i] = Convert(i); }
+					for (int i = Scope.Start; i < Scope.End; i++) { Dump[i] = Convert(i); }
 					break;
 				default: ;
 				}

@@ -143,7 +143,7 @@ namespace PCGExBuildDelaunay2D
 		return true;
 	}
 
-	void FProcessor::ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const int32 LoopIdx, const int32 Count)
+	void FProcessor::ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const PCGExMT::FScope& Scope)
 	{
 		HullMarkPointWriter->GetMutable(Index) = Delaunay->DelaunayHull.Contains(Index);
 	}

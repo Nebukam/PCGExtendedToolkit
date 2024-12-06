@@ -209,9 +209,9 @@ FString UPCGExNodeEdgeDirectionFilterProviderSettings::GetDisplayName() const
 {
 	FString DisplayName = TEXT("Edge Direction ") + PCGExCompare::ToString(Config.DotComparisonDetails.Comparison);
 
-	UPCGExNodeEdgeDirectionFilterProviderSettings* MutableSelf = const_cast<UPCGExNodeEdgeDirectionFilterProviderSettings*>(this);
+	if (Config.CompareAgainst == EPCGExInputValueType::Attribute) { DisplayName += PCGEx::GetSelectorDisplayName(Config.Direction); }
+	else { DisplayName += TEXT("Constant"); }
 
-	DisplayName += PCGEx::GetSelectorDisplayName(Config.Direction);
 	DisplayName += TEXT(" (");
 
 	switch (Config.Adjacency.Mode)

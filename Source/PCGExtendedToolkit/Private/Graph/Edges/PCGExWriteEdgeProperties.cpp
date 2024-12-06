@@ -124,13 +124,13 @@ namespace PCGExWriteEdgeProperties
 		return true;
 	}
 
-	void FProcessor::PrepareSingleLoopScopeForEdges(const uint32 StartIndex, const int32 Count)
+	void FProcessor::PrepareSingleLoopScopeForEdges(const PCGExMT::FScope& Scope)
 	{
-		FClusterProcessor::PrepareSingleLoopScopeForEdges(StartIndex, Count);
-		EdgeDataFacade->Fetch(StartIndex, Count);
+		FClusterProcessor::PrepareSingleLoopScopeForEdges(Scope);
+		EdgeDataFacade->Fetch(Scope);
 	}
 
-	void FProcessor::ProcessSingleEdge(const int32 EdgeIndex, PCGExGraph::FEdge& Edge, const int32 LoopIdx, const int32 Count)
+	void FProcessor::ProcessSingleEdge(const int32 EdgeIndex, PCGExGraph::FEdge& Edge, const PCGExMT::FScope& Scope)
 	{
 		DirectionSettings.SortEndpoints(Cluster.Get(), Edge);
 

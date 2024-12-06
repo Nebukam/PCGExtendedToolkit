@@ -49,7 +49,7 @@ bool FPCGExTopologyClusterSurfaceElement::ExecuteInternal(
 
 namespace PCGExTopologyClusterSurface
 {
-	void FProcessor::PrepareLoopScopesForEdges(const TArray<uint64>& Loops)
+	void FProcessor::PrepareLoopScopesForEdges(const TArray<PCGExMT::FScope>& Loops)
 	{
 		TProcessor<FPCGExTopologyClusterSurfaceContext, UPCGExTopologyClusterSurfaceSettings>::PrepareLoopScopesForEdges(Loops);
 		SubTriangulations.Reserve(Loops.Num());
@@ -60,20 +60,20 @@ namespace PCGExTopologyClusterSurface
 		}
 	}
 
-	void FProcessor::PrepareSingleLoopScopeForEdges(const uint32 StartIndex, const int32 Count)
+	void FProcessor::PrepareSingleLoopScopeForEdges(const PCGExMT::FScope& Scope)
 	{
-		EdgeDataFacade->Fetch(StartIndex, Count);
-		FilterConstrainedEdgeScope(StartIndex, Count);
+		EdgeDataFacade->Fetch(Scope);
+		FilterConstrainedEdgeScope(Scope);
 	}
 
-	void FProcessor::ProcessSingleEdge(const int32 EdgeIndex, PCGExGraph::FEdge& Edge, const int32 LoopIdx, const int32 Count)
+	void FProcessor::ProcessSingleEdge(const int32 EdgeIndex, PCGExGraph::FEdge& Edge, const PCGExMT::FScope& Scope)
 	{
 		if (ConstrainedEdgeFilterCache[EdgeIndex]) { return; }
 
 		TSharedPtr<PCGExTopology::FCell> Cell = MakeShared<PCGExTopology::FCell>(CellsConstraints.ToSharedRef());
 
-		FindCell(*Cluster->GetEdgeStart(Edge), Edge, LoopIdx);
-		FindCell(*Cluster->GetEdgeEnd(Edge), Edge, LoopIdx);
+		FindCell(*Cluster->GetEdgeStart(Edge), Edge, Scope.LoopIndex);
+		FindCell(*Cluster->GetEdgeEnd(Edge), Edge, Scope.LoopIndex);
 	}
 
 	bool FProcessor::FindCell(

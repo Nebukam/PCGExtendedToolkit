@@ -214,8 +214,8 @@ namespace PCGExCluster
 		FORCEINLINE double EdgeDistToEdge(const FEdge* A, const FEdge* B, FVector& OutP1, FVector& OutP2) const
 		{
 			FMath::SegmentDistToSegment(
-				GetPos(GetEdgeStart(A->Start)), GetPos(GetEdgeStart(A->End)),
-				GetPos(GetEdgeStart(B->Start)), GetPos(GetEdgeStart(B->End)),
+				GetStartPos(A), GetEndPos(A),
+				GetStartPos(B), GetEndPos(B),
 				OutP1, OutP2);
 
 			return FVector::Dist(OutP1, OutP2);
@@ -229,8 +229,8 @@ namespace PCGExCluster
 		FORCEINLINE double EdgeDistToEdgeSquared(const FEdge* A, const FEdge* B, FVector& OutP1, FVector& OutP2) const
 		{
 			FMath::SegmentDistToSegment(
-				GetPos(GetEdgeStart(A->Start)), GetPos(GetEdgeStart(A->End)),
-				GetPos(GetEdgeStart(B->Start)), GetPos(GetEdgeStart(B->End)),
+				GetStartPos(A), GetEndPos(A),
+				GetStartPos(B), GetEndPos(B),
 				OutP1, OutP2);
 
 			return FVector::DistSquared(OutP1, OutP2);
