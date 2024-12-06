@@ -98,8 +98,6 @@ namespace PCGExSubdivideEdges
 
 	void FProcessor::ProcessSingleEdge(const int32 EdgeIndex, PCGExGraph::FEdge& Edge, const PCGExMT::FScope& Scope)
 	{
-		const TSharedRef<PCGExData::FPointIO>& PointIO = EdgeDataFacade->Source;
-
 		DirectionSettings.SortEndpoints(Cluster.Get(), Edge);
 
 		const PCGExCluster::FNode* StartNode = Cluster->GetEdgeStart(Edge);

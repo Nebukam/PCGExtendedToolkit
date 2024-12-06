@@ -463,9 +463,6 @@ namespace PCGExCluster
 		EdgeLengths = MakeShared<TArray<double>>();
 		TArray<double>& LengthsRef = *EdgeLengths;
 
-		const TArray<FNode>& NodesRef = *Nodes;
-		const TArray<FEdge>& EdgesRef = *Edges;
-
 		const int32 NumEdges = Edges->Num();
 		double Min = MAX_dbl;
 		double Max = MIN_dbl;
@@ -473,7 +470,7 @@ namespace PCGExCluster
 
 		for (int i = 0; i < NumEdges; i++)
 		{
-			const FEdge& Edge = EdgesRef[i];
+			const FEdge* Edge = GetEdge(i);
 			const double Dist = GetDist(Edge);
 			LengthsRef[i] = Dist;
 			Min = FMath::Min(Dist, Min);

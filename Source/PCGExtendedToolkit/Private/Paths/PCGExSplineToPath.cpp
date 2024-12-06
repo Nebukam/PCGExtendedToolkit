@@ -2,8 +2,6 @@
 // Released under the MIT license https://opensource.org/license/MIT/
 
 #include "Paths/PCGExSplineToPath.h"
-
-#include "VectorTypes.h"
 #include "Sampling/PCGExSampleNearestSpline.h"
 
 #define LOCTEXT_NAMESPACE "PCGExSplineToPathElement"
@@ -171,7 +169,6 @@ namespace PCGExSplineToPath
 		{
 			const double LengthAtPoint = Spline.GetDistanceAlongSplineAtSplinePoint(i);
 			const FTransform SplineTransform = Spline.GetTransform();
-			const FVector Scale = SplineTransform.GetScale3D();
 
 			ApplyTransform(MutablePoints[i], Spline.GetTransformAtDistanceAlongSpline(LengthAtPoint, ESplineCoordinateSpace::Type::World, true));
 

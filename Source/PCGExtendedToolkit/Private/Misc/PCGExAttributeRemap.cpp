@@ -136,7 +136,7 @@ namespace PCGExAttributeRemap
 		Rules.Reserve(Dimensions);
 		for (int i = 0; i < Dimensions; i++)
 		{
-			FPCGExComponentRemapRule Rule = Rules.Add_GetRef(FPCGExComponentRemapRule(Context->RemapSettings[Context->RemapIndices[i]]));
+			FPCGExComponentRemapRule& Rule = Rules.Add_GetRef(FPCGExComponentRemapRule(Context->RemapSettings[Context->RemapIndices[i]]));
 			Rule.RemapDetails.InMin = MAX_dbl;
 			Rule.RemapDetails.InMax = MIN_dbl_neg;
 		}

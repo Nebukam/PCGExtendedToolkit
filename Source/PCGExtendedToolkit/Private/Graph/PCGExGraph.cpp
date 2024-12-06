@@ -207,7 +207,7 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 
 		if (GetDefault<UPCGExGlobalSettings>()->bCacheClusters && ParentGraph->bBuildClusters)
 		{
-			if (UPCGExClusterEdgesData* ClusterEdgesData = Cast<UPCGExClusterEdgesData>(EdgesDataFacade->Source->GetOut()))
+			if (Cast<UPCGExClusterEdgesData>(EdgesDataFacade->Source->GetOut()))
 			{
 				AsyncManager->Start<PCGExGraphTask::FWriteSubGraphCluster>(-1, nullptr, SharedThis(this));
 			}
@@ -557,8 +557,6 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 		bCompiledSuccessfully = true;
 
 		// Subgraphs
-
-		const bool bHasMetadata = MetadataDetails && !Graph->EdgeMetadata.IsEmpty();
 
 		for (int i = 0; i < Graph->SubGraphs.Num(); i++)
 		{

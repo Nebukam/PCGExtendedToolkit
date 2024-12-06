@@ -113,7 +113,6 @@ namespace PCGExFindPointOnBoundsClusters
 	{
 		if (!FClusterProcessor::Process(InAsyncManager)) { return false; }
 
-		const FVector E = Cluster->Bounds.GetExtent();
 		SearchPosition = Cluster->Bounds.GetCenter() + Cluster->Bounds.GetExtent() * Settings->UVW;
 		Cluster->RebuildOctree(Settings->SearchMode);
 

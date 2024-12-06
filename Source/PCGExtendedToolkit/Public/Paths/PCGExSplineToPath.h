@@ -4,8 +4,6 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "PCGExPathProcessor.h"
-
 #include "PCGExPointsProcessor.h"
 #include "Sampling/PCGExSampleNearestSpline.h"
 #include "Sampling/PCGExSampling.h"

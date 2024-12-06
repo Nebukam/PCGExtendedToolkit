@@ -619,8 +619,6 @@ namespace PCGExGeo
 				}
 			}
 
-			const TArray<FPCGPoint>& Points = InPointData->GetPoints();
-
 			return false;
 		}
 

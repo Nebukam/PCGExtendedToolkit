@@ -179,7 +179,6 @@ namespace PCGExResamplePath
 	{
 		const FPointSample& Sample = Samples[Index];
 		Point.Transform.SetLocation(Sample.Location);
-		const int32 SourcesRange = Sample.End - Sample.Start;
 
 		//if (SourcesRange == 1)
 		//{

@@ -101,7 +101,6 @@ namespace PCGExGrowPaths
 		const TArray<PCGExCluster::FNode>& NodesRef = *Processor->Cluster->Nodes;
 		const TArray<PCGExGraph::FEdge>& EdgesRef = *Processor->Cluster->Edges;
 
-		const PCGExCluster::FNode& CurrentNode = NodesRef[LastGrowthIndex];
 		const PCGExCluster::FNode& NextNode = NodesRef[NextGrowthIndex];
 
 		Metrics.Add(Processor->Cluster->GetPos(NextNode));
@@ -161,7 +160,6 @@ namespace PCGExGrowPaths
 		PCGExGraph::CleanupVtxData(PathIO);
 
 		TArray<FPCGPoint>& MutablePoints = OutData->GetMutablePoints();
-		const TArray<FPCGPoint>& InPoints = VtxIO->GetIn()->GetPoints();
 
 		MutablePoints.Reserve(Path.Num());
 

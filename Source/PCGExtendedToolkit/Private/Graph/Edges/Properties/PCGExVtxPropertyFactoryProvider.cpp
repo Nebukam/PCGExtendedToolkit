@@ -11,9 +11,7 @@
 void UPCGExVtxPropertyOperation::CopySettingsFrom(const UPCGExOperation* Other)
 {
 	Super::CopySettingsFrom(Other);
-	if (const UPCGExVtxPropertyOperation* TypedOther = Cast<UPCGExVtxPropertyOperation>(Other))
-	{
-	}
+	// if (const UPCGExVtxPropertyOperation* TypedOther = Cast<UPCGExVtxPropertyOperation>(Other))	{	}
 }
 
 bool UPCGExVtxPropertyOperation::PrepareForCluster(const FPCGContext* InContext, TSharedPtr<PCGExCluster::FCluster> InCluster, const TSharedPtr<PCGExData::FFacade>& InVtxDataFacade, const TSharedPtr<PCGExData::FFacade>& InEdgeDataFacade)

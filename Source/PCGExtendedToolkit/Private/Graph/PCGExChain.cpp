@@ -2,9 +2,7 @@
 // Released under the MIT license https://opensource.org/license/MIT/
 
 #include "Graph/PCGExChain.h"
-
 #include "Graph/PCGExCluster.h"
-#include "Geometry/PCGExGeo.h"
 
 namespace PCGExCluster
 {

@@ -261,7 +261,6 @@ namespace PCGExOffsetPath
 		}
 
 		FVector A = FVector::ZeroVector;
-		FVector B = FVector::ZeroVector;
 		FVector MutatedPosition = FVector::ZeroVector;
 
 		DirtyPath->BuildPartialEdgeOctree(CleanEdge);

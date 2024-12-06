@@ -205,7 +205,6 @@ namespace PCGExCreateShapes
 
 		TArrayView<FPCGPoint> ShapePoints = MakeArrayView(ShapeDataFacade->GetMutablePoints().GetData() + Shape->StartIndex, Shape->NumPoints);
 
-		FBox BoundsOne = FBox(FVector::OneVector * -0.5, FVector::OneVector * 0.5);
 		for (int i = 0; i < ShapePoints.Num(); i++)
 		{
 			ShapePoints[i] = *Shape->Seed.Point;
@@ -217,7 +216,7 @@ namespace PCGExCreateShapes
 
 		if (Settings->bWriteShapeId)
 		{
-			TSharedPtr<PCGExData::TBuffer<double>> ShapeIdBuffer = ShapeDataFacade->GetWritable<double>(Settings->ShapeIdAttributeName, PCGExData::EBufferInit::New);
+			const TSharedPtr<PCGExData::TBuffer<double>> ShapeIdBuffer = ShapeDataFacade->GetWritable<double>(Settings->ShapeIdAttributeName, PCGExData::EBufferInit::New);
 			const int32 MaxIndex = Shape->StartIndex + Shape->NumPoints;
 			for (int i = Shape->StartIndex; i < MaxIndex; i++) { ShapeIdBuffer->GetMutable(i) = Operation->BaseConfig.ShapeId; }
 		}

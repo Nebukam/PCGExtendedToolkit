@@ -158,7 +158,6 @@ namespace PCGExGeo
 			TUniquePtr<FMeshLookup> MeshLookup = MakeUnique<FMeshLookup>(VertexBuffer.GetNumVertices() / 3);
 			Edges.Empty();
 
-			int32 Idx = 0;
 			const FIndexArrayView& Indices = LODResources.IndexBuffer.GetArrayView();
 			for (int i = 0; i < Indices.Num(); i += 3)
 			{
@@ -195,7 +194,6 @@ namespace PCGExGeo
 			TUniquePtr<FMeshLookup> MeshLookup = MakeUnique<FMeshLookup>(VertexBuffer.GetNumVertices() / 3);
 			TMap<uint64, uint64> EdgeAdjacency;
 
-			int32 Idx = 0;
 			const FIndexArrayView& Indices = LODResources.IndexBuffer.GetArrayView();
 
 			PCGEx::InitArray(Triangles, Indices.Num() / 3);
@@ -245,7 +243,6 @@ namespace PCGExGeo
 				TriangleIndex++;
 			}
 
-			int32 ENum = EdgeAdjacency.Num();
 			PCGEx::InitArray(Adjacencies, Triangles.Num());
 
 			for (int j = 0; j < Triangles.Num(); j++)

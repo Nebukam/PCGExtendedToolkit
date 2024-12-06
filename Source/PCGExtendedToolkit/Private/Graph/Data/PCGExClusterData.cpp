@@ -11,9 +11,7 @@
 void UPCGExClusterNodesData::InitializeFromPCGExData(const UPCGExPointData* InPCGExPointData, const PCGExData::EIOInit InitMode)
 {
 	Super::InitializeFromPCGExData(InPCGExPointData, InitMode);
-	if (const UPCGExClusterNodesData* InNodeData = Cast<UPCGExClusterNodesData>(InPCGExPointData))
-	{
-	}
+	// if (const UPCGExClusterNodesData* InNodeData = Cast<UPCGExClusterNodesData>(InPCGExPointData))	{	}
 }
 
 void UPCGExClusterNodesData::AddBoundCluster(PCGExCluster::FCluster* InCluster)

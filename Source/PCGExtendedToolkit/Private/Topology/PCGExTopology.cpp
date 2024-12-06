@@ -340,28 +340,7 @@ namespace PCGExTopology
 
 	void FCell::PostProcessPoints(TArray<FPCGPoint>& InMutablePoints)
 	{
-		if (!Constraints->bKeepCellsWithLeaves) { return; }
 
-		const int32 NumPoints = InMutablePoints.Num();
-
-		FVector A = InMutablePoints[0].Transform.GetLocation();
-		FVector B = InMutablePoints[1].Transform.GetLocation();
-		int32 BIdx = Nodes[0];
-		int32 AIdx = -1;
-
-		for (int i = 2; i < NumPoints; i++)
-		{
-			FVector C = InMutablePoints[i].Transform.GetLocation();
-
-			if (B == C)
-			{
-				// Duplicate point, most likely a dead end. Could also be collocated points.
-				//InMutablePoints[i].Transform.SetLocation(C + PCGExMath::GetNormalUp(A, B, FVector::UpVector) * 0.01); //Slightly offset
-			}
-
-			A = B;
-			B = C;
-		}
 	}
 }
 

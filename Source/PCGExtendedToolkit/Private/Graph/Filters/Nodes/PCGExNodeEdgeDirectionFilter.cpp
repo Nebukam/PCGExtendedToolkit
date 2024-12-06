@@ -54,8 +54,6 @@ bool FNodeEdgeDirectionFilter::Test(const PCGExCluster::FNode& Node) const
 bool FNodeEdgeDirectionFilter::TestDot(const PCGExCluster::FNode& Node) const
 {
 	const int32 PointIndex = Node.PointIndex;
-	const TArray<PCGExCluster::FNode>& NodesRef = *Cluster->Nodes;
-
 	const FPCGPoint& Point = PointDataFacade->Source->GetInPoint(PointIndex);
 
 	FVector RefDir = OperandDirection ? OperandDirection->Read(PointIndex) : DirConstant;
@@ -151,8 +149,6 @@ bool FNodeEdgeDirectionFilter::TestDot(const PCGExCluster::FNode& Node) const
 bool FNodeEdgeDirectionFilter::TestHash(const PCGExCluster::FNode& Node) const
 {
 	const int32 PointIndex = Node.PointIndex;
-	const TArray<PCGExCluster::FNode>& NodesRef = *Cluster->Nodes;
-
 	const FPCGPoint& Point = PointDataFacade->Source->GetInPoint(PointIndex);
 
 	FVector RefDir = OperandDirection ? OperandDirection->Read(PointIndex) : DirConstant;
