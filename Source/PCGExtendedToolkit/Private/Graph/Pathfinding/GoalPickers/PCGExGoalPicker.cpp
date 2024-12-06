@@ -7,13 +7,6 @@
 #include "Data/PCGExPointIO.h"
 
 
-
-
-
-
-
-
-
 void UPCGExGoalPicker::CopySettingsFrom(const UPCGExOperation* Other)
 {
 	Super::CopySettingsFrom(Other);
@@ -26,7 +19,7 @@ void UPCGExGoalPicker::CopySettingsFrom(const UPCGExOperation* Other)
 bool UPCGExGoalPicker::PrepareForData(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade>& InSeedsDataFacade, const TSharedPtr<PCGExData::FFacade>& InGoalsDataFacade)
 {
 	MaxGoalIndex = InGoalsDataFacade->Source->GetNum() - 1;
-	if(MaxGoalIndex < 0)
+	if (MaxGoalIndex < 0)
 	{
 		PCGE_LOG_C(Error, GraphAndLog, Context, FTEXT("Missing goal points."));
 		return false;

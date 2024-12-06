@@ -11,7 +11,7 @@
 #define PCGEX_FORWARD_HEURISTIC_FACTORY \
 	NewFactory->WeightFactor = Config.WeightFactor; \
 	NewFactory->Config = Config; \
-	PCGEX_LOAD_SOFTOBJECT(UCurveFloat, NewFactory->Config.ScoreCurve, NewFactory->Config.ScoreCurveObj, PCGEx::WeightDistributionLinear)
+	NewFactory->Config.Init();
 
 #define PCGEX_FORWARD_HEURISTIC_CONFIG \
 	NewOperation->WeightFactor = Config.WeightFactor; \
@@ -30,9 +30,10 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExHeuristicConfigBase
 {
 	GENERATED_BODY()
 
-	FPCGExHeuristicConfigBase():
-		ScoreCurve(PCGEx::WeightDistributionLinear)
+	FPCGExHeuristicConfigBase()
 	{
+		LocalScoreCurve.EditorCurveData.AddKey(0,0);
+		LocalScoreCurve.EditorCurveData.AddKey(1,1);
 	}
 
 	~FPCGExHeuristicConfigBase()
@@ -47,12 +48,20 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExHeuristicConfigBase
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayPriority=-1))
 	bool bInvert = false;
 
+	/** Whether to use in-editor curve or an external asset. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable, DisplayPriority=-1))
+	bool bUseLocalCurve = false;
+	
+	// TODO: DirtyCache for OnDependencyChanged when this float curve is an external asset
 	/** Curve the value will be remapped over. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayPriority=-1))
-	TSoftObjectPtr<UCurveFloat> ScoreCurve;
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_NotOverridable, DisplayName="Score Curve", EditCondition = "bUseLocalCurve", EditConditionHides, DisplayPriority=-1))
+	FRuntimeFloatCurve LocalScoreCurve;
+	
+	/** Curve the value will be remapped over. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Score Curve", EditCondition="!bUseLocalCurve", EditConditionHides, DisplayPriority=-1))
+	TSoftObjectPtr<UCurveFloat> ScoreCurve = TSoftObjectPtr<UCurveFloat>(PCGEx::WeightDistributionLinear);
 
-	UPROPERTY(Transient)
-	TObjectPtr<UCurveFloat> ScoreCurveObj;
+	const FRichCurve* ScoreCurveObj = nullptr;
 
 	/** Use a local attribute */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Local Weight", meta=(PCG_Overridable))
@@ -73,6 +82,9 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExHeuristicConfigBase
 	/** Attribute to read multiplier value from. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Local Weight", meta=(PCG_Overridable, EditCondition="bUseLocalWeightMultiplier", EditConditionHides))
 	FPCGAttributePropertyInputSelector WeightMultiplierAttribute;
+
+	void Init();
+	
 };
 
 UCLASS(Abstract, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")

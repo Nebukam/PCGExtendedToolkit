@@ -27,16 +27,17 @@ namespace PCGExData
 
 	void FPointIO::InitializeOutput(const EIOInit InitOut)
 	{
-		if (Out && Out != In) { Context->ManagedObjects->Destroy(Out); }
+		if (Out && Out != In)
+		{
+			Context->ManagedObjects->Destroy(Out);
+			Out = nullptr;
+		}
+
 		OutKeys.Reset();
 
 		bMutable = false;
-
-		if (InitOut == EIOInit::None)
-		{
-			Out = nullptr;
-			return;
-		}
+		
+		if (InitOut == EIOInit::None) { return; }
 
 		if (InitOut == EIOInit::Forward)
 		{

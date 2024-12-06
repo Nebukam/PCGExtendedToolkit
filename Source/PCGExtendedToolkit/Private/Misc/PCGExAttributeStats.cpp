@@ -117,9 +117,9 @@ bool FPCGExAttributeStatsElement::Boot(FPCGExContext* InContext) const
 
 		for (int i = 0; i < NumRows; i++) { Context->Rows.Add(NewParamData->Metadata->AddEntry()); }
 
-			PCGEx::ExecuteWithRightType(
-                                                            					Identity.UnderlyingType, [&](auto DummyValue)
-                                                            					{
+		PCGEx::ExecuteWithRightType(
+			Identity.UnderlyingType, [&](auto DummyValue)
+			{
 				using T = decltype(DummyValue);
 				PCGEX_FOREACH_STAT(PCGEX_STAT_DECL, T)
 			});
@@ -193,8 +193,8 @@ namespace PCGExAttributeStats
 			if (Settings->bOutputPerUniqueValuesStats) { PerAttributeStatMap.Add(Identity.Name, i); }
 
 			PCGEx::ExecuteWithRightType(
-                                                                        					Identity.UnderlyingType, [&](auto DummyValue)
-                                                                        					{
+				Identity.UnderlyingType, [&](auto DummyValue)
+				{
 					using RawT = decltype(DummyValue);
 					TSharedPtr<TAttributeStats<RawT>> S = MakeShared<TAttributeStats<RawT>>(Identity, Key);
 					Stats.Add(StaticCastSharedPtr<FAttributeStatsBase>(S));

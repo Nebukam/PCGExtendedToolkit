@@ -70,7 +70,7 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bTestPointCount", ClampMin = 0))
 	int32 TestPointCountTolerance = 0;
 
-	
+
 	/**  */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, InlineEditConditionToggle))
 	bool bTestPositions = true;
@@ -110,7 +110,7 @@ namespace PCGExDiscardSame
 		double HashPointsCount = 0;
 		uint32 HashBounds = 0;
 		uint32 HashPositions = 0;
-		
+
 		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade)
 			: TPointsProcessor(InPointDataFacade)
 		{
