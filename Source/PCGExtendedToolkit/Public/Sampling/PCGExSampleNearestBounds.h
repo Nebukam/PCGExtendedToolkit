@@ -121,8 +121,17 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta=(PCG_NotOverridable))
 	EPCGExPointBoundsSource BoundsSource = EPCGExPointBoundsSource::ScaledBounds;
 
+	/** Whether to use in-editor curve or an external asset. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable, DisplayPriority=-1))
+	bool bUseLocalCurve = false;
+	
+	// TODO: DirtyCache for OnDependencyChanged when this float curve is an external asset
 	/** Curve that balances weight over distance */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta=(PCG_Overridable))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_NotOverridable, DisplayName="Weight Remap", EditCondition = "bUseLocalCurve", EditConditionHides))
+	FRuntimeFloatCurve LocalWeightRemap;
+	
+	/** Curve that balances weight over distance */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta=(PCG_Overridable, DisplayName="Weight Remap", EditCondition = "!bUseLocalCurve", EditConditionHides))
 	TSoftObjectPtr<UCurveFloat> WeightRemap;
 
 	/** Attributes to sample from the targets */
@@ -267,7 +276,8 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExSampleNearestBoundsContext final : FPCGE
 	FPCGExBlendingDetails BlendingDetails;
 	const TArray<FPCGPoint>* BoundsPoints = nullptr;
 
-	TObjectPtr<UCurveFloat> WeightCurve = nullptr;
+	FRuntimeFloatCurve RuntimeWeightCurve;
+	const FRichCurve* WeightCurve = nullptr;
 
 	PCGEX_FOREACH_FIELD_NEARESTBOUNDS(PCGEX_OUTPUT_DECL_TOGGLE)
 };

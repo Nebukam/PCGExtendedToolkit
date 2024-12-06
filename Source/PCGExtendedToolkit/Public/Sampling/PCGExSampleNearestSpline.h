@@ -160,8 +160,17 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Weighting", meta=(PCG_Overridable))
 	EPCGExRangeType WeightMethod = EPCGExRangeType::FullRange;
 
+	/** Whether to use in-editor curve or an external asset. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable, EditConditionHides))
+	bool bUseLocalCurve = false;
+	
+	// TODO: DirtyCache for OnDependencyChanged when this float curve is an external asset
 	/** Curve that balances weight over distance */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Weighting", meta=(PCG_Overridable))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_NotOverridable, DisplayName="Weight Over Distance", EditCondition = "bUseLocalCurve", EditConditionHides))
+	FRuntimeFloatCurve LocalWeightOverDistance;
+	
+	/** Curve that balances weight over distance */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta=(PCG_Overridable, EditCondition="!bUseLocalCurve", EditConditionHides))
 	TSoftObjectPtr<UCurveFloat> WeightOverDistance;
 
 	/** Write whether the sampling was sucessful or not to a boolean attribute. */
@@ -342,7 +351,8 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExSampleNearestSplineContext final : FPCGE
 
 	int64 NumTargets = 0;
 
-	TObjectPtr<UCurveFloat> WeightCurve = nullptr;
+	FRuntimeFloatCurve RuntimeWeightCurve;
+	const FRichCurve* WeightCurve = nullptr;
 
 	PCGEX_FOREACH_FIELD_NEARESTPOLYLINE(PCGEX_OUTPUT_DECL_TOGGLE)
 };

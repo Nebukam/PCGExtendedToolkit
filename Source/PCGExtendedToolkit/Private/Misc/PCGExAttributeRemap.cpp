@@ -27,7 +27,7 @@ bool FPCGExAttributeRemapElement::Boot(FPCGExContext* InContext) const
 	Context->RemapSettings[2] = Settings->Component3RemapOverride;
 	Context->RemapSettings[3] = Settings->Component4RemapOverride;
 
-	for (int i = 0; i < 4; i++) { Context->RemapSettings[i].RemapDetails.LoadCurve(); }
+	for (int i = 0; i < 4; i++) { Context->RemapSettings[i].RemapDetails.Init(); }
 
 	Context->RemapIndices[0] = 0;
 	Context->RemapIndices[1] = Settings->bOverrideComponent2 ? 1 : 0;

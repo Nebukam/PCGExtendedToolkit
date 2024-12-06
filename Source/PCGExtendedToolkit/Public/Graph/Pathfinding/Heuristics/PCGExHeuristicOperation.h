@@ -29,8 +29,7 @@ public:
 	EPCGExClusterComponentSource LocalWeightMultiplierSource = EPCGExClusterComponentSource::Vtx;
 	FPCGAttributePropertyInputSelector WeightMultiplierAttribute;
 
-	UPROPERTY(Transient)
-	TObjectPtr<UCurveFloat> ScoreCurveObj;
+	const FRichCurve* ScoreCurveObj = nullptr;
 
 	bool bHasCustomLocalWeightMultiplier = false;
 
@@ -82,6 +81,6 @@ protected:
 
 	FORCEINLINE virtual double GetScoreInternal(const double InTime) const
 	{
-		return FMath::Max(0, ScoreCurveObj->GetFloatValue(bInvert ? 1 - InTime : InTime)) * ReferenceWeight;
+		return FMath::Max(0, ScoreCurveObj->Eval(bInvert ? 1 - InTime : InTime)) * ReferenceWeight;
 	}
 };
