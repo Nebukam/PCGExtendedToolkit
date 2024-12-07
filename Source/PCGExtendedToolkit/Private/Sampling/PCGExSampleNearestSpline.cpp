@@ -152,6 +152,7 @@ namespace PCGExSampleNearestSpline
 
 		if (!FPointsProcessor::Process(InAsyncManager)) { return false; }
 
+		DistanceDetails = Context->DistanceDetails;
 		SampleState.SetNumUninitialized(PointDataFacade->GetNum());
 
 		if (Settings->SampleInputs != EPCGExSplineSamplingIncludeMode::All)
@@ -257,7 +258,7 @@ namespace PCGExSampleNearestSpline
 		auto ProcessTarget = [&](const FTransform& Transform, const double& Time, const FPCGSplineStruct& InSpline)
 		{
 			const FVector SampleLocation = Transform.GetLocation();
-			const FVector ModifiedOrigin = Context->DistanceDetails->GetSourceCenter(Point, Origin, SampleLocation);
+			const FVector ModifiedOrigin = DistanceDetails->GetSourceCenter(Point, Origin, SampleLocation);
 			const double Dist = FVector::Dist(ModifiedOrigin, SampleLocation);
 
 			double RMin = BaseRangeMin;

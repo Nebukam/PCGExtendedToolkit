@@ -373,6 +373,8 @@ namespace PCGExSampleNearestSpline
 {
 	class FProcessor final : public PCGExPointsMT::TPointsProcessor<FPCGExSampleNearestSplineContext, UPCGExSampleNearestSplineSettings>
 	{
+		TSharedPtr<PCGExDetails::FDistances> DistanceDetails;
+		
 		TArray<int8> SampleState;
 
 		TSharedPtr<PCGExData::TBuffer<double>> RangeMinGetter;
