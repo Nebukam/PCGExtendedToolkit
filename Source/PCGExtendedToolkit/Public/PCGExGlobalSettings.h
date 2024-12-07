@@ -10,13 +10,13 @@
 UENUM()
 enum class EPCGExAsyncPriority : uint8
 {
-	Blocking = 0 UMETA(DisplayName = "Blocking", ToolTip="Position component."),
-	Highest  = 1 UMETA(DisplayName = "Highest", ToolTip="Position component."),
-	High     = 2 UMETA(DisplayName = "High", ToolTip="Position component."),
-	Normal   = 3 UMETA(DisplayName = "Normal", ToolTip="Position component."),
-	Low      = 4 UMETA(DisplayName = "Low", ToolTip="Position component."),
-	Lowest   = 5 UMETA(DisplayName = "Lowest", ToolTip="Position component."),
-	Default  = 6 UMETA(DisplayName = "Default", ToolTip="Position component."),
+	Default          = 0 UMETA(DisplayName = "Default", ToolTip="..."),
+	Normal           = 1 UMETA(DisplayName = "Normal", ToolTip="..."),
+	High             = 2 UMETA(DisplayName = "High", ToolTip="..."),
+	BackgroundHigh   = 3 UMETA(DisplayName = "BackgroundHigh", ToolTip="..."),
+	BackgroundNormal = 4 UMETA(DisplayName = "BackgroundNormal", ToolTip="..."),
+	BackgroundLow    = 5 UMETA(DisplayName = "BackgroundLow", ToolTip="..."),
+	Count            = 6 UMETA(DisplayName = "Count", ToolTip="...")
 };
 
 UENUM()
@@ -71,8 +71,8 @@ public:
 	int32 GetPointsBatchChunkSize(const int32 In = -1) const { return In <= -1 ? PointsDefaultBatchChunkSize : In; }
 
 	UPROPERTY(EditAnywhere, config, Category = "Performance|Async")
-	EPCGExAsyncPriority DefaultWorkPriority = EPCGExAsyncPriority::Normal;
-	EPCGExAsyncPriority GetDefaultWorkPriority() const { return DefaultWorkPriority == EPCGExAsyncPriority::Default ? EPCGExAsyncPriority::Normal : DefaultWorkPriority; }
+	EPCGExAsyncPriority DefaultWorkPriority = EPCGExAsyncPriority::BackgroundNormal;
+	EPCGExAsyncPriority GetDefaultWorkPriority() const { return DefaultWorkPriority == EPCGExAsyncPriority::Default ? EPCGExAsyncPriority::BackgroundNormal : DefaultWorkPriority; }
 
 	/** Disable collision on new entries */
 	UPROPERTY(EditAnywhere, config, Category = "Collections")

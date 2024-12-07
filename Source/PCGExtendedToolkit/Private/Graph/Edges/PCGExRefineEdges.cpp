@@ -353,7 +353,7 @@ namespace PCGExRefineEdges
 		{
 			SanitizeTaskGroup->StartRanges<FSanitizeRangeTask>(
 				NumNodes, GetDefault<UPCGExGlobalSettings>()->GetPointsBatchChunkSize(),
-				nullptr, SharedThis(this));
+				false, SharedThis(this));
 		}
 	}
 
@@ -421,7 +421,7 @@ namespace PCGExRefineEdges
 		TBatch<FProcessor>::OnProcessingPreparationComplete();
 	}
 
-	bool FSanitizeRangeTask::ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager)
+	void FSanitizeRangeTask::ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager, const TSharedPtr<PCGExMT::FTaskGroup>& InGroup)
 	{
 		auto RestoreEdge = [&](const int32 EdgeIndex)
 		{
@@ -475,8 +475,6 @@ namespace PCGExRefineEdges
 				RestoreEdge(BestIndex);
 			}
 		}
-
-		return true;
 	}
 }
 

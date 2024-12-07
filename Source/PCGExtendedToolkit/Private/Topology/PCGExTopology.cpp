@@ -102,7 +102,7 @@ namespace PCGExTopology
 	{
 		const FVector SeedWP = InCluster->Bounds.GetCenter() + InCluster->Bounds.GetSize() * FVector(1, 1, 0);
 
-		TSharedPtr<FCellConstraints> TempConstraints = MakeShared<FCellConstraints>();
+		PCGEX_MAKE_SHARED(TempConstraints, FCellConstraints)
 		TempConstraints->bKeepCellsWithLeaves = bKeepCellsWithLeaves;
 		TempConstraints->bDuplicateLeafPoints = bDuplicateLeafPoints;
 

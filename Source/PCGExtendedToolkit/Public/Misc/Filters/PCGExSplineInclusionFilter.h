@@ -83,7 +83,7 @@ class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExSplineInclusionFilterFactory : public UPC
 
 public:
 	FPCGExSplineInclusionFilterConfig Config;
-	TArray<const FPCGSplineStruct*> Splines;
+	TArray<const FPCGSplineStruct> Splines;
 	virtual bool Init(FPCGExContext* InContext) override;
 	virtual TSharedPtr<PCGExPointFilter::FFilter> CreateFilter() const override;
 
@@ -115,12 +115,12 @@ namespace PCGExPointsFilter
 		explicit TSplineInclusionFilter(const TObjectPtr<const UPCGExSplineInclusionFilterFactory>& InFactory)
 			: FSimpleFilter(InFactory), TypedFilterFactory(InFactory)
 		{
-			Splines = TypedFilterFactory->Splines;
+			Splines = &TypedFilterFactory->Splines;
 		}
 
 		const TObjectPtr<const UPCGExSplineInclusionFilterFactory> TypedFilterFactory;
 
-		TArray<const FPCGSplineStruct*> Splines;
+		const TArray<const FPCGSplineStruct>* Splines = nullptr;
 
 		double ToleranceSquared = MAX_dbl;
 		ESplineCheckFlags GoodFlags = None;

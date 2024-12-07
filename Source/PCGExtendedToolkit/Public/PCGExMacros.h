@@ -8,6 +8,7 @@
 #ifndef PCGEX_MACROS
 #define PCGEX_MACROS
 
+#define PCGEX_MAKE_SHARED(_NAME, _CLASS, ...) const TSharedPtr<_CLASS> _NAME = MakeShared<_CLASS>(__VA_ARGS__);
 #define PCGEX_ENGINE_VERSION ENGINE_MAJOR_VERSION * 100 + ENGINE_MINOR_VERSION
 
 #pragma region PCGEX MACROS

@@ -20,15 +20,15 @@ namespace PCGExPointsMT
 	if (_INLINE_CONDITION)  { \
 		PCGEX_ASYNC_GROUP_CHKD_VOID(AsyncManager, _ID##Inlined) \
 		_ID##Inlined->OnIterationCallback = [PCGEX_ASYNC_THIS_CAPTURE](const int32 Index, const PCGExMT::FScope& Scope) { PCGEX_ASYNC_THIS const TSharedRef<T>& Processor = This->Processors[Index]; _BODY }; \
-		_ID##Inlined->StartIterations( Processors.Num(), 1, true, false);\
+		_ID##Inlined->StartIterations( Processors.Num(), 1, true);\
 	} else {\
 		PCGEX_ASYNC_GROUP_CHKD_VOID(AsyncManager, _ID##NonTrivial)\
 		_ID##NonTrivial->OnIterationCallback = [PCGEX_ASYNC_THIS_CAPTURE](const int32 Index, const PCGExMT::FScope& Scope) { PCGEX_ASYNC_THIS \
 		const TSharedRef<T>& Processor = This->Processors[Index]; if (Processor->IsTrivial()) { return; } _BODY }; \
-		_ID##NonTrivial->StartIterations(Processors.Num(), 1, false, false);\
+		_ID##NonTrivial->StartIterations(Processors.Num(), 1, false);\
 		if(!TrivialProcessors.IsEmpty()){ PCGEX_ASYNC_GROUP_CHKD_VOID(AsyncManager, _ID##Trivial) \
 		_ID##Trivial->OnIterationCallback =[PCGEX_ASYNC_THIS_CAPTURE](const int32 Index, const PCGExMT::FScope& Scope){ PCGEX_ASYNC_THIS const TSharedRef<T>& Processor = This->TrivialProcessors[Index]; _BODY }; \
-		_ID##Trivial->StartIterations( TrivialProcessors.Num(), 32, false, false); }\
+		_ID##Trivial->StartIterations( TrivialProcessors.Num(), 32, false); }\
 	}
 
 #define PCGEX_ASYNC_PROCESSOR_LOOP(_NAME, _NUM, _PREPARE, _PROCESS, _COMPLETE, _INLINE, _PLI) \
@@ -395,7 +395,9 @@ namespace PCGExPointsMT
 			for (const TWeakPtr<PCGExData::FPointIO>& WeakIO : PointsCollection)
 			{
 				TSharedPtr<PCGExData::FPointIO> IO = WeakIO.Pin();
-				const TSharedPtr<PCGExData::FFacade> PointDataFacade = MakeShared<PCGExData::FFacade>(IO.ToSharedRef());
+				
+				PCGEX_MAKE_SHARED(PointDataFacade, PCGExData::FFacade, IO.ToSharedRef())
+				
 				const TSharedPtr<T> NewProcessor = MakeShared<T>(PointDataFacade.ToSharedRef());
 
 				NewProcessor->SetExecutionContext(ExecutionContext);

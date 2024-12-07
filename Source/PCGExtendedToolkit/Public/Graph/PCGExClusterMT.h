@@ -29,17 +29,20 @@ namespace PCGExClusterMT
 	class FStartClusterBatchProcessing final : public PCGExMT::FPCGExTask
 	{
 	public:
-		FStartClusterBatchProcessing(const TSharedPtr<PCGExData::FPointIO>& InPointIO, TSharedPtr<T> InTarget, const bool bScoped) : FPCGExTask(InPointIO), Target(InTarget), bScopedIndexLookupBuild(bScoped)
+		FStartClusterBatchProcessing(TSharedPtr<T> InTarget,
+		                             const bool bScoped)
+			: FPCGExTask(),
+			  Target(InTarget),
+			  bScopedIndexLookupBuild(bScoped)
 		{
 		}
 
 		TSharedPtr<T> Target;
 		bool bScopedIndexLookupBuild = false;
 
-		virtual bool ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager) override
+		virtual void ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager, const TSharedPtr<PCGExMT::FTaskGroup>& InGroup) override
 		{
 			Target->PrepareProcessing(AsyncManager, bScopedIndexLookupBuild);
-			return true;
 		}
 	};
 
@@ -652,9 +655,9 @@ namespace PCGExClusterMT
 		}
 	};
 
-	static void ScheduleBatch(const TSharedPtr<PCGExMT::FTaskManager>& Manager, const TSharedPtr<FClusterProcessorBatchBase>& Batch, const bool bScopedIndexLookupBuild)
+	static void ScheduleBatch(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager, const TSharedPtr<FClusterProcessorBatchBase>& Batch, const bool bScopedIndexLookupBuild)
 	{
-		Manager->Start<FStartClusterBatchProcessing<FClusterProcessorBatchBase>>(-1, nullptr, Batch, bScopedIndexLookupBuild);
+		PCGEX_START_TASK(FStartClusterBatchProcessing<FClusterProcessorBatchBase>, Batch, bScopedIndexLookupBuild)
 	}
 
 	static void CompleteBatches(const TArrayView<TSharedPtr<FClusterProcessorBatchBase>> Batches)

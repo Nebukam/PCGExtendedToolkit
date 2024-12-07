@@ -303,12 +303,13 @@ namespace PCGExGrowPaths
 	class /*PCGEXTENDEDTOOLKIT_API*/ FGrowTask final : public PCGExMT::FPCGExTask
 	{
 	public:
-		FGrowTask(const TSharedPtr<PCGExData::FPointIO>& InPointIO, const TSharedPtr<FProcessor>& InProcessor) :
-			FPCGExTask(InPointIO), Processor(InProcessor)
+		FGrowTask(const TSharedPtr<FProcessor>& InProcessor) :
+			FPCGExTask(),
+			Processor(InProcessor)
 		{
 		}
 
 		TSharedPtr<FProcessor> Processor;
-		virtual bool ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager) override;
+		virtual void ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager, const TSharedPtr<PCGExMT::FTaskGroup>& InGroup) override;
 	};
 }

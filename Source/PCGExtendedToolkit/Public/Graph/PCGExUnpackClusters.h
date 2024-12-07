@@ -66,10 +66,12 @@ protected:
 class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExUnpackClusterTask final : public PCGExMT::FPCGExTask
 {
 public:
-	explicit FPCGExUnpackClusterTask(const TSharedPtr<PCGExData::FPointIO>& InPointIO) :
-		FPCGExTask(InPointIO)
+	explicit FPCGExUnpackClusterTask(const TSharedPtr<PCGExData::FPointIO>& InPointIO)
+		: FPCGExTask(),
+		  PointIO(InPointIO)
 	{
 	}
 
-	virtual bool ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager) override;
+	TSharedPtr<PCGExData::FPointIO> PointIO;
+	virtual void ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager, const TSharedPtr<PCGExMT::FTaskGroup>& InGroup) override;
 };

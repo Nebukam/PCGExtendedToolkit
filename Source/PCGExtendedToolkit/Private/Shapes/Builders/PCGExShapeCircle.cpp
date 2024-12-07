@@ -28,7 +28,7 @@ bool UPCGExShapeCircleBuilder::PrepareForSeeds(FPCGExContext* InContext, const T
 
 void UPCGExShapeCircleBuilder::PrepareShape(const PCGExData::FPointRef& Seed)
 {
-	TSharedPtr<PCGExShapes::FCircle> Circle = MakeShared<PCGExShapes::FCircle>(Seed);
+	PCGEX_MAKE_SHARED(Circle, PCGExShapes::FCircle, Seed)
 
 	Circle->ComputeFit(BaseConfig);
 

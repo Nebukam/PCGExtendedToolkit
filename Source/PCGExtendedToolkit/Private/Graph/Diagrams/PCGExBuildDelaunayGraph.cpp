@@ -121,8 +121,8 @@ namespace PCGExBuildDelaunay
 
 		if (Settings->bOutputSites)
 		{
-			if (Settings->bMergeUrquhartSites) { AsyncManager->Start<FOutputDelaunayUrquhartSites>(BatchIndex, PointDataFacade->Source, SharedThis(this)); }
-			else { AsyncManager->Start<FOutputDelaunaySites>(BatchIndex, PointDataFacade->Source, SharedThis(this)); }
+			if (Settings->bMergeUrquhartSites) { PCGEX_START_TASK(FOutputDelaunayUrquhartSites, PointDataFacade->Source, SharedThis(this)) }
+			else { PCGEX_START_TASK(FOutputDelaunaySites, PointDataFacade->Source, SharedThis(this)) }
 		}
 
 		GraphBuilder = MakeShared<PCGExGraph::FGraphBuilder>(PointDataFacade, &Settings->GraphBuilderDetails);
@@ -162,7 +162,7 @@ namespace PCGExBuildDelaunay
 		PointDataFacade->Write(AsyncManager);
 	}
 
-	bool FOutputDelaunaySites::ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager)
+	void FOutputDelaunaySites::ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager, const TSharedPtr<PCGExMT::FTaskGroup>& InGroup)
 	{
 		FPCGExBuildDelaunayGraphContext* Context = AsyncManager->GetContext<FPCGExBuildDelaunayGraphContext>();
 		PCGEX_SETTINGS(BuildDelaunayGraph)
@@ -194,7 +194,7 @@ namespace PCGExBuildDelaunay
 
 		if (Settings->bMarkSiteHull)
 		{
-			const TSharedPtr<PCGExData::TBuffer<bool>> HullBuffer = MakeShared<PCGExData::TBuffer<bool>>(SitesIO.ToSharedRef(), Settings->SiteHullAttributeName);
+			PCGEX_MAKE_SHARED(HullBuffer, PCGExData::TBuffer<bool>, SitesIO.ToSharedRef(), Settings->SiteHullAttributeName)
 			HullBuffer->PrepareWrite(false, true, PCGExData::EBufferInit::New);
 			{
 				TArray<bool>& OutValues = *HullBuffer->GetOutValues();
@@ -202,11 +202,9 @@ namespace PCGExBuildDelaunay
 			}
 			Write(AsyncManager, HullBuffer);
 		}
-
-		return true;
 	}
 
-	bool FOutputDelaunayUrquhartSites::ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager)
+	void FOutputDelaunayUrquhartSites::ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager, const TSharedPtr<PCGExMT::FTaskGroup>& InGroup)
 	{
 		FPCGExBuildDelaunayGraphContext* Context = AsyncManager->GetContext<FPCGExBuildDelaunayGraphContext>();
 		PCGEX_SETTINGS(BuildDelaunayGraph)
@@ -238,7 +236,7 @@ namespace PCGExBuildDelaunay
 
 		if (Settings->bMarkSiteHull)
 		{
-			const TSharedPtr<PCGExData::TBuffer<bool>> HullBuffer = MakeShared<PCGExData::TBuffer<bool>>(SitesIO.ToSharedRef(), Settings->SiteHullAttributeName);
+			PCGEX_MAKE_SHARED(HullBuffer, PCGExData::TBuffer<bool>, SitesIO.ToSharedRef(), Settings->SiteHullAttributeName)
 			HullBuffer->PrepareWrite(false, true, PCGExData::EBufferInit::New);
 			{
 				TArray<bool>& OutValues = *HullBuffer->GetOutValues();
@@ -246,8 +244,6 @@ namespace PCGExBuildDelaunay
 			}
 			Write(AsyncManager, HullBuffer);
 		}
-
-		return true;
 	}
 }
 

@@ -130,8 +130,8 @@ namespace PCGExBuildDelaunay2D
 
 		if (Settings->bOutputSites)
 		{
-			if (Settings->UrquhartSitesMerge != EPCGExUrquhartSiteMergeMode::None) { AsyncManager->Start<FOutputDelaunayUrquhartSites2D>(BatchIndex, PointDataFacade->Source, SharedThis(this)); }
-			else { AsyncManager->Start<FOutputDelaunaySites2D>(BatchIndex, PointDataFacade->Source, SharedThis(this)); }
+			if (Settings->UrquhartSitesMerge != EPCGExUrquhartSiteMergeMode::None) { PCGEX_START_TASK(FOutputDelaunayUrquhartSites2D, PointDataFacade->Source, SharedThis(this)) }
+			else { PCGEX_START_TASK(FOutputDelaunaySites2D, PointDataFacade->Source, SharedThis(this)) }
 		}
 
 		GraphBuilder = MakeShared<PCGExGraph::FGraphBuilder>(PointDataFacade, &Settings->GraphBuilderDetails);
@@ -173,14 +173,14 @@ namespace PCGExBuildDelaunay2D
 		PointDataFacade->Write(AsyncManager);
 	}
 
-	bool FOutputDelaunaySites2D::ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager)
+	void FOutputDelaunaySites2D::ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager, const TSharedPtr<PCGExMT::FTaskGroup>& InGroup)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(FOutputDelaunaySites2D::ExecuteTask);
 
 		FPCGExBuildDelaunayGraph2DContext* Context = AsyncManager->GetContext<FPCGExBuildDelaunayGraph2DContext>();
 		PCGEX_SETTINGS(BuildDelaunayGraph2D)
 
-		const TSharedPtr<PCGExData::FPointIO> SitesIO = NewPointIO(PointIO.ToSharedRef());
+		const TSharedPtr<PCGExData::FPointIO> SitesIO = PCGExData::NewPointIO(PointIO.ToSharedRef());
 		SitesIO->InitializeOutput(PCGExData::EIOInit::New);
 
 		Context->MainSites->InsertUnsafe(Processor->BatchIndex, SitesIO);
@@ -205,7 +205,7 @@ namespace PCGExBuildDelaunay2D
 
 		if (Settings->bMarkSiteHull)
 		{
-			const TSharedPtr<PCGExData::TBuffer<bool>> HullBuffer = MakeShared<PCGExData::TBuffer<bool>>(SitesIO.ToSharedRef(), Settings->SiteHullAttributeName);
+			PCGEX_MAKE_SHARED(HullBuffer, PCGExData::TBuffer<bool>, SitesIO.ToSharedRef(), Settings->SiteHullAttributeName)
 			HullBuffer->PrepareWrite(false, true, PCGExData::EBufferInit::New);
 			{
 				TArray<bool>& OutValues = *HullBuffer->GetOutValues();
@@ -213,18 +213,16 @@ namespace PCGExBuildDelaunay2D
 			}
 			Write(AsyncManager, HullBuffer);
 		}
-
-		return true;
 	}
 
-	bool FOutputDelaunayUrquhartSites2D::ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager)
+	void FOutputDelaunayUrquhartSites2D::ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager, const TSharedPtr<PCGExMT::FTaskGroup>& InGroup)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(FOutputDelaunayUrquhartSites2D::ExecuteTask);
 
 		FPCGExBuildDelaunayGraph2DContext* Context = AsyncManager->GetContext<FPCGExBuildDelaunayGraph2DContext>();
 		PCGEX_SETTINGS(BuildDelaunayGraph2D)
 
-		TSharedPtr<PCGExData::FPointIO> SitesIO = NewPointIO(PointIO.ToSharedRef());
+		TSharedPtr<PCGExData::FPointIO> SitesIO = PCGExData::NewPointIO(PointIO.ToSharedRef());
 		SitesIO->InitializeOutput(PCGExData::EIOInit::New);
 
 		Context->MainSites->InsertUnsafe(Processor->BatchIndex, SitesIO);
@@ -313,7 +311,7 @@ namespace PCGExBuildDelaunay2D
 
 		if (Settings->bMarkSiteHull)
 		{
-			const TSharedPtr<PCGExData::TBuffer<bool>> HullBuffer = MakeShared<PCGExData::TBuffer<bool>>(SitesIO.ToSharedRef(), Settings->SiteHullAttributeName);
+			PCGEX_MAKE_SHARED(HullBuffer, PCGExData::TBuffer<bool>, SitesIO.ToSharedRef(), Settings->SiteHullAttributeName)
 			HullBuffer->PrepareWrite(false, true, PCGExData::EBufferInit::New);
 			{
 				TArray<bool>& OutValues = *HullBuffer->GetOutValues();
@@ -321,8 +319,6 @@ namespace PCGExBuildDelaunay2D
 			}
 			Write(AsyncManager, HullBuffer);
 		}
-
-		return true;
 	}
 }
 

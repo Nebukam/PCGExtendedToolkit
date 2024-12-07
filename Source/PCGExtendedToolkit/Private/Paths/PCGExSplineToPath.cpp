@@ -95,11 +95,12 @@ bool FPCGExSplineToPathElement::ExecuteInternal(FPCGContext* InContext) const
 	PCGEX_EXECUTION_CHECK
 	PCGEX_ON_INITIAL_EXECUTION
 	{
+		const TSharedPtr<PCGExMT::FTaskManager> AsyncManager = Context->GetAsyncManager();
 		for (int i = 0; i < Context->NumTargets; i++)
 		{
 			TSharedPtr<PCGExData::FPointIO> NewOutput = Context->MainPoints->Emplace_GetRef(PCGExData::EIOInit::New);
-			TSharedPtr<PCGExData::FFacade> PointDataFacade = MakeShared<PCGExData::FFacade>(NewOutput.ToSharedRef());
-			Context->GetAsyncManager()->Start<PCGExSplineToPath::FWriteTask>(i, NewOutput, PointDataFacade);
+			PCGEX_MAKE_SHARED(PointDataFacade, PCGExData::FFacade, NewOutput.ToSharedRef())
+			PCGEX_START_TASK(PCGExSplineToPath::FWriteTask, i, PointDataFacade)
 
 			NewOutput->Tags->Append(Context->Tags[i]);
 		}
@@ -118,7 +119,7 @@ bool FPCGExSplineToPathElement::ExecuteInternal(FPCGContext* InContext) const
 
 namespace PCGExSplineToPath
 {
-	bool FWriteTask::ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager)
+	void FWriteTask::ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager, const TSharedPtr<PCGExMT::FTaskGroup>& InGroup)
 	{
 		FPCGExSplineToPathContext* Context = AsyncManager->GetContext<FPCGExSplineToPathContext>();
 		PCGEX_SETTINGS(SplineToPath)
@@ -195,8 +196,6 @@ namespace PCGExSplineToPath
 		}
 
 		PointDataFacade->Write(AsyncManager);
-
-		return true;
 	}
 }
 

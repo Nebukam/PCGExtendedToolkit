@@ -929,7 +929,7 @@ namespace PCGExData
 				// ReSharper disable once CppRedundantTemplateKeyword
 				const FPCGMetadataAttribute<T>* SourceAttribute = Source->GetIn()->Metadata->template GetConstTypedAttribute<T>(Identity.Name);
 
-				const TSharedPtr<TBuffer<T>> TargetBuffer = MakeShared<TBuffer<T>>(Target.ToSharedRef(), Identity.Name);
+				PCGEX_MAKE_SHARED(TargetBuffer, TBuffer<T>, Target.ToSharedRef(), Identity.Name)
 				TargetBuffer->PrepareWrite(SourceAttribute->GetValue(PCGDefaultValueKey), SourceAttribute->AllowsInterpolation(), EBufferInit::New);
 
 				TUniquePtr<FPCGAttributeAccessor<T>> InAccessor = MakeUnique<FPCGAttributeAccessor<T>>(SourceAttribute, Source->GetIn()->Metadata);

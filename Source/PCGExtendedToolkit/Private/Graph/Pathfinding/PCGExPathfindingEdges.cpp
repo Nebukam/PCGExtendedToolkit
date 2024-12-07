@@ -68,7 +68,7 @@ void FPCGExPathfindingEdgesContext::BuildPath(const TSharedPtr<PCGExPathfinding:
 	PCGExGraph::CleanupClusterTags(PathIO, true);
 	PCGExGraph::CleanupVtxData(PathIO);
 
-	const TSharedPtr<PCGExData::FFacade> PathDataFacade = MakeShared<PCGExData::FFacade>(PathIO.ToSharedRef());
+	PCGEX_MAKE_SHARED(PathDataFacade, PCGExData::FFacade, PathIO.ToSharedRef())
 	PathDataFacade->GetMutablePoints() = MutablePoints;
 
 	SeedAttributesToPathTags.Tag(Query->Seed.SourceIndex, PathIO);
@@ -236,7 +236,7 @@ namespace PCGExPathfindingEdge
 				Query->Cleanup();
 			};
 
-		ResolveQueriesTask->StartIterations(Queries.Num(), 1, HeuristicsHandler->HasGlobalFeedback(), false);
+		ResolveQueriesTask->StartIterations(Queries.Num(), 1, HeuristicsHandler->HasGlobalFeedback());
 		return true;
 	}
 }

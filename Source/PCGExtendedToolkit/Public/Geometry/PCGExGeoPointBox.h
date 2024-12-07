@@ -156,7 +156,7 @@ namespace PCGExGeo
 			const uint64 HID = PCGEx::H64U(Start, End);
 			if (TSharedPtr<FIntersections> ExistingIntersection = Find(HID)) { return ExistingIntersection; }
 
-			TSharedPtr<FIntersections> NewIntersections = MakeShared<FIntersections>(Start, End);
+			PCGEX_MAKE_SHARED(NewIntersections, FIntersections, Start, End)
 			Insert(NewIntersections);
 
 			return NewIntersections;
@@ -422,7 +422,7 @@ namespace PCGExGeo
 
 			for (int i = 0; i < Points.Num(); i++)
 			{
-				TSharedPtr<FPointBox> NewPointBox = MakeShared<FPointBox>(Points[i], i, BoundsSource, Epsilon);
+				PCGEX_MAKE_SHARED(NewPointBox, FPointBox, Points[i], i, BoundsSource, Epsilon)
 				CloudBounds += NewPointBox->Box.TransformBy(NewPointBox->Matrix);
 				Boxes[i] = NewPointBox;
 				Octree->AddElement(NewPointBox.Get());

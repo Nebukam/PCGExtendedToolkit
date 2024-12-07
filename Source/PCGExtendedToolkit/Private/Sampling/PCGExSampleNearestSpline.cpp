@@ -48,8 +48,6 @@ TArray<FPCGPinProperties> UPCGExSampleNearestSplineSettings::InputPinProperties(
 
 PCGExData::EIOInit UPCGExSampleNearestSplineSettings::GetMainOutputInitMode() const { return PCGExData::EIOInit::Duplicate; }
 
-int32 UPCGExSampleNearestSplineSettings::GetPreferredChunkSize() const { return PCGExMT::GAsyncLoop_L; }
-
 PCGEX_INITIALIZE_ELEMENT(SampleNearestSpline)
 
 bool FPCGExSampleNearestSplineElement::Boot(FPCGExContext* InContext) const
@@ -94,7 +92,7 @@ bool FPCGExSampleNearestSplineElement::Boot(FPCGExContext* InContext) const
 	}
 
 	Context->Splines.Reserve(Context->NumTargets);
-	for (const UPCGSplineData* SplineData : Context->Targets) { Context->Splines.Add(&SplineData->SplineStruct); }
+	for (const UPCGSplineData* SplineData : Context->Targets) { Context->Splines.Add(SplineData->SplineStruct); }
 
 	Context->SegmentCounts.SetNumUninitialized(Context->NumTargets);
 	for (int i = 0; i < Context->NumTargets; i++) { Context->SegmentCounts[i] = Context->Targets[i]->SplineStruct.GetNumberOfSplineSegments(); }
@@ -256,7 +254,7 @@ namespace PCGExSampleNearestSpline
 		PCGExPolyLine::FSamplesStats Stats;
 
 		FVector Origin = Point.Transform.GetLocation();
-		auto ProcessTarget = [&](const FTransform& Transform, const double& Time, const FPCGSplineStruct* InSpline)
+		auto ProcessTarget = [&](const FTransform& Transform, const double& Time, const FPCGSplineStruct& InSpline)
 		{
 			const FVector SampleLocation = Transform.GetLocation();
 			const FVector ModifiedOrigin = Context->DistanceDetails->GetSourceCenter(Point, Origin, SampleLocation);
@@ -299,7 +297,7 @@ namespace PCGExSampleNearestSpline
 
 			if (FVector::DotProduct((SampleLocation - ModifiedOrigin).GetSafeNormal(), Transform.GetRotation().GetRightVector()) > 0)
 			{
-				if (!bOnlyIncrementInsideNumIfClosed || InSpline->bClosedLoop) { NumInsideIncrement = 1; }
+				if (!bOnlyIncrementInsideNumIfClosed || InSpline.bClosedLoop) { NumInsideIncrement = 1; }
 			}
 
 			bool IsNewClosest = false;
@@ -311,7 +309,7 @@ namespace PCGExSampleNearestSpline
 
 				if ((bClosestSample && !IsNewClosest) || !IsNewFarthest) { return; }
 
-				bClosed = InSpline->bClosedLoop;
+				bClosed = InSpline.bClosedLoop;
 
 				NumInside = NumInsideIncrement;
 				NumInClosed = NumInsideIncrement;
@@ -324,7 +322,7 @@ namespace PCGExSampleNearestSpline
 				const PCGExPolyLine::FSample& Infos = Samples.Emplace_GetRef(Transform, Dist, Time);
 				Stats.Update(Infos, IsNewClosest, IsNewFarthest);
 
-				if (InSpline->bClosedLoop)
+				if (InSpline.bClosedLoop)
 				{
 					bClosed = true;
 					NumInClosed++;
@@ -340,10 +338,10 @@ namespace PCGExSampleNearestSpline
 		// First: Sample all possible targets
 		for (int i = 0; i < Context->NumTargets; i++)
 		{
-			const FPCGSplineStruct* Line = Context->Splines[i];
+			const FPCGSplineStruct& Line = Context->Splines[i];
 			FTransform SampledTransform;
-			double Time = Line->FindInputKeyClosestToWorldLocation(Origin);
-			SampledTransform = Line->GetTransformAtSplineInputKey(static_cast<float>(Time), ESplineCoordinateSpace::World, Settings->bSplineScalesRanges);
+			double Time = Line.FindInputKeyClosestToWorldLocation(Origin);
+			SampledTransform = Line.GetTransformAtSplineInputKey(static_cast<float>(Time), ESplineCoordinateSpace::World, Settings->bSplineScalesRanges);
 			ProcessTarget(SampledTransform, Time / Context->SegmentCounts[i], Line);
 		}
 

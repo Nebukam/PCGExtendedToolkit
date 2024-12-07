@@ -109,12 +109,15 @@ void FPCGExPointIOMerger::Merge(const TSharedPtr<PCGExMT::FTaskManager>& AsyncMa
 
 	InCarryOverDetails->Filter(&UnionDataFacade->Source.Get());
 
-	for (int i = 0; i < UniqueIdentities.Num(); i++) { AsyncManager->Start<PCGExPointIOMerger::FCopyAttributeTask>(i, UnionDataFacade->Source, SharedThis(this)); }
+	for (int i = 0; i < UniqueIdentities.Num(); i++)
+	{
+		PCGEX_START_TASK(PCGExPointIOMerger::FCopyAttributeTask, i, SharedThis(this))
+	}
 }
 
 namespace PCGExPointIOMerger
 {
-	bool FCopyAttributeTask::ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager)
+	void FCopyAttributeTask::ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager, const TSharedPtr<PCGExMT::FTaskGroup>& InGroup)
 	{
 		const PCGEx::FAttributeIdentity& Identity = Merger->UniqueIdentities[TaskIndex];
 		const TSharedPtr<PCGExData::FBufferBase> Buffer = Merger->Buffers[TaskIndex];
@@ -133,10 +136,8 @@ namespace PCGExPointIOMerger
 					if (!Attribute) { continue; }                            // Missing attribute
 					if (!Identity.IsA(Attribute->GetTypeId())) { continue; } // Type mismatch
 
-					InternalStart<FWriteAttributeScopeTask<T>>(-1, SourceIO, Merger->Scopes[i], Identity, TypedBuffer->GetOutValues());
+					PCGEX_START_TASK_INTERNAL(FWriteAttributeScopeTask<T>, SourceIO, Merger->Scopes[i], Identity, TypedBuffer->GetOutValues())
 				}
 			});
-
-		return true;
 	}
 }

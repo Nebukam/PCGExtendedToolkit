@@ -119,7 +119,7 @@ void FPCGExPathfindingPlotEdgesContext::BuildPath(const TSharedPtr<PCGExPathfind
 	}
 
 	const TSharedPtr<PCGExData::FPointIO> PathIO = OutputPaths->Emplace_GetRef<UPCGPointData>(ReferenceIO->GetIn(), PCGExData::EIOInit::New);
-	const TSharedPtr<PCGExData::FFacade> PathDataFacade = MakeShared<PCGExData::FFacade>(PathIO.ToSharedRef());
+	PCGEX_MAKE_SHARED(PathDataFacade, PCGExData::FFacade, PathIO.ToSharedRef())
 	PathDataFacade->GetMutablePoints() = MutablePoints;
 
 	PCGExGraph::CleanupClusterTags(PathIO, true);
@@ -142,7 +142,7 @@ bool FPCGExPathfindingPlotEdgesElement::Boot(FPCGExContext* InContext) const
 	PCGEX_OPERATION_BIND(SearchAlgorithm, UPCGExSearchOperation, PCGExPathfinding::SourceOverridesSearch)
 
 	Context->OutputPaths = MakeShared<PCGExData::FPointIOCollection>(Context);
-	TSharedPtr<PCGExData::FPointIOCollection> Plots = MakeShared<PCGExData::FPointIOCollection>(Context);
+	PCGEX_MAKE_SHARED(Plots, PCGExData::FPointIOCollection, Context)
 
 	TArray<FPCGTaggedData> Sources = Context->InputData.GetInputsByPin(PCGExGraph::SourcePlotsLabel);
 	Plots->Initialize(Sources, PCGExData::EIOInit::None);
@@ -223,7 +223,7 @@ namespace PCGExPathfindingPlotEdge
 		PCGEx::InitArray(Queries, Context->Plots.Num());
 		for (int i = 0; i < Queries.Num(); i++)
 		{
-			const TSharedPtr<PCGExPathfinding::FPlotQuery> Query = MakeShared<PCGExPathfinding::FPlotQuery>(Cluster.ToSharedRef(), Settings->bClosedLoop);
+			PCGEX_MAKE_SHARED(Query, PCGExPathfinding::FPlotQuery, Cluster.ToSharedRef(), Settings->bClosedLoop)
 			Queries[i] = Query;
 		}
 
@@ -244,7 +244,7 @@ namespace PCGExPathfindingPlotEdge
 				};
 			};
 
-		ResolveQueriesTask->StartIterations(Queries.Num(), 1, HeuristicsHandler->HasGlobalFeedback(), false);
+		ResolveQueriesTask->StartIterations(Queries.Num(), 1, HeuristicsHandler->HasGlobalFeedback());
 		return true;
 	}
 }

@@ -48,9 +48,8 @@ bool FPCGExCutEdgesElement::Boot(FPCGExContext* InContext) const
 	{
 		GetInputFactories(Context, PCGExCutEdges::SourceNodeFilters, Context->NodeFilterFactories, PCGExFactories::ClusterNodeFilters, false);
 	}
-
-
-	TSharedPtr<PCGExData::FPointIOCollection> PathCollection = MakeShared<PCGExData::FPointIOCollection>(Context, PCGExGraph::SourcePathsLabel);
+	
+	PCGEX_MAKE_SHARED(PathCollection, PCGExData::FPointIOCollection, Context, PCGExGraph::SourcePathsLabel)
 	if (PathCollection->IsEmpty())
 	{
 		PCGE_LOG(Error, GraphAndLog, FTEXT("Empty paths."));
@@ -70,7 +69,7 @@ bool FPCGExCutEdgesElement::Boot(FPCGExContext* InContext) const
 			continue;
 		}
 
-		TSharedPtr<PCGExData::FFacade> Facade = MakeShared<PCGExData::FFacade>(PathIO.ToSharedRef());
+		PCGEX_MAKE_SHARED(Facade, PCGExData::FFacade, PathIO.ToSharedRef())
 		Facade->bSupportsScopedGet = Context->bScopedAttributeGet;
 
 		Context->PathFacades.Add(Facade.ToSharedRef());

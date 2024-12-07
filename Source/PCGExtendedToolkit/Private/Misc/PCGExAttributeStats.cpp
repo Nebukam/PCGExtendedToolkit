@@ -196,7 +196,7 @@ namespace PCGExAttributeStats
 				Identity.UnderlyingType, [&](auto DummyValue)
 				{
 					using RawT = decltype(DummyValue);
-					TSharedPtr<TAttributeStats<RawT>> S = MakeShared<TAttributeStats<RawT>>(Identity, Key);
+					PCGEX_MAKE_SHARED(S, TAttributeStats<RawT>, Identity, Key)
 					Stats.Add(StaticCastSharedPtr<FAttributeStatsBase>(S));
 				});
 		}

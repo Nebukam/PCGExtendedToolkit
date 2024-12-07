@@ -154,7 +154,7 @@ bool FPCGExFindClustersDataElement::ExecuteInternal(FPCGContext* InContext) cons
 		return Context->TryComplete();
 	}
 
-	const TSharedPtr<PCGExData::FPointIOTaggedDictionary> InputDictionary = MakeShared<PCGExData::FPointIOTaggedDictionary>(PCGExGraph::TagStr_ClusterPair);
+	PCGEX_MAKE_SHARED(InputDictionary, PCGExData::FPointIOTaggedDictionary, PCGExGraph::TagStr_ClusterPair)
 
 	TArray<TSharedPtr<PCGExData::FPointIO>> TaggedVtx;
 	TArray<TSharedPtr<PCGExData::FPointIO>> TaggedEdges;

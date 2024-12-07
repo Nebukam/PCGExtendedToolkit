@@ -25,7 +25,7 @@ TSharedPtr<PCGExSampleOverlapStats::FOverlap> FPCGExSampleOverlapStatsContext::R
 		FWriteScopeLock WriteScopeLock(OverlapLock);
 		if (TSharedPtr<PCGExSampleOverlapStats::FOverlap>* FoundPtr = OverlapMap.Find(HashID)) { return *FoundPtr; }
 
-		TSharedPtr<PCGExSampleOverlapStats::FOverlap> NewOverlap = MakeShared<PCGExSampleOverlapStats::FOverlap>(InA, InB, InIntersection);
+		PCGEX_MAKE_SHARED(NewOverlap, PCGExSampleOverlapStats::FOverlap, InA, InB, InIntersection)
 		OverlapMap.Add(HashID, NewOverlap);
 		return NewOverlap;
 	}

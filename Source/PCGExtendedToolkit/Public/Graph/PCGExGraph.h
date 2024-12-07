@@ -784,26 +784,23 @@ namespace PCGExGraphTask
 	class /*PCGEXTENDEDTOOLKIT_API*/ FWriteSubGraphCluster final : public PCGExMT::FPCGExTask
 	{
 	public:
-		FWriteSubGraphCluster(const TSharedPtr<PCGExData::FPointIO>& InPointIO,
-		                      const TSharedPtr<PCGExGraph::FSubGraph>& InSubGraph)
-			: FPCGExTask(InPointIO),
+		FWriteSubGraphCluster(const TSharedPtr<PCGExGraph::FSubGraph>& InSubGraph)
+			: FPCGExTask(),
 			  SubGraph(InSubGraph)
 		{
 		}
 
 		TSharedPtr<PCGExGraph::FSubGraph> SubGraph;
-		virtual bool ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager) override;
+		virtual void ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager, const TSharedPtr<PCGExMT::FTaskGroup>& InGroup) override;
 	};
 
 	class /*PCGEXTENDEDTOOLKIT_API*/ FCompileGraph final : public PCGExMT::FPCGExTask
 	{
 	public:
-		FCompileGraph(
-			const TSharedPtr<PCGExData::FPointIO>& InPointIO,
-			const TSharedPtr<PCGExGraph::FGraphBuilder>& InGraphBuilder,
-			const bool bInWriteNodeFacade,
-			const PCGExGraph::FGraphMetadataDetails* InMetadataDetails = nullptr)
-			: FPCGExTask(InPointIO),
+		FCompileGraph(const TSharedPtr<PCGExGraph::FGraphBuilder>& InGraphBuilder,
+		              const bool bInWriteNodeFacade,
+		              const PCGExGraph::FGraphMetadataDetails* InMetadataDetails = nullptr)
+			: FPCGExTask(),
 			  Builder(InGraphBuilder),
 			  bWriteNodeFacade(bInWriteNodeFacade),
 			  MetadataDetails(InMetadataDetails)
@@ -814,18 +811,20 @@ namespace PCGExGraphTask
 		const bool bWriteNodeFacade = false;
 		const PCGExGraph::FGraphMetadataDetails* MetadataDetails = nullptr;
 
-		virtual bool ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager) override;
+		virtual void ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager, const TSharedPtr<PCGExMT::FTaskGroup>& InGroup) override;
 	};
 
-	class /*PCGEXTENDEDTOOLKIT_API*/ FCopyGraphToPoint final : public PCGExMT::FPCGExTask
+	class /*PCGEXTENDEDTOOLKIT_API*/ FCopyGraphToPoint final : public PCGExMT::FPCGExIndexedTask
 	{
 	public:
-		FCopyGraphToPoint(const TSharedPtr<PCGExData::FPointIO>& InPointIO,
+		FCopyGraphToPoint(const int32 InTaskIndex,
+		                  const TSharedPtr<PCGExData::FPointIO>& InPointIO,
 		                  const TSharedPtr<PCGExGraph::FGraphBuilder>& InGraphBuilder,
 		                  const TSharedPtr<PCGExData::FPointIOCollection>& InVtxCollection,
 		                  const TSharedPtr<PCGExData::FPointIOCollection>& InEdgeCollection,
 		                  FPCGExTransformDetails* InTransformDetails) :
-			FPCGExTask(InPointIO),
+			FPCGExIndexedTask(InTaskIndex),
+			PointIO(InPointIO),
 			GraphBuilder(InGraphBuilder),
 			VtxCollection(InVtxCollection),
 			EdgeCollection(InEdgeCollection),
@@ -833,6 +832,7 @@ namespace PCGExGraphTask
 		{
 		}
 
+		TSharedPtr<PCGExData::FPointIO> PointIO;
 		TSharedPtr<PCGExGraph::FGraphBuilder> GraphBuilder;
 
 		TSharedPtr<PCGExData::FPointIOCollection> VtxCollection;
@@ -840,7 +840,7 @@ namespace PCGExGraphTask
 
 		FPCGExTransformDetails* TransformDetails = nullptr;
 
-		virtual bool ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager) override;
+		virtual void ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager, const TSharedPtr<PCGExMT::FTaskGroup>& InGroup) override;
 	};
 
 #pragma endregion

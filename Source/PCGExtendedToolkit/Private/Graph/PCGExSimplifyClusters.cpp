@@ -181,7 +181,7 @@ namespace PCGExSimplifyClusters
 		if (Context->FilterFactories.IsEmpty())
 		{
 			// Process breakpoint filters
-			const TSharedPtr<PCGExPointFilter::FManager> FilterManager = MakeShared<PCGExPointFilter::FManager>(VtxDataFacade);
+			PCGEX_MAKE_SHARED(FilterManager, PCGExPointFilter::FManager, VtxDataFacade)
 			TArray<int8>& Breaks = *Breakpoints;
 			if (FilterManager->Init(ExecutionContext, Context->FilterFactories))
 			{

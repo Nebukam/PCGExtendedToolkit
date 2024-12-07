@@ -517,8 +517,8 @@ namespace PCGExPaths
 		template <typename T, typename... Args>
 		TSharedPtr<T> AddExtra(bool bImmediateCompute = false, Args&&... InArgs)
 		{
-			TSharedPtr<T> Extra = MakeShared<T>(NumEdges, bClosedLoop, std::forward<Args>(InArgs)...);
-
+			PCGEX_MAKE_SHARED(Extra, T, NumEdges, bClosedLoop, std::forward<Args>(InArgs)...)
+			
 			if (bImmediateCompute)
 			{
 				if (NumEdges == 1)
@@ -768,11 +768,11 @@ namespace PCGExPaths
 	{
 		if (bClosedLoop)
 		{
-			TSharedPtr<TPath<true>> P = MakeShared<TPath<true>>(InPoints, Expansion);
+			PCGEX_MAKE_SHARED(P, TPath<true>, InPoints, Expansion)
 			return StaticCastSharedPtr<FPath>(P);
 		}
 
-		TSharedPtr<TPath<false>> P = MakeShared<TPath<false>>(InPoints, Expansion);
+		PCGEX_MAKE_SHARED(P, TPath<false>, InPoints, Expansion)
 		return StaticCastSharedPtr<FPath>(P);
 	}
 
@@ -780,17 +780,17 @@ namespace PCGExPaths
 	{
 		if (bClosedLoop)
 		{
-			TSharedPtr<TPath<true>> P = MakeShared<TPath<true>>(InPositions, Expansion);
+			PCGEX_MAKE_SHARED(P, TPath<true>, InPositions, Expansion)
 			return StaticCastSharedPtr<FPath>(P);
 		}
 
-		TSharedPtr<TPath<false>> P = MakeShared<TPath<false>>(InPositions, Expansion);
+		PCGEX_MAKE_SHARED(P, TPath<false>, InPositions, Expansion)
 		return StaticCastSharedPtr<FPath>(P);
 	}
 
-	static FTransform GetClosestTransform(const FPCGSplineStruct* InSpline, const FVector& InLocation, const bool bUseScale = true)
+	static FTransform GetClosestTransform(const FPCGSplineStruct& InSpline, const FVector& InLocation, const bool bUseScale = true)
 	{
-		return InSpline->GetTransformAtSplineInputKey(InSpline->FindInputKeyClosestToWorldLocation(InLocation), ESplineCoordinateSpace::World, bUseScale);
+		return InSpline.GetTransformAtSplineInputKey(InSpline.FindInputKeyClosestToWorldLocation(InLocation), ESplineCoordinateSpace::World, bUseScale);
 	}
 
 	static FTransform GetClosestTransform(const TSharedPtr<const FPCGSplineStruct>& InSpline, const FVector& InLocation, const bool bUseScale = true)

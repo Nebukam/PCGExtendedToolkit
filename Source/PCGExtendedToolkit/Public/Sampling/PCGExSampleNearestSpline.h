@@ -112,7 +112,6 @@ protected:
 	//~Begin UPCGExPointsProcessorSettings
 public:
 	virtual PCGExData::EIOInit GetMainOutputInitMode() const override;
-	virtual int32 GetPreferredChunkSize() const override;
 	PCGEX_NODE_POINT_FILTER(PCGExPointFilter::SourcePointFiltersLabel, "Filters", PCGExFactories::PointFilters, false)
 	//~End UPCGExPointsProcessorSettings
 
@@ -346,7 +345,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExSampleNearestSplineContext final : FPCGE
 	TSharedPtr<PCGExDetails::FDistances> DistanceDetails;
 
 	TArray<const UPCGSplineData*> Targets;
-	TArray<const FPCGSplineStruct*> Splines;
+	TArray<const FPCGSplineStruct> Splines;
 	TArray<double> SegmentCounts;
 
 	int64 NumTargets = 0;

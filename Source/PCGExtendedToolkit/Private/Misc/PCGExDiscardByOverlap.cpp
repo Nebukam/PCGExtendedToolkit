@@ -68,7 +68,7 @@ TSharedPtr<PCGExDiscardByOverlap::FOverlap> FPCGExDiscardByOverlapContext::Regis
 		FWriteScopeLock WriteScopeLock(OverlapLock);
 		if (TSharedPtr<PCGExDiscardByOverlap::FOverlap>* FoundPtr = OverlapMap.Find(HashID)) { return *FoundPtr; }
 
-		TSharedPtr<PCGExDiscardByOverlap::FOverlap> NewOverlap = MakeShared<PCGExDiscardByOverlap::FOverlap>(InA, InB, InIntersection);
+		PCGEX_MAKE_SHARED(NewOverlap, PCGExDiscardByOverlap::FOverlap, InA, InB, InIntersection)
 		OverlapMap.Add(HashID, NewOverlap);
 		return NewOverlap;
 	}
@@ -188,7 +188,8 @@ bool FPCGExDiscardByOverlapElement::ExecuteInternal(FPCGContext* InContext) cons
 	if (Context->IsState(PCGEx::State_Processing))
 	{
 		Context->SetAsyncState(PCGEx::State_Completing);
-		Context->GetAsyncManager()->Start<PCGExDiscardByOverlap::FPruneTask>(-1, nullptr);
+		const TSharedPtr<PCGExMT::FTaskManager> AsyncManager = Context->GetAsyncManager();
+		PCGEX_START_TASK(PCGExDiscardByOverlap::FPruneTask)
 		return false;
 	}
 

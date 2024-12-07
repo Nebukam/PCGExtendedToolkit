@@ -53,19 +53,19 @@ namespace PCGExPointIOMerger
 		InAccessor->GetRange(InRange, 0, *SourceIO->GetInKeys());
 	}
 
-	class /*PCGEXTENDEDTOOLKIT_API*/ FCopyAttributeTask final : public PCGExMT::FPCGExTask
+	class /*PCGEXTENDEDTOOLKIT_API*/ FCopyAttributeTask final : public PCGExMT::FPCGExIndexedTask
 	{
 	public:
 		FCopyAttributeTask(
-			const TSharedPtr<PCGExData::FPointIO>& InPointIO,
+			const int32 InTaskIndex,
 			const TSharedPtr<FPCGExPointIOMerger>& InMerger)
-			: FPCGExTask(InPointIO),
+			: FPCGExIndexedTask(InTaskIndex),
 			  Merger(InMerger)
 		{
 		}
 
 		TSharedPtr<FPCGExPointIOMerger> Merger;
-		virtual bool ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager) override;
+		virtual void ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager, const TSharedPtr<PCGExMT::FTaskGroup>& InGroup) override;
 	};
 
 	template <typename T>
@@ -77,21 +77,22 @@ namespace PCGExPointIOMerger
 			const PCGExMT::FScope& InScope,
 			const PCGEx::FAttributeIdentity& InIdentity,
 			const TSharedPtr<TArray<T>>& InOutValues)
-			: FPCGExTask(InPointIO),
+			: FPCGExTask(),
+			  PointIO(InPointIO),
 			  Scope(InScope),
 			  Identity(InIdentity),
 			  OutValues(InOutValues)
 		{
 		}
 
+		const TSharedPtr<PCGExData::FPointIO> PointIO;
 		const PCGExMT::FScope Scope;
 		const PCGEx::FAttributeIdentity Identity;
 		TSharedPtr<TArray<T>> OutValues;
 
-		virtual bool ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager) override
+		virtual void ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager, const TSharedPtr<PCGExMT::FTaskGroup>& InGroup) override
 		{
 			ScopeMerge<T>(Scope, Identity, PointIO, *OutValues.Get());
-			return true;
 		}
 	};
 }
