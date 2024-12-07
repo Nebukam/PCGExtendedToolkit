@@ -3,6 +3,7 @@
 
 
 #include "PCGExMT.h"
+#include "Tasks/Task.h"
 
 
 namespace PCGExMT

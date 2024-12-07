@@ -345,7 +345,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExSampleNearestSplineContext final : FPCGE
 	TSharedPtr<PCGExDetails::FDistances> DistanceDetails;
 
 	TArray<const UPCGSplineData*> Targets;
-	TArray<const FPCGSplineStruct> Splines;
+	TArray<FPCGSplineStruct> Splines;
 	TArray<double> SegmentCounts;
 
 	int64 NumTargets = 0;
