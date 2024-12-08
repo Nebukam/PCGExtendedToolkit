@@ -38,7 +38,7 @@ void FPCGExPointIOMerger::Append(const TSharedRef<PCGExData::FPointIOCollection>
 }
 
 void FPCGExPointIOMerger::Merge(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager, const FPCGExCarryOverDetails* InCarryOverDetails)
-{
+{	
 	TArray<FPCGPoint>& MutablePoints = UnionDataFacade->GetOut()->GetMutablePoints();
 	MutablePoints.SetNum(NumCompositePoints);
 	InCarryOverDetails->Filter(&UnionDataFacade->Source.Get());
@@ -82,6 +82,7 @@ void FPCGExPointIOMerger::Merge(const TSharedPtr<PCGExMT::FTaskManager>& AsyncMa
 					SourceAtt.UnderlyingType, [&](auto DummyValue)
 					{
 						using T = decltype(DummyValue);
+						
 						TSharedPtr<PCGExData::TBuffer<T>> Buffer;
 
 						if (InCarryOverDetails->bPreserveAttributesDefaultValue)

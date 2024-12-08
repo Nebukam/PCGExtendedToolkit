@@ -17,6 +17,14 @@
 
 #include "PCGExData.generated.h"
 
+#pragma region DATA MACROS
+
+#ifndef PCGEX_DATA_MACROS
+#define PCGEX_DATA_MACROS
+
+#endif
+#pragma endregion
+
 USTRUCT(BlueprintType)
 struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExAttributeGatherDetails : public FPCGExNameFiltersDetails
 {

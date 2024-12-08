@@ -95,7 +95,12 @@ bool FPCGExSampleNearestSplineElement::Boot(FPCGExContext* InContext) const
 	for (const UPCGSplineData* SplineData : Context->Targets) { Context->Splines.Add(SplineData->SplineStruct); }
 
 	Context->SegmentCounts.SetNumUninitialized(Context->NumTargets);
-	for (int i = 0; i < Context->NumTargets; i++) { Context->SegmentCounts[i] = Context->Targets[i]->SplineStruct.GetNumberOfSplineSegments(); }
+	Context->Lengths.SetNumUninitialized(Context->NumTargets);
+	for (int i = 0; i < Context->NumTargets; i++)
+	{
+		Context->SegmentCounts[i] = Context->Targets[i]->SplineStruct.GetNumberOfSplineSegments();
+		Context->Lengths[i] = Context->Targets[i]->SplineStruct.GetSplineLength();
+	}
 
 	Context->RuntimeWeightCurve = Settings->LocalWeightOverDistance;
 	if (!Settings->bUseLocalCurve)
@@ -189,6 +194,12 @@ namespace PCGExSampleNearestSpline
 		{
 			LookAtUpGetter = PointDataFacade->GetScopedBroadcaster<FVector>(Settings->LookAtUpSource);
 			if (!LookAtUpGetter) { PCGE_LOG_C(Warning, GraphAndLog, ExecutionContext, FTEXT("LookAtUp is invalid.")); }
+		}
+
+		if (Settings->bSampleSpecificAlpha && Settings->SampleAlphaInput == EPCGExInputValueType::Attribute)
+		{
+			SampleAlphaGetter = PointDataFacade->GetScopedBroadcaster<double>(Settings->SampleAlphaAttribute);
+			if (!SampleAlphaGetter) { PCGE_LOG_C(Warning, GraphAndLog, ExecutionContext, FTEXT("Sample Alpha is invalid.")); }
 		}
 
 		bSingleSample = Settings->SampleMethod != EPCGExSampleMethod::WithinRange;
@@ -337,14 +348,50 @@ namespace PCGExSampleNearestSpline
 		};
 
 		// First: Sample all possible targets
-		for (int i = 0; i < Context->NumTargets; i++)
+		if (!Settings->bSampleSpecificAlpha)
 		{
-			const FPCGSplineStruct& Line = Context->Splines[i];
-			FTransform SampledTransform;
-			double Time = Line.FindInputKeyClosestToWorldLocation(Origin);
-			SampledTransform = Line.GetTransformAtSplineInputKey(static_cast<float>(Time), ESplineCoordinateSpace::World, Settings->bSplineScalesRanges);
-			ProcessTarget(SampledTransform, Time / Context->SegmentCounts[i], Line);
+			// At closest alpha
+			for (int i = 0; i < Context->NumTargets; i++)
+			{
+				const FPCGSplineStruct& Line = Context->Splines[i];
+				FTransform SampledTransform;
+				double Time = Line.FindInputKeyClosestToWorldLocation(Origin);
+				SampledTransform = Line.GetTransformAtSplineInputKey(static_cast<float>(Time), ESplineCoordinateSpace::World, Settings->bSplineScalesRanges);
+				ProcessTarget(SampledTransform, Time / Context->SegmentCounts[i], Line);
+			}
 		}
+		else
+		{
+
+#define PCGEX_SAMPLE_SPLINE_AT(_BODY)\
+			for (int i = 0; i < Context->NumTargets; i++){\
+			const FPCGSplineStruct& Line = Context->Splines[i];\
+			const double SMax = Context->SegmentCounts[i];\
+			FTransform SampledTransform;\
+			double Time = _BODY;\
+			if (Settings->bWrapClosedLoopAlpha && Line.bClosedLoop) { Time = PCGExMath::Tile(Time, 0.0, SMax); }\
+			SampledTransform = Line.GetTransformAtSplineInputKey(static_cast<float>(Time), ESplineCoordinateSpace::World, Settings->bSplineScalesRanges);\
+			ProcessTarget(SampledTransform, Time / SMax, Line);}
+			
+			// At specific alpha
+			double InputKey = SampleAlphaGetter ? SampleAlphaGetter->Read(Index) : Settings->SampleAlphaConstant;
+			switch (Settings->SampleAlphaMode)
+			{
+			default:
+			case EPCGExSplineSampleAlphaMode::Alpha:
+				PCGEX_SAMPLE_SPLINE_AT(InputKey)
+				break;
+			case EPCGExSplineSampleAlphaMode::Time:
+				PCGEX_SAMPLE_SPLINE_AT(InputKey / Context->SegmentCounts[i])
+				break;
+			case EPCGExSplineSampleAlphaMode::Distance:
+				PCGEX_SAMPLE_SPLINE_AT((Context->Lengths[i] / InputKey) * SMax)
+				break;
+			}
+
+#undef PCGEX_SAMPLE_SPLINE_AT
+		}
+
 
 		Depth /= DepthSamples;
 

@@ -20,6 +20,9 @@
 
 #pragma region MT MACROS
 
+#ifndef PCGEX_MT_MACROS
+#define PCGEX_MT_MACROS
+
 #define PCGEX_ASYNC_GROUP_CHKD_VOID(_MANAGER, _NAME) \
 	TSharedPtr<PCGExMT::FTaskGroup> _NAME = _MANAGER ? _MANAGER->TryCreateGroup(FName(#_NAME)) : nullptr; \
 	if(!_NAME){ return; }
@@ -39,6 +42,8 @@
 #define PCGEX_ASYNC_CHECK if (!AsyncManager->IsAvailable()) { return false; }
 #define PCGEX_ASYNC_CHECK_VOID if (!AsyncManager->IsAvailable()) { return; }
 
+
+#endif
 #pragma endregion
 
 namespace PCGExMT
