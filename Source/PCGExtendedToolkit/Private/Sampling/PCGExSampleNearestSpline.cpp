@@ -379,7 +379,7 @@ namespace PCGExSampleNearestSpline
 			{
 			default:
 			case EPCGExSplineSampleAlphaMode::Alpha:
-				PCGEX_SAMPLE_SPLINE_AT(InputKey)
+				PCGEX_SAMPLE_SPLINE_AT(InputKey * Context->SegmentCounts[i])
 				break;
 			case EPCGExSplineSampleAlphaMode::Time:
 				PCGEX_SAMPLE_SPLINE_AT(InputKey / Context->SegmentCounts[i])

@@ -170,7 +170,7 @@ public:
 
 	/** How to interpret the sample alpha value. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta=(PCG_Overridable, DisplayName=" └─ Mode", EditCondition="bSampleSpecificAlpha", EditConditionHides))
-	EPCGExSplineSampleAlphaMode SampleAlphaMode = EPCGExSplineSampleAlphaMode::Time;
+	EPCGExSplineSampleAlphaMode SampleAlphaMode = EPCGExSplineSampleAlphaMode::Alpha;
 
 	/** Whether to wrap out of bounds value on closed loops. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta=(PCG_Overridable, DisplayName=" └─ Wrap Closed Loops", EditCondition="bSampleSpecificAlpha", EditConditionHides))
