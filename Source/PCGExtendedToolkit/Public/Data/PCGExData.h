@@ -17,6 +17,14 @@
 
 #include "PCGExData.generated.h"
 
+#pragma region DATA MACROS
+
+#ifndef PCGEX_DATA_MACROS
+#define PCGEX_DATA_MACROS
+
+#endif
+#pragma endregion
+
 USTRUCT(BlueprintType)
 struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExAttributeGatherDetails : public FPCGExNameFiltersDetails
 {
@@ -111,7 +119,7 @@ namespace PCGExData
 		{
 		}
 
-		virtual void Fetch(const int32 StartIndex, const int32 Count)
+		virtual void Fetch(const PCGExMT::FScope& Scope)
 		{
 		}
 
@@ -215,7 +223,7 @@ namespace PCGExData
 				if (bScopedBuffer && !bScoped)
 				{
 					// Un-scoping reader.
-					Fetch(0, InValues->Num());
+					Fetch(PCGExMT::FScope(0, InValues->Num()));
 					bReadComplete = true;
 					bScopedBuffer = false;
 				}
@@ -420,14 +428,14 @@ namespace PCGExData
 			OutAccessor->SetRange(View, 0, *Source->GetOutKeys(true).Get());
 		}
 
-		virtual void Fetch(const int32 StartIndex, const int32 Count) override
+		virtual void Fetch(const PCGExMT::FScope& Scope) override
 		{
 			if (!IsScoped() || bReadComplete) { return; }
-			if (InternalBroadcaster) { InternalBroadcaster->Fetch(*InValues, StartIndex, Count); }
+			if (InternalBroadcaster) { InternalBroadcaster->Fetch(*InValues, Scope); }
 			if (InAccessor.IsValid())
 			{
-				TArrayView<T> ReadRange = MakeArrayView(InValues->GetData() + StartIndex, Count);
-				InAccessor->GetRange(ReadRange, StartIndex, *Source->GetInKeys());
+				TArrayView<T> ReadRange = MakeArrayView(InValues->GetData() + Scope.Start, Scope.Count);
+				InAccessor->GetRange(ReadRange, Scope.Start, *Source->GetInKeys());
 			}
 
 			//if (OutAccessor.IsValid())
@@ -679,8 +687,7 @@ namespace PCGExData
 		void Write(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager);
 		void WriteBuffersAsCallbacks(const TSharedPtr<PCGExMT::FTaskGroup>& TaskGroup);
 
-		void Fetch(const int32 StartIndex, const int32 Count) { for (const TSharedPtr<FBufferBase>& Buffer : Buffers) { Buffer->Fetch(StartIndex, Count); } }
-		void Fetch(const uint64 Scope) { Fetch(PCGEx::H64A(Scope), PCGEx::H64B(Scope)); }
+		void Fetch(const PCGExMT::FScope& Scope) { for (const TSharedPtr<FBufferBase>& Buffer : Buffers) { Buffer->Fetch(Scope); } }
 
 	protected:
 		void Flush(const TSharedPtr<FBufferBase>& Buffer)
@@ -723,7 +730,7 @@ namespace PCGExData
 		}
 
 		bool Validate(FPCGExContext* InContext, const TSharedRef<FFacade>& InFacade) const;
-		void Fetch(const TSharedRef<FFacade>& InFacade, const int32 StartIndex, const int32 Count) const;
+		void Fetch(const TSharedRef<FFacade>& InFacade, const PCGExMT::FScope& Scope) const;
 		void Read(const TSharedRef<FFacade>& InFacade) const;
 	};
 
@@ -787,7 +794,7 @@ namespace PCGExData
 			BufferConfigs.Emplace(InName, Type, InMode);
 		}
 
-		void Fetch(const TSharedRef<FFacade>& InFacade, const int32 StartIndex, const int32 Count) const;
+		void Fetch(const TSharedRef<FFacade>& InFacade, const PCGExMT::FScope& Scope) const;
 		void Read(const TSharedRef<FFacade>& InFacade, const int32 ConfigIndex) const;
 
 		///
@@ -930,7 +937,7 @@ namespace PCGExData
 				// ReSharper disable once CppRedundantTemplateKeyword
 				const FPCGMetadataAttribute<T>* SourceAttribute = Source->GetIn()->Metadata->template GetConstTypedAttribute<T>(Identity.Name);
 
-				const TSharedPtr<TBuffer<T>> TargetBuffer = MakeShared<TBuffer<T>>(Target.ToSharedRef(), Identity.Name);
+				PCGEX_MAKE_SHARED(TargetBuffer, TBuffer<T>, Target.ToSharedRef(), Identity.Name)
 				TargetBuffer->PrepareWrite(SourceAttribute->GetValue(PCGDefaultValueKey), SourceAttribute->AllowsInterpolation(), EBufferInit::New);
 
 				TUniquePtr<FPCGAttributeAccessor<T>> InAccessor = MakeUnique<FPCGAttributeAccessor<T>>(SourceAttribute, Source->GetIn()->Metadata);

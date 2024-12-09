@@ -124,13 +124,13 @@ namespace PCGExWriteEdgeProperties
 		return true;
 	}
 
-	void FProcessor::PrepareSingleLoopScopeForEdges(const uint32 StartIndex, const int32 Count)
+	void FProcessor::PrepareSingleLoopScopeForEdges(const PCGExMT::FScope& Scope)
 	{
-		FClusterProcessor::PrepareSingleLoopScopeForEdges(StartIndex, Count);
-		EdgeDataFacade->Fetch(StartIndex, Count);
+		FClusterProcessor::PrepareSingleLoopScopeForEdges(Scope);
+		EdgeDataFacade->Fetch(Scope);
 	}
 
-	void FProcessor::ProcessSingleEdge(const int32 EdgeIndex, PCGExGraph::FEdge& Edge, const int32 LoopIdx, const int32 Count)
+	void FProcessor::ProcessSingleEdge(const int32 EdgeIndex, PCGExGraph::FEdge& Edge, const PCGExMT::FScope& Scope)
 	{
 		DirectionSettings.SortEndpoints(Cluster.Get(), Edge);
 
@@ -230,11 +230,11 @@ namespace PCGExWriteEdgeProperties
 
 
 			BlendWeightStart = EdgeLerp;
-			BlendWeightEnd = 1 - EdgeLerp;
+			BlendWeightEnd = EdgeLerpInv;
 
 			if (MetadataBlender) { MetadataBlend(); } // Blend first THEN apply bounds otherwise it gets overwritten
 
-			MutableTarget.Transform = FTransform(EdgeRot, FMath::Lerp(B, A, EdgeLerp), MutableTarget.Transform.GetScale3D());
+			MutableTarget.Transform = FTransform(EdgeRot, FMath::Lerp(B, A, EdgeLerpInv), MutableTarget.Transform.GetScale3D());
 
 			MutableTarget.BoundsMin = TargetBoundsMin;
 			MutableTarget.BoundsMax = TargetBoundsMax;

@@ -81,7 +81,7 @@ namespace PCGExCreateShapes
 		return true;
 	}
 
-	void FProcessor::ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const int32 LoopIdx, const int32 LoopCount)
+	void FProcessor::ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const PCGExMT::FScope& Scope)
 	{
 		const PCGExData::FPointRef PointRef = PointDataFacade->Source->GetInPointRef(Index);
 		for (UPCGExShapeBuilderOperation* Op : Builders) { Op->PrepareShape(PointRef); }
@@ -131,7 +131,7 @@ namespace PCGExCreateShapes
 
 					if (!IsShapeValid(Shape)) { continue; }
 
-					Context->GetAsyncManager()->Start<FBuildShape>(i * j, nullptr, Builders[j], PointDataFacade, Shape);
+					PCGEX_START_TASK(FBuildShape, Builders[j], PointDataFacade, Shape)
 				}
 			}
 		}
@@ -161,7 +161,7 @@ namespace PCGExCreateShapes
 				TSharedPtr<PCGExData::FPointIO> IO = NewPointIO(PointDataFacade->Source, Settings->GetMainOutputPin(), i);
 				IO->InitializeOutput(PCGExData::EIOInit::New);
 
-				TSharedPtr<PCGExData::FFacade> IOFacade = MakeShared<PCGExData::FFacade>(IO.ToSharedRef());
+				PCGEX_MAKE_SHARED(IOFacade, PCGExData::FFacade, IO.ToSharedRef())
 				PerSeedFacades.Add(IOFacade);
 
 				TArray<FPCGPoint>& MutablePoints = IOFacade->GetMutablePoints();
@@ -172,7 +172,8 @@ namespace PCGExCreateShapes
 					TSharedPtr<PCGExShapes::FShape> Shape = Builders[j]->Shapes[i];
 
 					if (!IsShapeValid(Shape)) { continue; }
-					Context->GetAsyncManager()->Start<FBuildShape>(i * j, nullptr, Builders[j], IOFacade.ToSharedRef(), Shape);
+
+					PCGEX_START_TASK(FBuildShape, Builders[j], IOFacade.ToSharedRef(), Shape)
 				}
 			}
 		}
@@ -198,14 +199,13 @@ namespace PCGExCreateShapes
 		for (const TSharedPtr<PCGExData::FFacade>& IO : PerSeedFacades) { IO->Source->StageOutput(); }
 	}
 
-	bool FBuildShape::ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager)
+	void FBuildShape::ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager, const TSharedPtr<PCGExMT::FTaskGroup>& InGroup)
 	{
 		FPCGExCreateShapesContext* Context = AsyncManager->GetContext<FPCGExCreateShapesContext>();
 		PCGEX_SETTINGS(CreateShapes);
 
 		TArrayView<FPCGPoint> ShapePoints = MakeArrayView(ShapeDataFacade->GetMutablePoints().GetData() + Shape->StartIndex, Shape->NumPoints);
 
-		FBox BoundsOne = FBox(FVector::OneVector * -0.5, FVector::OneVector * 0.5);
 		for (int i = 0; i < ShapePoints.Num(); i++)
 		{
 			ShapePoints[i] = *Shape->Seed.Point;
@@ -217,7 +217,7 @@ namespace PCGExCreateShapes
 
 		if (Settings->bWriteShapeId)
 		{
-			TSharedPtr<PCGExData::TBuffer<double>> ShapeIdBuffer = ShapeDataFacade->GetWritable<double>(Settings->ShapeIdAttributeName, PCGExData::EBufferInit::New);
+			const TSharedPtr<PCGExData::TBuffer<double>> ShapeIdBuffer = ShapeDataFacade->GetWritable<double>(Settings->ShapeIdAttributeName, PCGExData::EBufferInit::New);
 			const int32 MaxIndex = Shape->StartIndex + Shape->NumPoints;
 			for (int i = Shape->StartIndex; i < MaxIndex; i++) { ShapeIdBuffer->GetMutable(i) = Operation->BaseConfig.ShapeId; }
 		}
@@ -227,12 +227,12 @@ namespace PCGExCreateShapes
 
 		TRB.SetScale3D(FVector::OneVector);
 
-		PCGEX_ASYNC_GROUP_CHKD(AsyncManager, TransformPointsTask);
+		PCGEX_ASYNC_GROUP_CHKD_VOID(AsyncManager, TransformPointsTask);
 
 		TransformPointsTask->OnSubLoopStartCallback =
-			[ShapePoints, TRA, TRB](const int32 StartIndex, const int32 Count, const int32 LoopIdx)
+			[ShapePoints, TRA, TRB](const PCGExMT::FScope& Scope)
 			{
-				PCGEX_ASYNC_SUB_LOOP
+				for (int i = Scope.Start; i < Scope.End; i++)
 				{
 					FPCGPoint& Point = ShapePoints[i];
 					Point.Transform = (Point.Transform * TRB) * TRA;
@@ -242,8 +242,6 @@ namespace PCGExCreateShapes
 			};
 
 		TransformPointsTask->StartSubLoops(ShapePoints.Num(), GetDefault<UPCGExGlobalSettings>()->GetPointsBatchChunkSize());
-
-		return true;
 	}
 }
 

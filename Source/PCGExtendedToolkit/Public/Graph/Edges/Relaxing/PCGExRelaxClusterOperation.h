@@ -30,9 +30,7 @@ public:
 	virtual void CopySettingsFrom(const UPCGExOperation* Other) override
 	{
 		Super::CopySettingsFrom(Other);
-		if (const UPCGExRelaxClusterOperation* TypedOther = Cast<UPCGExRelaxClusterOperation>(Other))
-		{
-		}
+		//if (const UPCGExRelaxClusterOperation* TypedOther = Cast<UPCGExRelaxClusterOperation>(Other))		{		}
 	}
 
 	virtual void PrepareForCluster(PCGExCluster::FCluster* InCluster)

@@ -100,22 +100,20 @@ namespace PCGExRelaxClusters
 		virtual TSharedPtr<PCGExCluster::FCluster> HandleCachedCluster(const TSharedRef<PCGExCluster::FCluster>& InClusterRef) override;
 		virtual bool Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager) override;
 		void StartRelaxIteration();
-		virtual void ProcessSingleNode(const int32 Index, PCGExCluster::FNode& Node, const int32 LoopIdx, const int32 Count) override;
+		virtual void ProcessSingleNode(const int32 Index, PCGExCluster::FNode& Node, const PCGExMT::FScope& Scope) override;
 		virtual void Write() override;
 	};
 
-	class FRelaxRangeTask final : public PCGExMT::FPCGExTask
+	class FRelaxRangeTask final : public PCGExMT::FScopeIterationTask
 	{
 	public:
-		FRelaxRangeTask(const TSharedPtr<PCGExData::FPointIO>& InPointIO,
-		                const TSharedPtr<FProcessor>& InProcessor):
-			FPCGExTask(InPointIO),
+		FRelaxRangeTask(const TSharedPtr<FProcessor>& InProcessor):
+			PCGExMT::FScopeIterationTask(),
 			Processor(InProcessor)
 		{
 		}
 
 		TSharedPtr<FProcessor> Processor;
-		uint64 Scope = 0;
-		virtual bool ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager) override;
+		virtual void ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager, const TSharedPtr<PCGExMT::FTaskGroup>& InGroup) override;
 	};
 }

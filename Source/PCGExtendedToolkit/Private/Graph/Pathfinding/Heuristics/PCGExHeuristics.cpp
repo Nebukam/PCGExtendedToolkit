@@ -97,7 +97,7 @@ namespace PCGExHeuristics
 	{
 		if (LocalFeedbackFactories.IsEmpty()) { return nullptr; }
 
-		TSharedPtr<FLocalFeedbackHandler> NewLocalFeedbackHandler = MakeShared<FLocalFeedbackHandler>(ExecutionContext);
+		PCGEX_MAKE_SHARED(NewLocalFeedbackHandler, FLocalFeedbackHandler, ExecutionContext)
 
 		for (const UPCGExHeuristicsFactoryBase* Factory : LocalFeedbackFactories)
 		{

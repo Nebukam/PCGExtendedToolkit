@@ -322,10 +322,10 @@ namespace PCGExBuildVoronoi2D
 			PCGEX_ASYNC_GROUP_CHKD(AsyncManager, OutputSites)
 
 			OutputSites->OnSubLoopStartCallback =
-				[PCGEX_ASYNC_THIS_CAPTURE](const int32 StartIndex, const int32 Count, const int32 LoopIdx)
+				[PCGEX_ASYNC_THIS_CAPTURE](const PCGExMT::FScope& Scope)
 				{
 					PCGEX_ASYNC_THIS
-					PCGEX_ASYNC_SUB_LOOP
+					for (int i = Scope.Start; i < Scope.End; i++)
 					{
 						const bool bIsWithinBounds = This->IsVtxValid[i];
 						if (This->OpenSiteWriter) { This->OpenSiteWriter->GetMutable(i) = bIsWithinBounds; }
@@ -340,7 +340,7 @@ namespace PCGExBuildVoronoi2D
 		return true;
 	}
 
-	void FProcessor::ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const int32 LoopIdx, const int32 Count)
+	void FProcessor::ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const PCGExMT::FScope& Scope)
 	{
 		//HullMarkPointWriter->Values[Index] = Voronoi->Delaunay->DelaunayHull.Contains(Index);
 	}

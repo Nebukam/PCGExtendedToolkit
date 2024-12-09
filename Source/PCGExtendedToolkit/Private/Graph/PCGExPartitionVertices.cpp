@@ -98,12 +98,12 @@ namespace PCGExPartitionVertices
 		return true;
 	}
 
-	void FProcessor::ProcessSingleNode(const int32 Index, PCGExCluster::FNode& Node, const int32 LoopIdx, const int32 Count)
+	void FProcessor::ProcessSingleNode(const int32 Index, PCGExCluster::FNode& Node, const PCGExMT::FScope& Scope)
 	{
 		PointPartitionIO->GetOut()->GetMutablePoints()[Node.Index] = VtxDataFacade->Source->GetInPoint(KeptIndices[Node.Index]);
 	}
 
-	void FProcessor::ProcessSingleEdge(const int32 EdgeIndex, PCGExGraph::FEdge& Edge, const int32 LoopIdx, const int32 Count)
+	void FProcessor::ProcessSingleEdge(const int32 EdgeIndex, PCGExGraph::FEdge& Edge, const PCGExMT::FScope& Scope)
 	{
 		Edge.Start = Remapping[Edge.Start];
 		Edge.End = Remapping[Edge.End];

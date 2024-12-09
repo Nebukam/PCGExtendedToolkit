@@ -79,18 +79,18 @@ namespace PCGExLloydRelax
 		}
 
 		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager> InAsyncManager) override;
-		virtual void ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const int32 LoopIdx, const int32 Count) override;
+		virtual void ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const PCGExMT::FScope& Scope) override;
 		virtual void CompleteWork() override;
 	};
 
-	class /*PCGEXTENDEDTOOLKIT_API*/ FLloydRelaxTask final : public PCGExMT::FPCGExTask
+	class /*PCGEXTENDEDTOOLKIT_API*/ FLloydRelaxTask final : public PCGExMT::FPCGExIndexedTask
 	{
 	public:
-		FLloydRelaxTask(const TSharedPtr<PCGExData::FPointIO>& InPointIO,
+		FLloydRelaxTask(const int32 InTaskIndex,
 		                const TSharedPtr<FProcessor>& InProcessor,
 		                const FPCGExInfluenceDetails* InInfluenceSettings,
 		                const int32 InNumIterations) :
-			FPCGExTask(InPointIO),
+			FPCGExIndexedTask(InTaskIndex),
 			Processor(InProcessor),
 			InfluenceSettings(InInfluenceSettings),
 			NumIterations(InNumIterations)
@@ -101,6 +101,6 @@ namespace PCGExLloydRelax
 		const FPCGExInfluenceDetails* InfluenceSettings = nullptr;
 		int32 NumIterations = 0;
 
-		virtual bool ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager) override;
+		virtual void ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager, const TSharedPtr<PCGExMT::FTaskGroup>& InGroup) override;
 	};
 }

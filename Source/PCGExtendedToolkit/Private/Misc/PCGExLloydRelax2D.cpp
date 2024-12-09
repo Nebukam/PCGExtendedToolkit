@@ -76,12 +76,12 @@ namespace PCGExLloydRelax2D
 		PointDataFacade->Source->InitializeOutput(PCGExData::EIOInit::Duplicate);
 		PCGExGeo::PointsToPositions(PointDataFacade->GetIn()->GetPoints(), ActivePositions);
 
-		AsyncManager->Start<FLloydRelaxTask>(0, PointDataFacade->Source, SharedThis(this), &InfluenceDetails, Settings->Iterations);
+		PCGEX_START_TASK(FLloydRelaxTask, 0, SharedThis(this), &InfluenceDetails, Settings->Iterations)
 
 		return true;
 	}
 
-	void FProcessor::ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const int32 LoopIdx, const int32 Count)
+	void FProcessor::ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const PCGExMT::FScope& Scope)
 	{
 		FVector TargetPosition = Point.Transform.GetLocation();
 		TargetPosition.X = ActivePositions[Index].X;
@@ -98,7 +98,7 @@ namespace PCGExLloydRelax2D
 		StartParallelLoopForPoints();
 	}
 
-	bool FLloydRelaxTask::ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager)
+	void FLloydRelaxTask::ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager, const TSharedPtr<PCGExMT::FTaskGroup>& InGroup)
 	{
 		NumIterations--;
 
@@ -108,7 +108,7 @@ namespace PCGExLloydRelax2D
 		//FPCGExPointsProcessorContext* Context = static_cast<FPCGExPointsProcessorContext*>(Manager->Context);
 
 		const TArrayView<FVector> View = MakeArrayView(Positions);
-		if (!Delaunay->Process(View, Processor->ProjectionDetails)) { return false; }
+		if (!Delaunay->Process(View, Processor->ProjectionDetails)) { return; }
 
 		const int32 NumPoints = Positions.Num();
 
@@ -131,17 +131,18 @@ namespace PCGExLloydRelax2D
 
 		if (InfluenceSettings->bProgressiveInfluence)
 		{
-			for (int i = 0; i < NumPoints; i++) { Positions[i] = FMath::Lerp(Positions[i], Sum[i] / Counts[i], InfluenceSettings->GetInfluence(i)); }
+			for (int i = 0; i < NumPoints; i++)
+			{
+				Positions[i] = FMath::Lerp(Positions[i], Sum[i] / Counts[i], InfluenceSettings->GetInfluence(i));
+			}
 		}
 
 		Delaunay.Reset();
 
 		if (NumIterations > 0)
 		{
-			InternalStart<FLloydRelaxTask>(TaskIndex + 1, PointIO, Processor, InfluenceSettings, NumIterations);
+			PCGEX_START_TASK_INTERNAL(FLloydRelaxTask, TaskIndex + 1, Processor, InfluenceSettings, NumIterations)
 		}
-
-		return true;
 	}
 }
 

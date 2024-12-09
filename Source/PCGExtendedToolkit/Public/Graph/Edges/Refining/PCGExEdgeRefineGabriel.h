@@ -23,9 +23,7 @@ public:
 	virtual void CopySettingsFrom(const UPCGExOperation* Other) override
 	{
 		Super::CopySettingsFrom(Other);
-		if (const UPCGExEdgeRefineGabriel* TypedOther = Cast<UPCGExEdgeRefineGabriel>(Other))
-		{
-		}
+		// if (const UPCGExEdgeRefineGabriel* TypedOther = Cast<UPCGExEdgeRefineGabriel>(Other))		{		}
 	}
 
 	virtual bool RequiresIndividualEdgeProcessing() override { return true; }

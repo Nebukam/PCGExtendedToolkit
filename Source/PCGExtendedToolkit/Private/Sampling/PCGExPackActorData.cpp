@@ -114,8 +114,6 @@ TArray<FPCGPinProperties> UPCGExPackActorDataSettings::OutputPinProperties() con
 
 PCGExData::EIOInit UPCGExPackActorDataSettings::GetMainOutputInitMode() const { return PCGExData::EIOInit::Duplicate; }
 
-int32 UPCGExPackActorDataSettings::GetPreferredChunkSize() const { return PCGExMT::GAsyncLoop_L; }
-
 PCGEX_INITIALIZE_ELEMENT(PackActorData)
 
 FName UPCGExPackActorDataSettings::GetMainInputPin() const
@@ -215,7 +213,7 @@ namespace PCGExPackActorDatas
 		return true;
 	}
 
-	void FProcessor::ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const int32 LoopIdx, const int32 Count)
+	void FProcessor::ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const PCGExMT::FScope& Scope)
 	{
 		AActor* ActorRef = Packer->InputActors[Index];
 		if (!ActorRef) { return; }

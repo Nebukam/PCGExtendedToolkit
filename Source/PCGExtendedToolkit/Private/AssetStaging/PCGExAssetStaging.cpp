@@ -211,13 +211,13 @@ namespace PCGExAssetStaging
 		return true;
 	}
 
-	void FProcessor::PrepareSingleLoopScopeForPoints(const uint32 StartIndex, const int32 Count)
+	void FProcessor::PrepareSingleLoopScopeForPoints(const PCGExMT::FScope& Scope)
 	{
-		PointDataFacade->Fetch(StartIndex, Count);
-		FilterScope(StartIndex, Count);
+		PointDataFacade->Fetch(Scope);
+		FilterScope(Scope);
 	}
 
-	void FProcessor::ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const int32 LoopIdx, const int32 Count)
+	void FProcessor::ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const PCGExMT::FScope& Scope)
 	{
 		auto InvalidPoint = [&]()
 		{

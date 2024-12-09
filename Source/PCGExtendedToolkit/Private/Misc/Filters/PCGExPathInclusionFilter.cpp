@@ -115,7 +115,7 @@ void UPCGExPathInclusionFilterFactory::CreateSpline(const UPCGPointData* InData,
 		}
 	}
 
-	TSharedPtr<FPCGSplineStruct> SplineStruct = MakeShared<FPCGSplineStruct>();
+	PCGEX_MAKE_SHARED(SplineStruct, FPCGSplineStruct)
 	SplineStruct->Initialize(SplinePoints, bClosedLoop, FTransform::Identity);
 	Splines.Add(SplineStruct);
 }

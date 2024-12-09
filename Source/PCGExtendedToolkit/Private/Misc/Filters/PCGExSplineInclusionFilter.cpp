@@ -25,7 +25,7 @@ bool UPCGExSplineInclusionFilterFactory::Init(FPCGExContext* InContext)
 			if (Config.SampleInputs == EPCGExSplineSamplingIncludeMode::ClosedLoopOnly && !bIsClosedLoop) { continue; }
 			if (Config.SampleInputs == EPCGExSplineSamplingIncludeMode::OpenSplineOnly && bIsClosedLoop) { continue; }
 
-			Splines.Add(&SplineData->SplineStruct);
+			Splines.Add(SplineData->SplineStruct);
 		}
 	}
 
@@ -112,7 +112,7 @@ namespace PCGExPointsFilter
 		if (TypedFilterFactory->Config.Pick == EPCGExSplineFilterPick::Closest)
 		{
 			double ClosestDist = MAX_dbl;
-			for (const FPCGSplineStruct* Spline : Splines)
+			for (const FPCGSplineStruct& Spline : *Splines)
 			{
 				const FTransform T = PCGExPaths::GetClosestTransform(Spline, Pos, TypedFilterFactory->Config.bSplineScalesTolerance);
 				const FVector& TLoc = T.GetLocation();
@@ -138,7 +138,7 @@ namespace PCGExPointsFilter
 		}
 		else
 		{
-			for (const FPCGSplineStruct* Spline : Splines)
+			for (const FPCGSplineStruct& Spline : *Splines)
 			{
 				const FTransform T = PCGExPaths::GetClosestTransform(Spline, Pos, TypedFilterFactory->Config.bSplineScalesTolerance);
 				const FVector& TLoc = T.GetLocation();

@@ -145,7 +145,7 @@ namespace PCGExPointsToBounds
 		PointDataFacade->Write(AsyncManager);
 	}
 
-	bool FComputeIOBoundsTask::ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager)
+	void FComputeIOBoundsTask::ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager, const TSharedPtr<PCGExMT::FTaskGroup>& InGroup)
 	{
 		const TArray<FPCGPoint>& InPoints = Bounds->PointIO->GetIn()->GetPoints();
 
@@ -177,8 +177,6 @@ namespace PCGExPointsToBounds
 			}
 			break;
 		}
-
-		return true;
 	}
 }
 

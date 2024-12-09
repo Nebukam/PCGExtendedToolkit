@@ -197,7 +197,7 @@ namespace PCGExPathCrossings
 		const PCGExPaths::FPathEdgeOctree* GetEdgeOctree() const { return Path->GetEdgeOctree(); }
 
 		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager> InAsyncManager) override;
-		virtual void ProcessSingleRangeIteration(const int32 Iteration, const int32 LoopIdx, const int32 LoopCount) override;
+		virtual void ProcessSingleRangeIteration(const int32 Iteration, const PCGExMT::FScope& Scope) override;
 		virtual void OnRangeProcessingComplete() override;
 		void CollapseCrossing(const int32 Index);
 		void CrossBlendPoint(const int32 Index);

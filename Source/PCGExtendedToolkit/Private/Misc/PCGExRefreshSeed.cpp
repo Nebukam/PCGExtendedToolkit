@@ -31,9 +31,10 @@ bool FPCGExRefreshSeedElement::ExecuteInternal(FPCGContext* InContext) const
 
 	PCGEX_ON_INITIAL_EXECUTION
 	{
+		const TSharedPtr<PCGExMT::FTaskManager> AsyncManager = Context->GetAsyncManager();
 		while (Context->AdvancePointsIO(false))
 		{
-			Context->GetAsyncManager()->Start<FPCGExRefreshSeedTask>(Settings->Base + Context->CurrentIO->IOIndex, Context->CurrentIO);
+			PCGEX_START_TASK(FPCGExRefreshSeedTask, Settings->Base + Context->CurrentIO->IOIndex, Context->CurrentIO)
 		}
 
 		Context->SetAsyncState(PCGEx::State_WaitingOnAsyncWork);
@@ -48,14 +49,12 @@ bool FPCGExRefreshSeedElement::ExecuteInternal(FPCGContext* InContext) const
 	return Context->TryComplete();
 }
 
-bool FPCGExRefreshSeedTask::ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager)
+void FPCGExRefreshSeedTask::ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager, const TSharedPtr<PCGExMT::FTaskGroup>& InGroup)
 {
 	TArray<FPCGPoint>& MutablePoints = PointIO->GetOut()->GetMutablePoints();
 
 	const FVector BaseOffset = FVector(TaskIndex) * 0.001;
 	for (int i = 0; i < PointIO->GetNum(); i++) { MutablePoints[i].Seed = PCGExRandom::ComputeSeed(MutablePoints[i], BaseOffset); }
-
-	return true;
 }
 
 #undef LOCTEXT_NAMESPACE

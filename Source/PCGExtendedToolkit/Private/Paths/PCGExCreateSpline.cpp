@@ -135,13 +135,13 @@ namespace PCGExCreateSpline
 		return true;
 	}
 
-	void FProcessor::PrepareSingleLoopScopeForPoints(const uint32 StartIndex, const int32 Count)
+	void FProcessor::PrepareSingleLoopScopeForPoints(const PCGExMT::FScope& Scope)
 	{
-		TPointsProcessor<FPCGExCreateSplineContext, UPCGExCreateSplineSettings>::PrepareSingleLoopScopeForPoints(StartIndex, Count);
-		PointDataFacade->Fetch(StartIndex, Count);
+		TPointsProcessor<FPCGExCreateSplineContext, UPCGExCreateSplineSettings>::PrepareSingleLoopScopeForPoints(Scope);
+		PointDataFacade->Fetch(Scope);
 	}
 
-	void FProcessor::ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const int32 LoopIdx, const int32 Count)
+	void FProcessor::ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const PCGExMT::FScope& Scope)
 	{
 		FVector OutArrive = FVector::ZeroVector;
 		FVector OutLeave = FVector::ZeroVector;

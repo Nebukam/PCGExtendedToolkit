@@ -25,6 +25,7 @@ bool FPCGExDiscardByPointCountElement::Boot(FPCGExContext* InContext) const
 	PCGEX_SETTINGS(PointsProcessor)
 
 	Context->MainPoints = MakeShared<PCGExData::FPointIOCollection>(Context);
+	
 	Context->MainPoints->OutputPin = Settings->GetMainOutputPin();
 
 	TArray<FPCGTaggedData> Sources = Context->InputData.GetInputsByPin(Settings->GetMainInputPin());

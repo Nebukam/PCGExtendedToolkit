@@ -106,7 +106,7 @@ namespace PCGExBreakClustersToPaths
 		}
 	}
 
-	void FProcessor::ProcessSingleRangeIteration(const int32 Iteration, const int32 LoopIdx, const int32 Count)
+	void FProcessor::ProcessSingleRangeIteration(const int32 Iteration, const PCGExMT::FScope& Scope)
 	{
 		const TSharedPtr<PCGExCluster::FNodeChain> Chain = ChainBuilder->Chains[Iteration];
 		if (!Chain) { return; }
@@ -157,7 +157,7 @@ namespace PCGExBreakClustersToPaths
 		}
 	}
 
-	void FProcessor::ProcessSingleEdge(const int32 EdgeIndex, PCGExGraph::FEdge& Edge, const int32 LoopIdx, const int32 Count)
+	void FProcessor::ProcessSingleEdge(const int32 EdgeIndex, PCGExGraph::FEdge& Edge, const PCGExMT::FScope& Scope)
 	{
 		const TSharedPtr<PCGExData::FPointIO> PathIO = Context->Paths->Emplace_GetRef<UPCGPointData>(VtxDataFacade->Source, PCGExData::EIOInit::New);
 		TArray<FPCGPoint>& MutablePoints = PathIO->GetOut()->GetMutablePoints();
@@ -237,18 +237,18 @@ namespace PCGExBreakClustersToPaths
 				};
 
 			ProjectionTaskGroup->OnSubLoopStartCallback =
-				[PCGEX_ASYNC_THIS_CAPTURE](const int32 StartIndex, const int32 Count, const int32 LoopIdx)
+				[PCGEX_ASYNC_THIS_CAPTURE](const PCGExMT::FScope& Scope)
 				{
 					PCGEX_ASYNC_THIS
 					if (This->BreakpointFilterManager)
 					{
 						TArray<int8>& Breaks = *This->Breakpoints;
-						PCGEX_ASYNC_SUB_LOOP { Breaks[i] = This->BreakpointFilterManager->Test(i); }
+						for (int i = Scope.Start; i < Scope.End; i++) { Breaks[i] = This->BreakpointFilterManager->Test(i); }
 					}
 
 					if (This->ProjectedPositions)
 					{
-						This->ProjectionDetails.ProjectFlat(This->VtxDataFacade, *This->ProjectedPositions, StartIndex, Count);
+						This->ProjectionDetails.ProjectFlat(This->VtxDataFacade, *This->ProjectedPositions, Scope);
 					}
 				};
 

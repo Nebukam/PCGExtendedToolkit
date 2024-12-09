@@ -127,7 +127,7 @@ namespace PCGExFindAllCells
 		virtual ~FProcessor() override;
 
 		virtual bool Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager) override;
-		virtual void ProcessSingleEdge(const int32 EdgeIndex, PCGExGraph::FEdge& Edge, const int32 LoopIdx, const int32 Count) override;
+		virtual void ProcessSingleEdge(const int32 EdgeIndex, PCGExGraph::FEdge& Edge, const PCGExMT::FScope& Scope) override;
 		bool FindCell(const PCGExCluster::FNode& Node, const PCGExGraph::FEdge& Edge, const bool bSkipBinary = true);
 		void ProcessCell(const TSharedPtr<PCGExTopology::FCell>& InCell) const;
 		void EnsureRoamingClosedLoopProcessing();

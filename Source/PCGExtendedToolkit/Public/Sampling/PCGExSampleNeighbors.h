@@ -83,8 +83,8 @@ namespace PCGExSampleNeighbors
 		virtual ~FProcessor() override;
 
 		virtual bool Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager) override;
-		virtual void ProcessSingleRangeIteration(const int32 Iteration, const int32 LoopIdx, const int32 Count) override;
-		virtual void ProcessSingleNode(const int32 Index, PCGExCluster::FNode& Node, const int32 LoopIdx, const int32 Count) override;
+		virtual void ProcessSingleRangeIteration(const int32 Iteration, const PCGExMT::FScope& Scope) override;
+		virtual void ProcessSingleNode(const int32 Index, PCGExCluster::FNode& Node, const PCGExMT::FScope& Scope) override;
 		virtual void CompleteWork() override;
 		virtual void Write() override;
 	};

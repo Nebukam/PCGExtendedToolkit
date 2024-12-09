@@ -195,10 +195,10 @@ namespace PCGExPathfinding
 			};
 
 		PlotTasks->OnSubLoopStartCallback =
-			[PCGEX_ASYNC_THIS_CAPTURE, SearchOperation, HeuristicsHandler](const int32 StartIndex, const int32 Count, const int32 LoopIdx)
+			[PCGEX_ASYNC_THIS_CAPTURE, SearchOperation, HeuristicsHandler](const PCGExMT::FScope& Scope)
 			{
 				PCGEX_ASYNC_THIS
-				This->SubQueries[StartIndex]->FindPath(SearchOperation, HeuristicsHandler, This->LocalFeedbackHandler);
+				This->SubQueries[Scope.Start]->FindPath(SearchOperation, HeuristicsHandler, This->LocalFeedbackHandler);
 			};
 
 		PlotTasks->StartSubLoops(SubQueries.Num(), 1, HeuristicsHandler->HasAnyFeedback());

@@ -107,14 +107,14 @@ namespace PCGExFilterGroup
 
 TSharedPtr<PCGExPointFilter::FFilter> UPCGExFilterGroupFactoryBaseAND::CreateFilter() const
 {
-	TSharedPtr<PCGExFilterGroup::FFilterGroupAND> NewFilterGroup = MakeShared<PCGExFilterGroup::FFilterGroupAND>(this, &FilterFactories);
+	PCGEX_MAKE_SHARED(NewFilterGroup, PCGExFilterGroup::FFilterGroupAND, this, &FilterFactories)
 	NewFilterGroup->bInvert = bInvert;
 	return NewFilterGroup;
 }
 
 TSharedPtr<PCGExPointFilter::FFilter> UPCGExFilterGroupFactoryBaseOR::CreateFilter() const
 {
-	TSharedPtr<PCGExFilterGroup::FFilterGroupOR> NewFilterGroup = MakeShared<PCGExFilterGroup::FFilterGroupOR>(this, &FilterFactories);
+	PCGEX_MAKE_SHARED(NewFilterGroup, PCGExFilterGroup::FFilterGroupOR, this, &FilterFactories)
 	NewFilterGroup->bInvert = bInvert;
 	return NewFilterGroup;
 }

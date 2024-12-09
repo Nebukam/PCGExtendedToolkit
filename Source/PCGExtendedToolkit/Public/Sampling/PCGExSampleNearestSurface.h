@@ -62,7 +62,6 @@ protected:
 	//~Begin UPCGExPointsProcessorSettings
 public:
 	virtual PCGExData::EIOInit GetMainOutputInitMode() const override;
-	virtual int32 GetPreferredChunkSize() const override;
 	PCGEX_NODE_POINT_FILTER(PCGExPointFilter::SourcePointFiltersLabel, "Filters", PCGExFactories::PointFilters, false)
 	//~End UPCGExPointsProcessorSettings
 
@@ -235,8 +234,8 @@ namespace PCGExSampleNearestSurface
 		virtual ~FProcessor() override;
 
 		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager> InAsyncManager) override;
-		virtual void PrepareSingleLoopScopeForPoints(const uint32 StartIndex, const int32 Count) override;
-		virtual void ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const int32 LoopIdx, const int32 Count) override;
+		virtual void PrepareSingleLoopScopeForPoints(const PCGExMT::FScope& Scope) override;
+		virtual void ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const PCGExMT::FScope& Scope) override;
 		virtual void CompleteWork() override;
 		virtual void Write() override;
 	};

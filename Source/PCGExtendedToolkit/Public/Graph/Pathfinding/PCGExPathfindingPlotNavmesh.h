@@ -142,9 +142,11 @@ class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPlotNavmeshTask final : public PCGExMT::F
 public:
 	explicit FPCGExPlotNavmeshTask(
 		const TSharedPtr<PCGExData::FPointIO>& InPointIO) :
-		FPCGExTask(InPointIO)
+		FPCGExTask(),
+		PointIO(InPointIO)
 	{
 	}
 
-	virtual bool ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager) override;
+	TSharedPtr<PCGExData::FPointIO> PointIO;
+	virtual void ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager, const TSharedPtr<PCGExMT::FTaskGroup>& InGroup) override;
 };

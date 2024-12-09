@@ -4,10 +4,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-
 #include "PCGExGraph.h"
-#include "Geometry/PCGExGeo.h"
-
 #include "PCGExCluster.h"
 
 namespace PCGExCluster

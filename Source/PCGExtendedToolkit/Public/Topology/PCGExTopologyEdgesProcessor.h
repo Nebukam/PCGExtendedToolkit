@@ -219,14 +219,13 @@ namespace PCGExTopologyEdges
 		}
 
 	protected:
-		void FilterConstrainedEdgeScope(const int32 StartIndex, const int32 Count)
+		void FilterConstrainedEdgeScope(const PCGExMT::FScope& Scope)
 		{
 			int32 LocalConstrainedEdgesNum = 0;
 
 			if (EdgeFilterManager)
 			{
-				const int32 MaxIndex = StartIndex + Count;
-				for (int i = StartIndex; i < MaxIndex; i++)
+				for (int i = Scope.Start; i < Scope.End; i++)
 				{
 					ConstrainedEdgeFilterCache[i] = EdgeFilterManager->Test(*Cluster->GetEdge(i));
 					if (ConstrainedEdgeFilterCache[i]) { LocalConstrainedEdgesNum++; }
@@ -337,11 +336,11 @@ namespace PCGExTopologyEdges
 				};
 
 			ProjectionTaskGroup->OnSubLoopStartCallback =
-				[PCGEX_ASYNC_THIS_CAPTURE](const int32 StartIndex, const int32 Count, const int32 LoopIdx)
+				[PCGEX_ASYNC_THIS_CAPTURE](const PCGExMT::FScope& Scope)
 				{
 					PCGEX_ASYNC_THIS
 					TArray<FVector>& PP = *This->ProjectedPositions;
-					This->ProjectionDetails.ProjectFlat(This->VtxDataFacade, PP, StartIndex, Count);
+					This->ProjectionDetails.ProjectFlat(This->VtxDataFacade, PP, Scope);
 				};
 
 			ProjectionTaskGroup->StartSubLoops(VtxDataFacade->GetNum(), GetDefault<UPCGExGlobalSettings>()->GetPointsBatchChunkSize());

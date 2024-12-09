@@ -240,15 +240,18 @@ namespace PCGExPathfinding
 	}
 }
 
-class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPathfindingTask : public PCGExMT::FPCGExTask
+class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPathfindingTask : public PCGExMT::FPCGExIndexedTask
 {
 public:
-	FPCGExPathfindingTask(const TSharedPtr<PCGExData::FPointIO>& InPointIO,
+	FPCGExPathfindingTask(const int32 InTaskIndex,
+	                      const TSharedPtr<PCGExData::FPointIO>& InPointIO,
 	                      const TArray<PCGExPathfinding::FSeedGoalPair>* InQueries) :
-		FPCGExTask(InPointIO),
+		FPCGExIndexedTask(InTaskIndex),
+		PointIO(InPointIO),
 		Queries(InQueries)
 	{
 	}
 
+	TSharedPtr<PCGExData::FPointIO> PointIO;
 	const TArray<PCGExPathfinding::FSeedGoalPair>* Queries = nullptr;
 };

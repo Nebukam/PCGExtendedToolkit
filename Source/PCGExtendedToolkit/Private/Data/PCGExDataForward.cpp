@@ -124,7 +124,7 @@ namespace PCGExData
 					if (!SourceAtt) { return; }
 
 					InTargetDataFacade->Source->DeleteAttribute(Identity.Name);
-					FPCGMetadataAttribute<T>* Mark = InTargetDataFacade->Source->FindOrCreateAttribute<T>(
+					InTargetDataFacade->Source->FindOrCreateAttribute<T>(
 						Identity.Name,
 						SourceAtt->GetValueFromItemKey(SourceDataFacade->Source->GetInPoint(SourceIndex).MetadataEntry),
 						SourceAtt->AllowsInterpolation(), true, true);
@@ -149,7 +149,7 @@ namespace PCGExData
 					if (!SourceAtt) { return; }
 
 					InTargetMetadata->DeleteAttribute(Identity.Name);
-					FPCGMetadataAttribute<T>* Mark = InTargetMetadata->FindOrCreateAttribute<T>(
+					InTargetMetadata->FindOrCreateAttribute<T>(
 						Identity.Name,
 						SourceAtt->GetValueFromItemKey(SourceDataFacade->Source->GetInPoint(SourceIndex).MetadataEntry),
 						SourceAtt->AllowsInterpolation(), true, true);

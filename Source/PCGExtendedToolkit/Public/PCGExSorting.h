@@ -143,7 +143,7 @@ namespace PCGExSorting
 
 			for (const FPCGExSortRuleConfig& RuleConfig : InRuleConfigs)
 			{
-				TSharedPtr<FPCGExSortRule> NewRule = MakeShared<FPCGExSortRule>(RuleConfig);
+				PCGEX_MAKE_SHARED(NewRule, FPCGExSortRule, RuleConfig)
 				Rules.Add(NewRule.ToSharedRef());
 			}
 		}
@@ -160,7 +160,7 @@ namespace PCGExSorting
 				for (int i = 0; i < Rules.Num(); i++)
 				{
 					const TSharedPtr<FPCGExSortRule> Rule = Rules[i];
-					const TSharedPtr<PCGEx::TAttributeBroadcaster<double>> SoftCache = MakeShared<PCGEx::TAttributeBroadcaster<double>>();
+					PCGEX_MAKE_SHARED(SoftCache, PCGEx::TAttributeBroadcaster<double>)
 
 					if (!SoftCache->Prepare(Rule->Selector, DataFacade->Source))
 					{

@@ -170,16 +170,15 @@ namespace PCGExResamplePath
 		return true;
 	}
 
-	void FProcessor::PrepareSingleLoopScopeForPoints(const uint32 StartIndex, const int32 Count)
+	void FProcessor::PrepareSingleLoopScopeForPoints(const PCGExMT::FScope& Scope)
 	{
-		PointDataFacade->Fetch(StartIndex, Count);
+		PointDataFacade->Fetch(Scope);
 	}
 
-	void FProcessor::ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const int32 LoopIdx, const int32 Count)
+	void FProcessor::ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const PCGExMT::FScope& Scope)
 	{
 		const FPointSample& Sample = Samples[Index];
 		Point.Transform.SetLocation(Sample.Location);
-		const int32 SourcesRange = Sample.End - Sample.Start;
 
 		//if (SourcesRange == 1)
 		//{

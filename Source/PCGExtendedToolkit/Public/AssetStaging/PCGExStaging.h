@@ -4,7 +4,6 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Data/PCGExData.h"
 #include "Collections/PCGExAssetCollection.h"
 
 namespace PCGExStaging

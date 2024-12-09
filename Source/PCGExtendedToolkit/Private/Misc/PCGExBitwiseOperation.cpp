@@ -93,7 +93,7 @@ namespace PCGExBitwiseOperation
 		return true;
 	}
 
-	void FProcessor::ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const int32 LoopIdx, const int32 Count)
+	void FProcessor::ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const PCGExMT::FScope& Scope)
 	{
 		PCGExBitmask::Do(Op, Writer->GetMutable(Index), Reader ? Reader->Read(Index) : Mask);
 	}

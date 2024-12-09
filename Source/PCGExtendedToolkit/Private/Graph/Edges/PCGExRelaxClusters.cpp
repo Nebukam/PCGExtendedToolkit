@@ -122,10 +122,10 @@ namespace PCGExRelaxClusters
 
 		IterationGroup->StartRanges<FRelaxRangeTask>(
 			NumNodes, GetDefault<UPCGExGlobalSettings>()->GetPointsBatchChunkSize(),
-			nullptr, SharedThis(this));
+			false, SharedThis(this));
 	}
 
-	void FProcessor::ProcessSingleNode(const int32 Index, PCGExCluster::FNode& Node, const int32 LoopIdx, const int32 Count)
+	void FProcessor::ProcessSingleNode(const int32 Index, PCGExCluster::FNode& Node, const PCGExMT::FScope& Scope)
 	{
 		RelaxOperation->ProcessExpandedNode(Node);
 
@@ -167,18 +167,9 @@ namespace PCGExRelaxClusters
 		ForwardCluster();
 	}
 
-	bool FRelaxRangeTask::ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager)
+	void FRelaxRangeTask::ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager, const TSharedPtr<PCGExMT::FTaskGroup>& InGroup)
 	{
-		const int32 StartIndex = PCGEx::H64A(Scope);
-		const int32 NumIterations = PCGEx::H64B(Scope);
-
-		for (int i = 0; i < NumIterations; i++)
-		{
-			const int32 Index = StartIndex + i;
-			Processor->ProcessSingleNode(Index, *Processor->Cluster->GetNode(Index), TaskIndex, NumIterations);
-		}
-
-		return true;
+		for (int i = Scope.Start; i < Scope.End; i++) { Processor->ProcessSingleNode(i, *Processor->Cluster->GetNode(i), Scope); }
 	}
 }
 
