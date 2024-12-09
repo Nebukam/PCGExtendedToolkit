@@ -177,7 +177,7 @@ namespace PCGExFindAllCells
 		PCGExGraph::CleanupClusterTags(PathIO, true);
 		PCGExGraph::CleanupVtxData(PathIO);
 
-		TSharedPtr<PCGExData::FFacade> PathDataFacade = MakeShared<PCGExData::FFacade>(PathIO);
+		PCGEX_MAKE_SHARED(PathDataFacade, PCGExData::FFacade, PathIO)
 
 		TArray<FPCGPoint> MutablePoints;
 		MutablePoints.Reserve(InCell->Nodes.Num());
@@ -221,7 +221,7 @@ namespace PCGExFindAllCells
 	{
 		if (NumAttempts == 0 && LastBinary != -1)
 		{
-			TSharedPtr<PCGExTopology::FCell> Cell = MakeShared<PCGExTopology::FCell>(CellsConstraints.ToSharedRef());
+			PCGEX_MAKE_SHARED(Cell, PCGExTopology::FCell, CellsConstraints.ToSharedRef())
 			PCGExGraph::FEdge& Edge = *Cluster->GetEdge(Cluster->GetNode(LastBinary)->Links[0].Edge);
 			FindCell(*Cluster->GetEdgeStart(Edge), Edge, false);
 		}

@@ -123,26 +123,28 @@ namespace PCGExBridgeClusters
 		virtual void Write() override;
 	};
 
-	class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExCreateBridgeTask final : public PCGExMT::FPCGExTask
+	class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExCreateBridgeTask final : public PCGExMT::FPCGExIndexedTask
 	{
 	public:
-		FPCGExCreateBridgeTask(
-			const TSharedPtr<PCGExData::FPointIO>& InPointIO,
-			const TSharedPtr<FBatch>& InBatch,
-			const TSharedPtr<PCGExCluster::FCluster>& A,
-			const TSharedPtr<PCGExCluster::FCluster>& B) :
-			FPCGExTask(InPointIO),
+		FPCGExCreateBridgeTask(const int32 InTaskIndex,
+		                       const TSharedPtr<PCGExData::FPointIO>& InPointIO,
+		                       const TSharedPtr<FBatch>& InBatch,
+		                       const TSharedPtr<PCGExCluster::FCluster>& A,
+		                       const TSharedPtr<PCGExCluster::FCluster>& B) :
+			FPCGExIndexedTask(InTaskIndex),
+			PointIO(InPointIO),
 			Batch(InBatch),
 			ClusterA(A),
 			ClusterB(B)
 		{
 		}
 
+		TSharedPtr<PCGExData::FPointIO> PointIO;
 		TSharedPtr<FBatch> Batch;
 
 		TSharedPtr<PCGExCluster::FCluster> ClusterA;
 		TSharedPtr<PCGExCluster::FCluster> ClusterB;
 
-		virtual bool ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager) override;
+		virtual void ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager, const TSharedPtr<PCGExMT::FTaskGroup>& InGroup) override;
 	};
 }

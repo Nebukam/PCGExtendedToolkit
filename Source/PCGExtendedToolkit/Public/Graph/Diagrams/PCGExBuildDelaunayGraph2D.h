@@ -143,14 +143,16 @@ namespace PCGExBuildDelaunay2D
 	public:
 		FOutputDelaunaySites2D(const TSharedPtr<PCGExData::FPointIO>& InPointIO,
 		                       const TSharedPtr<FProcessor>& InProcessor) :
-			FPCGExTask(InPointIO),
+			FPCGExTask(),
+			PointIO(InPointIO),
 			Processor(InProcessor)
 		{
 		}
 
+		TSharedPtr<PCGExData::FPointIO> PointIO;
 		TSharedPtr<FProcessor> Processor;
 
-		virtual bool ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager) override;
+		virtual void ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager, const TSharedPtr<PCGExMT::FTaskGroup>& InGroup) override;
 	};
 
 	class /*PCGEXTENDEDTOOLKIT_API*/ FOutputDelaunayUrquhartSites2D final : public PCGExMT::FPCGExTask
@@ -158,13 +160,15 @@ namespace PCGExBuildDelaunay2D
 	public:
 		FOutputDelaunayUrquhartSites2D(const TSharedPtr<PCGExData::FPointIO>& InPointIO,
 		                               const TSharedPtr<FProcessor>& InProcessor) :
-			FPCGExTask(InPointIO),
+			FPCGExTask(),
+			PointIO(InPointIO),
 			Processor(InProcessor)
 		{
 		}
 
+		TSharedPtr<PCGExData::FPointIO> PointIO;
 		TSharedPtr<FProcessor> Processor;
 
-		virtual bool ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager) override;
+		virtual void ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager, const TSharedPtr<PCGExMT::FTaskGroup>& InGroup) override;
 	};
 }

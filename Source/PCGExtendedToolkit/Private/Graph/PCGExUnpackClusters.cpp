@@ -49,7 +49,8 @@ bool FPCGExUnpackClustersElement::ExecuteInternal(
 	PCGEX_EXECUTION_CHECK
 	PCGEX_ON_INITIAL_EXECUTION
 	{
-		while (Context->AdvancePointsIO(false)) { Context->GetAsyncManager()->Start<FPCGExUnpackClusterTask>(-1, Context->CurrentIO); }
+		TSharedPtr<PCGExMT::FTaskManager> AsyncManager = Context->GetAsyncManager();
+		while (Context->AdvancePointsIO(false)) { PCGEX_START_TASK(FPCGExUnpackClusterTask, Context->CurrentIO) }
 		Context->SetAsyncState(PCGEx::State_WaitingOnAsyncWork);
 	}
 
@@ -64,7 +65,7 @@ bool FPCGExUnpackClustersElement::ExecuteInternal(
 	return Context->TryComplete();
 }
 
-bool FPCGExUnpackClusterTask::ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager)
+void FPCGExUnpackClusterTask::ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager, const TSharedPtr<PCGExMT::FTaskGroup>& InGroup)
 {
 	const FPCGExUnpackClustersContext* Context = AsyncManager->GetContext<FPCGExUnpackClustersContext>();
 	PCGEX_SETTINGS(UnpackClusters)
@@ -73,7 +74,7 @@ bool FPCGExUnpackClusterTask::ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager
 	if (!EdgeCount)
 	{
 		PCGE_LOG_C(Warning, GraphAndLog, Context, FTEXT("Some input points have no packing metadata."));
-		return false;
+		return;
 	}
 
 	const int32 NumEdges = EdgeCount->GetValue(PCGDefaultValueKey);
@@ -82,7 +83,7 @@ bool FPCGExUnpackClusterTask::ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager
 	if (NumEdges > PointIO->GetNum() || NumVtx <= 0)
 	{
 		PCGE_LOG_C(Warning, GraphAndLog, Context, FTEXT("Some input points have could not be unpacked correctly (wrong number of vtx or edges)."));
-		return false;
+		return;
 	}
 
 	const TArray<FPCGPoint>& PackedPoints = PointIO->GetIn()->GetPoints();
@@ -110,8 +111,6 @@ bool FPCGExUnpackClusterTask::ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager
 
 	PCGExGraph::MarkClusterVtx(NewVtx, OutPairId);
 	PCGExGraph::MarkClusterEdges(NewEdges, OutPairId);
-
-	return true;
 }
 
 #undef LOCTEXT_NAMESPACE

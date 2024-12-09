@@ -142,7 +142,7 @@ namespace PCGExCluster
 			if (Node->IsEmpty()) { continue; }
 			if (Node->IsLeaf())
 			{
-				TSharedPtr<FNodeChain> NewChain = MakeShared<FNodeChain>(FLink(Node->Index, Node->Links[0].Edge));
+				PCGEX_MAKE_SHARED(NewChain, FNodeChain, FLink(Node->Index, Node->Links[0].Edge))
 				Chains.Add(NewChain);
 				continue;
 			}
@@ -156,7 +156,7 @@ namespace PCGExCluster
 					// Skip immediately known leaves or already seeded nodes. Avoid double-sampling simple cases
 					if (Cluster->GetNode(Lk.Node)->IsLeaf()) { continue; }
 
-					TSharedPtr<FNodeChain> NewChain = MakeShared<FNodeChain>(FLink(Node->Index, Lk.Edge));
+					PCGEX_MAKE_SHARED(NewChain, FNodeChain, FLink(Node->Index, Lk.Edge))
 					Chains.Add(NewChain);
 				}
 			}
@@ -177,7 +177,7 @@ namespace PCGExCluster
 			ensure(!Node->IsEmpty());
 			if (!Node->IsLeaf() || Node->IsEmpty()) { continue; }
 
-			TSharedPtr<FNodeChain> NewChain = MakeShared<FNodeChain>(FLink(Node->Index, Node->Links[0].Edge));
+			PCGEX_MAKE_SHARED(NewChain, FNodeChain, FLink(Node->Index, Node->Links[0].Edge))
 			Chains.Add(NewChain);
 		}
 
@@ -205,7 +205,7 @@ namespace PCGExCluster
 				This->Chains[Index]->BuildChain(This->Cluster, This->Breakpoints);
 			};
 
-		ChainSearchTask->StartIterations(Chains.Num(), 64, false, false);
+		ChainSearchTask->StartIterations(Chains.Num(), 64, false);
 		return true;
 	}
 

@@ -187,17 +187,16 @@ namespace PCGExDiscardByOverlap
 	class /*PCGEXTENDEDTOOLKIT_API*/ FPruneTask final : public PCGExMT::FPCGExTask
 	{
 	public:
-		explicit FPruneTask(const TSharedPtr<PCGExData::FPointIO>& InPointIO)
-			: FPCGExTask(InPointIO)
+		explicit FPruneTask()
+			: FPCGExTask()
 
 		{
 		}
 
-		virtual bool ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager) override
+		virtual void ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager, const TSharedPtr<PCGExMT::FTaskGroup>& InGroup) override
 		{
 			FPCGExDiscardByOverlapContext* Context = AsyncManager->GetContext<FPCGExDiscardByOverlapContext>();
 			Context->Prune();
-			return false;
 		}
 	};
 

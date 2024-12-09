@@ -158,18 +158,16 @@ namespace PCGExRefineEdges
 		virtual void OnProcessingPreparationComplete() override;
 	};
 
-	class FSanitizeRangeTask final : public PCGExMT::FPCGExTask
+	class FSanitizeRangeTask final : public PCGExMT::FScopeIterationTask
 	{
 	public:
-		FSanitizeRangeTask(const TSharedPtr<PCGExData::FPointIO>& InPointIO,
-		                   const TSharedPtr<FProcessor>& InProcessor):
-			FPCGExTask(InPointIO),
+		explicit FSanitizeRangeTask(const TSharedPtr<FProcessor>& InProcessor):
+			FScopeIterationTask(),
 			Processor(InProcessor)
 		{
 		}
 
 		TSharedPtr<FProcessor> Processor;
-		PCGExMT::FScope Scope = PCGExMT::FScope{};
-		virtual bool ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager) override;
+		virtual void ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager, const TSharedPtr<PCGExMT::FTaskGroup>& InGroup) override;
 	};
 }

@@ -114,8 +114,6 @@ TArray<FPCGPinProperties> UPCGExPackActorDataSettings::OutputPinProperties() con
 
 PCGExData::EIOInit UPCGExPackActorDataSettings::GetMainOutputInitMode() const { return PCGExData::EIOInit::Duplicate; }
 
-int32 UPCGExPackActorDataSettings::GetPreferredChunkSize() const { return PCGExMT::GAsyncLoop_L; }
-
 PCGEX_INITIALIZE_ELEMENT(PackActorData)
 
 FName UPCGExPackActorDataSettings::GetMainInputPin() const

@@ -70,14 +70,16 @@ public:
 	FPCGExPackClusterTask(const TSharedPtr<PCGExData::FPointIO>& InPointIO,
 	                      const TSharedPtr<PCGExData::FPointIO>& InInEdges,
 	                      const TMap<uint32, int32>& InEndpointsLookup) :
-		FPCGExTask(InPointIO),
+		FPCGExTask(),
+		PointIO(InPointIO),
 		InEdges(InInEdges),
 		EndpointsLookup(InEndpointsLookup)
 	{
 	}
 
+	TSharedPtr<PCGExData::FPointIO> PointIO;
 	TSharedPtr<PCGExData::FPointIO> InEdges;
 	TMap<uint32, int32> EndpointsLookup;
 
-	virtual bool ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager) override;
+	virtual void ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager, const TSharedPtr<PCGExMT::FTaskGroup>& InGroup) override;
 };

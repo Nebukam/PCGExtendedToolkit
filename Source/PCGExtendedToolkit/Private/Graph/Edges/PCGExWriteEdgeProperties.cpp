@@ -230,11 +230,11 @@ namespace PCGExWriteEdgeProperties
 
 
 			BlendWeightStart = EdgeLerp;
-			BlendWeightEnd = 1 - EdgeLerp;
+			BlendWeightEnd = EdgeLerpInv;
 
 			if (MetadataBlender) { MetadataBlend(); } // Blend first THEN apply bounds otherwise it gets overwritten
 
-			MutableTarget.Transform = FTransform(EdgeRot, FMath::Lerp(B, A, EdgeLerp), MutableTarget.Transform.GetScale3D());
+			MutableTarget.Transform = FTransform(EdgeRot, FMath::Lerp(B, A, EdgeLerpInv), MutableTarget.Transform.GetScale3D());
 
 			MutableTarget.BoundsMin = TargetBoundsMin;
 			MutableTarget.BoundsMax = TargetBoundsMax;

@@ -10,8 +10,6 @@
 #define LOCTEXT_NAMESPACE "PCGExGraph"
 #define PCGEX_NAMESPACE FlagNodes
 
-int32 UPCGExFlagNodesSettings::GetPreferredChunkSize() const { return PCGExMT::GAsyncLoop_M; }
-
 PCGExData::EIOInit UPCGExFlagNodesSettings::GetMainOutputInitMode() const { return PCGExData::EIOInit::Duplicate; }
 PCGExData::EIOInit UPCGExFlagNodesSettings::GetEdgeOutputInitMode() const { return PCGExData::EIOInit::Forward; }
 

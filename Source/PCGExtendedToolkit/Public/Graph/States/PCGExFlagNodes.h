@@ -34,7 +34,6 @@ protected:
 public:
 	virtual PCGExData::EIOInit GetMainOutputInitMode() const override;
 	virtual PCGExData::EIOInit GetEdgeOutputInitMode() const override;
-	virtual int32 GetPreferredChunkSize() const override;
 	//~End UPCGExPointsProcessorSettings
 
 	/** Attribute to output flags to */

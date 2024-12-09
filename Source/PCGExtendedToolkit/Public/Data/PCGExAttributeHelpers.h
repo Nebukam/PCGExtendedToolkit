@@ -212,7 +212,7 @@ namespace PCGEx
 		const FPCGContext* InContext, const FName InputLabel,
 		const FPCGExAttributeGatherDetails& InDetails, TSet<FName>& Mismatches)
 	{
-		TSharedPtr<FAttributesInfos> OutInfos = MakeShared<FAttributesInfos>();
+		PCGEX_MAKE_SHARED(OutInfos, FAttributesInfos)
 		GatherAttributes(OutInfos, InContext, InputLabel, InDetails, Mismatches);
 		return OutInfos;
 	}
@@ -543,14 +543,14 @@ namespace PCGEx
 
 		static TSharedPtr<TAttributeBroadcaster<T>> Make(const FName& InName, const TSharedRef<PCGExData::FPointIO>& InPointIO)
 		{
-			TSharedPtr<TAttributeBroadcaster<T>> Broadcaster = MakeShared<TAttributeBroadcaster<T>>();
+			PCGEX_MAKE_SHARED(Broadcaster, TAttributeBroadcaster<T>)
 			if (!Broadcaster->Prepare(InName, InPointIO)) { return nullptr; }
 			return Broadcaster;
 		}
 
 		static TSharedPtr<TAttributeBroadcaster<T>> Make(const FPCGAttributePropertyInputSelector& InSelector, const TSharedRef<PCGExData::FPointIO>& InPointIO)
 		{
-			TSharedPtr<TAttributeBroadcaster<T>> Broadcaster = MakeShared<TAttributeBroadcaster<T>>();
+			PCGEX_MAKE_SHARED(Broadcaster, TAttributeBroadcaster<T>)
 			if (!Broadcaster->Prepare(InSelector, InPointIO)) { return nullptr; }
 			return Broadcaster;
 		}

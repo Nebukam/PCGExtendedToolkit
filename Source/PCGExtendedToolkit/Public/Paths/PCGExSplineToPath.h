@@ -136,17 +136,19 @@ namespace PCGExSplineToPath
 {
 	const FName SourceSplineLabel = TEXT("Splines");
 
-	class /*PCGEXTENDEDTOOLKIT_API*/ FWriteTask final : public PCGExMT::FPCGExTask
+	class /*PCGEXTENDEDTOOLKIT_API*/ FWriteTask final : public PCGExMT::FPCGExIndexedTask
 	{
 	public:
-		FWriteTask(const TSharedPtr<PCGExData::FPointIO>& InPointIO, const TSharedPtr<PCGExData::FFacade>& InPointDataFacade)
-			: FPCGExTask(InPointIO), PointDataFacade(InPointDataFacade)
+		FWriteTask(const int32 InTaskIndex,
+		           const TSharedPtr<PCGExData::FFacade>& InPointDataFacade)
+			: FPCGExIndexedTask(InTaskIndex),
+			  PointDataFacade(InPointDataFacade)
 
 		{
 		}
 
 		TSharedPtr<PCGExData::FFacade> PointDataFacade;
 
-		virtual bool ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager) override;
+		virtual void ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager, const TSharedPtr<PCGExMT::FTaskGroup>& InGroup) override;
 	};
 }

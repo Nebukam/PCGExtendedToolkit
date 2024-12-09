@@ -663,23 +663,25 @@ namespace PCGExGeo
 
 namespace PCGExGeoTasks
 {
-	class /*PCGEXTENDEDTOOLKIT_API*/ FTransformPointIO final : public PCGExMT::FPCGExTask
+	class /*PCGEXTENDEDTOOLKIT_API*/ FTransformPointIO final : public PCGExMT::FPCGExIndexedTask
 	{
 	public:
-		FTransformPointIO(
-			const TSharedPtr<PCGExData::FPointIO>& InPointIO,
-			const TSharedPtr<PCGExData::FPointIO>& InToBeTransformedIO,
-			FPCGExTransformDetails* InTransformDetails) :
-			FPCGExTask(InPointIO),
+		FTransformPointIO(const int32 InTaskIndex,
+		                  const TSharedPtr<PCGExData::FPointIO>& InPointIO,
+		                  const TSharedPtr<PCGExData::FPointIO>& InToBeTransformedIO,
+		                  FPCGExTransformDetails* InTransformDetails) :
+			FPCGExIndexedTask(InTaskIndex),
+			PointIO(InPointIO),
 			ToBeTransformedIO(InToBeTransformedIO),
 			TransformDetails(InTransformDetails)
 		{
 		}
 
+		TSharedPtr<PCGExData::FPointIO> PointIO;
 		TSharedPtr<PCGExData::FPointIO> ToBeTransformedIO;
 		FPCGExTransformDetails* TransformDetails = nullptr;
 
-		virtual bool ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager) override
+		virtual void ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager, const TSharedPtr<PCGExMT::FTaskGroup>& InGroup) override
 		{
 			TArray<FPCGPoint>& MutableTargets = ToBeTransformedIO->GetMutablePoints();
 
@@ -728,8 +730,6 @@ namespace PCGExGeoTasks
 					}
 				}
 			}
-
-			return true;
 		}
 	};
 }

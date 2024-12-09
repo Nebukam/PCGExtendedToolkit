@@ -362,8 +362,6 @@ protected:
 public:
 	virtual FName GetMainInputPin() const override;
 	virtual PCGExData::EIOInit GetMainOutputInitMode() const override;
-	virtual int32 GetPreferredChunkSize() const override;
-
 	//~End UPCGExPointsProcessorSettings
 
 	/** Actor reference */

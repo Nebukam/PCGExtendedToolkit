@@ -239,7 +239,11 @@ bool FPCGExBuildCustomGraphElement::ExecuteInternal(FPCGContext* InContext) cons
 		{
 			TSharedPtr<PCGExData::FPointIO> NodeIO = Context->MainPoints->Emplace_GetRef();
 			NodeIO->IOIndex = GraphSettings->SettingsIndex;
-			Context->GetAsyncManager()->Start<PCGExBuildCustomGraph::FBuildGraph>(GraphSettings->SettingsIndex, NodeIO, GraphSettings);
+
+			{
+				const TSharedPtr<PCGExMT::FTaskManager> AsyncManager = Context->GetAsyncManager();
+				PCGEX_START_TASK(PCGExBuildCustomGraph::FBuildGraph, NodeIO, GraphSettings)
+			}
 		}
 
 		return false;
@@ -270,7 +274,7 @@ bool FPCGExBuildCustomGraphElement::ExecuteInternal(FPCGContext* InContext) cons
 
 namespace PCGExBuildCustomGraph
 {
-	bool FBuildGraph::ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager)
+	void FBuildGraph::ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager, const TSharedPtr<PCGExMT::FTaskGroup>& InGroup)
 	{
 		FPCGExBuildCustomGraphContext* Context = AsyncManager->GetContext<FPCGExBuildCustomGraphContext>();
 		PCGEX_SETTINGS(BuildCustomGraph)
@@ -291,7 +295,7 @@ namespace PCGExBuildCustomGraph
 
 			PointIO->InitializeOutput(PCGExData::EIOInit::None);
 			GraphSettings->GraphBuilder->bCompiledSuccessfully = false;
-			return false;
+			return;
 		}
 
 		if (NodeReserveNum > 0)
@@ -316,13 +320,13 @@ namespace PCGExBuildCustomGraph
 		{
 			PCGE_LOG_C(Error, GraphAndLog, Context, FTEXT("A graph builder 'BuildGraph' returned false."));
 			GraphSettings->GraphBuilder->bCompiledSuccessfully = false;
-			return false;
+			return;
 		}
 
 		PointIO->GetOut()->GetMutablePoints().SetNum(GraphSettings->Idx.Num());
 
-		TSharedPtr<PCGExData::FFacade> NodeDataFacade = MakeShared<PCGExData::FFacade>(PointIO.ToSharedRef());
-		const TSharedPtr<PCGExGraph::FGraphBuilder> GraphBuilder = MakeShared<PCGExGraph::FGraphBuilder>(NodeDataFacade.ToSharedRef(), &Settings->GraphBuilderDetails);
+		PCGEX_MAKE_SHARED(NodeDataFacade, PCGExData::FFacade, PointIO.ToSharedRef())
+		PCGEX_MAKE_SHARED(GraphBuilder, PCGExGraph::FGraphBuilder, NodeDataFacade.ToSharedRef(), &Settings->GraphBuilderDetails)
 		GraphBuilder->OutputNodeIndices = MakeShared<TArray<int32>>();
 
 		GraphSettings->VtxBuffers = MakeShared<PCGExData::FBufferHelper>(NodeDataFacade.ToSharedRef());
@@ -337,10 +341,10 @@ namespace PCGExBuildCustomGraph
 		{
 			PCGE_LOG_C(Error, GraphAndLog, Context, FTEXT("A graph builder 'InitPointAttributes' returned false."));
 			GraphSettings->GraphBuilder->bCompiledSuccessfully = false;
-			return false;
+			return;
 		}
 
-		PCGEX_ASYNC_GROUP_CHKD(AsyncManager, InitNodesGroup)
+		PCGEX_ASYNC_GROUP_CHKD_VOID(AsyncManager, InitNodesGroup)
 
 		TWeakPtr<PCGExData::FPointIO> WeakIO = PointIO;
 		TWeakPtr<PCGExGraph::FGraphBuilder> WeakGraphBuilder = GraphBuilder;
@@ -373,7 +377,7 @@ namespace PCGExBuildCustomGraph
 
 		InitNodesGroup->StartSubLoops(CustomGraphSettings->Idx.Num(), GetDefault<UPCGExGlobalSettings>()->ClusterDefaultBatchChunkSize);
 
-		return true;
+		return;
 	}
 }
 

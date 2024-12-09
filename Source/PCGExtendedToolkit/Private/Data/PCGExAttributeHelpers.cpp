@@ -167,7 +167,7 @@ namespace PCGEx
 
 	TSharedPtr<FAttributesInfos> FAttributesInfos::Get(const UPCGMetadata* InMetadata, const TSet<FName>* IgnoredAttributes)
 	{
-		TSharedPtr<FAttributesInfos> NewInfos = MakeShared<FAttributesInfos>();
+		PCGEX_MAKE_SHARED(NewInfos, FAttributesInfos)
 		FAttributeIdentity::Get(InMetadata, NewInfos->Identities);
 
 		UPCGMetadata* MutableData = const_cast<UPCGMetadata*>(InMetadata);
@@ -183,7 +183,7 @@ namespace PCGEx
 
 	TSharedPtr<FAttributesInfos> FAttributesInfos::Get(const TSharedPtr<PCGExData::FPointIOCollection>& InCollection, TSet<FName>& OutTypeMismatch, const TSet<FName>* IgnoredAttributes)
 	{
-		TSharedPtr<FAttributesInfos> NewInfos = MakeShared<FAttributesInfos>();
+		PCGEX_MAKE_SHARED(NewInfos, FAttributesInfos)
 		for (const TSharedPtr<PCGExData::FPointIO>& IO : InCollection->Pairs)
 		{
 			TSharedPtr<FAttributesInfos> Infos = Get(IO->GetIn()->Metadata, IgnoredAttributes);

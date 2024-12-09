@@ -103,13 +103,14 @@ bool FPCGExPathfindingNavmeshElement::ExecuteInternal(FPCGContext* InContext) co
 	PCGEX_EXECUTION_CHECK
 	PCGEX_ON_INITIAL_EXECUTION
 	{
+		const TSharedPtr<PCGExMT::FTaskManager> AsyncManager = Context->GetAsyncManager();
 		auto NavClusterTask = [&](const int32 SeedIndex, const int32 GoalIndex)
 		{
 			const int32 PathIndex = Context->PathQueries.Emplace(
 				SeedIndex, Context->SeedsDataFacade->Source->GetInPoint(SeedIndex).Transform.GetLocation(),
 				GoalIndex, Context->GoalsDataFacade->Source->GetInPoint(GoalIndex).Transform.GetLocation());
 
-			Context->GetAsyncManager()->Start<FSampleNavmeshTask>(PathIndex, Context->SeedsDataFacade->Source, &Context->PathQueries);
+			PCGEX_START_TASK(FSampleNavmeshTask, PathIndex, Context->SeedsDataFacade->Source, &Context->PathQueries)
 		};
 
 		PCGExPathfinding::ProcessGoals(Context->SeedsDataFacade, Context->GoalPicker, NavClusterTask);
@@ -125,7 +126,7 @@ bool FPCGExPathfindingNavmeshElement::ExecuteInternal(FPCGContext* InContext) co
 	return Context->TryComplete();
 }
 
-bool FSampleNavmeshTask::ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager)
+void FSampleNavmeshTask::ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager, const TSharedPtr<PCGExMT::FTaskGroup>& InGroup)
 {
 	FPCGExPathfindingNavmeshContext* Context = AsyncManager->GetContext<FPCGExPathfindingNavmeshContext>();
 	PCGEX_SETTINGS(PathfindingNavmesh)
@@ -133,14 +134,14 @@ bool FSampleNavmeshTask::ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& As
 	UWorld* World = Context->SourceComponent->GetWorld();
 	UNavigationSystemV1* NavSys = UNavigationSystemV1::GetCurrent(World);
 
-	if (!NavSys || !NavSys->GetDefaultNavDataInstance()) { return false; }
+	if (!NavSys || !NavSys->GetDefaultNavDataInstance()) { return; }
 
 	PCGExPathfinding::FSeedGoalPair Query = (*Queries)[TaskIndex];
 
 	const FPCGPoint* Seed = Context->SeedsDataFacade->Source->TryGetInPoint(Query.Seed);
 	const FPCGPoint* Goal = Context->GoalsDataFacade->Source->TryGetInPoint(Query.Goal);
 
-	if (!Seed || !Goal) { return false; }
+	if (!Seed || !Goal) { return; }
 
 	FPathFindingQuery PathFindingQuery = FPathFindingQuery(
 		World, *NavSys->GetDefaultNavDataInstance(),
@@ -154,7 +155,7 @@ bool FSampleNavmeshTask::ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& As
 		Context->NavAgentProperties, PathFindingQuery,
 		Context->PathfindingMode == EPCGExPathfindingNavmeshMode::Regular ? EPathFindingMode::Type::Regular : EPathFindingMode::Type::Hierarchical);
 
-	if (Result.Result != ENavigationQueryResult::Type::Success) { return false; } ///
+	if (Result.Result != ENavigationQueryResult::Type::Success) { return; } ///
 
 
 	const TArray<FNavPathPoint>& Points = Result.Path->GetPathPoints();
@@ -184,13 +185,13 @@ bool FSampleNavmeshTask::ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& As
 		Metrics.Add(CurrentLocation);
 	}
 
-	if (PathLocations.Num() <= 2) { return false; }
+	if (PathLocations.Num() <= 2) { return; }
 
 	const int32 NumPositions = PathLocations.Num();
 	const int32 LastPosition = NumPositions - 1;
 
 	TSharedPtr<PCGExData::FPointIO> PathIO = Context->OutputPaths->Emplace_GetRef(PointIO, PCGExData::EIOInit::New);
-	TSharedPtr<PCGExData::FFacade> PathDataFacade = MakeShared<PCGExData::FFacade>(PathIO.ToSharedRef());
+	PCGEX_MAKE_SHARED(PathDataFacade, PCGExData::FFacade, PathIO.ToSharedRef())
 
 	UPCGPointData* OutData = PathIO->GetOut();
 	TArray<FPCGPoint>& MutablePoints = OutData->GetMutablePoints();
@@ -220,9 +221,9 @@ bool FSampleNavmeshTask::ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& As
 	Context->SeedForwardHandler->Forward(Query.Seed, PathDataFacade);
 	Context->GoalForwardHandler->Forward(Query.Goal, PathDataFacade);
 
-	PathDataFacade->Write(ManagerPtr.Pin());
+	PathDataFacade->Write(AsyncManager);
 
-	return true;
+	return;
 }
 
 #undef LOCTEXT_NAMESPACE

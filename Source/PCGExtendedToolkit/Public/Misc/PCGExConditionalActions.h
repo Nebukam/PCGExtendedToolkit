@@ -35,7 +35,6 @@ protected:
 	//~Begin UPCGExPointsProcessorSettings
 public:
 	virtual PCGExData::EIOInit GetMainOutputInitMode() const override;
-	virtual int32 GetPreferredChunkSize() const override;
 	//~End UPCGExPointsProcessorSettings
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))

@@ -171,7 +171,7 @@ namespace PCGExFindContours
 		PCGExGraph::CleanupClusterTags(PathIO, true);
 		PCGExGraph::CleanupVtxData(PathIO);
 
-		TSharedPtr<PCGExData::FFacade> PathDataFacade = MakeShared<PCGExData::FFacade>(PathIO);
+		PCGEX_MAKE_SHARED(PathDataFacade, PCGExData::FFacade, PathIO)
 
 		TArray<FPCGPoint> MutablePoints;
 		MutablePoints.Reserve(InCell->Nodes.Num());

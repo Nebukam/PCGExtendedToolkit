@@ -129,17 +129,6 @@ protected:
 	virtual bool ExecuteInternal(FPCGContext* Context) const override;
 };
 
-class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExReversePointOrderTask final : public PCGExMT::FPCGExTask
-{
-public:
-	explicit FPCGExReversePointOrderTask(const TSharedPtr<PCGExData::FPointIO>& InPointIO) :
-		FPCGExTask(InPointIO)
-	{
-	}
-
-	virtual bool ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager) override;
-};
-
 namespace PCGExReversePointOrder
 {
 	class FProcessor final : public PCGExPointsMT::TPointsProcessor<FPCGExReversePointOrderContext, UPCGExReversePointOrderSettings>

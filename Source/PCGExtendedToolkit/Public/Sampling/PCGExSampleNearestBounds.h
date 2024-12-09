@@ -104,7 +104,6 @@ protected:
 	//~Begin UPCGExPointsProcessorSettings
 public:
 	virtual PCGExData::EIOInit GetMainOutputInitMode() const override;
-	virtual int32 GetPreferredChunkSize() const override;
 
 	PCGEX_NODE_POINT_FILTER(PCGExPointFilter::SourcePointFiltersLabel, "Filters", PCGExFactories::PointFilters, false)
 	//~End UPCGExPointsProcessorSettings
@@ -122,12 +121,12 @@ public:
 	EPCGExPointBoundsSource BoundsSource = EPCGExPointBoundsSource::ScaledBounds;
 
 	/** Whether to use in-editor curve or an external asset. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable, DisplayPriority=-1))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta=(PCG_NotOverridable, DisplayPriority=-1))
 	bool bUseLocalCurve = false;
 	
 	// TODO: DirtyCache for OnDependencyChanged when this float curve is an external asset
 	/** Curve that balances weight over distance */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_NotOverridable, DisplayName="Weight Remap", EditCondition = "bUseLocalCurve", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta = (PCG_NotOverridable, DisplayName="Weight Remap", EditCondition = "bUseLocalCurve", EditConditionHides))
 	FRuntimeFloatCurve LocalWeightRemap;
 	
 	/** Curve that balances weight over distance */

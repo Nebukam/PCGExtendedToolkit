@@ -66,8 +66,6 @@ TArray<FPCGPinProperties> UPCGExSampleInsideBoundsSettings::InputPinProperties()
 
 PCGExData::EIOInit UPCGExSampleInsideBoundsSettings::GetMainOutputInitMode() const { return PCGExData::EIOInit::Duplicate; }
 
-int32 UPCGExSampleInsideBoundsSettings::GetPreferredChunkSize() const { return PCGExMT::GAsyncLoop_L; }
-
 PCGEX_INITIALIZE_ELEMENT(SampleInsideBounds)
 
 bool FPCGExSampleInsideBoundsElement::Boot(FPCGExContext* InContext) const
@@ -334,11 +332,8 @@ namespace PCGExSampleInsideBoundss
 			const FTransform TargetTransform = Target.Transform;
 			const FQuat TargetRotation = TargetTransform.GetRotation();
 
-			WeightedTransform.SetRotation(WeightedTransform.GetRotation() + (TargetRotation * Weight));
-			WeightedTransform.SetScale3D(WeightedTransform.GetScale3D() + (TargetTransform.GetScale3D() * Weight));
-			WeightedTransform.SetLocation(WeightedTransform.GetLocation() + (TargetTransform.GetLocation() * Weight));
-
-			if (Settings->LookAtUpSelection == EPCGExSampleSource::Target) { WeightedUp += (LookAtUpGetter ? LookAtUpGetter->Read(TargetInfos.Index) : SafeUpVector) * Weight; }
+			WeightedTransform = PCGExMath::WeightedAdd(WeightedTransform, TargetTransform, Weight);
+			if (Settings->LookAtUpSelection == EPCGExSampleSource::Target) { PCGExMath::WeightedAdd(WeightedUp, (LookAtUpGetter ? LookAtUpGetter->Read(TargetInfos.Index) : SafeUpVector), Weight); }
 
 			WeightedSignAxis += PCGExMath::GetDirection(TargetRotation, Settings->SignAxis) * Weight;
 			WeightedAngleAxis += PCGExMath::GetDirection(TargetRotation, Settings->AngleAxis) * Weight;
@@ -372,10 +367,7 @@ namespace PCGExSampleInsideBoundss
 		if (TotalWeight != 0) // Dodge NaN
 		{
 			WeightedUp /= TotalWeight;
-
-			WeightedTransform.SetRotation(WeightedTransform.GetRotation() / TotalWeight);
-			WeightedTransform.SetScale3D(WeightedTransform.GetScale3D() / TotalWeight);
-			WeightedTransform.SetLocation(WeightedTransform.GetLocation() / TotalWeight);
+			WeightedTransform = PCGExMath::Div(WeightedTransform, TotalWeight);
 		}
 
 		WeightedUp.Normalize();
