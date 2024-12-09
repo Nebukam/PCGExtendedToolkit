@@ -354,25 +354,22 @@ namespace PCGExSampleNearestSpline
 			for (int i = 0; i < Context->NumTargets; i++)
 			{
 				const FPCGSplineStruct& Line = Context->Splines[i];
-				FTransform SampledTransform;
 				double Time = Line.FindInputKeyClosestToWorldLocation(Origin);
-				SampledTransform = Line.GetTransformAtSplineInputKey(static_cast<float>(Time), ESplineCoordinateSpace::World, Settings->bSplineScalesRanges);
-				ProcessTarget(SampledTransform, Time / Context->SegmentCounts[i], Line);
+				ProcessTarget(
+					Line.GetTransformAtSplineInputKey(static_cast<float>(Time), ESplineCoordinateSpace::World, Settings->bSplineScalesRanges),
+					Time / Context->SegmentCounts[i], Line);
 			}
 		}
 		else
 		{
-
 #define PCGEX_SAMPLE_SPLINE_AT(_BODY)\
 			for (int i = 0; i < Context->NumTargets; i++){\
 			const FPCGSplineStruct& Line = Context->Splines[i];\
 			const double SMax = Context->SegmentCounts[i];\
-			FTransform SampledTransform;\
 			double Time = _BODY;\
 			if (Settings->bWrapClosedLoopAlpha && Line.bClosedLoop) { Time = PCGExMath::Tile(Time, 0.0, SMax); }\
-			SampledTransform = Line.GetTransformAtSplineInputKey(static_cast<float>(Time), ESplineCoordinateSpace::World, Settings->bSplineScalesRanges);\
-			ProcessTarget(SampledTransform, Time / SMax, Line);}
-			
+			ProcessTarget(Line.GetTransformAtSplineInputKey(static_cast<float>(Time), ESplineCoordinateSpace::World, Settings->bSplineScalesRanges), Time / SMax, Line);}
+
 			// At specific alpha
 			double InputKey = SampleAlphaGetter ? SampleAlphaGetter->Read(Index) : Settings->SampleAlphaConstant;
 			switch (Settings->SampleAlphaMode)
@@ -426,11 +423,8 @@ namespace PCGExSampleNearestSpline
 		{
 			const FQuat Quat = Sample.Transform.GetRotation();
 
-			WeightedTransform.SetRotation(WeightedTransform.GetRotation() + (Sample.Transform.GetRotation() * Weight));
-			WeightedTransform.SetScale3D(WeightedTransform.GetScale3D() + (Sample.Transform.GetScale3D() * Weight));
-			WeightedTransform.SetLocation(WeightedTransform.GetLocation() + (Sample.Transform.GetLocation() * Weight));
-
-			if (Settings->LookAtUpSelection == EPCGExSampleSource::Target) { WeightedUp += PCGExMath::GetDirection(Quat, Settings->LookAtUpAxis) * Weight; }
+			WeightedTransform = PCGExMath::WeightedAdd(WeightedTransform, Sample.Transform, Weight);
+			if (Settings->LookAtUpSelection == EPCGExSampleSource::Target) { PCGExMath::WeightedAdd(WeightedUp, PCGExMath::GetDirection(Quat, Settings->LookAtUpAxis), Weight); }
 
 			WeightedSignAxis += PCGExMath::GetDirection(Quat, Settings->SignAxis) * Weight;
 			WeightedAngleAxis += PCGExMath::GetDirection(Quat, Settings->AngleAxis) * Weight;
@@ -461,10 +455,7 @@ namespace PCGExSampleNearestSpline
 		if (TotalWeight != 0) // Dodge NaN
 		{
 			WeightedUp /= TotalWeight;
-
-			WeightedTransform.SetRotation(WeightedTransform.GetRotation() / TotalWeight);
-			WeightedTransform.SetScale3D(WeightedTransform.GetScale3D() / TotalWeight);
-			WeightedTransform.SetLocation(WeightedTransform.GetLocation() / TotalWeight);
+			WeightedTransform = PCGExMath::Div(WeightedTransform, TotalWeight);
 		}
 		else
 		{
