@@ -135,14 +135,13 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExGeo2DProjectionDetails
 	}
 
 	template <typename T>
-	void ProjectFlat(const TSharedPtr<PCGExData::FFacade>& InFacade, TArray<T>& OutPositions, const int32 StartIndex, const int32 Count) const
+	void ProjectFlat(const TSharedPtr<PCGExData::FFacade>& InFacade, TArray<T>& OutPositions, const PCGExMT::FScope& Scope) const
 	{
 		const TArray<FPCGPoint>& InPoints = InFacade->Source->GetInOut()->GetPoints();
 		const int32 NumVectors = InPoints.Num();
 		if (OutPositions.Num() < NumVectors) { PCGEx::InitArray(OutPositions, NumVectors); }
 
-		const int32 MaxIndex = StartIndex + Count;
-		for (int i = StartIndex; i < MaxIndex; i++) { OutPositions[i] = T(ProjectFlat(InPoints[i].Transform.GetLocation(), i)); }
+		for (int i = Scope.Start; i < Scope.End; i++) { OutPositions[i] = T(ProjectFlat(InPoints[i].Transform.GetLocation(), i)); }
 	}
 
 	void Project(const TArray<FVector>& InPositions, TArray<FVector>& OutPositions) const
@@ -664,23 +663,25 @@ namespace PCGExGeo
 
 namespace PCGExGeoTasks
 {
-	class /*PCGEXTENDEDTOOLKIT_API*/ FTransformPointIO final : public PCGExMT::FPCGExTask
+	class /*PCGEXTENDEDTOOLKIT_API*/ FTransformPointIO final : public PCGExMT::FPCGExIndexedTask
 	{
 	public:
-		FTransformPointIO(
-			const TSharedPtr<PCGExData::FPointIO>& InPointIO,
-			const TSharedPtr<PCGExData::FPointIO>& InToBeTransformedIO,
-			FPCGExTransformDetails* InTransformDetails) :
-			FPCGExTask(InPointIO),
+		FTransformPointIO(const int32 InTaskIndex,
+		                  const TSharedPtr<PCGExData::FPointIO>& InPointIO,
+		                  const TSharedPtr<PCGExData::FPointIO>& InToBeTransformedIO,
+		                  FPCGExTransformDetails* InTransformDetails) :
+			FPCGExIndexedTask(InTaskIndex),
+			PointIO(InPointIO),
 			ToBeTransformedIO(InToBeTransformedIO),
 			TransformDetails(InTransformDetails)
 		{
 		}
 
+		TSharedPtr<PCGExData::FPointIO> PointIO;
 		TSharedPtr<PCGExData::FPointIO> ToBeTransformedIO;
 		FPCGExTransformDetails* TransformDetails = nullptr;
 
-		virtual bool ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager) override
+		virtual void ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager, const TSharedPtr<PCGExMT::FTaskGroup>& InGroup) override
 		{
 			TArray<FPCGPoint>& MutableTargets = ToBeTransformedIO->GetMutablePoints();
 
@@ -729,8 +730,6 @@ namespace PCGExGeoTasks
 					}
 				}
 			}
-
-			return true;
 		}
 	};
 }

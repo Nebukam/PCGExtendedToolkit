@@ -59,7 +59,7 @@ namespace PCPGExMergePointsByTag
 					continue;
 				}
 
-				TSharedPtr<FTagBucket> NewBucket = MakeShared<FTagBucket>(Tag);
+				PCGEX_MAKE_SHARED(NewBucket, FTagBucket, Tag)
 				BucketsMap.Add(Tag, Buckets.Add(NewBucket));
 				AddToReverseMap(IO, NewBucket);
 				bDistributed = true;
@@ -78,7 +78,7 @@ namespace PCPGExMergePointsByTag
 			return;
 		}
 
-		const TSharedPtr<TSet<TSharedPtr<FTagBucket>>> NewBucketSet = MakeShared<TSet<TSharedPtr<FTagBucket>>>();
+		PCGEX_MAKE_SHARED(NewBucketSet, TSet<TSharedPtr<FTagBucket>>)
 		NewBucketSet->Add(Bucket);
 		ReverseBucketsMap.Add(IO.Get(), NewBucketSet);
 	}
@@ -149,7 +149,7 @@ namespace PCPGExMergePointsByTag
 					continue;
 				}
 
-				TSharedPtr<FMergeList> NewMergeList = MakeShared<FMergeList>();
+				PCGEX_MAKE_SHARED(NewMergeList, FMergeList)
 				for (const TSharedPtr<PCGExData::FPointIO>& IO : Bucket->IOs)
 				{
 					Distributed.Add(IO, &bAlreadyDistributed);
@@ -168,8 +168,8 @@ namespace PCPGExMergePointsByTag
 				if (Bucket->IOs.IsEmpty()) { continue; }
 				bool bAlreadyDistributed;
 
-				TSharedPtr<FMergeList> NewMergeList = MakeShared<FMergeList>();
-
+				PCGEX_MAKE_SHARED(NewMergeList, FMergeList)
+				
 				for (const TSharedPtr<PCGExData::FPointIO>& IO : Bucket->IOs)
 				{
 					Distributed.Add(IO, &bAlreadyDistributed);
@@ -282,7 +282,7 @@ bool FPCGExMergePointsByTagElement::ExecuteInternal(FPCGContext* InContext) cons
 		else
 		{
 			// Bucket IOs
-			const TSharedPtr<PCPGExMergePointsByTag::FTagBuckets> Buckets = MakeShared<PCPGExMergePointsByTag::FTagBuckets>();
+			PCGEX_MAKE_SHARED(Buckets, PCPGExMergePointsByTag::FTagBuckets)
 			for (const TSharedPtr<PCGExData::FPointIO>& IO : Context->MainPoints->Pairs) { Buckets->Distribute(Context, IO, Context->TagFilters); }
 			Buckets->BuildMergeLists(Context, Settings->Mode, Context->MergeLists, Settings->ResolutionPriorities, Settings->SortDirection);
 		}

@@ -85,7 +85,7 @@ void UPCGExPathAlphaFilterFactory::CreateSpline(const UPCGPointData* InData, con
 			PointType);
 	}
 
-	TSharedPtr<FPCGSplineStruct> SplineStruct = MakeShared<FPCGSplineStruct>();
+	PCGEX_MAKE_SHARED(SplineStruct, FPCGSplineStruct)
 	SplineStruct->Initialize(SplinePoints, bClosedLoop, FTransform::Identity);
 	Splines.Add(SplineStruct);
 	SegmentsNum.Add(SplineStruct->GetNumberOfSplineSegments());

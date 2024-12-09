@@ -157,11 +157,12 @@ protected:
 class /*PCGEXTENDEDTOOLKIT_API*/ FSampleNavmeshTask final : public FPCGExPathfindingTask
 {
 public:
-	FSampleNavmeshTask(
-		const TSharedPtr<PCGExData::FPointIO>& InPointIO, const TArray<PCGExPathfinding::FSeedGoalPair>* InQueries) :
-		FPCGExPathfindingTask(InPointIO, InQueries)
+	FSampleNavmeshTask(const int32 InTaskIndex,
+	                   const TSharedPtr<PCGExData::FPointIO>& InPointIO,
+	                   const TArray<PCGExPathfinding::FSeedGoalPair>* InQueries)
+		: FPCGExPathfindingTask(InTaskIndex, InPointIO, InQueries)
 	{
 	}
 
-	virtual bool ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager) override;
+	virtual void ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager, const TSharedPtr<PCGExMT::FTaskGroup>& InGroup) override;
 };

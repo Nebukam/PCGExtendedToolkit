@@ -34,7 +34,6 @@ bool FIsoEdgeDirectionFilter::Init(FPCGExContext* InContext, const TSharedRef<PC
 	{
 		// Fetch attributes while processors are searching for chains
 
-		const int32 PLI = GetDefault<UPCGExGlobalSettings>()->GetClusterBatchChunkSize();
 	}
 
 	if (TypedFilterFactory->Config.CompareAgainst == EPCGExInputValueType::Attribute)

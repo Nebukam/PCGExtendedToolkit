@@ -21,7 +21,7 @@ TSharedPtr<PCGExDataBlending::FMetadataBlender> UPCGExSubPointsBlendNone::Create
 	const TSharedRef<PCGExData::FFacade>& InSecondaryFacade,
 	const PCGExData::ESource SecondarySource, const TSet<FName>* IgnoreAttributeSet)
 {
-	TSharedPtr<PCGExDataBlending::FMetadataBlender> NewBlender = MakeShared<PCGExDataBlending::FMetadataBlender>(&BlendingDetails);
+	PCGEX_MAKE_SHARED(NewBlender, PCGExDataBlending::FMetadataBlender, &BlendingDetails)
 	NewBlender->PrepareForData(InPrimaryFacade, InSecondaryFacade, SecondarySource);
 	return NewBlender;
 }

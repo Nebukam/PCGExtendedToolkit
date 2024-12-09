@@ -190,10 +190,10 @@ namespace PCGExConnectPoints
 			};
 
 		PrepTask->OnSubLoopStartCallback =
-			[PCGEX_ASYNC_THIS_CAPTURE](const int32 StartIndex, const int32 Count, const int32 LoopIdx)
+			[PCGEX_ASYNC_THIS_CAPTURE](const PCGExMT::FScope& Scope)
 			{
 				PCGEX_ASYNC_THIS
-				This->PointDataFacade->Fetch(StartIndex, Count);
+				This->PointDataFacade->Fetch(Scope);
 			};
 
 		PrepTask->StartSubLoops(NumPoints, GetDefault<UPCGExGlobalSettings>()->GetPointsBatchChunkSize());
@@ -241,25 +241,25 @@ namespace PCGExConnectPoints
 		StartParallelLoopForPoints(PCGExData::ESource::In);
 	}
 
-	void FProcessor::PrepareLoopScopesForPoints(const TArray<uint64>& Loops)
+	void FProcessor::PrepareLoopScopesForPoints(const TArray<PCGExMT::FScope>& Loops)
 	{
 		FPointsProcessor::PrepareLoopScopesForPoints(Loops);
 		for (int i = 0; i < Loops.Num(); i++) { DistributedEdgesSet.Add(MakeShared<TSet<uint64>>()); }
 	}
 
-	void FProcessor::PrepareSingleLoopScopeForPoints(const uint32 StartIndex, const int32 Count)
+	void FProcessor::PrepareSingleLoopScopeForPoints(const PCGExMT::FScope& Scope)
 	{
-		TPointsProcessor<FPCGExConnectPointsContext, UPCGExConnectPointsSettings>::PrepareSingleLoopScopeForPoints(StartIndex, Count);
-		PointDataFacade->Fetch(StartIndex, Count);
+		TPointsProcessor<FPCGExConnectPointsContext, UPCGExConnectPointsSettings>::PrepareSingleLoopScopeForPoints(Scope);
+		PointDataFacade->Fetch(Scope);
 	}
 
-	void FProcessor::ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const int32 LoopIdx, const int32 Count)
+	void FProcessor::ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const PCGExMT::FScope& Scope)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExConnectPointsElement::ProcessSinglePoint);
 
 		if (!CanGenerate[Index]) { return; } // Not a generator
 
-		const TSharedPtr<TSet<uint64>> UniqueEdges = DistributedEdgesSet[LoopIdx];
+		const TSharedPtr<TSet<uint64>> UniqueEdges = DistributedEdgesSet[Scope.LoopIndex];
 		TUniquePtr<TSet<FInt32Vector>> LocalCoincidence;
 		if (bPreventCoincidence) { LocalCoincidence = MakeUnique<TSet<FInt32Vector>>(); }
 

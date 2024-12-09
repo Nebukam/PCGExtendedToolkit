@@ -532,11 +532,15 @@ namespace PCGExBuildCustomGraph
 	public:
 		FBuildGraph(const TSharedPtr<PCGExData::FPointIO>& InPointIO,
 		            UPCGExCustomGraphSettings* InGraphSettings) :
-			FPCGExTask(InPointIO), GraphSettings(InGraphSettings)
+			FPCGExTask(),
+			PointIO(InPointIO),
+			GraphSettings(InGraphSettings)
 		{
 		}
 
+		TSharedPtr<PCGExData::FPointIO> PointIO;
 		UPCGExCustomGraphSettings* GraphSettings = nullptr;
-		virtual bool ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager) override;
+
+		virtual void ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager, const TSharedPtr<PCGExMT::FTaskGroup>& InGroup) override;
 	};
 }

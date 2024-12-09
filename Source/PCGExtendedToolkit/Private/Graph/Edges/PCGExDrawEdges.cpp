@@ -60,7 +60,7 @@ bool FPCGExDrawEdgesElement::ExecuteInternal(
 
 	PCGEX_ON_STATE(PCGExGraph::State_ReadyForNextEdges)
 	{
-		const UWorld* World = Context->SourceComponent->GetWorld();
+		//const UWorld* World = Context->SourceComponent->GetWorld();
 
 		/*
 		while (Context->AdvanceEdges(true))

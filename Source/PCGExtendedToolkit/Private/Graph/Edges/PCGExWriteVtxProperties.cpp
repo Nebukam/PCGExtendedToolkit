@@ -89,7 +89,7 @@ namespace PCGExWriteVtxProperties
 		return true;
 	}
 
-	void FProcessor::ProcessSingleNode(const int32 Index, PCGExCluster::FNode& Node, const int32 LoopIdx, const int32 Count)
+	void FProcessor::ProcessSingleNode(const int32 Index, PCGExCluster::FNode& Node, const PCGExMT::FScope& Scope)
 	{
 		if (VtxEdgeCountWriter) { VtxEdgeCountWriter->GetMutable(Node.PointIndex) = Node.Num(); }
 

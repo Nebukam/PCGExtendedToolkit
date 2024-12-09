@@ -75,10 +75,6 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Performance, meta=(PCG_NotOverridable, AdvancedDisplay, EditCondition="bDoAsyncProcessing"))
 	EPCGExAsyncPriority WorkPriority = EPCGExAsyncPriority::Default;
 
-	/** Chunk size for parallel processing. <1 switches to preferred node value.*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Performance, meta=(PCG_NotOverridable, AdvancedDisplay, EditCondition="bDoAsyncProcessing", ClampMin=-1, ClampMax=8196))
-	int32 ChunkSize = -1;
-
 	/** Cache the results of this node. Can yield unexpected result in certain cases.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Performance, meta=(PCG_NotOverridable, AdvancedDisplay))
 	bool bCacheResult = false;
@@ -99,8 +95,6 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Warning and Errors", meta=(PCG_NotOverridable, AdvancedDisplay))
 	bool bQuietMissingInputError = false;
 
-protected:
-	virtual int32 GetPreferredChunkSize() const { return PCGExMT::GAsyncLoop_M; }
 	//~End UPCGExPointsProcessorSettings
 };
 
@@ -118,8 +112,6 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPointsProcessorContext : FPCGExContext
 	virtual bool AdvancePointsIO(const bool bCleanupKeys = true);
 
 	TSharedPtr<PCGExMT::FTaskManager> GetAsyncManager();
-
-	int32 ChunkSize = 0;
 
 	template <typename T>
 	T* RegisterOperation(UPCGExOperation* BaseOperation, FName OverridePinLabel = NAME_None)
@@ -170,7 +162,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPointsProcessorContext : FPCGExContext
 		if (BatchAblePoints.IsEmpty()) { return bBatchProcessingEnabled; }
 		bBatchProcessingEnabled = true;
 
-		TSharedPtr<T> TypedBatch = MakeShared<T>(this, BatchAblePoints);
+		PCGEX_MAKE_SHARED(TypedBatch, T, this, BatchAblePoints)
 
 		MainBatch = TypedBatch;
 		MainBatch->SubProcessorMap = &SubProcessorMap;

@@ -73,7 +73,7 @@ namespace PCGExCollocationCount
 		return true;
 	}
 
-	void FProcessor::ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const int32 LoopIdx, const int32 Count)
+	void FProcessor::ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const PCGExMT::FScope& Scope)
 	{
 		const FVector Center = Point.Transform.GetLocation();
 		const double Tolerance = ToleranceConstant;

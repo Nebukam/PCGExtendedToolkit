@@ -95,7 +95,7 @@ namespace PCGExCreateShapes
 		virtual ~FProcessor() override;
 
 		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager> InAsyncManager) override;
-		virtual void ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const int32 LoopIdx, const int32 LoopCount) override;
+		virtual void ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const PCGExMT::FScope& Scope) override;
 		virtual void OnPointsProcessingComplete() override;
 		virtual void Output() override;
 		virtual void CompleteWork() override;
@@ -104,12 +104,10 @@ namespace PCGExCreateShapes
 	class /*PCGEXTENDEDTOOLKIT_API*/ FBuildShape final : public PCGExMT::FPCGExTask
 	{
 	public:
-		FBuildShape(
-			const TSharedPtr<PCGExData::FPointIO>& InPointIO,
-			UPCGExShapeBuilderOperation* InOperation,
-			const TSharedRef<PCGExData::FFacade>& InShapeDataFacade,
-			const TSharedPtr<PCGExShapes::FShape>& InShape) :
-			FPCGExTask(InPointIO),
+		FBuildShape(UPCGExShapeBuilderOperation* InOperation,
+		            const TSharedRef<PCGExData::FFacade>& InShapeDataFacade,
+		            const TSharedPtr<PCGExShapes::FShape>& InShape) :
+			FPCGExTask(),
 			ShapeDataFacade(InShapeDataFacade),
 			Operation(InOperation),
 			Shape(InShape)
@@ -120,6 +118,6 @@ namespace PCGExCreateShapes
 		UPCGExShapeBuilderOperation* Operation;
 		TSharedPtr<PCGExShapes::FShape> Shape;
 
-		virtual bool ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager) override;
+		virtual void ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager, const TSharedPtr<PCGExMT::FTaskGroup>& InGroup) override;
 	};
 }

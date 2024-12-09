@@ -126,10 +126,10 @@ namespace PCGExAttributeRolling
 					};
 
 				FilterTask->OnSubLoopStartCallback =
-					[PCGEX_ASYNC_THIS_CAPTURE](const int32 StartIndex, const int32 Count, const int32 LoopIdx)
+					[PCGEX_ASYNC_THIS_CAPTURE](const PCGExMT::FScope& Scope)
 					{
 						PCGEX_ASYNC_THIS
-						This->PrepareSingleLoopScopeForPoints(StartIndex, Count);
+						This->PrepareSingleLoopScopeForPoints(Scope);
 					};
 
 				FilterTask->StartSubLoops(PointDataFacade->GetNum(), GetDefault<UPCGExGlobalSettings>()->GetPointsBatchChunkSize());
@@ -140,13 +140,13 @@ namespace PCGExAttributeRolling
 		return true;
 	}
 
-	void FProcessor::PrepareSingleLoopScopeForPoints(const uint32 StartIndex, const int32 Count)
+	void FProcessor::PrepareSingleLoopScopeForPoints(const PCGExMT::FScope& Scope)
 	{
-		PointDataFacade->Fetch(StartIndex, Count);
-		FilterScope(StartIndex, Count);
+		PointDataFacade->Fetch(Scope);
+		FilterScope(Scope);
 	}
 
-	void FProcessor::ProcessSingleRangeIteration(const int32 Iteration, const int32 LoopIdx, const int32 LoopCount)
+	void FProcessor::ProcessSingleRangeIteration(const int32 Iteration, const PCGExMT::FScope& Scope)
 	{
 		int32 TargetIndex = -1;
 		int32 PrevIndex = -1;

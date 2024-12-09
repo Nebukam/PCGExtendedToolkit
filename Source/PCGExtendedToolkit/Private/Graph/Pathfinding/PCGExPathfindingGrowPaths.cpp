@@ -101,7 +101,6 @@ namespace PCGExGrowPaths
 		const TArray<PCGExCluster::FNode>& NodesRef = *Processor->Cluster->Nodes;
 		const TArray<PCGExGraph::FEdge>& EdgesRef = *Processor->Cluster->Edges;
 
-		const PCGExCluster::FNode& CurrentNode = NodesRef[LastGrowthIndex];
 		const PCGExCluster::FNode& NextNode = NodesRef[NextGrowthIndex];
 
 		Metrics.Add(Processor->Cluster->GetPos(NextNode));
@@ -154,14 +153,13 @@ namespace PCGExGrowPaths
 	{
 		const TSharedPtr<PCGExData::FPointIO> VtxIO = Processor->Cluster->VtxIO.Pin();
 		const TSharedPtr<PCGExData::FPointIO> PathIO = Processor->GetContext()->OutputPaths->Emplace_GetRef<UPCGPointData>(VtxIO->GetIn(), PCGExData::EIOInit::New);
-		const TSharedPtr<PCGExData::FFacade> PathDataFacade = MakeShared<PCGExData::FFacade>(PathIO.ToSharedRef());
+		PCGEX_MAKE_SHARED(PathDataFacade, PCGExData::FFacade, PathIO.ToSharedRef())
 
 		UPCGPointData* OutData = PathIO->GetOut();
 
 		PCGExGraph::CleanupVtxData(PathIO);
 
 		TArray<FPCGPoint>& MutablePoints = OutData->GetMutablePoints();
-		const TArray<FPCGPoint>& InPoints = VtxIO->GetIn()->GetPoints();
 
 		MutablePoints.Reserve(Path.Num());
 
@@ -392,7 +390,7 @@ namespace PCGExGrowPaths
 
 			for (int j = 0; j < StartGrowthNumBranches; j++)
 			{
-				TSharedPtr<FGrowth> NewGrowth = MakeShared<FGrowth>(SharedThis(this), StartNumIterations, Node.Index, StartGrowthDirection);
+				PCGEX_MAKE_SHARED(NewGrowth, FGrowth, SharedThis(this), StartNumIterations, Node.Index, StartGrowthDirection)
 				NewGrowth->MaxDistance = StartGrowthMaxDistance;
 				NewGrowth->SeedPointIndex = i;
 
@@ -404,7 +402,7 @@ namespace PCGExGrowPaths
 		}
 
 		if (IsTrivial()) { Grow(); }
-		else { AsyncManager->Start<FGrowTask>(BatchIndex, nullptr, SharedThis(this)); }
+		else { PCGEX_START_TASK(FGrowTask, SharedThis(this)) }
 
 		return true;
 	}
@@ -447,10 +445,9 @@ namespace PCGExGrowPaths
 		}
 	}
 
-	bool FGrowTask::ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager)
+	void FGrowTask::ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager, const TSharedPtr<PCGExMT::FTaskGroup>& InGroup)
 	{
 		Processor->Grow();
-		return true;
 	}
 }
 

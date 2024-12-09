@@ -268,7 +268,6 @@ FPCGExContext* FPCGExPointsProcessorElement::InitializeContext(
 
 	InContext->bFlattenOutput = Settings->bFlattenOutput;
 	InContext->bAsyncEnabled = Settings->bDoAsyncProcessing;
-	InContext->ChunkSize = FMath::Max((Settings->ChunkSize <= 0 ? Settings->GetPreferredChunkSize() : Settings->ChunkSize), 1);
 
 	InContext->bScopedAttributeGet = Settings->bScopedAttributeGet;
 

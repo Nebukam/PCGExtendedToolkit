@@ -99,7 +99,7 @@ namespace PCGExConvexHull
 		return true;
 	}
 
-	void FProcessor::ProcessSingleRangeIteration(const int32 Iteration, const int32 LoopIdx, const int32 LoopCount)
+	void FProcessor::ProcessSingleRangeIteration(const int32 Iteration, const PCGExMT::FScope& Scope)
 	{
 		PCGExGraph::FEdge E;
 		const uint64 Edge = Edges[Iteration];

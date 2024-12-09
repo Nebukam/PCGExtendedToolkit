@@ -196,7 +196,7 @@ namespace PCGExAttributeStats
 				Identity.UnderlyingType, [&](auto DummyValue)
 				{
 					using RawT = decltype(DummyValue);
-					TSharedPtr<TAttributeStats<RawT>> S = MakeShared<TAttributeStats<RawT>>(Identity, Key);
+					PCGEX_MAKE_SHARED(S, TAttributeStats<RawT>, Identity, Key)
 					Stats.Add(StaticCastSharedPtr<FAttributeStatsBase>(S));
 				});
 		}
@@ -205,11 +205,11 @@ namespace PCGExAttributeStats
 		PCGEX_ASYNC_GROUP_CHKD(AsyncManager, FilterScope)
 
 		FilterScope->OnSubLoopStartCallback =
-			[PCGEX_ASYNC_THIS_CAPTURE](const int32 StartIndex, const int32 Count, const int32 LoopIdx)
+			[PCGEX_ASYNC_THIS_CAPTURE](const PCGExMT::FScope& Scope)
 			{
 				PCGEX_ASYNC_THIS
-				This->PointDataFacade->Fetch(StartIndex, Count);
-				This->FilterScope(StartIndex, Count);
+				This->PointDataFacade->Fetch(Scope);
+				This->FilterScope(Scope);
 			};
 
 		FilterScope->StartSubLoops(PointDataFacade->GetNum(), GetDefault<UPCGExGlobalSettings>()->GetPointsBatchChunkSize());
@@ -221,10 +221,10 @@ namespace PCGExAttributeStats
 	{
 		PCGEX_ASYNC_GROUP_CHKD_VOID(AsyncManager, AttributeStatProcessing)
 		AttributeStatProcessing->OnSubLoopStartCallback =
-			[PCGEX_ASYNC_THIS_CAPTURE](const int32 StartIndex, const int32 Count, const int32 LoopIdx)
+			[PCGEX_ASYNC_THIS_CAPTURE](const PCGExMT::FScope& Scope)
 			{
 				PCGEX_ASYNC_THIS
-				This->Stats[StartIndex]->Process(This->PointDataFacade, This->Context, This->Settings, This->PointFilterCache);
+				This->Stats[Scope.Start]->Process(This->PointDataFacade, This->Context, This->Settings, This->PointFilterCache);
 			};
 
 		AttributeStatProcessing->StartSubLoops(Stats.Num(), 1);

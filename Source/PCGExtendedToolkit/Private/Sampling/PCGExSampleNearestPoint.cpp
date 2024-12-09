@@ -68,8 +68,6 @@ TArray<FPCGPinProperties> UPCGExSampleNearestPointSettings::InputPinProperties()
 
 PCGExData::EIOInit UPCGExSampleNearestPointSettings::GetMainOutputInitMode() const { return PCGExData::EIOInit::Duplicate; }
 
-int32 UPCGExSampleNearestPointSettings::GetPreferredChunkSize() const { return PCGExMT::GAsyncLoop_L; }
-
 PCGEX_INITIALIZE_ELEMENT(SampleNearestPoint)
 
 bool FPCGExSampleNearestPointElement::Boot(FPCGExContext* InContext) const
@@ -236,13 +234,13 @@ namespace PCGExSampleNearestPoints
 		return true;
 	}
 
-	void FProcessor::PrepareSingleLoopScopeForPoints(const uint32 StartIndex, const int32 Count)
+	void FProcessor::PrepareSingleLoopScopeForPoints(const PCGExMT::FScope& Scope)
 	{
-		PointDataFacade->Fetch(StartIndex, Count);
-		FilterScope(StartIndex, Count);
+		PointDataFacade->Fetch(Scope);
+		FilterScope(Scope);
 	}
 
-	void FProcessor::ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const int32 LoopIdx, const int32 Count)
+	void FProcessor::ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const PCGExMT::FScope& Scope)
 	{
 		if (!PointFilterCache[Index])
 		{
@@ -352,12 +350,9 @@ namespace PCGExSampleNearestPoints
 			const FTransform TargetTransform = Target.Transform;
 			const FQuat TargetRotation = TargetTransform.GetRotation();
 
-			WeightedTransform.SetRotation(WeightedTransform.GetRotation() + (TargetRotation * Weight));
-			WeightedTransform.SetScale3D(WeightedTransform.GetScale3D() + (TargetTransform.GetScale3D() * Weight));
-			WeightedTransform.SetLocation(WeightedTransform.GetLocation() + (TargetTransform.GetLocation() * Weight));
-
-			if (Settings->LookAtUpSelection == EPCGExSampleSource::Target) { WeightedUp += (LookAtUpGetter ? LookAtUpGetter->Read(TargetInfos.Index) : SafeUpVector) * Weight; }
-
+			WeightedTransform = PCGExMath::WeightedAdd(WeightedTransform, TargetTransform, Weight);
+			if (Settings->LookAtUpSelection == EPCGExSampleSource::Target) { PCGExMath::WeightedAdd(WeightedUp, (LookAtUpGetter ? LookAtUpGetter->Read(TargetInfos.Index) : SafeUpVector), Weight); }
+			
 			WeightedSignAxis += PCGExMath::GetDirection(TargetRotation, Settings->SignAxis) * Weight;
 			WeightedAngleAxis += PCGExMath::GetDirection(TargetRotation, Settings->AngleAxis) * Weight;
 
@@ -390,10 +385,7 @@ namespace PCGExSampleNearestPoints
 		if (TotalWeight != 0) // Dodge NaN
 		{
 			WeightedUp /= TotalWeight;
-
-			WeightedTransform.SetRotation(WeightedTransform.GetRotation() / TotalWeight);
-			WeightedTransform.SetScale3D(WeightedTransform.GetScale3D() / TotalWeight);
-			WeightedTransform.SetLocation(WeightedTransform.GetLocation() / TotalWeight);
+			WeightedTransform = PCGExMath::Div(WeightedTransform, TotalWeight);
 		}
 
 		WeightedUp.Normalize();

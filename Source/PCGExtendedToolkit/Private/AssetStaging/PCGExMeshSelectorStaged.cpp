@@ -5,7 +5,6 @@
 
 #include "Data/PCGPointData.h"
 #include "Data/PCGSpatialData.h"
-#include "Elements/PCGStaticMeshSpawner.h"
 #include "Elements/PCGStaticMeshSpawnerContext.h"
 #include "Elements/Metadata/PCGMetadataElementCommon.h"
 #include "MeshSelectors/PCGMeshSelectorBase.h"

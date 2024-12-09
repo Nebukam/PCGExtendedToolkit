@@ -71,10 +71,11 @@ bool FPCGExPathfindingPlotNavmeshElement::ExecuteInternal(FPCGContext* InContext
 
 	PCGEX_ON_INITIAL_EXECUTION
 	{
+		const TSharedPtr<PCGExMT::FTaskManager> AsyncManager = Context->GetAsyncManager();
 		while (Context->AdvancePointsIO(false))
 		{
 			if (Context->CurrentIO->GetNum() < 2) { continue; }
-			Context->GetAsyncManager()->Start<FPCGExPlotNavmeshTask>(-1, Context->CurrentIO);
+			PCGEX_START_TASK(FPCGExPlotNavmeshTask, Context->CurrentIO)
 		}
 		Context->SetAsyncState(PCGEx::State_ProcessingPoints);
 	}
@@ -88,7 +89,7 @@ bool FPCGExPathfindingPlotNavmeshElement::ExecuteInternal(FPCGContext* InContext
 	return Context->TryComplete();
 }
 
-bool FPCGExPlotNavmeshTask::ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager)
+void FPCGExPlotNavmeshTask::ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager, const TSharedPtr<PCGExMT::FTaskGroup>& InGroup)
 {
 	FPCGExPathfindingPlotNavmeshContext* Context = AsyncManager->GetContext<FPCGExPathfindingPlotNavmeshContext>();
 	PCGEX_SETTINGS(PathfindingPlotNavmesh)
@@ -96,7 +97,7 @@ bool FPCGExPlotNavmeshTask::ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>&
 	UWorld* World = Context->SourceComponent->GetWorld();
 	UNavigationSystemV1* NavSys = UNavigationSystemV1::GetCurrent(World);
 
-	if (!NavSys || !NavSys->GetDefaultNavDataInstance()) { return false; }
+	if (!NavSys || !NavSys->GetDefaultNavDataInstance()) { return; }
 
 	const int32 NumPlots = PointIO->GetNum();
 
@@ -156,7 +157,7 @@ bool FPCGExPlotNavmeshTask::ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>&
 		}
 		else if (Settings->bOmitCompletePathOnFailedPlot)
 		{
-			return false;
+			return;
 		}
 		else if (bAddGoal)
 		{
@@ -211,13 +212,13 @@ bool FPCGExPlotNavmeshTask::ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>&
 		CurrentMetrics->Add(CurrentLocation);
 	}
 
-	if (PathLocations.Num() <= PointIO->GetNum()) { return false; } //
-	if (PathLocations.Num() < 2) { return false; }
+	if (PathLocations.Num() <= PointIO->GetNum()) { return; } //
+	if (PathLocations.Num() < 2) { return; }
 
 	const int32 NumPositions = PathLocations.Num();
 
 	TSharedPtr<PCGExData::FPointIO> PathIO = Context->OutputPaths->Emplace_GetRef(PointIO, PCGExData::EIOInit::New);
-	TSharedPtr<PCGExData::FFacade> PathDataFacade = MakeShared<PCGExData::FFacade>(PathIO.ToSharedRef());
+	PCGEX_MAKE_SHARED(PathDataFacade, PCGExData::FFacade, PathIO.ToSharedRef())
 
 	UPCGPointData* OutData = PathIO->GetOut();
 	TArray<FPCGPoint>& MutablePoints = OutData->GetMutablePoints();
@@ -253,13 +254,11 @@ bool FPCGExPlotNavmeshTask::ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>&
 			View, MilestonesMetrics[i], TempBlender.Get(), StartIndex);
 	}
 
-	PathDataFacade->Write(ManagerPtr.Pin());
+	PathDataFacade->Write(AsyncManager);
 	MilestonesMetrics.Empty();
 
 	if (!Context->bAddSeedToPath) { MutablePoints.RemoveAt(0); }
 	if (!Context->bAddGoalToPath) { MutablePoints.Pop(); }
-
-	return true;
 }
 
 #undef LOCTEXT_NAMESPACE

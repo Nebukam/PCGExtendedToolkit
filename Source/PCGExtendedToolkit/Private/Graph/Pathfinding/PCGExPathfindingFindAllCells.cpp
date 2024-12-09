@@ -137,7 +137,7 @@ namespace PCGExFindAllCells
 		return true;
 	}
 
-	void FProcessor::ProcessSingleEdge(const int32 EdgeIndex, PCGExGraph::FEdge& Edge, const int32 LoopIdx, const int32 Count)
+	void FProcessor::ProcessSingleEdge(const int32 EdgeIndex, PCGExGraph::FEdge& Edge, const PCGExMT::FScope& Scope)
 	{
 		//Check endpoints
 		FindCell(*Cluster->GetEdgeStart(Edge), Edge);
@@ -177,7 +177,7 @@ namespace PCGExFindAllCells
 		PCGExGraph::CleanupClusterTags(PathIO, true);
 		PCGExGraph::CleanupVtxData(PathIO);
 
-		TSharedPtr<PCGExData::FFacade> PathDataFacade = MakeShared<PCGExData::FFacade>(PathIO);
+		PCGEX_MAKE_SHARED(PathDataFacade, PCGExData::FFacade, PathIO)
 
 		TArray<FPCGPoint> MutablePoints;
 		MutablePoints.Reserve(InCell->Nodes.Num());
@@ -221,7 +221,7 @@ namespace PCGExFindAllCells
 	{
 		if (NumAttempts == 0 && LastBinary != -1)
 		{
-			TSharedPtr<PCGExTopology::FCell> Cell = MakeShared<PCGExTopology::FCell>(CellsConstraints.ToSharedRef());
+			PCGEX_MAKE_SHARED(Cell, PCGExTopology::FCell, CellsConstraints.ToSharedRef())
 			PCGExGraph::FEdge& Edge = *Cluster->GetEdge(Cluster->GetNode(LastBinary)->Links[0].Edge);
 			FindCell(*Cluster->GetEdgeStart(Edge), Edge, false);
 		}
@@ -265,11 +265,11 @@ namespace PCGExFindAllCells
 			};
 
 		ProjectionTaskGroup->OnSubLoopStartCallback =
-			[PCGEX_ASYNC_THIS_CAPTURE](const int32 StartIndex, const int32 Count, const int32 LoopIdx)
+			[PCGEX_ASYNC_THIS_CAPTURE](const PCGExMT::FScope& Scope)
 			{
 				PCGEX_ASYNC_THIS
 				TArray<FVector>& PP = *This->ProjectedPositions;
-				This->ProjectionDetails.ProjectFlat(This->VtxDataFacade, PP, StartIndex, Count);
+				This->ProjectionDetails.ProjectFlat(This->VtxDataFacade, PP, Scope);
 			};
 
 		ProjectionTaskGroup->StartSubLoops(VtxDataFacade->GetNum(), GetDefault<UPCGExGlobalSettings>()->GetPointsBatchChunkSize());

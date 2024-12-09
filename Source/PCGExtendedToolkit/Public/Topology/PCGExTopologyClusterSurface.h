@@ -67,9 +67,9 @@ namespace PCGExTopologyClusterSurface
 		}
 
 		virtual void CompleteWork() override;
-		virtual void PrepareLoopScopesForEdges(const TArray<uint64>& Loops) override;
-		virtual void PrepareSingleLoopScopeForEdges(const uint32 StartIndex, const int32 Count) override;
-		virtual void ProcessSingleEdge(const int32 EdgeIndex, PCGExGraph::FEdge& Edge, const int32 LoopIdx, const int32 Count) override;
+		virtual void PrepareLoopScopesForEdges(const TArray<PCGExMT::FScope>& Loops) override;
+		virtual void PrepareSingleLoopScopeForEdges(const PCGExMT::FScope& Scope) override;
+		virtual void ProcessSingleEdge(const int32 EdgeIndex, PCGExGraph::FEdge& Edge, const PCGExMT::FScope& Scope) override;
 		bool FindCell(const PCGExCluster::FNode& Node, const PCGExGraph::FEdge& Edge, int32 LoopIdx, const bool bSkipBinary = true);
 		void EnsureRoamingClosedLoopProcessing();
 		virtual void OnEdgesProcessingComplete() override;

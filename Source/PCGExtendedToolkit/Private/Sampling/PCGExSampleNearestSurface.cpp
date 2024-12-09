@@ -20,8 +20,6 @@ TArray<FPCGPinProperties> UPCGExSampleNearestSurfaceSettings::InputPinProperties
 
 PCGExData::EIOInit UPCGExSampleNearestSurfaceSettings::GetMainOutputInitMode() const { return PCGExData::EIOInit::Duplicate; }
 
-int32 UPCGExSampleNearestSurfaceSettings::GetPreferredChunkSize() const { return PCGExMT::GAsyncLoop_L; }
-
 PCGEX_INITIALIZE_ELEMENT(SampleNearestSurface)
 
 bool FPCGExSampleNearestSurfaceElement::Boot(FPCGExContext* InContext) const
@@ -136,13 +134,13 @@ namespace PCGExSampleNearestSurface
 		return true;
 	}
 
-	void FProcessor::PrepareSingleLoopScopeForPoints(const uint32 StartIndex, const int32 Count)
+	void FProcessor::PrepareSingleLoopScopeForPoints(const PCGExMT::FScope& Scope)
 	{
-		PointDataFacade->Fetch(StartIndex, Count);
-		FilterScope(StartIndex, Count);
+		PointDataFacade->Fetch(Scope);
+		FilterScope(Scope);
 	}
 
-	void FProcessor::ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const int32 LoopIdx, const int32 Count)
+	void FProcessor::ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const PCGExMT::FScope& Scope)
 	{
 		const double MaxDistance = MaxDistanceGetter ? MaxDistanceGetter->Read(Index) : Settings->MaxDistance;
 
