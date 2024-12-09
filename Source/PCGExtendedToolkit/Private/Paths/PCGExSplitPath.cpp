@@ -97,17 +97,17 @@ namespace PCGExSplitPath
 		PCGEX_ASYNC_GROUP_CHKD(AsyncManager, TaskGroup)
 
 #define PCGEX_SPLIT_ACTION(_NAME)\
-		TaskGroup->OnSubLoopStartCallback = [PCGEX_ASYNC_THIS_CAPTURE](const int32 StartIndex, const int32 Count, const int32 LoopIdx){\
+		TaskGroup->OnSubLoopStartCallback = [PCGEX_ASYNC_THIS_CAPTURE](const PCGExMT::FScope& Scope){\
 					PCGEX_ASYNC_THIS \
-					This->PointDataFacade->Fetch(StartIndex, Count);\
-					This->FilterScope(StartIndex, Count);\
-					PCGEX_ASYNC_SUB_LOOP { This->_NAME(i); } };
+					This->PointDataFacade->Fetch(Scope);\
+					This->FilterScope(Scope);\
+					for (int i = Scope.Start; i < Scope.End; i++) { This->_NAME(i); } };
 
 		if (Settings->SplitAction == EPCGExPathSplitAction::Partition ||
 			Settings->SplitAction == EPCGExPathSplitAction::Switch)
 		{
-			PointDataFacade->Fetch(0, 1);
-			FilterScope(0, 1);
+			PointDataFacade->Fetch(PCGExMT::FScope(0, 1));
+			FilterScope(PCGExMT::FScope(0, 1));
 
 			switch (Settings->InitialBehavior)
 			{
@@ -154,7 +154,7 @@ namespace PCGExSplitPath
 		return true;
 	}
 
-	void FProcessor::ProcessSingleRangeIteration(const int32 Iteration, const int32 LoopIdx, const int32 LoopCount)
+	void FProcessor::ProcessSingleRangeIteration(const int32 Iteration, const PCGExMT::FScope& Scope)
 	{
 		const FPath& PathInfos = Paths[Iteration];
 

@@ -24,7 +24,7 @@ public:
 		const FVector& LeaveScale, FVector& OutLeave) const override
 	{
 		const FVector A = InPoints[PrevIndex].Transform.GetLocation();
-		const FVector B = InPoints[Index].Transform.GetLocation();
+		//const FVector B = InPoints[Index].Transform.GetLocation();
 		const FVector C = InPoints[NextIndex].Transform.GetLocation();
 
 		const FVector Dir = (C - A);

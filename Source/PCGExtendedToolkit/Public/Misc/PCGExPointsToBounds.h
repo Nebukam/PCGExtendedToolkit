@@ -94,20 +94,6 @@ namespace PCGExPointsToBounds
 		~FBounds() = default;
 	};
 
-	static void ComputeBounds(
-		const TSharedPtr<PCGExMT::FTaskManager>& Manager,
-		const TSharedPtr<PCGExData::FPointIOCollection>& IOGroup,
-		TArray<TSharedPtr<FBounds>>& OutBounds,
-		const EPCGExPointBoundsSource BoundsSource)
-	{
-		for (const TSharedPtr<PCGExData::FPointIO>& PointIO : IOGroup->Pairs)
-		{
-			TSharedPtr<FBounds> Bounds = MakeShared<FBounds>(PointIO);
-			OutBounds.Add(Bounds);
-			Manager->Start<FComputeIOBoundsTask>(PointIO->IOIndex, PointIO, BoundsSource, Bounds);
-		}
-	}
-
 	static FBox GetBounds(const FPCGPoint& Point, const EPCGExPointBoundsSource Source)
 	{
 		switch (Source)
@@ -191,17 +177,17 @@ namespace PCGExPointsToBounds
 	class /*PCGEXTENDEDTOOLKIT_API*/ FComputeIOBoundsTask final : public PCGExMT::FPCGExTask
 	{
 	public:
-		FComputeIOBoundsTask(const TSharedPtr<PCGExData::FPointIO>& InPointIO,
-		                     const EPCGExPointBoundsSource InBoundsSource, const TSharedPtr<FBounds>& InBounds) :
-			FPCGExTask(InPointIO),
-			BoundsSource(InBoundsSource), Bounds(InBounds)
+		FComputeIOBoundsTask(const EPCGExPointBoundsSource InBoundsSource, const TSharedPtr<FBounds>& InBounds) :
+			FPCGExTask(),
+			BoundsSource(InBoundsSource),
+			Bounds(InBounds)
 		{
 		}
 
 		EPCGExPointBoundsSource BoundsSource = EPCGExPointBoundsSource::ScaledBounds;
 		TSharedPtr<FBounds> Bounds;
 
-		virtual bool ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager) override;
+		virtual void ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager, const TSharedPtr<PCGExMT::FTaskGroup>& InGroup) override;
 	};
 
 	class FProcessor final : public PCGExPointsMT::TPointsProcessor<FPCGExPointsToBoundsContext, UPCGExPointsToBoundsSettings>
@@ -220,4 +206,21 @@ namespace PCGExPointsToBounds
 		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager> InAsyncManager) override;
 		virtual void CompleteWork() override;
 	};
+}
+
+namespace PCGExPointsToBounds
+{
+	static void ComputeBounds(
+		const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager,
+		const TSharedPtr<PCGExData::FPointIOCollection>& IOGroup,
+		TArray<TSharedPtr<FBounds>>& OutBounds,
+		const EPCGExPointBoundsSource BoundsSource)
+	{
+		for (const TSharedPtr<PCGExData::FPointIO>& PointIO : IOGroup->Pairs)
+		{
+			PCGEX_MAKE_SHARED(Bounds, FBounds, PointIO)
+			OutBounds.Add(Bounds);
+			PCGEX_START_TASK(FComputeIOBoundsTask, BoundsSource, Bounds)
+		}
+	}
 }

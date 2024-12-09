@@ -547,7 +547,7 @@ namespace PCGExMath
 		}
 		else if constexpr (std::is_same_v<T, FTransform>)
 		{
-			return FTransform(WeightedSub(A.GetRotation(), B.GetRotation(), W), WeightedSub(A.GetLocation(), B.GetLocation(), W), WeightedSub(A.GetScale3D(), B.GetScale3D(), W));
+			return FTransform(WeightedSub(A.GetRotation(), B.GetRotation(), W).GetNormalized(), WeightedSub(A.GetLocation(), B.GetLocation(), W), WeightedSub(A.GetScale3D(), B.GetScale3D(), W));
 		}
 		else if constexpr (
 			std::is_same_v<T, bool> ||
@@ -757,7 +757,7 @@ namespace PCGExMath
 		}
 		else if constexpr (std::is_same_v<T, FTransform>)
 		{
-			return FTransform(Lerp(A.GetRotation(), B.GetRotation(), W), Lerp(A.GetLocation(), B.GetLocation(), W), Lerp(A.GetScale3D(), B.GetScale3D(), W));
+			return FTransform(Lerp(A.GetRotation(), B.GetRotation(), W).GetNormalized(), Lerp(A.GetLocation(), B.GetLocation(), W), Lerp(A.GetScale3D(), B.GetScale3D(), W));
 		}
 		else if constexpr (
 			std::is_same_v<T, bool> ||
@@ -783,7 +783,7 @@ namespace PCGExMath
 		}
 		else if constexpr (std::is_same_v<T, FTransform>)
 		{
-			return FTransform(Div(A.GetRotation(), Divider), Div(A.GetLocation(), Divider), Div(A.GetScale3D(), Divider));
+			return FTransform(Div(A.GetRotation(), Divider).GetNormalized(), Div(A.GetLocation(), Divider), Div(A.GetScale3D(), Divider));
 		}
 		else if constexpr (
 			std::is_same_v<T, bool> ||
@@ -804,7 +804,8 @@ namespace PCGExMath
 	template <typename CompilerSafety = void>
 	FORCEINLINE static FQuat Div(const FQuat& A, const double Divider)
 	{
-		return Div(A.Rotator(), Divider).Quaternion();
+		const double R = 1.0 / Divider;
+		return FQuat(A.X * R, A.Y * R, A.Z * R, A.W * R).GetNormalized();
 	}
 
 	template <typename T>

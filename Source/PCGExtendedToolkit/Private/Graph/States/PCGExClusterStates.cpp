@@ -9,7 +9,7 @@
 
 TSharedPtr<PCGExPointFilter::FFilter> UPCGExClusterStateFactoryBase::CreateFilter() const
 {
-	TSharedPtr<PCGExClusterStates::FState> NewState = MakeShared<PCGExClusterStates::FState>(this);
+	PCGEX_MAKE_SHARED(NewState, PCGExClusterStates::FState, this)
 	NewState->Config = Config;
 	NewState->BaseConfig = &NewState->Config;
 	return NewState;

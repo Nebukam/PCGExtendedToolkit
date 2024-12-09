@@ -3,7 +3,6 @@
 
 #include "Topology/PCGExTopologyClusterSurface.h"
 
-#include "Components/DynamicMeshComponent.h"
 #include "GeometryScript/PolygonFunctions.h"
 #include "GeometryScript/MeshPrimitiveFunctions.h"
 
@@ -49,31 +48,31 @@ bool FPCGExTopologyClusterSurfaceElement::ExecuteInternal(
 
 namespace PCGExTopologyClusterSurface
 {
-	void FProcessor::PrepareLoopScopesForEdges(const TArray<uint64>& Loops)
+	void FProcessor::PrepareLoopScopesForEdges(const TArray<PCGExMT::FScope>& Loops)
 	{
 		TProcessor<FPCGExTopologyClusterSurfaceContext, UPCGExTopologyClusterSurfaceSettings>::PrepareLoopScopesForEdges(Loops);
 		SubTriangulations.Reserve(Loops.Num());
 		for (int i = 0; i < Loops.Num(); i++)
 		{
-			TSharedPtr<TArray<FGeometryScriptSimplePolygon>> A = MakeShared<TArray<FGeometryScriptSimplePolygon>>();
+			PCGEX_MAKE_SHARED(A, TArray<FGeometryScriptSimplePolygon>)
 			SubTriangulations.Add(A.ToSharedRef());
 		}
 	}
 
-	void FProcessor::PrepareSingleLoopScopeForEdges(const uint32 StartIndex, const int32 Count)
+	void FProcessor::PrepareSingleLoopScopeForEdges(const PCGExMT::FScope& Scope)
 	{
-		EdgeDataFacade->Fetch(StartIndex, Count);
-		FilterConstrainedEdgeScope(StartIndex, Count);
+		EdgeDataFacade->Fetch(Scope);
+		FilterConstrainedEdgeScope(Scope);
 	}
 
-	void FProcessor::ProcessSingleEdge(const int32 EdgeIndex, PCGExGraph::FEdge& Edge, const int32 LoopIdx, const int32 Count)
+	void FProcessor::ProcessSingleEdge(const int32 EdgeIndex, PCGExGraph::FEdge& Edge, const PCGExMT::FScope& Scope)
 	{
 		if (ConstrainedEdgeFilterCache[EdgeIndex]) { return; }
 
-		TSharedPtr<PCGExTopology::FCell> Cell = MakeShared<PCGExTopology::FCell>(CellsConstraints.ToSharedRef());
+		PCGEX_MAKE_SHARED(Cell, PCGExTopology::FCell, CellsConstraints.ToSharedRef())
 
-		FindCell(*Cluster->GetEdgeStart(Edge), Edge, LoopIdx);
-		FindCell(*Cluster->GetEdgeEnd(Edge), Edge, LoopIdx);
+		FindCell(*Cluster->GetEdgeStart(Edge), Edge, Scope.LoopIndex);
+		FindCell(*Cluster->GetEdgeEnd(Edge), Edge, Scope.LoopIndex);
 	}
 
 	bool FProcessor::FindCell(
@@ -91,7 +90,8 @@ namespace PCGExTopologyClusterSurface
 		if (!CellsConstraints->bKeepCellsWithLeaves && Node.IsLeaf()) { return false; }
 
 		FPlatformAtomics::InterlockedAdd(&NumAttempts, 1);
-		const TSharedPtr<PCGExTopology::FCell> Cell = MakeShared<PCGExTopology::FCell>(CellsConstraints.ToSharedRef());
+		
+		PCGEX_MAKE_SHARED(Cell, PCGExTopology::FCell, CellsConstraints.ToSharedRef())
 
 		const PCGExTopology::ECellResult Result = Cell->BuildFromCluster(PCGExGraph::FLink(Node.Index, Edge.Index), Cluster.ToSharedRef(), *ProjectedPositions);
 		if (Result != PCGExTopology::ECellResult::Success) { return false; }
@@ -107,7 +107,7 @@ namespace PCGExTopologyClusterSurface
 	{
 		if (NumAttempts == 0 && LastBinary != -1)
 		{
-			TSharedPtr<PCGExTopology::FCell> Cell = MakeShared<PCGExTopology::FCell>(CellsConstraints.ToSharedRef());
+			PCGEX_MAKE_SHARED(Cell, PCGExTopology::FCell, CellsConstraints.ToSharedRef())
 			PCGExGraph::FEdge& Edge = *Cluster->GetEdge(Cluster->GetNode(LastBinary)->Links[0].Edge);
 			FindCell(*Cluster->GetEdgeStart(Edge), Edge, 0, false);
 		}

@@ -5,6 +5,7 @@
 #include "Graph/Pathfinding/GoalPickers/PCGExGoalPickerRandom.h"
 
 #include "PCGExMath.h"
+#include "PCGExRandom.h"
 
 
 void UPCGExGoalPickerRandom::CopySettingsFrom(const UPCGExOperation* Other)
@@ -12,9 +13,10 @@ void UPCGExGoalPickerRandom::CopySettingsFrom(const UPCGExOperation* Other)
 	Super::CopySettingsFrom(Other);
 	if (const UPCGExGoalPickerRandom* TypedOther = Cast<UPCGExGoalPickerRandom>(Other))
 	{
+		LocalSeed = TypedOther->LocalSeed;
 		GoalCount = TypedOther->GoalCount;
+		NumGoalsType = TypedOther->NumGoalsType;
 		NumGoals = TypedOther->NumGoals;
-		bUseNumGoalsAttribute = TypedOther->bUseNumGoalsAttribute;
 		NumGoalAttribute = TypedOther->NumGoalAttribute;
 	}
 }
@@ -23,7 +25,7 @@ bool UPCGExGoalPickerRandom::PrepareForData(FPCGExContext* InContext, const TSha
 {
 	if (!Super::PrepareForData(InContext, InSeedsDataFacade, InGoalsDataFacade)) { return false; }
 
-	if (bUseNumGoalsAttribute)
+	if (NumGoalsType == EPCGExInputValueType::Attribute)
 	{
 		NumGoalsGetter = InSeedsDataFacade->GetBroadcaster<int32>(NumGoalAttribute);
 		if (!NumGoalsGetter)
@@ -37,10 +39,7 @@ bool UPCGExGoalPickerRandom::PrepareForData(FPCGExContext* InContext, const TSha
 
 int32 UPCGExGoalPickerRandom::GetGoalIndex(const PCGExData::FPointRef& Seed) const
 {
-	const int32 Index = static_cast<int32>(PCGExMath::Remap(
-		FMath::PerlinNoise3D(PCGExMath::Tile(Seed.Point->Transform.GetLocation() * 0.001, FVector(-1), FVector(1))),
-		-1, 1, 0, MaxGoalIndex));
-	return PCGExMath::SanitizeIndex(Index, MaxGoalIndex, IndexSafety);
+	return PCGExMath::SanitizeIndex(FRandomStream(PCGExRandom::GetRandomStreamFromPoint(*Seed.Point, LocalSeed)).RandRange(0, MaxGoalIndex), MaxGoalIndex, IndexSafety);
 }
 
 void UPCGExGoalPickerRandom::GetGoalIndices(const PCGExData::FPointRef& Seed, TArray<int32>& OutIndices) const

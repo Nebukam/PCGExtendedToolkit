@@ -340,12 +340,12 @@ namespace PCGExBevelPath
 			};
 
 		Preparation->OnSubLoopStartCallback =
-			[PCGEX_ASYNC_THIS_CAPTURE](const int32 StartIndex, const int32 Count, const int32 LoopIdx)
+			[PCGEX_ASYNC_THIS_CAPTURE](const PCGExMT::FScope& Scope)
 			{
 				PCGEX_ASYNC_THIS
 
-				This->PointDataFacade->Fetch(StartIndex, Count);
-				This->FilterScope(StartIndex, Count);
+				This->PointDataFacade->Fetch(Scope);
+				This->FilterScope(Scope);
 
 				if (!This->bClosedLoop)
 				{
@@ -354,7 +354,7 @@ namespace PCGExBevelPath
 					This->PointFilterCache[This->PointFilterCache.Num() - 1] = false;
 				}
 
-				PCGEX_ASYNC_SUB_LOOP
+				for (int i = Scope.Start; i < Scope.End; i++)
 				{
 					if (!This->PointFilterCache[i]) { continue; }
 					This->Bevels[i] = MakeShared<FBevel>(i, This.Get()); // no need for SharedThis
@@ -366,7 +366,7 @@ namespace PCGExBevelPath
 		return true;
 	}
 
-	void FProcessor::ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const int32 LoopIdx, const int32 LoopCount)
+	void FProcessor::ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const PCGExMT::FScope& Scope)
 	{
 		const TSharedPtr<FBevel>& Bevel = Bevels[Index];
 		if (!Bevel) { return; }
@@ -374,7 +374,7 @@ namespace PCGExBevelPath
 		Bevel->Compute(this);
 	}
 
-	void FProcessor::ProcessSingleRangeIteration(const int32 Iteration, const int32 LoopIdx, const int32 LoopCount)
+	void FProcessor::ProcessSingleRangeIteration(const int32 Iteration, const PCGExMT::FScope& Scope)
 	{
 		const int32 StartIndex = StartIndices[Iteration];
 
@@ -510,10 +510,10 @@ namespace PCGExBevelPath
 			};
 
 		WriteFlagsTask->OnSubLoopStartCallback =
-			[PCGEX_ASYNC_THIS_CAPTURE](const int32 StartIndex, const int32 Count, const int32 LoopIdx)
+			[PCGEX_ASYNC_THIS_CAPTURE](const PCGExMT::FScope& Scope)
 			{
 				PCGEX_ASYNC_THIS
-				PCGEX_ASYNC_SUB_LOOP
+				for (int i = Scope.Start; i < Scope.End; i++)
 				{
 					if (!This->PointFilterCache[i]) { continue; }
 					This->WriteFlags(i);

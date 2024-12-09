@@ -120,19 +120,19 @@ protected:
 
 namespace PCGExMeshToCluster
 {
-	class /*PCGEXTENDEDTOOLKIT_API*/ FExtractMeshAndBuildGraph final : public PCGExMT::FPCGExTask
+	class /*PCGEXTENDEDTOOLKIT_API*/ FExtractMeshAndBuildGraph final : public PCGExMT::FPCGExIndexedTask
 	{
 	public:
 		FExtractMeshAndBuildGraph(
-			const TSharedPtr<PCGExData::FPointIO>& InPointIO,
+			const int32 InTaskIndex,
 			const TSharedPtr<PCGExGeo::FGeoStaticMesh>& InMesh) :
-			FPCGExTask(InPointIO),
+			FPCGExIndexedTask(InTaskIndex),
 			Mesh(InMesh)
 		{
 		}
 
 		TSharedPtr<PCGExGeo::FGeoStaticMesh> Mesh;
 
-		virtual bool ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager) override;
+		virtual void ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager, const TSharedPtr<PCGExMT::FTaskGroup>& InGroup) override;
 	};
 }

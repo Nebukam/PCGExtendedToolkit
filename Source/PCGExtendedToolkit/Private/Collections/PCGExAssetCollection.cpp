@@ -67,7 +67,7 @@ namespace PCGExAssetCollection
 		// Register to sub categories
 		if (const TSharedPtr<FCategory>* CategoryPtr = Categories.Find(InEntry->Category); !CategoryPtr)
 		{
-			const TSharedPtr<FCategory> Category = MakeShared<FCategory>(InEntry->Category);
+			PCGEX_MAKE_SHARED(Category, FCategory, InEntry->Category)
 			Categories.Add(InEntry->Category, Category);
 			Category->RegisterEntry(Index, InEntry);
 		}

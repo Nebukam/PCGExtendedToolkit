@@ -11,9 +11,7 @@
 void UPCGExConditionalActionResultOperation::CopySettingsFrom(const UPCGExOperation* Other)
 {
 	Super::CopySettingsFrom(Other);
-	if (const UPCGExConditionalActionResultOperation* TypedOther = Cast<UPCGExConditionalActionResultOperation>(Other))
-	{
-	}
+	// if (const UPCGExConditionalActionResultOperation* TypedOther = Cast<UPCGExConditionalActionResultOperation>(Other))	{	}
 }
 
 bool UPCGExConditionalActionResultOperation::PrepareForData(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade>& InPointDataFacade)

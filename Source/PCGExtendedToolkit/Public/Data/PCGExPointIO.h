@@ -297,21 +297,21 @@ namespace PCGExData
 
 	static TSharedPtr<FPointIO> NewPointIO(FPCGExContext* InContext, FName InOutputPin = NAME_None, int32 Index = -1)
 	{
-		TSharedPtr<FPointIO> NewIO = MakeShared<FPointIO>(InContext);
+		PCGEX_MAKE_SHARED(NewIO, FPointIO, InContext)
 		NewIO->SetInfos(Index, InOutputPin);
 		return NewIO;
 	}
 
 	static TSharedPtr<FPointIO> NewPointIO(FPCGExContext* InContext, const UPCGPointData* InData, FName InOutputPin = NAME_None, int32 Index = -1)
 	{
-		TSharedPtr<FPointIO> NewIO = MakeShared<FPointIO>(InContext, InData);
+		PCGEX_MAKE_SHARED(NewIO, FPointIO, InContext, InData)
 		NewIO->SetInfos(Index, InOutputPin);
 		return NewIO;
 	}
 
 	static TSharedPtr<FPointIO> NewPointIO(const TSharedRef<FPointIO>& InPointIO, FName InOutputPin = NAME_None, int32 Index = -1)
 	{
-		TSharedPtr<FPointIO> NewIO = MakeShared<FPointIO>(InPointIO);
+		PCGEX_MAKE_SHARED(NewIO, FPointIO, InPointIO)
 		NewIO->SetInfos(Index, InOutputPin);
 		return NewIO;
 	}

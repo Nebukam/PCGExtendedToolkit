@@ -55,13 +55,15 @@ bool FPCGExPackClustersElement::ExecuteInternal(
 	PCGEX_ON_STATE(PCGEx::State_ReadyForNextPoints)
 	{
 		int32 IOIndex = 0;
+
+		const TSharedPtr<PCGExMT::FTaskManager> AsyncManager = Context->GetAsyncManager();
 		while (Context->AdvancePointsIO(false))
 		{
 			if (!Context->TaggedEdges) { continue; }
 
 			for (const TSharedRef<PCGExData::FPointIO>& EdgeIO : Context->TaggedEdges->Entries)
 			{
-				Context->GetAsyncManager()->Start<FPCGExPackClusterTask>(IOIndex++, Context->CurrentIO, EdgeIO, Context->EndpointsLookup);
+				PCGEX_START_TASK(FPCGExPackClusterTask, Context->CurrentIO, EdgeIO, Context->EndpointsLookup)
 			}
 		}
 
@@ -77,7 +79,7 @@ bool FPCGExPackClustersElement::ExecuteInternal(
 	return Context->TryComplete();
 }
 
-bool FPCGExPackClusterTask::ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager)
+void FPCGExPackClusterTask::ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager, const TSharedPtr<PCGExMT::FTaskGroup>& InGroup)
 {
 	FPCGExPackClustersContext* Context = AsyncManager->GetContext<FPCGExPackClustersContext>();
 	PCGEX_SETTINGS(PackClusters)
@@ -90,7 +92,7 @@ bool FPCGExPackClusterTask::ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>&
 	int32 NumEdges = 0;
 	TArray<int32> ReducedVtxIndices;
 
-	if (!PCGExGraph::GetReducedVtxIndices(InEdges, &EndpointsLookup, ReducedVtxIndices, NumEdges)) { return false; }
+	if (!PCGExGraph::GetReducedVtxIndices(InEdges, &EndpointsLookup, ReducedVtxIndices, NumEdges)) { return; }
 
 	TArray<FPCGPoint>& MutablePoints = PackedIO->GetOut()->GetMutablePoints();
 	MutablePoints.SetNum(NumEdges + ReducedVtxIndices.Num());
@@ -116,8 +118,6 @@ bool FPCGExPackClusterTask::ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>&
 
 	Context->CarryOverDetails.Filter(PointIO->Tags.Get());
 	Context->CarryOverDetails.Filter(InEdges->Tags.Get());
-
-	return true;
 }
 
 #undef LOCTEXT_NAMESPACE

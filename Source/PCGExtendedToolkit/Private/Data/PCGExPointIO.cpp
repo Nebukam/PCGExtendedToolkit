@@ -363,7 +363,6 @@ namespace PCGExData
 			PointIOKey->Tags->Add(TagId, TagValue);
 		}
 
-		bool bFoundDupe = false;
 		for (const TSharedPtr<FPointIOTaggedEntries>& Binding : Entries)
 		{
 			// TagValue shouldn't exist already

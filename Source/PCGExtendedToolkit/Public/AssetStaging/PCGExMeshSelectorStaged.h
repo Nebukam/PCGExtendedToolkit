@@ -4,12 +4,6 @@
 #pragma once
 
 #include "MeshSelectors/PCGMeshSelectorBase.h"
-#include "PCGExMacros.h"
-
-#if PCGEX_ENGINE_VERSION > 504
-#include "MeshSelectors/PCGISMDescriptor.h"
-#endif
-
 #include "PCGExMeshSelectorStaged.generated.h"
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), DisplayName="[PCGEx] Staging Data")

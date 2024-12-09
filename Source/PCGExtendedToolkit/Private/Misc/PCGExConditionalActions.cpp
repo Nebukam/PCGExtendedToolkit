@@ -10,8 +10,6 @@
 #define LOCTEXT_NAMESPACE "PCGExGraph"
 #define PCGEX_NAMESPACE ConditionalActions
 
-int32 UPCGExConditionalActionsSettings::GetPreferredChunkSize() const { return PCGExMT::GAsyncLoop_M; }
-
 PCGExData::EIOInit UPCGExConditionalActionsSettings::GetMainOutputInitMode() const { return PCGExData::EIOInit::Duplicate; }
 
 TArray<FPCGPinProperties> UPCGExConditionalActionsSettings::InputPinProperties() const
@@ -46,8 +44,8 @@ bool FPCGExConditionalActionsElement::Boot(FPCGExContext* InContext) const
 	if (!Context->DefaultAttributes) { return false; }
 
 	FString Message = TEXT("An unspecified error occured.");
-	bool bIsConditionalActionsValid = true;
-	const TSharedPtr<PCGEx::FAttributesInfos> ValidationInfos = MakeShared<PCGEx::FAttributesInfos>();
+	bool bIsConditionalActionsValid = true;	
+	PCGEX_MAKE_SHARED(ValidationInfos, PCGEx::FAttributesInfos)
 	for (const TObjectPtr<const UPCGExConditionalActionFactoryBase>& Factory : Context->ConditionalActionsFactories)
 	{
 		if (!Factory->AppendAndValidate(ValidationInfos.Get(), Message))
@@ -130,12 +128,12 @@ namespace PCGExConditionalActions
 		return true;
 	}
 
-	void FProcessor::PrepareSingleLoopScopeForPoints(const uint32 StartIndex, const int32 Count)
+	void FProcessor::PrepareSingleLoopScopeForPoints(const PCGExMT::FScope& Scope)
 	{
-		PointDataFacade->Fetch(StartIndex, Count);
+		PointDataFacade->Fetch(Scope);
 	}
 
-	void FProcessor::ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const int32 LoopIdx, const int32 LoopCount)
+	void FProcessor::ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const PCGExMT::FScope& Scope)
 	{
 		for (UPCGExConditionalActionOperation* Op : Operations) { Op->ProcessPoint(Index, Point); }
 	}

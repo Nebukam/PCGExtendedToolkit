@@ -257,7 +257,7 @@ namespace PCGExPathToClusters
 		return true;
 	}
 
-	void FFusingProcessor::ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const int32 LoopIdx, const int32 LoopCount)
+	void FFusingProcessor::ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const PCGExMT::FScope& Scope)
 	{
 		const int32 NextIndex = Index + 1;
 		if (NextIndex > LastIndex)
