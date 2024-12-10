@@ -17,7 +17,9 @@ MACRO(PathCentroid, FVector, FVector::ZeroVector)\
 MACRO(IsClockwise, bool, true)\
 MACRO(Area, double, 0)\
 MACRO(Perimeter, double, 0)\
-MACRO(Compactness, double, 0)
+MACRO(Compactness, double, 0)\
+MACRO(BoundingBoxExtent, FVector, FVector::OneVector)\
+MACRO(BoundingBoxOrientation, FQuat, FQuat::Identity)
 
 
 #define PCGEX_FOREACH_FIELD_PATH(MACRO)\
@@ -128,6 +130,23 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output - Path", meta=(DisplayName="Compactness", PCG_Overridable, EditCondition="bWriteCompactness"))
 	FName CompactnessAttributeName = FName("Compactness");
 
+	/** Output OBB extents **/
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output - Path", meta=(PCG_Overridable, InlineEditConditionToggle))
+	bool bWriteBoundingBoxExtent;
+	
+	/** Name of the 'FVector' attribute to write bounding box extent to. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output - Path", meta=(DisplayName="Oriented Bounding Box Extent", EditCondition="bWriteBoundingBoxExtent"))
+	FName BoundingBoxExtentAttributeName = FName("OBB Extent");
+
+	/** Output OBB orientation **/
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output - Path", meta=(PCG_Overridable, InlineEditConditionToggle))
+	bool bWriteBoundingBoxOrientation;
+
+	/** Name of the 'FRotator' attribute to write bounding box orientation to. **/
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output - Path", meta=(DisplayName="Oriented Bounding Box Extent", EditCondition="bWriteBoundingBoxOrientation"))
+	FName BoundingBoxOrientationAttributeName = FName("OBB Orientation");
+	
+	
 #pragma endregion
 
 #pragma region Points attributes
@@ -231,8 +250,7 @@ public:
 	/** Name of the 'FVector' attribute to write direction to next point to.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output - Points", meta=(DisplayName="DirectionToNext", PCG_Overridable, EditCondition="bWriteDirectionToNext"))
 	FName DirectionToNextAttributeName = FName("DirectionToNext");
-
-
+	
 	/** Output direction to prev normal. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output - Points", meta=(PCG_Overridable, InlineEditConditionToggle))
 	bool bWriteDirectionToPrev = false;
