@@ -189,8 +189,6 @@ namespace PCGExWritePathProperties
 
 		// Compute path-wide, per-point stuff
 		double TraversedDistance = 0;
-		TArray<FVector> OBBLocations;
-		
 		for (int i = 0; i < Path->NumPoints; i++)
 		{
 			if (Settings->bTagConcave || Settings->bTagConvex) { Path->UpdateConvexity(i); }
@@ -205,7 +203,6 @@ namespace PCGExWritePathProperties
 
 			TraversedDistance += !Path->IsClosedLoop() && i == Path->LastIndex ? 0 : PathLength->Get(i);
 			PathCentroid += Path->GetPosUnsafe(i);
-			OBBLocations.Push(Path->GetPosUnsafe(i));
 		}
 
 		if (!bClosedLoop)
@@ -236,29 +233,26 @@ namespace PCGExWritePathProperties
 
 			PCGEX_OUTPUT_PATH_VALUE(PathLength, double, PathLength->TotalLength)
 			PCGEX_OUTPUT_PATH_VALUE(PathDirection, FVector, (PathDir / Path->NumPoints).GetSafeNormal())
-			PCGEX_OUTPUT_PATH_VALUE(PathCentroid, FVector, (PathCentroid / Path->NumPoints).GetSafeNormal())
+			PCGEX_OUTPUT_PATH_VALUE(PathCentroid, FVector, (PathCentroid / Path->NumPoints))
 			PCGEX_OUTPUT_PATH_VALUE(IsClockwise, bool, PolyInfos.bIsClockwise)
 			PCGEX_OUTPUT_PATH_VALUE(Area, double, PolyInfos.Area * 0.01)
 			PCGEX_OUTPUT_PATH_VALUE(Perimeter, double, PolyInfos.Perimeter)
 			PCGEX_OUTPUT_PATH_VALUE(Compactness, double, PolyInfos.Compactness)
-			
-			if (Settings->bWriteBoundingBoxExtent || Settings->bWriteBoundingBoxOrientation) {
+
+			if (Settings->bWriteBoundingBoxExtent || Settings->bWriteBoundingBoxOrientation)
+			{
 				UE::Geometry::TMinVolumeBox3<double> Box;
-				
-				auto Success = Box.Solve(OBBLocations.Num(), [&OBBLocations](int32 i) {
-					return OBBLocations[i];
-				});
-				if (Success) {
+
+				if (Box.Solve(Path->NumPoints, [PathPtr = Path.Get()](int32 i) { return PathPtr->GetPosUnsafe(i); }))
+				{
 					UE::Geometry::FOrientedBox3d Result;
 					Box.GetResult(Result);
-					
+
 					PCGEX_OUTPUT_PATH_VALUE(BoundingBoxExtent, FVector, Result.Extents);
 					PCGEX_OUTPUT_PATH_VALUE(BoundingBoxOrientation, FQuat, FQuat(Result.Frame.Rotation));
-					
 				}
 			}
 
-			
 
 #undef PCGEX_OUTPUT_PATH_VALUE
 		}
