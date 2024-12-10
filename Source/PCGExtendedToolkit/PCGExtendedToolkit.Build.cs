@@ -40,6 +40,7 @@ public class PCGExtendedToolkit : ModuleRules
 				"GeometryCore",
 				"GeometryFramework",
 				"GeometryScriptingCore",
+				"GeometryAlgorithms",
 				"RenderCore",
 				"RHI",
 				"PhysicsCore",
