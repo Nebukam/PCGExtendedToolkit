@@ -448,6 +448,8 @@ namespace PCGExPaths
 
 		int32 IOIndex = -1;
 
+		FORCEINLINE const TArray<FVector>& GetPositions() const { return Positions; }
+
 		FORCEINLINE int32 LoopPointIndex(const int32 Index) const { return PCGExMath::Tile(Index, 0, LastIndex); };
 		virtual int32 SafePointIndex(const int32 Index) const = 0;
 
@@ -518,7 +520,7 @@ namespace PCGExPaths
 		TSharedPtr<T> AddExtra(bool bImmediateCompute = false, Args&&... InArgs)
 		{
 			PCGEX_MAKE_SHARED(Extra, T, NumEdges, bClosedLoop, std::forward<Args>(InArgs)...)
-			
+
 			if (bImmediateCompute)
 			{
 				if (NumEdges == 1)
