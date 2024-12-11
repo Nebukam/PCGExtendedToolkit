@@ -29,7 +29,7 @@ public class PCGExtendedToolkit : ModuleRules
 				"Core",
 				"CoreUObject",
 				"Engine",
-				"PCG",
+				"PCG"
 			}
 		);
 
@@ -40,6 +40,7 @@ public class PCGExtendedToolkit : ModuleRules
 				"GeometryCore",
 				"GeometryFramework",
 				"GeometryScriptingCore",
+				"GeometryAlgorithms",
 				"RenderCore",
 				"RHI",
 				"PhysicsCore",

@@ -17,7 +17,10 @@ MACRO(PathCentroid, FVector, FVector::ZeroVector)\
 MACRO(IsClockwise, bool, true)\
 MACRO(Area, double, 0)\
 MACRO(Perimeter, double, 0)\
-MACRO(Compactness, double, 0)
+MACRO(Compactness, double, 0)\
+MACRO(BoundingBoxCenter, FVector, FVector::ZeroVector)\
+MACRO(BoundingBoxExtent, FVector, FVector::OneVector)\
+MACRO(BoundingBoxOrientation, FQuat, FQuat::Identity)
 
 
 #define PCGEX_FOREACH_FIELD_PATH(MACRO)\
@@ -128,6 +131,32 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output - Path", meta=(DisplayName="Compactness", PCG_Overridable, EditCondition="bWriteCompactness"))
 	FName CompactnessAttributeName = FName("Compactness");
 
+
+	/** Output OBB extents **/
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output - Path|Oriented Bounding Box", meta=(PCG_Overridable, InlineEditConditionToggle))
+	bool bWriteBoundingBoxCenter = false;
+	
+	/** Name of the 'FVector' attribute to write bounding box center to. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output - Path|Oriented Bounding Box", meta=(DisplayName="Center", EditCondition="bWriteBoundingBoxCenter"))
+	FName BoundingBoxCenterAttributeName = FName("OBBCenter");
+	
+	/** Output OBB extents **/
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output - Path|Oriented Bounding Box", meta=(PCG_Overridable, InlineEditConditionToggle))
+	bool bWriteBoundingBoxExtent = false;
+	
+	/** Name of the 'FVector' attribute to write bounding box extent to. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output - Path|Oriented Bounding Box", meta=(DisplayName="Extent", EditCondition="bWriteBoundingBoxExtent"))
+	FName BoundingBoxExtentAttributeName = FName("OBBExtent");
+
+	/** Output OBB orientation **/
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output - Path|Oriented Bounding Box", meta=(PCG_Overridable, InlineEditConditionToggle))
+	bool bWriteBoundingBoxOrientation = false;
+
+	/** Name of the 'FRotator' attribute to write bounding box orientation to. **/
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output - Path|Oriented Bounding Box", meta=(DisplayName="Orientation", EditCondition="bWriteBoundingBoxOrientation"))
+	FName BoundingBoxOrientationAttributeName = FName("OBBOrientation");
+	
+	
 #pragma endregion
 
 #pragma region Points attributes
@@ -231,8 +260,7 @@ public:
 	/** Name of the 'FVector' attribute to write direction to next point to.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output - Points", meta=(DisplayName="DirectionToNext", PCG_Overridable, EditCondition="bWriteDirectionToNext"))
 	FName DirectionToNextAttributeName = FName("DirectionToNext");
-
-
+	
 	/** Output direction to prev normal. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output - Points", meta=(PCG_Overridable, InlineEditConditionToggle))
 	bool bWriteDirectionToPrev = false;

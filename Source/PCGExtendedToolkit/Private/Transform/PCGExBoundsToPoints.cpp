@@ -35,7 +35,7 @@ bool FPCGExBoundsToPointsElement::ExecuteInternal(FPCGContext* InContext) const
 				//NewBatch->bRequiresWriteStep = true;
 			}))
 		{
-			return Context->CancelExecution(TEXT("Could not find any paths to subdivide."));
+			return Context->CancelExecution(TEXT("Missing data."));
 		}
 	}
 
