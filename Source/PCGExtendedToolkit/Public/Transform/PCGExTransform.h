@@ -20,7 +20,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExUVW
 	{
 	}
 
-	/** Overlap overlap test mode */
+	/** */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	EPCGExPointBoundsSource BoundsReference = EPCGExPointBoundsSource::ScaledBounds;
 
