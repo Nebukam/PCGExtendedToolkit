@@ -168,6 +168,14 @@ namespace PCGExGraph
 
 	void FUnionProcessor::InternalStartExecution()
 	{
+		
+		if(GraphBuilder->Graph->Edges.Num() <= 1)
+		{
+			// Nothing to be found
+			CompileFinalGraph();
+			return;
+		}
+		
 		if (bDoPointEdge)
 		{
 			FindPointEdgeIntersections();
@@ -186,7 +194,7 @@ namespace PCGExGraph
 	bool FUnionProcessor::Execute()
 	{
 		if (!bRunning) { return false; }
-
+		
 		if (Context->IsState(State_ProcessingUnion)) { return false; }
 
 		PCGEX_ON_ASYNC_STATE_READY(State_ProcessingPointEdgeIntersections)
