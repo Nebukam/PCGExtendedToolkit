@@ -239,17 +239,26 @@ namespace PCGExWritePathProperties
 			PCGEX_OUTPUT_PATH_VALUE(Perimeter, double, PolyInfos.Perimeter)
 			PCGEX_OUTPUT_PATH_VALUE(Compactness, double, PolyInfos.Compactness)
 
-			if (Settings->bWriteBoundingBoxExtent || Settings->bWriteBoundingBoxOrientation)
+			if (Settings->bWriteBoundingBoxCenter ||
+				Settings->bWriteBoundingBoxExtent ||
+				Settings->bWriteBoundingBoxOrientation)
 			{
 				UE::Geometry::TMinVolumeBox3<double> Box;
-
 				if (Box.Solve(Path->NumPoints, [PathPtr = Path.Get()](int32 i) { return PathPtr->GetPosUnsafe(i); }))
 				{
 					UE::Geometry::FOrientedBox3d Result;
 					Box.GetResult(Result);
 
+					PCGEX_OUTPUT_PATH_VALUE(BoundingBoxCenter, FVector, Result.Center());
 					PCGEX_OUTPUT_PATH_VALUE(BoundingBoxExtent, FVector, Result.Extents);
 					PCGEX_OUTPUT_PATH_VALUE(BoundingBoxOrientation, FQuat, FQuat(Result.Frame.Rotation));
+				}
+				else
+				{
+					const FBox Bounds = PointIO->GetIn()->GetBounds();
+					PCGEX_OUTPUT_PATH_VALUE(BoundingBoxCenter, FVector, Bounds.GetCenter());
+					PCGEX_OUTPUT_PATH_VALUE(BoundingBoxExtent, FVector, Bounds.GetExtent());
+					PCGEX_OUTPUT_PATH_VALUE(BoundingBoxOrientation, FQuat, FQuat::Identity);
 				}
 			}
 
