@@ -2,9 +2,9 @@
 // Released under the MIT license https://opensource.org/license/MIT/
 
 #include "Paths/PCGExWritePathProperties.h"
-
+#include "MinVolumeBox3.h"
+#include "OrientedBoxTypes.h"
 #include "PCGExDataMath.h"
-
 
 #define LOCTEXT_NAMESPACE "PCGExWritePathPropertiesElement"
 #define PCGEX_NAMESPACE WritePathProperties
@@ -233,11 +233,35 @@ namespace PCGExWritePathProperties
 
 			PCGEX_OUTPUT_PATH_VALUE(PathLength, double, PathLength->TotalLength)
 			PCGEX_OUTPUT_PATH_VALUE(PathDirection, FVector, (PathDir / Path->NumPoints).GetSafeNormal())
-			PCGEX_OUTPUT_PATH_VALUE(PathCentroid, FVector, (PathCentroid / Path->NumPoints).GetSafeNormal())
+			PCGEX_OUTPUT_PATH_VALUE(PathCentroid, FVector, (PathCentroid / Path->NumPoints))
 			PCGEX_OUTPUT_PATH_VALUE(IsClockwise, bool, PolyInfos.bIsClockwise)
 			PCGEX_OUTPUT_PATH_VALUE(Area, double, PolyInfos.Area * 0.01)
 			PCGEX_OUTPUT_PATH_VALUE(Perimeter, double, PolyInfos.Perimeter)
 			PCGEX_OUTPUT_PATH_VALUE(Compactness, double, PolyInfos.Compactness)
+
+			if (Settings->bWriteBoundingBoxCenter ||
+				Settings->bWriteBoundingBoxExtent ||
+				Settings->bWriteBoundingBoxOrientation)
+			{
+				UE::Geometry::TMinVolumeBox3<double> Box;
+				if (Box.Solve(Path->NumPoints, [PathPtr = Path.Get()](int32 i) { return PathPtr->GetPosUnsafe(i); }))
+				{
+					UE::Geometry::FOrientedBox3d Result;
+					Box.GetResult(Result);
+
+					PCGEX_OUTPUT_PATH_VALUE(BoundingBoxCenter, FVector, Result.Center());
+					PCGEX_OUTPUT_PATH_VALUE(BoundingBoxExtent, FVector, Result.Extents);
+					PCGEX_OUTPUT_PATH_VALUE(BoundingBoxOrientation, FQuat, FQuat(Result.Frame.Rotation));
+				}
+				else
+				{
+					const FBox Bounds = PointIO->GetIn()->GetBounds();
+					PCGEX_OUTPUT_PATH_VALUE(BoundingBoxCenter, FVector, Bounds.GetCenter());
+					PCGEX_OUTPUT_PATH_VALUE(BoundingBoxExtent, FVector, Bounds.GetExtent());
+					PCGEX_OUTPUT_PATH_VALUE(BoundingBoxOrientation, FQuat, FQuat::Identity);
+				}
+			}
+
 
 #undef PCGEX_OUTPUT_PATH_VALUE
 		}

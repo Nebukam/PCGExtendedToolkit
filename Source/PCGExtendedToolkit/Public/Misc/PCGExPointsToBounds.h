@@ -4,6 +4,10 @@
 #pragma once
 
 #include "CoreMinimal.h"
+
+#include "MinVolumeBox3.h"
+#include "OrientedBoxTypes.h"
+
 #include "PCGExGlobalSettings.h"
 
 #include "PCGExPointsProcessor.h"
@@ -12,103 +16,6 @@
 
 
 #include "PCGExPointsToBounds.generated.h"
-
-class FPCGExComputeIOBounds;
-
-namespace PCGExPointsToBounds
-{
-	class FComputeIOBoundsTask;
-
-	class /*PCGEXTENDEDTOOLKIT_API*/ FBounds : public TSharedFromThis<FBounds>
-	{
-	public:
-		FBox Bounds = FBox(ForceInit);
-		const TSharedPtr<PCGExData::FPointIO> PointIO;
-
-		TSet<FBounds*> Overlaps;
-
-		TMap<FBounds*, FBox> FastOverlaps;
-		TMap<FBounds*, int32> PreciseOverlapCount;
-		TMap<FBounds*, double> PreciseOverlapAmount;
-
-		double FastVolume = 0;
-		double FastOverlapAmount = 0;
-		double PreciseVolume = 0;
-
-		double TotalPreciseOverlapAmount = 0;
-		int32 TotalPreciseOverlapCount = 0;
-
-		mutable FRWLock OverlapLock;
-
-		explicit FBounds(const TSharedPtr<PCGExData::FPointIO>& InPointIO):
-			PointIO(InPointIO)
-		{
-			Overlaps.Empty();
-			FastOverlaps.Empty();
-			PreciseOverlapAmount.Empty();
-			PreciseOverlapCount.Empty();
-		}
-
-		void RemoveOverlap(const FBounds* OtherBounds)
-		{
-			FWriteScopeLock WriteLock(OverlapLock);
-
-			if (!Overlaps.Contains(OtherBounds)) { return; }
-
-			Overlaps.Remove(OtherBounds);
-			FastOverlaps.Remove(OtherBounds);
-
-			if (PreciseOverlapAmount.Contains(OtherBounds))
-			{
-				TotalPreciseOverlapAmount -= *PreciseOverlapAmount.Find(OtherBounds);
-				TotalPreciseOverlapCount -= *PreciseOverlapCount.Find(OtherBounds);
-				PreciseOverlapAmount.Remove(OtherBounds);
-				PreciseOverlapCount.Remove(OtherBounds);
-			}
-		}
-
-		bool OverlapsWith(const FBounds* OtherBounds) const
-		{
-			FReadScopeLock ReadLock(OverlapLock);
-			return Overlaps.Contains(OtherBounds);
-		}
-
-		void AddPreciseOverlap(FBounds* OtherBounds, const int32 InCount, const double InAmount)
-		{
-			if (OverlapsWith(OtherBounds)) { return; }
-
-			{
-				FWriteScopeLock WriteLock(OverlapLock);
-				Overlaps.Add(OtherBounds);
-
-				PreciseOverlapCount.Add(OtherBounds, InCount);
-				PreciseOverlapAmount.Add(OtherBounds, InAmount);
-
-				TotalPreciseOverlapCount += InCount;
-				TotalPreciseOverlapAmount += InAmount;
-			}
-
-			OtherBounds->AddPreciseOverlap(this, InCount, InAmount);
-		}
-
-		~FBounds() = default;
-	};
-
-	static FBox GetBounds(const FPCGPoint& Point, const EPCGExPointBoundsSource Source)
-	{
-		switch (Source)
-		{
-		default: ;
-		case EPCGExPointBoundsSource::DensityBounds:
-			return Point.GetDensityBounds().GetBox();
-		case EPCGExPointBoundsSource::ScaledBounds:
-			return FBoxCenterAndExtent(Point.Transform.GetLocation(), Point.GetScaledExtents()).GetBox();
-		case EPCGExPointBoundsSource::Bounds:
-			return FBoxCenterAndExtent(Point.Transform.GetLocation(), Point.GetExtents()).GetBox();
-		}
-	}
-}
-
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc")
 class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExPointsToBoundsSettings : public UPCGExPointsProcessorSettings
@@ -131,6 +38,10 @@ public:
 	virtual PCGExData::EIOInit GetMainOutputInitMode() const override;
 	//~End UPCGExPointsProcessorSettings
 
+	/** Output Object Oriented Bounds. Note that this only accounts for positions and will ignore point bounds. **/
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	bool bOutputOrientedBoundingBox = false;
+	
 	/** Overlap overlap test mode */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	EPCGExPointBoundsSource BoundsSource = EPCGExPointBoundsSource::ScaledBounds;
@@ -174,27 +85,14 @@ protected:
 
 namespace PCGExPointsToBounds
 {
-	class /*PCGEXTENDEDTOOLKIT_API*/ FComputeIOBoundsTask final : public PCGExMT::FPCGExTask
-	{
-	public:
-		FComputeIOBoundsTask(const EPCGExPointBoundsSource InBoundsSource, const TSharedPtr<FBounds>& InBounds) :
-			FPCGExTask(),
-			BoundsSource(InBoundsSource),
-			Bounds(InBounds)
-		{
-		}
-
-		EPCGExPointBoundsSource BoundsSource = EPCGExPointBoundsSource::ScaledBounds;
-		TSharedPtr<FBounds> Bounds;
-
-		virtual void ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager, const TSharedPtr<PCGExMT::FTaskGroup>& InGroup) override;
-	};
-
 	class FProcessor final : public PCGExPointsMT::TPointsProcessor<FPCGExPointsToBoundsContext, UPCGExPointsToBoundsSettings>
 	{
 		TSharedPtr<PCGExDataBlending::FMetadataBlender> MetadataBlender;
-		TSharedPtr<FBounds> Bounds;
+		FBox Bounds;
 
+		UE::Geometry::FOrientedBox3d OrientedBox;
+		bool bOrientedBoxFound = false;
+		
 	public:
 		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade):
 			TPointsProcessor(InPointDataFacade)
@@ -208,19 +106,3 @@ namespace PCGExPointsToBounds
 	};
 }
 
-namespace PCGExPointsToBounds
-{
-	static void ComputeBounds(
-		const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager,
-		const TSharedPtr<PCGExData::FPointIOCollection>& IOGroup,
-		TArray<TSharedPtr<FBounds>>& OutBounds,
-		const EPCGExPointBoundsSource BoundsSource)
-	{
-		for (const TSharedPtr<PCGExData::FPointIO>& PointIO : IOGroup->Pairs)
-		{
-			PCGEX_MAKE_SHARED(Bounds, FBounds, PointIO)
-			OutBounds.Add(Bounds);
-			PCGEX_START_TASK(FComputeIOBoundsTask, BoundsSource, Bounds)
-		}
-	}
-}

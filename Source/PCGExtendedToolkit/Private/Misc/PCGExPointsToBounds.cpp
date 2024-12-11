@@ -3,6 +3,8 @@
 
 #include "Misc/PCGExPointsToBounds.h"
 
+#include "MinVolumeBox3.h"
+#include "OrientedBoxTypes.h"
 #include "Data/PCGExData.h"
 
 
@@ -62,35 +64,40 @@ namespace PCGExPointsToBounds
 
 		if (!FPointsProcessor::Process(InAsyncManager)) { return false; }
 
-		Bounds = MakeShared<FBounds>(PointDataFacade->Source);
+		Bounds = FBox(ForceInit);
 		const TArray<FPCGPoint>& InPoints = PointDataFacade->GetIn()->GetPoints();
+
+		if (Settings->bOutputOrientedBoundingBox)
+		{
+			PCGEX_ASYNC_GROUP_CHKD(AsyncManager, MinBoxTask)
+			MinBoxTask->AddSimpleCallback(
+				[PCGEX_ASYNC_THIS_CAPTURE]()
+				{
+					PCGEX_ASYNC_THIS
+
+					const TArray<FPCGPoint>& InPoints = This->PointDataFacade->GetIn()->GetPoints();
+					UE::Geometry::TMinVolumeBox3<double> Box;
+					if (Box.Solve(This->PointDataFacade->GetNum(), [&InPoints](int32 i) { return InPoints[i].Transform.GetLocation(); }))
+					{
+						Box.GetResult(This->OrientedBox);
+						This->bOrientedBoxFound = true;
+					}
+				});
+
+			MinBoxTask->StartSimpleCallbacks();
+		}
 
 		switch (Settings->BoundsSource)
 		{
 		default: ;
 		case EPCGExPointBoundsSource::DensityBounds:
-			for (const FPCGPoint& Pt : InPoints)
-			{
-				const FBox Box = Pt.GetDensityBounds().GetBox();
-				Bounds->Bounds += Box;
-				Bounds->FastVolume += Box.GetExtent().Length();
-			}
+			for (const FPCGPoint& Pt : InPoints) { Bounds += Pt.GetDensityBounds().GetBox(); }
 			break;
 		case EPCGExPointBoundsSource::ScaledBounds:
-			for (const FPCGPoint& Pt : InPoints)
-			{
-				const FBox Box = FBoxCenterAndExtent(Pt.Transform.GetLocation(), Pt.GetScaledExtents()).GetBox();
-				Bounds->Bounds += Box;
-				Bounds->FastVolume += Box.GetExtent().Length();
-			}
+			for (const FPCGPoint& Pt : InPoints) { Bounds += FBoxCenterAndExtent(Pt.Transform.GetLocation(), Pt.GetScaledExtents()).GetBox(); }
 			break;
 		case EPCGExPointBoundsSource::Bounds:
-			for (const FPCGPoint& Pt : InPoints)
-			{
-				const FBox Box = FBoxCenterAndExtent(Pt.Transform.GetLocation(), Pt.GetExtents()).GetBox();
-				Bounds->Bounds += Box;
-				Bounds->FastVolume += Box.GetExtent().Length();
-			}
+			for (const FPCGPoint& Pt : InPoints) { Bounds += FBoxCenterAndExtent(Pt.Transform.GetLocation(), Pt.GetExtents()).GetBox();; }
 			break;
 		}
 
@@ -107,14 +114,6 @@ namespace PCGExPointsToBounds
 
 		const double NumPoints = InPoints.Num();
 
-		const FBox& Box = Bounds->Bounds;
-		const FVector Center = Box.GetCenter();
-		const double SqrDist = Box.GetExtent().SquaredLength();
-
-		MutablePoints[0].Transform.SetLocation(Center);
-		MutablePoints[0].BoundsMin = Box.Min - Center;
-		MutablePoints[0].BoundsMax = Box.Max - Center;
-
 		if (Settings->bBlendProperties)
 		{
 			MetadataBlender = MakeShared<PCGExDataBlending::FMetadataBlender>(&Settings->BlendingSettings);
@@ -127,56 +126,34 @@ namespace PCGExPointsToBounds
 
 			for (int i = 0; i < NumPoints; i++)
 			{
-				FVector Location = InPoints[i].Transform.GetLocation();
-				const double Weight = FVector::DistSquared(Center, Location) / SqrDist;
+				//FVector Location = InPoints[i].Transform.GetLocation();
+				const double Weight = 1; // FVector::DistSquared(Center, Location) / SqrDist;
 				MetadataBlender->Blend(Target, PointDataFacade->Source->GetInPointRef(i), Target, Weight);
 				TotalWeight += Weight;
 			}
 
 			MetadataBlender->CompleteBlending(Target, NumPoints, TotalWeight);
+		}
 
+		if (bOrientedBoxFound)
+		{
+			const FVector MinExtents = OrientedBox.Extents;
+			MutablePoints[0].Transform.SetLocation(OrientedBox.Center());
+			MutablePoints[0].Transform.SetRotation(FQuat(OrientedBox.Frame.Rotation));
+			MutablePoints[0].BoundsMin = -MinExtents;
+			MutablePoints[0].BoundsMax = MinExtents;
+		}
+		else
+		{
+			const FVector Center = Bounds.GetCenter();
 			MutablePoints[0].Transform.SetLocation(Center);
-			MutablePoints[0].BoundsMin = Box.Min - Center;
-			MutablePoints[0].BoundsMax = Box.Max - Center;
+			MutablePoints[0].BoundsMin = Bounds.Min - Center;
+			MutablePoints[0].BoundsMax = Bounds.Max - Center;
 		}
 
 		if (Settings->bWritePointsCount) { WriteMark(PointDataFacade->Source, Settings->PointsCountAttributeName, NumPoints); }
 
 		PointDataFacade->Write(AsyncManager);
-	}
-
-	void FComputeIOBoundsTask::ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager, const TSharedPtr<PCGExMT::FTaskGroup>& InGroup)
-	{
-		const TArray<FPCGPoint>& InPoints = Bounds->PointIO->GetIn()->GetPoints();
-
-		switch (BoundsSource)
-		{
-		default: ;
-		case EPCGExPointBoundsSource::DensityBounds:
-			for (const FPCGPoint& Pt : InPoints)
-			{
-				const FBox Box = Pt.GetDensityBounds().GetBox();
-				Bounds->Bounds += Box;
-				Bounds->FastVolume += Box.GetExtent().Length();
-			}
-			break;
-		case EPCGExPointBoundsSource::ScaledBounds:
-			for (const FPCGPoint& Pt : InPoints)
-			{
-				const FBox Box = FBoxCenterAndExtent(Pt.Transform.GetLocation(), Pt.GetScaledExtents()).GetBox();
-				Bounds->Bounds += Box;
-				Bounds->FastVolume += Box.GetExtent().Length();
-			}
-			break;
-		case EPCGExPointBoundsSource::Bounds:
-			for (const FPCGPoint& Pt : InPoints)
-			{
-				const FBox Box = FBoxCenterAndExtent(Pt.Transform.GetLocation(), Pt.GetExtents()).GetBox();
-				Bounds->Bounds += Box;
-				Bounds->FastVolume += Box.GetExtent().Length();
-			}
-			break;
-		}
 	}
 }
 

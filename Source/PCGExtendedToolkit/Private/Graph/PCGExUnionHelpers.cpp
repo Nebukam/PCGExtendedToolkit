@@ -360,6 +360,8 @@ namespace PCGExGraph
 					FindOverlappingEdges(EEI, i);
 				}
 			};
+
+				
 		FindEdgeEdgeGroup->StartSubLoops(GraphBuilder->Graph->Edges.Num(), GetDefault<UPCGExGlobalSettings>()->ClusterDefaultBatchChunkSize);
 	}
 
