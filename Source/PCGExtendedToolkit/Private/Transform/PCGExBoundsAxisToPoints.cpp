@@ -1,7 +1,7 @@
 ﻿// Copyright 2024 Timothé Lapetite and contributors
 // Released under the MIT license https://opensource.org/license/MIT/
 
-#include "Transform/PCGExBoundsAxisToPointsSelection.h"
+#include "Transform/PCGExBoundsAxisToPoints.h"
 
 
 #define LOCTEXT_NAMESPACE "PCGExBoundsAxisToPointsElement"
@@ -94,64 +94,77 @@ namespace PCGExBoundsAxisToPoints
 
 		EPCGExMinimalAxis Axis = EPCGExMinimalAxis::None;
 
-		switch (Settings->Selection)
+		FQuat R = Point.Transform.GetRotation();
+		int32 Idx = -1;
+		int32 Indices[3] = {0, 1, 2};
+		int32 DotsIndices[3] = {0, 1, 2};
+
+		const FVector Direction[3] = {R.GetAxisX(), R.GetAxisY(), R.GetAxisZ()};
+		const double Size[3] = {E.X, E.Y, E.Z};
+		const EPCGExMinimalAxis AxisEnum[3] = {EPCGExMinimalAxis::X, EPCGExMinimalAxis::Y, EPCGExMinimalAxis::Z};
+		double Dots[3] = {0, 0, 0};
+
+		if (Settings->DirectionConstraint != EPCGExAxisDirectionConstraint::None)
 		{
-		case EPCGExBoundsAxisToPointsSelection::Shortest:
-			if (E.X < E.Y && E.X < E.Z) { Axis = EPCGExMinimalAxis::X; }
-			else if (E.Y < E.X && E.Y < E.Z) { Axis = EPCGExMinimalAxis::Y; }
-			else { Axis = EPCGExMinimalAxis::Z; }
+			for (int i = 0; i < 3; i++) { Dots[i] = FVector::DotProduct(Direction[i], Settings->Direction); }
+			Algo::Sort(DotsIndices, [&](const int32 A, const int32 B) { return Dots[A] < Dots[B]; });
+		}
+
+		Algo::Sort(Indices, [&](const int32 A, const int32 B) { return Size[A] < Size[B]; });
+
+		switch (Settings->Priority)
+		{
+		case EPCGExBoundAxisPriority::Shortest:
+			Idx = 0;
 			break;
-		case EPCGExBoundsAxisToPointsSelection::NextShortest:
-			if (E.X < E.Y && E.X < E.Z)
-			{
-				if (E.Y < E.Z) { Axis = EPCGExMinimalAxis::Y; }
-				else { Axis = EPCGExMinimalAxis::Z; }
-			}
-			else if (E.Y < E.X && E.Y < E.Z)
-			{
-				if (E.X < E.Z) { Axis = EPCGExMinimalAxis::X; }
-				else { Axis = EPCGExMinimalAxis::Z; }
-			}
-			else
-			{
-				if (E.X < E.Y) { Axis = EPCGExMinimalAxis::X; }
-				else { Axis = EPCGExMinimalAxis::Y; }
-			}
+		case EPCGExBoundAxisPriority::Median:
+			Idx = 1;
 			break;
-		case EPCGExBoundsAxisToPointsSelection::Longest:
-			if (E.X > E.Y && E.X > E.Z) { Axis = EPCGExMinimalAxis::X; }
-			else if (E.Y > E.X && E.Y > E.Z) { Axis = EPCGExMinimalAxis::Y; }
-			else { Axis = EPCGExMinimalAxis::Z; }
-			break;
-		case EPCGExBoundsAxisToPointsSelection::NextLongest:
-			if (E.X > E.Y && E.X > E.Z)
-			{
-				if (E.Y > E.Z) { Axis = EPCGExMinimalAxis::Y; }
-				else { Axis = EPCGExMinimalAxis::Z; }
-			}
-			else if (E.Y > E.X && E.Y > E.Z)
-			{
-				if (E.X > E.Z) { Axis = EPCGExMinimalAxis::X; }
-				else { Axis = EPCGExMinimalAxis::Z; }
-			}
-			else
-			{
-				if (E.X > E.Y) { Axis = EPCGExMinimalAxis::X; }
-				else { Axis = EPCGExMinimalAxis::Y; }
-			}
-			break;
-		case EPCGExBoundsAxisToPointsSelection::ShortestAbove:
-			if (E.X > Settings->Threshold && E.X < E.Y && E.X < E.Z) { Axis = EPCGExMinimalAxis::X; }
-			else if (E.Y > Settings->Threshold && E.Y < E.X && E.Y < E.Z) { Axis = EPCGExMinimalAxis::Y; }
-			else if (E.Z > Settings->Threshold) { Axis = EPCGExMinimalAxis::Z; }
-			else
-			{
-				if (E.X < E.Y && E.X < E.Z) { Axis = EPCGExMinimalAxis::X; }
-				else if (E.Y < E.X && E.Y < E.Z) { Axis = EPCGExMinimalAxis::Y; }
-				else { Axis = EPCGExMinimalAxis::Z; }
-			}
+		case EPCGExBoundAxisPriority::Longest:
+			Idx = 2;
 			break;
 		}
+
+		auto ApplySizeConstraint = [&]()
+		{
+			if (Settings->SizeConstraint == EPCGExAxisSizeConstraint::Greater)
+			{
+				for (int i = FMath::Clamp(Idx, 0, 2); i < 3; i++) { if (Size[Indices[i]] < Settings->SizeThreshold) { Idx++; } }
+			}
+			else
+			{
+				for (int i = FMath::Clamp(Idx, 0, 2); i >= 0; i--) { if (Size[Indices[i]] > Settings->SizeThreshold) { Idx--; } }
+			}
+		};
+
+		auto ApplyDirectionConstraint = [&]()
+		{
+			if (Settings->DirectionConstraint == EPCGExAxisDirectionConstraint::Avoid)
+			{
+				// If selected direction is the worst
+				// Back off
+				if (Indices[FMath::Clamp(Idx, 0, 2)] == DotsIndices[2]) { Idx = 1; }
+			}
+			else
+			{
+				// If selected direction is not the best
+				// Nudge toward it
+				if (Indices[FMath::Clamp(Idx, 0, 2)] != DotsIndices[2]) { Idx++; }
+			}
+		};
+
+		if (Settings->ConstraintsOrder == EPCGExAxisConstraintSorting::SizeMatters)
+		{
+			if (Settings->DirectionConstraint != EPCGExAxisDirectionConstraint::None) { ApplyDirectionConstraint(); }
+			if (Settings->SizeConstraint != EPCGExAxisSizeConstraint::None) { ApplySizeConstraint(); }
+		}
+		else
+		{
+			if (Settings->SizeConstraint != EPCGExAxisSizeConstraint::None) { ApplySizeConstraint(); }
+			if (Settings->DirectionConstraint != EPCGExAxisDirectionConstraint::None) { ApplyDirectionConstraint(); }
+		}
+
+		Axis = AxisEnum[Indices[FMath::Clamp(Idx, 0, 2)]];
 
 		switch (Axis)
 		{
