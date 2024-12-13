@@ -1055,19 +1055,24 @@ namespace PCGEx
 	static void CopyPoints(
 		const PCGExData::FPointIO* Source,
 		const PCGExData::FPointIO* Target,
-		const TArrayView<const int32>& SourceIndices,
+		const TSharedPtr<const TArray<int32>>& SourceIndices,
 		const int32 TargetIndex = 0,
 		const bool bKeepSourceMetadataEntry = false)
 	{
-		const int32 NumIndices = SourceIndices.Num();
-		const TArray<FPCGPoint>& SourcePoints = Source->GetIn()->GetPoints();
-		TArray<FPCGPoint>& TargetPoints = Target->GetMutablePoints();
+		const int32 NumIndices = SourceIndices->Num();
+		const TArray<FPCGPoint>& SourceContainer = Source->GetIn()->GetPoints();
+		TArray<FPCGPoint>& TargetContainer = Target->GetMutablePoints();
+
+		if (TargetContainer.Num() < TargetIndex + SourceIndices->Num())
+		{
+			TargetContainer.SetNumUninitialized(TargetContainer.Num() + TargetIndex + SourceIndices->Num());
+		}
 
 		if (bKeepSourceMetadataEntry)
 		{
 			for (int i = 0; i < NumIndices; i++)
 			{
-				TargetPoints[TargetIndex + i] = SourcePoints[SourceIndices[i]];
+				TargetContainer[TargetIndex + i] = SourceContainer[*(SourceIndices->GetData() + i)];
 			}
 		}
 		else
@@ -1075,10 +1080,10 @@ namespace PCGEx
 			for (int i = 0; i < NumIndices; i++)
 			{
 				const int32 WriteIndex = TargetIndex + i;
-				const PCGMetadataEntryKey Key = TargetPoints[WriteIndex].MetadataEntry;
+				const PCGMetadataEntryKey Key = TargetContainer[WriteIndex].MetadataEntry;
 
-				const FPCGPoint& SourcePt = SourcePoints[SourceIndices[i]];
-				FPCGPoint& TargetPt = TargetPoints[WriteIndex] = SourcePt;
+				const FPCGPoint& SourcePt = SourceContainer[*(SourceIndices->GetData() + i)];
+				FPCGPoint& TargetPt = TargetContainer[WriteIndex] = SourcePt;
 				TargetPt.MetadataEntry = Key;
 			}
 		}

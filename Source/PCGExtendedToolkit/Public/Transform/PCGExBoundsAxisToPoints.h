@@ -10,18 +10,39 @@
 #include "PCGExTransform.h"
 #include "Data/PCGExDataForward.h"
 
-#include "PCGExBoundsAxisToPointsSelection.generated.h"
+#include "PCGExBoundsAxisToPoints.generated.h"
 
 class FPCGExComputeIOBounds;
 
 UENUM()
-enum class EPCGExBoundsAxisToPointsSelection : uint8
+enum class EPCGExBoundAxisPriority : uint8
 {
-	Shortest      = 0 UMETA(DisplayName = "Shortest", ToolTip="Shortest axis. May be zero if the bounds have a zero-sized axis."),
-	NextShortest  = 1 UMETA(DisplayName = "Next Shortest", ToolTip="Next shortest axis. May be zero if the bounds have two zero-sized axis."),
-	Longest       = 2 UMETA(DisplayName = "Longest", ToolTip="Longest axis"),
-	NextLongest   = 3 UMETA(DisplayName = "Next Longest", ToolTip="The axis that comes just before the longest one."),
-	ShortestAbove = 4 UMETA(DisplayName = "Shortest Above Threshold", ToolTip="Shortest axis above specified tolerance. If all axis are below, will fallback"),
+	Shortest = 0 UMETA(DisplayName = "Shortest", ToolTip="Shortest axis"),
+	Longest  = 1 UMETA(DisplayName = "Longest", ToolTip="Longest axis"),
+	Median   = 2 UMETA(DisplayName = "Median", ToolTip="The leftover axis, that is neither the shortest nor the longest.")
+};
+
+UENUM()
+enum class EPCGExAxisDirectionConstraint : uint8
+{
+	None  = 0 UMETA(DisplayName = "None", ToolTip="..."),
+	Avoid = 1 UMETA(DisplayName = "Avoid", ToolTip="..."),
+	Favor = 2 UMETA(DisplayName = "Favor", ToolTip="..."),
+};
+
+UENUM()
+enum class EPCGExAxisSizeConstraint : uint8
+{
+	None    = 0 UMETA(DisplayName = "None", ToolTip="..."),
+	Greater = 1 UMETA(DisplayName = "Greater", ToolTip="..."),
+	Smaller = 1 UMETA(DisplayName = "Smaller", ToolTip="..."),
+};
+
+UENUM()
+enum class EPCGExAxisConstraintSorting : uint8
+{
+	SizeMatters      = 0 UMETA(DisplayName = "Size matters more", ToolTip="..."),
+	DirectionMatters = 1 UMETA(DisplayName = "Direction matters more", ToolTip="..."),
 };
 
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc")
@@ -53,23 +74,39 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	EPCGExPointBoundsSource BoundsReference = EPCGExPointBoundsSource::ScaledBounds;
 
-	/**  */
+	/** Which initial direction should initially picked. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
-	EPCGExBoundsAxisToPointsSelection Selection = EPCGExBoundsAxisToPointsSelection::ShortestAbove;
+	EPCGExBoundAxisPriority Priority = EPCGExBoundAxisPriority::Shortest;
+
+	/** Shifts the axis selection based on whether the selected axis points toward or away from a static direction. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	EPCGExAxisDirectionConstraint DirectionConstraint = EPCGExAxisDirectionConstraint::Avoid;
 
 	/**  */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName=" └─ Threshold", EditCondition="Selection==EPCGExBoundsAxisToPointsSelection::ShortestAbove", ClampMin = 0, EditConditionHides))
-	double Threshold = 1;
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName=" └─ Direction", EditCondition="DirectionConstraint != EPCGExAxisDirectionConstraint::None", EditConditionHides))
+	FVector Direction = FVector::UpVector;
+
+	/** Shifts the axis selection based on whether its size is greater or smaller than a given threshold. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	EPCGExAxisSizeConstraint SizeConstraint = EPCGExAxisSizeConstraint::Greater;
 
 	/**  */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName=" └─ Threshold", EditCondition="SizeConstraint != EPCGExAxisSizeConstraint::None", EditConditionHides))
+	double SizeThreshold = 0.1;
+
+	/** In which order shifting should be processed, as one is likely to override the other. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="DirectionConstraint != EPCGExAxisDirectionConstraint::None && SizeConstraint != EPCGExAxisSizeConstraint::None", EditConditionHides))
+	EPCGExAxisConstraintSorting ConstraintsOrder = EPCGExAxisConstraintSorting::DirectionMatters;
+
+	/** Extent factor at which the points will be created on the selected world-align axis */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	double U = 1;
 
-	/** Generates a point collections per generated point */
+	/**  */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, InlineEditConditionToggle))
 	bool bSetExtents = true;
 
-	/**  */
+	/** Set the output point' extent to this value */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bSetExtents"))
 	FVector Extents = FVector(0.5);
 
@@ -77,7 +114,7 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, InlineEditConditionToggle))
 	bool bSetScale = true;
 
-	/**  */
+	/**  Set the output point' scale to this value */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bSetScale"))
 	FVector Scale = FVector::OneVector;
 
