@@ -202,7 +202,6 @@ namespace PCGExMT
 		FName GroupName = NAME_None;
 
 	public:
-		int8 bAvailable = 1;
 		using SimpleCallback = std::function<void()>;
 
 		using CompletionCallback = std::function<void()>;
@@ -225,6 +224,16 @@ namespace PCGExMT
 
 		~FTaskGroup()
 		{
+		}
+
+		void Cancel()
+		{
+			bCanceled = true;
+		}
+
+		bool IsCanceled() const
+		{
+			return bCanceled;
 		}
 
 		bool IsAvailable() const;
@@ -299,6 +308,9 @@ namespace PCGExMT
 			if (Manager->ForceSync) { Manager->StartSynchronousTask(InTask, SharedThis(this)); }
 			else { Manager->StartBackgroundTask(InTask, SharedThis(this)); }
 		}
+
+	private:
+		std::atomic<bool> bCanceled{false};
 	};
 
 	class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExTask : public TSharedFromThis<FPCGExTask>

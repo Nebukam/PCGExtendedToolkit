@@ -2,9 +2,7 @@
 // Released under the MIT license https://opensource.org/license/MIT/
 
 #include "Graph/PCGExPackClusters.h"
-
 #include "Data/PCGExPointIOMerger.h"
-
 
 #include "Geometry/PCGExGeoDelaunay.h"
 
@@ -44,80 +42,99 @@ bool FPCGExPackClustersElement::ExecuteInternal(
 {
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExPackClustersElement::Execute);
 
-	PCGEX_CONTEXT(PackClusters)
+	PCGEX_CONTEXT_AND_SETTINGS(PackClusters)
 	PCGEX_EXECUTION_CHECK
-
 	PCGEX_ON_INITIAL_EXECUTION
 	{
-		Context->SetState(PCGEx::State_ReadyForNextPoints);
-	}
-
-	PCGEX_ON_STATE(PCGEx::State_ReadyForNextPoints)
-	{
-		int32 IOIndex = 0;
-
-		const TSharedPtr<PCGExMT::FTaskManager> AsyncManager = Context->GetAsyncManager();
-		while (Context->AdvancePointsIO(false))
-		{
-			if (!Context->TaggedEdges) { continue; }
-
-			for (const TSharedRef<PCGExData::FPointIO>& EdgeIO : Context->TaggedEdges->Entries)
+		if (!Context->StartProcessingClusters<PCGExClusterMT::TBatch<PCGExPackClusters::FProcessor>>(
+			[&](const TSharedPtr<PCGExData::FPointIOTaggedEntries>& Entries) { return true; },
+			[&](const TSharedPtr<PCGExClusterMT::TBatch<PCGExPackClusters::FProcessor>>& NewBatch)
 			{
-				PCGEX_START_TASK(FPCGExPackClusterTask, Context->CurrentIO, EdgeIO, Context->EndpointsLookup)
-			}
+			}))
+		{
+			Context->CancelExecution(TEXT("Could not build any clusters."));
 		}
-
-		Context->SetAsyncState(PCGEx::State_WaitingOnAsyncWork);
 	}
 
-	PCGEX_ON_ASYNC_STATE_READY(PCGEx::State_WaitingOnAsyncWork)
-	{
-		Context->Done();
-		Context->PackedClusters->StageOutputs();
-	}
-
+	PCGEX_CLUSTER_BATCH_PROCESSING(PCGEx::State_Done)
+	Context->PackedClusters->StageOutputs();
 	return Context->TryComplete();
 }
 
-void FPCGExPackClusterTask::ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager, const TSharedPtr<PCGExMT::FTaskGroup>& InGroup)
+namespace PCGExPackClusters
 {
-	FPCGExPackClustersContext* Context = AsyncManager->GetContext<FPCGExPackClustersContext>();
-	PCGEX_SETTINGS(PackClusters)
-
-	const TSharedPtr<PCGEx::FAttributesInfos> VtxAttributes = PCGEx::FAttributesInfos::Get(PointIO->GetIn()->Metadata);
-
-	const TSharedPtr<PCGExData::FPointIO> PackedIO = Context->PackedClusters->Emplace_GetRef(InEdges);
-	PackedIO->InitializeOutput<UPCGPointData>(PCGExData::EIOInit::Duplicate);
-
-	int32 NumEdges = 0;
-	TArray<int32> ReducedVtxIndices;
-
-	if (!PCGExGraph::GetReducedVtxIndices(InEdges, &EndpointsLookup, ReducedVtxIndices, NumEdges)) { return; }
-
-	TArray<FPCGPoint>& MutablePoints = PackedIO->GetOut()->GetMutablePoints();
-	MutablePoints.SetNum(NumEdges + ReducedVtxIndices.Num());
-
-	PackedIO->CleanupKeys();
-
-	const TArrayView<const int32> View = MakeArrayView(ReducedVtxIndices);
-	PCGEx::CopyPoints(PointIO.Get(), PackedIO.Get(), View, NumEdges);
-
-	for (const PCGEx::FAttributeIdentity& Identity : VtxAttributes->Identities)
+	bool FProcessor::Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager)
 	{
-		CopyValues(AsyncManager, Identity, PointIO, PackedIO, View, NumEdges);
+		if (!TProcessor::Process(InAsyncManager)) { return false; }
+
+		PCGEx::InitArray(ReducedVtxIndex, NumNodes);
+		for (int i = 0; i < NumNodes; i++) { *(ReducedVtxIndex->GetData() + i) = Cluster->GetNodePointIndex(i); }
+
+		PackedIO = Context->PackedClusters->Emplace_GetRef(EdgeDataFacade->Source, PCGExData::EIOInit::Duplicate);
+		PackedIOFacade = MakeShared<PCGExData::FFacade>(PackedIO.ToSharedRef());
+
+
+		VtxStartIndex = PackedIO->GetNum();
+		NumIndices = ReducedVtxIndex->Num();
+
+		if (VtxStartIndex <= 0) { return false; }
+		if (NumIndices <= 0) { return false; }
+
+		FString OutPairId;
+		PackedIO->Tags->Add(PCGExGraph::TagStr_ClusterPair, EdgeDataFacade->GetIn()->GetUniqueID(), OutPairId);
+		WriteMark(PackedIO.ToSharedRef(), PCGExGraph::Tag_PackedClusterEdgeCount, NumEdges);
+
+		// Copy vtx points after edge points
+		const TArray<FPCGPoint>& VtxPoints = VtxDataFacade->GetIn()->GetPoints();
+		TArray<FPCGPoint>& PackedPoints = PackedIO->GetMutablePoints();
+
+		PackedPoints.SetNumUninitialized(PackedPoints.Num() + NumIndices);
+
+		for (int i = 0; i < NumIndices; i++)
+		{
+			PackedPoints[VtxStartIndex + i] = VtxPoints[*(ReducedVtxIndex->GetData() + i)];
+			PackedPoints[VtxStartIndex + i].MetadataEntry = PCGInvalidEntryKey;
+		}
+
+		//
+		VtxAttributes = PCGEx::FAttributesInfos::Get(VtxDataFacade->GetIn()->Metadata);
+		if (VtxAttributes->Identities.IsEmpty()) { return true; }
+
+		PCGEX_ASYNC_GROUP_CHKD(AsyncManager, CopyVtxAttributes)
+
+		CopyVtxAttributes->OnIterationCallback = [PCGEX_ASYNC_THIS_CAPTURE]
+			(const int32 Index, const PCGExMT::FScope& Scope)
+			{
+				PCGEX_ASYNC_THIS
+
+				const PCGEx::FAttributeIdentity& Identity = This->VtxAttributes->Identities[Index];
+
+				PCGEx::ExecuteWithRightType(
+					Identity.UnderlyingType, [&](auto DummyValue)
+					{
+						using T = decltype(DummyValue);
+						TArray<T> RawValues;
+
+						TSharedPtr<PCGExData::TBuffer<T>> InValues = This->VtxDataFacade->GetReadable<T>(Identity.Name);
+						TSharedPtr<PCGExData::TBuffer<T>> OutValues = This->PackedIOFacade->GetWritable<T>(InValues->GetTypedInAttribute(), PCGExData::EBufferInit::New);
+
+						const TArray<int32>& ReducedVtxIndices = *This->ReducedVtxIndex;
+						for (int i = 0; i < ReducedVtxIndices.Num(); i++) { OutValues->GetMutable(This->VtxStartIndex + i) = InValues->Read(ReducedVtxIndices[i]); }
+					});
+			};
+
+		CopyVtxAttributes->StartIterations(VtxAttributes->Identities.Num(), 1, false);
+
+		Context->CarryOverDetails.Filter(PackedIO->Tags.Get());
+
+		return true;
 	}
 
-	WriteMark(PackedIO.ToSharedRef(), PCGExGraph::Tag_PackedClusterEdgeCount, NumEdges);
-
-	PCGExGraph::CleanupClusterTags(PackedIO);
-
-	FString OutPairId;
-	PackedIO->Tags->Add(PCGExGraph::TagStr_ClusterPair, InEdges->GetIn()->GetUniqueID(), OutPairId);
-
-	InEdges->CleanupKeys();
-
-	Context->CarryOverDetails.Filter(PointIO->Tags.Get());
-	Context->CarryOverDetails.Filter(InEdges->Tags.Get());
+	void FProcessor::CompleteWork()
+	{
+		TProcessor<FPCGExPackClustersContext, UPCGExPackClustersSettings>::CompleteWork();
+		PackedIOFacade->Write(AsyncManager);
+	}
 }
 
 #undef LOCTEXT_NAMESPACE

@@ -733,41 +733,6 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 		return Metadata->GetConstTypedAttribute<int64>(Tag_EdgeEndpoints) ? true : false;
 	}
 
-	static bool GetReducedVtxIndices(const TSharedPtr<PCGExData::FPointIO>& InEdges, const TMap<uint32, int32>* NodeIndicesMap, TArray<int32>& OutVtxIndices, int32& OutEdgeNum)
-	{
-		const TUniquePtr<PCGExData::TBuffer<int64>> EndpointsBuffer = MakeUnique<PCGExData::TBuffer<int64>>(InEdges.ToSharedRef(), Tag_EdgeEndpoints);
-		if (!EndpointsBuffer->PrepareRead()) { return false; }
-
-		const TArray<int64>& Endpoints = *EndpointsBuffer->GetInValues().Get();
-
-		OutEdgeNum = Endpoints.Num();
-
-		OutVtxIndices.Empty();
-
-		TSet<int32> UniqueVtx;
-		UniqueVtx.Reserve(OutEdgeNum * 2);
-
-		for (int i = 0; i < OutEdgeNum; i++)
-		{
-			uint32 A;
-			uint32 B;
-			PCGEx::H64(Endpoints[i], A, B);
-
-			const int32* NodeStartPtr = NodeIndicesMap->Find(A);
-			const int32* NodeEndPtr = NodeIndicesMap->Find(B);
-
-			if (!NodeStartPtr || !NodeEndPtr || (*NodeStartPtr == *NodeEndPtr)) { continue; }
-
-			UniqueVtx.Add(*NodeStartPtr);
-			UniqueVtx.Add(*NodeEndPtr);
-		}
-
-		OutVtxIndices.Append(UniqueVtx.Array());
-		UniqueVtx.Empty();
-
-		return true;
-	}
-
 	static void CleanupVtxData(const TSharedPtr<PCGExData::FPointIO>& PointIO)
 	{
 		UPCGMetadata* Metadata = PointIO->GetOut()->Metadata;

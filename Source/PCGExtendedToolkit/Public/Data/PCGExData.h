@@ -919,35 +919,6 @@ namespace PCGExData
 		return const_cast<UPCGPointData*>(PointData);
 	}
 
-	static void CopyValues(
-		const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager,
-		const PCGEx::FAttributeIdentity& Identity,
-		const TSharedPtr<FPointIO>& Source,
-		const TSharedPtr<FPointIO>& Target,
-		const TArrayView<const int32>& SourceIndices,
-		const int32 TargetIndex = 0)
-	{
-		PCGEx::ExecuteWithRightType(
-			Identity.UnderlyingType, [&](auto DummyValue)
-			{
-				using T = decltype(DummyValue);
-				TArray<T> RawValues;
-
-				// 'template' spec required for clang on mac, not sure why.
-				// ReSharper disable once CppRedundantTemplateKeyword
-				const FPCGMetadataAttribute<T>* SourceAttribute = Source->GetIn()->Metadata->template GetConstTypedAttribute<T>(Identity.Name);
-
-				PCGEX_MAKE_SHARED(TargetBuffer, TBuffer<T>, Target.ToSharedRef(), Identity.Name)
-				TargetBuffer->PrepareWrite(SourceAttribute->GetValue(PCGDefaultValueKey), SourceAttribute->AllowsInterpolation(), EBufferInit::New);
-
-				TUniquePtr<FPCGAttributeAccessor<T>> InAccessor = MakeUnique<FPCGAttributeAccessor<T>>(SourceAttribute, Source->GetIn()->Metadata);
-				TArrayView<T> InRange = MakeArrayView(TargetBuffer->GetOutValues()->GetData() + TargetIndex, SourceIndices.Num());
-				InAccessor->GetRange(InRange, 0, *Source->GetInKeys());
-
-				PCGExMT::Write(AsyncManager, TargetBuffer);
-			});
-	}
-
 #pragma endregion
 
 	static TSharedPtr<FFacade> TryGetSingleFacade(FPCGExContext* InContext, const FName InputPinLabel, const bool bThrowError)
