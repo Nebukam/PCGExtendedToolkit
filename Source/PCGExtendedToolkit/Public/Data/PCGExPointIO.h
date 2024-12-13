@@ -130,7 +130,7 @@ namespace PCGExData
 		template <typename T>
 		void InitializeOutput(const EIOInit InitOut = EIOInit::None)
 		{
-			if (Out && Out != In) { Context->ManagedObjects->Destroy(Out); }
+			if (IsValid(Out) && Out != In) { Context->ManagedObjects->Destroy(Out); }
 
 			bMutable = true;
 
@@ -141,7 +141,7 @@ namespace PCGExData
 				Out = Cast<UPCGPointData>(TypedOut);
 				check(Out)
 
-				if (In) { Out->InitializeFromData(In); }
+				if (IsValid(In)) { Out->InitializeFromData(In); }
 				const UPCGExPointData* TypedPointData = Cast<UPCGExPointData>(In);
 				UPCGExPointData* TypedOutPointData = Cast<UPCGExPointData>(TypedOut);
 				if (TypedPointData && TypedOutPointData) { TypedOutPointData->InitializeFromPCGExData(TypedPointData, EIOInit::New); }

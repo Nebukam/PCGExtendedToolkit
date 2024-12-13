@@ -108,7 +108,7 @@ namespace PCGExMT
 
 		FWriteScopeLock WriteLock(ManagerLock);
 
-		for (const TSharedPtr<FTaskGroup>& Group : Groups) { FPlatformAtomics::InterlockedExchange(&Group->bAvailable, 0); }
+		for (const TSharedPtr<FTaskGroup>& Group : Groups) { Group->Cancel(); }
 		for (const TSharedPtr<FPCGExTask>& Task : QueuedTasks) { Task->Cancel(); }
 
 		QueuedTasks.Empty();
@@ -161,7 +161,7 @@ namespace PCGExMT
 
 	bool FTaskGroup::IsAvailable() const
 	{
-		return bAvailable && Manager->IsAvailable();
+		return !IsCanceled() && Manager->IsAvailable();
 	}
 
 	void FTaskGroup::StartIterations(const int32 MaxItems, const int32 ChunkSize, const bool bInlined)
