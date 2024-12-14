@@ -40,17 +40,39 @@ bool PCGExPointsFilter::TBoundsFilter::Init(FPCGExContext* InContext, const TSha
 
 	BoundsTarget = TypedFilterFactory->Config.BoundsTarget;
 
+#define PCGEX_TEST_BOUNDS(_NAME, _BOUNDS, _TEST)\
+case EPCGExBoxCheckMode::_TEST: BoundCheck = [&](const FPCGPoint& Point) { return Cloud->_NAME<EPCGExPointBoundsSource::_BOUNDS, EPCGExBoxCheckMode::_TEST>(Point); }; break;
+#define PCGEX_TEST_BOUNDS_INV(_NAME, _BOUNDS, _TEST)\
+case EPCGExBoxCheckMode::_TEST: BoundCheck = [&](const FPCGPoint& Point) { return !Cloud->_NAME<EPCGExPointBoundsSource::_BOUNDS, EPCGExBoxCheckMode::_TEST>(Point); }; break;
+#define PCGEX_FOREACH_TESTTYPE(_NAME, _BOUNDS)\
+case EPCGExPointBoundsSource::_BOUNDS:\
+switch (TypedFilterFactory->Config.TestMode) { default: \
+PCGEX_TEST_BOUNDS(_NAME, _BOUNDS, Box)\
+PCGEX_TEST_BOUNDS(_NAME, _BOUNDS, ExpandedBox)\
+PCGEX_TEST_BOUNDS(_NAME, _BOUNDS, Sphere)\
+PCGEX_TEST_BOUNDS(_NAME, _BOUNDS, ExpandedSphere) }\
+break;
+
+#define PCGEX_FOREACH_TESTTYPE_INV(_NAME, _BOUNDS)\
+case EPCGExPointBoundsSource::_BOUNDS:\
+switch (TypedFilterFactory->Config.TestMode) { default: \
+PCGEX_TEST_BOUNDS_INV(_NAME, _BOUNDS, Box)\
+PCGEX_TEST_BOUNDS_INV(_NAME, _BOUNDS, ExpandedBox)\
+PCGEX_TEST_BOUNDS_INV(_NAME, _BOUNDS, Sphere)\
+PCGEX_TEST_BOUNDS_INV(_NAME, _BOUNDS, ExpandedSphere) }\
+break;
+
 #define PCGEX_FOREACH_BOUNDTYPE(_NAME)\
 if(TypedFilterFactory->Config.bInvert){\
 	switch (TypedFilterFactory->Config.BoundsSource) { default: \
-	case EPCGExPointBoundsSource::ScaledBounds: BoundCheck = [&](const FPCGPoint& Point) { return !Cloud->_NAME<EPCGExPointBoundsSource::ScaledBounds>(Point); }; break;\
-	case EPCGExPointBoundsSource::DensityBounds: BoundCheck = [&](const FPCGPoint& Point) { return !Cloud->_NAME<EPCGExPointBoundsSource::DensityBounds>(Point); }; break;\
-	case EPCGExPointBoundsSource::Bounds: BoundCheck = [&](const FPCGPoint& Point) { return !Cloud->_NAME<EPCGExPointBoundsSource::Bounds>(Point); }; break;}\
+	PCGEX_FOREACH_TESTTYPE_INV(_NAME, ScaledBounds)\
+	PCGEX_FOREACH_TESTTYPE_INV(_NAME, DensityBounds)\
+	PCGEX_FOREACH_TESTTYPE_INV(_NAME, Bounds)}\
 	}else{\
 	switch (TypedFilterFactory->Config.BoundsSource) { default: \
-	case EPCGExPointBoundsSource::ScaledBounds: BoundCheck = [&](const FPCGPoint& Point) { return Cloud->_NAME<EPCGExPointBoundsSource::ScaledBounds>(Point); }; break;\
-	case EPCGExPointBoundsSource::DensityBounds: BoundCheck = [&](const FPCGPoint& Point) { return Cloud->_NAME<EPCGExPointBoundsSource::DensityBounds>(Point); }; break;\
-	case EPCGExPointBoundsSource::Bounds: BoundCheck = [&](const FPCGPoint& Point) { return Cloud->_NAME<EPCGExPointBoundsSource::Bounds>(Point); }; break;} }
+	PCGEX_FOREACH_TESTTYPE(_NAME, ScaledBounds)\
+	PCGEX_FOREACH_TESTTYPE(_NAME, DensityBounds)\
+	PCGEX_FOREACH_TESTTYPE(_NAME, Bounds)}}
 
 	if (TypedFilterFactory->Config.Mode == EPCGExBoundsFilterCompareMode::PerPointBounds)
 	{
@@ -91,7 +113,10 @@ if(TypedFilterFactory->Config.bInvert){\
 		}
 	}
 
-
+#undef PCGEX_TEST_BOUNDS
+#undef PCGEX_TEST_BOUNDS_INV
+#undef PCGEX_FOREACH_TESTTYPE
+#undef PCGEX_FOREACH_TESTTYPE_INV
 #undef PCGEX_FOREACH_BOUNDTYPE
 
 	return true;

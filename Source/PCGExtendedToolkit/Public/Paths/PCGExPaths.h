@@ -194,7 +194,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPathFilterSettings
 
 namespace PCGExPaths
 {
-	PCGEX_ASYNC_STATE(State_BuildingPaths)
+	PCGEX_CTX_STATE(State_BuildingPaths)
 
 	const FName SourceCanCutFilters = TEXT("Can Cut Conditions");
 	const FName SourceCanBeCutFilters = TEXT("Can Be Cut Conditions");

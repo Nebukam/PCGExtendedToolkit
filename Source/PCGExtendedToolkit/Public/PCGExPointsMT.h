@@ -12,9 +12,9 @@
 
 namespace PCGExPointsMT
 {
-	PCGEX_ASYNC_STATE(MTState_PointsProcessing)
-	PCGEX_ASYNC_STATE(MTState_PointsCompletingWork)
-	PCGEX_ASYNC_STATE(MTState_PointsWriting)
+	PCGEX_CTX_STATE(MTState_PointsProcessing)
+	PCGEX_CTX_STATE(MTState_PointsCompletingWork)
+	PCGEX_CTX_STATE(MTState_PointsWriting)
 
 #define PCGEX_ASYNC_MT_LOOP_TPL(_ID, _INLINE_CONDITION, _BODY)\
 	if (_INLINE_CONDITION)  { \
@@ -299,7 +299,7 @@ namespace PCGExPointsMT
 
 		mutable FRWLock BatchLock;
 
-		PCGEx::AsyncState CurrentState = PCGEx::State_InitialExecution;
+		PCGEx::ContextState CurrentState = PCGEx::State_InitialExecution;
 
 		FPCGExContext* ExecutionContext = nullptr;
 
@@ -361,7 +361,7 @@ namespace PCGExPointsMT
 
 		virtual int32 GetNumProcessors() const override { return Processors.Num(); }
 
-		PCGEx::AsyncState CurrentState = PCGEx::State_InitialExecution;
+		PCGEx::ContextState CurrentState = PCGEx::State_InitialExecution;
 
 		TBatch(FPCGExContext* InContext, const TArray<TWeakPtr<PCGExData::FPointIO>>& InPointsCollection):
 			FPointsProcessorBatchBase(InContext, InPointsCollection)

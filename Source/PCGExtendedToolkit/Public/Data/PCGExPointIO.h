@@ -71,6 +71,7 @@ namespace PCGExData
 	protected:
 		bool bMutable = false;
 		FPCGExContext* Context = nullptr;
+		TSharedPtr<PCGEx::FLifecycle> Lifecycle;
 
 		mutable FRWLock PointsLock;
 		mutable FRWLock InKeysLock;
@@ -96,19 +97,19 @@ namespace PCGExData
 		bool bAllowEmptyOutput = false;
 
 		explicit FPointIO(FPCGExContext* InContext):
-			Context(InContext), In(nullptr)
+			Context(InContext), Lifecycle(Context->Lifecycle), In(nullptr)
 		{
 			PCGEX_LOG_CTR(FPointIO)
 		}
 
 		explicit FPointIO(FPCGExContext* InContext, const UPCGPointData* InData):
-			Context(InContext), In(InData)
+			Context(InContext), Lifecycle(Context->Lifecycle), In(InData)
 		{
 			PCGEX_LOG_CTR(FPointIO)
 		}
 
 		explicit FPointIO(const TSharedRef<FPointIO>& InPointIO):
-			Context(InPointIO->GetContext()), In(InPointIO->GetIn())
+			Context(InPointIO->GetContext()), Lifecycle(InPointIO->Lifecycle), In(InPointIO->GetIn())
 		{
 			PCGEX_LOG_CTR(FPointIO)
 			RootIO = InPointIO;
@@ -125,11 +126,13 @@ namespace PCGExData
 		              const FName InOutputPin,
 		              const TSet<FString>* InTags = nullptr);
 
-		void InitializeOutput(EIOInit InitOut = EIOInit::None);
+		bool InitializeOutput(EIOInit InitOut = EIOInit::None);
 
 		template <typename T>
-		void InitializeOutput(const EIOInit InitOut = EIOInit::None)
+		bool InitializeOutput(const EIOInit InitOut = EIOInit::None)
 		{
+			if (!Lifecycle->IsAlive()) { return false; }
+
 			if (IsValid(Out) && Out != In) { Context->ManagedObjects->Destroy(Out); }
 
 			bMutable = true;
@@ -146,7 +149,7 @@ namespace PCGExData
 				UPCGExPointData* TypedOutPointData = Cast<UPCGExPointData>(TypedOut);
 				if (TypedPointData && TypedOutPointData) { TypedOutPointData->InitializeFromPCGExData(TypedPointData, EIOInit::New); }
 
-				return;
+				return true;
 			}
 
 			if (InitOut == EIOInit::Duplicate)
@@ -168,10 +171,10 @@ namespace PCGExData
 					Out = Context->ManagedObjects->Duplicate<UPCGPointData>(In);
 				}
 
-				return;
+				return true;
 			}
 
-			InitializeOutput(InitOut);
+			return InitializeOutput(InitOut);
 		}
 
 		~FPointIO();
@@ -358,7 +361,7 @@ namespace PCGExData
 			FWriteScopeLock WriteLock(PairsLock);
 			TSharedPtr<FPointIO> NewIO = Pairs.Add_GetRef(MakeShared<FPointIO>(Context, In));
 			NewIO->SetInfos(Pairs.Num() - 1, OutputPin, Tags);
-			NewIO->InitializeOutput<T>(InitOut);
+			if (!NewIO->InitializeOutput<T>(InitOut)) { return nullptr; }
 			return NewIO;
 		}
 
@@ -368,7 +371,7 @@ namespace PCGExData
 			FWriteScopeLock WriteLock(PairsLock);
 			TSharedPtr<FPointIO> NewIO = Pairs.Add_GetRef(MakeShared<FPointIO>(Context));
 			NewIO->SetInfos(Pairs.Num() - 1, OutputPin);
-			NewIO->InitializeOutput<T>(InitOut);
+			if (!NewIO->InitializeOutput<T>(InitOut)) { return nullptr; }
 			return NewIO;
 		}
 
@@ -376,6 +379,8 @@ namespace PCGExData
 		TSharedPtr<FPointIO> Emplace_GetRef(const TSharedPtr<FPointIO>& PointIO, const EIOInit InitOut = EIOInit::None)
 		{
 			TSharedPtr<FPointIO> Branch = Emplace_GetRef<T>(PointIO->GetIn(), InitOut);
+			if (!Branch) { return nullptr; }
+
 			Branch->Tags->Reset(PointIO->Tags);
 			Branch->RootIO = PointIO;
 			return Branch;

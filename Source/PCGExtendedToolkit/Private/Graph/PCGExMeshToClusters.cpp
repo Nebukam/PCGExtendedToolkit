@@ -240,6 +240,8 @@ namespace PCGExMeshToCluster
 		}
 
 		const TSharedPtr<PCGExData::FPointIO> RootVtx = Context->RootVtx->Emplace_GetRef<UPCGExClusterNodesData>();
+		if (!RootVtx) { return; }
+		
 		RootVtx->IOIndex = TaskIndex;
 		TArray<FPCGPoint>& VtxPoints = RootVtx->GetOut()->GetMutablePoints();
 		VtxPoints.SetNum(Mesh->Vertices.Num());

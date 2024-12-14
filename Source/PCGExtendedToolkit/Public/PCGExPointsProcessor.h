@@ -133,7 +133,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPointsProcessorContext : FPCGExContext
 #pragma region Batching
 
 	bool bBatchProcessingEnabled = false;
-	bool ProcessPointsBatch(const PCGEx::AsyncState NextStateId, const bool bIsNextStateAsync = false);
+	bool ProcessPointsBatch(const PCGEx::ContextState NextStateId, const bool bIsNextStateAsync = false);
 
 	TSharedPtr<PCGExPointsMT::FPointsProcessorBatchBase> MainBatch;
 	TMap<PCGExData::FPointIO*, TSharedRef<PCGExPointsMT::FPointsProcessor>> SubProcessorMap;

@@ -17,9 +17,9 @@
 
 namespace PCGExClusterMT
 {
-	PCGEX_ASYNC_STATE(MTState_ClusterProcessing)
-	PCGEX_ASYNC_STATE(MTState_ClusterCompletingWork)
-	PCGEX_ASYNC_STATE(MTState_ClusterWriting)
+	PCGEX_CTX_STATE(MTState_ClusterProcessing)
+	PCGEX_CTX_STATE(MTState_ClusterCompletingWork)
+	PCGEX_CTX_STATE(MTState_ClusterWriting)
 
 #pragma region Tasks
 
@@ -533,7 +533,7 @@ namespace PCGExClusterMT
 		TArray<TSharedRef<T>> Processors;
 		TArray<TSharedRef<T>> TrivialProcessors;
 
-		PCGEx::AsyncState CurrentState = PCGEx::State_InitialExecution;
+		PCGEx::ContextState CurrentState = PCGEx::State_InitialExecution;
 
 		virtual int32 GetNumProcessors() const override { return Processors.Num(); }
 

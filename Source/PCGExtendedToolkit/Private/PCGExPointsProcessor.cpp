@@ -76,7 +76,7 @@ bool FPCGExPointsProcessorContext::AdvancePointsIO(const bool bCleanupKeys)
 
 #pragma endregion
 
-bool FPCGExPointsProcessorContext::ProcessPointsBatch(const PCGEx::AsyncState NextStateId, const bool bIsNextStateAsync)
+bool FPCGExPointsProcessorContext::ProcessPointsBatch(const PCGEx::ContextState NextStateId, const bool bIsNextStateAsync)
 {
 	if (!bBatchProcessingEnabled) { return true; }
 

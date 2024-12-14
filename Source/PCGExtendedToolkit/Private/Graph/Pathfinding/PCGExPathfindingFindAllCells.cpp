@@ -170,14 +170,16 @@ namespace PCGExFindAllCells
 
 	void FProcessor::ProcessCell(const TSharedPtr<PCGExTopology::FCell>& InCell) const
 	{
-		TSharedRef<PCGExData::FPointIO> PathIO = Context->Paths->Emplace_GetRef<UPCGPointData>(VtxDataFacade->Source, PCGExData::EIOInit::New).ToSharedRef();
+		const TSharedPtr<PCGExData::FPointIO> PathIO = Context->Paths->Emplace_GetRef<UPCGPointData>(VtxDataFacade->Source, PCGExData::EIOInit::New);
+		if (!PathIO) { return; }
+		
 		PathIO->Tags->Reset();                                          // Tag forwarding handled by artifacts
 		PathIO->IOIndex = Cluster->GetEdge(InCell->Seed.Edge)->IOIndex; // Enforce seed order for collection output-ish
 
 		PCGExGraph::CleanupClusterTags(PathIO, true);
 		PCGExGraph::CleanupVtxData(PathIO);
 
-		PCGEX_MAKE_SHARED(PathDataFacade, PCGExData::FFacade, PathIO)
+		PCGEX_MAKE_SHARED(PathDataFacade, PCGExData::FFacade, PathIO.ToSharedRef())
 
 		TArray<FPCGPoint> MutablePoints;
 		MutablePoints.Reserve(InCell->Nodes.Num());

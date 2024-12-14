@@ -164,14 +164,16 @@ namespace PCGExFindContours
 
 	void FProcessor::ProcessCell(const int32 SeedIndex, const TSharedPtr<PCGExTopology::FCell>& InCell) const
 	{
-		TSharedRef<PCGExData::FPointIO> PathIO = Context->Paths->Emplace_GetRef<UPCGPointData>(VtxDataFacade->Source, PCGExData::EIOInit::New).ToSharedRef();
+		TSharedPtr<PCGExData::FPointIO> PathIO = Context->Paths->Emplace_GetRef<UPCGPointData>(VtxDataFacade->Source, PCGExData::EIOInit::New);
+		if (!PathIO) { return; }
+
 		PathIO->Tags->Reset();       // Tag forwarding handled by artifacts
 		PathIO->IOIndex = SeedIndex; // Enforce seed order for collection output
 
 		PCGExGraph::CleanupClusterTags(PathIO, true);
 		PCGExGraph::CleanupVtxData(PathIO);
 
-		PCGEX_MAKE_SHARED(PathDataFacade, PCGExData::FFacade, PathIO)
+		PCGEX_MAKE_SHARED(PathDataFacade, PCGExData::FFacade, PathIO.ToSharedRef())
 
 		TArray<FPCGPoint> MutablePoints;
 		MutablePoints.Reserve(InCell->Nodes.Num());

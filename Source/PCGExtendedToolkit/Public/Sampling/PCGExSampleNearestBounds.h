@@ -42,17 +42,17 @@ namespace PCGExNearestBounds
 		{
 		}
 
-		FSample(const PCGExGeo::FSample& InSample, const double InLength):
+		FSample(const PCGExGeo::FSample& InSample, const double InSizeSquared):
 			Index(InSample.BoxIndex),
-			Length(InLength),
-			Distance(InSample.Distances.Length()),
+			SizeSquared(InSizeSquared),
+			DistanceSquared(InSample.Distances.SizeSquared()),
 			Weight(InSample.Weight)
 		{
 		}
 
 		int32 Index = -1;
-		double Length = 0;
-		double Distance = 0;
+		double SizeSquared = 0;
+		double DistanceSquared = 0;
 		double Weight = 0;
 	};
 

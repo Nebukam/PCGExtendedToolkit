@@ -14,9 +14,9 @@
 
 namespace PCGEx
 {
-	PCGEX_ASYNC_STATE(InternalState_DiscoveringAssets)
-	PCGEX_ASYNC_STATE(InternalState_LoadingAssets)
-	PCGEX_ASYNC_STATE(InternalState_AssetsLoaded)
+	PCGEX_CTX_STATE(InternalState_DiscoveringAssets)
+	PCGEX_CTX_STATE(InternalState_LoadingAssets)
+	PCGEX_CTX_STATE(InternalState_AssetsLoaded)
 
 	template <typename T>
 	class TDiscoverAssetsTask;
@@ -37,7 +37,7 @@ namespace PCGEx
 		mutable FRWLock RegistrationLock;
 
 		TArray<FName> AttributeNames;
-		AsyncState ExitState = State_WaitingOnAsyncWork;
+		ContextState ExitState = State_WaitingOnAsyncWork;
 
 		TSet<FSoftObjectPath> UniquePaths;
 		TSharedPtr<FStreamableHandle> LoadHandle;
@@ -65,7 +65,7 @@ namespace PCGEx
 
 		FORCEINLINE TObjectPtr<T>* GetAsset(const FSoftObjectPath& Path) { return AssetsMap.Find(Path); }
 
-		bool Start(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager, const AsyncState InExitState)
+		bool Start(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager, const ContextState InExitState)
 		{
 			ExitState = InExitState;
 			Context->SetAsyncState(InternalState_DiscoveringAssets);

@@ -11,27 +11,28 @@
 
 namespace PCGEx
 {
-	using AsyncState = uint64;
+	using ContextState = uint64;
 
-#define PCGEX_ASYNC_STATE(_NAME) const PCGEx::AsyncState _NAME = GetTypeHash(FName(#_NAME));
+#define PCGEX_CTX_STATE(_NAME) const PCGEx::ContextState _NAME = GetTypeHash(FName(#_NAME));
 
-	PCGEX_ASYNC_STATE(State_Preparation)
-	PCGEX_ASYNC_STATE(State_LoadingAssetDependencies)
-	PCGEX_ASYNC_STATE(State_AsyncPreparation)
-	PCGEX_ASYNC_STATE(State_FacadePreloading)
+	PCGEX_CTX_STATE(State_Preparation)
+	PCGEX_CTX_STATE(State_LoadingAssetDependencies)
+	PCGEX_CTX_STATE(State_AsyncPreparation)
+	PCGEX_CTX_STATE(State_FacadePreloading)
 
-	PCGEX_ASYNC_STATE(State_InitialExecution)
-	PCGEX_ASYNC_STATE(State_ReadyForNextPoints)
-	PCGEX_ASYNC_STATE(State_ProcessingPoints)
+	PCGEX_CTX_STATE(State_InitialExecution)
+	PCGEX_CTX_STATE(State_ReadyForNextPoints)
+	PCGEX_CTX_STATE(State_ProcessingPoints)
 
-	PCGEX_ASYNC_STATE(State_WaitingOnAsyncWork)
-	PCGEX_ASYNC_STATE(State_Done)
+	PCGEX_CTX_STATE(State_WaitingOnAsyncWork)
+	PCGEX_CTX_STATE(State_Done)
 
-	PCGEX_ASYNC_STATE(State_Processing)
-	PCGEX_ASYNC_STATE(State_Completing)
-	PCGEX_ASYNC_STATE(State_Writing)
+	PCGEX_CTX_STATE(State_Processing)
+	PCGEX_CTX_STATE(State_Completing)
+	PCGEX_CTX_STATE(State_Writing)
 
-	PCGEX_ASYNC_STATE(State_UnionWriting)
+	PCGEX_CTX_STATE(State_UnionWriting)
+
 }
 
 struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExContext : FPCGContext
@@ -49,6 +50,7 @@ protected:
 	void CommitStagedOutputs();
 
 public:
+	TSharedPtr<PCGEx::FLifecycle> Lifecycle;
 	TSharedPtr<PCGEx::FManagedObjects> ManagedObjects;
 
 	bool bScopedAttributeGet = false;
@@ -68,13 +70,13 @@ public:
 	void UnpauseContext();
 
 	bool bAsyncEnabled = true;
-	void SetState(const PCGEx::AsyncState StateId);
-	void SetAsyncState(const PCGEx::AsyncState WaitState);
+	void SetState(const PCGEx::ContextState StateId);
+	void SetAsyncState(const PCGEx::ContextState WaitState);
 
 	virtual bool ShouldWaitForAsync();
 	void ReadyForExecution();
 
-	bool IsState(const PCGEx::AsyncState StateId) const { return CurrentState == StateId; }
+	bool IsState(const PCGEx::ContextState StateId) const { return CurrentState == StateId; }
 	bool IsInitialExecution() const { return IsState(PCGEx::State_InitialExecution); }
 	bool IsDone() const { return IsState(PCGEx::State_Done); }
 	void Done();
@@ -86,7 +88,7 @@ public:
 
 protected:
 	bool bWaitingForAsyncCompletion = false;
-	PCGEx::AsyncState CurrentState;
+	PCGEx::ContextState CurrentState;
 
 #pragma endregion
 
