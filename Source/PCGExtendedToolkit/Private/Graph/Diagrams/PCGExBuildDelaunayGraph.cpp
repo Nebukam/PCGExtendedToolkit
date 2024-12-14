@@ -109,7 +109,7 @@ namespace PCGExBuildDelaunay
 			return false;
 		}
 
-		PointDataFacade->Source->InitializeOutput<UPCGExClusterNodesData>(PCGExData::EIOInit::Duplicate);
+		if (!PointDataFacade->Source->InitializeOutput<UPCGExClusterNodesData>(PCGExData::EIOInit::Duplicate)) { return false; }
 
 		if (Settings->bUrquhart)
 		{
@@ -168,7 +168,7 @@ namespace PCGExBuildDelaunay
 		PCGEX_SETTINGS(BuildDelaunayGraph)
 
 		const TSharedPtr<PCGExData::FPointIO> SitesIO = NewPointIO(PointIO.ToSharedRef());
-		SitesIO->InitializeOutput(PCGExData::EIOInit::New);
+		if (!SitesIO->InitializeOutput(PCGExData::EIOInit::New)) { return; }
 
 		Context->MainSites->InsertUnsafe(Processor->BatchIndex, SitesIO);
 
@@ -210,7 +210,7 @@ namespace PCGExBuildDelaunay
 		PCGEX_SETTINGS(BuildDelaunayGraph)
 
 		const TSharedPtr<PCGExData::FPointIO> SitesIO = NewPointIO(PointIO.ToSharedRef());
-		SitesIO->InitializeOutput(PCGExData::EIOInit::New);
+		if (!SitesIO->InitializeOutput(PCGExData::EIOInit::New)) { return; }
 
 		Context->MainSites->InsertUnsafe(Processor->BatchIndex, SitesIO);
 

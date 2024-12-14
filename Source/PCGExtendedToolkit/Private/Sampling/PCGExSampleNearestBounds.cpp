@@ -16,26 +16,26 @@ namespace PCGExNearestBounds
 	{
 		UpdateCount++;
 
-		if (InSample.Distance < SampledRangeMin)
+		if (InSample.DistanceSquared < SampledRangeMin)
 		{
 			Closest = InSample;
-			SampledRangeMin = InSample.Distance;
+			SampledRangeMin = InSample.DistanceSquared;
 		}
-		else if (InSample.Distance > SampledRangeMax)
+		else if (InSample.DistanceSquared > SampledRangeMax)
 		{
 			Farthest = InSample;
-			SampledRangeMax = InSample.Distance;
+			SampledRangeMax = InSample.DistanceSquared;
 		}
 
-		if (InSample.Length > SampledLengthMax)
+		if (InSample.SizeSquared > SampledLengthMax)
 		{
 			Largest = InSample;
-			SampledLengthMax = InSample.Length;
+			SampledLengthMax = InSample.SizeSquared;
 		}
-		else if (InSample.Length < SampledLengthMin)
+		else if (InSample.SizeSquared < SampledLengthMin)
 		{
 			Smallest = InSample;
-			SampledLengthMin = InSample.Length;
+			SampledLengthMin = InSample.SizeSquared;
 		}
 	}
 
@@ -44,13 +44,13 @@ namespace PCGExNearestBounds
 		UpdateCount++;
 
 		Closest = InSample;
-		SampledRangeMin = InSample.Distance;
+		SampledRangeMin = InSample.DistanceSquared;
 		Farthest = InSample;
-		SampledRangeMax = InSample.Distance;
+		SampledRangeMax = InSample.DistanceSquared;
 		Largest = InSample;
-		SampledLengthMax = InSample.Length;
+		SampledLengthMax = InSample.SizeSquared;
 		Smallest = InSample;
-		SampledLengthMin = InSample.Length;
+		SampledLengthMin = InSample.SizeSquared;
 	}
 }
 
@@ -247,16 +247,16 @@ namespace PCGExSampleNearestBounds
 					if (Settings->SampleMethod == EPCGExBoundsSampleMethod::BestCandidate && Stats.IsValid())
 					{
 						if (!Context->Sorter->Sort(NearbyBox->Index, Stats.Closest.Index)) { return; }
-						Stats.Replace(PCGExNearestBounds::FSample(CurrentSample, NearbyBox->Len));
+						Stats.Replace(PCGExNearestBounds::FSample(CurrentSample, NearbyBox->RadiusSquared));
 					}
 					else
 					{
-						Stats.Update(PCGExNearestBounds::FSample(CurrentSample, NearbyBox->Len));
+						Stats.Update(PCGExNearestBounds::FSample(CurrentSample, NearbyBox->RadiusSquared));
 					}
 				}
 				else
 				{
-					const PCGExNearestBounds::FSample& Infos = Samples.Emplace_GetRef(CurrentSample, NearbyBox->Len);
+					const PCGExNearestBounds::FSample& Infos = Samples.Emplace_GetRef(CurrentSample, NearbyBox->RadiusSquared);
 					Stats.Update(Infos);
 				}
 			});

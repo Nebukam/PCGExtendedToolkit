@@ -90,7 +90,7 @@ namespace PCGExConvexHull
 
 		ActivePositions.Empty();
 
-		PointDataFacade->Source->InitializeOutput(PCGExData::EIOInit::Duplicate);
+		if (!PointDataFacade->Source->InitializeOutput(PCGExData::EIOInit::Duplicate)) { return false; }
 		Edges = Delaunay->DelaunayEdges.Array();
 
 		GraphBuilder = MakeShared<PCGExGraph::FGraphBuilder>(PointDataFacade, &Settings->GraphBuilderDetails);

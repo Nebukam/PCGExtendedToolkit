@@ -256,7 +256,7 @@ enum class EPCGExCellCenter : uint8
 
 namespace PCGExGeo
 {
-	PCGEX_ASYNC_STATE(State_ExtractingMesh)
+	PCGEX_CTX_STATE(State_ExtractingMesh)
 
 	FORCEINLINE static bool IsWinded(const EPCGExWinding Winding, const bool bIsInputClockwise)
 	{

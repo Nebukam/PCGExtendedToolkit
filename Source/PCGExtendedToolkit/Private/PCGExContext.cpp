@@ -101,11 +101,14 @@ void FPCGExContext::CommitStagedOutputs()
 
 FPCGExContext::FPCGExContext()
 {
-	ManagedObjects = MakeShared<PCGEx::FManagedObjects>(this);
+	Lifecycle = MakeShared<PCGEx::FLifecycle>();
+	ManagedObjects = MakeShared<PCGEx::FManagedObjects>(this, Lifecycle);
 }
 
 FPCGExContext::~FPCGExContext()
 {
+	Lifecycle->Terminate();
+	
 	CancelAssetLoading();
 
 	ManagedObjects->Flush();
@@ -139,7 +142,7 @@ void FPCGExContext::OnComplete()
 #pragma region State
 
 
-void FPCGExContext::SetAsyncState(const PCGEx::AsyncState WaitState)
+void FPCGExContext::SetAsyncState(const PCGEx::ContextState WaitState)
 {
 	if (!bAsyncEnabled)
 	{
@@ -168,7 +171,7 @@ void FPCGExContext::ReadyForExecution()
 	SetState(PCGEx::State_InitialExecution);
 }
 
-void FPCGExContext::SetState(const PCGEx::AsyncState StateId)
+void FPCGExContext::SetState(const PCGEx::ContextState StateId)
 {
 	if (CurrentState == StateId) { return; }
 	CurrentState = StateId;

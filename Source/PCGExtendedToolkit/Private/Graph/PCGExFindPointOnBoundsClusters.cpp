@@ -161,7 +161,7 @@ namespace PCGExFindPointOnBoundsClusters
 		}
 		else
 		{
-			IORef->InitializeOutput(PCGExData::EIOInit::New);
+			if (!IORef->InitializeOutput(PCGExData::EIOInit::New)) { return; }
 			IORef->GetOut()->GetMutablePoints().SetNum(1);
 
 			FPCGPoint& OutPoint = (IORef->GetOut()->GetMutablePoints()[0] = IORef->GetInPoint(BestIndex));

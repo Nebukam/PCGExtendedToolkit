@@ -117,7 +117,7 @@ void FPCGExEdgesProcessorContext::OutputBatches() const
 	for (const TSharedPtr<PCGExClusterMT::FClusterProcessorBatchBase>& Batch : Batches) { Batch->Output(); }
 }
 
-bool FPCGExEdgesProcessorContext::ProcessClusters(const PCGEx::AsyncState NextStateId, const bool bIsNextStateAsync)
+bool FPCGExEdgesProcessorContext::ProcessClusters(const PCGEx::ContextState NextStateId, const bool bIsNextStateAsync)
 {
 	if (!bBatchProcessingEnabled) { return true; }
 
@@ -186,7 +186,7 @@ bool FPCGExEdgesProcessorContext::ProcessClusters(const PCGEx::AsyncState NextSt
 	return false;
 }
 
-bool FPCGExEdgesProcessorContext::CompileGraphBuilders(const bool bOutputToContext, const PCGEx::AsyncState NextStateId)
+bool FPCGExEdgesProcessorContext::CompileGraphBuilders(const bool bOutputToContext, const PCGEx::ContextState NextStateId)
 {
 	PCGEX_ON_STATE_INTERNAL(PCGExGraph::State_ReadyToCompile)
 	{
@@ -204,7 +204,7 @@ bool FPCGExEdgesProcessorContext::CompileGraphBuilders(const bool bOutputToConte
 	return true;
 }
 
-void FPCGExEdgesProcessorContext::AdvanceBatch(const PCGEx::AsyncState NextStateId, const bool bIsNextStateAsync)
+void FPCGExEdgesProcessorContext::AdvanceBatch(const PCGEx::ContextState NextStateId, const bool bIsNextStateAsync)
 {
 	CurrentBatchIndex++;
 	if (!Batches.IsValidIndex(CurrentBatchIndex))

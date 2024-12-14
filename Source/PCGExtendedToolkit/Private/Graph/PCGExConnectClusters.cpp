@@ -83,7 +83,7 @@ bool FPCGExConnectClustersElement::ExecuteInternal(FPCGContext* InContext) const
 				NewBatch->bRequiresWriteStep = true;
 			}))
 		{
-			if (!Settings->bMuteNoBridgeWarning) { PCGE_LOG(Warning, GraphAndLog, FTEXT("No bridge was created.")); }
+			if (!Settings->bQuietNoBridgeWarning) { PCGE_LOG(Warning, GraphAndLog, FTEXT("No bridge was created.")); }
 
 			for (const TSharedPtr<PCGExData::FPointIO>& Vtx : Context->MainPoints->Pairs) { Vtx->InitializeOutput(PCGExData::EIOInit::Forward); }
 			for (const TSharedPtr<PCGExData::FPointIO>& Edges : Context->MainEdges->Pairs) { Edges->InitializeOutput(PCGExData::EIOInit::Forward); }

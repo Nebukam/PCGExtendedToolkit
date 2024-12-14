@@ -100,7 +100,7 @@ namespace PCGExPathIntersections
 		bClosedLoop = Context->ClosedLoop.IsClosedLoop(PointDataFacade->Source);
 		LastIndex = PointDataFacade->GetNum() - 1;
 		Segmentation = MakeShared<PCGExGeo::FSegmentation>();
-		Cloud = Context->BoundsDataFacade->GetCloud(Settings->OutputSettings.BoundsSource, Settings->OutputSettings.InsideEpsilon);
+		Cloud = Context->BoundsDataFacade->GetCloud(Settings->OutputSettings.BoundsSource, Settings->OutputSettings.InsideExpansion);
 
 		Details = Settings->OutputSettings;
 
