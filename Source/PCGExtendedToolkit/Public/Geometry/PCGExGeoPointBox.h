@@ -265,7 +265,7 @@ namespace PCGExGeo
 			PCGEX_TRANSFORM_LOCALBOUNDS
 #if PCGEX_ENGINE_VERSION <= 503
 			if constexpr (Mode == EPCGExBoxCheckMode::Box) { return Box.IsInside(LocalBox); }
-			else if constexpr (Mode == EPCGExBoxCheckMode::EpsilonBox) { return BoxExpanded.IsInside(LocalBox); }
+			else if constexpr (Mode == EPCGExBoxCheckMode::ExpandedBox) { return BoxExpanded.IsInside(LocalBox); }
 #else
 			if constexpr (Mode == EPCGExBoxCheckMode::Box) { return Box.IsInsideOrOn(LocalBox); }
 			else if constexpr (Mode == EPCGExBoxCheckMode::ExpandedBox) { return BoxExpanded.IsInsideOrOn(LocalBox); }
@@ -298,7 +298,7 @@ namespace PCGExGeo
 			PCGEX_TRANSFORM_LOCALBOUNDS
 #if PCGEX_ENGINE_VERSION <= 503
 			if constexpr (Mode == EPCGExBoxCheckMode::Box) { return Box.IsInside(LocalBox) || Box.Intersect(LocalBox);; }
-			else if constexpr (Mode == EPCGExBoxCheckMode::EpsilonBox) { return BoxExpanded.IsInside(LocalBox) || BoxExpanded.Intersect(LocalBox); }
+			else if constexpr (Mode == EPCGExBoxCheckMode::ExpandedBox) { return BoxExpanded.IsInside(LocalBox) || BoxExpanded.Intersect(LocalBox); }
 #else
 			if constexpr (Mode == EPCGExBoxCheckMode::Box) { return Box.IsInsideOrOn(LocalBox) || Box.Intersect(LocalBox); }
 			else if constexpr (Mode == EPCGExBoxCheckMode::ExpandedBox) { return BoxExpanded.IsInsideOrOn(LocalBox) || BoxExpanded.Intersect(LocalBox); }
@@ -367,7 +367,7 @@ namespace PCGExGeo
 			PCGEX_TRANSFORM_LOCALBOUNDS_T
 #if PCGEX_ENGINE_VERSION <= 503
 			if constexpr (Mode == EPCGExBoxCheckMode::Box) { return Box.IsInside(LocalBox); }
-			else if constexpr (Mode == EPCGExBoxCheckMode::EpsilonBox) { return BoxExpanded.IsInside(LocalBox); }
+			else if constexpr (Mode == EPCGExBoxCheckMode::ExpandedBox) { return BoxExpanded.IsInside(LocalBox); }
 #else
 			if constexpr (Mode == EPCGExBoxCheckMode::Box) { return Box.IsInsideOrOn(LocalBox); }
 			else if constexpr (Mode == EPCGExBoxCheckMode::ExpandedBox) { return BoxExpanded.IsInsideOrOn(LocalBox); }
@@ -400,7 +400,7 @@ namespace PCGExGeo
 			PCGEX_TRANSFORM_LOCALBOUNDS_T
 #if PCGEX_ENGINE_VERSION <= 503
 			if constexpr (Mode == EPCGExBoxCheckMode::Box) { return Box.IsInside(LocalBox) || Box.Intersect(LocalBox);; }
-			else if constexpr (Mode == EPCGExBoxCheckMode::EpsilonBox) { return BoxExpanded.IsInside(LocalBox) || BoxExpanded.Intersect(LocalBox); }
+			else if constexpr (Mode == EPCGExBoxCheckMode::ExpandedBox) { return BoxExpanded.IsInside(LocalBox) || BoxExpanded.Intersect(LocalBox); }
 #else
 			if constexpr (Mode == EPCGExBoxCheckMode::Box) { return Box.IsInsideOrOn(LocalBox) || Box.Intersect(LocalBox); }
 			else if constexpr (Mode == EPCGExBoxCheckMode::ExpandedBox) { return BoxExpanded.IsInsideOrOn(LocalBox) || BoxExpanded.Intersect(LocalBox); }
