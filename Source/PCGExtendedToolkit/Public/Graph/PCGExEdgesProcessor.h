@@ -92,8 +92,8 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExEdgesProcessorContext : FPCGExPointsProc
 protected:
 	TArray<TObjectPtr<const UPCGExHeuristicsFactoryBase>> HeuristicsFactories;
 
-	virtual bool ProcessClusters(const PCGEx::AsyncState NextStateId, const bool bIsNextStateAsync = false);
-	virtual bool CompileGraphBuilders(const bool bOutputToContext, const PCGEx::AsyncState NextStateId);
+	virtual bool ProcessClusters(const PCGEx::ContextState NextStateId, const bool bIsNextStateAsync = false);
+	virtual bool CompileGraphBuilders(const bool bOutputToContext, const PCGEx::ContextState NextStateId);
 
 	TArray<FPCGExSortRuleConfig> EdgeSortingRules;
 
@@ -197,7 +197,7 @@ protected:
 	{
 	}
 
-	void AdvanceBatch(const PCGEx::AsyncState NextStateId, const bool bIsNextStateAsync);
+	void AdvanceBatch(const PCGEx::ContextState NextStateId, const bool bIsNextStateAsync);
 
 	int32 CurrentEdgesIndex = -1;
 };

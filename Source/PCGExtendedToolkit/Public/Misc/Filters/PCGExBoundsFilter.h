@@ -54,9 +54,13 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExBoundsFilterConfig
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	EPCGExBoundsCheckType CheckType = EPCGExBoundsCheckType::Intersects;
 
+	/** Defines against what type of shape (extrapolated from target bounds) is tested against. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
+	EPCGExBoxCheckMode TestMode = EPCGExBoxCheckMode::Box;
+
 	/** Epsilon value used to slightly expand target bounds. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
-	double Epsilon = 1e-4;
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="TestMode==EPCGExBoxCheckMode::ExpandedBox || TestMode==EPCGExBoxCheckMode::ExpandedSphere", EditConditionHides))
+	double Expansion = 10;
 
 	/** If enabled, invert the result of the test */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
@@ -90,7 +94,10 @@ namespace PCGExPointsFilter
 		explicit TBoundsFilter(const TObjectPtr<const UPCGExBoundsFilterFactory>& InFactory)
 			: FSimpleFilter(InFactory), TypedFilterFactory(InFactory)
 		{
-			Cloud = TypedFilterFactory->BoundsDataFacade ? TypedFilterFactory->BoundsDataFacade->GetCloud(TypedFilterFactory->Config.BoundsTarget, TypedFilterFactory->Config.Epsilon) : nullptr;
+			Cloud = TypedFilterFactory->BoundsDataFacade ? TypedFilterFactory->BoundsDataFacade->GetCloud(
+					        TypedFilterFactory->Config.BoundsTarget,
+					        TypedFilterFactory->Config.TestMode == EPCGExBoxCheckMode::ExpandedBox || TypedFilterFactory->Config.TestMode == EPCGExBoxCheckMode::ExpandedSphere ?
+						        TypedFilterFactory->Config.Expansion * 2 : TypedFilterFactory->Config.Expansion) : nullptr;
 		}
 
 		const TObjectPtr<const UPCGExBoundsFilterFactory> TypedFilterFactory;

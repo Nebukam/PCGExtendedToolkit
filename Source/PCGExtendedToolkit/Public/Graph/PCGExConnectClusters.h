@@ -61,8 +61,8 @@ public:
 	FPCGExGraphBuilderDetails GraphBuilderDetails;
 
 	/** If enabled, won't throw a warning if no bridge could be created. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
-	bool bMuteNoBridgeWarning = false;
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Warning and Errors")
+	bool bQuietNoBridgeWarning = false;
 
 private:
 	friend class FPCGExConnectClustersElement;

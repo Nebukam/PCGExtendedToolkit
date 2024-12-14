@@ -496,12 +496,16 @@ public:
 	TObjectPtr<UPCGExCustomGraphBuilder> Builder;
 
 	/** Graph & Edges output properties */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
-	bool bMuteUnprocessedSettingsWarning = false;
-
-	/** Graph & Edges output properties */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName="Cluster Output Settings"))
 	FPCGExGraphBuilderDetails GraphBuilderDetails;
+
+	/** */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Warning and Errors")
+	bool bQuietUnprocessedSettingsWarning = false;
+
+	/**  */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Warning and Errors")
+	bool bQuietFailedBuildGraphWarning = false;
 };
 
 struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExBuildCustomGraphContext final : FPCGExPointsProcessorContext
@@ -518,7 +522,7 @@ public:
 		TWeakObjectPtr<UPCGComponent> SourceComponent,
 		const UPCGNode* Node) override;
 
-protected:
+protected:	
 	virtual bool Boot(FPCGExContext* InContext) const override;
 	virtual bool ExecuteInternal(FPCGContext* Context) const override;
 };

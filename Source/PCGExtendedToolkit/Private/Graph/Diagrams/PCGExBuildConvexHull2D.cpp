@@ -80,6 +80,7 @@ void FPCGExBuildConvexHull2DContext::BuildPath(const PCGExGraph::FGraphBuilder* 
 
 	const TArray<FPCGPoint>& InPoints = GraphBuilder->NodeDataFacade->GetIn()->GetPoints();
 	const TSharedPtr<PCGExData::FPointIO> PathIO = PathsIO->Emplace_GetRef(GraphBuilder->NodeDataFacade->GetIn(), PCGExData::EIOInit::New);
+	if (!PathIO) { return; }
 
 	TArray<FPCGPoint>& MutablePathPoints = PathIO->GetOut()->GetMutablePoints();
 	TSet<int32> VisitedEdges;
@@ -149,7 +150,7 @@ namespace PCGExConvexHull2D
 
 		ActivePositions.Empty();
 
-		PointDataFacade->Source->InitializeOutput(PCGExData::EIOInit::Duplicate);
+		if (!PointDataFacade->Source->InitializeOutput(PCGExData::EIOInit::Duplicate)) { return false; }
 		Edges = Delaunay->DelaunayEdges.Array();
 
 		GraphBuilder = MakeShared<PCGExGraph::FGraphBuilder>(PointDataFacade, &Settings->GraphBuilderDetails);

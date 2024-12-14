@@ -77,6 +77,8 @@ namespace PCGExGraph
 		TArray<FPCGPoint>& MutablePoints = EdgesDataFacade->Source->GetOut()->GetMutablePoints();
 		MutablePoints.SetNum(NumEdges);
 
+		PCGEX_ASYNC_CHECK_VOID(AsyncManager)
+
 		if (EdgesDataFacade->Source->GetIn())
 		{
 			TRACE_CPUPROFILER_EVENT_SCOPE(FWriteSubGraphEdges::GatherPreExistingPoints);
@@ -464,6 +466,8 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 			return;
 		}
 
+		PCGEX_ASYNC_CHECK_VOID(AsyncManager)
+
 		NodeDataFacade->Source->CleanupKeys(); //Ensure fresh keys later on
 
 		TArray<FNode>& Nodes = Graph->Nodes;
@@ -519,6 +523,8 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 			ValidNodes.Shrink();
 		}
 
+		PCGEX_ASYNC_CHECK_VOID(AsyncManager)
+
 		const TSharedPtr<PCGExData::TBuffer<int64>> VtxEndpointWriter = NodeDataFacade->GetWritable<int64>(Tag_VtxEndpoint, 0, false, PCGExData::EBufferInit::New);
 
 		const uint32 BaseGUID = NodeDataFacade->GetOut()->GetUniqueID();
@@ -559,6 +565,8 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 
 		// Subgraphs
 
+		PCGEX_ASYNC_CHECK_VOID(AsyncManager)
+
 		for (int i = 0; i < Graph->SubGraphs.Num(); i++)
 		{
 			const TSharedPtr<FSubGraph>& SubGraph = Graph->SubGraphs[i];
@@ -576,6 +584,8 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 			{
 				EdgeIO = EdgesIO->Emplace_GetRef<UPCGExClusterEdgesData>(PCGExData::EIOInit::New);
 			}
+
+			if (!EdgeIO) { return; }
 
 			SubGraph->UID = EdgeIO->GetOut()->GetUniqueID();
 			SubGraph->OnSubGraphPostProcess = OnSubGraphPostProcess;
@@ -637,6 +647,8 @@ namespace PCGExGraphTask
 		if (!GraphBuilder->bCompiledSuccessfully) { return; }
 
 		const TSharedPtr<PCGExData::FPointIO> VtxDupe = VtxCollection->Emplace_GetRef(GraphBuilder->NodeDataFacade->GetOut(), PCGExData::EIOInit::Duplicate);
+		if (!VtxDupe) { return; }
+
 		VtxDupe->IOIndex = TaskIndex;
 
 		FString OutId;
@@ -648,6 +660,8 @@ namespace PCGExGraphTask
 		for (const TSharedPtr<PCGExData::FPointIO>& Edges : GraphBuilder->EdgesIO->Pairs)
 		{
 			TSharedPtr<PCGExData::FPointIO> EdgeDupe = EdgeCollection->Emplace_GetRef(Edges->GetOut(), PCGExData::EIOInit::Duplicate);
+			if (!EdgeDupe) { return; }
+
 			EdgeDupe->IOIndex = TaskIndex;
 			PCGExGraph::MarkClusterEdges(EdgeDupe, OutId);
 

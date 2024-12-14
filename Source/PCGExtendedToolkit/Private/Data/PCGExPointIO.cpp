@@ -25,9 +25,11 @@ namespace PCGExData
 		else if (!Tags) { Tags = MakeShared<FTags>(); }
 	}
 
-	void FPointIO::InitializeOutput(const EIOInit InitOut)
+	bool FPointIO::InitializeOutput(const EIOInit InitOut)
 	{
-		if (Out && Out != In)
+		if (!Lifecycle->IsAlive()) { return false; }
+
+		if (IsValid(Out) && Out != In)
 		{
 			Context->ManagedObjects->Destroy(Out);
 			Out = nullptr;
@@ -36,14 +38,14 @@ namespace PCGExData
 		OutKeys.Reset();
 
 		bMutable = false;
-		
-		if (InitOut == EIOInit::None) { return; }
+
+		if (InitOut == EIOInit::None) { return true; }
 
 		if (InitOut == EIOInit::Forward)
 		{
 			check(In);
 			Out = const_cast<UPCGPointData*>(In);
-			return;
+			return true;
 		}
 
 		bMutable = true;
@@ -73,7 +75,7 @@ namespace PCGExData
 				Out = Context->ManagedObjects->New<UPCGPointData>();
 			}
 
-			return;
+			return true;
 		}
 
 		if (InitOut == EIOInit::Duplicate)
@@ -81,6 +83,8 @@ namespace PCGExData
 			check(In)
 			Out = Context->ManagedObjects->Duplicate<UPCGPointData>(In);
 		}
+
+		return true;
 	}
 
 	TSharedPtr<FPCGAttributeAccessorKeysPoints> FPointIO::GetInKeys()
@@ -237,7 +241,7 @@ namespace PCGExData
 		FWriteScopeLock WriteLock(PairsLock);
 		TSharedPtr<FPointIO> NewIO = Pairs.Add_GetRef(MakeShared<FPointIO>(Context, In));
 		NewIO->SetInfos(Pairs.Num() - 1, OutputPin, Tags);
-		NewIO->InitializeOutput(InitOut);
+		if (!NewIO->InitializeOutput(InitOut)) { return nullptr; }
 		return NewIO;
 	}
 
@@ -246,13 +250,15 @@ namespace PCGExData
 		FWriteScopeLock WriteLock(PairsLock);
 		TSharedPtr<FPointIO> NewIO = Pairs.Add_GetRef(MakeShared<FPointIO>(Context));
 		NewIO->SetInfos(Pairs.Num() - 1, OutputPin);
-		NewIO->InitializeOutput(InitOut);
+		if (!NewIO->InitializeOutput(InitOut)) { return nullptr; }
 		return NewIO;
 	}
 
 	TSharedPtr<FPointIO> FPointIOCollection::Emplace_GetRef(const TSharedPtr<FPointIO>& PointIO, const EIOInit InitOut)
 	{
 		TSharedPtr<FPointIO> Branch = Emplace_GetRef(PointIO->GetIn(), InitOut);
+		if (!Branch) { return nullptr; }
+		
 		Branch->Tags->Reset(PointIO->Tags);
 		Branch->RootIO = PointIO;
 		return Branch;

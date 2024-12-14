@@ -83,6 +83,8 @@ namespace PCGExResamplePath
 				NumSamples = PCGEx::TruncateDbl(PathLength->TotalLength / Settings->Resolution, Settings->Truncate);
 			}
 
+			if (Path->IsClosedLoop()) { NumSamples++; }
+
 			if (NumSamples < 2) { return false; }
 
 			PointDataFacade->Source->InitializeOutput(PCGExData::EIOInit::New);
@@ -96,9 +98,7 @@ namespace PCGExResamplePath
 			NumSamples = PointDataFacade->GetNum();
 		}
 
-		if (Path->IsClosedLoop()) { SampleLength = PathLength->TotalLength / static_cast<double>(NumSamples); }
-		else { SampleLength = PathLength->TotalLength / static_cast<double>(NumSamples - 1); }
-
+		SampleLength = PathLength->TotalLength / static_cast<double>(NumSamples - 1);
 
 		Samples.SetNumUninitialized(NumSamples);
 		bInlineProcessPoints = true;
@@ -137,7 +137,16 @@ namespace PCGExResamplePath
 				{
 					StartIndex = EndIndex++;
 
-					if (EndIndex >= InPoints.Num()) { break; }
+					if (EndIndex >= InPoints.Num())
+					{
+						if (!Path->IsClosedLoop())
+						{
+							EndIndex = InPoints.Num() - 1;
+							break;
+						}
+
+						EndIndex = 0;
+					}
 
 					NextPosition = InPoints[EndIndex].Transform.GetLocation();
 					DistToNext = FVector::Dist(PrevPosition, NextPosition);

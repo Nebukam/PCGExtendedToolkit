@@ -19,7 +19,7 @@ namespace PCPGExMergePointsByTag
 		if (IOs.IsEmpty()) { return; }
 
 		const TSharedPtr<PCGExData::FPointIO> CompositeIO = IOs[0];
-		CompositeIO->InitializeOutput(PCGExData::EIOInit::New);
+		if (!CompositeIO->InitializeOutput(PCGExData::EIOInit::New)) { return; }
 
 		CompositeIODataFacade = MakeShared<PCGExData::FFacade>(CompositeIO.ToSharedRef());
 
@@ -169,7 +169,7 @@ namespace PCPGExMergePointsByTag
 				bool bAlreadyDistributed;
 
 				PCGEX_MAKE_SHARED(NewMergeList, FMergeList)
-				
+
 				for (const TSharedPtr<PCGExData::FPointIO>& IO : Bucket->IOs)
 				{
 					Distributed.Add(IO, &bAlreadyDistributed);

@@ -73,7 +73,7 @@ namespace PCGExLloydRelax2D
 		InfluenceDetails = Settings->InfluenceDetails;
 		if (!InfluenceDetails.Init(ExecutionContext, PointDataFacade)) { return false; }
 
-		PointDataFacade->Source->InitializeOutput(PCGExData::EIOInit::Duplicate);
+		if(!PointDataFacade->Source->InitializeOutput(PCGExData::EIOInit::Duplicate)) { return false; }
 		PCGExGeo::PointsToPositions(PointDataFacade->GetIn()->GetPoints(), ActivePositions);
 
 		PCGEX_START_TASK(FLloydRelaxTask, 0, SharedThis(this), &InfluenceDetails, Settings->Iterations)
