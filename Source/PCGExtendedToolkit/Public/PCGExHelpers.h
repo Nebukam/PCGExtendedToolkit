@@ -207,15 +207,29 @@ private:
 
 namespace PCGEx
 {
+	class FLifecycle final : public TSharedFromThis<FLifecycle>
+	{
+	public:
+		FLifecycle() = default;
+		~FLifecycle() = default;
+
+		void Terminate() { bAlive = false; }
+		bool IsAlive() const { return bAlive; }
+
+	private:
+		std::atomic<bool> bAlive{true};
+	};
+
 	struct /*PCGEXTENDEDTOOLKIT_API*/ FManagedObjects
 	{
 		mutable FRWLock ManagedObjectLock;
 
 		FPCGContext* Context = nullptr;
+		TSharedPtr<FLifecycle> Lifecycle;
 		TSet<UObject*> ManagedObjects;
 
-		explicit FManagedObjects(FPCGContext* InContext):
-			Context(InContext)
+		explicit FManagedObjects(FPCGContext* InContext, const TSharedPtr<FLifecycle>& InLifecycle):
+			Context(InContext), Lifecycle(InLifecycle)
 		{
 		}
 
@@ -229,6 +243,9 @@ namespace PCGEx
 		template <class T, typename... Args>
 		T* New(Args&&... InArgs)
 		{
+
+			check(Lifecycle->IsAlive())
+			
 			T* Object = nullptr;
 			if (!IsInGameThread())
 			{
@@ -250,6 +267,8 @@ namespace PCGEx
 		template <class T>
 		T* Duplicate(const UPCGData* InData)
 		{
+			check(Lifecycle->IsAlive())
+			
 			T* Object = nullptr;
 
 #if PCGEX_ENGINE_VERSION >= 505

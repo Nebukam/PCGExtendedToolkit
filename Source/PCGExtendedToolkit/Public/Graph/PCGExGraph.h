@@ -138,18 +138,18 @@ namespace PCGExGraph
 	const FName SourceVtxFiltersLabel = FName("VtxFilters");
 	const FName SourceEdgeFiltersLabel = FName("EdgeFilters");
 
-	PCGEX_ASYNC_STATE(State_PreparingUnion)
-	PCGEX_ASYNC_STATE(State_ProcessingUnion)
+	PCGEX_CTX_STATE(State_PreparingUnion)
+	PCGEX_CTX_STATE(State_ProcessingUnion)
 
-	PCGEX_ASYNC_STATE(State_WritingClusters)
-	PCGEX_ASYNC_STATE(State_ReadyToCompile)
-	PCGEX_ASYNC_STATE(State_Compiling)
+	PCGEX_CTX_STATE(State_WritingClusters)
+	PCGEX_CTX_STATE(State_ReadyToCompile)
+	PCGEX_CTX_STATE(State_Compiling)
 
-	PCGEX_ASYNC_STATE(State_ProcessingPointEdgeIntersections)
-	PCGEX_ASYNC_STATE(State_ProcessingEdgeEdgeIntersections)
+	PCGEX_CTX_STATE(State_ProcessingPointEdgeIntersections)
+	PCGEX_CTX_STATE(State_ProcessingEdgeEdgeIntersections)
 
-	PCGEX_ASYNC_STATE(State_Pathfinding)
-	PCGEX_ASYNC_STATE(State_WaitingPathfinding)
+	PCGEX_CTX_STATE(State_Pathfinding)
+	PCGEX_CTX_STATE(State_WaitingPathfinding)
 
 	const TSet<FName> ProtectedClusterAttributes = {Tag_EdgeEndpoints, Tag_VtxEndpoint, Tag_ClusterIndex};
 

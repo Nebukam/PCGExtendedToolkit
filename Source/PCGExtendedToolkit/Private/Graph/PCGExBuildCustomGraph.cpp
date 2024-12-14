@@ -288,13 +288,12 @@ namespace PCGExBuildCustomGraph
 
 		if (!bInitSuccess)
 		{
-			if (!Settings->bMuteUnprocessedSettingsWarning)
+			if (!Settings->bQuietUnprocessedSettingsWarning)
 			{
 				PCGE_LOG_C(Warning, GraphAndLog, Context, FTEXT("A graph builder settings has less than 2 max nodes and won't be processed."));
 			}
 
 			PointIO->InitializeOutput(PCGExData::EIOInit::None);
-			GraphSettings->GraphBuilder->bCompiledSuccessfully = false;
 			return;
 		}
 
@@ -318,8 +317,10 @@ namespace PCGExBuildCustomGraph
 
 		if (!bSuccessfulBuild)
 		{
-			PCGE_LOG_C(Error, GraphAndLog, Context, FTEXT("A graph builder 'BuildGraph' returned false."));
-			GraphSettings->GraphBuilder->bCompiledSuccessfully = false;
+			if (!Settings->bQuietFailedBuildGraphWarning)
+			{
+				PCGE_LOG_C(Warning, GraphAndLog, Context, FTEXT("A graph builder 'BuildGraph' returned false."));
+			}
 			return;
 		}
 

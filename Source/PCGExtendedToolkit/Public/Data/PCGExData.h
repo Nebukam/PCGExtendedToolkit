@@ -53,7 +53,7 @@ namespace PCGExData
 		New,
 	};
 
-	PCGEX_ASYNC_STATE(State_MergingData);
+	PCGEX_CTX_STATE(State_MergingData);
 
 #pragma region Pool & Buffers
 
@@ -662,13 +662,13 @@ namespace PCGExData
 			return Data->Metadata->template GetConstTypedAttribute<T>(InName);
 		}
 
-		TSharedPtr<PCGExGeo::FPointBoxCloud> GetCloud(const EPCGExPointBoundsSource BoundsSource, const double Epsilon = DBL_EPSILON)
+		TSharedPtr<PCGExGeo::FPointBoxCloud> GetCloud(const EPCGExPointBoundsSource BoundsSource, const double Expansion = DBL_EPSILON)
 		{
 			FWriteScopeLock WriteScopeLock(CloudLock);
 
 			if (Cloud) { return Cloud; }
 
-			Cloud = MakeShared<PCGExGeo::FPointBoxCloud>(GetIn(), BoundsSource, Epsilon);
+			Cloud = MakeShared<PCGExGeo::FPointBoxCloud>(GetIn(), BoundsSource, Expansion);
 			return Cloud;
 		}
 

@@ -73,7 +73,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExBoxIntersectionDetails
 
 	/** Epsilon value used to expand the box when testing if IsInside. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
-	double InsideEpsilon = 1e-4;
+	double InsideExpansion = -1e-4;
 
 	bool Validate(const FPCGContext* InContext) const
 	{

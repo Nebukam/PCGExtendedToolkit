@@ -132,7 +132,7 @@ namespace PCGExCherryPickPoints
 
 	void FProcessor::CompleteWork()
 	{
-		PointDataFacade->Source->InitializeOutput(PCGExData::EIOInit::New);
+		if (!PointDataFacade->Source->InitializeOutput(PCGExData::EIOInit::New)) { return; }
 		const TArray<FPCGPoint>& PickablePoints = PointDataFacade->GetIn()->GetPoints();
 		TArray<FPCGPoint>& MutablePoints = PointDataFacade->GetOut()->GetMutablePoints();
 
