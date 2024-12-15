@@ -223,6 +223,7 @@ namespace PCGEx
 	struct /*PCGEXTENDEDTOOLKIT_API*/ FManagedObjects
 	{
 		mutable FRWLock ManagedObjectLock;
+		mutable FRWLock DuplicatedObjectLock;
 
 		FPCGContext* Context = nullptr;
 		TSharedPtr<FLifecycle> Lifecycle;
@@ -243,9 +244,8 @@ namespace PCGEx
 		template <class T, typename... Args>
 		T* New(Args&&... InArgs)
 		{
-
 			check(Lifecycle->IsAlive())
-			
+
 			T* Object = nullptr;
 			if (!IsInGameThread())
 			{
@@ -268,7 +268,7 @@ namespace PCGEx
 		T* Duplicate(const UPCGData* InData)
 		{
 			check(Lifecycle->IsAlive())
-			
+
 			T* Object = nullptr;
 
 #if PCGEX_ENGINE_VERSION >= 505
@@ -280,7 +280,10 @@ namespace PCGEx
 					PCGEX_FORCE_CONTEXT_ASYNCSTATE(Context)
 					Object = Cast<T>(InData->DuplicateData(Context, true));
 					check(Object);
-					DuplicateObjects.Add(Object);
+					{
+						FWriteScopeLock WriteDuplicateScopeLock(DuplicatedObjectLock);
+						DuplicateObjects.Add(Object);
+					}
 				}
 			}
 			else
@@ -288,7 +291,10 @@ namespace PCGEx
 				FWriteScopeLock WriteScopeLock(ManagedObjectLock);
 				Object = Cast<T>(InData->DuplicateData(Context, true));
 				check(Object);
-				DuplicateObjects.Add(Object);
+				{
+					FWriteScopeLock WriteDuplicateScopeLock(DuplicatedObjectLock);
+					DuplicateObjects.Add(Object);
+				}
 			}
 
 
@@ -338,7 +344,7 @@ namespace PCGEx
 
 	protected:
 		TSet<UObject*> DuplicateObjects;
-		void RecursivelyClearAsyncFlag(UObject* InObject) const;
+		void RecursivelyClearAsyncFlagUnsafe(UObject* InObject) const;
 	};
 
 	static FVector GetPointsCentroid(const TArray<FPCGPoint>& InPoints)
