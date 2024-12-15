@@ -41,7 +41,6 @@ bool FPCGExDiscardSameElement::ExecuteInternal(FPCGContext* InContext) const
 			[&](const TSharedPtr<PCGExData::FPointIO>& Entry) { return true; },
 			[&](const TSharedPtr<PCGExPointsMT::TBatch<PCGExDiscardSame::FProcessor>>& NewBatch)
 			{
-				NewBatch->bRequiresWriteStep = true; // Not really but we need the step
 			}))
 		{
 			return Context->CancelExecution(TEXT("Could not find any input to check."));

@@ -12,18 +12,20 @@ namespace PCGEx
 
 	void FManagedObjects::Flush()
 	{
+		FWriteScopeLock WriteScopeLock(ManagedObjectLock);
+		bFlushing = true;
+
 		// Flush remaining managed objects & mark them as garbage
 		for (UObject* ObjectPtr : ManagedObjects)
 		{
 			//if (!IsValid(ObjectPtr)) { continue; }
 			ObjectPtr->RemoveFromRoot();
-			RecursivelyClearAsyncFlag(ObjectPtr);
+			RecursivelyClearAsyncFlagUnsafe(ObjectPtr);
 
 			if (ObjectPtr->Implements<UPCGExManagedObjectInterface>())
 			{
 				if (IPCGExManagedObjectInterface* ManagedObject = Cast<IPCGExManagedObjectInterface>(ObjectPtr)) { ManagedObject->Cleanup(); }
 			}
-
 
 			ObjectPtr->MarkAsGarbage();
 		}
@@ -33,28 +35,32 @@ namespace PCGEx
 
 	void FManagedObjects::Add(UObject* InObject)
 	{
+		check(!bFlushing)
+		
 		if (!IsValid(InObject)) { return; }
 
 		{
 			FWriteScopeLock WriteScopeLock(ManagedObjectLock);
 			ManagedObjects.Add(InObject);
+			InObject->AddToRoot();
 		}
-
-		InObject->AddToRoot();
 	}
 
 	bool FManagedObjects::Remove(UObject* InObject)
 	{
-		if (!IsValid(InObject) || !ManagedObjects.Contains(InObject)) { return false; }
+		if (bFlushing) { return false; } // Will be removed anyway
 
 		{
 			FWriteScopeLock WriteScopeLock(ManagedObjectLock);
+
+			if (!IsValid(InObject) || !ManagedObjects.Contains(InObject)) { return false; }
+
 			ManagedObjects.Remove(InObject);
+			
+			InObject->RemoveFromRoot();
+			RecursivelyClearAsyncFlagUnsafe(InObject);
 		}
-
-		InObject->RemoveFromRoot();
-		RecursivelyClearAsyncFlag(InObject);
-
+		
 		if (InObject->Implements<UPCGExManagedObjectInterface>())
 		{
 			IPCGExManagedObjectInterface* ManagedObject = Cast<IPCGExManagedObjectInterface>(InObject);
@@ -68,20 +74,23 @@ namespace PCGEx
 	{
 		check(InObject)
 
-		if (!IsValid(InObject) || !ManagedObjects.Contains(InObject)) { return; }
+		if (bFlushing) { return; } // Will be destroyed anyway
+
+		{
+			FReadScopeLock ReadScopeLock(ManagedObjectLock);
+			if (!IsValid(InObject) || !ManagedObjects.Contains(InObject)) { return; }
+		}
 
 		Remove(InObject);
 		InObject->MarkAsGarbage();
 	}
 
-	void FManagedObjects::RecursivelyClearAsyncFlag(UObject* InObject) const
+	void FManagedObjects::RecursivelyClearAsyncFlagUnsafe(UObject* InObject) const
 	{
 #if PCGEX_ENGINE_VERSION >= 505
-		if (DuplicateObjects.Contains(InObject))
 		{
-			//UPCGSpatialData* SpatialData = Cast<UPCGSpatialData>(InObject);
-			//if(SpatialData && SpatialData->Metadata){SpatialData->Metadata->ClearInternalFlags(EInternalObjectFlags::Async);}
-			return;
+			FReadScopeLock ReadScopeLock(DuplicatedObjectLock);
+			if (DuplicateObjects.Contains(InObject)) { return; }
 		}
 #endif
 
