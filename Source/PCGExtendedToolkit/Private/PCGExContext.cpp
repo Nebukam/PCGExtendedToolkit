@@ -102,7 +102,7 @@ void FPCGExContext::CommitStagedOutputs()
 FPCGExContext::FPCGExContext()
 {
 	Lifecycle = MakeShared<PCGEx::FLifecycle>();
-	ManagedObjects = MakeShared<PCGEx::FManagedObjects>(this, Lifecycle);
+	ManagedObjects = MakeUnique<PCGEx::FManagedObjects>(this, Lifecycle);
 }
 
 FPCGExContext::~FPCGExContext()
@@ -111,8 +111,7 @@ FPCGExContext::~FPCGExContext()
 	
 	CancelAssetLoading();
 
-	ManagedObjects->Flush();
-	ManagedObjects.Reset();
+	ManagedObjects->Flush(); // So cleanups can be recursively triggered while manager is still alive
 }
 
 void FPCGExContext::StagedOutputReserve(const int32 NumAdditions)

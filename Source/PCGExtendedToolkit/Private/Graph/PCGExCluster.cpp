@@ -228,7 +228,7 @@ namespace PCGExCluster
 			const int32* StartPointIndexPtr = InEndpointsLookup.Find(A);
 			const int32* EndPointIndexPtr = InEndpointsLookup.Find(B);
 
-			if ((!StartPointIndexPtr || !EndPointIndexPtr)) { return OnFail(); }
+			if ((!StartPointIndexPtr || !EndPointIndexPtr || *StartPointIndexPtr == *EndPointIndexPtr)) { return OnFail(); }
 
 			FNode& StartNode = GetOrCreateNodeUnsafe(InNodePoints, *StartPointIndexPtr);
 			FNode& EndNode = GetOrCreateNodeUnsafe(InNodePoints, *EndPointIndexPtr);
