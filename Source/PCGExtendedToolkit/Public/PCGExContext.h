@@ -51,7 +51,7 @@ protected:
 
 public:
 	TSharedPtr<PCGEx::FLifecycle> Lifecycle;
-	TSharedPtr<PCGEx::FManagedObjects> ManagedObjects;
+	TUniquePtr<PCGEx::FManagedObjects> ManagedObjects;
 
 	bool bScopedAttributeGet = false;
 

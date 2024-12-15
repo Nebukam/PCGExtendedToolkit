@@ -1,7 +1,7 @@
 ﻿// Copyright 2024 Timothé Lapetite and contributors
 // Released under the MIT license https://opensource.org/license/MIT/
 
-#include "Graph/Edges/PCGExDrawEdges.h"
+#include "Debug/PCGExDrawEdges.h"
 
 #define LOCTEXT_NAMESPACE "PCGExEdgesToPaths"
 #define PCGEX_NAMESPACE DrawEdges

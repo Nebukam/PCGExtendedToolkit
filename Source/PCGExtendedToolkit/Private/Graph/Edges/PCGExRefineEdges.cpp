@@ -112,32 +112,15 @@ bool FPCGExRefineEdgesElement::ExecuteInternal(
 	PCGEX_EXECUTION_CHECK
 	PCGEX_ON_INITIAL_EXECUTION
 	{
-		if (Settings->bOutputEdgesOnly)
-		{
-			if (!Context->StartProcessingClusters<PCGExRefineEdges::FBatch>(
-				[](const TSharedPtr<PCGExData::FPointIOTaggedEntries>& Entries) { return true; },
-				[&](const TSharedPtr<PCGExRefineEdges::FBatch>& NewBatch)
-				{
-					if (Context->Refinement->RequiresHeuristics()) { NewBatch->SetRequiresHeuristics(true); }
-				}))
-			{
-				return Context->CancelExecution(TEXT("Could not build any clusters."));
-			}
-		}
-		else
-		{
-			if (!Context->StartProcessingClusters<PCGExRefineEdges::FBatch>(
+		if (!Context->StartProcessingClusters<PCGExRefineEdges::FBatch>(
 				[](const TSharedPtr<PCGExData::FPointIOTaggedEntries>& Entries) { return true; },
 				[&](const TSharedPtr<PCGExRefineEdges::FBatch>& NewBatch)
 				{
 					NewBatch->GraphBuilderDetails = Context->GraphBuilderDetails;
 					if (Context->Refinement->RequiresHeuristics()) { NewBatch->SetRequiresHeuristics(true); }
 				}))
-			{
-				PCGE_LOG(Warning, GraphAndLog, FTEXT("Could not build any clusters."));
-
-				return true;
-			}
+		{
+			return Context->CancelExecution(TEXT("Could not build any clusters."));;
 		}
 	}
 

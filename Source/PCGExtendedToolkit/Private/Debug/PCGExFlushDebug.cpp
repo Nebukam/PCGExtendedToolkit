@@ -1,7 +1,7 @@
 ﻿// Copyright 2024 Timothé Lapetite and contributors
 // Released under the MIT license https://opensource.org/license/MIT/
 
-#include "Misc/PCGExFlushDebug.h"
+#include "Debug/PCGExFlushDebug.h"
 
 #include "PCGGraph.h"
 #include "PCGPin.h"
