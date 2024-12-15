@@ -110,9 +110,10 @@ void FPCGExPointIOMerger::Merge(const TSharedPtr<PCGExMT::FTaskManager>& AsyncMa
 
 	InCarryOverDetails->Filter(&UnionDataFacade->Source.Get());
 
+	PCGEX_SHARED_THIS_DECL
 	for (int i = 0; i < UniqueIdentities.Num(); i++)
 	{
-		PCGEX_START_TASK(PCGExPointIOMerger::FCopyAttributeTask, i, SharedThis(this))
+		PCGEX_START_TASK(PCGExPointIOMerger::FCopyAttributeTask, i, ThisPtr)
 	}
 }
 

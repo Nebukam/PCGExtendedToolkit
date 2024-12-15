@@ -275,7 +275,8 @@ namespace PCGExBridgeClusters
 			uint32 End;
 			PCGEx::H64(Bridge, Start, End);
 
-			PCGEX_START_TASK(FPCGExCreateBridgeTask, EdgePointIndex, ConsolidatedEdges, SharedThis(this), ValidClusters[Start], ValidClusters[End])
+			PCGEX_SHARED_THIS_DECL
+			PCGEX_START_TASK(FPCGExCreateBridgeTask, EdgePointIndex, ConsolidatedEdges, ThisPtr, ValidClusters[Start], ValidClusters[End])
 		}
 	}
 

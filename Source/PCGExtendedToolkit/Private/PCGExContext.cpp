@@ -310,6 +310,7 @@ bool FPCGExContext::CanExecute() const
 bool FPCGExContext::CancelExecution(const FString& InReason)
 {
 	bExecutionCancelled = true;
+	Lifecycle->Terminate();
 	ResumeExecution();
 	if (!InReason.IsEmpty()) { PCGE_LOG_C(Error, GraphAndLog, this, FTEXT(InReason)); }
 	return true;

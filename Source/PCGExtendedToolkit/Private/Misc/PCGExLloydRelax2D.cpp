@@ -76,7 +76,8 @@ namespace PCGExLloydRelax2D
 		if(!PointDataFacade->Source->InitializeOutput(PCGExData::EIOInit::Duplicate)) { return false; }
 		PCGExGeo::PointsToPositions(PointDataFacade->GetIn()->GetPoints(), ActivePositions);
 
-		PCGEX_START_TASK(FLloydRelaxTask, 0, SharedThis(this), &InfluenceDetails, Settings->Iterations)
+		PCGEX_SHARED_THIS_DECL
+		PCGEX_START_TASK(FLloydRelaxTask, 0, ThisPtr, &InfluenceDetails, Settings->Iterations)
 
 		return true;
 	}

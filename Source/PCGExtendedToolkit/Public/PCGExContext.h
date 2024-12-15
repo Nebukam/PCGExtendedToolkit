@@ -128,7 +128,7 @@ public:
 	void AddConsumableAttributeName(FName InName);
 
 	bool CanExecute() const;
-	bool CancelExecution(const FString& InReason);
+	virtual bool CancelExecution(const FString& InReason);
 
 protected:
 	bool bExecutionCancelled = false;

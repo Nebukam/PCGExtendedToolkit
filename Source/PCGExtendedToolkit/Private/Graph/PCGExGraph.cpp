@@ -206,16 +206,18 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 		if (!AsyncManager) { return; }
 
 		WeakParentTask.Pin()->GrowNumCompleted();
+		
+		PCGEX_SHARED_THIS_DECL
 
 		if (GetDefault<UPCGExGlobalSettings>()->bCacheClusters && ParentGraph->bBuildClusters)
 		{
 			if (Cast<UPCGExClusterEdgesData>(EdgesDataFacade->Source->GetOut()))
 			{
-				PCGEX_START_TASK(PCGExGraphTask::FWriteSubGraphCluster, SharedThis(this))
+				PCGEX_START_TASK(PCGExGraphTask::FWriteSubGraphCluster, ThisPtr)
 			}
 		}
 
-		if (OnSubGraphPostProcess) { OnSubGraphPostProcess(SharedThis(this)); }
+		if (OnSubGraphPostProcess) { OnSubGraphPostProcess(ThisPtr.ToSharedRef()); }
 		EdgesDataFacade->Write(AsyncManager);
 	}
 
@@ -439,7 +441,8 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 	void FGraphBuilder::CompileAsync(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager, const bool bWriteNodeFacade, const FGraphMetadataDetails* MetadataDetails)
 	{
 		AsyncManager = InAsyncManager;
-		PCGEX_START_TASK(PCGExGraphTask::FCompileGraph, SharedThis(this), bWriteNodeFacade, MetadataDetails)
+		PCGEX_SHARED_THIS_DECL
+		PCGEX_START_TASK(PCGExGraphTask::FCompileGraph, ThisPtr, bWriteNodeFacade, MetadataDetails)
 	}
 
 	void FGraphBuilder::Compile(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager, const bool bWriteNodeFacade, const FGraphMetadataDetails* MetadataDetails)
@@ -460,8 +463,8 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 			bCompiledSuccessfully = false;
 			if (OnCompilationEndCallback)
 			{
-				const TSharedPtr<FGraphBuilder> SharedPtr = SharedThis(this);
-				OnCompilationEndCallback(SharedPtr.ToSharedRef(), bCompiledSuccessfully);
+				PCGEX_SHARED_THIS_DECL
+				OnCompilationEndCallback(ThisPtr.ToSharedRef(), bCompiledSuccessfully);
 			}
 			return;
 		}

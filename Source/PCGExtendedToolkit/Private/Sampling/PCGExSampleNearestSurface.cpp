@@ -270,6 +270,7 @@ namespace PCGExSampleNearestSurface
 		{
 			for (const UPrimitiveComponent* Primitive : Context->IncludedPrimitives)
 			{
+				if (!IsValid(Primitive)) { continue; }
 				if (TArray<FOverlapResult> TempOverlaps;
 					Primitive->OverlapComponentWithResult(Origin, FQuat::Identity, CollisionShape, TempOverlaps))
 				{
