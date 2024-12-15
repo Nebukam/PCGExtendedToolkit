@@ -13,7 +13,7 @@ namespace PCGEx
 	void FManagedObjects::Flush()
 	{
 		FWriteScopeLock WriteScopeLock(ManagedObjectLock);
-		bFlushing = true;
+		FPlatformAtomics::InterlockedExchange(&bFlushing, 1);
 
 		// Flush remaining managed objects & mark them as garbage
 		for (UObject* ObjectPtr : ManagedObjects)
@@ -35,8 +35,8 @@ namespace PCGEx
 
 	void FManagedObjects::Add(UObject* InObject)
 	{
-		check(!bFlushing)
-		
+		check(!IsFlushing())
+
 		if (!IsValid(InObject)) { return; }
 
 		{
@@ -48,7 +48,7 @@ namespace PCGEx
 
 	bool FManagedObjects::Remove(UObject* InObject)
 	{
-		if (bFlushing) { return false; } // Will be removed anyway
+		if (IsFlushing()) { return false; } // Will be removed anyway
 
 		{
 			FWriteScopeLock WriteScopeLock(ManagedObjectLock);
@@ -56,11 +56,11 @@ namespace PCGEx
 			if (!IsValid(InObject) || !ManagedObjects.Contains(InObject)) { return false; }
 
 			ManagedObjects.Remove(InObject);
-			
+
 			InObject->RemoveFromRoot();
 			RecursivelyClearAsyncFlagUnsafe(InObject);
 		}
-		
+
 		if (InObject->Implements<UPCGExManagedObjectInterface>())
 		{
 			IPCGExManagedObjectInterface* ManagedObject = Cast<IPCGExManagedObjectInterface>(InObject);
@@ -74,7 +74,7 @@ namespace PCGEx
 	{
 		check(InObject)
 
-		if (bFlushing) { return; } // Will be destroyed anyway
+		if (IsFlushing()) { return; } // Will be destroyed anyway
 
 		{
 			FReadScopeLock ReadScopeLock(ManagedObjectLock);

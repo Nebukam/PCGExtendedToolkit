@@ -120,9 +120,10 @@ namespace PCGExRelaxClusters
 				This->StartRelaxIteration();
 			};
 
+		PCGEX_SHARED_THIS_DECL
 		IterationGroup->StartRanges<FRelaxRangeTask>(
 			NumNodes, GetDefault<UPCGExGlobalSettings>()->GetPointsBatchChunkSize(),
-			false, SharedThis(this));
+			false, ThisPtr);
 	}
 
 	void FProcessor::ProcessSingleNode(const int32 Index, PCGExCluster::FNode& Node, const PCGExMT::FScope& Scope)

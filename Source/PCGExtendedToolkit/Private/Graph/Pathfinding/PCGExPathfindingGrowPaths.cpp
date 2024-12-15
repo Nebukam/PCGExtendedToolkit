@@ -309,6 +309,8 @@ namespace PCGExGrowPaths
 
 		// Prepare growth points
 
+		PCGEX_SHARED_THIS_DECL
+		
 		// Find all growth points
 		const int32 SeedCount = Context->SeedsDataFacade->Source->GetNum();
 		for (int i = 0; i < SeedCount; i++)
@@ -392,7 +394,7 @@ namespace PCGExGrowPaths
 
 			for (int j = 0; j < StartGrowthNumBranches; j++)
 			{
-				PCGEX_MAKE_SHARED(NewGrowth, FGrowth, SharedThis(this), StartNumIterations, Node.Index, StartGrowthDirection)
+				PCGEX_MAKE_SHARED(NewGrowth, FGrowth, ThisPtr, StartNumIterations, Node.Index, StartGrowthDirection)
 				NewGrowth->MaxDistance = StartGrowthMaxDistance;
 				NewGrowth->SeedPointIndex = i;
 
@@ -404,7 +406,7 @@ namespace PCGExGrowPaths
 		}
 
 		if (IsTrivial()) { Grow(); }
-		else { PCGEX_START_TASK(FGrowTask, SharedThis(this)) }
+		else { PCGEX_START_TASK(FGrowTask, ThisPtr) }
 
 		return true;
 	}
