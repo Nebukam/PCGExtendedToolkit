@@ -78,7 +78,9 @@ namespace PCGExPathfinding
 			return;
 		}
 
-		if (SearchOperation->ResolveQuery(SharedThis(this), HeuristicsHandler, LocalFeedback))
+		PCGEX_SHARED_THIS_DECL
+		
+		if (SearchOperation->ResolveQuery(ThisPtr, HeuristicsHandler, LocalFeedback))
 		{
 			SetResolution(HasValidPathPoints() ? EPathfindingResolution::Success : EPathfindingResolution::Fail);
 		}

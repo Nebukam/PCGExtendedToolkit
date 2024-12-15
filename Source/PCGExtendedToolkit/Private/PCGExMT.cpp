@@ -47,11 +47,12 @@ namespace PCGExMT
 			QueuedTasks.Add(InTask.ToSharedRef());
 		}
 
+		PCGEX_SHARED_THIS_DECL
 		UE::Tasks::Launch(
 				*InTask->GetTaskName(),
 				[
 					WeakTask = TWeakPtr<FPCGExTask>(InTask),
-					WeakManager = TWeakPtr<FTaskManager>(SharedThis(this)),
+					WeakManager = TWeakPtr<FTaskManager>(ThisPtr),
 					WeakGroup = TWeakPtr<FTaskGroup>(InGroup)]()
 				{
 					const TSharedPtr<FPCGExTask> Task = WeakTask.Pin();
@@ -108,8 +109,8 @@ namespace PCGExMT
 
 		FWriteScopeLock WriteLock(ManagerLock);
 
-		for (const TSharedPtr<FTaskGroup>& Group : Groups) { Group->Cancel(); }
-		for (const TSharedPtr<FPCGExTask>& Task : QueuedTasks) { Task->Cancel(); }
+		for (const TSharedPtr<FTaskGroup>& Group : Groups) { if (Group) { Group->Cancel(); } }
+		for (const TSharedPtr<FPCGExTask>& Task : QueuedTasks) { if (Task) { Task->Cancel(); } }
 
 		QueuedTasks.Empty();
 		Groups.Empty();
