@@ -148,7 +148,15 @@ bool FPCGExPointsProcessorContext::ShouldWaitForAsync()
 
 bool FPCGExPointsProcessorContext::CancelExecution(const FString& InReason)
 {
-	PCGEX_TERMINATE_ASYNC
+	if (AsyncManager)
+	{
+		while (!AsyncManager->IsWorkComplete())
+		{
+			// I'm sorry mom.
+		}
+		AsyncManager->Reset(true);
+	}
+	Lifecycle->Terminate();
 	return FPCGExContext::CancelExecution(InReason);
 }
 
@@ -337,6 +345,9 @@ bool FPCGExPointsProcessorElement::PostBoot(FPCGExContext* InContext) const
 void FPCGExPointsProcessorElement::AbortInternal(FPCGContext* Context) const
 {
 	IPCGElement::AbortInternal(Context);
+
+	if (!Context) { return; }
+
 	FPCGExContext* PCGExContext = static_cast<FPCGExContext*>(Context);
 	PCGExContext->CancelExecution(TEXT(""));
 }
