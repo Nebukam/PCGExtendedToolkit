@@ -242,4 +242,5 @@ protected:
 	virtual void PostLoadAssetsDependencies(FPCGExContext* InContext) const;
 	virtual bool PostBoot(FPCGExContext* InContext) const;
 	virtual void AbortInternal(FPCGContext* Context) const override;
+	virtual bool IsCancellable() const override { return false; }
 };
