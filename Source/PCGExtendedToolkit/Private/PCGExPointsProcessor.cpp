@@ -338,7 +338,7 @@ void FPCGExPointsProcessorElement::AbortInternal(FPCGContext* Context) const
 {
 	IPCGElement::AbortInternal(Context);
 	FPCGExContext* PCGExContext = static_cast<FPCGExContext*>(Context);
-	PCGExContext->CancelExecution(TEXT("Aborted"));
+	PCGExContext->CancelExecution(TEXT(""));
 }
 
 #undef LOCTEXT_NAMESPACE
