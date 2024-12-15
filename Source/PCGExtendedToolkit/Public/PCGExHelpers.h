@@ -245,6 +245,7 @@ namespace PCGEx
 		T* New(Args&&... InArgs)
 		{
 			check(Lifecycle->IsAlive())
+			check(!bFlushing)
 
 			T* Object = nullptr;
 			if (!IsInGameThread())
@@ -268,6 +269,7 @@ namespace PCGEx
 		T* Duplicate(const UPCGData* InData)
 		{
 			check(Lifecycle->IsAlive())
+			check(!bFlushing)
 
 			T* Object = nullptr;
 
@@ -275,15 +277,14 @@ namespace PCGEx
 
 			if (!IsInGameThread())
 			{
+				FWriteScopeLock WriteScopeLock(ManagedObjectLock);
+				PCGEX_FORCE_CONTEXT_ASYNCSTATE(Context)
+				
+				Object = Cast<T>(InData->DuplicateData(Context, true));
+				check(Object);
 				{
-					FWriteScopeLock WriteScopeLock(ManagedObjectLock);
-					PCGEX_FORCE_CONTEXT_ASYNCSTATE(Context)
-					Object = Cast<T>(InData->DuplicateData(Context, true));
-					check(Object);
-					{
-						FWriteScopeLock WriteDuplicateScopeLock(DuplicatedObjectLock);
-						DuplicateObjects.Add(Object);
-					}
+					FWriteScopeLock DupeLock(DuplicatedObjectLock);
+					DuplicateObjects.Add(Object);
 				}
 			}
 			else
@@ -292,7 +293,7 @@ namespace PCGEx
 				Object = Cast<T>(InData->DuplicateData(Context, true));
 				check(Object);
 				{
-					FWriteScopeLock WriteDuplicateScopeLock(DuplicatedObjectLock);
+					FWriteScopeLock DupeLock(DuplicatedObjectLock);
 					DuplicateObjects.Add(Object);
 				}
 			}
@@ -345,6 +346,9 @@ namespace PCGEx
 	protected:
 		TSet<UObject*> DuplicateObjects;
 		void RecursivelyClearAsyncFlagUnsafe(UObject* InObject) const;
+
+	private:
+		bool bFlushing = false;
 	};
 
 	static FVector GetPointsCentroid(const TArray<FPCGPoint>& InPoints)
