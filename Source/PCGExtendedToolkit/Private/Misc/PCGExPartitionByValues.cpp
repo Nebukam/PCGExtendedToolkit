@@ -52,8 +52,8 @@ namespace PCGExPartition
 
 			if (LayerPtr) { return *LayerPtr; }
 
-			TSharedPtr<FKPartition> SharedThisPtr = SharedThis(this);
-			TSharedPtr<FKPartition> Partition = MakeShared<FKPartition>(SharedThisPtr, Key, InRule, SubLayers.Num());
+			PCGEX_SHARED_THIS_DECL
+			TSharedPtr<FKPartition> Partition = MakeShared<FKPartition>(ThisPtr, Key, InRule, SubLayers.Num());
 
 			UniquePartitionKeys.Add(Key);
 			SubLayers.Add(Key, Partition);
@@ -69,7 +69,8 @@ namespace PCGExPartition
 		}
 		else
 		{
-			Partitions.Add(SharedThis(this));
+			PCGEX_SHARED_THIS_DECL
+			Partitions.Add(ThisPtr);
 		}
 	}
 

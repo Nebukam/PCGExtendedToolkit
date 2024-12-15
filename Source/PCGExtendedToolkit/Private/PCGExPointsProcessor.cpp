@@ -146,6 +146,12 @@ bool FPCGExPointsProcessorContext::ShouldWaitForAsync()
 	return FPCGExContext::ShouldWaitForAsync();
 }
 
+bool FPCGExPointsProcessorContext::CancelExecution(const FString& InReason)
+{
+	PCGEX_TERMINATE_ASYNC
+	return FPCGExContext::CancelExecution(InReason);
+}
+
 void FPCGExPointsProcessorContext::ResumeExecution()
 {
 	if (AsyncManager) { AsyncManager->Reset(); }
@@ -326,6 +332,13 @@ void FPCGExPointsProcessorElement::PostLoadAssetsDependencies(FPCGExContext* InC
 bool FPCGExPointsProcessorElement::PostBoot(FPCGExContext* InContext) const
 {
 	return true;
+}
+
+void FPCGExPointsProcessorElement::AbortInternal(FPCGContext* Context) const
+{
+	IPCGElement::AbortInternal(Context);
+	FPCGExContext* PCGExContext = static_cast<FPCGExContext*>(Context);
+	PCGExContext->CancelExecution(TEXT("Aborted"));
 }
 
 #undef LOCTEXT_NAMESPACE

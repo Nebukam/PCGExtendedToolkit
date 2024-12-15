@@ -213,11 +213,11 @@ namespace PCGEx
 		FLifecycle() = default;
 		~FLifecycle() = default;
 
-		void Terminate() { bAlive = false; }
-		bool IsAlive() const { return bAlive; }
+		void Terminate() { FPlatformAtomics::InterlockedExchange(&bAlive, 0); }
+		bool IsAlive() const { return static_cast<bool>(bAlive); }
 
 	private:
-		std::atomic<bool> bAlive{true};
+		int8 bAlive = 1;
 	};
 
 	struct /*PCGEXTENDEDTOOLKIT_API*/ FManagedObjects
@@ -228,6 +228,8 @@ namespace PCGEx
 		FPCGContext* Context = nullptr;
 		TSharedPtr<FLifecycle> Lifecycle;
 		TSet<UObject*> ManagedObjects;
+
+		bool IsFlushing() const { return static_cast<bool>(bFlushing); }
 
 		explicit FManagedObjects(FPCGContext* InContext, const TSharedPtr<FLifecycle>& InLifecycle):
 			Context(InContext), Lifecycle(InLifecycle)
@@ -245,7 +247,7 @@ namespace PCGEx
 		T* New(Args&&... InArgs)
 		{
 			check(Lifecycle->IsAlive())
-			check(!bFlushing)
+			check(!IsFlushing())
 
 			T* Object = nullptr;
 			if (!IsInGameThread())
@@ -269,7 +271,7 @@ namespace PCGEx
 		T* Duplicate(const UPCGData* InData)
 		{
 			check(Lifecycle->IsAlive())
-			check(!bFlushing)
+			check(!IsFlushing())
 
 			T* Object = nullptr;
 
@@ -279,7 +281,7 @@ namespace PCGEx
 			{
 				FWriteScopeLock WriteScopeLock(ManagedObjectLock);
 				PCGEX_FORCE_CONTEXT_ASYNCSTATE(Context)
-				
+
 				Object = Cast<T>(InData->DuplicateData(Context, true));
 				check(Object);
 				{
@@ -348,7 +350,7 @@ namespace PCGEx
 		void RecursivelyClearAsyncFlagUnsafe(UObject* InObject) const;
 
 	private:
-		bool bFlushing = false;
+		int8 bFlushing = 0;
 	};
 
 	static FVector GetPointsCentroid(const TArray<FPCGPoint>& InPoints)

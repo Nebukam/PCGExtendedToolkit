@@ -207,6 +207,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPointsProcessorContext : FPCGExContext
 #pragma endregion
 
 	virtual bool ShouldWaitForAsync() override;
+	virtual bool CancelExecution(const FString& InReason) override;
 
 protected:
 	TSharedPtr<PCGExMT::FTaskManager> AsyncManager;
@@ -240,4 +241,5 @@ protected:
 	virtual bool Boot(FPCGExContext* InContext) const;
 	virtual void PostLoadAssetsDependencies(FPCGExContext* InContext) const;
 	virtual bool PostBoot(FPCGExContext* InContext) const;
+	virtual void AbortInternal(FPCGContext* Context) const override;
 };

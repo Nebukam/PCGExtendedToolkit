@@ -125,7 +125,7 @@ namespace PCGExDiscardSame
 
 		const TSharedPtr<PCGExPointsMT::TBatch<FProcessor>> Batch = StaticCastSharedPtr<PCGExPointsMT::TBatch<FProcessor>>(ParentBatch.Pin());
 
-		TSharedRef<FProcessor> ThisRef = SharedThis(this);
+		PCGEX_SHARED_THIS_DECL
 
 		const double Tol = Settings->TestPointCountTolerance;
 
@@ -133,7 +133,7 @@ namespace PCGExDiscardSame
 		{
 			for (TSharedRef<FProcessor> P : Batch->Processors)
 			{
-				if (P == ThisRef) { continue; }
+				if (P == ThisPtr) { continue; }
 
 				if (Settings->bTestBounds && P->HashBounds != HashBounds) { continue; }
 				if (Settings->bTestPositions && P->HashPositions != HashPositions) { continue; }
@@ -146,7 +146,7 @@ namespace PCGExDiscardSame
 		{
 			for (TSharedRef<FProcessor> P : Batch->Processors)
 			{
-				if (P == ThisRef) { continue; }
+				if (P == ThisPtr) { continue; }
 
 				if ((Settings->bTestBounds && P->HashBounds == HashBounds) ||
 					(Settings->bTestPositions && P->HashPositions == HashPositions) ||

@@ -334,9 +334,10 @@ namespace PCGExRefineEdges
 		}
 		else
 		{
+			PCGEX_SHARED_THIS_DECL
 			SanitizeTaskGroup->StartRanges<FSanitizeRangeTask>(
 				NumNodes, GetDefault<UPCGExGlobalSettings>()->GetPointsBatchChunkSize(),
-				false, SharedThis(this));
+				false, ThisPtr);
 		}
 	}
 
