@@ -125,7 +125,7 @@ TSharedPtr<PCGExMT::FTaskManager> FPCGExPointsProcessorContext::GetAsyncManager(
 	{
 		FWriteScopeLock WriteLock(AsyncLock);
 		AsyncManager = MakeShared<PCGExMT::FTaskManager>(this);
-		AsyncManager->ForceSync = !bAsyncEnabled;
+		AsyncManager->bForceSync = !bAsyncEnabled;
 
 		PCGEX_SETTINGS_LOCAL(PointsProcessor)
 		PCGExMT::SetWorkPriority(Settings->WorkPriority, AsyncManager->WorkPriority);
@@ -148,15 +148,7 @@ bool FPCGExPointsProcessorContext::ShouldWaitForAsync()
 
 bool FPCGExPointsProcessorContext::CancelExecution(const FString& InReason)
 {
-	if (AsyncManager)
-	{
-		while (!AsyncManager->IsWorkComplete())
-		{
-			// I'm sorry mom.
-		}
-		AsyncManager->Reset(true);
-	}
-	Lifecycle->Terminate();
+	PCGEX_TERMINATE_ASYNC
 	return FPCGExContext::CancelExecution(InReason);
 }
 

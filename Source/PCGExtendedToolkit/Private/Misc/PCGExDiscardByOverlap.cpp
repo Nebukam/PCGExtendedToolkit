@@ -189,7 +189,7 @@ bool FPCGExDiscardByOverlapElement::ExecuteInternal(FPCGContext* InContext) cons
 	{
 		Context->SetAsyncState(PCGEx::State_Completing);
 		const TSharedPtr<PCGExMT::FTaskManager> AsyncManager = Context->GetAsyncManager();
-		PCGEX_START_TASK(PCGExDiscardByOverlap::FPruneTask)
+		PCGEX_LAUNCH(PCGExDiscardByOverlap::FPruneTask)
 		return false;
 	}
 

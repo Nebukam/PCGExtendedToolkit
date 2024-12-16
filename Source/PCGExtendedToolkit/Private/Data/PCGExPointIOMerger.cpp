@@ -113,7 +113,7 @@ void FPCGExPointIOMerger::Merge(const TSharedPtr<PCGExMT::FTaskManager>& AsyncMa
 	PCGEX_SHARED_THIS_DECL
 	for (int i = 0; i < UniqueIdentities.Num(); i++)
 	{
-		PCGEX_START_TASK(PCGExPointIOMerger::FCopyAttributeTask, i, ThisPtr)
+		PCGEX_LAUNCH(PCGExPointIOMerger::FCopyAttributeTask, i, ThisPtr)
 	}
 }
 
@@ -138,7 +138,7 @@ namespace PCGExPointIOMerger
 					if (!Attribute) { continue; }                            // Missing attribute
 					if (!Identity.IsA(Attribute->GetTypeId())) { continue; } // Type mismatch
 
-					PCGEX_START_TASK_INTERNAL(FWriteAttributeScopeTask<T>, SourceIO, Merger->Scopes[i], Identity, TypedBuffer->GetOutValues())
+					PCGEX_LAUNCH_INTERNAL(FWriteAttributeScopeTask<T>, SourceIO, Merger->Scopes[i], Identity, TypedBuffer->GetOutValues())
 				}
 			});
 	}

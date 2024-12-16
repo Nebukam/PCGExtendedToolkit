@@ -100,7 +100,7 @@ bool FPCGExFuseClustersElement::ExecuteInternal(FPCGContext* InContext) const
 			[](const TSharedPtr<PCGExData::FPointIOTaggedEntries>& Entries) { return true; },
 			[&](const TSharedPtr<PCGExClusterMT::TBatch<PCGExFuseClusters::FProcessor>>& NewBatch)
 			{
-				NewBatch->bInlineProcessing = bDoInline;
+				NewBatch->bDaisyChainProcessing = bDoInline;
 			}, bDoInline))
 		{
 			return Context->CancelExecution(TEXT("Could not build any clusters."));
@@ -167,7 +167,7 @@ namespace PCGExFuseClusters
 		bInvalidEdges = false;
 		UnionGraph = Context->UnionGraph;
 
-		bInlineProcessRange = bInlineProcessEdges = Settings->PointPointIntersectionDetails.FuseDetails.DoInlineInsertion();
+		bDaisyChainProcessRange = bInlineProcessEdges = Settings->PointPointIntersectionDetails.FuseDetails.DoInlineInsertion();
 
 		if (Cluster) { StartParallelLoopForEdges(); }
 		else { StartParallelLoopForRange(IndexedEdges.Num()); }

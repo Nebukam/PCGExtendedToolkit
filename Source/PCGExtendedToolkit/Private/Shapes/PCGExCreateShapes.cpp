@@ -131,7 +131,7 @@ namespace PCGExCreateShapes
 
 					if (!IsShapeValid(Shape)) { continue; }
 
-					PCGEX_START_TASK(FBuildShape, Builders[j], PointDataFacade, Shape)
+					PCGEX_LAUNCH(FBuildShape, Builders[j], PointDataFacade, Shape)
 				}
 			}
 		}
@@ -173,7 +173,7 @@ namespace PCGExCreateShapes
 
 					if (!IsShapeValid(Shape)) { continue; }
 
-					PCGEX_START_TASK(FBuildShape, Builders[j], IOFacade.ToSharedRef(), Shape)
+					PCGEX_LAUNCH(FBuildShape, Builders[j], IOFacade.ToSharedRef(), Shape)
 				}
 			}
 		}

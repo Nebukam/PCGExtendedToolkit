@@ -73,7 +73,7 @@ namespace PCGExLloydRelax
 		PCGExGeo::PointsToPositions(PointDataFacade->GetIn()->GetPoints(), ActivePositions);
 
 		PCGEX_SHARED_THIS_DECL
-		PCGEX_START_TASK(FLloydRelaxTask, 0, ThisPtr, &InfluenceDetails, Settings->Iterations)
+		PCGEX_LAUNCH(FLloydRelaxTask, 0, ThisPtr, &InfluenceDetails, Settings->Iterations)
 
 		return true;
 	}
@@ -131,7 +131,7 @@ namespace PCGExLloydRelax
 
 		if (NumIterations > 0)
 		{
-			PCGEX_START_TASK_INTERNAL(FLloydRelaxTask, TaskIndex + 1, Processor, InfluenceSettings, NumIterations)
+			PCGEX_LAUNCH_INTERNAL(FLloydRelaxTask, TaskIndex + 1, Processor, InfluenceSettings, NumIterations)
 		}
 	}
 }
