@@ -91,7 +91,7 @@ namespace PCGEx
 
 					bAnyDiscovery = true;
 
-					PCGEX_START_TASK(TDiscoverAssetsTask<T>, SharedThis(this), Broadcaster)
+					PCGEX_LAUNCH(TDiscoverAssetsTask<T>, SharedThis(this), Broadcaster)
 				}
 			}
 

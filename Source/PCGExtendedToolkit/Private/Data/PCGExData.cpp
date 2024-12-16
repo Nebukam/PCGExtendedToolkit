@@ -141,21 +141,18 @@ namespace PCGExData
 	void FFacadePreloader::StartLoading(TSharedPtr<PCGExMT::FTaskManager> AsyncManager, const TSharedRef<FFacade>& InDataFacade, TSharedPtr<PCGExMT::FTaskGroup> InTaskGroup)
 	{
 		InternalDataFacadePtr = InDataFacade;
-		TaskGroupPtr = InTaskGroup;
 
 		if (!IsEmpty())
 		{
 			if (!Validate(AsyncManager->Context, InDataFacade))
 			{
 				InternalDataFacadePtr.Reset();
-				TaskGroupPtr.Reset();
 				OnLoadingEnd();
 				return;
 			}
 
 			PCGEX_ASYNC_GROUP_CHKD_VOID(AsyncManager, PrefetchAttributesTask)
-
-			if (InTaskGroup) { InTaskGroup->GrowNumStarted(); }
+			PrefetchAttributesTask->SetParentTaskGroup(InTaskGroup);
 
 			PrefetchAttributesTask->OnCompleteCallback =
 				[PCGEX_ASYNC_THIS_CAPTURE]()
@@ -195,7 +192,6 @@ namespace PCGExData
 		}
 		else
 		{
-			TaskGroupPtr.Reset();
 			OnLoadingEnd();
 		}
 	}
@@ -204,7 +200,6 @@ namespace PCGExData
 	{
 		if (TSharedPtr<FFacade> InternalFacade = InternalDataFacadePtr.Pin()) { InternalFacade->MarkCurrentBuffersReadAsComplete(); }
 		if (OnCompleteCallback) { OnCompleteCallback(); }
-		if (const TSharedPtr<PCGExMT::FTaskGroup> TaskGroup = TaskGroupPtr.Pin()) { TaskGroup->GrowNumCompleted(); }
 	}
 
 	void FUnionData::ComputeWeights(

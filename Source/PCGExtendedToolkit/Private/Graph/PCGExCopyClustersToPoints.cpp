@@ -91,7 +91,7 @@ namespace PCGExCopyClusters
 			EdgesDupes[i] = EdgeDupe;
 			PCGExGraph::MarkClusterEdges(EdgeDupe, *(VtxTag->GetData() + i));
 
-			PCGEX_START_TASK(PCGExGeoTasks::FTransformPointIO, i, Context->TargetsDataFacade->Source, EdgeDupe, &Context->TransformDetails)
+			PCGEX_LAUNCH(PCGExGeoTasks::FTransformPointIO, i, Context->TargetsDataFacade->Source, EdgeDupe, &Context->TransformDetails)
 		}
 
 		return true;
@@ -156,7 +156,7 @@ namespace PCGExCopyClusters
 			VtxDupes[i] = VtxDupe;
 			VtxTag.Add(OutId);
 
-			PCGEX_START_TASK(PCGExGeoTasks::FTransformPointIO, i, Context->TargetsDataFacade->Source, VtxDupe, &Context->TransformDetails)
+			PCGEX_LAUNCH(PCGExGeoTasks::FTransformPointIO, i, Context->TargetsDataFacade->Source, VtxDupe, &Context->TransformDetails)
 
 			Context->TargetsAttributesToPathTags.Tag(i, VtxDupe);
 			Context->TargetsForwardHandler->Forward(i, VtxDupe->GetOut()->Metadata);

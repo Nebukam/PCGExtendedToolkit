@@ -242,7 +242,7 @@ bool FPCGExBuildCustomGraphElement::ExecuteInternal(FPCGContext* InContext) cons
 
 			{
 				const TSharedPtr<PCGExMT::FTaskManager> AsyncManager = Context->GetAsyncManager();
-				PCGEX_START_TASK(PCGExBuildCustomGraph::FBuildGraph, NodeIO, GraphSettings)
+				PCGEX_LAUNCH(PCGExBuildCustomGraph::FBuildGraph, NodeIO, GraphSettings)
 			}
 		}
 

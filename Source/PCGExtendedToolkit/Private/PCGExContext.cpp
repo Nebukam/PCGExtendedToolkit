@@ -151,7 +151,6 @@ void FPCGExContext::SetAsyncState(const PCGEx::ContextState WaitState)
 
 	bWaitingForAsyncCompletion = true;
 	SetState(WaitState);
-	//PauseContext();
 }
 
 bool FPCGExContext::ShouldWaitForAsync()
@@ -174,7 +173,6 @@ void FPCGExContext::SetState(const PCGEx::ContextState StateId)
 {
 	if (CurrentState == StateId) { return; }
 	CurrentState = StateId;
-	//UnpauseContext();
 }
 
 void FPCGExContext::Done()

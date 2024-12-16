@@ -107,7 +107,7 @@ bool FPCGExPathToClustersElement::ExecuteInternal(FPCGContext* InContext) const
 				},
 				[&](const TSharedPtr<PCGExPointsMT::TBatch<PCGExPathToClusters::FFusingProcessor>>& NewBatch)
 				{
-					NewBatch->bInlineProcessing = Settings->PointPointIntersectionDetails.FuseDetails.DoInlineInsertion();
+					NewBatch->bDaisyChainProcessing = Settings->PointPointIntersectionDetails.FuseDetails.DoInlineInsertion();
 				}))
 			{
 				return Context->CancelExecution(TEXT("Could not build any clusters."));
