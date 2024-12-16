@@ -78,7 +78,7 @@ namespace PCGExOffsetPath
 
 		if (!FPointsProcessor::Process(InAsyncManager)) { return false; }
 
-		PointDataFacade->Source->InitializeOutput(Settings->bCleanupPath ? PCGExData::EIOInit::New : PCGExData::EIOInit::Duplicate);
+		if (!PointDataFacade->Source->InitializeOutput(Settings->bCleanupPath ? PCGExData::EIOInit::New : PCGExData::EIOInit::Duplicate)) { return false; }
 
 		if (Settings->bInvertDirection) { DirectionFactor *= -1; }
 

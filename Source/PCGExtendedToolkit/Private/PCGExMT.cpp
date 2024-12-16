@@ -8,6 +8,13 @@
 
 namespace PCGExMT
 {
+	FTaskManager::FTaskManager(FPCGExContext* InContext)
+		: Context(InContext)
+	{
+		PCGEX_LOG_CTR(FTaskManager)
+		Lifecycle = Context->Lifecycle;
+	}
+
 	FTaskManager::~FTaskManager()
 	{
 		PCGEX_LOG_DTR(FTaskManager)
@@ -24,11 +31,7 @@ namespace PCGExMT
 	void FTaskManager::GrowNumCompleted()
 	{
 		FPlatformAtomics::InterlockedIncrement(&NumCompleted);
-		if (NumCompleted == NumStarted)
-		{
-			bWorkComplete = true;
-			Context->UnpauseContext(); // Unpause context
-		}
+		if (NumCompleted == NumStarted) { Complete(); }
 	}
 
 	TSharedPtr<FTaskGroup> FTaskManager::TryCreateGroup(const FName& GroupName)
@@ -139,9 +142,12 @@ namespace PCGExMT
 			for (const TSharedPtr<FPCGExTask>& Task : Tasks) { Task->Cancel(); }
 		}
 
+		// Fail safe for tasks that cannot be cancelled mid-way
+		// This will only be false in cases where lots of regen/cancel happen in the same frame.
 		while (!IsWorkComplete())
 		{
-			// Fail safe for tasks that cannot be cancelled mid-way
+			// Sleep briefly to prevent busy waiting
+			FPlatformProcess::Sleep(0.01f);
 		}
 
 		{
@@ -180,6 +186,16 @@ namespace PCGExMT
 		bResetting = false;
 
 		// Unpause context just in case
+		Context->UnpauseContext();
+	}
+
+	void FTaskManager::Complete()
+	{
+		if (bWorkComplete) { return; }
+
+		bWorkComplete = true;
+		
+		// Unpause context
 		Context->UnpauseContext();
 	}
 

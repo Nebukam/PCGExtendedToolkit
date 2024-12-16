@@ -141,8 +141,9 @@ namespace PCGExClusterMT
 
 		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager> InAsyncManager)
 		{
-			AsyncManager = InAsyncManager;
-
+			AsyncManager = InAsyncManager;			
+			PCGEX_ASYNC_CHKD(AsyncManager)
+			
 			if (!bBuildCluster) { return true; }
 
 			if (const TSharedPtr<PCGExCluster::FCluster> CachedCluster = PCGExClusterData::TryGetCachedCluster(VtxDataFacade->Source, EdgeDataFacade->Source))
@@ -176,7 +177,8 @@ namespace PCGExClusterMT
 				HeuristicsHandler->CompleteClusterPreparation();
 			}
 
-			return true;
+			// Building cluster may have taken a while so let's make sure we're still legit
+			return AsyncManager->IsAvailable();
 		}
 
 #pragma region Parallel loops
@@ -560,6 +562,8 @@ namespace PCGExClusterMT
 
 			FClusterProcessorBatchBase::Process();
 
+			PCGEX_ASYNC_CHKD_VOID(AsyncManager)
+			
 			if (VtxDataFacade->GetNum() <= 1) { return; }
 
 			CurrentState = PCGEx::State_Processing;

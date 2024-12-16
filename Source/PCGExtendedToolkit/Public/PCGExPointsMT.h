@@ -125,6 +125,7 @@ namespace PCGExPointsMT
 		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager> InAsyncManager)
 		{
 			AsyncManager = InAsyncManager;
+			PCGEX_ASYNC_CHKD(AsyncManager)
 
 #pragma region Path filter data
 
@@ -389,6 +390,7 @@ namespace PCGExPointsMT
 			CurrentState = PCGEx::State_Processing;
 
 			AsyncManager = InAsyncManager;
+			PCGEX_ASYNC_CHKD_VOID(AsyncManager)
 
 			TSharedPtr<FPointsProcessorBatchBase> SelfPtr = SharedThis(this);
 

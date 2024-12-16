@@ -19,12 +19,6 @@
 
 #include "PCGExHelpers.generated.h"
 
-#define PCGEX_FORCE_CONTEXT_ASYNCSTATE(_CONTEXT)\
-	bool bRestoreTo = _CONTEXT->AsyncState.bIsRunningOnMainThread;\
-	ON_SCOPE_EXIT { _CONTEXT->AsyncState.bIsRunningOnMainThread = bRestoreTo; };\
-	_CONTEXT->AsyncState.bIsRunningOnMainThread = IsInGameThread(); // dirty trick
-
-
 UENUM()
 enum class EPCGExPointPropertyOutput : uint8
 {
@@ -280,9 +274,16 @@ namespace PCGEx
 			if (!IsInGameThread())
 			{
 				FWriteScopeLock WriteScopeLock(ManagedObjectLock);
-				PCGEX_FORCE_CONTEXT_ASYNCSTATE(Context)
 
+				// Ensure PCG AsyncState is up to date
+				bool bRestoreTo = Context->AsyncState.bIsRunningOnMainThread;
+				Context->AsyncState.bIsRunningOnMainThread = false;
+
+				// Do the duplicate (uses AnyThread that requires bIsRunningOnMainThread to be up-to-date)
 				Object = Cast<T>(InData->DuplicateData(Context, true));
+				
+				Context->AsyncState.bIsRunningOnMainThread = bRestoreTo;
+				
 				check(Object);
 				{
 					FWriteScopeLock DupeLock(DuplicatedObjectLock);

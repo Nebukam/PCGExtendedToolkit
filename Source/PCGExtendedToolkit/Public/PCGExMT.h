@@ -37,6 +37,9 @@
 #define PCGEX_ASYNC_THIS const TSharedPtr<std::remove_reference_t<decltype(*this)>> This = AsyncThis.Pin(); if (!This) { return; }
 #define PCGEX_ASYNC_NESTED_THIS const TSharedPtr<std::remove_reference_t<decltype(*this)>> NestedThis = AsyncThis.Pin(); if (!NestedThis) { return; }
 
+#define PCGEX_ASYNC_CHKD_VOID(_MANAGER) if (!_MANAGER->IsAvailable()) { return; }
+#define PCGEX_ASYNC_CHKD(_MANAGER) if (!_MANAGER->IsAvailable()) { return false; }
+
 #define PCGEX_LAUNCH(_CLASS, ...) PCGEX_MAKE_SHARED(Task, _CLASS, __VA_ARGS__); AsyncManager->Launch<_CLASS>(Task);
 #define PCGEX_LAUNCH_INTERNAL(_CLASS, ...) PCGEX_MAKE_SHARED(Task, _CLASS, __VA_ARGS__); Launch<_CLASS>(AsyncManager, InGroup, Task);
 
@@ -115,14 +118,13 @@ namespace PCGExMT
 		friend class FPCGExTask;
 		friend class FTaskGroup;
 
-	public:
-		FTaskManager(FPCGExContext* InContext)
-			: Context(InContext)
-		{
-			PCGEX_LOG_CTR(FTaskManager)
-		}
+		TSharedPtr<PCGEx::FLifecycle> Lifecycle;
 
+	public:
+		FTaskManager(FPCGExContext* InContext);
 		~FTaskManager();
+
+		const TSharedPtr<PCGEx::FLifecycle>& GetLifecycle() const { return Lifecycle; }
 
 		UE::Tasks::ETaskPriority WorkPriority = UE::Tasks::ETaskPriority::Default;
 
@@ -139,7 +141,7 @@ namespace PCGExMT
 		TSharedPtr<FTaskGroup> TryCreateGroup(const FName& GroupName);
 
 		FORCEINLINE bool IsStopping() const { return bStopping; }
-		FORCEINLINE bool IsAvailable() const { return !bStopping && !bStopped && !bResetting; }
+		FORCEINLINE bool IsAvailable() const { return !bStopping && !bStopped && !bResetting && Lifecycle->IsAlive(); }
 
 		template <typename T>
 		void Launch(const TSharedPtr<T>& InTask)
@@ -187,6 +189,9 @@ namespace PCGExMT
 		int32 NumCompleted = 0;
 
 		std::atomic<bool> bWorkComplete{true};
+
+		void Complete();
+
 	};
 
 	class /*PCGEXTENDEDTOOLKIT_API*/ FTaskGroup : public TSharedFromThis<FTaskGroup>
