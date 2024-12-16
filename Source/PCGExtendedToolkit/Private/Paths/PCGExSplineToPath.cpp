@@ -100,7 +100,7 @@ bool FPCGExSplineToPathElement::ExecuteInternal(FPCGContext* InContext) const
 		{
 			TSharedPtr<PCGExData::FPointIO> NewOutput = Context->MainPoints->Emplace_GetRef(PCGExData::EIOInit::New);
 			PCGEX_MAKE_SHARED(PointDataFacade, PCGExData::FFacade, NewOutput.ToSharedRef())
-			PCGEX_START_TASK(PCGExSplineToPath::FWriteTask, i, PointDataFacade)
+			PCGEX_LAUNCH(PCGExSplineToPath::FWriteTask, i, PointDataFacade)
 
 			NewOutput->Tags->Append(Context->Tags[i]);
 		}

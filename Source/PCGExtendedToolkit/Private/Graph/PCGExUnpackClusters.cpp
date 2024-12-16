@@ -50,7 +50,7 @@ bool FPCGExUnpackClustersElement::ExecuteInternal(
 	PCGEX_ON_INITIAL_EXECUTION
 	{
 		TSharedPtr<PCGExMT::FTaskManager> AsyncManager = Context->GetAsyncManager();
-		while (Context->AdvancePointsIO(false)) { PCGEX_START_TASK(FPCGExUnpackClusterTask, Context->CurrentIO) }
+		while (Context->AdvancePointsIO(false)) { PCGEX_LAUNCH(FPCGExUnpackClusterTask, Context->CurrentIO) }
 		Context->SetAsyncState(PCGEx::State_WaitingOnAsyncWork);
 	}
 

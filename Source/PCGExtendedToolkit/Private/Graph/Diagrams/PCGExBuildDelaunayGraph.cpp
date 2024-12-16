@@ -122,8 +122,8 @@ namespace PCGExBuildDelaunay
 		PCGEX_SHARED_THIS_DECL
 		if (Settings->bOutputSites)
 		{
-			if (Settings->bMergeUrquhartSites) { PCGEX_START_TASK(FOutputDelaunayUrquhartSites, PointDataFacade->Source, ThisPtr) }
-			else { PCGEX_START_TASK(FOutputDelaunaySites, PointDataFacade->Source, ThisPtr) }
+			if (Settings->bMergeUrquhartSites) { PCGEX_LAUNCH(FOutputDelaunayUrquhartSites, PointDataFacade->Source, ThisPtr) }
+			else { PCGEX_LAUNCH(FOutputDelaunaySites, PointDataFacade->Source, ThisPtr) }
 		}
 
 		GraphBuilder = MakeShared<PCGExGraph::FGraphBuilder>(PointDataFacade, &Settings->GraphBuilderDetails);

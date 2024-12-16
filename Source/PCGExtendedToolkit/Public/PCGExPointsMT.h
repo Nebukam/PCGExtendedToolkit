@@ -58,7 +58,7 @@ namespace PCGExPointsMT
 
 		TSharedPtr<PCGExPointFilter::FManager> PrimaryFilters;
 		bool bInlineProcessPoints = false;
-		bool bInlineProcessRange = false;
+		bool bDaisyChainProcessRange = false;
 
 		PCGExData::ESource CurrentProcessingSource = PCGExData::ESource::Out;
 		int32 LocalPointProcessingChunkSize = -1;
@@ -190,10 +190,10 @@ namespace PCGExPointsMT
 		void StartParallelLoopForRange(const int32 NumIterations, const int32 PerLoopIterations = -1)
 		{
 			PCGEX_ASYNC_POINT_PROCESSOR_LOOP(
-				Ranges, NumIterations,
+				Ranges, NumIterations,	
 				PrepareLoopScopesForRanges, ProcessRange,
 				OnRangeProcessingComplete,
-				bInlineProcessRange)
+				bDaisyChainProcessRange)
 		}
 
 		virtual void PrepareLoopScopesForRanges(const TArray<PCGExMT::FScope>& Loops)
@@ -290,9 +290,9 @@ namespace PCGExPointsMT
 
 	public:
 		bool bPrefetchData = false;
-		bool bInlineProcessing = false;
-		bool bInlineCompletion = false;
-		bool bInlineWrite = false;
+		bool bDaisyChainProcessing = false;
+		bool bDaisyChainCompletion = false;
+		bool bDaisyChainWrite = false;
 		bool bRequiresWriteStep = false;
 		TArray<TSharedRef<PCGExData::FFacade>> ProcessorFacades;
 		TMap<PCGExData::FPointIO*, TSharedRef<FPointsProcessor>>* SubProcessorMap = nullptr;
@@ -395,9 +395,9 @@ namespace PCGExPointsMT
 			for (const TWeakPtr<PCGExData::FPointIO>& WeakIO : PointsCollection)
 			{
 				TSharedPtr<PCGExData::FPointIO> IO = WeakIO.Pin();
-				
+
 				PCGEX_MAKE_SHARED(PointDataFacade, PCGExData::FFacade, IO.ToSharedRef())
-				
+
 				const TSharedPtr<T> NewProcessor = MakeShared<T>(PointDataFacade.ToSharedRef());
 
 				NewProcessor->SetExecutionContext(ExecutionContext);
@@ -446,7 +446,7 @@ namespace PCGExPointsMT
 	protected:
 		void OnProcessingPreparationComplete()
 		{
-			PCGEX_ASYNC_MT_LOOP_TPL(Process, bInlineProcessing, { Processor->bIsProcessorValid = Processor->Process(This->AsyncManager); })
+			PCGEX_ASYNC_MT_LOOP_TPL(Process, bDaisyChainProcessing, { Processor->bIsProcessorValid = Processor->Process(This->AsyncManager); })
 		}
 
 	public:
@@ -458,14 +458,14 @@ namespace PCGExPointsMT
 		virtual void CompleteWork() override
 		{
 			CurrentState = PCGEx::State_Completing;
-			PCGEX_ASYNC_MT_LOOP_VALID_PROCESSORS(CompleteWork, bInlineCompletion, { Processor->CompleteWork(); })
+			PCGEX_ASYNC_MT_LOOP_VALID_PROCESSORS(CompleteWork, bDaisyChainCompletion, { Processor->CompleteWork(); })
 			FPointsProcessorBatchBase::CompleteWork();
 		}
 
 		virtual void Write() override
 		{
 			CurrentState = PCGEx::State_Writing;
-			PCGEX_ASYNC_MT_LOOP_VALID_PROCESSORS(Write, bInlineWrite, { Processor->Write(); })
+			PCGEX_ASYNC_MT_LOOP_VALID_PROCESSORS(Write, bDaisyChainWrite, { Processor->Write(); })
 			FPointsProcessorBatchBase::Write();
 		}
 

@@ -737,7 +737,6 @@ namespace PCGExData
 	class /*PCGEXTENDEDTOOLKIT_API*/ FFacadePreloader : public TSharedFromThis<FFacadePreloader>
 	{
 	protected:
-		TWeakPtr<PCGExMT::FTaskGroup> TaskGroupPtr;
 		TWeakPtr<FFacade> InternalDataFacadePtr;
 
 	public:

@@ -182,7 +182,7 @@ bool FPCGExMeshToClustersElement::ExecuteInternal(
 		const TSharedPtr<PCGExMT::FTaskManager> AsyncManager = Context->GetAsyncManager();
 		for (int i = 0; i < Context->StaticMeshMap->GSMs.Num(); i++)
 		{
-			PCGEX_START_TASK(PCGExMeshToCluster::FExtractMeshAndBuildGraph, i, Context->StaticMeshMap->GSMs[i])
+			PCGEX_LAUNCH(PCGExMeshToCluster::FExtractMeshAndBuildGraph, i, Context->StaticMeshMap->GSMs[i])
 		}
 
 		// Preload all & build local graphs to copy to points later on			
@@ -199,7 +199,7 @@ bool FPCGExMeshToClustersElement::ExecuteInternal(
 
 			if (MeshIdx == -1) { continue; }
 
-			PCGEX_START_TASK(PCGExGraphTask::FCopyGraphToPoint, i, Context->CurrentIO, Context->GraphBuilders[MeshIdx], Context->VtxChildCollection, Context->EdgeChildCollection, &Context->TransformDetails)
+			PCGEX_LAUNCH(PCGExGraphTask::FCopyGraphToPoint, i, Context->CurrentIO, Context->GraphBuilders[MeshIdx], Context->VtxChildCollection, Context->EdgeChildCollection, &Context->TransformDetails)
 		}
 
 		Context->SetAsyncState(PCGExGraph::State_WritingClusters);
