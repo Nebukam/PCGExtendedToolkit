@@ -102,7 +102,7 @@ namespace PCGExAttributeRolling
 		OutMetadata = PointDataFacade->GetOut()->Metadata;
 		OutPoints = &PointDataFacade->GetOut()->GetMutablePoints();
 
-		bInlineProcessRange = true;
+		bDaisyChainProcessRange = true;
 
 		if (Settings->TriggerAction == EPCGExRollingTriggerMode::None)
 		{

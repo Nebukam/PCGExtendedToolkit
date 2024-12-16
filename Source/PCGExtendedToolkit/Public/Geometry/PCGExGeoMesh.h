@@ -327,6 +327,6 @@ namespace PCGExGeo
 	{
 		if (bIsLoaded) { return; }
 		if (!bIsValid) { return; }
-		PCGEX_START_TASK(FExtractStaticMeshTask, SharedThis(this))
+		PCGEX_LAUNCH(FExtractStaticMeshTask, SharedThis(this))
 	}
 }

@@ -67,7 +67,7 @@ namespace PCGExClusterMT
 
 		bool bInlineProcessNodes = false;
 		bool bInlineProcessEdges = false;
-		bool bInlineProcessRange = false;
+		bool bDaisyChainProcessRange = false;
 
 		int32 NumNodes = 0;
 		int32 NumEdges = 0;
@@ -252,7 +252,7 @@ namespace PCGExClusterMT
 				Ranges, NumIterations,
 				PrepareLoopScopesForRanges, ProcessRange,
 				OnRangeProcessingComplete,
-				bInlineProcessRange)
+				bDaisyChainProcessRange)
 		}
 
 		virtual void PrepareLoopScopesForRanges(const TArray<PCGExMT::FScope>& Loops)
@@ -366,9 +366,9 @@ namespace PCGExClusterMT
 		bool RequiresHeuristics() const { return bRequiresHeuristics; }
 		virtual void SetRequiresHeuristics(const bool bRequired) { bRequiresHeuristics = bRequired; }
 
-		bool bInlineProcessing = false;
-		bool bInlineCompletion = false;
-		bool bInlineWrite = false;
+		bool bDaisyChainProcessing = false;
+		bool bDaisyChainCompletion = false;
+		bool bDaisyChainWrite = false;
 
 		FClusterProcessorBatchBase(FPCGExContext* InContext, const TSharedRef<PCGExData::FPointIO>& InVtx, TArrayView<TSharedRef<PCGExData::FPointIO>> InEdges):
 			ExecutionContext(InContext), VtxDataFacade(MakeShared<PCGExData::FFacade>(InVtx))
@@ -592,7 +592,7 @@ namespace PCGExClusterMT
 		virtual void StartProcessing()
 		{
 			if (!bIsBatchValid) { return; }
-			PCGEX_ASYNC_MT_LOOP_TPL(Process, bInlineProcessing, { Processor->bIsProcessorValid = Processor->Process(This->AsyncManager); })
+			PCGEX_ASYNC_MT_LOOP_TPL(Process, bDaisyChainProcessing, { Processor->bIsProcessorValid = Processor->Process(This->AsyncManager); })
 		}
 
 		virtual bool PrepareSingle(const TSharedPtr<T>& ClusterProcessor) { return true; }
@@ -602,7 +602,7 @@ namespace PCGExClusterMT
 			if (!bIsBatchValid) { return; }
 
 			CurrentState = PCGEx::State_Completing;
-			PCGEX_ASYNC_MT_LOOP_VALID_PROCESSORS(CompleteWork, bInlineCompletion, { Processor->CompleteWork(); })
+			PCGEX_ASYNC_MT_LOOP_VALID_PROCESSORS(CompleteWork, bDaisyChainCompletion, { Processor->CompleteWork(); })
 			FClusterProcessorBatchBase::CompleteWork();
 		}
 
@@ -611,7 +611,7 @@ namespace PCGExClusterMT
 			if (!bIsBatchValid) { return; }
 
 			CurrentState = PCGEx::State_Writing;
-			PCGEX_ASYNC_MT_LOOP_VALID_PROCESSORS(Write, bInlineWrite, { Processor->Write(); })
+			PCGEX_ASYNC_MT_LOOP_VALID_PROCESSORS(Write, bDaisyChainWrite, { Processor->Write(); })
 			FClusterProcessorBatchBase::Write();
 		}
 
@@ -657,7 +657,7 @@ namespace PCGExClusterMT
 
 	static void ScheduleBatch(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager, const TSharedPtr<FClusterProcessorBatchBase>& Batch, const bool bScopedIndexLookupBuild)
 	{
-		PCGEX_START_TASK(FStartClusterBatchProcessing<FClusterProcessorBatchBase>, Batch, bScopedIndexLookupBuild)
+		PCGEX_LAUNCH(FStartClusterBatchProcessing<FClusterProcessorBatchBase>, Batch, bScopedIndexLookupBuild)
 	}
 
 	static void CompleteBatches(const TArrayView<TSharedPtr<FClusterProcessorBatchBase>> Batches)

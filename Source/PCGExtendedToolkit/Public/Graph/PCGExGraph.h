@@ -356,7 +356,7 @@ namespace PCGExGraph
 		FORCEINLINE bool IsComplex() const { return Links.Num() > 2; }
 
 		FORCEINLINE void LinkEdge(const int32 EdgeIndex) { Links.AddUnique(FLink(0, EdgeIndex)); }
-		FORCEINLINE void Link(const FNode& Neighbor, const int32 EdgeIndex) { Links.Emplace(Neighbor.Index, EdgeIndex); }
+		FORCEINLINE void Link(const FNode& Neighbor, const int32 EdgeIndex) { Links.Add(FLink(Neighbor.Index, EdgeIndex)); }
 
 		FORCEINLINE bool IsAdjacentTo(const int32 OtherNodeIndex) const
 		{
@@ -415,7 +415,6 @@ namespace PCGExGraph
 
 	protected:
 		TWeakPtr<PCGExMT::FTaskManager> WeakAsyncManager;
-		TWeakPtr<PCGExMT::FTaskGroup> WeakParentTask;
 		TWeakPtr<FGraphBuilder> WeakBuilder;
 
 		const FGraphMetadataDetails* MetadataDetails = nullptr;

@@ -213,11 +213,11 @@ namespace PCGEx
 		FLifecycle() = default;
 		~FLifecycle() = default;
 
-		void Terminate() { FPlatformAtomics::InterlockedExchange(&bAlive, 0); }
-		bool IsAlive() const { return static_cast<bool>(bAlive); }
+		void Terminate() { bAlive = false; }
+		bool IsAlive() const { return bAlive; }
 
 	private:
-		int8 bAlive = 1;
+		std::atomic<bool> bAlive{true};
 	};
 
 	struct /*PCGEXTENDEDTOOLKIT_API*/ FManagedObjects

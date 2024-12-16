@@ -57,7 +57,7 @@ bool FPCGExPackAttributesToPropertiesElement::ExecuteInternal(
 
 #else
 
-	DisabledPassThroughData(Context);
+	DisabledPassThroughData(InContext);
 	return true;
 	
 #endif
