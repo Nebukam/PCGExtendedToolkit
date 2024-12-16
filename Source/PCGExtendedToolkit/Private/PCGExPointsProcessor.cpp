@@ -334,6 +334,7 @@ bool FPCGExPointsProcessorElement::PostBoot(FPCGExContext* InContext) const
 	return true;
 }
 
+#if PCGEX_ENGINE_VERSION > 503
 void FPCGExPointsProcessorElement::AbortInternal(FPCGContext* Context) const
 {
 	IPCGElement::AbortInternal(Context);
@@ -343,5 +344,6 @@ void FPCGExPointsProcessorElement::AbortInternal(FPCGContext* Context) const
 	FPCGExContext* PCGExContext = static_cast<FPCGExContext*>(Context);
 	PCGExContext->CancelExecution(TEXT(""));
 }
+#endif
 
 #undef LOCTEXT_NAMESPACE
