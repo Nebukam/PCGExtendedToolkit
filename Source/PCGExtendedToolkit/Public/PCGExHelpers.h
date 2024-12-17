@@ -67,34 +67,11 @@ namespace PCGExHelpers
 	template <typename T>
 	static TObjectPtr<T> ForceLoad(const TSoftObjectPtr<T>& SoftObjectPtr, const FSoftObjectPath& FallbackPath = nullptr)
 	{
-		//
-		// NOTE : This is only a temporary workaround to a proper refactor to handle resources correctly.
-		//
-
 		FSoftObjectPath TentativeRefPath = SoftObjectPtr.ToSoftObjectPath();
 		if (TObjectPtr<T> LoadedObject = Cast<T>(TentativeRefPath.ResolveObject())) { return LoadedObject; }
 
-		// Do a blocking async load -- this is really, REALLY bad.
-		// TODO : Refactor this entirely and implement proper executor V2 support.
-		FSoftObjectPath AssetToLoad(TentativeRefPath.IsValid() ? TentativeRefPath : FallbackPath);
-
-		if (!AssetToLoad.IsValid()) { return nullptr; }
-
-		const TSharedPtr<FStreamableHandle> LoadHandle = UAssetManager::GetStreamableManager().RequestAsyncLoad(AssetToLoad);
-
-		if (!LoadHandle || !LoadHandle->IsActive())
-		{
-			if (LoadHandle && LoadHandle->HasLoadCompleted()) { return Cast<T>(AssetToLoad.ResolveObject()); }
-			return nullptr;
-		}
-
-		// I know, this sucks, again, temp workaround to support ExecutorV2 everywhere else.
-		while (!LoadHandle->HasLoadCompleted())
-		{
-			// (；′⌒`)
-		}
-
-		return Cast<T>(AssetToLoad.ResolveObject());
+		if (!TentativeRefPath.IsValid()) { return TSoftObjectPtr<T>(FallbackPath).LoadSynchronous(); }
+		return SoftObjectPtr.LoadSynchronous();
 	}
 
 	static void CopyStructProperties(const void* SourceStruct, void* TargetStruct, const UStruct* SourceStructType, const UStruct* TargetStructType)
