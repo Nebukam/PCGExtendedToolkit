@@ -96,7 +96,7 @@ bool FPCGExSampleNearestPointElement::Boot(FPCGExContext* InContext) const
 	{
 		Context->RuntimeWeightCurve.EditorCurveData.AddKey(0, 0);
 		Context->RuntimeWeightCurve.EditorCurveData.AddKey(1, 1);
-		Context->RuntimeWeightCurve.ExternalCurve = Settings->WeightOverDistance.LoadSynchronous();
+		Context->RuntimeWeightCurve.ExternalCurve = PCGExHelpers::ForceLoad(Settings->WeightOverDistance);
 	}
 	Context->WeightCurve = Context->RuntimeWeightCurve.GetRichCurveConst();
 

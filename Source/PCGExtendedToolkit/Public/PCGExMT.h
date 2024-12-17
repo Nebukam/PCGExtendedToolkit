@@ -224,7 +224,6 @@ namespace PCGExMT
 		explicit FTaskGroup(const TSharedPtr<FTaskManager>& InManager, const FName InGroupName):
 			GroupName(InGroupName), Manager(InManager)
 		{
-			
 		}
 
 		~FTaskGroup()
@@ -318,6 +317,8 @@ namespace PCGExMT
 		friend class FTaskManager;
 		friend class FTaskGroup;
 
+		mutable FRWLock StateLock;
+
 	public:
 		TWeakPtr<FTaskGroup> ParentGroup = nullptr;
 
@@ -348,7 +349,7 @@ namespace PCGExMT
 	private:
 		std::atomic<bool> bCanceled{false};
 		std::atomic<bool> bWorkStarted{false};
-		std::atomic<bool> bCompleted{false};
+		std::atomic<bool> bEnded{false};
 	};
 
 	class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExIndexedTask : public FPCGExTask

@@ -20,8 +20,7 @@
 #define PCGEX_SAMPLER_CREATE\
 	NewOperation->SamplingConfig = SamplingConfig; \
 	if (!SamplingConfig.bUseLocalCurve)\
-	{if (!NewOperation->SamplingConfig.WeightCurve.ToSoftObjectPath().IsValid()) { NewOperation->SamplingConfig.LocalWeightCurve.ExternalCurve = TSoftObjectPtr<UCurveFloat>(PCGEx::WeightDistributionLinear).LoadSynchronous(); }\
-	else { NewOperation->SamplingConfig.LocalWeightCurve.ExternalCurve = NewOperation->SamplingConfig.WeightCurve.LoadSynchronous(); }}\
+	NewOperation->SamplingConfig.LocalWeightCurve.ExternalCurve = PCGExHelpers::ForceLoad(NewOperation->SamplingConfig.WeightCurve, PCGEx::WeightDistributionLinear);\
 	NewOperation->WeightCurveObj = NewOperation->SamplingConfig.LocalWeightCurve.GetRichCurveConst();\
 	NewOperation->PointFilterFactories.Append(PointFilterFactories); \
 	NewOperation->ValueFilterFactories.Append(ValueFilterFactories);

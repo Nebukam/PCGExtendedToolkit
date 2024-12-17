@@ -134,8 +134,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExRemapDetails
 	{
 		if (!bUseLocalCurve)
 		{
-			if (!RemapCurve.ToSoftObjectPath().IsValid()) { LocalScoreCurve.ExternalCurve = TSoftObjectPtr<UCurveFloat>(PCGEx::WeightDistributionLinear).LoadSynchronous(); }
-			else { LocalScoreCurve.ExternalCurve = RemapCurve.LoadSynchronous(); }
+			LocalScoreCurve.ExternalCurve = PCGExHelpers::ForceLoad(RemapCurve, PCGEx::WeightDistributionLinear);
 		}
 
 		RemapCurveObj = LocalScoreCurve.GetRichCurveConst();

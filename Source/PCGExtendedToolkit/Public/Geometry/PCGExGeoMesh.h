@@ -130,7 +130,7 @@ namespace PCGExGeo
 		{
 			if (!InSoftStaticMesh.ToSoftObjectPath().IsValid()) { return; }
 
-			StaticMesh = InSoftStaticMesh.LoadSynchronous();
+			StaticMesh = PCGExHelpers::ForceLoad(InSoftStaticMesh);
 			if (!StaticMesh) { return; }
 
 			StaticMesh->GetRenderData();

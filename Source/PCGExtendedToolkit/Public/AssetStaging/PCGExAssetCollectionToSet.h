@@ -122,7 +122,7 @@ class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExAssetCollectionToSetElement final : publi
 public:
 	virtual FPCGContext* Initialize(const FPCGDataCollection& InputData, TWeakObjectPtr<UPCGComponent> SourceComponent, const UPCGNode* Node) override;
 	virtual bool IsCacheable(const UPCGSettings* InSettings) const override { return false; }
-	virtual bool CanExecuteOnlyOnMainThread(FPCGContext* Context) const override { return true; }
+	/* ExecutorV2 *///virtual bool CanExecuteOnlyOnMainThread(FPCGContext* Context) const override { return true; }
 
 	//virtual void DisabledPassThroughData(FPCGContext* Context) const override;
 

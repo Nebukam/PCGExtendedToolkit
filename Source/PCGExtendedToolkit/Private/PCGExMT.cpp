@@ -26,8 +26,8 @@ namespace PCGExMT
 	void FTaskManager::GrowNumStarted()
 	{
 		Context->PauseContext();
-		bWorkComplete = false;
 		FPlatformAtomics::InterlockedIncrement(&NumStarted);
+		bWorkComplete = false;
 	}
 
 	void FTaskManager::GrowNumCompleted()
@@ -75,9 +75,11 @@ namespace PCGExMT
 
 					const TSharedPtr<FTaskGroup> Group = Task->ParentGroup.Pin();
 
-					Task->Start();
-					Task->ExecuteTask(Manager);
-					Task->End(Manager);
+					if (Task->Start())
+					{
+						Task->ExecuteTask(Manager);
+						Task->End(Manager);
+					}
 				},
 				WorkPriority
 			);
@@ -317,17 +319,22 @@ namespace PCGExMT
 	{
 		check(!bWorkStarted)
 
+		FWriteScopeLock WriteScopeLock(StateLock);
+
 		if (IsCanceled()) { return false; }
 		bWorkStarted = true;
+
 		return true;
 	}
 
 	void FPCGExTask::End(const TSharedPtr<FTaskManager>& AsyncManager)
 	{
-		if (bCompleted || bCanceled) { return; }
+		FWriteScopeLock WriteScopeLock(StateLock);
+
+		if (bEnded) { return; }
 
 		bWorkStarted = false;
-		bCompleted = true;
+		bEnded = true;
 
 		if (const TSharedPtr<FTaskGroup>& Group = ParentGroup.Pin()) { Group->GrowNumCompleted(); }
 		AsyncManager->GrowNumCompleted();
@@ -335,15 +342,17 @@ namespace PCGExMT
 
 	bool FPCGExTask::Cancel(const TSharedPtr<FTaskManager>& AsyncManager)
 	{
-		// Return false if work is started & not completed yet.
-		if (bWorkStarted) { return false; }
+		{
+			FWriteScopeLock WriteScopeLock(StateLock);
 
-		if (bCanceled || bCompleted) { return true; }
+			// Return false if work is started & not completed yet.
+			if (bWorkStarted) { return false; }
+			if (bCanceled || bEnded) { return true; }
 
-		bCanceled = true;
+			bCanceled = true;
+		}
 
-		if (const TSharedPtr<FTaskGroup>& Group = ParentGroup.Pin()) { Group->GrowNumCompleted(); }
-		AsyncManager->GrowNumCompleted();
+		End(AsyncManager);
 
 		return true;
 	}
