@@ -205,7 +205,7 @@ namespace PCGEx
 		TSharedPtr<TAssetLoader<T>> Loader;
 		TSharedPtr<TAttributeBroadcaster<FString>> Broadcaster;
 
-		virtual void ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager) override
+		virtual void ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager, const TSharedPtr<PCGExMT::FTaskGroup>& InGroup) override
 		{
 			Broadcaster->Grab(false);
 
