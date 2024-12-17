@@ -3,9 +3,18 @@
 
 #include "Sampling/PCGExSampleSurfaceGuided.h"
 
+#include "Kismet/GameplayStatics.h"
+#include "PhysicsEngine/PhysicsSettings.h"
+
 
 #define LOCTEXT_NAMESPACE "PCGExSampleSurfaceGuidedElement"
 #define PCGEX_NAMESPACE SampleSurfaceGuided
+
+UPCGExSampleSurfaceGuidedSettings::UPCGExSampleSurfaceGuidedSettings(const FObjectInitializer& ObjectInitializer)
+	: Super(ObjectInitializer)
+{
+	Origin.Update(TEXT("$Position"));
+}
 
 TArray<FPCGPinProperties> UPCGExSampleSurfaceGuidedSettings::InputPinProperties() const
 {
@@ -39,6 +48,16 @@ bool FPCGExSampleSurfaceGuidedElement::Boot(FPCGExContext* InContext) const
 		{
 			return false;
 		}
+	}
+
+	Context->bSupportsUVQuery = UPhysicsSettings::Get()->bSupportUVFromHitResults;
+	if (Settings->bWriteUVCoords && !Context->bSupportsUVQuery)
+	{
+		if (!Settings->bQuietUVSettingsWarning)
+		{
+			PCGE_LOG(Warning, GraphAndLog, FTEXT("`Project Settings->Physics->Support UV From Hit Results' must set to true for UV Query to work."));
+		}
+		Context->bWriteUVCoords = false;
 	}
 
 	Context->CollisionSettings = Settings->CollisionSettings;
@@ -92,6 +111,14 @@ namespace PCGExSampleSurfaceGuided
 
 		SampleState.SetNumUninitialized(PointDataFacade->GetNum());
 
+		OriginGetter = PointDataFacade->GetScopedBroadcaster<FVector>(Settings->Origin);
+
+		if (!OriginGetter)
+		{
+			PCGE_LOG_C(Error, GraphAndLog, ExecutionContext, FTEXT("Some inputs don't have the required Origin data."));
+			return false;
+		}
+
 		DirectionGetter = PointDataFacade->GetScopedBroadcaster<FVector>(Settings->Direction);
 
 		if (!DirectionGetter)
@@ -105,7 +132,7 @@ namespace PCGExSampleSurfaceGuided
 			PCGEX_FOREACH_FIELD_SURFACEGUIDED(PCGEX_OUTPUT_INIT)
 		}
 
-		if (Settings->bUseLocalMaxDistance)
+		if (Settings->DistanceInput == EPCGExTraceSampleDistanceInput::Attribute)
 		{
 			MaxDistanceGetter = PointDataFacade->GetScopedBroadcaster<double>(Settings->LocalMaxDistance);
 			if (!MaxDistanceGetter)
@@ -129,8 +156,9 @@ namespace PCGExSampleSurfaceGuided
 
 	void FProcessor::ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const PCGExMT::FScope& Scope)
 	{
-		const double MaxDistance = MaxDistanceGetter ? MaxDistanceGetter->Read(Index) : Settings->MaxDistance;
 		const FVector Direction = DirectionGetter->Read(Index).GetSafeNormal();
+		const FVector Origin = OriginGetter->Read(Index);
+		const double MaxDistance = MaxDistanceGetter ? MaxDistanceGetter->Read(Index) : Settings->DistanceInput == EPCGExTraceSampleDistanceInput::Constant ? Settings->MaxDistance : Direction.Length();
 
 		auto SamplingFailed = [&]()
 		{
@@ -140,6 +168,9 @@ namespace PCGExSampleSurfaceGuided
 			PCGEX_OUTPUT_VALUE(Normal, Index, Direction*-1)
 			PCGEX_OUTPUT_VALUE(LookAt, Index, Direction)
 			PCGEX_OUTPUT_VALUE(Distance, Index, MaxDistance)
+			//PCGEX_OUTPUT_VALUE(UVCoords, Index, FVector2D::ZeroVector)
+			//PCGEX_OUTPUT_VALUE(FaceIndex, Index, -1)
+			//PCGEX_OUTPUT_VALUE(RenderMat, Index, -1)
 			//PCGEX_OUTPUT_VALUE(IsInside, Index, false)
 			//PCGEX_OUTPUT_VALUE(Success, Index, false)
 			//PCGEX_OUTPUT_VALUE(ActorReference, Index, TEXT(""))
@@ -152,11 +183,10 @@ namespace PCGExSampleSurfaceGuided
 			return;
 		}
 
-		const FVector Origin = Point.Transform.GetLocation();
-
 		FCollisionQueryParams CollisionParams;
 		Context->CollisionSettings.Update(CollisionParams);
-		CollisionParams.bReturnPhysicalMaterial = PhysMatWriter ? true : false;
+		CollisionParams.bReturnPhysicalMaterial = Settings->bWritePhysMat;
+		CollisionParams.bReturnFaceIndex = Settings->bWriteFaceIndex || Settings->bWriteUVCoords;
 
 		const FVector Trace = Direction * MaxDistance;
 		const FVector End = Origin + Trace;
@@ -177,6 +207,15 @@ namespace PCGExSampleSurfaceGuided
 			PCGEX_OUTPUT_VALUE(IsInside, Index, FVector::DotProduct(Direction, HitResult.Normal) > 0)
 			PCGEX_OUTPUT_VALUE(Success, Index, bSuccess)
 
+			if (Settings->bWriteUVCoords)
+			{
+				FVector2D UVCoords = FVector2D::ZeroVector;
+				if (UGameplayStatics::FindCollisionUV(HitResult, Settings->UVChannel, UVCoords)) { PCGEX_OUTPUT_VALUE(UVCoords, Index, UVCoords) }
+				else { PCGEX_OUTPUT_VALUE(UVCoords, Index, FVector2D::ZeroVector) }
+			}
+
+			PCGEX_OUTPUT_VALUE(FaceIndex, Index, HitResult.FaceIndex)
+
 			SampleState[Index] = bSuccess;
 
 #if PCGEX_ENGINE_VERSION <= 503
@@ -187,6 +226,7 @@ namespace PCGExSampleSurfaceGuided
 			}
 
 			if (const UPhysicalMaterial* PhysMat = HitResult.PhysMaterial.Get()) { PCGEX_OUTPUT_VALUE(PhysMat, Index, PhysMat->GetPathName()) }
+			if (const UPrimitiveComponent* HitComponent = HitResult.GetComponent()) { PCGEX_OUTPUT_VALUE(RenderMat, Index, HitComponent->GetMaterial(Settings->RenderMaterialIndex)->GetPathName()) }
 #else
 			if (const AActor* HitActor = HitResult.GetActor())
 			{
@@ -195,6 +235,8 @@ namespace PCGExSampleSurfaceGuided
 			}
 
 			if (const UPhysicalMaterial* PhysMat = HitResult.PhysMaterial.Get()) { PCGEX_OUTPUT_VALUE(PhysMat, Index, FSoftObjectPath(PhysMat->GetPathName())) }
+			if (const UPrimitiveComponent* HitComponent = HitResult.GetComponent()) { PCGEX_OUTPUT_VALUE(RenderMat, Index, FSoftObjectPath(HitComponent->GetMaterial(Settings->RenderMaterialIndex)->GetPathName())) }
+
 #endif
 
 			if (SurfacesForward && HitIndex) { SurfacesForward->Forward(*HitIndex, Index); }
