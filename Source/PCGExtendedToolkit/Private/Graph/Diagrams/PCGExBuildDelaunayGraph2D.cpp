@@ -156,7 +156,7 @@ namespace PCGExBuildDelaunay2D
 		if (!GraphBuilder->bCompiledSuccessfully)
 		{
 			bIsProcessorValid = false;
-			PointDataFacade->Source->InitializeOutput(PCGExData::EIOInit::None);
+			PCGEX_CLEAR_IO_VOID(PointDataFacade->Source)
 			return;
 		}
 
@@ -174,15 +174,15 @@ namespace PCGExBuildDelaunay2D
 		PointDataFacade->Write(AsyncManager);
 	}
 
-	void FOutputDelaunaySites2D::ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager, const TSharedPtr<PCGExMT::FTaskGroup>& InGroup)
+	void FOutputDelaunaySites2D::ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(FOutputDelaunaySites2D::ExecuteTask);
 
 		FPCGExBuildDelaunayGraph2DContext* Context = AsyncManager->GetContext<FPCGExBuildDelaunayGraph2DContext>();
 		PCGEX_SETTINGS(BuildDelaunayGraph2D)
 
-		const TSharedPtr<PCGExData::FPointIO> SitesIO = PCGExData::NewPointIO(PointIO.ToSharedRef());
-		if (!SitesIO->InitializeOutput(PCGExData::EIOInit::New)) { return; }
+		const TSharedPtr<PCGExData::FPointIO> SitesIO = NewPointIO(PointIO.ToSharedRef());
+		PCGEX_INIT_IO_VOID(SitesIO, PCGExData::EIOInit::New)
 
 		Context->MainSites->InsertUnsafe(Processor->BatchIndex, SitesIO);
 
@@ -216,15 +216,15 @@ namespace PCGExBuildDelaunay2D
 		}
 	}
 
-	void FOutputDelaunayUrquhartSites2D::ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager, const TSharedPtr<PCGExMT::FTaskGroup>& InGroup)
+	void FOutputDelaunayUrquhartSites2D::ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(FOutputDelaunayUrquhartSites2D::ExecuteTask);
 
 		FPCGExBuildDelaunayGraph2DContext* Context = AsyncManager->GetContext<FPCGExBuildDelaunayGraph2DContext>();
 		PCGEX_SETTINGS(BuildDelaunayGraph2D)
 
-		TSharedPtr<PCGExData::FPointIO> SitesIO = PCGExData::NewPointIO(PointIO.ToSharedRef());
-		if (!SitesIO->InitializeOutput(PCGExData::EIOInit::New)) { return; }
+		TSharedPtr<PCGExData::FPointIO> SitesIO = NewPointIO(PointIO.ToSharedRef());
+		PCGEX_INIT_IO_VOID(SitesIO, PCGExData::EIOInit::New)
 
 		Context->MainSites->InsertUnsafe(Processor->BatchIndex, SitesIO);
 

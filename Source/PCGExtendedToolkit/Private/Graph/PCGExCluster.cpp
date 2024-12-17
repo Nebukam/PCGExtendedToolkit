@@ -150,13 +150,11 @@ namespace PCGExCluster
 			}
 
 			BoundedEdges.Reset();
-		
 		}
 		else
 		{
 			Edges = OtherCluster->Edges;
 		}
-
 	}
 
 	void FCluster::ClearInheritedForChanges(const bool bClearOwned)
@@ -254,7 +252,7 @@ namespace PCGExCluster
 		return true;
 	}
 
-	void FCluster::BuildFrom(const PCGExGraph::FSubGraph* SubGraph)
+	void FCluster::BuildFrom(const TSharedPtr<PCGExGraph::FSubGraph>& SubGraph)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExCluster::BuildClusterFromSubgraph);
 
@@ -269,7 +267,9 @@ namespace PCGExCluster
 		Edges->Reserve(NumRawEdges);
 		Edges->Append(SubGraph->FlattenedEdges);
 
-		for (const FEdge& E : SubGraph->FlattenedEdges)
+		TArray<FEdge>& EdgesRef = *Edges;
+
+		for (const FEdge& E : EdgesRef)
 		{
 			FNode& StartNode = GetOrCreateNodeUnsafe(SubVtxPoints, E.Start);
 			FNode& EndNode = GetOrCreateNodeUnsafe(SubVtxPoints, E.End);

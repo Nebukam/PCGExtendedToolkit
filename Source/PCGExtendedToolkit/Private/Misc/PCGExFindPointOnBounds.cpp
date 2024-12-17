@@ -129,7 +129,7 @@ namespace PCGExFindPointOnBounds
 		}
 		else
 		{
-			PointDataFacade->Source->InitializeOutput(PCGExData::EIOInit::New);
+			PCGEX_INIT_IO_VOID(PointDataFacade->Source, PCGExData::EIOInit::New)
 			PointDataFacade->Source->GetOut()->GetMutablePoints().SetNum(1);
 
 			FPCGPoint& OutPoint = (PointDataFacade->Source->GetOut()->GetMutablePoints()[0] = PointDataFacade->Source->GetInPoint(BestIndex));

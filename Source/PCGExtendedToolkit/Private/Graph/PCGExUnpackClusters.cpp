@@ -65,7 +65,7 @@ bool FPCGExUnpackClustersElement::ExecuteInternal(
 	return Context->TryComplete();
 }
 
-void FPCGExUnpackClusterTask::ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager, const TSharedPtr<PCGExMT::FTaskGroup>& InGroup)
+void FPCGExUnpackClusterTask::ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager)
 {
 	const FPCGExUnpackClustersContext* Context = AsyncManager->GetContext<FPCGExUnpackClustersContext>();
 	PCGEX_SETTINGS(UnpackClusters)

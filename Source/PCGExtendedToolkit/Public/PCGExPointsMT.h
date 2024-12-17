@@ -191,7 +191,7 @@ namespace PCGExPointsMT
 		void StartParallelLoopForRange(const int32 NumIterations, const int32 PerLoopIterations = -1)
 		{
 			PCGEX_ASYNC_POINT_PROCESSOR_LOOP(
-				Ranges, NumIterations,	
+				Ranges, NumIterations,
 				PrepareLoopScopesForRanges, ProcessRange,
 				OnRangeProcessingComplete,
 				bDaisyChainProcessRange)

@@ -5,6 +5,8 @@
 
 #include "NavigationSystem.h"
 #include "PCGExPointsProcessor.h"
+
+
 #include "Graph/PCGExGraph.h"
 #include "Graph/Pathfinding/GoalPickers/PCGExGoalPickerRandom.h"
 #include "Paths/SubPoints/DataBlending/PCGExSubPointsBlendInterpolate.h"
@@ -126,7 +128,7 @@ bool FPCGExPathfindingNavmeshElement::ExecuteInternal(FPCGContext* InContext) co
 	return Context->TryComplete();
 }
 
-void FSampleNavmeshTask::ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager, const TSharedPtr<PCGExMT::FTaskGroup>& InGroup)
+void FSampleNavmeshTask::ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager)
 {
 	FPCGExPathfindingNavmeshContext* Context = AsyncManager->GetContext<FPCGExPathfindingNavmeshContext>();
 	PCGEX_SETTINGS(PathfindingNavmesh)
@@ -222,8 +224,6 @@ void FSampleNavmeshTask::ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& As
 	Context->GoalForwardHandler->Forward(Query.Goal, PathDataFacade);
 
 	PathDataFacade->Write(AsyncManager);
-
-	return;
 }
 
 #undef LOCTEXT_NAMESPACE

@@ -13,6 +13,8 @@
 #include "PCGExDetailsIntersection.h"
 #include "Data/PCGExData.h"
 #include "Data/Blending/PCGExUnionBlender.h"
+
+
 #include "PCGExGraph.generated.h"
 
 struct FPCGExBlendingDetails;
@@ -755,7 +757,7 @@ namespace PCGExGraphTask
 		}
 
 		TSharedPtr<PCGExGraph::FSubGraph> SubGraph;
-		virtual void ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager, const TSharedPtr<PCGExMT::FTaskGroup>& InGroup) override;
+		virtual void ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager) override;
 	};
 
 	class /*PCGEXTENDEDTOOLKIT_API*/ FCompileGraph final : public PCGExMT::FPCGExTask
@@ -775,7 +777,7 @@ namespace PCGExGraphTask
 		const bool bWriteNodeFacade = false;
 		const PCGExGraph::FGraphMetadataDetails* MetadataDetails = nullptr;
 
-		virtual void ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager, const TSharedPtr<PCGExMT::FTaskGroup>& InGroup) override;
+		virtual void ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager) override;
 	};
 
 	class /*PCGEXTENDEDTOOLKIT_API*/ FCopyGraphToPoint final : public PCGExMT::FPCGExIndexedTask
@@ -804,7 +806,7 @@ namespace PCGExGraphTask
 
 		FPCGExTransformDetails* TransformDetails = nullptr;
 
-		virtual void ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager, const TSharedPtr<PCGExMT::FTaskGroup>& InGroup) override;
+		virtual void ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager) override;
 	};
 
 #pragma endregion

@@ -97,7 +97,7 @@ namespace PCGExPointsToBounds
 			for (const FPCGPoint& Pt : InPoints) { Bounds += FBoxCenterAndExtent(Pt.Transform.GetLocation(), Pt.GetScaledExtents()).GetBox(); }
 			break;
 		case EPCGExPointBoundsSource::Bounds:
-			for (const FPCGPoint& Pt : InPoints) { Bounds += FBoxCenterAndExtent(Pt.Transform.GetLocation(), Pt.GetExtents()).GetBox();; }
+			for (const FPCGPoint& Pt : InPoints) { Bounds += FBoxCenterAndExtent(Pt.Transform.GetLocation(), Pt.GetExtents()).GetBox(); }
 			break;
 		}
 
@@ -127,7 +127,7 @@ namespace PCGExPointsToBounds
 			for (int i = 0; i < NumPoints; i++)
 			{
 				//FVector Location = InPoints[i].Transform.GetLocation();
-				const double Weight = 1; // FVector::DistSquared(Center, Location) / SqrDist;
+				constexpr double Weight = 1; // FVector::DistSquared(Center, Location) / SqrDist;
 				MetadataBlender->Blend(Target, PointDataFacade->Source->GetInPointRef(i), Target, Weight);
 				TotalWeight += Weight;
 			}

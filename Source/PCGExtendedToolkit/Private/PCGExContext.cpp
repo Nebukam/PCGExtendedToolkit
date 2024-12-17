@@ -85,7 +85,7 @@ void FPCGExContext::UnpauseContext()
 void FPCGExContext::CommitStagedOutputs()
 {
 	// Must be executed on main thread
-	ensure(IsInGameThread());
+	// ensure(IsInGameThread());
 
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExContext::WriteFutureOutputs);
 
@@ -108,7 +108,7 @@ FPCGExContext::FPCGExContext()
 FPCGExContext::~FPCGExContext()
 {
 	Lifecycle->Terminate();
-	
+
 	CancelAssetLoading();
 
 	ManagedObjects->Flush(); // So cleanups can be recursively triggered while manager is still alive

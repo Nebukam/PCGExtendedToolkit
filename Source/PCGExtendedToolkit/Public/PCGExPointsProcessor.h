@@ -241,6 +241,8 @@ protected:
 	virtual bool Boot(FPCGExContext* InContext) const;
 	virtual void PostLoadAssetsDependencies(FPCGExContext* InContext) const;
 	virtual bool PostBoot(FPCGExContext* InContext) const;
+#if PCGEX_ENGINE_VERSION > 503
 	virtual void AbortInternal(FPCGContext* Context) const override;
-	//virtual bool IsCancellable() const override { return false; }
+#endif
+	virtual bool CanExecuteOnlyOnMainThread(FPCGContext* Context) const override { return true; } // TODO : Proper refactor to support ExecuteV2
 };

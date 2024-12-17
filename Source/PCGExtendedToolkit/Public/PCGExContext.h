@@ -32,7 +32,6 @@ namespace PCGEx
 	PCGEX_CTX_STATE(State_Writing)
 
 	PCGEX_CTX_STATE(State_UnionWriting)
-
 }
 
 struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExContext : FPCGContext

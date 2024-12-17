@@ -176,7 +176,7 @@ namespace PCGExPathIntersections
 		{
 			if (Settings->OutputSettings.WillWriteAny())
 			{
-				PointDataFacade->Source->InitializeOutput(PCGExData::EIOInit::Duplicate);
+				PCGEX_INIT_IO_VOID(PointDataFacade->Source, PCGExData::EIOInit::Duplicate)
 
 				Details.Mark(PointDataFacade->Source);
 				Details.Init(PointDataFacade, Context->BoundsDataFacade);
@@ -185,13 +185,14 @@ namespace PCGExPathIntersections
 			}
 			else
 			{
-				PointDataFacade->Source->InitializeOutput(PCGExData::EIOInit::Forward);
+				PCGEX_INIT_IO_VOID(PointDataFacade->Source, PCGExData::EIOInit::Forward)
 			}
 
 			return;
 		}
 
-		PointDataFacade->Source->InitializeOutput(PCGExData::EIOInit::New);
+		PCGEX_INIT_IO_VOID(PointDataFacade->Source, PCGExData::EIOInit::New)
+
 		const TArray<FPCGPoint>& OriginalPoints = PointDataFacade->GetIn()->GetPoints();
 		TArray<FPCGPoint>& MutablePoints = PointDataFacade->GetOut()->GetMutablePoints();
 

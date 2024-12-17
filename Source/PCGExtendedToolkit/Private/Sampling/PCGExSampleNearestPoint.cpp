@@ -352,7 +352,7 @@ namespace PCGExSampleNearestPoints
 
 			WeightedTransform = PCGExMath::WeightedAdd(WeightedTransform, TargetTransform, Weight);
 			if (Settings->LookAtUpSelection == EPCGExSampleSource::Target) { PCGExMath::WeightedAdd(WeightedUp, (LookAtUpGetter ? LookAtUpGetter->Read(TargetInfos.Index) : SafeUpVector), Weight); }
-			
+
 			WeightedSignAxis += PCGExMath::GetDirection(TargetRotation, Settings->SignAxis) * Weight;
 			WeightedAngleAxis += PCGExMath::GetDirection(TargetRotation, Settings->AngleAxis) * Weight;
 

@@ -18,6 +18,7 @@
 #include "PCGExGlobalSettings.h"
 #include "Data/PCGExPointIO.h"
 
+
 #pragma region MT MACROS
 
 #ifndef PCGEX_MT_MACROS
@@ -41,7 +42,7 @@
 #define PCGEX_ASYNC_CHKD(_MANAGER) if (!_MANAGER->IsAvailable()) { return false; }
 
 #define PCGEX_LAUNCH(_CLASS, ...) PCGEX_MAKE_SHARED(Task, _CLASS, __VA_ARGS__); AsyncManager->Launch<_CLASS>(Task);
-#define PCGEX_LAUNCH_INTERNAL(_CLASS, ...) PCGEX_MAKE_SHARED(Task, _CLASS, __VA_ARGS__); Launch<_CLASS>(AsyncManager, InGroup, Task);
+#define PCGEX_LAUNCH_INTERNAL(_CLASS, ...) PCGEX_MAKE_SHARED(Task, _CLASS, __VA_ARGS__); Launch<_CLASS>(AsyncManager, Task);
 
 #endif
 #pragma endregion
@@ -191,7 +192,6 @@ namespace PCGExMT
 		std::atomic<bool> bWorkComplete{true};
 
 		void Complete();
-
 	};
 
 	class /*PCGEXTENDEDTOOLKIT_API*/ FTaskGroup : public TSharedFromThis<FTaskGroup>
@@ -204,7 +204,7 @@ namespace PCGExMT
 		friend class FDaisyChainScopeIterationTask;
 
 		FName GroupName = NAME_None;
-		TSharedPtr<FTaskGroup> ParentTaskGroup = nullptr;
+		TSharedPtr<FTaskGroup> ParentGroup = nullptr;
 
 	public:
 		using SimpleCallback = std::function<void()>;
@@ -224,7 +224,7 @@ namespace PCGExMT
 		explicit FTaskGroup(const TSharedPtr<FTaskManager>& InManager, const FName InGroupName):
 			GroupName(InGroupName), Manager(InManager)
 		{
-			InManager->GrowNumStarted();
+			
 		}
 
 		~FTaskGroup()
@@ -319,31 +319,35 @@ namespace PCGExMT
 		friend class FTaskGroup;
 
 	public:
+		TWeakPtr<FTaskGroup> ParentGroup = nullptr;
+
 		FPCGExTask() = default;
 		virtual ~FPCGExTask() = default;
 
 		FString GetTaskName() const;
 
-		void Complete();
-		void Cancel();
+		bool Start();
+		void End(const TSharedPtr<FTaskManager>& AsyncManager);
+		bool Cancel(const TSharedPtr<FTaskManager>& AsyncManager);
 
 		bool IsCanceled() const
 		{
 			return bCanceled;
 		}
 
-		virtual void ExecuteTask(const TSharedPtr<FTaskManager>& AsyncManager, const TSharedPtr<FTaskGroup>& InGroup) = 0;
+		virtual void ExecuteTask(const TSharedPtr<FTaskManager>& AsyncManager) = 0;
 
 	protected:
 		template <typename T>
-		static void Launch(const TSharedPtr<FTaskManager>& AsyncManager, const TSharedPtr<FTaskGroup>& InGroup, const TSharedPtr<T>& InTask)
+		void Launch(const TSharedPtr<FTaskManager>& AsyncManager, const TSharedPtr<T>& InTask)
 		{
-			if (InGroup) { InGroup->Launch<T>(InTask); }
+			if (const TSharedPtr<FTaskGroup> Group = ParentGroup.Pin()) { Group->Launch<T>(InTask); }
 			else if (AsyncManager) { AsyncManager->Launch<T>(InTask); }
 		}
 
 	private:
 		std::atomic<bool> bCanceled{false};
+		std::atomic<bool> bWorkStarted{false};
 		std::atomic<bool> bCompleted{false};
 	};
 
@@ -367,9 +371,13 @@ namespace PCGExMT
 		{
 		}
 
-		virtual void ExecuteTask(const TSharedPtr<FTaskManager>& AsyncManager, const TSharedPtr<FTaskGroup>& InGroup) override
+		virtual void ExecuteTask(const TSharedPtr<FTaskManager>& AsyncManager) override
 		{
-			if (InGroup) { InGroup->SimpleCallbacks[TaskIndex](); }
+			if (const TSharedPtr<FTaskGroup> Group = ParentGroup.Pin())
+			{
+				if (!Group->IsAvailable()) { return; }
+				Group->SimpleCallbacks[TaskIndex]();
+			}
 		}
 	};
 
@@ -383,10 +391,9 @@ namespace PCGExMT
 		bool bPrepareOnly = false;
 		FScope Scope = FScope{};
 
-		virtual void ExecuteTask(const TSharedPtr<FTaskManager>& AsyncManager, const TSharedPtr<FTaskGroup>& InGroup) override
+		virtual void ExecuteTask(const TSharedPtr<FTaskManager>& AsyncManager) override
 		{
-			if (!InGroup) { return; }
-			InGroup->ExecScopeIterations(Scope, bPrepareOnly);
+			if (const TSharedPtr<FTaskGroup> Group = ParentGroup.Pin()) { Group->ExecScopeIterations(Scope, bPrepareOnly); }
 		}
 	};
 
@@ -401,7 +408,7 @@ namespace PCGExMT
 		bool bPrepareOnly = false;
 		TArray<FScope> Loops;
 
-		virtual void ExecuteTask(const TSharedPtr<FTaskManager>& AsyncManager, const TSharedPtr<FTaskGroup>& InGroup) override;
+		virtual void ExecuteTask(const TSharedPtr<FTaskManager>& AsyncManager) override;
 	};
 
 	template <typename T>
@@ -415,7 +422,7 @@ namespace PCGExMT
 
 		TSharedPtr<T> Operation;
 
-		virtual void ExecuteTask(const TSharedPtr<FTaskManager>& AsyncManager, const TSharedPtr<FTaskGroup>& InGroup) override
+		virtual void ExecuteTask(const TSharedPtr<FTaskManager>& AsyncManager) override
 		{
 			if (!Operation) { return; }
 			Operation->Write();
@@ -433,7 +440,7 @@ namespace PCGExMT
 
 		TSharedPtr<T> Operation;
 
-		virtual void ExecuteTask(const TSharedPtr<FTaskManager>& AsyncManager, const TSharedPtr<FTaskGroup>& InGroup) override
+		virtual void ExecuteTask(const TSharedPtr<FTaskManager>& AsyncManager) override
 		{
 			if (!Operation) { return; }
 			Operation->Write(AsyncManager);

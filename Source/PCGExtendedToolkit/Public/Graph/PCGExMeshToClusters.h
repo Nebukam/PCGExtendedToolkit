@@ -7,6 +7,7 @@
 #include "PCGExPointsProcessor.h"
 #include "Data/PCGExDataForward.h"
 
+
 #include "Geometry/PCGExGeoMesh.h"
 
 #include "PCGExMeshToClusters.generated.h"
@@ -133,6 +134,6 @@ namespace PCGExMeshToCluster
 
 		TSharedPtr<PCGExGeo::FGeoStaticMesh> Mesh;
 
-		virtual void ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager, const TSharedPtr<PCGExMT::FTaskGroup>& InGroup) override;
+		virtual void ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager) override;
 	};
 }

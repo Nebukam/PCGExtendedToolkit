@@ -90,7 +90,7 @@ namespace PCGExTopologyClusterSurface
 		if (!CellsConstraints->bKeepCellsWithLeaves && Node.IsLeaf()) { return false; }
 
 		FPlatformAtomics::InterlockedAdd(&NumAttempts, 1);
-		
+
 		PCGEX_MAKE_SHARED(Cell, PCGExTopology::FCell, CellsConstraints.ToSharedRef())
 
 		const PCGExTopology::ECellResult Result = Cell->BuildFromCluster(PCGExGraph::FLink(Node.Index, Edge.Index), Cluster.ToSharedRef(), *ProjectedPositions);

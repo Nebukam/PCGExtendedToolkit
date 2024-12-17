@@ -33,7 +33,6 @@ bool FIsoEdgeDirectionFilter::Init(FPCGExContext* InContext, const TSharedRef<PC
 	if (DirectionSettings.RequiresEndpointsMetadata())
 	{
 		// Fetch attributes while processors are searching for chains
-
 	}
 
 	if (TypedFilterFactory->Config.CompareAgainst == EPCGExInputValueType::Attribute)

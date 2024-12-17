@@ -40,7 +40,7 @@ namespace PCGExClusterMT
 		TSharedPtr<T> Target;
 		bool bScopedIndexLookupBuild = false;
 
-		virtual void ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager, const TSharedPtr<PCGExMT::FTaskGroup>& InGroup) override
+		virtual void ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager) override
 		{
 			Target->PrepareProcessing(AsyncManager, bScopedIndexLookupBuild);
 		}
@@ -141,9 +141,9 @@ namespace PCGExClusterMT
 
 		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager> InAsyncManager)
 		{
-			AsyncManager = InAsyncManager;			
+			AsyncManager = InAsyncManager;
 			PCGEX_ASYNC_CHKD(AsyncManager)
-			
+
 			if (!bBuildCluster) { return true; }
 
 			if (const TSharedPtr<PCGExCluster::FCluster> CachedCluster = PCGExClusterData::TryGetCachedCluster(VtxDataFacade->Source, EdgeDataFacade->Source))
@@ -563,7 +563,7 @@ namespace PCGExClusterMT
 			FClusterProcessorBatchBase::Process();
 
 			PCGEX_ASYNC_CHKD_VOID(AsyncManager)
-			
+
 			if (VtxDataFacade->GetNum() <= 1) { return; }
 
 			CurrentState = PCGEx::State_Processing;

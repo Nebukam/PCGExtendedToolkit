@@ -67,18 +67,12 @@ namespace PCGExOffsetPath
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExOffsetPath::Process);
 
-		if (Settings->OffsetMethod == EPCGExOffsetMethod::Slide)
-		{
-			PointDataFacade->bSupportsScopedGet = Context->bScopedAttributeGet;
-		}
-		else
-		{
-			PointDataFacade->bSupportsScopedGet = false;
-		}
+		if (Settings->OffsetMethod == EPCGExOffsetMethod::Slide) { PointDataFacade->bSupportsScopedGet = Context->bScopedAttributeGet; }
+		else { PointDataFacade->bSupportsScopedGet = false; }
 
 		if (!FPointsProcessor::Process(InAsyncManager)) { return false; }
 
-		if (!PointDataFacade->Source->InitializeOutput(Settings->bCleanupPath ? PCGExData::EIOInit::New : PCGExData::EIOInit::Duplicate)) { return false; }
+		PCGEX_INIT_IO(PointDataFacade->Source, Settings->bCleanupPath ? PCGExData::EIOInit::New : PCGExData::EIOInit::Duplicate)
 
 		if (Settings->bInvertDirection) { DirectionFactor *= -1; }
 

@@ -129,7 +129,8 @@ namespace PCGExMergeVertices
 		Cluster->VtxIO = Context->CompositeIODataFacade->Source;
 		Cluster->NumRawVtx = Context->CompositeIODataFacade->Source->GetNum(PCGExData::ESource::Out);
 
-		if (!EdgeDataFacade->Source->InitializeOutput(PCGExData::EIOInit::Duplicate)) { return; }
+		PCGEX_INIT_IO_VOID(EdgeDataFacade->Source, PCGExData::EIOInit::Duplicate)
+
 		PCGExGraph::MarkClusterEdges(EdgeDataFacade->Source, Context->OutVtxId);
 
 		ForwardCluster();

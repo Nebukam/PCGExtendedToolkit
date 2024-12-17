@@ -33,14 +33,14 @@ class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExGoalPickerRandom : public UPCGExGoalPicke
 public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
 	int32 LocalSeed = 0;
-	
+
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
 	EPCGExGoalPickRandomAmount GoalCount = EPCGExGoalPickRandomAmount::Single;
 
 	/** Fetch the smoothing from a local attribute.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	EPCGExInputValueType NumGoalsType = EPCGExInputValueType::Constant;
-	
+
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(EditCondition="GoalCount!=EPCGExGoalPickRandomAmount::Single && NumGoalsType==EPCGExInputValueType::Constant", ClampMin=1))
 	int32 NumGoals = 5;
 

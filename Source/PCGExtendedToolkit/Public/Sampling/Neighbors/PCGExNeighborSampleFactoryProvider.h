@@ -66,7 +66,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExSamplingConfig
 	/** Whether to use in-editor curve or an external asset. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable, DisplayPriority=-1))
 	bool bUseLocalCurve = false;
-	
+
 	// TODO: DirtyCache for OnDependencyChanged when this float curve is an external asset
 	/** Curve over which the blending weight will be remapped  */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_NotOverridable, DisplayName="Weight Curve", EditCondition = "bUseLocalCurve", EditConditionHides))

@@ -105,10 +105,7 @@ namespace PCGExReversePointOrder
 
 		ON_SCOPE_EXIT
 		{
-			if (!bReversed)
-			{
-				PointDataFacade->Source->InitializeOutput(PCGExData::EIOInit::Forward);
-			}
+			if (!bReversed) { PointDataFacade->Source->InitializeOutput(PCGExData::EIOInit::Forward); }
 		};
 
 		if (!FPointsProcessor::Process(InAsyncManager)) { return false; }
@@ -141,7 +138,7 @@ namespace PCGExReversePointOrder
 			if (!bReversed) { return true; }
 		}
 
-		PointDataFacade->Source->InitializeOutput(PCGExData::EIOInit::Duplicate);
+		PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::Duplicate)
 
 		TArray<FPCGPoint>& MutablePoints = PointDataFacade->GetOut()->GetMutablePoints();
 		Algo::Reverse(MutablePoints);

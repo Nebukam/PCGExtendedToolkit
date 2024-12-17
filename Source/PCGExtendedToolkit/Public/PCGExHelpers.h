@@ -281,9 +281,9 @@ namespace PCGEx
 
 				// Do the duplicate (uses AnyThread that requires bIsRunningOnMainThread to be up-to-date)
 				Object = Cast<T>(InData->DuplicateData(Context, true));
-				
+
 				Context->AsyncState.bIsRunningOnMainThread = bRestoreTo;
-				
+
 				check(Object);
 				{
 					FWriteScopeLock DupeLock(DuplicatedObjectLock);
