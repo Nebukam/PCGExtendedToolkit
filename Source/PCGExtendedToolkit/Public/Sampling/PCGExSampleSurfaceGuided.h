@@ -21,8 +21,11 @@ MACRO(LookAt, FVector, FVector::OneVector)\
 MACRO(Normal, FVector, FVector::OneVector)\
 MACRO(Distance, double, 0)\
 MACRO(IsInside, bool, false)\
+MACRO(UVCoords, FVector2D, FVector2D::ZeroVector)\
+MACRO(FaceIndex, int32, -1)\
 MACRO(ActorReference, FString, TEXT(""))\
-MACRO(PhysMat, FString, TEXT(""))
+MACRO(PhysMat, FString, TEXT(""))\
+MACRO(RenderMat, FString, TEXT(""))
 #else
 #define PCGEX_FOREACH_FIELD_SURFACEGUIDED(MACRO)\
 MACRO(Success, bool, false)\
@@ -31,9 +34,20 @@ MACRO(LookAt, FVector, FVector::OneVector)\
 MACRO(Normal, FVector, FVector::OneVector)\
 MACRO(Distance, double, 0)\
 MACRO(IsInside, bool, false)\
+MACRO(UVCoords, FVector2D, FVector2D::ZeroVector)\
+MACRO(FaceIndex, int32, -1)\
 MACRO(ActorReference, FSoftObjectPath, FSoftObjectPath())\
-MACRO(PhysMat, FSoftObjectPath, FSoftObjectPath())
+MACRO(PhysMat, FSoftObjectPath, FSoftObjectPath())\
+MACRO(RenderMat, FSoftObjectPath, FSoftObjectPath())
 #endif
+
+UENUM()
+enum class EPCGExTraceSampleDistanceInput : uint8
+{
+	DirectionLength = 0 UMETA(DisplayName = "Direction Length", ToolTip="..."),
+	Constant = 1 UMETA(DisplayName = "Constant", ToolTip="Constant"),
+	Attribute  = 2 UMETA(DisplayName = "Attribute", ToolTip="Attribute"),
+};
 
 class UPCGExFilterFactoryBase;
 
@@ -47,6 +61,8 @@ class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExSampleSurfaceGuidedSettings : public UPCG
 	GENERATED_BODY()
 
 public:
+	UPCGExSampleSurfaceGuidedSettings(const FObjectInitializer& ObjectInitializer);
+
 	//~Begin UPCGSettings
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS(SampleSurfaceGuided, "Sample : Line Trace", "Find the collision point on the nearest collidable surface in a given direction.");
@@ -72,20 +88,24 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="SurfaceSource==EPCGExSurfaceSource::ActorReferences", EditConditionHides))
 	FName ActorReference = FName("ActorReference");
 
+	/** The origin of the trace */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ShowOnlyInnerProperties, FullyExpand=true))
+	FPCGAttributePropertyInputSelector Origin;
+
 	/** The direction to use for the trace */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ShowOnlyInnerProperties, FullyExpand=true))
 	FPCGAttributePropertyInputSelector Direction;
 
+	/** This UV Channel will be selected when retrieving UV Coordinates from a raycast query. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
+	EPCGExTraceSampleDistanceInput DistanceInput = EPCGExTraceSampleDistanceInput::Constant;
+	
 	/** Trace max distance */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, CLampMin=0.001))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="DistanceInput==EPCGExTraceSampleDistanceInput::Constant", EditConditionHides, CLampMin=0.001))
 	double MaxDistance = 1000;
 
-	/** Use a per-point maximum distance*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable, InlineEditConditionToggle))
-	bool bUseLocalMaxDistance = false;
-
 	/** Attribute or property to read the local size from. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bUseLocalMaxDistance"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="DistanceInput==EPCGExTraceSampleDistanceInput::Attribute", EditConditionHides))
 	FPCGAttributePropertyInputSelector LocalMaxDistance;
 
 	/** Write whether the sampling was sucessful or not to a boolean attribute. */
@@ -136,6 +156,26 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(DisplayName="IsInside", PCG_Overridable, EditCondition="bWriteIsInside"))
 	FName IsInsideAttributeName = FName("IsInside");
 
+	/** */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(PCG_Overridable, InlineEditConditionToggle))
+	bool bWriteUVCoords = false;
+
+	/** Create an attribute for UV Coordinates of the surface hit. Note: Will only work in complex traces and must have 'Project Settings->Physics->Support UV From Hit Results' set to true. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(DisplayName="UV Coords", PCG_Overridable, EditCondition="bWriteUVCoords"))
+	FName UVCoordsAttributeName = FName("UVCoords");
+
+	/** This UV Channel will be selected when retrieving UV Coordinates from a raycast query. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta = (PCG_Overridable, DisplayName=" └─ UV Channel", EditCondition = "bWriteUVCoords", EditConditionHides, HideEditConditionToggle))
+	int32 UVChannel = 0;
+
+	/** */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(PCG_Overridable, InlineEditConditionToggle))
+	bool bWriteFaceIndex = false;
+
+	/** Create an attribute for index of the hit face. Note: Will only work in complex traces. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(DisplayName="Face Index", PCG_Overridable, EditCondition="bWriteFaceIndex"))
+	FName FaceIndexAttributeName = FName("FaceIndex");
+
 	/** Write the actor reference hit. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output (Actor Data)", meta=(PCG_Overridable, InlineEditConditionToggle))
 	bool bWriteActorReference = false;
@@ -151,6 +191,18 @@ public:
 	/** Name of the 'string' attribute to write actor reference to.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output (Actor Data)", meta=(DisplayName="PhysMat", PCG_Overridable, EditCondition="bWritePhysMat"))
 	FName PhysMatAttributeName = FName("PhysMat");
+
+	/** Write the actor reference hit. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output (Actor Data)", meta=(PCG_Overridable, InlineEditConditionToggle))
+	bool bWriteRenderMat = false;
+
+	/** Create an attribute for the render material. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output (Actor Data)", meta=(DisplayName="RenderMat", PCG_Overridable, EditCondition="bWriteRenderMat"))
+	FName RenderMatAttributeName = FName("RenderMat");
+
+	/** The index of the render material when it is queried from the hit. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output (Actor Data)", meta = (PCG_Overridable, DisplayName=" └─ Material Index", EditCondition = "bWriteRenderMat", EditConditionHides, HideEditConditionToggle))
+	int32 RenderMaterialIndex = 0;
 
 	/** Which actor reference points attributes to forward on points. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output (Actor Data)", meta=(EditCondition="SurfaceSource==EPCGExSurfaceSource::ActorReferences", EditConditionHides))
@@ -182,6 +234,10 @@ public:
 	/** If enabled, points that failed to sample anything will be pruned. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable), AdvancedDisplay)
 	bool bPruneFailedSamples = false;
+
+	/** */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Warning and Errors")
+	bool bQuietUVSettingsWarning = false;
 };
 
 struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExSampleSurfaceGuidedContext final : FPCGExPointsProcessorContext
@@ -190,6 +246,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExSampleSurfaceGuidedContext final : FPCGE
 
 	TSharedPtr<PCGExData::FFacade> ActorReferenceDataFacade;
 
+	bool bSupportsUVQuery = false;
 	bool bUseInclude = false;
 	TMap<AActor*, int32> IncludedActors;
 
@@ -221,6 +278,7 @@ namespace PCGExSampleSurfaceGuided
 
 		TSharedPtr<PCGExData::TBuffer<double>> MaxDistanceGetter;
 		TSharedPtr<PCGExData::TBuffer<FVector>> DirectionGetter;
+		TSharedPtr<PCGExData::TBuffer<FVector>> OriginGetter;
 
 		PCGEX_FOREACH_FIELD_SURFACEGUIDED(PCGEX_OUTPUT_DECL)
 
