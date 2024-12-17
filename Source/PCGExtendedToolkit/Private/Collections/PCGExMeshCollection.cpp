@@ -22,7 +22,7 @@ void FPCGExMeshCollectionEntry::UpdateStaging(const UPCGExAssetCollection* Ownin
 	if (bIsSubCollection)
 	{
 		Staging.Path = SubCollection.ToSoftObjectPath();
-		if (bRecursive){ if(UPCGExAssetCollection* Ptr = PCGExHelpers::ForceLoad(SubCollection)) { Ptr->RebuildStagingData(true); }}
+		if (bRecursive){ if(UPCGExMeshCollection* Ptr = PCGExHelpers::ForceLoad(SubCollection)) { Ptr->RebuildStagingData(true); }}
 		Super::UpdateStaging(OwningCollection, InInternalIndex, bRecursive);
 		return;
 	}

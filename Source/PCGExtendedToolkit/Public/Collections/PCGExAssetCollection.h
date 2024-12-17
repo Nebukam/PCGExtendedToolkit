@@ -260,10 +260,17 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExAssetStagingData
 	FBox Bounds = FBox(ForceInitToZero);
 
 	template <typename T>
-	T* LoadSync() const { return PCGExHelpers::ForceLoad<T>(nullptr, Path); }
+	T* LoadSync() const
+	{
+		return PCGExHelpers::ForceLoad<T>(TSoftObjectPtr<T>(Path));
+	}
 
 	template <typename T>
-	T* TryGet() const { return Cast<T>(Path.ResolveObject()); }
+	T* TryGet() const
+	{
+		TSoftObjectPtr<T> SoftPtr = TSoftObjectPtr<T>(Path);
+		return SoftPtr.Get();
+	}
 };
 
 USTRUCT(BlueprintType, DisplayName="[PCGEx] Asset Collection Entry")
