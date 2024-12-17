@@ -74,22 +74,13 @@ namespace PCGExHelpers
 		FSoftObjectPath TentativeRefPath = SoftObjectPtr.ToSoftObjectPath();
 		if (TObjectPtr<T> LoadedObject = Cast<T>(TentativeRefPath.ResolveObject())) { return LoadedObject; }
 
-		if (IsInGameThread())
-		{
-			if (!TentativeRefPath.IsValid()) { return TSoftObjectPtr<T>(FallbackPath).LoadSynchronous(); }
-			return SoftObjectPtr.LoadSynchronous();
-		}
-
 		// Do a blocking async load -- this is really, REALLY bad.
 		// TODO : Refactor this entirely and implement proper executor V2 support.
-
-		UAssetManager& AssetManager = UAssetManager::Get();
-
 		FSoftObjectPath AssetToLoad(TentativeRefPath.IsValid() ? TentativeRefPath : FallbackPath);
 
 		if (!AssetToLoad.IsValid()) { return nullptr; }
 
-		const TSharedPtr<FStreamableHandle> LoadHandle = AssetManager.GetStreamableManager().RequestAsyncLoad(AssetToLoad);
+		const TSharedPtr<FStreamableHandle> LoadHandle = UAssetManager::GetStreamableManager().RequestAsyncLoad(AssetToLoad);
 
 		if (!LoadHandle || !LoadHandle->IsActive())
 		{
