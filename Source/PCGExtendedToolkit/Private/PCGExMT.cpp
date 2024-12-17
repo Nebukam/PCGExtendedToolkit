@@ -3,11 +3,20 @@
 
 
 #include "PCGExMT.h"
+
+
 #include "Tasks/Task.h"
 
 
 namespace PCGExMT
 {
+	FTaskManager::FTaskManager(FPCGExContext* InContext)
+		: Context(InContext)
+	{
+		PCGEX_LOG_CTR(FTaskManager)
+		Lifecycle = Context->Lifecycle;
+	}
+
 	FTaskManager::~FTaskManager()
 	{
 		PCGEX_LOG_DTR(FTaskManager)
@@ -17,23 +26,21 @@ namespace PCGExMT
 	void FTaskManager::GrowNumStarted()
 	{
 		Context->PauseContext();
-		bWorkComplete = false;
 		FPlatformAtomics::InterlockedIncrement(&NumStarted);
+		bWorkComplete = false;
 	}
 
 	void FTaskManager::GrowNumCompleted()
 	{
 		FPlatformAtomics::InterlockedIncrement(&NumCompleted);
-		if (NumCompleted == NumStarted)
-		{
-			bWorkComplete = true;
-			Context->UnpauseContext(); // Unpause context
-		}
+		if (NumCompleted == NumStarted) { Complete(); }
 	}
 
 	TSharedPtr<FTaskGroup> FTaskManager::TryCreateGroup(const FName& GroupName)
 	{
 		if (!IsAvailable()) { return nullptr; }
+
+		GrowNumStarted();
 
 		{
 			FWriteScopeLock WriteGroupsLock(GroupsLock);
@@ -52,51 +59,27 @@ namespace PCGExMT
 			Tasks.Add(InTask);
 		}
 
+		InTask->ParentGroup = InGroup;
 
 		PCGEX_SHARED_THIS_DECL
 		UE::Tasks::Launch(
 				*InTask->GetTaskName(),
 				[
 					WeakTask = TWeakPtr<FPCGExTask>(InTask),
-					WeakManager = TWeakPtr<FTaskManager>(ThisPtr),
-					WeakGroup = TWeakPtr<FTaskGroup>(InGroup)]()
+					WeakManager = TWeakPtr<FTaskManager>(ThisPtr)]()
 				{
 					const TSharedPtr<FTaskManager> Manager = WeakManager.Pin();
 					const TSharedPtr<FPCGExTask> Task = WeakTask.Pin();
-					const TSharedPtr<FTaskGroup> Group = WeakGroup.Pin();
 
-					// Manager has been destroyed, exit early
-					if (!Manager) { return; }
+					if (!Manager || !Manager->IsAvailable() || !Task || Task->IsCanceled()) { return; }
 
-					// Manager is unavailable or task is cancelled
-					if (!Manager->IsAvailable() || (Task && Task->IsCanceled()))
+					const TSharedPtr<FTaskGroup> Group = Task->ParentGroup.Pin();
+
+					if (Task->Start())
 					{
-						// Advance completion without execution to ensure proper flow
-						// Manager may be unavailable because it was stopped
-						if (Group) { Group->GrowNumCompleted(); }
-						Manager->GrowNumCompleted();
-						return;
+						Task->ExecuteTask(Manager);
+						Task->End(Manager);
 					}
-
-					// Task has been destroyed, exit early
-					if (!Task) { return; }
-
-					if (Group)
-					{
-						if (Group->IsAvailable())
-						{
-							Task->ExecuteTask(Manager, Group);
-							Task->Complete();
-						}
-						Group->GrowNumCompleted();
-					}
-					else
-					{
-						Task->ExecuteTask(Manager, nullptr);
-						Task->Complete();
-					}
-
-					Manager->GrowNumCompleted();
 				},
 				WorkPriority
 			);
@@ -107,16 +90,14 @@ namespace PCGExMT
 		if (!IsAvailable()) { return; }
 
 		GrowNumStarted();
-		if (InGroup)
-		{
-			if (InGroup->IsAvailable()) { InTask->ExecuteTask(SharedThis(this), InGroup); }
-			InGroup->GrowNumCompleted();
-		}
-		else
-		{
-			InTask->ExecuteTask(SharedThis(this), InGroup);
-		}
-		GrowNumCompleted();
+
+		PCGEX_SHARED_THIS_DECL
+
+		InTask->ParentGroup = InGroup;
+
+		InTask->Start();
+		InTask->ExecuteTask(ThisPtr);
+		InTask->End(ThisPtr);
 	}
 
 	bool FTaskManager::IsWorkComplete() const
@@ -134,14 +115,18 @@ namespace PCGExMT
 			FWriteScopeLock WriteTasksLock(TasksLock);
 			FWriteScopeLock WriteGroupsLock(GroupsLock);
 
+			PCGEX_SHARED_THIS_DECL
+
 			// Cancel groups & tasks
 			for (const TSharedPtr<FTaskGroup>& Group : Groups) { Group->Cancel(); }
-			for (const TSharedPtr<FPCGExTask>& Task : Tasks) { Task->Cancel(); }
+			for (const TSharedPtr<FPCGExTask>& Task : Tasks) { Task->Cancel(ThisPtr); }
 		}
 
+		// Fail safe for tasks that cannot be cancelled mid-way
+		// This will only be false in cases where lots of regen/cancel happen in the same frame.
 		while (!IsWorkComplete())
 		{
-			// Fail safe for tasks that cannot be cancelled mid-way
+			// (；′⌒`)
 		}
 
 		{
@@ -183,18 +168,26 @@ namespace PCGExMT
 		Context->UnpauseContext();
 	}
 
+	void FTaskManager::Complete()
+	{
+		if (bWorkComplete) { return; }
+
+		bWorkComplete = true;
+
+		// Unpause context
+		Context->UnpauseContext();
+	}
+
 	void FTaskGroup::End()
 	{
 		if (bEnded) { return; }
 		bEnded = true;
 
-		if (!IsCanceled())
-		{
-			if (OnCompleteCallback) { OnCompleteCallback(); }
-			if (ParentTaskGroup) { ParentTaskGroup->GrowNumCompleted(); }
-		}
+		if (!IsCanceled()) { if (OnCompleteCallback) { OnCompleteCallback(); } }
 
-		ParentTaskGroup.Reset();
+		if (ParentGroup) { ParentGroup->GrowNumCompleted(); }
+		ParentGroup.Reset();
+
 		Manager->GrowNumCompleted();
 	}
 
@@ -212,9 +205,9 @@ namespace PCGExMT
 	void FTaskGroup::SetParentTaskGroup(const TSharedPtr<FTaskGroup>& InParentGroup)
 	{
 		if (!InParentGroup) { return; }
-		check(ParentTaskGroup == nullptr)
-		ParentTaskGroup = InParentGroup;
-		ParentTaskGroup->GrowNumStarted();
+		check(ParentGroup == nullptr)
+		ParentGroup = InParentGroup;
+		ParentGroup->GrowNumStarted();
 	}
 
 	void FTaskGroup::StartIterations(const int32 MaxItems, const int32 ChunkSize, const bool bDaisyChain)
@@ -322,30 +315,62 @@ namespace PCGExMT
 #endif
 	}
 
-	void FPCGExTask::Complete()
+	bool FPCGExTask::Start()
 	{
-		bCompleted = true;
+		check(!bWorkStarted)
+
+		FWriteScopeLock WriteScopeLock(StateLock);
+
+		if (IsCanceled()) { return false; }
+		bWorkStarted = true;
+
+		return true;
 	}
 
-	void FPCGExTask::Cancel()
+	void FPCGExTask::End(const TSharedPtr<FTaskManager>& AsyncManager)
 	{
-		if (bCanceled || bCompleted) { return; }
-		bCanceled = true;
+		FWriteScopeLock WriteScopeLock(StateLock);
+
+		if (bEnded) { return; }
+
+		bWorkStarted = false;
+		bEnded = true;
+
+		if (const TSharedPtr<FTaskGroup>& Group = ParentGroup.Pin()) { Group->GrowNumCompleted(); }
+		AsyncManager->GrowNumCompleted();
 	}
 
-	void FDaisyChainScopeIterationTask::ExecuteTask(const TSharedPtr<FTaskManager>& AsyncManager, const TSharedPtr<FTaskGroup>& InGroup)
+	bool FPCGExTask::Cancel(const TSharedPtr<FTaskManager>& AsyncManager)
+	{
+		{
+			FWriteScopeLock WriteScopeLock(StateLock);
+
+			// Return false if work is started & not completed yet.
+			if (bWorkStarted) { return false; }
+			if (bCanceled || bEnded) { return true; }
+
+			bCanceled = true;
+		}
+
+		End(AsyncManager);
+
+		return true;
+	}
+
+	void FDaisyChainScopeIterationTask::ExecuteTask(const TSharedPtr<FTaskManager>& AsyncManager)
 	{
 		ON_SCOPE_EXIT { Loops.Empty(); };
 
-		if (!InGroup) { return; }
+		const TSharedPtr<FTaskGroup> Group = ParentGroup.Pin();
+		if (!Group) { return; }
 
 		const FScope& Scope = Loops[TaskIndex];
-		InGroup->ExecScopeIterations(Scope, bPrepareOnly);
+		Group->ExecScopeIterations(Scope, bPrepareOnly);
 
 		if (!Loops.IsValidIndex(Scope.GetNextScopeIndex())) { return; }
 
 		PCGEX_MAKE_SHARED(Task, FDaisyChainScopeIterationTask, Scope.GetNextScopeIndex())
-		InGroup->LaunchDaisyChainScope(Task, bPrepareOnly, Loops);
+		Group->LaunchDaisyChainScope(Task, bPrepareOnly, Loops);
 		Loops.Empty();
 	}
 }

@@ -67,8 +67,8 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExRemapDetails
 
 	FPCGExRemapDetails()
 	{
-		LocalScoreCurve.EditorCurveData.AddKey(0,0);
-		LocalScoreCurve.EditorCurveData.AddKey(1,1);
+		LocalScoreCurve.EditorCurveData.AddKey(0, 0);
+		LocalScoreCurve.EditorCurveData.AddKey(1, 1);
 	}
 
 	~FPCGExRemapDetails()
@@ -116,12 +116,12 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExRemapDetails
 	// TODO: DirtyCache for OnDependencyChanged when this float curve is an external asset
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_NotOverridable, DisplayName="Remap Curve", EditCondition = "bUseLocalCurve", EditConditionHides))
 	FRuntimeFloatCurve LocalScoreCurve;
-	
+
 	UPROPERTY(EditAnywhere, Category = Settings, BlueprintReadWrite, meta =(PCG_Overridable, DisplayName="Remap Curve", EditCondition = "!bUseLocalCurve", EditConditionHides))
 	TSoftObjectPtr<UCurveFloat> RemapCurve = TSoftObjectPtr<UCurveFloat>(PCGEx::WeightDistributionLinear);
 
 	const FRichCurve* RemapCurveObj = nullptr;
-	
+
 	/** Whether and how to truncate output value. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	EPCGExTruncateMode TruncateOutput = EPCGExTruncateMode::None;
@@ -134,8 +134,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExRemapDetails
 	{
 		if (!bUseLocalCurve)
 		{
-			if (!RemapCurve.ToSoftObjectPath().IsValid()) { LocalScoreCurve.ExternalCurve = TSoftObjectPtr<UCurveFloat>(PCGEx::WeightDistributionLinear).LoadSynchronous(); }
-			else { LocalScoreCurve.ExternalCurve = RemapCurve.LoadSynchronous(); }
+			LocalScoreCurve.ExternalCurve = PCGExHelpers::ForceLoad(RemapCurve, PCGEx::WeightDistributionLinear);
 		}
 
 		RemapCurveObj = LocalScoreCurve.GetRichCurveConst();

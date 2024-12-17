@@ -10,6 +10,8 @@
 #include "PCGExPointsProcessor.h"
 #include "Data/PCGExAttributeHelpers.h"
 #include "Data/PCGExPointIO.h"
+
+
 #include "Engine/AssetManager.h"
 
 namespace PCGEx
@@ -234,7 +236,7 @@ namespace PCGEx
 		TSharedPtr<TAssetLoader<T>> Loader;
 		TSharedPtr<TAttributeBroadcaster<FSoftObjectPath>> Broadcaster;
 
-		virtual void ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager, const TSharedPtr<PCGExMT::FTaskGroup>& InGroup) override
+		virtual void ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager) override
 		{
 			Broadcaster->Grab(false);
 

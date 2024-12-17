@@ -32,8 +32,8 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExHeuristicConfigBase
 
 	FPCGExHeuristicConfigBase()
 	{
-		LocalScoreCurve.EditorCurveData.AddKey(0,0);
-		LocalScoreCurve.EditorCurveData.AddKey(1,1);
+		LocalScoreCurve.EditorCurveData.AddKey(0, 0);
+		LocalScoreCurve.EditorCurveData.AddKey(1, 1);
 	}
 
 	~FPCGExHeuristicConfigBase()
@@ -51,12 +51,12 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExHeuristicConfigBase
 	/** Whether to use in-editor curve or an external asset. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable, DisplayPriority=-1))
 	bool bUseLocalCurve = false;
-	
+
 	// TODO: DirtyCache for OnDependencyChanged when this float curve is an external asset
 	/** Curve the value will be remapped over. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_NotOverridable, DisplayName="Score Curve", EditCondition = "bUseLocalCurve", EditConditionHides, DisplayPriority=-1))
 	FRuntimeFloatCurve LocalScoreCurve;
-	
+
 	/** Curve the value will be remapped over. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Score Curve", EditCondition="!bUseLocalCurve", EditConditionHides, DisplayPriority=-1))
 	TSoftObjectPtr<UCurveFloat> ScoreCurve = TSoftObjectPtr<UCurveFloat>(PCGEx::WeightDistributionLinear);
@@ -84,7 +84,6 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExHeuristicConfigBase
 	FPCGAttributePropertyInputSelector WeightMultiplierAttribute;
 
 	void Init();
-	
 };
 
 UCLASS(Abstract, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")

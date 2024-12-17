@@ -260,11 +260,9 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExAssetStagingData
 	FBox Bounds = FBox(ForceInitToZero);
 
 	template <typename T>
-	T* LoadSynchronous() const
+	T* LoadSync() const
 	{
-		UObject* LoadedAsset = UAssetManager::GetStreamableManager().RequestSyncLoad(Path)->GetLoadedAsset();
-		if (!LoadedAsset) { return nullptr; }
-		return Cast<T>(LoadedAsset);
+		return PCGExHelpers::ForceLoad<T>(nullptr, Path);
 	}
 
 	template <typename T>
@@ -326,7 +324,7 @@ protected:
 	template <typename T>
 	void LoadSubCollection(TSoftObjectPtr<T> SoftPtr)
 	{
-		BaseSubCollectionPtr = SoftPtr.LoadSynchronous();
+		BaseSubCollectionPtr = PCGExHelpers::ForceLoad(SoftPtr);
 		if (BaseSubCollectionPtr) { OnSubCollectionLoaded(); }
 	}
 

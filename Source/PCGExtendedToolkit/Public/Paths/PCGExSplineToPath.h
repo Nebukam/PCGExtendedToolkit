@@ -5,6 +5,8 @@
 
 #include "CoreMinimal.h"
 #include "PCGExPointsProcessor.h"
+
+
 #include "Sampling/PCGExSampleNearestSpline.h"
 #include "Sampling/PCGExSampling.h"
 
@@ -149,6 +151,6 @@ namespace PCGExSplineToPath
 
 		TSharedPtr<PCGExData::FFacade> PointDataFacade;
 
-		virtual void ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager, const TSharedPtr<PCGExMT::FTaskGroup>& InGroup) override;
+		virtual void ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager) override;
 	};
 }

@@ -67,13 +67,14 @@ namespace PCGExLloydRelax2D
 
 		if (!FPointsProcessor::Process(InAsyncManager)) { return false; }
 
+		PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::Duplicate)
+
 		ProjectionDetails = Settings->ProjectionDetails;
 		ProjectionDetails.Init(ExecutionContext, PointDataFacade);
 
 		InfluenceDetails = Settings->InfluenceDetails;
 		if (!InfluenceDetails.Init(ExecutionContext, PointDataFacade)) { return false; }
 
-		if(!PointDataFacade->Source->InitializeOutput(PCGExData::EIOInit::Duplicate)) { return false; }
 		PCGExGeo::PointsToPositions(PointDataFacade->GetIn()->GetPoints(), ActivePositions);
 
 		PCGEX_SHARED_THIS_DECL
@@ -99,7 +100,7 @@ namespace PCGExLloydRelax2D
 		StartParallelLoopForPoints();
 	}
 
-	void FLloydRelaxTask::ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager, const TSharedPtr<PCGExMT::FTaskGroup>& InGroup)
+	void FLloydRelaxTask::ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager)
 	{
 		NumIterations--;
 

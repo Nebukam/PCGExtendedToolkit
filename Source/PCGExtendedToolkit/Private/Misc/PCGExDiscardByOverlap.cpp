@@ -98,7 +98,7 @@ void FPCGExDiscardByOverlapContext::Prune()
 			continue;
 		}
 
-		if (!P->PointDataFacade->Source->InitializeOutput(PCGExData::EIOInit::Forward)) { return; }
+		PCGEX_INIT_IO_VOID(P->PointDataFacade->Source, PCGExData::EIOInit::Forward)
 	}
 
 	UpdateMaxScores(Remaining);
@@ -128,7 +128,7 @@ void FPCGExDiscardByOverlapContext::Prune()
 		PCGExDiscardByOverlap::FProcessor* Candidate = Remaining.Pop();
 
 		if (Candidate->HasOverlaps()) { Candidate->Prune(Remaining); }
-		else { if (!Candidate->PointDataFacade->Source->InitializeOutput(PCGExData::EIOInit::Forward)) { return; } }
+		else { PCGEX_INIT_IO_VOID(Candidate->PointDataFacade->Source, PCGExData::EIOInit::Forward) }
 
 		UpdateMaxScores(Remaining);
 
@@ -227,7 +227,7 @@ namespace PCGExDiscardByOverlap
 		if (Overlaps.IsEmpty())
 		{
 			// Remove from stack & output.
-			if (!PointDataFacade->Source->InitializeOutput(PCGExData::EIOInit::Forward)) { return; }
+			PCGEX_INIT_IO_VOID(PointDataFacade->Source, PCGExData::EIOInit::Forward)
 			Stack.Remove(this);
 			return;
 		}

@@ -9,6 +9,7 @@
 #include "PCGExPointsProcessor.h"
 #include "AI/Navigation/NavigationTypes.h"
 
+
 #include "Paths/SubPoints/DataBlending/PCGExSubPointsBlendInterpolate.h"
 
 #include "PCGExPathfindingPlotNavmesh.generated.h"
@@ -148,5 +149,5 @@ public:
 	}
 
 	TSharedPtr<PCGExData::FPointIO> PointIO;
-	virtual void ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager, const TSharedPtr<PCGExMT::FTaskGroup>& InGroup) override;
+	virtual void ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager) override;
 };

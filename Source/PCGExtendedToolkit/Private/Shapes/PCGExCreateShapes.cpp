@@ -4,6 +4,8 @@
 #include "Shapes/PCGExCreateShapes.h"
 
 #include "Data/PCGExData.h"
+
+
 #include "Shapes/PCGExShapeBuilderOperation.h"
 
 
@@ -102,7 +104,8 @@ namespace PCGExCreateShapes
 
 		if (Settings->OutputMode == EPCGExShapeOutputMode::PerDataset)
 		{
-			PointDataFacade->Source->InitializeOutput(PCGExData::EIOInit::New);
+			PCGEX_INIT_IO_VOID(PointDataFacade->Source, PCGExData::EIOInit::New)
+
 			int32 StartIndex = 0;
 			int32 NumPoints = 0;
 
@@ -159,7 +162,7 @@ namespace PCGExCreateShapes
 				if (NumPoints <= 0) { continue; }
 
 				TSharedPtr<PCGExData::FPointIO> IO = NewPointIO(PointDataFacade->Source, Settings->GetMainOutputPin(), i);
-				IO->InitializeOutput(PCGExData::EIOInit::New);
+				PCGEX_INIT_IO_VOID(IO, PCGExData::EIOInit::New)
 
 				PCGEX_MAKE_SHARED(IOFacade, PCGExData::FFacade, IO.ToSharedRef())
 				PerSeedFacades.Add(IOFacade);
@@ -199,7 +202,7 @@ namespace PCGExCreateShapes
 		for (const TSharedPtr<PCGExData::FFacade>& IO : PerSeedFacades) { IO->Source->StageOutput(); }
 	}
 
-	void FBuildShape::ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager, const TSharedPtr<PCGExMT::FTaskGroup>& InGroup)
+	void FBuildShape::ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager)
 	{
 		FPCGExCreateShapesContext* Context = AsyncManager->GetContext<FPCGExCreateShapesContext>();
 		PCGEX_SETTINGS(CreateShapes);

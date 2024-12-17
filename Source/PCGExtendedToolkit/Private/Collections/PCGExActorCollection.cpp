@@ -16,13 +16,13 @@ void FPCGExActorCollectionEntry::UpdateStaging(const UPCGExAssetCollection* Owni
 	if (bIsSubCollection)
 	{
 		Staging.Path = SubCollection.ToSoftObjectPath();
-		if (bRecursive && SubCollection.LoadSynchronous()) { SubCollection.Get()->RebuildStagingData(true); }
+		if (bRecursive){ if(UPCGExAssetCollection* Ptr = PCGExHelpers::ForceLoad(SubCollection)) { Ptr->RebuildStagingData(true); }}
 		Super::UpdateStaging(OwningCollection, InInternalIndex, bRecursive);
 		return;
 	}
 
 	Staging.Path = Actor.ToSoftObjectPath();
-	const AActor* A = Actor.LoadSynchronous();
+	const AActor* A = PCGExHelpers::ForceLoad(Actor);
 
 	PCGExAssetCollection::UpdateStagingBounds(Staging, A);
 
@@ -61,7 +61,7 @@ void UPCGExActorCollection::GetAssetPaths(TSet<FSoftObjectPath>& OutPaths, const
 		{
 			if (bRecursive || bCollectionOnly)
 			{
-				if (const UPCGExActorCollection* SubCollection = Entry.SubCollection.LoadSynchronous())
+				if (const UPCGExActorCollection* SubCollection = PCGExHelpers::ForceLoad(Entry.SubCollection))
 				{
 					SubCollection->GetAssetPaths(OutPaths, Flags);
 				}

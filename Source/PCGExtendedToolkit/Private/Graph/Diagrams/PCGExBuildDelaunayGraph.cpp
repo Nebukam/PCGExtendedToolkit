@@ -145,7 +145,7 @@ namespace PCGExBuildDelaunay
 		if (!GraphBuilder->bCompiledSuccessfully)
 		{
 			bIsProcessorValid = false;
-			PointDataFacade->Source->InitializeOutput(PCGExData::EIOInit::None);
+			PCGEX_CLEAR_IO_VOID(PointDataFacade->Source)
 			return;
 		}
 
@@ -163,13 +163,13 @@ namespace PCGExBuildDelaunay
 		PointDataFacade->Write(AsyncManager);
 	}
 
-	void FOutputDelaunaySites::ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager, const TSharedPtr<PCGExMT::FTaskGroup>& InGroup)
+	void FOutputDelaunaySites::ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager)
 	{
 		FPCGExBuildDelaunayGraphContext* Context = AsyncManager->GetContext<FPCGExBuildDelaunayGraphContext>();
 		PCGEX_SETTINGS(BuildDelaunayGraph)
 
 		const TSharedPtr<PCGExData::FPointIO> SitesIO = NewPointIO(PointIO.ToSharedRef());
-		if (!SitesIO->InitializeOutput(PCGExData::EIOInit::New)) { return; }
+		PCGEX_INIT_IO_VOID(SitesIO, PCGExData::EIOInit::New)
 
 		Context->MainSites->InsertUnsafe(Processor->BatchIndex, SitesIO);
 
@@ -205,13 +205,13 @@ namespace PCGExBuildDelaunay
 		}
 	}
 
-	void FOutputDelaunayUrquhartSites::ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager, const TSharedPtr<PCGExMT::FTaskGroup>& InGroup)
+	void FOutputDelaunayUrquhartSites::ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager)
 	{
 		FPCGExBuildDelaunayGraphContext* Context = AsyncManager->GetContext<FPCGExBuildDelaunayGraphContext>();
 		PCGEX_SETTINGS(BuildDelaunayGraph)
 
 		const TSharedPtr<PCGExData::FPointIO> SitesIO = NewPointIO(PointIO.ToSharedRef());
-		if (!SitesIO->InitializeOutput(PCGExData::EIOInit::New)) { return; }
+		PCGEX_INIT_IO_VOID(SitesIO, PCGExData::EIOInit::New)
 
 		Context->MainSites->InsertUnsafe(Processor->BatchIndex, SitesIO);
 

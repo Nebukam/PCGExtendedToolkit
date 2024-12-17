@@ -8,6 +8,7 @@
 #include "PCGExMT.h"
 #include "PCGExHelpers.h"
 
+
 //#include "PCGExGeoMesh.generated.h"
 
 UENUM()
@@ -129,7 +130,7 @@ namespace PCGExGeo
 		{
 			if (!InSoftStaticMesh.ToSoftObjectPath().IsValid()) { return; }
 
-			StaticMesh = InSoftStaticMesh.LoadSynchronous();
+			StaticMesh = PCGExHelpers::ForceLoad(InSoftStaticMesh);
 			if (!StaticMesh) { return; }
 
 			StaticMesh->GetRenderData();
@@ -317,7 +318,7 @@ namespace PCGExGeo
 
 		TSharedPtr<FGeoStaticMesh> GSM;
 
-		virtual void ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager, const TSharedPtr<PCGExMT::FTaskGroup>& InGroup) override
+		virtual void ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager) override
 		{
 			GSM->ExtractMeshSynchronous();
 		}

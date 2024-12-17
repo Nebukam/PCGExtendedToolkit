@@ -463,12 +463,12 @@ namespace PCGExBevelPath
 
 		if (NumBevels == 0)
 		{
-			PointIO->InitializeOutput(PCGExData::EIOInit::Duplicate);
+			PCGEX_INIT_IO_VOID(PointIO, PCGExData::EIOInit::Duplicate)
 			Settings->InitOutputFlags(PointIO);
 			return;
 		}
 
-		PointIO->InitializeOutput(PCGExData::EIOInit::New);
+		PCGEX_INIT_IO_VOID(PointIO, PCGExData::EIOInit::New)
 		Settings->InitOutputFlags(PointIO);
 
 		// Build output points

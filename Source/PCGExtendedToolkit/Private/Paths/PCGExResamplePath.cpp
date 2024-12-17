@@ -87,14 +87,15 @@ namespace PCGExResamplePath
 
 			if (NumSamples < 2) { return false; }
 
-			PointDataFacade->Source->InitializeOutput(PCGExData::EIOInit::New);
+			PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::New)
+
 			TArray<FPCGPoint>& OutPoints = PointDataFacade->GetMutablePoints();
 			OutPoints.SetNum(NumSamples);
 			OutPoints[0] = PointDataFacade->Source->GetIn()->GetPoints()[0]; // Copy first point
 		}
 		else
 		{
-			PointDataFacade->Source->InitializeOutput(PCGExData::EIOInit::Duplicate);
+			PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::Duplicate)
 			NumSamples = PointDataFacade->GetNum();
 		}
 

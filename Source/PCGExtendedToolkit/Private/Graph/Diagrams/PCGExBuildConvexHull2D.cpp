@@ -150,7 +150,8 @@ namespace PCGExConvexHull2D
 
 		ActivePositions.Empty();
 
-		if (!PointDataFacade->Source->InitializeOutput(PCGExData::EIOInit::Duplicate)) { return false; }
+		PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::Duplicate)
+
 		Edges = Delaunay->DelaunayEdges.Array();
 
 		GraphBuilder = MakeShared<PCGExGraph::FGraphBuilder>(PointDataFacade, &Settings->GraphBuilderDetails);
@@ -195,7 +196,7 @@ namespace PCGExConvexHull2D
 		if (!GraphBuilder->bCompiledSuccessfully)
 		{
 			bIsProcessorValid = false;
-			PointDataFacade->Source->InitializeOutput(PCGExData::EIOInit::None);
+			PCGEX_CLEAR_IO_VOID(PointDataFacade->Source)
 			return;
 		}
 

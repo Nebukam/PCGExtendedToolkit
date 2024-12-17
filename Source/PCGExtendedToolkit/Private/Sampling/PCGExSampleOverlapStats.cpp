@@ -339,10 +339,10 @@ namespace PCGExSampleOverlapStats
 				PCGEX_ASYNC_GROUP_CHKD_VOID(This->AsyncManager, SearchTask)
 				SearchTask->OnCompleteCallback = WrapUp;
 				SearchTask->OnSubLoopStartCallback = [AsyncThis](const PCGExMT::FScope& Scope)
-					{
-						PCGEX_ASYNC_NESTED_THIS
-						for (int i = Scope.Start; i < Scope.End; i++) { NestedThis->ResolveOverlap(i); }
-					};
+				{
+					PCGEX_ASYNC_NESTED_THIS
+					for (int i = Scope.Start; i < Scope.End; i++) { NestedThis->ResolveOverlap(i); }
+				};
 				SearchTask->StartSubLoops(This->Overlaps.Num(), 8);
 			};
 

@@ -152,7 +152,7 @@ namespace PCGExBuildDelaunay2D
 		TSharedPtr<PCGExData::FPointIO> PointIO;
 		TSharedPtr<FProcessor> Processor;
 
-		virtual void ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager, const TSharedPtr<PCGExMT::FTaskGroup>& InGroup) override;
+		virtual void ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager) override;
 	};
 
 	class /*PCGEXTENDEDTOOLKIT_API*/ FOutputDelaunayUrquhartSites2D final : public PCGExMT::FPCGExTask
@@ -169,6 +169,6 @@ namespace PCGExBuildDelaunay2D
 		TSharedPtr<PCGExData::FPointIO> PointIO;
 		TSharedPtr<FProcessor> Processor;
 
-		virtual void ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager, const TSharedPtr<PCGExMT::FTaskGroup>& InGroup) override;
+		virtual void ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager) override;
 	};
 }

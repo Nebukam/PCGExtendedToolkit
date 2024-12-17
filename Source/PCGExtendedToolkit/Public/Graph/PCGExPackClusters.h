@@ -86,5 +86,4 @@ namespace PCGExPackClusters
 		virtual bool Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager) override;
 		virtual void CompleteWork() override;
 	};
-
 }
