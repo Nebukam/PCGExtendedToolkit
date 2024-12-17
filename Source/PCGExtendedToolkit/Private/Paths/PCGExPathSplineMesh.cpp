@@ -39,7 +39,7 @@ bool FPCGExPathSplineMeshElement::Boot(FPCGExContext* InContext) const
 
 	if (Settings->CollectionSource == EPCGExCollectionSource::Asset)
 	{
-		Context->MainCollection = Settings->AssetCollection.LoadSynchronous();
+		Context->MainCollection = PCGExHelpers::ForceLoad(Settings->AssetCollection);
 		if (!Context->MainCollection)
 		{
 			PCGE_LOG(Error, GraphAndLog, FTEXT("Missing asset collection."));

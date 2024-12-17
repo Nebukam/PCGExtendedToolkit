@@ -208,13 +208,15 @@ namespace PCGExSubdivide
 
 		if (NumPoints == PointIO->GetNum())
 		{
-			PointIO->InitializeOutput(PCGExData::EIOInit::Duplicate);
+			PCGEX_INIT_IO_VOID(PointIO, PCGExData::EIOInit::Duplicate)
+
 			if (Settings->bFlagSubPoints) { WriteMark(PointIO, Settings->SubPointFlagName, false); }
 			if (Settings->bWriteAlpha) { WriteMark(PointIO, Settings->AlphaAttributeName, Settings->DefaultAlpha); }
 			return;
 		}
 
-		PointIO->InitializeOutput(PCGExData::EIOInit::New);
+		PCGEX_INIT_IO_VOID(PointIO, PCGExData::EIOInit::New)
+
 		TArray<FPCGPoint>& MutablePoints = PointIO->GetOut()->GetMutablePoints();
 		const TArray<FPCGPoint>& InPoints = PointIO->GetIn()->GetPoints();
 		UPCGMetadata* Metadata = PointIO->GetOut()->Metadata;

@@ -6,6 +6,7 @@
 #include "CoreMinimal.h"
 #include "PCGExPointsProcessor.h"
 
+
 #include "Geometry/PCGExGeoDelaunay.h"
 
 #include "PCGExBuildDelaunayGraph.generated.h"
@@ -137,7 +138,7 @@ namespace PCGExBuildDelaunay
 		const TSharedPtr<PCGExData::FPointIO> PointIO;
 		TSharedPtr<FProcessor> Processor;
 
-		virtual void ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager, const TSharedPtr<PCGExMT::FTaskGroup>& InGroup) override;
+		virtual void ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager) override;
 	};
 
 	class /*PCGEXTENDEDTOOLKIT_API*/ FOutputDelaunayUrquhartSites final : public PCGExMT::FPCGExTask
@@ -154,6 +155,6 @@ namespace PCGExBuildDelaunay
 		const TSharedPtr<PCGExData::FPointIO> PointIO;
 		TSharedPtr<FProcessor> Processor;
 
-		virtual void ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager, const TSharedPtr<PCGExMT::FTaskGroup>& InGroup) override;
+		virtual void ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager) override;
 	};
 }

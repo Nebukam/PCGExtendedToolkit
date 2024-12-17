@@ -10,8 +10,7 @@ void FPCGExHeuristicConfigBase::Init()
 {
 	if (!bUseLocalCurve)
 	{
-		if (!ScoreCurve.ToSoftObjectPath().IsValid()) { LocalScoreCurve.ExternalCurve = TSoftObjectPtr<UCurveFloat>(PCGEx::WeightDistributionLinear).LoadSynchronous(); }
-		else { LocalScoreCurve.ExternalCurve = ScoreCurve.LoadSynchronous(); }
+		LocalScoreCurve.ExternalCurve = PCGExHelpers::ForceLoad(ScoreCurve, PCGEx::WeightDistributionLinear);
 	}
 
 	ScoreCurveObj = LocalScoreCurve.GetRichCurveConst();

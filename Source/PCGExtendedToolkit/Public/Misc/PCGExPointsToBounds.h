@@ -41,7 +41,7 @@ public:
 	/** Output Object Oriented Bounds. Note that this only accounts for positions and will ignore point bounds. **/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	bool bOutputOrientedBoundingBox = false;
-	
+
 	/** Overlap overlap test mode */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	EPCGExPointBoundsSource BoundsSource = EPCGExPointBoundsSource::ScaledBounds;
@@ -92,7 +92,7 @@ namespace PCGExPointsToBounds
 
 		UE::Geometry::FOrientedBox3d OrientedBox;
 		bool bOrientedBoxFound = false;
-		
+
 	public:
 		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade):
 			TPointsProcessor(InPointDataFacade)
@@ -105,4 +105,3 @@ namespace PCGExPointsToBounds
 		virtual void CompleteWork() override;
 	};
 }
-

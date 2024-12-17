@@ -168,7 +168,7 @@ namespace PCGExRelaxClusters
 		ForwardCluster();
 	}
 
-	void FRelaxRangeTask::ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager, const TSharedPtr<PCGExMT::FTaskGroup>& InGroup)
+	void FRelaxRangeTask::ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager)
 	{
 		for (int i = Scope.Start; i < Scope.End; i++) { Processor->ProcessSingleNode(i, *Processor->Cluster->GetNode(i), Scope); }
 	}

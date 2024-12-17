@@ -169,7 +169,8 @@ namespace PCGExSplitPath
 		if (NumPathPoints == 1 && Settings->bOmitSinglePointOutputs) { return; }
 
 		const TSharedPtr<PCGExData::FPointIO> PathIO = NewPointIO(PointDataFacade->Source);
-		PathIO->InitializeOutput(PCGExData::EIOInit::New);
+		PCGEX_INIT_IO_VOID(PathIO, PCGExData::EIOInit::New)
+
 		PathsIOs[Iteration] = PathIO;
 
 		const TArray<FPCGPoint>& OriginalPoints = PointDataFacade->GetIn()->GetPoints();

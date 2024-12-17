@@ -65,7 +65,7 @@ namespace PCGExPointIOMerger
 		}
 
 		TSharedPtr<FPCGExPointIOMerger> Merger;
-		virtual void ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager, const TSharedPtr<PCGExMT::FTaskGroup>& InGroup) override;
+		virtual void ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager) override;
 	};
 
 	template <typename T>
@@ -90,7 +90,7 @@ namespace PCGExPointIOMerger
 		const PCGEx::FAttributeIdentity Identity;
 		TSharedPtr<TArray<T>> OutValues;
 
-		virtual void ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager, const TSharedPtr<PCGExMT::FTaskGroup>& InGroup) override
+		virtual void ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager) override
 		{
 			ScopeMerge<T>(Scope, Identity, PointIO, *OutValues.Get());
 		}

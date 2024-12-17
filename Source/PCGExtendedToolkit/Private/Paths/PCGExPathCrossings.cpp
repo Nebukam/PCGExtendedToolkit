@@ -286,6 +286,7 @@ namespace PCGExPathCrossings
 	void FProcessor::OnRangeProcessingComplete()
 	{
 		const TSharedRef<PCGExData::FPointIO>& PointIO = PointDataFacade->Source;
+		PCGEX_INIT_IO_VOID(PointIO, PCGExData::EIOInit::New)
 
 		int32 NumPointsFinal = 0;
 
@@ -300,8 +301,6 @@ namespace PCGExPathCrossings
 
 			NumPointsFinal += Crossing->Crossings.Num();
 		}
-
-		PointIO->InitializeOutput(PCGExData::EIOInit::New);
 
 		const TArray<FPCGPoint>& InPoints = PointIO->GetIn()->GetPoints();
 		TArray<FPCGPoint>& OutPoints = PointIO->GetOut()->GetMutablePoints();
@@ -467,7 +466,7 @@ namespace PCGExPathCrossings
 	{
 		if (!bCanBeCut)
 		{
-			PointDataFacade->Source->InitializeOutput(PCGExData::EIOInit::Forward);
+			PCGEX_INIT_IO_VOID(PointDataFacade->Source, PCGExData::EIOInit::Forward)
 			return;
 		}
 

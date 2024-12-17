@@ -258,7 +258,7 @@ namespace PCGExData
 	{
 		TSharedPtr<FPointIO> Branch = Emplace_GetRef(PointIO->GetIn(), InitOut);
 		if (!Branch) { return nullptr; }
-		
+
 		Branch->Tags->Reset(PointIO->Tags);
 		Branch->RootIO = PointIO;
 		return Branch;

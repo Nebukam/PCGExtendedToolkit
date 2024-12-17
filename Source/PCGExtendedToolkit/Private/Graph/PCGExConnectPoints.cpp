@@ -343,7 +343,7 @@ namespace PCGExConnectPoints
 	{
 		if (!GraphBuilder->bCompiledSuccessfully)
 		{
-			PointDataFacade->Source->InitializeOutput(PCGExData::EIOInit::None);
+			PCGEX_CLEAR_IO_VOID(PointDataFacade->Source)
 			return;
 		}
 

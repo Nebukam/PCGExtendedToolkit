@@ -7,6 +7,7 @@
 #include "PCGExRandom.h"
 #include "Data/Blending/PCGExUnionBlender.h"
 
+
 #include "Graph/PCGExCluster.h"
 #include "Graph/Data/PCGExClusterData.h"
 
@@ -40,7 +41,8 @@ namespace PCGExGraph
 		// Correct edge IO Index that has been overwritten during subgraph processing
 		for (FEdge& E : FlattenedEdges) { E.IOIndex = -1; }
 
-		NewCluster->BuildFrom(this);
+		PCGEX_SHARED_THIS_DECL
+		NewCluster->BuildFrom(ThisPtr);
 
 		// Look into the cost of this
 
@@ -126,7 +128,7 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 		PCGEX_ASYNC_GROUP_CHKD_VOID(AsyncManager, ProcessSubGraphEdges)
 
 		ProcessSubGraphEdges->SetParentTaskGroup(InWeakParentTask.Pin());
-		
+
 		ProcessSubGraphEdges->OnCompleteCallback =
 			[PCGEX_ASYNC_THIS_CAPTURE]()
 			{
@@ -201,7 +203,7 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 
 		const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager = WeakAsyncManager.Pin();
 		if (!AsyncManager) { return; }
-		
+
 		PCGEX_SHARED_THIS_DECL
 
 		if (GetDefault<UPCGExGlobalSettings>()->bCacheClusters && ParentGraph->bBuildClusters)
@@ -620,7 +622,7 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 
 namespace PCGExGraphTask
 {
-	void FWriteSubGraphCluster::ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager, const TSharedPtr<PCGExMT::FTaskGroup>& InGroup)
+	void FWriteSubGraphCluster::ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager)
 	{
 		UPCGExClusterEdgesData* ClusterEdgesData = Cast<UPCGExClusterEdgesData>(SubGraph->EdgesDataFacade->GetOut());
 		const TSharedPtr<PCGExCluster::FCluster> Cluster = SubGraph->CreateCluster(AsyncManager);
@@ -628,13 +630,13 @@ namespace PCGExGraphTask
 		ClusterEdgesData->SetBoundCluster(Cluster);
 	}
 
-	void FCompileGraph::ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager, const TSharedPtr<PCGExMT::FTaskGroup>& InGroup)
+	void FCompileGraph::ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(FCompileGraph::ExecuteTask);
 		Builder->Compile(AsyncManager, bWriteNodeFacade, MetadataDetails);
 	}
 
-	void FCopyGraphToPoint::ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager, const TSharedPtr<PCGExMT::FTaskGroup>& InGroup)
+	void FCopyGraphToPoint::ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager)
 	{
 		if (!GraphBuilder->bCompiledSuccessfully) { return; }
 
@@ -647,7 +649,7 @@ namespace PCGExGraphTask
 		PCGExGraph::SetClusterVtx(VtxDupe, OutId);
 
 		PCGEX_MAKE_SHARED(VtxTask, PCGExGeoTasks::FTransformPointIO, TaskIndex, PointIO, VtxDupe, TransformDetails);
-		Launch(AsyncManager, InGroup, VtxTask);
+		Launch(AsyncManager, VtxTask);
 
 		for (const TSharedPtr<PCGExData::FPointIO>& Edges : GraphBuilder->EdgesIO->Pairs)
 		{
@@ -658,7 +660,7 @@ namespace PCGExGraphTask
 			PCGExGraph::MarkClusterEdges(EdgeDupe, OutId);
 
 			PCGEX_MAKE_SHARED(EdgeTask, PCGExGeoTasks::FTransformPointIO, TaskIndex, PointIO, EdgeDupe, TransformDetails);
-			Launch(AsyncManager, InGroup, EdgeTask);
+			Launch(AsyncManager, EdgeTask);
 		}
 
 		// TODO : Copy & Transform cluster as well for a big perf boost

@@ -85,7 +85,7 @@ bool FPCGExAssetCollectionToSetElement::ExecuteInternal(FPCGContext* Context) co
 	PCGEX_FOREACH_COL_FIELD(PCGEX_DECLARE_ATT);
 #undef PCGEX_DECLARE_ATT
 
-	UPCGExAssetCollection* MainCollection = Settings->AssetCollection.LoadSynchronous();
+	UPCGExAssetCollection* MainCollection = PCGExHelpers::ForceLoad(Settings->AssetCollection);
 
 	if (!MainCollection)
 	{
@@ -164,7 +164,7 @@ void FPCGExAssetCollectionToSetElement::ProcessEntry(
 	{
 		if (SubHandling == EPCGExSubCollectionToSet::Ignore) { return; }
 
-		UPCGExAssetCollection* SubCollection = InEntry->Staging.LoadSynchronous<UPCGExAssetCollection>();
+		UPCGExAssetCollection* SubCollection = InEntry->Staging.LoadSync<UPCGExAssetCollection>();
 		const PCGExAssetCollection::FCache* SubCache = SubCollection ? SubCollection->LoadCache() : nullptr;
 
 		if (!SubCache)

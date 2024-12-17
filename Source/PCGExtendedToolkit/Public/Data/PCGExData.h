@@ -22,6 +22,12 @@
 #ifndef PCGEX_DATA_MACROS
 #define PCGEX_DATA_MACROS
 
+#define PCGEX_INIT_IO_VOID(_IO, _INIT) if (!_IO->InitializeOutput(_INIT)) { return; }
+#define PCGEX_INIT_IO(_IO, _INIT) if (!_IO->InitializeOutput(_INIT)) { return false; }
+
+#define PCGEX_CLEAR_IO_VOID(_IO) if (!_IO->InitializeOutput(PCGExData::EIOInit::None)) { return; }
+#define PCGEX_CLEAR_IO(_IO) if (!_IO->InitializeOutput(PCGExData::EIOInit::None)) { return false; }
+
 #endif
 #pragma endregion
 

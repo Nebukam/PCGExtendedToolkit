@@ -101,10 +101,10 @@ bool FPCGExSampleNearestBoundsElement::Boot(FPCGExContext* InContext) const
 	{
 		Context->RuntimeWeightCurve.EditorCurveData.AddKey(0, 0);
 		Context->RuntimeWeightCurve.EditorCurveData.AddKey(1, 1);
-		Context->RuntimeWeightCurve.ExternalCurve = Settings->WeightRemap.LoadSynchronous();
+		Context->RuntimeWeightCurve.ExternalCurve = PCGExHelpers::ForceLoad(Settings->WeightRemap);
 	}
 	Context->WeightCurve = Context->RuntimeWeightCurve.GetRichCurveConst();
-	
+
 	Context->BoundsPoints = &Context->BoundsFacade->Source->GetIn()->GetPoints();
 	Context->BoundsPreloader = MakeShared<PCGExData::FFacadePreloader>();
 

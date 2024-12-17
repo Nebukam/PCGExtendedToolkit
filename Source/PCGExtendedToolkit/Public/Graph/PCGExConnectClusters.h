@@ -5,6 +5,8 @@
 
 #include "CoreMinimal.h"
 #include "Data/PCGExPointIOMerger.h"
+
+
 #include "Graph/PCGExEdgesProcessor.h"
 
 #include "PCGExConnectClusters.generated.h"
@@ -145,6 +147,6 @@ namespace PCGExBridgeClusters
 		TSharedPtr<PCGExCluster::FCluster> ClusterA;
 		TSharedPtr<PCGExCluster::FCluster> ClusterB;
 
-		virtual void ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager, const TSharedPtr<PCGExMT::FTaskGroup>& InGroup) override;
+		virtual void ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager) override;
 	};
 }

@@ -127,9 +127,9 @@ namespace PCGExStaging
 				int32 Idx = CollectionIdx->GetValueFromItemKey(i);
 
 #if PCGEX_ENGINE_VERSION > 503
-				C* Collection = TSoftObjectPtr<C>(CollectionPath->GetValueFromItemKey(i)).LoadSynchronous();
+				C* Collection = PCGExHelpers::ForceLoad<C>(TSoftObjectPtr<C>(CollectionPath->GetValueFromItemKey(i)));
 #else
-				C* Collection = TSoftObjectPtr<C>(FSoftObjectPath(CollectionPath->GetValueFromItemKey(i))).LoadSynchronous();
+				C* Collection = PCGExHelpers::ForceLoad<C>(nullptr, FSoftObjectPath(CollectionPath->GetValueFromItemKey(i)));
 #endif
 
 				if (!Collection)

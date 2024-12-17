@@ -195,7 +195,7 @@ namespace PCGExTopologyEdges
 			Settings->Topology.TemplateDescriptor.InitComponent(DynamicMeshComponent);
 
 			DynamicMeshComponent->SetDynamicMesh(InternalMesh);
-			if (UMaterialInterface* Material = Settings->Topology.Material.LoadSynchronous())
+			if (UMaterialInterface* Material = PCGExHelpers::ForceLoad(Settings->Topology.Material))
 			{
 				DynamicMeshComponent->SetMaterial(0, Material);
 			}
@@ -363,53 +363,6 @@ namespace PCGExTopologyEdges
 			if (Settings->Topology.bCombinesAllTopologies)
 			{
 				PCGE_LOG_C(Error, GraphAndLog, ExecutionContext, FTEXT("Merged topology is not implemented yet."));
-				/*
-								TObjectPtr<UDynamicMesh> InternalMesh = Context->ManagedObjects->template New<UDynamicMesh>();
-								InternalMesh->InitializeMesh();
-								InternalMesh->EditMesh(
-									[&](FDynamicMesh3& InMesh)
-									{
-										
-										InMesh.EnableVertexNormals(FVector3f(0, 0, 1));
-									}, EDynamicMeshChangeType::GeneralEdit, EDynamicMeshAttributeChangeFlags::MeshTopology, true);
-								
-								bool bIsPreviewMode = false;
-								
-				#if PCGEX_ENGINE_VERSION > 503
-								bIsPreviewMode = ExecutionContext->SourceComponent.Get()->IsInPreviewMode();
-				#endif
-								
-								TRACE_CPUPROFILER_EVENT_SCOPE(UPCGExPathSplineMesh::FProcessor::Output);
-				
-								// TODO : Resolve per-point target actor...? irk.
-								AActor* TargetActor = Settings->TargetActor.Get() ? Settings->TargetActor.Get() : ExecutionContext->GetTargetActor(nullptr);
-				
-								if (!TargetActor)
-								{
-									PCGE_LOG_C(Error, GraphAndLog, ExecutionContext, FTEXT("Invalid target actor."));
-									return;
-								}
-				
-								const FString ComponentName = TEXT("PCGDynamicMeshComponent");
-								const EObjectFlags ObjectFlags = (bIsPreviewMode ? RF_Transient : RF_NoFlags);
-								UPCGExDynamicMeshComponent* DynamicMeshComponent = NewObject<UPCGExDynamicMeshComponent>(TargetActor, MakeUniqueObjectName(TargetActor, UPCGExDynamicMeshComponent::StaticClass(), FName(ComponentName)), ObjectFlags);
-				
-								Settings->Topology.TemplateDescriptor.InitComponent(DynamicMeshComponent);
-				
-								DynamicMeshComponent->SetDynamicMesh(InternalMesh);
-								if (UMaterialInterface* Material = Settings->Topology.Material.LoadSynchronous())
-								{
-									DynamicMeshComponent->SetMaterial(0, Material);
-								}
-				
-								Context->ManagedObjects->Remove(InternalMesh);
-				
-								Context->AttachManagedComponent(
-									TargetActor, DynamicMeshComponent,
-									FAttachmentTransformRules(EAttachmentRule::KeepWorld, EAttachmentRule::KeepWorld, EAttachmentRule::KeepWorld, false));
-				
-								Context->NotifyActors.Add(TargetActor);
-								*/
 			}
 			else
 			{
