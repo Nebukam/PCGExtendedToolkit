@@ -20,8 +20,7 @@
 #define PCGEX_SAMPLER_CREATE\
 	NewOperation->SamplingConfig = SamplingConfig; \
 	if (!SamplingConfig.bUseLocalCurve)\
-	{if (!NewOperation->SamplingConfig.WeightCurve.ToSoftObjectPath().IsValid()) { NewOperation->SamplingConfig.LocalWeightCurve.ExternalCurve = TSoftObjectPtr<UCurveFloat>(PCGEx::WeightDistributionLinear).LoadSynchronous(); }\
-	else { NewOperation->SamplingConfig.LocalWeightCurve.ExternalCurve = NewOperation->SamplingConfig.WeightCurve.LoadSynchronous(); }}\
+	NewOperation->SamplingConfig.LocalWeightCurve.ExternalCurve = PCGExHelpers::ForceLoad(NewOperation->SamplingConfig.WeightCurve, PCGEx::WeightDistributionLinear);\
 	NewOperation->WeightCurveObj = NewOperation->SamplingConfig.LocalWeightCurve.GetRichCurveConst();\
 	NewOperation->PointFilterFactories.Append(PointFilterFactories); \
 	NewOperation->ValueFilterFactories.Append(ValueFilterFactories);
@@ -66,7 +65,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExSamplingConfig
 	/** Whether to use in-editor curve or an external asset. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable, DisplayPriority=-1))
 	bool bUseLocalCurve = false;
-	
+
 	// TODO: DirtyCache for OnDependencyChanged when this float curve is an external asset
 	/** Curve over which the blending weight will be remapped  */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_NotOverridable, DisplayName="Weight Curve", EditCondition = "bUseLocalCurve", EditConditionHides))

@@ -125,6 +125,7 @@ namespace PCGExPointsMT
 		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager> InAsyncManager)
 		{
 			AsyncManager = InAsyncManager;
+			PCGEX_ASYNC_CHKD(AsyncManager)
 
 #pragma region Path filter data
 
@@ -190,7 +191,7 @@ namespace PCGExPointsMT
 		void StartParallelLoopForRange(const int32 NumIterations, const int32 PerLoopIterations = -1)
 		{
 			PCGEX_ASYNC_POINT_PROCESSOR_LOOP(
-				Ranges, NumIterations,	
+				Ranges, NumIterations,
 				PrepareLoopScopesForRanges, ProcessRange,
 				OnRangeProcessingComplete,
 				bDaisyChainProcessRange)
@@ -389,6 +390,7 @@ namespace PCGExPointsMT
 			CurrentState = PCGEx::State_Processing;
 
 			AsyncManager = InAsyncManager;
+			PCGEX_ASYNC_CHKD_VOID(AsyncManager)
 
 			TSharedPtr<FPointsProcessorBatchBase> SelfPtr = SharedThis(this);
 

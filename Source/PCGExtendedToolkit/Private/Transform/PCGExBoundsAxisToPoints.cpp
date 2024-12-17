@@ -101,7 +101,7 @@ namespace PCGExBoundsAxisToPoints
 
 		const FVector Direction[3] = {R.GetAxisX(), R.GetAxisY(), R.GetAxisZ()};
 		const double Size[3] = {E.X, E.Y, E.Z};
-		const EPCGExMinimalAxis AxisEnum[3] = {EPCGExMinimalAxis::X, EPCGExMinimalAxis::Y, EPCGExMinimalAxis::Z};
+		constexpr EPCGExMinimalAxis AxisEnum[3] = {EPCGExMinimalAxis::X, EPCGExMinimalAxis::Y, EPCGExMinimalAxis::Z};
 		double Dots[3] = {0, 0, 0};
 
 		if (Settings->DirectionConstraint != EPCGExAxisDirectionConstraint::None)

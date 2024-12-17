@@ -23,7 +23,7 @@ bool PCGExPointsFilter::TRandomFilter::Init(FPCGExContext* InContext, const TSha
 	if (!FFilter::Init(InContext, InPointDataFacade)) { return false; }
 
 	Threshold = TypedFilterFactory->Config.Threshold;
-	
+
 	if (TypedFilterFactory->Config.bPerPointWeight)
 	{
 		if (TypedFilterFactory->Config.bRemapWeightInternally)
@@ -41,7 +41,7 @@ bool PCGExPointsFilter::TRandomFilter::Init(FPCGExContext* InContext, const TSha
 		{
 			WeightBuffer = PointDataFacade->GetScopedBroadcaster<double>(TypedFilterFactory->Config.Weight);
 		}
-		
+
 		if (!WeightBuffer)
 		{
 			PCGE_LOG_C(Error, GraphAndLog, InContext, FText::Format(FTEXT("Invalid Weight attribute: \"{0}\"."), FText::FromName(TypedFilterFactory->Config.Weight.GetName())));

@@ -38,7 +38,7 @@ void FPCGExPointIOMerger::Append(const TSharedRef<PCGExData::FPointIOCollection>
 }
 
 void FPCGExPointIOMerger::Merge(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager, const FPCGExCarryOverDetails* InCarryOverDetails)
-{	
+{
 	TArray<FPCGPoint>& MutablePoints = UnionDataFacade->GetOut()->GetMutablePoints();
 	MutablePoints.SetNum(NumCompositePoints);
 	InCarryOverDetails->Filter(&UnionDataFacade->Source.Get());
@@ -82,7 +82,7 @@ void FPCGExPointIOMerger::Merge(const TSharedPtr<PCGExMT::FTaskManager>& AsyncMa
 					SourceAtt.UnderlyingType, [&](auto DummyValue)
 					{
 						using T = decltype(DummyValue);
-						
+
 						TSharedPtr<PCGExData::TBuffer<T>> Buffer;
 
 						if (InCarryOverDetails->bPreserveAttributesDefaultValue)
@@ -119,7 +119,7 @@ void FPCGExPointIOMerger::Merge(const TSharedPtr<PCGExMT::FTaskManager>& AsyncMa
 
 namespace PCGExPointIOMerger
 {
-	void FCopyAttributeTask::ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager, const TSharedPtr<PCGExMT::FTaskGroup>& InGroup)
+	void FCopyAttributeTask::ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager)
 	{
 		const PCGEx::FAttributeIdentity& Identity = Merger->UniqueIdentities[TaskIndex];
 		const TSharedPtr<PCGExData::FBufferBase> Buffer = Merger->Buffers[TaskIndex];

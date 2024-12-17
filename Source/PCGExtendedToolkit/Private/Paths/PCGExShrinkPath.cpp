@@ -227,7 +227,8 @@ namespace PCGExShrinkPath
 				return false;
 			}
 
-			PointIO->InitializeOutput(PCGExData::EIOInit::Duplicate);
+			PCGEX_INIT_IO(PointIO, PCGExData::EIOInit::Duplicate)
+
 			TArray<FPCGPoint>& MutablePoints = PointIO->GetOut()->GetMutablePoints();
 
 			auto ShrinkOnce = [&](const int32 Direction)
@@ -296,7 +297,8 @@ namespace PCGExShrinkPath
 				return false;
 			}
 
-			PointIO->InitializeOutput(PCGExData::EIOInit::Duplicate);
+			PCGEX_INIT_IO(PointIO, PCGExData::EIOInit::Duplicate)
+
 			TArray<FPCGPoint>& MutablePoints = PointIO->GetOut()->GetMutablePoints();
 
 			if ((StartAmount < 0 || EndAmount < 0) && NumPoints >= 2)

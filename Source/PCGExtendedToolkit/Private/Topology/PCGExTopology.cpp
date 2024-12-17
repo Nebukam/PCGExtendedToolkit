@@ -340,7 +340,6 @@ namespace PCGExTopology
 
 	void FCell::PostProcessPoints(TArray<FPCGPoint>& InMutablePoints)
 	{
-
 	}
 }
 

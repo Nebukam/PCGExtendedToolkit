@@ -75,11 +75,11 @@ namespace PCGExFuseCollinear
 
 		if (!FPointsProcessor::Process(InAsyncManager)) { return false; }
 
+		PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::New)
+
 		Path = PCGExPaths::MakePath(
 			PointDataFacade->Source->GetIn()->GetPoints(), 0,
 			Context->ClosedLoop.IsClosedLoop(PointDataFacade->Source));
-
-		PointDataFacade->Source->InitializeOutput(PCGExData::EIOInit::New);
 
 		const TArray<FPCGPoint>& InPoints = PointDataFacade->GetIn()->GetPoints();
 		OutPoints = &PointDataFacade->GetOut()->GetMutablePoints();
@@ -149,7 +149,7 @@ namespace PCGExFuseCollinear
 		OutPoints->Shrink();
 		if (Settings->bOmitInvalidPathsFromOutput && OutPoints->Num() < 2)
 		{
-			PointDataFacade->Source->InitializeOutput(PCGExData::EIOInit::None);
+			PCGEX_CLEAR_IO_VOID(PointDataFacade->Source)
 		}
 	}
 }

@@ -77,14 +77,12 @@ namespace PCGExSanitizeClusters
 	void FBatch::CompleteWork()
 	{
 		GraphBuilder->Compile(AsyncManager, true);
-		//TBatchWithGraphBuilder<FProcessor>::CompleteWork();
 	}
 
 	void FBatch::Output()
 	{
 		if (GraphBuilder->bCompiledSuccessfully) { GraphBuilder->StageEdgesOutputs(); }
 		else { GraphBuilder->NodeDataFacade->Source->InitializeOutput(PCGExData::EIOInit::None); }
-		//TBatchWithGraphBuilder<FProcessor>::Output();
 	}
 }
 

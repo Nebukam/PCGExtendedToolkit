@@ -44,7 +44,7 @@ bool FPCGExConditionalActionsElement::Boot(FPCGExContext* InContext) const
 	if (!Context->DefaultAttributes) { return false; }
 
 	FString Message = TEXT("An unspecified error occured.");
-	bool bIsConditionalActionsValid = true;	
+	bool bIsConditionalActionsValid = true;
 	PCGEX_MAKE_SHARED(ValidationInfos, PCGEx::FAttributesInfos)
 	for (const TObjectPtr<const UPCGExConditionalActionFactoryBase>& Factory : Context->ConditionalActionsFactories)
 	{

@@ -113,14 +113,14 @@ bool FPCGExRefineEdgesElement::ExecuteInternal(
 	PCGEX_ON_INITIAL_EXECUTION
 	{
 		if (!Context->StartProcessingClusters<PCGExRefineEdges::FBatch>(
-				[](const TSharedPtr<PCGExData::FPointIOTaggedEntries>& Entries) { return true; },
-				[&](const TSharedPtr<PCGExRefineEdges::FBatch>& NewBatch)
-				{
-					NewBatch->GraphBuilderDetails = Context->GraphBuilderDetails;
-					if (Context->Refinement->RequiresHeuristics()) { NewBatch->SetRequiresHeuristics(true); }
-				}))
+			[](const TSharedPtr<PCGExData::FPointIOTaggedEntries>& Entries) { return true; },
+			[&](const TSharedPtr<PCGExRefineEdges::FBatch>& NewBatch)
+			{
+				NewBatch->GraphBuilderDetails = Context->GraphBuilderDetails;
+				if (Context->Refinement->RequiresHeuristics()) { NewBatch->SetRequiresHeuristics(true); }
+			}))
 		{
-			return Context->CancelExecution(TEXT("Could not build any clusters."));;
+			return Context->CancelExecution(TEXT("Could not build any clusters."));
 		}
 	}
 
@@ -248,7 +248,7 @@ namespace PCGExRefineEdges
 		}
 		else
 		{
-			for (int i = Scope.Start; i < Scope.End; i++)			{Edges[i].bValid = bDefaultValidity;}
+			for (int i = Scope.Start; i < Scope.End; i++) { Edges[i].bValid = bDefaultValidity; }
 		}
 	}
 
@@ -405,7 +405,7 @@ namespace PCGExRefineEdges
 		TBatch<FProcessor>::OnProcessingPreparationComplete();
 	}
 
-	void FSanitizeRangeTask::ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager, const TSharedPtr<PCGExMT::FTaskGroup>& InGroup)
+	void FSanitizeRangeTask::ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager)
 	{
 		auto RestoreEdge = [&](const int32 EdgeIndex)
 		{

@@ -7,6 +7,7 @@
 #include "PCGExPointsProcessor.h"
 #include "Data/PCGExBufferHelper.h"
 
+
 #include "Graph/PCGExGraph.h"
 #include "PCGExBuildCustomGraph.generated.h"
 
@@ -522,7 +523,7 @@ public:
 		TWeakObjectPtr<UPCGComponent> SourceComponent,
 		const UPCGNode* Node) override;
 
-protected:	
+protected:
 	virtual bool Boot(FPCGExContext* InContext) const override;
 	virtual bool ExecuteInternal(FPCGContext* Context) const override;
 };
@@ -545,6 +546,6 @@ namespace PCGExBuildCustomGraph
 		TSharedPtr<PCGExData::FPointIO> PointIO;
 		UPCGExCustomGraphSettings* GraphSettings = nullptr;
 
-		virtual void ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager, const TSharedPtr<PCGExMT::FTaskGroup>& InGroup) override;
+		virtual void ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager) override;
 	};
 }

@@ -310,7 +310,7 @@ namespace PCGExGrowPaths
 		// Prepare growth points
 
 		PCGEX_SHARED_THIS_DECL
-		
+
 		// Find all growth points
 		const int32 SeedCount = Context->SeedsDataFacade->Source->GetNum();
 		for (int i = 0; i < SeedCount; i++)
@@ -449,7 +449,7 @@ namespace PCGExGrowPaths
 		}
 	}
 
-	void FGrowTask::ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager, const TSharedPtr<PCGExMT::FTaskGroup>& InGroup)
+	void FGrowTask::ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager)
 	{
 		Processor->Grow();
 	}

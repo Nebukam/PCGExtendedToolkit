@@ -3,6 +3,8 @@
 
 #include "Graph/PCGExConnectClusters.h"
 #include "Data/PCGExPointIOMerger.h"
+
+
 #include "Geometry/PCGExGeoDelaunay.h"
 
 #define LOCTEXT_NAMESPACE "PCGExConnectClusters"
@@ -281,7 +283,7 @@ namespace PCGExBridgeClusters
 	}
 
 
-	void FPCGExCreateBridgeTask::ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager, const TSharedPtr<PCGExMT::FTaskGroup>& InGroup)
+	void FPCGExCreateBridgeTask::ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager)
 	{
 		int32 IndexA = -1;
 		int32 IndexB = -1;

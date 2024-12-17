@@ -48,7 +48,7 @@ bool FPCGExCutEdgesElement::Boot(FPCGExContext* InContext) const
 	{
 		GetInputFactories(Context, PCGExCutEdges::SourceNodeFilters, Context->NodeFilterFactories, PCGExFactories::ClusterNodeFilters, false);
 	}
-	
+
 	PCGEX_MAKE_SHARED(PathCollection, PCGExData::FPointIOCollection, Context, PCGExGraph::SourcePathsLabel)
 	if (PathCollection->IsEmpty())
 	{
