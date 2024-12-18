@@ -194,6 +194,8 @@ namespace PCGEx
 	class /*PCGEXTENDEDTOOLKIT_API*/ TDiscoverAssetsTask final : public PCGExMT::FPCGExTask
 	{
 	public:
+		PCGEX_ASYNC_TASK_NAME(TDiscoverAssetsTask)
+		
 		TDiscoverAssetsTask(const TSharedPtr<TAssetLoader<T>>& InLoader,
 		                    const TSharedPtr<TAttributeBroadcaster<FString>>& InBroadcaster) :
 			FPCGExTask(),
@@ -225,6 +227,8 @@ namespace PCGEx
 	class /*PCGEXTENDEDTOOLKIT_API*/ TDiscoverAssetsTask final : public PCGExMT::FPCGExTask
 	{
 	public:
+		PCGEX_ASYNC_TASK_NAME(TDiscoverAssetsTask)
+		
 		TDiscoverAssetsTask(const TSharedPtr<TAssetLoader<T>>& InLoader,
 		                    const TSharedPtr<TAttributeBroadcaster<FSoftObjectPath>>& InBroadcaster) :
 			FPCGExTask(),

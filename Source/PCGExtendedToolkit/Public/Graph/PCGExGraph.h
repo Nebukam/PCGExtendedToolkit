@@ -358,7 +358,7 @@ namespace PCGExGraph
 		FORCEINLINE bool IsComplex() const { return Links.Num() > 2; }
 
 		FORCEINLINE void LinkEdge(const int32 EdgeIndex) { Links.AddUnique(FLink(0, EdgeIndex)); }
-		FORCEINLINE void Link(const FNode& Neighbor, const int32 EdgeIndex) { Links.Add(FLink(Neighbor.Index, EdgeIndex)); }
+		FORCEINLINE void Link(const int32 NodeIndex, const int32 EdgeIndex) { Links.AddUnique(FLink(NodeIndex, EdgeIndex)); }
 
 		FORCEINLINE bool IsAdjacentTo(const int32 OtherNodeIndex) const
 		{
@@ -750,6 +750,8 @@ namespace PCGExGraphTask
 	class /*PCGEXTENDEDTOOLKIT_API*/ FWriteSubGraphCluster final : public PCGExMT::FPCGExTask
 	{
 	public:
+		PCGEX_ASYNC_TASK_NAME(FWriteSubGraphCluster)
+	
 		FWriteSubGraphCluster(const TSharedPtr<PCGExGraph::FSubGraph>& InSubGraph)
 			: FPCGExTask(),
 			  SubGraph(InSubGraph)
@@ -763,6 +765,8 @@ namespace PCGExGraphTask
 	class /*PCGEXTENDEDTOOLKIT_API*/ FCompileGraph final : public PCGExMT::FPCGExTask
 	{
 	public:
+		PCGEX_ASYNC_TASK_NAME(FCompileGraph)
+		
 		FCompileGraph(const TSharedPtr<PCGExGraph::FGraphBuilder>& InGraphBuilder,
 		              const bool bInWriteNodeFacade,
 		              const PCGExGraph::FGraphMetadataDetails* InMetadataDetails = nullptr)

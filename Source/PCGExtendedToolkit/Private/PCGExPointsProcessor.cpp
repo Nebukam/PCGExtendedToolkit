@@ -49,7 +49,7 @@ FPCGExPointsProcessorContext::~FPCGExPointsProcessorContext()
 
 	for (UPCGExOperation* Op : ProcessorOperations)
 	{
-		if (OwnedProcessorOperations.Contains(Op))
+		if (InternalOperations.Contains(Op))
 		{
 			ManagedObjects->Destroy(Op);
 		}
@@ -194,6 +194,9 @@ bool FPCGExPointsProcessorElement::PrepareDataInternal(FPCGContext* InContext) c
 			Context->OutputData.TaggedData.Empty(); // Ensure culling of subsequent nodes if boot fails
 			return Context->CancelExecution(TEXT(""));
 		}
+
+		// Have operations register their dependencies
+		for (UPCGExOperation* Op : Context->InternalOperations) { Op->RegisterAssetDependencies(Context); }
 
 		Context->RegisterAssetDependencies();
 		if (Context->HasAssetRequirements())

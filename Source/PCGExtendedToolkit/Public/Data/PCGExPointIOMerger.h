@@ -72,6 +72,8 @@ namespace PCGExPointIOMerger
 	class /*PCGEXTENDEDTOOLKIT_API*/ FWriteAttributeScopeTask final : public PCGExMT::FPCGExTask
 	{
 	public:
+		PCGEX_ASYNC_TASK_NAME(FWriteAttributeScopeTask)
+	
 		FWriteAttributeScopeTask(
 			const TSharedPtr<PCGExData::FPointIO>& InPointIO,
 			const PCGExMT::FScope& InScope,
