@@ -185,9 +185,7 @@ namespace PCGExMT
 
 		if (!IsCanceled()) { if (OnCompleteCallback) { OnCompleteCallback(); } }
 
-		if (ParentGroup) { ParentGroup->GrowNumCompleted(); }
-		ParentGroup.Reset();
-
+		if (const TSharedPtr<FTaskGroup> Group = ParentGroup.Pin()) { Group->GrowNumCompleted(); }
 		Manager->GrowNumCompleted();
 	}
 
@@ -207,7 +205,7 @@ namespace PCGExMT
 		if (!InParentGroup) { return; }
 		check(ParentGroup == nullptr)
 		ParentGroup = InParentGroup;
-		ParentGroup->GrowNumStarted();
+		InParentGroup->GrowNumStarted();
 	}
 
 	void FTaskGroup::StartIterations(const int32 MaxItems, const int32 ChunkSize, const bool bDaisyChain)
@@ -268,11 +266,10 @@ namespace PCGExMT
 
 		check(NumSimpleCallbacks > 0);
 
-		GrowNumStarted(NumSimpleCallbacks);
 		for (int i = 0; i < NumSimpleCallbacks; i++)
 		{
 			PCGEX_MAKE_SHARED(Task, FSimpleCallbackTask, i)
-			Launch(Task, false);
+			Launch(Task);
 		}
 	}
 

@@ -358,7 +358,7 @@ namespace PCGExGraph
 		FORCEINLINE bool IsComplex() const { return Links.Num() > 2; }
 
 		FORCEINLINE void LinkEdge(const int32 EdgeIndex) { Links.AddUnique(FLink(0, EdgeIndex)); }
-		FORCEINLINE void Link(const FNode& Neighbor, const int32 EdgeIndex) { Links.Add(FLink(Neighbor.Index, EdgeIndex)); }
+		FORCEINLINE void Link(const int32 NodeIndex, const int32 EdgeIndex) { Links.AddUnique(FLink(NodeIndex, EdgeIndex)); }
 
 		FORCEINLINE bool IsAdjacentTo(const int32 OtherNodeIndex) const
 		{

@@ -206,7 +206,7 @@ namespace PCGExMT
 		friend class FDaisyChainScopeIterationTask;
 
 		FName GroupName = NAME_None;
-		TSharedPtr<FTaskGroup> ParentGroup = nullptr;
+		TWeakPtr<FTaskGroup> ParentGroup = nullptr;
 
 	public:
 		using SimpleCallback = std::function<void()>;
@@ -290,11 +290,11 @@ namespace PCGExMT
 		void ExecScopeIterations(const FScope& Scope, bool bPrepareOnly) const;
 
 		template <typename T>
-		void Launch(TSharedPtr<T> InTask, const bool bGrowNumStarted = true)
+		void Launch(TSharedPtr<T> InTask)
 		{
 			if (!IsAvailable()) { return; } // Redundant?
 
-			if (bGrowNumStarted) { GrowNumStarted(); }
+			GrowNumStarted();
 
 			if (Manager->bForceSync) { Manager->StartSynchronousTask(InTask, SharedThis(this)); }
 			else { Manager->StartBackgroundTask(InTask, SharedThis(this)); }
