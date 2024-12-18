@@ -26,9 +26,12 @@ public:
 	virtual void CopyFrom(const UPCGPointData* InPointData);
 	virtual void InitializeFromPCGExData(const UPCGExPointData* InPCGExPointData, const PCGExData::EIOInit InitMode);
 
+	virtual void AddToCrc(FArchiveCrc32& Ar, bool bFullDataCrc) const override;
 	virtual void BeginDestroy() override;
 
 protected:
+	virtual void DoEarlyCleanup() const;
+	
 #if PCGEX_ENGINE_VERSION < 505
 	virtual UPCGSpatialData* CopyInternal() const override;
 #else

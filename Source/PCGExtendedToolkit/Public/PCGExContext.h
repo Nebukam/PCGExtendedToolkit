@@ -99,7 +99,7 @@ public:
 	bool HasAssetRequirements() const { return !RequiredAssets.IsEmpty(); }
 
 	virtual void RegisterAssetDependencies();
-	void RegisterAssetRequirement(const FSoftObjectPath& Dependency);
+	void AddAssetDependency(const FSoftObjectPath& Dependency);
 	void LoadAssets();
 
 	TSet<FSoftObjectPath>& GetRequiredAssets() { return RequiredAssets; }

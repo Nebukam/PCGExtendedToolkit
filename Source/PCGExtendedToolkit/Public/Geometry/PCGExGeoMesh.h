@@ -311,6 +311,8 @@ namespace PCGExGeo
 	class /*PCGEXTENDEDTOOLKIT_API*/ FExtractStaticMeshTask final : public PCGExMT::FPCGExTask
 	{
 	public:
+		PCGEX_ASYNC_TASK_NAME(FExtractStaticMeshTask)
+	
 		FExtractStaticMeshTask(const TSharedPtr<FGeoStaticMesh>& InGSM) :
 			FPCGExTask(), GSM(InGSM)
 		{

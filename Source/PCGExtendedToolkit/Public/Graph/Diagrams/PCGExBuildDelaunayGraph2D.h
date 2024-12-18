@@ -141,6 +141,8 @@ namespace PCGExBuildDelaunay2D
 	class /*PCGEXTENDEDTOOLKIT_API*/ FOutputDelaunaySites2D final : public PCGExMT::FPCGExTask
 	{
 	public:
+		PCGEX_ASYNC_TASK_NAME(FOutputDelaunaySites2D)
+		
 		FOutputDelaunaySites2D(const TSharedPtr<PCGExData::FPointIO>& InPointIO,
 		                       const TSharedPtr<FProcessor>& InProcessor) :
 			FPCGExTask(),
@@ -158,6 +160,8 @@ namespace PCGExBuildDelaunay2D
 	class /*PCGEXTENDEDTOOLKIT_API*/ FOutputDelaunayUrquhartSites2D final : public PCGExMT::FPCGExTask
 	{
 	public:
+		PCGEX_ASYNC_TASK_NAME(FOutputDelaunayUrquhartSites2D)
+		
 		FOutputDelaunayUrquhartSites2D(const TSharedPtr<PCGExData::FPointIO>& InPointIO,
 		                               const TSharedPtr<FProcessor>& InProcessor) :
 			FPCGExTask(),

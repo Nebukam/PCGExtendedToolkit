@@ -91,3 +91,8 @@ void UPCGExOperation::CopySettingsFrom(const UPCGExOperation* Other)
 		Property->CopyCompleteValue(TargetValue, SourceValue);
 	}
 }
+
+void UPCGExOperation::RegisterAssetDependencies(FPCGExContext* InContext)
+{
+	//InContext->AddAssetDependency();
+}

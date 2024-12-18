@@ -141,6 +141,8 @@ protected:
 class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPlotNavmeshTask final : public PCGExMT::FPCGExTask
 {
 public:
+	PCGEX_ASYNC_TASK_NAME(FPCGExPlotNavmeshTask)
+	
 	explicit FPCGExPlotNavmeshTask(
 		const TSharedPtr<PCGExData::FPointIO>& InPointIO) :
 		FPCGExTask(),

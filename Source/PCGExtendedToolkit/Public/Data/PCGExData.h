@@ -58,6 +58,12 @@ namespace PCGExData
 		Inherit = 0,
 		New,
 	};
+	
+	enum class EBufferLevel : uint8
+	{
+		Local = 0, // Per point data
+		Global // Per dataset data (Tags etc)
+	};
 
 	PCGEX_CTX_STATE(State_MergingData);
 
@@ -136,11 +142,11 @@ namespace PCGExData
 		FORCEINLINE bool GetAllowsInterpolation() const { return OutAttribute ? OutAttribute->AllowsInterpolation() : InAttribute ? InAttribute->AllowsInterpolation() : false; }
 	};
 
-	template <typename T>
+	template <typename T, EBufferLevel BufferLevel = EBufferLevel::Local>
 	class /*PCGEXTENDEDTOOLKIT_API*/ TBuffer final : public FBufferBase
 	{
 		friend class FFacade;
-
+		
 	protected:
 		TUniquePtr<FPCGAttributeAccessor<T>> InAccessor;
 		const FPCGMetadataAttribute<T>* TypedInAttribute = nullptr;
