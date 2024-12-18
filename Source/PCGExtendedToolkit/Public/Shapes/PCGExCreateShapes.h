@@ -104,6 +104,8 @@ namespace PCGExCreateShapes
 	class /*PCGEXTENDEDTOOLKIT_API*/ FBuildShape final : public PCGExMT::FPCGExTask
 	{
 	public:
+		PCGEX_ASYNC_TASK_NAME(FBuildShape)
+		
 		FBuildShape(UPCGExShapeBuilderOperation* InOperation,
 		            const TSharedRef<PCGExData::FFacade>& InShapeDataFacade,
 		            const TSharedPtr<PCGExShapes::FShape>& InShape) :

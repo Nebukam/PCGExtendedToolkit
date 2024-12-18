@@ -119,7 +119,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPointsProcessorContext : FPCGExContext
 		BaseOperation->BindContext(this); // Temp so Copy doesn't crash
 
 		T* RetValue = BaseOperation->CopyOperation<T>();
-		OwnedProcessorOperations.Add(RetValue);
+		InternalOperations.Add(RetValue);
 		RetValue->FindSettingsOverrides(this, OverridePinLabel);
 		return RetValue;
 	}
@@ -215,7 +215,7 @@ protected:
 	int32 CurrentPointIOIndex = -1;
 
 	TArray<UPCGExOperation*> ProcessorOperations;
-	TSet<UPCGExOperation*> OwnedProcessorOperations;
+	TSet<UPCGExOperation*> InternalOperations;
 
 	virtual void ResumeExecution() override;
 

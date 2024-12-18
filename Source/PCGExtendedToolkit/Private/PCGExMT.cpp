@@ -118,8 +118,8 @@ namespace PCGExMT
 			PCGEX_SHARED_THIS_DECL
 
 			// Cancel groups & tasks
-			for (const TSharedPtr<FTaskGroup>& Group : Groups) { Group->Cancel(); }
 			for (const TSharedPtr<FPCGExTask>& Task : Tasks) { Task->Cancel(ThisPtr); }
+			for (const TSharedPtr<FTaskGroup>& Group : Groups) { Group->Cancel(); }
 		}
 
 		// Fail safe for tasks that cannot be cancelled mid-way
@@ -130,8 +130,8 @@ namespace PCGExMT
 		}
 
 		{
-			FWriteScopeLock WriteTasksLock(TasksLock);
 			FWriteScopeLock WriteGroupsLock(GroupsLock);
+			FWriteScopeLock WriteTasksLock(TasksLock);
 
 			Groups.Empty();
 			Tasks.Empty();
@@ -222,12 +222,11 @@ namespace PCGExMT
 		{
 			bDaisyChained = true;
 
-			TArray<FScope> Loops;
 			GrowNumStarted(SubLoopScopes(Loops, MaxItems, SanitizedChunkSize));
 			if (OnPrepareSubLoopsCallback) { OnPrepareSubLoopsCallback(Loops); }
 
 			PCGEX_MAKE_SHARED(Task, FDaisyChainScopeIterationTask, 0)
-			LaunchDaisyChainScope(Task, false, Loops);
+			LaunchDaisyChainScope(Task, false);
 		}
 		else
 		{
@@ -246,12 +245,11 @@ namespace PCGExMT
 		{
 			bDaisyChained = true;
 
-			TArray<FScope> Loops;
 			GrowNumStarted(SubLoopScopes(Loops, MaxItems, SanitizedChunkSize));
 			if (OnPrepareSubLoopsCallback) { OnPrepareSubLoopsCallback(Loops); }
 
 			PCGEX_MAKE_SHARED(Task, FDaisyChainScopeIterationTask, 0)
-			LaunchDaisyChainScope(Task, true, Loops);
+			LaunchDaisyChainScope(Task, true);
 		}
 		else
 		{
@@ -306,23 +304,15 @@ namespace PCGExMT
 		for (int i = Scope.Start; i < Scope.End; i++) { OnIterationCallback(i, Scope); }
 	}
 
-	FString FPCGExTask::GetTaskName() const
-	{
-#if WITH_EDITOR
-		return FString(typeid(this).name());
-#else
-		return TEXT("");
-#endif
-	}
-
 	bool FPCGExTask::Start()
 	{
-		check(!bWorkStarted)
-
-		FWriteScopeLock WriteScopeLock(StateLock);
-
 		if (IsCanceled()) { return false; }
-		bWorkStarted = true;
+
+		{
+			FWriteScopeLock WriteScopeLock(StateLock);
+			check(!bWorkStarted)
+			bWorkStarted = true;
+		}
 
 		return true;
 	}
@@ -359,18 +349,15 @@ namespace PCGExMT
 
 	void FDaisyChainScopeIterationTask::ExecuteTask(const TSharedPtr<FTaskManager>& AsyncManager)
 	{
-		ON_SCOPE_EXIT { Loops.Empty(); };
-
 		const TSharedPtr<FTaskGroup> Group = ParentGroup.Pin();
 		if (!Group) { return; }
 
-		const FScope& Scope = Loops[TaskIndex];
+		const FScope& Scope = Group->GetLoopScope(TaskIndex);
 		Group->ExecScopeIterations(Scope, bPrepareOnly);
 
-		if (!Loops.IsValidIndex(Scope.GetNextScopeIndex())) { return; }
+		if (!Group->GetLoopScopes().IsValidIndex(Scope.GetNextScopeIndex())) { return; }
 
 		PCGEX_MAKE_SHARED(Task, FDaisyChainScopeIterationTask, Scope.GetNextScopeIndex())
-		Group->LaunchDaisyChainScope(Task, bPrepareOnly, Loops);
-		Loops.Empty();
+		Group->LaunchDaisyChainScope(Task, bPrepareOnly);
 	}
 }

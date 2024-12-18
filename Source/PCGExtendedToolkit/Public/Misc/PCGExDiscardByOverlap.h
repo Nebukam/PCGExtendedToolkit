@@ -189,6 +189,8 @@ namespace PCGExDiscardByOverlap
 	class /*PCGEXTENDEDTOOLKIT_API*/ FPruneTask final : public PCGExMT::FPCGExTask
 	{
 	public:
+		PCGEX_ASYNC_TASK_NAME(FPruneTask)
+	
 		explicit FPruneTask()
 			: FPCGExTask()
 

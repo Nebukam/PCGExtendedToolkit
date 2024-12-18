@@ -37,6 +37,8 @@ public:
 	virtual void Cleanup() override;
 	virtual void CopySettingsFrom(const UPCGExOperation* Other);
 
+	virtual void RegisterAssetDependencies(FPCGExContext* InContext);
+	
 	TSharedPtr<PCGExData::FFacade> PrimaryDataFacade;
 	TSharedPtr<PCGExData::FFacade> SecondaryDataFacade;
 

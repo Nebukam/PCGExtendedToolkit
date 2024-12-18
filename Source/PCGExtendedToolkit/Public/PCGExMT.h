@@ -24,6 +24,8 @@
 #ifndef PCGEX_MT_MACROS
 #define PCGEX_MT_MACROS
 
+#define PCGEX_ASYNC_TASK_NAME(_NAME) virtual FString GetTaskName() const override { return TEXT(""#_NAME); }
+
 #define PCGEX_ASYNC_GROUP_CHKD_VOID(_MANAGER, _NAME) \
 	TSharedPtr<PCGExMT::FTaskGroup> _NAME = _MANAGER ? _MANAGER->TryCreateGroup(FName(#_NAME)) : nullptr; \
 	if(!_NAME){ return; }
@@ -243,7 +245,6 @@ namespace PCGExMT
 		{
 			if (!IsAvailable()) { return; }
 
-			TArray<FScope> Loops;
 			GrowNumStarted(SubLoopScopes(Loops, MaxItems, ChunkSize));
 
 			if (OnPrepareSubLoopsCallback) { OnPrepareSubLoopsCallback(Loops); }
@@ -259,6 +260,8 @@ namespace PCGExMT
 				if (Manager->bForceSync) { Manager->StartSynchronousTask(Task, Self); }
 				else { Manager->StartBackgroundTask(Task, Self); }
 			}
+
+			Loops.Empty();
 		}
 
 		void StartIterations(const int32 MaxItems, const int32 ChunkSize, const bool bDaisyChain = false);
@@ -270,10 +273,14 @@ namespace PCGExMT
 		void GrowNumStarted(const int32 InNumStarted = 1);
 		void GrowNumCompleted();
 
+		const TArray<FScope>& GetLoopScopes() const { return Loops; }
+		const FScope& GetLoopScope(int32 Index) const { return Loops[Index]; }
+
 	protected:
 		TArray<SimpleCallback> SimpleCallbacks;
 
 		TSharedPtr<FTaskManager> Manager;
+		TArray<FScope> Loops;
 
 		int32 NumStarted = 0;
 		int32 NumCompleted = 0;
@@ -294,14 +301,11 @@ namespace PCGExMT
 		}
 
 		template <typename T>
-		void LaunchDaisyChainScope(TSharedPtr<T> InTask, const bool bPrepareOnly, const TArray<FScope>& Loops)
+		void LaunchDaisyChainScope(TSharedPtr<T> InTask, const bool bPrepareOnly)
 		{
 			if (!IsAvailable()) { return; } // Redundant?
 
-			// Expects FPCGExIndexedTask
-
 			InTask->bPrepareOnly = bPrepareOnly;
-			InTask->Loops = Loops;
 
 			if (Manager->bForceSync) { Manager->StartSynchronousTask(InTask, SharedThis(this)); }
 			else { Manager->StartBackgroundTask(InTask, SharedThis(this)); }
@@ -325,7 +329,7 @@ namespace PCGExMT
 		FPCGExTask() = default;
 		virtual ~FPCGExTask() = default;
 
-		FString GetTaskName() const;
+		virtual FString GetTaskName() const { return TEXT("NOT IMPLEMENTED"); }
 
 		bool Start();
 		void End(const TSharedPtr<FTaskManager>& AsyncManager);
@@ -333,6 +337,7 @@ namespace PCGExMT
 
 		bool IsCanceled() const
 		{
+			FReadScopeLock ReadScopeLock(StateLock);
 			return bCanceled;
 		}
 
@@ -347,9 +352,9 @@ namespace PCGExMT
 		}
 
 	private:
-		std::atomic<bool> bCanceled{false};
-		std::atomic<bool> bWorkStarted{false};
-		std::atomic<bool> bEnded{false};
+		bool bCanceled = false;
+		bool bWorkStarted = false;
+		bool bEnded = false;
 	};
 
 	class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExIndexedTask : public FPCGExTask
@@ -358,6 +363,8 @@ namespace PCGExMT
 		int32 TaskIndex;
 
 	public:
+		PCGEX_ASYNC_TASK_NAME(FPCGExIndexedTask)
+
 		explicit FPCGExIndexedTask(const int32 InTaskIndex)
 			: FPCGExTask(), TaskIndex(InTaskIndex)
 		{
@@ -367,6 +374,8 @@ namespace PCGExMT
 	class FSimpleCallbackTask final : public FPCGExIndexedTask
 	{
 	public:
+		PCGEX_ASYNC_TASK_NAME(FSimpleCallbackTask)
+
 		explicit FSimpleCallbackTask(const int32 InTaskIndex):
 			FPCGExIndexedTask(InTaskIndex)
 		{
@@ -385,6 +394,8 @@ namespace PCGExMT
 	class FScopeIterationTask : public FPCGExTask
 	{
 	public:
+		PCGEX_ASYNC_TASK_NAME(FScopeIterationTask)
+
 		explicit FScopeIterationTask() : FPCGExTask()
 		{
 		}
@@ -407,8 +418,6 @@ namespace PCGExMT
 		}
 
 		bool bPrepareOnly = false;
-		TArray<FScope> Loops;
-
 		virtual void ExecuteTask(const TSharedPtr<FTaskManager>& AsyncManager) override;
 	};
 
@@ -416,10 +425,13 @@ namespace PCGExMT
 	class /*PCGEXTENDEDTOOLKIT_API*/ FWriteTask final : public FPCGExTask
 	{
 	public:
+		PCGEX_ASYNC_TASK_NAME(FWriteTask)
+
 		explicit FWriteTask(const TSharedPtr<T>& InOperation)
 			: FPCGExTask(), Operation(InOperation)
 		{
 		}
+
 
 		TSharedPtr<T> Operation;
 
@@ -434,6 +446,8 @@ namespace PCGExMT
 	class /*PCGEXTENDEDTOOLKIT_API*/ FWriteTaskWithManager final : public FPCGExTask
 	{
 	public:
+		PCGEX_ASYNC_TASK_NAME(FWriteTaskWithManager)
+
 		FWriteTaskWithManager(const TSharedPtr<T>& InOperation)
 			: FPCGExTask(), Operation(InOperation)
 		{

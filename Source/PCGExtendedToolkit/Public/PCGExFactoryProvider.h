@@ -76,6 +76,10 @@ public:
 	virtual void RegisterConsumableAttributes(FPCGExContext* InContext) const
 	{
 	}
+
+	virtual void RegisterResourcesDependencies() const
+	{
+	}
 };
 
 UCLASS(Abstract, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Filter")

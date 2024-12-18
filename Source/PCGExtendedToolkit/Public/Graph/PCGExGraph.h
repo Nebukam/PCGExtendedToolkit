@@ -750,6 +750,8 @@ namespace PCGExGraphTask
 	class /*PCGEXTENDEDTOOLKIT_API*/ FWriteSubGraphCluster final : public PCGExMT::FPCGExTask
 	{
 	public:
+		PCGEX_ASYNC_TASK_NAME(FWriteSubGraphCluster)
+	
 		FWriteSubGraphCluster(const TSharedPtr<PCGExGraph::FSubGraph>& InSubGraph)
 			: FPCGExTask(),
 			  SubGraph(InSubGraph)
@@ -763,6 +765,8 @@ namespace PCGExGraphTask
 	class /*PCGEXTENDEDTOOLKIT_API*/ FCompileGraph final : public PCGExMT::FPCGExTask
 	{
 	public:
+		PCGEX_ASYNC_TASK_NAME(FCompileGraph)
+		
 		FCompileGraph(const TSharedPtr<PCGExGraph::FGraphBuilder>& InGraphBuilder,
 		              const bool bInWriteNodeFacade,
 		              const PCGExGraph::FGraphMetadataDetails* InMetadataDetails = nullptr)
