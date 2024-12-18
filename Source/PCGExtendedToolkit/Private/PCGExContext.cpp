@@ -209,7 +209,7 @@ void FPCGExContext::RegisterAssetDependencies()
 {
 }
 
-void FPCGExContext::RegisterAssetRequirement(const FSoftObjectPath& Dependency)
+void FPCGExContext::AddAssetDependency(const FSoftObjectPath& Dependency)
 {
 	RequiredAssets.Add(Dependency);
 }

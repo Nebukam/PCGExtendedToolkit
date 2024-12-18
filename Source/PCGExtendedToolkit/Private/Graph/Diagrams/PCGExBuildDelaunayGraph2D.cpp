@@ -114,7 +114,7 @@ namespace PCGExBuildDelaunay2D
 			PCGE_LOG_C(Warning, GraphAndLog, ExecutionContext, FTEXT("Some inputs generated invalid results."));
 			return false;
 		}
-
+		
 		if (!PointDataFacade->Source->InitializeOutput<UPCGExClusterNodesData>(PCGExData::EIOInit::Duplicate)) { return false; }
 
 		if (Settings->bUrquhart)
@@ -138,7 +138,7 @@ namespace PCGExBuildDelaunay2D
 		GraphBuilder = MakeShared<PCGExGraph::FGraphBuilder>(PointDataFacade, &Settings->GraphBuilderDetails);
 		GraphBuilder->Graph->InsertEdges(Delaunay->DelaunayEdges, -1);
 		GraphBuilder->CompileAsync(AsyncManager, false);
-
+		
 		if (!Settings->bMarkHull && !Settings->bOutputSites) { Delaunay.Reset(); }
 
 		return true;
@@ -162,7 +162,7 @@ namespace PCGExBuildDelaunay2D
 
 		GraphBuilder->StageEdgesOutputs();
 
-		if (HullMarkPointWriter) // BUG
+		if (Settings->bMarkHull)
 		{
 			HullMarkPointWriter = PointDataFacade->GetWritable<bool>(Settings->HullAttributeName, false, true, PCGExData::EBufferInit::New);
 			StartParallelLoopForPoints();
@@ -238,7 +238,7 @@ namespace PCGExBuildDelaunay2D
 		TBitArray<> VisitedSites;
 		VisitedSites.Init(false, NumSites);
 
-		TArray<bool> Hull;
+		TBitArray<> Hull;
 		TArray<int32> FinalSites;
 		FinalSites.Reserve(NumSites);
 		Hull.Reserve(NumSites / 4);

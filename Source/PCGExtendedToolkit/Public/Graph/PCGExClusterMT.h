@@ -29,6 +29,8 @@ namespace PCGExClusterMT
 	class FStartClusterBatchProcessing final : public PCGExMT::FPCGExTask
 	{
 	public:
+		PCGEX_ASYNC_TASK_NAME(FStartClusterBatchProcessing)
+		
 		FStartClusterBatchProcessing(TSharedPtr<T> InTarget,
 		                             const bool bScoped)
 			: FPCGExTask(),

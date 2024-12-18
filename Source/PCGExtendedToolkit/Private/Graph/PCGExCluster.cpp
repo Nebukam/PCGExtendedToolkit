@@ -228,11 +228,11 @@ namespace PCGExCluster
 
 			if ((!StartPointIndexPtr || !EndPointIndexPtr || *StartPointIndexPtr == *EndPointIndexPtr)) { return OnFail(); }
 
-			FNode& StartNode = GetOrCreateNodeUnsafe(InNodePoints, *StartPointIndexPtr);
-			FNode& EndNode = GetOrCreateNodeUnsafe(InNodePoints, *EndPointIndexPtr);
+			const int32 StartNode = GetOrCreateNodeUnsafe(InNodePoints, *StartPointIndexPtr);
+			const int32 EndNode = GetOrCreateNodeUnsafe(InNodePoints, *EndPointIndexPtr);
 
-			StartNode.Link(EndNode, i);
-			EndNode.Link(StartNode, i);
+			(Nodes->GetData() + StartNode)->Link(EndNode, i);
+			(Nodes->GetData() + EndNode)->Link(StartNode, i);
 
 			*(Edges->GetData() + i) = FEdge(i, *StartPointIndexPtr, *EndPointIndexPtr, i, EdgeIOIndex);
 		}
@@ -271,11 +271,11 @@ namespace PCGExCluster
 
 		for (const FEdge& E : EdgesRef)
 		{
-			FNode& StartNode = GetOrCreateNodeUnsafe(SubVtxPoints, E.Start);
-			FNode& EndNode = GetOrCreateNodeUnsafe(SubVtxPoints, E.End);
+			const int32 StartNode = GetOrCreateNodeUnsafe(SubVtxPoints, E.Start);
+			const int32 EndNode = GetOrCreateNodeUnsafe(SubVtxPoints, E.End);
 
-			StartNode.Link(EndNode, E.Index);
-			EndNode.Link(StartNode, E.Index);
+			(Nodes->GetData() + StartNode)->Link(EndNode, E.Index);
+			(Nodes->GetData() + EndNode)->Link(StartNode, E.Index);
 		}
 
 		Bounds = Bounds.ExpandBy(10);
