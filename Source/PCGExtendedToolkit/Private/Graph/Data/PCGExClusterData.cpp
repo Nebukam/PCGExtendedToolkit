@@ -71,6 +71,13 @@ const TSharedPtr<PCGExCluster::FCluster>& UPCGExClusterEdgesData::GetBoundCluste
 	return Cluster;
 }
 
+void UPCGExClusterEdgesData::DoEarlyCleanup() const
+{
+	Super::DoEarlyCleanup();
+	UPCGExClusterEdgesData* MutableSelf = const_cast<UPCGExClusterEdgesData*>(this);
+	MutableSelf->Cluster.Reset();
+}
+
 #if PCGEX_ENGINE_VERSION < 505
 UPCGSpatialData* UPCGExClusterEdgesData::CopyInternal() const
 {
@@ -83,13 +90,6 @@ UPCGSpatialData* UPCGExClusterEdgesData::CopyInternal() const
 	return NewEdgeData;
 }
 #else
-void UPCGExClusterEdgesData::DoEarlyCleanup() const
-{
-	Super::DoEarlyCleanup();
-	UPCGExClusterEdgesData* MutableSelf = const_cast<UPCGExClusterEdgesData*>(this);
-	MutableSelf->Cluster.Reset();
-}
-
 UPCGSpatialData* UPCGExClusterEdgesData::CopyInternal(FPCGContext* Context) const
 {
 	UPCGExClusterEdgesData* NewEdgeData = FPCGContext::NewObject_AnyThread<UPCGExClusterEdgesData>(Context);
