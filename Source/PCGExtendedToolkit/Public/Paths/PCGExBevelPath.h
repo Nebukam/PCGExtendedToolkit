@@ -115,7 +115,7 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Subdivision", meta=(PCG_Overridable, EditCondition="!bKeepCornerPoint && bSubdivide && Type != EPCGExBevelProfileType::Custom && SubdivideMethod==EPCGExSubdivideMode::Count && SubdivisionAmountInput==EPCGExInputValueType::Constant", EditConditionHides, ClampMin=1))
 	int32 SubdivisionCount = 10;
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Subdivision", meta=(PCG_Overridable, EditCondition="!bKeepCornerPoint && bSubdivide && Type != EPCGExBevelProfileType::Custom && SubdivisionAmountInput==EPCGExInputValueType::Attribute", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Subdivision", meta=(PCG_Overridable, EditCondition="!bKeepCornerPoint && bSubdivide && Type != EPCGExBevelProfileType::Custom && SubdivisionAmountInput!=EPCGExInputValueType::Constant", EditConditionHides))
 	FPCGAttributePropertyInputSelector SubdivisionAmount;
 
 	/**  */

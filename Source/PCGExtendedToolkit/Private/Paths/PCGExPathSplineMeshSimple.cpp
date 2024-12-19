@@ -105,6 +105,28 @@ namespace PCGExPathSplineMeshSimple
 
 		if (!FPointsProcessor::Process(InAsyncManager)) { return false; }
 
+		if (Settings->StartOffsetInput == EPCGExInputValueType::Attribute)
+		{
+			StartOffsetGetter = PointDataFacade->GetScopedBroadcaster<FVector2D>(Settings->StartOffsetAttribute);
+
+			if (!StartOffsetGetter)
+			{
+				PCGE_LOG_C(Error, GraphAndLog, ExecutionContext, FTEXT("StartOffset attribute is missing on some inputs.."));
+				return false;
+			}
+		}
+
+		if (Settings->EndOffsetInput == EPCGExInputValueType::Attribute)
+		{
+			EndOffsetGetter = PointDataFacade->GetScopedBroadcaster<FVector2D>(Settings->EndOffsetAttribute);
+			
+			if (!EndOffsetGetter)
+			{
+				PCGE_LOG_C(Error, GraphAndLog, ExecutionContext, FTEXT("EndOffset attribute is missing on some inputs.."));
+				return false;
+			}
+		}
+
 #if PCGEX_ENGINE_VERSION <= 503
 		AssetPathReader = PointDataFacade->GetScopedBroadcaster<FString>(Settings->AssetPathAttributeName);
 #else
@@ -214,8 +236,7 @@ namespace PCGExPathSplineMeshSimple
 		//
 
 		FVector OutScale = Point.Transform.GetScale3D();
-		FVector OutTranslation = FVector::ZeroVector;
-
+		
 		//
 
 		Segment.Params.StartPos = Point.Transform.GetLocation();
@@ -227,8 +248,8 @@ namespace PCGExPathSplineMeshSimple
 		Segment.Params.EndScale = FVector2D(Scale[C1], Scale[C2]);
 		Segment.Params.EndRoll = NextPoint.Transform.GetRotation().Rotator().Roll;
 
-		Segment.Params.StartOffset = FVector2D(OutTranslation[C1], OutTranslation[C2]);
-		Segment.Params.EndOffset = FVector2D(OutTranslation[C1], OutTranslation[C2]);
+		Segment.Params.StartOffset = StartOffsetGetter ? StartOffsetGetter->Read(Index) : Settings->StartOffset;
+		Segment.Params.EndOffset = EndOffsetGetter ? EndOffsetGetter->Read(Index) : Settings->EndOffset;
 
 		if (Settings->bApplyCustomTangents)
 		{
