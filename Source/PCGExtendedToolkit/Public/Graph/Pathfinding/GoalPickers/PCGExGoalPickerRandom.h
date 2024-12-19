@@ -44,7 +44,7 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(EditCondition="GoalCount!=EPCGExGoalPickRandomAmount::Single && NumGoalsType==EPCGExInputValueType::Constant", ClampMin=1))
 	int32 NumGoals = 5;
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(EditCondition="GoalCount!=EPCGExGoalPickRandomAmount::Single && NumGoalsType==EPCGExInputValueType::Attribute"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(EditCondition="GoalCount!=EPCGExGoalPickRandomAmount::Single && NumGoalsType!=EPCGExInputValueType::Constant"))
 	FPCGAttributePropertyInputSelector NumGoalAttribute;
 
 	virtual void CopySettingsFrom(const UPCGExOperation* Other) override;

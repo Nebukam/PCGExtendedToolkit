@@ -19,11 +19,6 @@ void UPCGExClusterNodesData::BeginDestroy()
 	Super::BeginDestroy();
 }
 
-void UPCGExClusterNodesData::DoEarlyCleanup() const
-{
-	Super::DoEarlyCleanup();
-}
-
 #if PCGEX_ENGINE_VERSION < 505
 UPCGSpatialData* UPCGExClusterNodesData::CopyInternal() const
 {
@@ -69,13 +64,6 @@ void UPCGExClusterEdgesData::SetBoundCluster(const TSharedPtr<PCGExCluster::FClu
 const TSharedPtr<PCGExCluster::FCluster>& UPCGExClusterEdgesData::GetBoundCluster() const
 {
 	return Cluster;
-}
-
-void UPCGExClusterEdgesData::DoEarlyCleanup() const
-{
-	Super::DoEarlyCleanup();
-	UPCGExClusterEdgesData* MutableSelf = const_cast<UPCGExClusterEdgesData*>(this);
-	MutableSelf->Cluster.Reset();
 }
 
 #if PCGEX_ENGINE_VERSION < 505

@@ -20,20 +20,9 @@ void UPCGExPointData::InitializeFromPCGExData(const UPCGExPointData* InPCGExPoin
 {
 }
 
-void UPCGExPointData::AddToCrc(FArchiveCrc32& Ar, bool bFullDataCrc) const
-{
-	Super::AddToCrc(Ar, bFullDataCrc);
-	DoEarlyCleanup();
-}
-
 void UPCGExPointData::BeginDestroy()
 {
 	Super::BeginDestroy();
-	
-}
-
-void UPCGExPointData::DoEarlyCleanup() const
-{
 	
 }
 
