@@ -556,7 +556,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExVectorHashComparisonDetails
 	EPCGExInputValueType HashToleranceInput = EPCGExInputValueType::Constant;
 
 	/** Tolerance value use for comparison */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Hash Tolerance", EditCondition="HashToleranceInput==EPCGExInputValueType::Attribute", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Hash Tolerance", EditCondition="HashToleranceInput!=EPCGExInputValueType::Constant", EditConditionHides))
 	FPCGAttributePropertyInputSelector HashToleranceAttribute;
 
 	/** Tolerance value use for comparison */
@@ -618,7 +618,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExDotComparisonDetails
 	EPCGExInputValueType DotValue = EPCGExInputValueType::Constant;
 
 	/** Dot value use for comparison */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Dot or Degrees", EditCondition="DotValue==EPCGExInputValueType::Attribute", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Dot or Degrees", EditCondition="DotValue!=EPCGExInputValueType::Constant", EditConditionHides))
 	FPCGAttributePropertyInputSelector DotOrDegreesAttribute;
 
 	/** Dot value use for comparison (In raw -1/1 range) */
