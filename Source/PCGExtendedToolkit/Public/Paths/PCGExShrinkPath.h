@@ -55,7 +55,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExShrinkPathEndpointDistanceDetails
 	double Distance = 10;
 
 	/** Distance or count */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName="Distance", EditCondition="AmountInput==EPCGExInputValueType::Attribute", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName="Distance", EditCondition="AmountInput!=EPCGExInputValueType::Constant", EditConditionHides))
 	FPCGAttributePropertyInputSelector DistanceAttribute;
 
 	/** TBD */
@@ -83,7 +83,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExShrinkPathEndpointCountDetails
 	int32 Count = 10;
 
 	/** Distance or count */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="ValueSource==EPCGExInputValueType::Attribute", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="ValueSource!=EPCGExInputValueType::Constant", EditConditionHides))
 	FPCGAttributePropertyInputSelector CountAttribute;
 
 	bool SanityCheck(const FPCGContext* Context) const

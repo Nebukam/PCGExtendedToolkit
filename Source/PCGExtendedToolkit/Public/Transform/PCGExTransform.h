@@ -33,7 +33,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExUVW
 	double UConstant = 0;
 
 	/** U Attribute */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="U", EditCondition="UInput==EPCGExInputValueType::Attribute", EditConditionHides, DisplayName="U"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="U", EditCondition="UInput!=EPCGExInputValueType::Constant", EditConditionHides, DisplayName="U"))
 	FPCGAttributePropertyInputSelector UAttribute;
 
 	/** V Source */
@@ -45,7 +45,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExUVW
 	double VConstant = 0;
 
 	/** V Attribute */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="V", EditCondition="VInput==EPCGExInputValueType::Attribute", EditConditionHides, DisplayName="V"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="V", EditCondition="VInput!=EPCGExInputValueType::Constant", EditConditionHides, DisplayName="V"))
 	FPCGAttributePropertyInputSelector VAttribute;
 
 	/** W Source */
@@ -57,7 +57,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExUVW
 	double WConstant = 0;
 
 	/** W Attribute */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="W", EditCondition="WInput==EPCGExInputValueType::Attribute", EditConditionHides, DisplayName="W"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="W", EditCondition="WInput!=EPCGExInputValueType::Constant", EditConditionHides, DisplayName="W"))
 	FPCGAttributePropertyInputSelector WAttribute;
 
 	TSharedPtr<PCGExData::TBuffer<double>> UGetter;

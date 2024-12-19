@@ -47,7 +47,6 @@ public:
 
 protected:
 	//TSharedPtr<TMap<uint32, int32>> EndpointsLookup;
-	virtual void DoEarlyCleanup() const override;
 
 #if PCGEX_ENGINE_VERSION < 505
 	virtual UPCGSpatialData* CopyInternal() const override;
@@ -74,8 +73,6 @@ public:
 
 protected:
 	TSharedPtr<PCGExCluster::FCluster> Cluster;
-
-	virtual void DoEarlyCleanup() const override;
 
 #if PCGEX_ENGINE_VERSION < 505
 	virtual UPCGSpatialData* CopyInternal() const override;

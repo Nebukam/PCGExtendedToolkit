@@ -33,7 +33,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExEdgeMatchConfig
 	EPCGExInputValueType DirectionInput = EPCGExInputValueType::Constant;
 
 	/** Operand B for testing -- Will be translated to `double` under the hood. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Direction", EditCondition="DirectionInput==EPCGExInputValueType::Attribute", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Direction", EditCondition="DirectionInput!=EPCGExInputValueType::Constant", EditConditionHides))
 	FPCGAttributePropertyInputSelector Direction;
 
 	/** Direction for computing the dot product against the edge's. */
