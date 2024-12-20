@@ -42,6 +42,14 @@ A lot of simple yet powerful utility nodes ranging from complex sorting, complex
 
 #### *And so much more -- PCGEx has 100+ nodes!*
 
+### Contributions
+To contribute, fork main and please make sure that your code :
+* Compile & Package on 5.3
+* Compile & Package on 5.4
+* Compile & Package on 5.5
+  
+*Plugin packaging works differently from project packaging, please check both!*
+
 ### Disclaimer
 This software is provided under the MIT License. It is freely available for use & modifications, and may be incorporated into commercial products without the necessity of attribution (*though it is appreciated*). **The contents of this project are entirely original, comprising no AI-generated materials or third-party content, including but not limited to code and assets.**
 
