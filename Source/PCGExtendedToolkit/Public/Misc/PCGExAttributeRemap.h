@@ -132,11 +132,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExRemapDetails
 
 	void Init()
 	{
-		if (!bUseLocalCurve)
-		{
-			LocalScoreCurve.ExternalCurve = PCGExHelpers::ForceLoad(RemapCurve, PCGEx::WeightDistributionLinear);
-		}
-
+		if (!bUseLocalCurve) { LocalScoreCurve.ExternalCurve = RemapCurve.Get(); }
 		RemapCurveObj = LocalScoreCurve.GetRichCurveConst();
 	}
 
@@ -241,6 +237,8 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExAttributeRemapContext final : FPCGExPoin
 
 	FPCGExComponentRemapRule RemapSettings[4];
 	int32 RemapIndices[4];
+
+	virtual void RegisterAssetDependencies() override;
 };
 
 class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExAttributeRemapElement final : public FPCGExPointsProcessorElement
@@ -253,6 +251,7 @@ public:
 
 protected:
 	virtual bool Boot(FPCGExContext* InContext) const override;
+	virtual void PostLoadAssetsDependencies(FPCGExContext* InContext) const override;
 	virtual bool ExecuteInternal(FPCGContext* Context) const override;
 };
 

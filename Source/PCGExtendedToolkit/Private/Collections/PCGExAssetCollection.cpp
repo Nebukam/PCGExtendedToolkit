@@ -53,6 +53,11 @@ void FPCGExAssetCollectionEntry::UpdateStaging(const UPCGExAssetCollection* Owni
 	if (bIsSubCollection) { Staging.Bounds = FBox(ForceInitToZero); }
 }
 
+void FPCGExAssetCollectionEntry::GetAssetPaths(TSet<FSoftObjectPath>& OutPaths) const
+{
+	OutPaths.Add(Staging.Path);
+}
+
 void FPCGExAssetCollectionEntry::OnSubCollectionLoaded()
 {
 }

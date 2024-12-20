@@ -52,7 +52,15 @@ virtual bool BuildFromAttributeSet(FPCGExContext* InContext, const UPCGParamData
 virtual bool BuildFromAttributeSet(FPCGExContext* InContext, const FName InputPin, const FPCGExAssetAttributeSetDetails& Details, const bool bBuildStaging) override\
 { return BuildFromAttributeSetTpl(this, InContext, InputPin, Details, bBuildStaging);}\
 virtual void RebuildStagingData(const bool bRecursive) override{ for(int i = 0; i < Entries.Num(); i++){ _ENTRY_TYPE& Entry = Entries[i]; Entry.UpdateStaging(this, i, bRecursive); } Super::RebuildStagingData(bRecursive); }\
-virtual void BuildCache() override{ Super::BuildCache(Entries); }
+virtual void BuildCache() override{ Super::BuildCache(Entries); }\
+virtual void GetAssetPaths(TSet<FSoftObjectPath>& OutPaths, const PCGExAssetCollection::ELoadingFlags Flags) const override{\
+	const bool bCollectionOnly = Flags == PCGExAssetCollection::ELoadingFlags::RecursiveCollectionsOnly;\
+	const bool bRecursive = bCollectionOnly || Flags == PCGExAssetCollection::ELoadingFlags::Recursive;\
+	for (const _ENTRY_TYPE& Entry : Entries){\
+		if (Entry.bIsSubCollection){\
+			if (bRecursive || bCollectionOnly){ if (const _TYPE* SubCollection = PCGExHelpers::ForceLoad(Entry.SubCollection)){ SubCollection->GetAssetPaths(OutPaths, Flags);}}\
+			continue;} if (bCollectionOnly) { continue; }\
+		Entry.GetAssetPaths(OutPaths); }}
 
 #if WITH_EDITOR
 #define PCGEX_ASSET_COLLECTION_BOILERPLATE(_TYPE, _ENTRY_TYPE)\
@@ -123,6 +131,14 @@ using EPCGExAssetTagInheritanceBitmask = TEnumAsByte<EPCGExAssetTagInheritance>;
 
 namespace PCGExAssetCollection
 {
+
+	enum class ELoadingFlags : uint8
+	{
+		Default = 0,
+		Recursive,
+		RecursiveCollectionsOnly,
+	};
+	
 	const FName SourceAssetCollection = TEXT("AttributeSet");
 
 #if PCGEX_ENGINE_VERSION > 503
@@ -320,6 +336,8 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExAssetCollectionEntry
 	virtual void UpdateStaging(const UPCGExAssetCollection* OwningCollection, int32 InInternalIndex, const bool bRecursive);
 	virtual void SetAssetPath(const FSoftObjectPath& InPath) PCGEX_NOT_IMPLEMENTED(SetAssetPath(const FSoftObjectPath& InPath))
 
+	virtual void GetAssetPaths(TSet<FSoftObjectPath>& OutPaths) const;
+	
 protected:
 	template <typename T>
 	void LoadSubCollection(TSoftObjectPtr<T> SoftPtr)
@@ -333,12 +351,6 @@ protected:
 
 namespace PCGExAssetCollection
 {
-	enum class ELoadingFlags : uint8
-	{
-		Default = 0,
-		Recursive,
-		RecursiveCollectionsOnly,
-	};
 
 	class /*PCGEXTENDEDTOOLKIT_API*/ FCategory : public TSharedFromThis<FCategory>
 	{
@@ -605,7 +617,7 @@ public:
 	/** Collection tags */
 	UPROPERTY(EditAnywhere, Category = Settings, meta=(DisplayPriority=-1))
 	TSet<FName> CollectionTags;
-
+	
 #if WITH_EDITORONLY_DATA
 	/**  */
 	UPROPERTY(EditAnywhere, Category = Settings, AdvancedDisplay)

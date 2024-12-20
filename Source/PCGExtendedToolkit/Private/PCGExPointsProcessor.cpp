@@ -204,6 +204,11 @@ bool FPCGExPointsProcessorElement::PrepareDataInternal(FPCGContext* InContext) c
 			Context->LoadAssets();
 			return false;
 		}
+		else
+		{
+			// Call it so if there's initialization in there it'll run as a mandatory step
+			PostLoadAssetsDependencies(Context);
+		}
 	}
 
 	PCGEX_ON_ASYNC_STATE_READY(PCGEx::State_LoadingAssetDependencies)

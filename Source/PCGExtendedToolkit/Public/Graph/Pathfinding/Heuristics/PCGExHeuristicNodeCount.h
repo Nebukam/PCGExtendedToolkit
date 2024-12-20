@@ -62,6 +62,7 @@ public:
 	FPCGExHeuristicConfigLeastNodes Config;
 
 	virtual UPCGExHeuristicOperation* CreateOperation(FPCGExContext* InContext) const override;
+	PCGEX_HEURISTIC_FACTORY_BOILERPLATE
 };
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Graph|Params")
@@ -83,7 +84,7 @@ public:
 	FPCGExHeuristicConfigLeastNodes Config;
 
 	virtual UPCGExParamFactoryBase* CreateFactory(FPCGExContext* InContext, UPCGExParamFactoryBase* InFactory) const override;
-
+	
 #if WITH_EDITOR
 	virtual FString GetDisplayName() const override;
 #endif

@@ -121,6 +121,7 @@ public:
 	FPCGExHeuristicConfigInertia Config;
 
 	virtual UPCGExHeuristicOperation* CreateOperation(FPCGExContext* InContext) const override;
+	PCGEX_HEURISTIC_FACTORY_BOILERPLATE
 };
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Graph|Params")
