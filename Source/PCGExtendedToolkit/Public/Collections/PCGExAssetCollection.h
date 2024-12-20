@@ -57,9 +57,8 @@ virtual void GetAssetPaths(TSet<FSoftObjectPath>& OutPaths, const PCGExAssetColl
 	const bool bCollectionOnly = Flags == PCGExAssetCollection::ELoadingFlags::RecursiveCollectionsOnly;\
 	const bool bRecursive = bCollectionOnly || Flags == PCGExAssetCollection::ELoadingFlags::Recursive;\
 	for (const _ENTRY_TYPE& Entry : Entries){\
-		if (Entry.bIsSubCollection){\
-			if (bRecursive || bCollectionOnly){ if (const _TYPE* SubCollection = PCGExHelpers::ForceLoad(Entry.SubCollection)){ SubCollection->GetAssetPaths(OutPaths, Flags);}}\
-			continue;} if (bCollectionOnly) { continue; }\
+		if (Entry.bIsSubCollection){ if (bRecursive || bCollectionOnly){ if (Entry.InternalSubCollection){ Entry.InternalSubCollection->GetAssetPaths(OutPaths, Flags);}} continue; }\
+		if (bCollectionOnly) { continue; }\
 		Entry.GetAssetPaths(OutPaths); }}
 
 #if WITH_EDITOR
@@ -131,14 +130,13 @@ using EPCGExAssetTagInheritanceBitmask = TEnumAsByte<EPCGExAssetTagInheritance>;
 
 namespace PCGExAssetCollection
 {
-
 	enum class ELoadingFlags : uint8
 	{
 		Default = 0,
 		Recursive,
 		RecursiveCollectionsOnly,
 	};
-	
+
 	const FName SourceAssetCollection = TEXT("AttributeSet");
 
 #if PCGEX_ENGINE_VERSION > 503
@@ -282,11 +280,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExAssetStagingData
 	}
 
 	template <typename T>
-	T* TryGet() const
-	{
-		TSoftObjectPtr<T> SoftPtr = TSoftObjectPtr<T>(Path);
-		return SoftPtr.Get();
-	}
+	T* TryGet() const { return TSoftObjectPtr<T>(Path).Get(); }
 };
 
 USTRUCT(BlueprintType, DisplayName="[PCGEx] Asset Collection Entry")
@@ -320,7 +314,11 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExAssetCollectionEntry
 	//UPROPERTY(EditAnywhere, Category = Settings, meta=(EditCondition="bSubCollection", EditConditionHides))
 	//TSoftObjectPtr<UPCGExDataCollection> SubCollection;
 
-	TObjectPtr<UPCGExAssetCollection> BaseSubCollectionPtr;
+	UPROPERTY()
+	TObjectPtr<UPCGExAssetCollection> InternalSubCollection;
+
+	template <typename T>
+	T* GetSubCollection() { return Cast<T>(InternalSubCollection); }
 
 #if WITH_EDITORONLY_DATA
 	UPROPERTY(VisibleAnywhere, Category=Settings, meta=(HideInDetailPanel, EditCondition="false", EditConditionHides))
@@ -332,26 +330,17 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExAssetCollectionEntry
 	{
 	}
 #endif
+	
 	virtual bool Validate(const UPCGExAssetCollection* ParentCollection);
 	virtual void UpdateStaging(const UPCGExAssetCollection* OwningCollection, int32 InInternalIndex, const bool bRecursive);
 	virtual void SetAssetPath(const FSoftObjectPath& InPath) PCGEX_NOT_IMPLEMENTED(SetAssetPath(const FSoftObjectPath& InPath))
 
 	virtual void GetAssetPaths(TSet<FSoftObjectPath>& OutPaths) const;
-	
-protected:
-	template <typename T>
-	void LoadSubCollection(TSoftObjectPtr<T> SoftPtr)
-	{
-		BaseSubCollectionPtr = PCGExHelpers::ForceLoad(SoftPtr);
-		if (BaseSubCollectionPtr) { OnSubCollectionLoaded(); }
-	}
 
-	virtual void OnSubCollectionLoaded();
 };
 
 namespace PCGExAssetCollection
 {
-
 	class /*PCGEXTENDEDTOOLKIT_API*/ FCategory : public TSharedFromThis<FCategory>
 	{
 	public:
@@ -617,7 +606,7 @@ public:
 	/** Collection tags */
 	UPROPERTY(EditAnywhere, Category = Settings, meta=(DisplayPriority=-1))
 	TSet<FName> CollectionTags;
-	
+
 #if WITH_EDITORONLY_DATA
 	/**  */
 	UPROPERTY(EditAnywhere, Category = Settings, AdvancedDisplay)
@@ -705,7 +694,7 @@ protected:
 		OutHost = this;
 		const int32 Pick = LoadCache()->Main->GetPick(Index, PickMode);
 		if (!InEntries.IsValidIndex(Pick)) { return false; }
-		if (const T& Entry = InEntries[Pick]; Entry.SubCollectionPtr) { Entry.SubCollectionPtr->GetEntryWeightedRandom(OutEntry, Seed, OutHost); }
+		if (const T& Entry = InEntries[Pick]; Entry.SubCollection) { Entry.SubCollection->GetEntryWeightedRandom(OutEntry, Seed, OutHost); }
 		else { OutEntry = &Entry; }
 		return true;
 	}
@@ -719,7 +708,7 @@ protected:
 	{
 		OutHost = this;
 		const T& Entry = InEntries[LoadCache()->Main->GetPickRandom(Seed)];
-		if (Entry.SubCollectionPtr) { Entry.SubCollectionPtr->GetEntryRandom(OutEntry, Seed * 2, OutHost); }
+		if (Entry.SubCollection) { Entry.SubCollection->GetEntryRandom(OutEntry, Seed * 2, OutHost); }
 		else { OutEntry = &Entry; }
 		return true;
 	}
@@ -733,7 +722,7 @@ protected:
 	{
 		OutHost = this;
 		const T& Entry = InEntries[LoadCache()->Main->GetPickRandomWeighted(Seed)];
-		if (Entry.SubCollectionPtr) { Entry.SubCollectionPtr->GetEntryWeightedRandom(OutEntry, Seed * 2, OutHost); }
+		if (Entry.SubCollection) { Entry.SubCollection->GetEntryWeightedRandom(OutEntry, Seed * 2, OutHost); }
 		else { OutEntry = &Entry; }
 		return true;
 	}
@@ -757,7 +746,7 @@ protected:
 		if (!InEntries.IsValidIndex(Pick)) { return false; }
 		const T& Entry = InEntries[Pick];
 
-		if (Entry.SubCollectionPtr && (TagInheritance & static_cast<uint8>(EPCGExAssetTagInheritance::Collection))) { OutTags.Append(Entry.SubCollectionPtr->CollectionTags); }
+		if (Entry.SubCollection && (TagInheritance & static_cast<uint8>(EPCGExAssetTagInheritance::Collection))) { OutTags.Append(Entry.SubCollection->CollectionTags); }
 		if ((TagInheritance & static_cast<uint8>(EPCGExAssetTagInheritance::Asset))) { OutTags.Append(Entry.Tags); }
 
 		OutEntry = &InEntries[Pick];
@@ -780,11 +769,11 @@ protected:
 		const int32 Pick = LoadCache()->Main->GetPick(Index, PickMode);
 		if (!InEntries.IsValidIndex(Pick)) { return false; }
 		const T& Entry = InEntries[Pick];
-		if (Entry.SubCollectionPtr)
+		if (Entry.SubCollection)
 		{
 			if ((TagInheritance & static_cast<uint8>(EPCGExAssetTagInheritance::Hierarchy))) { OutTags.Append(Entry.Tags); }
-			if ((TagInheritance & static_cast<uint8>(EPCGExAssetTagInheritance::Collection))) { OutTags.Append(Entry.SubCollectionPtr->CollectionTags); }
-			Entry.SubCollectionPtr->GetEntryWeightedRandom(OutEntry, Seed * 2, OutHost);
+			if ((TagInheritance & static_cast<uint8>(EPCGExAssetTagInheritance::Collection))) { OutTags.Append(Entry.SubCollection->CollectionTags); }
+			Entry.SubCollection->GetEntryWeightedRandom(OutEntry, Seed * 2, OutHost);
 		}
 		else
 		{
@@ -806,11 +795,11 @@ protected:
 		OutHost = this;
 
 		const T& Entry = InEntries[LoadCache()->Main->GetPickRandom(Seed)];
-		if (Entry.SubCollectionPtr)
+		if (Entry.SubCollection)
 		{
 			if ((TagInheritance & static_cast<uint8>(EPCGExAssetTagInheritance::Hierarchy))) { OutTags.Append(Entry.Tags); }
-			if ((TagInheritance & static_cast<uint8>(EPCGExAssetTagInheritance::Collection))) { OutTags.Append(Entry.SubCollectionPtr->CollectionTags); }
-			Entry.SubCollectionPtr->GetEntryRandom(OutEntry, Seed * 2, OutHost);
+			if ((TagInheritance & static_cast<uint8>(EPCGExAssetTagInheritance::Collection))) { OutTags.Append(Entry.SubCollection->CollectionTags); }
+			Entry.SubCollection->GetEntryRandom(OutEntry, Seed * 2, OutHost);
 		}
 		else
 		{
@@ -832,11 +821,11 @@ protected:
 		OutHost = this;
 
 		const T& Entry = InEntries[LoadCache()->Main->GetPickRandomWeighted(Seed)];
-		if (Entry.SubCollectionPtr)
+		if (Entry.SubCollection)
 		{
 			if ((TagInheritance & static_cast<uint8>(EPCGExAssetTagInheritance::Hierarchy))) { OutTags.Append(Entry.Tags); }
-			if ((TagInheritance & static_cast<uint8>(EPCGExAssetTagInheritance::Collection))) { OutTags.Append(Entry.SubCollectionPtr->CollectionTags); }
-			Entry.SubCollectionPtr->GetEntryWeightedRandom(OutEntry, Seed * 2, OutHost);
+			if ((TagInheritance & static_cast<uint8>(EPCGExAssetTagInheritance::Collection))) { OutTags.Append(Entry.SubCollection->CollectionTags); }
+			Entry.SubCollection->GetEntryWeightedRandom(OutEntry, Seed * 2, OutHost);
 		}
 		else
 		{
