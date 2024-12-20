@@ -244,5 +244,5 @@ protected:
 #if PCGEX_ENGINE_VERSION > 503
 	virtual void AbortInternal(FPCGContext* Context) const override;
 #endif
-	//virtual bool CanExecuteOnlyOnMainThread(FPCGContext* Context) const override { return true; } // TODO : Proper refactor to support ExecuteV2
+	PCGEX_CAN_ONLY_EXECUTE_ON_MAIN_THREAD(true) // TODO : Proper refactor to support ExecuteV2
 };
