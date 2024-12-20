@@ -46,23 +46,23 @@ public:
 	virtual void ApplyPreconfiguredSettings(const FPCGPreConfiguredSettingsInfo& PreconfigureInfo) override;
 
 	// Used by the preconfigured settings to load the right constants
-	UPROPERTY(BlueprintReadWrite)
+	UPROPERTY(BlueprintReadWrite, Category=Settings)
 	EPCGExConstantListID ConstantList;
 
 	// Export the negative of the constant instead of the constant itself
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta=(EditCondition="ConstantList!=EPCGExConstantListID::Booleans", EditConditionHides))
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Settings, meta=(EditCondition="ConstantList!=EPCGExConstantListID::Booleans", EditConditionHides))
 	bool NegateOutput = false;
 
 	// Output 1/x instead of x (e.g. 2 becomes 1/2)
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta=(EditCondition="ConstantList!=EPCGExConstantListID::Booleans && ConstantList != EPCGExConstantListID::Vectors", EditConditionHides))
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Settings, meta=(EditCondition="ConstantList!=EPCGExConstantListID::Booleans && ConstantList != EPCGExConstantListID::Vectors", EditConditionHides))
 	bool OutputReciprocal = false;
 
 	// Apply a custom (constant, numeric) multiplier to the output
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta=(EditCondition="ConstantList!=EPCGExConstantListID::Booleans", EditConditionHides))
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Settings, meta=(EditCondition="ConstantList!=EPCGExConstantListID::Booleans", EditConditionHides))
 	double CustomMultiplier = 1.0;
 
 	// Cast to a specific type (double will be used by default)
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta=(EditCondition="ConstantList != EPCGExConstantListID::Booleans && ConstantList != EPCGExConstantListID::Vectors", EditConditionHides))
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Settings, meta=(EditCondition="ConstantList != EPCGExConstantListID::Booleans && ConstantList != EPCGExConstantListID::Vectors", EditConditionHides))
 	EPCGExNumericOutput NumericOutputType;
 
 protected:
