@@ -68,6 +68,14 @@ TArray<FPCGPinProperties> UPCGExSampleNearestPointSettings::InputPinProperties()
 
 PCGExData::EIOInit UPCGExSampleNearestPointSettings::GetMainOutputInitMode() const { return PCGExData::EIOInit::Duplicate; }
 
+void FPCGExSampleNearestPointContext::RegisterAssetDependencies()
+{
+	PCGEX_SETTINGS_LOCAL(SampleNearestPoint)
+
+	FPCGExPointsProcessorContext::RegisterAssetDependencies();
+	AddAssetDependency(Settings->WeightOverDistance.ToSoftObjectPath());
+}
+
 PCGEX_INITIALIZE_ELEMENT(SampleNearestPoint)
 
 bool FPCGExSampleNearestPointElement::Boot(FPCGExContext* InContext) const
@@ -90,15 +98,6 @@ bool FPCGExSampleNearestPointElement::Boot(FPCGExContext* InContext) const
 
 
 	PCGEX_FOREACH_FIELD_NEARESTPOINT(PCGEX_OUTPUT_VALIDATE_NAME)
-
-	Context->RuntimeWeightCurve = Settings->LocalWeightOverDistance;
-	if (!Settings->bUseLocalCurve)
-	{
-		Context->RuntimeWeightCurve.EditorCurveData.AddKey(0, 0);
-		Context->RuntimeWeightCurve.EditorCurveData.AddKey(1, 1);
-		Context->RuntimeWeightCurve.ExternalCurve = PCGExHelpers::ForceLoad(Settings->WeightOverDistance);
-	}
-	Context->WeightCurve = Context->RuntimeWeightCurve.GetRichCurveConst();
 
 	Context->DistanceDetails = Settings->DistanceDetails.MakeDistances();
 	Context->TargetPoints = &Context->TargetsFacade->Source->GetIn()->GetPoints();
@@ -126,6 +125,24 @@ bool FPCGExSampleNearestPointElement::Boot(FPCGExContext* InContext) const
 	Context->BlendingDetails.RegisterBuffersDependencies(Context, Context->TargetsFacade, *Context->TargetsPreloader);
 
 	return true;
+}
+
+void FPCGExSampleNearestPointElement::PostLoadAssetsDependencies(FPCGExContext* InContext) const
+{
+	FPCGExPointsProcessorElement::PostLoadAssetsDependencies(InContext);
+
+	PCGEX_CONTEXT_AND_SETTINGS(SampleNearestPoint)
+
+	Context->RuntimeWeightCurve = Settings->LocalWeightOverDistance;
+
+	if (!Settings->bUseLocalCurve)
+	{
+		Context->RuntimeWeightCurve.EditorCurveData.AddKey(0, 0);
+		Context->RuntimeWeightCurve.EditorCurveData.AddKey(1, 1);
+		Context->RuntimeWeightCurve.ExternalCurve = Settings->WeightOverDistance.Get();
+	}
+
+	Context->WeightCurve = Context->RuntimeWeightCurve.GetRichCurveConst();
 }
 
 bool FPCGExSampleNearestPointElement::ExecuteInternal(FPCGContext* InContext) const

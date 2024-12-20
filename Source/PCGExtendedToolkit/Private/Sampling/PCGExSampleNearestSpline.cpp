@@ -48,6 +48,14 @@ TArray<FPCGPinProperties> UPCGExSampleNearestSplineSettings::InputPinProperties(
 
 PCGExData::EIOInit UPCGExSampleNearestSplineSettings::GetMainOutputInitMode() const { return PCGExData::EIOInit::Duplicate; }
 
+void FPCGExSampleNearestSplineContext::RegisterAssetDependencies()
+{
+	PCGEX_SETTINGS_LOCAL(SampleNearestSpline)
+	
+	FPCGExPointsProcessorContext::RegisterAssetDependencies();
+	AddAssetDependency(Settings->WeightOverDistance.ToSoftObjectPath());
+}
+
 PCGEX_INITIALIZE_ELEMENT(SampleNearestSpline)
 
 bool FPCGExSampleNearestSplineElement::Boot(FPCGExContext* InContext) const
@@ -102,18 +110,27 @@ bool FPCGExSampleNearestSplineElement::Boot(FPCGExContext* InContext) const
 		Context->Lengths[i] = Context->Targets[i]->SplineStruct.GetSplineLength();
 	}
 
+	PCGEX_FOREACH_FIELD_NEARESTPOLYLINE(PCGEX_OUTPUT_VALIDATE_NAME)
+
+	return true;
+}
+
+void FPCGExSampleNearestSplineElement::PostLoadAssetsDependencies(FPCGExContext* InContext) const
+{
+	PCGEX_CONTEXT_AND_SETTINGS(SampleNearestSpline)
+	
+	FPCGExPointsProcessorElement::PostLoadAssetsDependencies(InContext);
+
 	Context->RuntimeWeightCurve = Settings->LocalWeightOverDistance;
+	
 	if (!Settings->bUseLocalCurve)
 	{
 		Context->RuntimeWeightCurve.EditorCurveData.AddKey(0, 0);
 		Context->RuntimeWeightCurve.EditorCurveData.AddKey(1, 1);
-		Context->RuntimeWeightCurve.ExternalCurve = PCGExHelpers::ForceLoad(Settings->WeightOverDistance);
+		Context->RuntimeWeightCurve.ExternalCurve = Settings->WeightOverDistance.Get();
 	}
+	
 	Context->WeightCurve = Context->RuntimeWeightCurve.GetRichCurveConst();
-
-	PCGEX_FOREACH_FIELD_NEARESTPOLYLINE(PCGEX_OUTPUT_VALIDATE_NAME)
-
-	return true;
 }
 
 bool FPCGExSampleNearestSplineElement::ExecuteInternal(FPCGContext* InContext) const

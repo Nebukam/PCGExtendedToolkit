@@ -77,7 +77,7 @@ public:
 	{
 	}
 
-	virtual void RegisterResourcesDependencies() const
+	virtual void RegisterAssetDependencies(FPCGExContext* InContext) const
 	{
 	}
 };
@@ -157,7 +157,10 @@ namespace PCGExFactories
 					continue;
 				}
 
-				OutFactories.AddUnique(const_cast<T_DEF*>(Factory));
+
+				OutFactories.AddUnique(Factory);
+				Factory->RegisterAssetDependencies(InContext);
+
 				if (Factory->bDoRegisterConsumableAttributes) { Factory->RegisterConsumableAttributes(InContext); }
 			}
 			else

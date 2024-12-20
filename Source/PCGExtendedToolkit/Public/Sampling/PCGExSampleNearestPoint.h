@@ -305,6 +305,9 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExSampleNearestPointContext final : FPCGEx
 	TSharedPtr<PCGExData::TBuffer<double>> TargetWeights;
 
 	PCGEX_FOREACH_FIELD_NEARESTPOINT(PCGEX_OUTPUT_DECL_TOGGLE)
+
+	virtual void RegisterAssetDependencies() override;
+	
 };
 
 class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExSampleNearestPointElement final : public FPCGExPointsProcessorElement
@@ -317,6 +320,7 @@ public:
 
 protected:
 	virtual bool Boot(FPCGExContext* InContext) const override;
+	virtual void PostLoadAssetsDependencies(FPCGExContext* InContext) const override;
 	virtual bool ExecuteInternal(FPCGContext* Context) const override;
 };
 

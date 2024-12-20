@@ -82,12 +82,33 @@ FString UPCGExNeighborSampleAttributeSettings::GetDisplayName() const
 UPCGExNeighborSampleOperation* UPCGExNeighborSamplerFactoryAttribute::CreateOperation(FPCGExContext* InContext) const
 {
 	UPCGExNeighborSampleAttribute* NewOperation = InContext->ManagedObjects->New<UPCGExNeighborSampleAttribute>();
+	
 	PCGEX_SAMPLER_CREATE
 
 	NewOperation->SourceAttributes = Config.SourceAttributes;
 	NewOperation->Blending = Config.Blending;
 
 	return NewOperation;
+}
+
+void UPCGExNeighborSamplerFactoryAttribute::RegisterBuffersDependencies(FPCGExContext* InContext, const TSharedRef<PCGExData::FFacade>& InDataFacade, PCGExData::FFacadePreloader& FacadePreloader) const
+{
+	Super::RegisterBuffersDependencies(InContext, InDataFacade, FacadePreloader);
+	
+	if (SamplingConfig.NeighborSource == EPCGExClusterComponentSource::Vtx)
+	{
+		TSharedPtr<PCGEx::FAttributesInfos> Infos = PCGEx::FAttributesInfos::Get(InDataFacade->GetIn()->Metadata);
+		for (FName AttrName : Config.SourceAttributes)
+		{
+			const PCGEx::FAttributeIdentity* Identity = Infos->Find(AttrName);
+			if (!Identity)
+			{
+				PCGE_LOG_C(Error, GraphAndLog, InContext, FText::Format(FTEXT("Missing attribute: \"{0}\"."), FText::FromName(AttrName)));
+				return;
+			}
+			FacadePreloader.Register(InContext, *Identity);
+		}
+	}
 }
 
 UPCGExParamFactoryBase* UPCGExNeighborSampleAttributeSettings::CreateFactory(FPCGExContext* InContext, UPCGExParamFactoryBase* InFactory) const

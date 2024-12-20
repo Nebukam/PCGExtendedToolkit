@@ -3,6 +3,11 @@
 
 #include "Collections/PCGExActorCollection.h"
 
+void FPCGExActorCollectionEntry::GetAssetPaths(TSet<FSoftObjectPath>& OutPaths) const
+{
+	FPCGExAssetCollectionEntry::GetAssetPaths(OutPaths);
+}
+
 bool FPCGExActorCollectionEntry::Validate(const UPCGExAssetCollection* ParentCollection)
 {
 	if (bIsSubCollection) { LoadSubCollection(SubCollection); }
@@ -49,27 +54,3 @@ void UPCGExActorCollection::EDITOR_RefreshDisplayNames()
 	}
 }
 #endif
-
-void UPCGExActorCollection::GetAssetPaths(TSet<FSoftObjectPath>& OutPaths, const PCGExAssetCollection::ELoadingFlags Flags) const
-{
-	const bool bCollectionOnly = Flags == PCGExAssetCollection::ELoadingFlags::RecursiveCollectionsOnly;
-	const bool bRecursive = bCollectionOnly || Flags == PCGExAssetCollection::ELoadingFlags::Recursive;
-
-	for (const FPCGExActorCollectionEntry& Entry : Entries)
-	{
-		if (Entry.bIsSubCollection)
-		{
-			if (bRecursive || bCollectionOnly)
-			{
-				if (const UPCGExActorCollection* SubCollection = PCGExHelpers::ForceLoad(Entry.SubCollection))
-				{
-					SubCollection->GetAssetPaths(OutPaths, Flags);
-				}
-			}
-			continue;
-		}
-
-		if (bCollectionOnly) { continue; }
-		if (!Entry.Actor.Get()) { OutPaths.Add(Entry.Actor.ToSoftObjectPath()); }
-	}
-}
