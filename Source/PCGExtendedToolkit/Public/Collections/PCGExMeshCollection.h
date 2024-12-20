@@ -132,9 +132,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExMeshCollectionEntry : public FPCGExAsset
 	TArray<FPCGExMaterialOverrideCollection> MaterialOverrideVariantsList;
 
 	UPROPERTY(EditAnywhere, Category = Settings, meta=(EditCondition="bIsSubCollection", EditConditionHides))
-	TSoftObjectPtr<UPCGExMeshCollection> SubCollection;
-
-	TObjectPtr<UPCGExMeshCollection> SubCollectionPtr;
+	TObjectPtr<UPCGExMeshCollection> SubCollection;
 
 	bool Matches(const FPCGMeshInstanceList& InstanceList) const
 	{
@@ -145,7 +143,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExMeshCollectionEntry : public FPCGExAsset
 	bool SameAs(const FPCGExMeshCollectionEntry& Other) const
 	{
 		return
-			SubCollectionPtr == Other.SubCollectionPtr &&
+			SubCollection == Other.SubCollection &&
 			Weight == Other.Weight &&
 			Category == Other.Category &&
 			StaticMesh == Other.StaticMesh;
@@ -175,8 +173,6 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExMeshCollectionEntry : public FPCGExAsset
 	virtual void EDITOR_Sanitize() override;
 #endif
 
-protected:
-	virtual void OnSubCollectionLoaded() override;
 };
 
 UCLASS(BlueprintType, DisplayName="[PCGEx] Mesh Collection")

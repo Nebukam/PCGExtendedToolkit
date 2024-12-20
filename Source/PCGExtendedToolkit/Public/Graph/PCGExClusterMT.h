@@ -634,7 +634,7 @@ namespace PCGExClusterMT
 		virtual void Cleanup() override
 		{
 			FClusterProcessorBatchBase::Cleanup();
-			for (const TSharedPtr<T>& P : Processors) { P->Cleanup(); }
+			for (const TSharedRef<T>& P : Processors) { P->Cleanup(); }
 			Processors.Empty();
 		}
 	};

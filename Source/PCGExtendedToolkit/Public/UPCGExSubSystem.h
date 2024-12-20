@@ -15,4 +15,6 @@ class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExSubSystem : public UWorldSubsystem
 public:
 	virtual void Initialize(FSubsystemCollectionBase& Collection) override;
 	virtual void Deinitialize() override;
+
+protected:
 };

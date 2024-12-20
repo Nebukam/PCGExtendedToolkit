@@ -29,14 +29,12 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExActorCollectionEntry : public FPCGExAsse
 	TSoftObjectPtr<AActor> Actor;
 
 	UPROPERTY(EditAnywhere, Category = Settings, meta=(EditCondition="bIsSubCollection", EditConditionHides))
-	TSoftObjectPtr<UPCGExActorCollection> SubCollection;
-
-	TObjectPtr<UPCGExActorCollection> SubCollectionPtr;
+	TObjectPtr<UPCGExActorCollection> SubCollection;
 
 	bool SameAs(const FPCGExActorCollectionEntry& Other) const
 	{
 		return
-			SubCollectionPtr == Other.SubCollectionPtr &&
+			SubCollection == Other.SubCollection &&
 			Weight == Other.Weight &&
 			Category == Other.Category &&
 			Actor == Other.Actor;
@@ -47,9 +45,11 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExActorCollectionEntry : public FPCGExAsse
 	virtual bool Validate(const UPCGExAssetCollection* ParentCollection) override;
 	virtual void UpdateStaging(const UPCGExAssetCollection* OwningCollection, int32 InInternalIndex, const bool bRecursive) override;
 	virtual void SetAssetPath(const FSoftObjectPath& InPath) override;
+
+#if WITH_EDITOR
+	virtual void EDITOR_Sanitize() override;
+#endif
 	
-protected:
-	virtual void OnSubCollectionLoaded() override;
 };
 
 UCLASS(BlueprintType, DisplayName="[PCGEx] Actor Collection")

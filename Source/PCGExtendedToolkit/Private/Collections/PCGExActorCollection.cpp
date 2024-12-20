@@ -10,18 +10,31 @@ void FPCGExActorCollectionEntry::GetAssetPaths(TSet<FSoftObjectPath>& OutPaths) 
 
 bool FPCGExActorCollectionEntry::Validate(const UPCGExAssetCollection* ParentCollection)
 {
-	if (bIsSubCollection) { LoadSubCollection(SubCollection); }
+	if (bIsSubCollection) { return SubCollection ? true : false; }
 	else if (!Actor && ParentCollection->bDoNotIgnoreInvalidEntries) { return false; }
 
 	return Super::Validate(ParentCollection);
 }
 
+#if WITH_EDITOR
+void FPCGExActorCollectionEntry::EDITOR_Sanitize()
+{
+	FPCGExAssetCollectionEntry::EDITOR_Sanitize();
+	if (!bIsSubCollection)
+	{
+		InternalSubCollection = nullptr;
+	}
+	else
+	{
+		InternalSubCollection = SubCollection;
+	}
+}
+#endif
+
 void FPCGExActorCollectionEntry::UpdateStaging(const UPCGExAssetCollection* OwningCollection, const int32 InInternalIndex, const bool bRecursive)
 {
 	if (bIsSubCollection)
 	{
-		Staging.Path = SubCollection.ToSoftObjectPath();
-		if (bRecursive){ if(UPCGExActorCollection* Ptr = PCGExHelpers::ForceLoad(SubCollection)) { Ptr->RebuildStagingData(true); }}
 		Super::UpdateStaging(OwningCollection, InInternalIndex, bRecursive);
 		return;
 	}
@@ -39,18 +52,13 @@ void FPCGExActorCollectionEntry::SetAssetPath(const FSoftObjectPath& InPath)
 	Actor = TSoftObjectPtr<AActor>(InPath);
 }
 
-void FPCGExActorCollectionEntry::OnSubCollectionLoaded()
-{
-	SubCollectionPtr = Cast<UPCGExActorCollection>(BaseSubCollectionPtr);
-}
-
 #if WITH_EDITOR
 void UPCGExActorCollection::EDITOR_RefreshDisplayNames()
 {
 	Super::EDITOR_RefreshDisplayNames();
 	for (FPCGExActorCollectionEntry& Entry : Entries)
 	{
-		Entry.DisplayName = Entry.bIsSubCollection ? FName(TEXT("[") + Entry.SubCollection.GetAssetName() + TEXT("]")) : FName(Entry.Actor.GetAssetName());
+		Entry.DisplayName = Entry.bIsSubCollection ? FName(TEXT("[") + Entry.SubCollection.GetName() + TEXT("]")) : FName(Entry.Actor.GetAssetName());
 	}
 }
 #endif
