@@ -9,6 +9,7 @@
 #include "Data/PCGSpatialData.h"
 #include "Engine/AssetManager.h"
 #include "Helpers/PCGHelpers.h"
+#include "Async/Async.h"
 
 #define LOCTEXT_NAMESPACE "PCGExContext"
 
