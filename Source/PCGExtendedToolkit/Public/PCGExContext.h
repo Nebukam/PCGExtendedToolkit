@@ -35,7 +35,7 @@ namespace PCGEx
 }
 
 #if PCGEX_ENGINE_VERSION < 505
-struct PCG_API FPCGContextHandle : public TSharedFromThis<FPCGContextHandle>
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGContextHandle : public TSharedFromThis<FPCGContextHandle>
 {
 public:
 	FPCGContextHandle(FPCGContext* InContext)
