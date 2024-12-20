@@ -66,26 +66,45 @@ void FPCGExMeshCollectionEntry::GetAssetPaths(TSet<FSoftObjectPath>& OutPaths) c
 
 bool FPCGExMeshCollectionEntry::Validate(const UPCGExAssetCollection* ParentCollection)
 {
-	if (bIsSubCollection) { LoadSubCollection(SubCollection); }
-	else if (!StaticMesh.ToSoftObjectPath().IsValid() && ParentCollection->bDoNotIgnoreInvalidEntries) { return false; }
+	if (!bIsSubCollection)
+	{
+		if (!StaticMesh.ToSoftObjectPath().IsValid() && ParentCollection->bDoNotIgnoreInvalidEntries) { return false; }
+	}
 
 	return Super::Validate(ParentCollection);
 }
 
+#if WITH_EDITOR
+void FPCGExMeshCollectionEntry::EDITOR_Sanitize()
+{
+	FPCGExAssetCollectionEntry::EDITOR_Sanitize();
+
+	if (!bIsSubCollection)
+	{
+		InternalSubCollection = nullptr;
+		if (StaticMesh) { ISMDescriptor.StaticMesh = StaticMesh; }
+		//else if (ISMDescriptor.StaticMesh && !StaticMesh) { StaticMesh = ISMDescriptor.StaticMesh; }
+	}
+	else
+	{
+		InternalSubCollection = SubCollection;
+	}
+}
+#endif
+
 void FPCGExMeshCollectionEntry::UpdateStaging(const UPCGExAssetCollection* OwningCollection, const int32 InInternalIndex, const bool bRecursive)
 {
+
+	if (bIsSubCollection)
+	{
+		Super::UpdateStaging(OwningCollection, InInternalIndex, bRecursive);
+		return;
+	}
+	
 	if (Staging.InternalIndex == -1 && GetDefault<UPCGExGlobalSettings>()->bDisableCollisionByDefault)
 	{
 		ISMDescriptor.BodyInstance.SetCollisionEnabled(ECollisionEnabled::Type::NoCollision);
 		SMDescriptor.BodyInstance.SetCollisionEnabled(ECollisionEnabled::Type::NoCollision);
-	}
-
-	if (bIsSubCollection)
-	{
-		Staging.Path = SubCollection.ToSoftObjectPath();
-		if (bRecursive) { if (UPCGExMeshCollection* Ptr = PCGExHelpers::ForceLoad(SubCollection)) { Ptr->RebuildStagingData(true); } }
-		Super::UpdateStaging(OwningCollection, InInternalIndex, bRecursive);
-		return;
 	}
 
 	Staging.Path = StaticMesh.ToSoftObjectPath();
@@ -162,29 +181,12 @@ void FPCGExMeshCollectionEntry::InitPCGSoftISMDescriptor(FPCGSoftISMComponentDes
 #endif
 
 #if WITH_EDITOR
-void FPCGExMeshCollectionEntry::EDITOR_Sanitize()
-{
-	FPCGExAssetCollectionEntry::EDITOR_Sanitize();
-	if (!bIsSubCollection)
-	{
-		if (StaticMesh) { ISMDescriptor.StaticMesh = StaticMesh; }
-		//else if (ISMDescriptor.StaticMesh && !StaticMesh) { StaticMesh = ISMDescriptor.StaticMesh; }
-	}
-}
-#endif
-
-void FPCGExMeshCollectionEntry::OnSubCollectionLoaded()
-{
-	SubCollectionPtr = Cast<UPCGExMeshCollection>(BaseSubCollectionPtr);
-}
-
-#if WITH_EDITOR
 void UPCGExMeshCollection::EDITOR_RefreshDisplayNames()
 {
 	Super::EDITOR_RefreshDisplayNames();
 	for (FPCGExMeshCollectionEntry& Entry : Entries)
 	{
-		FString DisplayName = Entry.bIsSubCollection ? TEXT("[") + Entry.SubCollection.GetAssetName() + TEXT("]") : Entry.StaticMesh.GetAssetName();
+		FString DisplayName = Entry.bIsSubCollection ? TEXT("[") + Entry.SubCollection.GetName() + TEXT("]") : Entry.StaticMesh.GetAssetName();
 		DisplayName += FString::Printf(TEXT(" @ %d "), Entry.Weight);
 		Entry.DisplayName = FName(DisplayName);
 	}

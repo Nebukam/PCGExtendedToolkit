@@ -208,7 +208,7 @@ namespace PCGExFindContours
 	void FProcessor::Cleanup()
 	{
 		TProcessor<FPCGExFindContoursContext, UPCGExFindContoursSettings>::Cleanup();
-		CellsConstraints->Cleanup();
+		if (CellsConstraints) { CellsConstraints->Cleanup(); }
 	}
 
 	void FBatch::Process()

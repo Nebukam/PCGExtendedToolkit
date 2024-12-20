@@ -70,6 +70,8 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExTopologyEdgesProcessorContext : FPCGExEd
 
 	TArray<FString> ComponentTags;
 	TSet<AActor*> NotifyActors;
+
+	virtual void RegisterAssetDependencies() override;
 };
 
 class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExTopologyEdgesProcessorElement : public FPCGExEdgesProcessorElement
@@ -198,7 +200,7 @@ namespace PCGExTopologyEdges
 			Settings->Topology.TemplateDescriptor.InitComponent(DynamicMeshComponent);
 
 			DynamicMeshComponent->SetDynamicMesh(InternalMesh);
-			if (UMaterialInterface* Material = PCGExHelpers::ForceLoad(Settings->Topology.Material))
+			if (UMaterialInterface* Material = Settings->Topology.Material.Get())
 			{
 				DynamicMeshComponent->SetMaterial(0, Material);
 			}
