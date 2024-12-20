@@ -106,12 +106,13 @@ protected:
 	PCGEx::ContextState CurrentState;
 
 #pragma endregion
-
-#if PCGEX_ENGINE_VERSION < 505
 	
+#if PCGEX_ENGINE_VERSION < 505
+
 	// Lazy initialized shared handle pointer that can be used in lambda captures to test if Context is still valid before accessing it
 	TSharedPtr<FPCGContextHandle> Handle;
 
+public:
 	TWeakPtr<FPCGContextHandle> GetOrCreateHandle()
 	{
 		if (!Handle) { Handle = MakeShared<FPCGContextHandle>(this); }
@@ -126,7 +127,7 @@ protected:
 	}
 
 #endif
-
+	
 #pragma region Async resource management
 
 public:
