@@ -389,6 +389,8 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExSampleNearestSplineContext final : FPCGE
 	const FRichCurve* WeightCurve = nullptr;
 
 	PCGEX_FOREACH_FIELD_NEARESTPOLYLINE(PCGEX_OUTPUT_DECL_TOGGLE)
+
+	virtual void RegisterAssetDependencies() override;
 };
 
 class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExSampleNearestSplineElement final : public FPCGExPointsProcessorElement
@@ -401,6 +403,7 @@ public:
 
 protected:
 	virtual bool Boot(FPCGExContext* InContext) const override;
+	virtual void PostLoadAssetsDependencies(FPCGExContext* InContext) const override;
 	virtual bool ExecuteInternal(FPCGContext* Context) const override;
 };
 

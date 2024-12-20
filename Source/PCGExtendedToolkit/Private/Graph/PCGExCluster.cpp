@@ -268,14 +268,15 @@ namespace PCGExCluster
 		Edges->Append(SubGraph->FlattenedEdges);
 
 		TArray<FEdge>& EdgesRef = *Edges;
+		TArray<FNode>& NodesRef = *Nodes;
 
 		for (const FEdge& E : EdgesRef)
 		{
 			const int32 StartNode = GetOrCreateNodeUnsafe(SubVtxPoints, E.Start);
 			const int32 EndNode = GetOrCreateNodeUnsafe(SubVtxPoints, E.End);
 
-			(Nodes->GetData() + StartNode)->Link(EndNode, E.Index);
-			(Nodes->GetData() + EndNode)->Link(StartNode, E.Index);
+			NodesRef[StartNode].Link(EndNode, E.Index);
+			NodesRef[EndNode].Link(StartNode, E.Index);
 		}
 
 		Bounds = Bounds.ExpandBy(10);

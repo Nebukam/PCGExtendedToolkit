@@ -44,7 +44,7 @@ void UPCGExHeuristicAttribute::PrepareForCluster(const TSharedPtr<const PCGExClu
 		for (const PCGExCluster::FNode& Node : (*InCluster->Nodes))
 		{
 			const double NormalizedValue = PCGExMath::Remap(ModifiersCache->Read(Node.PointIndex), MinValue, MaxValue, OutMin, OutMax);
-			CachedScores[Node.Index] += FMath::Max(0, ScoreCurveObj->Eval(NormalizedValue)) * Factor;
+			CachedScores[Node.Index] += FMath::Max(0, ScoreCurve->Eval(NormalizedValue)) * Factor;
 		}
 	}
 	else
@@ -52,7 +52,7 @@ void UPCGExHeuristicAttribute::PrepareForCluster(const TSharedPtr<const PCGExClu
 		for (int i = 0; i < NumPoints; i++)
 		{
 			const double NormalizedValue = PCGExMath::Remap(ModifiersCache->Read(i), MinValue, MaxValue, OutMin, OutMax);
-			CachedScores[i] += FMath::Max(0, ScoreCurveObj->Eval(NormalizedValue)) * Factor;
+			CachedScores[i] += FMath::Max(0, ScoreCurve->Eval(NormalizedValue)) * Factor;
 		}
 	}
 }
@@ -64,6 +64,8 @@ UPCGExHeuristicOperation* UPCGExHeuristicsFactoryAttribute::CreateOperation(FPCG
 	NewOperation->Attribute = Config.Attribute;
 	return NewOperation;
 }
+
+PCGEX_HEURISTIC_FACTORY_BOILERPLATE_IMPL(Attribute, {})
 
 UPCGExParamFactoryBase* UPCGExCreateHeuristicAttributeSettings::CreateFactory(FPCGExContext* InContext, UPCGExParamFactoryBase* InFactory) const
 {

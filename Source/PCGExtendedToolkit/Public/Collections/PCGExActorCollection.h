@@ -42,10 +42,12 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExActorCollectionEntry : public FPCGExAsse
 			Actor == Other.Actor;
 	}
 
+	virtual void GetAssetPaths(TSet<FSoftObjectPath>& OutPaths) const override;
+
 	virtual bool Validate(const UPCGExAssetCollection* ParentCollection) override;
 	virtual void UpdateStaging(const UPCGExAssetCollection* OwningCollection, int32 InInternalIndex, const bool bRecursive) override;
 	virtual void SetAssetPath(const FSoftObjectPath& InPath) override;
-
+	
 protected:
 	virtual void OnSubCollectionLoaded() override;
 };
@@ -66,6 +68,4 @@ public:
 	TArray<FPCGExActorCollectionEntry> Entries;
 
 	PCGEX_ASSET_COLLECTION_BOILERPLATE(UPCGExActorCollection, FPCGExActorCollectionEntry)
-
-	virtual void GetAssetPaths(TSet<FSoftObjectPath>& OutPaths, const PCGExAssetCollection::ELoadingFlags Flags) const override;
 };

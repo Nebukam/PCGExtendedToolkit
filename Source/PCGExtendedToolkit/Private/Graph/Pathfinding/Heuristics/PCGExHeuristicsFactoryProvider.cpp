@@ -8,11 +8,7 @@
 
 void FPCGExHeuristicConfigBase::Init()
 {
-	if (!bUseLocalCurve)
-	{
-		LocalScoreCurve.ExternalCurve = PCGExHelpers::ForceLoad(ScoreCurve, PCGEx::WeightDistributionLinear);
-	}
-
+	if (!bUseLocalCurve) { LocalScoreCurve.ExternalCurve = ScoreCurve.Get(); }
 	ScoreCurveObj = LocalScoreCurve.GetRichCurveConst();
 }
 

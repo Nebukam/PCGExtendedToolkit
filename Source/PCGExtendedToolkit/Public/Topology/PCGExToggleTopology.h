@@ -48,7 +48,7 @@ protected:
 	bool bFilterByTag = false;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bFilterByTag", EditConditionHides))
-	FName FilterByTag = FName("PCGExTopology");
+	FName CommaSeparatedTagFilters = FName("PCGExTopology");
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable), AdvancedDisplay)
 	TSoftObjectPtr<AActor> TargetActor;
@@ -65,7 +65,7 @@ class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExToggleTopologyElement final : public IPCG
 public:
 	virtual FPCGContext* Initialize(const FPCGDataCollection& InputData, TWeakObjectPtr<UPCGComponent> SourceComponent, const UPCGNode* Node) override;
 	virtual bool IsCacheable(const UPCGSettings* InSettings) const override { return false; }
-	virtual bool CanExecuteOnlyOnMainThread(FPCGContext* Context) const override { return true; }
+	PCGEX_CAN_ONLY_EXECUTE_ON_MAIN_THREAD(true)
 
 	//virtual void DisabledPassThroughData(FPCGContext* Context) const override;
 

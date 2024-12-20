@@ -66,6 +66,14 @@ TArray<FPCGPinProperties> UPCGExSampleInsideBoundsSettings::InputPinProperties()
 
 PCGExData::EIOInit UPCGExSampleInsideBoundsSettings::GetMainOutputInitMode() const { return PCGExData::EIOInit::Duplicate; }
 
+void FPCGExSampleInsideBoundsContext::RegisterAssetDependencies()
+{
+	PCGEX_SETTINGS_LOCAL(SampleInsideBounds)
+
+	FPCGExPointsProcessorContext::RegisterAssetDependencies();
+	AddAssetDependency(Settings->WeightOverDistance.ToSoftObjectPath());
+}
+
 PCGEX_INITIALIZE_ELEMENT(SampleInsideBounds)
 
 bool FPCGExSampleInsideBoundsElement::Boot(FPCGExContext* InContext) const
@@ -89,15 +97,6 @@ bool FPCGExSampleInsideBoundsElement::Boot(FPCGExContext* InContext) const
 
 	PCGEX_FOREACH_FIELD_INSIDEBOUNDS(PCGEX_OUTPUT_VALIDATE_NAME)
 
-	Context->RuntimeWeightCurve = Settings->LocalWeightOverDistance;
-	if (!Settings->bUseLocalCurve)
-	{
-		Context->RuntimeWeightCurve.EditorCurveData.AddKey(0, 0);
-		Context->RuntimeWeightCurve.EditorCurveData.AddKey(1, 1);
-		Context->RuntimeWeightCurve.ExternalCurve = PCGExHelpers::ForceLoad(Settings->WeightOverDistance);
-	}
-	Context->WeightCurve = Context->RuntimeWeightCurve.GetRichCurveConst();
-
 	Context->DistanceDetails = Settings->DistanceDetails.MakeDistances();
 
 	Context->TargetPoints = &Context->TargetsFacade->Source->GetIn()->GetPoints();
@@ -115,6 +114,24 @@ bool FPCGExSampleInsideBoundsElement::Boot(FPCGExContext* InContext) const
 	Context->BlendingDetails.RegisterBuffersDependencies(Context, Context->TargetsFacade, *Context->TargetsPreloader);
 
 	return true;
+}
+
+void FPCGExSampleInsideBoundsElement::PostLoadAssetsDependencies(FPCGExContext* InContext) const
+{
+	FPCGExPointsProcessorElement::PostLoadAssetsDependencies(InContext);
+
+	PCGEX_CONTEXT_AND_SETTINGS(SampleInsideBounds)
+
+	Context->RuntimeWeightCurve = Settings->LocalWeightOverDistance;
+
+	if (!Settings->bUseLocalCurve)
+	{
+		Context->RuntimeWeightCurve.EditorCurveData.AddKey(0, 0);
+		Context->RuntimeWeightCurve.EditorCurveData.AddKey(1, 1);
+		Context->RuntimeWeightCurve.ExternalCurve = Settings->WeightOverDistance.Get();
+	}
+	
+	Context->WeightCurve = Context->RuntimeWeightCurve.GetRichCurveConst();
 }
 
 bool FPCGExSampleInsideBoundsElement::ExecuteInternal(FPCGContext* InContext) const
