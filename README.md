@@ -47,6 +47,7 @@ To contribute, fork main and please make sure that your code :
 * Compile & Package on 5.3
 * Compile & Package on 5.4
 * Compile & Package on 5.5
+  
 *Plugin packaging works differently from project packaging, please check both!*
 
 ### Disclaimer
