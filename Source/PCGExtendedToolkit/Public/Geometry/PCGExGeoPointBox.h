@@ -6,6 +6,7 @@
 #include "CoreMinimal.h"
 #include "PCGEx.h"
 #include "PCGExMath.h"
+#include "PCGExHelpers.h"
 #include "Data/PCGPointData.h"
 
 #include "PCGExGeoPointBox.generated.h"

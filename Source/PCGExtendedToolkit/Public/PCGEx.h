@@ -17,6 +17,7 @@
 #include "Components/StaticMeshComponent.h"
 #include "StaticMeshResources.h"
 
+#include "PCGExHelpers.h"
 #include "PCGComponent.h"
 #include "PCGContext.h"
 #include "PCGExH.h"
