@@ -306,7 +306,7 @@ namespace PCGExPathSplineMeshSimple
 
 			Segment.ApplySettings(SplineMeshComponent); // Init Component
 			SplineMeshComponent->SetStaticMesh(Mesh);   // Will trigger a force rebuild, so put this last
-
+			
 			if (Settings->TaggingDetails.bForwardInputDataTags) { SplineMeshComponent->ComponentTags.Append(DataTags); }
 			if (!Segment.Tags.IsEmpty()) { SplineMeshComponent->ComponentTags.Append(Segment.Tags.Array()); }
 

@@ -19,9 +19,8 @@
 /// 
 #define PCGEX_SAMPLER_CREATE\
 	NewOperation->SamplingConfig = SamplingConfig; \
-	if (!SamplingConfig.bUseLocalCurve)\
-	NewOperation->SamplingConfig.LocalWeightCurve.ExternalCurve = PCGExHelpers::ForceLoad(NewOperation->SamplingConfig.WeightCurve, PCGEx::WeightDistributionLinear);\
-	NewOperation->WeightCurveObj = NewOperation->SamplingConfig.LocalWeightCurve.GetRichCurveConst();\
+	if (SamplingConfig.bUseLocalCurve){	NewOperation->SamplingConfig.LocalWeightCurve.ExternalCurve = SamplingConfig.WeightCurve.Get(); }\
+	NewOperation->WeightCurveObj = SamplingConfig.LocalWeightCurve.GetRichCurveConst();\
 	NewOperation->PointFilterFactories.Append(PointFilterFactories); \
 	NewOperation->ValueFilterFactories.Append(ValueFilterFactories);
 
@@ -158,6 +157,8 @@ public:
 	virtual void RegisterBuffersDependencies(FPCGExContext* InContext, const TSharedRef<PCGExData::FFacade>& InDataFacade, PCGExData::FFacadePreloader& FacadePreloader) const
 	{
 	}
+
+	virtual void RegisterAssetDependencies(FPCGExContext* InContext) const override;
 };
 
 UCLASS(Abstract, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|NeighborSample")

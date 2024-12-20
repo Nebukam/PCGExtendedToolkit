@@ -11,6 +11,8 @@ UPCGExHeuristicOperation* UPCGExHeuristicsFactoryLeastNodes::CreateOperation(FPC
 	return NewOperation;
 }
 
+PCGEX_HEURISTIC_FACTORY_BOILERPLATE_IMPL(LeastNodes, {})
+
 UPCGExParamFactoryBase* UPCGExHeuristicsLeastNodesProviderSettings::CreateFactory(FPCGExContext* InContext, UPCGExParamFactoryBase* InFactory) const
 {
 	UPCGExHeuristicsFactoryLeastNodes* NewFactory = InContext->ManagedObjects->New<UPCGExHeuristicsFactoryLeastNodes>();

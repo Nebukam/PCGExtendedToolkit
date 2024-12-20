@@ -286,6 +286,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExSampleInsideBoundsContext final : FPCGEx
 {
 	friend class FPCGExSampleInsideBoundsElement;
 
+	virtual void RegisterAssetDependencies() override;
 
 	TSharedPtr<PCGExData::FFacadePreloader> TargetsPreloader;
 	TSharedPtr<PCGExData::FFacade> TargetsFacade;
@@ -313,6 +314,7 @@ public:
 
 protected:
 	virtual bool Boot(FPCGExContext* InContext) const override;
+	virtual void PostLoadAssetsDependencies(FPCGExContext* InContext) const override;
 	virtual bool ExecuteInternal(FPCGContext* Context) const override;
 };
 

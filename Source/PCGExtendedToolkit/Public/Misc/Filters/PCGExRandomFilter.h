@@ -21,6 +21,8 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExRandomFilterConfig
 
 	FPCGExRandomFilterConfig()
 	{
+		LocalWeightCurve.EditorCurveData.AddKey(0, 0);
+		LocalWeightCurve.EditorCurveData.AddKey(1, 1);
 	}
 
 	/** TBD */
@@ -43,6 +45,21 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExRandomFilterConfig
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName=" └─ Remap to 0..1", EditCondition="bPerPointWeight", HideEditConditionToggle, EditConditionHides))
 	bool bRemapWeightInternally = false;
 
+
+	/** Whether to use in-editor curve or an external asset. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable, DisplayPriority=-1))
+	bool bUseLocalCurve = false;
+
+	// TODO: DirtyCache for OnDependencyChanged when this float curve is an external asset
+	/** Curve the value will be remapped over. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_NotOverridable, DisplayName="Weight Curve", EditCondition = "bUseLocalCurve", EditConditionHides))
+	FRuntimeFloatCurve LocalWeightCurve;
+
+	/** Curve the value will be remapped over. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Weight Curve", EditCondition="!bUseLocalCurve", EditConditionHides))
+	TSoftObjectPtr<UCurveFloat> WeightCurve = TSoftObjectPtr<UCurveFloat>(PCGEx::WeightDistributionLinear);
+	
+	
 	/** TBD */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	bool bInvertResult = false;
@@ -58,9 +75,15 @@ class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExRandomFilterFactory : public UPCGExFilter
 	GENERATED_BODY()
 
 public:
+	FRuntimeFloatCurve RuntimeWeightCurve;	
+		
 	FPCGExRandomFilterConfig Config;
 
+	virtual bool Init(FPCGExContext* InContext) override;
+	
 	virtual void RegisterBuffersDependencies(FPCGExContext* InContext, PCGExData::FFacadePreloader& FacadePreloader) const override;
+	virtual void RegisterAssetDependencies(FPCGExContext* InContext) const override;
+	
 	virtual TSharedPtr<PCGExPointFilter::FFilter> CreateFilter() const override;
 };
 
@@ -84,12 +107,14 @@ namespace PCGExPointsFilter
 		double WeightRange = 1;
 		double Threshold = 0.5;
 
+		const FRichCurve* WeightCurve = nullptr;
+
 		virtual bool Init(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade> InPointDataFacade) override;
 
 		FORCEINLINE virtual bool Test(const int32 PointIndex) const override
 		{
 			const double LocalWeightRange = WeightBuffer ? WeightOffset + WeightBuffer->Read(PointIndex) : WeightRange;
-			const float RandomValue = (FRandomStream(PCGExRandom::GetRandomStreamFromPoint(PointDataFacade->Source->GetInPoint(PointIndex), RandomSeed)).GetFraction() * LocalWeightRange) / WeightRange;
+			const float RandomValue = WeightCurve->Eval((FRandomStream(PCGExRandom::GetRandomStreamFromPoint(PointDataFacade->Source->GetInPoint(PointIndex), RandomSeed)).GetFraction() * LocalWeightRange) / WeightRange);
 			return TypedFilterFactory->Config.bInvertResult ? RandomValue <= Threshold : RandomValue >= Threshold;
 		}
 

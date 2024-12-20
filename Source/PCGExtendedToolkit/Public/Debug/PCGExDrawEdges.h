@@ -83,7 +83,7 @@ public:
 		TWeakObjectPtr<UPCGComponent> SourceComponent,
 		const UPCGNode* Node) override;
 
-	virtual bool CanExecuteOnlyOnMainThread(FPCGContext* Context) const override { return true; }
+	PCGEX_CAN_ONLY_EXECUTE_ON_MAIN_THREAD(true)
 
 protected:
 	virtual bool Boot(FPCGExContext* InContext) const override;

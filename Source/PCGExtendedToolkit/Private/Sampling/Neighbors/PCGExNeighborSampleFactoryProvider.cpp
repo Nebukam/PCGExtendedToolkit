@@ -168,6 +168,12 @@ UPCGExNeighborSampleOperation* UPCGExNeighborSamplerFactoryBase::CreateOperation
 	return NewOperation;
 }
 
+void UPCGExNeighborSamplerFactoryBase::RegisterAssetDependencies(FPCGExContext* InContext) const
+{
+	Super::RegisterAssetDependencies(InContext);
+	InContext->AddAssetDependency(SamplingConfig.WeightCurve.ToSoftObjectPath());
+}
+
 TArray<FPCGPinProperties> UPCGExNeighborSampleProviderSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();

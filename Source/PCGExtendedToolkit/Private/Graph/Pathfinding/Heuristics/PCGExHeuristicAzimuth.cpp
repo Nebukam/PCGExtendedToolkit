@@ -26,6 +26,8 @@ UPCGExHeuristicOperation* UPCGExHeuristicsFactoryAzimuth::CreateOperation(FPCGEx
 	return NewOperation;
 }
 
+PCGEX_HEURISTIC_FACTORY_BOILERPLATE_IMPL(Azimuth, {})
+
 UPCGExParamFactoryBase* UPCGExHeuristicsAzimuthProviderSettings::CreateFactory(FPCGExContext* InContext, UPCGExParamFactoryBase* InFactory) const
 {
 	UPCGExHeuristicsFactoryAzimuth* NewFactory = InContext->ManagedObjects->New<UPCGExHeuristicsFactoryAzimuth>();

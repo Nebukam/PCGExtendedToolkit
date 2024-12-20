@@ -11,6 +11,12 @@
 
 PCGExData::EIOInit UPCGExAttributeRemapSettings::GetMainOutputInitMode() const { return PCGExData::EIOInit::Duplicate; }
 
+void FPCGExAttributeRemapContext::RegisterAssetDependencies()
+{
+	FPCGExPointsProcessorContext::RegisterAssetDependencies();
+	for (const FPCGExComponentRemapRule& Rule : RemapSettings) { AddAssetDependency(Rule.RemapDetails.RemapCurve.ToSoftObjectPath()); }
+}
+
 PCGEX_INITIALIZE_ELEMENT(AttributeRemap)
 
 bool FPCGExAttributeRemapElement::Boot(FPCGExContext* InContext) const
@@ -27,14 +33,21 @@ bool FPCGExAttributeRemapElement::Boot(FPCGExContext* InContext) const
 	Context->RemapSettings[2] = Settings->Component3RemapOverride;
 	Context->RemapSettings[3] = Settings->Component4RemapOverride;
 
+	return true;
+}
+
+void FPCGExAttributeRemapElement::PostLoadAssetsDependencies(FPCGExContext* InContext) const
+{
+	FPCGExPointsProcessorElement::PostLoadAssetsDependencies(InContext);
+
+	PCGEX_CONTEXT_AND_SETTINGS(AttributeRemap)
+	
 	for (int i = 0; i < 4; i++) { Context->RemapSettings[i].RemapDetails.Init(); }
 
 	Context->RemapIndices[0] = 0;
 	Context->RemapIndices[1] = Settings->bOverrideComponent2 ? 1 : 0;
 	Context->RemapIndices[2] = Settings->bOverrideComponent3 ? 2 : 0;
 	Context->RemapIndices[3] = Settings->bOverrideComponent4 ? 3 : 0;
-
-	return true;
 }
 
 bool FPCGExAttributeRemapElement::ExecuteInternal(FPCGContext* InContext) const

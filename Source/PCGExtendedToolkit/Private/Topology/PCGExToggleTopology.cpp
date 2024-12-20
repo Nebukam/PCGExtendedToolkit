@@ -59,7 +59,7 @@ bool FPCGExToggleTopologyElement::ExecuteInternal(FPCGContext* InContext) const
 		{
 			if (!Component) { continue; }
 
-			if (Settings->bFilterByTag && !Component->ComponentHasTag(Settings->FilterByTag)) { continue; }
+			if (Settings->bFilterByTag && !Component->ComponentHasTag(Settings->CommaSeparatedTagFilters)) { continue; }
 
 			if (Settings->Action == EPCGExToggleTopologyAction::Remove)
 			{

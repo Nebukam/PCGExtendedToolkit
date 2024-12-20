@@ -74,6 +74,9 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExTopologyEdgesProcessorContext : FPCGExEd
 
 class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExTopologyEdgesProcessorElement : public FPCGExEdgesProcessorElement
 {
+public:
+	PCGEX_CAN_ONLY_EXECUTE_ON_MAIN_THREAD(true)
+	
 protected:
 	virtual bool Boot(FPCGExContext* InContext) const override;
 };
