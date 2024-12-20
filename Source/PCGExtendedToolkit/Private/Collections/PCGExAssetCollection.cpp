@@ -12,9 +12,7 @@ namespace PCGExAssetCollection
 	void FCategory::RegisterEntry(const int32 Index, const FPCGExAssetCollectionEntry* InEntry)
 	{
 		Entries.Add(InEntry);
-
 		Indices.Add(Index);
-
 		Weights.Add(InEntry->Weight);
 	}
 
@@ -41,8 +39,8 @@ bool FPCGExAssetCollectionEntry::Validate(const UPCGExAssetCollection* ParentCol
 {
 	if (bIsSubCollection)
 	{
-		if (!BaseSubCollectionPtr) { return false; }
-		BaseSubCollectionPtr->LoadCache();
+		if (!InternalSubCollection) { return false; }
+		InternalSubCollection->LoadCache();
 	}
 	return true;
 }
@@ -50,16 +48,25 @@ bool FPCGExAssetCollectionEntry::Validate(const UPCGExAssetCollection* ParentCol
 void FPCGExAssetCollectionEntry::UpdateStaging(const UPCGExAssetCollection* OwningCollection, const int32 InInternalIndex, const bool bRecursive)
 {
 	Staging.InternalIndex = InInternalIndex;
-	if (bIsSubCollection) { Staging.Bounds = FBox(ForceInitToZero); }
+
+	if (bIsSubCollection)
+	{
+		Staging.Bounds = FBox(ForceInitToZero);
+		if (InternalSubCollection)
+		{
+			Staging.Path = FSoftObjectPath(InternalSubCollection.GetPathName());
+			if (bRecursive) { InternalSubCollection->RebuildStagingData(true); }
+		}
+		else
+		{
+			Staging.Path = FSoftObjectPath{};
+		}
+	}
 }
 
 void FPCGExAssetCollectionEntry::GetAssetPaths(TSet<FSoftObjectPath>& OutPaths) const
 {
 	OutPaths.Add(Staging.Path);
-}
-
-void FPCGExAssetCollectionEntry::OnSubCollectionLoaded()
-{
 }
 
 namespace PCGExAssetCollection

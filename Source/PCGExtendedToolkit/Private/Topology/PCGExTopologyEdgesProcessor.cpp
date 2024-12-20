@@ -22,6 +22,15 @@ TArray<FPCGPinProperties> UPCGExTopologyEdgesProcessorSettings::InputPinProperti
 	return PinProperties;
 }
 
+void FPCGExTopologyEdgesProcessorContext::RegisterAssetDependencies()
+{
+	PCGEX_SETTINGS_LOCAL(TopologyEdgesProcessor)
+	
+	FPCGExEdgesProcessorContext::RegisterAssetDependencies();
+	
+	AddAssetDependency(Settings->Topology.Material.ToSoftObjectPath());
+}
+
 bool FPCGExTopologyEdgesProcessorElement::Boot(FPCGExContext* InContext) const
 {
 	if (!FPCGExEdgesProcessorElement::Boot(InContext)) { return false; }
