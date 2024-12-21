@@ -19,28 +19,12 @@
     {
       "Name": "PCGExtendedToolkit",
       "Type": "Runtime",
-      "LoadingPhase": "Default",
-      "PlatformAllowList": [
-        "Win64",
-        "Mac",
-        "IOS",
-        "Android",
-        "Linux",
-        "LinuxArm64"
-      ]
+      "LoadingPhase": "Default"
     },
     {
       "Name": "PCGExtendedToolkitEditor",
       "Type": "Editor",
-      "LoadingPhase": "Default",
-      "PlatformAllowList": [
-        "Win64",
-        "Mac",
-        "IOS",
-        "Android",
-        "Linux",
-        "LinuxArm64"
-      ]
+      "LoadingPhase": "Default"
     }
   ],
   "Plugins": [
