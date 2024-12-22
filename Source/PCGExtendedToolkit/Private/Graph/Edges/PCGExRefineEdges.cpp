@@ -267,10 +267,10 @@ namespace PCGExRefineEdges
 			[PCGEX_ASYNC_THIS_CAPTURE](const PCGExMT::FScope& Scope)
 			{
 				PCGEX_ASYNC_THIS
-				const PCGExCluster::FCluster* Cluster = This->Cluster.Get();
+				const PCGExCluster::FCluster* LocalCluster = This->Cluster.Get();
 				for (int i = Scope.Start; i < Scope.End; i++)
 				{
-					if (PCGExCluster::FNode* Node = Cluster->GetNode(i); !Node->HasAnyValidEdges(Cluster)) { Node->bValid = false; }
+					if (PCGExCluster::FNode* Node = LocalCluster->GetNode(i); !Node->HasAnyValidEdges(LocalCluster)) { Node->bValid = false; }
 				}
 			};
 
@@ -283,13 +283,13 @@ namespace PCGExRefineEdges
 					[AsyncThis](const PCGExMT::FScope& Scope)
 					{
 						PCGEX_ASYNC_NESTED_THIS
-						const PCGExCluster::FCluster* Cluster = NestedThis->Cluster.Get();
+						const PCGExCluster::FCluster* LocalCluster = NestedThis->Cluster.Get();
 
 						for (int i = Scope.Start; i < Scope.End; i++)
 						{
-							PCGExGraph::FEdge* Edge = NestedThis->Cluster->GetEdge(i);
+							PCGExGraph::FEdge* Edge = LocalCluster->GetEdge(i);
 							if (Edge->bValid) { continue; }
-							if (Cluster->GetEdgeStart(i)->bValid && Cluster->GetEdgeEnd(i)->bValid) { Edge->bValid = true; }
+							if (LocalCluster->GetEdgeStart(i)->bValid && LocalCluster->GetEdgeEnd(i)->bValid) { Edge->bValid = true; }
 						}
 					};
 
@@ -321,13 +321,13 @@ namespace PCGExRefineEdges
 				{
 					PCGEX_ASYNC_THIS
 
-					const TSharedPtr<PCGExCluster::FCluster> Cluster = This->Cluster;
-					const TSharedPtr<PCGExClusterFilter::FManager> SanitizationFilterManager = This->SanitizationFilterManager;
+					const TSharedPtr<PCGExCluster::FCluster> LocalCluster = This->Cluster;
+					const TSharedPtr<PCGExClusterFilter::FManager> SanitizationFilters = This->SanitizationFilterManager;
 
 					for (int i = Scope.Start; i < Scope.End; i++)
 					{
-						PCGExGraph::FEdge& Edge = *Cluster->GetEdge(i);
-						if (SanitizationFilterManager->Test(Edge)) { Edge.bValid = true; }
+						PCGExGraph::FEdge& Edge = *LocalCluster->GetEdge(i);
+						if (SanitizationFilters->Test(Edge)) { Edge.bValid = true; }
 					}
 				};
 			SanitizeTaskGroup->StartSubLoops(EdgeDataFacade->GetNum(), PLI);
