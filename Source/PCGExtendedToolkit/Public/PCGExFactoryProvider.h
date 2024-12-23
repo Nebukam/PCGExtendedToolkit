@@ -157,7 +157,6 @@ namespace PCGExFactories
 					continue;
 				}
 
-
 				OutFactories.AddUnique(Factory);
 				Factory->RegisterAssetDependencies(InContext);
 
