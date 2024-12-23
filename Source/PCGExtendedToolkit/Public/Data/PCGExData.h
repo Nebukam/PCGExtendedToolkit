@@ -434,6 +434,12 @@ namespace PCGExData
 		{
 			if (!IsWritable() || !OutAccessor || !OutValues || !TypedOutAttribute) { return; }
 
+			if(!Source->GetOut())
+			{
+				UE_LOG(LogTemp, Error, TEXT("Attempting to write data to an output that's not initialized!"));
+				return;
+			}
+			
 			TRACE_CPUPROFILER_EVENT_SCOPE(TBuffer::Write);
 
 			TArrayView<const T> View = MakeArrayView(OutValues->GetData(), OutValues->Num());
