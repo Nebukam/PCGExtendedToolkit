@@ -16,6 +16,8 @@ It also comes with a set of lower-level, more generic features to manipulate att
 
 For questions & support, join the [PCGEx Discord Server](https://discord.gg/mde2vC5gbE)!
 
+#### *You can also get it from [FAB](https://www.fab.com/listings/3f0bea1c-7406-4441-951b-8b2ca155f624)!*
+
 ## **[Example Project](https://github.com/Nebukam/PCGExExampleProject)**
 ![image](https://github.com/user-attachments/assets/b8bd713e-0b60-4cdc-84d9-dd776d452bf8)
 
