@@ -6433,15 +6433,15 @@
   },"1072": {
     "doc": "∷ Installation",
     "title": "FAB Plugin",
-    "content": "The easiest way to install PCGEx is to get it from FAB. FAB Release is coming Soon(tm) . The FAB release matches the latest Github release. ",
+    "content": "The easiest way to install PCGEx is to get it from FAB. (it’s free!) . PCGEx on FAB . The FAB release matches the FAB- branches on github, due to the submission &amp; validation process they will always be out of date compared to github’ latest. ",
     "url": "https://nebukam.github.io/PCGExtendedToolkit/installation.html#fab-plugin",
     "relUrl": "/installation.html#fab-plugin"
   },"1073": {
     "doc": "∷ Installation",
-    "title": "Drop-in Package",
+    "title": "Drop-in Package (Win64)",
     "content": "The second easiest way to install PCGEx is to download the packaged version of the plugin. However, for the sake of simplicity (and size), a packaged version only exist for the latest launcher minor release of the engine, at the time the PCGEx release was published. PCGEx for Unreal 5.5 PCGEx for Unreal 5.4 PCGEx for Unreal 5.3 . Simply download one of the .zip above and put PCGExtendedToolkit directly in your YourProject/Plugins/ folder. Note that these packages are created in windows, for windows – you can always compile the plugin yourself from the sources if the latest package doesn’t work for your version of the editor. ",
-    "url": "https://nebukam.github.io/PCGExtendedToolkit/installation.html#drop-in-package",
-    "relUrl": "/installation.html#drop-in-package"
+    "url": "https://nebukam.github.io/PCGExtendedToolkit/installation.html#drop-in-package-win64",
+    "relUrl": "/installation.html#drop-in-package-win64"
   },"1074": {
     "doc": "∷ Installation",
     "title": "Build from Source",

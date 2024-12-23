@@ -14,14 +14,14 @@ hidden_link: '{% include link_btn title="PCGEx on **FAB**" color="white" link="h
 
 ## FAB Plugin
 
-The easiest way to install PCGEx is to get it from FAB.  
-> FAB Release is coming Soon(tm)
-{: .error }
+The easiest way to install PCGEx is to get it from FAB. (it's free!)   
 
-> The FAB release matches the latest Github release.
+{% include link_btn title="PCGEx on FAB" color="red" link="https://www.fab.com/listings/3f0bea1c-7406-4441-951b-8b2ca155f624" icon="left" %}
+
+> The FAB release matches the `FAB-` branches on github, due to the submission & validation process they will always be out of date compared to github' latest.
 
 ---
-## Drop-in Package
+## Drop-in Package (Win64)
 
 The second easiest way to install PCGEx is to download the packaged version of the plugin.  
 However, for the sake of simplicity (and size), a packaged version only exist for the latest *launcher* minor release of the engine, at the time the PCGEx release was published.  
