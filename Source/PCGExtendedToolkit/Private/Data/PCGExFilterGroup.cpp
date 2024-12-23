@@ -105,6 +105,18 @@ namespace PCGExFilterGroup
 	}
 }
 
+void UPCGExFilterGroupFactoryBase::RegisterAssetDependencies(FPCGExContext* InContext) const
+{
+	Super::RegisterAssetDependencies(InContext);
+
+	// Ensure we grab dependencies from plugged-in factories
+	for(const TObjectPtr<const UPCGExFilterFactoryBase> SubFilter : FilterFactories)
+	{
+		SubFilter->RegisterAssetDependencies(InContext);
+	}
+	
+}
+
 TSharedPtr<PCGExPointFilter::FFilter> UPCGExFilterGroupFactoryBaseAND::CreateFilter() const
 {
 	PCGEX_MAKE_SHARED(NewFilterGroup, PCGExFilterGroup::FFilterGroupAND, this, &FilterFactories)
