@@ -212,7 +212,7 @@ void FPCGExContext::RegisterAssetDependencies()
 
 void FPCGExContext::AddAssetDependency(const FSoftObjectPath& Dependency)
 {
-	check(IsState(PCGEx::State_Preparation)) // Remove this
+	FWriteScopeLock WriteScopeLock(AssetDependenciesLock);
 	RequiredAssets.Add(Dependency);
 }
 
