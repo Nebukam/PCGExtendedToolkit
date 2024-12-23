@@ -35,6 +35,7 @@ public:
 
 	virtual PCGExFactories::EType GetFactoryType() const override { return PCGExFactories::EType::FilterGroup; }
 	virtual TSharedPtr<PCGExPointFilter::FFilter> CreateFilter() const override { return nullptr; }
+	virtual void RegisterAssetDependencies(FPCGExContext* InContext) const override;
 };
 
 /**

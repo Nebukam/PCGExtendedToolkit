@@ -54,6 +54,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExContext : FPCGContext
 {
 protected:
 	mutable FRWLock StagedOutputLock;
+	mutable FRWLock AssetDependenciesLock;
 
 	TArray<FPCGTaggedData> StagedOutputs;
 	bool bFlattenOutput = false;
