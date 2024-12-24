@@ -110,7 +110,7 @@ void UPCGExFilterGroupFactoryBase::RegisterAssetDependencies(FPCGExContext* InCo
 	Super::RegisterAssetDependencies(InContext);
 
 	// Ensure we grab dependencies from plugged-in factories
-	for(const TObjectPtr<const UPCGExFilterFactoryBase> SubFilter : FilterFactories)
+	for(const TObjectPtr<const UPCGExFilterFactoryBase>& SubFilter : FilterFactories)
 	{
 		SubFilter->RegisterAssetDependencies(InContext);
 	}
