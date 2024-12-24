@@ -20,6 +20,7 @@ MACRO(Transform, FTransform, FTransform::Identity)\
 MACRO(LookAtTransform, FTransform, FTransform::Identity)\
 MACRO(Distance, double, 0)\
 MACRO(SignedDistance, double, 0)\
+MACRO(ComponentWiseDistance, FVector, FVector::ZeroVector)\
 MACRO(Angle, double, 0)\
 MACRO(NumSamples, int32, 0)\
 MACRO(SampledIndex, int32, -1)
@@ -72,7 +73,7 @@ namespace PCGExInsideBounds
 	};
 }
 
-UCLASS(Abstract, MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc")
+UCLASS(Abstract, MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Sampling")
 class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExSampleInsideBoundsSettings : public UPCGExPointsProcessorSettings
 {
 	GENERATED_BODY()
@@ -225,6 +226,18 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(PCG_Overridable, DisplayName=" └─ Axis", EditCondition="bWriteSignedDistance", EditConditionHides, HideEditConditionToggle))
 	EPCGExAxis SignAxis = EPCGExAxis::Forward;
 
+	/** Write the sampled component-wise distance. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(PCG_Overridable, InlineEditConditionToggle))
+	bool bWriteComponentWiseDistance = false;
+
+	/** Name of the 'FVector' attribute to write component-wise distance to.*/
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(DisplayName="Component Wise Distance", PCG_Overridable, EditCondition="bWriteComponentWiseDistance"))
+	FName ComponentWiseDistanceAttributeName = FName("CWDistance");
+
+	/** Whether to output absolute or signed component wise distances */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(PCG_Overridable, DisplayName=" └─ Absolute", EditCondition="bWriteComponentWiseDistance", EditConditionHides, HideEditConditionToggle))
+	bool bAbsoluteComponentWiseDistance = true;
+	
 	/** Write the sampled angle. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(PCG_Overridable, InlineEditConditionToggle))
 	bool bWriteAngle = false;

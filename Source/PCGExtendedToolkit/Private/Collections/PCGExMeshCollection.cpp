@@ -157,7 +157,7 @@ void FPCGExMeshCollectionEntry::UpdateStaging(const UPCGExAssetCollection* Ownin
 		}
 	}
 
-	const UStaticMesh* M = PCGExHelpers::ForceLoad(StaticMesh);
+	const UStaticMesh* M = PCGExHelpers::LoadBlocking_AnyThread(StaticMesh);
 	PCGExAssetCollection::UpdateStagingBounds(Staging, M);
 
 	Super::UpdateStaging(OwningCollection, InInternalIndex, bRecursive);

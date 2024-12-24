@@ -134,19 +134,18 @@ public:
 public:
 	void CancelAssetLoading();
 
-	bool HasAssetRequirements() const { return !RequiredAssets.IsEmpty(); }
+	TSet<FSoftObjectPath>& GetRequiredAssets();
+	bool HasAssetRequirements() const { return RequiredAssets && !RequiredAssets->IsEmpty(); }
 
 	virtual void RegisterAssetDependencies();
 	void AddAssetDependency(const FSoftObjectPath& Dependency);
 	void LoadAssets();
 
-	TSet<FSoftObjectPath>& GetRequiredAssets() { return RequiredAssets; }
-
 protected:
 	bool bForceSynchronousAssetLoad = false;
 	bool bAssetLoadRequested = false;
 	bool bAssetLoadError = false;
-	TSet<FSoftObjectPath> RequiredAssets;
+	TSharedPtr<TSet<FSoftObjectPath>> RequiredAssets;
 
 	/** Handle holder for any loaded resources */
 	TSharedPtr<FStreamableHandle> LoadHandle;

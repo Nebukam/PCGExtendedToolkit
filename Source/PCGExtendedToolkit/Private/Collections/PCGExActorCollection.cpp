@@ -40,7 +40,7 @@ void FPCGExActorCollectionEntry::UpdateStaging(const UPCGExAssetCollection* Owni
 	}
 
 	Staging.Path = Actor.ToSoftObjectPath();
-	const AActor* A = PCGExHelpers::ForceLoad(Actor);
+	const AActor* A = PCGExHelpers::LoadBlocking_AnyThread(Actor);
 
 	PCGExAssetCollection::UpdateStagingBounds(Staging, A);
 

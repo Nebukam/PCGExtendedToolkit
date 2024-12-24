@@ -244,6 +244,7 @@ namespace PCGExSampleNearestSpline
 		PCGEX_OUTPUT_VALUE(Distance, Index, FailSafeDist)
 		PCGEX_OUTPUT_VALUE(Depth, Index, Settings->bInvertDepth ? 1-InDepth : InDepth)
 		PCGEX_OUTPUT_VALUE(SignedDistance, Index, FailSafeDist)
+		PCGEX_OUTPUT_VALUE(ComponentWiseDistance, Index, FVector(FailSafeDist))
 		PCGEX_OUTPUT_VALUE(Angle, Index, 0)
 		PCGEX_OUTPUT_VALUE(Time, Index, -1)
 		PCGEX_OUTPUT_VALUE(NumInside, Index, -1)
@@ -482,7 +483,8 @@ namespace PCGExSampleNearestSpline
 
 		WeightedUp.Normalize();
 
-		FVector LookAt = (Point.Transform.GetLocation() - WeightedTransform.GetLocation()).GetSafeNormal();
+		const FVector CWDistance = Origin - WeightedTransform.GetLocation();
+		FVector LookAt = CWDistance.GetSafeNormal();
 		const double WeightedDistance = FVector::Dist(Origin, WeightedTransform.GetLocation());
 
 		SampleState[Index] = Stats.IsValid();
@@ -492,6 +494,7 @@ namespace PCGExSampleNearestSpline
 		PCGEX_OUTPUT_VALUE(Distance, Index, WeightedDistance)
 		PCGEX_OUTPUT_VALUE(Depth, Index, Settings->bInvertDepth ? 1 - Depth : Depth)
 		PCGEX_OUTPUT_VALUE(SignedDistance, Index, (!bOnlySignIfClosed || NumInClosed > 0) ? FMath::Sign(WeightedSignAxis.Dot(LookAt)) * WeightedDistance : WeightedDistance)
+		PCGEX_OUTPUT_VALUE(ComponentWiseDistance, Index, Settings->bAbsoluteComponentWiseDistance ? PCGExMath::Abs(CWDistance) : CWDistance)
 		PCGEX_OUTPUT_VALUE(Angle, Index, PCGExSampling::GetAngle(Settings->AngleRange, WeightedAngleAxis, LookAt))
 		PCGEX_OUTPUT_VALUE(Time, Index, WeightedTime)
 		PCGEX_OUTPUT_VALUE(NumInside, Index, NumInside)

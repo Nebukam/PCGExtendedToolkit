@@ -333,14 +333,17 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExBlendingDetails
 namespace PCGExDataBlending
 {
 	const FName SourceOverridesBlendingOps = TEXT("Overrides : Blending");
+	
+	const FName SourceBlendingLabel = TEXT("Blendings");
+	const FName OutputBlendingLabel = TEXT("Blending");
 
 	/**
 	 * 
 	 */
-	class /*PCGEXTENDEDTOOLKIT_API*/ FDataBlendingOperationBase
+	class /*PCGEXTENDEDTOOLKIT_API*/ FDataBlendingProcessorBase
 	{
 	public:
-		virtual ~FDataBlendingOperationBase()
+		virtual ~FDataBlendingProcessorBase()
 		{
 		}
 
@@ -408,7 +411,7 @@ namespace PCGExDataBlending
 	};
 
 	template <typename T, EPCGExDataBlendingType BlendingType, bool bRequirePreparation = false, bool bRequireCompletion = false>
-	class /*PCGEXTENDEDTOOLKIT_API*/ TDataBlendingOperation : public FDataBlendingOperationBase
+	class /*PCGEXTENDEDTOOLKIT_API*/ TDataBlendingProcessor : public FDataBlendingProcessorBase
 	{
 	protected:
 		void Cleanup()
@@ -418,7 +421,7 @@ namespace PCGExDataBlending
 		}
 
 	public:
-		virtual ~TDataBlendingOperation() override
+		virtual ~TDataBlendingProcessor() override
 		{
 			Cleanup();
 		}
@@ -431,7 +434,7 @@ namespace PCGExDataBlending
 		{
 			Cleanup();
 
-			FDataBlendingOperationBase::PrepareForData(InWriter, InSecondaryFacade, SecondarySource);
+			FDataBlendingProcessorBase::PrepareForData(InWriter, InSecondaryFacade, SecondarySource);
 
 			Writer = StaticCastSharedPtr<PCGExData::TBuffer<T>>(InWriter);
 
@@ -443,7 +446,7 @@ namespace PCGExDataBlending
 		{
 			Cleanup();
 
-			FDataBlendingOperationBase::PrepareForData(InPrimaryFacade, InSecondaryFacade, SecondarySource);
+			FDataBlendingProcessorBase::PrepareForData(InPrimaryFacade, InSecondaryFacade, SecondarySource);
 
 			SourceAttribute = InSecondaryFacade->FindConstAttribute<T>(AttributeName, SecondarySource);
 
@@ -459,7 +462,7 @@ namespace PCGExDataBlending
 		{
 			Cleanup();
 
-			FDataBlendingOperationBase::SoftPrepareForData(InPrimaryFacade, InSecondaryFacade, SecondarySource);
+			FDataBlendingProcessorBase::SoftPrepareForData(InPrimaryFacade, InSecondaryFacade, SecondarySource);
 
 			SourceAttribute = InSecondaryFacade->FindConstAttribute<T>(AttributeName, SecondarySource);
 			TargetAttribute = InPrimaryFacade->FindMutableAttribute<T>(AttributeName, PCGExData::ESource::Out);
@@ -590,7 +593,7 @@ namespace PCGExDataBlending
 	};
 
 	template <typename T, EPCGExDataBlendingType BlendingType, bool bRequirePreparation = false, bool bRequireCompletion = false>
-	class /*PCGEXTENDEDTOOLKIT_API*/ FDataBlendingOperationWithFirstInit : public TDataBlendingOperation<T, BlendingType, bRequirePreparation, bRequireCompletion>
+	class /*PCGEXTENDEDTOOLKIT_API*/ FDataBlendingProcessorWithFirstInit : public TDataBlendingProcessor<T, BlendingType, bRequirePreparation, bRequireCompletion>
 	{
 		FORCEINLINE virtual void DoValuesRangeOperation(const int32 PrimaryReadIndex, const int32 SecondaryReadIndex, TArrayView<T>& Values, const TArrayView<double>& Weights, const int8 bFirstOperation) const override
 		{

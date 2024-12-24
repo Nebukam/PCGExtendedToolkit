@@ -532,10 +532,10 @@ namespace PCGExGeo
 			Alpha = DistToStart / (DistToStart + DistToEnd);
 		}
 
-		FVector Direction;
-		FVector Anchor;
-		FVector TowardStart;
-		FVector TowardEnd;
+		FVector Direction = FVector::ZeroVector;
+		FVector Anchor = FVector::ZeroVector;
+		FVector TowardStart = FVector::ZeroVector;
+		FVector TowardEnd = FVector::ZeroVector;
 		double Alpha = 0;
 
 		FVector GetAnchorNormal(const FVector& Location) const { return (Anchor - Location).GetSafeNormal(); }

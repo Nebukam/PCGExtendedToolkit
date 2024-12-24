@@ -226,7 +226,11 @@ namespace PCGExSampleSurfaceGuided
 			}
 
 			if (const UPhysicalMaterial* PhysMat = HitResult.PhysMaterial.Get()) { PCGEX_OUTPUT_VALUE(PhysMat, Index, PhysMat->GetPathName()) }
-			if (const UPrimitiveComponent* HitComponent = HitResult.GetComponent()) { PCGEX_OUTPUT_VALUE(RenderMat, Index, HitComponent->GetMaterial(Settings->RenderMaterialIndex)->GetPathName()) }
+			if (const UPrimitiveComponent* HitComponent = HitResult.GetComponent())
+			{
+				PCGEX_OUTPUT_VALUE(HitComponentReference, Index, HitComponent->GetPathName())
+				PCGEX_OUTPUT_VALUE(RenderMat, Index, HitComponent->GetMaterial(Settings->RenderMaterialIndex)->GetPathName())
+			}
 #else
 			if (const AActor* HitActor = HitResult.GetActor())
 			{
@@ -235,7 +239,11 @@ namespace PCGExSampleSurfaceGuided
 			}
 
 			if (const UPhysicalMaterial* PhysMat = HitResult.PhysMaterial.Get()) { PCGEX_OUTPUT_VALUE(PhysMat, Index, FSoftObjectPath(PhysMat->GetPathName())) }
-			if (const UPrimitiveComponent* HitComponent = HitResult.GetComponent()) { PCGEX_OUTPUT_VALUE(RenderMat, Index, FSoftObjectPath(HitComponent->GetMaterial(Settings->RenderMaterialIndex)->GetPathName())) }
+			if (const UPrimitiveComponent* HitComponent = HitResult.GetComponent())
+			{
+				PCGEX_OUTPUT_VALUE(HitComponentReference, Index, FSoftObjectPath(HitComponent->GetPathName()))
+				PCGEX_OUTPUT_VALUE(RenderMat, Index, FSoftObjectPath(HitComponent->GetMaterial(Settings->RenderMaterialIndex)->GetPathName()))
+			}
 
 #endif
 

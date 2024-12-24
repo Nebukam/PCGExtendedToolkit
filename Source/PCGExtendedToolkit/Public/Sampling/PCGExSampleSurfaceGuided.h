@@ -24,6 +24,7 @@ MACRO(IsInside, bool, false)\
 MACRO(UVCoords, FVector2D, FVector2D::ZeroVector)\
 MACRO(FaceIndex, int32, -1)\
 MACRO(ActorReference, FString, TEXT(""))\
+MACRO(HitComponentReference, FString, TEXT(""))\
 MACRO(PhysMat, FString, TEXT(""))\
 MACRO(RenderMat, FString, TEXT(""))
 #else
@@ -37,6 +38,7 @@ MACRO(IsInside, bool, false)\
 MACRO(UVCoords, FVector2D, FVector2D::ZeroVector)\
 MACRO(FaceIndex, int32, -1)\
 MACRO(ActorReference, FSoftObjectPath, FSoftObjectPath())\
+MACRO(HitComponentReference, FSoftObjectPath, FSoftObjectPath())\
 MACRO(PhysMat, FSoftObjectPath, FSoftObjectPath())\
 MACRO(RenderMat, FSoftObjectPath, FSoftObjectPath())
 #endif
@@ -184,6 +186,14 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output (Actor Data)", meta=(DisplayName="ActorReference", PCG_Overridable, EditCondition="bWriteActorReference"))
 	FName ActorReferenceAttributeName = FName("ActorReference");
 
+	/** Write the actor reference hit. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output (Actor Data)", meta=(PCG_Overridable, InlineEditConditionToggle))
+	bool bWriteHitComponentReference = false;
+
+	/** Name of the 'string' attribute to write actor reference to.*/
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output (Actor Data)", meta=(DisplayName="HitComponent", PCG_Overridable, EditCondition="bWriteHitComponentReference"))
+	FName HitComponentReferenceAttributeName = FName("HitComponent");
+	
 	/** Write the actor reference hit. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output (Actor Data)", meta=(PCG_Overridable, InlineEditConditionToggle))
 	bool bWritePhysMat = false;

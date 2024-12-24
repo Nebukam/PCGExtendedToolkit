@@ -202,8 +202,15 @@ void FPCGExContext::CancelAssetLoading()
 {
 	if (LoadHandle.IsValid() && LoadHandle->IsActive()) { LoadHandle->CancelHandle(); }
 	LoadHandle.Reset();
-	RequiredAssets.Empty();
+	if (RequiredAssets) { RequiredAssets->Empty(); }
 	CancelExecution(TEXT("")); // Quiet cancel
+}
+
+TSet<FSoftObjectPath>& FPCGExContext::GetRequiredAssets()
+{
+	FWriteScopeLock WriteScopeLock(AssetDependenciesLock);
+	if (!RequiredAssets) { RequiredAssets = MakeShared<TSet<FSoftObjectPath>>(); }
+	return *RequiredAssets.Get();
 }
 
 void FPCGExContext::RegisterAssetDependencies()
@@ -213,7 +220,8 @@ void FPCGExContext::RegisterAssetDependencies()
 void FPCGExContext::AddAssetDependency(const FSoftObjectPath& Dependency)
 {
 	FWriteScopeLock WriteScopeLock(AssetDependenciesLock);
-	RequiredAssets.Add(Dependency);
+	if (!RequiredAssets) { RequiredAssets = MakeShared<TSet<FSoftObjectPath>>(); }
+	RequiredAssets->Add(Dependency);
 }
 
 void FPCGExContext::LoadAssets()
@@ -223,7 +231,7 @@ void FPCGExContext::LoadAssets()
 
 	SetAsyncState(PCGEx::State_LoadingAssetDependencies);
 
-	if (RequiredAssets.IsEmpty())
+	if (!RequiredAssets || RequiredAssets->IsEmpty())
 	{
 		bAssetLoadError = true; // No asset to load, yet we required it?
 		return;
@@ -235,37 +243,64 @@ void FPCGExContext::LoadAssets()
 
 		// Dispatch the async load request to the game thread
 		TWeakPtr<FPCGContextHandle> CtxHandle = GetOrCreateHandle();
-		AsyncTask(
-			ENamedThreads::GameThread, [CtxHandle]()
-			{
-				FPCGExContext* This = GetContextFromHandle<FPCGExContext>(CtxHandle);
-				if (!This) { return; }
 
-				This->LoadHandle = UAssetManager::GetStreamableManager().RequestAsyncLoad(
-					This->RequiredAssets.Array(), [CtxHandle]()
-					{
-						if (FPCGExContext* NestedThis = GetContextFromHandle<FPCGExContext>(CtxHandle)) { NestedThis->UnpauseContext(); }
-					});
-
-				if (!This->LoadHandle || !This->LoadHandle->IsActive())
+		if (IsInGameThread())
+		{
+			LoadHandle = UAssetManager::GetStreamableManager().RequestAsyncLoad(
+				RequiredAssets->Array(), [CtxHandle]()
 				{
-					This->UnpauseContext();
+					if (FPCGExContext* NestedThis = GetContextFromHandle<FPCGExContext>(CtxHandle)) { NestedThis->UnpauseContext(); }
+				});
 
-					if (!This->LoadHandle || !This->LoadHandle->HasLoadCompleted())
-					{
-						This->bAssetLoadError = true;
-						This->CancelExecution("Error loading assets.");
-					}
-					else
-					{
-						// Resources were already loaded
-					}
+			if (!LoadHandle || !LoadHandle->IsActive())
+			{
+				UnpauseContext();
+
+				if (!LoadHandle || !LoadHandle->HasLoadCompleted())
+				{
+					bAssetLoadError = true;
+					CancelExecution("Error loading assets.");
 				}
-			});
+				else
+				{
+					// Resources were already loaded
+				}
+			}
+		}
+		else
+		{
+			AsyncTask(
+				ENamedThreads::GameThread, [CtxHandle]()
+				{
+					FPCGExContext* This = GetContextFromHandle<FPCGExContext>(CtxHandle);
+					if (!This) { return; }
+
+					This->LoadHandle = UAssetManager::GetStreamableManager().RequestAsyncLoad(
+						This->RequiredAssets->Array(), [CtxHandle]()
+						{
+							if (FPCGExContext* NestedThis = GetContextFromHandle<FPCGExContext>(CtxHandle)) { NestedThis->UnpauseContext(); }
+						});
+
+					if (!This->LoadHandle || !This->LoadHandle->IsActive())
+					{
+						This->UnpauseContext();
+
+						if (!This->LoadHandle || !This->LoadHandle->HasLoadCompleted())
+						{
+							This->bAssetLoadError = true;
+							This->CancelExecution("Error loading assets.");
+						}
+						else
+						{
+							// Resources were already loaded
+						}
+					}
+				});
+		}
 	}
 	else
 	{
-		LoadHandle = UAssetManager::GetStreamableManager().RequestSyncLoad(RequiredAssets.Array());
+		LoadHandle = UAssetManager::GetStreamableManager().RequestSyncLoad(RequiredAssets->Array());
 	}
 }
 

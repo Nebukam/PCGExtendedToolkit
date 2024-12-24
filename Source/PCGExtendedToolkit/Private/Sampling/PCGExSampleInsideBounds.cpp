@@ -189,6 +189,7 @@ namespace PCGExSampleInsideBoundss
 		PCGEX_OUTPUT_VALUE(LookAtTransform, Index, Point.Transform)
 		PCGEX_OUTPUT_VALUE(Distance, Index, FailSafeDist)
 		PCGEX_OUTPUT_VALUE(SignedDistance, Index, FailSafeDist)
+		PCGEX_OUTPUT_VALUE(ComponentWiseDistance, Index, FVector(FailSafeDist))
 		PCGEX_OUTPUT_VALUE(NumSamples, Index, 0)
 		PCGEX_OUTPUT_VALUE(SampledIndex, Index, -1)
 	}
@@ -254,7 +255,7 @@ namespace PCGExSampleInsideBoundss
 			return;
 		}
 
-		const FVector SourceCenter = Point.Transform.GetLocation();
+		const FVector Origin = Point.Transform.GetLocation();
 
 		double RangeMin = FMath::Square(RangeMinGetter ? RangeMinGetter->Read(Index) : Settings->RangeMin);
 		double RangeMax = FMath::Square(RangeMaxGetter ? RangeMaxGetter->Read(Index) : Settings->RangeMax);
@@ -300,7 +301,7 @@ namespace PCGExSampleInsideBoundss
 
 		if (RangeMax > 0)
 		{
-			const FBox Box = FBoxCenterAndExtent(SourceCenter, FVector(FMath::Sqrt(RangeMax))).GetBox();
+			const FBox Box = FBoxCenterAndExtent(Origin, FVector(FMath::Sqrt(RangeMax))).GetBox();
 			auto ProcessNeighbor = [&](const FPCGPointRef& InPointRef)
 			{
 				const ptrdiff_t PointIndex = InPointRef.Point - Context->TargetPoints->GetData();
@@ -389,8 +390,9 @@ namespace PCGExSampleInsideBoundss
 
 		WeightedUp.Normalize();
 
-		FVector LookAt = (Point.Transform.GetLocation() - WeightedTransform.GetLocation()).GetSafeNormal();
-		const double WeightedDistance = FVector::Dist(Point.Transform.GetLocation(), WeightedTransform.GetLocation());
+		const FVector CWDistance = Origin - WeightedTransform.GetLocation();
+		FVector LookAt = CWDistance.GetSafeNormal();
+		const double WeightedDistance = FVector::Dist(Origin, WeightedTransform.GetLocation());
 
 		SampleState[Index] = Stats.IsValid();
 		PCGEX_OUTPUT_VALUE(Success, Index, Stats.IsValid())
@@ -398,6 +400,7 @@ namespace PCGExSampleInsideBoundss
 		PCGEX_OUTPUT_VALUE(LookAtTransform, Index, PCGExMath::MakeLookAtTransform(LookAt, WeightedUp, Settings->LookAtAxisAlign))
 		PCGEX_OUTPUT_VALUE(Distance, Index, WeightedDistance)
 		PCGEX_OUTPUT_VALUE(SignedDistance, Index, FMath::Sign(WeightedSignAxis.Dot(LookAt)) * WeightedDistance)
+		PCGEX_OUTPUT_VALUE(ComponentWiseDistance, Index, Settings->bAbsoluteComponentWiseDistance ? PCGExMath::Abs(CWDistance) : CWDistance)
 		PCGEX_OUTPUT_VALUE(Angle, Index, PCGExSampling::GetAngle(Settings->AngleRange, WeightedAngleAxis, LookAt))
 		PCGEX_OUTPUT_VALUE(NumSamples, Index, TotalSamples)
 		PCGEX_OUTPUT_VALUE(SampledIndex, Index, Stats.IsValid() ? Stats.Closest.Index : -1)

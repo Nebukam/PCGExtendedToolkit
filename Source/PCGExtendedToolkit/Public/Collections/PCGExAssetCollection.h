@@ -276,7 +276,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExAssetStagingData
 	template <typename T>
 	T* LoadSync() const
 	{
-		return PCGExHelpers::ForceLoad<T>(TSoftObjectPtr<T>(Path));
+		return PCGExHelpers::LoadBlocking_AnyThread<T>(TSoftObjectPtr<T>(Path));
 	}
 
 	template <typename T>

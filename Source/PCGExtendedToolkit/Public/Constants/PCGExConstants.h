@@ -40,7 +40,6 @@ public:
 	virtual bool CanUserEditTitle() const override { return false; }
 #endif
 	virtual TArray<FPCGPreConfiguredSettingsInfo> GetPreconfiguredInfo() const override;
-
 #endif
 
 	virtual void ApplyPreconfiguredSettings(const FPCGPreConfiguredSettingsInfo& PreconfigureInfo) override;

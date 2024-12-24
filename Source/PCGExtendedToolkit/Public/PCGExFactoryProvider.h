@@ -37,7 +37,8 @@ namespace PCGExFactories
 		Heuristics,
 		VtxProperty,
 		ConditionalActions,
-		ShapeBuilder
+		ShapeBuilder,
+		Blending,
 	};
 
 	static inline TSet<EType> AnyFilters = {EType::FilterPoint, EType::FilterNode, EType::FilterEdge, EType::FilterGroup};
