@@ -34,7 +34,6 @@ protected:
 	//~Begin UPCGExPointsProcessorSettings
 public:
 	virtual PCGExData::EIOInit GetMainOutputInitMode() const override;
-	virtual bool GetMainAcceptMultipleData() const override;
 	//~End UPCGExPointsProcessorSettings
 
 	/** Point Index */

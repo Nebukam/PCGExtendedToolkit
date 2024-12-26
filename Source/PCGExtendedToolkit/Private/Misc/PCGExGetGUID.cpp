@@ -12,13 +12,11 @@
 TArray<FPCGPinProperties> UPCGExGetGUIDSettings::OutputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties;
-	PCGEX_PIN_PARAM(FName("GUID"), TEXT("GUID."), Required, {})
+	PCGEX_PIN_PARAMS(FName("GUID"), TEXT("GUID."), Required, {})
 	return PinProperties;
 }
 
 PCGExData::EIOInit UPCGExGetGUIDSettings::GetMainOutputInitMode() const { return PCGExData::EIOInit::None; }
-
-bool UPCGExGetGUIDSettings::GetMainAcceptMultipleData() const { return false; }
 
 PCGEX_INITIALIZE_ELEMENT(GetGUID)
 
@@ -41,37 +39,40 @@ bool FPCGExGetGUIDElement::ExecuteInternal(FPCGContext* InContext) const
 	PCGEX_EXECUTION_CHECK
 	PCGEX_ON_INITIAL_EXECUTION
 	{
-		PCGEX_MAKE_SHARED(Facade, PCGExData::FFacade, Context->MainPoints->Pairs[0].ToSharedRef())
-		TSharedRef<PCGExData::FFacade> FacadeRef = Facade.ToSharedRef();
-		FPCGExGUIDDetails Config = Settings->Config;
-
-		int32 TargetIndex = PCGExMath::SanitizeIndex(Settings->Index, FacadeRef->GetNum() - 1, Settings->IndexSafety);
-
-		Facade->bSupportsScopedGet = true;
-
-		if (!FacadeRef->Source->GetIn()->GetPoints().IsValidIndex(TargetIndex)) { return Context->CancelExecution(TEXT("Selected index is invalid.")); }
-		if (!Config.Init(Context, FacadeRef)) { return Context->CancelExecution(TEXT("")); }
-
-		PCGExMT::FScope FetchScope = PCGExMT::FScope(TargetIndex, 1);
-		Facade->Fetch(FetchScope);
-
-		FGuid GUID = FGuid();
-		Config.GetGUID(TargetIndex, Facade->Source->GetInPoint(TargetIndex), GUID);
-
-		UPCGParamData* GuidData = Context->ManagedObjects->New<UPCGParamData>();
-
-		if (Config.OutputType == EPCGExGUIDOutputType::Integer)
+		while(Context->AdvancePointsIO())
 		{
-			GuidData->Metadata->CreateAttribute<int32>(Config.OutputAttributeName, GetTypeHash(GUID.ToString(Config.GUIDFormat)), Config.bAllowInterpolation, true);
-		}
-		else
-		{
-			GuidData->Metadata->CreateAttribute<FString>(Config.OutputAttributeName, GUID.ToString(Config.GUIDFormat), Config.bAllowInterpolation, true);
-		}
+			PCGEX_MAKE_SHARED(Facade, PCGExData::FFacade, Context->CurrentIO.ToSharedRef())
+			TSharedRef<PCGExData::FFacade> FacadeRef = Facade.ToSharedRef();
+			FPCGExGUIDDetails Config = Settings->Config;
 
-		GuidData->Metadata->AddEntry();
-		Context->StageOutput(FName("GUID"), GuidData, true);
+			int32 TargetIndex = PCGExMath::SanitizeIndex(Settings->Index, FacadeRef->GetNum() - 1, Settings->IndexSafety);
 
+			Facade->bSupportsScopedGet = true;
+
+			if (!FacadeRef->Source->GetIn()->GetPoints().IsValidIndex(TargetIndex)) { return Context->CancelExecution(TEXT("Selected index is invalid.")); }
+			if (!Config.Init(Context, FacadeRef)) { return Context->CancelExecution(TEXT("")); }
+
+			PCGExMT::FScope FetchScope = PCGExMT::FScope(TargetIndex, 1);
+			Facade->Fetch(FetchScope);
+
+			FGuid GUID = FGuid();
+			Config.GetGUID(TargetIndex, Facade->Source->GetInPoint(TargetIndex), GUID);
+
+			UPCGParamData* GuidData = Context->ManagedObjects->New<UPCGParamData>();
+
+			if (Config.OutputType == EPCGExGUIDOutputType::Integer)
+			{
+				GuidData->Metadata->CreateAttribute<int32>(Config.OutputAttributeName, GetTypeHash(GUID.ToString(Config.GUIDFormat)), Config.bAllowInterpolation, true);
+			}
+			else
+			{
+				GuidData->Metadata->CreateAttribute<FString>(Config.OutputAttributeName, GUID.ToString(Config.GUIDFormat), Config.bAllowInterpolation, true);
+			}
+
+			GuidData->Metadata->AddEntry();
+			Context->StageOutput(FName("GUID"), GuidData, true);
+		}
+		
 		Context->Done();
 	}
 
