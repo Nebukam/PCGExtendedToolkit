@@ -2,10 +2,90 @@
 // Released under the MIT license https://opensource.org/license/MIT/
 
 #include "Misc/PCGExWriteGUID.h"
+
+#include "Helpers/PCGHelpers.h"
 #include "Misc/Guid.h"
 
 #define LOCTEXT_NAMESPACE "PCGExWriteGUIDElement"
 #define PCGEX_NAMESPACE WriteGUID
+
+bool FPCGExGUIDDetails::Init(FPCGExContext* InContext, TSharedRef<PCGExData::FFacade>& InFacade)
+{
+	switch (Format)
+	{
+	default:
+	case EPCGExGUIDFormat::Digits:
+		GUIDFormat = EGuidFormats::Digits;
+		break;
+	case EPCGExGUIDFormat::DigitsLower:
+		GUIDFormat = EGuidFormats::DigitsLower;
+		break;
+	case EPCGExGUIDFormat::DigitsWithHyphens:
+		GUIDFormat = EGuidFormats::DigitsWithHyphens;
+		break;
+	case EPCGExGUIDFormat::DigitsWithHyphensLower:
+		GUIDFormat = EGuidFormats::DigitsWithHyphensLower;
+		break;
+	case EPCGExGUIDFormat::DigitsWithHyphensInBraces:
+		GUIDFormat = EGuidFormats::DigitsWithHyphensInBraces;
+		break;
+	case EPCGExGUIDFormat::DigitsWithHyphensInParentheses:
+		GUIDFormat = EGuidFormats::DigitsWithHyphensInParentheses;
+		break;
+	case EPCGExGUIDFormat::HexValuesInBraces:
+		GUIDFormat = EGuidFormats::HexValuesInBraces;
+		break;
+	case EPCGExGUIDFormat::UniqueObjectGuid:
+		GUIDFormat = EGuidFormats::UniqueObjectGuid;
+		break;
+	case EPCGExGUIDFormat::Short:
+		GUIDFormat = EGuidFormats::Short;
+		break;
+	case EPCGExGUIDFormat::Base36Encoded:
+		GUIDFormat = EGuidFormats::Base36Encoded;
+		break;
+	}
+
+	bUseIndex = (Uniqueness & static_cast<uint8>(EPCGExGUIDUniquenessFlags::Index)) != 0;
+	bUseSeed = (Uniqueness & static_cast<uint8>(EPCGExGUIDUniquenessFlags::Seed)) != 0;
+	bUsePosition = (Uniqueness & static_cast<uint8>(EPCGExGUIDUniquenessFlags::Position)) != 0;
+
+	if (UniqueKeyInput == EPCGExInputValueType::Attribute)
+	{
+		UniqueKeyReader = InFacade->GetScopedBroadcaster<int32>(UniqueKeyAttribute);
+		if (!UniqueKeyReader)
+		{
+			PCGE_LOG_C(Error, GraphAndLog, InContext, FText::Format(FTEXT("Invalid UniqueKey attribute: \"{0}\"."), FText::FromName(UniqueKeyAttribute.GetName())));
+			return false;
+		}
+	}
+
+	const uint32 BaseUniqueKey = UniqueKeyReader ? 0 : UniqueKeyConstant;
+	if ((Uniqueness & static_cast<uint8>(EPCGExGUIDUniquenessFlags::Grid)) != 0)
+	{
+		const FBox RefBounds = PCGHelpers::GetGridBounds(InContext->GetTargetActor(InFacade->Source->GetIn()), InContext->SourceComponent.Get());
+		GridHash = HashCombine(BaseUniqueKey, PCGEx::GH3(RefBounds.Min, CWTolerance));
+		GridHash = HashCombine(GridHash, PCGEx::GH3(RefBounds.Max, CWTolerance));
+	}
+	else
+	{
+		GridHash = BaseUniqueKey;
+	}
+
+	DefaultGUID = FGuid(GridHash, 0, 0, 0);
+
+	return true;
+}
+
+void FPCGExGUIDDetails::GetGUID(const int32 Index, const FPCGPoint& InPoint, FGuid& OutGUID) const
+{
+	const uint32 SeededBase = bUseSeed ? InPoint.Seed : 0;
+	OutGUID = FGuid(
+		GridHash,
+		bUseIndex ? Index : -1,
+		UniqueKeyReader ? HashCombine(SeededBase, static_cast<uint32>(UniqueKeyReader->Read(Index))) : SeededBase,
+		bUsePosition ? PCGEx::GH3(InPoint.Transform.GetLocation(), CWTolerance) : 0);
+}
 
 PCGExData::EIOInit UPCGExWriteGUIDSettings::GetMainOutputInitMode() const { return PCGExData::EIOInit::Duplicate; }
 
@@ -17,42 +97,7 @@ bool FPCGExWriteGUIDElement::Boot(FPCGExContext* InContext) const
 
 	PCGEX_CONTEXT_AND_SETTINGS(WriteGUID)
 
-	PCGEX_VALIDATE_NAME(Settings->OutputAttributeName)
-
-	switch (Settings->Format)
-	{
-	default:
-	case EPCGExGUIDFormat::Digits:
-		Context->Format = EGuidFormats::Digits;
-		break;
-	case EPCGExGUIDFormat::DigitsLower:
-		Context->Format = EGuidFormats::DigitsLower;
-		break;
-	case EPCGExGUIDFormat::DigitsWithHyphens:
-		Context->Format = EGuidFormats::DigitsWithHyphens;
-		break;
-	case EPCGExGUIDFormat::DigitsWithHyphensLower:
-		Context->Format = EGuidFormats::DigitsWithHyphensLower;
-		break;
-	case EPCGExGUIDFormat::DigitsWithHyphensInBraces:
-		Context->Format = EGuidFormats::DigitsWithHyphensInBraces;
-		break;
-	case EPCGExGUIDFormat::DigitsWithHyphensInParentheses:
-		Context->Format = EGuidFormats::DigitsWithHyphensInParentheses;
-		break;
-	case EPCGExGUIDFormat::HexValuesInBraces:
-		Context->Format = EGuidFormats::HexValuesInBraces;
-		break;
-	case EPCGExGUIDFormat::UniqueObjectGuid:
-		Context->Format = EGuidFormats::UniqueObjectGuid;
-		break;
-	case EPCGExGUIDFormat::Short:
-		Context->Format = EGuidFormats::Short;
-		break;
-	case EPCGExGUIDFormat::Base36Encoded:
-		Context->Format = EGuidFormats::Base36Encoded;
-		break;
-	}
+	PCGEX_VALIDATE_NAME(Settings->Config.OutputAttributeName)
 
 	return true;
 }
@@ -88,23 +133,21 @@ namespace PCGExWriteGUID
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExWriteGUID::Process);
 
+		PointDataFacade->bSupportsScopedGet = Context->bScopedAttributeGet;
+
 		if (!FPointsProcessor::Process(InAsyncManager)) { return false; }
 
-		NumPoints = PointDataFacade->GetNum();
+		Config = Settings->Config;
 
-		uint32 BaseHash = 0;
-		if (const AActor* TargetActor = Context->GetTargetActor(PointDataFacade->Source->GetIn())) { BaseHash = PCGEx::GH3(TargetActor->GetActorLocation(), CWTolerance); }
+		if (!Config.Init(Context, PointDataFacade)) { return false; }
 
-		DefaultGUID = FGuid(BaseHash, static_cast<uint32>(Settings->UniqueKey), PointDataFacade->Source->IOIndex, 42);
-		UIDComponent = HashCombine(BaseHash, static_cast<uint32>(Settings->UniqueKey));
-
-		if (Settings->OutputType == EPCGExGUIDOutputType::Integer)
+		if (Config.OutputType == EPCGExGUIDOutputType::Integer)
 		{
-			IntegerGUIDWriter = PointDataFacade->GetWritable<int32>(Settings->OutputAttributeName, -1, Settings->bAllowInterpolation, PCGExData::EBufferInit::New);
+			IntegerGUIDWriter = PointDataFacade->GetWritable<int32>(Config.OutputAttributeName, -1, Config.bAllowInterpolation, PCGExData::EBufferInit::New);
 		}
 		else
 		{
-			StringGUIDWriter = PointDataFacade->GetWritable<FString>(Settings->OutputAttributeName, TEXT(""), Settings->bAllowInterpolation, PCGExData::EBufferInit::New);
+			StringGUIDWriter = PointDataFacade->GetWritable<FString>(Config.OutputAttributeName, TEXT(""), Config.bAllowInterpolation, PCGExData::EBufferInit::New);
 		}
 
 		StartParallelLoopForPoints();
@@ -112,18 +155,19 @@ namespace PCGExWriteGUID
 		return true;
 	}
 
+	void FProcessor::PrepareSingleLoopScopeForPoints(const PCGExMT::FScope& Scope)
+	{
+		TPointsProcessor::PrepareSingleLoopScopeForPoints(Scope);
+		PointDataFacade->Fetch(Scope);
+	}
+
 	void FProcessor::ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const PCGExMT::FScope& Scope)
 	{
-		const FGuid GUID = FGuid(UIDComponent, Index, Point.Seed, PCGEx::GH3(Point.Transform.GetLocation(), CWTolerance));
+		FGuid GUID = FGuid();
+		Config.GetGUID(Index, Point, GUID);
 
-		if (IntegerGUIDWriter)
-		{
-			IntegerGUIDWriter->GetMutable(Index) = GetTypeHash(GUID.ToString(Context->Format));
-		}
-		else
-		{
-			StringGUIDWriter->GetMutable(Index) = GUID.ToString(Context->Format);
-		}
+		if (IntegerGUIDWriter) { IntegerGUIDWriter->GetMutable(Index) = GetTypeHash(GUID.ToString(Config.GUIDFormat)); }
+		else { StringGUIDWriter->GetMutable(Index) = GUID.ToString(Config.GUIDFormat); }
 	}
 
 	void FProcessor::CompleteWork()

@@ -76,6 +76,7 @@ public:
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS(Bitmask, "Bitmask", "A Simple bitmask attribute.");
 	virtual EPCGSettingsType GetType() const override { return EPCGSettingsType::Param; }
+	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->NodeColorConstant; }
 #endif
 
 protected:
