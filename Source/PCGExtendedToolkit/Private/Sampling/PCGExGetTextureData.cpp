@@ -353,7 +353,7 @@ namespace PCGExGetTextureData
 					}
 
 #if PCGEX_ENGINE_VERSION <= 503
-					TexData->Initialize(Texture2D.Get(), Ctx->Transform);
+					TexData->Initialize(TSoftObjectPtr<UTexture2D>(Ref.TexturePath).Get(), Ctx->Transform);
 #elif PCGEX_ENGINE_VERSION == 504
 					auto PostInitializeCallback = [CtxHandle, Idx]()
 					{

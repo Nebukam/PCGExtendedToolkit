@@ -51,7 +51,7 @@ namespace PCGExTexParam
 		for (const TObjectPtr<const UPCGExTexParamFactoryBase>& Factory : Factories)
 		{
 #if PCGEX_ENGINE_VERSION <= 503
-			TSharedPtr<PCGExData::TBuffer<FString>> Buffer = InDataFacade->GetWritable<FString>(Factory->Config.AttributeName, TEXT(""), true, PCGExData::EBufferInit::Inherit);
+			TSharedPtr<PCGExData::TBuffer<FString>> Buffer = InDataFacade->GetWritable<FString>(Factory->Config.PathAttributeName, TEXT(""), true, PCGExData::EBufferInit::Inherit);
 #else
 			TSharedPtr<PCGExData::TBuffer<FSoftObjectPath>> Buffer = InDataFacade->GetWritable<FSoftObjectPath>(Factory->Config.PathAttributeName, FSoftObjectPath(), true, PCGExData::EBufferInit::Inherit);
 #endif
@@ -66,7 +66,7 @@ namespace PCGExTexParam
 		for (const TObjectPtr<const UPCGExTexParamFactoryBase>& Factory : Factories)
 		{
 #if PCGEX_ENGINE_VERSION <= 503
-			TSharedPtr<PCGExData::TBuffer<FString>> Buffer = InDataFacade->GetReadable<FString>(Factory->Config.AttributeName);
+			TSharedPtr<PCGExData::TBuffer<FString>> Buffer = InDataFacade->GetReadable<FString>(Factory->Config.PathAttributeName);
 #else
 			TSharedPtr<PCGExData::TBuffer<FSoftObjectPath>> Buffer = InDataFacade->GetReadable<FSoftObjectPath>(Factory->Config.PathAttributeName);
 #endif
