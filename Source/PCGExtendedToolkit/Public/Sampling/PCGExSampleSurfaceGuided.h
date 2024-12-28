@@ -8,6 +8,7 @@
 
 #include "PCGExPointsProcessor.h"
 #include "PCGExSampling.h"
+#include "PCGExTexParamFactoryProvider.h"
 #include "Data/PCGExDataForward.h"
 
 
@@ -47,8 +48,8 @@ UENUM()
 enum class EPCGExTraceSampleDistanceInput : uint8
 {
 	DirectionLength = 0 UMETA(DisplayName = "Direction Length", ToolTip="..."),
-	Constant = 1 UMETA(DisplayName = "Constant", ToolTip="Constant"),
-	Attribute  = 2 UMETA(DisplayName = "Attribute", ToolTip="Attribute"),
+	Constant        = 1 UMETA(DisplayName = "Constant", ToolTip="Constant"),
+	Attribute       = 2 UMETA(DisplayName = "Attribute", ToolTip="Attribute"),
 };
 
 class UPCGExFilterFactoryBase;
@@ -101,7 +102,7 @@ public:
 	/** This UV Channel will be selected when retrieving UV Coordinates from a raycast query. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	EPCGExTraceSampleDistanceInput DistanceInput = EPCGExTraceSampleDistanceInput::Constant;
-	
+
 	/** Trace max distance */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="DistanceInput==EPCGExTraceSampleDistanceInput::Constant", EditConditionHides, CLampMin=0.001))
 	double MaxDistance = 1000;
@@ -193,7 +194,7 @@ public:
 	/** Name of the 'string' attribute to write actor reference to.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output (Actor Data)", meta=(DisplayName="HitComponent", PCG_Overridable, EditCondition="bWriteHitComponentReference"))
 	FName HitComponentReferenceAttributeName = FName("HitComponent");
-	
+
 	/** Write the actor reference hit. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output (Actor Data)", meta=(PCG_Overridable, InlineEditConditionToggle))
 	bool bWritePhysMat = false;
@@ -213,6 +214,10 @@ public:
 	/** The index of the render material when it is queried from the hit. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output (Actor Data)", meta = (PCG_Overridable, DisplayName=" └─ Material Index", EditCondition = "bWriteRenderMat", EditConditionHides, HideEditConditionToggle))
 	int32 RenderMaterialIndex = 0;
+
+	/** Whether to extract texture parameters */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output (Actor Data)", meta = (PCG_Overridable, DisplayName=" └─ Texture Parameters", EditCondition = "bWriteRenderMat", EditConditionHides, HideEditConditionToggle))
+	bool bExtractTextureParameters = false;
 
 	/** Which actor reference points attributes to forward on points. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output (Actor Data)", meta=(EditCondition="SurfaceSource==EPCGExSurfaceSource::ActorReferences", EditConditionHides))
@@ -258,9 +263,13 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExSampleSurfaceGuidedContext final : FPCGE
 
 	bool bSupportsUVQuery = false;
 	bool bUseInclude = false;
+	bool bExtractTextureParams = false;
+
 	TMap<AActor*, int32> IncludedActors;
 
 	FPCGExCollisionDetails CollisionSettings;
+
+	TArray<TObjectPtr<const UPCGExTexParamFactoryBase>> TexParamsFactories;
 
 	PCGEX_FOREACH_FIELD_SURFACEGUIDED(PCGEX_OUTPUT_DECL_TOGGLE)
 };
@@ -289,6 +298,8 @@ namespace PCGExSampleSurfaceGuided
 		TSharedPtr<PCGExData::TBuffer<double>> MaxDistanceGetter;
 		TSharedPtr<PCGExData::TBuffer<FVector>> DirectionGetter;
 		TSharedPtr<PCGExData::TBuffer<FVector>> OriginGetter;
+
+		TSharedPtr<PCGExTexParam::FLookup> TexParamLookup;
 
 		PCGEX_FOREACH_FIELD_SURFACEGUIDED(PCGEX_OUTPUT_DECL)
 

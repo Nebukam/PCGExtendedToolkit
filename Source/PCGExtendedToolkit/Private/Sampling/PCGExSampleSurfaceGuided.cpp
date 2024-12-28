@@ -5,6 +5,7 @@
 
 #include "Kismet/GameplayStatics.h"
 #include "PhysicsEngine/PhysicsSettings.h"
+#include "Sampling/PCGExTexParamFactoryProvider.h"
 
 
 #define LOCTEXT_NAMESPACE "PCGExSampleSurfaceGuidedElement"
@@ -20,6 +21,7 @@ TArray<FPCGPinProperties> UPCGExSampleSurfaceGuidedSettings::InputPinProperties(
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
 	if (SurfaceSource == EPCGExSurfaceSource::ActorReferences) { PCGEX_PIN_POINT(PCGExSampling::SourceActorReferencesLabel, "Points with actor reference paths.", Required, {}) }
+	if (bWriteRenderMat && bExtractTextureParameters) { PCGEX_PIN_PARAMS(PCGExTexParam::SourceTexLabel, "External texture params definitions.", Required, {}) }
 	return PinProperties;
 }
 
@@ -34,6 +36,19 @@ bool FPCGExSampleSurfaceGuidedElement::Boot(FPCGExContext* InContext) const
 	PCGEX_CONTEXT_AND_SETTINGS(SampleSurfaceGuided)
 
 	PCGEX_FOREACH_FIELD_SURFACEGUIDED(PCGEX_OUTPUT_VALIDATE_NAME)
+
+	if (Settings->bWriteRenderMat && Settings->bExtractTextureParameters)
+	{
+		Context->bExtractTextureParams = true;
+
+		if (!PCGExFactories::GetInputFactories(InContext, PCGExTexParam::SourceTexLabel, Context->TexParamsFactories, {PCGExFactories::EType::TexParam}, true)) { return false; }
+		if (Context->TexParamsFactories.IsEmpty())
+		{
+			PCGE_LOG(Error, GraphAndLog, FTEXT("Could not find valid Texture Parameter inputs"));
+			return false;
+		}
+		for (const TObjectPtr<const UPCGExTexParamFactoryBase>& Factory : Context->TexParamsFactories) { PCGEX_VALIDATE_NAME_C(InContext, Factory->Config.PathAttributeName) }
+	}
 
 	Context->bUseInclude = Settings->SurfaceSource == EPCGExSurfaceSource::ActorReferences;
 	if (Context->bUseInclude)
@@ -132,6 +147,11 @@ namespace PCGExSampleSurfaceGuided
 			PCGEX_FOREACH_FIELD_SURFACEGUIDED(PCGEX_OUTPUT_INIT)
 		}
 
+		// So texture params are registered last, otherwise they're first in the list and it's confusing
+		TexParamLookup = MakeShared<PCGExTexParam::FLookup>();
+		if (!TexParamLookup->BuildFrom(Context->TexParamsFactories)) { TexParamLookup.Reset(); }
+		else { TexParamLookup->PrepareForWrite(Context, PointDataFacade); }
+		
 		if (Settings->DistanceInput == EPCGExTraceSampleDistanceInput::Attribute)
 		{
 			MaxDistanceGetter = PointDataFacade->GetScopedBroadcaster<double>(Settings->LocalMaxDistance);
@@ -175,6 +195,7 @@ namespace PCGExSampleSurfaceGuided
 			//PCGEX_OUTPUT_VALUE(Success, Index, false)
 			//PCGEX_OUTPUT_VALUE(ActorReference, Index, TEXT(""))
 			//PCGEX_OUTPUT_VALUE(PhysMat, Index, TEXT(""))
+			if (TexParamLookup) { TexParamLookup->ExtractParams(Index, nullptr); }
 		};
 
 		if (!PointFilterCache[Index])
@@ -229,7 +250,9 @@ namespace PCGExSampleSurfaceGuided
 			if (const UPrimitiveComponent* HitComponent = HitResult.GetComponent())
 			{
 				PCGEX_OUTPUT_VALUE(HitComponentReference, Index, HitComponent->GetPathName())
-				PCGEX_OUTPUT_VALUE(RenderMat, Index, HitComponent->GetMaterial(Settings->RenderMaterialIndex)->GetPathName())
+				UMaterialInterface* RenderMat = HitComponent->GetMaterial(Settings->RenderMaterialIndex);
+				PCGEX_OUTPUT_VALUE(RenderMat, Index, RenderMat ? RenderMat->GetPathName() : TEXT(""))
+				if(TexParamLookup){TexParamLookup->ExtractParams(Index, RenderMat);}
 			}
 #else
 			if (const AActor* HitActor = HitResult.GetActor())
@@ -242,7 +265,9 @@ namespace PCGExSampleSurfaceGuided
 			if (const UPrimitiveComponent* HitComponent = HitResult.GetComponent())
 			{
 				PCGEX_OUTPUT_VALUE(HitComponentReference, Index, FSoftObjectPath(HitComponent->GetPathName()))
-				PCGEX_OUTPUT_VALUE(RenderMat, Index, FSoftObjectPath(HitComponent->GetMaterial(Settings->RenderMaterialIndex)->GetPathName()))
+				UMaterialInterface* RenderMat = HitComponent->GetMaterial(Settings->RenderMaterialIndex);
+				PCGEX_OUTPUT_VALUE(RenderMat, Index, FSoftObjectPath(RenderMat ? RenderMat->GetPathName() : TEXT("")))
+				if (TexParamLookup) { TexParamLookup->ExtractParams(Index, RenderMat); }
 			}
 
 #endif

@@ -39,6 +39,7 @@ namespace PCGExFactories
 		ConditionalActions,
 		ShapeBuilder,
 		Blending,
+		TexParam,
 	};
 
 	static inline TSet<EType> AnyFilters = {EType::FilterPoint, EType::FilterNode, EType::FilterEdge, EType::FilterGroup};

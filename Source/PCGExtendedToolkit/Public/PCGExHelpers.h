@@ -109,7 +109,6 @@ namespace PCGExHelpers
 		return TSoftObjectPtr<T>(ToBeLoaded).Get();
 	}
 
-	template <typename T>
 	static void LoadBlocking_AnyThread(const TSharedPtr<TSet<FSoftObjectPath>>& Paths)
 	{
 		if (IsInGameThread())
