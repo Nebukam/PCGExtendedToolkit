@@ -123,6 +123,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExGetTextureDataContext final : FPCGExPoin
 	
 	TSet<PCGExTexParam::FReference> TextureReferences;
 	TArray<PCGExTexParam::FReference> TextureReferencesList;
+	TArray<TObjectPtr<UPCGTextureData>> TextureDataList;
 	TArray<int8> TextureReady;
 	
 	FTransform Transform;
@@ -187,4 +188,5 @@ namespace PCGExGetTextureData
 
 		virtual void ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager) override;
 	};
+
 }
