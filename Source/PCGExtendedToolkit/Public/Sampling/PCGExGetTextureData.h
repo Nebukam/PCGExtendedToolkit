@@ -42,7 +42,7 @@ public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS(GetTextureData, "Get Texture Data", "Create texture data object from paths.");
-	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->NodeColorSampler; }
+	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->NodeColorTex; }
 #endif
 
 protected:
@@ -67,7 +67,7 @@ public:
 
 	/** If enabled, will write resolved texture paths as per their definitions. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="SourceType==EPCGExGetTexturePathType::MaterialPath", EditConditionHides))
-	bool bOutputTexturePaths = false;
+	bool bOutputTextureIds = true;
 
 	/** If enabled, will build PCG Texture data for each unique texture reference found. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="SourceType==EPCGExGetTexturePathType::MaterialPath", EditConditionHides))
@@ -121,8 +121,8 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExGetTextureDataContext final : FPCGExPoin
 
 	TArray<TObjectPtr<const UPCGExTexParamFactoryBase>> TexParamsFactories;
 	
-	TSet<PCGExTexParam::FReference> TextureReferences;
-	TArray<PCGExTexParam::FReference> TextureReferencesList;
+	TSet<PCGExTexture::FReference> TextureReferences;
+	TArray<PCGExTexture::FReference> TextureReferencesList;
 	TArray<TObjectPtr<UPCGTextureData>> TextureDataList;
 	TArray<int8> TextureReady;
 	
@@ -157,11 +157,12 @@ namespace PCGExGetTextureData
 		TSharedPtr<PCGExData::TBuffer<FSoftObjectPath>> PathGetter;
 #endif
 
-		TSharedPtr<PCGExTexParam::FLookup> TexParamLookup;
+		TSharedPtr<PCGExTexture::FLookup> TexParamLookup;
 		
 		TSharedPtr<TSet<FSoftObjectPath>> MaterialReferences;
-		TSet<PCGExTexParam::FReference> TextureReferences;
-
+		TSet<PCGExTexture::FReference> TextureReferences;
+		TArray<TSharedPtr<TSet<PCGExTexture::FReference>>> ScopedTextureReferences;
+		
 	public:
 		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade):
 			TPointsProcessor(InPointDataFacade)
@@ -170,16 +171,23 @@ namespace PCGExGetTextureData
 
 		virtual ~FProcessor() override;
 
+		virtual void RegisterBuffersDependencies(PCGExData::FFacadePreloader& FacadePreloader) override;
+
 		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager> InAsyncManager) override;
 		virtual void PrepareSingleLoopScopeForPoints(const PCGExMT::FScope& Scope) override;
 		virtual void ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const PCGExMT::FScope& Scope) override;
+
+		virtual void PrepareLoopScopesForRanges(const TArray<PCGExMT::FScope>& Loops) override;
+		virtual void ProcessSingleRangeIteration(const int32 Iteration, const PCGExMT::FScope& Scope) override;
+		virtual void OnRangeProcessingComplete() override;
+		
 		virtual void CompleteWork() override;
 	};
 
 	class /*PCGEXTENDEDTOOLKIT_API*/ FCreateTextureTask final : public PCGExMT::FPCGExIndexedTask
 	{
 	public:
-		PCGEX_ASYNC_TASK_NAME(TDiscoverAssetsTask)
+		PCGEX_ASYNC_TASK_NAME(FCreateTextureTask)
 
 		explicit FCreateTextureTask(const int32 InTaskIndex) :
 			FPCGExIndexedTask(InTaskIndex)

@@ -299,7 +299,7 @@ namespace PCGExSampleSurfaceGuided
 		TSharedPtr<PCGExData::TBuffer<FVector>> DirectionGetter;
 		TSharedPtr<PCGExData::TBuffer<FVector>> OriginGetter;
 
-		TSharedPtr<PCGExTexParam::FLookup> TexParamLookup;
+		TSharedPtr<PCGExTexture::FLookup> TexParamLookup;
 
 		PCGEX_FOREACH_FIELD_SURFACEGUIDED(PCGEX_OUTPUT_DECL)
 

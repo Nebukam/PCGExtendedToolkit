@@ -15,48 +15,98 @@
 
 class UPCGBaseTextureData;
 
-namespace PCGExTexParam
+UENUM()
+enum class EPCGExTexSampleAttributeType : uint8
 {
-	const FName SourceTexLabel = TEXT("TexParams");
-	const FName OutputTexLabel = TEXT("TexParam");
+	Auto    = 0 UMETA(DisplayName = "Auto", ToolTip="Output type will be driven by selected channels."),
+	Float   = 1 UMETA(Hidden, DisplayName = "Float", ToolTip="Output sample attribute type will be Float"),
+	Double  = 2 UMETA(DisplayName = "Double", ToolTip="Output sample attribute type will be Double"),
+	Integer = 3 UMETA(Hidden, DisplayName = "Double", ToolTip="Output sample attribute type will be Integer"),
+	Vector4 = 4 UMETA(DisplayName = "Vector4", ToolTip="Output sample attribute type will be Vector4"),
+	Vector  = 5 UMETA(DisplayName = "Vector", ToolTip="Output sample attribute type will be Vector"),
+	Vector2 = 6 UMETA(DisplayName = "Vector2", ToolTip="Output sample attribute type will be Vector2"),
+	Invalid = 10 UMETA(Hidden)
+};
+
+UENUM(meta=(Bitflags, UseEnumValuesAsMaskValuesInEditor="true", DisplayName="[PCGEx] GUID Uniqueness Flags"))
+enum class EPCGExTexChannelsFlags : uint8
+{
+	None = 0,
+	R    = 1 << 0 UMETA(DisplayName = "R", ToolTip="Red Channel"),
+	G    = 1 << 1 UMETA(DisplayName = "G", ToolTip="Green Channel"),
+	B    = 1 << 2 UMETA(DisplayName = "B", ToolTip="Blue Channel"),
+	A    = 1 << 3 UMETA(DisplayName = "A", ToolTip="Alpha Channel"),
+	RGB  = R | G | B UMETA(DisplayName = "RGB", ToolTip="RGB Channels, omits alpha"),
+	All  = R | G | B | A UMETA(DisplayName = "RGBA"),
+};
+
+ENUM_CLASS_FLAGS(EPCGExTexChannelsFlags)
+using EPCGExTexChannelsFlagsBitmask = TEnumAsByte<EPCGExTexChannelsFlags>;
+
+namespace PCGExTexture
+{
+	const FName SourceTexLabel = TEXT("Texture Params");
+	const FName OutputTexLabel = TEXT("Texture Param");
+
+	const FName SourceTextureDataLabel = TEXT("Texture Data");
 	const FName OutputTextureDataLabel = TEXT("Texture Data");
+
 	const FName OutputTexTagLabel = TEXT("TexTag");
 
 	const FString TexTag_Str = TEXT("TEX:");
 }
 
 USTRUCT(BlueprintType)
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExTexParamConfig
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExTextureParamConfig
 {
 	GENERATED_BODY()
 
-	FPCGExTexParamConfig()
+	FPCGExTextureParamConfig()
 	{
 	}
 
-	/** Name of the texture parameter to look for */
+	/** Name of the texture parameter to look for, when used in node that are set up to require this info. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
-	FName ParameterName = FName("TextureParameter");
+	FName MaterialParameterName = FName("TextureParameter");
 
 	/** Name of the attribute to output the path to */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
-	FName PathAttributeName = FName("AssetPath");
+	FName TextureIDAttributeName = FName("TextureId");
+	
+	/** Name of the attribute to output the sampled value to */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta=(PCG_Overridable))
+	FName SampleAttributeName = FName("Sample");
+
+	/** Type of the attribute to output the sampled value to */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta=(PCG_Overridable))
+	EPCGExTexSampleAttributeType OutputType = EPCGExTexSampleAttributeType::Auto;
+
+	/** What components will be sampled. Note that output will be truncated or sparse depending on the selected output type.  */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta=(PCG_NotOverridable, Bitmask, BitmaskEnum="/Script/PCGExtendedToolkit.EPCGExTexChannelsFlags"))
+	uint8 SampledChannels = static_cast<uint8>(EPCGExTexChannelsFlags::All);
+
+	/** Apply a scale factor to the output value */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta=(PCG_Overridable))
+	double Scale = 1;
+	
 
 	/** Resolution input type */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_NotOverridable))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Texture Array", meta = (PCG_NotOverridable))
 	EPCGExInputValueType TextureIndexInput = EPCGExInputValueType::Constant;
 
 	/** Texture Index Constant. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Texture Index", EditCondition="TextureIndexInput == EPCGExInputValueType::Constant", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Texture Array", meta=(PCG_Overridable, DisplayName="Texture Index", EditCondition="TextureIndexInput == EPCGExInputValueType::Constant", EditConditionHides))
 	int32 TextureIndex = -1;
 
 	/** Texture Index Attribute. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Texture Index", EditCondition="TextureIndexInput == EPCGExInputValueType::Attribute", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Texture Array", meta=(PCG_Overridable, DisplayName="Texture Index", EditCondition="TextureIndexInput == EPCGExInputValueType::Attribute", EditConditionHides))
 	FName TextureIndexAttribute = FName("TextureIndex");
 
-	/** Name of the attribute to output the sampled value to, when used with a sampler node. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
-	FName OutputSampleAttributeName = FName("SampledValue");
+	TArray<int32> OutChannels;
+	
+	EPCGMetadataTypes MetadataType = EPCGMetadataTypes::Unknown;
+
+	void Init();
 };
 
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")
@@ -67,7 +117,7 @@ class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExTexParamFactoryBase : public UPCGExParamF
 public:
 	virtual PCGExFactories::EType GetFactoryType() const override { return PCGExFactories::EType::TexParam; }
 
-	FPCGExTexParamConfig Config;
+	FPCGExTextureParamConfig Config;
 	FHashedMaterialParameterInfo Infos;
 };
 
@@ -79,23 +129,25 @@ class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExTexParamProviderSettings : public UPCGExF
 public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(TexParamAttribute, "Texture Param", "A simple texture parameter definition.", Config.PathAttributeName)
-	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->NodeColorConstant; }
+	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(
+		TexParamAttribute, "Texture Param", "A simple texture parameter definition.",
+		FName(Config.TextureIDAttributeName.ToString() +" / "+Config.SampleAttributeName.ToString()))
+	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->NodeColorTex; }
 #endif
 	//~End UPCGSettings
 
 	//~Begin UPCGExFactoryProviderSettings
 public:
-	virtual FName GetMainOutputPin() const override { return PCGExTexParam::OutputTexLabel; }
+	virtual FName GetMainOutputPin() const override { return PCGExTexture::OutputTexLabel; }
 	virtual UPCGExParamFactoryBase* CreateFactory(FPCGExContext* InContext, UPCGExParamFactoryBase* InFactory) const override;
 	//~End UPCGExFactoryProviderSettings
 
 	/**  */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayPriority=-1, ShowOnlyInnerProperties))
-	FPCGExTexParamConfig Config;
+	FPCGExTextureParamConfig Config;
 };
 
-namespace PCGExTexParam
+namespace PCGExTexture
 {
 	struct /*PCGEXTENDEDTOOLKIT_API*/ FReference
 	{
@@ -137,10 +189,10 @@ namespace PCGExTexParam
 		bool BuildFrom(FPCGExContext* InContext, const FName InPin);
 		bool BuildFrom(const TArray<TObjectPtr<const UPCGExTexParamFactoryBase>>& InFactories);
 		void PrepareForWrite(FPCGExContext* InContext, TSharedRef<PCGExData::FFacade> InDataFacade);
-		void PrepareForRead(FPCGExContext* InContext, TSharedRef<PCGExData::FFacade> InDataFacade);
 
 		void ExtractParams(const int32 PointIndex, const UMaterialInterface* InMaterial) const;
 		void ExtractReferences(const UMaterialInterface* InMaterial, TSet<FReference>& References) const;
+		void ExtractParamsAndReferences(const int32 PointIndex, const UMaterialInterface* InMaterial, TSet<FReference>& References) const;
 
 		void BuildMapFrom(FPCGExContext* InContext, const FName InPin);
 		const UPCGBaseTextureData* TryGetTextureData(const FString& InPath) const;
