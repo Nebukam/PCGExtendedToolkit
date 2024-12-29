@@ -330,13 +330,12 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExAssetCollectionEntry
 	{
 	}
 #endif
-	
+
 	virtual bool Validate(const UPCGExAssetCollection* ParentCollection);
 	virtual void UpdateStaging(const UPCGExAssetCollection* OwningCollection, int32 InInternalIndex, const bool bRecursive);
 	virtual void SetAssetPath(const FSoftObjectPath& InPath) PCGEX_NOT_IMPLEMENTED(SetAssetPath(const FSoftObjectPath& InPath))
 
 	virtual void GetAssetPaths(TSet<FSoftObjectPath>& OutPaths) const;
-
 };
 
 namespace PCGExAssetCollection

@@ -65,6 +65,15 @@ public:
 
 namespace PCGExHelpers
 {
+	static bool TryGetAttributeName(const FPCGAttributePropertyInputSelector& InSelector, const UPCGData* InData, FName& OutName)
+	{
+		FPCGAttributePropertyInputSelector FixedSelector = InSelector.CopyAndFixLast(InData);
+		if (!FixedSelector.IsValid()) { return false; }
+		if (FixedSelector.GetSelection() != EPCGAttributePropertySelection::Attribute) { return false; }
+		OutName = FixedSelector.GetName();
+		return true;
+	}
+
 	template <typename T>
 	static TObjectPtr<T> LoadBlocking_AnyThread(const TSoftObjectPtr<T>& SoftObjectPtr, const FSoftObjectPath& FallbackPath = nullptr)
 	{

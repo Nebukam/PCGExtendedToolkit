@@ -94,13 +94,12 @@ void FPCGExMeshCollectionEntry::EDITOR_Sanitize()
 
 void FPCGExMeshCollectionEntry::UpdateStaging(const UPCGExAssetCollection* OwningCollection, const int32 InInternalIndex, const bool bRecursive)
 {
-
 	if (bIsSubCollection)
 	{
 		Super::UpdateStaging(OwningCollection, InInternalIndex, bRecursive);
 		return;
 	}
-	
+
 	if (Staging.InternalIndex == -1 && GetDefault<UPCGExGlobalSettings>()->bDisableCollisionByDefault)
 	{
 		ISMDescriptor.BodyInstance.SetCollisionEnabled(ECollisionEnabled::Type::NoCollision);

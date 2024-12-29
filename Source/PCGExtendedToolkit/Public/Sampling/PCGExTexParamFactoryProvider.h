@@ -72,7 +72,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExTextureParamConfig
 	/** Name of the attribute to output the path to */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	FName TextureIDAttributeName = FName("TextureId");
-	
+
 	/** Name of the attribute to output the sampled value to */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta=(PCG_Overridable))
 	FName SampleAttributeName = FName("Sample");
@@ -88,7 +88,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExTextureParamConfig
 	/** Apply a scale factor to the output value */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta=(PCG_Overridable))
 	double Scale = 1;
-	
+
 
 	/** Resolution input type */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Texture Array", meta = (PCG_NotOverridable))
@@ -103,7 +103,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExTextureParamConfig
 	FName TextureIndexAttribute = FName("TextureIndex");
 
 	TArray<int32> OutChannels;
-	
+
 	EPCGMetadataTypes MetadataType = EPCGMetadataTypes::Unknown;
 
 	void Init();
@@ -137,7 +137,6 @@ public:
 	//~End UPCGSettings
 
 	//~Begin UPCGExFactoryProviderSettings
-public:
 	virtual FName GetMainOutputPin() const override { return PCGExTexture::OutputTexLabel; }
 	virtual UPCGExParamFactoryBase* CreateFactory(FPCGExContext* InContext, UPCGExParamFactoryBase* InFactory) const override;
 	//~End UPCGExFactoryProviderSettings

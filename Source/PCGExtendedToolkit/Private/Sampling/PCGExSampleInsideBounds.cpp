@@ -130,7 +130,7 @@ void FPCGExSampleInsideBoundsElement::PostLoadAssetsDependencies(FPCGExContext* 
 		Context->RuntimeWeightCurve.EditorCurveData.AddKey(1, 1);
 		Context->RuntimeWeightCurve.ExternalCurve = Settings->WeightOverDistance.Get();
 	}
-	
+
 	Context->WeightCurve = Context->RuntimeWeightCurve.GetRichCurveConst();
 }
 

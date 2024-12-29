@@ -43,7 +43,7 @@ public:
 struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExBlendAttributesContext final : FPCGExPointsProcessorContext
 {
 	friend class FPCGExBlendAttributesElement;
-	
+
 	TArray<TObjectPtr<const UPCGExAttributeBlendFactory>> BlendingFactories;
 };
 

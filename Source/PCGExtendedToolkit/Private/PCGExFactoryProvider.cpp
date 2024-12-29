@@ -10,7 +10,6 @@
 
 void UPCGExParamDataBase::OutputConfigToMetadata()
 {
-	
 }
 
 TArray<FPCGPinProperties> UPCGExFactoryProviderSettings::InputPinProperties() const
@@ -53,7 +52,7 @@ bool FPCGExFactoryProviderElement::ExecuteInternal(FPCGContext* Context) const
 
 	if (!OutFactory) { return true; }
 
-	OutFactory->bDoRegisterConsumableAttributes = Settings->bDoRegisterConsumableAttributes;
+	OutFactory->bCleanupConsumableAttributes = Settings->bCleanupConsumableAttributes;
 	OutFactory->OutputConfigToMetadata();
 	PCGExContext->StageOutput(Settings->GetMainOutputPin(), OutFactory, false);
 	PCGExContext->OnComplete();

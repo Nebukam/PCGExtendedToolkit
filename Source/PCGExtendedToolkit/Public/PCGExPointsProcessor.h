@@ -88,8 +88,16 @@ public:
 	bool bScopedAttributeGet = true;
 
 	/** If the node registers consumable attributes, these will be deleted from the output data. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Performance|Cleanup", meta=(PCG_NotOverridable, AdvancedDisplay))
-	bool bDeleteConsumableAttributes = false;
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Cleanup", meta=(PCG_NotOverridable))
+	bool bCleanupConsumableAttributes = false;
+
+	/** If the node registers consumable attributes, this a list of comma separated names that won't be deleted if they were registered. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Cleanup", meta=(PCG_Overridable, DisplayName="Protected Attributes", EditCondition="bCleanupConsumableAttributes"))
+	FString CommaSeparatedProtectedAttributesName;
+
+	/** Hardcoded set for ease of use. Not mutually exclusive with the overridable string, just easier to edit. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Cleanup", meta=(PCG_NotOverridable, DisplayName="Protected Attributes", EditCondition="bCleanupConsumableAttributes"))
+	TArray<FName> ProtectedAttributes;
 
 	/** */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Warning and Errors", meta=(PCG_NotOverridable, AdvancedDisplay))

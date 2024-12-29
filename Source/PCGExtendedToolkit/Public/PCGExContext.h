@@ -62,6 +62,7 @@ protected:
 	int32 LastReserve = 0;
 	int32 AdditionsSinceLastReserve = 0;
 	TSet<FName> ConsumableAttributesSet;
+	TSet<FName> ProtectedAttributesSet;
 
 	void CommitStagedOutputs();
 
@@ -107,7 +108,7 @@ protected:
 	PCGEx::ContextState CurrentState;
 
 #pragma endregion
-	
+
 #if PCGEX_ENGINE_VERSION < 505
 
 	// Lazy initialized shared handle pointer that can be used in lambda captures to test if Context is still valid before accessing it
@@ -128,7 +129,7 @@ public:
 	}
 
 #endif
-	
+
 #pragma region Async resource management
 
 public:
@@ -159,9 +160,12 @@ public:
 
 #pragma endregion
 
-	bool bDeleteConsumableAttributes = false;
+	mutable FRWLock ConsumableAttributesLock;
+	mutable FRWLock ProtectedAttributesLock;
+	bool bCleanupConsumableAttributes = false;
 	TSet<FName>& GetConsumableAttributesSet() { return ConsumableAttributesSet; }
 	void AddConsumableAttributeName(FName InName);
+	void AddProtectedAttributeName(FName InName);
 
 	bool CanExecute() const;
 	virtual bool CancelExecution(const FString& InReason);

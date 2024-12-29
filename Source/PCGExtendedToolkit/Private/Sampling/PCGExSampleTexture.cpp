@@ -103,7 +103,7 @@ namespace PCGExSampleTexture
 		if (!FPointsProcessor::Process(InAsyncManager)) { return false; }
 
 		SampleState.Init(false, PointDataFacade->GetNum());
-		
+
 		UVGetter = PointDataFacade->GetScopedBroadcaster<FVector2D>(Settings->UVSource);
 
 		if (!UVGetter)
@@ -157,9 +157,9 @@ namespace PCGExSampleTexture
 		}
 
 		bool bSuccess = false;
-		
+
 		const FVector2D UV = UVGetter->Read(Index);
-		
+
 		for (const TSharedRef<FSampler>& Sampler : Samplers)
 		{
 			if (Sampler->Sample(Index, Point, UV)) { bSuccess = true; }

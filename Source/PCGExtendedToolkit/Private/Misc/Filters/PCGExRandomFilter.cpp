@@ -25,6 +25,16 @@ void UPCGExRandomFilterFactory::RegisterAssetDependencies(FPCGExContext* InConte
 	InContext->AddAssetDependency(Config.WeightCurve.ToSoftObjectPath());
 }
 
+bool UPCGExRandomFilterFactory::RegisterConsumableAttributesWithData(FPCGExContext* InContext, const UPCGData* InData) const
+{
+	if (!Super::RegisterConsumableAttributesWithData(InContext, InData)) { return false; }
+
+	FName Consumable = NAME_None;
+	PCGEX_CONSUMABLE_CONDITIONAL(Config.bPerPointWeight, Config.Weight, Consumable)
+
+	return true;
+}
+
 TSharedPtr<PCGExPointFilter::FFilter> UPCGExRandomFilterFactory::CreateFilter() const
 {
 	PCGEX_MAKE_SHARED(Filter, PCGExPointsFilter::TRandomFilter, this)
@@ -67,6 +77,14 @@ bool PCGExPointsFilter::TRandomFilter::Init(FPCGExContext* InContext, const TSha
 }
 
 PCGEX_CREATE_FILTER_FACTORY(Random)
+
+#if WITH_EDITOR
+FString UPCGExRandomFilterProviderSettings::GetDisplayName() const
+{
+	return TEXT("Random");
+}
+#endif
+
 
 #undef LOCTEXT_NAMESPACE
 #undef PCGEX_NAMESPACE

@@ -35,17 +35,25 @@ void FPCGExContext::StageOutput(const FName Pin, UPCGData* InData, const TSet<FS
 	}
 
 	if (bManaged) { ManagedObjects->Add(InData); }
-	if (bIsMutable && bDeleteConsumableAttributes)
+	if (bIsMutable && bCleanupConsumableAttributes)
 	{
 #if PCGEX_ENGINE_VERSION > 503
 		if (UPCGMetadata* Metadata = InData->MutableMetadata())
 		{
-			for (const FName ConsumableName : ConsumableAttributesSet) { Metadata->DeleteAttribute(ConsumableName); }
+			for (const FName ConsumableName : ConsumableAttributesSet)
+			{
+				if (!Metadata->HasAttribute(ConsumableName) || ProtectedAttributesSet.Contains(ConsumableName)) { continue; }
+				Metadata->DeleteAttribute(ConsumableName);
+			}
 		}
 #else
 		if(const UPCGSpatialData* SpatialData = Cast<UPCGSpatialData>(InData); SpatialData->Metadata)
 		{
-			for (const FName ConsumableName : ConsumableAttributesSet) { SpatialData->Metadata->DeleteAttribute(ConsumableName); }
+			for (const FName ConsumableName : ConsumableAttributesSet)
+			{
+				if (!patialData->Metadata->HasAttribute(ConsumableName) || !ProtectedAttributesSet.Contains(ConsumableName)) { continue; }
+				SpatialData->Metadata->DeleteAttribute(ConsumableName);
+			}
 		}
 #endif
 	}
@@ -85,9 +93,6 @@ void FPCGExContext::UnpauseContext()
 
 void FPCGExContext::CommitStagedOutputs()
 {
-	// Must be executed on main thread
-	// ensure(IsInGameThread());
-
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExContext::WriteFutureOutputs);
 
 	OutputData.TaggedData.Reserve(OutputData.TaggedData.Num() + StagedOutputs.Num());
@@ -344,7 +349,26 @@ UPCGManagedComponent* FPCGExContext::AttachManagedComponent(AActor* InParent, US
 
 void FPCGExContext::AddConsumableAttributeName(const FName InName)
 {
-	ConsumableAttributesSet.Add(InName);
+	{
+		FReadScopeLock ReadScopeLock(ConsumableAttributesLock);
+		if (ConsumableAttributesSet.Contains(InName)) { return; }
+	}
+	{
+		FWriteScopeLock WriteScopeLock(ConsumableAttributesLock);
+		ConsumableAttributesSet.Add(InName);
+	}
+}
+
+void FPCGExContext::AddProtectedAttributeName(const FName InName)
+{
+	{
+		FReadScopeLock ReadScopeLock(ProtectedAttributesLock);
+		if (ProtectedAttributesSet.Contains(InName)) { return; }
+	}
+	{
+		FWriteScopeLock WriteScopeLock(ProtectedAttributesLock);
+		ProtectedAttributesSet.Add(InName);
+	}
 }
 
 bool FPCGExContext::CanExecute() const

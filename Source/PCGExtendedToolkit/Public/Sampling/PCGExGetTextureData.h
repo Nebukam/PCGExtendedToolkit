@@ -73,7 +73,7 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="SourceType==EPCGExGetTexturePathType::MaterialPath", EditConditionHides))
 	bool bBuildTextureData = true;
 
-	
+
 	/** Method used to determine the value for a sample based on the value of nearby texels. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Data", meta = (PCG_Overridable))
 	EPCGExTextureFilter Filter = EPCGExTextureFilter::Bilinear;
@@ -84,7 +84,7 @@ public:
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Data", meta = (PCG_Overridable))
 	bool bUseAbsoluteTransform = false;
-	
+
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Data")
 	EPCGTextureColorChannel ColorChannel = EPCGTextureColorChannel::Alpha;
 
@@ -95,7 +95,7 @@ public:
 	/** Rotation to apply when sampling texture. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Data", meta = (UIMin = -360, ClampMin = -360, UIMax = 360, ClampMax = 360, Units = deg, EditCondition = "bUseAdvancedTiling"))
 	float Rotation = 0;
-	
+
 	/** Whether to tile the source or to stretch it to fit target area. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Data")
 	bool bUseAdvancedTiling = false;
@@ -111,7 +111,6 @@ public:
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Data|Tiling", meta = (EditCondition = "bUseAdvancedTiling && bUseTileBounds"))
 	FBox2D TileBounds = FBox2D(FVector2D(-0.5, -0.5), FVector2D(0.5, 0.5));
-	
 };
 
 struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExGetTextureDataContext final : FPCGExPointsProcessorContext
@@ -120,14 +119,13 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExGetTextureDataContext final : FPCGExPoin
 	friend class FPCGExGetTextureDataElement;
 
 	TArray<TObjectPtr<const UPCGExTexParamFactoryBase>> TexParamsFactories;
-	
+
 	TSet<PCGExTexture::FReference> TextureReferences;
 	TArray<PCGExTexture::FReference> TextureReferencesList;
 	TArray<TObjectPtr<UPCGTextureData>> TextureDataList;
 	TArray<int8> TextureReady;
-	
+
 	FTransform Transform;
-	
 };
 
 class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExGetTextureDataElement final : public FPCGExPointsProcessorElement
@@ -151,18 +149,14 @@ namespace PCGExGetTextureData
 	{
 		FRWLock ReferenceLock;
 
-#if PCGEX_ENGINE_VERSION <= 503
-		TSharedPtr<PCGExData::TBuffer<FString>> PathGetter;
-#else
 		TSharedPtr<PCGExData::TBuffer<FSoftObjectPath>> PathGetter;
-#endif
 
 		TSharedPtr<PCGExTexture::FLookup> TexParamLookup;
-		
+
 		TSharedPtr<TSet<FSoftObjectPath>> MaterialReferences;
 		TSet<PCGExTexture::FReference> TextureReferences;
 		TArray<TSharedPtr<TSet<PCGExTexture::FReference>>> ScopedTextureReferences;
-		
+
 	public:
 		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade):
 			TPointsProcessor(InPointDataFacade)
@@ -171,8 +165,6 @@ namespace PCGExGetTextureData
 
 		virtual ~FProcessor() override;
 
-		virtual void RegisterBuffersDependencies(PCGExData::FFacadePreloader& FacadePreloader) override;
-
 		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager> InAsyncManager) override;
 		virtual void PrepareSingleLoopScopeForPoints(const PCGExMT::FScope& Scope) override;
 		virtual void ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const PCGExMT::FScope& Scope) override;
@@ -180,7 +172,7 @@ namespace PCGExGetTextureData
 		virtual void PrepareLoopScopesForRanges(const TArray<PCGExMT::FScope>& Loops) override;
 		virtual void ProcessSingleRangeIteration(const int32 Iteration, const PCGExMT::FScope& Scope) override;
 		virtual void OnRangeProcessingComplete() override;
-		
+
 		virtual void CompleteWork() override;
 	};
 
@@ -196,5 +188,4 @@ namespace PCGExGetTextureData
 
 		virtual void ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager) override;
 	};
-
 }

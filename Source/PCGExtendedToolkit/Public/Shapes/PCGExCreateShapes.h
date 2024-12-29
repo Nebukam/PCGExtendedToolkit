@@ -105,7 +105,7 @@ namespace PCGExCreateShapes
 	{
 	public:
 		PCGEX_ASYNC_TASK_NAME(FBuildShape)
-		
+
 		FBuildShape(UPCGExShapeBuilderOperation* InOperation,
 		            const TSharedRef<PCGExData::FFacade>& InShapeDataFacade,
 		            const TSharedPtr<PCGExShapes::FShape>& InShape) :

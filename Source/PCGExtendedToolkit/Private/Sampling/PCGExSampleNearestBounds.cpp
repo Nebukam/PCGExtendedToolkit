@@ -78,7 +78,7 @@ PCGExData::EIOInit UPCGExSampleNearestBoundsSettings::GetMainOutputInitMode() co
 void FPCGExSampleNearestBoundsContext::RegisterAssetDependencies()
 {
 	PCGEX_SETTINGS_LOCAL(SampleNearestBounds)
-	
+
 	FPCGExPointsProcessorContext::RegisterAssetDependencies();
 	AddAssetDependency(Settings->WeightRemap.ToSoftObjectPath());
 }
@@ -124,7 +124,7 @@ void FPCGExSampleNearestBoundsElement::PostLoadAssetsDependencies(FPCGExContext*
 	FPCGExPointsProcessorElement::PostLoadAssetsDependencies(InContext);
 
 	PCGEX_CONTEXT_AND_SETTINGS(SampleNearestBounds)
-	
+
 	Context->RuntimeWeightCurve = Settings->LocalWeightRemap;
 	if (!Settings->bUseLocalCurve)
 	{
@@ -250,7 +250,7 @@ namespace PCGExSampleNearestBounds
 		PCGExGeo::FSample CurrentSample;
 
 		const FVector Origin = Point.Transform.GetLocation();
-		
+
 		const FBoxCenterAndExtent BCAE = FBoxCenterAndExtent(Origin, PCGExMath::GetLocalBounds(Point, BoundsSource).GetExtent());
 		Cloud->GetOctree()->FindElementsWithBoundsTest(
 			BCAE, [&](const PCGExGeo::FPointBox* NearbyBox)

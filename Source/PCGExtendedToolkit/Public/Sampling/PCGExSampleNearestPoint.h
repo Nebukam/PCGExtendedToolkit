@@ -215,7 +215,7 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(DisplayName="Distance", PCG_Overridable, EditCondition="bWriteDistance"))
 	FName DistanceAttributeName = FName("WeightedDistance");
 
-	
+
 	/** Write the sampled Signed distance. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(PCG_Overridable, InlineEditConditionToggle))
 	bool bWriteSignedDistance = false;
@@ -239,7 +239,7 @@ public:
 	/** Whether to output absolute or signed component wise distances */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(PCG_Overridable, DisplayName=" └─ Absolute", EditCondition="bWriteComponentWiseDistance", EditConditionHides, HideEditConditionToggle))
 	bool bAbsoluteComponentWiseDistance = true;
-	
+
 	/** Write the sampled angle. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(PCG_Overridable, InlineEditConditionToggle))
 	bool bWriteAngle = false;
@@ -321,7 +321,6 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExSampleNearestPointContext final : FPCGEx
 	PCGEX_FOREACH_FIELD_NEARESTPOINT(PCGEX_OUTPUT_DECL_TOGGLE)
 
 	virtual void RegisterAssetDependencies() override;
-	
 };
 
 class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExSampleNearestPointElement final : public FPCGExPointsProcessorElement

@@ -125,13 +125,6 @@ void UPCGExPathInclusionFilterFactory::BeginDestroy()
 	Splines.Empty();
 	Super::BeginDestroy();
 }
-
-void UPCGExPathInclusionFilterFactory::RegisterConsumableAttributes(FPCGExContext* InContext) const
-{
-	Super::RegisterConsumableAttributes(InContext);
-	//TODO : Implement Consumable
-}
-
 namespace PCGExPointsFilter
 {
 	bool TPathInclusionFilter::Init(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade> InPointDataFacade)

@@ -82,6 +82,8 @@ public:
 
 	int32 Priority;
 	FPCGExSortRuleConfig Config;
+
+	virtual bool RegisterConsumableAttributesWithData(FPCGExContext* InContext, const UPCGData* InData) const override;
 };
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Filter")
@@ -141,10 +143,15 @@ namespace PCGExSorting
 				InDataFacade->Source->PrintOutKeysMap(PointIndices);
 			}
 
+			const UPCGData* InData = InDataFacade->Source->GetIn();
+			FName Consumable = NAME_None;
+
 			for (const FPCGExSortRuleConfig& RuleConfig : InRuleConfigs)
 			{
 				PCGEX_MAKE_SHARED(NewRule, FPCGExSortRule, RuleConfig)
 				Rules.Add(NewRule.ToSharedRef());
+
+				if (InContext->bCleanupConsumableAttributes && InData) { PCGEX_CONSUMABLE_SELECTOR(RuleConfig.Selector, Consumable) }
 			}
 		}
 

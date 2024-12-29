@@ -312,7 +312,7 @@ namespace PCGExGeo
 	{
 	public:
 		PCGEX_ASYNC_TASK_NAME(FExtractStaticMeshTask)
-	
+
 		FExtractStaticMeshTask(const TSharedPtr<FGeoStaticMesh>& InGSM) :
 			FPCGExTask(), GSM(InGSM)
 		{

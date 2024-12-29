@@ -31,7 +31,7 @@ TArray<FPCGPinProperties> UPCGExGetTextureDataSettings::OutputPinProperties() co
 	return PinProperties;
 }
 
-PCGExData::EIOInit UPCGExGetTextureDataSettings::GetMainOutputInitMode() const { return bDeleteConsumableAttributes ? PCGExData::EIOInit::Duplicate : PCGExData::EIOInit::Forward; }
+PCGExData::EIOInit UPCGExGetTextureDataSettings::GetMainOutputInitMode() const { return bCleanupConsumableAttributes ? PCGExData::EIOInit::Duplicate : PCGExData::EIOInit::Forward; }
 
 PCGEX_INITIALIZE_ELEMENT(GetTextureData)
 
@@ -130,12 +130,6 @@ namespace PCGExGetTextureData
 	{
 	}
 
-	void FProcessor::RegisterBuffersDependencies(PCGExData::FFacadePreloader& FacadePreloader)
-	{
-		TPointsProcessor<FPCGExGetTextureDataContext, UPCGExGetTextureDataSettings>::RegisterBuffersDependencies(FacadePreloader);
-		//FacadePreloader.Register<FString>(Context, ,)
-	}
-
 	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager> InAsyncManager)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExGetTextureData::Process);
@@ -163,11 +157,7 @@ namespace PCGExGetTextureData
 			}
 		}
 
-#if PCGEX_ENGINE_VERSION <= 503
-		PathGetter = PointDataFacade->GetScopedBroadcaster<FString>(Settings->SourceAttributeName);
-#else
 		PathGetter = PointDataFacade->GetScopedBroadcaster<FSoftObjectPath>(Settings->SourceAttributeName);
-#endif
 
 		if (!PathGetter)
 		{

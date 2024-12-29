@@ -11,7 +11,7 @@ void FPCGExActorCollectionEntry::GetAssetPaths(TSet<FSoftObjectPath>& OutPaths) 
 bool FPCGExActorCollectionEntry::Validate(const UPCGExAssetCollection* ParentCollection)
 {
 	if (bIsSubCollection) { return SubCollection ? true : false; }
-	else if (!Actor && ParentCollection->bDoNotIgnoreInvalidEntries) { return false; }
+	if (!Actor && ParentCollection->bDoNotIgnoreInvalidEntries) { return false; }
 
 	return Super::Validate(ParentCollection);
 }

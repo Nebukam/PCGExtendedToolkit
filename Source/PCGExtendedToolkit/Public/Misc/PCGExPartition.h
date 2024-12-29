@@ -7,7 +7,7 @@
 #include "Data/PCGExAttributeHelpers.h"
 #include "Data/PCGExData.h"
 
-#include "PCGExFilter.generated.h"
+#include "PCGExPartition.generated.h"
 
 struct FPCGPoint;
 
@@ -84,8 +84,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPartitonRuleConfig : public FPCGExInputC
 	bool bTagUsePartitionIndexAsKey = false;
 };
 
-
-namespace FPCGExFilter
+namespace PCGExPartition
 {
 	struct /*PCGEXTENDEDTOOLKIT_API*/ FRule final : PCGEx::TAttributeBroadcaster<double>
 	{

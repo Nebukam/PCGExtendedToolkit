@@ -28,7 +28,7 @@ public:
 
 	virtual void BeginDestroy() override;
 
-protected:	
+protected:
 #if PCGEX_ENGINE_VERSION < 505
 	virtual UPCGSpatialData* CopyInternal() const override;
 #else

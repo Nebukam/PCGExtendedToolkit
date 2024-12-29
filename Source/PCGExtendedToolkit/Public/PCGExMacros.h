@@ -31,6 +31,9 @@ MACRO(X)\
 MACRO(Y)\
 MACRO(Z)
 
+#define PCGEX_CONSUMABLE_SELECTOR(_SELECTOR, _NAME) if (PCGExHelpers::TryGetAttributeName(_SELECTOR, InData, _NAME)) { InContext->AddConsumableAttributeName(_NAME); }
+#define PCGEX_CONSUMABLE_CONDITIONAL(_CONDITION, _SELECTOR, _NAME) if (_CONDITION && PCGExHelpers::TryGetAttributeName(_SELECTOR, InData, _NAME)) { InContext->AddConsumableAttributeName(_NAME); }
+
 #if PCGEX_ENGINE_VERSION <= 503
 enum class EPCGPinStatus : uint8
 {
@@ -117,27 +120,32 @@ MACRO(EPCGExtraProperties::Index, MetadataEntry)
 
 #pragma endregion
 
+// Dummy members required by Macros (I know! Don't say it!)
+#define PCGEX_DUMMY_SETTINGS_MEMBERS \
+bool bCacheResult = false; \
+bool bCleanupConsumableAttributes = false;
+
 #define PCGEX_NODE_INFOS(_SHORTNAME, _NAME, _TOOLTIP)\
 virtual FName GetDefaultNodeName() const override { return FName(TEXT(#_SHORTNAME)); } \
-virtual FName AdditionalTaskName() const override{ return bCacheResult ? FName(FString("* ")+GetDefaultNodeTitle().ToString()) : FName(GetDefaultNodeTitle().ToString()); }\
-virtual FText GetDefaultNodeTitle() const override { return NSLOCTEXT("PCGEx" #_SHORTNAME, "NodeTitle", "PCGEx | " _NAME);} \
-virtual FText GetNodeTooltipText() const override{ return NSLOCTEXT("PCGEx" #_SHORTNAME "Tooltip", "NodeTooltip", _TOOLTIP); } \
+virtual FName AdditionalTaskName() const override{ FString A = bCacheResult ? TEXT("♻️ ") : TEXT(""); return FName(A + GetDefaultNodeTitle().ToString()); }\
+virtual FText GetDefaultNodeTitle() const override { FString A = bCacheResult ? TEXT("♻️ ") : TEXT(""); A += TEXT("PCGEx | "); A += (bCleanupConsumableAttributes ? TEXT("🗑️ ") : TEXT("")); A += TEXT(_NAME); return FTEXT(A);} \
+virtual FText GetNodeTooltipText() const override{ return FTEXT(_TOOLTIP); } \
 virtual TArray<FPCGPreConfiguredSettingsInfo> GetPreconfiguredInfo() const override{ return {}; }// return {FPCGPreConfiguredSettingsInfo(0, GetDefaultNodeTitle(), GetNodeTooltipText())};}
 
 #if PCGEX_ENGINE_VERSION <= 503
 #define PCGEX_NODE_INFOS_CUSTOM_SUBTITLE_LEAN(_SHORTNAME, _NAME, _TOOLTIP, _TASK_NAME)\
 virtual FName GetDefaultNodeName() const override { return FName(TEXT(#_SHORTNAME)); } \
-virtual FName AdditionalTaskName() const override{ return _TASK_NAME.IsNone() ? FName(GetDefaultNodeTitle().ToString()) : FName(FString(GetDefaultNodeTitle().ToString() + "\r" + _TASK_NAME.ToString())); }\
-virtual FText GetDefaultNodeTitle() const override { return NSLOCTEXT("PCGEx" #_SHORTNAME, "NodeTitle", "PCGEx | " _NAME);} \
-virtual FText GetNodeTooltipText() const override{ return NSLOCTEXT("PCGEx" #_SHORTNAME "Tooltip", "NodeTooltip", _TOOLTIP); } 
+virtual FName AdditionalTaskName() const override{ FString A = bCacheResult ? TEXT("♻️ ") : TEXT(""); return _TASK_NAME.IsNone() ? FName(A + GetDefaultNodeTitle().ToString()) : FName(A + FString(GetDefaultNodeTitle().ToString() + "\r" + _TASK_NAME.ToString())); }\
+virtual FText GetDefaultNodeTitle() const override { FString A = bCacheResult ? TEXT("♻️ ") : TEXT(""); A += TEXT("PCGEx | ");  A += (bCleanupConsumableAttributes ? TEXT("🗑️ ") : TEXT("")); A += TEXT(_NAME); return FTEXT(A);} \
+virtual FText GetNodeTooltipText() const override{ return FTEXT(_TOOLTIP); } 
 #else
 #define PCGEX_NODE_INFOS_CUSTOM_SUBTITLE_LEAN(_SHORTNAME, _NAME, _TOOLTIP, _TASK_NAME)\
 virtual FName GetDefaultNodeName() const override { return FName(TEXT(#_SHORTNAME)); } \
-virtual FName AdditionalTaskName() const override{ return FName(GetDefaultNodeTitle().ToString()); }\
+virtual FName AdditionalTaskName() const override{ FString A = bCacheResult ? TEXT("♻️ ") : TEXT(""); return FName(A + GetDefaultNodeTitle().ToString()); }\
 virtual FString GetAdditionalTitleInformation() const override{ FName N = _TASK_NAME; return N.IsNone() ? FString() : N.ToString(); }\
 virtual bool HasFlippedTitleLines() const { FName N = _TASK_NAME; return !N.IsNone(); }\
-virtual FText GetDefaultNodeTitle() const override { return NSLOCTEXT("PCGEx" #_SHORTNAME, "NodeTitle", "PCGEx | " _NAME);} \
-virtual FText GetNodeTooltipText() const override{ return NSLOCTEXT("PCGEx" #_SHORTNAME "Tooltip", "NodeTooltip", _TOOLTIP); }
+virtual FText GetDefaultNodeTitle() const override { FString A = bCacheResult ? TEXT("♻️ ") : TEXT(""); A += TEXT("PCGEx | ");  A += (bCleanupConsumableAttributes ? TEXT("🗑️ ") : TEXT("")); A += TEXT(_NAME); return FTEXT(A);} \
+virtual FText GetNodeTooltipText() const override{ return FTEXT(_TOOLTIP); }
 #endif
 
 #if PCGEX_ENGINE_VERSION <= 503

@@ -39,7 +39,7 @@ bool FPCGExGetGUIDElement::ExecuteInternal(FPCGContext* InContext) const
 	PCGEX_EXECUTION_CHECK
 	PCGEX_ON_INITIAL_EXECUTION
 	{
-		while(Context->AdvancePointsIO())
+		while (Context->AdvancePointsIO())
 		{
 			PCGEX_MAKE_SHARED(Facade, PCGExData::FFacade, Context->CurrentIO.ToSharedRef())
 			TSharedRef<PCGExData::FFacade> FacadeRef = Facade.ToSharedRef();
@@ -72,7 +72,7 @@ bool FPCGExGetGUIDElement::ExecuteInternal(FPCGContext* InContext) const
 			GuidData->Metadata->AddEntry();
 			Context->StageOutput(FName("GUID"), GuidData, true);
 		}
-		
+
 		Context->Done();
 	}
 

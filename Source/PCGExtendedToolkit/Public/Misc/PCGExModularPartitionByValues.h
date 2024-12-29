@@ -4,7 +4,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "PCGExFilter.h"
+#include "PCGExPartition.h"
 #include "PCGExPartitionByValues.h"
 
 

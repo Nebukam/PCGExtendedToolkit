@@ -105,16 +105,52 @@ namespace PCGExFilterGroup
 	}
 }
 
+bool UPCGExFilterGroupFactoryBase::RegisterConsumableAttributes(FPCGExContext* InContext) const
+{
+	Super::RegisterConsumableAttributes(InContext);
+
+	// Ensure we grab dependencies from plugged-in factories recursively
+	for (const TObjectPtr<const UPCGExFilterFactoryBase>& SubFilter : FilterFactories)
+	{
+		SubFilter->RegisterConsumableAttributes(InContext);
+	}
+
+	return true;
+}
+
+bool UPCGExFilterGroupFactoryBase::RegisterConsumableAttributesWithData(FPCGExContext* InContext, const UPCGData* InData) const
+{
+	Super::RegisterConsumableAttributesWithData(InContext, InData);
+
+	// Ensure we grab dependencies from plugged-in factories recursively
+	for (const TObjectPtr<const UPCGExFilterFactoryBase>& SubFilter : FilterFactories)
+	{
+		SubFilter->RegisterConsumableAttributesWithData(InContext, InData);
+	}
+
+	return true;
+}
+
 void UPCGExFilterGroupFactoryBase::RegisterAssetDependencies(FPCGExContext* InContext) const
 {
 	Super::RegisterAssetDependencies(InContext);
 
-	// Ensure we grab dependencies from plugged-in factories
-	for(const TObjectPtr<const UPCGExFilterFactoryBase>& SubFilter : FilterFactories)
+	// Ensure we grab dependencies from plugged-in factories recursively
+	for (const TObjectPtr<const UPCGExFilterFactoryBase>& SubFilter : FilterFactories)
 	{
 		SubFilter->RegisterAssetDependencies(InContext);
 	}
-	
+}
+
+void UPCGExFilterGroupFactoryBase::RegisterBuffersDependencies(FPCGExContext* InContext, PCGExData::FFacadePreloader& FacadePreloader) const
+{
+	Super::RegisterBuffersDependencies(InContext, FacadePreloader);
+
+	// Ensure we grab dependencies from plugged-in factories recursively
+	for (const TObjectPtr<const UPCGExFilterFactoryBase>& SubFilter : FilterFactories)
+	{
+		SubFilter->RegisterBuffersDependencies(InContext, FacadePreloader);
+	}
 }
 
 TSharedPtr<PCGExPointFilter::FFilter> UPCGExFilterGroupFactoryBaseAND::CreateFilter() const

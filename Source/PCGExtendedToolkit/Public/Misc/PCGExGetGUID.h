@@ -43,7 +43,7 @@ public:
 	/**  */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	EPCGExIndexSafety IndexSafety = EPCGExIndexSafety::Ignore;
-	
+
 	/** Config */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ShowOnlyInnerProperties))
 	FPCGExGUIDDetails Config;

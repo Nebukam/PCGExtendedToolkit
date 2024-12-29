@@ -30,7 +30,7 @@ public:
 		AbstractFilterFactory, "Filter : Abstract", "Creates an abstract filter definition.",
 		PCGEX_FACTORY_NAME_PRIORITY)
 	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->NodeColorFilter; }
-	virtual EPCGSettingsType GetType() const override{ return EPCGSettingsType::Filter; }
+	virtual EPCGSettingsType GetType() const override { return EPCGSettingsType::Filter; }
 #endif
 	//~End UPCGSettings
 

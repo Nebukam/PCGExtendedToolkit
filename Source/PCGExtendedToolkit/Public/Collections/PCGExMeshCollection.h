@@ -172,7 +172,6 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExMeshCollectionEntry : public FPCGExAsset
 #if WITH_EDITOR
 	virtual void EDITOR_Sanitize() override;
 #endif
-
 };
 
 UCLASS(BlueprintType, DisplayName="[PCGEx] Mesh Collection")
