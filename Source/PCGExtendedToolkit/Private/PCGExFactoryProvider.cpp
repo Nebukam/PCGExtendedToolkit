@@ -8,6 +8,11 @@
 #define LOCTEXT_NAMESPACE "PCGExFactoryProvider"
 #define PCGEX_NAMESPACE PCGExFactoryProvider
 
+void UPCGExParamDataBase::OutputConfigToMetadata()
+{
+	
+}
+
 TArray<FPCGPinProperties> UPCGExFactoryProviderSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties;
@@ -49,6 +54,7 @@ bool FPCGExFactoryProviderElement::ExecuteInternal(FPCGContext* Context) const
 	if (!OutFactory) { return true; }
 
 	OutFactory->bDoRegisterConsumableAttributes = Settings->bDoRegisterConsumableAttributes;
+	OutFactory->OutputConfigToMetadata();
 	PCGExContext->StageOutput(Settings->GetMainOutputPin(), OutFactory, false);
 	PCGExContext->OnComplete();
 

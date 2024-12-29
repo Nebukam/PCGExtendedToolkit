@@ -60,6 +60,17 @@ class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExParamDataBase : public UPCGPointData
 
 public:
 	virtual EPCGDataType GetDataType() const override { return EPCGDataType::Param; }
+
+	virtual void OutputConfigToMetadata();
+
+protected:
+	template <typename T>
+	void SetMetadataValue(const FName InName, const T& InValue)
+	{
+		check(Metadata)
+		if (Metadata->HasAttribute(InName)) { Metadata->DeleteAttribute(InName); }
+		Metadata->FindOrCreateAttribute<T>(InName, InValue, true, true);
+	}
 };
 
 /**

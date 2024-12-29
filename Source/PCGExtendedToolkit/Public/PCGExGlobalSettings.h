@@ -207,5 +207,5 @@ public:
 	FLinearColor NodeColorShapeBuilder = FLinearColor(1.000000, 0.000000, 0.185865, 1.000000);
 	
 	UPROPERTY(EditAnywhere, config, Category = "Node Colors")
-	FLinearColor NodeColorBlending = FLinearColor(1.000000, 0.200000, 0.185865, 1.000000);
+	FLinearColor NodeColorTex = FLinearColor(1.000000, 0.200000, 0.185865, 1.000000);
 };

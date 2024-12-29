@@ -21,7 +21,7 @@ TArray<FPCGPinProperties> UPCGExSampleSurfaceGuidedSettings::InputPinProperties(
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
 	if (SurfaceSource == EPCGExSurfaceSource::ActorReferences) { PCGEX_PIN_POINT(PCGExSampling::SourceActorReferencesLabel, "Points with actor reference paths.", Required, {}) }
-	if (bWriteRenderMat && bExtractTextureParameters) { PCGEX_PIN_PARAMS(PCGExTexParam::SourceTexLabel, "External texture params definitions.", Required, {}) }
+	if (bWriteRenderMat && bExtractTextureParameters) { PCGEX_PIN_PARAMS(PCGExTexture::SourceTexLabel, "External texture params definitions.", Required, {}) }
 	return PinProperties;
 }
 
@@ -41,13 +41,8 @@ bool FPCGExSampleSurfaceGuidedElement::Boot(FPCGExContext* InContext) const
 	{
 		Context->bExtractTextureParams = true;
 
-		if (!PCGExFactories::GetInputFactories(InContext, PCGExTexParam::SourceTexLabel, Context->TexParamsFactories, {PCGExFactories::EType::TexParam}, true)) { return false; }
-		if (Context->TexParamsFactories.IsEmpty())
-		{
-			PCGE_LOG(Error, GraphAndLog, FTEXT("Could not find valid Texture Parameter inputs"));
-			return false;
-		}
-		for (const TObjectPtr<const UPCGExTexParamFactoryBase>& Factory : Context->TexParamsFactories) { PCGEX_VALIDATE_NAME_C(InContext, Factory->Config.PathAttributeName) }
+		if (!PCGExFactories::GetInputFactories(InContext, PCGExTexture::SourceTexLabel, Context->TexParamsFactories, {PCGExFactories::EType::TexParam}, true)) { return false; }
+		for (const TObjectPtr<const UPCGExTexParamFactoryBase>& Factory : Context->TexParamsFactories) { PCGEX_VALIDATE_NAME_C(InContext, Factory->Config.TextureIDAttributeName) }
 	}
 
 	Context->bUseInclude = Settings->SurfaceSource == EPCGExSurfaceSource::ActorReferences;
@@ -148,10 +143,10 @@ namespace PCGExSampleSurfaceGuided
 		}
 
 		// So texture params are registered last, otherwise they're first in the list and it's confusing
-		TexParamLookup = MakeShared<PCGExTexParam::FLookup>();
+		TexParamLookup = MakeShared<PCGExTexture::FLookup>();
 		if (!TexParamLookup->BuildFrom(Context->TexParamsFactories)) { TexParamLookup.Reset(); }
 		else { TexParamLookup->PrepareForWrite(Context, PointDataFacade); }
-		
+
 		if (Settings->DistanceInput == EPCGExTraceSampleDistanceInput::Attribute)
 		{
 			MaxDistanceGetter = PointDataFacade->GetScopedBroadcaster<double>(Settings->LocalMaxDistance);
