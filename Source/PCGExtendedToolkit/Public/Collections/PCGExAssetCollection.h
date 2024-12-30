@@ -276,7 +276,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExAssetStagingData
 	template <typename T>
 	T* LoadSync() const
 	{
-		return PCGExHelpers::ForceLoad<T>(TSoftObjectPtr<T>(Path));
+		return PCGExHelpers::LoadBlocking_AnyThread<T>(TSoftObjectPtr<T>(Path));
 	}
 
 	template <typename T>
@@ -330,13 +330,12 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExAssetCollectionEntry
 	{
 	}
 #endif
-	
+
 	virtual bool Validate(const UPCGExAssetCollection* ParentCollection);
 	virtual void UpdateStaging(const UPCGExAssetCollection* OwningCollection, int32 InInternalIndex, const bool bRecursive);
 	virtual void SetAssetPath(const FSoftObjectPath& InPath) PCGEX_NOT_IMPLEMENTED(SetAssetPath(const FSoftObjectPath& InPath))
 
 	virtual void GetAssetPaths(TSet<FSoftObjectPath>& OutPaths) const;
-
 };
 
 namespace PCGExAssetCollection

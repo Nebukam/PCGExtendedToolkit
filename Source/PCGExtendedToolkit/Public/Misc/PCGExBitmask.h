@@ -71,11 +71,12 @@ class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExBitmaskSettings : public UPCGSettings
 	friend class FPCGExBitmaskElement;
 
 public:
-	bool bCacheResult = false;
 	//~Begin UPCGSettings
 #if WITH_EDITOR
+	PCGEX_DUMMY_SETTINGS_MEMBERS
 	PCGEX_NODE_INFOS(Bitmask, "Bitmask", "A Simple bitmask attribute.");
 	virtual EPCGSettingsType GetType() const override { return EPCGSettingsType::Param; }
+	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->NodeColorConstant; }
 #endif
 
 protected:

@@ -23,7 +23,6 @@ void UPCGExPointData::InitializeFromPCGExData(const UPCGExPointData* InPCGExPoin
 void UPCGExPointData::BeginDestroy()
 {
 	Super::BeginDestroy();
-	
 }
 
 #if PCGEX_ENGINE_VERSION < 505

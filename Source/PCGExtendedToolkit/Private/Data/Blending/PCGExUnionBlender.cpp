@@ -9,7 +9,7 @@
 
 #include "Data/PCGExData.h"
 #include "Data/PCGExDataFilter.h"
-#include "Data/Blending//PCGExDataBlendingOperations.h"
+#include "Data/Blending//PCGExDataBlendingProcessors.h"
 #include "Data/Blending/PCGExPropertiesBlender.h"
 
 
@@ -77,14 +77,14 @@ namespace PCGExDataBlending
 
 				MultiAttribute->DefaultValue = SourceAttribute;
 
-				if (PCGEx::IsPCGExAttribute(Identity.Name)) { MultiAttribute->MainBlendingOp = CreateOperation(EPCGExDataBlendingType::Copy, Identity); }
-				else { MultiAttribute->MainBlendingOp = CreateOperation(BlendTypePtr, BlendingDetails->DefaultBlending, Identity); }
+				if (PCGEx::IsPCGExAttribute(Identity.Name)) { MultiAttribute->MainBlendingProcessor = CreateProcessor(EPCGExDataBlendingType::Copy, Identity); }
+				else { MultiAttribute->MainBlendingProcessor = CreateProcessor(BlendTypePtr, BlendingDetails->DefaultBlending, Identity); }
 			}
 
 			check(MultiAttribute)
 
 			MultiAttribute->Siblings[SourceIndex] = SourceAttribute;
-			MultiAttribute->SubBlendingOps[SourceIndex] = CreateOperation(BlendTypePtr, BlendingDetails->DefaultBlending, Identity);
+			MultiAttribute->SubBlendingProcessors[SourceIndex] = CreateProcessor(BlendTypePtr, BlendingDetails->DefaultBlending, Identity);
 
 			if (!SourceAttribute->AllowsInterpolation()) { MultiAttribute->AllowsInterpolation = false; }
 		}
@@ -152,14 +152,14 @@ namespace PCGExDataBlending
 
 		for (const TSharedPtr<FMultiSourceAttribute>& MultiAttribute : MultiSourceAttributes)
 		{
-			MultiAttribute->MainBlendingOp->PrepareOperation(WriteIndex);
+			MultiAttribute->MainBlendingProcessor->PrepareOperation(WriteIndex);
 
 			int32 ValidUnions = 0;
 			double TotalWeight = 0;
 
 			for (int k = 0; k < UnionCount; k++)
 			{
-				const TSharedPtr<FDataBlendingOperationBase>& Operation = MultiAttribute->SubBlendingOps[IdxIO[k]];
+				const TSharedPtr<FDataBlendingProcessorBase>& Operation = MultiAttribute->SubBlendingProcessors[IdxIO[k]];
 				if (!Operation) { continue; }
 
 				const double Weight = Weights[k];
@@ -174,7 +174,7 @@ namespace PCGExDataBlending
 
 			if (ValidUnions == 0) { continue; } // No valid attribute to merge on any union source
 
-			MultiAttribute->MainBlendingOp->CompleteOperation(WriteIndex, ValidUnions, TotalWeight);
+			MultiAttribute->MainBlendingProcessor->CompleteOperation(WriteIndex, ValidUnions, TotalWeight);
 		}
 	}
 
@@ -253,14 +253,14 @@ namespace PCGExDataBlending
 		// Blend Attributes
 		for (const TSharedPtr<FMultiSourceAttribute>& MultiAttribute : MultiSourceAttributes)
 		{
-			MultiAttribute->MainBlendingOp->PrepareOperation(Target.MetadataEntry);
+			MultiAttribute->MainBlendingProcessor->PrepareOperation(Target.MetadataEntry);
 
 			int32 ValidUnions = 0;
 			double TotalWeight = 0;
 
 			for (int k = 0; k < NumUnions; k++)
 			{
-				const TSharedPtr<FDataBlendingOperationBase>& Operation = MultiAttribute->SubBlendingOps[IdxIO[k]];
+				const TSharedPtr<FDataBlendingProcessorBase>& Operation = MultiAttribute->SubBlendingProcessors[IdxIO[k]];
 				if (!Operation) { continue; }
 
 				const double Weight = Weights[k];
@@ -275,7 +275,7 @@ namespace PCGExDataBlending
 
 			if (ValidUnions == 0) { continue; } // No valid attribute to merge on any union source
 
-			MultiAttribute->MainBlendingOp->CompleteOperation(Target.MetadataEntry, ValidUnions, TotalWeight);
+			MultiAttribute->MainBlendingProcessor->CompleteOperation(Target.MetadataEntry, ValidUnions, TotalWeight);
 		}
 
 		// Tag flags

@@ -12,12 +12,6 @@ TSharedPtr<PCGExPointFilter::FFilter> UPCGExWithinRangeFilterFactory::CreateFilt
 	return MakeShared<PCGExPointsFilter::TWithinRangeFilter>(this);
 }
 
-void UPCGExWithinRangeFilterFactory::RegisterConsumableAttributes(FPCGExContext* InContext) const
-{
-	Super::RegisterConsumableAttributes(InContext);
-	//TODO : Implement Consumable
-}
-
 bool PCGExPointsFilter::TWithinRangeFilter::Init(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade> InPointDataFacade)
 {
 	if (!FFilter::Init(InContext, InPointDataFacade)) { return false; }

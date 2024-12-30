@@ -12,10 +12,16 @@ TSharedPtr<PCGExPointFilter::FFilter> UPCGExModuloCompareFilterFactory::CreateFi
 	return MakeShared<PCGExPointsFilter::TModuloComparisonFilter>(this);
 }
 
-void UPCGExModuloCompareFilterFactory::RegisterConsumableAttributes(FPCGExContext* InContext) const
+bool UPCGExModuloCompareFilterFactory::RegisterConsumableAttributesWithData(FPCGExContext* InContext, const UPCGData* InData) const
 {
-	Super::RegisterConsumableAttributes(InContext);
-	//TODO : Implement Consumable
+	if (!Super::RegisterConsumableAttributesWithData(InContext, InData)) { return false; }
+
+	FName Consumable = NAME_None;
+	PCGEX_CONSUMABLE_SELECTOR(Config.OperandA, Consumable)
+	PCGEX_CONSUMABLE_CONDITIONAL(Config.OperandBSource == EPCGExInputValueType::Attribute, Config.OperandB, Consumable)
+	PCGEX_CONSUMABLE_CONDITIONAL(Config.CompareAgainst == EPCGExInputValueType::Attribute, Config.OperandC, Consumable)
+
+	return true;
 }
 
 bool PCGExPointsFilter::TModuloComparisonFilter::Init(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade> InPointDataFacade)

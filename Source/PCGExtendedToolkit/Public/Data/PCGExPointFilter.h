@@ -49,10 +49,6 @@ public:
 
 	int32 Priority = 0;
 	virtual TSharedPtr<PCGExPointFilter::FFilter> CreateFilter() const;
-
-	virtual void RegisterBuffersDependencies(FPCGExContext* InContext, PCGExData::FFacadePreloader& FacadePreloader) const
-	{
-	}
 };
 
 namespace PCGExPointFilter
