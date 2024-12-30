@@ -130,32 +130,21 @@ virtual FName GetDefaultNodeName() const override { return FName(TEXT(#_SHORTNAM
 virtual FName AdditionalTaskName() const override{ FString A = bCacheResult ? TEXT("♻️ ") : TEXT(""); return FName(A + GetDefaultNodeTitle().ToString()); }\
 virtual FText GetDefaultNodeTitle() const override { FString A = bCacheResult ? TEXT("♻️ ") : TEXT(""); A += TEXT("PCGEx | "); A += (bCleanupConsumableAttributes ? TEXT("🗑️ ") : TEXT("")); A += TEXT(_NAME); return FTEXT(A);} \
 virtual FText GetNodeTooltipText() const override{ return FTEXT(_TOOLTIP); } \
-virtual TArray<FPCGPreConfiguredSettingsInfo> GetPreconfiguredInfo() const override{ return {}; }// return {FPCGPreConfiguredSettingsInfo(0, GetDefaultNodeTitle(), GetNodeTooltipText())};}
 
 #if PCGEX_ENGINE_VERSION <= 503
-#define PCGEX_NODE_INFOS_CUSTOM_SUBTITLE_LEAN(_SHORTNAME, _NAME, _TOOLTIP, _TASK_NAME)\
+#define PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(_SHORTNAME, _NAME, _TOOLTIP, _TASK_NAME)\
 virtual FName GetDefaultNodeName() const override { return FName(TEXT(#_SHORTNAME)); } \
 virtual FName AdditionalTaskName() const override{ FString A = bCacheResult ? TEXT("♻️ ") : TEXT(""); return _TASK_NAME.IsNone() ? FName(A + GetDefaultNodeTitle().ToString()) : FName(A + FString(GetDefaultNodeTitle().ToString() + "\r" + _TASK_NAME.ToString())); }\
 virtual FText GetDefaultNodeTitle() const override { FString A = bCacheResult ? TEXT("♻️ ") : TEXT(""); A += TEXT("PCGEx | ");  A += (bCleanupConsumableAttributes ? TEXT("🗑️ ") : TEXT("")); A += TEXT(_NAME); return FTEXT(A);} \
 virtual FText GetNodeTooltipText() const override{ return FTEXT(_TOOLTIP); } 
 #else
-#define PCGEX_NODE_INFOS_CUSTOM_SUBTITLE_LEAN(_SHORTNAME, _NAME, _TOOLTIP, _TASK_NAME)\
+#define PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(_SHORTNAME, _NAME, _TOOLTIP, _TASK_NAME)\
 virtual FName GetDefaultNodeName() const override { return FName(TEXT(#_SHORTNAME)); } \
 virtual FName AdditionalTaskName() const override{ FString A = bCacheResult ? TEXT("♻️ ") : TEXT(""); return FName(A + GetDefaultNodeTitle().ToString()); }\
 virtual FString GetAdditionalTitleInformation() const override{ FName N = _TASK_NAME; return N.IsNone() ? FString() : N.ToString(); }\
 virtual bool HasFlippedTitleLines() const { FName N = _TASK_NAME; return !N.IsNone(); }\
 virtual FText GetDefaultNodeTitle() const override { FString A = bCacheResult ? TEXT("♻️ ") : TEXT(""); A += TEXT("PCGEx | ");  A += (bCleanupConsumableAttributes ? TEXT("🗑️ ") : TEXT("")); A += TEXT(_NAME); return FTEXT(A);} \
 virtual FText GetNodeTooltipText() const override{ return FTEXT(_TOOLTIP); }
-#endif
-
-#if PCGEX_ENGINE_VERSION <= 503
-#define PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(_SHORTNAME, _NAME, _TOOLTIP, _TASK_NAME)\
-PCGEX_NODE_INFOS_CUSTOM_SUBTITLE_LEAN(_SHORTNAME, _NAME, _TOOLTIP, _TASK_NAME)\
-virtual TArray<FPCGPreConfiguredSettingsInfo> GetPreconfiguredInfo() const override{ return {}; } // return {FPCGPreConfiguredSettingsInfo(0, GetDefaultNodeTitle(), GetNodeTooltipText())};}
-#else
-#define PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(_SHORTNAME, _NAME, _TOOLTIP, _TASK_NAME)\
-PCGEX_NODE_INFOS_CUSTOM_SUBTITLE_LEAN(_SHORTNAME, _NAME, _TOOLTIP, _TASK_NAME)\
-virtual TArray<FPCGPreConfiguredSettingsInfo> GetPreconfiguredInfo() const override{ return {}; } // return {FPCGPreConfiguredSettingsInfo(0, GetDefaultNodeTitle(), GetNodeTooltipText())};}
 #endif
 
 #define PCGEX_NODE_POINT_FILTER(_LABEL, _TOOLTIP, _TYPE, _REQUIRED) \

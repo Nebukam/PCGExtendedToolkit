@@ -27,7 +27,7 @@ public:
 
 #if WITH_EDITOR
 	PCGEX_DUMMY_SETTINGS_MEMBERS
-	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE_LEAN(Constant, "Constant", "Constants.", GetEnumName());
+	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(Constant, "Constant", "Constants.", GetEnumName());
 	virtual EPCGSettingsType GetType() const override { return EPCGSettingsType::Param; }
 	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->NodeColorConstant; }
 
