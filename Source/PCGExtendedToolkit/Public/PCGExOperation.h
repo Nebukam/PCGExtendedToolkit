@@ -38,7 +38,7 @@ public:
 	virtual void CopySettingsFrom(const UPCGExOperation* Other);
 
 	virtual void RegisterAssetDependencies(FPCGExContext* InContext);
-	
+
 	TSharedPtr<PCGExData::FFacade> PrimaryDataFacade;
 	TSharedPtr<PCGExData::FFacade> SecondaryDataFacade;
 
@@ -51,6 +51,10 @@ public:
 
 		TypedInstance->CopySettingsFrom(this);
 		return TypedInstance;
+	}
+
+	virtual void RegisterConsumableAttributesWithFacade(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade>& InFacade) const
+	{
 	}
 
 	virtual void BeginDestroy() override;

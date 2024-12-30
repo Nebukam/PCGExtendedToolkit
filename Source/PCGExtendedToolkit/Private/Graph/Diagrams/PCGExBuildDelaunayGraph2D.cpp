@@ -114,7 +114,7 @@ namespace PCGExBuildDelaunay2D
 			PCGE_LOG_C(Warning, GraphAndLog, ExecutionContext, FTEXT("Some inputs generated invalid results."));
 			return false;
 		}
-		
+
 		if (!PointDataFacade->Source->InitializeOutput<UPCGExClusterNodesData>(PCGExData::EIOInit::Duplicate)) { return false; }
 
 		if (Settings->bUrquhart)
@@ -138,7 +138,7 @@ namespace PCGExBuildDelaunay2D
 		GraphBuilder = MakeShared<PCGExGraph::FGraphBuilder>(PointDataFacade, &Settings->GraphBuilderDetails);
 		GraphBuilder->Graph->InsertEdges(Delaunay->DelaunayEdges, -1);
 		GraphBuilder->CompileAsync(AsyncManager, false);
-		
+
 		if (!Settings->bMarkHull && !Settings->bOutputSites) { Delaunay.Reset(); }
 
 		return true;

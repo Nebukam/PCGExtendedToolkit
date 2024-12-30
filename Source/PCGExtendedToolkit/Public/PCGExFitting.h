@@ -312,18 +312,14 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExFittingDetailsHandler
 {
 	GENERATED_BODY()
 
-	explicit FPCGExFittingDetailsHandler(const bool InSupportFitting = true)
-		: bSupportFitting(InSupportFitting)
+	explicit FPCGExFittingDetailsHandler()
 	{
 	}
 
-	UPROPERTY()
-	bool bSupportFitting = true;
-
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bSupportFitting", EditConditionHides, HideEditConditionToggle))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	FPCGExScaleToFitDetails ScaleToFit;
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bSupportFitting", EditConditionHides, HideEditConditionToggle))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	FPCGExJustificationDetails Justification;
 
 	TSharedPtr<PCGExData::FFacade> TargetDataFacade;
@@ -363,8 +359,25 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExTransformDetails : public FPCGExFittingD
 {
 	GENERATED_BODY()
 
-	explicit FPCGExTransformDetails(const bool InSupportFitting = true)
-		: FPCGExFittingDetailsHandler(InSupportFitting)
+	explicit FPCGExTransformDetails()
+	{
+	}
+
+	/** If enabled, copied point will be scaled by the target' scale. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayAfter="Justification"))
+	bool bInheritScale = false;
+
+	/** If enabled, copied points will be rotated by the target' rotation. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayAfter="bInheritScale"))
+	bool bInheritRotation = false;
+};
+
+USTRUCT(BlueprintType)
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExLeanTransformDetails : public FPCGExFittingDetailsHandler
+{
+	GENERATED_BODY()
+
+	explicit FPCGExLeanTransformDetails()
 	{
 	}
 

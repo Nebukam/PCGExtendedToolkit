@@ -107,6 +107,15 @@ namespace PCGExPointsMT
 			FilterFactories = InFactories;
 		}
 
+		virtual void RegisterConsumableAttributesWithFacade() const
+		{
+			// Gives an opportunity for the processor to register attributes with a valid facade
+			// So selectors shortcut can be properly resolved (@Last, etc.)
+
+			if (FilterFactories) { PCGExFactories::RegisterConsumableAttributesWithFacade(*FilterFactories, PointDataFacade); }
+			if (PrimaryOperation) { PrimaryOperation->RegisterConsumableAttributesWithFacade(ExecutionContext, PointDataFacade); }
+		}
+
 		virtual void RegisterBuffersDependencies(PCGExData::FFacadePreloader& FacadePreloader)
 		{
 			if (HasFilters()) { PCGExPointFilter::RegisterBuffersDependencies(ExecutionContext, *FilterFactories, FacadePreloader); }
@@ -415,6 +424,7 @@ namespace PCGExPointsMT
 				if (FilterFactories) { NewProcessor->SetPointsFilterData(FilterFactories); }
 				if (PrimaryOperation) { NewProcessor->PrimaryOperation = PrimaryOperation; }
 
+				NewProcessor->RegisterConsumableAttributesWithFacade();
 
 				NewProcessor->bIsTrivial = IO->GetNum() < GetDefault<UPCGExGlobalSettings>()->SmallPointsSize;
 				if (NewProcessor->IsTrivial()) { TrivialProcessors.Add(NewProcessor.ToSharedRef()); }

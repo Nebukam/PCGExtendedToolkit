@@ -97,10 +97,14 @@ void UPCGExPathAlphaFilterFactory::BeginDestroy()
 	Super::BeginDestroy();
 }
 
-void UPCGExPathAlphaFilterFactory::RegisterConsumableAttributes(FPCGExContext* InContext) const
+bool UPCGExPathAlphaFilterFactory::RegisterConsumableAttributesWithData(FPCGExContext* InContext, const UPCGData* InData) const
 {
-	Super::RegisterConsumableAttributes(InContext);
-	//TODO : Implement Consumable
+	if (!Super::RegisterConsumableAttributesWithData(InContext, InData)) { return false; }
+
+	FName Consumable = NAME_None;
+	PCGEX_CONSUMABLE_CONDITIONAL(Config.CompareAgainst == EPCGExInputValueType::Attribute, Config.OperandB, Consumable)
+
+	return true;
 }
 
 namespace PCGExPointsFilter

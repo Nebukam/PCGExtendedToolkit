@@ -12,10 +12,15 @@ TSharedPtr<PCGExPointFilter::FFilter> UPCGExNumericSelfCompareFilterFactory::Cre
 	return MakeShared<PCGExPointsFilter::TNumericSelfComparisonFilter>(this);
 }
 
-void UPCGExNumericSelfCompareFilterFactory::RegisterConsumableAttributes(FPCGExContext* InContext) const
+bool UPCGExNumericSelfCompareFilterFactory::RegisterConsumableAttributesWithData(FPCGExContext* InContext, const UPCGData* InData) const
 {
-	Super::RegisterConsumableAttributes(InContext);
-	//TODO : Implement Consumable
+	if (!Super::RegisterConsumableAttributesWithData(InContext, InData)) { return false; }
+
+	FName Consumable = NAME_None;
+	PCGEX_CONSUMABLE_SELECTOR(Config.OperandA, Consumable)
+	PCGEX_CONSUMABLE_CONDITIONAL(Config.CompareAgainst == EPCGExInputValueType::Attribute, Config.IndexAttribute, Consumable)
+
+	return true;
 }
 
 bool PCGExPointsFilter::TNumericSelfComparisonFilter::Init(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade> InPointDataFacade)

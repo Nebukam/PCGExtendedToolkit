@@ -85,7 +85,7 @@ public:
 
 	virtual void BeginDestroy() override;
 
-	virtual void RegisterConsumableAttributes(FPCGExContext* InContext) const override;
+	virtual bool RegisterConsumableAttributesWithData(FPCGExContext* InContext, const UPCGData* InData) const override;
 };
 
 namespace PCGExPointsFilter

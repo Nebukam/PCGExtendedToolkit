@@ -125,7 +125,7 @@ namespace PCGExSampleNeighbors
 
 		for (const UPCGExNeighborSamplerFactoryBase* Factory : Context->SamplerFactories)
 		{
-			Factory->RegisterBuffersDependencies(Context, VtxDataFacade, FacadePreloader);
+			Factory->RegisterVtxBuffersDependencies(Context, VtxDataFacade, FacadePreloader);
 		}
 	}
 }

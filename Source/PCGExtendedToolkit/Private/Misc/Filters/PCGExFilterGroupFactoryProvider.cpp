@@ -17,6 +17,20 @@
 FString UPCGExFilterGroupProviderSettings::GetDisplayName() const { return Mode == EPCGExFilterGroupMode::OR ? TEXT("OR") : TEXT("AND"); }
 #endif
 
+TArray<FPCGPreConfiguredSettingsInfo> UPCGExFilterGroupProviderSettings::GetPreconfiguredInfo() const
+{
+	TArray<FPCGPreConfiguredSettingsInfo> Infos;
+	Infos.Emplace_GetRef(0, FTEXT("PCGEx | Filter AND"));
+	Infos.Emplace_GetRef(1, FTEXT("PCGEx | Filter OR"));
+	return Infos;
+}
+
+void UPCGExFilterGroupProviderSettings::ApplyPreconfiguredSettings(const FPCGPreConfiguredSettingsInfo& PreconfigureInfo)
+{
+	Super::ApplyPreconfiguredSettings(PreconfigureInfo);
+	Mode = PreconfigureInfo.PreconfiguredIndex == 0 ? EPCGExFilterGroupMode::AND : EPCGExFilterGroupMode::OR;
+}
+
 TArray<FPCGPinProperties> UPCGExFilterGroupProviderSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties;

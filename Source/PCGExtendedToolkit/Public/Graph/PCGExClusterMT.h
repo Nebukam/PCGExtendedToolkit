@@ -30,7 +30,7 @@ namespace PCGExClusterMT
 	{
 	public:
 		PCGEX_ASYNC_TASK_NAME(FStartClusterBatchProcessing)
-		
+
 		FStartClusterBatchProcessing(TSharedPtr<T> InTarget,
 		                             const bool bScoped)
 			: FPCGExTask(),
@@ -131,6 +131,18 @@ namespace PCGExClusterMT
 		virtual ~FClusterProcessor()
 		{
 			PCGEX_LOG_DTR(FClusterProcessor)
+		}
+
+		virtual void RegisterConsumableAttributesWithFacade() const
+		{
+			// Gives an opportunity for the processor to register attributes with a valid facade
+			// So selectors shortcut can be properly resolved (@Last, etc.)
+
+			if (HeuristicsFactories)
+			{
+				PCGExFactories::RegisterConsumableAttributesWithFacade(*HeuristicsFactories, VtxDataFacade);
+				PCGExFactories::RegisterConsumableAttributesWithFacade(*HeuristicsFactories, EdgeDataFacade);
+			}
 		}
 
 		bool IsTrivial() const { return bIsTrivial; }
@@ -584,6 +596,8 @@ namespace PCGExClusterMT
 
 				if (RequiresGraphBuilder()) { NewProcessor->GraphBuilder = GraphBuilder; }
 				NewProcessor->SetRequiresHeuristics(RequiresHeuristics(), HeuristicsFactories);
+
+				NewProcessor->RegisterConsumableAttributesWithFacade();
 
 				if (!PrepareSingle(NewProcessor)) { continue; }
 				Processors.Add(NewProcessor.ToSharedRef());

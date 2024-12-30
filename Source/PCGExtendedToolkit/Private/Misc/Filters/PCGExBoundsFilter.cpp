@@ -27,12 +27,6 @@ void UPCGExBoundsFilterFactory::BeginDestroy()
 	Super::BeginDestroy();
 }
 
-void UPCGExBoundsFilterFactory::RegisterConsumableAttributes(FPCGExContext* InContext) const
-{
-	Super::RegisterConsumableAttributes(InContext);
-	//TODO : Implement Consumable
-}
-
 bool PCGExPointsFilter::TBoundsFilter::Init(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade> InPointDataFacade)
 {
 	if (!FFilter::Init(InContext, InPointDataFacade)) { return false; }

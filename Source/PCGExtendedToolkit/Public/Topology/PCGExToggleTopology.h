@@ -27,7 +27,7 @@ class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExToggleTopologySettings : public UPCGSetti
 public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
-	bool bCacheResult = false;
+	PCGEX_DUMMY_SETTINGS_MEMBERS
 	PCGEX_NODE_INFOS(ToggleTopology, "Topology : Toggle", "Registers/unregister or Removes PCGEx spawned dynamic meshes.");
 	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->NodeColorPrimitives; }
 #endif
