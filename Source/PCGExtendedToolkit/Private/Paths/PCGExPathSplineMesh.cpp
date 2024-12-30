@@ -39,7 +39,7 @@ bool FPCGExPathSplineMeshElement::Boot(FPCGExContext* InContext) const
 
 	if (Settings->CollectionSource == EPCGExCollectionSource::Asset)
 	{
-		Context->MainCollection = PCGExHelpers::ForceLoad(Settings->AssetCollection);
+		Context->MainCollection = PCGExHelpers::LoadBlocking_AnyThread(Settings->AssetCollection);
 		if (!Context->MainCollection)
 		{
 			PCGE_LOG(Error, GraphAndLog, FTEXT("Missing asset collection."));
@@ -73,7 +73,7 @@ void FPCGExPathSplineMeshContext::RegisterAssetDependencies()
 
 	PCGEX_SETTINGS_LOCAL(PathSplineMesh)
 
-	MainCollection->GetAssetPaths(RequiredAssets, PCGExAssetCollection::ELoadingFlags::Recursive);
+	MainCollection->GetAssetPaths(GetRequiredAssets(), PCGExAssetCollection::ELoadingFlags::Recursive);
 }
 
 void FPCGExPathSplineMeshElement::PostLoadAssetsDependencies(FPCGExContext* InContext) const

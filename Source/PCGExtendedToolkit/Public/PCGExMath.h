@@ -179,6 +179,47 @@ namespace PCGExMath
 	}
 
 	template <typename T>
+	FORCEINLINE static T Abs(const T& A)
+	{
+		if constexpr (std::is_same_v<T, bool>)
+		{
+			return A;
+		}
+		else if constexpr (std::is_same_v<T, FVector2D>)
+		{
+			return FVector2D(FMath::Abs(A.X), FMath::Abs(A.Y));
+		}
+		else if constexpr (std::is_same_v<T, FVector>)
+		{
+			return FVector(FMath::Abs(A.X), FMath::Abs(A.Y), FMath::Abs(A.Z));
+		}
+		else if constexpr (std::is_same_v<T, FVector4>)
+		{
+			return FVector4(FMath::Abs(A.X), FMath::Abs(A.Y), FMath::Abs(A.Z), FMath::Abs(A.W));
+		}
+		else if constexpr (std::is_same_v<T, FQuat>)
+		{
+			return Abs(A.Rotator()).Quaternion().GetNormalized();
+		}
+		else if constexpr (std::is_same_v<T, FRotator>)
+		{
+			return FRotator(FMath::Abs(A.Pitch), FMath::Abs(A.Yaw), FMath::Abs(A.Roll));
+		}
+		else if constexpr (std::is_same_v<T, FTransform>)
+		{
+			return FTransform(Abs(A.GetRotation()), Abs(A), Abs(A.GetScale3D()));
+		}
+		else if constexpr (std::is_same_v<T, FString> || std::is_same_v<T, FName> || std::is_same_v<T, FSoftClassPath> || std::is_same_v<T, FSoftObjectPath>)
+		{
+			return Max(A, A);
+		}
+		else
+		{
+			return FMath::Abs(A);
+		}
+	}
+
+	template <typename T>
 	FORCEINLINE static int SignPlus(const T& InValue)
 	{
 		const int Sign = FMath::Sign(InValue);

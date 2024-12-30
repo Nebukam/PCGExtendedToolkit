@@ -49,7 +49,6 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExActorCollectionEntry : public FPCGExAsse
 #if WITH_EDITOR
 	virtual void EDITOR_Sanitize() override;
 #endif
-	
 };
 
 UCLASS(BlueprintType, DisplayName="[PCGEx] Actor Collection")

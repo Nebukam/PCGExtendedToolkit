@@ -41,7 +41,7 @@ void FPCGExAttributeRemapElement::PostLoadAssetsDependencies(FPCGExContext* InCo
 	FPCGExPointsProcessorElement::PostLoadAssetsDependencies(InContext);
 
 	PCGEX_CONTEXT_AND_SETTINGS(AttributeRemap)
-	
+
 	for (int i = 0; i < 4; i++) { Context->RemapSettings[i].RemapDetails.Init(); }
 
 	Context->RemapIndices[0] = 0;

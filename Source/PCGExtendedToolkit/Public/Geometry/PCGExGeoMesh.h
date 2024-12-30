@@ -130,7 +130,7 @@ namespace PCGExGeo
 		{
 			if (!InSoftStaticMesh.ToSoftObjectPath().IsValid()) { return; }
 
-			StaticMesh = PCGExHelpers::ForceLoad(InSoftStaticMesh);
+			StaticMesh = PCGExHelpers::LoadBlocking_AnyThread(InSoftStaticMesh);
 			if (!StaticMesh) { return; }
 
 			StaticMesh->GetRenderData();
@@ -312,7 +312,7 @@ namespace PCGExGeo
 	{
 	public:
 		PCGEX_ASYNC_TASK_NAME(FExtractStaticMeshTask)
-	
+
 		FExtractStaticMeshTask(const TSharedPtr<FGeoStaticMesh>& InGSM) :
 			FPCGExTask(), GSM(InGSM)
 		{

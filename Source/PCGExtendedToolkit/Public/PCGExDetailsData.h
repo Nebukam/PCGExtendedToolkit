@@ -77,5 +77,4 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExComponentTaggingDetails
 	//bool bAddTagsToData = false;
 };
 
-
 #undef PCGEX_SOFT_VALIDATE_NAME_DETAILS

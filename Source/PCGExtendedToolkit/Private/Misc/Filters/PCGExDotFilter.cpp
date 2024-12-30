@@ -19,10 +19,16 @@ TSharedPtr<PCGExPointFilter::FFilter> UPCGExDotFilterFactory::CreateFilter() con
 	return MakeShared<PCGExPointsFilter::TDotFilter>(this);
 }
 
-void UPCGExDotFilterFactory::RegisterConsumableAttributes(FPCGExContext* InContext) const
+bool UPCGExDotFilterFactory::RegisterConsumableAttributesWithData(FPCGExContext* InContext, const UPCGData* InData) const
 {
-	Super::RegisterConsumableAttributes(InContext);
-	//TODO : Implement Consumable
+	if (!Super::RegisterConsumableAttributesWithData(InContext, InData)) { return false; }
+
+	FName Consumable = NAME_None;
+	PCGEX_CONSUMABLE_SELECTOR(Config.OperandA, Consumable)
+	PCGEX_CONSUMABLE_CONDITIONAL(Config.CompareAgainst == EPCGExInputValueType::Attribute, Config.OperandB, Consumable)
+	PCGEX_CONSUMABLE_CONDITIONAL(Config.DotComparisonDetails.DotValue == EPCGExInputValueType::Attribute, Config.DotComparisonDetails.DotOrDegreesAttribute, Consumable)
+
+	return true;
 }
 
 bool PCGExPointsFilter::TDotFilter::Init(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade> InPointDataFacade)

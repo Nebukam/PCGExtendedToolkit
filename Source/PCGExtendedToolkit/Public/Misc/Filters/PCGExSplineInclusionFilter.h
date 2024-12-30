@@ -88,8 +88,6 @@ public:
 	virtual TSharedPtr<PCGExPointFilter::FFilter> CreateFilter() const override;
 
 	virtual void BeginDestroy() override;
-
-	virtual void RegisterConsumableAttributes(FPCGExContext* InContext) const override;
 };
 
 namespace PCGExPointsFilter

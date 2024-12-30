@@ -96,8 +96,7 @@ public:
 	FPCGExAttributeSamplerConfigBase Config;
 	virtual UPCGExNeighborSampleOperation* CreateOperation(FPCGExContext* InContext) const override;
 
-	virtual void RegisterBuffersDependencies(FPCGExContext* InContext, const TSharedRef<PCGExData::FFacade>& InDataFacade, PCGExData::FFacadePreloader& FacadePreloader) const override;
-	
+	virtual void RegisterVtxBuffersDependencies(FPCGExContext* InContext, const TSharedRef<PCGExData::FFacade>& InVtxDataFacade, PCGExData::FFacadePreloader& FacadePreloader) const override;
 };
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|NeighborSample")

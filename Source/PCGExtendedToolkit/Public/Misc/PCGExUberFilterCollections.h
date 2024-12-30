@@ -90,6 +90,8 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExUberFilterCollectionsContext final : FPC
 	TSharedPtr<PCGExData::FPointIOCollection> Inside;
 	TSharedPtr<PCGExData::FPointIOCollection> Outside;
 
+	PCGExData::EIOInit DataIOInit = PCGExData::EIOInit::Forward;
+
 	int32 NumPairs = 0;
 };
 
