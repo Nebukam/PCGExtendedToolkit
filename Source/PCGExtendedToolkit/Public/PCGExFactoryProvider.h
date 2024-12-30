@@ -37,7 +37,9 @@ namespace PCGExFactories
 		Heuristics,
 		VtxProperty,
 		ConditionalActions,
-		ShapeBuilder
+		ShapeBuilder,
+		Blending,
+		TexParam,
 	};
 
 	static inline TSet<EType> AnyFilters = {EType::FilterPoint, EType::FilterNode, EType::FilterEdge, EType::FilterGroup};
@@ -58,6 +60,17 @@ class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExParamDataBase : public UPCGPointData
 
 public:
 	virtual EPCGDataType GetDataType() const override { return EPCGDataType::Param; }
+
+	virtual void OutputConfigToMetadata();
+
+protected:
+	template <typename T>
+	void SetMetadataValue(const FName InName, const T& InValue)
+	{
+		check(Metadata)
+		if (Metadata->HasAttribute(InName)) { Metadata->DeleteAttribute(InName); }
+		Metadata->FindOrCreateAttribute<T>(InName, InValue, true, true);
+	}
 };
 
 /**
@@ -70,14 +83,24 @@ class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExParamFactoryBase : public UPCGExParamData
 
 public:
 	int32 Priority = 0;
-	bool bDoRegisterConsumableAttributes = false;
+	bool bCleanupConsumableAttributes = false;
 	virtual PCGExFactories::EType GetFactoryType() const { return PCGExFactories::EType::None; }
 
-	virtual void RegisterConsumableAttributes(FPCGExContext* InContext) const
+	virtual bool RegisterConsumableAttributes(FPCGExContext* InContext) const
 	{
+		return bCleanupConsumableAttributes;
+	}
+
+	virtual bool RegisterConsumableAttributesWithData(FPCGExContext* InContext, const UPCGData* InData) const
+	{
+		return bCleanupConsumableAttributes;
 	}
 
 	virtual void RegisterAssetDependencies(FPCGExContext* InContext) const
+	{
+	}
+
+	virtual void RegisterBuffersDependencies(FPCGExContext* InContext, PCGExData::FFacadePreloader& FacadePreloader) const
 	{
 	}
 };
@@ -115,8 +138,8 @@ public:
 	//~End UPCGExFactoryProviderSettings
 
 	/** Whether this factory can register consumable attributes or not. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_NotOverridable), AdvancedDisplay)
-	bool bDoRegisterConsumableAttributes = false;
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Cleanup", meta = (PCG_NotOverridable))
+	bool bCleanupConsumableAttributes = false;
 };
 
 class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExFactoryProviderElement final : public IPCGElement
@@ -160,7 +183,7 @@ namespace PCGExFactories
 				OutFactories.AddUnique(Factory);
 				Factory->RegisterAssetDependencies(InContext);
 
-				if (Factory->bDoRegisterConsumableAttributes) { Factory->RegisterConsumableAttributes(InContext); }
+				Factory->RegisterConsumableAttributes(InContext);
 			}
 			else
 			{
@@ -177,5 +200,35 @@ namespace PCGExFactories
 		OutFactories.Sort([](const T_DEF& A, const T_DEF& B) { return A.Priority < B.Priority; });
 
 		return true;
+	}
+
+	template <typename T_DEF>
+	static void RegisterConsumableAttributesWithData(const TArray<TObjectPtr<const T_DEF>>& InFactories, FPCGExContext* InContext, const UPCGData* InData)
+	{
+		check(InContext)
+
+		if (!InData || InFactories.IsEmpty()) { return; }
+
+		for (const TObjectPtr<const T_DEF>& Factory : InFactories)
+		{
+			Factory->RegisterConsumableAttributesWithData(InContext, InData);
+		}
+	}
+
+	template <typename T_DEF>
+	static void RegisterConsumableAttributesWithFacade(const TArray<TObjectPtr<const T_DEF>>& InFactories, const TSharedPtr<PCGExData::FFacade>& InFacade)
+	{
+		check(InFacade->Source->GetContext())
+
+		if (!InFacade->GetIn()) { return; }
+
+		const UPCGData* Data = InFacade->GetIn();
+
+		if (!Data) { return; }
+
+		for (const TObjectPtr<const T_DEF>& Factory : InFactories)
+		{
+			Factory->RegisterConsumableAttributesWithData(InFacade->Source->GetContext(), Data);
+		}
 	}
 }

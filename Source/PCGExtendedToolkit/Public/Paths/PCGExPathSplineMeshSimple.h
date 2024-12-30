@@ -76,7 +76,7 @@ public:
 	/** Start Offset Constant */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Start Offset", EditCondition="StartOffsetInput==EPCGExInputValueType::Constant", EditConditionHides))
 	FVector2D StartOffset = FVector2D::ZeroVector;
-	
+
 	/** Type of End Offset */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable))
 	EPCGExInputValueType EndOffsetInput = EPCGExInputValueType::Constant;
@@ -88,7 +88,7 @@ public:
 	/** End Offset Constant */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="End Offset", EditCondition="EndOffsetInput==EPCGExInputValueType::Constant", EditConditionHides))
 	FVector2D EndOffset = FVector2D::ZeroVector;
-	
+
 	/**  */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	EPCGExMinimalAxis SplineMeshAxisConstant = EPCGExMinimalAxis::X;
@@ -122,6 +122,9 @@ public:
 		TWeakObjectPtr<UPCGComponent> SourceComponent,
 		const UPCGNode* Node) override;
 
+	// Generates artifacts
+	virtual bool IsCacheable(const UPCGSettings* InSettings) const override { return false; }
+
 protected:
 	virtual bool Boot(FPCGExContext* InContext) const override;
 	virtual bool ExecuteInternal(FPCGContext* Context) const override;
@@ -142,7 +145,7 @@ namespace PCGExPathSplineMeshSimple
 
 		TSharedPtr<PCGExData::TBuffer<FVector2D>> StartOffsetGetter;
 		TSharedPtr<PCGExData::TBuffer<FVector2D>> EndOffsetGetter;
-		
+
 #if PCGEX_ENGINE_VERSION <= 503
 		TSharedPtr<PCGExData::TBuffer<FString>> AssetPathReader;
 #else

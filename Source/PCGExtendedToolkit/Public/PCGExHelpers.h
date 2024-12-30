@@ -17,6 +17,7 @@
 #include "Data/PCGSpatialData.h"
 #include "Engine/AssetManager.h"
 #include "Metadata/PCGMetadataAttributeTraits.h"
+#include "Async/Async.h"
 
 #include "PCGExHelpers.generated.h"
 
@@ -64,14 +65,88 @@ public:
 
 namespace PCGExHelpers
 {
-	template <typename T>
-	static TObjectPtr<T> ForceLoad(const TSoftObjectPtr<T>& SoftObjectPtr, const FSoftObjectPath& FallbackPath = nullptr)
+	static bool TryGetAttributeName(const FPCGAttributePropertyInputSelector& InSelector, const UPCGData* InData, FName& OutName)
 	{
-		FSoftObjectPath TentativeRefPath = SoftObjectPtr.ToSoftObjectPath();
-		if (TObjectPtr<T> LoadedObject = Cast<T>(TentativeRefPath.ResolveObject())) { return LoadedObject; }
+		FPCGAttributePropertyInputSelector FixedSelector = InSelector.CopyAndFixLast(InData);
+		if (!FixedSelector.IsValid()) { return false; }
+		if (FixedSelector.GetSelection() != EPCGAttributePropertySelection::Attribute) { return false; }
+		OutName = FixedSelector.GetName();
+		return true;
+	}
 
-		if (!TentativeRefPath.IsValid()) { return TSoftObjectPtr<T>(FallbackPath).LoadSynchronous(); }
-		return SoftObjectPtr.LoadSynchronous();
+	template <typename T>
+	static TObjectPtr<T> LoadBlocking_AnyThread(const TSoftObjectPtr<T>& SoftObjectPtr, const FSoftObjectPath& FallbackPath = nullptr)
+	{
+		// If the requested object is valid and loaded, early exit
+		TObjectPtr<T> LoadedObject = SoftObjectPtr.Get();
+		if (LoadedObject) { return LoadedObject; }
+
+		// If not, make sure it's a valid path, and if not fallback to the fallback path
+		FSoftObjectPath ToBeLoaded = SoftObjectPtr.ToSoftObjectPath().IsValid() ? SoftObjectPtr.ToSoftObjectPath() : FallbackPath;
+
+		// Make sure we have a valid path at all
+		if (!ToBeLoaded.IsValid()) { return nullptr; }
+
+		// Check if the fallback path is loaded, early exit
+		LoadedObject = TSoftObjectPtr<T>(ToBeLoaded).Get();
+		if (LoadedObject) { return LoadedObject; }
+
+
+		if (IsInGameThread())
+		{
+			// We're in the game thread, request synchronous load
+			UAssetManager::GetStreamableManager().RequestSyncLoad(ToBeLoaded);
+		}
+		else
+		{
+			// We're not in the game thread, we need to dispatch loading to the main thread
+			// and wait in the current one
+			FEvent* BlockingEvent = FPlatformProcess::GetSynchEventFromPool();
+			AsyncTask(
+				ENamedThreads::GameThread, [BlockingEvent, ToBeLoaded]()
+				{
+					const TSharedPtr<FStreamableHandle> Handle = UAssetManager::GetStreamableManager().RequestAsyncLoad(
+						ToBeLoaded, [BlockingEvent]() { BlockingEvent->Trigger(); });
+
+					if (!Handle || !Handle->IsActive()) { BlockingEvent->Trigger(); }
+				});
+
+			BlockingEvent->Wait();
+			FPlatformProcess::ReturnSynchEventToPool(BlockingEvent);
+		}
+
+		return TSoftObjectPtr<T>(ToBeLoaded).Get();
+	}
+
+	static void LoadBlocking_AnyThread(const TSharedPtr<TSet<FSoftObjectPath>>& Paths)
+	{
+		if (IsInGameThread())
+		{
+			UAssetManager::GetStreamableManager().RequestSyncLoad(Paths->Array());
+		}
+		else
+		{
+			TWeakPtr<TSet<FSoftObjectPath>> WeakPaths = Paths;
+			FEvent* BlockingEvent = FPlatformProcess::GetSynchEventFromPool();
+			AsyncTask(
+				ENamedThreads::GameThread, [BlockingEvent, WeakPaths]()
+				{
+					const TSharedPtr<TSet<FSoftObjectPath>> ToBeLoaded = WeakPaths.Pin();
+					if (!ToBeLoaded)
+					{
+						BlockingEvent->Trigger();
+						return;
+					}
+
+					const TSharedPtr<FStreamableHandle> Handle = UAssetManager::GetStreamableManager().RequestAsyncLoad(
+						ToBeLoaded->Array(), [BlockingEvent]() { BlockingEvent->Trigger(); });
+
+					if (!Handle || !Handle->IsActive()) { BlockingEvent->Trigger(); }
+				});
+
+			BlockingEvent->Wait();
+			FPlatformProcess::ReturnSynchEventToPool(BlockingEvent);
+		}
 	}
 
 	static void CopyStructProperties(const void* SourceStruct, void* TargetStruct, const UStruct* SourceStructType, const UStruct* TargetStructType)

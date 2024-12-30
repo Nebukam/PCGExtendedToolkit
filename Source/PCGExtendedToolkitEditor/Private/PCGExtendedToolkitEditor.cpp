@@ -10,17 +10,21 @@
 #define LOCTEXT_NAMESPACE "FPCGExtendedToolkitEditorModule"
 
 #define PCGEX_ADD_ICON(_NAME) \
-StyleSet->Set("ClassIcon." # _NAME, new FSlateImageBrush(StyleSet->RootToContentDir(TEXT( "" #_NAME ".png")), SizeIcon));\
-StyleSet->Set("ClassThumbnail." # _NAME, new FSlateImageBrush(StyleSet->RootToContentDir(TEXT( "" #_NAME ".png")), SizeThumbnail));
+Style->Set("ClassIcon." # _NAME, new FSlateImageBrush(Style->RootToContentDir(TEXT( "" #_NAME), TEXT(".png")), SizeIcon));\
+Style->Set("ClassThumbnail." # _NAME, new FSlateImageBrush(Style->RootToContentDir(TEXT( "" #_NAME), TEXT(".png")), SizeThumbnail));
+
+#define PCGEX_ADD_PIN_EXTRA_ICON(_NAME) \
+Style->Set("PCGEx.Pin." # _NAME, new FSlateVectorImageBrush(Style->RootToContentDir(TEXT( "PCGExPin_" #_NAME), TEXT(".svg")), SizePin));
 
 void FPCGExtendedToolkitEditorModule::StartupModule()
 {
 	const FString ContentDir = IPluginManager::Get().FindPlugin(TEXT("PCGExtendedToolkit"))->GetBaseDir() / TEXT("Resources") / TEXT("Icons");
 
-	static TSharedPtr<FSlateStyleSet> StyleSet = MakeShareable(new FSlateStyleSet("PCGExStyleSet"));
-	StyleSet->SetContentRoot(ContentDir);
+	Style = MakeShared<FSlateStyleSet>("PCGExStyleSet");
+	Style->SetContentRoot(ContentDir);
 
 	const FVector2D SizeIcon = FVector2D(16.0f, 16.0f);
+	const FVector2D SizePin = FVector2D(22.0f, 22.0f);
 	const FVector2D SizeThumbnail = FVector2D(128.0f, 128.0f);
 
 	PCGEX_ADD_ICON(PCGExAssetCollection)
@@ -28,14 +32,17 @@ void FPCGExtendedToolkitEditorModule::StartupModule()
 	PCGEX_ADD_ICON(PCGExCustomGraphBuilder)
 	PCGEX_ADD_ICON(PCGExCustomActorDataPacker)
 
-	FSlateStyleRegistry::RegisterSlateStyle(*StyleSet.Get());
+	//PCGEX_ADD_PIN_EXTRA_ICON(Filters)
+
+	FSlateStyleRegistry::RegisterSlateStyle(*Style.Get());
 }
 
 #undef PCGEX_ADD_ICON
 
 void FPCGExtendedToolkitEditorModule::ShutdownModule()
 {
-	FSlateStyleRegistry::UnRegisterSlateStyle("PCGExStyleSet");
+	FSlateStyleRegistry::UnRegisterSlateStyle(Style->GetStyleSetName());
+	Style.Reset();
 }
 
 #undef LOCTEXT_NAMESPACE

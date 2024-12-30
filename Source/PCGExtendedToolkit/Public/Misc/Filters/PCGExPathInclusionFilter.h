@@ -87,8 +87,6 @@ public:
 	void CreateSpline(const UPCGPointData* InData, const bool bClosedLoop);
 
 	virtual void BeginDestroy() override;
-
-	virtual void RegisterConsumableAttributes(FPCGExContext* InContext) const override;
 };
 
 namespace PCGExPointsFilter

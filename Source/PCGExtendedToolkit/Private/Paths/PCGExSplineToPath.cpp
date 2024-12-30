@@ -168,6 +168,22 @@ namespace PCGExSplineToPath
 			Point.Seed = PCGExRandom::ComputeSeed(Point);
 		};
 
+		auto GetPointType = [](EInterpCurveMode Mode)-> int32
+		{
+			switch (Mode)
+			{
+			case CIM_Linear: return 0;
+			case CIM_CurveAuto: return 1;
+			case CIM_Constant: return 2;
+			case CIM_CurveUser: return 4;
+			case CIM_CurveAutoClamped: return 3;
+			default:
+			case CIM_Unknown:
+			case CIM_CurveBreak:
+				return -1;
+			}
+		};
+
 		for (int i = 0; i < NumSegments; i++)
 		{
 			const double LengthAtPoint = Spline.GetDistanceAlongSplineAtSplinePoint(i);
@@ -175,10 +191,14 @@ namespace PCGExSplineToPath
 
 			ApplyTransform(MutablePoints[i], Spline.GetTransformAtDistanceAlongSpline(LengthAtPoint, ESplineCoordinateSpace::Type::World, true));
 
+			int32 PtType = -1;
+
+
 			PCGEX_OUTPUT_VALUE(LengthAtPoint, i, LengthAtPoint);
 			PCGEX_OUTPUT_VALUE(Alpha, i, LengthAtPoint / TotalLength);
 			PCGEX_OUTPUT_VALUE(ArriveTangent, i, SplineTransform.TransformVector(Spline.SplineCurves.Position.Points[i].ArriveTangent));
 			PCGEX_OUTPUT_VALUE(LeaveTangent, i, SplineTransform.TransformVector(Spline.SplineCurves.Position.Points[i].LeaveTangent));
+			PCGEX_OUTPUT_VALUE(PointType, i, GetPointType(Spline.SplineCurves.Position.Points[i].InterpMode));
 		}
 
 		if (Spline.bClosedLoop)
@@ -195,6 +215,7 @@ namespace PCGExSplineToPath
 			PCGEX_OUTPUT_VALUE(Alpha, LastIndex, 1);
 			PCGEX_OUTPUT_VALUE(ArriveTangent, LastIndex, Spline.SplineCurves.Position.Points[NumSegments].ArriveTangent);
 			PCGEX_OUTPUT_VALUE(LeaveTangent, LastIndex, Spline.SplineCurves.Position.Points[NumSegments].LeaveTangent);
+			PCGEX_OUTPUT_VALUE(PointType, LastIndex, GetPointType(Spline.SplineCurves.Position.Points[NumSegments].InterpMode));
 		}
 
 		PointDataFacade->Write(AsyncManager);

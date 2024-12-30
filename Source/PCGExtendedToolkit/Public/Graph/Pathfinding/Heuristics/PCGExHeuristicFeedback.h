@@ -132,7 +132,7 @@ public:
 	virtual bool IsGlobal() const { return Config.bGlobalFeedback; }
 
 	FPCGExHeuristicConfigFeedback Config;
-	
+
 	virtual UPCGExHeuristicOperation* CreateOperation(FPCGExContext* InContext) const override;
 	PCGEX_HEURISTIC_FACTORY_BOILERPLATE
 };
