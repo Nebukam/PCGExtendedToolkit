@@ -48,12 +48,6 @@ void UPCGExSplineInclusionFilterFactory::BeginDestroy()
 	Super::BeginDestroy();
 }
 
-void UPCGExSplineInclusionFilterFactory::RegisterConsumableAttributes(FPCGExContext* InContext) const
-{
-	Super::RegisterConsumableAttributes(InContext);
-	//TODO : Implement Consumable
-}
-
 namespace PCGExPointsFilter
 {
 	bool TSplineInclusionFilter::Init(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade> InPointDataFacade)

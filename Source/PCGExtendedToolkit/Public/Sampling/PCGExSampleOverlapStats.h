@@ -24,7 +24,7 @@ namespace PCGExSampleOverlapStats
 	class FProcessor;
 }
 
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc")
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Sampling")
 class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExSampleOverlapStatsSettings : public UPCGExPointsProcessorSettings
 {
 	GENERATED_BODY()

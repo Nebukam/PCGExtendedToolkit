@@ -92,9 +92,9 @@ namespace PCGExGraph
 		int32 IOIndex = -1;
 		int8 bValid = 1;
 
-		FEdge() = default;
+		constexpr FEdge() = default;
 
-		FEdge(const int32 InIndex, const uint32 InStart, const uint32 InEnd, const int32 InPointIndex = -1, const int32 InIOIndex = -1)
+		constexpr FEdge(const int32 InIndex, const uint32 InStart, const uint32 InEnd, const int32 InPointIndex = -1, const int32 InIOIndex = -1)
 			: Start(InStart), End(InEnd), Index(InIndex), PointIndex(InPointIndex), IOIndex(InIOIndex)
 		{
 		}

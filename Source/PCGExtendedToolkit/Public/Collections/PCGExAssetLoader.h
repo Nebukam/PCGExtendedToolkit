@@ -228,7 +228,7 @@ namespace PCGEx
 	{
 	public:
 		PCGEX_ASYNC_TASK_NAME(TDiscoverAssetsTask)
-		
+
 		TDiscoverAssetsTask(const TSharedPtr<TAssetLoader<T>>& InLoader,
 		                    const TSharedPtr<TAttributeBroadcaster<FSoftObjectPath>>& InBroadcaster) :
 			FPCGExTask(),

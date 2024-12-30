@@ -78,7 +78,7 @@ PCGExData::EIOInit UPCGExSampleNearestBoundsSettings::GetMainOutputInitMode() co
 void FPCGExSampleNearestBoundsContext::RegisterAssetDependencies()
 {
 	PCGEX_SETTINGS_LOCAL(SampleNearestBounds)
-	
+
 	FPCGExPointsProcessorContext::RegisterAssetDependencies();
 	AddAssetDependency(Settings->WeightRemap.ToSoftObjectPath());
 }
@@ -124,7 +124,7 @@ void FPCGExSampleNearestBoundsElement::PostLoadAssetsDependencies(FPCGExContext*
 	FPCGExPointsProcessorElement::PostLoadAssetsDependencies(InContext);
 
 	PCGEX_CONTEXT_AND_SETTINGS(SampleNearestBounds)
-	
+
 	Context->RuntimeWeightCurve = Settings->LocalWeightRemap;
 	if (!Settings->bUseLocalCurve)
 	{
@@ -191,6 +191,7 @@ namespace PCGExSampleNearestBounds
 		PCGEX_OUTPUT_VALUE(LookAtTransform, Index, Point.Transform)
 		PCGEX_OUTPUT_VALUE(Distance, Index, FailSafeDist)
 		PCGEX_OUTPUT_VALUE(SignedDistance, Index, FailSafeDist)
+		PCGEX_OUTPUT_VALUE(ComponentWiseDistance, Index, FVector(FailSafeDist))
 		PCGEX_OUTPUT_VALUE(NumSamples, Index, 0)
 		PCGEX_OUTPUT_VALUE(SampledIndex, Index, -1)
 	}
@@ -248,7 +249,9 @@ namespace PCGExSampleNearestBounds
 		PCGExNearestBounds::FSamplesStats Stats;
 		PCGExGeo::FSample CurrentSample;
 
-		const FBoxCenterAndExtent BCAE = FBoxCenterAndExtent(Point.Transform.GetLocation(), PCGExMath::GetLocalBounds(Point, BoundsSource).GetExtent());
+		const FVector Origin = Point.Transform.GetLocation();
+
+		const FBoxCenterAndExtent BCAE = FBoxCenterAndExtent(Origin, PCGExMath::GetLocalBounds(Point, BoundsSource).GetExtent());
 		Cloud->GetOctree()->FindElementsWithBoundsTest(
 			BCAE, [&](const PCGExGeo::FPointBox* NearbyBox)
 			{
@@ -360,8 +363,9 @@ namespace PCGExSampleNearestBounds
 
 		WeightedUp.Normalize();
 
-		FVector LookAt = (Point.Transform.GetLocation() - WeightedTransform.GetLocation()).GetSafeNormal();
-		const double WeightedDistance = FVector::Dist(Point.Transform.GetLocation(), WeightedTransform.GetLocation());
+		const FVector CWDistance = Origin - WeightedTransform.GetLocation();
+		FVector LookAt = CWDistance.GetSafeNormal();
+		const double WeightedDistance = FVector::Dist(Origin, WeightedTransform.GetLocation());
 
 		SampleState[Index] = Stats.IsValid();
 		PCGEX_OUTPUT_VALUE(Success, Index, Stats.IsValid())
@@ -369,6 +373,7 @@ namespace PCGExSampleNearestBounds
 		PCGEX_OUTPUT_VALUE(LookAtTransform, Index, PCGExMath::MakeLookAtTransform(LookAt, WeightedUp, Settings->LookAtAxisAlign))
 		PCGEX_OUTPUT_VALUE(Distance, Index, WeightedDistance)
 		PCGEX_OUTPUT_VALUE(SignedDistance, Index, FMath::Sign(WeightedSignAxis.Dot(LookAt)) * WeightedDistance)
+		PCGEX_OUTPUT_VALUE(ComponentWiseDistance, Index, Settings->bAbsoluteComponentWiseDistance ? PCGExMath::Abs(CWDistance) : CWDistance)
 		PCGEX_OUTPUT_VALUE(Angle, Index, PCGExSampling::GetAngle(Settings->AngleRange, WeightedAngleAxis, LookAt))
 		PCGEX_OUTPUT_VALUE(NumSamples, Index, TotalSamples)
 		PCGEX_OUTPUT_VALUE(SampledIndex, Index, Stats.IsValid() ? Stats.Closest.Index : -1)

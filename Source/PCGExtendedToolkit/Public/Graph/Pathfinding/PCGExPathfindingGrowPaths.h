@@ -304,7 +304,7 @@ namespace PCGExGrowPaths
 	{
 	public:
 		PCGEX_ASYNC_TASK_NAME(FGrowTask)
-	
+
 		FGrowTask(const TSharedPtr<FProcessor>& InProcessor) :
 			FPCGExTask(),
 			Processor(InProcessor)

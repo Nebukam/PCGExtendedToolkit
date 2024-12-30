@@ -85,7 +85,7 @@ bool FPCGExAssetCollectionToSetElement::ExecuteInternal(FPCGContext* Context) co
 	PCGEX_FOREACH_COL_FIELD(PCGEX_DECLARE_ATT);
 #undef PCGEX_DECLARE_ATT
 
-	UPCGExAssetCollection* MainCollection = PCGExHelpers::ForceLoad(Settings->AssetCollection);
+	UPCGExAssetCollection* MainCollection = PCGExHelpers::LoadBlocking_AnyThread(Settings->AssetCollection);
 
 	if (!MainCollection)
 	{
