@@ -149,7 +149,11 @@ namespace PCGExGetTextureData
 	{
 		FRWLock ReferenceLock;
 
+#if PCGEX_ENGINE_VERSION == 503
+		TSharedPtr<PCGExData::TBuffer<FString>> PathGetter;
+#else
 		TSharedPtr<PCGExData::TBuffer<FSoftObjectPath>> PathGetter;
+#endif
 
 		TSharedPtr<PCGExTexture::FLookup> TexParamLookup;
 

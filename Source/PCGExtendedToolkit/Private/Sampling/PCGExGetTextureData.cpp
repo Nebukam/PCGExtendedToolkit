@@ -157,7 +157,12 @@ namespace PCGExGetTextureData
 			}
 		}
 
+#if PCGEX_ENGINE_VERSION == 503
+		PathGetter = PointDataFacade->GetScopedBroadcaster<FString>(Settings->SourceAttributeName);
+#else
 		PathGetter = PointDataFacade->GetScopedBroadcaster<FSoftObjectPath>(Settings->SourceAttributeName);
+#endif
+		
 
 		if (!PathGetter)
 		{
@@ -387,7 +392,7 @@ namespace PCGExGetTextureData
 #if PCGEX_ENGINE_VERSION <= 503
 			if(bIsFirstInitialization)
 			{
-				TexData->Initialize(Texture2D.Get(), Context->Transform);
+				TexData->Initialize(TSoftObjectPtr<UTexture2D>(Ref.TexturePath).Get(), Context->Transform);
 			}
 #elif PCGEX_ENGINE_VERSION == 504
 			if(bIsFirstInitialization)

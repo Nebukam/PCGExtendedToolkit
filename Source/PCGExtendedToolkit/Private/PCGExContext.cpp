@@ -51,7 +51,7 @@ void FPCGExContext::StageOutput(const FName Pin, UPCGData* InData, const TSet<FS
 		{
 			for (const FName ConsumableName : ConsumableAttributesSet)
 			{
-				if (!patialData->Metadata->HasAttribute(ConsumableName) || !ProtectedAttributesSet.Contains(ConsumableName)) { continue; }
+				if (!SpatialData->Metadata->HasAttribute(ConsumableName) || !ProtectedAttributesSet.Contains(ConsumableName)) { continue; }
 				SpatialData->Metadata->DeleteAttribute(ConsumableName);
 			}
 		}
