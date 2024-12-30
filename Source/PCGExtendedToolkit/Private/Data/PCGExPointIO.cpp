@@ -181,7 +181,7 @@ namespace PCGExData
 
 		{
 			FWriteScopeLock WriteScopeLock(AttributesLock);
-			Out->Metadata->DeleteAttribute(AttributeName);
+			if (Out->Metadata->HasAttribute(AttributeName)) { Out->Metadata->DeleteAttribute(AttributeName); }
 		}
 	}
 

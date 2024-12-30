@@ -14,6 +14,22 @@
 
 #pragma region UPCGSettings interface
 
+#if WITH_EDITOR
+
+#if PCGEX_ENGINE_VERSION == 503
+#define PCGEX_CUSTOM_PIN_ICON(_LABEL, _ICON, _TOOLTIP) if(InPin->Label == GetPointFilterPin()){ OutExtraIcon = TEXT("PCGEx.Pin." # _ICON); OutTooltip = FTEXT(_TOOLTIP); return true; }
+#else
+#define PCGEX_CUSTOM_PIN_ICON(_LABEL, _ICON, _TOOLTIP) if(InPin->Properties.Label == GetPointFilterPin()){ OutExtraIcon = TEXT("PCGEx.Pin." # _ICON); OutTooltip = FTEXT(_TOOLTIP); return true; }
+#endif
+
+bool UPCGExPointsProcessorSettings::GetPinExtraIcon(const UPCGPin* InPin, FName& OutExtraIcon, FText& OutTooltip) const
+{
+	//PCGEX_CUSTOM_PIN_ICON(GetPointFilterPin(), Filters, "Requires PCGEx Filters")
+	return false;
+}
+
+#endif
+
 TArray<FPCGPinProperties> UPCGExPointsProcessorSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties;
@@ -204,11 +220,8 @@ bool FPCGExPointsProcessorElement::PrepareDataInternal(FPCGContext* InContext) c
 			Context->LoadAssets();
 			return false;
 		}
-		else
-		{
-			// Call it so if there's initialization in there it'll run as a mandatory step
-			PostLoadAssetsDependencies(Context);
-		}
+		// Call it so if there's initialization in there it'll run as a mandatory step
+		PostLoadAssetsDependencies(Context);
 	}
 
 	PCGEX_ON_ASYNC_STATE_READY(PCGEx::State_LoadingAssetDependencies)
@@ -293,7 +306,20 @@ bool FPCGExPointsProcessorElement::Boot(FPCGExContext* InContext) const
 	FPCGExPointsProcessorContext* Context = static_cast<FPCGExPointsProcessorContext*>(InContext);
 	PCGEX_SETTINGS(PointsProcessor)
 
-	Context->bDeleteConsumableAttributes = Settings->bDeleteConsumableAttributes;
+	Context->bCleanupConsumableAttributes = Settings->bCleanupConsumableAttributes;
+	if (Settings->bCleanupConsumableAttributes)
+	{
+		for (const TArray<FString> Names = PCGExHelpers::GetStringArrayFromCommaSeparatedList(Settings->CommaSeparatedProtectedAttributesName);
+		     const FString& Name : Names)
+		{
+			Context->AddProtectedAttributeName(FName(Name));
+		}
+
+		for (const FName& Name : Settings->ProtectedAttributes)
+		{
+			Context->AddProtectedAttributeName(FName(Name));
+		}
+	}
 
 	if (Context->InputData.GetInputs().IsEmpty() && !Settings->IsInputless()) { return false; } //Get rid of errors and warning when there is no input
 

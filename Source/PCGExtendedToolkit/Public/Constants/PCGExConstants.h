@@ -25,10 +25,9 @@ class UPCGExConstantsSettings : public UPCGSettings
 public:
 	GENERATED_BODY()
 
-	bool bCacheResult = true;
-
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE_LEAN(Constant, "Constant", "Constants.", GetEnumName());
+	PCGEX_DUMMY_SETTINGS_MEMBERS
+	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(Constant, "Constant", "Constants.", GetEnumName());
 	virtual EPCGSettingsType GetType() const override { return EPCGSettingsType::Param; }
 	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->NodeColorConstant; }
 
@@ -40,7 +39,6 @@ public:
 	virtual bool CanUserEditTitle() const override { return false; }
 #endif
 	virtual TArray<FPCGPreConfiguredSettingsInfo> GetPreconfiguredInfo() const override;
-
 #endif
 
 	virtual void ApplyPreconfiguredSettings(const FPCGPreConfiguredSettingsInfo& PreconfigureInfo) override;

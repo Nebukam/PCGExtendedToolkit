@@ -190,7 +190,7 @@ namespace PCGExDiscardByOverlap
 	{
 	public:
 		PCGEX_ASYNC_TASK_NAME(FPruneTask)
-	
+
 		explicit FPruneTask()
 			: FPCGExTask()
 

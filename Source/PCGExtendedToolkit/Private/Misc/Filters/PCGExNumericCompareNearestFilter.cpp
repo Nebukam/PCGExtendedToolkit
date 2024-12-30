@@ -22,10 +22,14 @@ TSharedPtr<PCGExPointFilter::FFilter> UPCGExNumericCompareNearestFilterFactory::
 	return MakeShared<PCGExPointsFilter::TNumericComparisonNearestFilter>(this);
 }
 
-void UPCGExNumericCompareNearestFilterFactory::RegisterConsumableAttributes(FPCGExContext* InContext) const
+bool UPCGExNumericCompareNearestFilterFactory::RegisterConsumableAttributesWithData(FPCGExContext* InContext, const UPCGData* InData) const
 {
-	Super::RegisterConsumableAttributes(InContext);
-	//TODO : Implement Consumable
+	if (!Super::RegisterConsumableAttributesWithData(InContext, InData)) { return false; }
+
+	FName Consumable = NAME_None;
+	PCGEX_CONSUMABLE_CONDITIONAL(Config.CompareAgainst == EPCGExInputValueType::Attribute, Config.OperandB, Consumable)
+
+	return true;
 }
 
 void UPCGExNumericCompareNearestFilterFactory::BeginDestroy()

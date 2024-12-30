@@ -17,10 +17,15 @@ void UPCGExStringSelfCompareFilterFactory::RegisterBuffersDependencies(FPCGExCon
 	Super::RegisterBuffersDependencies(InContext, FacadePreloader);
 }
 
-void UPCGExStringSelfCompareFilterFactory::RegisterConsumableAttributes(FPCGExContext* InContext) const
+bool UPCGExStringSelfCompareFilterFactory::RegisterConsumableAttributesWithData(FPCGExContext* InContext, const UPCGData* InData) const
 {
-	Super::RegisterConsumableAttributes(InContext);
-	//TODO : Implement Consumable
+	if (!Super::RegisterConsumableAttributesWithData(InContext, InData)) { return false; }
+
+	InContext->AddConsumableAttributeName(Config.OperandA);
+	FName Consumable = NAME_None;
+	PCGEX_CONSUMABLE_CONDITIONAL(Config.CompareAgainst == EPCGExInputValueType::Attribute, Config.IndexAttribute, Consumable)
+
+	return true;
 }
 
 bool PCGExPointsFilter::TStringSelfComparisonFilter::Init(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade> InPointDataFacade)

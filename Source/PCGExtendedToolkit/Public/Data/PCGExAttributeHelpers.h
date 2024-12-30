@@ -506,9 +506,9 @@ namespace PCGEx
 			for (int i = 0; i < Values.Num(); i++) { Values[i] = PCGExMath::Div(Values[i], Range); }
 		}
 
-		FORCEINLINE T SoftGet(const int32 Index, const FPCGPoint& Point, const T& fallback)
+		FORCEINLINE T SoftGet(const int32 Index, const FPCGPoint& Point, const T& Fallback) const
 		{
-			if (!bValid) { return fallback; }
+			if (!bValid) { return Fallback; }
 			switch (InternalSelector.GetSelection())
 			{
 			case EPCGAttributePropertySelection::Attribute:
@@ -532,13 +532,13 @@ namespace PCGEx
 				default: ;
 				}
 			default:
-				return fallback;
+				return Fallback;
 			}
 		}
 
-		FORCEINLINE T SoftGet(const PCGExData::FPointRef& PointRef, const T& fallback) { return SoftGet(PointRef.Index, *PointRef.Point, fallback); }
+		FORCEINLINE T SoftGet(const PCGExData::FPointRef& PointRef, const T& Fallback) const { return SoftGet(PointRef.Index, *PointRef.Point, Fallback); }
 
-		FORCEINLINE T SafeGet(const int32 Index, const T& fallback) const { return !bValid ? fallback : Values[Index]; }
+		FORCEINLINE T SafeGet(const int32 Index, const T& Fallback) const { return !bValid ? Fallback : Values[Index]; }
 		FORCEINLINE T operator[](int32 Index) const { return bValid ? Values[Index] : T{}; }
 
 		static TSharedPtr<TAttributeBroadcaster<T>> Make(const FName& InName, const TSharedRef<PCGExData::FPointIO>& InPointIO)

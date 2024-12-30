@@ -6,7 +6,7 @@
 
 #include "Data/PCGExAttributeHelpers.h"
 #include "Data/PCGExData.h"
-#include "Data/Blending/PCGExDataBlendingOperations.h"
+#include "Data/Blending/PCGExDataBlendingProcessors.h"
 #include "Data/Blending/PCGExDataBlending.h"
 
 
@@ -47,7 +47,7 @@ namespace PCGExDataBlending
 		const int32 StartIndex,
 		const int32 Range) const
 	{
-		for (const TSharedPtr<FDataBlendingOperationBase>& Op : Operations) { Op->PrepareRangeOperation(StartIndex, Range); }
+		for (const TSharedPtr<FDataBlendingProcessorBase>& Op : Operations) { Op->PrepareRangeOperation(StartIndex, Range); }
 
 		if (bSkipProperties) { return; }
 
@@ -66,7 +66,7 @@ namespace PCGExDataBlending
 		const int32 SecondaryIndex = B.Index;
 
 		const int8 IsFirstOperation = FirstPointOperation[PrimaryIndex];
-		for (const TSharedPtr<FDataBlendingOperationBase>& Op : Operations) { Op->DoRangeOperation(PrimaryIndex, SecondaryIndex, StartIndex, Weights, IsFirstOperation); }
+		for (const TSharedPtr<FDataBlendingProcessorBase>& Op : Operations) { Op->DoRangeOperation(PrimaryIndex, SecondaryIndex, StartIndex, Weights, IsFirstOperation); }
 		FirstPointOperation[PrimaryIndex] = false;
 
 		if (bSkipProperties) { return; }
@@ -81,7 +81,7 @@ namespace PCGExDataBlending
 		const TArrayView<const int32>& Counts,
 		const TArrayView<double>& TotalWeights) const
 	{
-		for (const TSharedPtr<FDataBlendingOperationBase>& Op : Operations) { Op->CompleteRangeOperation(StartIndex, Counts, TotalWeights); }
+		for (const TSharedPtr<FDataBlendingProcessorBase>& Op : Operations) { Op->CompleteRangeOperation(StartIndex, Counts, TotalWeights); }
 
 		if (bSkipProperties) { return; }
 
@@ -105,7 +105,7 @@ namespace PCGExDataBlending
 
 		const int8 IsFirstOperation = FirstPointOperation[PrimaryIndex];
 
-		for (const TSharedPtr<FDataBlendingOperationBase>& Op : Operations) { Op->DoRangeOperation(PrimaryIndex, SecondaryIndex, StartIndex, Weights, IsFirstOperation); }
+		for (const TSharedPtr<FDataBlendingProcessorBase>& Op : Operations) { Op->DoRangeOperation(PrimaryIndex, SecondaryIndex, StartIndex, Weights, IsFirstOperation); }
 		for (int i = 0; i < Weights.Num(); i++) { FirstPointOperation[StartIndex + i] = false; }
 
 		if (bSkipProperties) { return; }
@@ -197,9 +197,9 @@ namespace PCGExDataBlending
 
 			const EPCGExDataBlendingType* TypePtr = BlendingDetails->AttributesOverrides.Find(Identity.Name);
 
-			TSharedPtr<FDataBlendingOperationBase> Op;
-			if (PCGEx::IsPCGExAttribute(Identity.Name)) { Op = CreateOperation(EPCGExDataBlendingType::Copy, Identity); }
-			else { Op = CreateOperation(TypePtr, BlendingDetails->DefaultBlending, Identity); }
+			TSharedPtr<FDataBlendingProcessorBase> Op;
+			if (PCGEx::IsPCGExAttribute(Identity.Name)) { Op = CreateProcessor(EPCGExDataBlendingType::Copy, Identity); }
+			else { Op = CreateProcessor(TypePtr, BlendingDetails->DefaultBlending, Identity); }
 
 			if (!Op) { continue; }
 

@@ -536,7 +536,7 @@ namespace PCGExBuildCustomGraph
 	{
 	public:
 		PCGEX_ASYNC_TASK_NAME(FBuildGraph)
-		
+
 		FBuildGraph(const TSharedPtr<PCGExData::FPointIO>& InPointIO,
 		            UPCGExCustomGraphSettings* InGraphSettings) :
 			FPCGExTask(),

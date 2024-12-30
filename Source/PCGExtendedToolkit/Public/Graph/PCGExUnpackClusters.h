@@ -69,7 +69,7 @@ class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExUnpackClusterTask final : public PCGExMT:
 {
 public:
 	PCGEX_ASYNC_TASK_NAME(FPCGExUnpackClusterTask)
-	
+
 	explicit FPCGExUnpackClusterTask(const TSharedPtr<PCGExData::FPointIO>& InPointIO)
 		: FPCGExTask(),
 		  PointIO(InPointIO)

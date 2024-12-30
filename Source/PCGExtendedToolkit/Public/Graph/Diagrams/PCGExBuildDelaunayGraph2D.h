@@ -142,7 +142,7 @@ namespace PCGExBuildDelaunay2D
 	{
 	public:
 		PCGEX_ASYNC_TASK_NAME(FOutputDelaunaySites2D)
-		
+
 		FOutputDelaunaySites2D(const TSharedPtr<PCGExData::FPointIO>& InPointIO,
 		                       const TSharedPtr<FProcessor>& InProcessor) :
 			FPCGExTask(),
@@ -161,7 +161,7 @@ namespace PCGExBuildDelaunay2D
 	{
 	public:
 		PCGEX_ASYNC_TASK_NAME(FOutputDelaunayUrquhartSites2D)
-		
+
 		FOutputDelaunayUrquhartSites2D(const TSharedPtr<PCGExData::FPointIO>& InPointIO,
 		                               const TSharedPtr<FProcessor>& InProcessor) :
 			FPCGExTask(),

@@ -82,7 +82,7 @@ FString UPCGExNeighborSampleAttributeSettings::GetDisplayName() const
 UPCGExNeighborSampleOperation* UPCGExNeighborSamplerFactoryAttribute::CreateOperation(FPCGExContext* InContext) const
 {
 	UPCGExNeighborSampleAttribute* NewOperation = InContext->ManagedObjects->New<UPCGExNeighborSampleAttribute>();
-	
+
 	PCGEX_SAMPLER_CREATE
 
 	NewOperation->SourceAttributes = Config.SourceAttributes;
@@ -91,13 +91,13 @@ UPCGExNeighborSampleOperation* UPCGExNeighborSamplerFactoryAttribute::CreateOper
 	return NewOperation;
 }
 
-void UPCGExNeighborSamplerFactoryAttribute::RegisterBuffersDependencies(FPCGExContext* InContext, const TSharedRef<PCGExData::FFacade>& InDataFacade, PCGExData::FFacadePreloader& FacadePreloader) const
+void UPCGExNeighborSamplerFactoryAttribute::RegisterVtxBuffersDependencies(FPCGExContext* InContext, const TSharedRef<PCGExData::FFacade>& InVtxDataFacade, PCGExData::FFacadePreloader& FacadePreloader) const
 {
-	Super::RegisterBuffersDependencies(InContext, InDataFacade, FacadePreloader);
-	
+	Super::RegisterVtxBuffersDependencies(InContext, InVtxDataFacade, FacadePreloader);
+
 	if (SamplingConfig.NeighborSource == EPCGExClusterComponentSource::Vtx)
 	{
-		TSharedPtr<PCGEx::FAttributesInfos> Infos = PCGEx::FAttributesInfos::Get(InDataFacade->GetIn()->Metadata);
+		TSharedPtr<PCGEx::FAttributesInfos> Infos = PCGEx::FAttributesInfos::Get(InVtxDataFacade->GetIn()->Metadata);
 		for (FName AttrName : Config.SourceAttributes)
 		{
 			const PCGEx::FAttributeIdentity* Identity = Infos->Find(AttrName);

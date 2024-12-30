@@ -35,17 +35,25 @@ void FPCGExContext::StageOutput(const FName Pin, UPCGData* InData, const TSet<FS
 	}
 
 	if (bManaged) { ManagedObjects->Add(InData); }
-	if (bIsMutable && bDeleteConsumableAttributes)
+	if (bIsMutable && bCleanupConsumableAttributes)
 	{
 #if PCGEX_ENGINE_VERSION > 503
 		if (UPCGMetadata* Metadata = InData->MutableMetadata())
 		{
-			for (const FName ConsumableName : ConsumableAttributesSet) { Metadata->DeleteAttribute(ConsumableName); }
+			for (const FName ConsumableName : ConsumableAttributesSet)
+			{
+				if (!Metadata->HasAttribute(ConsumableName) || ProtectedAttributesSet.Contains(ConsumableName)) { continue; }
+				Metadata->DeleteAttribute(ConsumableName);
+			}
 		}
 #else
 		if(const UPCGSpatialData* SpatialData = Cast<UPCGSpatialData>(InData); SpatialData->Metadata)
 		{
-			for (const FName ConsumableName : ConsumableAttributesSet) { SpatialData->Metadata->DeleteAttribute(ConsumableName); }
+			for (const FName ConsumableName : ConsumableAttributesSet)
+			{
+				if (!patialData->Metadata->HasAttribute(ConsumableName) || !ProtectedAttributesSet.Contains(ConsumableName)) { continue; }
+				SpatialData->Metadata->DeleteAttribute(ConsumableName);
+			}
 		}
 #endif
 	}
@@ -85,9 +93,6 @@ void FPCGExContext::UnpauseContext()
 
 void FPCGExContext::CommitStagedOutputs()
 {
-	// Must be executed on main thread
-	// ensure(IsInGameThread());
-
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExContext::WriteFutureOutputs);
 
 	OutputData.TaggedData.Reserve(OutputData.TaggedData.Num() + StagedOutputs.Num());
@@ -202,8 +207,15 @@ void FPCGExContext::CancelAssetLoading()
 {
 	if (LoadHandle.IsValid() && LoadHandle->IsActive()) { LoadHandle->CancelHandle(); }
 	LoadHandle.Reset();
-	RequiredAssets.Empty();
+	if (RequiredAssets) { RequiredAssets->Empty(); }
 	CancelExecution(TEXT("")); // Quiet cancel
+}
+
+TSet<FSoftObjectPath>& FPCGExContext::GetRequiredAssets()
+{
+	FWriteScopeLock WriteScopeLock(AssetDependenciesLock);
+	if (!RequiredAssets) { RequiredAssets = MakeShared<TSet<FSoftObjectPath>>(); }
+	return *RequiredAssets.Get();
 }
 
 void FPCGExContext::RegisterAssetDependencies()
@@ -213,7 +225,8 @@ void FPCGExContext::RegisterAssetDependencies()
 void FPCGExContext::AddAssetDependency(const FSoftObjectPath& Dependency)
 {
 	FWriteScopeLock WriteScopeLock(AssetDependenciesLock);
-	RequiredAssets.Add(Dependency);
+	if (!RequiredAssets) { RequiredAssets = MakeShared<TSet<FSoftObjectPath>>(); }
+	RequiredAssets->Add(Dependency);
 }
 
 void FPCGExContext::LoadAssets()
@@ -223,7 +236,7 @@ void FPCGExContext::LoadAssets()
 
 	SetAsyncState(PCGEx::State_LoadingAssetDependencies);
 
-	if (RequiredAssets.IsEmpty())
+	if (!RequiredAssets || RequiredAssets->IsEmpty())
 	{
 		bAssetLoadError = true; // No asset to load, yet we required it?
 		return;
@@ -235,37 +248,64 @@ void FPCGExContext::LoadAssets()
 
 		// Dispatch the async load request to the game thread
 		TWeakPtr<FPCGContextHandle> CtxHandle = GetOrCreateHandle();
-		AsyncTask(
-			ENamedThreads::GameThread, [CtxHandle]()
-			{
-				FPCGExContext* This = GetContextFromHandle<FPCGExContext>(CtxHandle);
-				if (!This) { return; }
 
-				This->LoadHandle = UAssetManager::GetStreamableManager().RequestAsyncLoad(
-					This->RequiredAssets.Array(), [CtxHandle]()
-					{
-						if (FPCGExContext* NestedThis = GetContextFromHandle<FPCGExContext>(CtxHandle)) { NestedThis->UnpauseContext(); }
-					});
-
-				if (!This->LoadHandle || !This->LoadHandle->IsActive())
+		if (IsInGameThread())
+		{
+			LoadHandle = UAssetManager::GetStreamableManager().RequestAsyncLoad(
+				RequiredAssets->Array(), [CtxHandle]()
 				{
-					This->UnpauseContext();
+					if (FPCGExContext* NestedThis = GetContextFromHandle<FPCGExContext>(CtxHandle)) { NestedThis->UnpauseContext(); }
+				});
 
-					if (!This->LoadHandle || !This->LoadHandle->HasLoadCompleted())
-					{
-						This->bAssetLoadError = true;
-						This->CancelExecution("Error loading assets.");
-					}
-					else
-					{
-						// Resources were already loaded
-					}
+			if (!LoadHandle || !LoadHandle->IsActive())
+			{
+				UnpauseContext();
+
+				if (!LoadHandle || !LoadHandle->HasLoadCompleted())
+				{
+					bAssetLoadError = true;
+					CancelExecution("Error loading assets.");
 				}
-			});
+				else
+				{
+					// Resources were already loaded
+				}
+			}
+		}
+		else
+		{
+			AsyncTask(
+				ENamedThreads::GameThread, [CtxHandle]()
+				{
+					FPCGExContext* This = GetContextFromHandle<FPCGExContext>(CtxHandle);
+					if (!This) { return; }
+
+					This->LoadHandle = UAssetManager::GetStreamableManager().RequestAsyncLoad(
+						This->RequiredAssets->Array(), [CtxHandle]()
+						{
+							if (FPCGExContext* NestedThis = GetContextFromHandle<FPCGExContext>(CtxHandle)) { NestedThis->UnpauseContext(); }
+						});
+
+					if (!This->LoadHandle || !This->LoadHandle->IsActive())
+					{
+						This->UnpauseContext();
+
+						if (!This->LoadHandle || !This->LoadHandle->HasLoadCompleted())
+						{
+							This->bAssetLoadError = true;
+							This->CancelExecution("Error loading assets.");
+						}
+						else
+						{
+							// Resources were already loaded
+						}
+					}
+				});
+		}
 	}
 	else
 	{
-		LoadHandle = UAssetManager::GetStreamableManager().RequestSyncLoad(RequiredAssets.Array());
+		LoadHandle = UAssetManager::GetStreamableManager().RequestSyncLoad(RequiredAssets->Array());
 	}
 }
 
@@ -309,7 +349,26 @@ UPCGManagedComponent* FPCGExContext::AttachManagedComponent(AActor* InParent, US
 
 void FPCGExContext::AddConsumableAttributeName(const FName InName)
 {
-	ConsumableAttributesSet.Add(InName);
+	{
+		FReadScopeLock ReadScopeLock(ConsumableAttributesLock);
+		if (ConsumableAttributesSet.Contains(InName)) { return; }
+	}
+	{
+		FWriteScopeLock WriteScopeLock(ConsumableAttributesLock);
+		ConsumableAttributesSet.Add(InName);
+	}
+}
+
+void FPCGExContext::AddProtectedAttributeName(const FName InName)
+{
+	{
+		FReadScopeLock ReadScopeLock(ProtectedAttributesLock);
+		if (ProtectedAttributesSet.Contains(InName)) { return; }
+	}
+	{
+		FWriteScopeLock WriteScopeLock(ProtectedAttributesLock);
+		ProtectedAttributesSet.Add(InName);
+	}
 }
 
 bool FPCGExContext::CanExecute() const
