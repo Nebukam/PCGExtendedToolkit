@@ -25,9 +25,9 @@ TArray<FPCGPinProperties> UPCGExTopologyEdgesProcessorSettings::InputPinProperti
 void FPCGExTopologyEdgesProcessorContext::RegisterAssetDependencies()
 {
 	PCGEX_SETTINGS_LOCAL(TopologyEdgesProcessor)
-	
+
 	FPCGExEdgesProcessorContext::RegisterAssetDependencies();
-	
+
 	AddAssetDependency(Settings->Topology.Material.ToSoftObjectPath());
 }
 

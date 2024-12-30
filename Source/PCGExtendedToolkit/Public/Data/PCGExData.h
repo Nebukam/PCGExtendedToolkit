@@ -58,11 +58,11 @@ namespace PCGExData
 		Inherit = 0,
 		New,
 	};
-	
+
 	enum class EBufferLevel : uint8
 	{
 		Local = 0, // Per point data
-		Global // Per dataset data (Tags etc)
+		Global     // Per dataset data (Tags etc)
 	};
 
 	PCGEX_CTX_STATE(State_MergingData);
@@ -146,7 +146,7 @@ namespace PCGExData
 	class /*PCGEXTENDEDTOOLKIT_API*/ TBuffer final : public FBufferBase
 	{
 		friend class FFacade;
-		
+
 	protected:
 		TUniquePtr<FPCGAttributeAccessor<T>> InAccessor;
 		const FPCGMetadataAttribute<T>* TypedInAttribute = nullptr;
@@ -220,6 +220,12 @@ namespace PCGExData
 
 			OutValues = MakeShared<TArray<T>>();
 			OutValues->Init(InDefaultValue, NumPoints);
+
+			if (Attribute)
+			{
+				// Assume that if we write data, it's not to delete it.
+				Source->GetContext()->AddProtectedAttributeName(Attribute->Name);
+			}
 
 			OutAttribute = Attribute;
 			TypedOutAttribute = Attribute ? static_cast<FPCGMetadataAttribute<T>*>(Attribute) : nullptr;
@@ -434,12 +440,12 @@ namespace PCGExData
 		{
 			if (!IsWritable() || !OutAccessor || !OutValues || !TypedOutAttribute) { return; }
 
-			if(!Source->GetOut())
+			if (!Source->GetOut())
 			{
 				UE_LOG(LogTemp, Error, TEXT("Attempting to write data to an output that's not initialized!"));
 				return;
 			}
-			
+
 			TRACE_CPUPROFILER_EVENT_SCOPE(TBuffer::Write);
 
 			TArrayView<const T> View = MakeArrayView(OutValues->GetData(), OutValues->Num());

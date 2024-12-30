@@ -41,6 +41,8 @@ bool FPCGExUberFilterCollectionsElement::Boot(FPCGExContext* InContext) const
 	Context->Inside->OutputPin = PCGExPointFilter::OutputInsideFiltersLabel;
 	Context->Outside->OutputPin = PCGExPointFilter::OutputOutsideFiltersLabel;
 
+	Context->DataIOInit = Context->bCleanupConsumableAttributes ? PCGExData::EIOInit::Duplicate : PCGExData::EIOInit::Forward;
+
 	if (Settings->bSwap)
 	{
 		Context->Inside->OutputPin = PCGExPointFilter::OutputOutsideFiltersLabel;
@@ -135,24 +137,24 @@ namespace PCGExUberFilterCollections
 		{
 		default:
 		case EPCGExUberFilterCollectionsMode::All:
-			if (NumInside == NumPoints) { Context->Inside->Emplace_GetRef(PointDataFacade->Source, PCGExData::EIOInit::Forward); }
-			else { Context->Outside->Emplace_GetRef(PointDataFacade->Source, PCGExData::EIOInit::Forward); }
+			if (NumInside == NumPoints) { Context->Inside->Emplace_GetRef(PointDataFacade->Source, Context->DataIOInit); }
+			else { Context->Outside->Emplace_GetRef(PointDataFacade->Source, Context->DataIOInit); }
 			break;
 		case EPCGExUberFilterCollectionsMode::Any:
-			if (NumInside != 0) { Context->Inside->Emplace_GetRef(PointDataFacade->Source, PCGExData::EIOInit::Forward); }
-			else { Context->Outside->Emplace_GetRef(PointDataFacade->Source, PCGExData::EIOInit::Forward); }
+			if (NumInside != 0) { Context->Inside->Emplace_GetRef(PointDataFacade->Source, Context->DataIOInit); }
+			else { Context->Outside->Emplace_GetRef(PointDataFacade->Source, Context->DataIOInit); }
 			break;
 		case EPCGExUberFilterCollectionsMode::Partial:
 			if (Settings->Measure == EPCGExMeanMeasure::Discrete)
 			{
-				if (PCGExCompare::Compare(Settings->Comparison, NumInside, Settings->IntThreshold, 0)) { Context->Inside->Emplace_GetRef(PointDataFacade->Source, PCGExData::EIOInit::Forward); }
-				else { Context->Outside->Emplace_GetRef(PointDataFacade->Source, PCGExData::EIOInit::Forward); }
+				if (PCGExCompare::Compare(Settings->Comparison, NumInside, Settings->IntThreshold, 0)) { Context->Inside->Emplace_GetRef(PointDataFacade->Source, Context->DataIOInit); }
+				else { Context->Outside->Emplace_GetRef(PointDataFacade->Source, Context->DataIOInit); }
 			}
 			else
 			{
 				const double Ratio = static_cast<double>(NumInside) / static_cast<double>(NumPoints);
-				if (PCGExCompare::Compare(Settings->Comparison, Ratio, Settings->DblThreshold, Settings->Tolerance)) { Context->Inside->Emplace_GetRef(PointDataFacade->Source, PCGExData::EIOInit::Forward); }
-				else { Context->Outside->Emplace_GetRef(PointDataFacade->Source, PCGExData::EIOInit::Forward); }
+				if (PCGExCompare::Compare(Settings->Comparison, Ratio, Settings->DblThreshold, Settings->Tolerance)) { Context->Inside->Emplace_GetRef(PointDataFacade->Source, Context->DataIOInit); }
+				else { Context->Outside->Emplace_GetRef(PointDataFacade->Source, Context->DataIOInit); }
 			}
 			break;
 		}

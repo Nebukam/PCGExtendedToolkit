@@ -40,7 +40,7 @@ bool FPCGExAssetStagingElement::Boot(FPCGExContext* InContext) const
 
 	if (Settings->CollectionSource == EPCGExCollectionSource::Asset)
 	{
-		Context->MainCollection = PCGExHelpers::ForceLoad(Settings->AssetCollection);
+		Context->MainCollection = PCGExHelpers::LoadBlocking_AnyThread(Settings->AssetCollection);
 		if (!Context->MainCollection)
 		{
 			PCGE_LOG(Error, GraphAndLog, FTEXT("Missing asset collection."));
@@ -87,11 +87,11 @@ void FPCGExAssetStagingContext::RegisterAssetDependencies()
 
 	if (Settings->CollectionSource == EPCGExCollectionSource::AttributeSet)
 	{
-		MainCollection->GetAssetPaths(RequiredAssets, PCGExAssetCollection::ELoadingFlags::Recursive);
+		MainCollection->GetAssetPaths(GetRequiredAssets(), PCGExAssetCollection::ELoadingFlags::Recursive);
 	}
 	else
 	{
-		MainCollection->GetAssetPaths(RequiredAssets, PCGExAssetCollection::ELoadingFlags::RecursiveCollectionsOnly);
+		MainCollection->GetAssetPaths(GetRequiredAssets(), PCGExAssetCollection::ELoadingFlags::RecursiveCollectionsOnly);
 	}
 }
 

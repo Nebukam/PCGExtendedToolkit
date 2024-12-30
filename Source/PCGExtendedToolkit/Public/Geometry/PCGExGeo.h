@@ -532,10 +532,10 @@ namespace PCGExGeo
 			Alpha = DistToStart / (DistToStart + DistToEnd);
 		}
 
-		FVector Direction;
-		FVector Anchor;
-		FVector TowardStart;
-		FVector TowardEnd;
+		FVector Direction = FVector::ZeroVector;
+		FVector Anchor = FVector::ZeroVector;
+		FVector TowardStart = FVector::ZeroVector;
+		FVector TowardEnd = FVector::ZeroVector;
 		double Alpha = 0;
 
 		FVector GetAnchorNormal(const FVector& Location) const { return (Anchor - Location).GetSafeNormal(); }
@@ -686,17 +686,11 @@ namespace PCGExGeoTasks
 			TArray<FPCGPoint>& MutableTargets = ToBeTransformedIO->GetMutablePoints();
 
 			FTransform TargetTransform = FTransform::Identity;
-			if (TransformDetails->bSupportFitting)
-			{
-				FBox PointBounds = FBox(ForceInit);
-				for (const FPCGPoint& Pt : MutableTargets) { PointBounds += PCGExMath::GetLocalBounds<EPCGExPointBoundsSource::Bounds>(Pt).TransformBy(Pt.Transform); }
-				PointBounds = PointBounds.ExpandBy(1); // Avoid NaN
-				TransformDetails->ComputeTransform(TaskIndex, TargetTransform, PointBounds);
-			}
-			else
-			{
-				TargetTransform = PointIO->GetInPoint(TaskIndex).Transform;
-			}
+
+			FBox PointBounds = FBox(ForceInit);
+			for (const FPCGPoint& Pt : MutableTargets) { PointBounds += PCGExMath::GetLocalBounds<EPCGExPointBoundsSource::Bounds>(Pt).TransformBy(Pt.Transform); }
+			PointBounds = PointBounds.ExpandBy(1); // Avoid NaN
+			TransformDetails->ComputeTransform(TaskIndex, TargetTransform, PointBounds);
 
 			if (TransformDetails->bInheritRotation && TransformDetails->bInheritScale)
 			{

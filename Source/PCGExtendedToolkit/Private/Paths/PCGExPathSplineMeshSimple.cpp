@@ -119,7 +119,7 @@ namespace PCGExPathSplineMeshSimple
 		if (Settings->EndOffsetInput == EPCGExInputValueType::Attribute)
 		{
 			EndOffsetGetter = PointDataFacade->GetScopedBroadcaster<FVector2D>(Settings->EndOffsetAttribute);
-			
+
 			if (!EndOffsetGetter)
 			{
 				PCGE_LOG_C(Error, GraphAndLog, ExecutionContext, FTEXT("EndOffset attribute is missing on some inputs.."));
@@ -236,7 +236,7 @@ namespace PCGExPathSplineMeshSimple
 		//
 
 		FVector OutScale = Point.Transform.GetScale3D();
-		
+
 		//
 
 		Segment.Params.StartPos = Point.Transform.GetLocation();
@@ -306,7 +306,7 @@ namespace PCGExPathSplineMeshSimple
 
 			Segment.ApplySettings(SplineMeshComponent); // Init Component
 			SplineMeshComponent->SetStaticMesh(Mesh);   // Will trigger a force rebuild, so put this last
-			
+
 			if (Settings->TaggingDetails.bForwardInputDataTags) { SplineMeshComponent->ComponentTags.Append(DataTags); }
 			if (!Segment.Tags.IsEmpty()) { SplineMeshComponent->ComponentTags.Append(Segment.Tags.Array()); }
 

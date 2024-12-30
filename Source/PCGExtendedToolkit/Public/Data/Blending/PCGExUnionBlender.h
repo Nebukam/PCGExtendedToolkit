@@ -26,9 +26,9 @@ namespace PCGExDataBlending
 
 		const FPCGMetadataAttributeBase* DefaultValue = nullptr;
 		TArray<const FPCGMetadataAttributeBase*> Siblings; // Same attribute as it exists from different sources
-		TArray<TSharedPtr<FDataBlendingOperationBase>> SubBlendingOps;
+		TArray<TSharedPtr<FDataBlendingProcessorBase>> SubBlendingProcessors;
 
-		TSharedPtr<FDataBlendingOperationBase> MainBlendingOp;
+		TSharedPtr<FDataBlendingProcessorBase> MainBlendingProcessor;
 		TSharedPtr<PCGExData::FBufferBase> Buffer;
 
 		explicit FMultiSourceAttribute(const PCGEx::FAttributeIdentity& InIdentity)
@@ -67,10 +67,10 @@ namespace PCGExDataBlending
 
 			for (int i = 0; i < Sources.Num(); i++)
 			{
-				if (const TSharedPtr<FDataBlendingOperationBase>& SubOp = SubBlendingOps[i]) { SubOp->PrepareForData(Buffer, Sources[i]); }
+				if (const TSharedPtr<FDataBlendingProcessorBase>& SubProc = SubBlendingProcessors[i]) { SubProc->PrepareForData(Buffer, Sources[i]); }
 			}
 
-			MainBlendingOp->PrepareForData(Buffer, InTargetData, PCGExData::ESource::Out);
+			MainBlendingProcessor->PrepareForData(Buffer, InTargetData, PCGExData::ESource::Out);
 		}
 
 		template <typename T>
@@ -82,19 +82,19 @@ namespace PCGExDataBlending
 
 			for (int i = 0; i < Sources.Num(); i++)
 			{
-				if (const TSharedPtr<FDataBlendingOperationBase>& SrcOp = SubBlendingOps[i])
+				if (const TSharedPtr<FDataBlendingProcessorBase>& SrcProc = SubBlendingProcessors[i])
 				{
-					SrcOp->SoftPrepareForData(InTargetData, Sources[i]);
+					SrcProc->SoftPrepareForData(InTargetData, Sources[i]);
 				}
 			}
 
-			MainBlendingOp->SoftPrepareForData(InTargetData, InTargetData, PCGExData::ESource::Out);
+			MainBlendingProcessor->SoftPrepareForData(InTargetData, InTargetData, PCGExData::ESource::Out);
 		}
 
 		void SetNum(const int32 InNum)
 		{
 			Siblings.SetNum(InNum);
-			SubBlendingOps.SetNum(InNum);
+			SubBlendingProcessors.SetNum(InNum);
 		}
 	};
 
