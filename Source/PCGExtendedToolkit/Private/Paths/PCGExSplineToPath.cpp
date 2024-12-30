@@ -146,7 +146,7 @@ namespace PCGExSplineToPath
 
 		auto ApplyTransform = [&](FPCGPoint& Point, const FTransform& Transform)
 		{
-			if (Settings->TransformDetails.bInheritRotation && Settings->TransformDetails.bInheritScale)
+			if (Settings->bInheritRotation && Settings->bInheritScale)
 			{
 				Point.Transform = Transform;
 			}

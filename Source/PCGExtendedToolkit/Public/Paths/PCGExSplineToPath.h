@@ -46,8 +46,16 @@ public:
 
 	/** Point transform */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
-	FPCGExTransformDetails TransformDetails = FPCGExTransformDetails(false);
+	FPCGExLeanTransformDetails TransformDetails;
 
+	/** If enabled, copied point will be scaled by the target' scale. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Point Transform", meta=(PCG_Overridable, DisplayAfter="Justification"))
+	bool bInheritScale = false;
+
+	/** If enabled, copied points will be rotated by the target' rotation. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Point Transform", meta=(PCG_Overridable, DisplayAfter="bInheritScale"))
+	bool bInheritRotation = false;
+	
 	/** Sample inputs.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta=(PCG_Overridable))
 	EPCGExSplineSamplingIncludeMode SampleInputs = EPCGExSplineSamplingIncludeMode::All;
