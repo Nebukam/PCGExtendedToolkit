@@ -14,15 +14,17 @@ Style->Set("ClassIcon." # _NAME, new FSlateImageBrush(Style->RootToContentDir(TE
 Style->Set("ClassThumbnail." # _NAME, new FSlateImageBrush(Style->RootToContentDir(TEXT( "" #_NAME), TEXT(".png")), SizeThumbnail));
 
 #define PCGEX_ADD_PIN_EXTRA_ICON(_NAME) \
+AppStyle.Set("PCGEx.Pin." # _NAME, new FSlateVectorImageBrush(Style->RootToContentDir(TEXT( "PCGExPin_" #_NAME), TEXT(".svg")), SizePin));\
 Style->Set("PCGEx.Pin." # _NAME, new FSlateVectorImageBrush(Style->RootToContentDir(TEXT( "PCGExPin_" #_NAME), TEXT(".svg")), SizePin));
 
 void FPCGExtendedToolkitEditorModule::StartupModule()
 {
-	const FString ContentDir = IPluginManager::Get().FindPlugin(TEXT("PCGExtendedToolkit"))->GetBaseDir() / TEXT("Resources") / TEXT("Icons");
-
+	// I know this is cursed
+	FSlateStyleSet& AppStyle = const_cast<FSlateStyleSet&>(static_cast<const FSlateStyleSet&>(FAppStyle::Get()));
+	
 	Style = MakeShared<FSlateStyleSet>("PCGExStyleSet");
-	Style->SetContentRoot(ContentDir);
-
+	Style->SetContentRoot(IPluginManager::Get().FindPlugin(TEXT("PCGExtendedToolkit"))->GetBaseDir() / TEXT("Resources") / TEXT("Icons"));
+	
 	const FVector2D SizeIcon = FVector2D(16.0f, 16.0f);
 	const FVector2D SizePin = FVector2D(22.0f, 22.0f);
 	const FVector2D SizeThumbnail = FVector2D(128.0f, 128.0f);
@@ -32,9 +34,39 @@ void FPCGExtendedToolkitEditorModule::StartupModule()
 	PCGEX_ADD_ICON(PCGExCustomGraphBuilder)
 	PCGEX_ADD_ICON(PCGExCustomActorDataPacker)
 
-	//PCGEX_ADD_PIN_EXTRA_ICON(Filters)
-
+	PCGEX_ADD_PIN_EXTRA_ICON(OUT_Filter)
+	PCGEX_ADD_PIN_EXTRA_ICON(IN_Filters)
+	
+	PCGEX_ADD_PIN_EXTRA_ICON(OUT_Heuristic)
+	PCGEX_ADD_PIN_EXTRA_ICON(IN_Heuristics)
+	
+	PCGEX_ADD_PIN_EXTRA_ICON(OUT_Sorting)
+	PCGEX_ADD_PIN_EXTRA_ICON(IN_Sortings)
+	
+	PCGEX_ADD_PIN_EXTRA_ICON(OUT_Probe)
+	PCGEX_ADD_PIN_EXTRA_ICON(IN_Probes)
+	
+	PCGEX_ADD_PIN_EXTRA_ICON(OUT_Tex)
+	PCGEX_ADD_PIN_EXTRA_ICON(IN_Tex)
+	
+	PCGEX_ADD_PIN_EXTRA_ICON(IN_Vtx)
+	PCGEX_ADD_PIN_EXTRA_ICON(OUT_Edges)
+	
+	PCGEX_ADD_PIN_EXTRA_ICON(IN_Special)
+	
+	PCGEX_ADD_PIN_EXTRA_ICON(IN_Partitions)
+	PCGEX_ADD_PIN_EXTRA_ICON(OUT_Partition)
+	
+	PCGEX_ADD_PIN_EXTRA_ICON(OUT_FilterNode)
+	PCGEX_ADD_PIN_EXTRA_ICON(OUT_FilterEdges)
+	PCGEX_ADD_PIN_EXTRA_ICON(OUT_NodeFlag)
+	PCGEX_ADD_PIN_EXTRA_ICON(OUT_VtxProperty)
+	
+	PCGEX_ADD_PIN_EXTRA_ICON(OUT_Action)
+	PCGEX_ADD_PIN_EXTRA_ICON(OUT_Blend)
+	
 	FSlateStyleRegistry::RegisterSlateStyle(*Style.Get());
+
 }
 
 #undef PCGEX_ADD_ICON

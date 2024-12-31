@@ -27,7 +27,8 @@ public class PCGExtendedToolkitEditor : ModuleRules
 				"CoreUObject",
 				"Engine",
 				"Slate",
-				"SlateCore"
+				"SlateCore",
+				"PCGExtendedToolkit",
 			}
 		);
 	}

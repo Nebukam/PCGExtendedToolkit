@@ -8,6 +8,9 @@
 #include "Engine/TextureRenderTarget2D.h"
 #include "Helpers/PCGBlueprintHelpers.h"
 #include "Helpers/PCGHelpers.h"
+#include "TextureResource.h"
+#include "Engine/Texture.h"
+#include "Engine/Texture2D.h"
 
 #define LOCTEXT_NAMESPACE "PCGExGetTextureDataElement"
 #define PCGEX_NAMESPACE GetTextureData

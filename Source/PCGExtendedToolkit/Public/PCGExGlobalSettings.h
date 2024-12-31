@@ -1,11 +1,13 @@
 ﻿// Copyright 2024 Timothé Lapetite and contributors
 // Released under the MIT license https://opensource.org/license/MIT/
 
-
 #pragma once
 
 #include "CoreMinimal.h"
+
 #include "PCGExGlobalSettings.generated.h"
+
+class UPCGPin;
 
 UENUM()
 enum class EPCGExAsyncPriority : uint8
@@ -40,6 +42,24 @@ enum class EPCGExDataBlendingTypeDefault : uint8
 	WeightedSubtract = 14 UMETA(DisplayName = "Weighted Subtract", ToolTip="Substraction of all the data, weighted"),
 	CopyOther        = 15 UMETA(DisplayName = "Copy (Other)", ToolTip="Same as copy, but copy the other value"),
 };
+
+namespace PCGEx
+{
+	struct FPinInfos
+	{
+		FName Icon = NAME_None;
+		FText Tooltip = FText();
+
+		FPinInfos() = default;
+
+		FPinInfos(const FName InIcon, const FString& InTooltip)
+		: Icon(InIcon), Tooltip(FText::FromString(InTooltip))
+		{
+		}
+
+		~FPinInfos() = default;
+	};
+}
 
 UCLASS(DefaultConfig, config = Editor, defaultconfig)
 class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExGlobalSettings : public UObject
@@ -208,4 +228,17 @@ public:
 
 	UPROPERTY(EditAnywhere, config, Category = "Node Colors")
 	FLinearColor NodeColorTex = FLinearColor(1.000000, 0.200000, 0.185865, 1.000000);
+
+	bool GetPinExtraIcon(const UPCGPin* InPin, FName& OutExtraIcon, FText& OutTooltip, bool bIsOutPin = false) const;
+
+protected:
+	static TArray<PCGEx::FPinInfos> InPinInfos;
+	static TArray<PCGEx::FPinInfos> OutPinInfos;
+	static TMap<FName, int32> InPinInfosMap;
+	static TMap<FName, int32> OutPinInfosMap;
+
+	static bool bGeneratedPinMap;
+
+	void GeneratePinInfos();
+	
 };
