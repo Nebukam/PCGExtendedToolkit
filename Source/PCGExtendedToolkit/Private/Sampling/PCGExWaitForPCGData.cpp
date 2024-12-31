@@ -4,6 +4,7 @@
 #include "Sampling/PCGExWaitForPCGData.h"
 
 #include "PCGExPointsProcessor.h"
+#include "PCGGraph.h"
 #include "Misc/PCGExSortPoints.h"
 
 
@@ -25,15 +26,18 @@ TArray<FPCGPinProperties> UPCGExWaitForPCGDataSettings::InputPinProperties() con
 
 TArray<FPCGPinProperties> UPCGExWaitForPCGDataSettings::OutputPinProperties() const
 {
+	const UPCGGraph* PinPropertiesSource = PCGExHelpers::LoadBlocking_AnyThread(TargetGraph);
+
 	TArray<FPCGPinProperties> PinProperties;
-	PinProperties.Reserve(ExpectedPins.Num());
+	if (!PinPropertiesSource) { return PinProperties; }
 
-	for (int i = 0; i < ExpectedPins.Num(); i++)
+	TArray<FPCGPinProperties> FoundPins = PinPropertiesSource->GetOutputNode()->OutputPinProperties();
+	PinProperties.Reserve(FoundPins.Num());
+	for (FPCGPinProperties Pin : FoundPins)
 	{
-		const FPCGExExpectedPin& ExpectedPin = ExpectedPins[i];
-		PinProperties.Emplace_GetRef(ExpectedPin.Label, ExpectedPin.AllowedTypes);
+		Pin.bInvisiblePin = false;
+		PinProperties.Add(Pin);
 	}
-
 	return PinProperties;
 }
 
@@ -53,6 +57,27 @@ bool FPCGExWaitForPCGDataElement::Boot(FPCGExContext* InContext) const
 	PCGEX_CONTEXT_AND_SETTINGS(WaitForPCGData)
 
 	PCGEX_VALIDATE_NAME(Settings->ActorReferenceAttribute)
+
+	UPCGGraph* GraphData = PCGExHelpers::LoadBlocking_AnyThread(Settings->TargetGraph);
+
+	if (!GraphData) { return false; }
+
+	TArray<FPCGPinProperties> PinProperties = GraphData->GetOutputNode()->OutputPinProperties();
+	Context->RequiredPinProperties.Reserve(PinProperties.Num());
+
+	for (FPCGPinProperties OutputPin : PinProperties)
+	{
+		if (OutputPin.IsRequiredPin())
+		{
+			Context->RequiredPinProperties.Add(OutputPin);
+		}
+	}
+
+	if (Context->RequiredPinProperties.IsEmpty())
+	{
+		PCGE_LOG(Error, GraphAndLog, FTEXT("Target graph must have at least one 'Required' output."));
+		return false;
+	}
 
 	return true;
 }
@@ -92,7 +117,7 @@ namespace PCGExWaitForPCGData
 
 		if (!FPointsProcessor::Process(InAsyncManager)) { return false; }
 
-		bSelectByTag = !Settings->Tag.IsNone();
+		StartTime = Context->SourceComponent->GetWorld()->GetTimeSeconds();
 
 		ActorReferences = MakeShared<PCGEx::TAttributeBroadcaster<FSoftObjectPath>>();
 		if (!ActorReferences->Prepare(Settings->ActorReferenceAttribute, PointDataFacade->Source))
@@ -108,7 +133,7 @@ namespace PCGExWaitForPCGData
 
 		for (int i = 0; i < ActorReferences->Values.Num(); i++)
 		{
-			if (AActor* Actor = Cast<AActor>(ActorReferences->Values[i].ResolveObject())) { QueuedActors[i] = Actor; }
+			if (AActor* Actor = Cast<AActor>(ActorReferences->Values[i].ResolveObject())) { QueuedActors.Add(Actor); }
 			else { bHasUnresolvedReferences = true; }
 		}
 
@@ -123,23 +148,47 @@ namespace PCGExWaitForPCGData
 			PCGE_LOG_C(Warning, GraphAndLog, ExecutionContext, FTEXT("Some actor references could be resolved."));
 		}
 
-		StartParallelLoopForRange(QueuedActors.Num(), 1);
+		StartQueue();
 
 		return true;
 	}
 
+	void FProcessor::StartQueue()
+	{
+		QueuedComponents.Reset();
+		QueuedComponents.SetNum(QueuedActors.Num());
+
+		PCGEX_ASYNC_THIS_DECL
+
+		Ticks = 0;
+		for (int i = 0; i < QueuedComponents.Num(); i++)
+		{
+			AsyncManager->GrowNumStarted();
+			AsyncTask(
+				ENamedThreads::GameThread, [AsyncThis, It = i]()
+				{
+					PCGEX_ASYNC_THIS
+					This->QueuedActors[It]->GetComponents(UPCGComponent::StaticClass(), This->QueuedComponents[It]);
+					This->Ticks++;
+
+					if (This->Ticks == This->QueuedActors.Num())
+					{
+						This->StartParallelLoopForRange(This->QueuedActors.Num(), 1);
+					}
+					
+					This->AsyncManager->GrowNumCompleted();
+				});
+		}
+	}
+
 	void FProcessor::ProcessSingleRangeIteration(const int32 Iteration, const PCGExMT::FScope& Scope)
 	{
-		AActor* Actor = QueuedActors[Iteration];
-
-		TArray<UPCGComponent*> FoundComponents;
-		Actor->GetComponents(UPCGComponent::StaticClass(), FoundComponents);
-
+		TArray<UPCGComponent*> FoundComponents = QueuedComponents[Iteration];
 		for (int i = 0; i < FoundComponents.Num(); i++)
 		{
 			const UPCGComponent* PCGComponent = FoundComponents[i];
 			if (PCGComponent == Context->SourceComponent.Get() ||
-				(bSelectByTag && !PCGComponent->ComponentHasTag(Settings->Tag)))
+				PCGComponent->GetGraph() != Settings->TargetGraph.Get())
 			{
 				FoundComponents.RemoveAt(i);
 				i--;
@@ -153,10 +202,10 @@ namespace PCGExWaitForPCGData
 			const FPCGDataCollection& GraphOutput = PCGComponent->GetGeneratedGraphOutput();
 			if (GraphOutput.TaggedData.IsEmpty()) { return; }
 
-			for (const FPCGExExpectedPin& ExpectedPin : Settings->ExpectedPins)
+			for (const FPCGPinProperties& RequiredPin : Context->RequiredPinProperties)
 			{
-				TArray<FPCGTaggedData> Datas = GraphOutput.GetInputsByPin(ExpectedPin.Label);
-				if (Datas.IsEmpty()) { return; } // No data
+				TArray<FPCGTaggedData> Datas = GraphOutput.GetInputsByPin(RequiredPin.Label);
+				if (Datas.IsEmpty()) { return; } // No data, invalid graph
 			}
 		}
 
@@ -167,15 +216,16 @@ namespace PCGExWaitForPCGData
 		for (const UPCGComponent* PCGComponent : FoundComponents)
 		{
 			const FPCGDataCollection& GraphOutput = PCGComponent->GetGeneratedGraphOutput();
-			for (const FPCGExExpectedPin& ExpectedPin : Settings->ExpectedPins)
+			for (const FPCGPinProperties& RequiredPin : Context->RequiredPinProperties)
 			{
-				TArray<FPCGTaggedData> Datas = GraphOutput.GetInputsByPin(ExpectedPin.Label);
-				for (int i = 0; i < Datas.Num(); i++)
+				Context->StagedOutputReserve(GraphOutput.TaggedData.Num());
+				for (int i = 0; i < GraphOutput.TaggedData.Num(); i++)
 				{
+					const FPCGTaggedData& TaggedData = GraphOutput.TaggedData[i];
 					Context->StageOutput(
-						ExpectedPin.Label,
-						const_cast<UPCGData*>(Datas[i].Data.Get()), // const_cast is fine here, we don't modify the data.
-						Datas[i].Tags, false, false);
+						RequiredPin.Label,
+						const_cast<UPCGData*>(TaggedData.Data.Get()), // const_cast is fine here, we don't modify the data.
+						TaggedData.Tags, false, false);
 				}
 			}
 		}
@@ -192,7 +242,17 @@ namespace PCGExWaitForPCGData
 			}
 		}
 
-		if (!QueuedActors.IsEmpty()) { StartParallelLoopForRange(QueuedActors.Num(), 1); }
+		if (!QueuedActors.IsEmpty())
+		{
+			if (Context->SourceComponent->GetWorld()->GetTimeSeconds() - StartTime < Settings->Timeout)
+			{
+				StartQueue();
+			}
+			else
+			{
+				PCGE_LOG_C(Error, GraphAndLog, ExecutionContext, FTEXT("Wait for PCG Data TIMEOUT."));
+			}
+		}
 	}
 
 

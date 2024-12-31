@@ -55,22 +55,23 @@ public:
 	virtual PCGExData::EIOInit GetMainOutputInitMode() const override;
 	//~End UPCGExPointsProcessorSettings
 
-	/** Actor reference */
+	/** Actor reference that we will be waiting for PCG Components with the target graph. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	FName ActorReferenceAttribute = FName(TEXT("ActorReference"));
 
-	/** */
+	/** Graph instance to look for. Will wait until a PCGComponent is found with that instance set, and its output generated. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
-	FName Tag = NAME_None;
+	TSoftObjectPtr<UPCGGraph> TargetGraph;
 
-	/** */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
-	TArray<FPCGExExpectedPin> ExpectedPins;
+	/** Time after which the search is considered a fail. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, ClampMin=1, ClampMax=30))
+	double Timeout = 10;
 };
 
 struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExWaitForPCGDataContext final : FPCGExPointsProcessorContext
 {
 	friend class FPCGExWaitForPCGDataElement;
+	TArray<FPCGPinProperties> RequiredPinProperties;
 };
 
 class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExWaitForPCGDataElement final : public FPCGExPointsProcessorElement
@@ -92,8 +93,11 @@ namespace PCGExWaitForPCGData
 	{
 		TSharedPtr<PCGEx::TAttributeBroadcaster<FSoftObjectPath>> ActorReferences;
 		TArray<AActor*> QueuedActors;
-		bool bSelectByTag = false;
-
+		TArray<TArray<UPCGComponent*>> QueuedComponents;
+		
+		int32 Ticks = 0;
+		double StartTime = 0;
+		
 	public:
 		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade)
 			: TPointsProcessor(InPointDataFacade)
@@ -103,6 +107,7 @@ namespace PCGExWaitForPCGData
 		virtual ~FProcessor() override;
 
 		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager> InAsyncManager) override;
+		void StartQueue();
 		virtual void ProcessSingleRangeIteration(const int32 Iteration, const PCGExMT::FScope& Scope) override;
 		virtual void OnRangeProcessingComplete() override;
 		virtual void CompleteWork() override;
