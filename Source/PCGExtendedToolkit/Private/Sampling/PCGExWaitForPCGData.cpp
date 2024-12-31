@@ -135,15 +135,14 @@ namespace PCGExWaitForPCGData
 		TArray<UPCGComponent*> FoundComponents;
 		Actor->GetComponents(UPCGComponent::StaticClass(), FoundComponents);
 
-		if (bSelectByTag)
+		for (int i = 0; i < FoundComponents.Num(); i++)
 		{
-			for (int i = 0; i < FoundComponents.Num(); i++)
+			const UPCGComponent* PCGComponent = FoundComponents[i];
+			if (PCGComponent == Context->SourceComponent.Get() ||
+				(bSelectByTag && !PCGComponent->ComponentHasTag(Settings->Tag)))
 			{
-				if (!FoundComponents[i]->ComponentHasTag(Settings->Tag))
-				{
-					FoundComponents.RemoveAt(i);
-					i--;
-				}
+				FoundComponents.RemoveAt(i);
+				i--;
 			}
 		}
 
