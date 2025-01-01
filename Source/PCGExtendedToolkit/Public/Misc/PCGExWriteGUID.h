@@ -102,6 +102,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExGUIDDetails
 
 	bool Init(FPCGExContext* InContext, TSharedRef<PCGExData::FFacade>& InFacade);
 	void GetGUID(const int32 Index, const FPCGPoint& InPoint, FGuid& OutGUID) const;
+	
 };
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc")

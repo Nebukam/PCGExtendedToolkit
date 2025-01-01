@@ -45,11 +45,11 @@ using EPCGExTexChannelsFlagsBitmask = TEnumAsByte<EPCGExTexChannelsFlags>;
 
 namespace PCGExTexture
 {
-	const FName SourceTexLabel = TEXT("Texture Params");
-	const FName OutputTexLabel = TEXT("Texture Param");
+	const FName SourceTexLabel = TEXT("TextureParams");
+	const FName OutputTexLabel = TEXT("TextureParam");
 
-	const FName SourceTextureDataLabel = TEXT("Texture Data");
-	const FName OutputTextureDataLabel = TEXT("Texture Data");
+	const FName SourceTextureDataLabel = TEXT("TextureData");
+	const FName OutputTextureDataLabel = TEXT("TextureData");
 
 	const FName OutputTexTagLabel = TEXT("TexTag");
 
