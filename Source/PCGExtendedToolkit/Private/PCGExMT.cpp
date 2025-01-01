@@ -4,9 +4,7 @@
 
 #include "PCGExMT.h"
 
-
 #include "Tasks/Task.h"
-
 
 namespace PCGExMT
 {
@@ -45,6 +43,18 @@ namespace PCGExMT
 		{
 			FWriteScopeLock WriteGroupsLock(GroupsLock);
 			return Groups.Add_GetRef(MakeShared<FTaskGroup>(SharedThis(this), GroupName));
+		}
+	}
+
+	TWeakPtr<FAsyncToken> FTaskManager::TryGetToken(const FName& TokenName)
+	{
+		if (!IsAvailable()) { return nullptr; }
+
+		{
+			FWriteScopeLock WriteGroupsLock(GroupsLock);
+			const TSharedPtr<FAsyncToken> Token = MakeShared<FAsyncToken>(SharedThis(this), TokenName);
+			Tokens.Add(Token);
+			return Token;
 		}
 	}
 
@@ -117,6 +127,8 @@ namespace PCGExMT
 
 			PCGEX_SHARED_THIS_DECL
 
+			Tokens.Empty(); // Revoke all tokens
+			
 			// Cancel groups & tasks
 			for (const TSharedPtr<FPCGExTask>& Task : Tasks) { Task->Cancel(ThisPtr); }
 			for (const TSharedPtr<FTaskGroup>& Group : Groups) { Group->Cancel(); }
@@ -132,7 +144,9 @@ namespace PCGExMT
 		{
 			FWriteScopeLock WriteGroupsLock(GroupsLock);
 			FWriteScopeLock WriteTasksLock(TasksLock);
+			FWriteScopeLock WriteTokensLock(TokensLock);
 
+			Tokens.Empty();
 			Groups.Empty();
 			Tasks.Empty();
 		}
@@ -176,6 +190,27 @@ namespace PCGExMT
 
 		// Unpause context
 		Context->UnpauseContext();
+	}
+
+	FAsyncToken::FAsyncToken(TWeakPtr<FTaskManager> InAsyncManager, const FName& InName):
+		AsyncManager(InAsyncManager), Name(InName)
+	{
+		if (const TSharedPtr<FTaskManager> Manager = AsyncManager.Pin()) { Manager->GrowNumStarted(); }
+	}
+
+	FAsyncToken::~FAsyncToken()
+	{
+		if (const TSharedPtr<FTaskManager> Manager = AsyncManager.Pin()) { Manager->GrowNumCompleted(); }
+	}
+
+	void FAsyncToken::Release()
+	{
+		FWriteScopeLock WriteScopeLock(ReleaseLock);
+		if (const TSharedPtr<FTaskManager> Manager = AsyncManager.Pin())
+		{
+			Manager->GrowNumCompleted();
+			AsyncManager = nullptr;
+		}
 	}
 
 	void FTaskGroup::End()

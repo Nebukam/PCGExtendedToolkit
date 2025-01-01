@@ -65,6 +65,8 @@ void FPCGExtendedToolkitEditorModule::StartupModule()
 	PCGEX_ADD_PIN_EXTRA_ICON(OUT_Action)
 	PCGEX_ADD_PIN_EXTRA_ICON(OUT_Blend)
 	
+	PCGEX_ADD_PIN_EXTRA_ICON(OUT_Shape)
+	
 	FSlateStyleRegistry::RegisterSlateStyle(*Style.Get());
 
 }

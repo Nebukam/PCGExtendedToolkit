@@ -46,7 +46,8 @@ public class PCGExtendedToolkit : ModuleRules
 				"PhysicsCore",
 				"NavigationSystem",
 				"Slate",
-				"SlateCore"
+				"SlateCore",
+				"UnrealEd",
 			}
 		);
 

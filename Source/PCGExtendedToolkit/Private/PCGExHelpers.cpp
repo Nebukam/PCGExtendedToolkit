@@ -5,6 +5,67 @@
 
 namespace PCGEx
 {
+	void FIntTracker::RaiseMax(const int32 Count)
+	{
+		{
+			FReadScopeLock ReadScopeLock(Lock);
+			if (bTriggered) { return; }
+		}
+		{
+			FWriteScopeLock WriteScopeLock(Lock);
+			if (NumMax == 0 && StartFn) { StartFn(); }
+			NumMax += Count;
+		}
+	}
+
+	void FIntTracker::Advance(const int32 Count)
+	{
+		{
+			FReadScopeLock ReadScopeLock(Lock);
+			if (bTriggered) { return; }
+		}
+		{
+			FWriteScopeLock WriteScopeLock(Lock);
+			NumAdvanced += Count;
+			if (NumAdvanced == NumMax) { TriggerInternal(); }
+		}
+	}
+
+	void FIntTracker::Trigger()
+	{
+		FWriteScopeLock WriteScopeLock(Lock);
+		TriggerInternal();
+	}
+
+	void FIntTracker::SafetyTrigger()
+	{
+		FWriteScopeLock WriteScopeLock(Lock);
+		if (NumMax > 0) { TriggerInternal(); }
+	}
+
+	void FIntTracker::Reset()
+	{
+		FWriteScopeLock WriteScopeLock(Lock);
+		NumMax = NumAdvanced = 0;
+		bTriggered = false;
+	}
+
+	void FIntTracker::Reset(const int32 InMax)
+	{
+		FWriteScopeLock WriteScopeLock(Lock);
+		NumMax = InMax;
+		NumAdvanced = 0;
+		bTriggered = false;
+	}
+
+	void FIntTracker::TriggerInternal()
+	{
+		if (bTriggered) { return; }
+		bTriggered = true;
+		ThresholdFn();
+		NumMax = NumAdvanced = 0;
+	}
+
 	FManagedObjects::~FManagedObjects()
 	{
 		Flush();
@@ -105,5 +166,35 @@ namespace PCGEx
 					SubObject->ClearInternalFlags(EInternalObjectFlags::Async);
 				}, true);
 		}
+	}
+}
+
+void UPCGExComponentCallback::Callback(UActorComponent* InComponent)
+{
+	if (!CallbackFn) { return; }
+	if (bIsOnce)
+	{
+		auto CallbackCopy = CallbackFn;
+		CallbackFn = nullptr;
+		CallbackCopy(InComponent);
+	}
+	else
+	{
+		CallbackFn(InComponent);
+	}
+}
+
+void UPCGExPCGComponentCallback::Callback(UPCGComponent* InComponent)
+{
+	if (!CallbackFn) { return; }
+	if (bIsOnce)
+	{
+		auto CallbackCopy = CallbackFn;
+		CallbackFn = nullptr;
+		CallbackCopy(InComponent);
+	}
+	else
+	{
+		CallbackFn(InComponent);
 	}
 }
