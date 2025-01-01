@@ -46,8 +46,7 @@ public class PCGExtendedToolkit : ModuleRules
 				"PhysicsCore",
 				"NavigationSystem",
 				"Slate",
-				"SlateCore",
-				"UnrealEd",
+				"SlateCore"
 			}
 		);
 
@@ -58,12 +57,14 @@ public class PCGExtendedToolkit : ModuleRules
 			}
 		);
 
-		if (Target.bBuildEditor)
-			// Editor only modules
+		if (Target.bBuildEditor == true)
+		{
 			PrivateDependencyModuleNames.AddRange(
 				new string[]
 				{
-				}
-			);
+					"UnrealEd",
+					"Settings"
+				});
+		}
 	}
 }
