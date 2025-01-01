@@ -7,6 +7,7 @@
 #include "PCGGraph.h"
 #include "UPCGExSubSystem.h"
 #include "Misc/PCGExSortPoints.h"
+#include "Tasks/Task.h"
 
 
 #define LOCTEXT_NAMESPACE "PCGExWaitForPCGDataElement"
@@ -72,7 +73,9 @@ void UPCGExWaitForPCGDataSettings::GetTargetGraphPins(TArray<FPCGPinProperties>&
 		OutPins.Reserve(FoundPins.Num());
 		for (FPCGPinProperties Pin : FoundPins)
 		{
+#if PCGEX_ENGINE_VERSION > 503
 			Pin.bInvisiblePin = false;
+#endif
 			OutPins.Add(Pin);
 		}
 	}
@@ -99,7 +102,9 @@ bool FPCGExWaitForPCGDataElement::Boot(FPCGExContext* InContext) const
 	{
 		Context->AllLabels.Add(Pin.Label);
 
+#if PCGEX_ENGINE_VERSION > 503
 		if (Pin.IsRequiredPin())
+#endif
 		{
 			Context->RequiredPinProperties.Add(Pin);
 			Context->RequiredLabels.Add(Pin.Label);
@@ -469,6 +474,7 @@ namespace PCGExWaitForPCGData
 
 	void FProcessor::WatchComponent(UPCGComponent* TargetComponent, int32 Index)
 	{
+#if PCGEX_ENGINE_VERSION > 503
 		WatcherTracker->RaiseMax();
 
 		PCGEX_ASYNC_THIS_DECL
@@ -490,6 +496,7 @@ namespace PCGExWaitForPCGData
 				This->StageComponentData(Idx);
 				This->WatcherTracker->Advance();
 			}, true);
+#endif
 	}
 
 	void FProcessor::ProcessComponent(int32 Index)
@@ -508,6 +515,7 @@ namespace PCGExWaitForPCGData
 			return;
 		}
 
+#if PCGEX_ENGINE_VERSION > 503
 		if (InComponent->GenerationTrigger == EPCGComponentGenerationTrigger::GenerateOnDemand)
 		{
 			if (Settings->bTriggerOnDemand)
@@ -535,6 +543,7 @@ namespace PCGExWaitForPCGData
 			// Either it was Generated On Load
 			// Or it's runtime and it's done generating
 		}
+#endif
 
 		StageComponentData(Index);
 	}

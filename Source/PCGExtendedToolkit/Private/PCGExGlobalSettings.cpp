@@ -22,11 +22,7 @@ bool UPCGExGlobalSettings::GetPinExtraIcon(const UPCGPin* InPin, FName& OutExtra
 		This->GeneratePinInfos();
 	}
 
-#if PCGEX_ENGINE_VERSION == 503
-	const FName PinLabel = InPin->Label;
-#else
 	const FName PinLabel = InPin->Properties.Label;
-#endif
 
 	if (bIsOutPin)
 	{
