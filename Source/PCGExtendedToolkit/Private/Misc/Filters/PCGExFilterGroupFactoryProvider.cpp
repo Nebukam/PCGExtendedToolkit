@@ -15,7 +15,7 @@
 
 #if WITH_EDITOR
 FString UPCGExFilterGroupProviderSettings::GetDisplayName() const { return Mode == EPCGExFilterGroupMode::OR ? TEXT("OR") : TEXT("AND"); }
-#endif
+
 
 TArray<FPCGPreConfiguredSettingsInfo> UPCGExFilterGroupProviderSettings::GetPreconfiguredInfo() const
 {
@@ -24,6 +24,7 @@ TArray<FPCGPreConfiguredSettingsInfo> UPCGExFilterGroupProviderSettings::GetPrec
 	Infos.Emplace_GetRef(1, FTEXT("PCGEx | Filter OR"));
 	return Infos;
 }
+#endif
 
 void UPCGExFilterGroupProviderSettings::ApplyPreconfiguredSettings(const FPCGPreConfiguredSettingsInfo& PreconfigureInfo)
 {

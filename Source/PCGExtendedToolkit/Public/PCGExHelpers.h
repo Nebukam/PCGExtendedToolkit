@@ -33,6 +33,61 @@ enum class EPCGExPointPropertyOutput : uint8
 	ColorA    = 6 UMETA(DisplayName = "A Channel", Tooltip="..."),
 };
 
+UCLASS()
+class UPCGExComponentCallback : public UObject
+{
+	GENERATED_BODY()
+
+	bool bIsOnce = false;
+	TFunction<void(UActorComponent* InComponent)> CallbackFn;
+
+public:
+	UFUNCTION()
+	void Callback(UActorComponent* InComponent);
+	
+	virtual void BeginDestroy() override
+	{
+		CallbackFn = nullptr;
+		UObject::BeginDestroy();
+	}
+
+	template <typename T>
+	void Bind(T& Delegate, TFunction<void(UActorComponent* InComponent)>&& InCallback, const bool bOnce = false)
+	{
+		check(!CallbackFn)
+		bIsOnce = bOnce;
+		CallbackFn = InCallback;
+		Delegate.AddDynamic(this, &UPCGExComponentCallback::Callback);
+	}
+};
+
+UCLASS()
+class UPCGExPCGComponentCallback : public UObject
+{
+	GENERATED_BODY()
+
+	bool bIsOnce = false;
+	TFunction<void(UPCGComponent* InComponent)> CallbackFn;
+
+public:
+	UFUNCTION()
+	void Callback(UPCGComponent* InComponent);
+	
+	virtual void BeginDestroy() override
+	{
+		CallbackFn = nullptr;
+		UObject::BeginDestroy();
+	}
+
+	template <typename T>
+	void Bind(T& Delegate, TFunction<void(UPCGComponent* InComponent)>&& InCallback, const bool bOnce = false)
+	{
+		check(!CallbackFn)
+		bIsOnce = bOnce;
+		CallbackFn = InCallback;
+		Delegate.AddDynamic(this, &UPCGExPCGComponentCallback::Callback);
+	}
+};
 
 UINTERFACE(MinimalAPI)
 class UPCGExManagedObjectInterface : public UInterface
@@ -298,6 +353,43 @@ namespace PCGEx
 
 	private:
 		std::atomic<bool> bAlive{true};
+	};
+
+	class FIntTracker final : public TSharedFromThis<FIntTracker>
+	{
+		FRWLock Lock;
+		bool bTriggered = false;
+		int32 NumMax = 0;
+		int32 NumAdvanced = 0;
+
+		TFunction<void()> StartFn = nullptr;
+		TFunction<void()> ThresholdFn = nullptr;
+
+	public:
+		explicit FIntTracker(TFunction<void()>&& InThresholdFn)
+		{
+			ThresholdFn = InThresholdFn;
+		}
+
+		explicit FIntTracker(TFunction<void()>&& InStartFn, TFunction<void()>&& InThresholdFn)
+		{
+			StartFn = InStartFn;
+			ThresholdFn = InThresholdFn;
+		}
+
+		~FIntTracker() = default;
+
+		void RaiseMax(const int32 Count = 1);
+		void Advance(const int32 Count = 1);
+
+		void Trigger();
+		void SafetyTrigger();
+		
+		void Reset();
+		void Reset(const int32 InMax);
+
+	protected:
+		void TriggerInternal();
 	};
 
 	struct /*PCGEXTENDEDTOOLKIT_API*/ FManagedObjects

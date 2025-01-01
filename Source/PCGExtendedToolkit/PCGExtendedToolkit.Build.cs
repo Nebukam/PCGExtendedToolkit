@@ -44,7 +44,10 @@ public class PCGExtendedToolkit : ModuleRules
 				"RenderCore",
 				"RHI",
 				"PhysicsCore",
-				"NavigationSystem"
+				"NavigationSystem",
+				"Slate",
+				"SlateCore",
+				"UnrealEd",
 			}
 		);
 
