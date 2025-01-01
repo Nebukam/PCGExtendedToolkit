@@ -20,8 +20,6 @@ private:
 	FRWLock TickActionsLock;
 
 public:
-	using EventCallback = std::function<void()>;
-
 	UPCGExSubSystem();
 
 	virtual void Initialize(FSubsystemCollectionBase& Collection) override;
