@@ -66,7 +66,7 @@ namespace PCGExCluster
 	using PCGExGraph::FEdge;
 
 	const FName OutputNodeFlagLabel = TEXT("Flag");
-	const FName SourceNodeFlagLabel = TEXT("Node Flags");
+	const FName SourceNodeFlagLabel = TEXT("NodeFlags");
 
 	struct /*PCGEXTENDEDTOOLKIT_API*/ FAdjacencyData
 	{

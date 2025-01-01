@@ -479,6 +479,53 @@ namespace PCGEx
 			}
 		}
 
+		void GrabUniqueValues(TSet<T>& Dump)
+		{
+			if (!bValid) { return; }
+
+			const UPCGPointData* InData = PointIO->GetIn();
+
+			int32 NumPoints = PointIO->GetNum(PCGExData::ESource::In);
+			Dump.Reserve(NumPoints);
+
+			if (InternalSelector.GetSelection() == EPCGAttributePropertySelection::Attribute)
+			{
+				PCGEx::ExecuteWithRightType(
+					Attribute->GetTypeId(), [&](auto DummyValue)
+					{
+						using RawT = decltype(DummyValue);
+						TArray<RawT> RawValues;
+
+						PCGEx::InitArray(RawValues, NumPoints);
+
+						TArrayView<RawT> View(RawValues);
+						InternalAccessor->GetRange(View, 0, *PointIO->GetInKeys().Get(), EPCGAttributeAccessorFlags::AllowBroadcast);
+
+							for (int i = 0; i < NumPoints; i++) { Dump.Add(Convert(RawValues[i])); }
+						
+						RawValues.Empty();
+					});
+			}
+			else if (InternalSelector.GetSelection() == EPCGAttributePropertySelection::PointProperty)
+			{
+				const TArray<FPCGPoint>& InPoints = InData->GetPoints();
+
+#define PCGEX_GET_BY_ACCESSOR(_ENUM, _ACCESSOR) case _ENUM: for (int i = 0; i < NumPoints; i++) { Dump.Add(Convert(InPoints[i]._ACCESSOR)); } break;
+				switch (InternalSelector.GetPointProperty()) { PCGEX_FOREACH_POINTPROPERTY(PCGEX_GET_BY_ACCESSOR) }
+#undef PCGEX_GET_BY_ACCESSOR
+			}
+			else if (InternalSelector.GetSelection() == EPCGAttributePropertySelection::ExtraProperty)
+			{
+				switch (InternalSelector.GetExtraProperty())
+				{
+				case EPCGExtraProperties::Index:
+					for (int i = 0; i < NumPoints; i++) { Dump.Add(Convert(i)); }
+					break;
+				default: ;
+				}
+			}
+		}
+
 		void Grab(const bool bCaptureMinMax = false)
 		{
 			GrabAndDump(Values, bCaptureMinMax, Min, Max);

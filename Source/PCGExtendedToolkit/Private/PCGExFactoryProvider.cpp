@@ -32,6 +32,24 @@ FPCGElementPtr UPCGExFactoryProviderSettings::CreateElement() const
 
 #if WITH_EDITOR
 FString UPCGExFactoryProviderSettings::GetDisplayName() const { return TEXT(""); }
+
+#ifndef PCGEX_CUSTOM_PIN_DECL
+#define PCGEX_CUSTOM_PIN_DECL
+#define PCGEX_CUSTOM_PIN_ICON(_LABEL, _ICON, _TOOLTIP) if(PinLabel == _LABEL){ OutExtraIcon = TEXT("PCGEx.Pin." # _ICON); OutTooltip = FTEXT(_TOOLTIP); return true; }
+#endif
+
+bool UPCGExFactoryProviderSettings::GetPinExtraIcon(const UPCGPin* InPin, FName& OutExtraIcon, FText& OutTooltip) const
+{
+	if (!GetDefault<UPCGExGlobalSettings>()->GetPinExtraIcon(InPin, OutExtraIcon, OutTooltip, true))
+	{
+		return GetDefault<UPCGExGlobalSettings>()->GetPinExtraIcon(InPin, OutExtraIcon, OutTooltip, false);
+	}
+	else
+	{
+		return true;
+	}
+}
+
 #endif
 
 UPCGExParamFactoryBase* UPCGExFactoryProviderSettings::CreateFactory(FPCGExContext* InContext, UPCGExParamFactoryBase* InFactory) const

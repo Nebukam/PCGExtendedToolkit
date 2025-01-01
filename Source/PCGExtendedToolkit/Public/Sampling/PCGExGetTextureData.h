@@ -126,6 +126,11 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExGetTextureDataContext final : FPCGExPoin
 	TArray<int8> TextureReady;
 
 	FTransform Transform;
+
+	TWeakPtr<PCGExMT::FAsyncToken> TextureProcessingToken;
+
+	void AdvanceProcessing(const int32 Index);
+	
 };
 
 class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExGetTextureDataElement final : public FPCGExPointsProcessorElement
@@ -180,16 +185,4 @@ namespace PCGExGetTextureData
 		virtual void CompleteWork() override;
 	};
 
-	class /*PCGEXTENDEDTOOLKIT_API*/ FCreateTextureTask final : public PCGExMT::FPCGExIndexedTask
-	{
-	public:
-		PCGEX_ASYNC_TASK_NAME(FCreateTextureTask)
-
-		explicit FCreateTextureTask(const int32 InTaskIndex) :
-			FPCGExIndexedTask(InTaskIndex)
-		{
-		}
-
-		virtual void ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager) override;
-	};
 }
