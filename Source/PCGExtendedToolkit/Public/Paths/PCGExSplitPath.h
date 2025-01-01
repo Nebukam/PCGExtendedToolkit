@@ -12,7 +12,7 @@
 
 namespace PCGExSplitPath
 {
-	const FName SourceSplitFilters = TEXT("SplitConditions");
+	const FName SourceSplitFilters = TEXT("Split Conditions");
 }
 
 UENUM()

@@ -38,6 +38,9 @@
 	TSharedPtr<PCGExMT::FTaskGroup> _NAME= _MANAGER ? _MANAGER->TryCreateGroup(FName(#_NAME)) : nullptr; \
 	if(!_NAME){ return _RET; }
 
+#define PCGEX_ASYNC_RELEASE_TOKEN(_TOKEN) if(const TSharedPtr<PCGExMT::FAsyncToken> Token = _TOKEN.Pin()){ Token->Release(); _TOKEN.Reset(); }
+#define PCGEX_ASYNC_RELEASE_TOKEN_ELSE(_TOKEN) if(const TSharedPtr<PCGExMT::FAsyncToken> Token = _TOKEN.Pin()){ Token->Release(); _TOKEN.Reset(); }else
+
 #define PCGEX_SHARED_THIS_DECL TSharedPtr<std::remove_reference_t<decltype(*this)>> ThisPtr = SharedThis(this);
 #define PCGEX_ASYNC_THIS_DECL TWeakPtr<std::remove_reference_t<decltype(*this)>> AsyncThis = SharedThis(this);
 #define PCGEX_ASYNC_THIS_CAPTURE AsyncThis = TWeakPtr<std::remove_reference_t<decltype(*this)>>(SharedThis(this))
@@ -117,11 +120,13 @@ namespace PCGExMT
 	}
 
 
+	class FAsyncToken;
 	class FPCGExTask;
 	class FTaskGroup;
 
 	class /*PCGEXTENDEDTOOLKIT_API*/ FTaskManager : public TSharedFromThis<FTaskManager>
 	{
+		friend class FAsyncToken;
 		friend class FPCGExTask;
 		friend class FTaskGroup;
 
@@ -137,6 +142,7 @@ namespace PCGExMT
 
 		mutable FRWLock TasksLock;
 		mutable FRWLock GroupsLock;
+		mutable FRWLock TokensLock;
 
 		FPCGExContext* Context = nullptr;
 
@@ -146,6 +152,7 @@ namespace PCGExMT
 		void GrowNumCompleted();
 
 		TSharedPtr<FTaskGroup> TryCreateGroup(const FName& GroupName);
+		TWeakPtr<FAsyncToken> TryGetToken(const FName& TokenName);
 
 		FORCEINLINE bool IsStopping() const { return bStopping; }
 		FORCEINLINE bool IsAvailable() const { return !bStopping && !bStopped && !bResetting && Lifecycle->IsAlive(); }
@@ -187,6 +194,7 @@ namespace PCGExMT
 	protected:
 		TArray<TSharedPtr<FPCGExTask>> Tasks;
 		TArray<TSharedPtr<FTaskGroup>> Groups;
+		TArray<TSharedPtr<FAsyncToken>> Tokens;
 
 		std::atomic<bool> bResetting{false};
 		std::atomic<bool> bStopping{false};
@@ -200,6 +208,18 @@ namespace PCGExMT
 		void Complete();
 	};
 
+	class FAsyncToken final : public TSharedFromThis<FAsyncToken>
+	{
+		FRWLock ReleaseLock;
+		TWeakPtr<FTaskManager> AsyncManager;
+		FName Name = NAME_None;
+	public:
+		FAsyncToken(TWeakPtr<FTaskManager> InAsyncManager, const FName& InName);
+		~FAsyncToken();
+
+		void Release();
+	};
+	
 	class /*PCGEXTENDEDTOOLKIT_API*/ FTaskGroup : public TSharedFromThis<FTaskGroup>
 	{
 		friend class FTaskManager;

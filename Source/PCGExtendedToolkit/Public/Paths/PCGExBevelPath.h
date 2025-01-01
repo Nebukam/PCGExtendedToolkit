@@ -12,7 +12,7 @@
 
 namespace PCGExBevelPath
 {
-	const FName SourceBevelFilters = TEXT("BevelConditions");
+	const FName SourceBevelFilters = TEXT("Bevel Conditions");
 	const FName SourceCustomProfile = TEXT("Profile");
 }
 
