@@ -3,9 +3,10 @@
 
 #include "Sampling/PCGExTexParamFactoryProvider.h"
 
-#include "PCGPin.h"
 #include "Data/PCGTextureData.h"
-
+#include "TextureResource.h"
+#include "Engine/Texture.h"
+#include "Engine/Texture2D.h"
 
 #define LOCTEXT_NAMESPACE "PCGExCreateTexParam"
 #define PCGEX_NAMESPACE PCGExCreateTexParam
