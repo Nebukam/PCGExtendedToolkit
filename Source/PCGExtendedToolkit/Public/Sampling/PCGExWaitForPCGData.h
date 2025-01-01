@@ -92,7 +92,7 @@ public:
 	bool bInvertGenerationTrigger = false;
 	
 	/** If enabled, will wait for at least a single PCG component to be found that uses the target Graph. Use carefully, and only if you know for sure it will be found at some point! */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Filtering", meta = (PCG_Overridable))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Wait Settings", meta = (PCG_Overridable))
 	bool bWaitForMissingComponents = false;
 	
 	/** If enabled, will wait for actor references to exist. */

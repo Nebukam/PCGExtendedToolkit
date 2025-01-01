@@ -29,7 +29,7 @@ void UPCGExWaitForPCGDataSettings::PostEditChangeProperty(FPropertyChangedEvent&
 
 	if (PropertyName == GET_MEMBER_NAME_CHECKED(UPCGExWaitForPCGDataSettings, TemplateGraph))
 	{
-		GetTargetGraphPins(CachedPins);
+		EDITOR_RefreshPins();
 	}
 }
 #endif
