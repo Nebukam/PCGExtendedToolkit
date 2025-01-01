@@ -90,11 +90,7 @@ public:
 	/** If enabled, only process component that do not match the specified generation trigger */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Filtering", meta = (PCG_Overridable, DisplayName=" └─ Invert", EditCondition="bDoMatchGenerationTrigger", EditConditionHides, HideEditConditionToggle))
 	bool bInvertGenerationTrigger = false;
-	
-	/** If enabled, will wait for at least a single PCG component to be found that uses the target Graph. Use carefully, and only if you know for sure it will be found at some point! */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Wait Settings", meta = (PCG_Overridable))
-	bool bWaitForMissingComponents = false;
-	
+		
 	/** If enabled, will wait for actor references to exist. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Wait Settings", meta = (PCG_Overridable))
 	bool bWaitForMissingActors = true;
@@ -102,6 +98,10 @@ public:
 	/** Time after which the search is considered a fail. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Wait Settings", meta = (PCG_Overridable, DisplayName=" └─ Timeout", EditCondition="bWaitForMissingActors", EditConditionHides, ClampMin=0.001, ClampMax=30))
 	double WaitForActorTimeout = 1;
+
+	/** If enabled, will wait for at least a single PCG component to be found that uses the target Graph. Use carefully, and only if you know for sure it will be found at some point! */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Wait Settings", meta = (PCG_Overridable))
+	bool bWaitForMissingComponents = false;
 	
 	/** Time after which the search is considered a fail. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Wait Settings", meta = (PCG_Overridable, DisplayName=" └─ Timeout", EditCondition="bWaitForMissingActors", EditConditionHides, ClampMin=0.001, ClampMax=30))
