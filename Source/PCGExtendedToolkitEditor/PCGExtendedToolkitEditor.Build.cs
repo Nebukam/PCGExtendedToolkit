@@ -26,11 +26,11 @@ public class PCGExtendedToolkitEditor : ModuleRules
 			{
 				"CoreUObject",
 				"Engine",
-				"UnrealEd",
 				"Slate",
 				"SlateCore",
 				"PCGExtendedToolkit",
 			}
 		);
+		
 	}
 }
