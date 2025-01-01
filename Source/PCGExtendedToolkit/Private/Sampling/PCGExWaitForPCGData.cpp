@@ -299,7 +299,6 @@ namespace PCGExWaitForPCGData
 	{
 		if (!SearchComponentsToken.IsValid()) { return; }
 
-		PCGEX_ASYNC_RELEASE_TOKEN(WatchToken)
 		PCGEX_ASYNC_RELEASE_TOKEN(SearchComponentsToken)
 
 		if (bTimeout && !Settings->bQuietTimeoutError)
@@ -367,8 +366,8 @@ namespace PCGExWaitForPCGData
 
 			if (Settings->bDoMatchGenerationTrigger)
 			{
-				if ((Settings->bInvertGenerationTrigger && Candidate->GenerationTrigger == Settings->MatchGenerationTrigger) ||
-					(Candidate->GenerationTrigger != Settings->MatchGenerationTrigger))
+				if ((!Settings->bInvertGenerationTrigger && Candidate->GenerationTrigger != Settings->MatchGenerationTrigger) ||
+					(Settings->bInvertGenerationTrigger && Candidate->GenerationTrigger == Settings->MatchGenerationTrigger))
 				{
 					FoundComponents.RemoveAt(i);
 					i--;
@@ -468,7 +467,7 @@ namespace PCGExWaitForPCGData
 		ProcessComponent(Index);
 	}
 
-	void FProcessor::WatchComponent(UPCGComponent* InComponent, int32 Index)
+	void FProcessor::WatchComponent(UPCGComponent* TargetComponent, int32 Index)
 	{
 		WatcherTracker->RaiseMax();
 
@@ -476,7 +475,7 @@ namespace PCGExWaitForPCGData
 
 		// Make sure to not wait on cancelled generation
 		Context->ManagedObjects->New<UPCGExPCGComponentCallback>()->Bind(
-			InComponent->OnPCGGraphCancelledExternal, [AsyncThis, Idx = Index](UPCGComponent* InComponent)
+			TargetComponent->OnPCGGraphCancelledExternal, [AsyncThis, Idx = Index](UPCGComponent* InComponent)
 			{
 				PCGEX_ASYNC_THIS
 				This->ValidComponents[Idx] = nullptr;
@@ -485,7 +484,7 @@ namespace PCGExWaitForPCGData
 
 		// Wait for generated callback
 		Context->ManagedObjects->New<UPCGExPCGComponentCallback>()->Bind(
-			InComponent->OnPCGGraphGeneratedExternal, [AsyncThis, Idx = Index](UPCGComponent* InComponent)
+			TargetComponent->OnPCGGraphGeneratedExternal, [AsyncThis, Idx = Index](UPCGComponent* InComponent)
 			{
 				PCGEX_ASYNC_THIS
 				This->StageComponentData(Idx);
@@ -517,7 +516,7 @@ namespace PCGExWaitForPCGData
 				{
 					PCGEX_ASYNC_THIS_DECL
 
-					// Make sure we have a generation started callback to start watching
+					// Make sure we have a generation started signal before we start watching
 					Context->ManagedObjects->New<UPCGExPCGComponentCallback>()->Bind(
 						InComponent->OnPCGGraphStartGeneratingExternal, [AsyncThis, Idx = Index](UPCGComponent* InComponent)
 						{
@@ -525,7 +524,7 @@ namespace PCGExWaitForPCGData
 							This->WatchComponent(InComponent, Idx);
 						}, true);
 
-					InComponent->Generate(Settings->bForceGeneration);
+					InComponent->Generate(true);
 					return;
 				}
 			}

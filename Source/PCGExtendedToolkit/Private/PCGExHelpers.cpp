@@ -174,9 +174,9 @@ void UPCGExComponentCallback::Callback(UActorComponent* InComponent)
 	if (!CallbackFn) { return; }
 	if (bIsOnce)
 	{
-		auto CallbackCopy = CallbackFn;
+		auto Callback = MoveTemp(CallbackFn);
 		CallbackFn = nullptr;
-		CallbackCopy(InComponent);
+		Callback(InComponent);
 	}
 	else
 	{
@@ -189,9 +189,9 @@ void UPCGExPCGComponentCallback::Callback(UPCGComponent* InComponent)
 	if (!CallbackFn) { return; }
 	if (bIsOnce)
 	{
-		auto CallbackCopy = CallbackFn;
+		auto Callback = MoveTemp(CallbackFn);
 		CallbackFn = nullptr;
-		CallbackCopy(InComponent);
+		Callback(InComponent);
 	}
 	else
 	{
