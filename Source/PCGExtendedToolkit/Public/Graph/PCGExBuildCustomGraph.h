@@ -104,7 +104,7 @@ public:
 
 #pragma region Node Attributes
 
-	TSharedPtr<PCGExData::FBufferHelper> VtxBuffers;
+	TSharedPtr<PCGExData::TBufferHelper<PCGExData::EBufferHelperMode::Write>> VtxBuffers;
 
 #pragma region Init
 
@@ -418,7 +418,7 @@ public:
 	void InitializeWithContext(UPARAM(ref)const FPCGContext& InContext, bool& OutSuccess);
 
 	/**
-	 * Create an edge between two nodes in an indexed graph. This method is executed in a multi-threaded context
+	 * Create a Graph Setting object that will be processed individually and generate its own cluster(s)
 	 * @param SettingsClass
 	 * @param OutSettings
 	 */
