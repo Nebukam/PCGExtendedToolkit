@@ -9,7 +9,7 @@
 #include "Helpers/PCGBlueprintHelpers.h"
 #include "Helpers/PCGHelpers.h"
 #include "TextureResource.h"
-#include "UPCGExSubSystem.h"
+#include "PCGExSubSystem.h"
 #include "Engine/Texture.h"
 #include "Engine/Texture2D.h"
 
@@ -184,6 +184,8 @@ void FPCGExGetTextureDataContext::AdvanceProcessing(const int32 Index)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(FCreateTextureTask::CreateTexture);
 
+		EDITOR_TrackPath(Texture.Get());
+
 #pragma region RenderTarget
 
 		if (TObjectPtr<UTextureRenderTarget2D> RT = Cast<UTextureRenderTarget2D>(Texture.Get()))
@@ -336,7 +338,9 @@ namespace PCGExGetTextureData
 			}
 			{
 				FWriteScopeLock WriteScopeLock(ReferenceLock);
-				MaterialReferences->Add(AssetPath);
+				bool bAlreadySet = false;
+				MaterialReferences->Add(AssetPath, &bAlreadySet);
+				if (!bAlreadySet) { Context->EDITOR_TrackPath(AssetPath); }
 			}
 			return;
 		}
