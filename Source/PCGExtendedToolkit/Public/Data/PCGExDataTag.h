@@ -66,6 +66,12 @@ namespace PCGExData
 			RawTags.Append(InTags);
 		}
 
+		void Append(const TSet<FString>& InTags)
+		{
+			FWriteScopeLock WriteScopeLock(TagsLock);
+			RawTags.Append(InTags);
+		}
+
 		void Reset()
 		{
 			FWriteScopeLock WriteScopeLock(TagsLock);
