@@ -290,9 +290,11 @@ namespace PCGExPathSplineMeshSimple
 
 			const PCGExPaths::FSplineMeshSegment& Segment = Segments[i];
 
-			const FString ComponentName = TEXT("PCGSplineMeshComponent_") + Mesh->GetName();
 			const EObjectFlags ObjectFlags = (bIsPreviewMode ? RF_Transient : RF_NoFlags);
-			USplineMeshComponent* SplineMeshComponent = NewObject<USplineMeshComponent>(TargetActor, MakeUniqueObjectName(TargetActor, USplineMeshComponent::StaticClass(), FName(ComponentName)), ObjectFlags);
+			USplineMeshComponent* SplineMeshComponent = NewObject<USplineMeshComponent>(
+				TargetActor, MakeUniqueObjectName(
+					TargetActor, USplineMeshComponent::StaticClass(),
+					Context->UniqueNameGenerator->Get(TEXT("PCGSplineMeshComponent_") + Mesh->GetName())), ObjectFlags);
 
 			SplineMeshComponent->SetCollisionEnabled(ECollisionEnabled::Type::NoCollision);
 			SplineMeshComponent->SetMobility(EComponentMobility::Static);

@@ -171,13 +171,15 @@ bool FPCGExBuildCustomGraphElement::Boot(FPCGExContext* InContext) const
 		return false;
 	}
 
+	Context->EDITOR_TrackClass(Settings->Builder->GetClass());
+
 	PCGEX_OPERATION_BIND(Builder, UPCGExCustomGraphBuilder, PCGExBuildCustomGraph::SourceOverridesBuilder)
 
 	if (Settings->Mode == EPCGExCustomGraphActorSourceMode::ActorReferences)
 	{
 		PCGEX_VALIDATE_NAME(Settings->ActorReferenceAttribute)
 	}
-
+	
 	return true;
 }
 
@@ -235,8 +237,14 @@ bool FPCGExBuildCustomGraphElement::ExecuteInternal(FPCGContext* InContext) cons
 
 		Context->SetAsyncState(PCGExGraph::State_WritingClusters);
 
+		TSet<UClass*> UniqueSettingsClasses;
+
 		for (UPCGExCustomGraphSettings* GraphSettings : Context->Builder->GraphSettings)
 		{
+			bool bAlreadySet = false;
+			UniqueSettingsClasses.Add(GraphSettings->GetClass(), &bAlreadySet);
+			if (!bAlreadySet) { Context->EDITOR_TrackClass(GraphSettings->GetClass()); }
+
 			TSharedPtr<PCGExData::FPointIO> NodeIO = Context->MainPoints->Emplace_GetRef();
 			NodeIO->IOIndex = GraphSettings->SettingsIndex;
 
@@ -330,7 +338,7 @@ namespace PCGExBuildCustomGraph
 		PCGEX_MAKE_SHARED(GraphBuilder, PCGExGraph::FGraphBuilder, NodeDataFacade.ToSharedRef(), &Settings->GraphBuilderDetails)
 		GraphBuilder->OutputNodeIndices = MakeShared<TArray<int32>>();
 
-		GraphSettings->VtxBuffers = MakeShared<PCGExData::FBufferHelper>(NodeDataFacade.ToSharedRef());
+		GraphSettings->VtxBuffers = MakeShared<PCGExData::TBufferHelper<PCGExData::EBufferHelperMode::Write>>(NodeDataFacade.ToSharedRef());
 		GraphSettings->GraphBuilder = GraphBuilder;
 
 		GraphBuilder->Graph->InsertEdges(GraphSettings->UniqueEdges, -1);
