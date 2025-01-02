@@ -8,6 +8,7 @@
 #include "UPCGExSubSystem.h"
 #include "Misc/PCGExSortPoints.h"
 #include "Tasks/Task.h"
+#include "Async/Async.h"
 
 
 #define LOCTEXT_NAMESPACE "PCGExWaitForPCGDataElement"
@@ -44,7 +45,10 @@ TArray<FPCGPinProperties> UPCGExWaitForPCGDataSettings::InputPinProperties() con
 
 TArray<FPCGPinProperties> UPCGExWaitForPCGDataSettings::OutputPinProperties() const
 {
-	return CachedPins;
+	if (!bOutputRoaming) { return CachedPins; }
+	TArray<FPCGPinProperties> PinProperties = CachedPins;
+	PCGEX_PIN_ANY(RoamingPin, "Roaming data that isn't part of the template output but still exists.", Normal, {})
+	return PinProperties;
 }
 
 PCGExData::EIOInit UPCGExWaitForPCGDataSettings::GetMainOutputInitMode() const { return PCGExData::EIOInit::None; }
@@ -149,6 +153,10 @@ namespace PCGExWaitForPCGData
 
 		if (!FPointsProcessor::Process(InAsyncManager)) { return false; }
 
+		TargetAttributesToDataTags = Settings->TargetAttributesToDataTags;
+		if (Settings->bDedupeData) { TargetAttributesToDataTags.bAddIndexTag = false; }
+		if (!TargetAttributesToDataTags.Init(Context, PointDataFacade)) { return false; }
+
 		InspectionTracker = MakeShared<PCGEx::FIntTracker>(
 			[PCGEX_ASYNC_THIS_CAPTURE]()
 			{
@@ -176,13 +184,34 @@ namespace PCGExWaitForPCGData
 			return false;
 		}
 
-		ActorReferences->GrabUniqueValues(UniqueActorReferences);
+		ActorReferences->Grab();
+		for (int i = 0; i < ActorReferences->Values.Num(); i++)
+		{
+			const FSoftObjectPath& ActorRef = ActorReferences->Values[i];
+			if (!ActorRef.IsValid()) { continue; }
+
+			bool bAlreadySet = false;
+			UniqueActorReferences.Add(ActorRef, &bAlreadySet);
+
+			if (bAlreadySet)
+			{
+				PerActorPoints[ActorRef]->Add(i);
+			}
+			else
+			{
+				PCGEX_MAKE_SHARED(PointList, TArray<int32>)
+				PointList->Add(i);
+				PerActorPoints.Add(ActorRef, PointList);
+			}
+		}
+
 		QueuedActors.Reserve(UniqueActorReferences.Num());
 
 		if (Settings->bWaitForMissingActors)
 		{
 			StartTime = Context->SourceComponent->GetWorld()->GetTimeSeconds();
 			SearchActorsToken = AsyncManager->TryGetToken(FName("SearchActors"));
+			if (!SearchActorsToken.IsValid()) { return false; }
 			GatherActors();
 		}
 		else
@@ -191,7 +220,6 @@ namespace PCGExWaitForPCGData
 
 			for (const FSoftObjectPath& ActorRef : UniqueActorReferences)
 			{
-				if (!ActorRef.IsValid()) { continue; }
 				if (AActor* Actor = Cast<AActor>(ActorRef.ResolveObject())) { QueuedActors.Add(Actor); }
 				else { bHasUnresolvedReferences = true; }
 			}
@@ -217,14 +245,17 @@ namespace PCGExWaitForPCGData
 	void FProcessor::GatherActors()
 	{
 		if (!SearchActorsToken.IsValid()) { return; }
-		if (!AsyncManager->IsAvailable()) { return; }
+		if (!AsyncManager->IsAvailable())
+		{
+			PCGEX_ASYNC_RELEASE_TOKEN(SearchActorsToken)
+			return;
+		}
 
 		bool bHasUnresolvedReferences = false;
 
 		QueuedActors.Reset(UniqueActorReferences.Num());
 		for (const FSoftObjectPath& ActorRef : UniqueActorReferences)
 		{
-			if (!ActorRef.IsValid()) { continue; }
 			if (AActor* Actor = Cast<AActor>(ActorRef.ResolveObject())) { QueuedActors.Add(Actor); }
 			else { bHasUnresolvedReferences = true; }
 		}
@@ -250,7 +281,6 @@ namespace PCGExWaitForPCGData
 			{
 				for (const FSoftObjectPath& ActorRef : UniqueActorReferences)
 				{
-					if (!ActorRef.IsValid()) { continue; }
 					if (AActor* Actor = Cast<AActor>(ActorRef.ResolveObject())) { continue; }
 					FString Rel = TEXT("TIMEOUT : ") + ActorRef.ToString() + TEXT(" not found.");
 					PCGE_LOG_C(Error, GraphAndLog, ExecutionContext, FText::FromString(Rel));
@@ -359,7 +389,7 @@ namespace PCGExWaitForPCGData
 		{
 			const UPCGComponent* Candidate = FoundComponents[i];
 			const UPCGGraph* CandidateGraph = Candidate->GetGraph();
-			if (!CandidateGraph ||
+			if (!CandidateGraph || !Candidate->bActivated ||
 				(Self && Candidate == Self) ||
 				(Settings->bMustMatchTemplate && CandidateGraph != Settings->TemplateGraph.Get()) ||
 				(bHasTag && !Candidate->ComponentHasTag(Settings->MustHaveTag)))
@@ -477,25 +507,43 @@ namespace PCGExWaitForPCGData
 #if PCGEX_ENGINE_VERSION > 503
 		WatcherTracker->RaiseMax();
 
+		if (!TargetComponent->IsGenerating())
+		{
+			StageComponentData(Index);
+			return;
+		}
+
 		PCGEX_ASYNC_THIS_DECL
 
-		// Make sure to not wait on cancelled generation
-		Context->ManagedObjects->New<UPCGExPCGComponentCallback>()->Bind(
-			TargetComponent->OnPCGGraphCancelledExternal, [AsyncThis, Idx = Index](UPCGComponent* InComponent)
+		// Switch to the game thread to subscribe
+		AsyncTask(
+			ENamedThreads::GameThread, [AsyncThis, TargetComponent, Idx = Index]()
 			{
 				PCGEX_ASYNC_THIS
-				This->ValidComponents[Idx] = nullptr;
-				This->WatcherTracker->Advance();
-			}, true);
 
-		// Wait for generated callback
-		Context->ManagedObjects->New<UPCGExPCGComponentCallback>()->Bind(
-			TargetComponent->OnPCGGraphGeneratedExternal, [AsyncThis, Idx = Index](UPCGComponent* InComponent)
-			{
-				PCGEX_ASYNC_THIS
-				This->StageComponentData(Idx);
-				This->WatcherTracker->Advance();
-			}, true);
+				if (!TargetComponent->IsGenerating())
+				{
+					This->ScheduleComponentDataStaging(Idx);
+					return;
+				}
+
+				// Make sure to not wait on cancelled generation
+				This->Context->ManagedObjects->New<UPCGExPCGComponentCallback>()->Bind(
+					TargetComponent->OnPCGGraphCancelledExternal, [AsyncThis, Idx](UPCGComponent* InComponent)
+					{
+						PCGEX_ASYNC_NESTED_THIS
+						NestedThis->ValidComponents[Idx] = nullptr;
+						NestedThis->WatcherTracker->Advance();
+					}, true);
+
+				// Wait for generated callback
+				This->Context->ManagedObjects->New<UPCGExPCGComponentCallback>()->Bind(
+					TargetComponent->OnPCGGraphGeneratedExternal, [AsyncThis, Idx](UPCGComponent* InComponent)
+					{
+						PCGEX_ASYNC_NESTED_THIS
+						NestedThis->ScheduleComponentDataStaging(Idx);
+					}, true);
+			});
 #endif
 	}
 
@@ -522,56 +570,116 @@ namespace PCGExWaitForPCGData
 			{
 				if (!InComponent->bGenerated || Settings->bForceGeneration)
 				{
-					PCGEX_ASYNC_THIS_DECL
-
-					// Make sure we have a generation started signal before we start watching
-					Context->ManagedObjects->New<UPCGExPCGComponentCallback>()->Bind(
-						InComponent->OnPCGGraphStartGeneratingExternal, [AsyncThis, Idx = Index](UPCGComponent* InComponent)
-						{
-							PCGEX_ASYNC_THIS
-							This->WatchComponent(InComponent, Idx);
-						}, true);
-
 					InComponent->Generate(true);
+					WatchComponent(InComponent, Index);
 					return;
 				}
 			}
-		}
-		else
-		{
-			// Component is not generating, so let's assume we're ready to stage.
-			// Either it was Generated On Load
-			// Or it's runtime and it's done generating
 		}
 #endif
 
 		StageComponentData(Index);
 	}
 
+	void FProcessor::ScheduleComponentDataStaging(int32 Index)
+	{
+		PCGEX_LAUNCH(FStageComponentDataTask, Index, SharedThis(this))
+	}
+
 	void FProcessor::StageComponentData(int32 Index)
 	{
+		ON_SCOPE_EXIT { WatcherTracker->Advance(); };
+
 		UPCGComponent* InComponent = ValidComponents[Index];
 		ValidComponents[Index] = nullptr;
 
+		const TSharedPtr<TArray<int32>>* MatchingPointsPtr = PerActorPoints.Find(InComponent->GetOwner()->GetPathName());
+		if (!MatchingPointsPtr) { return; }
+
+		const TArray<int32>& Points = *MatchingPointsPtr->Get();
+
 		const FPCGDataCollection& GraphOutput = InComponent->GetGeneratedGraphOutput();
 
-		// Ensure we have all required pins first
-		for (const FName Required : Context->RequiredLabels)
+		if (GraphOutput.TaggedData.IsEmpty()) { return; }
+
+		if (!Settings->bIgnoreRequiredPin)
 		{
-			if (GraphOutput.GetInputsByPin(Required).IsEmpty())
+			// Ensure we have all required pins first
+			for (const FName Required : Context->RequiredLabels)
 			{
-				return;
+				if (GraphOutput.GetInputsByPin(Required).IsEmpty())
+				{
+					return;
+				}
 			}
 		}
 
-		Context->StagedOutputReserve(GraphOutput.TaggedData.Num());
-		for (const FPCGTaggedData& TaggedData : GraphOutput.TaggedData)
+		if (Settings->bDedupeData)
 		{
-			if (!Context->AllLabels.Contains(TaggedData.Pin)) { continue; }
-			Context->StageOutput(
-				TaggedData.Pin, const_cast<UPCGData*>(TaggedData.Data.Get()), // const_cast is fine here, we don't modify the data.
-				TaggedData.Tags, false, false);
+			TSet<FString> PointsTags;
+			TargetAttributesToDataTags.Tag(Points[0], PointsTags); // Only grab first one otherwise we may end up with too many tags
+			if (Settings->bCarryOverTargetTags) { PointDataFacade->Source->Tags->DumpTo(PointsTags); }
+
+			Context->StagedOutputReserve(GraphOutput.TaggedData.Num());
+
+			for (const FPCGTaggedData& TaggedData : GraphOutput.TaggedData)
+			{
+				TSet<FString> DataTags = TaggedData.Tags;
+				DataTags.Append(PointsTags);
+
+				if (!Context->AllLabels.Contains(TaggedData.Pin))
+				{
+					if (Settings->bOutputRoaming)
+					{
+						Context->StageOutput(
+							Settings->RoamingPin, const_cast<UPCGData*>(TaggedData.Data.Get()), // const_cast is fine here, we don't modify the data.
+							DataTags, false, false);
+					}
+					continue;
+				}
+
+				Context->StageOutput(
+					TaggedData.Pin, const_cast<UPCGData*>(TaggedData.Data.Get()), // const_cast is fine here, we don't modify the data.
+					DataTags, false, false);
+			}
 		}
+		else
+		{
+			Context->StagedOutputReserve(GraphOutput.TaggedData.Num() * Points.Num());
+
+			for (const int32 PtIndex : Points)
+			{
+				TSet<FString> PointsTags;
+				TargetAttributesToDataTags.Tag(PtIndex, PointsTags);
+				if (Settings->bCarryOverTargetTags) { PointDataFacade->Source->Tags->DumpTo(PointsTags); }
+
+				for (const FPCGTaggedData& TaggedData : GraphOutput.TaggedData)
+				{
+					TSet<FString> DataTags = TaggedData.Tags;
+					DataTags.Append(PointsTags);
+
+					if (!Context->AllLabels.Contains(TaggedData.Pin))
+					{
+						if (Settings->bOutputRoaming)
+						{
+							Context->StageOutput(
+								Settings->RoamingPin, const_cast<UPCGData*>(TaggedData.Data.Get()), // const_cast is fine here, we don't modify the data.
+								DataTags, false, false);
+						}
+						continue;
+					}
+
+					Context->StageOutput(
+						TaggedData.Pin, const_cast<UPCGData*>(TaggedData.Data.Get()), // const_cast is fine here, we don't modify the data.
+						DataTags, false, false);
+				}
+			}
+		}
+	}
+
+	void FStageComponentDataTask::ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager)
+	{
+		if (const TSharedPtr<FProcessor> P = Processor.Pin()) { P->StageComponentData(TaskIndex); }
 	}
 }
 

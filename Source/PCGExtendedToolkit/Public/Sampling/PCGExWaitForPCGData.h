@@ -8,6 +8,7 @@
 
 #include "PCGExPointsProcessor.h"
 #include "PCGExSampling.h"
+#include "Data/PCGExDataForward.h"
 
 #include "PCGExWaitForPCGData.generated.h"
 
@@ -68,7 +69,7 @@ public:
 	FName ActorReferenceAttribute = FName(TEXT("ActorReference"));
 
 	/** Graph instance to look for. Will wait until a PCGComponent is found with that instance set, and its output generated. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_NotOverridable))
 	TSoftObjectPtr<UPCGGraph> TemplateGraph;
 
 	/** If enabled, will skip components which graph instances is not the same as the specified template. */
@@ -115,6 +116,31 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Wait Settings", meta = (PCG_Overridable, DisplayName=" └─ Force Generation", EditCondition="bTriggerOnDemand", EditConditionHides))
 	bool bForceGeneration = true;
 
+	
+	/** If enabled, available data will be output even if some required pins have no data. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta = (PCG_Overridable))
+	bool bIgnoreRequiredPin = false;
+	
+	/** If enabled, only output component data once per unique actor. Otherwise, output data as many time as found. Note that when enabled, TargetIndexToTag will be disabled. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output")
+	bool bDedupeData = true;
+
+	/** If enabled, target collections' tags will be added to the output data. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output")
+	bool bCarryOverTargetTags = true;
+	
+	/** Lets you tag output data with attribute values from target points input */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output")
+	FPCGExAttributeToTagDetails TargetAttributesToDataTags;
+
+	/**  */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(InlineEditConditionToggle))
+	bool bOutputRoaming = true;
+
+	/** If enabled, adds an extra pin that contains all the data that isn't part of the template. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(EditCondition="bOutputRoaming"))
+	FName RoamingPin = FName("Roaming Data");
+	
 	/** */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Warning and Errors")
 	bool bQuietActorNotFoundWarning = false;
@@ -142,6 +168,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExWaitForPCGDataContext final : FPCGExPoin
 	TArray<FPCGPinProperties> RequiredPinProperties;
 	TSet<FName> AllLabels;
 	TSet<FName> RequiredLabels;
+
 };
 
 class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExWaitForPCGDataElement final : public FPCGExPointsProcessorElement
@@ -161,6 +188,8 @@ namespace PCGExWaitForPCGData
 {
 	class FProcessor final : public PCGExPointsMT::TPointsProcessor<FPCGExWaitForPCGDataContext, UPCGExWaitForPCGDataSettings>
 	{
+		friend class FStageComponentDataTask;
+		
 		FRWLock ValidComponentLock;
 
 		TWeakPtr<PCGExMT::FAsyncToken> SearchComponentsToken;
@@ -174,7 +203,11 @@ namespace PCGExWaitForPCGData
 		TArray<AActor*> QueuedActors;
 		TArray<TArray<UPCGComponent*>> PerActorGatheredComponents;
 
+		TMap<FSoftObjectPath, TSharedPtr<TArray<int32>>> PerActorPoints;
+		
 		TArray<UPCGComponent*> ValidComponents;
+				
+		FPCGExAttributeToTagDetails TargetAttributesToDataTags;
 
 	public:
 		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade)
@@ -202,6 +235,19 @@ namespace PCGExWaitForPCGData
 		void AddValidComponent(UPCGComponent* InComponent);
 		void WatchComponent(UPCGComponent* TargetComponent, int32 Index);
 		void ProcessComponent(int32 Index);
+		void ScheduleComponentDataStaging(int32 Index);
 		void StageComponentData(int32 Index);
+	};
+
+	class FStageComponentDataTask final : public PCGExMT::FPCGExIndexedTask
+	{
+	public:
+		explicit FStageComponentDataTask(const int32 InTaskIndex, const TWeakPtr<FProcessor>& InProcessor):
+			FPCGExIndexedTask(InTaskIndex), Processor(InProcessor)
+		{
+		}
+		
+		const TWeakPtr<FProcessor> Processor;
+		virtual void ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager) override;
 	};
 }
