@@ -392,6 +392,19 @@ namespace PCGEx
 		void TriggerInternal();
 	};
 
+	class FUniqueNameGenerator final : public TSharedFromThis<FUniqueNameGenerator>
+	{
+		int32 Idx = 0;
+
+	public:
+		FUniqueNameGenerator() = default;
+		~FUniqueNameGenerator() = default;
+
+		FName Get(const FString& BaseName);
+		FName Get(const FName& BaseName);
+		
+	};
+
 	struct /*PCGEXTENDEDTOOLKIT_API*/ FManagedObjects
 	{
 		mutable FRWLock ManagedObjectLock;
@@ -542,7 +555,7 @@ namespace PCGEx
 #pragma region Metadata Type
 
 	template <typename T>
-	FORCEINLINE static EPCGMetadataTypes GetMetadataType()
+	FORCEINLINE constexpr static EPCGMetadataTypes GetMetadataType()
 	{
 		if constexpr (std::is_same_v<T, bool>) { return EPCGMetadataTypes::Boolean; }
 		else if constexpr (std::is_same_v<T, int32>) { return EPCGMetadataTypes::Integer32; }
@@ -564,7 +577,7 @@ namespace PCGEx
 		else { return EPCGMetadataTypes::Unknown; }
 	}
 
-	FORCEINLINE static EPCGMetadataTypes GetPropertyType(const EPCGPointProperties Property)
+	FORCEINLINE constexpr static EPCGMetadataTypes GetPropertyType(const EPCGPointProperties Property)
 	{
 		switch (Property)
 		{

@@ -66,6 +66,18 @@ namespace PCGEx
 		NumMax = NumAdvanced = 0;
 	}
 
+	FName FUniqueNameGenerator::Get(const FString& BaseName)
+	{
+		FName OutName = FName(BaseName + "_" + FString::Printf(TEXT("%d"), Idx));
+		FPlatformAtomics::InterlockedIncrement(&Idx);
+		return OutName;
+	}
+
+	FName FUniqueNameGenerator::Get(const FName& BaseName)
+	{
+		return Get(BaseName.ToString());
+	}
+
 	FManagedObjects::~FManagedObjects()
 	{
 		Flush();
