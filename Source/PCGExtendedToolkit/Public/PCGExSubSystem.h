@@ -9,7 +9,7 @@
 #include "Subsystems/WorldSubsystem.h"
 #include "PCGData.h"
 
-#include "UPCGExSubSystem.generated.h"
+#include "PCGExSubSystem.generated.h"
 
 #define PCGEX_SUBSYSTEM UPCGExSubSystem* PCGExSubsystem = UPCGExSubSystem::GetSubsystemForCurrentWorld(); check(PCGExSubsystem)
 
@@ -77,7 +77,7 @@ public:
 };
 	
 UCLASS()
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExSubSystem : public UTickableWorldSubsystem
+class PCGEXTENDEDTOOLKIT_API UPCGExSubSystem : public UTickableWorldSubsystem
 {
 	GENERATED_BODY()
 

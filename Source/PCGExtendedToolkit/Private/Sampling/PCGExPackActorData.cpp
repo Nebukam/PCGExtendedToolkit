@@ -4,7 +4,7 @@
 #include "Sampling/PCGExPackActorData.h"
 
 #include "PCGExPointsProcessor.h"
-#include "UPCGExSubSystem.h"
+#include "PCGExSubSystem.h"
 #include "Misc/PCGExSortPoints.h"
 
 
@@ -63,9 +63,10 @@ void UPCGExCustomActorDataPacker::AddComponent(
 		return;
 	}
 
-	const FString ComponentName = TEXT("PCPGComponent_") + ComponentClass->GetName();
 	const EObjectFlags InObjectFlags = (bIsPreviewMode ? RF_Transient : RF_NoFlags);
-	TObjectPtr<UActorComponent> NewSettings = Context->ManagedObjects->New<UActorComponent>(InActor, ComponentClass, FName(ComponentName), InObjectFlags);
+	TObjectPtr<UActorComponent> NewSettings = Context->ManagedObjects->New<UActorComponent>(
+		InActor, ComponentClass,
+		UniqueNameGenerator->Get(TEXT("PCGComponent_") + ComponentClass->GetName()), InObjectFlags);
 	OutComponent = NewSettings;
 
 	{
@@ -326,15 +327,16 @@ namespace PCGExPackActorDatas
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExPackActorDatas::Process);
 
 		if (!FPointsProcessor::Process(InAsyncManager)) { return false; }
-		
+
 		Packer = static_cast<UPCGExCustomActorDataPacker*>(PrimaryOperation);
+		Packer->UniqueNameGenerator = Context->UniqueNameGenerator;
 		Packer->WriteBuffers = MakeShared<PCGExData::TBufferHelper<PCGExData::EBufferHelperMode::Write>>(PointDataFacade);
 		Packer->ReadBuffers = MakeShared<PCGExData::TBufferHelper<PCGExData::EBufferHelperMode::Read>>(PointDataFacade);
 
 #if PCGEX_ENGINE_VERSION > 503
 		Packer->bIsPreviewMode = ExecutionContext->SourceComponent.Get()->IsInPreviewMode();
 #endif
-		
+
 		PointDataFacade->Source->bAllowEmptyOutput = !Settings->bOmitEmptyOutputs;
 
 		ActorReferences = MakeShared<PCGEx::TAttributeBroadcaster<FSoftObjectPath>>();

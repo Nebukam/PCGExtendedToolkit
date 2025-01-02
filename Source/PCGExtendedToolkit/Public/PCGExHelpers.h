@@ -392,6 +392,19 @@ namespace PCGEx
 		void TriggerInternal();
 	};
 
+	class FUniqueNameGenerator final : public TSharedFromThis<FUniqueNameGenerator>
+	{
+		int32 Idx = 0;
+
+	public:
+		FUniqueNameGenerator() = default;
+		~FUniqueNameGenerator() = default;
+
+		FName Get(const FString& BaseName);
+		FName Get(const FName& BaseName);
+		
+	};
+
 	struct /*PCGEXTENDEDTOOLKIT_API*/ FManagedObjects
 	{
 		mutable FRWLock ManagedObjectLock;

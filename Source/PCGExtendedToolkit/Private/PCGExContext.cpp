@@ -109,6 +109,7 @@ FPCGExContext::FPCGExContext()
 {
 	Lifecycle = MakeShared<PCGEx::FLifecycle>();
 	ManagedObjects = MakeUnique<PCGEx::FManagedObjects>(this, Lifecycle);
+	UniqueNameGenerator = MakeShared<PCGEx::FUniqueNameGenerator>();
 }
 
 FPCGExContext::~FPCGExContext()

@@ -9,7 +9,7 @@
 #include "Helpers/PCGBlueprintHelpers.h"
 #include "Helpers/PCGHelpers.h"
 #include "TextureResource.h"
-#include "UPCGExSubSystem.h"
+#include "PCGExSubSystem.h"
 #include "Engine/Texture.h"
 #include "Engine/Texture2D.h"
 

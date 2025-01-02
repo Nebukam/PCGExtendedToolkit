@@ -50,6 +50,7 @@ class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExCustomActorDataPacker : public UPCGExOper
 	TMap<AActor*, TSharedPtr<TArray<FComponentInfos>>> ComponentsMap;
 
 public:
+	TSharedPtr<PCGEx::FUniqueNameGenerator> UniqueNameGenerator;
 	bool bIsPreviewMode = false;
 	bool bIsProcessing = false;
 
