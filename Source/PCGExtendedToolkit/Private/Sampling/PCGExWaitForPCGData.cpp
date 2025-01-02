@@ -5,6 +5,7 @@
 
 #include "PCGExPointsProcessor.h"
 #include "PCGGraph.h"
+#include "PCGSubsystem.h"
 #include "UPCGExSubSystem.h"
 #include "Misc/PCGExSortPoints.h"
 #include "Tasks/Task.h"
@@ -553,6 +554,19 @@ namespace PCGExWaitForPCGData
 
 		UPCGComponent* InComponent = ValidComponents[Index];
 
+		switch (InComponent->GenerationTrigger)
+		{
+		case EPCGComponentGenerationTrigger::GenerateOnLoad:
+			if (Settings->GenerateOnLoadAction == EPCGExGenerationTriggerAction::Ignore) { return; }
+			break;
+		case EPCGComponentGenerationTrigger::GenerateOnDemand:
+			if (Settings->GenerateOnDemandAction == EPCGExGenerationTriggerAction::Ignore) { return; }
+			break;
+		case EPCGComponentGenerationTrigger::GenerateAtRuntime:
+			if (Settings->GenerateAtRuntime == EPCGExRuntimeGenerationTriggerAction::Ignore) { return; }
+			break;
+		}
+
 		// Ignore component getting cleaned up
 		if (InComponent->IsCleaningUp()) { return; }
 
@@ -563,19 +577,64 @@ namespace PCGExWaitForPCGData
 			return;
 		}
 
+		bool bWatchComponent = false;
+		bool bForce = false;
+
 #if PCGEX_ENGINE_VERSION > 503
-		if (InComponent->GenerationTrigger == EPCGComponentGenerationTrigger::GenerateOnDemand)
+
+		switch (InComponent->GenerationTrigger)
 		{
-			if (Settings->bTriggerOnDemand)
+		case EPCGComponentGenerationTrigger::GenerateOnLoad:
+			switch (Settings->GenerateOnLoadAction)
 			{
-				if (!InComponent->bGenerated || Settings->bForceGeneration)
-				{
-					InComponent->Generate(true);
-					WatchComponent(InComponent, Index);
-					return;
-				}
+			default:
+			case EPCGExGenerationTriggerAction::AsIs:
+				break;
+			case EPCGExGenerationTriggerAction::ForceGenerate:
+				bForce = true;
+			case EPCGExGenerationTriggerAction::Generate:
+				InComponent->Generate(bForce);
+				bWatchComponent = true;
+				break;
 			}
+			break;
+		case EPCGComponentGenerationTrigger::GenerateOnDemand:
+			switch (Settings->GenerateOnDemandAction)
+			{
+			default:
+			case EPCGExGenerationTriggerAction::AsIs:
+				break;
+			case EPCGExGenerationTriggerAction::ForceGenerate:
+				bForce = true;
+			case EPCGExGenerationTriggerAction::Generate:
+				InComponent->Generate(bForce);
+				bWatchComponent = true;
+				break;
+			}
+			break;
+		case EPCGComponentGenerationTrigger::GenerateAtRuntime:
+			switch (Settings->GenerateAtRuntime)
+			{
+			default:
+			case EPCGExRuntimeGenerationTriggerAction::AsIs:
+				break;
+			case EPCGExRuntimeGenerationTriggerAction::RefreshFirst:
+				if (UPCGSubsystem* PCGSubsystem = UPCGSubsystem::GetSubsystemForCurrentWorld())
+				{
+					PCGSubsystem->RefreshRuntimeGenComponent(InComponent, EPCGChangeType::GenerationGrid);
+					bWatchComponent = true;
+				}
+				break;
+			}
+			break;
 		}
+
+		if (bWatchComponent)
+		{
+			WatchComponent(InComponent, Index);
+			return;
+		}
+
 #endif
 
 		StageComponentData(Index);

@@ -12,20 +12,21 @@
 
 #include "PCGExWaitForPCGData.generated.h"
 
-USTRUCT(BlueprintType)
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExExpectedPin
+UENUM()
+enum class EPCGExGenerationTriggerAction : uint8
 {
-	GENERATED_BODY()
+	Ignore        = 0 UMETA(DisplayName = "Ignore", ToolTip="Ignore component if not actively generating already"),
+	AsIs          = 1 UMETA(DisplayName = "As-is", ToolTip="Grab the data as-is and doesnt'try to generate if it wasn't."),
+	Generate      = 2 UMETA(DisplayName = "Generate", ToolTip="Generate and wait for completion"),
+	ForceGenerate = 3 UMETA(DisplayName = "Generate (force)", ToolTip="Generate (force) and wait for completion"),
+};
 
-	FPCGExExpectedPin()
-	{
-	}
-
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
-	FName Label = NAME_None;
-
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
-	EPCGDataType AllowedTypes = EPCGDataType::Any;
+UENUM()
+enum class EPCGExRuntimeGenerationTriggerAction : uint8
+{
+	Ignore       = 0 UMETA(DisplayName = "Ignore", ToolTip="Ignore component if not actively generating already"),
+	AsIs         = 1 UMETA(DisplayName = "As-is", ToolTip="Grab the data as-is and doesnt'try to refresh it."),
+	RefreshFirst = 2 UMETA(DisplayName = "Refresh", ToolTip="Refresh and wait for completion"),
 };
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Sampling")
@@ -91,36 +92,39 @@ public:
 	/** If enabled, only process component that do not match the specified generation trigger */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Filtering", meta = (PCG_Overridable, DisplayName=" └─ Invert", EditCondition="bDoMatchGenerationTrigger", EditConditionHides, HideEditConditionToggle))
 	bool bInvertGenerationTrigger = false;
-		
+
 	/** If enabled, will wait for actor references to exist. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Wait Settings", meta = (PCG_Overridable))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Gen & Wait Settings", meta = (PCG_Overridable))
 	bool bWaitForMissingActors = true;
 
 	/** Time after which the search is considered a fail. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Wait Settings", meta = (PCG_Overridable, DisplayName=" └─ Timeout", EditCondition="bWaitForMissingActors", EditConditionHides, ClampMin=0.001, ClampMax=30))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Gen & Wait Settings", meta = (PCG_Overridable, DisplayName=" └─ Timeout", EditCondition="bWaitForMissingActors", EditConditionHides, ClampMin=0.001, ClampMax=30))
 	double WaitForActorTimeout = 1;
 
 	/** If enabled, will wait for at least a single PCG component to be found that uses the target Graph. Use carefully, and only if you know for sure it will be found at some point! */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Wait Settings", meta = (PCG_Overridable))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Gen & Wait Settings", meta = (PCG_Overridable))
 	bool bWaitForMissingComponents = false;
-	
+
 	/** Time after which the search is considered a fail. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Wait Settings", meta = (PCG_Overridable, DisplayName=" └─ Timeout", EditCondition="bWaitForMissingActors", EditConditionHides, ClampMin=0.001, ClampMax=30))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Gen & Wait Settings", meta = (PCG_Overridable, DisplayName=" └─ Timeout", EditCondition="bWaitForMissingActors", EditConditionHides, ClampMin=0.001, ClampMax=30))
 	double WaitForComponentTimeout = 1;
 
-	/** If enabled, will request generation on on-demand components found. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Wait Settings", meta = (PCG_Overridable))
-	bool bTriggerOnDemand = true;
+	/** How to deal with found components that have the trigger condition 'GenerateOnLoad'*/
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Gen & Wait Settings", meta = (PCG_Overridable, DisplayName="Grab GenerateOnLoad"))
+	EPCGExGenerationTriggerAction GenerateOnLoadAction = EPCGExGenerationTriggerAction::AsIs;
 
-	/** Whether to force generation or not. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Wait Settings", meta = (PCG_Overridable, DisplayName=" └─ Force Generation", EditCondition="bTriggerOnDemand", EditConditionHides))
-	bool bForceGeneration = true;
+	/** How to deal with found components that have the trigger condition 'GenerateOnDemand'*/
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Gen & Wait Settings", meta = (PCG_Overridable, DisplayName="Grab GenerateOnDemand"))
+	EPCGExGenerationTriggerAction GenerateOnDemandAction = EPCGExGenerationTriggerAction::ForceGenerate;
 
-	
+	/** How to deal with found components that have the trigger condition 'GenerateAtRuntime'*/
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Gen & Wait Settings", meta = (PCG_Overridable, DisplayName="Grab GenerateAtRuntime"))
+	EPCGExRuntimeGenerationTriggerAction GenerateAtRuntime = EPCGExRuntimeGenerationTriggerAction::AsIs;
+
 	/** If enabled, available data will be output even if some required pins have no data. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta = (PCG_Overridable))
 	bool bIgnoreRequiredPin = false;
-	
+
 	/** If enabled, only output component data once per unique actor. Otherwise, output data as many time as found. Note that when enabled, TargetIndexToTag will be disabled. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output")
 	bool bDedupeData = true;
@@ -128,7 +132,7 @@ public:
 	/** If enabled, target collections' tags will be added to the output data. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output")
 	bool bCarryOverTargetTags = true;
-	
+
 	/** Lets you tag output data with attribute values from target points input */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output")
 	FPCGExAttributeToTagDetails TargetAttributesToDataTags;
@@ -140,7 +144,7 @@ public:
 	/** If enabled, adds an extra pin that contains all the data that isn't part of the template. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(EditCondition="bOutputRoaming"))
 	FName RoamingPin = FName("Roaming Data");
-	
+
 	/** */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Warning and Errors")
 	bool bQuietActorNotFoundWarning = false;
@@ -168,7 +172,6 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExWaitForPCGDataContext final : FPCGExPoin
 	TArray<FPCGPinProperties> RequiredPinProperties;
 	TSet<FName> AllLabels;
 	TSet<FName> RequiredLabels;
-
 };
 
 class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExWaitForPCGDataElement final : public FPCGExPointsProcessorElement
@@ -189,7 +192,7 @@ namespace PCGExWaitForPCGData
 	class FProcessor final : public PCGExPointsMT::TPointsProcessor<FPCGExWaitForPCGDataContext, UPCGExWaitForPCGDataSettings>
 	{
 		friend class FStageComponentDataTask;
-		
+
 		FRWLock ValidComponentLock;
 
 		TWeakPtr<PCGExMT::FAsyncToken> SearchComponentsToken;
@@ -204,9 +207,9 @@ namespace PCGExWaitForPCGData
 		TArray<TArray<UPCGComponent*>> PerActorGatheredComponents;
 
 		TMap<FSoftObjectPath, TSharedPtr<TArray<int32>>> PerActorPoints;
-		
+
 		TArray<UPCGComponent*> ValidComponents;
-				
+
 		FPCGExAttributeToTagDetails TargetAttributesToDataTags;
 
 	public:
@@ -246,7 +249,7 @@ namespace PCGExWaitForPCGData
 			FPCGExIndexedTask(InTaskIndex), Processor(InProcessor)
 		{
 		}
-		
+
 		const TWeakPtr<FProcessor> Processor;
 		virtual void ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager) override;
 	};
