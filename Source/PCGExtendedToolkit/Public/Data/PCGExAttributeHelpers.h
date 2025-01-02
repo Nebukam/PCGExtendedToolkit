@@ -486,7 +486,7 @@ namespace PCGEx
 			const UPCGPointData* InData = PointIO->GetIn();
 
 			int32 NumPoints = PointIO->GetNum(PCGExData::ESource::In);
-			Dump.Reserve(NumPoints);
+			Dump.Reserve(Dump.Num() + NumPoints);
 
 			if (InternalSelector.GetSelection() == EPCGAttributePropertySelection::Attribute)
 			{
@@ -524,6 +524,8 @@ namespace PCGEx
 				default: ;
 				}
 			}
+
+			Dump.Shrink();
 		}
 
 		void Grab(const bool bCaptureMinMax = false)

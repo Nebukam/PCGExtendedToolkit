@@ -136,19 +136,27 @@ namespace PCGExSubdivide
 
 		if (!PointFilterCache[Index]) { return; }
 
-		const double Amount = AmountGetter ? AmountGetter->Read(Index) : ConstantAmount;
+		double Amount = AmountGetter ? AmountGetter->Read(Index) : ConstantAmount;
+		bool bRedistribute = bUseCount;
 
-		if (bUseCount)
-		{
-			Sub.NumSubdivisions = FMath::Floor(Amount);
-			Sub.StepSize = Sub.Dist / static_cast<double>(Sub.NumSubdivisions + 1);
-			Sub.StartOffset = Sub.StepSize;
-		}
-		else
+		if (!bRedistribute)
 		{
 			Sub.NumSubdivisions = FMath::Floor(Sub.Dist / Amount);
 			Sub.StepSize = Amount;
 			Sub.StartOffset = (Sub.Dist - (Sub.StepSize * (Sub.NumSubdivisions - 1))) * 0.5;
+
+			if (Settings->bRedistributeEvenly)
+			{
+				bRedistribute = true;
+				Amount = Sub.NumSubdivisions;
+			}
+		}
+
+		if (bRedistribute)
+		{
+			Sub.NumSubdivisions = FMath::Floor(Amount);
+			Sub.StepSize = Sub.Dist / static_cast<double>(Sub.NumSubdivisions + 1);
+			Sub.StartOffset = Sub.StepSize;
 		}
 
 		Sub.Dir = (Sub.End - Sub.Start).GetSafeNormal();
