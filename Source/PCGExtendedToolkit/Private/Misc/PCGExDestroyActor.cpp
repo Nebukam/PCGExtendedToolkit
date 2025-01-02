@@ -4,7 +4,7 @@
 #include "Misc/PCGExDestroyActor.h"
 
 #include "PCGExPointsProcessor.h"
-#include "UPCGExSubSystem.h"
+#include "PCGExSubSystem.h"
 #include "Misc/PCGExSortPoints.h"
 
 

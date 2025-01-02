@@ -111,7 +111,7 @@ public:
 
 	/** How to deal with found components that have the trigger condition 'GenerateOnLoad'*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Gen & Wait Settings", meta = (PCG_Overridable, DisplayName="Grab GenerateOnLoad"))
-	EPCGExGenerationTriggerAction GenerateOnLoadAction = EPCGExGenerationTriggerAction::AsIs;
+	EPCGExGenerationTriggerAction GenerateOnLoadAction = EPCGExGenerationTriggerAction::Generate;
 
 	/** How to deal with found components that have the trigger condition 'GenerateOnDemand'*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Gen & Wait Settings", meta = (PCG_Overridable, DisplayName="Grab GenerateOnDemand"))
