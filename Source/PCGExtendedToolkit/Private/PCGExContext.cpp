@@ -309,7 +309,7 @@ void FPCGExContext::LoadAssets()
 	}
 }
 
-UPCGManagedComponent* FPCGExContext::AttachManagedComponent(AActor* InParent, USceneComponent* InComponent, const FAttachmentTransformRules& AttachmentRules) const
+UPCGManagedComponent* FPCGExContext::AttachManagedComponent(AActor* InParent, UActorComponent* InComponent, const FAttachmentTransformRules& AttachmentRules) const
 {
 	UPCGComponent* SrcComp = SourceComponent.Get();
 
@@ -342,7 +342,11 @@ UPCGManagedComponent* FPCGExContext::AttachManagedComponent(AActor* InParent, US
 
 	InComponent->RegisterComponent();
 	InParent->AddInstanceComponent(InComponent);
-	InComponent->AttachToComponent(InParent->GetRootComponent(), AttachmentRules);
+
+	if (USceneComponent* SceneComponent = Cast<USceneComponent>(InComponent))
+	{
+		SceneComponent->AttachToComponent(InParent->GetRootComponent(), AttachmentRules);
+	}
 
 	return ManagedComponent;
 }
@@ -369,6 +373,28 @@ void FPCGExContext::AddProtectedAttributeName(const FName InName)
 		FWriteScopeLock WriteScopeLock(ProtectedAttributesLock);
 		ProtectedAttributesSet.Add(InName);
 	}
+}
+
+void FPCGExContext::EDITOR_TrackPath(const FSoftObjectPath& Path, const bool bIsCulled) const
+{
+#if WITH_EDITOR && PCGEX_ENGINE_VERSION > 503
+	if (UPCGComponent* PCGComponent = SourceComponent.Get())
+	{
+		TPair<FPCGSelectionKey, bool> NewPair(FPCGSelectionKey::CreateFromPath(Path), bIsCulled);
+		PCGComponent->RegisterDynamicTracking(GetOriginalSettings<UPCGSettings>(), MakeArrayView(&NewPair, 1));
+	}
+#endif
+}
+
+void FPCGExContext::EDITOR_TrackClass(const TSubclassOf<UObject>& InSelectionClass, bool bIsCulled) const
+{
+#if WITH_EDITOR && PCGEX_ENGINE_VERSION > 503
+	if (UPCGComponent* PCGComponent = SourceComponent.Get())
+	{
+		TPair<FPCGSelectionKey, bool> NewPair(FPCGSelectionKey(InSelectionClass), bIsCulled);
+		PCGComponent->RegisterDynamicTracking(GetOriginalSettings<UPCGSettings>(), MakeArrayView(&NewPair, 1));
+	}
+#endif
 }
 
 bool FPCGExContext::CanExecute() const

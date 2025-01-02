@@ -24,7 +24,35 @@ class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExCustomActorDataPacker : public UPCGExOper
 {
 	GENERATED_BODY()
 
+	struct FComponentInfos
+	{
+		UActorComponent* Component = nullptr;
+		FAttachmentTransformRules AttachmentTransformRules;
+
+		FComponentInfos():
+			AttachmentTransformRules(FAttachmentTransformRules(EAttachmentRule::KeepWorld, EAttachmentRule::KeepWorld, EAttachmentRule::KeepWorld, false))
+		{
+		}
+
+		FComponentInfos(
+			UActorComponent* InComponent,
+			EAttachmentRule InLocationRule,
+			EAttachmentRule InRotationRule,
+			EAttachmentRule InScaleRule,
+			bool InWeldSimulatedBodies):
+			Component(InComponent),
+			AttachmentTransformRules(FAttachmentTransformRules(InLocationRule, InRotationRule, InScaleRule, InWeldSimulatedBodies))
+		{
+		}
+	};
+
+	FRWLock ComponentLock;
+	TMap<AActor*, TSharedPtr<TArray<FComponentInfos>>> ComponentsMap;
+
 public:
+	bool bIsPreviewMode = false;
+	bool bIsProcessing = false;
+
 	/**
 	 * Main initialization function. Called once, and is responsible for populating graph builder settings.
 	 * At least one setting is expected to be found in the GraphSettings array. This is executed on the main thread.
@@ -44,6 +72,27 @@ public:
 	UFUNCTION(BlueprintNativeEvent, Category = "PCGEx|Execution")
 	void ProcessEntry(AActor* InActor, const FPCGPoint& InPoint, const int32 InPointIndex, FPCGPoint& OutPoint);
 
+	/**
+	 * Create a component that will be attached to the actor at the end of the execution.
+	 * @param InActor Actor to which the component will be attached
+	 * @param ComponentClass Component class
+	 * @param InLocationRule The rule to apply to location when attaching
+	 * @param InRotationRule The rule to apply to rotation when attaching
+	 * @param InScaleRule The rule to apply to scale when attaching
+	 * @param InWeldSimulatedBodies Whether to weld simulated bodies together when attaching
+	 * @param OutComponent Created Component
+	 */
+	UFUNCTION(BlueprintCallable, Category = "PCGEx|Execution", meta=(DeterminesOutputType="ComponentClass", DynamicOutputParam="OutComponent"))
+	void AddComponent(
+		AActor* InActor,
+		UPARAM(meta = (AllowAbstract = "false"))TSubclassOf<UActorComponent> ComponentClass,
+		EAttachmentRule InLocationRule,
+		EAttachmentRule InRotationRule,
+		EAttachmentRule InScaleRule,
+		bool InWeldSimulatedBodies,
+		UActorComponent*& OutComponent);
+
+
 	virtual void Cleanup() override
 	{
 		InputActors.Empty();
@@ -52,8 +101,12 @@ public:
 
 	UPROPERTY(BlueprintReadOnly, Category = "PCGEx|Inputs")
 	TArray<TObjectPtr<AActor>> InputActors;
+	TSet<FSoftObjectPath> RequiredAssetsPaths;
 
-	TSharedPtr<PCGExData::FBufferHelper> Buffers;
+	TSharedPtr<PCGExData::TBufferHelper<PCGExData::EBufferHelperMode::Write>> WriteBuffers;
+	TSharedPtr<PCGExData::TBufferHelper<PCGExData::EBufferHelperMode::Read>> ReadBuffers;
+
+	void AttachComponents();
 
 #pragma region Init
 
@@ -63,7 +116,7 @@ public:
 	 * @param InAttributeName
 	 * @param InValue
 	 */
-	UFUNCTION(BlueprintCallable, Category = "PCGEx|Setter")
+	UFUNCTION(BlueprintCallable, Category = "PCGEx|Initialization", meta=(InAttributeName="None"))
 	bool InitInt32(const FName& InAttributeName, const int32& InValue);
 
 	/**
@@ -72,7 +125,7 @@ public:
 	 * @param InAttributeName
 	 * @param InValue
 	 */
-	UFUNCTION(BlueprintCallable, Category = "PCGEx|Setter")
+	UFUNCTION(BlueprintCallable, Category = "PCGEx|Initialization", meta=(InAttributeName="None"))
 	bool InitInt64(const FName& InAttributeName, const int64& InValue);
 
 	/**
@@ -81,7 +134,7 @@ public:
 	 * @param InAttributeName
 	 * @param InValue
 	 */
-	UFUNCTION(BlueprintCallable, Category = "PCGEx|Setter")
+	UFUNCTION(BlueprintCallable, Category = "PCGEx|Initialization", meta=(InAttributeName="None"))
 	bool InitFloat(const FName& InAttributeName, const float& InValue);
 
 	/**
@@ -90,7 +143,7 @@ public:
 	 * @param InAttributeName
 	 * @param InValue
 	 */
-	UFUNCTION(BlueprintCallable, Category = "PCGEx|Setter")
+	UFUNCTION(BlueprintCallable, Category = "PCGEx|Initialization", meta=(InAttributeName="None"))
 	bool InitDouble(const FName& InAttributeName, const double& InValue);
 
 	/**
@@ -99,7 +152,7 @@ public:
 	 * @param InAttributeName
 	 * @param InValue
 	 */
-	UFUNCTION(BlueprintCallable, Category = "PCGEx|Setter")
+	UFUNCTION(BlueprintCallable, Category = "PCGEx|Initialization", meta=(InAttributeName="None"))
 	bool InitVector2(const FName& InAttributeName, const FVector2D& InValue);
 
 	/**
@@ -108,7 +161,7 @@ public:
 	 * @param InAttributeName
 	 * @param InValue
 	 */
-	UFUNCTION(BlueprintCallable, Category = "PCGEx|Setter")
+	UFUNCTION(BlueprintCallable, Category = "PCGEx|Initialization", meta=(InAttributeName="None"))
 	bool InitVector(const FName& InAttributeName, const FVector& InValue);
 
 	/**
@@ -117,7 +170,7 @@ public:
 	 * @param InAttributeName
 	 * @param InValue
 	 */
-	UFUNCTION(BlueprintCallable, Category = "PCGEx|Setter")
+	UFUNCTION(BlueprintCallable, Category = "PCGEx|Initialization", meta=(InAttributeName="None"))
 	bool InitVector4(const FName& InAttributeName, const FVector4& InValue);
 
 	/**
@@ -126,7 +179,7 @@ public:
 	 * @param InAttributeName
 	 * @param InValue
 	 */
-	UFUNCTION(BlueprintCallable, Category = "PCGEx|Setter")
+	UFUNCTION(BlueprintCallable, Category = "PCGEx|Initialization", meta=(InAttributeName="None"))
 	bool InitQuat(const FName& InAttributeName, const FQuat& InValue);
 
 	/**
@@ -135,7 +188,7 @@ public:
 	 * @param InAttributeName
 	 * @param InValue
 	 */
-	UFUNCTION(BlueprintCallable, Category = "PCGEx|Execution")
+	UFUNCTION(BlueprintCallable, Category = "PCGEx|Initialization", meta=(InAttributeName="None"))
 	bool InitTransform(const FName& InAttributeName, const FTransform& InValue);
 
 	/**
@@ -144,7 +197,7 @@ public:
 	 * @param InAttributeName
 	 * @param InValue
 	 */
-	UFUNCTION(BlueprintCallable, Category = "PCGEx|Setter")
+	UFUNCTION(BlueprintCallable, Category = "PCGEx|Initialization", meta=(InAttributeName="None"))
 	bool InitString(const FName& InAttributeName, const FString& InValue);
 
 	/**
@@ -153,7 +206,7 @@ public:
 	 * @param InAttributeName
 	 * @param InValue
 	 */
-	UFUNCTION(BlueprintCallable, Category = "PCGEx|Setter")
+	UFUNCTION(BlueprintCallable, Category = "PCGEx|Initialization", meta=(InAttributeName="None"))
 	bool InitBool(const FName& InAttributeName, const bool& InValue);
 
 	/**
@@ -162,7 +215,7 @@ public:
 	 * @param InAttributeName
 	 * @param InValue
 	 */
-	UFUNCTION(BlueprintCallable, Category = "PCGEx|Setter")
+	UFUNCTION(BlueprintCallable, Category = "PCGEx|Initialization", meta=(InAttributeName="None"))
 	bool InitRotator(const FName& InAttributeName, const FRotator& InValue);
 
 	/**
@@ -171,7 +224,7 @@ public:
 	 * @param InAttributeName
 	 * @param InValue
 	 */
-	UFUNCTION(BlueprintCallable, Category = "PCGEx|Setter")
+	UFUNCTION(BlueprintCallable, Category = "PCGEx|Initialization", meta=(InAttributeName="None"))
 	bool InitName(const FName& InAttributeName, const FName& InValue);
 
 	/**
@@ -180,7 +233,7 @@ public:
 	 * @param InAttributeName
 	 * @param InValue
 	 */
-	UFUNCTION(BlueprintCallable, Category = "PCGEx|Setter")
+	UFUNCTION(BlueprintCallable, Category = "PCGEx|Init", meta=(InAttributeName="None"))
 	bool InitSoftObjectPath(const FName& InAttributeName, const FSoftObjectPath& InValue);
 
 	/**
@@ -189,8 +242,17 @@ public:
 	 * @param InAttributeName
 	 * @param InValue
 	 */
-	UFUNCTION(BlueprintCallable, Category = "PCGEx|Setter")
+	UFUNCTION(BlueprintCallable, Category = "PCGEx|Initialization", meta=(InAttributeName="None"))
 	bool InitSoftClassPath(const FName& InAttributeName, const FSoftClassPath& InValue);
+
+	/**
+	* Initialize a point' attribute default value.
+	 * Must be called during initialization.
+	 * @param InAttributeName
+	 * @param InValue
+	 */
+	UFUNCTION(BlueprintCallable, Category = "PCGEx|Initialization", meta=(InAttributeName="None"))
+	void PreloadObjectPaths(const FName& InAttributeName);
 
 #pragma endregion
 
@@ -202,8 +264,8 @@ public:
 	 * @param InPointIndex The point index to set the value to.
 	 * @param InValue
 	 */
-	UFUNCTION(BlueprintCallable, Category = "PCGEx|Setter")
-	bool PackInt32(const FName& InAttributeName, const int32 InPointIndex, const int32& InValue);
+	UFUNCTION(BlueprintCallable, Category = "PCGEx|Setter", meta=(InAttributeName="None", InValue=0))
+	bool WriteInt32(const FName& InAttributeName, const int32 InPointIndex, const int32& InValue);
 
 	/**
 	 * Set a point' attribute value at a given index.
@@ -211,8 +273,8 @@ public:
 	 * @param InPointIndex The point index to set the value to.
 	 * @param InValue
 	 */
-	UFUNCTION(BlueprintCallable, Category = "PCGEx|Setter")
-	bool PackInt64(const FName& InAttributeName, const int32 InPointIndex, const int64& InValue);
+	UFUNCTION(BlueprintCallable, Category = "PCGEx|Setter", meta=(InAttributeName="None", InValue=0))
+	bool WriteInt64(const FName& InAttributeName, const int32 InPointIndex, const int64& InValue);
 
 	/**
 	 * Set a point' attribute value at a given index.
@@ -220,8 +282,8 @@ public:
 	 * @param InPointIndex The point index to set the value to.
 	 * @param InValue
 	 */
-	UFUNCTION(BlueprintCallable, Category = "PCGEx|Setter")
-	bool PackFloat(const FName& InAttributeName, const int32 InPointIndex, const float& InValue);
+	UFUNCTION(BlueprintCallable, Category = "PCGEx|Setter", meta=(InAttributeName="None", InValue=0))
+	bool WriteFloat(const FName& InAttributeName, const int32 InPointIndex, const float& InValue);
 
 	/**
 	 * Set a point' attribute value at a given index.
@@ -229,8 +291,8 @@ public:
 	 * @param InPointIndex The point index to set the value to.
 	 * @param InValue
 	 */
-	UFUNCTION(BlueprintCallable, Category = "PCGEx|Setter")
-	bool PackDouble(const FName& InAttributeName, const int32 InPointIndex, const double& InValue);
+	UFUNCTION(BlueprintCallable, Category = "PCGEx|Setter", meta=(InAttributeName="None", InValue=0))
+	bool WriteDouble(const FName& InAttributeName, const int32 InPointIndex, const double& InValue);
 
 	/**
 	 * Set a point' attribute value at a given index.
@@ -238,8 +300,8 @@ public:
 	 * @param InPointIndex The point index to set the value to.
 	 * @param InValue
 	 */
-	UFUNCTION(BlueprintCallable, Category = "PCGEx|Setter")
-	bool PackVector2(const FName& InAttributeName, const int32 InPointIndex, const FVector2D& InValue);
+	UFUNCTION(BlueprintCallable, Category = "PCGEx|Setter", meta=(InAttributeName="None", InValue=0))
+	bool WriteVector2(const FName& InAttributeName, const int32 InPointIndex, const FVector2D& InValue);
 
 	/**
 	 * Set a point' attribute value at a given index.
@@ -247,8 +309,8 @@ public:
 	 * @param InPointIndex The point index to set the value to.
 	 * @param InValue
 	 */
-	UFUNCTION(BlueprintCallable, Category = "PCGEx|Setter")
-	bool PackVector(const FName& InAttributeName, const int32 InPointIndex, const FVector& InValue);
+	UFUNCTION(BlueprintCallable, Category = "PCGEx|Setter", meta=(InAttributeName="None", InValue=0))
+	bool WriteVector(const FName& InAttributeName, const int32 InPointIndex, const FVector& InValue);
 
 	/**
 	 * Set a point' attribute value at a given index.
@@ -256,8 +318,8 @@ public:
 	 * @param InPointIndex The point index to set the value to.
 	 * @param InValue
 	 */
-	UFUNCTION(BlueprintCallable, Category = "PCGEx|Setter")
-	bool PackVector4(const FName& InAttributeName, const int32 InPointIndex, const FVector4& InValue);
+	UFUNCTION(BlueprintCallable, Category = "PCGEx|Setter", meta=(InAttributeName="None", InValue=0))
+	bool WriteVector4(const FName& InAttributeName, const int32 InPointIndex, const FVector4& InValue);
 
 	/**
 	 * Set a point' attribute value at a given index.
@@ -265,8 +327,8 @@ public:
 	 * @param InPointIndex The point index to set the value to.
 	 * @param InValue
 	 */
-	UFUNCTION(BlueprintCallable, Category = "PCGEx|Setter")
-	bool PackQuat(const FName& InAttributeName, const int32 InPointIndex, const FQuat& InValue);
+	UFUNCTION(BlueprintCallable, Category = "PCGEx|Setter", meta=(InAttributeName="None"))
+	bool WriteQuat(const FName& InAttributeName, const int32 InPointIndex, const FQuat& InValue);
 
 	/**
 	 * Set a point' attribute value at a given index.
@@ -274,8 +336,8 @@ public:
 	 * @param InPointIndex The point index to set the value to.
 	 * @param InValue
 	 */
-	UFUNCTION(BlueprintCallable, Category = "PCGEx|Execution")
-	bool PackTransform(const FName& InAttributeName, const int32 InPointIndex, const FTransform& InValue);
+	UFUNCTION(BlueprintCallable, Category = "PCGEx|Setter", meta=(InAttributeName="None"))
+	bool WriteTransform(const FName& InAttributeName, const int32 InPointIndex, const FTransform& InValue);
 
 	/**
 	 * Set a point' attribute value at a given index.
@@ -283,8 +345,8 @@ public:
 	 * @param InPointIndex The point index to set the value to.
 	 * @param InValue
 	 */
-	UFUNCTION(BlueprintCallable, Category = "PCGEx|Setter")
-	bool PackString(const FName& InAttributeName, const int32 InPointIndex, const FString& InValue);
+	UFUNCTION(BlueprintCallable, Category = "PCGEx|Setter", meta=(InAttributeName="None", InValue="Value"))
+	bool WriteString(const FName& InAttributeName, const int32 InPointIndex, const FString& InValue);
 
 	/**
 	 * Set a point' attribute value at a given index.
@@ -292,8 +354,8 @@ public:
 	 * @param InPointIndex The point index to set the value to.
 	 * @param InValue
 	 */
-	UFUNCTION(BlueprintCallable, Category = "PCGEx|Setter")
-	bool PackBool(const FName& InAttributeName, const int32 InPointIndex, const bool& InValue);
+	UFUNCTION(BlueprintCallable, Category = "PCGEx|Setter", meta=(InAttributeName="None", InValue=false))
+	bool WriteBool(const FName& InAttributeName, const int32 InPointIndex, const bool& InValue);
 
 	/**
 	 * Set a point' attribute value at a given index.
@@ -301,8 +363,8 @@ public:
 	 * @param InPointIndex The point index to set the value to.
 	 * @param InValue
 	 */
-	UFUNCTION(BlueprintCallable, Category = "PCGEx|Setter")
-	bool PackRotator(const FName& InAttributeName, const int32 InPointIndex, const FRotator& InValue);
+	UFUNCTION(BlueprintCallable, Category = "PCGEx|Setter", meta=(InAttributeName="None"))
+	bool WriteRotator(const FName& InAttributeName, const int32 InPointIndex, const FRotator& InValue);
 
 	/**
 	 * Set a point' attribute value at a given index.
@@ -310,8 +372,8 @@ public:
 	 * @param InPointIndex The point index to set the value to.
 	 * @param InValue
 	 */
-	UFUNCTION(BlueprintCallable, Category = "PCGEx|Setter")
-	bool PackName(const FName& InAttributeName, const int32 InPointIndex, const FName& InValue);
+	UFUNCTION(BlueprintCallable, Category = "PCGEx|Setter", meta=(InAttributeName="None", InValue="None"))
+	bool WriteName(const FName& InAttributeName, const int32 InPointIndex, const FName& InValue);
 
 	/**
 	 * Set a point' attribute value at a given index.
@@ -319,8 +381,8 @@ public:
 	 * @param InPointIndex The point index to set the value to.
 	 * @param InValue
 	 */
-	UFUNCTION(BlueprintCallable, Category = "PCGEx|Setter")
-	bool PackSoftObjectPath(const FName& InAttributeName, const int32 InPointIndex, const FSoftObjectPath& InValue);
+	UFUNCTION(BlueprintCallable, Category = "PCGEx|Setter", meta=(InAttributeName="None"))
+	bool WriteSoftObjectPath(const FName& InAttributeName, const int32 InPointIndex, const FSoftObjectPath& InValue);
 
 	/**
 	 * Set a point' attribute value at a given index.
@@ -328,8 +390,156 @@ public:
 	 * @param InPointIndex The point index to set the value to.
 	 * @param InValue
 	 */
-	UFUNCTION(BlueprintCallable, Category = "PCGEx|Setter")
-	bool PackSoftClassPath(const FName& InAttributeName, const int32 InPointIndex, const FSoftClassPath& InValue);
+	UFUNCTION(BlueprintCallable, Category = "PCGEx|Setter", meta=(InAttributeName="None"))
+	bool WriteSoftClassPath(const FName& InAttributeName, const int32 InPointIndex, const FSoftClassPath& InValue);
+
+#pragma endregion
+
+#pragma region Getters
+
+	/**
+	 * Set a point' attribute value at a given index.
+	 * @param InAttributeName
+	 * @param InPointIndex The point index to set the value to.
+	 * @param InValue
+	 */
+	UFUNCTION(BlueprintCallable, Category = "PCGEx|Getter", meta=(InAttributeName="None"))
+	bool ReadInt32(const FName& InAttributeName, const int32 InPointIndex, int32& OutValue);
+
+	/**
+	 * Set a point' attribute value at a given index.
+	 * @param InAttributeName
+	 * @param InPointIndex The point index to set the value to.
+	 * @param InValue
+	 */
+	UFUNCTION(BlueprintCallable, Category = "PCGEx|Getter", meta=(InAttributeName="None"))
+	bool ReadInt64(const FName& InAttributeName, const int32 InPointIndex, int64& OutValue);
+
+	/**
+	 * Set a point' attribute value at a given index.
+	 * @param InAttributeName
+	 * @param InPointIndex The point index to set the value to.
+	 * @param InValue
+	 */
+	UFUNCTION(BlueprintCallable, Category = "PCGEx|Getter", meta=(InAttributeName="None"))
+	bool ReadFloat(const FName& InAttributeName, const int32 InPointIndex, float& OutValue);
+
+	/**
+	 * Set a point' attribute value at a given index.
+	 * @param InAttributeName
+	 * @param InPointIndex The point index to set the value to.
+	 * @param InValue
+	 */
+	UFUNCTION(BlueprintCallable, Category = "PCGEx|Getter", meta=(InAttributeName="None"))
+	bool ReadDouble(const FName& InAttributeName, const int32 InPointIndex, double& OutValue);
+
+	/**
+	 * Set a point' attribute value at a given index.
+	 * @param InAttributeName
+	 * @param InPointIndex The point index to set the value to.
+	 * @param InValue
+	 */
+	UFUNCTION(BlueprintCallable, Category = "PCGEx|Getter", meta=(InAttributeName="None"))
+	bool ReadVector2(const FName& InAttributeName, const int32 InPointIndex, FVector2D& OutValue);
+
+	/**
+	 * Set a point' attribute value at a given index.
+	 * @param InAttributeName
+	 * @param InPointIndex The point index to set the value to.
+	 * @param InValue
+	 */
+	UFUNCTION(BlueprintCallable, Category = "PCGEx|Getter", meta=(InAttributeName="None"))
+	bool ReadVector(const FName& InAttributeName, const int32 InPointIndex, FVector& OutValue);
+
+	/**
+	 * Set a point' attribute value at a given index.
+	 * @param InAttributeName
+	 * @param InPointIndex The point index to set the value to.
+	 * @param InValue
+	 */
+	UFUNCTION(BlueprintCallable, Category = "PCGEx|Getter", meta=(InAttributeName="None"))
+	bool ReadVector4(const FName& InAttributeName, const int32 InPointIndex, FVector4& OutValue);
+
+	/**
+	 * Set a point' attribute value at a given index.
+	 * @param InAttributeName
+	 * @param InPointIndex The point index to set the value to.
+	 * @param InValue
+	 */
+	UFUNCTION(BlueprintCallable, Category = "PCGEx|Getter", meta=(InAttributeName="None"))
+	bool ReadQuat(const FName& InAttributeName, const int32 InPointIndex, FQuat& OutValue);
+
+	/**
+	 * Set a point' attribute value at a given index.
+	 * @param InAttributeName
+	 * @param InPointIndex The point index to set the value to.
+	 * @param InValue
+	 */
+	UFUNCTION(BlueprintCallable, Category = "PCGEx|Getter", meta=(InAttributeName="None"))
+	bool ReadTransform(const FName& InAttributeName, const int32 InPointIndex, FTransform& OutValue);
+
+	/**
+	 * Set a point' attribute value at a given index.
+	 * @param InAttributeName
+	 * @param InPointIndex The point index to set the value to.
+	 * @param InValue
+	 */
+	UFUNCTION(BlueprintCallable, Category = "PCGEx|Getter", meta=(InAttributeName="None"))
+	bool ReadString(const FName& InAttributeName, const int32 InPointIndex, FString& OutValue);
+
+	/**
+	 * Set a point' attribute value at a given index.
+	 * @param InAttributeName
+	 * @param InPointIndex The point index to set the value to.
+	 * @param InValue
+	 */
+	UFUNCTION(BlueprintCallable, Category = "PCGEx|Getter", meta=(InAttributeName="None"))
+	bool ReadBool(const FName& InAttributeName, const int32 InPointIndex, bool& OutValue);
+
+	/**
+	 * Set a point' attribute value at a given index.
+	 * @param InAttributeName
+	 * @param InPointIndex The point index to set the value to.
+	 * @param InValue
+	 */
+	UFUNCTION(BlueprintCallable, Category = "PCGEx|Getter", meta=(InAttributeName="None"))
+	bool ReadRotator(const FName& InAttributeName, const int32 InPointIndex, FRotator& OutValue);
+
+	/**
+	 * Set a point' attribute value at a given index.
+	 * @param InAttributeName
+	 * @param InPointIndex The point index to set the value to.
+	 * @param InValue
+	 */
+	UFUNCTION(BlueprintCallable, Category = "PCGEx|Getter", meta=(InAttributeName="None"))
+	bool ReadName(const FName& InAttributeName, const int32 InPointIndex, FName& OutValue);
+
+	/**
+	 * Set a point' attribute value at a given index.
+	 * @param InAttributeName
+	 * @param InPointIndex The point index to set the value to.
+	 * @param InValue
+	 */
+	UFUNCTION(BlueprintCallable, Category = "PCGEx|Getter", meta=(InAttributeName="None"))
+	bool ReadSoftObjectPath(const FName& InAttributeName, const int32 InPointIndex, FSoftObjectPath& OutValue);
+
+	/**
+	 * Set a point' attribute value at a given index.
+	 * @param InAttributeName
+	 * @param InPointIndex The point index to set the value to.
+	 * @param InValue
+	 */
+	UFUNCTION(BlueprintCallable, Category = "PCGEx|Getter", meta=(InAttributeName="None"))
+	bool ReadSoftClassPath(const FName& InAttributeName, const int32 InPointIndex, FSoftClassPath& OutValue);
+
+	/**
+	 * Create a component that will be attached to the actor at the end of the execution.
+	 * @param ComponentClass Component class
+	 * @param OutComponent Created Component
+	 */
+	UFUNCTION(BlueprintCallable, Category = "PCGEx|Getter", meta=(DeterminesOutputType="ObjectClass", DynamicOutputParam="OutObject"))
+	void ResolveObjectPath(const FName& InAttributeName, const int32 InPointIndex,
+	                       UPARAM(meta = (AllowAbstract = "true"))TSubclassOf<UObject> ObjectClass, UObject*& OutObject, bool& OutIsValid);
 
 #pragma endregion
 };
@@ -411,6 +621,9 @@ namespace PCGExPackActorDatas
 		UPCGExCustomActorDataPacker* Packer = nullptr;
 		TSharedPtr<PCGEx::TAttributeBroadcaster<FSoftObjectPath>> ActorReferences;
 
+		TWeakPtr<PCGExMT::FAsyncToken> LoadToken;
+		TSharedPtr<FStreamableHandle> LoadHandle;
+
 	public:
 		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade)
 			: TPointsProcessor(InPointDataFacade)
@@ -420,8 +633,10 @@ namespace PCGExPackActorDatas
 		virtual ~FProcessor() override;
 
 		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager> InAsyncManager) override;
+		void StartProcessing();
 		virtual void ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const PCGExMT::FScope& Scope) override;
 		virtual void CompleteWork() override;
 		virtual void Write() override;
+		virtual void Output() override;
 	};
 }

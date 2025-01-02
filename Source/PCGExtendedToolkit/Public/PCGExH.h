@@ -266,7 +266,7 @@ namespace PCGEx
 			return InternalInitValue;
 		}
 	};
-
+	
 	template <typename T>
 	static TSharedPtr<FHashLookup> NewHashLookup(const uint64 InitValue, const int32 Size)
 	{

@@ -156,7 +156,7 @@ protected:
 #pragma region Managed Components
 
 public:
-	UPCGManagedComponent* AttachManagedComponent(AActor* InParent, USceneComponent* InComponent, const FAttachmentTransformRules& AttachmentRules) const;
+	UPCGManagedComponent* AttachManagedComponent(AActor* InParent, UActorComponent* InComponent, const FAttachmentTransformRules& AttachmentRules) const;
 
 #pragma endregion
 
@@ -167,6 +167,9 @@ public:
 	void AddConsumableAttributeName(FName InName);
 	void AddProtectedAttributeName(FName InName);
 
+	void EDITOR_TrackPath(const FSoftObjectPath& Path, bool bIsCulled = false) const;
+	void EDITOR_TrackClass(const TSubclassOf<UObject>& InSelectionClass, bool bIsCulled = false) const;
+	
 	bool CanExecute() const;
 	virtual bool CancelExecution(const FString& InReason);
 

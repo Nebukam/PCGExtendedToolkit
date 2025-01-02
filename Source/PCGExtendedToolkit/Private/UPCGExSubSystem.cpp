@@ -63,7 +63,12 @@ void UPCGExSubSystem::Tick(float DeltaSeconds)
 
 ETickableTickType UPCGExSubSystem::GetTickableTickType() const
 {
-	return IsTemplate() ? ETickableTickType::Never : ETickableTickType::Always;
+	return IsTemplate() ? ETickableTickType::Never : ETickableTickType::Conditional;
+}
+
+bool UPCGExSubSystem::IsTickable() const
+{
+	return bWantsTick;
 }
 
 TStatId UPCGExSubSystem::GetStatId() const
@@ -86,15 +91,48 @@ UPCGExSubSystem* UPCGExSubSystem::GetInstance(UWorld* World)
 void UPCGExSubSystem::RegisterBeginTickAction(FTickAction&& Action)
 {
 	FWriteScopeLock WriteScopeLock(TickActionsLock);
+	bWantsTick = true;
 	BeginTickActions.Emplace(Action);
+}
+
+void UPCGExSubSystem::RegisterGlobalData(FName InName, const TObjectPtr<UPCGData>& InData, const TSet<FString>& InTags)
+{
+}
+
+void UPCGExSubSystem::UnregisterGlobalData(const TObjectPtr<UPCGData>& InData)
+{
+}
+
+UPCGExDataHolder* UPCGExSubSystem::FindGlobalDataByKey(uint32 Key)
+{
+	FReadScopeLock ReadScopeLock(GlobalPCGDataLock);
+	if (TObjectPtr<UPCGExDataHolder>* DataHolder = GlobalPCGData.Find(Key)) { return *DataHolder; }
+	return nullptr;
+}
+
+UPCGExDataHolder* UPCGExSubSystem::FindGlobalDataById(const FName InId, const EPCGDataType InTypeFilter)
+{
+	FReadScopeLock ReadScopeLock(GlobalPCGDataLock);
+
+	for (const TPair<uint32, TObjectPtr<UPCGExDataHolder>>& Pair : GlobalPCGData)
+	{
+		if (Pair.Value->Id == InId && !!(InTypeFilter & EPCGDataType::Point)) { return Pair.Value; }
+	}
+	
+	return nullptr;
+}
+
+void UPCGExSubSystem::FindTaggedGlobalData(const FString& Tagged, const TSet<FString>& NotTagged)
+{
 }
 
 void UPCGExSubSystem::ExecuteBeginTickActions()
 {
 	TArray<FTickAction> Actions;
-	
+
 	{
 		FWriteScopeLock WriteScopeLock(TickActionsLock);
+		bWantsTick = false;
 		Actions = MoveTemp(BeginTickActions);
 		BeginTickActions.Reset();
 	}
