@@ -28,6 +28,7 @@ public class PCGExtendedToolkitEditor : ModuleRules
 				"Engine",
 				"Slate",
 				"SlateCore",
+				"PCG",
 				"PCGExtendedToolkit",
 			}
 		);
