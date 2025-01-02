@@ -286,7 +286,7 @@ FPCGExContext* FPCGExPointsProcessorElement::InitializeContext(
 	InContext->InputData = InputData;
 	InContext->SourceComponent = SourceComponent;
 	InContext->Node = Node;
-
+	
 	InContext->SetState(PCGEx::State_Preparation);
 
 	const UPCGExPointsProcessorSettings* Settings = InContext->GetInputSettings<UPCGExPointsProcessorSettings>();
