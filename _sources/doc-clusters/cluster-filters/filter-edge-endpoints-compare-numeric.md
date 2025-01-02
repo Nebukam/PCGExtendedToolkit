@@ -21,6 +21,7 @@ see_also:
     - 🝖 Endpoints Compare (String)
 outputs:
     -   name : Edge Filter
+        extra_icon: OUT_FilterEdges
         desc : A single cluster filter definition
         pin : params
 ---

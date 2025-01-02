@@ -21,6 +21,7 @@ inputs:
         pin : params
 outputs:
     -   name : Filter
+        extra_icon: OUT_Filter
         desc : A single filter definition
         pin : params
 ---

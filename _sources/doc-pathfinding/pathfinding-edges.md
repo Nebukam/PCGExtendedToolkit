@@ -17,9 +17,11 @@ see_also:
 nav_order: 1
 inputs:
     -   name : Vtx
+        extra_icon: IN_Vtx
         desc : Endpoints of the input Edges
         pin : points
     -   name : Edges
+        extra_icon: OUT_Edges
         desc : Edges associated with the input Vtxs
         pin : points
     -   name : Seeds
@@ -29,6 +31,7 @@ inputs:
         desc : Goal points
         pin : point
     -   name : Heuristics
+        extra_icon: OUT_Heuristic
         desc : 🝰 Heuristics nodes that will be used by the pathfinding search algorithm
         pin : params
 outputs:

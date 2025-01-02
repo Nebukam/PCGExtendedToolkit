@@ -18,6 +18,7 @@ inputs:
         desc : Paths which segments will be subdivided
         pin : points
     -   name : Point Filters
+        extra_icon: OUT_Filter
         desc : Filter which segments will be subdivided.
         pin : params
 outputs:

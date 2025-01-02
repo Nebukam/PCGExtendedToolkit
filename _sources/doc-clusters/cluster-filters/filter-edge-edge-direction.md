@@ -18,6 +18,7 @@ tagged:
 nav_order: 20
 outputs:
     -   name : Edge Filter
+        extra_icon: OUT_FilterEdges
         desc : A single cluster filter definition
         pin : params
 ---

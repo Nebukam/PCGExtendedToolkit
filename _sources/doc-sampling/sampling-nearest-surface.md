@@ -19,6 +19,7 @@ inputs:
         desc : Points that will be used as origin for finding & sampling the nearest surface
         pin : points
     -   name : Point Filters
+        extra_icon: OUT_Filter
         desc : Points filters used to determine which points will be processed. Filtered out points will be treated as failed sampling.
         pin : params
     -   name : Actor References

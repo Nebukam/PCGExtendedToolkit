@@ -16,11 +16,13 @@ tagged:
     - misc
 nav_order: 5
 outputs:
-    -   name : Filters
+    -   name : Filter
+        extra_icon: OUT_Filters
         desc : Any number of filters, including groups.
         pin : params
 outputs:
     -   name : Filter
+        extra_icon: OUT_Filter
         desc : A single filter definition
         pin : params
 ---

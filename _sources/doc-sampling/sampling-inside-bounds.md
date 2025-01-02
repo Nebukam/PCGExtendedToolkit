@@ -18,6 +18,7 @@ inputs:
         desc : Points that will sample data from targets
         pin : points
     -   name : Point Filters
+        extra_icon: OUT_Filter
         desc : Points filters used to determine which points will be processed. Filtered out points will be treated as failed sampling.
         pin : params
     -   name : Targets

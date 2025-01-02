@@ -18,7 +18,8 @@ inputs:
     -   name : In
         desc : Points to be filtered
         pin : points
-    -   name : Filters
+    -   name : Filter
+        extra_icon: OUT_Filters
         desc : Filters to be evaluated
         pin : params
 outputs:

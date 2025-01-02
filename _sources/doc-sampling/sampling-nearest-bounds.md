@@ -18,6 +18,7 @@ inputs:
         desc : Points that will sample data from targets
         pin : points
     -   name : Point Filters
+        extra_icon: OUT_Filter
         desc : Points filters used to determine which points will be processed. Filtered out points will be treated as failed sampling.
         pin : params
     -   name : Bounds
@@ -84,6 +85,8 @@ Outputs are values extracted from the bounds that encapsulate a given point, and
 | <span class="eout">Distance</span><br>`double`     | TBD |
 | <span class="eout">Signed Distance</span><br>`double`     | TBD |
 | └─ Axis | TBD |
+| <span class="eout">Component-wise Distance</span><br>`FVector`     | TBD |
+| └─ Absolute | TBD |
 | <span class="eout">Angle</span><br>`double`     | TBD |
 | └─ Axis | TBD |
 | └─ Range | TBD |

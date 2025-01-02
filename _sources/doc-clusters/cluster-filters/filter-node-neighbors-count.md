@@ -18,6 +18,7 @@ tagged:
 nav_order: 12
 outputs:
     -   name : Node Filter
+        extra_icon: OUT_FilterNode
         desc : A single cluster filter definition
         pin : params
 ---

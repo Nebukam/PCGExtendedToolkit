@@ -13,6 +13,7 @@ tagged:
 nav_order: 3
 outputs:
     -   name : Heuristics
+        extra_icon: OUT_Heuristic
         desc : A single heuristics definition
         pin : params
 ---

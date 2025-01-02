@@ -19,11 +19,16 @@ inputs:
         desc : Points that will be used as origin for line tracing
         pin : points
     -   name : Point Filters
+        extra_icon: OUT_Filter
         desc : Points filters used to determine which points will be processed. Filtered out points will be treated as failed sampling.
         pin : params
     -   name : Actor References
         desc : Points containing actor references, if that mode is selected.
         pin : point
+    -   name : Texture Params
+        extra_icon: IN_Tex
+        desc : If texture parameter sampling from render mat is enabled, drive what to look for and how to output it. 
+        pin : params
 outputs:
     -   name : Out
         desc : In with extra attributes and properties
@@ -72,11 +77,18 @@ Outputs are values extracted from the line trace, and written to attributes on t
 | <span class="eout">Normal</span><br>`FVector`     | TBD |
 | <span class="eout">Distance</span><br>`double`     | TBD |
 | <span class="eout">Is Inside</span><br>`bool`     | TBD |
+| <span class="eout">UV Coords</span><br>`FVector2D`     | TBD |
+| └─ UV Channel | TBD |
+| <span class="eout">Face Index</span><br>`int`     | TBD |
 {: .soutput }
 
 |**Actor Data**||
 | <span class="eout">Actor Reference</span><br>`FSoftObjectPath`     | TBD |
+| <span class="eout">Hit Component</span><br>`FSoftObjectPath`     | TBD |
 | <span class="eout">Phys Mat</span><br>`FSoftObjectPath`     | TBD |
+| <span class="eout">Render Mat</span><br>`FSoftObjectPath`     | TBD |
+| └─ Material Index | TBD |
+| └─ Texture Parameters | TBD |
 {: .soutput }
 
 ---

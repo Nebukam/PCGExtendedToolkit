@@ -17,7 +17,8 @@ inputs:
     -   name : Paths
         desc : Paths which points will be checked for collinearity
         pin : points
-    -   name : Filters
+    -   name : Filter
+        extra_icon: OUT_Filters
         desc : Optional filters used to determine whether a point can be removed or not
         pin : params
 outputs:

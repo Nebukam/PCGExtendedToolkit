@@ -16,16 +16,20 @@ see_also:
 nav_order: 1000
 inputs:
     -   name : Vtx
+        extra_icon: IN_Vtx
         desc : Endpoints of the input Edges
         pin : points
     -   name : Edges
+        extra_icon: OUT_Edges
         desc : Edges associated with the input Vtxs
         pin : points
 outputs:
     -   name : Vtx
+        extra_icon: IN_Vtx
         desc : Endpoints of the output Edges
         pin : points
     -   name : Edges
+        extra_icon: OUT_Edges
         desc : Edges associated with the output Vtxs
         pin : points
 ---

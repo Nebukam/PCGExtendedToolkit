@@ -21,9 +21,11 @@ tagged:
 nav_order: 13
 inputs:
     -   name : Vtx
+        extra_icon: IN_Vtx
         desc : Endpoints of the input Edges
         pin : points
     -   name : Edges
+        extra_icon: OUT_Edges
         desc : Edges associated with the input Vtxs
         pin : points
     -   name : Flags
@@ -31,9 +33,11 @@ inputs:
         pin : params
 outputs:
     -   name : Vtx
+        extra_icon: IN_Vtx
         desc : Endpoints of the output Edges
         pin : points
     -   name : Edges
+        extra_icon: OUT_Edges
         desc : Edges associated with the output Vtxs
         pin : points
 ---

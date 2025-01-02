@@ -22,15 +22,20 @@ see_also:
 nav_order: 10
 inputs:
     -   name : Vtx
+        extra_icon: IN_Vtx
         desc : Endpoints of the input Edges
         pin : points
     -   name : Edges
+        extra_icon: OUT_Edges
         desc : Edges associated with the input Vtxs
         pin : points
     -   name : Heuristics
+        extra_icon: OUT_Heuristic
         desc : Heuristic nodes, if required by the selected refinement.
         pin : params
-    -   name : Edge Filters
+    -   name : Edge Filter
+        extra_icon: OUT_FilterEdgess
+        extra_icon: OUT_FilterEdges
         desc : Point filter input used by some refinements
         pin : params
     -   name : Sanitization Filters
@@ -38,9 +43,11 @@ inputs:
         pin : params
 outputs:
     -   name : Vtx
+        extra_icon: IN_Vtx
         desc : Endpoints of the output Edges
         pin : points
     -   name : Edges
+        extra_icon: OUT_Edges
         desc : Edges associated with the output Vtxs
         pin : points
     -   name : Kept Edges

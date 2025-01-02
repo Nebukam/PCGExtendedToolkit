@@ -24,7 +24,8 @@ inputs:
     -   name : Points
         desc : Points that will be connected togethers
         pin : points
-    -   name : Probes
+    -   name : Probe
+        extra_icon: OUT_Probe
         desc : Probes used to build connections
         pin : params
     -   name : Generators
@@ -35,9 +36,11 @@ inputs:
         pin : params
 outputs:
     -   name : Vtx
+        extra_icon: IN_Vtx
         desc : Endpoints of the output Edges
         pin : points
     -   name : Edges
+        extra_icon: OUT_Edges
         desc : Edges associated with the output Vtxs
         pin : points
 ---

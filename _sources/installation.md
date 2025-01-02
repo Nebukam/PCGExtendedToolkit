@@ -18,23 +18,9 @@ The easiest way to install PCGEx is to get it from FAB. (it's free!)
 
 {% include link_btn title="PCGEx on FAB" color="red" link="https://www.fab.com/listings/3f0bea1c-7406-4441-951b-8b2ca155f624" icon="left" %}
 
+{% include img a='EpicMarketplace-Splash-1080.png' %} 
+
 > The FAB release matches the `FAB-` branches on github, due to the submission & validation process they will always be out of date compared to github' latest.
-
----
-## Drop-in Package (Win64)
-
-The second easiest way to install PCGEx is to download the packaged version of the plugin.  
-However, for the sake of simplicity (and size), a packaged version only exist for the latest *launcher* minor release of the engine, at the time the PCGEx release was published.  
-
-{% include link_btn title="PCGEx for Unreal **5.5**" color="blue" link="https://github.com/Nebukam/PCGExtendedToolkit/releases/latest/download/PCGExtendedToolkit-5.5.zip" icon="load-arrow" %}
-{% include link_btn title="PCGEx for Unreal **5.4**" color="blue" link="https://github.com/Nebukam/PCGExtendedToolkit/releases/latest/download/PCGExtendedToolkit-5.4.zip" icon="load-arrow" %}
-{% include link_btn title="PCGEx for Unreal **5.3**" color="blue" link="https://github.com/Nebukam/PCGExtendedToolkit/releases/latest/download/PCGExtendedToolkit-5.3.zip" icon="load-arrow" %}
-
-Simply download one of the .zip above and put `PCGExtendedToolkit` directly in your `YourProject/Plugins/` folder.
-{: .fs-5 }
-
-> Note that **these packages are created in windows, for windows** -- you can always compile the plugin yourself from the sources if the latest package doesn't work for your version of the editor.
-{: .comment }
 
 ---
 

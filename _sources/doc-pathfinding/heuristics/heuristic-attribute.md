@@ -13,12 +13,13 @@ tagged:
     - heuristics
 outputs:
     -   name : Heuristics
+        extra_icon: OUT_Heuristic
         desc : A single heuristics definition
         pin : params
 #has_children: true
 ---
 
-{% include header_card %}
+{% include header_card_node %}
 
 Heuristics Attribute allows fine-grained and precise control over pathfinding constraints by leveraging user-defined attributes.
 {: .fs-5 .fw-400 } 

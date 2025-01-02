@@ -16,20 +16,24 @@ see_also:
     - Working with Clusters
 nav_order: 40
 inputs:
-    -   name : Vtx
-        desc : Endpoints of the input Edges
-        pin : points
+    -   name : In
+        desc : Any data
+        pin : any
     -   name : Edges
-        desc : Edges associated with the input Vtxs
+        extra_icon: OUT_Edges
+        desc : Key data to be matched against. Availability depends on the selected Search Mode.
         pin : points
-    -   name : Vtx or Edges
+    -   name : Vtx
+        extra_icon: IN_Vtx
         desc : Key data to be matched against. Availability depends on the selected Search Mode.
         pin : point
 outputs:
     -   name : Vtx
+        extra_icon: IN_Vtx
         desc : Endpoints of the output Edges
         pin : points
     -   name : Edges
+        extra_icon: OUT_Edges
         desc : Edges associated with the output Vtxs
         pin : points
 ---

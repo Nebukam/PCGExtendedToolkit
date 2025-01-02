@@ -17,15 +17,18 @@ see_also:
 nav_order: 2
 inputs:
     -   name : Vtx
+        extra_icon: IN_Vtx
         desc : Endpoints of the input Edges
         pin : points
     -   name : Edges
+        extra_icon: OUT_Edges
         desc : Edges associated with the input Vtxs
         pin : points
     -   name : Plots
         desc : Plot points in the form of points collections.
         pin : points
     -   name : Heuristics
+        extra_icon: OUT_Heuristic
         desc : Heuristics nodes that will be used by the pathfinding search algorithm
         pin : params
 outputs:

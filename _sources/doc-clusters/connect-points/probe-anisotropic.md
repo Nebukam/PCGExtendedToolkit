@@ -18,6 +18,7 @@ tagged:
 nav_order: 7
 outputs:
     -   name : Probe
+        extra_icon: OUT_Probe
         desc : A single probe, to be used with the 'Connect Points' node
         pin : params
 ---

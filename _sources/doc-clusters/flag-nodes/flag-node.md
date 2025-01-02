@@ -19,7 +19,8 @@ tagged:
     - flagger
 nav_order: 0
 inputs:
-    -   name : Filters 
+    -   name : Filter
+        extra_icon: OUT_Filters 
         desc : Any number of filters. Supports both regular point filters as well as special cluster filters.
         pin : params
 outputs:

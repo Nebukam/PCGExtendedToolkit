@@ -2,7 +2,6 @@
 layout: page
 title: PCG Extended Toolkit
 nav_order: 0
-has_children: true
 ---
 <div class="product-header large" style="--img:url('{{ site.baseurl }}/assets/images/logo.png');"><div class="infos" markdown="1">
 # PCGEx {% include github.html repo="PCGExtendedToolkit" %}  

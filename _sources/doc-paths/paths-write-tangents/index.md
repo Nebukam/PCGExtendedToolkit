@@ -20,6 +20,7 @@ inputs:
         desc : Paths which points will have tangents written on
         pin : points
     -   name : Point Filters
+        extra_icon: OUT_Filter
         desc : Filter input that let you choose which points get processed.
         pin : params
 outputs:

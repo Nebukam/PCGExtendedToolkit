@@ -17,19 +17,25 @@ see_also:
     - Working with Clusters
 inputs:
     -   name : Vtx
+        extra_icon: IN_Vtx
         desc : Endpoints of the input Edges
         pin : points
     -   name : Edges
+        extra_icon: OUT_Edges
         desc : Edges associated with the input Vtxs
         pin : points
-    -   name : Edge Filters
+    -   name : Edge Filter
+        extra_icon: OUT_FilterEdgess
+        extra_icon: OUT_FilterEdges
         desc : Filters to drive which edges should be subdivided
         pin : params
 outputs:
     -   name : Vtx
+        extra_icon: IN_Vtx
         desc : Endpoints of the output Edges
         pin : points
     -   name : Edges
+        extra_icon: OUT_Edges
         desc : Edges associated with the output Vtxs
         pin : points
 ---
