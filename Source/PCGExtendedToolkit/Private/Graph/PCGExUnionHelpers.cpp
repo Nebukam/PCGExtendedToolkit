@@ -116,8 +116,6 @@ namespace PCGExGraph
 	{
 		UnionPointsBlender.Reset();
 
-		//Context->SetAsyncState(PCGEx::State_UnionWriting);
-
 		bRunning = true;
 
 		GraphMetadataDetails.Grab(Context, PointPointIntersectionDetails);
@@ -131,9 +129,6 @@ namespace PCGExGraph
 		GraphBuilder->Graph->NodesUnion = UnionGraph->NodesUnion;
 		GraphBuilder->Graph->EdgesUnion = UnionGraph->EdgesUnion;
 
-		//TSet<uint64> UniqueEdges;
-		//UnionGraph->GetUniqueEdges(UniqueEdges);
-		//GraphBuilder->Graph->InsertEdges(UniqueEdges, -1);
 		TArray<FEdge> UniqueEdges;
 		UnionGraph->GetUniqueEdges(UniqueEdges);
 		GraphBuilder->Graph->InsertEdges(UniqueEdges);
@@ -170,41 +165,54 @@ namespace PCGExGraph
 	{
 		if (GraphBuilder->Graph->Edges.Num() <= 1)
 		{
-			// Nothing to be found
-			CompileFinalGraph();
-			return;
+			if (bCompilingFinalGraph)
+			{
+				UE_LOG(LogTemp, Log, TEXT("%d | 1 or less edges"), Context->GetInputSettings<UPCGSettings>()->GetUniqueID());
+			}
+			CompileFinalGraph(); // Nothing to be found
 		}
-
-		if (bDoPointEdge)
+		else if (bDoPointEdge)
 		{
 			FindPointEdgeIntersections();
-			return;
 		}
-
-		if (bDoEdgeEdge)
+		else if (bDoEdgeEdge)
 		{
 			FindEdgeEdgeIntersections();
-			return;
 		}
-
-		CompileFinalGraph();
+		else
+		{
+			if (bCompilingFinalGraph)
+			{
+				UE_LOG(LogTemp, Log, TEXT("%d | CompileFinalGraph (default)"), Context->GetInputSettings<UPCGSettings>()->GetUniqueID());
+			}
+			CompileFinalGraph();
+		}
 	}
 
 	bool FUnionProcessor::Execute()
 	{
-		if (!bRunning) { return false; }
-
-		if (Context->IsState(State_ProcessingUnion)) { return false; }
+		if (!bRunning || Context->IsState(State_ProcessingUnion)) { return false; }
 
 		PCGEX_ON_ASYNC_STATE_READY(State_ProcessingPointEdgeIntersections)
 		{
 			if (bDoEdgeEdge) { FindEdgeEdgeIntersections(); }
-			else { CompileFinalGraph(); }
+			else
+			{
+				if (bCompilingFinalGraph)
+				{
+					UE_LOG(LogTemp, Log, TEXT("%d | CompileFinalGraph (after point/edge)"), Context->GetInputSettings<UPCGSettings>()->GetUniqueID());
+				}
+				CompileFinalGraph();
+			}
 			return false;
 		}
 
 		PCGEX_ON_ASYNC_STATE_READY(State_ProcessingEdgeEdgeIntersections)
 		{
+			if (bCompilingFinalGraph)
+			{
+				UE_LOG(LogTemp, Log, TEXT("%d | CompileFinalGraph (after edge/edge)"), Context->GetInputSettings<UPCGSettings>()->GetUniqueID());
+			}
 			CompileFinalGraph();
 			return false;
 		}
@@ -468,6 +476,10 @@ namespace PCGExGraph
 
 	void FUnionProcessor::CompileFinalGraph()
 	{
+		check(!bCompilingFinalGraph)
+
+		bCompilingFinalGraph = true;
+
 		Context->SetAsyncState(State_WritingClusters);
 		GraphBuilder->OnCompilationEndCallback =
 			[PCGEX_ASYNC_THIS_CAPTURE](const TSharedRef<FGraphBuilder>& InBuilder, const bool bSuccess)

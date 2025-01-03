@@ -239,8 +239,7 @@ namespace PCGExPathfindingPlotEdge
 				Query->FindPaths(This->AsyncManager, This->SearchOperation, This->HeuristicsHandler);
 				Query->OnCompleteCallback = [AsyncThis](const TSharedPtr<PCGExPathfinding::FPlotQuery>& Plot)
 				{
-					TSharedPtr<FProcessor> NestedThis = AsyncThis.Pin();
-					if (!NestedThis) { return; }
+					PCGEX_ASYNC_NESTED_THIS
 					NestedThis->Context->BuildPath(Plot);
 					Plot->Cleanup();
 				};

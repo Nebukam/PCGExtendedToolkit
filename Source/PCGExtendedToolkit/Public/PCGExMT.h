@@ -140,6 +140,7 @@ namespace PCGExMT
 
 		UE::Tasks::ETaskPriority WorkPriority = UE::Tasks::ETaskPriority::Default;
 
+		mutable FRWLock ManagerLock;
 		mutable FRWLock TasksLock;
 		mutable FRWLock GroupsLock;
 		mutable FRWLock TokensLock;
@@ -230,6 +231,7 @@ namespace PCGExMT
 		friend class FScopeIterationTask;
 		friend class FDaisyChainScopeIterationTask;
 
+		FRWLock GroupLock;
 		FName GroupName = NAME_None;
 		TWeakPtr<FTaskGroup> ParentGroup = nullptr;
 
