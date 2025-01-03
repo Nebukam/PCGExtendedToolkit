@@ -130,7 +130,6 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExGetTextureDataContext final : FPCGExPoin
 	TWeakPtr<PCGExMT::FAsyncToken> TextureProcessingToken;
 
 	void AdvanceProcessing(const int32 Index);
-	
 };
 
 class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExGetTextureDataElement final : public FPCGExPointsProcessorElement
@@ -184,5 +183,4 @@ namespace PCGExGetTextureData
 
 		virtual void CompleteWork() override;
 	};
-
 }

@@ -98,7 +98,7 @@ void UPCGExGlobalSettings::GeneratePinInfos()
 
 	PCGEX_EMPLACE_PIN_OUT(OUT_Blend, "PCGEx Blending");
 	PCGEX_MAP_PIN_OUT("Blending")
-	
+
 	PCGEX_EMPLACE_PIN_OUT(OUT_Shape, "PCGEx Shape Builder");
 	PCGEX_MAP_PIN_OUT("Shape Builder")
 
@@ -168,10 +168,10 @@ void UPCGExGlobalSettings::GeneratePinInfos()
 
 	PCGEX_EMPLACE_PIN_IN(OUT_Blend, "Expects PCGEx Blendings, supports multiple inputs.");
 	PCGEX_MAP_PIN_IN("Blendings")
-	
+
 	PCGEX_EMPLACE_PIN_IN(OUT_Shape, "Expects PCGEx Shape Builders, supports multiple inputs.");
 	PCGEX_MAP_PIN_IN("Shape Builders")
-	
+
 	PinIndex = InPinInfos.Emplace(FName("PCGEx.Pin.IN_Vtx"), TEXT("Point collection formatted for use as cluster vtx."));
 	PCGEX_MAP_PIN_IN("Vtx")
 

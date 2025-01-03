@@ -1,22 +1,22 @@
 ﻿// Copyright 2024 Timothé Lapetite and contributors
 // Released under the MIT license https://opensource.org/license/MIT/
 
-#include "Misc/ConditionalActions/PCGExConditionalActionAttributes.h"
+#include "Actions/PCGExActionWriteValues.h"
 
 #include "PCGPin.h"
 
 
-#define LOCTEXT_NAMESPACE "PCGExWriteConditionalActionAttributess"
-#define PCGEX_NAMESPACE PCGExWriteConditionalActionAttributess
+#define LOCTEXT_NAMESPACE "PCGExWriteActionWriteValuess"
+#define PCGEX_NAMESPACE PCGExWriteActionWriteValuess
 
 
-void UPCGExConditionalActionAttributesOperation::CopySettingsFrom(const UPCGExOperation* Other)
+void UPCGExActionWriteValuesOperation::CopySettingsFrom(const UPCGExOperation* Other)
 {
 	Super::CopySettingsFrom(Other);
-	// if (const UPCGExConditionalActionAttributesOperation* TypedOther = Cast<UPCGExConditionalActionAttributesOperation>(Other))	{	}
+	// if (const UPCGExActionWriteValuesOperation* TypedOther = Cast<UPCGExActionWriteValuesOperation>(Other))	{	}
 }
 
-bool UPCGExConditionalActionAttributesOperation::PrepareForData(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade>& InPointDataFacade)
+bool UPCGExActionWriteValuesOperation::PrepareForData(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade>& InPointDataFacade)
 {
 	if (!Super::PrepareForData(InContext, InPointDataFacade)) { return false; }
 
@@ -49,7 +49,7 @@ bool UPCGExConditionalActionAttributesOperation::PrepareForData(FPCGExContext* I
 	return true;
 }
 
-void UPCGExConditionalActionAttributesOperation::OnMatchSuccess(int32 Index, const FPCGPoint& Point)
+void UPCGExActionWriteValuesOperation::OnMatchSuccess(int32 Index, const FPCGPoint& Point)
 {
 	for (int i = 0; i < SuccessAttributes.Num(); i++)
 	{
@@ -63,7 +63,7 @@ void UPCGExConditionalActionAttributesOperation::OnMatchSuccess(int32 Index, con
 	}
 }
 
-void UPCGExConditionalActionAttributesOperation::OnMatchFail(int32 Index, const FPCGPoint& Point)
+void UPCGExActionWriteValuesOperation::OnMatchFail(int32 Index, const FPCGPoint& Point)
 {
 	for (int i = 0; i < FailAttributes.Num(); i++)
 	{
@@ -77,7 +77,7 @@ void UPCGExConditionalActionAttributesOperation::OnMatchFail(int32 Index, const 
 	}
 }
 
-void UPCGExConditionalActionAttributesOperation::Cleanup()
+void UPCGExActionWriteValuesOperation::Cleanup()
 {
 	SuccessAttributes.Empty();
 	SuccessWriters.Empty();
@@ -87,12 +87,12 @@ void UPCGExConditionalActionAttributesOperation::Cleanup()
 }
 
 #if WITH_EDITOR
-FString UPCGExConditionalActionAttributesProviderSettings::GetDisplayName() const { return TEXT(""); }
+FString UPCGExActionWriteValuesProviderSettings::GetDisplayName() const { return TEXT(""); }
 #endif
 
-PCGEX_BITMASK_TRANSMUTE_CREATE_OPERATION(ConditionalActionAttributes, {})
+PCGEX_BITMASK_TRANSMUTE_CREATE_OPERATION(ActionWriteValues, {})
 
-bool UPCGExConditionalActionAttributesFactory::Boot(FPCGContext* InContext)
+bool UPCGExActionWriteValuesFactory::Boot(FPCGContext* InContext)
 {
 	// Gather success/fail attributes
 
@@ -102,24 +102,24 @@ bool UPCGExConditionalActionAttributesFactory::Boot(FPCGContext* InContext)
 	SuccessAttributesFilter.Init();
 	FailAttributesFilter.Init();
 
-	CheckSuccessInfos = PCGEx::GatherAttributeInfos(InContext, PCGExConditionalActionAttribute::SourceForwardSuccess, SuccessAttributesFilter, true);
-	CheckFailInfos = PCGEx::GatherAttributeInfos(InContext, PCGExConditionalActionAttribute::SourceForwardFail, FailAttributesFilter, true);
+	CheckSuccessInfos = PCGEx::GatherAttributeInfos(InContext, PCGExActionWriteValues::SourceForwardSuccess, SuccessAttributesFilter, true);
+	CheckFailInfos = PCGEx::GatherAttributeInfos(InContext, PCGExActionWriteValues::SourceForwardFail, FailAttributesFilter, true);
 
 	if (!CheckSuccessInfos || !CheckFailInfos) { return false; }
 
 	return true;
 }
 
-TArray<FPCGPinProperties> UPCGExConditionalActionAttributesProviderSettings::InputPinProperties() const
+TArray<FPCGPinProperties> UPCGExActionWriteValuesProviderSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
-	PCGEX_PIN_ANY(PCGExConditionalActionAttribute::SourceForwardSuccess, "TBD", Normal, {})
-	PCGEX_PIN_ANY(PCGExConditionalActionAttribute::SourceForwardFail, "TBD", Normal, {})
+	PCGEX_PIN_ANY(PCGExActionWriteValues::SourceForwardSuccess, "TBD", Normal, {})
+	PCGEX_PIN_ANY(PCGExActionWriteValues::SourceForwardFail, "TBD", Normal, {})
 	return PinProperties;
 }
 
 PCGEX_BITMASK_TRANSMUTE_CREATE_FACTORY(
-	ConditionalActionAttributes, {
+	ActionWriteValues, {
 	NewFactory->SuccessAttributesFilter = SuccessAttributesFilter;
 	NewFactory->FailAttributesFilter = FailAttributesFilter;
 	})

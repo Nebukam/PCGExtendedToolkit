@@ -30,7 +30,7 @@ public:
 	//~End UPCGSettings
 
 	virtual void ApplyPreconfiguredSettings(const FPCGPreConfiguredSettingsInfo& PreconfigureInfo) override;
-	
+
 protected:
 	virtual TArray<FPCGPinProperties> InputPinProperties() const override;
 
