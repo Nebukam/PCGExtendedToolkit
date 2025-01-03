@@ -377,7 +377,7 @@ namespace PCGExGraph
 				NodeIndex = Split.NodeIndex;
 
 				Graph->InsertEdge(PrevIndex, NodeIndex, NewEdge, SplitEdge.IOIndex); //TODO: IOIndex required
-				Graph->AddNodeAndEdgeMetadata(NodeIndex, NewEdge.Index, ParentEdgeMeta, EPCGExIntersectionType::PointEdge);
+				Graph->AddNodeAndEdgeMetadataUnsafe(NodeIndex, NewEdge.Index, ParentEdgeMeta, EPCGExIntersectionType::PointEdge);
 
 				PrevIndex = NodeIndex;
 
@@ -388,7 +388,7 @@ namespace PCGExGraph
 			}
 
 			Graph->InsertEdge(PrevIndex, SplitEdge.End, NewEdge, SplitEdge.IOIndex); // Insert last edge
-			Graph->AddEdgeMetadata(NewEdge.Index, ParentEdgeMeta, EPCGExIntersectionType::PointEdge);
+			Graph->AddEdgeMetadataUnsafe(NewEdge.Index, ParentEdgeMeta, EPCGExIntersectionType::PointEdge);
 		}
 	}
 
@@ -487,13 +487,13 @@ namespace PCGExGraph
 				NodeIndex = Crossing.NodeIndex;
 
 				Graph->InsertEdgeUnsafe(PrevIndex, NodeIndex, NewEdge, SplitEdge.IOIndex); //BUG: this is the wrong edge IOIndex
-				Graph->AddNodeAndEdgeMetadata(NodeIndex, NewEdge.Index, ParentEdgeMeta, EPCGExIntersectionType::EdgeEdge);
+				Graph->AddNodeAndEdgeMetadataUnsafe(NodeIndex, NewEdge.Index, ParentEdgeMeta, EPCGExIntersectionType::EdgeEdge);
 
 				PrevIndex = NodeIndex;
 			}
 
 			Graph->InsertEdgeUnsafe(PrevIndex, SplitEdge.End, NewEdge, SplitEdge.IOIndex); // Insert last edge
-			Graph->AddEdgeMetadata(NewEdge.Index, ParentEdgeMeta, EPCGExIntersectionType::EdgeEdge);
+			Graph->AddEdgeMetadataUnsafe(NewEdge.Index, ParentEdgeMeta, EPCGExIntersectionType::EdgeEdge);
 		}
 	}
 

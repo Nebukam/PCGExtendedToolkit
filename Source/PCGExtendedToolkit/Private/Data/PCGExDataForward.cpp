@@ -66,6 +66,29 @@ void FPCGExAttributeToTagDetails::Tag(const int32 TagIndex, const TSharedPtr<PCG
 	PointIO->Tags->Append(Tags);
 }
 
+void FPCGExAttributeToTagDetails::Tag(const int32 TagIndex, UPCGMetadata* InMetadata) const
+{
+	if (bAddIndexTag)
+	{
+		if (PCGEx::IsValidName(FName(IndexTagPrefix)))
+		{
+			InMetadata->FindOrCreateAttribute<FString>(FName(IndexTagPrefix), IndexTagPrefix + ":" + FString::Printf(TEXT("%d"), TagIndex));
+		}
+	}
+
+	if (!Getters.IsEmpty())
+	{
+		const FPCGPoint& Point = SourceDataFacade->GetIn()->GetPoint(TagIndex);
+		for (const TSharedPtr<PCGEx::TAttributeBroadcaster<FString>>& Getter : Getters)
+		{
+			FString Tag = Getter->SoftGet(TagIndex, Point, TEXT(""));
+			if (Tag.IsEmpty()) { continue; }
+			if (bPrefixWithAttributeName) { Tag = Getter->GetName() + ":" + Tag; }
+			InMetadata->FindOrCreateAttribute<FString>(FName(Getter->GetName()), Tag);
+		}
+	}
+}
+
 namespace PCGExData
 {
 	FDataForwardHandler::FDataForwardHandler(const FPCGExForwardDetails& InDetails, const TSharedPtr<FFacade>& InSourceDataFacade):

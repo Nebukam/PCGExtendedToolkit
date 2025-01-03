@@ -59,6 +59,7 @@ public:
 	virtual FName GetMainInputPin() const { return PCGEx::SourcePointsLabel; }
 	virtual FName GetMainOutputPin() const { return PCGEx::OutputPointsLabel; }
 	virtual bool GetMainAcceptMultipleData() const { return true; }
+	virtual bool GetIsMainTransactional() const { return false; }
 	virtual PCGExData::EIOInit GetMainOutputInitMode() const;
 
 	virtual FName GetPointFilterPin() const { return NAME_None; }

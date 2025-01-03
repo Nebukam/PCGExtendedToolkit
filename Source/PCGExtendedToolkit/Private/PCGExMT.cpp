@@ -117,6 +117,8 @@ namespace PCGExMT
 
 	void FTaskManager::Stop()
 	{
+		FWriteScopeLock WriteScopeLock(ManagerLock);
+
 		if (bStopping || bStopped) { return; }
 
 		bStopping = true;
@@ -215,6 +217,8 @@ namespace PCGExMT
 
 	void FTaskGroup::End()
 	{
+		FWriteScopeLock WriteScopeLock(GroupLock);
+
 		if (bEnded) { return; }
 		bEnded = true;
 
@@ -310,13 +314,20 @@ namespace PCGExMT
 
 	void FTaskGroup::GrowNumStarted(const int32 InNumStarted)
 	{
-		FPlatformAtomics::InterlockedAdd(&NumStarted, InNumStarted);
+		FWriteScopeLock WriteScopeLock(GroupLock);
+		NumStarted += InNumStarted;
 	}
 
 	void FTaskGroup::GrowNumCompleted()
 	{
-		FPlatformAtomics::InterlockedIncrement(&NumCompleted);
-		if (NumStarted == NumCompleted) { End(); }
+		bool bEnd = false;
+		{
+			FWriteScopeLock WriteScopeLock(GroupLock);
+			NumCompleted++;
+			bEnd = (NumStarted == NumCompleted);
+		}
+
+		if (bEnd) { End(); }
 	}
 
 	void FTaskGroup::PrepareScopeIteration(const FScope& Scope) const

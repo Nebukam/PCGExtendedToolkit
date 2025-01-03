@@ -155,6 +155,9 @@ namespace PCGExData
 
 	bool FPointIO::StageOutput() const
 	{
+		// If this hits, it needs to be reported. It means a node is trying to output data that is meant to be transactional only
+		check(!bTransactional)
+
 		if (!bEnabled || !Out || (!bAllowEmptyOutput && Out->GetPoints().IsEmpty())) { return false; }
 
 		Context->StageOutput(OutputPin, Out, Tags->ToSet(), Out != In, bMutable);
@@ -189,20 +192,21 @@ namespace PCGExData
 
 #pragma region FPointIOCollection
 
-	FPointIOCollection::FPointIOCollection(FPCGExContext* InContext): Context(InContext)
+	FPointIOCollection::FPointIOCollection(FPCGExContext* InContext, const bool bIsTransactional)
+		: Context(InContext), bTransactional(bIsTransactional)
 	{
 		PCGEX_LOG_CTR(FPointIOCollection)
 	}
 
-	FPointIOCollection::FPointIOCollection(FPCGExContext* InContext, const FName InputLabel, const EIOInit InitOut)
-		: FPointIOCollection(InContext)
+	FPointIOCollection::FPointIOCollection(FPCGExContext* InContext, const FName InputLabel, const EIOInit InitOut, const bool bIsTransactional)
+		: FPointIOCollection(InContext, bIsTransactional)
 	{
 		TArray<FPCGTaggedData> Sources = Context->InputData.GetInputsByPin(InputLabel);
 		Initialize(Sources, InitOut);
 	}
 
-	FPointIOCollection::FPointIOCollection(FPCGExContext* InContext, TArray<FPCGTaggedData>& Sources, const EIOInit InitOut)
-		: FPointIOCollection(InContext)
+	FPointIOCollection::FPointIOCollection(FPCGExContext* InContext, TArray<FPCGTaggedData>& Sources, const EIOInit InitOut, const bool bIsTransactional)
+		: FPointIOCollection(InContext, bIsTransactional)
 	{
 		Initialize(Sources, InitOut);
 	}
@@ -226,9 +230,18 @@ namespace PCGExData
 			UniqueData.Add(Source.Data->UID, &bIsAlreadyInSet);
 			if (bIsAlreadyInSet) { continue; } // Dedupe
 
-			const UPCGPointData* MutablePointData = PCGExPointIO::GetMutablePointData(Context, Source);
-			if (!MutablePointData || MutablePointData->GetPoints().Num() == 0) { continue; }
-			Emplace_GetRef(MutablePointData, InitOut, &Source.Tags);
+			const UPCGPointData* SourcePointData = PCGExPointIO::GetPointData(Context, Source);
+			if (!SourcePointData && bTransactional)
+			{
+				// Only allowed for execution-time only
+				// Otherwise find a way to ensure conversion is plugged to the outputs, pin-less
+				check(InitOut == EIOInit::None)
+				SourcePointData = PCGExPointIO::ToPointData(Context, Source);
+			}
+
+			if (!SourcePointData || SourcePointData->GetPoints().Num() == 0) { continue; }
+			const TSharedPtr<FPointIO> NewIO = Emplace_GetRef(SourcePointData, InitOut, &Source.Tags);
+			NewIO->bTransactional = bTransactional;
 		}
 		UniqueData.Empty();
 	}
