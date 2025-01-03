@@ -92,8 +92,12 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExAttributeToTagDetails
 
 	/** Prefix added to the reference point index */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(EditCondition="bAddIndexTag"))
-	FString IndexTagPrefix = TEXT("IndexTag:");
+	FString IndexTagPrefix = TEXT("IndexTag");
 
+	/** If enabled, prefix the attribute value with the attribute name  */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
+	bool bPrefixWithAttributeName = true;
+	
 	/** Attributes which value will be used as tags. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
 	TArray<FPCGAttributePropertyInputSelector> Attributes;

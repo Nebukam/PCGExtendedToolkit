@@ -323,6 +323,8 @@ namespace PCGEx
 		{
 		}
 
+		FString GetName() { return InternalSelector.GetName().ToString(); }
+
 		virtual EPCGMetadataTypes GetType() const { return GetMetadataType<T>(); }
 		const FPCGMetadataAttributeBase* GetAttribute() const { return Attribute; }
 
