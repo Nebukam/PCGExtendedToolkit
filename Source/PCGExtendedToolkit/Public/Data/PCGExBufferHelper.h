@@ -37,7 +37,7 @@ namespace PCGExData
 				if (!(*BufferPtr)->IsA<T>()) { return nullptr; }
 				return StaticCastSharedPtr<TBuffer<T>>(*BufferPtr);
 			}
-			
+
 			return nullptr;
 		}
 

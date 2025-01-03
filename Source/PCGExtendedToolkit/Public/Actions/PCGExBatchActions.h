@@ -8,22 +8,22 @@
 #include "PCGExPointsProcessor.h"
 
 
-#include "PCGExConditionalActions.generated.h"
+#include "PCGExBatchActions.generated.h"
 
-class UPCGExConditionalActionOperation;
-class UPCGExConditionalActionFactoryBase;
+class UPCGExActionOperation;
+class UPCGExActionFactoryBase;
 /**
  * 
  */
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Clusters")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExConditionalActionsSettings : public UPCGExPointsProcessorSettings
+class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExBatchActionsSettings : public UPCGExPointsProcessorSettings
 {
 	GENERATED_BODY()
 
 public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS(ConditionalActions, "Conditional Actions", "TBD.");
+	PCGEX_NODE_INFOS(BatchActions, "Batch Actions", "Batch various actions together.");
 	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->NodeColorMiscAdd; }
 #endif
 
@@ -47,18 +47,18 @@ public:
 	FPCGExNameFiltersDetails ConsumeProcessedAttributes;
 
 private:
-	friend class FPCGExConditionalActionsElement;
+	friend class FPCGExBatchActionsElement;
 };
 
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExConditionalActionsContext final : FPCGExPointsProcessorContext
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExBatchActionsContext final : FPCGExPointsProcessorContext
 {
-	friend class FPCGExConditionalActionsElement;
+	friend class FPCGExBatchActionsElement;
 
 	TSharedPtr<PCGEx::FAttributesInfos> DefaultAttributes;
-	TArray<TObjectPtr<const UPCGExConditionalActionFactoryBase>> ConditionalActionsFactories;
+	TArray<TObjectPtr<const UPCGExActionFactoryBase>> ActionsFactories;
 };
 
-class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExConditionalActionsElement final : public FPCGExPointsProcessorElement
+class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExBatchActionsElement final : public FPCGExPointsProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(
@@ -71,11 +71,11 @@ protected:
 	virtual bool ExecuteInternal(FPCGContext* InContext) const override;
 };
 
-namespace PCGExConditionalActions
+namespace PCGExBatchActions
 {
-	class FProcessor final : public PCGExPointsMT::TPointsProcessor<FPCGExConditionalActionsContext, UPCGExConditionalActionsSettings>
+	class FProcessor final : public PCGExPointsMT::TPointsProcessor<FPCGExBatchActionsContext, UPCGExBatchActionsSettings>
 	{
-		TArray<UPCGExConditionalActionOperation*> Operations;
+		TArray<UPCGExActionOperation*> Operations;
 
 	public:
 		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade):

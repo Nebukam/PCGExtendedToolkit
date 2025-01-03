@@ -4,33 +4,33 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "PCGExConditionalActionFactoryProvider.h"
+#include "PCGExActionFactoryProvider.h"
 #include "UObject/Object.h"
 
 #include "PCGExFactoryProvider.h"
 #include "PCGExOperation.h"
 
 
-#include "PCGExConditionalActionAttributes.generated.h"
+#include "PCGExActionWriteValues.generated.h"
 
-namespace PCGExConditionalActionAttribute
+namespace PCGExActionWriteValues
 {
 	const FName SourceForwardSuccess = TEXT("MatchSuccess");
 	const FName SourceForwardFail = TEXT("MatchFail");
 }
 
-class UPCGExConditionalActionAttributesFactory;
+class UPCGExActionWriteValuesFactory;
 
 /**
  * 
  */
 UCLASS(MinimalAPI)
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExConditionalActionAttributesOperation : public UPCGExConditionalActionOperation
+class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExActionWriteValuesOperation : public UPCGExActionOperation
 {
 	GENERATED_BODY()
 
 public:
-	UPCGExConditionalActionAttributesFactory* TypedFactory = nullptr;
+	UPCGExActionWriteValuesFactory* TypedFactory = nullptr;
 
 	virtual void CopySettingsFrom(const UPCGExOperation* Other) override;
 
@@ -48,14 +48,14 @@ protected:
 };
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExConditionalActionAttributesFactory : public UPCGExConditionalActionFactoryBase
+class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExActionWriteValuesFactory : public UPCGExActionFactoryBase
 {
-	friend class UPCGExConditionalActionAttributesProviderSettings;
+	friend class UPCGExActionWriteValuesProviderSettings;
 
 	GENERATED_BODY()
 
 public:
-	virtual UPCGExConditionalActionOperation* CreateOperation(FPCGExContext* InContext) const override;
+	virtual UPCGExActionOperation* CreateOperation(FPCGExContext* InContext) const override;
 	virtual bool Boot(FPCGContext* InContext) override;
 
 protected:
@@ -63,15 +63,15 @@ protected:
 	FPCGExAttributeGatherDetails FailAttributesFilter;
 };
 
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|ConditionalActionAttributes")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExConditionalActionAttributesProviderSettings : public UPCGExConditionalActionProviderSettings
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|ActionWriteValues")
+class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExActionWriteValuesProviderSettings : public UPCGExActionProviderSettings
 {
 	GENERATED_BODY()
 
 public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS(ConditionalActionWriteAttributes, "Action : Write Attributes", "Forward attributes based on the match result.")
+	PCGEX_NODE_INFOS(ActionWriteAttributes, "Action : Write Attributes", "Forward attributes based on the match result.")
 #endif
 
 protected:

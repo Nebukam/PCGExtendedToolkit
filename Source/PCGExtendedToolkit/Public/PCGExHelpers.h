@@ -44,7 +44,7 @@ class UPCGExComponentCallback : public UObject
 public:
 	UFUNCTION()
 	void Callback(UActorComponent* InComponent);
-	
+
 	virtual void BeginDestroy() override
 	{
 		CallbackFn = nullptr;
@@ -72,7 +72,7 @@ class UPCGExPCGComponentCallback : public UObject
 public:
 	UFUNCTION()
 	void Callback(UPCGComponent* InComponent);
-	
+
 	virtual void BeginDestroy() override
 	{
 		CallbackFn = nullptr;
@@ -384,7 +384,7 @@ namespace PCGEx
 
 		void Trigger();
 		void SafetyTrigger();
-		
+
 		void Reset();
 		void Reset(const int32 InMax);
 
@@ -402,7 +402,6 @@ namespace PCGEx
 
 		FName Get(const FString& BaseName);
 		FName Get(const FName& BaseName);
-		
 	};
 
 	struct /*PCGEXTENDEDTOOLKIT_API*/ FManagedObjects

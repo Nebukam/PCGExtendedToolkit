@@ -252,9 +252,11 @@ namespace PCGExCluster
 		return true;
 	}
 
-	void FCluster::BuildFrom(const TSharedPtr<PCGExGraph::FSubGraph>& SubGraph)
+	void FCluster::BuildFrom(const TSharedRef<PCGExGraph::FSubGraph>& SubGraph)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExCluster::BuildClusterFromSubgraph);
+
+		TSharedPtr<FCluster> LocalPin = SharedThis(this);
 
 		Bounds = FBox(ForceInit);
 
@@ -267,16 +269,16 @@ namespace PCGExCluster
 		Edges->Reserve(NumRawEdges);
 		Edges->Append(SubGraph->FlattenedEdges);
 
-		TArray<FEdge>& EdgesRef = *Edges;
-		TArray<FNode>& NodesRef = *Nodes;
+		const int32 NumEdges = Edges->Num();
 
-		for (const FEdge& E : EdgesRef)
+		for (int i = 0; i < NumEdges; i++)
 		{
-			const int32 StartNode = GetOrCreateNodeUnsafe(SubVtxPoints, E.Start);
-			const int32 EndNode = GetOrCreateNodeUnsafe(SubVtxPoints, E.End);
+			const FEdge* E = Edges->GetData() + i;
+			const int32 StartNode = GetOrCreateNodeUnsafe(SubVtxPoints, E->Start);
+			const int32 EndNode = GetOrCreateNodeUnsafe(SubVtxPoints, E->End);
 
-			NodesRef[StartNode].Link(EndNode, E.Index);
-			NodesRef[EndNode].Link(StartNode, E.Index);
+			(Nodes->GetData() + StartNode)->Link(EndNode, E->Index);
+			(Nodes->GetData() + EndNode)->Link(StartNode, E->Index);
 		}
 
 		Bounds = Bounds.ExpandBy(10);
