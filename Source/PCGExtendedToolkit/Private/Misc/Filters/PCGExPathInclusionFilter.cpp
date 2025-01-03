@@ -125,6 +125,7 @@ void UPCGExPathInclusionFilterFactory::BeginDestroy()
 	Splines.Empty();
 	Super::BeginDestroy();
 }
+
 namespace PCGExPointsFilter
 {
 	bool TPathInclusionFilter::Init(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade> InPointDataFacade)

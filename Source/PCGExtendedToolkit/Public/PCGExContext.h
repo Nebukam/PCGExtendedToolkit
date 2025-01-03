@@ -168,10 +168,10 @@ public:
 	void AddProtectedAttributeName(FName InName);
 
 	TSharedPtr<PCGEx::FUniqueNameGenerator> UniqueNameGenerator;
-	
+
 	void EDITOR_TrackPath(const FSoftObjectPath& Path, bool bIsCulled = false) const;
 	void EDITOR_TrackClass(const TSubclassOf<UObject>& InSelectionClass, bool bIsCulled = false) const;
-	
+
 	bool CanExecute() const;
 	virtual bool CancelExecution(const FString& InReason);
 

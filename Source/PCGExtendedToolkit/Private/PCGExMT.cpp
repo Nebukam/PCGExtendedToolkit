@@ -128,7 +128,7 @@ namespace PCGExMT
 			PCGEX_SHARED_THIS_DECL
 
 			Tokens.Empty(); // Revoke all tokens
-			
+
 			// Cancel groups & tasks
 			for (const TSharedPtr<FPCGExTask>& Task : Tasks) { Task->Cancel(ThisPtr); }
 			for (const TSharedPtr<FTaskGroup>& Group : Groups) { Group->Cancel(); }

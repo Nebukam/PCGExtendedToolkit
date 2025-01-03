@@ -36,7 +36,7 @@ namespace PCGExFactories
 		Sampler,
 		Heuristics,
 		VtxProperty,
-		ConditionalActions,
+		Action,
 		ShapeBuilder,
 		Blending,
 		TexParam,

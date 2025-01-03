@@ -348,7 +348,11 @@ namespace PCGExData
 		{
 			FWriteScopeLock WriteScopeLock(BufferLock);
 
-			if (OutValues) { return true; }
+			if (OutValues)
+			{
+				check(OutValues->Num() == Source->GetOut()->GetPoints().Num())
+				return true;
+			}
 
 			TypedOutAttribute = Source->FindOrCreateAttribute(FullName, DefaultValue, bAllowInterpolation);
 

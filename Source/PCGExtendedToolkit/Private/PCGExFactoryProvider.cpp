@@ -44,10 +44,7 @@ bool UPCGExFactoryProviderSettings::GetPinExtraIcon(const UPCGPin* InPin, FName&
 	{
 		return GetDefault<UPCGExGlobalSettings>()->GetPinExtraIcon(InPin, OutExtraIcon, OutTooltip, false);
 	}
-	else
-	{
-		return true;
-	}
+	return true;
 }
 
 #endif

@@ -213,13 +213,14 @@ namespace PCGExMT
 		FRWLock ReleaseLock;
 		TWeakPtr<FTaskManager> AsyncManager;
 		FName Name = NAME_None;
+
 	public:
 		FAsyncToken(TWeakPtr<FTaskManager> InAsyncManager, const FName& InName);
 		~FAsyncToken();
 
 		void Release();
 	};
-	
+
 	class /*PCGEXTENDEDTOOLKIT_API*/ FTaskGroup : public TSharedFromThis<FTaskGroup>
 	{
 		friend class FTaskManager;
