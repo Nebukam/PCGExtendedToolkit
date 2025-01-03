@@ -44,7 +44,7 @@ bool FPCGExAttributeToTagDetails::Init(const FPCGContext* InContext, const TShar
 
 void FPCGExAttributeToTagDetails::Tag(const int32 TagIndex, TSet<FString>& InTags) const
 {
-	if (bAddIndexTag) { InTags.Add(IndexTagPrefix + FString::Printf(TEXT("%d"), TagIndex)); }
+	if (bAddIndexTag) { InTags.Add(IndexTagPrefix + ":" + FString::Printf(TEXT("%d"), TagIndex)); }
 
 	if (!Getters.IsEmpty())
 	{
@@ -53,6 +53,7 @@ void FPCGExAttributeToTagDetails::Tag(const int32 TagIndex, TSet<FString>& InTag
 		{
 			FString Tag = Getter->SoftGet(TagIndex, Point, TEXT(""));
 			if (Tag.IsEmpty()) { continue; }
+			if (bPrefixWithAttributeName) { Tag = Getter->GetName() + ":" + Tag; }
 			InTags.Add(Tag);
 		}
 	}

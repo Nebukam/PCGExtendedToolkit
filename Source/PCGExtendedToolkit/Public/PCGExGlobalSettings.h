@@ -53,7 +53,7 @@ namespace PCGEx
 		FPinInfos() = default;
 
 		FPinInfos(const FName InIcon, const FString& InTooltip)
-		: Icon(InIcon), Tooltip(FText::FromString(InTooltip))
+			: Icon(InIcon), Tooltip(FText::FromString(InTooltip))
 		{
 		}
 
@@ -240,5 +240,4 @@ protected:
 	static bool bGeneratedPinMap;
 
 	void GeneratePinInfos();
-	
 };

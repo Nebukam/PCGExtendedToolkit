@@ -55,7 +55,7 @@ namespace PCGEx
 	{
 	protected:
 		FRWLock InternalLock;
-		
+
 	public:
 		FDataHandle() = default;
 		~FDataHandle() = default;
@@ -70,25 +70,23 @@ class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExDataHolder : public UObject
 public:
 	TSet<FString> Tags;
 	FName Id;
-	
+
 	UPROPERTY(Transient)
 	TObjectPtr<UPCGData> Data = nullptr;
-	
 };
-	
+
 UCLASS()
 class PCGEXTENDEDTOOLKIT_API UPCGExSubSystem : public UTickableWorldSubsystem
 {
 	GENERATED_BODY()
 
-private:
 	FRWLock TickActionsLock;
 	FRWLock GlobalMetadataLock;
 	FRWLock GlobalPCGDataLock;
 
 public:
 	UPCGExSubSystem();
-	
+
 	virtual void Initialize(FSubsystemCollectionBase& Collection) override;
 	virtual void Deinitialize() override;
 
@@ -183,5 +181,4 @@ protected:
 	void ExecuteBeginTickActions();
 
 	TMap<EPCGMetadataTypes, TSharedPtr<PCGEx::FValueMap>> PerTypeValueMaps;
-	
 };

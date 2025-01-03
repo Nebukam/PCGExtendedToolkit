@@ -493,6 +493,8 @@ namespace PCGExWaitForPCGData
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExWaitForPCGData::AddValidComponent);
 
+		Context->EDITOR_TrackPath(InComponent);
+		
 		int32 Index = -1;
 
 		{
