@@ -289,7 +289,13 @@ FPCGExContext* FPCGExPointsProcessorElement::InitializeContext(
 	TWeakObjectPtr<UPCGComponent> SourceComponent,
 	const UPCGNode* Node) const
 {
-	check(SourceComponent.IsValid());
+	
+	if(!SourceComponent.IsValid())
+	{
+		// Fail gracefully
+		InContext->CancelExecution("SourceComponent is trash, call Adrien!");
+		return InContext;
+	}
 
 	InContext->InputData = InputData;
 	InContext->SourceComponent = SourceComponent;
