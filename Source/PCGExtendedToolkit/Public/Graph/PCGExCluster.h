@@ -120,7 +120,7 @@ namespace PCGExCluster
 		bool bIsMirror = false;
 
 		bool bEdgeLengthsDirty = true;
-		bool bIsCopyCluster = false;
+		TSharedPtr<FCluster> OriginalCluster = nullptr;
 
 		mutable FRWLock ClusterLock;
 
@@ -515,22 +515,41 @@ namespace PCGExCluster
 		void UpdatePositions();
 
 	protected:
-		FORCEINLINE int32 GetOrCreateNodeUnsafe(const TArray<FPCGPoint>& InNodePoints, int32 PointIndex)
+		FORCEINLINE int32 GetOrCreateNodeUnsafe(const TArray<FPCGPoint>& InNodePoints, const int32 PointIndex)
 		{
 			int32 NodeIndex = NodeIndexLookup->Get(PointIndex);
 
 			if (NodeIndex != -1) { return NodeIndex; }
-
-			NodeIndex = Nodes->Num();
+			
+			NodeIndex = Nodes->Add(FNode(Nodes->Num(), PointIndex));
 			NodeIndexLookup->GetMutable(PointIndex) = NodeIndex;
 
-			FNode& NewNode = Nodes->Emplace_GetRef(NodeIndex, PointIndex);
 			const FVector Pos = InNodePoints[PointIndex].Transform.GetLocation();
 			NodePositions.Add(Pos);
 			Bounds += Pos;
 
 			return NodeIndex;
 		}
+		
+		FORCEINLINE int32 GetOrCreateNodeUnsafe(TSparseArray<int32>& InLookup, const TArray<FPCGPoint>& InNodePoints, const int32 PointIndex)
+		{
+
+			if (InLookup.IsValidIndex(PointIndex))
+			{
+				return InLookup[PointIndex];
+			}
+
+			const int32 NodeIndex = Nodes->Add(FNode(Nodes->Num(), PointIndex));
+			InLookup.Insert(PointIndex, NodeIndex);
+			
+			const FVector Pos = InNodePoints[PointIndex].Transform.GetLocation();
+			NodePositions.Add(Pos);
+			Bounds += Pos;
+
+			return NodeIndex;
+		}
+		
+		
 	};
 
 
