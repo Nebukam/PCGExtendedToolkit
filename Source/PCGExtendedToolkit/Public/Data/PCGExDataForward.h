@@ -104,5 +104,4 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExAttributeToTagDetails
 	bool Init(const FPCGContext* InContext, const TSharedPtr<PCGExData::FFacade>& InSourceFacade);
 	void Tag(const int32 TagIndex, TSet<FString>& InTags) const;
 	void Tag(const int32 TagIndex, const TSharedPtr<PCGExData::FPointIO>& PointIO) const;
-	
 };

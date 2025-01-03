@@ -501,8 +501,8 @@ namespace PCGEx
 						TArrayView<RawT> View(RawValues);
 						InternalAccessor->GetRange(View, 0, *PointIO->GetInKeys().Get(), EPCGAttributeAccessorFlags::AllowBroadcast);
 
-							for (int i = 0; i < NumPoints; i++) { Dump.Add(Convert(RawValues[i])); }
-						
+						for (int i = 0; i < NumPoints; i++) { Dump.Add(Convert(RawValues[i])); }
+
 						RawValues.Empty();
 					});
 			}

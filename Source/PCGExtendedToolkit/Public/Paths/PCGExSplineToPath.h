@@ -47,7 +47,7 @@ public:
 	/** Point transform */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	FPCGExLeanTransformDetails TransformDetails;
-	
+
 	/** Sample inputs.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta=(PCG_Overridable))
 	EPCGExSplineSamplingIncludeMode SampleInputs = EPCGExSplineSamplingIncludeMode::All;
@@ -84,7 +84,7 @@ public:
 	/** Name of the 'double' attribute to write the length at point to.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(DisplayName="Alpha", PCG_Overridable, EditCondition="bWriteAlpha"))
 	FName AlphaAttributeName = FName("Alpha");
-	
+
 	/** */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, InlineEditConditionToggle))
 	bool bWritePointType = false;

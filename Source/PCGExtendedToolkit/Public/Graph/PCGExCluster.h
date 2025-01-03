@@ -168,7 +168,7 @@ namespace PCGExCluster
 			const TArray<int32>* InExpectedAdjacency,
 			const PCGExData::ESource PointsSource = PCGExData::ESource::In);
 
-		void BuildFrom(const TSharedPtr<PCGExGraph::FSubGraph>& SubGraph);
+		void BuildFrom(const TSharedRef<PCGExGraph::FSubGraph>& SubGraph);
 
 		bool IsValidWith(const TSharedRef<PCGExData::FPointIO>& InVtxIO, const TSharedRef<PCGExData::FPointIO>& InEdgesIO) const;
 
