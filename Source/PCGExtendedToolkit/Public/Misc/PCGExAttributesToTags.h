@@ -13,9 +13,16 @@
 #include "PCGExAttributesToTags.generated.h"
 
 UENUM()
+enum class EPCGExAttributeToTagsAction : uint8
+{
+	AddTags   = 0 UMETA(DisplayName = "Add Tags", ToolTip="Add tags to the collection"),
+	Attribute = 1 UMETA(DisplayName = "Create attribute", ToolTip="Output an attribute set with the tag values"),
+};
+
+UENUM()
 enum class EPCGExAttributeToTagsResolution : uint8
 {
-	Self      = 0 UMETA(DisplayName = "Self", ToolTip="Matches a single entry to each input collection, from itself"),
+	Self                   = 0 UMETA(DisplayName = "Self", ToolTip="Matches a single entry to each input collection, from itself"),
 	EntryToCollection      = 1 UMETA(DisplayName = "Entry to Collection", ToolTip="Matches a Source entries to each input collection"),
 	CollectionToCollection = 2 UMETA(DisplayName = "Collection to Collection", ToolTip="Matches a single entry per source to matching collection (requires the same number of collections in both pins)"),
 };
@@ -42,6 +49,7 @@ public:
 
 protected:
 	virtual TArray<FPCGPinProperties> InputPinProperties() const override;
+	virtual TArray<FPCGPinProperties> OutputPinProperties() const override;
 	virtual FPCGElementPtr CreateElement() const override;
 	//~End UPCGSettings
 
@@ -49,11 +57,15 @@ protected:
 public:
 	virtual PCGExData::EIOInit GetMainOutputInitMode() const override;
 	//~End UPCGExPointsProcessorSettings
-
+	
+	/** Action. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
+	EPCGExAttributeToTagsAction Action = EPCGExAttributeToTagsAction::AddTags;
+	
 	/** Resolution mode. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
-	EPCGExAttributeToTagsResolution Resolution = EPCGExAttributeToTagsResolution::EntryToCollection;
-	
+	EPCGExAttributeToTagsResolution Resolution = EPCGExAttributeToTagsResolution::Self;
+
 	/** Selection mode. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(EditCondition="Resolution != EPCGExAttributeToTagsResolution::EntryToCollection"))
 	EPCGExCollectionEntrySelection Selection = EPCGExCollectionEntrySelection::FirstIndex;
@@ -65,6 +77,10 @@ public:
 	/** Attributes which value will be used as tags. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
 	TArray<FPCGAttributePropertyInputSelector> Attributes;
+
+	/** */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Warning and Errors")
+	bool bQuietTooManyCollectionsWarning = false;
 };
 
 struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExAttributesToTagsContext final : FPCGExPointsProcessorContext
@@ -91,6 +107,8 @@ namespace PCGExAttributesToTags
 {
 	class FProcessor final : public PCGExPointsMT::TPointsProcessor<FPCGExAttributesToTagsContext, UPCGExAttributesToTagsSettings>
 	{
+		UPCGParamData* OutputSet = nullptr;
+		
 	public:
 		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade):
 			TPointsProcessor(InPointDataFacade)
@@ -102,5 +120,6 @@ namespace PCGExAttributesToTags
 		}
 
 		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager> InAsyncManager) override;
+		virtual void Output() override;
 	};
 }
