@@ -63,12 +63,12 @@ protected:
 namespace PCGExDestroyActors
 {
 	const FName SourceOverridesPacker = TEXT("Overrides : Packer");
-		
+
 	class FProcessor final : public PCGExPointsMT::TPointsProcessor<FPCGExDestroyActorContext, UPCGExDestroyActorSettings>
 	{
 		TSet<TSoftObjectPtr<AActor>> ActorsToDelete;
 		TWeakPtr<PCGExMT::FAsyncToken> MainThreadToken;
-		
+
 	public:
 		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade)
 			: TPointsProcessor(InPointDataFacade)

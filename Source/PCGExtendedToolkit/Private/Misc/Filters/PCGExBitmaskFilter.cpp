@@ -18,7 +18,7 @@ bool UPCGExBitmaskFilterFactory::RegisterConsumableAttributes(FPCGExContext* InC
 
 	InContext->AddConsumableAttributeName(Config.FlagsAttribute);
 	InContext->AddConsumableAttributeName(Config.BitmaskAttribute);
-	
+
 	return true;
 }
 

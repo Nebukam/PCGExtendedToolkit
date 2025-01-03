@@ -11,7 +11,6 @@ class PCGEXTENDEDTOOLKIT_API UPCGExBlueprintHelpers : public UBlueprintFunctionL
 {
 	GENERATED_BODY()
 
-public:
 	//UFUNCTION(BlueprintCallable, Category = "PCG", meta=(DisplayName = "Flush PCG Cache"))
 	//static bool FlushPCGCache();
 };

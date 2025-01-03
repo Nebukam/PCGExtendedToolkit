@@ -20,8 +20,8 @@ void UPCGExMeanFilterFactory::RegisterBuffersDependencies(FPCGExContext* InConte
 
 bool UPCGExMeanFilterFactory::RegisterConsumableAttributesWithData(FPCGExContext* InContext, const UPCGData* InData) const
 {
-	if (!Super::RegisterConsumableAttributesWithData(InContext, InData)){ return false; }
-	
+	if (!Super::RegisterConsumableAttributesWithData(InContext, InData)) { return false; }
+
 	FName Consumable = NAME_None;
 	PCGEX_CONSUMABLE_SELECTOR(Config.Target, Consumable)
 
