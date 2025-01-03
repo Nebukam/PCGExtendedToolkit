@@ -408,7 +408,7 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 			}
 
 			if (!Limits.IsValid(SubGraph)) { SubGraph->Invalidate(this); } // Will invalidate isolated points
-			else if (!SubGraph->Edges.IsEmpty()) { SubGraphs.Add(SubGraph); }
+			else if (!SubGraph->Edges.IsEmpty()) { SubGraphs.Add(SubGraph.ToSharedRef()); }
 		}
 	}
 

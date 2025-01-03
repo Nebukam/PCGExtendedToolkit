@@ -35,8 +35,16 @@ TArray<FPCGPinProperties> UPCGExPointsProcessorSettings::InputPinProperties() co
 
 	if (!IsInputless())
 	{
-		if (GetMainAcceptMultipleData()) { PCGEX_PIN_POINTS(GetMainInputPin(), "The point data to be processed.", Required, {}) }
-		else { PCGEX_PIN_POINT(GetMainInputPin(), "The point data to be processed.", Required, {}) }
+		if(!GetIsMainTransactional())
+		{
+			if (GetMainAcceptMultipleData()) { PCGEX_PIN_POINTS(GetMainInputPin(), "The point data to be processed.", Required, {}) }
+			else { PCGEX_PIN_POINT(GetMainInputPin(), "The point data to be processed.", Required, {}) }	
+		}else
+		{
+			if (GetMainAcceptMultipleData()) { PCGEX_PIN_ANY(GetMainInputPin(), "The data to be processed.", Required, {}) }
+			else { PCGEX_PIN_ANY(GetMainInputPin(), "The data to be processed.", Required, {}) }
+		}
+		
 	}
 
 	if (SupportsPointFilters())
@@ -52,7 +60,7 @@ TArray<FPCGPinProperties> UPCGExPointsProcessorSettings::InputPinProperties() co
 TArray<FPCGPinProperties> UPCGExPointsProcessorSettings::OutputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties;
-	PCGEX_PIN_POINTS(GetMainOutputPin(), "The processed points.", Required, {})
+	PCGEX_PIN_POINTS(GetMainOutputPin(), "The processed input.", Required, {})
 	return PinProperties;
 }
 

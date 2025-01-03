@@ -120,7 +120,7 @@ namespace PCGExCluster
 		bool bIsMirror = false;
 
 		bool bEdgeLengthsDirty = true;
-		bool bIsCopyCluster = false;
+		TSharedPtr<FCluster> OriginalCluster = nullptr;
 
 		mutable FRWLock ClusterLock;
 

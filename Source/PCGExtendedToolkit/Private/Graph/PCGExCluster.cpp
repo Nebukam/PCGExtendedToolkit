@@ -94,22 +94,22 @@ namespace PCGExCluster
 		VtxPoints = &InVtxIO->GetPoints(PCGExData::ESource::In);
 
 		bIsMirror = true;
-		bIsCopyCluster = false;
+		OriginalCluster = OtherCluster;
 
 		NumRawVtx = InVtxIO->GetNum();
 		NumRawEdges = InEdgesIO->GetNum();
 
-		Bounds = OtherCluster->Bounds;
+		Bounds = OriginalCluster->Bounds;
 
-		BoundedEdges = OtherCluster->BoundedEdges;
+		BoundedEdges = OriginalCluster->BoundedEdges;
 
 		if (bCopyNodes)
 		{
-			const int32 NumNewNodes = OtherCluster->Nodes->Num();
+			const int32 NumNewNodes = OriginalCluster->Nodes->Num();
 
 			Nodes = MakeShared<TArray<FNode>>();
 			TArray<FNode>& NewNodes = *Nodes;
-			TArray<FNode>& SourceNodes = *OtherCluster->Nodes;
+			TArray<FNode>& SourceNodes = *OriginalCluster->Nodes;
 
 			PCGEx::InitArray(NewNodes, NumNewNodes);
 
@@ -123,7 +123,7 @@ namespace PCGExCluster
 		}
 		else
 		{
-			Nodes = OtherCluster->Nodes;
+			Nodes = OriginalCluster->Nodes;
 
 			// Update index lookup
 			for (const FNode& Node : *Nodes) { NodeIndexLookup->GetMutable(Node.PointIndex) = Node.Index; }
@@ -133,11 +133,11 @@ namespace PCGExCluster
 
 		if (bCopyEdges)
 		{
-			const int32 NumNewEdges = OtherCluster->Edges->Num();
+			const int32 NumNewEdges = OriginalCluster->Edges->Num();
 
 			Edges = MakeShared<TArray<FEdge>>();
 			TArray<FEdge>& NewEdges = *Edges;
-			TArray<FEdge>& SourceEdges = *OtherCluster->Edges;
+			TArray<FEdge>& SourceEdges = *OriginalCluster->Edges;
 
 			PCGEx::InitArray(NewEdges, NumNewEdges);
 
@@ -153,7 +153,7 @@ namespace PCGExCluster
 		}
 		else
 		{
-			Edges = OtherCluster->Edges;
+			Edges = OriginalCluster->Edges;
 		}
 	}
 

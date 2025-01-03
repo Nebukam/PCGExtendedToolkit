@@ -459,7 +459,7 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 
 		TMap<uint64, int32> UniqueEdges;
 
-		TArray<TSharedPtr<FSubGraph>> SubGraphs;
+		TArray<TSharedRef<FSubGraph>> SubGraphs;
 		TSharedPtr<PCGEx::FIndexLookup> NodeIndexLookup;
 
 		bool bWriteEdgePosition = true;

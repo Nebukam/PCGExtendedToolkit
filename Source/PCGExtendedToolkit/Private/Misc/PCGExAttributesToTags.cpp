@@ -9,16 +9,34 @@
 #define LOCTEXT_NAMESPACE "PCGExAttributesToTagsElement"
 #define PCGEX_NAMESPACE AttributesToTags
 
-PCGExData::EIOInit UPCGExAttributesToTagsSettings::GetMainOutputInitMode() const { return bCleanupConsumableAttributes ? PCGExData::EIOInit::Duplicate : PCGExData::EIOInit::Forward; }
+PCGExData::EIOInit UPCGExAttributesToTagsSettings::GetMainOutputInitMode() const
+{
+	if (Action == EPCGExAttributeToTagsAction::Attribute) { return PCGExData::EIOInit::None; }
+	return bCleanupConsumableAttributes ? PCGExData::EIOInit::Duplicate : PCGExData::EIOInit::Forward;
+}
 
 TArray<FPCGPinProperties> UPCGExAttributesToTagsSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
 	if (Resolution != EPCGExAttributeToTagsResolution::Self)
 	{
-		PCGEX_PIN_POINTS(FName("Tags Source"), "Source collection(s) to read the tags from.", Required, {})
+		PCGEX_PIN_ANY(FName("Tags Source"), "Source collection(s) to read the tags from.", Required, {})
 	}
 	return PinProperties;
+}
+
+TArray<FPCGPinProperties> UPCGExAttributesToTagsSettings::OutputPinProperties() const
+{
+	if (Action == EPCGExAttributeToTagsAction::AddTags)
+	{
+		return Super::OutputPinProperties();
+	}
+	else
+	{
+		TArray<FPCGPinProperties> PinProperties;
+		PCGEX_PIN_PARAMS(FName("Tags"), "Tags value in the format `AttributeName = AttributeName:AttributeValue`", Required, {})
+		return PinProperties;
+	}
 }
 
 PCGEX_INITIALIZE_ELEMENT(AttributesToTags)
@@ -34,7 +52,8 @@ bool FPCGExAttributesToTagsElement::Boot(FPCGExContext* InContext) const
 		return true;
 	}
 
-	PCGEX_MAKE_SHARED(SourceCollection, PCGExData::FPointIOCollection, InContext, FName("Tags Source"))
+	// Converting collection
+	PCGEX_MAKE_SHARED(SourceCollection, PCGExData::FPointIOCollection, InContext, FName("Tags Source"), PCGExData::EIOInit::None, true)
 
 	if (SourceCollection->IsEmpty())
 	{
@@ -56,7 +75,7 @@ bool FPCGExAttributesToTagsElement::Boot(FPCGExContext* InContext) const
 	}
 	else
 	{
-		if (SourceCollection->Num() != 1)
+		if (SourceCollection->Num() != 1 && !Settings->bQuietTooManyCollectionsWarning)
 		{
 			PCGE_LOG(Warning, GraphAndLog, FTEXT("More that one collections found in the sources, only the first one will be used."));
 		}
@@ -86,7 +105,7 @@ bool FPCGExAttributesToTagsElement::ExecuteInternal(FPCGContext* InContext) cons
 {
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExAttributesToTagsElement::Execute);
 
-	PCGEX_CONTEXT(AttributesToTags)
+	PCGEX_CONTEXT_AND_SETTINGS(AttributesToTags)
 	PCGEX_EXECUTION_CHECK
 	PCGEX_ON_INITIAL_EXECUTION
 	{
@@ -102,7 +121,14 @@ bool FPCGExAttributesToTagsElement::ExecuteInternal(FPCGContext* InContext) cons
 
 	PCGEX_POINTS_BATCH_PROCESSING(PCGEx::State_Done)
 
-	Context->MainPoints->StageOutputs();
+	if (Settings->Action == EPCGExAttributeToTagsAction::AddTags)
+	{
+		Context->MainPoints->StageOutputs();
+	}
+	else
+	{
+		Context->MainBatch->Output();
+	}
 
 	return Context->TryComplete();
 }
@@ -117,13 +143,23 @@ namespace PCGExAttributesToTags
 
 		FRandomStream RandomSource(BatchIndex);
 
-		for(int i = 0; i < Settings->Attributes.Num(); i++)
+		for (int i = 0; i < Settings->Attributes.Num(); i++)
 		{
 			FPCGAttributePropertyInputSelector Selector = Settings->Attributes[i].CopyAndFixLast(PointDataFacade->Source->GetIn());
 			Context->AddConsumableAttributeName(Selector.GetName());
 		}
-		
-		TSet<FString> OutTags;
+
+		if (Settings->Action == EPCGExAttributeToTagsAction::Attribute)
+		{
+			OutputSet = Context->ManagedObjects->New<UPCGParamData>();
+			OutputSet->Metadata->AddEntry();
+		}
+
+		auto Tag = [&](const FPCGExAttributeToTagDetails& InDetails, const int32 Index)
+		{
+			if (OutputSet) { InDetails.Tag(Index, OutputSet->Metadata); }
+			else { InDetails.Tag(Index, PointDataFacade->Source); }
+		};
 
 		if (Settings->Resolution == EPCGExAttributeToTagsResolution::Self)
 		{
@@ -137,13 +173,13 @@ namespace PCGExAttributesToTags
 			switch (Settings->Selection)
 			{
 			case EPCGExCollectionEntrySelection::FirstIndex:
-				Details.Tag(0, OutTags);
+				Tag(Details, 0);
 				break;
 			case EPCGExCollectionEntrySelection::LastIndex:
-				Details.Tag(PointDataFacade->GetNum() - 1, OutTags);
+				Tag(Details, PointDataFacade->GetNum() - 1);
 				break;
 			case EPCGExCollectionEntrySelection::RandomIndex:
-				Details.Tag(RandomSource.RandRange(0, PointDataFacade->GetNum() - 1), OutTags);
+				Tag(Details, RandomSource.RandRange(0, PointDataFacade->GetNum() - 1));
 				break;
 			}
 		}
@@ -154,20 +190,24 @@ namespace PCGExAttributesToTags
 			switch (Settings->Selection)
 			{
 			case EPCGExCollectionEntrySelection::FirstIndex:
-				Details.Tag(0, OutTags);
+				Tag(Details, 0);
 				break;
 			case EPCGExCollectionEntrySelection::LastIndex:
-				Details.Tag(PointDataFacade->GetNum() - 1, OutTags);
+				Tag(Details, PointDataFacade->GetNum() - 1);
 				break;
 			case EPCGExCollectionEntrySelection::RandomIndex:
-				Details.Tag(RandomSource.RandRange(0, PointDataFacade->GetNum() - 1), OutTags);
+				Tag(Details, RandomSource.RandRange(0, PointDataFacade->GetNum() - 1));
 				break;
 			}
 		}
 
-		PointDataFacade->Source->Tags->Append(OutTags);
-
 		return true;
+	}
+
+	void FProcessor::Output()
+	{
+		TPointsProcessor<FPCGExAttributesToTagsContext, UPCGExAttributesToTagsSettings>::Output();
+		if (OutputSet) { Context->StageOutput(FName("Tags"), OutputSet, false); }
 	}
 }
 

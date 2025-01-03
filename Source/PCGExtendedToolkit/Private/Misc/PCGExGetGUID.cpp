@@ -20,6 +20,8 @@ PCGExData::EIOInit UPCGExGetGUIDSettings::GetMainOutputInitMode() const { return
 
 PCGEX_INITIALIZE_ELEMENT(GetGUID)
 
+bool UPCGExGetGUIDSettings::GetIsMainTransactional() const { return true; }
+
 bool FPCGExGetGUIDElement::Boot(FPCGExContext* InContext) const
 {
 	if (!FPCGExPointsProcessorElement::Boot(InContext)) { return false; }

@@ -12,6 +12,7 @@
 #include "PCGExContext.h"
 #include "PCGExDataTag.h"
 #include "PCGExPointData.h"
+#include "PCGParamData.h"
 
 #include "Metadata/Accessors/PCGAttributeAccessorKeys.h"
 
@@ -69,6 +70,7 @@ namespace PCGExData
 		friend class FPointIOCollection;
 
 	protected:
+		bool bTransactional = false;
 		bool bMutable = false;
 		FPCGExContext* Context = nullptr;
 		TSharedPtr<PCGEx::FLifecycle> Lifecycle;
@@ -327,11 +329,12 @@ namespace PCGExData
 	protected:
 		mutable FRWLock PairsLock;
 		FPCGExContext* Context = nullptr;
+		bool bTransactional = false;
 
 	public:
-		explicit FPointIOCollection(FPCGExContext* InContext);
-		FPointIOCollection(FPCGExContext* InContext, FName InputLabel, EIOInit InitOut = EIOInit::None);
-		FPointIOCollection(FPCGExContext* InContext, TArray<FPCGTaggedData>& Sources, EIOInit InitOut = EIOInit::None);
+		explicit FPointIOCollection(FPCGExContext* InContext, bool bIsTransactional = false);
+		FPointIOCollection(FPCGExContext* InContext, FName InputLabel, EIOInit InitOut = EIOInit::None, bool bIsTransactional = false);
+		FPointIOCollection(FPCGExContext* InContext, TArray<FPCGTaggedData>& Sources, EIOInit InitOut = EIOInit::None, bool bIsTransactional = false);
 
 		~FPointIOCollection();
 
@@ -442,15 +445,72 @@ namespace PCGExData
 
 	namespace PCGExPointIO
 	{
+		static const UPCGPointData* GetPointData(const FPCGContext* Context, const FPCGTaggedData& Source)
+		{
+			// This is actually creating a transient In that is potentially a new data, this is super bad
+			//const UPCGSpatialData* SpatialData = Cast<UPCGSpatialData>(Source.Data);
+			//if (!SpatialData) { return nullptr; }
+
+			//const UPCGPointData* PointData = SpatialData->ToPointData(const_cast<FPCGContext*>(Context));
+			const UPCGPointData* PointData = Cast<const UPCGPointData>(Source.Data);
+			if (!PointData) { return nullptr; }
+
+			return PointData;
+		}
+
 		static UPCGPointData* GetMutablePointData(const FPCGContext* Context, const FPCGTaggedData& Source)
 		{
-			const UPCGSpatialData* SpatialData = Cast<UPCGSpatialData>(Source.Data);
-			if (!SpatialData) { return nullptr; }
-
-			const UPCGPointData* PointData = SpatialData->ToPointData(const_cast<FPCGContext*>(Context));
+			const UPCGPointData* PointData = GetPointData(Context, Source);
 			if (!PointData) { return nullptr; }
 
 			return const_cast<UPCGPointData*>(PointData);
+		}
+
+		static const UPCGPointData* ToPointData(FPCGExContext* Context, const FPCGTaggedData& Source)
+		{
+			// NOTE : This has a high probability of creating new data on the fly
+			// so it should absolutely not be used to be inherited or duplicated
+			// since it would mean point data that inherit potentially destroyed parents
+			if (const UPCGPointData* RealPointData = Cast<const UPCGPointData>(Source.Data))
+			{
+				return RealPointData;
+			}
+			else if (const UPCGSpatialData* SpatialData = Cast<UPCGSpatialData>(Source.Data))
+			{
+				// Currently we support collapsing to point data only, but at some point in the future that might be different
+#if PCGEX_ENGINE_VERSION < 505
+				const UPCGPointData* PointData = Cast<const UPCGSpatialData>(SpatialData)->ToPointData();
+#else
+				const UPCGPointData* PointData = Cast<const UPCGSpatialData>(SpatialData)->ToPointData(Context);
+#endif
+
+				//Keep track of newly created data internally
+				if (PointData != SpatialData) { Context->ManagedObjects->Add(const_cast<UPCGPointData*>(PointData)); }
+				return PointData;
+			}
+			else if (const UPCGParamData* ParamData = Cast<UPCGParamData>(Source.Data))
+			{
+				const UPCGMetadata* ParamMetadata = ParamData->Metadata;
+				const int64 ParamItemCount = ParamMetadata->GetLocalItemCount();
+
+				if (ParamItemCount == 0) { return nullptr; }
+
+				UPCGPointData* PointData = Context->ManagedObjects->New<UPCGPointData>();
+				check(PointData->Metadata);
+				PointData->Metadata->Initialize(ParamMetadata);
+
+				TArray<FPCGPoint>& Points = PointData->GetMutablePoints();
+				Points.SetNum(ParamItemCount);
+
+				for (int PointIndex = 0; PointIndex < ParamItemCount; ++PointIndex)
+				{
+					Points[PointIndex].MetadataEntry = PointIndex;
+				}
+
+				return PointData;
+			}
+
+			return nullptr;
 		}
 	}
 
