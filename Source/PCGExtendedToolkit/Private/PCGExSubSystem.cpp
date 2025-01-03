@@ -51,7 +51,7 @@ UPCGExSubSystem* UPCGExSubSystem::GetSubsystemForCurrentWorld()
 			World = GEngine->GetCurrentPlayWorld();
 		}
 
-	return UPCGExSubSystem::GetInstance(World);
+	return GetInstance(World);
 }
 
 void UPCGExSubSystem::Tick(float DeltaSeconds)
@@ -82,10 +82,7 @@ UPCGExSubSystem* UPCGExSubSystem::GetInstance(UWorld* World)
 	{
 		return World->GetSubsystem<UPCGExSubSystem>();
 	}
-	else
-	{
-		return nullptr;
-	}
+	return nullptr;
 }
 
 void UPCGExSubSystem::RegisterBeginTickAction(FTickAction&& Action)
@@ -118,7 +115,7 @@ UPCGExDataHolder* UPCGExSubSystem::FindGlobalDataById(const FName InId, const EP
 	{
 		if (Pair.Value->Id == InId && !!(InTypeFilter & EPCGDataType::Point)) { return Pair.Value; }
 	}
-	
+
 	return nullptr;
 }
 

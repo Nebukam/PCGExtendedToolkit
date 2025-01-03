@@ -407,7 +407,7 @@ namespace PCGExGraph
 		}
 
 		void Invalidate(FGraph* InGraph);
-		TSharedPtr<PCGExCluster::FCluster> CreateCluster(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager);
+		void BuildCluster(const TSharedRef<PCGExCluster::FCluster>& InCluster);
 		int32 GetFirstInIOIndex();
 
 		void Compile(

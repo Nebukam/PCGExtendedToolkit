@@ -44,7 +44,7 @@ public:
 
 	// Generates artifacts
 	virtual bool IsCacheable(const UPCGSettings* InSettings) const override { return false; }
-	
+
 protected:
 	virtual bool Boot(FPCGExContext* InContext) const override;
 	virtual bool ExecuteInternal(FPCGContext* InContext) const override;

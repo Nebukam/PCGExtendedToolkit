@@ -34,22 +34,17 @@ namespace PCGExGraph
 		for (const int32 NodeIndex : Nodes) { InGraph->Nodes[NodeIndex].bValid = false; }
 	}
 
-	TSharedPtr<PCGExCluster::FCluster> FSubGraph::CreateCluster(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager)
+	void FSubGraph::BuildCluster(const TSharedRef<PCGExCluster::FCluster>& InCluster)
 	{
-		PCGEX_MAKE_SHARED(NewCluster, PCGExCluster::FCluster, VtxDataFacade->Source, EdgesDataFacade->Source, ParentGraph->NodeIndexLookup)
-
 		// Correct edge IO Index that has been overwritten during subgraph processing
 		for (FEdge& E : FlattenedEdges) { E.IOIndex = -1; }
 
-		PCGEX_SHARED_THIS_DECL
-		NewCluster->BuildFrom(ThisPtr);
+		InCluster->BuildFrom(SharedThis(this));
 
 		// Look into the cost of this
 
 		//if (AsyncManager) { NewCluster->ExpandEdges(AsyncManager); }
 		//else { NewCluster->GetExpandedEdges(true); }
-
-		return NewCluster;
 	}
 
 	int32 FSubGraph::GetFirstInIOIndex()
@@ -202,7 +197,7 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 		UnionBlender.Reset();
 
 		const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager = WeakAsyncManager.Pin();
-		if (!AsyncManager) { return; }
+		if (!AsyncManager || !AsyncManager->IsAvailable()) { return; }
 
 		PCGEX_SHARED_THIS_DECL
 
@@ -625,9 +620,10 @@ namespace PCGExGraphTask
 	void FWriteSubGraphCluster::ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager)
 	{
 		UPCGExClusterEdgesData* ClusterEdgesData = Cast<UPCGExClusterEdgesData>(SubGraph->EdgesDataFacade->GetOut());
-		const TSharedPtr<PCGExCluster::FCluster> Cluster = SubGraph->CreateCluster(AsyncManager);
+		PCGEX_MAKE_SHARED(NewCluster, PCGExCluster::FCluster, SubGraph->VtxDataFacade->Source, SubGraph->EdgesDataFacade->Source, SubGraph->ParentGraph->NodeIndexLookup)
+		ClusterEdgesData->SetBoundCluster(NewCluster);
 
-		ClusterEdgesData->SetBoundCluster(Cluster);
+		SubGraph->BuildCluster(NewCluster.ToSharedRef());
 	}
 
 	void FCompileGraph::ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager)
