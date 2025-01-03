@@ -407,7 +407,7 @@ namespace PCGExData
 		void Flush();
 	};
 
-	class /*PCGEXTENDEDTOOLKIT_API*/ FPointIOTaggedEntries
+	class /*PCGEXTENDEDTOOLKIT_API*/ FPointIOTaggedEntries : public TSharedFromThis<FPointIOTaggedEntries>
 	{
 	public:
 		FString TagId;

@@ -483,7 +483,7 @@ namespace PCGExData
 
 	class /*PCGEXTENDEDTOOLKIT_API*/ FFacade : public TSharedFromThis<FFacade>
 	{
-		mutable FRWLock PoolLock;
+		mutable FRWLock BufferLock;
 		mutable FRWLock CloudLock;
 
 	public:
@@ -538,7 +538,7 @@ namespace PCGExData
 			if (NewBuffer) { return NewBuffer; }
 
 			{
-				FWriteScopeLock WriteScopeLock(PoolLock);
+				FWriteScopeLock WriteScopeLock(BufferLock);
 
 				NewBuffer = FindBufferUnsafe<T>(FullName);
 				if (NewBuffer) { return NewBuffer; }
@@ -708,6 +708,7 @@ namespace PCGExData
 
 		void Flush()
 		{
+			FWriteScopeLock WriteScopeLock(BufferLock);
 			Buffers.Empty();
 			BufferMap.Empty();
 		}
@@ -720,7 +721,7 @@ namespace PCGExData
 	protected:
 		void Flush(const TSharedPtr<FBufferBase>& Buffer)
 		{
-			FWriteScopeLock WriteScopeLock(PoolLock);
+			FWriteScopeLock WriteScopeLock(BufferLock);
 			Buffers.RemoveAt(Buffer->BufferIndex);
 			BufferMap.Remove(Buffer->GetUID());
 			for (int i = 0; i < Buffers.Num(); i++) { Buffers[i].Get()->BufferIndex = i; }

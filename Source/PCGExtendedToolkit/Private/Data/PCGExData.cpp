@@ -18,7 +18,7 @@ namespace PCGExData
 
 	TSharedPtr<FBufferBase> FFacade::FindBuffer(const uint64 UID)
 	{
-		FReadScopeLock ReadScopeLock(PoolLock);
+		FReadScopeLock ReadScopeLock(BufferLock);
 		return FindBufferUnsafe(UID);
 	}
 
@@ -43,11 +43,15 @@ namespace PCGExData
 
 		Source->GetOutKeys(true);
 
-		for (int i = 0; i < Buffers.Num(); i++)
 		{
-			const TSharedPtr<FBufferBase> Buffer = Buffers[i];
-			if (!Buffer.IsValid() || !Buffer->IsWritable()) { continue; }
-			PCGExMT::Write(AsyncManager, Buffer);
+			FWriteScopeLock WriteScopeLock(BufferLock);
+
+			for (int i = 0; i < Buffers.Num(); i++)
+			{
+				const TSharedPtr<FBufferBase> Buffer = Buffers[i];
+				if (!Buffer.IsValid() || !Buffer->IsWritable()) { continue; }
+				PCGExMT::Write(AsyncManager, Buffer);
+			}
 		}
 
 		Flush();
@@ -65,9 +69,13 @@ namespace PCGExData
 
 		Source->GetOutKeys(true);
 
-		for (const TSharedPtr<FBufferBase>& Buffer : Buffers)
 		{
-			if (Buffer->IsWritable()) { TaskGroup->AddSimpleCallback([BufferRef = Buffer]() { BufferRef->Write(); }); }
+			FWriteScopeLock WriteScopeLock(BufferLock);
+			
+			for (const TSharedPtr<FBufferBase>& Buffer : Buffers)
+			{
+				if (Buffer->IsWritable()) { TaskGroup->AddSimpleCallback([BufferRef = Buffer]() { BufferRef->Write(); }); }
+			}
 		}
 	}
 

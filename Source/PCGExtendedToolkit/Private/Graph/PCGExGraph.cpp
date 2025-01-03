@@ -60,6 +60,8 @@ namespace PCGExGraph
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(FWriteSubGraphEdges::ExecuteTask);
 
+		const TSharedPtr<FGraph> ParentGraph = WeakParentGraph.Pin();
+
 		WeakBuilder = InBuilder;
 		WeakAsyncManager = AsyncManager;
 
@@ -143,16 +145,16 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 
 	void FSubGraph::CompileRange(const PCGExMT::FScope& Scope)
 	{
-		const TSharedPtr<FGraphBuilder> Builder = WeakBuilder.Pin();
+		const TSharedPtr<FGraph> ParentGraph = WeakParentGraph.Pin();
 
-		if (!Builder) { return; }
+		if (!ParentGraph) { return; }
 
 		const TSharedPtr<PCGExData::TBuffer<int64>> EdgeEndpointsWriter = EdgesDataFacade->GetWritable<int64>(Tag_EdgeEndpoints, -1, false, PCGExData::EBufferInit::New);
 
 		const TArray<FPCGPoint>& Vertices = VtxDataFacade->GetOut()->GetPoints();
 		TArray<FPCGPoint>& MutablePoints = EdgesDataFacade->Source->GetOut()->GetMutablePoints();
 
-		const bool bHasUnionMetadata = (MetadataDetails && Builder && !ParentGraph->EdgeMetadata.IsEmpty());
+		const bool bHasUnionMetadata = (MetadataDetails && !ParentGraph->EdgeMetadata.IsEmpty());
 		const FVector SeedOffset = FVector(EdgesDataFacade->Source->IOIndex);
 		const uint32 BaseGUID = VtxDataFacade->Source->GetOut()->GetUniqueID();
 
@@ -197,7 +199,8 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 		UnionBlender.Reset();
 
 		const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager = WeakAsyncManager.Pin();
-		if (!AsyncManager || !AsyncManager->IsAvailable()) { return; }
+		const TSharedPtr<FGraph> ParentGraph = WeakParentGraph.Pin();
+		if (!AsyncManager || !AsyncManager->IsAvailable() || !ParentGraph) { return; }
 
 		PCGEX_SHARED_THIS_DECL
 
@@ -364,7 +367,7 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 			if (!CurrentNode.bValid || CurrentNode.IsEmpty()) { continue; }
 
 			PCGEX_MAKE_SHARED(SubGraph, FSubGraph)
-			SubGraph->ParentGraph = this;
+			SubGraph->WeakParentGraph = SharedThis(this);
 
 			TArray<int32> Stack;
 			Stack.Reserve(Nodes.Num() - VisitedNum);
@@ -439,6 +442,9 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 
 	void FGraphBuilder::Compile(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager, const bool bWriteNodeFacade, const FGraphMetadataDetails* MetadataDetails)
 	{
+		check(!bCompiling)
+		
+		bCompiling = true;
 		AsyncManager = InAsyncManager;
 		MetadataDetailsPtr = MetadataDetails;
 		bWriteVtxDataFacadeWithCompile = bWriteNodeFacade;
@@ -620,7 +626,9 @@ namespace PCGExGraphTask
 	void FWriteSubGraphCluster::ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager)
 	{
 		UPCGExClusterEdgesData* ClusterEdgesData = Cast<UPCGExClusterEdgesData>(SubGraph->EdgesDataFacade->GetOut());
-		PCGEX_MAKE_SHARED(NewCluster, PCGExCluster::FCluster, SubGraph->VtxDataFacade->Source, SubGraph->EdgesDataFacade->Source, SubGraph->ParentGraph->NodeIndexLookup)
+		const TSharedPtr<PCGExGraph::FGraph> ParentGraph = SubGraph->WeakParentGraph.Pin();
+		if (!ParentGraph) { return; }
+		PCGEX_MAKE_SHARED(NewCluster, PCGExCluster::FCluster, SubGraph->VtxDataFacade->Source, SubGraph->EdgesDataFacade->Source, ParentGraph->NodeIndexLookup)
 		ClusterEdgesData->SetBoundCluster(NewCluster);
 
 		SubGraph->BuildCluster(NewCluster.ToSharedRef());

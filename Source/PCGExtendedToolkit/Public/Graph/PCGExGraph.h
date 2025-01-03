@@ -338,6 +338,7 @@ namespace PCGExGraph
 		FNode(const int32 InNodeIndex, const int32 InPointIndex):
 			Index(InNodeIndex), PointIndex(InPointIndex)
 		{
+			Links.Empty();
 		}
 
 		int8 bValid = 1; // int for atomic operations
@@ -377,7 +378,7 @@ namespace PCGExGraph
 	{
 	public:
 		int64 Id = -1;
-		FGraph* ParentGraph = nullptr;
+		TWeakPtr<FGraph> WeakParentGraph;
 		TSet<int32> Nodes;
 		TSet<int32> Edges;
 		TSet<int32> EdgesInIOIndices;
@@ -438,7 +439,7 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 		void CompilationComplete();
 	};
 
-	class /*PCGEXTENDEDTOOLKIT_API*/ FGraph
+	class /*PCGEXTENDEDTOOLKIT_API*/ FGraph : public TSharedFromThis<FGraph>
 	{
 		mutable FRWLock GraphLock;
 		mutable FRWLock EdgeMetadataLock;
@@ -555,7 +556,7 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 			}
 		}
 
-		FORCEINLINE void AddNodeAndEdgeMetadata(
+		FORCEINLINE void AddNodeAndEdgeMetadataUnsafe(
 			const int32 InNodeIndex,
 			const int32 InEdgeIndex,
 			const FGraphEdgeMetadata* InParentMetadata,
@@ -566,6 +567,26 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 
 			FGraphEdgeMetadata& E = GetOrCreateEdgeMetadataUnsafe(InEdgeIndex, InParentMetadata);
 			E.Type = InType;
+		}
+
+		FORCEINLINE void AddNodeAndEdgeMetadata(
+			const int32 InNodeIndex,
+			const int32 InEdgeIndex,
+			const FGraphEdgeMetadata* InParentMetadata,
+			const EPCGExIntersectionType InType)
+		{
+			FWriteScopeLock WriteEdgeScopeLock(EdgeMetadataLock);
+			FWriteScopeLock WriteNodeScopeLock(NodeMetadataLock);
+			AddNodeAndEdgeMetadataUnsafe(InNodeIndex, InEdgeIndex, InParentMetadata, InType);
+		}
+
+		FORCEINLINE void AddNodeMetadataUnsafe(
+			const int32 InNodeIndex,
+			const FGraphEdgeMetadata* InParentMetadata,
+			const EPCGExIntersectionType InType)
+		{
+			FGraphNodeMetadata& N = GetOrCreateNodeMetadataUnsafe(InNodeIndex);
+			N.Type = InType;
 		}
 
 		FORCEINLINE void AddNodeMetadata(
@@ -573,11 +594,11 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 			const FGraphEdgeMetadata* InParentMetadata,
 			const EPCGExIntersectionType InType)
 		{
-			FGraphNodeMetadata& N = GetOrCreateNodeMetadataUnsafe(InNodeIndex);
-			N.Type = InType;
+			FWriteScopeLock WriteScopeLock(NodeMetadataLock);
+			AddNodeMetadataUnsafe(InNodeIndex, InParentMetadata, InType);
 		}
 
-		FORCEINLINE void AddEdgeMetadata(
+		FORCEINLINE void AddEdgeMetadataUnsafe(
 			const int32 InEdgeIndex,
 			const FGraphEdgeMetadata* InParentMetadata,
 			const EPCGExIntersectionType InType)
@@ -586,31 +607,39 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 			E.Type = InType;
 		}
 
+		FORCEINLINE void AddEdgeMetadata(
+			const int32 InEdgeIndex,
+			const FGraphEdgeMetadata* InParentMetadata,
+			const EPCGExIntersectionType InType)
+		{
+			FWriteScopeLock WriteScopeLock(EdgeMetadataLock);
+			AddEdgeMetadataUnsafe(InEdgeIndex, InParentMetadata, InType);
+		}
+
 		FORCEINLINE FGraphNodeMetadata* FindNodeMetadataUnsafe(const int32 NodeIndex) { return NodeMetadata.Find(NodeIndex); }
+		FORCEINLINE FGraphNodeMetadata* FindNodeMetadata(const int32 NodeIndex)
+		{
+			FReadScopeLock ReadScopeLock(NodeMetadataLock);
+			return FindNodeMetadataUnsafe(NodeIndex);
+		}
+
 		FORCEINLINE FGraphEdgeMetadata* FindEdgeMetadataUnsafe(const int32 EdgeIndex) { return EdgeMetadata.Find(EdgeIndex); }
+		FORCEINLINE FGraphEdgeMetadata* FindEdgeMetadata(const int32 EdgeIndex)
+		{
+			FReadScopeLock ReadScopeLock(EdgeMetadataLock);
+			return FindEdgeMetadataUnsafe(EdgeIndex);
+		}
+
 		FORCEINLINE FGraphEdgeMetadata* FindRootEdgeMetadataUnsafe(const int32 EdgeIndex)
 		{
 			const FGraphEdgeMetadata* BaseEdge = EdgeMetadata.Find(EdgeIndex);
 			return BaseEdge ? EdgeMetadata.Find(BaseEdge->RootIndex) : nullptr;
 		}
 
-		FORCEINLINE FGraphNodeMetadata* FindNodeMetadata(const int32 NodeIndex)
-		{
-			FReadScopeLock ReadScopeLock(NodeMetadataLock);
-			return NodeMetadata.Find(NodeIndex);
-		}
-
-		FORCEINLINE FGraphEdgeMetadata* FindEdgeMetadata(const int32 EdgeIndex)
-		{
-			FReadScopeLock ReadScopeLock(EdgeMetadataLock);
-			return EdgeMetadata.Find(EdgeIndex);
-		}
-
 		FORCEINLINE FGraphEdgeMetadata* FindRootEdgeMetadata(const int32 EdgeIndex)
 		{
 			FReadScopeLock ReadScopeLock(EdgeMetadataLock);
-			const FGraphEdgeMetadata* BaseEdge = EdgeMetadata.Find(EdgeIndex);
-			return BaseEdge ? EdgeMetadata.Find(BaseEdge->RootIndex) : nullptr;
+			return FindRootEdgeMetadataUnsafe(EdgeIndex);
 		}
 
 
@@ -632,6 +661,7 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 		TSharedPtr<PCGExMT::FTaskManager> AsyncManager;
 		const FGraphMetadataDetails* MetadataDetailsPtr = nullptr;
 		bool bWriteVtxDataFacadeWithCompile = false;
+		bool bCompiling = false;
 
 	public:
 		const FPCGExGraphBuilderDetails* OutputDetails = nullptr;
