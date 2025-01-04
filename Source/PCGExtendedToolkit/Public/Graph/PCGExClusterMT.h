@@ -549,7 +549,7 @@ namespace PCGExClusterMT
 		TArray<TSharedRef<T>> Processors;
 		TArray<TSharedRef<T>> TrivialProcessors;
 
-		PCGEx::ContextState CurrentState = PCGEx::State_InitialExecution;
+		std::atomic<PCGEx::ContextState> CurrentState{PCGEx::State_InitialExecution};
 
 		virtual int32 GetNumProcessors() const override { return Processors.Num(); }
 
@@ -580,7 +580,7 @@ namespace PCGExClusterMT
 
 			if (VtxDataFacade->GetNum() <= 1) { return; }
 
-			CurrentState = PCGEx::State_Processing;
+			CurrentState.store(PCGEx::State_Processing, std::memory_order_release);
 			TSharedPtr<FClusterProcessorBatchBase> SelfPtr = SharedThis(this);
 
 			for (const TSharedPtr<PCGExData::FPointIO>& IO : Edges)
@@ -621,7 +621,7 @@ namespace PCGExClusterMT
 		{
 			if (!bIsBatchValid) { return; }
 
-			CurrentState = PCGEx::State_Completing;
+			CurrentState.store(PCGEx::State_Completing, std::memory_order_release);
 			PCGEX_ASYNC_MT_LOOP_VALID_PROCESSORS(CompleteWork, bDaisyChainCompletion, { Processor->CompleteWork(); })
 			FClusterProcessorBatchBase::CompleteWork();
 		}
@@ -630,7 +630,7 @@ namespace PCGExClusterMT
 		{
 			if (!bIsBatchValid) { return; }
 
-			CurrentState = PCGEx::State_Writing;
+			CurrentState.store(PCGEx::State_Writing, std::memory_order_release);
 			PCGEX_ASYNC_MT_LOOP_VALID_PROCESSORS(Write, bDaisyChainWrite, { Processor->Write(); })
 			FClusterProcessorBatchBase::Write();
 		}

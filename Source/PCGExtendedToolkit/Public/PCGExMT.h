@@ -58,6 +58,8 @@
 
 namespace PCGExMT
 {
+	using FCompletionCallback = std::function<void()>;
+
 	static void SetWorkPriority(const EPCGExAsyncPriority Selection, UE::Tasks::ETaskPriority& Priority)
 	{
 		switch (Selection)
@@ -134,12 +136,11 @@ namespace PCGExMT
 	class /*PCGEXTENDEDTOOLKIT_API*/ FAsyncHandle : public TSharedFromThis<FAsyncHandle>
 	{
 	protected:
-		mutable FRWLock StateLock;
 		TWeakPtr<FAsyncMultiHandle> Root;
 		TWeakPtr<FAsyncMultiHandle> ParentHandle;
 
-		EAsyncHandleState State = EAsyncHandleState::Idle;
-		bool bCancelled = false;
+		std::atomic<bool> bIsCancelled{false};
+		std::atomic<EAsyncHandleState> State{EAsyncHandleState::Idle};
 
 	public:
 		virtual FString HandleId() const { return TEXT("NOT IMPLEMENTED"); }
@@ -147,30 +148,33 @@ namespace PCGExMT
 		FAsyncHandle() = default;
 		virtual ~FAsyncHandle();
 
+		bool IsCancelled() const { return bIsCancelled.load(std::memory_order_acquire); }
+
 		virtual void SetRoot(const TSharedPtr<FAsyncMultiHandle>& InRoot);
 		void SetParent(const TSharedPtr<FAsyncMultiHandle>& InParent);
 
-		virtual bool Start();
-		virtual void Cancel();
-		bool IsCancelled() const;
+		virtual bool Start();    // Return whether the task is running or not
+		virtual bool Cancel();   // Return whether the task is ended or not
+		virtual bool Complete(); // Return whether the task is ended or not
+
+		void SetState(const EAsyncHandleState NewState) { State.store(NewState, std::memory_order_release); }
+		EAsyncHandleState GetState() const { return State.load(std::memory_order_acquire); }
 
 	protected:
-		void End();
-		virtual void EndInternal();
+		bool CompareAndSetState(EAsyncHandleState& ExpectedState, EAsyncHandleState NewState);
+		virtual void End(bool bIsCancellation);
 	};
 
 	class /*PCGEXTENDEDTOOLKIT_API*/ FAsyncMultiHandle : public FAsyncHandle
 	{
-		friend class FAsyncHandle;
-
 	protected:
 		bool bForceSync = false;
 		FName GroupName = NAME_None;
 
 	public:
 		explicit FAsyncMultiHandle(const bool InForceSync, const FName InName);
+		~FAsyncMultiHandle();
 
-		using FCompletionCallback = std::function<void()>;
 		FCompletionCallback OnCompleteCallback; // Only called with handle was not cancelled
 
 		virtual void SetRoot(const TSharedPtr<FAsyncMultiHandle>& InRoot) override;
@@ -188,19 +192,19 @@ namespace PCGExMT
 		}
 
 	protected:
-		mutable FRWLock GrowthLock;
+		std::atomic<int32> ExpectedTaskCount = {0};
+		std::atomic<int32> PendingTaskCount{0};
+		std::atomic<int32> CompletedTaskCount{0};
 
-		int32 ExpectedTaskCount = 0;
-		int32 PendingTaskCount = 0;
-		int32 CompletedTaskCount = 0;
+		void SetExpectedTaskCount(const int32 InCount) { ExpectedTaskCount.store(InCount, std::memory_order_release); }
 
 		virtual void HandleTaskStart();
-		virtual void HandleTaskCompletion();
 
 		virtual void StartBackgroundTask(const TSharedPtr<FTask>& InTask);
 		virtual void StartSynchronousTask(const TSharedPtr<FTask>& InTask);
 
-		virtual void EndInternal() override;
+		virtual void End(bool bIsCancellation) override;
+		virtual void Reset();
 	};
 
 	class FAsyncToken final : public TSharedFromThis<FAsyncToken>
@@ -220,8 +224,6 @@ namespace PCGExMT
 	{
 		friend class FTask;
 		friend class FTaskGroup;
-
-		mutable FRWLock ManagerStateLock;
 
 		mutable FRWLock TasksLock;
 		mutable FRWLock GroupsLock;
@@ -247,9 +249,9 @@ namespace PCGExMT
 		FPCGExContext* GetContext() const { return Context; }
 
 		virtual bool Start() override;
-		virtual void Cancel() override;
+		virtual bool Cancel() override;
 
-		void Reset();
+		virtual void Reset() override;
 
 		void ReserveTasks(const int32 NumTasks);
 
@@ -257,15 +259,18 @@ namespace PCGExMT
 		TWeakPtr<FAsyncToken> TryCreateToken(const FName& TokenName);
 
 	protected:
+		std::atomic<bool> bIsCancelling{false};
+		bool IsCancelling() const { return bIsCancelling.load(std::memory_order_acquire); }
+
+		std::atomic<bool> bIsResetting{false};
+		bool IsResetting() const { return bIsResetting.load(std::memory_order_acquire); }
+
 		TArray<TSharedPtr<FTask>> Tasks;
 		TArray<TSharedPtr<FTaskGroup>> Groups;
 		TArray<TSharedPtr<FAsyncToken>> Tokens;
 
-		std::atomic<bool> bResetting{false};
-		std::atomic<bool> bCancelling{false};
-
 		virtual void HandleTaskStart() override;
-		virtual void EndInternal() override;
+		virtual void End(bool bIsCancellation) override;
 
 		virtual void StartBackgroundTask(const TSharedPtr<FTask>& InTask) override;
 		virtual void StartSynchronousTask(const TSharedPtr<FTask>& InTask) override;
@@ -305,7 +310,7 @@ namespace PCGExMT
 			check(MaxItems > 0);
 
 			// Compute sub scopes
-			ExpectedTaskCount = SubLoopScopes(Loops, MaxItems, FMath::Max(1, ChunkSize));
+			SetExpectedTaskCount(SubLoopScopes(Loops, MaxItems, FMath::Max(1, ChunkSize)));
 			StaticCastSharedPtr<FTaskManager>(PinnedRoot)->ReserveTasks(Loops.Num());
 
 			if (OnPrepareSubLoopsCallback) { OnPrepareSubLoopsCallback(Loops); }

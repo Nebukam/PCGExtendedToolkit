@@ -599,9 +599,34 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 			[PCGEX_ASYNC_THIS_CAPTURE]()
 			{
 				PCGEX_ASYNC_THIS
-				if (This->OnCompilationEndCallback) { This->OnCompilationEndCallback(This.ToSharedRef(), This->bCompiledSuccessfully); }
-				if (!This->bCompiledSuccessfully) { return; }
-				if (This->bWriteVtxDataFacadeWithCompile) { This->NodeDataFacade->Write(This->AsyncManager); }
+				if (This->bWriteVtxDataFacadeWithCompile)
+				{
+					if (This->OnCompilationEndCallback)
+					{
+						if (!This->bCompiledSuccessfully)
+						{
+							This->OnCompilationEndCallback(This.ToSharedRef(), false);
+						}
+						else
+						{
+							This->NodeDataFacade->WriteBuffers(
+								This->AsyncManager,
+								[AsyncThis]()
+								{
+									PCGEX_ASYNC_NESTED_THIS
+									NestedThis->OnCompilationEndCallback(NestedThis.ToSharedRef(), true);
+								});
+						}
+					}
+					else if (!This->bCompiledSuccessfully)
+					{
+						This->NodeDataFacade->Write(This->AsyncManager);
+					}
+				}
+				else if (This->OnCompilationEndCallback)
+				{
+					This->OnCompilationEndCallback(This.ToSharedRef(), This->bCompiledSuccessfully);
+				}
 			};
 
 		ProcessSubGraphTask->OnIterationCallback =
