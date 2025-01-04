@@ -93,7 +93,7 @@ public:
 	virtual bool ShouldWaitForAsync();
 	void ReadyForExecution();
 
-	bool IsState(const PCGEx::ContextState StateId) const { return CurrentState == StateId; }
+	bool IsState(const PCGEx::ContextState StateId) const { return CurrentState.load(std::memory_order_acquire) == StateId; }
 	bool IsInitialExecution() const { return IsState(PCGEx::State_InitialExecution); }
 	bool IsDone() const { return IsState(PCGEx::State_Done); }
 	void Done();
@@ -105,7 +105,7 @@ public:
 
 protected:
 	bool bWaitingForAsyncCompletion = false;
-	PCGEx::ContextState CurrentState;
+	std::atomic<PCGEx::ContextState> CurrentState;
 
 #pragma endregion
 

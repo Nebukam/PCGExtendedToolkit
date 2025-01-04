@@ -14,7 +14,6 @@
 #include "PCGExMT.h"
 #include "Data/PCGPointData.h"
 
-
 #include "Geometry/PCGExGeoPointBox.h"
 
 #include "PCGExData.generated.h"
@@ -716,7 +715,8 @@ namespace PCGExData
 		}
 
 		void Write(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager);
-		void WriteBuffersAsCallbacks(const TSharedPtr<PCGExMT::FTaskGroup>& TaskGroup);
+		FPlatformTypes::int32 WriteBuffersAsCallbacks(const TSharedPtr<PCGExMT::FTaskGroup>& TaskGroup);
+		void WriteBuffers(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager, PCGExMT::FCompletionCallback&& Callback);
 
 		void Fetch(const PCGExMT::FScope& Scope) { for (const TSharedPtr<FBufferBase>& Buffer : Buffers) { Buffer->Fetch(Scope); } }
 

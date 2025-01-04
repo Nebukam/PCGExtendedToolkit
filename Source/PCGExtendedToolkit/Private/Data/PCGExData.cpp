@@ -57,16 +57,17 @@ namespace PCGExData
 		Flush();
 	}
 
-	void FFacade::WriteBuffersAsCallbacks(const TSharedPtr<PCGExMT::FTaskGroup>& TaskGroup)
+	int32 FFacade::WriteBuffersAsCallbacks(const TSharedPtr<PCGExMT::FTaskGroup>& TaskGroup)
 	{
 		// !!! Requires manual flush !!!
 
 		if (!TaskGroup)
 		{
 			Flush();
-			return;
+			return -1;
 		}
 
+		int32 WritableCount = 0;
 		Source->GetOutKeys(true);
 
 		{
@@ -74,9 +75,36 @@ namespace PCGExData
 
 			for (const TSharedPtr<FBufferBase>& Buffer : Buffers)
 			{
-				if (Buffer->IsWritable()) { TaskGroup->AddSimpleCallback([BufferRef = Buffer]() { BufferRef->Write(); }); }
+				if (Buffer->IsWritable())
+				{
+					TaskGroup->AddSimpleCallback([BufferRef = Buffer]() { BufferRef->Write(); });
+					WritableCount++;
+				}
 			}
 		}
+
+		return WritableCount;
+	}
+
+	void FFacade::WriteBuffers(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager, PCGExMT::FCompletionCallback&& Callback)
+	{
+		PCGEX_ASYNC_GROUP_CHKD_VOID(AsyncManager, WriteBuffersWithCallback);
+		WriteBuffersWithCallback->OnCompleteCallback =
+			[PCGEX_ASYNC_THIS_CAPTURE, Callback]()
+			{
+				PCGEX_ASYNC_THIS
+				This->Flush();
+				Callback();
+			};
+
+		if (const int32 WritableCount = WriteBuffersAsCallbacks(WriteBuffersWithCallback); WritableCount <= 0)
+		{
+			// -1 is fail so no callback
+			if (WritableCount == 0) { Callback(); }
+			return;
+		}
+
+		WriteBuffersWithCallback->StartSimpleCallbacks();
 	}
 
 	bool FReadableBufferConfig::Validate(FPCGExContext* InContext, const TSharedRef<FFacade>& InFacade) const

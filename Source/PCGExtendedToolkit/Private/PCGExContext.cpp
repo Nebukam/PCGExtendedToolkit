@@ -176,8 +176,7 @@ void FPCGExContext::ReadyForExecution()
 
 void FPCGExContext::SetState(const PCGEx::ContextState StateId)
 {
-	if (CurrentState == StateId) { return; }
-	CurrentState = StateId;
+	CurrentState.store(StateId, std::memory_order_release);
 }
 
 void FPCGExContext::Done()
