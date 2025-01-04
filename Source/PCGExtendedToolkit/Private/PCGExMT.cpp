@@ -16,14 +16,14 @@ namespace PCGExMT
 	void FAsyncHandle::SetRoot(const TSharedPtr<FAsyncMultiHandle>& InRoot)
 	{
 		Root = InRoot;
-		InRoot->GrowStarted();
+		InRoot->IncrementPendingTasks();
 	}
 
 	void FAsyncHandle::SetParent(const TSharedPtr<FAsyncMultiHandle>& InParent)
 	{
 		if (!InParent) { return; }
 		ParentHandle = InParent;
-		InParent->GrowStarted();
+		InParent->IncrementPendingTasks();
 	}
 
 	bool FAsyncHandle::Start()
@@ -81,8 +81,8 @@ namespace PCGExMT
 		if (State == EAsyncHandleState::Ended) { return; }
 		State = EAsyncHandleState::Ended;
 
-		if (const TSharedPtr<FAsyncMultiHandle> PinnedRoot = Root.Pin()) { PinnedRoot->GrowComplete(); }
-		if (const TSharedPtr<FAsyncMultiHandle> PinnedParent = ParentHandle.Pin()) { PinnedParent->GrowComplete(); }
+		if (const TSharedPtr<FAsyncMultiHandle> PinnedRoot = Root.Pin()) { PinnedRoot->IncrementCompletedTasks(); }
+		if (const TSharedPtr<FAsyncMultiHandle> PinnedParent = ParentHandle.Pin()) { PinnedParent->IncrementCompletedTasks(); }
 	}
 
 	FAsyncMultiHandle::FAsyncMultiHandle(const bool InForceSync, const FName InName)
@@ -96,18 +96,18 @@ namespace PCGExMT
 		FAsyncHandle::SetRoot(InRoot);
 	}
 
-	void FAsyncMultiHandle::GrowStarted()
+	void FAsyncMultiHandle::IncrementPendingTasks()
 	{
 		FWriteScopeLock Lock(GrowthLock);
-		NumStarted++;
-		OnStartGrowth();
+		PendingTaskCount++;
+		HandleTaskStart();
 	}
 
-	void FAsyncMultiHandle::GrowComplete()
+	void FAsyncMultiHandle::IncrementCompletedTasks()
 	{
 		FWriteScopeLock Lock(GrowthLock);
-		NumCompleted++;
-		OnCompleteGrowth();
+		CompletedTaskCount++;
+		HandleTaskCompletion();
 	}
 
 	bool FAsyncMultiHandle::IsAvailable() const
@@ -121,13 +121,13 @@ namespace PCGExMT
 		}
 	}
 
-	void FAsyncMultiHandle::OnStartGrowth()
+	void FAsyncMultiHandle::HandleTaskStart()
 	{
 	}
 
-	void FAsyncMultiHandle::OnCompleteGrowth()
+	void FAsyncMultiHandle::HandleTaskCompletion()
 	{
-		if (NumStarted == NumCompleted)
+		if (PendingTaskCount == CompletedTaskCount)
 		{
 			EndInternal();
 		}
@@ -172,12 +172,12 @@ namespace PCGExMT
 	FAsyncToken::FAsyncToken(const TWeakPtr<FAsyncMultiHandle>& InHandle, const FName& InName):
 		Handle(InHandle), Name(InName)
 	{
-		if (const TSharedPtr<FAsyncMultiHandle> PinnedHandle = Handle.Pin()) { PinnedHandle->GrowStarted(); }
+		if (const TSharedPtr<FAsyncMultiHandle> PinnedHandle = Handle.Pin()) { PinnedHandle->IncrementPendingTasks(); }
 	}
 
 	FAsyncToken::~FAsyncToken()
 	{
-		if (const TSharedPtr<FAsyncMultiHandle> PinnedHandle = Handle.Pin()) { PinnedHandle->GrowComplete(); }
+		if (const TSharedPtr<FAsyncMultiHandle> PinnedHandle = Handle.Pin()) { PinnedHandle->IncrementCompletedTasks(); }
 	}
 
 	void FAsyncToken::Release()
@@ -185,7 +185,7 @@ namespace PCGExMT
 		FWriteScopeLock WriteScopeLock(ReleaseLock);
 		if (const TSharedPtr<FAsyncMultiHandle> PinnedHandle = Handle.Pin())
 		{
-			PinnedHandle->GrowComplete();
+			PinnedHandle->IncrementCompletedTasks();
 			Handle.Reset();
 		}
 	}
@@ -287,8 +287,8 @@ namespace PCGExMT
 
 		// Ensure we can keep on taking tasks
 		bCancelled = false;
-		NumStarted = 0;
-		NumCompleted = 0;
+		PendingTaskCount = 0;
+		CompletedTaskCount = 0;
 
 		bResetting = false;
 
@@ -324,10 +324,10 @@ namespace PCGExMT
 		return Tokens.Add_GetRef(Token);
 	}
 
-	void FTaskManager::OnStartGrowth()
+	void FTaskManager::HandleTaskStart()
 	{
 		Start();
-		FAsyncMultiHandle::OnStartGrowth();
+		FAsyncMultiHandle::HandleTaskStart();
 	}
 
 	void FTaskManager::EndInternal()
@@ -396,7 +396,7 @@ namespace PCGExMT
 		{
 			bDaisyChained = true;
 
-			SubLoopScopes(Loops, MaxItems, SanitizedChunkSize);
+			ExpectedTaskCount = SubLoopScopes(Loops, MaxItems, SanitizedChunkSize);
 
 			if (OnPrepareSubLoopsCallback) { OnPrepareSubLoopsCallback(Loops); }
 
@@ -425,7 +425,7 @@ namespace PCGExMT
 		check(MaxItems > 0);
 
 		// Compute sub scopes
-		SubLoopScopes(Loops, MaxItems, FMath::Max(1, ChunkSize));
+		ExpectedTaskCount = SubLoopScopes(Loops, MaxItems, FMath::Max(1, ChunkSize));
 		StaticCastSharedPtr<FTaskManager>(PinnedRoot)->ReserveTasks(Loops.Num());
 
 		bDaisyChained = true;
@@ -443,14 +443,14 @@ namespace PCGExMT
 
 	void FTaskGroup::StartSimpleCallbacks()
 	{
-		const int32 NumSimpleCallbacks = SimpleCallbacks.Num();
-		check(NumSimpleCallbacks > 0);
+		ExpectedTaskCount = SimpleCallbacks.Num();
+		check(ExpectedTaskCount > 0);
 
 		TSharedPtr<FAsyncMultiHandle> PinnedRoot = Root.Pin();
 		if (!PinnedRoot) { return; }
-		StaticCastSharedPtr<FTaskManager>(PinnedRoot)->ReserveTasks(NumSimpleCallbacks);
+		StaticCastSharedPtr<FTaskManager>(PinnedRoot)->ReserveTasks(ExpectedTaskCount);
 
-		for (int i = 0; i < NumSimpleCallbacks; i++)
+		for (int i = 0; i < ExpectedTaskCount; i++)
 		{
 			PCGEX_MAKE_SHARED(Task, FSimpleCallbackTask, i)
 			Launch(Task);

@@ -353,8 +353,8 @@ namespace PCGEx
 	{
 		FRWLock Lock;
 		bool bTriggered = false;
-		int32 NumMax = 0;
-		int32 NumAdvanced = 0;
+		int32 PendingCount = 0;
+		int32 CompletedCount = 0;
 
 		TFunction<void()> StartFn = nullptr;
 		TFunction<void()> ThresholdFn = nullptr;
@@ -373,8 +373,8 @@ namespace PCGEx
 
 		~FIntTracker() = default;
 
-		void RaiseMax(const int32 Count = 1);
-		void Advance(const int32 Count = 1);
+		void IncrementPending(const int32 Count = 1);
+		void IncrementCompleted(const int32 Count = 1);
 
 		void Trigger();
 		void SafetyTrigger();

@@ -474,7 +474,7 @@ namespace PCGExData
 			{
 				return RealPointData;
 			}
-			else if (const UPCGSpatialData* SpatialData = Cast<UPCGSpatialData>(Source.Data))
+			if (const UPCGSpatialData* SpatialData = Cast<UPCGSpatialData>(Source.Data))
 			{
 				// Currently we support collapsing to point data only, but at some point in the future that might be different
 #if PCGEX_ENGINE_VERSION < 505
@@ -487,7 +487,7 @@ namespace PCGExData
 				if (PointData != SpatialData) { Context->ManagedObjects->Add(const_cast<UPCGPointData*>(PointData)); }
 				return PointData;
 			}
-			else if (const UPCGParamData* ParamData = Cast<UPCGParamData>(Source.Data))
+			if (const UPCGParamData* ParamData = Cast<UPCGParamData>(Source.Data))
 			{
 				const UPCGMetadata* ParamMetadata = ParamData->Metadata;
 				const int64 ParamItemCount = ParamMetadata->GetLocalItemCount();

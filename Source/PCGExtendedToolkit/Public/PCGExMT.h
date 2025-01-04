@@ -175,8 +175,8 @@ namespace PCGExMT
 
 		virtual void SetRoot(const TSharedPtr<FAsyncMultiHandle>& InRoot) override;
 
-		void GrowStarted();
-		void GrowComplete();
+		void IncrementPendingTasks();
+		void IncrementCompletedTasks();
 
 		virtual bool IsAvailable() const;
 
@@ -190,11 +190,12 @@ namespace PCGExMT
 	protected:
 		mutable FRWLock GrowthLock;
 
-		int32 NumStarted = 0;
-		int32 NumCompleted = 0;
+		int32 ExpectedTaskCount = 0;
+		int32 PendingTaskCount = 0;
+		int32 CompletedTaskCount = 0;
 
-		virtual void OnStartGrowth();
-		virtual void OnCompleteGrowth();
+		virtual void HandleTaskStart();
+		virtual void HandleTaskCompletion();
 
 		virtual void StartBackgroundTask(const TSharedPtr<FTask>& InTask);
 		virtual void StartSynchronousTask(const TSharedPtr<FTask>& InTask);
@@ -263,7 +264,7 @@ namespace PCGExMT
 		std::atomic<bool> bResetting{false};
 		std::atomic<bool> bCancelling{false};
 
-		virtual void OnStartGrowth() override;
+		virtual void HandleTaskStart() override;
 		virtual void EndInternal() override;
 
 		virtual void StartBackgroundTask(const TSharedPtr<FTask>& InTask) override;
@@ -304,7 +305,7 @@ namespace PCGExMT
 			check(MaxItems > 0);
 
 			// Compute sub scopes
-			SubLoopScopes(Loops, MaxItems, FMath::Max(1, ChunkSize)); 
+			ExpectedTaskCount = SubLoopScopes(Loops, MaxItems, FMath::Max(1, ChunkSize)); 
 			StaticCastSharedPtr<FTaskManager>(PinnedRoot)->ReserveTasks(Loops.Num());
 
 			if (OnPrepareSubLoopsCallback) { OnPrepareSubLoopsCallback(Loops); }

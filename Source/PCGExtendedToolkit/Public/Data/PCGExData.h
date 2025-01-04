@@ -15,10 +15,6 @@
 #include "Data/PCGPointData.h"
 
 
-
-
-
-
 #include "Geometry/PCGExGeoPointBox.h"
 
 #include "PCGExData.generated.h"

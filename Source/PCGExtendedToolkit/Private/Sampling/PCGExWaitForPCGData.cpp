@@ -379,7 +379,7 @@ namespace PCGExWaitForPCGData
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExWaitForPCGData::Inspect);
 
-		ON_SCOPE_EXIT { InspectionTracker->Advance(); };
+		ON_SCOPE_EXIT { InspectionTracker->IncrementCompleted(); };
 
 		UPCGComponent* Self = Context->SourceComponent.Get();
 
@@ -494,7 +494,7 @@ namespace PCGExWaitForPCGData
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExWaitForPCGData::AddValidComponent);
 
 		Context->EDITOR_TrackPath(InComponent);
-		
+
 		int32 Index = -1;
 
 		{
@@ -508,7 +508,7 @@ namespace PCGExWaitForPCGData
 	void FProcessor::WatchComponent(UPCGComponent* TargetComponent, int32 Index)
 	{
 #if PCGEX_ENGINE_VERSION > 503
-		WatcherTracker->RaiseMax();
+		WatcherTracker->IncrementPending();
 
 		if (!TargetComponent->IsGenerating())
 		{
@@ -536,7 +536,7 @@ namespace PCGExWaitForPCGData
 					{
 						PCGEX_ASYNC_NESTED_THIS
 						NestedThis->ValidComponents[Idx] = nullptr;
-						NestedThis->WatcherTracker->Advance();
+						NestedThis->WatcherTracker->IncrementCompleted();
 					}, true);
 
 				// Wait for generated callback
@@ -649,7 +649,7 @@ namespace PCGExWaitForPCGData
 
 	void FProcessor::StageComponentData(int32 Index)
 	{
-		ON_SCOPE_EXIT { WatcherTracker->Advance(); };
+		ON_SCOPE_EXIT { WatcherTracker->IncrementCompleted(); };
 
 		UPCGComponent* InComponent = ValidComponents[Index];
 		ValidComponents[Index] = nullptr;
