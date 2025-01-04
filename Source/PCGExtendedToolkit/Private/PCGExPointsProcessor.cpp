@@ -35,16 +35,16 @@ TArray<FPCGPinProperties> UPCGExPointsProcessorSettings::InputPinProperties() co
 
 	if (!IsInputless())
 	{
-		if(!GetIsMainTransactional())
+		if (!GetIsMainTransactional())
 		{
 			if (GetMainAcceptMultipleData()) { PCGEX_PIN_POINTS(GetMainInputPin(), "The point data to be processed.", Required, {}) }
-			else { PCGEX_PIN_POINT(GetMainInputPin(), "The point data to be processed.", Required, {}) }	
-		}else
+			else { PCGEX_PIN_POINT(GetMainInputPin(), "The point data to be processed.", Required, {}) }
+		}
+		else
 		{
 			if (GetMainAcceptMultipleData()) { PCGEX_PIN_ANY(GetMainInputPin(), "The data to be processed.", Required, {}) }
 			else { PCGEX_PIN_ANY(GetMainInputPin(), "The data to be processed.", Required, {}) }
 		}
-		
 	}
 
 	if (SupportsPointFilters())
@@ -147,8 +147,7 @@ TSharedPtr<PCGExMT::FTaskManager> FPCGExPointsProcessorContext::GetAsyncManager(
 	if (!AsyncManager)
 	{
 		FWriteScopeLock WriteLock(AsyncLock);
-		AsyncManager = MakeShared<PCGExMT::FTaskManager>(this);
-		AsyncManager->bForceSync = !bAsyncEnabled;
+		AsyncManager = MakeShared<PCGExMT::FTaskManager>(this, !bAsyncEnabled);
 
 		PCGEX_SETTINGS_LOCAL(PointsProcessor)
 		PCGExMT::SetWorkPriority(Settings->WorkPriority, AsyncManager->WorkPriority);
@@ -188,7 +187,7 @@ bool FPCGExPointsProcessorContext::IsAsyncWorkComplete()
 	if (!bAsyncEnabled) { return true; }
 	if (!bWaitingForAsyncCompletion || !AsyncManager) { return true; }
 
-	if (AsyncManager->IsWorkComplete())
+	if (!AsyncManager->IsWaitingForRunningTasks())
 	{
 		ResumeExecution();
 		return true;
@@ -289,8 +288,7 @@ FPCGExContext* FPCGExPointsProcessorElement::InitializeContext(
 	TWeakObjectPtr<UPCGComponent> SourceComponent,
 	const UPCGNode* Node) const
 {
-	
-	if(!SourceComponent.IsValid())
+	if (!SourceComponent.IsValid())
 	{
 		// Fail gracefully
 		InContext->CancelExecution("SourceComponent is trash, call Adrien!");

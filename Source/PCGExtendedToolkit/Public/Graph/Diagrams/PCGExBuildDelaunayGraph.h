@@ -124,14 +124,14 @@ namespace PCGExBuildDelaunay
 		virtual void Write() override;
 	};
 
-	class /*PCGEXTENDEDTOOLKIT_API*/ FOutputDelaunaySites final : public PCGExMT::FPCGExTask
+	class /*PCGEXTENDEDTOOLKIT_API*/ FOutputDelaunaySites final : public PCGExMT::FTask
 	{
 	public:
 		PCGEX_ASYNC_TASK_NAME(FOutputDelaunaySites)
 
 		FOutputDelaunaySites(const TSharedPtr<PCGExData::FPointIO>& InPointIO,
 		                     const TSharedPtr<FProcessor>& InProcessor) :
-			FPCGExTask(),
+			FTask(),
 			PointIO(InPointIO),
 			Processor(InProcessor)
 		{
@@ -143,14 +143,14 @@ namespace PCGExBuildDelaunay
 		virtual void ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager) override;
 	};
 
-	class /*PCGEXTENDEDTOOLKIT_API*/ FOutputDelaunayUrquhartSites final : public PCGExMT::FPCGExTask
+	class /*PCGEXTENDEDTOOLKIT_API*/ FOutputDelaunayUrquhartSites final : public PCGExMT::FTask
 	{
 	public:
 		PCGEX_ASYNC_TASK_NAME(FOutputDelaunayUrquhartSites)
 
 		FOutputDelaunayUrquhartSites(const TSharedPtr<PCGExData::FPointIO>& InPointIO,
 		                             const TSharedPtr<FProcessor>& InProcessor) :
-			FPCGExTask(),
+			FTask(),
 			PointIO(InPointIO),
 			Processor(InProcessor)
 		{

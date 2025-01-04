@@ -138,14 +138,14 @@ protected:
 };
 
 
-class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPlotNavmeshTask final : public PCGExMT::FPCGExTask
+class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPlotNavmeshTask final : public PCGExMT::FTask
 {
 public:
 	PCGEX_ASYNC_TASK_NAME(FPCGExPlotNavmeshTask)
 
 	explicit FPCGExPlotNavmeshTask(
 		const TSharedPtr<PCGExData::FPointIO>& InPointIO) :
-		FPCGExTask(),
+		FTask(),
 		PointIO(InPointIO)
 	{
 	}

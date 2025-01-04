@@ -69,7 +69,7 @@ namespace PCGExPointIOMerger
 	};
 
 	template <typename T>
-	class /*PCGEXTENDEDTOOLKIT_API*/ FWriteAttributeScopeTask final : public PCGExMT::FPCGExTask
+	class /*PCGEXTENDEDTOOLKIT_API*/ FWriteAttributeScopeTask final : public PCGExMT::FTask
 	{
 	public:
 		PCGEX_ASYNC_TASK_NAME(FWriteAttributeScopeTask)
@@ -79,7 +79,7 @@ namespace PCGExPointIOMerger
 			const PCGExMT::FScope& InScope,
 			const PCGEx::FAttributeIdentity& InIdentity,
 			const TSharedPtr<TArray<T>>& InOutValues)
-			: FPCGExTask(),
+			: FTask(),
 			  PointIO(InPointIO),
 			  Scope(InScope),
 			  Identity(InIdentity),

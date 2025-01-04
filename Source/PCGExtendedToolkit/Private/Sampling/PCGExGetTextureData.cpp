@@ -113,7 +113,7 @@ bool FPCGExGetTextureDataElement::ExecuteInternal(FPCGContext* InContext) const
 			Context->TextureReady.Init(false, Context->TextureReferencesList.Num());
 			Context->TextureDataList.Init(nullptr, Context->TextureReferencesList.Num());
 
-			Context->TextureProcessingToken = Context->GetAsyncManager()->TryGetToken(FName("TextureProcessing"));
+			Context->TextureProcessingToken = Context->GetAsyncManager()->TryCreateToken(FName("TextureProcessing"));
 			if (!Context->TextureProcessingToken.IsValid()) { return true; }
 
 			Context->AdvanceProcessing(0);

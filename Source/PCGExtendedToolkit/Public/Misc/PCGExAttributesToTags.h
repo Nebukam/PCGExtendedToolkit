@@ -57,11 +57,11 @@ protected:
 public:
 	virtual PCGExData::EIOInit GetMainOutputInitMode() const override;
 	//~End UPCGExPointsProcessorSettings
-	
+
 	/** Action. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
 	EPCGExAttributeToTagsAction Action = EPCGExAttributeToTagsAction::AddTags;
-	
+
 	/** Resolution mode. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
 	EPCGExAttributeToTagsResolution Resolution = EPCGExAttributeToTagsResolution::Self;
@@ -108,7 +108,7 @@ namespace PCGExAttributesToTags
 	class FProcessor final : public PCGExPointsMT::TPointsProcessor<FPCGExAttributesToTagsContext, UPCGExAttributesToTagsSettings>
 	{
 		UPCGParamData* OutputSet = nullptr;
-		
+
 	public:
 		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade):
 			TPointsProcessor(InPointDataFacade)
