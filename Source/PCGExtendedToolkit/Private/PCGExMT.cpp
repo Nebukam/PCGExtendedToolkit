@@ -252,7 +252,7 @@ namespace PCGExMT
 			Tokens.Empty(); // Revoke all tokens
 
 			// Cancel groups & tasks
-			for (const TSharedPtr<FTaskGroup>& Group : Groups) { Group->Cancel(); }
+			Groups.Empty();
 			for (const TSharedPtr<FTask>& Task : Tasks) { Task->Cancel(); }
 		}
 
