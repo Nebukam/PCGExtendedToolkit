@@ -26,14 +26,14 @@ namespace PCGExClusterMT
 #define PCGEX_ASYNC_CLUSTER_PROCESSOR_LOOP(_NAME, _NUM, _PREPARE, _PROCESS, _COMPLETE, _INLINE) PCGEX_ASYNC_PROCESSOR_LOOP(_NAME, _NUM, _PREPARE, _PROCESS, _COMPLETE, _INLINE, GetClusterBatchChunkSize)
 
 	template <typename T>
-	class FStartClusterBatchProcessing final : public PCGExMT::FPCGExTask
+	class FStartClusterBatchProcessing final : public PCGExMT::FTask
 	{
 	public:
 		PCGEX_ASYNC_TASK_NAME(FStartClusterBatchProcessing)
 
 		FStartClusterBatchProcessing(TSharedPtr<T> InTarget,
 		                             const bool bScoped)
-			: FPCGExTask(),
+			: FTask(),
 			  Target(InTarget),
 			  bScopedIndexLookupBuild(bScoped)
 		{

@@ -412,7 +412,7 @@ namespace PCGExGraph
 		int32 GetFirstInIOIndex();
 
 		void Compile(
-			const TWeakPtr<PCGExMT::FTaskGroup>& InWeakParentTask,
+			const TWeakPtr<PCGExMT::FAsyncMultiHandle>& InParentHandle,
 			const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager,
 			const TSharedPtr<FGraphBuilder>& InBuilder);
 
@@ -777,13 +777,13 @@ namespace PCGExGraphTask
 {
 #pragma region Graph tasks
 
-	class /*PCGEXTENDEDTOOLKIT_API*/ FWriteSubGraphCluster final : public PCGExMT::FPCGExTask
+	class /*PCGEXTENDEDTOOLKIT_API*/ FWriteSubGraphCluster final : public PCGExMT::FTask
 	{
 	public:
 		PCGEX_ASYNC_TASK_NAME(FWriteSubGraphCluster)
 
 		FWriteSubGraphCluster(const TSharedPtr<PCGExGraph::FSubGraph>& InSubGraph)
-			: FPCGExTask(),
+			: FTask(),
 			  SubGraph(InSubGraph)
 		{
 		}
@@ -792,7 +792,7 @@ namespace PCGExGraphTask
 		virtual void ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager) override;
 	};
 
-	class /*PCGEXTENDEDTOOLKIT_API*/ FCompileGraph final : public PCGExMT::FPCGExTask
+	class /*PCGEXTENDEDTOOLKIT_API*/ FCompileGraph final : public PCGExMT::FTask
 	{
 	public:
 		PCGEX_ASYNC_TASK_NAME(FCompileGraph)
@@ -800,7 +800,7 @@ namespace PCGExGraphTask
 		FCompileGraph(const TSharedPtr<PCGExGraph::FGraphBuilder>& InGraphBuilder,
 		              const bool bInWriteNodeFacade,
 		              const PCGExGraph::FGraphMetadataDetails* InMetadataDetails = nullptr)
-			: FPCGExTask(),
+			: FTask(),
 			  Builder(InGraphBuilder),
 			  bWriteNodeFacade(bInWriteNodeFacade),
 			  MetadataDetails(InMetadataDetails)

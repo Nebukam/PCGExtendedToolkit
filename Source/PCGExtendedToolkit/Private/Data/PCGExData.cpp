@@ -71,7 +71,7 @@ namespace PCGExData
 
 		{
 			FWriteScopeLock WriteScopeLock(BufferLock);
-			
+
 			for (const TSharedPtr<FBufferBase>& Buffer : Buffers)
 			{
 				if (Buffer->IsWritable()) { TaskGroup->AddSimpleCallback([BufferRef = Buffer]() { BufferRef->Write(); }); }
@@ -146,13 +146,16 @@ namespace PCGExData
 		BufferConfigs[ConfigIndex].Read(InFacade);
 	}
 
-	void FFacadePreloader::StartLoading(TSharedPtr<PCGExMT::FTaskManager> AsyncManager, const TSharedRef<FFacade>& InDataFacade, TSharedPtr<PCGExMT::FTaskGroup> InTaskGroup)
+	void FFacadePreloader::StartLoading(
+		const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager,
+		const TSharedRef<FFacade>& InDataFacade,
+		const TSharedPtr<PCGExMT::FAsyncMultiHandle>& InParentHandle)
 	{
 		InternalDataFacadePtr = InDataFacade;
 
 		if (!IsEmpty())
 		{
-			if (!Validate(AsyncManager->Context, InDataFacade))
+			if (!Validate(AsyncManager->GetContext(), InDataFacade))
 			{
 				InternalDataFacadePtr.Reset();
 				OnLoadingEnd();
@@ -160,7 +163,7 @@ namespace PCGExData
 			}
 
 			PCGEX_ASYNC_GROUP_CHKD_VOID(AsyncManager, PrefetchAttributesTask)
-			PrefetchAttributesTask->SetParentTaskGroup(InTaskGroup);
+			PrefetchAttributesTask->SetParent(InParentHandle);
 
 			PrefetchAttributesTask->OnCompleteCallback =
 				[PCGEX_ASYNC_THIS_CAPTURE]()

@@ -97,7 +97,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExAttributeToTagDetails
 	/** If enabled, prefix the attribute value with the attribute name  */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
 	bool bPrefixWithAttributeName = true;
-	
+
 	/** Attributes which value will be used as tags. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
 	TArray<FPCGAttributePropertyInputSelector> Attributes;

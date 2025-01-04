@@ -31,12 +31,9 @@ TArray<FPCGPinProperties> UPCGExAttributesToTagsSettings::OutputPinProperties() 
 	{
 		return Super::OutputPinProperties();
 	}
-	else
-	{
-		TArray<FPCGPinProperties> PinProperties;
-		PCGEX_PIN_PARAMS(FName("Tags"), "Tags value in the format `AttributeName = AttributeName:AttributeValue`", Required, {})
-		return PinProperties;
-	}
+	TArray<FPCGPinProperties> PinProperties;
+	PCGEX_PIN_PARAMS(FName("Tags"), "Tags value in the format `AttributeName = AttributeName:AttributeValue`", Required, {})
+	return PinProperties;
 }
 
 PCGEX_INITIALIZE_ELEMENT(AttributesToTags)

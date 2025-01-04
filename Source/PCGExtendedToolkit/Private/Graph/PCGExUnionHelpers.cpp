@@ -165,10 +165,6 @@ namespace PCGExGraph
 	{
 		if (GraphBuilder->Graph->Edges.Num() <= 1)
 		{
-			if (bCompilingFinalGraph)
-			{
-				UE_LOG(LogTemp, Log, TEXT("%d | 1 or less edges"), Context->GetInputSettings<UPCGSettings>()->GetUniqueID());
-			}
 			CompileFinalGraph(); // Nothing to be found
 		}
 		else if (bDoPointEdge)
@@ -181,10 +177,6 @@ namespace PCGExGraph
 		}
 		else
 		{
-			if (bCompilingFinalGraph)
-			{
-				UE_LOG(LogTemp, Log, TEXT("%d | CompileFinalGraph (default)"), Context->GetInputSettings<UPCGSettings>()->GetUniqueID());
-			}
 			CompileFinalGraph();
 		}
 	}
@@ -198,10 +190,6 @@ namespace PCGExGraph
 			if (bDoEdgeEdge) { FindEdgeEdgeIntersections(); }
 			else
 			{
-				if (bCompilingFinalGraph)
-				{
-					UE_LOG(LogTemp, Log, TEXT("%d | CompileFinalGraph (after point/edge)"), Context->GetInputSettings<UPCGSettings>()->GetUniqueID());
-				}
 				CompileFinalGraph();
 			}
 			return false;
@@ -209,10 +197,6 @@ namespace PCGExGraph
 
 		PCGEX_ON_ASYNC_STATE_READY(State_ProcessingEdgeEdgeIntersections)
 		{
-			if (bCompilingFinalGraph)
-			{
-				UE_LOG(LogTemp, Log, TEXT("%d | CompileFinalGraph (after edge/edge)"), Context->GetInputSettings<UPCGSettings>()->GetUniqueID());
-			}
 			CompileFinalGraph();
 			return false;
 		}
