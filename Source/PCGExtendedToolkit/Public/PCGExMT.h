@@ -170,8 +170,8 @@ namespace PCGExMT
 	public:
 		explicit FAsyncMultiHandle(const bool InForceSync, const FName InName);
 
-		using CompletionCallback = std::function<void()>;
-		CompletionCallback OnCompleteCallback; // Only called with handle was not cancelled
+		using FCompletionCallback = std::function<void()>;
+		FCompletionCallback OnCompleteCallback; // Only called with handle was not cancelled
 
 		virtual void SetRoot(const TSharedPtr<FAsyncMultiHandle>& InRoot) override;
 
@@ -281,16 +281,16 @@ namespace PCGExMT
 		friend class FDaisyChainScopeIterationTask;
 
 	public:
-		using SimpleCallback = std::function<void()>;
+		using FSimpleCallback = std::function<void()>;
 
-		using IterationCallback = std::function<void(const int32, const FScope&)>;
-		IterationCallback OnIterationCallback;
+		using FIterationCallback = std::function<void(const int32, const FScope&)>;
+		FIterationCallback OnIterationCallback;
 
-		using PrepareSubLoopsCallback = std::function<void(const TArray<FScope>&)>;
-		PrepareSubLoopsCallback OnPrepareSubLoopsCallback;
+		using FPrepareSubLoopsCallback = std::function<void(const TArray<FScope>&)>;
+		FPrepareSubLoopsCallback OnPrepareSubLoopsCallback;
 
-		using SubLoopStartCallback = std::function<void(const FScope&)>;
-		SubLoopStartCallback OnSubLoopStartCallback;
+		using FSubLoopStartCallback = std::function<void(const FScope&)>;
+		FSubLoopStartCallback OnSubLoopStartCallback;
 
 		explicit FTaskGroup(const bool InForceSync, const FName InName);
 
@@ -305,7 +305,7 @@ namespace PCGExMT
 			check(MaxItems > 0);
 
 			// Compute sub scopes
-			ExpectedTaskCount = SubLoopScopes(Loops, MaxItems, FMath::Max(1, ChunkSize)); 
+			ExpectedTaskCount = SubLoopScopes(Loops, MaxItems, FMath::Max(1, ChunkSize));
 			StaticCastSharedPtr<FTaskManager>(PinnedRoot)->ReserveTasks(Loops.Num());
 
 			if (OnPrepareSubLoopsCallback) { OnPrepareSubLoopsCallback(Loops); }
@@ -327,7 +327,7 @@ namespace PCGExMT
 		void StartIterations(const int32 MaxItems, const int32 ChunkSize, const bool bDaisyChain = false);
 		void StartSubLoops(const int32 MaxItems, const int32 ChunkSize, const bool bDaisyChain = false);
 
-		void AddSimpleCallback(SimpleCallback&& InCallback);
+		void AddSimpleCallback(FSimpleCallback&& InCallback);
 		void StartSimpleCallbacks();
 		void TriggerSimpleCallback(const int32 Index);
 
@@ -336,7 +336,7 @@ namespace PCGExMT
 
 	protected:
 		bool bDaisyChained = false;
-		TArray<SimpleCallback> SimpleCallbacks;
+		TArray<FSimpleCallback> SimpleCallbacks;
 		TArray<FScope> Loops;
 
 		void ExecScopeIterations(const FScope& Scope, bool bPrepareOnly) const;

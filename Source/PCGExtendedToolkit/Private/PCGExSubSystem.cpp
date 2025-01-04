@@ -4,6 +4,7 @@
 #include "PCGExSubSystem.h"
 
 #include "PCGComponent.h"
+#include "Data/PCGExDataSharing.h"
 
 #if WITH_EDITOR
 #include "Editor.h"
@@ -21,6 +22,7 @@ UPCGExSubSystem::UPCGExSubSystem()
 void UPCGExSubSystem::Initialize(FSubsystemCollectionBase& Collection)
 {
 	Super::Initialize(Collection);
+	SharedDataManager = NewObject<UPCGExSharedDataManager>(this);
 }
 
 void UPCGExSubSystem::Deinitialize()
@@ -90,37 +92,6 @@ void UPCGExSubSystem::RegisterBeginTickAction(FTickAction&& Action)
 	FWriteScopeLock WriteScopeLock(TickActionsLock);
 	bWantsTick = true;
 	BeginTickActions.Emplace(Action);
-}
-
-void UPCGExSubSystem::RegisterGlobalData(FName InName, const TObjectPtr<UPCGData>& InData, const TSet<FString>& InTags)
-{
-}
-
-void UPCGExSubSystem::UnregisterGlobalData(const TObjectPtr<UPCGData>& InData)
-{
-}
-
-UPCGExDataHolder* UPCGExSubSystem::FindGlobalDataByKey(uint32 Key)
-{
-	FReadScopeLock ReadScopeLock(GlobalPCGDataLock);
-	if (TObjectPtr<UPCGExDataHolder>* DataHolder = GlobalPCGData.Find(Key)) { return *DataHolder; }
-	return nullptr;
-}
-
-UPCGExDataHolder* UPCGExSubSystem::FindGlobalDataById(const FName InId, const EPCGDataType InTypeFilter)
-{
-	FReadScopeLock ReadScopeLock(GlobalPCGDataLock);
-
-	for (const TPair<uint32, TObjectPtr<UPCGExDataHolder>>& Pair : GlobalPCGData)
-	{
-		if (Pair.Value->Id == InId && !!(InTypeFilter & EPCGDataType::Point)) { return Pair.Value; }
-	}
-
-	return nullptr;
-}
-
-void UPCGExSubSystem::FindTaggedGlobalData(const FString& Tagged, const TSet<FString>& NotTagged)
-{
 }
 
 void UPCGExSubSystem::ExecuteBeginTickActions()

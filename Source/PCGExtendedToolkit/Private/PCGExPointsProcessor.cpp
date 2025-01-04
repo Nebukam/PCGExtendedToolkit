@@ -35,16 +35,16 @@ TArray<FPCGPinProperties> UPCGExPointsProcessorSettings::InputPinProperties() co
 
 	if (!IsInputless())
 	{
-		if(!GetIsMainTransactional())
+		if (!GetIsMainTransactional())
 		{
 			if (GetMainAcceptMultipleData()) { PCGEX_PIN_POINTS(GetMainInputPin(), "The point data to be processed.", Required, {}) }
-			else { PCGEX_PIN_POINT(GetMainInputPin(), "The point data to be processed.", Required, {}) }	
-		}else
+			else { PCGEX_PIN_POINT(GetMainInputPin(), "The point data to be processed.", Required, {}) }
+		}
+		else
 		{
 			if (GetMainAcceptMultipleData()) { PCGEX_PIN_ANY(GetMainInputPin(), "The data to be processed.", Required, {}) }
 			else { PCGEX_PIN_ANY(GetMainInputPin(), "The data to be processed.", Required, {}) }
 		}
-		
 	}
 
 	if (SupportsPointFilters())
@@ -288,8 +288,7 @@ FPCGExContext* FPCGExPointsProcessorElement::InitializeContext(
 	TWeakObjectPtr<UPCGComponent> SourceComponent,
 	const UPCGNode* Node) const
 {
-	
-	if(!SourceComponent.IsValid())
+	if (!SourceComponent.IsValid())
 	{
 		// Fail gracefully
 		InContext->CancelExecution("SourceComponent is trash, call Adrien!");

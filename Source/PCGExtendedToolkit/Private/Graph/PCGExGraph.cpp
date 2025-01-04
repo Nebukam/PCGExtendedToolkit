@@ -443,7 +443,7 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 	void FGraphBuilder::Compile(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager, const bool bWriteNodeFacade, const FGraphMetadataDetails* MetadataDetails)
 	{
 		check(!bCompiling)
-		
+
 		bCompiling = true;
 		AsyncManager = InAsyncManager;
 		MetadataDetailsPtr = MetadataDetails;

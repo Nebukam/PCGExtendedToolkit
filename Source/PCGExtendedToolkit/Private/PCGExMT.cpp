@@ -436,7 +436,7 @@ namespace PCGExMT
 		LaunchWithPreparation(Task, true);
 	}
 
-	void FTaskGroup::AddSimpleCallback(SimpleCallback&& InCallback)
+	void FTaskGroup::AddSimpleCallback(FSimpleCallback&& InCallback)
 	{
 		SimpleCallbacks.Add(InCallback);
 	}
