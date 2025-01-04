@@ -111,6 +111,9 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExGraphBuilderDetails
 
 namespace PCGExGraph
 {
+
+	using FGraphCompilationEndCallback = std::function<void(const TSharedRef<FGraphBuilder>& InBuilder, const bool bSuccess)>;
+
 	const FName SourceProbesLabel = TEXT("Probes");
 	const FName OutputProbeLabel = TEXT("Probe");
 
@@ -666,8 +669,7 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 	public:
 		const FPCGExGraphBuilderDetails* OutputDetails = nullptr;
 
-		using CompilationEndCallback = std::function<void(const TSharedRef<FGraphBuilder>& InBuilder, const bool bSuccess)>;
-		CompilationEndCallback OnCompilationEndCallback;
+		FGraphCompilationEndCallback OnCompilationEndCallback;
 
 		SubGraphPostProcessCallback OnSubGraphPostProcess;
 
