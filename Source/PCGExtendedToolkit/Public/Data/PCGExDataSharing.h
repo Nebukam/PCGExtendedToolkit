@@ -8,6 +8,7 @@
 #include "PCGExSharedDataComponent.h"
 #include "PCGPin.h"
 #include "UObject/Object.h"
+#include <functional>
 
 #include "PCGExDataSharing.generated.h"
 
