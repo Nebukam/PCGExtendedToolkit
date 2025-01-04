@@ -13,6 +13,12 @@
 #include "PCGExDetails.h"
 #include "PCGExMT.h"
 #include "Data/PCGPointData.h"
+
+
+
+
+
+
 #include "Geometry/PCGExGeoPointBox.h"
 
 #include "PCGExData.generated.h"
@@ -830,7 +836,7 @@ namespace PCGExData
 		using CompletionCallback = std::function<void()>;
 		CompletionCallback OnCompleteCallback;
 
-		void StartLoading(TSharedPtr<PCGExMT::FTaskManager> AsyncManager, const TSharedRef<FFacade>& InDataFacade, TSharedPtr<PCGExMT::FTaskGroup> InTaskGroup = nullptr);
+		void StartLoading(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager, const TSharedRef<FFacade>& InDataFacade, const TSharedPtr<PCGExMT::FAsyncMultiHandle>& InParentHandle = nullptr);
 
 	protected:
 		void OnLoadingEnd() const;
@@ -895,7 +901,7 @@ namespace PCGExData
 		uint64 Append(const int32 Index, const int32 IOIndex, const int32 ItemIndex);
 		bool IOIndexOverlap(const int32 InIdx, const TSet<int32>& InIndices);
 
-		FORCEINLINE TSharedPtr<FUnionData> Get(const int32 Index) const { return Entries[Index]; }
+		FORCEINLINE TSharedPtr<FUnionData> Get(const int32 Index) const { return Entries.IsValidIndex(Index) ? Entries[Index] : nullptr; }
 	};
 
 #pragma endregion

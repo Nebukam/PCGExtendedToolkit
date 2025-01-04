@@ -101,7 +101,7 @@ namespace PCGExCreateShapes
 		virtual void CompleteWork() override;
 	};
 
-	class /*PCGEXTENDEDTOOLKIT_API*/ FBuildShape final : public PCGExMT::FPCGExTask
+	class /*PCGEXTENDEDTOOLKIT_API*/ FBuildShape final : public PCGExMT::FTask
 	{
 	public:
 		PCGEX_ASYNC_TASK_NAME(FBuildShape)
@@ -109,7 +109,7 @@ namespace PCGExCreateShapes
 		FBuildShape(UPCGExShapeBuilderOperation* InOperation,
 		            const TSharedRef<PCGExData::FFacade>& InShapeDataFacade,
 		            const TSharedPtr<PCGExShapes::FShape>& InShape) :
-			FPCGExTask(),
+			FTask(),
 			ShapeDataFacade(InShapeDataFacade),
 			Operation(InOperation),
 			Shape(InShape)

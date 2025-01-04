@@ -342,17 +342,11 @@ private:
 
 namespace PCGEx
 {
-	class FLifecycle final : public TSharedFromThis<FLifecycle>
+	class FLifeline final : public TSharedFromThis<FLifeline>
 	{
 	public:
-		FLifecycle() = default;
-		~FLifecycle() = default;
-
-		void Terminate() { bAlive = false; }
-		bool IsAlive() const { return bAlive; }
-
-	private:
-		std::atomic<bool> bAlive{true};
+		FLifeline() = default;
+		~FLifeline() = default;
 	};
 
 	class FIntTracker final : public TSharedFromThis<FIntTracker>
@@ -410,13 +404,13 @@ namespace PCGEx
 		mutable FRWLock DuplicatedObjectLock;
 
 		FPCGContext* Context = nullptr;
-		TSharedPtr<FLifecycle> Lifecycle;
+		TWeakPtr<FLifeline> Lifeline;
 		TSet<UObject*> ManagedObjects;
 
 		bool IsFlushing() const { return static_cast<bool>(bFlushing); }
 
-		explicit FManagedObjects(FPCGContext* InContext, const TSharedPtr<FLifecycle>& InLifecycle):
-			Context(InContext), Lifecycle(InLifecycle)
+		explicit FManagedObjects(FPCGContext* InContext, const TSharedPtr<FLifeline>& InLifeline):
+			Context(InContext), Lifeline(InLifeline)
 		{
 		}
 
@@ -430,7 +424,7 @@ namespace PCGEx
 		template <class T, typename... Args>
 		T* New(Args&&... InArgs)
 		{
-			check(Lifecycle->IsAlive())
+			check(Lifeline.IsValid())
 			check(!IsFlushing())
 
 			T* Object = nullptr;
@@ -454,7 +448,7 @@ namespace PCGEx
 		template <class T>
 		T* Duplicate(const UPCGData* InData)
 		{
-			check(Lifecycle->IsAlive())
+			check(Lifeline.IsValid())
 			check(!IsFlushing())
 
 			T* Object = nullptr;

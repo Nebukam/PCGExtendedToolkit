@@ -54,7 +54,7 @@ namespace PCGExGraph
 	}
 
 	void FSubGraph::Compile(
-		const TWeakPtr<PCGExMT::FTaskGroup>& InWeakParentTask,
+		const TWeakPtr<PCGExMT::FAsyncMultiHandle>& InParentHandle,
 		const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager,
 		const TSharedPtr<FGraphBuilder>& InBuilder)
 	{
@@ -119,12 +119,12 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 		{
 			UnionBlender = MakeShared<PCGExDataBlending::FUnionBlender>(MetadataDetails->EdgesBlendingDetailsPtr, MetadataDetails->EdgesCarryOverDetails);
 			UnionBlender->AddSources(*InBuilder->SourceEdgeFacades, &ProtectedClusterAttributes);
-			UnionBlender->PrepareMerge(AsyncManager->Context, EdgesDataFacade, ParentGraph->EdgesUnion);
+			UnionBlender->PrepareMerge(AsyncManager->GetContext(), EdgesDataFacade, ParentGraph->EdgesUnion);
 		}
 
 		PCGEX_ASYNC_GROUP_CHKD_VOID(AsyncManager, ProcessSubGraphEdges)
 
-		ProcessSubGraphEdges->SetParentTaskGroup(InWeakParentTask.Pin());
+		ProcessSubGraphEdges->SetParent(InParentHandle.Pin());
 
 		ProcessSubGraphEdges->OnCompleteCallback =
 			[PCGEX_ASYNC_THIS_CAPTURE]()
@@ -653,7 +653,7 @@ namespace PCGExGraphTask
 		PCGExGraph::SetClusterVtx(VtxDupe, OutId);
 
 		PCGEX_MAKE_SHARED(VtxTask, PCGExGeoTasks::FTransformPointIO, TaskIndex, PointIO, VtxDupe, TransformDetails);
-		Launch(AsyncManager, VtxTask);
+		Launch(VtxTask);
 
 		for (const TSharedPtr<PCGExData::FPointIO>& Edges : GraphBuilder->EdgesIO->Pairs)
 		{
@@ -664,7 +664,7 @@ namespace PCGExGraphTask
 			PCGExGraph::MarkClusterEdges(EdgeDupe, OutId);
 
 			PCGEX_MAKE_SHARED(EdgeTask, PCGExGeoTasks::FTransformPointIO, TaskIndex, PointIO, EdgeDupe, TransformDetails);
-			Launch(AsyncManager, EdgeTask);
+			Launch(EdgeTask);
 		}
 
 		// TODO : Copy & Transform cluster as well for a big perf boost

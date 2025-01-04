@@ -70,6 +70,7 @@ class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExDataHolder : public UObject
 public:
 	TSet<FString> Tags;
 	FName Id;
+	TWeakPtr<UPCGComponent> SourceComponent;
 
 	UPROPERTY(Transient)
 	TObjectPtr<UPCGData> Data = nullptr;

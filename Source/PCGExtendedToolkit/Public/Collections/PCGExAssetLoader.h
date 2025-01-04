@@ -191,14 +191,14 @@ namespace PCGEx
 
 #if PCGEX_ENGINE_VERSION <= 503
 	template <typename T>
-	class /*PCGEXTENDEDTOOLKIT_API*/ TDiscoverAssetsTask final : public PCGExMT::FPCGExTask
+	class /*PCGEXTENDEDTOOLKIT_API*/ TDiscoverAssetsTask final : public PCGExMT::FTask
 	{
 	public:
 		PCGEX_ASYNC_TASK_NAME(TDiscoverAssetsTask)
 		
 		TDiscoverAssetsTask(const TSharedPtr<TAssetLoader<T>>& InLoader,
 		                    const TSharedPtr<TAttributeBroadcaster<FString>>& InBroadcaster) :
-			FPCGExTask(),
+			FTask(),
 			Loader(InLoader),
 			Broadcaster(InBroadcaster)
 		{
@@ -224,14 +224,14 @@ namespace PCGEx
 	};
 #else
 	template <typename T>
-	class /*PCGEXTENDEDTOOLKIT_API*/ TDiscoverAssetsTask final : public PCGExMT::FPCGExTask
+	class /*PCGEXTENDEDTOOLKIT_API*/ TDiscoverAssetsTask final : public PCGExMT::FTask
 	{
 	public:
 		PCGEX_ASYNC_TASK_NAME(TDiscoverAssetsTask)
 
 		TDiscoverAssetsTask(const TSharedPtr<TAssetLoader<T>>& InLoader,
 		                    const TSharedPtr<TAttributeBroadcaster<FSoftObjectPath>>& InBroadcaster) :
-			FPCGExTask(),
+			FTask(),
 			Loader(InLoader),
 			Broadcaster(InBroadcaster)
 		{

@@ -67,7 +67,7 @@ protected:
 	void CommitStagedOutputs();
 
 public:
-	TSharedPtr<PCGEx::FLifecycle> Lifecycle;
+	TSharedPtr<PCGEx::FLifeline> Lifeline;
 	TUniquePtr<PCGEx::FManagedObjects> ManagedObjects;
 
 	bool bScopedAttributeGet = false;

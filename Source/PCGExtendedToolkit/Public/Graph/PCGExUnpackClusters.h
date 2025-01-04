@@ -65,13 +65,13 @@ protected:
 	virtual bool ExecuteInternal(FPCGContext* InContext) const override;
 };
 
-class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExUnpackClusterTask final : public PCGExMT::FPCGExTask
+class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExUnpackClusterTask final : public PCGExMT::FTask
 {
 public:
 	PCGEX_ASYNC_TASK_NAME(FPCGExUnpackClusterTask)
 
 	explicit FPCGExUnpackClusterTask(const TSharedPtr<PCGExData::FPointIO>& InPointIO)
-		: FPCGExTask(),
+		: FTask(),
 		  PointIO(InPointIO)
 	{
 	}

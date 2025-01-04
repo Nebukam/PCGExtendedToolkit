@@ -73,7 +73,7 @@ namespace PCGExData
 		bool bTransactional = false;
 		bool bMutable = false;
 		FPCGExContext* Context = nullptr;
-		TSharedPtr<PCGEx::FLifecycle> Lifecycle;
+		TWeakPtr<PCGEx::FLifeline> Lifeline;
 
 		mutable FRWLock PointsLock;
 		mutable FRWLock InKeysLock;
@@ -99,19 +99,19 @@ namespace PCGExData
 		bool bAllowEmptyOutput = false;
 
 		explicit FPointIO(FPCGExContext* InContext):
-			Context(InContext), Lifecycle(Context->Lifecycle), In(nullptr)
+			Context(InContext), Lifeline(Context->Lifeline), In(nullptr)
 		{
 			PCGEX_LOG_CTR(FPointIO)
 		}
 
 		explicit FPointIO(FPCGExContext* InContext, const UPCGPointData* InData):
-			Context(InContext), Lifecycle(Context->Lifecycle), In(InData)
+			Context(InContext), Lifeline(Context->Lifeline), In(InData)
 		{
 			PCGEX_LOG_CTR(FPointIO)
 		}
 
 		explicit FPointIO(const TSharedRef<FPointIO>& InPointIO):
-			Context(InPointIO->GetContext()), Lifecycle(InPointIO->Lifecycle), In(InPointIO->GetIn())
+			Context(InPointIO->GetContext()), Lifeline(InPointIO->Lifeline), In(InPointIO->GetIn())
 		{
 			PCGEX_LOG_CTR(FPointIO)
 			RootIO = InPointIO;
@@ -133,8 +133,7 @@ namespace PCGExData
 		template <typename T>
 		bool InitializeOutput(const EIOInit InitOut = EIOInit::None)
 		{
-			if (!Lifecycle->IsAlive()) { return false; }
-
+			if (!Lifeline.IsValid()) { return false; }
 			if (IsValid(Out) && Out != In) { Context->ManagedObjects->Destroy(Out); }
 
 			bMutable = true;

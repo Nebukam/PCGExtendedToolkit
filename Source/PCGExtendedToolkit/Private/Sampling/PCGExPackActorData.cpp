@@ -362,7 +362,7 @@ namespace PCGExPackActorDatas
 		}
 		else
 		{
-			LoadToken = AsyncManager->TryGetToken(FName("Asset Loading"));
+			LoadToken = AsyncManager->TryCreateToken(FName("Asset Loading"));
 			if (!LoadToken.IsValid()) { return false; }
 
 			AsyncTask(

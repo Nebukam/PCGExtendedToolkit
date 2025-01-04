@@ -532,14 +532,14 @@ namespace PCGExBuildCustomGraph
 {
 	const FName SourceOverridesBuilder = TEXT("Overrides : Graph Builder");
 
-	class /*PCGEXTENDEDTOOLKIT_API*/ FBuildGraph final : public PCGExMT::FPCGExTask
+	class /*PCGEXTENDEDTOOLKIT_API*/ FBuildGraph final : public PCGExMT::FTask
 	{
 	public:
 		PCGEX_ASYNC_TASK_NAME(FBuildGraph)
 
 		FBuildGraph(const TSharedPtr<PCGExData::FPointIO>& InPointIO,
 		            UPCGExCustomGraphSettings* InGraphSettings) :
-			FPCGExTask(),
+			FTask(),
 			PointIO(InPointIO),
 			GraphSettings(InGraphSettings)
 		{
