@@ -520,7 +520,7 @@ namespace PCGExCluster
 			int32 NodeIndex = NodeIndexLookup->Get(PointIndex);
 
 			if (NodeIndex != -1) { return NodeIndex; }
-			
+
 			NodeIndex = Nodes->Add(FNode(Nodes->Num(), PointIndex));
 			NodeIndexLookup->GetMutable(PointIndex) = NodeIndex;
 
@@ -530,10 +530,9 @@ namespace PCGExCluster
 
 			return NodeIndex;
 		}
-		
+
 		FORCEINLINE int32 GetOrCreateNodeUnsafe(TSparseArray<int32>& InLookup, const TArray<FPCGPoint>& InNodePoints, const int32 PointIndex)
 		{
-
 			if (InLookup.IsValidIndex(PointIndex))
 			{
 				return InLookup[PointIndex];
@@ -541,15 +540,13 @@ namespace PCGExCluster
 
 			const int32 NodeIndex = Nodes->Add(FNode(Nodes->Num(), PointIndex));
 			InLookup.Insert(PointIndex, NodeIndex);
-			
+
 			const FVector Pos = InNodePoints[PointIndex].Transform.GetLocation();
 			NodePositions.Add(Pos);
 			Bounds += Pos;
 
 			return NodeIndex;
 		}
-		
-		
 	};
 
 

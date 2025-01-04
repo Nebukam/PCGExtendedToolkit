@@ -5,7 +5,7 @@
 
 namespace PCGEx
 {
-	void FIntTracker::RaiseMax(const int32 Count)
+	void FIntTracker::IncrementPending(const int32 Count)
 	{
 		{
 			FReadScopeLock ReadScopeLock(Lock);
@@ -13,12 +13,12 @@ namespace PCGEx
 		}
 		{
 			FWriteScopeLock WriteScopeLock(Lock);
-			if (NumMax == 0 && StartFn) { StartFn(); }
-			NumMax += Count;
+			if (PendingCount == 0 && StartFn) { StartFn(); }
+			PendingCount += Count;
 		}
 	}
 
-	void FIntTracker::Advance(const int32 Count)
+	void FIntTracker::IncrementCompleted(const int32 Count)
 	{
 		{
 			FReadScopeLock ReadScopeLock(Lock);
@@ -26,8 +26,8 @@ namespace PCGEx
 		}
 		{
 			FWriteScopeLock WriteScopeLock(Lock);
-			NumAdvanced += Count;
-			if (NumAdvanced == NumMax) { TriggerInternal(); }
+			CompletedCount += Count;
+			if (CompletedCount == PendingCount) { TriggerInternal(); }
 		}
 	}
 
@@ -40,21 +40,21 @@ namespace PCGEx
 	void FIntTracker::SafetyTrigger()
 	{
 		FWriteScopeLock WriteScopeLock(Lock);
-		if (NumMax > 0) { TriggerInternal(); }
+		if (PendingCount > 0) { TriggerInternal(); }
 	}
 
 	void FIntTracker::Reset()
 	{
 		FWriteScopeLock WriteScopeLock(Lock);
-		NumMax = NumAdvanced = 0;
+		PendingCount = CompletedCount = 0;
 		bTriggered = false;
 	}
 
 	void FIntTracker::Reset(const int32 InMax)
 	{
 		FWriteScopeLock WriteScopeLock(Lock);
-		NumMax = InMax;
-		NumAdvanced = 0;
+		PendingCount = InMax;
+		CompletedCount = 0;
 		bTriggered = false;
 	}
 
@@ -63,7 +63,7 @@ namespace PCGEx
 		if (bTriggered) { return; }
 		bTriggered = true;
 		ThresholdFn();
-		NumMax = NumAdvanced = 0;
+		PendingCount = CompletedCount = 0;
 	}
 
 	FName FUniqueNameGenerator::Get(const FString& BaseName)

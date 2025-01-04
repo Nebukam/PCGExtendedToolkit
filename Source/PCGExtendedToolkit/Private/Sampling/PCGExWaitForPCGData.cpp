@@ -169,7 +169,7 @@ namespace PCGExWaitForPCGData
 			[PCGEX_ASYNC_THIS_CAPTURE]()
 			{
 				PCGEX_ASYNC_THIS
-				This->WatchToken = This->AsyncManager->TryGetToken(FName("Watch"));
+				This->WatchToken = This->AsyncManager->TryCreateToken(FName("Watch"));
 			},
 			[PCGEX_ASYNC_THIS_CAPTURE]()
 			{
@@ -211,7 +211,7 @@ namespace PCGExWaitForPCGData
 		if (Settings->bWaitForMissingActors)
 		{
 			StartTime = Context->SourceComponent->GetWorld()->GetTimeSeconds();
-			SearchActorsToken = AsyncManager->TryGetToken(FName("SearchActors"));
+			SearchActorsToken = AsyncManager->TryCreateToken(FName("SearchActors"));
 			if (!SearchActorsToken.IsValid()) { return false; }
 			GatherActors();
 		}
@@ -317,7 +317,7 @@ namespace PCGExWaitForPCGData
 
 	void FProcessor::StartComponentSearch()
 	{
-		SearchComponentsToken = AsyncManager->TryGetToken(FName("SearchComponents"));
+		SearchComponentsToken = AsyncManager->TryCreateToken(FName("SearchComponents"));
 		if (!SearchComponentsToken.IsValid()) { return; }
 
 		StartTime = Context->SourceComponent->GetWorld()->GetTimeSeconds();
@@ -379,7 +379,7 @@ namespace PCGExWaitForPCGData
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExWaitForPCGData::Inspect);
 
-		ON_SCOPE_EXIT { InspectionTracker->Advance(); };
+		ON_SCOPE_EXIT { InspectionTracker->IncrementCompleted(); };
 
 		UPCGComponent* Self = Context->SourceComponent.Get();
 
@@ -494,7 +494,7 @@ namespace PCGExWaitForPCGData
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExWaitForPCGData::AddValidComponent);
 
 		Context->EDITOR_TrackPath(InComponent);
-		
+
 		int32 Index = -1;
 
 		{
@@ -508,7 +508,7 @@ namespace PCGExWaitForPCGData
 	void FProcessor::WatchComponent(UPCGComponent* TargetComponent, int32 Index)
 	{
 #if PCGEX_ENGINE_VERSION > 503
-		WatcherTracker->RaiseMax();
+		WatcherTracker->IncrementPending();
 
 		if (!TargetComponent->IsGenerating())
 		{
@@ -536,7 +536,7 @@ namespace PCGExWaitForPCGData
 					{
 						PCGEX_ASYNC_NESTED_THIS
 						NestedThis->ValidComponents[Idx] = nullptr;
-						NestedThis->WatcherTracker->Advance();
+						NestedThis->WatcherTracker->IncrementCompleted();
 					}, true);
 
 				// Wait for generated callback
@@ -564,9 +564,11 @@ namespace PCGExWaitForPCGData
 		case EPCGComponentGenerationTrigger::GenerateOnDemand:
 			if (Settings->GenerateOnDemandAction == EPCGExGenerationTriggerAction::Ignore) { return; }
 			break;
+#if PCGEX_ENGINE_VERSION > 503
 		case EPCGComponentGenerationTrigger::GenerateAtRuntime:
 			if (Settings->GenerateAtRuntime == EPCGExRuntimeGenerationTriggerAction::Ignore) { return; }
 			break;
+#endif
 		}
 
 		// Ignore component getting cleaned up
@@ -649,7 +651,7 @@ namespace PCGExWaitForPCGData
 
 	void FProcessor::StageComponentData(int32 Index)
 	{
-		ON_SCOPE_EXIT { WatcherTracker->Advance(); };
+		ON_SCOPE_EXIT { WatcherTracker->IncrementCompleted(); };
 
 		UPCGComponent* InComponent = ValidComponents[Index];
 		ValidComponents[Index] = nullptr;

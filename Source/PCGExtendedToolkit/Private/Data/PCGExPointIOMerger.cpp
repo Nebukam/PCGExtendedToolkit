@@ -103,7 +103,7 @@ void FPCGExPointIOMerger::Merge(const TSharedPtr<PCGExMT::FTaskManager>& AsyncMa
 
 			if (*ExpectedType != SourceAtt.UnderlyingType)
 			{
-				PCGE_LOG_C(Warning, GraphAndLog, AsyncManager->Context, FText::Format(FTEXT("Mismatching attribute types for: {0}."), FText::FromName(SourceAtt.Name)));
+				PCGE_LOG_C(Warning, GraphAndLog, AsyncManager->GetContext(), FText::Format(FTEXT("Mismatching attribute types for: {0}."), FText::FromName(SourceAtt.Name)));
 			}
 		}
 	}

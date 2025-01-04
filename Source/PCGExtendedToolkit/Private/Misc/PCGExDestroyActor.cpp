@@ -89,7 +89,7 @@ namespace PCGExDestroyActors
 		TSet<FSoftObjectPath> UniqueActorReferences;
 		ActorReferences->GrabUniqueValues(UniqueActorReferences);
 
-		MainThreadToken = AsyncManager->TryGetToken(FName("DestroyActors"));
+		MainThreadToken = AsyncManager->TryCreateToken(FName("DestroyActors"));
 		if (!MainThreadToken.IsValid()) { return false; }
 
 		Context->SourceComponent->ForEachManagedResource(

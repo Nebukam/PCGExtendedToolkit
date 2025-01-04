@@ -300,13 +300,13 @@ namespace PCGExGrowPaths
 		void Grow();
 	};
 
-	class /*PCGEXTENDEDTOOLKIT_API*/ FGrowTask final : public PCGExMT::FPCGExTask
+	class /*PCGEXTENDEDTOOLKIT_API*/ FGrowTask final : public PCGExMT::FTask
 	{
 	public:
 		PCGEX_ASYNC_TASK_NAME(FGrowTask)
 
 		FGrowTask(const TSharedPtr<FProcessor>& InProcessor) :
-			FPCGExTask(),
+			FTask(),
 			Processor(InProcessor)
 		{
 		}

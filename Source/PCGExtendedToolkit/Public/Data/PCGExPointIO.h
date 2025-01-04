@@ -73,7 +73,7 @@ namespace PCGExData
 		bool bTransactional = false;
 		bool bMutable = false;
 		FPCGExContext* Context = nullptr;
-		TSharedPtr<PCGEx::FLifecycle> Lifecycle;
+		TWeakPtr<PCGEx::FLifeline> Lifeline;
 
 		mutable FRWLock PointsLock;
 		mutable FRWLock InKeysLock;
@@ -99,19 +99,19 @@ namespace PCGExData
 		bool bAllowEmptyOutput = false;
 
 		explicit FPointIO(FPCGExContext* InContext):
-			Context(InContext), Lifecycle(Context->Lifecycle), In(nullptr)
+			Context(InContext), Lifeline(Context->Lifeline), In(nullptr)
 		{
 			PCGEX_LOG_CTR(FPointIO)
 		}
 
 		explicit FPointIO(FPCGExContext* InContext, const UPCGPointData* InData):
-			Context(InContext), Lifecycle(Context->Lifecycle), In(InData)
+			Context(InContext), Lifeline(Context->Lifeline), In(InData)
 		{
 			PCGEX_LOG_CTR(FPointIO)
 		}
 
 		explicit FPointIO(const TSharedRef<FPointIO>& InPointIO):
-			Context(InPointIO->GetContext()), Lifecycle(InPointIO->Lifecycle), In(InPointIO->GetIn())
+			Context(InPointIO->GetContext()), Lifeline(InPointIO->Lifeline), In(InPointIO->GetIn())
 		{
 			PCGEX_LOG_CTR(FPointIO)
 			RootIO = InPointIO;
@@ -133,8 +133,7 @@ namespace PCGExData
 		template <typename T>
 		bool InitializeOutput(const EIOInit InitOut = EIOInit::None)
 		{
-			if (!Lifecycle->IsAlive()) { return false; }
-
+			if (!Lifeline.IsValid()) { return false; }
 			if (IsValid(Out) && Out != In) { Context->ManagedObjects->Destroy(Out); }
 
 			bMutable = true;
@@ -475,7 +474,7 @@ namespace PCGExData
 			{
 				return RealPointData;
 			}
-			else if (const UPCGSpatialData* SpatialData = Cast<UPCGSpatialData>(Source.Data))
+			if (const UPCGSpatialData* SpatialData = Cast<UPCGSpatialData>(Source.Data))
 			{
 				// Currently we support collapsing to point data only, but at some point in the future that might be different
 #if PCGEX_ENGINE_VERSION < 505
@@ -488,11 +487,12 @@ namespace PCGExData
 				if (PointData != SpatialData) { Context->ManagedObjects->Add(const_cast<UPCGPointData*>(PointData)); }
 				return PointData;
 			}
-			else if (const UPCGParamData* ParamData = Cast<UPCGParamData>(Source.Data))
+#if PCGEX_ENGINE_VERSION > 503
+			if (const UPCGParamData* ParamData = Cast<UPCGParamData>(Source.Data))
 			{
 				const UPCGMetadata* ParamMetadata = ParamData->Metadata;
-				const int64 ParamItemCount = ParamMetadata->GetLocalItemCount();
 
+				const int64 ParamItemCount = ParamMetadata->GetLocalItemCount();
 				if (ParamItemCount == 0) { return nullptr; }
 
 				UPCGPointData* PointData = Context->ManagedObjects->New<UPCGPointData>();
@@ -509,6 +509,7 @@ namespace PCGExData
 
 				return PointData;
 			}
+#endif
 
 			return nullptr;
 		}

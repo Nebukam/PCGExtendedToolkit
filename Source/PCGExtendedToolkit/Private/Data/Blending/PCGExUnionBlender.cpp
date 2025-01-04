@@ -127,6 +127,14 @@ namespace PCGExDataBlending
 
 	void FUnionBlender::MergeSingle(const int32 WriteIndex, const TSharedPtr<PCGExData::FUnionData>& InUnionData, const TSharedPtr<PCGExDetails::FDistances>& InDistanceDetails)
 	{
+		if (!InUnionData.IsValid())
+		{
+			// TODO : Need to find why
+			// This can happen during task cancellation
+			UE_LOG(LogTemp, Error, TEXT("FUnionBlender::MergeSingle >> NULL UnionData"));
+			return;
+		}
+
 		TArray<int32> IdxIO;
 		TArray<int32> IdxPt;
 		TArray<double> Weights;
