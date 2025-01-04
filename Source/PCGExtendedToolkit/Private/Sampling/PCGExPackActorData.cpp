@@ -109,7 +109,7 @@ PCGEX_FOREACH_PACKER(PCGEX_SET_ATT_IMPL)
 bool UPCGExCustomActorDataPacker::InitSoftObjectPath(const FName& InAttributeName, const FSoftObjectPath& InValue)
 {
 #if PCGEX_ENGINE_VERSION <= 503
-	TSharedPtr<PCGExData::TBuffer<FString>> Buffer = Buffers->GetBuffer<FString>(InAttributeName, InValue.ToString());
+	TSharedPtr<PCGExData::TBuffer<FString>> Buffer = WriteBuffers->GetBuffer<FString>(InAttributeName, InValue.ToString());
 #else
 	TSharedPtr<PCGExData::TBuffer<FSoftObjectPath>> Buffer = WriteBuffers->GetBuffer<FSoftObjectPath>(InAttributeName, InValue);
 #endif
@@ -119,7 +119,7 @@ bool UPCGExCustomActorDataPacker::InitSoftObjectPath(const FName& InAttributeNam
 bool UPCGExCustomActorDataPacker::InitSoftClassPath(const FName& InAttributeName, const FSoftClassPath& InValue)
 {
 #if PCGEX_ENGINE_VERSION <= 503
-	TSharedPtr<PCGExData::TBuffer<FString>> Buffer = Buffers->GetBuffer<FString>(InAttributeName, InValue.ToString());
+	TSharedPtr<PCGExData::TBuffer<FString>> Buffer = WriteBuffers->GetBuffer<FString>(InAttributeName, InValue.ToString());
 #else
 	TSharedPtr<PCGExData::TBuffer<FSoftClassPath>> Buffer = WriteBuffers->GetBuffer<FSoftClassPath>(InAttributeName, InValue);
 #endif
@@ -196,7 +196,13 @@ PCGEX_FOREACH_PACKER(PCGEX_SET_ATT_IMPL)
 bool UPCGExCustomActorDataPacker::ReadSoftObjectPath(const FName& InAttributeName, const int32 InPointIndex, FSoftObjectPath& OutValue)
 {
 #if PCGEX_ENGINE_VERSION <= 503
-	return ReadBuffers->GetValue<FString>(InAttributeName, InPointIndex, InValue.ToString());
+	FString TempStr = TEXT("");
+	if (ReadBuffers->GetValue<FString>(InAttributeName, InPointIndex, TempStr))
+	{
+		OutValue = FSoftObjectPath(TempStr);
+		return OutValue.IsValid();
+	}
+	return false;
 #else
 	return ReadBuffers->GetValue<FSoftObjectPath>(InAttributeName, InPointIndex, OutValue);
 #endif
@@ -205,7 +211,13 @@ bool UPCGExCustomActorDataPacker::ReadSoftObjectPath(const FName& InAttributeNam
 bool UPCGExCustomActorDataPacker::ReadSoftClassPath(const FName& InAttributeName, const int32 InPointIndex, FSoftClassPath& OutValue)
 {
 #if PCGEX_ENGINE_VERSION <= 503
-	return ReadBuffers->GetValue<FString>(InAttributeName, InPointIndex, OutValue.ToString());
+	FString TempStr = TEXT("");
+	if (ReadBuffers->GetValue<FString>(InAttributeName, InPointIndex, TempStr))
+	{
+		OutValue = FSoftClassPath(TempStr);
+		return OutValue.IsValid();
+	}
+	return false;
 #else
 	return ReadBuffers->GetValue<FSoftClassPath>(InAttributeName, InPointIndex, OutValue);
 #endif

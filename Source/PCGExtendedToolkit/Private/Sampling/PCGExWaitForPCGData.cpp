@@ -564,9 +564,11 @@ namespace PCGExWaitForPCGData
 		case EPCGComponentGenerationTrigger::GenerateOnDemand:
 			if (Settings->GenerateOnDemandAction == EPCGExGenerationTriggerAction::Ignore) { return; }
 			break;
+#if PCGEX_ENGINE_VERSION > 503
 		case EPCGComponentGenerationTrigger::GenerateAtRuntime:
 			if (Settings->GenerateAtRuntime == EPCGExRuntimeGenerationTriggerAction::Ignore) { return; }
 			break;
+#endif
 		}
 
 		// Ignore component getting cleaned up
