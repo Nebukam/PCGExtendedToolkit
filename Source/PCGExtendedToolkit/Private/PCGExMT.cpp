@@ -4,6 +4,7 @@
 
 #include "PCGExMT.h"
 
+#include "Async/IAsyncTask.h"
 #include "Tasks/Task.h"
 
 namespace PCGExMT
@@ -28,66 +29,65 @@ namespace PCGExMT
 
 	bool FAsyncHandle::Start()
 	{
-		{
-			FReadScopeLock Lock(StateLock);
-			if (bCancelled) { return false; }
-			if (State != EAsyncHandleState::Idle) { return false; }
-		}
-
-		{
-			FWriteScopeLock Lock(StateLock);
-			if (bCancelled) { return false; }
-			if (State != EAsyncHandleState::Idle) { return false; }
-			State = EAsyncHandleState::Running;
-			return true;
-		}
+		EAsyncHandleState ExpectedState = EAsyncHandleState::Idle;
+		CompareAndSetState(ExpectedState, EAsyncHandleState::Running);
+		return GetState() == EAsyncHandleState::Running;
 	}
 
-	void FAsyncHandle::Cancel()
+	bool FAsyncHandle::Cancel()
 	{
+		bool bExpected = false;
+		if (bIsCancelled.compare_exchange_strong(bExpected, true, std::memory_order_acq_rel))
 		{
-			FReadScopeLock Lock(StateLock);
-			if (bCancelled) { return; }
+			// Task can be tentatively ended
+			EAsyncHandleState ExpectedState = EAsyncHandleState::Idle;
+			if (CompareAndSetState(ExpectedState, EAsyncHandleState::Ended))
+			{
+				// Task was idle, can be ended
+				End(true);
+			}
 		}
+		else
 		{
-			FWriteScopeLock Lock(StateLock);
-			if (bCancelled) { return; }
-
-			bCancelled = true;
-
-			// Only trigger end if Idle
-			// If work has start, End() will be called.
-			if (State == EAsyncHandleState::Idle) { EndInternal(); }
+			// Otherwise, the task was already marked as cancelled
 		}
+
+		// Return whether we're ended or waiting on completion (running)
+		return GetState() == EAsyncHandleState::Ended;
 	}
 
-	bool FAsyncHandle::IsCancelled() const
+	bool FAsyncHandle::Complete()
 	{
-		FReadScopeLock Lock(StateLock);
-		return bCancelled;
-	}
-
-	void FAsyncHandle::End()
-	{
+		EAsyncHandleState ExpectedState = EAsyncHandleState::Running;
+		if (CompareAndSetState(ExpectedState, EAsyncHandleState::Ended))
 		{
-			// End notifies hierarchy and as such doesn't care if handle is cancelled or not
-			FWriteScopeLock Lock(StateLock);
-			EndInternal();
+			// Task was running, assume proper ending
+			End(IsCancelled());
 		}
+
+		return GetState() == EAsyncHandleState::Ended;
 	}
 
-	void FAsyncHandle::EndInternal()
+	void FAsyncHandle::End(const bool bIsCancellation)
 	{
-		if (State == EAsyncHandleState::Ended) { return; }
-		State = EAsyncHandleState::Ended;
-
 		if (const TSharedPtr<FAsyncMultiHandle> PinnedRoot = Root.Pin()) { PinnedRoot->IncrementCompletedTasks(); }
 		if (const TSharedPtr<FAsyncMultiHandle> PinnedParent = ParentHandle.Pin()) { PinnedParent->IncrementCompletedTasks(); }
+	}
+
+	bool FAsyncHandle::CompareAndSetState(EAsyncHandleState& ExpectedState, EAsyncHandleState NewState)
+	{
+		return State.compare_exchange_strong(ExpectedState, NewState, std::memory_order_acq_rel);
 	}
 
 	FAsyncMultiHandle::FAsyncMultiHandle(const bool InForceSync, const FName InName)
 		: bForceSync(InForceSync), GroupName(InName)
 	{
+	}
+
+	FAsyncMultiHandle::~FAsyncMultiHandle()
+	{
+		// Try cancel first or force-complete
+		if (!Cancel()) { Complete(); }
 	}
 
 	void FAsyncMultiHandle::SetRoot(const TSharedPtr<FAsyncMultiHandle>& InRoot)
@@ -98,39 +98,29 @@ namespace PCGExMT
 
 	void FAsyncMultiHandle::IncrementPendingTasks()
 	{
-		FWriteScopeLock Lock(GrowthLock);
-		PendingTaskCount++;
+		PendingTaskCount.fetch_add(1, std::memory_order_release);
 		HandleTaskStart();
 	}
 
 	void FAsyncMultiHandle::IncrementCompletedTasks()
 	{
-		FWriteScopeLock Lock(GrowthLock);
-		CompletedTaskCount++;
-		HandleTaskCompletion();
+		const int32 MinCount = ExpectedTaskCount.load(std::memory_order_acquire);
+		const int32 CompletedCount = CompletedTaskCount.fetch_add(1, std::memory_order_acquire) + 1; // + 1 because fetch_add returns the previous value
+		const int32 StartedCount = PendingTaskCount.load(std::memory_order_acquire);
+
+		if (CompletedCount >= MinCount && CompletedCount == StartedCount) { Complete(); }
 	}
 
 	bool FAsyncMultiHandle::IsAvailable() const
 	{
+		if (IsCancelled()) { return false; }
 		if (const TSharedPtr<FAsyncMultiHandle> PinnedRoot = Root.Pin()) { if (!PinnedRoot->IsAvailable()) { return false; } }
 		else { return false; }
-
-		{
-			FReadScopeLock Lock(StateLock);
-			return !(bCancelled || State == EAsyncHandleState::Ended);
-		}
+		return true;
 	}
 
 	void FAsyncMultiHandle::HandleTaskStart()
 	{
-	}
-
-	void FAsyncMultiHandle::HandleTaskCompletion()
-	{
-		if (PendingTaskCount == CompletedTaskCount)
-		{
-			EndInternal();
-		}
 	}
 
 	void FAsyncMultiHandle::StartBackgroundTask(const TSharedPtr<FTask>& InTask)
@@ -161,12 +151,24 @@ namespace PCGExMT
 		}
 	}
 
-	void FAsyncMultiHandle::EndInternal()
+	void FAsyncMultiHandle::End(const bool bIsCancellation)
 	{
-		if (State == EAsyncHandleState::Ended) { return; }
 		// Complete callback before notifying hierarchy
-		if (!IsCancelled() && OnCompleteCallback) { OnCompleteCallback(); }
-		FAsyncHandle::EndInternal();
+		if (!bIsCancellation && OnCompleteCallback)
+		{
+			FCompletionCallback Callback = MoveTemp(OnCompleteCallback);
+			Callback();
+		}
+
+		FAsyncHandle::End(bIsCancellation);
+	}
+
+	void FAsyncMultiHandle::Reset()
+	{
+		bIsCancelled.store(false, std::memory_order_release);
+		PendingTaskCount.store(0, std::memory_order_release);
+		CompletedTaskCount.store(0, std::memory_order_release);
+		SetState(EAsyncHandleState::Idle);
 	}
 
 	FAsyncToken::FAsyncToken(const TWeakPtr<FAsyncMultiHandle>& InHandle, const FName& InName):
@@ -205,14 +207,12 @@ namespace PCGExMT
 
 	bool FTaskManager::IsAvailable() const
 	{
-		FReadScopeLock Lock(ManagerStateLock);
-		return (!bCancelling && !bCancelled && !bResetting && Lifeline.IsValid());
+		return (!IsCancelling() && !IsCancelled() && !IsResetting() && Lifeline.IsValid());
 	}
 
 	bool FTaskManager::IsWaitingForRunningTasks() const
 	{
-		FReadScopeLock Lock(StateLock);
-		return !bForceSync && State == EAsyncHandleState::Running;
+		return !bForceSync && GetState() == EAsyncHandleState::Running;
 	}
 
 	bool FTaskManager::Start()
@@ -222,21 +222,26 @@ namespace PCGExMT
 		check(IsAvailable())
 
 		Context->PauseContext();
-
-		{
-			FWriteScopeLock Lock(StateLock);
-			State = EAsyncHandleState::Running;
-		}
+		SetState(EAsyncHandleState::Running);
 
 		return true;
 	}
 
-	void FTaskManager::Cancel()
+	bool FTaskManager::Cancel()
 	{
+		bool Expected = false;
+		if (!bIsCancelling.compare_exchange_strong(Expected, true, std::memory_order_acq_rel))
 		{
-			FWriteScopeLock WriteScopeLock(ManagerStateLock);
-			if (bCancelling || bCancelled) { return; }
-			bCancelling = true;
+			// Already cancelling
+			return false;
+		}
+
+		Expected = false;
+		if (!bIsCancelled.compare_exchange_strong(Expected, true, std::memory_order_acq_rel))
+		{
+			// Already cancelled
+			bIsCancelling.store(false, std::memory_order_release);
+			return false;
 		}
 
 		{
@@ -247,8 +252,8 @@ namespace PCGExMT
 			Tokens.Empty(); // Revoke all tokens
 
 			// Cancel groups & tasks
-			for (const TSharedPtr<FTask>& Task : Tasks) { Task->Cancel(); }
 			for (const TSharedPtr<FTaskGroup>& Group : Groups) { Group->Cancel(); }
+			for (const TSharedPtr<FTask>& Task : Tasks) { Task->Cancel(); }
 		}
 
 		{
@@ -266,35 +271,24 @@ namespace PCGExMT
 		Groups.Empty();
 		Tasks.Empty();
 
-		bCancelled = true;
-		bCancelling = false;
+		bIsCancelling.store(false, std::memory_order_release);
+		return true;
 	}
 
 	void FTaskManager::Reset()
 	{
-		if (!IsAvailable())
-		{
-			// No reset if manager was stopped before
-			// Since this means it was stopped from outside this loop
-			// Hence by destructor or aborted execution
-			return;
-		}
+		if (!IsAvailable()) { return; } // Don't reset if we're already cancelled
 
-		bResetting = true;
+		bIsResetting.store(true, std::memory_order_release);
 
-		// Stop & flush so no new task may be created
-		Cancel();
+		Cancel();                   // Cancel ongoing work first, just in case
+		FAsyncMultiHandle::Reset(); // Reset trackers, cancellation, set State to Idle
 
-		// Ensure we can keep on taking tasks
-		bCancelled = false;
-		PendingTaskCount = 0;
-		CompletedTaskCount = 0;
+		bIsResetting.store(false, std::memory_order_release);
 
-		bResetting = false;
-
-		// Safety unpause
-		Context->UnpauseContext();
+		Context->UnpauseContext(); // Safety unpause
 	}
+
 
 	void FTaskManager::ReserveTasks(const int32 NumTasks)
 	{
@@ -310,6 +304,7 @@ namespace PCGExMT
 
 		PCGEX_MAKE_SHARED(NewGroup, FTaskGroup, bForceSync, InName)
 		NewGroup->SetRoot(SharedThis(this));
+		NewGroup->Start(); // So its state can be updated properly
 
 		return Groups.Add_GetRef(NewGroup);
 	}
@@ -330,10 +325,9 @@ namespace PCGExMT
 		FAsyncMultiHandle::HandleTaskStart();
 	}
 
-	void FTaskManager::EndInternal()
+	void FTaskManager::End(const bool bIsCancellation)
 	{
-		if (State == EAsyncHandleState::Ended) { return; }
-		FAsyncMultiHandle::EndInternal();
+		FAsyncMultiHandle::End(bIsCancellation);
 		Context->UnpauseContext();
 	}
 
@@ -364,7 +358,7 @@ namespace PCGExMT
 					if (Task->Start())
 					{
 						Task->ExecuteTask(Manager);
-						Task->End();
+						Task->Complete();
 					}
 				},
 				WorkPriority
@@ -396,7 +390,7 @@ namespace PCGExMT
 		{
 			bDaisyChained = true;
 
-			ExpectedTaskCount = SubLoopScopes(Loops, MaxItems, SanitizedChunkSize);
+			SetExpectedTaskCount(SubLoopScopes(Loops, MaxItems, SanitizedChunkSize));
 
 			if (OnPrepareSubLoopsCallback) { OnPrepareSubLoopsCallback(Loops); }
 
@@ -425,7 +419,7 @@ namespace PCGExMT
 		check(MaxItems > 0);
 
 		// Compute sub scopes
-		ExpectedTaskCount = SubLoopScopes(Loops, MaxItems, FMath::Max(1, ChunkSize));
+		SetExpectedTaskCount(SubLoopScopes(Loops, MaxItems, FMath::Max(1, ChunkSize)));
 		StaticCastSharedPtr<FTaskManager>(PinnedRoot)->ReserveTasks(Loops.Num());
 
 		bDaisyChained = true;
@@ -443,14 +437,15 @@ namespace PCGExMT
 
 	void FTaskGroup::StartSimpleCallbacks()
 	{
-		ExpectedTaskCount = SimpleCallbacks.Num();
-		check(ExpectedTaskCount > 0);
+		SetExpectedTaskCount(SimpleCallbacks.Num());
+		int Count = ExpectedTaskCount.load(std::memory_order_acquire);
+		check(Count > 0);
 
 		TSharedPtr<FAsyncMultiHandle> PinnedRoot = Root.Pin();
 		if (!PinnedRoot) { return; }
-		StaticCastSharedPtr<FTaskManager>(PinnedRoot)->ReserveTasks(ExpectedTaskCount);
+		StaticCastSharedPtr<FTaskManager>(PinnedRoot)->ReserveTasks(Count);
 
-		for (int i = 0; i < ExpectedTaskCount; i++)
+		for (int i = 0; i < Count; i++)
 		{
 			PCGEX_MAKE_SHARED(Task, FSimpleCallbackTask, i)
 			Launch(Task);
