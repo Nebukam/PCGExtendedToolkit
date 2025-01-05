@@ -67,6 +67,14 @@ bool FPCGExFactoryProviderElement::ExecuteInternal(FPCGContext* Context) const
 
 	if (!OutFactory) { return true; }
 
+	bool bAbort = false;
+	if (!OutFactory->ExecuteInternal(PCGExContext, bAbort))
+	{
+		// TODO : Support multithreading for tensors creation
+		if (bAbort) { return PCGExContext->CancelExecution("Aborted"); }
+		return false;
+	}
+
 	OutFactory->bCleanupConsumableAttributes = Settings->bCleanupConsumableAttributes;
 	OutFactory->OutputConfigToMetadata();
 	PCGExContext->StageOutput(Settings->GetMainOutputPin(), OutFactory, false);

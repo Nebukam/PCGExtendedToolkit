@@ -62,6 +62,8 @@ public:
 		const PCGExCluster::FNode& Seed,
 		const PCGExCluster::FNode& Goal) const override
 	{
+		FReadScopeLock ReadScopeLock(FeedbackLock);
+
 		const uint32* N = NodeFeedbackNum.Find(From.Index);
 		return N ? GetScoreInternal(NodeScale) * *N : GetScoreInternal(0);
 	}
@@ -74,6 +76,8 @@ public:
 		const PCGExCluster::FNode& Goal,
 		const TSharedPtr<PCGEx::FHashLookup> TravelStack) const override
 	{
+		FReadScopeLock ReadScopeLock(FeedbackLock);
+
 		const uint32* N = NodeFeedbackNum.Find(To.Index);
 		const uint32* E = EdgeFeedbackNum.Find(Edge.Index);
 
@@ -85,6 +89,8 @@ public:
 
 	FORCEINLINE void FeedbackPointScore(const PCGExCluster::FNode& Node)
 	{
+		FWriteScopeLock WriteScopeLock(FeedbackLock);
+
 		uint32& N = NodeFeedbackNum.FindOrAdd(Node.Index, 0);
 		N++;
 
@@ -100,6 +106,8 @@ public:
 
 	FORCEINLINE void FeedbackScore(const PCGExCluster::FNode& Node, const PCGExGraph::FEdge& Edge)
 	{
+		FWriteScopeLock WriteScopeLock(FeedbackLock);
+
 		uint32& N = NodeFeedbackNum.FindOrAdd(Node.Index, 0);
 		N++;
 

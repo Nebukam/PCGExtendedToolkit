@@ -40,6 +40,7 @@ namespace PCGExFactories
 		ShapeBuilder,
 		Blending,
 		TexParam,
+		Tensor,
 	};
 
 	static inline TSet<EType> AnyFilters = {EType::FilterPoint, EType::FilterNode, EType::FilterEdge, EType::FilterGroup};
@@ -102,6 +103,14 @@ public:
 
 	virtual void RegisterBuffersDependencies(FPCGExContext* InContext, PCGExData::FFacadePreloader& FacadePreloader) const
 	{
+	}
+
+	virtual bool ExecuteInternal(FPCGExContext* InContext, bool& bAbort)
+	{
+		// bAbort to signal the provider that creation should be aborted
+		// return true if ready to move on, false otherwise.
+		bAbort = false;
+		return true;
 	}
 };
 

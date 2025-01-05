@@ -228,6 +228,9 @@ public:
 
 	UPROPERTY(EditAnywhere, config, Category = "Node Colors")
 	FLinearColor NodeColorTex = FLinearColor(1.000000, 0.200000, 0.185865, 1.000000);
+	
+	UPROPERTY(EditAnywhere, config, Category = "Node Colors")
+	FLinearColor NodeColorTensor = FLinearColor(0.350314,1.000000,0.470501,1.000000);
 
 	bool GetPinExtraIcon(const UPCGPin* InPin, FName& OutExtraIcon, FText& OutTooltip, bool bIsOutPin = false) const;
 

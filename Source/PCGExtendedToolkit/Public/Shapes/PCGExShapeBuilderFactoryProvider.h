@@ -42,7 +42,7 @@ class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExShapeBuilderFactoryProviderSettings : pub
 public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS(NodeFilter, "ShapeBuilder Definition", "Creates a single shape builder node, to be used with a Shape processor node.")
+	PCGEX_NODE_INFOS(ShapeBuilder, "ShapeBuilder Definition", "Creates a single shape builder node, to be used with a Shape processor node.")
 	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->NodeColorShapeBuilder; }
 #endif
 	//~End UPCGSettings
