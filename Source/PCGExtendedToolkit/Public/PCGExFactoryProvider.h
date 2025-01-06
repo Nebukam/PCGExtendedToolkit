@@ -105,13 +105,8 @@ public:
 	{
 	}
 
-	virtual bool ExecuteInternal(FPCGExContext* InContext, bool& bAbort)
-	{
-		// bAbort to signal the provider that creation should be aborted
-		// return true if ready to move on, false otherwise.
-		bAbort = false;
-		return true;
-	}
+	virtual bool GetRequiresPreparation(FPCGExContext* InContext) { return false; }
+	virtual bool Prepare(FPCGExContext* InContext) { return true; }
 };
 
 UCLASS(Abstract, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Filter")
@@ -150,6 +145,12 @@ public:
 	/** Whether this factory can register consumable attributes or not. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Cleanup", meta = (PCG_NotOverridable))
 	bool bCleanupConsumableAttributes = false;
+};
+
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExFactoryProviderContext : FPCGExContext
+{
+	friend class FPCGExFactoryProviderElement;
+	UPCGExFactoryData* OutFactory = nullptr;
 };
 
 class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExFactoryProviderElement final : public IPCGElement

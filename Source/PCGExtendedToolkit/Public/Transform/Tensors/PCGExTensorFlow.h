@@ -11,6 +11,8 @@
 
 #include "PCGExTensorFlow.generated.h"
 
+
+
 USTRUCT(BlueprintType)
 struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExTensorFlowConfig : public FPCGExTensorConfigBase
 {
@@ -20,6 +22,23 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExTensorFlowConfig : public FPCGExTensorCo
 		FPCGExTensorConfigBase()
 	{
 	}
+
+	/** Direction type.*/
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
+	EPCGExInputValueType DirectionInput = EPCGExInputValueType::Constant;
+
+	/** Direction axis, read from the input points' transform.*/
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable, DisplayName="Direction", EditCondition="DirectionInput == EPCGExInputValueType::Constant", EditConditionHides))
+	EPCGExAxis DirectionConstant = EPCGExAxis::Forward;
+
+	/** Fetch the direction from a local attribute.*/
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName="Direction", EditCondition="DirectionInput != EPCGExInputValueType::Constant", EditConditionHides))
+	FPCGAttributePropertyInputSelector DirectionAttribute;
+
+	/** Whether the direction is absolute or should be transformed by the owner' transform .*/
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="DirectionInput != EPCGExInputValueType::Constant", EditConditionHides))
+	EPCGExTransformMode DirectionTransform = EPCGExTransformMode::Relative;
+	
 };
 
 /**
@@ -51,7 +70,11 @@ public:
 	virtual UPCGExTensorOperation* CreateOperation(FPCGExContext* InContext) const override;
 
 protected:
+	TSharedPtr<PCGExData::TBuffer<FVector>> DirectionBuffer;
+	
 	virtual bool InitInternalData(FPCGExContext* InContext) override;
+	virtual bool InitInternalFacade(FPCGExContext* InContext) override;
+	virtual void PrepareSinglePoint(int32 Index, FPCGPoint& InPoint) const override;
 };
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Tensors|Params")

@@ -9,7 +9,6 @@
 
 void UPCGExHeuristicTensor::PrepareForCluster(const TSharedPtr<const PCGExCluster::FCluster>& InCluster)
 {
-	UpwardVector = UpwardVector.GetSafeNormal();
 	Super::PrepareForCluster(InCluster);
 }
 
@@ -17,14 +16,24 @@ UPCGExHeuristicOperation* UPCGExHeuristicsFactoryTensor::CreateOperation(FPCGExC
 {
 	UPCGExHeuristicTensor* NewOperation = InContext->ManagedObjects->New<UPCGExHeuristicTensor>();
 	PCGEX_FORWARD_HEURISTIC_CONFIG
+	NewOperation->TensorsHandler = TensorsHandler;
+	NewOperation->bAbsoluteTensor = Config.bAbsolute;
 	return NewOperation;
 }
 
 PCGEX_HEURISTIC_FACTORY_BOILERPLATE_IMPL(Tensor, {})
 
+bool UPCGExHeuristicsFactoryTensor::Prepare(FPCGExContext* InContext)
+{
+	if (!Super::Prepare(InContext)) { return false; }
+	TensorsHandler = MakeShared<PCGExTensor::FTensorsHandler>();
+	if (!TensorsHandler->Init(InContext, PCGExTensor::SourceTensorsLabel)) { return false; }
+	return true;
+}
+
 TArray<FPCGPinProperties> UPCGExHeuristicsTensorProviderSettings::InputPinProperties() const
 {
-	TArray<FPCGPinProperties> PinProperties =  Super::InputPinProperties();
+	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
 	PCGEX_PIN_PARAMS(PCGExTensor::SourceTensorsLabel, "Tensors fields to influence search", Required, {})
 	return PinProperties;
 }

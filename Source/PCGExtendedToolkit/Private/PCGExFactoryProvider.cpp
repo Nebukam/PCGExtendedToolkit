@@ -58,37 +58,67 @@ bool FPCGExFactoryProviderElement::ExecuteInternal(FPCGContext* Context) const
 {
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExFactoryProviderElement::Execute);
 
+	FPCGExFactoryProviderContext* InContext = static_cast<FPCGExFactoryProviderContext*>(Context);
+	check(InContext);
 	PCGEX_SETTINGS(FactoryProvider)
 
-	FPCGExContext* PCGExContext = static_cast<FPCGExContext*>(Context);
-	check(PCGExContext);
+	if (!InContext->CanExecute()) { return true; }
 
-	UPCGExFactoryData* OutFactory = Settings->CreateFactory(PCGExContext, nullptr);
-
-	if (!OutFactory) { return true; }
-
-	bool bAbort = false;
-	if (!OutFactory->ExecuteInternal(PCGExContext, bAbort))
+	if (InContext->IsState(PCGEx::State_InitialExecution))
 	{
-		// TODO : Support multithreading for tensors creation
-		if (bAbort) { return PCGExContext->CancelExecution("Aborted"); }
-		return false;
+		InContext->OutFactory = Settings->CreateFactory(InContext, nullptr);
+		if (!InContext->OutFactory) { return true; }
+
+		InContext->OutFactory->bCleanupConsumableAttributes = Settings->bCleanupConsumableAttributes;
+		InContext->OutFactory->OutputConfigToMetadata();
+
+		if (InContext->OutFactory->GetRequiresPreparation(InContext))
+		{
+			InContext->PauseContext();
+
+			TWeakPtr<FPCGContextHandle> CtxHandle = InContext->GetOrCreateHandle();
+			UE::Tasks::Launch(
+					TEXT("FactoryInitialization"),
+					[CtxHandle]()
+					{
+						FPCGExFactoryProviderContext* Ctx = FPCGExContext::GetContextFromHandle<FPCGExFactoryProviderContext>(CtxHandle);
+						if (!Ctx) { return; }
+
+						if (!Ctx->OutFactory->Prepare(Ctx))
+						{
+							Ctx->CancelExecution(TEXT(""));
+						}
+						else
+						{
+							Ctx->Done();
+							Ctx->ResumeExecution();
+						}
+					},
+					LowLevelTasks::ETaskPriority::BackgroundNormal
+				);
+
+			InContext->SetState(PCGEx::State_WaitingOnAsyncWork);
+			return false;
+		}
+
+		InContext->Done();
 	}
 
-	OutFactory->bCleanupConsumableAttributes = Settings->bCleanupConsumableAttributes;
-	OutFactory->OutputConfigToMetadata();
-	PCGExContext->StageOutput(Settings->GetMainOutputPin(), OutFactory, false);
-	PCGExContext->OnComplete();
+	if (InContext->IsDone() && InContext->OutFactory)
+	{
+		InContext->StageOutput(Settings->GetMainOutputPin(), InContext->OutFactory, false);
+	}
 
-	return true;
+	return InContext->TryComplete();
 }
 
 FPCGContext* FPCGExFactoryProviderElement::Initialize(const FPCGDataCollection& InputData, const TWeakObjectPtr<UPCGComponent> SourceComponent, const UPCGNode* Node)
 {
-	FPCGExContext* Context = new FPCGExContext();
+	FPCGExFactoryProviderContext* Context = new FPCGExFactoryProviderContext();
 	Context->InputData = InputData;
 	Context->SourceComponent = SourceComponent;
 	Context->Node = Node;
+	Context->SetState(PCGEx::State_InitialExecution);
 	return Context;
 }
 

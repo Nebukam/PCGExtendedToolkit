@@ -16,15 +16,6 @@
 
 #include "PCGExPathInclusionFilter.generated.h"
 
-UENUM()
-enum class EPCGExSplinePointTypeRedux : uint8
-{
-	Linear       = 0 UMETA(DisplayName = "Linear (0)", Tooltip="Linear (0)."),
-	Curve        = 1 UMETA(DisplayName = "Curve (1)", Tooltip="Curve (1)."),
-	Constant     = 2 UMETA(DisplayName = "Constant (2)", Tooltip="Constant (2)."),
-	CurveClamped = 3 UMETA(DisplayName = "CurveClamped (3)", Tooltip="CurveClamped (3).")
-};
-
 USTRUCT(BlueprintType)
 struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPathInclusionFilterConfig
 {
@@ -84,7 +75,6 @@ public:
 	TArray<TSharedPtr<const FPCGSplineStruct>> Splines;
 	virtual bool Init(FPCGExContext* InContext) override;
 	virtual TSharedPtr<PCGExPointFilter::FFilter> CreateFilter() const override;
-	void CreateSpline(const UPCGPointData* InData, const bool bClosedLoop);
 
 	virtual void BeginDestroy() override;
 };

@@ -82,7 +82,6 @@ public:
 
 	virtual bool Init(FPCGExContext* InContext) override;
 	virtual TSharedPtr<PCGExPointFilter::FFilter> CreateFilter() const override;
-	void CreateSpline(const UPCGPointData* InData, const bool bClosedLoop);
 
 	virtual void BeginDestroy() override;
 

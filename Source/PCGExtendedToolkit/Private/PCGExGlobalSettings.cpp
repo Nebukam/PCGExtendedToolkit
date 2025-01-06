@@ -16,6 +16,8 @@ bool UPCGExGlobalSettings::bGeneratedPinMap = false; // Initialize to a default 
 
 bool UPCGExGlobalSettings::GetPinExtraIcon(const UPCGPin* InPin, FName& OutExtraIcon, FText& OutTooltip, bool bIsOutPin) const
 {
+#if WITH_EDITOR
+
 	if (!bGeneratedPinMap)
 	{
 		UPCGExGlobalSettings* This = const_cast<UPCGExGlobalSettings*>(this);
@@ -45,11 +47,15 @@ bool UPCGExGlobalSettings::GetPinExtraIcon(const UPCGPin* InPin, FName& OutExtra
 		}
 	}
 
+#endif
+
 	return false;
 }
 
 void UPCGExGlobalSettings::GeneratePinInfos()
 {
+#if WITH_EDITOR
+
 	if (bGeneratedPinMap) { return; }
 	bGeneratedPinMap = true;
 
@@ -201,4 +207,6 @@ void UPCGExGlobalSettings::GeneratePinInfos()
 #undef PCGEX_EMPLACE_PIN_IN
 #undef PCGEX_MAP_PIN_IN
 #pragma endregion
+
+#endif
 }

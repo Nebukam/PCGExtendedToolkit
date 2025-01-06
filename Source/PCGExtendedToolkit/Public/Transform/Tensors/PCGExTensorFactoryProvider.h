@@ -6,12 +6,14 @@
 #include "CoreMinimal.h"
 #include "PCGExPointsProcessor.h"
 #include "PCGExTensor.h"
+#include "Sampling/PCGExSampleNearestSpline.h"
 
 #include "PCGExTensorFactoryProvider.generated.h"
 
 #define PCGEX_TENSOR_BOILERPLATE(_TENSOR) \
 UPCGExTensorOperation* UPCGExTensor##_TENSOR##Factory::CreateOperation(FPCGExContext* InContext) const{ \
 	UPCGExTensor##_TENSOR* NewOperation = InContext->ManagedObjects->New<UPCGExTensor##_TENSOR>(); \
+	NewOperation->Factory = this; \
 	NewOperation->Config = Config; \
 	NewOperation->BaseConfig = NewOperation->Config; \
 	if(!NewOperation->Init(InContext, this)){ return nullptr; } \
@@ -39,12 +41,12 @@ public:
 	virtual UPCGExTensorOperation* CreateOperation(FPCGExContext* InContext) const;
 
 	FPCGExTensorConfigBase BaseConfig;
-	virtual bool ExecuteInternal(FPCGExContext* InContext, bool& bAbort) override;
+	virtual bool Prepare(FPCGExContext* InContext) override;
 
 protected:
 	double WeightOffset = 0;
 	double WeightRange = 1;
-	
+
 	virtual bool InitInternalData(FPCGExContext* InContext);
 };
 
@@ -76,7 +78,14 @@ class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExTensorPointFactoryData : public UPCGExTen
 	GENERATED_BODY()
 
 protected:
+	TSharedPtr<PCGExData::FFacade> InputDataFacade;
+
+	TSharedPtr<PCGExData::TBuffer<float>> StrengthBuffer;
+
+	virtual bool GetRequiresPreparation(FPCGExContext* InContext) override { return true; }
 	virtual bool InitInternalData(FPCGExContext* InContext) override;
+	virtual bool InitInternalFacade(FPCGExContext* InContext);
+	virtual void PrepareSinglePoint(int32 Index, FPCGPoint& InPoint) const;
 };
 
 UCLASS(Abstract, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Graph|Params")

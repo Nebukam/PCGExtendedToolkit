@@ -145,7 +145,7 @@ namespace PCGExTensor
 
 	struct FTensorSample
 	{
-		FTransform Transform = FTransform::Identity; // sample direction
+		FTransform Transform = FTransform::Identity; // sample offset + rotation. Data packing, NOT a transform to compose with!
 		int32 Effectors = 0;                         // number of things that affected this sample
 		double Weight = 0;                           // total weights applied to this sample
 

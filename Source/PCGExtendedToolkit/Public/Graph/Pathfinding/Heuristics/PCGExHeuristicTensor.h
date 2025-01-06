@@ -10,6 +10,7 @@
 
 
 #include "Graph/PCGExCluster.h"
+#include "Transform/Tensors/PCGExTensor.h"
 #include "PCGExHeuristicTensor.generated.h"
 
 USTRUCT(BlueprintType)
@@ -22,6 +23,9 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExHeuristicConfigTensor : public FPCGExHeu
 	{
 	}
 
+	/**  */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	bool bAbsolute = true;
 };
 
 /**
@@ -57,12 +61,15 @@ public:
 	}
 
 protected:
-	FVector UpwardVector = FVector::UpVector;
+	TSharedPtr<PCGExTensor::FTensorsHandler> TensorsHandler;
 	bool bAbsoluteTensor = true;
 
 	FORCEINLINE double GetDot(const FVector& From, const FVector& To) const
 	{
-		const double Dot = FVector::DotProduct((To - From).GetSafeNormal(), UpwardVector);
+		bool bSuccess = false;
+		const PCGExTensor::FTensorSample Sample = TensorsHandler->SampleAtPosition(From, bSuccess);
+		if (!bSuccess) { return 1; }
+		const double Dot = FVector::DotProduct((To - From).GetSafeNormal(), Sample.Transform.GetRotation().GetForwardVector());
 		return bAbsoluteTensor ? FMath::Abs(Dot) : PCGExMath::Remap(Dot, -1, 1);
 	}
 };
@@ -77,6 +84,12 @@ public:
 
 	virtual UPCGExHeuristicOperation* CreateOperation(FPCGExContext* InContext) const override;
 	PCGEX_HEURISTIC_FACTORY_BOILERPLATE
+
+	virtual bool GetRequiresPreparation(FPCGExContext* InContext) override { return true; }
+	virtual bool Prepare(FPCGExContext* InContext) override;
+
+protected:
+	TSharedPtr<PCGExTensor::FTensorsHandler> TensorsHandler;
 };
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Graph|Params")
@@ -97,11 +110,10 @@ protected:
 	virtual TArray<FPCGPinProperties> InputPinProperties() const override;
 
 public:
-	
 	/** Filter Config.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ShowOnlyInnerProperties))
 	FPCGExHeuristicConfigTensor Config;
-	
+
 	virtual UPCGExFactoryData* CreateFactory(FPCGExContext* InContext, UPCGExFactoryData* InFactory) const override;
 
 #if WITH_EDITOR

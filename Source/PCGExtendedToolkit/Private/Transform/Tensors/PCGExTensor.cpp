@@ -87,7 +87,7 @@ namespace PCGExTensor
 		{
 			const FTensorSample& Sample = Samples[i];
 			const double W = Sample.Weight / TotalWeight;
-			WeightedTranslation += Sample.Transform.GetTranslation() * W;
+			WeightedTranslation += Sample.Transform.GetLocation() * W;
 
 			if (i == 0)
 			{
@@ -103,7 +103,7 @@ namespace PCGExTensor
 
 		WeightedRotation.Normalize();
 
-		Result.Transform.SetTranslation(WeightedTranslation);
+		Result.Transform.SetLocation(WeightedTranslation);
 		Result.Transform.SetRotation(WeightedRotation);
 		Result.Transform.SetScale3D(FVector::OneVector);
 

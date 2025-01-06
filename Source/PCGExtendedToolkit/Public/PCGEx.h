@@ -40,8 +40,8 @@
 UENUM()
 enum class EPCGExTransformMode : uint8
 {
-	Relative = 0 UMETA(DisplayName = "Relative", ToolTip="Relative to original component."),
-	Absolute = 1 UMETA(DisplayName = "Absolute", ToolTip="Absolute, ignores original component."),
+	Absolute = 0 UMETA(DisplayName = "Absolute", ToolTip="Absolute, ignores source transform."),
+	Relative = 1 UMETA(DisplayName = "Relative", ToolTip="Relative to source transform."),
 };
 
 UENUM()

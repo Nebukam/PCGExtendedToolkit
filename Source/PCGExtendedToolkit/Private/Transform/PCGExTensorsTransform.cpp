@@ -97,17 +97,19 @@ namespace PCGExTensorsTransform
 
 		if (!bSuccess) { return; }
 
-		const FTransform Composite = Point.Transform * Sample.Transform;
+		//const FTransform Composite = Point.Transform * Sample.Transform;
 
+		/*
 		if (Settings->bTransformRotation)
 		{
 			if (Settings->Rotation == EPCGExTransformMode::Absolute) { Point.Transform.SetRotation(Sample.Transform.GetRotation()); }
 			else if (Settings->Rotation == EPCGExTransformMode::Relative) { Point.Transform.SetRotation(Composite.GetRotation()); }
 		}
+		*/
 
 		if (Settings->bTransformPosition)
 		{
-			Point.Transform.SetLocation(Composite.GetLocation());
+			Point.Transform.SetLocation(Point.Transform.GetLocation() + Sample.Transform.GetLocation());
 		}
 	}
 

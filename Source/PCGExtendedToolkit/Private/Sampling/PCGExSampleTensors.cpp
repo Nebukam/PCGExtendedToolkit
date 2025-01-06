@@ -4,6 +4,9 @@
 #include "Sampling/PCGExSampleTensors.h"
 #include "Transform/Tensors/PCGExTensor.h"
 
+#define PCGEX_FOREACH_FIELD_TENSOR(MACRO)\
+MACRO(Success, bool, false)\
+MACRO(Transform, FTransform, FTransform::Identity)
 
 #define LOCTEXT_NAMESPACE "PCGExSampleTensorsElement"
 #define PCGEX_NAMESPACE SampleNearestPolyLine
@@ -45,7 +48,7 @@ bool FPCGExSampleTensorsElement::Boot(FPCGExContext* InContext) const
 	{
 	}
 
-	PCGEX_FOREACH_FIELD_NEARESTPOLYLINE(PCGEX_OUTPUT_VALIDATE_NAME)
+	PCGEX_FOREACH_FIELD_TENSOR(PCGEX_OUTPUT_VALIDATE_NAME)
 
 	return true;
 }
@@ -95,7 +98,7 @@ namespace PCGExSampleTensors
 
 		{
 			const TSharedRef<PCGExData::FFacade>& OutputFacade = PointDataFacade;
-			PCGEX_FOREACH_FIELD_NEARESTPOLYLINE(PCGEX_OUTPUT_INIT)
+			PCGEX_FOREACH_FIELD_TENSOR(PCGEX_OUTPUT_INIT)
 		}
 		StartParallelLoopForPoints();
 

@@ -8,6 +8,7 @@
 
 #include "PCGExProbeFactoryProvider.h"
 #include "PCGExProbeOperation.h"
+#include "Transform/Tensors/PCGExTensor.h"
 
 #include "PCGExProbeTensor.generated.h"
 
@@ -56,6 +57,7 @@ public:
 	virtual void ProcessBestCandidate(const int32 Index, const FPCGPoint& Point, PCGExProbing::FBestCandidate& InBestCandidate, TArray<PCGExProbing::FCandidate>& Candidates, TSet<FInt32Vector>* Coincidence, const FVector& ST, TSet<uint64>* OutEdges) override;
 
 	FPCGExProbeConfigTensor Config;
+	TSharedPtr<PCGExTensor::FTensorsHandler> TensorsHandler;
 
 	virtual void Cleanup() override
 	{
@@ -80,7 +82,11 @@ class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExProbeFactoryTensor : public UPCGExProbeFa
 
 public:
 	FPCGExProbeConfigTensor Config;
+	TSharedPtr<PCGExTensor::FTensorsHandler> TensorsHandler;
 	virtual UPCGExProbeOperation* CreateOperation(FPCGExContext* InContext) const override;
+
+	virtual bool GetRequiresPreparation(FPCGExContext* InContext) override { return true; }
+	virtual bool Prepare(FPCGExContext* InContext) override;
 };
 
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Graph|Params")

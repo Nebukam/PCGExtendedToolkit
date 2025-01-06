@@ -14,7 +14,7 @@
 
 #include "PCGExSampleTensors.generated.h"
 
-#define PCGEX_FOREACH_FIELD_NEARESTPOLYLINE(MACRO)\
+#define PCGEX_FOREACH_FIELD_TENSOR(MACRO)\
 MACRO(Success, bool, false)\
 MACRO(Transform, FTransform, FTransform::Identity)
 
@@ -88,7 +88,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExSampleTensorsContext final : FPCGExPoint
 {
 	friend class FPCGExSampleTensorsElement;
 
-	PCGEX_FOREACH_FIELD_NEARESTPOLYLINE(PCGEX_OUTPUT_DECL_TOGGLE)
+	PCGEX_FOREACH_FIELD_TENSOR(PCGEX_OUTPUT_DECL_TOGGLE)
 
 	virtual void RegisterAssetDependencies() override;
 };
@@ -116,7 +116,7 @@ namespace PCGExSampleTensors
 
 		int8 bAnySuccess = 0;
 
-		PCGEX_FOREACH_FIELD_NEARESTPOLYLINE(PCGEX_OUTPUT_DECL)
+		PCGEX_FOREACH_FIELD_TENSOR(PCGEX_OUTPUT_DECL)
 
 	public:
 		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade):

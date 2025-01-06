@@ -13,7 +13,18 @@ TArray<FPCGPinProperties> UPCGExProbeTensorProviderSettings::InputPinProperties(
 	return PinProperties;
 }
 
-PCGEX_CREATE_PROBE_FACTORY(Tensor, {}, {})
+PCGEX_CREATE_PROBE_FACTORY(
+	Tensor, {}, {
+	NewOperation->TensorsHandler = TensorsHandler;
+	})
+
+bool UPCGExProbeFactoryTensor::Prepare(FPCGExContext* InContext)
+{
+	if (!Super::Prepare(InContext)) { return false; }
+	TensorsHandler = MakeShared<PCGExTensor::FTensorsHandler>();
+	if (!TensorsHandler->Init(InContext, PCGExTensor::SourceTensorsLabel)) { return false; }
+	return true;
+}
 
 bool UPCGExProbeTensor::RequiresChainProcessing() { return Config.bDoChainedProcessing; }
 
@@ -34,7 +45,12 @@ void UPCGExProbeTensor::ProcessCandidates(const int32 Index, const FPCGPoint& Po
 	double BestDist = MAX_dbl;
 	int32 BestCandidateIndex = -1;
 
-	FVector Dir = FVector::Zero(); // TODO <- Sample tensor field to get search direction
+	bool bSuccess = false;
+	const PCGExTensor::FTensorSample Sample = TensorsHandler->SampleAtPosition(Point.Transform.GetLocation(), bSuccess);
+
+	if (!bSuccess) { return; }
+
+	const FVector Dir = Sample.Transform.GetRotation().GetForwardVector();
 
 	for (int i = 0; i < Candidates.Num(); i++)
 	{
@@ -100,7 +116,12 @@ void UPCGExProbeTensor::PrepareBestCandidate(const int32 Index, const FPCGPoint&
 void UPCGExProbeTensor::ProcessCandidateChained(const int32 Index, const FPCGPoint& Point, const int32 CandidateIndex, PCGExProbing::FCandidate& Candidate, PCGExProbing::FBestCandidate& InBestCandidate)
 {
 	const double R = SearchRadiusCache ? SearchRadiusCache->Read(Index) : SearchRadiusSquared;
-	FVector Dir = FVector::Zero(); // TODO <- Sample tensor field to get search direction
+	bool bSuccess = false;
+	const PCGExTensor::FTensorSample Sample = TensorsHandler->SampleAtPosition(Point.Transform.GetLocation(), bSuccess);
+
+	if (!bSuccess) { return; }
+
+	const FVector Dir = Sample.Transform.GetRotation().GetForwardVector();
 
 	if (Candidate.Distance > R) { return; }
 

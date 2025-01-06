@@ -1,18 +1,18 @@
 ﻿// Copyright 2024 Timothé Lapetite and contributors
 // Released under the MIT license https://opensource.org/license/MIT/
 
-#include "Transform/Tensors/PCGExTensorMagnet.h"
+#include "Transform/Tensors/PCGExTensorSplineFlow.h"
 
-#define LOCTEXT_NAMESPACE "PCGExCreateTensorMagnet"
-#define PCGEX_NAMESPACE CreateTensorMagnet
+#define LOCTEXT_NAMESPACE "PCGExCreateTensorSplineFlow"
+#define PCGEX_NAMESPACE CreateTensorSplineFlow
 
-bool UPCGExTensorMagnet::Init(FPCGExContext* InContext, const UPCGExTensorFactoryData* InFactory)
+bool UPCGExTensorSplineFlow::Init(FPCGExContext* InContext, const UPCGExTensorFactoryData* InFactory)
 {
 	if (!Super::Init(InContext, InFactory)) { return false; }
 	return true;
 }
 
-PCGExTensor::FTensorSample UPCGExTensorMagnet::SampleAtPosition(const FVector& InPosition) const
+PCGExTensor::FTensorSample UPCGExTensorSplineFlow::SampleAtPosition(const FVector& InPosition) const
 {
 	const FBoxCenterAndExtent BCAE = FBoxCenterAndExtent(InPosition, FVector::One());
 
@@ -29,7 +29,7 @@ PCGExTensor::FTensorSample UPCGExTensorMagnet::SampleAtPosition(const FVector& I
 		const double Factor = DistSquared / RadiusSquared;
 
 		Samples.Emplace_GetRef(
-			(InPosition - Center).GetSafeNormal(),
+			PCGExMath::GetDirection(InPointRef.Point->Transform.GetRotation(), EPCGExAxis::Forward),
 			InPointRef.Point->Steepness * Config.StrengthFalloffCurveObj->Eval(Factor),
 			InPointRef.Point->Density * Config.WeightFalloffCurveObj->Eval(Factor));
 	};
@@ -38,21 +38,21 @@ PCGExTensor::FTensorSample UPCGExTensorMagnet::SampleAtPosition(const FVector& I
 
 	PCGExTensor::FTensorSample Result = Samples.Flatten(Config.TensorWeight);
 
-	// Adjust translation by rotation
+	// Remove rotation & adjust translation
 	const FVector Translation = Result.Transform.TransformPosition(FVector::ZeroVector);
 	Result.Transform.SetLocation(Translation);
+	Result.Transform.SetRotation(FQuat::Identity);
 
 	return Result;
 }
 
-PCGEX_TENSOR_BOILERPLATE(Magnet)
-
-bool UPCGExTensorMagnetFactory::InitInternalData(FPCGExContext* InContext)
+bool UPCGExTensorSplineFlowFactory::Prepare(FPCGExContext* InContext)
 {
-	if (!Super::InitInternalData(InContext)) { return false; }
-
-	return true;
+	SampleInputs = Config.SampleInputs;
+	return Super::Prepare(InContext);
 }
+
+PCGEX_TENSOR_BOILERPLATE(SplineFlow)
 
 #undef LOCTEXT_NAMESPACE
 #undef PCGEX_NAMESPACE
