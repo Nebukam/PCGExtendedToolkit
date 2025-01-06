@@ -21,6 +21,10 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExProbeConfigAnisotropic : public FPCGExPr
 	{
 	}
 
+	/** Max angle to search within. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="!bUseComponentWiseAngle", ClampMin=0, ClampMax=11.25))
+	double MaxAngle = 11.25;
+
 	/** Transform the direction with the point's */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	bool bTransformDirection = true;
@@ -41,6 +45,7 @@ public:
 	FPCGExProbeConfigAnisotropic Config;
 
 protected:
+	double MinDot = 0;
 	const FVector Directions[16] = {
 		FVector(1, 0, 0),             // 0 degrees (East)
 		FVector(0.9239, 0.3827, 0),   // 22.5 degrees

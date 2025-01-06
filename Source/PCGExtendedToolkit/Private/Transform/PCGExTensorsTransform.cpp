@@ -99,17 +99,25 @@ namespace PCGExTensorsTransform
 
 		//const FTransform Composite = Point.Transform * Sample.Transform;
 
-		/*
 		if (Settings->bTransformRotation)
 		{
-			if (Settings->Rotation == EPCGExTransformMode::Absolute) { Point.Transform.SetRotation(Sample.Transform.GetRotation()); }
-			else if (Settings->Rotation == EPCGExTransformMode::Relative) { Point.Transform.SetRotation(Composite.GetRotation()); }
+			if (Settings->Rotation == EPCGExTensorTransformMode::Absolute)
+			{
+				Point.Transform.SetRotation(Sample.Rotation);
+			}
+			else if (Settings->Rotation == EPCGExTensorTransformMode::Relative)
+			{
+				Point.Transform.SetRotation(Point.Transform.GetRotation() * Sample.Rotation);
+			}
+			else if (Settings->Rotation == EPCGExTensorTransformMode::Align)
+			{
+				Point.Transform.SetRotation(PCGExMath::MakeDirection(Settings->AlignAxis, Sample.DirectionAndSize.GetSafeNormal()*-1, Point.Transform.GetRotation().GetUpVector()));
+			}
 		}
-		*/
 
 		if (Settings->bTransformPosition)
 		{
-			Point.Transform.SetLocation(Point.Transform.GetLocation() + Sample.Transform.GetLocation());
+			Point.Transform.SetLocation(Point.Transform.GetLocation() + Sample.DirectionAndSize);
 		}
 	}
 

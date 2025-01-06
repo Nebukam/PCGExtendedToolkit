@@ -18,16 +18,16 @@ namespace PCGExTensor
 	{
 		TensorSample.Effectors = Samples.Num();
 
-		FVector Vector = FVector::ZeroVector;
+		FVector DirectionAndSize = FVector::ZeroVector;
 
 		for (const FEffectorSample& EffectorSample : Samples)
 		{
 			const double S = (EffectorSample.Strength * (EffectorSample.Weight / TensorSample.Weight));
-			Vector += EffectorSample.Direction * S;
+			DirectionAndSize += EffectorSample.Direction * S;
 		}
 
-		TensorSample.Transform.SetLocation(Vector);
-		TensorSample.Transform.SetRotation(FRotationMatrix::MakeFromX(Vector.GetSafeNormal()).ToQuat());
+		TensorSample.DirectionAndSize = DirectionAndSize;
+		TensorSample.Rotation = FRotationMatrix::MakeFromX(DirectionAndSize.GetSafeNormal()).ToQuat();
 		TensorSample.Weight = InWeight;
 
 		return TensorSample;
@@ -69,7 +69,7 @@ namespace PCGExTensor
 		TArray<FTensorSample> Samples;
 		double TotalWeight = 0;
 
-		FVector WeightedTranslation = FVector::ZeroVector;
+		FVector WeightedDirectionAndSize = FVector::ZeroVector;
 		FQuat WeightedRotation = FQuat::Identity;
 		double CumulativeWeight = 0.0f;
 
@@ -87,25 +87,24 @@ namespace PCGExTensor
 		{
 			const FTensorSample& Sample = Samples[i];
 			const double W = Sample.Weight / TotalWeight;
-			WeightedTranslation += Sample.Transform.GetLocation() * W;
+			WeightedDirectionAndSize += Sample.DirectionAndSize * W;
 
 			if (i == 0)
 			{
-				WeightedRotation = Sample.Transform.GetRotation();
+				WeightedRotation = Sample.Rotation;
 				CumulativeWeight = W;
 			}
 			else
 			{
-				WeightedRotation = FQuat::Slerp(WeightedRotation, Sample.Transform.GetRotation(), W / (CumulativeWeight + W));
+				WeightedRotation = FQuat::Slerp(WeightedRotation, Sample.Rotation, W / (CumulativeWeight + W));
 				CumulativeWeight += W;
 			}
 		}
 
 		WeightedRotation.Normalize();
 
-		Result.Transform.SetLocation(WeightedTranslation);
-		Result.Transform.SetRotation(WeightedRotation);
-		Result.Transform.SetScale3D(FVector::OneVector);
+		Result.DirectionAndSize = WeightedDirectionAndSize;
+		Result.Rotation = WeightedRotation;
 
 		return Result;
 	}

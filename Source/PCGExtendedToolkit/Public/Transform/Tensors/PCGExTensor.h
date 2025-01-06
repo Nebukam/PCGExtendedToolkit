@@ -82,8 +82,16 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExTensorConfigBase
 
 	// Strength Falloff
 
+	/** Per-point internal Weight input type */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_NotOverridable, DisplayPriority=-1))
+	EPCGExInputValueType StrengthInput = EPCGExInputValueType::Attribute;
+
+	/** Constant strength. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Strength", EditCondition = "WeightInput == EPCGExInputValueType::Constant", EditConditionHides, DisplayPriority=-1))
+	double Strength = 1;
+
 	/** Per-point strength. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Strength", DisplayPriority=-1))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Strength", EditCondition = "WeightInput != EPCGExInputValueType::Constant", EditConditionHides, DisplayPriority=-1))
 	FPCGAttributePropertyInputSelector StrengthAttribute;
 
 	/** Whether to use in-editor curve or an external asset. */
@@ -109,7 +117,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExTensorConfigBase
 
 	/** Per-point internal Weight Constant. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Weighting", meta=(PCG_Overridable, DisplayName="Weight", EditCondition="WeightInput == EPCGExInputValueType::Constant", EditConditionHides, ClampMin=0))
-	double WeightConstant = 1;
+	double Weight = 1;
 
 	/** Per-point internal Weight Attribute. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Weighting", meta=(PCG_Overridable, DisplayName="Weight", EditCondition="WeightInput != EPCGExInputValueType::Constant", EditConditionHides, DisplayPriority=-1))
@@ -145,9 +153,10 @@ namespace PCGExTensor
 
 	struct FTensorSample
 	{
-		FTransform Transform = FTransform::Identity; // sample offset + rotation. Data packing, NOT a transform to compose with!
-		int32 Effectors = 0;                         // number of things that affected this sample
-		double Weight = 0;                           // total weights applied to this sample
+		FVector DirectionAndSize = FVector::ZeroVector;
+		FQuat Rotation = FQuat::Identity;
+		int32 Effectors = 0; // number of things that affected this sample
+		double Weight = 0;   // total weights applied to this sample
 
 		FTensorSample() = default;
 		~FTensorSample() = default;

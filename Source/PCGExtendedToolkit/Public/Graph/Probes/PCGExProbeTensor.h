@@ -4,6 +4,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "PCGExProbeDirection.h"
 #include "UObject/Object.h"
 
 #include "PCGExProbeFactoryProvider.h"
@@ -21,6 +22,10 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExProbeConfigTensor : public FPCGExProbeCo
 		FPCGExProbeConfigBase()
 	{
 	}
+
+	/** What matters more? */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable))
+	EPCGExProbeDirectionPriorization Favor = EPCGExProbeDirectionPriorization::Dot;
 
 	/**  */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
@@ -105,9 +110,8 @@ public:
 
 protected:
 	virtual TArray<FPCGPinProperties> InputPinProperties() const override;
-	
+
 public:
-	
 	virtual UPCGExFactoryData* CreateFactory(FPCGExContext* InContext, UPCGExFactoryData* InFactory) const override;
 
 	/** Filter Config.*/

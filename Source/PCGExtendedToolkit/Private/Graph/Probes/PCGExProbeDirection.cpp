@@ -38,7 +38,7 @@ bool UPCGExProbeDirection::PrepareForPoints(const TSharedPtr<PCGExData::FPointIO
 void UPCGExProbeDirection::ProcessCandidates(const int32 Index, const FPCGPoint& Point, TArray<PCGExProbing::FCandidate>& Candidates, TSet<FInt32Vector>* Coincidence, const FVector& ST, TSet<uint64>* OutEdges)
 {
 	bool bIsAlreadyConnected;
-	const double R = SearchRadiusCache ? SearchRadiusCache->Read(Index) : SearchRadiusSquared;
+	const double R = GetSearchRadius(Index);
 	double BestDot = -1;
 	double BestDist = MAX_dbl;
 	int32 BestCandidateIndex = -1;
@@ -46,13 +46,17 @@ void UPCGExProbeDirection::ProcessCandidates(const int32 Index, const FPCGPoint&
 	FVector Dir = DirectionCache ? DirectionCache->Read(Index).GetSafeNormal() : Direction;
 	if (Config.bTransformDirection) { Dir = Point.Transform.TransformVectorNoScale(Dir); }
 
-	for (int i = 0; i < Candidates.Num(); i++)
+	const int32 MaxIndex = Candidates.Num() - 1;
+	for (int i = 0; i <= MaxIndex; i++)
 	{
-		const PCGExProbing::FCandidate& C = Candidates[i];
+		const int32 LocalIndex = bUseBestDot ? MaxIndex - i : i;
+		const PCGExProbing::FCandidate& C = Candidates[LocalIndex];
 
-		if (C.Distance > R) { break; }
+		// When using best dot, we need to process the candidates backward, so can't break the loop.
+		if (bUseBestDot) { if (C.Distance > R) { continue; } }
+		else { if (C.Distance > R) { break; } }
+		
 		if (Coincidence && Coincidence->Contains(C.GH)) { continue; }
-		//if (OutEdges->Contains(PCGEx::H64U(Index, C.PointIndex))) { continue; }
 
 		double Dot = 0;
 		if (Config.bUseComponentWiseAngle)
@@ -66,23 +70,14 @@ void UPCGExProbeDirection::ProcessCandidates(const int32 Index, const FPCGPoint&
 			if (Dot < MinDot) { continue; }
 		}
 
-		if (bUseBestDot)
+		if (Dot >= BestDot)
 		{
-			if (Dot >= BestDot)
+			if (C.Distance < BestDist)
 			{
-				if (C.Distance < BestDist)
-				{
-					BestDist = C.Distance;
-					BestDot = Dot;
-					BestCandidateIndex = i;
-				}
+				BestDist = C.Distance;
+				BestDot = Dot;
+				BestCandidateIndex = LocalIndex;
 			}
-		}
-		else if (C.Distance < BestDist)
-		{
-			BestDist = C.Distance;
-			BestDot = Dot;
-			BestCandidateIndex = i;
 		}
 	}
 
@@ -109,7 +104,7 @@ void UPCGExProbeDirection::PrepareBestCandidate(const int32 Index, const FPCGPoi
 
 void UPCGExProbeDirection::ProcessCandidateChained(const int32 Index, const FPCGPoint& Point, const int32 CandidateIndex, PCGExProbing::FCandidate& Candidate, PCGExProbing::FBestCandidate& InBestCandidate)
 {
-	const double R = SearchRadiusCache ? SearchRadiusCache->Read(Index) : SearchRadiusSquared;
+	const double R = GetSearchRadius(Index);
 	FVector Dir = DirectionCache ? DirectionCache->Read(Index).GetSafeNormal() : Direction;
 	if (Config.bTransformDirection) { Dir = Point.Transform.TransformVectorNoScale(Dir); }
 

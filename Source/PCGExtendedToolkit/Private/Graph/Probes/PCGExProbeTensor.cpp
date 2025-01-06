@@ -32,6 +32,7 @@ bool UPCGExProbeTensor::PrepareForPoints(const TSharedPtr<PCGExData::FPointIO>& 
 {
 	if (!Super::PrepareForPoints(InPointIO)) { return false; }
 
+	bUseBestDot = (Config.Favor == EPCGExProbeDirectionPriorization::Dot);
 	MinDot = PCGExMath::DegreesToDot(Config.MaxAngle);
 
 	return true;
@@ -40,7 +41,7 @@ bool UPCGExProbeTensor::PrepareForPoints(const TSharedPtr<PCGExData::FPointIO>& 
 void UPCGExProbeTensor::ProcessCandidates(const int32 Index, const FPCGPoint& Point, TArray<PCGExProbing::FCandidate>& Candidates, TSet<FInt32Vector>* Coincidence, const FVector& ST, TSet<uint64>* OutEdges)
 {
 	bool bIsAlreadyConnected;
-	const double R = SearchRadiusCache ? SearchRadiusCache->Read(Index) : SearchRadiusSquared;
+	const double R = GetSearchRadius(Index);
 	double BestDot = -1;
 	double BestDist = MAX_dbl;
 	int32 BestCandidateIndex = -1;
@@ -50,15 +51,18 @@ void UPCGExProbeTensor::ProcessCandidates(const int32 Index, const FPCGPoint& Po
 
 	if (!bSuccess) { return; }
 
-	const FVector Dir = Sample.Transform.GetRotation().GetForwardVector();
-
-	for (int i = 0; i < Candidates.Num(); i++)
+	const FVector Dir = Sample.DirectionAndSize.GetSafeNormal();
+	const int32 MaxIndex = Candidates.Num() - 1;
+	for (int i = 0; i <= MaxIndex; i++)
 	{
-		const PCGExProbing::FCandidate& C = Candidates[i];
+		const int32 LocalIndex = bUseBestDot ? MaxIndex - i : i;
+		const PCGExProbing::FCandidate& C = Candidates[LocalIndex];
 
-		if (C.Distance > R) { break; }
+		// When using best dot, we need to process the candidates backward, so can't break the loop.
+		if (bUseBestDot) { if (C.Distance > R) { continue; } }
+		else { if (C.Distance > R) { break; } }
+
 		if (Coincidence && Coincidence->Contains(C.GH)) { continue; }
-		//if (OutEdges->Contains(PCGEx::H64U(Index, C.PointIndex))) { continue; }
 
 		double Dot = 0;
 		if (Config.bUseComponentWiseAngle)
@@ -72,23 +76,15 @@ void UPCGExProbeTensor::ProcessCandidates(const int32 Index, const FPCGPoint& Po
 			if (Dot < MinDot) { continue; }
 		}
 
-		if (bUseBestDot)
+
+		if (Dot >= BestDot)
 		{
-			if (Dot >= BestDot)
+			if (C.Distance < BestDist)
 			{
-				if (C.Distance < BestDist)
-				{
-					BestDist = C.Distance;
-					BestDot = Dot;
-					BestCandidateIndex = i;
-				}
+				BestDist = C.Distance;
+				BestDot = Dot;
+				BestCandidateIndex = LocalIndex;
 			}
-		}
-		else if (C.Distance < BestDist)
-		{
-			BestDist = C.Distance;
-			BestDot = Dot;
-			BestCandidateIndex = i;
 		}
 	}
 
@@ -115,13 +111,13 @@ void UPCGExProbeTensor::PrepareBestCandidate(const int32 Index, const FPCGPoint&
 
 void UPCGExProbeTensor::ProcessCandidateChained(const int32 Index, const FPCGPoint& Point, const int32 CandidateIndex, PCGExProbing::FCandidate& Candidate, PCGExProbing::FBestCandidate& InBestCandidate)
 {
-	const double R = SearchRadiusCache ? SearchRadiusCache->Read(Index) : SearchRadiusSquared;
+	const double R = GetSearchRadius(Index);
 	bool bSuccess = false;
 	const PCGExTensor::FTensorSample Sample = TensorsHandler->SampleAtPosition(Point.Transform.GetLocation(), bSuccess);
 
 	if (!bSuccess) { return; }
 
-	const FVector Dir = Sample.Transform.GetRotation().GetForwardVector();
+	const FVector Dir = Sample.DirectionAndSize.GetSafeNormal();
 
 	if (Candidate.Distance > R) { return; }
 

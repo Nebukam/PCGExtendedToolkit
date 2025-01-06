@@ -396,7 +396,7 @@ struct FNewGraphSettingsResult
 	bool bIsValid = false;
 
 	UPROPERTY(BlueprintReadWrite, Category = "Result")
-	UPCGExCustomGraphSettings* Settings = nullptr;
+	TObjectPtr<UPCGExCustomGraphSettings> Settings = nullptr;
 };
 
 /**

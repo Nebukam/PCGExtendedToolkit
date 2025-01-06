@@ -36,14 +36,7 @@ PCGExTensor::FTensorSample UPCGExTensorSplineFlow::SampleAtPosition(const FVecto
 
 	Octree->FindElementsWithBoundsTest(BCAE, ProcessNeighbor);
 
-	PCGExTensor::FTensorSample Result = Samples.Flatten(Config.TensorWeight);
-
-	// Remove rotation & adjust translation
-	const FVector Translation = Result.Transform.TransformPosition(FVector::ZeroVector);
-	Result.Transform.SetLocation(Translation);
-	Result.Transform.SetRotation(FQuat::Identity);
-
-	return Result;
+	return Samples.Flatten(Config.TensorWeight);
 }
 
 bool UPCGExTensorSplineFlowFactory::Prepare(FPCGExContext* InContext)
@@ -52,7 +45,7 @@ bool UPCGExTensorSplineFlowFactory::Prepare(FPCGExContext* InContext)
 	return Super::Prepare(InContext);
 }
 
-PCGEX_TENSOR_BOILERPLATE(SplineFlow)
+PCGEX_TENSOR_BOILERPLATE(SplineFlow, {}, {})
 
 #undef LOCTEXT_NAMESPACE
 #undef PCGEX_NAMESPACE

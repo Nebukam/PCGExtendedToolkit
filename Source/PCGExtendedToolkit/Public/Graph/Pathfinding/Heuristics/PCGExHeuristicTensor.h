@@ -69,7 +69,7 @@ protected:
 		bool bSuccess = false;
 		const PCGExTensor::FTensorSample Sample = TensorsHandler->SampleAtPosition(From, bSuccess);
 		if (!bSuccess) { return 1; }
-		const double Dot = FVector::DotProduct((To - From).GetSafeNormal(), Sample.Transform.GetRotation().GetForwardVector());
+		const double Dot = FVector::DotProduct((To - From).GetSafeNormal(), Sample.DirectionAndSize.GetSafeNormal());
 		return bAbsoluteTensor ? FMath::Abs(Dot) : PCGExMath::Remap(Dot, -1, 1);
 	}
 };

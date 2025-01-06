@@ -36,16 +36,10 @@ PCGExTensor::FTensorSample UPCGExTensorMagnet::SampleAtPosition(const FVector& I
 
 	Octree->FindElementsWithBoundsTest(BCAE, ProcessNeighbor);
 
-	PCGExTensor::FTensorSample Result = Samples.Flatten(Config.TensorWeight);
-
-	// Adjust translation by rotation
-	const FVector Translation = Result.Transform.TransformPosition(FVector::ZeroVector);
-	Result.Transform.SetLocation(Translation);
-
-	return Result;
+	return Samples.Flatten(Config.TensorWeight);
 }
 
-PCGEX_TENSOR_BOILERPLATE(Magnet)
+PCGEX_TENSOR_BOILERPLATE(Magnet, {}, {})
 
 bool UPCGExTensorMagnetFactory::InitInternalData(FPCGExContext* InContext)
 {

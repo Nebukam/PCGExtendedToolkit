@@ -69,8 +69,8 @@ bool UPCGExTensorPointFactoryData::InitInternalData(FPCGExContext* InContext)
 		Effector.BoundsMax = ScaledBounds.Max;
 
 		Effector.Color = FVector4(Extents.X, Extents.Y, Extents.Z, Extents.SquaredLength()); // Cache Scaled Extents + Squared radius into $Color
-		Effector.Density = Effector.Steepness;                                               // Pack Weight to $Density
-		Effector.Steepness = StrengthBuffer->Read(i);                                        // Pack Strength to $Steepness
+		Effector.Density = GetWeight(i);                                                     // Pack Weight to $Density
+		Effector.Steepness = GetStrength(i);                                                 // Pack Strength to $Steepness
 	}
 
 	bOctreeIsDirty = false;
@@ -87,11 +87,24 @@ bool UPCGExTensorPointFactoryData::InitInternalFacade(FPCGExContext* InContext)
 	InputDataFacade = PCGExData::TryGetSingleFacade(InContext, PCGEx::SourcePointsLabel, true);
 	if (!InputDataFacade) { return false; }
 
-	StrengthBuffer = InputDataFacade->GetBroadcaster<float>(BaseConfig.StrengthAttribute, true);
-	if (!StrengthBuffer)
+	if (BaseConfig.StrengthInput == EPCGExInputValueType::Attribute)
 	{
-		PCGE_LOG_C(Error, GraphAndLog, InContext, FText::Format(FTEXT("Invalid Strength attribute: \"{0}\"."), FText::FromName(BaseConfig.StrengthAttribute.GetName())));
-		return false;
+		StrengthBuffer = InputDataFacade->GetBroadcaster<float>(BaseConfig.StrengthAttribute, true);
+		if (!StrengthBuffer)
+		{
+			PCGE_LOG_C(Error, GraphAndLog, InContext, FText::Format(FTEXT("Invalid Strength attribute: \"{0}\"."), FText::FromName(BaseConfig.StrengthAttribute.GetName())));
+			return false;
+		}
+	}
+
+	if (BaseConfig.WeightInput == EPCGExInputValueType::Attribute)
+	{
+		WeightBuffer = InputDataFacade->GetBroadcaster<float>(BaseConfig.WeightAttribute, true);
+		if (!WeightBuffer)
+		{
+			PCGE_LOG_C(Error, GraphAndLog, InContext, FText::Format(FTEXT("Invalid Weight attribute: \"{0}\"."), FText::FromName(BaseConfig.WeightAttribute.GetName())));
+			return false;
+		}
 	}
 
 	return true;
@@ -99,6 +112,16 @@ bool UPCGExTensorPointFactoryData::InitInternalFacade(FPCGExContext* InContext)
 
 void UPCGExTensorPointFactoryData::PrepareSinglePoint(const int32 Index, FPCGPoint& InPoint) const
 {
+}
+
+double UPCGExTensorPointFactoryData::GetStrength(const int32 Index) const
+{
+	return StrengthBuffer ? StrengthBuffer->Read(Index) : BaseConfig.Strength;
+}
+
+double UPCGExTensorPointFactoryData::GetWeight(const int32 Index) const
+{
+	return WeightBuffer ? WeightBuffer->Read(Index) : BaseConfig.Weight;
 }
 
 TArray<FPCGPinProperties> UPCGExTensorPointFactoryProviderSettings::InputPinProperties() const

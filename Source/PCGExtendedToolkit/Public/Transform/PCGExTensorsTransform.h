@@ -14,6 +14,13 @@
 
 #include "PCGExTensorsTransform.generated.h"
 
+UENUM()
+enum class EPCGExTensorTransformMode : uint8
+{
+	Absolute = 0 UMETA(DisplayName = "Absolute", ToolTip="Absolute, ignores source transform."),
+	Relative = 1 UMETA(DisplayName = "Relative", ToolTip="Relative to source transform."),
+	Align    = 2 UMETA(DisplayName = "Align", ToolTip="Align rotation with movement direction."),
+};
 
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc")
 class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExTensorsTransformSettings : public UPCGExPointsProcessorSettings
@@ -48,12 +55,16 @@ public:
 	bool bTransformPosition = true;
 
 	/**  */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, InlineEditConditionToggle))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	bool bTransformRotation = true;
 
 	/**  */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bTransformRotation"))
-	EPCGExTransformMode Rotation = EPCGExTransformMode::Absolute;
+	EPCGExTensorTransformMode Rotation = EPCGExTensorTransformMode::Align;
+
+	/**  */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bTransformRotation && Rotation == EPCGExTensorTransformMode::Align"))
+	EPCGExAxis AlignAxis = EPCGExAxis::Forward;
 
 	/**  */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))

@@ -10,17 +10,19 @@
 
 #include "PCGExTensorFactoryProvider.generated.h"
 
-#define PCGEX_TENSOR_BOILERPLATE(_TENSOR) \
+#define PCGEX_TENSOR_BOILERPLATE(_TENSOR, _NEW_FACTORY, _NEW_OPERATION) \
 UPCGExTensorOperation* UPCGExTensor##_TENSOR##Factory::CreateOperation(FPCGExContext* InContext) const{ \
 	UPCGExTensor##_TENSOR* NewOperation = InContext->ManagedObjects->New<UPCGExTensor##_TENSOR>(); \
 	NewOperation->Factory = this; \
 	NewOperation->Config = Config; \
+	_NEW_OPERATION \
 	NewOperation->BaseConfig = NewOperation->Config; \
 	if(!NewOperation->Init(InContext, this)){ return nullptr; } \
 	return NewOperation; } \
 UPCGExFactoryData* UPCGExCreateTensor##_TENSOR##Settings::CreateFactory(FPCGExContext* InContext, UPCGExFactoryData* InFactory) const{ \
 	UPCGExTensor##_TENSOR##Factory* NewFactory = InContext->ManagedObjects->New<UPCGExTensor##_TENSOR##Factory>(); \
 	NewFactory->Config = Config; \
+	_NEW_FACTORY \
 	NewFactory->Config.Init(); \
 	NewFactory->BaseConfig = NewFactory->Config; \
 	return Super::CreateFactory(InContext, NewFactory);}
@@ -44,9 +46,6 @@ public:
 	virtual bool Prepare(FPCGExContext* InContext) override;
 
 protected:
-	double WeightOffset = 0;
-	double WeightRange = 1;
-
 	virtual bool InitInternalData(FPCGExContext* InContext);
 };
 
@@ -81,11 +80,15 @@ protected:
 	TSharedPtr<PCGExData::FFacade> InputDataFacade;
 
 	TSharedPtr<PCGExData::TBuffer<float>> StrengthBuffer;
+	TSharedPtr<PCGExData::TBuffer<float>> WeightBuffer;
 
 	virtual bool GetRequiresPreparation(FPCGExContext* InContext) override { return true; }
 	virtual bool InitInternalData(FPCGExContext* InContext) override;
 	virtual bool InitInternalFacade(FPCGExContext* InContext);
 	virtual void PrepareSinglePoint(int32 Index, FPCGPoint& InPoint) const;
+
+	double GetStrength(const int32 Index) const;
+	double GetWeight(const int32 Index) const;
 };
 
 UCLASS(Abstract, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Graph|Params")
