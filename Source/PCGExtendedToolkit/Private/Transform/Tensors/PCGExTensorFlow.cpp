@@ -36,7 +36,14 @@ PCGExTensor::FTensorSample UPCGExTensorFlow::SampleAtPosition(const FVector& InP
 
 	Octree->FindElementsWithBoundsTest(BCAE, ProcessNeighbor);
 
-	return Samples.Flatten(Config.TensorWeight);
+	PCGExTensor::FTensorSample Result = Samples.Flatten(Config.TensorWeight);
+
+	// Remove rotation & adjust translation
+	const FVector Translation = Result.Transform.TransformPosition(FVector::ZeroVector);
+	Result.Transform.SetLocation(Translation);
+	Result.Transform.SetRotation(FQuat::Identity);
+
+	return Result;
 }
 
 PCGEX_TENSOR_BOILERPLATE(Flow)
