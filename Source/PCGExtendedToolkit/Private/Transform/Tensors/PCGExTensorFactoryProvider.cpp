@@ -52,7 +52,7 @@ bool UPCGExTensorPointFactoryData::InitInternalData(FPCGExContext* InContext)
 	for (int i = 0; i < Points.Num(); i++)
 	{
 		FPCGPoint& Effector = Points[i];
-
+		Effector.MetadataEntry = PCGInvalidEntryKey;
 
 		// Flatten bounds
 
