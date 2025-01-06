@@ -22,7 +22,7 @@ UPCGExHeuristicOperation* UPCGExHeuristicsFactorySteepness::CreateOperation(FPCG
 
 PCGEX_HEURISTIC_FACTORY_BOILERPLATE_IMPL(Steepness, {})
 
-UPCGExParamFactoryBase* UPCGExHeuristicsSteepnessProviderSettings::CreateFactory(FPCGExContext* InContext, UPCGExParamFactoryBase* InFactory) const
+UPCGExFactoryData* UPCGExHeuristicsSteepnessProviderSettings::CreateFactory(FPCGExContext* InContext, UPCGExFactoryData* InFactory) const
 {
 	UPCGExHeuristicsFactorySteepness* NewFactory = InContext->ManagedObjects->New<UPCGExHeuristicsFactorySteepness>();
 	PCGEX_FORWARD_HEURISTIC_FACTORY

@@ -33,14 +33,14 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExClusterStateConfigBase : public FPCGExSt
  * 
  */
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExClusterStateFactoryBase : public UPCGExClusterFilterFactoryBase
+class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExClusterStateFactoryData : public UPCGExClusterFilterFactoryData
 {
 	GENERATED_BODY()
 
 public:
 	virtual PCGExFactories::EType GetFactoryType() const override { return PCGExFactories::EType::NodeState; }
 
-	TArray<TObjectPtr<const UPCGExFilterFactoryBase>> FilterFactories;
+	TArray<TObjectPtr<const UPCGExFilterFactoryData>> FilterFactories;
 	virtual TSharedPtr<PCGExPointFilter::FFilter> CreateFilter() const override;
 
 	FPCGExClusterStateConfigBase Config;
@@ -57,9 +57,9 @@ namespace PCGExClusterStates
 	public:
 		FPCGExClusterStateConfigBase Config;
 		FPCGExStateConfigBase* BaseConfig = nullptr;
-		const UPCGExClusterStateFactoryBase* StateFactory = nullptr;
+		const UPCGExClusterStateFactoryData* StateFactory = nullptr;
 
-		explicit FState(const UPCGExClusterStateFactoryBase* InFactory):
+		explicit FState(const UPCGExClusterStateFactoryData* InFactory):
 			FFilter(InFactory), StateFactory(InFactory)
 		{
 		}
@@ -67,7 +67,7 @@ namespace PCGExClusterStates
 		virtual ~FState() override;
 
 		virtual bool Init(FPCGExContext* InContext, const TSharedRef<PCGExCluster::FCluster>& InCluster, const TSharedRef<PCGExData::FFacade>& InPointDataFacade, const TSharedRef<PCGExData::FFacade>& InEdgeDataFacade) override;
-		bool InitInternalManager(FPCGExContext* InContext, const TArray<TObjectPtr<const UPCGExFilterFactoryBase>>& InFactories);
+		bool InitInternalManager(FPCGExContext* InContext, const TArray<TObjectPtr<const UPCGExFilterFactoryData>>& InFactories);
 
 		virtual bool Test(const int32 Index) const override;
 		virtual bool Test(const PCGExCluster::FNode& Node) const override;
@@ -138,7 +138,7 @@ protected:
 
 public:
 	virtual FName GetMainOutputPin() const override { return PCGExCluster::OutputNodeFlagLabel; }
-	virtual UPCGExParamFactoryBase* CreateFactory(FPCGExContext* InContext, UPCGExParamFactoryBase* InFactory) const override;
+	virtual UPCGExFactoryData* CreateFactory(FPCGExContext* InContext, UPCGExFactoryData* InFactory) const override;
 
 	/** */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))

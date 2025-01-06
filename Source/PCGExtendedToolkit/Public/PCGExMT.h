@@ -229,7 +229,7 @@ namespace PCGExMT
 		mutable FRWLock GroupsLock;
 		mutable FRWLock TokensLock;
 
-		TWeakPtr<PCGEx::FLifeline> Lifeline;
+		TWeakPtr<PCGEx::FWorkPermit> WorkPermit;
 
 		FPCGExContext* Context = nullptr;
 

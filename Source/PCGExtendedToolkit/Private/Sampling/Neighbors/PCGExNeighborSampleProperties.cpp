@@ -54,7 +54,7 @@ UPCGExNeighborSampleOperation* UPCGExNeighborSamplerFactoryProperties::CreateOpe
 	return NewOperation;
 }
 
-UPCGExParamFactoryBase* UPCGExNeighborSamplePropertiesSettings::CreateFactory(FPCGExContext* InContext, UPCGExParamFactoryBase* InFactory) const
+UPCGExFactoryData* UPCGExNeighborSamplePropertiesSettings::CreateFactory(FPCGExContext* InContext, UPCGExFactoryData* InFactory) const
 {
 	UPCGExNeighborSamplerFactoryProperties* SamplerFactory = InContext->ManagedObjects->New<UPCGExNeighborSamplerFactoryProperties>();
 	SamplerFactory->Config = Config;

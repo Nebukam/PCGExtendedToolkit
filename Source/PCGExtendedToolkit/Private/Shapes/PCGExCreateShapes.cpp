@@ -71,7 +71,7 @@ namespace PCGExCreateShapes
 		if (!FPointsProcessor::Process(InAsyncManager)) { return false; }
 
 		Builders.Reserve(Context->BuilderFactories.Num());
-		for (const TObjectPtr<const UPCGExShapeBuilderFactoryBase>& Factory : Context->BuilderFactories)
+		for (const TObjectPtr<const UPCGExShapeBuilderFactoryData>& Factory : Context->BuilderFactories)
 		{
 			UPCGExShapeBuilderOperation* Op = Factory->CreateOperation(Context);
 			if (!Op->PrepareForSeeds(Context, PointDataFacade)) { return false; }

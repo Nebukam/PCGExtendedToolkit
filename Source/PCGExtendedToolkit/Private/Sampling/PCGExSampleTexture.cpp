@@ -36,7 +36,7 @@ bool FPCGExSampleTextureElement::Boot(FPCGExContext* InContext) const
 	if (!PCGExFactories::GetInputFactories(InContext, PCGExTexture::SourceTexLabel, Context->TexParamsFactories, {PCGExFactories::EType::TexParam}, true)) { return false; }
 
 	TSet<FName> UniqueSampleNames;
-	for (const TObjectPtr<const UPCGExTexParamFactoryBase>& Factory : Context->TexParamsFactories)
+	for (const TObjectPtr<const UPCGExTexParamFactoryData>& Factory : Context->TexParamsFactories)
 	{
 		PCGEX_VALIDATE_NAME_C(InContext, Factory->Config.TextureIDAttributeName)
 		PCGEX_VALIDATE_NAME_C(InContext, Factory->Config.SampleAttributeName)
@@ -112,7 +112,7 @@ namespace PCGExSampleTexture
 			return false;
 		}
 
-		for (const TObjectPtr<const UPCGExTexParamFactoryBase>& Factory : Context->TexParamsFactories)
+		for (const TObjectPtr<const UPCGExTexParamFactoryData>& Factory : Context->TexParamsFactories)
 		{
 			if (Factory->Config.OutputType == EPCGExTexSampleAttributeType::Invalid) { continue; }
 

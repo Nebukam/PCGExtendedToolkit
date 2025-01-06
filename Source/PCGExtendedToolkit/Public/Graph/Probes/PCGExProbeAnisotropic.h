@@ -64,7 +64,7 @@ protected:
 ////
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExProbeFactoryAnisotropic : public UPCGExProbeFactoryBase
+class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExProbeFactoryAnisotropic : public UPCGExProbeFactoryData
 {
 	GENERATED_BODY()
 
@@ -87,7 +87,7 @@ public:
 #endif
 	//~End UPCGSettings
 
-	virtual UPCGExParamFactoryBase* CreateFactory(FPCGExContext* InContext, UPCGExParamFactoryBase* InFactory) const override;
+	virtual UPCGExFactoryData* CreateFactory(FPCGExContext* InContext, UPCGExFactoryData* InFactory) const override;
 
 	/** Filter Config.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ShowOnlyInnerProperties))

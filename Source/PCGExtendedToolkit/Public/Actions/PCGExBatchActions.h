@@ -11,7 +11,7 @@
 #include "PCGExBatchActions.generated.h"
 
 class UPCGExActionOperation;
-class UPCGExActionFactoryBase;
+class UPCGExActionFactoryData;
 /**
  * 
  */
@@ -55,7 +55,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExBatchActionsContext final : FPCGExPoints
 	friend class FPCGExBatchActionsElement;
 
 	TSharedPtr<PCGEx::FAttributesInfos> DefaultAttributes;
-	TArray<TObjectPtr<const UPCGExActionFactoryBase>> ActionsFactories;
+	TArray<TObjectPtr<const UPCGExActionFactoryData>> ActionsFactories;
 };
 
 class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExBatchActionsElement final : public FPCGExPointsProcessorElement

@@ -342,11 +342,11 @@ private:
 
 namespace PCGEx
 {
-	class FLifeline final : public TSharedFromThis<FLifeline>
+	class FWorkPermit final : public TSharedFromThis<FWorkPermit>
 	{
 	public:
-		FLifeline() = default;
-		~FLifeline() = default;
+		FWorkPermit() = default;
+		~FWorkPermit() = default;
 	};
 
 	class FIntTracker final : public TSharedFromThis<FIntTracker>
@@ -404,18 +404,20 @@ namespace PCGEx
 		mutable FRWLock DuplicatedObjectLock;
 
 		FPCGContext* Context = nullptr;
-		TWeakPtr<FLifeline> Lifeline;
+		TWeakPtr<FWorkPermit> Lifeline;
 		TSet<UObject*> ManagedObjects;
 
-		bool IsFlushing() const { return static_cast<bool>(bFlushing); }
+		bool IsFlushing() const { return bIsFlushing.load(std::memory_order_acquire); }
 
-		explicit FManagedObjects(FPCGContext* InContext, const TSharedPtr<FLifeline>& InLifeline):
+		explicit FManagedObjects(FPCGContext* InContext, const TSharedPtr<FWorkPermit>& InLifeline):
 			Context(InContext), Lifeline(InLifeline)
 		{
 		}
 
 		~FManagedObjects();
 
+		bool IsAvailable() const;
+		
 		void Flush();
 
 		void Add(UObject* InObject);
@@ -535,7 +537,7 @@ namespace PCGEx
 		void RecursivelyClearAsyncFlagUnsafe(UObject* InObject) const;
 
 	private:
-		int8 bFlushing = 0;
+		std::atomic<bool> bIsFlushing{false};
 	};
 
 	static FVector GetPointsCentroid(const TArray<FPCGPoint>& InPoints)

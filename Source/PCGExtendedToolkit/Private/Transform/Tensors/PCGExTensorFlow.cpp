@@ -6,13 +6,46 @@
 #define LOCTEXT_NAMESPACE "PCGExCreateTensorFlow"
 #define PCGEX_NAMESPACE CreateTensorFlow
 
+bool UPCGExTensorFlow::Init(FPCGExContext* InContext, const UPCGExTensorFactoryData* InFactory)
+{
+	if (!Super::Init(InContext, InFactory)) { return false; }
+	return true;
+}
+
+PCGExTensor::FTensorSample UPCGExTensorFlow::SampleAtPosition(const FVector& InPosition) const
+{
+	const FBoxCenterAndExtent BCAE = FBoxCenterAndExtent(InPosition, FVector::One());
+
+	PCGExTensor::FEffectorSamples Samples = PCGExTensor::FEffectorSamples();
+
+	auto ProcessNeighbor = [&](const FPCGPointRef& InPointRef)
+	{
+		const FVector Center = InPointRef.Point->Transform.GetLocation();
+		const double RadiusSquared = InPointRef.Point->Color.W;
+		const double DistSquared = FVector::DistSquared(InPosition, Center);
+
+		if (DistSquared > RadiusSquared) { return; }
+
+		const double Factor = DistSquared / RadiusSquared;
+
+		Samples.Emplace_GetRef(
+			PCGExMath::GetDirection(InPointRef.Point->Transform.GetRotation(), EPCGExAxis::Forward),
+			InPointRef.Point->Steepness * Config.StrengthFalloffCurveObj->Eval(Factor),
+			InPointRef.Point->Density * Config.WeightFalloffCurveObj->Eval(Factor));
+	};
+
+	Octree->FindElementsWithBoundsTest(BCAE, ProcessNeighbor);
+
+	return Samples.Flatten(Config.TensorWeight);
+}
+
 PCGEX_TENSOR_BOILERPLATE(Flow)
 
-TArray<FPCGPinProperties> UPCGExCreateTensorFlowSettings::InputPinProperties() const
+bool UPCGExTensorFlowFactory::InitInternalData(FPCGExContext* InContext)
 {
-	TArray<FPCGPinProperties> PinProperties =  Super::InputPinProperties();
-	PCGEX_PIN_POINT(PCGEx::SourcePointsLabel, "Single point collection whose transform represent the flow", Required, {})
-	return PinProperties;
+	if (!Super::InitInternalData(InContext)) { return false; }
+
+	return true;
 }
 
 #undef LOCTEXT_NAMESPACE

@@ -6,13 +6,20 @@
 #define LOCTEXT_NAMESPACE "PCGExCreateTensorMagnet"
 #define PCGEX_NAMESPACE CreateTensorMagnet
 
+bool UPCGExTensorMagnet::Init(FPCGExContext* InContext, const UPCGExTensorFactoryData* InFactory)
+{
+	if (!Super::Init(InContext, InFactory)) { return false; }
+	
+	return true;
+}
+
 PCGEX_TENSOR_BOILERPLATE(Magnet)
 
-TArray<FPCGPinProperties> UPCGExCreateTensorMagnetSettings::InputPinProperties() const
+bool UPCGExTensorMagnetFactory::InitInternalData(FPCGExContext* InContext)
 {
-	TArray<FPCGPinProperties> PinProperties =  Super::InputPinProperties();
-	PCGEX_PIN_POINT(PCGEx::SourcePointsLabel, "Single point collection that represent attractors", Required, {})
-	return PinProperties;
+	if (!Super::InitInternalData(InContext)) { return false; }
+
+	return true;
 }
 
 #undef LOCTEXT_NAMESPACE

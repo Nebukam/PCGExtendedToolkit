@@ -13,18 +13,20 @@
 UPCGExTensorOperation* UPCGExTensor##_TENSOR##Factory::CreateOperation(FPCGExContext* InContext) const{ \
 	UPCGExTensor##_TENSOR* NewOperation = InContext->ManagedObjects->New<UPCGExTensor##_TENSOR>(); \
 	NewOperation->Config = Config; \
-	NewOperation->Config.Init(); \
 	NewOperation->BaseConfig = NewOperation->Config; \
+	if(!NewOperation->Init(InContext, this)){ return nullptr; } \
 	return NewOperation; } \
-UPCGExParamFactoryBase* UPCGExCreateTensor##_TENSOR##Settings::CreateFactory(FPCGExContext* InContext, UPCGExParamFactoryBase* InFactory) const{ \
+UPCGExFactoryData* UPCGExCreateTensor##_TENSOR##Settings::CreateFactory(FPCGExContext* InContext, UPCGExFactoryData* InFactory) const{ \
 	UPCGExTensor##_TENSOR##Factory* NewFactory = InContext->ManagedObjects->New<UPCGExTensor##_TENSOR##Factory>(); \
 	NewFactory->Config = Config; \
+	NewFactory->Config.Init(); \
+	NewFactory->BaseConfig = NewFactory->Config; \
 	return Super::CreateFactory(InContext, NewFactory);}
 
 class UPCGExTensorOperation;
 
 UCLASS(Abstract, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExTensorFactoryBase : public UPCGExParamFactoryBase
+class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExTensorFactoryData : public UPCGExFactoryData
 {
 	GENERATED_BODY()
 
@@ -35,6 +37,15 @@ class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExTensorFactoryBase : public UPCGExParamFac
 public:
 	virtual PCGExFactories::EType GetFactoryType() const override { return PCGExFactories::EType::Tensor; }
 	virtual UPCGExTensorOperation* CreateOperation(FPCGExContext* InContext) const;
+
+	FPCGExTensorConfigBase BaseConfig;
+	virtual bool ExecuteInternal(FPCGExContext* InContext, bool& bAbort) override;
+
+protected:
+	double WeightOffset = 0;
+	double WeightRange = 1;
+	
+	virtual bool InitInternalData(FPCGExContext* InContext);
 };
 
 UCLASS(Abstract, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Graph|Params")
@@ -50,6 +61,29 @@ public:
 #endif
 	//~End UPCGSettings
 
+	/** Tensor Priority, only accounted for by if sampler is in any Ordered- mode.*/
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayPriority=-1))
+	int32 Priority = 0;
+
 	virtual FName GetMainOutputPin() const override { return PCGExTensor::OutputTensorLabel; }
-	virtual UPCGExParamFactoryBase* CreateFactory(FPCGExContext* InContext, UPCGExParamFactoryBase* InFactory) const override;
+	virtual UPCGExFactoryData* CreateFactory(FPCGExContext* InContext, UPCGExFactoryData* InFactory) const override;
+};
+
+
+UCLASS(Abstract, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")
+class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExTensorPointFactoryData : public UPCGExTensorFactoryData
+{
+	GENERATED_BODY()
+
+protected:
+	virtual bool InitInternalData(FPCGExContext* InContext) override;
+};
+
+UCLASS(Abstract, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Graph|Params")
+class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExTensorPointFactoryProviderSettings : public UPCGExTensorFactoryProviderSettings
+{
+	GENERATED_BODY()
+
+protected:
+	virtual TArray<FPCGPinProperties> InputPinProperties() const override;
 };

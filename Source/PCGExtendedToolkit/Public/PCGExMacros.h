@@ -169,7 +169,12 @@ FPCGElementPtr UPCGEx##_NAME##Settings::CreateElement() const{	return MakeShared
 #define PCGEX_VALIDATE_NAME_C(_CTX, _NAME) if (!PCGEx::IsValidName(_NAME)){	PCGE_LOG_C(Error, GraphAndLog, _CTX, FTEXT("Invalid user-defined attribute name for " #_NAME)); return false;	}
 #define PCGEX_SOFT_VALIDATE_NAME(_BOOL, _NAME, _CTX) if(_BOOL){if (!PCGEx::IsValidName(_NAME)){ PCGE_LOG_C(Warning, GraphAndLog, _CTX, FTEXT("Invalid user-defined attribute name for " #_NAME)); _BOOL = false; } }
 #define PCGEX_FWD(_NAME) Context->_NAME = Settings->_NAME;
-#define PCGEX_TERMINATE_ASYNC Lifeline.Reset(); if (AsyncManager) { AsyncManager->Cancel(); }
+#define PCGEX_TERMINATE_ASYNC WorkPermit.Reset(); if (AsyncManager) { AsyncManager->Cancel(); }
+
+#define PCGEX_CHECK_WORK_PERMIT_VOID if(!WorkPermit.IsValid()){return;}
+#define PCGEX_CHECK_WORK_PERMIT_OR_VOID(_OR) if(!WorkPermit.IsValid() || _OR){return;}
+#define PCGEX_CHECK_WORK_PERMIT(_RET) if(!WorkPermit.IsValid()){return _RET;}
+#define PCGEX_CHECK_WORK_PERMIT_OR(_OR, _RET) if(!WorkPermit.IsValid() || _OR){return _RET;}
 
 #define PCGEX_TYPED_CONTEXT_AND_SETTINGS(_NAME) FPCGEx##_NAME##Context* Context = static_cast<FPCGEx##_NAME##Context*>(ExecutionContext); const UPCGEx##_NAME##Settings* Settings = Context->GetInputSettings<UPCGEx##_NAME##Settings>(); check(Settings);
 

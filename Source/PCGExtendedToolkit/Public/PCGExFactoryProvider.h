@@ -78,7 +78,7 @@ protected:
  * 
  */
 UCLASS(Abstract, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExParamFactoryBase : public UPCGExParamDataBase
+class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExFactoryData : public UPCGExParamDataBase
 {
 	GENERATED_BODY()
 
@@ -140,7 +140,7 @@ protected:
 	//~Begin UPCGExFactoryProviderSettings
 public:
 	virtual FName GetMainOutputPin() const { return TEXT(""); }
-	virtual UPCGExParamFactoryBase* CreateFactory(FPCGExContext* InContext, UPCGExParamFactoryBase* InFactory = nullptr) const;
+	virtual UPCGExFactoryData* CreateFactory(FPCGExContext* InContext, UPCGExFactoryData* InFactory = nullptr) const;
 
 #if WITH_EDITOR
 	virtual FString GetDisplayName() const;

@@ -73,7 +73,7 @@ namespace PCGExData
 		bool bTransactional = false;
 		bool bMutable = false;
 		FPCGExContext* Context = nullptr;
-		TWeakPtr<PCGEx::FLifeline> Lifeline;
+		TWeakPtr<PCGEx::FWorkPermit> WorkPermit;
 
 		mutable FRWLock PointsLock;
 		mutable FRWLock InKeysLock;
@@ -99,19 +99,19 @@ namespace PCGExData
 		bool bAllowEmptyOutput = false;
 
 		explicit FPointIO(FPCGExContext* InContext):
-			Context(InContext), Lifeline(Context->Lifeline), In(nullptr)
+			Context(InContext), WorkPermit(Context->GetWorkPermit()), In(nullptr)
 		{
 			PCGEX_LOG_CTR(FPointIO)
 		}
 
 		explicit FPointIO(FPCGExContext* InContext, const UPCGPointData* InData):
-			Context(InContext), Lifeline(Context->Lifeline), In(InData)
+			Context(InContext), WorkPermit(Context->GetWorkPermit()), In(InData)
 		{
 			PCGEX_LOG_CTR(FPointIO)
 		}
 
 		explicit FPointIO(const TSharedRef<FPointIO>& InPointIO):
-			Context(InPointIO->GetContext()), Lifeline(InPointIO->Lifeline), In(InPointIO->GetIn())
+			Context(InPointIO->GetContext()), WorkPermit(InPointIO->WorkPermit), In(InPointIO->GetIn())
 		{
 			PCGEX_LOG_CTR(FPointIO)
 			RootIO = InPointIO;
@@ -133,7 +133,7 @@ namespace PCGExData
 		template <typename T>
 		bool InitializeOutput(const EIOInit InitOut = EIOInit::None)
 		{
-			if (!Lifeline.IsValid()) { return false; }
+			if (!WorkPermit.IsValid()) { return false; }
 			if (IsValid(Out) && Out != In) { Context->ManagedObjects->Destroy(Out); }
 
 			bMutable = true;

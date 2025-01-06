@@ -18,49 +18,6 @@
 MACRO(Success, bool, false)\
 MACRO(Transform, FTransform, FTransform::Identity)
 
-class UPCGExFilterFactoryBase;
-
-namespace PCGExPolyLine
-{
-	struct /*PCGEXTENDEDTOOLKIT_API*/ FSample
-	{
-		FSample()
-		{
-		}
-
-		FSample(const FTransform& InTransform, const double InDistance, const double InTime):
-			Transform(InTransform), Distance(InDistance), Time(InTime)
-		{
-		}
-
-		FTransform Transform;
-		double Distance = 0;
-		double Time = 0;
-	};
-
-	struct /*PCGEXTENDEDTOOLKIT_API*/ FSamplesStats
-	{
-		FSamplesStats()
-		{
-		}
-
-		int32 NumTargets = 0;
-		double TotalWeight = 0;
-		double SampledRangeMin = MAX_dbl;
-		double SampledRangeMax = 0;
-		double SampledRangeWidth = 0;
-		int32 UpdateCount = 0;
-
-		FSample Closest;
-		FSample Farthest;
-
-		void Update(const FSample& Infos, bool& IsNewClosest, bool& IsNewFarthest);
-
-		FORCEINLINE double GetRangeRatio(const double Distance) const { return FMath::Clamp(Distance - SampledRangeMin, 0, SampledRangeWidth) / SampledRangeWidth; }
-		FORCEINLINE bool IsValid() const { return UpdateCount > 0; }
-	};
-}
-
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Sampling")
 class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExSampleTensorsSettings : public UPCGExPointsProcessorSettings
 {

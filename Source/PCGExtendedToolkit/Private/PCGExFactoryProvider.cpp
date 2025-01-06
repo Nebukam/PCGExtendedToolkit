@@ -49,7 +49,7 @@ bool UPCGExFactoryProviderSettings::GetPinExtraIcon(const UPCGPin* InPin, FName&
 
 #endif
 
-UPCGExParamFactoryBase* UPCGExFactoryProviderSettings::CreateFactory(FPCGExContext* InContext, UPCGExParamFactoryBase* InFactory) const
+UPCGExFactoryData* UPCGExFactoryProviderSettings::CreateFactory(FPCGExContext* InContext, UPCGExFactoryData* InFactory) const
 {
 	return InFactory;
 }
@@ -63,7 +63,7 @@ bool FPCGExFactoryProviderElement::ExecuteInternal(FPCGContext* Context) const
 	FPCGExContext* PCGExContext = static_cast<FPCGExContext*>(Context);
 	check(PCGExContext);
 
-	UPCGExParamFactoryBase* OutFactory = Settings->CreateFactory(PCGExContext, nullptr);
+	UPCGExFactoryData* OutFactory = Settings->CreateFactory(PCGExContext, nullptr);
 
 	if (!OutFactory) { return true; }
 

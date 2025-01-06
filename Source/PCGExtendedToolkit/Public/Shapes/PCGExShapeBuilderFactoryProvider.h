@@ -17,7 +17,7 @@ UPCGExShapeBuilderOperation* UPCGExShape##_SHAPE##Factory::CreateOperation(FPCGE
 	NewOperation->BaseConfig = NewOperation->Config; \
 	NewOperation->Transform = NewOperation->Config.LocalTransform; \
 	return NewOperation; } \
-UPCGExParamFactoryBase* UPCGExCreateShape##_SHAPE##Settings::CreateFactory(FPCGExContext* InContext, UPCGExParamFactoryBase* InFactory) const{ \
+UPCGExFactoryData* UPCGExCreateShape##_SHAPE##Settings::CreateFactory(FPCGExContext* InContext, UPCGExFactoryData* InFactory) const{ \
 	UPCGExShape##_SHAPE##Factory* NewFactory = InContext->ManagedObjects->New<UPCGExShape##_SHAPE##Factory>(); \
 	NewFactory->Config = Config; \
 	return Super::CreateFactory(InContext, NewFactory);}
@@ -25,7 +25,7 @@ UPCGExParamFactoryBase* UPCGExCreateShape##_SHAPE##Settings::CreateFactory(FPCGE
 class UPCGExShapeBuilderOperation;
 
 UCLASS(Abstract, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExShapeBuilderFactoryBase : public UPCGExParamFactoryBase
+class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExShapeBuilderFactoryData : public UPCGExFactoryData
 {
 	GENERATED_BODY()
 
@@ -48,5 +48,5 @@ public:
 	//~End UPCGSettings
 
 	virtual FName GetMainOutputPin() const override { return PCGExShapes::OutputShapeBuilderLabel; }
-	virtual UPCGExParamFactoryBase* CreateFactory(FPCGExContext* InContext, UPCGExParamFactoryBase* InFactory) const override;
+	virtual UPCGExFactoryData* CreateFactory(FPCGExContext* InContext, UPCGExFactoryData* InFactory) const override;
 };

@@ -69,7 +69,7 @@ public:
 	double OffsetConstant = 1.0;
 
 	/** Fetch the offset size from a local attribute. The regular Size parameter then act as a scale.*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName="Offset", EditCondition="OffsetInput == EPCGExInputValueType::Attribute", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName="Offset", EditCondition="OffsetInput != EPCGExInputValueType::Constant", EditConditionHides))
 	FPCGAttributePropertyInputSelector OffsetAttribute;
 
 	/** Scale offset direction & distance using point scale.*/
@@ -89,7 +89,7 @@ public:
 	EPCGExPathNormalDirection DirectionConstant = EPCGExPathNormalDirection::AverageNormal;
 
 	/** Fetch the direction vector from a local point attribute. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName="Direction", EditCondition="DirectionType == EPCGExInputValueType::Attribute", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName="Direction", EditCondition="DirectionType != EPCGExInputValueType::Constant", EditConditionHides))
 	FPCGAttributePropertyInputSelector DirectionAttribute;
 
 	/** Inverts offset direction. Can also be achieved by using negative offset values, but this enable consistent inversion no matter the input.*/

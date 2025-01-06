@@ -14,7 +14,7 @@
 #include "PCGExActionFactoryProvider.generated.h"
 
 #define PCGEX_BITMASK_TRANSMUTE_CREATE_FACTORY(_NAME, _BODY) \
-	UPCGExParamFactoryBase* UPCGEx##_NAME##ProviderSettings::CreateFactory(FPCGExContext* InContext, UPCGExParamFactoryBase* InFactory) const{ \
+	UPCGExFactoryData* UPCGEx##_NAME##ProviderSettings::CreateFactory(FPCGExContext* InContext, UPCGExFactoryData* InFactory) const{ \
 	UPCGEx##_NAME##Factory* NewFactory = NewObject<UPCGEx##_NAME##Factory>(); _BODY if(!Super::CreateFactory(InContext, NewFactory)){ InContext->ManagedObjects->Destroy(NewFactory); } return NewFactory; }
 
 #define PCGEX_BITMASK_TRANSMUTE_CREATE_OPERATION(_NAME, _BODY) \
@@ -25,7 +25,7 @@
 	_BODY \
 	return NewOperation;}
 
-class UPCGExActionFactoryBase;
+class UPCGExActionFactoryData;
 
 namespace PCGExActions
 {
@@ -45,7 +45,7 @@ class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExActionOperation : public UPCGExOperation
 	GENERATED_BODY()
 
 public:
-	UPCGExActionFactoryBase* Factory = nullptr;
+	UPCGExActionFactoryData* Factory = nullptr;
 
 	virtual void CopySettingsFrom(const UPCGExOperation* Other) override;
 
@@ -62,7 +62,7 @@ protected:
 };
 
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExActionFactoryBase : public UPCGExParamFactoryBase
+class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExActionFactoryData : public UPCGExFactoryData
 {
 	GENERATED_BODY()
 
@@ -70,7 +70,7 @@ public:
 	TSharedPtr<PCGEx::FAttributesInfos> CheckSuccessInfos;
 	TSharedPtr<PCGEx::FAttributesInfos> CheckFailInfos;
 
-	TArray<TObjectPtr<const UPCGExFilterFactoryBase>> FilterFactories;
+	TArray<TObjectPtr<const UPCGExFilterFactoryData>> FilterFactories;
 
 	virtual PCGExFactories::EType GetFactoryType() const override { return PCGExFactories::EType::Action; }
 	virtual UPCGExActionOperation* CreateOperation(FPCGExContext* InContext) const;
@@ -100,7 +100,7 @@ protected:
 
 public:
 	virtual FName GetMainOutputPin() const override { return PCGExActions::OutputActionLabel; }
-	virtual UPCGExParamFactoryBase* CreateFactory(FPCGExContext* InContext, UPCGExParamFactoryBase* InFactory) const override;
+	virtual UPCGExFactoryData* CreateFactory(FPCGExContext* InContext, UPCGExFactoryData* InFactory) const override;
 
 #if WITH_EDITOR
 	virtual FString GetDisplayName() const override;

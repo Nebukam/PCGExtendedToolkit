@@ -29,7 +29,7 @@ TArray<FPCGPinProperties> UPCGExHeuristicsTensorProviderSettings::InputPinProper
 	return PinProperties;
 }
 
-UPCGExParamFactoryBase* UPCGExHeuristicsTensorProviderSettings::CreateFactory(FPCGExContext* InContext, UPCGExParamFactoryBase* InFactory) const
+UPCGExFactoryData* UPCGExHeuristicsTensorProviderSettings::CreateFactory(FPCGExContext* InContext, UPCGExFactoryData* InFactory) const
 {
 	UPCGExHeuristicsFactoryTensor* NewFactory = InContext->ManagedObjects->New<UPCGExHeuristicsFactoryTensor>();
 	PCGEX_FORWARD_HEURISTIC_FACTORY
