@@ -20,14 +20,14 @@ class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExTensorSplineFactoryData : public UPCGExTe
 {
 	GENERATED_BODY()
 
+public:
+	FPCGExPathClosedLoopDetails ClosedLoop;
+	EPCGExSplinePointTypeRedux PointType = EPCGExSplinePointTypeRedux::Linear;
+	bool bBuildFromPaths = false;
+
 protected:
 	TArray<TSharedPtr<const FPCGSplineStruct>> ManagedSplines;
 	TArray<FPCGSplineStruct> Splines;
-
-
-	bool bBuildFromPaths = false;
-	FPCGExPathClosedLoopDetails ClosedLoop;
-	EPCGExSplinePointTypeRedux PointType = EPCGExSplinePointTypeRedux::Linear;
 
 	EPCGExSplineSamplingIncludeMode SampleInputs = EPCGExSplineSamplingIncludeMode::All;
 

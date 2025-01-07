@@ -8,6 +8,7 @@
 #include "PCGExTensor.h"
 #include "PCGExTensorFactoryProvider.h"
 #include "PCGExTensorOperation.h"
+#include "Paths/PCGExPaths.h"
 
 #include "PCGExTensorPole.generated.h"
 

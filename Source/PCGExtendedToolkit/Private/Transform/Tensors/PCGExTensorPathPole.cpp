@@ -42,7 +42,11 @@ PCGExTensor::FTensorSample UPCGExTensorPathPole::SampleAtPosition(const FVector&
 }
 
 PCGEX_TENSOR_BOILERPLATE(
-	PathPole, { }, {
+	PathPole, {
+	NewFactory->bBuildFromPaths = GetBuildFromPoints();
+	NewFactory->PointType = Config.PointType;
+	NewFactory->ClosedLoop = Config.ClosedLoop;
+	}, {
 	NewOperation->Splines = &ManagedSplines;
 	})
 

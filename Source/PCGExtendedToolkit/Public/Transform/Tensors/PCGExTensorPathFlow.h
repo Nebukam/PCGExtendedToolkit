@@ -24,6 +24,14 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExTensorPathFlowConfig : public FPCGExTens
 	{
 	}
 
+	/** Closed loop handling.*/
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	FPCGExPathClosedLoopDetails ClosedLoop;
+
+	/** Which point type to use. Shared amongst all points; if you want tight control, create a fully-fledged spline instead. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	EPCGExSplinePointTypeRedux PointType = EPCGExSplinePointTypeRedux::Linear;
+	
 	/** Sample inputs.*/
 	//UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	EPCGExSplineSamplingIncludeMode SampleInputs = EPCGExSplineSamplingIncludeMode::All;
@@ -35,6 +43,8 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExTensorPathFlowConfig : public FPCGExTens
 	/**  Which spline transform axis is to be used */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	EPCGExAxis SplineDirection = EPCGExAxis::Forward;
+
+	virtual void Init() override;
 };
 
 /**

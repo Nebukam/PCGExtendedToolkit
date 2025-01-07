@@ -6,6 +6,12 @@
 #define LOCTEXT_NAMESPACE "PCGExCreateTensorPathFlow"
 #define PCGEX_NAMESPACE CreateTensorPathFlow
 
+void FPCGExTensorPathFlowConfig::Init()
+{
+	FPCGExTensorConfigBase::Init();
+	ClosedLoop.Init();
+}
+
 bool UPCGExTensorPathFlow::Init(FPCGExContext* InContext, const UPCGExTensorFactoryData* InFactory)
 {
 	if (!Super::Init(InContext, InFactory)) { return false; }
@@ -42,7 +48,11 @@ PCGExTensor::FTensorSample UPCGExTensorPathFlow::SampleAtPosition(const FVector&
 }
 
 PCGEX_TENSOR_BOILERPLATE(
-	PathFlow, { }, {
+	PathFlow, {
+		NewFactory->bBuildFromPaths = GetBuildFromPoints();
+		NewFactory->PointType = Config.PointType;
+		NewFactory->ClosedLoop = Config.ClosedLoop;
+	}, {
 	NewOperation->Splines = &ManagedSplines;
 	})
 
