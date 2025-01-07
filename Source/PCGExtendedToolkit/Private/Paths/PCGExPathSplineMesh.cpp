@@ -385,6 +385,7 @@ namespace PCGExPathSplineMesh
 					TargetActor, USplineMeshComponent::StaticClass(),
 					Context->UniqueNameGenerator->Get(TEXT("PCGSplineMeshComponent_") + Segment.MeshEntry->Staging.Path.GetAssetName())), ObjectFlags);
 
+			/*
 			SplineMeshComponent->SetCollisionEnabled(ECollisionEnabled::Type::NoCollision);
 			SplineMeshComponent->SetMobility(EComponentMobility::Static);
 			SplineMeshComponent->SetSimulatePhysics(false);
@@ -394,8 +395,12 @@ namespace PCGExPathSplineMesh
 			SplineMeshComponent->bUseDefaultCollision = false;
 			SplineMeshComponent->bNavigationRelevant = false;
 			SplineMeshComponent->SetbNeverNeedsCookedCollisionData(true);
+			*/
 
 			Segment.ApplySettings(SplineMeshComponent); // Init Component
+
+			if (Settings->bForceDefaultDescriptor) { Settings->DefaultDescriptor.InitComponent(SplineMeshComponent); }
+			else { Segment.MeshEntry->SMDescriptor.InitComponent(SplineMeshComponent); }
 
 			if (!Segment.ApplyMesh(SplineMeshComponent))
 			{
@@ -405,9 +410,6 @@ namespace PCGExPathSplineMesh
 
 			if (Settings->TaggingDetails.bForwardInputDataTags) { SplineMeshComponent->ComponentTags.Append(DataTags); }
 			if (!Segment.Tags.IsEmpty()) { SplineMeshComponent->ComponentTags.Append(Segment.Tags.Array()); }
-
-			if (Settings->bForceDefaultDescriptor) { Settings->DefaultDescriptor.InitComponent(SplineMeshComponent); }
-			else { Segment.MeshEntry->SMDescriptor.InitComponent(SplineMeshComponent); }
 
 			Context->AttachManagedComponent(
 				TargetActor, SplineMeshComponent,
