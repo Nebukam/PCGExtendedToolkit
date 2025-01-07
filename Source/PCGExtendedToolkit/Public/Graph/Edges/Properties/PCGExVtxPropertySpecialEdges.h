@@ -60,7 +60,7 @@ public:
 };
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExVtxPropertySpecialEdgesFactory : public UPCGExVtxPropertyFactoryBase
+class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExVtxPropertySpecialEdgesFactory : public UPCGExVtxPropertyFactoryData
 {
 	GENERATED_BODY()
 
@@ -81,7 +81,7 @@ public:
 #endif
 	//~End UPCGSettings
 
-	virtual UPCGExParamFactoryBase* CreateFactory(FPCGExContext* InContext, UPCGExParamFactoryBase* InFactory) const override;
+	virtual UPCGExFactoryData* CreateFactory(FPCGExContext* InContext, UPCGExFactoryData* InFactory) const override;
 
 #if WITH_EDITOR
 	virtual FString GetDisplayName() const override;

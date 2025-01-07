@@ -12,12 +12,12 @@ void FPCGExHeuristicConfigBase::Init()
 	ScoreCurveObj = LocalScoreCurve.GetRichCurveConst();
 }
 
-UPCGExHeuristicOperation* UPCGExHeuristicsFactoryBase::CreateOperation(FPCGExContext* InContext) const
+UPCGExHeuristicOperation* UPCGExHeuristicsFactoryData::CreateOperation(FPCGExContext* InContext) const
 {
 	return nullptr; // Create heuristic operation
 }
 
-UPCGExParamFactoryBase* UPCGExHeuristicsFactoryProviderSettings::CreateFactory(FPCGExContext* InContext, UPCGExParamFactoryBase* InFactory) const
+UPCGExFactoryData* UPCGExHeuristicsFactoryProviderSettings::CreateFactory(FPCGExContext* InContext, UPCGExFactoryData* InFactory) const
 {
 	return InFactory;
 }

@@ -73,7 +73,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExSortRule
  * 
  */
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExSortingRule : public UPCGExParamFactoryBase
+class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExSortingRule : public UPCGExFactoryData
 {
 	GENERATED_BODY()
 
@@ -103,7 +103,7 @@ public:
 
 	//~Begin UPCGExFactoryProviderSettings
 	virtual FName GetMainOutputPin() const override { return FName("SortingRule"); }
-	virtual UPCGExParamFactoryBase* CreateFactory(FPCGExContext* InContext, UPCGExParamFactoryBase* InFactory) const override;
+	virtual UPCGExFactoryData* CreateFactory(FPCGExContext* InContext, UPCGExFactoryData* InFactory) const override;
 
 #if WITH_EDITOR
 	virtual FString GetDisplayName() const override;

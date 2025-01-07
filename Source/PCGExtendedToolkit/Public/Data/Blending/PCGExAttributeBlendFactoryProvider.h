@@ -92,7 +92,7 @@ public:
 };
 
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Blending")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExAttributeBlendFactory : public UPCGExParamFactoryBase
+class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExAttributeBlendFactory : public UPCGExFactoryData
 {
 	GENERATED_BODY()
 
@@ -126,7 +126,7 @@ public:
 	//~End UPCGSettings
 
 	virtual FName GetMainOutputPin() const override { return PCGExDataBlending::OutputBlendingLabel; }
-	virtual UPCGExParamFactoryBase* CreateFactory(FPCGExContext* InContext, UPCGExParamFactoryBase* InFactory) const override;
+	virtual UPCGExFactoryData* CreateFactory(FPCGExContext* InContext, UPCGExFactoryData* InFactory) const override;
 
 	/** Config. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ShowOnlyInnerProperties))

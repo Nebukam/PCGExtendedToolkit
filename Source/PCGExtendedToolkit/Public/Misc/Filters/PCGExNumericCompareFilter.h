@@ -55,7 +55,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExNumericCompareFilterConfig
  * 
  */
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Filter")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExNumericCompareFilterFactory : public UPCGExFilterFactoryBase
+class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExNumericCompareFilterFactory : public UPCGExFilterFactoryData
 {
 	GENERATED_BODY()
 
@@ -115,7 +115,7 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ShowOnlyInnerProperties))
 	FPCGExNumericCompareFilterConfig Config;
 
-	virtual UPCGExParamFactoryBase* CreateFactory(FPCGExContext* InContext, UPCGExParamFactoryBase* InFactory) const override;
+	virtual UPCGExFactoryData* CreateFactory(FPCGExContext* InContext, UPCGExFactoryData* InFactory) const override;
 
 #if WITH_EDITOR
 	virtual FString GetDisplayName() const override;

@@ -92,17 +92,23 @@ public:
 	using FDataFilterFunc = std::function<bool(const FPCGTaggedData&)>;
 
 	uint32 BucketId;
+	uint32 EventId;
 
 	UPROPERTY(Transient)
 	TMap<uint32, FPCGDataCollection> Content;
 
-	void Append(uint32 Item, const FPCGDataCollection& Data);
-	void Remove(uint32 Item, const FPCGDataCollection& Data);
-	void Replace(uint32 Item, const FPCGDataCollection& Data);
+	void Append(UPCGComponent* InSource, const uint32 Item, const FPCGDataCollection& InData);
+	void Remove(UPCGComponent* InSource, const uint32 Item, const FPCGDataCollection& InData);
+	void Replace(UPCGComponent* InSource, const uint32 Item, const FPCGDataCollection& InData);
 
 	int32 Grab(const uint32 Item, FPCGDataCollection& OutData, FDataFilterFunc&& Filter);
 
 	void Flush();
+
+protected:
+	TMap<uint32, FPCGDataCollection> Data;
+
+	void OnUpdate(UPCGComponent* InSource, uint32 Item) const;
 };
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnSharedDataRegistered, uint32, Id);
@@ -117,13 +123,13 @@ class UPCGExSharedDataManager : public UObject
 public:
 	UPROPERTY(BlueprintAssignable, Category = "Events")
 	FOnSharedDataRegistered OnSharedDataRegistered;
-	
+
 	UPROPERTY()
 	TMap<uint32, TObjectPtr<UPCGExDataBucket>> Buckets;
 
-	void PushData(uint32 BucketId, uint32 ItemId, const FPCGDataCollection& InCollection, EPCGExDataSharingPushType InPushType);
+	void PushData(UPCGComponent* InSource, uint32 BucketId, uint32 ItemId, const FPCGDataCollection& InCollection, EPCGExDataSharingPushType InPushType = EPCGExDataSharingPushType::Replace);
 
-	UPCGExDataBucket* FindBucket(uint32 BucketId);
+	TObjectPtr<UPCGExDataBucket> FindBucket(uint32 BucketId);
 
 	void FlushBucket(uint32 BucketId);
 	void Flush();

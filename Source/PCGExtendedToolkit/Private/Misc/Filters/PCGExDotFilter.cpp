@@ -60,7 +60,7 @@ PCGEX_CREATE_FILTER_FACTORY(Dot)
 #if WITH_EDITOR
 FString UPCGExDotFilterProviderSettings::GetDisplayName() const
 {
-	FString DisplayName = PCGEx::GetSelectorDisplayName(Config.OperandA) + " . ";
+	FString DisplayName = PCGEx::GetSelectorDisplayName(Config.OperandA) + " ⋅ ";
 
 	if (Config.CompareAgainst == EPCGExInputValueType::Attribute) { DisplayName += PCGEx::GetSelectorDisplayName(Config.OperandB); }
 	else { DisplayName += " (Constant)"; }

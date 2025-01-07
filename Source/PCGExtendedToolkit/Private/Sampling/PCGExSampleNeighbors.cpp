@@ -35,7 +35,7 @@ bool FPCGExSampleNeighborsElement::Boot(FPCGExContext* InContext) const
 	}
 
 	// Sort samplers so higher priorities come last, as they have to potential to override values.
-	Context->SamplerFactories.Sort([&](const UPCGExNeighborSamplerFactoryBase& A, const UPCGExNeighborSamplerFactoryBase& B) { return A.Priority < B.Priority; });
+	Context->SamplerFactories.Sort([&](const UPCGExNeighborSamplerFactoryData& A, const UPCGExNeighborSamplerFactoryData& B) { return A.Priority < B.Priority; });
 
 	return true;
 }
@@ -79,7 +79,7 @@ namespace PCGExSampleNeighbors
 
 		if (!FClusterProcessor::Process(InAsyncManager)) { return false; }
 
-		for (const UPCGExNeighborSamplerFactoryBase* OperationFactory : Context->SamplerFactories)
+		for (const UPCGExNeighborSamplerFactoryData* OperationFactory : Context->SamplerFactories)
 		{
 			UPCGExNeighborSampleOperation* SamplingOperation = OperationFactory->CreateOperation(Context);
 			SamplingOperation->BindContext(Context);
@@ -123,7 +123,7 @@ namespace PCGExSampleNeighbors
 		PCGEX_TYPED_CONTEXT_AND_SETTINGS(SampleNeighbors)
 		TBatch<FProcessor>::RegisterBuffersDependencies(FacadePreloader);
 
-		for (const UPCGExNeighborSamplerFactoryBase* Factory : Context->SamplerFactories)
+		for (const UPCGExNeighborSamplerFactoryData* Factory : Context->SamplerFactories)
 		{
 			Factory->RegisterVtxBuffersDependencies(Context, VtxDataFacade, FacadePreloader);
 		}

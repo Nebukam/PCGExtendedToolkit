@@ -17,6 +17,7 @@ namespace PCGExPointsMT
 	PCGEX_CTX_STATE(MTState_PointsWriting)
 
 #define PCGEX_ASYNC_MT_LOOP_TPL(_ID, _INLINE_CONDITION, _BODY)\
+	PCGEX_CHECK_WORK_PERMIT_VOID\
 	if (_INLINE_CONDITION)  { \
 		PCGEX_ASYNC_GROUP_CHKD_VOID(AsyncManager, _ID##Inlined) \
 		_ID##Inlined->OnIterationCallback = [PCGEX_ASYNC_THIS_CAPTURE](const int32 Index, const PCGExMT::FScope& Scope) { PCGEX_ASYNC_THIS const TSharedRef<T>& Processor = This->Processors[Index]; _BODY }; \
@@ -32,6 +33,7 @@ namespace PCGExPointsMT
 	}
 
 #define PCGEX_ASYNC_PROCESSOR_LOOP(_NAME, _NUM, _PREPARE, _PROCESS, _COMPLETE, _INLINE, _PLI) \
+	PCGEX_CHECK_WORK_PERMIT_VOID\
 	if (IsTrivial()){ _PREPARE({PCGExMT::FScope(0, _NUM, 0)}); _PROCESS(PCGExMT::FScope(0, _NUM, 0)); _COMPLETE(); return; } \
 	const int32 PLI = GetDefault<UPCGExGlobalSettings>()->_PLI(PerLoopIterations); \
 	PCGEX_ASYNC_GROUP_CHKD_VOID(AsyncManager, ParallelLoopFor##_NAME) \
@@ -53,6 +55,7 @@ namespace PCGExPointsMT
 	protected:
 		TSharedPtr<PCGExMT::FTaskManager> AsyncManager;
 		FPCGExContext* ExecutionContext = nullptr;
+		TWeakPtr<PCGEx::FWorkPermit> WorkPermit;
 
 		TSharedPtr<PCGExData::FFacadePreloader> InternalFacadePreloader;
 
@@ -71,7 +74,7 @@ namespace PCGExPointsMT
 
 		TSharedRef<PCGExData::FFacade> PointDataFacade;
 
-		TArray<TObjectPtr<const UPCGExFilterFactoryBase>>* FilterFactories = nullptr;
+		TArray<TObjectPtr<const UPCGExFilterFactoryData>>* FilterFactories = nullptr;
 		bool DefaultPointFilterValue = true;
 		bool bIsTrivial = false;
 
@@ -91,6 +94,7 @@ namespace PCGExPointsMT
 		{
 			check(InContext)
 			ExecutionContext = InContext;
+			WorkPermit = ExecutionContext->GetWorkPermit();
 		}
 
 		virtual ~FPointsProcessor()
@@ -102,7 +106,7 @@ namespace PCGExPointsMT
 
 		bool HasFilters() const { return FilterFactories != nullptr; }
 
-		void SetPointsFilterData(TArray<TObjectPtr<const UPCGExFilterFactoryBase>>* InFactories)
+		void SetPointsFilterData(TArray<TObjectPtr<const UPCGExFilterFactoryData>>* InFactories)
 		{
 			FilterFactories = InFactories;
 		}
@@ -248,7 +252,7 @@ namespace PCGExPointsMT
 		}
 
 	protected:
-		virtual bool InitPrimaryFilters(TArray<TObjectPtr<const UPCGExFilterFactoryBase>>* InFilterFactories)
+		virtual bool InitPrimaryFilters(TArray<TObjectPtr<const UPCGExFilterFactoryData>>* InFilterFactories)
 		{
 			PointFilterCache.Init(DefaultPointFilterValue, PointDataFacade->GetNum());
 
@@ -296,7 +300,7 @@ namespace PCGExPointsMT
 	{
 	protected:
 		TSharedPtr<PCGExMT::FTaskManager> AsyncManager;
-		TArray<TObjectPtr<const UPCGExFilterFactoryBase>>* FilterFactories = nullptr;
+		TArray<TObjectPtr<const UPCGExFilterFactoryData>>* FilterFactories = nullptr;
 
 	public:
 		bool bPrefetchData = false;
@@ -312,6 +316,7 @@ namespace PCGExPointsMT
 		std::atomic<PCGEx::ContextState> CurrentState{PCGEx::State_InitialExecution};
 
 		FPCGExContext* ExecutionContext = nullptr;
+		TWeakPtr<PCGEx::FWorkPermit> WorkPermit;
 
 		TArray<TWeakPtr<PCGExData::FPointIO>> PointsCollection;
 
@@ -323,6 +328,7 @@ namespace PCGExPointsMT
 			ExecutionContext(InContext), PointsCollection(InPointsCollection)
 		{
 			PCGEX_LOG_CTR(FPointsProcessorBatchBase)
+			SetExecutionContext(InContext);
 		}
 
 		virtual ~FPointsProcessorBatchBase()
@@ -333,6 +339,7 @@ namespace PCGExPointsMT
 		virtual void SetExecutionContext(FPCGExContext* InContext)
 		{
 			ExecutionContext = InContext;
+			WorkPermit = ExecutionContext->GetWorkPermit();
 		}
 
 		virtual bool PrepareProcessing()
@@ -382,7 +389,7 @@ namespace PCGExPointsMT
 		{
 		}
 
-		void SetPointsFilterData(TArray<TObjectPtr<const UPCGExFilterFactoryBase>>* InFilterFactories)
+		void SetPointsFilterData(TArray<TObjectPtr<const UPCGExFilterFactoryData>>* InFilterFactories)
 		{
 			FilterFactories = InFilterFactories;
 		}

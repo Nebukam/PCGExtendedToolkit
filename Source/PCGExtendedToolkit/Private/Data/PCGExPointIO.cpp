@@ -27,7 +27,7 @@ namespace PCGExData
 
 	bool FPointIO::InitializeOutput(const EIOInit InitOut)
 	{
-		if (!Lifeline.IsValid()) { return false; }
+		if (!WorkPermit.IsValid()) { return false; }
 		if (IsValid(Out) && Out != In)
 		{
 			Context->ManagedObjects->Destroy(Out);

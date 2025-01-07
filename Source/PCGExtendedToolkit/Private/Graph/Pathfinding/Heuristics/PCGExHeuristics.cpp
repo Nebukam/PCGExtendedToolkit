@@ -16,7 +16,7 @@ _OP->ReferenceWeight = ReferenceWeight * _FACTORY->WeightFactor;
 
 namespace PCGExHeuristics
 {
-	FHeuristicsHandler::FHeuristicsHandler(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade>& InVtxDataCache, const TSharedPtr<PCGExData::FFacade>& InEdgeDataCache, const TArray<TObjectPtr<const UPCGExHeuristicsFactoryBase>>& InFactories)
+	FHeuristicsHandler::FHeuristicsHandler(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade>& InVtxDataCache, const TSharedPtr<PCGExData::FFacade>& InEdgeDataCache, const TArray<TObjectPtr<const UPCGExHeuristicsFactoryData>>& InFactories)
 		: ExecutionContext(InContext), VtxDataFacade(InVtxDataCache), EdgeDataFacade(InEdgeDataCache)
 	{
 		bIsValidHandler = BuildFrom(InContext, InFactories);
@@ -30,9 +30,9 @@ namespace PCGExHeuristics
 		Feedbacks.Empty();
 	}
 
-	bool FHeuristicsHandler::BuildFrom(FPCGExContext* InContext, const TArray<TObjectPtr<const UPCGExHeuristicsFactoryBase>>& InFactories)
+	bool FHeuristicsHandler::BuildFrom(FPCGExContext* InContext, const TArray<TObjectPtr<const UPCGExHeuristicsFactoryData>>& InFactories)
 	{
-		for (const UPCGExHeuristicsFactoryBase* OperationFactory : InFactories)
+		for (const UPCGExHeuristicsFactoryData* OperationFactory : InFactories)
 		{
 			UPCGExHeuristicOperation* Operation = nullptr;
 			bool bIsFeedback = false;
@@ -99,7 +99,7 @@ namespace PCGExHeuristics
 
 		PCGEX_MAKE_SHARED(NewLocalFeedbackHandler, FLocalFeedbackHandler, ExecutionContext)
 
-		for (const UPCGExHeuristicsFactoryBase* Factory : LocalFeedbackFactories)
+		for (const UPCGExHeuristicsFactoryData* Factory : LocalFeedbackFactories)
 		{
 			UPCGExHeuristicFeedback* Feedback = Cast<UPCGExHeuristicFeedback>(Factory->CreateOperation(ExecutionContext));
 

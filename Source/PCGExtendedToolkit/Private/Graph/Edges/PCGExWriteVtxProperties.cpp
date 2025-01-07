@@ -76,7 +76,7 @@ namespace PCGExWriteVtxProperties
 
 		if (!FClusterProcessor::Process(InAsyncManager)) { return false; }
 
-		for (const UPCGExVtxPropertyFactoryBase* Factory : Context->ExtraFactories)
+		for (const UPCGExVtxPropertyFactoryData* Factory : Context->ExtraFactories)
 		{
 			UPCGExVtxPropertyOperation* NewOperation = Factory->CreateOperation(Context);
 

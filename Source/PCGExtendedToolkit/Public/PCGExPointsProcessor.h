@@ -136,7 +136,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPointsProcessorContext : FPCGExContext
 
 #pragma region Filtering
 
-	TArray<TObjectPtr<const UPCGExFilterFactoryBase>> FilterFactories;
+	TArray<TObjectPtr<const UPCGExFilterFactoryData>> FilterFactories;
 
 #pragma endregion
 
@@ -173,7 +173,6 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPointsProcessorContext : FPCGExContext
 		bBatchProcessingEnabled = true;
 
 		PCGEX_MAKE_SHARED(TypedBatch, T, this, BatchAblePoints)
-
 		MainBatch = TypedBatch;
 		MainBatch->SubProcessorMap = &SubProcessorMap;
 

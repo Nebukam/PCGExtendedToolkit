@@ -78,8 +78,8 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExConnectClustersContext final : FPCGExEdg
 	FPCGExGeo2DProjectionDetails ProjectionDetails;
 	FPCGExCarryOverDetails CarryOverDetails;
 
-	TArray<TObjectPtr<const UPCGExFilterFactoryBase>> GeneratorsFiltersFactories;
-	TArray<TObjectPtr<const UPCGExFilterFactoryBase>> ConnectablesFiltersFactories;
+	TArray<TObjectPtr<const UPCGExFilterFactoryData>> GeneratorsFiltersFactories;
+	TArray<TObjectPtr<const UPCGExFilterFactoryData>> ConnectablesFiltersFactories;
 };
 
 class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExConnectClustersElement final : public FPCGExEdgesProcessorElement

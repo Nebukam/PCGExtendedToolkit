@@ -4,12 +4,12 @@
 #include "Data/PCGExPointStates.h"
 
 
-TSharedPtr<PCGExPointFilter::FFilter> UPCGExPointStateFactoryBase::CreateFilter() const
+TSharedPtr<PCGExPointFilter::FFilter> UPCGExPointStateFactoryData::CreateFilter() const
 {
 	return Super::CreateFilter();
 }
 
-void UPCGExPointStateFactoryBase::BeginDestroy()
+void UPCGExPointStateFactoryData::BeginDestroy()
 {
 	Super::BeginDestroy();
 }
@@ -29,7 +29,7 @@ namespace PCGExPointStates
 		return true;
 	}
 
-	bool FState::InitInternalManager(FPCGExContext* InContext, const TArray<TObjectPtr<const UPCGExFilterFactoryBase>>& InFactories)
+	bool FState::InitInternalManager(FPCGExContext* InContext, const TArray<TObjectPtr<const UPCGExFilterFactoryData>>& InFactories)
 	{
 		return Manager->Init(InContext, InFactories);
 	}
@@ -70,7 +70,7 @@ namespace PCGExPointStates
 	}
 }
 
-UPCGExParamFactoryBase* UPCGExPointStateFactoryProviderSettings::CreateFactory(FPCGExContext* InContext, UPCGExParamFactoryBase* InFactory) const
+UPCGExFactoryData* UPCGExPointStateFactoryProviderSettings::CreateFactory(FPCGExContext* InContext, UPCGExFactoryData* InFactory) const
 {
 	return nullptr;
 }

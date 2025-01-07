@@ -21,5 +21,5 @@ public:
 	virtual void SetManagedComponent(UPCGManagedComponent* InManagedComponent) override;
 
 	UPROPERTY()
-	UPCGManagedComponent* ManagedComponent = nullptr;
+	TObjectPtr<UPCGManagedComponent> ManagedComponent = nullptr;
 };

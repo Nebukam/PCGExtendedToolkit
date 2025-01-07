@@ -20,7 +20,7 @@ UPCGExHeuristicOperation* UPCGExHeuristicsFactoryShortestDistance::CreateOperati
 
 PCGEX_HEURISTIC_FACTORY_BOILERPLATE_IMPL(ShortestDistance, {})
 
-UPCGExParamFactoryBase* UPCGExHeuristicsShortestDistanceProviderSettings::CreateFactory(FPCGExContext* InContext, UPCGExParamFactoryBase* InFactory) const
+UPCGExFactoryData* UPCGExHeuristicsShortestDistanceProviderSettings::CreateFactory(FPCGExContext* InContext, UPCGExFactoryData* InFactory) const
 {
 	UPCGExHeuristicsFactoryShortestDistance* NewFactory = InContext->ManagedObjects->New<UPCGExHeuristicsFactoryShortestDistance>();
 	PCGEX_FORWARD_HEURISTIC_FACTORY

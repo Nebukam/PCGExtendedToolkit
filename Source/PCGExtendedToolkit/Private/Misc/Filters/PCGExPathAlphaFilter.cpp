@@ -26,13 +26,16 @@ bool UPCGExPathAlphaFilterFactory::Init(FPCGExContext* InContext)
 			if (Config.SampleInputs == EPCGExSplineSamplingIncludeMode::ClosedLoopOnly && !bIsClosedLoop) { continue; }
 			if (Config.SampleInputs == EPCGExSplineSamplingIncludeMode::OpenSplineOnly && bIsClosedLoop) { continue; }
 
-			CreateSpline(PathData, bIsClosedLoop);
+			if (TSharedPtr<FPCGSplineStruct> SplineStruct = PCGExPaths::MakeSplineFromPoints(PathData, Config.PointType, bIsClosedLoop))
+			{
+				Splines.Add(SplineStruct);
+			}
 		}
 	}
 
 	if (Splines.IsEmpty())
 	{
-		PCGE_LOG_C(Error, GraphAndLog, InContext, FTEXT("No splines (either no input or empty dataset)"));
+		PCGE_LOG_C(Error, GraphAndLog, InContext, FTEXT("No splines (no input matches criteria or empty dataset)"));
 		return false;
 	}
 
@@ -42,53 +45,6 @@ bool UPCGExPathAlphaFilterFactory::Init(FPCGExContext* InContext)
 TSharedPtr<PCGExPointFilter::FFilter> UPCGExPathAlphaFilterFactory::CreateFilter() const
 {
 	return MakeShared<PCGExPointsFilter::TPathAlphaFilter>(this);
-}
-
-void UPCGExPathAlphaFilterFactory::CreateSpline(const UPCGPointData* InData, const bool bClosedLoop)
-{
-	const TArray<FPCGPoint>& InPoints = InData->GetPoints();
-	if (InPoints.Num() < 2) { return; }
-
-	const int32 NumPoints = InPoints.Num();
-
-	TArray<FSplinePoint> SplinePoints;
-	PCGEx::InitArray(SplinePoints, NumPoints);
-
-	ESplinePointType::Type PointType = ESplinePointType::Linear;
-
-	switch (Config.PointType)
-	{
-	case EPCGExSplinePointTypeRedux::Linear:
-		PointType = ESplinePointType::Linear;
-		break;
-	case EPCGExSplinePointTypeRedux::Curve:
-		PointType = ESplinePointType::Curve;
-		break;
-	case EPCGExSplinePointTypeRedux::Constant:
-		PointType = ESplinePointType::Constant;
-		break;
-	case EPCGExSplinePointTypeRedux::CurveClamped:
-		PointType = ESplinePointType::CurveClamped;
-		break;
-	}
-
-	for (int i = 0; i < NumPoints; i++)
-	{
-		const FTransform TR = InPoints[i].Transform;
-		SplinePoints[i] = FSplinePoint(
-			static_cast<float>(i),
-			TR.GetLocation(),
-			FVector::ZeroVector,
-			FVector::ZeroVector,
-			TR.GetRotation().Rotator(),
-			TR.GetScale3D(),
-			PointType);
-	}
-
-	PCGEX_MAKE_SHARED(SplineStruct, FPCGSplineStruct)
-	SplineStruct->Initialize(SplinePoints, bClosedLoop, FTransform::Identity);
-	Splines.Add(SplineStruct);
-	SegmentsNum.Add(SplineStruct->GetNumberOfSplineSegments());
 }
 
 void UPCGExPathAlphaFilterFactory::BeginDestroy()

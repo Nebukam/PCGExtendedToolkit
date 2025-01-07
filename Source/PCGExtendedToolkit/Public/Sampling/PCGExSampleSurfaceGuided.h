@@ -52,7 +52,7 @@ enum class EPCGExTraceSampleDistanceInput : uint8
 	Attribute       = 2 UMETA(DisplayName = "Attribute", ToolTip="Attribute"),
 };
 
-class UPCGExFilterFactoryBase;
+class UPCGExFilterFactoryData;
 
 /**
  * Use PCGExSampling to manipulate the outgoing attributes instead of handling everything here.
@@ -269,7 +269,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExSampleSurfaceGuidedContext final : FPCGE
 
 	FPCGExCollisionDetails CollisionSettings;
 
-	TArray<TObjectPtr<const UPCGExTexParamFactoryBase>> TexParamsFactories;
+	TArray<TObjectPtr<const UPCGExTexParamFactoryData>> TexParamsFactories;
 
 	PCGEX_FOREACH_FIELD_SURFACEGUIDED(PCGEX_OUTPUT_DECL_TOGGLE)
 };

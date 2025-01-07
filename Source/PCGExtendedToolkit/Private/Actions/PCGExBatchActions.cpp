@@ -48,7 +48,7 @@ bool FPCGExBatchActionsElement::Boot(FPCGExContext* InContext) const
 	FString Message = TEXT("An unspecified error occured.");
 	bool bIsBatchActionsValid = true;
 	PCGEX_MAKE_SHARED(ValidationInfos, PCGEx::FAttributesInfos)
-	for (const TObjectPtr<const UPCGExActionFactoryBase>& Factory : Context->ActionsFactories)
+	for (const TObjectPtr<const UPCGExActionFactoryData>& Factory : Context->ActionsFactories)
 	{
 		if (!Factory->AppendAndValidate(ValidationInfos.Get(), Message))
 		{
@@ -127,7 +127,7 @@ namespace PCGExBatchActions
 				});
 		}
 
-		for (const UPCGExActionFactoryBase* Factory : Context->ActionsFactories)
+		for (const UPCGExActionFactoryData* Factory : Context->ActionsFactories)
 		{
 			UPCGExActionOperation* Operation = Factory->CreateOperation(Context);
 			if (!Operation->PrepareForData(ExecutionContext, PointDataFacade)) { return false; }
