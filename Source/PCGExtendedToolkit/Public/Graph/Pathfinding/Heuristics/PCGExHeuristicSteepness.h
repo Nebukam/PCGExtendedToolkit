@@ -75,7 +75,7 @@ protected:
 };
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExHeuristicsFactorySteepness : public UPCGExHeuristicsFactoryBase
+class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExHeuristicsFactorySteepness : public UPCGExHeuristicsFactoryData
 {
 	GENERATED_BODY()
 
@@ -104,7 +104,7 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ShowOnlyInnerProperties))
 	FPCGExHeuristicConfigSteepness Config;
 
-	virtual UPCGExParamFactoryBase* CreateFactory(FPCGExContext* InContext, UPCGExParamFactoryBase* InFactory) const override;
+	virtual UPCGExFactoryData* CreateFactory(FPCGExContext* InContext, UPCGExFactoryData* InFactory) const override;
 
 #if WITH_EDITOR
 	virtual FString GetDisplayName() const override;

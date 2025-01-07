@@ -89,7 +89,7 @@ public:
 	double WidthConstant = 0.1;
 
 	/** Bevel width attribute.*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Width", EditCondition="WidthInput == EPCGExInputValueType::Attribute", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Width", EditCondition="WidthInput != EPCGExInputValueType::Constant", EditConditionHides))
 	FPCGAttributePropertyInputSelector WidthAttribute;
 
 	/** Bevel limit type */

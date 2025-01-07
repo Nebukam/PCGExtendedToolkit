@@ -25,13 +25,13 @@ enum class EPCGExFilterGroupMode : uint8
  * 
  */
 UCLASS(Abstract, MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExFilterGroupFactoryBase : public UPCGExClusterFilterFactoryBase
+class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExFilterGroupFactoryData : public UPCGExClusterFilterFactoryData
 {
 	GENERATED_BODY()
 
 public:
 	bool bInvert = false;
-	TArray<TObjectPtr<const UPCGExFilterFactoryBase>> FilterFactories;
+	TArray<TObjectPtr<const UPCGExFilterFactoryData>> FilterFactories;
 
 	virtual PCGExFactories::EType GetFactoryType() const override { return PCGExFactories::EType::FilterGroup; }
 	virtual TSharedPtr<PCGExPointFilter::FFilter> CreateFilter() const override { return nullptr; }
@@ -46,7 +46,7 @@ public:
  * 
  */
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExFilterGroupFactoryBaseAND : public UPCGExFilterGroupFactoryBase
+class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExFilterGroupFactoryDataAND : public UPCGExFilterGroupFactoryData
 {
 	GENERATED_BODY()
 
@@ -59,7 +59,7 @@ public:
  * 
  */
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExFilterGroupFactoryBaseOR : public UPCGExFilterGroupFactoryBase
+class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExFilterGroupFactoryDataOR : public UPCGExFilterGroupFactoryData
 {
 	GENERATED_BODY()
 
@@ -73,15 +73,15 @@ namespace PCGExFilterGroup
 	class /*PCGEXTENDEDTOOLKIT_API*/ FFilterGroup : public PCGExClusterFilter::FFilter
 	{
 	public:
-		explicit FFilterGroup(const UPCGExFilterGroupFactoryBase* InFactory, const TArray<TObjectPtr<const UPCGExFilterFactoryBase>>* InFilterFactories):
+		explicit FFilterGroup(const UPCGExFilterGroupFactoryData* InFactory, const TArray<TObjectPtr<const UPCGExFilterFactoryData>>* InFilterFactories):
 			FFilter(InFactory), GroupFactory(InFactory), ManagedFactories(InFilterFactories)
 		{
 		}
 
 		bool bValid = false;
 		bool bInvert = false;
-		const UPCGExFilterGroupFactoryBase* GroupFactory;
-		const TArray<TObjectPtr<const UPCGExFilterFactoryBase>>* ManagedFactories;
+		const UPCGExFilterGroupFactoryData* GroupFactory;
+		const TArray<TObjectPtr<const UPCGExFilterFactoryData>>* ManagedFactories;
 
 		virtual PCGExFilters::EType GetFilterType() const override { return PCGExFilters::EType::Group; }
 
@@ -106,7 +106,7 @@ namespace PCGExFilterGroup
 	class /*PCGEXTENDEDTOOLKIT_API*/ FFilterGroupAND final : public FFilterGroup
 	{
 	public:
-		explicit FFilterGroupAND(const UPCGExFilterGroupFactoryBase* InFactory, const TArray<TObjectPtr<const UPCGExFilterFactoryBase>>* InFilterFactories):
+		explicit FFilterGroupAND(const UPCGExFilterGroupFactoryData* InFactory, const TArray<TObjectPtr<const UPCGExFilterFactoryData>>* InFilterFactories):
 			FFilterGroup(InFactory, InFilterFactories)
 		{
 		}
@@ -133,7 +133,7 @@ namespace PCGExFilterGroup
 	class /*PCGEXTENDEDTOOLKIT_API*/ FFilterGroupOR final : public FFilterGroup
 	{
 	public:
-		explicit FFilterGroupOR(const UPCGExFilterGroupFactoryBase* InFactory, const TArray<TObjectPtr<const UPCGExFilterFactoryBase>>* InFilterFactories):
+		explicit FFilterGroupOR(const UPCGExFilterGroupFactoryData* InFactory, const TArray<TObjectPtr<const UPCGExFilterFactoryData>>* InFilterFactories):
 			FFilterGroup(InFactory, InFilterFactories)
 		{
 		}

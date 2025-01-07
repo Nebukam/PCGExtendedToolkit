@@ -48,7 +48,7 @@ void UPCGExAttributeBlendFactoryProviderSettings::PostEditChangeProperty(FProper
 }
 #endif
 
-UPCGExParamFactoryBase* UPCGExAttributeBlendFactoryProviderSettings::CreateFactory(FPCGExContext* InContext, UPCGExParamFactoryBase* InFactory) const
+UPCGExFactoryData* UPCGExAttributeBlendFactoryProviderSettings::CreateFactory(FPCGExContext* InContext, UPCGExFactoryData* InFactory) const
 {
 	UPCGExAttributeBlendFactory* NewFactory = InContext->ManagedObjects->New<UPCGExAttributeBlendFactory>();
 	return Super::CreateFactory(InContext, NewFactory);

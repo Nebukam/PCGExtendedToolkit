@@ -15,7 +15,7 @@ MACRO(VtxNormal, FVector, FVector::OneVector) \
 MACRO(VtxEdgeCount, int32, 0)
 
 class UPCGExVtxPropertyOperation;
-class UPCGExVtxPropertyFactoryBase;
+class UPCGExVtxPropertyFactoryData;
 
 namespace PCGExWriteVtxProperties
 {
@@ -67,7 +67,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExWriteVtxPropertiesContext final : FPCGEx
 {
 	friend class FPCGExWriteVtxPropertiesElement;
 
-	TArray<TObjectPtr<const UPCGExVtxPropertyFactoryBase>> ExtraFactories;
+	TArray<TObjectPtr<const UPCGExVtxPropertyFactoryData>> ExtraFactories;
 
 	PCGEX_FOREACH_FIELD_VTXEXTRAS(PCGEX_OUTPUT_DECL_TOGGLE)
 };

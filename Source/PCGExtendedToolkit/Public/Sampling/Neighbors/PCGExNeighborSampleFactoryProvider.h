@@ -129,8 +129,8 @@ public:
 
 	virtual void Cleanup() override;
 
-	TArray<TObjectPtr<const UPCGExFilterFactoryBase>> PointFilterFactories;
-	TArray<TObjectPtr<const UPCGExFilterFactoryBase>> ValueFilterFactories;
+	TArray<TObjectPtr<const UPCGExFilterFactoryData>> PointFilterFactories;
+	TArray<TObjectPtr<const UPCGExFilterFactoryData>> ValueFilterFactories;
 
 protected:
 	bool bIsValidOperation = true;
@@ -140,7 +140,7 @@ protected:
 };
 
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExNeighborSamplerFactoryBase : public UPCGExParamFactoryBase
+class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExNeighborSamplerFactoryData : public UPCGExFactoryData
 {
 	GENERATED_BODY()
 
@@ -149,8 +149,8 @@ public:
 
 	FPCGExSamplingConfig SamplingConfig;
 
-	TArray<TObjectPtr<const UPCGExFilterFactoryBase>> PointFilterFactories;
-	TArray<TObjectPtr<const UPCGExFilterFactoryBase>> ValueFilterFactories;
+	TArray<TObjectPtr<const UPCGExFilterFactoryData>> PointFilterFactories;
+	TArray<TObjectPtr<const UPCGExFilterFactoryData>> ValueFilterFactories;
 
 	virtual UPCGExNeighborSampleOperation* CreateOperation(FPCGExContext* InContext) const;
 
@@ -182,7 +182,7 @@ protected:
 	//~Begin UPCGExFactoryProviderSettings
 public:
 	virtual FName GetMainOutputPin() const override { return PCGExNeighborSample::OutputSamplerLabel; }
-	virtual UPCGExParamFactoryBase* CreateFactory(FPCGExContext* InContext, UPCGExParamFactoryBase* InFactory) const override;
+	virtual UPCGExFactoryData* CreateFactory(FPCGExContext* InContext, UPCGExFactoryData* InFactory) const override;
 
 #if WITH_EDITOR
 	virtual FString GetDisplayName() const override;

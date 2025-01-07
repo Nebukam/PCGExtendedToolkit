@@ -15,7 +15,7 @@
 #include "PCGExSampleTexture.generated.h"
 
 
-class UPCGExFilterFactoryBase;
+class UPCGExFilterFactoryData;
 
 /**
  * Use PCGExSampling to manipulate the outgoing attributes instead of handling everything here.
@@ -81,7 +81,7 @@ public:
 struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExSampleTextureContext final : FPCGExPointsProcessorContext
 {
 	friend class FPCGExSampleTextureElement;
-	TArray<TObjectPtr<const UPCGExTexParamFactoryBase>> TexParamsFactories;
+	TArray<TObjectPtr<const UPCGExTexParamFactoryData>> TexParamsFactories;
 	TSharedPtr<PCGExTexture::FLookup> TextureMap;
 };
 

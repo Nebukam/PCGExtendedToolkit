@@ -46,6 +46,9 @@ bool FPCGExGUIDDetails::Init(FPCGExContext* InContext, TSharedRef<PCGExData::FFa
 		break;
 	}
 
+	AdjustedGridHashCollision = FVector(1 / GridHashCollision.X, 1 / GridHashCollision.Y, 1 / GridHashCollision.Z);
+	AdjustedPositionHashCollision = FVector(1 / PositionHashCollision.X, 1 / PositionHashCollision.Y, 1 / PositionHashCollision.Z);
+
 	bUseIndex = (Uniqueness & static_cast<uint8>(EPCGExGUIDUniquenessFlags::Index)) != 0;
 	bUseSeed = (Uniqueness & static_cast<uint8>(EPCGExGUIDUniquenessFlags::Seed)) != 0;
 	bUsePosition = (Uniqueness & static_cast<uint8>(EPCGExGUIDUniquenessFlags::Position)) != 0;
@@ -64,8 +67,8 @@ bool FPCGExGUIDDetails::Init(FPCGExContext* InContext, TSharedRef<PCGExData::FFa
 	if ((Uniqueness & static_cast<uint8>(EPCGExGUIDUniquenessFlags::Grid)) != 0)
 	{
 		const FBox RefBounds = PCGHelpers::GetGridBounds(InContext->GetTargetActor(InFacade->Source->GetIn()), InContext->SourceComponent.Get());
-		GridHash = HashCombine(BaseUniqueKey, PCGEx::GH3(RefBounds.Min, CWTolerance));
-		GridHash = HashCombine(GridHash, PCGEx::GH3(RefBounds.Max, CWTolerance));
+		GridHash = HashCombine(BaseUniqueKey, PCGEx::GH3(RefBounds.Min, AdjustedGridHashCollision));
+		GridHash = HashCombine(GridHash, PCGEx::GH3(RefBounds.Max, AdjustedGridHashCollision));
 	}
 	else
 	{
@@ -84,7 +87,7 @@ void FPCGExGUIDDetails::GetGUID(const int32 Index, const FPCGPoint& InPoint, FGu
 		GridHash,
 		bUseIndex ? Index : -1,
 		UniqueKeyReader ? HashCombine(SeededBase, static_cast<uint32>(UniqueKeyReader->Read(Index))) : SeededBase,
-		bUsePosition ? PCGEx::GH3(InPoint.Transform.GetLocation(), CWTolerance) : 0);
+		bUsePosition ? PCGEx::GH3(InPoint.Transform.GetLocation() + PositionHashOffset, AdjustedPositionHashCollision) : 0);
 }
 
 PCGExData::EIOInit UPCGExWriteGUIDSettings::GetMainOutputInitMode() const { return PCGExData::EIOInit::Duplicate; }

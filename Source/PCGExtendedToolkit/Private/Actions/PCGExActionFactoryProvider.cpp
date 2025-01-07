@@ -53,19 +53,19 @@ void UPCGExActionOperation::Cleanup()
 FString UPCGExActionProviderSettings::GetDisplayName() const { return TEXT(""); }
 #endif
 
-UPCGExActionOperation* UPCGExActionFactoryBase::CreateOperation(FPCGExContext* InContext) const
+UPCGExActionOperation* UPCGExActionFactoryData::CreateOperation(FPCGExContext* InContext) const
 {
 	UPCGExActionOperation* NewOperation = InContext->ManagedObjects->New<UPCGExActionOperation>();
-	NewOperation->Factory = const_cast<UPCGExActionFactoryBase*>(this);
+	NewOperation->Factory = const_cast<UPCGExActionFactoryData*>(this);
 	return NewOperation;
 }
 
-bool UPCGExActionFactoryBase::Boot(FPCGContext* InContext)
+bool UPCGExActionFactoryData::Boot(FPCGContext* InContext)
 {
 	return true;
 }
 
-bool UPCGExActionFactoryBase::AppendAndValidate(PCGEx::FAttributesInfos* InInfos, FString& OutMessage) const
+bool UPCGExActionFactoryData::AppendAndValidate(PCGEx::FAttributesInfos* InInfos, FString& OutMessage) const
 {
 	TSet<FName> Mismatch;
 
@@ -94,7 +94,7 @@ bool UPCGExActionFactoryBase::AppendAndValidate(PCGEx::FAttributesInfos* InInfos
 	return true;
 }
 
-void UPCGExActionFactoryBase::BeginDestroy()
+void UPCGExActionFactoryData::BeginDestroy()
 {
 	Super::BeginDestroy();
 }
@@ -107,9 +107,9 @@ TArray<FPCGPinProperties> UPCGExActionProviderSettings::InputPinProperties() con
 	return PinProperties;
 }
 
-UPCGExParamFactoryBase* UPCGExActionProviderSettings::CreateFactory(FPCGExContext* InContext, UPCGExParamFactoryBase* InFactory) const
+UPCGExFactoryData* UPCGExActionProviderSettings::CreateFactory(FPCGExContext* InContext, UPCGExFactoryData* InFactory) const
 {
-	if (UPCGExActionFactoryBase* TypedFactory = Cast<UPCGExActionFactoryBase>(InFactory))
+	if (UPCGExActionFactoryData* TypedFactory = Cast<UPCGExActionFactoryData>(InFactory))
 	{
 		if (!GetInputFactories(
 			InContext, PCGExActions::SourceConditionsFilterLabel, TypedFactory->FilterFactories,

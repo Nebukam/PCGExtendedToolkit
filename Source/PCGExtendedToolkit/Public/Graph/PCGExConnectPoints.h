@@ -9,7 +9,7 @@
 #include "Graph/PCGExGraph.h"
 #include "PCGExConnectPoints.generated.h"
 
-class UPCGExProbeFactoryBase;
+class UPCGExProbeFactoryData;
 class UPCGExProbeOperation;
 
 /**
@@ -63,9 +63,9 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExConnectPointsContext final : FPCGExPoint
 {
 	friend class FPCGExConnectPointsElement;
 
-	TArray<TObjectPtr<const UPCGExProbeFactoryBase>> ProbeFactories;
-	TArray<TObjectPtr<const UPCGExFilterFactoryBase>> GeneratorsFiltersFactories;
-	TArray<TObjectPtr<const UPCGExFilterFactoryBase>> ConnectablesFiltersFactories;
+	TArray<TObjectPtr<const UPCGExProbeFactoryData>> ProbeFactories;
+	TArray<TObjectPtr<const UPCGExFilterFactoryData>> GeneratorsFiltersFactories;
+	TArray<TObjectPtr<const UPCGExFilterFactoryData>> ConnectablesFiltersFactories;
 
 	FVector CWCoincidenceTolerance = FVector::OneVector;
 };

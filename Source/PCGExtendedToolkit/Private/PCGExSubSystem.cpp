@@ -89,21 +89,34 @@ UPCGExSubSystem* UPCGExSubSystem::GetInstance(UWorld* World)
 
 void UPCGExSubSystem::RegisterBeginTickAction(FTickAction&& Action)
 {
-	FWriteScopeLock WriteScopeLock(TickActionsLock);
+	FWriteScopeLock WriteScopeLock(SubsystemLock);
 	bWantsTick = true;
 	BeginTickActions.Emplace(Action);
+}
+
+void UPCGExSubSystem::PollEvent(UPCGComponent* InSource, const EPCGExSubsystemEventType InEventType, const uint32 InEventId)
+{
+	FWriteScopeLock WriteScopeLock(SubsystemLock);
+	bWantsTick = true;
+	PolledEvents.Add(PCGEx::FPolledEvent(InSource, InEventType, InEventId));
 }
 
 void UPCGExSubSystem::ExecuteBeginTickActions()
 {
 	TArray<FTickAction> Actions;
+	TArray<PCGEx::FPolledEvent> Events;
 
 	{
-		FWriteScopeLock WriteScopeLock(TickActionsLock);
+		FWriteScopeLock WriteScopeLock(SubsystemLock);
 		bWantsTick = false;
+
 		Actions = MoveTemp(BeginTickActions);
 		BeginTickActions.Reset();
+
+		Events = PolledEvents.Array();
+		PolledEvents.Reset();
 	}
 
+	for (const PCGEx::FPolledEvent& Event : Events) { OnGlobalEvent.Broadcast(Event.Source, Event.Type, Event.EventId); }
 	for (FTickAction& Action : Actions) { Action(); }
 }

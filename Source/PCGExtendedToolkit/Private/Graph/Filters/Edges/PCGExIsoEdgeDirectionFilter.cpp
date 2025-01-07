@@ -105,7 +105,7 @@ TArray<FPCGPinProperties> UPCGExIsoEdgeDirectionFilterProviderSettings::InputPin
 	return PinProperties;
 }
 
-UPCGExParamFactoryBase* UPCGExIsoEdgeDirectionFilterProviderSettings::CreateFactory(FPCGExContext* InContext, UPCGExParamFactoryBase* InFactory) const
+UPCGExFactoryData* UPCGExIsoEdgeDirectionFilterProviderSettings::CreateFactory(FPCGExContext* InContext, UPCGExFactoryData* InFactory) const
 {
 	UPCGExIsoEdgeDirectionFilterFactory* NewFactory = InContext->ManagedObjects->New<UPCGExIsoEdgeDirectionFilterFactory>();
 	Super::CreateFactory(InContext, InFactory);

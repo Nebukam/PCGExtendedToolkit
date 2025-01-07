@@ -68,7 +68,7 @@ class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExVtxPropertyEdgeMatch : public UPCGExVtxPr
 
 public:
 	FPCGExEdgeMatchConfig Config;
-	TArray<TObjectPtr<const UPCGExFilterFactoryBase>>* FilterFactories = nullptr;
+	TArray<TObjectPtr<const UPCGExFilterFactoryData>>* FilterFactories = nullptr;
 
 	virtual void CopySettingsFrom(const UPCGExOperation* Other) override;
 	virtual bool PrepareForCluster(
@@ -90,7 +90,7 @@ protected:
 };
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExVtxPropertyEdgeMatchFactory : public UPCGExVtxPropertyFactoryBase
+class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExVtxPropertyEdgeMatchFactory : public UPCGExVtxPropertyFactoryData
 {
 	GENERATED_BODY()
 
@@ -117,7 +117,7 @@ protected:
 	//~End UPCGSettings
 
 public:
-	virtual UPCGExParamFactoryBase* CreateFactory(FPCGExContext* InContext, UPCGExParamFactoryBase* InFactory) const override;
+	virtual UPCGExFactoryData* CreateFactory(FPCGExContext* InContext, UPCGExFactoryData* InFactory) const override;
 
 #if WITH_EDITOR
 	virtual FString GetDisplayName() const override;

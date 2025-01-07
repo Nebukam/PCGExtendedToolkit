@@ -6,13 +6,13 @@
 
 #include "Graph/PCGExCluster.h"
 
-TSharedPtr<PCGExPointFilter::FFilter> UPCGExFilterFactoryBase::CreateFilter() const
+TSharedPtr<PCGExPointFilter::FFilter> UPCGExFilterFactoryData::CreateFilter() const
 {
 	return nullptr;
 }
 
 
-bool UPCGExFilterFactoryBase::Init(FPCGExContext* InContext)
+bool UPCGExFilterFactoryData::Init(FPCGExContext* InContext)
 {
 	return true;
 }
@@ -45,9 +45,9 @@ namespace PCGExPointFilter
 	{
 	}
 
-	bool FManager::Init(FPCGExContext* InContext, const TArray<TObjectPtr<const UPCGExFilterFactoryBase>>& InFactories)
+	bool FManager::Init(FPCGExContext* InContext, const TArray<TObjectPtr<const UPCGExFilterFactoryData>>& InFactories)
 	{
-		for (const UPCGExFilterFactoryBase* Factory : InFactories)
+		for (const UPCGExFilterFactoryData* Factory : InFactories)
 		{
 			TSharedPtr<FFilter> NewFilter = Factory->CreateFilter();
 			NewFilter->bCacheResults = bCacheResultsPerFilter;

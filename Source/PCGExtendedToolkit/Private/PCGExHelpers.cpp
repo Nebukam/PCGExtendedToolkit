@@ -83,27 +83,37 @@ namespace PCGEx
 		Flush();
 	}
 
+	bool FManagedObjects::IsAvailable() const
+	{
+		FReadScopeLock WriteScopeLock(ManagedObjectLock);
+		return Lifeline.IsValid() && !IsFlushing();
+	}
+
 	void FManagedObjects::Flush()
 	{
-		FWriteScopeLock WriteScopeLock(ManagedObjectLock);
-		FPlatformAtomics::InterlockedExchange(&bFlushing, 1);
-
-		// Flush remaining managed objects & mark them as garbage
-		for (UObject* ObjectPtr : ManagedObjects)
+		bool bExpected = false;
+		if (bIsFlushing.compare_exchange_strong(bExpected, true, std::memory_order_acq_rel))
 		{
-			//if (!IsValid(ObjectPtr)) { continue; }
-			ObjectPtr->RemoveFromRoot();
-			RecursivelyClearAsyncFlagUnsafe(ObjectPtr);
+			FWriteScopeLock WriteScopeLock(ManagedObjectLock);
 
-			if (ObjectPtr->Implements<UPCGExManagedObjectInterface>())
+			// Flush remaining managed objects & mark them as garbage
+			for (UObject* ObjectPtr : ManagedObjects)
 			{
-				if (IPCGExManagedObjectInterface* ManagedObject = Cast<IPCGExManagedObjectInterface>(ObjectPtr)) { ManagedObject->Cleanup(); }
+				//if (!IsValid(ObjectPtr)) { continue; }
+				ObjectPtr->RemoveFromRoot();
+				RecursivelyClearAsyncFlagUnsafe(ObjectPtr);
+
+				if (ObjectPtr->Implements<UPCGExManagedObjectInterface>())
+				{
+					if (IPCGExManagedObjectInterface* ManagedObject = Cast<IPCGExManagedObjectInterface>(ObjectPtr)) { ManagedObject->Cleanup(); }
+				}
+
+				ObjectPtr->MarkAsGarbage();
 			}
 
-			ObjectPtr->MarkAsGarbage();
+			ManagedObjects.Empty();
+			bIsFlushing.store(false, std::memory_order_release);
 		}
-
-		ManagedObjects.Empty();
 	}
 
 	void FManagedObjects::Add(UObject* InObject)
