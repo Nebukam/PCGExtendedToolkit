@@ -4,6 +4,7 @@
 #include "PCGExFactoryProvider.h"
 #include "PCGExContext.h"
 #include "PCGPin.h"
+#include "Tasks/Task.h"
 
 #define LOCTEXT_NAMESPACE "PCGExFactoryProvider"
 #define PCGEX_NAMESPACE PCGExFactoryProvider

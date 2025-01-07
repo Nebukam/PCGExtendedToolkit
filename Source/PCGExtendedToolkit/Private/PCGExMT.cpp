@@ -4,7 +4,6 @@
 
 #include "PCGExMT.h"
 
-#include "Async/IAsyncTask.h"
 #include "Tasks/Task.h"
 
 namespace PCGExMT
