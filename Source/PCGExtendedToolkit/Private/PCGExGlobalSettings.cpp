@@ -16,6 +16,8 @@ bool UPCGExGlobalSettings::bGeneratedPinMap = false; // Initialize to a default 
 
 bool UPCGExGlobalSettings::GetPinExtraIcon(const UPCGPin* InPin, FName& OutExtraIcon, FText& OutTooltip, bool bIsOutPin) const
 {
+#if WITH_EDITOR
+
 	if (!bGeneratedPinMap)
 	{
 		UPCGExGlobalSettings* This = const_cast<UPCGExGlobalSettings*>(this);
@@ -45,11 +47,15 @@ bool UPCGExGlobalSettings::GetPinExtraIcon(const UPCGPin* InPin, FName& OutExtra
 		}
 	}
 
+#endif
+
 	return false;
 }
 
 void UPCGExGlobalSettings::GeneratePinInfos()
 {
+#if WITH_EDITOR
+
 	if (bGeneratedPinMap) { return; }
 	bGeneratedPinMap = true;
 
@@ -101,6 +107,9 @@ void UPCGExGlobalSettings::GeneratePinInfos()
 
 	PCGEX_EMPLACE_PIN_OUT(OUT_Shape, "PCGEx Shape Builder");
 	PCGEX_MAP_PIN_OUT("Shape Builder")
+
+	PCGEX_EMPLACE_PIN_OUT(OUT_Tensor, "PCGEx Tensor");
+	PCGEX_MAP_PIN_OUT("Tensor")
 
 #undef PCGEX_EMPLACE_PIN_OUT
 #undef PCGEX_MAP_PIN_OUT
@@ -172,6 +181,9 @@ void UPCGExGlobalSettings::GeneratePinInfos()
 	PCGEX_EMPLACE_PIN_IN(OUT_Shape, "Expects PCGEx Shape Builders, supports multiple inputs.");
 	PCGEX_MAP_PIN_IN("Shape Builders")
 
+	PCGEX_EMPLACE_PIN_IN(OUT_Tensor, "Expects PCGEx Tensors, supports multiple inputs.");
+	PCGEX_MAP_PIN_IN("Tensors")
+
 	PinIndex = InPinInfos.Emplace(FName("PCGEx.Pin.IN_Vtx"), TEXT("Point collection formatted for use as cluster vtx."));
 	PCGEX_MAP_PIN_IN("Vtx")
 
@@ -195,4 +207,6 @@ void UPCGExGlobalSettings::GeneratePinInfos()
 #undef PCGEX_EMPLACE_PIN_IN
 #undef PCGEX_MAP_PIN_IN
 #pragma endregion
+
+#endif
 }

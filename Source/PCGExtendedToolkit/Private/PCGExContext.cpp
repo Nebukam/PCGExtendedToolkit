@@ -107,14 +107,14 @@ void FPCGExContext::CommitStagedOutputs()
 
 FPCGExContext::FPCGExContext()
 {
-	Lifeline = MakeShared<PCGEx::FLifeline>();
-	ManagedObjects = MakeUnique<PCGEx::FManagedObjects>(this, Lifeline);
+	WorkPermit = MakeShared<PCGEx::FWorkPermit>();
+	ManagedObjects = MakeUnique<PCGEx::FManagedObjects>(this, WorkPermit);
 	UniqueNameGenerator = MakeShared<PCGEx::FUniqueNameGenerator>();
 }
 
 FPCGExContext::~FPCGExContext()
 {
-	Lifeline.Reset();
+	WorkPermit.Reset();
 	CancelAssetLoading();
 	ManagedObjects->Flush(); // So cleanups can be recursively triggered while manager is still alive
 }
@@ -403,7 +403,7 @@ bool FPCGExContext::CanExecute() const
 bool FPCGExContext::CancelExecution(const FString& InReason)
 {
 	bExecutionCancelled = true;
-	Lifeline.Reset();
+	WorkPermit.Reset();
 	ResumeExecution();
 	if (!InReason.IsEmpty()) { PCGE_LOG_C(Error, GraphAndLog, this, FTEXT(InReason)); }
 	return true;

@@ -13,6 +13,15 @@
 #include "PCGExPaths.generated.h"
 
 UENUM()
+enum class EPCGExSplinePointTypeRedux : uint8
+{
+	Linear       = 0 UMETA(DisplayName = "Linear (0)", Tooltip="Linear (0)."),
+	Curve        = 1 UMETA(DisplayName = "Curve (1)", Tooltip="Curve (1)."),
+	Constant     = 2 UMETA(DisplayName = "Constant (2)", Tooltip="Constant (2)."),
+	CurveClamped = 3 UMETA(DisplayName = "CurveClamped (3)", Tooltip="CurveClamped (3).")
+};
+
+UENUM()
 enum class EPCGExInlinePathProcessingOrder : uint8
 {
 	FromStart       = 0 UMETA(DisplayName = "From Start", ToolTip="Start at the index 0 of the path. If inverted, start at the last index."),
@@ -798,5 +807,82 @@ namespace PCGExPaths
 	static FTransform GetClosestTransform(const TSharedPtr<const FPCGSplineStruct>& InSpline, const FVector& InLocation, const bool bUseScale = true)
 	{
 		return InSpline->GetTransformAtSplineInputKey(InSpline->FindInputKeyClosestToWorldLocation(InLocation), ESplineCoordinateSpace::World, bUseScale);
+	}
+
+	static TSharedPtr<FPCGSplineStruct> MakeSplineFromPoints(const UPCGPointData* InData, const EPCGExSplinePointTypeRedux InPointType, const bool bClosedLoop)
+	{
+		const TArray<FPCGPoint>& InPoints = InData->GetPoints();
+		if (InPoints.Num() < 2) { return nullptr; }
+
+		const int32 NumPoints = InPoints.Num();
+
+		TArray<FSplinePoint> SplinePoints;
+		PCGEx::InitArray(SplinePoints, NumPoints);
+
+		ESplinePointType::Type PointType = ESplinePointType::Linear;
+
+		bool bComputeTangents = false;
+		switch (InPointType)
+		{
+		case EPCGExSplinePointTypeRedux::Linear:
+			PointType = ESplinePointType::CurveCustomTangent;
+			bComputeTangents = true;
+			break;
+		case EPCGExSplinePointTypeRedux::Curve:
+			PointType = ESplinePointType::Curve;
+			break;
+		case EPCGExSplinePointTypeRedux::Constant:
+			PointType = ESplinePointType::Constant;
+			break;
+		case EPCGExSplinePointTypeRedux::CurveClamped:
+			PointType = ESplinePointType::CurveClamped;
+			break;
+		}
+
+		TArray<FTransform> PointTransforms;
+		PCGExData::GetTransforms(InPoints, PointTransforms);
+
+		if (bComputeTangents)
+		{
+			const int32 MaxIndex = NumPoints - 1;
+
+			for (int i = 0; i < NumPoints; i++)
+			{
+				const FTransform TR = PointTransforms[i];
+				const FVector PtLoc = TR.GetLocation();
+
+				const FVector PrevDir = (PointTransforms[i == 0 ? bClosedLoop ? MaxIndex : 0 : i - 1].GetLocation() - PtLoc) * -1;
+				const FVector NextDir = PointTransforms[i == MaxIndex ? bClosedLoop ? 0 : i : i + 1].GetLocation() - PtLoc;
+				const FVector Tangent = FMath::Lerp(PrevDir, NextDir, 0.5).GetSafeNormal() * 0.01;
+
+				SplinePoints[i] = FSplinePoint(
+					static_cast<float>(i),
+					TR.GetLocation(),
+					Tangent,
+					Tangent,
+					TR.GetRotation().Rotator(),
+					TR.GetScale3D(),
+					PointType);
+			}
+		}
+		else
+		{
+			for (int i = 0; i < NumPoints; i++)
+			{
+				const FTransform TR = PointTransforms[i];
+				SplinePoints[i] = FSplinePoint(
+					static_cast<float>(i),
+					TR.GetLocation(),
+					FVector::ZeroVector,
+					FVector::ZeroVector,
+					TR.GetRotation().Rotator(),
+					TR.GetScale3D(),
+					PointType);
+			}
+		}
+
+		PCGEX_MAKE_SHARED(SplineStruct, FPCGSplineStruct)
+		SplineStruct->Initialize(SplinePoints, bClosedLoop, FTransform::Identity);
+		return SplineStruct;
 	}
 }

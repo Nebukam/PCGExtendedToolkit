@@ -38,7 +38,7 @@ namespace PCGExFilters
  * 
  */
 UCLASS(Abstract, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExFilterFactoryBase : public UPCGExParamFactoryBase
+class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExFilterFactoryData : public UPCGExFactoryData
 {
 	GENERATED_BODY()
 
@@ -71,7 +71,7 @@ namespace PCGExPointFilter
 	class /*PCGEXTENDEDTOOLKIT_API*/ FFilter
 	{
 	public:
-		explicit FFilter(const TObjectPtr<const UPCGExFilterFactoryBase>& InFactory):
+		explicit FFilter(const TObjectPtr<const UPCGExFilterFactoryData>& InFactory):
 			Factory(InFactory)
 		{
 		}
@@ -82,7 +82,7 @@ namespace PCGExPointFilter
 		TSharedPtr<PCGExData::FFacade> PointDataFacade;
 
 		bool bCacheResults = true;
-		TObjectPtr<const UPCGExFilterFactoryBase> Factory;
+		TObjectPtr<const UPCGExFilterFactoryData> Factory;
 		TArray<int8> Results;
 
 		int32 FilterIndex = 0;
@@ -103,7 +103,7 @@ namespace PCGExPointFilter
 	class /*PCGEXTENDEDTOOLKIT_API*/ FSimpleFilter : public FFilter
 	{
 	public:
-		explicit FSimpleFilter(const TObjectPtr<const UPCGExFilterFactoryBase>& InFactory):
+		explicit FSimpleFilter(const TObjectPtr<const UPCGExFilterFactoryData>& InFactory):
 			FFilter(InFactory)
 		{
 		}
@@ -128,7 +128,7 @@ namespace PCGExPointFilter
 
 		TSharedRef<PCGExData::FFacade> PointDataFacade;
 
-		bool Init(FPCGExContext* InContext, const TArray<TObjectPtr<const UPCGExFilterFactoryBase>>& InFactories);
+		bool Init(FPCGExContext* InContext, const TArray<TObjectPtr<const UPCGExFilterFactoryData>>& InFactories);
 
 		virtual bool Test(const int32 Index);
 		virtual bool Test(const PCGExCluster::FNode& Node);
@@ -148,9 +148,9 @@ namespace PCGExPointFilter
 		virtual void InitCache();
 	};
 
-	static void RegisterBuffersDependencies(FPCGExContext* InContext, const TArray<TObjectPtr<const UPCGExFilterFactoryBase>>& InFactories, PCGExData::FFacadePreloader& FacadePreloader)
+	static void RegisterBuffersDependencies(FPCGExContext* InContext, const TArray<TObjectPtr<const UPCGExFilterFactoryData>>& InFactories, PCGExData::FFacadePreloader& FacadePreloader)
 	{
-		for (const UPCGExFilterFactoryBase* Factory : InFactories)
+		for (const UPCGExFilterFactoryData* Factory : InFactories)
 		{
 			Factory->RegisterBuffersDependencies(InContext, FacadePreloader);
 		}

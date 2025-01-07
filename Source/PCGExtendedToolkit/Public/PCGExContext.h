@@ -53,6 +53,8 @@ private:
 struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExContext : FPCGContext
 {
 protected:
+	TSharedPtr<PCGEx::FWorkPermit> WorkPermit;
+
 	mutable FRWLock StagedOutputLock;
 	mutable FRWLock AssetDependenciesLock;
 
@@ -67,7 +69,7 @@ protected:
 	void CommitStagedOutputs();
 
 public:
-	TSharedPtr<PCGEx::FLifeline> Lifeline;
+	TWeakPtr<PCGEx::FWorkPermit> GetWorkPermit() { return WorkPermit; }
 	TUniquePtr<PCGEx::FManagedObjects> ManagedObjects;
 
 	bool bScopedAttributeGet = false;

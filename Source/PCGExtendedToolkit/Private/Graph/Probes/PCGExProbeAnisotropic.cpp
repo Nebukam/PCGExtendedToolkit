@@ -10,14 +10,14 @@ PCGEX_CREATE_PROBE_FACTORY(Anisotropic, {}, {})
 bool UPCGExProbeAnisotropic::PrepareForPoints(const TSharedPtr<PCGExData::FPointIO>& InPointIO)
 {
 	if (!Super::PrepareForPoints(InPointIO)) { return false; }
-
+	MinDot = PCGExMath::DegreesToDot(Config.MaxAngle);
 	return true;
 }
 
 void UPCGExProbeAnisotropic::ProcessCandidates(const int32 Index, const FPCGPoint& Point, TArray<PCGExProbing::FCandidate>& Candidates, TSet<FInt32Vector>* Coincidence, const FVector& ST, TSet<uint64>* OutEdges)
 {
 	bool bIsAlreadyConnected;
-	const double R = SearchRadiusCache ? SearchRadiusCache->Read(Index) : SearchRadiusSquared;
+	const double R = GetSearchRadius(Index);
 
 	FVector D[16];
 	int32 BestCandidate[16] = {-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,};
@@ -27,7 +27,7 @@ void UPCGExProbeAnisotropic::ProcessCandidates(const int32 Index, const FPCGPoin
 		for (int d = 0; d < 16; d++)
 		{
 			D[d] = Directions[d];
-			BestDot[d] = 0.95;
+			BestDot[d] = MinDot;
 		}
 	}
 	else
@@ -35,15 +35,16 @@ void UPCGExProbeAnisotropic::ProcessCandidates(const int32 Index, const FPCGPoin
 		for (int d = 0; d < 16; d++)
 		{
 			D[d] = Point.Transform.TransformVectorNoScale(Directions[d]);
-			BestDot[d] = 0.95;
+			BestDot[d] = MinDot;
 		}
 	}
 
-	for (int i = 0; i < Candidates.Num(); i++)
+	for (int i = 15; i <= 0; i--)
 	{
 		const PCGExProbing::FCandidate& C = Candidates[i];
 
-		if (C.Distance > R) { break; }
+		if (C.Distance > R) { continue; }
+
 		if (Coincidence && Coincidence->Contains(C.GH)) { continue; }
 
 		int32 BestIndex = -1;

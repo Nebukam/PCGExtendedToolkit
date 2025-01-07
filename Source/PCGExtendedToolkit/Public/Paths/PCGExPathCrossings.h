@@ -116,8 +116,8 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPathCrossingsContext final : FPCGExPathP
 	FString CanCutTag = TEXT("");
 	FString CanBeCutTag = TEXT("");
 
-	TArray<TObjectPtr<const UPCGExFilterFactoryBase>> CanCutFilterFactories;
-	TArray<TObjectPtr<const UPCGExFilterFactoryBase>> CanBeCutFilterFactories;
+	TArray<TObjectPtr<const UPCGExFilterFactoryData>> CanCutFilterFactories;
+	TArray<TObjectPtr<const UPCGExFilterFactoryData>> CanBeCutFilterFactories;
 
 	UPCGExSubPointsBlendOperation* Blending = nullptr;
 

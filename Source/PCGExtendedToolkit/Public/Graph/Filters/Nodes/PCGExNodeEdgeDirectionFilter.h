@@ -65,7 +65,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExNodeEdgeDirectionFilterConfig
  * 
  */
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExNodeEdgeDirectionFilterFactory : public UPCGExNodeFilterFactoryBase
+class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExNodeEdgeDirectionFilterFactory : public UPCGExNodeFilterFactoryData
 {
 	GENERATED_BODY()
 
@@ -132,7 +132,7 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ShowOnlyInnerProperties))
 	FPCGExNodeEdgeDirectionFilterConfig Config;
 
-	virtual UPCGExParamFactoryBase* CreateFactory(FPCGExContext* InContext, UPCGExParamFactoryBase* InFactory) const override;
+	virtual UPCGExFactoryData* CreateFactory(FPCGExContext* InContext, UPCGExFactoryData* InFactory) const override;
 
 #if WITH_EDITOR
 	virtual FString GetDisplayName() const override;

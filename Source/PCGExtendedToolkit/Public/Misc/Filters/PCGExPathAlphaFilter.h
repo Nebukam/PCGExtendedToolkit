@@ -71,7 +71,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPathAlphaFilterConfig
  * 
  */
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Filter")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExPathAlphaFilterFactory : public UPCGExFilterFactoryBase
+class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExPathAlphaFilterFactory : public UPCGExFilterFactoryData
 {
 	GENERATED_BODY()
 
@@ -82,7 +82,6 @@ public:
 
 	virtual bool Init(FPCGExContext* InContext) override;
 	virtual TSharedPtr<PCGExPointFilter::FFilter> CreateFilter() const override;
-	void CreateSpline(const UPCGPointData* InData, const bool bClosedLoop);
 
 	virtual void BeginDestroy() override;
 
@@ -141,7 +140,7 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ShowOnlyInnerProperties))
 	FPCGExPathAlphaFilterConfig Config;
 
-	virtual UPCGExParamFactoryBase* CreateFactory(FPCGExContext* InContext, UPCGExParamFactoryBase* InFactory) const override;
+	virtual UPCGExFactoryData* CreateFactory(FPCGExContext* InContext, UPCGExFactoryData* InFactory) const override;
 
 #if WITH_EDITOR
 	virtual FString GetDisplayName() const override;

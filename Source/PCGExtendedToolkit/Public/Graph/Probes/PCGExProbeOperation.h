@@ -78,6 +78,8 @@ public:
 	TSharedPtr<PCGExData::TBuffer<double>> SearchRadiusCache;
 	FPCGExProbeConfigBase* BaseConfig = nullptr;
 
+	FORCEINLINE double GetSearchRadius(const int32 Index) const { return SearchRadiusCache ? FMath::Square(SearchRadiusCache->Read(Index)) : SearchRadiusSquared; }
+
 protected:
 	TSharedPtr<PCGExData::FPointIO> PointIO;
 	TArray<double> LocalWeightMultiplier;

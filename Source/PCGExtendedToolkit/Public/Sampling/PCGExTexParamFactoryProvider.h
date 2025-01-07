@@ -99,7 +99,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExTextureParamConfig
 	int32 TextureIndex = -1;
 
 	/** Texture Index Attribute. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Texture Array", meta=(PCG_Overridable, DisplayName="Texture Index", EditCondition="TextureIndexInput == EPCGExInputValueType::Attribute", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Texture Array", meta=(PCG_Overridable, DisplayName="Texture Index", EditCondition="TextureIndexInput != EPCGExInputValueType::Constant", EditConditionHides))
 	FName TextureIndexAttribute = FName("TextureIndex");
 
 	TArray<int32> OutChannels;
@@ -110,7 +110,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExTextureParamConfig
 };
 
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExTexParamFactoryBase : public UPCGExParamFactoryBase
+class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExTexParamFactoryData : public UPCGExFactoryData
 {
 	GENERATED_BODY()
 
@@ -138,7 +138,7 @@ public:
 
 	//~Begin UPCGExFactoryProviderSettings
 	virtual FName GetMainOutputPin() const override { return PCGExTexture::OutputTexLabel; }
-	virtual UPCGExParamFactoryBase* CreateFactory(FPCGExContext* InContext, UPCGExParamFactoryBase* InFactory) const override;
+	virtual UPCGExFactoryData* CreateFactory(FPCGExContext* InContext, UPCGExFactoryData* InFactory) const override;
 	//~End UPCGExFactoryProviderSettings
 
 	/**  */
@@ -177,7 +177,7 @@ namespace PCGExTexture
 		{
 		}
 
-		TArray<TObjectPtr<const UPCGExTexParamFactoryBase>> Factories;
+		TArray<TObjectPtr<const UPCGExTexParamFactoryData>> Factories;
 
 #if PCGEX_ENGINE_VERSION <= 503
 		TArray<TSharedPtr<PCGExData::TBuffer<FString>>> Buffers;
@@ -186,7 +186,7 @@ namespace PCGExTexture
 #endif
 
 		bool BuildFrom(FPCGExContext* InContext, const FName InPin);
-		bool BuildFrom(const TArray<TObjectPtr<const UPCGExTexParamFactoryBase>>& InFactories);
+		bool BuildFrom(const TArray<TObjectPtr<const UPCGExTexParamFactoryData>>& InFactories);
 		void PrepareForWrite(FPCGExContext* InContext, TSharedRef<PCGExData::FFacade> InDataFacade);
 
 		void ExtractParams(const int32 PointIndex, const UMaterialInterface* InMaterial) const;

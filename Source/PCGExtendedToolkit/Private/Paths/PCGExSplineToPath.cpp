@@ -76,7 +76,7 @@ bool FPCGExSplineToPathElement::Boot(FPCGExContext* InContext) const
 
 	if (Context->NumTargets <= 0)
 	{
-		PCGE_LOG(Error, GraphAndLog, FTEXT("No targets (either no input or empty dataset)"));
+		PCGE_LOG(Error, GraphAndLog, FTEXT("No targets (no input matches criteria or empty dataset)"));
 		return false;
 	}
 

@@ -111,7 +111,6 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExGraphBuilderDetails
 
 namespace PCGExGraph
 {
-
 	using FGraphCompilationEndCallback = std::function<void(const TSharedRef<FGraphBuilder>& InBuilder, const bool bSuccess)>;
 
 	const FName SourceProbesLabel = TEXT("Probes");

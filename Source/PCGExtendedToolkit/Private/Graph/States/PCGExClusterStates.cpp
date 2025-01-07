@@ -7,7 +7,7 @@
 #include "Graph/PCGExCluster.h"
 #include "Graph/Filters/PCGExClusterFilter.h"
 
-TSharedPtr<PCGExPointFilter::FFilter> UPCGExClusterStateFactoryBase::CreateFilter() const
+TSharedPtr<PCGExPointFilter::FFilter> UPCGExClusterStateFactoryData::CreateFilter() const
 {
 	PCGEX_MAKE_SHARED(NewState, PCGExClusterStates::FState, this)
 	NewState->Config = Config;
@@ -15,13 +15,13 @@ TSharedPtr<PCGExPointFilter::FFilter> UPCGExClusterStateFactoryBase::CreateFilte
 	return NewState;
 }
 
-void UPCGExClusterStateFactoryBase::RegisterBuffersDependencies(FPCGExContext* InContext, PCGExData::FFacadePreloader& FacadePreloader) const
+void UPCGExClusterStateFactoryData::RegisterBuffersDependencies(FPCGExContext* InContext, PCGExData::FFacadePreloader& FacadePreloader) const
 {
 	Super::RegisterBuffersDependencies(InContext, FacadePreloader);
 	PCGExPointFilter::RegisterBuffersDependencies(InContext, FilterFactories, FacadePreloader);
 }
 
-void UPCGExClusterStateFactoryBase::BeginDestroy()
+void UPCGExClusterStateFactoryData::BeginDestroy()
 {
 	Super::BeginDestroy();
 }
@@ -43,7 +43,7 @@ namespace PCGExClusterStates
 		return true;
 	}
 
-	bool FState::InitInternalManager(FPCGExContext* InContext, const TArray<TObjectPtr<const UPCGExFilterFactoryBase>>& InFactories)
+	bool FState::InitInternalManager(FPCGExContext* InContext, const TArray<TObjectPtr<const UPCGExFilterFactoryData>>& InFactories)
 	{
 		return Manager->Init(InContext, InFactories);
 	}
@@ -112,9 +112,9 @@ TArray<FPCGPinProperties> UPCGExClusterStateFactoryProviderSettings::OutputPinPr
 	return PinProperties;
 }
 
-UPCGExParamFactoryBase* UPCGExClusterStateFactoryProviderSettings::CreateFactory(FPCGExContext* InContext, UPCGExParamFactoryBase* InFactory) const
+UPCGExFactoryData* UPCGExClusterStateFactoryProviderSettings::CreateFactory(FPCGExContext* InContext, UPCGExFactoryData* InFactory) const
 {
-	UPCGExClusterStateFactoryBase* NewFactory = InContext->ManagedObjects->New<UPCGExClusterStateFactoryBase>();
+	UPCGExClusterStateFactoryData* NewFactory = InContext->ManagedObjects->New<UPCGExClusterStateFactoryData>();
 	NewFactory->Priority = Priority;
 	NewFactory->Config = Config;
 

@@ -35,7 +35,7 @@ void UPCGExVtxPropertyOperation::Cleanup() { Super::Cleanup(); }
 FString UPCGExVtxPropertyProviderSettings::GetDisplayName() const { return TEXT(""); }
 #endif
 
-UPCGExVtxPropertyOperation* UPCGExVtxPropertyFactoryBase::CreateOperation(FPCGExContext* InContext) const
+UPCGExVtxPropertyOperation* UPCGExVtxPropertyFactoryData::CreateOperation(FPCGExContext* InContext) const
 {
 	UPCGExVtxPropertyOperation* NewOperation = InContext->ManagedObjects->New<UPCGExVtxPropertyOperation>();
 	return NewOperation;
@@ -49,9 +49,9 @@ TArray<FPCGPinProperties> UPCGExVtxPropertyProviderSettings::InputPinProperties(
 	return PinProperties;
 }
 
-UPCGExParamFactoryBase* UPCGExVtxPropertyProviderSettings::CreateFactory(FPCGExContext* InContext, UPCGExParamFactoryBase* InFactory) const
+UPCGExFactoryData* UPCGExVtxPropertyProviderSettings::CreateFactory(FPCGExContext* InContext, UPCGExFactoryData* InFactory) const
 {
-	//UPCGExVtxPropertyFactoryBase* NewFactory = Cast<UPCGExVtxPropertyFactoryBase>(InFactory);
+	//UPCGExVtxPropertyFactoryData* NewFactory = Cast<UPCGExVtxPropertyFactoryData>(InFactory);
 	//SamplerFactory->Priority = Priority;
 	return InFactory;
 }

@@ -64,7 +64,7 @@ bool FPCGExGetTextureDataElement::Boot(FPCGExContext* InContext) const
 
 		if (Settings->bOutputTextureIds)
 		{
-			for (const TObjectPtr<const UPCGExTexParamFactoryBase>& Factory : Context->TexParamsFactories) { PCGEX_VALIDATE_NAME_C(InContext, Factory->Config.TextureIDAttributeName) }
+			for (const TObjectPtr<const UPCGExTexParamFactoryData>& Factory : Context->TexParamsFactories) { PCGEX_VALIDATE_NAME_C(InContext, Factory->Config.TextureIDAttributeName) }
 		}
 	}
 

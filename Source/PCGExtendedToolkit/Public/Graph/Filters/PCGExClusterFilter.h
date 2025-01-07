@@ -26,7 +26,7 @@ namespace PCGExPointFilter
  * 
  */
 UCLASS(Abstract, MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExClusterFilterFactoryBase : public UPCGExFilterFactoryBase
+class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExClusterFilterFactoryData : public UPCGExFilterFactoryData
 {
 	GENERATED_BODY()
 };
@@ -35,7 +35,7 @@ class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExClusterFilterFactoryBase : public UPCGExF
  * 
  */
 UCLASS(Abstract, MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExNodeFilterFactoryBase : public UPCGExClusterFilterFactoryBase
+class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExNodeFilterFactoryData : public UPCGExClusterFilterFactoryData
 {
 	GENERATED_BODY()
 
@@ -47,7 +47,7 @@ public:
  * 
  */
 UCLASS(Abstract, MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExEdgeFilterFactoryBase : public UPCGExClusterFilterFactoryBase
+class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExEdgeFilterFactoryData : public UPCGExClusterFilterFactoryData
 {
 	GENERATED_BODY()
 
@@ -60,7 +60,7 @@ namespace PCGExClusterFilter
 	class /*PCGEXTENDEDTOOLKIT_API*/ FFilter : public PCGExPointFilter::FFilter
 	{
 	public:
-		explicit FFilter(const TObjectPtr<const UPCGExClusterFilterFactoryBase>& InFactory):
+		explicit FFilter(const TObjectPtr<const UPCGExClusterFilterFactoryData>& InFactory):
 			PCGExPointFilter::FFilter(InFactory)
 		{
 		}
@@ -79,7 +79,7 @@ namespace PCGExClusterFilter
 	class /*PCGEXTENDEDTOOLKIT_API*/ TNodeFilter : public FFilter
 	{
 	public:
-		explicit TNodeFilter(const TObjectPtr<const UPCGExClusterFilterFactoryBase>& InFactory):
+		explicit TNodeFilter(const TObjectPtr<const UPCGExClusterFilterFactoryData>& InFactory):
 			FFilter(InFactory)
 		{
 		}
@@ -93,7 +93,7 @@ namespace PCGExClusterFilter
 	class /*PCGEXTENDEDTOOLKIT_API*/ TEdgeFilter : public FFilter
 	{
 	public:
-		explicit TEdgeFilter(const TObjectPtr<const UPCGExClusterFilterFactoryBase>& InFactory):
+		explicit TEdgeFilter(const TObjectPtr<const UPCGExClusterFilterFactoryData>& InFactory):
 			FFilter(InFactory)
 		{
 		}

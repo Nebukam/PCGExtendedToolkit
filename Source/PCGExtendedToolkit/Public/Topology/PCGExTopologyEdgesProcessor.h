@@ -64,7 +64,7 @@ private:
 struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExTopologyEdgesProcessorContext : FPCGExEdgesProcessorContext
 {
 	friend class FPCGExTopologyEdgesProcessorElement;
-	TArray<TObjectPtr<const UPCGExFilterFactoryBase>> EdgeConstraintsFilterFactories;
+	TArray<TObjectPtr<const UPCGExFilterFactoryData>> EdgeConstraintsFilterFactories;
 
 	TSharedPtr<PCGExTopology::FHoles> Holes;
 

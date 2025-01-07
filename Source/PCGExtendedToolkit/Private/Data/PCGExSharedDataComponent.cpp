@@ -17,7 +17,9 @@ void UPCGExSharedDataComponent::BeginPlay()
 {
 	Super::BeginPlay();
 	UPCGComponent* PCGComponent = PCGComponentInstance.Get();
-	if (!PCGComponent) { return; }
+	if (!PCGComponent)
+	{
+	}
 }
 
 void UPCGExSharedDataComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
@@ -32,7 +34,6 @@ void UPCGExSharedDataComponent::SetPCGComponent(UPCGComponent* InPCGComponentIns
 	{
 		PCGComponentInstance = InPCGComponentInstance;
 		if (PCGComponentInstance) { OnPCGComponentInstanceSet(); }
-		return;
 	}
 
 	// TODO : 

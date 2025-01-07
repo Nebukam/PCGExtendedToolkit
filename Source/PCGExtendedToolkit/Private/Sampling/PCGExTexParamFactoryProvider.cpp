@@ -80,9 +80,9 @@ void FPCGExTextureParamConfig::Init()
 	}
 }
 
-UPCGExParamFactoryBase* UPCGExTexParamProviderSettings::CreateFactory(FPCGExContext* InContext, UPCGExParamFactoryBase* InFactory) const
+UPCGExFactoryData* UPCGExTexParamProviderSettings::CreateFactory(FPCGExContext* InContext, UPCGExFactoryData* InFactory) const
 {
-	UPCGExTexParamFactoryBase* TexFactory = InContext->ManagedObjects->New<UPCGExTexParamFactoryBase>();
+	UPCGExTexParamFactoryData* TexFactory = InContext->ManagedObjects->New<UPCGExTexParamFactoryData>();
 
 	TexFactory->Config = Config;
 	TexFactory->Config.Init();
@@ -106,15 +106,15 @@ namespace PCGExTexture
 	bool FLookup::BuildFrom(FPCGExContext* InContext, const FName InPin)
 	{
 		if (!PCGExFactories::GetInputFactories(InContext, InPin, Factories, {PCGExFactories::EType::TexParam}, true)) { return false; }
-		for (const TObjectPtr<const UPCGExTexParamFactoryBase>& Factory : Factories) { PCGEX_VALIDATE_NAME_C(InContext, Factory->Config.TextureIDAttributeName) }
+		for (const TObjectPtr<const UPCGExTexParamFactoryData>& Factory : Factories) { PCGEX_VALIDATE_NAME_C(InContext, Factory->Config.TextureIDAttributeName) }
 		return true;
 	}
 
-	bool FLookup::BuildFrom(const TArray<TObjectPtr<const UPCGExTexParamFactoryBase>>& InFactories)
+	bool FLookup::BuildFrom(const TArray<TObjectPtr<const UPCGExTexParamFactoryData>>& InFactories)
 	{
 		if (InFactories.IsEmpty()) { return false; }
 		Factories.Reserve(InFactories.Num());
-		for (const TObjectPtr<const UPCGExTexParamFactoryBase>& Factory : InFactories) { Factories.Add(Factory); }
+		for (const TObjectPtr<const UPCGExTexParamFactoryData>& Factory : InFactories) { Factories.Add(Factory); }
 		return true;
 	}
 
@@ -122,7 +122,7 @@ namespace PCGExTexture
 	{
 		Buffers.Reserve(Factories.Num());
 
-		for (const TObjectPtr<const UPCGExTexParamFactoryBase>& Factory : Factories)
+		for (const TObjectPtr<const UPCGExTexParamFactoryData>& Factory : Factories)
 		{
 #if PCGEX_ENGINE_VERSION <= 503
 			TSharedPtr<PCGExData::TBuffer<FString>> Buffer = InDataFacade->GetWritable<FString>(Factory->Config.TextureIDAttributeName, TEXT(""), true, PCGExData::EBufferInit::Inherit);
@@ -150,7 +150,7 @@ namespace PCGExTexture
 		{
 			if (!Buffers[i]) { continue; }
 
-			const TObjectPtr<const UPCGExTexParamFactoryBase>& Factory = Factories[i];
+			const TObjectPtr<const UPCGExTexParamFactoryData>& Factory = Factories[i];
 
 			if (UTexture* FoundTexture = nullptr; InMaterial->GetTextureParameterValue(Factory->Infos, FoundTexture))
 			{
@@ -165,7 +165,7 @@ namespace PCGExTexture
 
 		for (int i = 0; i < Factories.Num(); i++)
 		{
-			const TObjectPtr<const UPCGExTexParamFactoryBase>& Factory = Factories[i];
+			const TObjectPtr<const UPCGExTexParamFactoryData>& Factory = Factories[i];
 			if (UTexture* FoundTexture = nullptr; InMaterial->GetTextureParameterValue(Factory->Infos, FoundTexture))
 			{
 				References.Add(FReference(FoundTexture->GetPathName(), Factory->Config.TextureIndex));
@@ -190,7 +190,7 @@ namespace PCGExTexture
 		{
 			if (!Buffers[i]) { continue; }
 
-			const TObjectPtr<const UPCGExTexParamFactoryBase>& Factory = Factories[i];
+			const TObjectPtr<const UPCGExTexParamFactoryData>& Factory = Factories[i];
 
 			if (UTexture* FoundTexture = nullptr; InMaterial->GetTextureParameterValue(Factory->Infos, FoundTexture))
 			{

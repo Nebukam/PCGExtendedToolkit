@@ -41,7 +41,7 @@ bool FPCGExConnectPointsElement::Boot(FPCGExContext* InContext) const
 
 	PCGEX_CONTEXT_AND_SETTINGS(ConnectPoints)
 
-	if (!PCGExFactories::GetInputFactories<UPCGExProbeFactoryBase>(
+	if (!PCGExFactories::GetInputFactories<UPCGExProbeFactoryData>(
 		Context, PCGExGraph::SourceProbesLabel, Context->ProbeFactories,
 		{PCGExFactories::EType::Probe}, true))
 	{
@@ -121,7 +121,7 @@ namespace PCGExConnectPoints
 			ProjectionDetails.Init(ExecutionContext, PointDataFacade);
 		}
 
-		for (const UPCGExProbeFactoryBase* Factory : Context->ProbeFactories)
+		for (const UPCGExProbeFactoryData* Factory : Context->ProbeFactories)
 		{
 			UPCGExProbeOperation* NewOperation = Factory->CreateOperation(Context);
 			NewOperation->BindContext(ExecutionContext);
