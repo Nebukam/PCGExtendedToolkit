@@ -69,18 +69,17 @@ public:
 #endif
 	//~End UPCGSettings
 
-public:
+	/**  */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	double TensorWeight = 1;
+
 	/**  */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	FVector Direction = FVector::ForwardVector;
 
 	/**  */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
-	double Strength = 1;
-
-	/**  */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
-	double Weight = 1;
+	double Potency = 1;
 
 	/** Tensor properties */
 	UPROPERTY(meta=(PCG_NotOverridable, HideInDetailPanel))

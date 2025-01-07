@@ -55,7 +55,7 @@ void UPCGExProbeDirection::ProcessCandidates(const int32 Index, const FPCGPoint&
 		// When using best dot, we need to process the candidates backward, so can't break the loop.
 		if (bUseBestDot) { if (C.Distance > R) { continue; } }
 		else { if (C.Distance > R) { break; } }
-		
+
 		if (Coincidence && Coincidence->Contains(C.GH)) { continue; }
 
 		double Dot = 0;

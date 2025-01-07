@@ -144,7 +144,7 @@ protected:
 
 			if (!ValidateEntries(TaggedEdges)) { continue; }
 
-			PCGEX_MAKE_SHARED(NewBatch, T, this, CurrentIO.ToSharedRef(), TaggedEdges->Entries);			
+			PCGEX_MAKE_SHARED(NewBatch, T, this, CurrentIO.ToSharedRef(), TaggedEdges->Entries);
 			InitBatch(NewBatch);
 
 			if (NewBatch->bRequiresWriteStep)

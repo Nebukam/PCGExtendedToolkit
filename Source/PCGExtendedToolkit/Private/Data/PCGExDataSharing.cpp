@@ -4,34 +4,41 @@
 
 #include "Data/PCGExDataSharing.h"
 
-void UPCGExDataBucket::Append(uint32 Item, const FPCGDataCollection& Data)
+#include "PCGExSubSystem.h"
+
+void UPCGExDataBucket::Append(UPCGComponent* InSource, const uint32 Item, const FPCGDataCollection& InData)
 {
 	FWriteScopeLock WriteScopeLock(ContentLock);
 	FPCGDataCollection* CollectionPtr = Content.Find(Item);
 	if (!CollectionPtr)
 	{
-		Content.Add(Item, Data);
+		Content.Add(Item, InData);
 		return;
 	}
 
 	FPCGDataCollection& Collection = *CollectionPtr;
 	Collection.TaggedData.Append(Collection.TaggedData);
+	OnUpdate(InSource, Item);
 }
 
-void UPCGExDataBucket::Remove(uint32 Item, const FPCGDataCollection& Data)
+void UPCGExDataBucket::Remove(UPCGComponent* InSource, const uint32 Item, const FPCGDataCollection& InData)
 {
 	FWriteScopeLock WriteScopeLock(ContentLock);
 	// TODO : Implement
+	OnUpdate(InSource, Item);
 }
 
-void UPCGExDataBucket::Replace(uint32 Item, const FPCGDataCollection& Data)
+void UPCGExDataBucket::Replace(UPCGComponent* InSource, const uint32 Item, const FPCGDataCollection& InData)
 {
 	FWriteScopeLock WriteScopeLock(ContentLock);
-	// TODO : Implement
+	Content.Add(Item, InData);
+	OnUpdate(InSource, Item);
 }
 
 int32 UPCGExDataBucket::Grab(const uint32 Item, FPCGDataCollection& OutData, FDataFilterFunc&& Filter)
 {
+	if (bFlushing) { return 0; }
+
 	FReadScopeLock ReadScopeLock(ContentLock);
 	FPCGDataCollection* CollectionPtr = Content.Find(Item);
 
@@ -66,11 +73,46 @@ void UPCGExDataBucket::Flush()
 	bFlushing = false;
 }
 
-void UPCGExSharedDataManager::PushData(uint32 BucketId, uint32 ItemId, const FPCGDataCollection& InCollection, EPCGExDataSharingPushType InPushType)
+void UPCGExDataBucket::OnUpdate(UPCGComponent* InSource, uint32 Item) const
 {
+	PCGEX_SUBSYSTEM
+	PCGExSubsystem->PollEvent(InSource, EPCGExSubsystemEventType::DataUpdate, HashCombineFast(BucketId, Item));
 }
 
-UPCGExDataBucket* UPCGExSharedDataManager::FindBucket(const uint32 BucketId)
+void UPCGExSharedDataManager::PushData(UPCGComponent* InSource, uint32 BucketId, uint32 ItemId, const FPCGDataCollection& InCollection, EPCGExDataSharingPushType InPushType)
+{
+	TObjectPtr<UPCGExDataBucket> Bucket = FindBucket(BucketId);
+	if (!Bucket.Get())
+	{
+		FWriteScopeLock WriteScopeLock(BucketLock);
+
+		{
+			FGCScopeGuard Scope;
+			Bucket = NewObject<UPCGExDataBucket>();
+		}
+
+		Bucket->BucketId = BucketId;
+		if (Bucket->HasAnyInternalFlags(EInternalObjectFlags::Async)) { Bucket->ClearInternalFlags(EInternalObjectFlags::Async); }
+
+		Buckets.Add(BucketId, Bucket);
+	}
+
+	switch (InPushType)
+	{
+	default:
+	case EPCGExDataSharingPushType::Replace:
+		Bucket->Replace(InSource, ItemId, InCollection);
+		break;
+	case EPCGExDataSharingPushType::Append:
+		Bucket->Append(InSource, ItemId, InCollection);
+		break;
+	case EPCGExDataSharingPushType::Remove:
+		Bucket->Remove(InSource, ItemId, InCollection);
+		break;
+	}
+}
+
+TObjectPtr<UPCGExDataBucket> UPCGExSharedDataManager::FindBucket(const uint32 BucketId)
 {
 	FReadScopeLock ReadScopeLock(BucketLock);
 
@@ -81,8 +123,21 @@ UPCGExDataBucket* UPCGExSharedDataManager::FindBucket(const uint32 BucketId)
 
 void UPCGExSharedDataManager::FlushBucket(uint32 BucketId)
 {
+	FWriteScopeLock WriteScopeLock(BucketLock);
+	TObjectPtr<UPCGExDataBucket> Bucket = FindBucket(BucketId);
+	if (Bucket.Get()) { Bucket->Flush(); }
 }
 
 void UPCGExSharedDataManager::Flush()
 {
+	FWriteScopeLock WriteScopeLock(BucketLock);
+
+	TArray<TObjectPtr<UPCGExDataBucket>> BucketArray;
+	BucketArray.Reserve(Buckets.Num());
+
+	for (const TPair<uint32, TObjectPtr<UPCGExDataBucket>>& Pair : Buckets) { BucketArray.Add(Pair.Value); }
+
+	Buckets.Empty();
+
+	for (const TObjectPtr<UPCGExDataBucket>& Bucket : BucketArray) { Bucket->Flush(); }
 }

@@ -70,7 +70,7 @@ bool UPCGExTensorPointFactoryData::InitInternalData(FPCGExContext* InContext)
 
 		Effector.Color = FVector4(Extents.X, Extents.Y, Extents.Z, Extents.SquaredLength()); // Cache Scaled Extents + Squared radius into $Color
 		Effector.Density = GetWeight(i);                                                     // Pack Weight to $Density
-		Effector.Steepness = GetStrength(i);                                                 // Pack Strength to $Steepness
+		Effector.Steepness = GetPotency(i);                                                  // Pack Potency to $Steepness
 	}
 
 	bOctreeIsDirty = false;
@@ -87,12 +87,12 @@ bool UPCGExTensorPointFactoryData::InitInternalFacade(FPCGExContext* InContext)
 	InputDataFacade = PCGExData::TryGetSingleFacade(InContext, PCGEx::SourcePointsLabel, true);
 	if (!InputDataFacade) { return false; }
 
-	if (BaseConfig.StrengthInput == EPCGExInputValueType::Attribute)
+	if (BaseConfig.PotencyInput == EPCGExInputValueType::Attribute)
 	{
-		StrengthBuffer = InputDataFacade->GetBroadcaster<float>(BaseConfig.StrengthAttribute, true);
-		if (!StrengthBuffer)
+		PotencyBuffer = InputDataFacade->GetBroadcaster<float>(BaseConfig.PotencyAttribute, true);
+		if (!PotencyBuffer)
 		{
-			PCGE_LOG_C(Error, GraphAndLog, InContext, FText::Format(FTEXT("Invalid Strength attribute: \"{0}\"."), FText::FromName(BaseConfig.StrengthAttribute.GetName())));
+			PCGE_LOG_C(Error, GraphAndLog, InContext, FText::Format(FTEXT("Invalid Potency attribute: \"{0}\"."), FText::FromName(BaseConfig.PotencyAttribute.GetName())));
 			return false;
 		}
 	}
@@ -114,9 +114,9 @@ void UPCGExTensorPointFactoryData::PrepareSinglePoint(const int32 Index, FPCGPoi
 {
 }
 
-double UPCGExTensorPointFactoryData::GetStrength(const int32 Index) const
+double UPCGExTensorPointFactoryData::GetPotency(const int32 Index) const
 {
-	return StrengthBuffer ? StrengthBuffer->Read(Index) : BaseConfig.Strength;
+	return PotencyBuffer ? PotencyBuffer->Read(Index) : BaseConfig.Potency;
 }
 
 double UPCGExTensorPointFactoryData::GetWeight(const int32 Index) const

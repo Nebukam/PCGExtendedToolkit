@@ -1,18 +1,18 @@
 ﻿// Copyright 2024 Timothé Lapetite and contributors
 // Released under the MIT license https://opensource.org/license/MIT/
 
-#include "Transform/Tensors/PCGExTensorSplineFlow.h"
+#include "Transform/Tensors/PCGExTensorSplinePole.h"
 
-#define LOCTEXT_NAMESPACE "PCGExCreateTensorSplineFlow"
-#define PCGEX_NAMESPACE CreateTensorSplineFlow
+#define LOCTEXT_NAMESPACE "PCGExCreateTensorSplinePole"
+#define PCGEX_NAMESPACE CreateTensorSplinePole
 
-bool UPCGExTensorSplineFlow::Init(FPCGExContext* InContext, const UPCGExTensorFactoryData* InFactory)
+bool UPCGExTensorSplinePole::Init(FPCGExContext* InContext, const UPCGExTensorFactoryData* InFactory)
 {
 	if (!Super::Init(InContext, InFactory)) { return false; }
 	return true;
 }
 
-PCGExTensor::FTensorSample UPCGExTensorSplineFlow::SampleAtPosition(const FVector& InPosition) const
+PCGExTensor::FTensorSample UPCGExTensorSplinePole::SampleAtPosition(const FVector& InPosition) const
 {
 	const FBoxCenterAndExtent BCAE = FBoxCenterAndExtent(InPosition, FVector::One());
 
@@ -33,7 +33,7 @@ PCGExTensor::FTensorSample UPCGExTensorSplineFlow::SampleAtPosition(const FVecto
 		const double Factor = DistSquared / RadiusSquared;
 
 		Samples.Emplace_GetRef(
-			PCGExMath::GetDirection(T.GetRotation(), Config.SplineDirection),
+			(InPosition - Center).GetSafeNormal(),
 			Config.Potency * Config.PotencyFalloffCurveObj->Eval(Factor),
 			Config.Weight * Config.WeightFalloffCurveObj->Eval(Factor));
 	}
@@ -41,14 +41,14 @@ PCGExTensor::FTensorSample UPCGExTensorSplineFlow::SampleAtPosition(const FVecto
 	return Samples.Flatten(Config.TensorWeight);
 }
 
-bool UPCGExTensorSplineFlowFactory::Prepare(FPCGExContext* InContext)
+bool UPCGExTensorSplinePoleFactory::Prepare(FPCGExContext* InContext)
 {
 	SampleInputs = Config.SampleInputs;
 	return Super::Prepare(InContext);
 }
 
 PCGEX_TENSOR_BOILERPLATE(
-	SplineFlow, { }, {
+	SplinePole, { }, {
 	NewOperation->Splines = &Splines;
 	})
 

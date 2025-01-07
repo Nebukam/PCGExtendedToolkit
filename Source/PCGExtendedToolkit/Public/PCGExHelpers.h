@@ -33,7 +33,7 @@ enum class EPCGExPointPropertyOutput : uint8
 	ColorA    = 6 UMETA(DisplayName = "A Channel", Tooltip="..."),
 };
 
-UCLASS()
+UCLASS(Hidden)
 class UPCGExComponentCallback : public UObject
 {
 	GENERATED_BODY()
@@ -61,7 +61,7 @@ public:
 	}
 };
 
-UCLASS()
+UCLASS(Hidden)
 class UPCGExPCGComponentCallback : public UObject
 {
 	GENERATED_BODY()
@@ -417,7 +417,7 @@ namespace PCGEx
 		~FManagedObjects();
 
 		bool IsAvailable() const;
-		
+
 		void Flush();
 
 		void Add(UObject* InObject);

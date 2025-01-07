@@ -111,7 +111,7 @@ namespace PCGExTensorsTransform
 			}
 			else if (Settings->Rotation == EPCGExTensorTransformMode::Align)
 			{
-				Point.Transform.SetRotation(PCGExMath::MakeDirection(Settings->AlignAxis, Sample.DirectionAndSize.GetSafeNormal()*-1, Point.Transform.GetRotation().GetUpVector()));
+				Point.Transform.SetRotation(PCGExMath::MakeDirection(Settings->AlignAxis, Sample.DirectionAndSize.GetSafeNormal() * -1, Point.Transform.GetRotation().GetUpVector()));
 			}
 		}
 

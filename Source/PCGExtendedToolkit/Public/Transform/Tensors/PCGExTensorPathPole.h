@@ -9,16 +9,17 @@
 #include "PCGExTensorFactoryProvider.h"
 #include "PCGExTensorOperation.h"
 #include "PCGExTensorSplineFactoryProvider.h"
+#include "PCGExTensorSplineFlow.h"
 
-#include "PCGExTensorSplineFlow.generated.h"
+#include "PCGExTensorPathPole.generated.h"
 
 
 USTRUCT(BlueprintType)
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExTensorSplineFlowConfig : public FPCGExTensorConfigBase
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExTensorPathPoleConfig : public FPCGExTensorConfigBase
 {
 	GENERATED_BODY()
 
-	FPCGExTensorSplineFlowConfig() :
+	FPCGExTensorPathPoleConfig() :
 		FPCGExTensorConfigBase(false)
 	{
 	}
@@ -28,7 +29,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExTensorSplineFlowConfig : public FPCGExTe
 	EPCGExSplineSamplingIncludeMode SampleInputs = EPCGExSplineSamplingIncludeMode::All;
 
 	/**  Base radius of the spline. Will be scaled by control points' scale length */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayAfter="TensorWeight"))
 	double Radius = 100;
 
 	/**  Which spline transform axis is to be used */
@@ -40,13 +41,13 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExTensorSplineFlowConfig : public FPCGExTe
  * 
  */
 UCLASS(MinimalAPI)
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExTensorSplineFlow : public UPCGExTensorOperation
+class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExTensorPathPole : public UPCGExTensorOperation
 {
 	GENERATED_BODY()
 
 public:
-	FPCGExTensorSplineFlowConfig Config;
-	const TArray<FPCGSplineStruct>* Splines = nullptr;
+	FPCGExTensorPathPoleConfig Config;
+	const TArray<TSharedPtr<const FPCGSplineStruct>>* Splines = nullptr;
 
 	virtual bool Init(FPCGExContext* InContext, const UPCGExTensorFactoryData* InFactory) override;
 
@@ -55,32 +56,33 @@ public:
 
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExTensorSplineFlowFactory : public UPCGExTensorSplineFactoryData
+class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExTensorPathPoleFactory : public UPCGExTensorSplineFlowFactory
 {
 	GENERATED_BODY()
 
 public:
-	FPCGExTensorSplineFlowConfig Config;
+	FPCGExTensorPathPoleConfig Config;
 	virtual UPCGExTensorOperation* CreateOperation(FPCGExContext* InContext) const override;
-	virtual bool Prepare(FPCGExContext* InContext) override;
 };
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Tensors|Params")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExCreateTensorSplineFlowSettings : public UPCGExTensorSplineFactoryProviderSettings
+class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExCreateTensorPathPoleSettings : public UPCGExTensorSplineFactoryProviderSettings
 {
 	GENERATED_BODY()
 
 public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS(TensorSplineFlow, "Tensor : Spline Flow", "A tensor that represent a vector/flow field along a spline")
+	PCGEX_NODE_INFOS(TensorPathPole, "Tensor : Path Pole", "A tensor that represent a vector/flow field along a path")
 
 #endif
 	//~End UPCGSettings
 
+	virtual bool GetBuildFromPoints() const override { return true; }
+
 	/** Tensor properties */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ShowOnlyInnerProperties))
-	FPCGExTensorSplineFlowConfig Config;
+	FPCGExTensorPathPoleConfig Config;
 
 	virtual UPCGExFactoryData* CreateFactory(FPCGExContext* InContext, UPCGExFactoryData* InFactory) const override;
 };

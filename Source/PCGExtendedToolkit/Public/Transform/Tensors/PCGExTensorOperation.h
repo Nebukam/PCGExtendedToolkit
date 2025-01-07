@@ -25,14 +25,13 @@ public:
 	FPCGExTensorConfigBase BaseConfig;
 
 	virtual bool Init(FPCGExContext* InContext, const UPCGExTensorFactoryData* InFactory);
-	
+
 	virtual PCGExTensor::FTensorSample SampleAtPosition(const FVector& InPosition) const;
 
 	virtual void Cleanup() override
 	{
 		Factory = nullptr;
 	}
-protected:
 };
 
 /**

@@ -18,7 +18,7 @@ bool UPCGExTensorOperation::Init(FPCGExContext* InContext, const UPCGExTensorFac
 }
 
 PCGExTensor::FTensorSample UPCGExTensorOperation::SampleAtPosition(const FVector& InPosition) const
-{	
+{
 	return PCGExTensor::FTensorSample{};
 }
 

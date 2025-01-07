@@ -30,7 +30,7 @@ PCGExTensor::FTensorSample UPCGExTensorFlow::SampleAtPosition(const FVector& InP
 
 		Samples.Emplace_GetRef(
 			PCGExMath::GetDirection(InPointRef.Point->Transform.GetRotation(), EPCGExAxis::Forward),
-			InPointRef.Point->Steepness * Config.StrengthFalloffCurveObj->Eval(Factor),
+			InPointRef.Point->Steepness * Config.PotencyFalloffCurveObj->Eval(Factor),
 			InPointRef.Point->Density * Config.WeightFalloffCurveObj->Eval(Factor));
 	};
 

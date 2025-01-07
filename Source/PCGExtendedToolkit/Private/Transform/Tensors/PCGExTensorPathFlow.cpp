@@ -1,24 +1,24 @@
 ﻿// Copyright 2024 Timothé Lapetite and contributors
 // Released under the MIT license https://opensource.org/license/MIT/
 
-#include "Transform/Tensors/PCGExTensorSplineFlow.h"
+#include "Transform/Tensors/PCGExTensorPathFlow.h"
 
-#define LOCTEXT_NAMESPACE "PCGExCreateTensorSplineFlow"
-#define PCGEX_NAMESPACE CreateTensorSplineFlow
+#define LOCTEXT_NAMESPACE "PCGExCreateTensorPathFlow"
+#define PCGEX_NAMESPACE CreateTensorPathFlow
 
-bool UPCGExTensorSplineFlow::Init(FPCGExContext* InContext, const UPCGExTensorFactoryData* InFactory)
+bool UPCGExTensorPathFlow::Init(FPCGExContext* InContext, const UPCGExTensorFactoryData* InFactory)
 {
 	if (!Super::Init(InContext, InFactory)) { return false; }
 	return true;
 }
 
-PCGExTensor::FTensorSample UPCGExTensorSplineFlow::SampleAtPosition(const FVector& InPosition) const
+PCGExTensor::FTensorSample UPCGExTensorPathFlow::SampleAtPosition(const FVector& InPosition) const
 {
 	const FBoxCenterAndExtent BCAE = FBoxCenterAndExtent(InPosition, FVector::One());
 
 	PCGExTensor::FEffectorSamples Samples = PCGExTensor::FEffectorSamples();
 
-	for (const FPCGSplineStruct& Spline : *Splines)
+	for (const TSharedPtr<const FPCGSplineStruct>& Spline : *Splines)
 	{
 		const FTransform T = PCGExPaths::GetClosestTransform(Spline, InPosition, true);
 
@@ -41,15 +41,9 @@ PCGExTensor::FTensorSample UPCGExTensorSplineFlow::SampleAtPosition(const FVecto
 	return Samples.Flatten(Config.TensorWeight);
 }
 
-bool UPCGExTensorSplineFlowFactory::Prepare(FPCGExContext* InContext)
-{
-	SampleInputs = Config.SampleInputs;
-	return Super::Prepare(InContext);
-}
-
 PCGEX_TENSOR_BOILERPLATE(
-	SplineFlow, { }, {
-	NewOperation->Splines = &Splines;
+	PathFlow, { }, {
+	NewOperation->Splines = &ManagedSplines;
 	})
 
 #undef LOCTEXT_NAMESPACE

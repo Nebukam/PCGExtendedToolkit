@@ -20,25 +20,27 @@ PCGExTensor::FTensorSample UPCGExTensorConstant::SampleAtPosition(const FVector&
 
 	Samples.Emplace_GetRef(
 		Config.Direction,
-		Config.Strength,
+		Config.Potency,
 		Config.Weight);
 
 	return Samples.Flatten(Config.TensorWeight);
 }
 
-PCGEX_TENSOR_BOILERPLATE(Constant, {
+PCGEX_TENSOR_BOILERPLATE(
+	Constant, {
 	NewFactory->Config.Direction = Direction;
-	NewFactory->Config.Strength = Strength;
-	NewFactory->Config.StrengthInput = EPCGExInputValueType::Constant;
-	NewFactory->Config.Weight = Weight;
+	NewFactory->Config.Potency = Potency;
+	NewFactory->Config.PotencyInput = EPCGExInputValueType::Constant;
+	NewFactory->Config.Weight = 1;
+	NewFactory->Config.TensorWeight = TensorWeight;
 	NewFactory->Config.WeightInput = EPCGExInputValueType::Constant;
-}, {})
+	}, {})
 
 bool UPCGExTensorConstantFactory::InitInternalData(FPCGExContext* InContext)
 {
-	if (Config.StrengthInput == EPCGExInputValueType::Attribute)
+	if (Config.PotencyInput == EPCGExInputValueType::Attribute)
 	{
-		PCGE_LOG_C(Error, GraphAndLog, InContext, FTEXT("Attribute-driven Strength is not supported on Constant Tensor."));
+		PCGE_LOG_C(Error, GraphAndLog, InContext, FTEXT("Attribute-driven Potency is not supported on Constant Tensor."));
 		return false;
 	}
 

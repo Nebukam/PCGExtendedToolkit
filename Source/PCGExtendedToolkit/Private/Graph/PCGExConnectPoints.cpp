@@ -251,7 +251,6 @@ namespace PCGExConnectPoints
 	{
 		TPointsProcessor<FPCGExConnectPointsContext, UPCGExConnectPointsSettings>::PrepareSingleLoopScopeForPoints(Scope);
 		PointDataFacade->Fetch(Scope);
-		
 	}
 
 	void FProcessor::ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const PCGExMT::FScope& Scope)

@@ -9,14 +9,14 @@
 #include "PCGExTensorFactoryProvider.h"
 #include "PCGExTensorOperation.h"
 
-#include "PCGExTensorMagnet.generated.h"
+#include "PCGExTensorPole.generated.h"
 
 USTRUCT(BlueprintType)
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExTensorMagnetConfig : public FPCGExTensorConfigBase
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExTensorPoleConfig : public FPCGExTensorConfigBase
 {
 	GENERATED_BODY()
 
-	FPCGExTensorMagnetConfig() :
+	FPCGExTensorPoleConfig() :
 		FPCGExTensorConfigBase()
 	{
 	}
@@ -26,12 +26,12 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExTensorMagnetConfig : public FPCGExTensor
  * 
  */
 UCLASS(MinimalAPI)
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExTensorMagnet : public UPCGExTensorPointOperation
+class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExTensorPole : public UPCGExTensorPointOperation
 {
 	GENERATED_BODY()
 
 public:
-	FPCGExTensorMagnetConfig Config;
+	FPCGExTensorPoleConfig Config;
 	virtual bool Init(FPCGExContext* InContext, const UPCGExTensorFactoryData* InFactory) override;
 
 	virtual PCGExTensor::FTensorSample SampleAtPosition(const FVector& InPosition) const override;
@@ -39,12 +39,12 @@ public:
 
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExTensorMagnetFactory : public UPCGExTensorPointFactoryData
+class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExTensorPoleFactory : public UPCGExTensorPointFactoryData
 {
 	GENERATED_BODY()
 
 public:
-	FPCGExTensorMagnetConfig Config;
+	FPCGExTensorPoleConfig Config;
 	virtual UPCGExTensorOperation* CreateOperation(FPCGExContext* InContext) const override;
 
 protected:
@@ -52,22 +52,21 @@ protected:
 };
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Tensors|Params")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExCreateTensorMagnetSettings : public UPCGExTensorPointFactoryProviderSettings
+class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExCreateTensorPoleSettings : public UPCGExTensorPointFactoryProviderSettings
 {
 	GENERATED_BODY()
 
 public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS(TensorMagnet, "Tensor : Magnet", "A tensor that pull and/or pushes")
+	PCGEX_NODE_INFOS(TensorPole, "Tensor : Pole", "A tensor that pull and/or pushes")
 
 #endif
 	//~End UPCGSettings
 
-public:
 	/** Tensor properties */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ShowOnlyInnerProperties))
-	FPCGExTensorMagnetConfig Config;
+	FPCGExTensorPoleConfig Config;
 
 	virtual UPCGExFactoryData* CreateFactory(FPCGExContext* InContext, UPCGExFactoryData* InFactory) const override;
 };

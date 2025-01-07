@@ -8,10 +8,10 @@
 
 namespace PCGExTensor
 {
-	FEffectorSample& FEffectorSamples::Emplace_GetRef(const FVector& InDirection, const double InStrength, const double InWeight)
+	FEffectorSample& FEffectorSamples::Emplace_GetRef(const FVector& InDirection, const double InPotency, const double InWeight)
 	{
 		TensorSample.Weight += InWeight;
-		return Samples.Emplace_GetRef(InDirection, InStrength, InWeight);
+		return Samples.Emplace_GetRef(InDirection, InPotency, InWeight);
 	}
 
 	FTensorSample FEffectorSamples::Flatten(const double InWeight)
@@ -22,7 +22,7 @@ namespace PCGExTensor
 
 		for (const FEffectorSample& EffectorSample : Samples)
 		{
-			const double S = (EffectorSample.Strength * (EffectorSample.Weight / TensorSample.Weight));
+			const double S = (EffectorSample.Potency * (EffectorSample.Weight / TensorSample.Weight));
 			DirectionAndSize += EffectorSample.Direction * S;
 		}
 
@@ -134,10 +134,10 @@ void FPCGExTensorConfigBase::Init()
 	}
 	WeightFalloffCurveObj = LocalWeightFalloffCurve.GetRichCurveConst();
 
-	if (!bUseLocalStrengthFalloffCurve)
+	if (!bUseLocalPotencyFalloffCurve)
 	{
-		PCGExHelpers::LoadBlocking_AnyThread(StrengthFalloffCurve);
-		LocalStrengthFalloffCurve.ExternalCurve = StrengthFalloffCurve.Get();
+		PCGExHelpers::LoadBlocking_AnyThread(PotencyFalloffCurve);
+		LocalPotencyFalloffCurve.ExternalCurve = PotencyFalloffCurve.Get();
 	}
-	StrengthFalloffCurveObj = LocalStrengthFalloffCurve.GetRichCurveConst();
+	PotencyFalloffCurveObj = LocalPotencyFalloffCurve.GetRichCurveConst();
 }

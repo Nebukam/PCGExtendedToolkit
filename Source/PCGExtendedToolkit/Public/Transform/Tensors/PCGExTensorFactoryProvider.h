@@ -79,7 +79,7 @@ class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExTensorPointFactoryData : public UPCGExTen
 protected:
 	TSharedPtr<PCGExData::FFacade> InputDataFacade;
 
-	TSharedPtr<PCGExData::TBuffer<float>> StrengthBuffer;
+	TSharedPtr<PCGExData::TBuffer<float>> PotencyBuffer;
 	TSharedPtr<PCGExData::TBuffer<float>> WeightBuffer;
 
 	virtual bool GetRequiresPreparation(FPCGExContext* InContext) override { return true; }
@@ -87,7 +87,7 @@ protected:
 	virtual bool InitInternalFacade(FPCGExContext* InContext);
 	virtual void PrepareSinglePoint(int32 Index, FPCGPoint& InPoint) const;
 
-	double GetStrength(const int32 Index) const;
+	double GetPotency(const int32 Index) const;
 	double GetWeight(const int32 Index) const;
 };
 

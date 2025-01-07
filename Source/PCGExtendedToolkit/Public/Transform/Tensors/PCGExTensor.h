@@ -56,15 +56,22 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExTensorConfigBase
 {
 	GENERATED_BODY()
 
-	FPCGExTensorConfigBase()
+	explicit FPCGExTensorConfigBase(const bool SupportAttributes = true)
+		: bSupportAttributes(SupportAttributes)
 	{
-		LocalStrengthFalloffCurve.EditorCurveData.AddKey(1, 0);
-		LocalStrengthFalloffCurve.EditorCurveData.AddKey(0, 1);
+		if (!bSupportAttributes)
+		{
+			PotencyInput = EPCGExInputValueType::Constant;
+			WeightInput = EPCGExInputValueType::Constant;
+		}
+
+		LocalPotencyFalloffCurve.EditorCurveData.AddKey(1, 0);
+		LocalPotencyFalloffCurve.EditorCurveData.AddKey(0, 1);
 
 		LocalWeightFalloffCurve.EditorCurveData.AddKey(1, 0);
 		LocalWeightFalloffCurve.EditorCurveData.AddKey(0, 1);
 
-		StrengthAttribute.Update(TEXT("$Density"));
+		PotencyAttribute.Update(TEXT("$Density"));
 		WeightAttribute.Update(TEXT("Steepness"));
 	}
 
@@ -72,61 +79,59 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExTensorConfigBase
 	{
 	}
 
+	UPROPERTY(VisibleAnywhere, Category=Settings, meta=(PCG_NotOverridable, HideInDetailPanel, EditCondition="false", EditConditionHides))
+	bool bSupportAttributes = true;
+
 	/**  */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_NotOverridable, DisplayPriority=-1))
 	double TensorWeight = 1;
 
 	/** How individual effectors on that tensor are composited */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_NotOverridable, DisplayPriority=-1))
+	//UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_NotOverridable, DisplayPriority=-1))
 	EPCGExEffectorCompositingMode Compositing = EPCGExEffectorCompositingMode::Weighted;
 
-	// Strength Falloff
+	// Potency Falloff
 
 	/** Per-point internal Weight input type */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_NotOverridable, DisplayPriority=-1))
-	EPCGExInputValueType StrengthInput = EPCGExInputValueType::Attribute;
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Potency", meta = (PCG_NotOverridable, EditCondition="bSupportAttributes", EditConditionHides, DisplayPriority=-1, HideEditConditionToggle))
+	EPCGExInputValueType PotencyInput = EPCGExInputValueType::Attribute;
 
-	/** Constant strength. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Strength", EditCondition = "WeightInput == EPCGExInputValueType::Constant", EditConditionHides, DisplayPriority=-1))
-	double Strength = 1;
+	/** Constant Potency. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Potency", meta=(PCG_Overridable, DisplayName="Potency", EditCondition = "WeightInput == EPCGExInputValueType::Constant", EditConditionHides, DisplayPriority=-1))
+	double Potency = 1;
 
-	/** Per-point strength. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Strength", EditCondition = "WeightInput != EPCGExInputValueType::Constant", EditConditionHides, DisplayPriority=-1))
-	FPCGAttributePropertyInputSelector StrengthAttribute;
+	/** Per-point Potency. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Potency", meta=(PCG_Overridable, DisplayName="Potency", EditCondition = "bSupportAttributes && WeightInput != EPCGExInputValueType::Constant", EditConditionHides, DisplayPriority=-1, HideEditConditionToggle))
+	FPCGAttributePropertyInputSelector PotencyAttribute;
 
 	/** Whether to use in-editor curve or an external asset. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Strength Falloff", meta=(PCG_NotOverridable, DisplayPriority=-1))
-	bool bUseLocalStrengthFalloffCurve = true;
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Potency", meta=(PCG_NotOverridable, DisplayPriority=-1))
+	bool bUseLocalPotencyFalloffCurve = true;
 
 	// TODO: DirtyCache for OnDependencyChanged when this float curve is an external asset
-	/** Per-point Strength falloff curve sampled using distance to effector origin. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Strength Falloff", meta = (PCG_NotOverridable, DisplayName="Strength Falloff Curve", EditCondition = "bUseLocalStrengthFalloffCurve", EditConditionHides, DisplayPriority=-1))
-	FRuntimeFloatCurve LocalStrengthFalloffCurve;
+	/** Per-point Potency falloff curve sampled using distance to effector origin. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Potency", meta = (PCG_NotOverridable, DisplayName="Potency Falloff Curve", EditCondition = "bUseLocalPotencyFalloffCurve", EditConditionHides, DisplayPriority=-1))
+	FRuntimeFloatCurve LocalPotencyFalloffCurve;
 
-	/** Per-point Strength falloff curve sampled using distance to effector origin. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Strength Falloff", meta=(PCG_Overridable, DisplayName="Strength Falloff Curve", EditCondition="!bUseLocalStrengthFalloffCurve", EditConditionHides, DisplayPriority=-1))
-	TSoftObjectPtr<UCurveFloat> StrengthFalloffCurve;
+	/** Per-point Potency falloff curve sampled using distance to effector origin. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Potency", meta=(PCG_Overridable, DisplayName="Potency Falloff Curve", EditCondition="!bUseLocalPotencyFalloffCurve", EditConditionHides, DisplayPriority=-1))
+	TSoftObjectPtr<UCurveFloat> PotencyFalloffCurve;
 
-	const FRichCurve* StrengthFalloffCurveObj = nullptr;
+	const FRichCurve* PotencyFalloffCurveObj = nullptr;
 
 	// Weight Falloff
 
 	/** Per-point internal Weight input type */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Weighting", meta = (PCG_NotOverridable, DisplayPriority=-1))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Weighting", meta = (PCG_NotOverridable, EditCondition="bSupportAttributes", EditConditionHides, DisplayPriority=-1, HideEditConditionToggle))
 	EPCGExInputValueType WeightInput = EPCGExInputValueType::Constant;
 
 	/** Per-point internal Weight Constant. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Weighting", meta=(PCG_Overridable, DisplayName="Weight", EditCondition="WeightInput == EPCGExInputValueType::Constant", EditConditionHides, ClampMin=0))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Weighting", meta=(PCG_Overridable, DisplayName="Weight", EditCondition="WeightInput == EPCGExInputValueType::Constant", EditConditionHides, DisplayPriority=-1, ClampMin=0))
 	double Weight = 1;
 
 	/** Per-point internal Weight Attribute. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Weighting", meta=(PCG_Overridable, DisplayName="Weight", EditCondition="WeightInput != EPCGExInputValueType::Constant", EditConditionHides, DisplayPriority=-1))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Weighting", meta=(PCG_Overridable, DisplayName="Weight", EditCondition="bSupportAttributes && WeightInput != EPCGExInputValueType::Constant", EditConditionHides, DisplayPriority=-1, HideEditConditionToggle))
 	FPCGAttributePropertyInputSelector WeightAttribute;
-
-	/** Uniform weight factor for this tensor. Multiplier applied to individual output values. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Weighting", meta=(PCG_Overridable, EditCondition="WeightInput != EPCGExInputValueType::Constant", DisplayPriority=-1))
-	double UniformWeightFactor = 1;
-
 
 	/** Whether to use in-editor curve or an external asset. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Weighting", meta=(PCG_NotOverridable, DisplayPriority=-1))
@@ -165,13 +170,13 @@ namespace PCGExTensor
 	struct FEffectorSample
 	{
 		FVector Direction = FVector::ZeroVector; // effector direction
-		double Strength = 0;                     // i.e, length
+		double Potency = 0;                      // i.e, length
 		double Weight = 0;                       // weight of this sample
 
 		FEffectorSample() = default;
 
-		FEffectorSample(const FVector& InDirection, const double InStrength, const double InWeight)
-			: Direction(InDirection), Strength(InStrength), Weight(InWeight)
+		FEffectorSample(const FVector& InDirection, const double InPotency, const double InWeight)
+			: Direction(InDirection), Potency(InPotency), Weight(InWeight)
 		{
 		}
 
@@ -186,7 +191,7 @@ namespace PCGExTensor
 		FEffectorSamples() = default;
 		~FEffectorSamples() = default;
 
-		FEffectorSample& Emplace_GetRef(const FVector& InDirection, const double InStrength, const double InWeight);
+		FEffectorSample& Emplace_GetRef(const FVector& InDirection, const double InPotency, const double InWeight);
 		FTensorSample Flatten(double InWeight);
 	};
 

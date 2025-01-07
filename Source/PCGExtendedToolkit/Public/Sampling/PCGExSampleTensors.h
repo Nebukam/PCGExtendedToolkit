@@ -18,7 +18,7 @@
 MACRO(Success, bool, false)\
 MACRO(Transform, FTransform, FTransform::Identity)
 
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Sampling")
+UCLASS(Hidden, MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Sampling")
 class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExSampleTensorsSettings : public UPCGExPointsProcessorSettings
 {
 	GENERATED_BODY()

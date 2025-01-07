@@ -12,7 +12,6 @@
 #include "PCGExTensorFlow.generated.h"
 
 
-
 USTRUCT(BlueprintType)
 struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExTensorFlowConfig : public FPCGExTensorConfigBase
 {
@@ -38,7 +37,6 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExTensorFlowConfig : public FPCGExTensorCo
 	/** Whether the direction is absolute or should be transformed by the owner' transform .*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="DirectionInput != EPCGExInputValueType::Constant", EditConditionHides))
 	EPCGExTransformMode DirectionTransform = EPCGExTransformMode::Relative;
-	
 };
 
 /**
@@ -54,9 +52,6 @@ public:
 	virtual bool Init(FPCGExContext* InContext, const UPCGExTensorFactoryData* InFactory) override;
 
 	virtual PCGExTensor::FTensorSample SampleAtPosition(const FVector& InPosition) const override;
-	
-protected:
-	
 };
 
 
@@ -71,7 +66,7 @@ public:
 
 protected:
 	TSharedPtr<PCGExData::TBuffer<FVector>> DirectionBuffer;
-	
+
 	virtual bool InitInternalData(FPCGExContext* InContext) override;
 	virtual bool InitInternalFacade(FPCGExContext* InContext) override;
 	virtual void PrepareSinglePoint(int32 Index, FPCGPoint& InPoint) const override;
@@ -90,8 +85,6 @@ public:
 #endif
 	//~End UPCGSettings
 
-public:
-	
 	/** Tensor properties */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ShowOnlyInnerProperties))
 	FPCGExTensorFlowConfig Config;
