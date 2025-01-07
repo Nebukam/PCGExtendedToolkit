@@ -73,7 +73,7 @@ protected:
 
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExHeuristicsFactoryAttribute : public UPCGExHeuristicsFactoryBase
+class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExHeuristicsFactoryAttribute : public UPCGExHeuristicsFactoryData
 {
 	GENERATED_BODY()
 
@@ -99,7 +99,7 @@ public:
 #endif
 	//~End UPCGSettings
 
-	virtual UPCGExParamFactoryBase* CreateFactory(FPCGExContext* InContext, UPCGExParamFactoryBase* InFactory) const override;
+	virtual UPCGExFactoryData* CreateFactory(FPCGExContext* InContext, UPCGExFactoryData* InFactory) const override;
 
 	/** Modifier properties */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ShowOnlyInnerProperties))

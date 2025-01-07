@@ -17,7 +17,7 @@ UPCGExShapeBuilderOperation* UPCGExShape##_SHAPE##Factory::CreateOperation(FPCGE
 	NewOperation->BaseConfig = NewOperation->Config; \
 	NewOperation->Transform = NewOperation->Config.LocalTransform; \
 	return NewOperation; } \
-UPCGExParamFactoryBase* UPCGExCreateShape##_SHAPE##Settings::CreateFactory(FPCGExContext* InContext, UPCGExParamFactoryBase* InFactory) const{ \
+UPCGExFactoryData* UPCGExCreateShape##_SHAPE##Settings::CreateFactory(FPCGExContext* InContext, UPCGExFactoryData* InFactory) const{ \
 	UPCGExShape##_SHAPE##Factory* NewFactory = InContext->ManagedObjects->New<UPCGExShape##_SHAPE##Factory>(); \
 	NewFactory->Config = Config; \
 	return Super::CreateFactory(InContext, NewFactory);}
@@ -25,7 +25,7 @@ UPCGExParamFactoryBase* UPCGExCreateShape##_SHAPE##Settings::CreateFactory(FPCGE
 class UPCGExShapeBuilderOperation;
 
 UCLASS(Abstract, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExShapeBuilderFactoryBase : public UPCGExParamFactoryBase
+class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExShapeBuilderFactoryData : public UPCGExFactoryData
 {
 	GENERATED_BODY()
 
@@ -42,11 +42,11 @@ class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExShapeBuilderFactoryProviderSettings : pub
 public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS(NodeFilter, "ShapeBuilder Definition", "Creates a single shape builder node, to be used with a Shape processor node.")
+	PCGEX_NODE_INFOS(ShapeBuilder, "ShapeBuilder Definition", "Creates a single shape builder node, to be used with a Shape processor node.")
 	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->NodeColorShapeBuilder; }
 #endif
 	//~End UPCGSettings
 
 	virtual FName GetMainOutputPin() const override { return PCGExShapes::OutputShapeBuilderLabel; }
-	virtual UPCGExParamFactoryBase* CreateFactory(FPCGExContext* InContext, UPCGExParamFactoryBase* InFactory) const override;
+	virtual UPCGExFactoryData* CreateFactory(FPCGExContext* InContext, UPCGExFactoryData* InFactory) const override;
 };

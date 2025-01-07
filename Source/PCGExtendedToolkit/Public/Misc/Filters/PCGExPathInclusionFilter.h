@@ -16,15 +16,6 @@
 
 #include "PCGExPathInclusionFilter.generated.h"
 
-UENUM()
-enum class EPCGExSplinePointTypeRedux : uint8
-{
-	Linear       = 0 UMETA(DisplayName = "Linear (0)", Tooltip="Linear (0)."),
-	Curve        = 1 UMETA(DisplayName = "Curve (1)", Tooltip="Curve (1)."),
-	Constant     = 2 UMETA(DisplayName = "Constant (2)", Tooltip="Constant (2)."),
-	CurveClamped = 3 UMETA(DisplayName = "CurveClamped (3)", Tooltip="CurveClamped (3).")
-};
-
 USTRUCT(BlueprintType)
 struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPathInclusionFilterConfig
 {
@@ -75,7 +66,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPathInclusionFilterConfig
  * 
  */
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Filter")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExPathInclusionFilterFactory : public UPCGExFilterFactoryBase
+class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExPathInclusionFilterFactory : public UPCGExFilterFactoryData
 {
 	GENERATED_BODY()
 
@@ -84,7 +75,6 @@ public:
 	TArray<TSharedPtr<const FPCGSplineStruct>> Splines;
 	virtual bool Init(FPCGExContext* InContext) override;
 	virtual TSharedPtr<PCGExPointFilter::FFilter> CreateFilter() const override;
-	void CreateSpline(const UPCGPointData* InData, const bool bClosedLoop);
 
 	virtual void BeginDestroy() override;
 };
@@ -145,7 +135,7 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ShowOnlyInnerProperties))
 	FPCGExPathInclusionFilterConfig Config;
 
-	virtual UPCGExParamFactoryBase* CreateFactory(FPCGExContext* InContext, UPCGExParamFactoryBase* InFactory) const override;
+	virtual UPCGExFactoryData* CreateFactory(FPCGExContext* InContext, UPCGExFactoryData* InFactory) const override;
 
 #if WITH_EDITOR
 	virtual FString GetDisplayName() const override;

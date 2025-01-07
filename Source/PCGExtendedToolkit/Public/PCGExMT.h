@@ -173,7 +173,7 @@ namespace PCGExMT
 
 	public:
 		explicit FAsyncMultiHandle(const bool InForceSync, const FName InName);
-		~FAsyncMultiHandle();
+		virtual ~FAsyncMultiHandle() override;
 
 		FCompletionCallback OnCompleteCallback; // Only called with handle was not cancelled
 
@@ -229,7 +229,7 @@ namespace PCGExMT
 		mutable FRWLock GroupsLock;
 		mutable FRWLock TokensLock;
 
-		TWeakPtr<PCGEx::FLifeline> Lifeline;
+		TWeakPtr<PCGEx::FWorkPermit> WorkPermit;
 
 		FPCGExContext* Context = nullptr;
 

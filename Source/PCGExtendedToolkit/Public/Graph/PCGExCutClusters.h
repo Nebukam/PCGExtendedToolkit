@@ -107,8 +107,8 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExCutEdgesContext final : FPCGExEdgesProce
 	FPCGExPathClosedLoopDetails ClosedLoop;
 	FPCGExPathEdgeIntersectionDetails IntersectionDetails;
 
-	TArray<TObjectPtr<const UPCGExFilterFactoryBase>> EdgeFilterFactories;
-	TArray<TObjectPtr<const UPCGExFilterFactoryBase>> NodeFilterFactories;
+	TArray<TObjectPtr<const UPCGExFilterFactoryData>> EdgeFilterFactories;
+	TArray<TObjectPtr<const UPCGExFilterFactoryData>> NodeFilterFactories;
 
 	TArray<TSharedRef<PCGExData::FFacade>> PathFacades;
 	TArray<TSharedRef<PCGExPaths::FPath>> Paths;

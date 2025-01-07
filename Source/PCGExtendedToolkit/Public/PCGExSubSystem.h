@@ -13,11 +13,38 @@
 
 #define PCGEX_SUBSYSTEM UPCGExSubSystem* PCGExSubsystem = UPCGExSubSystem::GetSubsystemForCurrentWorld(); check(PCGExSubsystem)
 
+UENUM()
+enum class EPCGExSubsystemEventType : uint8
+{
+	None       = 0 UMETA(Hidden),
+	Regenerate = 1 UMETA(DisplayName = "Regenerate", Tooltip="Triggers regeneration on subcribers."),
+	DataUpdate = 2 UMETA(DisplayName = "Data Update", Tooltip="Triggers a data update event."),
+};
+
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_ThreeParams(FOnGlobalEvent, UPCGComponent*, Source, EPCGExSubsystemEventType, EventType, uint32, EventId);
+
 class UPCGExSharedDataManager;
 
 namespace PCGEx
 {
-	
+	struct FPolledEvent
+	{
+		UPCGComponent* Source = nullptr;
+		EPCGExSubsystemEventType Type = EPCGExSubsystemEventType::None;
+		uint32 EventId = 0;
+
+		FPolledEvent() = default;
+
+		FPolledEvent(UPCGComponent* InSource, const EPCGExSubsystemEventType InType, const uint32 InEventId)
+			: Source(InSource), Type(InType), EventId(InEventId)
+		{
+		}
+
+		~FPolledEvent() = default;
+
+		bool operator==(const FPolledEvent& Other) const { return Source == Other.Source && Type == Other.Type && EventId == Other.EventId; }
+		FORCEINLINE friend uint32 GetTypeHash(const FPolledEvent& Key) { return HashCombineFast(static_cast<uint32>(Key.Type), HashCombineFast(GetTypeHash(Key.Source), Key.EventId)); }
+	};
 }
 
 UCLASS()
@@ -25,10 +52,13 @@ class PCGEXTENDEDTOOLKIT_API UPCGExSubSystem : public UTickableWorldSubsystem
 {
 	GENERATED_BODY()
 
-	FRWLock TickActionsLock;
+	FRWLock SubsystemLock;
 
-public:	
+public:
 	UPCGExSubSystem();
+
+	UPROPERTY(BlueprintAssignable, Category = "Delegates")
+	FOnGlobalEvent OnGlobalEvent;
 
 	UPROPERTY(Transient)
 	TObjectPtr<UPCGExSharedDataManager> SharedDataManager;
@@ -54,12 +84,15 @@ public:
 	using FTickAction = TFunction<void()>;
 	void RegisterBeginTickAction(FTickAction&& Action);
 
+	void PollEvent(UPCGComponent* InSource, EPCGExSubsystemEventType InEventType, uint32 InEventId);
+
 protected:
 	bool bWantsTick = false;
 
 	/** Functions will be executed at the beginning of the tick and then removed from this array. */
+
 	TArray<FTickAction> BeginTickActions;
+	TSet<PCGEx::FPolledEvent> PolledEvents;
 
 	void ExecuteBeginTickActions();
-
 };

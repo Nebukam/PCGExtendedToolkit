@@ -55,7 +55,7 @@ public:
 	double InfluenceConstant = 1.0;
 
 	/** Fetch the influence from a local attribute.*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName="Influence", EditCondition="InfluenceInput == EPCGExInputValueType::Attribute", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName="Influence", EditCondition="InfluenceInput != EPCGExInputValueType::Constant", EditConditionHides))
 	FPCGAttributePropertyInputSelector InfluenceAttribute;
 
 	/** Fetch the smoothing from a local attribute.*/
@@ -67,11 +67,11 @@ public:
 	double SmoothingAmountConstant = 5;
 
 	/** Fetch the smoothing amount from a local attribute.*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName="Smoothing", EditCondition="SmoothingAmountType == EPCGExInputValueType::Attribute", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName="Smoothing", EditCondition="SmoothingAmountType != EPCGExInputValueType::Constant", EditConditionHides))
 	FPCGAttributePropertyInputSelector SmoothingAmountAttribute;
 
 	/** Static multiplier for the local smoothing amount. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ClampMin=0.001, EditCondition="SmoothingAmountType == EPCGExInputValueType::Attribute", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ClampMin=0.001, EditCondition="SmoothingAmountType != EPCGExInputValueType::Constant", EditConditionHides))
 	double ScaleSmoothingAmountAttribute = 1;
 
 	/** Blending settings used to smooth attributes.*/

@@ -63,7 +63,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExShapeConfigBase
 	double ResolutionConstant = 10;
 
 	/** Resolution Attribute. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Resolution", meta=(PCG_Overridable, DisplayName="Resolution", EditCondition="ResolutionInput == EPCGExInputValueType::Attribute", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Resolution", meta=(PCG_Overridable, DisplayName="Resolution", EditCondition="ResolutionInput != EPCGExInputValueType::Constant", EditConditionHides))
 	FPCGAttributePropertyInputSelector ResolutionAttribute;
 
 	/** Fitting details */

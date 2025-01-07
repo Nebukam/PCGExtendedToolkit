@@ -22,12 +22,12 @@ public:
 
 	UPROPERTY()
 	TSoftObjectPtr<UPCGComponent> PCGComponentInstance;
-	
+
 	UPROPERTY()
 	TMap<FName, FPCGDataCollection> Collections;
 
 	// Note : PCG Get Shared Data should first verify the existence of a component associated with the SourcePCG component that calls it
-	
+
 protected:
 	// Called when the game starts
 	virtual void BeginPlay() override;

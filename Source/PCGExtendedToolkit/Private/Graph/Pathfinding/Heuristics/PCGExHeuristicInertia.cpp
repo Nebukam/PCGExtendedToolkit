@@ -33,7 +33,7 @@ UPCGExHeuristicOperation* UPCGExHeuristicsFactoryInertia::CreateOperation(FPCGEx
 
 PCGEX_HEURISTIC_FACTORY_BOILERPLATE_IMPL(Inertia, {})
 
-UPCGExParamFactoryBase* UPCGExHeuristicsInertiaProviderSettings::CreateFactory(FPCGExContext* InContext, UPCGExParamFactoryBase* InFactory) const
+UPCGExFactoryData* UPCGExHeuristicsInertiaProviderSettings::CreateFactory(FPCGExContext* InContext, UPCGExFactoryData* InFactory) const
 {
 	UPCGExHeuristicsFactoryInertia* NewFactory = InContext->ManagedObjects->New<UPCGExHeuristicsFactoryInertia>();
 	PCGEX_FORWARD_HEURISTIC_FACTORY

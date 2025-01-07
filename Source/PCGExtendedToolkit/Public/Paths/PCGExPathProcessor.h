@@ -10,7 +10,7 @@
 
 #include "PCGExPathProcessor.generated.h"
 
-class UPCGExFilterFactoryBase;
+class UPCGExFilterFactoryData;
 
 class UPCGExNodeStateFactory;
 

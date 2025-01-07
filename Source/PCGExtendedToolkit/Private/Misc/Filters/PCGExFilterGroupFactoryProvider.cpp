@@ -39,12 +39,12 @@ TArray<FPCGPinProperties> UPCGExFilterGroupProviderSettings::InputPinProperties(
 	return PinProperties;
 }
 
-UPCGExParamFactoryBase* UPCGExFilterGroupProviderSettings::CreateFactory(FPCGExContext* InContext, UPCGExParamFactoryBase* InFactory) const
+UPCGExFactoryData* UPCGExFilterGroupProviderSettings::CreateFactory(FPCGExContext* InContext, UPCGExFactoryData* InFactory) const
 {
-	UPCGExFilterGroupFactoryBase* NewFactory;
+	UPCGExFilterGroupFactoryData* NewFactory;
 
-	if (Mode == EPCGExFilterGroupMode::AND) { NewFactory = InContext->ManagedObjects->New<UPCGExFilterGroupFactoryBaseAND>(); }
-	else { NewFactory = InContext->ManagedObjects->New<UPCGExFilterGroupFactoryBaseOR>(); }
+	if (Mode == EPCGExFilterGroupMode::AND) { NewFactory = InContext->ManagedObjects->New<UPCGExFilterGroupFactoryDataAND>(); }
+	else { NewFactory = InContext->ManagedObjects->New<UPCGExFilterGroupFactoryDataOR>(); }
 
 	NewFactory->Priority = Priority;
 	NewFactory->bInvert = bInvert;

@@ -196,7 +196,7 @@ namespace PCGExMT
 		: FAsyncMultiHandle(InForceSync, FName("ROOT")), Context(InContext)
 	{
 		PCGEX_LOG_CTR(FTaskManager)
-		Lifeline = Context->Lifeline;
+		WorkPermit = Context->GetWorkPermit();
 	}
 
 	FTaskManager::~FTaskManager()
@@ -207,7 +207,7 @@ namespace PCGExMT
 
 	bool FTaskManager::IsAvailable() const
 	{
-		return (!IsCancelling() && !IsCancelled() && !IsResetting() && Lifeline.IsValid());
+		return (!IsCancelling() && !IsCancelled() && !IsResetting() && WorkPermit.IsValid());
 	}
 
 	bool FTaskManager::IsWaitingForRunningTasks() const

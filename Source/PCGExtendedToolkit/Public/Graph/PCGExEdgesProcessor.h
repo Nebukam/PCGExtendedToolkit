@@ -90,7 +90,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExEdgesProcessorContext : FPCGExPointsProc
 	void OutputBatches() const;
 
 protected:
-	TArray<TObjectPtr<const UPCGExHeuristicsFactoryBase>> HeuristicsFactories;
+	TArray<TObjectPtr<const UPCGExHeuristicsFactoryData>> HeuristicsFactories;
 
 	virtual bool ProcessClusters(const PCGEx::ContextState NextStateId, const bool bIsNextStateAsync = false);
 	virtual bool CompileGraphBuilders(const bool bOutputToContext, const PCGEx::ContextState NextStateId);
@@ -144,7 +144,7 @@ protected:
 
 			if (!ValidateEntries(TaggedEdges)) { continue; }
 
-			TSharedPtr<T> NewBatch = MakeShared<T>(this, CurrentIO.ToSharedRef(), TaggedEdges->Entries);
+			PCGEX_MAKE_SHARED(NewBatch, T, this, CurrentIO.ToSharedRef(), TaggedEdges->Entries);
 			InitBatch(NewBatch);
 
 			if (NewBatch->bRequiresWriteStep)

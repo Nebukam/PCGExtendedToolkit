@@ -7,12 +7,12 @@
 #define LOCTEXT_NAMESPACE "PCGExCreateShapeBuilder"
 #define PCGEX_NAMESPACE CreateShapeBuilder
 
-UPCGExShapeBuilderOperation* UPCGExShapeBuilderFactoryBase::CreateOperation(FPCGExContext* InContext) const
+UPCGExShapeBuilderOperation* UPCGExShapeBuilderFactoryData::CreateOperation(FPCGExContext* InContext) const
 {
 	return nullptr; // Create shape builder operation
 }
 
-UPCGExParamFactoryBase* UPCGExShapeBuilderFactoryProviderSettings::CreateFactory(FPCGExContext* InContext, UPCGExParamFactoryBase* InFactory) const
+UPCGExFactoryData* UPCGExShapeBuilderFactoryProviderSettings::CreateFactory(FPCGExContext* InContext, UPCGExFactoryData* InFactory) const
 {
 	return InFactory;
 }

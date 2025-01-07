@@ -161,14 +161,14 @@ FString UPCGExNeighborSampleProviderSettings::GetDisplayName() const
 }
 #endif
 
-UPCGExNeighborSampleOperation* UPCGExNeighborSamplerFactoryBase::CreateOperation(FPCGExContext* InContext) const
+UPCGExNeighborSampleOperation* UPCGExNeighborSamplerFactoryData::CreateOperation(FPCGExContext* InContext) const
 {
 	UPCGExNeighborSampleOperation* NewOperation = InContext->ManagedObjects->New<UPCGExNeighborSampleOperation>();
 	PCGEX_SAMPLER_CREATE
 	return NewOperation;
 }
 
-void UPCGExNeighborSamplerFactoryBase::RegisterAssetDependencies(FPCGExContext* InContext) const
+void UPCGExNeighborSamplerFactoryData::RegisterAssetDependencies(FPCGExContext* InContext) const
 {
 	Super::RegisterAssetDependencies(InContext);
 	InContext->AddAssetDependency(SamplingConfig.WeightCurve.ToSoftObjectPath());
@@ -182,9 +182,9 @@ TArray<FPCGPinProperties> UPCGExNeighborSampleProviderSettings::InputPinProperti
 	return PinProperties;
 }
 
-UPCGExParamFactoryBase* UPCGExNeighborSampleProviderSettings::CreateFactory(FPCGExContext* InContext, UPCGExParamFactoryBase* InFactory) const
+UPCGExFactoryData* UPCGExNeighborSampleProviderSettings::CreateFactory(FPCGExContext* InContext, UPCGExFactoryData* InFactory) const
 {
-	UPCGExNeighborSamplerFactoryBase* SamplerFactory = Cast<UPCGExNeighborSamplerFactoryBase>(InFactory);
+	UPCGExNeighborSamplerFactoryData* SamplerFactory = Cast<UPCGExNeighborSamplerFactoryData>(InFactory);
 
 	SamplerFactory->Priority = Priority;
 	SamplerFactory->SamplingConfig = SamplingConfig;

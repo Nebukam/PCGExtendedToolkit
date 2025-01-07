@@ -40,7 +40,7 @@ void UPCGExProbeClosest::ProcessCandidates(const int32 Index, const FPCGPoint& P
 {
 	bool bIsAlreadyConnected;
 	const int32 MaxIterations = FMath::Min(MaxConnectionsCache ? MaxConnectionsCache->Read(Index) : MaxConnections, Candidates.Num());
-	const double R = SearchRadiusCache ? SearchRadiusCache->Read(Index) : SearchRadiusSquared;
+	const double R = GetSearchRadius(Index);
 
 	if (MaxIterations <= 0) { return; }
 

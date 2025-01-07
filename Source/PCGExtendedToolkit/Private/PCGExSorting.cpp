@@ -20,7 +20,7 @@ bool UPCGExSortingRule::RegisterConsumableAttributesWithData(FPCGExContext* InCo
 	return true;
 }
 
-UPCGExParamFactoryBase* UPCGExSortingRuleProviderSettings::CreateFactory(FPCGExContext* InContext, UPCGExParamFactoryBase* InFactory) const
+UPCGExFactoryData* UPCGExSortingRuleProviderSettings::CreateFactory(FPCGExContext* InContext, UPCGExFactoryData* InFactory) const
 {
 	UPCGExSortingRule* NewFactory = InContext->ManagedObjects->New<UPCGExSortingRule>();
 	NewFactory->Priority = Priority;

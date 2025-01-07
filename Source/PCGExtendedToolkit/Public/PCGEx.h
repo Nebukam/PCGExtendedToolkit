@@ -38,6 +38,13 @@
 #endif
 
 UENUM()
+enum class EPCGExTransformMode : uint8
+{
+	Absolute = 0 UMETA(DisplayName = "Absolute", ToolTip="Absolute, ignores source transform."),
+	Relative = 1 UMETA(DisplayName = "Relative", ToolTip="Relative to source transform."),
+};
+
+UENUM()
 enum class EPCGExAttributeSetPackingMode : uint8
 {
 	PerInput = 0 UMETA(DisplayName = "Per Input", ToolTip="..."),

@@ -57,11 +57,12 @@ namespace PCGExClusterMT
 		friend class FClusterProcessorBatchBase;
 
 	protected:
-		TSharedPtr<PCGExMT::FTaskManager> AsyncManager;
 		FPCGExContext* ExecutionContext = nullptr;
+		TWeakPtr<PCGEx::FWorkPermit> WorkPermit;
+		TSharedPtr<PCGExMT::FTaskManager> AsyncManager;
 
 
-		const TArray<TObjectPtr<const UPCGExHeuristicsFactoryBase>>* HeuristicsFactories = nullptr;
+		const TArray<TObjectPtr<const UPCGExHeuristicsFactoryData>>* HeuristicsFactories = nullptr;
 		FPCGExEdgeDirectionSettings DirectionSettings;
 
 		bool bBuildCluster = true;
@@ -126,6 +127,7 @@ namespace PCGExClusterMT
 		virtual void SetExecutionContext(FPCGExContext* InContext)
 		{
 			ExecutionContext = InContext;
+			WorkPermit = ExecutionContext->GetWorkPermit();
 		}
 
 		virtual ~FClusterProcessor()
@@ -147,7 +149,7 @@ namespace PCGExClusterMT
 
 		bool IsTrivial() const { return bIsTrivial; }
 
-		void SetRequiresHeuristics(const bool bRequired, const TArray<TObjectPtr<const UPCGExHeuristicsFactoryBase>>* InHeuristicsFactories)
+		void SetRequiresHeuristics(const bool bRequired, const TArray<TObjectPtr<const UPCGExHeuristicsFactoryData>>* InHeuristicsFactories)
 		{
 			HeuristicsFactories = InHeuristicsFactories;
 			bRequiresHeuristics = bRequired;
@@ -157,6 +159,8 @@ namespace PCGExClusterMT
 		{
 			AsyncManager = InAsyncManager;
 			PCGEX_ASYNC_CHKD(AsyncManager)
+
+			PCGEX_CHECK_WORK_PERMIT(false)
 
 			if (!bBuildCluster) { return true; }
 
@@ -359,7 +363,8 @@ namespace PCGExClusterMT
 	public:
 		bool bIsBatchValid = true;
 		FPCGExContext* ExecutionContext = nullptr;
-		const TArray<TObjectPtr<const UPCGExHeuristicsFactoryBase>>* HeuristicsFactories = nullptr;
+		TWeakPtr<PCGEx::FWorkPermit> WorkPermit;
+		const TArray<TObjectPtr<const UPCGExHeuristicsFactoryData>>* HeuristicsFactories = nullptr;
 
 		const TSharedRef<PCGExData::FFacade> VtxDataFacade;
 		bool bAllowVtxDataFacadeScopedGet = false;
@@ -387,9 +392,10 @@ namespace PCGExClusterMT
 		bool bDaisyChainWrite = false;
 
 		FClusterProcessorBatchBase(FPCGExContext* InContext, const TSharedRef<PCGExData::FPointIO>& InVtx, TArrayView<TSharedRef<PCGExData::FPointIO>> InEdges):
-			ExecutionContext(InContext), VtxDataFacade(MakeShared<PCGExData::FFacade>(InVtx))
+			ExecutionContext(InContext), WorkPermit(InContext->GetWorkPermit()), VtxDataFacade(MakeShared<PCGExData::FFacade>(InVtx))
 		{
 			PCGEX_LOG_CTR(FClusterProcessorBatchBase)
+			SetExecutionContext(InContext);
 			Edges.Append(InEdges);
 		}
 
@@ -398,11 +404,19 @@ namespace PCGExClusterMT
 			PCGEX_LOG_DTR(FClusterProcessorBatchBase)
 		}
 
+		virtual void SetExecutionContext(FPCGExContext* InContext)
+		{
+			ExecutionContext = InContext;
+			WorkPermit = ExecutionContext->GetWorkPermit();
+		}
+
 		template <typename T>
 		T* GetContext() { return static_cast<T*>(ExecutionContext); }
 
 		virtual void PrepareProcessing(const TSharedPtr<PCGExMT::FTaskManager> AsyncManagerPtr, const bool bScopedIndexLookupBuild)
 		{
+			PCGEX_CHECK_WORK_PERMIT_VOID
+
 			AsyncManager = AsyncManagerPtr;
 			VtxDataFacade->bSupportsScopedGet = bAllowVtxDataFacadeScopedGet && ExecutionContext->bScopedAttributeGet;
 
@@ -480,7 +494,7 @@ namespace PCGExClusterMT
 
 		virtual void OnProcessingPreparationComplete()
 		{
-			if (!bIsBatchValid) { return; }
+			PCGEX_CHECK_WORK_PERMIT_OR_VOID(!bIsBatchValid)
 
 			VtxFacadePreloader = MakeShared<PCGExData::FFacadePreloader>();
 			RegisterBuffersDependencies(*VtxFacadePreloader);
@@ -504,6 +518,7 @@ namespace PCGExClusterMT
 
 		virtual void Write()
 		{
+			PCGEX_CHECK_WORK_PERMIT_VOID
 			if (bWriteVtxDataFacade && bIsBatchValid) { VtxDataFacade->Write(AsyncManager); }
 		}
 
@@ -511,7 +526,7 @@ namespace PCGExClusterMT
 
 		virtual void CompileGraphBuilder(const bool bOutputToContext)
 		{
-			if (!GraphBuilder || !bIsBatchValid) { return; }
+			PCGEX_CHECK_WORK_PERMIT_OR_VOID(!GraphBuilder || !bIsBatchValid)
 
 			if (bOutputToContext)
 			{

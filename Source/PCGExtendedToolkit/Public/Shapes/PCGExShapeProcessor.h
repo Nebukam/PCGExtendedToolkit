@@ -12,7 +12,7 @@
 
 #include "PCGExShapeProcessor.generated.h"
 
-class UPCGExFilterFactoryBase;
+class UPCGExFilterFactoryData;
 /**
  * 
  */
@@ -46,7 +46,7 @@ public:
 struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExShapeProcessorContext : FPCGExPointsProcessorContext
 {
 	friend class FPCGExShapeProcessorElement;
-	TArray<TObjectPtr<const UPCGExShapeBuilderFactoryBase>> BuilderFactories;
+	TArray<TObjectPtr<const UPCGExShapeBuilderFactoryData>> BuilderFactories;
 };
 
 class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExShapeProcessorElement : public FPCGExPointsProcessorElement

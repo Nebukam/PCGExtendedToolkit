@@ -53,12 +53,12 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExStateConfigBase
  * 
  */
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExPointStateFactoryBase : public UPCGExFilterFactoryBase
+class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExPointStateFactoryData : public UPCGExFilterFactoryData
 {
 	GENERATED_BODY()
 
 public:
-	TArray<TObjectPtr<const UPCGExFilterFactoryBase>> FilterFactories;
+	TArray<TObjectPtr<const UPCGExFilterFactoryData>> FilterFactories;
 	virtual TSharedPtr<PCGExPointFilter::FFilter> CreateFilter() const override;
 
 	virtual void BeginDestroy() override;
@@ -70,9 +70,9 @@ namespace PCGExPointStates
 	{
 	public:
 		FPCGExStateConfigBase* BaseConfig = nullptr;
-		const UPCGExPointStateFactoryBase* StateFactory = nullptr;
+		const UPCGExPointStateFactoryData* StateFactory = nullptr;
 
-		explicit FState(const TObjectPtr<const UPCGExPointStateFactoryBase>& InFactory):
+		explicit FState(const TObjectPtr<const UPCGExPointStateFactoryData>& InFactory):
 			FFilter(InFactory), StateFactory(InFactory)
 		{
 		}
@@ -81,7 +81,7 @@ namespace PCGExPointStates
 
 
 		virtual bool Init(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade> InPointDataFacade) override;
-		bool InitInternalManager(FPCGExContext* InContext, const TArray<TObjectPtr<const UPCGExFilterFactoryBase>>& InFactories);
+		bool InitInternalManager(FPCGExContext* InContext, const TArray<TObjectPtr<const UPCGExFilterFactoryData>>& InFactories);
 		virtual bool Test(const int32 Index) const override;
 
 		void ProcessFlags(const bool bSuccess, int64& InFlags) const;
@@ -119,5 +119,5 @@ public:
 	//~End UPCGSettings
 
 	virtual FName GetMainOutputPin() const override { return PCGExCluster::OutputNodeFlagLabel; }
-	virtual UPCGExParamFactoryBase* CreateFactory(FPCGExContext* InContext, UPCGExParamFactoryBase* InFactory) const override;
+	virtual UPCGExFactoryData* CreateFactory(FPCGExContext* InContext, UPCGExFactoryData* InFactory) const override;
 };

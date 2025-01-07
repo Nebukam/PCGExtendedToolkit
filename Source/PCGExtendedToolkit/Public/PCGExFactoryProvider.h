@@ -40,6 +40,7 @@ namespace PCGExFactories
 		ShapeBuilder,
 		Blending,
 		TexParam,
+		Tensor,
 	};
 
 	static inline TSet<EType> AnyFilters = {EType::FilterPoint, EType::FilterNode, EType::FilterEdge, EType::FilterGroup};
@@ -77,7 +78,7 @@ protected:
  * 
  */
 UCLASS(Abstract, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExParamFactoryBase : public UPCGExParamDataBase
+class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExFactoryData : public UPCGExParamDataBase
 {
 	GENERATED_BODY()
 
@@ -103,6 +104,9 @@ public:
 	virtual void RegisterBuffersDependencies(FPCGExContext* InContext, PCGExData::FFacadePreloader& FacadePreloader) const
 	{
 	}
+
+	virtual bool GetRequiresPreparation(FPCGExContext* InContext) { return false; }
+	virtual bool Prepare(FPCGExContext* InContext) { return true; }
 };
 
 UCLASS(Abstract, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Filter")
@@ -131,7 +135,7 @@ protected:
 	//~Begin UPCGExFactoryProviderSettings
 public:
 	virtual FName GetMainOutputPin() const { return TEXT(""); }
-	virtual UPCGExParamFactoryBase* CreateFactory(FPCGExContext* InContext, UPCGExParamFactoryBase* InFactory = nullptr) const;
+	virtual UPCGExFactoryData* CreateFactory(FPCGExContext* InContext, UPCGExFactoryData* InFactory = nullptr) const;
 
 #if WITH_EDITOR
 	virtual FString GetDisplayName() const;
@@ -141,6 +145,12 @@ public:
 	/** Whether this factory can register consumable attributes or not. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Cleanup", meta = (PCG_NotOverridable))
 	bool bCleanupConsumableAttributes = false;
+};
+
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExFactoryProviderContext : FPCGExContext
+{
+	friend class FPCGExFactoryProviderElement;
+	UPCGExFactoryData* OutFactory = nullptr;
 };
 
 class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExFactoryProviderElement final : public IPCGElement

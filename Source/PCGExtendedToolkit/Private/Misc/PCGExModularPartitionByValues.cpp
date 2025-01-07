@@ -9,7 +9,7 @@
 #undef LOCTEXT_NAMESPACE
 #undef PCGEX_NAMESPACE
 
-UPCGExParamFactoryBase* UPCGExPartitionRuleProviderSettings::CreateFactory(FPCGExContext* InContext, UPCGExParamFactoryBase* InFactory) const
+UPCGExFactoryData* UPCGExPartitionRuleProviderSettings::CreateFactory(FPCGExContext* InContext, UPCGExFactoryData* InFactory) const
 {
 	UPCGExPartitionRule* NewFactory = InContext->ManagedObjects->New<UPCGExPartitionRule>();
 	NewFactory->Config = Config;

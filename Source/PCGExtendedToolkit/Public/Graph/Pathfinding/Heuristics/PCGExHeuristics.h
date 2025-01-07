@@ -88,7 +88,7 @@ namespace PCGExHeuristics
 
 		TArray<UPCGExHeuristicOperation*> Operations;
 		TArray<UPCGExHeuristicFeedback*> Feedbacks;
-		TArray<TObjectPtr<const UPCGExHeuristicsFactoryBase>> LocalFeedbackFactories;
+		TArray<TObjectPtr<const UPCGExHeuristicsFactoryData>> LocalFeedbackFactories;
 
 		TSharedPtr<PCGExCluster::FCluster> Cluster;
 
@@ -101,10 +101,10 @@ namespace PCGExHeuristics
 		bool HasLocalFeedback() const { return !LocalFeedbackFactories.IsEmpty(); };
 		bool HasAnyFeedback() const { return HasGlobalFeedback() || HasLocalFeedback(); };
 
-		FHeuristicsHandler(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade>& InVtxDataCache, const TSharedPtr<PCGExData::FFacade>& InEdgeDataCache, const TArray<TObjectPtr<const UPCGExHeuristicsFactoryBase>>& InFactories);
+		FHeuristicsHandler(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade>& InVtxDataCache, const TSharedPtr<PCGExData::FFacade>& InEdgeDataCache, const TArray<TObjectPtr<const UPCGExHeuristicsFactoryData>>& InFactories);
 		~FHeuristicsHandler();
 
-		bool BuildFrom(FPCGExContext* InContext, const TArray<TObjectPtr<const UPCGExHeuristicsFactoryBase>>& InFactories);
+		bool BuildFrom(FPCGExContext* InContext, const TArray<TObjectPtr<const UPCGExHeuristicsFactoryData>>& InFactories);
 		void PrepareForCluster(const TSharedPtr<PCGExCluster::FCluster>& InCluster);
 		void CompleteClusterPreparation();
 
