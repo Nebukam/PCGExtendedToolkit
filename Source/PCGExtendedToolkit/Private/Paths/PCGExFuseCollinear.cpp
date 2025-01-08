@@ -84,7 +84,6 @@ namespace PCGExFuseCollinear
 		const TArray<FPCGPoint>& InPoints = PointDataFacade->GetIn()->GetPoints();
 		OutPoints = &PointDataFacade->GetOut()->GetMutablePoints();
 		OutPoints->Reserve(Path->NumPoints);
-		OutPoints->Add(InPoints[0]);
 
 		LastPosition = Path->GetPos(0);
 
@@ -98,6 +97,10 @@ namespace PCGExFuseCollinear
 	{
 		PointDataFacade->Fetch(Scope);
 		FilterScope(Scope);
+
+		// Preserve start & end
+		PointFilterCache[0] = true;
+		PointFilterCache[Path->LastIndex] = true;
 	}
 
 	void FProcessor::ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const PCGExMT::FScope& Scope)
@@ -112,8 +115,6 @@ namespace PCGExFuseCollinear
 			PCGEX_INSERT_CURRENT_POINT
 			return;
 		}
-
-		if (Index == 0) { return; }
 
 		if (Settings->bFuseCollocated && FVector::DistSquared(LastPosition, Path->GetPos(Index)) <= Context->FuseDistSquared)
 		{
@@ -138,11 +139,18 @@ namespace PCGExFuseCollinear
 	{
 		if (Path->IsClosedLoop())
 		{
-			const double Dot = FVector::DotProduct(Path->DirToPrevPoint(0) * -1, Path->DirToNextPoint(0));
-			if ((!Settings->bInvertThreshold && Dot > Context->DotThreshold) ||
-				(Settings->bInvertThreshold && Dot < Context->DotThreshold))
+			if (Settings->bFuseCollocated && FVector::DistSquared(LastPosition, Path->GetPos(0)) <= Context->FuseDistSquared)
 			{
-				OutPoints->RemoveAt(0);
+				OutPoints->Pop();
+			}
+			else
+			{
+				const double Dot = FVector::DotProduct(Path->DirToPrevPoint(Path->LastIndex) * -1, Path->DirToNextPoint(Path->LastIndex));
+				if ((!Settings->bInvertThreshold && Dot > Context->DotThreshold) ||
+					(Settings->bInvertThreshold && Dot < Context->DotThreshold))
+				{
+					OutPoints->Pop();
+				}
 			}
 		}
 
