@@ -7,6 +7,7 @@
 #include "UObject/Object.h"
 #include "PCGExOperation.h"
 #include "PCGExTensor.h"
+#include "Data/PCGSplineStruct.h"
 #include "PCGExTensorOperation.generated.h"
 
 class UPCGExTensorFactoryData;
@@ -27,6 +28,8 @@ public:
 	virtual bool Init(FPCGExContext* InContext, const UPCGExTensorFactoryData* InFactory);
 
 	virtual PCGExTensor::FTensorSample SampleAtPosition(const FVector& InPosition) const;
+	virtual bool ComputeFactor(const FVector& InPosition, const FPCGPointRef& InEffector, double& OutFactor) const;
+	virtual bool ComputeFactor(const FVector& InPosition, const FPCGSplineStruct& InEffector, const double Radius, FTransform& OutTransform, double& OutFactor) const;
 
 	virtual void Cleanup() override
 	{

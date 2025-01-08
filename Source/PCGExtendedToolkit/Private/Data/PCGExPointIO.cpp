@@ -157,7 +157,7 @@ namespace PCGExData
 		// If this hits, it needs to be reported. It means a node is trying to output data that is meant to be transactional only
 		check(!bTransactional)
 
-		if (!bEnabled || !Out || (!bAllowEmptyOutput && Out->GetPoints().IsEmpty())) { return false; }
+		if (!IsEnabled() || !Out || (!bAllowEmptyOutput && Out->GetPoints().IsEmpty())) { return false; }
 
 		Context->StageOutput(OutputPin, Out, Tags->ToSet(), Out != In, bMutable);
 		return true;
@@ -301,17 +301,23 @@ namespace PCGExData
 		}
 	}
 
+	void FPointIOCollection::IncreaseReserve(const int32 InIncreaseNum)
+	{
+		FWriteScopeLock WriteLock(PairsLock);
+		Pairs.Reserve(Pairs.Max() + InIncreaseNum);
+	}
+
 	void FPointIOCollection::StageOutputs()
 	{
 		Sort();
-		Context->StagedOutputReserve(Pairs.Num());
+		Context->IncreaseStagedOutputReserve(Pairs.Num());
 		for (int i = 0; i < Pairs.Num(); i++) { Pairs[i]->StageOutput(); }
 	}
 
 	void FPointIOCollection::StageOutputs(const int32 MinPointCount, const int32 MaxPointCount)
 	{
 		Sort();
-		Context->StagedOutputReserve(Pairs.Num());
+		Context->IncreaseStagedOutputReserve(Pairs.Num());
 		for (int i = 0; i < Pairs.Num(); i++) { Pairs[i]->StageOutput(MinPointCount, MaxPointCount); }
 	}
 

@@ -209,7 +209,7 @@ namespace PCGExMT
 
 	class FAsyncToken final : public TSharedFromThis<FAsyncToken>
 	{
-		FRWLock ReleaseLock;
+		std::atomic<bool> bIsReleased{false};
 		TWeakPtr<FAsyncMultiHandle> Handle;
 		FName Name = NAME_None;
 

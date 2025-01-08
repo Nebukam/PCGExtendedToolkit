@@ -183,11 +183,14 @@ namespace PCGExMT
 
 	void FAsyncToken::Release()
 	{
-		FWriteScopeLock WriteScopeLock(ReleaseLock);
-		if (const TSharedPtr<FAsyncMultiHandle> PinnedHandle = Handle.Pin())
+		bool Expected = false;
+		if (bIsReleased.compare_exchange_strong(Expected, true, std::memory_order_acq_rel))
 		{
-			PinnedHandle->IncrementCompletedTasks();
-			Handle.Reset();
+			if (const TSharedPtr<FAsyncMultiHandle> PinnedHandle = Handle.Pin())
+			{
+				PinnedHandle->IncrementCompletedTasks();
+				Handle.Reset();
+			}
 		}
 	}
 

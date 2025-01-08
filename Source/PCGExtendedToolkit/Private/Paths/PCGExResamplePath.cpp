@@ -163,7 +163,7 @@ namespace PCGExResamplePath
 			Sample.Distance = TraversedDistance;
 		}
 
-		if (Settings->bPreserveLastPoint)
+		if (Settings->bPreserveLastPoint && !Path->IsClosedLoop())
 		{
 			FPointSample& LastSample = Samples.Last();
 			LastSample.Start = InPoints.Num() - 2;
