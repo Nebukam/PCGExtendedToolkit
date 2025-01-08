@@ -4,6 +4,7 @@
 #include "Data/PCGExTrackerComponent.h"
 
 #include "PCGExSubSystem.h"
+#include "PCGSubsystem.h"
 
 void UPCGExEventObserver::AddObserver(const TObjectPtr<UActorComponent>& InComponent)
 {
@@ -117,7 +118,10 @@ void UPCGExTrackerComponent::OnGlobalEvent(UPCGComponent* Source, EPCGExSubsyste
 #if PCGEX_ENGINE_VERSION > 503
 				if (C->GenerationTrigger == EPCGComponentGenerationTrigger::GenerateAtRuntime)
 				{
-					C->Refresh(EPCGChangeType::GenerationGrid, true);
+					if (UPCGSubsystem* PCGSubsystem = UPCGSubsystem::GetSubsystemForCurrentWorld())
+					{
+						PCGSubsystem->RefreshRuntimeGenComponent(C, EPCGChangeType::GenerationGrid);
+					}
 				}
 #endif
 			});
