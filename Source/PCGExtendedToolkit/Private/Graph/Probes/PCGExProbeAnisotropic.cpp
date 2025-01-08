@@ -39,7 +39,8 @@ void UPCGExProbeAnisotropic::ProcessCandidates(const int32 Index, const FPCGPoin
 		}
 	}
 
-	for (int i = 15; i <= 0; i--)
+	const int32 NumCandidates = Candidates.Num()-1;
+	for (int i = NumCandidates; i >= 0; i--)
 	{
 		const PCGExProbing::FCandidate& C = Candidates[i];
 
