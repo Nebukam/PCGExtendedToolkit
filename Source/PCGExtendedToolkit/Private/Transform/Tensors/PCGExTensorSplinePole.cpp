@@ -20,20 +20,13 @@ PCGExTensor::FTensorSample UPCGExTensorSplinePole::SampleAtPosition(const FVecto
 
 	for (const FPCGSplineStruct& Spline : *Splines)
 	{
-		const FTransform T = PCGExPaths::GetClosestTransform(Spline, InPosition, true);
-
-		const FVector Center = T.GetLocation();
-		const FVector S = T.GetScale3D();
-
-		const double RadiusSquared = FMath::Square(FVector2D(S.Y, S.Z).Length() * Config.Radius);
-		const double DistSquared = FVector::DistSquared(InPosition, Center);
-
-		if (DistSquared > RadiusSquared) { continue; }
-
-		const double Factor = DistSquared / RadiusSquared;
+		FTransform T = FTransform::Identity;
+		double Factor = 0;
+		
+		if (!ComputeFactor(InPosition, Spline, Config.Radius, T, Factor)) { continue; }
 
 		Samples.Emplace_GetRef(
-			(InPosition - Center).GetSafeNormal(),
+			(InPosition - T.GetLocation()).GetSafeNormal(),
 			Config.Potency * Config.PotencyFalloffCurveObj->Eval(Factor),
 			Config.Weight * Config.WeightFalloffCurveObj->Eval(Factor));
 	}
@@ -48,7 +41,9 @@ bool UPCGExTensorSplinePoleFactory::Prepare(FPCGExContext* InContext)
 }
 
 PCGEX_TENSOR_BOILERPLATE(
-	SplinePole, { }, {
+	SplinePole, {
+	NewFactory->Config.Potency *=NewFactory->Config.PotencyScale;
+	}, {
 	NewOperation->Splines = &Splines;
 	})
 

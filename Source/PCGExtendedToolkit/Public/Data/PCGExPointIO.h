@@ -90,7 +90,7 @@ namespace PCGExData
 		UPCGPointData* Out = nullptr;      // Output PointData
 
 		TWeakPtr<FPointIO> RootIO;
-		bool bEnabled = true;
+		std::atomic<bool> bIsEnabled{true};
 
 	public:
 		TSharedPtr<FTags> Tags;
@@ -261,9 +261,9 @@ namespace PCGExData
 
 		void CleanupKeys();
 
-		void Disable() { bEnabled = false; }
-		void Enable() { bEnabled = true; }
-		bool IsEnabled() const { return bEnabled; }
+		void Disable() { bIsEnabled.store(false, std::memory_order_release); }
+		void Enable() { bIsEnabled.store(true, std::memory_order_release); }
+		bool IsEnabled() const { return bIsEnabled.load(std::memory_order_acquire); }
 
 		bool StageOutput() const;
 		bool StageOutput(const int32 MinPointCount, const int32 MaxPointCount) const;
@@ -392,6 +392,8 @@ namespace PCGExData
 		int32 Num() const { return Pairs.Num(); }
 
 		TSharedPtr<FPointIO> operator[](const int32 Index) const { return Pairs[Index]; }
+
+		void IncreaseReserve(int32 InIncreaseNum);
 
 		void StageOutputs();
 		void StageOutputs(const int32 MinPointCount, const int32 MaxPointCount);

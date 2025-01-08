@@ -31,9 +31,6 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExTensorSplinePoleConfig : public FPCGExTe
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	double Radius = 100;
 
-	/**  Which spline transform axis is to be used */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
-	EPCGExAxis SplineDirection = EPCGExAxis::Forward;
 };
 
 /**

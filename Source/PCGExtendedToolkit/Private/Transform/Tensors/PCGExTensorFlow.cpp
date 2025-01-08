@@ -20,16 +20,11 @@ PCGExTensor::FTensorSample UPCGExTensorFlow::SampleAtPosition(const FVector& InP
 
 	auto ProcessNeighbor = [&](const FPCGPointRef& InPointRef)
 	{
-		const FVector Center = InPointRef.Point->Transform.GetLocation();
-		const double RadiusSquared = InPointRef.Point->Color.W;
-		const double DistSquared = FVector::DistSquared(InPosition, Center);
-
-		if (DistSquared > RadiusSquared) { return; }
-
-		const double Factor = DistSquared / RadiusSquared;
+		double Factor = 0;
+		if (!ComputeFactor(InPosition, InPointRef, Factor)) { return; }
 
 		Samples.Emplace_GetRef(
-			PCGExMath::GetDirection(InPointRef.Point->Transform.GetRotation(), EPCGExAxis::Forward),
+			InPointRef.Point->Transform.GetRotation().GetForwardVector(),
 			InPointRef.Point->Steepness * Config.PotencyFalloffCurveObj->Eval(Factor),
 			InPointRef.Point->Density * Config.WeightFalloffCurveObj->Eval(Factor));
 	};

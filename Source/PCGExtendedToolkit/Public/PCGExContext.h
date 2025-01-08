@@ -61,8 +61,6 @@ protected:
 	TArray<FPCGTaggedData> StagedOutputs;
 	bool bFlattenOutput = false;
 
-	int32 LastReserve = 0;
-	int32 AdditionsSinceLastReserve = 0;
 	TSet<FName> ConsumableAttributesSet;
 	TSet<FName> ProtectedAttributesSet;
 
@@ -78,7 +76,7 @@ public:
 
 	virtual ~FPCGExContext() override;
 
-	void StagedOutputReserve(const int32 NumAdditions);
+	void IncreaseStagedOutputReserve(const int32 InIncreaseNum);
 
 	void StageOutput(const FName Pin, UPCGData* InData, const TSet<FString>& InTags, bool bManaged, bool bIsMutable);
 	void StageOutput(const FName Pin, UPCGData* InData, bool bManaged);

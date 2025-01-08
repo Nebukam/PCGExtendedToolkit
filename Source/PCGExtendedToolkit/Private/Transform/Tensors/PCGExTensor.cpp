@@ -10,6 +10,7 @@ namespace PCGExTensor
 {
 	FEffectorSample& FEffectorSamples::Emplace_GetRef(const FVector& InDirection, const double InPotency, const double InWeight)
 	{
+		TotalPotency += InPotency;
 		TensorSample.Weight += InWeight;
 		return Samples.Emplace_GetRef(InDirection, InPotency, InWeight);
 	}

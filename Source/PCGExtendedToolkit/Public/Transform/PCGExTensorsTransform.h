@@ -46,11 +46,6 @@ public:
 	//~End UPCGExPointsProcessorSettings
 
 	/**  */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(ShowOnlyInnerProperties))
-	FPCGExTensorSamplingDetails SamplingDetails;
-
-
-	/**  */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	bool bTransformPosition = true;
 

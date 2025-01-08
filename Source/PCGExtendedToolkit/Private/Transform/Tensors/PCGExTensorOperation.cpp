@@ -3,6 +3,8 @@
 
 
 #include "Transform/Tensors/PCGExTensorOperation.h"
+
+#include "Paths/PCGExPaths.h"
 #include "Transform/Tensors/PCGExTensorFactoryProvider.h"
 
 void UPCGExTensorOperation::CopySettingsFrom(const UPCGExOperation* Other)
@@ -20,6 +22,33 @@ bool UPCGExTensorOperation::Init(FPCGExContext* InContext, const UPCGExTensorFac
 PCGExTensor::FTensorSample UPCGExTensorOperation::SampleAtPosition(const FVector& InPosition) const
 {
 	return PCGExTensor::FTensorSample{};
+}
+
+bool UPCGExTensorOperation::ComputeFactor(const FVector& InPosition, const FPCGPointRef& InEffector, double& OutFactor) const
+{
+	const FVector Center = InEffector.Point->Transform.GetLocation();
+	const double RadiusSquared = InEffector.Point->Color.W;
+	const double DistSquared = FVector::DistSquared(InPosition, Center);
+
+	if (FVector::DistSquared(InPosition, Center) > RadiusSquared) { return false; }
+
+	OutFactor = DistSquared / RadiusSquared;
+	return true;
+}
+
+bool UPCGExTensorOperation::ComputeFactor(const FVector& InPosition, const FPCGSplineStruct& InEffector, const double Radius, FTransform& OutTransform, double& OutFactor) const
+{
+	OutTransform = PCGExPaths::GetClosestTransform(InEffector, InPosition, true);
+
+	const FVector Scale = OutTransform.GetScale3D();
+
+	const double RadiusSquared = FMath::Square(FVector2D(Scale.Y, Scale.Z).Length() * Radius);
+	const double DistSquared = FVector::DistSquared(InPosition, OutTransform.GetLocation());
+
+	if (DistSquared > RadiusSquared) { return false; }
+
+	OutFactor = DistSquared / RadiusSquared;
+	return true;
 }
 
 void UPCGExTensorPointOperation::CopySettingsFrom(const UPCGExOperation* Other)

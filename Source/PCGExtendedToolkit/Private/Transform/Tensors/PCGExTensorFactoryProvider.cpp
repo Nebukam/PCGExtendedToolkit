@@ -116,7 +116,7 @@ void UPCGExTensorPointFactoryData::PrepareSinglePoint(const int32 Index, FPCGPoi
 
 double UPCGExTensorPointFactoryData::GetPotency(const int32 Index) const
 {
-	return PotencyBuffer ? PotencyBuffer->Read(Index) : BaseConfig.Potency;
+	return PotencyBuffer ? PotencyBuffer->Read(Index) * BaseConfig.PotencyScale : BaseConfig.Potency;
 }
 
 double UPCGExTensorPointFactoryData::GetWeight(const int32 Index) const
