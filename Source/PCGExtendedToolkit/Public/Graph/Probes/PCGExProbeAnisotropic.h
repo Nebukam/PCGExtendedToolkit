@@ -22,8 +22,8 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExProbeConfigAnisotropic : public FPCGExPr
 	}
 
 	/** Max angle to search within. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="!bUseComponentWiseAngle", ClampMin=0, ClampMax=11.25))
-	double MaxAngle = 11.25;
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ClampMin=0, ClampMax=11.25))
+	double MaxAngle = 5;
 
 	/** Transform the direction with the point's */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
