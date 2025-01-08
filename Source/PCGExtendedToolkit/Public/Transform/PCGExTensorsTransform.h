@@ -14,6 +14,11 @@
 
 #include "PCGExTensorsTransform.generated.h"
 
+#define PCGEX_FOREACH_FIELD_TRTENSOR(MACRO)\
+MACRO(EffectorsPings, int32, 0)\
+MACRO(TraveledDistance, double, 0)\
+MACRO(Halted, boolean, false)
+
 UENUM()
 enum class EPCGExTensorTransformMode : uint8
 {
