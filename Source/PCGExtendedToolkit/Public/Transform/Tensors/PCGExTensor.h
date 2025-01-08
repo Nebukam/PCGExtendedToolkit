@@ -117,6 +117,10 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExTensorConfigBase
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Potency", meta=(PCG_Overridable, DisplayName="Potency Falloff Curve", EditCondition="!bUseLocalPotencyFalloffCurve", EditConditionHides, DisplayPriority=-1))
 	TSoftObjectPtr<UCurveFloat> PotencyFalloffCurve;
 
+	/** A multiplier applied to Potency after it's computed. Makes it easy to scale entire tensors up or down, or invert their influence altogether. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Potency", meta=(PCG_Overridable, DisplayName="Potency Scale", EditCondition = "PotencyInput != EPCGExInputValueType::Constant", EditConditionHides, DisplayPriority=-1))
+	double PotencyScale = 1;
+	
 	const FRichCurve* PotencyFalloffCurveObj = nullptr;
 
 	// Weight Falloff
@@ -188,6 +192,8 @@ namespace PCGExTensor
 		FTensorSample TensorSample = FTensorSample();
 		TArray<FEffectorSample> Samples;
 
+		double TotalPotency = 0;
+		
 		FEffectorSamples() = default;
 		~FEffectorSamples() = default;
 

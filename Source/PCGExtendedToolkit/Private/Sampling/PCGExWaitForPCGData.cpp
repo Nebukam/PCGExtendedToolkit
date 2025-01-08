@@ -683,7 +683,7 @@ namespace PCGExWaitForPCGData
 			TargetAttributesToDataTags.Tag(Points[0], PointsTags); // Only grab first one otherwise we may end up with too many tags
 			if (Settings->bCarryOverTargetTags) { PointDataFacade->Source->Tags->DumpTo(PointsTags); }
 
-			Context->StagedOutputReserve(GraphOutput.TaggedData.Num());
+			Context->IncreaseStagedOutputReserve(GraphOutput.TaggedData.Num());
 
 			for (const FPCGTaggedData& TaggedData : GraphOutput.TaggedData)
 			{
@@ -708,7 +708,7 @@ namespace PCGExWaitForPCGData
 		}
 		else
 		{
-			Context->StagedOutputReserve(GraphOutput.TaggedData.Num() * Points.Num());
+			Context->IncreaseStagedOutputReserve(GraphOutput.TaggedData.Num() * Points.Num());
 
 			for (const int32 PtIndex : Points)
 			{

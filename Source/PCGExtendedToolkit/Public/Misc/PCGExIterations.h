@@ -44,11 +44,16 @@ protected:
 
 	/** Type of data to generate. This is useful if you build subgraphs that are meant to be used as both loops and regular subgraphs, so you can have properly typed pins. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ClampMin=0))
-	EPCGExIterationDataType Type = EPCGExIterationDataType::Any;
+	EPCGExIterationDataType Type = EPCGExIterationDataType::Params;
 
 	/** Number of dataset to generate */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ClampMin=0))
 	int32 Iterations = 0;
+
+	/** Output per-iteration params with useful values. Less optimized than the non-value version */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="Type=EPCGExIterationDataType::Params"))
+	bool bOutputUtils = false;
+	
 };
 
 class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExIterationsElement final : public IPCGElement

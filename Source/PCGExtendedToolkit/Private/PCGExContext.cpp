@@ -19,7 +19,6 @@ void FPCGExContext::StageOutput(const FName Pin, UPCGData* InData, const TSet<FS
 	{
 		FWriteScopeLock WriteScopeLock(StagedOutputLock);
 
-		AdditionsSinceLastReserve++;
 		FPCGTaggedData& Output = StagedOutputs.Emplace_GetRef();
 		Output.Pin = Pin;
 		Output.Data = InData;
@@ -27,7 +26,6 @@ void FPCGExContext::StageOutput(const FName Pin, UPCGData* InData, const TSet<FS
 	}
 	else
 	{
-		AdditionsSinceLastReserve++;
 		FPCGTaggedData& Output = StagedOutputs.Emplace_GetRef();
 		Output.Pin = Pin;
 		Output.Data = InData;
@@ -64,15 +62,12 @@ void FPCGExContext::StageOutput(const FName Pin, UPCGData* InData, const bool bM
 	if (!IsInGameThread())
 	{
 		FWriteScopeLock WriteScopeLock(StagedOutputLock);
-
-		AdditionsSinceLastReserve++;
 		FPCGTaggedData& Output = StagedOutputs.Emplace_GetRef();
 		Output.Pin = Pin;
 		Output.Data = InData;
 	}
 	else
 	{
-		AdditionsSinceLastReserve++;
 		FPCGTaggedData& Output = StagedOutputs.Emplace_GetRef();
 		Output.Pin = Pin;
 		Output.Data = InData;
@@ -119,12 +114,10 @@ FPCGExContext::~FPCGExContext()
 	ManagedObjects->Flush(); // So cleanups can be recursively triggered while manager is still alive
 }
 
-void FPCGExContext::StagedOutputReserve(const int32 NumAdditions)
+void FPCGExContext::IncreaseStagedOutputReserve(const int32 InIncreaseNum)
 {
-	const int32 ConservativeAdditions = NumAdditions - FMath::Min(0, LastReserve - AdditionsSinceLastReserve);
 	FWriteScopeLock WriteScopeLock(StagedOutputLock);
-	LastReserve = ConservativeAdditions;
-	StagedOutputs.Reserve(StagedOutputs.Num() + ConservativeAdditions);
+	StagedOutputs.Reserve(StagedOutputs.Max() + InIncreaseNum);
 }
 
 void FPCGExContext::OnComplete()
