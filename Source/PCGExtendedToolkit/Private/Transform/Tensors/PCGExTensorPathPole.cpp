@@ -20,20 +20,13 @@ PCGExTensor::FTensorSample UPCGExTensorPathPole::SampleAtPosition(const FVector&
 
 	for (const TSharedPtr<const FPCGSplineStruct>& Spline : *Splines)
 	{
-		const FTransform T = PCGExPaths::GetClosestTransform(Spline, InPosition, true);
+		FTransform T = FTransform::Identity;
+		double Factor = 0;
 
-		const FVector Center = T.GetLocation();
-		const FVector S = T.GetScale3D();
-
-		const double RadiusSquared = FMath::Square(FVector2D(S.Y, S.Z).Length() * Config.Radius);
-		const double DistSquared = FVector::DistSquared(InPosition, Center);
-
-		if (DistSquared > RadiusSquared) { continue; }
-
-		const double Factor = DistSquared / RadiusSquared;
+		if (!ComputeFactor(InPosition, *Spline.Get(), Config.Radius, T, Factor)) { continue; }
 
 		Samples.Emplace_GetRef(
-			(InPosition - Center).GetSafeNormal(),
+			(InPosition - T.GetLocation()).GetSafeNormal(),
 			Config.Potency * Config.PotencyFalloffCurveObj->Eval(Factor),
 			Config.Weight * Config.WeightFalloffCurveObj->Eval(Factor));
 	}
@@ -43,6 +36,7 @@ PCGExTensor::FTensorSample UPCGExTensorPathPole::SampleAtPosition(const FVector&
 
 PCGEX_TENSOR_BOILERPLATE(
 	PathPole, {
+	NewFactory->Config.Potency *=NewFactory->Config.PotencyScale;
 	NewFactory->bBuildFromPaths = GetBuildFromPoints();
 	NewFactory->PointType = Config.PointType;
 	NewFactory->ClosedLoop = Config.ClosedLoop;

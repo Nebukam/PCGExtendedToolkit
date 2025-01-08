@@ -26,17 +26,10 @@ PCGExTensor::FTensorSample UPCGExTensorPathFlow::SampleAtPosition(const FVector&
 
 	for (const TSharedPtr<const FPCGSplineStruct>& Spline : *Splines)
 	{
-		const FTransform T = PCGExPaths::GetClosestTransform(Spline, InPosition, true);
-
-		const FVector Center = T.GetLocation();
-		const FVector S = T.GetScale3D();
-
-		const double RadiusSquared = FMath::Square(FVector2D(S.Y, S.Z).Length() * Config.Radius);
-		const double DistSquared = FVector::DistSquared(InPosition, Center);
-
-		if (DistSquared > RadiusSquared) { continue; }
-
-		const double Factor = DistSquared / RadiusSquared;
+		FTransform T = FTransform::Identity;
+		double Factor = 0;
+		
+		if (!ComputeFactor(InPosition, *Spline.Get(), Config.Radius, T, Factor)) { continue; }
 
 		Samples.Emplace_GetRef(
 			PCGExMath::GetDirection(T.GetRotation(), Config.SplineDirection),
@@ -49,9 +42,10 @@ PCGExTensor::FTensorSample UPCGExTensorPathFlow::SampleAtPosition(const FVector&
 
 PCGEX_TENSOR_BOILERPLATE(
 	PathFlow, {
-		NewFactory->bBuildFromPaths = GetBuildFromPoints();
-		NewFactory->PointType = Config.PointType;
-		NewFactory->ClosedLoop = Config.ClosedLoop;
+	NewFactory->Config.Potency *=NewFactory->Config.PotencyScale;
+	NewFactory->bBuildFromPaths = GetBuildFromPoints();
+	NewFactory->PointType = Config.PointType;
+	NewFactory->ClosedLoop = Config.ClosedLoop;
 	}, {
 	NewOperation->Splines = &ManagedSplines;
 	})

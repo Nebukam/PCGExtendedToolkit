@@ -71,31 +71,55 @@ bool FPCGExIterationsElement::ExecuteInternal(FPCGContext* InContext) const
 	PCGEX_SETTINGS(Iterations)
 
 	const FName OutputLabel = FName("Iterations");
-	UPCGData* Data = nullptr;
 
-	switch (Settings->Type)
+	const int32 NumIterations = FMath::Max(0, Settings->Iterations);
+	FString NumIterationsTag = FString::Printf(TEXT("NumIterations:%u"), NumIterations);
+	Context->IncreaseStagedOutputReserve(NumIterations);
+
+	if (Settings->bOutputUtils && Settings->Type == EPCGExIterationDataType::Params)
 	{
-	default:
-	case EPCGExIterationDataType::Params:
-		Data = Context->ManagedObjects->New<UPCGParamData>();
-		break;
-	case EPCGExIterationDataType::Points:
-		Data = Context->ManagedObjects->New<UPCGPointData>();
-		break;
-	case EPCGExIterationDataType::Spline:
-		Data = Context->ManagedObjects->New<UPCGSplineData>();
-		break;
-	case EPCGExIterationDataType::Texture:
-		Data = Context->ManagedObjects->New<UPCGTextureData>();
-		break;
+		for (int i = 0; i < NumIterations; i++)
+		{
+			UPCGParamData* Data = Context->ManagedObjects->New<UPCGParamData>();
+			UPCGMetadata* Metadata = Data->Metadata;
+
+			Metadata->FindOrCreateAttribute<int32>(FName("Iteration"), i);
+			Metadata->FindOrCreateAttribute<int32>(FName("NumIterations"), NumIterations);
+			const double Progress = static_cast<double>(i) / static_cast<double>(NumIterations);
+			Metadata->FindOrCreateAttribute<double>(FName("OneMinusProgress"), 1 - Progress);
+			Metadata->FindOrCreateAttribute<double>(FName("Progress"), Progress);
+
+			Metadata->AddEntry();
+			Context->StageOutput(OutputLabel, Data, {FString::Printf(TEXT("Iteration:%u"), i), NumIterationsTag}, false, false);
+		}
+	}
+	else
+	{
+		UPCGData* Data = nullptr;
+
+		switch (Settings->Type)
+		{
+		default:
+		case EPCGExIterationDataType::Params:
+			Data = Context->ManagedObjects->New<UPCGParamData>();
+			break;
+		case EPCGExIterationDataType::Points:
+			Data = Context->ManagedObjects->New<UPCGPointData>();
+			break;
+		case EPCGExIterationDataType::Spline:
+			Data = Context->ManagedObjects->New<UPCGSplineData>();
+			break;
+		case EPCGExIterationDataType::Texture:
+			Data = Context->ManagedObjects->New<UPCGTextureData>();
+			break;
+		}
+
+		for (int i = 0; i < NumIterations; i++)
+		{
+			Context->StageOutput(OutputLabel, Data, {FString::Printf(TEXT("Iteration:%u"), i), NumIterationsTag}, false, false);
+		}
 	}
 
-	int32 NumIterations = FMath::Max(0, Settings->Iterations);
-	Context->StagedOutputReserve(NumIterations);
-	for (int i = 0; i < NumIterations; i++)
-	{
-		Context->StageOutput(OutputLabel, Data, {FString::Printf(TEXT("Iteration:%u"), i)}, false, false);
-	}
 
 	Context->Done();
 	return Context->TryComplete();
