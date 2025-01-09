@@ -33,8 +33,8 @@ bool FPCGExPathSplineMeshElement::Boot(FPCGExContext* InContext) const
 
 	if (Settings->bApplyCustomTangents)
 	{
-		PCGEX_VALIDATE_NAME(Settings->ArriveTangentAttribute)
-		PCGEX_VALIDATE_NAME(Settings->LeaveTangentAttribute)
+		PCGEX_VALIDATE_NAME_CONSUMABLE(Settings->ArriveTangentAttribute)
+		PCGEX_VALIDATE_NAME_CONSUMABLE(Settings->LeaveTangentAttribute)
 	}
 
 	if (Settings->CollectionSource == EPCGExCollectionSource::Asset)
@@ -53,18 +53,18 @@ bool FPCGExPathSplineMeshElement::Boot(FPCGExContext* InContext) const
 		{
 			PCGE_LOG(Error, GraphAndLog, FTEXT("Failed to build collection from attribute set."));
 			return false;
-		}else
+		}
+		else
 		{
-			
 		}
 	}
 
+	PCGEX_VALIDATE_NAME_CONSUMABLE(Settings->AssetPathAttributeName)
 
-	PCGEX_VALIDATE_NAME(Settings->AssetPathAttributeName)
-
-	if (Settings->WeightToAttribute == EPCGExWeightOutputMode::Raw || Settings->WeightToAttribute == EPCGExWeightOutputMode::Normalized)
+	if (Settings->WeightToAttribute == EPCGExWeightOutputMode::Raw ||
+		Settings->WeightToAttribute == EPCGExWeightOutputMode::Normalized)
 	{
-		PCGEX_VALIDATE_NAME(Settings->WeightAttributeName)
+		PCGEX_VALIDATE_NAME_CONSUMABLE(Settings->WeightAttributeName)
 	}
 
 	return true;

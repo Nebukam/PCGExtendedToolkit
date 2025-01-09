@@ -124,6 +124,8 @@ namespace PCGExTexture
 
 		for (const TObjectPtr<const UPCGExTexParamFactoryData>& Factory : Factories)
 		{
+			if (!Factory.Get()) { continue; }
+			
 #if PCGEX_ENGINE_VERSION <= 503
 			TSharedPtr<PCGExData::TBuffer<FString>> Buffer = InDataFacade->GetWritable<FString>(Factory->Config.TextureIDAttributeName, TEXT(""), true, PCGExData::EBufferInit::Inherit);
 #else

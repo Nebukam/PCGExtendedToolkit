@@ -52,18 +52,22 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bTransformRotation && Rotation == EPCGExTensorTransformMode::Align"))
 	EPCGExAxis AlignAxis = EPCGExAxis::Forward;
 
-	/** Type of Iterations input */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable))
-	EPCGExInputValueType IterationsInput = EPCGExInputValueType::Constant;
+	/** */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable, InlineEditConditionToggle))
+	bool bUsePerPointMaxIterations = false;
 
-	/** Iterations Attribute */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Iterations", EditCondition="IterationsInput!=EPCGExInputValueType::Constant", EditConditionHides))
+	/** Per-point Max Iterations. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Per-point Iterations", EditCondition="bUsePerPointMaxIterations"))
 	FName IterationsAttribute = FName("Iterations");
 
-	/** Iterations Constant */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Iterations", EditCondition="IterationsInput==EPCGExInputValueType::Constant", EditConditionHides, ClampMin=1))
+	/** Max Iterations. If using per-point max, this will act as a clamping mechanism. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Max Iterations", ClampMin=1))
 	int32 Iterations = 1;
 
+	/** Whether to adjust max iteration based on max value found on points. Use at your own risks! */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Use Max from Points", ClampMin=1, EditCondition="bUsePerPointMaxIterations", HideEditConditionToggle))
+	bool bUseMaxFromPoints = false;
+	
 	/** Whether to limit the length of the generated path */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Limits", meta=(PCG_NotOverridable))
 	bool bUseMaxLength = false;

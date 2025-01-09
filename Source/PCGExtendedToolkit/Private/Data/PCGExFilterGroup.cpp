@@ -112,6 +112,7 @@ bool UPCGExFilterGroupFactoryData::RegisterConsumableAttributes(FPCGExContext* I
 	// Ensure we grab dependencies from plugged-in factories recursively
 	for (const TObjectPtr<const UPCGExFilterFactoryData>& SubFilter : FilterFactories)
 	{
+		if (!SubFilter.Get()) { continue; }
 		SubFilter->RegisterConsumableAttributes(InContext);
 	}
 
@@ -125,6 +126,7 @@ bool UPCGExFilterGroupFactoryData::RegisterConsumableAttributesWithData(FPCGExCo
 	// Ensure we grab dependencies from plugged-in factories recursively
 	for (const TObjectPtr<const UPCGExFilterFactoryData>& SubFilter : FilterFactories)
 	{
+		if (!SubFilter.Get()) { continue; }
 		SubFilter->RegisterConsumableAttributesWithData(InContext, InData);
 	}
 
@@ -138,6 +140,7 @@ void UPCGExFilterGroupFactoryData::RegisterAssetDependencies(FPCGExContext* InCo
 	// Ensure we grab dependencies from plugged-in factories recursively
 	for (const TObjectPtr<const UPCGExFilterFactoryData>& SubFilter : FilterFactories)
 	{
+		if (!SubFilter.Get()) { continue; }
 		SubFilter->RegisterAssetDependencies(InContext);
 	}
 }
@@ -149,6 +152,7 @@ void UPCGExFilterGroupFactoryData::RegisterBuffersDependencies(FPCGExContext* In
 	// Ensure we grab dependencies from plugged-in factories recursively
 	for (const TObjectPtr<const UPCGExFilterFactoryData>& SubFilter : FilterFactories)
 	{
+		if (!SubFilter.Get()) { continue; }
 		SubFilter->RegisterBuffersDependencies(InContext, FacadePreloader);
 	}
 }

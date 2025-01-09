@@ -222,6 +222,7 @@ namespace PCGExFactories
 
 		for (const TObjectPtr<const T_DEF>& Factory : InFactories)
 		{
+			if (!Factory.Get()) { continue; }
 			Factory->RegisterConsumableAttributesWithData(InContext, InData);
 		}
 	}

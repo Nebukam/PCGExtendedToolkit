@@ -164,7 +164,7 @@ namespace PCGExExtrudeTensors
 		AttributesToPathTags = Settings->AttributesToPathTags;
 		if (!AttributesToPathTags.Init(Context, PointDataFacade)) { return false; }
 
-		if (Settings->IterationsInput == EPCGExInputValueType::Attribute)
+		if (Settings->bUsePerPointMaxIterations)
 		{
 			PerPointIterations = PointDataFacade->GetBroadcaster<int32>(Settings->IterationsAttribute, true);
 			if (!PerPointIterations)
@@ -172,7 +172,8 @@ namespace PCGExExtrudeTensors
 				PCGE_LOG_C(Warning, GraphAndLog, Context, FTEXT("Iteration attribute is missing on some inputs, they will be ignored."));
 				return false;
 			}
-			RemainingIterations = PerPointIterations->Max;
+
+			if (Settings->bUseMaxFromPoints) { RemainingIterations = FMath::Max(RemainingIterations, PerPointIterations->Max); }
 		}
 		else
 		{

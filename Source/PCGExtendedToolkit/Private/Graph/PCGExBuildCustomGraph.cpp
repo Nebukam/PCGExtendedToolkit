@@ -177,7 +177,7 @@ bool FPCGExBuildCustomGraphElement::Boot(FPCGExContext* InContext) const
 
 	if (Settings->Mode == EPCGExCustomGraphActorSourceMode::ActorReferences)
 	{
-		PCGEX_VALIDATE_NAME(Settings->ActorReferenceAttribute)
+		PCGEX_VALIDATE_NAME_CONSUMABLE(Settings->ActorReferenceAttribute)
 	}
 
 	return true;

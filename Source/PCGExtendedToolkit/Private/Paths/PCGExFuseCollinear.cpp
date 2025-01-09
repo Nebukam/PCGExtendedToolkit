@@ -116,13 +116,15 @@ namespace PCGExFuseCollinear
 			return;
 		}
 
-		if (Settings->bFuseCollocated && FVector::DistSquared(LastPosition, Path->GetPos(Index)) <= Context->FuseDistSquared)
+		const FVector CurrentPos = Path->GetPos(Index);
+		if (Settings->bFuseCollocated && FVector::DistSquared(LastPosition, CurrentPos) <= Context->FuseDistSquared)
 		{
 			// Collocated points
 			return;
 		}
 
-		const double Dot = FVector::DotProduct(Path->DirToPrevPoint(Index) * -1, Path->DirToNextPoint(Index));
+		// Use last position to avoid removing smooth arcs
+		const double Dot = FVector::DotProduct((CurrentPos - LastPosition).GetSafeNormal(), Path->DirToNextPoint(Index));
 		if ((!Settings->bInvertThreshold && Dot > Context->DotThreshold) ||
 			(Settings->bInvertThreshold && Dot < Context->DotThreshold))
 		{
@@ -145,7 +147,7 @@ namespace PCGExFuseCollinear
 			}
 			else
 			{
-				const double Dot = FVector::DotProduct(Path->DirToPrevPoint(Path->LastIndex) * -1, Path->DirToNextPoint(Path->LastIndex));
+				const double Dot = FVector::DotProduct((Path->GetPos(Path->LastIndex) - LastPosition).GetSafeNormal(), Path->DirToNextPoint(Path->LastIndex));
 				if ((!Settings->bInvertThreshold && Dot > Context->DotThreshold) ||
 					(Settings->bInvertThreshold && Dot < Context->DotThreshold))
 				{

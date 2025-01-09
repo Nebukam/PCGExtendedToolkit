@@ -33,8 +33,8 @@ bool FPCGExCreateSplineElement::Boot(FPCGExContext* InContext) const
 
 	if (Settings->bApplyCustomTangents)
 	{
-		PCGEX_VALIDATE_NAME(Settings->ArriveTangentAttribute);
-		PCGEX_VALIDATE_NAME(Settings->LeaveTangentAttribute);
+		PCGEX_VALIDATE_NAME_CONSUMABLE(Settings->ArriveTangentAttribute);
+		PCGEX_VALIDATE_NAME_CONSUMABLE(Settings->LeaveTangentAttribute);
 	}
 
 	return true;

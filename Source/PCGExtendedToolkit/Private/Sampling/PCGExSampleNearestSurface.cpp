@@ -33,7 +33,7 @@ bool FPCGExSampleNearestSurfaceElement::Boot(FPCGExContext* InContext) const
 	Context->bUseInclude = Settings->SurfaceSource == EPCGExSurfaceSource::ActorReferences;
 	if (Context->bUseInclude)
 	{
-		PCGEX_VALIDATE_NAME(Settings->ActorReference)
+		PCGEX_VALIDATE_NAME_CONSUMABLE(Settings->ActorReference)
 
 		Context->ActorReferenceDataFacade = PCGExData::TryGetSingleFacade(Context, PCGExSampling::SourceActorReferencesLabel, true);
 		if (!Context->ActorReferenceDataFacade) { return false; }

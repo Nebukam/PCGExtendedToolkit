@@ -51,7 +51,7 @@ bool FPCGExMeshToClustersElement::Boot(FPCGExContext* InContext) const
 
 	if (Settings->StaticMeshInput == EPCGExInputValueType::Attribute)
 	{
-		PCGEX_VALIDATE_NAME(Settings->StaticMeshAttribute)
+		PCGEX_VALIDATE_NAME_CONSUMABLE(Settings->StaticMeshAttribute)
 	}
 
 	const TSharedPtr<PCGExData::FPointIO> Targets = Context->MainPoints->Pairs[0];
