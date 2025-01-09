@@ -3,6 +3,7 @@
 
 #pragma once
 #include "PCGExDetails.h"
+#include "Curves/CurveVector.h"
 #include "Data/PCGExData.h"
 #include "PCGExTensor.generated.h"
 
@@ -65,6 +66,14 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExTensorConfigBase
 			WeightInput = EPCGExInputValueType::Constant;
 		}
 
+		LocalGuideCurve.VectorCurves[0].AddKey(0, 1);
+		LocalGuideCurve.VectorCurves[1].AddKey(0, 0);
+		LocalGuideCurve.VectorCurves[2].AddKey(0, 0);
+
+		LocalGuideCurve.VectorCurves[0].AddKey(1, 1);
+		LocalGuideCurve.VectorCurves[1].AddKey(1, 0);
+		LocalGuideCurve.VectorCurves[2].AddKey(1, 0);
+
 		LocalPotencyFalloffCurve.EditorCurveData.AddKey(1, 0);
 		LocalPotencyFalloffCurve.EditorCurveData.AddKey(0, 1);
 
@@ -83,12 +92,27 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExTensorConfigBase
 	bool bSupportAttributes = true;
 
 	/**  */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_NotOverridable, DisplayPriority=-1))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayPriority=-1))
 	double TensorWeight = 1;
 
 	/** How individual effectors on that tensor are composited */
 	//UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_NotOverridable, DisplayPriority=-1))
 	EPCGExEffectorCompositingMode Compositing = EPCGExEffectorCompositingMode::Weighted;
+
+	// Guide falloff
+
+	/** Whether to use in-editor curve or an external asset. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Guide", meta=(PCG_NotOverridable))
+	bool bUseLocalGuideCurve = true;
+
+	// TODO: DirtyCache for OnDependencyChanged when this float curve is an external asset
+	/** Per-point Guide curve sampled using distance to effector origin. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Guide", meta = (PCG_NotOverridable, DisplayName="Guide Curve", EditCondition = "bUseLocalGuideCurve", EditConditionHides))
+	FRuntimeVectorCurve LocalGuideCurve;
+
+	/** Per-point Weight falloff curve sampled using distance to effector origin. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Guide", meta=(PCG_Overridable, DisplayName="Guide Curve", EditCondition="!bUseLocalGuideCurve", EditConditionHides))
+	TSoftObjectPtr<UCurveVector> GuideCurve;
 
 	// Potency Falloff
 
@@ -120,7 +144,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExTensorConfigBase
 	/** A multiplier applied to Potency after it's computed. Makes it easy to scale entire tensors up or down, or invert their influence altogether. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Potency", meta=(PCG_Overridable, DisplayName="Potency Scale", EditCondition = "PotencyInput != EPCGExInputValueType::Constant", EditConditionHides, DisplayPriority=-1))
 	double PotencyScale = 1;
-	
+
 	const FRichCurve* PotencyFalloffCurveObj = nullptr;
 
 	// Weight Falloff
@@ -193,7 +217,7 @@ namespace PCGExTensor
 		TArray<FEffectorSample> Samples;
 
 		double TotalPotency = 0;
-		
+
 		FEffectorSamples() = default;
 		~FEffectorSamples() = default;
 

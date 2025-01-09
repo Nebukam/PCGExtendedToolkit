@@ -21,7 +21,9 @@ PCGExTensor::FTensorSample UPCGExTensorNull::SampleAtPosition(const FVector& InP
 	auto ProcessNeighbor = [&](const FPCGPointRef& InPointRef)
 	{
 		double Factor = 0;
-		if (!ComputeFactor(InPosition, InPointRef, Factor)) { return; }
+		FVector Guide = FVector::ZeroVector;
+
+		if (!ComputeFactor(InPosition, InPointRef, Factor, Guide)) { return; }
 
 		Samples.Emplace_GetRef(
 			FVector::ZeroVector,

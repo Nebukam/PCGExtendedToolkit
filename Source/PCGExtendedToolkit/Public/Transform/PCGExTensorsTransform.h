@@ -9,6 +9,8 @@
 
 #include "PCGExPointsProcessor.h"
 #include "PCGExTransform.h"
+#include "Paths/PCGExPaths.h"
+#include "Sampling/PCGExSampling.h"
 #include "Tensors/PCGExTensor.h"
 
 
@@ -16,8 +18,10 @@
 
 #define PCGEX_FOREACH_FIELD_TRTENSOR(MACRO)\
 MACRO(EffectorsPings, int32, 0)\
+MACRO(UpdateCount, int32, 0)\
 MACRO(TraveledDistance, double, 0)\
-MACRO(Halted, boolean, false)
+MACRO(GracefullyStopped, bool, false)\
+MACRO(MaxIterationsReached, bool, false)
 
 UENUM()
 enum class EPCGExTensorTransformMode : uint8
@@ -70,6 +74,47 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	int32 Iterations = 1;
 
+
+	/**  */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(PCG_Overridable, InlineEditConditionToggle))
+	bool bWriteEffectorsPings = false;
+
+	/** Name of the 'int32' attribute to write the total number of effectors that affected the transform, all iterations combined. This is hardly a measure of anything, but it's an interesting value nonetheless */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(DisplayName="Effectors Pings", PCG_Overridable, EditCondition="bWriteEffectorsPings"))
+	FName EffectorsPingsAttributeName = FName("EffectorsPings");
+
+	/**  */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(PCG_Overridable, InlineEditConditionToggle))
+	bool bWriteUpdateCount = false;
+
+	/** Name of the 'int32' attribute to write the number of iterations that affected the point before it stopped. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(DisplayName="Update Count", PCG_Overridable, EditCondition="bWriteUpdateCount"))
+	FName UpdateCountAttributeName = FName("UpdateCount");
+
+	/**  */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(PCG_Overridable, InlineEditConditionToggle))
+	bool bWriteTraveledDistance = false;
+
+	/** Name of the 'double' attribute to write the approximative distance travelled by this point. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(DisplayName="Traveled Distance", PCG_Overridable, EditCondition="bWriteTraveledDistance"))
+	FName TraveledDistanceAttributeName = FName("TraveledDistance");
+
+	/**  */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(PCG_Overridable, InlineEditConditionToggle))
+	bool bWriteGracefullyStopped = false;
+
+	/** Name of the 'bool' attribute to tag the point with if transform stopped before the maximum number of iterations. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(DisplayName="Gracefully Stopped", PCG_Overridable, EditCondition="bWriteGracefullyStopped"))
+	FName GracefullyStoppedAttributeName = FName("GracefullyStopped");
+
+	/**  */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(PCG_Overridable, InlineEditConditionToggle))
+	bool bWriteMaxIterationsReached = false;
+
+	/** Name of the 'bool' attribute to tag the point with if it has reached the max number of iterations set. Faster alternative to comparing multiple attributes. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(DisplayName="Max Iterations Reached", PCG_Overridable, EditCondition="bWriteMaxIterationsReached"))
+	FName MaxIterationsReachedAttributeName = FName("MaxIterationsReached");
+
 private:
 	friend class FPCGExTensorsTransformElement;
 };
@@ -78,6 +123,8 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExTensorsTransformContext final : FPCGExPo
 {
 	friend class FPCGExTensorsTransformElement;
 	TSharedPtr<PCGExTensor::FTensorsHandler> TensorsHandler;
+
+	PCGEX_FOREACH_FIELD_TRTENSOR(PCGEX_OUTPUT_DECL_TOGGLE)
 };
 
 class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExTensorsTransformElement final : public FPCGExPointsProcessorElement
@@ -98,6 +145,10 @@ namespace PCGExTensorsTransform
 	{
 		bool bIteratedOnce = false;
 		int32 RemainingIterations = 0;
+		TArray<PCGExPaths::FPathMetrics> Metrics;
+		TArray<int32> Pings;
+
+		PCGEX_FOREACH_FIELD_TRTENSOR(PCGEX_OUTPUT_DECL)
 
 	public:
 		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade):
@@ -111,5 +162,7 @@ namespace PCGExTensorsTransform
 		virtual void PrepareSingleLoopScopeForPoints(const PCGExMT::FScope& Scope) override;
 		virtual void ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const PCGExMT::FScope& Scope) override;
 		virtual void OnPointsProcessingComplete() override;
+		virtual void ProcessSingleRangeIteration(const int32 Iteration, const PCGExMT::FScope& Scope) override;
+		virtual void CompleteWork() override;
 	};
 }

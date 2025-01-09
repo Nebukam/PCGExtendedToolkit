@@ -12,20 +12,20 @@ enum class EPCGExConstantListID : uint8
 {
 	// Numeric constants
 	// These go before the others, as there's more of them, and that way we can just access them by index.
-	ZeroAndOne = 0 UMETA(DisplayName="0 and 1"),
-	MinusOne UMETA(DisplayName="-1"),
-	Twos UMETA(DisplayName="0.5 and 2"),
-	Tens UMETA(DisplayName="Powers of 10"),
-	Irrationals,
-	Angles,
-	Zero UMETA(DisplayName="0"),
-	One UMETA(DisplayName="1"),
+	ZeroAndOne  = 0 UMETA(DisplayName="0 and 1"),
+	MinusOne    = 1 UMETA(DisplayName="-1"),
+	Twos        = 2 UMETA(DisplayName="0.5 and 2"),
+	Tens        = 3 UMETA(DisplayName="Powers of 10"),
+	Irrationals = 4,
+	Angles      = 5,
+	Zero        = 6 UMETA(DisplayName="0"),
+	One         = 7 UMETA(DisplayName="1"),
 
 	// Vectors (for now just the axes)
-	Vectors,
+	Vectors = 8,
 
 	// Booleans
-	Booleans UMETA(DisplayName="True and False"),
+	Booleans = 9 UMETA(DisplayName = "True and False"),
 };
 
 ENUM_CLASS_FLAGS(EPCGExConstantListID)
