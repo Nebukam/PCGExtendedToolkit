@@ -122,7 +122,7 @@ public:
 	FPCGExStaticMeshComponentDescriptor DefaultDescriptor;
 
 	/** If enabled, override collection settings with the default descriptor settings */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bApplyCustomTangents"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="CollectionSource!=EPCGExCollectionSource::AttributeSet"))
 	bool bForceDefaultDescriptor = false;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
