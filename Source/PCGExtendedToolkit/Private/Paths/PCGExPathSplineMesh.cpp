@@ -53,6 +53,9 @@ bool FPCGExPathSplineMeshElement::Boot(FPCGExContext* InContext) const
 		{
 			PCGE_LOG(Error, GraphAndLog, FTEXT("Failed to build collection from attribute set."));
 			return false;
+		}else
+		{
+			
 		}
 	}
 
@@ -399,7 +402,7 @@ namespace PCGExPathSplineMesh
 
 			Segment.ApplySettings(SplineMeshComponent); // Init Component
 
-			if (Settings->bForceDefaultDescriptor) { Settings->DefaultDescriptor.InitComponent(SplineMeshComponent); }
+			if (Settings->bForceDefaultDescriptor || Settings->CollectionSource == EPCGExCollectionSource::AttributeSet) { Settings->DefaultDescriptor.InitComponent(SplineMeshComponent); }
 			else { Segment.MeshEntry->SMDescriptor.InitComponent(SplineMeshComponent); }
 
 			if (!Segment.ApplyMesh(SplineMeshComponent))
