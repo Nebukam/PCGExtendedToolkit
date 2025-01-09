@@ -20,6 +20,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExTensorFlowConfig : public FPCGExTensorCo
 	FPCGExTensorFlowConfig() :
 		FPCGExTensorConfigBase()
 	{
+		DirectionAttribute.Update(TEXT("$Rotation.Forward"));
 	}
 
 	/** Direction type.*/

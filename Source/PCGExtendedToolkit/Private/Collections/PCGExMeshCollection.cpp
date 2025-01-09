@@ -176,6 +176,8 @@ void FPCGExMeshCollectionEntry::InitPCGSoftISMDescriptor(FPCGSoftISMComponentDes
 		&TargetDescriptor,
 		FSoftISMComponentDescriptor::StaticStruct(),
 		FPCGSoftISMComponentDescriptor::StaticStruct());
+
+	TargetDescriptor.ComponentTags.Append(Tags.Array());
 }
 #endif
 

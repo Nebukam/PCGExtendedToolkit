@@ -101,7 +101,7 @@ namespace PCGExExtrudeTensors
 		DistToLastSum += DistToLast;
 
 		if (DistToLastSum < Settings->FuseDistance) { return Exit(false); }
-		else { DistToLastSum = 0; }
+		DistToLastSum = 0;
 
 		FVector TargetPosition = Metrics.Last;
 

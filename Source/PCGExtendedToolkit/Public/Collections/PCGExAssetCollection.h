@@ -674,10 +674,10 @@ protected:
 		const int32 Index,
 		const UPCGExAssetCollection*& OutHost)
 	{
-		OutHost = this;
 		const int32 Pick = LoadCache()->Main->GetPick(Index, EPCGExIndexPickMode::Ascending);
 		if (!InEntries.IsValidIndex(Pick)) { return false; }
 		OutEntry = &InEntries[Pick];
+		OutHost = this;
 		return true;
 	}
 
@@ -690,11 +690,17 @@ protected:
 		const EPCGExIndexPickMode PickMode,
 		const UPCGExAssetCollection*& OutHost)
 	{
-		OutHost = this;
 		const int32 Pick = LoadCache()->Main->GetPick(Index, PickMode);
 		if (!InEntries.IsValidIndex(Pick)) { return false; }
-		if (const T& Entry = InEntries[Pick]; Entry.bIsSubCollection && Entry.SubCollection) { Entry.SubCollection->GetEntryWeightedRandom(OutEntry, Seed, OutHost); }
-		else { OutEntry = &Entry; }
+		if (const T& Entry = InEntries[Pick]; Entry.bIsSubCollection && Entry.SubCollection)
+		{
+			return Entry.SubCollection->GetEntryWeightedRandom(OutEntry, Seed, OutHost);
+		}
+		else
+		{
+			OutEntry = &Entry;
+			OutHost = this;
+		}
 		return true;
 	}
 
@@ -705,10 +711,16 @@ protected:
 		const int32 Seed,
 		const UPCGExAssetCollection*& OutHost)
 	{
-		OutHost = this;
 		const T& Entry = InEntries[LoadCache()->Main->GetPickRandom(Seed)];
-		if (Entry.bIsSubCollection && Entry.SubCollection) { Entry.SubCollection->GetEntryRandom(OutEntry, Seed * 2, OutHost); }
-		else { OutEntry = &Entry; }
+		if (Entry.bIsSubCollection && Entry.SubCollection)
+		{
+			return Entry.SubCollection->GetEntryRandom(OutEntry, Seed * 2, OutHost);
+		}
+		else
+		{
+			OutEntry = &Entry;
+			OutHost = this;
+		}
 		return true;
 	}
 
@@ -719,10 +731,16 @@ protected:
 		const int32 Seed,
 		const UPCGExAssetCollection*& OutHost)
 	{
-		OutHost = this;
 		const T& Entry = InEntries[LoadCache()->Main->GetPickRandomWeighted(Seed)];
-		if (Entry.bIsSubCollection && Entry.SubCollection) { Entry.SubCollection->GetEntryWeightedRandom(OutEntry, Seed * 2, OutHost); }
-		else { OutEntry = &Entry; }
+		if (Entry.bIsSubCollection && Entry.SubCollection)
+		{
+			return Entry.SubCollection->GetEntryWeightedRandom(OutEntry, Seed * 2, OutHost);
+		}
+		else
+		{
+			OutEntry = &Entry;
+			OutHost = this;
+		}
 		return true;
 	}
 
@@ -739,8 +757,6 @@ protected:
 		TSet<FName>& OutTags,
 		const UPCGExAssetCollection*& OutHost)
 	{
-		OutHost = this;
-
 		const int32 Pick = LoadCache()->Main->GetPick(Index, EPCGExIndexPickMode::Ascending);
 		if (!InEntries.IsValidIndex(Pick)) { return false; }
 		const T& Entry = InEntries[Pick];
@@ -748,7 +764,8 @@ protected:
 		if (Entry.bIsSubCollection && Entry.SubCollection && (TagInheritance & static_cast<uint8>(EPCGExAssetTagInheritance::Collection))) { OutTags.Append(Entry.SubCollection->CollectionTags); }
 		if ((TagInheritance & static_cast<uint8>(EPCGExAssetTagInheritance::Asset))) { OutTags.Append(Entry.Tags); }
 
-		OutEntry = &InEntries[Pick];
+		OutEntry = &Entry;
+		OutHost = this;
 		return true;
 	}
 
@@ -763,8 +780,6 @@ protected:
 		TSet<FName>& OutTags,
 		const UPCGExAssetCollection*& OutHost)
 	{
-		OutHost = this;
-
 		const int32 Pick = LoadCache()->Main->GetPick(Index, PickMode);
 		if (!InEntries.IsValidIndex(Pick)) { return false; }
 		const T& Entry = InEntries[Pick];
@@ -772,12 +787,13 @@ protected:
 		{
 			if ((TagInheritance & static_cast<uint8>(EPCGExAssetTagInheritance::Hierarchy))) { OutTags.Append(Entry.Tags); }
 			if ((TagInheritance & static_cast<uint8>(EPCGExAssetTagInheritance::Collection))) { OutTags.Append(Entry.SubCollection->CollectionTags); }
-			Entry.SubCollection->GetEntryWeightedRandom(OutEntry, Seed * 2, OutHost);
+			return Entry.SubCollection->GetEntryWeightedRandom(OutEntry, Seed * 2, OutHost);
 		}
 		else
 		{
 			if ((TagInheritance & static_cast<uint8>(EPCGExAssetTagInheritance::Asset))) { OutTags.Append(Entry.Tags); }
 			OutEntry = &Entry;
+			OutHost = this;
 		}
 		return true;
 	}
@@ -791,19 +807,18 @@ protected:
 		TSet<FName>& OutTags,
 		const UPCGExAssetCollection*& OutHost)
 	{
-		OutHost = this;
-
 		const T& Entry = InEntries[LoadCache()->Main->GetPickRandom(Seed)];
 		if (Entry.bIsSubCollection && Entry.SubCollection)
 		{
 			if ((TagInheritance & static_cast<uint8>(EPCGExAssetTagInheritance::Hierarchy))) { OutTags.Append(Entry.Tags); }
 			if ((TagInheritance & static_cast<uint8>(EPCGExAssetTagInheritance::Collection))) { OutTags.Append(Entry.SubCollection->CollectionTags); }
-			Entry.SubCollection->GetEntryRandom(OutEntry, Seed * 2, OutHost);
+			return Entry.SubCollection->GetEntryRandom(OutEntry, Seed * 2, OutHost);
 		}
 		else
 		{
 			if ((TagInheritance & static_cast<uint8>(EPCGExAssetTagInheritance::Asset))) { OutTags.Append(Entry.Tags); }
 			OutEntry = &Entry;
+			OutHost = this;
 		}
 		return true;
 	}
@@ -817,19 +832,18 @@ protected:
 		TSet<FName>& OutTags,
 		const UPCGExAssetCollection*& OutHost)
 	{
-		OutHost = this;
-
 		const T& Entry = InEntries[LoadCache()->Main->GetPickRandomWeighted(Seed)];
 		if (Entry.bIsSubCollection && Entry.SubCollection)
 		{
 			if ((TagInheritance & static_cast<uint8>(EPCGExAssetTagInheritance::Hierarchy))) { OutTags.Append(Entry.Tags); }
 			if ((TagInheritance & static_cast<uint8>(EPCGExAssetTagInheritance::Collection))) { OutTags.Append(Entry.SubCollection->CollectionTags); }
-			Entry.SubCollection->GetEntryWeightedRandom(OutEntry, Seed * 2, OutHost);
+			return Entry.SubCollection->GetEntryWeightedRandom(OutEntry, Seed * 2, OutHost);
 		}
 		else
 		{
 			if ((TagInheritance & static_cast<uint8>(EPCGExAssetTagInheritance::Asset))) { OutTags.Append(Entry.Tags); }
 			OutEntry = &Entry;
+			OutHost = this;
 		}
 		return true;
 	}
