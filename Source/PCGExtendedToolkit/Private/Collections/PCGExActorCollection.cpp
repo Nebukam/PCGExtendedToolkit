@@ -49,6 +49,7 @@ void FPCGExActorCollectionEntry::UpdateStaging(const UPCGExAssetCollection* Owni
 
 void FPCGExActorCollectionEntry::SetAssetPath(const FSoftObjectPath& InPath)
 {
+	Super::SetAssetPath(InPath);
 	Actor = TSoftObjectPtr<AActor>(InPath);
 }
 
