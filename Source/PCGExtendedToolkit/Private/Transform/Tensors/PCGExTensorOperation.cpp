@@ -24,7 +24,7 @@ PCGExTensor::FTensorSample UPCGExTensorOperation::SampleAtPosition(const FVector
 	return PCGExTensor::FTensorSample{};
 }
 
-bool UPCGExTensorOperation::ComputeFactor(const FVector& InPosition, const FPCGPointRef& InEffector, double& OutFactor) const
+bool UPCGExTensorOperation::ComputeFactor(const FVector& InPosition, const FPCGPointRef& InEffector, double& OutFactor, FVector& OutGuide) const
 {
 	const FVector Center = InEffector.Point->Transform.GetLocation();
 	const double RadiusSquared = InEffector.Point->Color.W;
@@ -33,10 +33,11 @@ bool UPCGExTensorOperation::ComputeFactor(const FVector& InPosition, const FPCGP
 	if (FVector::DistSquared(InPosition, Center) > RadiusSquared) { return false; }
 
 	OutFactor = DistSquared / RadiusSquared;
+	OutGuide = BaseConfig.LocalGuideCurve.GetValue(OutFactor);
 	return true;
 }
 
-bool UPCGExTensorOperation::ComputeFactor(const FVector& InPosition, const FPCGSplineStruct& InEffector, const double Radius, FTransform& OutTransform, double& OutFactor) const
+bool UPCGExTensorOperation::ComputeFactor(const FVector& InPosition, const FPCGSplineStruct& InEffector, const double Radius, FTransform& OutTransform, double& OutFactor, FVector& OutGuide) const
 {
 	OutTransform = PCGExPaths::GetClosestTransform(InEffector, InPosition, true);
 
@@ -48,6 +49,7 @@ bool UPCGExTensorOperation::ComputeFactor(const FVector& InPosition, const FPCGS
 	if (DistSquared > RadiusSquared) { return false; }
 
 	OutFactor = DistSquared / RadiusSquared;
+	OutGuide = BaseConfig.LocalGuideCurve.GetValue(OutFactor);
 	return true;
 }
 

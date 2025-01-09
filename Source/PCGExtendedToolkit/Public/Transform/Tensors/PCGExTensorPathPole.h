@@ -31,7 +31,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExTensorPathPoleConfig : public FPCGExTens
 	/** Which point type to use. Shared amongst all points; if you want tight control, create a fully-fledged spline instead. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	EPCGExSplinePointTypeRedux PointType = EPCGExSplinePointTypeRedux::Linear;
-	
+
 	/** Sample inputs.*/
 	//UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	EPCGExSplineSamplingIncludeMode SampleInputs = EPCGExSplineSamplingIncludeMode::All;
@@ -39,7 +39,6 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExTensorPathPoleConfig : public FPCGExTens
 	/**  Base radius of the spline. Will be scaled by control points' scale length */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayAfter="TensorWeight"))
 	double Radius = 100;
-
 };
 
 /**

@@ -53,7 +53,6 @@ protected:
 	/** Output per-iteration params with useful values. Less optimized than the non-value version */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="Type=EPCGExIterationDataType::Params"))
 	bool bOutputUtils = false;
-	
 };
 
 class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExIterationsElement final : public IPCGElement

@@ -28,11 +28,12 @@ PCGExTensor::FTensorSample UPCGExTensorPathFlow::SampleAtPosition(const FVector&
 	{
 		FTransform T = FTransform::Identity;
 		double Factor = 0;
-		
-		if (!ComputeFactor(InPosition, *Spline.Get(), Config.Radius, T, Factor)) { continue; }
+		FVector Guide = FVector::ZeroVector;
+
+		if (!ComputeFactor(InPosition, *Spline.Get(), Config.Radius, T, Factor, Guide)) { continue; }
 
 		Samples.Emplace_GetRef(
-			PCGExMath::GetDirection(T.GetRotation(), Config.SplineDirection),
+			FRotationMatrix::MakeFromX(PCGExMath::GetDirection(T.GetRotation(), Config.SplineDirection)).ToQuat().RotateVector(Guide),
 			Config.Potency * Config.PotencyFalloffCurveObj->Eval(Factor),
 			Config.Weight * Config.WeightFalloffCurveObj->Eval(Factor));
 	}

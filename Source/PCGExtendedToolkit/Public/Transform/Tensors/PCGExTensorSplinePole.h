@@ -30,7 +30,6 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExTensorSplinePoleConfig : public FPCGExTe
 	/**  Base radius of the spline. Will be scaled by control points' scale length */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	double Radius = 100;
-
 };
 
 /**

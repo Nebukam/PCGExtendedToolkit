@@ -97,11 +97,11 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Limits", meta=(PCG_Overridable, DisplayName="Max Points Count", EditCondition="bUseMaxPointsCount && MaxPointsCountInput==EPCGExInputValueType::Constant", EditConditionHides, ClampMin=1))
 	int32 MaxPointsCount = 100;
 
-	
+
 	/** Whether to limit path length or not */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Limits", meta=(PCG_Overridable, ClampMin=0.001))
 	double FuseDistance = 0.01;
-	
+
 	/** TBD */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging & Forwarding")
 	FPCGExAttributeToTagDetails AttributesToPathTags;
@@ -151,7 +151,7 @@ namespace PCGExExtrudeTensors
 		const TArray<TSharedPtr<FExtrusion>>* Extrusions = nullptr;
 
 		const UPCGExExtrudeTensorsSettings* Settings = nullptr;
-		
+
 		FExtrusion(const int32 InIndex, const TSharedRef<PCGExData::FFacade>& InFacade, const int32 InMaxIterations);
 
 		bool Extrude();
@@ -166,7 +166,7 @@ namespace PCGExExtrudeTensors
 		TSharedPtr<PCGExData::TBuffer<int32>> PerPointIterations;
 		TSharedPtr<PCGExData::TBuffer<int32>> PerPointMaxPoints;
 		TSharedPtr<PCGExData::TBuffer<double>> PerPointMaxLength;
-		
+
 		FPCGExAttributeToTagDetails AttributesToPathTags;
 		TArray<TSharedPtr<FExtrusion>> Extrusions;
 

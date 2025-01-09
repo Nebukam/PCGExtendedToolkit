@@ -12,44 +12,11 @@
 #include "AssetStaging/PCGExStaging.h"
 #include "Collections/PCGExMeshCollection.h"
 #include "Engine/StaticMesh.h"
+#include "Tasks/Task.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(PCGExMeshSelectorStaged)
 
 #define LOCTEXT_NAMESPACE "PCGExMeshSelectorStaged"
-
-namespace PCGExMeshSelectorStaged
-{
-	// Returns variation based on mesh, material overrides and reverse culling
-	FPCGMeshInstanceList& GetInstanceList(
-		TArray<FPCGMeshInstanceList>& InstanceLists,
-		const FPCGExMeshCollectionEntry* Entry,
-		const TArray<TSoftObjectPtr<UMaterialInterface>>& MaterialOverrides,
-		const UPCGPointData* InPointData)
-	{
-		for (FPCGMeshInstanceList& InstanceList : InstanceLists)
-		{
-			if (InstanceList.Descriptor == Entry->ISMDescriptor)
-			{
-				return InstanceList;
-			}
-		}
-
-#if PCGEX_ENGINE_VERSION > 504
-		FPCGSoftISMComponentDescriptor TemplateDescriptor = FPCGSoftISMComponentDescriptor();
-		Entry->InitPCGSoftISMDescriptor(TemplateDescriptor);
-
-		FPCGMeshInstanceList& NewInstanceList = InstanceLists.Emplace_GetRef(TemplateDescriptor);
-		NewInstanceList.Descriptor = TemplateDescriptor;
-		NewInstanceList.PointData = InPointData;
-#else
-		FSoftISMComponentDescriptor TemplateDescriptor = FSoftISMComponentDescriptor(Entry->ISMDescriptor);
-		FPCGMeshInstanceList& NewInstanceList = InstanceLists.Emplace_GetRef(TemplateDescriptor);
-		NewInstanceList.Descriptor = TemplateDescriptor;
-#endif
-
-		return NewInstanceList;
-	}
-}
 
 bool UPCGExMeshSelectorStaged::SelectInstances(
 	FPCGStaticMeshSpawnerContext& Context,
@@ -60,83 +27,208 @@ bool UPCGExMeshSelectorStaged::SelectInstances(
 {
 	TRACE_CPUPROFILER_EVENT_SCOPE(UPCGExMeshSelectorStaged::SelectInstances);
 
-	if (!InPointData)
+	if (Context.CurrentPointIndex == -200)
 	{
-		PCGE_LOG_C(Error, GraphAndLog, &Context, FTEXT( "Missing input data"));
+		// Success!
+
+		// Clean entry idx attribute from output data
+		if (OutPointData) { OutPointData->Metadata->DeleteAttribute(PCGExStaging::Tag_EntryIdx); }
 		return true;
 	}
 
-	if (!InPointData->Metadata)
+	if (Context.CurrentPointIndex == -404)
 	{
-		PCGE_LOG_C(Error, GraphAndLog, &Context, FTEXT( "Unable to get metadata from input"));
+		// Something failed!
 		return true;
 	}
 
-	const FPCGMetadataAttribute<int64>* HashAttribute = InPointData->Metadata->GetConstTypedAttribute<int64>(PCGExStaging::Tag_EntryIdx);
-
-	if (!HashAttribute)
+	if (Context.CurrentPointIndex == -1)
 	{
-		PCGE_LOG_C(Error, GraphAndLog, &Context, FTEXT( "Unable to get hash attribute from input"));
-		return true;
+		// Doing async work
+		return false;
 	}
+
+	if (Context.CurrentPointIndex == 0)
+	{
+		// Basic initialization, no matter what engine version we're on
+		if (!InPointData)
+		{
+			PCGE_LOG_C(Error, GraphAndLog, &Context, FTEXT( "Missing input data"));
+			return true;
+		}
+
+		if (!InPointData->Metadata)
+		{
+			PCGE_LOG_C(Error, GraphAndLog, &Context, FTEXT( "Unable to get metadata from input"));
+			return true;
+		}
+
+		if (!InPointData->Metadata->GetConstTypedAttribute<int64>(PCGExStaging::Tag_EntryIdx))
+		{
+			PCGE_LOG_C(Error, GraphAndLog, &Context, FTEXT( "Unable to get hash attribute from input"));
+			return true;
+		}
+
+		// Init material override
+		FPCGMeshMaterialOverrideHelper& MaterialOverrideHelper = Context.MaterialOverrideHelper;
+		//MaterialOverrideHelper.Initialize(Context, bUseAttributeMaterialOverrides, TemplateDescriptor.OverrideMaterials, MaterialOverrideAttributes, InPointData->Metadata);
+		//if (!MaterialOverrideHelper.IsValid()) { return true; }
+	}
+
+	TArray<FPCGMeshInstanceList>* InstanceListPtr = &OutMeshInstances;
+
+#if PCGEX_ENGINE_VERSION >= 505
+
+	if (Context.CurrentPointIndex == 0)
+	{
+		// Kickstart async work
+		Context.CurrentPointIndex = -1;
+
+		TWeakPtr<FPCGContextHandle> CtxHandle = Context.GetOrCreateHandle();
+		Context.bIsPaused = true;
+
+		UE::Tasks::Launch(
+				TEXT("FactoryInitialization"),
+				[CtxHandle, InPointData, InstanceListPtr, OutPointData]()
+				{
+					if (OutPointData)
+					{
+						TRACE_CPUPROFILER_EVENT_SCOPE(UPCGExMeshSelectorStaged::SetupOutPointData);
+						OutPointData->SetPoints(InPointData->GetPoints());
+					}
+
+					FPCGStaticMeshSpawnerContext* Ctx = FPCGExContext::GetContextFromHandle<FPCGStaticMeshSpawnerContext>(CtxHandle);
+					if (!Ctx) { return; }
+
+					auto Exit = [&](const bool bSuccess)
+					{
+						Ctx->CurrentPointIndex = bSuccess ? -200 : -404;
+						Ctx->bIsPaused = false;
+					};
+
+					TSharedPtr<PCGExStaging::TPickUnpacker<UPCGExMeshCollection, FPCGExMeshCollectionEntry>> CollectionMap =
+						MakeShared<PCGExStaging::TPickUnpacker<UPCGExMeshCollection, FPCGExMeshCollectionEntry>>();
+
+					CollectionMap->UnpackPin(Ctx, PCGPinConstants::DefaultParamsLabel);
+
+					if (!CollectionMap->HasValidMapping())
+					{
+						PCGE_LOG_C(Error, GraphAndLog, Ctx, FTEXT( "Unable to find Staging Map data in overrides"));
+						Exit(false);
+						return;
+					}
+
+					{
+						TRACE_CPUPROFILER_EVENT_SCOPE(UPCGExMeshSelectorStaged::SelectEntries);
+
+						{
+							TRACE_CPUPROFILER_EVENT_SCOPE(UPCGExMeshSelectorStaged::FindPartitions);
+
+							if (!CollectionMap->BuildPartitions(InPointData))
+							{
+								PCGE_LOG_C(Error, GraphAndLog, Ctx, FTEXT( "Unable to build any partitions"));
+								Exit(false);
+								return;
+							}
+						}
+
+						const TArray<FPCGPoint>& InPoints = InPointData->GetPoints();
+
+						{
+							TRACE_CPUPROFILER_EVENT_SCOPE(UPCGExMeshSelectorStaged::FillInstances);
+							for (const TPair<int64, TSharedPtr<TArray<int32>>>& Partition : CollectionMap->HashedPartitions)
+							{
+								const FPCGExMeshCollectionEntry* Entry = nullptr;
+								if (!CollectionMap->ResolveEntry(Partition.Key, Entry)) { continue; }
+
+								const TArray<int32>& Indices = *Partition.Value.Get();
+								TArray<FTransform> Instances;
+								const int32 PartitionSize = Indices.Num();
+								PCGEx::InitArray(Instances, PartitionSize);
+
+								for (int i = 0; i < PartitionSize; i++) { Instances[i] = InPoints[Indices[i]].Transform; }
+
+								if (!CtxHandle.IsValid()) { return; }
+
+								FPCGSoftISMComponentDescriptor TemplateDescriptor = FPCGSoftISMComponentDescriptor();
+								Entry->InitPCGSoftISMDescriptor(TemplateDescriptor);
+
+								// TODO : 
+
+								FPCGMeshInstanceList& NewInstanceList = InstanceListPtr->Emplace_GetRef(TemplateDescriptor);
+								NewInstanceList.Descriptor = TemplateDescriptor;
+								NewInstanceList.PointData = InPointData; // 5.5 only
+								NewInstanceList.Instances = Instances;
+							}
+						}
+					}
+
+					if (!CtxHandle.IsValid()) { return; }
+
+					Exit(true);
+				},
+				LowLevelTasks::ETaskPriority::BackgroundNormal
+			);
+	}
+
+	return false;
+
+#else
+
+	FPCGStaticMeshSpawnerContext* Ctx = &Context;
 
 	TSharedPtr<PCGExStaging::TPickUnpacker<UPCGExMeshCollection, FPCGExMeshCollectionEntry>> CollectionMap =
 		MakeShared<PCGExStaging::TPickUnpacker<UPCGExMeshCollection, FPCGExMeshCollectionEntry>>();
 
-	CollectionMap->UnpackPin(&Context, PCGPinConstants::DefaultParamsLabel);
+	CollectionMap->UnpackPin(Ctx, PCGPinConstants::DefaultParamsLabel);
 
 	if (!CollectionMap->HasValidMapping())
 	{
-		PCGE_LOG_C(Error, GraphAndLog, &Context, FTEXT( "Unable to find Staging Map data in overrides"));
+		PCGE_LOG_C(Error, GraphAndLog, Ctx, FTEXT( "Unable to find Staging Map data in overrides"));
 		return true;
 	}
-
-	FPCGMeshMaterialOverrideHelper& MaterialOverrideHelper = Context.MaterialOverrideHelper;
-	if (!MaterialOverrideHelper.IsInitialized())
-	{
-		//MaterialOverrideHelper.Initialize(Context, bUseAttributeMaterialOverrides, TemplateDescriptor.OverrideMaterials, MaterialOverrideAttributes, InPointData->Metadata);
-	}
-
-	if (!MaterialOverrideHelper.IsValid())
-	{
-		//return true;
-	}
-
-	if (Context.CurrentPointIndex == 0 && OutPointData)
-	{
-		TRACE_CPUPROFILER_EVENT_SCOPE(UPCGExMeshSelectorStaged::SetupOutPointData);
-		OutPointData->SetPoints(InPointData->GetPoints());
-	}
-
-	const TArray<FPCGPoint>& InPoints = InPointData->GetPoints();
-	const int32 NumPoints = InPoints.Num();
 
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(UPCGExMeshSelectorStaged::SelectEntries);
 
-		while (Context.CurrentPointIndex < NumPoints)
 		{
-			const FPCGPoint& Point = InPoints[Context.CurrentPointIndex++];
+			TRACE_CPUPROFILER_EVENT_SCOPE(UPCGExMeshSelectorStaged::FindPartitions);
 
-			int64 EntryHash = HashAttribute->GetValueFromItemKey(Point.MetadataEntry);
+			if (!CollectionMap->BuildPartitions(InPointData))
+			{
+				PCGE_LOG_C(Error, GraphAndLog, Ctx, FTEXT( "Unable to build any partitions"));
+				return true;
+			}
+		}
 
-			const FPCGExMeshCollectionEntry* Entry = nullptr;
-			if (!CollectionMap->ResolveEntry(EntryHash, Entry)) { continue; }
+		{
+			TRACE_CPUPROFILER_EVENT_SCOPE(UPCGExMeshSelectorStaged::FillInstances);
+			const TArray<FPCGPoint>& InPoints = InPointData->GetPoints();
 
-			TArray<TSoftObjectPtr<UMaterialInterface>> DummyMaterialList;
-			FPCGMeshInstanceList& InstanceList = PCGExMeshSelectorStaged::GetInstanceList(OutMeshInstances, Entry, DummyMaterialList, InPointData);
-			InstanceList.Instances.Add(Point.Transform);
+			for (const TPair<int64, TSharedPtr<TArray<int32>>>& Partition : CollectionMap->HashedPartitions)
+			{
+				const FPCGExMeshCollectionEntry* Entry = nullptr;
+				if (!CollectionMap->ResolveEntry(Partition.Key, Entry)) { continue; }
 
-			if (Context.ShouldStop()) { break; }
+				const TArray<int32>& Indices = *Partition.Value.Get();
+				TArray<FTransform> Instances;
+				const int32 PartitionSize = Indices.Num();
+				PCGEx::InitArray(Instances, PartitionSize);
+
+				for (int i = 0; i < PartitionSize; i++) { Instances[i] = InPoints[Indices[i]].Transform; }
+
+				FSoftISMComponentDescriptor TemplateDescriptor = FSoftISMComponentDescriptor(Entry->ISMDescriptor);
+				FPCGMeshInstanceList& NewInstanceList = InstanceListPtr->Emplace_GetRef(TemplateDescriptor);
+				NewInstanceList.Descriptor = TemplateDescriptor;
+				NewInstanceList.Instances = Instances;
+			}
 		}
 	}
 
-	if (Context.CurrentPointIndex == NumPoints && OutPointData)
-	{
-		OutPointData->Metadata->DeleteAttribute(PCGExStaging::Tag_EntryIdx);
-	}
+	Ctx->CurrentPointIndex = -200;
+	return false;
 
-	return Context.CurrentPointIndex == NumPoints;
+#endif
 }
 
 #undef LOCTEXT_NAMESPACE

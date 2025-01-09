@@ -13,10 +13,10 @@
 UENUM(BlueprintType)
 enum class EPCGExNumericOutput : uint8
 {
-	Double,
-	Float,
-	Int32,
-	Int64,
+	Double = 0,
+	Float  = 1,
+	Int32  = 2,
+	Int64  = 3,
 };
 
 UCLASS(BlueprintType, ClassGroup=(Procedural))

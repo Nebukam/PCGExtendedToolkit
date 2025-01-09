@@ -26,6 +26,8 @@ bool FPCGExTensorsTransformElement::Boot(FPCGExContext* InContext) const
 
 	PCGEX_CONTEXT_AND_SETTINGS(TensorsTransform)
 
+	PCGEX_FOREACH_FIELD_TRTENSOR(PCGEX_OUTPUT_VALIDATE_NAME)
+
 	Context->TensorsHandler = MakeShared<PCGExTensor::FTensorsHandler>();
 	if (!Context->TensorsHandler->Init(Context, PCGExTensor::SourceTensorsLabel))
 	{
@@ -73,7 +75,14 @@ namespace PCGExTensorsTransform
 
 		if (!FPointsProcessor::Process(InAsyncManager)) { return false; }
 
+		{
+			const TSharedRef<PCGExData::FFacade>& OutputFacade = PointDataFacade;
+			PCGEX_FOREACH_FIELD_TRTENSOR(PCGEX_OUTPUT_INIT)
+		}
+
 		RemainingIterations = Settings->Iterations;
+		Metrics.SetNum(PointDataFacade->GetNum());
+		Pings.Init(0, PointDataFacade->GetNum());
 
 		StartParallelLoopForPoints();
 
@@ -91,13 +100,16 @@ namespace PCGExTensorsTransform
 	{
 		if (!PointFilterCache[Index]) { return; }
 
+		const FVector SamplePosition = Point.Transform.GetLocation();
+
 		bool bSuccess = false;
-		const PCGExTensor::FTensorSample Sample = Context->TensorsHandler->SampleAtPosition(Point.Transform.GetLocation(), bSuccess);
+		const PCGExTensor::FTensorSample Sample = Context->TensorsHandler->SampleAtPosition(SamplePosition, bSuccess);
 		PointFilterCache[Index] = bSuccess;
 
 		if (!bSuccess) { return; }
 
-		//const FTransform Composite = Point.Transform * Sample.Transform;
+		Metrics[Index].Add(SamplePosition);
+		Pings[Index] += Sample.Effectors;
 
 		if (Settings->bTransformRotation)
 		{
@@ -107,7 +119,7 @@ namespace PCGExTensorsTransform
 			}
 			else if (Settings->Rotation == EPCGExTensorTransformMode::Relative)
 			{
-				Point.Transform.SetRotation(Point.Transform.GetRotation() * Sample.Rotation);
+				Point.Transform.SetRotation(Sample.Rotation * Point.Transform.GetRotation());
 			}
 			else if (Settings->Rotation == EPCGExTensorTransformMode::Align)
 			{
@@ -126,6 +138,24 @@ namespace PCGExTensorsTransform
 		bIteratedOnce = true;
 		RemainingIterations--;
 		if (RemainingIterations > 0) { StartParallelLoopForPoints(); }
+		else { StartParallelLoopForRange(PointDataFacade->GetNum()); }
+	}
+
+	void FProcessor::ProcessSingleRangeIteration(const int32 Iteration, const PCGExMT::FScope& Scope)
+	{
+		const PCGExPaths::FPathMetrics& Metric = Metrics[Iteration];
+		const int32 UpdateCount = Metric.Count;
+
+		PCGEX_OUTPUT_VALUE(EffectorsPings, Iteration, Pings[Iteration])
+		PCGEX_OUTPUT_VALUE(UpdateCount, Iteration, UpdateCount)
+		PCGEX_OUTPUT_VALUE(TraveledDistance, Iteration, Metric.Length)
+		PCGEX_OUTPUT_VALUE(GracefullyStopped, Iteration, UpdateCount < Settings->Iterations)
+		PCGEX_OUTPUT_VALUE(MaxIterationsReached, Iteration, UpdateCount == Settings->Iterations)
+	}
+
+	void FProcessor::CompleteWork()
+	{
+		PointDataFacade->Write(AsyncManager);
 	}
 }
 
