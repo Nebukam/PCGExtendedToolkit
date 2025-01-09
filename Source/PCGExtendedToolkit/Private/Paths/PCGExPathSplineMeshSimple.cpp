@@ -307,15 +307,15 @@ namespace PCGExPathSplineMeshSimple
 			SplineMeshComponent->bNavigationRelevant = false;
 			SplineMeshComponent->SetbNeverNeedsCookedCollisionData(true);
 			*/
-			
+
 			Segment.ApplySettings(SplineMeshComponent); // Init Component
 
 			if (Settings->TaggingDetails.bForwardInputDataTags) { SplineMeshComponent->ComponentTags.Append(DataTags); }
 			if (!Segment.Tags.IsEmpty()) { SplineMeshComponent->ComponentTags.Append(Segment.Tags.Array()); }
 
 			Settings->StaticMeshDescriptor.InitComponent(SplineMeshComponent);
-			
-			SplineMeshComponent->SetStaticMesh(Mesh);   // Will trigger a force rebuild, so put this last
+
+			SplineMeshComponent->SetStaticMesh(Mesh); // Will trigger a force rebuild, so put this last
 
 			Context->AttachManagedComponent(
 				TargetActor, SplineMeshComponent,

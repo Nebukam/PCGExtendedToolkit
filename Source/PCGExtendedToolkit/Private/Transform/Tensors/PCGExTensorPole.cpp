@@ -21,10 +21,12 @@ PCGExTensor::FTensorSample UPCGExTensorPole::SampleAtPosition(const FVector& InP
 	auto ProcessNeighbor = [&](const FPCGPointRef& InPointRef)
 	{
 		double Factor = 0;
-		if (!ComputeFactor(InPosition, InPointRef, Factor)) { return; }
+		FVector Guide = FVector::ZeroVector;
+
+		if (!ComputeFactor(InPosition, InPointRef, Factor, Guide)) { return; }
 
 		Samples.Emplace_GetRef(
-			(InPosition - InPointRef.Point->Transform.GetLocation()).GetSafeNormal(),
+			FRotationMatrix::MakeFromX((InPosition - InPointRef.Point->Transform.GetLocation()).GetSafeNormal()).ToQuat().RotateVector(Guide),
 			InPointRef.Point->Steepness * Config.PotencyFalloffCurveObj->Eval(Factor),
 			InPointRef.Point->Density * Config.WeightFalloffCurveObj->Eval(Factor));
 	};
