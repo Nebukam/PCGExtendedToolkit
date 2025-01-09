@@ -76,15 +76,6 @@ bool FPCGExAssetCollectionToSetElement::ExecuteInternal(FPCGContext* Context) co
 		return true;
 	};
 
-	if (!Settings->AssetCollection) { return OutputToPin(); }
-
-#define PCGEX_DECLARE_ATT(_NAME, _TYPE, _DEFAULT, _VALUE) \
-	const bool bOutput##_NAME = Settings->bWrite##_NAME; \
-	FPCGMetadataAttribute<_TYPE>* _NAME##Attribute = nullptr; \
-	if(bOutput##_NAME){PCGEX_VALIDATE_NAME(Settings->_NAME##AttributeName) _NAME##Attribute = OutputSet->Metadata->FindOrCreateAttribute<_TYPE>(Settings->_NAME##AttributeName, _DEFAULT, false, true);}
-	PCGEX_FOREACH_COL_FIELD(PCGEX_DECLARE_ATT);
-#undef PCGEX_DECLARE_ATT
-
 	UPCGExAssetCollection* MainCollection = PCGExHelpers::LoadBlocking_AnyThread(Settings->AssetCollection);
 
 	if (!MainCollection)
@@ -92,6 +83,13 @@ bool FPCGExAssetCollectionToSetElement::ExecuteInternal(FPCGContext* Context) co
 		PCGE_LOG(Error, GraphAndLog, FTEXT("Asset collection failed to load."));
 		return OutputToPin();
 	}
+
+#define PCGEX_DECLARE_ATT(_NAME, _TYPE, _DEFAULT, _VALUE) \
+	const bool bOutput##_NAME = Settings->bWrite##_NAME; \
+	FPCGMetadataAttribute<_TYPE>* _NAME##Attribute = nullptr; \
+	if(bOutput##_NAME){PCGEX_VALIDATE_NAME(Settings->_NAME##AttributeName) _NAME##Attribute = OutputSet->Metadata->FindOrCreateAttribute<_TYPE>(Settings->_NAME##AttributeName, _DEFAULT, false, true);}
+	PCGEX_FOREACH_COL_FIELD(PCGEX_DECLARE_ATT);
+#undef PCGEX_DECLARE_ATT
 
 	const PCGExAssetCollection::FCache* MainCache = MainCollection->LoadCache();
 	TArray<const FPCGExAssetCollectionEntry*> Entries;

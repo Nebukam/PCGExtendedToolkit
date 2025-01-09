@@ -64,6 +64,11 @@ void FPCGExAssetCollectionEntry::UpdateStaging(const UPCGExAssetCollection* Owni
 	}
 }
 
+void FPCGExAssetCollectionEntry::SetAssetPath(const FSoftObjectPath& InPath)
+{
+	Staging.Path = InPath;
+}
+
 void FPCGExAssetCollectionEntry::GetAssetPaths(TSet<FSoftObjectPath>& OutPaths) const
 {
 	OutPaths.Add(Staging.Path);

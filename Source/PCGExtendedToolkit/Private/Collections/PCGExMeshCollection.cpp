@@ -164,6 +164,7 @@ void FPCGExMeshCollectionEntry::UpdateStaging(const UPCGExAssetCollection* Ownin
 
 void FPCGExMeshCollectionEntry::SetAssetPath(const FSoftObjectPath& InPath)
 {
+	Super::SetAssetPath(InPath);
 	StaticMesh = TSoftObjectPtr<UStaticMesh>(InPath);
 	ISMDescriptor.StaticMesh = StaticMesh;
 }
