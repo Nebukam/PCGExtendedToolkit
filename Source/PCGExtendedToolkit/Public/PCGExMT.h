@@ -252,6 +252,7 @@ namespace PCGExMT
 		virtual bool Cancel() override;
 
 		virtual void Reset() override;
+		void FlushTasks();
 
 		void ReserveTasks(const int32 NumTasks);
 

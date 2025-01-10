@@ -16,6 +16,14 @@
 
 #include "PCGExExtrudeTensors.generated.h"
 
+UENUM()
+enum class EPCGExOutOfBoundPathPointHandling : uint8
+{
+	Exclude        = 0 UMETA(DisplayName = "Exclude", Tooltip="Ignore the out-of-bound sample and don't add it to the path."),
+	Include        = 1 UMETA(DisplayName = "Include", Tooltip="Include the out-of-bound sample to the path."),
+	IncludeAndSnap = 2 UMETA(Hidden, DisplayName = "Snap", Tooltip="Include the out-of-bound sample and snap it"),
+};
+
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc")
 class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExExtrudeTensorsSettings : public UPCGExPointsProcessorSettings
 {
@@ -67,6 +75,18 @@ public:
 	/** Whether to adjust max iteration based on max value found on points. Use at your own risks! */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Use Max from Points", ClampMin=1, EditCondition="bUsePerPointMaxIterations", HideEditConditionToggle))
 	bool bUseMaxFromPoints = false;
+
+	/** Whether the node should attempt to close loops based on angle and proximity */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Closing Loops", meta=(PCG_NotOverridable))
+	bool bSearchForClosedLoops = false;
+
+	/** Range at which the first point must be located to check angle */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Closing Loops", meta=(PCG_Overridable, DisplayName=" └─ Search Distance", EditCondition="bCloseLoops"))
+	double ClosedLoopSearchDistance = 100;
+
+	/** Angle at which the loop will be closed, if within range */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Closing Loops", meta=(PCG_Overridable, DisplayName=" └─ Search Angle", EditCondition="bCloseLoops", Units="Degrees", ClampMin=0, ClampMax=90))
+	double ClosedLoopSearchAngle = 11.25;
 	
 	/** Whether to limit the length of the generated path */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Limits", meta=(PCG_NotOverridable))
@@ -106,9 +126,33 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Limits", meta=(PCG_Overridable, ClampMin=0.001))
 	double FuseDistance = 0.01;
 
+	/** How to deal with out-of-bound samples */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Limits", meta=(PCG_Overridable))
+	EPCGExOutOfBoundPathPointHandling OutOfBoundHandling = EPCGExOutOfBoundPathPointHandling::Exclude;
+
+	/** Whether to stop sampling when going out of bounds. While path will be cut, there's a chance that the head of the search comes back into the bounds, which would start a new extrusion. With this option disabled, new paths won't be permitted to exist. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Limits", meta=(PCG_Overridable))
+	bool bAllowNewExtrusions = false;
+
 	/** TBD */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging & Forwarding")
 	FPCGExAttributeToTagDetails AttributesToPathTags;
+
+	/** */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging & Forwarding", meta=(PCG_Overridable, InlineEditConditionToggle))
+	bool bTagIfClosedLoop = true;
+
+	/** ... */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging & Forwarding", meta=(PCG_Overridable, EditCondition="bTagIfClosedLoop"))
+	FString IsClosedLoopTag = TEXT("ClosedLoop");
+
+	/** */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging & Forwarding", meta=(PCG_Overridable, InlineEditConditionToggle))
+	bool bTagIfOpenPath = false;
+
+	/** ... */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging & Forwarding", meta=(PCG_Overridable, EditCondition="bTagIfOpenPath"))
+	FString IsOpenPathTag = TEXT("OpenPath");
 
 private:
 	friend class FPCGExExtrudeTensorsElement;
@@ -118,6 +162,9 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExExtrudeTensorsContext final : FPCGExPoin
 {
 	friend class FPCGExExtrudeTensorsElement;
 	TSharedPtr<PCGExTensor::FTensorsHandler> TensorsHandler;
+	FBox Limits = FBox(ForceInit);
+	double ClosedLoopSquaredDistance = 0;
+	double ClosedLoopSearchDot = 0;
 };
 
 class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExExtrudeTensorsElement final : public FPCGExPointsProcessorElement
@@ -134,15 +181,30 @@ protected:
 
 namespace PCGExExtrudeTensors
 {
+	class FProcessor;
+
 	class FExtrusion : public TSharedFromThis<FExtrusion>
 	{
+	protected:
 		TArray<FPCGPoint>& ExtrudedPoints;
 		double DistToLastSum = 0;
 
-	public:
-		int32 Index = -1;
-		int32 RemainingIterations = 0;
+		bool bIsExtruding = false;
+		bool bIsComplete = false;
+		bool bIsStopped = false;
+		bool bIsClosedLoop = false;
+
 		FPCGPoint Origin;
+
+	public:
+		FProcessor* Processor = nullptr;
+		const FPCGExExtrudeTensorsContext* Context = nullptr;
+		const UPCGExExtrudeTensorsSettings* Settings = nullptr;
+
+		FVector Head = FVector::ZeroVector;
+
+		int32 SeedIndex = -1;
+		int32 RemainingIterations = 0;
 		double MaxLength = MAX_dbl;
 		int32 MaxPointCount = MAX_int32;
 
@@ -150,21 +212,22 @@ namespace PCGExExtrudeTensors
 
 		TSharedRef<PCGExData::FFacade> PointDataFacade;
 
-		TSharedPtr<PCGExTensor::FTensorsHandler> TensorsHandler;
 		TSharedPtr<PCGEx::FIndexedItemOctree> EdgeOctree;
 		const TArray<TSharedPtr<FExtrusion>>* Extrusions = nullptr;
 
-		const UPCGExExtrudeTensorsSettings* Settings = nullptr;
+		FExtrusion(const int32 InSeedIndex, const TSharedRef<PCGExData::FFacade>& InFacade, const int32 InMaxIterations);
 
-		FExtrusion(const int32 InIndex, const TSharedRef<PCGExData::FFacade>& InFacade, const int32 InMaxIterations);
+		void SetOriginPosition(const FVector& InPosition);
 
-		bool Extrude();
-		bool Complete();
+		bool Advance();
+		bool Extrude(const PCGExTensor::FTensorSample& Sample);
+		void Insert(const PCGExTensor::FTensorSample& Sample, const FVector& InPosition) const;
+		void Complete();
 	};
 
 	class FProcessor final : public PCGExPointsMT::TPointsProcessor<FPCGExExtrudeTensorsContext, UPCGExExtrudeTensorsSettings>
 	{
-		bool bIteratedOnce = false;
+		FRWLock NewExtrusionLock;
 		int32 RemainingIterations = 0;
 
 		TSharedPtr<PCGExData::TBuffer<int32>> PerPointIterations;
@@ -172,7 +235,8 @@ namespace PCGExExtrudeTensors
 		TSharedPtr<PCGExData::TBuffer<double>> PerPointMaxLength;
 
 		FPCGExAttributeToTagDetails AttributesToPathTags;
-		TArray<TSharedPtr<FExtrusion>> Extrusions;
+		TArray<TSharedPtr<FExtrusion>> ExtrusionQueue;
+		TArray<TSharedPtr<FExtrusion>> NewExtrusions;
 
 	public:
 		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade):
@@ -182,10 +246,23 @@ namespace PCGExExtrudeTensors
 
 		virtual ~FProcessor() override;
 
+		virtual bool IsTrivial() const override { return false; }
+
 		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager> InAsyncManager) override;
-		void InitExtrusion(const int32 Index);
+
+		void PrepareExtrusion(const TSharedPtr<FExtrusion>& InExtrusion);
+		void InitExtrusionFromSeed(const int32 InSeedIndex);
+		void InitExtrusionFromExtrusion(const TSharedRef<FExtrusion>& InExtrusion);
+
 		virtual void PrepareSingleLoopScopeForPoints(const PCGExMT::FScope& Scope) override;
 		virtual void ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const PCGExMT::FScope& Scope) override;
 		virtual void OnPointsProcessingComplete() override;
+
+		virtual void ProcessSingleRangeIteration(const int32 Iteration, const PCGExMT::FScope& Scope) override;
+		virtual void OnRangeProcessingComplete() override;
+
+		bool UpdateExtrusionQueue();
+
+		void CompleteWork() override;
 	};
 }

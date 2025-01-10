@@ -291,6 +291,12 @@ namespace PCGExMT
 		Context->UnpauseContext(); // Safety unpause
 	}
 
+	void FTaskManager::FlushTasks()
+	{
+		FWriteScopeLock WriteTasksLock(TasksLock);
+		Tasks.Reset();
+	}
+
 
 	void FTaskManager::ReserveTasks(const int32 NumTasks)
 	{
