@@ -100,7 +100,7 @@ namespace PCGExFuseCollinear
 
 		// Preserve start & end
 		PointFilterCache[0] = true;
-		PointFilterCache[Path->LastIndex] = true;
+		if (!Path->IsClosedLoop()) { PointFilterCache[Path->LastIndex] = true; } // Don't force-preserve last point if closed loop
 	}
 
 	void FProcessor::ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const PCGExMT::FScope& Scope)
@@ -139,23 +139,6 @@ namespace PCGExFuseCollinear
 
 	void FProcessor::CompleteWork()
 	{
-		if (Path->IsClosedLoop())
-		{
-			if (Settings->bFuseCollocated && FVector::DistSquared(LastPosition, Path->GetPos(0)) <= Context->FuseDistSquared)
-			{
-				OutPoints->Pop();
-			}
-			else
-			{
-				const double Dot = FVector::DotProduct((Path->GetPos(Path->LastIndex) - LastPosition).GetSafeNormal(), Path->DirToNextPoint(Path->LastIndex));
-				if ((!Settings->bInvertThreshold && Dot > Context->DotThreshold) ||
-					(Settings->bInvertThreshold && Dot < Context->DotThreshold))
-				{
-					OutPoints->Pop();
-				}
-			}
-		}
-
 		OutPoints->Shrink();
 		if (Settings->bOmitInvalidPathsFromOutput && OutPoints->Num() < 2)
 		{

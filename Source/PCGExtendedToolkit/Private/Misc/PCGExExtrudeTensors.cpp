@@ -282,6 +282,7 @@ namespace PCGExExtrudeTensors
 		if (Iterations < 1) { return; }
 
 		const TSharedPtr<FExtrusion> NewExtrusion = CreateExtrusionTemplate(InSeedIndex, Iterations);
+		if (!NewExtrusion) { return; }
 
 		if (Settings->bUseMaxLength) { NewExtrusion->MaxLength = PerPointMaxLength ? PerPointMaxLength->Read(InSeedIndex) : Settings->MaxLength; }
 		if (Settings->bUseMaxPointsCount) { NewExtrusion->MaxPointCount = PerPointMaxPoints ? PerPointMaxPoints->Read(InSeedIndex) : Settings->MaxPointsCount; }
@@ -294,6 +295,8 @@ namespace PCGExExtrudeTensors
 		if (!Settings->bAllowChildExtrusions) { return nullptr; }
 
 		const TSharedPtr<FExtrusion> NewExtrusion = CreateExtrusionTemplate(InExtrusion->SeedIndex, InExtrusion->RemainingIterations);
+		if (!NewExtrusion) { return nullptr; }
+		
 		NewExtrusion->SetOriginPosition(InExtrusion->Head);
 
 		{

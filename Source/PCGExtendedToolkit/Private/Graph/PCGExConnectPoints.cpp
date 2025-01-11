@@ -244,6 +244,7 @@ namespace PCGExConnectPoints
 	void FProcessor::PrepareLoopScopesForPoints(const TArray<PCGExMT::FScope>& Loops)
 	{
 		FPointsProcessor::PrepareLoopScopesForPoints(Loops);
+		DistributedEdgesSet.Reserve(Loops.Num());
 		for (int i = 0; i < Loops.Num(); i++) { DistributedEdgesSet.Add(MakeShared<TSet<uint64>>()); }
 	}
 

@@ -26,6 +26,20 @@ bool UPCGExTensorFactoryData::InitInternalData(FPCGExContext* InContext)
 	return true;
 }
 
+void UPCGExTensorFactoryData::InheritFromOtherTensor(const UPCGExTensorFactoryData* InOtherTensor)
+{
+	const TSet<FString> Exclusions = {TEXT("Points"), TEXT("Splines"), TEXT("ManagedSplines")};
+	PCGExHelpers::CopyProperties(this, InOtherTensor, &Exclusions);
+	if (InOtherTensor->GetClass() == GetClass())
+	{
+		// Same type let's automate
+	}
+	else
+	{
+		// We can only attempt to inherit a few settings
+	}
+}
+
 TArray<FPCGPinProperties> UPCGExTensorFactoryProviderSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
@@ -38,19 +52,8 @@ UPCGExFactoryData* UPCGExTensorFactoryProviderSettings::CreateFactory(FPCGExCont
 	if (InFactory)
 	{
 		TArray<FPCGTaggedData> Collection = InContext->InputData.GetInputsByPin(PCGExTensor::SourceTensorConfigSourceLabel);
-		const UPCGExTensorFactoryData* InFactoryData = Collection.IsEmpty() ? nullptr : Cast<UPCGExTensorFactoryData>(Collection[0].Data);
-		if (InFactoryData)
-		{
-			if (InFactoryData->GetClass() == GetClass())
-			{
-				// Same type let's automate
-				// TODO : PCGExHelpers::CopyProperties()
-			}
-			else
-			{
-				// We can only inherit a few settings
-			}
-		}
+		const UPCGExTensorFactoryData* InTensorReference = Collection.IsEmpty() ? nullptr : Cast<UPCGExTensorFactoryData>(Collection[0].Data);
+		if (InTensorReference) { Cast<UPCGExTensorFactoryData>(InFactory)->InheritFromOtherTensor(InTensorReference); }
 	}
 	return InFactory;
 }

@@ -35,6 +35,8 @@ class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExTensorFactoryData : public UPCGExFactoryD
 {
 	GENERATED_BODY()
 
+	friend class UPCGExTensorFactoryProviderSettings;
+
 	// TODO : To favor re-usability Tensor factories hold more complex logic than regular factories
 	// They are also samplers
 	// We leverage internal point data and pack all needed attributes & computed points inside
@@ -48,6 +50,7 @@ public:
 
 protected:
 	virtual bool InitInternalData(FPCGExContext* InContext);
+	virtual void InheritFromOtherTensor(const UPCGExTensorFactoryData* InOtherTensor);
 };
 
 UCLASS(Abstract, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Graph|Params")

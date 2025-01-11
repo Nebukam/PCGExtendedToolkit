@@ -290,6 +290,9 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 			if (UniqueEdges.Contains(E)) { continue; }
 
 			PCGEx::H64(E, A, B);
+
+			check(A != B)
+
 			const int32 EdgeIndex = Edges.Emplace(Edges.Num(), A, B);
 			UniqueEdges.Add(E, EdgeIndex);
 			Nodes[A].LinkEdge(EdgeIndex);
@@ -315,6 +318,9 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 			if (UniqueEdges.Contains(E)) { continue; }
 
 			PCGEx::H64(E, A, B);
+
+			check(A != B)
+
 			const int32 EdgeIndex = Edges.Emplace(Edges.Num(), A, B);
 			UniqueEdges.Add(E, EdgeIndex);
 			Nodes[A].LinkEdge(EdgeIndex);
