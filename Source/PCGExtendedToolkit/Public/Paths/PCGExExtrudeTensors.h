@@ -87,7 +87,7 @@ public:
 	/** Angle at which the loop will be closed, if within range */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Closing Loops", meta=(PCG_Overridable, DisplayName=" └─ Search Angle", EditCondition="bCloseLoops", Units="Degrees", ClampMin=0, ClampMax=90))
 	double ClosedLoopSearchAngle = 11.25;
-	
+
 	/** Whether to limit the length of the generated path */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Limits", meta=(PCG_NotOverridable))
 	bool bUseMaxLength = false;
@@ -133,6 +133,10 @@ public:
 	/** Whether to stop sampling when going out of bounds. While path will be cut, there's a chance that the head of the search comes back into the bounds, which would start a new extrusion. With this option disabled, new paths won't be permitted to exist. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Limits", meta=(PCG_Overridable))
 	bool bAllowNewExtrusions = false;
+
+	/** If enabled, seeds that start out of bounds won't be extruded. Orherwise, they are transformed until they eventually enter bounds and start an extrusion. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Limits", meta=(PCG_NotOverridable))
+	bool bIgnoreOutOfBoundsSeeds = false;
 
 	/** TBD */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging & Forwarding")
@@ -197,6 +201,7 @@ namespace PCGExExtrudeTensors
 		FPCGPoint Origin;
 
 	public:
+		virtual ~FExtrusion() = default;
 		FProcessor* Processor = nullptr;
 		const FPCGExExtrudeTensorsContext* Context = nullptr;
 		const UPCGExExtrudeTensorsSettings* Settings = nullptr;
@@ -219,10 +224,96 @@ namespace PCGExExtrudeTensors
 
 		void SetOriginPosition(const FVector& InPosition);
 
-		bool Advance();
-		bool Extrude(const PCGExTensor::FTensorSample& Sample);
-		void Insert(const PCGExTensor::FTensorSample& Sample, const FVector& InPosition) const;
+		virtual bool Advance() = 0;
 		void Complete();
+
+	protected:
+		bool OnAdvanced(const bool bStop);
+		bool Extrude(const PCGExTensor::FTensorSample& Sample);
+		void StartNewExtrusion();
+		void Insert(const PCGExTensor::FTensorSample& Sample, const FVector& InPosition) const;
+	};
+
+	template <bool bHasLimits, bool bAllowNewExtrusions, bool bSearchForClosedLoops>
+	class TExtrusion : public FExtrusion
+	{
+	public:
+		TExtrusion(const int32 InSeedIndex, const TSharedRef<PCGExData::FFacade>& InFacade, const int32 InMaxIterations):
+			FExtrusion(InSeedIndex, InFacade, InMaxIterations)
+		{
+		}
+
+		virtual bool Advance() override
+		{
+			if (bIsStopped) { return false; }
+
+			const FVector PreviousHead = Head;
+			bool bSuccess = false;
+			const PCGExTensor::FTensorSample Sample = Context->TensorsHandler->SampleAtPosition(Head, bSuccess);
+
+			if (!bSuccess) { return OnAdvanced(true); }
+
+			Head += Sample.DirectionAndSize;
+
+			if (bSearchForClosedLoops)
+			{
+				const FVector Tail = Origin.Transform.GetLocation();
+				if (FVector::DistSquared(Metrics.Last, Tail) <= Context->ClosedLoopSquaredDistance &&
+					FVector::DotProduct(Sample.DirectionAndSize.GetSafeNormal(), (Tail - PreviousHead).GetSafeNormal()) > Context->ClosedLoopSearchDot)
+				{
+					bIsClosedLoop = true;
+					return OnAdvanced(true);
+				}
+			}
+
+			if constexpr (bHasLimits)
+			{
+				// Make sure we are within bounds
+#if PCGEX_ENGINE_VERSION <= 503
+				bool bWithinLimits = Context->Limits.IsInside(Head);
+#else
+				bool bWithinLimits = Context->Limits.IsInsideOrOn(Head);
+#endif
+
+				if (!bWithinLimits)
+				{
+					if (bIsExtruding && !bIsComplete)
+					{
+						if (Settings->OutOfBoundHandling == EPCGExOutOfBoundPathPointHandling::Exclude)
+						{
+							// Nothing to do
+						}
+						else if (Settings->OutOfBoundHandling == EPCGExOutOfBoundPathPointHandling::Include) { Insert(Sample, Head); }
+						else if (Settings->OutOfBoundHandling == EPCGExOutOfBoundPathPointHandling::IncludeAndSnap) { Insert(Sample, Head); }
+						Complete();
+
+						if constexpr (!bAllowNewExtrusions)
+						{
+							return OnAdvanced(true);
+						}
+					}
+
+					return OnAdvanced(false);
+				}
+
+				if (bIsComplete)
+				{
+					if constexpr (bAllowNewExtrusions)
+					{
+						StartNewExtrusion();
+					}
+					return OnAdvanced(true);
+				}
+
+				if (!bIsExtruding)
+				{
+					// Start writing path
+					Metrics = PCGExPaths::FPathMetrics(PreviousHead);
+				}
+			}
+
+			return OnAdvanced(!Extrude(Sample));
+		}
 	};
 
 	class FProcessor final : public PCGExPointsMT::TPointsProcessor<FPCGExExtrudeTensorsContext, UPCGExExtrudeTensorsSettings>
@@ -250,7 +341,6 @@ namespace PCGExExtrudeTensors
 
 		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager> InAsyncManager) override;
 
-		void PrepareExtrusion(const TSharedPtr<FExtrusion>& InExtrusion);
 		void InitExtrusionFromSeed(const int32 InSeedIndex);
 		void InitExtrusionFromExtrusion(const TSharedRef<FExtrusion>& InExtrusion);
 
@@ -264,5 +354,8 @@ namespace PCGExExtrudeTensors
 		bool UpdateExtrusionQueue();
 
 		void CompleteWork() override;
+
+	protected:
+		TSharedPtr<FExtrusion> CreateExtrusionTemplate(const int32 InSeedIndex, const int32 InMaxIterations);
 	};
 }

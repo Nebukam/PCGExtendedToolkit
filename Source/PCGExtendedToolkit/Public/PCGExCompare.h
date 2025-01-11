@@ -29,10 +29,10 @@ enum class EPCGExIndexMode : uint8
 };
 
 UENUM()
-enum class EPCGExDotUnits : uint8
+enum class EPCGExAngularDomain : uint8
 {
-	Raw     = 0 UMETA(DisplayName = "Normal (-1::1)", Tooltip="Read the value as a raw dot product result"),
-	Degrees = 1 UMETA(DisplayName = "Degrees", Tooltip="Read the value as degrees"),
+	Amplitude = 0 UMETA(DisplayName = "Amplitude", Tooltip="Read the value as the result of a normalized dot product"),
+	Degrees   = 1 UMETA(DisplayName = "Degrees", Tooltip="Read the value as degrees"),
 };
 
 UENUM()
@@ -601,87 +601,97 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExDotComparisonDetails
 	{
 	}
 
-	/** Comparison of the Dot value */
+	/** Comparison */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable))
 	EPCGExComparison Comparison = EPCGExComparison::EqualOrGreater;
 
-	/** If enabled, the dot product will be made absolute before testing. */
+	/** Value domain. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable))
-	EPCGExDotUnits DotUnits = EPCGExDotUnits::Raw;
+	EPCGExAngularDomain Domain = EPCGExAngularDomain::Amplitude;
 
 	/** If enabled, the dot product will be made absolute before testing. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable))
-	bool bUnsignedDot = false;
+	bool bUnsignedComparison = false;
 
 	/** Type of Dot value source */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable))
-	EPCGExInputValueType DotValue = EPCGExInputValueType::Constant;
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable, DisplayName="Threshold Input"))
+	EPCGExInputValueType ThresholdInput = EPCGExInputValueType::Constant;
 
 	/** Dot value use for comparison */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Dot or Degrees", EditCondition="DotValue!=EPCGExInputValueType::Constant", EditConditionHides))
-	FPCGAttributePropertyInputSelector DotOrDegreesAttribute;
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Threshold (Amplitude or Degrees)", EditCondition="ThresholdInput!=EPCGExInputValueType::Constant", EditConditionHides))
+	FPCGAttributePropertyInputSelector ThresholdAttribute;
 
 	/** Dot value use for comparison (In raw -1/1 range) */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Dot", EditCondition="DotValue==EPCGExInputValueType::Constant && DotUnits==EPCGExDotUnits::Raw", EditConditionHides, ClampMin=-1, ClampMax=1))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Amplitude", EditCondition="ThresholdInput==EPCGExInputValueType::Constant && Domain==EPCGExAngularDomain::Amplitude", EditConditionHides, ClampMin=-1, ClampMax=1))
 	double DotConstant = 1;
 
 	/** Tolerance for dot comparison. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="(Comparison==EPCGExComparison::NearlyEqual || Comparison==EPCGExComparison::NearlyNotEqual) && DotUnits==EPCGExDotUnits::Raw", EditConditionHides, ClampMin=0, ClampMax=1))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName=" └─ Tolerance", EditCondition="(Comparison==EPCGExComparison::NearlyEqual || Comparison==EPCGExComparison::NearlyNotEqual) && Domain==EPCGExAngularDomain::Amplitude", EditConditionHides, ClampMin=0, ClampMax=1))
 	double DotTolerance = 0.1;
 
 	/** Dot value use for comparison (In degrees) */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Degrees", EditCondition="DotValue==EPCGExInputValueType::Constant && DotUnits==EPCGExDotUnits::Degrees", EditConditionHides, ClampMin=0, ClampMax=180, Units="Degrees"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Degrees", EditCondition="ThresholdInput==EPCGExInputValueType::Constant && Domain==EPCGExAngularDomain::Degrees", EditConditionHides, ClampMin=0, ClampMax=180, Units="Degrees"))
 	double DegreesConstant = 0;
 
 	/** Tolerance for dot comparison. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Degrees", EditCondition="(Comparison==EPCGExComparison::NearlyEqual || Comparison==EPCGExComparison::NearlyNotEqual) && DotUnits==EPCGExDotUnits::Degrees", EditConditionHides, ClampMin=0, ClampMax=180, Units="Degrees"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName=" └─ Tolerance", EditCondition="(Comparison==EPCGExComparison::NearlyEqual || Comparison==EPCGExComparison::NearlyNotEqual) && Domain==EPCGExAngularDomain::Degrees", EditConditionHides, ClampMin=0, ClampMax=180, Units="Degrees"))
 	double DegreesTolerance = 0.1;
 
-	bool bUseLocalDot = false;
-	TSharedPtr<PCGExData::TBuffer<double>> LocalOperand;
+	bool bUseAttribute = false;
+	double ComparisonTolerance = 0;
+	double ComparisonThreshold = 0;
+	TSharedPtr<PCGExData::TBuffer<double>> ThresholdGetter;
 
 	bool Init(const FPCGContext* InContext, const TSharedRef<PCGExData::FFacade>& InPrimaryDataCache)
 	{
-		bUseLocalDot = DotValue == EPCGExInputValueType::Attribute;
+		bUseAttribute = ThresholdInput == EPCGExInputValueType::Attribute;
 
-		if (bUseLocalDot)
+		if (bUseAttribute)
 		{
-			LocalOperand = InPrimaryDataCache->GetBroadcaster<double>(DotOrDegreesAttribute);
-			if (!LocalOperand)
+			ThresholdGetter = InPrimaryDataCache->GetBroadcaster<double>(ThresholdAttribute);
+			if (!ThresholdGetter)
 			{
-				PCGE_LOG_C(Error, GraphAndLog, InContext, FText::Format(FTEXT("Invalid Dot attribute: \"{0}\"."), FText::FromName(DotOrDegreesAttribute.GetName())));
+				PCGE_LOG_C(Error, GraphAndLog, InContext, FText::Format(FTEXT("Invalid Dot attribute: \"{0}\"."), FText::FromName(ThresholdAttribute.GetName())));
 				return false;
 			}
 		}
 
-		if (DotUnits == EPCGExDotUnits::Degrees)
+		if (Domain == EPCGExAngularDomain::Degrees)
 		{
-			DotTolerance = PCGExMath::DegreesToDot(DegreesTolerance);
-			DotConstant = PCGExMath::DegreesToDotForComparison(DegreesConstant);
+			ComparisonThreshold = PCGExMath::DegreesToDot(DegreesConstant);
+			ComparisonTolerance = PCGExMath::DegreesToDot(DegreesTolerance);
+		}
+		else
+		{
+			ComparisonThreshold = DotConstant;
+			ComparisonTolerance = DotTolerance;
 		}
 
 		return true;
 	}
 
-	double GetDot(const int32 PointIndex) const
+	double GetComparisonThreshold(const int32 PointIndex) const
 	{
-		if (bUseLocalDot)
+		if (ThresholdGetter)
 		{
-			switch (DotUnits)
-			{
-			default: ;
-			case EPCGExDotUnits::Raw:
-				return LocalOperand->Read(PointIndex);
-			case EPCGExDotUnits::Degrees:
-				return PCGExMath::DegreesToDotForComparison(LocalOperand->Read(PointIndex) * 0.5);
-			}
+			if (Domain == EPCGExAngularDomain::Amplitude) { return ThresholdGetter->Read(PointIndex); }
+			else { return PCGExMath::DegreesToDot(ThresholdGetter->Read(PointIndex) * 0.5); }
 		}
-		return DotConstant;
+		return ComparisonThreshold;
 	}
 
 	bool Test(const double A, const double B) const
 	{
-		return PCGExCompare::Compare(Comparison, A, B, DotTolerance);
+		return bUnsignedComparison ?
+			       PCGExCompare::Compare(Comparison, FMath::Abs(A), FMath::Abs(B), ComparisonTolerance) :
+			       PCGExCompare::Compare(Comparison, A, B, ComparisonTolerance);
+	}
+
+	bool Test(const double A, const int32 Index) const
+	{
+		return bUnsignedComparison ?
+			       PCGExCompare::Compare(Comparison, FMath::Abs(A), FMath::Abs(GetComparisonThreshold(Index)), ComparisonTolerance) :
+			       PCGExCompare::Compare(Comparison, A, GetComparisonThreshold(Index), ComparisonTolerance);
 	}
 };
 

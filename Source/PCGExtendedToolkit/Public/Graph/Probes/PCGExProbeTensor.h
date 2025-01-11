@@ -23,6 +23,10 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExProbeConfigTensor : public FPCGExProbeCo
 	{
 	}
 
+	/** Mirror (*-1) the direction sampled from the tensors. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	bool bInvertTensorDirection = false;
+	
 	/** What matters more? */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable))
 	EPCGExProbeDirectionPriorization Favor = EPCGExProbeDirectionPriorization::Dot;
@@ -72,6 +76,7 @@ public:
 
 protected:
 	bool bUseConstantDir = false;
+	double Mirror = 1;
 	double MinDot = 0;
 	bool bUseBestDot = false;
 	FVector Direction = FVector::ForwardVector;

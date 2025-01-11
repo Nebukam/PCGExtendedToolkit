@@ -20,15 +20,9 @@ PCGExTensor::FTensorSample UPCGExTensorNull::SampleAtPosition(const FVector& InP
 
 	auto ProcessNeighbor = [&](const FPCGPointRef& InPointRef)
 	{
-		double Factor = 0;
-		FVector Guide = FVector::ZeroVector;
-
-		if (!ComputeFactor(InPosition, InPointRef, Factor, Guide)) { return; }
-
-		Samples.Emplace_GetRef(
-			FVector::ZeroVector,
-			Config.Potency * Config.PotencyFalloffCurveObj->Eval(Factor) * Config.Weight * Config.WeightFalloffCurveObj->Eval(Factor),
-			1);
+		PCGExTensor::FEffectorMetrics Metrics;
+		if (!ComputeFactor(InPosition, InPointRef, Metrics)) { return; }
+		Samples.Emplace_GetRef(FVector::ZeroVector, 1, 1);
 	};
 
 	Octree->FindElementsWithBoundsTest(BCAE, ProcessNeighbor);

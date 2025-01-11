@@ -51,6 +51,8 @@ class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExTensorDotFilterFactory : public UPCGExFil
 
 public:
 	FPCGExTensorDotFilterConfig Config;
+	TSharedPtr<PCGExTensor::FTensorsHandler> TensorsHandler;
+
 	virtual bool Init(FPCGExContext* InContext) override;
 	virtual TSharedPtr<PCGExPointFilter::FFilter> CreateFilter() const override;
 	virtual bool RegisterConsumableAttributesWithData(FPCGExContext* InContext, const UPCGData* InData) const override;
@@ -65,11 +67,13 @@ namespace PCGExPointsFilter
 			: FSimpleFilter(InFactory), TypedFilterFactory(InFactory)
 		{
 			DotComparison = TypedFilterFactory->Config.DotComparisonDetails;
+			TensorsHandler = TypedFilterFactory->TensorsHandler;
 		}
 
 		const TObjectPtr<const UPCGExTensorDotFilterFactory> TypedFilterFactory;
 
 		FPCGExDotComparisonDetails DotComparison;
+		TSharedPtr<PCGExTensor::FTensorsHandler> TensorsHandler;
 
 		TSharedPtr<PCGExData::TBuffer<FVector>> OperandA;
 
@@ -78,14 +82,16 @@ namespace PCGExPointsFilter
 		{
 			const FPCGPoint& Point = PointDataFacade->Source->GetInPoint(PointIndex);
 
-			const FVector A = TypedFilterFactory->Config.bTransformOperandA ?
-				                  OperandA->Read(PointIndex) :
-				                  Point.Transform.TransformVectorNoScale(OperandA->Read(PointIndex));
+			bool bSuccess = false;
+			const PCGExTensor::FTensorSample Sample = TensorsHandler->SampleAtPosition(Point.Transform.GetLocation(), bSuccess);
 
-			FVector B = FVector::Zero(); // <- TODO : Sample tensor
+			if (!bSuccess) { return false; }
 
-			const double Dot = DotComparison.bUnsignedDot ? FMath::Abs(FVector::DotProduct(A, B)) : FVector::DotProduct(A, B);
-			return DotComparison.Test(Dot, DotComparison.GetDot(PointIndex));
+			return DotComparison.Test(
+				FVector::DotProduct(
+					TypedFilterFactory->Config.bTransformOperandA ? OperandA->Read(PointIndex) : Point.Transform.TransformVectorNoScale(OperandA->Read(PointIndex)),
+					Sample.DirectionAndSize.GetSafeNormal()),
+				DotComparison.GetComparisonThreshold(PointIndex));
 		}
 
 		virtual ~TTensorDotFilter() override

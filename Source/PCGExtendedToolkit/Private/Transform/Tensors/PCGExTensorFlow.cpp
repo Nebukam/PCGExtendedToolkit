@@ -20,14 +20,12 @@ PCGExTensor::FTensorSample UPCGExTensorFlow::SampleAtPosition(const FVector& InP
 
 	auto ProcessNeighbor = [&](const FPCGPointRef& InPointRef)
 	{
-		double Factor = 0;
-		FVector Guide = FVector::ZeroVector;
-		if (!ComputeFactor(InPosition, InPointRef, Factor, Guide)) { return; }
+		PCGExTensor::FEffectorMetrics Metrics;
+		if (!ComputeFactor(InPosition, InPointRef, Metrics)) { return; }
 
 		Samples.Emplace_GetRef(
-			InPointRef.Point->Transform.GetRotation().RotateVector(Guide),
-			InPointRef.Point->Steepness * Config.PotencyFalloffCurveObj->Eval(Factor),
-			InPointRef.Point->Density * Config.WeightFalloffCurveObj->Eval(Factor));
+			InPointRef.Point->Transform.GetRotation().RotateVector(Metrics.Guide),
+			Metrics.Potency, Metrics.Weight);
 	};
 
 	Octree->FindElementsWithBoundsTest(BCAE, ProcessNeighbor);

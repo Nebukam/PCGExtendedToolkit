@@ -25,7 +25,7 @@ namespace PCGExCluster
  * 
  */
 UCLASS(Abstract)
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExClusterData : public UPCGExPointData
+class PCGEXTENDEDTOOLKIT_API UPCGExClusterData : public UPCGExPointData
 {
 	GENERATED_BODY()
 };
@@ -34,7 +34,7 @@ class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExClusterData : public UPCGExPointData
  * 
  */
 UCLASS()
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExClusterNodesData : public UPCGExClusterData
+class PCGEXTENDEDTOOLKIT_API UPCGExClusterNodesData : public UPCGExClusterData
 {
 	GENERATED_BODY()
 
@@ -46,20 +46,15 @@ public:
 	virtual void BeginDestroy() override;
 
 protected:
-	//TSharedPtr<TMap<uint32, int32>> EndpointsLookup;
+	//PCGEX_DATA_COPY_INTERNAL_DECL
 
-#if PCGEX_ENGINE_VERSION < 505
-	virtual UPCGSpatialData* CopyInternal() const override;
-#else
-	virtual UPCGSpatialData* CopyInternal(FPCGContext* Context) const override;
-#endif
 };
 
 /**
  * 
  */
 UCLASS()
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExClusterEdgesData : public UPCGExClusterData
+class PCGEXTENDEDTOOLKIT_API UPCGExClusterEdgesData : public UPCGExClusterData
 {
 	GENERATED_BODY()
 
@@ -74,11 +69,7 @@ public:
 protected:
 	TSharedPtr<PCGExCluster::FCluster> Cluster;
 
-#if PCGEX_ENGINE_VERSION < 505
-	virtual UPCGSpatialData* CopyInternal() const override;
-#else
-	virtual UPCGSpatialData* CopyInternal(FPCGContext* Context) const override;
-#endif
+	//PCGEX_DATA_COPY_INTERNAL_DECL
 };
 
 namespace PCGExClusterData

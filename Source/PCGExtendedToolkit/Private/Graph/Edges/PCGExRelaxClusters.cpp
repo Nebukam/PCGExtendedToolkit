@@ -111,7 +111,7 @@ namespace PCGExRelaxClusters
 		RelaxOperation->ReadBuffer = PrimaryBuffer.Get();
 		RelaxOperation->WriteBuffer = SecondaryBuffer.Get();
 
-		AsyncManager->FlushTasks(); // TODO Check if this is safe, we need to flush iteration tasks before creating new ones
+		// AsyncManager->FlushTasks(); // TODO Check if this is safe, we need to flush iteration tasks before creating new ones
 		
 		PCGEX_ASYNC_GROUP_CHKD_VOID(AsyncManager, IterationGroup)
 

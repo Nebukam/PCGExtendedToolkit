@@ -19,26 +19,7 @@ void UPCGExClusterNodesData::BeginDestroy()
 	Super::BeginDestroy();
 }
 
-#if PCGEX_ENGINE_VERSION < 505
-UPCGSpatialData* UPCGExClusterNodesData::CopyInternal() const
-{
-	UPCGExClusterNodesData* NewNodeData = nullptr;
-	{
-		FGCScopeGuard GCGuard;
-		NewNodeData = NewObject<UPCGExClusterNodesData>();
-	}
-	NewNodeData->CopyFrom(this);
-	return NewNodeData;
-}
-#else
-UPCGSpatialData* UPCGExClusterNodesData::CopyInternal(FPCGContext* Context) const
-{
-	UPCGExClusterNodesData* NewNodeData = FPCGContext::NewObject_AnyThread<UPCGExClusterNodesData>(Context);
-	NewNodeData->CopyFrom(this);
-	return NewNodeData;
-}
-#endif
-
+//PCGEX_DATA_COPY_INTERNAL_IMPL(UPCGExClusterNodesData)
 
 void UPCGExClusterEdgesData::InitializeFromPCGExData(const UPCGExPointData* InPCGExPointData, const PCGExData::EIOInit InitMode)
 {
@@ -66,26 +47,7 @@ const TSharedPtr<PCGExCluster::FCluster>& UPCGExClusterEdgesData::GetBoundCluste
 	return Cluster;
 }
 
-#if PCGEX_ENGINE_VERSION < 505
-UPCGSpatialData* UPCGExClusterEdgesData::CopyInternal() const
-{
-	UPCGExClusterEdgesData* NewEdgeData = nullptr;
-	{
-		FGCScopeGuard GCGuard;
-		NewEdgeData = NewObject<UPCGExClusterEdgesData>();
-	}
-	NewEdgeData->CopyFrom(this);
-	return NewEdgeData;
-}
-#else
-UPCGSpatialData* UPCGExClusterEdgesData::CopyInternal(FPCGContext* Context) const
-{
-	UPCGExClusterEdgesData* NewEdgeData = FPCGContext::NewObject_AnyThread<UPCGExClusterEdgesData>(Context);
-	NewEdgeData->CopyFrom(this);
-	return NewEdgeData;
-}
-#endif
-
+//PCGEX_DATA_COPY_INTERNAL_IMPL(UPCGExClusterEdgesData)
 
 void UPCGExClusterEdgesData::BeginDestroy()
 {

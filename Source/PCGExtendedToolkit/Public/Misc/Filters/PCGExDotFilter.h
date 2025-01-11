@@ -93,16 +93,12 @@ namespace PCGExPointsFilter
 		FORCEINLINE virtual bool Test(const int32 PointIndex) const override
 		{
 			const FPCGPoint& Point = PointDataFacade->Source->GetInPoint(PointIndex);
-
-			const FVector A = TypedFilterFactory->Config.bTransformOperandA ?
-				                  OperandA->Read(PointIndex) :
-				                  Point.Transform.TransformVectorNoScale(OperandA->Read(PointIndex));
-
-			FVector B = OperandB ? OperandB->Read(PointIndex).GetSafeNormal() : TypedFilterFactory->Config.OperandBConstant;
-			if (TypedFilterFactory->Config.bTransformOperandB) { B = Point.Transform.TransformVectorNoScale(B); }
-
-			const double Dot = DotComparison.bUnsignedDot ? FMath::Abs(FVector::DotProduct(A, B)) : FVector::DotProduct(A, B);
-			return DotComparison.Test(Dot, DotComparison.GetDot(PointIndex));
+			const FVector B = OperandB ? OperandB->Read(PointIndex).GetSafeNormal() : TypedFilterFactory->Config.OperandBConstant;
+			return DotComparison.Test(
+				FVector::DotProduct(
+					TypedFilterFactory->Config.bTransformOperandA ? Point.Transform.TransformVectorNoScale(OperandA->Read(PointIndex)) : OperandA->Read(PointIndex),
+					TypedFilterFactory->Config.bTransformOperandB ? Point.Transform.TransformVectorNoScale(B) : B),
+				PointIndex);
 		}
 
 		virtual ~TDotFilter() override

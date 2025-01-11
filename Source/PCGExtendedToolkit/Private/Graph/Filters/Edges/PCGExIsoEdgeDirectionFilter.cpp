@@ -71,15 +71,12 @@ bool FIsoEdgeDirectionFilter::Test(const PCGExGraph::FEdge& Edge) const
 bool FIsoEdgeDirectionFilter::TestDot(const int32 PtIndex, const FVector& EdgeDir) const
 {
 	const FPCGPoint& Point = PointDataFacade->Source->GetInPoint(PtIndex);
-
-	FVector RefDir = OperandDirection ? OperandDirection->Read(PtIndex) : TypedFilterFactory->Config.DirectionConstant;
-	if (TypedFilterFactory->Config.bTransformDirection) { RefDir = Point.Transform.TransformVectorNoScale(RefDir).GetSafeNormal(); }
-
-	double B = 0;
-	if (DotComparison.bUnsignedDot) { B = FMath::Abs(FVector::DotProduct(RefDir, EdgeDir)); }
-	else { B = FVector::DotProduct(RefDir, EdgeDir); }
-
-	return DotComparison.Test(DotComparison.GetDot(PtIndex), B);
+	const FVector RefDir = (OperandDirection ? OperandDirection->Read(PtIndex) : TypedFilterFactory->Config.DirectionConstant).GetSafeNormal();
+	return DotComparison.Test(
+		FVector::DotProduct(
+			TypedFilterFactory->Config.bTransformDirection ? Point.Transform.TransformVectorNoScale(RefDir) : RefDir,
+			EdgeDir),
+		PtIndex);
 }
 
 bool FIsoEdgeDirectionFilter::TestHash(const int32 PtIndex, const FVector& EdgeDir) const

@@ -15,25 +15,6 @@ namespace PCGExTensor
 		return Samples.Emplace_GetRef(InDirection, InPotency, InWeight);
 	}
 
-	FTensorSample FEffectorSamples::Flatten(const double InWeight)
-	{
-		TensorSample.Effectors = Samples.Num();
-
-		FVector DirectionAndSize = FVector::ZeroVector;
-
-		for (const FEffectorSample& EffectorSample : Samples)
-		{
-			const double S = (EffectorSample.Potency * (EffectorSample.Weight / TensorSample.Weight));
-			DirectionAndSize += EffectorSample.Direction * S;
-		}
-
-		TensorSample.DirectionAndSize = DirectionAndSize;
-		TensorSample.Rotation = FRotationMatrix::MakeFromX(DirectionAndSize.GetSafeNormal()).ToQuat();
-		TensorSample.Weight = InWeight;
-
-		return TensorSample;
-	}
-
 	FTensorsHandler::FTensorsHandler()
 	{
 	}

@@ -19,12 +19,14 @@ enum class EPCGExTensorSamplingMode : uint8
 };
 
 UENUM()
-enum class EPCGExEffectorCompositingMode : uint8
+enum class EPCGExEffectorFlattenMode : uint8
 {
-	Weighted        = 0 UMETA(DisplayName = "Weighted", ToolTip="Compute a weighted average of the sampled effectors"),
-	Closest         = 1 UMETA(DisplayName = "Closest", ToolTip="Uses the closest effector only"),
-	HighestPriority = 2 UMETA(DisplayName = "Highest Priority", ToolTip="Uses the effector with the highest priority"),
-	LowestPriority  = 3 UMETA(DisplayName = "Lowest Priority", ToolTip="Uses the effector with the lowest priority"),
+	Weighted         = 0 UMETA(DisplayName = "Weighted", ToolTip="Compute a weighted average of the sampled effectors"),
+	Closest          = 1 UMETA(DisplayName = "Closest", ToolTip="Uses the closest effector only"),
+	StrongestWeight  = 2 UMETA(DisplayName = "Strongest (Weight)", ToolTip="Uses the effector with the highest weight only"),
+	StrongestPotency = 3 UMETA(DisplayName = "Strongest (Potency)", ToolTip="Uses the effector with the highest potency only"),
+	HighestPriority  = 4 UMETA(DisplayName = "Highest Priority", ToolTip="Uses the effector with the highest priority"),
+	LowestPriority   = 5 UMETA(DisplayName = "Lowest Priority", ToolTip="Uses the effector with the lowest priority"),
 };
 
 UENUM()
@@ -97,7 +99,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExTensorConfigBase
 
 	/** How individual effectors on that tensor are composited */
 	//UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_NotOverridable, DisplayPriority=-1))
-	EPCGExEffectorCompositingMode Compositing = EPCGExEffectorCompositingMode::Weighted;
+	EPCGExEffectorFlattenMode Compositing = EPCGExEffectorFlattenMode::Weighted;
 
 	// Guide falloff
 
@@ -195,6 +197,18 @@ namespace PCGExTensor
 		~FTensorSample() = default;
 	};
 
+	struct FEffectorMetrics
+	{
+		double Distance = 0;
+		double Factor = 0;
+		double Potency = 0;
+		double Weight = 0;
+		FVector Guide = FVector::ForwardVector;
+
+		FEffectorMetrics() = default;
+		~FEffectorMetrics() = default;
+	};
+
 	struct FEffectorSample
 	{
 		FVector Direction = FVector::ZeroVector; // effector direction
@@ -222,7 +236,44 @@ namespace PCGExTensor
 		~FEffectorSamples() = default;
 
 		FEffectorSample& Emplace_GetRef(const FVector& InDirection, const double InPotency, const double InWeight);
-		FTensorSample Flatten(double InWeight);
+
+		template <EPCGExEffectorFlattenMode Mode = EPCGExEffectorFlattenMode::Weighted>
+		FTensorSample Flatten(double InWeight)
+		{
+			TensorSample.Effectors = Samples.Num();
+
+			if constexpr (Mode == EPCGExEffectorFlattenMode::Closest)
+			{
+				FVector DirectionAndSize = FVector::ZeroVector;
+
+				for (const FEffectorSample& EffectorSample : Samples)
+				{
+					const double S = (EffectorSample.Potency * (EffectorSample.Weight / TensorSample.Weight));
+					DirectionAndSize += EffectorSample.Direction * S;
+				}
+
+				TensorSample.DirectionAndSize = DirectionAndSize;
+				TensorSample.Rotation = FRotationMatrix::MakeFromX(DirectionAndSize.GetSafeNormal()).ToQuat();
+				TensorSample.Weight = InWeight;
+			}
+			else
+			{
+				// defaults to weighted 
+				FVector DirectionAndSize = FVector::ZeroVector;
+
+				for (const FEffectorSample& EffectorSample : Samples)
+				{
+					const double S = (EffectorSample.Potency * (EffectorSample.Weight / TensorSample.Weight));
+					DirectionAndSize += EffectorSample.Direction * S;
+				}
+
+				TensorSample.DirectionAndSize = DirectionAndSize;
+				TensorSample.Rotation = FRotationMatrix::MakeFromX(DirectionAndSize.GetSafeNormal()).ToQuat();
+				TensorSample.Weight = InWeight;
+			}
+
+			return TensorSample;
+		}
 	};
 
 	using FTensorSampleCallback = std::function<bool(const FVector&, FTensorSample&)>;

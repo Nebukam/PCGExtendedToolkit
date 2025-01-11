@@ -96,87 +96,24 @@ namespace PCGExExtrudeTensors
 		Metrics = PCGExPaths::FPathMetrics(Head);
 	}
 
-	bool FExtrusion::Advance()
+	void FExtrusion::Complete()
 	{
-		if (bIsStopped) { return false; }
+		if (bIsComplete || bIsStopped) { return; }
 
-		auto Exit = [&](const bool bStop)-> bool
+		bIsComplete = true;
+
+		ExtrudedPoints.Shrink();
+		if (ExtrudedPoints.Num() <= 1)
 		{
-			RemainingIterations--;
-
-			if (bStop || RemainingIterations <= 0)
-			{
-				Complete();
-				bIsStopped = true;
-			}
-
-			return !bIsStopped;
-		};
-
-		const FVector PreviousHead = Head;
-		bool bSuccess = false;
-		const PCGExTensor::FTensorSample Sample = Context->TensorsHandler->SampleAtPosition(Head, bSuccess);
-
-		if (!bSuccess) { return Exit(true); }
-
-		Head += Sample.DirectionAndSize;
-
-		if (Settings->bSearchForClosedLoops)
-		{
-			const FVector Tail = Origin.Transform.GetLocation();
-			if (FVector::DistSquared(Metrics.Last, Tail) <= Context->ClosedLoopSquaredDistance &&
-				FVector::DotProduct(Sample.DirectionAndSize.GetSafeNormal(), (Tail - PreviousHead).GetSafeNormal()) > Context->ClosedLoopSearchDot)
-			{
-				bIsClosedLoop = true;
-				return Exit(true);
-			}
+			PointDataFacade->Source->InitializeOutput(PCGExData::EIOInit::None);
+			PointDataFacade->Source->Disable();
+			return;
 		}
 
-		if (Context->Limits.IsValid)
-		{
-			// Make sure we are within bounds
-#if PCGEX_ENGINE_VERSION <= 503
-			bool bWithinLimits = Context->Limits.IsInside(Head);
-#else
-			bool bWithinLimits = Context->Limits.IsInsideOrOn(Head);
-#endif
+		if (!bIsClosedLoop) { if (Settings->bTagIfOpenPath) { PointDataFacade->Source->Tags->Add(Settings->IsOpenPathTag); } }
+		else { if (Settings->bTagIfClosedLoop) { PointDataFacade->Source->Tags->Add(Settings->IsClosedLoopTag); } }
 
-			if (!bWithinLimits)
-			{
-				if (bIsExtruding && !bIsComplete)
-				{
-					if (Settings->OutOfBoundHandling == EPCGExOutOfBoundPathPointHandling::Exclude)
-					{
-						// Nothing to do
-					}
-					else if (Settings->OutOfBoundHandling == EPCGExOutOfBoundPathPointHandling::Include) { Insert(Sample, Head); }
-					else if (Settings->OutOfBoundHandling == EPCGExOutOfBoundPathPointHandling::IncludeAndSnap) { Insert(Sample, Head); }
-					Complete();
-				}
-
-				return Exit(false);
-			}
-
-			if (bIsComplete)
-			{
-				if (RemainingIterations > 1)
-				{
-					// We re-entered bounds from a previously completed path.
-					// TODO : Start a new extrusion from head if selected mode allows for it
-					// TODO : Set extrusion origin to be the intersection point with the limit box
-					Processor->InitExtrusionFromExtrusion(SharedThis(this));
-				}
-				return Exit(true);
-			}
-
-			if (!bIsExtruding)
-			{
-				// Start writing path
-				Metrics = PCGExPaths::FPathMetrics(PreviousHead);
-			}
-		}
-
-		return Exit(!Extrude(Sample));
+		PointDataFacade->Source->GetOutKeys(true);
 	}
 
 	bool FExtrusion::Extrude(const PCGExTensor::FTensorSample& Sample)
@@ -206,6 +143,32 @@ namespace PCGExExtrudeTensors
 		return !(Length >= MaxLength || ExtrudedPoints.Num() >= MaxPointCount);
 	}
 
+	void FExtrusion::StartNewExtrusion()
+	{
+		if (RemainingIterations > 1)
+		{
+			// We re-entered bounds from a previously completed path.
+			// TODO : Start a new extrusion from head if selected mode allows for it
+			// TODO : Set extrusion origin to be the intersection point with the limit box
+			Processor->InitExtrusionFromExtrusion(SharedThis(this));
+		}
+	}
+
+
+	bool FExtrusion::OnAdvanced(const bool bStop)
+	{
+		RemainingIterations--;
+
+		if (bStop || RemainingIterations <= 0)
+		{
+			Complete();
+			bIsStopped = true;
+		}
+
+		return !bIsStopped;
+	}
+
+
 	void FExtrusion::Insert(const PCGExTensor::FTensorSample& Sample, const FVector& InPosition) const
 	{
 		FPCGPoint& Point = ExtrudedPoints.Emplace_GetRef(ExtrudedPoints.Last());
@@ -231,25 +194,6 @@ namespace PCGExExtrudeTensors
 		Point.Transform.SetLocation(InPosition);
 	}
 
-	void FExtrusion::Complete()
-	{
-		if (bIsComplete || bIsStopped) { return; }
-
-		bIsComplete = true;
-
-		ExtrudedPoints.Shrink();
-		if (ExtrudedPoints.Num() <= 1)
-		{
-			PointDataFacade->Source->InitializeOutput(PCGExData::EIOInit::None);
-			PointDataFacade->Source->Disable();
-			return;
-		}
-
-		if (!bIsClosedLoop) { if (Settings->bTagIfOpenPath) { PointDataFacade->Source->Tags->Add(Settings->IsOpenPathTag); } }
-		else { if (Settings->bTagIfClosedLoop) { PointDataFacade->Source->Tags->Add(Settings->IsClosedLoopTag); } }
-
-		PointDataFacade->Source->GetOutKeys(true);
-	}
 
 	FProcessor::~FProcessor()
 	{
@@ -311,29 +255,23 @@ namespace PCGExExtrudeTensors
 		return true;
 	}
 
-	void FProcessor::PrepareExtrusion(const TSharedPtr<FExtrusion>& InExtrusion)
-	{
-		InExtrusion->PointDataFacade->Source->IOIndex = BatchIndex * 1000000 + InExtrusion->SeedIndex;
-		AttributesToPathTags.Tag(InExtrusion->SeedIndex, InExtrusion->PointDataFacade->Source);
-
-		InExtrusion->Processor = this;
-		InExtrusion->Context = Context;
-		InExtrusion->Settings = Settings;
-	}
-
 	void FProcessor::InitExtrusionFromSeed(const int32 InSeedIndex)
 	{
+		if (Settings->bIgnoreOutOfBoundsSeeds && Context->Limits.IsValid)
+		{
+			const FVector Head = PointDataFacade->Source->GetInPoint(InSeedIndex).Transform.GetLocation();
+#if PCGEX_ENGINE_VERSION <= 503
+			bool bWithinLimits = Context->Limits.IsInside(Head);
+#else
+			bool bWithinLimits = Context->Limits.IsInsideOrOn(Head);
+#endif
+			if (!bWithinLimits) { return; }
+		}
+
 		const int32 Iterations = PerPointIterations ? PerPointIterations->Read(InSeedIndex) : Settings->Iterations;
 		if (Iterations < 1) { return; }
 
-		const TSharedPtr<PCGExData::FPointIO> NewIO = Context->MainPoints->Emplace_GetRef(PointDataFacade->Source->GetIn(), PCGExData::EIOInit::None);
-		if (!NewIO) { return; }
-
-		PCGEX_MAKE_SHARED(Facade, PCGExData::FFacade, NewIO.ToSharedRef());
-		PCGEX_INIT_IO_VOID(Facade->Source, PCGExData::EIOInit::New);
-		PCGEX_MAKE_SHARED(NewExtrusion, FExtrusion, InSeedIndex, Facade.ToSharedRef(), Iterations);
-
-		PrepareExtrusion(NewExtrusion);
+		const TSharedPtr<FExtrusion> NewExtrusion = CreateExtrusionTemplate(InSeedIndex, Iterations);
 
 		if (Settings->bUseMaxLength) { NewExtrusion->MaxLength = PerPointMaxLength ? PerPointMaxLength->Read(InSeedIndex) : Settings->MaxLength; }
 		if (Settings->bUseMaxPointsCount) { NewExtrusion->MaxPointCount = PerPointMaxPoints ? PerPointMaxPoints->Read(InSeedIndex) : Settings->MaxPointsCount; }
@@ -345,18 +283,8 @@ namespace PCGExExtrudeTensors
 	{
 		if (!Settings->bAllowNewExtrusions) { return; }
 
-		const TSharedPtr<PCGExData::FPointIO> NewIO = Context->MainPoints->Emplace_GetRef(PointDataFacade->Source->GetIn(), PCGExData::EIOInit::None);
-		if (!NewIO) { return; }
-
-		PCGEX_MAKE_SHARED(Facade, PCGExData::FFacade, NewIO.ToSharedRef());
-		PCGEX_INIT_IO_VOID(Facade->Source, PCGExData::EIOInit::New);
-		PCGEX_MAKE_SHARED(NewExtrusion, FExtrusion, InExtrusion->SeedIndex, Facade.ToSharedRef(), InExtrusion->RemainingIterations);
-
-		PrepareExtrusion(NewExtrusion);
+		const TSharedPtr<FExtrusion> NewExtrusion = CreateExtrusionTemplate(InExtrusion->SeedIndex, InExtrusion->RemainingIterations);
 		NewExtrusion->SetOriginPosition(InExtrusion->Head);
-
-		if (Settings->bUseMaxLength) { NewExtrusion->MaxLength = PerPointMaxLength ? PerPointMaxLength->Read(InExtrusion->SeedIndex) : Settings->MaxLength; }
-		if (Settings->bUseMaxPointsCount) { NewExtrusion->MaxPointCount = PerPointMaxPoints ? PerPointMaxPoints->Read(InExtrusion->SeedIndex) : Settings->MaxPointsCount; }
 
 		{
 			FWriteScopeLock WriteScopeLock(NewExtrusionLock);
@@ -392,11 +320,13 @@ namespace PCGExExtrudeTensors
 
 	void FProcessor::OnRangeProcessingComplete()
 	{
-		AsyncManager->FlushTasks(); // TODO Check if this is safe, we need to flush iteration tasks before creating new ones
-		
+		// AsyncManager->FlushTasks(); // TODO Check if this is safe, we need to flush iteration tasks before creating new ones
+
 		RemainingIterations--;
+		// TODO : If detecting collisions is enabled, start detection loop here
+		// Note : Closed loop search is probably very redundant here with collision
+		// Test only with last edge of each extrusion against all others extrusions including itself
 		if (!UpdateExtrusionQueue()) { StartParallelLoopForRange(ExtrusionQueue.Num()); }
-		
 	}
 
 	bool FProcessor::UpdateExtrusionQueue()
@@ -425,6 +355,81 @@ namespace PCGExExtrudeTensors
 	{
 		for (const TSharedPtr<FExtrusion>& E : ExtrusionQueue) { if (E) { E->Complete(); } }
 		ExtrusionQueue.Empty();
+	}
+
+	TSharedPtr<FExtrusion> FProcessor::CreateExtrusionTemplate(const int32 InSeedIndex, const int32 InMaxIterations)
+	{
+		const TSharedPtr<PCGExData::FPointIO> NewIO = Context->MainPoints->Emplace_GetRef(PointDataFacade->Source->GetIn(), PCGExData::EIOInit::None);
+		if (!NewIO) { return nullptr; }
+
+		PCGEX_MAKE_SHARED(Facade, PCGExData::FFacade, NewIO.ToSharedRef());
+		if (!Facade->Source->InitializeOutput(PCGExData::EIOInit::New)) { return nullptr; }
+
+		TSharedPtr<FExtrusion> NewExtrusion = nullptr;
+
+		// I know it sucks, but it allows for constexpr checks in Advance
+		if (Settings->bAllowNewExtrusions)
+		{
+			if (Settings->bSearchForClosedLoops)
+			{
+				if (Context->Limits.IsValid)
+				{
+					NewExtrusion = MakeShared<TExtrusion<true, true, true>>(InSeedIndex, Facade.ToSharedRef(), InMaxIterations);
+				}
+				else
+				{
+					NewExtrusion = MakeShared<TExtrusion<false, true, true>>(InSeedIndex, Facade.ToSharedRef(), InMaxIterations);
+				}
+			}
+			else
+			{
+				if (Context->Limits.IsValid)
+				{
+					NewExtrusion = MakeShared<TExtrusion<true, true, false>>(InSeedIndex, Facade.ToSharedRef(), InMaxIterations);
+				}
+				else
+				{
+					NewExtrusion = MakeShared<TExtrusion<false, true, false>>(InSeedIndex, Facade.ToSharedRef(), InMaxIterations);
+				}
+			}
+		}
+		else
+		{
+			if (Settings->bSearchForClosedLoops)
+			{
+				if (Context->Limits.IsValid)
+				{
+					NewExtrusion = MakeShared<TExtrusion<true, false, true>>(InSeedIndex, Facade.ToSharedRef(), InMaxIterations);
+				}
+				else
+				{
+					NewExtrusion = MakeShared<TExtrusion<false, false, true>>(InSeedIndex, Facade.ToSharedRef(), InMaxIterations);
+				}
+			}
+			else
+			{
+				if (Context->Limits.IsValid)
+				{
+					NewExtrusion = MakeShared<TExtrusion<true, false, false>>(InSeedIndex, Facade.ToSharedRef(), InMaxIterations);
+				}
+				else
+				{
+					NewExtrusion = MakeShared<TExtrusion<false, false, false>>(InSeedIndex, Facade.ToSharedRef(), InMaxIterations);
+				}
+			}
+		}
+
+		if (Settings->bUseMaxLength) { NewExtrusion->MaxLength = PerPointMaxLength ? PerPointMaxLength->Read(InSeedIndex) : Settings->MaxLength; }
+		if (Settings->bUseMaxPointsCount) { NewExtrusion->MaxPointCount = PerPointMaxPoints ? PerPointMaxPoints->Read(InSeedIndex) : Settings->MaxPointsCount; }
+
+		NewExtrusion->PointDataFacade->Source->IOIndex = BatchIndex * 1000000 + InSeedIndex;
+		AttributesToPathTags.Tag(InSeedIndex, Facade->Source);
+
+		NewExtrusion->Processor = this;
+		NewExtrusion->Context = Context;
+		NewExtrusion->Settings = Settings;
+
+		return NewExtrusion;
 	}
 }
 

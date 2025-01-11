@@ -27,15 +27,12 @@ PCGExTensor::FTensorSample UPCGExTensorPathFlow::SampleAtPosition(const FVector&
 	for (const TSharedPtr<const FPCGSplineStruct>& Spline : *Splines)
 	{
 		FTransform T = FTransform::Identity;
-		double Factor = 0;
-		FVector Guide = FVector::ZeroVector;
-
-		if (!ComputeFactor(InPosition, *Spline.Get(), Config.Radius, T, Factor, Guide)) { continue; }
+		PCGExTensor::FEffectorMetrics Metrics;
+		if (!ComputeFactor(InPosition, *Spline.Get(), Config.Radius, T, Metrics)) { continue; }
 
 		Samples.Emplace_GetRef(
-			FRotationMatrix::MakeFromX(PCGExMath::GetDirection(T.GetRotation(), Config.SplineDirection)).ToQuat().RotateVector(Guide),
-			Config.Potency * Config.PotencyFalloffCurveObj->Eval(Factor),
-			Config.Weight * Config.WeightFalloffCurveObj->Eval(Factor));
+			FRotationMatrix::MakeFromX(PCGExMath::GetDirection(T.GetRotation(), Config.SplineDirection)).ToQuat().RotateVector(Metrics.Guide),
+			Metrics.Potency, Metrics.Weight);
 	}
 
 	return Samples.Flatten(Config.TensorWeight);
