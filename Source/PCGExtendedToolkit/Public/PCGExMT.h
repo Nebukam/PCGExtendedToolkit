@@ -143,6 +143,7 @@ namespace PCGExMT
 		std::atomic<EAsyncHandleState> State{EAsyncHandleState::Idle};
 
 	public:
+		int32 HandleIdx = -1;
 		virtual FString HandleId() const { return TEXT("NOT IMPLEMENTED"); }
 
 		FAsyncHandle() = default;
@@ -150,7 +151,7 @@ namespace PCGExMT
 
 		bool IsCancelled() const { return bIsCancelled.load(std::memory_order_acquire); }
 
-		virtual void SetRoot(const TSharedPtr<FAsyncMultiHandle>& InRoot);
+		virtual void SetRoot(const TSharedPtr<FAsyncMultiHandle>& InRoot, int32 InHandleIdx = -1);
 		void SetParent(const TSharedPtr<FAsyncMultiHandle>& InParent);
 
 		virtual bool Start();    // Return whether the task is running or not
@@ -177,7 +178,7 @@ namespace PCGExMT
 
 		FCompletionCallback OnCompleteCallback; // Only called with handle was not cancelled
 
-		virtual void SetRoot(const TSharedPtr<FAsyncMultiHandle>& InRoot) override;
+		virtual void SetRoot(const TSharedPtr<FAsyncMultiHandle>& InRoot, int32 InHandleIdx) override;
 
 		void IncrementPendingTasks();
 		void IncrementCompletedTasks();
@@ -252,7 +253,6 @@ namespace PCGExMT
 		virtual bool Cancel() override;
 
 		virtual void Reset() override;
-		void FlushTasks();
 
 		void ReserveTasks(const int32 NumTasks);
 
@@ -266,7 +266,7 @@ namespace PCGExMT
 		std::atomic<bool> bIsResetting{false};
 		bool IsResetting() const { return bIsResetting.load(std::memory_order_acquire); }
 
-		TArray<TSharedPtr<FTask>> Tasks;
+		TArray<TWeakPtr<FTask>> Tasks;
 		TArray<TSharedPtr<FTaskGroup>> Groups;
 		TArray<TSharedPtr<FAsyncToken>> Tokens;
 

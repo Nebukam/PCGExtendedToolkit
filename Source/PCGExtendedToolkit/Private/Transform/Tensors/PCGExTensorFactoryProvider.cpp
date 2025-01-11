@@ -26,8 +26,32 @@ bool UPCGExTensorFactoryData::InitInternalData(FPCGExContext* InContext)
 	return true;
 }
 
+TArray<FPCGPinProperties> UPCGExTensorFactoryProviderSettings::InputPinProperties() const
+{
+	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
+	PCGEX_PIN_PARAM(PCGExTensor::SourceTensorConfigSourceLabel, "A tensor that already exist which settings will be used to override the settings of this one. This is to streamline re-using params between tensors, or to 'fake' the ability to transform tensors.", Advanced, {})
+	return PinProperties;
+}
+
 UPCGExFactoryData* UPCGExTensorFactoryProviderSettings::CreateFactory(FPCGExContext* InContext, UPCGExFactoryData* InFactory) const
 {
+	if (InFactory)
+	{
+		TArray<FPCGTaggedData> Collection = InContext->InputData.GetInputsByPin(PCGExTensor::SourceTensorConfigSourceLabel);
+		const UPCGExTensorFactoryData* InFactoryData = Collection.IsEmpty() ? nullptr : Cast<UPCGExTensorFactoryData>(Collection[0].Data);
+		if (InFactoryData)
+		{
+			if (InFactoryData->GetClass() == GetClass())
+			{
+				// Same type let's automate
+				// TODO : PCGExHelpers::CopyProperties()
+			}
+			else
+			{
+				// We can only inherit a few settings
+			}
+		}
+	}
 	return InFactory;
 }
 

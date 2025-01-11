@@ -54,9 +54,6 @@ bool FPCGExPathSplineMeshElement::Boot(FPCGExContext* InContext) const
 			PCGE_LOG(Error, GraphAndLog, FTEXT("Failed to build collection from attribute set."));
 			return false;
 		}
-		else
-		{
-		}
 	}
 
 	PCGEX_VALIDATE_NAME_CONSUMABLE(Settings->AssetPathAttributeName)

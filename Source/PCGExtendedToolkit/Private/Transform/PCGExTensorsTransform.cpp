@@ -135,8 +135,6 @@ namespace PCGExTensorsTransform
 
 	void FProcessor::OnPointsProcessingComplete()
 	{
-		// AsyncManager->FlushTasks(); // TODO Check if this is safe, we need to flush iteration tasks before creating new ones
-		
 		bIteratedOnce = true;
 		RemainingIterations--;
 		if (RemainingIterations > 0) { StartParallelLoopForPoints(); }

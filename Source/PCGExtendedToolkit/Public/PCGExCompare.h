@@ -675,7 +675,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExDotComparisonDetails
 		if (ThresholdGetter)
 		{
 			if (Domain == EPCGExAngularDomain::Amplitude) { return ThresholdGetter->Read(PointIndex); }
-			else { return PCGExMath::DegreesToDot(ThresholdGetter->Read(PointIndex) * 0.5); }
+			return PCGExMath::DegreesToDot(ThresholdGetter->Read(PointIndex) * 0.5);
 		}
 		return ComparisonThreshold;
 	}

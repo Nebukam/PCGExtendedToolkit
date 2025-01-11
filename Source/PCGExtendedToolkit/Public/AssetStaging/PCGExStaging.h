@@ -184,7 +184,7 @@ namespace PCGExStaging
 
 			C** Collection = CollectionMap.Find(CollectionIdx);
 			if (!Collection || !(*Collection)->IsValidIndex(EntryIndex)) { return false; }
-			
+
 			return (*Collection)->GetEntryAt(OutEntry, EntryIndex, EntryHost);
 		}
 

@@ -28,7 +28,6 @@ void UPCGExFactoryData::InitializeFromPCGExData(const UPCGExPointData* InPCGExPo
 
 void UPCGExFactoryData::InitializeFromFactory(const UPCGExFactoryData* InFactoryData)
 {
-	
 }
 
 void UPCGExFactoryData::HandleFailedInitializationFromFactory(const UPCGPointData* InPointData)

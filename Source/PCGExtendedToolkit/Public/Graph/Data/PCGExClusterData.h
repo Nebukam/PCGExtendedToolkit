@@ -45,9 +45,7 @@ public:
 
 	virtual void BeginDestroy() override;
 
-protected:
 	//PCGEX_DATA_COPY_INTERNAL_DECL
-
 };
 
 /**

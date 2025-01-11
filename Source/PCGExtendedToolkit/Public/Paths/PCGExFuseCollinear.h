@@ -38,7 +38,7 @@ public:
 	/** Angular threshold for collinearity. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, Units="Degrees", ClampMin=0, ClampMax=180))
 	double Threshold = 10;
-	
+
 	/** Fuse points that are not collinear (Smooth-like). */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	bool bInvertThreshold = false;

@@ -113,6 +113,10 @@ namespace PCGExExtrudeTensors
 		if (!bIsClosedLoop) { if (Settings->bTagIfOpenPath) { PointDataFacade->Source->Tags->Add(Settings->IsOpenPathTag); } }
 		else { if (Settings->bTagIfClosedLoop) { PointDataFacade->Source->Tags->Add(Settings->IsClosedLoopTag); } }
 
+		if (Settings->bTagIfIsStoppedByBounds && bHitBounds) { PointDataFacade->Source->Tags->Add(Settings->IsStoppedByBoundsTag); }
+		if (Settings->bTagIfChildExtrusion && bIsChildExtrusion) { PointDataFacade->Source->Tags->Add(Settings->IsChildExtrusionTag); }
+		if (Settings->bTagIfIsFollowUp && bIsFollowUp) { PointDataFacade->Source->Tags->Add(Settings->IsFollowUpTag); }
+
 		PointDataFacade->Source->GetOutKeys(true);
 	}
 
@@ -150,7 +154,11 @@ namespace PCGExExtrudeTensors
 			// We re-entered bounds from a previously completed path.
 			// TODO : Start a new extrusion from head if selected mode allows for it
 			// TODO : Set extrusion origin to be the intersection point with the limit box
-			Processor->InitExtrusionFromExtrusion(SharedThis(this));
+			if (const TSharedPtr<FExtrusion> ChildExtrusion = Processor->InitExtrusionFromExtrusion(SharedThis(this)))
+			{
+				ChildExtrusion->bIsChildExtrusion = true;
+				ChildExtrusion->bIsFollowUp = bIsComplete;
+			}
 		}
 	}
 
@@ -192,6 +200,8 @@ namespace PCGExExtrudeTensors
 		}
 
 		Point.Transform.SetLocation(InPosition);
+
+		if (Settings->bRefreshSeed) { Point.Seed = PCGExRandom::ComputeSeed(Point, FVector(Origin.Seed)); }
 	}
 
 
@@ -279,9 +289,9 @@ namespace PCGExExtrudeTensors
 		ExtrusionQueue[InSeedIndex] = NewExtrusion;
 	}
 
-	void FProcessor::InitExtrusionFromExtrusion(const TSharedRef<FExtrusion>& InExtrusion)
+	TSharedPtr<FExtrusion> FProcessor::InitExtrusionFromExtrusion(const TSharedRef<FExtrusion>& InExtrusion)
 	{
-		if (!Settings->bAllowNewExtrusions) { return; }
+		if (!Settings->bAllowChildExtrusions) { return nullptr; }
 
 		const TSharedPtr<FExtrusion> NewExtrusion = CreateExtrusionTemplate(InExtrusion->SeedIndex, InExtrusion->RemainingIterations);
 		NewExtrusion->SetOriginPosition(InExtrusion->Head);
@@ -290,6 +300,8 @@ namespace PCGExExtrudeTensors
 			FWriteScopeLock WriteScopeLock(NewExtrusionLock);
 			NewExtrusions.Add(NewExtrusion);
 		}
+
+		return NewExtrusion;
 	}
 
 	void FProcessor::PrepareSingleLoopScopeForPoints(const PCGExMT::FScope& Scope)
@@ -315,13 +327,11 @@ namespace PCGExExtrudeTensors
 		{
 			ExtrusionQueue[Iteration]->Complete();
 			ExtrusionQueue[Iteration] = nullptr;
-		};
+		}
 	}
 
 	void FProcessor::OnRangeProcessingComplete()
 	{
-		// AsyncManager->FlushTasks(); // TODO Check if this is safe, we need to flush iteration tasks before creating new ones
-
 		RemainingIterations--;
 		// TODO : If detecting collisions is enabled, start detection loop here
 		// Note : Closed loop search is probably very redundant here with collision
@@ -367,57 +377,38 @@ namespace PCGExExtrudeTensors
 
 		TSharedPtr<FExtrusion> NewExtrusion = nullptr;
 
-		// I know it sucks, but it allows for constexpr checks in Advance
-		if (Settings->bAllowNewExtrusions)
+#define PCGEX_NEW_EXTRUSION(_FLAGS) NewExtrusion = MakeShared<TExtrusion<_FLAGS>>(InSeedIndex, Facade.ToSharedRef(), InMaxIterations);
+#define PCGEX_1_FLAGS_CASE(_A) case EExtrusionFlags::_A : PCGEX_NEW_EXTRUSION(EExtrusionFlags::_A) break;
+#define PCGEX_2_FLAGS(_A, _B) static_cast<EExtrusionFlags>(static_cast<uint32>(EExtrusionFlags::_A) | static_cast<uint32>(EExtrusionFlags::_B))
+#define PCGEX_2_FLAGS_CASE(_A, _B) case PCGEX_2_FLAGS(_A, _B) : PCGEX_NEW_EXTRUSION(PCGEX_2_FLAGS(_A, _B)) break;
+#define PCGEX_3_FLAGS(_A, _B, _C) static_cast<EExtrusionFlags>(static_cast<uint32>(EExtrusionFlags::_A) | static_cast<uint32>(EExtrusionFlags::_B) | static_cast<uint32>(EExtrusionFlags::_C))
+#define PCGEX_3_FLAGS_CASE(_A, _B, _C) case PCGEX_3_FLAGS(_A, _B, _C) : PCGEX_NEW_EXTRUSION(PCGEX_3_FLAGS(_A, _B, _C)) break;
+#define PCGEX_4_FLAGS(_A, _B, _C, _D) static_cast<EExtrusionFlags>(static_cast<uint32>(EExtrusionFlags::_A) | static_cast<uint32>(EExtrusionFlags::_B) | static_cast<uint32>(EExtrusionFlags::_C) | static_cast<uint32>(EExtrusionFlags::_D))
+#define PCGEX_4_FLAGS_CASE(_A, _B, _C, _D) case PCGEX_4_FLAGS(_A, _B, _C, _D) : PCGEX_NEW_EXTRUSION(PCGEX_4_FLAGS(_A, _B, _C, _D)) break;
+
+		switch (ComputeFlags(Settings, Context))
 		{
-			if (Settings->bSearchForClosedLoops)
-			{
-				if (Context->Limits.IsValid)
-				{
-					NewExtrusion = MakeShared<TExtrusion<true, true, true>>(InSeedIndex, Facade.ToSharedRef(), InMaxIterations);
-				}
-				else
-				{
-					NewExtrusion = MakeShared<TExtrusion<false, true, true>>(InSeedIndex, Facade.ToSharedRef(), InMaxIterations);
-				}
-			}
-			else
-			{
-				if (Context->Limits.IsValid)
-				{
-					NewExtrusion = MakeShared<TExtrusion<true, true, false>>(InSeedIndex, Facade.ToSharedRef(), InMaxIterations);
-				}
-				else
-				{
-					NewExtrusion = MakeShared<TExtrusion<false, true, false>>(InSeedIndex, Facade.ToSharedRef(), InMaxIterations);
-				}
-			}
+		PCGEX_1_FLAGS_CASE(None)
+		PCGEX_1_FLAGS_CASE(Bounded)
+		PCGEX_1_FLAGS_CASE(AllowsChildren)
+		PCGEX_1_FLAGS_CASE(ClosedLoop)
+		PCGEX_2_FLAGS_CASE(Bounded, AllowsChildren)
+		PCGEX_2_FLAGS_CASE(Bounded, ClosedLoop)
+		PCGEX_2_FLAGS_CASE(AllowsChildren, ClosedLoop)
+		PCGEX_3_FLAGS_CASE(Bounded, AllowsChildren, ClosedLoop)
+		default:
+			checkNoEntry(); // You missed flags dummy
+			break;
 		}
-		else
-		{
-			if (Settings->bSearchForClosedLoops)
-			{
-				if (Context->Limits.IsValid)
-				{
-					NewExtrusion = MakeShared<TExtrusion<true, false, true>>(InSeedIndex, Facade.ToSharedRef(), InMaxIterations);
-				}
-				else
-				{
-					NewExtrusion = MakeShared<TExtrusion<false, false, true>>(InSeedIndex, Facade.ToSharedRef(), InMaxIterations);
-				}
-			}
-			else
-			{
-				if (Context->Limits.IsValid)
-				{
-					NewExtrusion = MakeShared<TExtrusion<true, false, false>>(InSeedIndex, Facade.ToSharedRef(), InMaxIterations);
-				}
-				else
-				{
-					NewExtrusion = MakeShared<TExtrusion<false, false, false>>(InSeedIndex, Facade.ToSharedRef(), InMaxIterations);
-				}
-			}
-		}
+
+#undef PCGEX_NEW_EXTRUSION
+#undef PCGEX_1_FLAGS_CASE
+#undef PCGEX_2_FLAGS
+#undef PCGEX_2_FLAGS_CASE
+#undef PCGEX_3_FLAGS
+#undef PCGEX_3_FLAGS_CASE
+#undef PCGEX_4_FLAGS
+#undef PCGEX_4_FLAGS_CASE
 
 		if (Settings->bUseMaxLength) { NewExtrusion->MaxLength = PerPointMaxLength ? PerPointMaxLength->Read(InSeedIndex) : Settings->MaxLength; }
 		if (Settings->bUseMaxPointsCount) { NewExtrusion->MaxPointCount = PerPointMaxPoints ? PerPointMaxPoints->Read(InSeedIndex) : Settings->MaxPointsCount; }

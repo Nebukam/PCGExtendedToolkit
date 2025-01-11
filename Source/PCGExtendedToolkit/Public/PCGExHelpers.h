@@ -6,6 +6,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "HeadMountedDisplayTypes.h"
 #include "UObject/Interface.h"
 #include "GameFramework/Actor.h"
 
@@ -18,6 +19,7 @@
 #include "Engine/AssetManager.h"
 #include "Metadata/PCGMetadataAttributeTraits.h"
 #include "Async/Async.h"
+#include "UObject/GarbageCollectionSchema.h"
 
 #include "PCGExHelpers.generated.h"
 
@@ -219,6 +221,26 @@ namespace PCGExHelpers
 
 				SourceProperty->CopyCompleteValue(TargetValue, SourceValue);
 			}
+		}
+	}
+
+	static void CopyProperties(UObject* Target, const UObject* Source)
+	{
+		check(Source->GetClass() == Target->GetClass() || Target->GetClass()->IsChildOf(Source->GetClass()));
+		const UClass* ReferenceClass = Source->GetClass();
+
+		// Iterate over source properties
+		for (TFieldIterator<FProperty> It(ReferenceClass); It; ++It)
+		{
+			const FProperty* Property = *It;
+
+			// Skip properties that shouldn't be copied (like transient properties)
+			if (Property->HasAnyPropertyFlags(CPF_Transient | CPF_ConstParm | CPF_OutParm)) { continue; }
+
+			// Copy the value from source to target
+			const void* SourceValue = Property->ContainerPtrToValuePtr<void>(Source);
+			void* TargetValue = Property->ContainerPtrToValuePtr<void>(Target);
+			Property->CopyCompleteValue(TargetValue, SourceValue);
 		}
 	}
 

@@ -185,6 +185,7 @@ namespace PCGExTensor
 {
 	const FName OutputTensorLabel = TEXT("Tensor");
 	const FName SourceTensorsLabel = TEXT("Tensors");
+	const FName SourceTensorConfigSourceLabel = TEXT("Parent Tensor");
 
 	struct FTensorSample
 	{

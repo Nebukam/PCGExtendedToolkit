@@ -716,11 +716,8 @@ protected:
 		{
 			return Entry.SubCollection->GetEntryRandom(OutEntry, Seed * 2, OutHost);
 		}
-		else
-		{
-			OutEntry = &Entry;
-			OutHost = this;
-		}
+		OutEntry = &Entry;
+		OutHost = this;
 		return true;
 	}
 
@@ -736,11 +733,8 @@ protected:
 		{
 			return Entry.SubCollection->GetEntryWeightedRandom(OutEntry, Seed * 2, OutHost);
 		}
-		else
-		{
-			OutEntry = &Entry;
-			OutHost = this;
-		}
+		OutEntry = &Entry;
+		OutHost = this;
 		return true;
 	}
 
@@ -789,12 +783,9 @@ protected:
 			if ((TagInheritance & static_cast<uint8>(EPCGExAssetTagInheritance::Collection))) { OutTags.Append(Entry.SubCollection->CollectionTags); }
 			return Entry.SubCollection->GetEntryWeightedRandom(OutEntry, Seed * 2, OutHost);
 		}
-		else
-		{
-			if ((TagInheritance & static_cast<uint8>(EPCGExAssetTagInheritance::Asset))) { OutTags.Append(Entry.Tags); }
-			OutEntry = &Entry;
-			OutHost = this;
-		}
+		if ((TagInheritance & static_cast<uint8>(EPCGExAssetTagInheritance::Asset))) { OutTags.Append(Entry.Tags); }
+		OutEntry = &Entry;
+		OutHost = this;
 		return true;
 	}
 
@@ -814,12 +805,9 @@ protected:
 			if ((TagInheritance & static_cast<uint8>(EPCGExAssetTagInheritance::Collection))) { OutTags.Append(Entry.SubCollection->CollectionTags); }
 			return Entry.SubCollection->GetEntryRandom(OutEntry, Seed * 2, OutHost);
 		}
-		else
-		{
-			if ((TagInheritance & static_cast<uint8>(EPCGExAssetTagInheritance::Asset))) { OutTags.Append(Entry.Tags); }
-			OutEntry = &Entry;
-			OutHost = this;
-		}
+		if ((TagInheritance & static_cast<uint8>(EPCGExAssetTagInheritance::Asset))) { OutTags.Append(Entry.Tags); }
+		OutEntry = &Entry;
+		OutHost = this;
 		return true;
 	}
 
@@ -839,12 +827,9 @@ protected:
 			if ((TagInheritance & static_cast<uint8>(EPCGExAssetTagInheritance::Collection))) { OutTags.Append(Entry.SubCollection->CollectionTags); }
 			return Entry.SubCollection->GetEntryWeightedRandom(OutEntry, Seed * 2, OutHost);
 		}
-		else
-		{
-			if ((TagInheritance & static_cast<uint8>(EPCGExAssetTagInheritance::Asset))) { OutTags.Append(Entry.Tags); }
-			OutEntry = &Entry;
-			OutHost = this;
-		}
+		if ((TagInheritance & static_cast<uint8>(EPCGExAssetTagInheritance::Asset))) { OutTags.Append(Entry.Tags); }
+		OutEntry = &Entry;
+		OutHost = this;
 		return true;
 	}
 

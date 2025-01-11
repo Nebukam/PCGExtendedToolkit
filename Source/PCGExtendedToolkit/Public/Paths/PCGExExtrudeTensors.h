@@ -75,10 +75,14 @@ public:
 	/** Whether to adjust max iteration based on max value found on points. Use at your own risks! */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Use Max from Points", ClampMin=1, EditCondition="bUsePerPointMaxIterations", HideEditConditionToggle))
 	bool bUseMaxFromPoints = false;
+	
+	/** Whether to give a new seed to the points. If disabled, they will inherit the original one. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable))
+	bool bRefreshSeed = true;
 
 	/** Whether the node should attempt to close loops based on angle and proximity */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Closing Loops", meta=(PCG_NotOverridable))
-	bool bSearchForClosedLoops = false;
+	bool bDetectClosedLoops = false;
 
 	/** Range at which the first point must be located to check angle */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Closing Loops", meta=(PCG_Overridable, DisplayName=" └─ Search Distance", EditCondition="bCloseLoops"))
@@ -132,7 +136,7 @@ public:
 
 	/** Whether to stop sampling when going out of bounds. While path will be cut, there's a chance that the head of the search comes back into the bounds, which would start a new extrusion. With this option disabled, new paths won't be permitted to exist. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Limits", meta=(PCG_Overridable))
-	bool bAllowNewExtrusions = false;
+	bool bAllowChildExtrusions = false;
 
 	/** If enabled, seeds that start out of bounds won't be extruded. Orherwise, they are transformed until they eventually enter bounds and start an extrusion. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Limits", meta=(PCG_NotOverridable))
@@ -141,6 +145,30 @@ public:
 	/** TBD */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging & Forwarding")
 	FPCGExAttributeToTagDetails AttributesToPathTags;
+
+	/** */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging & Forwarding", meta=(PCG_Overridable, InlineEditConditionToggle))
+	bool bTagIfChildExtrusion = false;
+
+	/** ... */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging & Forwarding", meta=(PCG_Overridable, EditCondition="bTagIfChildExtrusion"))
+	FString IsChildExtrusionTag = TEXT("ChildExtrusion");
+
+	/** */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging & Forwarding", meta=(PCG_Overridable, InlineEditConditionToggle))
+	bool bTagIfIsStoppedByBounds = false;
+
+	/** ... */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging & Forwarding", meta=(PCG_Overridable, EditCondition="bTagIfStoppedOnBounds"))
+	FString IsStoppedByBoundsTag = TEXT("StoppedByBounds");
+
+	/** */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging & Forwarding", meta=(PCG_Overridable, InlineEditConditionToggle))
+	bool bTagIfIsFollowUp = false;
+
+	/** ... */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging & Forwarding", meta=(PCG_Overridable, EditCondition="bTagIfIsFollowUp"))
+	FString IsFollowUpTag = TEXT("IsFollowUp");
 
 	/** */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging & Forwarding", meta=(PCG_Overridable, InlineEditConditionToggle))
@@ -185,6 +213,38 @@ protected:
 
 namespace PCGExExtrudeTensors
 {
+	enum class EExtrusionFlags : uint32
+	{
+		None           = 0,
+		Bounded        = 1 << 0,
+		ClosedLoop     = 1 << 1,
+		AllowsChildren = 1 << 2,
+		CollisionCheck = 1 << 3,
+	};
+
+	constexpr bool Supports(const EExtrusionFlags Flags, EExtrusionFlags Flag) { return (static_cast<uint32>(Flags) & static_cast<uint32>(Flag)) != 0; }
+
+	static EExtrusionFlags ComputeFlags(const UPCGExExtrudeTensorsSettings* Settings,
+	                                    const FPCGExExtrudeTensorsContext* Context)
+	{
+		uint32 Flags = 0;
+
+		if (Settings->bAllowChildExtrusions)
+		{
+			Flags |= static_cast<uint32>(EExtrusionFlags::AllowsChildren);
+		}
+		if (Settings->bDetectClosedLoops)
+		{
+			Flags |= static_cast<uint32>(EExtrusionFlags::ClosedLoop);
+		}
+		if (Context->Limits.IsValid)
+		{
+			Flags |= static_cast<uint32>(EExtrusionFlags::Bounded);
+		}
+
+		return static_cast<EExtrusionFlags>(Flags);
+	}
+
 	class FProcessor;
 
 	class FExtrusion : public TSharedFromThis<FExtrusion>
@@ -197,10 +257,14 @@ namespace PCGExExtrudeTensors
 		bool bIsComplete = false;
 		bool bIsStopped = false;
 		bool bIsClosedLoop = false;
+		bool bHitBounds = false;
 
 		FPCGPoint Origin;
 
 	public:
+		bool bIsChildExtrusion = false;
+		bool bIsFollowUp = false;
+		
 		virtual ~FExtrusion() = default;
 		FProcessor* Processor = nullptr;
 		const FPCGExExtrudeTensorsContext* Context = nullptr;
@@ -234,7 +298,7 @@ namespace PCGExExtrudeTensors
 		void Insert(const PCGExTensor::FTensorSample& Sample, const FVector& InPosition) const;
 	};
 
-	template <bool bHasLimits, bool bAllowNewExtrusions, bool bSearchForClosedLoops>
+	template <EExtrusionFlags InternalFlags>
 	class TExtrusion : public FExtrusion
 	{
 	public:
@@ -255,7 +319,7 @@ namespace PCGExExtrudeTensors
 
 			Head += Sample.DirectionAndSize;
 
-			if (bSearchForClosedLoops)
+			if constexpr (Supports(InternalFlags, EExtrusionFlags::ClosedLoop))
 			{
 				const FVector Tail = Origin.Transform.GetLocation();
 				if (FVector::DistSquared(Metrics.Last, Tail) <= Context->ClosedLoopSquaredDistance &&
@@ -266,7 +330,7 @@ namespace PCGExExtrudeTensors
 				}
 			}
 
-			if constexpr (bHasLimits)
+			if constexpr (Supports(InternalFlags, EExtrusionFlags::Bounded))
 			{
 				// Make sure we are within bounds
 #if PCGEX_ENGINE_VERSION <= 503
@@ -279,6 +343,7 @@ namespace PCGExExtrudeTensors
 				{
 					if (bIsExtruding && !bIsComplete)
 					{
+						bHitBounds = true;
 						if (Settings->OutOfBoundHandling == EPCGExOutOfBoundPathPointHandling::Exclude)
 						{
 							// Nothing to do
@@ -287,7 +352,7 @@ namespace PCGExExtrudeTensors
 						else if (Settings->OutOfBoundHandling == EPCGExOutOfBoundPathPointHandling::IncludeAndSnap) { Insert(Sample, Head); }
 						Complete();
 
-						if constexpr (!bAllowNewExtrusions)
+						if constexpr (!Supports(InternalFlags, EExtrusionFlags::AllowsChildren))
 						{
 							return OnAdvanced(true);
 						}
@@ -298,7 +363,7 @@ namespace PCGExExtrudeTensors
 
 				if (bIsComplete)
 				{
-					if constexpr (bAllowNewExtrusions)
+					if constexpr (Supports(InternalFlags, EExtrusionFlags::AllowsChildren))
 					{
 						StartNewExtrusion();
 					}
@@ -342,7 +407,7 @@ namespace PCGExExtrudeTensors
 		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager> InAsyncManager) override;
 
 		void InitExtrusionFromSeed(const int32 InSeedIndex);
-		void InitExtrusionFromExtrusion(const TSharedRef<FExtrusion>& InExtrusion);
+		TSharedPtr<FExtrusion> InitExtrusionFromExtrusion(const TSharedRef<FExtrusion>& InExtrusion);
 
 		virtual void PrepareSingleLoopScopeForPoints(const PCGExMT::FScope& Scope) override;
 		virtual void ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const PCGExMT::FScope& Scope) override;
@@ -353,7 +418,7 @@ namespace PCGExExtrudeTensors
 
 		bool UpdateExtrusionQueue();
 
-		void CompleteWork() override;
+		virtual void CompleteWork() override;
 
 	protected:
 		TSharedPtr<FExtrusion> CreateExtrusionTemplate(const int32 InSeedIndex, const int32 InMaxIterations);

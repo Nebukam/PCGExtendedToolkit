@@ -40,10 +40,10 @@ PCGExTensor::FTensorSample UPCGExTensorPathFlow::SampleAtPosition(const FVector&
 
 PCGEX_TENSOR_BOILERPLATE(
 	PathFlow, {
-	NewFactory->Config.Potency *=NewFactory->Config.PotencyScale;
+	NewFactory->Config.Potency *= NewFactory->Config.PotencyScale;
 	NewFactory->bBuildFromPaths = GetBuildFromPoints();
-	NewFactory->PointType = Config.PointType;
-	NewFactory->ClosedLoop = Config.ClosedLoop;
+	NewFactory->PointType = NewFactory->Config.PointType;
+	NewFactory->ClosedLoop = NewFactory->Config.ClosedLoop;
 	}, {
 	NewOperation->Splines = &ManagedSplines;
 	})
