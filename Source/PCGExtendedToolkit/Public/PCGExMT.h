@@ -59,6 +59,7 @@
 namespace PCGExMT
 {
 	using FCompletionCallback = std::function<void()>;
+	using FSimpleCallback = std::function<void()>;
 
 	static void SetWorkPriority(const EPCGExAsyncPriority Selection, UE::Tasks::ETaskPriority& Priority)
 	{
@@ -287,8 +288,6 @@ namespace PCGExMT
 		friend class FDaisyChainScopeIterationTask;
 
 	public:
-		using FSimpleCallback = std::function<void()>;
-
 		using FIterationCallback = std::function<void(const int32, const FScope&)>;
 		FIterationCallback OnIterationCallback;
 
@@ -485,6 +484,52 @@ namespace PCGExMT
 		{
 			if constexpr (bWithManager) { PCGEX_LAUNCH(FWriteTaskWithManager<T>, Operation) }
 			else { PCGEX_LAUNCH(FWriteTask<T>, Operation) }
+		}
+	}
+
+	//
+
+	class FDeferredCallbackHandle : public FAsyncHandle
+	{
+	public:
+		explicit FDeferredCallbackHandle() : FAsyncHandle()
+		{
+		}
+
+		FSimpleCallback Callback;
+	};
+
+	static TSharedPtr<FDeferredCallbackHandle> DeferredCallback(FPCGExContext* InContext, FSimpleCallback&& InCallback)
+	{
+		TSharedPtr<FDeferredCallbackHandle> DeferredCallback = MakeShared<FDeferredCallbackHandle>();
+		DeferredCallback->Callback = InCallback;
+
+		TWeakPtr<FDeferredCallbackHandle> WeakTask = DeferredCallback;
+		UE::Tasks::Launch(
+				TEXT("DeferredCallback"),
+				[WeakTask]()
+				{
+					const TSharedPtr<FDeferredCallbackHandle> Task = WeakTask.Pin();
+					if (!Task.IsValid()) { return; }
+
+					if (Task->Start())
+					{
+						Task->Callback();
+						Task->Complete();
+					}
+				},
+				UE::Tasks::ETaskPriority::Default
+			);
+
+		return DeferredCallback;
+	}
+
+	static void CancelDeferredCallback(const TSharedPtr<FDeferredCallbackHandle>& InCallback)
+	{
+		InCallback->Cancel();
+		while (InCallback->GetState() != EAsyncHandleState::Ended)
+		{
+			// Hold off until ended
 		}
 	}
 }

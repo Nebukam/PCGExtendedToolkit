@@ -56,6 +56,17 @@ FPCGElementPtr UPCGExFactoryProviderSettings::CreateElement() const
 #if WITH_EDITOR
 FString UPCGExFactoryProviderSettings::GetDisplayName() const { return TEXT(""); }
 
+FPCGExFactoryProviderContext::~FPCGExFactoryProviderContext()
+{
+	for (const TSharedPtr<PCGExMT::FDeferredCallbackHandle>& Task : DeferredTasks) { PCGExMT::CancelDeferredCallback(Task); }
+	DeferredTasks.Empty();
+}
+
+void FPCGExFactoryProviderContext::LaunchDeferredCallback(PCGExMT::FSimpleCallback&& InCallback)
+{
+	DeferredTasks.Add_GetRef(PCGExMT::DeferredCallback(this, MoveTemp(InCallback)));
+}
+
 #ifndef PCGEX_CUSTOM_PIN_DECL
 #define PCGEX_CUSTOM_PIN_DECL
 #define PCGEX_CUSTOM_PIN_ICON(_LABEL, _ICON, _TOOLTIP) if(PinLabel == _LABEL){ OutExtraIcon = TEXT("PCGEx.Pin." # _ICON); OutTooltip = FTEXT(_TOOLTIP); return true; }
@@ -98,27 +109,22 @@ bool FPCGExFactoryProviderElement::ExecuteInternal(FPCGContext* Context) const
 		if (InContext->OutFactory->GetRequiresPreparation(InContext))
 		{
 			InContext->PauseContext();
+			InContext->LaunchDeferredCallback(
+				[CtxHandle = InContext->GetOrCreateHandle()]()
+				{
+					FPCGExFactoryProviderContext* Ctx = FPCGExContext::GetContextFromHandle<FPCGExFactoryProviderContext>(CtxHandle);
+					if (!Ctx) { return; }
 
-			TWeakPtr<FPCGContextHandle> CtxHandle = InContext->GetOrCreateHandle();
-			UE::Tasks::Launch(
-					TEXT("FactoryInitialization"),
-					[CtxHandle]()
+					if (!Ctx->OutFactory->Prepare(Ctx))
 					{
-						FPCGExFactoryProviderContext* Ctx = FPCGExContext::GetContextFromHandle<FPCGExFactoryProviderContext>(CtxHandle);
-						if (!Ctx) { return; }
-
-						if (!Ctx->OutFactory->Prepare(Ctx))
-						{
-							Ctx->CancelExecution(TEXT(""));
-						}
-						else
-						{
-							Ctx->Done();
-							Ctx->ResumeExecution();
-						}
-					},
-					LowLevelTasks::ETaskPriority::BackgroundNormal
-				);
+						Ctx->CancelExecution(TEXT(""));
+					}
+					else
+					{
+						Ctx->Done();
+						Ctx->ResumeExecution();
+					}
+				});
 
 			InContext->SetState(PCGEx::State_WaitingOnAsyncWork);
 			return false;

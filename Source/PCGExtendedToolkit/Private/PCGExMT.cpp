@@ -364,7 +364,7 @@ namespace PCGExMT
 					}
 
 					// Cleanup task so we don't redundantly cancel it
-					if (Task->HandleIdx != -1) { Manager->Tasks[Task->HandleIdx] = nullptr; }
+					//if (Task->HandleIdx != -1) { Manager->Tasks[Task->HandleIdx] = nullptr; }
 				},
 				WorkPriority
 			);
