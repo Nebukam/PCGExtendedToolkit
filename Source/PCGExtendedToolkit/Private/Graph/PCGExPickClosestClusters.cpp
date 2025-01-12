@@ -224,11 +224,11 @@ namespace PCGExPickClosestClusters
 		{
 			if (Picker == -1)
 			{
-				EdgeDataFacade->Source->Tags->Add(Context->OmitTag);
+				EdgeDataFacade->Source->Tags->AddRaw(Context->OmitTag);
 				return;
 			}
 
-			EdgeDataFacade->Source->Tags->Add(Context->KeepTag);
+			EdgeDataFacade->Source->Tags->AddRaw(Context->KeepTag);
 		}
 
 		if (!Settings->TargetForwarding.bEnabled)
@@ -261,9 +261,12 @@ namespace PCGExPickClosestClusters
 
 		if (Stg->Action == EPCGExFilterDataAction::Omit) { if (Picks == MaxPicks) { return; } }
 		else if (Stg->Action == EPCGExFilterDataAction::Keep) { if (Picks == 0) { return; } }
+		else
+		{
+			if (Picks > 0) { VtxDataFacade->Source->Tags->AddRaw(Ctx->KeepTag); }
+			else { VtxDataFacade->Source->Tags->AddRaw(Ctx->OmitTag); }
+		}
 
-		if (Picks > 0) { VtxDataFacade->Source->Tags->Add(Ctx->KeepTag); }
-		else { VtxDataFacade->Source->Tags->Add(Ctx->OmitTag); }
 
 		TBatch<FProcessor>::Output();
 	}

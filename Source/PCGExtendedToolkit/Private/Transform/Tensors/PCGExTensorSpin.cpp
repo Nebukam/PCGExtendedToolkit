@@ -12,24 +12,24 @@ bool UPCGExTensorSpin::Init(FPCGExContext* InContext, const UPCGExTensorFactoryD
 	return true;
 }
 
-PCGExTensor::FTensorSample UPCGExTensorSpin::SampleAtPosition(const FVector& InPosition) const
+PCGExTensor::FTensorSample UPCGExTensorSpin::Sample(const FTransform& InProbe) const
 {
+	const FVector& InPosition = InProbe.GetLocation();
 	const FBoxCenterAndExtent BCAE = FBoxCenterAndExtent(InPosition, FVector::One());
 
 	PCGExTensor::FEffectorSamples Samples = PCGExTensor::FEffectorSamples();
 
-	auto ProcessNeighbor = [&](const FPCGPointRef& InPointRef)
+	auto ProcessNeighbor = [&](const FPCGPointRef& InEffector)
 	{
-		double Factor = 0;
-		FVector Guide = FVector::ZeroVector;
-		if (!ComputeFactor(InPosition, InPointRef, Factor, Guide)) { return; }
+		PCGExTensor::FEffectorMetrics Metrics;
+		if (!ComputeFactor(InPosition, InEffector, Metrics)) { return; }
 
 		Samples.Emplace_GetRef(
 			FVector::CrossProduct(
-				(InPointRef.Point->Transform.GetLocation() - InPosition).GetSafeNormal(),
-				InPointRef.Point->Transform.GetRotation().RotateVector(Guide)).GetSafeNormal(),
-			InPointRef.Point->Steepness * Config.PotencyFalloffCurveObj->Eval(Factor),
-			InPointRef.Point->Density * Config.WeightFalloffCurveObj->Eval(Factor));
+				(InEffector.Point->Transform.GetLocation() - InPosition).GetSafeNormal(),
+				InEffector.Point->Transform.GetRotation().RotateVector(Metrics.Guide)).GetSafeNormal(),
+			InEffector.Point->Steepness * Config.PotencyFalloffCurveObj->Eval(Metrics.Factor),
+			InEffector.Point->Density * Config.WeightFalloffCurveObj->Eval(Metrics.Factor));
 	};
 
 	Octree->FindElementsWithBoundsTest(BCAE, ProcessNeighbor);

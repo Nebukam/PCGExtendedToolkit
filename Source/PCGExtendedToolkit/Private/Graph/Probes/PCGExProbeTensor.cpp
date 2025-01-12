@@ -34,6 +34,7 @@ bool UPCGExProbeTensor::PrepareForPoints(const TSharedPtr<PCGExData::FPointIO>& 
 
 	bUseBestDot = (Config.Favor == EPCGExProbeDirectionPriorization::Dot);
 	MinDot = PCGExMath::DegreesToDot(Config.MaxAngle);
+	Mirror = Config.bInvertTensorDirection ? -1 : 1;
 
 	return true;
 }
@@ -47,11 +48,11 @@ void UPCGExProbeTensor::ProcessCandidates(const int32 Index, const FPCGPoint& Po
 	int32 BestCandidateIndex = -1;
 
 	bool bSuccess = false;
-	const PCGExTensor::FTensorSample Sample = TensorsHandler->SampleAtPosition(Point.Transform.GetLocation(), bSuccess);
+	const PCGExTensor::FTensorSample Sample = TensorsHandler->Sample(Point.Transform, bSuccess);
 
 	if (!bSuccess) { return; }
 
-	const FVector Dir = Sample.DirectionAndSize.GetSafeNormal();
+	const FVector Dir = Sample.DirectionAndSize.GetSafeNormal() * Mirror;
 	const int32 MaxIndex = Candidates.Num() - 1;
 	for (int i = 0; i <= MaxIndex; i++)
 	{
@@ -113,11 +114,11 @@ void UPCGExProbeTensor::ProcessCandidateChained(const int32 Index, const FPCGPoi
 {
 	const double R = GetSearchRadius(Index);
 	bool bSuccess = false;
-	const PCGExTensor::FTensorSample Sample = TensorsHandler->SampleAtPosition(Point.Transform.GetLocation(), bSuccess);
+	const PCGExTensor::FTensorSample Sample = TensorsHandler->Sample(Point.Transform, bSuccess);
 
 	if (!bSuccess) { return; }
 
-	const FVector Dir = Sample.DirectionAndSize.GetSafeNormal();
+	const FVector Dir = Sample.DirectionAndSize.GetSafeNormal() * Mirror;
 
 	if (Candidate.Distance > R) { return; }
 

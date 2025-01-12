@@ -97,7 +97,7 @@ bool FPCGExWaitForPCGDataElement::Boot(FPCGExContext* InContext) const
 
 	PCGEX_CONTEXT_AND_SETTINGS(WaitForPCGData)
 
-	PCGEX_VALIDATE_NAME(Settings->ActorReferenceAttribute)
+	PCGEX_VALIDATE_NAME_CONSUMABLE(Settings->ActorReferenceAttribute)
 
 	UPCGGraph* GraphData = PCGExHelpers::LoadBlocking_AnyThread(Settings->TemplateGraph);
 	if (!GraphData) { return false; }

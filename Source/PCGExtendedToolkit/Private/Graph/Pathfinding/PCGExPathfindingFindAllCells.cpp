@@ -168,7 +168,7 @@ namespace PCGExFindAllCells
 		return true;
 	}
 
-	void FProcessor::ProcessCell(const TSharedPtr<PCGExTopology::FCell>& InCell) const
+	void FProcessor::ProcessCell(const TSharedPtr<PCGExTopology::FCell>& InCell)
 	{
 		const TSharedPtr<PCGExData::FPointIO> PathIO = Context->Paths->Emplace_GetRef<UPCGPointData>(VtxDataFacade->Source, PCGExData::EIOInit::New);
 		if (!PathIO) { return; }
@@ -176,7 +176,7 @@ namespace PCGExFindAllCells
 		PathIO->Tags->Reset();                                          // Tag forwarding handled by artifacts
 		PathIO->IOIndex = Cluster->GetEdge(InCell->Seed.Edge)->IOIndex; // Enforce seed order for collection output-ish
 
-		PCGExGraph::CleanupClusterTags(PathIO, true);
+		PCGExGraph::CleanupClusterTags(PathIO);
 		PCGExGraph::CleanupVtxData(PathIO);
 
 		PCGEX_MAKE_SHARED(PathDataFacade, PCGExData::FFacade, PathIO.ToSharedRef())
@@ -217,6 +217,8 @@ namespace PCGExFindAllCells
 			Context->UdpatedSeedPoints[SeedIndex] = SeedPoint;
 		}
 		*/
+
+		FPlatformAtomics::InterlockedIncrement(&OutputPathsNum);
 	}
 
 	void FProcessor::EnsureRoamingClosedLoopProcessing()
@@ -238,7 +240,7 @@ namespace PCGExFindAllCells
 	void FProcessor::CompleteWork()
 	{
 		if (!CellsConstraints->WrapperCell) { return; }
-		if (Context->Paths->IsEmpty() && Settings->Constraints.bKeepWrapperIfSolePath) { ProcessCell(CellsConstraints->WrapperCell); }
+		if (OutputPathsNum == 0 && Settings->Constraints.bKeepWrapperIfSolePath) { ProcessCell(CellsConstraints->WrapperCell); }
 	}
 
 	void FProcessor::Cleanup()

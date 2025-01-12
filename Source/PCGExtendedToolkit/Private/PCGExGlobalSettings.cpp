@@ -73,10 +73,10 @@ void UPCGExGlobalSettings::GeneratePinInfos()
 	PCGEX_MAP_PIN_OUT("Filter")
 
 	PCGEX_EMPLACE_PIN_OUT(OUT_FilterEdges, "PCGEx Edge Filter");
-	PCGEX_MAP_PIN_OUT("EdgeFilter")
+	PCGEX_MAP_PIN_OUT("Edge Filter")
 
 	PCGEX_EMPLACE_PIN_OUT(OUT_FilterNode, "PCGEx Vtx Filter");
-	PCGEX_MAP_PIN_OUT("NodeFilter")
+	PCGEX_MAP_PIN_OUT("Node Filter")
 
 	PCGEX_EMPLACE_PIN_OUT(OUT_NodeFlag, "PCGEx Vtx Node Flag");
 	PCGEX_MAP_PIN_OUT("Flag")
@@ -183,6 +183,7 @@ void UPCGExGlobalSettings::GeneratePinInfos()
 
 	PCGEX_EMPLACE_PIN_IN(OUT_Tensor, "Expects PCGEx Tensors, supports multiple inputs.");
 	PCGEX_MAP_PIN_IN("Tensors")
+	PCGEX_MAP_PIN_IN("Parent Tensor")
 
 	PinIndex = InPinInfos.Emplace(FName("PCGEx.Pin.IN_Vtx"), TEXT("Point collection formatted for use as cluster vtx."));
 	PCGEX_MAP_PIN_IN("Vtx")

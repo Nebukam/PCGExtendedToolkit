@@ -25,7 +25,7 @@ bool FPCGExAttributeRemapElement::Boot(FPCGExContext* InContext) const
 
 	PCGEX_CONTEXT_AND_SETTINGS(AttributeRemap)
 
-	PCGEX_VALIDATE_NAME(Settings->SourceAttributeName)
+	PCGEX_VALIDATE_NAME_CONSUMABLE(Settings->SourceAttributeName)
 	PCGEX_VALIDATE_NAME(Settings->TargetAttributeName)
 
 	Context->RemapSettings[0] = Settings->BaseRemap;

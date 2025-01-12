@@ -53,9 +53,7 @@ public:
 	FPCGExTensorPathPoleConfig Config;
 	const TArray<TSharedPtr<const FPCGSplineStruct>>* Splines = nullptr;
 
-	virtual bool Init(FPCGExContext* InContext, const UPCGExTensorFactoryData* InFactory) override;
-
-	virtual PCGExTensor::FTensorSample SampleAtPosition(const FVector& InPosition) const override;
+	virtual PCGExTensor::FTensorSample Sample(const FTransform& InProbe) const override;
 };
 
 

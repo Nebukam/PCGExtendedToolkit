@@ -113,41 +113,37 @@ namespace PCGExGraph
 		FORCEINLINE uint32 GetTypeHash(const FLink& Key) { return HashCombineFast(Key.Node, Key.Edge); }
 	};
 
-	static void SetClusterVtx(const TSharedPtr<PCGExData::FPointIO>& IO, FString& OutId)
+	static void SetClusterVtx(const TSharedPtr<PCGExData::FPointIO>& IO, PCGExTags::IDType& OutId)
 	{
-		IO->Tags->Add(TagStr_ClusterPair, IO->GetOutIn()->GetUniqueID(), OutId);
-		IO->Tags->Add(TagStr_PCGExVtx);
+		OutId = IO->Tags->Set<int32>(TagStr_ClusterPair, IO->GetOutIn()->GetUniqueID());
+		IO->Tags->AddRaw(TagStr_PCGExVtx);
 		IO->Tags->Remove(TagStr_PCGExEdges);
 	}
 
-	static void MarkClusterVtx(const TSharedPtr<PCGExData::FPointIO>& IO, const FString& Id)
+	static void MarkClusterVtx(const TSharedPtr<PCGExData::FPointIO>& IO, const PCGExTags::IDType& Id)
 	{
-		IO->Tags->Add(TagStr_ClusterPair, Id);
-		IO->Tags->Add(TagStr_PCGExVtx);
+		IO->Tags->Set(TagStr_ClusterPair, Id);
+		IO->Tags->AddRaw(TagStr_PCGExVtx);
 		IO->Tags->Remove(TagStr_PCGExEdges);
 	}
 
-	static void MarkClusterEdges(const TSharedPtr<PCGExData::FPointIO>& IO, const FString& Id)
+	static void MarkClusterEdges(const TSharedPtr<PCGExData::FPointIO>& IO, const PCGExTags::IDType& Id)
 	{
-		IO->Tags->Add(TagStr_ClusterPair, Id);
-		IO->Tags->Add(TagStr_PCGExEdges);
+		IO->Tags->Set(TagStr_ClusterPair, Id);
+		IO->Tags->AddRaw(TagStr_PCGExEdges);
 		IO->Tags->Remove(TagStr_PCGExVtx);
 	}
 
-	static void MarkClusterEdges(const TArrayView<TSharedRef<PCGExData::FPointIO>> Edges, const FString& Id)
+	static void MarkClusterEdges(const TArrayView<TSharedRef<PCGExData::FPointIO>> Edges, const PCGExTags::IDType& Id)
 	{
 		for (const TSharedRef<PCGExData::FPointIO>& IO : Edges) { MarkClusterEdges(IO, Id); }
 	}
 
 	static void CleanupClusterTags(const TSharedPtr<PCGExData::FPointIO>& IO, const bool bKeepPairTag = false)
 	{
-		IO->Tags->Remove(TagStr_ClusterPair);
+		IO->Tags->Remove(TagStr_PCGExVtx);
 		IO->Tags->Remove(TagStr_PCGExEdges);
-		if (!bKeepPairTag) { IO->Tags->Remove(TagStr_PCGExVtx); }
+		if (!bKeepPairTag) { IO->Tags->Remove(TagStr_ClusterPair); }
 	}
 
-	static void CleanupClusterTags(const TArrayView<TSharedPtr<PCGExData::FPointIO>> IOs, const bool bKeepPairTag = false)
-	{
-		for (const TSharedPtr<PCGExData::FPointIO>& IO : IOs) { CleanupClusterTags(IO, bKeepPairTag); }
-	}
 }

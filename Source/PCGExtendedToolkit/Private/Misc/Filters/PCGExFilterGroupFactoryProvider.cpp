@@ -54,6 +54,7 @@ UPCGExFactoryData* UPCGExFilterGroupProviderSettings::CreateFactory(FPCGExContex
 		PCGExFactories::AnyFilters, true))
 	{
 		InContext->ManagedObjects->Destroy(NewFactory);
+		return nullptr;
 	}
 
 	return NewFactory;

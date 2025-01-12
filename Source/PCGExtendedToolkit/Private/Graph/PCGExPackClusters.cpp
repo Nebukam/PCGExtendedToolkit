@@ -80,8 +80,7 @@ namespace PCGExPackClusters
 		if (VtxStartIndex <= 0) { return false; }
 		if (NumIndices <= 0) { return false; }
 
-		FString OutPairId;
-		PackedIO->Tags->Add(PCGExGraph::TagStr_ClusterPair, EdgeDataFacade->GetIn()->GetUniqueID(), OutPairId);
+		PackedIO->Tags->Set<int32>(PCGExGraph::TagStr_ClusterPair, EdgeDataFacade->GetIn()->GetUniqueID());
 		WriteMark(PackedIO.ToSharedRef(), PCGExGraph::Tag_PackedClusterEdgeCount, NumEdges);
 
 		// Copy vtx points after edge points

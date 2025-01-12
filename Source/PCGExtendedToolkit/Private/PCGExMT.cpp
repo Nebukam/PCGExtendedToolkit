@@ -4,6 +4,7 @@
 
 #include "PCGExMT.h"
 
+
 #include "Tasks/Task.h"
 
 namespace PCGExMT
@@ -13,8 +14,9 @@ namespace PCGExMT
 		Cancel(); // Safety first
 	}
 
-	void FAsyncHandle::SetRoot(const TSharedPtr<FAsyncMultiHandle>& InRoot)
+	void FAsyncHandle::SetRoot(const TSharedPtr<FAsyncMultiHandle>& InRoot, const int32 InHandleIdx)
 	{
+		HandleIdx = InHandleIdx;
 		Root = InRoot;
 		InRoot->IncrementPendingTasks();
 	}
@@ -89,10 +91,10 @@ namespace PCGExMT
 		if (!Cancel()) { Complete(); }
 	}
 
-	void FAsyncMultiHandle::SetRoot(const TSharedPtr<FAsyncMultiHandle>& InRoot)
+	void FAsyncMultiHandle::SetRoot(const TSharedPtr<FAsyncMultiHandle>& InRoot, const int32 InHandleIdx)
 	{
 		bForceSync = InRoot->bForceSync;
-		FAsyncHandle::SetRoot(InRoot);
+		FAsyncHandle::SetRoot(InRoot, InHandleIdx);
 	}
 
 	void FAsyncMultiHandle::IncrementPendingTasks()
@@ -221,7 +223,11 @@ namespace PCGExMT
 	{
 		// Called whenever a handle registers running work to root
 		// Normally nothing would trigger here
-		check(IsAvailable())
+		if (!IsAvailable())
+		{
+			UE_LOG(LogTemp, Error, TEXT("Attempting to register async work while manager is unavailable. If there's a crash, it's probably because this happened."));
+			return false;
+		}
 
 		Context->PauseContext();
 		SetState(EAsyncHandleState::Running);
@@ -255,7 +261,8 @@ namespace PCGExMT
 
 			// Cancel groups & tasks
 			Groups.Empty();
-			for (const TSharedPtr<FTask>& Task : Tasks) { Task->Cancel(); }
+			for (const TWeakPtr<FTask>& WeakTask : Tasks) { if (const TSharedPtr<FTask> Task = WeakTask.Pin()) { Task->Cancel(); } }
+			Tasks.Empty();
 		}
 
 		{
@@ -271,7 +278,6 @@ namespace PCGExMT
 
 		Tokens.Empty();
 		Groups.Empty();
-		Tasks.Empty();
 
 		bIsCancelling.store(false, std::memory_order_release);
 		return true;
@@ -291,7 +297,6 @@ namespace PCGExMT
 		Context->UnpauseContext(); // Safety unpause
 	}
 
-
 	void FTaskManager::ReserveTasks(const int32 NumTasks)
 	{
 		FWriteScopeLock WriteLock(TasksLock);
@@ -305,7 +310,7 @@ namespace PCGExMT
 		if (!IsAvailable()) { return nullptr; }
 
 		PCGEX_MAKE_SHARED(NewGroup, FTaskGroup, bForceSync, InName)
-		NewGroup->SetRoot(SharedThis(this));
+		NewGroup->SetRoot(SharedThis(this), -1);
 		NewGroup->Start(); // So its state can be updated properly
 
 		return Groups.Add_GetRef(NewGroup);
@@ -337,31 +342,33 @@ namespace PCGExMT
 	{
 		if (!IsAvailable()) { return; }
 
+		int32 Idx = -1;
 		{
 			FWriteScopeLock WriteTasksLock(TasksLock);
-			Tasks.Add(InTask);
+			Idx = Tasks.Add(InTask);
 		}
 
 		TSharedPtr<FTaskManager> LocalManager = SharedThis(this);
-		InTask->SetRoot(LocalManager);
+		InTask->SetRoot(LocalManager, Idx);
 
 		PCGEX_SHARED_THIS_DECL
 		UE::Tasks::Launch(
 				*InTask->HandleId(),
 				[
 					WeakManager = TWeakPtr<FTaskManager>(LocalManager),
-					WeakTask = TWeakPtr<FTask>(InTask)]()
+					Task = InTask]()
 				{
 					const TSharedPtr<FTaskManager> Manager = WeakManager.Pin();
-					const TSharedPtr<FTask> Task = WeakTask.Pin();
-
-					if (!Task || !Manager || !Manager->IsAvailable()) { return; }
+					if (!Manager || !Manager->IsAvailable()) { return; }
 
 					if (Task->Start())
 					{
 						Task->ExecuteTask(Manager);
 						Task->Complete();
 					}
+
+					// Cleanup task so we don't redundantly cancel it
+					//if (Task->HandleIdx != -1) { Manager->Tasks[Task->HandleIdx] = nullptr; }
 				},
 				WorkPriority
 			);

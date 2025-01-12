@@ -111,7 +111,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPathClosedLoopUpdateDetails
 
 	void Update(const TSharedPtr<PCGExData::FPointIO>& InPointIO)
 	{
-		for (const FString& Add : AddTags) { InPointIO->Tags->Add(Add); }
+		for (const FString& Add : AddTags) { InPointIO->Tags->AddRaw(Add); }
 		for (const FString& Rem : RemoveTags) { InPointIO->Tags->Remove(Rem); }
 	}
 };

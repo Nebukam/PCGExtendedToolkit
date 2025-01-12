@@ -15,25 +15,6 @@ namespace PCGExTensor
 		return Samples.Emplace_GetRef(InDirection, InPotency, InWeight);
 	}
 
-	FTensorSample FEffectorSamples::Flatten(const double InWeight)
-	{
-		TensorSample.Effectors = Samples.Num();
-
-		FVector DirectionAndSize = FVector::ZeroVector;
-
-		for (const FEffectorSample& EffectorSample : Samples)
-		{
-			const double S = (EffectorSample.Potency * (EffectorSample.Weight / TensorSample.Weight));
-			DirectionAndSize += EffectorSample.Direction * S;
-		}
-
-		TensorSample.DirectionAndSize = DirectionAndSize;
-		TensorSample.Rotation = FRotationMatrix::MakeFromX(DirectionAndSize.GetSafeNormal()).ToQuat();
-		TensorSample.Weight = InWeight;
-
-		return TensorSample;
-	}
-
 	FTensorsHandler::FTensorsHandler()
 	{
 	}
@@ -63,7 +44,7 @@ namespace PCGExTensor
 		return Init(InContext, InFactories);
 	}
 
-	FTensorSample FTensorsHandler::SampleAtPosition(const FVector& InPosition, bool& OutSuccess) const
+	FTensorSample FTensorsHandler::Sample(const FTransform& InProbe, bool& OutSuccess) const
 	{
 		FTensorSample Result = FTensorSample();
 
@@ -76,7 +57,7 @@ namespace PCGExTensor
 
 		for (const UPCGExTensorOperation* Op : Operations)
 		{
-			const FTensorSample Sample = Op->SampleAtPosition(InPosition);
+			const FTensorSample Sample = Op->Sample(InProbe);
 			if (Sample.Effectors == 0) { continue; }
 			Result.Effectors += Sample.Effectors;
 			Samples.Add(Sample);
@@ -110,21 +91,6 @@ namespace PCGExTensor
 
 		return Result;
 	}
-
-	FTensorSample FTensorsHandler::SampleAtPositionOrderedInPlace(const FVector& InPosition, bool& OutSuccess) const
-	{
-		// TODO : Go through all operations and gather samples, apply them one after another
-		OutSuccess = false;
-		return FTensorSample{};
-	}
-
-	FTensorSample FTensorsHandler::SampleAtPositionOrderedMutated(const FVector& InPosition, bool& OutSuccess) const
-	{
-		FVector UpdatedPosition = InPosition;
-		// TODO : Go through all operations and gather samples, apply them & update sampling position one after another
-		OutSuccess = false;
-		return FTensorSample{};
-	}
 }
 
 void FPCGExTensorConfigBase::Init()
@@ -135,7 +101,7 @@ void FPCGExTensorConfigBase::Init()
 	if (!bUseLocalPotencyFalloffCurve) { CurvePaths->Add(PotencyFalloffCurve.ToSoftObjectPath()); }
 	if (!bUseLocalGuideCurve) { CurvePaths->Add(GuideCurve.ToSoftObjectPath()); }
 
-	PCGExHelpers::LoadBlocking_AnyThread(CurvePaths);
+	if (!CurvePaths->IsEmpty()) { PCGExHelpers::LoadBlocking_AnyThread(CurvePaths); }
 
 	LocalWeightFalloffCurve.ExternalCurve = WeightFalloffCurve.Get();
 	WeightFalloffCurveObj = LocalWeightFalloffCurve.GetRichCurveConst();

@@ -46,7 +46,7 @@ namespace PCPGExMergePointsByTag
 		bool bDistributed = false;
 		if (!IO->Tags->IsEmpty())
 		{
-			for (TSet<FString> FlattenedTags = IO->Tags->ToSet(); FString Tag : FlattenedTags)
+			for (TSet<FString> FlattenedTags = IO->Tags->Flatten(); FString Tag : FlattenedTags)
 			{
 				if (!Filters.Test(Tag)) { continue; }
 
@@ -240,7 +240,7 @@ bool FPCGExMergePointsByTagElement::ExecuteInternal(FPCGContext* InContext) cons
 		{
 			for (const TSharedPtr<PCGExData::FPointIO>& IO : Context->MainPoints->Pairs)
 			{
-				TArray<FString> Tags = IO->Tags->ToSet().Array();
+				TArray<FString> Tags = IO->Tags->Flatten().Array();
 				Context->TagFilters.Prune(Tags);
 
 				if (Tags.IsEmpty())

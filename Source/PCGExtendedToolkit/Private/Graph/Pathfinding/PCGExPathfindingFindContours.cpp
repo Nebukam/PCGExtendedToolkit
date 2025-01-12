@@ -154,7 +154,20 @@ namespace PCGExFindContours
 			if (Result == PCGExTopology::ECellResult::WrapperCell ||
 				(CellsConstraints->WrapperCell && CellsConstraints->WrapperCell->GetCellHash() == Cell->GetCellHash()))
 			{
-				FPlatformAtomics::InterlockedExchange(&WrapperSeed, Iteration);
+				// Only track the seed closest to bound center as being associated with the wrapper.
+				// There may be edge cases where we don't want that to happen
+
+				const double DistToSeed = FVector::DistSquared(SeedWP, Cluster->Bounds.GetCenter());
+				{
+					FReadScopeLock ReadScopeLock(WrappedSeedLock);
+					if (ClosestSeedDist < DistToSeed) { return; }
+				}
+				{
+					FReadScopeLock WriteScopeLock(WrappedSeedLock);
+					if (ClosestSeedDist < DistToSeed) { return; }
+					ClosestSeedDist = DistToSeed;
+					WrapperSeed = Iteration;
+				}
 			}
 			return;
 		}
@@ -162,15 +175,15 @@ namespace PCGExFindContours
 		ProcessCell(Iteration, Cell);
 	}
 
-	void FProcessor::ProcessCell(const int32 SeedIndex, const TSharedPtr<PCGExTopology::FCell>& InCell) const
+	void FProcessor::ProcessCell(const int32 SeedIndex, const TSharedPtr<PCGExTopology::FCell>& InCell)
 	{
 		TSharedPtr<PCGExData::FPointIO> PathIO = Context->Paths->Emplace_GetRef<UPCGPointData>(VtxDataFacade->Source, PCGExData::EIOInit::New);
 		if (!PathIO) { return; }
 
-		PathIO->Tags->Reset();       // Tag forwarding handled by artifacts
-		PathIO->IOIndex = SeedIndex; // Enforce seed order for collection output
+		PathIO->Tags->Reset();                              // Tag forwarding handled by artifacts
+		PathIO->IOIndex = BatchIndex * 1000000 + SeedIndex; // Enforce seed order for collection output
 
-		PCGExGraph::CleanupClusterTags(PathIO, true);
+		PCGExGraph::CleanupClusterTags(PathIO);
 		PCGExGraph::CleanupVtxData(PathIO);
 
 		PCGEX_MAKE_SHARED(PathDataFacade, PCGExData::FFacade, PathIO.ToSharedRef())
@@ -197,12 +210,14 @@ namespace PCGExFindContours
 			Settings->SeedMutations.ApplyToPoint(InCell.Get(), SeedPoint, MutablePoints);
 			Context->UdpatedSeedPoints[SeedIndex] = SeedPoint;
 		}
+
+		FPlatformAtomics::InterlockedIncrement(&OutputPathNum);
 	}
 
 	void FProcessor::CompleteWork()
 	{
 		if (!CellsConstraints->WrapperCell) { return; }
-		if (Context->Paths->IsEmpty() && WrapperSeed != -1 && Settings->Constraints.bKeepWrapperIfSolePath) { ProcessCell(WrapperSeed, CellsConstraints->WrapperCell); }
+		if (OutputPathNum == 0 && WrapperSeed != -1 && Settings->Constraints.bKeepWrapperIfSolePath) { ProcessCell(WrapperSeed, CellsConstraints->WrapperCell); }
 	}
 
 	void FProcessor::Cleanup()

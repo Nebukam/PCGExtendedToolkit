@@ -22,10 +22,11 @@ UPCGExTensorOperation* UPCGExTensor##_TENSOR##Factory::CreateOperation(FPCGExCon
 UPCGExFactoryData* UPCGExCreateTensor##_TENSOR##Settings::CreateFactory(FPCGExContext* InContext, UPCGExFactoryData* InFactory) const{ \
 	UPCGExTensor##_TENSOR##Factory* NewFactory = InContext->ManagedObjects->New<UPCGExTensor##_TENSOR##Factory>(); \
 	NewFactory->Config = Config; \
+	Super::CreateFactory(InContext, NewFactory); /* Super factory to grab custom override settings before body */ \
 	_NEW_FACTORY \
 	NewFactory->Config.Init(); \
 	NewFactory->BaseConfig = NewFactory->Config; \
-	return Super::CreateFactory(InContext, NewFactory);}
+	return NewFactory; }
 
 class UPCGExTensorOperation;
 
@@ -33,6 +34,8 @@ UCLASS(Abstract, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data"
 class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExTensorFactoryData : public UPCGExFactoryData
 {
 	GENERATED_BODY()
+
+	friend class UPCGExTensorFactoryProviderSettings;
 
 	// TODO : To favor re-usability Tensor factories hold more complex logic than regular factories
 	// They are also samplers
@@ -47,6 +50,7 @@ public:
 
 protected:
 	virtual bool InitInternalData(FPCGExContext* InContext);
+	virtual void InheritFromOtherTensor(const UPCGExTensorFactoryData* InOtherTensor);
 };
 
 UCLASS(Abstract, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Graph|Params")
@@ -60,8 +64,12 @@ public:
 	PCGEX_NODE_INFOS(Tensor, "Tensor Definition", "Creates a single tensor field definition.")
 	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->NodeColorTensor; }
 #endif
+
+protected:
+	virtual TArray<FPCGPinProperties> InputPinProperties() const override;
 	//~End UPCGSettings
 
+public:
 	/** Tensor Priority, only accounted for by if sampler is in any Ordered- mode.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayPriority=-1))
 	int32 Priority = 0;

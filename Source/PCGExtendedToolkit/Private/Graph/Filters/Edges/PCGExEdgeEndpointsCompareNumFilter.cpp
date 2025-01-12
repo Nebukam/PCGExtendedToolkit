@@ -48,7 +48,7 @@ PCGEX_CREATE_FILTER_FACTORY(EdgeEndpointsCompareNum)
 #if WITH_EDITOR
 FString UPCGExEdgeEndpointsCompareNumFilterProviderSettings::GetDisplayName() const
 {
-	return PCGEx::GetSelectorDisplayName(Config.Attribute) + PCGExCompare::ToString(Config.Comparison);
+	return TEXT("A' ") + PCGEx::GetSelectorDisplayName(Config.Attribute) + PCGExCompare::ToString(Config.Comparison) + TEXT(" B' ") + PCGEx::GetSelectorDisplayName(Config.Attribute);
 }
 #endif
 

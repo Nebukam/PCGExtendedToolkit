@@ -395,6 +395,8 @@ bool FPCGExContext::CanExecute() const
 
 bool FPCGExContext::CancelExecution(const FString& InReason)
 {
+	if (bExecutionCancelled) { return true; }
+	
 	bExecutionCancelled = true;
 	WorkPermit.Reset();
 	ResumeExecution();

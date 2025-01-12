@@ -67,7 +67,7 @@ protected:
 	FORCEINLINE double GetDot(const FVector& From, const FVector& To) const
 	{
 		bool bSuccess = false;
-		const PCGExTensor::FTensorSample Sample = TensorsHandler->SampleAtPosition(From, bSuccess);
+		const PCGExTensor::FTensorSample Sample = TensorsHandler->Sample(FTransform(FRotationMatrix::MakeFromX((To - From).GetSafeNormal()).ToQuat(), From), bSuccess);
 		if (!bSuccess) { return 1; }
 		const double Dot = FVector::DotProduct((To - From).GetSafeNormal(), Sample.DirectionAndSize.GetSafeNormal());
 		return bAbsoluteTensor ? FMath::Abs(Dot) : PCGExMath::Remap(Dot, -1, 1);
