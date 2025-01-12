@@ -31,16 +31,16 @@ void FPCGExBasicEdgeSolidificationDetails::Mutate(FPCGPoint& InEdgePoint, const 
 	switch (RadiusType)
 	{
 	case EPCGExBasicEdgeRadius::Average:
-		Rad = (StartRadius + EndRadius) * 0.5;
+		Rad = (StartRadius + EndRadius) * 0.5 * RadiusScale;
 		break;
 	case EPCGExBasicEdgeRadius::Lerp:
-		Rad = FMath::Lerp(StartRadius, EndRadius, InLerp);
+		Rad = FMath::Lerp(StartRadius, EndRadius, InLerp) * RadiusScale;
 		break;
 	case EPCGExBasicEdgeRadius::Min:
-		Rad = FMath::Min(StartRadius, EndRadius);
+		Rad = FMath::Min(StartRadius, EndRadius) * RadiusScale;
 		break;
 	case EPCGExBasicEdgeRadius::Max:
-		Rad = FMath::Max(StartRadius, EndRadius);
+		Rad = FMath::Max(StartRadius, EndRadius) * RadiusScale;
 		break;
 	default:
 	case EPCGExBasicEdgeRadius::Fixed:
