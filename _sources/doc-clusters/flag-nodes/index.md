@@ -60,7 +60,7 @@ Bitmasks & bit fields can be obscure to work with if it's not something you're u
 
 Connected {% include lk id='Flag Node' %}s are first sorted (ascending) using their individual `Priority`, and then processed in that order; **using the result of the previous operation, if any.**  
 What this means is higher priorities have the ability to radically change the entire bitmask, should you chose to.  
-*It synergize very well with the {% include lk id='Conditional Actions' %} node that lets you match & set attributes using filters; such as the {% include lk id='🝖 Bitmask' %} one.*
+*It synergize very well with the {% include lk id='Batch Actions' %} node that lets you match & set attributes using filters; such as the {% include lk id='🝖 Bitmask' %} one.*
 
 # Properties
 <br>

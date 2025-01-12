@@ -2,7 +2,7 @@
 layout: page
 family: Misc
 grand_parent: Misc
-parent: Conditional Actions
+parent: Batch Actions
 title: 🝐 Write Attributes
 name_in_editor: "Action : Write Attributes"
 subtitle: The **Write Attribute** action...

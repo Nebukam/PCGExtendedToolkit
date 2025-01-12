@@ -2,7 +2,7 @@
 layout: page
 family: Misc
 grand_parent: Misc
-parent: Conditional Actions
+parent: Batch Actions
 title: 🝐 Write Result
 name_in_editor: "Action : Write Result"
 subtitle: The **Write Results** action...

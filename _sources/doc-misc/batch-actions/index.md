@@ -3,10 +3,10 @@ layout: page
 family: MiscAdd
 #grand_parent: All Nodes
 parent: Misc
-title: Conditional Actions
-name_in_editor: "Conditional Actions"
-subtitle: Unified approach to Match & Set.
-summary: The **Conditional Actions** node is executing "actions" based on filters.
+title: Batch Actions
+name_in_editor: "Batch Actions"
+subtitle: A node that batche-process individual actions
+summary: The **Batch Actions** node is executing all its input "actions" in a single node. It's especially handy if you want to externalize some processing, or have subgraph that offer the opportunity for additional processing.
 color: white
 splash: icons/icon_misc-write-index.svg
 preview_img: previews/index-conditional-actions.png
