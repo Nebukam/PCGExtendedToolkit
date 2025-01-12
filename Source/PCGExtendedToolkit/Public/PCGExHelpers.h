@@ -6,7 +6,6 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "HeadMountedDisplayTypes.h"
 #include "UObject/Interface.h"
 #include "GameFramework/Actor.h"
 
@@ -19,7 +18,6 @@
 #include "Engine/AssetManager.h"
 #include "Metadata/PCGMetadataAttributeTraits.h"
 #include "Async/Async.h"
-#include "UObject/GarbageCollectionSchema.h"
 
 #include "PCGExHelpers.generated.h"
 

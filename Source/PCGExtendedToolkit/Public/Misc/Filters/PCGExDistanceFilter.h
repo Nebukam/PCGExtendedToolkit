@@ -109,33 +109,70 @@ namespace PCGExPointsFilter
 			const FPCGPoint& SourcePt = PointDataFacade->Source->GetInPoint(PointIndex);
 			double BestDist = MAX_dbl;
 
-			for (int i = 0; i < NumTargets; i++)
+			if (Distances->bOverlapIsZero)
 			{
-				const UPCGPointData::PointOctree* TargetOctree = *(Octrees->GetData() + i);
-
-				if (const uintptr_t Current = *(TargetsPtr->GetData() + i); Current == SelfPtr)
+				bool bOverlap = false;
+				for (int i = 0; i < NumTargets; i++)
 				{
-					// Ignore current point when testing against self
-					TargetOctree->FindNearbyElements(
-						SourcePt.Transform.GetLocation(), [&](const FPCGPointRef& PointRef)
-						{
-							if (const ptrdiff_t OtherIndex = PointRef.Point - PointDataFacade->GetIn()->GetPoints().GetData();
-								OtherIndex == PointIndex) { return; }
+					const UPCGPointData::PointOctree* TargetOctree = *(Octrees->GetData() + i);
+					if (const uintptr_t Current = *(TargetsPtr->GetData() + i); Current == SelfPtr)
+					{
+						// Ignore current point when testing against self
+						TargetOctree->FindNearbyElements(
+							SourcePt.Transform.GetLocation(), [&](const FPCGPointRef& PointRef)
+							{
+								if (const ptrdiff_t OtherIndex = PointRef.Point - PointDataFacade->GetIn()->GetPoints().GetData();
+									OtherIndex == PointIndex) { return; }
 
-							const double Dist = Distances->GetDistSquared(SourcePt, *PointRef.Point);
-							if (Dist > BestDist) { return; }
-							BestDist = Dist;
-						});
+								double Dist = Distances->GetDistSquared(SourcePt, *PointRef.Point, bOverlap);
+								if (bOverlap) { Dist = 0; }
+								if (Dist > BestDist) { return; }
+								BestDist = Dist;
+							});
+					}
+					else
+					{
+						TargetOctree->FindNearbyElements(
+							SourcePt.Transform.GetLocation(), [&](const FPCGPointRef& PointRef)
+							{
+								double Dist = Distances->GetDistSquared(SourcePt, *PointRef.Point, bOverlap);
+								if (bOverlap) { Dist = 0; }
+								if (Dist > BestDist) { return; }
+								BestDist = Dist;
+							});
+					}
 				}
-				else
+			}
+			else
+			{
+				for (int i = 0; i < NumTargets; i++)
 				{
-					TargetOctree->FindNearbyElements(
-						SourcePt.Transform.GetLocation(), [&](const FPCGPointRef& PointRef)
-						{
-							const double Dist = Distances->GetDistSquared(SourcePt, *PointRef.Point);
-							if (Dist > BestDist) { return; }
-							BestDist = Dist;
-						});
+					const UPCGPointData::PointOctree* TargetOctree = *(Octrees->GetData() + i);
+
+					if (const uintptr_t Current = *(TargetsPtr->GetData() + i); Current == SelfPtr)
+					{
+						// Ignore current point when testing against self
+						TargetOctree->FindNearbyElements(
+							SourcePt.Transform.GetLocation(), [&](const FPCGPointRef& PointRef)
+							{
+								if (const ptrdiff_t OtherIndex = PointRef.Point - PointDataFacade->GetIn()->GetPoints().GetData();
+									OtherIndex == PointIndex) { return; }
+
+								const double Dist = Distances->GetDistSquared(SourcePt, *PointRef.Point);
+								if (Dist > BestDist) { return; }
+								BestDist = Dist;
+							});
+					}
+					else
+					{
+						TargetOctree->FindNearbyElements(
+							SourcePt.Transform.GetLocation(), [&](const FPCGPointRef& PointRef)
+							{
+								const double Dist = Distances->GetDistSquared(SourcePt, *PointRef.Point);
+								if (Dist > BestDist) { return; }
+								BestDist = Dist;
+							});
+					}
 				}
 			}
 

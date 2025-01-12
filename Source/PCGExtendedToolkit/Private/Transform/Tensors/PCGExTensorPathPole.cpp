@@ -6,12 +6,6 @@
 #define LOCTEXT_NAMESPACE "PCGExCreateTensorPathPole"
 #define PCGEX_NAMESPACE CreateTensorPathPole
 
-bool UPCGExTensorPathPole::Init(FPCGExContext* InContext, const UPCGExTensorFactoryData* InFactory)
-{
-	if (!Super::Init(InContext, InFactory)) { return false; }
-	return true;
-}
-
 PCGExTensor::FTensorSample UPCGExTensorPathPole::Sample(const FTransform& InProbe) const
 {
 	const FVector& InPosition = InProbe.GetLocation();

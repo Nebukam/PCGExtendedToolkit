@@ -91,7 +91,6 @@ namespace PCGExTensor
 
 		return Result;
 	}
-
 }
 
 void FPCGExTensorConfigBase::Init()
@@ -102,7 +101,7 @@ void FPCGExTensorConfigBase::Init()
 	if (!bUseLocalPotencyFalloffCurve) { CurvePaths->Add(PotencyFalloffCurve.ToSoftObjectPath()); }
 	if (!bUseLocalGuideCurve) { CurvePaths->Add(GuideCurve.ToSoftObjectPath()); }
 
-	PCGExHelpers::LoadBlocking_AnyThread(CurvePaths);
+	if (!CurvePaths->IsEmpty()) { PCGExHelpers::LoadBlocking_AnyThread(CurvePaths); }
 
 	LocalWeightFalloffCurve.ExternalCurve = WeightFalloffCurve.Get();
 	WeightFalloffCurveObj = LocalWeightFalloffCurve.GetRichCurveConst();

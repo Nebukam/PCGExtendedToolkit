@@ -359,6 +359,7 @@ namespace PCGExSampleNearestPoints
 		FVector WeightedAngleAxis = FVector::Zero();
 		double TotalWeight = 0;
 		double TotalSamples = 0;
+		double WeightedDistance = 0;
 
 		auto ProcessTargetInfos = [&]
 			(const PCGExNearestPoint::FSample& TargetInfos, const double Weight)
@@ -373,6 +374,7 @@ namespace PCGExSampleNearestPoints
 
 			WeightedSignAxis += PCGExMath::GetDirection(TargetRotation, Settings->SignAxis) * Weight;
 			WeightedAngleAxis += PCGExMath::GetDirection(TargetRotation, Settings->AngleAxis) * Weight;
+			WeightedDistance += FMath::Sqrt(TargetInfos.Distance) * Weight;
 
 			TotalWeight += Weight;
 			TotalSamples++;
@@ -410,7 +412,6 @@ namespace PCGExSampleNearestPoints
 
 		const FVector CWDistance = Origin - WeightedTransform.GetLocation();
 		FVector LookAt = CWDistance.GetSafeNormal();
-		const double WeightedDistance = FVector::Dist(Origin, WeightedTransform.GetLocation());
 
 		SampleState[Index] = Stats.IsValid();
 		PCGEX_OUTPUT_VALUE(Success, Index, Stats.IsValid())

@@ -11,6 +11,82 @@
 #include "Graph/PCGExCluster.h"
 #include "Graph/Data/PCGExClusterData.h"
 
+void FPCGExBasicEdgeSolidificationDetails::Mutate(FPCGPoint& InEdgePoint, const FPCGPoint& InStart, const FPCGPoint& InEnd, const double InLerp) const
+{
+	const FVector A = InStart.Transform.GetLocation();
+	const FVector B = InEnd.Transform.GetLocation();
+
+
+	InEdgePoint.Transform.SetLocation(FMath::Lerp(A, B, InLerp));
+	if (SolidificationAxis == EPCGExMinimalAxis::None) { return; }
+
+	const FVector EdgeDirection = (A - B).GetSafeNormal();
+
+	const double EdgeLength = FVector::Dist(A, B);
+	const double StartRadius = InStart.GetScaledExtents().Size();
+	const double EndRadius = InStart.GetScaledExtents().Size();
+	
+	double Rad = 0;
+	
+	switch (RadiusType)
+	{
+	case EPCGExBasicEdgeRadius::Average:
+		Rad = (StartRadius + EndRadius) * 0.5;
+		break;
+	case EPCGExBasicEdgeRadius::Lerp:
+		Rad = FMath::Lerp(StartRadius, EndRadius, InLerp);
+		break;
+	case EPCGExBasicEdgeRadius::Min:
+		Rad = FMath::Min(StartRadius, EndRadius);
+		break;
+	case EPCGExBasicEdgeRadius::Max:
+		Rad = FMath::Max(StartRadius, EndRadius);
+		break;
+	default:
+	case EPCGExBasicEdgeRadius::Fixed:
+		Rad = RadiusConstant;
+		break;
+	}
+
+	FRotator EdgeRot;
+	FVector BoundsMin = FVector(-Rad);
+	FVector BoundsMax = FVector(Rad);
+
+	const FVector PtScale = InEdgePoint.Transform.GetScale3D();
+	const FVector InvScale = FVector::One() / PtScale;
+
+	const double LerpInv = 1 - InLerp;
+	bool bProcessAxis;
+
+#define PCGEX_SOLIDIFY_DIMENSION(_AXIS)\
+	bProcessAxis = SolidificationAxis == EPCGExMinimalAxis::_AXIS;\
+	if (bProcessAxis){\
+		if (SolidificationAxis == EPCGExMinimalAxis::_AXIS){ BoundsMin._AXIS = (-EdgeLength * LerpInv) * InvScale._AXIS; BoundsMax._AXIS = (EdgeLength * InLerp) * InvScale._AXIS; } \
+		else{ BoundsMin._AXIS = (-Rad) * InvScale._AXIS; BoundsMax._AXIS = (Rad) * InvScale._AXIS; }}
+
+	PCGEX_FOREACH_XYZ(PCGEX_SOLIDIFY_DIMENSION)
+#undef PCGEX_SOLIDIFY_DIMENSION
+
+	switch (SolidificationAxis)
+	{
+	default:
+	case EPCGExMinimalAxis::X:
+		EdgeRot = FRotationMatrix::MakeFromX(EdgeDirection).Rotator();
+		break;
+	case EPCGExMinimalAxis::Y:
+		EdgeRot = FRotationMatrix::MakeFromY(EdgeDirection).Rotator();
+		break;
+	case EPCGExMinimalAxis::Z:
+		EdgeRot = FRotationMatrix::MakeFromZ(EdgeDirection).Rotator();
+		break;
+	}
+
+	InEdgePoint.Transform = FTransform(EdgeRot, FMath::Lerp(B, A, LerpInv), InEdgePoint.Transform.GetScale3D());
+
+	InEdgePoint.BoundsMin = BoundsMin;
+	InEdgePoint.BoundsMax = BoundsMax;
+}
+
 bool FPCGExGraphBuilderDetails::IsValid(const TSharedPtr<PCGExGraph::FSubGraph>& InSubgraph) const
 {
 	if (bRemoveBigClusters)
@@ -146,8 +222,9 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 	void FSubGraph::CompileRange(const PCGExMT::FScope& Scope)
 	{
 		const TSharedPtr<FGraph> ParentGraph = WeakParentGraph.Pin();
+		const TSharedPtr<FGraphBuilder> Builder = WeakBuilder.Pin();
 
-		if (!ParentGraph) { return; }
+		if (!ParentGraph || !Builder) { return; }
 
 		const TSharedPtr<PCGExData::TBuffer<int64>> EdgeEndpointsWriter = EdgesDataFacade->GetWritable<int64>(Tag_EdgeEndpoints, -1, false, PCGExData::EBufferInit::New);
 
@@ -181,13 +258,9 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 
 			EdgeEndpointsWriter->GetMutable(EdgeIndex) = PCGEx::H64(NodeGUID(BaseGUID, E.Start), NodeGUID(BaseGUID, E.End));
 
-			if (ParentGraph->bWriteEdgePosition)
+			if (Builder->OutputDetails->bWriteEdgePosition)
 			{
-				EdgePt.Transform.SetLocation(
-					FMath::Lerp(
-						Vertices[E.Start].Transform.GetLocation(),
-						Vertices[E.End].Transform.GetLocation(),
-						ParentGraph->EdgePosition));
+				Builder->OutputDetails->BasicEdgeSolidification.Mutate(EdgePt, Vertices[E.Start], Vertices[E.End], Builder->OutputDetails->EdgePosition);
 			}
 
 			if (EdgePt.Seed == 0 || ParentGraph->bRefreshEdgeSeed) { EdgePt.Seed = PCGExRandom::ComputeSeed(EdgePt, SeedOffset); }

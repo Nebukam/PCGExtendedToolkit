@@ -154,7 +154,20 @@ namespace PCGExFindContours
 			if (Result == PCGExTopology::ECellResult::WrapperCell ||
 				(CellsConstraints->WrapperCell && CellsConstraints->WrapperCell->GetCellHash() == Cell->GetCellHash()))
 			{
-				FPlatformAtomics::InterlockedExchange(&WrapperSeed, Iteration);
+				// Only track the seed closest to bound center as being associated with the wrapper.
+				// There may be edge cases where we don't want that to happen
+
+				const double DistToSeed = FVector::DistSquared(SeedWP, Cluster->Bounds.GetCenter());
+				{
+					FReadScopeLock ReadScopeLock(WrappedSeedLock);
+					if (ClosestSeedDist < DistToSeed) { return; }
+				}
+				{
+					FReadScopeLock WriteScopeLock(WrappedSeedLock);
+					if (ClosestSeedDist < DistToSeed) { return; }
+					ClosestSeedDist = DistToSeed;
+					WrapperSeed = Iteration;
+				}
 			}
 			return;
 		}

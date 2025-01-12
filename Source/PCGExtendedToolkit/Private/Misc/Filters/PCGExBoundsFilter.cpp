@@ -33,7 +33,7 @@ TSharedPtr<PCGExPointFilter::FFilter> UPCGExBoundsFilterFactory::CreateFilter() 
 
 bool UPCGExBoundsFilterFactory::Prepare(FPCGExContext* InContext)
 {
-	for (const TSharedPtr<PCGExData::FFacade> Facade : BoundsDataFacades)
+	for (const TSharedPtr<PCGExData::FFacade>& Facade : BoundsDataFacades)
 	{
 		Clouds.Add(
 			Facade->GetCloud(

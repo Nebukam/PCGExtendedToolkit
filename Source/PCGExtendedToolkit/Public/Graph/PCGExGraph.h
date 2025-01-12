@@ -57,6 +57,40 @@ enum class EPCGExIntersectionType : uint8
 	FusedEdge = 3 UMETA(DisplayName = "Fused Edge", ToolTip="Fused Edge Intersection."),
 };
 
+UENUM()
+enum class EPCGExBasicEdgeRadius : uint8
+{
+	Average = 0 UMETA(DisplayName = "Average", ToolTip="Edge radius is the average of each endpoint' bounds radii"),
+	Lerp    = 1 UMETA(DisplayName = "Lerp", ToolTip="Edge radius is the edge lerp position between endpoint' bounds radii"),
+	Min     = 2 UMETA(DisplayName = "Min", ToolTip="Edge radius is the smallest endpoint' bounds radius"),
+	Max     = 3 UMETA(DisplayName = "Max", ToolTip="Edge radius is the largest endpoint' bounds radius"),
+	Fixed   = 4 UMETA(DisplayName = "Fixed", ToolTip="Edge radius is a fixed size"),
+};
+
+USTRUCT(BlueprintType)
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExBasicEdgeSolidificationDetails
+{
+	GENERATED_BODY()
+
+	FPCGExBasicEdgeSolidificationDetails()
+	{
+	}
+
+	/** Align the edge point to the edge direction over the selected axis. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
+	EPCGExMinimalAxis SolidificationAxis = EPCGExMinimalAxis::None;
+
+	/** Pick how edge radius should be calculated in regard to its endpoints */
+	UPROPERTY(BlueprintReadWrite, Category = Settings, EditAnywhere, meta = (PCG_NotOverridable))
+	EPCGExBasicEdgeRadius RadiusType = EPCGExBasicEdgeRadius::Lerp;
+
+	/** Fixed edge radius */
+	UPROPERTY(BlueprintReadWrite, Category = Settings, EditAnywhere, meta = (PCG_NotOverridable, EditCondition="Radius==EPCGExBasicEdgeRadius::Fixed", EditConditionHides))
+	double RadiusConstant = 5;
+
+	void Mutate(FPCGPoint& InEdgePoint, const FPCGPoint& InStart, const FPCGPoint& InEnd, const double InLerp) const;
+};
+
 USTRUCT(BlueprintType)
 struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExGraphBuilderDetails
 {
@@ -73,6 +107,10 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExGraphBuilderDetails
 	/** Edge position interpolation between start and end point positions. */
 	UPROPERTY(BlueprintReadWrite, Category = Settings, EditAnywhere, meta = (PCG_Overridable, EditCondition="bWriteEdgePosition"))
 	double EdgePosition = 0.5;
+
+	/** If enabled, does some basic solidification of the edges over the X axis as a default. If you need full control, use the Edge Properties node. */
+	UPROPERTY(BlueprintReadWrite, Category = Settings, EditAnywhere, meta = (PCG_NotOverridable, DisplayName=" └─ Solidification", EditCondition="bWriteEdgePosition", HideEditConditionToggle))
+	FPCGExBasicEdgeSolidificationDetails BasicEdgeSolidification;
 
 	/** Don't output Clusters if they have less points than a specified amount. */
 	UPROPERTY(BlueprintReadWrite, Category = Settings, EditAnywhere, meta = (PCG_Overridable, InlineEditConditionToggle))
@@ -465,9 +503,6 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 		TArray<TSharedRef<FSubGraph>> SubGraphs;
 		TSharedPtr<PCGEx::FIndexLookup> NodeIndexLookup;
 
-		bool bWriteEdgePosition = true;
-		double EdgePosition = 0.5;
-
 		bool bRefreshEdgeSeed = false;
 
 		explicit FGraph(const int32 InNumNodes, const int32 InNumEdgesReserve = 10)
@@ -701,8 +736,6 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 
 			Graph = MakeShared<FGraph>(NumNodes, NumEdgeReserve);
 			Graph->bBuildClusters = InDetails->bBuildAndCacheClusters;
-			Graph->bWriteEdgePosition = OutputDetails->bWriteEdgePosition;
-			Graph->EdgePosition = OutputDetails->EdgePosition;
 			Graph->bRefreshEdgeSeed = OutputDetails->bRefreshEdgeSeed;
 
 			EdgesIO = MakeShared<PCGExData::FPointIOCollection>(NodeDataFacade->Source->GetContext());

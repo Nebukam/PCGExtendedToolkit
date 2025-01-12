@@ -223,7 +223,11 @@ namespace PCGExMT
 	{
 		// Called whenever a handle registers running work to root
 		// Normally nothing would trigger here
-		check(IsAvailable())
+		if (!IsAvailable())
+		{
+			UE_LOG(LogTemp, Error, TEXT("Attempting to register async work while manager is unavailable. If there's a crash, it's probably because this happened."));
+			return false;
+		}
 
 		Context->PauseContext();
 		SetState(EAsyncHandleState::Running);

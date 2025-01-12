@@ -131,8 +131,12 @@ namespace PCGExFindContours
 		friend class FBatch;
 
 	protected:
-		bool bBuildExpandedNodes = false;
+		FRWLock WrappedSeedLock;
+
+		double ClosestSeedDist = MAX_dbl;
 		int32 WrapperSeed = -1;
+		
+		bool bBuildExpandedNodes = false;
 		int32 OutputPathNum = 0;
 		TSharedPtr<PCGExTopology::FCell> WrapperCell;
 
