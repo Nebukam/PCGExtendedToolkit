@@ -48,7 +48,7 @@ bool FPCGExSampleSurfaceGuidedElement::Boot(FPCGExContext* InContext) const
 	Context->bUseInclude = Settings->SurfaceSource == EPCGExSurfaceSource::ActorReferences;
 	if (Context->bUseInclude)
 	{
-		PCGEX_VALIDATE_NAME(Settings->ActorReference)
+		PCGEX_VALIDATE_NAME_CONSUMABLE(Settings->ActorReference)
 		Context->ActorReferenceDataFacade = PCGExData::TryGetSingleFacade(Context, PCGExSampling::SourceActorReferencesLabel, true);
 		if (!Context->ActorReferenceDataFacade) { return false; }
 
@@ -352,8 +352,8 @@ namespace PCGExSampleSurfaceGuided
 	{
 		PointDataFacade->Write(AsyncManager);
 
-		if (Settings->bTagIfHasSuccesses && bAnySuccess) { PointDataFacade->Source->Tags->Add(Settings->HasSuccessesTag); }
-		if (Settings->bTagIfHasNoSuccesses && !bAnySuccess) { PointDataFacade->Source->Tags->Add(Settings->HasNoSuccessesTag); }
+		if (Settings->bTagIfHasSuccesses && bAnySuccess) { PointDataFacade->Source->Tags->AddRaw(Settings->HasSuccessesTag); }
+		if (Settings->bTagIfHasNoSuccesses && !bAnySuccess) { PointDataFacade->Source->Tags->AddRaw(Settings->HasNoSuccessesTag); }
 	}
 
 	void FProcessor::Write()

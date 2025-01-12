@@ -12,23 +12,18 @@ bool UPCGExTensorNull::Init(FPCGExContext* InContext, const UPCGExTensorFactoryD
 	return true;
 }
 
-PCGExTensor::FTensorSample UPCGExTensorNull::SampleAtPosition(const FVector& InPosition) const
+PCGExTensor::FTensorSample UPCGExTensorNull::Sample(const FTransform& InProbe) const
 {
+	const FVector& InPosition = InProbe.GetLocation();
 	const FBoxCenterAndExtent BCAE = FBoxCenterAndExtent(InPosition, FVector::One());
 
 	PCGExTensor::FEffectorSamples Samples = PCGExTensor::FEffectorSamples();
 
-	auto ProcessNeighbor = [&](const FPCGPointRef& InPointRef)
+	auto ProcessNeighbor = [&](const FPCGPointRef& InEffector)
 	{
-		double Factor = 0;
-		FVector Guide = FVector::ZeroVector;
-
-		if (!ComputeFactor(InPosition, InPointRef, Factor, Guide)) { return; }
-
-		Samples.Emplace_GetRef(
-			FVector::ZeroVector,
-			Config.Potency * Config.PotencyFalloffCurveObj->Eval(Factor) * Config.Weight * Config.WeightFalloffCurveObj->Eval(Factor),
-			1);
+		PCGExTensor::FEffectorMetrics Metrics;
+		if (!ComputeFactor(InPosition, InEffector, Metrics)) { return; }
+		Samples.Emplace_GetRef(FVector::ZeroVector, 1, 1);
 	};
 
 	Octree->FindElementsWithBoundsTest(BCAE, ProcessNeighbor);

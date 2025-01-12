@@ -109,6 +109,7 @@ namespace PCGExFindAllCells
 		friend class FBatch;
 		int32 NumAttempts = 0;
 		int32 LastBinary = -1;
+		int32 OutputPathsNum = 0;
 
 	protected:
 		bool bBuildExpandedNodes = false;
@@ -129,7 +130,7 @@ namespace PCGExFindAllCells
 		virtual bool Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager) override;
 		virtual void ProcessSingleEdge(const int32 EdgeIndex, PCGExGraph::FEdge& Edge, const PCGExMT::FScope& Scope) override;
 		bool FindCell(const PCGExCluster::FNode& Node, const PCGExGraph::FEdge& Edge, const bool bSkipBinary = true);
-		void ProcessCell(const TSharedPtr<PCGExTopology::FCell>& InCell) const;
+		void ProcessCell(const TSharedPtr<PCGExTopology::FCell>& InCell);
 		void EnsureRoamingClosedLoopProcessing();
 		virtual void OnEdgesProcessingComplete() override;
 		virtual void CompleteWork() override;

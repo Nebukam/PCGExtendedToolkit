@@ -26,7 +26,7 @@ bool UPCGExDotFilterFactory::RegisterConsumableAttributesWithData(FPCGExContext*
 	FName Consumable = NAME_None;
 	PCGEX_CONSUMABLE_SELECTOR(Config.OperandA, Consumable)
 	PCGEX_CONSUMABLE_CONDITIONAL(Config.CompareAgainst == EPCGExInputValueType::Attribute, Config.OperandB, Consumable)
-	PCGEX_CONSUMABLE_CONDITIONAL(Config.DotComparisonDetails.DotValue == EPCGExInputValueType::Attribute, Config.DotComparisonDetails.DotOrDegreesAttribute, Consumable)
+	PCGEX_CONSUMABLE_CONDITIONAL(Config.DotComparisonDetails.ThresholdInput == EPCGExInputValueType::Attribute, Config.DotComparisonDetails.ThresholdAttribute, Consumable)
 
 	return true;
 }

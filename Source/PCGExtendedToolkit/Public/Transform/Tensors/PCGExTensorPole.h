@@ -35,7 +35,7 @@ public:
 	FPCGExTensorPoleConfig Config;
 	virtual bool Init(FPCGExContext* InContext, const UPCGExTensorFactoryData* InFactory) override;
 
-	virtual PCGExTensor::FTensorSample SampleAtPosition(const FVector& InPosition) const override;
+	virtual PCGExTensor::FTensorSample Sample(const FTransform& InProbe) const override;
 };
 
 

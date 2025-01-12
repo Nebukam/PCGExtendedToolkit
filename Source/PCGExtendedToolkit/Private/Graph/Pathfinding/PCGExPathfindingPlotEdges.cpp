@@ -124,13 +124,13 @@ void FPCGExPathfindingPlotEdgesContext::BuildPath(const TSharedPtr<PCGExPathfind
 	PCGEX_MAKE_SHARED(PathDataFacade, PCGExData::FFacade, PathIO.ToSharedRef())
 	PathDataFacade->GetMutablePoints() = MutablePoints;
 
-	PCGExGraph::CleanupClusterTags(PathIO, true);
+	PCGExGraph::CleanupClusterTags(PathIO);
 	PCGExGraph::CleanupVtxData(PathIO);
 
 	PathIO->Tags->Append(Query->PlotFacade->Source->Tags.ToSharedRef());
 
-	if (!Settings->bClosedLoop) { if (Settings->bTagIfOpenPath) { PathIO->Tags->Add(Settings->IsOpenPathTag); } }
-	else { if (Settings->bTagIfClosedLoop) { PathIO->Tags->Add(Settings->IsClosedLoopTag); } }
+	if (!Settings->bClosedLoop) { if (Settings->bTagIfOpenPath) { PathIO->Tags->AddRaw(Settings->IsOpenPathTag); } }
+	else { if (Settings->bTagIfClosedLoop) { PathIO->Tags->AddRaw(Settings->IsClosedLoopTag); } }
 }
 
 PCGEX_INITIALIZE_ELEMENT(PathfindingPlotEdges)

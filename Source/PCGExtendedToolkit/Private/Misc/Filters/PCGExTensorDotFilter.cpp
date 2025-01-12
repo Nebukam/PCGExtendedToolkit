@@ -11,6 +11,8 @@ bool UPCGExTensorDotFilterFactory::Init(FPCGExContext* InContext)
 {
 	if (!Super::Init(InContext)) { return false; }
 	Config.Sanitize();
+	TensorsHandler = MakeShared<PCGExTensor::FTensorsHandler>();
+	if (!TensorsHandler->Init(InContext, PCGExTensor::SourceTensorsLabel)) { return false; }
 	return true;
 }
 
@@ -25,7 +27,7 @@ bool UPCGExTensorDotFilterFactory::RegisterConsumableAttributesWithData(FPCGExCo
 
 	FName Consumable = NAME_None;
 	PCGEX_CONSUMABLE_SELECTOR(Config.OperandA, Consumable)
-	PCGEX_CONSUMABLE_CONDITIONAL(Config.DotComparisonDetails.DotValue == EPCGExInputValueType::Attribute, Config.DotComparisonDetails.DotOrDegreesAttribute, Consumable)
+	PCGEX_CONSUMABLE_CONDITIONAL(Config.DotComparisonDetails.ThresholdInput == EPCGExInputValueType::Attribute, Config.DotComparisonDetails.ThresholdAttribute, Consumable)
 
 	return true;
 }

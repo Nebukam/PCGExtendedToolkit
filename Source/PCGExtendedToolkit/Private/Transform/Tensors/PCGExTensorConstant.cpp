@@ -12,10 +12,8 @@ bool UPCGExTensorConstant::Init(FPCGExContext* InContext, const UPCGExTensorFact
 	return true;
 }
 
-PCGExTensor::FTensorSample UPCGExTensorConstant::SampleAtPosition(const FVector& InPosition) const
+PCGExTensor::FTensorSample UPCGExTensorConstant::Sample(const FTransform& InProbe) const
 {
-	const FBoxCenterAndExtent BCAE = FBoxCenterAndExtent(InPosition, FVector::One());
-
 	PCGExTensor::FEffectorSamples Samples = PCGExTensor::FEffectorSamples();
 
 	Samples.Emplace_GetRef(

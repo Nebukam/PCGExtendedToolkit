@@ -32,7 +32,7 @@ struct FPCGExPointsProcessorContext;
 class FPCGExPointsProcessorElement;
 
 UCLASS(Abstract, BlueprintType, ClassGroup = (Procedural))
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExPointsProcessorSettings : public UPCGSettings
+class PCGEXTENDEDTOOLKIT_API UPCGExPointsProcessorSettings : public UPCGSettings
 {
 	GENERATED_BODY()
 
@@ -108,7 +108,7 @@ public:
 	//~End UPCGExPointsProcessorSettings
 };
 
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPointsProcessorContext : FPCGExContext
+struct PCGEXTENDEDTOOLKIT_API FPCGExPointsProcessorContext : FPCGExContext
 {
 	friend class FPCGExPointsProcessorElement;
 
@@ -232,7 +232,7 @@ public:
 	virtual bool IsAsyncWorkComplete();
 };
 
-class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPointsProcessorElement : public IPCGElement
+class PCGEXTENDEDTOOLKIT_API FPCGExPointsProcessorElement : public IPCGElement
 {
 public:
 	virtual bool PrepareDataInternal(FPCGContext* Context) const override;

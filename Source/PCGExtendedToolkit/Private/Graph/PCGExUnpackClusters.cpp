@@ -106,11 +106,10 @@ void FPCGExUnpackClusterTask::ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager
 	NewVtx->DeleteAttribute(PCGExGraph::Tag_PackedClusterPointCount);
 	NewVtx->DeleteAttribute(PCGExGraph::Tag_EdgeEndpoints);
 
-	FString OutPairId;
-	PointIO->Tags->GetValue(PCGExGraph::TagStr_ClusterPair, OutPairId);
-
-	PCGExGraph::MarkClusterVtx(NewVtx, OutPairId);
-	PCGExGraph::MarkClusterEdges(NewEdges, OutPairId);
+	const PCGExTags::IDType PairId = PointIO->Tags->GetValue<int32>(PCGExGraph::TagStr_ClusterPair);
+	
+	PCGExGraph::MarkClusterVtx(NewVtx, PairId);
+	PCGExGraph::MarkClusterEdges(NewEdges, PairId);
 }
 
 #undef LOCTEXT_NAMESPACE

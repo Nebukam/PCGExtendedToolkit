@@ -222,6 +222,49 @@ namespace PCGExHelpers
 		}
 	}
 
+	static bool CopyProperties(UObject* Target, const UObject* Source, const TSet<FString>* Exclusions = nullptr)
+	{
+		const UClass* SourceClass = Source->GetClass();
+		const UClass* TargetClass = Target->GetClass();
+		const UClass* CommonBaseClass = nullptr;
+
+		if (SourceClass->IsChildOf(TargetClass)) { CommonBaseClass = TargetClass; }
+		else if (TargetClass->IsChildOf(SourceClass)) { CommonBaseClass = SourceClass; }
+		else
+		{
+			// Traverse up the hierarchy to find a shared base class
+			const UClass* TempClass = SourceClass;
+			while (TempClass)
+			{
+				if (TargetClass->IsChildOf(TempClass))
+				{
+					CommonBaseClass = TempClass;
+					break;
+				}
+				TempClass = TempClass->GetSuperClass();
+			}
+		}
+
+		if (!CommonBaseClass) { return false; }
+
+		// Iterate over source properties
+		for (TFieldIterator<FProperty> It(CommonBaseClass); It; ++It)
+		{
+			const FProperty* Property = *It;
+			if (Exclusions && Exclusions->Contains(Property->GetName())) { continue; }
+
+			// Skip properties that shouldn't be copied (like transient properties)
+			if (Property->HasAnyPropertyFlags(CPF_Transient | CPF_ConstParm | CPF_OutParm)) { continue; }
+
+			// Copy the value from source to target
+			const void* SourceValue = Property->ContainerPtrToValuePtr<void>(Source);
+			void* TargetValue = Property->ContainerPtrToValuePtr<void>(Target);
+			Property->CopyCompleteValue(TargetValue, SourceValue);
+		}
+
+		return true;
+	}
+
 	static void SetPointProperty(FPCGPoint& InPoint, const double InValue, const EPCGExPointPropertyOutput InProperty)
 	{
 		switch (InProperty)

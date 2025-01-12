@@ -933,8 +933,7 @@ namespace PCGExData
 
 	static void WriteId(const TSharedRef<FPointIO>& PointIO, const FName IdName, const int64 Id)
 	{
-		FString OutId;
-		PointIO->Tags->Add(IdName.ToString(), Id, OutId);
+		PointIO->Tags->Set<int64>(IdName.ToString(), Id);
 		if (PointIO->GetOut()) { WriteMark(PointIO, IdName, Id); }
 	}
 
