@@ -12,24 +12,21 @@ bool UPCGExTensorSplinePole::Init(FPCGExContext* InContext, const UPCGExTensorFa
 	return true;
 }
 
-PCGExTensor::FTensorSample UPCGExTensorSplinePole::SampleAtPosition(const FVector& InPosition) const
+PCGExTensor::FTensorSample UPCGExTensorSplinePole::Sample(const FTransform& InProbe) const
 {
-	const FBoxCenterAndExtent BCAE = FBoxCenterAndExtent(InPosition, FVector::One());
-
+	const FVector& InPosition = InProbe.GetLocation();
 	PCGExTensor::FEffectorSamples Samples = PCGExTensor::FEffectorSamples();
 
 	for (const FPCGSplineStruct& Spline : *Splines)
 	{
 		FTransform T = FTransform::Identity;
-		double Factor = 0;
-		FVector Guide = FVector::ZeroVector;
+		PCGExTensor::FEffectorMetrics Metrics;
 
-		if (!ComputeFactor(InPosition, Spline, Config.Radius, T, Factor, Guide)) { continue; }
+		if (!ComputeFactor(InPosition, Spline, Config.Radius, T, Metrics)) { continue; }
 
 		Samples.Emplace_GetRef(
-			FRotationMatrix::MakeFromX((InPosition - T.GetLocation()).GetSafeNormal()).ToQuat().RotateVector(Guide),
-			Config.Potency * Config.PotencyFalloffCurveObj->Eval(Factor),
-			Config.Weight * Config.WeightFalloffCurveObj->Eval(Factor));
+			FRotationMatrix::MakeFromX((InPosition - T.GetLocation()).GetSafeNormal()).ToQuat().RotateVector(Metrics.Guide),
+			Metrics.Potency, Metrics.Weight);
 	}
 
 	return Samples.Flatten(Config.TensorWeight);

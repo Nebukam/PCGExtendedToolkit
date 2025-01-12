@@ -21,11 +21,11 @@ bool FPCGExPathSplineMeshSimpleElement::Boot(FPCGExContext* InContext) const
 
 	if (Settings->bApplyCustomTangents)
 	{
-		PCGEX_VALIDATE_NAME(Settings->ArriveTangentAttribute)
-		PCGEX_VALIDATE_NAME(Settings->LeaveTangentAttribute)
+		PCGEX_VALIDATE_NAME_CONSUMABLE(Settings->ArriveTangentAttribute)
+		PCGEX_VALIDATE_NAME_CONSUMABLE(Settings->LeaveTangentAttribute)
 	}
 
-	PCGEX_VALIDATE_NAME(Settings->AssetPathAttributeName)
+	PCGEX_VALIDATE_NAME_CONSUMABLE(Settings->AssetPathAttributeName)
 
 	TArray<FName> Names = {Settings->AssetPathAttributeName};
 	Context->StaticMeshLoader = MakeShared<PCGEx::TAssetLoader<UStaticMesh>>(Context, Context->MainPoints.ToSharedRef(), Names);

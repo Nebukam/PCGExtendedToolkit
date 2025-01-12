@@ -67,7 +67,7 @@ bool FPCGExAssetStagingElement::Boot(FPCGExContext* InContext) const
 
 	if (Settings->WeightToAttribute == EPCGExWeightOutputMode::Raw || Settings->WeightToAttribute == EPCGExWeightOutputMode::Normalized)
 	{
-		PCGEX_VALIDATE_NAME(Settings->WeightAttributeName)
+		PCGEX_VALIDATE_NAME_CONSUMABLE(Settings->WeightAttributeName)
 	}
 
 	if (Settings->OutputMode == EPCGExStagingOutputMode::CollectionMap)

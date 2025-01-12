@@ -100,7 +100,7 @@ namespace PCGExTopology
 
 	void FCellConstraints::BuildWrapperCell(TSharedRef<PCGExCluster::FCluster> InCluster, const TArray<FVector>& ProjectedPositions)
 	{
-		const FVector SeedWP = InCluster->Bounds.GetCenter() + InCluster->Bounds.GetSize() * FVector(1, 1, 0);
+		const FVector SeedWP = InCluster->Bounds.GetCenter() + InCluster->Bounds.GetSize() * FVector(1.01, 1.01, 0);
 
 		PCGEX_MAKE_SHARED(TempConstraints, FCellConstraints)
 		TempConstraints->bKeepCellsWithLeaves = bKeepCellsWithLeaves;
@@ -380,13 +380,13 @@ void FPCGExCellArtifactsDetails::Process(
 	};
 
 	// Lots of wasted cycles here
-	FwdTags(InCluster->VtxIO.Pin()->Tags->ToSet());
-	FwdTags(InCluster->EdgesIO.Pin()->Tags->ToSet());
+	FwdTags(InCluster->VtxIO.Pin()->Tags->Flatten());
+	FwdTags(InCluster->EdgesIO.Pin()->Tags->Flatten());
 
-	if (bTagIfClosedLoop) { InDataFacade->Source->Tags->Add(IsClosedLoopTag); }
+	if (bTagIfClosedLoop) { InDataFacade->Source->Tags->AddRaw(IsClosedLoopTag); }
 
-	if (InCell->Data.bIsConvex) { if (bTagConvex) { InDataFacade->Source->Tags->Add(ConvexTag); } }
-	else { if (bTagConcave) { InDataFacade->Source->Tags->Add(ConcaveTag); } }
+	if (InCell->Data.bIsConvex) { if (bTagConvex) { InDataFacade->Source->Tags->AddRaw(ConvexTag); } }
+	else { if (bTagConcave) { InDataFacade->Source->Tags->AddRaw(ConcaveTag); } }
 
 	if (!WriteAny()) { return; }
 

@@ -412,10 +412,10 @@ namespace PCGExData
 	{
 	public:
 		FString TagId;
-		FString TagValue;
+		PCGExTags::IDType TagValue;
 		TArray<TSharedRef<FPointIO>> Entries;
 
-		FPointIOTaggedEntries(const FString& InTagId, const FString& InTagValue)
+		FPointIOTaggedEntries(const FString& InTagId, const PCGExTags::IDType& InTagValue)
 			: TagId(InTagId), TagValue(InTagValue)
 		{
 		}
@@ -428,8 +428,8 @@ namespace PCGExData
 	class /*PCGEXTENDEDTOOLKIT_API*/ FPointIOTaggedDictionary
 	{
 	public:
-		FString TagId;
-		TMap<FString, int32> TagMap;
+		FString TagId;             // LeftSide
+		TMap<int32, int32> TagMap; // :RightSize @ Entry Index
 		TArray<TSharedPtr<FPointIOTaggedEntries>> Entries;
 
 		explicit FPointIOTaggedDictionary(const FString& InTagId)
@@ -441,7 +441,7 @@ namespace PCGExData
 
 		bool CreateKey(const TSharedRef<FPointIO>& PointIOKey);
 		bool TryAddEntry(const TSharedRef<FPointIO>& PointIOEntry);
-		TSharedPtr<FPointIOTaggedEntries> GetEntries(const FString& Key);
+		TSharedPtr<FPointIOTaggedEntries> GetEntries(int32 Key);
 	};
 
 	namespace PCGExPointIO

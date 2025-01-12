@@ -132,8 +132,8 @@ namespace PCGExBreakClustersToPaths
 		MutablePoints[PtIndex++] = PathIO->GetInPoint(Cluster->GetNode(Chain->Seed)->PointIndex);
 		for (const PCGExGraph::FLink& Lk : Chain->Links) { MutablePoints[PtIndex++] = PathIO->GetInPoint(Cluster->GetNode(Lk)->PointIndex); }
 
-		if (!Chain->bIsClosedLoop) { if (Settings->bTagIfOpenPath) { PathIO->Tags->Add(Settings->IsOpenPathTag); } }
-		else { if (Settings->bTagIfClosedLoop) { PathIO->Tags->Add(Settings->IsClosedLoopTag); } }
+		if (!Chain->bIsClosedLoop) { if (Settings->bTagIfOpenPath) { PathIO->Tags->AddRaw(Settings->IsOpenPathTag); } }
+		else { if (Settings->bTagIfClosedLoop) { PathIO->Tags->AddRaw(Settings->IsClosedLoopTag); } }
 
 		if (bReverse) { Algo::Reverse(MutablePoints); }
 

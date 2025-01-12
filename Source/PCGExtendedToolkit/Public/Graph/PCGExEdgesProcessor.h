@@ -13,7 +13,7 @@
 #define PCGEX_CLUSTER_BATCH_PROCESSING(_STATE) if (!Context->ProcessClusters(_STATE)) { return false; }
 
 UCLASS(Abstract, BlueprintType, ClassGroup = (Procedural))
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExEdgesProcessorSettings : public UPCGExPointsProcessorSettings
+class PCGEXTENDEDTOOLKIT_API UPCGExEdgesProcessorSettings : public UPCGExPointsProcessorSettings
 {
 	GENERATED_BODY()
 
@@ -47,7 +47,7 @@ public:
 	bool bScopedIndexLookupBuild = false;
 };
 
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExEdgesProcessorContext : FPCGExPointsProcessorContext
+struct PCGEXTENDEDTOOLKIT_API FPCGExEdgesProcessorContext : FPCGExPointsProcessorContext
 {
 	friend class UPCGExEdgesProcessorSettings;
 	friend class FPCGExEdgesProcessorElement;
@@ -202,7 +202,7 @@ protected:
 	int32 CurrentEdgesIndex = -1;
 };
 
-class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExEdgesProcessorElement : public FPCGExPointsProcessorElement
+class PCGEXTENDEDTOOLKIT_API FPCGExEdgesProcessorElement : public FPCGExPointsProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(

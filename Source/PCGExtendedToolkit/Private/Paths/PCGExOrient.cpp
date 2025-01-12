@@ -30,15 +30,8 @@ bool FPCGExOrientElement::Boot(FPCGExContext* InContext) const
 		return false;
 	}
 
-	if (Settings->Output == EPCGExOrientUsage::OutputToAttribute)
-	{
-		PCGEX_VALIDATE_NAME(Settings->OutputAttribute);
-	}
-
-	if (Settings->bOutputDot)
-	{
-		PCGEX_VALIDATE_NAME(Settings->DotAttribute);
-	}
+	if (Settings->Output == EPCGExOrientUsage::OutputToAttribute) { PCGEX_VALIDATE_NAME(Settings->OutputAttribute); }
+	if (Settings->bOutputDot) { PCGEX_VALIDATE_NAME(Settings->DotAttribute); }
 
 	PCGEX_OPERATION_BIND(Orientation, UPCGExOrientOperation, PCGExOrient::SourceOverridesOrient)
 	Context->Orientation->OrientAxis = Settings->OrientAxis;

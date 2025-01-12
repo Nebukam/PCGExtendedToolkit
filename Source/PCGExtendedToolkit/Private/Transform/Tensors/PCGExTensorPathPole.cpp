@@ -6,30 +6,21 @@
 #define LOCTEXT_NAMESPACE "PCGExCreateTensorPathPole"
 #define PCGEX_NAMESPACE CreateTensorPathPole
 
-bool UPCGExTensorPathPole::Init(FPCGExContext* InContext, const UPCGExTensorFactoryData* InFactory)
+PCGExTensor::FTensorSample UPCGExTensorPathPole::Sample(const FTransform& InProbe) const
 {
-	if (!Super::Init(InContext, InFactory)) { return false; }
-	return true;
-}
-
-PCGExTensor::FTensorSample UPCGExTensorPathPole::SampleAtPosition(const FVector& InPosition) const
-{
-	const FBoxCenterAndExtent BCAE = FBoxCenterAndExtent(InPosition, FVector::One());
-
+	const FVector& InPosition = InProbe.GetLocation();
 	PCGExTensor::FEffectorSamples Samples = PCGExTensor::FEffectorSamples();
 
 	for (const TSharedPtr<const FPCGSplineStruct>& Spline : *Splines)
 	{
 		FTransform T = FTransform::Identity;
-		double Factor = 0;
-		FVector Guide = FVector::ZeroVector;
+		PCGExTensor::FEffectorMetrics Metrics;
 
-		if (!ComputeFactor(InPosition, *Spline.Get(), Config.Radius, T, Factor, Guide)) { continue; }
+		if (!ComputeFactor(InPosition, *Spline.Get(), Config.Radius, T, Metrics)) { continue; }
 
 		Samples.Emplace_GetRef(
-			FRotationMatrix::MakeFromX((InPosition - T.GetLocation()).GetSafeNormal()).ToQuat().RotateVector(Guide),
-			Config.Potency * Config.PotencyFalloffCurveObj->Eval(Factor),
-			Config.Weight * Config.WeightFalloffCurveObj->Eval(Factor));
+			FRotationMatrix::MakeFromX((InPosition - T.GetLocation()).GetSafeNormal()).ToQuat().RotateVector(Metrics.Guide),
+			Metrics.Potency, Metrics.Weight);
 	}
 
 	return Samples.Flatten(Config.TensorWeight);
@@ -39,8 +30,8 @@ PCGEX_TENSOR_BOILERPLATE(
 	PathPole, {
 	NewFactory->Config.Potency *=NewFactory->Config.PotencyScale;
 	NewFactory->bBuildFromPaths = GetBuildFromPoints();
-	NewFactory->PointType = Config.PointType;
-	NewFactory->ClosedLoop = Config.ClosedLoop;
+	NewFactory->PointType = NewFactory->Config.PointType;
+	NewFactory->ClosedLoop = NewFactory->Config.ClosedLoop;
 	}, {
 	NewOperation->Splines = &ManagedSplines;
 	})

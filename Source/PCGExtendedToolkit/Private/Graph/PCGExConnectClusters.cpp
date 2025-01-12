@@ -101,9 +101,9 @@ bool FPCGExConnectClustersElement::ExecuteInternal(FPCGContext* InContext) const
 	for (const TSharedPtr<PCGExClusterMT::FClusterProcessorBatchBase>& Batch : Context->Batches)
 	{
 		const TSharedPtr<PCGExBridgeClusters::FBatch> BridgeBatch = StaticCastSharedPtr<PCGExBridgeClusters::FBatch>(Batch);
-		FString OutId;
-		PCGExGraph::SetClusterVtx(BridgeBatch->VtxDataFacade->Source, OutId);
-		PCGExGraph::MarkClusterEdges(BridgeBatch->CompoundedEdgesDataFacade->Source, OutId);
+		PCGExTags::IDType PairId;
+		PCGExGraph::SetClusterVtx(BridgeBatch->VtxDataFacade->Source, PairId);
+		PCGExGraph::MarkClusterEdges(BridgeBatch->CompoundedEdgesDataFacade->Source, PairId);
 	}
 
 	Context->OutputPointsAndEdges();

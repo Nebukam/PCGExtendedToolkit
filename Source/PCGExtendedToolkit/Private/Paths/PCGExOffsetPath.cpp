@@ -144,6 +144,7 @@ namespace PCGExOffsetPath
 	void FProcessor::PrepareSingleLoopScopeForPoints(const PCGExMT::FScope& Scope)
 	{
 		PointDataFacade->Fetch(Scope);
+		FilterScope(Scope);
 	}
 
 	void FProcessor::ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const PCGExMT::FScope& Scope)
@@ -200,7 +201,7 @@ namespace PCGExOffsetPath
 			}
 		}
 
-
+		if (!PointFilterCache[Index]) { Positions[Index] = Point.Transform.GetLocation(); }
 		if (!Settings->bCleanupPath) { Point.Transform.SetLocation(Positions[Index]); }
 	}
 

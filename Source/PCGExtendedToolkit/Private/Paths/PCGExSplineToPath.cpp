@@ -203,11 +203,11 @@ namespace PCGExSplineToPath
 
 		if (Spline.bClosedLoop)
 		{
-			if (Settings->bTagIfClosedLoop) { PointDataFacade->Source->Tags->Add(Settings->IsClosedLoopTag); }
+			if (Settings->bTagIfClosedLoop) { PointDataFacade->Source->Tags->AddRaw(Settings->IsClosedLoopTag); }
 		}
 		else
 		{
-			if (Settings->bTagIfOpenSpline) { PointDataFacade->Source->Tags->Add(Settings->IsOpenSplineTag); }
+			if (Settings->bTagIfOpenSpline) { PointDataFacade->Source->Tags->AddRaw(Settings->IsOpenSplineTag); }
 
 			ApplyTransform(MutablePoints.Last(), Spline.GetTransformAtDistanceAlongSpline(TotalLength, ESplineCoordinateSpace::Type::World, true));
 

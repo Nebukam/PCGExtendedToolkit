@@ -17,6 +17,7 @@
 #include "PCGExMacros.h"
 #include "PCGExGlobalSettings.h"
 #include "Data/PCGExPointIO.h"
+#include "Tasks/Task.h"
 
 
 #pragma region MT MACROS
@@ -59,6 +60,7 @@
 namespace PCGExMT
 {
 	using FCompletionCallback = std::function<void()>;
+	using FSimpleCallback = std::function<void()>;
 
 	static void SetWorkPriority(const EPCGExAsyncPriority Selection, UE::Tasks::ETaskPriority& Priority)
 	{
@@ -143,6 +145,7 @@ namespace PCGExMT
 		std::atomic<EAsyncHandleState> State{EAsyncHandleState::Idle};
 
 	public:
+		int32 HandleIdx = -1;
 		virtual FString HandleId() const { return TEXT("NOT IMPLEMENTED"); }
 
 		FAsyncHandle() = default;
@@ -150,7 +153,7 @@ namespace PCGExMT
 
 		bool IsCancelled() const { return bIsCancelled.load(std::memory_order_acquire); }
 
-		virtual void SetRoot(const TSharedPtr<FAsyncMultiHandle>& InRoot);
+		virtual void SetRoot(const TSharedPtr<FAsyncMultiHandle>& InRoot, int32 InHandleIdx = -1);
 		void SetParent(const TSharedPtr<FAsyncMultiHandle>& InParent);
 
 		virtual bool Start();    // Return whether the task is running or not
@@ -177,7 +180,7 @@ namespace PCGExMT
 
 		FCompletionCallback OnCompleteCallback; // Only called with handle was not cancelled
 
-		virtual void SetRoot(const TSharedPtr<FAsyncMultiHandle>& InRoot) override;
+		virtual void SetRoot(const TSharedPtr<FAsyncMultiHandle>& InRoot, int32 InHandleIdx) override;
 
 		void IncrementPendingTasks();
 		void IncrementCompletedTasks();
@@ -265,7 +268,7 @@ namespace PCGExMT
 		std::atomic<bool> bIsResetting{false};
 		bool IsResetting() const { return bIsResetting.load(std::memory_order_acquire); }
 
-		TArray<TSharedPtr<FTask>> Tasks;
+		TArray<TWeakPtr<FTask>> Tasks;
 		TArray<TSharedPtr<FTaskGroup>> Groups;
 		TArray<TSharedPtr<FAsyncToken>> Tokens;
 
@@ -286,8 +289,6 @@ namespace PCGExMT
 		friend class FDaisyChainScopeIterationTask;
 
 	public:
-		using FSimpleCallback = std::function<void()>;
-
 		using FIterationCallback = std::function<void(const int32, const FScope&)>;
 		FIterationCallback OnIterationCallback;
 
@@ -484,6 +485,52 @@ namespace PCGExMT
 		{
 			if constexpr (bWithManager) { PCGEX_LAUNCH(FWriteTaskWithManager<T>, Operation) }
 			else { PCGEX_LAUNCH(FWriteTask<T>, Operation) }
+		}
+	}
+
+	//
+
+	class FDeferredCallbackHandle : public FAsyncHandle
+	{
+	public:
+		explicit FDeferredCallbackHandle() : FAsyncHandle()
+		{
+		}
+
+		FSimpleCallback Callback;
+	};
+
+	static TSharedPtr<FDeferredCallbackHandle> DeferredCallback(FPCGExContext* InContext, FSimpleCallback&& InCallback)
+	{
+		TSharedPtr<FDeferredCallbackHandle> DeferredCallback = MakeShared<FDeferredCallbackHandle>();
+		DeferredCallback->Callback = InCallback;
+
+		TWeakPtr<FDeferredCallbackHandle> WeakTask = DeferredCallback;
+		UE::Tasks::Launch(
+				TEXT("DeferredCallback"),
+				[WeakTask]()
+				{
+					const TSharedPtr<FDeferredCallbackHandle> Task = WeakTask.Pin();
+					if (!Task.IsValid()) { return; }
+
+					if (Task->Start())
+					{
+						Task->Callback();
+						Task->Complete();
+					}
+				},
+				UE::Tasks::ETaskPriority::Default
+			);
+
+		return DeferredCallback;
+	}
+
+	static void CancelDeferredCallback(const TSharedPtr<FDeferredCallbackHandle>& InCallback)
+	{
+		InCallback->Cancel();
+		while (InCallback->GetState() != EAsyncHandleState::Ended)
+		{
+			// Hold off until ended
 		}
 	}
 }

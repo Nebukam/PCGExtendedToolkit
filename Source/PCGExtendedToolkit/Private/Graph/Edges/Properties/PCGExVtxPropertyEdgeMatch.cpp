@@ -55,7 +55,7 @@ void UPCGExVtxPropertyEdgeMatch::ProcessNode(PCGExCluster::FNode& Node, const TA
 
 	double BestDot = MIN_dbl_neg;
 	int32 IBest = -1;
-	const double DotB = Config.DotComparisonDetails.GetDot(Node.PointIndex);
+	const double DotThreshold = Config.DotComparisonDetails.GetComparisonThreshold(Node.PointIndex);
 
 	FVector NodeDirection = DirCache ? DirCache->Read(Node.PointIndex).GetSafeNormal() : Config.DirectionConstant;
 	if (Config.bTransformDirection) { NodeDirection = Point.Transform.TransformVectorNoScale(NodeDirection); }
@@ -65,7 +65,7 @@ void UPCGExVtxPropertyEdgeMatch::ProcessNode(PCGExCluster::FNode& Node, const TA
 		const PCGExCluster::FAdjacencyData& A = Adjacency[i];
 		const double DotA = FVector::DotProduct(NodeDirection, A.Direction);
 
-		if (Config.DotComparisonDetails.Test(DotA, DotB))
+		if (Config.DotComparisonDetails.Test(DotA, DotThreshold))
 		{
 			if (DotA > BestDot)
 			{

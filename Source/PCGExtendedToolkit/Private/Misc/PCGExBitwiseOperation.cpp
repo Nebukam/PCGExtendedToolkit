@@ -23,7 +23,7 @@ bool FPCGExBitwiseOperationElement::Boot(FPCGExContext* InContext) const
 
 	if (Settings->MaskInput == EPCGExInputValueType::Attribute)
 	{
-		PCGEX_VALIDATE_NAME(Settings->MaskAttribute)
+		PCGEX_VALIDATE_NAME_CONSUMABLE(Settings->MaskAttribute)
 	}
 
 	return true;

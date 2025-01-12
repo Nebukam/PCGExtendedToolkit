@@ -59,8 +59,7 @@ bool FNodeEdgeDirectionFilter::TestDot(const PCGExCluster::FNode& Node) const
 	FVector RefDir = OperandDirection ? OperandDirection->Read(PointIndex) : DirConstant;
 	if (TypedFilterFactory->Config.bTransformDirection) { RefDir = Point.Transform.TransformVectorNoScale(RefDir).GetSafeNormal(); }
 
-	const double A = DotComparison.GetDot(PointIndex);
-	double B = 0;
+	const double DotThreshold = DotComparison.GetComparisonThreshold(PointIndex);
 
 	TArray<double> Dots;
 	Dots.SetNumUninitialized(Node.Num());
@@ -69,44 +68,25 @@ bool FNodeEdgeDirectionFilter::TestDot(const PCGExCluster::FNode& Node) const
 
 	if (bFromNode)
 	{
-		if (DotComparison.bUnsignedDot)
+		for (int i = 0; i < Dots.Num(); i++)
 		{
-			for (int i = 0; i < Dots.Num(); i++)
-			{
-				Dots[i] = FMath::Abs(FVector::DotProduct(RefDir, Cluster->GetDir(Node.Index, Node.Links[i].Node)));
-			}
-		}
-		else
-		{
-			for (int i = 0; i < Dots.Num(); i++)
-			{
-				Dots[i] = FVector::DotProduct(RefDir, Cluster->GetDir(Node.Index, Node.Links[i].Node));
-			}
+			Dots[i] = FVector::DotProduct(RefDir, Cluster->GetDir(Node.Index, Node.Links[i].Node));
 		}
 	}
 	else
 	{
-		if (DotComparison.bUnsignedDot)
+		for (int i = 0; i < Dots.Num(); i++)
 		{
-			for (int i = 0; i < Dots.Num(); i++)
-			{
-				Dots[i] = FMath::Abs(FVector::DotProduct(RefDir, Cluster->GetDir(Node.Index, Node.Links[i].Node)));
-			}
-		}
-		else
-		{
-			for (int i = 0; i < Dots.Num(); i++)
-			{
-				Dots[i] = FVector::DotProduct(RefDir, Cluster->GetDir(Node.Index, Node.Links[i].Node));
-			}
+			Dots[i] = FVector::DotProduct(RefDir, Cluster->GetDir(Node.Links[i].Node, Node.Index));
 		}
 	}
 
 	if (Adjacency.bTestAllNeighbors)
 	{
+		double A = 0;
 		if (Adjacency.Consolidation == EPCGExAdjacencyGatherMode::Individual)
 		{
-			for (const double Dot : Dots) { if (!DotComparison.Test(A, Dot)) { return false; } }
+			for (const double Dot : Dots) { if (!DotComparison.Test(Dot, DotThreshold)) { return false; } }
 			return true;
 		}
 
@@ -115,23 +95,23 @@ bool FNodeEdgeDirectionFilter::TestDot(const PCGExCluster::FNode& Node) const
 		{
 		default:
 		case EPCGExAdjacencyGatherMode::Average:
-			for (const double Dot : Dots) { B += Dot; }
-			B /= Node.Links.Num();
+			for (const double Dot : Dots) { A += Dot; }
+			A /= Node.Links.Num();
 			break;
 		case EPCGExAdjacencyGatherMode::Min:
-			B = MAX_dbl;
-			for (const double Dot : Dots) { B = FMath::Min(B, Dot); }
+			A = MAX_dbl;
+			for (const double Dot : Dots) { A = FMath::Min(A, Dot); }
 			break;
 		case EPCGExAdjacencyGatherMode::Max:
-			B = MIN_dbl_neg;
-			for (const double Dot : Dots) { B = FMath::Max(B, Dot); }
+			A = MIN_dbl_neg;
+			for (const double Dot : Dots) { A = FMath::Max(A, Dot); }
 			break;
 		case EPCGExAdjacencyGatherMode::Sum:
-			for (const double Dot : Dots) { B += Dot; }
+			for (const double Dot : Dots) { A += Dot; }
 			break;
 		}
 
-		return DotComparison.Test(A, B);
+		return DotComparison.Test(A, DotThreshold);
 	}
 
 	// Only some adjacent samples must pass the comparison
@@ -141,7 +121,7 @@ bool FNodeEdgeDirectionFilter::TestDot(const PCGExCluster::FNode& Node) const
 	if (Threshold == -1) { return false; }
 
 	int32 LocalSuccessCount = 0;
-	for (const double Dot : Dots) { if (DotComparison.Test(A, Dot)) { LocalSuccessCount++; } }
+	for (const double Dot : Dots) { if (DotComparison.Test(Dot, DotThreshold)) { LocalSuccessCount++; } }
 
 	return PCGExCompare::Compare(Adjacency.ThresholdComparison, LocalSuccessCount, Threshold);
 }

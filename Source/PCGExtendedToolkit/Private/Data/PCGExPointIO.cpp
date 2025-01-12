@@ -159,7 +159,7 @@ namespace PCGExData
 
 		if (!IsEnabled() || !Out || (!bAllowEmptyOutput && Out->GetPoints().IsEmpty())) { return false; }
 
-		Context->StageOutput(OutputPin, Out, Tags->ToSet(), Out != In, bMutable);
+		Context->StageOutput(OutputPin, Out, Tags->Flatten(), Out != In, bMutable);
 		return true;
 	}
 
@@ -375,34 +375,28 @@ namespace PCGExData
 	void FPointIOTaggedEntries::Add(const TSharedRef<FPointIO>& Value)
 	{
 		Entries.AddUnique(Value);
-		Value->Tags->Add(TagId, TagValue);
+		Value->Tags->Set(TagId, TagValue);
 	}
 
 	bool FPointIOTaggedDictionary::CreateKey(const TSharedRef<FPointIO>& PointIOKey)
 	{
-		FString TagValue;
-		if (!PointIOKey->Tags->GetValue(TagId, TagValue))
-		{
-			TagValue = FString::Printf(TEXT("%u"), PointIOKey->GetInOut()->GetUniqueID());
-			PointIOKey->Tags->Add(TagId, TagValue);
-		}
-
+		PCGExTags::IDType TagValue = PointIOKey->Tags->GetOrSet<int32>(TagId, PointIOKey->GetInOut()->GetUniqueID());
 		for (const TSharedPtr<FPointIOTaggedEntries>& Binding : Entries)
 		{
 			// TagValue shouldn't exist already
-			if (Binding->TagValue == TagValue) { return false; }
+			if (Binding->TagValue->Value == TagValue->Value) { return false; }
 		}
 
-		TagMap.Add(TagValue, Entries.Add(MakeShared<FPointIOTaggedEntries>(TagId, TagValue)));
+		TagMap.Add(TagValue->Value, Entries.Add(MakeShared<FPointIOTaggedEntries>(TagId, TagValue)));
 		return true;
 	}
 
 	bool FPointIOTaggedDictionary::TryAddEntry(const TSharedRef<FPointIO>& PointIOEntry)
 	{
-		FString TagValue;
-		if (!PointIOEntry->Tags->GetValue(TagId, TagValue)) { return false; }
+		const PCGExTags::IDType TagValue = PointIOEntry->Tags->GetValue<int32>(TagId);
+		if (!TagValue) { return false; }
 
-		if (const int32* Index = TagMap.Find(TagValue))
+		if (const int32* Index = TagMap.Find(TagValue->Value))
 		{
 			Entries[*Index]->Add(PointIOEntry);
 			return true;
@@ -411,7 +405,7 @@ namespace PCGExData
 		return false;
 	}
 
-	TSharedPtr<FPointIOTaggedEntries> FPointIOTaggedDictionary::GetEntries(const FString& Key)
+	TSharedPtr<FPointIOTaggedEntries> FPointIOTaggedDictionary::GetEntries(const int32 Key)
 	{
 		if (const int32* Index = TagMap.Find(Key)) { return Entries[*Index]; }
 		return nullptr;

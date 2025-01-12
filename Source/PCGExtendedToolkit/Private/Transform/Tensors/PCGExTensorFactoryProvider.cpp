@@ -26,8 +26,35 @@ bool UPCGExTensorFactoryData::InitInternalData(FPCGExContext* InContext)
 	return true;
 }
 
+void UPCGExTensorFactoryData::InheritFromOtherTensor(const UPCGExTensorFactoryData* InOtherTensor)
+{
+	const TSet<FString> Exclusions = {TEXT("Points"), TEXT("Splines"), TEXT("ManagedSplines")};
+	PCGExHelpers::CopyProperties(this, InOtherTensor, &Exclusions);
+	if (InOtherTensor->GetClass() == GetClass())
+	{
+		// Same type let's automate
+	}
+	else
+	{
+		// We can only attempt to inherit a few settings
+	}
+}
+
+TArray<FPCGPinProperties> UPCGExTensorFactoryProviderSettings::InputPinProperties() const
+{
+	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
+	PCGEX_PIN_PARAM(PCGExTensor::SourceTensorConfigSourceLabel, "A tensor that already exist which settings will be used to override the settings of this one. This is to streamline re-using params between tensors, or to 'fake' the ability to transform tensors.", Advanced, {})
+	return PinProperties;
+}
+
 UPCGExFactoryData* UPCGExTensorFactoryProviderSettings::CreateFactory(FPCGExContext* InContext, UPCGExFactoryData* InFactory) const
 {
+	if (InFactory)
+	{
+		TArray<FPCGTaggedData> Collection = InContext->InputData.GetInputsByPin(PCGExTensor::SourceTensorConfigSourceLabel);
+		const UPCGExTensorFactoryData* InTensorReference = Collection.IsEmpty() ? nullptr : Cast<UPCGExTensorFactoryData>(Collection[0].Data);
+		if (InTensorReference) { Cast<UPCGExTensorFactoryData>(InFactory)->InheritFromOtherTensor(InTensorReference); }
+	}
 	return InFactory;
 }
 
@@ -84,7 +111,7 @@ bool UPCGExTensorPointFactoryData::InitInternalData(FPCGExContext* InContext)
 
 bool UPCGExTensorPointFactoryData::InitInternalFacade(FPCGExContext* InContext)
 {
-	InputDataFacade = PCGExData::TryGetSingleFacade(InContext, PCGEx::SourcePointsLabel, true);
+	InputDataFacade = PCGExData::TryGetSingleFacade(InContext, PCGExTensor::SourceEffectorsLabel, true);
 	if (!InputDataFacade) { return false; }
 
 	if (BaseConfig.PotencyInput == EPCGExInputValueType::Attribute)
@@ -127,7 +154,7 @@ double UPCGExTensorPointFactoryData::GetWeight(const int32 Index) const
 TArray<FPCGPinProperties> UPCGExTensorPointFactoryProviderSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
-	PCGEX_PIN_POINT(PCGEx::SourcePointsLabel, "Single point collection that represent attractors", Required, {})
+	PCGEX_PIN_POINT(PCGExTensor::SourceEffectorsLabel, "Single point collection that represent individual effectors within that tensor", Required, {})
 	return PinProperties;
 }
 

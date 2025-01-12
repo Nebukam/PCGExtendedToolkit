@@ -77,9 +77,13 @@ class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExBoundsFilterFactory : public UPCGExFilter
 
 public:
 	FPCGExBoundsFilterConfig Config;
-	TSharedPtr<PCGExData::FFacade> BoundsDataFacade;
+	TArray<TSharedPtr<PCGExData::FFacade>> BoundsDataFacades;
+	TArray<TSharedPtr<PCGExGeo::FPointBoxCloud>> Clouds;
 	virtual bool Init(FPCGExContext* InContext) override;
 	virtual TSharedPtr<PCGExPointFilter::FFilter> CreateFilter() const override;
+
+	virtual bool GetRequiresPreparation(FPCGExContext* InContext) override { return true; }
+	virtual bool Prepare(FPCGExContext* InContext) override;
 
 	virtual void BeginDestroy() override;
 };
@@ -92,15 +96,12 @@ namespace PCGExPointsFilter
 		explicit TBoundsFilter(const TObjectPtr<const UPCGExBoundsFilterFactory>& InFactory)
 			: FSimpleFilter(InFactory), TypedFilterFactory(InFactory)
 		{
-			Cloud = TypedFilterFactory->BoundsDataFacade ? TypedFilterFactory->BoundsDataFacade->GetCloud(
-					        TypedFilterFactory->Config.BoundsTarget,
-					        TypedFilterFactory->Config.TestMode == EPCGExBoxCheckMode::ExpandedBox || TypedFilterFactory->Config.TestMode == EPCGExBoxCheckMode::ExpandedSphere ?
-						        TypedFilterFactory->Config.Expansion * 2 : TypedFilterFactory->Config.Expansion) : nullptr;
+			Clouds = &TypedFilterFactory->Clouds;
 		}
 
 		const TObjectPtr<const UPCGExBoundsFilterFactory> TypedFilterFactory;
-
-		TSharedPtr<PCGExGeo::FPointBoxCloud> Cloud;
+		const TArray<TSharedPtr<PCGExGeo::FPointBoxCloud>>* Clouds = nullptr;
+		
 		EPCGExPointBoundsSource BoundsTarget = EPCGExPointBoundsSource::ScaledBounds;
 
 		using BoundCheckCallback = std::function<bool(const FPCGPoint&)>;

@@ -64,7 +64,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExFindClustersDataContext final : FPCGExPo
 {
 	friend class FPCGExFindClustersDataElement;
 
-	FString SearchKey = TEXT("");
+	PCGExTags::IDType SearchKey;
 	TSharedPtr<PCGExData::FPointIO> SearchKeyIO;
 	TSharedPtr<PCGExData::FPointIOCollection> MainEdges;
 };
