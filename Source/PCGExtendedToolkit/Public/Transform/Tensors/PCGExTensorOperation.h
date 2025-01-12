@@ -28,7 +28,7 @@ public:
 
 	virtual bool Init(FPCGExContext* InContext, const UPCGExTensorFactoryData* InFactory);
 
-	virtual PCGExTensor::FTensorSample SampleAtPosition(const FVector& InPosition) const;
+	virtual PCGExTensor::FTensorSample Sample(const FTransform& InProbe) const;
 
 	template <bool bFast = false>
 	bool ComputeFactor(const FVector& InPosition, const FPCGPointRef& InEffector, PCGExTensor::FEffectorMetrics& OutMetrics) const

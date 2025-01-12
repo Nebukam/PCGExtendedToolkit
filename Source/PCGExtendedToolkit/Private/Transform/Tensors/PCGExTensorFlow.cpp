@@ -12,19 +12,20 @@ bool UPCGExTensorFlow::Init(FPCGExContext* InContext, const UPCGExTensorFactoryD
 	return true;
 }
 
-PCGExTensor::FTensorSample UPCGExTensorFlow::SampleAtPosition(const FVector& InPosition) const
+PCGExTensor::FTensorSample UPCGExTensorFlow::Sample(const FTransform& InProbe) const
 {
+	const FVector& InPosition = InProbe.GetLocation();
 	const FBoxCenterAndExtent BCAE = FBoxCenterAndExtent(InPosition, FVector::One());
 
 	PCGExTensor::FEffectorSamples Samples = PCGExTensor::FEffectorSamples();
 
-	auto ProcessNeighbor = [&](const FPCGPointRef& InPointRef)
+	auto ProcessNeighbor = [&](const FPCGPointRef& InEffector)
 	{
 		PCGExTensor::FEffectorMetrics Metrics;
-		if (!ComputeFactor(InPosition, InPointRef, Metrics)) { return; }
+		if (!ComputeFactor(InPosition, InEffector, Metrics)) { return; }
 
 		Samples.Emplace_GetRef(
-			InPointRef.Point->Transform.GetRotation().RotateVector(Metrics.Guide),
+			InEffector.Point->Transform.GetRotation().RotateVector(Metrics.Guide),
 			Metrics.Potency, Metrics.Weight);
 	};
 

@@ -25,8 +25,6 @@ enum class EPCGExEffectorFlattenMode : uint8
 	Closest          = 1 UMETA(DisplayName = "Closest", ToolTip="Uses the closest effector only"),
 	StrongestWeight  = 2 UMETA(DisplayName = "Strongest (Weight)", ToolTip="Uses the effector with the highest weight only"),
 	StrongestPotency = 3 UMETA(DisplayName = "Strongest (Potency)", ToolTip="Uses the effector with the highest potency only"),
-	HighestPriority  = 4 UMETA(DisplayName = "Highest Priority", ToolTip="Uses the effector with the highest priority"),
-	LowestPriority   = 5 UMETA(DisplayName = "Lowest Priority", ToolTip="Uses the effector with the lowest priority"),
 };
 
 UENUM()
@@ -178,6 +176,11 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExTensorConfigBase
 
 	const FRichCurve* WeightFalloffCurveObj = nullptr;
 
+	/** How should overlapping effector influence be flattened (not implemented yet)*/
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Potency", meta=(PCG_NotOverridable, DisplayPriority=-1))
+	EPCGExEffectorFlattenMode EffectorFlattenMode = EPCGExEffectorFlattenMode::Weighted;
+
+
 	virtual void Init();
 };
 
@@ -185,6 +188,7 @@ namespace PCGExTensor
 {
 	const FName OutputTensorLabel = TEXT("Tensor");
 	const FName SourceTensorsLabel = TEXT("Tensors");
+	const FName SourceEffectorsLabel = TEXT("Effectors");
 	const FName SourceTensorConfigSourceLabel = TEXT("Parent Tensor");
 
 	struct FTensorSample
@@ -288,8 +292,6 @@ namespace PCGExTensor
 		bool Init(FPCGExContext* InContext, const TArray<TObjectPtr<const UPCGExTensorFactoryData>>& InFactories);
 		bool Init(FPCGExContext* InContext, const FName InPin);
 
-		FTensorSample SampleAtPosition(const FVector& InPosition, bool& OutSuccess) const;
-		FTensorSample SampleAtPositionOrderedInPlace(const FVector& InPosition, bool& OutSuccess) const;
-		FTensorSample SampleAtPositionOrderedMutated(const FVector& InPosition, bool& OutSuccess) const;
+		FTensorSample Sample(const FTransform& InProbe, bool& OutSuccess) const;
 	};
 }

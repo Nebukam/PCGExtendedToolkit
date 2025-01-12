@@ -111,7 +111,7 @@ bool UPCGExTensorPointFactoryData::InitInternalData(FPCGExContext* InContext)
 
 bool UPCGExTensorPointFactoryData::InitInternalFacade(FPCGExContext* InContext)
 {
-	InputDataFacade = PCGExData::TryGetSingleFacade(InContext, PCGEx::SourcePointsLabel, true);
+	InputDataFacade = PCGExData::TryGetSingleFacade(InContext, PCGExTensor::SourceEffectorsLabel, true);
 	if (!InputDataFacade) { return false; }
 
 	if (BaseConfig.PotencyInput == EPCGExInputValueType::Attribute)
@@ -154,7 +154,7 @@ double UPCGExTensorPointFactoryData::GetWeight(const int32 Index) const
 TArray<FPCGPinProperties> UPCGExTensorPointFactoryProviderSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
-	PCGEX_PIN_POINT(PCGEx::SourcePointsLabel, "Single point collection that represent attractors", Required, {})
+	PCGEX_PIN_POINT(PCGExTensor::SourceEffectorsLabel, "Single point collection that represent individual effectors within that tensor", Required, {})
 	return PinProperties;
 }
 

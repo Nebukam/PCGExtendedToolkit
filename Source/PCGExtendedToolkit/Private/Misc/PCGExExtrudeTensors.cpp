@@ -84,16 +84,16 @@ namespace PCGExExtrudeTensors
 	{
 		ExtrudedPoints.Reserve(InMaxIterations);
 		Origin = InFacade->Source->GetInPoint(SeedIndex);
-		Head = Origin.Transform.GetLocation();
+		Head = Origin.Transform;
 		ExtrudedPoints.Add(Origin);
-		Metrics.Add(Head);
+		Metrics.Add(Head.GetLocation());
 	}
 
-	void FExtrusion::SetOriginPosition(const FVector& InPosition)
+	void FExtrusion::SetHead(const FTransform& InHead)
 	{
-		Head = InPosition;
-		ExtrudedPoints.Last().Transform.SetLocation(Head);
-		Metrics = PCGExPaths::FPathMetrics(Head);
+		Head = InHead;
+		ExtrudedPoints.Last().Transform = Head;
+		Metrics = PCGExPaths::FPathMetrics(Head.GetLocation());
 	}
 
 	void FExtrusion::Complete()
@@ -142,7 +142,7 @@ namespace PCGExExtrudeTensors
 			TargetPosition = LastValidPos + ((TargetPosition - LastValidPos).GetSafeNormal() * (Length - MaxLength));
 		}
 
-		Insert(Sample, TargetPosition);
+		Insert();
 
 		return !(Length >= MaxLength || ExtrudedPoints.Num() >= MaxPointCount);
 	}
@@ -177,29 +177,11 @@ namespace PCGExExtrudeTensors
 	}
 
 
-	void FExtrusion::Insert(const PCGExTensor::FTensorSample& Sample, const FVector& InPosition) const
+	void FExtrusion::Insert() const
 	{
 		FPCGPoint& Point = ExtrudedPoints.Emplace_GetRef(ExtrudedPoints.Last());
 
-		//const FTransform Composite = Point.Transform * Sample.Transform;
-
-		if (Settings->bTransformRotation)
-		{
-			if (Settings->Rotation == EPCGExTensorTransformMode::Absolute)
-			{
-				Point.Transform.SetRotation(Sample.Rotation);
-			}
-			else if (Settings->Rotation == EPCGExTensorTransformMode::Relative)
-			{
-				Point.Transform.SetRotation(Point.Transform.GetRotation() * Sample.Rotation);
-			}
-			else if (Settings->Rotation == EPCGExTensorTransformMode::Align)
-			{
-				Point.Transform.SetRotation(PCGExMath::MakeDirection(Settings->AlignAxis, Sample.DirectionAndSize.GetSafeNormal() * -1, Point.Transform.GetRotation().GetUpVector()));
-			}
-		}
-
-		Point.Transform.SetLocation(InPosition);
+		Point.Transform = Head;
 
 		if (Settings->bRefreshSeed) { Point.Seed = PCGExRandom::ComputeSeed(Point, FVector(Origin.Seed)); }
 	}
@@ -296,8 +278,8 @@ namespace PCGExExtrudeTensors
 
 		const TSharedPtr<FExtrusion> NewExtrusion = CreateExtrusionTemplate(InExtrusion->SeedIndex, InExtrusion->RemainingIterations);
 		if (!NewExtrusion) { return nullptr; }
-		
-		NewExtrusion->SetOriginPosition(InExtrusion->Head);
+
+		NewExtrusion->SetHead(InExtrusion->Head);
 
 		{
 			FWriteScopeLock WriteScopeLock(NewExtrusionLock);

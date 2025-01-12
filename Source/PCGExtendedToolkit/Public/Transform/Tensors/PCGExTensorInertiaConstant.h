@@ -9,33 +9,39 @@
 #include "PCGExTensorFactoryProvider.h"
 #include "PCGExTensorOperation.h"
 
-#include "PCGExTensorConstant.generated.h"
+#include "PCGExTensorInertiaConstant.generated.h"
 
 USTRUCT(BlueprintType)
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExTensorConstantConfig : public FPCGExTensorConfigBase
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExTensorInertiaConstantConfig : public FPCGExTensorConfigBase
 {
 	GENERATED_BODY()
 
-	FPCGExTensorConstantConfig() :
+	FPCGExTensorInertiaConstantConfig() :
 		FPCGExTensorConfigBase()
 	{
 	}
 
 	/**  */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
-	FVector Direction = FVector::ForwardVector;
+	EPCGExAxis Axis = EPCGExAxis::Forward;
+
+	/**  */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	FRotator Offset = FRotator::ZeroRotator;
+	
 };
 
 /**
  * 
  */
 UCLASS(MinimalAPI)
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExTensorConstant : public UPCGExTensorOperation
+class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExTensorInertiaConstant : public UPCGExTensorOperation
 {
 	GENERATED_BODY()
 
 public:
-	FPCGExTensorConstantConfig Config;
+	FPCGExTensorInertiaConstantConfig Config;	
+	FQuat Offset = FQuat::Identity;
 	virtual bool Init(FPCGExContext* InContext, const UPCGExTensorFactoryData* InFactory) override;
 
 	virtual PCGExTensor::FTensorSample Sample(const FTransform& InProbe) const override;
@@ -43,13 +49,12 @@ public:
 
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExTensorConstantFactory : public UPCGExTensorFactoryData
+class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExTensorInertiaConstantFactory : public UPCGExTensorFactoryData
 {
 	GENERATED_BODY()
 
 public:
-	FPCGExTensorConstantConfig Config;
-	FVector Constant = FVector::OneVector;
+	FPCGExTensorInertiaConstantConfig Config;
 	virtual UPCGExTensorOperation* CreateOperation(FPCGExContext* InContext) const override;
 
 protected:
@@ -57,25 +62,29 @@ protected:
 };
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Tensors|Params")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExCreateTensorConstantSettings : public UPCGExTensorFactoryProviderSettings
+class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExCreateTensorInertiaConstantSettings : public UPCGExTensorFactoryProviderSettings
 {
 	GENERATED_BODY()
 
 public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS(TensorConstant, "Tensor : Constant", "A tensor that has a constant value in the field. Note that this tensor will prevent sampling from failing.")
+	PCGEX_NODE_INFOS(TensorInertiaConstant, "Tensor : Inertia (Constant)", "A tensor constant that uses the seed transform.")
 
 #endif
 	//~End UPCGSettings
 
 	/**  */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
-	double TensorWeight = 1;
+	EPCGExAxis Axis = EPCGExAxis::Forward;
 
 	/**  */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
-	FVector Direction = FVector::ForwardVector;
+	FRotator Offset = FRotator::ZeroRotator;
+	
+	/**  */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	double TensorWeight = 1;
 
 	/**  */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
@@ -83,7 +92,7 @@ public:
 
 	/** Tensor properties */
 	UPROPERTY(meta=(PCG_NotOverridable, HideInDetailPanel))
-	FPCGExTensorConstantConfig Config;
+	FPCGExTensorInertiaConstantConfig Config;
 
 	virtual UPCGExFactoryData* CreateFactory(FPCGExContext* InContext, UPCGExFactoryData* InFactory) const override;
 };

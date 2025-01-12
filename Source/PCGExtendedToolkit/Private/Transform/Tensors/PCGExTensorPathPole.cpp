@@ -12,10 +12,9 @@ bool UPCGExTensorPathPole::Init(FPCGExContext* InContext, const UPCGExTensorFact
 	return true;
 }
 
-PCGExTensor::FTensorSample UPCGExTensorPathPole::SampleAtPosition(const FVector& InPosition) const
+PCGExTensor::FTensorSample UPCGExTensorPathPole::Sample(const FTransform& InProbe) const
 {
-	const FBoxCenterAndExtent BCAE = FBoxCenterAndExtent(InPosition, FVector::One());
-
+	const FVector& InPosition = InProbe.GetLocation();
 	PCGExTensor::FEffectorSamples Samples = PCGExTensor::FEffectorSamples();
 
 	for (const TSharedPtr<const FPCGSplineStruct>& Spline : *Splines)

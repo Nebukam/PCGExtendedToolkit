@@ -9,30 +9,34 @@
 #include "PCGExTensorFactoryProvider.h"
 #include "PCGExTensorOperation.h"
 
-#include "PCGExTensorNull.generated.h"
+#include "PCGExTensorInertia.generated.h"
 
 
 USTRUCT(BlueprintType)
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExTensorNullConfig : public FPCGExTensorConfigBase
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExTensorInertiaConfig : public FPCGExTensorConfigBase
 {
 	GENERATED_BODY()
 
-	FPCGExTensorNullConfig() :
+	FPCGExTensorInertiaConfig() :
 		FPCGExTensorConfigBase()
 	{
 	}
+
+	/**  */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	EPCGExAxis Axis = EPCGExAxis::Forward;
 };
 
 /**
  * 
  */
 UCLASS(MinimalAPI)
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExTensorNull : public UPCGExTensorPointOperation
+class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExTensorInertia : public UPCGExTensorPointOperation
 {
 	GENERATED_BODY()
 
 public:
-	FPCGExTensorNullConfig Config;
+	FPCGExTensorInertiaConfig Config;
 	virtual bool Init(FPCGExContext* InContext, const UPCGExTensorFactoryData* InFactory) override;
 
 	virtual PCGExTensor::FTensorSample Sample(const FTransform& InProbe) const override;
@@ -40,31 +44,31 @@ public:
 
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExTensorNullFactory : public UPCGExTensorPointFactoryData
+class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExTensorInertiaFactory : public UPCGExTensorPointFactoryData
 {
 	GENERATED_BODY()
 
 public:
-	FPCGExTensorNullConfig Config;
+	FPCGExTensorInertiaConfig Config;
 	virtual UPCGExTensorOperation* CreateOperation(FPCGExContext* InContext) const override;
 };
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Tensors|Params")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExCreateTensorNullSettings : public UPCGExTensorPointFactoryProviderSettings
+class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExCreateTensorInertiaSettings : public UPCGExTensorPointFactoryProviderSettings
 {
 	GENERATED_BODY()
 
 public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS(TensorNull, "Tensor : Null", "A tensor that represent a Null field")
+	PCGEX_NODE_INFOS(TensorInertia, "Tensor : Inertia", "A tensor constant that uses the seed transform.")
 
 #endif
 	//~End UPCGSettings
 
 	/** Tensor properties */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ShowOnlyInnerProperties))
-	FPCGExTensorNullConfig Config;
+	FPCGExTensorInertiaConfig Config;
 
 	virtual UPCGExFactoryData* CreateFactory(FPCGExContext* InContext, UPCGExFactoryData* InFactory) const override;
 };

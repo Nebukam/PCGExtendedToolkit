@@ -83,7 +83,7 @@ namespace PCGExPointsFilter
 			const FPCGPoint& Point = PointDataFacade->Source->GetInPoint(PointIndex);
 
 			bool bSuccess = false;
-			const PCGExTensor::FTensorSample Sample = TensorsHandler->SampleAtPosition(Point.Transform.GetLocation(), bSuccess);
+			const PCGExTensor::FTensorSample Sample = TensorsHandler->Sample(Point.Transform, bSuccess);
 
 			if (!bSuccess) { return false; }
 

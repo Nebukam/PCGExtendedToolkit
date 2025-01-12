@@ -100,10 +100,11 @@ namespace PCGExTensorsTransform
 	{
 		if (!PointFilterCache[Index]) { return; }
 
-		const FVector SamplePosition = Point.Transform.GetLocation();
+		const FTransform Probe = Point.Transform;
+		const FVector SamplePosition = Probe.GetLocation();
 
 		bool bSuccess = false;
-		const PCGExTensor::FTensorSample Sample = Context->TensorsHandler->SampleAtPosition(SamplePosition, bSuccess);
+		const PCGExTensor::FTensorSample Sample = Context->TensorsHandler->Sample(Probe, bSuccess);
 		PointFilterCache[Index] = bSuccess;
 
 		if (!bSuccess) { return; }

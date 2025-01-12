@@ -12,10 +12,9 @@ bool UPCGExTensorSplinePole::Init(FPCGExContext* InContext, const UPCGExTensorFa
 	return true;
 }
 
-PCGExTensor::FTensorSample UPCGExTensorSplinePole::SampleAtPosition(const FVector& InPosition) const
+PCGExTensor::FTensorSample UPCGExTensorSplinePole::Sample(const FTransform& InProbe) const
 {
-	const FBoxCenterAndExtent BCAE = FBoxCenterAndExtent(InPosition, FVector::One());
-
+	const FVector& InPosition = InProbe.GetLocation();
 	PCGExTensor::FEffectorSamples Samples = PCGExTensor::FEffectorSamples();
 
 	for (const FPCGSplineStruct& Spline : *Splines)

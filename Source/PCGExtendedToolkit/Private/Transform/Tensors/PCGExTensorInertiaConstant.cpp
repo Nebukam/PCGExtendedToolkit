@@ -1,23 +1,24 @@
 ﻿// Copyright 2024 Timothé Lapetite and contributors
 // Released under the MIT license https://opensource.org/license/MIT/
 
-#include "Transform/Tensors/PCGExTensorConstant.h"
+#include "Transform/Tensors/PCGExTensorInertiaConstant.h"
 
-#define LOCTEXT_NAMESPACE "PCGExCreateTensorConstant"
-#define PCGEX_NAMESPACE CreateTensorConstant
+#define LOCTEXT_NAMESPACE "PCGExCreateTensorInertiaConstant"
+#define PCGEX_NAMESPACE CreateTensorInertiaConstant
 
-bool UPCGExTensorConstant::Init(FPCGExContext* InContext, const UPCGExTensorFactoryData* InFactory)
+bool UPCGExTensorInertiaConstant::Init(FPCGExContext* InContext, const UPCGExTensorFactoryData* InFactory)
 {
 	if (!Super::Init(InContext, InFactory)) { return false; }
+	Offset = Config.Offset.Quaternion();
 	return true;
 }
 
-PCGExTensor::FTensorSample UPCGExTensorConstant::Sample(const FTransform& InProbe) const
+PCGExTensor::FTensorSample UPCGExTensorInertiaConstant::Sample(const FTransform& InProbe) const
 {
 	PCGExTensor::FEffectorSamples Samples = PCGExTensor::FEffectorSamples();
 
 	Samples.Emplace_GetRef(
-		Config.Direction,
+		PCGExMath::GetDirection(InProbe.GetRotation() * Offset, Config.Axis),
 		Config.Potency,
 		Config.Weight);
 
@@ -25,8 +26,9 @@ PCGExTensor::FTensorSample UPCGExTensorConstant::Sample(const FTransform& InProb
 }
 
 PCGEX_TENSOR_BOILERPLATE(
-	Constant, {
-	NewFactory->Config.Direction = Direction;
+	InertiaConstant, {
+	NewFactory->Config.Axis = Axis;
+	NewFactory->Config.Offset = Offset;
 	NewFactory->Config.Potency = Potency;
 	NewFactory->Config.PotencyInput = EPCGExInputValueType::Constant;
 	NewFactory->Config.Weight = 1;
@@ -34,7 +36,7 @@ PCGEX_TENSOR_BOILERPLATE(
 	NewFactory->Config.WeightInput = EPCGExInputValueType::Constant;
 	}, {})
 
-bool UPCGExTensorConstantFactory::InitInternalData(FPCGExContext* InContext)
+bool UPCGExTensorInertiaConstantFactory::InitInternalData(FPCGExContext* InContext)
 {
 	if (Config.PotencyInput == EPCGExInputValueType::Attribute)
 	{

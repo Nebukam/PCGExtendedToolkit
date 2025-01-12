@@ -44,7 +44,7 @@ namespace PCGExTensor
 		return Init(InContext, InFactories);
 	}
 
-	FTensorSample FTensorsHandler::SampleAtPosition(const FVector& InPosition, bool& OutSuccess) const
+	FTensorSample FTensorsHandler::Sample(const FTransform& InProbe, bool& OutSuccess) const
 	{
 		FTensorSample Result = FTensorSample();
 
@@ -57,7 +57,7 @@ namespace PCGExTensor
 
 		for (const UPCGExTensorOperation* Op : Operations)
 		{
-			const FTensorSample Sample = Op->SampleAtPosition(InPosition);
+			const FTensorSample Sample = Op->Sample(InProbe);
 			if (Sample.Effectors == 0) { continue; }
 			Result.Effectors += Sample.Effectors;
 			Samples.Add(Sample);
@@ -92,20 +92,6 @@ namespace PCGExTensor
 		return Result;
 	}
 
-	FTensorSample FTensorsHandler::SampleAtPositionOrderedInPlace(const FVector& InPosition, bool& OutSuccess) const
-	{
-		// TODO : Go through all operations and gather samples, apply them one after another
-		OutSuccess = false;
-		return FTensorSample{};
-	}
-
-	FTensorSample FTensorsHandler::SampleAtPositionOrderedMutated(const FVector& InPosition, bool& OutSuccess) const
-	{
-		FVector UpdatedPosition = InPosition;
-		// TODO : Go through all operations and gather samples, apply them & update sampling position one after another
-		OutSuccess = false;
-		return FTensorSample{};
-	}
 }
 
 void FPCGExTensorConfigBase::Init()

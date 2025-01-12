@@ -1,18 +1,18 @@
 ﻿// Copyright 2024 Timothé Lapetite and contributors
 // Released under the MIT license https://opensource.org/license/MIT/
 
-#include "Transform/Tensors/PCGExTensorPole.h"
+#include "Transform/Tensors/PCGExTensorInertia.h"
 
-#define LOCTEXT_NAMESPACE "PCGExCreateTensorPole"
-#define PCGEX_NAMESPACE CreateTensorPole
+#define LOCTEXT_NAMESPACE "PCGExCreateTensorInertia"
+#define PCGEX_NAMESPACE CreateTensorInertia
 
-bool UPCGExTensorPole::Init(FPCGExContext* InContext, const UPCGExTensorFactoryData* InFactory)
+bool UPCGExTensorInertia::Init(FPCGExContext* InContext, const UPCGExTensorFactoryData* InFactory)
 {
 	if (!Super::Init(InContext, InFactory)) { return false; }
 	return true;
 }
 
-PCGExTensor::FTensorSample UPCGExTensorPole::Sample(const FTransform& InProbe) const
+PCGExTensor::FTensorSample UPCGExTensorInertia::Sample(const FTransform& InProbe) const
 {
 	const FVector& InPosition = InProbe.GetLocation();
 	const FBoxCenterAndExtent BCAE = FBoxCenterAndExtent(InPosition, FVector::One());
@@ -25,7 +25,7 @@ PCGExTensor::FTensorSample UPCGExTensorPole::Sample(const FTransform& InProbe) c
 		if (!ComputeFactor(InPosition, InEffector, Metrics)) { return; }
 
 		Samples.Emplace_GetRef(
-			FRotationMatrix::MakeFromX((InPosition - InEffector.Point->Transform.GetLocation()).GetSafeNormal()).ToQuat().RotateVector(Metrics.Guide),
+			PCGExMath::GetDirection(InProbe.GetRotation() * FRotationMatrix::MakeFromX(Metrics.Guide).ToQuat(), Config.Axis),
 			Metrics.Potency, Metrics.Weight);
 	};
 
@@ -34,14 +34,7 @@ PCGExTensor::FTensorSample UPCGExTensorPole::Sample(const FTransform& InProbe) c
 	return Samples.Flatten(Config.TensorWeight);
 }
 
-PCGEX_TENSOR_BOILERPLATE(Pole, {}, {})
-
-bool UPCGExTensorPoleFactory::InitInternalData(FPCGExContext* InContext)
-{
-	if (!Super::InitInternalData(InContext)) { return false; }
-
-	return true;
-}
+PCGEX_TENSOR_BOILERPLATE(Inertia, {}, {})
 
 #undef LOCTEXT_NAMESPACE
 #undef PCGEX_NAMESPACE

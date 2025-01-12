@@ -75,7 +75,7 @@ public:
 	/** Whether to adjust max iteration based on max value found on points. Use at your own risks! */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Use Max from Points", ClampMin=1, EditCondition="bUsePerPointMaxIterations", HideEditConditionToggle))
 	bool bUseMaxFromPoints = false;
-	
+
 	/** Whether to give a new seed to the points. If disabled, they will inherit the original one. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable))
 	bool bRefreshSeed = true;
@@ -264,13 +264,13 @@ namespace PCGExExtrudeTensors
 	public:
 		bool bIsChildExtrusion = false;
 		bool bIsFollowUp = false;
-		
+
 		virtual ~FExtrusion() = default;
 		FProcessor* Processor = nullptr;
 		const FPCGExExtrudeTensorsContext* Context = nullptr;
 		const UPCGExExtrudeTensorsSettings* Settings = nullptr;
 
-		FVector Head = FVector::ZeroVector;
+		FTransform Head = FTransform::Identity;
 
 		int32 SeedIndex = -1;
 		int32 RemainingIterations = 0;
@@ -286,7 +286,7 @@ namespace PCGExExtrudeTensors
 
 		FExtrusion(const int32 InSeedIndex, const TSharedRef<PCGExData::FFacade>& InFacade, const int32 InMaxIterations);
 
-		void SetOriginPosition(const FVector& InPosition);
+		void SetHead(const FTransform& InHead);
 
 		virtual bool Advance() = 0;
 		void Complete();
@@ -295,7 +295,7 @@ namespace PCGExExtrudeTensors
 		bool OnAdvanced(const bool bStop);
 		bool Extrude(const PCGExTensor::FTensorSample& Sample);
 		void StartNewExtrusion();
-		void Insert(const PCGExTensor::FTensorSample& Sample, const FVector& InPosition) const;
+		void Insert() const;
 	};
 
 	template <EExtrusionFlags InternalFlags>
@@ -311,19 +311,39 @@ namespace PCGExExtrudeTensors
 		{
 			if (bIsStopped) { return false; }
 
-			const FVector PreviousHead = Head;
+			const FVector PreviousHeadLocation = Head.GetLocation();
 			bool bSuccess = false;
-			const PCGExTensor::FTensorSample Sample = Context->TensorsHandler->SampleAtPosition(Head, bSuccess);
+			const PCGExTensor::FTensorSample Sample = Context->TensorsHandler->Sample(Head, bSuccess);
 
 			if (!bSuccess) { return OnAdvanced(true); }
 
-			Head += Sample.DirectionAndSize;
+			// Apply sample to head
 
+			if (Settings->bTransformRotation)
+			{
+				if (Settings->Rotation == EPCGExTensorTransformMode::Absolute)
+				{
+					Head.SetRotation(Sample.Rotation);
+				}
+				else if (Settings->Rotation == EPCGExTensorTransformMode::Relative)
+				{
+					Head.SetRotation(Head.GetRotation() * Sample.Rotation);
+				}
+				else if (Settings->Rotation == EPCGExTensorTransformMode::Align)
+				{
+					Head.SetRotation(PCGExMath::MakeDirection(Settings->AlignAxis, Sample.DirectionAndSize.GetSafeNormal() * -1, Head.GetRotation().GetUpVector()));
+				}
+			}
+
+			FVector HeadLocation = PreviousHeadLocation + Sample.DirectionAndSize;
+			Head.SetLocation(HeadLocation);
+
+			
 			if constexpr (Supports(InternalFlags, EExtrusionFlags::ClosedLoop))
 			{
 				const FVector Tail = Origin.Transform.GetLocation();
 				if (FVector::DistSquared(Metrics.Last, Tail) <= Context->ClosedLoopSquaredDistance &&
-					FVector::DotProduct(Sample.DirectionAndSize.GetSafeNormal(), (Tail - PreviousHead).GetSafeNormal()) > Context->ClosedLoopSearchDot)
+					FVector::DotProduct(Sample.DirectionAndSize.GetSafeNormal(), (Tail - PreviousHeadLocation).GetSafeNormal()) > Context->ClosedLoopSearchDot)
 				{
 					bIsClosedLoop = true;
 					return OnAdvanced(true);
@@ -334,9 +354,9 @@ namespace PCGExExtrudeTensors
 			{
 				// Make sure we are within bounds
 #if PCGEX_ENGINE_VERSION <= 503
-				bool bWithinLimits = Context->Limits.IsInside(Head);
+				bool bWithinLimits = Context->Limits.IsInside(HeadLocation);
 #else
-				bool bWithinLimits = Context->Limits.IsInsideOrOn(Head);
+				bool bWithinLimits = Context->Limits.IsInsideOrOn(HeadLocation);
 #endif
 
 				if (!bWithinLimits)
@@ -348,8 +368,8 @@ namespace PCGExExtrudeTensors
 						{
 							// Nothing to do
 						}
-						else if (Settings->OutOfBoundHandling == EPCGExOutOfBoundPathPointHandling::Include) { Insert(Sample, Head); }
-						else if (Settings->OutOfBoundHandling == EPCGExOutOfBoundPathPointHandling::IncludeAndSnap) { Insert(Sample, Head); }
+						else if (Settings->OutOfBoundHandling == EPCGExOutOfBoundPathPointHandling::Include) { Insert(); }
+						else if (Settings->OutOfBoundHandling == EPCGExOutOfBoundPathPointHandling::IncludeAndSnap) { Insert(); }
 						Complete();
 
 						if constexpr (!Supports(InternalFlags, EExtrusionFlags::AllowsChildren))
@@ -373,7 +393,7 @@ namespace PCGExExtrudeTensors
 				if (!bIsExtruding)
 				{
 					// Start writing path
-					Metrics = PCGExPaths::FPathMetrics(PreviousHead);
+					Metrics = PCGExPaths::FPathMetrics(PreviousHeadLocation);
 				}
 			}
 
