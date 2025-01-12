@@ -66,7 +66,7 @@ void FPCGExPathfindingEdgesContext::BuildPath(const TSharedPtr<PCGExPathfinding:
 	const TSharedPtr<PCGExData::FPointIO> PathIO = OutputPaths->Emplace_GetRef<UPCGPointData>(ReferenceIO, PCGExData::EIOInit::New);
 	if (!PathIO) { return; }
 
-	PCGExGraph::CleanupClusterTags(PathIO, true);
+	PCGExGraph::CleanupClusterTags(PathIO);
 	PCGExGraph::CleanupVtxData(PathIO);
 
 	PCGEX_MAKE_SHARED(PathDataFacade, PCGExData::FFacade, PathIO.ToSharedRef())

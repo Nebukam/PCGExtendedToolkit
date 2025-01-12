@@ -672,8 +672,7 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 
 		SubGraphPostProcessCallback OnSubGraphPostProcess;
 
-		uint32 PairId;
-		FString PairIdStr;
+		PCGExTags::IDType PairId;
 
 		TSharedPtr<FGraph> Graph;
 
@@ -696,8 +695,7 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 		{
 			PCGEX_LOG_CTR(FGraphBuilder)
 
-			PairId = NodeDataFacade->Source->GetOutIn()->GetUniqueID();
-			NodeDataFacade->Source->Tags->Add(TagStr_ClusterPair, PairId, PairIdStr);
+			PairId = NodeDataFacade->Source->Tags->Set<int32>(TagStr_ClusterPair, NodeDataFacade->Source->GetOutIn()->GetUniqueID());
 
 			const int32 NumNodes = NodeDataFacade->Source->GetOutInNum();
 

@@ -198,7 +198,7 @@ namespace PCGExCreateSpline
 
 		// Output spline data
 		SplineData->Initialize(SplinePoints, bClosedLoop, FTransform(PositionOffset));
-		Context->StageOutput(Settings->GetMainOutputPin(), SplineData, PointDataFacade->Source->Tags->ToSet(), true, false);
+		Context->StageOutput(Settings->GetMainOutputPin(), SplineData, PointDataFacade->Source->Tags->Flatten(), true, false);
 
 		// Output spline component
 		if (Settings->Mode != EPCGCreateSplineMode::CreateDataOnly)

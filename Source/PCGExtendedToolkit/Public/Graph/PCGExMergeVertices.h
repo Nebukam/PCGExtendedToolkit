@@ -47,7 +47,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExMergeVerticesContext final : FPCGExEdges
 
 	FPCGExCarryOverDetails CarryOverDetails;
 
-	FString OutVtxId = TEXT("");
+	PCGExTags::IDType OutVtxId;
 	TSharedPtr<PCGExData::FFacade> CompositeIODataFacade;
 	TSharedPtr<FPCGExPointIOMerger> Merger;
 

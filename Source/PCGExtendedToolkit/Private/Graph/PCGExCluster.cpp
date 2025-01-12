@@ -292,6 +292,13 @@ namespace PCGExCluster
 		return NumRawVtx == InVtxIO->GetNum() && NumRawEdges == InEdgesIO->GetNum();
 	}
 
+	bool FCluster::HasTag(const FString& InTag)
+	{
+		if (const TSharedPtr<PCGExData::FPointIO>& PinnedVtxIO = VtxIO.Pin()) { if (PinnedVtxIO->Tags->IsTagged(InTag)) { return true; } }
+		if (const TSharedPtr<PCGExData::FPointIO>& PinnedEdgesIO = EdgesIO.Pin()) { if (PinnedEdgesIO->Tags->IsTagged(InTag)) { return true; } }
+		return false;
+	}
+
 	FNode* FCluster::GetGuidedHalfEdge(const int32 Edge, const FVector& Guide, const FVector& Up) const
 	{
 		FNode* StartNode = GetEdgeStart(Edge);

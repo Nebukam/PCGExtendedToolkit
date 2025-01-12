@@ -280,11 +280,9 @@ namespace PCGExPartitionByValues
 
 			if (Rule->RuleConfig->bWriteTag)
 			{
-				FString TagValue;
-				PartitionIO->Tags->Add(
+				PartitionIO->Tags->Set<int64>(
 					Rule->RuleConfig->TagPrefixName.ToString(),
-					Rule->RuleConfig->bTagUsePartitionIndexAsKey ? Partition->PartitionIndex : Partition->PartitionKey,
-					TagValue);
+					Rule->RuleConfig->bTagUsePartitionIndexAsKey ? Partition->PartitionIndex : Partition->PartitionKey);
 			}
 
 			Partition = Partition->Parent.Pin();

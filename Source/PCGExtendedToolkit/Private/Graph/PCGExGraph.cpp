@@ -594,10 +594,10 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 			SubGraph->VtxDataFacade = NodeDataFacade;
 			SubGraph->EdgesDataFacade = MakeShared<PCGExData::FFacade>(EdgeIO.ToSharedRef());
 
-			MarkClusterEdges(EdgeIO, PairIdStr);
+			MarkClusterEdges(EdgeIO, PairId);
 		}
 
-		MarkClusterVtx(NodeDataFacade->Source, PairIdStr);
+		MarkClusterVtx(NodeDataFacade->Source, PairId);
 
 		PCGEX_ASYNC_GROUP_CHKD_VOID(AsyncManager, ProcessSubGraphTask)
 
@@ -680,7 +680,7 @@ namespace PCGExGraphTask
 
 		VtxDupe->IOIndex = TaskIndex;
 
-		FString OutId;
+		PCGExTags::IDType OutId;
 		PCGExGraph::SetClusterVtx(VtxDupe, OutId);
 
 		PCGEX_MAKE_SHARED(VtxTask, PCGExGeoTasks::FTransformPointIO, TaskIndex, PointIO, VtxDupe, TransformDetails);

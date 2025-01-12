@@ -165,9 +165,9 @@ namespace PCGExUberFilter
 		{
 			const bool bHasAnyPass = Settings->bSwap ? NumOutside != 0 : NumInside != 0;
 			const bool bAllPass = Settings->bSwap ? NumOutside == PointDataFacade->GetNum() : NumInside == PointDataFacade->GetNum();
-			if (bHasAnyPass && Settings->bTagIfAnyPointPassed) { PointDataFacade->Source->Tags->Add(Settings->HasAnyPointPassedTag); }
-			if (bAllPass && Settings->bTagIfAllPointsPassed) { PointDataFacade->Source->Tags->Add(Settings->AllPointsPassedTag); }
-			if (!bHasAnyPass && Settings->bTagIfNoPointPassed) { PointDataFacade->Source->Tags->Add(Settings->NoPointPassedTag); }
+			if (bHasAnyPass && Settings->bTagIfAnyPointPassed) { PointDataFacade->Source->Tags->AddRaw(Settings->HasAnyPointPassedTag); }
+			if (bAllPass && Settings->bTagIfAllPointsPassed) { PointDataFacade->Source->Tags->AddRaw(Settings->AllPointsPassedTag); }
+			if (!bHasAnyPass && Settings->bTagIfNoPointPassed) { PointDataFacade->Source->Tags->AddRaw(Settings->NoPointPassedTag); }
 
 
 			PointDataFacade->Write(AsyncManager);
@@ -180,14 +180,14 @@ namespace PCGExUberFilter
 			{
 				Outside = CreateIO(Context->Outside.ToSharedRef(), PCGExData::EIOInit::Forward);
 				if (!Outside) { return; }
-				if (Settings->bTagIfNoPointPassed) { Outside->Tags->Add(Settings->NoPointPassedTag); }
+				if (Settings->bTagIfNoPointPassed) { Outside->Tags->AddRaw(Settings->NoPointPassedTag); }
 			}
 			else
 			{
 				Inside = CreateIO(Context->Inside.ToSharedRef(), PCGExData::EIOInit::Forward);
 				if (!Inside) { return; }
-				if (Settings->bTagIfAnyPointPassed) { Inside->Tags->Add(Settings->HasAnyPointPassedTag); }
-				if (Settings->bTagIfAllPointsPassed) { Inside->Tags->Add(Settings->AllPointsPassedTag); }
+				if (Settings->bTagIfAnyPointPassed) { Inside->Tags->AddRaw(Settings->HasAnyPointPassedTag); }
+				if (Settings->bTagIfAllPointsPassed) { Inside->Tags->AddRaw(Settings->AllPointsPassedTag); }
 			}
 			return;
 		}
@@ -211,7 +211,7 @@ namespace PCGExUberFilter
 		TArray<FPCGPoint>& OutsidePoints = Outside->GetOut()->GetMutablePoints();
 		PCGEx::InitArray(OutsidePoints, NumOutside);
 
-		if (Settings->bTagIfAnyPointPassed) { Inside->Tags->Add(Settings->HasAnyPointPassedTag); }
+		if (Settings->bTagIfAnyPointPassed) { Inside->Tags->AddRaw(Settings->HasAnyPointPassedTag); }
 
 		for (int i = 0; i < NumPoints; i++)
 		{

@@ -235,7 +235,8 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExCarryOverDetails
 
 		TSet<FString> ToBeRemoved;
 		for (const FString& Tag : InTags->RawTags) { if (!Tags.Test(Tag)) { ToBeRemoved.Add(Tag); } }
-		for (const TPair<FString, FString>& Pair : InTags->Tags) { if (!Tags.Test((Pair.Key + PCGExData::TagSeparator + Pair.Value))) { ToBeRemoved.Add(Pair.Key); } }
+		for (const TPair<FString, TSharedPtr<PCGExTags::FTagValue>>& Pair : InTags->ValueTags) { if (!Tags.Test(Pair.Key)) { ToBeRemoved.Add(Pair.Key); } }
+
 		InTags->Remove(ToBeRemoved);
 	}
 
@@ -244,7 +245,8 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExCarryOverDetails
 		if (Tags.FilterMode == EPCGExAttributeFilter::All) { return true; }
 
 		for (const FString& Tag : InTags->RawTags) { if (!Tags.Test(Tag)) { return false; } }
-		for (const TPair<FString, FString>& Pair : InTags->Tags) { if (!Tags.Test((Pair.Key + PCGExData::TagSeparator + Pair.Value))) { return false; } }
+		for (const TPair<FString, TSharedPtr<PCGExTags::FTagValue>>& Pair : InTags->ValueTags) { if (!Tags.Test(Pair.Key)) { return false; } }
+
 		return true;
 	}
 

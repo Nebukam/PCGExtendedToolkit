@@ -171,7 +171,8 @@ namespace PCGExCluster
 		void BuildFrom(const TSharedRef<PCGExGraph::FSubGraph>& SubGraph);
 
 		bool IsValidWith(const TSharedRef<PCGExData::FPointIO>& InVtxIO, const TSharedRef<PCGExData::FPointIO>& InEdgesIO) const;
-
+		bool HasTag(const FString& InTag);
+		
 		FORCEINLINE FNode* GetNode(const int32 Index) const { return (Nodes->GetData() + Index); }
 		FORCEINLINE FNode* GetNode(const FLink Lk) const { return (Nodes->GetData() + Lk.Node); }
 		FORCEINLINE int32 GetNodePointIndex(const int32 Index) const { return (Nodes->GetData() + Index)->PointIndex; }

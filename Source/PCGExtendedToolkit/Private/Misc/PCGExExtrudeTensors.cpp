@@ -110,12 +110,12 @@ namespace PCGExExtrudeTensors
 			return;
 		}
 
-		if (!bIsClosedLoop) { if (Settings->bTagIfOpenPath) { PointDataFacade->Source->Tags->Add(Settings->IsOpenPathTag); } }
-		else { if (Settings->bTagIfClosedLoop) { PointDataFacade->Source->Tags->Add(Settings->IsClosedLoopTag); } }
+		if (!bIsClosedLoop) { if (Settings->bTagIfOpenPath) { PointDataFacade->Source->Tags->AddRaw(Settings->IsOpenPathTag); } }
+		else { if (Settings->bTagIfClosedLoop) { PointDataFacade->Source->Tags->AddRaw(Settings->IsClosedLoopTag); } }
 
-		if (Settings->bTagIfIsStoppedByBounds && bHitBounds) { PointDataFacade->Source->Tags->Add(Settings->IsStoppedByBoundsTag); }
-		if (Settings->bTagIfChildExtrusion && bIsChildExtrusion) { PointDataFacade->Source->Tags->Add(Settings->IsChildExtrusionTag); }
-		if (Settings->bTagIfIsFollowUp && bIsFollowUp) { PointDataFacade->Source->Tags->Add(Settings->IsFollowUpTag); }
+		if (Settings->bTagIfIsStoppedByBounds && bHitBounds) { PointDataFacade->Source->Tags->AddRaw(Settings->IsStoppedByBoundsTag); }
+		if (Settings->bTagIfChildExtrusion && bIsChildExtrusion) { PointDataFacade->Source->Tags->AddRaw(Settings->IsChildExtrusionTag); }
+		if (Settings->bTagIfIsFollowUp && bIsFollowUp) { PointDataFacade->Source->Tags->AddRaw(Settings->IsFollowUpTag); }
 
 		PointDataFacade->Source->GetOutKeys(true);
 	}

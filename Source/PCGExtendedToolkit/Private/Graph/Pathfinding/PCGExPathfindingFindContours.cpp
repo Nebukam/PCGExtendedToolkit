@@ -170,7 +170,7 @@ namespace PCGExFindContours
 		PathIO->Tags->Reset();       // Tag forwarding handled by artifacts
 		PathIO->IOIndex = SeedIndex; // Enforce seed order for collection output
 
-		PCGExGraph::CleanupClusterTags(PathIO, true);
+		PCGExGraph::CleanupClusterTags(PathIO);
 		PCGExGraph::CleanupVtxData(PathIO);
 
 		PCGEX_MAKE_SHARED(PathDataFacade, PCGExData::FFacade, PathIO.ToSharedRef())
