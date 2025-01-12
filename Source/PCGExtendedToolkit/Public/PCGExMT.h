@@ -17,6 +17,7 @@
 #include "PCGExMacros.h"
 #include "PCGExGlobalSettings.h"
 #include "Data/PCGExPointIO.h"
+#include "Tasks/Task.h"
 
 
 #pragma region MT MACROS

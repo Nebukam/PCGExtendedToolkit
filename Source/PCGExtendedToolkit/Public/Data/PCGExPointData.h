@@ -10,12 +10,12 @@
 
 #if PCGEX_ENGINE_VERSION < 505
 #define PCGEX_DATA_COPY_INTERNAL_DECL virtual UPCGSpatialData* CopyInternal() const override;
-#define PCGEX_DATA_COPY_INTERNAL_IMPL(_TYPE) UPCGSpatialData* _TYPE::CopyInternal() const{
-	_TYPE* NewPointData = nullptr; { FGCScopeGuard GCGuard; NewPointData = Cast<UPCGSpatialData>(NewObject<UObject>(GetTransientPackage(), GetClass()))); } NewPointData->CopyFrom(this);	return NewPointData; }
+#define PCGEX_DATA_COPY_INTERNAL_IMPL(_TYPE) UPCGSpatialData* _TYPE::CopyInternal() const{\
+	_TYPE* NewPointData = nullptr; { FGCScopeGuard GCGuard; NewPointData = Cast<_TYPE>(NewObject<UObject>(GetTransientPackage(), GetClass())); } NewPointData->CopyFrom(this);	return NewPointData; }
 #else
 #define PCGEX_DATA_COPY_INTERNAL_DECL virtual UPCGSpatialData* CopyInternal(FPCGContext* Context) const override;
 #define PCGEX_DATA_COPY_INTERNAL_IMPL(_TYPE)UPCGSpatialData* _TYPE::CopyInternal(FPCGContext* Context) const{\
-	UPCGExPointData* NewPointData = Cast<UPCGExPointData>(FPCGContext::NewObject_AnyThread<UObject>(Context, GetTransientPackage(), GetClass())); NewPointData->CopyFrom(this);return NewPointData;}
+	_TYPE* NewPointData = Cast<_TYPE>(FPCGContext::NewObject_AnyThread<UObject>(Context, GetTransientPackage(), GetClass())); NewPointData->CopyFrom(this);return NewPointData;}
 #endif
 
 //#define PCGEX_DATA_COPY_INTERNAL_IMPL(_TYPE)UPCGSpatialData* _TYPE::CopyInternal(FPCGContext* Context) const{\
