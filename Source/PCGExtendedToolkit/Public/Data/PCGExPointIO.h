@@ -412,10 +412,10 @@ namespace PCGExData
 	{
 	public:
 		FString TagId;
-		PCGExTags::IDType TagValue;
+		IDType TagValue;
 		TArray<TSharedRef<FPointIO>> Entries;
 
-		FPointIOTaggedEntries(const FString& InTagId, const PCGExTags::IDType& InTagValue)
+		FPointIOTaggedEntries(const FString& InTagId, const IDType& InTagValue)
 			: TagId(InTagId), TagValue(InTagValue)
 		{
 		}

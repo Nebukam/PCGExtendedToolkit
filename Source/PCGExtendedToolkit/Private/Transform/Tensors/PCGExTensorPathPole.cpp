@@ -23,7 +23,7 @@ PCGExTensor::FTensorSample UPCGExTensorPathPole::Sample(const FTransform& InProb
 			Metrics.Potency, Metrics.Weight);
 	}
 
-	return Samples.Flatten(Config.TensorWeight);
+	return Config.Mutations.Mutate(InProbe, Samples.Flatten(Config.TensorWeight));
 }
 
 PCGEX_TENSOR_BOILERPLATE(

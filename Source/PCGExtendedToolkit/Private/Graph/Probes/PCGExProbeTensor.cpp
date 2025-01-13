@@ -5,6 +5,8 @@
 
 #include "Graph/Probes/PCGExProbing.h"
 #include "Transform/Tensors/PCGExTensor.h"
+#include "Transform/Tensors/PCGExTensorFactoryProvider.h"
+#include "Transform/Tensors/PCGExTensorHandler.h"
 
 TArray<FPCGPinProperties> UPCGExProbeTensorProviderSettings::InputPinProperties() const
 {
@@ -15,14 +17,19 @@ TArray<FPCGPinProperties> UPCGExProbeTensorProviderSettings::InputPinProperties(
 
 PCGEX_CREATE_PROBE_FACTORY(
 	Tensor, {}, {
-	NewOperation->TensorsHandler = TensorsHandler;
+	NewOperation->TensorFactories = &TensorFactories;
 	})
 
 bool UPCGExProbeFactoryTensor::Prepare(FPCGExContext* InContext)
 {
 	if (!Super::Prepare(InContext)) { return false; }
-	TensorsHandler = MakeShared<PCGExTensor::FTensorsHandler>();
-	if (!TensorsHandler->Init(InContext, PCGExTensor::SourceTensorsLabel)) { return false; }
+
+	if (!PCGExFactories::GetInputFactories(InContext, PCGExTensor::SourceTensorsLabel, TensorFactories, {PCGExFactories::EType::Tensor}, true)) { return false; }
+	if (TensorFactories.IsEmpty())
+	{
+		PCGE_LOG_C(Error, GraphAndLog, InContext, FTEXT("Missing tensors."));
+		return false;
+	}
 	return true;
 }
 
@@ -30,11 +37,16 @@ bool UPCGExProbeTensor::RequiresChainProcessing() { return Config.bDoChainedProc
 
 bool UPCGExProbeTensor::PrepareForPoints(const TSharedPtr<PCGExData::FPointIO>& InPointIO)
 {
+	if (!TensorFactories) { return false; }
+
 	if (!Super::PrepareForPoints(InPointIO)) { return false; }
 
 	bUseBestDot = (Config.Favor == EPCGExProbeDirectionPriorization::Dot);
 	MinDot = PCGExMath::DegreesToDot(Config.MaxAngle);
 	Mirror = Config.bInvertTensorDirection ? -1 : 1;
+
+	TensorsHandler = MakeShared<PCGExTensor::FTensorsHandler>(Config.TensorHandlerDetails);
+	if (!TensorsHandler->Init(Context, *TensorFactories, PrimaryDataFacade)) { return false; }
 
 	return true;
 }

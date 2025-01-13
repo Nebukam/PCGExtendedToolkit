@@ -12,6 +12,8 @@
 #include "Paths/PCGExPaths.h"
 #include "Sampling/PCGExSampling.h"
 #include "Tensors/PCGExTensor.h"
+#include "Transform/Tensors/PCGExTensorFactoryProvider.h"
+#include "Tensors/PCGExTensorHandler.h"
 
 
 #include "PCGExTensorsTransform.generated.h"
@@ -115,6 +117,10 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(DisplayName="Max Iterations Reached", PCG_Overridable, EditCondition="bWriteMaxIterationsReached"))
 	FName MaxIterationsReachedAttributeName = FName("MaxIterationsReached");
 
+	/** Tensor sampling settings. Note that these are applied on the flattened sample, e.g after & on top of individual tensors' mutations. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName="Tensor Sampling Settings"))
+	FPCGExTensorHandlerDetails TensorHandlerDetails;
+
 private:
 	friend class FPCGExTensorsTransformElement;
 };
@@ -122,7 +128,7 @@ private:
 struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExTensorsTransformContext final : FPCGExPointsProcessorContext
 {
 	friend class FPCGExTensorsTransformElement;
-	TSharedPtr<PCGExTensor::FTensorsHandler> TensorsHandler;
+	TArray<TObjectPtr<const UPCGExTensorFactoryData>> TensorFactories;
 
 	PCGEX_FOREACH_FIELD_TRTENSOR(PCGEX_OUTPUT_DECL_TOGGLE)
 };
@@ -143,6 +149,9 @@ namespace PCGExTensorsTransform
 {
 	class FProcessor final : public PCGExPointsMT::TPointsProcessor<FPCGExTensorsTransformContext, UPCGExTensorsTransformSettings>
 	{
+	protected:
+		TSharedPtr<PCGExTensor::FTensorsHandler> TensorsHandler;
+
 		bool bIteratedOnce = false;
 		int32 RemainingIterations = 0;
 		TArray<PCGExPaths::FPathMetrics> Metrics;

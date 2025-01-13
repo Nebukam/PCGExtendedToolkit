@@ -61,7 +61,7 @@ class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExDistanceFilterFactory : public UPCGExFilt
 
 public:
 	FPCGExDistanceFilterConfig Config;
-	TArray<const UPCGPointData::PointOctree*> Octrees;
+	TArray<const PointOctree*> Octrees;
 	TArray<uintptr_t> TargetsPtr;
 
 	virtual bool Init(FPCGExContext* InContext) override;

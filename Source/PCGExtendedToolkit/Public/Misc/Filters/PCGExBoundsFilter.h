@@ -101,7 +101,7 @@ namespace PCGExPointsFilter
 
 		const TObjectPtr<const UPCGExBoundsFilterFactory> TypedFilterFactory;
 		const TArray<TSharedPtr<PCGExGeo::FPointBoxCloud>>* Clouds = nullptr;
-		
+
 		EPCGExPointBoundsSource BoundsTarget = EPCGExPointBoundsSource::ScaledBounds;
 
 		using BoundCheckCallback = std::function<bool(const FPCGPoint&)>;

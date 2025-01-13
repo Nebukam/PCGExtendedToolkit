@@ -58,7 +58,7 @@ FString UPCGExFactoryProviderSettings::GetDisplayName() const { return TEXT("");
 
 FPCGExFactoryProviderContext::~FPCGExFactoryProviderContext()
 {
-	for (const TSharedPtr<PCGExMT::FDeferredCallbackHandle>& Task : DeferredTasks) { PCGExMT::CancelDeferredCallback(Task); }
+	for (const TSharedPtr<PCGExMT::FDeferredCallbackHandle>& Task : DeferredTasks) { CancelDeferredCallback(Task); }
 	DeferredTasks.Empty();
 }
 
