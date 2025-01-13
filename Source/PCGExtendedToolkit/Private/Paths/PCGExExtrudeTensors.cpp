@@ -30,9 +30,10 @@ bool FPCGExExtrudeTensorsElement::Boot(FPCGExContext* InContext) const
 
 	PCGEX_CONTEXT_AND_SETTINGS(ExtrudeTensors)
 
-	Context->TensorsHandler = MakeShared<PCGExTensor::FTensorsHandler>();
-	if (!Context->TensorsHandler->Init(Context, PCGExTensor::SourceTensorsLabel))
+	if (!PCGExFactories::GetInputFactories(InContext, PCGExTensor::SourceTensorsLabel, Context->TensorFactories, {PCGExFactories::EType::Tensor}, true)) { return false; }
+	if (Context->TensorFactories.IsEmpty())
 	{
+		PCGE_LOG_C(Error, GraphAndLog, InContext, FTEXT("Missing tensors."));
 		return false;
 	}
 
@@ -99,6 +100,8 @@ namespace PCGExExtrudeTensors
 	void FExtrusion::Complete()
 	{
 		if (bIsComplete || bIsStopped) { return; }
+
+		TensorsHandler.Reset();
 
 		bIsComplete = true;
 
@@ -196,6 +199,9 @@ namespace PCGExExtrudeTensors
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExExtrudeTensors::Process);
 
 		if (!FPointsProcessor::Process(InAsyncManager)) { return false; }
+
+		TensorsHandler = MakeShared<PCGExTensor::FTensorsHandler>(Settings->TensorHandlerDetails);
+		if (!TensorsHandler->Init(Context, Context->TensorFactories, PointDataFacade)) { return false; }
 
 		AttributesToPathTags = Settings->AttributesToPathTags;
 		if (!AttributesToPathTags.Init(Context, PointDataFacade)) { return false; }
@@ -303,7 +309,7 @@ namespace PCGExExtrudeTensors
 
 	void FProcessor::OnPointsProcessingComplete()
 	{
-		if (!UpdateExtrusionQueue()) { StartParallelLoopForRange(ExtrusionQueue.Num()); }
+		if (!UpdateExtrusionQueue()) { StartParallelLoopForRange(ExtrusionQueue.Num(), 32); }
 	}
 
 	void FProcessor::ProcessSingleRangeIteration(const int32 Iteration, const PCGExMT::FScope& Scope)
@@ -321,7 +327,7 @@ namespace PCGExExtrudeTensors
 		// TODO : If detecting collisions is enabled, start detection loop here
 		// Note : Closed loop search is probably very redundant here with collision
 		// Test only with last edge of each extrusion against all others extrusions including itself
-		if (!UpdateExtrusionQueue()) { StartParallelLoopForRange(ExtrusionQueue.Num()); }
+		if (!UpdateExtrusionQueue()) { StartParallelLoopForRange(ExtrusionQueue.Num(), 32); }
 	}
 
 	bool FProcessor::UpdateExtrusionQueue()
@@ -404,6 +410,7 @@ namespace PCGExExtrudeTensors
 		NewExtrusion->Processor = this;
 		NewExtrusion->Context = Context;
 		NewExtrusion->Settings = Settings;
+		NewExtrusion->TensorsHandler = TensorsHandler;
 
 		return NewExtrusion;
 	}

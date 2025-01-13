@@ -76,47 +76,41 @@ namespace PCGExTags
 		{
 			return nullptr;
 		}
-		else if (RightSide.IsEmpty())
+		if (RightSide.IsEmpty())
 		{
 			return nullptr;
 		}
-		else
+		if (RightSide.IsNumeric())
 		{
-			if (RightSide.IsNumeric())
+			int32 FloatingPointPosition = INDEX_NONE;
+			if (InTag.FindChar('.', FloatingPointPosition))
 			{
-				int32 FloatingPointPosition = INDEX_NONE;
-				if (InTag.FindChar('.', FloatingPointPosition))
-				{
-					return MakeShared<TTagValue<double>>(FCString::Atod(*RightSide));
-				}
-				else
-				{
-					return MakeShared<TTagValue<int32>>(FCString::Atoi(*RightSide));
-				}
+				return MakeShared<TTagValue<double>>(FCString::Atod(*RightSide));
 			}
-
-			if (FVector ParsedVector; ParsedVector.InitFromString(RightSide))
-			{
-				return MakeShared<TTagValue<FVector>>(ParsedVector);
-			}
-
-			if (FVector2D ParsedVector2D; ParsedVector2D.InitFromString(RightSide))
-			{
-				return MakeShared<TTagValue<FVector2D>>(ParsedVector2D);
-			}
-
-			if (FVector4 ParsedVector4; ParsedVector4.InitFromString(RightSide))
-			{
-				return MakeShared<TTagValue<FVector4>>(ParsedVector4);
-			}
-
-			return MakeShared<TTagValue<FString>>(RightSide);
+			return MakeShared<TTagValue<int32>>(FCString::Atoi(*RightSide));
 		}
+
+		if (FVector ParsedVector; ParsedVector.InitFromString(RightSide))
+		{
+			return MakeShared<TTagValue<FVector>>(ParsedVector);
+		}
+
+		if (FVector2D ParsedVector2D; ParsedVector2D.InitFromString(RightSide))
+		{
+			return MakeShared<TTagValue<FVector2D>>(ParsedVector2D);
+		}
+
+		if (FVector4 ParsedVector4; ParsedVector4.InitFromString(RightSide))
+		{
+			return MakeShared<TTagValue<FVector4>>(ParsedVector4);
+		}
+
+		return MakeShared<TTagValue<FString>>(RightSide);
 
 		return nullptr;
 	}
 
-	using IDType = TSharedPtr<PCGExTags::TTagValue<int32>>;
+	using IDType = TSharedPtr<TTagValue<int32>>;
 }
 
 namespace PCGExData

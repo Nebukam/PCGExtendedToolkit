@@ -25,9 +25,9 @@ void FPCGExBasicEdgeSolidificationDetails::Mutate(FPCGPoint& InEdgePoint, const 
 	const double EdgeLength = FVector::Dist(A, B);
 	const double StartRadius = InStart.GetScaledExtents().Size();
 	const double EndRadius = InStart.GetScaledExtents().Size();
-	
+
 	double Rad = 0;
-	
+
 	switch (RadiusType)
 	{
 	case EPCGExBasicEdgeRadius::Average:
