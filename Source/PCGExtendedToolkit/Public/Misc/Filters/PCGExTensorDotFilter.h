@@ -11,6 +11,7 @@
 #include "Data/PCGExPointFilter.h"
 #include "PCGExPointsProcessor.h"
 #include "Transform/Tensors/PCGExTensor.h"
+#include "Transform/Tensors/PCGExTensorHandler.h"
 
 
 #include "PCGExTensorDotFilter.generated.h"
@@ -36,9 +37,9 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExTensorDotFilterConfig
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, ShowOnlyInnerProperties))
 	FPCGExDotComparisonDetails DotComparisonDetails;
 
-	void Sanitize()
-	{
-	}
+	/** Tensor sampling settings. Note that these are applied on the flattened sample, e.g after & on top of individual tensors' mutations. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName="Tensor Sampling Settings"))
+	FPCGExTensorHandlerDetails TensorHandlerDetails;
 };
 
 /**
@@ -56,6 +57,8 @@ public:
 	virtual bool Init(FPCGExContext* InContext) override;
 	virtual TSharedPtr<PCGExPointFilter::FFilter> CreateFilter() const override;
 	virtual bool RegisterConsumableAttributesWithData(FPCGExContext* InContext, const UPCGData* InData) const override;
+
+	TArray<TObjectPtr<const UPCGExTensorFactoryData>> TensorFactories;
 };
 
 namespace PCGExPointsFilter

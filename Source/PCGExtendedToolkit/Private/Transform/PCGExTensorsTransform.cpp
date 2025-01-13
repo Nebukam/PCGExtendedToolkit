@@ -26,13 +26,14 @@ bool FPCGExTensorsTransformElement::Boot(FPCGExContext* InContext) const
 
 	PCGEX_CONTEXT_AND_SETTINGS(TensorsTransform)
 
-	PCGEX_FOREACH_FIELD_TRTENSOR(PCGEX_OUTPUT_VALIDATE_NAME)
-
-	Context->TensorsHandler = MakeShared<PCGExTensor::FTensorsHandler>();
-	if (!Context->TensorsHandler->Init(Context, PCGExTensor::SourceTensorsLabel))
+	if (!PCGExFactories::GetInputFactories(InContext, PCGExTensor::SourceTensorsLabel, Context->TensorFactories, {PCGExFactories::EType::Tensor}, true)) { return false; }
+	if (Context->TensorFactories.IsEmpty())
 	{
+		PCGE_LOG_C(Error, GraphAndLog, InContext, FTEXT("Missing tensors."));
 		return false;
 	}
+
+	PCGEX_FOREACH_FIELD_TRTENSOR(PCGEX_OUTPUT_VALIDATE_NAME)
 
 	return true;
 }
@@ -75,6 +76,9 @@ namespace PCGExTensorsTransform
 
 		if (!FPointsProcessor::Process(InAsyncManager)) { return false; }
 
+		TensorsHandler = MakeShared<PCGExTensor::FTensorsHandler>(Settings->TensorHandlerDetails);
+		if (!TensorsHandler->Init(Context, Context->TensorFactories, PointDataFacade)) { return false; }
+
 		{
 			const TSharedRef<PCGExData::FFacade>& OutputFacade = PointDataFacade;
 			PCGEX_FOREACH_FIELD_TRTENSOR(PCGEX_OUTPUT_INIT)
@@ -84,7 +88,7 @@ namespace PCGExTensorsTransform
 		Metrics.SetNum(PointDataFacade->GetNum());
 		Pings.Init(0, PointDataFacade->GetNum());
 
-		StartParallelLoopForPoints();
+		StartParallelLoopForPoints(PCGExData::ESource::Out, 64);
 
 		return true;
 	}
@@ -104,7 +108,7 @@ namespace PCGExTensorsTransform
 		const FVector SamplePosition = Probe.GetLocation();
 
 		bool bSuccess = false;
-		const PCGExTensor::FTensorSample Sample = Context->TensorsHandler->Sample(Probe, bSuccess);
+		const PCGExTensor::FTensorSample Sample = TensorsHandler->Sample(Probe, bSuccess);
 		PointFilterCache[Index] = bSuccess;
 
 		if (!bSuccess) { return; }
@@ -138,7 +142,7 @@ namespace PCGExTensorsTransform
 	{
 		bIteratedOnce = true;
 		RemainingIterations--;
-		if (RemainingIterations > 0) { StartParallelLoopForPoints(); }
+		if (RemainingIterations > 0) { StartParallelLoopForPoints(PCGExData::ESource::Out, 32); }
 		else { StartParallelLoopForRange(PointDataFacade->GetNum()); }
 	}
 

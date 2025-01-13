@@ -29,7 +29,7 @@ PCGExTensor::FTensorSample UPCGExTensorSplinePole::Sample(const FTransform& InPr
 			Metrics.Potency, Metrics.Weight);
 	}
 
-	return Samples.Flatten(Config.TensorWeight);
+	return Config.Mutations.Mutate(InProbe, Samples.Flatten(Config.TensorWeight));
 }
 
 bool UPCGExTensorSplinePoleFactory::Prepare(FPCGExContext* InContext)

@@ -10,6 +10,7 @@
 #include "PCGExProbeFactoryProvider.h"
 #include "PCGExProbeOperation.h"
 #include "Transform/Tensors/PCGExTensor.h"
+#include "Transform/Tensors/PCGExTensorHandler.h"
 
 #include "PCGExProbeTensor.generated.h"
 
@@ -46,6 +47,10 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExProbeConfigTensor : public FPCGExProbeCo
 	/** This probe will sample candidates after the other. Can yield different results. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	bool bDoChainedProcessing = false;
+
+	/** Tensor sampling settings. Note that these are applied on the flattened sample, e.g after & on top of individual tensors' mutations. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName="Tensor Sampling Settings"))
+	FPCGExTensorHandlerDetails TensorHandlerDetails;
 };
 
 /**
@@ -66,6 +71,7 @@ public:
 	virtual void ProcessBestCandidate(const int32 Index, const FPCGPoint& Point, PCGExProbing::FBestCandidate& InBestCandidate, TArray<PCGExProbing::FCandidate>& Candidates, TSet<FInt32Vector>* Coincidence, const FVector& ST, TSet<uint64>* OutEdges) override;
 
 	FPCGExProbeConfigTensor Config;
+	const TArray<TObjectPtr<const UPCGExTensorFactoryData>>* TensorFactories = nullptr;
 	TSharedPtr<PCGExTensor::FTensorsHandler> TensorsHandler;
 
 	virtual void Cleanup() override
@@ -92,11 +98,12 @@ class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExProbeFactoryTensor : public UPCGExProbeFa
 
 public:
 	FPCGExProbeConfigTensor Config;
-	TSharedPtr<PCGExTensor::FTensorsHandler> TensorsHandler;
 	virtual UPCGExProbeOperation* CreateOperation(FPCGExContext* InContext) const override;
 
 	virtual bool GetRequiresPreparation(FPCGExContext* InContext) override { return true; }
 	virtual bool Prepare(FPCGExContext* InContext) override;
+
+	TArray<TObjectPtr<const UPCGExTensorFactoryData>> TensorFactories;
 };
 
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Graph|Params")

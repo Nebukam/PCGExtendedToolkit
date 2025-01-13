@@ -13,6 +13,8 @@
 #include "Transform/PCGExTensorsTransform.h"
 #include "Transform/PCGExTransform.h"
 #include "Transform/Tensors/PCGExTensor.h"
+#include "Transform/Tensors/PCGExTensorFactoryProvider.h"
+#include "Transform/Tensors/PCGExTensorHandler.h"
 
 #include "PCGExExtrudeTensors.generated.h"
 
@@ -147,44 +149,48 @@ public:
 	FPCGExAttributeToTagDetails AttributesToPathTags;
 
 	/** */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging & Forwarding", meta=(PCG_Overridable, InlineEditConditionToggle))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging & Forwarding", meta=(InlineEditConditionToggle))
 	bool bTagIfChildExtrusion = false;
 
 	/** ... */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging & Forwarding", meta=(PCG_Overridable, EditCondition="bTagIfChildExtrusion"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging & Forwarding", meta=(EditCondition="bTagIfChildExtrusion"))
 	FString IsChildExtrusionTag = TEXT("ChildExtrusion");
 
 	/** */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging & Forwarding", meta=(PCG_Overridable, InlineEditConditionToggle))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging & Forwarding", meta=(InlineEditConditionToggle))
 	bool bTagIfIsStoppedByBounds = false;
 
 	/** ... */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging & Forwarding", meta=(PCG_Overridable, EditCondition="bTagIfStoppedOnBounds"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging & Forwarding", meta=(EditCondition="bTagIfStoppedOnBounds"))
 	FString IsStoppedByBoundsTag = TEXT("StoppedByBounds");
 
 	/** */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging & Forwarding", meta=(PCG_Overridable, InlineEditConditionToggle))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging & Forwarding", meta=(InlineEditConditionToggle))
 	bool bTagIfIsFollowUp = false;
 
 	/** ... */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging & Forwarding", meta=(PCG_Overridable, EditCondition="bTagIfIsFollowUp"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging & Forwarding", meta=(EditCondition="bTagIfIsFollowUp"))
 	FString IsFollowUpTag = TEXT("IsFollowUp");
 
 	/** */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging & Forwarding", meta=(PCG_Overridable, InlineEditConditionToggle))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging & Forwarding", meta=(InlineEditConditionToggle))
 	bool bTagIfClosedLoop = true;
 
 	/** ... */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging & Forwarding", meta=(PCG_Overridable, EditCondition="bTagIfClosedLoop"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging & Forwarding", meta=(EditCondition="bTagIfClosedLoop"))
 	FString IsClosedLoopTag = TEXT("ClosedLoop");
 
 	/** */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging & Forwarding", meta=(PCG_Overridable, InlineEditConditionToggle))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging & Forwarding", meta=(InlineEditConditionToggle))
 	bool bTagIfOpenPath = false;
 
 	/** ... */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging & Forwarding", meta=(PCG_Overridable, EditCondition="bTagIfOpenPath"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging & Forwarding", meta=(EditCondition="bTagIfOpenPath"))
 	FString IsOpenPathTag = TEXT("OpenPath");
+
+	/** Tensor sampling settings. Note that these are applied on the flattened sample, e.g after & on top of individual tensors' mutations. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName="Tensor Sampling Settings"))
+	FPCGExTensorHandlerDetails TensorHandlerDetails;
 
 private:
 	friend class FPCGExExtrudeTensorsElement;
@@ -193,7 +199,7 @@ private:
 struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExExtrudeTensorsContext final : FPCGExPointsProcessorContext
 {
 	friend class FPCGExExtrudeTensorsElement;
-	TSharedPtr<PCGExTensor::FTensorsHandler> TensorsHandler;
+	TArray<TObjectPtr<const UPCGExTensorFactoryData>> TensorFactories;
 	FBox Limits = FBox(ForceInit);
 	double ClosedLoopSquaredDistance = 0;
 	double ClosedLoopSearchDot = 0;
@@ -269,6 +275,7 @@ namespace PCGExExtrudeTensors
 		FProcessor* Processor = nullptr;
 		const FPCGExExtrudeTensorsContext* Context = nullptr;
 		const UPCGExExtrudeTensorsSettings* Settings = nullptr;
+		TSharedPtr<PCGExTensor::FTensorsHandler> TensorsHandler;
 
 		FTransform Head = FTransform::Identity;
 
@@ -313,7 +320,7 @@ namespace PCGExExtrudeTensors
 
 			const FVector PreviousHeadLocation = Head.GetLocation();
 			bool bSuccess = false;
-			const PCGExTensor::FTensorSample Sample = Context->TensorsHandler->Sample(Head, bSuccess);
+			const PCGExTensor::FTensorSample Sample = TensorsHandler->Sample(Head, bSuccess);
 
 			if (!bSuccess) { return OnAdvanced(true); }
 
@@ -338,7 +345,7 @@ namespace PCGExExtrudeTensors
 			FVector HeadLocation = PreviousHeadLocation + Sample.DirectionAndSize;
 			Head.SetLocation(HeadLocation);
 
-			
+
 			if constexpr (Supports(InternalFlags, EExtrusionFlags::ClosedLoop))
 			{
 				const FVector Tail = Origin.Transform.GetLocation();
@@ -409,6 +416,8 @@ namespace PCGExExtrudeTensors
 		TSharedPtr<PCGExData::TBuffer<int32>> PerPointIterations;
 		TSharedPtr<PCGExData::TBuffer<int32>> PerPointMaxPoints;
 		TSharedPtr<PCGExData::TBuffer<double>> PerPointMaxLength;
+
+		TSharedPtr<PCGExTensor::FTensorsHandler> TensorsHandler;
 
 		FPCGExAttributeToTagDetails AttributesToPathTags;
 		TArray<TSharedPtr<FExtrusion>> ExtrusionQueue;

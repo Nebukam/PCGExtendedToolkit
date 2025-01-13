@@ -31,7 +31,7 @@ PCGExTensor::FTensorSample UPCGExTensorFlow::Sample(const FTransform& InProbe) c
 
 	Octree->FindElementsWithBoundsTest(BCAE, ProcessNeighbor);
 
-	return Samples.Flatten(Config.TensorWeight);
+	return Config.Mutations.Mutate(InProbe, Samples.Flatten(Config.TensorWeight));
 }
 
 PCGEX_TENSOR_BOILERPLATE(Flow, {}, {})

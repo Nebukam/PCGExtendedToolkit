@@ -17,7 +17,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExTensorInertiaConstantConfig : public FPC
 	GENERATED_BODY()
 
 	FPCGExTensorInertiaConstantConfig() :
-		FPCGExTensorConfigBase()
+		FPCGExTensorConfigBase(true, false)
 	{
 	}
 
@@ -28,7 +28,6 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExTensorInertiaConstantConfig : public FPC
 	/**  */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	FRotator Offset = FRotator::ZeroRotator;
-	
 };
 
 /**
@@ -40,7 +39,7 @@ class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExTensorInertiaConstant : public UPCGExTens
 	GENERATED_BODY()
 
 public:
-	FPCGExTensorInertiaConstantConfig Config;	
+	FPCGExTensorInertiaConstantConfig Config;
 	FQuat Offset = FQuat::Identity;
 	virtual bool Init(FPCGExContext* InContext, const UPCGExTensorFactoryData* InFactory) override;
 
@@ -81,7 +80,7 @@ public:
 	/**  */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	FRotator Offset = FRotator::ZeroRotator;
-	
+
 	/**  */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	double TensorWeight = 1;
