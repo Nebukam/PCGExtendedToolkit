@@ -7,10 +7,9 @@
 #include "PCGExHeuristicDistance.h"
 #include "UObject/Object.h"
 #include "PCGExHeuristicOperation.h"
-
-
 #include "Graph/PCGExCluster.h"
 #include "Transform/Tensors/PCGExTensor.h"
+#include "Transform/Tensors/PCGExTensorHandler.h"
 #include "PCGExHeuristicTensor.generated.h"
 
 USTRUCT(BlueprintType)
@@ -26,6 +25,10 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExHeuristicConfigTensor : public FPCGExHeu
 	/**  */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	bool bAbsolute = true;
+
+	/** Tensor sampling settings. Note that these are applied on the flattened sample, e.g after & on top of individual tensors' mutations. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName="Tensor Sampling Settings"))
+	FPCGExTensorHandlerDetails TensorHandlerDetails;
 };
 
 /**
@@ -62,15 +65,17 @@ public:
 
 protected:
 	TSharedPtr<PCGExTensor::FTensorsHandler> TensorsHandler;
+	FPCGExTensorHandlerDetails TensorHandlerDetails;
+	const TArray<TObjectPtr<const UPCGExTensorFactoryData>>* TensorFactories = nullptr;
 	bool bAbsoluteTensor = true;
 
 	FORCEINLINE double GetDot(const FVector& From, const FVector& To) const
 	{
 		bool bSuccess = false;
 		const PCGExTensor::FTensorSample Sample = TensorsHandler->Sample(FTransform(FRotationMatrix::MakeFromX((To - From).GetSafeNormal()).ToQuat(), From), bSuccess);
-		if (!bSuccess) { return 1; }
+		if (!bSuccess) { return 0; }
 		const double Dot = FVector::DotProduct((To - From).GetSafeNormal(), Sample.DirectionAndSize.GetSafeNormal());
-		return bAbsoluteTensor ? FMath::Abs(Dot) : PCGExMath::Remap(Dot, -1, 1);
+		return bAbsoluteTensor ? 1 - FMath::Abs(Dot) : 1 - PCGExMath::Remap(Dot, -1, 1);
 	}
 };
 
@@ -88,8 +93,7 @@ public:
 	virtual bool GetRequiresPreparation(FPCGExContext* InContext) override { return true; }
 	virtual bool Prepare(FPCGExContext* InContext) override;
 
-protected:
-	TSharedPtr<PCGExTensor::FTensorsHandler> TensorsHandler;
+	TArray<TObjectPtr<const UPCGExTensorFactoryData>> TensorFactories;
 };
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Graph|Params")

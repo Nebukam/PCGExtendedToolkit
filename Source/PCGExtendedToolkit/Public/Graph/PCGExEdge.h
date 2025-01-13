@@ -145,5 +145,4 @@ namespace PCGExGraph
 		IO->Tags->Remove(TagStr_PCGExEdges);
 		if (!bKeepPairTag) { IO->Tags->Remove(TagStr_ClusterPair); }
 	}
-
 }

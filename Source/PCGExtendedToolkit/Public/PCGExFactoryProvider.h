@@ -157,11 +157,11 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExFactoryProviderContext : FPCGExContext
 	friend class FPCGExFactoryProviderElement;
 
 	virtual ~FPCGExFactoryProviderContext() override;
-	
+
 	UPCGExFactoryData* OutFactory = nullptr;
 
 	void LaunchDeferredCallback(PCGExMT::FSimpleCallback&& InCallback);
-	
+
 protected:
 	TArray<TSharedPtr<PCGExMT::FDeferredCallbackHandle>> DeferredTasks;
 };

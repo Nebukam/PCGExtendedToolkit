@@ -2,95 +2,24 @@
 // Released under the MIT license https://opensource.org/license/MIT/
 
 #include "Transform/Tensors/PCGExTensor.h"
-
-#include "Transform/Tensors/PCGExTensorFactoryProvider.h"
 #include "Transform/Tensors/PCGExTensorOperation.h"
 
-namespace PCGExTensor
+PCGExTensor::FTensorSample FPCGExTensorSamplingMutationsDetails::Mutate(const FTransform& InProbe, PCGExTensor::FTensorSample InSample) const
 {
-	FEffectorSample& FEffectorSamples::Emplace_GetRef(const FVector& InDirection, const double InPotency, const double InWeight)
-	{
-		TotalPotency += InPotency;
-		TensorSample.Weight += InWeight;
-		return Samples.Emplace_GetRef(InDirection, InPotency, InWeight);
-	}
+	if (bInvert) { InSample.DirectionAndSize *= -1; }
 
-	FTensorsHandler::FTensorsHandler()
+	if (bBidirectional)
 	{
-	}
-
-	bool FTensorsHandler::Init(FPCGExContext* InContext, const TArray<TObjectPtr<const UPCGExTensorFactoryData>>& InFactories)
-	{
-		Operations.Reserve(InFactories.Num());
-
-		for (const UPCGExTensorFactoryData* Factory : InFactories)
+		if (FVector::DotProduct(
+			PCGExMath::GetDirection(InProbe.GetRotation(), BidirectionalAxisReference),
+			InSample.DirectionAndSize.GetSafeNormal()) < 0)
 		{
-			UPCGExTensorOperation* Op = Factory->CreateOperation(InContext);
-			Operations.Add(Op);
+			InSample.DirectionAndSize = InSample.DirectionAndSize * -1;
+			InSample.Rotation = FQuat(-InSample.Rotation.X, -InSample.Rotation.Y, -InSample.Rotation.Y, InSample.Rotation.W);
 		}
-
-		return true;
 	}
 
-	bool FTensorsHandler::Init(FPCGExContext* InContext, const FName InPin)
-	{
-		TArray<TObjectPtr<const UPCGExTensorFactoryData>> InFactories;
-		if (!PCGExFactories::GetInputFactories(InContext, InPin, InFactories, {PCGExFactories::EType::Tensor}, true)) { return false; }
-		if (InFactories.IsEmpty())
-		{
-			PCGE_LOG_C(Error, GraphAndLog, InContext, FTEXT("Missing tensors."));
-			return false;
-		}
-		return Init(InContext, InFactories);
-	}
-
-	FTensorSample FTensorsHandler::Sample(const FTransform& InProbe, bool& OutSuccess) const
-	{
-		FTensorSample Result = FTensorSample();
-
-		TArray<FTensorSample> Samples;
-		double TotalWeight = 0;
-
-		FVector WeightedDirectionAndSize = FVector::ZeroVector;
-		FQuat WeightedRotation = FQuat::Identity;
-		double CumulativeWeight = 0.0f;
-
-		for (const UPCGExTensorOperation* Op : Operations)
-		{
-			const FTensorSample Sample = Op->Sample(InProbe);
-			if (Sample.Effectors == 0) { continue; }
-			Result.Effectors += Sample.Effectors;
-			Samples.Add(Sample);
-			TotalWeight += Sample.Weight;
-		}
-
-		OutSuccess = Samples.Num() > 0;
-
-		for (int i = 0; i < Samples.Num(); i++)
-		{
-			const FTensorSample& Sample = Samples[i];
-			const double W = Sample.Weight / TotalWeight;
-			WeightedDirectionAndSize += Sample.DirectionAndSize * W;
-
-			if (i == 0)
-			{
-				WeightedRotation = Sample.Rotation;
-				CumulativeWeight = W;
-			}
-			else
-			{
-				WeightedRotation = FQuat::Slerp(WeightedRotation, Sample.Rotation, W / (CumulativeWeight + W));
-				CumulativeWeight += W;
-			}
-		}
-
-		WeightedRotation.Normalize();
-
-		Result.DirectionAndSize = WeightedDirectionAndSize;
-		Result.Rotation = WeightedRotation;
-
-		return Result;
-	}
+	return InSample;
 }
 
 void FPCGExTensorConfigBase::Init()
@@ -110,4 +39,14 @@ void FPCGExTensorConfigBase::Init()
 	PotencyFalloffCurveObj = LocalPotencyFalloffCurve.GetRichCurveConst();
 
 	LocalGuideCurve.ExternalCurve = GuideCurve.Get();
+}
+
+namespace PCGExTensor
+{
+	FEffectorSample& FEffectorSamples::Emplace_GetRef(const FVector& InDirection, const double InPotency, const double InWeight)
+	{
+		TotalPotency += InPotency;
+		TensorSample.Weight += InWeight;
+		return Samples.Emplace_GetRef(InDirection, InPotency, InWeight);
+	}
 }

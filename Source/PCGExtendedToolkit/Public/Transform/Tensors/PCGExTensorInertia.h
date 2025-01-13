@@ -18,7 +18,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExTensorInertiaConfig : public FPCGExTenso
 	GENERATED_BODY()
 
 	FPCGExTensorInertiaConfig() :
-		FPCGExTensorConfigBase()
+		FPCGExTensorConfigBase(true, false)
 	{
 	}
 

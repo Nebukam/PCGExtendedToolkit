@@ -7,8 +7,10 @@
 #include "Data/PCGExData.h"
 #include "PCGExTensor.generated.h"
 
-class UPCGExTensorFactoryData;
-class UPCGExTensorOperation;
+namespace PCGExTensor
+{
+	struct FTensorSample;
+}
 
 UENUM()
 enum class EPCGExTensorSamplingMode : uint8
@@ -35,21 +37,31 @@ enum class EPCGExEffectorInfluenceShape : uint8
 };
 
 USTRUCT(BlueprintType)
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExTensorSamplingDetails
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExTensorSamplingMutationsDetails
 {
 	GENERATED_BODY()
 
-	FPCGExTensorSamplingDetails()
+	FPCGExTensorSamplingMutationsDetails()
 	{
 	}
 
-	virtual ~FPCGExTensorSamplingDetails()
+	virtual ~FPCGExTensorSamplingMutationsDetails()
 	{
 	}
 
-	/** Resolution input type */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Weighting", meta = (PCG_NotOverridable))
-	EPCGExTensorSamplingMode SamplingMode = EPCGExTensorSamplingMode::Weighted;
+	/** If enabled, sample will be mirrored. Computed before bidirectional. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_NotOverridable))
+	bool bInvert = false;
+
+	/** If enabled, perform a dot product with the direction of the input transform and the resuting sample. If that dot product is < 0, the sampled direction and size is reversed. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_NotOverridable))
+	bool bBidirectional = false;
+
+	/** Local axis from input transform used to test if the sampled direction should be inverted */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_NotOverridable, DisplayName = " └─ Reference Axis", EditCondition="bBidirectional", EditConditionHides))
+	EPCGExAxis BidirectionalAxisReference = EPCGExAxis::Forward;
+
+	PCGExTensor::FTensorSample Mutate(const FTransform& InProbe, PCGExTensor::FTensorSample InSample) const;
 };
 
 USTRUCT(BlueprintType)
@@ -57,8 +69,8 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExTensorConfigBase
 {
 	GENERATED_BODY()
 
-	explicit FPCGExTensorConfigBase(const bool SupportAttributes = true)
-		: bSupportAttributes(SupportAttributes)
+	explicit FPCGExTensorConfigBase(const bool SupportAttributes = true, const bool SupportMutations = true)
+		: bSupportAttributes(SupportAttributes), bSupportMutations(SupportMutations)
 	{
 		if (!bSupportAttributes)
 		{
@@ -90,6 +102,9 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExTensorConfigBase
 
 	UPROPERTY(VisibleAnywhere, Category=Settings, meta=(PCG_NotOverridable, HideInDetailPanel, EditCondition="false", EditConditionHides))
 	bool bSupportAttributes = true;
+
+	UPROPERTY(VisibleAnywhere, Category=Settings, meta=(PCG_NotOverridable, HideInDetailPanel, EditCondition="false", EditConditionHides))
+	bool bSupportMutations = false;
 
 	/**  */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayPriority=-1))
@@ -180,6 +195,9 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExTensorConfigBase
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Potency", meta=(PCG_NotOverridable, DisplayPriority=-1))
 	EPCGExEffectorFlattenMode EffectorFlattenMode = EPCGExEffectorFlattenMode::Weighted;
 
+	/** Tensor mutations settings. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName="Sampling Mutations", EditCondition="bSupportMutations", EditConditionHides, HideEditConditionToggle))
+	FPCGExTensorSamplingMutationsDetails Mutations;
 
 	virtual void Init();
 };
@@ -279,19 +297,5 @@ namespace PCGExTensor
 
 			return TensorSample;
 		}
-	};
-
-	using FTensorSampleCallback = std::function<bool(const FVector&, FTensorSample&)>;
-
-	class FTensorsHandler : public TSharedFromThis<FTensorsHandler>
-	{
-		TArray<UPCGExTensorOperation*> Operations;
-
-	public:
-		FTensorsHandler();
-		bool Init(FPCGExContext* InContext, const TArray<TObjectPtr<const UPCGExTensorFactoryData>>& InFactories);
-		bool Init(FPCGExContext* InContext, const FName InPin);
-
-		FTensorSample Sample(const FTransform& InProbe, bool& OutSuccess) const;
 	};
 }

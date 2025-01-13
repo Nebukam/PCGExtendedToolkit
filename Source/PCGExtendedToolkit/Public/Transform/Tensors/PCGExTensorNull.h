@@ -18,7 +18,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExTensorNullConfig : public FPCGExTensorCo
 	GENERATED_BODY()
 
 	FPCGExTensorNullConfig() :
-		FPCGExTensorConfigBase()
+		FPCGExTensorConfigBase(false, false)
 	{
 	}
 };

@@ -88,7 +88,7 @@ namespace PCGExEdgeOrder
 		friend class FProcessor;
 
 		FPCGExEdgeDirectionSettings DirectionSettings;
-						
+
 	public:
 		FBatch(FPCGExContext* InContext, const TSharedRef<PCGExData::FPointIO>& InVtx, const TArrayView<TSharedRef<PCGExData::FPointIO>> InEdges):
 			TBatch(InContext, InVtx, InEdges)

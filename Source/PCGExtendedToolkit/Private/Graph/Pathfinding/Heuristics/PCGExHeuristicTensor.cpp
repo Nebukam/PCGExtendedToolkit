@@ -5,19 +5,23 @@
 #include "Graph/Pathfinding/Heuristics/PCGExHeuristicTensor.h"
 
 #include "Transform/Tensors/PCGExTensor.h"
+#include "Transform/Tensors/PCGExTensorHandler.h"
+#include "Transform/Tensors/PCGExTensorFactoryProvider.h"
 
 
 void UPCGExHeuristicTensor::PrepareForCluster(const TSharedPtr<const PCGExCluster::FCluster>& InCluster)
 {
 	Super::PrepareForCluster(InCluster);
+	TensorsHandler = MakeShared<PCGExTensor::FTensorsHandler>(TensorHandlerDetails);
+	TensorsHandler->Init(Context, *TensorFactories, PrimaryDataFacade);
 }
 
 UPCGExHeuristicOperation* UPCGExHeuristicsFactoryTensor::CreateOperation(FPCGExContext* InContext) const
 {
 	UPCGExHeuristicTensor* NewOperation = InContext->ManagedObjects->New<UPCGExHeuristicTensor>();
 	PCGEX_FORWARD_HEURISTIC_CONFIG
-	NewOperation->TensorsHandler = TensorsHandler;
 	NewOperation->bAbsoluteTensor = Config.bAbsolute;
+	NewOperation->TensorHandlerDetails = Config.TensorHandlerDetails;
 	return NewOperation;
 }
 
@@ -26,8 +30,12 @@ PCGEX_HEURISTIC_FACTORY_BOILERPLATE_IMPL(Tensor, {})
 bool UPCGExHeuristicsFactoryTensor::Prepare(FPCGExContext* InContext)
 {
 	if (!Super::Prepare(InContext)) { return false; }
-	TensorsHandler = MakeShared<PCGExTensor::FTensorsHandler>();
-	if (!TensorsHandler->Init(InContext, PCGExTensor::SourceTensorsLabel)) { return false; }
+	if (!PCGExFactories::GetInputFactories(InContext, PCGExTensor::SourceTensorsLabel, TensorFactories, {PCGExFactories::EType::Tensor}, true)) { return false; }
+	if (TensorFactories.IsEmpty())
+	{
+		PCGE_LOG_C(Error, GraphAndLog, InContext, FTEXT("Missing tensors."));
+		return false;
+	}
 	return true;
 }
 

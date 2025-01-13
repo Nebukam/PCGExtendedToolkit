@@ -255,7 +255,7 @@ namespace PCGExGraph
 				PCGEX_ASYNC_THIS
 				This->OnPointEdgeSortingComplete();
 			};
-		
+
 		SortCrossingsGroup->OnSubLoopStartCallback =
 			[PCGEX_ASYNC_THIS_CAPTURE](const PCGExMT::FScope& Scope)
 			{
@@ -274,7 +274,7 @@ namespace PCGExGraph
 					PointEdgeProxy.CollinearPoints.Sort([](const FPESplit& A, const FPESplit& B) { return A.Time < B.Time; });
 				}
 			};
-		
+
 		SortCrossingsGroup->StartSubLoops(PointEdgeIntersections->Edges.Num(), GetDefault<UPCGExGlobalSettings>()->ClusterDefaultBatchChunkSize);
 
 		///

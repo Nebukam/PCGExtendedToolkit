@@ -3,8 +3,6 @@
 
 
 #include "Transform/Tensors/PCGExTensorOperation.h"
-
-#include "Paths/PCGExPaths.h"
 #include "Transform/Tensors/PCGExTensorFactoryProvider.h"
 
 void UPCGExTensorOperation::CopySettingsFrom(const UPCGExOperation* Other)
