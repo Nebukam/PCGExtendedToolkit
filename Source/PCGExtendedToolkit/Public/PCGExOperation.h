@@ -57,6 +57,10 @@ public:
 	{
 	}
 
+	virtual void RegisterPrimaryBuffersDependencies(PCGExData::FFacadePreloader& FacadePreloader) const
+	{
+	}
+
 	virtual void BeginDestroy() override;
 
 protected:

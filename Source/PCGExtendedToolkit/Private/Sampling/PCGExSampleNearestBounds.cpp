@@ -231,6 +231,12 @@ namespace PCGExSampleNearestBounds
 		return true;
 	}
 
+	void FProcessor::PrepareLoopScopesForPoints(const TArray<PCGExMT::FScope>& Loops)
+	{
+		TPointsProcessor<FPCGExSampleNearestBoundsContext, UPCGExSampleNearestBoundsSettings>::PrepareLoopScopesForPoints(Loops);
+		MaxDistanceValue = MakeShared<PCGExMT::TScopedValue<double>>(Loops, 0);
+	}
+
 	void FProcessor::PrepareSingleLoopScopeForPoints(const PCGExMT::FScope& Scope)
 	{
 		PointDataFacade->Fetch(Scope);
@@ -377,6 +383,8 @@ namespace PCGExSampleNearestBounds
 		PCGEX_OUTPUT_VALUE(Angle, Index, PCGExSampling::GetAngle(Settings->AngleRange, WeightedAngleAxis, LookAt))
 		PCGEX_OUTPUT_VALUE(NumSamples, Index, TotalSamples)
 		PCGEX_OUTPUT_VALUE(SampledIndex, Index, Stats.IsValid() ? Stats.Closest.Index : -1)
+
+		MaxDistanceValue->Set(Scope, FMath::Max(MaxDistanceValue->Get(Scope), WeightedDistance));
 
 		FPlatformAtomics::InterlockedExchange(&bAnySuccess, 1);
 	}

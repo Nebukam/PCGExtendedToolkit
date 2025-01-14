@@ -16,16 +16,16 @@ class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExLaplacianRelax : public UPCGExRelaxCluste
 	GENERATED_BODY()
 
 public:
-	virtual void ProcessExpandedNode(const PCGExCluster::FNode& Node) override
+	virtual void Step1(const PCGExCluster::FNode& Node) override
 	{
-		const FVector Position = *(ReadBuffer->GetData() + Node.Index);
+		const FVector Position = (ReadBuffer->GetData() + Node.Index)->GetLocation();
 		FVector Force = FVector::Zero();
 
 		for (const PCGExGraph::FLink& Lk : Node.Links)
 		{
-			Force += (*(ReadBuffer->GetData() + Lk.Node)) - Position;
+			Force += (ReadBuffer->GetData() + Lk.Node)->GetLocation() - Position;
 		}
 
-		(*WriteBuffer)[Node.Index] = Position + Force / static_cast<double>(Node.Links.Num());
+		(*WriteBuffer)[Node.Index].SetLocation(Position + Force / static_cast<double>(Node.Links.Num()));
 	}
 };

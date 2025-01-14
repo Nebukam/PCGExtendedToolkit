@@ -43,6 +43,78 @@ void FPCGExTensorConfigBase::Init()
 
 namespace PCGExTensor
 {
+	FTensorSample FTensorSample::operator+(const FTensorSample& Other) const
+	{
+		return FTensorSample(
+			DirectionAndSize + Other.DirectionAndSize,
+			Rotation * Other.Rotation,
+			Effectors + Other.Effectors,
+			Weight + Weight);
+	}
+
+	FTensorSample& FTensorSample::operator+=(const FTensorSample& Other)
+	{
+		DirectionAndSize += Other.DirectionAndSize;
+		Rotation *= Other.Rotation;
+		Effectors += Other.Effectors;
+		Weight += Weight;
+		return *this;
+	}
+
+	FTensorSample FTensorSample::operator*(const double Factor) const
+	{
+		return FTensorSample(
+			DirectionAndSize * Factor,
+			Rotation * Factor,
+			Effectors,
+			Weight * Factor);
+	}
+
+	FTensorSample& FTensorSample::operator*=(const double Factor)
+	{
+		DirectionAndSize *= Factor;
+		Rotation *= Factor;
+		Weight *= Weight;
+		return *this;
+	}
+
+	FTensorSample FTensorSample::operator/(const double Factor) const
+	{
+		const double Divisor = 1 / Factor;
+		return FTensorSample(
+			DirectionAndSize * Divisor,
+			Rotation * Divisor,
+			Effectors,
+			Weight * Divisor);
+	}
+
+	FTensorSample& FTensorSample::operator/=(const double Factor)
+	{
+		const double Divisor = 1 / Factor;
+		DirectionAndSize *= Divisor;
+		Rotation *= Divisor;
+		Weight *= Divisor;
+		return *this;
+	}
+
+	void FTensorSample::Transform(FTransform& InTransform, const double InWeight) const
+	{
+		const FVector Location = InTransform.GetLocation() + DirectionAndSize * InWeight;
+		InTransform.SetRotation((InTransform.GetRotation() * (Rotation * InWeight)).GetNormalized());
+		InTransform.SetLocation(Location);
+	}
+
+	FTransform FTensorSample::GetTransformed(const FTransform& InTransform, const double InWeight) const
+	{
+		return FTransform(
+			(InTransform.GetRotation() * (Rotation * InWeight)).GetNormalized(),
+			InTransform.GetLocation() + DirectionAndSize * InWeight,
+			InTransform.GetScale3D());
+	}
+}
+
+namespace PCGExTensor
+{
 	FEffectorSample& FEffectorSamples::Emplace_GetRef(const FVector& InDirection, const double InPotency, const double InWeight)
 	{
 		TotalPotency += InPotency;

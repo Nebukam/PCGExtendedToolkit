@@ -207,24 +207,24 @@ public:
 	FPCGExComponentRemapRule BaseRemap;
 
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, InlineEditConditionToggle))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_NoteOverridable, InlineEditConditionToggle))
 	bool bOverrideComponent2;
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bOverrideComponent2", DisplayName="Remap (2nd Component)"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_NoteOverridable, EditCondition="bOverrideComponent2", DisplayName="Remap (2nd Component)"))
 	FPCGExComponentRemapRule Component2RemapOverride;
 
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, InlineEditConditionToggle))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_NoteOverridable, InlineEditConditionToggle))
 	bool bOverrideComponent3;
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bOverrideComponent3", DisplayName="Remap (3rd Component)"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_NoteOverridable, EditCondition="bOverrideComponent3", DisplayName="Remap (3rd Component)"))
 	FPCGExComponentRemapRule Component3RemapOverride;
 
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, InlineEditConditionToggle))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_NoteOverridable, InlineEditConditionToggle))
 	bool bOverrideComponent4;
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bOverrideComponent4", DisplayName="Remap (4th Component)"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_NoteOverridable, EditCondition="bOverrideComponent4", DisplayName="Remap (4th Component)"))
 	FPCGExComponentRemapRule Component4RemapOverride;
 
 private:

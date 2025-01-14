@@ -215,6 +215,9 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(DisplayName="Distance", PCG_Overridable, EditCondition="bWriteDistance"))
 	FName DistanceAttributeName = FName("WeightedDistance");
 
+	/** Whether to output normalized distance or not*/
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(PCG_Overridable, DisplayName=" └─ Normalized", EditCondition="bWriteDistance", EditConditionHides, HideEditConditionToggle))
+	bool bOutputNormalizedDistance = false;
 
 	/** Write the sampled Signed distance. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(PCG_Overridable, InlineEditConditionToggle))
@@ -353,6 +356,7 @@ namespace PCGExSampleNearestPoints
 		FVector SafeUpVector = FVector::UpVector;
 
 		TSharedPtr<PCGExDataBlending::FMetadataBlender> Blender;
+		TSharedPtr<PCGExMT::TScopedValue<double>> MaxDistanceValue;
 
 		int8 bAnySuccess = 0;
 
@@ -370,6 +374,7 @@ namespace PCGExSampleNearestPoints
 		void SamplingFailed(const int32 Index, const FPCGPoint& Point);
 
 		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager> InAsyncManager) override;
+		virtual void PrepareLoopScopesForPoints(const TArray<PCGExMT::FScope>& Loops) override;
 		virtual void PrepareSingleLoopScopeForPoints(const PCGExMT::FScope& Scope) override;
 		virtual void ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const PCGExMT::FScope& Scope) override;
 		virtual void CompleteWork() override;

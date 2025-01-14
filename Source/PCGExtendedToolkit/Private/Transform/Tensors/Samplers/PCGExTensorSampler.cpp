@@ -17,9 +17,9 @@ bool UPCGExTensorSampler::PrepareForData(FPCGExContext* InContext)
 	return true;
 }
 
-PCGExTensor::FTensorSample UPCGExTensorSampler::Sample(const TArray<UPCGExTensorOperation*>& InTensors, const FTransform& InProbe, bool& OutSuccess) const
+PCGExTensor::FTensorSample UPCGExTensorSampler::RawSample(const TArray<UPCGExTensorOperation*>& InTensors, const FTransform& InProbe) const
 {
-	TRACE_CPUPROFILER_EVENT_SCOPE(UPCGExTensorSampler::Sample);
+	TRACE_CPUPROFILER_EVENT_SCOPE(UPCGExTensorSampler::RawSample);
 
 	PCGExTensor::FTensorSample Result = PCGExTensor::FTensorSample();
 
@@ -38,8 +38,6 @@ PCGExTensor::FTensorSample UPCGExTensorSampler::Sample(const TArray<UPCGExTensor
 		Samples.Add(Sample);
 		TotalWeight += Sample.Weight;
 	}
-
-	OutSuccess = Samples.Num() > 0;
 
 	for (int i = 0; i < Samples.Num(); i++)
 	{
@@ -64,5 +62,14 @@ PCGExTensor::FTensorSample UPCGExTensorSampler::Sample(const TArray<UPCGExTensor
 	Result.DirectionAndSize = WeightedDirectionAndSize;
 	Result.Rotation = WeightedRotation;
 
+	return Result;
+}
+
+PCGExTensor::FTensorSample UPCGExTensorSampler::Sample(const TArray<UPCGExTensorOperation*>& InTensors, const FTransform& InProbe, bool& OutSuccess) const
+{
+	TRACE_CPUPROFILER_EVENT_SCOPE(UPCGExTensorSampler::Sample);
+
+	const PCGExTensor::FTensorSample Result = RawSample(InTensors, InProbe);
+	OutSuccess = Result.Effectors > 0;
 	return Result;
 }
