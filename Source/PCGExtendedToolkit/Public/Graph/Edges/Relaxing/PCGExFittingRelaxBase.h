@@ -11,7 +11,7 @@ UENUM()
 enum class EPCGExRelaxEdgeFitting : uint8
 {
 	Ignore    = 0 UMETA(DisplayName = "Ignore", ToolTip="Ignore edges during fitting."),
-	Constant  = 1 UMETA(DisplayName = "Fixed", ToolTip="Aim for constant edge length while fitting"),
+	Fixed     = 1 UMETA(DisplayName = "Fixed", ToolTip="Aim for constant edge length while fitting"),
 	Existing  = 2 UMETA(DisplayName = "Existing", ToolTip="Attempts to preserve existing edge length"),
 	Attribute = 3 UMETA(DisplayName = "Attribute", ToolTip="Uses an attribute on the edges as target length"),
 };
@@ -50,7 +50,7 @@ public:
 	/** Scale factor applied to the edge length. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName=" └─ Scale", EditCondition="EdgeFitting==EPCGExRelaxEdgeFitting::Attribute || EdgeFitting==EPCGExRelaxEdgeFitting::Existing", EditConditionHides))
 	double Scale = 2;
-	
+
 	/** Stiffness of the edges. Lower values yield better placement (less overlap), but edge topology may be affected. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="EdgeFitting!=EPCGExRelaxEdgeFitting::Ignore", EditConditionHides))
 	double SpringConstant = 0.1;
@@ -81,7 +81,7 @@ public:
 		}
 		else
 		{
-			if (EdgeFitting == EPCGExRelaxEdgeFitting::Constant)
+			if (EdgeFitting == EPCGExRelaxEdgeFitting::Fixed)
 			{
 				EdgeLengths = MakeShared<TArray<double>>();
 				EdgeLengths->Init(DesiredEdgeLength, Cluster->Edges->Num());

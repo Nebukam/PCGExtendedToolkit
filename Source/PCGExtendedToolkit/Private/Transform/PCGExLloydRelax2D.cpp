@@ -1,7 +1,7 @@
 ﻿// Copyright 2024 Timothé Lapetite and contributors
 // Released under the MIT license https://opensource.org/license/MIT/
 
-#include "Misc/PCGExLloydRelax2D.h"
+#include "Transform/PCGExLloydRelax2D.h"
 
 
 #include "Geometry/PCGExGeoDelaunay.h"
