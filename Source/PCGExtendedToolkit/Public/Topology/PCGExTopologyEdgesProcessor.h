@@ -10,6 +10,7 @@
 #include "Graph/PCGExClusterMT.h"
 #include "Graph/PCGExEdgesProcessor.h"
 #include "Graph/Filters/PCGExClusterFilter.h"
+#include "Transform/PCGExTransform.h"
 
 #include "PCGExTopologyEdgesProcessor.generated.h"
 
@@ -56,6 +57,9 @@ public:
 	/** Specify a list of functions to be called on the target actor after dynamic mesh creation. Functions need to be parameter-less and with "CallInEditor" flag enabled. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
 	TArray<FName> PostProcessFunctionNames;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
+	FPCGExAttachmentRules AttachmentRules;
 
 private:
 	friend class FPCGExTopologyEdgesProcessorElement;
@@ -210,9 +214,7 @@ namespace PCGExTopologyEdges
 
 			Context->ManagedObjects->Remove(InternalMesh);
 
-			Context->AttachManagedComponent(
-				TargetActor, DynamicMeshComponent,
-				FAttachmentTransformRules(EAttachmentRule::KeepWorld, EAttachmentRule::KeepWorld, EAttachmentRule::KeepWorld, false));
+			Context->AttachManagedComponent(TargetActor, DynamicMeshComponent, Settings->AttachmentRules.GetRules());
 
 			Context->NotifyActors.Add(TargetActor);
 		}

@@ -10,6 +10,7 @@
 #include "PCGExPointsProcessor.h"
 #include "Elements/PCGCreateSpline.h"
 #include "Tangents/PCGExTangentsOperation.h"
+#include "Transform/PCGExTransform.h"
 
 #include "PCGExCreateSpline.generated.h"
 
@@ -75,6 +76,9 @@ public:
 	/** Specify a list of functions to be called on the target actor after spline mesh creation. Functions need to be parameter-less and with "CallInEditor" flag enabled. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
 	TArray<FName> PostProcessFunctionNames;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
+	FPCGExAttachmentRules AttachmentRules;
 
 	bool GetApplyTangents() const
 	{

@@ -217,7 +217,23 @@ namespace PCGExTensor
 		double Weight = 0;   // total weights applied to this sample
 
 		FTensorSample() = default;
+
+		FTensorSample(const FVector& InDirectionAndSize, const FQuat& InRotation, const int32 InEffectors, const double InWeight)
+			: DirectionAndSize(InDirectionAndSize), Rotation(InRotation), Effectors(InEffectors), Weight(InWeight)
+		{
+		};
+
 		~FTensorSample() = default;
+
+		FTensorSample operator+(const FTensorSample& Other) const;
+		FTensorSample& operator+=(const FTensorSample& Other);
+		FTensorSample operator*(const double Factor) const;
+		FTensorSample& operator*=(const double Factor);
+		FTensorSample operator/(const double Factor) const;
+		FTensorSample& operator/=(const double Factor);
+
+		void Transform(FTransform& InTransform, double InWeight = 1) const;
+		FTransform GetTransformed(const FTransform& InTransform, double InWeight = 1) const;
 	};
 
 	struct FEffectorMetrics

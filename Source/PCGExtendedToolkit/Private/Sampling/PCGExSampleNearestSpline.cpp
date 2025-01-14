@@ -227,6 +227,12 @@ namespace PCGExSampleNearestSpline
 		return true;
 	}
 
+	void FProcessor::PrepareLoopScopesForPoints(const TArray<PCGExMT::FScope>& Loops)
+	{
+		TPointsProcessor<FPCGExSampleNearestSplineContext, UPCGExSampleNearestSplineSettings>::PrepareLoopScopesForPoints(Loops);
+		MaxDistanceValue = MakeShared<PCGExMT::TScopedValue<double>>(Loops, 0);
+	}
+
 	void FProcessor::PrepareSingleLoopScopeForPoints(const PCGExMT::FScope& Scope)
 	{
 		PointDataFacade->Fetch(Scope);
@@ -500,6 +506,8 @@ namespace PCGExSampleNearestSpline
 		PCGEX_OUTPUT_VALUE(NumInside, Index, NumInside)
 		PCGEX_OUTPUT_VALUE(NumSamples, Index, NumSampled)
 		PCGEX_OUTPUT_VALUE(ClosedLoop, Index, bClosed)
+
+		MaxDistanceValue->Set(Scope, FMath::Max(MaxDistanceValue->Get(Scope), WeightedDistance));
 
 		FPlatformAtomics::InterlockedExchange(&bAnySuccess, 1);
 	}
