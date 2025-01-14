@@ -47,6 +47,10 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName="Desired Edge Length", EditCondition="EdgeFitting==EPCGExRelaxEdgeFitting::Attribute", EditConditionHides))
 	FPCGAttributePropertyInputSelector DesiredEdgeLengthAttribute;
 
+	/** Scale factor applied to the edge length. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName=" └─ Scale", EditCondition="EdgeFitting==EPCGExRelaxEdgeFitting::Attribute || EdgeFitting==EPCGExRelaxEdgeFitting::Existing", EditConditionHides))
+	double Scale = 2;
+	
 	/** Stiffness of the edges. Lower values yield better placement (less overlap), but edge topology may be affected. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="EdgeFitting!=EPCGExRelaxEdgeFitting::Ignore", EditConditionHides))
 	double SpringConstant = 0.1;
@@ -81,6 +85,7 @@ public:
 			{
 				EdgeLengths = MakeShared<TArray<double>>();
 				EdgeLengths->Init(DesiredEdgeLength, Cluster->Edges->Num());
+				Scale = 1;
 			}
 			else if (EdgeFitting == EPCGExRelaxEdgeFitting::Existing)
 			{
@@ -129,7 +134,7 @@ public:
 		if (CurrentLength <= KINDA_SMALL_NUMBER) { return; }
 
 		const FVector Direction = Delta / CurrentLength;
-		const double Displacement = CurrentLength - *(EdgeLengths->GetData() + Edge.Index);
+		const double Displacement = CurrentLength - (*(EdgeLengths->GetData() + Edge.Index) * Scale);
 
 		ApplyForces(Start, End, (SpringConstant * Displacement * Direction) * Precision);
 	}

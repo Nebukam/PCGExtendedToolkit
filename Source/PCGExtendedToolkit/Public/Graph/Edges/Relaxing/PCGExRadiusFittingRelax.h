@@ -57,7 +57,7 @@ public:
 			const double Distance = Delta.Size();
 			const double Overlap = (CurrentRadius + RadiusBuffer->Read(OtherNode->PointIndex)) - Distance;
 
-			if (Overlap > 0 || Distance <= KINDA_SMALL_NUMBER) { continue; }
+			if (Overlap <= 0 || Distance <= KINDA_SMALL_NUMBER) { continue; }
 
 			ApplyForces(
 				OtherNode->Index, Node.Index,
