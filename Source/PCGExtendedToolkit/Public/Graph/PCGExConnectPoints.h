@@ -92,21 +92,23 @@ namespace PCGExConnectPoints
 
 		TSharedPtr<PCGExGraph::FGraphBuilder> GraphBuilder;
 
-		TArray<UPCGExProbeOperation*> ProbeOperations;
-		TArray<UPCGExProbeOperation*> DirectProbeOperations;
+		TArray<UPCGExProbeOperation*> SearchProbes;
+		TArray<UPCGExProbeOperation*> DirectProbes;
 		TArray<UPCGExProbeOperation*> ChainProbeOperations;
 		TArray<UPCGExProbeOperation*> SharedProbeOperations;
 		bool bUseVariableRadius = false;
 		int32 NumChainedOps = 0;
 		double SharedSearchRadius = 0;
-
+		
 		TArray<int8> CanGenerate;
+		TArray<int8> AcceptConnections;
 		TUniquePtr<PCGEx::FIndexedItemOctree> Octree;
 
 		const TArray<FPCGPoint>* InPoints = nullptr;
 		TArray<FTransform> CachedTransforms;
 
-		TArray<TSharedPtr<TSet<uint64>>> DistributedEdgesSet;
+		TSharedPtr<PCGExMT::TScopedSet<uint64>> DistributedEdgesSet;
+		
 		FPCGExGeo2DProjectionDetails ProjectionDetails;
 
 		bool bPreventCoincidence = false;

@@ -43,9 +43,6 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExProbeConfigClosest : public FPCGExProbeC
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bPreventCoincidence", ClampMin=0.00001))
 	double CoincidencePreventionTolerance = 0.001;
 
-	/** Unbounded means this probe will sample ALL points to find a match. This is uber expensive. */
-	//UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
-	bool bUnbounded = false;
 };
 
 /**
@@ -57,10 +54,9 @@ class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExProbeClosest : public UPCGExProbeOperatio
 	GENERATED_BODY()
 
 public:
-	virtual bool RequiresDirectProcessing() override;
 	virtual bool PrepareForPoints(const TSharedPtr<PCGExData::FPointIO>& InPointIO) override;
 	virtual void ProcessCandidates(const int32 Index, const FPCGPoint& Point, TArray<PCGExProbing::FCandidate>& Candidates, TSet<FInt32Vector>* Coincidence, const FVector& ST, TSet<uint64>* OutEdges) override;
-	virtual void ProcessNode(const int32 Index, const FPCGPoint& Point, TSet<FInt32Vector>* Coincidence, const FVector& ST, TSet<uint64>* OutEdges) override;
+	virtual void ProcessNode(const int32 Index, const FPCGPoint& Point, TSet<FInt32Vector>* Coincidence, const FVector& ST, TSet<uint64>* OutEdges, const TArray<int8>& AcceptConnections) override;
 
 	FPCGExProbeConfigClosest Config;
 

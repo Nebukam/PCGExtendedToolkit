@@ -56,7 +56,7 @@ class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExProbeOperation : public UPCGExOperation
 
 public:
 	virtual bool PrepareForPoints(const TSharedPtr<PCGExData::FPointIO>& InPointIO);
-	virtual bool RequiresDirectProcessing();
+	virtual bool RequiresOctree();
 	virtual bool RequiresChainProcessing();
 	virtual void ProcessCandidates(const int32 Index, const FPCGPoint& Point, TArray<PCGExProbing::FCandidate>& Candidates, TSet<FInt32Vector>* Coincidence, const FVector& ST, TSet<uint64>* OutEdges);
 
@@ -64,7 +64,7 @@ public:
 	virtual void ProcessCandidateChained(const int32 Index, const FPCGPoint& Point, const int32 CandidateIndex, PCGExProbing::FCandidate& Candidate, PCGExProbing::FBestCandidate& InBestCandidate);
 	virtual void ProcessBestCandidate(const int32 Index, const FPCGPoint& Point, PCGExProbing::FBestCandidate& InBestCandidate, TArray<PCGExProbing::FCandidate>& Candidates, TSet<FInt32Vector>* Coincidence, const FVector& ST, TSet<uint64>* OutEdges);
 
-	virtual void ProcessNode(const int32 Index, const FPCGPoint& Point, TSet<FInt32Vector>* Coincidence, const FVector& ST, TSet<uint64>* OutEdges);
+	virtual void ProcessNode(const int32 Index, const FPCGPoint& Point, TSet<FInt32Vector>* Coincidence, const FVector& ST, TSet<uint64>* OutEdges, const TArray<int8>& AcceptConnections);
 
 	virtual void Cleanup() override
 	{
