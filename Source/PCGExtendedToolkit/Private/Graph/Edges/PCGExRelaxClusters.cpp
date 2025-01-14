@@ -148,10 +148,10 @@ namespace PCGExRelaxClusters
 		switch (StepSource)
 		{
 		case EPCGExClusterComponentSource::Vtx:
-			IterationGroup->StartSubLoops(NumNodes, 64);
+			IterationGroup->StartSubLoops(NumNodes, 32);
 			break;
 		case EPCGExClusterComponentSource::Edge:
-			IterationGroup->StartSubLoops(NumEdges, 64);
+			IterationGroup->StartSubLoops(NumEdges, 32);
 			break;
 		}
 	}

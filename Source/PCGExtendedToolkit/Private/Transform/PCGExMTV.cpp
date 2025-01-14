@@ -65,7 +65,7 @@ namespace PCGExMTV
 		InfluenceDetails = Settings->InfluenceDetails;
 		if (!InfluenceDetails.Init(ExecutionContext, PointDataFacade)) { return false; }
 
-		StartParallelLoopForPoints();
+		StartParallelLoopForPoints(PCGExData::ESource::Out, 32);
 
 		return true;
 	}
@@ -141,7 +141,7 @@ namespace PCGExMTV
 		Iterations--;
 		if (Iterations <= 0) { return; }
 
-		StartParallelLoopForPoints();
+		StartParallelLoopForPoints(PCGExData::ESource::Out, 32);
 	}
 
 	void FProcessor::CompleteWork()
