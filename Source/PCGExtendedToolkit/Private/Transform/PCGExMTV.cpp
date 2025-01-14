@@ -75,6 +75,7 @@ namespace PCGExMTV
 		const FBox CurrentBox = Point.GetLocalBounds().TransformBy(Point.Transform);
 		const TArray<FPCGPoint>& InPoints = PointDataFacade->GetMutablePoints();
 
+		FVector Ext = CurrentBox.GetExtent();
 		bool bHasOverlap = false;
 
 		for (int32 OtherIndex = Index + 1; OtherIndex < NumPoints; OtherIndex++)
@@ -86,26 +87,16 @@ namespace PCGExMTV
 			if (CurrentBox.Intersect(OtherBox))
 			{
 				FVector Delta = OtherPoint.Transform.GetLocation() - Point.Transform.GetLocation();
-				const FVector Overlap = CurrentBox.GetExtent() + OtherBox.GetExtent() - PCGExMath::Abs(Delta);
+				const FVector Overlap = Ext + OtherBox.GetExtent() - PCGExMath::Abs(Delta);
+				FVector MTV = FVector::ZeroVector;
 
 				if (Overlap.X > 0 && Overlap.Y > 0 && Overlap.Z > 0)
 				{
-					double MinOverlap = Overlap.X;
-					FVector MTV = FVector(Delta.X > 0 ? Settings->StepScale : -Settings->StepScale, 0, 0);
+					MTV.X = FMath::Sign(Delta.X);
+					MTV.Y = FMath::Sign(Delta.Y);
+					MTV.Z = FMath::Sign(Delta.Z);
 
-					if (Overlap.Y < MinOverlap)
-					{
-						MinOverlap = Overlap.Y;
-						MTV = FVector(0, Delta.Y > 0 ? Settings->StepScale : -Settings->StepScale, 0);
-					}
-
-					if (Overlap.Z < MinOverlap)
-					{
-						MinOverlap = Overlap.Z;
-						MTV = FVector(0, 0, Delta.Z > 0 ? Settings->StepScale : -Settings->StepScale);
-					}
-
-					const FVector Adjustment = (MTV * MinOverlap * 0.5) / 0.01;
+					const FVector Adjustment = (MTV * Overlap * 0.5) / 0.01;
 
 					FPlatformAtomics::InterlockedAdd(&Forces[Index].X, -Adjustment.X);
 					FPlatformAtomics::InterlockedAdd(&Forces[Index].Y, -Adjustment.Y);
