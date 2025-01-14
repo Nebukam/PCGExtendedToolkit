@@ -38,6 +38,10 @@ public:
 	/** Max number of iterations. Will exit early if no overlap is found. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, ClampMin=1))
 	int32 MaxIterations = 50;
+	
+	/** Scale applied to the MVT. Higher value means faster, more approximative solve. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, ClampMin=0.1))
+	double StepScale = 1;
 
 	/** Influence Settings (not implemented yet)*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))

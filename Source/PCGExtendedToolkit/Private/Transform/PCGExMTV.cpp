@@ -91,18 +91,18 @@ namespace PCGExMTV
 				if (Overlap.X > 0 && Overlap.Y > 0 && Overlap.Z > 0)
 				{
 					double MinOverlap = Overlap.X;
-					FVector MTV = FVector(Delta.X > 0 ? 1 : -1, 0, 0);
+					FVector MTV = FVector(Delta.X > 0 ? Settings->StepScale : -Settings->StepScale, 0, 0);
 
 					if (Overlap.Y < MinOverlap)
 					{
 						MinOverlap = Overlap.Y;
-						MTV = FVector(0, Delta.Y > 0 ? 1 : -1, 0);
+						MTV = FVector(0, Delta.Y > 0 ? Settings->StepScale : -Settings->StepScale, 0);
 					}
 
 					if (Overlap.Z < MinOverlap)
 					{
 						MinOverlap = Overlap.Z;
-						MTV = FVector(0, 0, Delta.Z > 0 ? 1 : -1);
+						MTV = FVector(0, 0, Delta.Z > 0 ? Settings->StepScale : -Settings->StepScale);
 					}
 
 					const FVector Adjustment = (MTV * MinOverlap * 0.5) / 0.01;
