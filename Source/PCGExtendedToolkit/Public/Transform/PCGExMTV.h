@@ -9,22 +9,21 @@
 
 #include "PCGExPointsProcessor.h"
 
-
-#include "PCGExLloydRelax.generated.h"
+#include "PCGExMTV.generated.h"
 
 /**
  * 
  */
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExLloydRelaxSettings : public UPCGExPointsProcessorSettings
+class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExMTVSettings : public UPCGExPointsProcessorSettings
 {
 	GENERATED_BODY()
 
 public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS(LloydRelax, "Lloyd Relax 3D", "Applies Lloyd relaxation to the input points.");
-	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->NodeColorMisc; }
+	PCGEX_NODE_INFOS(MTV, "MTV", "Applies minimum translation vector iteratively.");
+	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->NodeColorTransform; }
 #endif
 
 protected:
@@ -36,21 +35,21 @@ public:
 	virtual PCGExData::EIOInit GetMainOutputInitMode() const override;
 	//~End UPCGExPointsProcessorSettings
 
-	/** */
+	/** Max number of iterations. Will exit early if no overlap is found. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, ClampMin=1))
-	int32 Iterations = 5;
+	int32 MaxIterations = 50;
 
-	/** Influence Settings*/
+	/** Influence Settings (not implemented yet)*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	FPCGExInfluenceDetails InfluenceDetails;
 };
 
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExLloydRelaxContext final : FPCGExPointsProcessorContext
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExMTVContext final : FPCGExPointsProcessorContext
 {
-	friend class FPCGExLloydRelaxElement;
+	friend class FPCGExMTVElement;
 };
 
-class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExLloydRelaxElement final : public FPCGExPointsProcessorElement
+class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExMTVElement final : public FPCGExPointsProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(
@@ -63,14 +62,18 @@ protected:
 	virtual bool ExecuteInternal(FPCGContext* Context) const override;
 };
 
-namespace PCGExLloydRelax
+namespace PCGExMTV
 {
-	class FProcessor final : public PCGExPointsMT::TPointsProcessor<FPCGExLloydRelaxContext, UPCGExLloydRelaxSettings>
+	class FProcessor final : public PCGExPointsMT::TPointsProcessor<FPCGExMTVContext, UPCGExMTVSettings>
 	{
-		friend class FLloydRelaxTask;
-
 		FPCGExInfluenceDetails InfluenceDetails;
-		TArray<FVector> ActivePositions;
+		TArray<FIntVector3> Forces;
+
+		FPCGExGeo2DProjectionDetails ProjectionDetails;
+
+		int32 NumPoints = 0;
+		int32 Iterations = 0;
+		int8 bFoundOverlap = 0;
 
 	public:
 		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade):
@@ -80,27 +83,7 @@ namespace PCGExLloydRelax
 
 		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager> InAsyncManager) override;
 		virtual void ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const PCGExMT::FScope& Scope) override;
+		virtual void OnPointsProcessingComplete() override;
 		virtual void CompleteWork() override;
-	};
-
-	class /*PCGEXTENDEDTOOLKIT_API*/ FLloydRelaxTask final : public PCGExMT::FPCGExIndexedTask
-	{
-	public:
-		FLloydRelaxTask(const int32 InTaskIndex,
-		                const TSharedPtr<FProcessor>& InProcessor,
-		                const FPCGExInfluenceDetails* InInfluenceSettings,
-		                const int32 InNumIterations) :
-			FPCGExIndexedTask(InTaskIndex),
-			Processor(InProcessor),
-			InfluenceSettings(InInfluenceSettings),
-			NumIterations(InNumIterations)
-		{
-		}
-
-		TSharedPtr<FProcessor> Processor;
-		const FPCGExInfluenceDetails* InfluenceSettings = nullptr;
-		int32 NumIterations = 0;
-
-		virtual void ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager) override;
 	};
 }

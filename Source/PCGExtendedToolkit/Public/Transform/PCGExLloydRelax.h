@@ -10,22 +10,21 @@
 #include "PCGExPointsProcessor.h"
 
 
-#include "Geometry/PCGExGeo.h"
-#include "PCGExLloydRelax2D.generated.h"
+#include "PCGExLloydRelax.generated.h"
 
 /**
  * 
  */
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExLloydRelax2DSettings : public UPCGExPointsProcessorSettings
+class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExLloydRelaxSettings : public UPCGExPointsProcessorSettings
 {
 	GENERATED_BODY()
 
 public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS(LloydRelax2D, "Lloyd Relax 2D", "Applies Lloyd relaxation to the input points.");
-	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->NodeColorMisc; }
+	PCGEX_NODE_INFOS(LloydRelax, "Lloyd Relax 3D", "Applies Lloyd relaxation to the input points.");
+	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->NodeColorTransform; }
 #endif
 
 protected:
@@ -44,18 +43,14 @@ public:
 	/** Influence Settings*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	FPCGExInfluenceDetails InfluenceDetails;
-
-	/** Projection settings. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
-	FPCGExGeo2DProjectionDetails ProjectionDetails;
 };
 
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExLloydRelax2DContext final : FPCGExPointsProcessorContext
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExLloydRelaxContext final : FPCGExPointsProcessorContext
 {
-	friend class FPCGExLloydRelax2DElement;
+	friend class FPCGExLloydRelaxElement;
 };
 
-class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExLloydRelax2DElement final : public FPCGExPointsProcessorElement
+class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExLloydRelaxElement final : public FPCGExPointsProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(
@@ -68,16 +63,14 @@ protected:
 	virtual bool ExecuteInternal(FPCGContext* Context) const override;
 };
 
-namespace PCGExLloydRelax2D
+namespace PCGExLloydRelax
 {
-	class FProcessor final : public PCGExPointsMT::TPointsProcessor<FPCGExLloydRelax2DContext, UPCGExLloydRelax2DSettings>
+	class FProcessor final : public PCGExPointsMT::TPointsProcessor<FPCGExLloydRelaxContext, UPCGExLloydRelaxSettings>
 	{
 		friend class FLloydRelaxTask;
 
 		FPCGExInfluenceDetails InfluenceDetails;
 		TArray<FVector> ActivePositions;
-
-		FPCGExGeo2DProjectionDetails ProjectionDetails;
 
 	public:
 		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade):
