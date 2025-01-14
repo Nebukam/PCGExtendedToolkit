@@ -106,8 +106,8 @@ namespace PCGExWriteVtxProperties
 
 	//////// BATCH
 
-	FBatch::FBatch(FPCGExContext* InContext, const TSharedRef<PCGExData::FPointIO>& InVtx, TArrayView<TSharedRef<PCGExData::FPointIO>> InEdges):
-		TBatch(InContext, InVtx, InEdges)
+	FBatch::FBatch(FPCGExContext* InContext, const TSharedRef<PCGExData::FPointIO>& InVtx, TArrayView<TSharedRef<PCGExData::FPointIO>> InEdges)
+		: TBatch(InContext, InVtx, InEdges)
 	{
 	}
 

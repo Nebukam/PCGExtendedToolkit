@@ -7,6 +7,36 @@
 #include "PCGExTransform.generated.h"
 
 USTRUCT(BlueprintType)
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExAttachmentRules
+{
+	GENERATED_BODY()
+
+	FPCGExAttachmentRules() = default;
+	~FPCGExAttachmentRules() = default;
+
+	/** The rule to apply to location when attaching */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
+	EAttachmentRule LocationRule = EAttachmentRule::KeepWorld;
+
+	/** The rule to apply to rotation when attaching */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
+	EAttachmentRule RotationRule = EAttachmentRule::KeepWorld;
+
+	/** The rule to apply to scale when attaching */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
+	EAttachmentRule ScaleRule = EAttachmentRule::KeepWorld;
+
+	/** Whether to weld simulated bodies together when attaching */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
+	bool bWeldSimulatedBodies = false;
+
+	FAttachmentTransformRules GetRules() const
+	{
+		return FAttachmentTransformRules(LocationRule, RotationRule, ScaleRule, bWeldSimulatedBodies);
+	}
+};
+
+USTRUCT(BlueprintType)
 struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExUVW
 {
 	GENERATED_BODY()

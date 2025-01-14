@@ -32,6 +32,9 @@ namespace PCGExTensor
 		SamplerInstance->BindContext(InContext);
 		SamplerInstance->PrimaryDataFacade = InDataFacade;
 
+		// Fwd settings
+		SamplerInstance->Radius = Config.SamplerSettings.Radius;
+
 		return SamplerInstance->PrepareForData(InContext);
 	}
 
@@ -64,17 +67,6 @@ namespace PCGExTensor
 		{
 			Result.DirectionAndSize *= -1;
 			Result.Rotation = FQuat(-Result.Rotation.X, -Result.Rotation.Y, -Result.Rotation.Y, Result.Rotation.W);
-		}
-
-		if (Config.bBidirectional)
-		{
-			if (FVector::DotProduct(
-				PCGExMath::GetDirection(InProbe.GetRotation(), Config.BidirectionalAxisReference),
-				Result.DirectionAndSize.GetSafeNormal()) < 0)
-			{
-				Result.DirectionAndSize = Result.DirectionAndSize * -1;
-				Result.Rotation = FQuat(-Result.Rotation.X, -Result.Rotation.Y, -Result.Rotation.Y, Result.Rotation.W);
-			}
 		}
 
 		Result.DirectionAndSize *= Config.UniformScale;

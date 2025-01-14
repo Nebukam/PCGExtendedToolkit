@@ -135,6 +135,55 @@ namespace PCGExMT
 	class FTask;
 	class FTaskGroup;
 
+
+	template <typename T>
+	class /*PCGEXTENDEDTOOLKIT_API*/ TScopedBuffer : public TSharedFromThis<TScopedBuffer<T>>
+	{
+	public:
+		TArray<TSharedPtr<TArray<T>>> Values;
+
+		explicit TScopedBuffer(const TArray<FScope>& InScopes, const T InDefaultValue)
+		{
+			Values.SetNum(InScopes.Num());
+			for (int i = 0; i < InScopes.Num(); i++)
+			{
+				TSharedPtr<TArray<T>> ValuesScope = MakeShared<TArray<T>>();
+				ValuesScope->Init(InDefaultValue);
+				Values[i] = ValuesScope;
+			}
+		};
+		virtual ~TScopedBuffer() = default;
+
+		FORCEINLINE TSharedPtr<TArray<T>> Get(const FScope& InScope) { return Values[InScope.LoopIndex]; }
+	};
+
+	template <typename T>
+	class /*PCGEXTENDEDTOOLKIT_API*/ TScopedValue : public TSharedFromThis<TScopedValue<T>>
+	{
+	public:
+		TArray<T> Values;
+
+		using FFlattenFunc = std::function<T(const T&, const T&)>;
+
+		explicit TScopedValue(const TArray<FScope>& InScopes, const T InDefaultValue)
+		{
+			Values.Init(InDefaultValue, InScopes.Num());
+		};
+
+		virtual ~TScopedValue() = default;
+
+		FORCEINLINE T Get(const FScope& InScope) { return Values[InScope.LoopIndex]; }
+		FORCEINLINE T& GetMutable(const FScope& InScope) { return Values[InScope.LoopIndex]; }
+		FORCEINLINE T Set(const FScope& InScope, const T& InValue) { return Values[InScope.LoopIndex] = InValue; }
+
+		FORCEINLINE T Flatten(FFlattenFunc&& Func)
+		{
+			T Result = Values[0];
+			if (Values.Num() > 1) { for (int i = 1; i < Values.Num(); i++) { Result = Func(Values[i], Result); } }
+			return Result;
+		}
+	};
+
 	class /*PCGEXTENDEDTOOLKIT_API*/ FAsyncHandle : public TSharedFromThis<FAsyncHandle>
 	{
 	protected:

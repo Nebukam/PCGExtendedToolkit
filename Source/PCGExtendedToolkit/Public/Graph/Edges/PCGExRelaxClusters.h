@@ -9,7 +9,13 @@
 
 #include "Graph/PCGExEdgesProcessor.h"
 #include "Relaxing/PCGExForceDirectedRelax.h"
+#include "Sampling/PCGExSampling.h"
 #include "PCGExRelaxClusters.generated.h"
+
+#define PCGEX_FOREACH_FIELD_RELAX_CLUSTER(MACRO)\
+MACRO(DirectionAndSize, FVector, FVector::ZeroVector)\
+MACRO(Direction, FVector, FVector::ZeroVector)\
+MACRO(Amplitude, double, 0)
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Clusters")
 class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExRelaxClustersSettings : public UPCGExEdgesProcessorSettings
@@ -38,7 +44,7 @@ protected:
 public:
 	/** */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, ClampMin=1))
-	int32 Iterations = 100;
+	int32 Iterations = 10;
 
 	/** Influence Settings*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
@@ -48,6 +54,31 @@ public:
 	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = Settings, Instanced, meta=(PCG_Overridable, NoResetToDefault, ShowOnlyInnerProperties))
 	TObjectPtr<UPCGExRelaxClusterOperation> Relaxing;
 
+
+	/** Write the final direction and size of the relaxation. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(PCG_Overridable, InlineEditConditionToggle))
+	bool bWriteDirectionAndSize = false;
+
+	/** Name of the 'FVector' attribute to write direction and size to.*/
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(DisplayName="DirectionAndSize", PCG_Overridable, EditCondition="bWriteDirectionAndSize"))
+	FName DirectionAndSizeAttributeName = FName("DirectionAndSize");
+
+	/** Write the final direction of the relaxation. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(PCG_Overridable, InlineEditConditionToggle))
+	bool bWriteDirection = false;
+
+	/** Name of the 'FVector' attribute to write direction to.*/
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(DisplayName="Direction", PCG_Overridable, EditCondition="bWriteDirection"))
+	FName DirectionAttributeName = FName("Direction");
+
+	/** Write the final amplitude of the relaxation. (that's the size of the DirectionAndSize vector) */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(PCG_Overridable, InlineEditConditionToggle))
+	bool bWriteAmplitude = false;
+
+	/** Name of the 'double' attribute to write amplitude to.*/
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(DisplayName="Amplitude", PCG_Overridable, EditCondition="bWriteAmplitude"))
+	FName AmplitudeAttributeName = FName("Amplitude");
+
 private:
 	friend class FPCGExRelaxClustersElement;
 };
@@ -55,6 +86,8 @@ private:
 struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExRelaxClustersContext final : FPCGExEdgesProcessorContext
 {
 	friend class FPCGExRelaxClustersElement;
+
+	PCGEX_FOREACH_FIELD_RELAX_CLUSTER(PCGEX_OUTPUT_DECL_TOGGLE)
 
 	UPCGExRelaxClusterOperation* Relaxing = nullptr;
 };
@@ -79,15 +112,20 @@ namespace PCGExRelaxClusters
 	class FProcessor final : public PCGExClusterMT::TProcessor<FPCGExRelaxClustersContext, UPCGExRelaxClustersSettings>
 	{
 		int32 Iterations = 10;
+		int32 Steps = 10;
+		int32 CurrentStep = 0;
+		EPCGExClusterComponentSource StepSource = EPCGExClusterComponentSource::Vtx;
 
 		TSharedPtr<PCGExData::TBuffer<double>> InfluenceCache;
 
 		UPCGExRelaxClusterOperation* RelaxOperation = nullptr;
 
-		TSharedPtr<TArray<FVector>> PrimaryBuffer;
-		TSharedPtr<TArray<FVector>> SecondaryBuffer;
+		TSharedPtr<TArray<FTransform>> PrimaryBuffer;
+		TSharedPtr<TArray<FTransform>> SecondaryBuffer;
 
 		FPCGExInfluenceDetails InfluenceDetails;
+
+		TSharedPtr<PCGExMT::TScopedValue<double>> MaxDistanceValue;
 
 	public:
 		FProcessor(const TSharedRef<PCGExData::FFacade>& InVtxDataFacade, const TSharedRef<PCGExData::FFacade>& InEdgeDataFacade)
@@ -95,25 +133,29 @@ namespace PCGExRelaxClusters
 		{
 		}
 
+		PCGEX_FOREACH_FIELD_RELAX_CLUSTER(PCGEX_OUTPUT_DECL)
+
 		virtual ~FProcessor() override;
 
 		virtual TSharedPtr<PCGExCluster::FCluster> HandleCachedCluster(const TSharedRef<PCGExCluster::FCluster>& InClusterRef) override;
 		virtual bool Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager) override;
-		void StartRelaxIteration();
+		void StartNextStep();
+		void RelaxScope(const PCGExMT::FScope& Scope) const;
+		virtual void PrepareLoopScopesForNodes(const TArray<PCGExMT::FScope>& Loops) override;
 		virtual void ProcessSingleNode(const int32 Index, PCGExCluster::FNode& Node, const PCGExMT::FScope& Scope) override;
-		virtual void Write() override;
+		virtual void OnNodesProcessingComplete() override;
 	};
 
-	class FRelaxRangeTask final : public PCGExMT::FScopeIterationTask
+	class FBatch final : public PCGExClusterMT::TBatch<FProcessor>
 	{
-	public:
-		FRelaxRangeTask(const TSharedPtr<FProcessor>& InProcessor):
-			FScopeIterationTask(),
-			Processor(InProcessor)
-		{
-		}
+		PCGEX_FOREACH_FIELD_RELAX_CLUSTER(PCGEX_OUTPUT_DECL)
 
-		TSharedPtr<FProcessor> Processor;
-		virtual void ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager) override;
+	public:
+		FBatch(FPCGExContext* InContext, const TSharedRef<PCGExData::FPointIO>& InVtx, TArrayView<TSharedRef<PCGExData::FPointIO>> InEdges);
+		virtual ~FBatch() override;
+
+		virtual void RegisterBuffersDependencies(PCGExData::FFacadePreloader& FacadePreloader) override;
+		virtual bool PrepareSingle(const TSharedPtr<FProcessor>& ClusterProcessor) override;
+		virtual void Write() override;
 	};
 }
