@@ -447,13 +447,13 @@ namespace PCGEx
 		mutable FRWLock DuplicatedObjectLock;
 
 		FPCGContext* Context = nullptr;
-		TWeakPtr<FWorkPermit> Lifeline;
+		TWeakPtr<FWorkPermit> WorkPermit;
 		TSet<UObject*> ManagedObjects;
 
 		bool IsFlushing() const { return bIsFlushing.load(std::memory_order_acquire); }
 
 		explicit FManagedObjects(FPCGContext* InContext, const TSharedPtr<FWorkPermit>& InLifeline):
-			Context(InContext), Lifeline(InLifeline)
+			Context(InContext), WorkPermit(InLifeline)
 		{
 		}
 
@@ -469,8 +469,8 @@ namespace PCGEx
 		template <class T, typename... Args>
 		T* New(Args&&... InArgs)
 		{
-			check(Lifeline.IsValid())
-			check(!IsFlushing())
+			check(WorkPermit.IsValid())
+			if (IsFlushing()) { UE_LOG(LogTemp, Error, TEXT("Attempting to create a managed object while flushing!")) }
 
 			T* Object = nullptr;
 			if (!IsInGameThread())
@@ -493,7 +493,7 @@ namespace PCGEx
 		template <class T>
 		T* Duplicate(const UPCGData* InData)
 		{
-			check(Lifeline.IsValid())
+			check(WorkPermit.IsValid())
 			check(!IsFlushing())
 
 			T* Object = nullptr;

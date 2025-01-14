@@ -127,6 +127,10 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(DisplayName="Distance", PCG_Overridable, EditCondition="bWriteDistance"))
 	FName DistanceAttributeName = FName("NearestDistance");
 
+	/** Whether to output normalized distance or not*/
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(PCG_Overridable, DisplayName=" └─ Normalized", EditCondition="bWriteDistance", EditConditionHides, HideEditConditionToggle))
+	bool bOutputNormalizedDistance = false;
+
 	/** Write the inside/outside status of the point. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(PCG_Overridable, InlineEditConditionToggle))
 	bool bWriteIsInside = false;
@@ -220,6 +224,7 @@ namespace PCGExSampleNearestSurface
 		TSharedPtr<PCGExData::FDataForwardHandler> SurfacesForward;
 
 		TSharedPtr<PCGExData::TBuffer<double>> MaxDistanceGetter;
+		TSharedPtr<PCGExMT::TScopedValue<double>> MaxDistanceValue;
 
 		PCGEX_FOREACH_FIELD_NEARESTSURFACE(PCGEX_OUTPUT_DECL)
 
@@ -234,6 +239,7 @@ namespace PCGExSampleNearestSurface
 		virtual ~FProcessor() override;
 
 		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager> InAsyncManager) override;
+		virtual void PrepareLoopScopesForPoints(const TArray<PCGExMT::FScope>& Loops) override;
 		virtual void PrepareSingleLoopScopeForPoints(const PCGExMT::FScope& Scope) override;
 		virtual void ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const PCGExMT::FScope& Scope) override;
 		virtual void CompleteWork() override;

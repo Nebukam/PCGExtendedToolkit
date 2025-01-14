@@ -27,7 +27,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExTensorSamplerDetails
 
 	/** Sampler type */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Settings)
-	TSubclassOf<UPCGExTensorSampler> Sampler;
+	TSubclassOf<UPCGExTensorSampler> Sampler = UPCGExTensorSampler::StaticClass();
 
 	/** Sampling radius. Whether it has any effect depends on the selected sampler. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_NotOverridable))
@@ -51,14 +51,6 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExTensorHandlerDetails
 	/** If enabled, sampling direction will be inverted. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_NotOverridable))
 	bool bInvert = false;
-
-	/** If enabled, perform a dot product with the direction of the input transform and the resuting sample. If that dot product is < 0, the sampled direction and size is reversed. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_NotOverridable))
-	bool bBidirectional = false;
-
-	/** Local axis from input transform used to test if the sampled direction should be inverted */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_NotOverridable, DisplayName = " └─ Reference Axis", EditCondition="bBidirectional", EditConditionHides))
-	EPCGExAxis BidirectionalAxisReference = EPCGExAxis::Forward;
 
 	/** If enabled, normalize sampling. This effectively negates the influence of effectors potency. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_NotOverridable))

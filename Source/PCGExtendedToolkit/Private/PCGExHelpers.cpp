@@ -86,7 +86,7 @@ namespace PCGEx
 	bool FManagedObjects::IsAvailable() const
 	{
 		FReadScopeLock WriteScopeLock(ManagedObjectLock);
-		return Lifeline.IsValid() && !IsFlushing();
+		return WorkPermit.IsValid() && !IsFlushing();
 	}
 
 	void FManagedObjects::Flush()

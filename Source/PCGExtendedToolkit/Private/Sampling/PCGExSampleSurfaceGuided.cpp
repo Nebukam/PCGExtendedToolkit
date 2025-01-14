@@ -163,6 +163,12 @@ namespace PCGExSampleSurfaceGuided
 		return true;
 	}
 
+	void FProcessor::PrepareLoopScopesForPoints(const TArray<PCGExMT::FScope>& Loops)
+	{
+		TPointsProcessor<FPCGExSampleSurfaceGuidedContext, UPCGExSampleSurfaceGuidedSettings>::PrepareLoopScopesForPoints(Loops);
+		MaxDistanceValue = MakeShared<PCGExMT::TScopedValue<double>>(Loops, 0);
+	}
+
 	void FProcessor::PrepareSingleLoopScopeForPoints(const PCGExMT::FScope& Scope)
 	{
 		PointDataFacade->Fetch(Scope);
@@ -216,12 +222,15 @@ namespace PCGExSampleSurfaceGuided
 		{
 			bSuccess = true;
 
+			const double HitDistance = FVector::Distance(HitResult.ImpactPoint, Origin);
 			PCGEX_OUTPUT_VALUE(Location, Index, HitResult.ImpactPoint)
 			PCGEX_OUTPUT_VALUE(LookAt, Index, Direction)
 			PCGEX_OUTPUT_VALUE(Normal, Index, HitResult.ImpactNormal)
-			PCGEX_OUTPUT_VALUE(Distance, Index, FVector::Distance(HitResult.ImpactPoint, Origin))
+			PCGEX_OUTPUT_VALUE(Distance, Index, HitDistance)
 			PCGEX_OUTPUT_VALUE(IsInside, Index, FVector::DotProduct(Direction, HitResult.Normal) > 0)
 			PCGEX_OUTPUT_VALUE(Success, Index, bSuccess)
+
+			MaxDistanceValue->Set(Scope, FMath::Max(MaxDistanceValue->Get(Scope), HitDistance));
 
 			if (Settings->bWriteUVCoords)
 			{

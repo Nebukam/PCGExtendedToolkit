@@ -216,10 +216,7 @@ namespace PCGExCreateSpline
 
 			SplineData->ApplyTo(SplineComponent);
 
-			Context->AttachManagedComponent(
-				SplineActor, SplineComponent,
-				FAttachmentTransformRules(EAttachmentRule::KeepRelative, EAttachmentRule::KeepWorld, EAttachmentRule::KeepWorld, false));
-
+			Context->AttachManagedComponent(SplineActor, SplineComponent, Settings->AttachmentRules.GetRules());
 			Context->NotifyActors.Add(SplineActor);
 		}
 	}
