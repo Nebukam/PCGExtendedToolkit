@@ -14,7 +14,7 @@
 /**
  * 
  */
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc")
+UCLASS(Hidden, MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc")
 class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExMTVSettings : public UPCGExPointsProcessorSettings
 {
 	GENERATED_BODY()
@@ -39,10 +39,6 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, ClampMin=1))
 	int32 MaxIterations = 50;
 	
-	/** Scale applied to the MVT. Higher value means faster, more approximative solve. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, ClampMin=0.1))
-	double StepScale = 1;
-
 	/** Influence Settings (not implemented yet)*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	FPCGExInfluenceDetails InfluenceDetails;
