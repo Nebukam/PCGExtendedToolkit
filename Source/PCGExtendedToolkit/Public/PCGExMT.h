@@ -137,28 +137,55 @@ namespace PCGExMT
 
 
 	template <typename T>
-	class /*PCGEXTENDEDTOOLKIT_API*/ TScopedBuffer : public TSharedFromThis<TScopedBuffer<T>>
+	class /*PCGEXTENDEDTOOLKIT_API*/ TScopedArray final : public TSharedFromThis<TScopedArray<T>>
 	{
 	public:
 		TArray<TSharedPtr<TArray<T>>> Values;
 
-		explicit TScopedBuffer(const TArray<FScope>& InScopes, const T InDefaultValue)
+		explicit TScopedArray(const TArray<FScope>& InScopes, const T InDefaultValue)
 		{
-			Values.SetNum(InScopes.Num());
-			for (int i = 0; i < InScopes.Num(); i++)
-			{
-				TSharedPtr<TArray<T>> ValuesScope = MakeShared<TArray<T>>();
-				ValuesScope->Init(InDefaultValue);
-				Values[i] = ValuesScope;
-			}
+			Values.Reserve(InScopes.Num());
+			for (const FScope& Scope : InScopes) { Values[Values.Add(MakeShared<TArray<T>>())]->Init(InDefaultValue, Scope.Count); }
 		};
-		virtual ~TScopedBuffer() = default;
+
+		explicit TScopedArray(const TArray<FScope>& InScopes)
+		{
+			Values.Reserve(InScopes.Num());
+			for (int i = 0; i < InScopes.Num(); i++) { Values.Add(MakeShared<TArray<T>>()); }
+		};
+
+		virtual ~TScopedArray() = default;
 
 		FORCEINLINE TSharedPtr<TArray<T>> Get(const FScope& InScope) { return Values[InScope.LoopIndex]; }
+		FORCEINLINE TArray<T>& Get_Ref(const FScope& InScope) { return *Values[InScope.LoopIndex].Get(); }
+
+		using FForEachFunc = std::function<void (TArray<T>&)>;
+		FORCEINLINE void ForEach(FForEachFunc&& Func) { for (int i = 0; i < Values.Num(); i++) { Func(*Values[i].Get()); } }
 	};
 
 	template <typename T>
-	class /*PCGEXTENDEDTOOLKIT_API*/ TScopedValue : public TSharedFromThis<TScopedValue<T>>
+	class /*PCGEXTENDEDTOOLKIT_API*/ TScopedSet final : public TSharedFromThis<TScopedSet<T>>
+	{
+	public:
+		TArray<TSharedPtr<TSet<T>>> Sets;
+
+		explicit TScopedSet(const TArray<FScope>& InScopes, const T InReserve)
+		{
+			Sets.Reserve(InScopes.Num());
+			for (int i = 0; i < InScopes.Num(); i++) { Sets.Add_GetRef(MakeShared<TSet<T>>())->Reserve(InReserve); }
+		};
+		
+		virtual ~TScopedSet() = default;
+
+		FORCEINLINE TSharedPtr<TSet<T>> Get(const FScope& InScope) { return Sets[InScope.LoopIndex]; }
+		FORCEINLINE TSet<T>& Get_Ref(const FScope& InScope) { return *Sets[InScope.LoopIndex].Get(); }
+
+		using FForEachFunc = std::function<void (TSet<T>&)>;
+		FORCEINLINE void ForEach(FForEachFunc&& Func) { for (int i =0; i < Sets.Num(); i++) { Func(*Sets[i].Get()); } }
+	};
+
+	template <typename T>
+	class /*PCGEXTENDEDTOOLKIT_API*/ TScopedValue final : public TSharedFromThis<TScopedValue<T>>
 	{
 	public:
 		TArray<T> Values;

@@ -59,11 +59,11 @@ class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExProbeIndex : public UPCGExProbeOperation
 	GENERATED_BODY()
 
 public:
-	virtual bool RequiresDirectProcessing() override;
+	virtual bool RequiresOctree() override;
 	virtual bool PrepareForPoints(const TSharedPtr<PCGExData::FPointIO>& InPointIO) override;
-	FORCEINLINE virtual void ProcessNode(const int32 Index, const FPCGPoint& Point, TSet<FInt32Vector>* Coincidence, const FVector& ST, TSet<uint64>* OutEdges) override
+	FORCEINLINE virtual void ProcessNode(const int32 Index, const FPCGPoint& Point, TSet<FInt32Vector>* Coincidence, const FVector& ST, TSet<uint64>* OutEdges, const TArray<int8>& AcceptConnections) override
 	{
-		TryCreateEdge(Index, OutEdges);
+		TryCreateEdge(Index, OutEdges, AcceptConnections);
 	}
 
 	virtual void Cleanup() override
@@ -75,7 +75,7 @@ public:
 	FPCGExProbeConfigIndex Config;
 	TSharedPtr<PCGExData::TBuffer<int32>> TargetCache;
 
-	using TryCreateEdgeCallback = std::function<void(const int32, TSet<uint64>*)>;
+	using TryCreateEdgeCallback = std::function<void(const int32, TSet<uint64>*, const TArray<int8>&)>;
 	TryCreateEdgeCallback TryCreateEdge;
 
 protected:
@@ -113,7 +113,6 @@ public:
 	/** Filter Config.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ShowOnlyInnerProperties))
 	FPCGExProbeConfigIndex Config;
-
 
 #if WITH_EDITOR
 	virtual FString GetDisplayName() const override;

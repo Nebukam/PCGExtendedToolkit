@@ -8,7 +8,6 @@
 #include "PCGExDetailsData.h"
 #include "Data/PCGExAttributeHelpers.h"
 #include "Data/PCGExData.h"
-#include "Engine/AssetManager.h"
 #include "Engine/DataAsset.h"
 #include "PCGExFitting.h"
 
@@ -271,7 +270,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExAssetStagingData
 	FSoftObjectPath Path;
 
 	UPROPERTY(VisibleAnywhere, Category = Baked)
-	FBox Bounds = FBox(ForceInitToZero);
+	FBox Bounds = FBox(ForceInit);
 
 	template <typename T>
 	T* LoadSync() const
@@ -451,17 +450,59 @@ namespace PCGExAssetCollection
 
 #pragma region Staging bounds update
 
-	static void UpdateStagingBounds(FPCGExAssetStagingData& InStaging, const AActor* InActor)
+
+	static void GetBoundingBoxBySpawning(const TSoftClassPtr<AActor>& InActorClass, FVector& Origin, FVector& BoxExtent, const bool bOnlyCollidingComponents = true, const bool bIncludeFromChildActors = true)
 	{
-		if (!InActor)
+#if WITH_EDITOR
+		UWorld* World = GWorld;
+		if (!World)
 		{
-			InStaging.Bounds = FBox(ForceInitToZero);
+			UE_LOG(LogTemp, Error, TEXT("No world to compute actor bounds!"));
 			return;
 		}
 
+		if (IsInGameThread())
+		{
+			UClass* ActorClass = InActorClass.LoadSynchronous();
+			if (!ActorClass) { return; }
+
+			FActorSpawnParameters SpawnParams;
+			SpawnParams.bNoFail = true;
+			SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+
+			AActor* TempActor = World->SpawnActor<AActor>(ActorClass, FTransform(), SpawnParams);
+			if (!TempActor)
+			{
+				UE_LOG(LogTemp, Error, TEXT("Failed to create temp actor!"));
+				return;
+			}
+
+			// Compute the bounds
+			TempActor->GetActorBounds(bOnlyCollidingComponents, Origin, BoxExtent, bIncludeFromChildActors);
+
+			// Hide the actor to ensure it doesn't affect gameplay or rendering
+			TempActor->SetActorHiddenInGame(true);
+			TempActor->SetActorEnableCollision(false);
+
+			// Destroy the temporary actor
+			TempActor->Destroy();
+		}
+		else
+		{
+			// If this throw, it's because a collection has been initialized outside of game thread, which is bad.
+			UE_LOG(LogTemp, Error, TEXT("GetBoundingBoxBySpawning executed outside of game thread."));
+			return;
+		}
+#else
+		UE_LOG(LogTemp, Error, TEXT("GetBoundingBoxBySpawning called in non-editor context."));
+#endif
+	}
+
+	static void UpdateStagingBounds(FPCGExAssetStagingData& InStaging, const TSoftClassPtr<AActor>& InActor, const bool bOnlyCollidingComponents = true, const bool bIncludeFromChildActors = true)
+	{
 		FVector Origin = FVector::ZeroVector;
 		FVector Extents = FVector::ZeroVector;
-		InActor->GetActorBounds(true, Origin, Extents);
+		GetBoundingBoxBySpawning(InActor, Origin, Extents, bOnlyCollidingComponents, bIncludeFromChildActors);
 
 		InStaging.Bounds = FBoxCenterAndExtent(Origin, Extents).GetBox();
 	}
@@ -470,7 +511,7 @@ namespace PCGExAssetCollection
 	{
 		if (!InMesh)
 		{
-			InStaging.Bounds = FBox(ForceInitToZero);
+			InStaging.Bounds = FBox(ForceInit);
 			return;
 		}
 
@@ -504,17 +545,21 @@ public:
 	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
 	virtual void EDITOR_RefreshDisplayNames();
 
+	/** Rebuild Staging data just for this collection. */
 	UFUNCTION(CallInEditor, Category = Tools, meta=(DisplayName="Rebuild Staging", ShortToolTip="Rebuild Staging data just for this collection.", DisplayOrder=0))
 	virtual void EDITOR_RebuildStagingData();
 
+	/** Rebuild Staging data for this collection and its sub-collections, recursively. */
 	UFUNCTION(CallInEditor, Category = Tools, meta=(DisplayName="Rebuild Staging (Recursive)", ShortToolTip="Rebuild Staging data for this collection and its sub-collections, recursively.", DisplayOrder=1))
 	virtual void EDITOR_RebuildStagingData_Recursive();
 
+	/** Rebuild Staging data for all collection within this project. */
 	UFUNCTION(CallInEditor, Category = Tools, meta=(DisplayName="Rebuild Staging (Project)", ShortToolTip="Rebuild Staging data for all collection within this project.", DisplayOrder=2))
 	virtual void EDITOR_RebuildStagingData_Project();
 
 #pragma region Tools
 
+	/** Sort collection by weights in ascending order. */
 	UFUNCTION(CallInEditor, Category = Utils, meta=(DisplayName="Sort (Asc)", ShortToolTip="Sort collection by weights in ascending order.", DisplayOrder=10))
 	void EDITOR_SortByWeightAscending();
 
@@ -528,6 +573,7 @@ public:
 		Entries.Sort([](const T& A, const T& B) { return A.Weight < B.Weight; });
 	}
 
+	/** Sort collection by weights in descending order. */
 	UFUNCTION(CallInEditor, Category = Utils, meta=(DisplayName="Sort (Desc)", ShortToolTip="Sort collection by weights in descending order.", DisplayOrder=11))
 	void EDITOR_SortByWeightDescending();
 
@@ -541,7 +587,8 @@ public:
 		Entries.Sort([](const T& A, const T& B) { return A.Weight > B.Weight; });
 	}
 
-	UFUNCTION(CallInEditor, Category = Utils, meta=(DisplayName="Index to Weight (Asc)", ShortToolTip="Assign entry index to entry weight", DisplayOrder=20))
+	/**Sort collection by weights in descending order. */
+	UFUNCTION(CallInEditor, Category = Utils, meta=(DisplayName="Index to Weight (Asc)", ShortToolTip="Sort collection by weights in descending order.", DisplayOrder=20))
 	void EDITOR_SetWeightIndex();
 
 	virtual void EDITOR_SetWeightIndexTyped()
@@ -554,6 +601,7 @@ public:
 		for (int i = 0; i < Entries.Num(); i++) { Entries[i].Weight = i + 1; }
 	}
 
+	/** Add 1 to all weights so it's easier to weight down some assets */
 	UFUNCTION(CallInEditor, Category = Utils, meta=(DisplayName="Pad Weights", ShortToolTip="Add 1 to all weights so it's easier to weight down some assets", DisplayOrder=21))
 	void EDITOR_PadWeight();
 
@@ -567,6 +615,7 @@ public:
 		for (int i = 0; i < Entries.Num(); i++) { Entries[i].Weight += 1; }
 	}
 
+	/** Reset all weights to 100 */
 	UFUNCTION(CallInEditor, Category = Utils, meta=(DisplayName="Weight = 100", ShortToolTip="Reset all weights to 100", DisplayOrder=21))
 	void EDITOR_WeightOne();
 
@@ -580,6 +629,7 @@ public:
 		for (int i = 0; i < Entries.Num(); i++) { Entries[i].Weight = 100; }
 	}
 
+	/** Assign random weights to items */
 	UFUNCTION(CallInEditor, Category = Utils, meta=(DisplayName="Randomize Weights", ShortToolTip="Assign random weights to items", DisplayOrder=21))
 	void EDITOR_WeightRandom();
 

@@ -29,6 +29,13 @@ class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExAssetCollectionToSetSettings : public UPC
 
 	friend class FPCGExAssetCollectionToSetElement;
 
+	//~Begin UObject interface
+#if WITH_EDITOR
+
+	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
+#endif
+	//~End UObject interface
+	
 public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
@@ -64,9 +71,15 @@ protected:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(PCG_Overridable, InlineEditConditionToggle))
 	bool bWriteAssetPath = true;
 
+	UPROPERTY()
+	bool bWriteAssetClass = true;
+
 	/** Name of the attribute on the AttributeSet that contains the asset path to be staged */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(PCG_Overridable, DisplayName="Asset Path", EditCondition="bWriteAssetPath"))
 	FName AssetPathAttributeName = FName("AssetPath");
+
+	UPROPERTY()
+	FName AssetClassAttributeName = NAME_None;
 
 	/**  */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(PCG_Overridable, InlineEditConditionToggle))

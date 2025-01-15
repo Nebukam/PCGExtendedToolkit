@@ -26,8 +26,16 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExActorCollectionEntry : public FPCGExAsse
 	}
 
 	UPROPERTY(EditAnywhere, Category = Settings, meta=(EditCondition="!bIsSubCollection", EditConditionHides))
-	TSoftObjectPtr<AActor> Actor;
+	TSoftClassPtr<AActor> Actor;
 
+	/** If enabled, the cached bounds will only account for collicable components on the actor. */
+	UPROPERTY(EditAnywhere, Category = "Settings|Bounds", meta=(EditCondition="!bIsSubCollection", EditConditionHides))
+	bool bOnlyCollidingComponents = false;
+	
+	/** If enabled, the cached bounds will also account for child actors. */
+	UPROPERTY(EditAnywhere, Category = "Settings|Bounds", meta=(EditCondition="!bIsSubCollection", EditConditionHides))
+	bool bIncludeFromChildActors = true;
+	
 	UPROPERTY(EditAnywhere, Category = Settings, meta=(EditCondition="bIsSubCollection", EditConditionHides))
 	TObjectPtr<UPCGExActorCollection> SubCollection;
 
