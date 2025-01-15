@@ -186,7 +186,8 @@ public:
 #if WITH_EDITOR
 	virtual void EDITOR_RefreshDisplayNames() override;
 
-	UFUNCTION(CallInEditor, Category = Utils, meta=(DisplayName="Disable Collisions", ShortToolTip="Disabbe collision on all entries.", DisplayOrder=100))
+	/** Disable collision on all entries. */
+	UFUNCTION(CallInEditor, Category = Utils, meta=(DisplayName="Disable Collisions", ShortToolTip="Disable collision on all entries.", DisplayOrder=100))
 	void EDITOR_DisableCollisions();
 
 #endif
