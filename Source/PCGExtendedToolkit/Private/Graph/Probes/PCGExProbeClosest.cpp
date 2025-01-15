@@ -7,11 +7,6 @@
 
 PCGEX_CREATE_PROBE_FACTORY(Closest, {}, {})
 
-bool UPCGExProbeClosest::RequiresDirectProcessing()
-{
-	return Config.bUnbounded;
-}
-
 bool UPCGExProbeClosest::PrepareForPoints(const TSharedPtr<PCGExData::FPointIO>& InPointIO)
 {
 	if (!Super::PrepareForPoints(InPointIO)) { return false; }
@@ -72,9 +67,9 @@ void UPCGExProbeClosest::ProcessCandidates(const int32 Index, const FPCGPoint& P
 	}
 }
 
-void UPCGExProbeClosest::ProcessNode(const int32 Index, const FPCGPoint& Point, TSet<FInt32Vector>* Coincidence, const FVector& ST, TSet<uint64>* OutEdges)
+void UPCGExProbeClosest::ProcessNode(const int32 Index, const FPCGPoint& Point, TSet<FInt32Vector>* Coincidence, const FVector& ST, TSet<uint64>* OutEdges, const TArray<int8>& AcceptConnections)
 {
-	Super::ProcessNode(Index, Point, nullptr, FVector::ZeroVector, OutEdges);
+	Super::ProcessNode(Index, Point, nullptr, FVector::ZeroVector, OutEdges, AcceptConnections);
 }
 
 #if WITH_EDITOR

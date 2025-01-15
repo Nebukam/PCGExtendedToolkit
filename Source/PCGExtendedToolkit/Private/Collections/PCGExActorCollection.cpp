@@ -5,7 +5,8 @@
 
 void FPCGExActorCollectionEntry::GetAssetPaths(TSet<FSoftObjectPath>& OutPaths) const
 {
-	FPCGExAssetCollectionEntry::GetAssetPaths(OutPaths);
+	// This is a subclass, no asset to load.
+	//FPCGExAssetCollectionEntry::GetAssetPaths(OutPaths);
 }
 
 bool FPCGExActorCollectionEntry::Validate(const UPCGExAssetCollection* ParentCollection)
@@ -39,10 +40,8 @@ void FPCGExActorCollectionEntry::UpdateStaging(const UPCGExAssetCollection* Owni
 		return;
 	}
 
-	Staging.Path = Actor.ToSoftObjectPath();
-	const AActor* A = PCGExHelpers::LoadBlocking_AnyThread(Actor);
-
-	PCGExAssetCollection::UpdateStagingBounds(Staging, A);
+	Staging.Path = Actor ? Actor->GetPathName() : FSoftObjectPath();
+	PCGExAssetCollection::UpdateStagingBounds(Staging, Actor, bOnlyCollidingComponents, bIncludeFromChildActors);
 
 	Super::UpdateStaging(OwningCollection, InInternalIndex, bRecursive);
 }
@@ -50,7 +49,7 @@ void FPCGExActorCollectionEntry::UpdateStaging(const UPCGExAssetCollection* Owni
 void FPCGExActorCollectionEntry::SetAssetPath(const FSoftObjectPath& InPath)
 {
 	Super::SetAssetPath(InPath);
-	Actor = TSoftObjectPtr<AActor>(InPath);
+	Actor = TSoftClassPtr<AActor>(InPath);
 }
 
 #if WITH_EDITOR
@@ -59,7 +58,7 @@ void UPCGExActorCollection::EDITOR_RefreshDisplayNames()
 	Super::EDITOR_RefreshDisplayNames();
 	for (FPCGExActorCollectionEntry& Entry : Entries)
 	{
-		Entry.DisplayName = Entry.bIsSubCollection ? FName(TEXT("[") + Entry.SubCollection.GetName() + TEXT("]")) : FName(Entry.Actor.GetAssetName());
+		Entry.DisplayName = Entry.bIsSubCollection ? FName(TEXT("[") + Entry.SubCollection.GetName() + TEXT("]")) : FName(Entry.Actor ? Entry.Actor->GetName() : TEXT("None"));
 	}
 }
 #endif
