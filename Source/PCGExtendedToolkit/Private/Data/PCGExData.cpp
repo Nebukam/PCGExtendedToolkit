@@ -22,6 +22,28 @@ namespace PCGExData
 		return FindBufferUnsafe(UID);
 	}
 
+	TSharedPtr<FBufferBase> FFacade::FindReadableAttributeBuffer(const FName InName)
+	{
+		FReadScopeLock ReadScopeLock(BufferLock);
+		for (const TSharedPtr<FBufferBase>& Buffer : Buffers)
+		{
+			if (!Buffer->IsReadable()) { continue; }
+			if (Buffer->InAttribute && Buffer->InAttribute->Name == InName) { return Buffer; }
+		}
+		return nullptr;
+	}
+
+	TSharedPtr<FBufferBase> FFacade::FindWritableAttributeBuffer(const FName InName)
+	{
+		FReadScopeLock ReadScopeLock(BufferLock);
+		for (const TSharedPtr<FBufferBase>& Buffer : Buffers)
+		{
+			if (!Buffer->IsWritable()) { continue; }
+			if (Buffer->OutAttribute && Buffer->OutAttribute->Name == InName) { return Buffer; }
+		}
+		return nullptr;
+	}
+
 #pragma endregion
 
 #pragma region FIdxUnion

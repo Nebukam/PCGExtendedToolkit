@@ -357,6 +357,11 @@ namespace PCGExData
 
 			TypedOutAttribute = Source->FindOrCreateAttribute(FullName, DefaultValue, bAllowInterpolation);
 
+			if(!TypedOutAttribute)
+			{
+				return false;
+			}
+			
 			OutAccessor = MakeUnique<FPCGAttributeAccessor<T>>(TypedOutAttribute, Source->GetOut()->Metadata);
 
 			if (!TypedOutAttribute || !OutAccessor.IsValid())
@@ -500,6 +505,8 @@ namespace PCGExData
 
 		TSharedPtr<FBufferBase> FindBufferUnsafe(const uint64 UID);
 		TSharedPtr<FBufferBase> FindBuffer(const uint64 UID);
+		TSharedPtr<FBufferBase> FindReadableAttributeBuffer(const FName InName);
+		TSharedPtr<FBufferBase> FindWritableAttributeBuffer(const FName InName);
 
 		explicit FFacade(const TSharedRef<FPointIO>& InSource):
 			Source(InSource)

@@ -307,7 +307,7 @@ namespace PCGExAttributeStats
 				return;
 			}
 
-			const FString Identifier = FString::Printf(TEXT("PCGEx/Identifier::%u"), InDataFacade->Source->GetIn()->GetUniqueID());
+			const FString Identifier = FString::Printf(TEXT("PCGEx/Identifier:%u"), InDataFacade->Source->GetIn()->GetUniqueID());
 			PCGEX_OUTPUT_STAT(Identifier, FString, Identifier)
 
 			if constexpr (!PCGEx::IsValidForTMap<T>::value)

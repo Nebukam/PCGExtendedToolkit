@@ -21,16 +21,16 @@ namespace PCPGExMergePointsByTag
 		const TSharedPtr<PCGExData::FPointIO> CompositeIO = IOs[0];
 		PCGEX_INIT_IO_VOID(CompositeIO, PCGExData::EIOInit::New)
 
-		CompositeIODataFacade = MakeShared<PCGExData::FFacade>(CompositeIO.ToSharedRef());
+		CompositeDataFacade = MakeShared<PCGExData::FFacade>(CompositeIO.ToSharedRef());
 
-		Merger = MakeShared<FPCGExPointIOMerger>(CompositeIODataFacade.ToSharedRef());
+		Merger = MakeShared<FPCGExPointIOMerger>(CompositeDataFacade.ToSharedRef());
 		Merger->Append(IOs);
 		Merger->Merge(AsyncManager, InCarryOverDetails);
 	}
 
 	void FMergeList::Write(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager) const
 	{
-		CompositeIODataFacade->Write(AsyncManager);
+		CompositeDataFacade->Write(AsyncManager);
 	}
 
 	FTagBucket::FTagBucket(const FString& InTag): Tag(InTag)

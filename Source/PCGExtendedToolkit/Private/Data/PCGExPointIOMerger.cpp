@@ -16,15 +16,17 @@ FPCGExPointIOMerger::~FPCGExPointIOMerger()
 {
 }
 
-void FPCGExPointIOMerger::Append(const TSharedPtr<PCGExData::FPointIO>& InData)
+PCGExMT::FScope FPCGExPointIOMerger::Append(const TSharedPtr<PCGExData::FPointIO>& InData)
 {
 	const int32 NumPoints = InData->GetNum();
 
-	if (NumPoints <= 0) { return; }
+	if (NumPoints <= 0) { return PCGExMT::FScope(); }
 
+	const int32 Start = NumCompositePoints;
 	IOSources.Add(InData);
-	Scopes.Add(PCGExMT::FScope(NumCompositePoints, NumPoints));
 	NumCompositePoints += NumPoints;
+
+	return Scopes.Add_GetRef(PCGExMT::FScope(Start, NumPoints));
 }
 
 void FPCGExPointIOMerger::Append(const TArray<TSharedPtr<PCGExData::FPointIO>>& InData)
@@ -37,7 +39,7 @@ void FPCGExPointIOMerger::Append(const TSharedRef<PCGExData::FPointIOCollection>
 	for (const TSharedPtr<PCGExData::FPointIO>& PointIO : InCollection->Pairs) { Append(PointIO); }
 }
 
-void FPCGExPointIOMerger::Merge(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager, const FPCGExCarryOverDetails* InCarryOverDetails)
+void FPCGExPointIOMerger::Merge(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager, const FPCGExCarryOverDetails* InCarryOverDetails, const TSet<FName>* InIgnoredAttributes)
 {
 	TArray<FPCGPoint>& MutablePoints = UnionDataFacade->GetOut()->GetMutablePoints();
 	MutablePoints.SetNum(NumCompositePoints);
@@ -70,6 +72,8 @@ void FPCGExPointIOMerger::Merge(const TSharedPtr<PCGExMT::FTaskManager>& AsyncMa
 		PCGEx::FAttributeIdentity::Get(Metadata, SourceAttributes);
 		for (PCGEx::FAttributeIdentity SourceAtt : SourceAttributes)
 		{
+			if (InIgnoredAttributes && InIgnoredAttributes->Contains(SourceAtt.Name)) { continue; }
+			
 			FString StrName = SourceAtt.Name.ToString();
 			if (!InCarryOverDetails->Attributes.Test(StrName)) { continue; }
 

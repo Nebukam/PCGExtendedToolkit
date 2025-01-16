@@ -393,7 +393,7 @@ namespace PCGExData
 
 	bool FPointIOTaggedDictionary::TryAddEntry(const TSharedRef<FPointIO>& PointIOEntry)
 	{
-		const IDType TagValue = PointIOEntry->Tags->GetValue<int32>(TagId);
+		const IDType TagValue = PointIOEntry->Tags->GetTypedValue<int32>(TagId);
 		if (!TagValue) { return false; }
 
 		if (const int32* Index = TagMap.Find(TagValue->Value))
