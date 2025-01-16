@@ -77,10 +77,10 @@ public:
 
 namespace PCGExPointsFilter
 {
-	class /*PCGEXTENDEDTOOLKIT_API*/ TDistanceFilter final : public PCGExPointFilter::FSimpleFilter
+	class /*PCGEXTENDEDTOOLKIT_API*/ FDistanceFilter final : public PCGExPointFilter::FSimpleFilter
 	{
 	public:
-		explicit TDistanceFilter(const TObjectPtr<const UPCGExDistanceFilterFactory>& InDefinition)
+		explicit FDistanceFilter(const TObjectPtr<const UPCGExDistanceFilterFactory>& InDefinition)
 			: FSimpleFilter(InDefinition), TypedFilterFactory(InDefinition)
 		{
 			Octrees = &TypedFilterFactory->Octrees;
@@ -179,7 +179,7 @@ namespace PCGExPointsFilter
 			return PCGExCompare::Compare(TypedFilterFactory->Config.Comparison, FMath::Sqrt(BestDist), B, TypedFilterFactory->Config.Tolerance);
 		}
 
-		virtual ~TDistanceFilter() override
+		virtual ~FDistanceFilter() override
 		{
 		}
 	};

@@ -76,10 +76,10 @@ public:
 
 namespace PCGExPointsFilter
 {
-	class /*PCGEXTENDEDTOOLKIT_API*/ TNumericComparisonNearestFilter final : public PCGExPointFilter::FSimpleFilter
+	class /*PCGEXTENDEDTOOLKIT_API*/ FNumericCompareNearestFilter final : public PCGExPointFilter::FSimpleFilter
 	{
 	public:
-		explicit TNumericComparisonNearestFilter(const TObjectPtr<const UPCGExNumericCompareNearestFilterFactory>& InDefinition)
+		explicit FNumericCompareNearestFilter(const TObjectPtr<const UPCGExNumericCompareNearestFilterFactory>& InDefinition)
 			: FSimpleFilter(InDefinition), TypedFilterFactory(InDefinition)
 		{
 			TargetDataFacade = TypedFilterFactory->TargetDataFacade;
@@ -122,7 +122,7 @@ namespace PCGExPointsFilter
 			return PCGExCompare::Compare(TypedFilterFactory->Config.Comparison, OperandA->Read(TargetIndex), B, TypedFilterFactory->Config.Tolerance);
 		}
 
-		virtual ~TNumericComparisonNearestFilter() override
+		virtual ~FNumericCompareNearestFilter() override
 		{
 		}
 	};

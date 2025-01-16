@@ -90,10 +90,10 @@ public:
 
 namespace PCGExPointsFilter
 {
-	class /*PCGEXTENDEDTOOLKIT_API*/ TRandomFilter final : public PCGExPointFilter::FSimpleFilter
+	class /*PCGEXTENDEDTOOLKIT_API*/ FRandomFilter final : public PCGExPointFilter::FSimpleFilter
 	{
 	public:
-		explicit TRandomFilter(const TObjectPtr<const UPCGExRandomFilterFactory>& InDefinition)
+		explicit FRandomFilter(const TObjectPtr<const UPCGExRandomFilterFactory>& InDefinition)
 			: FSimpleFilter(InDefinition), TypedFilterFactory(InDefinition), RandomSeed(InDefinition->Config.RandomSeed)
 		{
 		}
@@ -119,7 +119,7 @@ namespace PCGExPointsFilter
 			return TypedFilterFactory->Config.bInvertResult ? RandomValue <= Threshold : RandomValue >= Threshold;
 		}
 
-		virtual ~TRandomFilter() override
+		virtual ~FRandomFilter() override
 		{
 		}
 	};

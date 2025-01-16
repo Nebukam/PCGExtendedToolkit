@@ -9,10 +9,10 @@
 
 TSharedPtr<PCGExPointFilter::FFilter> UPCGExWithinRangeFilterFactory::CreateFilter() const
 {
-	return MakeShared<PCGExPointsFilter::TWithinRangeFilter>(this);
+	return MakeShared<PCGExPointsFilter::FWithinRangeFilter>(this);
 }
 
-bool PCGExPointsFilter::TWithinRangeFilter::Init(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade> InPointDataFacade)
+bool PCGExPointsFilter::FWithinRangeFilter::Init(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade> InPointDataFacade)
 {
 	if (!FFilter::Init(InContext, InPointDataFacade)) { return false; }
 
