@@ -40,7 +40,7 @@ bool UPCGExSplineInclusionFilterFactory::Init(FPCGExContext* InContext)
 
 TSharedPtr<PCGExPointFilter::FFilter> UPCGExSplineInclusionFilterFactory::CreateFilter() const
 {
-	return MakeShared<PCGExPointsFilter::TSplineInclusionFilter>(this);
+	return MakeShared<PCGExPointsFilter::FSplineInclusionFilter>(this);
 }
 
 void UPCGExSplineInclusionFilterFactory::BeginDestroy()
@@ -50,7 +50,7 @@ void UPCGExSplineInclusionFilterFactory::BeginDestroy()
 
 namespace PCGExPointsFilter
 {
-	bool TSplineInclusionFilter::Init(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade> InPointDataFacade)
+	bool FSplineInclusionFilter::Init(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade> InPointDataFacade)
 	{
 		if (!FFilter::Init(InContext, InPointDataFacade)) { return false; }
 
@@ -97,7 +97,7 @@ namespace PCGExPointsFilter
 		return true;
 	}
 
-	bool TSplineInclusionFilter::Test(const int32 PointIndex) const
+	bool FSplineInclusionFilter::Test(const int32 PointIndex) const
 	{
 		uint8 State = None;
 

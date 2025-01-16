@@ -107,10 +107,10 @@ namespace PCGExPointsFilter
 		Skip
 	};
 
-	class /*PCGEXTENDEDTOOLKIT_API*/ TSplineInclusionFilter final : public PCGExPointFilter::FSimpleFilter
+	class /*PCGEXTENDEDTOOLKIT_API*/ FSplineInclusionFilter final : public PCGExPointFilter::FSimpleFilter
 	{
 	public:
-		explicit TSplineInclusionFilter(const TObjectPtr<const UPCGExSplineInclusionFilterFactory>& InFactory)
+		explicit FSplineInclusionFilter(const TObjectPtr<const UPCGExSplineInclusionFilterFactory>& InFactory)
 			: FSimpleFilter(InFactory), TypedFilterFactory(InFactory)
 		{
 			Splines = &TypedFilterFactory->Splines;
@@ -131,7 +131,7 @@ namespace PCGExPointsFilter
 		virtual bool Init(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade> InPointDataFacade) override;
 		virtual bool Test(const int32 PointIndex) const override;
 
-		virtual ~TSplineInclusionFilter() override
+		virtual ~FSplineInclusionFilter() override
 		{
 		}
 	};

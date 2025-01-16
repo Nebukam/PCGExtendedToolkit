@@ -9,7 +9,7 @@
 
 TSharedPtr<PCGExPointFilter::FFilter> UPCGExNumericSelfCompareFilterFactory::CreateFilter() const
 {
-	return MakeShared<PCGExPointsFilter::TNumericSelfComparisonFilter>(this);
+	return MakeShared<PCGExPointsFilter::FNumericSelfCompareFilter>(this);
 }
 
 bool UPCGExNumericSelfCompareFilterFactory::RegisterConsumableAttributesWithData(FPCGExContext* InContext, const UPCGData* InData) const
@@ -23,7 +23,7 @@ bool UPCGExNumericSelfCompareFilterFactory::RegisterConsumableAttributesWithData
 	return true;
 }
 
-bool PCGExPointsFilter::TNumericSelfComparisonFilter::Init(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade> InPointDataFacade)
+bool PCGExPointsFilter::FNumericSelfCompareFilter::Init(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade> InPointDataFacade)
 {
 	if (!FFilter::Init(InContext, InPointDataFacade)) { return false; }
 

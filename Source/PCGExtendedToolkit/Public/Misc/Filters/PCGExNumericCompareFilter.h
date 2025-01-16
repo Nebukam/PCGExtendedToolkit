@@ -68,10 +68,10 @@ public:
 
 namespace PCGExPointsFilter
 {
-	class /*PCGEXTENDEDTOOLKIT_API*/ TNumericComparisonFilter final : public PCGExPointFilter::FSimpleFilter
+	class /*PCGEXTENDEDTOOLKIT_API*/ FNumericCompareFilter final : public PCGExPointFilter::FSimpleFilter
 	{
 	public:
-		explicit TNumericComparisonFilter(const TObjectPtr<const UPCGExNumericCompareFilterFactory>& InDefinition)
+		explicit FNumericCompareFilter(const TObjectPtr<const UPCGExNumericCompareFilterFactory>& InDefinition)
 			: FSimpleFilter(InDefinition), TypedFilterFactory(InDefinition)
 		{
 		}
@@ -89,7 +89,7 @@ namespace PCGExPointsFilter
 			return PCGExCompare::Compare(TypedFilterFactory->Config.Comparison, A, B, TypedFilterFactory->Config.Tolerance);
 		}
 
-		virtual ~TNumericComparisonFilter() override
+		virtual ~FNumericCompareFilter() override
 		{
 		}
 	};

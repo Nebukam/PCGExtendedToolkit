@@ -90,10 +90,10 @@ public:
 
 namespace PCGExPointsFilter
 {
-	class /*PCGEXTENDEDTOOLKIT_API*/ TSplineAlphaFilter final : public PCGExPointFilter::FSimpleFilter
+	class /*PCGEXTENDEDTOOLKIT_API*/ FSplineAlphaFilter final : public PCGExPointFilter::FSimpleFilter
 	{
 	public:
-		explicit TSplineAlphaFilter(const TObjectPtr<const UPCGExSplineAlphaFilterFactory>& InFactory)
+		explicit FSplineAlphaFilter(const TObjectPtr<const UPCGExSplineAlphaFilterFactory>& InFactory)
 			: FSimpleFilter(InFactory), TypedFilterFactory(InFactory)
 		{
 			Splines = TypedFilterFactory->Splines;
@@ -110,7 +110,7 @@ namespace PCGExPointsFilter
 		virtual bool Init(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade> InPointDataFacade) override;
 		virtual bool Test(const int32 PointIndex) const override;
 
-		virtual ~TSplineAlphaFilter() override
+		virtual ~FSplineAlphaFilter() override
 		{
 		}
 	};

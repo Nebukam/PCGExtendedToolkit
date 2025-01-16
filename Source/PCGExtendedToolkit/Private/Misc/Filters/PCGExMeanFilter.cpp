@@ -9,7 +9,7 @@
 
 TSharedPtr<PCGExPointFilter::FFilter> UPCGExMeanFilterFactory::CreateFilter() const
 {
-	return MakeShared<PCGExPointsFilter::TMeanFilter>(this);
+	return MakeShared<PCGExPointsFilter::FMeanFilter>(this);
 }
 
 void UPCGExMeanFilterFactory::RegisterBuffersDependencies(FPCGExContext* InContext, PCGExData::FFacadePreloader& FacadePreloader) const
@@ -28,7 +28,7 @@ bool UPCGExMeanFilterFactory::RegisterConsumableAttributesWithData(FPCGExContext
 	return true;
 }
 
-bool PCGExPointsFilter::TMeanFilter::Init(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade> InPointDataFacade)
+bool PCGExPointsFilter::FMeanFilter::Init(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade> InPointDataFacade)
 {
 	if (!FFilter::Init(InContext, InPointDataFacade)) { return false; }
 
@@ -49,7 +49,7 @@ bool PCGExPointsFilter::TMeanFilter::Init(FPCGExContext* InContext, const TShare
 	return true;
 }
 
-void PCGExPointsFilter::TMeanFilter::PostInit()
+void PCGExPointsFilter::FMeanFilter::PostInit()
 {
 	const int32 NumPoints = PointDataFacade->Source->GetNum();
 	Results.Init(false, NumPoints);
