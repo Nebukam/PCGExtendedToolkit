@@ -66,10 +66,10 @@ public:
 
 namespace PCGExPointsFilter
 {
-	class /*PCGEXTENDEDTOOLKIT_API*/ TBitmaskFilter final : public PCGExPointFilter::FSimpleFilter
+	class /*PCGEXTENDEDTOOLKIT_API*/ FBitmaskFilter final : public PCGExPointFilter::FSimpleFilter
 	{
 	public:
-		explicit TBitmaskFilter(const TObjectPtr<const UPCGExBitmaskFilterFactory>& InDefinition)
+		explicit FBitmaskFilter(const TObjectPtr<const UPCGExBitmaskFilterFactory>& InDefinition)
 			: FSimpleFilter(InDefinition), TypedFilterFactory(InDefinition), Bitmask(InDefinition->Config.Bitmask)
 		{
 		}
@@ -93,7 +93,7 @@ namespace PCGExPointsFilter
 			return TypedFilterFactory->Config.bInvertResult ? !Result : Result;
 		}
 
-		virtual ~TBitmaskFilter() override
+		virtual ~FBitmaskFilter() override
 		{
 			TypedFilterFactory = nullptr;
 		}

@@ -26,7 +26,7 @@ bool UPCGExTensorDotFilterFactory::Init(FPCGExContext* InContext)
 
 TSharedPtr<PCGExPointFilter::FFilter> UPCGExTensorDotFilterFactory::CreateFilter() const
 {
-	return MakeShared<PCGExPointsFilter::TTensorDotFilter>(this);
+	return MakeShared<PCGExPointsFilter::FTensorDotFilter>(this);
 }
 
 bool UPCGExTensorDotFilterFactory::RegisterConsumableAttributesWithData(FPCGExContext* InContext, const UPCGData* InData) const
@@ -40,7 +40,7 @@ bool UPCGExTensorDotFilterFactory::RegisterConsumableAttributesWithData(FPCGExCo
 	return true;
 }
 
-bool PCGExPointsFilter::TTensorDotFilter::Init(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade> InPointDataFacade)
+bool PCGExPointsFilter::FTensorDotFilter::Init(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade> InPointDataFacade)
 {
 	if (!FFilter::Init(InContext, InPointDataFacade)) { return false; }
 

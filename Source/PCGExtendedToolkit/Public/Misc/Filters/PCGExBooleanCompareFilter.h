@@ -63,10 +63,10 @@ public:
 
 namespace PCGExPointsFilter
 {
-	class /*PCGEXTENDEDTOOLKIT_API*/ FBooleanComparisonFilter final : public PCGExPointFilter::FSimpleFilter
+	class /*PCGEXTENDEDTOOLKIT_API*/ FBooleanCompareFilter final : public PCGExPointFilter::FSimpleFilter
 	{
 	public:
-		explicit FBooleanComparisonFilter(const TObjectPtr<const UPCGExBooleanCompareFilterFactory>& InDefinition)
+		explicit FBooleanCompareFilter(const TObjectPtr<const UPCGExBooleanCompareFilterFactory>& InDefinition)
 			: FSimpleFilter(InDefinition), TypedFilterFactory(InDefinition)
 		{
 		}
@@ -84,7 +84,7 @@ namespace PCGExPointsFilter
 			return TypedFilterFactory->Config.Comparison == EPCGExEquality::Equal ? A == B : A != B;
 		}
 
-		virtual ~FBooleanComparisonFilter() override
+		virtual ~FBooleanCompareFilter() override
 		{
 		}
 	};
