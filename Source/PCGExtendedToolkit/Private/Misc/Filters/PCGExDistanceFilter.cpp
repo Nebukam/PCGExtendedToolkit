@@ -16,7 +16,7 @@ bool UPCGExDistanceFilterFactory::Init(FPCGExContext* InContext)
 
 TSharedPtr<PCGExPointFilter::FFilter> UPCGExDistanceFilterFactory::CreateFilter() const
 {
-	return MakeShared<PCGExPointsFilter::TDistanceFilter>(this);
+	return MakeShared<PCGExPointsFilter::FDistanceFilter>(this);
 }
 
 bool UPCGExDistanceFilterFactory::RegisterConsumableAttributesWithData(FPCGExContext* InContext, const UPCGData* InData) const
@@ -51,7 +51,7 @@ void UPCGExDistanceFilterFactory::BeginDestroy()
 	Super::BeginDestroy();
 }
 
-bool PCGExPointsFilter::TDistanceFilter::Init(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade> InPointDataFacade)
+bool PCGExPointsFilter::FDistanceFilter::Init(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade> InPointDataFacade)
 {
 	if (!FFilter::Init(InContext, InPointDataFacade)) { return false; }
 

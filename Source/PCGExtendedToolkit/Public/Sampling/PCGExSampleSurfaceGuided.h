@@ -87,7 +87,7 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable))
 	EPCGExSurfaceSource SurfaceSource = EPCGExSurfaceSource::ActorReferences;
 
-	/** Name of the attribute to read actor reference from.*/
+	/** Name of the attribute that contains a path to an actor in the level, usually from a GetActorData PCG Node in point mode.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="SurfaceSource==EPCGExSurfaceSource::ActorReferences", EditConditionHides))
 	FName ActorReference = FName("ActorReference");
 

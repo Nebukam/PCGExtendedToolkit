@@ -43,7 +43,7 @@ bool UPCGExPathInclusionFilterFactory::Init(FPCGExContext* InContext)
 
 TSharedPtr<PCGExPointFilter::FFilter> UPCGExPathInclusionFilterFactory::CreateFilter() const
 {
-	return MakeShared<PCGExPointsFilter::TPathInclusionFilter>(this);
+	return MakeShared<PCGExPointsFilter::FPathInclusionFilter>(this);
 }
 
 void UPCGExPathInclusionFilterFactory::BeginDestroy()
@@ -54,7 +54,7 @@ void UPCGExPathInclusionFilterFactory::BeginDestroy()
 
 namespace PCGExPointsFilter
 {
-	bool TPathInclusionFilter::Init(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade> InPointDataFacade)
+	bool FPathInclusionFilter::Init(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade> InPointDataFacade)
 	{
 		if (!FFilter::Init(InContext, InPointDataFacade)) { return false; }
 
@@ -101,7 +101,7 @@ namespace PCGExPointsFilter
 		return true;
 	}
 
-	bool TPathInclusionFilter::Test(const int32 PointIndex) const
+	bool FPathInclusionFilter::Test(const int32 PointIndex) const
 	{
 		uint8 State = None;
 

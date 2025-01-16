@@ -40,7 +40,7 @@ bool UPCGExSplineAlphaFilterFactory::Init(FPCGExContext* InContext)
 
 TSharedPtr<PCGExPointFilter::FFilter> UPCGExSplineAlphaFilterFactory::CreateFilter() const
 {
-	return MakeShared<PCGExPointsFilter::TSplineAlphaFilter>(this);
+	return MakeShared<PCGExPointsFilter::FSplineAlphaFilter>(this);
 }
 
 void UPCGExSplineAlphaFilterFactory::BeginDestroy()
@@ -60,7 +60,7 @@ bool UPCGExSplineAlphaFilterFactory::RegisterConsumableAttributesWithData(FPCGEx
 
 namespace PCGExPointsFilter
 {
-	bool TSplineAlphaFilter::Init(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade> InPointDataFacade)
+	bool FSplineAlphaFilter::Init(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade> InPointDataFacade)
 	{
 		if (!FFilter::Init(InContext, InPointDataFacade)) { return false; }
 
@@ -78,7 +78,7 @@ namespace PCGExPointsFilter
 		return true;
 	}
 
-	bool TSplineAlphaFilter::Test(const int32 PointIndex) const
+	bool FSplineAlphaFilter::Test(const int32 PointIndex) const
 	{
 		const FVector Pos = PointDataFacade->Source->GetInPoint(PointIndex).Transform.GetLocation();
 		double Time = 0;

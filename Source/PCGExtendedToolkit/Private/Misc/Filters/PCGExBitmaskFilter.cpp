@@ -9,7 +9,7 @@
 
 TSharedPtr<PCGExPointFilter::FFilter> UPCGExBitmaskFilterFactory::CreateFilter() const
 {
-	return MakeShared<PCGExPointsFilter::TBitmaskFilter>(this);
+	return MakeShared<PCGExPointsFilter::FBitmaskFilter>(this);
 }
 
 bool UPCGExBitmaskFilterFactory::RegisterConsumableAttributes(FPCGExContext* InContext) const
@@ -22,7 +22,7 @@ bool UPCGExBitmaskFilterFactory::RegisterConsumableAttributes(FPCGExContext* InC
 	return true;
 }
 
-bool PCGExPointsFilter::TBitmaskFilter::Init(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade> InPointDataFacade)
+bool PCGExPointsFilter::FBitmaskFilter::Init(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade> InPointDataFacade)
 {
 	if (!FFilter::Init(InContext, InPointDataFacade)) { return false; }
 

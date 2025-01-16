@@ -61,10 +61,10 @@ public:
 
 namespace PCGExPointsFilter
 {
-	class /*PCGEXTENDEDTOOLKIT_API*/ TWithinRangeFilter final : public PCGExPointFilter::FSimpleFilter
+	class /*PCGEXTENDEDTOOLKIT_API*/ FWithinRangeFilter final : public PCGExPointFilter::FSimpleFilter
 	{
 	public:
-		explicit TWithinRangeFilter(const UPCGExWithinRangeFilterFactory* InDefinition)
+		explicit FWithinRangeFilter(const UPCGExWithinRangeFilterFactory* InDefinition)
 			: FSimpleFilter(InDefinition), TypedFilterFactory(InDefinition)
 		{
 		}
@@ -85,7 +85,7 @@ namespace PCGExPointsFilter
 			return FMath::IsWithinInclusive(OperandA->Read(PointIndex), RealMin, RealMax) ? !bInvert : bInvert;
 		}
 
-		virtual ~TWithinRangeFilter() override
+		virtual ~FWithinRangeFilter() override
 		{
 			TypedFilterFactory = nullptr;
 		}

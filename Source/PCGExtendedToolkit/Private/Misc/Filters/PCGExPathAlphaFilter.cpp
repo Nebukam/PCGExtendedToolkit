@@ -44,7 +44,7 @@ bool UPCGExPathAlphaFilterFactory::Init(FPCGExContext* InContext)
 
 TSharedPtr<PCGExPointFilter::FFilter> UPCGExPathAlphaFilterFactory::CreateFilter() const
 {
-	return MakeShared<PCGExPointsFilter::TPathAlphaFilter>(this);
+	return MakeShared<PCGExPointsFilter::FPathAlphaFilter>(this);
 }
 
 void UPCGExPathAlphaFilterFactory::BeginDestroy()
@@ -65,7 +65,7 @@ bool UPCGExPathAlphaFilterFactory::RegisterConsumableAttributesWithData(FPCGExCo
 
 namespace PCGExPointsFilter
 {
-	bool TPathAlphaFilter::Init(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade> InPointDataFacade)
+	bool FPathAlphaFilter::Init(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade> InPointDataFacade)
 	{
 		if (!FFilter::Init(InContext, InPointDataFacade)) { return false; }
 
@@ -83,7 +83,7 @@ namespace PCGExPointsFilter
 		return true;
 	}
 
-	bool TPathAlphaFilter::Test(const int32 PointIndex) const
+	bool FPathAlphaFilter::Test(const int32 PointIndex) const
 	{
 		const FVector Pos = PointDataFacade->Source->GetInPoint(PointIndex).Transform.GetLocation();
 		double Time = 0;

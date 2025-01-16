@@ -37,12 +37,12 @@ bool UPCGExRandomFilterFactory::RegisterConsumableAttributesWithData(FPCGExConte
 
 TSharedPtr<PCGExPointFilter::FFilter> UPCGExRandomFilterFactory::CreateFilter() const
 {
-	PCGEX_MAKE_SHARED(Filter, PCGExPointsFilter::TRandomFilter, this)
+	PCGEX_MAKE_SHARED(Filter, PCGExPointsFilter::FRandomFilter, this)
 	Filter->WeightCurve = Config.LocalWeightCurve.GetRichCurveConst();
 	return Filter;
 }
 
-bool PCGExPointsFilter::TRandomFilter::Init(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade> InPointDataFacade)
+bool PCGExPointsFilter::FRandomFilter::Init(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade> InPointDataFacade)
 {
 	if (!FFilter::Init(InContext, InPointDataFacade)) { return false; }
 
