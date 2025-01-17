@@ -342,6 +342,9 @@ namespace PCGExPointsMT
 			WorkPermit = ExecutionContext->GetWorkPermit();
 		}
 
+		template <typename T>
+		FORCEINLINE T* GetContext() { return static_cast<T*>(ExecutionContext); }
+
 		virtual bool PrepareProcessing()
 		{
 			return true;
@@ -463,7 +466,7 @@ namespace PCGExPointsMT
 		}
 
 	protected:
-		void OnProcessingPreparationComplete()
+		virtual void OnProcessingPreparationComplete()
 		{
 			PCGEX_ASYNC_MT_LOOP_TPL(Process, bDaisyChainProcessing, { Processor->bIsProcessorValid = Processor->Process(This->AsyncManager); })
 		}

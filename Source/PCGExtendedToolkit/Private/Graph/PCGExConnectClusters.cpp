@@ -151,7 +151,7 @@ namespace PCGExBridgeClusters
 		// Start merging right away
 		Merger = MakeShared<FPCGExPointIOMerger>(CompoundedEdgesDataFacade.ToSharedRef());
 		Merger->Append(Edges);
-		Merger->Merge(AsyncManager, &Context->CarryOverDetails);
+		Merger->MergeAsync(AsyncManager, &Context->CarryOverDetails);
 	}
 
 	bool FBatch::PrepareSingle(const TSharedPtr<FProcessor>& ClusterProcessor)
