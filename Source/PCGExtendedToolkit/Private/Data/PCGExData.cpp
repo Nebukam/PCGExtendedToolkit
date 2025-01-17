@@ -72,7 +72,7 @@ namespace PCGExData
 			{
 				const TSharedPtr<FBufferBase> Buffer = Buffers[i];
 				if (!Buffer.IsValid() || !Buffer->IsWritable()) { continue; }
-				PCGExMT::Write(AsyncManager, Buffer);
+				WriteBuffer(AsyncManager, Buffer, false);
 			}
 		}
 

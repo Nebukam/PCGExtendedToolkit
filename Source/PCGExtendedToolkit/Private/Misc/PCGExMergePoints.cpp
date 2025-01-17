@@ -63,7 +63,7 @@ namespace PCGExMergePoints
 {
 	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager> InAsyncManager)
 	{
-		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExMergePoints::Process);
+		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExMergePoints::FProcessor::Process);
 
 		if (!FPointsProcessor::Process(InAsyncManager)) { return false; }
 
@@ -72,6 +72,8 @@ namespace PCGExMergePoints
 
 	void FProcessor::CompleteWork()
 	{
+		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExMergePoints::FProcessor::CompleteWork);
+		
 		TPointsProcessor<FPCGExMergePointsContext, UPCGExMergePointsSettings>::CompleteWork();
 		if (Settings->bTagToAttributes)
 		{
@@ -199,15 +201,17 @@ namespace PCGExMergePoints
 
 	void FBatch::Write()
 	{
+		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExMergePoints::FBatch::Write);
+		
 		PCGEX_TYPED_CONTEXT_AND_SETTINGS(MergePoints);
 		Context->CompositeDataFacade->Write(AsyncManager);
 	}
 
 	void FBatch::StartMerge()
 	{
-
+		TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExMergePointsElement::StartMerge);
 		// TODO : Implement a method in IOMerger to easily feedb attributes we'll need to o facade preloader
-		
+
 		FPCGExMergePointsContext* Context = GetContext<FPCGExMergePointsContext>();
 		Context->TagsToAttributes.Prune(*ConvertedTags.Get()); // Keep only desired conversions
 
@@ -224,7 +228,7 @@ namespace PCGExMergePoints
 			});
 
 		// Launch all merging tasks while we compute future attributes 
-		Merger->Merge(AsyncManager, &Context->CarryOverDetails, &IgnoredAttributes);
+		Merger->MergeAsync(AsyncManager, &Context->CarryOverDetails, &IgnoredAttributes);
 
 		// Cleanup tags that are used internally for data recognition, along with the tags we will be converting to data
 		Context->CompositeDataFacade->Source->Tags->Remove(IgnoredAttributes);

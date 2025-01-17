@@ -25,7 +25,7 @@ namespace PCPGExMergePointsByTag
 
 		Merger = MakeShared<FPCGExPointIOMerger>(CompositeDataFacade.ToSharedRef());
 		Merger->Append(IOs);
-		Merger->Merge(AsyncManager, InCarryOverDetails);
+		Merger->MergeAsync(AsyncManager, InCarryOverDetails);
 	}
 
 	void FMergeList::Write(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager) const

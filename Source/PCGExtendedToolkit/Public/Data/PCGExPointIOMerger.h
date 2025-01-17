@@ -11,16 +11,43 @@
 
 #include "UObject/Object.h"
 
+namespace PCGExPointIOMerger
+{
+	struct /*PCGEXTENDEDTOOLKIT_API*/ FIdentityRef : public PCGEx::FAttributeIdentity
+	{
+		const FPCGMetadataAttributeBase* Attribute = nullptr;
+		bool bInitDefault = false;
+
+		FIdentityRef() : FAttributeIdentity()
+		{
+		};
+
+		FIdentityRef(const FIdentityRef& Other)
+			: FAttributeIdentity(Other)
+		{
+		}
+
+		FIdentityRef(const FAttributeIdentity& Other)
+			: FAttributeIdentity(Other)
+		{
+		}
+
+		FIdentityRef(const FName InName, const EPCGMetadataTypes InUnderlyingType, const bool InAllowsInterpolation)
+			: FAttributeIdentity(InName, InUnderlyingType, InAllowsInterpolation)
+		{
+		}
+	};
+}
+
 class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPointIOMerger final : public TSharedFromThis<FPCGExPointIOMerger>
 {
 	friend class FPCGExAttributeMergeTask;
 
 public:
-	TArray<PCGEx::FAttributeIdentity> UniqueIdentities;
+	TArray<PCGExPointIOMerger::FIdentityRef> UniqueIdentities;
 	TSharedRef<PCGExData::FFacade> UnionDataFacade;
 	TArray<TSharedPtr<PCGExData::FPointIO>> IOSources;
 	TArray<PCGExMT::FScope> Scopes;
-	TArray<TSharedPtr<PCGExData::FBufferBase>> Buffers;
 
 	explicit FPCGExPointIOMerger(const TSharedRef<PCGExData::FFacade>& InUnionDataFacade);
 	~FPCGExPointIOMerger();
@@ -28,7 +55,7 @@ public:
 	::PCGExMT::FScope Append(const TSharedPtr<PCGExData::FPointIO>& InData);
 	void Append(const TArray<TSharedPtr<PCGExData::FPointIO>>& InData);
 	void Append(const TSharedRef<PCGExData::FPointIOCollection>& InCollection);
-	void Merge(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager, const FPCGExCarryOverDetails* InCarryOverDetails, const TSet<FName>* InIgnoredAttributes = nullptr);
+	void MergeAsync(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager, const FPCGExCarryOverDetails* InCarryOverDetails, const TSet<FName>* InIgnoredAttributes = nullptr);
 
 protected:
 	int32 NumCompositePoints = 0;

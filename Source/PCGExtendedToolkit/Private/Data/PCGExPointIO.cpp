@@ -88,6 +88,8 @@ namespace PCGExData
 
 	TSharedPtr<FPCGAttributeAccessorKeysPoints> FPointIO::GetInKeys()
 	{
+		TRACE_CPUPROFILER_EVENT_SCOPE(FPointIO::GetInKeys);
+		
 		{
 			FReadScopeLock ReadScopeLock(InKeysLock);
 			if (InKeys) { return InKeys; }
@@ -105,6 +107,9 @@ namespace PCGExData
 
 	TSharedPtr<FPCGAttributeAccessorKeysPoints> FPointIO::GetOutKeys(const bool bEnsureValidKeys)
 	{
+		
+		TRACE_CPUPROFILER_EVENT_SCOPE(FPointIO::GetOutKeys);
+		
 		check(Out)
 
 		{

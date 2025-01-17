@@ -128,7 +128,7 @@ namespace PCGExData
 			PCGEX_LOG_DTR(FBufferBase)
 		}
 
-		virtual void Write()
+		virtual void Write(const bool bEnsureValidKeys = true)
 		{
 		}
 
@@ -357,11 +357,11 @@ namespace PCGExData
 
 			TypedOutAttribute = Source->FindOrCreateAttribute(FullName, DefaultValue, bAllowInterpolation);
 
-			if(!TypedOutAttribute)
+			if (!TypedOutAttribute)
 			{
 				return false;
 			}
-			
+
 			OutAccessor = MakeUnique<FPCGAttributeAccessor<T>>(TypedOutAttribute, Source->GetOut()->Metadata);
 
 			if (!TypedOutAttribute || !OutAccessor.IsValid())
@@ -446,7 +446,7 @@ namespace PCGExData
 			return PrepareWrite(T{}, true, Init);
 		}
 
-		virtual void Write() override
+		virtual void Write(const bool bEnsureValidKeys = true) override
 		{
 			if (!IsWritable() || !OutAccessor || !OutValues || !TypedOutAttribute) { return; }
 
@@ -459,7 +459,7 @@ namespace PCGExData
 			TRACE_CPUPROFILER_EVENT_SCOPE(TBuffer::Write);
 
 			TArrayView<const T> View = MakeArrayView(OutValues->GetData(), OutValues->Num());
-			OutAccessor->SetRange(View, 0, *Source->GetOutKeys(true).Get());
+			OutAccessor->SetRange(View, 0, *Source->GetOutKeys(bEnsureValidKeys).Get());
 		}
 
 		virtual void Fetch(const PCGExMT::FScope& Scope) override
@@ -975,5 +975,31 @@ namespace PCGExData
 		const int32 MaxIndex = InPoints.Num() - 1;
 		if constexpr (bReverse) { for (int i = 0; i <= MaxIndex; i++) { OutTransforms[i] = InPoints[i].Transform; } }
 		else { for (int i = 0; i <= MaxIndex; i++) { OutTransforms[MaxIndex - i] = InPoints[i].Transform; } }
+	}
+
+	class /*PCGEXTENDEDTOOLKIT_API*/ FWriteBufferTask final : public PCGExMT::FTask
+	{
+	public:
+		PCGEX_ASYNC_TASK_NAME(FWriteTask)
+
+		explicit FWriteBufferTask(const TSharedPtr<FBufferBase>& InBuffer, const bool InEnsureValidKeys = true)
+			: FTask(), bEnsureValidKeys(InEnsureValidKeys), Buffer(InBuffer)
+		{
+		}
+
+		bool bEnsureValidKeys = true;
+		TSharedPtr<FBufferBase> Buffer;
+
+		virtual void ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager) override
+		{
+			if (!Buffer) { return; }
+			Buffer->Write(bEnsureValidKeys);
+		}
+	};
+
+	static void WriteBuffer(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager, const TSharedPtr<FBufferBase>& InBuffer, const bool InEnsureValidKeys = true)
+	{
+		if (!AsyncManager || !AsyncManager->IsAvailable()) { InBuffer->Write(InEnsureValidKeys); }
+		PCGEX_LAUNCH(FWriteBufferTask, InBuffer, InEnsureValidKeys)
 	}
 }

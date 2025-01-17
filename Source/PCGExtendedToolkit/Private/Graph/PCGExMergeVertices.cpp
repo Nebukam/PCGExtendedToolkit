@@ -28,7 +28,7 @@ void FPCGExMergeVerticesContext::ClusterProcessing_InitialProcessingDone()
 		StartOffset += Batch->VtxDataFacade->GetNum();
 	}
 
-	Merger->Merge(GetAsyncManager(), &CarryOverDetails);
+	Merger->MergeAsync(GetAsyncManager(), &CarryOverDetails);
 	PCGExGraph::SetClusterVtx(CompositeDataFacade->Source, OutVtxId); // After merge since it forwards IDs
 }
 

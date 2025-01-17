@@ -60,6 +60,21 @@ namespace PCGEx
 		}
 	}
 
+	int32 FAttributeIdentity::ForEach(const UPCGMetadata* InMetadata, FForEachFunc&& Func)
+	{
+		if (!InMetadata) { return 0; }
+		TArray<FName> Names;
+		TArray<EPCGMetadataTypes> Types;
+		InMetadata->GetAttributes(Names, Types);
+		const int32 NumAttributes = Names.Num();
+		for (int i = 0; i < NumAttributes; i++)
+		{
+			const FAttributeIdentity Identity = FAttributeIdentity(Names[i], Types[i], InMetadata->GetConstAttribute(Names[i])->AllowsInterpolation());
+			Func(Identity, i);
+		}
+		return NumAttributes;
+	}
+
 	bool FAttributesInfos::Contains(const FName AttributeName, const EPCGMetadataTypes Type)
 	{
 		for (FAttributeIdentity& Identity : Identities) { if (Identity.Name == AttributeName && Identity.UnderlyingType == Type) { return true; } }

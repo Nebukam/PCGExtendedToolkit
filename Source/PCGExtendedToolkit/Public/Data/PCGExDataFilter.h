@@ -160,6 +160,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExNameFiltersDetails
 
 	void Prune(TSet<FName>& Names, bool bInvert = false) const
 	{
+		TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExNameFiltersDetails::Prune);
 		TArray<FName> ValidNames;
 		ValidNames.Reserve(Names.Num());
 		if (bInvert) { for (FName Name : Names) { if (!Test(Name.ToString())) { ValidNames.Add(Name); } } }
@@ -168,8 +169,9 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExNameFiltersDetails
 		Names.Append(ValidNames);
 	}
 
-	void Prune(PCGEx::FAttributesInfos& InAttributeInfos, bool bInvert = false) const
+	void Prune(PCGEx::FAttributesInfos& InAttributeInfos, const bool bInvert = false) const
 	{
+		TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExNameFiltersDetails::Prune);
 		if (bInvert) { InAttributeInfos.Filter([&](const FName& InName) { return Test(InName.ToString()); }); }
 		else { InAttributeInfos.Filter([&](const FName& InName) { return !Test(InName.ToString()); }); }
 	}
