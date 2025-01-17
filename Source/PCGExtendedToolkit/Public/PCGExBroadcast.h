@@ -138,7 +138,7 @@ namespace PCGEx
 	{
 		if constexpr (std::is_same_v<T, decltype(Value)>) { return Value; }
 
-		else if constexpr (std::is_same_v<T, bool>) { return Value.X > 0; }
+		else if constexpr (std::is_same_v<T, bool>) { return Value.Length() > 0; }
 		else if constexpr (std::is_same_v<T, int32> || std::is_same_v<T, int64> || std::is_same_v<T, float> || std::is_same_v<T, double>) { return Value.X; }
 		else if constexpr (std::is_same_v<T, FVector2D>) { return Value; }
 		else if constexpr (std::is_same_v<T, FVector>) { return FVector(Value.X, Value.Y, 0); }
@@ -160,7 +160,7 @@ namespace PCGEx
 	{
 		if constexpr (std::is_same_v<T, decltype(Value)>) { return Value; }
 
-		else if constexpr (std::is_same_v<T, bool>) { return Value.X > 0; }
+		else if constexpr (std::is_same_v<T, bool>) { return Value.Length() > 0; }
 		else if constexpr (std::is_same_v<T, int32> || std::is_same_v<T, int64> || std::is_same_v<T, float> || std::is_same_v<T, double>) { return Value.X; }
 		else if constexpr (std::is_same_v<T, FVector2D>) { return FVector2D(Value.X, Value.Y); }
 		else if constexpr (std::is_same_v<T, FVector>) { return Value; }
@@ -281,6 +281,7 @@ namespace PCGEx
 	{
 		if constexpr (std::is_same_v<T, decltype(Value)>) { return Value; }
 
+		else if constexpr (std::is_same_v<T, bool>) { return Value.Contains(TEXT("true")); }
 		else if constexpr (std::is_same_v<T, FString>) { return Value; }
 		else if constexpr (std::is_same_v<T, FName>) { return FName(Value); }
 		else if constexpr (std::is_same_v<T, FSoftClassPath>) { return FSoftClassPath(Value); }
@@ -296,7 +297,8 @@ namespace PCGEx
 	FORCEINLINE static T Broadcast(const FName& Value)
 	{
 		if constexpr (std::is_same_v<T, decltype(Value)>) { return Value; }
-
+		
+		else if constexpr (std::is_same_v<T, bool>) { return Value.ToString().Contains(TEXT("true")); }
 		else if constexpr (std::is_same_v<T, FString>) { return Value.ToString(); }
 		else if constexpr (std::is_same_v<T, FName>) { return Value; }
 		else if constexpr (std::is_same_v<T, FSoftClassPath>) { return FSoftClassPath(Value.ToString()); }

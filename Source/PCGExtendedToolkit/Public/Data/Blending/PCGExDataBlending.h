@@ -78,7 +78,7 @@ enum class EPCGExDataBlendingType : uint8
 	Weight           = 2 UMETA(DisplayName = "Weight", ToolTip="Weights based on distance to blend targets. If the results are unexpected, try 'Lerp' instead"),
 	Min              = 3 UMETA(DisplayName = "Min", ToolTip="Component-wise MIN operation"),
 	Max              = 4 UMETA(DisplayName = "Max", ToolTip="Component-wise MAX operation"),
-	Copy             = 5 UMETA(DisplayName = "Copy", ToolTip = "Copy incoming data"),
+	Copy             = 5 UMETA(DisplayName = "Copy (Target)", ToolTip = "Copy target data (second value)"),
 	Sum              = 6 UMETA(DisplayName = "Sum", ToolTip = "Sum"),
 	WeightedSum      = 7 UMETA(DisplayName = "Weighted Sum", ToolTip = "Sum of all the data, weighted"),
 	Lerp             = 8 UMETA(DisplayName = "Lerp", ToolTip="Uses weight as lerp. If the results are unexpected, try 'Weight' instead."),
@@ -88,7 +88,7 @@ enum class EPCGExDataBlendingType : uint8
 	AbsoluteMin      = 12 UMETA(DisplayName = "Absolute Min", ToolTip="Component-wise MIN of absolute value."),
 	AbsoluteMax      = 13 UMETA(DisplayName = "Absolute Max", ToolTip="Component-wise MAX of absolute value."),
 	WeightedSubtract = 14 UMETA(DisplayName = "Weighted Subtract", ToolTip="Substraction of all the data, weighted"),
-	CopyOther        = 15 UMETA(DisplayName = "Copy (Other)", ToolTip="Same as copy, but uses the other value."),
+	CopyOther        = 15 UMETA(DisplayName = "Copy (Source)", ToolTip="Copy source data (first value)"),
 };
 
 USTRUCT(BlueprintType)

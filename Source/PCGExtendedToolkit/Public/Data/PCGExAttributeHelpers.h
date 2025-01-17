@@ -113,13 +113,15 @@ namespace PCGEx
 		const EPCGMetadataTypes UnderlyingType = EPCGMetadataTypes::Unknown;
 		const bool bAllowsInterpolation = true;
 
+		FAttributeIdentity() = default;
+		
 		FAttributeIdentity(const FAttributeIdentity& Other)
 			: Name(Other.Name), UnderlyingType(Other.UnderlyingType), bAllowsInterpolation(Other.bAllowsInterpolation)
 		{
 		}
 
-		FAttributeIdentity(const FName InName, const EPCGMetadataTypes InUnderlyingType, const bool AllowsInterpolation)
-			: Name(InName), UnderlyingType(InUnderlyingType), bAllowsInterpolation(AllowsInterpolation)
+		FAttributeIdentity(const FName InName, const EPCGMetadataTypes InUnderlyingType, const bool InAllowsInterpolation)
+			: Name(InName), UnderlyingType(InUnderlyingType), bAllowsInterpolation(InAllowsInterpolation)
 		{
 		}
 
@@ -132,6 +134,9 @@ namespace PCGEx
 
 		static void Get(const UPCGMetadata* InMetadata, TArray<FAttributeIdentity>& OutIdentities);
 		static void Get(const UPCGMetadata* InMetadata, TArray<FName>& OutNames, TMap<FName, FAttributeIdentity>& OutIdentities);
+
+		using FForEachFunc = std::function<void (const FAttributeIdentity&, const int32)>;
+		static int32 ForEach(const UPCGMetadata* InMetadata, FForEachFunc&& Func);
 	};
 
 	class FAttributesInfos : public TSharedFromThis<FAttributesInfos>
