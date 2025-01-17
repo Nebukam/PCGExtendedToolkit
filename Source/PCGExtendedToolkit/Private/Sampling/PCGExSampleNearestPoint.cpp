@@ -379,7 +379,7 @@ namespace PCGExSampleNearestPoints
 
 			WeightedSignAxis += PCGExMath::GetDirection(TargetRotation, Settings->SignAxis) * Weight;
 			WeightedAngleAxis += PCGExMath::GetDirection(TargetRotation, Settings->AngleAxis) * Weight;
-			WeightedDistance += FMath::Sqrt(TargetInfos.Distance) * Weight;
+			WeightedDistance += FMath::Sqrt(TargetInfos.Distance);
 
 			TotalWeight += Weight;
 			TotalSamples++;
@@ -411,6 +411,7 @@ namespace PCGExSampleNearestPoints
 		{
 			WeightedUp /= TotalWeight;
 			WeightedTransform = PCGExMath::Div(WeightedTransform, TotalWeight);
+			WeightedDistance /= TotalSamples; // Weighted distance is an average, not a weight T_T
 		}
 
 		WeightedUp.Normalize();

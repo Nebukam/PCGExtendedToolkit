@@ -30,7 +30,7 @@ enum class EPCGExDataBlendingTypeDefault : uint8
 	Weight           = 2 UMETA(DisplayName = "Weight", ToolTip="Weights based on distance to blend targets. If the results are unexpected, try 'Lerp' instead"),
 	Min              = 3 UMETA(DisplayName = "Min", ToolTip="Component-wise MIN operation"),
 	Max              = 4 UMETA(DisplayName = "Max", ToolTip="Component-wise MAX operation"),
-	Copy             = 5 UMETA(DisplayName = "Copy", ToolTip = "Copy incoming data"),
+	Copy             = 5 UMETA(DisplayName = "Copy (Target)", ToolTip = "Copy target data (second value)"),
 	Sum              = 6 UMETA(DisplayName = "Sum", ToolTip = "Sum"),
 	WeightedSum      = 7 UMETA(DisplayName = "Weighted Sum", ToolTip = "Sum of all the data, weighted"),
 	Lerp             = 8 UMETA(DisplayName = "Lerp", ToolTip="Uses weight as lerp. If the results are unexpected, try 'Weight' instead."),
@@ -40,7 +40,7 @@ enum class EPCGExDataBlendingTypeDefault : uint8
 	AbsoluteMin      = 12 UMETA(DisplayName = "Unsigned Min", ToolTip="Component-wise MIN on unsigned value, but keeps the sign on written data."),
 	AbsoluteMax      = 13 UMETA(DisplayName = "Unsigned Max", ToolTip="Component-wise MAX on unsigned value, but keeps the sign on written data."),
 	WeightedSubtract = 14 UMETA(DisplayName = "Weighted Subtract", ToolTip="Substraction of all the data, weighted"),
-	CopyOther        = 15 UMETA(DisplayName = "Copy (Other)", ToolTip="Same as copy, but copy the other value"),
+	CopyOther        = 15 UMETA(DisplayName = "Copy (Source)", ToolTip="Copy source data (first value)"),
 };
 
 namespace PCGEx

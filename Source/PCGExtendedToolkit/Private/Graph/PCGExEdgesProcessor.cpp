@@ -85,7 +85,7 @@ bool FPCGExEdgesProcessorContext::AdvancePointsIO(const bool bCleanupKeys)
 
 	if (!FPCGExPointsProcessorContext::AdvancePointsIO(bCleanupKeys)) { return false; }
 
-	if (const PCGExTags::IDType TagValue = CurrentIO->Tags->GetValue<int32>(PCGExGraph::TagStr_ClusterPair))
+	if (const PCGExTags::IDType TagValue = CurrentIO->Tags->GetTypedValue<int32>(PCGExGraph::TagStr_ClusterPair))
 	{
 		int32 PreUpdateKey = TagValue->Value;
 		TaggedEdges = InputDictionary->GetEntries(PreUpdateKey);

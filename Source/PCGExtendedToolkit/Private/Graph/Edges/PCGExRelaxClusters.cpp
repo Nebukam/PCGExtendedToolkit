@@ -201,7 +201,7 @@ namespace PCGExRelaxClusters
 		FPCGPoint& Point = VtxDataFacade->Source->GetMutablePoint(Node.PointIndex);
 
 		TArray<FPCGPoint>& MutablePoints = VtxDataFacade->GetOut()->GetMutablePoints();
-		if (!InfluenceDetails.bProgressiveInfluence)
+		if (InfluenceDetails.bProgressiveInfluence)
 		{
 			Point.Transform = PCGExMath::Lerp(
 				Point.Transform,

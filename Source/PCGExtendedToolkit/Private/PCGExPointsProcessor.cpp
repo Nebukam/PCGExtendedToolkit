@@ -10,6 +10,7 @@
 
 
 #include "Helpers/PCGSettingsHelpers.h"
+#include "Misc/PCGExMergePoints.h"
 
 #define LOCTEXT_NAMESPACE "PCGExGraphSettings"
 
@@ -105,20 +106,34 @@ bool FPCGExPointsProcessorContext::ProcessPointsBatch(const PCGEx::ContextState 
 
 	PCGEX_ON_ASYNC_STATE_READY_INTERNAL(PCGExPointsMT::MTState_PointsProcessing)
 	{
-		TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExPointsProcessorContext::BatchProcessing_InitialProcessingDone);
+		TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExPointsProcessorContext::ProcessPointsBatch::InitialProcessingDone);
 		BatchProcessing_InitialProcessingDone();
 		SetAsyncState(PCGExPointsMT::MTState_PointsCompletingWork);
-		MainBatch->CompleteWork();
+		//GetAsyncManager();
+		PCGEX_LAUNCH(
+			PCGExMT::FDeferredCallbackTask,
+			[WeakHandle = GetOrCreateHandle()]()
+			{
+			FPCGExMergePointsContext* Ctx = GetContextFromHandle<FPCGExMergePointsContext>(WeakHandle);
+			if(Ctx){Ctx->MainBatch->CompleteWork();}
+			});
 	}
 
 	PCGEX_ON_ASYNC_STATE_READY_INTERNAL(PCGExPointsMT::MTState_PointsCompletingWork)
 	{
-		TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExPointsProcessorContext::BatchProcessing_WorkComplete);
+		TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExPointsProcessorContext::ProcessPointsBatch::WorkComplete);
 		BatchProcessing_WorkComplete();
 		if (MainBatch->bRequiresWriteStep)
 		{
 			SetAsyncState(PCGExPointsMT::MTState_PointsWriting);
-			MainBatch->Write();
+			//GetAsyncManager();
+			PCGEX_LAUNCH(
+				PCGExMT::FDeferredCallbackTask,
+				[WeakHandle = GetOrCreateHandle()]()
+				{
+				FPCGExMergePointsContext* Ctx = GetContextFromHandle<FPCGExMergePointsContext>(WeakHandle);
+				if(Ctx){Ctx->MainBatch->Write();}
+				});
 			return false;
 		}
 
@@ -130,7 +145,7 @@ bool FPCGExPointsProcessorContext::ProcessPointsBatch(const PCGEx::ContextState 
 
 	PCGEX_ON_ASYNC_STATE_READY_INTERNAL(PCGExPointsMT::MTState_PointsWriting)
 	{
-		TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExPointsProcessorContext::BatchProcessing_WritingDone);
+		TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExPointsProcessorContext::ProcessPointsBatch::WritingDone);
 		BatchProcessing_WritingDone();
 
 		bBatchProcessingEnabled = false;

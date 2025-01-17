@@ -451,6 +451,7 @@ namespace PCGExMT
 		check(Count > 0);
 
 		TSharedPtr<FAsyncMultiHandle> PinnedRoot = Root.Pin();
+		
 		if (!PinnedRoot) { return; }
 		StaticCastSharedPtr<FTaskManager>(PinnedRoot)->ReserveTasks(Count);
 
@@ -510,5 +511,25 @@ namespace PCGExMT
 
 		PCGEX_MAKE_SHARED(Task, FDaisyChainScopeIterationTask, Scope.GetNextScopeIndex())
 		Group->LaunchWithPreparation(Task, bPrepareOnly);
+	}
+
+	void FDeferredCallbackTask::ExecuteTask(const TSharedPtr<FTaskManager>& AsyncManager)
+	{
+		Callback();
+	}
+
+	void FDeferredCallbackWithManagerTask::ExecuteTask(const TSharedPtr<FTaskManager>& AsyncManager)
+	{
+		Callback(AsyncManager);
+	}
+
+	bool FDeferredCallbackHandle::Start()
+	{
+		if (FAsyncHandle::Start())
+		{
+			Callback();
+			return true;
+		}
+		return false;
 	}
 }
