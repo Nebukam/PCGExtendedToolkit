@@ -81,6 +81,7 @@ class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExAttributeBlendOperation : public UPCGExOp
 	GENERATED_BODY()
 
 public:
+	UPROPERTY()
 	FPCGExAttributeBlendConfig Config;
 
 	virtual void PrepareForData(const TSharedRef<PCGExData::FFacade>& InDataFacade);
@@ -131,4 +132,7 @@ public:
 	/** Config. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ShowOnlyInnerProperties))
 	FPCGExAttributeBlendConfig Config;
+
+protected:
+	virtual bool IsCacheable() const override { return true; }
 };

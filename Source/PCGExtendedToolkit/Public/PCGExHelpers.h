@@ -577,7 +577,7 @@ namespace PCGEx
 
 	protected:
 		TSet<UObject*> DuplicateObjects;
-		void RecursivelyClearAsyncFlagUnsafe(UObject* InObject) const;
+		void RecursivelyClearAsyncFlag_Unsafe(UObject* InObject) const;
 
 	private:
 		std::atomic<bool> bIsFlushing{false};

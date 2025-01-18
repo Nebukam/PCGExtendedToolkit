@@ -48,8 +48,12 @@ class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExTensorConstantFactory : public UPCGExTens
 	GENERATED_BODY()
 
 public:
+	UPROPERTY()
 	FPCGExTensorConstantConfig Config;
+
+	UPROPERTY()
 	FVector Constant = FVector::OneVector;
+
 	virtual UPCGExTensorOperation* CreateOperation(FPCGExContext* InContext) const override;
 
 protected:
@@ -86,4 +90,7 @@ public:
 	FPCGExTensorConstantConfig Config;
 
 	virtual UPCGExFactoryData* CreateFactory(FPCGExContext* InContext, UPCGExFactoryData* InFactory) const override;
+
+protected:
+	virtual bool IsCacheable() const override { return true; }
 };

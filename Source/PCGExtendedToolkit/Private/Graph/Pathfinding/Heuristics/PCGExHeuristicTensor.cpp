@@ -42,7 +42,7 @@ bool UPCGExHeuristicsFactoryTensor::Prepare(FPCGExContext* InContext)
 TArray<FPCGPinProperties> UPCGExHeuristicsTensorProviderSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
-	PCGEX_PIN_PARAMS(PCGExTensor::SourceTensorsLabel, "Tensors fields to influence search", Required, {})
+	PCGEX_PIN_FACTORIES(PCGExTensor::SourceTensorsLabel, "Tensors fields to influence search", Required, {})
 	return PinProperties;
 }
 

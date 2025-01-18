@@ -87,6 +87,12 @@ void FPCGExBasicEdgeSolidificationDetails::Mutate(FPCGPoint& InEdgePoint, const 
 	InEdgePoint.BoundsMax = BoundsMax;
 }
 
+bool FPCGExGraphBuilderDetails::WantsClusters() const
+{
+	PCGEX_GET_OPTION_STATE(BuildAndCacheClusters, bDefaultBuildAndCacheClusters)
+	
+}
+
 bool FPCGExGraphBuilderDetails::IsValid(const TSharedPtr<PCGExGraph::FSubGraph>& InSubgraph) const
 {
 	if (bRemoveBigClusters)
@@ -243,7 +249,7 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 
 			if (bHasUnionMetadata)
 			{
-				if (const FGraphEdgeMetadata* EdgeMeta = ParentGraph->FindRootEdgeMetadataUnsafe(E.IOIndex))
+				if (const FGraphEdgeMetadata* EdgeMeta = ParentGraph->FindRootEdgeMetadata_Unsafe(E.IOIndex))
 				{
 					if (UnionBlender)
 					{
@@ -299,7 +305,7 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 		EdgeMetadata.Reserve(UpcomingAdditionCount);
 	}
 
-	bool FGraph::InsertEdgeUnsafe(const int32 A, const int32 B, FEdge& OutEdge, const int32 IOIndex)
+	bool FGraph::InsertEdge_Unsafe(const int32 A, const int32 B, FEdge& OutEdge, const int32 IOIndex)
 	{
 		check(A != B)
 
@@ -319,10 +325,10 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 	bool FGraph::InsertEdge(const int32 A, const int32 B, FEdge& OutEdge, const int32 IOIndex)
 	{
 		FWriteScopeLock WriteLock(GraphLock);
-		return InsertEdgeUnsafe(A, B, OutEdge, IOIndex);
+		return InsertEdge_Unsafe(A, B, OutEdge, IOIndex);
 	}
 
-	bool FGraph::InsertEdgeUnsafe(const FEdge& Edge)
+	bool FGraph::InsertEdge_Unsafe(const FEdge& Edge)
 	{
 		uint64 H = Edge.H64U();
 		if (UniqueEdges.Contains(H)) { return false; }
@@ -339,12 +345,12 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 	bool FGraph::InsertEdge(const FEdge& Edge)
 	{
 		FWriteScopeLock WriteLock(GraphLock);
-		return InsertEdgeUnsafe(Edge);
+		return InsertEdge_Unsafe(Edge);
 	}
 
-	bool FGraph::InsertEdgeUnsafe(const FEdge& Edge, FEdge& OutEdge, const int32 InIOIndex)
+	bool FGraph::InsertEdge_Unsafe(const FEdge& Edge, FEdge& OutEdge, const int32 InIOIndex)
 	{
-		return InsertEdgeUnsafe(Edge.Start, Edge.End, OutEdge, InIOIndex);
+		return InsertEdge_Unsafe(Edge.Start, Edge.End, OutEdge, InIOIndex);
 	}
 
 	bool FGraph::InsertEdge(const FEdge& Edge, FEdge& OutEdge, const int32 InIOIndex)
@@ -378,11 +384,11 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 	{
 		FWriteScopeLock WriteLock(GraphLock);
 		const int32 StartIndex = Edges.Num();
-		for (const FEdge& E : InEdges) { InsertEdgeUnsafe(E); }
+		for (const FEdge& E : InEdges) { InsertEdge_Unsafe(E); }
 		return StartIndex;
 	}
 
-	void FGraph::InsertEdgesUnsafe(const TSet<uint64>& InEdges, const int32 InIOIndex)
+	void FGraph::InsertEdges_Unsafe(const TSet<uint64>& InEdges, const int32 InIOIndex)
 	{
 		uint32 A;
 		uint32 B;
@@ -405,7 +411,7 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 	void FGraph::InsertEdges(const TSet<uint64>& InEdges, const int32 InIOIndex)
 	{
 		FWriteScopeLock WriteLock(GraphLock);
-		InsertEdgesUnsafe(InEdges, InIOIndex);
+		InsertEdges_Unsafe(InEdges, InIOIndex);
 	}
 
 	TArrayView<FNode> FGraph::AddNodes(const int32 NumNewNodes)
@@ -624,7 +630,7 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 
 			for (const int32 NodeIndex : ValidNodes)
 			{
-				const FGraphNodeMetadata* NodeMeta = Graph->FindNodeMetadataUnsafe(NodeIndex);
+				const FGraphNodeMetadata* NodeMeta = Graph->FindNodeMetadata_Unsafe(NodeIndex);
 
 				if (!NodeMeta) { continue; }
 
@@ -697,7 +703,7 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 								});
 						}
 					}
-					else if (!This->bCompiledSuccessfully)
+					else if (This->bCompiledSuccessfully)
 					{
 						This->NodeDataFacade->Write(This->AsyncManager);
 					}

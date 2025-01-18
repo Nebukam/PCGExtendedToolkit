@@ -17,7 +17,7 @@ TArray<FPCGPinProperties> UPCGExTopologyEdgesProcessorSettings::InputPinProperti
 	PCGEX_PIN_POINT(PCGExTopology::SourceHolesLabel, "Omit cells that contain any points from this dataset", Normal, {})
 	if (SupportsEdgeConstraints())
 	{
-		PCGEX_PIN_PARAMS(PCGExTopology::SourceEdgeConstrainsFiltersLabel, "Constrained edges filters.", Normal, {})
+		PCGEX_PIN_FACTORIES(PCGExTopology::SourceEdgeConstrainsFiltersLabel, "Constrained edges filters.", Normal, {})
 	}
 	return PinProperties;
 }

@@ -9,7 +9,7 @@ namespace PCGExData
 {
 #pragma region Pools & cache
 
-	TSharedPtr<FBufferBase> FFacade::FindBufferUnsafe(const uint64 UID)
+	TSharedPtr<FBufferBase> FFacade::FindBuffer_Unsafe(const uint64 UID)
 	{
 		TSharedPtr<FBufferBase>* Found = BufferMap.Find(UID);
 		if (!Found) { return nullptr; }
@@ -19,7 +19,7 @@ namespace PCGExData
 	TSharedPtr<FBufferBase> FFacade::FindBuffer(const uint64 UID)
 	{
 		FReadScopeLock ReadScopeLock(BufferLock);
-		return FindBufferUnsafe(UID);
+		return FindBuffer_Unsafe(UID);
 	}
 
 	TSharedPtr<FBufferBase> FFacade::FindReadableAttributeBuffer(const FName InName)
@@ -57,13 +57,13 @@ namespace PCGExData
 		}
 	}
 
-	void FFacade::Write(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager)
+	void FFacade::Write(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager, const bool bEnsureValidKeys)
 	{
 		if (!AsyncManager || !AsyncManager->IsAvailable() || !Source->GetOut()) { return; }
 
 		//UE_LOG(LogTemp, Warning, TEXT("{%lld} Facade -> Write"), AsyncManager->Context->GetInputSettings<UPCGSettings>()->UID)
 
-		Source->GetOutKeys(true);
+		if (bEnsureValidKeys) { Source->GetOutKeys(true); }
 
 		{
 			FWriteScopeLock WriteScopeLock(BufferLock);

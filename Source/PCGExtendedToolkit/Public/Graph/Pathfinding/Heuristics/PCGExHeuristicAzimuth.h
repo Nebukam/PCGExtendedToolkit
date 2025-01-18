@@ -69,6 +69,7 @@ class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExHeuristicsFactoryAzimuth : public UPCGExH
 	GENERATED_BODY()
 
 public:
+	UPROPERTY()
 	FPCGExHeuristicConfigAzimuth Config;
 
 	virtual UPCGExHeuristicOperation* CreateOperation(FPCGExContext* InContext) const override;

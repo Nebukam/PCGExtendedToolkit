@@ -12,7 +12,7 @@
 TArray<FPCGPinProperties> UPCGExWriteVtxPropertiesSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
-	PCGEX_PIN_PARAMS(PCGExVtxProperty::SourcePropertyLabel, "Extra attribute handlers.", Normal, {})
+	PCGEX_PIN_FACTORIES(PCGExVtxProperty::SourcePropertyLabel, "Extra attribute handlers.", Normal, {})
 	return PinProperties;
 }
 

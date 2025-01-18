@@ -78,7 +78,9 @@ class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExProbeFactoryNumericCompare : public UPCGE
 	GENERATED_BODY()
 
 public:
+	UPROPERTY()
 	FPCGExProbeConfigNumericCompare Config;
+	
 	virtual UPCGExProbeOperation* CreateOperation(FPCGExContext* InContext) const override;
 };
 

@@ -97,7 +97,7 @@ TArray<FPCGPinProperties> UPCGExIsoEdgeDirectionFilterProviderSettings::InputPin
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
 	if (Config.DirectionSettings.DirectionMethod == EPCGExEdgeDirectionMethod::EndpointsSort)
 	{
-		PCGEX_PIN_PARAMS(PCGExGraph::SourceEdgeSortingRules, "Plug sorting rules here. Order is defined by each rule' priority value, in ascending order.", Required, {})
+		PCGEX_PIN_FACTORIES(PCGExGraph::SourceEdgeSortingRules, "Plug sorting rules here. Order is defined by each rule' priority value, in ascending order.", Required, {})
 	}
 	return PinProperties;
 }

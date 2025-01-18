@@ -137,9 +137,11 @@ class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExHeuristicsFactoryFeedback : public UPCGEx
 	GENERATED_BODY()
 
 public:
-	virtual bool IsGlobal() const { return Config.bGlobalFeedback; }
 
+	UPROPERTY()
 	FPCGExHeuristicConfigFeedback Config;
+	
+	virtual bool IsGlobal() const { return Config.bGlobalFeedback; }
 
 	virtual UPCGExHeuristicOperation* CreateOperation(FPCGExContext* InContext) const override;
 	PCGEX_HEURISTIC_FACTORY_BOILERPLATE

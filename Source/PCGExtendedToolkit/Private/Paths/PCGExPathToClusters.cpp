@@ -107,6 +107,7 @@ bool FPCGExPathToClustersElement::ExecuteInternal(FPCGContext* InContext) const
 				},
 				[&](const TSharedPtr<PCGExPointsMT::TBatch<PCGExPathToClusters::FFusingProcessor>>& NewBatch)
 				{
+					NewBatch->bSkipCompletion = true;
 					NewBatch->bDaisyChainProcessing = Settings->PointPointIntersectionDetails.FuseDetails.DoInlineInsertion();
 				}))
 			{
@@ -273,6 +274,18 @@ namespace PCGExPathToClusters
 		UnionGraph->InsertEdge(
 			*(InPoints->GetData() + Index), IOIndex, Index,
 			*(InPoints->GetData() + NextIndex), IOIndex, NextIndex);
+	}
+
+	void FFusingProcessor::OnPointsProcessingComplete()
+	{
+		TPointsProcessor<FPCGExPathToClustersContext, UPCGExPathToClustersSettings>::OnPointsProcessingComplete();
+		// Schedule next update early
+		AsyncManager->DeferredResumeExecution([PCGEX_ASYNC_THIS_CAPTURE]()
+		{
+			// Hack to force daisy chain advance, since we know when we're ready to do so
+			PCGEX_ASYNC_THIS
+			This->Context->ProcessPointsBatch(PCGExGraph::State_PreparingUnion); // Force move to next
+		});
 	}
 
 #pragma endregion

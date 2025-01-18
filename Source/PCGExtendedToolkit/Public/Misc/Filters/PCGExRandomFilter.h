@@ -75,8 +75,7 @@ class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExRandomFilterFactory : public UPCGExFilter
 	GENERATED_BODY()
 
 public:
-	FRuntimeFloatCurve RuntimeWeightCurve;
-
+	UPROPERTY()
 	FPCGExRandomFilterConfig Config;
 
 	virtual bool Init(FPCGExContext* InContext) override;
@@ -148,4 +147,7 @@ public:
 #if WITH_EDITOR
 	virtual FString GetDisplayName() const override;
 #endif
+
+protected:
+	virtual bool IsCacheable() const override { return true; }
 };

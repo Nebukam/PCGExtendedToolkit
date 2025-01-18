@@ -85,9 +85,6 @@ namespace PCGExMT
 		case EPCGExAsyncPriority::BackgroundLow:
 			Priority = UE::Tasks::ETaskPriority::BackgroundLow;
 			break;
-		case EPCGExAsyncPriority::Count:
-			Priority = UE::Tasks::ETaskPriority::Count;
-			break;
 		}
 	}
 
@@ -337,6 +334,9 @@ namespace PCGExMT
 		TSharedPtr<FTaskGroup> TryCreateTaskGroup(const FName& InName);
 		TWeakPtr<FAsyncToken> TryCreateToken(const FName& TokenName);
 
+		void DeferredReset(FSimpleCallback&& Callback);
+		void DeferredResumeExecution(FSimpleCallback&& Callback) const;
+
 	protected:
 		std::atomic<bool> bIsCancelling{false};
 		bool IsCancelling() const { return bIsCancelling.load(std::memory_order_acquire); }
@@ -384,6 +384,12 @@ namespace PCGExMT
 			const TSharedPtr<FAsyncMultiHandle> PinnedRoot = Root.Pin();
 			if (!PinnedRoot) { return; }
 
+			if (MaxItems <= 0)
+			{
+				UE_LOG(LogTemp, Warning, TEXT("StartRanges: MaxItems = %i"), MaxItems);
+				return;
+			}
+			
 			check(MaxItems > 0);
 
 			// Compute sub scopes
@@ -584,5 +590,4 @@ namespace PCGExMT
 			// Hold off until ended
 		}
 	}
-
 }

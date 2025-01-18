@@ -70,6 +70,7 @@ class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExNodeEdgeDirectionFilterFactory : public U
 	GENERATED_BODY()
 
 public:
+	UPROPERTY()
 	FPCGExNodeEdgeDirectionFilterConfig Config;
 
 	virtual TSharedPtr<PCGExPointFilter::FFilter> CreateFilter() const override;
@@ -137,4 +138,7 @@ public:
 #if WITH_EDITOR
 	virtual FString GetDisplayName() const override;
 #endif
+
+protected:
+	virtual bool IsCacheable() const override { return true; }
 };

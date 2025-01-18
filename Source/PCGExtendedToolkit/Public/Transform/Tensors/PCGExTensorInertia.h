@@ -36,7 +36,9 @@ class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExTensorInertia : public UPCGExTensorPointO
 	GENERATED_BODY()
 
 public:
+	UPROPERTY()
 	FPCGExTensorInertiaConfig Config;
+
 	virtual bool Init(FPCGExContext* InContext, const UPCGExTensorFactoryData* InFactory) override;
 
 	virtual PCGExTensor::FTensorSample Sample(const FTransform& InProbe) const override;
@@ -71,4 +73,7 @@ public:
 	FPCGExTensorInertiaConfig Config;
 
 	virtual UPCGExFactoryData* CreateFactory(FPCGExContext* InContext, UPCGExFactoryData* InFactory) const override;
+
+protected:
+	virtual bool IsCacheable() const override { return true; }
 };

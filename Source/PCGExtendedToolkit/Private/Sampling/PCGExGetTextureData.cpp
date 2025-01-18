@@ -24,7 +24,7 @@ UPCGExGetTextureDataSettings::UPCGExGetTextureDataSettings(const FObjectInitiali
 TArray<FPCGPinProperties> UPCGExGetTextureDataSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
-	if (SourceType == EPCGExGetTexturePathType::MaterialPath) { PCGEX_PIN_PARAMS(PCGExTexture::SourceTexLabel, "Texture params to extract from reference materials.", Required, {}) }
+	if (SourceType == EPCGExGetTexturePathType::MaterialPath) { PCGEX_PIN_FACTORIES(PCGExTexture::SourceTexLabel, "Texture params to extract from reference materials.", Required, {}) }
 	return PinProperties;
 }
 
