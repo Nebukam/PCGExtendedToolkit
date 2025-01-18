@@ -151,14 +151,14 @@ public:
 	/** Cache the results of this node. Can yield unexpected result in certain cases.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Performance, meta=(PCG_NotOverridable, AdvancedDisplay))
 	EPCGExOptionState CachingBehavior = EPCGExOptionState::Default;
-	
+
 	/** Whether this factory can register consumable attributes or not. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Cleanup", meta = (PCG_NotOverridable))
 	bool bCleanupConsumableAttributes = false;
 
 protected:
 	virtual bool IsCacheable() const { return false; } // Until I find a way to properly cache factories :(
-	virtual bool ShouldCache() const; 
+	virtual bool ShouldCache() const;
 };
 
 struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExFactoryProviderContext : FPCGExContext

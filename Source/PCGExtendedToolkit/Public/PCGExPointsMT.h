@@ -509,5 +509,4 @@ namespace PCGExPointsMT
 			Processors.Empty();
 		}
 	};
-
 }
