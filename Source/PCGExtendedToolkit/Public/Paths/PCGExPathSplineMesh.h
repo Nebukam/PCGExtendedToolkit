@@ -134,7 +134,6 @@ public:
 
 protected:
 	virtual bool IsCacheable() const override { return false; }
-	
 };
 
 struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPathSplineMeshContext final : FPCGExPathProcessorContext

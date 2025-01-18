@@ -75,7 +75,7 @@ public:
 	/** Value applied by default to node caching when `Default` is selected*/
 	UPROPERTY(EditAnywhere, config, Category = "Performance|Defaults")
 	bool bDefaultScopedAttributeGet = true;
-	
+
 	UPROPERTY(EditAnywhere, config, Category = "Performance|Cluster", meta=(ClampMin=1))
 	int32 SmallClusterSize = 256;
 
@@ -85,7 +85,7 @@ public:
 
 	UPROPERTY(EditAnywhere, config, Category = "Performance|Cluster")
 	bool bDefaultScopedIndexLookupBuild = false;
-	
+
 	/** Allow caching of clusters */
 	UPROPERTY(EditAnywhere, config, Category = "Performance|Cluster")
 	bool bCacheClusters = true;

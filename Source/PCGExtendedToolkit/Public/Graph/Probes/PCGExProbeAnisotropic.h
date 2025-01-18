@@ -76,7 +76,7 @@ class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExProbeFactoryAnisotropic : public UPCGExPr
 public:
 	UPROPERTY()
 	FPCGExProbeConfigAnisotropic Config;
-	
+
 	virtual UPCGExProbeOperation* CreateOperation(FPCGExContext* InContext) const override;
 };
 
@@ -104,5 +104,4 @@ public:
 #if WITH_EDITOR
 	virtual FString GetDisplayName() const override;
 #endif
-	
 };

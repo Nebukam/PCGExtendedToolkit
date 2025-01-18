@@ -106,7 +106,7 @@ namespace PCGExPointIOMerger
 {
 	void FCopyAttributeTask::ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager)
 	{
-		const PCGExPointIOMerger::FIdentityRef& Identity = Merger->UniqueIdentities[TaskIndex];
+		const FIdentityRef& Identity = Merger->UniqueIdentities[TaskIndex];
 
 		PCGEx::ExecuteWithRightType(
 			Identity.UnderlyingType, [&](auto DummyValue)
