@@ -8,6 +8,11 @@
 #define LOCTEXT_NAMESPACE "PCGExSplineAlphaFilterDefinition"
 #define PCGEX_NAMESPACE PCGExSplineAlphaFilterDefinition
 
+bool UPCGExSplineAlphaFilterFactory::SupportsLiveTesting()
+{
+	return Config.CompareAgainst == EPCGExInputValueType::Constant;
+}
+
 bool UPCGExSplineAlphaFilterFactory::Init(FPCGExContext* InContext)
 {
 	if (!Super::Init(InContext)) { return false; }
@@ -76,6 +81,63 @@ namespace PCGExPointsFilter
 		}
 
 		return true;
+	}
+
+	bool FSplineAlphaFilter::Test(const FPCGPoint& Point) const
+	{
+		const FVector Pos = Point.Transform.GetLocation();
+		double Time = 0;
+
+		if (TypedFilterFactory->Config.TimeConsolidation == EPCGExSplineTimeConsolidation::Min) { Time = MAX_dbl; }
+
+		if (TypedFilterFactory->Config.Pick == EPCGExSplineFilterPick::Closest)
+		{
+			double ClosestDist = MAX_dbl;
+			for (int i = 0; i < Splines.Num(); i++)
+			{
+				const FPCGSplineStruct* Spline = Splines[i];
+
+				double LocalTime = Spline->FindInputKeyClosestToWorldLocation(Pos);
+				FTransform T = Spline->GetTransformAtSplineInputKey(static_cast<float>(LocalTime), ESplineCoordinateSpace::World, true);
+				LocalTime /= SegmentsNum[i];
+
+				const double D = FVector::DistSquared(T.GetLocation(), Pos);
+
+				if (D > ClosestDist) { continue; }
+
+				Time = LocalTime;
+			}
+		}
+		else
+		{
+			for (int i = 0; i < Splines.Num(); i++)
+			{
+				const FPCGSplineStruct* Spline = Splines[i];
+
+				double LocalTime = Spline->FindInputKeyClosestToWorldLocation(Pos);
+				LocalTime /= SegmentsNum[i];
+
+				switch (TypedFilterFactory->Config.TimeConsolidation)
+				{
+				case EPCGExSplineTimeConsolidation::Min:
+					Time = FMath::Min(LocalTime, Time);
+					break;
+				case EPCGExSplineTimeConsolidation::Max:
+					Time = FMath::Max(LocalTime, Time);
+					break;
+				case EPCGExSplineTimeConsolidation::Average:
+					Time += LocalTime;
+					break;
+				}
+			}
+
+			if (TypedFilterFactory->Config.TimeConsolidation == EPCGExSplineTimeConsolidation::Average)
+			{
+				Time /= SegmentsNum.Num();
+			}
+		}
+
+		return PCGExCompare::Compare(TypedFilterFactory->Config.Comparison, Time, TypedFilterFactory->Config.OperandBConstant, TypedFilterFactory->Config.Tolerance);
 	}
 
 	bool FSplineAlphaFilter::Test(const int32 PointIndex) const

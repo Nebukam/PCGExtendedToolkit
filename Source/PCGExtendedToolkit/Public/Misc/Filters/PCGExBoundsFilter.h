@@ -65,6 +65,10 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExBoundsFilterConfig
 	/** If enabled, invert the result of the test */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	bool bInvert = false;
+
+	/** If enabled, a collection will never be tested against itself */
+	//UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	bool bIgnoreSelf = false;
 };
 
 /**
@@ -76,12 +80,17 @@ class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExBoundsFilterFactory : public UPCGExFilter
 	GENERATED_BODY()
 
 public:
+	UPROPERTY()
 	FPCGExBoundsFilterConfig Config;
+	
 	TArray<TSharedPtr<PCGExData::FFacade>> BoundsDataFacades;
 	TArray<TSharedPtr<PCGExGeo::FPointBoxCloud>> Clouds;
+
+	virtual bool SupportsLiveTesting() override { return true; }
+	
 	virtual bool Init(FPCGExContext* InContext) override;
 	virtual TSharedPtr<PCGExPointFilter::FFilter> CreateFilter() const override;
-
+	
 	virtual bool GetRequiresPreparation(FPCGExContext* InContext) override { return true; }
 	virtual bool Prepare(FPCGExContext* InContext) override;
 
@@ -97,17 +106,20 @@ namespace PCGExPointsFilter
 			: FSimpleFilter(InFactory), TypedFilterFactory(InFactory)
 		{
 			Clouds = &TypedFilterFactory->Clouds;
+			bIgnoreSelf = TypedFilterFactory->Config.bIgnoreSelf;
 		}
 
 		const TObjectPtr<const UPCGExBoundsFilterFactory> TypedFilterFactory;
 		const TArray<TSharedPtr<PCGExGeo::FPointBoxCloud>>* Clouds = nullptr;
 
 		EPCGExPointBoundsSource BoundsTarget = EPCGExPointBoundsSource::ScaledBounds;
+		bool bIgnoreSelf = false;
 
 		using BoundCheckCallback = std::function<bool(const FPCGPoint&)>;
 		BoundCheckCallback BoundCheck;
 
 		virtual bool Init(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade> InPointDataFacade) override;
+		FORCEINLINE virtual bool Test(const FPCGPoint& Point) const override { return BoundCheck(Point); }
 		FORCEINLINE virtual bool Test(const int32 PointIndex) const override { return BoundCheck(PointDataFacade->Source->GetInPoint(PointIndex)); }
 
 		virtual ~FBoundsFilter() override

@@ -25,6 +25,8 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExTensorDotFilterConfig
 	{
 	}
 
+	// TODO : Refactor to support transforming direction
+	
 	/** Vector operand A */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(ShowOnlyInnerProperties))
 	FPCGAttributePropertyInputSelector OperandA;
@@ -51,9 +53,11 @@ class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExTensorDotFilterFactory : public UPCGExFil
 	GENERATED_BODY()
 
 public:
+	UPROPERTY()
 	FPCGExTensorDotFilterConfig Config;
+	
 	TSharedPtr<PCGExTensor::FTensorsHandler> TensorsHandler;
-
+	
 	virtual bool Init(FPCGExContext* InContext) override;
 	virtual TSharedPtr<PCGExPointFilter::FFilter> CreateFilter() const override;
 	virtual bool RegisterConsumableAttributesWithData(FPCGExContext* InContext, const UPCGData* InData) const override;

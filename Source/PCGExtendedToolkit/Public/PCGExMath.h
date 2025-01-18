@@ -924,7 +924,7 @@ namespace PCGExMath
 		}
 		else
 		{
-			return static_cast<T>(HashCombineFast(static_cast<uint32>(A), static_cast<uint32>(B)));
+			return static_cast<T>(HashCombineFast(GetTypeHash(A), GetTypeHash(B)));
 		}
 	}
 
@@ -976,7 +976,7 @@ namespace PCGExMath
 		}
 		else
 		{
-			return static_cast<T>(HashCombineFast(static_cast<uint32>(Min(A, B)), static_cast<uint32>(Max(A, B))));
+			return static_cast<T>(HashCombineFast(GetTypeHash(Min(A, B)), GetTypeHash(Max(A, B))));
 		}
 	}
 

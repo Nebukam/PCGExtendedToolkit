@@ -3,9 +3,6 @@
 
 
 #include "PCGExMT.h"
-
-
-#include "EntitySystem/MovieSceneEntityManager.h"
 #include "Tasks/Task.h"
 
 namespace PCGExMT

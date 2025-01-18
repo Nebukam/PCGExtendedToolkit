@@ -112,7 +112,7 @@ bool FPCGExEdgesProcessorContext::AdvancePointsIO(const bool bCleanupKeys)
 			PCGExGraph::BuildEndpointsLookup(CurrentIO, EndpointsLookup, EndpointsAdjacency);
 		}
 	}
-	else
+	else if (!bQuietMissingClusterPairElement)
 	{
 		PCGE_LOG_C(Warning, GraphAndLog, this, FTEXT("Some input vtx have no associated edges."));
 	}
@@ -273,6 +273,8 @@ bool FPCGExEdgesProcessorElement::Boot(FPCGExContext* InContext) const
 	if (!FPCGExPointsProcessorElement::Boot(InContext)) { return false; }
 
 	PCGEX_CONTEXT_AND_SETTINGS(EdgesProcessor)
+
+	Context->bQuietMissingClusterPairElement = Settings->bQuietMissingClusterPairElement;
 
 	Context->bHasValidHeuristics = PCGExFactories::GetInputFactories(
 		Context, PCGExGraph::SourceHeuristicsLabel, Context->HeuristicsFactories,

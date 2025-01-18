@@ -44,6 +44,7 @@ class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExFilterFactoryData : public UPCGExFactoryD
 
 public:
 	virtual PCGExFactories::EType GetFactoryType() const override { return PCGExFactories::EType::FilterPoint; }
+	virtual bool SupportsLiveTesting() { return false; }
 
 	virtual bool Init(FPCGExContext* InContext);
 
@@ -94,10 +95,12 @@ namespace PCGExPointFilter
 		virtual void PostInit();
 
 		virtual bool Test(const int32 Index) const;
+		virtual bool Test(const FPCGPoint& Point) const; // destined for live testing support only
 		virtual bool Test(const PCGExCluster::FNode& Node) const;
 		virtual bool Test(const PCGExGraph::FEdge& Edge) const;
 
 		virtual ~FFilter() = default;
+		
 	};
 
 	class /*PCGEXTENDEDTOOLKIT_API*/ FSimpleFilter : public FFilter
@@ -129,7 +132,7 @@ namespace PCGExPointFilter
 		TSharedRef<PCGExData::FFacade> PointDataFacade;
 
 		bool Init(FPCGExContext* InContext, const TArray<TObjectPtr<const UPCGExFilterFactoryData>>& InFactories);
-
+		
 		virtual bool Test(const int32 Index);
 		virtual bool Test(const PCGExCluster::FNode& Node);
 		virtual bool Test(const PCGExGraph::FEdge& Edge);
