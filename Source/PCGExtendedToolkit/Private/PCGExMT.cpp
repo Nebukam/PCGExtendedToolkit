@@ -1,11 +1,8 @@
-﻿// Copyright 2024 Timothé Lapetite and contributors
+﻿// Copyright 2025 Timothé Lapetite and contributors
 // Released under the MIT license https://opensource.org/license/MIT/
 
 
 #include "PCGExMT.h"
-
-
-#include "EntitySystem/MovieSceneEntityManager.h"
 #include "Tasks/Task.h"
 
 namespace PCGExMT

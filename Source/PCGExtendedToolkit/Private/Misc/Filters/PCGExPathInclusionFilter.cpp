@@ -1,4 +1,4 @@
-﻿// Copyright 2024 Timothé Lapetite and contributors
+﻿// Copyright 2025 Timothé Lapetite and contributors
 // Released under the MIT license https://opensource.org/license/MIT/
 
 #include "Misc/Filters/PCGExPathInclusionFilter.h"
@@ -99,6 +99,57 @@ namespace PCGExPointsFilter
 		}
 
 		return true;
+	}
+
+	bool FPathInclusionFilter::Test(const FPCGPoint& Point) const
+	{
+		uint8 State = None;
+
+		const FVector Pos = Point.Transform.GetLocation();
+
+		if (TypedFilterFactory->Config.Pick == EPCGExSplineFilterPick::Closest)
+		{
+			double ClosestDist = MAX_dbl;
+			for (const TSharedPtr<const FPCGSplineStruct>& Spline : Splines)
+			{
+				const FTransform T = PCGExPaths::GetClosestTransform(Spline, Pos, TypedFilterFactory->Config.bSplineScalesTolerance);
+				const FVector& TLoc = T.GetLocation();
+				const double D = FVector::DistSquared(Pos, TLoc);
+
+				if (D > ClosestDist) { continue; }
+				ClosestDist = D;
+
+				if (const FVector S = T.GetScale3D(); D < FVector2D(S.Y, S.Z).Length() * ToleranceSquared) { State |= On; }
+				else { State &= ~On; }
+
+				if (FVector::DotProduct(T.GetRotation().GetRightVector(), (TLoc - Pos).GetSafeNormal()) > TypedFilterFactory->Config.CurvatureThreshold)
+				{
+					State |= Inside;
+					State &= ~Outside;
+				}
+				else
+				{
+					State |= Outside;
+					State &= ~Inside;
+				}
+			}
+		}
+		else
+		{
+			for (const TSharedPtr<const FPCGSplineStruct>& Spline : Splines)
+			{
+				const FTransform T = PCGExPaths::GetClosestTransform(Spline, Pos, TypedFilterFactory->Config.bSplineScalesTolerance);
+				const FVector& TLoc = T.GetLocation();
+				if (const FVector S = T.GetScale3D(); FVector::DistSquared(Pos, TLoc) < FVector2D(S.Y, S.Z).Length() * ToleranceSquared) { State |= On; }
+				if (FVector::DotProduct(T.GetRotation().GetRightVector(), (TLoc - Pos).GetSafeNormal()) > TypedFilterFactory->Config.CurvatureThreshold) { State |= Inside; }
+				else { State |= Outside; }
+			}
+		}
+
+		bool bPass = (State & BadFlags) == 0;
+		if (GoodMatch != Skip) { if (bPass) { bPass = GoodMatch == Any ? (State & GoodFlags) != 0 : (State & GoodFlags) == GoodFlags; } }
+
+		return TypedFilterFactory->Config.bInvert ? !bPass : bPass;
 	}
 
 	bool FPathInclusionFilter::Test(const int32 PointIndex) const

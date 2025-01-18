@@ -1,4 +1,4 @@
-﻿// Copyright 2024 Timothé Lapetite and contributors
+﻿// Copyright 2025 Timothé Lapetite and contributors
 // Released under the MIT license https://opensource.org/license/MIT/
 
 #pragma once
@@ -76,10 +76,14 @@ class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExSplineAlphaFilterFactory : public UPCGExF
 	GENERATED_BODY()
 
 public:
+	UPROPERTY()
 	FPCGExSplineAlphaFilterConfig Config;
+	
 	TArray<const FPCGSplineStruct*> Splines;
 	TArray<double> SegmentsNum;
 
+	virtual bool SupportsLiveTesting() override;
+	
 	virtual bool Init(FPCGExContext* InContext) override;
 	virtual TSharedPtr<PCGExPointFilter::FFilter> CreateFilter() const override;
 
@@ -108,6 +112,7 @@ namespace PCGExPointsFilter
 		TSharedPtr<PCGExData::TBuffer<double>> OperandB;
 
 		virtual bool Init(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade> InPointDataFacade) override;
+		virtual bool Test(const FPCGPoint& Point) const override;
 		virtual bool Test(const int32 PointIndex) const override;
 
 		virtual ~FSplineAlphaFilter() override

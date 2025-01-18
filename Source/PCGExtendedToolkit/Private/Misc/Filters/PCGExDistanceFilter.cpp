@@ -1,4 +1,4 @@
-﻿// Copyright 2024 Timothé Lapetite and contributors
+﻿// Copyright 2025 Timothé Lapetite and contributors
 // Released under the MIT license https://opensource.org/license/MIT/
 
 #include "Misc/Filters/PCGExDistanceFilter.h"
@@ -6,6 +6,11 @@
 
 #define LOCTEXT_NAMESPACE "PCGExCompareFilterDefinition"
 #define PCGEX_NAMESPACE CompareFilterDefinition
+
+bool UPCGExDistanceFilterFactory::SupportsLiveTesting()
+{
+	return Config.CompareAgainst == EPCGExInputValueType::Constant;
+}
 
 bool UPCGExDistanceFilterFactory::Init(FPCGExContext* InContext)
 {
