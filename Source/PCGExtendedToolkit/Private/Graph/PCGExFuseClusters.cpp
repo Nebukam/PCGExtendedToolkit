@@ -100,6 +100,7 @@ bool FPCGExFuseClustersElement::ExecuteInternal(FPCGContext* InContext) const
 			[](const TSharedPtr<PCGExData::FPointIOTaggedEntries>& Entries) { return true; },
 			[&](const TSharedPtr<PCGExClusterMT::TBatch<PCGExFuseClusters::FProcessor>>& NewBatch)
 			{
+				NewBatch->bSkipCompletion = true;
 				NewBatch->bDaisyChainProcessing = bDoInline;
 			}, bDoInline))
 		{
@@ -127,7 +128,6 @@ bool FPCGExFuseClustersElement::ExecuteInternal(FPCGContext* InContext) const
 	if (!Context->UnionProcessor->Execute()) { return false; }
 
 	Context->UnionDataFacade->Source->StageOutput();
-
 	Context->Done();
 
 	return Context->TryComplete();
@@ -173,6 +173,32 @@ namespace PCGExFuseClusters
 		else { StartParallelLoopForRange(IndexedEdges.Num()); }
 
 		return true;
+	}
+
+	void FProcessor::OnRangeProcessingComplete()
+	{
+		TProcessor<FPCGExFuseClustersContext, UPCGExFuseClustersSettings>::OnRangeProcessingComplete();
+		OnEdgesProcessingComplete();
+	}
+
+	void FProcessor::OnEdgesProcessingComplete()
+	{
+		TProcessor<FPCGExFuseClustersContext, UPCGExFuseClustersSettings>::OnEdgesProcessingComplete();
+		if (!Settings->PointPointIntersectionDetails.FuseDetails.DoInlineInsertion()) { return; }
+
+		// Schedule next update early if we're the last processor of the batch
+		const TSharedPtr<PCGExClusterMT::TBatch<FProcessor>> Batch = StaticCastSharedPtr<PCGExClusterMT::TBatch<FProcessor>>(ParentBatch.Pin());
+		if (&Batch->Processors.Last().Get() != this) { return; }
+
+		AsyncManager->DeferredResumeExecution(
+			[PCGEX_ASYNC_THIS_CAPTURE, Token = AsyncManager->TryCreateToken("EarlyExit")]()
+			{
+				// We get a token to ensure we're not immediately done
+				// Hack to force daisy chain advance, since we know when we're ready to do so
+				PCGEX_ASYNC_THIS
+				if (const TSharedPtr<PCGExMT::FAsyncToken> Pinned = Token.Pin()) { Pinned->Release(); }
+				This->Context->ProcessClusters(PCGExGraph::State_PreparingUnion); // Force move to next
+			});
 	}
 
 	void FProcessor::CompleteWork()

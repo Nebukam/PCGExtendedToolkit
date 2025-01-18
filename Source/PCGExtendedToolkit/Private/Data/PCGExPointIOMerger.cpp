@@ -43,7 +43,7 @@ void FPCGExPointIOMerger::Append(const TSharedRef<PCGExData::FPointIOCollection>
 void FPCGExPointIOMerger::MergeAsync(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager, const FPCGExCarryOverDetails* InCarryOverDetails, const TSet<FName>* InIgnoredAttributes)
 {
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExPointIOMerger::MergeAsync);
-	
+
 	TArray<FPCGPoint>& MutablePoints = UnionDataFacade->GetOut()->GetMutablePoints();
 	MutablePoints.Reserve(NumCompositePoints);
 	InCarryOverDetails->Filter(&UnionDataFacade->Source.Get());
@@ -57,21 +57,8 @@ void FPCGExPointIOMerger::MergeAsync(const TSharedPtr<PCGExMT::FTaskManager>& As
 		const TSharedPtr<PCGExData::FPointIO> Source = IOSources[i];
 		UnionDataFacade->Source->Tags->Append(Source->Tags.ToSharedRef());
 
-		//const TArray<FPCGPoint>& SourcePoints = Source->GetIn()->GetPoints();
-
-		MutablePoints.Append(Source->GetIn()->GetPoints());
-		
-		//const uint32 StartIndex = Scopes[i].Start;
-
-		/*
-		for (int j = 0; j < SourcePoints.Num(); j++)
-		{
-			const int32 TargetIndex = StartIndex + j;
-			const PCGMetadataEntryKey Key = MutablePoints[TargetIndex].MetadataEntry;
-			MutablePoints[TargetIndex] = SourcePoints[j];
-			MutablePoints[TargetIndex].MetadataEntry = Key;
-		}
-		*/
+		const TArray<FPCGPoint>& SourcePoints = Source->GetIn()->GetPoints();
+		for (const FPCGPoint& SourcePt : SourcePoints) { MutablePoints.Add_GetRef(SourcePt).MetadataEntry = PCGInvalidEntryKey; }
 
 		// Discover attributes
 		UPCGMetadata* Metadata = Source->GetIn()->Metadata;
@@ -105,7 +92,7 @@ void FPCGExPointIOMerger::MergeAsync(const TSharedPtr<PCGExMT::FTaskManager>& As
 				}
 			});
 	}
-	
+
 	InCarryOverDetails->Filter(&UnionDataFacade->Source.Get());
 
 	PCGEX_SHARED_THIS_DECL
@@ -130,12 +117,12 @@ namespace PCGExPointIOMerger
 
 				if (Identity.bInitDefault)
 				{
-					Buffer = Merger->UnionDataFacade->GetWritable(static_cast<const FPCGMetadataAttribute<T>*>(Identity.Attribute), PCGExData::EBufferInit::Inherit);
+					Buffer = Merger->UnionDataFacade->GetWritable(static_cast<const FPCGMetadataAttribute<T>*>(Identity.Attribute), PCGExData::EBufferInit::New);
 				}
 
 				if (!Buffer)
 				{
-					Buffer = Merger->UnionDataFacade->GetWritable(Identity.Name, T{}, Identity.bAllowsInterpolation, PCGExData::EBufferInit::Inherit);
+					Buffer = Merger->UnionDataFacade->GetWritable(Identity.Name, T{}, Identity.bAllowsInterpolation, PCGExData::EBufferInit::New);
 				}
 
 				for (int i = 0; i < Merger->IOSources.Num(); i++)

@@ -53,7 +53,9 @@ class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExTensorInertiaConstantFactory : public UPC
 	GENERATED_BODY()
 
 public:
+	UPROPERTY()
 	FPCGExTensorInertiaConstantConfig Config;
+
 	virtual UPCGExTensorOperation* CreateOperation(FPCGExContext* InContext) const override;
 
 protected:
@@ -94,4 +96,7 @@ public:
 	FPCGExTensorInertiaConstantConfig Config;
 
 	virtual UPCGExFactoryData* CreateFactory(FPCGExContext* InContext, UPCGExFactoryData* InFactory) const override;
+
+protected:
+	virtual bool IsCacheable() const override { return true; }
 };

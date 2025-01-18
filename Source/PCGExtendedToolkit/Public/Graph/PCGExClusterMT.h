@@ -61,7 +61,6 @@ namespace PCGExClusterMT
 		TWeakPtr<PCGEx::FWorkPermit> WorkPermit;
 		TSharedPtr<PCGExMT::FTaskManager> AsyncManager;
 
-
 		const TArray<TObjectPtr<const UPCGExHeuristicsFactoryData>>* HeuristicsFactories = nullptr;
 		FPCGExEdgeDirectionSettings DirectionSettings;
 
@@ -369,6 +368,7 @@ namespace PCGExClusterMT
 		const TSharedRef<PCGExData::FFacade> VtxDataFacade;
 		bool bAllowVtxDataFacadeScopedGet = false;
 
+		bool bSkipCompletion = false;
 		bool bRequiresWriteStep = false;
 		bool bWriteVtxDataFacade = false;
 
@@ -634,6 +634,7 @@ namespace PCGExClusterMT
 
 		virtual void CompleteWork() override
 		{
+			if (bSkipCompletion) { return; }
 			if (!bIsBatchValid) { return; }
 
 			CurrentState.store(PCGEx::State_Completing, std::memory_order_release);

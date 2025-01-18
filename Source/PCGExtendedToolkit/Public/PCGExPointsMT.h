@@ -305,6 +305,7 @@ namespace PCGExPointsMT
 	public:
 		bool bPrefetchData = false;
 		bool bDaisyChainProcessing = false;
+		bool bSkipCompletion = false;
 		bool bDaisyChainCompletion = false;
 		bool bDaisyChainWrite = false;
 		bool bRequiresWriteStep = false;
@@ -479,6 +480,7 @@ namespace PCGExPointsMT
 
 		virtual void CompleteWork() override
 		{
+			if (bSkipCompletion) { return; }
 			CurrentState.store(PCGEx::State_Completing, std::memory_order_release);
 			PCGEX_ASYNC_MT_LOOP_VALID_PROCESSORS(CompleteWork, bDaisyChainCompletion, { Processor->CompleteWork(); })
 			FPointsProcessorBatchBase::CompleteWork();
@@ -507,4 +509,5 @@ namespace PCGExPointsMT
 			Processors.Empty();
 		}
 	};
+
 }

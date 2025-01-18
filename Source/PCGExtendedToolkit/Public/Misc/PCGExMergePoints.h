@@ -92,7 +92,6 @@ namespace PCGExMergePoints
 
 		virtual bool IsTrivial() const override { return false; }
 		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager> InAsyncManager) override;
-		virtual void CompleteWork() override;
 		virtual void ProcessSingleRangeIteration(const int32 Iteration, const PCGExMT::FScope& Scope) override;
 	};
 

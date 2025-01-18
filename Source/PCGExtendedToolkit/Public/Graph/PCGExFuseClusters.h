@@ -13,6 +13,11 @@
 
 #include "PCGExFuseClusters.generated.h"
 
+namespace PCGExFuseClusters
+{
+	class FProcessor;
+}
+
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Clusters")
 class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExFuseClustersSettings : public UPCGExEdgesProcessorSettings
 {
@@ -97,6 +102,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExFuseClustersContext final : FPCGExEdgesP
 {
 	friend class UPCGExFuseClustersSettings;
 	friend class FPCGExFuseClustersElement;
+	friend class PCGExFuseClusters::FProcessor;
 
 	TArray<TSharedRef<PCGExData::FFacade>> VtxFacades;
 	TSharedPtr<PCGExGraph::FUnionGraph> UnionGraph;
@@ -158,6 +164,10 @@ namespace PCGExFuseClusters
 				EdgesIOIndex, Edge.PointIndex);
 		}
 
+		virtual void OnRangeProcessingComplete() override;
+		virtual void OnEdgesProcessingComplete() override;
+
 		virtual void CompleteWork() override;
 	};
+
 }

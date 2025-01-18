@@ -16,8 +16,8 @@ TArray<FPCGPinProperties> UPCGExCutEdgesSettings::InputPinProperties() const
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
 
 	PCGEX_PIN_POINTS(PCGExGraph::SourcePathsLabel, "Cutting paths.", Required, {})
-	if (Mode != EPCGExCutEdgesMode::Edges) { PCGEX_PIN_PARAMS(PCGExCutEdges::SourceNodeFilters, "Node preservation filters.", Normal, {}) }
-	if (Mode != EPCGExCutEdgesMode::Nodes) { PCGEX_PIN_PARAMS(PCGExCutEdges::SourceEdgeFilters, "Edge preservation filters.", Normal, {}) }
+	if (Mode != EPCGExCutEdgesMode::Edges) { PCGEX_PIN_FACTORIES(PCGExCutEdges::SourceNodeFilters, "Node preservation filters.", Normal, {}) }
+	if (Mode != EPCGExCutEdgesMode::Nodes) { PCGEX_PIN_FACTORIES(PCGExCutEdges::SourceEdgeFilters, "Edge preservation filters.", Normal, {}) }
 
 	return PinProperties;
 }
@@ -243,8 +243,8 @@ namespace PCGExCutEdges
 						}
 					}
 
-					const FVector A2 = Path->GetPosUnsafe(PathEdge->Start);
-					const FVector B2 = Path->GetPosUnsafe(PathEdge->End);
+					const FVector A2 = Path->GetPos_Unsafe(PathEdge->Start);
+					const FVector B2 = Path->GetPos_Unsafe(PathEdge->End);
 					FVector A = FVector::ZeroVector;
 					FVector B = FVector::ZeroVector;
 
@@ -309,8 +309,8 @@ namespace PCGExCutEdges
 					//if (Settings->bInvert) { if (Node.bValid) { return false; } }
 					//else if (!Node.bValid) { return false; }
 
-					const FVector A2 = Path->GetPosUnsafe(PathEdge->Start);
-					const FVector B2 = Path->GetPosUnsafe(PathEdge->End);
+					const FVector A2 = Path->GetPos_Unsafe(PathEdge->Start);
+					const FVector B2 = Path->GetPos_Unsafe(PathEdge->End);
 
 					const FVector B1 = FMath::ClosestPointOnSegment(A1, A2, B2);
 					const FVector C1 = Context->DistanceDetails->GetSourceCenter(NodePoint, A1, B1);

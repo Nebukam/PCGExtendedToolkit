@@ -102,7 +102,7 @@ bool FPCGExFindClustersDataElement::ExecuteInternal(FPCGContext* InContext) cons
 			i--;
 
 			// Add to main edges & forward
-			Context->MainEdges->AddUnsafe(InputIO);
+			Context->MainEdges->Add_Unsafe(InputIO);
 			InputIO->InitializeOutput(PCGExData::EIOInit::Forward);
 		}
 
@@ -113,7 +113,7 @@ bool FPCGExFindClustersDataElement::ExecuteInternal(FPCGContext* InContext) cons
 		}
 
 		// Add vtx key to main output & forward
-		Context->MainPoints->AddUnsafe(Context->SearchKeyIO);
+		Context->MainPoints->Add_Unsafe(Context->SearchKeyIO);
 		Context->SearchKeyIO->InitializeOutput(PCGExData::EIOInit::Forward);
 		Context->SearchKeyIO = nullptr;
 
@@ -151,7 +151,7 @@ bool FPCGExFindClustersDataElement::ExecuteInternal(FPCGContext* InContext) cons
 		}
 
 		// Move edge key to edges output and forward
-		Context->MainEdges->AddUnsafe(Context->SearchKeyIO);
+		Context->MainEdges->Add_Unsafe(Context->SearchKeyIO);
 		Context->SearchKeyIO->InitializeOutput(PCGExData::EIOInit::Forward);
 		Context->SearchKeyIO = nullptr;
 

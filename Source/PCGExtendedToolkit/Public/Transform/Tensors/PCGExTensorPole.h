@@ -45,7 +45,9 @@ class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExTensorPoleFactory : public UPCGExTensorPo
 	GENERATED_BODY()
 
 public:
+	UPROPERTY()
 	FPCGExTensorPoleConfig Config;
+
 	virtual UPCGExTensorOperation* CreateOperation(FPCGExContext* InContext) const override;
 
 protected:
@@ -70,4 +72,7 @@ public:
 	FPCGExTensorPoleConfig Config;
 
 	virtual UPCGExFactoryData* CreateFactory(FPCGExContext* InContext, UPCGExFactoryData* InFactory) const override;
+
+protected:
+	virtual bool IsCacheable() const override { return true; }
 };

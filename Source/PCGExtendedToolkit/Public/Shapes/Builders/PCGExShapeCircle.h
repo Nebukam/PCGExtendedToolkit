@@ -97,7 +97,9 @@ class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExShapeCircleFactory : public UPCGExShapeBu
 	GENERATED_BODY()
 
 public:
+	UPROPERTY()
 	FPCGExShapeCircleConfig Config;
+
 	virtual UPCGExShapeBuilderOperation* CreateOperation(FPCGExContext* InContext) const override;
 };
 
@@ -119,4 +121,7 @@ public:
 	FPCGExShapeCircleConfig Config;
 
 	virtual UPCGExFactoryData* CreateFactory(FPCGExContext* InContext, UPCGExFactoryData* InFactory) const override;
+
+protected:
+	virtual bool IsCacheable() const override { return true; }
 };

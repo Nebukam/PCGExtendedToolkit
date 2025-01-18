@@ -171,7 +171,7 @@ namespace PCGExBuildDelaunay
 		const TSharedPtr<PCGExData::FPointIO> SitesIO = NewPointIO(PointIO.ToSharedRef());
 		PCGEX_INIT_IO_VOID(SitesIO, PCGExData::EIOInit::New)
 
-		Context->MainSites->InsertUnsafe(Processor->BatchIndex, SitesIO);
+		Context->MainSites->Insert_Unsafe(Processor->BatchIndex, SitesIO);
 
 		const TArray<FPCGPoint>& OriginalPoints = SitesIO->GetIn()->GetPoints();
 		TArray<FPCGPoint>& MutablePoints = SitesIO->GetOut()->GetMutablePoints();
@@ -213,7 +213,7 @@ namespace PCGExBuildDelaunay
 		const TSharedPtr<PCGExData::FPointIO> SitesIO = NewPointIO(PointIO.ToSharedRef());
 		PCGEX_INIT_IO_VOID(SitesIO, PCGExData::EIOInit::New)
 
-		Context->MainSites->InsertUnsafe(Processor->BatchIndex, SitesIO);
+		Context->MainSites->Insert_Unsafe(Processor->BatchIndex, SitesIO);
 
 		const TArray<FPCGPoint>& OriginalPoints = SitesIO->GetIn()->GetPoints();
 		TArray<FPCGPoint>& MutablePoints = SitesIO->GetOut()->GetMutablePoints();

@@ -100,7 +100,7 @@ namespace PCGExClusterStates
 TArray<FPCGPinProperties> UPCGExClusterStateFactoryProviderSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties;
-	PCGEX_PIN_PARAMS(PCGExPointFilter::SourceFiltersLabel, TEXT("Filters uses to check whether this state is true or not. Accepts regular point filters & cluster filters."), Required, {})
+	PCGEX_PIN_FACTORIES(PCGExPointFilter::SourceFiltersLabel, TEXT("Filters uses to check whether this state is true or not. Accepts regular point filters & cluster filters."), Required, {})
 	return PinProperties;
 }
 

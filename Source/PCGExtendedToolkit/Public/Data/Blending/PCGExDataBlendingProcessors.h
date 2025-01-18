@@ -7,20 +7,7 @@
 #include "PCGExDataBlending.h"
 
 #define PCGEX_FOREACH_BLEND(MACRO)\
-PCGEX_BLEND_CASE(None)\
-PCGEX_BLEND_CASE(Copy)\
-PCGEX_BLEND_CASE(Average)\
-PCGEX_BLEND_CASE(Weight)\
-PCGEX_BLEND_CASE(WeightedSum)\
-PCGEX_BLEND_CASE(Min)\
-PCGEX_BLEND_CASE(Max)\
-PCGEX_BLEND_CASE(Sum)\
-PCGEX_BLEND_CASE(Lerp)\
-PCGEX_BLEND_CASE(UnsignedMin)\
-PCGEX_BLEND_CASE(UnsignedMax)\
-PCGEX_BLEND_CASE(AbsoluteMin)\
-PCGEX_BLEND_CASE(AbsoluteMax)\
-PCGEX_BLEND_CASE(WeightedSubtract)
+PCGEX_FOREACH_BLENDMODE(PCGEX_BLEND_CASE)
 
 namespace PCGExDataBlending
 {
@@ -137,6 +124,20 @@ namespace PCGExDataBlending
 	{
 	public:
 		FORCEINLINE virtual T SingleOperation(T A, T B, double Weight) const override { return PCGExMath::WeightedSub(A, B, Weight); }
+	};
+
+	template <typename T>
+	class /*PCGEXTENDEDTOOLKIT_API*/ TDataBlendingHash final : public TDataBlendingProcessor<T, EPCGExDataBlendingType::Hash>
+	{
+	public:
+		FORCEINLINE virtual T SingleOperation(T A, T B, double Weight) const override { return PCGExMath::NaiveHash(A, B); }
+	};
+
+	template <typename T>
+	class /*PCGEXTENDEDTOOLKIT_API*/ TDataBlendingUnsignedHash final : public TDataBlendingProcessor<T, EPCGExDataBlendingType::UnsignedHash>
+	{
+	public:
+		FORCEINLINE virtual T SingleOperation(T A, T B, double Weight) const override { return PCGExMath::NaiveUnsignedHash(A, B); }
 	};
 
 	static TSharedPtr<FDataBlendingProcessorBase> CreateProcessor(const EPCGExDataBlendingType Type, const PCGEx::FAttributeIdentity& Identity)
