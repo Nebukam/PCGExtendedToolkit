@@ -56,6 +56,7 @@ class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExStringCompareFilterFactory : public UPCGE
 	GENERATED_BODY()
 
 public:
+	UPROPERTY()
 	FPCGExStringCompareFilterConfig Config;
 
 	virtual TSharedPtr<PCGExPointFilter::FFilter> CreateFilter() const override;
@@ -117,4 +118,7 @@ public:
 #if WITH_EDITOR
 	virtual FString GetDisplayName() const override;
 #endif
+
+protected:
+	virtual bool IsCacheable() const override { return true; }
 };

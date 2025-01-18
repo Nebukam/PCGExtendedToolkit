@@ -191,6 +191,8 @@ bool FPCGExMeshToClustersElement::ExecuteInternal(
 
 	PCGEX_ON_ASYNC_STATE_READY(PCGExGeo::State_ExtractingMesh)
 	{
+		Context->SetAsyncState(PCGExGraph::State_WritingClusters);
+		
 		const TSharedPtr<PCGExMT::FTaskManager> AsyncManager = Context->GetAsyncManager();
 		const TArray<FPCGPoint>& Targets = Context->CurrentIO->GetIn()->GetPoints();
 		for (int i = 0; i < Targets.Num(); i++)
@@ -202,7 +204,6 @@ bool FPCGExMeshToClustersElement::ExecuteInternal(
 			PCGEX_LAUNCH(PCGExGraphTask::FCopyGraphToPoint, i, Context->CurrentIO, Context->GraphBuilders[MeshIdx], Context->VtxChildCollection, Context->EdgeChildCollection, &Context->TransformDetails)
 		}
 
-		Context->SetAsyncState(PCGExGraph::State_WritingClusters);
 	}
 
 	PCGEX_ON_ASYNC_STATE_READY(PCGExGraph::State_WritingClusters)

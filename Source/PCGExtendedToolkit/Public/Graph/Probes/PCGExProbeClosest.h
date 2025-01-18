@@ -75,7 +75,9 @@ class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExProbeFactoryClosest : public UPCGExProbeF
 	GENERATED_BODY()
 
 public:
+	UPROPERTY()
 	FPCGExProbeConfigClosest Config;
+	
 	virtual UPCGExProbeOperation* CreateOperation(FPCGExContext* InContext) const override;
 };
 

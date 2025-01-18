@@ -352,9 +352,9 @@ namespace PCGExData
 		TSharedPtr<FPointIO> Emplace_GetRef(const UPCGPointData* In, const EIOInit InitOut = EIOInit::None, const TSet<FString>* Tags = nullptr);
 		TSharedPtr<FPointIO> Emplace_GetRef(EIOInit InitOut = EIOInit::New);
 		TSharedPtr<FPointIO> Emplace_GetRef(const TSharedPtr<FPointIO>& PointIO, const EIOInit InitOut = EIOInit::None);
-		TSharedPtr<FPointIO> InsertUnsafe(const int32 Index, const TSharedPtr<FPointIO>& PointIO);
-		TSharedPtr<FPointIO> AddUnsafe(const TSharedPtr<FPointIO>& PointIO);
-		void AddUnsafe(const TArray<TSharedPtr<FPointIO>>& IOs);
+		TSharedPtr<FPointIO> Insert_Unsafe(const int32 Index, const TSharedPtr<FPointIO>& PointIO);
+		TSharedPtr<FPointIO> Add_Unsafe(const TSharedPtr<FPointIO>& PointIO);
+		void Add_Unsafe(const TArray<TSharedPtr<FPointIO>>& IOs);
 
 
 		template <typename T>

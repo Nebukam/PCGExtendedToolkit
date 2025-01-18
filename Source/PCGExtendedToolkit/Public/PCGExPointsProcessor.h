@@ -77,9 +77,9 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Performance, meta=(PCG_NotOverridable, AdvancedDisplay, EditCondition="bDoAsyncProcessing"))
 	EPCGExAsyncPriority WorkPriority = EPCGExAsyncPriority::Default;
 
-	/** Cache the results of this node. Can yield unexpected result in certain cases.*/
+	/** Cache the results of this node. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Performance, meta=(PCG_NotOverridable, AdvancedDisplay))
-	bool bCacheResult = false;
+	EPCGExOptionState CacheData = EPCGExOptionState::Default;
 
 	/** Flatten the output of this node.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Performance, meta=(PCG_NotOverridable, AdvancedDisplay))
@@ -87,7 +87,7 @@ public:
 
 	/** Whether scoped attribute read is enabled or not. Disabling this on small dataset may greatly improve performance. It's enabled by default for legacy reasons. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Performance, meta=(PCG_NotOverridable, AdvancedDisplay))
-	bool bScopedAttributeGet = true;
+	EPCGExOptionState ScopedAttributeGet = EPCGExOptionState::Default;
 
 	/** If the node registers consumable attributes, these will be deleted from the output data. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Cleanup", meta=(PCG_NotOverridable))
@@ -106,6 +106,11 @@ public:
 	bool bQuietMissingInputError = false;
 
 	//~End UPCGExPointsProcessorSettings
+
+protected:
+	virtual bool IsCacheable() const { return false; }
+	virtual bool ShouldCache() const;
+	virtual bool WantsScopedAttributeGet() const;
 };
 
 struct PCGEXTENDEDTOOLKIT_API FPCGExPointsProcessorContext : FPCGExContext

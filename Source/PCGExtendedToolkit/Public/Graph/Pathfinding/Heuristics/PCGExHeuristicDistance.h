@@ -65,6 +65,7 @@ class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExHeuristicsFactoryShortestDistance : publi
 	GENERATED_BODY()
 
 public:
+	UPROPERTY()
 	FPCGExHeuristicConfigShortestDistance Config;
 
 	virtual UPCGExHeuristicOperation* CreateOperation(FPCGExContext* InContext) const override;

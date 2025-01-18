@@ -202,7 +202,7 @@ namespace PCGExWritePathProperties
 			PCGEX_OUTPUT_VALUE(DistanceToEnd, i, PathLength->TotalLength - TraversedDistance);
 
 			TraversedDistance += !Path->IsClosedLoop() && i == Path->LastIndex ? 0 : PathLength->Get(i);
-			PathCentroid += Path->GetPosUnsafe(i);
+			PathCentroid += Path->GetPos_Unsafe(i);
 		}
 
 		if (!bClosedLoop)
@@ -244,7 +244,7 @@ namespace PCGExWritePathProperties
 				Settings->bWriteBoundingBoxOrientation)
 			{
 				UE::Geometry::TMinVolumeBox3<double> Box;
-				if (Box.Solve(Path->NumPoints, [PathPtr = Path.Get()](int32 i) { return PathPtr->GetPosUnsafe(i); }))
+				if (Box.Solve(Path->NumPoints, [PathPtr = Path.Get()](int32 i) { return PathPtr->GetPos_Unsafe(i); }))
 				{
 					UE::Geometry::FOrientedBox3d Result;
 					Box.GetResult(Result);

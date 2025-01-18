@@ -44,8 +44,8 @@ UPCGExVtxPropertyOperation* UPCGExVtxPropertyFactoryData::CreateOperation(FPCGEx
 TArray<FPCGPinProperties> UPCGExVtxPropertyProviderSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
-	//PCGEX_PIN_PARAMS(PCGEx::SourcePointFilters, "Filters used to check which node will be processed by the sampler or not.", Advanced, {})
-	//PCGEX_PIN_PARAMS(PCGEx::SourceUseValueIfFilters, "Filters used to check if a node can be used as a value source or not.", Advanced, {})
+	//PCGEX_PIN_FACTORIES(PCGEx::SourcePointFilters, "Filters used to check which node will be processed by the sampler or not.", Advanced, {})
+	//PCGEX_PIN_FACTORIES(PCGEx::SourceUseValueIfFilters, "Filters used to check if a node can be used as a value source or not.", Advanced, {})
 	return PinProperties;
 }
 

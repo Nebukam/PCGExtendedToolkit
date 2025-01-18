@@ -876,6 +876,110 @@ namespace PCGExMath
 	template <typename T>
 	FORCEINLINE static T NoBlend(const T& A, const T& B) { return A; }
 
+	template <typename T>
+	FORCEINLINE static T NaiveHash(const T& A, const T& B)
+	{
+		if constexpr (std::is_same_v<T, bool>)
+		{
+			return A || B;
+		}
+		else if constexpr (std::is_same_v<T, FVector2D>)
+		{
+			return FVector2D(NaiveHash(A.X, B.X), NaiveHash(A.Y, B.Y));
+		}
+		else if constexpr (std::is_same_v<T, FVector>)
+		{
+			return FVector(NaiveHash(A.X, B.X), NaiveHash(A.Y, B.Y), NaiveHash(A.Z, B.Z));
+		}
+		else if constexpr (std::is_same_v<T, FVector4>)
+		{
+			return FVector4(NaiveHash(A.X, B.X), NaiveHash(A.Y, B.Y), NaiveHash(A.Z, B.Z), NaiveHash(A.W, B.W));
+		}
+		else if constexpr (std::is_same_v<T, FColor>)
+		{
+			return FColor(NaiveHash(A.R, B.R), NaiveHash(A.G, B.G), NaiveHash(A.B, B.B), NaiveHash(A.A, B.A));
+		}
+		else if constexpr (std::is_same_v<T, FQuat>)
+		{
+			return NaiveHash(A.Rotator(), B.Rotator()).Quaternion();
+		}
+		else if constexpr (std::is_same_v<T, FRotator>)
+		{
+			return FRotator(NaiveHash(A.Pitch, B.Pitch), NaiveHash(A.Yaw, B.Yaw), NaiveHash(A.Roll, B.Roll));
+		}
+		else if constexpr (std::is_same_v<T, FTransform>)
+		{
+			return FTransform(NaiveHash(A.GetRotation(), B.GetRotation()), NaiveHash(A.GetLocation(), B.GetLocation()), NaiveHash(A.GetScale3D(), B.GetScale3D()));
+		}
+		else if constexpr (std::is_same_v<T, FString>)
+		{
+			return FString::Printf(TEXT("%d"), HashCombineFast(GetTypeHash(A), GetTypeHash(B)));
+		}
+		else if constexpr (
+			std::is_same_v<T, FName> ||
+			std::is_same_v<T, FSoftClassPath> ||
+			std::is_same_v<T, FSoftObjectPath>)
+		{
+			return T(NaiveHash(A.ToString(), B.ToString()));
+		}
+		else
+		{
+			return static_cast<T>(HashCombineFast(static_cast<uint32>(A), static_cast<uint32>(B)));
+		}
+	}
+
+	template <typename T>
+	FORCEINLINE static T NaiveUnsignedHash(const T& A, const T& B)
+	{
+		if constexpr (std::is_same_v<T, bool>)
+		{
+			return A || B;
+		}
+		else if constexpr (std::is_same_v<T, FVector2D>)
+		{
+			return FVector2D(NaiveUnsignedHash(A.X, B.X), NaiveUnsignedHash(A.Y, B.Y));
+		}
+		else if constexpr (std::is_same_v<T, FVector>)
+		{
+			return FVector(NaiveUnsignedHash(A.X, B.X), NaiveUnsignedHash(A.Y, B.Y), NaiveUnsignedHash(A.Z, B.Z));
+		}
+		else if constexpr (std::is_same_v<T, FVector4>)
+		{
+			return FVector4(NaiveUnsignedHash(A.X, B.X), NaiveUnsignedHash(A.Y, B.Y), NaiveUnsignedHash(A.Z, B.Z), NaiveUnsignedHash(A.W, B.W));
+		}
+		else if constexpr (std::is_same_v<T, FColor>)
+		{
+			return FColor(NaiveUnsignedHash(A.R, B.R), NaiveUnsignedHash(A.G, B.G), NaiveUnsignedHash(A.B, B.B), NaiveUnsignedHash(A.A, B.A));
+		}
+		else if constexpr (std::is_same_v<T, FQuat>)
+		{
+			return NaiveUnsignedHash(A.Rotator(), B.Rotator()).Quaternion();
+		}
+		else if constexpr (std::is_same_v<T, FRotator>)
+		{
+			return FRotator(NaiveUnsignedHash(A.Pitch, B.Pitch), NaiveUnsignedHash(A.Yaw, B.Yaw), NaiveUnsignedHash(A.Roll, B.Roll));
+		}
+		else if constexpr (std::is_same_v<T, FTransform>)
+		{
+			return FTransform(NaiveUnsignedHash(A.GetRotation(), B.GetRotation()), NaiveUnsignedHash(A.GetLocation(), B.GetLocation()), NaiveUnsignedHash(A.GetScale3D(), B.GetScale3D()));
+		}
+		else if constexpr (std::is_same_v<T, FString>)
+		{
+			return FString::Printf(TEXT("%d"), HashCombineFast(static_cast<uint32>(GetTypeHash(Min(A, B))), static_cast<uint32>(GetTypeHash(Max(A, B)))));
+		}
+		else if constexpr (
+			std::is_same_v<T, FName> ||
+			std::is_same_v<T, FSoftClassPath> ||
+			std::is_same_v<T, FSoftObjectPath>)
+		{
+			return T(NaiveUnsignedHash(A.ToString(), B.ToString()));
+		}
+		else
+		{
+			return static_cast<T>(HashCombineFast(static_cast<uint32>(Min(A, B)), static_cast<uint32>(Max(A, B))));
+		}
+	}
+
 #pragma endregion
 
 #pragma region Components

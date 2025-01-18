@@ -57,7 +57,7 @@ namespace PCGExPaths
 
 	void FPathEdgeLength::ProcessEdge(const FPath* Path, const FPathEdge& Edge)
 	{
-		const double Dist = FVector::Dist(Path->GetPosUnsafe(Edge.Start), Path->GetPosUnsafe(Edge.End));
+		const double Dist = FVector::Dist(Path->GetPos_Unsafe(Edge.Start), Path->GetPos_Unsafe(Edge.End));
 		GetMutable(Edge.Start) = Dist;
 		TotalLength += Dist;
 	}
@@ -76,7 +76,7 @@ namespace PCGExPaths
 
 	void FPathEdgeLengthSquared::ProcessEdge(const FPath* Path, const FPathEdge& Edge)
 	{
-		const double Dist = FVector::DistSquared(Path->GetPosUnsafe(Edge.Start), Path->GetPosUnsafe(Edge.End));
+		const double Dist = FVector::DistSquared(Path->GetPos_Unsafe(Edge.Start), Path->GetPos_Unsafe(Edge.End));
 		GetMutable(Edge.Start) = Dist;
 	}
 

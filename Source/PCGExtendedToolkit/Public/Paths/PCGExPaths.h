@@ -463,7 +463,7 @@ namespace PCGExPaths
 		virtual int32 SafePointIndex(const int32 Index) const = 0;
 
 		FORCEINLINE virtual const FVector& GetPos(const int32 Index) const { return Positions[SafePointIndex(Index)]; }
-		FORCEINLINE virtual const FVector& GetPosUnsafe(const int32 Index) const { return Positions[Index]; }
+		FORCEINLINE virtual const FVector& GetPos_Unsafe(const int32 Index) const { return Positions[Index]; }
 		FORCEINLINE bool IsValidEdgeIndex(const int32 Index) const { return Index >= 0 && Index < NumEdges; }
 
 		virtual FVector DirToNextPoint(const int32 Index) const = 0;
@@ -479,7 +479,7 @@ namespace PCGExPaths
 			return FMath::Lerp(Positions[Edge.Start], Positions[Edge.End], Alpha);
 		}
 
-		FORCEINLINE virtual bool IsEdgeValid(const FPathEdge& Edge) const { return FVector::DistSquared(GetPosUnsafe(Edge.Start), GetPosUnsafe(Edge.End)) > 0; }
+		FORCEINLINE virtual bool IsEdgeValid(const FPathEdge& Edge) const { return FVector::DistSquared(GetPos_Unsafe(Edge.Start), GetPos_Unsafe(Edge.End)) > 0; }
 		FORCEINLINE virtual bool IsEdgeValid(const int32 Index) const { return IsEdgeValid(Edges[Index]); }
 
 		void BuildEdgeOctree()

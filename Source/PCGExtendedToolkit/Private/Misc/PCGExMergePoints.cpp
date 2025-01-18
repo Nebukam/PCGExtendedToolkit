@@ -67,14 +67,6 @@ namespace PCGExMergePoints
 
 		if (!FPointsProcessor::Process(InAsyncManager)) { return false; }
 
-		return true;
-	}
-
-	void FProcessor::CompleteWork()
-	{
-		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExMergePoints::FProcessor::CompleteWork);
-		
-		TPointsProcessor<FPCGExMergePointsContext, UPCGExMergePointsSettings>::CompleteWork();
 		if (Settings->bTagToAttributes)
 		{
 			NumPoints = PointDataFacade->GetNum();
@@ -82,6 +74,8 @@ namespace PCGExMergePoints
 
 			StartParallelLoopForRange(ConvertedTagsList.Num(), 1);
 		}
+
+		return true;
 	}
 
 	void FProcessor::ProcessSingleRangeIteration(const int32 Iteration, const PCGExMT::FScope& Scope)
@@ -186,23 +180,22 @@ namespace PCGExMergePoints
 
 	void FBatch::OnProcessingPreparationComplete()
 	{
-		TBatch<FProcessor>::OnProcessingPreparationComplete();
-
-		PCGEX_ASYNC_GROUP_CHKD_VOID(AsyncManager, LaunchMerge)
-		LaunchMerge->AddSimpleCallback(
+		StartMerge();
+		/*
+		PCGEX_LAUNCH(
+			PCGExMT::FDeferredCallbackTask,
 			[PCGEX_ASYNC_THIS_CAPTURE]()
 			{
 				PCGEX_ASYNC_THIS
 				This->StartMerge();
 			});
-
-		LaunchMerge->StartSimpleCallbacks();
+			*/
 	}
 
 	void FBatch::Write()
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExMergePoints::FBatch::Write);
-		
+
 		PCGEX_TYPED_CONTEXT_AND_SETTINGS(MergePoints);
 		Context->CompositeDataFacade->Write(AsyncManager);
 	}
@@ -232,6 +225,8 @@ namespace PCGExMergePoints
 
 		// Cleanup tags that are used internally for data recognition, along with the tags we will be converting to data
 		Context->CompositeDataFacade->Source->Tags->Remove(IgnoredAttributes);
+
+		TBatch<FProcessor>::OnProcessingPreparationComplete(); //!
 	}
 }
 

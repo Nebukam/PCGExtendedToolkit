@@ -28,6 +28,8 @@ namespace PCGExDataBlending
 		false, //AbsoluteMax     
 		true,  //WeightedSubtract		
 		false, //CopyOther		
+		false, //Hash		
+		false, //UnsignedHash		
 	};
 
 	struct /*PCGEXTENDEDTOOLKIT_API*/ FPropertiesBlender

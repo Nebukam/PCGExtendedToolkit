@@ -20,7 +20,7 @@ UPCGExSampleTensorsSettings::UPCGExSampleTensorsSettings(
 TArray<FPCGPinProperties> UPCGExSampleTensorsSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
-	PCGEX_PIN_PARAMS(PCGExTensor::SourceTensorsLabel, "Tensors to sample", Required, {})
+	PCGEX_PIN_FACTORIES(PCGExTensor::SourceTensorsLabel, "Tensors to sample", Required, {})
 	return PinProperties;
 }
 

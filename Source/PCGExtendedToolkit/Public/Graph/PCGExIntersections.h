@@ -223,11 +223,11 @@ namespace PCGExGraph
 		int32 NumEdges() const { return EdgesUnion->Num(); }
 
 		TSharedPtr<FUnionNode> InsertPoint(const FPCGPoint& Point, const int32 IOIndex, const int32 PointIndex);
-		TSharedPtr<FUnionNode> InsertPointUnsafe(const FPCGPoint& Point, const int32 IOIndex, const int32 PointIndex);
+		TSharedPtr<FUnionNode> InsertPoint_Unsafe(const FPCGPoint& Point, const int32 IOIndex, const int32 PointIndex);
 		TSharedPtr<PCGExData::FUnionData> InsertEdge(const FPCGPoint& From, const int32 FromIOIndex, const int32 FromPointIndex,
 		                                             const FPCGPoint& To, const int32 ToIOIndex, const int32 ToPointIndex,
 		                                             const int32 EdgeIOIndex = -1, const int32 EdgePointIndex = -1);
-		TSharedPtr<PCGExData::FUnionData> InsertEdgeUnsafe(const FPCGPoint& From, const int32 FromIOIndex, const int32 FromPointIndex,
+		TSharedPtr<PCGExData::FUnionData> InsertEdge_Unsafe(const FPCGPoint& From, const int32 FromIOIndex, const int32 FromPointIndex,
 		                                                   const FPCGPoint& To, const int32 ToIOIndex, const int32 ToPointIndex,
 		                                                   const int32 EdgeIOIndex = -1, const int32 EdgePointIndex = -1);
 		void GetUniqueEdges(TSet<uint64>& OutEdges);
@@ -359,7 +359,7 @@ namespace PCGExGraph
 
 		if (!InIntersections->Details->bEnableSelfIntersection)
 		{
-			const int32 RootIndex = InIntersections->Graph->FindEdgeMetadataUnsafe(Edge.EdgeIndex)->RootIndex;
+			const int32 RootIndex = InIntersections->Graph->FindEdgeMetadata_Unsafe(Edge.EdgeIndex)->RootIndex;
 			const TSet<int32>& RootIOIndices = Graph->EdgesUnion->Entries[RootIndex]->IOIndices;
 
 			auto ProcessPointRef = [&](const FPCGPointRef& PointRef)
@@ -553,7 +553,7 @@ namespace PCGExGraph
 			return CheckedPairs.Contains(Key);
 		}
 
-		FORCEINLINE void AddUnsafe(const FEESplit& Split)
+		FORCEINLINE void Add_Unsafe(const FEESplit& Split)
 		{
 			bool bAlreadySet = false;
 			CheckedPairs.Add(PCGEx::H64U(Split.A, Split.B), &bAlreadySet);
@@ -576,7 +576,7 @@ namespace PCGExGraph
 		FORCEINLINE void BatchAdd(TArray<FEESplit>& Splits, const int32 A)
 		{
 			FWriteScopeLock WriteLock(InsertionLock);
-			for (const FEESplit& Split : Splits) { AddUnsafe(Split); }
+			for (const FEESplit& Split : Splits) { Add_Unsafe(Split); }
 		}
 
 		bool InsertNodes() const;
@@ -602,7 +602,7 @@ namespace PCGExGraph
 
 		if (!InIntersections->Details->bEnableSelfIntersection)
 		{
-			const int32 RootIndex = InIntersections->Graph->FindEdgeMetadataUnsafe(Edge.EdgeIndex)->RootIndex;
+			const int32 RootIndex = InIntersections->Graph->FindEdgeMetadata_Unsafe(Edge.EdgeIndex)->RootIndex;
 			TSharedPtr<PCGExData::FUnionMetadata> EdgesUnion = InIntersections->Graph->EdgesUnion;
 			const TSet<int32>& RootIOIndices = EdgesUnion->Entries[RootIndex]->IOIndices;
 
@@ -618,7 +618,7 @@ namespace PCGExGraph
 				}
 
 				// Check overlap last as it's the most expensive op
-				if (EdgesUnion->IOIndexOverlap(InIntersections->Graph->FindEdgeMetadataUnsafe(OtherEdge.EdgeIndex)->RootIndex, RootIOIndices)) { return; }
+				if (EdgesUnion->IOIndexOverlap(InIntersections->Graph->FindEdgeMetadata_Unsafe(OtherEdge.EdgeIndex)->RootIndex, RootIOIndices)) { return; }
 
 				if (!Edge.FindSplit(OtherEdge, OutSplits))
 				{

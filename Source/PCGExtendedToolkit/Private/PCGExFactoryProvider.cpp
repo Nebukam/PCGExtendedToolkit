@@ -44,7 +44,7 @@ TArray<FPCGPinProperties> UPCGExFactoryProviderSettings::InputPinProperties() co
 TArray<FPCGPinProperties> UPCGExFactoryProviderSettings::OutputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties;
-	PCGEX_PIN_PARAM(GetMainOutputPin(), GetMainOutputPin().ToString(), Required, {})
+	PCGEX_PIN_FACTORY(GetMainOutputPin(), GetMainOutputPin().ToString(), Required, {})
 	return PinProperties;
 }
 
@@ -70,6 +70,12 @@ bool UPCGExFactoryProviderSettings::GetPinExtraIcon(const UPCGPin* InPin, FName&
 	return true;
 }
 #endif
+
+bool UPCGExFactoryProviderSettings::ShouldCache() const
+{
+	if (!IsCacheable()) { return false; }
+	PCGEX_GET_OPTION_STATE(CachingBehavior, bDefaultCacheNodeOutput)
+}
 
 FPCGExFactoryProviderContext::~FPCGExFactoryProviderContext()
 {
@@ -138,6 +144,12 @@ bool FPCGExFactoryProviderElement::ExecuteInternal(FPCGContext* Context) const
 	}
 
 	return InContext->TryComplete();
+}
+
+bool FPCGExFactoryProviderElement::IsCacheable(const UPCGSettings* InSettings) const
+{
+	const UPCGExFactoryProviderSettings* Settings = static_cast<const UPCGExFactoryProviderSettings*>(InSettings);
+	return Settings->ShouldCache();
 }
 
 FPCGContext* FPCGExFactoryProviderElement::Initialize(const FPCGDataCollection& InputData, const TWeakObjectPtr<UPCGComponent> SourceComponent, const UPCGNode* Node)

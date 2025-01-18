@@ -228,8 +228,8 @@ namespace PCGExCluster
 
 			if ((!StartPointIndexPtr || !EndPointIndexPtr || *StartPointIndexPtr == *EndPointIndexPtr)) { return OnFail(); }
 
-			const int32 StartNode = GetOrCreateNodeUnsafe(InNodePoints, *StartPointIndexPtr);
-			const int32 EndNode = GetOrCreateNodeUnsafe(InNodePoints, *EndPointIndexPtr);
+			const int32 StartNode = GetOrCreateNode_Unsafe(InNodePoints, *StartPointIndexPtr);
+			const int32 EndNode = GetOrCreateNode_Unsafe(InNodePoints, *EndPointIndexPtr);
 
 			(Nodes->GetData() + StartNode)->Link(EndNode, i);
 			(Nodes->GetData() + EndNode)->Link(StartNode, i);
@@ -277,8 +277,8 @@ namespace PCGExCluster
 		for (int i = 0; i < NumEdges; i++)
 		{
 			const FEdge* E = Edges->GetData() + i;
-			const int32 StartNode = GetOrCreateNodeUnsafe(TempLookup, SubVtxPoints, E->Start);
-			const int32 EndNode = GetOrCreateNodeUnsafe(TempLookup, SubVtxPoints, E->End);
+			const int32 StartNode = GetOrCreateNode_Unsafe(TempLookup, SubVtxPoints, E->Start);
+			const int32 EndNode = GetOrCreateNode_Unsafe(TempLookup, SubVtxPoints, E->End);
 
 			(Nodes->GetData() + StartNode)->Link(EndNode, E->Index);
 			(Nodes->GetData() + EndNode)->Link(StartNode, E->Index);

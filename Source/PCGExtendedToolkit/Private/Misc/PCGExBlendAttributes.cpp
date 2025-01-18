@@ -12,7 +12,7 @@
 TArray<FPCGPinProperties> UPCGExBlendAttributesSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
-	PCGEX_PIN_PARAMS(PCGExDataBlending::SourceBlendingLabel, "Blending configurations.", Required, {})
+	PCGEX_PIN_FACTORIES(PCGExDataBlending::SourceBlendingLabel, "Blending configurations.", Required, {})
 	return PinProperties;
 }
 

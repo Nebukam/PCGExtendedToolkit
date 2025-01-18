@@ -319,7 +319,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExFuseDetails : public FPCGExSourceFuseDet
 
 	/** Check this box if you're fusing over a very large radius and want to ensure determinism. NOTE : Will make things slower. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Force Determinism"))
-	bool bInlineInsertion = false;
+	bool bInlineInsertion = true;
 
 	void Init()
 	{

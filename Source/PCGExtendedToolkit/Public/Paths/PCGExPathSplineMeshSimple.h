@@ -104,6 +104,9 @@ public:
 	/** Specify a list of functions to be called on the target actor after spline mesh creation. Functions need to be parameter-less and with "CallInEditor" flag enabled. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
 	TArray<FName> PostProcessFunctionNames;
+
+protected:
+	virtual bool IsCacheable() const override { return false; }
 };
 
 struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPathSplineMeshSimpleContext final : FPCGExPathProcessorContext

@@ -78,7 +78,9 @@ class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExHeuristicsFactoryAttribute : public UPCGE
 	GENERATED_BODY()
 
 public:
+	UPROPERTY()
 	FPCGExHeuristicAttributeConfig Config;
+
 	virtual UPCGExHeuristicOperation* CreateOperation(FPCGExContext* InContext) const override;
 	PCGEX_HEURISTIC_FACTORY_BOILERPLATE
 };
@@ -108,4 +110,7 @@ public:
 #if WITH_EDITOR
 	virtual FString GetDisplayName() const override;
 #endif
+
+protected:
+	virtual bool IsCacheable() const override { return true; }
 };

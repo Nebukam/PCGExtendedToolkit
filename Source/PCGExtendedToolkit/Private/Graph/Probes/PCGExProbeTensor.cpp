@@ -11,7 +11,7 @@
 TArray<FPCGPinProperties> UPCGExProbeTensorProviderSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties;
-	PCGEX_PIN_PARAMS(PCGExTensor::SourceTensorsLabel, "Tensors", Required, {})
+	PCGEX_PIN_FACTORIES(PCGExTensor::SourceTensorsLabel, "Tensors", Required, {})
 	return PinProperties;
 }
 

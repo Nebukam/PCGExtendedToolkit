@@ -38,6 +38,14 @@
 #endif
 
 UENUM()
+enum class EPCGExOptionState : uint8
+{
+	Default  = 0 UMETA(DisplayName = "Default", Tooltip="Uses the default value selected in settings"),
+	Enabled  = 1 UMETA(DisplayName = "Enabled", Tooltip="Option is enabled, if supported."),
+	Disabled = 2 UMETA(DisplayName = "Disabled", Tooltip="Option is disabled, if supported.")
+};
+
+UENUM()
 enum class EPCGExTransformMode : uint8
 {
 	Absolute = 0 UMETA(DisplayName = "Absolute", ToolTip="Absolute, ignores source transform."),
