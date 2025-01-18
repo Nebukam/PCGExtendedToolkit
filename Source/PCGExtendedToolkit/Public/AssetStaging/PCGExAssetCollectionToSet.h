@@ -35,7 +35,7 @@ class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExAssetCollectionToSetSettings : public UPC
 	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
 #endif
 	//~End UObject interface
-	
+
 public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR

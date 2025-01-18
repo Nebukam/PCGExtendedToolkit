@@ -22,7 +22,6 @@ namespace PCGExTags
 		}
 
 		virtual FString Flatten(const FString& LeftSide) = 0;
-		
 	};
 
 	template <typename T>

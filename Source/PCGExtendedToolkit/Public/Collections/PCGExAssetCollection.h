@@ -491,7 +491,6 @@ namespace PCGExAssetCollection
 		{
 			// If this throw, it's because a collection has been initialized outside of game thread, which is bad.
 			UE_LOG(LogTemp, Error, TEXT("GetBoundingBoxBySpawning executed outside of game thread."));
-			return;
 		}
 #else
 		UE_LOG(LogTemp, Error, TEXT("GetBoundingBoxBySpawning called in non-editor context."));

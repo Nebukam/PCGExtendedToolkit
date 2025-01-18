@@ -228,8 +228,8 @@ namespace PCGExGraph
 		                                             const FPCGPoint& To, const int32 ToIOIndex, const int32 ToPointIndex,
 		                                             const int32 EdgeIOIndex = -1, const int32 EdgePointIndex = -1);
 		TSharedPtr<PCGExData::FUnionData> InsertEdge_Unsafe(const FPCGPoint& From, const int32 FromIOIndex, const int32 FromPointIndex,
-		                                                   const FPCGPoint& To, const int32 ToIOIndex, const int32 ToPointIndex,
-		                                                   const int32 EdgeIOIndex = -1, const int32 EdgePointIndex = -1);
+		                                                    const FPCGPoint& To, const int32 ToIOIndex, const int32 ToPointIndex,
+		                                                    const int32 EdgeIOIndex = -1, const int32 EdgePointIndex = -1);
 		void GetUniqueEdges(TSet<uint64>& OutEdges);
 		void GetUniqueEdges(TArray<FEdge>& OutEdges);
 		void WriteNodeMetadata(const TSharedPtr<FGraph>& InGraph) const;

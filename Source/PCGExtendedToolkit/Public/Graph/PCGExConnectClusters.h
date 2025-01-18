@@ -127,5 +127,4 @@ namespace PCGExBridgeClusters
 		virtual void Write() override;
 		void CreateBridge(int32 EdgeIndex, int32 FromClusterIndex, int32 ToClusterIndex);
 	};
-
 }

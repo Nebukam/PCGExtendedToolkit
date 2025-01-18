@@ -169,5 +169,4 @@ namespace PCGExFuseClusters
 
 		virtual void CompleteWork() override;
 	};
-
 }

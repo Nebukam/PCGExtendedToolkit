@@ -114,7 +114,7 @@ namespace PCGEx
 		const bool bAllowsInterpolation = true;
 
 		FAttributeIdentity() = default;
-		
+
 		FAttributeIdentity(const FAttributeIdentity& Other)
 			: Name(Other.Name), UnderlyingType(Other.UnderlyingType), bAllowsInterpolation(Other.bAllowsInterpolation)
 		{
