@@ -33,6 +33,9 @@ namespace PCGExPointFilter
 	}
 
 	bool FFilter::Test(const int32 Index) const PCGEX_NOT_IMPLEMENTED_RET(FFilter::Test(const int32 Index), false)
+
+	bool FFilter::Test(const FPCGPoint& Point) const PCGEX_NOT_IMPLEMENTED_RET(FFilter::Test(const FPCGPoint& Point), false)
+
 	bool FFilter::Test(const PCGExCluster::FNode& Node) const { return Test(Node.PointIndex); }
 	bool FFilter::Test(const PCGExGraph::FEdge& Edge) const { return Test(Edge.PointIndex); }
 

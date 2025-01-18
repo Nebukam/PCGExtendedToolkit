@@ -64,7 +64,9 @@ class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExNumericCompareNearestFilterFactory : publ
 	GENERATED_BODY()
 
 public:
+	UPROPERTY()
 	FPCGExNumericCompareNearestFilterConfig Config;
+
 	TSharedPtr<PCGExData::FFacade> TargetDataFacade;
 
 	virtual bool Init(FPCGExContext* InContext) override;
@@ -97,6 +99,7 @@ namespace PCGExPointsFilter
 		TSharedPtr<PCGExData::TBuffer<double>> OperandB;
 
 		virtual bool Init(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade> InPointDataFacade) override;
+
 		FORCEINLINE virtual bool Test(const int32 PointIndex) const override
 		{
 			const double B = OperandB ? OperandB->Read(PointIndex) : TypedFilterFactory->Config.OperandBConstant;

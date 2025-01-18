@@ -71,7 +71,11 @@ class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExPathInclusionFilterFactory : public UPCGE
 	GENERATED_BODY()
 
 public:
+	UPROPERTY()
 	FPCGExPathInclusionFilterConfig Config;
+
+	virtual bool SupportsLiveTesting() override { return true; } // TODO Change this one we support per-point tolerance from attribute
+
 	TArray<TSharedPtr<const FPCGSplineStruct>> Splines;
 	virtual bool Init(FPCGExContext* InContext) override;
 	virtual TSharedPtr<PCGExPointFilter::FFilter> CreateFilter() const override;
@@ -103,6 +107,7 @@ namespace PCGExPointsFilter
 		SplineCheckCallback SplineCheck;
 
 		virtual bool Init(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade> InPointDataFacade) override;
+		virtual bool Test(const FPCGPoint& Point) const override;
 		virtual bool Test(const int32 PointIndex) const override;
 
 		virtual ~FPathInclusionFilter() override
