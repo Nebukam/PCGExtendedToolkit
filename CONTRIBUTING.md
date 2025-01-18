@@ -6,3 +6,24 @@ At the time of writing, Unreal `5.3`, `5.4` and `5.5` are officially supported; 
 - The plugin can be packaged *as a plugin* (this is different from packaging a project) for those 3 versions
 
 Additionally, any contribution should not include or rely on any other third parties libraries to be integrated into the codebase. It's complex enough as is.
+
+## Non-exhaustive checklist
+
+### Copyright notice
+All files (.cpp, .h) **must** have a copyright notice at the very top, before any other text.
+
+For new files:
+```
+// Copyright 2025 {Your Name} and contributors
+// Released under the MIT license https://opensource.org/license/MIT/
+```
+
+Modifying existing files
+```
+// Copyright 2025 {Original Owner Name} and contributors
+// * {DD/MM/YY} {Your Name} {Short description of the contribtion}
+// Released under the MIT license https://opensource.org/license/MIT/
+```
+
+### Enum
+Make sure that enums that will displayed in the editor (i.e any enum that's used in a UPROPERTY or isn't in its own namespace) are prefixed `EPCGEx` and not just `E`. 
