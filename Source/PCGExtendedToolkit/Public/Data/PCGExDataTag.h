@@ -15,7 +15,7 @@ namespace PCGExTags
 	{
 	public:
 		virtual ~FTagValue() = default;
-		EPCGMetadataTypes TagType = EPCGMetadataTypes::Unknown;
+		EPCGMetadataTypes UnderlyingType = EPCGMetadataTypes::Unknown;
 
 		explicit FTagValue()
 		{
@@ -33,7 +33,7 @@ namespace PCGExTags
 		explicit TTagValue(const T& InValue)
 			: FTagValue(), Value(InValue)
 		{
-			TagType = PCGEx::GetMetadataType<T>();
+			UnderlyingType = PCGEx::GetMetadataType<T>();
 		}
 
 		virtual FString Flatten(const FString& LeftSide) override
@@ -150,7 +150,7 @@ namespace PCGExData
 			for (const TPair<FString, TSharedPtr<FTagValue>>& Pair : ValueTags)
 			{
 				PCGEx::ExecuteWithRightType(
-					Pair.Value->TagType, [&](auto DummyValue)
+					Pair.Value->UnderlyingType, [&](auto DummyValue)
 					{
 						using T = decltype(DummyValue);
 						TSharedPtr<TTagValue<T>> TagValueCopy = MakeShared<TTagValue<T>>(StaticCastSharedPtr<TTagValue<T>>(Pair.Value)->Value);
@@ -185,18 +185,19 @@ namespace PCGExData
 			if (InTags) { Append(InTags.ToSharedRef()); }
 		}
 
-		void DumpTo(TSet<FString>& InTags) const
+		void DumpTo(TSet<FString>& InTags, const bool bFlatten = true) const
 		{
 			FReadScopeLock ReadScopeLock(TagsLock);
 
 			InTags.Append(RawTags);
-			for (const TPair<FString, TSharedPtr<FTagValue>>& Pair : ValueTags) { InTags.Add(Pair.Value->Flatten(Pair.Key)); }
+			if (bFlatten) { for (const TPair<FString, TSharedPtr<FTagValue>>& Pair : ValueTags) { InTags.Add(Pair.Value->Flatten(Pair.Key)); } }
+			else { for (const TPair<FString, TSharedPtr<FTagValue>>& Pair : ValueTags) { InTags.Add(Pair.Key); } }
 		}
 
-		void DumpTo(TArray<FName>& InTags) const
+		void DumpTo(TArray<FName>& InTags, const bool bFlatten = true) const
 		{
 			FReadScopeLock ReadScopeLock(TagsLock);
-			TArray<FName> NameDump = ToFNameList();
+			TArray<FName> NameDump = ToFNameList(bFlatten);
 			InTags.Reserve(InTags.Num() + NameDump.Num());
 			InTags.Append(NameDump);
 		}
@@ -211,13 +212,14 @@ namespace PCGExData
 			return Flattened;
 		}
 
-		TArray<FName> ToFNameList() const
+		TArray<FName> ToFNameList(const bool bFlatten = true) const
 		{
 			FReadScopeLock ReadScopeLock(TagsLock);
 
 			TArray<FName> Flattened;
 			for (const FString& Key : RawTags) { Flattened.Add(FName(Key)); }
-			for (const TPair<FString, TSharedPtr<FTagValue>>& Pair : ValueTags) { Flattened.Add(FName(Pair.Value->Flatten(Pair.Key))); }
+			if (bFlatten) { for (const TPair<FString, TSharedPtr<FTagValue>>& Pair : ValueTags) { Flattened.Add(FName(Pair.Value->Flatten(Pair.Key))); } }
+			else { for (const TPair<FString, TSharedPtr<FTagValue>>& Pair : ValueTags) { Flattened.Add(FName(Pair.Key)); } }
 			return Flattened;
 		}
 
@@ -239,7 +241,7 @@ namespace PCGExData
 				TArray<T> ValuesForKey;
 				if (const TSharedPtr<FTagValue>* ValueTagPtr = ValueTags.Find(Key))
 				{
-					if ((*ValueTagPtr)->TagType == PCGEx::GetMetadataType<T>())
+					if ((*ValueTagPtr)->UnderlyingType == PCGEx::GetMetadataType<T>())
 					{
 						return StaticCastSharedPtr<TTagValue<T>>(*ValueTagPtr);
 					}
@@ -285,19 +287,37 @@ namespace PCGExData
 			}
 		}
 
+		void Remove(const TSet<FName>& InSet)
+		{
+			FWriteScopeLock WriteScopeLock(TagsLock);
+			for (const FName& Tag : InSet)
+			{
+				FString Key = Tag.ToString();
+				ValueTags.Remove(Key);
+				RawTags.Remove(Key);
+			}
+		}
+
 		template <typename T>
-		TSharedPtr<TTagValue<T>> GetValue(const FString& Key)
+		TSharedPtr<TTagValue<T>> GetTypedValue(const FString& Key)
 		{
 			FReadScopeLock ReadScopeLock(TagsLock);
 
 			if (const TSharedPtr<FTagValue>* ValueTagPtr = ValueTags.Find(Key))
 			{
-				if ((*ValueTagPtr)->TagType == PCGEx::GetMetadataType<T>())
+				if ((*ValueTagPtr)->UnderlyingType == PCGEx::GetMetadataType<T>())
 				{
 					return StaticCastSharedPtr<TTagValue<T>>(*ValueTagPtr);
 				}
 			}
 
+			return nullptr;
+		}
+
+		TSharedPtr<FTagValue> GetValue(const FString& Key)
+		{
+			FReadScopeLock ReadScopeLock(TagsLock);
+			if (const TSharedPtr<FTagValue>* ValueTagPtr = ValueTags.Find(Key)) { return *ValueTagPtr; }
 			return nullptr;
 		}
 

@@ -23,7 +23,7 @@ FString UPCGExPartitionRuleProviderSettings::GetDisplayName() const { return Con
 TArray<FPCGPinProperties> UPCGExModularPartitionByValuesSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
-	PCGEX_PIN_PARAMS(TEXT("PartitionRules"), "Plug partitions rules here.", Required, {})
+	PCGEX_PIN_FACTORIES(TEXT("PartitionRules"), "Plug partitions rules here.", Required, {})
 	return PinProperties;
 }
 

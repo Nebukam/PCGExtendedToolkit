@@ -68,7 +68,7 @@ TArray<FPCGPinProperties> UPCGExSampleNearestBoundsSettings::InputPinProperties(
 	PCGEX_PIN_POINT(PCGEx::SourceBoundsLabel, "The bounds data set to check against.", Required, {})
 	if (SampleMethod == EPCGExBoundsSampleMethod::BestCandidate)
 	{
-		PCGEX_PIN_PARAMS(PCGExSorting::SourceSortingRules, "Plug sorting rules here. Order is defined by each rule' priority value, in ascending order.", Required, {})
+		PCGEX_PIN_FACTORIES(PCGExSorting::SourceSortingRules, "Plug sorting rules here. Order is defined by each rule' priority value, in ascending order.", Required, {})
 	}
 	return PinProperties;
 }

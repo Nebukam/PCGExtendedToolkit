@@ -18,7 +18,6 @@ enum class EPCGExAsyncPriority : uint8
 	BackgroundHigh   = 3 UMETA(DisplayName = "BackgroundHigh", ToolTip="..."),
 	BackgroundNormal = 4 UMETA(DisplayName = "BackgroundNormal", ToolTip="..."),
 	BackgroundLow    = 5 UMETA(DisplayName = "BackgroundLow", ToolTip="..."),
-	Count            = 6 UMETA(DisplayName = "Count", ToolTip="...")
 };
 
 UENUM()
@@ -30,7 +29,7 @@ enum class EPCGExDataBlendingTypeDefault : uint8
 	Weight           = 2 UMETA(DisplayName = "Weight", ToolTip="Weights based on distance to blend targets. If the results are unexpected, try 'Lerp' instead"),
 	Min              = 3 UMETA(DisplayName = "Min", ToolTip="Component-wise MIN operation"),
 	Max              = 4 UMETA(DisplayName = "Max", ToolTip="Component-wise MAX operation"),
-	Copy             = 5 UMETA(DisplayName = "Copy", ToolTip = "Copy incoming data"),
+	Copy             = 5 UMETA(DisplayName = "Copy (Target)", ToolTip = "Copy target data (second value)"),
 	Sum              = 6 UMETA(DisplayName = "Sum", ToolTip = "Sum"),
 	WeightedSum      = 7 UMETA(DisplayName = "Weighted Sum", ToolTip = "Sum of all the data, weighted"),
 	Lerp             = 8 UMETA(DisplayName = "Lerp", ToolTip="Uses weight as lerp. If the results are unexpected, try 'Weight' instead."),
@@ -40,7 +39,9 @@ enum class EPCGExDataBlendingTypeDefault : uint8
 	AbsoluteMin      = 12 UMETA(DisplayName = "Unsigned Min", ToolTip="Component-wise MIN on unsigned value, but keeps the sign on written data."),
 	AbsoluteMax      = 13 UMETA(DisplayName = "Unsigned Max", ToolTip="Component-wise MAX on unsigned value, but keeps the sign on written data."),
 	WeightedSubtract = 14 UMETA(DisplayName = "Weighted Subtract", ToolTip="Substraction of all the data, weighted"),
-	CopyOther        = 15 UMETA(DisplayName = "Copy (Other)", ToolTip="Same as copy, but copy the other value"),
+	CopyOther        = 15 UMETA(DisplayName = "Copy (Source)", ToolTip="Copy source data (first value)"),
+	Hash             = 16 UMETA(DisplayName = "Hash", ToolTip="Combine the values into a hash"),
+	UnsignedHash     = 17 UMETA(DisplayName = "Hash (Unsigned)", ToolTip="Combine the values into a hash but sort the values first to create an order-independent hash."),
 };
 
 namespace PCGEx
@@ -67,12 +68,23 @@ class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExGlobalSettings : public UObject
 	GENERATED_BODY()
 
 public:
+	/** Value applied by default to node caching when `Default` is selected -- note that some nodes may stop working as expected when working with cached data.*/
+	UPROPERTY(EditAnywhere, config, Category = "Performance|Defaults")
+	bool bDefaultCacheNodeOutput = false;
+
+	/** Value applied by default to node caching when `Default` is selected*/
+	UPROPERTY(EditAnywhere, config, Category = "Performance|Defaults")
+	bool bDefaultScopedAttributeGet = true;
+
 	UPROPERTY(EditAnywhere, config, Category = "Performance|Cluster", meta=(ClampMin=1))
 	int32 SmallClusterSize = 256;
 
 	UPROPERTY(EditAnywhere, config, Category = "Performance|Cluster", meta=(ClampMin=1))
-	int32 ClusterDefaultBatchChunkSize = 512;
+	int32 ClusterDefaultBatchChunkSize = 256;
 	int32 GetClusterBatchChunkSize(const int32 In = -1) const { return In <= -1 ? ClusterDefaultBatchChunkSize : In; }
+
+	UPROPERTY(EditAnywhere, config, Category = "Performance|Cluster")
+	bool bDefaultScopedIndexLookupBuild = false;
 
 	/** Allow caching of clusters */
 	UPROPERTY(EditAnywhere, config, Category = "Performance|Cluster")
@@ -87,7 +99,7 @@ public:
 	bool IsSmallPointSize(const int32 InNum) const { return InNum <= SmallPointsSize; }
 
 	UPROPERTY(EditAnywhere, config, Category = "Performance|Points", meta=(ClampMin=1))
-	int32 PointsDefaultBatchChunkSize = 512;
+	int32 PointsDefaultBatchChunkSize = 256;
 	int32 GetPointsBatchChunkSize(const int32 In = -1) const { return In <= -1 ? PointsDefaultBatchChunkSize : In; }
 
 	UPROPERTY(EditAnywhere, config, Category = "Performance|Async")

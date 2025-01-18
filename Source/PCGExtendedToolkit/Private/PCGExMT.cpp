@@ -5,6 +5,7 @@
 #include "PCGExMT.h"
 
 
+#include "EntitySystem/MovieSceneEntityManager.h"
 #include "Tasks/Task.h"
 
 namespace PCGExMT
@@ -326,6 +327,38 @@ namespace PCGExMT
 		return Tokens.Add_GetRef(Token);
 	}
 
+	void FTaskManager::DeferredReset(FSimpleCallback&& Callback)
+	{
+		// Reset from outside then callback
+		// Use this to chain/clear heavy workloads
+		UE::Tasks::Launch(
+				TEXT("ResetThen"),
+				[PCGEX_ASYNC_THIS_CAPTURE, Callback]()
+				{
+					PCGEX_ASYNC_THIS
+					This->Reset();
+					Callback();
+				},
+				UE::Tasks::ETaskPriority::High
+			);
+	}
+
+	void FTaskManager::DeferredResumeExecution(FSimpleCallback&& Callback) const
+	{
+		UE::Tasks::Launch(
+				TEXT("ResetThen"),
+				[CtxHandle = Context->GetOrCreateHandle(), Callback]()
+				{
+					if (FPCGExContext* Ctx = FPCGExContext::GetContextFromHandle<FPCGExContext>(CtxHandle))
+					{
+						Ctx->ResumeExecution();
+						Callback();
+					}
+				},
+				UE::Tasks::ETaskPriority::High
+			);
+	}
+
 	void FTaskManager::HandleTaskStart()
 	{
 		Start();
@@ -451,6 +484,7 @@ namespace PCGExMT
 		check(Count > 0);
 
 		TSharedPtr<FAsyncMultiHandle> PinnedRoot = Root.Pin();
+
 		if (!PinnedRoot) { return; }
 		StaticCastSharedPtr<FTaskManager>(PinnedRoot)->ReserveTasks(Count);
 
@@ -510,5 +544,25 @@ namespace PCGExMT
 
 		PCGEX_MAKE_SHARED(Task, FDaisyChainScopeIterationTask, Scope.GetNextScopeIndex())
 		Group->LaunchWithPreparation(Task, bPrepareOnly);
+	}
+
+	void FDeferredCallbackTask::ExecuteTask(const TSharedPtr<FTaskManager>& AsyncManager)
+	{
+		Callback();
+	}
+
+	void FDeferredCallbackWithManagerTask::ExecuteTask(const TSharedPtr<FTaskManager>& AsyncManager)
+	{
+		Callback(AsyncManager);
+	}
+
+	bool FDeferredCallbackHandle::Start()
+	{
+		if (FAsyncHandle::Start())
+		{
+			Callback();
+			return true;
+		}
+		return false;
 	}
 }

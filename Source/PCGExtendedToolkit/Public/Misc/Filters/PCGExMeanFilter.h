@@ -68,6 +68,7 @@ class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExMeanFilterFactory : public UPCGExFilterFa
 	GENERATED_BODY()
 
 public:
+	UPROPERTY()
 	FPCGExMeanFilterConfig Config;
 
 	virtual TSharedPtr<PCGExPointFilter::FFilter> CreateFilter() const override;
@@ -77,10 +78,10 @@ public:
 
 namespace PCGExPointsFilter
 {
-	class /*PCGEXTENDEDTOOLKIT_API*/ TMeanFilter final : public PCGExPointFilter::FSimpleFilter
+	class /*PCGEXTENDEDTOOLKIT_API*/ FMeanFilter final : public PCGExPointFilter::FSimpleFilter
 	{
 	public:
-		explicit TMeanFilter(const TObjectPtr<const UPCGExMeanFilterFactory>& InFactory)
+		explicit FMeanFilter(const TObjectPtr<const UPCGExMeanFilterFactory>& InFactory)
 			: FSimpleFilter(InFactory), TypedFilterFactory(InFactory)
 		{
 		}
@@ -104,7 +105,7 @@ namespace PCGExPointsFilter
 			return FMath::IsWithin(Values[PointIndex], ReferenceMin, ReferenceMax);
 		}
 
-		virtual ~TMeanFilter() override
+		virtual ~FMeanFilter() override
 		{
 		}
 	};
@@ -135,4 +136,7 @@ public:
 #if WITH_EDITOR
 	virtual FString GetDisplayName() const override;
 #endif
+
+protected:
+	virtual bool IsCacheable() const override { return true; }
 };

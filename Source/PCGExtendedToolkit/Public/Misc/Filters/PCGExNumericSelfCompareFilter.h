@@ -67,6 +67,7 @@ class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExNumericSelfCompareFilterFactory : public 
 	GENERATED_BODY()
 
 public:
+	UPROPERTY()
 	FPCGExNumericSelfCompareFilterConfig Config;
 
 	virtual TSharedPtr<PCGExPointFilter::FFilter> CreateFilter() const override;
@@ -75,10 +76,10 @@ public:
 
 namespace PCGExPointsFilter
 {
-	class /*PCGEXTENDEDTOOLKIT_API*/ TNumericSelfComparisonFilter final : public PCGExPointFilter::FSimpleFilter
+	class /*PCGEXTENDEDTOOLKIT_API*/ FNumericSelfCompareFilter final : public PCGExPointFilter::FSimpleFilter
 	{
 	public:
-		explicit TNumericSelfComparisonFilter(const TObjectPtr<const UPCGExNumericSelfCompareFilterFactory>& InDefinition)
+		explicit FNumericSelfCompareFilter(const TObjectPtr<const UPCGExNumericSelfCompareFilterFactory>& InDefinition)
 			: FSimpleFilter(InDefinition), TypedFilterFactory(InDefinition)
 		{
 		}
@@ -103,7 +104,7 @@ namespace PCGExPointsFilter
 			return PCGExCompare::Compare(TypedFilterFactory->Config.Comparison, A, B, TypedFilterFactory->Config.Tolerance);
 		}
 
-		virtual ~TNumericSelfComparisonFilter() override
+		virtual ~FNumericSelfCompareFilter() override
 		{
 		}
 	};
@@ -134,4 +135,7 @@ public:
 #if WITH_EDITOR
 	virtual FString GetDisplayName() const override;
 #endif
+
+protected:
+	virtual bool IsCacheable() const override { return true; }
 };

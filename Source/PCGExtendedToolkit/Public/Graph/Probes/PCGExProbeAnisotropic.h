@@ -74,7 +74,9 @@ class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExProbeFactoryAnisotropic : public UPCGExPr
 	GENERATED_BODY()
 
 public:
+	UPROPERTY()
 	FPCGExProbeConfigAnisotropic Config;
+
 	virtual UPCGExProbeOperation* CreateOperation(FPCGExContext* InContext) const override;
 };
 

@@ -10,6 +10,7 @@
 
 
 #include "Helpers/PCGSettingsHelpers.h"
+#include "Misc/PCGExMergePoints.h"
 
 #define LOCTEXT_NAMESPACE "PCGExGraphSettings"
 
@@ -49,8 +50,8 @@ TArray<FPCGPinProperties> UPCGExPointsProcessorSettings::InputPinProperties() co
 
 	if (SupportsPointFilters())
 	{
-		if (RequiresPointFilters()) { PCGEX_PIN_PARAMS(GetPointFilterPin(), GetPointFilterTooltip(), Required, {}) }
-		else { PCGEX_PIN_PARAMS(GetPointFilterPin(), GetPointFilterTooltip(), Normal, {}) }
+		if (RequiresPointFilters()) { PCGEX_PIN_FACTORIES(GetPointFilterPin(), GetPointFilterTooltip(), Required, {}) }
+		else { PCGEX_PIN_FACTORIES(GetPointFilterPin(), GetPointFilterTooltip(), Normal, {}) }
 	}
 
 	return PinProperties;
@@ -65,6 +66,17 @@ TArray<FPCGPinProperties> UPCGExPointsProcessorSettings::OutputPinProperties() c
 }
 
 PCGExData::EIOInit UPCGExPointsProcessorSettings::GetMainOutputInitMode() const { return PCGExData::EIOInit::New; }
+
+bool UPCGExPointsProcessorSettings::ShouldCache() const
+{
+	if (!IsCacheable()) { return false; }
+	PCGEX_GET_OPTION_STATE(CacheData, bDefaultCacheNodeOutput)
+}
+
+bool UPCGExPointsProcessorSettings::WantsScopedAttributeGet() const
+{
+	PCGEX_GET_OPTION_STATE(ScopedAttributeGet, bDefaultScopedAttributeGet)
+}
 
 FPCGExPointsProcessorContext::~FPCGExPointsProcessorContext()
 {
@@ -105,20 +117,39 @@ bool FPCGExPointsProcessorContext::ProcessPointsBatch(const PCGEx::ContextState 
 
 	PCGEX_ON_ASYNC_STATE_READY_INTERNAL(PCGExPointsMT::MTState_PointsProcessing)
 	{
-		TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExPointsProcessorContext::BatchProcessing_InitialProcessingDone);
+		TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExPointsProcessorContext::ProcessPointsBatch::InitialProcessingDone);
 		BatchProcessing_InitialProcessingDone();
+
 		SetAsyncState(PCGExPointsMT::MTState_PointsCompletingWork);
-		MainBatch->CompleteWork();
+		if (!MainBatch->bSkipCompletion)
+		{
+			//GetAsyncManager();
+			PCGEX_LAUNCH(
+				PCGExMT::FDeferredCallbackTask,
+				[WeakHandle = GetOrCreateHandle()]()
+				{
+				FPCGExMergePointsContext* Ctx = GetContextFromHandle<FPCGExMergePointsContext>(WeakHandle);
+				if(Ctx){Ctx->MainBatch->CompleteWork();}
+				});
+			return false;
+		}
 	}
 
 	PCGEX_ON_ASYNC_STATE_READY_INTERNAL(PCGExPointsMT::MTState_PointsCompletingWork)
 	{
-		TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExPointsProcessorContext::BatchProcessing_WorkComplete);
+		TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExPointsProcessorContext::ProcessPointsBatch::WorkComplete);
 		BatchProcessing_WorkComplete();
 		if (MainBatch->bRequiresWriteStep)
 		{
 			SetAsyncState(PCGExPointsMT::MTState_PointsWriting);
-			MainBatch->Write();
+			//GetAsyncManager();
+			PCGEX_LAUNCH(
+				PCGExMT::FDeferredCallbackTask,
+				[WeakHandle = GetOrCreateHandle()]()
+				{
+				FPCGExMergePointsContext* Ctx = GetContextFromHandle<FPCGExMergePointsContext>(WeakHandle);
+				if(Ctx){Ctx->MainBatch->Write();}
+				});
 			return false;
 		}
 
@@ -130,7 +161,7 @@ bool FPCGExPointsProcessorContext::ProcessPointsBatch(const PCGEx::ContextState 
 
 	PCGEX_ON_ASYNC_STATE_READY_INTERNAL(PCGExPointsMT::MTState_PointsWriting)
 	{
-		TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExPointsProcessorContext::BatchProcessing_WritingDone);
+		TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExPointsProcessorContext::ProcessPointsBatch::WritingDone);
 		BatchProcessing_WritingDone();
 
 		bBatchProcessingEnabled = false;
@@ -263,7 +294,7 @@ FPCGContext* FPCGExPointsProcessorElement::Initialize(
 bool FPCGExPointsProcessorElement::IsCacheable(const UPCGSettings* InSettings) const
 {
 	const UPCGExPointsProcessorSettings* Settings = static_cast<const UPCGExPointsProcessorSettings*>(InSettings);
-	return Settings->bCacheResult;
+	return Settings->ShouldCache();
 }
 
 void FPCGExPointsProcessorElement::DisabledPassThroughData(FPCGContext* Context) const
@@ -307,7 +338,7 @@ FPCGExContext* FPCGExPointsProcessorElement::InitializeContext(
 	InContext->bFlattenOutput = Settings->bFlattenOutput;
 	InContext->bAsyncEnabled = Settings->bDoAsyncProcessing;
 
-	InContext->bScopedAttributeGet = Settings->bScopedAttributeGet;
+	InContext->bScopedAttributeGet = Settings->WantsScopedAttributeGet();
 
 	return InContext;
 }
@@ -345,7 +376,7 @@ bool FPCGExPointsProcessorElement::Boot(FPCGExContext* InContext) const
 	else
 	{
 		const TSharedPtr<PCGExData::FPointIO> SingleInput = PCGExData::TryGetSingleInput(Context, Settings->GetMainInputPin(), false);
-		if (SingleInput) { Context->MainPoints->AddUnsafe(SingleInput); }
+		if (SingleInput) { Context->MainPoints->Add_Unsafe(SingleInput); }
 	}
 
 	if (Context->MainPoints->IsEmpty() && !Settings->IsInputless())

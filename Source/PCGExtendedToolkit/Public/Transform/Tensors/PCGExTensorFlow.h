@@ -62,7 +62,9 @@ class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExTensorFlowFactory : public UPCGExTensorPo
 	GENERATED_BODY()
 
 public:
+	UPROPERTY()
 	FPCGExTensorFlowConfig Config;
+
 	virtual UPCGExTensorOperation* CreateOperation(FPCGExContext* InContext) const override;
 
 protected:
@@ -91,4 +93,7 @@ public:
 	FPCGExTensorFlowConfig Config;
 
 	virtual UPCGExFactoryData* CreateFactory(FPCGExContext* InContext, UPCGExFactoryData* InFactory) const override;
+
+protected:
+	virtual bool IsCacheable() const override { return true; }
 };

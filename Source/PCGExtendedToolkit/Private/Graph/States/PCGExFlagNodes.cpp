@@ -16,7 +16,7 @@ PCGExData::EIOInit UPCGExFlagNodesSettings::GetEdgeOutputInitMode() const { retu
 TArray<FPCGPinProperties> UPCGExFlagNodesSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
-	PCGEX_PIN_PARAMS(PCGExCluster::SourceNodeFlagLabel, "Node states.", Required, {})
+	PCGEX_PIN_FACTORIES(PCGExCluster::SourceNodeFlagLabel, "Node states.", Required, {})
 	return PinProperties;
 }
 

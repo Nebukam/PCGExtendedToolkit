@@ -90,7 +90,6 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExRemapDetails
 	/** Fixed In Min value. If disabled, will use the lowest input value.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bUseInMin"))
 	double InMin = 0;
-	double CachedInMin = 0;
 
 	/** Fixed In Max value. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, InlineEditConditionToggle))
@@ -99,7 +98,6 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExRemapDetails
 	/** Fixed In Max value. If disabled, will use the highest input value.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bUseInMax"))
 	double InMax = 0;
-	double CachedInMax = 0;
 
 	/** How to remap before sampling the curve. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
@@ -169,8 +167,8 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExComponentRemapRule
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	FPCGExClampDetails OutputClampDetails;
 
-	TArray<double> MinCache;
-	TArray<double> MaxCache;
+	TSharedPtr<PCGExMT::TScopedValue<double>> MinCache;
+	TSharedPtr<PCGExMT::TScopedValue<double>> MaxCache;
 };
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc")

@@ -85,6 +85,7 @@ class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExHeuristicsFactoryTensor : public UPCGExHe
 	GENERATED_BODY()
 
 public:
+	UPROPERTY()
 	FPCGExHeuristicConfigTensor Config;
 
 	virtual UPCGExHeuristicOperation* CreateOperation(FPCGExContext* InContext) const override;
@@ -123,4 +124,7 @@ public:
 #if WITH_EDITOR
 	virtual FString GetDisplayName() const override;
 #endif
+
+protected:
+	virtual bool IsCacheable() const override { return false; } // can't cache tensors yet
 };

@@ -118,6 +118,7 @@ class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExHeuristicsFactoryInertia : public UPCGExH
 	GENERATED_BODY()
 
 public:
+	UPROPERTY()
 	FPCGExHeuristicConfigInertia Config;
 
 	virtual UPCGExHeuristicOperation* CreateOperation(FPCGExContext* InContext) const override;

@@ -9,7 +9,7 @@
 
 TSharedPtr<PCGExPointFilter::FFilter> UPCGExStringCompareFilterFactory::CreateFilter() const
 {
-	return MakeShared<PCGExPointsFilter::TStringCompareFilter>(this);
+	return MakeShared<PCGExPointsFilter::FStringCompareFilter>(this);
 }
 
 bool UPCGExStringCompareFilterFactory::RegisterConsumableAttributesWithData(FPCGExContext* InContext, const UPCGData* InData) const
@@ -22,7 +22,7 @@ bool UPCGExStringCompareFilterFactory::RegisterConsumableAttributesWithData(FPCG
 	return true;
 }
 
-bool PCGExPointsFilter::TStringCompareFilter::Init(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade> InPointDataFacade)
+bool PCGExPointsFilter::FStringCompareFilter::Init(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade> InPointDataFacade)
 {
 	if (!FFilter::Init(InContext, InPointDataFacade)) { return false; }
 

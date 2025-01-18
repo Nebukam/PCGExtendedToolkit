@@ -15,6 +15,11 @@ PCGExData::EIOInit UPCGExEdgesProcessorSettings::GetEdgeOutputInitMode() const {
 
 bool UPCGExEdgesProcessorSettings::GetMainAcceptMultipleData() const { return true; }
 
+bool UPCGExEdgesProcessorSettings::WantsScopedIndexLookupBuild() const
+{
+	PCGEX_GET_OPTION_STATE(ScopedIndexLookupBuild, bDefaultScopedIndexLookupBuild)
+}
+
 FPCGExEdgesProcessorContext::~FPCGExEdgesProcessorContext()
 {
 	PCGEX_TERMINATE_ASYNC
@@ -44,14 +49,14 @@ TArray<FPCGPinProperties> UPCGExEdgesProcessorSettings::InputPinProperties() con
 
 	if (SupportsPointFilters())
 	{
-		if (RequiresPointFilters()) { PCGEX_PIN_PARAMS(GetPointFilterPin(), GetPointFilterTooltip(), Required, {}) }
-		else { PCGEX_PIN_PARAMS(GetPointFilterPin(), GetPointFilterTooltip(), Normal, {}) }
+		if (RequiresPointFilters()) { PCGEX_PIN_FACTORIES(GetPointFilterPin(), GetPointFilterTooltip(), Required, {}) }
+		else { PCGEX_PIN_FACTORIES(GetPointFilterPin(), GetPointFilterTooltip(), Normal, {}) }
 	}
 
 	if (SupportsEdgeSorting())
 	{
-		if (RequiresEdgeSorting()) { PCGEX_PIN_PARAMS(PCGExGraph::SourceEdgeSortingRules, "Plug sorting rules here. Order is defined by each rule' priority value, in ascending order.", Required, {}) }
-		else { PCGEX_PIN_PARAMS(PCGExGraph::SourceEdgeSortingRules, "Plug sorting rules here. Order is defined by each rule' priority value, in ascending order.", Normal, {}) }
+		if (RequiresEdgeSorting()) { PCGEX_PIN_FACTORIES(PCGExGraph::SourceEdgeSortingRules, "Plug sorting rules here. Order is defined by each rule' priority value, in ascending order.", Required, {}) }
+		else { PCGEX_PIN_FACTORIES(PCGExGraph::SourceEdgeSortingRules, "Plug sorting rules here. Order is defined by each rule' priority value, in ascending order.", Normal, {}) }
 	}
 	return PinProperties;
 }
@@ -85,7 +90,7 @@ bool FPCGExEdgesProcessorContext::AdvancePointsIO(const bool bCleanupKeys)
 
 	if (!FPCGExPointsProcessorContext::AdvancePointsIO(bCleanupKeys)) { return false; }
 
-	if (const PCGExTags::IDType TagValue = CurrentIO->Tags->GetValue<int32>(PCGExGraph::TagStr_ClusterPair))
+	if (const PCGExTags::IDType TagValue = CurrentIO->Tags->GetTypedValue<int32>(PCGExGraph::TagStr_ClusterPair))
 	{
 		int32 PreUpdateKey = TagValue->Value;
 		TaggedEdges = InputDictionary->GetEntries(PreUpdateKey);
@@ -122,6 +127,8 @@ void FPCGExEdgesProcessorContext::OutputBatches() const
 
 bool FPCGExEdgesProcessorContext::ProcessClusters(const PCGEx::ContextState NextStateId, const bool bIsNextStateAsync)
 {
+	//FWriteScopeLock WriteScopeLock(ClusterProcessingLock); // Just in case
+
 	if (!bBatchProcessingEnabled) { return true; }
 
 	if (bClusterBatchInlined)
@@ -141,7 +148,11 @@ bool FPCGExEdgesProcessorContext::ProcessClusters(const PCGEx::ContextState Next
 		PCGEX_ON_ASYNC_STATE_READY_INTERNAL(PCGExClusterMT::MTState_ClusterProcessing)
 		{
 			SetAsyncState(PCGExClusterMT::MTState_ClusterCompletingWork);
-			CurrentBatch->CompleteWork();
+			if (!CurrentBatch->bSkipCompletion)
+			{
+				CurrentBatch->CompleteWork();
+				return false;
+			}
 		}
 
 		PCGEX_ON_ASYNC_STATE_READY_INTERNAL(PCGExClusterMT::MTState_ClusterCompletingWork)
@@ -154,8 +165,9 @@ bool FPCGExEdgesProcessorContext::ProcessClusters(const PCGEx::ContextState Next
 		PCGEX_ON_ASYNC_STATE_READY_INTERNAL(PCGExClusterMT::MTState_ClusterProcessing)
 		{
 			ClusterProcessing_InitialProcessingDone();
+
 			SetAsyncState(PCGExClusterMT::MTState_ClusterCompletingWork);
-			CompleteBatches(Batches);
+			if (!bSkipClusterBatchCompletionStep) { CompleteBatches(Batches); }
 		}
 
 		PCGEX_ON_ASYNC_STATE_READY_INTERNAL(PCGExClusterMT::MTState_ClusterCompletingWork)
@@ -398,7 +410,7 @@ FPCGExContext* FPCGExEdgesProcessorElement::InitializeContext(
 
 	PCGEX_CONTEXT_AND_SETTINGS(EdgesProcessor)
 
-	Context->bScopedIndexLookupBuild = Settings->bScopedIndexLookupBuild;
+	Context->bScopedIndexLookupBuild = Settings->WantsScopedIndexLookupBuild();
 
 	return Context;
 }

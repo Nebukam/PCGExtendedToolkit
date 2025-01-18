@@ -9,7 +9,7 @@ namespace PCGExData
 {
 #pragma region Pools & cache
 
-	TSharedPtr<FBufferBase> FFacade::FindBufferUnsafe(const uint64 UID)
+	TSharedPtr<FBufferBase> FFacade::FindBuffer_Unsafe(const uint64 UID)
 	{
 		TSharedPtr<FBufferBase>* Found = BufferMap.Find(UID);
 		if (!Found) { return nullptr; }
@@ -19,7 +19,29 @@ namespace PCGExData
 	TSharedPtr<FBufferBase> FFacade::FindBuffer(const uint64 UID)
 	{
 		FReadScopeLock ReadScopeLock(BufferLock);
-		return FindBufferUnsafe(UID);
+		return FindBuffer_Unsafe(UID);
+	}
+
+	TSharedPtr<FBufferBase> FFacade::FindReadableAttributeBuffer(const FName InName)
+	{
+		FReadScopeLock ReadScopeLock(BufferLock);
+		for (const TSharedPtr<FBufferBase>& Buffer : Buffers)
+		{
+			if (!Buffer->IsReadable()) { continue; }
+			if (Buffer->InAttribute && Buffer->InAttribute->Name == InName) { return Buffer; }
+		}
+		return nullptr;
+	}
+
+	TSharedPtr<FBufferBase> FFacade::FindWritableAttributeBuffer(const FName InName)
+	{
+		FReadScopeLock ReadScopeLock(BufferLock);
+		for (const TSharedPtr<FBufferBase>& Buffer : Buffers)
+		{
+			if (!Buffer->IsWritable()) { continue; }
+			if (Buffer->OutAttribute && Buffer->OutAttribute->Name == InName) { return Buffer; }
+		}
+		return nullptr;
 	}
 
 #pragma endregion
@@ -35,13 +57,13 @@ namespace PCGExData
 		}
 	}
 
-	void FFacade::Write(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager)
+	void FFacade::Write(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager, const bool bEnsureValidKeys)
 	{
 		if (!AsyncManager || !AsyncManager->IsAvailable() || !Source->GetOut()) { return; }
 
 		//UE_LOG(LogTemp, Warning, TEXT("{%lld} Facade -> Write"), AsyncManager->Context->GetInputSettings<UPCGSettings>()->UID)
 
-		Source->GetOutKeys(true);
+		if (bEnsureValidKeys) { Source->GetOutKeys(true); }
 
 		{
 			FWriteScopeLock WriteScopeLock(BufferLock);
@@ -50,7 +72,7 @@ namespace PCGExData
 			{
 				const TSharedPtr<FBufferBase> Buffer = Buffers[i];
 				if (!Buffer.IsValid() || !Buffer->IsWritable()) { continue; }
-				PCGExMT::Write(AsyncManager, Buffer);
+				WriteBuffer(AsyncManager, Buffer, false);
 			}
 		}
 

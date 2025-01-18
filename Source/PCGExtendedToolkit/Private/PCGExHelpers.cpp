@@ -101,7 +101,7 @@ namespace PCGEx
 			{
 				//if (!IsValid(ObjectPtr)) { continue; }
 				ObjectPtr->RemoveFromRoot();
-				RecursivelyClearAsyncFlagUnsafe(ObjectPtr);
+				RecursivelyClearAsyncFlag_Unsafe(ObjectPtr);
 
 				if (ObjectPtr->Implements<UPCGExManagedObjectInterface>())
 				{
@@ -141,7 +141,7 @@ namespace PCGEx
 			ManagedObjects.Remove(InObject);
 
 			InObject->RemoveFromRoot();
-			RecursivelyClearAsyncFlagUnsafe(InObject);
+			RecursivelyClearAsyncFlag_Unsafe(InObject);
 		}
 
 		if (InObject->Implements<UPCGExManagedObjectInterface>())
@@ -168,7 +168,7 @@ namespace PCGEx
 		InObject->MarkAsGarbage();
 	}
 
-	void FManagedObjects::RecursivelyClearAsyncFlagUnsafe(UObject* InObject) const
+	void FManagedObjects::RecursivelyClearAsyncFlag_Unsafe(UObject* InObject) const
 	{
 #if PCGEX_ENGINE_VERSION >= 505
 		{

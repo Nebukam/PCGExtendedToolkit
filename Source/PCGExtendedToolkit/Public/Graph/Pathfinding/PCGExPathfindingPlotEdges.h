@@ -79,7 +79,7 @@ public:
 	FPCGExPathStatistics Statistics;
 
 	/** Whether or not to search for closest node using an octree. Depending on your dataset, enabling this may be either much faster, or much slower. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Performance", meta=(PCG_NotOverridable, AdvancedDisplay))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Performance, meta=(PCG_NotOverridable, AdvancedDisplay))
 	bool bUseOctreeSearch = false;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)

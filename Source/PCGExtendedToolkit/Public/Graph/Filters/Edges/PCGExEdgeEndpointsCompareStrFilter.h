@@ -44,6 +44,7 @@ class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExEdgeEndpointsCompareStrFilterFactory : pu
 	GENERATED_BODY()
 
 public:
+	UPROPERTY()
 	FPCGExEdgeEndpointsCompareStrFilterConfig Config;
 
 	virtual void RegisterBuffersDependencies(FPCGExContext* InContext, PCGExData::FFacadePreloader& FacadePreloader) const override;
@@ -103,4 +104,7 @@ public:
 #if WITH_EDITOR
 	virtual FString GetDisplayName() const override;
 #endif
+
+protected:
+	virtual bool IsCacheable() const override { return true; }
 };

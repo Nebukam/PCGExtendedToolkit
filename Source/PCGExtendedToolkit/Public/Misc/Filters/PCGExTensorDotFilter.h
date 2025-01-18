@@ -63,10 +63,10 @@ public:
 
 namespace PCGExPointsFilter
 {
-	class /*PCGEXTENDEDTOOLKIT_API*/ TTensorDotFilter final : public PCGExPointFilter::FSimpleFilter
+	class /*PCGEXTENDEDTOOLKIT_API*/ FTensorDotFilter final : public PCGExPointFilter::FSimpleFilter
 	{
 	public:
-		explicit TTensorDotFilter(const TObjectPtr<const UPCGExTensorDotFilterFactory>& InFactory)
+		explicit FTensorDotFilter(const TObjectPtr<const UPCGExTensorDotFilterFactory>& InFactory)
 			: FSimpleFilter(InFactory), TypedFilterFactory(InFactory)
 		{
 			DotComparison = TypedFilterFactory->Config.DotComparisonDetails;
@@ -97,7 +97,7 @@ namespace PCGExPointsFilter
 				DotComparison.GetComparisonThreshold(PointIndex));
 		}
 
-		virtual ~TTensorDotFilter() override
+		virtual ~FTensorDotFilter() override
 		{
 		}
 	};
@@ -137,6 +137,6 @@ public:
 inline TArray<FPCGPinProperties> UPCGExTensorDotFilterProviderSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
-	PCGEX_PIN_PARAMS(PCGExTensor::SourceTensorsLabel, "Tensors", Required, {})
+	PCGEX_PIN_FACTORIES(PCGExTensor::SourceTensorsLabel, "Tensors", Required, {})
 	return PinProperties;
 }

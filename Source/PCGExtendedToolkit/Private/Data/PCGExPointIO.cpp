@@ -88,6 +88,8 @@ namespace PCGExData
 
 	TSharedPtr<FPCGAttributeAccessorKeysPoints> FPointIO::GetInKeys()
 	{
+		TRACE_CPUPROFILER_EVENT_SCOPE(FPointIO::GetInKeys);
+
 		{
 			FReadScopeLock ReadScopeLock(InKeysLock);
 			if (InKeys) { return InKeys; }
@@ -105,6 +107,8 @@ namespace PCGExData
 
 	TSharedPtr<FPCGAttributeAccessorKeysPoints> FPointIO::GetOutKeys(const bool bEnsureValidKeys)
 	{
+		TRACE_CPUPROFILER_EVENT_SCOPE(FPointIO::GetOutKeys);
+
 		check(Out)
 
 		{
@@ -276,7 +280,7 @@ namespace PCGExData
 		return Branch;
 	}
 
-	TSharedPtr<FPointIO> FPointIOCollection::InsertUnsafe(const int32 Index, const TSharedPtr<FPointIO>& PointIO)
+	TSharedPtr<FPointIO> FPointIOCollection::Insert_Unsafe(const int32 Index, const TSharedPtr<FPointIO>& PointIO)
 	{
 		check(!Pairs[Index]) // should be an empty spot
 		Pairs[Index] = PointIO;
@@ -284,20 +288,20 @@ namespace PCGExData
 		return PointIO;
 	}
 
-	TSharedPtr<FPointIO> FPointIOCollection::AddUnsafe(const TSharedPtr<FPointIO>& PointIO)
+	TSharedPtr<FPointIO> FPointIOCollection::Add_Unsafe(const TSharedPtr<FPointIO>& PointIO)
 	{
 		PointIO->SetInfos(Pairs.Add(PointIO), OutputPin);
 		return PointIO;
 	}
 
-	void FPointIOCollection::AddUnsafe(const TArray<TSharedPtr<FPointIO>>& IOs)
+	void FPointIOCollection::Add_Unsafe(const TArray<TSharedPtr<FPointIO>>& IOs)
 	{
 		if (IOs.IsEmpty()) { return; }
 		Pairs.Reserve(Pairs.Num() + IOs.Num());
 		for (const TSharedPtr<FPointIO>& IO : IOs)
 		{
 			if (!IO) { continue; }
-			AddUnsafe(IO);
+			Add_Unsafe(IO);
 		}
 	}
 
@@ -393,7 +397,7 @@ namespace PCGExData
 
 	bool FPointIOTaggedDictionary::TryAddEntry(const TSharedRef<FPointIO>& PointIOEntry)
 	{
-		const IDType TagValue = PointIOEntry->Tags->GetValue<int32>(TagId);
+		const IDType TagValue = PointIOEntry->Tags->GetTypedValue<int32>(TagId);
 		if (!TagValue) { return false; }
 
 		if (const int32* Index = TagMap.Find(TagValue->Value))

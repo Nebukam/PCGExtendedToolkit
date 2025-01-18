@@ -99,7 +99,7 @@ namespace PCGExConnectPoints
 		bool bUseVariableRadius = false;
 		int32 NumChainedOps = 0;
 		double SharedSearchRadius = 0;
-		
+
 		TArray<int8> CanGenerate;
 		TArray<int8> AcceptConnections;
 		TUniquePtr<PCGEx::FIndexedItemOctree> Octree;
@@ -108,7 +108,7 @@ namespace PCGExConnectPoints
 		TArray<FTransform> CachedTransforms;
 
 		TSharedPtr<PCGExMT::TScopedSet<uint64>> DistributedEdgesSet;
-		
+
 		FPCGExGeo2DProjectionDetails ProjectionDetails;
 
 		bool bPreventCoincidence = false;

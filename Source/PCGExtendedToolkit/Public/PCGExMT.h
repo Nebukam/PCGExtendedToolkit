@@ -85,9 +85,6 @@ namespace PCGExMT
 		case EPCGExAsyncPriority::BackgroundLow:
 			Priority = UE::Tasks::ETaskPriority::BackgroundLow;
 			break;
-		case EPCGExAsyncPriority::Count:
-			Priority = UE::Tasks::ETaskPriority::Count;
-			break;
 		}
 	}
 
@@ -174,14 +171,14 @@ namespace PCGExMT
 			Sets.Reserve(InScopes.Num());
 			for (int i = 0; i < InScopes.Num(); i++) { Sets.Add_GetRef(MakeShared<TSet<T>>())->Reserve(InReserve); }
 		};
-		
+
 		virtual ~TScopedSet() = default;
 
 		FORCEINLINE TSharedPtr<TSet<T>> Get(const FScope& InScope) { return Sets[InScope.LoopIndex]; }
 		FORCEINLINE TSet<T>& Get_Ref(const FScope& InScope) { return *Sets[InScope.LoopIndex].Get(); }
 
 		using FForEachFunc = std::function<void (TSet<T>&)>;
-		FORCEINLINE void ForEach(FForEachFunc&& Func) { for (int i =0; i < Sets.Num(); i++) { Func(*Sets[i].Get()); } }
+		FORCEINLINE void ForEach(FForEachFunc&& Func) { for (int i = 0; i < Sets.Num(); i++) { Func(*Sets[i].Get()); } }
 	};
 
 	template <typename T>
@@ -337,6 +334,9 @@ namespace PCGExMT
 		TSharedPtr<FTaskGroup> TryCreateTaskGroup(const FName& InName);
 		TWeakPtr<FAsyncToken> TryCreateToken(const FName& TokenName);
 
+		void DeferredReset(FSimpleCallback&& Callback);
+		void DeferredResumeExecution(FSimpleCallback&& Callback) const;
+
 	protected:
 		std::atomic<bool> bIsCancelling{false};
 		bool IsCancelling() const { return bIsCancelling.load(std::memory_order_acquire); }
@@ -383,6 +383,12 @@ namespace PCGExMT
 
 			const TSharedPtr<FAsyncMultiHandle> PinnedRoot = Root.Pin();
 			if (!PinnedRoot) { return; }
+
+			if (MaxItems <= 0)
+			{
+				UE_LOG(LogTemp, Warning, TEXT("StartRanges: MaxItems = %i"), MaxItems);
+				return;
+			}
 
 			check(MaxItems > 0);
 
@@ -512,68 +518,48 @@ namespace PCGExMT
 		virtual void ExecuteTask(const TSharedPtr<FTaskManager>& AsyncManager) override;
 	};
 
-	template <typename T>
-	class /*PCGEXTENDEDTOOLKIT_API*/ FWriteTask final : public FTask
+	class /*PCGEXTENDEDTOOLKIT_API*/ FDeferredCallbackTask final : public FTask
 	{
 	public:
-		PCGEX_ASYNC_TASK_NAME(FWriteTask)
+		PCGEX_ASYNC_TASK_NAME(FDeferredCallbackTask)
 
-		explicit FWriteTask(const TSharedPtr<T>& InOperation)
-			: FTask(), Operation(InOperation)
+		FDeferredCallbackTask(FSimpleCallback&& InCallback)
+			: FTask(), Callback(InCallback)
 		{
 		}
 
-
-		TSharedPtr<T> Operation;
-
-		virtual void ExecuteTask(const TSharedPtr<FTaskManager>& AsyncManager) override
-		{
-			if (!Operation) { return; }
-			Operation->Write();
-		}
+		FSimpleCallback Callback;
+		virtual void ExecuteTask(const TSharedPtr<FTaskManager>& AsyncManager) override;
 	};
 
-	template <typename T>
-	class /*PCGEXTENDEDTOOLKIT_API*/ FWriteTaskWithManager final : public FTask
+	class /*PCGEXTENDEDTOOLKIT_API*/ FDeferredCallbackWithManagerTask final : public FTask
 	{
 	public:
-		PCGEX_ASYNC_TASK_NAME(FWriteTaskWithManager)
+		PCGEX_ASYNC_TASK_NAME(FDeferredCallbackWithManagerTask)
 
-		FWriteTaskWithManager(const TSharedPtr<T>& InOperation)
-			: FTask(), Operation(InOperation)
+		using FSimpleCallbackWithManager = std::function<void(const TSharedPtr<FTaskManager>&)>;
+
+		FDeferredCallbackWithManagerTask(FSimpleCallbackWithManager&& InCallback)
+			: FTask(), Callback(InCallback)
 		{
 		}
 
-		TSharedPtr<T> Operation;
-
-		virtual void ExecuteTask(const TSharedPtr<FTaskManager>& AsyncManager) override
-		{
-			if (!Operation) { return; }
-			Operation->Write(AsyncManager);
-		}
+		FSimpleCallbackWithManager Callback;
+		virtual void ExecuteTask(const TSharedPtr<FTaskManager>& AsyncManager) override;
 	};
-
-	template <typename T, bool bWithManager = false>
-	static void Write(const TSharedPtr<FTaskManager>& AsyncManager, const TSharedPtr<T>& Operation)
-	{
-		if (!AsyncManager || !AsyncManager->IsAvailable()) { Operation->Write(); }
-		else
-		{
-			if constexpr (bWithManager) { PCGEX_LAUNCH(FWriteTaskWithManager<T>, Operation) }
-			else { PCGEX_LAUNCH(FWriteTask<T>, Operation) }
-		}
-	}
 
 	//
 
 	class FDeferredCallbackHandle : public FAsyncHandle
 	{
 	public:
+		FSimpleCallback Callback;
+
 		explicit FDeferredCallbackHandle() : FAsyncHandle()
 		{
 		}
 
-		FSimpleCallback Callback;
+		virtual bool Start() override;
 	};
 
 	static TSharedPtr<FDeferredCallbackHandle> DeferredCallback(FPCGExContext* InContext, FSimpleCallback&& InCallback)
@@ -588,12 +574,7 @@ namespace PCGExMT
 				{
 					const TSharedPtr<FDeferredCallbackHandle> Task = WeakTask.Pin();
 					if (!Task.IsValid()) { return; }
-
-					if (Task->Start())
-					{
-						Task->Callback();
-						Task->Complete();
-					}
+					if (Task->Start()) { Task->Complete(); }
 				},
 				UE::Tasks::ETaskPriority::Default
 			);

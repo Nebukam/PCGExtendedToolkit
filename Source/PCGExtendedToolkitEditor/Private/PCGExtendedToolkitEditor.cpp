@@ -75,6 +75,8 @@ void FPCGExtendedToolkitEditorModule::StartupModule()
 	const FVector2D SizeThumbnail = FVector2D(128.0f, 128.0f);
 
 	PCGEX_ADD_ICON(PCGExAssetCollection)
+	PCGEX_ADD_ICON(PCGExMeshCollection)
+	PCGEX_ADD_ICON(PCGExActorCollection)
 	PCGEX_ADD_ICON(PCGExCustomGraphSettings)
 	PCGEX_ADD_ICON(PCGExCustomGraphBuilder)
 	PCGEX_ADD_ICON(PCGExCustomActorDataPacker)

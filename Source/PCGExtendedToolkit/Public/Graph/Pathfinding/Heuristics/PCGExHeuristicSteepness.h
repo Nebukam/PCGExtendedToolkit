@@ -80,6 +80,7 @@ class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExHeuristicsFactorySteepness : public UPCGE
 	GENERATED_BODY()
 
 public:
+	UPROPERTY()
 	FPCGExHeuristicConfigSteepness Config;
 
 	virtual UPCGExHeuristicOperation* CreateOperation(FPCGExContext* InContext) const override;

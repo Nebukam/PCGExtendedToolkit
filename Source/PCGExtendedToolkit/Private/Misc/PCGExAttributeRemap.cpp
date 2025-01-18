@@ -164,11 +164,15 @@ namespace PCGExAttributeRemap
 				// Fix min/max range
 				for (FPCGExComponentRemapRule& Rule : This->Rules)
 				{
-					if (Rule.RemapDetails.bUseInMin) { Rule.RemapDetails.InMin = Rule.RemapDetails.CachedInMin; }
-					else { for (const double Min : Rule.MinCache) { Rule.RemapDetails.InMin = FMath::Min(Rule.RemapDetails.InMin, Min); } }
+					if (!Rule.RemapDetails.bUseInMin)
+					{
+						Rule.RemapDetails.InMin = Rule.MinCache->Flatten([&](const double& In, const double& Out) { return FMath::Min(In, Out); });
+					}
 
-					if (Rule.RemapDetails.bUseInMax) { Rule.RemapDetails.InMax = Rule.RemapDetails.CachedInMax; }
-					else { for (const double Max : Rule.MaxCache) { Rule.RemapDetails.InMax = FMath::Max(Rule.RemapDetails.InMax, Max); } }
+					if (!Rule.RemapDetails.bUseInMax)
+					{
+						Rule.RemapDetails.InMax = Rule.MaxCache->Flatten([&](const double& In, const double& Out) { return FMath::Max(In, Out); });
+					}
 
 					if (Rule.RemapDetails.RangeMethod == EPCGExRangeType::FullRange) { Rule.RemapDetails.InMin = 0; }
 				}
@@ -183,8 +187,8 @@ namespace PCGExAttributeRemap
 
 				for (FPCGExComponentRemapRule& Rule : This->Rules)
 				{
-					Rule.MinCache.Init(MAX_dbl, Loops.Num());
-					Rule.MaxCache.Init(MIN_dbl_neg, Loops.Num());
+					Rule.MinCache = MakeShared<PCGExMT::TScopedValue<double>>(Loops, MAX_dbl);
+					Rule.MaxCache = MakeShared<PCGExMT::TScopedValue<double>>(Loops, MIN_dbl_neg);
 				}
 			};
 
@@ -240,8 +244,8 @@ namespace PCGExAttributeRemap
 								}
 							}
 
-							Rule.MinCache[Scope.LoopIndex] = Min;
-							Rule.MaxCache[Scope.LoopIndex] = Max;
+							Rule.MinCache->Set(Scope, Min);
+							Rule.MaxCache->Set(Scope, Max);
 						}
 					});
 			};

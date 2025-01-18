@@ -214,7 +214,7 @@ namespace PCGExSplitPath
 
 			if ((OddEven & 1) == 0) { if (Settings->bTagIfEvenSplit) { PathIO->Tags->AddRaw(Settings->IsEvenTag); } }
 			else if (Settings->bTagIfOddSplit) { PathIO->Tags->AddRaw(Settings->IsOddTag); }
-			Context->MainPaths->AddUnsafe(PathIO);
+			Context->MainPaths->Add_Unsafe(PathIO);
 			OddEven++;
 		}
 

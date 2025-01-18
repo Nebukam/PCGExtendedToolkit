@@ -48,7 +48,9 @@ class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExTensorSpin : public UPCGExTensorPointOper
 	GENERATED_BODY()
 
 public:
+	UPROPERTY()
 	FPCGExTensorSpinConfig Config;
+
 	virtual bool Init(FPCGExContext* InContext, const UPCGExTensorFactoryData* InFactory) override;
 
 	virtual PCGExTensor::FTensorSample Sample(const FTransform& InProbe) const override;
@@ -90,4 +92,7 @@ public:
 	FPCGExTensorSpinConfig Config;
 
 	virtual UPCGExFactoryData* CreateFactory(FPCGExContext* InContext, UPCGExFactoryData* InFactory) const override;
+
+protected:
+	virtual bool IsCacheable() const override { return true; }
 };

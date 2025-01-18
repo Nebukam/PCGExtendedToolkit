@@ -12,7 +12,7 @@
 TArray<FPCGPinProperties> UPCGExExtrudeTensorsSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
-	PCGEX_PIN_PARAMS(PCGExTensor::SourceTensorsLabel, "Tensors", Required, {})
+	PCGEX_PIN_FACTORIES(PCGExTensor::SourceTensorsLabel, "Tensors", Required, {})
 	PCGEX_PIN_POINT(PCGEx::SourceBoundsLabel, "Bounds in which extrusion will be limited", Normal, {})
 	return PinProperties;
 }

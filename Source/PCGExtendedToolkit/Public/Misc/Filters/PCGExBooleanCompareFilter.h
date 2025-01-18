@@ -55,6 +55,7 @@ class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExBooleanCompareFilterFactory : public UPCG
 	GENERATED_BODY()
 
 public:
+	UPROPERTY()
 	FPCGExBooleanCompareFilterConfig Config;
 
 	virtual TSharedPtr<PCGExPointFilter::FFilter> CreateFilter() const override;
@@ -63,10 +64,10 @@ public:
 
 namespace PCGExPointsFilter
 {
-	class /*PCGEXTENDEDTOOLKIT_API*/ FBooleanComparisonFilter final : public PCGExPointFilter::FSimpleFilter
+	class /*PCGEXTENDEDTOOLKIT_API*/ FBooleanCompareFilter final : public PCGExPointFilter::FSimpleFilter
 	{
 	public:
-		explicit FBooleanComparisonFilter(const TObjectPtr<const UPCGExBooleanCompareFilterFactory>& InDefinition)
+		explicit FBooleanCompareFilter(const TObjectPtr<const UPCGExBooleanCompareFilterFactory>& InDefinition)
 			: FSimpleFilter(InDefinition), TypedFilterFactory(InDefinition)
 		{
 		}
@@ -84,7 +85,7 @@ namespace PCGExPointsFilter
 			return TypedFilterFactory->Config.Comparison == EPCGExEquality::Equal ? A == B : A != B;
 		}
 
-		virtual ~FBooleanComparisonFilter() override
+		virtual ~FBooleanCompareFilter() override
 		{
 		}
 	};
@@ -115,4 +116,7 @@ public:
 #if WITH_EDITOR
 	virtual FString GetDisplayName() const override;
 #endif
+
+protected:
+	virtual bool IsCacheable() const override { return true; }
 };

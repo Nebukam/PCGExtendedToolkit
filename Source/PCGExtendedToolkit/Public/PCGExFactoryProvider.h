@@ -60,7 +60,7 @@ class PCGEXTENDEDTOOLKIT_API UPCGExParamDataBase : public UPCGExPointData
 	GENERATED_BODY()
 
 public:
-	virtual EPCGDataType GetDataType() const override { return EPCGDataType::Param; }
+	virtual EPCGDataType GetDataType() const override { return EPCGDataType::Param; } //PointOrParam would be best but it's gray and I don't like it
 
 	virtual void OutputConfigToMetadata();
 
@@ -119,10 +119,11 @@ class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExFactoryProviderSettings : public UPCGSett
 {
 	GENERATED_BODY()
 
+	friend class FPCGExFactoryProviderElement;
+
 public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
-	bool bCacheResult = false;
 	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(
 		FactoryProvider, "Factory : Provider", "Creates an abstract factory provider.",
 		FName(GetDisplayName()))
@@ -147,9 +148,17 @@ public:
 #endif
 	//~End UPCGExFactoryProviderSettings
 
+	/** Cache the results of this node. Can yield unexpected result in certain cases.*/
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Performance, meta=(PCG_NotOverridable, AdvancedDisplay))
+	EPCGExOptionState CachingBehavior = EPCGExOptionState::Default;
+
 	/** Whether this factory can register consumable attributes or not. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Cleanup", meta = (PCG_NotOverridable))
 	bool bCleanupConsumableAttributes = false;
+
+protected:
+	virtual bool IsCacheable() const { return false; } // Until I find a way to properly cache factories :(
+	virtual bool ShouldCache() const;
 };
 
 struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExFactoryProviderContext : FPCGExContext
@@ -177,7 +186,7 @@ protected:
 	virtual bool ExecuteInternal(FPCGContext* Context) const override;
 
 public:
-	virtual bool IsCacheable(const UPCGSettings* InSettings) const override { return false; }
+	virtual bool IsCacheable(const UPCGSettings* InSettings) const override;
 	virtual FPCGContext* Initialize(const FPCGDataCollection& InputData, TWeakObjectPtr<UPCGComponent> SourceComponent, const UPCGNode* Node) override;
 };
 

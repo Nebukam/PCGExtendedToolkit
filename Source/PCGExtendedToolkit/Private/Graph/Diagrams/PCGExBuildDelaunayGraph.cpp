@@ -171,7 +171,7 @@ namespace PCGExBuildDelaunay
 		const TSharedPtr<PCGExData::FPointIO> SitesIO = NewPointIO(PointIO.ToSharedRef());
 		PCGEX_INIT_IO_VOID(SitesIO, PCGExData::EIOInit::New)
 
-		Context->MainSites->InsertUnsafe(Processor->BatchIndex, SitesIO);
+		Context->MainSites->Insert_Unsafe(Processor->BatchIndex, SitesIO);
 
 		const TArray<FPCGPoint>& OriginalPoints = SitesIO->GetIn()->GetPoints();
 		TArray<FPCGPoint>& MutablePoints = SitesIO->GetOut()->GetMutablePoints();
@@ -201,7 +201,7 @@ namespace PCGExBuildDelaunay
 				TArray<bool>& OutValues = *HullBuffer->GetOutValues();
 				for (int i = 0; i < NumSites; i++) { OutValues[i] = static_cast<bool>(Delaunay->Sites[i].bOnHull); }
 			}
-			Write(AsyncManager, HullBuffer);
+			WriteBuffer(AsyncManager, HullBuffer);
 		}
 	}
 
@@ -213,7 +213,7 @@ namespace PCGExBuildDelaunay
 		const TSharedPtr<PCGExData::FPointIO> SitesIO = NewPointIO(PointIO.ToSharedRef());
 		PCGEX_INIT_IO_VOID(SitesIO, PCGExData::EIOInit::New)
 
-		Context->MainSites->InsertUnsafe(Processor->BatchIndex, SitesIO);
+		Context->MainSites->Insert_Unsafe(Processor->BatchIndex, SitesIO);
 
 		const TArray<FPCGPoint>& OriginalPoints = SitesIO->GetIn()->GetPoints();
 		TArray<FPCGPoint>& MutablePoints = SitesIO->GetOut()->GetMutablePoints();
@@ -243,7 +243,7 @@ namespace PCGExBuildDelaunay
 				TArray<bool>& OutValues = *HullBuffer->GetOutValues();
 				for (int i = 0; i < NumSites; i++) { OutValues[i] = static_cast<bool>(Delaunay->Sites[i].bOnHull); }
 			}
-			Write(AsyncManager, HullBuffer);
+			WriteBuffer(AsyncManager, HullBuffer);
 		}
 	}
 }

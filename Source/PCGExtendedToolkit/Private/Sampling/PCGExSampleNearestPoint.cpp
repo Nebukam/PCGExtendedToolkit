@@ -60,9 +60,9 @@ TArray<FPCGPinProperties> UPCGExSampleNearestPointSettings::InputPinProperties()
 	PCGEX_PIN_POINT(PCGEx::SourceTargetsLabel, "The point data set to check against.", Required, {})
 	if (SampleMethod == EPCGExSampleMethod::BestCandidate)
 	{
-		PCGEX_PIN_PARAMS(PCGExSorting::SourceSortingRules, "Plug sorting rules here. Order is defined by each rule' priority value, in ascending order.", Required, {})
+		PCGEX_PIN_FACTORIES(PCGExSorting::SourceSortingRules, "Plug sorting rules here. Order is defined by each rule' priority value, in ascending order.", Required, {})
 	}
-	PCGEX_PIN_PARAMS(PCGEx::SourceUseValueIfFilters, "Filter which points values will be processed.", Advanced, {})
+	PCGEX_PIN_FACTORIES(PCGEx::SourceUseValueIfFilters, "Filter which points values will be processed.", Advanced, {})
 	return PinProperties;
 }
 
@@ -379,7 +379,7 @@ namespace PCGExSampleNearestPoints
 
 			WeightedSignAxis += PCGExMath::GetDirection(TargetRotation, Settings->SignAxis) * Weight;
 			WeightedAngleAxis += PCGExMath::GetDirection(TargetRotation, Settings->AngleAxis) * Weight;
-			WeightedDistance += FMath::Sqrt(TargetInfos.Distance) * Weight;
+			WeightedDistance += FMath::Sqrt(TargetInfos.Distance);
 
 			TotalWeight += Weight;
 			TotalSamples++;
@@ -411,6 +411,7 @@ namespace PCGExSampleNearestPoints
 		{
 			WeightedUp /= TotalWeight;
 			WeightedTransform = PCGExMath::Div(WeightedTransform, TotalWeight);
+			WeightedDistance /= TotalSamples; // Weighted distance is an average, not a weight T_T
 		}
 
 		WeightedUp.Normalize();

@@ -516,7 +516,7 @@ namespace PCGExCluster
 		void UpdatePositions();
 
 	protected:
-		FORCEINLINE int32 GetOrCreateNodeUnsafe(const TArray<FPCGPoint>& InNodePoints, const int32 PointIndex)
+		FORCEINLINE int32 GetOrCreateNode_Unsafe(const TArray<FPCGPoint>& InNodePoints, const int32 PointIndex)
 		{
 			int32 NodeIndex = NodeIndexLookup->Get(PointIndex);
 
@@ -532,7 +532,7 @@ namespace PCGExCluster
 			return NodeIndex;
 		}
 
-		FORCEINLINE int32 GetOrCreateNodeUnsafe(TSparseArray<int32>& InLookup, const TArray<FPCGPoint>& InNodePoints, const int32 PointIndex)
+		FORCEINLINE int32 GetOrCreateNode_Unsafe(TSparseArray<int32>& InLookup, const TArray<FPCGPoint>& InNodePoints, const int32 PointIndex)
 		{
 			if (InLookup.IsValidIndex(PointIndex))
 			{
