@@ -177,15 +177,15 @@ namespace PCGExOffsetPath
 				}
 			}
 
-			Positions[Index] = Path->GetPosUnsafe(Index) + (Dir * Offset);
+			Positions[Index] = Path->GetPos_Unsafe(Index) + (Dir * Offset);
 		}
 		else
 		{
 			const int32 PrevIndex = Path->SafePointIndex(Index - 1);
 			const FVector PlaneDir = ((OffsetDirection ? OffsetDirection->Get(PrevIndex) : DirectionGetter->Read(PrevIndex)) * DirectionFactor).GetSafeNormal();
-			const FVector PlaneOrigin = Path->GetPosUnsafe(PrevIndex) + (PlaneDir * (OffsetGetter ? OffsetGetter->Read(PrevIndex) : OffsetConstant));
+			const FVector PlaneOrigin = Path->GetPos_Unsafe(PrevIndex) + (PlaneDir * (OffsetGetter ? OffsetGetter->Read(PrevIndex) : OffsetConstant));
 
-			const FVector A = Path->GetPosUnsafe(Index) + (Dir * Offset);
+			const FVector A = Path->GetPos_Unsafe(Index) + (Dir * Offset);
 			const double Dot = FMath::Clamp(FMath::Abs(FVector::DotProduct(Path->DirToPrevPoint(Index), Path->DirToNextPoint(Index))), 0, 1);
 
 

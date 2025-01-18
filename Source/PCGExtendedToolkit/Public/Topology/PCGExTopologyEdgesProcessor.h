@@ -61,6 +61,9 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
 	FPCGExAttachmentRules AttachmentRules;
 
+protected:
+	virtual bool IsCacheable() const override { return false; }
+
 private:
 	friend class FPCGExTopologyEdgesProcessorElement;
 };

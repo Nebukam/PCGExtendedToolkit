@@ -47,7 +47,9 @@ MACRO(UnsignedMax) \
 MACRO(AbsoluteMin) \
 MACRO(AbsoluteMax) \
 MACRO(WeightedSubtract) \
-MACRO(CopyOther)
+MACRO(CopyOther) \
+MACRO(Hash) \
+MACRO(UnsignedHash)
 
 UENUM()
 enum class EPCGExBlendOver : uint8
@@ -89,6 +91,8 @@ enum class EPCGExDataBlendingType : uint8
 	AbsoluteMax      = 13 UMETA(DisplayName = "Absolute Max", ToolTip="Component-wise MAX of absolute value."),
 	WeightedSubtract = 14 UMETA(DisplayName = "Weighted Subtract", ToolTip="Substraction of all the data, weighted"),
 	CopyOther        = 15 UMETA(DisplayName = "Copy (Source)", ToolTip="Copy source data (first value)"),
+	Hash             = 16 UMETA(DisplayName = "Hash", ToolTip="Combine the values into a hash"),
+	UnsignedHash     = 17 UMETA(DisplayName = "Hash (Unsigned)", ToolTip="Combine the values into a hash but sort the values first to create an order-independent hash."),
 };
 
 USTRUCT(BlueprintType)

@@ -503,7 +503,7 @@ namespace PCGExData
 		FORCEINLINE int32 GetNum(const ESource InSource = ESource::In) const { return Source->GetNum(InSource); }
 		FORCEINLINE TArray<FPCGPoint>& GetMutablePoints() const { return Source->GetMutablePoints(); }
 
-		TSharedPtr<FBufferBase> FindBufferUnsafe(const uint64 UID);
+		TSharedPtr<FBufferBase> FindBuffer_Unsafe(const uint64 UID);
 		TSharedPtr<FBufferBase> FindBuffer(const uint64 UID);
 		TSharedPtr<FBufferBase> FindReadableAttributeBuffer(const FName InName);
 		TSharedPtr<FBufferBase> FindWritableAttributeBuffer(const FName InName);
@@ -524,9 +524,9 @@ namespace PCGExData
 		bool ShareSource(const FFacade* OtherManager) const { return this == OtherManager || OtherManager->Source == Source; }
 
 		template <typename T>
-		TSharedPtr<TBuffer<T>> FindBufferUnsafe(const FName FullName)
+		TSharedPtr<TBuffer<T>> FindBuffer_Unsafe(const FName FullName)
 		{
-			const TSharedPtr<FBufferBase>& Found = FindBufferUnsafe(BufferUID(FullName, PCGEx::GetMetadataType<T>()));
+			const TSharedPtr<FBufferBase>& Found = FindBuffer_Unsafe(BufferUID(FullName, PCGEx::GetMetadataType<T>()));
 			if (!Found) { return nullptr; }
 			return StaticCastSharedPtr<TBuffer<T>>(Found);
 		}
@@ -548,7 +548,7 @@ namespace PCGExData
 			{
 				FWriteScopeLock WriteScopeLock(BufferLock);
 
-				NewBuffer = FindBufferUnsafe<T>(FullName);
+				NewBuffer = FindBuffer_Unsafe<T>(FullName);
 				if (NewBuffer) { return NewBuffer; }
 
 				NewBuffer = MakeShared<TBuffer<T>>(Source, FullName);
@@ -721,7 +721,7 @@ namespace PCGExData
 			BufferMap.Empty();
 		}
 
-		void Write(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager);
+		void Write(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager, const bool bEnsureValidKeys = true);
 		FPlatformTypes::int32 WriteBuffersAsCallbacks(const TSharedPtr<PCGExMT::FTaskGroup>& TaskGroup);
 		void WriteBuffers(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager, PCGExMT::FCompletionCallback&& Callback);
 

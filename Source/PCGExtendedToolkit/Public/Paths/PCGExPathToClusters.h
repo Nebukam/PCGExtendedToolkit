@@ -13,6 +13,11 @@
 #include "Graph/PCGExIntersections.h"
 #include "PCGExPathToClusters.generated.h"
 
+namespace PCGExPathToClusters
+{
+	class FFusingProcessor;
+}
+
 /**
  * 
  */
@@ -99,6 +104,7 @@ public:
 struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPathToClustersContext final : FPCGExPathProcessorContext
 {
 	friend class FPCGExPathToClustersElement;
+	friend class PCGExPathToClusters::FFusingProcessor;
 
 	TArray<TSharedRef<PCGExData::FFacade>> PathsFacades;
 
@@ -171,6 +177,7 @@ namespace PCGExPathToClusters
 
 		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager> InAsyncManager) override;
 		virtual void ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const PCGExMT::FScope& Scope) override;
+		virtual void OnPointsProcessingComplete() override;
 	};
 
 #pragma endregion
