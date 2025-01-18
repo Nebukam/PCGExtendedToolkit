@@ -9,14 +9,14 @@
 #include "Elements/ControlFlow/PCGControlFlow.h"
 #include "PCGExConstantEnum.generated.h"
 
-UENUM(BlueprintType) enum class EEnumConstantOutputType : uint8 {
+UENUM(BlueprintType) enum class EPCGExEnumConstantOutputType : uint8 {
 	EECOT_Attribute = 0 UMETA(DisplayName="Attribute Set"),
 	EECOT_String = 1 UMETA(Hidden), // Unsure if this is needed since there's the option to output name and description
 	EECOT_Tag = 2 UMETA(Hidden) // Hidden for now since this might actually be better as a separate node (Tag With Enum or similar)
 };
 
 // TODO (perhaps) - 'Selection' and 'Selection to Multiple Pins'
-UENUM(BlueprintType) enum class EEnumOutputMode : uint8 {
+UENUM(BlueprintType) enum class EPCGExEnumOutputMode : uint8 {
 	EEOM_Single = 0 UMETA(DisplayName="Single", Tooltip="Output a single enum value"),
 	EEOM_All = 1 UMETA(DisplayName="All", ToolTip="Output a dataset containing all the enum names and values"),
 	EEOM_AllToMultiplePins = 2 UMETA(DisplayName="All to Multiple Pins", Tooltip="Output all values in the enum to different pins"),
@@ -43,16 +43,11 @@ class UPCGExConstantEnumSettings : public UPCGSettings {
 		// Begin unrolling of Tim's lovely macro
 		virtual FName GetDefaultNodeName() const override { return FName(TEXT("Constant")); }
 
-		virtual FName AdditionalTaskName() const override {
-			const FString A = bCacheResult ? TEXT("♻️ ") : TEXT("");
-			return FName(A + GetDefaultNodeTitle().ToString());
-		}
-
 		virtual FString GetAdditionalTitleInformation() const override {
 			const FName Name = GetEnumName();
 			if (Name.IsNone()) return "";
 
-			if (OutputMode == EEnumOutputMode::EEOM_Single) {
+			if (OutputMode == EPCGExEnumOutputMode::EEOM_Single) {
 				return Name.ToString() +
 					":: " +
 					SelectedEnum.Class->GetDisplayNameTextByValue(SelectedEnum.Value).BuildSourceString() +
@@ -69,12 +64,9 @@ class UPCGExConstantEnumSettings : public UPCGSettings {
 		#endif
 
 		virtual FText GetDefaultNodeTitle() const override {
-			FString A = bCacheResult ? TEXT("♻️ ") : TEXT("");
-			A += TEXT("PCGEx | ");
-			A += (bCleanupConsumableAttributes ? TEXT("🗑️ ") : TEXT(""));
-			A += TEXT("Enum Constant");
-			return FTEXT(A);
+			return FTEXT("PCGEx | Enum Constant");
 		}
+	
 		// End unrolling of Tim's lovely macro
 
 		virtual FText GetNodeTooltipText() const override { return FTEXT("Enum Constant"); };
@@ -90,14 +82,14 @@ class UPCGExConstantEnumSettings : public UPCGSettings {
 	
 		virtual bool HasDynamicPins() const override { return true; };
 	
-		UPROPERTY(BlueprintReadWrite, EditAnywhere, meta=(ShowOnlyInnerProperties)) FEnumSelector SelectedEnum;
+		UPROPERTY(BlueprintReadWrite, EditAnywhere, meta=(ShowOnlyInnerProperties), Category="Settings") FEnumSelector SelectedEnum;
 	
 		UPROPERTY(BlueprintReadWrite, EditAnywhere, Category=Settings)
-		EEnumOutputMode OutputMode = EEnumOutputMode::EEOM_All;
+		EPCGExEnumOutputMode OutputMode = EPCGExEnumOutputMode::EEOM_All;
 
 		// Hidden for now
 		UPROPERTY(/*BlueprintReadWrite, EditAnywhere, Category=Settings*/)
-		EEnumConstantOutputType OutputType = EEnumConstantOutputType::EECOT_Attribute;
+		EPCGExEnumConstantOutputType OutputType = EPCGExEnumConstantOutputType::EECOT_Attribute;
 
 		// Whether to output the enum value keys, which are the short names used in C++
 		UPROPERTY(BlueprintReadWrite, EditAnywhere, Category="Settings|Output Attributes|Keys")
@@ -125,7 +117,7 @@ class UPCGExConstantEnumSettings : public UPCGSettings {
 		FName ValueOutputAttribute = "Value";
 
 		TArray<TTuple<FName, FName, int64>> GetEnumValueMap() const; 
-		UFUNCTION(BlueprintCallable) FName GetEnumName() const;
+		UFUNCTION(BlueprintCallable, Category="Config") FName GetEnumName() const;
 
 		// Imitating behaviour in the native PCGSwitch.h
 		UPROPERTY() TArray<FName> CachedPinLabels;

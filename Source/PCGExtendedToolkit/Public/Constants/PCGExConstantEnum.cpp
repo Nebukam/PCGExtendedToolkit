@@ -116,21 +116,21 @@ TArray<FPCGPinProperties> UPCGExConstantEnumSettings::OutputPinProperties() cons
 	#define MAKE_TOOLTIP_FOR_VALUE(_KEY, _VALUE) FText::FromString(_KEY.ToString() + " (" + FString::FromInt(_VALUE) + ")"); 
 	
 	switch (OutputMode) {
-		case EEnumOutputMode::EEOM_Single:
+		case EPCGExEnumOutputMode::EEOM_Single:
 			ToolTip = MAKE_TOOLTIP_FOR_VALUE(SelectedEnum.Class->GetNameByValue(SelectedEnum.Value), SelectedEnum.Value);
 			Out.Emplace(PCGExConstantEnumConstants::SingleOutputPinName, EPCGDataType::Param, true, false, ToolTip);
 			break;
 
-		case EEnumOutputMode::EEOM_All:
+		case EPCGExEnumOutputMode::EEOM_All:
 			ToolTip = FText::FromName(EnumName);
 			Out.Emplace(PCGExConstantEnumConstants::SingleOutputPinName, EPCGDataType::Param, true, false, ToolTip);
 			break;
 
-		case EEnumOutputMode::EEOM_Selection: // TODO
-		case EEnumOutputMode::EEOM_SelectionToMultiplePins: // TODO
+		case EPCGExEnumOutputMode::EEOM_Selection: // TODO
+		case EPCGExEnumOutputMode::EEOM_SelectionToMultiplePins: // TODO
 			break;
 
-		case EEnumOutputMode::EEOM_AllToMultiplePins:
+		case EPCGExEnumOutputMode::EEOM_AllToMultiplePins:
 		default:
 			// -1 to bypass the MAX value
 			for (const TTuple<FName, FName, int64>& Mapping: GetEnumValueMap()) {
@@ -164,7 +164,7 @@ bool FPCGExConstantEnumElement::ExecuteInternal(FPCGContext* InContext) const {
 	switch (Settings->OutputMode) {
 
 	// Just output the one selected
-	case EEnumOutputMode::EEOM_Single:
+	case EPCGExEnumOutputMode::EEOM_Single:
 		Value = Settings->SelectedEnum.Value;
 		Key = Settings->SelectedEnum.Class->GetNameByValue(Value);
 		Description = FName(Settings->SelectedEnum.Class->GetDisplayNameTextByValue(Value).BuildSourceString());
@@ -174,12 +174,12 @@ bool FPCGExConstantEnumElement::ExecuteInternal(FPCGContext* InContext) const {
 		break;
 
 	// Output everything
-	case EEnumOutputMode::EEOM_All:
+	case EPCGExEnumOutputMode::EEOM_All:
 		StageEnumValuesSinglePin(Context, Settings, Settings->GetEnumValueMap());
 		break;
 
 	// Output everything, but on different pins
-	case EEnumOutputMode::EEOM_AllToMultiplePins:
+	case EPCGExEnumOutputMode::EEOM_AllToMultiplePins:
 	default:
 		StageEnumValuesSeparatePins(Context, Settings, Settings->GetEnumValueMap());
 		
