@@ -297,7 +297,7 @@ namespace PCGEx
 	FORCEINLINE static T Broadcast(const FName& Value)
 	{
 		if constexpr (std::is_same_v<T, decltype(Value)>) { return Value; }
-		
+
 		else if constexpr (std::is_same_v<T, bool>) { return Value.ToString().Contains(TEXT("true")); }
 		else if constexpr (std::is_same_v<T, FString>) { return Value.ToString(); }
 		else if constexpr (std::is_same_v<T, FName>) { return Value; }

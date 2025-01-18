@@ -276,6 +276,7 @@ namespace PCGExPathToClusters
 			*(InPoints->GetData() + NextIndex), IOIndex, NextIndex);
 	}
 
+	/*
 	void FFusingProcessor::OnPointsProcessingComplete()
 	{
 		TPointsProcessor<FPCGExPathToClustersContext, UPCGExPathToClustersSettings>::OnPointsProcessingComplete();
@@ -287,6 +288,7 @@ namespace PCGExPathToClusters
 			This->Context->ProcessPointsBatch(PCGExGraph::State_PreparingUnion); // Force move to next
 		});
 	}
+	*/
 
 #pragma endregion
 }

@@ -389,7 +389,7 @@ namespace PCGExMT
 				UE_LOG(LogTemp, Warning, TEXT("StartRanges: MaxItems = %i"), MaxItems);
 				return;
 			}
-			
+
 			check(MaxItems > 0);
 
 			// Compute sub scopes

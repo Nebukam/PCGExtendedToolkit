@@ -92,7 +92,7 @@ class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExProbeFactoryIndex : public UPCGExProbeFac
 public:
 	UPROPERTY()
 	FPCGExProbeConfigIndex Config;
-	
+
 	virtual UPCGExProbeOperation* CreateOperation(FPCGExContext* InContext) const override;
 };
 

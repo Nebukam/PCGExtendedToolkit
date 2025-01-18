@@ -13,7 +13,7 @@
 
 namespace PCGExPointIOMerger
 {
-	struct /*PCGEXTENDEDTOOLKIT_API*/ FIdentityRef : public PCGEx::FAttributeIdentity
+	struct /*PCGEXTENDEDTOOLKIT_API*/ FIdentityRef : PCGEx::FAttributeIdentity
 	{
 		const FPCGMetadataAttributeBase* Attribute = nullptr;
 		bool bInitDefault = false;
@@ -52,7 +52,7 @@ public:
 	explicit FPCGExPointIOMerger(const TSharedRef<PCGExData::FFacade>& InUnionDataFacade);
 	~FPCGExPointIOMerger();
 
-	::PCGExMT::FScope Append(const TSharedPtr<PCGExData::FPointIO>& InData);
+	PCGExMT::FScope Append(const TSharedPtr<PCGExData::FPointIO>& InData);
 	void Append(const TArray<TSharedPtr<PCGExData::FPointIO>>& InData);
 	void Append(const TSharedRef<PCGExData::FPointIOCollection>& InCollection);
 	void MergeAsync(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager, const FPCGExCarryOverDetails* InCarryOverDetails, const TSet<FName>* InIgnoredAttributes = nullptr);
