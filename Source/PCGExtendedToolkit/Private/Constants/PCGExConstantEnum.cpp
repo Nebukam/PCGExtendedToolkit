@@ -27,6 +27,9 @@ void UPCGExConstantEnumSettings::PostLoad()
 	Super::PostLoad();
 
 	CachePinLabels();
+	if (EnabledExportValues.Num() == 0) {
+		FillEnabledExportValues();
+	}
 
 #if WITH_EDITOR
 	if (UPCGNode* OuterNode = Cast<UPCGNode>(GetOuter()))
@@ -61,6 +64,13 @@ void UPCGExConstantEnumSettings::PostEditChangeProperty(struct FPropertyChangedE
 	{
 		CachePinLabels();
 	}
+
+	if (Prop == GET_MEMBER_NAME_CHECKED(UPCGExConstantEnumSettings, SelectedEnum)) {
+		if (SelectedEnum.Class) {
+			FillEnabledExportValues();
+		}
+	}
+	
 }
 #endif
 
@@ -70,6 +80,16 @@ void UPCGExConstantEnumSettings::OnOverrideSettingsDuplicatedInternal(bool bSkip
 	if (bSkippedPostLoad)
 	{
 		CachePinLabels();
+		if (EnabledExportValues.Num() == 0) {
+			FillEnabledExportValues();
+		}
+	}
+}
+
+void UPCGExConstantEnumSettings::FillEnabledExportValues() {
+	EnabledExportValues.Empty();
+	for (const auto Value : GetEnumValueMap()) {
+		EnabledExportValues.Emplace(Value.Get<1>(), true);
 	}
 }
 
@@ -168,12 +188,19 @@ TArray<FPCGPinProperties> UPCGExConstantEnumSettings::OutputPinProperties() cons
 		break;
 
 	case EPCGExEnumOutputMode::EEOM_All:
+	case EPCGExEnumOutputMode::EEOM_Selection:
 		ToolTip = FText::FromName(EnumName);
 		Out.Emplace(PCGExConstantEnumConstants::SingleOutputPinName, EPCGDataType::Param, true, false, ToolTip);
 		break;
-
-	case EPCGExEnumOutputMode::EEOM_Selection:               // TODO
-	case EPCGExEnumOutputMode::EEOM_SelectionToMultiplePins: // TODO
+	
+	case EPCGExEnumOutputMode::EEOM_SelectionToMultiplePins:
+		for (const TTuple<FName, FName, int64>& Mapping : GetEnumValueMap())
+		{
+			if (EnabledExportValues.Contains(Mapping.Get<1>()) && *EnabledExportValues.Find(Mapping.Get<1>())) {
+				ToolTip = MAKE_TOOLTIP_FOR_VALUE(Mapping.Get<0>(), Mapping.Get<2>());
+				Out.Emplace(Mapping.Get<1>(), EPCGDataType::Param, true, false, ToolTip);
+			}
+		}
 		break;
 
 	case EPCGExEnumOutputMode::EEOM_AllToMultiplePins:
@@ -215,6 +242,7 @@ bool FPCGExConstantEnumElement::ExecuteInternal(FPCGContext* InContext) const
 	FName Key;
 	FName Description;
 	int64 Value;
+	TArray<TTuple<FName, FName, int64>> Filtered;
 
 	switch (Settings->OutputMode)
 	{
@@ -233,11 +261,28 @@ bool FPCGExConstantEnumElement::ExecuteInternal(FPCGContext* InContext) const
 		StageEnumValuesSinglePin(Context, Settings, Settings->GetEnumValueMap());
 		break;
 
+	case EPCGExEnumOutputMode::EEOM_Selection:
+	case EPCGExEnumOutputMode::EEOM_SelectionToMultiplePins:
+		Filtered = Settings->GetEnumValueMap().FilterByPredicate([&](const TTuple<FName, FName, int64>& V) {
+			return Settings->EnabledExportValues.Contains(V.Get<1>()) && *Settings->EnabledExportValues.Find(V.Get<1>());
+		});
+
+		if (Settings->OutputMode == EPCGExEnumOutputMode::EEOM_Selection) {
+			StageEnumValuesSinglePin(Context, Settings, Filtered);
+		}
+		else {
+			StageEnumValuesSeparatePins(Context, Settings, Filtered);
+		}
+		
+		break;
+
 	// Output everything, but on different pins
 	case EPCGExEnumOutputMode::EEOM_AllToMultiplePins:
 	default:
 		StageEnumValuesSeparatePins(Context, Settings, Settings->GetEnumValueMap());
 	}
+
+	
 
 	Context->Done();
 	return Context->TryComplete();
