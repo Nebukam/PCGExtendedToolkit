@@ -141,10 +141,10 @@ namespace PCGExFindPointOnBounds
 	{
 		mutable FRWLock BestIndexLock;
 
+		double BestDistance = MAX_dbl;
 		FVector SearchPosition = FVector::ZeroVector;
 		FVector BestPosition = FVector::ZeroVector;
 		int32 BestIndex = -1;
-		double BestDistance = MAX_dbl;
 
 	public:
 		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade):

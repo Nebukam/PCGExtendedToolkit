@@ -202,6 +202,8 @@ namespace PCGExFuseClusters
 
 	void FProcessor::InsertEdges(const PCGExMT::FScope& Scope)
 	{
+		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExFuseClusters::FProcessor::InsertEdges);
+		
 		const TArray<FPCGPoint>& InNodePts = *InPoints;
 		if (Cluster)
 		{

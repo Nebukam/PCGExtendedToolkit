@@ -50,6 +50,7 @@ void UPCGExConstantEnumSettings::PostLoad()
 #endif
 }
 
+#if WITH_EDITOR
 // Adapted from similar handling in PCGSwitch.cpp
 void UPCGExConstantEnumSettings::PostEditChangeProperty(struct FPropertyChangedEvent& PropertyChangedEvent)
 {
@@ -71,6 +72,7 @@ void UPCGExConstantEnumSettings::PostEditChangeProperty(struct FPropertyChangedE
 	}
 	
 }
+#endif
 
 void UPCGExConstantEnumSettings::OnOverrideSettingsDuplicatedInternal(bool bSkippedPostLoad)
 {
@@ -149,6 +151,7 @@ FName UPCGExConstantEnumSettings::GetEnumName() const
 	return FName("");
 }
 
+#if WITH_EDITOR
 EPCGChangeType UPCGExConstantEnumSettings::GetChangeTypeForProperty(const FName& PropName) const
 {
 	EPCGChangeType ChangeType = Super::GetChangeTypeForProperty(PropName);
@@ -163,6 +166,7 @@ EPCGChangeType UPCGExConstantEnumSettings::GetChangeTypeForProperty(const FName&
 
 	return ChangeType;
 }
+#endif
 
 TArray<FPCGPinProperties> UPCGExConstantEnumSettings::OutputPinProperties() const
 {

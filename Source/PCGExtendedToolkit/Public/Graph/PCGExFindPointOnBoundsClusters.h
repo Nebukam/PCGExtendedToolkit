@@ -94,10 +94,10 @@ namespace PCGExFindPointOnBoundsClusters
 	{
 		mutable FRWLock BestIndexLock;
 
+		double BestDistance = MAX_dbl;
 		FVector BestPosition = FVector::ZeroVector;
 		FVector SearchPosition = FVector::ZeroVector;
 		int32 BestIndex = -1;
-		double BestDistance = MAX_dbl;
 
 	public:
 		int32 Picker = -1;
