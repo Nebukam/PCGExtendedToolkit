@@ -101,7 +101,10 @@ protected:
 	mutable FRWLock ClusterProcessingLock;
 	TArray<TObjectPtr<const UPCGExHeuristicsFactoryData>> HeuristicsFactories;
 
+public:
 	virtual bool ProcessClusters(const PCGEx::ContextState NextStateId, const bool bIsNextStateAsync = false);
+
+protected:
 	virtual bool CompileGraphBuilders(const bool bOutputToContext, const PCGEx::ContextState NextStateId);
 
 	TArray<FPCGExSortRuleConfig> EdgeSortingRules;

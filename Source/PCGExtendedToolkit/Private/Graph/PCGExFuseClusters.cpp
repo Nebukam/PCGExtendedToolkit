@@ -167,45 +167,68 @@ namespace PCGExFuseClusters
 		bInvalidEdges = false;
 		UnionGraph = Context->UnionGraph;
 
-		bDaisyChainProcessRange = bInlineProcessEdges = Settings->PointPointIntersectionDetails.FuseDetails.DoInlineInsertion();
+		bInlineProcessEdges = Settings->PointPointIntersectionDetails.FuseDetails.DoInlineInsertion();
 
-		if (Cluster) { StartParallelLoopForEdges(); }
-		else { StartParallelLoopForRange(IndexedEdges.Num()); }
+		const int32 NumIterations = Cluster ? Cluster->Edges->Num() : IndexedEdges.Num();
+
+		if (bInlineProcessEdges)
+		{
+			// Blunt insert since processor don't have a "wait"
+			InsertEdges(PCGExMT::FScope(0, NumIterations));
+			OnInsertionComplete();
+		}
+		else
+		{
+			PCGEX_ASYNC_GROUP_CHKD(AsyncManager, InsertEdges)
+
+			InsertEdges->OnCompleteCallback = [PCGEX_ASYNC_THIS_CAPTURE]()
+			{
+				PCGEX_ASYNC_THIS
+				This->OnInsertionComplete();
+			};
+
+			InsertEdges->OnSubLoopStartCallback = [PCGEX_ASYNC_THIS_CAPTURE](const PCGExMT::FScope& Scope)
+			{
+				TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExFusePointsElement::ProcessSingleEdge);
+				PCGEX_ASYNC_THIS
+				This->InsertEdges(Scope);
+			};
+
+			InsertEdges->StartSubLoops(NumIterations, 256);
+		}
 
 		return true;
 	}
 
-	void FProcessor::OnRangeProcessingComplete()
+	void FProcessor::InsertEdges(const PCGExMT::FScope& Scope)
 	{
-		TProcessor<FPCGExFuseClustersContext, UPCGExFuseClustersSettings>::OnRangeProcessingComplete();
-		OnEdgesProcessingComplete();
-	}
-
-	void FProcessor::OnEdgesProcessingComplete()
-	{
-		TProcessor<FPCGExFuseClustersContext, UPCGExFuseClustersSettings>::OnEdgesProcessingComplete();
-		if (!Settings->PointPointIntersectionDetails.FuseDetails.DoInlineInsertion()) { return; }
-
-		// Schedule next update early if we're the last processor of the batch
-		const TSharedPtr<PCGExClusterMT::TBatch<FProcessor>> Batch = StaticCastSharedPtr<PCGExClusterMT::TBatch<FProcessor>>(ParentBatch.Pin());
-		if (&Batch->Processors.Last().Get() != this) { return; }
-
-		AsyncManager->DeferredResumeExecution(
-			[PCGEX_ASYNC_THIS_CAPTURE, Token = AsyncManager->TryCreateToken("EarlyExit")]()
-			{
-				// We get a token to ensure we're not immediately done
-				// Hack to force daisy chain advance, since we know when we're ready to do so
-				PCGEX_ASYNC_THIS
-				if (const TSharedPtr<PCGExMT::FAsyncToken> Pinned = Token.Pin()) { Pinned->Release(); }
-				This->Context->ProcessClusters(PCGExGraph::State_PreparingUnion); // Force move to next
-			});
-	}
-
-	void FProcessor::CompleteWork()
-	{
-		if (bInvalidEdges)
+		const TArray<FPCGPoint>& InNodePts = *InPoints;
+		if (Cluster)
 		{
+			for (int i = Scope.Start; i < Scope.End; i++)
+			{
+				const PCGExGraph::FEdge* Edge = Cluster->GetEdge(i);
+				UnionGraph->InsertEdge(
+					InNodePts[Edge->Start], VtxIOIndex, Edge->Start,
+					InNodePts[Edge->End], VtxIOIndex, Edge->End,
+					EdgesIOIndex, Edge->PointIndex);
+			}
 		}
+		else
+		{
+			for (int i = Scope.Start; i < Scope.End; i++)
+			{
+				const PCGExGraph::FEdge& Edge = IndexedEdges[i];
+				UnionGraph->InsertEdge(
+					InNodePts[Edge.Start], VtxIOIndex, Edge.Start,
+					InNodePts[Edge.End], VtxIOIndex, Edge.End,
+					EdgesIOIndex, Edge.PointIndex);
+			}
+		}
+	}
+
+	void FProcessor::OnInsertionComplete()
+	{
 	}
 }
 

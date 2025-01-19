@@ -666,6 +666,8 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 
 			if (!EdgeIO) { return; }
 
+			EdgeIO->IOIndex = i;
+			
 			SubGraph->UID = EdgeIO->GetOut()->GetUniqueID();
 			SubGraph->OnSubGraphPostProcess = OnSubGraphPostProcess;
 
