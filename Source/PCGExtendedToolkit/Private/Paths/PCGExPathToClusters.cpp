@@ -265,7 +265,6 @@ namespace PCGExPathToClusters
 
 			InsertEdges->OnSubLoopStartCallback = [PCGEX_ASYNC_THIS_CAPTURE](const PCGExMT::FScope& Scope)
 			{
-				TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExFusePointsElement::ProcessSingleEdge);
 				PCGEX_ASYNC_THIS
 				This->InsertEdges(Scope);
 			};
@@ -278,6 +277,9 @@ namespace PCGExPathToClusters
 
 	void FFusingProcessor::InsertEdges(const PCGExMT::FScope& Scope)
 	{
+		
+		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExPathToClusters::FFusingProcessor::InsertEdges);
+		
 		const TArray<FPCGPoint>& InNodePts = *InPoints;
 		for (int i = Scope.Start; i < Scope.End; i++)
 		{
