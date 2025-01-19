@@ -127,14 +127,14 @@ namespace PCGExDataBlending
 	};
 
 	template <typename T>
-	class /*PCGEXTENDEDTOOLKIT_API*/ TDataBlendingHash final : public TDataBlendingProcessor<T, EPCGExDataBlendingType::Hash>
+	class /*PCGEXTENDEDTOOLKIT_API*/ TDataBlendingHash final : public FDataBlendingProcessorWithFirstInit<T, EPCGExDataBlendingType::Hash>
 	{
 	public:
 		FORCEINLINE virtual T SingleOperation(T A, T B, double Weight) const override { return PCGExMath::NaiveHash(A, B); }
 	};
 
 	template <typename T>
-	class /*PCGEXTENDEDTOOLKIT_API*/ TDataBlendingUnsignedHash final : public TDataBlendingProcessor<T, EPCGExDataBlendingType::UnsignedHash>
+	class /*PCGEXTENDEDTOOLKIT_API*/ TDataBlendingUnsignedHash final : public FDataBlendingProcessorWithFirstInit<T, EPCGExDataBlendingType::UnsignedHash>
 	{
 	public:
 		FORCEINLINE virtual T SingleOperation(T A, T B, double Weight) const override { return PCGExMath::NaiveUnsignedHash(A, B); }

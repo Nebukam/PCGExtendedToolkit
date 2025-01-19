@@ -37,6 +37,8 @@
 
 #endif
 
+using PCGExTypeHash = uint32;
+
 UENUM()
 enum class EPCGExOptionState : uint8
 {

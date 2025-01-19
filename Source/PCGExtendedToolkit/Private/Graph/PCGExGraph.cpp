@@ -231,7 +231,7 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 
 		if (!ParentGraph || !Builder) { return; }
 
-		const TSharedPtr<PCGExData::TBuffer<int64>> EdgeEndpointsWriter = EdgesDataFacade->GetWritable<int64>(Tag_EdgeEndpoints, -1, false, PCGExData::EBufferInit::New);
+		const TSharedPtr<PCGExData::TBuffer<int64>> EdgeEndpointsWriter = EdgesDataFacade->GetWritable<int64>(Attr_PCGExEdgeIdx, -1, false, PCGExData::EBufferInit::New);
 
 		const TArray<FPCGPoint>& Vertices = VtxDataFacade->GetOut()->GetPoints();
 		TArray<FPCGPoint>& MutablePoints = EdgesDataFacade->Source->GetOut()->GetMutablePoints();
@@ -606,7 +606,7 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 			ValidNodes.Shrink();
 		}
 
-		const TSharedPtr<PCGExData::TBuffer<int64>> VtxEndpointWriter = NodeDataFacade->GetWritable<int64>(Tag_VtxEndpoint, 0, false, PCGExData::EBufferInit::New);
+		const TSharedPtr<PCGExData::TBuffer<int64>> VtxEndpointWriter = NodeDataFacade->GetWritable<int64>(Attr_PCGExVtxIdx, 0, false, PCGExData::EBufferInit::New);
 
 		const uint32 BaseGUID = NodeDataFacade->GetOut()->GetUniqueID();
 		for (const int32 NodeIndex : ValidNodes)

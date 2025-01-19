@@ -36,7 +36,7 @@ namespace PCGExDataBlending
 
 		TArray<PCGEx::FAttributeIdentity> SourceAttributes;
 		PCGEx::FAttributeIdentity::Get(InFacade->GetIn()->Metadata, SourceAttributes);
-		CarryOverDetails->Filter(SourceAttributes);
+		CarryOverDetails->Prune(SourceAttributes);
 		BlendingDetails->Filter(SourceAttributes);
 
 		for (const PCGEx::FAttributeIdentity& Identity : SourceAttributes)
@@ -193,7 +193,7 @@ namespace PCGExDataBlending
 		const FPCGExPropertiesBlendingDetails PropertiesBlendingDetails = BlendingDetails->GetPropertiesBlendingDetails();
 		PropertiesBlender = PropertiesBlendingDetails.HasNoBlending() ? nullptr : MakeUnique<FPropertiesBlender>(PropertiesBlendingDetails);
 
-		CarryOverDetails->Reduce(UniqueTags);
+		CarryOverDetails->Prune(UniqueTags);
 
 		// Initialize blending operations
 		for (const TSharedPtr<FMultiSourceAttribute>& MultiAttribute : MultiSourceAttributes)

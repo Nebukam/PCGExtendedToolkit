@@ -78,12 +78,12 @@ class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExPathAlphaFilterFactory : public UPCGExFil
 public:
 	UPROPERTY()
 	FPCGExPathAlphaFilterConfig Config;
-	
+
 	TArray<TSharedPtr<const FPCGSplineStruct>> Splines;
 	TArray<double> SegmentsNum;
 
 	virtual bool SupportsLiveTesting() override;
-	
+
 	virtual bool Init(FPCGExContext* InContext) override;
 	virtual TSharedPtr<PCGExPointFilter::FFilter> CreateFilter() const override;
 

@@ -90,7 +90,7 @@ bool FPCGExEdgesProcessorContext::AdvancePointsIO(const bool bCleanupKeys)
 
 	if (!FPCGExPointsProcessorContext::AdvancePointsIO(bCleanupKeys)) { return false; }
 
-	if (const PCGExTags::IDType TagValue = CurrentIO->Tags->GetTypedValue<int32>(PCGExGraph::TagStr_ClusterPair))
+	if (const PCGExTags::IDType TagValue = CurrentIO->Tags->GetTypedValue<int32>(PCGExGraph::TagStr_PCGExCluster))
 	{
 		int32 PreUpdateKey = TagValue->Value;
 		TaggedEdges = InputDictionary->GetEntries(PreUpdateKey);
@@ -280,7 +280,7 @@ bool FPCGExEdgesProcessorElement::Boot(FPCGExContext* InContext) const
 		Context, PCGExGraph::SourceHeuristicsLabel, Context->HeuristicsFactories,
 		{PCGExFactories::EType::Heuristics}, false);
 
-	Context->InputDictionary = MakeShared<PCGExData::FPointIOTaggedDictionary>(PCGExGraph::TagStr_ClusterPair);
+	Context->InputDictionary = MakeShared<PCGExData::FPointIOTaggedDictionary>(PCGExGraph::TagStr_PCGExCluster);
 
 	TArray<TSharedPtr<PCGExData::FPointIO>> TaggedVtx;
 	TArray<TSharedPtr<PCGExData::FPointIO>> TaggedEdges;

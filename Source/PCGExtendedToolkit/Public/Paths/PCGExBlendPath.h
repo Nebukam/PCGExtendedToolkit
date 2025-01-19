@@ -67,6 +67,14 @@ public:
 	/** Blending settings used to smooth attributes.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	FPCGExBlendingDetails BlendingSettings = FPCGExBlendingDetails(EPCGExDataBlendingType::Lerp, EPCGExDataBlendingType::None);
+
+	/** If enabled, will apply blending to othe first point. Can be useful with some blendmodes. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	bool bBlendFirstPoint = false;
+
+	/** If enabled, will apply blending to the last  point. Can be useful with some blendmodes. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	bool bBlendLastPoint = false;
 };
 
 struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExBlendPathContext final : FPCGExPathProcessorContext

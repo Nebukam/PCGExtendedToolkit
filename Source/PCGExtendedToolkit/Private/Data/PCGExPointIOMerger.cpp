@@ -46,7 +46,7 @@ void FPCGExPointIOMerger::MergeAsync(const TSharedPtr<PCGExMT::FTaskManager>& As
 
 	TArray<FPCGPoint>& MutablePoints = UnionDataFacade->GetOut()->GetMutablePoints();
 	MutablePoints.Reserve(NumCompositePoints);
-	InCarryOverDetails->Filter(&UnionDataFacade->Source.Get());
+	InCarryOverDetails->Prune(&UnionDataFacade->Source.Get());
 
 	TMap<FName, int32> ExpectedTypes;
 
@@ -93,7 +93,7 @@ void FPCGExPointIOMerger::MergeAsync(const TSharedPtr<PCGExMT::FTaskManager>& As
 			});
 	}
 
-	InCarryOverDetails->Filter(&UnionDataFacade->Source.Get());
+	InCarryOverDetails->Prune(&UnionDataFacade->Source.Get());
 
 	PCGEX_SHARED_THIS_DECL
 	for (int i = 0; i < UniqueIdentities.Num(); i++)
