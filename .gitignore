@@ -12,5 +12,5 @@ DerivedDataCache/*
 # 5.3 Excluded files
 
 # Enum to Constants since it rely on a Blueprintable type that has its own inspector
-#Source/PCGExtendedToolkit/Public/Constants/PCGExConstantEnum.h
-#Source/PCGExtendedToolkit/Private/Constants/PCGExConstantEnum.cpp
+Source/PCGExtendedToolkit/Public/Constants/PCGExConstantEnum.h
+Source/PCGExtendedToolkit/Private/Constants/PCGExConstantEnum.cpp
