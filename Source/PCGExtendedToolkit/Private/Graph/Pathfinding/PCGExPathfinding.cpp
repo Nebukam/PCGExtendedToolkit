@@ -156,7 +156,8 @@ namespace PCGExPathfinding
 		TSharedPtr<FPathQuery> PrevQuery = MakeShared<FPathQuery>(
 			Cluster,
 			PlotFacade->Source->GetInPointRef(0),
-			PlotFacade->Source->GetInPointRef(1));
+			PlotFacade->Source->GetInPointRef(1),
+			0);
 
 		PrevQuery->ResolvePicks(SeedSelectionDetails, GoalSelectionDetails);
 
@@ -164,7 +165,7 @@ namespace PCGExPathfinding
 
 		for (int i = 2; i < PlotFacade->GetNum(); i++)
 		{
-			TSharedPtr<FPathQuery> NextQuery = MakeShared<FPathQuery>(Cluster, PrevQuery, PlotFacade->Source->GetInPointRef(i));
+			TSharedPtr<FPathQuery> NextQuery = MakeShared<FPathQuery>(Cluster, PrevQuery, PlotFacade->Source->GetInPointRef(i), i - 1);
 			NextQuery->ResolvePicks(SeedSelectionDetails, GoalSelectionDetails);
 
 			SubQueries.Add(NextQuery);
@@ -173,7 +174,7 @@ namespace PCGExPathfinding
 
 		if (bIsClosedLoop)
 		{
-			TSharedPtr<FPathQuery> WrapQuery = MakeShared<FPathQuery>(Cluster, SubQueries.Last(), SubQueries[0]);
+			TSharedPtr<FPathQuery> WrapQuery = MakeShared<FPathQuery>(Cluster, SubQueries.Last(), SubQueries[0], PlotFacade->GetNum());
 			WrapQuery->ResolvePicks(SeedSelectionDetails, GoalSelectionDetails);
 			SubQueries.Add(WrapQuery);
 		}
