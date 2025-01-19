@@ -16,7 +16,7 @@ namespace PCGEx
 
 		if (NumValues <= 0) { return false; }
 
-		ValuesGetter = MakeShared<PCGEx::TAttributeBroadcaster<PCGExTypeHash>>();
+		ValuesGetter = MakeShared<TAttributeBroadcaster<PCGExTypeHash>>();
 		if (!ValuesGetter->Prepare(Config.SourceAttribute, InPointIO))
 		{
 			PCGE_LOG_C(Warning, GraphAndLog, InContext, FText::Format(FTEXT("Missing attribute {0}."), FText::FromName(Config.SourceAttribute.GetName())));

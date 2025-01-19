@@ -121,6 +121,8 @@ void FPCGExPathfindingPlotEdgesContext::BuildPath(const TSharedPtr<PCGExPathfind
 	const TSharedPtr<PCGExData::FPointIO> PathIO = OutputPaths->Emplace_GetRef<UPCGPointData>(ReferenceIO->GetIn(), PCGExData::EIOInit::New);
 	if (!PathIO) { return; }
 
+	PathIO->IOIndex = Query->QueryIndex;
+
 	PCGEX_MAKE_SHARED(PathDataFacade, PCGExData::FFacade, PathIO.ToSharedRef())
 	PathDataFacade->GetMutablePoints() = MutablePoints;
 
@@ -225,7 +227,7 @@ namespace PCGExPathfindingPlotEdge
 		PCGEx::InitArray(Queries, Context->Plots.Num());
 		for (int i = 0; i < Queries.Num(); i++)
 		{
-			PCGEX_MAKE_SHARED(Query, PCGExPathfinding::FPlotQuery, Cluster.ToSharedRef(), Settings->bClosedLoop)
+			PCGEX_MAKE_SHARED(Query, PCGExPathfinding::FPlotQuery, Cluster.ToSharedRef(), Settings->bClosedLoop, i)
 			Queries[i] = Query;
 		}
 

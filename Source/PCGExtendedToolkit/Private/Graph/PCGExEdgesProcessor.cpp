@@ -147,11 +147,14 @@ bool FPCGExEdgesProcessorContext::ProcessClusters(const PCGEx::ContextState Next
 
 		PCGEX_ON_ASYNC_STATE_READY_INTERNAL(PCGExClusterMT::MTState_ClusterProcessing)
 		{
-			SetAsyncState(PCGExClusterMT::MTState_ClusterCompletingWork);
 			if (!CurrentBatch->bSkipCompletion)
 			{
+				SetAsyncState(PCGExClusterMT::MTState_ClusterCompletingWork);
 				CurrentBatch->CompleteWork();
-				return false;
+			}
+			else
+			{
+				SetState(PCGExClusterMT::MTState_ClusterCompletingWork);
 			}
 		}
 
@@ -166,13 +169,20 @@ bool FPCGExEdgesProcessorContext::ProcessClusters(const PCGEx::ContextState Next
 		{
 			ClusterProcessing_InitialProcessingDone();
 
-			SetAsyncState(PCGExClusterMT::MTState_ClusterCompletingWork);
-			if (!bSkipClusterBatchCompletionStep) { CompleteBatches(Batches); }
+			if (!bSkipClusterBatchCompletionStep)
+			{
+				SetAsyncState(PCGExClusterMT::MTState_ClusterCompletingWork);
+				CompleteBatches(Batches);
+			}
+			else
+			{
+				SetState(PCGExClusterMT::MTState_ClusterCompletingWork);
+			}
 		}
 
 		PCGEX_ON_ASYNC_STATE_READY_INTERNAL(PCGExClusterMT::MTState_ClusterCompletingWork)
 		{
-			ClusterProcessing_WorkComplete();
+			if (!bSkipClusterBatchCompletionStep) { ClusterProcessing_WorkComplete(); }
 
 			if (bDoClusterBatchWritingStep)
 			{
