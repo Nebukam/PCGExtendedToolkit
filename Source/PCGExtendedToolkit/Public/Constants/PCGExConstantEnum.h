@@ -24,9 +24,9 @@ enum class EPCGExEnumOutputMode : uint8
 {
 	EEOM_Single                  = 0 UMETA(DisplayName="Single", Tooltip="Output a single enum value"),
 	EEOM_All                     = 1 UMETA(DisplayName="All", ToolTip="Output a dataset containing all the enum names and values"),
-	EEOM_AllToMultiplePins       = 2 UMETA(DisplayName="All to Multiple Pins", Tooltip="Output all values in the enum to different pins"),
-	EEOM_Selection               = 3 UMETA(Tooltip="Select values to output as one dataset", Hidden),
-	EEOM_SelectionToMultiplePins = 4 UMETA(Tooltip="Select values to output to multiple pins", Hidden)
+	EEOM_AllToMultiplePins       = 2 UMETA(DisplayName="All to Separate Outputs", Tooltip="Output all values in the enum to different pins"),
+	EEOM_Selection               = 3 UMETA(DisplayName="Selection", Tooltip="Select values to output as one dataset"),
+	EEOM_SelectionToMultiplePins = 4 UMETA(DisplayName="Selection to Separate Outputs", Tooltip="Select values to output to multiple pins")
 };
 
 namespace PCGExConstantEnumConstants
@@ -58,16 +58,28 @@ public:
 
 	virtual EPCGSettingsType GetType() const override { return EPCGSettingsType::Param; };
 	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->NodeColorConstant; };
+	virtual void FillEnabledExportValues();
 
 #endif
 
 	virtual bool HasDynamicPins() const override { return true; };
 
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category="Settings")
+	EPCGExEnumOutputMode OutputMode = EPCGExEnumOutputMode::EEOM_All;
+
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, meta=(ShowOnlyInnerProperties), Category="Settings")
 	FEnumSelector SelectedEnum;
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category=Settings)
-	EPCGExEnumOutputMode OutputMode = EPCGExEnumOutputMode::EEOM_All;
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category="Settings", EditFixedSize,
+		meta=(
+			ReadOnlyKeys,
+			EditCondition="OutputMode==EPCGExEnumOutputMode::EEOM_Selection||OutputMode==EPCGExEnumOutputMode::EEOM_SelectionToMultiplePins",
+			EditConditionHides
+		)
+	)
+	TMap<FName, bool> EnabledExportValues;
+
+	
 
 	// Hidden for now
 	UPROPERTY(/*BlueprintReadWrite, EditAnywhere, Category=Settings*/)
@@ -97,7 +109,7 @@ public:
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category="Settings|Output Attributes|Values", meta=(EditCondition="OutputEnumValues"))
 	FName ValueOutputAttribute = "Value";
-
+	
 	TArray<TTuple<FName, FName, int64>> GetEnumValueMap() const;
 	UFUNCTION(BlueprintCallable, Category="Config")
 	FName GetEnumName() const;
