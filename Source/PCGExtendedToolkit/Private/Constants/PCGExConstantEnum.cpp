@@ -47,6 +47,7 @@ void UPCGExConstantEnumSettings::PostLoad()
 #endif
 }
 
+#if WITH_EDITOR
 // Adapted from similar handling in PCGSwitch.cpp
 void UPCGExConstantEnumSettings::PostEditChangeProperty(struct FPropertyChangedEvent& PropertyChangedEvent)
 {
@@ -61,6 +62,7 @@ void UPCGExConstantEnumSettings::PostEditChangeProperty(struct FPropertyChangedE
 		CachePinLabels();
 	}
 }
+#endif
 
 void UPCGExConstantEnumSettings::OnOverrideSettingsDuplicatedInternal(bool bSkippedPostLoad)
 {
@@ -129,6 +131,7 @@ FName UPCGExConstantEnumSettings::GetEnumName() const
 	return FName("");
 }
 
+#if WITH_EDITOR
 EPCGChangeType UPCGExConstantEnumSettings::GetChangeTypeForProperty(const FName& PropName) const
 {
 	EPCGChangeType ChangeType = Super::GetChangeTypeForProperty(PropName);
@@ -143,6 +146,7 @@ EPCGChangeType UPCGExConstantEnumSettings::GetChangeTypeForProperty(const FName&
 
 	return ChangeType;
 }
+#endif
 
 TArray<FPCGPinProperties> UPCGExConstantEnumSettings::OutputPinProperties() const
 {
@@ -265,7 +269,7 @@ void FPCGExConstantEnumElement::StageEnumValuesSeparatePins(
 
 		if (Settings->OutputEnumValues)
 		{
-			ValueAttrib = OutputData->Metadata->CreateAttribute<int64>(PCGExConstantEnumConstants::ValueOutputAttribute, 0, true, false);
+			ValueAttrib = OutputData->Metadata->CreateAttribute<int64>(Settings->ValueOutputAttribute, 0, true, false);
 		}
 
 		const auto Entry = OutputData->Metadata->AddEntry();
@@ -307,7 +311,7 @@ void FPCGExConstantEnumElement::StageEnumValuesSinglePin(FPCGExContext* InContex
 
 	if (Settings->OutputEnumValues)
 	{
-		ValueAttrib = OutputData->Metadata->CreateAttribute<int64>(PCGExConstantEnumConstants::ValueOutputAttribute, 0, true, false);
+		ValueAttrib = OutputData->Metadata->CreateAttribute<int64>(Settings->ValueOutputAttribute, 0, true, false);
 	}
 
 	for (const TTuple<FName, FName, int64>& T : ValueData)

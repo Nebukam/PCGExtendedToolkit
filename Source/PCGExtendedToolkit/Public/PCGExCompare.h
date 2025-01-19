@@ -35,7 +35,7 @@ enum class EPCGExAngularDomain : uint8
 	Degrees   = 1 UMETA(DisplayName = "Degrees", Tooltip="Read the value as degrees"),
 };
 
-UENUM()
+UENUM(BlueprintType)
 enum class EPCGExComparison : uint8
 {
 	StrictlyEqual    = 0 UMETA(DisplayName = " == ", Tooltip="Operand A Strictly Equal to Operand B"),
@@ -55,7 +55,7 @@ enum class EPCGExEquality : uint8
 	NotEqual = 1 UMETA(DisplayName = " != ", Tooltip="Operand A Not Equal to Operand B"),
 };
 
-UENUM()
+UENUM(BlueprintType)
 enum class EPCGExStringComparison : uint8
 {
 	StrictlyEqual         = 0 UMETA(DisplayName = " == ", Tooltip="Operand A Strictly Equal to Operand B"),

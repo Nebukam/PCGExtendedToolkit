@@ -66,6 +66,8 @@ void FPCGExPathfindingEdgesContext::BuildPath(const TSharedPtr<PCGExPathfinding:
 	const TSharedPtr<PCGExData::FPointIO> PathIO = OutputPaths->Emplace_GetRef<UPCGPointData>(ReferenceIO, PCGExData::EIOInit::New);
 	if (!PathIO) { return; }
 
+	PathIO->IOIndex = Query->QueryIndex;
+
 	PCGExGraph::CleanupClusterTags(PathIO);
 	PCGExGraph::CleanupVtxData(PathIO);
 
@@ -213,7 +215,8 @@ namespace PCGExPathfindingEdge
 			TSharedPtr<PCGExPathfinding::FPathQuery> Query = MakeShared<PCGExPathfinding::FPathQuery>(
 				Cluster.ToSharedRef(),
 				Context->SeedsDataFacade->Source->GetInPointRef(PCGEx::H64A(Context->SeedGoalPairs[i])),
-				Context->GoalsDataFacade->Source->GetInPointRef(PCGEx::H64B(Context->SeedGoalPairs[i])));
+				Context->GoalsDataFacade->Source->GetInPointRef(PCGEx::H64B(Context->SeedGoalPairs[i])),
+				i);
 
 			Queries[i] = Query;
 		}

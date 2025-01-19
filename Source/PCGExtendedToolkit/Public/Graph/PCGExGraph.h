@@ -423,7 +423,6 @@ namespace PCGExGraph
 	class /*PCGEXTENDEDTOOLKIT_API*/ FSubGraph : public TSharedFromThis<FSubGraph>
 	{
 	public:
-		int64 Id = -1;
 		TWeakPtr<FGraph> WeakParentGraph;
 		TSet<int32> Nodes;
 		TSet<int32> Edges;

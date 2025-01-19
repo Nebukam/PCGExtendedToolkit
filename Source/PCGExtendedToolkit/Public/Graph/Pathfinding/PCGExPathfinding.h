@@ -121,24 +121,27 @@ namespace PCGExPathfinding
 		FPathQuery(
 			const TSharedRef<PCGExCluster::FCluster>& InCluster,
 			const PCGExData::FPointRef& InSeedPointRef,
-			const PCGExData::FPointRef& InGoalPointRef)
-			: Cluster(InCluster), Seed(InSeedPointRef), Goal(InGoalPointRef)
+			const PCGExData::FPointRef& InGoalPointRef,
+			const int32 InQueryIndex)
+			: Cluster(InCluster), Seed(InSeedPointRef), Goal(InGoalPointRef), QueryIndex(InQueryIndex)
 		{
 		}
 
 		FPathQuery(
 			const TSharedRef<PCGExCluster::FCluster>& InCluster,
 			const TSharedPtr<FPathQuery>& PreviousQuery,
-			const PCGExData::FPointRef& InGoalPointRef)
-			: Cluster(InCluster), Seed(PreviousQuery->Goal), Goal(InGoalPointRef)
+			const PCGExData::FPointRef& InGoalPointRef,
+			const int32 InQueryIndex)
+			: Cluster(InCluster), Seed(PreviousQuery->Goal), Goal(InGoalPointRef), QueryIndex(InQueryIndex)
 		{
 		}
 
 		FPathQuery(
 			const TSharedRef<PCGExCluster::FCluster>& InCluster,
 			const TSharedPtr<FPathQuery>& PreviousQuery,
-			const TSharedPtr<FPathQuery>& NextQuery)
-			: Cluster(InCluster), Seed(PreviousQuery->Goal), Goal(NextQuery->Seed)
+			const TSharedPtr<FPathQuery>& NextQuery,
+			const int32 InQueryIndex)
+			: Cluster(InCluster), Seed(PreviousQuery->Goal), Goal(NextQuery->Seed), QueryIndex(InQueryIndex)
 		{
 		}
 
@@ -151,6 +154,8 @@ namespace PCGExPathfinding
 		TArray<int32> PathNodes;
 		TArray<int32> PathEdges;
 		EPathfindingResolution Resolution = EPathfindingResolution::None;
+
+		const int32 QueryIndex = -1;
 
 		bool HasValidEndpoints() const { return Seed.IsValid() && Goal.IsValid() && PickResolution == EQueryPickResolution::Success; };
 		bool HasValidPathPoints() const { return PathNodes.Num() >= 2; };
@@ -184,14 +189,15 @@ namespace PCGExPathfinding
 		TSharedPtr<PCGExHeuristics::FLocalFeedbackHandler> LocalFeedbackHandler;
 
 	public:
-		explicit FPlotQuery(const TSharedRef<PCGExCluster::FCluster>& InCluster, bool ClosedLoop = false)
-			: Cluster(InCluster), bIsClosedLoop(ClosedLoop)
+		explicit FPlotQuery(const TSharedRef<PCGExCluster::FCluster>& InCluster, bool ClosedLoop, const int32 InQueryIndex)
+			: Cluster(InCluster), bIsClosedLoop(ClosedLoop), QueryIndex(InQueryIndex)
 		{
 		}
 
 		TSharedRef<PCGExCluster::FCluster> Cluster;
 		bool bIsClosedLoop = false;
 		TSharedPtr<PCGExData::FFacade> PlotFacade;
+		const int32 QueryIndex = -1;
 
 		TArray<TSharedPtr<FPathQuery>> SubQueries;
 
