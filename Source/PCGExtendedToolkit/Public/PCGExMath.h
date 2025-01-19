@@ -913,7 +913,7 @@ namespace PCGExMath
 		}
 		else if constexpr (std::is_same_v<T, FString>)
 		{
-			return FString::Printf(TEXT("%d"), HashCombineFast(GetTypeHash(A), GetTypeHash(B)));
+			return FString::Printf(TEXT("%d"), NaiveHash(GetTypeHash(A), GetTypeHash(B)));
 		}
 		else if constexpr (
 			std::is_same_v<T, FName> ||
@@ -965,7 +965,7 @@ namespace PCGExMath
 		}
 		else if constexpr (std::is_same_v<T, FString>)
 		{
-			return FString::Printf(TEXT("%d"), HashCombineFast(static_cast<uint32>(GetTypeHash(Min(A, B))), static_cast<uint32>(GetTypeHash(Max(A, B)))));
+			return FString::Printf(TEXT("%d"), NaiveUnsignedHash(GetTypeHash(A), GetTypeHash(B)));
 		}
 		else if constexpr (
 			std::is_same_v<T, FName> ||
@@ -976,7 +976,7 @@ namespace PCGExMath
 		}
 		else
 		{
-			return static_cast<T>(HashCombineFast(GetTypeHash(Min(A, B)), GetTypeHash(Max(A, B))));
+			return static_cast<T>(GetTypeHash(PCGEx::H64U(GetTypeHash(A), GetTypeHash(B))));
 		}
 	}
 

@@ -324,7 +324,7 @@ namespace PCGExBridgeClusters
 		UPCGMetadata* EdgeMetadata = CompoundedEdgesDataFacade->GetOut()->Metadata;
 		const TSharedRef<PCGExData::FPointIO>& VtxIO = VtxDataFacade->Source;
 
-		const FPCGMetadataAttribute<int64>* InVtxEndpointAtt = static_cast<FPCGMetadataAttribute<int64>*>(VtxIO->GetIn()->Metadata->GetMutableAttribute(PCGExGraph::Tag_VtxEndpoint));
+		const FPCGMetadataAttribute<int64>* InVtxEndpointAtt = static_cast<FPCGMetadataAttribute<int64>*>(VtxIO->GetIn()->Metadata->GetMutableAttribute(PCGExGraph::Attr_PCGExVtxIdx));
 
 		FPCGPoint& EdgePoint = CompoundedEdgesDataFacade->GetOut()->GetMutablePoints()[EdgeIndex];
 
@@ -342,8 +342,8 @@ namespace PCGExBridgeClusters
 		PCGEx::H64(InVtxEndpointAtt->GetValueFromItemKey(VtxIO->GetInPoint(IndexA).MetadataEntry), StartIdx, StartNumEdges);
 		PCGEx::H64(InVtxEndpointAtt->GetValueFromItemKey(VtxIO->GetInPoint(IndexB).MetadataEntry), EndIdx, EndNumEdges);
 
-		FPCGMetadataAttribute<int64>* EdgeEndpointsAtt = static_cast<FPCGMetadataAttribute<int64>*>(EdgeMetadata->GetMutableAttribute(PCGExGraph::Tag_EdgeEndpoints));
-		FPCGMetadataAttribute<int64>* OutVtxEndpointAtt = static_cast<FPCGMetadataAttribute<int64>*>(VtxIO->GetOut()->Metadata->GetMutableAttribute(PCGExGraph::Tag_VtxEndpoint));
+		FPCGMetadataAttribute<int64>* EdgeEndpointsAtt = static_cast<FPCGMetadataAttribute<int64>*>(EdgeMetadata->GetMutableAttribute(PCGExGraph::Attr_PCGExEdgeIdx));
+		FPCGMetadataAttribute<int64>* OutVtxEndpointAtt = static_cast<FPCGMetadataAttribute<int64>*>(VtxIO->GetOut()->Metadata->GetMutableAttribute(PCGExGraph::Attr_PCGExVtxIdx));
 
 		EdgeEndpointsAtt->SetValue(EdgePoint.MetadataEntry, PCGEx::H64(StartIdx, EndIdx));
 		OutVtxEndpointAtt->SetValue(StartPoint.MetadataEntry, PCGEx::H64(StartIdx, StartNumEdges + 1));

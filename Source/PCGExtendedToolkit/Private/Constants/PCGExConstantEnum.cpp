@@ -122,7 +122,10 @@ TArray<TTuple<FName, FName, int64>> UPCGExConstantEnumSettings::GetEnumValueMap(
 
 FName UPCGExConstantEnumSettings::GetEnumName() const
 {
-	if (SelectedEnum.Class) return FName(SelectedEnum.Class->GetName());
+	if (SelectedEnum.Class)
+	{
+		return FName(SelectedEnum.Class->GetName());
+	}
 	return FName("");
 }
 
@@ -194,10 +197,16 @@ bool FPCGExConstantEnumElement::ExecuteInternal(FPCGContext* InContext) const
 	PCGEX_SETTINGS(ConstantEnum)
 
 	// No class selected, so can't output anything
-	if (!Settings->SelectedEnum.Class) return true;
+	if (!Settings->SelectedEnum.Class)
+	{
+		return true;
+	}
 
 	// No data selected to output
-	if (!Settings->OutputEnumValues && !Settings->OutputEnumKeys && !Settings->OutputEnumDescriptions) return true;
+	if (!Settings->OutputEnumValues && !Settings->OutputEnumKeys && !Settings->OutputEnumDescriptions)
+	{
+		return true;
+	}
 
 	FName Key;
 	FName Description;
@@ -260,9 +269,18 @@ void FPCGExConstantEnumElement::StageEnumValuesSeparatePins(
 		}
 
 		const auto Entry = OutputData->Metadata->AddEntry();
-		if (KeyAttrib) KeyAttrib->SetValue(Entry, T.Get<0>());
-		if (DescriptionAttrib) DescriptionAttrib->SetValue(Entry, T.Get<1>());
-		if (ValueAttrib) ValueAttrib->SetValue(Entry, T.Get<2>());
+		if (KeyAttrib)
+		{
+			KeyAttrib->SetValue(Entry, T.Get<0>());
+		}
+		if (DescriptionAttrib)
+		{
+			DescriptionAttrib->SetValue(Entry, T.Get<1>());
+		}
+		if (ValueAttrib)
+		{
+			ValueAttrib->SetValue(Entry, T.Get<2>());
+		}
 
 		InContext->StageOutput(T.Get<1>(), OutputData, true);
 	}
@@ -295,9 +313,18 @@ void FPCGExConstantEnumElement::StageEnumValuesSinglePin(FPCGExContext* InContex
 	for (const TTuple<FName, FName, int64>& T : ValueData)
 	{
 		const auto Entry = OutputData->Metadata->AddEntry();
-		if (KeyAttrib) KeyAttrib->SetValue(Entry, T.Get<0>());
-		if (DescriptionAttrib) DescriptionAttrib->SetValue(Entry, T.Get<1>());
-		if (ValueAttrib) ValueAttrib->SetValue(Entry, T.Get<2>());
+		if (KeyAttrib)
+		{
+			KeyAttrib->SetValue(Entry, T.Get<0>());
+		}
+		if (DescriptionAttrib)
+		{
+			DescriptionAttrib->SetValue(Entry, T.Get<1>());
+		}
+		if (ValueAttrib)
+		{
+			ValueAttrib->SetValue(Entry, T.Get<2>());
+		}
 	}
 
 	InContext->StageOutput(PCGExConstantEnumConstants::SingleOutputPinName, OutputData, true);

@@ -172,7 +172,7 @@ namespace PCGExMergePoints
 
 		if (Settings->bTagToAttributes)
 		{
-			ConvertedTags->Append(PointsProcessor->PointDataFacade->Source->Tags->ToFNameList(false));
+			ConvertedTags->Append(PointsProcessor->PointDataFacade->Source->Tags->FlattenToArrayOfNames(false));
 		}
 
 		return true;
@@ -212,10 +212,9 @@ namespace PCGExMergePoints
 		IgnoredAttributes.Append(*ConvertedTags.Get());
 		IgnoredAttributes.Append(
 			{
-				PCGExGraph::Tag_EdgeEndpoints,
-				PCGExGraph::Tag_VtxEndpoint,
-				PCGExGraph::Tag_ClusterIndex,
-				PCGExGraph::Tag_ClusterPair,
+				PCGExGraph::Attr_PCGExEdgeIdx,
+				PCGExGraph::Attr_PCGExVtxIdx,
+				PCGExGraph::Tag_PCGExCluster,
 				PCGExGraph::Tag_PCGExVtx,
 				PCGExGraph::Tag_PCGExEdges,
 			});

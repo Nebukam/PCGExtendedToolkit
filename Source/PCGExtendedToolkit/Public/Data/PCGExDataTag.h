@@ -124,6 +124,8 @@ namespace PCGExData
 		TSet<FString> RawTags;                          // Contains all data tag
 		TMap<FString, TSharedPtr<FTagValue>> ValueTags; // Prefix:ValueTag
 
+		int32 Num() const { return RawTags.Num() + ValueTags.Num(); }
+
 		bool IsEmpty() const { return RawTags.IsEmpty() && ValueTags.IsEmpty(); }
 
 		FTags()
@@ -147,7 +149,9 @@ namespace PCGExData
 		void Append(const TSharedRef<FTags>& InTags)
 		{
 			FWriteScopeLock WriteScopeLock(TagsLock);
-			for (const TPair<FString, TSharedPtr<FTagValue>>& Pair : ValueTags)
+
+			RawTags.Append(InTags->RawTags);
+			for (const TPair<FString, TSharedPtr<FTagValue>>& Pair : InTags->ValueTags)
 			{
 				PCGEx::ExecuteWithRightType(
 					Pair.Value->UnderlyingType, [&](auto DummyValue)
@@ -157,7 +161,6 @@ namespace PCGExData
 						ValueTags.Add(Pair.Key, TagValueCopy);
 					});
 			}
-			RawTags.Append(InTags->RawTags);
 		}
 
 		void Append(const TArray<FString>& InTags)
@@ -189,6 +192,7 @@ namespace PCGExData
 		{
 			FReadScopeLock ReadScopeLock(TagsLock);
 
+			InTags.Reserve(InTags.Num() + Num());
 			InTags.Append(RawTags);
 			if (bFlatten) { for (const TPair<FString, TSharedPtr<FTagValue>>& Pair : ValueTags) { InTags.Add(Pair.Value->Flatten(Pair.Key)); } }
 			else { for (const TPair<FString, TSharedPtr<FTagValue>>& Pair : ValueTags) { InTags.Add(Pair.Key); } }
@@ -197,9 +201,8 @@ namespace PCGExData
 		void DumpTo(TArray<FName>& InTags, const bool bFlatten = true) const
 		{
 			FReadScopeLock ReadScopeLock(TagsLock);
-			TArray<FName> NameDump = ToFNameList(bFlatten);
-			InTags.Reserve(InTags.Num() + NameDump.Num());
-			InTags.Append(NameDump);
+			InTags.Reserve(Num());
+			InTags.Append(FlattenToArrayOfNames(bFlatten));
 		}
 
 		TSet<FString> Flatten()
@@ -207,18 +210,32 @@ namespace PCGExData
 			FReadScopeLock ReadScopeLock(TagsLock);
 
 			TSet<FString> Flattened;
+			Flattened.Reserve(Num());
 			Flattened.Append(RawTags);
 			for (const TPair<FString, TSharedPtr<FTagValue>>& Pair : ValueTags) { Flattened.Add(Pair.Value->Flatten(Pair.Key)); }
 			return Flattened;
 		}
 
-		TArray<FName> ToFNameList(const bool bFlatten = true) const
+		TArray<FString> FlattenToArray(const bool bIncludeValue = true) const
+		{
+			FReadScopeLock ReadScopeLock(TagsLock);
+
+			TArray<FString> Flattened;
+			Flattened.Reserve(Num());
+			for (const FString& Key : RawTags) { Flattened.Add(Key); }
+			if (bIncludeValue) { for (const TPair<FString, TSharedPtr<FTagValue>>& Pair : ValueTags) { Flattened.Add(Pair.Value->Flatten(Pair.Key)); } }
+			else { for (const TPair<FString, TSharedPtr<FTagValue>>& Pair : ValueTags) { Flattened.Add(Pair.Key); } }
+			return Flattened;
+		}
+
+		TArray<FName> FlattenToArrayOfNames(const bool bIncludeValue = true) const
 		{
 			FReadScopeLock ReadScopeLock(TagsLock);
 
 			TArray<FName> Flattened;
+			Flattened.Reserve(Num());
 			for (const FString& Key : RawTags) { Flattened.Add(FName(Key)); }
-			if (bFlatten) { for (const TPair<FString, TSharedPtr<FTagValue>>& Pair : ValueTags) { Flattened.Add(FName(Pair.Value->Flatten(Pair.Key))); } }
+			if (bIncludeValue) { for (const TPair<FString, TSharedPtr<FTagValue>>& Pair : ValueTags) { Flattened.Add(FName(Pair.Value->Flatten(Pair.Key))); } }
 			else { for (const TPair<FString, TSharedPtr<FTagValue>>& Pair : ValueTags) { Flattened.Add(FName(Pair.Key)); } }
 			return Flattened;
 		}

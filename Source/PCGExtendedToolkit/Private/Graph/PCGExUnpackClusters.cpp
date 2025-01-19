@@ -95,7 +95,7 @@ void FPCGExUnpackClusterTask::ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager
 
 	NewEdges->DeleteAttribute(PCGExGraph::Tag_PackedClusterEdgeCount);
 	NewEdges->DeleteAttribute(PCGExGraph::Tag_PackedClusterPointCount);
-	NewEdges->DeleteAttribute(PCGExGraph::Tag_VtxEndpoint);
+	NewEdges->DeleteAttribute(PCGExGraph::Attr_PCGExVtxIdx);
 
 	const TSharedPtr<PCGExData::FPointIO> NewVtx = Context->OutPoints->Emplace_GetRef(PointIO, PCGExData::EIOInit::New);
 	TArray<FPCGPoint> MutableVtxPoints = NewVtx->GetOut()->GetMutablePoints();
@@ -104,9 +104,9 @@ void FPCGExUnpackClusterTask::ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager
 
 	NewVtx->DeleteAttribute(PCGExGraph::Tag_PackedClusterEdgeCount);
 	NewVtx->DeleteAttribute(PCGExGraph::Tag_PackedClusterPointCount);
-	NewVtx->DeleteAttribute(PCGExGraph::Tag_EdgeEndpoints);
+	NewVtx->DeleteAttribute(PCGExGraph::Attr_PCGExEdgeIdx);
 
-	const PCGExTags::IDType PairId = PointIO->Tags->GetTypedValue<int32>(PCGExGraph::TagStr_ClusterPair);
+	const PCGExTags::IDType PairId = PointIO->Tags->GetTypedValue<int32>(PCGExGraph::TagStr_PCGExCluster);
 
 	PCGExGraph::MarkClusterVtx(NewVtx, PairId);
 	PCGExGraph::MarkClusterEdges(NewEdges, PairId);

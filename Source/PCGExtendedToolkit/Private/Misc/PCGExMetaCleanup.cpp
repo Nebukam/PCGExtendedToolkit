@@ -35,7 +35,7 @@ bool FPCGExMetaCleanupElement::ExecuteInternal(FPCGContext* InContext) const
 		while (Context->AdvancePointsIO())
 		{
 			Context->CurrentIO->InitializeOutput(PCGExData::EIOInit::Forward);
-			Context->Filters.Filter(Context->CurrentIO->Tags.Get());
+			Context->Filters.Prune(Context->CurrentIO->Tags.Get());
 		}
 	}
 	else
@@ -44,7 +44,7 @@ bool FPCGExMetaCleanupElement::ExecuteInternal(FPCGContext* InContext) const
 		{
 			// TODO : Check if any attribute is affected first, and forward instead of duplicate if not.
 			Context->CurrentIO->InitializeOutput(PCGExData::EIOInit::Duplicate);
-			Context->Filters.Filter(Context->CurrentIO.Get());
+			Context->Filters.Prune(Context->CurrentIO.Get());
 		}
 	}
 

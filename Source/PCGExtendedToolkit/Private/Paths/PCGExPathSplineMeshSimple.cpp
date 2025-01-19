@@ -281,7 +281,7 @@ namespace PCGExPathSplineMeshSimple
 		bIsPreviewMode = ExecutionContext->SourceComponent.Get()->IsInPreviewMode();
 #endif
 
-		TArray<FName> DataTags = PointDataFacade->Source->Tags->ToFNameList();
+		TArray<FName> DataTags = PointDataFacade->Source->Tags->FlattenToArrayOfNames();
 
 		for (int i = 0; i < Segments.Num(); i++)
 		{
