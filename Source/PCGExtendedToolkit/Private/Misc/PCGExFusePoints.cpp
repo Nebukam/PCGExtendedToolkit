@@ -100,9 +100,11 @@ namespace PCGExFusePoints
 
 	void FProcessor::CompleteWork()
 	{
+		UnionGraph->Sort();
+		
 		const int32 NumUnionNodes = UnionGraph->Nodes.Num();
 		PointDataFacade->Source->GetOut()->GetMutablePoints().SetNum(NumUnionNodes);
-
+		
 		UnionBlender = MakeShared<PCGExDataBlending::FUnionBlender>(const_cast<FPCGExBlendingDetails*>(&Settings->BlendingDetails), &Context->CarryOverDetails);
 		UnionBlender->AddSource(PointDataFacade, &PCGExGraph::ProtectedClusterAttributes);
 		UnionBlender->PrepareMerge(Context, PointDataFacade, UnionGraph->NodesUnion);

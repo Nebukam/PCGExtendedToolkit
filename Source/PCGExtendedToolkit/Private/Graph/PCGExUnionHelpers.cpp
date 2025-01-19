@@ -116,6 +116,7 @@ namespace PCGExGraph
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(FUnionProcessor::OnNodesProcessingComplete);
 
+		UnionGraph->Sort();
 		UnionPointsBlender.Reset();
 
 		bRunning = true;
