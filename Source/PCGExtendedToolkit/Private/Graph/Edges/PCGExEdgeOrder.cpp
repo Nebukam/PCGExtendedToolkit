@@ -74,8 +74,8 @@ namespace PCGExEdgeOrder
 			return false;
 		}
 
-		VtxEndpointBuffer = VtxDataFacade->GetReadable<int64>(PCGExGraph::Tag_VtxEndpoint);
-		EndpointsBuffer = EdgeDataFacade->GetWritable<int64>(PCGExGraph::Tag_EdgeEndpoints, PCGExData::EBufferInit::New);
+		VtxEndpointBuffer = VtxDataFacade->GetReadable<int64>(PCGExGraph::Attr_PCGExVtxIdx);
+		EndpointsBuffer = EdgeDataFacade->GetWritable<int64>(PCGExGraph::Attr_PCGExEdgeIdx, PCGExData::EBufferInit::New);
 
 		StartParallelLoopForEdges();
 
@@ -116,7 +116,7 @@ namespace PCGExEdgeOrder
 	{
 		TBatch<FProcessor>::RegisterBuffersDependencies(FacadePreloader);
 		PCGEX_TYPED_CONTEXT_AND_SETTINGS(EdgeOrder)
-		FacadePreloader.Register<int64>(ExecutionContext, PCGExGraph::Tag_VtxEndpoint);
+		FacadePreloader.Register<int64>(ExecutionContext, PCGExGraph::Attr_PCGExVtxIdx);
 		DirectionSettings.RegisterBuffersDependencies(ExecutionContext, FacadePreloader);
 	}
 

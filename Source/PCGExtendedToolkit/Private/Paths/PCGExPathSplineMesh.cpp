@@ -231,7 +231,7 @@ namespace PCGExPathSplineMesh
 		PathWriter = PointDataFacade->GetWritable<FString>(Settings->AssetPathAttributeName, PCGExData::EBufferInit::New);
 #endif
 
-		DataTags = PointDataFacade->Source->Tags->ToFNameList();
+		DataTags = PointDataFacade->Source->Tags->FlattenToArrayOfNames();
 
 		StartParallelLoopForPoints();
 

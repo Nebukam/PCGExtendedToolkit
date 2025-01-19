@@ -10,6 +10,13 @@
 #include "Data/PCGExDataFilter.h"
 #include "PCGExMetaFilter.generated.h"
 
+UENUM()
+enum class EPCGExMetaFilterMode : uint8
+{
+	Default    = 0 UMETA(DisplayName = "Default", Tooltip="Default mode will filter both tags and attributes."),
+	Duplicates = 1 UMETA(DisplayName = "Duplicates", Tooltip="Filter out duplicates based on tags that pass the filter"),
+};
+
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc")
 class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExMetaFilterSettings : public UPCGExPointsProcessorSettings
 {
@@ -32,9 +39,20 @@ public:
 	virtual PCGExData::EIOInit GetMainOutputInitMode() const override;
 	//~End UPCGExPointsProcessorSettings
 
-	/** List of attributes to delete. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ShowOnlyInnerProperties))
-	FPCGExCarryOverDetails Filters;
+	EPCGExMetaFilterMode Mode = EPCGExMetaFilterMode::Default;
+
+	/** Attribute name filters. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="Mode!=EPCGExMetaFilterMode::Duplicates", EditConditionHides, ShowOnlyInnerProperties))
+	FPCGExNameFiltersDetails Attributes = FPCGExNameFiltersDetails(false);
+
+	/** Tags filters. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, ShowOnlyInnerProperties))
+	FPCGExNameFiltersDetails Tags = FPCGExNameFiltersDetails(false);
+
+	/** If enabled, will test full tag value on value tags ('Tag:Value'), otherwise only test the left part. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
+	bool bTestTagValues = false;
 
 	/** Swap Inside & Outside data */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))

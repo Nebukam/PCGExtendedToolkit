@@ -73,9 +73,15 @@ namespace PCGExDiscardSame
 
 		// 1 - Build comparison points
 
+		if (Settings->bTestAttributeHash)
+		{
+			Hasher = MakeShared<PCGEx::FAttributeHasher>(Settings->AttributeHashConfig);
+			if (!Hasher->Init(Context, PointDataFacade->Source)) { return false; }
+			if (Hasher->RequiresCompilation()) { Hasher->Compile(AsyncManager, nullptr); }
+		}
+
 		TSet<uint32> PositionHashes;
 		const FVector PosCWTolerance = FVector(1 / Settings->TestPositionTolerance);
-
 
 		const TArray<FPCGPoint>& InPoints = PointDataFacade->GetIn()->GetPoints();
 		HashPointsCount = InPoints.Num();
@@ -138,6 +144,7 @@ namespace PCGExDiscardSame
 				if (Settings->bTestBounds && P->HashBounds != HashBounds) { continue; }
 				if (Settings->bTestPositions && P->HashPositions != HashPositions) { continue; }
 				if (Settings->bTestPointCount && !FMath::IsNearlyEqual(P->HashPointsCount, HashPointsCount, Tol)) { continue; }
+				if (Settings->bTestAttributeHash && P->Hasher->GetHash() != Hasher->GetHash()) { continue; }
 
 				SameAs.Add(P);
 			}
@@ -150,7 +157,8 @@ namespace PCGExDiscardSame
 
 				if ((Settings->bTestBounds && P->HashBounds == HashBounds) ||
 					(Settings->bTestPositions && P->HashPositions == HashPositions) ||
-					(Settings->bTestPointCount && FMath::IsNearlyEqual(P->HashPointsCount, HashPointsCount, Tol)))
+					(Settings->bTestPointCount && FMath::IsNearlyEqual(P->HashPointsCount, HashPointsCount, Tol)) ||
+					(Settings->bTestAttributeHash && P->Hasher->GetHash() != Hasher->GetHash()))
 				{
 					SameAs.Add(P);
 				}

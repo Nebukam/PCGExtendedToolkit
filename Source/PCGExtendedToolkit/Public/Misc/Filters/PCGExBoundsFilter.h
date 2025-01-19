@@ -82,15 +82,15 @@ class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExBoundsFilterFactory : public UPCGExFilter
 public:
 	UPROPERTY()
 	FPCGExBoundsFilterConfig Config;
-	
+
 	TArray<TSharedPtr<PCGExData::FFacade>> BoundsDataFacades;
 	TArray<TSharedPtr<PCGExGeo::FPointBoxCloud>> Clouds;
 
 	virtual bool SupportsLiveTesting() override { return true; }
-	
+
 	virtual bool Init(FPCGExContext* InContext) override;
 	virtual TSharedPtr<PCGExPointFilter::FFilter> CreateFilter() const override;
-	
+
 	virtual bool GetRequiresPreparation(FPCGExContext* InContext) override { return true; }
 	virtual bool Prepare(FPCGExContext* InContext) override;
 

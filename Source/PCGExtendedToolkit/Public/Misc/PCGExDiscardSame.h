@@ -6,6 +6,7 @@
 #include "CoreMinimal.h"
 
 #include "PCGExPointsProcessor.h"
+#include "Data/PCGExAttributeHasher.h"
 #include "Data/PCGExFilterGroup.h"
 #include "PCGExDiscardSame.generated.h"
 
@@ -79,6 +80,14 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bTestPositions", ClampMin = 0))
 	double TestPositionTolerance = 0.1;
 
+	/**  */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, InlineEditConditionToggle))
+	bool bTestAttributeHash = false;
+
+	/** Build a hash from a single attribute and test it against the others. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bTestAttributeHash"))
+	FPCGExAttributeHashConfig AttributeHashConfig;
+	
 private:
 	friend class FPCGExDiscardSameElement;
 };
@@ -106,6 +115,8 @@ namespace PCGExDiscardSame
 	{
 		friend struct FPCGExDiscardSameContext;
 
+		TSharedPtr<PCGEx::FAttributeHasher> Hasher;
+		
 	public:
 		double HashPointsCount = 0;
 		uint32 HashBounds = 0;

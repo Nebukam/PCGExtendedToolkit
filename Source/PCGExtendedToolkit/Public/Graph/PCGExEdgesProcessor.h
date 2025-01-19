@@ -49,7 +49,7 @@ public:
 	/** */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Warning and Errors", meta=(PCG_NotOverridable, AdvancedDisplay))
 	bool bQuietMissingClusterPairElement = false;
-	
+
 	bool WantsScopedIndexLookupBuild() const;
 };
 
@@ -61,7 +61,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExEdgesProcessorContext : FPCGExPointsProcesso
 	virtual ~FPCGExEdgesProcessorContext() override;
 
 	bool bQuietMissingClusterPairElement = false;
-	
+
 	bool bBuildEndpointsLookup = true;
 
 	TSharedPtr<PCGExData::FPointIOCollection> MainEdges;
