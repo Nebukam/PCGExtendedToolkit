@@ -253,42 +253,55 @@ namespace PCGExPathToClusters
 		bClosedLoop = Context->ClosedLoop.IsClosedLoop(PointDataFacade->Source);
 		bInlineProcessPoints = Settings->PointPointIntersectionDetails.FuseDetails.DoInlineInsertion();
 
-		StartParallelLoopForPoints(PCGExData::ESource::In);
+		if (bInlineProcessPoints)
+		{
+			// Blunt insert since processor don't have a "wait"
+			InsertEdges(PCGExMT::FScope(0, NumPoints));
+			//OnInsertionComplete();
+		}
+		else
+		{
+			PCGEX_ASYNC_GROUP_CHKD(AsyncManager, InsertEdges)
+
+			InsertEdges->OnSubLoopStartCallback = [PCGEX_ASYNC_THIS_CAPTURE](const PCGExMT::FScope& Scope)
+			{
+				TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExFusePointsElement::ProcessSingleEdge);
+				PCGEX_ASYNC_THIS
+				This->InsertEdges(Scope);
+			};
+
+			InsertEdges->StartSubLoops(NumPoints, 256);
+		}
 
 		return true;
 	}
 
-	void FFusingProcessor::ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const PCGExMT::FScope& Scope)
+	void FFusingProcessor::InsertEdges(const PCGExMT::FScope& Scope)
 	{
-		const int32 NextIndex = Index + 1;
-		if (NextIndex > LastIndex)
+		const TArray<FPCGPoint>& InNodePts = *InPoints;
+		for (int i = Scope.Start; i < Scope.End; i++)
 		{
-			if (bClosedLoop)
+			const int32 NextIndex = i + 1;
+			if (NextIndex > LastIndex)
 			{
-				UnionGraph->InsertEdge(
-					*(InPoints->GetData() + LastIndex), IOIndex, LastIndex,
-					*InPoints->GetData(), IOIndex, 0);
+				if (bClosedLoop)
+				{
+					UnionGraph->InsertEdge(
+						InNodePts[LastIndex], IOIndex, LastIndex,
+						InNodePts[0], IOIndex, 0);
+				}
+				return;
 			}
-			return;
+			UnionGraph->InsertEdge(
+				InNodePts[i], IOIndex, i,
+				InNodePts[NextIndex], IOIndex, NextIndex);
 		}
-		UnionGraph->InsertEdge(
-			*(InPoints->GetData() + Index), IOIndex, Index,
-			*(InPoints->GetData() + NextIndex), IOIndex, NextIndex);
 	}
 
-	/*
-	void FFusingProcessor::OnPointsProcessingComplete()
+	void FFusingProcessor::ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const PCGExMT::FScope& Scope)
 	{
-		TPointsProcessor<FPCGExPathToClustersContext, UPCGExPathToClustersSettings>::OnPointsProcessingComplete();
-		// Schedule next update early
-		AsyncManager->DeferredResumeExecution([PCGEX_ASYNC_THIS_CAPTURE]()
-		{
-			// Hack to force daisy chain advance, since we know when we're ready to do so
-			PCGEX_ASYNC_THIS
-			This->Context->ProcessPointsBatch(PCGExGraph::State_PreparingUnion); // Force move to next
-		});
 	}
-	*/
+
 
 #pragma endregion
 }
