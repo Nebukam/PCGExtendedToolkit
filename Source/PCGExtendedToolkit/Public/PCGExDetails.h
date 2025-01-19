@@ -317,8 +317,8 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExFuseDetails : public FPCGExSourceFuseDet
 	FVector CWTolerance = FVector::OneVector;
 	TSharedPtr<PCGExDetails::FDistances> DistanceDetails;
 
-	/** Check this box if you're fusing over a very large radius and want to ensure determinism. NOTE : Will make things slower. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Force Determinism"))
+	/** Check this box if you're fusing over a very large radius and want to ensure insertion order to avoid snapping to different points. NOTE : Will make things considerably slower. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Stabilize Insertion Order"))
 	bool bInlineInsertion = true;
 
 	void Init()

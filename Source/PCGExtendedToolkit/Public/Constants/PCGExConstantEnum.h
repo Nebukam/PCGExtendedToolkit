@@ -50,16 +50,18 @@ public:
 	// Begin unrolling of Tim's lovely macro
 	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(EnumConstant, "Enum Constant", "Break an enum into handy constant values.", FName(GetDisplayName())); // Tim says nope! :D
 	FString GetDisplayName() const;
-	// End unrolling of Tim's lovely macro
-
-	virtual void PostLoad() override;
-	virtual void PostEditChangeProperty(struct FPropertyChangedEvent& PropertyChangedEvent) override;
-	virtual void OnOverrideSettingsDuplicatedInternal(bool bSkippedPostLoad) override;
-
 	virtual EPCGSettingsType GetType() const override { return EPCGSettingsType::Param; };
 	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->NodeColorConstant; };
-
+	// End unrolling of Tim's lovely macro
 #endif
+	
+	virtual void PostLoad() override;
+	
+#if WITH_EDITOR
+	virtual void PostEditChangeProperty(struct FPropertyChangedEvent& PropertyChangedEvent) override;
+#endif
+	
+	virtual void OnOverrideSettingsDuplicatedInternal(bool bSkippedPostLoad) override;
 
 	virtual bool HasDynamicPins() const override { return true; };
 

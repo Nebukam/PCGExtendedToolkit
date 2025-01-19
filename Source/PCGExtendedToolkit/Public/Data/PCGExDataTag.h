@@ -148,19 +148,7 @@ namespace PCGExData
 
 		void Append(const TSharedRef<FTags>& InTags)
 		{
-			FWriteScopeLock WriteScopeLock(TagsLock);
-
-			RawTags.Append(InTags->RawTags);
-			for (const TPair<FString, TSharedPtr<FTagValue>>& Pair : InTags->ValueTags)
-			{
-				PCGEx::ExecuteWithRightType(
-					Pair.Value->UnderlyingType, [&](auto DummyValue)
-					{
-						using T = decltype(DummyValue);
-						TSharedPtr<TTagValue<T>> TagValueCopy = MakeShared<TTagValue<T>>(StaticCastSharedPtr<TTagValue<T>>(Pair.Value)->Value);
-						ValueTags.Add(Pair.Key, TagValueCopy);
-					});
-			}
+			Append(InTags->FlattenToArray());
 		}
 
 		void Append(const TArray<FString>& InTags)
