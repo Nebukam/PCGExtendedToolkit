@@ -265,7 +265,7 @@ void FPCGExConstantEnumElement::StageEnumValuesSeparatePins(
 
 		if (Settings->OutputEnumValues)
 		{
-			ValueAttrib = OutputData->Metadata->CreateAttribute<int64>(PCGExConstantEnumConstants::ValueOutputAttribute, 0, true, false);
+			ValueAttrib = OutputData->Metadata->CreateAttribute<int64>(Settings->ValueOutputAttribute, 0, true, false);
 		}
 
 		const auto Entry = OutputData->Metadata->AddEntry();
