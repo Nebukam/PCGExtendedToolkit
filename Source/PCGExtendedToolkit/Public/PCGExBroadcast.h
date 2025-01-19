@@ -15,6 +15,8 @@ namespace PCGEx
 	FORCEINLINE static T Broadcast(const bool Value)
 	{
 		if constexpr (std::is_same_v<T, decltype(Value)>) { return Value; }
+		else if constexpr (std::is_same_v<T, PCGExTypeHash>) { return GetTypeHash(Value); }
+
 
 		else if constexpr (std::is_same_v<T, bool>) { return Value; }
 		else if constexpr (std::is_same_v<T, int32> || std::is_same_v<T, int64> || std::is_same_v<T, float> || std::is_same_v<T, double>) { return Value ? 1 : 0; }
@@ -49,6 +51,8 @@ namespace PCGEx
 	FORCEINLINE static T Broadcast(const int32 Value)
 	{
 		if constexpr (std::is_same_v<T, decltype(Value)>) { return Value; }
+		else if constexpr (std::is_same_v<T, PCGExTypeHash>) { return GetTypeHash(Value); }
+
 
 		else if constexpr (std::is_same_v<T, bool>) { return Value > 0; }
 		else if constexpr (std::is_same_v<T, int32> || std::is_same_v<T, int64> || std::is_same_v<T, float> || std::is_same_v<T, double>) { return Value; }
@@ -71,6 +75,8 @@ namespace PCGEx
 	FORCEINLINE static T Broadcast(const int64 Value)
 	{
 		if constexpr (std::is_same_v<T, decltype(Value)>) { return Value; }
+		else if constexpr (std::is_same_v<T, PCGExTypeHash>) { return GetTypeHash(Value); }
+
 
 		else if constexpr (std::is_same_v<T, bool>) { return Value > 0; }
 		else if constexpr (std::is_same_v<T, int32> || std::is_same_v<T, int64> || std::is_same_v<T, float> || std::is_same_v<T, double>) { return Value; }
@@ -93,6 +99,8 @@ namespace PCGEx
 	FORCEINLINE static T Broadcast(const float Value)
 	{
 		if constexpr (std::is_same_v<T, decltype(Value)>) { return Value; }
+		else if constexpr (std::is_same_v<T, PCGExTypeHash>) { return GetTypeHash(Value); }
+
 
 		else if constexpr (std::is_same_v<T, bool>) { return Value > 0; }
 		else if constexpr (std::is_same_v<T, int32> || std::is_same_v<T, int64> || std::is_same_v<T, float> || std::is_same_v<T, double>) { return Value; }
@@ -115,6 +123,8 @@ namespace PCGEx
 	FORCEINLINE static T Broadcast(const double Value)
 	{
 		if constexpr (std::is_same_v<T, decltype(Value)>) { return Value; }
+		else if constexpr (std::is_same_v<T, PCGExTypeHash>) { return GetTypeHash(Value); }
+
 
 		else if constexpr (std::is_same_v<T, bool>) { return Value > 0; }
 		else if constexpr (std::is_same_v<T, int32> || std::is_same_v<T, int64> || std::is_same_v<T, float> || std::is_same_v<T, double>) { return Value; }
@@ -137,6 +147,8 @@ namespace PCGEx
 	FORCEINLINE static T Broadcast(const FVector2D& Value)
 	{
 		if constexpr (std::is_same_v<T, decltype(Value)>) { return Value; }
+		else if constexpr (std::is_same_v<T, PCGExTypeHash>) { return GetTypeHash(Value); }
+
 
 		else if constexpr (std::is_same_v<T, bool>) { return Value.Length() > 0; }
 		else if constexpr (std::is_same_v<T, int32> || std::is_same_v<T, int64> || std::is_same_v<T, float> || std::is_same_v<T, double>) { return Value.X; }
@@ -159,6 +171,8 @@ namespace PCGEx
 	FORCEINLINE static T Broadcast(const FVector& Value)
 	{
 		if constexpr (std::is_same_v<T, decltype(Value)>) { return Value; }
+		else if constexpr (std::is_same_v<T, PCGExTypeHash>) { return GetTypeHash(Value); }
+
 
 		else if constexpr (std::is_same_v<T, bool>) { return Value.Length() > 0; }
 		else if constexpr (std::is_same_v<T, int32> || std::is_same_v<T, int64> || std::is_same_v<T, float> || std::is_same_v<T, double>) { return Value.X; }
@@ -181,6 +195,8 @@ namespace PCGEx
 	FORCEINLINE static T Broadcast(const FVector4& Value)
 	{
 		if constexpr (std::is_same_v<T, decltype(Value)>) { return Value; }
+		else if constexpr (std::is_same_v<T, PCGExTypeHash>) { return GetTypeHash(Value); }
+
 
 		else if constexpr (std::is_same_v<T, bool>) { return Value.X > 0; }
 		else if constexpr (std::is_same_v<T, int32> || std::is_same_v<T, int64> || std::is_same_v<T, float> || std::is_same_v<T, double>) { return Value.X > 0; }
@@ -203,6 +219,8 @@ namespace PCGEx
 	FORCEINLINE static T Broadcast(const FQuat& Value)
 	{
 		if constexpr (std::is_same_v<T, decltype(Value)>) { return Value; }
+		else if constexpr (std::is_same_v<T, PCGExTypeHash>) { return GetTypeHash(Value); }
+
 
 		else if constexpr (std::is_same_v<T, bool>) { return PCGExMath::GetDirection<EPCGExAxis::Forward>(Value).X > 0; }
 		else if constexpr (std::is_same_v<T, int32> || std::is_same_v<T, int64> || std::is_same_v<T, float> || std::is_same_v<T, double>) { return PCGExMath::GetDirection<EPCGExAxis::Forward>(Value).X; }
@@ -229,6 +247,8 @@ namespace PCGEx
 	FORCEINLINE static T Broadcast(const FRotator& Value)
 	{
 		if constexpr (std::is_same_v<T, decltype(Value)>) { return Value; }
+		else if constexpr (std::is_same_v<T, PCGExTypeHash>) { return GetTypeHash(FVector(Value.Pitch, Value.Roll, Value.Yaw)); }
+
 
 		else if constexpr (std::is_same_v<T, bool>) { return Value.Pitch > 0; }
 		else if constexpr (std::is_same_v<T, int32> || std::is_same_v<T, int64> || std::is_same_v<T, float> || std::is_same_v<T, double>) { return Value.Pitch > 0; }
@@ -251,6 +271,8 @@ namespace PCGEx
 	FORCEINLINE static T Broadcast(const FTransform& Value)
 	{
 		if constexpr (std::is_same_v<T, decltype(Value)>) { return Value; }
+		else if constexpr (std::is_same_v<T, PCGExTypeHash>) { return GetTypeHash(Value); }
+
 
 		else if constexpr (
 			std::is_same_v<T, bool> ||
@@ -280,6 +302,8 @@ namespace PCGEx
 	FORCEINLINE static T Broadcast(const FString& Value)
 	{
 		if constexpr (std::is_same_v<T, decltype(Value)>) { return Value; }
+		else if constexpr (std::is_same_v<T, PCGExTypeHash>) { return GetTypeHash(Value); }
+
 
 		else if constexpr (std::is_same_v<T, bool>) { return Value.Contains(TEXT("true")); }
 		else if constexpr (std::is_same_v<T, FString>) { return Value; }
@@ -297,6 +321,8 @@ namespace PCGEx
 	FORCEINLINE static T Broadcast(const FName& Value)
 	{
 		if constexpr (std::is_same_v<T, decltype(Value)>) { return Value; }
+		else if constexpr (std::is_same_v<T, PCGExTypeHash>) { return GetTypeHash(Value); }
+
 
 		else if constexpr (std::is_same_v<T, bool>) { return Value.ToString().Contains(TEXT("true")); }
 		else if constexpr (std::is_same_v<T, FString>) { return Value.ToString(); }
@@ -314,6 +340,8 @@ namespace PCGEx
 	FORCEINLINE static T Broadcast(const FSoftClassPath& Value)
 	{
 		if constexpr (std::is_same_v<T, decltype(Value)>) { return Value; }
+		else if constexpr (std::is_same_v<T, PCGExTypeHash>) { return GetTypeHash(Value); }
+
 
 		else if constexpr (std::is_same_v<T, FString>) { return Value.ToString(); }
 		else if constexpr (std::is_same_v<T, FName>) { return FName(Value.ToString()); }
@@ -330,6 +358,8 @@ namespace PCGEx
 	FORCEINLINE static T Broadcast(const FSoftObjectPath& Value)
 	{
 		if constexpr (std::is_same_v<T, decltype(Value)>) { return Value; }
+		else if constexpr (std::is_same_v<T, PCGExTypeHash>) { return GetTypeHash(Value); }
+
 
 		else if constexpr (std::is_same_v<T, FString>) { return *Value.ToString(); }
 		else if constexpr (std::is_same_v<T, FName>) { return FName(*Value.ToString()); }

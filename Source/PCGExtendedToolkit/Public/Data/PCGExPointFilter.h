@@ -100,7 +100,6 @@ namespace PCGExPointFilter
 		virtual bool Test(const PCGExGraph::FEdge& Edge) const;
 
 		virtual ~FFilter() = default;
-		
 	};
 
 	class /*PCGEXTENDEDTOOLKIT_API*/ FSimpleFilter : public FFilter
@@ -132,7 +131,7 @@ namespace PCGExPointFilter
 		TSharedRef<PCGExData::FFacade> PointDataFacade;
 
 		bool Init(FPCGExContext* InContext, const TArray<TObjectPtr<const UPCGExFilterFactoryData>>& InFactories);
-		
+
 		virtual bool Test(const int32 Index);
 		virtual bool Test(const PCGExCluster::FNode& Node);
 		virtual bool Test(const PCGExGraph::FEdge& Edge);

@@ -80,7 +80,7 @@ namespace PCGExPackClusters
 		if (VtxStartIndex <= 0) { return false; }
 		if (NumIndices <= 0) { return false; }
 
-		PackedIO->Tags->Set<int32>(PCGExGraph::TagStr_ClusterPair, EdgeDataFacade->GetIn()->GetUniqueID());
+		PackedIO->Tags->Set<int32>(PCGExGraph::TagStr_PCGExCluster, EdgeDataFacade->GetIn()->GetUniqueID());
 		WriteMark(PackedIO.ToSharedRef(), PCGExGraph::Tag_PackedClusterEdgeCount, NumEdges);
 
 		// Copy vtx points after edge points
@@ -124,7 +124,7 @@ namespace PCGExPackClusters
 
 		CopyVtxAttributes->StartIterations(VtxAttributes->Identities.Num(), 1, false);
 
-		Context->CarryOverDetails.Filter(PackedIO->Tags.Get());
+		Context->CarryOverDetails.Prune(PackedIO->Tags.Get());
 
 		return true;
 	}

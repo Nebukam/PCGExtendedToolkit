@@ -26,7 +26,9 @@ bool FPCGExMetaFilterElement::Boot(FPCGExContext* InContext) const
 
 	PCGEX_CONTEXT_AND_SETTINGS(MetaFilter)
 
-	PCGEX_FWD(Filters)
+	Context->Filters.Attributes = Settings->Attributes;
+	Context->Filters.Tags = Settings->Tags;
+	Context->Filters.bTestTagValues = Settings->bTestTagValues;
 	Context->Filters.Init();
 
 	Context->Inside = MakeShared<PCGExData::FPointIOCollection>(Context);
@@ -52,20 +54,47 @@ bool FPCGExMetaFilterElement::ExecuteInternal(FPCGContext* InContext) const
 
 	if (!Boot(Context)) { return true; }
 
-	if (Context->Filters.Attributes.FilterMode == EPCGExAttributeFilter::All)
+	if (Settings->Mode == EPCGExMetaFilterMode::Default)
 	{
-		while (Context->AdvancePointsIO())
+		if (Context->Filters.Attributes.FilterMode == EPCGExAttributeFilter::All)
 		{
-			const TSharedPtr<PCGExData::FPointIOCollection> Target = Context->Filters.Test(Context->CurrentIO->Tags.Get()) ? Context->Inside : Context->Outside;
-			Target->Emplace_GetRef(Context->CurrentIO, PCGExData::EIOInit::Forward);
+			while (Context->AdvancePointsIO())
+			{
+				const bool bPass = Context->Filters.Test(Context->CurrentIO->Tags.Get());
+				(bPass ? Context->Inside : Context->Outside)->Emplace_GetRef(Context->CurrentIO, PCGExData::EIOInit::Forward);
+			}
+		}
+		else
+		{
+			while (Context->AdvancePointsIO())
+			{
+				const bool bPass = Context->Filters.Test(Context->CurrentIO.Get());
+				(bPass ? Context->Inside : Context->Outside)->Emplace_GetRef(Context->CurrentIO, PCGExData::EIOInit::Forward);
+			}
 		}
 	}
 	else
 	{
+		TSet<FString> EncounteredTags;
 		while (Context->AdvancePointsIO())
 		{
-			const TSharedPtr<PCGExData::FPointIOCollection> Target = Context->Filters.Test(Context->CurrentIO.Get()) ? Context->Inside : Context->Outside;
-			Target->Emplace_GetRef(Context->CurrentIO, PCGExData::EIOInit::Forward);
+			TArray<FString> Flattened = Context->CurrentIO->Tags->FlattenToArray(Settings->bTestTagValues);
+			Context->Filters.Tags.Prune(Flattened);
+
+			bool bPass = true;
+
+			for (const FString& Tag : Flattened)
+			{
+				bool bAlreadySet = false;
+				EncounteredTags.Add(Tag, &bAlreadySet);
+				if (bAlreadySet)
+				{
+					bPass = false;
+					break;
+				}
+			}
+
+			(bPass ? Context->Inside : Context->Outside)->Emplace_GetRef(Context->CurrentIO, PCGExData::EIOInit::Forward);
 		}
 	}
 

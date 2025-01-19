@@ -443,7 +443,7 @@ namespace PCGExClusterMT
 				PCGEx::InitArray(ReverseLookup, NumVtx);
 				PCGEx::InitArray(ExpectedAdjacency, NumVtx);
 
-				RawLookupAttribute = VtxDataFacade->GetIn()->Metadata->GetConstTypedAttribute<int64>(PCGExGraph::Tag_VtxEndpoint);
+				RawLookupAttribute = VtxDataFacade->GetIn()->Metadata->GetConstTypedAttribute<int64>(PCGExGraph::Attr_PCGExVtxIdx);
 				if (!RawLookupAttribute) { return; } // FAIL
 
 				BuildEndpointLookupTask->OnCompleteCallback =

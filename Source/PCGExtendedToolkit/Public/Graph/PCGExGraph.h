@@ -199,7 +199,7 @@ namespace PCGExGraph
 	PCGEX_CTX_STATE(State_Pathfinding)
 	PCGEX_CTX_STATE(State_WaitingPathfinding)
 
-	const TSet<FName> ProtectedClusterAttributes = {Tag_EdgeEndpoints, Tag_VtxEndpoint, Tag_ClusterIndex};
+	const TSet<FName> ProtectedClusterAttributes = {Attr_PCGExEdgeIdx, Attr_PCGExVtxIdx};
 
 	class FGraph;
 
@@ -213,7 +213,7 @@ namespace PCGExGraph
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExEdge::BuildIndexedEdges-Vanilla);
 
-		const TUniquePtr<PCGExData::TBuffer<int64>> EndpointsBuffer = MakeUnique<PCGExData::TBuffer<int64>>(EdgeIO.ToSharedRef(), Tag_EdgeEndpoints);
+		const TUniquePtr<PCGExData::TBuffer<int64>> EndpointsBuffer = MakeUnique<PCGExData::TBuffer<int64>>(EdgeIO.ToSharedRef(), Attr_PCGExEdgeIdx);
 		if (!EndpointsBuffer->PrepareRead()) { return false; }
 
 		const TArray<int64>& Endpoints = *EndpointsBuffer->GetInValues().Get();
@@ -736,7 +736,7 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 		{
 			PCGEX_LOG_CTR(FGraphBuilder)
 
-			PairId = NodeDataFacade->Source->Tags->Set<int32>(TagStr_ClusterPair, NodeDataFacade->Source->GetOutIn()->GetUniqueID());
+			PairId = NodeDataFacade->Source->Tags->Set<int32>(TagStr_PCGExCluster, NodeDataFacade->Source->GetOutIn()->GetUniqueID());
 
 			const int32 NumNodes = NodeDataFacade->Source->GetOutInNum();
 
@@ -771,7 +771,7 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 		PCGEx::InitArray(OutAdjacency, InPointIO->GetNum());
 		OutIndices.Empty();
 
-		const TUniquePtr<PCGExData::TBuffer<int64>> IndexBuffer = MakeUnique<PCGExData::TBuffer<int64>>(InPointIO.ToSharedRef(), Tag_VtxEndpoint);
+		const TUniquePtr<PCGExData::TBuffer<int64>> IndexBuffer = MakeUnique<PCGExData::TBuffer<int64>>(InPointIO.ToSharedRef(), Attr_PCGExVtxIdx);
 		if (!IndexBuffer->PrepareRead()) { return false; }
 
 		const TArray<int64>& Indices = *IndexBuffer->GetInValues().Get();
@@ -794,20 +794,20 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 
 	static bool IsPointDataVtxReady(const UPCGMetadata* Metadata)
 	{
-		return Metadata->GetConstTypedAttribute<int64>(Tag_VtxEndpoint) ? true : false;
+		return Metadata->GetConstTypedAttribute<int64>(Attr_PCGExVtxIdx) ? true : false;
 	}
 
 	static bool IsPointDataEdgeReady(const UPCGMetadata* Metadata)
 	{
-		return Metadata->GetConstTypedAttribute<int64>(Tag_EdgeEndpoints) ? true : false;
+		return Metadata->GetConstTypedAttribute<int64>(Attr_PCGExEdgeIdx) ? true : false;
 	}
 
 	static void CleanupVtxData(const TSharedPtr<PCGExData::FPointIO>& PointIO)
 	{
 		UPCGMetadata* Metadata = PointIO->GetOut()->Metadata;
-		PointIO->Tags->Remove(TagStr_ClusterPair);
-		Metadata->DeleteAttribute(Tag_VtxEndpoint);
-		Metadata->DeleteAttribute(Tag_EdgeEndpoints);
+		PointIO->Tags->Remove(TagStr_PCGExCluster);
+		Metadata->DeleteAttribute(Attr_PCGExVtxIdx);
+		Metadata->DeleteAttribute(Attr_PCGExEdgeIdx);
 	}
 }
 

@@ -125,7 +125,7 @@ namespace PCGExPointsFilter
 					if (const uintptr_t Current = *(TargetsPtr->GetData() + i); Current == SelfPtr)
 					{
 						if (bIgnoreSelf) { continue; }
-						
+
 						// Ignore current point when testing against self
 						TargetOctree->FindNearbyElements(
 							Point.Transform.GetLocation(), [&](const FPCGPointRef& PointRef)
@@ -158,7 +158,7 @@ namespace PCGExPointsFilter
 					if (const uintptr_t Current = *(TargetsPtr->GetData() + i); Current == SelfPtr)
 					{
 						if (bIgnoreSelf) { continue; }
-						
+
 						// Ignore current point when testing against self
 						TargetOctree->FindNearbyElements(
 							Point.Transform.GetLocation(), [&](const FPCGPointRef& PointRef)
@@ -200,7 +200,7 @@ namespace PCGExPointsFilter
 					if (const uintptr_t Current = *(TargetsPtr->GetData() + i); Current == SelfPtr)
 					{
 						if (bIgnoreSelf) { continue; }
-						
+
 						// Ignore current point when testing against self
 						TargetOctree->FindNearbyElements(
 							SourcePt.Transform.GetLocation(), [&](const FPCGPointRef& PointRef)
@@ -215,7 +215,7 @@ namespace PCGExPointsFilter
 							});
 					}
 					else
-					{						
+					{
 						TargetOctree->FindNearbyElements(
 							SourcePt.Transform.GetLocation(), [&](const FPCGPointRef& PointRef)
 							{
@@ -236,7 +236,7 @@ namespace PCGExPointsFilter
 					if (const uintptr_t Current = *(TargetsPtr->GetData() + i); Current == SelfPtr)
 					{
 						if (bIgnoreSelf) { continue; }
-						
+
 						// Ignore current point when testing against self
 						TargetOctree->FindNearbyElements(
 							SourcePt.Transform.GetLocation(), [&](const FPCGPointRef& PointRef)

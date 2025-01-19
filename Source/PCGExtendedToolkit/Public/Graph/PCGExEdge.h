@@ -40,16 +40,15 @@ namespace PCGExGraph
 	const FName SourceEdgeSortingRules = TEXT("Edge Sorting Rules");
 	const FName OutputPackedClustersLabel = TEXT("Packed Clusters");
 
-	const FName Tag_EdgeEndpoints = FName(PCGEx::PCGExPrefix + TEXT("EdgeEndpoints"));
-	const FName Tag_VtxEndpoint = FName(PCGEx::PCGExPrefix + TEXT("VtxEndpoint"));
-	const FName Tag_ClusterIndex = FName(PCGEx::PCGExPrefix + TEXT("ClusterIndex"));
+	const FName Attr_PCGExEdgeIdx = FName(PCGEx::PCGExPrefix + TEXT("EData"));
+	const FName Attr_PCGExVtxIdx = FName(PCGEx::PCGExPrefix + TEXT("VData"));
 
-	const FName Tag_ClusterPair = FName(PCGEx::PCGExPrefix + TEXT("ClusterPair"));
-	const FString TagStr_ClusterPair = Tag_ClusterPair.ToString();
+	const FName Tag_PCGExCluster = FName(PCGEx::PCGExPrefix + TEXT("Cluster"));
+	const FString TagStr_PCGExCluster = Tag_PCGExCluster.ToString();
 
-	const FName Tag_PCGExVtx = FName(PCGEx::PCGExPrefix + TEXT("ClusterVtx"));
+	const FName Tag_PCGExVtx = FName(PCGEx::PCGExPrefix + TEXT("Vtx"));
 	const FString TagStr_PCGExVtx = Tag_PCGExVtx.ToString();
-	const FName Tag_PCGExEdges = FName(PCGEx::PCGExPrefix + TEXT("ClusterEdges"));
+	const FName Tag_PCGExEdges = FName(PCGEx::PCGExPrefix + TEXT("Edges"));
 	const FString TagStr_PCGExEdges = Tag_PCGExEdges.ToString();
 
 	PCGEX_CTX_STATE(State_ReadyForNextEdges)
@@ -115,21 +114,21 @@ namespace PCGExGraph
 
 	static void SetClusterVtx(const TSharedPtr<PCGExData::FPointIO>& IO, PCGExTags::IDType& OutId)
 	{
-		OutId = IO->Tags->Set<int32>(TagStr_ClusterPair, IO->GetOutIn()->GetUniqueID());
+		OutId = IO->Tags->Set<int32>(TagStr_PCGExCluster, IO->GetOutIn()->GetUniqueID());
 		IO->Tags->AddRaw(TagStr_PCGExVtx);
 		IO->Tags->Remove(TagStr_PCGExEdges);
 	}
 
 	static void MarkClusterVtx(const TSharedPtr<PCGExData::FPointIO>& IO, const PCGExTags::IDType& Id)
 	{
-		IO->Tags->Set(TagStr_ClusterPair, Id);
+		IO->Tags->Set(TagStr_PCGExCluster, Id);
 		IO->Tags->AddRaw(TagStr_PCGExVtx);
 		IO->Tags->Remove(TagStr_PCGExEdges);
 	}
 
 	static void MarkClusterEdges(const TSharedPtr<PCGExData::FPointIO>& IO, const PCGExTags::IDType& Id)
 	{
-		IO->Tags->Set(TagStr_ClusterPair, Id);
+		IO->Tags->Set(TagStr_PCGExCluster, Id);
 		IO->Tags->AddRaw(TagStr_PCGExEdges);
 		IO->Tags->Remove(TagStr_PCGExVtx);
 	}
@@ -143,6 +142,6 @@ namespace PCGExGraph
 	{
 		IO->Tags->Remove(TagStr_PCGExVtx);
 		IO->Tags->Remove(TagStr_PCGExEdges);
-		if (!bKeepPairTag) { IO->Tags->Remove(TagStr_ClusterPair); }
+		if (!bKeepPairTag) { IO->Tags->Remove(TagStr_PCGExCluster); }
 	}
 }
