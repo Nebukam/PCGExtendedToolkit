@@ -27,7 +27,4 @@ public:
 		const TSharedPtr<PCGExHeuristics::FHeuristicsHandler>& Heuristics,
 		const TSharedPtr<PCGExHeuristics::FLocalFeedbackHandler>& LocalFeedback) const override;
 
-	/** Early exit */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
-	bool bEarlyExit = true;
 };

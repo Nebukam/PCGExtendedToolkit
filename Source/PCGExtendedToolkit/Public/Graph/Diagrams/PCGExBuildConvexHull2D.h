@@ -79,6 +79,7 @@ namespace PCGExConvexHull2D
 	protected:
 		FPCGExGeo2DProjectionDetails ProjectionDetails;
 
+		TSharedPtr<TArray<int32>> OutputIndices;
 		TUniquePtr<PCGExGeo::TDelaunay2> Delaunay;
 		TSharedPtr<PCGExGraph::FGraphBuilder> GraphBuilder;
 

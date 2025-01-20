@@ -234,8 +234,6 @@ namespace PCGExGraph
 		void GetUniqueEdges(TArray<FEdge>& OutEdges);
 		void WriteNodeMetadata(const TSharedPtr<FGraph>& InGraph) const;
 		void WriteEdgeMetadata(const TSharedPtr<FGraph>& InGraph) const;
-
-		void Sort();
 	};
 
 #pragma endregion

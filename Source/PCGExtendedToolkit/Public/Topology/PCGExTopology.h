@@ -334,27 +334,6 @@ namespace PCGExTopology
 		FPlatformAtomics::InterlockedExchange(&InCluster->GetNode(InTriangle.Vtx[2])->bValid, 1);
 	}
 
-	static void ShiftArrayToSmallest(TArray<int32>& Array)
-	{
-		const int32 Num = Array.Num();
-		if (Num <= 1) { return; }
-
-		// Find the index of the smallest value.
-		int32 MinIndex = 0;
-		for (int32 i = 1; i < Num; ++i) { if (Array[i] < Array[MinIndex]) { MinIndex = i; } }
-
-		// Perform in-place rotation using temporary storage.
-		if (MinIndex > 0)
-		{
-			TArray<int32> TempArray;
-			TempArray.Append(Array.GetData() + MinIndex, Num - MinIndex); // Part after the minimum.
-			TempArray.Append(Array.GetData(), MinIndex);                  // Part before the minimum.
-
-			// Copy the rotated array back to the original.
-			FMemory::Memcpy(Array.GetData(), TempArray.GetData(), sizeof(int32) * Num);
-		}
-	}
-
 #pragma region Cell
 
 	enum class ECellResult : uint8

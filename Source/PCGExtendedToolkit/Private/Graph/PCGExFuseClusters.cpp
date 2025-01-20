@@ -174,7 +174,7 @@ namespace PCGExFuseClusters
 		if (bInlineProcessEdges)
 		{
 			// Blunt insert since processor don't have a "wait"
-			InsertEdges(PCGExMT::FScope(0, NumIterations));
+			InsertEdges(PCGExMT::FScope(0, NumIterations), true);
 			OnInsertionComplete();
 		}
 		else
@@ -191,7 +191,7 @@ namespace PCGExFuseClusters
 			{
 				TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExFusePointsElement::ProcessSingleEdge);
 				PCGEX_ASYNC_THIS
-				This->InsertEdges(Scope);
+				This->InsertEdges(Scope, false);
 			};
 
 			InsertEdges->StartSubLoops(NumIterations, 256);
@@ -200,31 +200,59 @@ namespace PCGExFuseClusters
 		return true;
 	}
 
-	void FProcessor::InsertEdges(const PCGExMT::FScope& Scope)
+	void FProcessor::InsertEdges(const PCGExMT::FScope& Scope, const bool bUnsafe)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExFuseClusters::FProcessor::InsertEdges);
-		
+
 		const TArray<FPCGPoint>& InNodePts = *InPoints;
 		if (Cluster)
 		{
-			for (int i = Scope.Start; i < Scope.End; i++)
+			if (bUnsafe)
 			{
-				const PCGExGraph::FEdge* Edge = Cluster->GetEdge(i);
-				UnionGraph->InsertEdge(
-					InNodePts[Edge->Start], VtxIOIndex, Edge->Start,
-					InNodePts[Edge->End], VtxIOIndex, Edge->End,
-					EdgesIOIndex, Edge->PointIndex);
+				for (int i = Scope.Start; i < Scope.End; i++)
+				{
+					const PCGExGraph::FEdge* Edge = Cluster->GetEdge(i);
+					UnionGraph->InsertEdge_Unsafe(
+						InNodePts[Edge->Start], VtxIOIndex, Edge->Start,
+						InNodePts[Edge->End], VtxIOIndex, Edge->End,
+						EdgesIOIndex, Edge->PointIndex);
+				}
+			}
+			else
+			{
+				for (int i = Scope.Start; i < Scope.End; i++)
+				{
+					const PCGExGraph::FEdge* Edge = Cluster->GetEdge(i);
+					UnionGraph->InsertEdge(
+						InNodePts[Edge->Start], VtxIOIndex, Edge->Start,
+						InNodePts[Edge->End], VtxIOIndex, Edge->End,
+						EdgesIOIndex, Edge->PointIndex);
+				}
 			}
 		}
 		else
 		{
-			for (int i = Scope.Start; i < Scope.End; i++)
+			if (bUnsafe)
 			{
-				const PCGExGraph::FEdge& Edge = IndexedEdges[i];
-				UnionGraph->InsertEdge(
-					InNodePts[Edge.Start], VtxIOIndex, Edge.Start,
-					InNodePts[Edge.End], VtxIOIndex, Edge.End,
-					EdgesIOIndex, Edge.PointIndex);
+				for (int i = Scope.Start; i < Scope.End; i++)
+				{
+					const PCGExGraph::FEdge& Edge = IndexedEdges[i];
+					UnionGraph->InsertEdge_Unsafe(
+						InNodePts[Edge.Start], VtxIOIndex, Edge.Start,
+						InNodePts[Edge.End], VtxIOIndex, Edge.End,
+						EdgesIOIndex, Edge.PointIndex);
+				}
+			}
+			else
+			{
+				for (int i = Scope.Start; i < Scope.End; i++)
+				{
+					const PCGExGraph::FEdge& Edge = IndexedEdges[i];
+					UnionGraph->InsertEdge(
+						InNodePts[Edge.Start], VtxIOIndex, Edge.Start,
+						InNodePts[Edge.End], VtxIOIndex, Edge.End,
+						EdgesIOIndex, Edge.PointIndex);
+				}
 			}
 		}
 	}

@@ -250,8 +250,8 @@ namespace PCGExTopology
 		if (NumUniqueNodes <= 2) { return ECellResult::Leaf; }
 
 		if (!Data.bIsClosedLoop) { return ECellResult::OpenCell; }
-		
-		ShiftArrayToSmallest(Nodes); // ! important to guarantee contour determinism
+
+		PCGEx::ShiftArrayToSmallest(Nodes); // ! important to guarantee contour determinism
 		
 		if (!Constraints->IsUniqueCellHash(SharedThis(this))) { return ECellResult::Duplicate; }
 

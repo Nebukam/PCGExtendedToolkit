@@ -555,11 +555,17 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 
 		TArray<FNode>& Nodes = Graph->Nodes;
 
+
 		TArray<int32> InternalValidNodes;
 		TArray<int32>& ValidNodes = InternalValidNodes;
+		TArray<PCGEx::TOrder<FVector>> Order;
+
+		int32 NumNodes = Nodes.Num();
+
 		if (OutputNodeIndices) { ValidNodes = *OutputNodeIndices; }
 
-		ValidNodes.Reserve(Nodes.Num());
+		ValidNodes.Reserve(NumNodes);
+		Order.Reserve(NumNodes);
 
 		{
 			TRACE_CPUPROFILER_EVENT_SCOPE(FCompileGraph::PrunePoints);
@@ -580,17 +586,17 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 				{
 					if (!Node.bValid || Node.IsEmpty()) { continue; }
 					Node.PointIndex = PrunedPoints.Add(MutablePoints[Node.PointIndex]);
-					ValidNodes.Add(Node.Index);
+
+					Order.Emplace(ValidNodes.Add(Node.Index), MutablePoints[Node.PointIndex].Transform.GetLocation());
 				}
 
 				NodeDataFacade->GetOut()->SetPoints(PrunedPoints);
-				TArray<FPCGPoint>& ValidPoints = NodeDataFacade->GetOut()->GetMutablePoints();
-				for (FPCGPoint& ValidPoint : ValidPoints) { OutPointsMetadata->InitializeOnSet(ValidPoint.MetadataEntry); }
+				//TArray<FPCGPoint>& ValidPoints = NodeDataFacade->GetOut()->GetMutablePoints();
+				//for (FPCGPoint& ValidPoint : ValidPoints) { OutPointsMetadata->InitializeOnSet(ValidPoint.MetadataEntry); }
 			}
 			else
 			{
-				const int32 NumMaxNodes = Nodes.Num();
-				MutablePoints.Reserve(NumMaxNodes);
+				MutablePoints.Reserve(NumNodes);
 
 				const TArray<FPCGPoint> OriginalPoints = NodeDataFacade->GetIn()->GetPoints();
 
@@ -598,21 +604,51 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 				{
 					if (!Node.bValid || Node.IsEmpty()) { continue; }
 					Node.PointIndex = MutablePoints.Add(OriginalPoints[Node.PointIndex]);
-					OutPointsMetadata->InitializeOnSet(MutablePoints.Last().MetadataEntry);
-					ValidNodes.Add(Node.Index);
+					//OutPointsMetadata->InitializeOnSet(MutablePoints.Last().MetadataEntry);
+
+					Order.Emplace(ValidNodes.Add(Node.Index), MutablePoints[Node.PointIndex].Transform.GetLocation());
 				}
 			}
 
 			ValidNodes.Shrink();
+			Order.Shrink();
+
+			NumNodes = ValidNodes.Num();
+
+			{
+				TRACE_CPUPROFILER_EVENT_SCOPE(FCompileGraph::SortPoints);
+
+				Order.Sort(
+					[](const PCGEx::TOrder<FVector>& A, const PCGEx::TOrder<FVector>& B)
+					{
+						if (A.Det.X != B.Det.X) { return A.Det.X < B.Det.X; }
+						if (A.Det.Y != B.Det.Y) { return A.Det.Y < B.Det.Y; }
+						return A.Det.Z < B.Det.Z;
+					});
+
+				// Reorder output points
+				PCGEx::ReorderArray(MutablePoints, Order); 
+				// Reorder output indices if provided
+				// Needed for delaunay etc that rely on original indices to identify sites etc
+				if (OutputPointIndices && OutputPointIndices->Num() == MutablePoints.Num()) { PCGEx::ReorderArray(*OutputPointIndices, Order); } 
+			}
 		}
+
+		// Sort points & update node PointIndex
 
 		const TSharedPtr<PCGExData::TBuffer<int64>> VtxEndpointWriter = NodeDataFacade->GetWritable<int64>(Attr_PCGExVtxIdx, 0, false, PCGExData::EBufferInit::New);
 
 		const uint32 BaseGUID = NodeDataFacade->GetOut()->GetUniqueID();
-		for (const int32 NodeIndex : ValidNodes)
+
 		{
-			const FNode& Node = Nodes[NodeIndex];
-			VtxEndpointWriter->GetMutable(Node.PointIndex) = PCGEx::H64(NodeGUID(BaseGUID, Node.PointIndex), Node.NumExportedEdges);
+			TRACE_CPUPROFILER_EVENT_SCOPE(FCompileGraph::RemapNodes);
+
+			for (int i = 0; i < NumNodes; i++)
+			{
+				FNode& Node = Nodes[ValidNodes[Order[i].Index]];
+				Node.PointIndex = i;
+				VtxEndpointWriter->GetMutable(Node.PointIndex) = PCGEx::H64(NodeGUID(BaseGUID, Node.PointIndex), Node.NumExportedEdges);
+			}
 		}
 
 		if (MetadataDetails && !Graph->NodeMetadata.IsEmpty())
@@ -667,7 +703,7 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 			if (!EdgeIO) { return; }
 
 			EdgeIO->IOIndex = i;
-			
+
 			SubGraph->UID = EdgeIO->GetOut()->GetUniqueID();
 			SubGraph->OnSubGraphPostProcess = OnSubGraphPostProcess;
 

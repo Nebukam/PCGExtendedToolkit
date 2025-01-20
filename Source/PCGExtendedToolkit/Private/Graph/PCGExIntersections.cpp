@@ -33,9 +33,11 @@ namespace PCGExGraph
 		{
 			const uint32 GridKey = FuseDetails.GetGridKey(Origin);
 			TSharedPtr<FUnionNode>* NodePtr;
+
 			{
 				FReadScopeLock ReadScopeLock(UnionLock);
 				NodePtr = GridTree.Find(GridKey);
+
 
 				if (NodePtr)
 				{
@@ -209,7 +211,6 @@ namespace PCGExGraph
 			FReadScopeLock ReadLockEdges(EdgesLock);
 			if (const FEdge* Edge = Edges.Find(H)) { EdgeUnion = EdgesUnion->Entries[Edge->Index]; }
 
-
 			if (EdgeUnion)
 			{
 				if (EdgeIOIndex == -1) { EdgeUnion->Add(EdgeIOIndex, EdgeUnion->Num()); } // Abstract tracking to get valid union data
@@ -335,11 +336,6 @@ namespace PCGExGraph
 			EdgeMetadata.UnionSize = UnionData->Num();
 		}
 		*/
-	}
-
-	void FUnionGraph::Sort()
-	{
-		// TODO : Sort data to ensure deterministic output
 	}
 
 	FPointEdgeIntersections::FPointEdgeIntersections(
