@@ -111,6 +111,7 @@ namespace PCGExPointFilter
 		}
 
 		virtual bool Test(const int32 Index) const override;
+		virtual bool Test(const FPCGPoint& Point) const override;
 		virtual bool Test(const PCGExCluster::FNode& Node) const override final;
 		virtual bool Test(const PCGExGraph::FEdge& Edge) const override final;
 	};
