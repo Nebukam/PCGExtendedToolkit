@@ -707,6 +707,10 @@ namespace PCGEx
 		ExecuteWithRightType(static_cast<EPCGMetadataTypes>(Type), Callback);
 	}
 
+#pragma endregion
+
+#pragma region Array
+
 	template <typename T>
 	FORCEINLINE static void InitArray(TArray<T>& InArray, const int32 Num)
 	{
@@ -734,6 +738,125 @@ namespace PCGEx
 	{
 		if constexpr (std::is_trivially_copyable_v<T>) { InArray->SetNumUninitialized(Num); }
 		else { InArray->SetNum(Num); }
+	}
+
+	template <typename T>
+	void ReorderArray(TArray<T>& InArray, const TArray<int32>& InOrder)
+	{
+		check(InArray.Num() == InOrder.Num())
+
+		const int32 NumElements = InArray.Num();
+		TBitArray<> Visited;
+		Visited.Init(false, NumElements);
+
+		for (int32 i = 0; i < NumElements; ++i)
+		{
+			if (Visited[i]) continue;
+
+			int32 Current = i;
+			T Temp = MoveTemp(InArray[i]);
+
+			while (!Visited[Current])
+			{
+				Visited[Current] = true;
+				int32 Next = InOrder[Current];
+
+				if (Next == i)
+				{
+					InArray[Current] = MoveTemp(Temp);
+					break;
+				}
+
+				InArray[Current] = MoveTemp(InArray[Next]);
+				Current = Next;
+			}
+		}
+	}
+
+	template<typename D>
+	struct TOrder
+	{
+		int32 Index = -1;
+		D Det;
+
+		TOrder(const int32 InIndex, const D& InDet)
+			: Index(InIndex), Det(InDet)
+		{
+		}
+	};
+
+	template <typename T>
+	static void ShiftArrayToSmallest(TArray<T>& InArray)
+	{
+		const int32 Num = InArray.Num();
+		if (Num <= 1) { return; }
+
+		int32 MinIndex = 0;
+		for (int32 i = 1; i < Num; ++i) { if (InArray[i] < InArray[MinIndex]) { MinIndex = i; } }
+
+		if (MinIndex > 0)
+		{
+			TArray<T> TempArray;
+			TempArray.Append(InArray.GetData() + MinIndex, Num - MinIndex);
+			TempArray.Append(InArray.GetData(), MinIndex);
+
+			FMemory::Memcpy(InArray.GetData(), TempArray.GetData(), sizeof(T) * Num);
+		}
+	}
+
+	template <typename T, typename FPredicate>
+	static void ShiftArrayToPredicate(TArray<T>& InArray, FPredicate&& Predicate)
+	{
+		const int32 Num = InArray.Num();
+		if (Num <= 1) { return; }
+
+		int32 MinIndex = 0;
+		for (int32 i = 1; i < Num; ++i) { if (Predicate(InArray[i], InArray[MinIndex])) { MinIndex = i; } }
+
+		if (MinIndex > 0)
+		{
+			TArray<T> TempArray;
+			TempArray.Append(InArray.GetData() + MinIndex, Num - MinIndex);
+			TempArray.Append(InArray.GetData(), MinIndex);
+
+			FMemory::Memcpy(InArray.GetData(), TempArray.GetData(), sizeof(T) * Num);
+		}
+	}
+
+	template <typename T, typename D>
+	void ReorderArray(TArray<T>& InArray, const TArray<TOrder<D>>& InOrder)
+	{
+		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExHelpers::ReorderArray);
+
+		check(InArray.Num() == InOrder.Num());
+
+		const int32 NumElements = InArray.Num();
+		TBitArray<> Visited;
+		Visited.Init(false, NumElements);
+
+		for (int32 i = 0; i < NumElements; ++i)
+		{
+			if (Visited[i]) continue; // Skip already visited elements in a cycle.
+
+			int32 Current = i;
+			T Temp = MoveTemp(InArray[i]); // Temporarily hold the current element.
+
+			// Follow the cycle defined by the indices in InOrder.
+			while (!Visited[Current])
+			{
+				Visited[Current] = true;
+
+				int32 Next = InOrder[Current].Index;
+				if (Next == i)
+				{
+					InArray[Current] = MoveTemp(Temp);
+					break;
+				}
+
+				InArray[Current] = MoveTemp(InArray[Next]);
+				Current = Next;
+			}
+		}
 	}
 
 #pragma endregion

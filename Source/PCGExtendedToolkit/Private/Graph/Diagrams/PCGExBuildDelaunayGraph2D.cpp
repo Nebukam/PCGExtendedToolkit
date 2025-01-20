@@ -136,6 +136,14 @@ namespace PCGExBuildDelaunay2D
 		}
 
 		GraphBuilder = MakeShared<PCGExGraph::FGraphBuilder>(PointDataFacade, &Settings->GraphBuilderDetails);
+
+		if (Settings->bMarkHull)
+		{
+			OutputIndices = MakeShared<TArray<int32>>();
+			PCGEx::ArrayOfIndices(*OutputIndices, PointDataFacade->GetNum());
+			GraphBuilder->OutputPointIndices = OutputIndices;
+		}
+
 		GraphBuilder->Graph->InsertEdges(Delaunay->DelaunayEdges, -1);
 		GraphBuilder->CompileAsync(AsyncManager, false);
 
@@ -146,7 +154,7 @@ namespace PCGExBuildDelaunay2D
 
 	void FProcessor::ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const PCGExMT::FScope& Scope)
 	{
-		HullMarkPointWriter->GetMutable(Index) = Delaunay->DelaunayHull.Contains(Index);
+		HullMarkPointWriter->GetMutable(Index) = Delaunay->DelaunayHull.Contains((*OutputIndices)[Index]);
 	}
 
 	void FProcessor::CompleteWork()

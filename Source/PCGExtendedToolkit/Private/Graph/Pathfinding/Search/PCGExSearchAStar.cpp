@@ -45,7 +45,7 @@ bool UPCGExSearchAStar::ResolveQuery(
 	double CurrentFScore;
 	while (ScoredQueue->Dequeue(CurrentNodeIndex, CurrentFScore))
 	{
-		if (CurrentNodeIndex == GoalNode.Index) { break; } // Exit early
+		if (bEarlyExit && CurrentNodeIndex == GoalNode.Index) { break; } // Exit early
 
 		const double CurrentGScore = GScore[CurrentNodeIndex];
 		const PCGExCluster::FNode& Current = NodesRef[CurrentNodeIndex];
