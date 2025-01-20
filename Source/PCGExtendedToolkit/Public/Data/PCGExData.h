@@ -968,6 +968,21 @@ namespace PCGExData
 		return SingleFacade;
 	}
 
+	static bool TryGetFacades(FPCGExContext* InContext, const FName InputPinLabel, TArray<TSharedPtr<FFacade>>& OutFacades, const bool bThrowError)
+	{
+		TSharedPtr<PCGExData::FPointIOCollection> TargetsCollection = MakeShared<PCGExData::FPointIOCollection>(InContext, PCGEx::SourceTargetsLabel, PCGExData::EIOInit::None);
+		if (TargetsCollection->IsEmpty())
+		{
+			if (bThrowError) { PCGE_LOG_C(Error, GraphAndLog, InContext, FText::Format(FText::FromString(TEXT("Missing or zero-points '{0}' inputs")), FText::FromName(InputPinLabel))); }
+			return false;
+		}
+
+		OutFacades.Reserve(OutFacades.Num() + TargetsCollection->Num());
+		for (const TSharedPtr<FPointIO>& IO : TargetsCollection->Pairs) { OutFacades.Add(MakeShared<FFacade>(IO.ToSharedRef())); }
+
+		return true;
+	}
+
 	template <bool bReverse = false>
 	static void GetTransforms(const TArray<FPCGPoint>& InPoints, TArray<FTransform>& OutTransforms)
 	{

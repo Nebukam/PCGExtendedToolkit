@@ -3,6 +3,9 @@
 
 #include "Constants/PCGExConstantEnum.h"
 
+#include "PCGComponent.h"
+#include "PCGExCompare.h"
+
 #if WITH_EDITOR
 FString UPCGExConstantEnumSettings::GetDisplayName() const
 {
@@ -27,7 +30,8 @@ void UPCGExConstantEnumSettings::PostLoad()
 	Super::PostLoad();
 
 	CachePinLabels();
-	if (EnabledExportValues.Num() == 0) {
+	if (EnabledExportValues.Num() == 0)
+	{
 		FillEnabledExportValues();
 	}
 
@@ -65,12 +69,13 @@ void UPCGExConstantEnumSettings::PostEditChangeProperty(struct FPropertyChangedE
 		CachePinLabels();
 	}
 
-	if (Prop == GET_MEMBER_NAME_CHECKED(UPCGExConstantEnumSettings, SelectedEnum)) {
-		if (SelectedEnum.Class) {
+	if (Prop == GET_MEMBER_NAME_CHECKED(UPCGExConstantEnumSettings, SelectedEnum))
+	{
+		if (SelectedEnum.Class)
+		{
 			FillEnabledExportValues();
 		}
 	}
-	
 }
 #endif
 
@@ -80,15 +85,18 @@ void UPCGExConstantEnumSettings::OnOverrideSettingsDuplicatedInternal(bool bSkip
 	if (bSkippedPostLoad)
 	{
 		CachePinLabels();
-		if (EnabledExportValues.Num() == 0) {
+		if (EnabledExportValues.Num() == 0)
+		{
 			FillEnabledExportValues();
 		}
 	}
 }
 
-void UPCGExConstantEnumSettings::FillEnabledExportValues() {
+void UPCGExConstantEnumSettings::FillEnabledExportValues()
+{
 	EnabledExportValues.Empty();
-	for (const auto Value : GetEnumValueMap()) {
+	for (const auto Value : GetEnumValueMap())
+	{
 		EnabledExportValues.Emplace(Value.Get<1>(), true);
 	}
 }
@@ -103,7 +111,7 @@ void UPCGExConstantEnumSettings::CachePinLabels()
 		});
 }
 
-TArray<TTuple<FName, FName, int64>> UPCGExConstantEnumSettings::GetEnumValueMap() const
+TArray<PCGExConstantEnumConstants::FMapping> UPCGExConstantEnumSettings::GetEnumValueMap() const
 {
 	// Note: arguably this should be <FName, FString, int64>, but:
 	// - pin properties expect a name rather than a string
@@ -111,7 +119,7 @@ TArray<TTuple<FName, FName, int64>> UPCGExConstantEnumSettings::GetEnumValueMap(
 	// - PCG Switch behaves like this
 	// ...so we're going to convert the description into a name and hope there aren't any emojis
 
-	TArray<TTuple<FName, FName, int64>> Out;
+	TArray<PCGExConstantEnumConstants::FMapping> Out;
 	if (!SelectedEnum.Class)
 	{
 		return Out;
@@ -134,7 +142,8 @@ TArray<TTuple<FName, FName, int64>> UPCGExConstantEnumSettings::GetEnumValueMap(
 						FName(SelectedEnum.Class->GetNameStringByIndex(Index)) :
 						SelectedEnum.Class->GetNameByIndex(Index),
 					FName(SelectedEnum.Class->GetDisplayNameTextByIndex(Index).BuildSourceString()), // Description
-					SelectedEnum.Class->GetValueByIndex(Index)                                       // Value
+					SelectedEnum.Class->GetValueByIndex(Index),                                      // Value
+					Index                                                                            // Index
 				});
 		}
 	}
@@ -170,9 +179,9 @@ EPCGChangeType UPCGExConstantEnumSettings::GetChangeTypeForProperty(const FName&
 
 TArray<FPCGPinProperties> UPCGExConstantEnumSettings::OutputPinProperties() const
 {
-	TArray<FPCGPinProperties> Out;
+	TArray<FPCGPinProperties> PinProperties;
 
-	if (!SelectedEnum.Class) { return Out; }
+	if (!SelectedEnum.Class) { return PinProperties; }
 	const auto EnumName = GetEnumName();
 
 	FText ToolTip = FText::GetEmpty();
@@ -184,21 +193,22 @@ TArray<FPCGPinProperties> UPCGExConstantEnumSettings::OutputPinProperties() cons
 	{
 	case EPCGExEnumOutputMode::EEOM_Single:
 		ToolTip = MAKE_TOOLTIP_FOR_VALUE(SelectedEnum.Class->GetNameByValue(SelectedEnum.Value), SelectedEnum.Value);
-		Out.Emplace(PCGExConstantEnumConstants::SingleOutputPinName, EPCGDataType::Param, true, false, ToolTip);
+		PinProperties.Emplace(PCGExConstantEnumConstants::SingleOutputPinName, EPCGDataType::Param, true, false, ToolTip);
 		break;
 
 	case EPCGExEnumOutputMode::EEOM_All:
 	case EPCGExEnumOutputMode::EEOM_Selection:
 		ToolTip = FText::FromName(EnumName);
-		Out.Emplace(PCGExConstantEnumConstants::SingleOutputPinName, EPCGDataType::Param, true, false, ToolTip);
+		PinProperties.Emplace(PCGExConstantEnumConstants::SingleOutputPinName, EPCGDataType::Param, true, false, ToolTip);
 		break;
-	
+
 	case EPCGExEnumOutputMode::EEOM_SelectionToMultiplePins:
-		for (const TTuple<FName, FName, int64>& Mapping : GetEnumValueMap())
+		for (const PCGExConstantEnumConstants::FMapping& Mapping : GetEnumValueMap())
 		{
-			if (EnabledExportValues.Contains(Mapping.Get<1>()) && *EnabledExportValues.Find(Mapping.Get<1>())) {
+			if (EnabledExportValues.Contains(Mapping.Get<1>()) && *EnabledExportValues.Find(Mapping.Get<1>()))
+			{
 				ToolTip = MAKE_TOOLTIP_FOR_VALUE(Mapping.Get<0>(), Mapping.Get<2>());
-				Out.Emplace(Mapping.Get<1>(), EPCGDataType::Param, true, false, ToolTip);
+				PinProperties.Emplace(Mapping.Get<1>(), EPCGDataType::Param, true, false, ToolTip);
 			}
 		}
 		break;
@@ -206,14 +216,17 @@ TArray<FPCGPinProperties> UPCGExConstantEnumSettings::OutputPinProperties() cons
 	case EPCGExEnumOutputMode::EEOM_AllToMultiplePins:
 	default:
 		// -1 to bypass the MAX value
-		for (const TTuple<FName, FName, int64>& Mapping : GetEnumValueMap())
+		for (const PCGExConstantEnumConstants::FMapping& Mapping : GetEnumValueMap())
 		{
 			ToolTip = MAKE_TOOLTIP_FOR_VALUE(Mapping.Get<0>(), Mapping.Get<2>());
-			Out.Emplace(Mapping.Get<1>(), EPCGDataType::Param, true, false, ToolTip);
+			PinProperties.Emplace(Mapping.Get<1>(), EPCGDataType::Param, true, false, ToolTip);
 		}
 	}
 
-	return Out;
+	// Output bitmask last
+	if (bOutputFlags) { PCGEX_PIN_PARAM(PCGExConstantEnumConstants::BitflagOutputPinName, "Flags representing the current selection within the enum", Required, {}); }
+
+	return PinProperties;
 #undef MAKE_TOOLTIP_FOR_VALUE
 }
 
@@ -227,6 +240,19 @@ bool FPCGExConstantEnumElement::ExecuteInternal(FPCGContext* InContext) const
 	PCGEX_CONTEXT()
 	PCGEX_SETTINGS(ConstantEnum)
 
+	auto ValidateNames = [&]()-> bool
+	{
+		// Validating names, will throw an error
+		// This is in an lambda because the macro returns false, which would have the node run forever
+		if (Settings->OutputEnumKeys) { PCGEX_VALIDATE_NAME(Settings->KeyAttribute) }
+		if (Settings->OutputEnumDescriptions) { PCGEX_VALIDATE_NAME(Settings->DescriptionAttribute) }
+		if (Settings->OutputEnumValues) { PCGEX_VALIDATE_NAME(Settings->ValueOutputAttribute) }
+		if (Settings->bOutputFlags) { PCGEX_VALIDATE_NAME(Settings->ValueOutputAttribute) }
+		return true;
+	};
+
+	if (!ValidateNames()) { return true; }
+
 	// No class selected, so can't output anything
 	if (!Settings->SelectedEnum.Class)
 	{
@@ -239,50 +265,67 @@ bool FPCGExConstantEnumElement::ExecuteInternal(FPCGContext* InContext) const
 		return true;
 	}
 
-	FName Key;
-	FName Description;
-	int64 Value;
-	TArray<TTuple<FName, FName, int64>> Filtered;
+	const TArray<PCGExConstantEnumConstants::FMapping> Unfiltered = Settings->GetEnumValueMap();
+	TArray<PCGExConstantEnumConstants::FMapping> Filtered;
+
+	FPCGExBitmask Bitflags;
+	Bitflags.Mode = EPCGExBitmaskMode::Individual;
+	Bitflags.Bits.SetNum(Unfiltered.Num());
+	for (int i = 0; i < Unfiltered.Num(); i++)
+	{
+		Bitflags.Bits[i].BitIndex = Settings->FlagBitOffset + i;
+		Bitflags.Bits[i].bValue = false;
+	}
+
 
 	switch (Settings->OutputMode)
 	{
 	// Just output the one selected
 	case EPCGExEnumOutputMode::EEOM_Single:
-		Value = Settings->SelectedEnum.Value;
-		Key = Settings->SelectedEnum.Class->GetNameByValue(Value);
-		Description = FName(Settings->SelectedEnum.Class->GetDisplayNameTextByValue(Value).BuildSourceString());
-
-	// Using the single pin so connections don't break when the user changes the value
-		StageEnumValuesSinglePin(Context, Settings, {{Key, Description, Value}});
+		{
+			for (int i = 0; i < Unfiltered.Num(); i++)
+			{
+				if (Unfiltered[i].Get<2>() == Settings->SelectedEnum.Value)
+				{
+					// Using the single pin so connections don't break when the user changes the value
+					StageEnumValuesSinglePin(Context, Settings, {Unfiltered[i]}, Bitflags);
+					break;
+				}
+			}
+		}
 		break;
 
 	// Output everything
 	case EPCGExEnumOutputMode::EEOM_All:
-		StageEnumValuesSinglePin(Context, Settings, Settings->GetEnumValueMap());
+		StageEnumValuesSinglePin(Context, Settings, Unfiltered, Bitflags);
 		break;
 
 	case EPCGExEnumOutputMode::EEOM_Selection:
 	case EPCGExEnumOutputMode::EEOM_SelectionToMultiplePins:
-		Filtered = Settings->GetEnumValueMap().FilterByPredicate([&](const TTuple<FName, FName, int64>& V) {
-			return Settings->EnabledExportValues.Contains(V.Get<1>()) && *Settings->EnabledExportValues.Find(V.Get<1>());
-		});
+		Filtered = Settings->GetEnumValueMap().FilterByPredicate(
+			[&](const PCGExConstantEnumConstants::FMapping& V)
+			{
+				return Settings->EnabledExportValues.Contains(V.Get<1>()) && *Settings->EnabledExportValues.Find(V.Get<1>());
+			});
 
-		if (Settings->OutputMode == EPCGExEnumOutputMode::EEOM_Selection) {
-			StageEnumValuesSinglePin(Context, Settings, Filtered);
+		if (Settings->OutputMode == EPCGExEnumOutputMode::EEOM_Selection)
+		{
+			StageEnumValuesSinglePin(Context, Settings, Filtered, Bitflags);
 		}
-		else {
-			StageEnumValuesSeparatePins(Context, Settings, Filtered);
+		else
+		{
+			StageEnumValuesSeparatePins(Context, Settings, Filtered, Bitflags);
 		}
-		
+
 		break;
 
 	// Output everything, but on different pins
 	case EPCGExEnumOutputMode::EEOM_AllToMultiplePins:
 	default:
-		StageEnumValuesSeparatePins(Context, Settings, Settings->GetEnumValueMap());
+		StageEnumValuesSeparatePins(Context, Settings, Unfiltered, Bitflags);
 	}
 
-	
+	StageBitFlags(Context, Settings, Bitflags);
 
 	Context->Done();
 	return Context->TryComplete();
@@ -291,11 +334,13 @@ bool FPCGExConstantEnumElement::ExecuteInternal(FPCGContext* InContext) const
 void FPCGExConstantEnumElement::StageEnumValuesSeparatePins(
 	FPCGExContext* InContext,
 	const UPCGExConstantEnumSettings* Settings,
-	const TArray<TTuple<FName, FName, int64>>& ValueData
-	)
+	const TArray<PCGExConstantEnumConstants::FMapping>& ValueData,
+	FPCGExBitmask& OutBitflags)
 {
-	for (const TTuple<FName, FName, int64>& T : ValueData)
+	for (const PCGExConstantEnumConstants::FMapping& T : ValueData)
 	{
+		OutBitflags.Bits[T.Get<3>()].bValue = true;
+
 		UPCGParamData* OutputData = InContext->ManagedObjects->New<UPCGParamData>();
 
 		FPCGMetadataAttribute<FName>* KeyAttrib = nullptr;
@@ -335,14 +380,18 @@ void FPCGExConstantEnumElement::StageEnumValuesSeparatePins(
 	}
 }
 
-void FPCGExConstantEnumElement::StageEnumValuesSinglePin(FPCGExContext* InContext,
-                                                         const UPCGExConstantEnumSettings* Settings, const TArray<TTuple<FName, FName, int64>>& ValueData)
+void FPCGExConstantEnumElement::StageEnumValuesSinglePin(
+	FPCGExContext* InContext,
+	const UPCGExConstantEnumSettings* Settings,
+	const TArray<PCGExConstantEnumConstants::FMapping>& ValueData,
+	FPCGExBitmask& OutBitflags)
 {
 	UPCGParamData* OutputData = InContext->ManagedObjects->New<UPCGParamData>();
 
 	FPCGMetadataAttribute<FName>* KeyAttrib = nullptr;
 	FPCGMetadataAttribute<int64>* ValueAttrib = nullptr;
 	FPCGMetadataAttribute<FName>* DescriptionAttrib = nullptr;
+
 
 	if (Settings->OutputEnumKeys)
 	{
@@ -359,8 +408,10 @@ void FPCGExConstantEnumElement::StageEnumValuesSinglePin(FPCGExContext* InContex
 		ValueAttrib = OutputData->Metadata->CreateAttribute<int64>(Settings->ValueOutputAttribute, 0, true, false);
 	}
 
-	for (const TTuple<FName, FName, int64>& T : ValueData)
+	for (const PCGExConstantEnumConstants::FMapping& T : ValueData)
 	{
+		OutBitflags.Bits[T.Get<3>()].bValue = true;
+
 		const auto Entry = OutputData->Metadata->AddEntry();
 		if (KeyAttrib)
 		{
@@ -377,6 +428,16 @@ void FPCGExConstantEnumElement::StageEnumValuesSinglePin(FPCGExContext* InContex
 	}
 
 	InContext->StageOutput(PCGExConstantEnumConstants::SingleOutputPinName, OutputData, true);
+}
+
+void FPCGExConstantEnumElement::StageBitFlags(FPCGExContext* InContext, const UPCGExConstantEnumSettings* Settings, FPCGExBitmask& OutBitflags)
+{
+	if (!Settings->bOutputFlags) { return; }
+
+	UPCGParamData* OutputData = InContext->ManagedObjects->New<UPCGParamData>();
+	OutputData->Metadata->CreateAttribute<int64>(Settings->FlagsName, OutBitflags.Get(), false, false);
+	OutputData->Metadata->AddEntry();
+	InContext->StageOutput(PCGExConstantEnumConstants::BitflagOutputPinName, OutputData, true);
 }
 
 FPCGContext* FPCGExConstantEnumElement::Initialize(const FPCGDataCollection& InputData, TWeakObjectPtr<UPCGComponent> SourceComponent, const UPCGNode* Node)

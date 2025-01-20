@@ -28,7 +28,10 @@ void FPCGExTopologyEdgesProcessorContext::RegisterAssetDependencies()
 
 	FPCGExEdgesProcessorContext::RegisterAssetDependencies();
 
-	AddAssetDependency(Settings->Topology.Material.ToSoftObjectPath());
+	if (Settings->Topology.Material.ToSoftObjectPath().IsValid())
+	{
+		AddAssetDependency(Settings->Topology.Material.ToSoftObjectPath());
+	}
 }
 
 bool FPCGExTopologyEdgesProcessorElement::Boot(FPCGExContext* InContext) const
