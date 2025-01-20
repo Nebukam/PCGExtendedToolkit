@@ -121,6 +121,7 @@ namespace PCGExBuildVoronoi2D
 		TArray<FVector> DelaunaySitesLocations;
 		TArray<double> DelaunaySitesInfluenceCount;
 
+		TSharedPtr<TArray<int32>> OutputIndices;
 		TUniquePtr<PCGExGeo::TVoronoi2> Voronoi;
 		TSharedPtr<PCGExGraph::FGraphBuilder> GraphBuilder;
 

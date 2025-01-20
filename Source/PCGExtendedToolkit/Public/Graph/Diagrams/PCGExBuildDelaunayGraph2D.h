@@ -119,6 +119,7 @@ namespace PCGExBuildDelaunay2D
 		friend class FOutputDelaunayUrquhartSites2D;
 
 	protected:
+		TSharedPtr<TArray<int32>> OutputIndices;
 		TUniquePtr<PCGExGeo::TDelaunay2> Delaunay;
 		TSharedPtr<PCGExGraph::FGraphBuilder> GraphBuilder;
 		TSet<uint64> UrquhartEdges;

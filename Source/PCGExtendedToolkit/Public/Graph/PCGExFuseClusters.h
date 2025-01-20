@@ -149,7 +149,7 @@ namespace PCGExFuseClusters
 		virtual ~FProcessor() override;
 
 		virtual bool Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager) override;
-		void InsertEdges(const PCGExMT::FScope& Scope);
+		void InsertEdges(const PCGExMT::FScope& Scope, bool bUnsafe);
 		void OnInsertionComplete();
 	};
 

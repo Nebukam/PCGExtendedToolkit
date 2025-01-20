@@ -70,6 +70,7 @@ namespace PCGExConvexHull
 	class FProcessor final : public PCGExPointsMT::TPointsProcessor<FPCGExBuildConvexHullContext, UPCGExBuildConvexHullSettings>
 	{
 	protected:
+		TSharedPtr<TArray<int32>> OutputIndices;
 		TUniquePtr<PCGExGeo::TDelaunay3> Delaunay;
 		TSharedPtr<PCGExGraph::FGraphBuilder> GraphBuilder;
 

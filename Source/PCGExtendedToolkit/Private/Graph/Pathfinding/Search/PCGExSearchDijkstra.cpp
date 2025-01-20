@@ -46,7 +46,7 @@ bool UPCGExSearchDijkstra::ResolveQuery(
 	double CurrentScore;
 	while (ScoredQueue->Dequeue(CurrentNodeIndex, CurrentScore))
 	{
-		if (CurrentNodeIndex == GoalNode.Index && bEarlyExit) { break; } // Exit early
+		if (bEarlyExit && CurrentNodeIndex == GoalNode.Index) { break; } // Exit early
 
 		const PCGExCluster::FNode& Current = NodesRef[CurrentNodeIndex];
 

@@ -33,16 +33,18 @@ namespace PCGExGraph
 		{
 			const uint32 GridKey = FuseDetails.GetGridKey(Origin);
 			TSharedPtr<FUnionNode>* NodePtr;
+
 			{
 				FReadScopeLock ReadScopeLock(UnionLock);
 				NodePtr = GridTree.Find(GridKey);
-			}
 
-			if (NodePtr)
-			{
-				Node = *NodePtr;
-				NodesUnion->Append(Node->Index, IOIndex, PointIndex);
-				return Node;
+
+				if (NodePtr)
+				{
+					Node = *NodePtr;
+					NodesUnion->Append(Node->Index, IOIndex, PointIndex);
+					return Node;
+				}
 			}
 
 			{
@@ -208,13 +210,13 @@ namespace PCGExGraph
 		{
 			FReadScopeLock ReadLockEdges(EdgesLock);
 			if (const FEdge* Edge = Edges.Find(H)) { EdgeUnion = EdgesUnion->Entries[Edge->Index]; }
-		}
 
-		if (EdgeUnion)
-		{
-			if (EdgeIOIndex == -1) { EdgeUnion->Add(EdgeIOIndex, EdgeUnion->Num()); } // Abstract tracking to get valid union data
-			else { EdgeUnion->Add(EdgeIOIndex, EdgePointIndex); }
-			return EdgeUnion;
+			if (EdgeUnion)
+			{
+				if (EdgeIOIndex == -1) { EdgeUnion->Add(EdgeIOIndex, EdgeUnion->Num()); } // Abstract tracking to get valid union data
+				else { EdgeUnion->Add(EdgeIOIndex, EdgePointIndex); }
+				return EdgeUnion;
+			}
 		}
 
 		{

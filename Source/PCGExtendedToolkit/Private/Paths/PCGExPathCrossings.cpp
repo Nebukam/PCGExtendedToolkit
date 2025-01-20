@@ -211,6 +211,7 @@ namespace PCGExPathCrossings
 		if (!CanBeCut[Iteration]) { return; }
 
 		const PCGExPaths::FPathEdge& Edge = Path->Edges[Iteration];
+		if (!Path->IsEdgeValid(Edge)) { return; }
 
 		const PCGExPaths::FPath* OtherPath = nullptr;
 
@@ -218,12 +219,12 @@ namespace PCGExPathCrossings
 
 		const TSharedPtr<FCrossing> NewCrossing = MakeShared<FCrossing>(Iteration);
 
-		auto FindSplit = [&](const PCGExPaths::FPathEdge& E1, const PCGExPaths::FPathEdge& E2)
+		auto FindSplit = [&](const PCGExPaths::FPathEdge& E2)
 		{
-			if (!Path->IsEdgeValid(E1) || !OtherPath->IsEdgeValid(E2)) { return; }
+			if (!OtherPath->IsEdgeValid(E2)) { return; }
 
-			const FVector& A1 = Path->GetPos(E1.Start);
-			const FVector& B1 = Path->GetPos(E1.End);
+			const FVector& A1 = Path->GetPos(Edge.Start);
+			const FVector& B1 = Path->GetPos(Edge.End);
 			const FVector& A2 = OtherPath->GetPos(E2.Start);
 			const FVector& B2 = OtherPath->GetPos(E2.End);
 			if (A1 == A2 || A1 == B2 || A2 == B1 || B2 == B1) { return; }
@@ -245,7 +246,7 @@ namespace PCGExPathCrossings
 			NewCrossing->Crossings.Add(PCGEx::H64(E2.Start, CurrentIOIndex));
 			NewCrossing->Positions.Add(FMath::Lerp(A, B, 0.5));
 			NewCrossing->CrossingDirections.Add(CrossDir);
-			NewCrossing->Alphas.Add(FVector::Dist(A1, A) / PathLength->Get(E1));
+			NewCrossing->Alphas.Add(FVector::Dist(A1, A) / PathLength->Get(Edge));
 		};
 
 		// Find crossings
@@ -256,27 +257,28 @@ namespace PCGExPathCrossings
 				Edge.Bounds.GetBox(), [&](const PCGExPaths::FPathEdge* OtherEdge)
 				{
 					if (Edge.ShareIndices(OtherEdge)) { return; }
-					FindSplit(Edge, *OtherEdge);
+					FindSplit(*OtherEdge);
 				});
-			return;
 		}
-
-		for (const TSharedPtr<PCGExPointsMT::FPointsProcessorBatchBase> Parent = ParentBatch.Pin();
-		     const TSharedRef<PCGExData::FFacade>& Facade : Parent->ProcessorFacades)
+		else
 		{
-			const TSharedRef<FPointsProcessor>* OtherProcessorPtr = Parent->SubProcessorMap->Find(&Facade->Source.Get());
-			if (!OtherProcessorPtr) { continue; }
+			for (const TSharedPtr<PCGExPointsMT::FPointsProcessorBatchBase> Parent = ParentBatch.Pin();
+			     const TSharedRef<PCGExData::FFacade>& Facade : Parent->ProcessorFacades)
+			{
+				const TSharedRef<FPointsProcessor>* OtherProcessorPtr = Parent->SubProcessorMap->Find(&Facade->Source.Get());
+				if (!OtherProcessorPtr) { continue; }
 
-			TSharedRef<FPointsProcessor> OtherProcessor = *OtherProcessorPtr;
-			if (!Details.bEnableSelfIntersection && &OtherProcessor.Get() == this) { continue; }
+				TSharedRef<FPointsProcessor> OtherProcessor = *OtherProcessorPtr;
+				if (!Details.bEnableSelfIntersection && &OtherProcessor.Get() == this) { continue; }
 
-			const TSharedRef<FProcessor> TypedProcessor = StaticCastSharedRef<FProcessor>(OtherProcessor);
-			if (!TypedProcessor->bCanCut) { return; }
+				const TSharedRef<FProcessor> TypedProcessor = StaticCastSharedRef<FProcessor>(OtherProcessor);
+				if (!TypedProcessor->bCanCut) { return; }
 
-			CurrentIOIndex = TypedProcessor->PointDataFacade->Source->IOIndex;
+				CurrentIOIndex = TypedProcessor->PointDataFacade->Source->IOIndex;
 
-			OtherPath = TypedProcessor->Path.Get();
-			TypedProcessor->GetEdgeOctree()->FindElementsWithBoundsTest(Edge.Bounds.GetBox(), [&](const PCGExPaths::FPathEdge* OtherEdge) { FindSplit(Edge, *OtherEdge); });
+				OtherPath = TypedProcessor->Path.Get();
+				TypedProcessor->GetEdgeOctree()->FindElementsWithBoundsTest(Edge.Bounds.GetBox(), [&](const PCGExPaths::FPathEdge* OtherEdge) { FindSplit(*OtherEdge); });
+			}
 		}
 
 		if (!NewCrossing->Crossings.IsEmpty()) { Crossings[Iteration] = NewCrossing; }
