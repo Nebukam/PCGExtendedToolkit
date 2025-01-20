@@ -256,7 +256,7 @@ namespace PCGExPathToClusters
 		if (bInlineProcessPoints)
 		{
 			// Blunt insert since processor don't have a "wait"
-			InsertEdges(PCGExMT::FScope(0, NumPoints));
+			InsertEdges(PCGExMT::FScope(0, NumPoints), true);
 			//OnInsertionComplete();
 		}
 		else
@@ -266,7 +266,7 @@ namespace PCGExPathToClusters
 			InsertEdges->OnSubLoopStartCallback = [PCGEX_ASYNC_THIS_CAPTURE](const PCGExMT::FScope& Scope)
 			{
 				PCGEX_ASYNC_THIS
-				This->InsertEdges(Scope);
+				This->InsertEdges(Scope, false);
 			};
 
 			InsertEdges->StartSubLoops(NumPoints, 256);
@@ -275,28 +275,50 @@ namespace PCGExPathToClusters
 		return true;
 	}
 
-	void FFusingProcessor::InsertEdges(const PCGExMT::FScope& Scope)
+	void FFusingProcessor::InsertEdges(const PCGExMT::FScope& Scope, const bool bUnsafe)
 	{
-		
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExPathToClusters::FFusingProcessor::InsertEdges);
-		
+
 		const TArray<FPCGPoint>& InNodePts = *InPoints;
-		for (int i = Scope.Start; i < Scope.End; i++)
+		if (bUnsafe)
 		{
-			const int32 NextIndex = i + 1;
-			if (NextIndex > LastIndex)
+			for (int i = Scope.Start; i < Scope.End; i++)
 			{
-				if (bClosedLoop)
+				const int32 NextIndex = i + 1;
+				if (NextIndex > LastIndex)
 				{
-					UnionGraph->InsertEdge(
-						InNodePts[LastIndex], IOIndex, LastIndex,
-						InNodePts[0], IOIndex, 0);
+					if (bClosedLoop)
+					{
+						UnionGraph->InsertEdge_Unsafe(
+							InNodePts[LastIndex], IOIndex, LastIndex,
+							InNodePts[0], IOIndex, 0);
+					}
+					return;
 				}
-				return;
+				UnionGraph->InsertEdge_Unsafe(
+					InNodePts[i], IOIndex, i,
+					InNodePts[NextIndex], IOIndex, NextIndex);
 			}
-			UnionGraph->InsertEdge(
-				InNodePts[i], IOIndex, i,
-				InNodePts[NextIndex], IOIndex, NextIndex);
+		}
+		else
+		{
+			for (int i = Scope.Start; i < Scope.End; i++)
+			{
+				const int32 NextIndex = i + 1;
+				if (NextIndex > LastIndex)
+				{
+					if (bClosedLoop)
+					{
+						UnionGraph->InsertEdge(
+							InNodePts[LastIndex], IOIndex, LastIndex,
+							InNodePts[0], IOIndex, 0);
+					}
+					return;
+				}
+				UnionGraph->InsertEdge(
+					InNodePts[i], IOIndex, i,
+					InNodePts[NextIndex], IOIndex, NextIndex);
+			}
 		}
 	}
 

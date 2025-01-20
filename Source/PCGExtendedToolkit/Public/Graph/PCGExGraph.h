@@ -723,6 +723,7 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 		const TArray<TSharedRef<PCGExData::FFacade>>* SourceEdgeFacades = nullptr;
 
 		TSharedPtr<TArray<int32>> OutputNodeIndices;
+		TSharedPtr<TArray<int32>> OutputPointIndices;
 
 		bool bCompiledSuccessfully = false;
 

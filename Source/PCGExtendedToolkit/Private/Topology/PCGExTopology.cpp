@@ -120,10 +120,10 @@ namespace PCGExTopology
 	{
 		if (CellHash != 0) { return CellHash; }
 
-		TArray<int32> SortedNodes = Nodes;
-		SortedNodes.Sort();
+		//TArray<int32> SortedNodes = Nodes;
+		//SortedNodes.Sort();
 
-		for (int32 i = 0; i < SortedNodes.Num(); i++) { CellHash = HashCombineFast(CellHash, SortedNodes[i]); }
+		for (int32 i = 0; i < Nodes.Num(); i++) { CellHash = HashCombineFast(CellHash, Nodes[i]); }
 
 		return CellHash;
 	}
@@ -250,6 +250,9 @@ namespace PCGExTopology
 		if (NumUniqueNodes <= 2) { return ECellResult::Leaf; }
 
 		if (!Data.bIsClosedLoop) { return ECellResult::OpenCell; }
+
+		PCGEx::ShiftArrayToSmallest(Nodes); // ! important to guarantee contour determinism
+		
 		if (!Constraints->IsUniqueCellHash(SharedThis(this))) { return ECellResult::Duplicate; }
 
 		bBuiltSuccessfully = true;

@@ -2,6 +2,7 @@
 // Released under the MIT license https://opensource.org/license/MIT/
 
 #pragma once
+#include "PCGExCompare.h"
 #include "PCGSettings.h"
 #include "PCGExMacros.h"
 #include "PCGExGlobalSettings.h"
@@ -24,14 +25,17 @@ enum class EPCGExEnumOutputMode : uint8
 {
 	EEOM_Single                  = 0 UMETA(DisplayName="Single", Tooltip="Output a single enum value"),
 	EEOM_All                     = 1 UMETA(DisplayName="All", ToolTip="Output a dataset containing all the enum names and values"),
-	EEOM_AllToMultiplePins       = 2 UMETA(DisplayName="All to Multiple Pins", Tooltip="Output all values in the enum to different pins"),
-	EEOM_Selection               = 3 UMETA(Tooltip="Select values to output as one dataset", Hidden),
-	EEOM_SelectionToMultiplePins = 4 UMETA(Tooltip="Select values to output to multiple pins", Hidden)
+	EEOM_AllToMultiplePins       = 2 UMETA(DisplayName="All to Separate Outputs", Tooltip="Output all values in the enum to different pins"),
+	EEOM_Selection               = 3 UMETA(DisplayName="Selection", Tooltip="Select values to output as one dataset"),
+	EEOM_SelectionToMultiplePins = 4 UMETA(DisplayName="Selection to Separate Outputs", Tooltip="Select values to output to multiple pins")
 };
 
 namespace PCGExConstantEnumConstants
 {
+	using FMapping = TTuple<FName, FName, int64, int32>;
+	
 	static const FName SingleOutputPinName = "Out";
+	static const FName BitflagOutputPinName = "Flags";
 
 	static const FName KeyOutputAttribute = "Key";
 	static const FName ValueOutputAttribute = "Value";
@@ -54,22 +58,34 @@ public:
 	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->NodeColorConstant; };
 	// End unrolling of Tim's lovely macro
 #endif
-	
+
 	virtual void PostLoad() override;
-	
+
 #if WITH_EDITOR
 	virtual void PostEditChangeProperty(struct FPropertyChangedEvent& PropertyChangedEvent) override;
 #endif
-	
+
+	virtual void FillEnabledExportValues();
 	virtual void OnOverrideSettingsDuplicatedInternal(bool bSkippedPostLoad) override;
 
 	virtual bool HasDynamicPins() const override { return true; };
 
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category="Settings")
+	EPCGExEnumOutputMode OutputMode = EPCGExEnumOutputMode::EEOM_All;
+
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, meta=(ShowOnlyInnerProperties), Category="Settings")
 	FEnumSelector SelectedEnum;
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category=Settings)
-	EPCGExEnumOutputMode OutputMode = EPCGExEnumOutputMode::EEOM_All;
+	UPROPERTY(
+		BlueprintReadWrite, EditAnywhere, Category="Settings", EditFixedSize,
+		meta=(
+			ReadOnlyKeys,
+			EditCondition="OutputMode==EPCGExEnumOutputMode::EEOM_Selection||OutputMode==EPCGExEnumOutputMode::EEOM_SelectionToMultiplePins",
+			EditConditionHides
+		)
+	)
+	TMap<FName, bool> EnabledExportValues;
+
 
 	// Hidden for now
 	UPROPERTY(/*BlueprintReadWrite, EditAnywhere, Category=Settings*/)
@@ -100,9 +116,20 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category="Settings|Output Attributes|Values", meta=(EditCondition="OutputEnumValues"))
 	FName ValueOutputAttribute = "Value";
 
-	TArray<TTuple<FName, FName, int64>> GetEnumValueMap() const;
+	TArray<PCGExConstantEnumConstants::FMapping> GetEnumValueMap() const;
 	UFUNCTION(BlueprintCallable, Category="Config")
 	FName GetEnumName() const;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category="Settings|Output Bitflags")
+	bool bOutputFlags = false;
+
+	/** Whether to output the enum as a bitmask, and which name should the attribute have in the output attribute set. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category="Settings|Output Bitflags", meta=(EditCondition="bOutputFlags"))
+	FName FlagsName = FName("Flags");
+
+	/** Bit to start writing the enum bits to. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category="Settings|Output Bitflags", meta=(EditCondition="bOutputFlags", ClampMin=0, ClampMax=63))
+	uint8 FlagBitOffset = 0;
 
 	// Imitating behaviour in the native PCGSwitch.h
 	UPROPERTY()
@@ -125,12 +152,24 @@ protected:
 	virtual bool ExecuteInternal(FPCGContext* InContext) const override;
 
 	// Stage to separate pins for each value
-	static void StageEnumValuesSeparatePins(FPCGExContext* InContext, const UPCGExConstantEnumSettings* Settings, const TArray<TTuple<FName, FName, int64>>&
-	                                        ValueData);
+	static void StageEnumValuesSeparatePins(
+		FPCGExContext* InContext,
+		const UPCGExConstantEnumSettings* Settings,
+		const TArray<PCGExConstantEnumConstants::FMapping>& ValueData,
+		FPCGExBitmask& OutBitflags);
 
 	// Stage all items to a single pin
-	static void StageEnumValuesSinglePin(FPCGExContext* InContext, const UPCGExConstantEnumSettings* Settings, const TArray<TTuple<FName, FName, int64>>&
-	                                     ValueData);
+	static void StageEnumValuesSinglePin(
+		FPCGExContext* InContext,
+		const UPCGExConstantEnumSettings* Settings,
+		const TArray<PCGExConstantEnumConstants::FMapping>& ValueData,
+		FPCGExBitmask& OutBitflags);
+	
+	// Stage bitflags
+	static void StageBitFlags(
+		FPCGExContext* InContext,
+		const UPCGExConstantEnumSettings* Settings,
+		FPCGExBitmask& OutBitflags);
 
 	virtual FPCGContext* Initialize(const FPCGDataCollection& InputData, TWeakObjectPtr<UPCGComponent> SourceComponent, const UPCGNode* Node) override;
 	virtual bool IsCacheable(const UPCGSettings* InSettings) const override { return true; }
