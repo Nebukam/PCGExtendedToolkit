@@ -66,7 +66,11 @@ public:
 #endif
 
 	virtual void FillEnabledExportValues();
+	
+#if PCGEX_ENGINE_VERSION >= 505
+	// This does not exist in 5.4
 	virtual void OnOverrideSettingsDuplicatedInternal(bool bSkippedPostLoad) override;
+#endif
 
 	virtual bool HasDynamicPins() const override { return true; };
 
