@@ -75,15 +75,15 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExAdjacencySettings
 	EPCGExInputValueType ThresholdInput = EPCGExInputValueType::Constant;
 
 	/** Discrete threshold value */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Threshold", EditCondition="Mode==EPCGExAdjacencyTestMode::Some && ThresholdInput==EPCGExInputValueType::Constant && ThresholdType == EPCGExMeanMeasure::Discrete", EditConditionHides, ClampMin=0))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Threshold (Discrete)", EditCondition="Mode==EPCGExAdjacencyTestMode::Some && ThresholdInput==EPCGExInputValueType::Constant && ThresholdType == EPCGExMeanMeasure::Discrete", EditConditionHides, ClampMin=0))
 	int32 DiscreteThreshold = 1;
 
 	/** Relative threshold value */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Threshold", EditCondition="Mode==EPCGExAdjacencyTestMode::Some && ThresholdInput==EPCGExInputValueType::Constant && ThresholdType == EPCGExMeanMeasure::Relative", EditConditionHides, ClampMin=0, ClampMax=1))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Threshold (Relative)", EditCondition="Mode==EPCGExAdjacencyTestMode::Some && ThresholdInput==EPCGExInputValueType::Constant && ThresholdType == EPCGExMeanMeasure::Relative", EditConditionHides, ClampMin=0, ClampMax=1))
 	double RelativeThreshold = 0.5;
 
 	/** Local measure attribute */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="Mode==EPCGExAdjacencyTestMode::Some && ThresholdInput!=EPCGExInputValueType::Constant", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Threshold (Attr)", EditCondition="Mode==EPCGExAdjacencyTestMode::Some && ThresholdInput!=EPCGExInputValueType::Constant", EditConditionHides))
 	FPCGAttributePropertyInputSelector ThresholdAttribute;
 
 	/** When using relative threshold mode, choose how to round it to a discrete value. */

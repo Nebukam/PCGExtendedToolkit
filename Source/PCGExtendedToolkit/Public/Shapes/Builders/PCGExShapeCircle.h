@@ -24,26 +24,26 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExShapeCircleConfig : public FPCGExShapeCo
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_NotOverridable))
 	EPCGExInputValueType StartAngleInput = EPCGExInputValueType::Constant;
 
+	/** Start angle attribute, in degrees. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Start Angle (Attr)", EditCondition="StartAngleInput != EPCGExInputValueType::Constant", EditConditionHides))
+	FPCGAttributePropertyInputSelector StartAngleAttribute;
+
 	/** Start angle constant, in degrees. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Start Angle", EditCondition="StartAngleInput == EPCGExInputValueType::Constant", EditConditionHides, Units="Degrees"))
 	double StartAngleConstant = 0;
-
-	/** Start angle attribute, in degrees. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Start Angle", EditCondition="StartAngleInput != EPCGExInputValueType::Constant", EditConditionHides))
-	FPCGAttributePropertyInputSelector StartAngleAttribute;
 
 
 	/** End angle source. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_NotOverridable))
 	EPCGExInputValueType EndAngleInput = EPCGExInputValueType::Constant;
 
+	/** End angle attribute, in degrees. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="End Angle (Attr)", EditCondition="EndAngleInput != EPCGExInputValueType::Constant", EditConditionHides))
+	FPCGAttributePropertyInputSelector EndAngleAttribute;
+
 	/** End angle constant, in degrees. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="End Angle", EditCondition="EndAngleInput == EPCGExInputValueType::Constant", EditConditionHides, Units="Degrees"))
 	double EndAngleConstant = 360;
-
-	/** End angle attribute, in degrees. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="End Angle", EditCondition="EndAngleInput != EPCGExInputValueType::Constant", EditConditionHides))
-	FPCGAttributePropertyInputSelector EndAngleAttribute;
 };
 
 namespace PCGExShapes

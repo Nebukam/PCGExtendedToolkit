@@ -34,7 +34,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExModuloCompareFilterConfig
 	EPCGExInputValueType OperandBSource = EPCGExInputValueType::Constant;
 
 	/** Operand B for testing (Modulo base) -- Will be translated to `double` under the hood. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Operand B", EditCondition="OperandBSource!=EPCGExInputValueType::Constant", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Operand B (Attr)", EditCondition="OperandBSource!=EPCGExInputValueType::Constant", EditConditionHides))
 	FPCGAttributePropertyInputSelector OperandB;
 
 	/** Operand B for testing */
@@ -50,7 +50,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExModuloCompareFilterConfig
 	EPCGExInputValueType CompareAgainst = EPCGExInputValueType::Constant;
 
 	/** Operand C for testing -- Will be translated to `double` under the hood. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="CompareAgainst!=EPCGExInputValueType::Constant", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, Displayname="Operand C (Attr)", EditCondition="CompareAgainst!=EPCGExInputValueType::Constant", EditConditionHides))
 	FPCGAttributePropertyInputSelector OperandC;
 
 	/** Operand C for testing */
@@ -58,7 +58,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExModuloCompareFilterConfig
 	double OperandCConstant = 0;
 
 	/** Rounding mode for relative measures */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Operand C", EditCondition="Comparison==EPCGExComparison::NearlyEqual || Comparison==EPCGExComparison::NearlyNotEqual", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="Comparison==EPCGExComparison::NearlyEqual || Comparison==EPCGExComparison::NearlyNotEqual", EditConditionHides))
 	double Tolerance = DBL_COMPARE_TOLERANCE;
 
 	/** Which value to return when dealing with zero-values */

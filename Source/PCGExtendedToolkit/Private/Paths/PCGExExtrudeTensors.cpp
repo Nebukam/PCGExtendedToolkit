@@ -14,6 +14,7 @@ TArray<FPCGPinProperties> UPCGExExtrudeTensorsSettings::InputPinProperties() con
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
 	PCGEX_PIN_FACTORIES(PCGExTensor::SourceTensorsLabel, "Tensors", Required, {})
 	PCGEX_PIN_POINT(PCGEx::SourceBoundsLabel, "Bounds in which extrusion will be limited", Normal, {})
+	PCGEX_PIN_FACTORIES(PCGExPointFilter::SourceStopConditionLabel, "Extruded points will be tested against those filters, and extrusion will stop at first fail. Only a small subset of PCGEx are supported.", Normal, {})
 	return PinProperties;
 }
 
@@ -31,6 +32,10 @@ bool FPCGExExtrudeTensorsElement::Boot(FPCGExContext* InContext) const
 	PCGEX_CONTEXT_AND_SETTINGS(ExtrudeTensors)
 
 	if (!PCGExFactories::GetInputFactories(InContext, PCGExTensor::SourceTensorsLabel, Context->TensorFactories, {PCGExFactories::EType::Tensor}, true)) { return false; }
+
+	GetInputFactories(Context, PCGExPointFilter::SourceStopConditionLabel, Context->StopFilterFactories, PCGExFactories::PointFilters, false);
+	PCGExPointFilter::PruneForDirectEvaluation(Context, Context->StopFilterFactories);
+
 	if (Context->TensorFactories.IsEmpty())
 	{
 		PCGE_LOG_C(Error, GraphAndLog, InContext, FTEXT("Missing tensors."));
@@ -180,11 +185,19 @@ namespace PCGExExtrudeTensors
 	}
 
 
-	void FExtrusion::Insert() const
+	void FExtrusion::Insert()
 	{
 		FPCGPoint& Point = ExtrudedPoints.Emplace_GetRef(ExtrudedPoints.Last());
-
 		Point.Transform = Head;
+
+		if (StopFilters && StopFilters->Test(Point))
+		{
+			ExtrudedPoints.Pop();
+			Complete();
+			bIsStopped = true;
+			// TODO : Need to expose whether or not to include stopped point
+			return;
+		}
 
 		if (Settings->bRefreshSeed) { Point.Seed = PCGExRandom::ComputeSeed(Point, FVector(Origin.Seed)); }
 	}
@@ -199,6 +212,12 @@ namespace PCGExExtrudeTensors
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExExtrudeTensors::Process);
 
 		if (!FPointsProcessor::Process(InAsyncManager)) { return false; }
+
+		if (!Context->StopFilterFactories.IsEmpty())
+		{
+			StopFilters = MakeShared<PCGExPointFilter::FManager>(PointDataFacade);
+			if (!StopFilters->Init(Context, Context->StopFilterFactories)) { StopFilters.Reset(); }
+		}
 
 		TensorsHandler = MakeShared<PCGExTensor::FTensorsHandler>(Settings->TensorHandlerDetails);
 		if (!TensorsHandler->Init(Context, Context->TensorFactories, PointDataFacade)) { return false; }
@@ -411,6 +430,7 @@ namespace PCGExExtrudeTensors
 		NewExtrusion->Context = Context;
 		NewExtrusion->Settings = Settings;
 		NewExtrusion->TensorsHandler = TensorsHandler;
+		NewExtrusion->StopFilters = StopFilters;
 
 		return NewExtrusion;
 	}

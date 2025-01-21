@@ -556,7 +556,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExVectorHashComparisonDetails
 	EPCGExInputValueType HashToleranceInput = EPCGExInputValueType::Constant;
 
 	/** Tolerance value use for comparison */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Hash Tolerance", EditCondition="HashToleranceInput!=EPCGExInputValueType::Constant", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Hash Tolerance (Attr)", EditCondition="HashToleranceInput!=EPCGExInputValueType::Constant", EditConditionHides))
 	FPCGAttributePropertyInputSelector HashToleranceAttribute;
 
 	/** Tolerance value use for comparison */

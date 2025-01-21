@@ -8,7 +8,7 @@
 #define LOCTEXT_NAMESPACE "PCGExPathAlphaFilterDefinition"
 #define PCGEX_NAMESPACE PCGExPathAlphaFilterDefinition
 
-bool UPCGExPathAlphaFilterFactory::SupportsLiveTesting()
+bool UPCGExPathAlphaFilterFactory::SupportsDirectEvaluation() const
 {
 	return Config.CompareAgainst == EPCGExInputValueType::Constant;
 }

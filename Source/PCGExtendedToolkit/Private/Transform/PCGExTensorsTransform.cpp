@@ -13,6 +13,7 @@ TArray<FPCGPinProperties> UPCGExTensorsTransformSettings::InputPinProperties() c
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
 	PCGEX_PIN_FACTORIES(PCGExTensor::SourceTensorsLabel, "Tensors", Required, {})
+	PCGEX_PIN_FACTORIES(PCGExPointFilter::SourceStopConditionLabel, "Transformed points will be tested against those filters, and transform will stop at first fail. Only a small subset of PCGEx are supported.", Normal, {})
 	return PinProperties;
 }
 
@@ -34,6 +35,9 @@ bool FPCGExTensorsTransformElement::Boot(FPCGExContext* InContext) const
 	}
 
 	PCGEX_FOREACH_FIELD_TRTENSOR(PCGEX_OUTPUT_VALIDATE_NAME)
+
+	GetInputFactories(Context, PCGExPointFilter::SourceStopConditionLabel, Context->StopFilterFactories, PCGExFactories::PointFilters, false);
+	PCGExPointFilter::PruneForDirectEvaluation(Context, Context->StopFilterFactories);
 
 	return true;
 }
@@ -76,6 +80,12 @@ namespace PCGExTensorsTransform
 
 		if (!FPointsProcessor::Process(InAsyncManager)) { return false; }
 
+		if (!Context->StopFilterFactories.IsEmpty())
+		{
+			StopFilters = MakeShared<PCGExPointFilter::FManager>(PointDataFacade);
+			if (!StopFilters->Init(Context, Context->StopFilterFactories)) { StopFilters.Reset(); }
+		}
+
 		TensorsHandler = MakeShared<PCGExTensor::FTensorsHandler>(Settings->TensorHandlerDetails);
 		if (!TensorsHandler->Init(Context, Context->TensorFactories, PointDataFacade)) { return false; }
 
@@ -112,6 +122,8 @@ namespace PCGExTensorsTransform
 		PointFilterCache[Index] = bSuccess;
 
 		if (!bSuccess) { return; }
+
+		if (StopFilters && StopFilters->Test(Point)) { PointFilterCache[Index] = false; }
 
 		Metrics[Index].Add(SamplePosition);
 		Pings[Index] += Sample.Effectors;

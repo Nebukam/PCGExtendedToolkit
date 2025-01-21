@@ -128,8 +128,10 @@ private:
 struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExTensorsTransformContext final : FPCGExPointsProcessorContext
 {
 	friend class FPCGExTensorsTransformElement;
+	
 	TArray<TObjectPtr<const UPCGExTensorFactoryData>> TensorFactories;
-
+	TArray<TObjectPtr<const UPCGExFilterFactoryData>> StopFilterFactories;
+	
 	PCGEX_FOREACH_FIELD_TRTENSOR(PCGEX_OUTPUT_DECL_TOGGLE)
 };
 
@@ -139,7 +141,7 @@ class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExTensorsTransformElement final : public FP
 		const FPCGDataCollection& InputData,
 		TWeakObjectPtr<UPCGComponent> SourceComponent,
 		const UPCGNode* Node) override;
-
+	
 protected:
 	virtual bool Boot(FPCGExContext* InContext) const override;
 	virtual bool ExecuteInternal(FPCGContext* Context) const override;
@@ -150,6 +152,7 @@ namespace PCGExTensorsTransform
 	class FProcessor final : public PCGExPointsMT::TPointsProcessor<FPCGExTensorsTransformContext, UPCGExTensorsTransformSettings>
 	{
 	protected:
+		TSharedPtr<PCGExPointFilter::FManager> StopFilters;
 		TSharedPtr<PCGExTensor::FTensorsHandler> TensorsHandler;
 
 		bool bIteratedOnce = false;

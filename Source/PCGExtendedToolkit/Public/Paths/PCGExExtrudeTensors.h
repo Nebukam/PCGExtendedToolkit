@@ -103,7 +103,7 @@ public:
 	EPCGExInputValueType MaxLengthInput = EPCGExInputValueType::Constant;
 
 	/** Max length Attribute */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Limits", meta=(PCG_Overridable, DisplayName="Max Length", EditCondition="bUseMaxLength && MaxLengthInput!=EPCGExInputValueType::Constant", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Limits", meta=(PCG_Overridable, DisplayName="Max Length (Attr)", EditCondition="bUseMaxLength && MaxLengthInput!=EPCGExInputValueType::Constant", EditConditionHides))
 	FName MaxLengthAttribute = FName("MaxLength");
 
 	/** Max length Constant */
@@ -120,7 +120,7 @@ public:
 	EPCGExInputValueType MaxPointsCountInput = EPCGExInputValueType::Constant;
 
 	/** Max length Attribute */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Limits", meta=(PCG_Overridable, DisplayName="Max Points Count", EditCondition="bUseMaxPointsCount && MaxPointsCountInput!=EPCGExInputValueType::Constant", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Limits", meta=(PCG_Overridable, DisplayName="Max Points Count (Attr)", EditCondition="bUseMaxPointsCount && MaxPointsCountInput!=EPCGExInputValueType::Constant", EditConditionHides))
 	FName MaxPointsCountAttribute = FName("MaxPointsCount");
 
 	/** Max length Constant */
@@ -199,7 +199,10 @@ private:
 struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExExtrudeTensorsContext final : FPCGExPointsProcessorContext
 {
 	friend class FPCGExExtrudeTensorsElement;
+
 	TArray<TObjectPtr<const UPCGExTensorFactoryData>> TensorFactories;
+	TArray<TObjectPtr<const UPCGExFilterFactoryData>> StopFilterFactories;
+	
 	FBox Limits = FBox(ForceInit);
 	double ClosedLoopSquaredDistance = 0;
 	double ClosedLoopSearchDot = 0;
@@ -276,6 +279,7 @@ namespace PCGExExtrudeTensors
 		const FPCGExExtrudeTensorsContext* Context = nullptr;
 		const UPCGExExtrudeTensorsSettings* Settings = nullptr;
 		TSharedPtr<PCGExTensor::FTensorsHandler> TensorsHandler;
+		TSharedPtr<PCGExPointFilter::FManager> StopFilters;
 
 		FTransform Head = FTransform::Identity;
 
@@ -302,7 +306,7 @@ namespace PCGExExtrudeTensors
 		bool OnAdvanced(const bool bStop);
 		bool Extrude(const PCGExTensor::FTensorSample& Sample);
 		void StartNewExtrusion();
-		void Insert() const;
+		void Insert();
 	};
 
 	template <EExtrusionFlags InternalFlags>
@@ -417,6 +421,7 @@ namespace PCGExExtrudeTensors
 		TSharedPtr<PCGExData::TBuffer<int32>> PerPointMaxPoints;
 		TSharedPtr<PCGExData::TBuffer<double>> PerPointMaxLength;
 
+		TSharedPtr<PCGExPointFilter::FManager> StopFilters;
 		TSharedPtr<PCGExTensor::FTensorsHandler> TensorsHandler;
 
 		FPCGExAttributeToTagDetails AttributesToPathTags;

@@ -38,7 +38,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExDistanceFilterConfig
 	EPCGExInputValueType CompareAgainst = EPCGExInputValueType::Constant;
 
 	/** Operand B for testing -- Will be translated to `double` under the hood. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Distance Threshold", EditCondition="CompareAgainst!=EPCGExInputValueType::Constant", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Distance Threshold (Attr)", EditCondition="CompareAgainst!=EPCGExInputValueType::Constant", EditConditionHides))
 	FPCGAttributePropertyInputSelector DistanceThreshold;
 
 	/** Operand B for testing */
@@ -70,7 +70,7 @@ public:
 	TArray<const PointOctree*> Octrees;
 	TArray<uintptr_t> TargetsPtr;
 
-	virtual bool SupportsLiveTesting() override;
+	virtual bool SupportsDirectEvaluation() const override;
 
 	virtual bool Init(FPCGExContext* InContext) override;
 

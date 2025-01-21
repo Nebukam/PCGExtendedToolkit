@@ -84,13 +84,13 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_NotOverridable))
 	EPCGExInputValueType WidthInput = EPCGExInputValueType::Constant;
 
+	/** Bevel width attribute.*/
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Width (Attr)", EditCondition="WidthInput != EPCGExInputValueType::Constant", EditConditionHides))
+	FPCGAttributePropertyInputSelector WidthAttribute;
+
 	/** Bevel width constant.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Width", EditCondition="WidthInput == EPCGExInputValueType::Constant", EditConditionHides))
 	double WidthConstant = 0.1;
-
-	/** Bevel width attribute.*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Width", EditCondition="WidthInput != EPCGExInputValueType::Constant", EditConditionHides))
-	FPCGAttributePropertyInputSelector WidthAttribute;
 
 	/** Bevel limit type */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
@@ -115,7 +115,7 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Subdivision", meta=(PCG_Overridable, EditCondition="!bKeepCornerPoint && bSubdivide && Type != EPCGExBevelProfileType::Custom && SubdivideMethod==EPCGExSubdivideMode::Count && SubdivisionAmountInput==EPCGExInputValueType::Constant", EditConditionHides, ClampMin=1))
 	int32 SubdivisionCount = 10;
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Subdivision", meta=(PCG_Overridable, EditCondition="!bKeepCornerPoint && bSubdivide && Type != EPCGExBevelProfileType::Custom && SubdivisionAmountInput!=EPCGExInputValueType::Constant", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Subdivision", meta=(PCG_Overridable, DisplayName="Subdividion (Attr)", EditCondition="!bKeepCornerPoint && bSubdivide && Type != EPCGExBevelProfileType::Custom && SubdivisionAmountInput!=EPCGExInputValueType::Constant", EditConditionHides))
 	FPCGAttributePropertyInputSelector SubdivisionAmount;
 
 	/**  */
