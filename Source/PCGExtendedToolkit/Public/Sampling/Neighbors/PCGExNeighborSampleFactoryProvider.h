@@ -113,11 +113,11 @@ public:
 	{
 	}
 
-	FORCEINLINE virtual void BlendNodePoint(const PCGExCluster::FNode& TargetNode, const PCGExGraph::FLink Lk, const double Weight) const
+	FORCEINLINE virtual void SampleNeighborNode(const PCGExCluster::FNode& TargetNode, const PCGExGraph::FLink Lk, const double Weight) const
 	{
 	}
 
-	FORCEINLINE virtual void BlendNodeEdge(const PCGExCluster::FNode& TargetNode, const PCGExGraph::FLink Lk, const double Weight) const
+	FORCEINLINE virtual void SampleNeighborEdge(const PCGExCluster::FNode& TargetNode, const PCGExGraph::FLink Lk, const double Weight) const
 	{
 	}
 
@@ -135,8 +135,6 @@ public:
 protected:
 	bool bIsValidOperation = true;
 	TSharedPtr<PCGExCluster::FCluster> Cluster;
-
-	FORCEINLINE virtual double SampleCurve(const double InTime) const { return WeightCurveObj->Eval(InTime); }
 };
 
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")
@@ -153,12 +151,13 @@ public:
 	TArray<TObjectPtr<const UPCGExFilterFactoryData>> ValueFilterFactories;
 
 	virtual UPCGExNeighborSampleOperation* CreateOperation(FPCGExContext* InContext) const;
-
+	
 	virtual void RegisterVtxBuffersDependencies(FPCGExContext* InContext, const TSharedRef<PCGExData::FFacade>& InVtxDataFacade, PCGExData::FFacadePreloader& FacadePreloader) const
 	{
 	}
 
 	virtual void RegisterAssetDependencies(FPCGExContext* InContext) const override;
+	
 };
 
 UCLASS(Abstract, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|NeighborSample")

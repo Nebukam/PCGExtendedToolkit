@@ -31,6 +31,38 @@ bool FPCGExInputConfig::Validate(const UPCGPointData* InData)
 	return false;
 }
 
+bool FPCGExAttributeSourceToTargetDetails::ValidateNames(FPCGExContext* InContext) const
+{
+	PCGEX_VALIDATE_NAME_C(InContext, Source)
+	if (bOutputToDifferentName) { PCGEX_VALIDATE_NAME_C(InContext, Target) }
+	return true;
+}
+
+bool FPCGExAttributeSourceToTargetList::ValidateNames(FPCGExContext* InContext) const
+{
+	for (const FPCGExAttributeSourceToTargetDetails& Entry : Attributes) { if (!Entry.ValidateNames(InContext)) { return false; } }
+	return true;
+}
+
+void FPCGExAttributeSourceToTargetList::SetOutputTargetNames(const TSharedRef<PCGExData::FFacade>& InFacade) const
+{
+	for (const FPCGExAttributeSourceToTargetDetails& Entry : Attributes)
+	{
+		if (!Entry.bOutputToDifferentName) { continue; }
+
+		const TSharedPtr<PCGExData::FBufferBase> Buffer = InFacade->FindWritableAttributeBuffer(Entry.Source);
+		if (!Buffer) { continue; }
+
+		Buffer->SetTargetOutputName(Entry.Target);
+	}
+}
+
+void FPCGExAttributeSourceToTargetList::GetSources(TArray<FName>& OutNames) const
+{
+	OutNames.Reserve(OutNames.Num() + Attributes.Num());
+	for (const FPCGExAttributeSourceToTargetDetails& Entry : Attributes) { OutNames.Add(Entry.Source); }
+}
+
 namespace PCGEx
 {
 	void FAttributeIdentity::Get(const UPCGMetadata* InMetadata, TArray<FAttributeIdentity>& OutIdentities)

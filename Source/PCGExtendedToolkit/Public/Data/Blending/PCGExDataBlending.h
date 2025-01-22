@@ -72,7 +72,7 @@ namespace PCGExData
 	class FUnionMetadata;
 }
 
-UENUM()
+UENUM(BlueprintType)
 enum class EPCGExDataBlendingType : uint8
 {
 	None             = 0 UMETA(DisplayName = "None", ToolTip="No blending is applied, keep the original value."),
@@ -628,7 +628,7 @@ namespace PCGExDataBlending
 			this->Writer->GetMutable(WriteIndex) = this->SingleOperation(A, B, Weight);
 		}
 	};
-
+	
 	static void AssembleBlendingDetails(
 		const FPCGExPropertiesBlendingDetails& PropertiesBlending,
 		const TMap<FName, EPCGExDataBlendingType>& PerAttributeBlending,
@@ -657,7 +657,7 @@ namespace PCGExDataBlending
 
 	static void AssembleBlendingDetails(
 		const EPCGExDataBlendingType& DefaultBlending,
-		const TSet<FName>& Attributes,
+		const TArray<FName>& Attributes,
 		const TSharedRef<PCGExData::FPointIO>& SourceIO,
 		FPCGExBlendingDetails& OutDetails,
 		TSet<FName>& OutMissingAttributes)
@@ -676,4 +676,5 @@ namespace PCGExDataBlending
 			OutDetails.FilteredAttributes.Add(Id);
 		}
 	}
+	
 }

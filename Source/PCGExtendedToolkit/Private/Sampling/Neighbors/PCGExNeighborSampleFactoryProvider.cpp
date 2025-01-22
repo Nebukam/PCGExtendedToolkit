@@ -94,10 +94,10 @@ void UPCGExNeighborSampleOperation::ProcessNode(const int32 NodeIndex) const
 				LocalWeight = SamplingConfig.BlendOver == EPCGExBlendOver::Index ? 1 - (CurrentDepth / (SamplingConfig.MaxDepth)) : SamplingConfig.FixedBlend;
 			}
 
-			LocalWeight = SampleCurve(LocalWeight);
+			LocalWeight = WeightCurveObj->Eval(LocalWeight);
 
-			if (SamplingConfig.NeighborSource == EPCGExClusterComponentSource::Vtx) { BlendNodePoint(Node, Lk, LocalWeight); }
-			else { BlendNodeEdge(Node, Lk, LocalWeight); }
+			if (SamplingConfig.NeighborSource == EPCGExClusterComponentSource::Vtx) { SampleNeighborNode(Node, Lk, LocalWeight); }
+			else { SampleNeighborEdge(Node, Lk, LocalWeight); }
 
 			Count++;
 			TotalWeight += LocalWeight;

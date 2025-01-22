@@ -25,6 +25,11 @@
 
 #pragma region Input Configs
 
+namespace PCGExData
+{
+	class FFacade;
+}
+
 struct FPCGExAttributeGatherDetails;
 
 USTRUCT(BlueprintType)
@@ -78,6 +83,50 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExInputConfig
 	 */
 	virtual bool Validate(const UPCGPointData* InData);
 	FString ToString() const { return GetName().ToString(); }
+};
+
+USTRUCT(BlueprintType)
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExAttributeSourceToTargetDetails
+{
+	GENERATED_BODY()
+
+	FPCGExAttributeSourceToTargetDetails()
+	{
+	}
+
+	/** Attribute to read on input */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	FName Source = FName("SourceAttribute");
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, InlineEditConditionToggle))
+	bool bOutputToDifferentName = false;
+
+	/** Attribute to write on output, if different from input */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bOutputToDifferentName"))
+	FName Target = FName("TargetAttribute");
+
+	bool ValidateNames(FPCGExContext* InContext) const;
+};
+
+USTRUCT(BlueprintType)
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExAttributeSourceToTargetList
+{
+	GENERATED_BODY()
+
+	FPCGExAttributeSourceToTargetList()
+	{
+	}
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, TitleProperty="{Source}"))
+	TArray<FPCGExAttributeSourceToTargetDetails> Attributes;
+
+	bool IsEmpty() const { return Attributes.IsEmpty(); }
+	int32 Num() const { return Attributes.Num(); }
+
+	bool ValidateNames(FPCGExContext* InContext) const;
+	void SetOutputTargetNames(const TSharedRef<PCGExData::FFacade>& InFacade) const;
+
+	void GetSources(TArray<FName>& OutNames) const;
 };
 
 #pragma endregion
