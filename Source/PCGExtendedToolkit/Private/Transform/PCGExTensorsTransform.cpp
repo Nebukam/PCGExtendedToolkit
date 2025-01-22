@@ -121,9 +121,23 @@ namespace PCGExTensorsTransform
 		const PCGExTensor::FTensorSample Sample = TensorsHandler->Sample(Probe, bSuccess);
 		PointFilterCache[Index] = bSuccess;
 
-		if (!bSuccess) { return; }
+		if (!bSuccess)
+		{
+			// TODO : Gracefully stopped
+			// TODO : Max iterations not reached
+			return;
+		}
 
-		if (StopFilters && StopFilters->Test(Point)) { PointFilterCache[Index] = false; }
+		if (StopFilters && StopFilters->Test(Point))
+		{
+			PointFilterCache[Index] = false;
+			if (Settings->StopConditionHandling == EPCGExTensorStopConditionHandling::Exclude)
+			{
+				// TODO : Not gracefully stopped
+				// TODO : Max iterations not reached
+				return;
+			}
+		}
 
 		Metrics[Index].Add(SamplePosition);
 		Pings[Index] += Sample.Effectors;

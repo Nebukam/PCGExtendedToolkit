@@ -36,6 +36,13 @@ enum class EPCGExEffectorInfluenceShape : uint8
 	Sphere = 1 UMETA(DisplayName = "Sphere", Tooltip="Sphere which radius is defined by the bounds' extents size"),
 };
 
+UENUM()
+enum class EPCGExTensorStopConditionHandling : uint8
+{
+	Exclude = 0 UMETA(DisplayName = "Exclude", Tooltip="Ignore the stopping sample and don't add it to the path."),
+	Include = 1 UMETA(DisplayName = "Include", Tooltip="Include the stopping sample to the path.")
+};
+
 USTRUCT(BlueprintType)
 struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExTensorSamplingMutationsDetails
 {

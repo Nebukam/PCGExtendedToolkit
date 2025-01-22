@@ -18,14 +18,6 @@
 
 #include "PCGExExtrudeTensors.generated.h"
 
-UENUM()
-enum class EPCGExOutOfBoundPathPointHandling : uint8
-{
-	Exclude        = 0 UMETA(DisplayName = "Exclude", Tooltip="Ignore the out-of-bound sample and don't add it to the path."),
-	Include        = 1 UMETA(DisplayName = "Include", Tooltip="Include the out-of-bound sample to the path."),
-	IncludeAndSnap = 2 UMETA(Hidden, DisplayName = "Snap", Tooltip="Include the out-of-bound sample and snap it"),
-};
-
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc")
 class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExExtrudeTensorsSettings : public UPCGExPointsProcessorSettings
 {
@@ -132,17 +124,17 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Limits", meta=(PCG_Overridable, ClampMin=0.001))
 	double FuseDistance = 0.01;
 
-	/** How to deal with out-of-bound samples */
+	/** How to deal with points that are stopped */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Limits", meta=(PCG_Overridable))
-	EPCGExOutOfBoundPathPointHandling OutOfBoundHandling = EPCGExOutOfBoundPathPointHandling::Exclude;
+	EPCGExTensorStopConditionHandling StopConditionHandling = EPCGExTensorStopConditionHandling::Exclude;
 
-	/** Whether to stop sampling when going out of bounds. While path will be cut, there's a chance that the head of the search comes back into the bounds, which would start a new extrusion. With this option disabled, new paths won't be permitted to exist. */
+	/** Whether to stop sampling when extrusion is stopped. While path will be cut, there's a chance that the head of the search comes back into non-stopping conditions, which would start a new extrusion. With this option disabled, new paths won't be permitted to exist. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Limits", meta=(PCG_Overridable))
 	bool bAllowChildExtrusions = false;
 
-	/** If enabled, seeds that start out of bounds won't be extruded. Orherwise, they are transformed until they eventually enter bounds and start an extrusion. */
+	/** If enabled, seeds that start stopped won't be extruded at all. Otherwise, they are transformed until they eventually reach a point that's outside stopping conditions and start an extrusion. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Limits", meta=(PCG_NotOverridable))
-	bool bIgnoreOutOfBoundsSeeds = false;
+	bool bIgnoreStoppedSeeds = false;
 
 	/** TBD */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging & Forwarding")
@@ -158,11 +150,11 @@ public:
 
 	/** */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging & Forwarding", meta=(InlineEditConditionToggle))
-	bool bTagIfIsStoppedByBounds = false;
+	bool bTagIfIsStoppedByFilters = false;
 
 	/** ... */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging & Forwarding", meta=(EditCondition="bTagIfStoppedOnBounds"))
-	FString IsStoppedByBoundsTag = TEXT("StoppedByBounds");
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging & Forwarding", meta=(EditCondition="bTagIfIsStoppedByFilters"))
+	FString IsStoppedByFiltersTag = TEXT("StoppedByFilters");
 
 	/** */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging & Forwarding", meta=(InlineEditConditionToggle))
@@ -202,8 +194,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExExtrudeTensorsContext final : FPCGExPoin
 
 	TArray<TObjectPtr<const UPCGExTensorFactoryData>> TensorFactories;
 	TArray<TObjectPtr<const UPCGExFilterFactoryData>> StopFilterFactories;
-	
-	FBox Limits = FBox(ForceInit);
+
 	double ClosedLoopSquaredDistance = 0;
 	double ClosedLoopSearchDot = 0;
 };
@@ -233,27 +224,6 @@ namespace PCGExExtrudeTensors
 
 	constexpr bool Supports(const EExtrusionFlags Flags, EExtrusionFlags Flag) { return (static_cast<uint32>(Flags) & static_cast<uint32>(Flag)) != 0; }
 
-	static EExtrusionFlags ComputeFlags(const UPCGExExtrudeTensorsSettings* Settings,
-	                                    const FPCGExExtrudeTensorsContext* Context)
-	{
-		uint32 Flags = 0;
-
-		if (Settings->bAllowChildExtrusions)
-		{
-			Flags |= static_cast<uint32>(EExtrusionFlags::AllowsChildren);
-		}
-		if (Settings->bDetectClosedLoops)
-		{
-			Flags |= static_cast<uint32>(EExtrusionFlags::ClosedLoop);
-		}
-		if (Context->Limits.IsValid)
-		{
-			Flags |= static_cast<uint32>(EExtrusionFlags::Bounded);
-		}
-
-		return static_cast<EExtrusionFlags>(Flags);
-	}
-
 	class FProcessor;
 
 	class FExtrusion : public TSharedFromThis<FExtrusion>
@@ -266,7 +236,7 @@ namespace PCGExExtrudeTensors
 		bool bIsComplete = false;
 		bool bIsStopped = false;
 		bool bIsClosedLoop = false;
-		bool bHitBounds = false;
+		bool bHitStopFilters = false;
 
 		FPCGPoint Origin;
 
@@ -304,9 +274,9 @@ namespace PCGExExtrudeTensors
 
 	protected:
 		bool OnAdvanced(const bool bStop);
-		bool Extrude(const PCGExTensor::FTensorSample& Sample);
+		bool Extrude(const PCGExTensor::FTensorSample& Sample, const FPCGPoint& InPoint);
 		void StartNewExtrusion();
-		void Insert();
+		void Insert(const FPCGPoint& InPoint) const;
 	};
 
 	template <EExtrusionFlags InternalFlags>
@@ -346,14 +316,13 @@ namespace PCGExExtrudeTensors
 				}
 			}
 
-			FVector HeadLocation = PreviousHeadLocation + Sample.DirectionAndSize;
+			const FVector HeadLocation = PreviousHeadLocation + Sample.DirectionAndSize;
 			Head.SetLocation(HeadLocation);
-
 
 			if constexpr (Supports(InternalFlags, EExtrusionFlags::ClosedLoop))
 			{
-				const FVector Tail = Origin.Transform.GetLocation();
-				if (FVector::DistSquared(Metrics.Last, Tail) <= Context->ClosedLoopSquaredDistance &&
+				if (const FVector Tail = Origin.Transform.GetLocation();
+					FVector::DistSquared(Metrics.Last, Tail) <= Context->ClosedLoopSquaredDistance &&
 					FVector::DotProduct(Sample.DirectionAndSize.GetSafeNormal(), (Tail - PreviousHeadLocation).GetSafeNormal()) > Context->ClosedLoopSearchDot)
 				{
 					bIsClosedLoop = true;
@@ -361,26 +330,18 @@ namespace PCGExExtrudeTensors
 				}
 			}
 
+			FPCGPoint HeadPoint = ExtrudedPoints.Last();
+			HeadPoint.Transform = Head;
+
 			if constexpr (Supports(InternalFlags, EExtrusionFlags::Bounded))
 			{
-				// Make sure we are within bounds
-#if PCGEX_ENGINE_VERSION <= 503
-				bool bWithinLimits = Context->Limits.IsInside(HeadLocation);
-#else
-				bool bWithinLimits = Context->Limits.IsInsideOrOn(HeadLocation);
-#endif
-
-				if (!bWithinLimits)
+				if (StopFilters->Test(HeadPoint))
 				{
 					if (bIsExtruding && !bIsComplete)
 					{
-						bHitBounds = true;
-						if (Settings->OutOfBoundHandling == EPCGExOutOfBoundPathPointHandling::Exclude)
-						{
-							// Nothing to do
-						}
-						else if (Settings->OutOfBoundHandling == EPCGExOutOfBoundPathPointHandling::Include) { Insert(); }
-						else if (Settings->OutOfBoundHandling == EPCGExOutOfBoundPathPointHandling::IncludeAndSnap) { Insert(); }
+						bHitStopFilters = true;
+						if (Settings->StopConditionHandling == EPCGExTensorStopConditionHandling::Include) { Insert(HeadPoint); }
+						//else if (Settings->OutOfBoundHandling == EPCGExOutOfBoundPathPointHandling::Exclude){}
 						Complete();
 
 						if constexpr (!Supports(InternalFlags, EExtrusionFlags::AllowsChildren))
@@ -404,11 +365,14 @@ namespace PCGExExtrudeTensors
 				if (!bIsExtruding)
 				{
 					// Start writing path
+					bIsExtruding = true;
 					Metrics = PCGExPaths::FPathMetrics(PreviousHeadLocation);
+					ExtrudedPoints[0].Transform = Head;
+					return OnAdvanced(false);
 				}
 			}
 
-			return OnAdvanced(!Extrude(Sample));
+			return OnAdvanced(!Extrude(Sample, HeadPoint));
 		}
 	};
 
@@ -455,6 +419,17 @@ namespace PCGExExtrudeTensors
 		virtual void CompleteWork() override;
 
 	protected:
+		EExtrusionFlags ComputeFlags() const
+		{
+			uint32 Flags = 0;
+
+			if (Settings->bAllowChildExtrusions) { Flags |= static_cast<uint32>(EExtrusionFlags::AllowsChildren); }
+			if (Settings->bDetectClosedLoops) { Flags |= static_cast<uint32>(EExtrusionFlags::ClosedLoop); }
+			if (StopFilters) { Flags |= static_cast<uint32>(EExtrusionFlags::Bounded); }
+
+			return static_cast<EExtrusionFlags>(Flags);
+		}
+
 		TSharedPtr<FExtrusion> CreateExtrusionTemplate(const int32 InSeedIndex, const int32 InMaxIterations);
 	};
 }

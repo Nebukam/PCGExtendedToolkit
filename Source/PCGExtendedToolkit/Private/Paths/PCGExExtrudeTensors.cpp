@@ -13,8 +13,7 @@ TArray<FPCGPinProperties> UPCGExExtrudeTensorsSettings::InputPinProperties() con
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
 	PCGEX_PIN_FACTORIES(PCGExTensor::SourceTensorsLabel, "Tensors", Required, {})
-	PCGEX_PIN_POINT(PCGEx::SourceBoundsLabel, "Bounds in which extrusion will be limited", Normal, {})
-	PCGEX_PIN_FACTORIES(PCGExPointFilter::SourceStopConditionLabel, "Extruded points will be tested against those filters, and extrusion will stop at first fail. Only a small subset of PCGEx are supported.", Normal, {})
+	PCGEX_PIN_FACTORIES(PCGExPointFilter::SourceStopConditionLabel, "Extruded points will be tested against those filters. If a filter returns true, the extrusion point is considered 'out-of-bounds'.", Normal, {})
 	return PinProperties;
 }
 
@@ -40,13 +39,6 @@ bool FPCGExExtrudeTensorsElement::Boot(FPCGExContext* InContext) const
 	{
 		PCGE_LOG_C(Error, GraphAndLog, InContext, FTEXT("Missing tensors."));
 		return false;
-	}
-
-	if (const TSharedPtr<PCGExData::FPointIO> BoundsData = PCGExData::TryGetSingleInput(Context, PCGEx::SourceBoundsLabel, false))
-	{
-		// Let's hope bounds are lightweight
-		const TArray<FPCGPoint>& InPoints = BoundsData->GetIn()->GetPoints();
-		for (const FPCGPoint& Pt : InPoints) { Context->Limits += PCGExMath::GetLocalBounds<EPCGExPointBoundsSource::Bounds>(Pt).TransformBy(Pt.Transform); }
 	}
 
 	Context->ClosedLoopSquaredDistance = FMath::Square(Settings->ClosedLoopSearchDistance);
@@ -106,8 +98,6 @@ namespace PCGExExtrudeTensors
 	{
 		if (bIsComplete || bIsStopped) { return; }
 
-		TensorsHandler.Reset();
-
 		bIsComplete = true;
 
 		ExtrudedPoints.Shrink();
@@ -121,14 +111,14 @@ namespace PCGExExtrudeTensors
 		if (!bIsClosedLoop) { if (Settings->bTagIfOpenPath) { PointDataFacade->Source->Tags->AddRaw(Settings->IsOpenPathTag); } }
 		else { if (Settings->bTagIfClosedLoop) { PointDataFacade->Source->Tags->AddRaw(Settings->IsClosedLoopTag); } }
 
-		if (Settings->bTagIfIsStoppedByBounds && bHitBounds) { PointDataFacade->Source->Tags->AddRaw(Settings->IsStoppedByBoundsTag); }
+		if (Settings->bTagIfIsStoppedByFilters && bHitStopFilters) { PointDataFacade->Source->Tags->AddRaw(Settings->IsStoppedByFiltersTag); }
 		if (Settings->bTagIfChildExtrusion && bIsChildExtrusion) { PointDataFacade->Source->Tags->AddRaw(Settings->IsChildExtrusionTag); }
 		if (Settings->bTagIfIsFollowUp && bIsFollowUp) { PointDataFacade->Source->Tags->AddRaw(Settings->IsFollowUpTag); }
 
 		PointDataFacade->Source->GetOutKeys(true);
 	}
 
-	bool FExtrusion::Extrude(const PCGExTensor::FTensorSample& Sample)
+	bool FExtrusion::Extrude(const PCGExTensor::FTensorSample& Sample, const FPCGPoint& InPoint)
 	{
 		// return whether we can keep extruding or not
 
@@ -150,7 +140,7 @@ namespace PCGExExtrudeTensors
 			TargetPosition = LastValidPos + ((TargetPosition - LastValidPos).GetSafeNormal() * (Length - MaxLength));
 		}
 
-		Insert();
+		Insert(InPoint);
 
 		return !(Length >= MaxLength || ExtrudedPoints.Num() >= MaxPointCount);
 	}
@@ -185,21 +175,10 @@ namespace PCGExExtrudeTensors
 	}
 
 
-	void FExtrusion::Insert()
+	void FExtrusion::Insert(const FPCGPoint& InPoint) const
 	{
-		FPCGPoint& Point = ExtrudedPoints.Emplace_GetRef(ExtrudedPoints.Last());
-		Point.Transform = Head;
-
-		if (StopFilters && StopFilters->Test(Point))
-		{
-			ExtrudedPoints.Pop();
-			Complete();
-			bIsStopped = true;
-			// TODO : Need to expose whether or not to include stopped point
-			return;
-		}
-
-		if (Settings->bRefreshSeed) { Point.Seed = PCGExRandom::ComputeSeed(Point, FVector(Origin.Seed)); }
+		FPCGPoint& NewPoint = ExtrudedPoints.Add_GetRef(InPoint);
+		if (Settings->bRefreshSeed) { NewPoint.Seed = PCGExRandom::ComputeSeed(NewPoint, FVector(Origin.Seed)); }
 	}
 
 
@@ -274,15 +253,9 @@ namespace PCGExExtrudeTensors
 
 	void FProcessor::InitExtrusionFromSeed(const int32 InSeedIndex)
 	{
-		if (Settings->bIgnoreOutOfBoundsSeeds && Context->Limits.IsValid)
+		if (Settings->bIgnoreStoppedSeeds && StopFilters)
 		{
-			const FVector Head = PointDataFacade->Source->GetInPoint(InSeedIndex).Transform.GetLocation();
-#if PCGEX_ENGINE_VERSION <= 503
-			bool bWithinLimits = Context->Limits.IsInside(Head);
-#else
-			bool bWithinLimits = Context->Limits.IsInsideOrOn(Head);
-#endif
-			if (!bWithinLimits) { return; }
+			if (StopFilters->Test(PointDataFacade->Source->GetInPoint(InSeedIndex))) { return; }
 		}
 
 		const int32 Iterations = PerPointIterations ? PerPointIterations->Read(InSeedIndex) : Settings->Iterations;
@@ -396,7 +369,7 @@ namespace PCGExExtrudeTensors
 #define PCGEX_4_FLAGS(_A, _B, _C, _D) static_cast<EExtrusionFlags>(static_cast<uint32>(EExtrusionFlags::_A) | static_cast<uint32>(EExtrusionFlags::_B) | static_cast<uint32>(EExtrusionFlags::_C) | static_cast<uint32>(EExtrusionFlags::_D))
 #define PCGEX_4_FLAGS_CASE(_A, _B, _C, _D) case PCGEX_4_FLAGS(_A, _B, _C, _D) : PCGEX_NEW_EXTRUSION(PCGEX_4_FLAGS(_A, _B, _C, _D)) break;
 
-		switch (ComputeFlags(Settings, Context))
+		switch (ComputeFlags())
 		{
 		PCGEX_1_FLAGS_CASE(None)
 		PCGEX_1_FLAGS_CASE(Bounded)
