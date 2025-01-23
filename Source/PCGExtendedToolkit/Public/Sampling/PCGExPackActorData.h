@@ -599,7 +599,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPackActorDataContext final : FPCGExPoint
 {
 	friend class FPCGExPackActorDataElement;
 	UPCGExCustomActorDataPacker* Packer = nullptr;
-	TArray<UPCGParamData*> OutputParams;
+	//TArray<UPCGParamData*> OutputParams;
 };
 
 class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPackActorDataElement final : public FPCGExPointsProcessorElement

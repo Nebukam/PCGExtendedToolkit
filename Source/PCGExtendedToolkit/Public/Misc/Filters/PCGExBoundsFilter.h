@@ -86,7 +86,7 @@ public:
 	TArray<TSharedPtr<PCGExData::FFacade>> BoundsDataFacades;
 	TArray<TSharedPtr<PCGExGeo::FPointBoxCloud>> Clouds;
 
-	virtual bool SupportsLiveTesting() override { return true; }
+	virtual bool SupportsDirectEvaluation() const override { return true; }
 
 	virtual bool Init(FPCGExContext* InContext) override;
 	virtual TSharedPtr<PCGExPointFilter::FFilter> CreateFilter() const override;

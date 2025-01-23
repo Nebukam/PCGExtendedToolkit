@@ -76,7 +76,7 @@ public:
 	virtual UPCGExActionOperation* CreateOperation(FPCGExContext* InContext) const;
 
 	virtual bool Boot(FPCGContext* InContext);
-	virtual bool AppendAndValidate(PCGEx::FAttributesInfos* InInfos, FString& OutMessage) const;
+	virtual bool AppendAndValidate(const TSharedPtr<PCGEx::FAttributesInfos>& InInfos, FString& OutMessage) const;
 
 	virtual void BeginDestroy() override;
 };

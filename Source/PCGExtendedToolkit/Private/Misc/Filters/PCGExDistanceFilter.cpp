@@ -7,7 +7,7 @@
 #define LOCTEXT_NAMESPACE "PCGExCompareFilterDefinition"
 #define PCGEX_NAMESPACE CompareFilterDefinition
 
-bool UPCGExDistanceFilterFactory::SupportsLiveTesting()
+bool UPCGExDistanceFilterFactory::SupportsDirectEvaluation() const
 {
 	return Config.CompareAgainst == EPCGExInputValueType::Constant;
 }

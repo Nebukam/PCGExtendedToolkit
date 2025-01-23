@@ -34,13 +34,13 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExEdgeNeighborsCountFilterConfig
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	EPCGExInputValueType ThresholdInput = EPCGExInputValueType::Constant;
 
+	/** Attribute to fetch threshold from */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Threshold (Attr)", EditCondition="ThresholdInput != EPCGExInputValueType::Constant", EditConditionHides))
+	FPCGAttributePropertyInputSelector ThresholdAttribute;
+
 	/** The number of connection endpoints must have to be considered a Bridge. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Threshold", ClampMin=1, EditCondition="ThresholdInput == EPCGExInputValueType::Constant", EditConditionHides))
 	int32 ThresholdConstant = 2;
-
-	/** Attribute to fetch threshold from */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Threshold", EditCondition="ThresholdInput != EPCGExInputValueType::Constant", EditConditionHides))
-	FPCGAttributePropertyInputSelector ThresholdAttribute;
 
 	/** How should we check if the threshold is reached. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))

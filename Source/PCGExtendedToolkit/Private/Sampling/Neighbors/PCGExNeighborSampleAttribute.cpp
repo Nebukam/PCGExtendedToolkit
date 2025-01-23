@@ -33,7 +33,11 @@ void UPCGExNeighborSampleAttribute::PrepareForCluster(FPCGExContext* InContext, 
 	}
 
 	TSet<FName> MissingAttributes;
-	PCGExDataBlending::AssembleBlendingDetails(Blending, SourceAttributes, GetSourceIO(), MetadataBlendingDetails, MissingAttributes);
+
+	TArray<FName> SourceNames;
+	SourceAttributes.GetSources(SourceNames);
+
+	PCGExDataBlending::AssembleBlendingDetails(Blending, SourceNames, GetSourceIO(), MetadataBlendingDetails, MissingAttributes);
 
 	for (const FName& Id : MissingAttributes)
 	{
@@ -51,6 +55,8 @@ void UPCGExNeighborSampleAttribute::PrepareForCluster(FPCGExContext* InContext, 
 	Blender->bBlendProperties = false;
 	Blender->PrepareForData(InVtxDataFacade, GetSourceDataFacade(), PCGExData::ESource::In);
 
+	SourceAttributes.SetOutputTargetNames(GetSourceDataFacade());
+	
 	bIsValidOperation = true;
 }
 
@@ -70,12 +76,13 @@ void UPCGExNeighborSampleAttribute::Cleanup()
 FString UPCGExNeighborSampleAttributeSettings::GetDisplayName() const
 {
 	if (Config.SourceAttributes.IsEmpty()) { return TEXT(""); }
-	TArray<FName> Names = Config.SourceAttributes.Array();
+	TArray<FName> SourceNames;
+	Config.SourceAttributes.GetSources(SourceNames);
 
-	if (Names.Num() == 1) { return Names[0].ToString(); }
-	if (Names.Num() == 2) { return Names[0].ToString() + TEXT(" (+1 other)"); }
+	if (SourceNames.Num() == 1) { return SourceNames[0].ToString(); }
+	if (SourceNames.Num() == 2) { return SourceNames[0].ToString() + TEXT(" (+1 other)"); }
 
-	return Names[0].ToString() + FString::Printf(TEXT(" (+%d others)"), (Names.Num() - 1));
+	return SourceNames[0].ToString() + FString::Printf(TEXT(" (+%d others)"), (SourceNames.Num() - 1));
 }
 #endif
 
@@ -83,12 +90,22 @@ UPCGExNeighborSampleOperation* UPCGExNeighborSamplerFactoryAttribute::CreateOper
 {
 	UPCGExNeighborSampleAttribute* NewOperation = InContext->ManagedObjects->New<UPCGExNeighborSampleAttribute>();
 
-	PCGEX_SAMPLER_CREATE
+	PCGEX_SAMPLER_CREATE_OPERATION
 
 	NewOperation->SourceAttributes = Config.SourceAttributes;
 	NewOperation->Blending = Config.Blending;
 
 	return NewOperation;
+}
+
+bool UPCGExNeighborSamplerFactoryAttribute::RegisterConsumableAttributes(FPCGExContext* InContext) const
+{
+	if (!Super::RegisterConsumableAttributes(InContext)) { return false; }
+	for (const FPCGExAttributeSourceToTargetDetails& Entry : Config.SourceAttributes.Attributes)
+	{
+		if (Entry.bOutputToDifferentName) { InContext->AddConsumableAttributeName(Entry.Source); }
+	}
+	return true;
 }
 
 void UPCGExNeighborSamplerFactoryAttribute::RegisterVtxBuffersDependencies(FPCGExContext* InContext, const TSharedRef<PCGExData::FFacade>& InVtxDataFacade, PCGExData::FFacadePreloader& FacadePreloader) const
@@ -98,7 +115,11 @@ void UPCGExNeighborSamplerFactoryAttribute::RegisterVtxBuffersDependencies(FPCGE
 	if (SamplingConfig.NeighborSource == EPCGExClusterComponentSource::Vtx)
 	{
 		TSharedPtr<PCGEx::FAttributesInfos> Infos = PCGEx::FAttributesInfos::Get(InVtxDataFacade->GetIn()->Metadata);
-		for (FName AttrName : Config.SourceAttributes)
+
+		TArray<FName> SourceNames;
+		Config.SourceAttributes.GetSources(SourceNames);
+
+		for (const FName AttrName : SourceNames)
 		{
 			const PCGEx::FAttributeIdentity* Identity = Infos->Find(AttrName);
 			if (!Identity)
@@ -113,6 +134,8 @@ void UPCGExNeighborSamplerFactoryAttribute::RegisterVtxBuffersDependencies(FPCGE
 
 UPCGExFactoryData* UPCGExNeighborSampleAttributeSettings::CreateFactory(FPCGExContext* InContext, UPCGExFactoryData* InFactory) const
 {
+	if (!Config.SourceAttributes.ValidateNames(InContext)) { return nullptr; }
+
 	UPCGExNeighborSamplerFactoryAttribute* SamplerFactory = InContext->ManagedObjects->New<UPCGExNeighborSamplerFactoryAttribute>();
 	SamplerFactory->Config = Config;
 

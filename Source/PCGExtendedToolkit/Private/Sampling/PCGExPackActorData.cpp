@@ -288,7 +288,7 @@ bool FPCGExPackActorDataElement::Boot(FPCGExContext* InContext) const
 	PCGEX_OPERATION_BIND(Packer, UPCGExCustomActorDataPacker, PCGExPackActorDatas::SourceOverridesPacker)
 	PCGEX_VALIDATE_NAME_CONSUMABLE(Settings->ActorReferenceAttribute)
 
-	Context->OutputParams.Init(nullptr, Context->MainPoints->Num());
+	//Context->OutputParams.Init(nullptr, Context->MainPoints->Num());
 
 	return true;
 }
@@ -318,12 +318,14 @@ bool FPCGExPackActorDataElement::ExecuteInternal(FPCGContext* InContext) const
 	Context->MainBatch->Output();
 	Context->MainPoints->StageOutputs();
 
+	/*
 	for (int i = 0; i < Context->MainPoints->Pairs.Num(); i++)
 	{
 		UPCGParamData* ParamData = Context->OutputParams[i];
 		if (!ParamData) { continue; }
 		Context->StageOutput(TEXT("AttributeSet"), ParamData, Context->MainPoints->Pairs[i]->Tags->Flatten(), false, false);
 	}
+	*/
 
 	return Context->TryComplete();
 }
@@ -457,6 +459,7 @@ namespace PCGExPackActorDatas
 			MutablePoints.SetNum(WriteIndex);
 		}
 
+		/*
 		UPCGParamData* ParamData = Context->ManagedObjects->New<UPCGParamData>();
 		Context->OutputParams[PointDataFacade->Source->IOIndex] = ParamData;
 		TArray<FPCGPoint>& MutablePoints = PointDataFacade->GetOut()->GetMutablePoints();
@@ -483,6 +486,7 @@ namespace PCGExPackActorDatas
 					});
 			}
 		}
+		*/
 	}
 
 	void FProcessor::Output()

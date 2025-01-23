@@ -14,10 +14,12 @@
 #include "PCGExEdgeEndpointsCompareNumFilter.generated.h"
 
 UENUM()
-enum class EPCGExRefineEdgeCompareAgainstMode : uint8
+enum class EPCGExEdgeEndpointCompareAgainstMode : uint8
 {
-	EndEnd  = 0 UMETA(DisplayName = "Endpoints", Tooltip="Numeric comparison"),
-	EndEdge = 1 UMETA(DisplayName = "Endpoints vs Edge", Tooltip="String comparison"),
+	AgainstEach     = 0 UMETA(DisplayName = "Start <-> End", Tooltip="Compare Edge's start point value against Edge's end point value."),
+	AgainstStart    = 1 UMETA(DisplayName = "Edge <-> Start", Tooltip="Compare the Edge's start point value against the Edge itself."),
+	AgainstEnd      = 2 UMETA(DisplayName = "Edge <-> End", Tooltip="Compare the Edge's end point value against the Edge itself."),
+	AgainstSelfBoth = 3 UMETA(DisplayName = "Edge <-> Start, End", Tooltip="Compare the Edge's value against each of its end points."),
 };
 
 

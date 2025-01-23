@@ -76,7 +76,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExGUIDDetails
 	EPCGExInputValueType UniqueKeyInput = EPCGExInputValueType::Constant;
 
 	/** A base value for the GUID. Treat it like a seed. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName="Unique Key", EditCondition="UniqueKeyInput!=EPCGExInputValueType::Constant", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName="Unique Key (Attr)", EditCondition="UniqueKeyInput!=EPCGExInputValueType::Constant", EditConditionHides))
 	FPCGAttributePropertyInputSelector UniqueKeyAttribute;
 
 	/** A base value for the GUID. Treat it like a seed.  */

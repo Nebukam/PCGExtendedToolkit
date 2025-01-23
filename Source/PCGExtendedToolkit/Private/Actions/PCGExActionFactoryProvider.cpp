@@ -2,9 +2,7 @@
 // Released under the MIT license https://opensource.org/license/MIT/
 
 #include "Actions/PCGExActionFactoryProvider.h"
-
 #include "PCGPin.h"
-
 
 #define LOCTEXT_NAMESPACE "PCGExWriteActions"
 #define PCGEX_NAMESPACE PCGExWriteActions
@@ -65,7 +63,7 @@ bool UPCGExActionFactoryData::Boot(FPCGContext* InContext)
 	return true;
 }
 
-bool UPCGExActionFactoryData::AppendAndValidate(PCGEx::FAttributesInfos* InInfos, FString& OutMessage) const
+bool UPCGExActionFactoryData::AppendAndValidate(const TSharedPtr<PCGEx::FAttributesInfos>& InInfos, FString& OutMessage) const
 {
 	TSet<FName> Mismatch;
 

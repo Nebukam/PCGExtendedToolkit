@@ -93,8 +93,16 @@ namespace PCGExData
 		EPCGMetadataTypes Type = EPCGMetadataTypes::Unknown;
 		uint64 UID = 0;
 
+		bool bIsNewOutput = false;
+		std::atomic<bool> bIsEnabled{true}; // BUG : Need to have a better look at why we hang when this is false
+		FName TargetOutputName = NAME_None;
+
 	public:
 		FName FullName = NAME_None;
+
+		bool IsEnabled() const { return bIsEnabled.load(std::memory_order_acquire); }
+		void Disable() { bIsEnabled.store(false, std::memory_order_release); }
+		void Enable() { bIsEnabled.store(true, std::memory_order_release); }
 
 		const FPCGMetadataAttributeBase* InAttribute = nullptr;
 		FPCGMetadataAttributeBase* OutAttribute = nullptr;
@@ -137,8 +145,12 @@ namespace PCGExData
 		}
 
 		virtual bool IsScoped() { return bScopedBuffer; }
-		virtual bool IsWritable() { return false; }
-		virtual bool IsReadable() { return false; }
+		virtual bool IsWritable() PCGEX_NOT_IMPLEMENTED_RET(FBuffer::IsWritable, false)
+		virtual bool IsReadable() PCGEX_NOT_IMPLEMENTED_RET(FBuffer::IsReadable, false)
+
+		virtual void SetTargetOutputName(const FName InName);
+		virtual PCGEx::FAttributeIdentity GetTargetOutputIdentity() PCGEX_NOT_IMPLEMENTED_RET(FBuffer::GetTargetOutputIdentity, PCGEx::FAttributeIdentity())
+		virtual bool OutputsToDifferentName() const;
 
 		FORCEINLINE bool GetAllowsInterpolation() const { return OutAttribute ? OutAttribute->AllowsInterpolation() : InAttribute ? InAttribute->AllowsInterpolation() : false; }
 	};
@@ -149,10 +161,7 @@ namespace PCGExData
 		friend class FFacade;
 
 	protected:
-		TUniquePtr<FPCGAttributeAccessor<T>> InAccessor;
 		const FPCGMetadataAttribute<T>* TypedInAttribute = nullptr;
-
-		TUniquePtr<FPCGAttributeAccessor<T>> OutAccessor;
 		FPCGMetadataAttribute<T>* TypedOutAttribute = nullptr;
 
 		TSharedPtr<TArray<T>> InValues;
@@ -193,6 +202,23 @@ namespace PCGExData
 		FORCEINLINE void Set(const int32 Index, const T& Value) { *(OutValues->GetData() + Index) = Value; }
 		FORCEINLINE void SetImmediate(const int32 Index, const T& Value) { TypedOutAttribute->SetValue(InPoints[Index], Value); }
 
+		virtual PCGEx::FAttributeIdentity GetTargetOutputIdentity() override
+		{
+			check(IsWritable() && OutAttribute)
+
+			if (OutputsToDifferentName()) { return PCGEx::FAttributeIdentity(TargetOutputName, PCGEx::GetMetadataType<T>(), OutAttribute->AllowsInterpolation()); }
+			else { return PCGEx::FAttributeIdentity(OutAttribute->Name, PCGEx::GetMetadataType<T>(), OutAttribute->AllowsInterpolation()); }
+		}
+
+		virtual bool OutputsToDifferentName() const override
+		{
+			// Don't consider None, @Source, @Last etc
+			FString StrName = TargetOutputName.ToString();
+			if (TargetOutputName.IsNone() || StrName.IsEmpty() || StrName.StartsWith(TEXT("@"))) { return false; }
+			if (TypedOutAttribute) { return TypedOutAttribute->Name != TargetOutputName; }
+			return false;
+		}
+
 	protected:
 		void PrepareReadInternal(const bool bScoped, const FPCGMetadataAttributeBase* Attribute)
 		{
@@ -200,6 +226,7 @@ namespace PCGExData
 
 			const TArray<FPCGPoint>& InPts = Source->GetIn()->GetPoints();
 			const int32 NumPoints = InPts.Num();
+
 			InPoints = MakeArrayView(InPts.GetData(), NumPoints);
 
 			InValues = MakeShared<TArray<T>>();
@@ -221,12 +248,6 @@ namespace PCGExData
 
 			OutValues = MakeShared<TArray<T>>();
 			OutValues->Init(InDefaultValue, NumPoints);
-
-			if (Attribute)
-			{
-				// Assume that if we write data, it's not to delete it.
-				Source->GetContext()->AddProtectedAttributeName(Attribute->Name);
-			}
 
 			OutAttribute = Attribute;
 			TypedOutAttribute = Attribute ? static_cast<FPCGMetadataAttribute<T>*>(Attribute) : nullptr;
@@ -268,15 +289,14 @@ namespace PCGExData
 			}
 
 			UPCGMetadata* InMetadata = Source->GetIn()->Metadata;
-
 			check(InMetadata)
 
-			// 'template' spec required for clang on mac, not sure why.
+			// 'template' spec required for clang on mac, and rider keeps removing it without the comment below.
 			// ReSharper disable once CppRedundantTemplateKeyword
 			TypedInAttribute = InMetadata->template GetConstTypedAttribute<T>(FullName);
 			if (!TypedInAttribute) { return false; }
 
-			InAccessor = MakeUnique<FPCGAttributeAccessor<T>>(TypedInAttribute, InMetadata);
+			TUniquePtr<FPCGAttributeAccessor<T>> InAccessor = MakeUnique<FPCGAttributeAccessor<T>>(TypedInAttribute, InMetadata);
 
 			if (!InAccessor.IsValid())
 			{
@@ -329,7 +349,6 @@ namespace PCGExData
 			if (!InternalBroadcaster->Prepare(InSelector, Source))
 			{
 				TypedInAttribute = nullptr;
-				InAccessor = nullptr;
 				return false;
 			}
 
@@ -355,6 +374,7 @@ namespace PCGExData
 				return true;
 			}
 
+			bIsNewOutput = !Source->GetOut()->Metadata->HasAttribute(FullName);
 			TypedOutAttribute = Source->FindOrCreateAttribute(FullName, DefaultValue, bAllowInterpolation);
 
 			if (!TypedOutAttribute)
@@ -362,7 +382,7 @@ namespace PCGExData
 				return false;
 			}
 
-			OutAccessor = MakeUnique<FPCGAttributeAccessor<T>>(TypedOutAttribute, Source->GetOut()->Metadata);
+			TUniquePtr<FPCGAttributeAccessor<T>> OutAccessor = MakeUnique<FPCGAttributeAccessor<T>>(TypedOutAttribute, Source->GetOut()->Metadata);
 
 			if (!TypedOutAttribute || !OutAccessor.IsValid())
 			{
@@ -382,42 +402,7 @@ namespace PCGExData
 				OutAccessor->GetRange(OutRange, 0, *TempOutKeys.Get());
 			};
 
-			if (Init == EBufferInit::Inherit)
-			{
-				GrabExistingValues();
-				/*
-				if (!bHasIn && ExistingEntryCount != 0) { GrabExistingValues(); }
-				else if (bHasIn)
-				{
-					if (InValues && bReadComplete)
-					{
-						// Leverage prefetched data					
-						int32 NumToCopy = FMath::Min(InValues->Num(), OutValues->Num());
-						if constexpr (std::is_trivial_v<T>)
-						{
-							FMemory::Memcpy(OutValues->GetData(), InValues->GetData(), NumToCopy * sizeof(T));
-						}
-						else
-						{
-							for (int32 i = 0; i < NumToCopy; i++) { *(OutValues->GetData() + i) = *(InValues->GetData() + i); }
-						}
-					}
-					else
-					{
-						UPCGMetadata* InMetadata = Source->GetIn()->Metadata;
-
-						// 'template' spec required for clang on mac, not sure why.
-						// ReSharper disable once CppRedundantTemplateKeyword
-						if (const FPCGMetadataAttribute<T>* TempInAttribute = InMetadata->template GetConstTypedAttribute<T>(FullName))
-						{
-							TUniquePtr<FPCGAttributeAccessor<T>> TempInAccessor = MakeUnique<FPCGAttributeAccessor<T>>(TempInAttribute, InMetadata);
-							TArrayView<T> OutRange = MakeArrayView(OutValues->GetData(), FMath::Min(Source->GetNum(), OutValues->Num()));
-							TempInAccessor->GetRange(OutRange, 0, *Source->GetInKeys());
-						}
-					}
-				}
-				*/
-			}
+			if (Init == EBufferInit::Inherit) { GrabExistingValues(); }
 			else if (!bHasIn && ExistingEntryCount != 0) { GrabExistingValues(); }
 
 			return true;
@@ -432,7 +417,7 @@ namespace PCGExData
 
 			if (Source->GetIn())
 			{
-				// 'template' spec required for clang on mac, not sure why.
+				// 'template' spec required for clang on mac, and rider keeps removing it without the comment below.
 				// ReSharper disable once CppRedundantTemplateKeyword
 				if (const FPCGMetadataAttribute<T>* ExistingAttribute = Source->GetIn()->Metadata->template GetConstTypedAttribute<T>(FullName))
 				{
@@ -448,7 +433,7 @@ namespace PCGExData
 
 		virtual void Write(const bool bEnsureValidKeys = true) override
 		{
-			if (!IsWritable() || !OutAccessor || !OutValues || !TypedOutAttribute) { return; }
+			if (!IsWritable() || !OutValues || !IsEnabled()) { return; }
 
 			if (!Source->GetOut())
 			{
@@ -458,15 +443,51 @@ namespace PCGExData
 
 			TRACE_CPUPROFILER_EVENT_SCOPE(TBuffer::Write);
 
-			TArrayView<const T> View = MakeArrayView(OutValues->GetData(), OutValues->Num());
-			OutAccessor->SetRange(View, 0, *Source->GetOutKeys(bEnsureValidKeys).Get());
+			// If we reach that point, data has been cleaned up and we're expected to create a new attribute here.
+
+			if (OutputsToDifferentName())
+			{
+
+				// If we want to output to a different name, ensure the new attribute exists and hope we did proper validations beforehand
+				
+				// 'template' spec required for clang on mac, and rider keeps removing it without the comment below.
+				// ReSharper disable once CppRedundantTemplateKeyword
+				TypedOutAttribute = Source->GetOut()->Metadata->template FindOrCreateAttribute<T>(TargetOutputName, TypedOutAttribute->GetValueFromItemKey(PCGInvalidEntryKey), TypedOutAttribute->AllowsInterpolation());
+
+				TUniquePtr<FPCGAttributeAccessor<T>> OutAccessor = MakeUnique<FPCGAttributeAccessor<T>>(TypedOutAttribute, Source->GetOut()->Metadata);
+				if (!OutAccessor.IsValid()) { return; }
+
+				// Assume that if we write data, it's not to delete it.
+				Source->GetContext()->AddProtectedAttributeName(TargetOutputName);
+
+				// Output value to fresh attribute	
+				TArrayView<const T> View = MakeArrayView(OutValues->GetData(), OutValues->Num());
+				OutAccessor->SetRange(View, 0, *Source->GetOutKeys(bEnsureValidKeys).Get());
+			}
+			else if (TypedOutAttribute)
+			{
+
+				// if we're not writing to a different name, then go through the usual flow
+				
+				TUniquePtr<FPCGAttributeAccessor<T>> OutAccessor = MakeUnique<FPCGAttributeAccessor<T>>(TypedOutAttribute, Source->GetOut()->Metadata);
+				if (!OutAccessor.IsValid()) { return; }
+
+				// Assume that if we write data, it's not to delete it.
+				Source->GetContext()->AddProtectedAttributeName(TypedOutAttribute->Name);
+
+				// Output value			
+				TArrayView<const T> View = MakeArrayView(OutValues->GetData(), OutValues->Num());
+				OutAccessor->SetRange(View, 0, *Source->GetOutKeys(bEnsureValidKeys).Get());
+			}
 		}
 
 		virtual void Fetch(const PCGExMT::FScope& Scope) override
 		{
-			if (!IsScoped() || bReadComplete) { return; }
+			if (!IsScoped() || bReadComplete || !IsEnabled()) { return; }
 			if (InternalBroadcaster) { InternalBroadcaster->Fetch(*InValues, Scope); }
-			if (InAccessor.IsValid())
+
+			if (TUniquePtr<FPCGAttributeAccessor<T>> InAccessor = MakeUnique<FPCGAttributeAccessor<T>>(TypedInAttribute, Source->GetIn()->Metadata);
+				InAccessor.IsValid())
 			{
 				TArrayView<T> ReadRange = MakeArrayView(InValues->GetData() + Scope.Start, Scope.Count);
 				InAccessor->GetRange(ReadRange, Scope.Start, *Source->GetInKeys());
@@ -498,6 +519,8 @@ namespace PCGExData
 		TMap<uint64, TSharedPtr<FBufferBase>> BufferMap;
 		TSharedPtr<PCGExGeo::FPointBoxCloud> Cloud;
 
+		TMap<FName, FName> WritableRemap; // TODO : Manage remapping in the facade directly to remove the need for dummy attributes
+
 		bool bSupportsScopedGet = false;
 
 		FORCEINLINE int32 GetNum(const ESource InSource = ESource::In) const { return Source->GetNum(InSource); }
@@ -507,6 +530,7 @@ namespace PCGExData
 		TSharedPtr<FBufferBase> FindBuffer(const uint64 UID);
 		TSharedPtr<FBufferBase> FindReadableAttributeBuffer(const FName InName);
 		TSharedPtr<FBufferBase> FindWritableAttributeBuffer(const FName InName);
+
 
 		explicit FFacade(const TSharedRef<FPointIO>& InSource):
 			Source(InSource)
@@ -693,7 +717,7 @@ namespace PCGExData
 			const UPCGPointData* Data = Source->GetData(InSource);
 			if (!Data) { return nullptr; }
 
-			// 'template' spec required for clang on mac, not sure why.
+			// 'template' spec required for clang on mac, and rider keeps removing it without the comment below.
 			// ReSharper disable once CppRedundantTemplateKeyword
 			return Data->Metadata->template GetConstTypedAttribute<T>(InName);
 		}
@@ -728,6 +752,19 @@ namespace PCGExData
 		void Fetch(const PCGExMT::FScope& Scope) { for (const TSharedPtr<FBufferBase>& Buffer : Buffers) { Buffer->Fetch(Scope); } }
 
 	protected:
+		template <typename Func>
+		void ForEachWritable(Func&& Callback)
+		{
+			for (int i = 0; i < Buffers.Num(); i++)
+			{
+				const TSharedPtr<FBufferBase> Buffer = Buffers[i];
+				if (!Buffer.IsValid() || !Buffer->IsWritable() || !Buffer->IsEnabled()) { continue; }
+				Callback(Buffer);
+			}
+		}
+
+		bool ValidateOutputsBeforeWriting() const;
+
 		void Flush(const TSharedPtr<FBufferBase>& Buffer)
 		{
 			FWriteScopeLock WriteScopeLock(BufferLock);
@@ -924,7 +961,7 @@ namespace PCGExData
 	template <typename T>
 	static bool TryReadMark(UPCGMetadata* Metadata, const FName MarkID, T& OutMark)
 	{
-		// 'template' spec required for clang on mac, not sure why.
+		// 'template' spec required for clang on mac, and rider keeps removing it without the comment below.
 		// ReSharper disable once CppRedundantTemplateKeyword
 		const FPCGMetadataAttribute<T>* Mark = Metadata->template GetConstTypedAttribute<T>(MarkID);
 		if (!Mark) { return false; }

@@ -33,6 +33,8 @@ public:
 	bool bInvert = false;
 	TArray<TObjectPtr<const UPCGExFilterFactoryData>> FilterFactories;
 
+	virtual bool SupportsDirectEvaluation() const override;
+	
 	virtual PCGExFactories::EType GetFactoryType() const override { return PCGExFactories::EType::FilterGroup; }
 	virtual TSharedPtr<PCGExPointFilter::FFilter> CreateFilter() const override { return nullptr; }
 

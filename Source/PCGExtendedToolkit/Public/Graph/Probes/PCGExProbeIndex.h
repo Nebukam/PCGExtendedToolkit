@@ -34,20 +34,23 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExProbeConfigIndex : public FPCGExProbeCon
 	{
 	}
 
+	/** TBD */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	EPCGExProbeTargetMode Mode = EPCGExProbeTargetMode::Target;
 
+	/** TBD */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	EPCGExIndexSafety IndexSafety = EPCGExIndexSafety::Ignore;
 
+	
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	EPCGExInputValueType IndexInput = EPCGExInputValueType::Constant;
 
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Index (Attr)", EditCondition="IndexInput!=EPCGExInputValueType::Constant", EditConditionHides))
+	FPCGAttributePropertyInputSelector IndexAttribute;
+
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Index", ClampMin=0, EditCondition="IndexInput==EPCGExInputValueType::Constant", EditConditionHides))
 	int32 IndexConstant = 1;
-
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Index", EditCondition="IndexInput!=EPCGExInputValueType::Constant", EditConditionHides))
-	FPCGAttributePropertyInputSelector IndexAttribute;
 };
 
 /**

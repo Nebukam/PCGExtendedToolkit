@@ -36,6 +36,13 @@ enum class EPCGExEffectorInfluenceShape : uint8
 	Sphere = 1 UMETA(DisplayName = "Sphere", Tooltip="Sphere which radius is defined by the bounds' extents size"),
 };
 
+UENUM()
+enum class EPCGExTensorStopConditionHandling : uint8
+{
+	Exclude = 0 UMETA(DisplayName = "Exclude", Tooltip="Ignore the stopping sample and don't add it to the path."),
+	Include = 1 UMETA(DisplayName = "Include", Tooltip="Include the stopping sample to the path.")
+};
+
 USTRUCT(BlueprintType)
 struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExTensorSamplingMutationsDetails
 {
@@ -135,13 +142,13 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExTensorConfigBase
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Potency", meta = (PCG_NotOverridable, EditCondition="bSupportAttributes", EditConditionHides, DisplayPriority=-1, HideEditConditionToggle))
 	EPCGExInputValueType PotencyInput = EPCGExInputValueType::Attribute;
 
+	/** Per-point Potency. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Potency", meta=(PCG_Overridable, DisplayName="Potency (Attr)", EditCondition = "bSupportAttributes && PotencyInput != EPCGExInputValueType::Constant", EditConditionHides, DisplayPriority=-1, HideEditConditionToggle))
+	FPCGAttributePropertyInputSelector PotencyAttribute;
+
 	/** Constant Potency. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Potency", meta=(PCG_Overridable, DisplayName="Potency", EditCondition = "PotencyInput == EPCGExInputValueType::Constant", EditConditionHides, DisplayPriority=-1))
 	double Potency = 1;
-
-	/** Per-point Potency. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Potency", meta=(PCG_Overridable, DisplayName="Potency", EditCondition = "bSupportAttributes && PotencyInput != EPCGExInputValueType::Constant", EditConditionHides, DisplayPriority=-1, HideEditConditionToggle))
-	FPCGAttributePropertyInputSelector PotencyAttribute;
 
 	/** Whether to use in-editor curve or an external asset. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Potency", meta=(PCG_NotOverridable, DisplayPriority=-1))
@@ -168,13 +175,13 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExTensorConfigBase
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Weighting", meta = (PCG_NotOverridable, EditCondition="bSupportAttributes", EditConditionHides, DisplayPriority=-1, HideEditConditionToggle))
 	EPCGExInputValueType WeightInput = EPCGExInputValueType::Constant;
 
+	/** Per-point internal Weight Attribute. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Weighting", meta=(PCG_Overridable, DisplayName="Weight (Attr)", EditCondition="bSupportAttributes && WeightInput != EPCGExInputValueType::Constant", EditConditionHides, DisplayPriority=-1, HideEditConditionToggle))
+	FPCGAttributePropertyInputSelector WeightAttribute;
+
 	/** Per-point internal Weight Constant. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Weighting", meta=(PCG_Overridable, DisplayName="Weight", EditCondition="WeightInput == EPCGExInputValueType::Constant", EditConditionHides, DisplayPriority=-1, ClampMin=0))
 	double Weight = 1;
-
-	/** Per-point internal Weight Attribute. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Weighting", meta=(PCG_Overridable, DisplayName="Weight", EditCondition="bSupportAttributes && WeightInput != EPCGExInputValueType::Constant", EditConditionHides, DisplayPriority=-1, HideEditConditionToggle))
-	FPCGAttributePropertyInputSelector WeightAttribute;
 
 	/** Whether to use in-editor curve or an external asset. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Weighting", meta=(PCG_NotOverridable, DisplayPriority=-1))

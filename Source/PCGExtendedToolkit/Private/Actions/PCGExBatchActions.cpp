@@ -50,7 +50,7 @@ bool FPCGExBatchActionsElement::Boot(FPCGExContext* InContext) const
 	PCGEX_MAKE_SHARED(ValidationInfos, PCGEx::FAttributesInfos)
 	for (const TObjectPtr<const UPCGExActionFactoryData>& Factory : Context->ActionsFactories)
 	{
-		if (!Factory->AppendAndValidate(ValidationInfos.Get(), Message))
+		if (!Factory->AppendAndValidate(ValidationInfos, Message))
 		{
 			PCGE_LOG(Error, GraphAndLog, FText::FromString(Message));
 			bIsBatchActionsValid = false;
