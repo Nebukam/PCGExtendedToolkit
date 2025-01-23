@@ -96,16 +96,17 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExAttributeSourceToTargetDetails
 
 	/** Attribute to read on input */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
-	FName Source = FName("SourceAttribute");
+	FName Source = NAME_None;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, InlineEditConditionToggle))
 	bool bOutputToDifferentName = false;
 
 	/** Attribute to write on output, if different from input */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bOutputToDifferentName"))
-	FName Target = FName("TargetAttribute");
+	FName Target = NAME_None;
 
 	bool ValidateNames(FPCGExContext* InContext) const;
+	FName GetOutputName() const;
 };
 
 USTRUCT(BlueprintType)
@@ -133,6 +134,101 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExAttributeSourceToTargetList
 
 namespace PCGEx
 {
+#pragma region Field helpers
+
+	static const TMap<FString, EPCGExTransformComponent> STRMAP_TRANSFORM_FIELD = {
+		{TEXT("POSITION"), EPCGExTransformComponent::Position},
+		{TEXT("POS"), EPCGExTransformComponent::Position},
+		{TEXT("ROTATION"), EPCGExTransformComponent::Rotation},
+		{TEXT("ROT"), EPCGExTransformComponent::Rotation},
+		{TEXT("ORIENT"), EPCGExTransformComponent::Rotation},
+		{TEXT("SCALE"), EPCGExTransformComponent::Scale},
+	};
+
+	static const TMap<FString, EPCGExSingleField> STRMAP_SINGLE_FIELD = {
+		{TEXT("X"), EPCGExSingleField::X},
+		{TEXT("R"), EPCGExSingleField::X},
+		{TEXT("ROLL"), EPCGExSingleField::X},
+		{TEXT("RX"), EPCGExSingleField::X},
+		{TEXT("Y"), EPCGExSingleField::Y},
+		{TEXT("G"), EPCGExSingleField::Y},
+		{TEXT("YAW"), EPCGExSingleField::Y},
+		{TEXT("RY"), EPCGExSingleField::Y},
+		{TEXT("Z"), EPCGExSingleField::Z},
+		{TEXT("B"), EPCGExSingleField::Z},
+		{TEXT("P"), EPCGExSingleField::Z},
+		{TEXT("PITCH"), EPCGExSingleField::Z},
+		{TEXT("RZ"), EPCGExSingleField::Z},
+		{TEXT("W"), EPCGExSingleField::W},
+		{TEXT("A"), EPCGExSingleField::W},
+		{TEXT("L"), EPCGExSingleField::Length},
+		{TEXT("LEN"), EPCGExSingleField::Length},
+		{TEXT("LENGTH"), EPCGExSingleField::Length},
+		{TEXT("SQUAREDLENGTH"), EPCGExSingleField::SquaredLength},
+		{TEXT("LENSQR"), EPCGExSingleField::SquaredLength}
+	};
+
+	static const TMap<FString, EPCGExAxis> STRMAP_AXIS = {
+		{TEXT("FORWARD"), EPCGExAxis::Forward},
+		{TEXT("FRONT"), EPCGExAxis::Forward},
+		{TEXT("BACKWARD"), EPCGExAxis::Backward},
+		{TEXT("BACK"), EPCGExAxis::Backward},
+		{TEXT("RIGHT"), EPCGExAxis::Right},
+		{TEXT("LEFT"), EPCGExAxis::Left},
+		{TEXT("UP"), EPCGExAxis::Up},
+		{TEXT("TOP"), EPCGExAxis::Up},
+		{TEXT("DOWN"), EPCGExAxis::Down},
+		{TEXT("BOTTOM"), EPCGExAxis::Down},
+	};
+
+	static bool GetComponentSelection(const TArray<FString>& Names, EPCGExTransformComponent& OutSelection)
+	{
+		if (Names.IsEmpty()) { return false; }
+		for (const FString& Name : Names)
+		{
+			if (const EPCGExTransformComponent* Selection = STRMAP_TRANSFORM_FIELD.Find(Name.ToUpper()))
+			{
+				OutSelection = *Selection;
+				return true;
+			}
+		}
+		return false;
+	}
+
+	static bool GetFieldSelection(const TArray<FString>& Names, EPCGExSingleField& OutSelection)
+	{
+		if (Names.IsEmpty()) { return false; }
+		const FString& STR = Names.Num() > 1 ? Names[1].ToUpper() : Names[0].ToUpper();
+		if (const EPCGExSingleField* Selection = STRMAP_SINGLE_FIELD.Find(STR))
+		{
+			OutSelection = *Selection;
+			return true;
+		}
+		if (STR.Len() <= 0) { return false; }
+		if (const EPCGExSingleField* Selection = STRMAP_SINGLE_FIELD.Find(FString::Printf(TEXT("%c"), STR[0]).ToUpper()))
+		{
+			OutSelection = *Selection;
+			return true;
+		}
+		return false;
+	}
+
+	static bool GetAxisSelection(const TArray<FString>& Names, EPCGExAxis& OutSelection)
+	{
+		if (Names.IsEmpty()) { return false; }
+		for (const FString& Name : Names)
+		{
+			if (const EPCGExAxis* Selection = STRMAP_AXIS.Find(Name.ToUpper()))
+			{
+				OutSelection = *Selection;
+				return true;
+			}
+		}
+		return false;
+	}
+
+#pragma endregion
+
 	static FPCGAttributePropertyInputSelector CopyAndFixLast(const FPCGAttributePropertyInputSelector& InSelector, const UPCGData* InData, TArray<FString>& OutExtraNames)
 	{
 		//Copy, fix, and clear ExtraNames to support PCGEx custom selectors
@@ -922,20 +1018,22 @@ namespace PCGEx
 			}
 			else if constexpr (std::is_same_v<T, int32> || std::is_same_v<T, int64> || std::is_same_v<T, float> || std::is_same_v<T, double>)
 			{
+				
 				switch (Field)
 				{
 				default:
 				case EPCGExSingleField::X:
-					return Value.X > 0;
+					return Value.X;
 				case EPCGExSingleField::Y:
-					return Value.Y > 0;
+					return Value.Y;
 				case EPCGExSingleField::Z:
-					return Value.Z > 0;
+					return Value.Z;
 				case EPCGExSingleField::W:
-					return Value.W > 0;
+					return Value.W;
 				case EPCGExSingleField::Length:
+					return FVector(Value).Length();
 				case EPCGExSingleField::SquaredLength:
-					return FVector(Value).SquaredLength() > 0;
+					return FVector(Value).SquaredLength();
 				}
 			}
 			else if constexpr (std::is_same_v<T, FVector2D>) { return FVector2D(Value.X, Value.Y); }

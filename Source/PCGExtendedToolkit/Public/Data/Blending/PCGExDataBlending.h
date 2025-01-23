@@ -96,6 +96,21 @@ enum class EPCGExDataBlendingType : uint8
 };
 
 USTRUCT(BlueprintType)
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExAttributeBlendToTargetDetails : public FPCGExAttributeSourceToTargetDetails
+{
+	GENERATED_BODY()
+
+	FPCGExAttributeBlendToTargetDetails()
+		: FPCGExAttributeSourceToTargetDetails()
+	{
+	}
+
+	/** BlendMode */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayAfter="Source"))
+	EPCGExDataBlendingType Blending = EPCGExDataBlendingType::None;
+};
+
+USTRUCT(BlueprintType)
 struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPointPropertyBlendingOverrides
 {
 	GENERATED_BODY()

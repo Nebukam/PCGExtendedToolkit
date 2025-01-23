@@ -90,7 +90,7 @@ UPCGExNeighborSampleOperation* UPCGExNeighborSamplerFactoryAttribute::CreateOper
 {
 	UPCGExNeighborSampleAttribute* NewOperation = InContext->ManagedObjects->New<UPCGExNeighborSampleAttribute>();
 
-	PCGEX_SAMPLER_CREATE
+	PCGEX_SAMPLER_CREATE_OPERATION
 
 	NewOperation->SourceAttributes = Config.SourceAttributes;
 	NewOperation->Blending = Config.Blending;

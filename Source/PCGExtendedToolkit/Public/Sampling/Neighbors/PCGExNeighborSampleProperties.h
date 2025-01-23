@@ -19,6 +19,22 @@
 
 ///
 
+
+USTRUCT(BlueprintType)
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPropertiesSamplerConfigBase
+{
+	GENERATED_BODY()
+
+	FPCGExPropertiesSamplerConfigBase()
+	{
+	}
+
+	/** Properties blending */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	FPCGExPropertiesBlendingDetails Blending = FPCGExPropertiesBlendingDetails(EPCGExDataBlendingType::None);
+};
+
+
 /**
  * 
  */
@@ -40,21 +56,21 @@ public:
 		PropertiesBlender->PrepareBlending(A, VtxDataFacade->Source->GetInPoint(TargetNode.PointIndex));
 	}
 
-	FORCEINLINE virtual void SampleNeighborNode(const PCGExCluster::FNode& TargetNode, const PCGExGraph::FLink Lk, const double Weight) const override
+	FORCEINLINE virtual void SampleNeighborNode(const PCGExCluster::FNode& TargetNode, const PCGExGraph::FLink Lk, const double Weight) override
 	{
 		FPCGPoint& A = VtxDataFacade->Source->GetMutablePoint(TargetNode.PointIndex);
 		const FPCGPoint& B = VtxDataFacade->Source->GetInPoint(Cluster->GetNode(Lk)->PointIndex);
 		PropertiesBlender->Blend(A, B, A, Weight);
 	}
 
-	FORCEINLINE virtual void SampleNeighborEdge(const PCGExCluster::FNode& TargetNode, const PCGExGraph::FLink Lk, const double Weight) const override
+	FORCEINLINE virtual void SampleNeighborEdge(const PCGExCluster::FNode& TargetNode, const PCGExGraph::FLink Lk, const double Weight) override
 	{
 		FPCGPoint& A = VtxDataFacade->Source->GetMutablePoint(TargetNode.PointIndex);
 		const FPCGPoint& B = VtxDataFacade->Source->GetInPoint(Cluster->GetEdge(Lk)->PointIndex);
 		PropertiesBlender->Blend(A, B, A, Weight);
 	}
 
-	FORCEINLINE virtual void FinalizeNode(const PCGExCluster::FNode& TargetNode, const int32 Count, const double TotalWeight) const override
+	FORCEINLINE virtual void FinalizeNode(const PCGExCluster::FNode& TargetNode, const int32 Count, const double TotalWeight) override
 	{
 		FPCGPoint& A = VtxDataFacade->Source->GetMutablePoint(TargetNode.PointIndex);
 		PropertiesBlender->CompleteBlending(A, Count, TotalWeight);
@@ -66,20 +82,6 @@ protected:
 	TUniquePtr<PCGExDataBlending::FPropertiesBlender> PropertiesBlender;
 };
 
-
-USTRUCT(BlueprintType)
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPropertiesSamplerConfigBase
-{
-	GENERATED_BODY()
-
-	FPCGExPropertiesSamplerConfigBase()
-	{
-	}
-
-	/** Properties blending */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
-	FPCGExPropertiesBlendingDetails Blending = FPCGExPropertiesBlendingDetails(EPCGExDataBlendingType::None);
-};
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")
 class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExNeighborSamplerFactoryProperties : public UPCGExNeighborSamplerFactoryData

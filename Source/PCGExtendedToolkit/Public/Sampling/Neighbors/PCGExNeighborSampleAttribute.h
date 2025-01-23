@@ -42,19 +42,19 @@ public:
 		Blender->PrepareForBlending(TargetNode.PointIndex);
 	}
 
-	FORCEINLINE virtual void SampleNeighborNode(const PCGExCluster::FNode& TargetNode, const PCGExGraph::FLink Lk, const double Weight) const override
+	FORCEINLINE virtual void SampleNeighborNode(const PCGExCluster::FNode& TargetNode, const PCGExGraph::FLink Lk, const double Weight) override
 	{
 		const int32 PrimaryIndex = TargetNode.PointIndex;
 		Blender->Blend(PrimaryIndex, Cluster->GetNode(Lk)->PointIndex, PrimaryIndex, Weight);
 	}
 
-	FORCEINLINE virtual void SampleNeighborEdge(const PCGExCluster::FNode& TargetNode, const PCGExGraph::FLink Lk, const double Weight) const override
+	FORCEINLINE virtual void SampleNeighborEdge(const PCGExCluster::FNode& TargetNode, const PCGExGraph::FLink Lk, const double Weight) override
 	{
 		const int32 PrimaryIndex = TargetNode.PointIndex;
 		Blender->Blend(PrimaryIndex, Cluster->GetEdge(Lk)->PointIndex, PrimaryIndex, Weight);
 	}
 
-	FORCEINLINE virtual void FinalizeNode(const PCGExCluster::FNode& TargetNode, const int32 Count, const double TotalWeight) const override
+	FORCEINLINE virtual void FinalizeNode(const PCGExCluster::FNode& TargetNode, const int32 Count, const double TotalWeight) override
 	{
 		const int32 PrimaryIndex = TargetNode.PointIndex;
 		Blender->CompleteBlending(PrimaryIndex, Count, TotalWeight);

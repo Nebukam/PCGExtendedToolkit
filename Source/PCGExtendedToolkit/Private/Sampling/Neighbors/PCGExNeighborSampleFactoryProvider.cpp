@@ -27,10 +27,10 @@ void UPCGExNeighborSampleOperation::PrepareForCluster(FPCGExContext* InContext, 
 	VtxDataFacade = InVtxDataFacade;
 	EdgeDataFacade = InEdgeDataFacade;
 
-	if (!PointFilterFactories.IsEmpty())
+	if (!VtxFilterFactories.IsEmpty())
 	{
 		PointFilters = MakeShared<PCGExClusterFilter::FManager>(InCluster, InVtxDataFacade, InEdgeDataFacade);
-		PointFilters->Init(InContext, PointFilterFactories);
+		PointFilters->Init(InContext, VtxFilterFactories);
 	}
 
 	if (!ValueFilterFactories.IsEmpty())
@@ -49,7 +49,7 @@ TSharedRef<PCGExData::FFacade> UPCGExNeighborSampleOperation::GetSourceDataFacad
 	return SamplingConfig.NeighborSource == EPCGExClusterComponentSource::Vtx ? VtxDataFacade.ToSharedRef() : EdgeDataFacade.ToSharedRef();
 }
 
-void UPCGExNeighborSampleOperation::ProcessNode(const int32 NodeIndex) const
+void UPCGExNeighborSampleOperation::ProcessNode(const int32 NodeIndex)
 {
 	const PCGExCluster::FNode& Node = (*Cluster->Nodes)[NodeIndex];
 
@@ -164,7 +164,7 @@ FString UPCGExNeighborSampleProviderSettings::GetDisplayName() const
 UPCGExNeighborSampleOperation* UPCGExNeighborSamplerFactoryData::CreateOperation(FPCGExContext* InContext) const
 {
 	UPCGExNeighborSampleOperation* NewOperation = InContext->ManagedObjects->New<UPCGExNeighborSampleOperation>();
-	PCGEX_SAMPLER_CREATE
+	PCGEX_SAMPLER_CREATE_OPERATION
 	return NewOperation;
 }
 
@@ -177,9 +177,31 @@ void UPCGExNeighborSamplerFactoryData::RegisterAssetDependencies(FPCGExContext* 
 TArray<FPCGPinProperties> UPCGExNeighborSampleProviderSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
-	PCGEX_PIN_FACTORIES(PCGEx::SourcePointFilters, "Filters used to check which node will be processed by the sampler or not.", Advanced, {})
+	bool bIsRequired = false;
+	if (SupportsVtxFilters(bIsRequired))
+	{
+		if (bIsRequired) { PCGEX_PIN_FACTORIES(PCGExPointFilter::SourceVtxFiltersLabel, "Filters applied to vtx", Required, {}) }
+		else { PCGEX_PIN_FACTORIES(PCGExPointFilter::SourceVtxFiltersLabel, "Filters applied to vtx", Advanced, {}) }
+	}
+	if (SupportsEdgeFilters(bIsRequired))
+	{
+		if (bIsRequired) { PCGEX_PIN_FACTORIES(PCGExPointFilter::SourceEdgeFiltersLabel, "Filters applied to edges", Required, {}) }
+		else { PCGEX_PIN_FACTORIES(PCGExPointFilter::SourceEdgeFiltersLabel, "Filters applied to edges", Advanced, {}) }
+	}
 	PCGEX_PIN_FACTORIES(PCGEx::SourceUseValueIfFilters, "Filters used to check if a node can be used as a value source or not.", Advanced, {})
 	return PinProperties;
+}
+
+bool UPCGExNeighborSampleProviderSettings::SupportsVtxFilters(bool& bIsRequired) const
+{
+	bIsRequired = false;
+	return true;
+}
+
+bool UPCGExNeighborSampleProviderSettings::SupportsEdgeFilters(bool& bIsRequired) const
+{
+	bIsRequired = false;
+	return false;
 }
 
 UPCGExFactoryData* UPCGExNeighborSampleProviderSettings::CreateFactory(FPCGExContext* InContext, UPCGExFactoryData* InFactory) const
@@ -190,8 +212,11 @@ UPCGExFactoryData* UPCGExNeighborSampleProviderSettings::CreateFactory(FPCGExCon
 	SamplerFactory->SamplingConfig = SamplingConfig;
 
 	GetInputFactories(
-		InContext, PCGEx::SourcePointFilters, SamplerFactory->PointFilterFactories,
+		InContext, PCGExPointFilter::SourceVtxFiltersLabel, SamplerFactory->VtxFilterFactories,
 		PCGExFactories::ClusterNodeFilters, false);
+	GetInputFactories(
+		InContext, PCGExPointFilter::SourceVtxFiltersLabel, SamplerFactory->EdgesFilterFactories,
+		PCGExFactories::ClusterEdgeFilters, false);
 	GetInputFactories(
 		InContext, PCGEx::SourceUseValueIfFilters, SamplerFactory->ValueFilterFactories,
 		PCGExFactories::ClusterNodeFilters, false);

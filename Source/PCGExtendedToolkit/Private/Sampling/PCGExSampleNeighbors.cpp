@@ -92,7 +92,10 @@ namespace PCGExSampleNeighbors
 		}
 
 		Cluster->ComputeEdgeLengths();
-		StartParallelLoopForRange(NumNodes);
+		
+		if (!OpsWithValueTest.IsEmpty()) { StartParallelLoopForRange(NumNodes); }
+		else { StartParallelLoopForNodes(); }
+
 
 		return true;
 	}
@@ -102,14 +105,14 @@ namespace PCGExSampleNeighbors
 		for (const UPCGExNeighborSampleOperation* Op : OpsWithValueTest) { Op->ValueFilters->Results[Iteration] = Op->ValueFilters->Test(*Cluster->GetNode(Iteration)); }
 	}
 
-	void FProcessor::ProcessSingleNode(const int32 Index, PCGExCluster::FNode& Node, const PCGExMT::FScope& Scope)
-	{
-		for (const UPCGExNeighborSampleOperation* Op : SamplingOperations) { Op->ProcessNode(Index); }
-	}
-
-	void FProcessor::CompleteWork()
+	void FProcessor::OnRangeProcessingComplete()
 	{
 		StartParallelLoopForNodes();
+	}
+
+	void FProcessor::ProcessSingleNode(const int32 Index, PCGExCluster::FNode& Node, const PCGExMT::FScope& Scope)
+	{
+		for (UPCGExNeighborSampleOperation* Op : SamplingOperations) { Op->ProcessNode(Index); }
 	}
 
 	void FProcessor::Write()

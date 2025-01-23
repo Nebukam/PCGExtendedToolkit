@@ -38,6 +38,11 @@ bool FPCGExAttributeSourceToTargetDetails::ValidateNames(FPCGExContext* InContex
 	return true;
 }
 
+FName FPCGExAttributeSourceToTargetDetails::GetOutputName() const
+{
+	return bOutputToDifferentName ? Target : Source;
+}
+
 bool FPCGExAttributeSourceToTargetList::ValidateNames(FPCGExContext* InContext) const
 {
 	for (const FPCGExAttributeSourceToTargetDetails& Entry : Attributes) { if (!Entry.ValidateNames(InContext)) { return false; } }
