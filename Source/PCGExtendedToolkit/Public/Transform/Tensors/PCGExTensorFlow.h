@@ -27,13 +27,13 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExTensorFlowConfig : public FPCGExTensorCo
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	EPCGExInputValueType DirectionInput = EPCGExInputValueType::Constant;
 
+	/** Fetch the direction from a local attribute.*/
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName="Direction (Attr)", EditCondition="DirectionInput != EPCGExInputValueType::Constant", EditConditionHides))
+	FPCGAttributePropertyInputSelector DirectionAttribute;
+
 	/** Direction axis, read from the input points' transform.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable, DisplayName="Direction", EditCondition="DirectionInput == EPCGExInputValueType::Constant", EditConditionHides))
 	EPCGExAxis DirectionConstant = EPCGExAxis::Forward;
-
-	/** Fetch the direction from a local attribute.*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName="Direction", EditCondition="DirectionInput != EPCGExInputValueType::Constant", EditConditionHides))
-	FPCGAttributePropertyInputSelector DirectionAttribute;
 
 	/** Whether the direction is absolute or should be transformed by the owner' transform .*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="DirectionInput != EPCGExInputValueType::Constant", EditConditionHides))

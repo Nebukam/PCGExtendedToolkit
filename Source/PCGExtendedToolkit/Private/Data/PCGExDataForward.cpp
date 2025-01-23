@@ -159,7 +159,7 @@ namespace PCGExData
 					Identity.UnderlyingType, [&](auto DummyValue)
 					{
 						using T = decltype(DummyValue);
-						// 'template' spec required for clang on mac, not sure why.
+						// 'template' spec required for clang on mac, and rider keeps removing it without the comment below.
 						// ReSharper disable once CppRedundantTemplateKeyword
 						const FPCGMetadataAttribute<T>* SourceAtt = SourceDataFacade->GetIn()->Metadata->template GetConstTypedAttribute<T>(Identity.Name);
 						if (!SourceAtt) { return; }
@@ -182,7 +182,7 @@ namespace PCGExData
 				{
 					using T = decltype(DummyValue);
 
-					// 'template' spec required for clang on mac, not sure why.
+					// 'template' spec required for clang on mac, and rider keeps removing it without the comment below.
 					// ReSharper disable once CppRedundantTemplateKeyword
 					const FPCGMetadataAttribute<T>* SourceAtt = SourceDataFacade->GetIn()->Metadata->template GetConstTypedAttribute<T>(Identity.Name);
 					if (!SourceAtt) { return; }
@@ -207,7 +207,7 @@ namespace PCGExData
 				{
 					using T = decltype(DummyValue);
 
-					// 'template' spec required for clang on mac, not sure why.
+					// 'template' spec required for clang on mac, and rider keeps removing it without the comment below.
 					// ReSharper disable once CppRedundantTemplateKeyword
 					const FPCGMetadataAttribute<T>* SourceAtt = SourceDataFacade->GetIn()->Metadata->template GetConstTypedAttribute<T>(Identity.Name);
 					if (!SourceAtt) { return; }

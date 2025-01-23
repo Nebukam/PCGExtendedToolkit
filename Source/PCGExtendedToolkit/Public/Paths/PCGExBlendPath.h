@@ -56,13 +56,13 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="BlendOver==EPCGExBlendOver::Fixed", EditConditionHides))
 	EPCGExInputValueType LerpInput = EPCGExInputValueType::Constant;
 
+	/** Attribute to read the direction from */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Lerp (Attr)", EditCondition="BlendOver==EPCGExBlendOver::Fixed && LerpInput!=EPCGExInputValueType::Constant", EditConditionHides))
+	FPCGAttributePropertyInputSelector LerpAttribute;
+
 	/** Constant direction */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Lerp", ClampMin=0, EditCondition="BlendOver==EPCGExBlendOver::Fixed && LerpInput==EPCGExInputValueType::Constant", EditConditionHides))
 	double LerpConstant = 0.5;
-
-	/** Attribute to read the direction from */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Lerp", EditCondition="BlendOver==EPCGExBlendOver::Fixed && LerpInput!=EPCGExInputValueType::Constant", EditConditionHides))
-	FPCGAttributePropertyInputSelector LerpAttribute;
 
 	/** Blending settings used to smooth attributes.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))

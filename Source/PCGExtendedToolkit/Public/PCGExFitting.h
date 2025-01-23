@@ -147,7 +147,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExSingleJustifyDetails
 	EPCGExInputValueType FromInput = EPCGExInputValueType::Constant;
 
 	/**  Value is expected to be 0-1 normalized, 0 being bounds min and 1 being bounds min + size. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName="From", EditCondition="From==EPCGExJustifyFrom::Custom && FromInput!=EPCGExInputValueType::Constant", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName="From (Attr)", EditCondition="From==EPCGExJustifyFrom::Custom && FromInput!=EPCGExInputValueType::Constant", EditConditionHides))
 	FPCGAttributePropertyInputSelector FromSourceAttribute;
 
 	/**  Value is expected to be 0-1 normalized, 0 being bounds min and 1 being bounds min + size. */
@@ -166,7 +166,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExSingleJustifyDetails
 	EPCGExInputValueType ToInput = EPCGExInputValueType::Constant;
 
 	/**  Value is expected to be 0-1 normalized, 0 being bounds min and 1 being bounds min + size. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName="To", EditCondition="To==EPCGExJustifyTo::Custom && ToInput!=EPCGExInputValueType::Constant", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName="To (Attr)", EditCondition="To==EPCGExJustifyTo::Custom && ToInput!=EPCGExInputValueType::Constant", EditConditionHides))
 	FPCGAttributePropertyInputSelector ToSourceAttribute;
 
 	/**  Value is expected to be 0-1 normalized, 0 being bounds min and 1 being bounds min + size. */

@@ -11,6 +11,20 @@
 
 PCGExData::EIOInit UPCGExAttributeRemapSettings::GetMainOutputInitMode() const { return PCGExData::EIOInit::Duplicate; }
 
+#if WITH_EDITOR
+FString UPCGExAttributeRemapSettings::GetDisplayName() const
+{
+	if (Attributes.bOutputToDifferentName)
+	{
+		return Attributes.Source.ToString() + " → " + Attributes.Target.ToString();
+	}
+	else
+	{
+		return Attributes.Source.ToString();
+	}
+}
+#endif
+
 void FPCGExAttributeRemapContext::RegisterAssetDependencies()
 {
 	FPCGExPointsProcessorContext::RegisterAssetDependencies();
@@ -19,14 +33,34 @@ void FPCGExAttributeRemapContext::RegisterAssetDependencies()
 
 PCGEX_INITIALIZE_ELEMENT(AttributeRemap)
 
+void UPCGExAttributeRemapSettings::PostLoad()
+{
+	Super::PostLoad();
+#if WITH_EDITOR
+	if (SourceAttributeName_DEPRECATED != NAME_None)
+	{
+		Attributes.Source = SourceAttributeName_DEPRECATED;
+		SourceAttributeName_DEPRECATED = NAME_None;
+	}
+
+	if (TargetAttributeName_DEPRECATED != NAME_None)
+	{
+		Attributes.Target = TargetAttributeName_DEPRECATED;
+		TargetAttributeName_DEPRECATED = NAME_None;
+
+		Attributes.bOutputToDifferentName = (SourceAttributeName_DEPRECATED != TargetAttributeName_DEPRECATED);
+	}
+#endif
+}
+
 bool FPCGExAttributeRemapElement::Boot(FPCGExContext* InContext) const
 {
 	if (!FPCGExPointsProcessorElement::Boot(InContext)) { return false; }
 
 	PCGEX_CONTEXT_AND_SETTINGS(AttributeRemap)
 
-	PCGEX_VALIDATE_NAME_CONSUMABLE(Settings->SourceAttributeName)
-	PCGEX_VALIDATE_NAME(Settings->TargetAttributeName)
+	PCGEX_VALIDATE_NAME_CONSUMABLE(Settings->Attributes.Source)
+	if (Settings->Attributes.bOutputToDifferentName) { PCGEX_VALIDATE_NAME(Settings->Attributes.Target) }
 
 	Context->RemapSettings[0] = Settings->BaseRemap;
 	Context->RemapSettings[1] = Settings->Component2RemapOverride;
@@ -87,7 +121,7 @@ namespace PCGExAttributeRemap
 
 
 		const TSharedPtr<PCGEx::FAttributesInfos> Infos = PCGEx::FAttributesInfos::Get(PointDataFacade->GetIn()->Metadata);
-		const PCGEx::FAttributeIdentity* Identity = Infos->Find(Settings->SourceAttributeName);
+		const PCGEx::FAttributeIdentity* Identity = Infos->Find(Settings->Attributes.Source);
 
 		if (!Identity)
 		{
@@ -142,7 +176,7 @@ namespace PCGExAttributeRemap
 			UnderlyingType, [&](auto DummyValue)
 			{
 				using RawT = decltype(DummyValue);
-				CacheWriter = PointDataFacade->GetWritable<RawT>(Settings->TargetAttributeName, PCGExData::EBufferInit::New);
+				CacheWriter = PointDataFacade->GetWritable<RawT>(Settings->Attributes.GetOutputName(), PCGExData::EBufferInit::New);
 				CacheReader = PointDataFacade->GetScopedReadable<RawT>(Identity->Name);
 			});
 

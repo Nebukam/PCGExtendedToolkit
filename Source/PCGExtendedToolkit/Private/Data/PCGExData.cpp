@@ -4,10 +4,21 @@
 #include "Data/PCGExData.h"
 
 #include "PCGExPointsMT.h"
+#include "ScreenPass.h"
 
 namespace PCGExData
 {
 #pragma region Pools & cache
+
+	void FBufferBase::SetTargetOutputName(const FName InName)
+	{
+		TargetOutputName = InName;
+	}
+
+	bool FBufferBase::OutputsToDifferentName() const
+	{
+		return false;
+	}
 
 	TSharedPtr<FBufferBase> FFacade::FindBuffer_Unsafe(const uint64 UID)
 	{
@@ -39,14 +50,14 @@ namespace PCGExData
 		for (const TSharedPtr<FBufferBase>& Buffer : Buffers)
 		{
 			if (!Buffer->IsWritable()) { continue; }
-			if (Buffer->OutAttribute && Buffer->OutAttribute->Name == InName) { return Buffer; }
+			if (Buffer->FullName == InName) { return Buffer; }
 		}
 		return nullptr;
 	}
 
 #pragma endregion
 
-#pragma region FIdxUnion
+#pragma region FFacade
 
 	void FFacade::MarkCurrentBuffersReadAsComplete()
 	{
@@ -63,16 +74,19 @@ namespace PCGExData
 
 		//UE_LOG(LogTemp, Warning, TEXT("{%lld} Facade -> Write"), AsyncManager->Context->GetInputSettings<UPCGSettings>()->UID)
 
-		if (bEnsureValidKeys) { Source->GetOutKeys(true); }
-
+		if (ValidateOutputsBeforeWriting())
 		{
-			FWriteScopeLock WriteScopeLock(BufferLock);
+			if (bEnsureValidKeys) { Source->GetOutKeys(true); }
 
-			for (int i = 0; i < Buffers.Num(); i++)
 			{
-				const TSharedPtr<FBufferBase> Buffer = Buffers[i];
-				if (!Buffer.IsValid() || !Buffer->IsWritable()) { continue; }
-				WriteBuffer(AsyncManager, Buffer, false);
+				FWriteScopeLock WriteScopeLock(BufferLock);
+
+				for (int i = 0; i < Buffers.Num(); i++)
+				{
+					const TSharedPtr<FBufferBase> Buffer = Buffers[i];
+					if (!Buffer.IsValid() || !Buffer->IsWritable() || !Buffer->IsEnabled()) { continue; }
+					WriteBuffer(AsyncManager, Buffer, false);
+				}
 			}
 		}
 
@@ -83,7 +97,7 @@ namespace PCGExData
 	{
 		// !!! Requires manual flush !!!
 
-		if (!TaskGroup)
+		if (!TaskGroup || !ValidateOutputsBeforeWriting())
 		{
 			Flush();
 			return -1;
@@ -95,13 +109,13 @@ namespace PCGExData
 		{
 			FWriteScopeLock WriteScopeLock(BufferLock);
 
-			for (const TSharedPtr<FBufferBase>& Buffer : Buffers)
+			for (int i = 0; i < Buffers.Num(); i++)
 			{
-				if (Buffer->IsWritable())
-				{
-					TaskGroup->AddSimpleCallback([BufferRef = Buffer]() { BufferRef->Write(); });
-					WritableCount++;
-				}
+				const TSharedPtr<FBufferBase> Buffer = Buffers[i];
+				if (!Buffer.IsValid() || !Buffer->IsWritable() || !Buffer->IsEnabled()) { continue; }
+
+				TaskGroup->AddSimpleCallback([BufferRef = Buffer]() { BufferRef->Write(); });
+				WritableCount++;
 			}
 		}
 
@@ -110,6 +124,12 @@ namespace PCGExData
 
 	void FFacade::WriteBuffers(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager, PCGExMT::FCompletionCallback&& Callback)
 	{
+		if (!ValidateOutputsBeforeWriting())
+		{
+			Flush();
+			return;
+		}
+
 		PCGEX_ASYNC_GROUP_CHKD_VOID(AsyncManager, WriteBuffersWithCallback);
 		WriteBuffersWithCallback->OnCompleteCallback =
 			[PCGEX_ASYNC_THIS_CAPTURE, Callback]()
@@ -128,6 +148,59 @@ namespace PCGExData
 
 		WriteBuffersWithCallback->StartSimpleCallbacks();
 	}
+
+	bool FFacade::ValidateOutputsBeforeWriting() const
+	{
+		FPCGExContext* Context = Source->GetContext();
+
+		// TODO : First check that no writable attempts to write to the same output twice
+		// TODO : Delete writables whose output that have
+
+		{
+			FWriteScopeLock WriteScopeLock(BufferLock);
+
+			TSet<FName> UniqueOutputs;
+			//TSet<FName> DeprecatedOutputs;
+
+			for (int i = 0; i < Buffers.Num(); i++)
+			{
+				const TSharedPtr<FBufferBase> Buffer = Buffers[i];
+				if (!Buffer.IsValid() || !Buffer->IsWritable() || !Buffer->IsEnabled()) { continue; }
+
+				PCGEx::FAttributeIdentity Identity = Buffer->GetTargetOutputIdentity();
+				bool bAlreadySet = false;
+				UniqueOutputs.Add(Identity.Name, &bAlreadySet);
+
+				if (bAlreadySet)
+				{
+					PCGE_LOG_C(Error, GraphAndLog, Context, FText::Format(FTEXT("Attribute \"{0}\" is used at target output at least twice by different sources."), FText::FromName(Identity.Name)));
+					return false;
+				}
+
+				if (Buffer->OutputsToDifferentName())
+				{
+					// Get rid of new attributes that are being redirected at the time of writing
+					// This is not elegant, but it's while waiting for a proper refactor
+
+					if (Buffer->bIsNewOutput && Buffer->OutAttribute)
+					{
+						// Note : there will be a problem if an output an attribute to a different name a different type than the original one
+						// i.e, From@A<double>, To@B<FVector>
+						// Although this should never be an issue due to templating
+						//DeprecatedOutputs.Add(Buffer->OutAttribute->Name);
+						Source->DeleteAttribute(Buffer->OutAttribute->Name);
+					}
+				}
+			}
+
+			// Make sure we don't deprecate any output that will be written to ?
+			// UniqueOutputs > DeprecatedOutputs
+		}
+
+		return true;
+	}
+
+#pragma endregion
 
 	bool FReadableBufferConfig::Validate(FPCGExContext* InContext, const TSharedRef<FFacade>& InFacade) const
 	{
@@ -262,6 +335,8 @@ namespace PCGExData
 		if (TSharedPtr<FFacade> InternalFacade = InternalDataFacadePtr.Pin()) { InternalFacade->MarkCurrentBuffersReadAsComplete(); }
 		if (OnCompleteCallback) { OnCompleteCallback(); }
 	}
+
+#pragma region Union Data
 
 	void FUnionData::ComputeWeights(
 		const TArray<TSharedPtr<FFacade>>& Sources, const TMap<uint32, int32>& SourcesIdx, const FPCGPoint& Target,

@@ -46,13 +46,13 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExAttributeBlendConfig
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bRequiresWeight", EditConditionHides, HideEditConditionToggle))
 	EPCGExInputValueType WeightInput = EPCGExInputValueType::Constant;
 
+	/** Attribute to read weight value from. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Weight (Attr)", EditCondition="bRequiresWeight && WeightInput!=EPCGExInputValueType::Constant", EditConditionHides, HideEditConditionToggle))
+	FPCGAttributePropertyInputSelector WeightAttribute;
+
 	/** Constant weight value. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Weight", EditCondition="bRequiresWeight && WeightInput==EPCGExInputValueType::Constant", EditConditionHides, HideEditConditionToggle))
 	double Weight = 0.5;
-
-	/** Attribute to read weight value from. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Weight", EditCondition="bRequiresWeight && WeightInput!=EPCGExInputValueType::Constant", EditConditionHides, HideEditConditionToggle))
-	FPCGAttributePropertyInputSelector WeightAttribute;
 
 	/** Whether to use in-editor curve or an external asset. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable, EditCondition="bRequiresWeight", EditConditionHides, HideEditConditionToggle))
