@@ -50,13 +50,13 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExShrinkPathEndpointDistanceDetails
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	EPCGExInputValueType AmountInput = EPCGExInputValueType::Constant;
 
+	/** Distance or count */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName="Distance (Attr)", EditCondition="AmountInput!=EPCGExInputValueType::Constant", EditConditionHides))
+	FPCGAttributePropertyInputSelector DistanceAttribute;
+
 	/** TBD */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName="Distance", EditCondition="AmountInput==EPCGExInputValueType::Constant", EditConditionHides))
 	double Distance = 10;
-
-	/** Distance or count */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName="Distance", EditCondition="AmountInput!=EPCGExInputValueType::Constant", EditConditionHides))
-	FPCGAttributePropertyInputSelector DistanceAttribute;
 
 	/** TBD */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
@@ -78,13 +78,13 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExShrinkPathEndpointCountDetails
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	EPCGExInputValueType ValueSource = EPCGExInputValueType::Constant;
 
-	/** TBD */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="ValueSource==EPCGExInputValueType::Constant", EditConditionHides, ClampMin=1))
-	int32 Count = 10;
-
 	/** Distance or count */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="ValueSource!=EPCGExInputValueType::Constant", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName="Count (Attr)", EditCondition="ValueSource!=EPCGExInputValueType::Constant", EditConditionHides))
 	FPCGAttributePropertyInputSelector CountAttribute;
+
+	/** TBD */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName="Count", EditCondition="ValueSource==EPCGExInputValueType::Constant", EditConditionHides, ClampMin=1))
+	int32 Count = 10;
 
 	bool SanityCheck(const FPCGContext* Context) const
 	{
@@ -116,7 +116,7 @@ protected:
 	//~Begin UPCGExPointsProcessorSettings
 public:
 	virtual PCGExData::EIOInit GetMainOutputInitMode() const override;
-	PCGEX_NODE_POINT_FILTER(FName("Stop Conditions"), "", PCGExFactories::PointFilters, false)
+	PCGEX_NODE_POINT_FILTER(PCGExPointFilter::SourceStopConditionLabel, "", PCGExFactories::PointFilters, false)
 	//~End UPCGExPointsProcessorSettings
 
 	/** TBD */

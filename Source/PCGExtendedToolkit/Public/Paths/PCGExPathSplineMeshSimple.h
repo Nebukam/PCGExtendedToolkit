@@ -70,7 +70,7 @@ public:
 	EPCGExInputValueType StartOffsetInput = EPCGExInputValueType::Constant;
 
 	/** Start Offset Attribute (Vector 2 expected)*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Start Offset", EditCondition="StartOffsetInput!=EPCGExInputValueType::Constant", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Start Offset (Attr)", EditCondition="StartOffsetInput!=EPCGExInputValueType::Constant", EditConditionHides))
 	FName StartOffsetAttribute = FName("StartOffset");
 
 	/** Start Offset Constant */
@@ -82,7 +82,7 @@ public:
 	EPCGExInputValueType EndOffsetInput = EPCGExInputValueType::Constant;
 
 	/** End Offset Attribute (Vector 2 expected)*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="End Offset", EditCondition="EndOffsetInput!=EPCGExInputValueType::Constant", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="End Offset (Attr)", EditCondition="EndOffsetInput!=EPCGExInputValueType::Constant", EditConditionHides))
 	FName EndOffsetAttribute = FName("EndOffset");
 
 	/** End Offset Constant */

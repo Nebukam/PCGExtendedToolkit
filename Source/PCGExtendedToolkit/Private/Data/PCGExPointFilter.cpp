@@ -70,6 +70,12 @@ namespace PCGExPointFilter
 		return true;
 	}
 
+	bool FManager::Test(const FPCGPoint& Point)
+	{
+		for (const TSharedPtr<FFilter>& Handler : ManagedFilters) { if (!Handler->Test(Point)) { return false; } }
+		return true;
+	}
+
 	bool FManager::Test(const PCGExCluster::FNode& Node)
 	{
 		for (const TSharedPtr<FFilter>& Handler : ManagedFilters) { if (!Handler->Test(Node)) { return false; } }

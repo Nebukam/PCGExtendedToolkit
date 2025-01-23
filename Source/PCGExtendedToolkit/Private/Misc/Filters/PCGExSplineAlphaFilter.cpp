@@ -8,7 +8,7 @@
 #define LOCTEXT_NAMESPACE "PCGExSplineAlphaFilterDefinition"
 #define PCGEX_NAMESPACE PCGExSplineAlphaFilterDefinition
 
-bool UPCGExSplineAlphaFilterFactory::SupportsLiveTesting()
+bool UPCGExSplineAlphaFilterFactory::SupportsDirectEvaluation() const
 {
 	return Config.CompareAgainst == EPCGExInputValueType::Constant;
 }

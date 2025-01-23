@@ -44,7 +44,7 @@ class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExFilterFactoryData : public UPCGExFactoryD
 
 public:
 	virtual PCGExFactories::EType GetFactoryType() const override { return PCGExFactories::EType::FilterPoint; }
-	virtual bool SupportsLiveTesting() { return false; }
+	virtual bool SupportsDirectEvaluation() const { return false; }
 
 	virtual bool Init(FPCGExContext* InContext);
 
@@ -61,6 +61,7 @@ namespace PCGExPointFilter
 
 	const FName SourceFiltersConditionLabel = FName("Conditions Filters");
 	const FName SourceKeepConditionLabel = FName("Keep Conditions");
+	const FName SourceStopConditionLabel = FName("Stop Conditions");
 
 	const FName SourcePointFiltersLabel = FName("Point Filters");
 	const FName SourceVtxFiltersLabel = FName("Vtx Filters");
@@ -134,6 +135,7 @@ namespace PCGExPointFilter
 		bool Init(FPCGExContext* InContext, const TArray<TObjectPtr<const UPCGExFilterFactoryData>>& InFactories);
 
 		virtual bool Test(const int32 Index);
+		virtual bool Test(const FPCGPoint& Point);
 		virtual bool Test(const PCGExCluster::FNode& Node);
 		virtual bool Test(const PCGExGraph::FEdge& Edge);
 
@@ -156,6 +158,32 @@ namespace PCGExPointFilter
 		for (const UPCGExFilterFactoryData* Factory : InFactories)
 		{
 			Factory->RegisterBuffersDependencies(InContext, FacadePreloader);
+		}
+	}
+
+	static void PruneForDirectEvaluation(FPCGExContext* InContext, TArray<TObjectPtr<const UPCGExFilterFactoryData>>& InFactories)
+	{
+		if (InFactories.IsEmpty()) { return; }
+
+		TArray<FString> UnsupportedFilters;
+		UnsupportedFilters.Reserve(InFactories.Num());
+
+		int32 WriteIndex = 0;
+		for (int32 i = 0; i < InFactories.Num(); i++)
+		{
+			if (InFactories[i]->SupportsDirectEvaluation()) { InFactories[WriteIndex++] = InFactories[i]; }
+			else { UnsupportedFilters.AddUnique(InFactories[i]->GetName()); }
+		}
+
+		InFactories.SetNum(WriteIndex);
+
+		if (InFactories.IsEmpty())
+		{
+			PCGE_LOG_C(Warning, GraphAndLog, InContext, FTEXT("None of the filters used supports direct evaluation."));
+		}
+		else if (!UnsupportedFilters.IsEmpty())
+		{
+			PCGE_LOG_C(Warning, GraphAndLog, InContext, FText::Format(FTEXT("Some filters don't support direct evaluation and will be ignored: \"{0}\"."), FText::FromString(FString::Join(UnsupportedFilters, TEXT(", ")))));
 		}
 	}
 }

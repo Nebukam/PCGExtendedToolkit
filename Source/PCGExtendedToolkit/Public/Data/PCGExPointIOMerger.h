@@ -68,7 +68,7 @@ namespace PCGExPointIOMerger
 	{
 		UPCGMetadata* InMetadata = SourceIO->GetIn()->Metadata;
 
-		// 'template' spec required for clang on mac, not sure why.
+		// 'template' spec required for clang on mac, and rider keeps removing it without the comment below.
 		// ReSharper disable once CppRedundantTemplateKeyword
 		const FPCGMetadataAttribute<T>* TypedInAttribute = InMetadata->template GetConstTypedAttribute<T>(Identity.Name);
 		TUniquePtr<FPCGAttributeAccessor<T>> InAccessor = MakeUnique<FPCGAttributeAccessor<T>>(TypedInAttribute, InMetadata);

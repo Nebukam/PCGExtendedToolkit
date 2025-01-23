@@ -94,13 +94,13 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExTextureParamConfig
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Texture Array", meta = (PCG_NotOverridable))
 	EPCGExInputValueType TextureIndexInput = EPCGExInputValueType::Constant;
 
+	/** Texture Index Attribute. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Texture Array", meta=(PCG_Overridable, DisplayName="Texture Index (Attr)", EditCondition="TextureIndexInput != EPCGExInputValueType::Constant", EditConditionHides))
+	FName TextureIndexAttribute = FName("TextureIndex");
+
 	/** Texture Index Constant. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Texture Array", meta=(PCG_Overridable, DisplayName="Texture Index", EditCondition="TextureIndexInput == EPCGExInputValueType::Constant", EditConditionHides))
 	int32 TextureIndex = -1;
-
-	/** Texture Index Attribute. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Texture Array", meta=(PCG_Overridable, DisplayName="Texture Index", EditCondition="TextureIndexInput != EPCGExInputValueType::Constant", EditConditionHides))
-	FName TextureIndexAttribute = FName("TextureIndex");
 
 	TArray<int32> OutChannels;
 

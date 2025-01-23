@@ -179,7 +179,7 @@ class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExAttributeRemapSettings : public UPCGExPoi
 public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS(AttributeRemap, "Attribute Remap", "Remap a single property or attribute.");
+	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(AttributeRemap, "Attribute Remap", "Remap a single property or attribute.", FName(GetDisplayName()));
 	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->NodeColorMiscWrite; }
 #endif
 
@@ -189,16 +189,23 @@ protected:
 
 	//~Begin UPCGExPointsProcessorSettings
 public:
+	virtual void PostLoad() override;
+
 	virtual PCGExData::EIOInit GetMainOutputInitMode() const override;
 	//~End UPCGExPointsProcessorSettings
 
-	/** Source attribute to remap */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
-	FName SourceAttributeName;
+#if WITH_EDITORONLY_DATA
+	// Deprecated, old source/target
 
-	/** Target attribute to write remapped value to */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
-	FName TargetAttributeName;
+	UPROPERTY()
+	FName SourceAttributeName_DEPRECATED = NAME_None;
+
+	UPROPERTY()
+	FName TargetAttributeName_DEPRECATED = NAME_None;
+#endif
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, ShowOnlyInnerProperties))
+	FPCGExAttributeSourceToTargetDetails Attributes;
 
 	/** The default remap rule, used for single component values, or first component. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName="Remap (Default)"))
@@ -225,6 +232,11 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_NoteOverridable, EditCondition="bOverrideComponent4", DisplayName="Remap (4th Component)"))
 	FPCGExComponentRemapRule Component4RemapOverride;
 
+#if WITH_EDITOR
+	FString GetDisplayName() const;
+#endif
+
+	
 private:
 	friend class FPCGExAttributeRemapElement;
 };

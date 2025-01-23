@@ -61,7 +61,7 @@ TArray<FPCGPinProperties> UPCGExPointsProcessorSettings::InputPinProperties() co
 TArray<FPCGPinProperties> UPCGExPointsProcessorSettings::OutputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties;
-	PCGEX_PIN_POINTS(GetMainOutputPin(), "The processed input.", Required, {})
+	PCGEX_PIN_POINTS(GetMainOutputPin(), "The processed input.", Normal, {})
 	return PinProperties;
 }
 

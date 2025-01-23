@@ -72,7 +72,7 @@ namespace PCGExData
 	class FUnionMetadata;
 }
 
-UENUM()
+UENUM(BlueprintType)
 enum class EPCGExDataBlendingType : uint8
 {
 	None             = 0 UMETA(DisplayName = "None", ToolTip="No blending is applied, keep the original value."),
@@ -93,6 +93,21 @@ enum class EPCGExDataBlendingType : uint8
 	CopyOther        = 15 UMETA(DisplayName = "Copy (Source)", ToolTip="Copy source data (first value)"),
 	Hash             = 16 UMETA(DisplayName = "Hash", ToolTip="Combine the values into a hash"),
 	UnsignedHash     = 17 UMETA(DisplayName = "Hash (Unsigned)", ToolTip="Combine the values into a hash but sort the values first to create an order-independent hash.")
+};
+
+USTRUCT(BlueprintType)
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExAttributeBlendToTargetDetails : public FPCGExAttributeSourceToTargetDetails
+{
+	GENERATED_BODY()
+
+	FPCGExAttributeBlendToTargetDetails()
+		: FPCGExAttributeSourceToTargetDetails()
+	{
+	}
+
+	/** BlendMode */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayAfter="Source"))
+	EPCGExDataBlendingType Blending = EPCGExDataBlendingType::None;
 };
 
 USTRUCT(BlueprintType)
@@ -628,7 +643,7 @@ namespace PCGExDataBlending
 			this->Writer->GetMutable(WriteIndex) = this->SingleOperation(A, B, Weight);
 		}
 	};
-
+	
 	static void AssembleBlendingDetails(
 		const FPCGExPropertiesBlendingDetails& PropertiesBlending,
 		const TMap<FName, EPCGExDataBlendingType>& PerAttributeBlending,
@@ -657,7 +672,7 @@ namespace PCGExDataBlending
 
 	static void AssembleBlendingDetails(
 		const EPCGExDataBlendingType& DefaultBlending,
-		const TSet<FName>& Attributes,
+		const TArray<FName>& Attributes,
 		const TSharedRef<PCGExData::FPointIO>& SourceIO,
 		FPCGExBlendingDetails& OutDetails,
 		TSet<FName>& OutMissingAttributes)
@@ -676,4 +691,5 @@ namespace PCGExDataBlending
 			OutDetails.FilteredAttributes.Add(Id);
 		}
 	}
+	
 }
