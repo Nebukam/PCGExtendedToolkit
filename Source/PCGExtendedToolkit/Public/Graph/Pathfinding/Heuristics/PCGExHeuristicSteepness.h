@@ -22,6 +22,14 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExHeuristicConfigSteepness : public FPCGEx
 	{
 	}
 
+	/** */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, InlineEditConditionToggle))
+	bool bAccumulateScore = false;
+
+	/** How many previous edges should be added to the current score. Use this when dealing with very smooth terrain to exacerbate steepness. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bAccumulateScore", ClampMin=1))
+	int32 AccumulationSamples = 1;
+
 	/** Vector pointing in the "up" direction. Mirrored. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	FVector UpVector = FVector::UpVector;
@@ -60,10 +68,37 @@ public:
 		const PCGExCluster::FNode& Goal,
 		const TSharedPtr<PCGEx::FHashLookup> TravelStack) const override
 	{
+		if (bAccumulate && TravelStack)
+		{
+			int32 PathNodeIndex = PCGEx::NH64A(TravelStack->Get(From.Index));
+			int32 PathEdgeIndex = -1;
+
+			if (PathNodeIndex != -1)
+			{
+				double Avg = GetDot(Cluster->GetPos(From), Cluster->GetPos(To));
+				int32 Sampled = 1;
+				while (PathNodeIndex != -1 && Sampled < MaxSamples)
+				{
+					const int32 CurrentIndex = PathNodeIndex;
+					PCGEx::NH64(TravelStack->Get(CurrentIndex), PathNodeIndex, PathEdgeIndex);
+					if (PathNodeIndex != -1)
+					{
+						Avg += GetDot(Cluster->GetPos(PathNodeIndex), Cluster->GetPos(CurrentIndex));
+						Sampled++;
+					}
+				}
+
+				return GetScoreInternal(Avg);
+			}
+		}
+
 		return GetScoreInternal(GetDot(Cluster->GetPos(From), Cluster->GetPos(To)));
 	}
 
 protected:
+	bool bAccumulate = false;
+	int32 MaxSamples = 1;
+
 	FVector UpwardVector = FVector::UpVector;
 	bool bAbsoluteSteepness = true;
 
