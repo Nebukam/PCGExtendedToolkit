@@ -15,6 +15,8 @@ UPCGExHeuristicOperation* UPCGExHeuristicsFactorySteepness::CreateOperation(FPCG
 {
 	UPCGExHeuristicSteepness* NewOperation = InContext->ManagedObjects->New<UPCGExHeuristicSteepness>();
 	PCGEX_FORWARD_HEURISTIC_CONFIG
+	NewOperation->bAccumulate = Config.bAccumulateScore;
+	NewOperation->MaxSamples = Config.AccumulationSamples;
 	NewOperation->UpwardVector = Config.UpVector;
 	NewOperation->bAbsoluteSteepness = Config.bAbsoluteSteepness;
 	return NewOperation;
