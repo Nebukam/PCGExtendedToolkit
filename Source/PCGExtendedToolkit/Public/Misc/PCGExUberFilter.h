@@ -33,7 +33,8 @@ public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS(UberFilter, "Uber Filter", "Filter points based on multiple rules & conditions.");
-	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->NodeColorFilterHub; }
+	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->WantsColor(GetDefault<UPCGExGlobalSettings>()->NodeColorFilterHub); }
+	virtual EPCGSettingsType GetType() const override { return EPCGSettingsType::Filter; }
 #endif
 
 protected:

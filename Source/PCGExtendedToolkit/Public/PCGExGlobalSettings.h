@@ -155,7 +155,10 @@ public:
 	UPROPERTY(EditAnywhere, config, Category = "Blending|Attribute Types Defaults|Soft Paths Types", meta=(DisplayName="SoftClassPath"))
 	EPCGExDataBlendingTypeDefault DefaultSoftClassPathBlendMode = EPCGExDataBlendingTypeDefault::Copy;
 
-
+	/** If enabled, will use native node colors where relevant. I.e filters, spawners, etc. */
+	UPROPERTY(EditAnywhere, config, Category = "Node Colors")
+	bool bUseNativeColorsIfPossible = true;
+	
 	UPROPERTY(EditAnywhere, config, Category = "Node Colors")
 	FLinearColor NodeColorConstant = FLinearColor(0.2, 0.2, 0.2, 1.0);
 
@@ -169,17 +172,17 @@ public:
 	FLinearColor NodeColorMiscWrite = FLinearColor(1.000000, 0.316174, 0.000000, 1.000000);
 
 	UPROPERTY(EditAnywhere, config, Category = "Node Colors")
-	FLinearColor NodeColorMiscAdd = FLinearColor(0.000000, 1.000000, 0.298310, 1.000000);
+	FLinearColor NodeColorMiscAdd = FLinearColor(1.000000, 0.591295, 0.282534, 1.000000);
 
 	UPROPERTY(EditAnywhere, config, Category = "Node Colors")
 	FLinearColor NodeColorMiscRemove = FLinearColor(0.05, 0.01, 0.01, 1.000000);
 
 
 	UPROPERTY(EditAnywhere, config, Category = "Node Colors")
-	FLinearColor NodeColorSampler = FLinearColor(1.000000, 0.000000, 0.147106, 1.000000);
+	FLinearColor NodeColorSampler = FLinearColor(1.000000,0.251440,0.000000,1.000000); 
 
 	UPROPERTY(EditAnywhere, config, Category = "Node Colors")
-	FLinearColor NodeColorSamplerNeighbor = FLinearColor(0.447917, 0.000000, 0.065891, 1.000000);
+	FLinearColor NodeColorSamplerNeighbor = FLinearColor(0.395833,0.099528,0.000000,1.000000);
 
 	UPROPERTY(EditAnywhere, config, Category = "Node Colors")
 	FLinearColor NodeColorTopology = FLinearColor(0.447917, 0.000000, 0.065891, 1.000000);
@@ -197,10 +200,10 @@ public:
 	FLinearColor NodeColorSocketState = FLinearColor(0.000000, 0.249991, 0.406250, 1.000000);
 
 	UPROPERTY(EditAnywhere, config, Category = "Node Colors")
-	FLinearColor NodeColorPathfinding = FLinearColor(0.000000, 1.000000, 0.670588, 1.000000);
+	FLinearColor NodeColorPathfinding = FLinearColor(0.243896, 0.578125, 0.371500, 1.000000);
 
 	UPROPERTY(EditAnywhere, config, Category = "Node Colors")
-	FLinearColor NodeColorHeuristics = FLinearColor(0.243896, 0.578125, 0.371500, 1.000000);
+	FLinearColor NodeColorHeuristics = FLinearColor(0.203896, 0.508125, 0.371500, 1.000000);
 
 	UPROPERTY(EditAnywhere, config, Category = "Node Colors")
 	FLinearColor NodeColorHeuristicsAtt = FLinearColor(0.497929, 0.515625, 0.246587, 1.000000);
@@ -244,6 +247,10 @@ public:
 	UPROPERTY(EditAnywhere, config, Category = "Node Colors")
 	FLinearColor NodeColorTensor = FLinearColor(0.350314, 1.000000, 0.470501, 1.000000);
 
+	FLinearColor NodeColorFallbackToType = FLinearColor::White;
+
+	FLinearColor WantsColor(FLinearColor InColor) const;
+	
 	bool GetPinExtraIcon(const UPCGPin* InPin, FName& OutExtraIcon, FText& OutTooltip, bool bIsOutPin = false) const;
 
 protected:

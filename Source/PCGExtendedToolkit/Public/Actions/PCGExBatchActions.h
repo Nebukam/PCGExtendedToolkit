@@ -24,7 +24,7 @@ public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS(BatchActions, "Batch Actions", "Batch various actions together.");
-	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->NodeColorMiscAdd; }
+	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->NodeColorMisc; }
 #endif
 
 protected:

@@ -38,15 +38,16 @@ class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExClusterStateFactoryData : public UPCGExCl
 	GENERATED_BODY()
 
 public:
-	virtual PCGExFactories::EType GetFactoryType() const override { return PCGExFactories::EType::NodeState; }
-
+	UPROPERTY()
+	FPCGExClusterStateConfigBase Config;
+	
+	UPROPERTY()
 	TArray<TObjectPtr<const UPCGExFilterFactoryData>> FilterFactories;
+	
+	virtual PCGExFactories::EType GetFactoryType() const override { return PCGExFactories::EType::NodeState; }
 	virtual TSharedPtr<PCGExPointFilter::FFilter> CreateFilter() const override;
 
-	FPCGExClusterStateConfigBase Config;
-
 	virtual void RegisterBuffersDependencies(FPCGExContext* InContext, PCGExData::FFacadePreloader& FacadePreloader) const override;
-
 	virtual void BeginDestroy() override;
 };
 

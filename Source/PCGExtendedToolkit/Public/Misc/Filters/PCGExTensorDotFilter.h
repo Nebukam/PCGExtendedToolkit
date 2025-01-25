@@ -56,13 +56,15 @@ public:
 	UPROPERTY()
 	FPCGExTensorDotFilterConfig Config;
 
+	UPROPERTY()
+	TArray<TObjectPtr<const UPCGExTensorFactoryData>> TensorFactories;
+	
 	TSharedPtr<PCGExTensor::FTensorsHandler> TensorsHandler;
 
 	virtual bool Init(FPCGExContext* InContext) override;
 	virtual TSharedPtr<PCGExPointFilter::FFilter> CreateFilter() const override;
 	virtual bool RegisterConsumableAttributesWithData(FPCGExContext* InContext, const UPCGData* InData) const override;
 
-	TArray<TObjectPtr<const UPCGExTensorFactoryData>> TensorFactories;
 };
 
 namespace PCGExPointsFilter
