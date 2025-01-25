@@ -102,6 +102,7 @@ public:
 
 	UPROPERTY(BlueprintReadOnly, Category = "PCGEx|Inputs")
 	TArray<TObjectPtr<AActor>> InputActors;
+	
 	TSet<FSoftObjectPath> RequiredAssetsPaths;
 
 	TSharedPtr<PCGExData::TBufferHelper<PCGExData::EBufferHelperMode::Write>> WriteBuffers;

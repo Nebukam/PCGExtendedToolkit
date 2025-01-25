@@ -30,7 +30,10 @@ class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExFilterGroupFactoryData : public UPCGExClu
 	GENERATED_BODY()
 
 public:
+	UPROPERTY()
 	bool bInvert = false;
+
+	UPROPERTY()
 	TArray<TObjectPtr<const UPCGExFilterFactoryData>> FilterFactories;
 
 	virtual bool SupportsDirectEvaluation() const override;

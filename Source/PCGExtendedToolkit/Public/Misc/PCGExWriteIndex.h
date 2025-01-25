@@ -22,7 +22,8 @@ public:
 	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(
 		WriteIndex, "Write Index", "Write the current point index to an attribute.",
 		OutputAttributeName);
-	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->NodeColorMiscWrite; }
+	virtual EPCGSettingsType GetType() const override { return EPCGSettingsType::Metadata; }
+	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->WantsColor(GetDefault<UPCGExGlobalSettings>()->NodeColorMiscWrite); }
 #endif
 
 protected:
@@ -78,6 +79,7 @@ namespace PCGExWriteIndex
 	class FProcessor final : public PCGExPointsMT::TPointsProcessor<FPCGExWriteIndexContext, UPCGExWriteIndexSettings>
 	{
 		double NumPoints = 0;
+		double MaxIndex = 0;
 		TSharedPtr<PCGExData::TBuffer<int32>> IntWriter;
 		TSharedPtr<PCGExData::TBuffer<double>> DoubleWriter;
 

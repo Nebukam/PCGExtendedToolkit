@@ -14,6 +14,11 @@ TMap<FName, int32> UPCGExGlobalSettings::InPinInfosMap;
 TMap<FName, int32> UPCGExGlobalSettings::OutPinInfosMap;
 bool UPCGExGlobalSettings::bGeneratedPinMap = false; // Initialize to a default value
 
+FLinearColor UPCGExGlobalSettings::WantsColor(const FLinearColor InColor) const
+{
+	return bUseNativeColorsIfPossible ? FLinearColor::White : InColor;
+}
+
 bool UPCGExGlobalSettings::GetPinExtraIcon(const UPCGPin* InPin, FName& OutExtraIcon, FText& OutTooltip, bool bIsOutPin) const
 {
 #if WITH_EDITOR
