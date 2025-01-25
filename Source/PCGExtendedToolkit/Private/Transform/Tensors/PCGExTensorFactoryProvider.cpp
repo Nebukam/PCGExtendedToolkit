@@ -119,7 +119,7 @@ bool UPCGExTensorPointFactoryData::InitInternalFacade(FPCGExContext* InContext)
 		PotencyBuffer = InputDataFacade->GetBroadcaster<float>(BaseConfig.PotencyAttribute, true);
 		if (!PotencyBuffer)
 		{
-			PCGE_LOG_C(Error, GraphAndLog, InContext, FText::Format(FTEXT("Invalid Potency attribute: \"{0}\"."), FText::FromName(BaseConfig.PotencyAttribute.GetName())));
+			if (!bQuietMissingInputError) { PCGE_LOG_C(Error, GraphAndLog, InContext, FText::Format(FTEXT("Invalid Potency attribute: \"{0}\"."), FText::FromName(BaseConfig.PotencyAttribute.GetName()))); }
 			return false;
 		}
 	}
@@ -129,7 +129,7 @@ bool UPCGExTensorPointFactoryData::InitInternalFacade(FPCGExContext* InContext)
 		WeightBuffer = InputDataFacade->GetBroadcaster<float>(BaseConfig.WeightAttribute, true);
 		if (!WeightBuffer)
 		{
-			PCGE_LOG_C(Error, GraphAndLog, InContext, FText::Format(FTEXT("Invalid Weight attribute: \"{0}\"."), FText::FromName(BaseConfig.WeightAttribute.GetName())));
+			if (!bQuietMissingInputError) { PCGE_LOG_C(Error, GraphAndLog, InContext, FText::Format(FTEXT("Invalid Weight attribute: \"{0}\"."), FText::FromName(BaseConfig.WeightAttribute.GetName()))); }
 			return false;
 		}
 	}
