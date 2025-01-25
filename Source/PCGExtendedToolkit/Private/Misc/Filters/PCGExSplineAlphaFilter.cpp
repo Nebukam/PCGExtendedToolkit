@@ -36,7 +36,7 @@ bool UPCGExSplineAlphaFilterFactory::Init(FPCGExContext* InContext)
 
 	if (Splines.IsEmpty())
 	{
-		PCGE_LOG_C(Error, GraphAndLog, InContext, FTEXT("No splines (no input matches criteria or empty dataset)"));
+		if (!bQuietMissingInputError) { PCGE_LOG_C(Error, GraphAndLog, InContext, FTEXT("No splines (no input matches criteria or empty dataset)")); }
 		return false;
 	}
 

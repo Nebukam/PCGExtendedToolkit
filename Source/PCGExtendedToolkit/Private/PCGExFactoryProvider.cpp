@@ -109,6 +109,7 @@ bool FPCGExFactoryProviderElement::ExecuteInternal(FPCGContext* Context) const
 		if (!InContext->OutFactory) { return true; }
 
 		InContext->OutFactory->bCleanupConsumableAttributes = Settings->bCleanupConsumableAttributes;
+		InContext->OutFactory->bQuietMissingInputError = Settings->bQuietMissingInputError;
 		InContext->OutFactory->OutputConfigToMetadata();
 
 		if (InContext->OutFactory->GetRequiresPreparation(InContext))

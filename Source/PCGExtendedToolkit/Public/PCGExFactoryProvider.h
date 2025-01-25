@@ -83,8 +83,15 @@ class PCGEXTENDEDTOOLKIT_API UPCGExFactoryData : public UPCGExParamDataBase
 	GENERATED_BODY()
 
 public:
+	UPROPERTY()
 	int32 Priority = 0;
+
+	UPROPERTY()
 	bool bCleanupConsumableAttributes = false;
+
+	UPROPERTY()
+	bool bQuietMissingInputError = false;
+	
 	virtual PCGExFactories::EType GetFactoryType() const { return PCGExFactories::EType::None; }
 
 	virtual bool RegisterConsumableAttributes(FPCGExContext* InContext) const
@@ -156,6 +163,10 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Cleanup", meta = (PCG_NotOverridable))
 	bool bCleanupConsumableAttributes = false;
 
+	/** If enabled, will turn off missing input errors on factories that have inputs with missing or no data. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Warning and Errors", meta=(PCG_NotOverridable, AdvancedDisplay))
+	bool bQuietMissingInputError = false;
+	
 protected:
 	virtual bool IsCacheable() const { return false; } // Until I find a way to properly cache factories :(
 	virtual bool ShouldCache() const;
