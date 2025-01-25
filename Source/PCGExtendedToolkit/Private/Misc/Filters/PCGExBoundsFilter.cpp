@@ -12,7 +12,11 @@ bool UPCGExBoundsFilterFactory::Init(FPCGExContext* InContext)
 	if (!Super::Init(InContext)) { return false; }
 
 	TSharedPtr<PCGExData::FPointIOCollection> PointIOCollection = MakeShared<PCGExData::FPointIOCollection>(InContext, FName("Bounds"));
-	if (PointIOCollection->IsEmpty()) { return false; }
+	if (PointIOCollection->IsEmpty())
+	{
+		if (!bQuietMissingInputError) { PCGE_LOG_C(Error, GraphAndLog, InContext, FTEXT("Missing bounds data.")); }
+		return false;
+	}
 
 	BoundsDataFacades.Reserve(PointIOCollection->Num());
 	Clouds.Reserve(PointIOCollection->Num());

@@ -37,7 +37,7 @@ bool FPCGExExtrudeTensorsElement::Boot(FPCGExContext* InContext) const
 
 	if (Context->TensorFactories.IsEmpty())
 	{
-		PCGE_LOG_C(Error, GraphAndLog, InContext, FTEXT("Missing tensors."));
+		if (!Settings->bQuietMissingTensorError) { PCGE_LOG_C(Error, GraphAndLog, InContext, FTEXT("Missing tensors.")); }
 		return false;
 	}
 
