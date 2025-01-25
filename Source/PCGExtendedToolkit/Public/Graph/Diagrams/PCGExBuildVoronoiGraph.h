@@ -64,7 +64,7 @@ public:
 
 	/** Graph & Edges output properties. Only available if bPruneOutsideBounds as it otherwise generates a complete graph. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName="Cluster Output Settings"))
-	FPCGExGraphBuilderDetails GraphBuilderDetails = FPCGExGraphBuilderDetails();
+	FPCGExGraphBuilderDetails GraphBuilderDetails = FPCGExGraphBuilderDetails(EPCGExMinimalAxis::X);
 
 	// TODO : Output modified/pruned sites to ensure we can find contours even tho the centroid method is not canon
 

@@ -122,7 +122,7 @@ public:
 	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(
 		IsoEdgeDirectionFilterFactory, "Cluster Filter : Edge Direction (Edge)", "Dot product comparison of the edge direction against a local attribute or constant.",
 		PCGEX_FACTORY_NAME_PRIORITY)
-	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->NodeColorClusterFilter; }
+	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->WantsColor(GetDefault<UPCGExGlobalSettings>()->NodeColorClusterFilter); }
 #endif
 
 	virtual TArray<FPCGPinProperties> InputPinProperties() const override;

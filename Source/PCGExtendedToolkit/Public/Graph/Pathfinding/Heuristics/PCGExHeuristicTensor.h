@@ -87,6 +87,9 @@ class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExHeuristicsFactoryTensor : public UPCGExHe
 public:
 	UPROPERTY()
 	FPCGExHeuristicConfigTensor Config;
+	
+	UPROPERTY()
+	TArray<TObjectPtr<const UPCGExTensorFactoryData>> TensorFactories;
 
 	virtual UPCGExHeuristicOperation* CreateOperation(FPCGExContext* InContext) const override;
 	PCGEX_HEURISTIC_FACTORY_BOILERPLATE
@@ -94,7 +97,6 @@ public:
 	virtual bool GetRequiresPreparation(FPCGExContext* InContext) override { return true; }
 	virtual bool Prepare(FPCGExContext* InContext) override;
 
-	TArray<TObjectPtr<const UPCGExTensorFactoryData>> TensorFactories;
 };
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Graph|Params")

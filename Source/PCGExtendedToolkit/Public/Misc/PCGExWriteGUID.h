@@ -124,7 +124,8 @@ public:
 	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(
 		WriteGUID, "Write GUID", "Write a GUID on the point.",
 		Config.OutputAttributeName);
-	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->NodeColorMiscWrite; }
+	virtual EPCGSettingsType GetType() const override { return EPCGSettingsType::Metadata; }
+	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->WantsColor(GetDefault<UPCGExGlobalSettings>()->NodeColorMiscWrite); }
 #endif
 
 protected:

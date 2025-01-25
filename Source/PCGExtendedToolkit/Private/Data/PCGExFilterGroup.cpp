@@ -105,7 +105,7 @@ namespace PCGExFilterGroup
 	}
 }
 
-#define PCGEX_FILTERGROUP_FOREACH(_BODY) for (const TObjectPtr<const UPCGExFilterFactoryData>& SubFilter : FilterFactories) { if (!SubFilter.Get()) { continue; } _BODY }
+#define PCGEX_FILTERGROUP_FOREACH(_BODY) for (const TObjectPtr<const UPCGExFilterFactoryData>& SubFilter : FilterFactories) { if (!IsValid(SubFilter)) { continue; } _BODY }
 
 bool UPCGExFilterGroupFactoryData::SupportsDirectEvaluation() const
 {

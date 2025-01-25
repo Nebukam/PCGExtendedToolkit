@@ -27,7 +27,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExRandomFilterConfig
 
 	/** TBD */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
-	int32 RandomSeed = 0;
+	int32 RandomSeed = 42;
 
 	/** Pass threshold */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ClampMin=0, ClampMax=1))

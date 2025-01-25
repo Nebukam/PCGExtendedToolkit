@@ -55,7 +55,7 @@ void UPCGExNeighborSampleAttribute::PrepareForCluster(FPCGExContext* InContext, 
 	Blender->bBlendProperties = false;
 	Blender->PrepareForData(InVtxDataFacade, GetSourceDataFacade(), PCGExData::ESource::In);
 
-	SourceAttributes.SetOutputTargetNames(GetSourceDataFacade());
+	SourceAttributes.SetOutputTargetNames(InVtxDataFacade);
 	
 	bIsValidOperation = true;
 }
