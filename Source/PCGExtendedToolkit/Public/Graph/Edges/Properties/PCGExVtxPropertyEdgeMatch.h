@@ -67,7 +67,9 @@ class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExVtxPropertyEdgeMatch : public UPCGExVtxPr
 	GENERATED_BODY()
 
 public:
+	UPROPERTY()
 	FPCGExEdgeMatchConfig Config;
+	
 	TArray<TObjectPtr<const UPCGExFilterFactoryData>>* FilterFactories = nullptr;
 
 	virtual void CopySettingsFrom(const UPCGExOperation* Other) override;

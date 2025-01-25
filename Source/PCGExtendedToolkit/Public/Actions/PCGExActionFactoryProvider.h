@@ -70,6 +70,7 @@ public:
 	TSharedPtr<PCGEx::FAttributesInfos> CheckSuccessInfos;
 	TSharedPtr<PCGEx::FAttributesInfos> CheckFailInfos;
 
+	UPROPERTY()
 	TArray<TObjectPtr<const UPCGExFilterFactoryData>> FilterFactories;
 
 	virtual PCGExFactories::EType GetFactoryType() const override { return PCGExFactories::EType::Action; }

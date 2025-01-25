@@ -97,13 +97,16 @@ class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExProbeFactoryTensor : public UPCGExProbeFa
 	GENERATED_BODY()
 
 public:
+	UPROPERTY()
 	FPCGExProbeConfigTensor Config;
+
+	UPROPERTY()
+	TArray<TObjectPtr<const UPCGExTensorFactoryData>> TensorFactories;
+	
 	virtual UPCGExProbeOperation* CreateOperation(FPCGExContext* InContext) const override;
 
 	virtual bool GetRequiresPreparation(FPCGExContext* InContext) override { return true; }
 	virtual bool Prepare(FPCGExContext* InContext) override;
-
-	TArray<TObjectPtr<const UPCGExTensorFactoryData>> TensorFactories;
 };
 
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Graph|Params")

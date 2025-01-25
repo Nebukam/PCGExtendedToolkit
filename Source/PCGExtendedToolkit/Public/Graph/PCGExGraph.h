@@ -100,8 +100,9 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExGraphBuilderDetails
 {
 	GENERATED_BODY()
 
-	FPCGExGraphBuilderDetails()
+	explicit FPCGExGraphBuilderDetails(const EPCGExMinimalAxis InDefaultSolidificationAxis = EPCGExMinimalAxis::None)
 	{
+		BasicEdgeSolidification.SolidificationAxis = InDefaultSolidificationAxis;
 	}
 
 	/** Don't output Clusters if they have less points than a specified amount. */

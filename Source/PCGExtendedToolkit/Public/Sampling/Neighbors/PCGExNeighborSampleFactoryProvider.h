@@ -44,7 +44,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExSamplingConfig
 
 	UPROPERTY()
 	bool bSupportsBlending = true;
-	
+
 	/** Type of range for weight blending computation */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	EPCGExRangeType RangeType = EPCGExRangeType::FullRange;
@@ -148,13 +148,19 @@ class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExNeighborSamplerFactoryData : public UPCGE
 	GENERATED_BODY()
 
 public:
-	virtual PCGExFactories::EType GetFactoryType() const override { return PCGExFactories::EType::Sampler; }
-
+	UPROPERTY()
 	FPCGExSamplingConfig SamplingConfig;
 
+	UPROPERTY()
 	TArray<TObjectPtr<const UPCGExFilterFactoryData>> VtxFilterFactories;
+
+	UPROPERTY()
 	TArray<TObjectPtr<const UPCGExFilterFactoryData>> EdgesFilterFactories;
+
+	UPROPERTY()
 	TArray<TObjectPtr<const UPCGExFilterFactoryData>> ValueFilterFactories;
+
+	virtual PCGExFactories::EType GetFactoryType() const override { return PCGExFactories::EType::Sampler; }
 
 	virtual UPCGExNeighborSampleOperation* CreateOperation(FPCGExContext* InContext) const;
 
@@ -195,7 +201,7 @@ protected:
 protected:
 	virtual bool SupportsVtxFilters(bool& bIsRequired) const;
 	virtual bool SupportsEdgeFilters(bool& bIsRequired) const;
-	
+
 	//~Begin UPCGExFactoryProviderSettings
 public:
 	virtual FName GetMainOutputPin() const override { return PCGExNeighborSample::OutputSamplerLabel; }
@@ -205,7 +211,7 @@ public:
 	virtual FString GetDisplayName() const override;
 #endif
 	//~End UPCGExFactoryProviderSettings
-	
+
 	/** Priority for sampling order. Higher values are processed last. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayPriority=-1))
 	int32 Priority = 0;

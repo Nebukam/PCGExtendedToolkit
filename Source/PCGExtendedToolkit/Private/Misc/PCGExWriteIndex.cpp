@@ -61,6 +61,7 @@ namespace PCGExWriteIndex
 		if (!FPointsProcessor::Process(InAsyncManager)) { return false; }
 
 		NumPoints = PointDataFacade->GetNum();
+		MaxIndex = NumPoints - 1;
 
 		if (Settings->bOutputNormalizedIndex)
 		{
@@ -83,7 +84,7 @@ namespace PCGExWriteIndex
 
 	void FProcessor::ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const PCGExMT::FScope& Scope)
 	{
-		if (DoubleWriter) { DoubleWriter->GetMutable(Index) = static_cast<double>(Index) / NumPoints; }
+		if (DoubleWriter) { DoubleWriter->GetMutable(Index) = static_cast<double>(Index) / MaxIndex; }
 		else { IntWriter->GetMutable(Index) = Index; }
 	}
 

@@ -124,7 +124,7 @@ public:
 	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(
 		NodeEdgeDirectionFilterFactory, "Cluster Filter : Edge Direction (Node)", "Dot product comparison of connected edges against a direction attribute stored on the vtx.",
 		PCGEX_FACTORY_NAME_PRIORITY)
-	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->NodeColorClusterFilter; }
+	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->WantsColor(GetDefault<UPCGExGlobalSettings>()->NodeColorClusterFilter); }
 #endif
 
 	virtual FName GetMainOutputPin() const override { return PCGExPointFilter::OutputFilterLabelNode; }
