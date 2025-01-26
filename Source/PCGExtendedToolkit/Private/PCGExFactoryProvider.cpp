@@ -90,6 +90,8 @@ void FPCGExFactoryProviderContext::LaunchDeferredCallback(PCGExMT::FSimpleCallba
 
 UPCGExFactoryData* UPCGExFactoryProviderSettings::CreateFactory(FPCGExContext* InContext, UPCGExFactoryData* InFactory) const
 {
+	InFactory->bCleanupConsumableAttributes = bCleanupConsumableAttributes;
+	InFactory->bQuietMissingInputError = bQuietMissingInputError;
 	return InFactory;
 }
 
@@ -106,10 +108,9 @@ bool FPCGExFactoryProviderElement::ExecuteInternal(FPCGContext* Context) const
 	if (InContext->IsState(PCGEx::State_InitialExecution))
 	{
 		InContext->OutFactory = Settings->CreateFactory(InContext, nullptr);
+		
 		if (!InContext->OutFactory) { return true; }
 
-		InContext->OutFactory->bQuietMissingInputError = Settings->bQuietMissingInputError;
-		InContext->OutFactory->bCleanupConsumableAttributes = Settings->bCleanupConsumableAttributes;
 		InContext->OutFactory->OutputConfigToMetadata();
 
 		if (InContext->OutFactory->GetRequiresPreparation(InContext))

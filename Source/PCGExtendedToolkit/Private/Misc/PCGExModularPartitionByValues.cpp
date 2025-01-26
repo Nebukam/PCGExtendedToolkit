@@ -13,7 +13,7 @@ UPCGExFactoryData* UPCGExPartitionRuleProviderSettings::CreateFactory(FPCGExCont
 {
 	UPCGExPartitionRule* NewFactory = InContext->ManagedObjects->New<UPCGExPartitionRule>();
 	NewFactory->Config = Config;
-	return NewFactory;
+	return Super::CreateFactory(InContext, NewFactory);
 }
 
 #if WITH_EDITOR

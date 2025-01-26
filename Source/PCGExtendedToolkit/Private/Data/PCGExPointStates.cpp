@@ -72,5 +72,5 @@ namespace PCGExPointStates
 
 UPCGExFactoryData* UPCGExPointStateFactoryProviderSettings::CreateFactory(FPCGExContext* InContext, UPCGExFactoryData* InFactory) const
 {
-	return nullptr;
+	return Super::CreateFactory(InContext, InFactory);
 }
