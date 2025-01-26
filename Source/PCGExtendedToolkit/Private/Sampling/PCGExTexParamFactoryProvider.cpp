@@ -95,10 +95,6 @@ namespace PCGExTexture
 {
 	FString FReference::GetTag() const
 	{
-		/*
-		if (TextureIndex < 0) { return FString::Printf(TEXT("%ls%ls"), *PCGExTexture::TexTag_Str, *TexturePath.ToString()); }
-		return FString::Printf(TEXT("%ls%ls:%d"), *PCGExTexture::TexTag_Str, *TexturePath.ToString(), TextureIndex);
-		*/
 		if (TextureIndex < 0) { return FString::Printf(TEXT("%ls"), *TexturePath.ToString()); }
 		return FString::Printf(TEXT("%ls:%d"), *TexturePath.ToString(), TextureIndex);
 	}

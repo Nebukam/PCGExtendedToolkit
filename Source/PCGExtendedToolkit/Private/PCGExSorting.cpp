@@ -25,7 +25,7 @@ UPCGExFactoryData* UPCGExSortingRuleProviderSettings::CreateFactory(FPCGExContex
 	UPCGExSortingRule* NewFactory = InContext->ManagedObjects->New<UPCGExSortingRule>();
 	NewFactory->Priority = Priority;
 	NewFactory->Config = Config;
-	return NewFactory;
+	return Super::CreateFactory(InContext, NewFactory);
 }
 
 #if WITH_EDITOR

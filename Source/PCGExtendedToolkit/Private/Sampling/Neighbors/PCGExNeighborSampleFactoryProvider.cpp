@@ -221,7 +221,7 @@ UPCGExFactoryData* UPCGExNeighborSampleProviderSettings::CreateFactory(FPCGExCon
 		InContext, PCGEx::SourceUseValueIfFilters, SamplerFactory->ValueFilterFactories,
 		PCGExFactories::ClusterNodeFilters, false);
 
-	return InFactory;
+	return Super::CreateFactory(InContext, SamplerFactory);
 }
 
 

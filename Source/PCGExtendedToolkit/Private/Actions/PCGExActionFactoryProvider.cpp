@@ -107,11 +107,13 @@ TArray<FPCGPinProperties> UPCGExActionProviderSettings::InputPinProperties() con
 
 UPCGExFactoryData* UPCGExActionProviderSettings::CreateFactory(FPCGExContext* InContext, UPCGExFactoryData* InFactory) const
 {
+	Super::CreateFactory(InContext, InFactory);
+	
 	if (UPCGExActionFactoryData* TypedFactory = Cast<UPCGExActionFactoryData>(InFactory))
 	{
 		if (!GetInputFactories(
 			InContext, PCGExActions::SourceConditionsFilterLabel, TypedFactory->FilterFactories,
-			PCGExFactories::PointFilters, true))
+			PCGExFactories::PointFilters, !bQuietMissingInputError))
 		{
 			return nullptr;
 		}
