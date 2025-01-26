@@ -105,12 +105,11 @@ bool FPCGExFactoryProviderElement::ExecuteInternal(FPCGContext* Context) const
 
 	if (InContext->IsState(PCGEx::State_InitialExecution))
 	{
-		InContext->OutFactory->bQuietMissingInputError = Settings->bQuietMissingInputError;
-		InContext->OutFactory->bCleanupConsumableAttributes = Settings->bCleanupConsumableAttributes;
-		
 		InContext->OutFactory = Settings->CreateFactory(InContext, nullptr);
 		if (!InContext->OutFactory) { return true; }
 
+		InContext->OutFactory->bQuietMissingInputError = Settings->bQuietMissingInputError;
+		InContext->OutFactory->bCleanupConsumableAttributes = Settings->bCleanupConsumableAttributes;
 		InContext->OutFactory->OutputConfigToMetadata();
 
 		if (InContext->OutFactory->GetRequiresPreparation(InContext))
