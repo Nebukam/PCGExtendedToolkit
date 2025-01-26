@@ -51,9 +51,7 @@ TArray<FPCGPinProperties> UPCGExVtxPropertyProviderSettings::InputPinProperties(
 
 UPCGExFactoryData* UPCGExVtxPropertyProviderSettings::CreateFactory(FPCGExContext* InContext, UPCGExFactoryData* InFactory) const
 {
-	//UPCGExVtxPropertyFactoryData* NewFactory = Cast<UPCGExVtxPropertyFactoryData>(InFactory);
-	//SamplerFactory->Priority = Priority;
-	return InFactory;
+	return Super::CreateFactory(InContext, InFactory);
 }
 
 
