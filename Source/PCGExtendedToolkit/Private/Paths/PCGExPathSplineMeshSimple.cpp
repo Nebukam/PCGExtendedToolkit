@@ -11,6 +11,14 @@
 
 PCGEX_INITIALIZE_ELEMENT(PathSplineMeshSimple)
 
+UPCGExPathSplineMeshSimpleSettings::UPCGExPathSplineMeshSimpleSettings(
+	const FObjectInitializer& ObjectInitializer)
+	: Super(ObjectInitializer)
+{
+	if (SplineMeshUpVectorAttribute.GetName() == FName("@Last")) { SplineMeshUpVectorAttribute.Update(TEXT("$Rotation.Up")); }
+}
+
+
 PCGExData::EIOInit UPCGExPathSplineMeshSimpleSettings::GetMainOutputInitMode() const { return PCGExData::EIOInit::Duplicate; }
 
 bool FPCGExPathSplineMeshSimpleElement::Boot(FPCGExContext* InContext) const
@@ -111,7 +119,7 @@ namespace PCGExPathSplineMeshSimple
 
 			if (!StartOffsetGetter)
 			{
-				PCGE_LOG_C(Error, GraphAndLog, ExecutionContext, FTEXT("StartOffset attribute is missing on some inputs.."));
+				PCGE_LOG_C(Error, GraphAndLog, ExecutionContext, FTEXT("StartOffset attribute is missing on some inputs."));
 				return false;
 			}
 		}
@@ -122,7 +130,18 @@ namespace PCGExPathSplineMeshSimple
 
 			if (!EndOffsetGetter)
 			{
-				PCGE_LOG_C(Error, GraphAndLog, ExecutionContext, FTEXT("EndOffset attribute is missing on some inputs.."));
+				PCGE_LOG_C(Error, GraphAndLog, ExecutionContext, FTEXT("EndOffset attribute is missing on some inputs."));
+				return false;
+			}
+		}
+
+		if (Settings->SplineMeshUpMode == EPCGExSplineMeshUpMode::Attribute)
+		{
+			UpGetter = PointDataFacade->GetScopedBroadcaster<FVector>(Settings->SplineMeshUpVectorAttribute);
+
+			if (!UpGetter)
+			{
+				PCGE_LOG_C(Error, GraphAndLog, ExecutionContext, FTEXT("Mesh Up Vector attribute is missing on some inputs."));
 				return false;
 			}
 		}
@@ -257,7 +276,9 @@ namespace PCGExPathSplineMeshSimple
 			Segment.Params.EndTangent = ArriveReader->Read(NextIndex);
 		}
 
-		if (Settings->bFixGimbalLock) { Segment.FixGimbalLock(); }
+		if (UpGetter) { Segment.UpVector = UpGetter->Read(Index); }
+		else if (Settings->SplineMeshUpMode == EPCGExSplineMeshUpMode::Constant) { Segment.UpVector = Settings->SplineMeshUpVector; }
+		else { Segment.FixGimbalLock(); }
 	}
 
 	void FProcessor::CompleteWork()

@@ -39,6 +39,8 @@ class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExPathSplineMeshSettings : public UPCGExPat
 	GENERATED_BODY()
 
 public:
+	UPCGExPathSplineMeshSettings(const FObjectInitializer& ObjectInitializer);
+	
 	//~Begin UPCGSettings
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS(PathSplineMesh, "Path : Spline Mesh", "Create spline mesh components from paths.");
@@ -85,7 +87,7 @@ public:
 	FName LeaveTangentAttribute = "LeaveTangent";
 
 	/**  */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Spline Axis Align"))
 	EPCGExMinimalAxis SplineMeshAxisConstant = EPCGExMinimalAxis::X;
 
 	/** If enabled, will break scaling interpolation across the spline. */
@@ -111,9 +113,17 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Additional Outputs", meta=(PCG_Overridable, EditCondition="WeightToAttribute!=EPCGExWeightOutputMode::NoOutput && WeightToAttribute!=EPCGExWeightOutputMode::NormalizedToDensity && WeightToAttribute!=EPCGExWeightOutputMode::NormalizedInvertedToDensity"))
 	FName WeightAttributeName = "AssetWeight";
 
-	/** Fix gimbal lock, a.k.a weirdly twisted mesh */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Fix Gimbal Lock"))
-	bool bFixGimbalLock = false;
+	/** */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable))
+	EPCGExSplineMeshUpMode SplineMeshUpMode = EPCGExSplineMeshUpMode::Constant;
+
+	/** */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Spline Mesh Up Vector (Attr)", EditCondition="SplineMeshUpMode==EPCGExSplineMeshUpMode::Attribute", EditConditionHides))
+	FPCGAttributePropertyInputSelector SplineMeshUpVectorAttribute;
+
+	/** */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Spline Mesh Up Vector", EditCondition="SplineMeshUpMode==EPCGExSplineMeshUpMode::Constant", EditConditionHides))
+	FVector SplineMeshUpVector = FVector::UpVector;
 	
 	/** Default static mesh config applied to spline mesh components. */
 	UPROPERTY(EditAnywhere, Category = Settings)
@@ -186,8 +196,9 @@ namespace PCGExPathSplineMesh
 		TUniquePtr<PCGExAssetCollection::TDistributionHelper<UPCGExMeshCollection, FPCGExMeshCollectionEntry>> Helper;
 		FPCGExJustificationDetails Justification;
 
-		TSharedPtr<PCGExData::TBuffer<FVector>> ArriveReader;
-		TSharedPtr<PCGExData::TBuffer<FVector>> LeaveReader;
+		TSharedPtr<PCGExData::TBuffer<FVector>> UpGetter;
+		TSharedPtr<PCGExData::TBuffer<FVector>> ArriveGetter;
+		TSharedPtr<PCGExData::TBuffer<FVector>> LeaveGetter;
 
 		TSharedPtr<PCGExData::TBuffer<int32>> WeightWriter;
 		TSharedPtr<PCGExData::TBuffer<double>> NormalizedWeightWriter;

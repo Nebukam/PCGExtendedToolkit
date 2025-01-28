@@ -11,6 +11,13 @@
 
 PCGEX_INITIALIZE_ELEMENT(PathSplineMesh)
 
+UPCGExPathSplineMeshSettings::UPCGExPathSplineMeshSettings(
+	const FObjectInitializer& ObjectInitializer)
+	: Super(ObjectInitializer)
+{
+	if (SplineMeshUpVectorAttribute.GetName() == FName("@Last")) { SplineMeshUpVectorAttribute.Update(TEXT("$Rotation.Up")); }
+}
+
 TArray<FPCGPinProperties> UPCGExPathSplineMeshSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
@@ -174,17 +181,28 @@ namespace PCGExPathSplineMesh
 
 		if (Settings->bApplyCustomTangents)
 		{
-			ArriveReader = PointDataFacade->GetReadable<FVector>(Settings->ArriveTangentAttribute);
-			if (!ArriveReader)
+			ArriveGetter = PointDataFacade->GetReadable<FVector>(Settings->ArriveTangentAttribute);
+			if (!ArriveGetter)
 			{
 				PCGE_LOG_C(Error, GraphAndLog, ExecutionContext, FTEXT("Could not fetch tangent' Arrive attribute on some inputs."));
 				return false;
 			}
 
-			LeaveReader = PointDataFacade->GetReadable<FVector>(Settings->LeaveTangentAttribute);
-			if (!ArriveReader)
+			LeaveGetter = PointDataFacade->GetReadable<FVector>(Settings->LeaveTangentAttribute);
+			if (!ArriveGetter)
 			{
 				PCGE_LOG_C(Error, GraphAndLog, ExecutionContext, FTEXT("Could not fetch tangent' Leave attribute on some inputs."));
+				return false;
+			}
+		}
+
+		if (Settings->SplineMeshUpMode == EPCGExSplineMeshUpMode::Attribute)
+		{
+			UpGetter = PointDataFacade->GetScopedBroadcaster<FVector>(Settings->SplineMeshUpVectorAttribute);
+
+			if (!UpGetter)
+			{
+				PCGE_LOG_C(Error, GraphAndLog, ExecutionContext, FTEXT("Mesh Up Vector attribute is missing on some inputs."));
 				return false;
 			}
 		}
@@ -351,11 +369,13 @@ namespace PCGExPathSplineMesh
 
 		if (Settings->bApplyCustomTangents)
 		{
-			Segment.Params.StartTangent = LeaveReader->Read(Index);
-			Segment.Params.EndTangent = ArriveReader->Read(NextIndex);
+			Segment.Params.StartTangent = LeaveGetter->Read(Index);
+			Segment.Params.EndTangent = ArriveGetter->Read(NextIndex);
 		}
 
-		if (Settings->bFixGimbalLock) { Segment.FixGimbalLock(); }
+		if (UpGetter) { Segment.UpVector = UpGetter->Read(Index); }
+		else if (Settings->SplineMeshUpMode == EPCGExSplineMeshUpMode::Constant) { Segment.UpVector = Settings->SplineMeshUpVector; }
+		else { Segment.FixGimbalLock(); }
 	}
 
 	void FProcessor::CompleteWork()
