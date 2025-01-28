@@ -373,7 +373,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExTransformDetails : public FPCGExFittingD
 };
 
 USTRUCT(BlueprintType)
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExLeanTransformDetails : public FPCGExFittingDetailsHandler
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExLeanTransformDetails
 {
 	GENERATED_BODY()
 
@@ -381,11 +381,11 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExLeanTransformDetails : public FPCGExFitt
 	{
 	}
 
-	/** If enabled, copied point will be scaled by the target' scale. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayAfter="Justification"))
-	bool bInheritScale = false;
+	/** If enabled, point will be scaled by the target' scale. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	bool bInheritScale = true;
 
-	/** If enabled, copied points will be rotated by the target' rotation. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayAfter="bInheritScale"))
-	bool bInheritRotation = false;
+	/** If enabled, points will be rotated by the target' rotation. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	bool bInheritRotation = true;
 };
