@@ -118,7 +118,7 @@ namespace PCGExExtrudeTensors
 		PointDataFacade->Source->GetOutKeys(true);
 	}
 
-	bool FExtrusion::Extrude(const PCGExTensor::FTensorSample& Sample, const FPCGPoint& InPoint)
+	bool FExtrusion::Extrude(const PCGExTensor::FTensorSample& Sample, FPCGPoint& InPoint)
 	{
 		// return whether we can keep extruding or not
 
@@ -131,13 +131,12 @@ namespace PCGExExtrudeTensors
 		if (DistToLastSum < Settings->FuseDistance) { return true; }
 		DistToLastSum = 0;
 
-		FVector TargetPosition = Metrics.Last;
 
-		if (Length >= MaxLength)
+		if (Length > MaxLength)
 		{
 			// Adjust position to match max length
 			const FVector LastValidPos = ExtrudedPoints.Last().Transform.GetLocation();
-			TargetPosition = LastValidPos + ((TargetPosition - LastValidPos).GetSafeNormal() * (Length - MaxLength));
+			InPoint.Transform.SetLocation(LastValidPos + ((Metrics.Last - LastValidPos).GetSafeNormal() * (Length - MaxLength)));
 		}
 
 		Insert(InPoint);
