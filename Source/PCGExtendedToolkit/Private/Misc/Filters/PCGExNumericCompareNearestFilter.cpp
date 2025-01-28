@@ -14,7 +14,7 @@ bool UPCGExNumericCompareNearestFilterFactory::Init(FPCGExContext* InContext)
 	TargetDataFacade = PCGExData::TryGetSingleFacade(InContext, PCGEx::SourceTargetsLabel, true);
 	if (!TargetDataFacade) { return false; }
 
-	return false;
+	return true;
 }
 
 TSharedPtr<PCGExPointFilter::FFilter> UPCGExNumericCompareNearestFilterFactory::CreateFilter() const
