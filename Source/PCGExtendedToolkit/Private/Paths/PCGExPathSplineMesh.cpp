@@ -354,6 +354,8 @@ namespace PCGExPathSplineMesh
 			Segment.Params.StartTangent = LeaveReader->Read(Index);
 			Segment.Params.EndTangent = ArriveReader->Read(NextIndex);
 		}
+
+		if (Settings->bFixGimbalLock) { Segment.FixGimbalLock(); }
 	}
 
 	void FProcessor::CompleteWork()

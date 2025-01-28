@@ -72,14 +72,6 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Distribution", meta=(PCG_Overridable))
 	FName AssetPathAttributeName = "AssetPath";
 
-	/**  */
-	//UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Target Actor", meta = (PCG_Overridable))
-	//bool bPerSegmentTargetActor = false;
-
-	/**  */
-	//UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Target Actor", meta=(PCG_Overridable, EditCondition="bPerSegmentTargetActor", EditConditionHides))
-	//FName TargetActorAttributeName;
-
 	/** Whether to read tangents from attributes or not. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	bool bApplyCustomTangents = false;
@@ -119,6 +111,10 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Additional Outputs", meta=(PCG_Overridable, EditCondition="WeightToAttribute!=EPCGExWeightOutputMode::NoOutput && WeightToAttribute!=EPCGExWeightOutputMode::NormalizedToDensity && WeightToAttribute!=EPCGExWeightOutputMode::NormalizedInvertedToDensity"))
 	FName WeightAttributeName = "AssetWeight";
 
+	/** Fix gimbal lock, a.k.a weirdly twisted mesh */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Fix Gimbal Lock"))
+	bool bFixGimbalLock = false;
+	
 	/** Default static mesh config applied to spline mesh components. */
 	UPROPERTY(EditAnywhere, Category = Settings)
 	FPCGExStaticMeshComponentDescriptor DefaultDescriptor;

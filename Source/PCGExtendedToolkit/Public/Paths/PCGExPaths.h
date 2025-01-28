@@ -300,6 +300,16 @@ namespace PCGExPaths
 		const FPCGExMeshCollectionEntry* MeshEntry = nullptr;
 		FSplineMeshParams Params;
 
+		void FixGimbalLock()
+		{
+			// Thanks Drakynfly @ https://www.reddit.com/r/unrealengine/comments/kqo6ez/usplinecomponent_twists_in_on_itself/
+
+			const FVector NormalA = Params.StartTangent.GetSafeNormal(0.001);
+			const FVector NormalB = Params.EndTangent.GetSafeNormal(0.001);
+			if (const float Dot = NormalA | NormalB; Dot > 0.99 || Dot <= -0.99) { UpVector = NormalA; }
+			else { UpVector = NormalA ^ NormalB; }
+		}
+
 		void ApplySettings(USplineMeshComponent* Component) const
 		{
 			check(Component)
@@ -315,7 +325,7 @@ namespace PCGExPaths
 			else { Component->SetEndRoll(Params.EndRoll, false); }
 
 			Component->SetForwardAxis(SplineMeshAxis, false);
-			Component->SetSplineUpDir(FVector::UpVector, false);
+			Component->SetSplineUpDir(UpVector, false);
 
 			Component->SetStartOffset(Params.StartOffset, false);
 			Component->SetEndOffset(Params.EndOffset, false);
