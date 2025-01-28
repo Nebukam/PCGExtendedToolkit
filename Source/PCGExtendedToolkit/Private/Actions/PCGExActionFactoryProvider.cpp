@@ -108,7 +108,7 @@ TArray<FPCGPinProperties> UPCGExActionProviderSettings::InputPinProperties() con
 UPCGExFactoryData* UPCGExActionProviderSettings::CreateFactory(FPCGExContext* InContext, UPCGExFactoryData* InFactory) const
 {
 	Super::CreateFactory(InContext, InFactory);
-	
+
 	if (UPCGExActionFactoryData* TypedFactory = Cast<UPCGExActionFactoryData>(InFactory))
 	{
 		if (!GetInputFactories(

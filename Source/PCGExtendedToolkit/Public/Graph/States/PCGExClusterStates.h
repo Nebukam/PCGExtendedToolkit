@@ -40,10 +40,10 @@ class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExClusterStateFactoryData : public UPCGExCl
 public:
 	UPROPERTY()
 	FPCGExClusterStateConfigBase Config;
-	
+
 	UPROPERTY()
 	TArray<TObjectPtr<const UPCGExFilterFactoryData>> FilterFactories;
-	
+
 	virtual PCGExFactories::EType GetFactoryType() const override { return PCGExFactories::EType::NodeState; }
 	virtual TSharedPtr<PCGExPointFilter::FFilter> CreateFilter() const override;
 

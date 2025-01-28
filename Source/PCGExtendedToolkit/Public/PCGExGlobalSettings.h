@@ -158,7 +158,7 @@ public:
 	/** If enabled, will use native node colors where relevant. I.e filters, spawners, etc. */
 	UPROPERTY(EditAnywhere, config, Category = "Node Colors")
 	bool bUseNativeColorsIfPossible = true;
-	
+
 	UPROPERTY(EditAnywhere, config, Category = "Node Colors")
 	FLinearColor NodeColorConstant = FLinearColor(0.2, 0.2, 0.2, 1.0);
 
@@ -179,10 +179,10 @@ public:
 
 
 	UPROPERTY(EditAnywhere, config, Category = "Node Colors")
-	FLinearColor NodeColorSampler = FLinearColor(1.000000,0.251440,0.000000,1.000000); 
+	FLinearColor NodeColorSampler = FLinearColor(1.000000, 0.251440, 0.000000, 1.000000);
 
 	UPROPERTY(EditAnywhere, config, Category = "Node Colors")
-	FLinearColor NodeColorSamplerNeighbor = FLinearColor(0.395833,0.099528,0.000000,1.000000);
+	FLinearColor NodeColorSamplerNeighbor = FLinearColor(0.395833, 0.099528, 0.000000, 1.000000);
 
 	UPROPERTY(EditAnywhere, config, Category = "Node Colors")
 	FLinearColor NodeColorTopology = FLinearColor(0.447917, 0.000000, 0.065891, 1.000000);
@@ -250,7 +250,7 @@ public:
 	FLinearColor NodeColorFallbackToType = FLinearColor::White;
 
 	FLinearColor WantsColor(FLinearColor InColor) const;
-	
+
 	bool GetPinExtraIcon(const UPCGPin* InPin, FName& OutExtraIcon, FText& OutTooltip, bool bIsOutPin = false) const;
 
 protected:

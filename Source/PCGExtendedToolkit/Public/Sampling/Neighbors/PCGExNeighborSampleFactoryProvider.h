@@ -198,7 +198,6 @@ protected:
 	virtual TArray<FPCGPinProperties> InputPinProperties() const override;
 	//~End UPCGSettings
 
-protected:
 	virtual bool SupportsVtxFilters(bool& bIsRequired) const;
 	virtual bool SupportsEdgeFilters(bool& bIsRequired) const;
 

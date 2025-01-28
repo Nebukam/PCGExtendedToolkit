@@ -81,11 +81,10 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExAttributeSamplerConfigBase
 	/** Unique blendmode applied to all specified attributes. For different blendmodes, create multiple sampler nodes. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	EPCGExDataBlendingType Blending = EPCGExDataBlendingType::Average;
-	
+
 	/** Attribute to sample & optionally remap. Leave it to None to overwrite the source attribute.  */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ShowOnlyInnerProperties))
 	FPCGExAttributeSourceToTargetList SourceAttributes;
-
 };
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")

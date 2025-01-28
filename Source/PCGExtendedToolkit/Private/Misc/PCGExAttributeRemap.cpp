@@ -18,10 +18,7 @@ FString UPCGExAttributeRemapSettings::GetDisplayName() const
 	{
 		return Attributes.Source.ToString() + " → " + Attributes.Target.ToString();
 	}
-	else
-	{
-		return Attributes.Source.ToString();
-	}
+	return Attributes.Source.ToString();
 }
 #endif
 

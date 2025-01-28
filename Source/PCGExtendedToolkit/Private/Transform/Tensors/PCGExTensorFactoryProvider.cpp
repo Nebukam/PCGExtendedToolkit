@@ -48,11 +48,11 @@ TArray<FPCGPinProperties> UPCGExTensorFactoryProviderSettings::InputPinPropertie
 }
 
 UPCGExFactoryData* UPCGExTensorFactoryProviderSettings::CreateFactory(FPCGExContext* InContext, UPCGExFactoryData* InFactory) const
-{	
+{
 	TArray<FPCGTaggedData> Collection = InContext->InputData.GetInputsByPin(PCGExTensor::SourceTensorConfigSourceLabel);
 	const UPCGExTensorFactoryData* InTensorReference = Collection.IsEmpty() ? nullptr : Cast<UPCGExTensorFactoryData>(Collection[0].Data);
 	if (InTensorReference) { Cast<UPCGExTensorFactoryData>(InFactory)->InheritFromOtherTensor(InTensorReference); }
-	
+
 	return Super::CreateFactory(InContext, InFactory);
 }
 

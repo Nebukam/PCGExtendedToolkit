@@ -105,7 +105,7 @@ TArray<FPCGPinProperties> UPCGExIsoEdgeDirectionFilterProviderSettings::InputPin
 UPCGExFactoryData* UPCGExIsoEdgeDirectionFilterProviderSettings::CreateFactory(FPCGExContext* InContext, UPCGExFactoryData* InFactory) const
 {
 	UPCGExIsoEdgeDirectionFilterFactory* NewFactory = InContext->ManagedObjects->New<UPCGExIsoEdgeDirectionFilterFactory>();
-	
+
 	NewFactory->Config = Config;
 	if (Config.DirectionSettings.DirectionMethod == EPCGExEdgeDirectionMethod::EndpointsSort)
 	{
@@ -113,7 +113,7 @@ UPCGExFactoryData* UPCGExIsoEdgeDirectionFilterProviderSettings::CreateFactory(F
 	}
 
 	Super::CreateFactory(InContext, NewFactory);
-	
+
 	if (!NewFactory->Init(InContext)) { InContext->ManagedObjects->Destroy(NewFactory); }
 	return NewFactory;
 }

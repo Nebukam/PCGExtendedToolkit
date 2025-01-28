@@ -48,7 +48,7 @@ UPCGExFactoryData* UPCGExFilterGroupProviderSettings::CreateFactory(FPCGExContex
 
 	NewFactory->Priority = Priority;
 	NewFactory->bInvert = bInvert;
-		
+
 	if (!GetInputFactories(
 		InContext, PCGExPointFilter::SourceFiltersLabel, NewFactory->FilterFactories,
 		PCGExFactories::AnyFilters, !bQuietMissingInputError))
