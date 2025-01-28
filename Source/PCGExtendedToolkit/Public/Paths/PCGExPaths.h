@@ -50,7 +50,7 @@ enum class EPCGExSplineMeshUpMode : uint8
 {
 	Constant  = 0 UMETA(DisplayName = "Constant", Tooltip="Constant up vector"),
 	Attribute = 1 UMETA(DisplayName = "Attribute", Tooltip="Per-point attribute value"),
-	GimbalFix = 2 UMETA(DisplayName = "Auto (Gimbal fix)", Tooltip="Automatically computed up vector to enforce gimbal fix")
+	Tangents = 2 UMETA(DisplayName = "From Tangents (Gimbal fix)", Tooltip="Automatically computed up vector from tangents to enforce gimbal fix")
 };
 
 USTRUCT(BlueprintType)
@@ -308,7 +308,7 @@ namespace PCGExPaths
 		const FPCGExMeshCollectionEntry* MeshEntry = nullptr;
 		FSplineMeshParams Params;
 
-		void FixGimbalLock()
+		void ComputeUpVectorFromTangents()
 		{
 			// Thanks Drakynfly @ https://www.reddit.com/r/unrealengine/comments/kqo6ez/usplinecomponent_twists_in_on_itself/
 

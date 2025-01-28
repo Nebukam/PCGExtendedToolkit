@@ -25,6 +25,8 @@ class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExPathSplineMeshSimpleSettings : public UPC
 	GENERATED_BODY()
 
 public:
+	UPCGExPathSplineMeshSimpleSettings(const FObjectInitializer& ObjectInitializer);
+	
 	//~Begin UPCGSettings
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS(PathSplineMeshSimple, "Path : Spline Mesh (Simple)", "Create spline mesh components from paths.");

@@ -278,7 +278,7 @@ namespace PCGExPathSplineMeshSimple
 
 		if (UpGetter) { Segment.UpVector = UpGetter->Read(Index); }
 		else if (Settings->SplineMeshUpMode == EPCGExSplineMeshUpMode::Constant) { Segment.UpVector = Settings->SplineMeshUpVector; }
-		else { Segment.FixGimbalLock(); }
+		else { Segment.ComputeUpVectorFromTangents(); }
 	}
 
 	void FProcessor::CompleteWork()
