@@ -751,7 +751,10 @@ namespace PCGEx
 
 		for (int32 i = 0; i < NumElements; ++i)
 		{
-			if (Visited[i]) continue;
+			if (Visited[i])
+			{
+				continue;
+			}
 
 			int32 Current = i;
 			T Temp = MoveTemp(InArray[i]);
@@ -773,7 +776,7 @@ namespace PCGEx
 		}
 	}
 
-	template<typename D>
+	template <typename D>
 	struct TOrder
 	{
 		int32 Index = -1;
@@ -836,7 +839,10 @@ namespace PCGEx
 
 		for (int32 i = 0; i < NumElements; ++i)
 		{
-			if (Visited[i]) continue; // Skip already visited elements in a cycle.
+			if (Visited[i])
+			{
+				continue; // Skip already visited elements in a cycle.
+			}
 
 			int32 Current = i;
 			T Temp = MoveTemp(InArray[i]); // Temporarily hold the current element.

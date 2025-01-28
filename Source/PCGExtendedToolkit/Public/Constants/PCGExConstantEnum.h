@@ -33,7 +33,7 @@ enum class EPCGExEnumOutputMode : uint8
 namespace PCGExConstantEnumConstants
 {
 	using FMapping = TTuple<FName, FName, int64, int32>;
-	
+
 	static const FName SingleOutputPinName = "Out";
 	static const FName BitflagOutputPinName = "Flags";
 
@@ -66,7 +66,7 @@ public:
 #endif
 
 	virtual void FillEnabledExportValues();
-	
+
 #if PCGEX_ENGINE_VERSION >= 505
 	// This does not exist in 5.4
 	virtual void OnOverrideSettingsDuplicatedInternal(bool bSkippedPostLoad) override;
@@ -168,7 +168,7 @@ protected:
 		const UPCGExConstantEnumSettings* Settings,
 		const TArray<PCGExConstantEnumConstants::FMapping>& ValueData,
 		FPCGExBitmask& OutBitflags);
-	
+
 	// Stage bitflags
 	static void StageBitFlags(
 		FPCGExContext* InContext,

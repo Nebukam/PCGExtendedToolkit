@@ -45,6 +45,14 @@ enum class EPCGExPathNormalDirection : uint8
 	AverageNormal = 2 UMETA(DisplayName = "Average Normal", ToolTip="..."),
 };
 
+UENUM()
+enum class EPCGExSplineMeshUpMode : uint8
+{
+	Constant  = 0 UMETA(DisplayName = "Constant", Tooltip="Constant up vector"),
+	Attribute = 1 UMETA(DisplayName = "Attribute", Tooltip="Per-point attribute value"),
+	Tangents = 2 UMETA(DisplayName = "From Tangents (Gimbal fix)", Tooltip="Automatically computed up vector from tangents to enforce gimbal fix")
+};
+
 USTRUCT(BlueprintType)
 struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPathClosedLoopDetails
 {
@@ -300,6 +308,16 @@ namespace PCGExPaths
 		const FPCGExMeshCollectionEntry* MeshEntry = nullptr;
 		FSplineMeshParams Params;
 
+		void ComputeUpVectorFromTangents()
+		{
+			// Thanks Drakynfly @ https://www.reddit.com/r/unrealengine/comments/kqo6ez/usplinecomponent_twists_in_on_itself/
+
+			const FVector A = Params.StartTangent.GetSafeNormal(0.001);
+			const FVector B = Params.EndTangent.GetSafeNormal(0.001);
+			if (const float Dot = A | B; Dot > 0.99 || Dot <= -0.99) { UpVector = A; }
+			else { UpVector = A ^ B; }
+		}
+
 		void ApplySettings(USplineMeshComponent* Component) const
 		{
 			check(Component)
@@ -315,7 +333,7 @@ namespace PCGExPaths
 			else { Component->SetEndRoll(Params.EndRoll, false); }
 
 			Component->SetForwardAxis(SplineMeshAxis, false);
-			Component->SetSplineUpDir(FVector::UpVector, false);
+			Component->SetSplineUpDir(UpVector, false);
 
 			Component->SetStartOffset(Params.StartOffset, false);
 			Component->SetEndOffset(Params.EndOffset, false);

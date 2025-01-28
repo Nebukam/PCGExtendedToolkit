@@ -39,7 +39,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExSamplerFilterConfig
 	/** If enabled, outputs the value divided by the total number of samples */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName = " └─ Normalize", EditCondition="bWriteInsideNum", EditConditionHides, HideEditConditionToggle))
 	bool bNormalizeInsideNum = false;
-	
+
 	/** */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, InlineEditConditionToggle, InlineEditConditionToggle))
 	bool bWriteOutsideNum = false;
@@ -51,7 +51,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExSamplerFilterConfig
 	/** If enabled, outputs the value divided by the total number of samples */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName = " └─ Normalize", EditCondition="bWriteOutsideNum", EditConditionHides, HideEditConditionToggle))
 	bool bNormalizeOutsideNum = false;
-	
+
 	/** */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, InlineEditConditionToggle))
 	bool bWriteTotalNum = false;
@@ -59,7 +59,6 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExSamplerFilterConfig
 	/** Name of the attribute to write the total number of points tested */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName = "Total Num", EditCondition="bWriteTotalNum"))
 	FName TotalNumAttributeName = FName(FName("TotalNum"));
-
 
 
 	/** */
@@ -74,7 +73,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExSamplerFilterConfig
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName = " └─ Normalize", EditCondition="bWriteInsideWeight", EditConditionHides, HideEditConditionToggle))
 	bool bNormalizeInsideWeight = false;
 
-	
+
 	/** */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, InlineEditConditionToggle))
 	bool bWriteOutsideWeight = false;
@@ -87,7 +86,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExSamplerFilterConfig
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName = " └─ Normalize", EditCondition="bWriteOutsideWeight", EditConditionHides, HideEditConditionToggle))
 	bool bNormalizeOutsideWeight = false;
 
-	
+
 	/** */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, InlineEditConditionToggle))
 	bool bWriteTotalWeight = false;
@@ -149,7 +148,7 @@ public:
 	{
 		const int32 WriteIndex = TargetNode.PointIndex;
 		const int32 ReadIndex = TargetNode.Index;
-		
+
 		if (NumInsideBuffer) { NumInsideBuffer->GetMutable(WriteIndex) = Inside[ReadIndex]; }
 		else if (NormalizedNumInsideBuffer) { NormalizedNumInsideBuffer->GetMutable(WriteIndex) = static_cast<double>(Inside[ReadIndex]) / static_cast<double>(Count); }
 
@@ -181,12 +180,12 @@ protected:
 	TSharedPtr<PCGExData::TBuffer<double>> NormalizedNumInsideBuffer;
 	TSharedPtr<PCGExData::TBuffer<double>> WeightInsideBuffer;
 	TSharedPtr<PCGExData::TBuffer<double>> NormalizedWeightInsideBuffer;
-	
+
 	TSharedPtr<PCGExData::TBuffer<int32>> NumOutsideBuffer;
 	TSharedPtr<PCGExData::TBuffer<double>> NormalizedNumOutsideBuffer;
 	TSharedPtr<PCGExData::TBuffer<double>> WeightOutsideBuffer;
 	TSharedPtr<PCGExData::TBuffer<double>> NormalizedWeightOutsideBuffer;
-	
+
 	TSharedPtr<PCGExData::TBuffer<int32>> TotalNumBuffer;
 	TSharedPtr<PCGExData::TBuffer<int32>> TotalWeightBuffer;
 };

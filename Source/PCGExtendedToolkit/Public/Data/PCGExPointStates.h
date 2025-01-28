@@ -60,7 +60,7 @@ class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExPointStateFactoryData : public UPCGExFilt
 public:
 	UPROPERTY()
 	TArray<TObjectPtr<const UPCGExFilterFactoryData>> FilterFactories;
-	
+
 	virtual TSharedPtr<PCGExPointFilter::FFilter> CreateFilter() const override;
 
 	virtual void BeginDestroy() override;

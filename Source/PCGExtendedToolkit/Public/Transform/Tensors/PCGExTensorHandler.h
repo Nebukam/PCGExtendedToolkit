@@ -26,11 +26,11 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExTensorSamplerDetails
 	}
 
 	/** Sampler type */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Settings)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Settings, meta = (PCG_Overridable))
 	TSubclassOf<UPCGExTensorSampler> Sampler = UPCGExTensorSampler::StaticClass();
 
 	/** Sampling radius. Whether it has any effect depends on the selected sampler. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_NotOverridable))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	double Radius = 0;
 };
 
@@ -49,23 +49,23 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExTensorHandlerDetails
 	}
 
 	/** If enabled, sampling direction will be inverted. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_NotOverridable))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	bool bInvert = false;
 
 	/** If enabled, normalize sampling. This effectively negates the influence of effectors potency. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_NotOverridable))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	bool bNormalize = false;
 
 	/** Constant size applied after normalization. This will be scaled */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_NotOverridable, DisplayName = " └─ Size", EditCondition="bNormalize", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName = " └─ Size", EditCondition="bNormalize", EditConditionHides))
 	double SizeConstant = 1;
 
 	/** Uniform scale factor applied to sampling after all other mutations are accounted for. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_NotOverridable))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	double UniformScale = 1;
 
 	/** Uniform scale factor applied to sampling after all other mutations are accounted for. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_NotOverridable))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	FPCGExTensorSamplerDetails SamplerSettings;
 };
 

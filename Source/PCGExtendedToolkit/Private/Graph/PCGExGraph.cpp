@@ -627,10 +627,10 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 					});
 
 				// Reorder output points
-				PCGEx::ReorderArray(MutablePoints, Order); 
+				ReorderArray(MutablePoints, Order);
 				// Reorder output indices if provided
 				// Needed for delaunay etc that rely on original indices to identify sites etc
-				if (OutputPointIndices && OutputPointIndices->Num() == MutablePoints.Num()) { PCGEx::ReorderArray(*OutputPointIndices, Order); } 
+				if (OutputPointIndices && OutputPointIndices->Num() == MutablePoints.Num()) { ReorderArray(*OutputPointIndices, Order); }
 			}
 		}
 

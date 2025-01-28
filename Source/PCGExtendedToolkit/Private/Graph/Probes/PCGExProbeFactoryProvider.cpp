@@ -13,7 +13,7 @@ UPCGExProbeOperation* UPCGExProbeFactoryData::CreateOperation(FPCGExContext* InC
 
 UPCGExFactoryData* UPCGExProbeFactoryProviderSettings::CreateFactory(FPCGExContext* InContext, UPCGExFactoryData* InFactory) const
 {
-	return Super::CreateFactory(InContext,InFactory);
+	return Super::CreateFactory(InContext, InFactory);
 }
 
 #undef LOCTEXT_NAMESPACE
