@@ -152,5 +152,4 @@ namespace PCGExFuseClusters
 		void InsertEdges(const PCGExMT::FScope& Scope, bool bUnsafe);
 		void OnInsertionComplete();
 	};
-
 }

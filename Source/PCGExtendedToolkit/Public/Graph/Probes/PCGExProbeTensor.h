@@ -102,7 +102,7 @@ public:
 
 	UPROPERTY()
 	TArray<TObjectPtr<const UPCGExTensorFactoryData>> TensorFactories;
-	
+
 	virtual UPCGExProbeOperation* CreateOperation(FPCGExContext* InContext) const override;
 
 	virtual bool GetRequiresPreparation(FPCGExContext* InContext) override { return true; }

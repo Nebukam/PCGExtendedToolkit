@@ -1018,7 +1018,6 @@ namespace PCGEx
 			}
 			else if constexpr (std::is_same_v<T, int32> || std::is_same_v<T, int64> || std::is_same_v<T, float> || std::is_same_v<T, double>)
 			{
-				
 				switch (Field)
 				{
 				default:

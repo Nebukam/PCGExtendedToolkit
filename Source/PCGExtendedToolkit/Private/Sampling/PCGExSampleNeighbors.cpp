@@ -92,7 +92,7 @@ namespace PCGExSampleNeighbors
 		}
 
 		Cluster->ComputeEdgeLengths();
-		
+
 		if (!OpsWithValueTest.IsEmpty()) { StartParallelLoopForRange(NumNodes); }
 		else { StartParallelLoopForNodes(); }
 

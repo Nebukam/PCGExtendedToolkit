@@ -237,7 +237,6 @@ public:
 	FString GetDisplayName() const;
 #endif
 
-	
 private:
 	friend class FPCGExAttributeRemapElement;
 };
