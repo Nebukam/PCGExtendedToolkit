@@ -52,7 +52,7 @@ namespace PCGExSearch
 		FORCEINLINE bool Enqueue(const int32 Index, const double InScore)
 		{
 			double& RegisteredScore = Scores[Index];
-			if(RegisteredScore <= InScore){return false;}
+			if (RegisteredScore <= InScore) { return false; }
 
 			RegisteredScore = InScore;
 			InternalQueue.push(FScoredNode(Index, InScore));

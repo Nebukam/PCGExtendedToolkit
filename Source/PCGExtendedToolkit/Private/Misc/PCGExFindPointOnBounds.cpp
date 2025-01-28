@@ -108,7 +108,7 @@ namespace PCGExFindPointOnBounds
 	void FProcessor::ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const PCGExMT::FScope& Scope)
 	{
 		const double Dist = FVector::Dist(Point.Transform.GetLocation(), SearchPosition);
-		
+
 		{
 			FWriteScopeLock WriteLock(BestIndexLock);
 			if (Dist > BestDistance) { return; }
@@ -116,9 +116,9 @@ namespace PCGExFindPointOnBounds
 
 		{
 			FWriteScopeLock WriteLock(BestIndexLock);
-			
+
 			if (Dist > BestDistance) { return; }
-			
+
 			BestPosition = Point.Transform.GetLocation();
 			BestIndex = Index;
 			BestDistance = Dist;

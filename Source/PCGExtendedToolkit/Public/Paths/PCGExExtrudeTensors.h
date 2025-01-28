@@ -187,7 +187,7 @@ public:
 	/** */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Warning and Errors", meta=(PCG_NotOverridable, AdvancedDisplay))
 	bool bQuietMissingTensorError = false;
-	
+
 private:
 	friend class FPCGExExtrudeTensorsElement;
 };

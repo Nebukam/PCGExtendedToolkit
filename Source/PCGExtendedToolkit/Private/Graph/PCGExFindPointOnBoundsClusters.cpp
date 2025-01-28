@@ -125,7 +125,7 @@ namespace PCGExFindPointOnBoundsClusters
 	void FProcessor::UpdateCandidate(const FVector& InPosition, const int32 InIndex)
 	{
 		const double Dist = FVector::Dist(InPosition, SearchPosition);
-		
+
 		{
 			FWriteScopeLock WriteLock(BestIndexLock);
 			if (Dist > BestDistance) { return; }
@@ -133,9 +133,9 @@ namespace PCGExFindPointOnBoundsClusters
 
 		{
 			FWriteScopeLock WriteLock(BestIndexLock);
-			
+
 			if (Dist > BestDistance) { return; }
-			
+
 			BestPosition = InPosition;
 			BestIndex = InIndex;
 			BestDistance = Dist;

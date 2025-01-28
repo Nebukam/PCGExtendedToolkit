@@ -283,7 +283,7 @@ namespace PCGEx
 
 #pragma endregion
 
-#pragma endregion 
+#pragma endregion
 
 	FORCEINLINE static UWorld* GetWorld(const FPCGContext* Context)
 	{

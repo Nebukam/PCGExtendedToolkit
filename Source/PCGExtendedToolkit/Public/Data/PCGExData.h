@@ -207,7 +207,7 @@ namespace PCGExData
 			check(IsWritable() && OutAttribute)
 
 			if (OutputsToDifferentName()) { return PCGEx::FAttributeIdentity(TargetOutputName, PCGEx::GetMetadataType<T>(), OutAttribute->AllowsInterpolation()); }
-			else { return PCGEx::FAttributeIdentity(OutAttribute->Name, PCGEx::GetMetadataType<T>(), OutAttribute->AllowsInterpolation()); }
+			return PCGEx::FAttributeIdentity(OutAttribute->Name, PCGEx::GetMetadataType<T>(), OutAttribute->AllowsInterpolation());
 		}
 
 		virtual bool OutputsToDifferentName() const override
@@ -447,9 +447,8 @@ namespace PCGExData
 
 			if (OutputsToDifferentName())
 			{
-
 				// If we want to output to a different name, ensure the new attribute exists and hope we did proper validations beforehand
-				
+
 				// 'template' spec required for clang on mac, and rider keeps removing it without the comment below.
 				// ReSharper disable once CppRedundantTemplateKeyword
 				TypedOutAttribute = Source->GetOut()->Metadata->template FindOrCreateAttribute<T>(TargetOutputName, TypedOutAttribute->GetValueFromItemKey(PCGInvalidEntryKey), TypedOutAttribute->AllowsInterpolation());
@@ -466,9 +465,8 @@ namespace PCGExData
 			}
 			else if (TypedOutAttribute)
 			{
-
 				// if we're not writing to a different name, then go through the usual flow
-				
+
 				TUniquePtr<FPCGAttributeAccessor<T>> OutAccessor = MakeUnique<FPCGAttributeAccessor<T>>(TypedOutAttribute, Source->GetOut()->Metadata);
 				if (!OutAccessor.IsValid()) { return; }
 
@@ -1007,7 +1005,7 @@ namespace PCGExData
 
 	static bool TryGetFacades(FPCGExContext* InContext, const FName InputPinLabel, TArray<TSharedPtr<FFacade>>& OutFacades, const bool bThrowError)
 	{
-		TSharedPtr<PCGExData::FPointIOCollection> TargetsCollection = MakeShared<PCGExData::FPointIOCollection>(InContext, PCGEx::SourceTargetsLabel, PCGExData::EIOInit::None);
+		TSharedPtr<FPointIOCollection> TargetsCollection = MakeShared<FPointIOCollection>(InContext, PCGEx::SourceTargetsLabel, EIOInit::None);
 		if (TargetsCollection->IsEmpty())
 		{
 			if (bThrowError) { PCGE_LOG_C(Error, GraphAndLog, InContext, FText::Format(FText::FromString(TEXT("Missing or zero-points '{0}' inputs")), FText::FromName(InputPinLabel))); }

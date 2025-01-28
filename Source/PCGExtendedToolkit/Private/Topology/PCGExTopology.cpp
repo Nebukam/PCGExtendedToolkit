@@ -252,7 +252,7 @@ namespace PCGExTopology
 		if (!Data.bIsClosedLoop) { return ECellResult::OpenCell; }
 
 		PCGEx::ShiftArrayToSmallest(Nodes); // ! important to guarantee contour determinism
-		
+
 		if (!Constraints->IsUniqueCellHash(SharedThis(this))) { return ECellResult::Duplicate; }
 
 		bBuiltSuccessfully = true;

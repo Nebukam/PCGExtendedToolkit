@@ -108,7 +108,7 @@ bool FPCGExFactoryProviderElement::ExecuteInternal(FPCGContext* Context) const
 	if (InContext->IsState(PCGEx::State_InitialExecution))
 	{
 		InContext->OutFactory = Settings->CreateFactory(InContext, nullptr);
-		
+
 		if (!InContext->OutFactory) { return true; }
 
 		InContext->OutFactory->OutputConfigToMetadata();

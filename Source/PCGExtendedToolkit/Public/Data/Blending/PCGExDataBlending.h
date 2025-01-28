@@ -643,7 +643,7 @@ namespace PCGExDataBlending
 			this->Writer->GetMutable(WriteIndex) = this->SingleOperation(A, B, Weight);
 		}
 	};
-	
+
 	static void AssembleBlendingDetails(
 		const FPCGExPropertiesBlendingDetails& PropertiesBlending,
 		const TMap<FName, EPCGExDataBlendingType>& PerAttributeBlending,
@@ -691,5 +691,4 @@ namespace PCGExDataBlending
 			OutDetails.FilteredAttributes.Add(Id);
 		}
 	}
-	
 }
