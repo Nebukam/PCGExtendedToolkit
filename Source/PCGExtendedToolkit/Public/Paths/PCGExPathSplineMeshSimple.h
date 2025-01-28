@@ -26,7 +26,7 @@ class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExPathSplineMeshSimpleSettings : public UPC
 
 public:
 	UPCGExPathSplineMeshSimpleSettings(const FObjectInitializer& ObjectInitializer);
-	
+
 	//~Begin UPCGSettings
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS(PathSplineMeshSimple, "Path : Spline Mesh (Simple)", "Create spline mesh components from paths.");
@@ -104,7 +104,7 @@ public:
 	/** */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Spline Mesh Up Vector", EditCondition="SplineMeshUpMode==EPCGExSplineMeshUpMode::Constant", EditConditionHides))
 	FVector SplineMeshUpVector = FVector::UpVector;
-	
+
 	/**  */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Spline Axis Align"))
 	EPCGExMinimalAxis SplineMeshAxisConstant = EPCGExMinimalAxis::X;

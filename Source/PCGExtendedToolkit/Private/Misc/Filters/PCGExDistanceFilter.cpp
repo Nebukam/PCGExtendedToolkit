@@ -15,8 +15,7 @@ bool UPCGExDistanceFilterFactory::SupportsDirectEvaluation() const
 bool UPCGExDistanceFilterFactory::Init(FPCGExContext* InContext)
 {
 	if (!Super::Init(InContext)) { return false; }
-
-	return false;
+	return true;
 }
 
 TSharedPtr<PCGExPointFilter::FFilter> UPCGExDistanceFilterFactory::CreateFilter() const
