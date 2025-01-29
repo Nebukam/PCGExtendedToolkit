@@ -149,8 +149,6 @@ namespace PCGExExtrudeTensors
 		if (RemainingIterations > 1)
 		{
 			// We re-entered bounds from a previously completed path.
-			// TODO : Start a new extrusion from head if selected mode allows for it
-			// TODO : Set extrusion origin to be the intersection point with the limit box
 			if (const TSharedPtr<FExtrusion> ChildExtrusion = Processor->InitExtrusionFromExtrusion(SharedThis(this)))
 			{
 				ChildExtrusion->bIsChildExtrusion = true;
@@ -252,17 +250,20 @@ namespace PCGExExtrudeTensors
 
 	void FProcessor::InitExtrusionFromSeed(const int32 InSeedIndex)
 	{
-		if (Settings->bIgnoreStoppedSeeds && StopFilters)
-		{
-			if (StopFilters->Test(PointDataFacade->Source->GetInPoint(InSeedIndex))) { return; }
-		}
-
 		const int32 Iterations = PerPointIterations ? PerPointIterations->Read(InSeedIndex) : Settings->Iterations;
 		if (Iterations < 1) { return; }
 
+		bool bIsStopped = false;
+		if (StopFilters)
+		{
+			bIsStopped = StopFilters->Test(PointDataFacade->Source->GetInPoint(InSeedIndex));
+			if (Settings->bIgnoreStoppedSeeds && bIsStopped) { return; }
+		}
+		
 		const TSharedPtr<FExtrusion> NewExtrusion = CreateExtrusionTemplate(InSeedIndex, Iterations);
 		if (!NewExtrusion) { return; }
 
+		NewExtrusion->bIsProbe = bIsStopped;
 		if (Settings->bUseMaxLength) { NewExtrusion->MaxLength = PerPointMaxLength ? PerPointMaxLength->Read(InSeedIndex) : Settings->MaxLength; }
 		if (Settings->bUseMaxPointsCount) { NewExtrusion->MaxPointCount = PerPointMaxPoints ? PerPointMaxPoints->Read(InSeedIndex) : Settings->MaxPointsCount; }
 
