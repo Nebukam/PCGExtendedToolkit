@@ -149,7 +149,7 @@ namespace PCGExResamplePath
 						EndIndex = 0;
 					}
 
-					NextPosition = InPoints[EndIndex].Transform.GetLocation();
+					NextPosition = InPoints[EndIndex].Transform.GetLocation();					
 					DistToNext = FVector::Dist(PrevPosition, NextPosition);
 
 					if (Remainder <= DistToNext) { PrevPosition = PrevPosition + (Path->DirToPrevPoint(EndIndex) * -Remainder); }
@@ -192,7 +192,8 @@ namespace PCGExResamplePath
 
 		//if (SourcesRange == 1)
 		//{
-		const double Weight = FVector::DistSquared(Path->GetPos(Sample.Start), Sample.Location) / FVector::DistSquared(Path->GetPos(Sample.Start), Path->GetPos(Sample.End));
+		// TODO : Implement proper blending. Division by zero here when there are collocated points
+		const double Weight = 0.5; //FVector::DistSquared(Path->GetPos(Sample.Start), Sample.Location) / FVector::DistSquared(Path->GetPos(Sample.Start), Path->GetPos(Sample.End));
 		MetadataBlender->PrepareForBlending(Index);
 		MetadataBlender->Blend(Index, Sample.Start, Index, Weight);
 		MetadataBlender->Blend(Index, Sample.End, Index, 1 - Weight);
