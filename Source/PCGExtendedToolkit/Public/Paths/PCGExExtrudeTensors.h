@@ -245,6 +245,7 @@ namespace PCGExExtrudeTensors
 		FPCGPoint Origin;
 
 	public:
+		bool bIsProbe = false;
 		bool bIsChildExtrusion = false;
 		bool bIsFollowUp = false;
 
@@ -278,7 +279,7 @@ namespace PCGExExtrudeTensors
 
 	protected:
 		bool OnAdvanced(const bool bStop);
-		bool Extrude(const PCGExTensor::FTensorSample& Sample, const FPCGPoint& InPoint);
+		bool Extrude(const PCGExTensor::FTensorSample& Sample, FPCGPoint& InPoint);
 		void StartNewExtrusion();
 		void Insert(const FPCGPoint& InPoint) const;
 	};
@@ -370,9 +371,11 @@ namespace PCGExExtrudeTensors
 				{
 					// Start writing path
 					bIsExtruding = true;
-					Metrics = PCGExPaths::FPathMetrics(PreviousHeadLocation);
-					ExtrudedPoints[0].Transform = Head;
-					return OnAdvanced(false);
+					if(bIsProbe)
+					{
+						SetHead(Head);
+						return OnAdvanced(false);	
+					}
 				}
 			}
 
