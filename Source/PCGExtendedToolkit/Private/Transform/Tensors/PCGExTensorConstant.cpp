@@ -26,6 +26,7 @@ PCGExTensor::FTensorSample UPCGExTensorConstant::Sample(const FTransform& InProb
 
 PCGEX_TENSOR_BOILERPLATE(
 	Constant, {
+	NewFactory->Config.Mutations = Mutations;
 	NewFactory->Config.Direction = Direction;
 	NewFactory->Config.Potency = Potency;
 	NewFactory->Config.PotencyInput = EPCGExInputValueType::Constant;

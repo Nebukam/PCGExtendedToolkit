@@ -175,6 +175,7 @@ namespace PCGExClusterMT
 
 				if (!Cluster->BuildFrom(*EndpointsLookup, ExpectedAdjacency))
 				{
+					PCGE_LOG_C(Error, GraphAndLog, ExecutionContext, FTEXT("A cluster could not be rebuilt correctly. If you did change the content of vtx/edges collections using non cluster-friendly nodes, make sure to use a 'Sanitize Cluster' to ensure clusters are validated."));
 					Cluster.Reset();
 					return false;
 				}
