@@ -115,6 +115,9 @@ void UPCGExGlobalSettings::GeneratePinInfos()
 
 	PCGEX_EMPLACE_PIN_OUT(OUT_Tensor, "PCGEx Tensor");
 	PCGEX_MAP_PIN_OUT("Tensor")
+	
+	PCGEX_EMPLACE_PIN_OUT(OUT_Picker, "PCGEx Picker");
+	PCGEX_MAP_PIN_OUT("Picker")
 
 #undef PCGEX_EMPLACE_PIN_OUT
 #undef PCGEX_MAP_PIN_OUT
@@ -189,6 +192,9 @@ void UPCGExGlobalSettings::GeneratePinInfos()
 	PCGEX_EMPLACE_PIN_IN(OUT_Tensor, "Expects PCGEx Tensors, supports multiple inputs.");
 	PCGEX_MAP_PIN_IN("Tensors")
 	PCGEX_MAP_PIN_IN("Parent Tensor")
+
+	PCGEX_EMPLACE_PIN_IN(OUT_Picker, "PCGEx Pickers, supports multiple inputs.");
+	PCGEX_MAP_PIN_IN("Pickers")
 
 	PinIndex = InPinInfos.Emplace(FName("PCGEx.Pin.IN_Vtx"), TEXT("Point collection formatted for use as cluster vtx."));
 	PCGEX_MAP_PIN_IN("Vtx")

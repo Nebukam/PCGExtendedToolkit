@@ -85,6 +85,10 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	double Potency = 1;
 
+	/** Tensor mutations settings. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName="Sampling Mutations"))
+	FPCGExTensorSamplingMutationsDetails Mutations;
+	
 	/** Tensor properties */
 	UPROPERTY(meta=(PCG_NotOverridable, HideInDetailPanel))
 	FPCGExTensorConstantConfig Config;

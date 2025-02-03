@@ -7,6 +7,7 @@
 #include "PCGExGlobalSettings.h"
 
 #include "PCGExPointsProcessor.h"
+#include "Pickers/PCGExPickerFactoryProvider.h"
 
 
 #include "PCGExCherryPickPoints.generated.h"
@@ -15,7 +16,7 @@ UENUM()
 enum class EPCGExCherryPickSource : uint8
 {
 	Self   = 0 UMETA(DisplayName = "Self", ToolTip="Read indices from an attribute on the currently cherry-picked data set."),
-	Target = 1 UMETA(DisplayName = "Targets", ToolTip="Read indices from a list of target points."),
+	Sources = 1 UMETA(DisplayName = "Sources", ToolTip="Read indices from a list of sources inputs."),
 };
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc")
@@ -26,7 +27,7 @@ class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExCherryPickPointsSettings : public UPCGExP
 public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS(CherryPickPoints, "Cherry Pick Points", "Filter points by indices, either read from local attributes or using another list of points.");
+	PCGEX_NODE_INFOS(CherryPickPoints, "Cherry Pick Points", "Filter points by indices, either read from local attributes or using external sources.");
 	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->NodeColorMiscRemove; }
 #endif
 
@@ -40,25 +41,13 @@ public:
 	virtual PCGExData::EIOInit GetMainOutputInitMode() const override;
 	//~End UPCGExPointsProcessorSettings
 
-	/** . */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
-	EPCGExCherryPickSource IndicesSource = EPCGExCherryPickSource::Target;
-
-	/** Attribute to read value from. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
-	FPCGAttributePropertyInputSelector ReadIndexFromAttribute;
-
-	/** . */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
-	EPCGExIndexSafety Safety = EPCGExIndexSafety::Ignore;
 };
 
 struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExCherryPickPointsContext final : FPCGExPointsProcessorContext
 {
 	friend class FPCGExCherryPickPointsElement;
-
-	bool TryGetUniqueIndices(const TSharedRef<PCGExData::FPointIO>& InSource, TArray<int32>& OutUniqueIndices, int32 MaxIndex = -1) const;
-	TArray<int32> SharedTargetIndices;
+	TArray<TObjectPtr<const UPCGExPickerFactoryData>> PickerFactories;	
+	TArray<UPCGExPickerOperation*> PickerOperations;	
 };
 
 class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExCherryPickPointsElement final : public FPCGExPointsProcessorElement
@@ -87,6 +76,5 @@ namespace PCGExCherryPickPoints
 		}
 
 		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager> InAsyncManager) override;
-		virtual void CompleteWork() override;
 	};
 }
