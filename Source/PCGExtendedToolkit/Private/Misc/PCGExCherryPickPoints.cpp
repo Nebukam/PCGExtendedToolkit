@@ -3,6 +3,8 @@
 
 #include "Misc/PCGExCherryPickPoints.h"
 
+#include "Misc/Pickers/PCGExPicker.h"
+#include "Misc/Pickers/PCGExPickerOperation.h"
 
 #define LOCTEXT_NAMESPACE "PCGExCherryPickPointsElement"
 #define PCGEX_NAMESPACE CherryPickPoints
@@ -14,51 +16,8 @@ PCGEX_INITIALIZE_ELEMENT(CherryPickPoints)
 TArray<FPCGPinProperties> UPCGExCherryPickPointsSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
-	if (IndicesSource == EPCGExCherryPickSource::Target) { PCGEX_PIN_POINT(PCGEx::SourceTargetsLabel, "TBD", Required, {}) }
+	PCGEX_PIN_PARAMS(PCGExPicker::SourcePickersLabel, "Pickers config", Required, {})
 	return PinProperties;
-}
-
-bool FPCGExCherryPickPointsContext::TryGetUniqueIndices(const TSharedRef<PCGExData::FPointIO>& InSource, TArray<int32>& OutUniqueIndices, const int32 MaxIndex) const
-{
-	PCGEX_SETTINGS_LOCAL(CherryPickPoints)
-
-	TArray<int32> SourceIndices;
-	TSet<int32> UniqueIndices;
-	const TUniquePtr<PCGEx::TAttributeBroadcaster<int32>> Getter = MakeUnique<PCGEx::TAttributeBroadcaster<int32>>();
-	if (!Getter->Prepare(Settings->ReadIndexFromAttribute, InSource))
-	{
-		PCGE_LOG_C(Warning, GraphAndLog, this, FTEXT("Index attribute is invalid."));
-		return false;
-	}
-
-	int32 Min = 0;
-	int32 Max = 0;
-
-	Getter->GrabAndDump(SourceIndices, false, Min, Max);
-
-	if (MaxIndex == -1)
-	{
-		for (const int32 Value : Getter->Values)
-		{
-			if (Value < 0) { continue; }
-			UniqueIndices.Add(Value);
-		}
-	}
-	else
-	{
-		for (int32& Value : Getter->Values)
-		{
-			Value = PCGExMath::SanitizeIndex(Value, MaxIndex, Settings->Safety);
-			if (Value < 0) { continue; }
-			UniqueIndices.Add(Value);
-		}
-	}
-
-	OutUniqueIndices.Reserve(UniqueIndices.Num());
-	OutUniqueIndices.Append(UniqueIndices.Array());
-	OutUniqueIndices.Sort();
-
-	return true;
 }
 
 bool FPCGExCherryPickPointsElement::Boot(FPCGExContext* InContext) const
@@ -67,13 +26,22 @@ bool FPCGExCherryPickPointsElement::Boot(FPCGExContext* InContext) const
 
 	PCGEX_CONTEXT_AND_SETTINGS(CherryPickPoints)
 
-	if (Settings->IndicesSource == EPCGExCherryPickSource::Target)
+	PCGExFactories::GetInputFactories(Context, PCGExPicker::SourcePickersLabel, Context->PickerFactories, {PCGExFactories::EType::IndexPicker}, false);
+	if (Context->PickerFactories.IsEmpty())
 	{
-		const TSharedPtr<PCGExData::FPointIO> Targets = PCGExData::TryGetSingleInput(Context, PCGEx::SourceTargetsLabel, true);
-		if (!Targets) { return false; }
-		if (!Context->TryGetUniqueIndices(Targets.ToSharedRef(), Context->SharedTargetIndices)) { return false; }
+		PCGE_LOG(Error, GraphAndLog, FTEXT("Missing pickers."));
+		return false;
 	}
 
+	Context->PickerOperations.Reserve(Context->PickerFactories.Num());
+	
+	for (const TObjectPtr<const UPCGExPickerFactoryData>& PickerFactory : Context->PickerFactories)
+	{
+		UPCGExPickerOperation* Op = PickerFactory->CreateOperation(Context);
+		Op->BindContext(Context);
+		Context->PickerOperations.Add(Op);
+	}	
+	
 	return true;
 }
 
@@ -89,6 +57,7 @@ bool FPCGExCherryPickPointsElement::ExecuteInternal(FPCGContext* InContext) cons
 			[&](const TSharedPtr<PCGExData::FPointIO>& Entry) { return true; },
 			[&](const TSharedPtr<PCGExPointsMT::TBatch<PCGExCherryPickPoints::FProcessor>>& NewBatch)
 			{
+				NewBatch->bSkipCompletion = true;
 			}))
 		{
 			return Context->CancelExecution(TEXT("Could not find any data to cherry pick."));
@@ -110,37 +79,33 @@ namespace PCGExCherryPickPoints
 
 		if (!FPointsProcessor::Process(InAsyncManager)) { return false; }
 
-		const int32 MaxIndex = PointDataFacade->GetNum() - 1;
-		if (Settings->IndicesSource == EPCGExCherryPickSource::Self)
+		TSet<int32> UniqueIndices;
+
+		for(const UPCGExPickerOperation* Op : Context->PickerOperations)
 		{
-			if (!Context->TryGetUniqueIndices(PointDataFacade->Source, PickedIndices, MaxIndex)) { return false; }
-		}
-		else
-		{
-			for (const int32 Value : Context->SharedTargetIndices)
-			{
-				const int32 SanitizedIndex = PCGExMath::SanitizeIndex(Value, MaxIndex, Settings->Safety);
-				if (SanitizedIndex < 0) { continue; }
-				PickedIndices.Add(SanitizedIndex);
-			}
+			Op->AddPicks(PointDataFacade, UniqueIndices);
 		}
 
-		if (PickedIndices.IsEmpty()) { return false; }
+		if (UniqueIndices.IsEmpty())
+		{
+			PointDataFacade->Source->Disable();
+			return true;
+		}
+
+		if (!PointDataFacade->Source->InitializeOutput(PCGExData::EIOInit::New)) { return false; }
+
+		PickedIndices = UniqueIndices.Array();
+		PickedIndices.Sort();
+
+		const TArray<FPCGPoint>& SourcePoints = PointDataFacade->GetIn()->GetPoints();
+		TArray<FPCGPoint>& MutablePoints = PointDataFacade->GetMutablePoints();
+
+		const int32 NumPicks = PickedIndices.Num();
+		MutablePoints.Reserve(NumPicks);
+
+		for (int32 i = 0; i < NumPicks; i++) { MutablePoints.Add(SourcePoints[PickedIndices[i]]); }
 
 		return true;
-	}
-
-	void FProcessor::CompleteWork()
-	{
-		PCGEX_INIT_IO_VOID(PointDataFacade->Source, PCGExData::EIOInit::New)
-
-		const TArray<FPCGPoint>& PickablePoints = PointDataFacade->GetIn()->GetPoints();
-		TArray<FPCGPoint>& MutablePoints = PointDataFacade->GetOut()->GetMutablePoints();
-
-		const int32 NumPicked = PickedIndices.Num();
-
-		MutablePoints.SetNumUninitialized(NumPicked);
-		for (int i = 0; i < NumPicked; i++) { MutablePoints[i] = PickablePoints[PickedIndices[i]]; }
 	}
 }
 
