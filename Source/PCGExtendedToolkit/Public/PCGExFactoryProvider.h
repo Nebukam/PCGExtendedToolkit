@@ -41,6 +41,7 @@ namespace PCGExFactories
 		Blending,
 		TexParam,
 		Tensor,
+		IndexPicker,
 	};
 
 	static inline TSet<EType> AnyFilters = {EType::FilterPoint, EType::FilterNode, EType::FilterEdge, EType::FilterGroup};
