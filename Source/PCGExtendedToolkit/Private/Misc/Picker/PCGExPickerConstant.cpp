@@ -15,27 +15,11 @@ FString UPCGExPickerConstantSettings::GetDisplayName() const
 
 	if (Config.bTreatAsNormalized)
 	{
-		if (Config.RelativeIndex < 0)
-		{
-			DisplayName += FString::Printf(TEXT("%.2f"), FMath::Abs(Config.RelativeIndex));
-			DisplayName += TEXT(" (from end)");
-		}
-		else
-		{
-			DisplayName += FString::Printf(TEXT("%.2f"), Config.RelativeIndex);
-		}
+		DisplayName += FString::Printf(TEXT("%.2f"), Config.RelativeIndex);
 	}
 	else
 	{
-		if (Config.DiscreteIndex < 0)
-		{
-			DisplayName += FString::Printf(TEXT("%d"), FMath::Abs(Config.DiscreteIndex));
-			DisplayName += TEXT(" (from end)");
-		}
-		else
-		{
-			DisplayName += FString::Printf(TEXT("%d"), Config.DiscreteIndex);
-		}
+		DisplayName += FString::Printf(TEXT("%d"), Config.DiscreteIndex);
 	}
 
 	return DisplayName;
