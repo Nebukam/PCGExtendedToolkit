@@ -45,7 +45,7 @@ bool FPCGExSplineToPathElement::Boot(FPCGExContext* InContext) const
 		for (const FPCGTaggedData& TaggedData : Targets)
 		{
 			const UPCGSplineData* SplineData = Cast<UPCGSplineData>(TaggedData.Data);
-			if (!SplineData) { continue; }
+			if (!SplineData || SplineData->SplineStruct.GetNumberOfSplineSegments() <= 0) { continue; }
 
 			switch (Settings->SampleInputs)
 			{

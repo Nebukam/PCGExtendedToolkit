@@ -23,7 +23,7 @@ bool UPCGExSplineAlphaFilterFactory::Init(FPCGExContext* InContext)
 		for (const FPCGTaggedData& TaggedData : Targets)
 		{
 			const UPCGSplineData* SplineData = Cast<UPCGSplineData>(TaggedData.Data);
-			if (!SplineData) { continue; }
+			if (!SplineData || SplineData->SplineStruct.GetNumberOfSplineSegments() <= 0) { continue; }
 
 			const bool bIsClosedLoop = SplineData->SplineStruct.bClosedLoop;
 			if (Config.SampleInputs == EPCGExSplineSamplingIncludeMode::ClosedLoopOnly && !bIsClosedLoop) { continue; }
