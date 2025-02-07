@@ -165,7 +165,9 @@ namespace PCGEx
 		{TEXT("LEN"), EPCGExSingleField::Length},
 		{TEXT("LENGTH"), EPCGExSingleField::Length},
 		{TEXT("SQUAREDLENGTH"), EPCGExSingleField::SquaredLength},
-		{TEXT("LENSQR"), EPCGExSingleField::SquaredLength}
+		{TEXT("LENSQR"), EPCGExSingleField::SquaredLength},
+		{TEXT("VOL"), EPCGExSingleField::Volume},
+		{TEXT("VOLUME"), EPCGExSingleField::Volume}
 	};
 
 	static const TMap<FString, EPCGExAxis> STRMAP_AXIS = {
@@ -903,6 +905,7 @@ namespace PCGEx
 					return Value.Y > 0;
 				case EPCGExSingleField::Length:
 				case EPCGExSingleField::SquaredLength:
+				case EPCGExSingleField::Volume:
 					return Value.SquaredLength() > 0;
 				}
 			}
@@ -921,6 +924,8 @@ namespace PCGEx
 					return Value.Length();
 				case EPCGExSingleField::SquaredLength:
 					return Value.SquaredLength();
+				case EPCGExSingleField::Volume:
+					return Value.X * Value.Y;
 				}
 			}
 			else if constexpr (std::is_same_v<T, FVector2D>) { return Value; }
@@ -957,6 +962,7 @@ namespace PCGEx
 					return Value.Z > 0;
 				case EPCGExSingleField::Length:
 				case EPCGExSingleField::SquaredLength:
+				case EPCGExSingleField::Volume:
 					return Value.SquaredLength() > 0;
 				}
 			}
@@ -976,6 +982,8 @@ namespace PCGEx
 					return Value.Length();
 				case EPCGExSingleField::SquaredLength:
 					return Value.SquaredLength();
+				case EPCGExSingleField::Volume:
+					return Value.X * Value.Y * Value.Z;
 				}
 			}
 			else if constexpr (std::is_same_v<T, FVector2D>) { return FVector2D(Value.X, Value.Y); }
@@ -1013,6 +1021,7 @@ namespace PCGEx
 					return Value.W > 0;
 				case EPCGExSingleField::Length:
 				case EPCGExSingleField::SquaredLength:
+				case EPCGExSingleField::Volume:
 					return FVector(Value).SquaredLength() > 0;
 				}
 			}
@@ -1033,6 +1042,8 @@ namespace PCGEx
 					return FVector(Value).Length();
 				case EPCGExSingleField::SquaredLength:
 					return FVector(Value).SquaredLength();
+				case EPCGExSingleField::Volume:
+					return Value.X * Value.Y * Value.Z * Value.W;
 				}
 			}
 			else if constexpr (std::is_same_v<T, FVector2D>) { return FVector2D(Value.X, Value.Y); }
@@ -1070,6 +1081,7 @@ namespace PCGEx
 					return Dir.Z > 0;
 				case EPCGExSingleField::Length:
 				case EPCGExSingleField::SquaredLength:
+				case EPCGExSingleField::Volume:
 					return Dir.SquaredLength() > 0;
 				}
 			}
@@ -1089,6 +1101,7 @@ namespace PCGEx
 				case EPCGExSingleField::Length:
 					return Dir.Length();
 				case EPCGExSingleField::SquaredLength:
+				case EPCGExSingleField::Volume:
 					return Dir.SquaredLength();
 				}
 			}
@@ -1130,6 +1143,7 @@ namespace PCGEx
 					return Value.Roll > 0;
 				case EPCGExSingleField::Length:
 				case EPCGExSingleField::SquaredLength:
+				case EPCGExSingleField::Volume:
 					return Value.Euler().SquaredLength() > 0;
 				}
 			}
@@ -1146,8 +1160,10 @@ namespace PCGEx
 				case EPCGExSingleField::W:
 					return Value.Roll > 0;
 				case EPCGExSingleField::Length:
+					return Value.Euler().Length();
 				case EPCGExSingleField::SquaredLength:
-					return Value.Euler().SquaredLength() > 0;
+				case EPCGExSingleField::Volume:
+					return Value.Euler().SquaredLength();
 				}
 			}
 			else if constexpr (std::is_same_v<T, FVector2D>) { return Convert(Value.Quaternion()); }

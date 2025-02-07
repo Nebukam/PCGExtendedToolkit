@@ -94,6 +94,7 @@ void UPCGExGlobalSettings::GeneratePinInfos()
 
 	PCGEX_EMPLACE_PIN_OUT(OUT_Sorting, "PCGEx Sort Rule");
 	PCGEX_MAP_PIN_OUT("SortRule")
+	PCGEX_MAP_PIN_OUT("SortingRule")
 
 	PCGEX_EMPLACE_PIN_OUT(OUT_Tex, "PCGEx Texture Params");
 	PCGEX_MAP_PIN_OUT("TextureParam")
@@ -170,6 +171,7 @@ void UPCGExGlobalSettings::GeneratePinInfos()
 	PCGEX_MAP_PIN_IN("SortingRules")
 	PCGEX_MAP_PIN_IN("SortRule")
 	PCGEX_MAP_PIN_IN("SortRules")
+	PCGEX_MAP_PIN_IN("Edge Sorting Rules")
 
 	PCGEX_EMPLACE_PIN_IN(IN_Tex, "Expects PCGEx Texture Params, supports multiple inputs.");
 	PCGEX_MAP_PIN_IN("TextureParams")

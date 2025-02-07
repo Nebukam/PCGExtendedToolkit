@@ -7,4 +7,9 @@
 
 namespace PCGExLayout
 {
+	const FName SourceBinsLabel = TEXT("Bins");
+	const FName OutputBinsLabel = TEXT("Bins");
+	const FName OutputDiscardedLabel = TEXT("Discarded");
+
+	bool CanBoxFit(const FBox& InBox, const FVector& InSize);
 }
