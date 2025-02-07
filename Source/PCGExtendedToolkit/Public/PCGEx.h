@@ -31,8 +31,8 @@
 #ifndef PCGEX_CONSTANTS
 #define PCGEX_CONSTANTS
 
-#define DBL_INTERSECTION_TOLERANCE 1
-#define DBL_COLLOCATION_TOLERANCE 1
+#define DBL_INTERSECTION_TOLERANCE 0.01
+#define DBL_COLLOCATION_TOLERANCE 0.01
 #define DBL_COMPARE_TOLERANCE 0.01
 
 #endif
@@ -102,6 +102,7 @@ enum class EPCGExSingleField : uint8
 	W             = 3 UMETA(DisplayName = "W", ToolTip="W component if it exist, fallback to previous value otherwise."),
 	Length        = 4 UMETA(DisplayName = "Length", ToolTip="Length if vector, raw value otherwise."),
 	SquaredLength = 5 UMETA(DisplayName = "SquaredLength", ToolTip="SquaredLength if vector, raw value otherwise."),
+	Volume        = 6 UMETA(DisplayName = "Volume", ToolTip="Volume if vector, raw value otherwise."),
 };
 
 UENUM()
