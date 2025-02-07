@@ -191,7 +191,7 @@ namespace PCGExReversePointOrder
 					{
 						for (int i = Scope.Start; i < Scope.End; i++)
 						{
-							const RawT FirstValue = FirstWriter->Read(i);
+							const RawT FirstValue = FirstWriter->GetConst(i);
 							FirstWriter->GetMutable(i) = PCGExMath::DblMult(SecondWriter->GetConst(i), -1);
 							SecondWriter->GetMutable(i) = PCGExMath::DblMult(FirstValue, -1);
 						}
@@ -200,7 +200,7 @@ namespace PCGExReversePointOrder
 					{
 						for (int i = Scope.Start; i < Scope.End; i++)
 						{
-							const RawT FirstValue = FirstWriter->Read(i);
+							const RawT FirstValue = FirstWriter->GetConst(i);
 							FirstWriter->GetMutable(i) = SecondWriter->GetConst(i);
 							SecondWriter->GetMutable(i) = FirstValue;
 						}

@@ -42,7 +42,7 @@ bool FPCGExBinPackingElement::Boot(FPCGExContext* InContext) const
 
 	Context->Bins = MakeShared<PCGExData::FPointIOCollection>(InContext, PCGExLayout::SourceBinsLabel, PCGExData::EIOInit::None);
 	Context->Bins->OutputPin = PCGExLayout::OutputBinsLabel;
-	
+
 	const int32 NumBins = Context->Bins->Num();
 	const int32 NumInputs = Context->MainPoints->Num();
 
@@ -59,7 +59,6 @@ bool FPCGExBinPackingElement::Boot(FPCGExContext* InContext) const
 			{
 				Context->MainPoints->Pairs[i]->InitializeOutput(PCGExData::EIOInit::Duplicate);
 				Context->Bins->Pairs[i]->InitializeOutput(PCGExData::EIOInit::Duplicate);
-				Context->Bins->Pairs[i]->OutputPin = Context->Bins->OutputPin;
 			}
 		}
 		else if (NumInputs > NumBins)
@@ -73,7 +72,6 @@ bool FPCGExBinPackingElement::Boot(FPCGExContext* InContext) const
 			{
 				Context->MainPoints->Pairs[i]->InitializeOutput(PCGExData::EIOInit::Duplicate);
 				Context->Bins->Pairs[i]->InitializeOutput(PCGExData::EIOInit::Duplicate);
-				Context->Bins->Pairs[i]->OutputPin = Context->Bins->OutputPin;
 			}
 		}
 	}
@@ -83,9 +81,10 @@ bool FPCGExBinPackingElement::Boot(FPCGExContext* InContext) const
 		{
 			Context->MainPoints->Pairs[i]->InitializeOutput(PCGExData::EIOInit::Duplicate);
 			Context->Bins->Pairs[i]->InitializeOutput(PCGExData::EIOInit::Duplicate);
-			Context->Bins->Pairs[i]->OutputPin = Context->Bins->OutputPin;
 		}
 	}
+
+	for (int i = 0; i < NumInputs; i++) { Context->Bins->Pairs[i]->OutputPin = Context->Bins->OutputPin; }
 
 	Context->Discarded = MakeShared<PCGExData::FPointIOCollection>(InContext);
 	Context->Discarded->OutputPin = PCGExLayout::OutputDiscardedLabel;
@@ -128,100 +127,131 @@ bool FPCGExBinPackingElement::ExecuteInternal(FPCGContext* InContext) const
 
 namespace PCGExBinPacking
 {
-	FBin::FBin(const FPCGPoint& InBinPoint)
+	void FBin::AddSpace(const FBox& InBox)
 	{
-		BinBounds = PCGExMath::GetLocalBounds<EPCGExPointBoundsSource::ScaledBounds>(InBinPoint);
+		FSpace& NewSpace = Spaces.Emplace_GetRef(InBox, Seed);
+		NewSpace.DistanceScore /= MaxDist;
+	}
+
+	FBin::FBin(const FPCGPoint& InBinPoint, const FVector& InSeed)
+	{
+		Seed = InSeed;
+		Bounds = PCGExMath::GetLocalBounds<EPCGExPointBoundsSource::ScaledBounds>(InBinPoint);
+
 		Transform = InBinPoint.Transform;
 		Transform.SetScale3D(FVector::OneVector); // Reset scale for later transform
-		FreeSpaces.Add(BinBounds);
-	}
 
-	void FBin::AddItem(int32 SpaceIndex, FBinItem& InItem)
-	{
-		PlacedItems.Add(InItem);
+		MaxVolume = Bounds.GetVolume();
+		FVector FurthestLocation = InSeed;
 
-		const FBox& Space = FreeSpaces[SpaceIndex];
-
-		const FVector ItemSize = InItem.Box.GetSize();
-		FVector ItemMin = Space.Min;
-
-		for (int C = 0; C < 3; C++) { ItemMin[C] = FMath::Clamp(CenterOfGravity[C] - ItemSize[C] * 0.5, Space.Min[C], Space.Max[C] - ItemSize[C]); }
-
-		const FVector ItemMax = ItemMin + ItemSize;
-		InItem.Box = FBox(ItemMin, ItemMax);
-
-		// TODO : Add buffer to ItemMin/ItemMax to "fill" the space and avoid extra small subdivisions
-		
-		FBox Left(Space.Min, FVector(ItemMin.X, Space.Max.Y, Space.Max.Z));
-		FBox Right(FVector(ItemMax.X, Space.Min.Y, Space.Min.Z), Space.Max);
-
-		FBox Bottom(FVector(ItemMin.X, Space.Min.Y, Space.Min.Z), FVector(ItemMax.X, Space.Max.Y, ItemMin.Z));
-		FBox Top(FVector(ItemMin.X, ItemMin.Y, ItemMax.Z), FVector(ItemMax.X, ItemMax.Y, Space.Max.Z));
-
-		FBox Front(FVector(ItemMin.X, ItemMax.Y, ItemMin.Z), FVector(ItemMax.X, Space.Max.Y, Space.Max.Z));
-		FBox Back(FVector(ItemMin.X, Space.Min.Y, ItemMin.Z), FVector(ItemMax.X, ItemMin.Y, Space.Max.Z));
-
-		FreeSpaces.RemoveAt(SpaceIndex);
-		FreeSpaces.Reserve(FreeSpaces.Num() + 6);
-
-		if (!FMath::IsNearlyZero(Left.GetVolume())) { FreeSpaces.Add(Left); }
-		if (!FMath::IsNearlyZero(Right.GetVolume())) { FreeSpaces.Add(Right); }
-		if (!FMath::IsNearlyZero(Bottom.GetVolume())) { FreeSpaces.Add(Bottom); }
-		if (!FMath::IsNearlyZero(Top.GetVolume())) { FreeSpaces.Add(Top); }
-		if (!FMath::IsNearlyZero(Front.GetVolume())) { FreeSpaces.Add(Front); }
-		if (!FMath::IsNearlyZero(Back.GetVolume())) { FreeSpaces.Add(Back); }
-	}
-
-
-	bool FBin::Insert(FBinItem& InItem)
-	{
-		double SmallestRemainder = MAX_dbl;
-		double SmallestDist = MAX_dbl;
-		double BoxVolume = InItem.Box.GetVolume();
-		int32 BestIndex = -1;
-		const FVector ItemSize = InItem.Box.GetSize();
-
-		for (int i = 0; i < FreeSpaces.Num(); i++)
+		for (int C = 0; C < 3; C++)
 		{
-			const FBox& Space = FreeSpaces[i];
+			const double DistToMin = FMath::Abs(Seed[C] - Bounds.Min[C]);
+			const double DistToMax = FMath::Abs(Seed[C] - Bounds.Max[C]);
+			FurthestLocation[C] = (DistToMin > DistToMax) ? Bounds.Min[C] : Bounds.Max[C];
+		}
+
+		MaxDist = FVector::DistSquared(FurthestLocation, Seed);
+
+		AddSpace(Bounds);
+	}
+
+	int32 FBin::GetBestSpaceScore(const FItem& InItem, double& OutScore, FRotator& OutRotator) const
+	{
+		int32 BestIndex = -1;
+		const double BoxVolume = InItem.Box.GetVolume();
+		const FVector ItemSize = InItem.Box.GetSize();
+
+		for (int i = 0; i < Spaces.Num(); i++)
+		{
+			const FSpace& Space = Spaces[i];
 
 			// TODO : Rotate & try fit
 
-			if (PCGExLayout::CanBoxFit(Space, ItemSize))
+			if (Space.CanFit(ItemSize))
 			{
-				double Remainder = Space.GetVolume() - BoxVolume;
-				if (SmallestRemainder >= Remainder)
+				const double SpaceScore = 1 - ((Space.Volume - BoxVolume) / MaxVolume);
+				const double DistScore = Space.DistanceScore;
+				const double Score = SpaceScore + DistScore;
+
+				if (Score < OutScore)
 				{
-					// Find point in space closest to center of gravity
-					FVector Min = FVector::ZeroVector;
-					for (int C = 0; C < 3; C++) { Min[C] = FMath::Clamp(CenterOfGravity[C], Space.Min[C], Space.Max[C]); }
-
-					const double Dist = FVector::DistSquared(Min, CenterOfGravity);
-					if (SmallestRemainder == Remainder && Dist > SmallestDist) { continue; }
-
-					SmallestDist = Dist;
-					SmallestRemainder = Remainder;
 					BestIndex = i;
-
-					if (FMath::IsNearlyZero(Dist)) { break; }
+					OutScore = Score;
 				}
 			}
 		}
 
+		return BestIndex;
+	}
+
+	void FBin::AddItem(int32 SpaceIndex, FItem& InItem)
+	{
+		Items.Add(InItem);
+
+		const FSpace& Space = Spaces[SpaceIndex];
+
+		const FVector ItemSize = InItem.Box.GetSize();
+		FVector ItemMin = Space.Box.Min;
+
+		for (int C = 0; C < 3; C++) { ItemMin[C] = FMath::Clamp(Seed[C] - ItemSize[C] * 0.5, Space.Box.Min[C], Space.Box.Max[C] - ItemSize[C]); }
+
+		FBox ItemBox = FBox(ItemMin, ItemMin + ItemSize);
+		InItem.Box = ItemBox;
+
+		Space.Expand(ItemBox, InItem.Padding);
+
+		if (Settings->bAvoidWastedSpace)
+		{
+			const FVector Amplitude = Space.Inflate(ItemBox, WastedSpaceThresholds);
+		}
+
+		TArray<FBox> NewPartitions;
+		NewPartitions.Reserve(8);
+
+		FBox Left(Space.Box.Min, FVector(ItemBox.Min.X, Space.Box.Max.Y, Space.Box.Max.Z));
+		FBox Right(FVector(ItemBox.Max.X, Space.Box.Min.Y, Space.Box.Min.Z), Space.Box.Max);
+
+		FBox Bottom(FVector(ItemBox.Min.X, Space.Box.Min.Y, Space.Box.Min.Z), FVector(ItemBox.Max.X, Space.Box.Max.Y, ItemBox.Min.Z));
+		FBox Top(FVector(ItemBox.Min.X, ItemBox.Min.Y, ItemBox.Max.Z), FVector(ItemBox.Max.X, ItemBox.Max.Y, Space.Box.Max.Z));
+
+		FBox Front(FVector(ItemBox.Min.X, ItemBox.Max.Y, ItemBox.Min.Z), FVector(ItemBox.Max.X, Space.Box.Max.Y, Space.Box.Max.Z));
+		FBox Back(FVector(ItemBox.Min.X, Space.Box.Min.Y, ItemBox.Min.Z), FVector(ItemBox.Max.X, ItemBox.Min.Y, Space.Box.Max.Z));
+
+		NewPartitions.Add(Left);
+		NewPartitions.Add(Right);
+		NewPartitions.Add(Bottom);
+		NewPartitions.Add(Top);
+		NewPartitions.Add(Front);
+		NewPartitions.Add(Back);
+
+		Spaces.RemoveAt(SpaceIndex);
+		Spaces.Reserve(Spaces.Num() + 8);
+
+		for (const FBox& Partition : NewPartitions) { if (!FMath::IsNearlyZero(Partition.GetVolume())) { AddSpace(Partition); } }
+	}
+
+	bool FBin::Insert(FItem& InItem)
+	{
+		FRotator OutRotation = FRotator::ZeroRotator;
+		double OutScore = MAX_dbl;
+
+		const int32 BestIndex = GetBestSpaceScore(InItem, OutScore, OutRotation);
+
 		if (BestIndex == -1) { return false; }
 
-		// Can fit.
 		// TODO : Check other bins as well, while it fits, this one may not be the ideal candidate
+
 		AddItem(BestIndex, InItem);
+		
 		return true;
 	}
 
-	void FBin::UpdatePoint(FPCGPoint& InPoint, const FBinItem& InItem) const
+	void FBin::UpdatePoint(FPCGPoint& InPoint, const FItem& InItem) const
 	{
 		const FTransform T = FTransform(FQuat::Identity, InItem.Box.GetCenter() - InPoint.GetLocalCenter(), InPoint.Transform.GetScale3D());
 		InPoint.Transform = T * Transform;
 	}
-
 
 	void FProcessor::RegisterBuffersDependencies(PCGExData::FFacadePreloader& FacadePreloader)
 	{
@@ -240,22 +270,87 @@ namespace PCGExBinPacking
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExBinPacking::Process);
 
+		PointDataFacade->bSupportsScopedGet = Context->bScopedAttributeGet;
+
 		if (!FPointsProcessor::Process(InAsyncManager)) { return false; }
+
+		if (Settings->OccupationPaddingInput == EPCGExInputValueType::Attribute)
+		{
+			PaddingBuffer = PointDataFacade->GetScopedBroadcaster<FVector>(Settings->OccupationPaddingAttribute);
+			if (!PaddingBuffer)
+			{
+				PCGE_LOG_C(Error, GraphAndLog, Context, FText::Format(FTEXT("Could not find occupation attribute : {0}."), FText::FromName(Settings->OccupationPaddingAttribute.GetName())));
+				return false;
+			}
+		}
 
 		Fitted.Init(false, PointDataFacade->GetNum());
 
 		TSharedPtr<PCGExData::FPointIO> TargetBins = Context->Bins->Pairs[BatchIndex];
 		Bins.Reserve(TargetBins->GetNum());
-		for (int i = 0; i < TargetBins->GetNum(); i++)
+
+		bool bRelativeSeed = Settings->SeedMode == EPCGExBinSeedMode::UVWConstant;
+		TSharedPtr<PCGEx::TAttributeBroadcaster<FVector>> SeedGetter = MakeShared<PCGEx::TAttributeBroadcaster<FVector>>();
+		if (Settings->SeedMode == EPCGExBinSeedMode::PositionAttribute)
 		{
-			PCGEX_MAKE_SHARED(NewBin, FBin, TargetBins->GetInPoint(i))
-			NewBin->CenterOfGravity = NewBin->BinBounds.GetCenter() + NewBin->BinBounds.GetExtent() * Settings->BinUVW;
-			Bins.Add(NewBin);
+			if (!SeedGetter->Prepare(Settings->SeedPositionAttribute, TargetBins.ToSharedRef()))
+			{
+				PCGE_LOG_C(Error, GraphAndLog, Context, FText::Format(FTEXT("A bin pool is missing the seed position attribute : {0}."), FText::FromName(Settings->SeedPositionAttribute.GetName())));
+				return false;
+			}
 		}
+		else if (Settings->SeedMode == EPCGExBinSeedMode::UVWAttribute)
+		{
+			bRelativeSeed = true;
+			if (!SeedGetter->Prepare(Settings->SeedUVWAttribute, TargetBins.ToSharedRef()))
+			{
+				PCGE_LOG_C(Error, GraphAndLog, Context, FText::Format(FTEXT("A bin pool is missing the seed UVW attribute : {0}."), FText::FromName(Settings->SeedUVWAttribute.GetName())));
+				return false;
+			}
+		}
+		else
+		{
+			SeedGetter.Reset();
+		}
+
 
 		if (Sorter && Sorter->Init())
 		{
 			PointDataFacade->GetOut()->GetMutablePoints().Sort([&](const FPCGPoint& A, const FPCGPoint& B) { return Sorter->Sort(A, B); });
+		}
+
+		if (Settings->bAvoidWastedSpace)
+		{
+			MinOccupation = MAX_dbl;
+			const TArray<FPCGPoint>& InPoints = PointDataFacade->GetOut()->GetPoints();
+			for (const FPCGPoint& P : InPoints)
+			{
+				const FVector Size = PCGExMath::GetLocalBounds<EPCGExPointBoundsSource::ScaledBounds>(P).GetSize();
+				MinOccupation = FMath::Min(MinOccupation, FMath::Min3(Size.X, Size.Y, Size.Z));
+			}
+		}
+
+		for (int i = 0; i < TargetBins->GetNum(); i++)
+		{
+			const FPCGPoint& BinPoint = TargetBins->GetInPoint(i);
+
+			FVector Seed = FVector::ZeroVector;
+			if (bRelativeSeed)
+			{
+				FBox Box = PCGExMath::GetLocalBounds<EPCGExPointBoundsSource::ScaledBounds>(BinPoint);
+				Seed = Box.GetCenter() + (SeedGetter ? SeedGetter->SoftGet(i, BinPoint, FVector::ZeroVector) : Settings->SeedUVW) * Box.GetExtent();
+			}
+			else
+			{
+				Seed = BinPoint.Transform.InverseTransformPositionNoScale(SeedGetter ? SeedGetter->SoftGet(i, BinPoint, FVector::ZeroVector) : Settings->SeedPosition);
+			}
+
+			PCGEX_MAKE_SHARED(NewBin, FBin, BinPoint, Seed)
+
+			NewBin->Settings = Settings;
+			NewBin->WastedSpaceThresholds = FVector(MinOccupation);
+
+			Bins.Add(NewBin);
 		}
 
 		// OPTIM : Find the smallest bound dimension possible to use as min threshold for free spaces later on
@@ -265,11 +360,18 @@ namespace PCGExBinPacking
 		return true;
 	}
 
+	void FProcessor::PrepareSingleLoopScopeForPoints(const PCGExMT::FScope& Scope)
+	{
+		PointDataFacade->Fetch(Scope);
+	}
+
 	void FProcessor::ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const PCGExMT::FScope& Scope)
 	{
-		FBinItem Item = FBinItem();
+		FItem Item = FItem();
+
 		Item.Index = Index;
 		Item.Box = FBox(FVector::ZeroVector, PCGExMath::GetLocalBounds<EPCGExPointBoundsSource::ScaledBounds>(Point).GetSize());
+		Item.Padding = PaddingBuffer ? PaddingBuffer->Read(Index) : Settings->OccupationPadding;
 
 		bool bPlaced = false;
 		for (const TSharedPtr<FBin>& Bin : Bins)
@@ -284,6 +386,8 @@ namespace PCGExBinPacking
 
 		Fitted[Index] = bPlaced;
 		if (!bPlaced) { bHasUnfitted = true; }
+
+		// TODO : post process pass to move things around based on initial placement
 	}
 
 	void FProcessor::CompleteWork()
