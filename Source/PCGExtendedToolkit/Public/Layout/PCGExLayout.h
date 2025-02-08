@@ -4,7 +4,8 @@
 #pragma once
 
 #include "CoreMinimal.h"
-//#include "PCGExLayout.generated.h"
+
+#include "PCGExLayout.generated.h"
 
 UENUM()
 enum class EPCGExBinSeedMode : uint8

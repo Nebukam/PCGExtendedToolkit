@@ -9,21 +9,31 @@ namespace PCGExCluster
 	void FNodeChain::FixUniqueHash()
 	{
 		UniqueHash = 0;
-		SingleEdge = -1;
 
-		if (Links.Num() <= 1) { SingleEdge = Seed.Edge; }
+		if (Links.Num() <= 1)
+		{
+			SingleEdge = Seed.Edge;
+			UniqueHash = SingleEdge;
+			return;
+		}
 
-		if (SingleEdge != -1) { UniqueHash = PCGEx::H64U(SingleEdge, SingleEdge); }
-		else { UniqueHash = PCGEx::H64U(bIsClosedLoop ? Seed.Edge : Links[0].Edge, Links.Last().Edge); }
+		TArray<int32> HashValues;
+		HashValues.Reserve(Links.Num() + 1);
+		for (const FLink& Lk : Links) { HashValues.Add(Lk.Edge); }
+		HashValues.Add(Seed.Edge);
+
+		HashValues.Sort();
+
+		for (const int32 H : HashValues) { UniqueHash = HashCombineFast(UniqueHash, GetTypeHash(H)); }
 	}
 
 	void FNodeChain::BuildChain(const TSharedRef<FCluster>& Cluster, const TSharedPtr<TArray<int8>>& Breakpoints)
 	{
 		ON_SCOPE_EXIT
 		{
-			FixUniqueHash();
 			bIsLeaf = Cluster->GetNode(Seed.Node)->IsLeaf() || Cluster->GetNode(Links.Last().Node)->IsLeaf();
 			if (bIsClosedLoop) { bIsLeaf = false; }
+			FixUniqueHash();
 		};
 
 		TSet<int32> Visited;
@@ -111,6 +121,13 @@ namespace PCGExCluster
 		}
 		else
 		{
+			if (bIsClosedLoop)
+			{
+				// TODO : Handle closed loop properly
+				Dump(Cluster, Graph, bAddMetadata);
+				return;
+			}
+
 			if (bAddMetadata)
 			{
 				Graph->InsertEdge(
@@ -133,6 +150,7 @@ namespace PCGExCluster
 	bool FNodeChainBuilder::Compile(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager)
 	{
 		Chains.Reserve(Cluster->Edges->Num());
+		int32 NumBinaries = 0;
 
 		for (int i = 0; i < Cluster->Nodes->Num(); i++)
 		{
@@ -147,7 +165,11 @@ namespace PCGExCluster
 				continue;
 			}
 
-			if (Node->IsBinary()) { continue; }
+			if (Node->IsBinary())
+			{
+				NumBinaries++;
+				continue;
+			}
 			if (Breakpoints && !(*Breakpoints)[Node->PointIndex])
 
 			{
@@ -163,7 +185,19 @@ namespace PCGExCluster
 		}
 
 		Chains.Shrink();
-		if (Chains.IsEmpty()) { return false; }
+		if (Chains.IsEmpty())
+		{
+			if (NumBinaries > 0 && NumBinaries == Cluster->Nodes->Num())
+			{
+				// That's an isolated closed loop
+				PCGEX_MAKE_SHARED(NewChain, FNodeChain, Cluster->GetNode(0)->Links[0])
+				Chains.Add(NewChain);
+			}
+			else
+			{
+				return false;
+			}
+		}
 		return DispatchTasks(AsyncManager);
 	}
 
