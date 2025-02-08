@@ -43,13 +43,14 @@ bool FPCGExBinPackingElement::Boot(FPCGExContext* InContext) const
 	Context->Bins = MakeShared<PCGExData::FPointIOCollection>(InContext, PCGExLayout::SourceBinsLabel, PCGExData::EIOInit::None);
 	Context->Bins->OutputPin = PCGExLayout::OutputBinsLabel;
 
-	const int32 NumBins = Context->Bins->Num();
-	const int32 NumInputs = Context->MainPoints->Num();
+	int32 NumBins = Context->Bins->Num();
+	int32 NumInputs = Context->MainPoints->Num();
 
 	if (NumBins != NumInputs)
 	{
 		if (NumBins > NumInputs)
 		{
+			NumBins = NumInputs;
 			if (!Settings->bQuietTooManyBinsWarning)
 			{
 				PCGE_LOG_C(Error, GraphAndLog, InContext, FTEXT("There are more bins than there are inputs. Extra bins will be ignored."));
@@ -63,6 +64,7 @@ bool FPCGExBinPackingElement::Boot(FPCGExContext* InContext) const
 		}
 		else if (NumInputs > NumBins)
 		{
+			NumInputs = NumBins;
 			if (!Settings->bQuietTooFewBinsWarning)
 			{
 				PCGE_LOG_C(Error, GraphAndLog, InContext, FTEXT("There are more inputs than there are bins. Extra inputs will be ignored."));
@@ -84,7 +86,7 @@ bool FPCGExBinPackingElement::Boot(FPCGExContext* InContext) const
 		}
 	}
 
-	for (int i = 0; i < NumInputs; i++) { Context->Bins->Pairs[i]->OutputPin = Context->Bins->OutputPin; }
+	for (int i = 0; i < NumBins; i++) { Context->Bins->Pairs[i]->OutputPin = Context->Bins->OutputPin; }
 
 	Context->Discarded = MakeShared<PCGExData::FPointIOCollection>(InContext);
 	Context->Discarded->OutputPin = PCGExLayout::OutputDiscardedLabel;
@@ -243,7 +245,7 @@ namespace PCGExBinPacking
 		// TODO : Check other bins as well, while it fits, this one may not be the ideal candidate
 
 		AddItem(BestIndex, InItem);
-		
+
 		return true;
 	}
 
