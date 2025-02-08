@@ -113,7 +113,7 @@ namespace PCGExSimplifyClusters
 		int32 UnionCount = 0;
 
 		const int32 MaxIndex = Links.Num() - 1;
-		const int32 NumIterations = Chain->bIsClosedLoop ? Links.Num() : MaxIndex;
+		const int32 NumIterations = Links.Num();
 
 		for (int i = 1; i < NumIterations; ++i)
 		{
@@ -142,16 +142,19 @@ namespace PCGExSimplifyClusters
 			LastIndex = Lk.Node;
 		}
 
-		UnionCount++;
-		GraphBuilder->Graph->InsertEdge(
-			Cluster->GetNode(LastIndex)->PointIndex,
-			Cluster->GetNode(Chain->Links.Last())->PointIndex,
-			OutEdge, IOIndex);
-
-		if (bComputeMeta)
+		if(Chain->bIsClosedLoop && LastIndex != Chain->Seed.Node)
 		{
-			// TODO : Compute UnionData to carry over attributes & properties
-			GraphBuilder->Graph->GetOrCreateEdgeMetadata(OutEdge.Index).UnionSize = UnionCount;
+			UnionCount++;
+			GraphBuilder->Graph->InsertEdge(
+				Cluster->GetNode(LastIndex)->PointIndex,
+				Cluster->GetNode(Chain->Seed.Node)->PointIndex,
+				OutEdge, IOIndex);
+
+			if (bComputeMeta)
+			{
+				// TODO : Compute UnionData to carry over attributes & properties
+				GraphBuilder->Graph->GetOrCreateEdgeMetadata(OutEdge.Index).UnionSize = UnionCount;
+			}
 		}
 	}
 
