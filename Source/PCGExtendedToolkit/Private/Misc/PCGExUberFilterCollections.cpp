@@ -49,6 +49,16 @@ bool FPCGExUberFilterCollectionsElement::Boot(FPCGExContext* InContext) const
 		Context->Outside->OutputPin = PCGExPointFilter::OutputInsideFiltersLabel;
 	}
 
+	Context->bHasOnlyCollectionFilters = true;
+	for (const TObjectPtr<const UPCGExFilterFactoryData>& FilterFactory : Context->FilterFactories)
+	{
+		if (!FilterFactory->IsCollectionOnly())
+		{
+			Context->bHasOnlyCollectionFilters = false;
+			break;
+		}
+	}
+
 	return true;
 }
 
@@ -66,6 +76,7 @@ bool FPCGExUberFilterCollectionsElement::ExecuteInternal(FPCGContext* InContext)
 			[&](const TSharedPtr<PCGExData::FPointIO>& Entry) { return true; },
 			[&](const TSharedPtr<PCGExPointsMT::TBatch<PCGExUberFilterCollections::FProcessor>>& NewBatch)
 			{
+				NewBatch->bSkipCompletion = Context->bHasOnlyCollectionFilters;
 			}))
 		{
 			return Context->CancelExecution(TEXT("Could not find any points to filter."));
@@ -92,11 +103,12 @@ namespace PCGExUberFilterCollections
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExUberFilterCollections::Process);
 
-
 		// Must be set before process for filters
 		PointDataFacade->bSupportsScopedGet = Context->bScopedAttributeGet;
 
 		if (!FPointsProcessor::Process(InAsyncManager)) { return false; }
+
+		if (Context->bHasOnlyCollectionFilters) { return true; } // Fast-track exit
 
 		NumPoints = PointDataFacade->GetNum();
 
@@ -132,6 +144,13 @@ namespace PCGExUberFilterCollections
 	void FProcessor::Output()
 	{
 		FPointsProcessor::Output();
+
+		if (Context->bHasOnlyCollectionFilters)
+		{
+			if (PrimaryFilters->TestCollection()) { Context->Inside->Emplace_GetRef(PointDataFacade->Source, Context->DataIOInit); }
+			else { Context->Outside->Emplace_GetRef(PointDataFacade->Source, Context->DataIOInit); }
+			return;
+		}
 
 		switch (Settings->Mode)
 		{

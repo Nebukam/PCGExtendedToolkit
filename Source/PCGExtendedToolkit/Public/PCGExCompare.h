@@ -83,6 +83,14 @@ enum class EPCGExBitflagComparison : uint8
 	NoMatchFull    = 4 UMETA(DisplayName = "No match (all)", Tooltip="Value & Mask != Mask (Flags does not contains the mask)"),
 };
 
+
+UENUM()
+enum class EPCGExComparisonDataType : uint8
+{
+	Numeric = 0 UMETA(DisplayName = "Numeric", Tooltip="Compare numeric values"),
+	String  = 1 UMETA(DisplayName = "String", Tooltip="Compare string values"),
+};
+
 namespace PCGExCompare
 {
 	static FString ToString(const EPCGExComparison Comparison)
@@ -692,6 +700,150 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExDotComparisonDetails
 		return bUnsignedComparison ?
 			       PCGExCompare::Compare(Comparison, FMath::Abs(A), FMath::Abs(GetComparisonThreshold(Index)), ComparisonTolerance) :
 			       PCGExCompare::Compare(Comparison, A, GetComparisonThreshold(Index), ComparisonTolerance);
+	}
+};
+
+USTRUCT(BlueprintType)
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExAttributeToTagComparisonDetails
+{
+	GENERATED_BODY()
+
+	FPCGExAttributeToTagComparisonDetails()
+	{
+	}
+
+	/** Type of Tag Name value */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	EPCGExInputValueType TagNameInput = EPCGExInputValueType::Constant;
+
+	/** Attribute to read tag name value from. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Tag Name (Attr)", EditCondition="TagNameInput!=EPCGExInputValueType::Constant", EditConditionHides, HideEditConditionToggle))
+	FName TagNameAttribute = FName("Tag");
+
+	/** Constant tag name value. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Tag Name", EditCondition="TagNameInput==EPCGExInputValueType::Constant", EditConditionHides, HideEditConditionToggle))
+	FString TagName = TEXT("Tag");
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable, DisplayName="Match"))
+	EPCGExStringMatchMode NameMatch = EPCGExStringMatchMode::Equals;
+
+	/** Whether to do a tag value match or not. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
+	bool bDoValueMatch = false;
+
+	/** Expected value type, this is a strict check. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bDoValueMatch"))
+	EPCGExComparisonDataType ValueType = EPCGExComparisonDataType::Numeric;
+
+	/** Attribute to read tag name value from. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bDoValueMatch"))
+	FPCGAttributePropertyInputSelector ValueAttribute;
+
+	/** Comparison */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable, DisplayName="Comparison", EditCondition="bDoValueMatch && ValueType==EPCGExComparisonDataType::Numeric", EditConditionHides))
+	EPCGExComparison NumericComparison = EPCGExComparison::NearlyEqual;
+
+	/** Rounding mode for relative measures */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable, EditCondition="bDoValueMatch && ValueType==EPCGExComparisonDataType::Numeric && (Comparison==EPCGExComparison::NearlyEqual || Comparison==EPCGExComparison::NearlyNotEqual)", EditConditionHides))
+	double Tolerance = DBL_COMPARE_TOLERANCE;
+
+	/** Comparison */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable, DisplayName="Comparison", EditCondition="bDoValueMatch && ValueType==EPCGExComparisonDataType::String", EditConditionHides))
+	EPCGExStringComparison StringComparison = EPCGExStringComparison::Contains;
+
+	TSharedPtr<PCGEx::TAttributeBroadcaster<FString>> TagNameGetter;
+	TSharedPtr<PCGEx::TAttributeBroadcaster<double>> NumericValueGetter;
+	TSharedPtr<PCGEx::TAttributeBroadcaster<FString>> StringValueGetter;
+
+	bool Init(const FPCGContext* InContext, const TSharedRef<PCGExData::FFacade>& InSourceDataFacade)
+	{
+		if (TagNameInput == EPCGExInputValueType::Attribute)
+		{
+			TagNameGetter = MakeShared<PCGEx::TAttributeBroadcaster<FString>>();
+			if (!TagNameGetter->Prepare(ValueAttribute, InSourceDataFacade->Source))
+			{
+				PCGE_LOG_C(Error, GraphAndLog, InContext, FTEXT("Invalid tag name attribute."));
+				return false;
+			}
+		}
+
+		if (!bDoValueMatch) { return true; }
+
+		switch (ValueType)
+		{
+		case EPCGExComparisonDataType::Numeric:
+			NumericValueGetter = MakeShared<PCGEx::TAttributeBroadcaster<double>>();
+			if (!NumericValueGetter->Prepare(ValueAttribute, InSourceDataFacade->Source))
+			{
+				PCGE_LOG_C(Error, GraphAndLog, InContext, FTEXT("Invalid tag value attribute."));
+				return false;
+			}
+			break;
+		case EPCGExComparisonDataType::String:
+			StringValueGetter = MakeShared<PCGEx::TAttributeBroadcaster<FString>>();
+			if (!StringValueGetter->Prepare(ValueAttribute, InSourceDataFacade->Source))
+			{
+				PCGE_LOG_C(Error, GraphAndLog, InContext, FTEXT("Invalid tag value attribute."));
+				return false;
+			}
+			break;
+		}
+
+		return true;
+	}
+
+	bool Test(const int32 SourceIndex, const FPCGPoint& SourcePoint, const TSharedPtr<PCGExData::FTags> InTags)
+	{
+		const FString TestTagName = TagNameGetter ? TagNameGetter->SoftGet(SourceIndex, SourcePoint, TEXT("")) : TagName;
+		int32 MatchesCount = 0;
+
+		for (const TPair<FString, TSharedPtr<PCGExData::FTagValue>>& Pair : InTags->ValueTags)
+		{
+			switch (NameMatch)
+			{
+			case EPCGExStringMatchMode::Equals:
+				if (Pair.Key == TestTagName) { continue; }
+				break;
+			case EPCGExStringMatchMode::Contains:
+				if (Pair.Key.Contains(TestTagName)) { continue; }
+				break;
+			case EPCGExStringMatchMode::StartsWith:
+				if (Pair.Key.StartsWith(TestTagName)) { continue; }
+				break;
+			case EPCGExStringMatchMode::EndsWith:
+				if (Pair.Key.EndsWith(TestTagName)) { continue; }
+				break;
+			default: continue;
+			}
+
+			MatchesCount++;
+
+			if (ValueType == EPCGExComparisonDataType::Numeric)
+			{
+				if (!Pair.Value->IsNumeric()) { return false; }
+				if (double OperandB = NumericValueGetter->SoftGet(SourceIndex, SourcePoint, 0);
+					!PCGExCompare::Compare(NumericComparison, Pair.Value->AsDouble(), OperandB))
+				{
+					return false;
+				}
+			}
+			else
+			{
+				if (!Pair.Value->IsText()) { return false; }
+				if (FString OperandB = StringValueGetter->SoftGet(SourceIndex, SourcePoint, TEXT(""));
+					!PCGExCompare::Compare(StringComparison, Pair.Value->AsString(), OperandB))
+				{
+					return false;
+				}
+			}
+		}
+
+		return MatchesCount > 0;
+	}
+
+	FORCEINLINE bool Test(const PCGExData::FPointRef& SourcePointRef, const TSharedPtr<PCGExData::FTags> InTags)
+	{
+		return Test(SourcePointRef.Index, *SourcePointRef.Point, InTags);
 	}
 };
 
