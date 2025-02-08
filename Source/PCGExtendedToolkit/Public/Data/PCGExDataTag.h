@@ -9,6 +9,27 @@
 #include "PCGExMacros.h"
 #include "Kismet/KismetStringLibrary.h"
 
+//#include "Data/PCGExDataTag.generated.h"
+
+#define PCGEX_FOREACH_SUPPORTEDTAGTYPE(MACRO) \
+MACRO(Integer, int64) \
+MACRO(FloatingPoint, double) \
+MACRO(String, FString) \
+MACRO(Vector2, FVector2D) \
+MACRO(Vector, FVector) \
+MACRO(Vector4, FVector4)
+
+UENUM()
+enum class EPCGExSupportedTagValue : uint8
+{
+	Integer       = 0 UMETA(DisplayName = "Integer", ToolTip="Int32 / Int64"),
+	FloatingPoint = 1 UMETA(DisplayName = "Floating Point", ToolTip="Double / float"),
+	String        = 2 UMETA(DisplayName = "String", ToolTip="String"),
+	Vector2       = 3 UMETA(DisplayName = "Vector 2D", ToolTip="Vector 2D"),
+	Vector        = 4 UMETA(DisplayName = "Vector", ToolTip="Vector"),
+	Vector4       = 5 UMETA(DisplayName = "Vector 4", ToolTip="Vector 4"),
+};
+
 namespace PCGExTags
 {
 	class FTagValue : public TSharedFromThis<FTagValue>
