@@ -113,7 +113,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExApplySamplingDetails
 	bool bApplyLookAt = false;
 
 	/** Which position components from the sampled look at should be applied to the point.  */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable, DisplayName=" └─ Position", EditCondition="bApplyLookAt", EditConditionHides, Bitmask, BitmaskEnum="/Script/PCGExtendedToolkit.EPCGExApplySampledComponentFlags"))
+	//UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable, DisplayName=" └─ Position", EditCondition="bApplyLookAt", EditConditionHides, Bitmask, BitmaskEnum="/Script/PCGExtendedToolkit.EPCGExApplySampledComponentFlags"))
 	uint8 LookAtPosition = 0;
 
 	/** Which rotation components from the sampled look at should be applied to the point.  */
@@ -121,16 +121,16 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExApplySamplingDetails
 	uint8 LookAtRotation = 0;
 
 	/** Which scale components from the sampled look at should be applied to the point.  */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable, DisplayName=" └─ Scale", EditCondition="bApplyLookAt", EditConditionHides, Bitmask, BitmaskEnum="/Script/PCGExtendedToolkit.EPCGExApplySampledComponentFlags"))
+	//UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable, DisplayName=" └─ Scale", EditCondition="bApplyLookAt", EditConditionHides, Bitmask, BitmaskEnum="/Script/PCGExtendedToolkit.EPCGExApplySampledComponentFlags"))
 	uint8 LookAtScale = 0;
 
 	int32 AppliedComponents = 0;
 	TArray<int32> TrPosComponents;
 	TArray<int32> TrRotComponents;
 	TArray<int32> TrScaComponents;
-	TArray<int32> LkPosComponents;
+	//TArray<int32> LkPosComponents;
 	TArray<int32> LkRotComponents;
-	TArray<int32> LkScaComponents;
+	//TArray<int32> LkScaComponents;
 
 	bool WantsApply() const { return AppliedComponents > 0; }
 
@@ -150,9 +150,9 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExApplySamplingDetails
 
 		if (bApplyLookAt)
 		{
-			PCGEX_REGISTER_FLAG(LookAtPosition, LkPosComponents)
+			//PCGEX_REGISTER_FLAG(LookAtPosition, LkPosComponents)
 			PCGEX_REGISTER_FLAG(LookAtRotation, LkRotComponents)
-			PCGEX_REGISTER_FLAG(LookAtScale, LkScaComponents)
+			//PCGEX_REGISTER_FLAG(LookAtScale, LkScaComponents)
 		}
 
 #undef PCGEX_REGISTER_FLAG
@@ -181,11 +181,11 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExApplySamplingDetails
 			const FVector InLkRot = InLookAt.GetRotation().Euler();
 			for (const int32 C : LkRotComponents) { OutRotation[C] = InLkRot[C]; }
 
-			FVector InLkPos = InLookAt.GetLocation();
-			for (const int32 C : LkPosComponents) { OutPosition[C] = InLkPos[C]; }
+			//FVector InLkPos = InLookAt.GetLocation();
+			//for (const int32 C : LkPosComponents) { OutPosition[C] = InLkPos[C]; }
 
-			FVector InLkSca = InLookAt.GetScale3D();
-			for (const int32 C : LkScaComponents) { OutScale[C] = InLkSca[C]; }
+			//FVector InLkSca = InLookAt.GetScale3D();
+			//for (const int32 C : LkScaComponents) { OutScale[C] = InLkSca[C]; }
 		}
 
 
