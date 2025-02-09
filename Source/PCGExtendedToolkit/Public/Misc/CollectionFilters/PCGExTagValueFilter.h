@@ -46,7 +46,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExTagValueFilterConfig
 	double NumericOperandB = 0;
 
 	/** Rounding mode for relative measures */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="ValueType==EPCGExComparisonDataType::Numeric && (Comparison==EPCGExComparison::NearlyEqual || Comparison==EPCGExComparison::NearlyNotEqual)", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="ValueType==EPCGExComparisonDataType::Numeric && (NumericComparison==EPCGExComparison::NearlyEqual || NumericComparison==EPCGExComparison::NearlyNotEqual)", EditConditionHides))
 	double Tolerance = DBL_COMPARE_TOLERANCE;
 
 	/** Comparison */
