@@ -49,7 +49,7 @@ bool UPCGExPathAlphaFilterFactory::Init(FPCGExContext* InContext)
 
 TSharedPtr<PCGExPointFilter::FFilter> UPCGExPathAlphaFilterFactory::CreateFilter() const
 {
-	return MakeShared<PCGExPointsFilter::FPathAlphaFilter>(this);
+	return MakeShared<PCGExPointFilter::FPathAlphaFilter>(this);
 }
 
 void UPCGExPathAlphaFilterFactory::BeginDestroy()
@@ -68,7 +68,7 @@ bool UPCGExPathAlphaFilterFactory::RegisterConsumableAttributesWithData(FPCGExCo
 	return true;
 }
 
-namespace PCGExPointsFilter
+namespace PCGExPointFilter
 {
 	bool FPathAlphaFilter::Init(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade> InPointDataFacade)
 	{

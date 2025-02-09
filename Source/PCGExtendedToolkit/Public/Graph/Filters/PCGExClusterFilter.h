@@ -29,6 +29,9 @@ UCLASS(Abstract, MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category=
 class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExClusterFilterFactoryData : public UPCGExFilterFactoryData
 {
 	GENERATED_BODY()
+
+public:
+	virtual bool SupportsCollectionEvaluation() const override { return false; }
 };
 
 /**

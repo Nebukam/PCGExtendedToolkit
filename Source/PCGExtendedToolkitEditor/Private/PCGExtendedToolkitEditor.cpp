@@ -82,6 +82,7 @@ void FPCGExtendedToolkitEditorModule::StartupModule()
 	PCGEX_ADD_ICON(PCGExCustomActorDataPacker)
 
 	PCGEX_ADD_PIN_EXTRA_ICON(OUT_Filter)
+	PCGEX_ADD_PIN_EXTRA_ICON(OUT_CFilter)
 	PCGEX_ADD_PIN_EXTRA_ICON(IN_Filters)
 
 	PCGEX_ADD_PIN_EXTRA_ICON(OUT_Heuristic)

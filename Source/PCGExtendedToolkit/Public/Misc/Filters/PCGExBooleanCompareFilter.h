@@ -62,7 +62,7 @@ public:
 	virtual bool RegisterConsumableAttributesWithData(FPCGExContext* InContext, const UPCGData* InData) const override;
 };
 
-namespace PCGExPointsFilter
+namespace PCGExPointFilter
 {
 	class /*PCGEXTENDEDTOOLKIT_API*/ FBooleanCompareFilter final : public PCGExPointFilter::FSimpleFilter
 	{

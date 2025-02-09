@@ -88,6 +88,8 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExUberFilterCollectionsContext final : FPC
 {
 	friend class FPCGExUberFilterCollectionsElement;
 
+	bool bHasOnlyCollectionFilters = false;
+	
 	TSharedPtr<PCGExData::FPointIOCollection> Inside;
 	TSharedPtr<PCGExData::FPointIOCollection> Outside;
 

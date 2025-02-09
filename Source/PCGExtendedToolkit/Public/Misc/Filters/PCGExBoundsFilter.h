@@ -97,7 +97,7 @@ public:
 	virtual void BeginDestroy() override;
 };
 
-namespace PCGExPointsFilter
+namespace PCGExPointFilter
 {
 	class /*PCGEXTENDEDTOOLKIT_API*/ FBoundsFilter final : public PCGExPointFilter::FSimpleFilter
 	{

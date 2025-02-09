@@ -13,6 +13,11 @@ bool UPCGExRandomFilterFactory::Init(FPCGExContext* InContext)
 	return Super::Init(InContext);
 }
 
+bool UPCGExRandomFilterFactory::SupportsCollectionEvaluation() const
+{
+	return !Config.bPerPointWeight;
+}
+
 void UPCGExRandomFilterFactory::RegisterBuffersDependencies(FPCGExContext* InContext, PCGExData::FFacadePreloader& FacadePreloader) const
 {
 	Super::RegisterBuffersDependencies(InContext, FacadePreloader);
@@ -37,12 +42,12 @@ bool UPCGExRandomFilterFactory::RegisterConsumableAttributesWithData(FPCGExConte
 
 TSharedPtr<PCGExPointFilter::FFilter> UPCGExRandomFilterFactory::CreateFilter() const
 {
-	PCGEX_MAKE_SHARED(Filter, PCGExPointsFilter::FRandomFilter, this)
+	PCGEX_MAKE_SHARED(Filter, PCGExPointFilter::FRandomFilter, this)
 	Filter->WeightCurve = Config.LocalWeightCurve.GetRichCurveConst();
 	return Filter;
 }
 
-bool PCGExPointsFilter::FRandomFilter::Init(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade> InPointDataFacade)
+bool PCGExPointFilter::FRandomFilter::Init(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade> InPointDataFacade)
 {
 	if (!FFilter::Init(InContext, InPointDataFacade)) { return false; }
 
@@ -74,6 +79,20 @@ bool PCGExPointsFilter::FRandomFilter::Init(FPCGExContext* InContext, const TSha
 	}
 
 	return true;
+}
+
+bool PCGExPointFilter::FRandomFilter::Test(const int32 PointIndex) const
+{
+	const double LocalWeightRange = WeightBuffer ? WeightOffset + WeightBuffer->Read(PointIndex) : WeightRange;
+	const float RandomValue = WeightCurve->Eval((FRandomStream(PCGExRandom::GetRandomStreamFromPoint(PointDataFacade->Source->GetInPoint(PointIndex), RandomSeed)).GetFraction() * LocalWeightRange) / WeightRange);
+	return TypedFilterFactory->Config.bInvertResult ? RandomValue <= Threshold : RandomValue >= Threshold;
+}
+
+bool PCGExPointFilter::FRandomFilter::Test(const TSharedPtr<PCGExData::FPointIO>& IO) const
+{
+	const double LocalWeightRange = WeightRange;
+	const float RandomValue = WeightCurve->Eval((FRandomStream(PCGExRandom::GetRandomStreamFromPoint(IO->GetInPoint(0), RandomSeed)).GetFraction() * LocalWeightRange) / WeightRange);
+	return TypedFilterFactory->Config.bInvertResult ? RandomValue <= Threshold : RandomValue >= Threshold;
 }
 
 PCGEX_CREATE_FILTER_FACTORY(Random)

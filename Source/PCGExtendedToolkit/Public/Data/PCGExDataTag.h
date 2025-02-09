@@ -43,6 +43,12 @@ namespace PCGExTags
 		}
 
 		virtual FString Flatten(const FString& LeftSide) = 0;
+
+		virtual bool IsNumeric() const = 0;
+		virtual bool IsText() const = 0;
+
+		virtual double AsDouble() const = 0;
+		virtual FString AsString() const = 0;
 	};
 
 	template <typename T>
@@ -79,6 +85,33 @@ namespace PCGExTags
 			{
 				return LeftSide;
 			}
+		}
+
+		virtual bool IsNumeric() const override
+		{
+			if constexpr (std::is_same_v<T, bool> || std::is_same_v<T, int32> || std::is_same_v<T, int64> || std::is_same_v<T, float> || std::is_same_v<T, double>) { return true; }
+			else { return false; }
+		}
+
+		virtual bool IsText() const override
+		{
+			if constexpr (std::is_same_v<T, FString> || std::is_same_v<T, FSoftClassPath> || std::is_same_v<T, FSoftObjectPath> || std::is_same_v<T, FName>) { return true; }
+			else { return false; }
+		}
+
+		virtual double AsDouble() const override
+		{
+			if constexpr (std::is_same_v<T, bool>) { return Value ? 1 : 0; }
+			else if constexpr (std::is_same_v<T, int32> || std::is_same_v<T, int64> || std::is_same_v<T, float> || std::is_same_v<T, double>) { return static_cast<double>(Value); }
+			else if constexpr (std::is_same_v<T, FVector2D> || std::is_same_v<T, FVector> || std::is_same_v<T, FVector4>) { return Value.X; }
+			else { return 0; }
+		}
+
+		virtual FString AsString() const override
+		{
+			if constexpr (std::is_same_v<T, bool>) { return Value ? TEXT("true") : TEXT("false"); }
+			else if constexpr (std::is_same_v<T, FName>) { return Value.ToString(); }
+			else { return TEXT(""); }
 		}
 	};
 

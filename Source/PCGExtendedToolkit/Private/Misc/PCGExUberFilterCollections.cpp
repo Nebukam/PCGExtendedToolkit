@@ -49,6 +49,16 @@ bool FPCGExUberFilterCollectionsElement::Boot(FPCGExContext* InContext) const
 		Context->Outside->OutputPin = PCGExPointFilter::OutputInsideFiltersLabel;
 	}
 
+	Context->bHasOnlyCollectionFilters = true;
+	for (const TObjectPtr<const UPCGExFilterFactoryData>& FilterFactory : Context->FilterFactories)
+	{
+		if (!FilterFactory->SupportsCollectionEvaluation())
+		{
+			Context->bHasOnlyCollectionFilters = false;
+			break;
+		}
+	}
+
 	return true;
 }
 
@@ -60,21 +70,41 @@ bool FPCGExUberFilterCollectionsElement::ExecuteInternal(FPCGContext* InContext)
 	PCGEX_EXECUTION_CHECK
 	PCGEX_ON_INITIAL_EXECUTION
 	{
-		Context->NumPairs = Context->MainPoints->Pairs.Num();
-
-		if (!Context->StartBatchProcessingPoints<PCGExPointsMT::TBatch<PCGExUberFilterCollections::FProcessor>>(
-			[&](const TSharedPtr<PCGExData::FPointIO>& Entry) { return true; },
-			[&](const TSharedPtr<PCGExPointsMT::TBatch<PCGExUberFilterCollections::FProcessor>>& NewBatch)
-			{
-			}))
+		if (!Context->bHasOnlyCollectionFilters)
 		{
-			return Context->CancelExecution(TEXT("Could not find any points to filter."));
+			Context->NumPairs = Context->MainPoints->Pairs.Num();
+
+			if (!Context->StartBatchProcessingPoints<PCGExPointsMT::TBatch<PCGExUberFilterCollections::FProcessor>>(
+				[&](const TSharedPtr<PCGExData::FPointIO>& Entry) { return true; },
+				[&](const TSharedPtr<PCGExPointsMT::TBatch<PCGExUberFilterCollections::FProcessor>>& NewBatch)
+				{
+					NewBatch->bSkipCompletion = Context->bHasOnlyCollectionFilters;
+				}))
+			{
+				return Context->CancelExecution(TEXT("Could not find any points to filter."));
+			}
+		}
+		else
+		{
+			PCGEX_MAKE_SHARED(DummyFacade, PCGExData::FFacade, Context->MainPoints->Pairs[0].ToSharedRef())
+			PCGEX_MAKE_SHARED(PrimaryFilters, PCGExPointFilter::FManager, DummyFacade.ToSharedRef())
+			PrimaryFilters->Init(Context, Context->FilterFactories);
+
+			while (Context->AdvancePointsIO())
+			{
+				if (PrimaryFilters->Test(Context->CurrentIO)) { Context->Inside->Emplace_GetRef(Context->CurrentIO, Context->DataIOInit); }
+				else { Context->Outside->Emplace_GetRef(Context->CurrentIO, Context->DataIOInit); }
+			}
+
+			Context->Done();
 		}
 	}
 
-	PCGEX_POINTS_BATCH_PROCESSING(PCGEx::State_Done)
-
-	Context->MainBatch->Output();
+	if (!Context->bHasOnlyCollectionFilters)
+	{
+		PCGEX_POINTS_BATCH_PROCESSING(PCGEx::State_Done)
+		Context->MainBatch->Output();
+	}
 
 	Context->Inside->StageOutputs();
 	Context->Outside->StageOutputs();
@@ -91,7 +121,6 @@ namespace PCGExUberFilterCollections
 	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager> InAsyncManager)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExUberFilterCollections::Process);
-
 
 		// Must be set before process for filters
 		PointDataFacade->bSupportsScopedGet = Context->bScopedAttributeGet;

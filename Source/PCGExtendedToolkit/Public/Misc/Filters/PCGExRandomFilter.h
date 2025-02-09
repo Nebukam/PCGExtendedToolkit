@@ -79,6 +79,7 @@ public:
 	FPCGExRandomFilterConfig Config;
 
 	virtual bool Init(FPCGExContext* InContext) override;
+	virtual bool SupportsCollectionEvaluation() const override;
 
 	virtual void RegisterBuffersDependencies(FPCGExContext* InContext, PCGExData::FFacadePreloader& FacadePreloader) const override;
 	virtual void RegisterAssetDependencies(FPCGExContext* InContext) const override;
@@ -87,7 +88,7 @@ public:
 	virtual TSharedPtr<PCGExPointFilter::FFilter> CreateFilter() const override;
 };
 
-namespace PCGExPointsFilter
+namespace PCGExPointFilter
 {
 	class /*PCGEXTENDEDTOOLKIT_API*/ FRandomFilter final : public PCGExPointFilter::FSimpleFilter
 	{
@@ -110,13 +111,9 @@ namespace PCGExPointsFilter
 		const FRichCurve* WeightCurve = nullptr;
 
 		virtual bool Init(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade> InPointDataFacade) override;
-
-		FORCEINLINE virtual bool Test(const int32 PointIndex) const override
-		{
-			const double LocalWeightRange = WeightBuffer ? WeightOffset + WeightBuffer->Read(PointIndex) : WeightRange;
-			const float RandomValue = WeightCurve->Eval((FRandomStream(PCGExRandom::GetRandomStreamFromPoint(PointDataFacade->Source->GetInPoint(PointIndex), RandomSeed)).GetFraction() * LocalWeightRange) / WeightRange);
-			return TypedFilterFactory->Config.bInvertResult ? RandomValue <= Threshold : RandomValue >= Threshold;
-		}
+		virtual bool Test(const int32 PointIndex) const override;
+		virtual bool Test(const TSharedPtr<PCGExData::FPointIO>& IO) const override;
+		
 
 		virtual ~FRandomFilter() override
 		{
@@ -141,7 +138,7 @@ public:
 	/** Filter Config.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ShowOnlyInnerProperties))
 	FPCGExRandomFilterConfig Config;
-
+	
 	virtual UPCGExFactoryData* CreateFactory(FPCGExContext* InContext, UPCGExFactoryData* InFactory) const override;
 
 #if WITH_EDITOR
