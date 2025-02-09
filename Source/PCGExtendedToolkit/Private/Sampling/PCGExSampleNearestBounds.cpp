@@ -90,6 +90,9 @@ bool FPCGExSampleNearestBoundsElement::Boot(FPCGExContext* InContext) const
 	if (!FPCGExPointsProcessorElement::Boot(InContext)) { return false; }
 
 	PCGEX_CONTEXT_AND_SETTINGS(SampleNearestBounds)
+	
+	PCGEX_FWD(ApplySampling)
+	Context->ApplySampling.Init();
 
 	Context->BoundsFacade = PCGExData::TryGetSingleFacade(Context, PCGEx::SourceBoundsLabel, true);
 	if (!Context->BoundsFacade) { return false; }
@@ -373,10 +376,13 @@ namespace PCGExSampleNearestBounds
 		FVector LookAt = CWDistance.GetSafeNormal();
 		const double WeightedDistance = FVector::Dist(Origin, WeightedTransform.GetLocation());
 
+		FTransform LookAtTransform = PCGExMath::MakeLookAtTransform(LookAt, WeightedUp, Settings->LookAtAxisAlign);
+		if(Context->ApplySampling.WantsApply()){ Context->ApplySampling.Apply(Point, WeightedTransform, LookAtTransform); }
+		
 		SampleState[Index] = Stats.IsValid();
 		PCGEX_OUTPUT_VALUE(Success, Index, Stats.IsValid())
 		PCGEX_OUTPUT_VALUE(Transform, Index, WeightedTransform)
-		PCGEX_OUTPUT_VALUE(LookAtTransform, Index, PCGExMath::MakeLookAtTransform(LookAt, WeightedUp, Settings->LookAtAxisAlign))
+		PCGEX_OUTPUT_VALUE(LookAtTransform, Index, LookAtTransform)
 		PCGEX_OUTPUT_VALUE(Distance, Index, WeightedDistance * Settings->DistanceScale)
 		PCGEX_OUTPUT_VALUE(SignedDistance, Index, FMath::Sign(WeightedSignAxis.Dot(LookAt)) * WeightedDistance * Settings->SignedDistanceScale)
 		PCGEX_OUTPUT_VALUE(ComponentWiseDistance, Index, Settings->bAbsoluteComponentWiseDistance ? PCGExMath::Abs(CWDistance) : CWDistance)

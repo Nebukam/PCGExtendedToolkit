@@ -10,32 +10,32 @@
 
 #include "Data/PCGExPointFilter.h"
 #include "PCGExPointsProcessor.h"
+#include "Data/PCGExFilterGroup.h"
 #include "Misc/Filters/PCGExFilterFactoryProvider.h"
 
 
-#include "PCGExEntryCountFilter.generated.h"
+#include "PCGExTagCheckFilter.generated.h"
 
 
 USTRUCT(BlueprintType)
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExEntryCountFilterConfig
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExTagCheckFilterConfig
 {
 	GENERATED_BODY()
 
-	FPCGExEntryCountFilterConfig()
+	FPCGExTagCheckFilterConfig()
 	{
 	}
 
-	/** Comparison */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
-	EPCGExComparison Comparison = EPCGExComparison::NearlyEqual;
+	/** Constant tag name value. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Tag Name"))
+	FString Tag = TEXT("Tag");
 
-	/** Operand B to test Entries count against */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Operand B", ClampMin=0))
-	int32 OperandB = 0;
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable, DisplayName="Match"))
+	EPCGExStringMatchMode Match = EPCGExStringMatchMode::Equals;
 
-	/** Rounding mode for relative measures */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="Comparison==EPCGExComparison::NearlyEqual || Comparison==EPCGExComparison::NearlyNotEqual", EditConditionHides))
-	double Tolerance = DBL_COMPARE_TOLERANCE;
+	/** Invert the result of this filter. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable))
+	bool bInvert = false;
 };
 
 
@@ -43,32 +43,32 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExEntryCountFilterConfig
  * 
  */
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Filter")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExEntryCountFilterFactory : public UPCGExFilterFactoryData
+class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExTagCheckFilterFactory : public UPCGExFilterFactoryData
 {
 	GENERATED_BODY()
 
 public:
 	UPROPERTY()
-	FPCGExEntryCountFilterConfig Config;
+	FPCGExTagCheckFilterConfig Config;
 
 	virtual TSharedPtr<PCGExPointFilter::FFilter> CreateFilter() const override;
 };
 
 namespace PCGExPointFilter
 {
-	class /*PCGEXTENDEDTOOLKIT_API*/ FEntryCountFilter final : public PCGExPointFilter::FCollectionFilter
+	class /*PCGEXTENDEDTOOLKIT_API*/ FTagCheckFilter final : public PCGExPointFilter::FCollectionFilter
 	{
 	public:
-		explicit FEntryCountFilter(const TObjectPtr<const UPCGExEntryCountFilterFactory>& InDefinition)
+		explicit FTagCheckFilter(const TObjectPtr<const UPCGExTagCheckFilterFactory>& InDefinition)
 			: FCollectionFilter(InDefinition), TypedFilterFactory(InDefinition)
 		{
 		}
 
-		const TObjectPtr<const UPCGExEntryCountFilterFactory> TypedFilterFactory;
+		const TObjectPtr<const UPCGExTagCheckFilterFactory> TypedFilterFactory;
 
 		virtual bool Test(const TSharedPtr<PCGExData::FPointIO>& IO) const override;
 
-		virtual ~FEntryCountFilter() override
+		virtual ~FTagCheckFilter() override
 		{
 		}
 	};
@@ -77,7 +77,7 @@ namespace PCGExPointFilter
 ///
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Filter")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExEntryCountFilterProviderSettings : public UPCGExFilterProviderSettings
+class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExTagCheckFilterProviderSettings : public UPCGExFilterProviderSettings
 {
 	GENERATED_BODY()
 
@@ -85,14 +85,14 @@ public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(
-		EntryCountFilterFactory, "Filter : Entry Count", "Does a numeric comparison against the number of entries",
+		TagCheckFilterFactory, "Filter : Tag Check", "Simple tag check on the input collection.",
 		PCGEX_FACTORY_NAME_PRIORITY)
 #endif
 	//~End UPCGSettings
 
 	/** Filter Config.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ShowOnlyInnerProperties))
-	FPCGExEntryCountFilterConfig Config;
+	FPCGExTagCheckFilterConfig Config;
 
 	virtual FName GetMainOutputPin() const override { return PCGExPointFilter::OutputColFilterLabel; }
 	virtual UPCGExFactoryData* CreateFactory(FPCGExContext* InContext, UPCGExFactoryData* InFactory) const override;

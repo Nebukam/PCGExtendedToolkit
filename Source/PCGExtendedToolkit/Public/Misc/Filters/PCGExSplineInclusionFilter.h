@@ -94,7 +94,7 @@ public:
 	virtual void BeginDestroy() override;
 };
 
-namespace PCGExPointsFilter
+namespace PCGExPointFilter
 {
 	enum ESplineCheckFlags : uint8
 	{

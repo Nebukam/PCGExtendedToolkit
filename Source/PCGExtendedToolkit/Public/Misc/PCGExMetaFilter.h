@@ -10,6 +10,7 @@
 #include "Data/PCGExDataFilter.h"
 #include "PCGExMetaFilter.generated.h"
 
+
 UENUM()
 enum class EPCGExMetaFilterMode : uint8
 {
@@ -17,7 +18,13 @@ enum class EPCGExMetaFilterMode : uint8
 	Duplicates = 1 UMETA(DisplayName = "Duplicates", Tooltip="Filter out duplicates based on tags that pass the filter"),
 };
 
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc")
+//
+//
+// THIS NODE HAS BEEN DEPRECATED IN FAVOR OF COLLECTION FILTERS FOR THE UBER-FILTER(COLLECTION) NODE
+//
+//
+
+UCLASS(Hidden, MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc")
 class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExMetaFilterSettings : public UPCGExPointsProcessorSettings
 {
 	GENERATED_BODY()

@@ -9,14 +9,12 @@
 
 TSharedPtr<PCGExPointFilter::FFilter> UPCGExEntryCountFilterFactory::CreateFilter() const
 {
-	return MakeShared<PCGExPointsFilter::FEntryCountFilter>(this);
+	return MakeShared<PCGExPointFilter::FEntryCountFilter>(this);
 }
 
-bool PCGExPointsFilter::FEntryCountFilter::Init(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade> InPointDataFacade)
+bool PCGExPointFilter::FEntryCountFilter::Test(const TSharedPtr<PCGExData::FPointIO>& IO) const
 {
-	if (!FFilter::Init(InContext, InPointDataFacade)) { return false; }
-	bCollectionTestResult = PCGExCompare::Compare(TypedFilterFactory->Config.Comparison, PointDataFacade->GetNum(), TypedFilterFactory->Config.OperandB);
-	return true;
+	return PCGExCompare::Compare(TypedFilterFactory->Config.Comparison, IO->GetNum(), TypedFilterFactory->Config.OperandB);
 }
 
 PCGEX_CREATE_FILTER_FACTORY(EntryCount)
@@ -25,9 +23,7 @@ PCGEX_CREATE_FILTER_FACTORY(EntryCount)
 FString UPCGExEntryCountFilterProviderSettings::GetDisplayName() const
 {
 	FString DisplayName = TEXT("Entry Count ") + PCGExCompare::ToString(Config.Comparison);
-
 	DisplayName += FString::Printf(TEXT("%d"), Config.OperandB);
-
 	return DisplayName;
 }
 #endif

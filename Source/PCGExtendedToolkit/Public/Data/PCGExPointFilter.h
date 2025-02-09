@@ -8,6 +8,10 @@
 #include "PCGExData.h"
 #include "PCGExFactoryProvider.h"
 
+
+
+
+
 #include "Graph/PCGExCluster.h"
 
 #include "PCGExPointFilter.generated.h"
@@ -45,7 +49,7 @@ class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExFilterFactoryData : public UPCGExFactoryD
 
 public:
 	virtual PCGExFactories::EType GetFactoryType() const override { return PCGExFactories::EType::FilterPoint; }
-	virtual bool IsCollectionOnly() const { return false; }
+	virtual bool SupportsCollectionEvaluation() const { return false; }
 	virtual bool SupportsDirectEvaluation() const { return false; }
 
 	virtual bool Init(FPCGExContext* InContext);
@@ -57,6 +61,7 @@ public:
 namespace PCGExPointFilter
 {
 	const FName OutputFilterLabel = FName("Filter");
+	const FName OutputColFilterLabel = FName("C-Filter");
 	const FName OutputFilterLabelNode = FName("Node Filter");
 	const FName OutputFilterLabelEdge = FName("Edge Filter");
 	const FName SourceFiltersLabel = FName("Filters");
@@ -103,7 +108,7 @@ namespace PCGExPointFilter
 		virtual bool Test(const PCGExCluster::FNode& Node) const;
 		virtual bool Test(const PCGExGraph::FEdge& Edge) const;
 
-		virtual bool TestCollection() const; // destined for collection only, is expected to test internal PointDataFacade directly.
+		virtual bool Test(const TSharedPtr<PCGExData::FPointIO>& IO) const; // destined for collection only, is expected to test internal PointDataFacade directly.
 
 
 		virtual ~FFilter() = default;
@@ -133,10 +138,13 @@ namespace PCGExPointFilter
 
 		virtual PCGExFilters::EType GetFilterType() const override { return PCGExFilters::EType::Collection; }
 
+		virtual bool Init(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade> InPointDataFacade) override;
+		
 		virtual bool Test(const int32 Index) const override;
 		virtual bool Test(const FPCGPoint& Point) const override;
 		virtual bool Test(const PCGExCluster::FNode& Node) const override final;
 		virtual bool Test(const PCGExGraph::FEdge& Edge) const override final;
+		virtual bool Test(const TSharedPtr<PCGExData::FPointIO>& IO) const override;
 
 	};
 
@@ -161,7 +169,7 @@ namespace PCGExPointFilter
 		virtual bool Test(const FPCGPoint& Point);
 		virtual bool Test(const PCGExCluster::FNode& Node);
 		virtual bool Test(const PCGExGraph::FEdge& Edge);
-		virtual bool TestCollection();
+		virtual bool Test(const TSharedPtr<PCGExData::FPointIO>& IO);
 
 		virtual ~FManager()
 		{
@@ -222,6 +230,6 @@ class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExFilterCollectionFactoryData : public UPCG
 
 public:
 	virtual PCGExFactories::EType GetFactoryType() const override { return PCGExFactories::EType::FilterCollection; }
-	virtual bool IsCollectionOnly() const override { return true; }
+	virtual bool SupportsCollectionEvaluation() const override { return true; }
 	virtual TSharedPtr<PCGExPointFilter::FFilter> CreateFilter() const override { return nullptr; }
 };

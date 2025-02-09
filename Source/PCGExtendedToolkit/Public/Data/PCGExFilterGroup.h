@@ -11,6 +11,12 @@
 #include "PCGExPointFilter.h"
 
 
+
+
+
+
+
+
 #include "Graph/Filters/PCGExClusterFilter.h"
 #include "PCGExFilterGroup.generated.h"
 
@@ -37,7 +43,7 @@ public:
 	TArray<TObjectPtr<const UPCGExFilterFactoryData>> FilterFactories;
 
 	virtual bool SupportsDirectEvaluation() const override;
-	virtual bool IsCollectionOnly() const override;
+	virtual bool SupportsCollectionEvaluation() const override;
 
 	virtual PCGExFactories::EType GetFactoryType() const override { return PCGExFactories::EType::FilterGroup; }
 	virtual TSharedPtr<PCGExPointFilter::FFilter> CreateFilter() const override { return nullptr; }
@@ -100,7 +106,7 @@ namespace PCGExFilterGroup
 		virtual bool Test(const FPCGPoint& Point) const override = 0;
 		virtual bool Test(const PCGExCluster::FNode& Node) const override = 0;
 		virtual bool Test(const PCGExGraph::FEdge& Edge) const override = 0;
-		virtual bool TestCollection() const override = 0;
+		virtual bool Test(const TSharedPtr<PCGExData::FPointIO>& IO) const override = 0;
 
 	protected:
 		TArray<TSharedPtr<PCGExPointFilter::FFilter>> ManagedFilters;
@@ -143,9 +149,13 @@ namespace PCGExFilterGroup
 			return !bInvert;
 		}
 
-		FORCEINLINE virtual bool TestCollection() const override
+		FORCEINLINE virtual bool Test(const TSharedPtr<PCGExData::FPointIO>& IO) const override
 		{
-			for (const TSharedPtr<PCGExPointFilter::FFilter>& Filter : ManagedFilters) { if (!Filter->TestCollection()) { return bInvert; } }
+			for (const TSharedPtr<PCGExPointFilter::FFilter>& Filter : ManagedFilters)
+			{
+				if (!Filter->Factory->SupportsCollectionEvaluation()) { continue; }
+				if (!Filter->Test(IO)) { return bInvert; }
+			}
 			return !bInvert;
 		}
 	};
@@ -182,9 +192,13 @@ namespace PCGExFilterGroup
 			return bInvert;
 		}
 
-		FORCEINLINE virtual bool TestCollection() const override
+		FORCEINLINE virtual bool Test(const TSharedPtr<PCGExData::FPointIO>& IO) const override
 		{
-			for (const TSharedPtr<PCGExPointFilter::FFilter>& Filter : ManagedFilters) { if (Filter->TestCollection()) { return !bInvert; } }
+			for (const TSharedPtr<PCGExPointFilter::FFilter>& Filter : ManagedFilters)
+			{
+				if (!Filter->Factory->SupportsCollectionEvaluation()) { continue; }
+				if (Filter->Test(IO)) { return !bInvert; }
+			}
 			return bInvert;
 		}
 	};

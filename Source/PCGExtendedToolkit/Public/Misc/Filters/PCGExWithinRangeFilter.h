@@ -60,7 +60,7 @@ public:
 	virtual TSharedPtr<PCGExPointFilter::FFilter> CreateFilter() const override;
 };
 
-namespace PCGExPointsFilter
+namespace PCGExPointFilter
 {
 	class /*PCGEXTENDEDTOOLKIT_API*/ FWithinRangeFilter final : public PCGExPointFilter::FSimpleFilter
 	{

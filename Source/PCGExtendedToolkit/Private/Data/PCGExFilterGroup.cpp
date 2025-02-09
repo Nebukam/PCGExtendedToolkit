@@ -114,10 +114,10 @@ bool UPCGExFilterGroupFactoryData::SupportsDirectEvaluation() const
 	return true;
 }
 
-bool UPCGExFilterGroupFactoryData::IsCollectionOnly() const
+bool UPCGExFilterGroupFactoryData::SupportsCollectionEvaluation() const
 {
 	// Ensure we grab dependencies from plugged-in factories recursively
-	PCGEX_FILTERGROUP_FOREACH(if(!SubFilter->IsCollectionOnly()){ return false; })
+	PCGEX_FILTERGROUP_FOREACH(if(!SubFilter->SupportsCollectionEvaluation()){ return false; })
 	return true;
 }
 

@@ -38,7 +38,7 @@ namespace PCGExPointFilter
 	bool FFilter::Test(const PCGExCluster::FNode& Node) const { return Test(Node.PointIndex); }
 	bool FFilter::Test(const PCGExGraph::FEdge& Edge) const { return Test(Edge.PointIndex); }
 
-	bool FFilter::TestCollection() const { return bCollectionTestResult; }
+	bool FFilter::Test(const TSharedPtr<PCGExData::FPointIO>& IO) const { return bCollectionTestResult; }
 
 	bool FSimpleFilter::Test(const int32 Index) const PCGEX_NOT_IMPLEMENTED_RET(FSimpleFilter::Test(const PCGExCluster::FNode& Node), false)
 	bool FSimpleFilter::Test(const FPCGPoint& Point) const PCGEX_NOT_IMPLEMENTED_RET(FSimpleFilter::Test(const PCGExCluster::FPCGPoint& Point), false)
@@ -46,11 +46,20 @@ namespace PCGExPointFilter
 	bool FSimpleFilter::Test(const PCGExCluster::FNode& Node) const { return Test(Node.PointIndex); }
 	bool FSimpleFilter::Test(const PCGExGraph::FEdge& Edge) const { return Test(Edge.PointIndex); }
 
+	bool FCollectionFilter::Init(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade> InPointDataFacade)
+	{
+		if (!FFilter::Init(InContext, InPointDataFacade)) { return false; }
+		bCollectionTestResult = Test(InPointDataFacade->Source);
+		return true;
+	}
+
 	bool FCollectionFilter::Test(const int32 Index) const { return bCollectionTestResult; }
 	bool FCollectionFilter::Test(const FPCGPoint& Point) const { return bCollectionTestResult; }
 
 	bool FCollectionFilter::Test(const PCGExCluster::FNode& Node) const { return bCollectionTestResult; }
 	bool FCollectionFilter::Test(const PCGExGraph::FEdge& Edge) const { return bCollectionTestResult; }
+
+	bool FCollectionFilter::Test(const TSharedPtr<PCGExData::FPointIO>& IO) const PCGEX_NOT_IMPLEMENTED_RET(FCollectionFilter::Test(const TSharedPtr<PCGExData::FPointIO>& IO), false)
 
 	FManager::FManager(const TSharedRef<PCGExData::FFacade>& InPointDataFacade)
 		: PointDataFacade(InPointDataFacade)
@@ -95,9 +104,9 @@ namespace PCGExPointFilter
 		return true;
 	}
 
-	bool FManager::TestCollection()
+	bool FManager::Test(const TSharedPtr<PCGExData::FPointIO>& IO)
 	{
-		for (const TSharedPtr<FFilter>& Handler : ManagedFilters) { if (!Handler->TestCollection()) { return false; } }
+		for (const TSharedPtr<FFilter>& Handler : ManagedFilters) { if (!Handler->Test(IO)) { return false; } }
 		return true;
 	}
 

@@ -31,7 +31,7 @@ class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExClusterFilterFactoryData : public UPCGExF
 	GENERATED_BODY()
 
 public:
-	virtual bool IsCollectionOnly() const override { return false; }
+	virtual bool SupportsCollectionEvaluation() const override { return false; }
 };
 
 /**

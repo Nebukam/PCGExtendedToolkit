@@ -170,6 +170,22 @@ namespace PCGExCompare
 		}
 	}
 
+	static FString ToString(const EPCGExStringMatchMode MatchMode)
+	{
+		switch (MatchMode)
+		{
+		case EPCGExStringMatchMode::Equals:
+			return " == ";
+		case EPCGExStringMatchMode::Contains:
+			return " contains ";
+		case EPCGExStringMatchMode::StartsWith:
+			return " starts w ";
+		case EPCGExStringMatchMode::EndsWith:
+			return " ends w ";
+		default: return " ?? ";
+		}
+	}
+
 	FORCEINLINE static bool Compare(const EPCGExStringComparison Method, const FString& A, const FString& B)
 	{
 		switch (Method)
@@ -490,6 +506,18 @@ namespace PCGExCompare
 		}
 	}
 
+	FORCEINLINE static bool Compare(const EPCGExComparison Method, const TSharedPtr<PCGExData::FTagValue>& A, const double B, const double Tolerance = DBL_COMPARE_TOLERANCE)
+	{
+		if (!A->IsNumeric()) { return false; }
+		return Compare(Method, A->AsDouble(), B, Tolerance);
+	}
+
+	FORCEINLINE static bool Compare(const EPCGExStringComparison Method, const TSharedPtr<PCGExData::FTagValue>& A, const FString B)
+	{
+		if (!A->IsText()) { return false; }
+		return Compare(Method, A->AsString(), B);
+	}
+
 	FORCEINLINE static bool Compare(const EPCGExBitflagComparison Method, const int64& Flags, const int64& Mask)
 	{
 		switch (Method)
@@ -506,6 +534,73 @@ namespace PCGExCompare
 			return ((Flags & Mask) != Mask);
 		default: return false;
 		}
+	}
+
+	static bool HasMatchingTags(const TSharedPtr<PCGExData::FTags>& InTags, const FString& Query, const EPCGExStringMatchMode MatchMode)
+	{
+		for (const TPair<FString, TSharedPtr<PCGExData::FTagValue>>& Pair : InTags->ValueTags)
+		{
+			switch (MatchMode)
+			{
+			case EPCGExStringMatchMode::Equals:
+				if (Pair.Key == Query) { return true; }
+				break;
+			case EPCGExStringMatchMode::Contains:
+				if (Pair.Key.Contains(Query)) { return true; }
+				break;
+			case EPCGExStringMatchMode::StartsWith:
+				if (Pair.Key.StartsWith(Query)) { return true; }
+				break;
+			case EPCGExStringMatchMode::EndsWith:
+				if (Pair.Key.EndsWith(Query)) { return true; }
+				break;
+			}
+		}
+
+		for (const FString& Tag : InTags->RawTags)
+		{
+			switch (MatchMode)
+			{
+			case EPCGExStringMatchMode::Equals:
+				if (Tag == Query) { return true; }
+				break;
+			case EPCGExStringMatchMode::Contains:
+				if (Tag.Contains(Query)) { return true; }
+				break;
+			case EPCGExStringMatchMode::StartsWith:
+				if (Tag.StartsWith(Query)) { return true; }
+				break;
+			case EPCGExStringMatchMode::EndsWith:
+				if (Tag.EndsWith(Query)) { return true; }
+				break;
+			}
+		}
+
+		return false;
+	}
+
+	static bool GetMatchingValueTags(const TSharedPtr<PCGExData::FTags>& InTags, const FString& Query, const EPCGExStringMatchMode MatchMode, TArray<const TSharedPtr<PCGExData::FTagValue>>& OutValues)
+	{
+		for (const TPair<FString, TSharedPtr<PCGExData::FTagValue>>& Pair : InTags->ValueTags)
+		{
+			switch (MatchMode)
+			{
+			case EPCGExStringMatchMode::Equals:
+				if (Pair.Key == Query) { OutValues.Add(Pair.Value); }
+				break;
+			case EPCGExStringMatchMode::Contains:
+				if (Pair.Key.Contains(Query)) { OutValues.Add(Pair.Value); }
+				break;
+			case EPCGExStringMatchMode::StartsWith:
+				if (Pair.Key.StartsWith(Query)) { OutValues.Add(Pair.Value); }
+				break;
+			case EPCGExStringMatchMode::EndsWith:
+				if (Pair.Key.EndsWith(Query)) { OutValues.Add(Pair.Value); }
+				break;
+			}
+		}
+
+		return !OutValues.IsEmpty();
 	}
 }
 
@@ -541,14 +636,12 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExComparisonDetails
 	double Tolerance = DBL_COMPARE_TOLERANCE;
 };
 
-
 UENUM()
 enum class EPCGExDirectionCheckMode : uint8
 {
 	Dot  = 0 UMETA(DisplayName = "Dot (Precise)", Tooltip="Extensive comparison using Dot product"),
 	Hash = 1 UMETA(DisplayName = "Hash (Fast)", Tooltip="Simplified check using hash comparison with a destructive tolerance"),
 };
-
 
 USTRUCT(BlueprintType)
 struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExVectorHashComparisonDetails
@@ -792,58 +885,36 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExAttributeToTagComparisonDetails
 		return true;
 	}
 
-	bool Test(const int32 SourceIndex, const FPCGPoint& SourcePoint, const TSharedPtr<PCGExData::FTags> InTags)
+	bool Test(const TSharedPtr<PCGExData::FTags>& InTags, const int32 SourceIndex, const FPCGPoint& SourcePoint) const
 	{
 		const FString TestTagName = TagNameGetter ? TagNameGetter->SoftGet(SourceIndex, SourcePoint, TEXT("")) : TagName;
-		int32 MatchesCount = 0;
 
-		for (const TPair<FString, TSharedPtr<PCGExData::FTagValue>>& Pair : InTags->ValueTags)
+		TArray<const TSharedPtr<PCGExData::FTagValue>> TagValues;
+		if (!PCGExCompare::GetMatchingValueTags(InTags, TestTagName, NameMatch, TagValues)) { return false; }
+
+		if (ValueType == EPCGExComparisonDataType::Numeric)
 		{
-			switch (NameMatch)
+			double B = NumericValueGetter->SoftGet(SourceIndex, SourcePoint, 0);
+			for (const TSharedPtr<PCGExData::FTagValue>& TagValue : TagValues)
 			{
-			case EPCGExStringMatchMode::Equals:
-				if (Pair.Key == TestTagName) { continue; }
-				break;
-			case EPCGExStringMatchMode::Contains:
-				if (Pair.Key.Contains(TestTagName)) { continue; }
-				break;
-			case EPCGExStringMatchMode::StartsWith:
-				if (Pair.Key.StartsWith(TestTagName)) { continue; }
-				break;
-			case EPCGExStringMatchMode::EndsWith:
-				if (Pair.Key.EndsWith(TestTagName)) { continue; }
-				break;
-			default: continue;
+				if (!PCGExCompare::Compare(NumericComparison, TagValue, B, Tolerance)) { return false; }
 			}
-
-			MatchesCount++;
-
-			if (ValueType == EPCGExComparisonDataType::Numeric)
+		}
+		else
+		{
+			FString B = StringValueGetter->SoftGet(SourceIndex, SourcePoint, TEXT(""));
+			for (const TSharedPtr<PCGExData::FTagValue>& TagValue : TagValues)
 			{
-				if (!Pair.Value->IsNumeric()) { return false; }
-				if (double OperandB = NumericValueGetter->SoftGet(SourceIndex, SourcePoint, 0);
-					!PCGExCompare::Compare(NumericComparison, Pair.Value->AsDouble(), OperandB))
-				{
-					return false;
-				}
-			}
-			else
-			{
-				if (!Pair.Value->IsText()) { return false; }
-				if (FString OperandB = StringValueGetter->SoftGet(SourceIndex, SourcePoint, TEXT(""));
-					!PCGExCompare::Compare(StringComparison, Pair.Value->AsString(), OperandB))
-				{
-					return false;
-				}
+				if (!PCGExCompare::Compare(StringComparison, TagValue, B)) { return false; }
 			}
 		}
 
-		return MatchesCount > 0;
+		return true;
 	}
 
-	FORCEINLINE bool Test(const PCGExData::FPointRef& SourcePointRef, const TSharedPtr<PCGExData::FTags> InTags)
+	FORCEINLINE bool Test(const TSharedPtr<PCGExData::FTags>& InTags, const PCGExData::FPointRef& SourcePointRef) const
 	{
-		return Test(SourcePointRef.Index, *SourcePointRef.Point, InTags);
+		return Test(InTags, SourcePointRef.Index, *SourcePointRef.Point);
 	}
 };
 
