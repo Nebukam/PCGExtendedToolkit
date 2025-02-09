@@ -114,6 +114,13 @@ bool UPCGExFilterGroupFactoryData::SupportsDirectEvaluation() const
 	return true;
 }
 
+bool UPCGExFilterGroupFactoryData::SupportsCollectionEvaluation() const
+{
+	// Ensure we grab dependencies from plugged-in factories recursively
+	PCGEX_FILTERGROUP_FOREACH(if(!SubFilter->SupportsCollectionEvaluation()){ return false; })
+	return true;
+}
+
 bool UPCGExFilterGroupFactoryData::RegisterConsumableAttributes(FPCGExContext* InContext) const
 {
 	Super::RegisterConsumableAttributes(InContext);

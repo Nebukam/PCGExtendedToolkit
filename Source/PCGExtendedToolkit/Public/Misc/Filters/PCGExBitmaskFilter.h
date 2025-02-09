@@ -65,7 +65,7 @@ public:
 	virtual bool RegisterConsumableAttributes(FPCGExContext* InContext) const override;
 };
 
-namespace PCGExPointsFilter
+namespace PCGExPointFilter
 {
 	class /*PCGEXTENDEDTOOLKIT_API*/ FBitmaskFilter final : public PCGExPointFilter::FSimpleFilter
 	{

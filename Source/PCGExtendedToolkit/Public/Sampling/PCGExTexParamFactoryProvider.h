@@ -28,7 +28,7 @@ enum class EPCGExTexSampleAttributeType : uint8
 	Invalid = 10 UMETA(Hidden)
 };
 
-UENUM(meta=(Bitflags, UseEnumValuesAsMaskValuesInEditor="true", DisplayName="[PCGEx] GUID Uniqueness Flags"))
+UENUM(meta=(Bitflags, UseEnumValuesAsMaskValuesInEditor="true", DisplayName="[PCGEx] Tex Channels Flags"))
 enum class EPCGExTexChannelsFlags : uint8
 {
 	None = 0,

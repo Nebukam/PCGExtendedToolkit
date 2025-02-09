@@ -1394,6 +1394,12 @@ namespace PCGExMath
 		return R * FMath::Abs(FMath::Fmod(EndAngleRadians, TWO_PI) - FMath::Fmod(StartAngleRadians, TWO_PI));
 	}
 
+	/** Distance from C to AB */
+	FORCEINLINE double GetPerpendicularDistance(const FVector& A, const FVector& B, const FVector& C)
+	{
+		const FVector AB = B - A;
+		return FVector::Dist(C, A + FMath::Clamp(FVector::DotProduct(( C - A), AB) / AB.SizeSquared(), 0, 1) * AB);
+	}
 
 #pragma region Spatialized distances
 

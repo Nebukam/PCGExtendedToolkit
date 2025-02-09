@@ -142,7 +142,16 @@ namespace PCGExPointsMT
 
 #pragma region Path filter data
 
-			if (FilterFactories) { InitPrimaryFilters(FilterFactories); }
+			if (FilterFactories)
+			{
+				InitPrimaryFilters(FilterFactories);
+				if(PrimaryFilters && !PrimaryFilters->Test(PointDataFacade->Source))
+				{
+					// Filtered out data
+					// TODO : Check that this is not creating weird issues.
+					return false;
+				}
+			}
 
 #pragma endregion
 

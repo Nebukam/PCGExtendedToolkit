@@ -83,7 +83,7 @@ public:
 	virtual void BeginDestroy() override;
 };
 
-namespace PCGExPointsFilter
+namespace PCGExPointFilter
 {
 	class /*PCGEXTENDEDTOOLKIT_API*/ FPathInclusionFilter final : public PCGExPointFilter::FSimpleFilter
 	{

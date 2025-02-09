@@ -186,6 +186,7 @@ namespace PCGExBevelPath
 
 		Arrive = Corner + Width * ArriveDir;
 		Leave = Corner + Width * LeaveDir;
+		Length = PCGExMath::GetPerpendicularDistance(Arrive, Leave, Corner);
 
 		// TODO : compute final subdivision count
 
@@ -256,13 +257,38 @@ namespace PCGExBevelPath
 
 		if (SubdivCount == 0) { return; }
 
-		const double Factor = FVector::Dist(Leave, Arrive);
+		const double ProfileSize = FVector::Dist(Leave, Arrive);
 		const FVector ProjectionNormal = (Leave - Arrive).GetSafeNormal(1E-08, FVector::ForwardVector);
-		const FQuat ProjectionQuat = FQuat::FindBetweenNormals(FVector::ForwardVector, ProjectionNormal);
+		const FQuat ProjectionQuat = FRotationMatrix::MakeFromZX( PCGExMath::GetNormal(Arrive, Leave, Corner)*-1, ProjectionNormal).ToQuat();
+
+		double MainAxisSize = ProfileSize;
+		double CrossAxisSize = ProfileSize;
+
+		if (InProcessor->Settings->MainAxisScaling == EPCGExBevelCustomProfileScaling::Scale)
+		{
+			MainAxisSize = Length * CustomMainAxisScale;
+		}
+		else if (InProcessor->Settings->MainAxisScaling == EPCGExBevelCustomProfileScaling::Distance)
+		{
+			MainAxisSize = CustomMainAxisScale;
+		}
+
+		if (InProcessor->Settings->CrossAxisScaling == EPCGExBevelCustomProfileScaling::Scale)
+		{
+			MainAxisSize = Length * CustomCrossAxisScale;
+		}
+		else if (InProcessor->Settings->CrossAxisScaling == EPCGExBevelCustomProfileScaling::Distance)
+		{
+			MainAxisSize = CustomCrossAxisScale;
+		}
 
 		for (int i = 0; i < SubdivCount; i++)
 		{
-			Subdivisions[i] = Arrive + ProjectionQuat.RotateVector(SourcePos[i + 1] * Factor);
+			FVector Pos = SourcePos[i + 1];
+			Pos.X *= ProfileSize;
+			Pos.Y *= MainAxisSize;
+			Pos.Z *= CrossAxisSize;
+			Subdivisions[i] = Arrive + ProjectionQuat.RotateVector(Pos);
 		}
 	}
 
@@ -275,8 +301,37 @@ namespace PCGExBevelPath
 
 		if (!FPointsProcessor::Process(InAsyncManager)) { return false; }
 
+		const TArray<FPCGPoint>& InPoints = PointDataFacade->GetIn()->GetPoints();
+		
+		Positions.SetNumUninitialized(InPoints.Num());
+		const int32 NumPoints = InPoints.Num();
+		
+		for (int i = 0; i < NumPoints; i++) { Positions[i] = InPoints[i].Transform.GetLocation(); }
+		
+		Path = PCGExPaths::MakePath(Positions, 0, Context->ClosedLoop.IsClosedLoop(PointDataFacade->Source));
+		PathLength = Path->AddExtra<PCGExPaths::FPathEdgeLength>();
+
+		if(Settings->Type == EPCGExBevelProfileType::Custom)
+		{
+			/*
+			switch (Settings->ProfileNormal)
+			{
+			case EPCGExPathNormalDirection::Normal:
+				PathDirection = StaticCastSharedPtr<PCGExPaths::TPathEdgeExtra<FVector>>(Path->AddExtra<PCGExPaths::FPathEdgeNormal>(false, FVector::UpVector));
+				break;
+			case EPCGExPathNormalDirection::Binormal:
+				PathDirection = StaticCastSharedPtr<PCGExPaths::TPathEdgeExtra<FVector>>(Path->AddExtra<PCGExPaths::FPathEdgeBinormal>(false, FVector::UpVector));
+				break;
+			case EPCGExPathNormalDirection::AverageNormal:
+				PathDirection = StaticCastSharedPtr<PCGExPaths::TPathEdgeExtra<FVector>>(Path->AddExtra<PCGExPaths::FPathEdgeAvgNormal>(false, FVector::UpVector));
+				break;
+			}
+			*/
+		}
+
+		Path->ComputeAllEdgeExtra();
+		
 		bInlineProcessPoints = true;
-		bClosedLoop = Context->ClosedLoop.IsClosedLoop(PointDataFacade->Source);
 
 		Bevels.Init(nullptr, PointDataFacade->GetNum());
 
@@ -314,22 +369,14 @@ namespace PCGExBevelPath
 		}
 
 		bArc = Settings->Type == EPCGExBevelProfileType::Arc;
-
-		const TArray<FPCGPoint>& InPoints = PointDataFacade->GetIn()->GetPoints();
-		const int32 NumPoints = InPoints.Num();
-		PCGEx::InitArray(Lengths, NumPoints);
-		for (int i = 0; i < NumPoints; i++)
-		{
-			Lengths[i] = FVector::Distance(InPoints[i].Transform.GetLocation(), InPoints[i + 1 == NumPoints ? 0 : i + 1].Transform.GetLocation());
-		}
-
+		
 		PCGEX_ASYNC_GROUP_CHKD(AsyncManager, Preparation)
 
 		Preparation->OnCompleteCallback =
 			[PCGEX_ASYNC_THIS_CAPTURE]()
 			{
 				PCGEX_ASYNC_THIS
-				if (!This->bClosedLoop)
+				if (!This->Path->IsClosedLoop())
 				{
 					// Ensure bevel is disabled on start/end points
 					This->PointFilterCache[0] = false;
@@ -347,23 +394,28 @@ namespace PCGExBevelPath
 				This->PointDataFacade->Fetch(Scope);
 				This->FilterScope(Scope);
 
-				if (!This->bClosedLoop)
+				if (!This->Path->IsClosedLoop())
 				{
 					// Ensure bevel is disabled on start/end points
 					This->PointFilterCache[0] = false;
 					This->PointFilterCache[This->PointFilterCache.Num() - 1] = false;
 				}
 
-				for (int i = Scope.Start; i < Scope.End; i++)
-				{
-					if (!This->PointFilterCache[i]) { continue; }
-					This->Bevels[i] = MakeShared<FBevel>(i, This.Get()); // no need for SharedThis
-				}
+				for (int i = Scope.Start; i < Scope.End; i++) { This->PrepareSinglePoint(i); }
 			};
 
 		Preparation->StartSubLoops(PointDataFacade->GetNum(), GetDefault<UPCGExGlobalSettings>()->PointsDefaultBatchChunkSize);
 
 		return true;
+	}
+
+	void FProcessor::PrepareSinglePoint(const int32 Index)
+	{
+		if (!PointFilterCache[Index]) { return; }
+
+		Bevels[Index] = MakeShared<FBevel>(Index, this);
+		Bevels[Index]->CustomMainAxisScale = Settings->MainAxisScale;
+		Bevels[Index]->CustomCrossAxisScale = Settings->CrossAxisScale;
 	}
 
 	void FProcessor::ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const PCGExMT::FScope& Scope)

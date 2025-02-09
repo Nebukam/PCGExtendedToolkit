@@ -71,6 +71,128 @@ enum class EPCGExSampleWeightMode : uint8
 	AttributeMult = 2 UMETA(DisplayName = "Att x Dist", ToolTip="Uses a fixed attribute value on the target as a multiplier to distance-based weight"),
 };
 
+UENUM(meta=(Bitflags, UseEnumValuesAsMaskValuesInEditor="true", DisplayName="[PCGEx] Component Flags"))
+enum class EPCGExApplySampledComponentFlags : uint8
+{
+	None = 0,
+	X    = 1 << 0 UMETA(DisplayName = "X", ToolTip="Apply X Component"),
+	Y    = 1 << 1 UMETA(DisplayName = "Y", ToolTip="Apply Y Component"),
+	Z    = 1 << 2 UMETA(DisplayName = "Z", ToolTip="Apply Z Component"),
+	All  = X | Y | Z UMETA(DisplayName = "All", ToolTip="Apply all Component"),
+};
+
+ENUM_CLASS_FLAGS(EPCGExApplySampledComponentFlags)
+using EPCGExApplySampledComponentFlagsBitmask = TEnumAsByte<EPCGExApplySampledComponentFlags>;
+
+USTRUCT(BlueprintType)
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExApplySamplingDetails
+{
+	GENERATED_BODY()
+
+	FPCGExApplySamplingDetails()
+	{
+	}
+
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	bool bApplyTransform = false;
+
+	/** Which position components from the sampled transform should be applied to the point.  */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable, DisplayName=" └─ Position", EditCondition="bApplyTransform", EditConditionHides, Bitmask, BitmaskEnum="/Script/PCGExtendedToolkit.EPCGExApplySampledComponentFlags"))
+	uint8 TransformPosition = 0;
+
+	/** Which rotation components from the sampled transform should be applied to the point.  */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable, DisplayName=" └─ Rotation", EditCondition="bApplyTransform", EditConditionHides, Bitmask, BitmaskEnum="/Script/PCGExtendedToolkit.EPCGExApplySampledComponentFlags"))
+	uint8 TransformRotation = 0;
+
+	/** Which scale components from the sampled transform should be applied to the point.  */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable, DisplayName=" └─ Scale", EditCondition="bApplyTransform", EditConditionHides, Bitmask, BitmaskEnum="/Script/PCGExtendedToolkit.EPCGExApplySampledComponentFlags"))
+	uint8 TransformScale = 0;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	bool bApplyLookAt = false;
+
+	/** Which position components from the sampled look at should be applied to the point.  */
+	//UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable, DisplayName=" └─ Position", EditCondition="bApplyLookAt", EditConditionHides, Bitmask, BitmaskEnum="/Script/PCGExtendedToolkit.EPCGExApplySampledComponentFlags"))
+	uint8 LookAtPosition = 0;
+
+	/** Which rotation components from the sampled look at should be applied to the point.  */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable, DisplayName=" └─ Rotation", EditCondition="bApplyLookAt", EditConditionHides, Bitmask, BitmaskEnum="/Script/PCGExtendedToolkit.EPCGExApplySampledComponentFlags"))
+	uint8 LookAtRotation = 0;
+
+	/** Which scale components from the sampled look at should be applied to the point.  */
+	//UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable, DisplayName=" └─ Scale", EditCondition="bApplyLookAt", EditConditionHides, Bitmask, BitmaskEnum="/Script/PCGExtendedToolkit.EPCGExApplySampledComponentFlags"))
+	uint8 LookAtScale = 0;
+
+	int32 AppliedComponents = 0;
+	TArray<int32> TrPosComponents;
+	TArray<int32> TrRotComponents;
+	TArray<int32> TrScaComponents;
+	//TArray<int32> LkPosComponents;
+	TArray<int32> LkRotComponents;
+	//TArray<int32> LkScaComponents;
+
+	bool WantsApply() const { return AppliedComponents > 0; }
+
+	void Init()
+	{
+#define PCGEX_REGISTER_FLAG(_COMPONENT, _ARRAY) \
+		if ((_COMPONENT & static_cast<uint8>(EPCGExApplySampledComponentFlags::X)) != 0){ _ARRAY.Add(0); AppliedComponents++; } \
+		if ((_COMPONENT & static_cast<uint8>(EPCGExApplySampledComponentFlags::Y)) != 0){ _ARRAY.Add(1); AppliedComponents++; } \
+		if ((_COMPONENT & static_cast<uint8>(EPCGExApplySampledComponentFlags::Z)) != 0){ _ARRAY.Add(2); AppliedComponents++; }
+
+		if (bApplyTransform)
+		{
+			PCGEX_REGISTER_FLAG(TransformPosition, TrPosComponents)
+			PCGEX_REGISTER_FLAG(TransformRotation, TrRotComponents)
+			PCGEX_REGISTER_FLAG(TransformScale, TrScaComponents)
+		}
+
+		if (bApplyLookAt)
+		{
+			//PCGEX_REGISTER_FLAG(LookAtPosition, LkPosComponents)
+			PCGEX_REGISTER_FLAG(LookAtRotation, LkRotComponents)
+			//PCGEX_REGISTER_FLAG(LookAtScale, LkScaComponents)
+		}
+
+#undef PCGEX_REGISTER_FLAG
+	}
+
+	void Apply(FPCGPoint& InPoint, const FTransform& InTransform, const FTransform& InLookAt)
+	{
+		FVector OutRotation = InPoint.Transform.GetRotation().Euler();
+		FVector OutPosition = InPoint.Transform.GetLocation();
+		FVector OutScale = InPoint.Transform.GetScale3D();
+
+		if (bApplyTransform)
+		{
+			const FVector InTrRot = InTransform.GetRotation().Euler();
+			for (const int32 C : TrRotComponents) { OutRotation[C] = InTrRot[C]; }
+
+			FVector InTrPos = InTransform.GetLocation();
+			for (const int32 C : TrPosComponents) { OutPosition[C] = InTrPos[C]; }
+
+			FVector InTrSca = InTransform.GetScale3D();
+			for (const int32 C : TrScaComponents) { OutScale[C] = InTrSca[C]; }
+		}
+
+		if (bApplyLookAt)
+		{
+			const FVector InLkRot = InLookAt.GetRotation().Euler();
+			for (const int32 C : LkRotComponents) { OutRotation[C] = InLkRot[C]; }
+
+			//FVector InLkPos = InLookAt.GetLocation();
+			//for (const int32 C : LkPosComponents) { OutPosition[C] = InLkPos[C]; }
+
+			//FVector InLkSca = InLookAt.GetScale3D();
+			//for (const int32 C : LkScaComponents) { OutScale[C] = InLkSca[C]; }
+		}
+
+
+		InPoint.Transform = FTransform(FQuat::MakeFromEuler(OutRotation), OutPosition, OutScale);
+	}
+};
+
 namespace PCGExSampling
 {
 	const FName SourceIgnoreActorsLabel = TEXT("InIgnoreActors");

@@ -9,7 +9,7 @@
 
 TSharedPtr<PCGExPointFilter::FFilter> UPCGExGameplayTagsFilterFactory::CreateFilter() const
 {
-	return MakeShared<PCGExPointsFilter::FGameplayTagsFilter>(this);
+	return MakeShared<PCGExPointFilter::FGameplayTagsFilter>(this);
 }
 
 bool UPCGExGameplayTagsFilterFactory::RegisterConsumableAttributesWithData(FPCGExContext* InContext, const UPCGData* InData) const
@@ -21,7 +21,7 @@ bool UPCGExGameplayTagsFilterFactory::RegisterConsumableAttributesWithData(FPCGE
 	return true;
 }
 
-bool PCGExPointsFilter::FGameplayTagsFilter::Init(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade> InPointDataFacade)
+bool PCGExPointFilter::FGameplayTagsFilter::Init(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade> InPointDataFacade)
 {
 	if (!FFilter::Init(InContext, InPointDataFacade)) { return false; }
 
