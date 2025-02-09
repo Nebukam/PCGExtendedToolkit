@@ -76,6 +76,9 @@ void UPCGExGlobalSettings::GeneratePinInfos()
 	// Out pin map
 	PCGEX_EMPLACE_PIN_OUT(OUT_Filter, "PCGEx Filter");
 	PCGEX_MAP_PIN_OUT("Filter")
+	
+	PCGEX_EMPLACE_PIN_OUT(OUT_CFilter, "PCGEx Collection Filter");
+	PCGEX_MAP_PIN_OUT("C-Filter")
 
 	PCGEX_EMPLACE_PIN_OUT(OUT_FilterEdges, "PCGEx Edge Filter");
 	PCGEX_MAP_PIN_OUT("Edge Filter")

@@ -9,7 +9,7 @@
 
 TSharedPtr<PCGExPointFilter::FFilter> UPCGExBooleanCompareFilterFactory::CreateFilter() const
 {
-	return MakeShared<PCGExPointsFilter::FBooleanCompareFilter>(this);
+	return MakeShared<PCGExPointFilter::FBooleanCompareFilter>(this);
 }
 
 bool UPCGExBooleanCompareFilterFactory::RegisterConsumableAttributesWithData(FPCGExContext* InContext, const UPCGData* InData) const
@@ -23,7 +23,7 @@ bool UPCGExBooleanCompareFilterFactory::RegisterConsumableAttributesWithData(FPC
 	return true;
 }
 
-bool PCGExPointsFilter::FBooleanCompareFilter::Init(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade> InPointDataFacade)
+bool PCGExPointFilter::FBooleanCompareFilter::Init(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade> InPointDataFacade)
 {
 	if (!FFilter::Init(InContext, InPointDataFacade)) { return false; }
 

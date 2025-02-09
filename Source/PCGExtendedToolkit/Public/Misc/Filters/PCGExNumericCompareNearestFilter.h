@@ -76,7 +76,7 @@ public:
 	virtual void BeginDestroy() override;
 };
 
-namespace PCGExPointsFilter
+namespace PCGExPointFilter
 {
 	class /*PCGEXTENDEDTOOLKIT_API*/ FNumericCompareNearestFilter final : public PCGExPointFilter::FSimpleFilter
 	{

@@ -40,7 +40,7 @@ bool UPCGExSplineInclusionFilterFactory::Init(FPCGExContext* InContext)
 
 TSharedPtr<PCGExPointFilter::FFilter> UPCGExSplineInclusionFilterFactory::CreateFilter() const
 {
-	return MakeShared<PCGExPointsFilter::FSplineInclusionFilter>(this);
+	return MakeShared<PCGExPointFilter::FSplineInclusionFilter>(this);
 }
 
 void UPCGExSplineInclusionFilterFactory::BeginDestroy()
@@ -48,7 +48,7 @@ void UPCGExSplineInclusionFilterFactory::BeginDestroy()
 	Super::BeginDestroy();
 }
 
-namespace PCGExPointsFilter
+namespace PCGExPointFilter
 {
 	bool FSplineInclusionFilter::Init(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade> InPointDataFacade)
 	{

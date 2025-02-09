@@ -146,6 +146,10 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Blending", meta=(PCG_Overridable, EditCondition="bBlendPointProperties"))
 	FPCGExPropertiesBlendingDetails PointPropertiesBlendingSettings = FPCGExPropertiesBlendingDetails(EPCGExDataBlendingType::None);
 
+	/** Whether and how to apply sampled result directly (not mutually exclusive with output)*/
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable))
+	FPCGExApplySamplingDetails ApplySampling;
+
 	/** Write whether the sampling was sucessful or not to a boolean attribute. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(PCG_Overridable, InlineEditConditionToggle))
 	bool bWriteSuccess = false;
@@ -172,19 +176,19 @@ public:
 	FName LookAtTransformAttributeName = FName("WeightedLookAt");
 
 	/** The axis to align transform the look at vector to.*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(PCG_Overridable, DisplayName=" └─ Align", EditCondition="bWriteLookAtTransform", EditConditionHides, HideEditConditionToggle))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(PCG_Overridable, DisplayName=" └─ Align"))
 	EPCGExAxisAlign LookAtAxisAlign = EPCGExAxisAlign::Forward;
 
 	/** Up vector source.*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(PCG_Overridable, DisplayName=" └─ Use Up from...", EditCondition="bWriteLookAtTransform", EditConditionHides, HideEditConditionToggle))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(PCG_Overridable, DisplayName=" └─ Use Up from..."))
 	EPCGExSampleSource LookAtUpSelection = EPCGExSampleSource::Constant;
 
 	/** The attribute or property on selected source to use as Up vector for the look at transform.*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(PCG_Overridable, DisplayName=" └─ Up Vector", EditCondition="bWriteLookAtTransform && LookAtUpSelection!=EPCGExSampleSource::Constant", EditConditionHides, HideEditConditionToggle))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(PCG_Overridable, DisplayName=" └─ Up Vector", EditCondition="LookAtUpSelection!=EPCGExSampleSource::Constant", EditConditionHides))
 	FPCGAttributePropertyInputSelector LookAtUpSource;
 
 	/** The constant to use as Up vector for the look at transform.*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(PCG_Overridable, DisplayName=" └─ Up Vector", EditCondition="bWriteLookAtTransform && LookAtUpSelection==EPCGExSampleSource::Constant", EditConditionHides, HideEditConditionToggle))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(PCG_Overridable, DisplayName=" └─ Up Vector", EditCondition="LookAtUpSelection==EPCGExSampleSource::Constant", EditConditionHides))
 	FVector LookAtUpConstant = FVector::UpVector;
 
 	/** Write the sampled distance. */
@@ -202,7 +206,7 @@ public:
 	/** Scale factor applied to the distance output; allows to easily invert it using -1 */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(PCG_Overridable, DisplayName=" └─ Scale", EditCondition="bWriteDistance", EditConditionHides, HideEditConditionToggle))
 	double DistanceScale = 1;
-	
+
 	/** Write the sampled Signed distance. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(PCG_Overridable, InlineEditConditionToggle))
 	bool bWriteSignedDistance = false;
@@ -218,7 +222,7 @@ public:
 	/** Scale factor applied to the signed distance output; allows to easily invert it using -1 */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(PCG_Overridable, DisplayName=" └─ Scale", EditCondition="bWriteSignedDistance", EditConditionHides, HideEditConditionToggle))
 	double SignedDistanceScale = 1;
-	
+
 	/** Write the sampled component-wise distance. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(PCG_Overridable, InlineEditConditionToggle))
 	bool bWriteComponentWiseDistance = false;
@@ -296,6 +300,8 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExSampleNearestBoundsContext final : FPCGE
 	TSharedPtr<PCGExData::FFacade> BoundsFacade;
 
 	TSharedPtr<PCGExSorting::PointSorter<false>> Sorter;
+
+	FPCGExApplySamplingDetails ApplySampling;
 
 	FPCGExBlendingDetails BlendingDetails;
 	const TArray<FPCGPoint>* BoundsPoints = nullptr;

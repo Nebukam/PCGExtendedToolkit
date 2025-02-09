@@ -39,6 +39,15 @@ enum class EPCGExBevelLimit : uint8
 	Balanced        = 2 UMETA(DisplayName = "Balanced", ToolTip="Weighted balance against opposite bevel position, falling back to closest neighbor"),
 };
 
+UENUM()
+enum class EPCGExBevelCustomProfileScaling : uint8
+{
+	Uniform  = 0 UMETA(DisplayName = "Uniform", ToolTip="Keep the profile ratio uniform"),
+	Scale    = 1 UMETA(DisplayName = "Scale", ToolTip="Use a scale factor relative to the bevel distance"),
+	Distance = 2 UMETA(DisplayName = "Distance", ToolTip="Use a fixed distance relative to the bevelled point"),
+};
+
+
 /**
  * 
  */
@@ -76,6 +85,22 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="Type != EPCGExBevelProfileType::Custom", EditConditionHides))
 	bool bKeepCornerPoint = false;
 
+	/** Define how the custom profile will be scaled on the main axis. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Profile Scaling", meta = (PCG_Overridable, EditCondition="Type == EPCGExBevelProfileType::Custom", EditConditionHides))
+	EPCGExBevelCustomProfileScaling MainAxisScaling = EPCGExBevelCustomProfileScaling::Uniform;
+
+	/** Scale or Distance value for the main axis. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Profile Scaling", meta = (PCG_Overridable, EditCondition="Type == EPCGExBevelProfileType::Custom && (MainAxisScaling == EPCGExBevelCustomProfileScaling::Scale || MainAxisScaling == EPCGExBevelCustomProfileScaling::Distance)", EditConditionHides))
+	double MainAxisScale = 1;
+	
+	/** Define how the custom profile will be scaled on the cross axis. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Profile Scaling", meta = (PCG_Overridable, EditCondition="Type == EPCGExBevelProfileType::Custom", EditConditionHides))
+	EPCGExBevelCustomProfileScaling CrossAxisScaling = EPCGExBevelCustomProfileScaling::Uniform;
+
+	/** Scale or Distance value for the cross axis. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Profile Scaling", meta = (PCG_Overridable, EditCondition="Type == EPCGExBevelProfileType::Custom && (CrossAxisScaling == EPCGExBevelCustomProfileScaling::Scale || CrossAxisScaling == EPCGExBevelCustomProfileScaling::Distance)", EditConditionHides))
+	double CrossAxisScale = 1;
+	
 	/** Bevel width value interpretation.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable))
 	EPCGExMeanMeasure WidthMeasure = EPCGExMeanMeasure::Relative;
@@ -201,9 +226,13 @@ namespace PCGExBevelPath
 		FVector Leave = FVector::ZeroVector;
 		FVector LeaveDir = FVector::ZeroVector;
 		double LeaveAlpha = 0;
-
+		
+		double Length = 0;
 		double Width = 0;
 
+		double CustomMainAxisScale = 1;
+		double CustomCrossAxisScale = 1;
+		
 		TArray<FVector> Subdivisions;
 
 		FBevel(const int32 InIndex, const FProcessor* InProcessor);
@@ -225,12 +254,9 @@ namespace PCGExBevelPath
 	{
 		friend struct FBevel;
 
-		TArray<double> Lengths;
-
 		TArray<TSharedPtr<FBevel>> Bevels;
 		TArray<int32> StartIndices;
 
-		bool bClosedLoop = false;
 		bool bSubdivide = false;
 		bool bSubdivideCount = false;
 		bool bArc = false;
@@ -238,21 +264,27 @@ namespace PCGExBevelPath
 		TSharedPtr<PCGExData::TBuffer<double>> SubdivAmountGetter;
 		double ConstantSubdivAmount = 0;
 
+		TArray<FVector> Positions;
+		TSharedPtr<PCGExPaths::FPath> Path;
+		TSharedPtr<PCGExPaths::FPathEdgeLength> PathLength;
+		TSharedPtr<PCGExPaths::TPathEdgeExtra<FVector>> PathDirection;
+
 		TSharedPtr<PCGExData::TBuffer<bool>> EndpointsWriter;
 		TSharedPtr<PCGExData::TBuffer<bool>> StartPointWriter;
 		TSharedPtr<PCGExData::TBuffer<bool>> EndPointWriter;
 		TSharedPtr<PCGExData::TBuffer<bool>> SubdivisionWriter;
 
-	public:
+	public: 
 		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade)
 			: TPointsProcessor(InPointDataFacade)
 		{
 			DefaultPointFilterValue = true;
 		}
 
-		FORCEINLINE double Len(const int32 Index) const { return Lengths[Index]; }
+		FORCEINLINE double Len(const int32 Index) const { return PathLength->Get(Index); }
 
 		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager> InAsyncManager) override;
+		void PrepareSinglePoint(const int32 Index);
 		virtual void ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const PCGExMT::FScope& Scope) override;
 		virtual void ProcessSingleRangeIteration(const int32 Iteration, const PCGExMT::FScope& Scope) override;
 		void WriteFlags(const int32 Index);
