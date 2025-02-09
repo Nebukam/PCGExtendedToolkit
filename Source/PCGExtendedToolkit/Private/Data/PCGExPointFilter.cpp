@@ -46,6 +46,8 @@ namespace PCGExPointFilter
 	bool FSimpleFilter::Test(const PCGExCluster::FNode& Node) const { return Test(Node.PointIndex); }
 	bool FSimpleFilter::Test(const PCGExGraph::FEdge& Edge) const { return Test(Edge.PointIndex); }
 
+	bool FSimpleFilter::Test(const TSharedPtr<PCGExData::FPointIO>& IO) const { return bCollectionTestResult; }
+
 	bool FCollectionFilter::Init(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade> InPointDataFacade)
 	{
 		if (!FFilter::Init(InContext, InPointDataFacade)) { return false; }
