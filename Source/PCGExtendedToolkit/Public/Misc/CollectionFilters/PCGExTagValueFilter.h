@@ -113,7 +113,7 @@ public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(
-		TagValueFilterFactory, "Filter (Collection) : Tag Value", "Test the value of one or multiple tags",
+		TagValueFilterFactory, "C-Filter : Tag Value", "Test the value of one or multiple tags",
 		PCGEX_FACTORY_NAME_PRIORITY)
 #endif
 	//~End UPCGSettings
