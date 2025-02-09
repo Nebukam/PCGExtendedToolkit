@@ -579,7 +579,7 @@ namespace PCGExCompare
 		return false;
 	}
 
-	static bool GetMatchingValueTags(const TSharedPtr<PCGExData::FTags>& InTags, const FString& Query, const EPCGExStringMatchMode MatchMode, TArray<const TSharedPtr<PCGExData::FTagValue>>& OutValues)
+	static bool GetMatchingValueTags(const TSharedPtr<PCGExData::FTags>& InTags, const FString& Query, const EPCGExStringMatchMode MatchMode, TArray<TSharedPtr<PCGExData::FTagValue>>& OutValues)
 	{
 		for (const TPair<FString, TSharedPtr<PCGExData::FTagValue>>& Pair : InTags->ValueTags)
 		{
@@ -889,7 +889,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExAttributeToTagComparisonDetails
 	{
 		const FString TestTagName = TagNameGetter ? TagNameGetter->SoftGet(SourceIndex, SourcePoint, TEXT("")) : TagName;
 
-		TArray<const TSharedPtr<PCGExData::FTagValue>> TagValues;
+		TArray<TSharedPtr<PCGExData::FTagValue>> TagValues;
 		if (!PCGExCompare::GetMatchingValueTags(InTags, TestTagName, NameMatch, TagValues)) { return false; }
 
 		if (ValueType == EPCGExComparisonDataType::Numeric)
