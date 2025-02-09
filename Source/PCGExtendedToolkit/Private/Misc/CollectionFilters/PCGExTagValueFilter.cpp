@@ -16,7 +16,7 @@ bool PCGExPointFilter::FTagValueFilter::Test(const TSharedPtr<PCGExData::FPointI
 {
 	bool bResult = false;
 
-	if (TArray<const TSharedPtr<PCGExData::FTagValue>> TagValues;
+	if (TArray<TSharedPtr<PCGExData::FTagValue>> TagValues;
 		PCGExCompare::GetMatchingValueTags(IO->Tags, TypedFilterFactory->Config.Tag, TypedFilterFactory->Config.Match, TagValues))
 	{
 		bResult = TypedFilterFactory->Config.MultiMatch == EPCGExFilterGroupMode::AND;
