@@ -3,6 +3,7 @@
 
 #pragma once
 
+#include "PCGEx.h"
 #include "PCGExPicker.generated.h"
 
 namespace PCGExPicker
