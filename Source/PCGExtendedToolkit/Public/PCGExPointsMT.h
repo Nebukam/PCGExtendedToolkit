@@ -145,12 +145,14 @@ namespace PCGExPointsMT
 			if (FilterFactories)
 			{
 				InitPrimaryFilters(FilterFactories);
+				/*
 				if(PrimaryFilters && !PrimaryFilters->Test(PointDataFacade->Source))
 				{
 					// Filtered out data
 					// TODO : Check that this is not creating weird issues.
 					return false;
 				}
+				*/
 			}
 
 #pragma endregion
