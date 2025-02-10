@@ -7,6 +7,7 @@
 #include "UObject/Object.h"
 
 #include "PCGExMacros.h"
+#include "PCGExHelpers.h"
 #include "Kismet/KismetStringLibrary.h"
 
 //#include "Data/PCGExDataTag.generated.h"

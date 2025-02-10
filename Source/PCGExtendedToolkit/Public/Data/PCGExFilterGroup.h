@@ -11,12 +11,6 @@
 #include "PCGExPointFilter.h"
 
 
-
-
-
-
-
-
 #include "Graph/Filters/PCGExClusterFilter.h"
 #include "PCGExFilterGroup.generated.h"
 
@@ -151,11 +145,7 @@ namespace PCGExFilterGroup
 
 		FORCEINLINE virtual bool Test(const TSharedPtr<PCGExData::FPointIO>& IO) const override
 		{
-			for (const TSharedPtr<PCGExPointFilter::FFilter>& Filter : ManagedFilters)
-			{
-				if (!Filter->Factory->SupportsCollectionEvaluation()) { continue; }
-				if (!Filter->Test(IO)) { return bInvert; }
-			}
+			for (const TSharedPtr<PCGExPointFilter::FFilter>& Filter : ManagedFilters) { if (!Filter->Test(IO)) { return bInvert; } }
 			return !bInvert;
 		}
 	};
@@ -194,11 +184,7 @@ namespace PCGExFilterGroup
 
 		FORCEINLINE virtual bool Test(const TSharedPtr<PCGExData::FPointIO>& IO) const override
 		{
-			for (const TSharedPtr<PCGExPointFilter::FFilter>& Filter : ManagedFilters)
-			{
-				if (!Filter->Factory->SupportsCollectionEvaluation()) { continue; }
-				if (Filter->Test(IO)) { return !bInvert; }
-			}
+			for (const TSharedPtr<PCGExPointFilter::FFilter>& Filter : ManagedFilters) { if (Filter->Test(IO)) { return !bInvert; } }
 			return bInvert;
 		}
 	};
