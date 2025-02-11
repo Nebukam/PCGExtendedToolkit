@@ -9,9 +9,6 @@
 #include "PCGExFactoryProvider.h"
 
 
-
-
-
 #include "Graph/PCGExCluster.h"
 
 #include "PCGExPointFilter.generated.h"
@@ -140,13 +137,12 @@ namespace PCGExPointFilter
 		virtual PCGExFilters::EType GetFilterType() const override { return PCGExFilters::EType::Collection; }
 
 		virtual bool Init(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade> InPointDataFacade) override;
-		
+
 		virtual bool Test(const int32 Index) const override;
 		virtual bool Test(const FPCGPoint& Point) const override;
 		virtual bool Test(const PCGExCluster::FNode& Node) const override final;
 		virtual bool Test(const PCGExGraph::FEdge& Edge) const override final;
 		virtual bool Test(const TSharedPtr<PCGExData::FPointIO>& IO) const override;
-
 	};
 
 	class /*PCGEXTENDEDTOOLKIT_API*/ FManager : public TSharedFromThis<FManager>

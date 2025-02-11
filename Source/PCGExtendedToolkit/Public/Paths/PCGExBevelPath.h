@@ -92,7 +92,7 @@ public:
 	/** Scale or Distance value for the main axis. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Profile Scaling", meta = (PCG_Overridable, EditCondition="Type == EPCGExBevelProfileType::Custom && (MainAxisScaling == EPCGExBevelCustomProfileScaling::Scale || MainAxisScaling == EPCGExBevelCustomProfileScaling::Distance)", EditConditionHides))
 	double MainAxisScale = 1;
-	
+
 	/** Define how the custom profile will be scaled on the cross axis. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Profile Scaling", meta = (PCG_Overridable, EditCondition="Type == EPCGExBevelProfileType::Custom", EditConditionHides))
 	EPCGExBevelCustomProfileScaling CrossAxisScaling = EPCGExBevelCustomProfileScaling::Uniform;
@@ -100,7 +100,7 @@ public:
 	/** Scale or Distance value for the cross axis. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Profile Scaling", meta = (PCG_Overridable, EditCondition="Type == EPCGExBevelProfileType::Custom && (CrossAxisScaling == EPCGExBevelCustomProfileScaling::Scale || CrossAxisScaling == EPCGExBevelCustomProfileScaling::Distance)", EditConditionHides))
 	double CrossAxisScale = 1;
-	
+
 	/** Bevel width value interpretation.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable))
 	EPCGExMeanMeasure WidthMeasure = EPCGExMeanMeasure::Relative;
@@ -226,13 +226,13 @@ namespace PCGExBevelPath
 		FVector Leave = FVector::ZeroVector;
 		FVector LeaveDir = FVector::ZeroVector;
 		double LeaveAlpha = 0;
-		
+
 		double Length = 0;
 		double Width = 0;
 
 		double CustomMainAxisScale = 1;
 		double CustomCrossAxisScale = 1;
-		
+
 		TArray<FVector> Subdivisions;
 
 		FBevel(const int32 InIndex, const FProcessor* InProcessor);
@@ -274,7 +274,7 @@ namespace PCGExBevelPath
 		TSharedPtr<PCGExData::TBuffer<bool>> EndPointWriter;
 		TSharedPtr<PCGExData::TBuffer<bool>> SubdivisionWriter;
 
-	public: 
+	public:
 		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade)
 			: TPointsProcessor(InPointDataFacade)
 		{

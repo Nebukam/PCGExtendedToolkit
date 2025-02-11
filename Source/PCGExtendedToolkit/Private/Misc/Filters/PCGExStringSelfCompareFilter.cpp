@@ -58,6 +58,18 @@ bool PCGExPointFilter::FStringSelfCompareFilter::Init(FPCGExContext* InContext, 
 	return true;
 }
 
+bool PCGExPointFilter::FStringSelfCompareFilter::Test(const int32 PointIndex) const
+{
+	const int32 IndexValue = Index ? Index->Read(PointIndex) : TypedFilterFactory->Config.IndexConstant;
+	const int32 TargetIndex = PCGExMath::SanitizeIndex(bOffset ? PointIndex + IndexValue : IndexValue, MaxIndex, TypedFilterFactory->Config.IndexSafety);
+
+	if (TargetIndex == -1) { return false; }
+
+	const FString A = OperandA->SoftGet(PointIndex, PointDataFacade->Source->GetInPoint(PointIndex), TEXT(""));
+	const FString B = OperandA->SoftGet(TargetIndex, PointDataFacade->Source->GetInPoint(TargetIndex), TEXT(""));
+	return PCGExCompare::Compare(TypedFilterFactory->Config.Comparison, A, B);
+}
+
 PCGEX_CREATE_FILTER_FACTORY(StringSelfCompare)
 
 #if WITH_EDITOR

@@ -371,10 +371,10 @@ namespace PCGExExtrudeTensors
 				{
 					// Start writing path
 					bIsExtruding = true;
-					if(bIsProbe)
+					if (bIsProbe)
 					{
 						SetHead(Head);
-						return OnAdvanced(false);	
+						return OnAdvanced(false);
 					}
 				}
 			}

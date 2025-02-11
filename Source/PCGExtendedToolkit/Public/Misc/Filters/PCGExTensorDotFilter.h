@@ -68,7 +68,7 @@ public:
 
 namespace PCGExPointFilter
 {
-	class /*PCGEXTENDEDTOOLKIT_API*/ FTensorDotFilter final : public PCGExPointFilter::FSimpleFilter
+	class /*PCGEXTENDEDTOOLKIT_API*/ FTensorDotFilter final : public FSimpleFilter
 	{
 	public:
 		explicit FTensorDotFilter(const TObjectPtr<const UPCGExTensorDotFilterFactory>& InFactory)
@@ -86,22 +86,8 @@ namespace PCGExPointFilter
 		TSharedPtr<PCGExData::TBuffer<FVector>> OperandA;
 
 		virtual bool Init(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade> InPointDataFacade) override;
-		FORCEINLINE virtual bool Test(const int32 PointIndex) const override
-		{
-			const FPCGPoint& Point = PointDataFacade->Source->GetInPoint(PointIndex);
-
-			bool bSuccess = false;
-			const PCGExTensor::FTensorSample Sample = TensorsHandler->Sample(Point.Transform, bSuccess);
-
-			if (!bSuccess) { return false; }
-
-			return DotComparison.Test(
-				FVector::DotProduct(
-					TypedFilterFactory->Config.bTransformOperandA ? OperandA->Read(PointIndex) : Point.Transform.TransformVectorNoScale(OperandA->Read(PointIndex)),
-					Sample.DirectionAndSize.GetSafeNormal()),
-				DotComparison.GetComparisonThreshold(PointIndex));
-		}
-
+		virtual bool Test(const int32 PointIndex) const override;
+		
 		virtual ~FTensorDotFilter() override
 		{
 		}

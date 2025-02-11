@@ -90,7 +90,7 @@ bool FPCGExSampleNearestBoundsElement::Boot(FPCGExContext* InContext) const
 	if (!FPCGExPointsProcessorElement::Boot(InContext)) { return false; }
 
 	PCGEX_CONTEXT_AND_SETTINGS(SampleNearestBounds)
-	
+
 	PCGEX_FWD(ApplySampling)
 	Context->ApplySampling.Init();
 
@@ -377,8 +377,8 @@ namespace PCGExSampleNearestBounds
 		const double WeightedDistance = FVector::Dist(Origin, WeightedTransform.GetLocation());
 
 		FTransform LookAtTransform = PCGExMath::MakeLookAtTransform(LookAt, WeightedUp, Settings->LookAtAxisAlign);
-		if(Context->ApplySampling.WantsApply()){ Context->ApplySampling.Apply(Point, WeightedTransform, LookAtTransform); }
-		
+		if (Context->ApplySampling.WantsApply()) { Context->ApplySampling.Apply(Point, WeightedTransform, LookAtTransform); }
+
 		SampleState[Index] = Stats.IsValid();
 		PCGEX_OUTPUT_VALUE(Success, Index, Stats.IsValid())
 		PCGEX_OUTPUT_VALUE(Transform, Index, WeightedTransform)

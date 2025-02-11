@@ -59,7 +59,7 @@ namespace PCGExData
 		const FPCGPoint* Point = nullptr;
 		const int32 Index = -1;
 
-		FORCEINLINE FPCGPoint& MutablePoint() const { return const_cast<FPCGPoint&>(*Point); }
+		FPCGPoint& MutablePoint() const { return const_cast<FPCGPoint&>(*Point); }
 	};
 
 	/**
@@ -180,18 +180,18 @@ namespace PCGExData
 
 		~FPointIO();
 
-		FORCEINLINE bool IsDataValid(const ESource InSource) const { return InSource == ESource::In ? IsValid(In) : IsValid(Out); }
+		bool IsDataValid(const ESource InSource) const { return InSource == ESource::In ? IsValid(In) : IsValid(Out); }
 
-		FORCEINLINE const UPCGPointData* GetData(const ESource InSource) const { return InSource == ESource::In ? In : Out; }
-		FORCEINLINE UPCGPointData* GetMutableData(const ESource InSource) const { return const_cast<UPCGPointData*>(InSource == ESource::In ? In : Out); }
-		FORCEINLINE const UPCGPointData* GetIn() const { return In; }
-		FORCEINLINE UPCGPointData* GetOut() const { return Out; }
-		FORCEINLINE const UPCGPointData* GetOutIn() const { return Out ? Out : In; }
-		FORCEINLINE const UPCGPointData* GetInOut() const { return In ? In : Out; }
+		const UPCGPointData* GetData(const ESource InSource) const { return InSource == ESource::In ? In : Out; }
+		UPCGPointData* GetMutableData(const ESource InSource) const { return const_cast<UPCGPointData*>(InSource == ESource::In ? In : Out); }
+		const UPCGPointData* GetIn() const { return In; }
+		UPCGPointData* GetOut() const { return Out; }
+		const UPCGPointData* GetOutIn() const { return Out ? Out : In; }
+		const UPCGPointData* GetInOut() const { return In ? In : Out; }
 
-		FORCEINLINE int32 GetNum() const { return In ? In->GetPoints().Num() : Out ? Out->GetPoints().Num() : -1; }
-		FORCEINLINE int32 GetNum(const ESource Source) const { return Source == ESource::In ? In->GetPoints().Num() : Out->GetPoints().Num(); }
-		FORCEINLINE int32 GetOutInNum() const { return Out && !Out->GetPoints().IsEmpty() ? Out->GetPoints().Num() : In ? In->GetPoints().Num() : -1; }
+		int32 GetNum() const { return In ? In->GetPoints().Num() : Out ? Out->GetPoints().Num() : -1; }
+		int32 GetNum(const ESource Source) const { return Source == ESource::In ? In->GetPoints().Num() : Out->GetPoints().Num(); }
+		int32 GetOutInNum() const { return Out && !Out->GetPoints().IsEmpty() ? Out->GetPoints().Num() : In ? In->GetPoints().Num() : -1; }
 
 		TSharedPtr<FPCGAttributeAccessorKeysPoints> GetInKeys();
 		TSharedPtr<FPCGAttributeAccessorKeysPoints> GetOutKeys(const bool bEnsureValidKeys = false);
@@ -199,29 +199,30 @@ namespace PCGExData
 
 		FName OutputPin = PCGEx::OutputPointsLabel;
 
-		FORCEINLINE const PCGMetadataEntryKey& GetInItemKey(const int32 Index) const { return (In->GetPoints().GetData() + Index)->MetadataEntry; }
-		FORCEINLINE const PCGMetadataEntryKey& GetOutItemKey(const int32 Index) const { return (Out->GetPoints().GetData() + Index)->MetadataEntry; }
+		const PCGMetadataEntryKey& GetInItemKey(const int32 Index) const { return (In->GetPoints().GetData() + Index)->MetadataEntry; }
+		const PCGMetadataEntryKey& GetOutItemKey(const int32 Index) const { return (Out->GetPoints().GetData() + Index)->MetadataEntry; }
 
-		FORCEINLINE TArray<FPCGPoint>& GetMutablePoints() const { return Out->GetMutablePoints(); }
+		TArray<FPCGPoint>& GetMutablePoints() const { return Out->GetMutablePoints(); }
 
-		FORCEINLINE const FPCGPoint& GetInPoint(const int32 Index) const { return *(In->GetPoints().GetData() + Index); }
-		FORCEINLINE const FPCGPoint& GetOutPoint(const int32 Index) const { return *(Out->GetPoints().GetData() + Index); }
-		FORCEINLINE FPCGPoint& GetMutablePoint(const int32 Index) const { return *(Out->GetMutablePoints().GetData() + Index); }
-		FORCEINLINE const TArray<FPCGPoint>& GetPoints(const ESource Source) const { return Source == ESource::In ? In->GetPoints() : Out->GetPoints(); }
+		const FPCGPoint& GetInPoint(const int32 Index) const { return *(In->GetPoints().GetData() + Index); }
+		const FPCGPoint& GetOutPoint(const int32 Index) const { return *(Out->GetPoints().GetData() + Index); }
+		FPCGPoint& GetMutablePoint(const int32 Index) const { return *(Out->GetMutablePoints().GetData() + Index); }
+		const TArray<FPCGPoint>& GetPoints(const ESource Source) const { return Source == ESource::In ? In->GetPoints() : Out->GetPoints(); }
 
-		FORCEINLINE FPointRef GetInPointRef(const int32 Index) const { return FPointRef(In->GetPoints().GetData() + Index, Index); }
-		FORCEINLINE FPointRef GetOutPointRef(const int32 Index) const { return FPointRef(Out->GetPoints().GetData() + Index, Index); }
+		FPointRef GetInPointRef(const int32 Index) const { return FPointRef(In->GetPoints().GetData() + Index, Index); }
+		FPointRef GetOutPointRef(const int32 Index) const { return FPointRef(Out->GetPoints().GetData() + Index, Index); }
 
-		FORCEINLINE FPointRef* GetInPointRefPtr(const int32 Index) const { return new FPointRef(In->GetPoints().GetData() + Index, Index); }
-		FORCEINLINE FPointRef* GetOutPointRefPtr(const int32 Index) const { return new FPointRef(Out->GetPoints().GetData() + Index, Index); }
+		FPointRef* GetInPointRefPtr(const int32 Index) const { return new FPointRef(In->GetPoints().GetData() + Index, Index); }
+		FPointRef* GetOutPointRefPtr(const int32 Index) const { return new FPointRef(Out->GetPoints().GetData() + Index, Index); }
 
-		FORCEINLINE const FPCGPoint* TryGetInPoint(const int32 Index) const { return In && In->GetPoints().IsValidIndex(Index) ? (In->GetPoints().GetData() + Index) : nullptr; }
-		FORCEINLINE const FPCGPoint* TryGetOutPoint(const int32 Index) const { return Out && Out->GetPoints().IsValidIndex(Index) ? (Out->GetPoints().GetData() + Index) : nullptr; }
+		const FPCGPoint* TryGetInPoint(const int32 Index) const { return In && In->GetPoints().IsValidIndex(Index) ? (In->GetPoints().GetData() + Index) : nullptr; }
+		const FPCGPoint* TryGetOutPoint(const int32 Index) const { return Out && Out->GetPoints().IsValidIndex(Index) ? (Out->GetPoints().GetData() + Index) : nullptr; }
 
-		FORCEINLINE void InitPoint(FPCGPoint& Point, const PCGMetadataEntryKey FromKey) const { Out->Metadata->InitializeOnSet(Point.MetadataEntry, FromKey, In->Metadata); }
-		FORCEINLINE void InitPoint(FPCGPoint& Point, const FPCGPoint& FromPoint) const { Out->Metadata->InitializeOnSet(Point.MetadataEntry, FromPoint.MetadataEntry, In->Metadata); }
-		FORCEINLINE void InitPoint(FPCGPoint& Point) const { Out->Metadata->InitializeOnSet(Point.MetadataEntry); }
-		FORCEINLINE FPCGPoint& CopyPoint(const FPCGPoint& FromPoint, int32& OutIndex) const
+		void InitPoint(FPCGPoint& Point, const PCGMetadataEntryKey FromKey) const { Out->Metadata->InitializeOnSet(Point.MetadataEntry, FromKey, In->Metadata); }
+		void InitPoint(FPCGPoint& Point, const FPCGPoint& FromPoint) const { Out->Metadata->InitializeOnSet(Point.MetadataEntry, FromPoint.MetadataEntry, In->Metadata); }
+		void InitPoint(FPCGPoint& Point) const { Out->Metadata->InitializeOnSet(Point.MetadataEntry); }
+
+		FPCGPoint& CopyPoint(const FPCGPoint& FromPoint, int32& OutIndex) const
 		{
 			FWriteScopeLock WriteLock(PointsLock);
 			TArray<FPCGPoint>& MutablePoints = Out->GetMutablePoints();
@@ -231,7 +232,7 @@ namespace PCGExData
 			return Pt;
 		}
 
-		FORCEINLINE FPCGPoint& NewPoint(int32& OutIndex) const
+		FPCGPoint& NewPoint(int32& OutIndex) const
 		{
 			FWriteScopeLock WriteLock(PointsLock);
 			TArray<FPCGPoint>& MutablePoints = Out->GetMutablePoints();
@@ -241,7 +242,7 @@ namespace PCGExData
 			return Pt;
 		}
 
-		FORCEINLINE void AddPoint(FPCGPoint& Point, int32& OutIndex, const bool bInit) const
+		void AddPoint(FPCGPoint& Point, int32& OutIndex, const bool bInit) const
 		{
 			FWriteScopeLock WriteLock(PointsLock);
 			TArray<FPCGPoint>& MutablePoints = Out->GetMutablePoints();
@@ -250,7 +251,7 @@ namespace PCGExData
 			if (bInit) { Out->Metadata->InitializeOnSet(Point.MetadataEntry); }
 		}
 
-		FORCEINLINE void AddPoint(FPCGPoint& Point, int32& OutIndex, const FPCGPoint& FromPoint) const
+		void AddPoint(FPCGPoint& Point, int32& OutIndex, const FPCGPoint& FromPoint) const
 		{
 			FWriteScopeLock WriteLock(PointsLock);
 			TArray<FPCGPoint>& MutablePoints = Out->GetMutablePoints();

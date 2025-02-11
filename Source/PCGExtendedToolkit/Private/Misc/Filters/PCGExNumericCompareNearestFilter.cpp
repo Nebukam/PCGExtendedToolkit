@@ -71,6 +71,31 @@ bool PCGExPointFilter::FNumericCompareNearestFilter::Init(FPCGExContext* InConte
 	return true;
 }
 
+bool PCGExPointFilter::FNumericCompareNearestFilter::Test(const int32 PointIndex) const
+{
+	const double B = OperandB ? OperandB->Read(PointIndex) : TypedFilterFactory->Config.OperandBConstant;
+
+	const FPCGPoint& SourcePt = PointDataFacade->Source->GetInPoint(PointIndex);
+	double BestDist = MAX_dbl;
+	int32 TargetIndex = -1;
+
+	TargetOctree->FindNearbyElements(
+		SourcePt.Transform.GetLocation(), [&](const FPCGPointRef& PointRef)
+		{
+			FVector SourcePosition = FVector::ZeroVector;
+			FVector TargetPosition = FVector::ZeroVector;
+			Distances->GetCenters(SourcePt, *PointRef.Point, SourcePosition, TargetPosition);
+			const double Dist = FVector::DistSquared(SourcePosition, TargetPosition);
+			if (Dist > BestDist) { return; }
+			BestDist = Dist;
+			TargetIndex = PointRef.Point - InPointsStart;
+		});
+
+	if (TargetIndex == -1) { return false; }
+
+	return PCGExCompare::Compare(TypedFilterFactory->Config.Comparison, OperandA->Read(TargetIndex), B, TypedFilterFactory->Config.Tolerance);
+}
+
 TArray<FPCGPinProperties> UPCGExNumericCompareNearestFilterProviderSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();

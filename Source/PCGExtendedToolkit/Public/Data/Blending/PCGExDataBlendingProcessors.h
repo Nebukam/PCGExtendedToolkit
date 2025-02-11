@@ -15,129 +15,129 @@ namespace PCGExDataBlending
 	class /*PCGEXTENDEDTOOLKIT_API*/ TDataBlendingAverage final : public TDataBlendingProcessor<T, EPCGExDataBlendingType::Average, true, true>
 	{
 	public:
-		FORCEINLINE virtual T SingleOperation(T A, T B, double Weight) const override { return PCGExMath::Add(A, B); }
-		FORCEINLINE virtual void SingleComplete(T& A, const int32 Count, const double Weight) const override { A = PCGExMath::Div(A, static_cast<double>(Count)); }
+		virtual T SingleOperation(T A, T B, double Weight) const override { return PCGExMath::Add(A, B); }
+		virtual void SingleComplete(T& A, const int32 Count, const double Weight) const override { A = PCGExMath::Div(A, static_cast<double>(Count)); }
 	};
 
 	template <typename T>
 	class /*PCGEXTENDEDTOOLKIT_API*/ TDataBlendingCopy final : public TDataBlendingProcessor<T, EPCGExDataBlendingType::Copy>
 	{
 	public:
-		FORCEINLINE virtual T SingleOperation(T A, T B, double Weight) const override { return B; }
+		virtual T SingleOperation(T A, T B, double Weight) const override { return B; }
 	};
 
 	template <typename T>
 	class /*PCGEXTENDEDTOOLKIT_API*/ TDataBlendingCopyOther final : public TDataBlendingProcessor<T, EPCGExDataBlendingType::Copy>
 	{
 	public:
-		FORCEINLINE virtual T SingleOperation(T A, T B, double Weight) const override { return A; }
+		virtual T SingleOperation(T A, T B, double Weight) const override { return A; }
 	};
 
 	template <typename T>
 	class /*PCGEXTENDEDTOOLKIT_API*/ TDataBlendingSum final : public TDataBlendingProcessor<T, EPCGExDataBlendingType::Sum, true, false>
 	{
 	public:
-		FORCEINLINE virtual void SinglePrepare(T& A) const override { A = T{}; }
-		FORCEINLINE virtual T SingleOperation(T A, T B, double Weight) const override { return PCGExMath::Add(A, B); }
+		virtual void SinglePrepare(T& A) const override { A = T{}; }
+		virtual T SingleOperation(T A, T B, double Weight) const override { return PCGExMath::Add(A, B); }
 	};
 
 	template <typename T>
 	class /*PCGEXTENDEDTOOLKIT_API*/ TDataBlendingSubtract final : public TDataBlendingProcessor<T, EPCGExDataBlendingType::Subtract, true, false>
 	{
 	public:
-		FORCEINLINE virtual T SingleOperation(T A, T B, double Weight) const override { return PCGExMath::Sub(A, B); }
+		virtual T SingleOperation(T A, T B, double Weight) const override { return PCGExMath::Sub(A, B); }
 	};
 
 	template <typename T>
 	class /*PCGEXTENDEDTOOLKIT_API*/ TDataBlendingMax final : public FDataBlendingProcessorWithFirstInit<T, EPCGExDataBlendingType::Max>
 	{
 	public:
-		FORCEINLINE virtual T SingleOperation(T A, T B, double Weight) const override { return PCGExMath::Max(A, B); }
+		virtual T SingleOperation(T A, T B, double Weight) const override { return PCGExMath::Max(A, B); }
 	};
 
 	template <typename T>
 	class /*PCGEXTENDEDTOOLKIT_API*/ TDataBlendingMin final : public FDataBlendingProcessorWithFirstInit<T, EPCGExDataBlendingType::Min>
 	{
 	public:
-		FORCEINLINE virtual T SingleOperation(T A, T B, double Weight) const override { return PCGExMath::Min(A, B); }
+		virtual T SingleOperation(T A, T B, double Weight) const override { return PCGExMath::Min(A, B); }
 	};
 
 	template <typename T>
 	class /*PCGEXTENDEDTOOLKIT_API*/ TDataBlendingWeight final : public TDataBlendingProcessor<T, EPCGExDataBlendingType::Weight, true, true>
 	{
 	public:
-		FORCEINLINE virtual T SingleOperation(T A, T B, double Weight) const override { return PCGExMath::WeightedAdd(A, B, Weight); } // PCGExMath::Lerp(A, B, Alpha); }
-		FORCEINLINE virtual void SingleComplete(T& A, const int32 Count, const double Weight) const override { A = PCGExMath::Div(A, Weight); }
+		virtual T SingleOperation(T A, T B, double Weight) const override { return PCGExMath::WeightedAdd(A, B, Weight); } // PCGExMath::Lerp(A, B, Alpha); }
+		virtual void SingleComplete(T& A, const int32 Count, const double Weight) const override { A = PCGExMath::Div(A, Weight); }
 	};
 
 	template <typename T>
 	class /*PCGEXTENDEDTOOLKIT_API*/ TDataBlendingWeightedSum final : public TDataBlendingProcessor<T, EPCGExDataBlendingType::WeightedSum, true, false>
 	{
 	public:
-		FORCEINLINE virtual T SingleOperation(T A, T B, double Weight) const override { return PCGExMath::WeightedAdd(A, B, Weight); }
+		virtual T SingleOperation(T A, T B, double Weight) const override { return PCGExMath::WeightedAdd(A, B, Weight); }
 	};
 
 	template <typename T>
 	class /*PCGEXTENDEDTOOLKIT_API*/ TDataBlendingLerp final : public TDataBlendingProcessor<T, EPCGExDataBlendingType::Lerp>
 	{
 	public:
-		FORCEINLINE virtual T SingleOperation(T A, T B, double Weight) const override { return PCGExMath::Lerp(A, B, Weight); }
+		virtual T SingleOperation(T A, T B, double Weight) const override { return PCGExMath::Lerp(A, B, Weight); }
 	};
 
 	template <typename T>
 	class /*PCGEXTENDEDTOOLKIT_API*/ TDataBlendingNone final : public FDataBlendingProcessorWithFirstInit<T, EPCGExDataBlendingType::None>
 	{
 	public:
-		FORCEINLINE virtual T SingleOperation(T A, T B, double Weight) const override { return A; }
+		virtual T SingleOperation(T A, T B, double Weight) const override { return A; }
 	};
 
 	template <typename T>
 	class /*PCGEXTENDEDTOOLKIT_API*/ TDataBlendingUnsignedMax final : public FDataBlendingProcessorWithFirstInit<T, EPCGExDataBlendingType::UnsignedMax>
 	{
 	public:
-		FORCEINLINE virtual T SingleOperation(T A, T B, double Weight) const override { return PCGExMath::UnsignedMax(A, B); }
+		virtual T SingleOperation(T A, T B, double Weight) const override { return PCGExMath::UnsignedMax(A, B); }
 	};
 
 	template <typename T>
 	class /*PCGEXTENDEDTOOLKIT_API*/ TDataBlendingUnsignedMin final : public FDataBlendingProcessorWithFirstInit<T, EPCGExDataBlendingType::UnsignedMin>
 	{
 	public:
-		FORCEINLINE virtual T SingleOperation(T A, T B, double Weight) const override { return PCGExMath::UnsignedMin(A, B); }
+		virtual T SingleOperation(T A, T B, double Weight) const override { return PCGExMath::UnsignedMin(A, B); }
 	};
 
 	template <typename T>
 	class /*PCGEXTENDEDTOOLKIT_API*/ TDataBlendingAbsoluteMax final : public FDataBlendingProcessorWithFirstInit<T, EPCGExDataBlendingType::AbsoluteMax>
 	{
 	public:
-		FORCEINLINE virtual T SingleOperation(T A, T B, double Weight) const override { return PCGExMath::AbsoluteMax(A, B); }
+		virtual T SingleOperation(T A, T B, double Weight) const override { return PCGExMath::AbsoluteMax(A, B); }
 	};
 
 	template <typename T>
 	class /*PCGEXTENDEDTOOLKIT_API*/ TDataBlendingAbsoluteMin final : public FDataBlendingProcessorWithFirstInit<T, EPCGExDataBlendingType::AbsoluteMin>
 	{
 	public:
-		FORCEINLINE virtual T SingleOperation(T A, T B, double Weight) const override { return PCGExMath::AbsoluteMin(A, B); }
+		virtual T SingleOperation(T A, T B, double Weight) const override { return PCGExMath::AbsoluteMin(A, B); }
 	};
 
 	template <typename T>
 	class /*PCGEXTENDEDTOOLKIT_API*/ TDataBlendingWeightedSubtract final : public TDataBlendingProcessor<T, EPCGExDataBlendingType::WeightedSubtract>
 	{
 	public:
-		FORCEINLINE virtual T SingleOperation(T A, T B, double Weight) const override { return PCGExMath::WeightedSub(A, B, Weight); }
+		virtual T SingleOperation(T A, T B, double Weight) const override { return PCGExMath::WeightedSub(A, B, Weight); }
 	};
 
 	template <typename T>
 	class /*PCGEXTENDEDTOOLKIT_API*/ TDataBlendingHash final : public FDataBlendingProcessorWithFirstInit<T, EPCGExDataBlendingType::Hash>
 	{
 	public:
-		FORCEINLINE virtual T SingleOperation(T A, T B, double Weight) const override { return PCGExMath::NaiveHash(A, B); }
+		virtual T SingleOperation(T A, T B, double Weight) const override { return PCGExMath::NaiveHash(A, B); }
 	};
 
 	template <typename T>
 	class /*PCGEXTENDEDTOOLKIT_API*/ TDataBlendingUnsignedHash final : public FDataBlendingProcessorWithFirstInit<T, EPCGExDataBlendingType::UnsignedHash>
 	{
 	public:
-		FORCEINLINE virtual T SingleOperation(T A, T B, double Weight) const override { return PCGExMath::NaiveUnsignedHash(A, B); }
+		virtual T SingleOperation(T A, T B, double Weight) const override { return PCGExMath::NaiveUnsignedHash(A, B); }
 	};
 
 	static TSharedPtr<FDataBlendingProcessorBase> CreateProcessor(const EPCGExDataBlendingType Type, const PCGEx::FAttributeIdentity& Identity)

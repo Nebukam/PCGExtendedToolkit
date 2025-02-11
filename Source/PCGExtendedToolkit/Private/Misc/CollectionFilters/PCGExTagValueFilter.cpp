@@ -63,13 +63,10 @@ FString UPCGExTagValueFilterProviderSettings::GetDisplayName() const
 		DisplayName += Config.MultiMatch == EPCGExFilterGroupMode::OR ? TEXT(" (OR)") : TEXT(" (AND)");
 		return DisplayName;
 	}
-	else
-	{
-		FString DisplayName = Config.Tag + TEXT(" ") + PCGExCompare::ToString(Config.StringComparison);
-		DisplayName += FString::Printf(TEXT(" %s"), *Config.StringOperandB);
-		DisplayName += Config.MultiMatch == EPCGExFilterGroupMode::OR ? TEXT(" (OR)") : TEXT(" (AND)");
-		return DisplayName;
-	}
+	FString DisplayName = Config.Tag + TEXT(" ") + PCGExCompare::ToString(Config.StringComparison);
+	DisplayName += FString::Printf(TEXT(" %s"), *Config.StringOperandB);
+	DisplayName += Config.MultiMatch == EPCGExFilterGroupMode::OR ? TEXT(" (OR)") : TEXT(" (AND)");
+	return DisplayName;
 }
 #endif
 

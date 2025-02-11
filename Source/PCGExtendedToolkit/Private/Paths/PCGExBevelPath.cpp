@@ -259,7 +259,7 @@ namespace PCGExBevelPath
 
 		const double ProfileSize = FVector::Dist(Leave, Arrive);
 		const FVector ProjectionNormal = (Leave - Arrive).GetSafeNormal(1E-08, FVector::ForwardVector);
-		const FQuat ProjectionQuat = FRotationMatrix::MakeFromZX( PCGExMath::GetNormal(Arrive, Leave, Corner)*-1, ProjectionNormal).ToQuat();
+		const FQuat ProjectionQuat = FRotationMatrix::MakeFromZX(PCGExMath::GetNormal(Arrive, Leave, Corner) * -1, ProjectionNormal).ToQuat();
 
 		double MainAxisSize = ProfileSize;
 		double CrossAxisSize = ProfileSize;
@@ -302,16 +302,16 @@ namespace PCGExBevelPath
 		if (!FPointsProcessor::Process(InAsyncManager)) { return false; }
 
 		const TArray<FPCGPoint>& InPoints = PointDataFacade->GetIn()->GetPoints();
-		
+
 		Positions.SetNumUninitialized(InPoints.Num());
 		const int32 NumPoints = InPoints.Num();
-		
+
 		for (int i = 0; i < NumPoints; i++) { Positions[i] = InPoints[i].Transform.GetLocation(); }
-		
+
 		Path = PCGExPaths::MakePath(Positions, 0, Context->ClosedLoop.IsClosedLoop(PointDataFacade->Source));
 		PathLength = Path->AddExtra<PCGExPaths::FPathEdgeLength>();
 
-		if(Settings->Type == EPCGExBevelProfileType::Custom)
+		if (Settings->Type == EPCGExBevelProfileType::Custom)
 		{
 			/*
 			switch (Settings->ProfileNormal)
@@ -330,7 +330,7 @@ namespace PCGExBevelPath
 		}
 
 		Path->ComputeAllEdgeExtra();
-		
+
 		bInlineProcessPoints = true;
 
 		Bevels.Init(nullptr, PointDataFacade->GetNum());
@@ -369,7 +369,7 @@ namespace PCGExBevelPath
 		}
 
 		bArc = Settings->Type == EPCGExBevelProfileType::Arc;
-		
+
 		PCGEX_ASYNC_GROUP_CHKD(AsyncManager, Preparation)
 
 		Preparation->OnCompleteCallback =

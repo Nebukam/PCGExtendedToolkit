@@ -142,7 +142,7 @@ namespace PCGExSimplifyClusters
 			LastIndex = Lk.Node;
 		}
 
-		if(Chain->bIsClosedLoop && LastIndex != Chain->Seed.Node)
+		if (Chain->bIsClosedLoop && LastIndex != Chain->Seed.Node)
 		{
 			UnionCount++;
 			GraphBuilder->Graph->InsertEdge(

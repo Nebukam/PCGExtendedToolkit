@@ -85,7 +85,7 @@ public:
 
 namespace PCGExPointFilter
 {
-	class /*PCGEXTENDEDTOOLKIT_API*/ FModuloComparisonFilter final : public PCGExPointFilter::FSimpleFilter
+	class /*PCGEXTENDEDTOOLKIT_API*/ FModuloComparisonFilter final : public FSimpleFilter
 	{
 	public:
 		explicit FModuloComparisonFilter(const TObjectPtr<const UPCGExModuloCompareFilterFactory>& InDefinition)
@@ -100,15 +100,9 @@ namespace PCGExPointFilter
 		TSharedPtr<PCGExData::TBuffer<double>> OperandC;
 
 		virtual bool Init(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade> InPointDataFacade) override;
-		FORCEINLINE virtual bool Test(const int32 PointIndex) const override
-		{
-			const double A = OperandA->Read(PointIndex);
-			const double B = OperandB ? OperandB->Read(PointIndex) : TypedFilterFactory->Config.OperandBConstant;
-			const double C = OperandC ? OperandC->Read(PointIndex) : TypedFilterFactory->Config.OperandCConstant;
-			if (A == 0 || B == 0) { return TypedFilterFactory->Config.ZeroResult; }
-			return PCGExCompare::Compare(TypedFilterFactory->Config.Comparison, FMath::Fmod(A, B), C, TypedFilterFactory->Config.Tolerance);
-		}
 
+		virtual bool Test(const int32 PointIndex) const override;
+		
 		virtual ~FModuloComparisonFilter() override
 		{
 		}

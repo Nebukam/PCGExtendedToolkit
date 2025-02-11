@@ -62,7 +62,7 @@ public:
 
 namespace PCGExPointFilter
 {
-	class /*PCGEXTENDEDTOOLKIT_API*/ FWithinRangeFilter final : public PCGExPointFilter::FSimpleFilter
+	class /*PCGEXTENDEDTOOLKIT_API*/ FWithinRangeFilter final : public FSimpleFilter
 	{
 	public:
 		explicit FWithinRangeFilter(const UPCGExWithinRangeFilterFactory* InDefinition)
@@ -80,11 +80,7 @@ namespace PCGExPointFilter
 		bool bInvert = false;
 
 		virtual bool Init(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade> InPointDataFacade) override;
-		FORCEINLINE virtual bool Test(const int32 PointIndex) const override
-		{
-			if (!bInclusive) { return FMath::IsWithin(OperandA->Read(PointIndex), RealMin, RealMax) ? !bInvert : bInvert; }
-			return FMath::IsWithinInclusive(OperandA->Read(PointIndex), RealMin, RealMax) ? !bInvert : bInvert;
-		}
+		virtual bool Test(const int32 PointIndex) const override;
 
 		virtual ~FWithinRangeFilter() override
 		{

@@ -69,7 +69,7 @@ public:
 
 namespace PCGExPointFilter
 {
-	class /*PCGEXTENDEDTOOLKIT_API*/ FGameplayTagsFilter final : public PCGExPointFilter::FSimpleFilter
+	class /*PCGEXTENDEDTOOLKIT_API*/ FGameplayTagsFilter final : public FSimpleFilter
 	{
 	public:
 		explicit FGameplayTagsFilter(const TObjectPtr<const UPCGExGameplayTagsFilterFactory>& InDefinition)
@@ -88,26 +88,8 @@ namespace PCGExPointFilter
 #endif
 
 		virtual bool Init(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade> InPointDataFacade) override;
-		FORCEINLINE virtual bool Test(const int32 PointIndex) const override
-		{
-			AActor* TargetActor = TSoftObjectPtr<AActor>(ActorReferences->Read(PointIndex)).Get();
-			if (!TargetActor) { return TypedFilterFactory->Config.bFallbackMissingActor; }
-
-			const FCachedPropertyPath Path = FCachedPropertyPath(PathSegments);
-			FGameplayTagContainer TagContainer;
-			FProperty* Property = nullptr;
-
-			if (!PropertyPathHelpers::GetPropertyValue(TargetActor, Path, TagContainer, Property))
-			{
-				if (!TypedFilterFactory->Config.bQuietMissingPropertyWarning)
-				{
-					UE_LOG(LogTemp, Warning, TEXT("GameplayTags filter could not resolve target property : \"%s\"."), *TypedFilterFactory->Config.PropertyPath);
-				}
-				return TypedFilterFactory->Config.bFallbackPropertyPath;
-			}
-			return TypedFilterFactory->Config.TagQuery.Matches(TagContainer);
-		}
-
+		virtual bool Test(const int32 PointIndex) const override;
+		
 		virtual ~FGameplayTagsFilter() override
 		{
 		}

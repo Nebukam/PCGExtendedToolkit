@@ -70,7 +70,7 @@ namespace PCGExData
 		~FDataForwardHandler() = default;
 		FDataForwardHandler(const FPCGExForwardDetails& InDetails, const TSharedPtr<FFacade>& InSourceDataFacade);
 		FDataForwardHandler(const FPCGExForwardDetails& InDetails, const TSharedPtr<FFacade>& InSourceDataFacade, const TSharedPtr<FFacade>& InTargetDataFacade);
-		FORCEINLINE bool IsEmpty() const { return Identities.IsEmpty(); }
+		bool IsEmpty() const { return Identities.IsEmpty(); }
 		void Forward(const int32 SourceIndex, const int32 TargetIndex);
 		void Forward(int32 SourceIndex, const TSharedPtr<FFacade>& InTargetDataFacade);
 		void Forward(int32 SourceIndex, UPCGMetadata* InTargetMetadata);
