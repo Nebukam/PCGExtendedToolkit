@@ -96,23 +96,10 @@ public:
 
 	virtual PCGExFactories::EType GetFactoryType() const { return PCGExFactories::EType::None; }
 
-	virtual bool RegisterConsumableAttributes(FPCGExContext* InContext) const
-	{
-		return bCleanupConsumableAttributes;
-	}
-
-	virtual bool RegisterConsumableAttributesWithData(FPCGExContext* InContext, const UPCGData* InData) const
-	{
-		return bCleanupConsumableAttributes;
-	}
-
-	virtual void RegisterAssetDependencies(FPCGExContext* InContext) const
-	{
-	}
-
-	virtual void RegisterBuffersDependencies(FPCGExContext* InContext, PCGExData::FFacadePreloader& FacadePreloader) const
-	{
-	}
+	virtual bool RegisterConsumableAttributes(FPCGExContext* InContext) const;
+	virtual bool RegisterConsumableAttributesWithData(FPCGExContext* InContext, const UPCGData* InData) const;
+	virtual void RegisterAssetDependencies(FPCGExContext* InContext) const;
+	virtual void RegisterBuffersDependencies(FPCGExContext* InContext, PCGExData::FFacadePreloader& FacadePreloader) const;
 
 	virtual bool GetRequiresPreparation(FPCGExContext* InContext) { return false; }
 	virtual bool Prepare(FPCGExContext* InContext) { return true; }

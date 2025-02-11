@@ -201,9 +201,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExAssetTaggingDetails : public FPCGExCompo
 {
 	GENERATED_BODY()
 
-	FPCGExAssetTaggingDetails()
-	{
-	}
+	FPCGExAssetTaggingDetails() = default;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable, Bitmask, BitmaskEnum="/Script/PCGExtendedToolkit.EPCGExAssetTagInheritance"))
 	uint8 GrabTags = static_cast<uint8>(EPCGExAssetTagInheritance::Asset);
@@ -216,9 +214,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExAssetDistributionDetails
 {
 	GENERATED_BODY()
 
-	FPCGExAssetDistributionDetails()
-	{
-	}
+	FPCGExAssetDistributionDetails() = default;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Distribution", meta=(PCG_Overridable, Bitmask, BitmaskEnum="/Script/PCGExtendedToolkit.EPCGExSeedComponents"))
 	uint8 SeedComponents = 0;
@@ -241,9 +237,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExAssetAttributeSetDetails
 {
 	GENERATED_BODY()
 
-	FPCGExAssetAttributeSetDetails()
-	{
-	}
+	FPCGExAssetAttributeSetDetails() = default;
 
 	/** Name of the attribute on the AttributeSet that contains the asset path to be staged */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
@@ -288,9 +282,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExAssetCollectionEntry
 	GENERATED_BODY()
 	virtual ~FPCGExAssetCollectionEntry() = default;
 
-	FPCGExAssetCollectionEntry()
-	{
-	}
+	FPCGExAssetCollectionEntry() = default;
 
 	UPROPERTY(EditAnywhere, Category = Settings)
 	bool bIsSubCollection = false;
@@ -325,9 +317,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExAssetCollectionEntry
 #endif
 
 #if WITH_EDITOR
-	virtual void EDITOR_Sanitize()
-	{
-	}
+	virtual void EDITOR_Sanitize();
 #endif
 
 	virtual bool Validate(const UPCGExAssetCollection* ParentCollection);
@@ -449,9 +439,7 @@ public:
 	UFUNCTION(CallInEditor, Category = Utils, meta=(DisplayName="Sort (Asc)", ShortToolTip="Sort collection by weights in ascending order.", DisplayOrder=10))
 	void EDITOR_SortByWeightAscending();
 
-	virtual void EDITOR_SortByWeightAscendingTyped()
-	{
-	}
+	virtual void EDITOR_SortByWeightAscendingTyped();
 
 	template <typename T>
 	void EDITOR_SortByWeightAscendingInternal(TArray<T>& Entries)
@@ -463,9 +451,7 @@ public:
 	UFUNCTION(CallInEditor, Category = Utils, meta=(DisplayName="Sort (Desc)", ShortToolTip="Sort collection by weights in descending order.", DisplayOrder=11))
 	void EDITOR_SortByWeightDescending();
 
-	virtual void EDITOR_SortByWeightDescendingTyped()
-	{
-	}
+	virtual void EDITOR_SortByWeightDescendingTyped();
 
 	template <typename T>
 	void EDITOR_SortByWeightDescendingInternal(TArray<T>& Entries)
@@ -477,9 +463,7 @@ public:
 	UFUNCTION(CallInEditor, Category = Utils, meta=(DisplayName="Index to Weight (Asc)", ShortToolTip="Sort collection by weights in descending order.", DisplayOrder=20))
 	void EDITOR_SetWeightIndex();
 
-	virtual void EDITOR_SetWeightIndexTyped()
-	{
-	}
+	virtual void EDITOR_SetWeightIndexTyped();
 
 	template <typename T>
 	void EDITOR_SetWeightIndexInternal(TArray<T>& Entries)
@@ -491,9 +475,7 @@ public:
 	UFUNCTION(CallInEditor, Category = Utils, meta=(DisplayName="Pad Weights", ShortToolTip="Add 1 to all weights so it's easier to weight down some assets", DisplayOrder=21))
 	void EDITOR_PadWeight();
 
-	virtual void EDITOR_PadWeightTyped()
-	{
-	}
+	virtual void EDITOR_PadWeightTyped();
 
 	template <typename T>
 	void EDITOR_PadWeightInternal(TArray<T>& Entries)
@@ -505,9 +487,7 @@ public:
 	UFUNCTION(CallInEditor, Category = Utils, meta=(DisplayName="Weight = 100", ShortToolTip="Reset all weights to 100", DisplayOrder=21))
 	void EDITOR_WeightOne();
 
-	virtual void EDITOR_WeightOneTyped()
-	{
-	}
+	virtual void EDITOR_WeightOneTyped();
 
 	template <typename T>
 	void EDITOR_WeightOneInternal(TArray<T>& Entries)
@@ -519,9 +499,7 @@ public:
 	UFUNCTION(CallInEditor, Category = Utils, meta=(DisplayName="Randomize Weights", ShortToolTip="Assign random weights to items", DisplayOrder=21))
 	void EDITOR_WeightRandom();
 
-	virtual void EDITOR_WeightRandomTyped()
-	{
-	}
+	virtual void EDITOR_WeightRandomTyped();
 
 	template <typename T>
 	void EDITOR_WeightRandomInternal(TArray<T>& Entries)
@@ -965,14 +943,9 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExRoamingAssetCollectionDetails : public F
 {
 	GENERATED_BODY()
 
-	FPCGExRoamingAssetCollectionDetails()
-	{
-	}
+	FPCGExRoamingAssetCollectionDetails() = default;
 
-	explicit FPCGExRoamingAssetCollectionDetails(const TSubclassOf<UPCGExAssetCollection>& InAssetCollectionType):
-		bSupportCustomType(false), AssetCollectionType(InAssetCollectionType)
-	{
-	}
+	explicit FPCGExRoamingAssetCollectionDetails(const TSubclassOf<UPCGExAssetCollection>& InAssetCollectionType);
 
 	UPROPERTY()
 	bool bSupportCustomType = true;

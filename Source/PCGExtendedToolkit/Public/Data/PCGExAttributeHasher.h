@@ -25,10 +25,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExAttributeHashConfig
 {
 	GENERATED_BODY()
 
-	FPCGExAttributeHashConfig()
-	{
-	}
-
+	FPCGExAttributeHashConfig() = default;
 	virtual ~FPCGExAttributeHashConfig() = default;
 
 	/** Which attribute should be used to generate the hash */

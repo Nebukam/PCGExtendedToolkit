@@ -98,6 +98,12 @@ namespace PCGExAssetCollection
 	}
 }
 
+#if WITH_EDITOR
+void FPCGExAssetCollectionEntry::EDITOR_Sanitize()
+{
+}
+#endif
+
 bool FPCGExAssetCollectionEntry::Validate(const UPCGExAssetCollection* ParentCollection)
 {
 	if (bIsSubCollection)
@@ -338,15 +344,39 @@ MarkPackageDirty();
 
 void UPCGExAssetCollection::EDITOR_SortByWeightAscending() { PCGEX_ASSET_COLLECTION_UTIL_CALL(EDITOR_SortByWeightAscendingTyped();) }
 
+void UPCGExAssetCollection::EDITOR_SortByWeightAscendingTyped()
+{
+}
+
 void UPCGExAssetCollection::EDITOR_SortByWeightDescending() { PCGEX_ASSET_COLLECTION_UTIL_CALL(EDITOR_SortByWeightDescendingTyped();) }
+
+void UPCGExAssetCollection::EDITOR_SortByWeightDescendingTyped()
+{
+}
 
 void UPCGExAssetCollection::EDITOR_SetWeightIndex() { PCGEX_ASSET_COLLECTION_UTIL_CALL(EDITOR_SetWeightIndexTyped();) }
 
+void UPCGExAssetCollection::EDITOR_SetWeightIndexTyped()
+{
+}
+
 void UPCGExAssetCollection::EDITOR_PadWeight() { PCGEX_ASSET_COLLECTION_UTIL_CALL(EDITOR_PadWeightTyped();) }
+
+void UPCGExAssetCollection::EDITOR_PadWeightTyped()
+{
+}
 
 void UPCGExAssetCollection::EDITOR_WeightOne() { PCGEX_ASSET_COLLECTION_UTIL_CALL(EDITOR_WeightOneTyped();) }
 
+void UPCGExAssetCollection::EDITOR_WeightOneTyped()
+{
+}
+
 void UPCGExAssetCollection::EDITOR_WeightRandom() { PCGEX_ASSET_COLLECTION_UTIL_CALL(EDITOR_WeightRandomTyped();) }
+
+void UPCGExAssetCollection::EDITOR_WeightRandomTyped()
+{
+}
 
 void UPCGExAssetCollection::EDITOR_SanitizeAndRebuildStagingData(const bool bRecursive)
 {
@@ -370,6 +400,11 @@ void UPCGExAssetCollection::GetAssetPaths(TSet<FSoftObjectPath>& OutPaths, const
 {
 }
 
+
+FPCGExRoamingAssetCollectionDetails::FPCGExRoamingAssetCollectionDetails(const TSubclassOf<UPCGExAssetCollection>& InAssetCollectionType)
+	: bSupportCustomType(false), AssetCollectionType(InAssetCollectionType)
+{
+}
 
 bool FPCGExRoamingAssetCollectionDetails::Validate(FPCGExContext* InContext) const
 {

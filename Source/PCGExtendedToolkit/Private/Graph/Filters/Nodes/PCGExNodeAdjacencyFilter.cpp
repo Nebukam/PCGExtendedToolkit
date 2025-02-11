@@ -234,6 +234,11 @@ bool FNodeAdjacencyFilter::Test(const PCGExCluster::FNode& Node) const
 	return TestSubFunc(Node, *Cluster->Nodes, OperandA->Read(Node.PointIndex));
 }
 
+FNodeAdjacencyFilter::~FNodeAdjacencyFilter()
+{
+	TypedFilterFactory = nullptr;
+}
+
 
 PCGEX_CREATE_FILTER_FACTORY(NodeAdjacency)
 

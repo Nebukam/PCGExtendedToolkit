@@ -13,6 +13,24 @@ void UPCGExParamDataBase::OutputConfigToMetadata()
 {
 }
 
+bool UPCGExFactoryData::RegisterConsumableAttributes(FPCGExContext* InContext) const
+{
+	return bCleanupConsumableAttributes;
+}
+
+bool UPCGExFactoryData::RegisterConsumableAttributesWithData(FPCGExContext* InContext, const UPCGData* InData) const
+{
+	return bCleanupConsumableAttributes;
+}
+
+void UPCGExFactoryData::RegisterAssetDependencies(FPCGExContext* InContext) const
+{
+}
+
+void UPCGExFactoryData::RegisterBuffersDependencies(FPCGExContext* InContext, PCGExData::FFacadePreloader& FacadePreloader) const
+{
+}
+
 void UPCGExFactoryData::InitializeFromPCGExData(const UPCGExPointData* InPCGExPointData, const PCGExData::EIOInit InitMode)
 {
 	Super::InitializeFromPCGExData(InPCGExPointData, InitMode);

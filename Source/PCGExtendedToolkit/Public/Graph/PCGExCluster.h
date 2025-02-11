@@ -79,10 +79,7 @@ namespace PCGExCluster
 	{
 		FNode() = default;
 
-		FNode(const int32 InNodeIndex, const int32 InPointIndex):
-			PCGExGraph::FNode(InNodeIndex, InPointIndex)
-		{
-		}
+		FNode(const int32 InNodeIndex, const int32 InPointIndex);
 
 		FVector GetCentroid(const FCluster* InCluster) const;
 		void ComputeNormal(const FCluster* InCluster, const TArray<FAdjacencyData>& AdjacencyData, FVector& OutNormal) const;
@@ -96,18 +93,11 @@ namespace PCGExCluster
 		FBoxSphereBounds Bounds;
 
 		FBoundedEdge(const FCluster* Cluster, const int32 InEdgeIndex);
-
-		FBoundedEdge():
-			Index(-1), Bounds(FBoxSphereBounds(ForceInit))
-		{
-		}
+		FBoundedEdge();
 
 		~FBoundedEdge() = default;
 
-		bool operator==(const FBoundedEdge& ExpandedEdge) const
-		{
-			return (Index == ExpandedEdge.Index && Bounds == ExpandedEdge.Bounds);
-		};
+		bool operator==(const FBoundedEdge& ExpandedEdge) const { return (Index == ExpandedEdge.Index && Bounds == ExpandedEdge.Bounds); };
 	};
 
 	class /*PCGEXTENDEDTOOLKIT_API*/ FCluster : public TSharedFromThis<FCluster>

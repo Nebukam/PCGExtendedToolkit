@@ -198,17 +198,9 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPointsProcessorContext : FPCGExContext
 		return bBatchProcessingEnabled;
 	}
 
-	virtual void BatchProcessing_InitialProcessingDone()
-	{
-	}
-
-	virtual void BatchProcessing_WorkComplete()
-	{
-	}
-
-	virtual void BatchProcessing_WritingDone()
-	{
-	}
+	virtual void BatchProcessing_InitialProcessingDone();
+	virtual void BatchProcessing_WorkComplete();
+	virtual void BatchProcessing_WritingDone();
 
 	template <typename T>
 	void GatherProcessors(TArray<T*> OutProcessors)

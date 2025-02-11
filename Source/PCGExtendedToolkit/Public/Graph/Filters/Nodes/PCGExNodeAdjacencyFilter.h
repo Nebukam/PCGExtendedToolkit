@@ -100,10 +100,7 @@ public:
 
 	virtual bool Test(const PCGExCluster::FNode& Node) const override;
 
-	virtual ~FNodeAdjacencyFilter() override
-	{
-		TypedFilterFactory = nullptr;
-	}
+	virtual ~FNodeAdjacencyFilter() override;
 };
 
 

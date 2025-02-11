@@ -8,6 +8,7 @@
 #include "PCGEx.h"
 #include "PCGExGlobalSettings.h"
 #include "PCGExPointsProcessor.h"
+#include "PCGExScopedContainers.h"
 #include "Data/PCGExAttributeHelpers.h"
 
 

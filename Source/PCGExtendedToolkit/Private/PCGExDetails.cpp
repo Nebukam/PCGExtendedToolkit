@@ -39,6 +39,11 @@ namespace PCGExDetails
 	}
 }
 
+TSharedPtr<PCGExDetails::FDistances> FPCGExDistanceDetails::MakeDistances() const
+{
+	return PCGExDetails::MakeDistances(Source, Target);
+}
+
 void FPCGExFuseDetails::Init()
 {
 	if (FuseMethod == EPCGExFuseMethod::Voxel)

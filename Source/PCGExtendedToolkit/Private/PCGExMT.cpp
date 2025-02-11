@@ -33,6 +33,21 @@ namespace PCGExMT
 		}
 	}
 
+	FScope::FScope(const int32 InStart, const int32 InCount, const int32 InLoopIndex)
+		: Start(InStart), Count(InCount), End(InStart + InCount), LoopIndex(InLoopIndex)
+	{
+	}
+
+	bool FScope::IsValid() const
+	{
+		return Start != -1 && Count > 0;
+	}
+
+	int32 FScope::GetNextScopeIndex() const
+	{
+		return LoopIndex + 1;
+	}
+
 	int32 SubLoopScopes(TArray<FScope>& OutSubRanges, const int32 MaxItems, const int32 RangeSize)
 	{
 		OutSubRanges.Empty();

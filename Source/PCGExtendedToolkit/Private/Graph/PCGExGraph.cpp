@@ -87,6 +87,11 @@ void FPCGExBasicEdgeSolidificationDetails::Mutate(FPCGPoint& InEdgePoint, const 
 	InEdgePoint.BoundsMax = BoundsMax;
 }
 
+FPCGExGraphBuilderDetails::FPCGExGraphBuilderDetails(const EPCGExMinimalAxis InDefaultSolidificationAxis)
+{
+	BasicEdgeSolidification.SolidificationAxis = InDefaultSolidificationAxis;
+}
+
 bool FPCGExGraphBuilderDetails::WantsClusters() const
 {
 	PCGEX_GET_OPTION_STATE(BuildAndCacheClusters, bDefaultBuildAndCacheClusters)
@@ -107,8 +112,170 @@ bool FPCGExGraphBuilderDetails::IsValid(const TSharedPtr<PCGExGraph::FSubGraph>&
 	return true;
 }
 
+bool PCGExGraph::BuildIndexedEdges(
+	const TSharedPtr<PCGExData::FPointIO>& EdgeIO,
+	const TMap<uint32, int32>& EndpointsLookup,
+	TArray<FEdge>& OutEdges,
+	const bool bStopOnError)
+{
+	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExEdge::BuildIndexedEdges-Vanilla);
+
+	const TUniquePtr<PCGExData::TBuffer<int64>> EndpointsBuffer = MakeUnique<PCGExData::TBuffer<int64>>(EdgeIO.ToSharedRef(), Attr_PCGExEdgeIdx);
+	if (!EndpointsBuffer->PrepareRead()) { return false; }
+
+	const TArray<int64>& Endpoints = *EndpointsBuffer->GetInValues().Get();
+	const int32 EdgeIOIndex = EdgeIO->IOIndex;
+
+	bool bValid = true;
+	const int32 NumEdges = EdgeIO->GetNum();
+
+	PCGEx::InitArray(OutEdges, NumEdges);
+
+	if (!bStopOnError)
+	{
+		int32 EdgeIndex = 0;
+
+		for (int i = 0; i < NumEdges; i++)
+		{
+			uint32 A;
+			uint32 B;
+			PCGEx::H64(Endpoints[i], A, B);
+
+			const int32* StartPointIndexPtr = EndpointsLookup.Find(A);
+			const int32* EndPointIndexPtr = EndpointsLookup.Find(B);
+
+			if ((!StartPointIndexPtr || !EndPointIndexPtr)) { continue; }
+
+			OutEdges[EdgeIndex] = FEdge(EdgeIndex, *StartPointIndexPtr, *EndPointIndexPtr, i, EdgeIOIndex);
+			EdgeIndex++;
+		}
+
+		PCGEx::InitArray(OutEdges, EdgeIndex);
+	}
+	else
+	{
+		for (int i = 0; i < NumEdges; i++)
+		{
+			uint32 A;
+			uint32 B;
+			PCGEx::H64(Endpoints[i], A, B);
+
+			const int32* StartPointIndexPtr = EndpointsLookup.Find(A);
+			const int32* EndPointIndexPtr = EndpointsLookup.Find(B);
+
+			if ((!StartPointIndexPtr || !EndPointIndexPtr))
+			{
+				bValid = false;
+				break;
+			}
+
+			OutEdges[i] = FEdge(i, *StartPointIndexPtr, *EndPointIndexPtr, i, EdgeIOIndex);
+		}
+	}
+
+	return bValid;
+}
+
 namespace PCGExGraph
 {
+#define PCGEX_FOREACH_POINTEDGE_METADATA(MACRO)\
+MACRO(IsIntersector, bWriteIsIntersector, IsIntersector,TEXT("bIsIntersector"))
+
+#define PCGEX_FOREACH_EDGEEDGE_METADATA(MACRO)\
+MACRO(Crossing, bWriteCrossing, Crossing,TEXT("bCrossing"))
+
+#define PCGEX_GRAPH_META_FWD(_NAME, _ACCESSOR, _ACCESSOR2, _DEFAULT)	bWrite##_NAME = InDetails._ACCESSOR; _NAME##AttributeName = InDetails._ACCESSOR2##AttributeName; PCGEX_SOFT_VALIDATE_NAME(bWrite##_NAME, _NAME##AttributeName, Context)
+
+	void FGraphMetadataDetails::Grab(const FPCGContext* Context, const FPCGExPointPointIntersectionDetails& InDetails)
+	{
+		Grab(Context, InDetails.PointUnionData);
+		Grab(Context, InDetails.EdgeUnionData);
+	}
+
+	void FGraphMetadataDetails::Grab(const FPCGContext* Context, const FPCGExPointEdgeIntersectionDetails& InDetails)
+	{
+		PCGEX_FOREACH_POINTEDGE_METADATA(PCGEX_GRAPH_META_FWD);
+	}
+
+	void FGraphMetadataDetails::Grab(const FPCGContext* Context, const FPCGExEdgeEdgeIntersectionDetails& InDetails)
+	{
+		PCGEX_FOREACH_EDGEEDGE_METADATA(PCGEX_GRAPH_META_FWD);
+	}
+
+	void FGraphMetadataDetails::Grab(const FPCGContext* Context, const FPCGExPointUnionMetadataDetails& InDetails)
+	{
+		bWriteIsPointUnion = InDetails.bWriteIsUnion;
+		IsPointUnionAttributeName = InDetails.IsUnionAttributeName;
+		PCGEX_SOFT_VALIDATE_NAME(bWriteIsPointUnion, IsPointUnionAttributeName, Context)
+
+		bWritePointUnionSize = InDetails.bWriteUnionSize;
+		PointUnionSizeAttributeName = InDetails.UnionSizeAttributeName;
+		PCGEX_SOFT_VALIDATE_NAME(bWritePointUnionSize, PointUnionSizeAttributeName, Context)
+	}
+
+	void FGraphMetadataDetails::Grab(const FPCGContext* Context, const FPCGExEdgeUnionMetadataDetails& InDetails)
+	{
+		bWriteIsEdgeUnion = InDetails.bWriteIsUnion;
+		IsEdgeUnionAttributeName = InDetails.IsUnionAttributeName;
+		PCGEX_SOFT_VALIDATE_NAME(bWriteIsEdgeUnion, IsEdgeUnionAttributeName, Context)
+
+		bWriteEdgeUnionSize = InDetails.bWriteUnionSize;
+		EdgeUnionSizeAttributeName = InDetails.UnionSizeAttributeName;
+		PCGEX_SOFT_VALIDATE_NAME(bWriteEdgeUnionSize, EdgeUnionSizeAttributeName, Context);
+	}
+
+#undef PCGEX_FOREACH_POINTEDGE_METADATA
+#undef PCGEX_FOREACH_EDGEEDGE_METADATA
+#undef PCGEX_GRAPH_META_FWD
+
+	bool FGraphNodeMetadata::IsUnion() const
+	{
+		return UnionSize > 1;
+	}
+
+	FGraphNodeMetadata::FGraphNodeMetadata(const int32 InNodeIndex)
+		: NodeIndex(InNodeIndex)
+	{
+	}
+
+	bool FGraphNodeMetadata::IsIntersector() const
+	{
+		return Type == EPCGExIntersectionType::PointEdge;
+	}
+
+	bool FGraphNodeMetadata::IsCrossing() const
+	{
+		return Type == EPCGExIntersectionType::EdgeEdge;
+	}
+
+	bool FGraphEdgeMetadata::IsUnion() const
+	{
+		return UnionSize > 1;
+	}
+
+	FGraphEdgeMetadata::FGraphEdgeMetadata(const int32 InEdgeIndex, const FGraphEdgeMetadata* Parent)
+		: EdgeIndex(InEdgeIndex), ParentIndex(Parent ? Parent->EdgeIndex : InEdgeIndex), RootIndex(Parent ? Parent->RootIndex : InEdgeIndex)
+	{
+	}
+
+	FNode::FNode(const int32 InNodeIndex, const int32 InPointIndex)
+		: Index(InNodeIndex), PointIndex(InPointIndex)
+	{
+		Links.Empty();
+	}
+
+	bool FNode::IsAdjacentTo(const int32 OtherNodeIndex) const
+	{
+		for (const FLink Lk : Links) { if (Lk.Node == OtherNodeIndex) { return true; } }
+		return false;
+	}
+
+	int32 FNode::GetEdgeIndex(const int32 AdjacentNodeIndex) const
+	{
+		for (const FLink Lk : Links) { if (Lk.Node == AdjacentNodeIndex) { return Lk.Edge; } }
+		return -1;
+	}
+
 	void FSubGraph::Add(const FEdge& Edge, FGraph* InGraph)
 	{
 		Nodes.Add(Edge.Start);
@@ -304,6 +471,21 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 
 #undef PCGEX_FOREACH_EDGE_METADATA
 
+	FGraph::FGraph(const int32 InNumNodes, const int32 InNumEdgesReserve)
+		: NumEdgesReserve(InNumEdgesReserve)
+	{
+		PCGEX_LOG_CTR(FGraph)
+
+		PCGEx::InitArray(Nodes, InNumNodes);
+
+		for (int i = 0; i < InNumNodes; i++)
+		{
+			FNode& Node = Nodes[i];
+			Node.Index = Node.PointIndex = i;
+			Node.Links.Reserve(NumEdgesReserve);
+		}
+	}
+
 	void FGraph::ReserveForEdges(const int32 UpcomingAdditionCount)
 	{
 		const int32 NewMax = Edges.Num() + UpcomingAdditionCount;
@@ -393,6 +575,37 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 		const int32 StartIndex = Edges.Num();
 		for (const FEdge& E : InEdges) { InsertEdge_Unsafe(E); }
 		return StartIndex;
+	}
+
+	FEdge* FGraph::FindEdge_Unsafe(const uint64 Hash)
+	{
+		const int32* Index = UniqueEdges.Find(Hash);
+		if (!Index) { return nullptr; }
+		return (Edges.GetData() + *Index);
+	}
+
+	FEdge* FGraph::FindEdge_Unsafe(const int32 A, const int32 B)
+	{
+		return FindEdge(PCGEx::H64U(A, B));
+	}
+
+	FEdge* FGraph::FindEdge(const uint64 Hash)
+	{
+		FReadScopeLock ReadScopeLock(GraphLock);
+		const int32* Index = UniqueEdges.Find(Hash);
+		if (!Index) { return nullptr; }
+		return (Edges.GetData() + *Index);
+	}
+
+	FEdge* FGraph::FindEdge(const int32 A, const int32 B)
+	{
+		return FindEdge(PCGEx::H64U(A, B));
+	}
+
+	FGraphEdgeMetadata& FGraph::GetOrCreateEdgeMetadata_Unsafe(const int32 EdgeIndex, const FGraphEdgeMetadata* Parent)
+	{
+		if (FGraphEdgeMetadata* MetadataPtr = EdgeMetadata.Find(EdgeIndex)) { return *MetadataPtr; }
+		return EdgeMetadata.Add(EdgeIndex, FGraphEdgeMetadata(EdgeIndex, Parent));
 	}
 
 	FGraphEdgeMetadata& FGraph::GetOrCreateEdgeMetadata(const int32 EdgeIndex, const FGraphEdgeMetadata* Parent)

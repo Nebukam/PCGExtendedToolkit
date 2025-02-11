@@ -8,6 +8,17 @@ void FPCGExMaterialOverrideCollection::GetAssetPaths(TSet<FSoftObjectPath>& OutP
 	for (const FPCGExMaterialOverrideEntry& Entry : Overrides) { OutPaths.Add(Entry.Material.ToSoftObjectPath()); }
 }
 
+#if WITH_EDITOR
+void FPCGExMaterialOverrideCollection::UpdateDisplayName()
+{
+}
+
+void FPCGExMaterialOverrideSingleEntry::UpdateDisplayName()
+{
+	DisplayName = FName(Material.GetAssetName());
+}
+#endif
+
 void FPCGExMeshCollectionEntry::GetAssetPaths(TSet<FSoftObjectPath>& OutPaths) const
 {
 	FPCGExAssetCollectionEntry::GetAssetPaths(OutPaths);
