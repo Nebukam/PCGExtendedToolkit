@@ -106,10 +106,7 @@ public:
 	bool TestDot(const PCGExCluster::FNode& Node) const;
 	bool TestHash(const PCGExCluster::FNode& Node) const;
 
-	virtual ~FNodeEdgeDirectionFilter() override
-	{
-		TypedFilterFactory = nullptr;
-	}
+	virtual ~FNodeEdgeDirectionFilter() override;
 };
 
 

@@ -101,7 +101,7 @@ namespace PCGExPointFilter
 		virtual void PostInit() override;
 
 		virtual bool Test(const int32 PointIndex) const override;
-		
+
 		virtual ~FMeanFilter() override
 		{
 		}

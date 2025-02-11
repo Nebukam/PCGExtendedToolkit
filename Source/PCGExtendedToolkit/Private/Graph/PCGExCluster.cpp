@@ -14,6 +14,11 @@ namespace PCGExCluster
 {
 #pragma region FNode
 
+	FNode::FNode(const int32 InNodeIndex, const int32 InPointIndex)
+		: PCGExGraph::FNode(InNodeIndex, InPointIndex)
+	{
+	}
+
 	FVector FNode::GetCentroid(const FCluster* InCluster) const
 	{
 		if (Links.IsEmpty()) { return InCluster->GetPos(Index); }
@@ -794,6 +799,11 @@ namespace PCGExCluster
 				FSphere(
 					FMath::Lerp(Cluster->GetStartPos(InEdgeIndex), Cluster->GetEndPos(InEdgeIndex), 0.5),
 					Cluster->GetDist(InEdgeIndex) * 0.5)))
+	{
+	}
+
+	FBoundedEdge::FBoundedEdge()
+		: Index(-1), Bounds(FBoxSphereBounds(ForceInit))
 	{
 	}
 

@@ -78,10 +78,7 @@ namespace PCGExNodeNeighborsCount
 		virtual bool Init(FPCGExContext* InContext, const TSharedRef<PCGExCluster::FCluster>& InCluster, const TSharedRef<PCGExData::FFacade>& InPointDataFacade, const TSharedRef<PCGExData::FFacade>& InEdgeDataFacade) override;
 		virtual bool Test(const PCGExCluster::FNode& Node) const override;
 
-		virtual ~FNeighborsCountFilter() override
-		{
-			TypedFilterFactory = nullptr;
-		}
+		virtual ~FNeighborsCountFilter() override;
 	};
 }
 

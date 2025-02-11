@@ -41,6 +41,11 @@ namespace PCGExEdgeEndpointsCompareStr
 		const bool bResult = PCGExCompare::Compare(TypedFilterFactory->Config.Comparison, StringBuffer->Read(Edge.Start), StringBuffer->Read(Edge.End));
 		return TypedFilterFactory->Config.bInvert ? !bResult : bResult;
 	}
+
+	FNeighborsCountFilter::~FNeighborsCountFilter()
+	{
+		TypedFilterFactory = nullptr;
+	}
 }
 
 PCGEX_CREATE_FILTER_FACTORY(EdgeEndpointsCompareStr)

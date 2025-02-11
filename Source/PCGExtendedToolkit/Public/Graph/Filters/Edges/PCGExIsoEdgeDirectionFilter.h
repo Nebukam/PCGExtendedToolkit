@@ -80,12 +80,7 @@ public:
 class /*PCGEXTENDEDTOOLKIT_API*/ FIsoEdgeDirectionFilter final : public PCGExClusterFilter::TEdgeFilter
 {
 public:
-	explicit FIsoEdgeDirectionFilter(const UPCGExIsoEdgeDirectionFilterFactory* InFactory)
-		: TEdgeFilter(InFactory), TypedFilterFactory(InFactory)
-	{
-		DotComparison = InFactory->Config.DotComparisonDetails;
-		HashComparison = InFactory->Config.HashComparisonDetails;
-	}
+	explicit FIsoEdgeDirectionFilter(const UPCGExIsoEdgeDirectionFilterFactory* InFactory);
 
 	const UPCGExIsoEdgeDirectionFilterFactory* TypedFilterFactory;
 
@@ -104,10 +99,7 @@ public:
 	bool TestDot(const int32 PtIndex, const FVector& EdgeDir) const;
 	bool TestHash(const int32 PtIndex, const FVector& EdgeDir) const;
 
-	virtual ~FIsoEdgeDirectionFilter() override
-	{
-		TypedFilterFactory = nullptr;
-	}
+	virtual ~FIsoEdgeDirectionFilter() override;
 };
 
 

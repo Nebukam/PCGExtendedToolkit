@@ -55,13 +55,13 @@ namespace PCGExDetails
 		{
 		}
 
-		FORCEINLINE virtual FVector GetSourceCenter(const FPCGPoint& OriginPoint, const FVector& OriginLocation, const FVector& ToCenter) const = 0;
-		FORCEINLINE virtual FVector GetTargetCenter(const FPCGPoint& OriginPoint, const FVector& OriginLocation, const FVector& ToCenter) const = 0;
-		FORCEINLINE virtual void GetCenters(const FPCGPoint& SourcePoint, const FPCGPoint& TargetPoint, FVector& OutSource, FVector& OutTarget) const = 0;
-		FORCEINLINE virtual double GetDistSquared(const FPCGPoint& SourcePoint, const FPCGPoint& TargetPoint) const = 0;
-		FORCEINLINE virtual double GetDist(const FPCGPoint& SourcePoint, const FPCGPoint& TargetPoint) const = 0;
-		FORCEINLINE virtual double GetDistSquared(const FPCGPoint& SourcePoint, const FPCGPoint& TargetPoint, bool& bOverlap) const = 0;
-		FORCEINLINE virtual double GetDist(const FPCGPoint& SourcePoint, const FPCGPoint& TargetPoint, bool& bOverlap) const = 0;
+		virtual FVector GetSourceCenter(const FPCGPoint& OriginPoint, const FVector& OriginLocation, const FVector& ToCenter) const = 0;
+		virtual FVector GetTargetCenter(const FPCGPoint& OriginPoint, const FVector& OriginLocation, const FVector& ToCenter) const = 0;
+		virtual void GetCenters(const FPCGPoint& SourcePoint, const FPCGPoint& TargetPoint, FVector& OutSource, FVector& OutTarget) const = 0;
+		virtual double GetDistSquared(const FPCGPoint& SourcePoint, const FPCGPoint& TargetPoint) const = 0;
+		virtual double GetDist(const FPCGPoint& SourcePoint, const FPCGPoint& TargetPoint) const = 0;
+		virtual double GetDistSquared(const FPCGPoint& SourcePoint, const FPCGPoint& TargetPoint, bool& bOverlap) const = 0;
+		virtual double GetDist(const FPCGPoint& SourcePoint, const FPCGPoint& TargetPoint, bool& bOverlap) const = 0;
 	};
 
 	template <EPCGExDistance Source, EPCGExDistance Target>
@@ -163,7 +163,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExDistanceDetails
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	bool bOverlapIsZero = true;
 
-	TSharedPtr<PCGExDetails::FDistances> MakeDistances() const { return PCGExDetails::MakeDistances(Source, Target); }
+	TSharedPtr<PCGExDetails::FDistances> MakeDistances() const;
 };
 
 USTRUCT(BlueprintType)

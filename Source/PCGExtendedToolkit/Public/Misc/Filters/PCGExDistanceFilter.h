@@ -115,7 +115,7 @@ namespace PCGExPointFilter
 
 		virtual bool Test(const FPCGPoint& Point) const override;
 		virtual bool Test(const int32 PointIndex) const override;
-		
+
 		virtual ~FDistanceFilter() override
 		{
 		}
