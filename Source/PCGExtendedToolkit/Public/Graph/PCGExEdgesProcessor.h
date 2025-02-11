@@ -200,21 +200,10 @@ protected:
 		return true;
 	}
 
-	virtual void ClusterProcessing_InitialProcessingDone()
-	{
-	}
-
-	virtual void ClusterProcessing_WorkComplete()
-	{
-	}
-
-	virtual void ClusterProcessing_WritingDone()
-	{
-	}
-
-	virtual void ClusterProcessing_GraphCompilationDone()
-	{
-	}
+	virtual void ClusterProcessing_InitialProcessingDone();
+	virtual void ClusterProcessing_WorkComplete();
+	virtual void ClusterProcessing_WritingDone();
+	virtual void ClusterProcessing_GraphCompilationDone();
 
 	void AdvanceBatch(const PCGEx::ContextState NextStateId, const bool bIsNextStateAsync);
 

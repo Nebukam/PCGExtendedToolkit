@@ -8,6 +8,7 @@
 
 #include "PCGExPointsProcessor.h"
 #include "PCGExSampling.h"
+#include "PCGExScopedContainers.h"
 #include "PCGExTexParamFactoryProvider.h"
 #include "Data/PCGExDataForward.h"
 

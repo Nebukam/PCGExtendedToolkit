@@ -37,25 +37,10 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExInputConfig
 {
 	GENERATED_BODY()
 
-	FPCGExInputConfig()
-	{
-	}
-
-	explicit FPCGExInputConfig(const FPCGAttributePropertyInputSelector& InSelector)
-	{
-		Selector.ImportFromOtherSelector(InSelector);
-	}
-
-	explicit FPCGExInputConfig(const FPCGExInputConfig& Other)
-		: Attribute(Other.Attribute)
-	{
-		Selector.ImportFromOtherSelector(Other.Selector);
-	}
-
-	explicit FPCGExInputConfig(const FName InName)
-	{
-		Selector.Update(InName.ToString());
-	}
+	FPCGExInputConfig() = default;
+	explicit FPCGExInputConfig(const FPCGAttributePropertyInputSelector& InSelector);
+	explicit FPCGExInputConfig(const FPCGExInputConfig& Other);
+	explicit FPCGExInputConfig(const FName InName);
 
 	virtual ~FPCGExInputConfig() = default;
 	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = Settings, meta = (HideInDetailPanel, Hidden, EditConditionHides, EditCondition="false"))

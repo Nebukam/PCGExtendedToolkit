@@ -177,6 +177,11 @@ bool FNodeEdgeDirectionFilter::TestHash(const PCGExCluster::FNode& Node) const
 	return PCGExCompare::Compare(Adjacency.ThresholdComparison, LocalSuccessCount, Threshold);
 }
 
+FNodeEdgeDirectionFilter::~FNodeEdgeDirectionFilter()
+{
+	TypedFilterFactory = nullptr;
+}
+
 
 PCGEX_CREATE_FILTER_FACTORY(NodeEdgeDirection)
 

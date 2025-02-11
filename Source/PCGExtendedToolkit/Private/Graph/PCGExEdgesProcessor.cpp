@@ -229,6 +229,22 @@ bool FPCGExEdgesProcessorContext::CompileGraphBuilders(const bool bOutputToConte
 	return true;
 }
 
+void FPCGExEdgesProcessorContext::ClusterProcessing_InitialProcessingDone()
+{
+}
+
+void FPCGExEdgesProcessorContext::ClusterProcessing_WorkComplete()
+{
+}
+
+void FPCGExEdgesProcessorContext::ClusterProcessing_WritingDone()
+{
+}
+
+void FPCGExEdgesProcessorContext::ClusterProcessing_GraphCompilationDone()
+{
+}
+
 void FPCGExEdgesProcessorContext::AdvanceBatch(const PCGEx::ContextState NextStateId, const bool bIsNextStateAsync)
 {
 	CurrentBatchIndex++;

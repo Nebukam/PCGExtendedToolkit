@@ -8,6 +8,7 @@
 
 #include "PCGExPointsProcessor.h"
 #include "PCGExSampling.h"
+#include "PCGExScopedContainers.h"
 #include "Data/Blending/PCGExDataBlending.h"
 #include "Data/Blending/PCGExMetadataBlender.h"
 
