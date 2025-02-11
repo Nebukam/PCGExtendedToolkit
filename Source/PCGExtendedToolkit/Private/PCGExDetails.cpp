@@ -5,7 +5,7 @@
 
 namespace PCGExDetails
 {
-	TSharedPtr<FDistances> PCGExDetails::MakeDistances(const EPCGExDistance Source, const EPCGExDistance Target, const bool bOverlapIsZero)
+	TSharedPtr<FDistances> MakeDistances(const EPCGExDistance Source, const EPCGExDistance Target, const bool bOverlapIsZero)
 	{
 		if (Source == EPCGExDistance::None || Target == EPCGExDistance::None)
 		{
@@ -33,7 +33,7 @@ namespace PCGExDetails
 		return nullptr;
 	}
 
-	TSharedPtr<FDistances> PCGExDetails::MakeNoneDistances()
+	TSharedPtr<FDistances> MakeNoneDistances()
 	{
 		return MakeShared<TDistances<EPCGExDistance::None, EPCGExDistance::None>>();
 	}
