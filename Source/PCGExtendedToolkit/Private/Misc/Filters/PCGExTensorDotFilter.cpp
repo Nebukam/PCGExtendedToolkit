@@ -59,6 +59,22 @@ bool PCGExPointFilter::FTensorDotFilter::Init(FPCGExContext* InContext, const TS
 	return true;
 }
 
+bool PCGExPointFilter::FTensorDotFilter::Test(const int32 PointIndex) const
+{
+	const FPCGPoint& Point = PointDataFacade->Source->GetInPoint(PointIndex);
+
+	bool bSuccess = false;
+	const PCGExTensor::FTensorSample Sample = TensorsHandler->Sample(Point.Transform, bSuccess);
+
+	if (!bSuccess) { return false; }
+
+	return DotComparison.Test(
+		FVector::DotProduct(
+			TypedFilterFactory->Config.bTransformOperandA ? OperandA->Read(PointIndex) : Point.Transform.TransformVectorNoScale(OperandA->Read(PointIndex)),
+			Sample.DirectionAndSize.GetSafeNormal()),
+		DotComparison.GetComparisonThreshold(PointIndex));
+}
+
 PCGEX_CREATE_FILTER_FACTORY(TensorDot)
 
 #if WITH_EDITOR

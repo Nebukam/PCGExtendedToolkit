@@ -86,7 +86,7 @@ bool FPCGExSampleNearestPointElement::Boot(FPCGExContext* InContext) const
 
 	PCGEX_FWD(ApplySampling)
 	Context->ApplySampling.Init();
-	
+
 	Context->TargetsFacade = PCGExData::TryGetSingleFacade(Context, PCGEx::SourceTargetsLabel, true);
 	if (!Context->TargetsFacade) { return false; }
 
@@ -423,8 +423,8 @@ namespace PCGExSampleNearestPoints
 		FVector LookAt = CWDistance.GetSafeNormal();
 
 		FTransform LookAtTransform = PCGExMath::MakeLookAtTransform(LookAt, WeightedUp, Settings->LookAtAxisAlign);
-		if(Context->ApplySampling.WantsApply()){ Context->ApplySampling.Apply(Point, WeightedTransform, LookAtTransform); }
-		
+		if (Context->ApplySampling.WantsApply()) { Context->ApplySampling.Apply(Point, WeightedTransform, LookAtTransform); }
+
 		SampleState[Index] = Stats.IsValid();
 		PCGEX_OUTPUT_VALUE(Success, Index, Stats.IsValid())
 		PCGEX_OUTPUT_VALUE(Transform, Index, WeightedTransform)

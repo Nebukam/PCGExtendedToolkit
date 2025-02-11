@@ -7,6 +7,45 @@
 
 namespace PCGExMT
 {
+	void SetWorkPriority(const EPCGExAsyncPriority Selection, UE::Tasks::ETaskPriority& Priority)
+	{
+		switch (Selection)
+		{
+		default:
+		case EPCGExAsyncPriority::Default:
+			SetWorkPriority(GetDefault<UPCGExGlobalSettings>()->GetDefaultWorkPriority(), Priority);
+			break;
+		case EPCGExAsyncPriority::Normal:
+			Priority = UE::Tasks::ETaskPriority::Normal;
+			break;
+		case EPCGExAsyncPriority::High:
+			Priority = UE::Tasks::ETaskPriority::High;
+			break;
+		case EPCGExAsyncPriority::BackgroundHigh:
+			Priority = UE::Tasks::ETaskPriority::BackgroundHigh;
+			break;
+		case EPCGExAsyncPriority::BackgroundNormal:
+			Priority = UE::Tasks::ETaskPriority::BackgroundNormal;
+			break;
+		case EPCGExAsyncPriority::BackgroundLow:
+			Priority = UE::Tasks::ETaskPriority::BackgroundLow;
+			break;
+		}
+	}
+
+	int32 SubLoopScopes(TArray<FScope>& OutSubRanges, const int32 MaxItems, const int32 RangeSize)
+	{
+		OutSubRanges.Empty();
+		OutSubRanges.Reserve((MaxItems + RangeSize - 1) / RangeSize);
+
+		for (int32 CurrentCount = 0; CurrentCount < MaxItems; CurrentCount += RangeSize)
+		{
+			OutSubRanges.Emplace(CurrentCount, FMath::Min(RangeSize, MaxItems - CurrentCount), OutSubRanges.Num());
+		}
+
+		return OutSubRanges.Num();
+	}
+
 	FAsyncHandle::~FAsyncHandle()
 	{
 		Cancel(); // Safety first
@@ -561,5 +600,34 @@ namespace PCGExMT
 			return true;
 		}
 		return false;
+	}
+
+	TSharedPtr<FDeferredCallbackHandle> DeferredCallback(FPCGExContext* InContext, FSimpleCallback&& InCallback)
+	{
+		TSharedPtr<FDeferredCallbackHandle> DeferredCallback = MakeShared<FDeferredCallbackHandle>();
+		DeferredCallback->Callback = InCallback;
+
+		TWeakPtr<FDeferredCallbackHandle> WeakTask = DeferredCallback;
+		UE::Tasks::Launch(
+				TEXT("DeferredCallback"),
+				[WeakTask]()
+				{
+					const TSharedPtr<FDeferredCallbackHandle> Task = WeakTask.Pin();
+					if (!Task.IsValid()) { return; }
+					if (Task->Start()) { Task->Complete(); }
+				},
+				UE::Tasks::ETaskPriority::Default
+			);
+
+		return DeferredCallback;
+	}
+
+	void CancelDeferredCallback(const TSharedPtr<FDeferredCallbackHandle>& InCallback)
+	{
+		InCallback->Cancel();
+		while (InCallback->GetState() != EAsyncHandleState::Ended)
+		{
+			// Hold off until ended
+		}
 	}
 }

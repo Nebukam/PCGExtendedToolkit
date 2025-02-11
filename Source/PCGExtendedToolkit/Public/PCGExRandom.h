@@ -37,60 +37,8 @@ namespace PCGExRandom
 		return ((A * 196314165U) + 907633515U) ^ ((B * 73148459U) + 453816763U) ^ ((C * 34731343U) + 453816743U);
 	}
 
-	FORCEINLINE static int32 GetSeedFromPoint(const uint8 Flags, const FPCGPoint& Point, const int32 Local, const UPCGSettings* Settings = nullptr, const UPCGComponent* Component = nullptr)
-	{
-		int32 Seed = Point.Seed;
-
-		const bool bHasLocalFlag = (Flags & static_cast<uint8>(EPCGExSeedComponents::Local)) != 0;
-		const bool bHasSettingsFlag = (Flags & static_cast<uint8>(EPCGExSeedComponents::Settings)) != 0;
-		const bool bHasComponentFlag = (Flags & static_cast<uint8>(EPCGExSeedComponents::Component)) != 0;
-
-		if (bHasLocalFlag)
-		{
-			Seed = ComputeSeed(Seed, Local);
-		}
-
-		if (bHasSettingsFlag || bHasComponentFlag)
-		{
-			if (Settings && Component)
-			{
-				Seed = ComputeSeed(Seed, Settings->Seed, Component->Seed);
-			}
-			else if (Settings)
-			{
-				Seed = ComputeSeed(Seed, Settings->Seed);
-			}
-			else if (Component)
-			{
-				Seed = ComputeSeed(Seed, Component->Seed);
-			}
-		}
-
-		return Seed;
-	}
-
-	FORCEINLINE static int32 GetSeedFromPoint(const FPCGPoint& Point, const int32 Local, const UPCGSettings* Settings = nullptr, const UPCGComponent* Component = nullptr)
-	{
-		// From Epic git main, unexposed in 5.3
-
-		int Seed = Point.Seed + Local;
-
-		if (Settings && Component) { Seed = ComputeSeed(Seed, Settings->Seed, Component->Seed); }
-		else if (Settings) { Seed = ComputeSeed(Seed, Settings->Seed); }
-		else if (Component) { Seed = ComputeSeed(Seed, Component->Seed); }
-
-		return Seed;
-	}
-
-	FORCEINLINE static FRandomStream GetRandomStreamFromPoint(const FPCGPoint& Point, const int32 Offset, const UPCGSettings* Settings = nullptr, const UPCGComponent* Component = nullptr)
-	{
-		return FRandomStream(GetSeedFromPoint(Point, Offset, Settings, Component));
-	}
-
-	FORCEINLINE static int ComputeSeed(const FPCGPoint& Point, const FVector& Offset = FVector::ZeroVector)
-	{
-		return static_cast<int>(PCGExMath::Remap(
-			FMath::PerlinNoise3D(PCGExMath::Tile(Point.Transform.GetLocation() * 0.001 + Offset, FVector(-1), FVector(1))),
-			-1, 1, MIN_int32, MAX_int32));
-	}
+	int32 GetSeedFromPoint(const uint8 Flags, const FPCGPoint& Point, const int32 Local, const UPCGSettings* Settings = nullptr, const UPCGComponent* Component = nullptr);
+	int32 GetSeedFromPoint(const FPCGPoint& Point, const int32 Local, const UPCGSettings* Settings = nullptr, const UPCGComponent* Component = nullptr);
+	FRandomStream GetRandomStreamFromPoint(const FPCGPoint& Point, const int32 Offset, const UPCGSettings* Settings = nullptr, const UPCGComponent* Component = nullptr);
+	int ComputeSeed(const FPCGPoint& Point, const FVector& Offset = FVector::ZeroVector);
 }

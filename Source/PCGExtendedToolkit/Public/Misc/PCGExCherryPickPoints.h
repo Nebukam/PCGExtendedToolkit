@@ -15,7 +15,7 @@
 UENUM()
 enum class EPCGExCherryPickSource : uint8
 {
-	Self   = 0 UMETA(DisplayName = "Self", ToolTip="Read indices from an attribute on the currently cherry-picked data set."),
+	Self    = 0 UMETA(DisplayName = "Self", ToolTip="Read indices from an attribute on the currently cherry-picked data set."),
 	Sources = 1 UMETA(DisplayName = "Sources", ToolTip="Read indices from a list of sources inputs."),
 };
 
@@ -40,14 +40,13 @@ protected:
 public:
 	virtual PCGExData::EIOInit GetMainOutputInitMode() const override;
 	//~End UPCGExPointsProcessorSettings
-
 };
 
 struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExCherryPickPointsContext final : FPCGExPointsProcessorContext
 {
 	friend class FPCGExCherryPickPointsElement;
-	TArray<TObjectPtr<const UPCGExPickerFactoryData>> PickerFactories;	
-	TArray<UPCGExPickerOperation*> PickerOperations;	
+	TArray<TObjectPtr<const UPCGExPickerFactoryData>> PickerFactories;
+	TArray<UPCGExPickerOperation*> PickerOperations;
 };
 
 class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExCherryPickPointsElement final : public FPCGExPointsProcessorElement

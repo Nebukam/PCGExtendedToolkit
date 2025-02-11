@@ -84,7 +84,7 @@ public:
 
 namespace PCGExPointFilter
 {
-	class /*PCGEXTENDEDTOOLKIT_API*/ FTagValueFilter final : public PCGExPointFilter::FCollectionFilter
+	class /*PCGEXTENDEDTOOLKIT_API*/ FTagValueFilter final : public FCollectionFilter
 	{
 	public:
 		explicit FTagValueFilter(const TObjectPtr<const UPCGExTagValueFilterFactory>& InDefinition)

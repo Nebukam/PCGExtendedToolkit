@@ -55,6 +55,17 @@ bool PCGExPointFilter::FDotFilter::Init(FPCGExContext* InContext, const TSharedP
 	return true;
 }
 
+bool PCGExPointFilter::FDotFilter::Test(const int32 PointIndex) const
+{
+	const FPCGPoint& Point = PointDataFacade->Source->GetInPoint(PointIndex);
+	const FVector B = OperandB ? OperandB->Read(PointIndex).GetSafeNormal() : TypedFilterFactory->Config.OperandBConstant;
+	return DotComparison.Test(
+		FVector::DotProduct(
+			TypedFilterFactory->Config.bTransformOperandA ? Point.Transform.TransformVectorNoScale(OperandA->Read(PointIndex)) : OperandA->Read(PointIndex),
+			TypedFilterFactory->Config.bTransformOperandB ? Point.Transform.TransformVectorNoScale(B) : B),
+		PointIndex);
+}
+
 PCGEX_CREATE_FILTER_FACTORY(Dot)
 
 #if WITH_EDITOR

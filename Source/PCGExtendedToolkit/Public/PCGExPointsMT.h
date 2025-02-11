@@ -97,10 +97,7 @@ namespace PCGExPointsMT
 			WorkPermit = ExecutionContext->GetWorkPermit();
 		}
 
-		virtual ~FPointsProcessor()
-		{
-			PCGEX_LOG_DTR(FPointsProcessor)
-		}
+		virtual ~FPointsProcessor() = default;
 
 		virtual bool IsTrivial() const { return bIsTrivial; }
 
@@ -343,10 +340,7 @@ namespace PCGExPointsMT
 			SetExecutionContext(InContext);
 		}
 
-		virtual ~FPointsProcessorBatchBase()
-		{
-			PCGEX_LOG_DTR(FPointsProcessorBatchBase)
-		}
+		virtual ~FPointsProcessorBatchBase() = default;
 
 		virtual void SetExecutionContext(FPCGExContext* InContext)
 		{

@@ -64,7 +64,7 @@ public:
 
 namespace PCGExPointFilter
 {
-	class /*PCGEXTENDEDTOOLKIT_API*/ FAttributeCheckFilter final : public PCGExPointFilter::FCollectionFilter
+	class /*PCGEXTENDEDTOOLKIT_API*/ FAttributeCheckFilter final : public FCollectionFilter
 	{
 	public:
 		explicit FAttributeCheckFilter(const TObjectPtr<const UPCGExAttributeCheckFilterFactory>& InDefinition)

@@ -76,7 +76,7 @@ public:
 
 namespace PCGExPointFilter
 {
-	class /*PCGEXTENDEDTOOLKIT_API*/ FNumericSelfCompareFilter final : public PCGExPointFilter::FSimpleFilter
+	class /*PCGEXTENDEDTOOLKIT_API*/ FNumericSelfCompareFilter final : public FSimpleFilter
 	{
 	public:
 		explicit FNumericSelfCompareFilter(const TObjectPtr<const UPCGExNumericSelfCompareFilterFactory>& InDefinition)
@@ -92,18 +92,9 @@ namespace PCGExPointFilter
 		int32 MaxIndex = 0;
 
 		virtual bool Init(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade> InPointDataFacade) override;
-		FORCEINLINE virtual bool Test(const int32 PointIndex) const override
-		{
-			const int32 IndexValue = Index ? Index->Read(PointIndex) : TypedFilterFactory->Config.IndexConstant;
-			const int32 TargetIndex = PCGExMath::SanitizeIndex(bOffset ? PointIndex + IndexValue : IndexValue, MaxIndex, TypedFilterFactory->Config.IndexSafety);
 
-			if (TargetIndex == -1) { return false; }
-
-			const double A = OperandA->SoftGet(PointIndex, PointDataFacade->Source->GetInPoint(PointIndex), 0);
-			const double B = OperandA->SoftGet(TargetIndex, PointDataFacade->Source->GetInPoint(TargetIndex), 0);
-			return PCGExCompare::Compare(TypedFilterFactory->Config.Comparison, A, B, TypedFilterFactory->Config.Tolerance);
-		}
-
+		virtual bool Test(const int32 PointIndex) const override;
+		
 		virtual ~FNumericSelfCompareFilter() override
 		{
 		}

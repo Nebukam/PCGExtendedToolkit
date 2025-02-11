@@ -94,7 +94,7 @@ public:
 
 namespace PCGExPointFilter
 {
-	class /*PCGEXTENDEDTOOLKIT_API*/ FSplineAlphaFilter final : public PCGExPointFilter::FSimpleFilter
+	class /*PCGEXTENDEDTOOLKIT_API*/ FSplineAlphaFilter final : public FSimpleFilter
 	{
 	public:
 		explicit FSplineAlphaFilter(const TObjectPtr<const UPCGExSplineAlphaFilterFactory>& InFactory)

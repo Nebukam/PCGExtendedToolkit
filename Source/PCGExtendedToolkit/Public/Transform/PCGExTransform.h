@@ -31,7 +31,6 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExAttachmentRules
 	bool bWeldSimulatedBodies = false;
 
 	FAttachmentTransformRules GetRules() const;
-	
 };
 
 USTRUCT(BlueprintType)
@@ -93,21 +92,20 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExUVW
 	TSharedPtr<PCGExData::TBuffer<double>> WGetter;
 
 	bool Init(const FPCGContext* InContext, const TSharedRef<PCGExData::FFacade>& InDataFacade);
-	
+
 	// Without axis
 
 	FVector GetUVW(const int32 PointIndex) const;
-	
+
 	FVector GetPosition(const PCGExData::FPointRef& PointRef) const;
-	
+
 	FVector GetPosition(const PCGExData::FPointRef& PointRef, FVector& OutOffset) const;
-	
+
 	// With axis
 
 	FVector GetUVW(const int32 PointIndex, const EPCGExMinimalAxis Axis, const bool bMirrorAxis = false) const;
-	
+
 	FVector GetPosition(const PCGExData::FPointRef& PointRef, const EPCGExMinimalAxis Axis, const bool bMirrorAxis = false) const;
-	
+
 	FVector GetPosition(const PCGExData::FPointRef& PointRef, FVector& OutOffset, const EPCGExMinimalAxis Axis, const bool bMirrorAxis = false) const;
-	
 };
