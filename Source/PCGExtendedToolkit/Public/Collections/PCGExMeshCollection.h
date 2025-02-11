@@ -27,9 +27,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExMaterialOverrideEntry
 {
 	GENERATED_BODY()
 
-	FPCGExMaterialOverrideEntry()
-	{
-	}
+	FPCGExMaterialOverrideEntry() = default;
 
 	/** Material slot index. -1 uses the index inside the container. */
 	UPROPERTY(EditAnywhere, Category = Settings)
@@ -46,9 +44,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExMaterialOverrideCollection
 
 	virtual ~FPCGExMaterialOverrideCollection() = default;
 
-	FPCGExMaterialOverrideCollection()
-	{
-	}
+	FPCGExMaterialOverrideCollection() = default;
 
 	UPROPERTY(EditAnywhere, Category = Settings, meta=(EditCondition = "bEnabled", ClampMin=1))
 	int32 Weight = 1;
@@ -61,11 +57,10 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExMaterialOverrideCollection
 #if WITH_EDITORONLY_DATA
 	UPROPERTY(VisibleAnywhere, Category=Settings, meta=(HideInDetailPanel, EditCondition="false", EditConditionHides))
 	FName DisplayName = NAME_None;
+#endif
 
-	void UpdateDisplayName()
-	{
-	}
-
+#if WITH_EDITOR
+	void UpdateDisplayName();
 #endif
 };
 
@@ -74,9 +69,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExMaterialOverrideSingleEntry
 {
 	GENERATED_BODY()
 
-	FPCGExMaterialOverrideSingleEntry()
-	{
-	}
+	FPCGExMaterialOverrideSingleEntry() = default;
 
 	UPROPERTY(EditAnywhere, Category = Settings, meta=(EditCondition = "bEnabled", ClampMin=1))
 	int32 Weight = 1;
@@ -87,11 +80,9 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExMaterialOverrideSingleEntry
 #if WITH_EDITORONLY_DATA
 	UPROPERTY(VisibleAnywhere, Category=Settings, meta=(HideInDetailPanel, EditCondition="false", EditConditionHides))
 	FName DisplayName = NAME_None;
-
-	void UpdateDisplayName()
-	{
-		DisplayName = FName(Material.GetAssetName());
-	}
+#endif
+#if WITH_EDITOR
+	void UpdateDisplayName();
 #endif
 };
 

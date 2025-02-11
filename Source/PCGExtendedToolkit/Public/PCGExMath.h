@@ -1198,7 +1198,7 @@ namespace PCGExMath
 #pragma region Spatialized distances
 
 	template <EPCGExDistance Mode>
-	FORCEINLINE static FVector GetSpatializedCenter(
+	static FVector GetSpatializedCenter(
 		const FPCGPoint& FromPoint,
 		const FVector& FromCenter,
 		const FVector& ToCenter)

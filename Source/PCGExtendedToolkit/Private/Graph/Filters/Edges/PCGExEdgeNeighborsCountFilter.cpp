@@ -60,6 +60,11 @@ namespace PCGExEdgeNeighborsCount
 
 		return TypedFilterFactory->Config.bInvert ? !bResult : bResult;
 	}
+
+	FNeighborsCountFilter::~FNeighborsCountFilter()
+	{
+		TypedFilterFactory = nullptr;
+	}
 }
 
 PCGEX_CREATE_FILTER_FACTORY(EdgeNeighborsCount)

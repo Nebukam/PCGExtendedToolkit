@@ -5,6 +5,7 @@
 
 #include "CoreMinimal.h"
 #include "PCGExPointsProcessor.h"
+#include "PCGExScopedContainers.h"
 #include "Geometry/PCGExGeo.h"
 #include "Graph/PCGExGraph.h"
 #include "PCGExConnectPoints.generated.h"

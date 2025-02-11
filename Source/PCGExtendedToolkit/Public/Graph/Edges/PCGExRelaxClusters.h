@@ -5,6 +5,7 @@
 
 #include "CoreMinimal.h"
 #include "PCGExDetailsData.h"
+#include "PCGExScopedContainers.h"
 
 
 #include "Graph/PCGExEdgesProcessor.h"

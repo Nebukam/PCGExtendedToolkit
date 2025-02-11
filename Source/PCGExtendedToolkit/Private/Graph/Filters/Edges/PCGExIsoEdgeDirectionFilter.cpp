@@ -18,6 +18,13 @@ TSharedPtr<PCGExPointFilter::FFilter> UPCGExIsoEdgeDirectionFilterFactory::Creat
 	return MakeShared<FIsoEdgeDirectionFilter>(this);
 }
 
+FIsoEdgeDirectionFilter::FIsoEdgeDirectionFilter(const UPCGExIsoEdgeDirectionFilterFactory* InFactory)
+	: TEdgeFilter(InFactory), TypedFilterFactory(InFactory)
+{
+	DotComparison = InFactory->Config.DotComparisonDetails;
+	HashComparison = InFactory->Config.HashComparisonDetails;
+}
+
 bool FIsoEdgeDirectionFilter::Init(FPCGExContext* InContext, const TSharedRef<PCGExCluster::FCluster>& InCluster, const TSharedRef<PCGExData::FFacade>& InPointDataFacade, const TSharedRef<PCGExData::FFacade>& InEdgeDataFacade)
 {
 	if (!FFilter::Init(InContext, InCluster, InPointDataFacade, InEdgeDataFacade)) { return false; }
@@ -90,6 +97,11 @@ bool FIsoEdgeDirectionFilter::TestHash(const int32 PtIndex, const FVector& EdgeD
 
 	const FVector CWTolerance = HashComparison.GetCWTolerance(PtIndex);
 	return PCGEx::I323(RefDir, CWTolerance) == PCGEx::I323(EdgeDir, CWTolerance);
+}
+
+FIsoEdgeDirectionFilter::~FIsoEdgeDirectionFilter()
+{
+	TypedFilterFactory = nullptr;
 }
 
 TArray<FPCGPinProperties> UPCGExIsoEdgeDirectionFilterProviderSettings::InputPinProperties() const

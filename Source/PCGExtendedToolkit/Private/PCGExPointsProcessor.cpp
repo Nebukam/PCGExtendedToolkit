@@ -173,6 +173,18 @@ bool FPCGExPointsProcessorContext::ProcessPointsBatch(const PCGEx::ContextState 
 	return false;
 }
 
+void FPCGExPointsProcessorContext::BatchProcessing_InitialProcessingDone()
+{
+}
+
+void FPCGExPointsProcessorContext::BatchProcessing_WorkComplete()
+{
+}
+
+void FPCGExPointsProcessorContext::BatchProcessing_WritingDone()
+{
+}
+
 TSharedPtr<PCGExMT::FTaskManager> FPCGExPointsProcessorContext::GetAsyncManager()
 {
 	if (!AsyncManager)

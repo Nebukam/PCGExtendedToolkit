@@ -5,6 +5,22 @@
 
 #include "Data/PCGExData.h"
 
+FPCGExInputConfig::FPCGExInputConfig(const FPCGAttributePropertyInputSelector& InSelector)
+{
+	Selector.ImportFromOtherSelector(InSelector);
+}
+
+FPCGExInputConfig::FPCGExInputConfig(const FPCGExInputConfig& Other)
+	: Attribute(Other.Attribute)
+{
+	Selector.ImportFromOtherSelector(Other.Selector);
+}
+
+FPCGExInputConfig::FPCGExInputConfig(const FName InName)
+{
+	Selector.Update(InName.ToString());
+}
+
 #if WITH_EDITOR
 FString FPCGExInputConfig::GetDisplayName() const { return GetName().ToString(); }
 

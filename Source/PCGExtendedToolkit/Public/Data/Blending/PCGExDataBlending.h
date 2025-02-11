@@ -100,10 +100,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExAttributeBlendToTargetDetails : public F
 {
 	GENERATED_BODY()
 
-	FPCGExAttributeBlendToTargetDetails()
-		: FPCGExAttributeSourceToTargetDetails()
-	{
-	}
+	FPCGExAttributeBlendToTargetDetails() = default;
 
 	/** BlendMode */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayAfter="Source"))
@@ -179,9 +176,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPropertiesBlendingDetails
 {
 	GENERATED_BODY()
 
-	FPCGExPropertiesBlendingDetails()
-	{
-	}
+	FPCGExPropertiesBlendingDetails() = default;
 
 	explicit FPCGExPropertiesBlendingDetails(const EPCGExDataBlendingType InDefaultBlending):
 		DefaultBlending(InDefaultBlending)
@@ -251,9 +246,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExBlendingDetails
 {
 	GENERATED_BODY()
 
-	FPCGExBlendingDetails()
-	{
-	}
+	FPCGExBlendingDetails() = default;
 
 	explicit FPCGExBlendingDetails(const EPCGExDataBlendingType InDefaultBlending):
 		DefaultBlending(InDefaultBlending)

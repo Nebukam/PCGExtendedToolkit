@@ -46,6 +46,11 @@ namespace PCGExNodeNeighborsCount
 		const double B = LocalCount ? LocalCount->Read(Node.PointIndex) : TypedFilterFactory->Config.Count;
 		return PCGExCompare::Compare(TypedFilterFactory->Config.Comparison, A, B, TypedFilterFactory->Config.Tolerance);
 	}
+
+	FNeighborsCountFilter::~FNeighborsCountFilter()
+	{
+		TypedFilterFactory = nullptr;
+	}
 }
 
 PCGEX_CREATE_FILTER_FACTORY(NodeNeighborsCount)

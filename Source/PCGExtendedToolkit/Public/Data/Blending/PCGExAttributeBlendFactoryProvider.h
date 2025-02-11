@@ -19,9 +19,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExAttributeBlendConfig
 		LocalWeightCurve.EditorCurveData.AddKey(1, 1);
 	}
 
-	~FPCGExAttributeBlendConfig()
-	{
-	}
+	~FPCGExAttributeBlendConfig() = default;
 
 	UPROPERTY(meta=(PCG_NotOverridable, HideInDetailPanel))
 	bool bRequiresWeight = true;

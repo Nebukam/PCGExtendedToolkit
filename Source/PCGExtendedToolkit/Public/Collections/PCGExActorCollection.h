@@ -21,9 +21,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExActorCollectionEntry : public FPCGExAsse
 {
 	GENERATED_BODY()
 
-	FPCGExActorCollectionEntry()
-	{
-	}
+	FPCGExActorCollectionEntry() = default;
 
 	UPROPERTY(EditAnywhere, Category = Settings, meta=(EditCondition="!bIsSubCollection", EditConditionHides))
 	TSoftClassPtr<AActor> Actor;
