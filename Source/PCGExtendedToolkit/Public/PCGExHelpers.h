@@ -10,10 +10,8 @@
 #include "GameFramework/Actor.h"
 
 #include "PCGContext.h"
-#include "PCGElement.h"
 #include "PCGExMacros.h"
 #include "PCGManagedResource.h"
-#include "PCGModule.h"
 #include "Data/PCGSpatialData.h"
 #include "Engine/AssetManager.h"
 #include "Metadata/PCGMetadataAttributeTraits.h"
@@ -120,14 +118,7 @@ public:
 
 namespace PCGExHelpers
 {
-	static bool TryGetAttributeName(const FPCGAttributePropertyInputSelector& InSelector, const UPCGData* InData, FName& OutName)
-	{
-		FPCGAttributePropertyInputSelector FixedSelector = InSelector.CopyAndFixLast(InData);
-		if (!FixedSelector.IsValid()) { return false; }
-		if (FixedSelector.GetSelection() != EPCGAttributePropertySelection::Attribute) { return false; }
-		OutName = FixedSelector.GetName();
-		return true;
-	}
+	bool TryGetAttributeName(const FPCGAttributePropertyInputSelector& InSelector, const UPCGData* InData, FName& OutName);
 
 	template <typename T>
 	static TObjectPtr<T> LoadBlocking_AnyThread(const TSoftObjectPtr<T>& SoftObjectPtr, const FSoftObjectPath& FallbackPath = nullptr)
@@ -173,192 +164,17 @@ namespace PCGExHelpers
 		return TSoftObjectPtr<T>(ToBeLoaded).Get();
 	}
 
-	static void LoadBlocking_AnyThread(const TSharedPtr<TSet<FSoftObjectPath>>& Paths)
-	{
-		if (IsInGameThread())
-		{
-			UAssetManager::GetStreamableManager().RequestSyncLoad(Paths->Array());
-		}
-		else
-		{
-			TWeakPtr<TSet<FSoftObjectPath>> WeakPaths = Paths;
-			FEvent* BlockingEvent = FPlatformProcess::GetSynchEventFromPool();
-			AsyncTask(
-				ENamedThreads::GameThread, [BlockingEvent, WeakPaths]()
-				{
-					const TSharedPtr<TSet<FSoftObjectPath>> ToBeLoaded = WeakPaths.Pin();
-					if (!ToBeLoaded)
-					{
-						BlockingEvent->Trigger();
-						return;
-					}
+	void LoadBlocking_AnyThread(const TSharedPtr<TSet<FSoftObjectPath>>& Paths);
 
-					const TSharedPtr<FStreamableHandle> Handle = UAssetManager::GetStreamableManager().RequestAsyncLoad(
-						ToBeLoaded->Array(), [BlockingEvent]() { BlockingEvent->Trigger(); });
+	void CopyStructProperties(const void* SourceStruct, void* TargetStruct, const UStruct* SourceStructType, const UStruct* TargetStructType);
 
-					if (!Handle || !Handle->IsActive()) { BlockingEvent->Trigger(); }
-				});
+	bool CopyProperties(UObject* Target, const UObject* Source, const TSet<FString>* Exclusions = nullptr);
 
-			BlockingEvent->Wait();
-			FPlatformProcess::ReturnSynchEventToPool(BlockingEvent);
-		}
-	}
+	void SetPointProperty(FPCGPoint& InPoint, const double InValue, const EPCGExPointPropertyOutput InProperty);
 
-	static void CopyStructProperties(const void* SourceStruct, void* TargetStruct, const UStruct* SourceStructType, const UStruct* TargetStructType)
-	{
-		for (TFieldIterator<FProperty> SourceIt(SourceStructType); SourceIt; ++SourceIt)
-		{
-			const FProperty* SourceProperty = *SourceIt;
-			const FProperty* TargetProperty = TargetStructType->FindPropertyByName(SourceProperty->GetFName());
-			if (!TargetProperty || SourceProperty->GetClass() != TargetProperty->GetClass()) { continue; }
+	TArray<FString> GetStringArrayFromCommaSeparatedList(const FString& InCommaSeparatedString);
 
-			if (SourceProperty->SameType(TargetProperty))
-			{
-				const void* SourceValue = SourceProperty->ContainerPtrToValuePtr<void>(SourceStruct);
-				void* TargetValue = TargetProperty->ContainerPtrToValuePtr<void>(TargetStruct);
-
-				SourceProperty->CopyCompleteValue(TargetValue, SourceValue);
-			}
-		}
-	}
-
-	static bool CopyProperties(UObject* Target, const UObject* Source, const TSet<FString>* Exclusions = nullptr)
-	{
-		const UClass* SourceClass = Source->GetClass();
-		const UClass* TargetClass = Target->GetClass();
-		const UClass* CommonBaseClass = nullptr;
-
-		if (SourceClass->IsChildOf(TargetClass)) { CommonBaseClass = TargetClass; }
-		else if (TargetClass->IsChildOf(SourceClass)) { CommonBaseClass = SourceClass; }
-		else
-		{
-			// Traverse up the hierarchy to find a shared base class
-			const UClass* TempClass = SourceClass;
-			while (TempClass)
-			{
-				if (TargetClass->IsChildOf(TempClass))
-				{
-					CommonBaseClass = TempClass;
-					break;
-				}
-				TempClass = TempClass->GetSuperClass();
-			}
-		}
-
-		if (!CommonBaseClass) { return false; }
-
-		// Iterate over source properties
-		for (TFieldIterator<FProperty> It(CommonBaseClass); It; ++It)
-		{
-			const FProperty* Property = *It;
-			if (Exclusions && Exclusions->Contains(Property->GetName())) { continue; }
-
-			// Skip properties that shouldn't be copied (like transient properties)
-			if (Property->HasAnyPropertyFlags(CPF_Transient | CPF_ConstParm | CPF_OutParm)) { continue; }
-
-			// Copy the value from source to target
-			const void* SourceValue = Property->ContainerPtrToValuePtr<void>(Source);
-			void* TargetValue = Property->ContainerPtrToValuePtr<void>(Target);
-			Property->CopyCompleteValue(TargetValue, SourceValue);
-		}
-
-		return true;
-	}
-
-	static void SetPointProperty(FPCGPoint& InPoint, const double InValue, const EPCGExPointPropertyOutput InProperty)
-	{
-		switch (InProperty)
-		{
-		default:
-		case EPCGExPointPropertyOutput::None:
-			break;
-		case EPCGExPointPropertyOutput::Density:
-			InPoint.Density = InValue;
-			break;
-		case EPCGExPointPropertyOutput::Steepness:
-			InPoint.Steepness = InValue;
-			break;
-		case EPCGExPointPropertyOutput::ColorR:
-			InPoint.Color.Component(0) = InValue;
-			break;
-		case EPCGExPointPropertyOutput::ColorG:
-			InPoint.Color.Component(1) = InValue;
-			break;
-		case EPCGExPointPropertyOutput::ColorB:
-			InPoint.Color.Component(2) = InValue;
-			break;
-		case EPCGExPointPropertyOutput::ColorA:
-			InPoint.Color.Component(3) = InValue;
-			break;
-		}
-	}
-
-	static TArray<FString> GetStringArrayFromCommaSeparatedList(const FString& InCommaSeparatedString)
-	{
-		TArray<FString> Result;
-		InCommaSeparatedString.ParseIntoArray(Result, TEXT(","));
-		// Trim leading and trailing spaces
-		for (int i = 0; i < Result.Num(); i++)
-		{
-			FString& String = Result[i];
-			String.TrimStartAndEndInline();
-			if (String.IsEmpty())
-			{
-				Result.RemoveAt(i);
-				i--;
-			}
-		}
-
-		return Result;
-	}
-
-	static TArray<UFunction*> FindUserFunctions(const TSubclassOf<AActor>& ActorClass, const TArray<FName>& FunctionNames, const TArray<const UFunction*>& FunctionPrototypes, const FPCGContext* InContext)
-	{
-		TArray<UFunction*> Functions;
-
-		if (!ActorClass)
-		{
-			return Functions;
-		}
-
-		for (FName FunctionName : FunctionNames)
-		{
-			if (FunctionName == NAME_None)
-			{
-				continue;
-			}
-
-			if (UFunction* Function = ActorClass->FindFunctionByName(FunctionName))
-			{
-#if WITH_EDITOR
-				if (!Function->GetBoolMetaData(TEXT("CallInEditor")))
-				{
-					PCGE_LOG_C(Warning, GraphAndLog, InContext, FText::Format(FTEXT( "Function '{0}' in class '{1}' requires CallInEditor to be true while in-editor."), FText::FromName(FunctionName), FText::FromName(ActorClass->GetFName())));
-					continue;
-				}
-#endif
-				for (const UFunction* Prototype : FunctionPrototypes)
-				{
-					if (Function->IsSignatureCompatibleWith(Prototype))
-					{
-						Functions.Add(Function);
-						break;
-					}
-				}
-
-				if (Functions.IsEmpty() || Functions.Last() != Function)
-				{
-					PCGE_LOG_C(Warning, GraphAndLog, InContext, FText::Format(FTEXT("Function '{0}' in class '{1}' has incorrect parameters."), FText::FromName(FunctionName), FText::FromName(ActorClass->GetFName())));
-				}
-			}
-			else
-			{
-				PCGE_LOG_C(Warning, GraphAndLog, InContext, FText::Format(FTEXT("Function '{0}' was not found in class '{1}'."), FText::FromName(FunctionName), FText::FromName(ActorClass->GetFName())));
-			}
-		}
-
-		return Functions;
-	}
+	TArray<UFunction*> FindUserFunctions(const TSubclassOf<AActor>& ActorClass, const TArray<FName>& FunctionNames, const TArray<const UFunction*>& FunctionPrototypes, const FPCGContext* InContext);
 }
 
 /** Holds function prototypes used to match against actor function signatures. */
@@ -593,7 +409,7 @@ namespace PCGEx
 #pragma region Metadata Type
 
 	template <typename T>
-	FORCEINLINE constexpr static EPCGMetadataTypes GetMetadataType()
+	constexpr static EPCGMetadataTypes GetMetadataType()
 	{
 		if constexpr (std::is_same_v<T, bool>) { return EPCGMetadataTypes::Boolean; }
 		else if constexpr (std::is_same_v<T, int32>) { return EPCGMetadataTypes::Integer32; }
@@ -615,7 +431,7 @@ namespace PCGEx
 		else { return EPCGMetadataTypes::Unknown; }
 	}
 
-	FORCEINLINE constexpr static EPCGMetadataTypes GetPropertyType(const EPCGPointProperties Property)
+	constexpr static EPCGMetadataTypes GetPropertyType(const EPCGPointProperties Property)
 	{
 		switch (Property)
 		{
@@ -665,7 +481,7 @@ namespace PCGEx
 	const FSoftObjectPath DummySoftObjectPath = FSoftObjectPath{};
 
 	template <typename T, typename Func>
-	FORCEINLINE static void ExecuteWithRightType(Func&& Callback)
+	static void ExecuteWithRightType(Func&& Callback)
 	{
 		if constexpr (std::is_same_v<T, bool>) { Callback(DummyBoolean); }
 		else if constexpr (std::is_same_v<T, int32>) { Callback(DummyInteger32); }
@@ -688,7 +504,7 @@ namespace PCGEx
 	}
 
 	template <typename Func>
-	FORCEINLINE static void ExecuteWithRightType(const EPCGMetadataTypes Type, Func&& Callback)
+	static void ExecuteWithRightType(const EPCGMetadataTypes Type, Func&& Callback)
 	{
 #define PCGEX_EXECUTE_WITH_TYPE(_TYPE, _ID, ...) case EPCGMetadataTypes::_ID : ExecuteWithRightType<_TYPE>(Callback); break;
 
@@ -702,7 +518,7 @@ namespace PCGEx
 	}
 
 	template <typename Func>
-	FORCEINLINE static void ExecuteWithRightType(const int16 Type, Func&& Callback)
+	static void ExecuteWithRightType(const int16 Type, Func&& Callback)
 	{
 		ExecuteWithRightType(static_cast<EPCGMetadataTypes>(Type), Callback);
 	}
@@ -712,14 +528,14 @@ namespace PCGEx
 #pragma region Array
 
 	template <typename T>
-	FORCEINLINE static void InitArray(TArray<T>& InArray, const int32 Num)
+	static void InitArray(TArray<T>& InArray, const int32 Num)
 	{
 		if constexpr (std::is_trivially_copyable_v<T>) { InArray.SetNumUninitialized(Num); }
 		else { InArray.SetNum(Num); }
 	}
 
 	template <typename T>
-	FORCEINLINE static void InitArray(TSharedPtr<TArray<T>>& InArray, const int32 Num)
+	static void InitArray(TSharedPtr<TArray<T>>& InArray, const int32 Num)
 	{
 		if (!InArray) { InArray = MakeShared<TArray<T>>(); }
 		if constexpr (std::is_trivially_copyable_v<T>) { InArray->SetNumUninitialized(Num); }
@@ -727,14 +543,14 @@ namespace PCGEx
 	}
 
 	template <typename T>
-	FORCEINLINE static void InitArray(TSharedRef<TArray<T>> InArray, const int32 Num)
+	static void InitArray(TSharedRef<TArray<T>> InArray, const int32 Num)
 	{
 		if constexpr (std::is_trivially_copyable_v<T>) { InArray.SetNumUninitialized(Num); }
 		else { InArray.SetNum(Num); }
 	}
 
 	template <typename T>
-	FORCEINLINE static void InitArray(TArray<T>* InArray, const int32 Num)
+	static void InitArray(TArray<T>* InArray, const int32 Num)
 	{
 		if constexpr (std::is_trivially_copyable_v<T>) { InArray->SetNumUninitialized(Num); }
 		else { InArray->SetNum(Num); }

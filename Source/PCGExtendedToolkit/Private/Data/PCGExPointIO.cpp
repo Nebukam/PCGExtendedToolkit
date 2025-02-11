@@ -151,10 +151,7 @@ namespace PCGExData
 		OutKeys.Reset();
 	}
 
-	FPointIO::~FPointIO()
-	{
-		PCGEX_LOG_DTR(FPointIO)
-	}
+	FPointIO::~FPointIO() = default;
 
 	bool FPointIO::StageOutput() const
 	{
@@ -214,10 +211,7 @@ namespace PCGExData
 		Initialize(Sources, InitOut);
 	}
 
-	FPointIOCollection::~FPointIOCollection()
-	{
-		PCGEX_LOG_DTR(FPointIOCollection);
-	}
+	FPointIOCollection::~FPointIOCollection() = default;
 
 	void FPointIOCollection::Initialize(
 		TArray<FPCGTaggedData>& Sources,

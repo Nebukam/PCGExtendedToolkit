@@ -65,7 +65,7 @@ public:
 
 namespace PCGExPointFilter
 {
-	class /*PCGEXTENDEDTOOLKIT_API*/ FStringCompareFilter final : public PCGExPointFilter::FSimpleFilter
+	class /*PCGEXTENDEDTOOLKIT_API*/ FStringCompareFilter final : public FSimpleFilter
 	{
 	public:
 		explicit FStringCompareFilter(const TObjectPtr<const UPCGExStringCompareFilterFactory>& InFactory)
@@ -79,14 +79,9 @@ namespace PCGExPointFilter
 		TSharedPtr<PCGEx::TAttributeBroadcaster<FString>> OperandB;
 
 		virtual bool Init(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade> InPointDataFacade) override;
-		FORCEINLINE virtual bool Test(const int32 PointIndex) const override
-		{
-			const FPCGPoint& Point = PointDataFacade->Source->GetInPoint(PointIndex);
-			const FString A = OperandA->SoftGet(PointIndex, Point, TEXT(""));
-			const FString B = TypedFilterFactory->Config.CompareAgainst == EPCGExInputValueType::Attribute ? OperandB->SoftGet(PointIndex, Point, TEXT("")) : TypedFilterFactory->Config.OperandBConstant;
-			return PCGExCompare::Compare(TypedFilterFactory->Config.Comparison, A, B);
-		}
 
+		virtual bool Test(const int32 PointIndex) const override;
+		
 		virtual ~FStringCompareFilter() override
 		{
 		}

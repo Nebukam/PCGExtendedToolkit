@@ -76,7 +76,7 @@ void UPCGExGlobalSettings::GeneratePinInfos()
 	// Out pin map
 	PCGEX_EMPLACE_PIN_OUT(OUT_Filter, "PCGEx Filter");
 	PCGEX_MAP_PIN_OUT("Filter")
-	
+
 	PCGEX_EMPLACE_PIN_OUT(OUT_CFilter, "PCGEx Collection Filter");
 	PCGEX_MAP_PIN_OUT("C-Filter")
 
@@ -119,7 +119,7 @@ void UPCGExGlobalSettings::GeneratePinInfos()
 
 	PCGEX_EMPLACE_PIN_OUT(OUT_Tensor, "PCGEx Tensor");
 	PCGEX_MAP_PIN_OUT("Tensor")
-	
+
 	PCGEX_EMPLACE_PIN_OUT(OUT_Picker, "PCGEx Picker");
 	PCGEX_MAP_PIN_OUT("Picker")
 

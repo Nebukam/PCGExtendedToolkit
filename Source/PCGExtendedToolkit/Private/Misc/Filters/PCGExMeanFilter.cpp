@@ -103,6 +103,11 @@ void PCGExPointFilter::FMeanFilter::PostInit()
 	ReferenceMax = FMath::Max(RMin, RMax);
 }
 
+bool PCGExPointFilter::FMeanFilter::Test(const int32 PointIndex) const
+{
+	return FMath::IsWithin(Values[PointIndex], ReferenceMin, ReferenceMax);
+}
+
 PCGEX_CREATE_FILTER_FACTORY(Mean)
 
 #if WITH_EDITOR

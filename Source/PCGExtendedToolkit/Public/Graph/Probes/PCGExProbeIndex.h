@@ -64,7 +64,8 @@ class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExProbeIndex : public UPCGExProbeOperation
 public:
 	virtual bool RequiresOctree() override;
 	virtual bool PrepareForPoints(const TSharedPtr<PCGExData::FPointIO>& InPointIO) override;
-	FORCEINLINE virtual void ProcessNode(const int32 Index, const FPCGPoint& Point, TSet<FInt32Vector>* Coincidence, const FVector& ST, TSet<uint64>* OutEdges, const TArray<int8>& AcceptConnections) override
+
+	virtual void ProcessNode(const int32 Index, const FPCGPoint& Point, TSet<FInt32Vector>* Coincidence, const FVector& ST, TSet<uint64>* OutEdges, const TArray<int8>& AcceptConnections) override
 	{
 		TryCreateEdge(Index, OutEdges, AcceptConnections);
 	}

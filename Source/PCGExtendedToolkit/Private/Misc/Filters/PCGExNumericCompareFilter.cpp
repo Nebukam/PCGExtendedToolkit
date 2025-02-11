@@ -49,6 +49,13 @@ bool PCGExPointFilter::FNumericCompareFilter::Init(FPCGExContext* InContext, con
 	return true;
 }
 
+bool PCGExPointFilter::FNumericCompareFilter::Test(const int32 PointIndex) const
+{
+	const double A = OperandA->Read(PointIndex);
+	const double B = OperandB ? OperandB->Read(PointIndex) : TypedFilterFactory->Config.OperandBConstant;
+	return PCGExCompare::Compare(TypedFilterFactory->Config.Comparison, A, B, TypedFilterFactory->Config.Tolerance);
+}
+
 PCGEX_CREATE_FILTER_FACTORY(NumericCompare)
 
 #if WITH_EDITOR

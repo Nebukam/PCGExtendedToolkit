@@ -78,7 +78,7 @@ public:
 
 namespace PCGExPointFilter
 {
-	class /*PCGEXTENDEDTOOLKIT_API*/ FMeanFilter final : public PCGExPointFilter::FSimpleFilter
+	class /*PCGEXTENDEDTOOLKIT_API*/ FMeanFilter final : public FSimpleFilter
 	{
 	public:
 		explicit FMeanFilter(const TObjectPtr<const UPCGExMeanFilterFactory>& InFactory)
@@ -100,11 +100,8 @@ namespace PCGExPointFilter
 		virtual bool Init(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade> InPointDataFacade) override;
 		virtual void PostInit() override;
 
-		FORCEINLINE virtual bool Test(const int32 PointIndex) const override
-		{
-			return FMath::IsWithin(Values[PointIndex], ReferenceMin, ReferenceMax);
-		}
-
+		virtual bool Test(const int32 PointIndex) const override;
+		
 		virtual ~FMeanFilter() override
 		{
 		}

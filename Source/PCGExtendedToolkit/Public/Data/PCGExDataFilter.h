@@ -306,10 +306,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExCarryOverDetails
 			for (FName Name : Names) { if (!Attributes.Test(Name.ToString())) { return false; } }
 			return true;
 		}
-		else
-		{
-			for (FName Name : Names) { if (Attributes.Test(Name.ToString())) { return true; } }
-			return false;
-		}
+		for (FName Name : Names) { if (Attributes.Test(Name.ToString())) { return true; } }
+		return false;
 	}
 };

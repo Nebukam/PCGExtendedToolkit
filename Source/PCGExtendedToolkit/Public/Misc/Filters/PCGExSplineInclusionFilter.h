@@ -111,7 +111,7 @@ namespace PCGExPointFilter
 		Skip
 	};
 
-	class /*PCGEXTENDEDTOOLKIT_API*/ FSplineInclusionFilter final : public PCGExPointFilter::FSimpleFilter
+	class /*PCGEXTENDEDTOOLKIT_API*/ FSplineInclusionFilter final : public FSimpleFilter
 	{
 	public:
 		explicit FSplineInclusionFilter(const TObjectPtr<const UPCGExSplineInclusionFilterFactory>& InFactory)

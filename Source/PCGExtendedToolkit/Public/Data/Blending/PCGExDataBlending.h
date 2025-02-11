@@ -389,38 +389,40 @@ namespace PCGExDataBlending
 			SecondaryData = InSecondaryFacade->Source->GetData(SecondarySource);
 		}
 
-		FORCEINLINE virtual bool GetRequiresPreparation() const { return false; }
-		FORCEINLINE virtual bool GetRequiresFinalization() const { return false; }
+		virtual bool GetRequiresPreparation() const { return false; }
+		virtual bool GetRequiresFinalization() const { return false; }
 
-		FORCEINLINE virtual void PrepareOperation(const int32 WriteIndex) const { PrepareRangeOperation(WriteIndex, 1); }
+		virtual void PrepareOperation(const int32 WriteIndex) const { PrepareRangeOperation(WriteIndex, 1); }
 
-		FORCEINLINE virtual void Copy(const int32 WriteIndex, const int32 SecondaryReadIndex) const = 0;
-		FORCEINLINE virtual void DoOperation(const int32 PrimaryReadIndex, const int32 SecondaryReadIndex, const int32 WriteIndex, const double Weight, const int8 bFirstOperation) const
+		virtual void Copy(const int32 WriteIndex, const int32 SecondaryReadIndex) const = 0;
+
+		virtual void DoOperation(const int32 PrimaryReadIndex, const int32 SecondaryReadIndex, const int32 WriteIndex, const double Weight, const int8 bFirstOperation) const
 		{
 			TArray<double> Weights = {Weight};
 			DoRangeOperation(PrimaryReadIndex, SecondaryReadIndex, WriteIndex, Weights, bFirstOperation);
 		}
 
-		FORCEINLINE virtual void Copy(const int32 WriteIndex, const FPCGPoint& SrcPoint) const = 0;
-		FORCEINLINE virtual void DoOperation(const int32 PrimaryReadIndex, const FPCGPoint& SrcPoint, const int32 WriteIndex, const double Weight, const int8 bFirstOperation) const = 0;
-		FORCEINLINE virtual void CompleteOperation(const int32 WriteIndex, const int32 Count, const double TotalWeight) const
+		virtual void Copy(const int32 WriteIndex, const FPCGPoint& SrcPoint) const = 0;
+		virtual void DoOperation(const int32 PrimaryReadIndex, const FPCGPoint& SrcPoint, const int32 WriteIndex, const double Weight, const int8 bFirstOperation) const = 0;
+
+		virtual void CompleteOperation(const int32 WriteIndex, const int32 Count, const double TotalWeight) const
 		{
 			TArray<double> Weights = {TotalWeight};
 			TArray<int32> Counts = {Count};
 			CompleteRangeOperation(WriteIndex, Counts, Weights);
 		}
 
-		FORCEINLINE virtual void PrepareRangeOperation(const int32 StartIndex, const int32 Range) const = 0;
-		FORCEINLINE virtual void DoRangeOperation(const int32 PrimaryReadIndex, const int32 SecondaryReadIndex, const int32 StartIndex, const TArrayView<double>& Weights, const int8 bFirstOperation) const = 0;
-		FORCEINLINE virtual void CompleteRangeOperation(const int32 StartIndex, const TArrayView<const int32>& Counts, const TArrayView<double>& TotalWeights) const = 0;
+		virtual void PrepareRangeOperation(const int32 StartIndex, const int32 Range) const = 0;
+		virtual void DoRangeOperation(const int32 PrimaryReadIndex, const int32 SecondaryReadIndex, const int32 StartIndex, const TArrayView<double>& Weights, const int8 bFirstOperation) const = 0;
+		virtual void CompleteRangeOperation(const int32 StartIndex, const TArrayView<const int32>& Counts, const TArrayView<double>& TotalWeights) const = 0;
 
 		// Soft ops
 
-		FORCEINLINE virtual void PrepareOperation(const PCGMetadataEntryKey WriteKey) const = 0;
+		virtual void PrepareOperation(const PCGMetadataEntryKey WriteKey) const = 0;
 
-		FORCEINLINE virtual void Copy(const PCGMetadataEntryKey WriteKey, const PCGMetadataEntryKey SecondaryReadKey) const = 0;
-		FORCEINLINE virtual void DoOperation(const PCGMetadataEntryKey PrimaryReadKey, const PCGMetadataEntryKey SecondaryReadKey, const PCGMetadataEntryKey WriteKey, const double Weight, const int8 bFirstOperation) const = 0;
-		FORCEINLINE virtual void CompleteOperation(const PCGMetadataEntryKey WriteKey, const int32 Count, const double TotalWeight) const = 0;
+		virtual void Copy(const PCGMetadataEntryKey WriteKey, const PCGMetadataEntryKey SecondaryReadKey) const = 0;
+		virtual void DoOperation(const PCGMetadataEntryKey PrimaryReadKey, const PCGMetadataEntryKey SecondaryReadKey, const PCGMetadataEntryKey WriteKey, const double Weight, const int8 bFirstOperation) const = 0;
+		virtual void CompleteOperation(const PCGMetadataEntryKey WriteKey, const int32 Count, const double TotalWeight) const = 0;
 
 	protected:
 		bool bSupportInterpolation = true;
@@ -445,9 +447,9 @@ namespace PCGExDataBlending
 			Cleanup();
 		}
 
-		FORCEINLINE virtual bool GetRequiresPreparation() const override { return bRequirePreparation; }
-		FORCEINLINE virtual bool GetRequiresFinalization() const override { return bRequireCompletion; }
-		FORCEINLINE virtual EPCGExDataBlendingType GetBlendingType() const override { return BlendingType; };
+		virtual bool GetRequiresPreparation() const override { return bRequirePreparation; }
+		virtual bool GetRequiresFinalization() const override { return bRequireCompletion; }
+		virtual EPCGExDataBlendingType GetBlendingType() const override { return BlendingType; };
 
 		virtual void PrepareForData(const TSharedPtr<PCGExData::FBufferBase>& InWriter, const TSharedPtr<PCGExData::FFacade>& InSecondaryFacade, const PCGExData::ESource SecondarySource) override
 		{
@@ -502,13 +504,13 @@ namespace PCGExDataBlending
 			}
 		}
 
-		FORCEINLINE virtual void DoRangeOperation(const int32 PrimaryReadIndex, const int32 SecondaryReadIndex, const int32 StartIndex, const TArrayView<double>& Weights, const int8 bFirstOperation) const override
+		virtual void DoRangeOperation(const int32 PrimaryReadIndex, const int32 SecondaryReadIndex, const int32 StartIndex, const TArrayView<double>& Weights, const int8 bFirstOperation) const override
 		{
 			TArrayView<T> View = MakeArrayView(Writer->GetOutValues()->GetData() + StartIndex, Weights.Num());
 			DoValuesRangeOperation(PrimaryReadIndex, SecondaryReadIndex, View, Weights, bFirstOperation);
 		}
 
-		FORCEINLINE virtual void CompleteRangeOperation(const int32 StartIndex, const TArrayView<const int32>& Counts, const TArrayView<double>& TotalWeights) const override
+		virtual void CompleteRangeOperation(const int32 StartIndex, const TArrayView<const int32>& Counts, const TArrayView<double>& TotalWeights) const override
 		{
 			if constexpr (bRequireCompletion)
 			{
@@ -517,7 +519,7 @@ namespace PCGExDataBlending
 			}
 		}
 
-		FORCEINLINE virtual void PrepareValuesRangeOperation(TArrayView<T>& Values, const int32 StartIndex) const
+		virtual void PrepareValuesRangeOperation(TArrayView<T>& Values, const int32 StartIndex) const
 		{
 			if constexpr (bRequirePreparation)
 			{
@@ -525,7 +527,7 @@ namespace PCGExDataBlending
 			}
 		}
 
-		FORCEINLINE virtual void DoValuesRangeOperation(const int32 PrimaryReadIndex, const int32 SecondaryReadIndex, TArrayView<T>& Values, const TArrayView<double>& Weights, const int8 bFirstOperation) const
+		virtual void DoValuesRangeOperation(const int32 PrimaryReadIndex, const int32 SecondaryReadIndex, TArrayView<T>& Values, const TArrayView<double>& Weights, const int8 bFirstOperation) const
 		{
 			if (!bSupportInterpolation)
 			{
@@ -540,24 +542,24 @@ namespace PCGExDataBlending
 			}
 		}
 
-		FORCEINLINE virtual void Copy(const int32 WriteIndex, const int32 SecondaryReadIndex) const override
+		virtual void Copy(const int32 WriteIndex, const int32 SecondaryReadIndex) const override
 		{
 			Writer->GetMutable(WriteIndex) = Reader->Read(SecondaryReadIndex);
 		}
 
-		FORCEINLINE virtual void Copy(const int32 WriteIndex, const FPCGPoint& SrcPoint) const override
+		virtual void Copy(const int32 WriteIndex, const FPCGPoint& SrcPoint) const override
 		{
 			Writer->GetMutable(WriteIndex) = SourceAttribute ? SourceAttribute->GetValueFromItemKey(SrcPoint.MetadataEntry) : Writer->GetMutable(WriteIndex);
 		}
 
-		FORCEINLINE virtual void DoOperation(const int32 PrimaryReadIndex, const FPCGPoint& SrcPoint, const int32 WriteIndex, const double Weight, const int8 bFirstOperation) const override
+		virtual void DoOperation(const int32 PrimaryReadIndex, const FPCGPoint& SrcPoint, const int32 WriteIndex, const double Weight, const int8 bFirstOperation) const override
 		{
 			const T A = Writer->GetMutable(PrimaryReadIndex);
 			const T B = SourceAttribute ? SourceAttribute->GetValueFromItemKey(SrcPoint.MetadataEntry) : A;
 			Writer->GetMutable(WriteIndex) = SingleOperation(A, B, Weight);
 		}
 
-		FORCEINLINE virtual void CompleteValuesRangeOperation(const int32 StartIndex, TArrayView<T>& Values, const TArrayView<const int32>& Counts, const TArrayView<double>& Weights) const
+		virtual void CompleteValuesRangeOperation(const int32 StartIndex, TArrayView<T>& Values, const TArrayView<const int32>& Counts, const TArrayView<double>& Weights) const
 		{
 			if constexpr (bRequireCompletion)
 			{
@@ -566,7 +568,7 @@ namespace PCGExDataBlending
 			}
 		}
 
-		FORCEINLINE virtual void PrepareOperation(const PCGMetadataEntryKey WriteKey) const override
+		virtual void PrepareOperation(const PCGMetadataEntryKey WriteKey) const override
 		{
 			if constexpr (bRequirePreparation)
 			{
@@ -576,17 +578,17 @@ namespace PCGExDataBlending
 			}
 		};
 
-		FORCEINLINE virtual void Copy(const PCGMetadataEntryKey WriteKey, const PCGMetadataEntryKey SecondaryReadKey) const override
+		virtual void Copy(const PCGMetadataEntryKey WriteKey, const PCGMetadataEntryKey SecondaryReadKey) const override
 		{
 			TargetAttribute->SetValue(WriteKey, SourceAttribute->GetValueFromItemKey(SecondaryReadKey));
 		};
 
-		FORCEINLINE virtual void DoOperation(const PCGMetadataEntryKey PrimaryReadKey, const PCGMetadataEntryKey SecondaryReadKey, const PCGMetadataEntryKey WriteKey, const double Weight, const int8 bFirstOperation) const override
+		virtual void DoOperation(const PCGMetadataEntryKey PrimaryReadKey, const PCGMetadataEntryKey SecondaryReadKey, const PCGMetadataEntryKey WriteKey, const double Weight, const int8 bFirstOperation) const override
 		{
 			TargetAttribute->SetValue(WriteKey, SingleOperation(TargetAttribute->GetValueFromItemKey(PrimaryReadKey), SourceAttribute->GetValueFromItemKey(SecondaryReadKey), Weight));
 		};
 
-		FORCEINLINE virtual void CompleteOperation(const PCGMetadataEntryKey WriteKey, const int32 Count, const double TotalWeight) const override
+		virtual void CompleteOperation(const PCGMetadataEntryKey WriteKey, const int32 Count, const double TotalWeight) const override
 		{
 			if constexpr (bRequireCompletion)
 			{
@@ -596,11 +598,11 @@ namespace PCGExDataBlending
 			}
 		};
 
-		FORCEINLINE virtual void SinglePrepare(T& A) const { A = T{}; };
+		virtual void SinglePrepare(T& A) const { A = T{}; };
 
-		FORCEINLINE virtual T SingleOperation(T A, T B, double Weight) const = 0;
+		virtual T SingleOperation(T A, T B, double Weight) const = 0;
 
-		FORCEINLINE virtual void SingleComplete(T& A, const int32 Count, const double Weight) const
+		virtual void SingleComplete(T& A, const int32 Count, const double Weight) const
 		{
 		};
 
@@ -614,7 +616,7 @@ namespace PCGExDataBlending
 	template <typename T, EPCGExDataBlendingType BlendingType, bool bRequirePreparation = false, bool bRequireCompletion = false>
 	class /*PCGEXTENDEDTOOLKIT_API*/ FDataBlendingProcessorWithFirstInit : public TDataBlendingProcessor<T, BlendingType, bRequirePreparation, bRequireCompletion>
 	{
-		FORCEINLINE virtual void DoValuesRangeOperation(const int32 PrimaryReadIndex, const int32 SecondaryReadIndex, TArrayView<T>& Values, const TArrayView<double>& Weights, const int8 bFirstOperation) const override
+		virtual void DoValuesRangeOperation(const int32 PrimaryReadIndex, const int32 SecondaryReadIndex, TArrayView<T>& Values, const TArrayView<double>& Weights, const int8 bFirstOperation) const override
 		{
 			if (bFirstOperation || !this->bSupportInterpolation)
 			{
@@ -629,7 +631,7 @@ namespace PCGExDataBlending
 			}
 		}
 
-		FORCEINLINE virtual void DoOperation(const int32 PrimaryReadIndex, const FPCGPoint& SrcPoint, const int32 WriteIndex, const double Weight, const int8 bFirstOperation) const override
+		virtual void DoOperation(const int32 PrimaryReadIndex, const FPCGPoint& SrcPoint, const int32 WriteIndex, const double Weight, const int8 bFirstOperation) const override
 		{
 			const T A = this->Writer->GetMutable(PrimaryReadIndex);
 			const T B = this->SourceAttribute ? this->SourceAttribute->GetValueFromItemKey(SrcPoint.MetadataEntry) : A;

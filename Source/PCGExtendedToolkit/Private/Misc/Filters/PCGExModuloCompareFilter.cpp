@@ -61,6 +61,15 @@ bool PCGExPointFilter::FModuloComparisonFilter::Init(FPCGExContext* InContext, c
 	return true;
 }
 
+bool PCGExPointFilter::FModuloComparisonFilter::Test(const int32 PointIndex) const
+{
+	const double A = OperandA->Read(PointIndex);
+	const double B = OperandB ? OperandB->Read(PointIndex) : TypedFilterFactory->Config.OperandBConstant;
+	const double C = OperandC ? OperandC->Read(PointIndex) : TypedFilterFactory->Config.OperandCConstant;
+	if (A == 0 || B == 0) { return TypedFilterFactory->Config.ZeroResult; }
+	return PCGExCompare::Compare(TypedFilterFactory->Config.Comparison, FMath::Fmod(A, B), C, TypedFilterFactory->Config.Tolerance);
+}
+
 PCGEX_CREATE_FILTER_FACTORY(ModuloCompare)
 
 #if WITH_EDITOR

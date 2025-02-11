@@ -154,7 +154,7 @@ namespace PCGExBinPacking
 
 		TArray<FSpace> Spaces;
 		void AddSpace(const FBox& InBox);
-		
+
 	public:
 		int32 MaxItems = 0;
 		FBox Bounds;
@@ -172,7 +172,6 @@ namespace PCGExBinPacking
 		void AddItem(int32 SpaceIndex, FItem& InItem);
 		bool Insert(FItem& InItem);
 		void UpdatePoint(FPCGPoint& InPoint, const FItem& InItem) const;
-
 	};
 
 	class FProcessor final : public PCGExPointsMT::TPointsProcessor<FPCGExBinPackingContext, UPCGExBinPackingSettings>

@@ -352,7 +352,7 @@ namespace PCGExPathSplineMesh
 		OutBounds = FBox(OutBounds.Min * OutScale, OutBounds.Max * OutScale);
 
 		Justification.Process(Index, InBounds, OutBounds, OutTranslation);
-		
+
 		//
 
 		Segment.Params.StartPos = Point.Transform.GetLocation();

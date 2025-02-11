@@ -3,6 +3,18 @@
 
 #include "PCGExHelpers.h"
 
+#include "CoreMinimal.h"
+#include "UObject/Interface.h"
+#include "GameFramework/Actor.h"
+
+#include "PCGContext.h"
+#include "PCGElement.h"
+#include "PCGExMacros.h"
+#include "PCGModule.h"
+#include "Data/PCGSpatialData.h"
+#include "Engine/AssetManager.h"
+#include "Async/Async.h"
+
 namespace PCGEx
 {
 	void FIntTracker::IncrementPending(const int32 Count)
@@ -218,5 +230,204 @@ void UPCGExPCGComponentCallback::Callback(UPCGComponent* InComponent)
 	else
 	{
 		CallbackFn(InComponent);
+	}
+}
+
+namespace PCGExHelpers
+{
+	bool TryGetAttributeName(const FPCGAttributePropertyInputSelector& InSelector, const UPCGData* InData, FName& OutName)
+	{
+		FPCGAttributePropertyInputSelector FixedSelector = InSelector.CopyAndFixLast(InData);
+		if (!FixedSelector.IsValid()) { return false; }
+		if (FixedSelector.GetSelection() != EPCGAttributePropertySelection::Attribute) { return false; }
+		OutName = FixedSelector.GetName();
+		return true;
+	}
+
+	void LoadBlocking_AnyThread(const TSharedPtr<TSet<FSoftObjectPath>>& Paths)
+	{
+		if (IsInGameThread())
+		{
+			UAssetManager::GetStreamableManager().RequestSyncLoad(Paths->Array());
+		}
+		else
+		{
+			TWeakPtr<TSet<FSoftObjectPath>> WeakPaths = Paths;
+			FEvent* BlockingEvent = FPlatformProcess::GetSynchEventFromPool();
+			AsyncTask(
+				ENamedThreads::GameThread, [BlockingEvent, WeakPaths]()
+				{
+					const TSharedPtr<TSet<FSoftObjectPath>> ToBeLoaded = WeakPaths.Pin();
+					if (!ToBeLoaded)
+					{
+						BlockingEvent->Trigger();
+						return;
+					}
+
+					const TSharedPtr<FStreamableHandle> Handle = UAssetManager::GetStreamableManager().RequestAsyncLoad(
+						ToBeLoaded->Array(), [BlockingEvent]() { BlockingEvent->Trigger(); });
+
+					if (!Handle || !Handle->IsActive()) { BlockingEvent->Trigger(); }
+				});
+
+			BlockingEvent->Wait();
+			FPlatformProcess::ReturnSynchEventToPool(BlockingEvent);
+		}
+	}
+
+	void CopyStructProperties(const void* SourceStruct, void* TargetStruct, const UStruct* SourceStructType, const UStruct* TargetStructType)
+	{
+		for (TFieldIterator<FProperty> SourceIt(SourceStructType); SourceIt; ++SourceIt)
+		{
+			const FProperty* SourceProperty = *SourceIt;
+			const FProperty* TargetProperty = TargetStructType->FindPropertyByName(SourceProperty->GetFName());
+			if (!TargetProperty || SourceProperty->GetClass() != TargetProperty->GetClass()) { continue; }
+
+			if (SourceProperty->SameType(TargetProperty))
+			{
+				const void* SourceValue = SourceProperty->ContainerPtrToValuePtr<void>(SourceStruct);
+				void* TargetValue = TargetProperty->ContainerPtrToValuePtr<void>(TargetStruct);
+
+				SourceProperty->CopyCompleteValue(TargetValue, SourceValue);
+			}
+		}
+	}
+
+	bool CopyProperties(UObject* Target, const UObject* Source, const TSet<FString>* Exclusions)
+	{
+		const UClass* SourceClass = Source->GetClass();
+		const UClass* TargetClass = Target->GetClass();
+		const UClass* CommonBaseClass = nullptr;
+
+		if (SourceClass->IsChildOf(TargetClass)) { CommonBaseClass = TargetClass; }
+		else if (TargetClass->IsChildOf(SourceClass)) { CommonBaseClass = SourceClass; }
+		else
+		{
+			// Traverse up the hierarchy to find a shared base class
+			const UClass* TempClass = SourceClass;
+			while (TempClass)
+			{
+				if (TargetClass->IsChildOf(TempClass))
+				{
+					CommonBaseClass = TempClass;
+					break;
+				}
+				TempClass = TempClass->GetSuperClass();
+			}
+		}
+
+		if (!CommonBaseClass) { return false; }
+
+		// Iterate over source properties
+		for (TFieldIterator<FProperty> It(CommonBaseClass); It; ++It)
+		{
+			const FProperty* Property = *It;
+			if (Exclusions && Exclusions->Contains(Property->GetName())) { continue; }
+
+			// Skip properties that shouldn't be copied (like transient properties)
+			if (Property->HasAnyPropertyFlags(CPF_Transient | CPF_ConstParm | CPF_OutParm)) { continue; }
+
+			// Copy the value from source to target
+			const void* SourceValue = Property->ContainerPtrToValuePtr<void>(Source);
+			void* TargetValue = Property->ContainerPtrToValuePtr<void>(Target);
+			Property->CopyCompleteValue(TargetValue, SourceValue);
+		}
+
+		return true;
+	}
+
+	void SetPointProperty(FPCGPoint& InPoint, const double InValue, const EPCGExPointPropertyOutput InProperty)
+	{
+		switch (InProperty)
+		{
+		default:
+		case EPCGExPointPropertyOutput::None:
+			break;
+		case EPCGExPointPropertyOutput::Density:
+			InPoint.Density = InValue;
+			break;
+		case EPCGExPointPropertyOutput::Steepness:
+			InPoint.Steepness = InValue;
+			break;
+		case EPCGExPointPropertyOutput::ColorR:
+			InPoint.Color.Component(0) = InValue;
+			break;
+		case EPCGExPointPropertyOutput::ColorG:
+			InPoint.Color.Component(1) = InValue;
+			break;
+		case EPCGExPointPropertyOutput::ColorB:
+			InPoint.Color.Component(2) = InValue;
+			break;
+		case EPCGExPointPropertyOutput::ColorA:
+			InPoint.Color.Component(3) = InValue;
+			break;
+		}
+	}
+
+	TArray<FString> GetStringArrayFromCommaSeparatedList(const FString& InCommaSeparatedString)
+	{
+		TArray<FString> Result;
+		InCommaSeparatedString.ParseIntoArray(Result, TEXT(","));
+		// Trim leading and trailing spaces
+		for (int i = 0; i < Result.Num(); i++)
+		{
+			FString& String = Result[i];
+			String.TrimStartAndEndInline();
+			if (String.IsEmpty())
+			{
+				Result.RemoveAt(i);
+				i--;
+			}
+		}
+
+		return Result;
+	}
+
+	TArray<UFunction*> FindUserFunctions(const TSubclassOf<AActor>& ActorClass, const TArray<FName>& FunctionNames, const TArray<const UFunction*>& FunctionPrototypes, const FPCGContext* InContext)
+	{
+		TArray<UFunction*> Functions;
+
+		if (!ActorClass)
+		{
+			return Functions;
+		}
+
+		for (FName FunctionName : FunctionNames)
+		{
+			if (FunctionName == NAME_None)
+			{
+				continue;
+			}
+
+			if (UFunction* Function = ActorClass->FindFunctionByName(FunctionName))
+			{
+#if WITH_EDITOR
+				if (!Function->GetBoolMetaData(TEXT("CallInEditor")))
+				{
+					PCGE_LOG_C(Warning, GraphAndLog, InContext, FText::Format(FTEXT( "Function '{0}' in class '{1}' requires CallInEditor to be true while in-editor."), FText::FromName(FunctionName), FText::FromName(ActorClass->GetFName())));
+					continue;
+				}
+#endif
+				for (const UFunction* Prototype : FunctionPrototypes)
+				{
+					if (Function->IsSignatureCompatibleWith(Prototype))
+					{
+						Functions.Add(Function);
+						break;
+					}
+				}
+
+				if (Functions.IsEmpty() || Functions.Last() != Function)
+				{
+					PCGE_LOG_C(Warning, GraphAndLog, InContext, FText::Format(FTEXT("Function '{0}' in class '{1}' has incorrect parameters."), FText::FromName(FunctionName), FText::FromName(ActorClass->GetFName())));
+				}
+			}
+			else
+			{
+				PCGE_LOG_C(Warning, GraphAndLog, InContext, FText::Format(FTEXT("Function '{0}' was not found in class '{1}'."), FText::FromName(FunctionName), FText::FromName(ActorClass->GetFName())));
+			}
+		}
+
+		return Functions;
 	}
 }

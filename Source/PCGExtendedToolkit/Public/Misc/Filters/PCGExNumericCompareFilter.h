@@ -69,7 +69,7 @@ public:
 
 namespace PCGExPointFilter
 {
-	class /*PCGEXTENDEDTOOLKIT_API*/ FNumericCompareFilter final : public PCGExPointFilter::FSimpleFilter
+	class /*PCGEXTENDEDTOOLKIT_API*/ FNumericCompareFilter final : public FSimpleFilter
 	{
 	public:
 		explicit FNumericCompareFilter(const TObjectPtr<const UPCGExNumericCompareFilterFactory>& InDefinition)
@@ -83,13 +83,9 @@ namespace PCGExPointFilter
 		TSharedPtr<PCGExData::TBuffer<double>> OperandB;
 
 		virtual bool Init(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade> InPointDataFacade) override;
-		FORCEINLINE virtual bool Test(const int32 PointIndex) const override
-		{
-			const double A = OperandA->Read(PointIndex);
-			const double B = OperandB ? OperandB->Read(PointIndex) : TypedFilterFactory->Config.OperandBConstant;
-			return PCGExCompare::Compare(TypedFilterFactory->Config.Comparison, A, B, TypedFilterFactory->Config.Tolerance);
-		}
 
+		virtual bool Test(const int32 PointIndex) const override;
+		
 		virtual ~FNumericCompareFilter() override
 		{
 		}

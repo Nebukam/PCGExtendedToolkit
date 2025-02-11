@@ -205,7 +205,7 @@ namespace PCGExSorting
 			return !Rules.IsEmpty();
 		}
 
-		FORCEINLINE bool Sort(const int32 A, const int32 B)
+		bool Sort(const int32 A, const int32 B)
 		{
 			if constexpr (bSoftMode)
 			{
@@ -245,33 +245,17 @@ namespace PCGExSorting
 			}
 		}
 
-		FORCEINLINE bool Sort(const FPCGPoint& A, const FPCGPoint& B)
+		bool Sort(const FPCGPoint& A, const FPCGPoint& B)
 		{
 			return Sort(PointIndices[A.MetadataEntry], PointIndices[B.MetadataEntry]);
 		}
 	};
 
-	static TArray<FPCGExSortRuleConfig> GetSortingRules(FPCGExContext* InContext, const FName InLabel)
-	{
-		TArray<FPCGExSortRuleConfig> OutRules;
-		TArray<TObjectPtr<const UPCGExSortingRule>> Factories;
-		if (!PCGExFactories::GetInputFactories(InContext, InLabel, Factories, {PCGExFactories::EType::RuleSort}, false)) { return OutRules; }
-		for (const UPCGExSortingRule* Factory : Factories) { OutRules.Add(Factory->Config); }
+	TArray<FPCGExSortRuleConfig> GetSortingRules(FPCGExContext* InContext, const FName InLabel);
 
-		return OutRules;
-	}
+	void PrepareRulesAttributeBuffers(FPCGExContext* InContext, const FName InLabel, PCGExData::FFacadePreloader& FacadePreloader);
 
-	static void PrepareRulesAttributeBuffers(FPCGExContext* InContext, const FName InLabel, PCGExData::FFacadePreloader& FacadePreloader)
-	{
-		TArray<TObjectPtr<const UPCGExSortingRule>> Factories;
-		if (!PCGExFactories::GetInputFactories(InContext, InLabel, Factories, {PCGExFactories::EType::RuleSort}, false)) { return; }
-		for (const UPCGExSortingRule* Factory : Factories) { FacadePreloader.Register<double>(InContext, Factory->Config.Selector); }
-	}
-
-	static void RegisterBuffersDependencies(FPCGExContext* InContext, PCGExData::FFacadePreloader& FacadePreloader, const TArray<FPCGExSortRuleConfig>& InRuleConfigs)
-	{
-		for (const FPCGExSortRuleConfig& Rule : InRuleConfigs) { FacadePreloader.Register<double>(InContext, Rule.Selector); }
-	}
+	void RegisterBuffersDependencies(FPCGExContext* InContext, PCGExData::FFacadePreloader& FacadePreloader, const TArray<FPCGExSortRuleConfig>& InRuleConfigs);
 }
 
 #undef PCGEX_UNSUPPORTED_STRING_TYPES
