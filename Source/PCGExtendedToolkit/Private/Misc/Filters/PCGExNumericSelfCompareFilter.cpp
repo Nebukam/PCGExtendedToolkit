@@ -54,6 +54,18 @@ bool PCGExPointFilter::FNumericSelfCompareFilter::Init(FPCGExContext* InContext,
 	return true;
 }
 
+bool PCGExPointFilter::FNumericSelfCompareFilter::Test(const int32 PointIndex) const
+{
+	const int32 IndexValue = Index ? Index->Read(PointIndex) : TypedFilterFactory->Config.IndexConstant;
+	const int32 TargetIndex = PCGExMath::SanitizeIndex(bOffset ? PointIndex + IndexValue : IndexValue, MaxIndex, TypedFilterFactory->Config.IndexSafety);
+
+	if (TargetIndex == -1) { return false; }
+
+	const double A = OperandA->SoftGet(PointIndex, PointDataFacade->Source->GetInPoint(PointIndex), 0);
+	const double B = OperandA->SoftGet(TargetIndex, PointDataFacade->Source->GetInPoint(TargetIndex), 0);
+	return PCGExCompare::Compare(TypedFilterFactory->Config.Comparison, A, B, TypedFilterFactory->Config.Tolerance);
+}
+
 PCGEX_CREATE_FILTER_FACTORY(NumericSelfCompare)
 
 #if WITH_EDITOR

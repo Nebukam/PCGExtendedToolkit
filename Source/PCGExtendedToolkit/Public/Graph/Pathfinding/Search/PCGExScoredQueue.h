@@ -49,7 +49,7 @@ namespace PCGExSearch
 			std::swap(InternalQueue, EmptyQueue);
 		}
 
-		FORCEINLINE bool Enqueue(const int32 Index, const double InScore)
+		bool Enqueue(const int32 Index, const double InScore)
 		{
 			double& RegisteredScore = Scores[Index];
 			if (RegisteredScore <= InScore) { return false; }
@@ -59,7 +59,7 @@ namespace PCGExSearch
 			return true;
 		}
 
-		FORCEINLINE bool Dequeue(int32& Item, double& OutScore)
+		bool Dequeue(int32& Item, double& OutScore)
 		{
 			//TRACE_CPUPROFILER_EVENT_SCOPE(ScoredQueue::Dequeue);
 

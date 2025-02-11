@@ -435,23 +435,11 @@ namespace PCGExGraph
 		SubGraphPostProcessCallback OnSubGraphPostProcess;
 
 
-		FSubGraph()
-		{
-			PCGEX_LOG_CTR(FSubGraph)
-		}
+		FSubGraph() = default;
 
-		~FSubGraph()
-		{
-			PCGEX_LOG_DTR(FSubGraph)
-		}
+		~FSubGraph() = default;
 
-		FORCEINLINE void Add(const FEdge& Edge, FGraph* InGraph)
-		{
-			Nodes.Add(Edge.Start);
-			Nodes.Add(Edge.End);
-			Edges.Add(Edge.Index);
-			if (Edge.IOIndex >= 0) { EdgesInIOIndices.Add(Edge.IOIndex); }
-		}
+		void Add(const FEdge& Edge, FGraph* InGraph);
 
 		void Invalidate(FGraph* InGraph);
 		void BuildCluster(const TSharedRef<PCGExCluster::FCluster>& InCluster);
@@ -567,133 +555,64 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 			return EdgeMetadata.Add(EdgeIndex, FGraphEdgeMetadata(EdgeIndex, Parent));
 		}
 
-		FORCEINLINE FGraphEdgeMetadata& GetOrCreateEdgeMetadata(const int32 EdgeIndex, const FGraphEdgeMetadata* Parent = nullptr)
-		{
-			{
-				FReadScopeLock ReadScopeLock(EdgeMetadataLock);
-				if (FGraphEdgeMetadata* MetadataPtr = EdgeMetadata.Find(EdgeIndex)) { return *MetadataPtr; }
-			}
-			{
-				FWriteScopeLock WriteScopeLock(EdgeMetadataLock);
-				if (FGraphEdgeMetadata* MetadataPtr = EdgeMetadata.Find(EdgeIndex)) { return *MetadataPtr; }
-				return EdgeMetadata.Add(EdgeIndex, FGraphEdgeMetadata(EdgeIndex, Parent));
-			}
-		}
+		FGraphEdgeMetadata& GetOrCreateEdgeMetadata(const int32 EdgeIndex, const FGraphEdgeMetadata* Parent = nullptr);
 
-		FORCEINLINE FGraphNodeMetadata& GetOrCreateNodeMetadata_Unsafe(const int32 NodeIndex)
-		{
-			if (FGraphNodeMetadata* MetadataPtr = NodeMetadata.Find(NodeIndex)) { return *MetadataPtr; }
-			return NodeMetadata.Add(NodeIndex, FGraphNodeMetadata(NodeIndex));
-		}
+		FGraphNodeMetadata& GetOrCreateNodeMetadata_Unsafe(const int32 NodeIndex);
 
-		FORCEINLINE FGraphNodeMetadata& GetOrCreateNodeMetadata(const int32 NodeIndex)
-		{
-			{
-				FReadScopeLock ReadScopeLock(NodeMetadataLock);
-				if (FGraphNodeMetadata* MetadataPtr = NodeMetadata.Find(NodeIndex)) { return *MetadataPtr; }
-			}
-			{
-				FWriteScopeLock WriteScopeLock(NodeMetadataLock);
-				if (FGraphNodeMetadata* MetadataPtr = NodeMetadata.Find(NodeIndex)) { return *MetadataPtr; }
-				return NodeMetadata.Add(NodeIndex, FGraphNodeMetadata(NodeIndex));
-			}
-		}
 
-		FORCEINLINE void AddNodeAndEdgeMetadata_Unsafe(
+		FGraphNodeMetadata& GetOrCreateNodeMetadata(const int32 NodeIndex);
+
+
+		void AddNodeAndEdgeMetadata_Unsafe(
 			const int32 InNodeIndex,
 			const int32 InEdgeIndex,
 			const FGraphEdgeMetadata* InParentMetadata,
-			const EPCGExIntersectionType InType)
-		{
-			FGraphNodeMetadata& N = GetOrCreateNodeMetadata_Unsafe(InNodeIndex);
-			N.Type = InType;
+			const EPCGExIntersectionType InType);
 
-			FGraphEdgeMetadata& E = GetOrCreateEdgeMetadata_Unsafe(InEdgeIndex, InParentMetadata);
-			E.Type = InType;
-		}
 
-		FORCEINLINE void AddNodeAndEdgeMetadata(
+		void AddNodeAndEdgeMetadata(
 			const int32 InNodeIndex,
 			const int32 InEdgeIndex,
 			const FGraphEdgeMetadata* InParentMetadata,
-			const EPCGExIntersectionType InType)
-		{
-			FWriteScopeLock WriteEdgeScopeLock(EdgeMetadataLock);
-			FWriteScopeLock WriteNodeScopeLock(NodeMetadataLock);
-			AddNodeAndEdgeMetadata_Unsafe(InNodeIndex, InEdgeIndex, InParentMetadata, InType);
-		}
+			const EPCGExIntersectionType InType);
 
-		FORCEINLINE void AddNodeMetadata_Unsafe(
+
+		void AddNodeMetadata_Unsafe(
 			const int32 InNodeIndex,
 			const FGraphEdgeMetadata* InParentMetadata,
-			const EPCGExIntersectionType InType)
-		{
-			FGraphNodeMetadata& N = GetOrCreateNodeMetadata_Unsafe(InNodeIndex);
-			N.Type = InType;
-		}
+			const EPCGExIntersectionType InType);
 
-		FORCEINLINE void AddNodeMetadata(
+
+		void AddNodeMetadata(
 			const int32 InNodeIndex,
 			const FGraphEdgeMetadata* InParentMetadata,
-			const EPCGExIntersectionType InType)
-		{
-			FWriteScopeLock WriteScopeLock(NodeMetadataLock);
-			AddNodeMetadata_Unsafe(InNodeIndex, InParentMetadata, InType);
-		}
+			const EPCGExIntersectionType InType);
 
-		FORCEINLINE void AddEdgeMetadata_Unsafe(
+
+		void AddEdgeMetadata_Unsafe(
 			const int32 InEdgeIndex,
 			const FGraphEdgeMetadata* InParentMetadata,
-			const EPCGExIntersectionType InType)
-		{
-			FGraphEdgeMetadata& E = GetOrCreateEdgeMetadata_Unsafe(InEdgeIndex, InParentMetadata);
-			E.Type = InType;
-		}
+			const EPCGExIntersectionType InType);
 
-		FORCEINLINE void AddEdgeMetadata(
+
+		void AddEdgeMetadata(
 			const int32 InEdgeIndex,
 			const FGraphEdgeMetadata* InParentMetadata,
-			const EPCGExIntersectionType InType)
-		{
-			FWriteScopeLock WriteScopeLock(EdgeMetadataLock);
-			AddEdgeMetadata_Unsafe(InEdgeIndex, InParentMetadata, InType);
-		}
+			const EPCGExIntersectionType InType);
 
-		FORCEINLINE FGraphNodeMetadata* FindNodeMetadata_Unsafe(const int32 NodeIndex) { return NodeMetadata.Find(NodeIndex); }
-		FORCEINLINE FGraphNodeMetadata* FindNodeMetadata(const int32 NodeIndex)
-		{
-			FReadScopeLock ReadScopeLock(NodeMetadataLock);
-			return FindNodeMetadata_Unsafe(NodeIndex);
-		}
 
-		FORCEINLINE FGraphEdgeMetadata* FindEdgeMetadata_Unsafe(const int32 EdgeIndex) { return EdgeMetadata.Find(EdgeIndex); }
-		FORCEINLINE FGraphEdgeMetadata* FindEdgeMetadata(const int32 EdgeIndex)
-		{
-			FReadScopeLock ReadScopeLock(EdgeMetadataLock);
-			return FindEdgeMetadata_Unsafe(EdgeIndex);
-		}
-
-		FORCEINLINE FGraphEdgeMetadata* FindRootEdgeMetadata_Unsafe(const int32 EdgeIndex)
-		{
-			const FGraphEdgeMetadata* BaseEdge = EdgeMetadata.Find(EdgeIndex);
-			return BaseEdge ? EdgeMetadata.Find(BaseEdge->RootIndex) : nullptr;
-		}
-
-		FORCEINLINE FGraphEdgeMetadata* FindRootEdgeMetadata(const int32 EdgeIndex)
-		{
-			FReadScopeLock ReadScopeLock(EdgeMetadataLock);
-			return FindRootEdgeMetadata_Unsafe(EdgeIndex);
-		}
-
+		FGraphNodeMetadata* FindNodeMetadata_Unsafe(const int32 NodeIndex) { return NodeMetadata.Find(NodeIndex); }
+		FGraphNodeMetadata* FindNodeMetadata(const int32 NodeIndex);
+		FGraphEdgeMetadata* FindEdgeMetadata_Unsafe(const int32 EdgeIndex) { return EdgeMetadata.Find(EdgeIndex); }
+		FGraphEdgeMetadata* FindEdgeMetadata(const int32 EdgeIndex);
+		FGraphEdgeMetadata* FindRootEdgeMetadata_Unsafe(const int32 EdgeIndex);
+		FGraphEdgeMetadata* FindRootEdgeMetadata(const int32 EdgeIndex);
 
 		TArrayView<FNode> AddNodes(const int32 NumNewNodes);
 
 		void BuildSubGraphs(const FPCGExGraphBuilderDetails& Limits);
 
-		~FGraph()
-		{
-			PCGEX_LOG_DTR(FGraph)
-		}
+		~FGraph() = default;
 
 		void GetConnectedNodes(int32 FromIndex, TArray<int32>& OutIndices, int32 SearchDepth) const;
 	};
@@ -714,7 +633,6 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 		SubGraphPostProcessCallback OnSubGraphPostProcess;
 
 		PCGExTags::IDType PairId;
-
 		TSharedPtr<FGraph> Graph;
 
 		TSharedRef<PCGExData::FFacade> NodeDataFacade;
@@ -731,23 +649,7 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 		FGraphBuilder(
 			const TSharedRef<PCGExData::FFacade>& InNodeDataFacade,
 			const FPCGExGraphBuilderDetails* InDetails,
-			const int32 NumEdgeReserve = 6)
-			: OutputDetails(InDetails),
-			  NodeDataFacade(InNodeDataFacade)
-		{
-			PCGEX_LOG_CTR(FGraphBuilder)
-
-			PairId = NodeDataFacade->Source->Tags->Set<int32>(TagStr_PCGExCluster, NodeDataFacade->Source->GetOutIn()->GetUniqueID());
-
-			const int32 NumNodes = NodeDataFacade->Source->GetOutInNum();
-
-			Graph = MakeShared<FGraph>(NumNodes, NumEdgeReserve);
-			Graph->bBuildClusters = InDetails->WantsClusters();
-			Graph->bRefreshEdgeSeed = OutputDetails->bRefreshEdgeSeed;
-
-			EdgesIO = MakeShared<PCGExData::FPointIOCollection>(NodeDataFacade->Source->GetContext());
-			EdgesIO->OutputPin = OutputEdgesLabel;
-		}
+			const int32 NumEdgeReserve = 6);
 
 		const FGraphMetadataDetails* GetMetadataDetails() const { return MetadataDetailsPtr; }
 
@@ -756,60 +658,19 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 
 		void StageEdgesOutputs() const;
 
-		~FGraphBuilder()
-		{
-			PCGEX_LOG_DTR(FGraphBuilder)
-		}
+		~FGraphBuilder() = default;
 	};
 
-	static bool BuildEndpointsLookup(
+	bool BuildEndpointsLookup(
 		const TSharedPtr<PCGExData::FPointIO>& InPointIO,
 		TMap<uint32, int32>& OutIndices,
-		TArray<int32>& OutAdjacency)
-	{
-		TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExGraph::BuildLookupTable);
-
-		PCGEx::InitArray(OutAdjacency, InPointIO->GetNum());
-		OutIndices.Empty();
-
-		const TUniquePtr<PCGExData::TBuffer<int64>> IndexBuffer = MakeUnique<PCGExData::TBuffer<int64>>(InPointIO.ToSharedRef(), Attr_PCGExVtxIdx);
-		if (!IndexBuffer->PrepareRead()) { return false; }
-
-		const TArray<int64>& Indices = *IndexBuffer->GetInValues().Get();
-
-		OutIndices.Reserve(Indices.Num());
-		for (int i = 0; i < Indices.Num(); i++)
-		{
-			uint32 A;
-			uint32 B;
-			PCGEx::H64(Indices[i], A, B);
-
-			OutIndices.Add(A, i);
-			OutAdjacency[i] = B;
-		}
-
-		return true;
-	}
+		TArray<int32>& OutAdjacency);
 
 #pragma endregion
 
-	static bool IsPointDataVtxReady(const UPCGMetadata* Metadata)
-	{
-		return Metadata->GetConstTypedAttribute<int64>(Attr_PCGExVtxIdx) ? true : false;
-	}
-
-	static bool IsPointDataEdgeReady(const UPCGMetadata* Metadata)
-	{
-		return Metadata->GetConstTypedAttribute<int64>(Attr_PCGExEdgeIdx) ? true : false;
-	}
-
-	static void CleanupVtxData(const TSharedPtr<PCGExData::FPointIO>& PointIO)
-	{
-		UPCGMetadata* Metadata = PointIO->GetOut()->Metadata;
-		PointIO->Tags->Remove(TagStr_PCGExCluster);
-		Metadata->DeleteAttribute(Attr_PCGExVtxIdx);
-		Metadata->DeleteAttribute(Attr_PCGExEdgeIdx);
-	}
+	bool IsPointDataVtxReady(const UPCGMetadata* Metadata);
+	bool IsPointDataEdgeReady(const UPCGMetadata* Metadata);
+	void CleanupVtxData(const TSharedPtr<PCGExData::FPointIO>& PointIO);
 }
 
 namespace PCGExGraphTask

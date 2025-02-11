@@ -90,7 +90,7 @@ public:
 
 namespace PCGExPointFilter
 {
-	class /*PCGEXTENDEDTOOLKIT_API*/ FRandomFilter final : public PCGExPointFilter::FSimpleFilter
+	class /*PCGEXTENDEDTOOLKIT_API*/ FRandomFilter final : public FSimpleFilter
 	{
 	public:
 		explicit FRandomFilter(const TObjectPtr<const UPCGExRandomFilterFactory>& InDefinition)
@@ -113,7 +113,7 @@ namespace PCGExPointFilter
 		virtual bool Init(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade> InPointDataFacade) override;
 		virtual bool Test(const int32 PointIndex) const override;
 		virtual bool Test(const TSharedPtr<PCGExData::FPointIO>& IO) const override;
-		
+
 
 		virtual ~FRandomFilter() override
 		{
@@ -138,7 +138,7 @@ public:
 	/** Filter Config.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ShowOnlyInnerProperties))
 	FPCGExRandomFilterConfig Config;
-	
+
 	virtual UPCGExFactoryData* CreateFactory(FPCGExContext* InContext, UPCGExFactoryData* InFactory) const override;
 
 #if WITH_EDITOR

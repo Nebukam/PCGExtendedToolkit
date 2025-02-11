@@ -132,41 +132,12 @@ namespace PCGExDetails
 	};
 
 
-	static TSharedPtr<FDistances> MakeDistances(
+	TSharedPtr<FDistances> MakeDistances(
 		const EPCGExDistance Source = EPCGExDistance::Center,
 		const EPCGExDistance Target = EPCGExDistance::Center,
-		const bool bOverlapIsZero = false)
-	{
-		if (Source == EPCGExDistance::None || Target == EPCGExDistance::None)
-		{
-			return MakeShared<TDistances<EPCGExDistance::None, EPCGExDistance::None>>();
-		}
-		if (Source == EPCGExDistance::Center)
-		{
-			if (Target == EPCGExDistance::Center) { return MakeShared<TDistances<EPCGExDistance::Center, EPCGExDistance::Center>>(bOverlapIsZero); }
-			if (Target == EPCGExDistance::SphereBounds) { return MakeShared<TDistances<EPCGExDistance::Center, EPCGExDistance::SphereBounds>>(bOverlapIsZero); }
-			if (Target == EPCGExDistance::BoxBounds) { return MakeShared<TDistances<EPCGExDistance::Center, EPCGExDistance::BoxBounds>>(bOverlapIsZero); }
-		}
-		else if (Source == EPCGExDistance::SphereBounds)
-		{
-			if (Target == EPCGExDistance::Center) { return MakeShared<TDistances<EPCGExDistance::SphereBounds, EPCGExDistance::Center>>(bOverlapIsZero); }
-			if (Target == EPCGExDistance::SphereBounds) { return MakeShared<TDistances<EPCGExDistance::SphereBounds, EPCGExDistance::SphereBounds>>(bOverlapIsZero); }
-			if (Target == EPCGExDistance::BoxBounds) { return MakeShared<TDistances<EPCGExDistance::SphereBounds, EPCGExDistance::BoxBounds>>(bOverlapIsZero); }
-		}
-		else if (Source == EPCGExDistance::BoxBounds)
-		{
-			if (Target == EPCGExDistance::Center) { return MakeShared<TDistances<EPCGExDistance::BoxBounds, EPCGExDistance::Center>>(bOverlapIsZero); }
-			if (Target == EPCGExDistance::SphereBounds) { return MakeShared<TDistances<EPCGExDistance::BoxBounds, EPCGExDistance::SphereBounds>>(bOverlapIsZero); }
-			if (Target == EPCGExDistance::BoxBounds) { return MakeShared<TDistances<EPCGExDistance::BoxBounds, EPCGExDistance::BoxBounds>>(bOverlapIsZero); }
-		}
+		const bool bOverlapIsZero = false);
 
-		return nullptr;
-	}
-
-	static TSharedPtr<FDistances> MakeNoneDistances()
-	{
-		return MakeShared<TDistances<EPCGExDistance::None, EPCGExDistance::None>>();
-	}
+	TSharedPtr<FDistances> MakeNoneDistances();
 }
 
 USTRUCT(BlueprintType)
@@ -321,24 +292,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExFuseDetails : public FPCGExSourceFuseDet
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Stabilize Insertion Order"))
 	bool bInlineInsertion = false;
 
-	void Init()
-	{
-		if (FuseMethod == EPCGExFuseMethod::Voxel)
-		{
-			Tolerances *= 2;
-			Tolerance *= 2;
-
-			if (bComponentWiseTolerance) { CWTolerance = FVector(1 / Tolerances.X, 1 / Tolerances.Y, 1 / Tolerances.Z); }
-			else { CWTolerance = FVector(1 / Tolerance); }
-		}
-		else
-		{
-			if (bComponentWiseTolerance) { CWTolerance = Tolerances; }
-			else { CWTolerance = FVector(Tolerance); }
-		}
-
-		DistanceDetails = PCGExDetails::MakeDistances(SourceDistance, TargetDistance);
-	}
+	void Init();
 
 	bool DoInlineInsertion() const { return bInlineInsertion; }
 

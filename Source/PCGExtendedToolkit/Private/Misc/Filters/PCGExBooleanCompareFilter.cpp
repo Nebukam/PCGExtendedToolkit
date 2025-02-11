@@ -49,6 +49,13 @@ bool PCGExPointFilter::FBooleanCompareFilter::Init(FPCGExContext* InContext, con
 	return true;
 }
 
+bool PCGExPointFilter::FBooleanCompareFilter::Test(const int32 PointIndex) const
+{
+	const double A = OperandA->Read(PointIndex);
+	const double B = OperandB ? OperandB->Read(PointIndex) : TypedFilterFactory->Config.OperandBConstant;
+	return TypedFilterFactory->Config.Comparison == EPCGExEquality::Equal ? A == B : A != B;
+}
+
 PCGEX_CREATE_FILTER_FACTORY(BooleanCompare)
 
 #if WITH_EDITOR

@@ -210,7 +210,7 @@ public:
 	/** Whether and how to apply sampled result directly (not mutually exclusive with output)*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable))
 	FPCGExApplySamplingDetails ApplySampling;
-	
+
 	/** Write whether the sampling was sucessful or not to a boolean attribute. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(PCG_Overridable, InlineEditConditionToggle))
 	bool bWriteSuccess = false;
@@ -271,7 +271,7 @@ public:
 	/** Scale factor applied to the distance output; allows to easily invert it using -1 */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(PCG_Overridable, DisplayName=" └─ Scale", EditCondition="bWriteDistance", EditConditionHides, HideEditConditionToggle))
 	double DistanceScale = 1;
-	
+
 	/** Write the sampled Signed distance. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(PCG_Overridable, InlineEditConditionToggle))
 	bool bWriteSignedDistance = false;
@@ -291,7 +291,7 @@ public:
 	/** Scale factor applied to the signed distance output; allows to easily invert it using -1 */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(PCG_Overridable, DisplayName=" └─ Scale", EditCondition="bWriteSignedDistance", EditConditionHides, HideEditConditionToggle))
 	double SignedDistanceScale = 1;
-	
+
 	/** Write the sampled component-wise distance. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(PCG_Overridable, InlineEditConditionToggle))
 	bool bWriteComponentWiseDistance = false;
@@ -408,7 +408,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExSampleNearestSplineContext final : FPCGE
 	TSharedPtr<PCGExDetails::FDistances> DistanceDetails;
 
 	FPCGExApplySamplingDetails ApplySampling;
-	
+
 	TArray<const UPCGSplineData*> Targets;
 	TArray<FPCGSplineStruct> Splines;
 	TArray<double> SegmentCounts;

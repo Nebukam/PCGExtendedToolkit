@@ -65,7 +65,7 @@ namespace PCGEx
 			Cancel();
 		}
 
-		FORCEINLINE TObjectPtr<T>* GetAsset(const FSoftObjectPath& Path) { return AssetsMap.Find(Path); }
+		TObjectPtr<T>* GetAsset(const FSoftObjectPath& Path) { return AssetsMap.Find(Path); }
 
 		bool Start(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager, const ContextState InExitState)
 		{

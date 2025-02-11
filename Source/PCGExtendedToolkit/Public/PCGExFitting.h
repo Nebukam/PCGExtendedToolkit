@@ -99,32 +99,7 @@ private:
 		const FVector& InPtSize,
 		const FVector& InStSize,
 		const FVector& MinMaxFit,
-		FVector& OutScale)
-	{
-		const double Scale = InScale[Axis];
-		double FinalScale = Scale;
-
-		switch (Fit)
-		{
-		default:
-		case EPCGExScaleToFit::None:
-			break;
-		case EPCGExScaleToFit::Fill:
-			FinalScale = ((InPtSize[Axis] * Scale) / InStSize[Axis]);
-			break;
-		case EPCGExScaleToFit::Min:
-			FinalScale = MinMaxFit[0];
-			break;
-		case EPCGExScaleToFit::Max:
-			FinalScale = MinMaxFit[1];
-			break;
-		case EPCGExScaleToFit::Avg:
-			FinalScale = MinMaxFit[2];
-			break;
-		}
-
-		OutScale[Axis] = FinalScale;
-	}
+		FVector& OutScale);
 };
 
 USTRUCT(BlueprintType)

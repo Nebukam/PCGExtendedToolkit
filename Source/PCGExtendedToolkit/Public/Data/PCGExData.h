@@ -131,10 +131,7 @@ namespace PCGExData
 		template <typename T>
 		bool IsA() const { return Type == PCGEx::GetMetadataType<T>(); }
 
-		virtual ~FBufferBase()
-		{
-			PCGEX_LOG_DTR(FBufferBase)
-		}
+		virtual ~FBufferBase() = default;
 
 		virtual void Write(const bool bEnsureValidKeys = true)
 		{
@@ -152,7 +149,7 @@ namespace PCGExData
 		virtual PCGEx::FAttributeIdentity GetTargetOutputIdentity() PCGEX_NOT_IMPLEMENTED_RET(FBuffer::GetTargetOutputIdentity, PCGEx::FAttributeIdentity())
 		virtual bool OutputsToDifferentName() const;
 
-		FORCEINLINE bool GetAllowsInterpolation() const { return OutAttribute ? OutAttribute->AllowsInterpolation() : InAttribute ? InAttribute->AllowsInterpolation() : false; }
+		bool GetAllowsInterpolation() const { return OutAttribute ? OutAttribute->AllowsInterpolation() : InAttribute ? InAttribute->AllowsInterpolation() : false; }
 	};
 
 	template <typename T, EBufferLevel BufferLevel = EBufferLevel::Local>
@@ -194,13 +191,13 @@ namespace PCGExData
 		const FPCGMetadataAttribute<T>* GetTypedInAttribute() const { return TypedInAttribute; }
 		FPCGMetadataAttribute<T>* GetTypedOutAttribute() { return TypedOutAttribute; }
 
-		FORCEINLINE T& GetMutable(const int32 Index) { return *(OutValues->GetData() + Index); }
-		FORCEINLINE const T& GetConst(const int32 Index) { return *(OutValues->GetData() + Index); }
-		FORCEINLINE const T& Read(const int32 Index) const { return *(InValues->GetData() + Index); }
-		FORCEINLINE const T& ReadImmediate(const int32 Index) const { return TypedInAttribute->GetValueFromItemKey(InPoints[Index].MetadataEntry); }
+		T& GetMutable(const int32 Index) { return *(OutValues->GetData() + Index); }
+		const T& GetConst(const int32 Index) { return *(OutValues->GetData() + Index); }
+		const T& Read(const int32 Index) const { return *(InValues->GetData() + Index); }
+		const T& ReadImmediate(const int32 Index) const { return TypedInAttribute->GetValueFromItemKey(InPoints[Index].MetadataEntry); }
 
-		FORCEINLINE void Set(const int32 Index, const T& Value) { *(OutValues->GetData() + Index) = Value; }
-		FORCEINLINE void SetImmediate(const int32 Index, const T& Value) { TypedOutAttribute->SetValue(InPoints[Index], Value); }
+		void Set(const int32 Index, const T& Value) { *(OutValues->GetData() + Index) = Value; }
+		void SetImmediate(const int32 Index, const T& Value) { TypedOutAttribute->SetValue(InPoints[Index], Value); }
 
 		virtual PCGEx::FAttributeIdentity GetTargetOutputIdentity() override
 		{
@@ -521,8 +518,8 @@ namespace PCGExData
 
 		bool bSupportsScopedGet = false;
 
-		FORCEINLINE int32 GetNum(const ESource InSource = ESource::In) const { return Source->GetNum(InSource); }
-		FORCEINLINE TArray<FPCGPoint>& GetMutablePoints() const { return Source->GetMutablePoints(); }
+		int32 GetNum(const ESource InSource = ESource::In) const { return Source->GetNum(InSource); }
+		TArray<FPCGPoint>& GetMutablePoints() const { return Source->GetMutablePoints(); }
 
 		TSharedPtr<FBufferBase> FindBuffer_Unsafe(const uint64 UID);
 		TSharedPtr<FBufferBase> FindBuffer(const uint64 UID);
@@ -536,12 +533,9 @@ namespace PCGExData
 			PCGEX_LOG_CTR(FFacade)
 		}
 
-		~FFacade()
-		{
-			PCGEX_LOG_DTR(FFacade)
-		}
+		~FFacade() = default;
 
-		FORCEINLINE bool IsDataValid(const ESource InSource) const { return Source->IsDataValid(InSource); }
+		bool IsDataValid(const ESource InSource) const { return Source->IsDataValid(InSource); }
 
 		bool ShareSource(const FFacade* OtherManager) const { return this == OtherManager || OtherManager->Source == Source; }
 
@@ -939,7 +933,7 @@ namespace PCGExData
 		uint64 Append(const int32 Index, const int32 IOIndex, const int32 ItemIndex);
 		bool IOIndexOverlap(const int32 InIdx, const TSet<int32>& InIndices);
 
-		FORCEINLINE TSharedPtr<FUnionData> Get(const int32 Index) const { return Entries.IsValidIndex(Index) ? Entries[Index] : nullptr; }
+		TSharedPtr<FUnionData> Get(const int32 Index) const { return Entries.IsValidIndex(Index) ? Entries[Index] : nullptr; }
 	};
 
 #pragma endregion

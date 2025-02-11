@@ -56,7 +56,7 @@ public:
 
 namespace PCGExPointFilter
 {
-	class /*PCGEXTENDEDTOOLKIT_API*/ FTagCheckFilter final : public PCGExPointFilter::FCollectionFilter
+	class /*PCGEXTENDEDTOOLKIT_API*/ FTagCheckFilter final : public FCollectionFilter
 	{
 	public:
 		explicit FTagCheckFilter(const TObjectPtr<const UPCGExTagCheckFilterFactory>& InDefinition)

@@ -378,7 +378,7 @@ namespace PCGExPaths
 			Update(Positions, Expansion);
 		}
 
-		FORCEINLINE void Update(const TArrayView<const FVector>& Positions, const double Expansion = 0)
+		void Update(const TArrayView<const FVector>& Positions, const double Expansion = 0)
 		{
 			FBox Box = FBox(ForceInit);
 			Box += Positions[Start];
@@ -490,15 +490,16 @@ namespace PCGExPaths
 		virtual int32 NextPointIndex(const int32 Index) const { return SafePointIndex(Index + 1); }
 		virtual int32 PrevPointIndex(const int32 Index) const { return SafePointIndex(Index - 1); }
 
-		FORCEINLINE FVector GetEdgePositionAtAlpha(const FPathEdge& Edge, const double Alpha) const { return FMath::Lerp(Positions[Edge.End], Positions[Edge.Start], Alpha); }
-		FORCEINLINE FVector GetEdgePositionAtAlpha(const int32 Index, const double Alpha) const
+		FVector GetEdgePositionAtAlpha(const FPathEdge& Edge, const double Alpha) const { return FMath::Lerp(Positions[Edge.End], Positions[Edge.Start], Alpha); }
+
+		FVector GetEdgePositionAtAlpha(const int32 Index, const double Alpha) const
 		{
 			const FPathEdge& Edge = Edges[Index];
 			return FMath::Lerp(Positions[Edge.Start], Positions[Edge.End], Alpha);
 		}
 
-		FORCEINLINE virtual bool IsEdgeValid(const FPathEdge& Edge) const { return FVector::DistSquared(GetPos_Unsafe(Edge.Start), GetPos_Unsafe(Edge.End)) > 0; }
-		FORCEINLINE virtual bool IsEdgeValid(const int32 Index) const { return IsEdgeValid(Edges[Index]); }
+		virtual bool IsEdgeValid(const FPathEdge& Edge) const { return FVector::DistSquared(GetPos_Unsafe(Edge.Start), GetPos_Unsafe(Edge.End)) > 0; }
+		virtual bool IsEdgeValid(const int32 Index) const { return IsEdgeValid(Edges[Index]); }
 
 		void BuildEdgeOctree()
 		{

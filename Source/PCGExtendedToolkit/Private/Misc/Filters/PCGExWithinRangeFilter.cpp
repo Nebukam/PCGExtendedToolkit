@@ -33,6 +33,12 @@ bool PCGExPointFilter::FWithinRangeFilter::Init(FPCGExContext* InContext, const 
 	return true;
 }
 
+bool PCGExPointFilter::FWithinRangeFilter::Test(const int32 PointIndex) const
+{
+	if (!bInclusive) { return FMath::IsWithin(OperandA->Read(PointIndex), RealMin, RealMax) ? !bInvert : bInvert; }
+	return FMath::IsWithinInclusive(OperandA->Read(PointIndex), RealMin, RealMax) ? !bInvert : bInvert;
+}
+
 PCGEX_CREATE_FILTER_FACTORY(WithinRange)
 
 #if WITH_EDITOR

@@ -259,7 +259,7 @@ namespace PCGExExtrudeTensors
 			bIsStopped = StopFilters->Test(PointDataFacade->Source->GetInPoint(InSeedIndex));
 			if (Settings->bIgnoreStoppedSeeds && bIsStopped) { return; }
 		}
-		
+
 		const TSharedPtr<FExtrusion> NewExtrusion = CreateExtrusionTemplate(InSeedIndex, Iterations);
 		if (!NewExtrusion) { return; }
 

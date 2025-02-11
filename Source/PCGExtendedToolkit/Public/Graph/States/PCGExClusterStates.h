@@ -92,21 +92,21 @@ namespace PCGExClusterStates
 			const TSharedRef<PCGExData::FFacade>& InPointDataCache,
 			const TSharedRef<PCGExData::FFacade>& InEdgeDataCache);
 
-		FORCEINLINE virtual bool Test(const int32 Index) override
+		virtual bool Test(const int32 Index) override
 		{
 			int64& Flags = *(FlagsCache->GetData() + Index);
 			for (const TSharedPtr<FState>& State : States) { State->ProcessFlags(State->Test(Index), Flags); }
 			return true;
 		}
 
-		FORCEINLINE virtual bool Test(const PCGExCluster::FNode& Node) override
+		virtual bool Test(const PCGExCluster::FNode& Node) override
 		{
 			int64& Flags = *(FlagsCache->GetData() + Node.PointIndex);
 			for (const TSharedPtr<FState>& State : States) { State->ProcessFlags(State->Test(Node), Flags); }
 			return true;
 		}
 
-		FORCEINLINE virtual bool Test(const PCGExGraph::FEdge& Edge) override
+		virtual bool Test(const PCGExGraph::FEdge& Edge) override
 		{
 			int64& Flags = *(FlagsCache->GetData() + Edge.PointIndex);
 			for (const TSharedPtr<FState>& State : States) { State->ProcessFlags(State->Test(Edge), Flags); }

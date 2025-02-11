@@ -133,7 +133,7 @@ namespace PCGExData
 		}
 
 		template <typename T>
-		FORCEINLINE bool SetValue(const FName& InAttributeName, const int32 InIndex, const T& InValue)
+		bool SetValue(const FName& InAttributeName, const int32 InIndex, const T& InValue)
 		{
 			TSharedPtr<TBuffer<T>> Buffer = GetBuffer<T>(InAttributeName);
 			if (!Buffer) { return false; }
@@ -159,7 +159,7 @@ namespace PCGExData
 		}
 
 		template <typename T>
-		FORCEINLINE bool GetValue(const FName& InAttributeName, const int32 InIndex, T& OutValue)
+		bool GetValue(const FName& InAttributeName, const int32 InIndex, T& OutValue)
 		{
 			TSharedPtr<TBuffer<T>> Buffer = GetBuffer<T>(InAttributeName);
 			if (!Buffer) { return false; }

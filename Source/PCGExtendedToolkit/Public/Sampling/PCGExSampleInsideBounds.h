@@ -168,7 +168,7 @@ public:
 	/** Whether and how to apply sampled result directly (not mutually exclusive with output)*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable))
 	FPCGExApplySamplingDetails ApplySampling;
-	
+
 	/** Write whether the sampling was sucessful or not to a boolean attribute. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(PCG_Overridable, InlineEditConditionToggle))
 	bool bWriteSuccess = false;
@@ -225,7 +225,7 @@ public:
 	/** Scale factor applied to the distance output; allows to easily invert it using -1 */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(PCG_Overridable, DisplayName=" └─ Scale", EditCondition="bWriteDistance", EditConditionHides, HideEditConditionToggle))
 	double DistanceScale = 1;
-	
+
 	/** Write the sampled Signed distance. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(PCG_Overridable, InlineEditConditionToggle))
 	bool bWriteSignedDistance = false;
@@ -237,7 +237,7 @@ public:
 	/** Axis to use to calculate the distance' sign*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(PCG_Overridable, DisplayName=" └─ Axis", EditCondition="bWriteSignedDistance", EditConditionHides, HideEditConditionToggle))
 	EPCGExAxis SignAxis = EPCGExAxis::Forward;
-	
+
 	/** Scale factor applied to the signed distance output; allows to easily invert it using -1 */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(PCG_Overridable, DisplayName=" └─ Scale", EditCondition="bWriteSignedDistance", EditConditionHides, HideEditConditionToggle))
 	double SignedDistanceScale = 1;
@@ -323,7 +323,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExSampleInsideBoundsContext final : FPCGEx
 	TSharedPtr<PCGExSorting::PointSorter<false>> Sorter;
 
 	FPCGExApplySamplingDetails ApplySampling;
-	
+
 	TSharedPtr<PCGExDetails::FDistances> DistanceDetails;
 	FPCGExBlendingDetails BlendingDetails;
 	const TArray<FPCGPoint>* TargetPoints = nullptr;

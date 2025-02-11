@@ -56,7 +56,7 @@ public:
 
 namespace PCGExPointFilter
 {
-	class /*PCGEXTENDEDTOOLKIT_API*/ FEntryCountFilter final : public PCGExPointFilter::FCollectionFilter
+	class /*PCGEXTENDEDTOOLKIT_API*/ FEntryCountFilter final : public FCollectionFilter
 	{
 	public:
 		explicit FEntryCountFilter(const TObjectPtr<const UPCGExEntryCountFilterFactory>& InDefinition)

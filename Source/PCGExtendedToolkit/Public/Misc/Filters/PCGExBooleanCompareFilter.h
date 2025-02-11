@@ -64,7 +64,7 @@ public:
 
 namespace PCGExPointFilter
 {
-	class /*PCGEXTENDEDTOOLKIT_API*/ FBooleanCompareFilter final : public PCGExPointFilter::FSimpleFilter
+	class /*PCGEXTENDEDTOOLKIT_API*/ FBooleanCompareFilter final : public FSimpleFilter
 	{
 	public:
 		explicit FBooleanCompareFilter(const TObjectPtr<const UPCGExBooleanCompareFilterFactory>& InDefinition)
@@ -78,13 +78,8 @@ namespace PCGExPointFilter
 		TSharedPtr<PCGExData::TBuffer<bool>> OperandB;
 
 		virtual bool Init(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade> InPointDataFacade) override;
-		FORCEINLINE virtual bool Test(const int32 PointIndex) const override
-		{
-			const double A = OperandA->Read(PointIndex);
-			const double B = OperandB ? OperandB->Read(PointIndex) : TypedFilterFactory->Config.OperandBConstant;
-			return TypedFilterFactory->Config.Comparison == EPCGExEquality::Equal ? A == B : A != B;
-		}
-
+		virtual bool Test(const int32 PointIndex) const override;
+		
 		virtual ~FBooleanCompareFilter() override
 		{
 		}

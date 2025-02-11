@@ -119,31 +119,31 @@ namespace PCGExFilterGroup
 		{
 		}
 
-		FORCEINLINE virtual bool Test(const int32 Index) const override
+		virtual bool Test(const int32 Index) const override
 		{
 			for (const TSharedPtr<PCGExPointFilter::FFilter>& Filter : ManagedFilters) { if (!Filter->Test(Index)) { return bInvert; } }
 			return !bInvert;
 		}
 
-		FORCEINLINE virtual bool Test(const PCGExCluster::FNode& Node) const override
+		virtual bool Test(const PCGExCluster::FNode& Node) const override
 		{
 			for (const TSharedPtr<PCGExPointFilter::FFilter>& Filter : ManagedFilters) { if (!Filter->Test(Node)) { return bInvert; } }
 			return !bInvert;
 		}
 
-		FORCEINLINE virtual bool Test(const PCGExGraph::FEdge& Edge) const override
+		virtual bool Test(const PCGExGraph::FEdge& Edge) const override
 		{
 			for (const TSharedPtr<PCGExPointFilter::FFilter>& Filter : ManagedFilters) { if (!Filter->Test(Edge)) { return bInvert; } }
 			return !bInvert;
 		}
 
-		FORCEINLINE virtual bool Test(const FPCGPoint& Point) const override
+		virtual bool Test(const FPCGPoint& Point) const override
 		{
 			for (const TSharedPtr<PCGExPointFilter::FFilter>& Filter : ManagedFilters) { if (!Filter->Test(Point)) { return bInvert; } }
 			return !bInvert;
 		}
 
-		FORCEINLINE virtual bool Test(const TSharedPtr<PCGExData::FPointIO>& IO) const override
+		virtual bool Test(const TSharedPtr<PCGExData::FPointIO>& IO) const override
 		{
 			for (const TSharedPtr<PCGExPointFilter::FFilter>& Filter : ManagedFilters) { if (!Filter->Test(IO)) { return bInvert; } }
 			return !bInvert;
@@ -158,31 +158,31 @@ namespace PCGExFilterGroup
 		{
 		}
 
-		FORCEINLINE virtual bool Test(const int32 Index) const override
+		virtual bool Test(const int32 Index) const override
 		{
 			for (const TSharedPtr<PCGExPointFilter::FFilter>& Filter : ManagedFilters) { if (Filter->Test(Index)) { return !bInvert; } }
 			return bInvert;
 		}
 
-		FORCEINLINE virtual bool Test(const PCGExCluster::FNode& Node) const override
+		virtual bool Test(const PCGExCluster::FNode& Node) const override
 		{
 			for (const TSharedPtr<PCGExPointFilter::FFilter>& Filter : ManagedFilters) { if (Filter->Test(Node)) { return !bInvert; } }
 			return bInvert;
 		}
 
-		FORCEINLINE virtual bool Test(const PCGExGraph::FEdge& Edge) const override
+		virtual bool Test(const PCGExGraph::FEdge& Edge) const override
 		{
 			for (const TSharedPtr<PCGExPointFilter::FFilter>& Filter : ManagedFilters) { if (Filter->Test(Edge)) { return !bInvert; } }
 			return bInvert;
 		}
 
-		FORCEINLINE virtual bool Test(const FPCGPoint& Point) const override
+		virtual bool Test(const FPCGPoint& Point) const override
 		{
 			for (const TSharedPtr<PCGExPointFilter::FFilter>& Filter : ManagedFilters) { if (Filter->Test(Point)) { return !bInvert; } }
 			return bInvert;
 		}
 
-		FORCEINLINE virtual bool Test(const TSharedPtr<PCGExData::FPointIO>& IO) const override
+		virtual bool Test(const TSharedPtr<PCGExData::FPointIO>& IO) const override
 		{
 			for (const TSharedPtr<PCGExPointFilter::FFilter>& Filter : ManagedFilters) { if (Filter->Test(IO)) { return !bInvert; } }
 			return bInvert;

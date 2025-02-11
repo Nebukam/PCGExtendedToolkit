@@ -47,6 +47,16 @@ bool PCGExPointFilter::FBitmaskFilter::Init(FPCGExContext* InContext, const TSha
 	return true;
 }
 
+bool PCGExPointFilter::FBitmaskFilter::Test(const int32 PointIndex) const
+{
+	const bool Result = PCGExCompare::Compare(
+		TypedFilterFactory->Config.Comparison,
+		FlagsReader->Read(PointIndex),
+		MaskReader ? MaskReader->Read(PointIndex) : Bitmask);
+
+	return TypedFilterFactory->Config.bInvertResult ? !Result : Result;
+}
+
 PCGEX_CREATE_FILTER_FACTORY(Bitmask)
 
 #if WITH_EDITOR

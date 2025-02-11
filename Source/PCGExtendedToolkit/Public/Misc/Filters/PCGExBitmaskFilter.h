@@ -67,7 +67,7 @@ public:
 
 namespace PCGExPointFilter
 {
-	class /*PCGEXTENDEDTOOLKIT_API*/ FBitmaskFilter final : public PCGExPointFilter::FSimpleFilter
+	class /*PCGEXTENDEDTOOLKIT_API*/ FBitmaskFilter final : public FSimpleFilter
 	{
 	public:
 		explicit FBitmaskFilter(const TObjectPtr<const UPCGExBitmaskFilterFactory>& InDefinition)
@@ -83,17 +83,8 @@ namespace PCGExPointFilter
 		int64 Bitmask;
 
 		virtual bool Init(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade> InPointDataFacade) override;
-
-		FORCEINLINE virtual bool Test(const int32 PointIndex) const override
-		{
-			const bool Result = PCGExCompare::Compare(
-				TypedFilterFactory->Config.Comparison,
-				FlagsReader->Read(PointIndex),
-				MaskReader ? MaskReader->Read(PointIndex) : Bitmask);
-
-			return TypedFilterFactory->Config.bInvertResult ? !Result : Result;
-		}
-
+		virtual bool Test(const int32 PointIndex) const override;
+		
 		virtual ~FBitmaskFilter() override
 		{
 			TypedFilterFactory = nullptr;

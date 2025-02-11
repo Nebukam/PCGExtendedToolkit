@@ -34,14 +34,14 @@ bool FPCGExCherryPickPointsElement::Boot(FPCGExContext* InContext) const
 	}
 
 	Context->PickerOperations.Reserve(Context->PickerFactories.Num());
-	
+
 	for (const TObjectPtr<const UPCGExPickerFactoryData>& PickerFactory : Context->PickerFactories)
 	{
 		UPCGExPickerOperation* Op = PickerFactory->CreateOperation(Context);
 		Op->BindContext(Context);
 		Context->PickerOperations.Add(Op);
-	}	
-	
+	}
+
 	return true;
 }
 
@@ -81,7 +81,7 @@ namespace PCGExCherryPickPoints
 
 		TSet<int32> UniqueIndices;
 
-		for(const UPCGExPickerOperation* Op : Context->PickerOperations)
+		for (const UPCGExPickerOperation* Op : Context->PickerOperations)
 		{
 			Op->AddPicks(PointDataFacade, UniqueIndices);
 		}

@@ -129,10 +129,7 @@ namespace PCGExClusterMT
 			WorkPermit = ExecutionContext->GetWorkPermit();
 		}
 
-		virtual ~FClusterProcessor()
-		{
-			PCGEX_LOG_DTR(FClusterProcessor)
-		}
+		virtual ~FClusterProcessor() = default;
 
 		virtual void RegisterConsumableAttributesWithFacade() const
 		{
@@ -400,10 +397,7 @@ namespace PCGExClusterMT
 			Edges.Append(InEdges);
 		}
 
-		virtual ~FClusterProcessorBatchBase()
-		{
-			PCGEX_LOG_DTR(FClusterProcessorBatchBase)
-		}
+		virtual ~FClusterProcessorBatchBase() = default;
 
 		virtual void SetExecutionContext(FPCGExContext* InContext)
 		{

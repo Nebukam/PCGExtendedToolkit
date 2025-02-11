@@ -83,7 +83,6 @@ enum class EPCGExBitflagComparison : uint8
 	NoMatchFull    = 4 UMETA(DisplayName = "No match (all)", Tooltip="Value & Mask != Mask (Flags does not contains the mask)"),
 };
 
-
 UENUM()
 enum class EPCGExComparisonDataType : uint8
 {
@@ -93,133 +92,12 @@ enum class EPCGExComparisonDataType : uint8
 
 namespace PCGExCompare
 {
-	static FString ToString(const EPCGExComparison Comparison)
-	{
-		switch (Comparison)
-		{
-		case EPCGExComparison::StrictlyEqual:
-			return " == ";
-		case EPCGExComparison::StrictlyNotEqual:
-			return " != ";
-		case EPCGExComparison::EqualOrGreater:
-			return " >= ";
-		case EPCGExComparison::EqualOrSmaller:
-			return " <= ";
-		case EPCGExComparison::StrictlyGreater:
-			return " > ";
-		case EPCGExComparison::StrictlySmaller:
-			return " < ";
-		case EPCGExComparison::NearlyEqual:
-			return " ~= ";
-		case EPCGExComparison::NearlyNotEqual:
-			return " !~= ";
-		default: return " ?? ";
-		}
-	}
+	FString ToString(const EPCGExComparison Comparison);
+	FString ToString(const EPCGExBitflagComparison Comparison);
+	FString ToString(const EPCGExStringComparison Comparison);
+	FString ToString(const EPCGExStringMatchMode MatchMode);
 
-	static FString ToString(const EPCGExBitflagComparison Comparison)
-	{
-		switch (Comparison)
-		{
-		case EPCGExBitflagComparison::MatchPartial:
-			return " Any ";
-		case EPCGExBitflagComparison::MatchFull:
-			return " All ";
-		case EPCGExBitflagComparison::MatchStrict:
-			return " Exactly ";
-		case EPCGExBitflagComparison::NoMatchPartial:
-			return " Not Any ";
-		case EPCGExBitflagComparison::NoMatchFull:
-			return " Not All ";
-		default:
-			return " ?? ";
-		}
-	}
-
-	static FString ToString(const EPCGExStringComparison Comparison)
-	{
-		switch (Comparison)
-		{
-		case EPCGExStringComparison::StrictlyEqual:
-			return " == ";
-		case EPCGExStringComparison::StrictlyNotEqual:
-			return " != ";
-		case EPCGExStringComparison::LengthStrictlyEqual:
-			return " L == L ";
-		case EPCGExStringComparison::LengthStrictlyUnequal:
-			return " L != L ";
-		case EPCGExStringComparison::LengthEqualOrGreater:
-			return " L >= L ";
-		case EPCGExStringComparison::LengthEqualOrSmaller:
-			return " L <= L ";
-		case EPCGExStringComparison::StrictlyGreater:
-			return " L > L ";
-		case EPCGExStringComparison::StrictlySmaller:
-			return " L < L ";
-		case EPCGExStringComparison::LocaleStrictlyGreater:
-			return " > ";
-		case EPCGExStringComparison::LocaleStrictlySmaller:
-			return " < ";
-		case EPCGExStringComparison::Contains:
-			return " contains ";
-		case EPCGExStringComparison::StartsWith:
-			return " starts with ";
-		case EPCGExStringComparison::EndsWith:
-			return " ends with ";
-		default: return " ?? ";
-		}
-	}
-
-	static FString ToString(const EPCGExStringMatchMode MatchMode)
-	{
-		switch (MatchMode)
-		{
-		case EPCGExStringMatchMode::Equals:
-			return " == ";
-		case EPCGExStringMatchMode::Contains:
-			return " contains ";
-		case EPCGExStringMatchMode::StartsWith:
-			return " starts w ";
-		case EPCGExStringMatchMode::EndsWith:
-			return " ends w ";
-		default: return " ?? ";
-		}
-	}
-
-	FORCEINLINE static bool Compare(const EPCGExStringComparison Method, const FString& A, const FString& B)
-	{
-		switch (Method)
-		{
-		case EPCGExStringComparison::StrictlyEqual:
-			return A == B;
-		case EPCGExStringComparison::StrictlyNotEqual:
-			return A != B;
-		case EPCGExStringComparison::LengthStrictlyEqual:
-			return A.Len() == B.Len();
-		case EPCGExStringComparison::LengthStrictlyUnequal:
-			return A.Len() != B.Len();
-		case EPCGExStringComparison::LengthEqualOrGreater:
-			return A.Len() >= B.Len();
-		case EPCGExStringComparison::LengthEqualOrSmaller:
-			return A.Len() <= B.Len();
-		case EPCGExStringComparison::StrictlyGreater:
-			return A.Len() > B.Len();
-		case EPCGExStringComparison::StrictlySmaller:
-			return A.Len() < B.Len();
-		case EPCGExStringComparison::LocaleStrictlyGreater:
-			return A > B;
-		case EPCGExStringComparison::LocaleStrictlySmaller:
-			return A < B;
-		case EPCGExStringComparison::Contains:
-			return A.Contains(B);
-		case EPCGExStringComparison::StartsWith:
-			return A.StartsWith(B);
-		case EPCGExStringComparison::EndsWith:
-			return A.EndsWith(B);
-		default:
-			return false;
-		}
-	}
+	bool Compare(const EPCGExStringComparison Method, const FString& A, const FString& B);
 
 #pragma region Numeric comparisons ops
 
@@ -506,102 +384,12 @@ namespace PCGExCompare
 		}
 	}
 
-	FORCEINLINE static bool Compare(const EPCGExComparison Method, const TSharedPtr<PCGExData::FTagValue>& A, const double B, const double Tolerance = DBL_COMPARE_TOLERANCE)
-	{
-		if (!A->IsNumeric()) { return false; }
-		return Compare(Method, A->AsDouble(), B, Tolerance);
-	}
+	bool Compare(const EPCGExComparison Method, const TSharedPtr<PCGExData::FTagValue>& A, const double B, const double Tolerance = DBL_COMPARE_TOLERANCE);
+	bool Compare(const EPCGExStringComparison Method, const TSharedPtr<PCGExData::FTagValue>& A, const FString B);
+	bool Compare(const EPCGExBitflagComparison Method, const int64& Flags, const int64& Mask);
 
-	FORCEINLINE static bool Compare(const EPCGExStringComparison Method, const TSharedPtr<PCGExData::FTagValue>& A, const FString B)
-	{
-		if (!A->IsText()) { return false; }
-		return Compare(Method, A->AsString(), B);
-	}
-
-	FORCEINLINE static bool Compare(const EPCGExBitflagComparison Method, const int64& Flags, const int64& Mask)
-	{
-		switch (Method)
-		{
-		case EPCGExBitflagComparison::MatchPartial:
-			return ((Flags & Mask) != 0);
-		case EPCGExBitflagComparison::MatchFull:
-			return ((Flags & Mask) == Mask);
-		case EPCGExBitflagComparison::MatchStrict:
-			return (Flags == Mask);
-		case EPCGExBitflagComparison::NoMatchPartial:
-			return ((Flags & Mask) == 0);
-		case EPCGExBitflagComparison::NoMatchFull:
-			return ((Flags & Mask) != Mask);
-		default: return false;
-		}
-	}
-
-	static bool HasMatchingTags(const TSharedPtr<PCGExData::FTags>& InTags, const FString& Query, const EPCGExStringMatchMode MatchMode)
-	{
-		for (const TPair<FString, TSharedPtr<PCGExData::FTagValue>>& Pair : InTags->ValueTags)
-		{
-			switch (MatchMode)
-			{
-			case EPCGExStringMatchMode::Equals:
-				if (Pair.Key == Query) { return true; }
-				break;
-			case EPCGExStringMatchMode::Contains:
-				if (Pair.Key.Contains(Query)) { return true; }
-				break;
-			case EPCGExStringMatchMode::StartsWith:
-				if (Pair.Key.StartsWith(Query)) { return true; }
-				break;
-			case EPCGExStringMatchMode::EndsWith:
-				if (Pair.Key.EndsWith(Query)) { return true; }
-				break;
-			}
-		}
-
-		for (const FString& Tag : InTags->RawTags)
-		{
-			switch (MatchMode)
-			{
-			case EPCGExStringMatchMode::Equals:
-				if (Tag == Query) { return true; }
-				break;
-			case EPCGExStringMatchMode::Contains:
-				if (Tag.Contains(Query)) { return true; }
-				break;
-			case EPCGExStringMatchMode::StartsWith:
-				if (Tag.StartsWith(Query)) { return true; }
-				break;
-			case EPCGExStringMatchMode::EndsWith:
-				if (Tag.EndsWith(Query)) { return true; }
-				break;
-			}
-		}
-
-		return false;
-	}
-
-	static bool GetMatchingValueTags(const TSharedPtr<PCGExData::FTags>& InTags, const FString& Query, const EPCGExStringMatchMode MatchMode, TArray<TSharedPtr<PCGExData::FTagValue>>& OutValues)
-	{
-		for (const TPair<FString, TSharedPtr<PCGExData::FTagValue>>& Pair : InTags->ValueTags)
-		{
-			switch (MatchMode)
-			{
-			case EPCGExStringMatchMode::Equals:
-				if (Pair.Key == Query) { OutValues.Add(Pair.Value); }
-				break;
-			case EPCGExStringMatchMode::Contains:
-				if (Pair.Key.Contains(Query)) { OutValues.Add(Pair.Value); }
-				break;
-			case EPCGExStringMatchMode::StartsWith:
-				if (Pair.Key.StartsWith(Query)) { OutValues.Add(Pair.Value); }
-				break;
-			case EPCGExStringMatchMode::EndsWith:
-				if (Pair.Key.EndsWith(Query)) { OutValues.Add(Pair.Value); }
-				break;
-			}
-		}
-
-		return !OutValues.IsEmpty();
-	}
+	bool HasMatchingTags(const TSharedPtr<PCGExData::FTags>& InTags, const FString& Query, const EPCGExStringMatchMode MatchMode);
+	bool GetMatchingValueTags(const TSharedPtr<PCGExData::FTags>& InTags, const FString& Query, const EPCGExStringMatchMode MatchMode, TArray<TSharedPtr<PCGExData::FTagValue>>& OutValues);
 }
 
 USTRUCT(BlueprintType)
@@ -669,28 +457,8 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExVectorHashComparisonDetails
 	bool bUseLocalTolerance = false;
 	TSharedPtr<PCGExData::TBuffer<double>> LocalOperand;
 
-	bool Init(const FPCGContext* InContext, const TSharedRef<PCGExData::FFacade>& InPrimaryDataFacade)
-	{
-		bUseLocalTolerance = HashToleranceInput == EPCGExInputValueType::Attribute;
-
-		if (bUseLocalTolerance)
-		{
-			LocalOperand = InPrimaryDataFacade->GetBroadcaster<double>(HashToleranceAttribute);
-			if (!LocalOperand)
-			{
-				PCGE_LOG_C(Error, GraphAndLog, InContext, FText::Format(FTEXT("Invalid Hash Tolerance attribute: \"{0}\"."), FText::FromName(HashToleranceAttribute.GetName())));
-				return false;
-			}
-		}
-
-		CWTolerance = FVector(1 / HashToleranceConstant);
-		return true;
-	}
-
-	FVector GetCWTolerance(const int32 PointIndex) const
-	{
-		return bUseLocalTolerance ? FVector(1 / LocalOperand->Read(PointIndex)) : CWTolerance;
-	}
+	bool Init(const FPCGContext* InContext, const TSharedRef<PCGExData::FFacade>& InPrimaryDataFacade);
+	FVector GetCWTolerance(const int32 PointIndex) const;
 };
 
 USTRUCT(BlueprintType)
@@ -743,57 +511,12 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExDotComparisonDetails
 	double ComparisonThreshold = 0;
 	TSharedPtr<PCGExData::TBuffer<double>> ThresholdGetter;
 
-	bool Init(const FPCGContext* InContext, const TSharedRef<PCGExData::FFacade>& InPrimaryDataCache)
-	{
-		bUseAttribute = ThresholdInput == EPCGExInputValueType::Attribute;
+	bool Init(const FPCGContext* InContext, const TSharedRef<PCGExData::FFacade>& InPrimaryDataCache);
 
-		if (bUseAttribute)
-		{
-			ThresholdGetter = InPrimaryDataCache->GetBroadcaster<double>(ThresholdAttribute);
-			if (!ThresholdGetter)
-			{
-				PCGE_LOG_C(Error, GraphAndLog, InContext, FText::Format(FTEXT("Invalid Dot attribute: \"{0}\"."), FText::FromName(ThresholdAttribute.GetName())));
-				return false;
-			}
-		}
+	double GetComparisonThreshold(const int32 PointIndex) const;
 
-		if (Domain == EPCGExAngularDomain::Degrees)
-		{
-			ComparisonThreshold = PCGExMath::DegreesToDot(DegreesConstant);
-			ComparisonTolerance = PCGExMath::DegreesToDot(DegreesTolerance);
-		}
-		else
-		{
-			ComparisonThreshold = DotConstant;
-			ComparisonTolerance = DotTolerance;
-		}
-
-		return true;
-	}
-
-	double GetComparisonThreshold(const int32 PointIndex) const
-	{
-		if (ThresholdGetter)
-		{
-			if (Domain == EPCGExAngularDomain::Amplitude) { return ThresholdGetter->Read(PointIndex); }
-			return PCGExMath::DegreesToDot(ThresholdGetter->Read(PointIndex) * 0.5);
-		}
-		return ComparisonThreshold;
-	}
-
-	bool Test(const double A, const double B) const
-	{
-		return bUnsignedComparison ?
-			       PCGExCompare::Compare(Comparison, FMath::Abs(A), FMath::Abs(B), ComparisonTolerance) :
-			       PCGExCompare::Compare(Comparison, A, B, ComparisonTolerance);
-	}
-
-	bool Test(const double A, const int32 Index) const
-	{
-		return bUnsignedComparison ?
-			       PCGExCompare::Compare(Comparison, FMath::Abs(A), FMath::Abs(GetComparisonThreshold(Index)), ComparisonTolerance) :
-			       PCGExCompare::Compare(Comparison, A, GetComparisonThreshold(Index), ComparisonTolerance);
-	}
+	bool Test(const double A, const double B) const;
+	bool Test(const double A, const int32 Index) const;
 };
 
 USTRUCT(BlueprintType)
@@ -848,74 +571,10 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExAttributeToTagComparisonDetails
 	TSharedPtr<PCGEx::TAttributeBroadcaster<double>> NumericValueGetter;
 	TSharedPtr<PCGEx::TAttributeBroadcaster<FString>> StringValueGetter;
 
-	bool Init(const FPCGContext* InContext, const TSharedRef<PCGExData::FFacade>& InSourceDataFacade)
-	{
-		if (TagNameInput == EPCGExInputValueType::Attribute)
-		{
-			TagNameGetter = MakeShared<PCGEx::TAttributeBroadcaster<FString>>();
-			if (!TagNameGetter->Prepare(ValueAttribute, InSourceDataFacade->Source))
-			{
-				PCGE_LOG_C(Error, GraphAndLog, InContext, FTEXT("Invalid tag name attribute."));
-				return false;
-			}
-		}
+	bool Init(const FPCGContext* InContext, const TSharedRef<PCGExData::FFacade>& InSourceDataFacade);
 
-		if (!bDoValueMatch) { return true; }
-
-		switch (ValueType)
-		{
-		case EPCGExComparisonDataType::Numeric:
-			NumericValueGetter = MakeShared<PCGEx::TAttributeBroadcaster<double>>();
-			if (!NumericValueGetter->Prepare(ValueAttribute, InSourceDataFacade->Source))
-			{
-				PCGE_LOG_C(Error, GraphAndLog, InContext, FTEXT("Invalid tag value attribute."));
-				return false;
-			}
-			break;
-		case EPCGExComparisonDataType::String:
-			StringValueGetter = MakeShared<PCGEx::TAttributeBroadcaster<FString>>();
-			if (!StringValueGetter->Prepare(ValueAttribute, InSourceDataFacade->Source))
-			{
-				PCGE_LOG_C(Error, GraphAndLog, InContext, FTEXT("Invalid tag value attribute."));
-				return false;
-			}
-			break;
-		}
-
-		return true;
-	}
-
-	bool Test(const TSharedPtr<PCGExData::FTags>& InTags, const int32 SourceIndex, const FPCGPoint& SourcePoint) const
-	{
-		const FString TestTagName = TagNameGetter ? TagNameGetter->SoftGet(SourceIndex, SourcePoint, TEXT("")) : TagName;
-
-		TArray<TSharedPtr<PCGExData::FTagValue>> TagValues;
-		if (!PCGExCompare::GetMatchingValueTags(InTags, TestTagName, NameMatch, TagValues)) { return false; }
-
-		if (ValueType == EPCGExComparisonDataType::Numeric)
-		{
-			double B = NumericValueGetter->SoftGet(SourceIndex, SourcePoint, 0);
-			for (const TSharedPtr<PCGExData::FTagValue>& TagValue : TagValues)
-			{
-				if (!PCGExCompare::Compare(NumericComparison, TagValue, B, Tolerance)) { return false; }
-			}
-		}
-		else
-		{
-			FString B = StringValueGetter->SoftGet(SourceIndex, SourcePoint, TEXT(""));
-			for (const TSharedPtr<PCGExData::FTagValue>& TagValue : TagValues)
-			{
-				if (!PCGExCompare::Compare(StringComparison, TagValue, B)) { return false; }
-			}
-		}
-
-		return true;
-	}
-
-	FORCEINLINE bool Test(const TSharedPtr<PCGExData::FTags>& InTags, const PCGExData::FPointRef& SourcePointRef) const
-	{
-		return Test(InTags, SourcePointRef.Index, *SourcePointRef.Point);
-	}
+	bool Test(const TSharedPtr<PCGExData::FTags>& InTags, const int32 SourceIndex, const FPCGPoint& SourcePoint) const;
+	bool Test(const TSharedPtr<PCGExData::FTags>& InTags, const PCGExData::FPointRef& SourcePointRef) const;
 };
 
 UENUM()
@@ -1237,54 +896,8 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExBitmask
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable, Bitmask, BitmaskEnum="/Script/PCGExtendedToolkit.EPCGExBitmask8_56_64", DisplayName="56-64 Bits", EditCondition="Mode==EPCGExBitmaskMode::Composite", EditConditionHides))
 	uint8 Range_56_64 = 0;
 
-	int64 Get() const
-	{
-		int64 Mask = 0;
-
-		if (Mode == EPCGExBitmaskMode::Direct) { return Bitmask; }
-
-		if (Mode == EPCGExBitmaskMode::Individual)
-		{
-			for (const FClampedBit& Bit : Bits) { if (Bit.bValue) { Mask |= (1LL << Bit.BitIndex); } }
-		}
-		else
-		{
-			Mask |= static_cast<int64>(Range_00_08) << 0;
-			Mask |= static_cast<int64>(Range_08_16) << 8;
-			Mask |= static_cast<int64>(Range_16_24) << 16;
-			Mask |= static_cast<int64>(Range_24_32) << 24;
-			Mask |= static_cast<int64>(Range_32_40) << 32;
-			Mask |= static_cast<int64>(Range_40_48) << 40;
-			Mask |= static_cast<int64>(Range_48_56) << 48;
-			Mask |= static_cast<int64>(Range_56_64) << 56;
-		}
-
-		return Mask;
-	}
-
-	void DoOperation(const EPCGExBitOp Op, int64& Flags) const
-	{
-		const int64 Mask = Get();
-		switch (Op)
-		{
-		case EPCGExBitOp::Set:
-			Flags = Mask;
-			break;
-		case EPCGExBitOp::AND:
-			Flags &= Mask;
-			break;
-		case EPCGExBitOp::OR:
-			Flags |= Mask;
-			break;
-		case EPCGExBitOp::NOT:
-			Flags &= ~Mask;
-			break;
-		case EPCGExBitOp::XOR:
-			Flags ^= Mask;
-			break;
-		default: ;
-		}
-	}
+	int64 Get() const;
+	void DoOperation(const EPCGExBitOp Op, int64& Flags) const;
 };
 
 USTRUCT(BlueprintType)
@@ -1332,87 +945,8 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExBitmaskWithOperation
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable, Bitmask, BitmaskEnum="/Script/PCGExtendedToolkit.EPCGExBitmask8_56_64", DisplayName="56-64 Bits", EditCondition="Mode==EPCGExBitmaskMode::Composite", EditConditionHides))
 	uint8 Range_56_64 = 0;
 
-	int64 Get() const
-	{
-		int64 Mask = 0;
-
-		switch (Mode)
-		{
-		case EPCGExBitmaskMode::Direct:
-			Mask = Bitmask;
-			break;
-		case EPCGExBitmaskMode::Individual:
-			for (const FClampedBitOp& Bit : Bits) { if (Bit.bValue) { Mask |= (1LL << Bit.BitIndex); } }
-			break;
-		case EPCGExBitmaskMode::Composite:
-			Mask |= static_cast<int64>(Range_00_08) << 0;
-			Mask |= static_cast<int64>(Range_08_16) << 8;
-			Mask |= static_cast<int64>(Range_16_24) << 16;
-			Mask |= static_cast<int64>(Range_24_32) << 24;
-			Mask |= static_cast<int64>(Range_32_40) << 32;
-			Mask |= static_cast<int64>(Range_40_48) << 40;
-			Mask |= static_cast<int64>(Range_48_56) << 48;
-			Mask |= static_cast<int64>(Range_56_64) << 56;
-			break;
-		default: ;
-		}
-
-		return Mask;
-	}
-
-	void DoOperation(int64& Flags) const
-	{
-		if (Mode == EPCGExBitmaskMode::Individual)
-		{
-			for (const FClampedBitOp& BitOp : Bits)
-			{
-				const int64 Bit = BitOp.Get();
-				switch (BitOp.Op)
-				{
-				case EPCGExBitOp::Set:
-					if (BitOp.bValue) { Flags |= Bit; } // Set the bit
-					else { Flags &= Bit; }              // Clear the bit
-					break;
-				case EPCGExBitOp::AND:
-					Flags &= Bit;
-					break;
-				case EPCGExBitOp::OR:
-					Flags |= Bit;
-					break;
-				case EPCGExBitOp::NOT:
-					Flags &= ~Bit;
-					break;
-				case EPCGExBitOp::XOR:
-					Flags ^= Bit;
-					break;
-				default: ;
-				}
-			}
-			return;
-		}
-
-		const int64 Mask = Get();
-
-		switch (Op)
-		{
-		case EPCGExBitOp::Set:
-			Flags = Mask;
-			break;
-		case EPCGExBitOp::AND:
-			Flags &= Mask;
-			break;
-		case EPCGExBitOp::OR:
-			Flags |= Mask;
-			break;
-		case EPCGExBitOp::NOT:
-			Flags &= ~Mask;
-			break;
-		case EPCGExBitOp::XOR:
-			Flags ^= Mask;
-			break;
-		default: ;
-		}
-	}
+	int64 Get() const;
+	void DoOperation(int64& Flags) const;
 };
 
 #undef PCGEX_UNSUPPORTED_STRING_TYPES
