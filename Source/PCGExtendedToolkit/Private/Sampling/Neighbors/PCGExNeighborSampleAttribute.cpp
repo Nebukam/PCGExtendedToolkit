@@ -60,6 +60,29 @@ void UPCGExNeighborSampleAttribute::PrepareForCluster(FPCGExContext* InContext, 
 	bIsValidOperation = true;
 }
 
+void UPCGExNeighborSampleAttribute::PrepareNode(const PCGExCluster::FNode& TargetNode) const
+{
+	Blender->PrepareForBlending(TargetNode.PointIndex);
+}
+
+void UPCGExNeighborSampleAttribute::SampleNeighborNode(const PCGExCluster::FNode& TargetNode, const PCGExGraph::FLink Lk, const double Weight)
+{
+	const int32 PrimaryIndex = TargetNode.PointIndex;
+	Blender->Blend(PrimaryIndex, Cluster->GetNode(Lk)->PointIndex, PrimaryIndex, Weight);
+}
+
+void UPCGExNeighborSampleAttribute::SampleNeighborEdge(const PCGExCluster::FNode& TargetNode, const PCGExGraph::FLink Lk, const double Weight)
+{
+	const int32 PrimaryIndex = TargetNode.PointIndex;
+	Blender->Blend(PrimaryIndex, Cluster->GetEdge(Lk)->PointIndex, PrimaryIndex, Weight);
+}
+
+void UPCGExNeighborSampleAttribute::FinalizeNode(const PCGExCluster::FNode& TargetNode, const int32 Count, const double TotalWeight)
+{
+	const int32 PrimaryIndex = TargetNode.PointIndex;
+	Blender->CompleteBlending(PrimaryIndex, Count, TotalWeight);
+}
+
 void UPCGExNeighborSampleAttribute::CompleteOperation()
 {
 	Super::CompleteOperation();

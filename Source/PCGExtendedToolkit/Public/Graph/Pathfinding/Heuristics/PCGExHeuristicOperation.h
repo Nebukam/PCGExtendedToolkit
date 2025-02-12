@@ -35,32 +35,22 @@ public:
 
 	virtual void PrepareForCluster(const TSharedPtr<const PCGExCluster::FCluster>& InCluster);
 
-	FORCEINLINE virtual double GetGlobalScore(
+	virtual double GetGlobalScore(
 		const PCGExCluster::FNode& From,
 		const PCGExCluster::FNode& Seed,
-		const PCGExCluster::FNode& Goal) const
-	{
-		return GetScoreInternal(0);
-	}
+		const PCGExCluster::FNode& Goal) const;
 
-	FORCEINLINE virtual double GetEdgeScore(
+
+	virtual double GetEdgeScore(
 		const PCGExCluster::FNode& From,
 		const PCGExCluster::FNode& To,
 		const PCGExGraph::FEdge& Edge,
 		const PCGExCluster::FNode& Seed,
 		const PCGExCluster::FNode& Goal,
-		const TSharedPtr<PCGEx::FHashLookup> TravelStack = nullptr) const
-	{
-		return GetScoreInternal(0);
-	}
+		const TSharedPtr<PCGEx::FHashLookup> TravelStack = nullptr) const;
 
-	FORCEINLINE double GetCustomWeightMultiplier(const int32 PointIndex, const int32 EdgeIndex) const
-	{
-		//TODO Rewrite this
-		if (!bUseLocalWeightMultiplier || LocalWeightMultiplier.IsEmpty()) { return 1; }
-		return FMath::Abs(LocalWeightMultiplier[LocalWeightMultiplierSource == EPCGExClusterComponentSource::Vtx ? PointIndex : EdgeIndex]);
-	}
 
+	double GetCustomWeightMultiplier(const int32 PointIndex, const int32 EdgeIndex) const;
 
 	FORCEINLINE FVector GetSeedUVW() const { return UVWSeed; }
 	FORCEINLINE FVector GetGoalUVW() const { return UVWGoal; }
@@ -68,19 +58,11 @@ public:
 	FORCEINLINE const PCGExCluster::FNode* GetRoamingSeed() const { return Cluster->GetRoamingNode(UVWSeed); }
 	FORCEINLINE const PCGExCluster::FNode* GetRoamingGoal() const { return Cluster->GetRoamingNode(UVWGoal); }
 
-	virtual void Cleanup() override
-	{
-		Cluster = nullptr;
-		LocalWeightMultiplier.Empty();
-		Super::Cleanup();
-	}
+	virtual void Cleanup() override;
 
 protected:
 	TSharedPtr<const PCGExCluster::FCluster> Cluster;
 	TArray<double> LocalWeightMultiplier;
 
-	FORCEINLINE virtual double GetScoreInternal(const double InTime) const
-	{
-		return FMath::Max(0, ScoreCurve->Eval(bInvert ? 1 - InTime : InTime)) * ReferenceWeight;
-	}
+	virtual double GetScoreInternal(const double InTime) const;
 };

@@ -5,6 +5,8 @@
 
 #include "PCGExPointsProcessor.h"
 #include "PCGExSubSystem.h"
+
+
 #include "Misc/PCGExSortPoints.h"
 
 
@@ -73,7 +75,7 @@ namespace PCGExDestroyActors
 	{
 	}
 
-	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager> InAsyncManager)
+	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExDestroyActors::Process);
 

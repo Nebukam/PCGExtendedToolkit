@@ -5,6 +5,7 @@
 
 #include "PCGExDataMath.h"
 
+
 #define LOCTEXT_NAMESPACE "PCGExResamplePathElement"
 #define PCGEX_NAMESPACE ResamplePath
 
@@ -57,7 +58,7 @@ bool FPCGExResamplePathElement::ExecuteInternal(FPCGContext* InContext) const
 
 namespace PCGExResamplePath
 {
-	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager> InAsyncManager)
+	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExResamplePath::Process);
 

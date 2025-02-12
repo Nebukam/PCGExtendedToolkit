@@ -141,6 +141,22 @@ void UPCGExNeighborSampleOperation::ProcessNode(const int32 NodeIndex)
 	FinalizeNode(Node, Count, TotalWeight);
 }
 
+void UPCGExNeighborSampleOperation::PrepareNode(const PCGExCluster::FNode& TargetNode) const
+{
+}
+
+void UPCGExNeighborSampleOperation::SampleNeighborNode(const PCGExCluster::FNode& TargetNode, const PCGExGraph::FLink Lk, const double Weight)
+{
+}
+
+void UPCGExNeighborSampleOperation::SampleNeighborEdge(const PCGExCluster::FNode& TargetNode, const PCGExGraph::FLink Lk, const double Weight)
+{
+}
+
+void UPCGExNeighborSampleOperation::FinalizeNode(const PCGExCluster::FNode& TargetNode, const int32 Count, const double TotalWeight)
+{
+}
+
 void UPCGExNeighborSampleOperation::CompleteOperation()
 {
 }

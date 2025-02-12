@@ -154,7 +154,7 @@ protected:
 	TSharedPtr<PCGExData::TBuffer<double>> EdgeLengthBuffer;
 	TSharedPtr<TArray<double>> EdgeLengths;
 
-	FORCEINLINE void ApplyForces(const int32 AddIndex, const int32 SubtractIndex, const FVector& Delta)
+	void ApplyForces(const int32 AddIndex, const int32 SubtractIndex, const FVector& Delta)
 	{
 		FPlatformAtomics::InterlockedAdd(&Forces[AddIndex].X, Delta.X);
 		FPlatformAtomics::InterlockedAdd(&Forces[AddIndex].Y, Delta.Y);

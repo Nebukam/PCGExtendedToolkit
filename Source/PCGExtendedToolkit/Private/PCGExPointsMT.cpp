@@ -3,6 +3,7 @@
 
 #include "PCGExPointsMT.h"
 
+
 namespace PCGExPointsMT
 {
 	FPointsProcessor::FPointsProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade)
@@ -47,7 +48,7 @@ namespace PCGExPointsMT
 		InternalFacadePreloader->StartLoading(AsyncManager, PointDataFacade, InPrefetchDataTaskGroup);
 	}
 
-	bool FPointsProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager> InAsyncManager)
+	bool FPointsProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager)
 	{
 		AsyncManager = InAsyncManager;
 		PCGEX_ASYNC_CHKD(AsyncManager)

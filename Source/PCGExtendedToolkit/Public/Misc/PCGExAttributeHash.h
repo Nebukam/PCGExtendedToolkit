@@ -7,6 +7,8 @@
 #include "PCGExGlobalSettings.h"
 #include "PCGExPointsProcessor.h"
 #include "Data/PCGExAttributeHasher.h"
+
+
 #include "PCGExAttributeHash.generated.h"
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc")
@@ -84,7 +86,7 @@ namespace PCGExAttributeHash
 		{
 		}
 
-		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager> InAsyncManager) override;
+		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager) override;
 		virtual void CompleteWork() override;
 	};
 }

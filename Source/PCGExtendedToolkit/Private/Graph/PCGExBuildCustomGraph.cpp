@@ -21,6 +21,14 @@ void UPCGExCustomGraphSettings::InitializeSettings_Implementation(const FPCGCont
 {
 }
 
+int32 UPCGExCustomGraphSettings::GetOrCreateNode(const int64 InIdx)
+{
+	if (const int32* IndexPtr = IdxMap.Find(InIdx)) { return *IndexPtr; }
+	const int32 Index = Idx.Add(InIdx);
+	IdxMap.Add(InIdx, Index);
+	return Index;
+}
+
 void UPCGExCustomGraphSettings::AddEdge(const int64 InStartIdx, const int64 InEndIdx)
 {
 	if (InStartIdx == InEndIdx) { return; }

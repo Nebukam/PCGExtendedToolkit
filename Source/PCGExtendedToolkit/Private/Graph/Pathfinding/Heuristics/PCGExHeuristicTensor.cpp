@@ -16,6 +16,34 @@ void UPCGExHeuristicTensor::PrepareForCluster(const TSharedPtr<const PCGExCluste
 	TensorsHandler->Init(Context, *TensorFactories, PrimaryDataFacade);
 }
 
+double UPCGExHeuristicTensor::GetGlobalScore(
+	const PCGExCluster::FNode& From,
+	const PCGExCluster::FNode& Seed,
+	const PCGExCluster::FNode& Goal) const
+{
+	return GetScoreInternal(GetDot(Cluster->GetPos(From), Cluster->GetPos(Goal)));
+}
+
+double UPCGExHeuristicTensor::GetEdgeScore(
+	const PCGExCluster::FNode& From,
+	const PCGExCluster::FNode& To,
+	const PCGExGraph::FEdge& Edge,
+	const PCGExCluster::FNode& Seed,
+	const PCGExCluster::FNode& Goal,
+	const TSharedPtr<PCGEx::FHashLookup> TravelStack) const
+{
+	return GetScoreInternal(GetDot(Cluster->GetPos(From), Cluster->GetPos(To)));
+}
+
+double UPCGExHeuristicTensor::GetDot(const FVector& From, const FVector& To) const
+{
+	bool bSuccess = false;
+	const PCGExTensor::FTensorSample Sample = TensorsHandler->Sample(FTransform(FRotationMatrix::MakeFromX((To - From).GetSafeNormal()).ToQuat(), From), bSuccess);
+	if (!bSuccess) { return 0; }
+	const double Dot = FVector::DotProduct((To - From).GetSafeNormal(), Sample.DirectionAndSize.GetSafeNormal());
+	return bAbsoluteTensor ? 1 - FMath::Abs(Dot) : 1 - PCGExMath::Remap(Dot, -1, 1);
+}
+
 UPCGExHeuristicOperation* UPCGExHeuristicsFactoryTensor::CreateOperation(FPCGExContext* InContext) const
 {
 	UPCGExHeuristicTensor* NewOperation = InContext->ManagedObjects->New<UPCGExHeuristicTensor>();

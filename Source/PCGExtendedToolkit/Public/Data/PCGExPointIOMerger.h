@@ -18,24 +18,10 @@ namespace PCGExPointIOMerger
 		const FPCGMetadataAttributeBase* Attribute = nullptr;
 		bool bInitDefault = false;
 
-		FIdentityRef() : FAttributeIdentity()
-		{
-		};
-
-		FIdentityRef(const FIdentityRef& Other)
-			: FAttributeIdentity(Other)
-		{
-		}
-
-		FIdentityRef(const FAttributeIdentity& Other)
-			: FAttributeIdentity(Other)
-		{
-		}
-
-		FIdentityRef(const FName InName, const EPCGMetadataTypes InUnderlyingType, const bool InAllowsInterpolation)
-			: FAttributeIdentity(InName, InUnderlyingType, InAllowsInterpolation)
-		{
-		}
+		FIdentityRef();
+		FIdentityRef(const FIdentityRef& Other);
+		FIdentityRef(const FAttributeIdentity& Other);
+		FIdentityRef(const FName InName, const EPCGMetadataTypes InUnderlyingType, const bool InAllowsInterpolation);
 	};
 }
 
@@ -82,13 +68,7 @@ namespace PCGExPointIOMerger
 	class /*PCGEXTENDEDTOOLKIT_API*/ FCopyAttributeTask final : public PCGExMT::FPCGExIndexedTask
 	{
 	public:
-		FCopyAttributeTask(
-			const int32 InTaskIndex,
-			const TSharedPtr<FPCGExPointIOMerger>& InMerger)
-			: FPCGExIndexedTask(InTaskIndex),
-			  Merger(InMerger)
-		{
-		}
+		FCopyAttributeTask(const int32 InTaskIndex, const TSharedPtr<FPCGExPointIOMerger>& InMerger);
 
 		TSharedPtr<FPCGExPointIOMerger> Merger;
 		virtual void ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager) override;

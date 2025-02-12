@@ -7,6 +7,7 @@
 #include "Data/PCGExData.h"
 #include "Data/PCGExPointFilter.h"
 
+
 #define PCGEX_FOREACH_STAT(MACRO, _TYPE)\
 MACRO(Identifier, FString, TEXT("None"))\
 MACRO(DefaultValue, _TYPE, _TYPE{})\
@@ -169,7 +170,7 @@ namespace PCGExAttributeStats
 	{
 	}
 
-	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager> InAsyncManager)
+	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExAttributeStats::Process);
 

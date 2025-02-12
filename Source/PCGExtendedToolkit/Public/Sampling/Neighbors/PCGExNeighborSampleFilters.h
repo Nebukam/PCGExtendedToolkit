@@ -111,60 +111,11 @@ public:
 	virtual void CopySettingsFrom(const UPCGExOperation* Other) override;
 
 	virtual void PrepareForCluster(FPCGExContext* InContext, TSharedRef<PCGExCluster::FCluster> InCluster, TSharedRef<PCGExData::FFacade> InVtxDataFacade, TSharedRef<PCGExData::FFacade> InEdgeDataFacade) override;
+	virtual void PrepareNode(const PCGExCluster::FNode& TargetNode) const override;
 
-	FORCEINLINE virtual void PrepareNode(const PCGExCluster::FNode& TargetNode) const override
-	{
-	}
-
-	FORCEINLINE virtual void SampleNeighborNode(const PCGExCluster::FNode& TargetNode, const PCGExGraph::FLink Lk, const double Weight) override
-	{
-		if (FilterManager->Test(*Cluster->GetNode(Lk)))
-		{
-			Inside[TargetNode.Index] += 1;
-			InsideWeight[TargetNode.Index] += Weight;
-		}
-		else
-		{
-			Outside[TargetNode.Index] += 1;
-			OutsideWeight[TargetNode.Index] += Weight;
-		}
-	}
-
-	FORCEINLINE virtual void SampleNeighborEdge(const PCGExCluster::FNode& TargetNode, const PCGExGraph::FLink Lk, const double Weight) override
-	{
-		if (FilterManager->Test(*Cluster->GetEdge(Lk)))
-		{
-			Inside[TargetNode.Index] += 1;
-			InsideWeight[TargetNode.Index] += Weight;
-		}
-		else
-		{
-			Outside[TargetNode.Index] += 1;
-			OutsideWeight[TargetNode.Index] += Weight;
-		}
-	}
-
-	FORCEINLINE virtual void FinalizeNode(const PCGExCluster::FNode& TargetNode, const int32 Count, const double TotalWeight) override
-	{
-		const int32 WriteIndex = TargetNode.PointIndex;
-		const int32 ReadIndex = TargetNode.Index;
-
-		if (NumInsideBuffer) { NumInsideBuffer->GetMutable(WriteIndex) = Inside[ReadIndex]; }
-		else if (NormalizedNumInsideBuffer) { NormalizedNumInsideBuffer->GetMutable(WriteIndex) = static_cast<double>(Inside[ReadIndex]) / static_cast<double>(Count); }
-
-		if (NumOutsideBuffer) { NumOutsideBuffer->GetMutable(WriteIndex) = Outside[ReadIndex]; }
-		else if (NormalizedNumOutsideBuffer) { NormalizedNumOutsideBuffer->GetMutable(WriteIndex) = static_cast<double>(Outside[ReadIndex]) / static_cast<double>(Count); }
-
-		if (TotalNumBuffer) { TotalNumBuffer->GetMutable(WriteIndex) = Count; }
-
-		if (WeightInsideBuffer) { WeightInsideBuffer->GetMutable(WriteIndex) = InsideWeight[ReadIndex]; }
-		else if (NormalizedWeightInsideBuffer) { NormalizedWeightInsideBuffer->GetMutable(WriteIndex) = InsideWeight[ReadIndex] / TotalWeight; }
-
-		if (WeightOutsideBuffer) { WeightOutsideBuffer->GetMutable(WriteIndex) = Outside[ReadIndex]; }
-		else if (NormalizedWeightOutsideBuffer) { NormalizedWeightOutsideBuffer->GetMutable(WriteIndex) = OutsideWeight[ReadIndex] / TotalWeight; }
-
-		if (TotalWeightBuffer) { TotalWeightBuffer->GetMutable(WriteIndex) = TotalWeight; }
-	}
+	virtual void SampleNeighborNode(const PCGExCluster::FNode& TargetNode, const PCGExGraph::FLink Lk, const double Weight) override;
+	virtual void SampleNeighborEdge(const PCGExCluster::FNode& TargetNode, const PCGExGraph::FLink Lk, const double Weight) override;
+	virtual void FinalizeNode(const PCGExCluster::FNode& TargetNode, const int32 Count, const double TotalWeight) override;
 
 	virtual void CompleteOperation() override;
 

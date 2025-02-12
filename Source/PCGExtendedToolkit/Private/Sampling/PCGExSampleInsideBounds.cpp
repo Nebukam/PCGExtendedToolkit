@@ -7,6 +7,7 @@
 #include "PCGExPointsProcessor.h"
 #include "Data/Blending/PCGExMetadataBlender.h"
 
+
 #define LOCTEXT_NAMESPACE "PCGExSampleInsideBoundsElement"
 #define PCGEX_NAMESPACE SampleInsideBounds
 
@@ -197,7 +198,7 @@ namespace PCGExSampleInsideBoundss
 		PCGEX_OUTPUT_VALUE(SampledIndex, Index, -1)
 	}
 
-	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager> InAsyncManager)
+	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExSampleInsideBoundss::Process);
 

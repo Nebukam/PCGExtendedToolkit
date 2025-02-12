@@ -4,6 +4,7 @@
 
 #include "Misc/PCGExSortPoints.h"
 
+
 #include "Misc/PCGExModularSortPoints.h"
 
 
@@ -81,7 +82,7 @@ namespace PCGExSortPoints
 		Sorter->RegisterBuffersDependencies(FacadePreloader);
 	}
 
-	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager> InAsyncManager)
+	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExSortPoints::Process);
 

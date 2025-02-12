@@ -94,7 +94,7 @@ namespace PCGExWriteTangents
 	{
 	}
 
-	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager> InAsyncManager)
+	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager)
 	{
 		PointDataFacade->bSupportsScopedGet = Context->bScopedAttributeGet;
 

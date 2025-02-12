@@ -3,6 +3,7 @@
 
 #include "Misc/PCGExCherryPickPoints.h"
 
+
 #include "Misc/Pickers/PCGExPicker.h"
 #include "Misc/Pickers/PCGExPickerOperation.h"
 
@@ -73,7 +74,7 @@ bool FPCGExCherryPickPointsElement::ExecuteInternal(FPCGContext* InContext) cons
 
 namespace PCGExCherryPickPoints
 {
-	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager> InAsyncManager)
+	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExCherryPickPoints::Process);
 

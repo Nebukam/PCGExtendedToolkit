@@ -7,6 +7,8 @@
 #include "PCGExGlobalSettings.h"
 
 #include "PCGExPointsProcessor.h"
+
+
 #include "Pickers/PCGExPickerFactoryProvider.h"
 
 
@@ -74,6 +76,6 @@ namespace PCGExCherryPickPoints
 		{
 		}
 
-		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager> InAsyncManager) override;
+		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager) override;
 	};
 }

@@ -112,23 +112,10 @@ public:
 	TSharedRef<PCGExData::FFacade> GetSourceDataFacade() const;
 
 	virtual void ProcessNode(const int32 NodeIndex);
-
-	FORCEINLINE virtual void PrepareNode(const PCGExCluster::FNode& TargetNode) const
-	{
-	}
-
-	FORCEINLINE virtual void SampleNeighborNode(const PCGExCluster::FNode& TargetNode, const PCGExGraph::FLink Lk, const double Weight)
-	{
-	}
-
-	FORCEINLINE virtual void SampleNeighborEdge(const PCGExCluster::FNode& TargetNode, const PCGExGraph::FLink Lk, const double Weight)
-	{
-	}
-
-	FORCEINLINE virtual void FinalizeNode(const PCGExCluster::FNode& TargetNode, const int32 Count, const double TotalWeight)
-	{
-	}
-
+	virtual void PrepareNode(const PCGExCluster::FNode& TargetNode) const;
+	virtual void SampleNeighborNode(const PCGExCluster::FNode& TargetNode, const PCGExGraph::FLink Lk, const double Weight);
+	virtual void SampleNeighborEdge(const PCGExCluster::FNode& TargetNode, const PCGExGraph::FLink Lk, const double Weight);
+	virtual void FinalizeNode(const PCGExCluster::FNode& TargetNode, const int32 Count, const double TotalWeight);
 	virtual void CompleteOperation();
 
 	virtual void Cleanup() override;

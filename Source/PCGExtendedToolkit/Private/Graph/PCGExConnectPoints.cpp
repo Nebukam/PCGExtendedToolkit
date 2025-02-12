@@ -3,6 +3,7 @@
 
 #include "Graph/PCGExConnectPoints.h"
 
+
 #include "Graph/PCGExGraph.h"
 #include "Graph/Data/PCGExClusterData.h"
 #include "Graph/PCGExUnionHelpers.h"
@@ -101,7 +102,7 @@ namespace PCGExConnectPoints
 	{
 	}
 
-	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager> InAsyncManager)
+	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExConnectPoints::Process);
 

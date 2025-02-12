@@ -31,24 +31,18 @@ class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExHeuristicNodeCount : public UPCGExHeurist
 	GENERATED_BODY()
 
 public:
-	FORCEINLINE virtual double GetGlobalScore(
+	virtual double GetGlobalScore(
 		const PCGExCluster::FNode& From,
 		const PCGExCluster::FNode& Seed,
-		const PCGExCluster::FNode& Goal) const override
-	{
-		return GetScoreInternal(0.5);
-	}
+		const PCGExCluster::FNode& Goal) const override;
 
-	FORCEINLINE virtual double GetEdgeScore(
+	virtual double GetEdgeScore(
 		const PCGExCluster::FNode& From,
 		const PCGExCluster::FNode& To,
 		const PCGExGraph::FEdge& Edge,
 		const PCGExCluster::FNode& Seed,
 		const PCGExCluster::FNode& Goal,
-		const TSharedPtr<PCGEx::FHashLookup> TravelStack = nullptr) const override
-	{
-		return GetScoreInternal(0.5);
-	}
+		const TSharedPtr<PCGEx::FHashLookup> TravelStack = nullptr) const override;
 };
 
 ////

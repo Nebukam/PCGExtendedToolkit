@@ -6,6 +6,8 @@
 
 #include "PCGExPointsProcessor.h"
 #include "Data/Blending/PCGExMetadataBlender.h"
+
+
 #include "Misc/PCGExSortPoints.h"
 
 
@@ -207,7 +209,7 @@ namespace PCGExSampleNearestPoints
 		PCGEX_OUTPUT_VALUE(SampledIndex, Index, -1)
 	}
 
-	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager> InAsyncManager)
+	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExSampleNearestPoints::Process);
 

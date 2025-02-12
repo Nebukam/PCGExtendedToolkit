@@ -79,7 +79,7 @@ bool FPCGExSplitPathElement::ExecuteInternal(FPCGContext* InContext) const
 
 namespace PCGExSplitPath
 {
-	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager> InAsyncManager)
+	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExSplitPath::Process);
 
@@ -152,6 +152,162 @@ namespace PCGExSplitPath
 		TaskGroup->StartSubLoops(NumPoints, ChunkSize, true);
 
 		return true;
+	}
+
+	void FProcessor::DoActionSplit(const int32 Index)
+	{
+		if (!PointFilterCache[Index])
+		{
+			if (CurrentPath == -1)
+			{
+				CurrentPath = Paths.Emplace();
+				FPath& NewPath = Paths[CurrentPath];
+				NewPath.Start = Index;
+			}
+
+			FPath& Path = Paths[CurrentPath];
+			Path.Count++;
+			return;
+		}
+
+		if (CurrentPath != -1)
+		{
+			FPath& ClosedPath = Paths[CurrentPath];
+			ClosedPath.End = Index;
+			ClosedPath.Count++;
+		}
+
+		CurrentPath = Paths.Emplace();
+		FPath& NewPath = Paths[CurrentPath];
+		NewPath.Start = Index;
+		NewPath.Count++;
+	}
+
+	void FProcessor::DoActionRemove(const int32 Index)
+	{
+		if (!PointFilterCache[Index])
+		{
+			if (CurrentPath == -1)
+			{
+				CurrentPath = Paths.Emplace();
+				FPath& NewPath = Paths[CurrentPath];
+				NewPath.Start = Index;
+			}
+
+			FPath& Path = Paths[CurrentPath];
+			Path.Count++;
+			return;
+		}
+
+		if (CurrentPath != -1)
+		{
+			FPath& Path = Paths[CurrentPath];
+			Path.End = Index - 1;
+		}
+
+		CurrentPath = -1;
+	}
+
+	void FProcessor::DoActionDisconnect(const int32 Index)
+	{
+		if (!PointFilterCache[Index])
+		{
+			if (CurrentPath == -1)
+			{
+				CurrentPath = Paths.Emplace();
+				FPath& NewPath = Paths[CurrentPath];
+				NewPath.Start = Index;
+			}
+
+			FPath& Path = Paths[CurrentPath];
+			Path.Count++;
+			return;
+		}
+
+		if (CurrentPath != -1)
+		{
+			FPath& ClosedPath = Paths[CurrentPath];
+			ClosedPath.End = Index;
+			ClosedPath.Count++;
+		}
+
+		CurrentPath = -1;
+	}
+
+	void FProcessor::DoActionPartition(const int32 Index)
+	{
+		if (PointFilterCache[Index] != bLastResult)
+		{
+			bLastResult = !bLastResult;
+
+			if (CurrentPath != -1)
+			{
+				FPath& ClosedPath = Paths[CurrentPath];
+				if (Settings->bInclusive)
+				{
+					ClosedPath.End = Index;
+					ClosedPath.Count++;
+				}
+				else
+				{
+					ClosedPath.End = Index - 1;
+				}
+
+				CurrentPath = -1;
+			}
+		}
+
+		if (CurrentPath == -1)
+		{
+			CurrentPath = Paths.Emplace();
+			FPath& NewPath = Paths[CurrentPath];
+			NewPath.bEven = bEven;
+			bEven = !bEven;
+			NewPath.Start = Index;
+		}
+
+		FPath& Path = Paths[CurrentPath];
+		Path.Count++;
+	}
+
+	void FProcessor::DoActionSwitch(const int32 Index)
+	{
+		auto ClosePath = [&]()
+		{
+			if (CurrentPath != -1)
+			{
+				FPath& ClosedPath = Paths[CurrentPath];
+				if (Settings->bInclusive)
+				{
+					ClosedPath.End = Index;
+					ClosedPath.Count++;
+				}
+				else
+				{
+					ClosedPath.End = Index - 1;
+				}
+			}
+
+			CurrentPath = -1;
+		};
+
+		if (PointFilterCache[Index]) { bLastResult = !bLastResult; }
+
+		if (bLastResult)
+		{
+			if (CurrentPath == -1)
+			{
+				CurrentPath = Paths.Emplace();
+				FPath& NewPath = Paths[CurrentPath];
+				NewPath.Start = Index;
+			}
+
+			FPath& Path = Paths[CurrentPath];
+			Path.Count++;
+			return;
+		}
+
+		ClosePath();
 	}
 
 	void FProcessor::ProcessSingleRangeIteration(const int32 Iteration, const PCGExMT::FScope& Scope)
