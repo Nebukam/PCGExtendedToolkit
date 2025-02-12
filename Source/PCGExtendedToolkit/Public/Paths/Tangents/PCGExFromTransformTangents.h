@@ -29,7 +29,7 @@ public:
 		}
 	}
 
-	FORCEINLINE virtual void ProcessFirstPoint(
+	virtual void ProcessFirstPoint(
 		const TArray<FPCGPoint>& InPoints,
 		const FVector& ArriveScale, FVector& OutArrive,
 		const FVector& LeaveScale, FVector& OutLeave) const override
@@ -39,7 +39,7 @@ public:
 		OutLeave = Dir * LeaveScale;
 	}
 
-	FORCEINLINE virtual void ProcessLastPoint(
+	virtual void ProcessLastPoint(
 		const TArray<FPCGPoint>& InPoints,
 		const FVector& ArriveScale, FVector& OutArrive,
 		const FVector& LeaveScale, FVector& OutLeave) const override
@@ -49,7 +49,7 @@ public:
 		OutLeave = Dir * LeaveScale;
 	}
 
-	FORCEINLINE virtual void ProcessPoint(
+	virtual void ProcessPoint(
 		const TArray<FPCGPoint>& InPoints,
 		const int32 Index, const int32 NextIndex, const int32 PrevIndex,
 		const FVector& ArriveScale, FVector& OutArrive,

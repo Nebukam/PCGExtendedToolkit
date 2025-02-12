@@ -61,7 +61,7 @@ bool FPCGExMergePointsElement::ExecuteInternal(FPCGContext* InContext) const
 
 namespace PCGExMergePoints
 {
-	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager> InAsyncManager)
+	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExMergePoints::FProcessor::Process);
 

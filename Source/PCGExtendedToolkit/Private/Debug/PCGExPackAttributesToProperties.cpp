@@ -3,6 +3,7 @@
 
 #include "Debug/PCGExPackAttributesToProperties.h"
 
+
 #define LOCTEXT_NAMESPACE "PCGExEdgesToPaths"
 #define PCGEX_NAMESPACE PackAttributesToProperties
 
@@ -66,7 +67,7 @@ bool FPCGExPackAttributesToPropertiesElement::ExecuteInternal(
 
 namespace PCGExPackAttributesToProperties
 {
-	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager> InAsyncManager)
+	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExWriteIndex::Process);
 

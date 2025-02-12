@@ -43,11 +43,7 @@ public:
 	UFUNCTION()
 	void Callback(UActorComponent* InComponent);
 
-	virtual void BeginDestroy() override
-	{
-		CallbackFn = nullptr;
-		UObject::BeginDestroy();
-	}
+	virtual void BeginDestroy() override;
 
 	template <typename T>
 	void Bind(T& Delegate, TFunction<void(UActorComponent* InComponent)>&& InCallback, const bool bOnce = false)
@@ -71,11 +67,7 @@ public:
 	UFUNCTION()
 	void Callback(UPCGComponent* InComponent);
 
-	virtual void BeginDestroy() override
-	{
-		CallbackFn = nullptr;
-		UObject::BeginDestroy();
-	}
+	virtual void BeginDestroy() override;
 
 	template <typename T>
 	void Bind(T& Delegate, TFunction<void(UPCGComponent* InComponent)>&& InCallback, const bool bOnce = false)
@@ -268,10 +260,7 @@ namespace PCGEx
 
 		bool IsFlushing() const { return bIsFlushing.load(std::memory_order_acquire); }
 
-		explicit FManagedObjects(FPCGContext* InContext, const TSharedPtr<FWorkPermit>& InLifeline):
-			Context(InContext), WorkPermit(InLifeline)
-		{
-		}
+		explicit FManagedObjects(FPCGContext* InContext, const TSharedPtr<FWorkPermit>& InLifeline);
 
 		~FManagedObjects();
 
@@ -399,12 +388,7 @@ namespace PCGEx
 		std::atomic<bool> bIsFlushing{false};
 	};
 
-	static FVector GetPointsCentroid(const TArray<FPCGPoint>& InPoints)
-	{
-		FVector Position = FVector::ZeroVector;
-		for (const FPCGPoint& Pt : InPoints) { Position += Pt.Transform.GetLocation(); }
-		return Position / static_cast<double>(InPoints.Num());
-	}
+	FVector GetPointsCentroid(const TArray<FPCGPoint>& InPoints);
 
 #pragma region Metadata Type
 

@@ -170,8 +170,8 @@ namespace PCGExClusterMT
 			Settings = InContext->GetInputSettings<TSettings>();
 		}
 
-		FORCEINLINE TContext* GetContext() { return Context; }
-		FORCEINLINE const TSettings* GetSettings() { return Settings; }
+		TContext* GetContext() { return Context; }
+		const TSettings* GetSettings() { return Settings; }
 	};
 
 	class FClusterProcessorBatchBase : public TSharedFromThis<FClusterProcessorBatchBase>

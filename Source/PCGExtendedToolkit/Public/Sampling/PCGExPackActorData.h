@@ -10,6 +10,7 @@
 #include "PCGExSampling.h"
 #include "Data/PCGExBufferHelper.h"
 
+
 #include "PCGExPackActorData.generated.h"
 
 namespace PCGExPackActorData
@@ -637,7 +638,7 @@ namespace PCGExPackActorDatas
 
 		virtual ~FProcessor() override;
 
-		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager> InAsyncManager) override;
+		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager) override;
 		void StartProcessing();
 		virtual void ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const PCGExMT::FScope& Scope) override;
 		virtual void CompleteWork() override;

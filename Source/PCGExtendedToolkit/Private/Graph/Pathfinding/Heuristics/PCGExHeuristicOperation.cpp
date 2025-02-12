@@ -39,3 +39,32 @@ void UPCGExHeuristicOperation::PrepareForCluster(const TSharedPtr<const PCGExClu
 		bHasCustomLocalWeightMultiplier = true;
 	}
 }
+
+double UPCGExHeuristicOperation::GetGlobalScore(const PCGExCluster::FNode& From, const PCGExCluster::FNode& Seed, const PCGExCluster::FNode& Goal) const
+{
+	return GetScoreInternal(0);
+}
+
+double UPCGExHeuristicOperation::GetEdgeScore(const PCGExCluster::FNode& From, const PCGExCluster::FNode& To, const PCGExGraph::FEdge& Edge, const PCGExCluster::FNode& Seed, const PCGExCluster::FNode& Goal, const TSharedPtr<PCGEx::FHashLookup> TravelStack) const
+{
+	return GetScoreInternal(0);
+}
+
+double UPCGExHeuristicOperation::GetCustomWeightMultiplier(const int32 PointIndex, const int32 EdgeIndex) const
+{
+	//TODO Rewrite this
+	if (!bUseLocalWeightMultiplier || LocalWeightMultiplier.IsEmpty()) { return 1; }
+	return FMath::Abs(LocalWeightMultiplier[LocalWeightMultiplierSource == EPCGExClusterComponentSource::Vtx ? PointIndex : EdgeIndex]);
+}
+
+void UPCGExHeuristicOperation::Cleanup()
+{
+	Cluster = nullptr;
+	LocalWeightMultiplier.Empty();
+	Super::Cleanup();
+}
+
+double UPCGExHeuristicOperation::GetScoreInternal(const double InTime) const
+{
+	return FMath::Max(0, ScoreCurve->Eval(bInvert ? 1 - InTime : InTime)) * ReferenceWeight;
+}

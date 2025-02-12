@@ -40,13 +40,7 @@ public:
 
 	TSet<uint64> UniqueEdges;
 
-	FORCEINLINE int32 GetOrCreateNode(int64 InIdx)
-	{
-		if (int32* IndexPtr = IdxMap.Find(InIdx)) { return *IndexPtr; }
-		const int32 Index = Idx.Add(InIdx);
-		IdxMap.Add(InIdx, Index);
-		return Index;
-	}
+	int32 GetOrCreateNode(int64 InIdx);
 
 	/**
 	 * Creates an edge between two nodes in an indexed graph.

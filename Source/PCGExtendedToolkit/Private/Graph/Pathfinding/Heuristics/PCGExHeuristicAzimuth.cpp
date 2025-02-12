@@ -19,6 +19,28 @@ void UPCGExHeuristicAzimuth::PrepareForCluster(const TSharedPtr<const PCGExClust
 	Super::PrepareForCluster(InCluster);
 }
 
+double UPCGExHeuristicAzimuth::GetGlobalScore(
+	const PCGExCluster::FNode& From,
+	const PCGExCluster::FNode& Seed,
+	const PCGExCluster::FNode& Goal) const
+{
+	const FVector Dir = Cluster->GetDir(Seed, Goal);
+	const double Dot = FVector::DotProduct(Dir, Cluster->GetDir(From, Goal)) * -1;
+	return GetScoreInternal(PCGExMath::Remap(Dot, -1, 1, OutMin, OutMax));
+}
+
+double UPCGExHeuristicAzimuth::GetEdgeScore(
+	const PCGExCluster::FNode& From,
+	const PCGExCluster::FNode& To,
+	const PCGExGraph::FEdge& Edge,
+	const PCGExCluster::FNode& Seed,
+	const PCGExCluster::FNode& Goal,
+	const TSharedPtr<PCGEx::FHashLookup> TravelStack) const
+{
+	const double Dot = (FVector::DotProduct(Cluster->GetDir(From, To), Cluster->GetDir(From, Goal)) * -1);
+	return GetScoreInternal(PCGExMath::Remap(Dot, -1, 1, OutMin, OutMax));
+}
+
 UPCGExHeuristicOperation* UPCGExHeuristicsFactoryAzimuth::CreateOperation(FPCGExContext* InContext) const
 {
 	UPCGExHeuristicAzimuth* NewOperation = InContext->ManagedObjects->New<UPCGExHeuristicAzimuth>();

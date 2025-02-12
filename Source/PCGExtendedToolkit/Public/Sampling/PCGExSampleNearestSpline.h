@@ -10,6 +10,8 @@
 #include "PCGExSampling.h"
 #include "PCGExScopedContainers.h"
 #include "Data/PCGSplineData.h"
+
+
 #include "Misc/PCGExSortPoints.h"
 
 
@@ -472,7 +474,7 @@ namespace PCGExSampleNearestSpline
 
 		virtual ~FProcessor() override;
 
-		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager> InAsyncManager) override;
+		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager) override;
 		virtual void PrepareLoopScopesForPoints(const TArray<PCGExMT::FScope>& Loops) override;
 		virtual void PrepareSingleLoopScopeForPoints(const PCGExMT::FScope& Scope) override;
 

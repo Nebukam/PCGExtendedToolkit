@@ -90,6 +90,11 @@ namespace PCGEx
 		return Get(BaseName.ToString());
 	}
 
+	FManagedObjects::FManagedObjects(FPCGContext* InContext, const TSharedPtr<FWorkPermit>& InLifeline)
+		: Context(InContext), WorkPermit(InLifeline)
+	{
+	}
+
 	FManagedObjects::~FManagedObjects()
 	{
 		Flush();
@@ -201,6 +206,13 @@ namespace PCGEx
 				}, true);
 		}
 	}
+
+	FVector GetPointsCentroid(const TArray<FPCGPoint>& InPoints)
+	{
+		FVector Position = FVector::ZeroVector;
+		for (const FPCGPoint& Pt : InPoints) { Position += Pt.Transform.GetLocation(); }
+		return Position / static_cast<double>(InPoints.Num());
+	}
 }
 
 void UPCGExComponentCallback::Callback(UActorComponent* InComponent)
@@ -218,6 +230,12 @@ void UPCGExComponentCallback::Callback(UActorComponent* InComponent)
 	}
 }
 
+void UPCGExComponentCallback::BeginDestroy()
+{
+	CallbackFn = nullptr;
+	UObject::BeginDestroy();
+}
+
 void UPCGExPCGComponentCallback::Callback(UPCGComponent* InComponent)
 {
 	if (!CallbackFn) { return; }
@@ -231,6 +249,12 @@ void UPCGExPCGComponentCallback::Callback(UPCGComponent* InComponent)
 	{
 		CallbackFn(InComponent);
 	}
+}
+
+void UPCGExPCGComponentCallback::BeginDestroy()
+{
+	CallbackFn = nullptr;
+	UObject::BeginDestroy();
 }
 
 namespace PCGExHelpers

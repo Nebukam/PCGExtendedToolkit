@@ -46,7 +46,7 @@ namespace PCGExData
 		{
 			{
 				FReadScopeLock ReadScopeLock(BufferLock);
-				if (TSharedPtr<FBufferBase>* BufferPtr = BufferMap.Find(InName))
+				if (const TSharedPtr<FBufferBase>* BufferPtr = BufferMap.Find(InName))
 				{
 					if (!(*BufferPtr)->IsA<T>())
 					{
@@ -91,7 +91,7 @@ namespace PCGExData
 		{
 			{
 				FReadScopeLock ReadScopeLock(BufferLock);
-				if (TSharedPtr<FBufferBase>* BufferPtr = BufferMap.Find(InName))
+				if (const TSharedPtr<FBufferBase>* BufferPtr = BufferMap.Find(InName))
 				{
 					if (!(*BufferPtr)->IsA<T>())
 					{

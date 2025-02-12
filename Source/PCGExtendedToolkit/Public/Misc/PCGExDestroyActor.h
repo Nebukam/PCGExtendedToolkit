@@ -9,6 +9,7 @@
 #include "PCGExPointsProcessor.h"
 #include "Data/PCGExBufferHelper.h"
 
+
 #include "PCGExDestroyActor.generated.h"
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Sampling")
@@ -76,6 +77,6 @@ namespace PCGExDestroyActors
 		}
 
 		virtual ~FProcessor() override;
-		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager> InAsyncManager) override;
+		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager) override;
 	};
 }
