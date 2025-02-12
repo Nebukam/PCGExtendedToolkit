@@ -3,6 +3,7 @@
 
 #include "Graph/Filters/Edges/PCGExIsoEdgeDirectionFilter.h"
 #include "Graph/PCGExGraph.h"
+#include "PCGPin.h"
 
 #define LOCTEXT_NAMESPACE "PCGExIsoEdgeDirectionFilter"
 #define PCGEX_NAMESPACE IsoEdgeDirectionFilter
