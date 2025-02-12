@@ -38,11 +38,8 @@ namespace PCGExPartition
 		int32 GetSubPartitionsNum();
 
 		TSharedPtr<FKPartition> GetPartition(int64 Key, FRule* InRule);
-		FORCEINLINE void Add(const int64 Index)
-		{
-			FWriteScopeLock WriteLock(PointLock);
-			Points.Add(Index);
-		}
+
+		void Add(const int64 Index);
 
 		void Register(TArray<TSharedPtr<FKPartition>>& Partitions);
 
@@ -158,7 +155,7 @@ namespace PCGExPartitionByValues
 		{
 		}
 
-		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager> InAsyncManager) override;
+		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager) override;
 		virtual void PrepareSingleLoopScopeForPoints(const PCGExMT::FScope& Scope) override;
 		virtual void ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const PCGExMT::FScope& Scope) override;
 		virtual void ProcessSingleRangeIteration(const int32 Iteration, const PCGExMT::FScope& Scope) override;

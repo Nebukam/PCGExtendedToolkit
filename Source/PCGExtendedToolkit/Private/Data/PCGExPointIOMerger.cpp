@@ -8,6 +8,26 @@
 #include "Paths/PCGExShiftPath.h"
 
 
+PCGExPointIOMerger::FIdentityRef::FIdentityRef()
+	: FAttributeIdentity()
+{
+}
+
+PCGExPointIOMerger::FIdentityRef::FIdentityRef(const FIdentityRef& Other)
+	: FAttributeIdentity(Other)
+{
+}
+
+PCGExPointIOMerger::FIdentityRef::FIdentityRef(const FAttributeIdentity& Other)
+	: FAttributeIdentity(Other)
+{
+}
+
+PCGExPointIOMerger::FIdentityRef::FIdentityRef(const FName InName, const EPCGMetadataTypes InUnderlyingType, const bool InAllowsInterpolation)
+	: FAttributeIdentity(InName, InUnderlyingType, InAllowsInterpolation)
+{
+}
+
 FPCGExPointIOMerger::FPCGExPointIOMerger(const TSharedRef<PCGExData::FFacade>& InUnionDataFacade):
 	UnionDataFacade(InUnionDataFacade)
 {
@@ -104,6 +124,12 @@ void FPCGExPointIOMerger::MergeAsync(const TSharedPtr<PCGExMT::FTaskManager>& As
 
 namespace PCGExPointIOMerger
 {
+	FCopyAttributeTask::FCopyAttributeTask(const int32 InTaskIndex, const TSharedPtr<FPCGExPointIOMerger>& InMerger)
+		: FPCGExIndexedTask(InTaskIndex),
+		  Merger(InMerger)
+	{
+	}
+
 	void FCopyAttributeTask::ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager)
 	{
 		const FIdentityRef& Identity = Merger->UniqueIdentities[TaskIndex];

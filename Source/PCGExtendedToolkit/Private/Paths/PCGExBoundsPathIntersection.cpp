@@ -89,7 +89,7 @@ namespace PCGExPathIntersections
 	{
 	}
 
-	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager> InAsyncManager)
+	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExPathIntersections::Process);
 
@@ -167,6 +167,20 @@ namespace PCGExPathIntersections
 	{
 		if (!Details.IsInsideWriter && !Details.InsideForwardHandler) { return; }
 		StartParallelLoopForPoints();
+	}
+
+	void FProcessor::ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const PCGExMT::FScope& Scope)
+	{
+		if (Details.InsideForwardHandler)
+		{
+			TArray<TSharedPtr<PCGExGeo::FPointBox>> Overlaps;
+			const bool bContained = Cloud->IsInside<EPCGExBoxCheckMode::ExpandedBox>(Point.Transform.GetLocation(), Overlaps); // Avoid intersections being captured
+			Details.SetIsInside(Index, bContained, bContained ? Overlaps[0]->Index : -1);
+		}
+		else
+		{
+			Details.SetIsInside(Index, Cloud->IsInside<EPCGExBoxCheckMode::ExpandedBox>(Point.Transform.GetLocation()));
+		}
 	}
 
 	void FProcessor::CompleteWork()

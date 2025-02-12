@@ -55,6 +55,28 @@ namespace PCGExData
 		return nullptr;
 	}
 
+	TSharedPtr<FBufferBase> FFacade::GetWritable(const EPCGMetadataTypes Type, const FPCGMetadataAttributeBase* InAttribute, EBufferInit Init)
+	{
+#define PCGEX_TYPED_WRITABLE(_TYPE, _ID, ...) case EPCGMetadataTypes::_ID: return GetWritable<_TYPE>(static_cast<const FPCGMetadataAttribute<_TYPE>*>(InAttribute), Init);
+		switch (Type)
+		{
+		PCGEX_FOREACH_SUPPORTEDTYPES(PCGEX_TYPED_WRITABLE)
+		default: return nullptr;
+		}
+#undef PCGEX_TYPED_WRITABLE
+	}
+
+	TSharedPtr<FBufferBase> FFacade::GetWritable(const EPCGMetadataTypes Type, const FName InName, EBufferInit Init)
+	{
+#define PCGEX_TYPED_WRITABLE(_TYPE, _ID, ...) case EPCGMetadataTypes::_ID: return GetWritable<_TYPE>(InName, Init);
+		switch (Type)
+		{
+			PCGEX_FOREACH_SUPPORTEDTYPES(PCGEX_TYPED_WRITABLE)
+			default: return nullptr;
+		}
+#undef PCGEX_TYPED_WRITABLE
+	}
+
 #pragma endregion
 
 #pragma region FFacade

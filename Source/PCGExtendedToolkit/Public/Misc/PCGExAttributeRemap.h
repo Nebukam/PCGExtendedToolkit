@@ -286,7 +286,7 @@ namespace PCGExAttributeRemap
 
 		virtual ~FProcessor() override;
 
-		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager> InAsyncManager) override;
+		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager) override;
 
 		template <typename T>
 		void RemapRange(const PCGExMT::FScope& Scope, T DummyValue)

@@ -7,6 +7,8 @@
 
 #include "PCGExPointsProcessor.h"
 #include "PCGExSampling.h"
+
+
 #include "Misc/PCGExDiscardByOverlap.h"
 
 #include "PCGExSampleOverlapStats.generated.h"
@@ -263,7 +265,7 @@ namespace PCGExSampleOverlapStats
 
 		void RegisterOverlap(FProcessor* InOtherProcessor, const FBox& Intersection);
 
-		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager> InAsyncManager) override;
+		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager) override;
 		void ResolveOverlap(const int32 Index);
 		void WriteSingleData(const int32 Index);
 		virtual void CompleteWork() override;

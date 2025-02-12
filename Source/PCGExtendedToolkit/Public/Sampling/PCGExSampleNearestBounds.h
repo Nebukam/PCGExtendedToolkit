@@ -12,6 +12,7 @@
 #include "Data/Blending/PCGExDataBlending.h"
 #include "Data/Blending/PCGExMetadataBlender.h"
 
+
 #include "PCGExSampleNearestBounds.generated.h"
 
 #define PCGEX_FOREACH_FIELD_NEARESTBOUNDS(MACRO)\
@@ -362,7 +363,7 @@ namespace PCGExSampleNearestBounds
 
 		void SamplingFailed(const int32 Index, const FPCGPoint& Point);
 
-		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager> InAsyncManager) override;
+		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager) override;
 		virtual void PrepareLoopScopesForPoints(const TArray<PCGExMT::FScope>& Loops) override;
 		virtual void PrepareSingleLoopScopeForPoints(const PCGExMT::FScope& Scope) override;
 		virtual void ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const PCGExMT::FScope& Scope) override;

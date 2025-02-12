@@ -12,6 +12,7 @@
 #include "Data/Blending/PCGExUnionBlender.h"
 #include "Data/Blending/PCGExDataBlending.h"
 
+
 #include "Graph/PCGExIntersections.h"
 
 #include "PCGExFusePoints.generated.h"
@@ -27,20 +28,10 @@ namespace PCGExFuse
 		TArray<double> Distances;
 		double MaxDistance = 0;
 
-		FFusedPoint(const int32 InIndex, const FVector& InPosition)
-			: Index(InIndex), Position(InPosition)
-		{
-		}
-
+		FFusedPoint(const int32 InIndex, const FVector& InPosition);
 		~FFusedPoint() = default;
 
-		FORCEINLINE void Add(const int32 InIndex, const double Distance)
-		{
-			FWriteScopeLock WriteLock(IndicesLock);
-			Fused.Add(InIndex);
-			Distances.Add(Distance);
-			MaxDistance = FMath::Max(MaxDistance, Distance);
-		}
+		void Add(const int32 InIndex, const double Distance);
 	};
 }
 
@@ -120,7 +111,7 @@ namespace PCGExFusePoints
 
 		virtual ~FProcessor() override;
 
-		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager> InAsyncManager) override;
+		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager) override;
 		virtual void ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const PCGExMT::FScope& Scope) override;
 		virtual void ProcessSingleRangeIteration(const int32 Iteration, const PCGExMT::FScope& Scope) override;
 		virtual void CompleteWork() override;

@@ -2,6 +2,8 @@
 // Released under the MIT license https://opensource.org/license/MIT/
 
 #include "Sampling/PCGExSampleTensors.h"
+
+
 #include "Transform/Tensors/PCGExTensor.h"
 
 #define PCGEX_FOREACH_FIELD_TENSOR(MACRO)\
@@ -86,7 +88,7 @@ namespace PCGExSampleTensors
 	{
 	}
 
-	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager> InAsyncManager)
+	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExSampleTensors::Process);
 

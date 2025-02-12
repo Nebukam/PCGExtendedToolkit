@@ -61,6 +61,12 @@ namespace PCGExPartition
 		}
 	}
 
+	void FKPartition::Add(const int64 Index)
+	{
+		FWriteScopeLock WriteLock(PointLock);
+		Points.Add(Index);
+	}
+
 	void FKPartition::Register(TArray<TSharedPtr<FKPartition>>& Partitions)
 	{
 		if (!SubLayers.IsEmpty())
@@ -194,7 +200,7 @@ bool FPCGExPartitionByValuesBaseElement::ExecuteInternal(FPCGContext* InContext)
 
 namespace PCGExPartitionByValues
 {
-	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager> InAsyncManager)
+	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager)
 	{
 		if (!FPointsProcessor::Process(InAsyncManager)) { return false; }
 

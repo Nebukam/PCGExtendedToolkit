@@ -40,7 +40,7 @@ enum class EPCGExPointBoundsSource : uint8
 namespace PCGExMath
 {
 	template <EPCGExPointBoundsSource S = EPCGExPointBoundsSource::ScaledBounds>
-	FORCEINLINE static FBox GetLocalBounds(const FPCGPoint& Point)
+	static FBox GetLocalBounds(const FPCGPoint& Point)
 	{
 		if constexpr (S == EPCGExPointBoundsSource::ScaledBounds)
 		{
@@ -62,7 +62,7 @@ namespace PCGExMath
 	}
 
 	template <EPCGExPointBoundsSource S = EPCGExPointBoundsSource::ScaledBounds>
-	FORCEINLINE static FBox GetLocalBounds(const FPCGPoint* Point)
+	static FBox GetLocalBounds(const FPCGPoint* Point)
 	{
 		if constexpr (S == EPCGExPointBoundsSource::ScaledBounds)
 		{

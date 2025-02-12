@@ -9,6 +9,8 @@
 
 #include "PCGExPointsProcessor.h"
 #include "PCGExTransform.h"
+
+
 #include "Paths/PCGExPaths.h"
 #include "Sampling/PCGExSampling.h"
 #include "Tensors/PCGExTensor.h"
@@ -175,7 +177,7 @@ namespace PCGExTensorsTransform
 
 		virtual bool IsTrivial() const override { return false; }
 
-		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager> InAsyncManager) override;
+		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager) override;
 		virtual void PrepareSingleLoopScopeForPoints(const PCGExMT::FScope& Scope) override;
 		virtual void ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const PCGExMT::FScope& Scope) override;
 		virtual void OnPointsProcessingComplete() override;

@@ -598,7 +598,14 @@ namespace PCGExData
 			TSharedPtr<TBuffer<T>> Buffer = GetBuffer<T>(InName);
 			return Buffer->PrepareWrite(Init) ? Buffer : nullptr;
 		}
+		
+		TSharedPtr<FBufferBase> GetWritable(EPCGMetadataTypes Type, const FPCGMetadataAttributeBase* InAttribute, EBufferInit Init);
+		TSharedPtr<FBufferBase> GetWritable(EPCGMetadataTypes Type, const FName InName, EBufferInit Init);
+		
+#pragma endregion
 
+#pragma region Readable
+		
 		template <typename T>
 		TSharedPtr<TBuffer<T>> GetReadable(const FName InName, const ESource InSource = ESource::In)
 		{
@@ -611,11 +618,7 @@ namespace PCGExData
 
 			return Buffer;
 		}
-
-#pragma endregion
-
-#pragma region Readable
-
+		
 		template <typename T>
 		TSharedPtr<TBuffer<T>> GetScopedReadable(const FName InName)
 		{

@@ -7,6 +7,7 @@
 #include "Graph/States/PCGExClusterStates.h"
 #include "Actions/PCGExActionFactoryProvider.h"
 
+
 #define LOCTEXT_NAMESPACE "PCGExGraph"
 #define PCGEX_NAMESPACE BatchActions
 
@@ -105,7 +106,7 @@ namespace PCGExBatchActions
 	{
 	}
 
-	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager> InAsyncManager)
+	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExBatchActions::Process);
 

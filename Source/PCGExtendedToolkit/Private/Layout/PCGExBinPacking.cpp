@@ -3,6 +3,7 @@
 
 #include "Layout/PCGExBinPacking.h"
 
+
 #include "Layout/PCGExLayout.h"
 
 #define LOCTEXT_NAMESPACE "PCGExBinPackingElement"
@@ -268,7 +269,7 @@ namespace PCGExBinPacking
 		}
 	}
 
-	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager> InAsyncManager)
+	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExBinPacking::Process);
 

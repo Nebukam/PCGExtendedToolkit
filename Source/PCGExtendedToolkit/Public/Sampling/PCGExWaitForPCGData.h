@@ -10,6 +10,7 @@
 #include "PCGExSampling.h"
 #include "Data/PCGExDataForward.h"
 
+
 #include "PCGExWaitForPCGData.generated.h"
 
 UENUM()
@@ -220,7 +221,7 @@ namespace PCGExWaitForPCGData
 
 		virtual ~FProcessor() override;
 
-		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager> InAsyncManager) override;
+		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager) override;
 
 		void GatherActors();
 

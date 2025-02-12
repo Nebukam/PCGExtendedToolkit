@@ -9,6 +9,8 @@
 #include "PCGExPointsProcessor.h"
 #include "PCGExSampling.h"
 #include "Data/PCGSplineData.h"
+
+
 #include "Misc/PCGExSortPoints.h"
 
 
@@ -126,7 +128,7 @@ namespace PCGExSampleTensors
 
 		virtual ~FProcessor() override;
 
-		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager> InAsyncManager) override;
+		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager) override;
 		virtual void PrepareSingleLoopScopeForPoints(const PCGExMT::FScope& Scope) override;
 
 		void SamplingFailed(const int32 Index, const FPCGPoint& Point, double InDepth = 0);
