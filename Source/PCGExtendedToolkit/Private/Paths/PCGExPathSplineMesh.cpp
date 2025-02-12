@@ -4,6 +4,8 @@
 #include "Paths/PCGExPathSplineMesh.h"
 
 #include "PCGExHelpers.h"
+
+
 #include "Paths/PCGExPaths.h"
 
 #define LOCTEXT_NAMESPACE "PCGExPathSplineMeshElement"
@@ -158,7 +160,7 @@ bool FPCGExPathSplineMeshElement::ExecuteInternal(FPCGContext* InContext) const
 
 namespace PCGExPathSplineMesh
 {
-	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager> InAsyncManager)
+	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager)
 	{
 		// Must be set before process for filters
 		PointDataFacade->bSupportsScopedGet = Context->bScopedAttributeGet;

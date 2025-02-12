@@ -44,24 +44,19 @@ class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExHeuristicTensor : public UPCGExHeuristicO
 public:
 	virtual void PrepareForCluster(const TSharedPtr<const PCGExCluster::FCluster>& InCluster) override;
 
-	FORCEINLINE virtual double GetGlobalScore(
+	virtual double GetGlobalScore(
 		const PCGExCluster::FNode& From,
 		const PCGExCluster::FNode& Seed,
-		const PCGExCluster::FNode& Goal) const override
-	{
-		return GetScoreInternal(GetDot(Cluster->GetPos(From), Cluster->GetPos(Goal)));
-	}
+		const PCGExCluster::FNode& Goal) const override;
 
-	FORCEINLINE virtual double GetEdgeScore(
+
+	virtual double GetEdgeScore(
 		const PCGExCluster::FNode& From,
 		const PCGExCluster::FNode& To,
 		const PCGExGraph::FEdge& Edge,
 		const PCGExCluster::FNode& Seed,
 		const PCGExCluster::FNode& Goal,
-		const TSharedPtr<PCGEx::FHashLookup> TravelStack) const override
-	{
-		return GetScoreInternal(GetDot(Cluster->GetPos(From), Cluster->GetPos(To)));
-	}
+		const TSharedPtr<PCGEx::FHashLookup> TravelStack) const override;
 
 protected:
 	TSharedPtr<PCGExTensor::FTensorsHandler> TensorsHandler;
@@ -69,14 +64,7 @@ protected:
 	const TArray<TObjectPtr<const UPCGExTensorFactoryData>>* TensorFactories = nullptr;
 	bool bAbsoluteTensor = true;
 
-	FORCEINLINE double GetDot(const FVector& From, const FVector& To) const
-	{
-		bool bSuccess = false;
-		const PCGExTensor::FTensorSample Sample = TensorsHandler->Sample(FTransform(FRotationMatrix::MakeFromX((To - From).GetSafeNormal()).ToQuat(), From), bSuccess);
-		if (!bSuccess) { return 0; }
-		const double Dot = FVector::DotProduct((To - From).GetSafeNormal(), Sample.DirectionAndSize.GetSafeNormal());
-		return bAbsoluteTensor ? 1 - FMath::Abs(Dot) : 1 - PCGExMath::Remap(Dot, -1, 1);
-	}
+	double GetDot(const FVector& From, const FVector& To) const;
 };
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")

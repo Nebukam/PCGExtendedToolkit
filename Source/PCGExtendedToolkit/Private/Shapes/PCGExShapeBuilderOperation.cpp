@@ -30,3 +30,12 @@ bool UPCGExShapeBuilderOperation::PrepareForSeeds(FPCGExContext* InContext, cons
 	PCGEx::InitArray(Shapes, NumSeeds);
 	return true;
 }
+
+double UPCGExShapeBuilderOperation::GetResolution(const PCGExData::FPointRef& Seed) const
+{
+	if (BaseConfig.ResolutionMode == EPCGExResolutionMode::Distance)
+	{
+		return FMath::Abs(ResolutionGetter ? ResolutionGetter->SoftGet(Seed, ResolutionConstant) : ResolutionConstant) * 0.01;
+	}
+	return FMath::Abs(ResolutionGetter ? ResolutionGetter->SoftGet(Seed, ResolutionConstant) : ResolutionConstant);
+}

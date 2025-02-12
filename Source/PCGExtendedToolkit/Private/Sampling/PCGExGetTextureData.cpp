@@ -10,6 +10,8 @@
 #include "Helpers/PCGHelpers.h"
 #include "TextureResource.h"
 #include "PCGExSubSystem.h"
+
+
 #include "Engine/Texture.h"
 #include "Engine/Texture2D.h"
 
@@ -274,7 +276,7 @@ namespace PCGExGetTextureData
 	{
 	}
 
-	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager> InAsyncManager)
+	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExGetTextureData::Process);
 

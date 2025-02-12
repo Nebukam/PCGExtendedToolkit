@@ -8,6 +8,8 @@
 #include "PCGExPointsProcessor.h"
 #include "Data/PCGExAttributeHasher.h"
 #include "Data/PCGExFilterGroup.h"
+
+
 #include "PCGExDiscardSame.generated.h"
 
 UENUM()
@@ -127,7 +129,7 @@ namespace PCGExDiscardSame
 		{
 		}
 
-		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager> InAsyncManager) override;
+		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager) override;
 		virtual void CompleteWork() override;
 	};
 }

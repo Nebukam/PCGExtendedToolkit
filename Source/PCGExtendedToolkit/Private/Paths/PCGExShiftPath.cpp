@@ -3,6 +3,7 @@
 
 #include "Paths/PCGExShiftPath.h"
 
+
 #define LOCTEXT_NAMESPACE "PCGExShiftPathElement"
 #define PCGEX_NAMESPACE ShiftPath
 
@@ -70,7 +71,7 @@ namespace PCGExShiftPath
 	{
 	}
 
-	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager> InAsyncManager)
+	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExShiftPath::Process);
 

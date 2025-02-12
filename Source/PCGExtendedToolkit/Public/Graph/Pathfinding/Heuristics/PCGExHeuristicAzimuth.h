@@ -34,27 +34,18 @@ class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExHeuristicAzimuth : public UPCGExHeuristic
 public:
 	virtual void PrepareForCluster(const TSharedPtr<const PCGExCluster::FCluster>& InCluster) override;
 
-	FORCEINLINE virtual double GetGlobalScore(
+	virtual double GetGlobalScore(
 		const PCGExCluster::FNode& From,
 		const PCGExCluster::FNode& Seed,
-		const PCGExCluster::FNode& Goal) const override
-	{
-		const FVector Dir = Cluster->GetDir(Seed, Goal);
-		const double Dot = FVector::DotProduct(Dir, Cluster->GetDir(From, Goal)) * -1;
-		return GetScoreInternal(PCGExMath::Remap(Dot, -1, 1, OutMin, OutMax));
-	}
+		const PCGExCluster::FNode& Goal) const override;
 
-	FORCEINLINE virtual double GetEdgeScore(
+	virtual double GetEdgeScore(
 		const PCGExCluster::FNode& From,
 		const PCGExCluster::FNode& To,
 		const PCGExGraph::FEdge& Edge,
 		const PCGExCluster::FNode& Seed,
 		const PCGExCluster::FNode& Goal,
-		const TSharedPtr<PCGEx::FHashLookup> TravelStack) const override
-	{
-		const double Dot = (FVector::DotProduct(Cluster->GetDir(From, To), Cluster->GetDir(From, Goal)) * -1);
-		return GetScoreInternal(PCGExMath::Remap(Dot, -1, 1, OutMin, OutMax));
-	}
+		const TSharedPtr<PCGEx::FHashLookup> TravelStack) const override;
 
 protected:
 	double OutMin = 0;

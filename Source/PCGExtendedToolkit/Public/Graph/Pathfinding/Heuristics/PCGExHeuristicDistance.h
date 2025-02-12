@@ -34,24 +34,19 @@ class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExHeuristicDistance : public UPCGExHeuristi
 public:
 	virtual void PrepareForCluster(const TSharedPtr<const PCGExCluster::FCluster>& InCluster) override;
 
-	FORCEINLINE virtual double GetGlobalScore(
+	virtual double GetGlobalScore(
 		const PCGExCluster::FNode& From,
 		const PCGExCluster::FNode& Seed,
-		const PCGExCluster::FNode& Goal) const override
-	{
-		return GetScoreInternal(Cluster->GetDist(From, Goal) / BoundsSize);
-	}
+		const PCGExCluster::FNode& Goal) const override;
 
-	FORCEINLINE virtual double GetEdgeScore(
+
+	virtual double GetEdgeScore(
 		const PCGExCluster::FNode& From,
 		const PCGExCluster::FNode& To,
 		const PCGExGraph::FEdge& Edge,
 		const PCGExCluster::FNode& Seed,
 		const PCGExCluster::FNode& Goal,
-		const TSharedPtr<PCGEx::FHashLookup> TravelStack) const override
-	{
-		return GetScoreInternal((*Cluster->EdgeLengths)[Edge.Index]);
-	}
+		const TSharedPtr<PCGEx::FHashLookup> TravelStack) const override;
 
 protected:
 	double BoundsSize = 0;

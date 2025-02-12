@@ -42,6 +42,14 @@ void UPCGExOperation::Cleanup()
 	SecondaryDataFacade.Reset();
 }
 
+void UPCGExOperation::RegisterConsumableAttributesWithFacade(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade>& InFacade) const
+{
+}
+
+void UPCGExOperation::RegisterPrimaryBuffersDependencies(PCGExData::FFacadePreloader& FacadePreloader) const
+{
+}
+
 void UPCGExOperation::BeginDestroy()
 {
 	Cleanup();

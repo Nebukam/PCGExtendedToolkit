@@ -9,7 +9,6 @@
 #include "PCGExDataBlending.h"
 #include "PCGExPropertiesBlender.h"
 
-
 namespace PCGExDataBlending
 {
 	class /*PCGEXTENDEDTOOLKIT_API*/ FMetadataBlender final : public TSharedFromThis<FMetadataBlender>

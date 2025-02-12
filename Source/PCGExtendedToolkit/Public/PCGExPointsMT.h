@@ -10,6 +10,7 @@
 #include "Data/PCGExData.h"
 #include "Data/PCGExPointFilter.h"
 
+
 namespace PCGExPointsMT
 {
 	PCGEX_CTX_STATE(MTState_PointsProcessing)
@@ -102,7 +103,7 @@ namespace PCGExPointsMT
 
 		void PrefetchData(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager, const TSharedPtr<PCGExMT::FTaskGroup>& InPrefetchDataTaskGroup);
 
-		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager> InAsyncManager);
+		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager);
 
 
 #pragma region Parallel loop for points
@@ -160,8 +161,8 @@ namespace PCGExPointsMT
 			check(Settings)
 		}
 
-		FORCEINLINE TContext* GetContext() { return Context; }
-		FORCEINLINE const TSettings* GetSettings() { return Settings; }
+		TContext* GetContext() { return Context; }
+		const TSettings* GetSettings() { return Settings; }
 	};
 
 	class FPointsProcessorBatchBase : public TSharedFromThis<FPointsProcessorBatchBase>
@@ -200,7 +201,7 @@ namespace PCGExPointsMT
 		virtual void SetExecutionContext(FPCGExContext* InContext);
 
 		template <typename T>
-		FORCEINLINE T* GetContext() { return static_cast<T*>(ExecutionContext); }
+		T* GetContext() { return static_cast<T*>(ExecutionContext); }
 
 		virtual bool PrepareProcessing();
 

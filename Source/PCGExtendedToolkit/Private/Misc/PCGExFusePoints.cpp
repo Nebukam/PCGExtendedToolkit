@@ -11,6 +11,22 @@
 #define LOCTEXT_NAMESPACE "PCGExFusePointsElement"
 #define PCGEX_NAMESPACE FusePoints
 
+namespace PCGExFuse
+{
+	FFusedPoint::FFusedPoint(const int32 InIndex, const FVector& InPosition)
+		: Index(InIndex), Position(InPosition)
+	{
+	}
+
+	void FFusedPoint::Add(const int32 InIndex, const double Distance)
+	{
+		FWriteScopeLock WriteLock(IndicesLock);
+		Fused.Add(InIndex);
+		Distances.Add(Distance);
+		MaxDistance = FMath::Max(MaxDistance, Distance);
+	}
+}
+
 PCGExData::EIOInit UPCGExFusePointsSettings::GetMainOutputInitMode() const { return PCGExData::EIOInit::New; }
 
 PCGEX_INITIALIZE_ELEMENT(FusePoints)
@@ -61,7 +77,7 @@ namespace PCGExFusePoints
 	{
 	}
 
-	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager> InAsyncManager)
+	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExFusePoints::Process);
 

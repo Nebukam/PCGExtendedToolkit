@@ -3,6 +3,7 @@
 
 #include "Misc/PCGExDiscardSame.h"
 
+
 #include "Misc/PCGExDiscardByPointCount.h"
 
 
@@ -65,7 +66,7 @@ bool FPCGExDiscardSameElement::ExecuteInternal(FPCGContext* InContext) const
 
 namespace PCGExDiscardSame
 {
-	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager> InAsyncManager)
+	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager)
 	{
 		PointDataFacade->bSupportsScopedGet = Context->bScopedAttributeGet;
 

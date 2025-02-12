@@ -55,55 +55,18 @@ public:
 
 	virtual void PrepareForCluster(const TSharedPtr<const PCGExCluster::FCluster>& InCluster) override;
 
-	FORCEINLINE virtual double GetGlobalScore(
+	virtual double GetGlobalScore(
 		const PCGExCluster::FNode& From,
 		const PCGExCluster::FNode& Seed,
-		const PCGExCluster::FNode& Goal) const override
-	{
-		return GetScoreInternal(GlobalInertiaScore);
-	}
+		const PCGExCluster::FNode& Goal) const override;
 
-	FORCEINLINE virtual double GetEdgeScore(
+	virtual double GetEdgeScore(
 		const PCGExCluster::FNode& From,
 		const PCGExCluster::FNode& To,
 		const PCGExGraph::FEdge& Edge,
 		const PCGExCluster::FNode& Seed,
 		const PCGExCluster::FNode& Goal,
-		const TSharedPtr<PCGEx::FHashLookup> TravelStack) const override
-	{
-		if (TravelStack)
-		{
-			int32 PathNodeIndex = PCGEx::NH64A(TravelStack->Get(From.Index));
-			int32 PathEdgeIndex = -1;
-
-			if (PathNodeIndex != -1)
-			{
-				FVector Avg = Cluster->GetDir(PathNodeIndex, From.Index);
-				int32 Sampled = 1;
-				while (PathNodeIndex != -1 && Sampled < MaxSamples)
-				{
-					const int32 CurrentIndex = PathNodeIndex;
-					PCGEx::NH64(TravelStack->Get(CurrentIndex), PathNodeIndex, PathEdgeIndex);
-					if (PathNodeIndex != -1)
-					{
-						Avg += Cluster->GetDir(PathNodeIndex, CurrentIndex);
-						Sampled++;
-					}
-				}
-
-				if (!bIgnoreIfNotEnoughSamples || Sampled == MaxSamples)
-				{
-					const double Dot = FVector::DotProduct(
-						(Avg / Sampled).GetSafeNormal(),
-						Cluster->GetDir(From.Index, To.Index));
-
-					return GetScoreInternal(PCGExMath::Remap(Dot, -1, 1, OutMin, OutMax)) * ReferenceWeight;
-				}
-			}
-		}
-
-		return GetScoreInternal(FallbackInertiaScore);
-	}
+		const TSharedPtr<PCGEx::FHashLookup> TravelStack) const override;
 
 protected:
 	double OutMin = 0;

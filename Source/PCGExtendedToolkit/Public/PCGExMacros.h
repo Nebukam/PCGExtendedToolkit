@@ -222,10 +222,10 @@ struct _ITEM##Semantics{ \
 	enum { MinInclusiveElementsPerNode = 7 }; \
 	enum { MaxNodeDepth = 12 }; \
 	using ElementAllocator = TInlineAllocator<MaxElementsPerLeaf>; \
-	FORCEINLINE static const FBoxSphereBounds& GetBoundingBox(const _ITEM* Element) _BOUNDS \
-	FORCEINLINE static const bool AreElementsEqual(const _ITEM* A, const _ITEM* B) _EQUALITY \
-	FORCEINLINE static void ApplyOffset(_ITEM& Element){ ensureMsgf(false, TEXT("Not implemented")); } \
-	FORCEINLINE static void SetElementId(const _ITEM* Element, FOctreeElementId2 OctreeElementID){ }}; \
+	static const FBoxSphereBounds& GetBoundingBox(const _ITEM* Element) _BOUNDS \
+	static const bool AreElementsEqual(const _ITEM* A, const _ITEM* B) _EQUALITY \
+	static void ApplyOffset(_ITEM& Element){ ensureMsgf(false, TEXT("Not implemented")); } \
+	static void SetElementId(const _ITEM* Element, FOctreeElementId2 OctreeElementID){ }}; \
 	using _ITEM##Octree = TOctree2<_ITEM*, _ITEM##Semantics>;
 
 #define PCGEX_OCTREE_SEMANTICS_REF(_ITEM, _BOUNDS, _EQUALITY)\
@@ -234,10 +234,10 @@ enum { MaxElementsPerLeaf = 16 }; \
 enum { MinInclusiveElementsPerNode = 7 }; \
 enum { MaxNodeDepth = 12 }; \
 using ElementAllocator = TInlineAllocator<MaxElementsPerLeaf>; \
-FORCEINLINE static const FBoxSphereBounds& GetBoundingBox(const _ITEM& Element) _BOUNDS \
-FORCEINLINE static const bool AreElementsEqual(const _ITEM& A, const _ITEM& B) _EQUALITY \
-FORCEINLINE static void ApplyOffset(_ITEM& Element){ ensureMsgf(false, TEXT("Not implemented")); } \
-FORCEINLINE static void SetElementId(const _ITEM& Element, FOctreeElementId2 OctreeElementID){ }}; \
+static const FBoxSphereBounds& GetBoundingBox(const _ITEM& Element) _BOUNDS \
+static const bool AreElementsEqual(const _ITEM& A, const _ITEM& B) _EQUALITY \
+static void ApplyOffset(_ITEM& Element){ ensureMsgf(false, TEXT("Not implemented")); } \
+static void SetElementId(const _ITEM& Element, FOctreeElementId2 OctreeElementID){ }}; \
 using _ITEM##Octree = TOctree2<_ITEM, _ITEM##Semantics>;
 
 #endif

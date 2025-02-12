@@ -15,6 +15,53 @@
 
 namespace PCGExDataBlending
 {
+	FMultiSourceAttribute::FMultiSourceAttribute(const PCGEx::FAttributeIdentity& InIdentity)
+		: Identity(InIdentity)
+	{
+	}
+
+	void FMultiSourceAttribute::PrepareMerge(const EPCGMetadataTypes Type, const TSharedPtr<PCGExData::FFacade>& InTargetData, TArray<TSharedPtr<PCGExData::FFacade>>& Sources)
+	{
+		check(InTargetData);
+
+		Buffer = nullptr;
+
+		if (const FPCGMetadataAttributeBase* ExistingAttribute = InTargetData->FindConstAttribute(Identity.Name);
+			ExistingAttribute && ExistingAttribute->GetTypeId() == static_cast<int16>(Type))
+		{
+			// This attribute exists
+			Buffer = InTargetData->GetWritable(Type, ExistingAttribute, PCGExData::EBufferInit::Inherit);
+		}
+		else
+		{
+			Buffer = InTargetData->GetWritable(Type, DefaultValue, PCGExData::EBufferInit::New);
+		}
+
+		for (int i = 0; i < Sources.Num(); i++)
+		{
+			if (const TSharedPtr<FDataBlendingProcessorBase>& SubProc = SubBlendingProcessors[i]) { SubProc->PrepareForData(Buffer, Sources[i]); }
+		}
+
+		MainBlendingProcessor->PrepareForData(Buffer, InTargetData, PCGExData::ESource::Out);
+	}
+
+	void FMultiSourceAttribute::PrepareSoftMerge(const TSharedPtr<PCGExData::FFacade>& InTargetData, TArray<TSharedPtr<PCGExData::FFacade>>& Sources)
+	{
+		check(InTargetData);
+
+		Buffer = nullptr;
+
+		for (int i = 0; i < Sources.Num(); i++)
+		{
+			if (const TSharedPtr<FDataBlendingProcessorBase>& SrcProc = SubBlendingProcessors[i])
+			{
+				SrcProc->SoftPrepareForData(InTargetData, Sources[i]);
+			}
+		}
+
+		MainBlendingProcessor->SoftPrepareForData(InTargetData, InTargetData, PCGExData::ESource::Out);
+	}
+
 	FUnionBlender::FUnionBlender(const FPCGExBlendingDetails* InBlendingDetails, const FPCGExCarryOverDetails* InCarryOverDetails):
 		CarryOverDetails(InCarryOverDetails), BlendingDetails(InBlendingDetails)
 	{
@@ -109,12 +156,7 @@ namespace PCGExDataBlending
 		// Initialize blending operations
 		for (const TSharedPtr<FMultiSourceAttribute>& MultiAttribute : MultiSourceAttributes)
 		{
-			PCGEx::ExecuteWithRightType(
-				MultiAttribute->Identity.UnderlyingType, [&](auto DummyValue)
-				{
-					using T = decltype(DummyValue);
-					MultiAttribute->PrepareMerge<T>(CurrentTargetData, Sources);
-				});
+			MultiAttribute->PrepareMerge(MultiAttribute->Identity.UnderlyingType, CurrentTargetData, Sources);
 		}
 
 		Validate(InContext, false);
@@ -199,13 +241,7 @@ namespace PCGExDataBlending
 		for (const TSharedPtr<FMultiSourceAttribute>& MultiAttribute : MultiSourceAttributes)
 		{
 			MultiAttribute->Buffer = nullptr;
-
-			PCGEx::ExecuteWithRightType(
-				MultiAttribute->Identity.UnderlyingType, [&](auto DummyValue)
-				{
-					using T = decltype(DummyValue);
-					MultiAttribute->PrepareSoftMerge<T>(CurrentTargetData, Sources);
-				});
+			MultiAttribute->PrepareSoftMerge(CurrentTargetData, Sources);
 		}
 
 		// Strip existing attribute names that may conflict with tags

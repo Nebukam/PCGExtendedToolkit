@@ -37,29 +37,10 @@ public:
 
 	virtual void PrepareForCluster(FPCGExContext* InContext, TSharedRef<PCGExCluster::FCluster> InCluster, TSharedRef<PCGExData::FFacade> InVtxDataFacade, TSharedRef<PCGExData::FFacade> InEdgeDataFacade) override;
 
-	FORCEINLINE virtual void PrepareNode(const PCGExCluster::FNode& TargetNode) const override
-	{
-		Blender->PrepareForBlending(TargetNode.PointIndex);
-	}
-
-	FORCEINLINE virtual void SampleNeighborNode(const PCGExCluster::FNode& TargetNode, const PCGExGraph::FLink Lk, const double Weight) override
-	{
-		const int32 PrimaryIndex = TargetNode.PointIndex;
-		Blender->Blend(PrimaryIndex, Cluster->GetNode(Lk)->PointIndex, PrimaryIndex, Weight);
-	}
-
-	FORCEINLINE virtual void SampleNeighborEdge(const PCGExCluster::FNode& TargetNode, const PCGExGraph::FLink Lk, const double Weight) override
-	{
-		const int32 PrimaryIndex = TargetNode.PointIndex;
-		Blender->Blend(PrimaryIndex, Cluster->GetEdge(Lk)->PointIndex, PrimaryIndex, Weight);
-	}
-
-	FORCEINLINE virtual void FinalizeNode(const PCGExCluster::FNode& TargetNode, const int32 Count, const double TotalWeight) override
-	{
-		const int32 PrimaryIndex = TargetNode.PointIndex;
-		Blender->CompleteBlending(PrimaryIndex, Count, TotalWeight);
-	}
-
+	virtual void PrepareNode(const PCGExCluster::FNode& TargetNode) const override;
+	virtual void SampleNeighborNode(const PCGExCluster::FNode& TargetNode, const PCGExGraph::FLink Lk, const double Weight) override;
+	virtual void SampleNeighborEdge(const PCGExCluster::FNode& TargetNode, const PCGExGraph::FLink Lk, const double Weight) override;
+	virtual void FinalizeNode(const PCGExCluster::FNode& TargetNode, const int32 Count, const double TotalWeight) override;
 	virtual void CompleteOperation() override;
 
 	virtual void Cleanup() override;

@@ -3,6 +3,7 @@
 
 #include "Sampling/PCGExSampleSurfaceGuided.h"
 
+
 #include "Kismet/GameplayStatics.h"
 #include "PhysicsEngine/PhysicsSettings.h"
 #include "Sampling/PCGExTexParamFactoryProvider.h"
@@ -108,7 +109,7 @@ namespace PCGExSampleSurfaceGuided
 	{
 	}
 
-	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager> InAsyncManager)
+	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExSampleSurfaceGuided::Process);
 

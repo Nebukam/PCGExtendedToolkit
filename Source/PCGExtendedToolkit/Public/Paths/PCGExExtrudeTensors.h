@@ -10,6 +10,8 @@
 
 #include "PCGExPointsProcessor.h"
 #include "Data/PCGExDataForward.h"
+
+
 #include "Transform/PCGExTensorsTransform.h"
 #include "Transform/PCGExTransform.h"
 #include "Transform/Tensors/PCGExTensor.h"
@@ -409,7 +411,7 @@ namespace PCGExExtrudeTensors
 
 		virtual bool IsTrivial() const override { return false; }
 
-		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager> InAsyncManager) override;
+		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager) override;
 
 		void InitExtrusionFromSeed(const int32 InSeedIndex);
 		TSharedPtr<FExtrusion> InitExtrusionFromExtrusion(const TSharedRef<FExtrusion>& InExtrusion);

@@ -11,6 +11,46 @@ void UPCGExHeuristicSteepness::PrepareForCluster(const TSharedPtr<const PCGExClu
 	Super::PrepareForCluster(InCluster);
 }
 
+double UPCGExHeuristicSteepness::GetGlobalScore(const PCGExCluster::FNode& From, const PCGExCluster::FNode& Seed, const PCGExCluster::FNode& Goal) const
+{
+	return GetScoreInternal(GetDot(Cluster->GetPos(From), Cluster->GetPos(Goal)));
+}
+
+double UPCGExHeuristicSteepness::GetEdgeScore(const PCGExCluster::FNode& From, const PCGExCluster::FNode& To, const PCGExGraph::FEdge& Edge, const PCGExCluster::FNode& Seed, const PCGExCluster::FNode& Goal, const TSharedPtr<PCGEx::FHashLookup> TravelStack) const
+{
+	if (bAccumulate && TravelStack)
+	{
+		int32 PathNodeIndex = PCGEx::NH64A(TravelStack->Get(From.Index));
+		int32 PathEdgeIndex = -1;
+
+		if (PathNodeIndex != -1)
+		{
+			double Avg = GetDot(Cluster->GetPos(From), Cluster->GetPos(To));
+			int32 Sampled = 1;
+			while (PathNodeIndex != -1 && Sampled < MaxSamples)
+			{
+				const int32 CurrentIndex = PathNodeIndex;
+				PCGEx::NH64(TravelStack->Get(CurrentIndex), PathNodeIndex, PathEdgeIndex);
+				if (PathNodeIndex != -1)
+				{
+					Avg += GetDot(Cluster->GetPos(PathNodeIndex), Cluster->GetPos(CurrentIndex));
+					Sampled++;
+				}
+			}
+
+			return GetScoreInternal(Avg);
+		}
+	}
+
+	return GetScoreInternal(GetDot(Cluster->GetPos(From), Cluster->GetPos(To)));
+}
+
+double UPCGExHeuristicSteepness::GetDot(const FVector& From, const FVector& To) const
+{
+	const double Dot = FVector::DotProduct((To - From).GetSafeNormal(), UpwardVector);
+	return bAbsoluteSteepness ? FMath::Abs(Dot) : PCGExMath::Remap(Dot, -1, 1);
+}
+
 UPCGExHeuristicOperation* UPCGExHeuristicsFactorySteepness::CreateOperation(FPCGExContext* InContext) const
 {
 	UPCGExHeuristicSteepness* NewOperation = InContext->ManagedObjects->New<UPCGExHeuristicSteepness>();

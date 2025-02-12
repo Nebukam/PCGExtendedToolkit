@@ -3,6 +3,7 @@
 
 #include "Paths/PCGExCreateSpline.h"
 
+
 #include "Helpers/PCGHelpers.h"
 
 
@@ -95,7 +96,7 @@ bool FPCGExCreateSplineElement::IsCacheable(const UPCGSettings* InSettings) cons
 
 namespace PCGExCreateSpline
 {
-	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager> InAsyncManager)
+	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExCreateSpline::Process);
 

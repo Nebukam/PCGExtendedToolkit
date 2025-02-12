@@ -45,23 +45,15 @@ class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExHeuristicAttribute : public UPCGExHeurist
 public:
 	virtual void PrepareForCluster(const TSharedPtr<const PCGExCluster::FCluster>& InCluster) override;
 
-	FORCEINLINE virtual double GetEdgeScore(
+	virtual double GetEdgeScore(
 		const PCGExCluster::FNode& From,
 		const PCGExCluster::FNode& To,
 		const PCGExGraph::FEdge& Edge,
 		const PCGExCluster::FNode& Seed,
 		const PCGExCluster::FNode& Goal,
-		const TSharedPtr<PCGEx::FHashLookup> TravelStack) const override
-	{
-		return CachedScores[Source == EPCGExClusterComponentSource::Edge ? Edge.PointIndex : To.Index];
-	}
+		const TSharedPtr<PCGEx::FHashLookup> TravelStack) const override;
 
-	virtual void Cleanup() override
-	{
-		CachedScores.Empty();
-		LastPoints.Reset();
-		Super::Cleanup();
-	}
+	virtual void Cleanup() override;
 
 	EPCGExClusterComponentSource Source = EPCGExClusterComponentSource::Vtx;
 	FPCGAttributePropertyInputSelector Attribute;

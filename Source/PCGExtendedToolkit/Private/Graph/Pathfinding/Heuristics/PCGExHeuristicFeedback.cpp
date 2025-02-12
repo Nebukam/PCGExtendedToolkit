@@ -3,6 +3,72 @@
 
 #include "Graph/Pathfinding/Heuristics/PCGExHeuristicFeedback.h"
 
+double UPCGExHeuristicFeedback::GetGlobalScore(const PCGExCluster::FNode& From, const PCGExCluster::FNode& Seed, const PCGExCluster::FNode& Goal) const
+{
+	FReadScopeLock ReadScopeLock(FeedbackLock);
+
+	const uint32* N = NodeFeedbackNum.Find(From.Index);
+	return N ? GetScoreInternal(NodeScale) * *N : GetScoreInternal(0);
+}
+
+double UPCGExHeuristicFeedback::GetEdgeScore(
+	const PCGExCluster::FNode& From,
+	const PCGExCluster::FNode& To,
+	const PCGExGraph::FEdge& Edge,
+	const PCGExCluster::FNode& Seed,
+	const PCGExCluster::FNode& Goal,
+	const TSharedPtr<PCGEx::FHashLookup> TravelStack) const
+{
+	FReadScopeLock ReadScopeLock(FeedbackLock);
+
+	const uint32* N = NodeFeedbackNum.Find(To.Index);
+	const uint32* E = EdgeFeedbackNum.Find(Edge.Index);
+
+	const double NW = N ? GetScoreInternal(NodeScale) * *N : GetScoreInternal(0);
+	const double EW = E ? GetScoreInternal(EdgeScale) * *E : GetScoreInternal(0);
+
+	return (NW + EW);
+}
+
+void UPCGExHeuristicFeedback::FeedbackPointScore(const PCGExCluster::FNode& Node)
+{
+	FWriteScopeLock WriteScopeLock(FeedbackLock);
+
+	uint32& N = NodeFeedbackNum.FindOrAdd(Node.Index, 0);
+	N++;
+
+	if (bBleed)
+	{
+		for (const PCGExGraph::FLink Lk : Node.Links)
+		{
+			uint32& E = EdgeFeedbackNum.FindOrAdd(Lk.Edge, 0);
+			E++;
+		}
+	}
+}
+
+void UPCGExHeuristicFeedback::FeedbackScore(const PCGExCluster::FNode& Node, const PCGExGraph::FEdge& Edge)
+{
+	FWriteScopeLock WriteScopeLock(FeedbackLock);
+
+	uint32& N = NodeFeedbackNum.FindOrAdd(Node.Index, 0);
+	N++;
+
+	if (bBleed)
+	{
+		for (const PCGExGraph::FLink Lk : Node.Links)
+		{
+			uint32& E = EdgeFeedbackNum.FindOrAdd(Lk.Edge, 0);
+			E++;
+		}
+	}
+	else
+	{
+		uint32& E = EdgeFeedbackNum.FindOrAdd(Edge.Index, 0);
+		E++;
+	}
+}
+
 void UPCGExHeuristicFeedback::Cleanup()
 {
 	NodeFeedbackNum.Empty();

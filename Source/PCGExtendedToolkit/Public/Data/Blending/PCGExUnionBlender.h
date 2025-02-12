@@ -31,65 +31,12 @@ namespace PCGExDataBlending
 		TSharedPtr<FDataBlendingProcessorBase> MainBlendingProcessor;
 		TSharedPtr<PCGExData::FBufferBase> Buffer;
 
-		explicit FMultiSourceAttribute(const PCGEx::FAttributeIdentity& InIdentity)
-			: Identity(InIdentity)
-		{
-		}
+		explicit FMultiSourceAttribute(const PCGEx::FAttributeIdentity& InIdentity);
 
-		~FMultiSourceAttribute()
-		{
-		}
+		~FMultiSourceAttribute() = default;
 
-		template <typename T>
-		const FPCGMetadataAttribute<T>* Get(const int32 SourceIndex)
-		{
-			const FPCGMetadataAttributeBase* Att = Siblings[SourceIndex];
-			if (!Att) { return nullptr; }
-			return static_cast<const FPCGMetadataAttribute<T>*>(Att);
-		}
-
-		template <typename T>
-		void PrepareMerge(const TSharedPtr<PCGExData::FFacade> InTargetData, TArray<TSharedPtr<PCGExData::FFacade>>& Sources)
-		{
-			check(InTargetData);
-
-			Buffer = nullptr;
-
-			if (const FPCGMetadataAttribute<T>* ExistingAttribute = InTargetData->FindConstAttribute<T>(Identity.Name))
-			{
-				// This attribute exists
-				Buffer = InTargetData->GetWritable<T>(ExistingAttribute, PCGExData::EBufferInit::Inherit);
-			}
-			else
-			{
-				Buffer = InTargetData->GetWritable<T>(static_cast<const FPCGMetadataAttribute<T>*>(DefaultValue), PCGExData::EBufferInit::New);
-			}
-
-			for (int i = 0; i < Sources.Num(); i++)
-			{
-				if (const TSharedPtr<FDataBlendingProcessorBase>& SubProc = SubBlendingProcessors[i]) { SubProc->PrepareForData(Buffer, Sources[i]); }
-			}
-
-			MainBlendingProcessor->PrepareForData(Buffer, InTargetData, PCGExData::ESource::Out);
-		}
-
-		template <typename T>
-		void PrepareSoftMerge(const TSharedPtr<PCGExData::FFacade> InTargetData, TArray<TSharedPtr<PCGExData::FFacade>>& Sources)
-		{
-			check(InTargetData);
-
-			Buffer = nullptr;
-
-			for (int i = 0; i < Sources.Num(); i++)
-			{
-				if (const TSharedPtr<FDataBlendingProcessorBase>& SrcProc = SubBlendingProcessors[i])
-				{
-					SrcProc->SoftPrepareForData(InTargetData, Sources[i]);
-				}
-			}
-
-			MainBlendingProcessor->SoftPrepareForData(InTargetData, InTargetData, PCGExData::ESource::Out);
-		}
+		void PrepareMerge(const EPCGMetadataTypes Type, const TSharedPtr<PCGExData::FFacade>& InTargetData, TArray<TSharedPtr<PCGExData::FFacade>>& Sources);
+		void PrepareSoftMerge(const TSharedPtr<PCGExData::FFacade>& InTargetData, TArray<TSharedPtr<PCGExData::FFacade>>& Sources);
 
 		void SetNum(const int32 InNum)
 		{

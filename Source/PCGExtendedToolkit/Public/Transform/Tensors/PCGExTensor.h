@@ -76,36 +76,9 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExTensorConfigBase
 {
 	GENERATED_BODY()
 
-	explicit FPCGExTensorConfigBase(const bool SupportAttributes = true, const bool SupportMutations = true)
-		: bSupportAttributes(SupportAttributes), bSupportMutations(SupportMutations)
-	{
-		if (!bSupportAttributes)
-		{
-			PotencyInput = EPCGExInputValueType::Constant;
-			WeightInput = EPCGExInputValueType::Constant;
-		}
+	explicit FPCGExTensorConfigBase(const bool SupportAttributes = true, const bool SupportMutations = true);
 
-		LocalGuideCurve.VectorCurves[0].AddKey(0, 1);
-		LocalGuideCurve.VectorCurves[1].AddKey(0, 0);
-		LocalGuideCurve.VectorCurves[2].AddKey(0, 0);
-
-		LocalGuideCurve.VectorCurves[0].AddKey(1, 1);
-		LocalGuideCurve.VectorCurves[1].AddKey(1, 0);
-		LocalGuideCurve.VectorCurves[2].AddKey(1, 0);
-
-		LocalPotencyFalloffCurve.EditorCurveData.AddKey(1, 0);
-		LocalPotencyFalloffCurve.EditorCurveData.AddKey(0, 1);
-
-		LocalWeightFalloffCurve.EditorCurveData.AddKey(1, 0);
-		LocalWeightFalloffCurve.EditorCurveData.AddKey(0, 1);
-
-		PotencyAttribute.Update(TEXT("$Density"));
-		WeightAttribute.Update(TEXT("Steepness"));
-	}
-
-	virtual ~FPCGExTensorConfigBase()
-	{
-	}
+	virtual ~FPCGExTensorConfigBase() = default;
 
 	UPROPERTY(VisibleAnywhere, Category=Settings, meta=(PCG_NotOverridable, HideInDetailPanel, EditCondition="false", EditConditionHides))
 	bool bSupportAttributes = true;
@@ -225,10 +198,7 @@ namespace PCGExTensor
 
 		FTensorSample() = default;
 
-		FTensorSample(const FVector& InDirectionAndSize, const FQuat& InRotation, const int32 InEffectors, const double InWeight)
-			: DirectionAndSize(InDirectionAndSize), Rotation(InRotation), Effectors(InEffectors), Weight(InWeight)
-		{
-		};
+		FTensorSample(const FVector& InDirectionAndSize, const FQuat& InRotation, const int32 InEffectors, const double InWeight);
 
 		~FTensorSample() = default;
 
@@ -263,10 +233,7 @@ namespace PCGExTensor
 
 		FEffectorSample() = default;
 
-		FEffectorSample(const FVector& InDirection, const double InPotency, const double InWeight)
-			: Direction(InDirection), Potency(InPotency), Weight(InWeight)
-		{
-		}
+		FEffectorSample(const FVector& InDirection, const double InPotency, const double InWeight);
 
 		~FEffectorSample() = default;
 	};
