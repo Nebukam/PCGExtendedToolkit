@@ -74,7 +74,7 @@ namespace PCGExDataBlending
 #undef PCGEX_EXTERN_DECL
 
 
-	TSharedPtr<FDataBlendingProcessorBase> PCGExDataBlending::CreateProcessor(const EPCGExDataBlendingType Type, const PCGEx::FAttributeIdentity& Identity)
+	TSharedPtr<FDataBlendingProcessorBase> CreateProcessor(const EPCGExDataBlendingType Type, const PCGEx::FAttributeIdentity& Identity)
 	{
 #define PCGEX_SAO_NEW(_TYPE, _NAME, _ID) case EPCGMetadataTypes::_NAME : NewProcessor = MakeShared<TDataBlending##_ID<_TYPE>>(); break;
 #define PCGEX_BLEND_CASE(_ID) case EPCGExDataBlendingType::_ID: switch (Identity.UnderlyingType) { PCGEX_FOREACH_SUPPORTEDTYPES(PCGEX_SAO_NEW, _ID) } break;
@@ -94,7 +94,7 @@ namespace PCGExDataBlending
 #undef PCGEX_BLEND_CASE
 	}
 
-	TSharedPtr<FDataBlendingProcessorBase> PCGExDataBlending::CreateProcessorWithDefaults(const EPCGExDataBlendingType DefaultType, const PCGEx::FAttributeIdentity& Identity)
+	TSharedPtr<FDataBlendingProcessorBase> CreateProcessorWithDefaults(const EPCGExDataBlendingType DefaultType, const PCGEx::FAttributeIdentity& Identity)
 	{
 		EPCGExDataBlendingTypeDefault GlobalDefaultType = EPCGExDataBlendingTypeDefault::Default;
 
@@ -114,7 +114,7 @@ namespace PCGExDataBlending
 #undef PCGEX_BLEND_CASE
 	}
 
-	TSharedPtr<FDataBlendingProcessorBase> PCGExDataBlending::CreateProcessor(const EPCGExDataBlendingType* Type, const EPCGExDataBlendingType DefaultType, const PCGEx::FAttributeIdentity& Identity)
+	TSharedPtr<FDataBlendingProcessorBase> CreateProcessor(const EPCGExDataBlendingType* Type, const EPCGExDataBlendingType DefaultType, const PCGEx::FAttributeIdentity& Identity)
 	{
 		return Type ? CreateProcessor(*Type, Identity) : CreateProcessorWithDefaults(DefaultType, Identity);
 	}
