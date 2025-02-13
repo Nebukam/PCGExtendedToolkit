@@ -48,20 +48,31 @@ public:
 	EPCGExConstantListID ConstantList;
 
 	// Export the negative of the constant instead of the constant itself
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Settings, meta=(EditCondition="ConstantList!=EPCGExConstantListID::Booleans", EditConditionHides))
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Settings)
 	bool NegateOutput = false;
 
 	// Output 1/x instead of x (e.g. 2 becomes 1/2)
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Settings, meta=(EditCondition="ConstantList!=EPCGExConstantListID::Booleans && ConstantList != EPCGExConstantListID::Vectors", EditConditionHides))
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Settings)
 	bool OutputReciprocal = false;
 
 	// Apply a custom (constant, numeric) multiplier to the output
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Settings, meta=(EditCondition="ConstantList!=EPCGExConstantListID::Booleans", EditConditionHides))
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Settings)
 	double CustomMultiplier = 1.0;
 
-	// Cast to a specific type (double will be used by default)
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Settings, meta=(EditCondition="ConstantList != EPCGExConstantListID::Booleans && ConstantList != EPCGExConstantListID::Vectors", EditConditionHides))
+	// Cast to a specific type (double will be used by default, ignored for vectors)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Settings)
 	EPCGExNumericOutput NumericOutputType;
+	
+	UFUNCTION(BlueprintCallable)
+	static EPCGExConstantType GetOutputType(EPCGExConstantListID ListID);
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Settings, NoClear, EditFixedSize, meta=(ReadOnlyKeys, ForceInlineRow))
+	TMap<FName, FName> AttributeNameMap = {};
+
+#if WITH_EDITOR
+	virtual bool CanEditChange(const FProperty* InProperty) const override;
+#endif
+
 
 protected:
 	virtual TArray<FPCGPinProperties> InputPinProperties() const override { return {}; }
@@ -71,12 +82,36 @@ protected:
 public:
 	static PCGExConstants::TDescriptorList<double> GetNumericConstantList(EPCGExConstantListID ConstantList)
 	{
-		return PCGExConstants::Numbers.ExportedConstants[static_cast<uint8>(ConstantList)];
+		
+		if (ConstantList < EPCGExConstantListID::ADDITIONAL_NUMERICS) {	
+			return PCGExConstants::Numbers.ExportedConstants[static_cast<uint8>(ConstantList)];
+		}
+		constexpr uint8 AdditionalValuesStart = static_cast<uint8>(EPCGExConstantListID::ADDITIONAL_NUMERICS) + 1;
+		return PCGExConstants::AdditionalNumbers.ExportedConstants[static_cast<uint8>(ConstantList) - AdditionalValuesStart];
 	}
 
 	static PCGExConstants::TDescriptorList<FVector> GetVectorConstantList(EPCGExConstantListID ConstantList)
 	{
-		return PCGExConstants::Vectors.ExportedConstants[0];
+		if (ConstantList == EPCGExConstantListID::Vectors) {
+			return PCGExConstants::Vectors.ExportedConstants[0];
+		}
+
+		constexpr uint8 AdditionalVectorsStart = static_cast<uint8>(EPCGExConstantListID::ADDITIONAL_VECTORS) + 1;
+
+		return PCGExConstants::AdditionalVectors.ExportedConstants[static_cast<uint8>(ConstantList) - AdditionalVectorsStart];
+	}
+
+	static TArray<PCGExConstants::TDescriptor<bool>> GetBooleanConstantList(EPCGExConstantListID ConstantList)
+	{
+		if (ConstantList == EPCGExConstantListID::TrueBool) {
+			return { PCGExConstants::Booleans[0] };
+		}
+
+		if (ConstantList == EPCGExConstantListID::FalseBool) {
+			return { PCGExConstants::Booleans[1] };
+		}
+
+		return PCGExConstants::Booleans;
 	}
 
 	template <typename T>
@@ -106,12 +141,12 @@ protected:
 
 
 	template <typename T>
-	void StageConstant(FPCGExContext* InContext, const FName InName, const T& InValue) const
+	void StageConstant(FPCGExContext* InContext, const FName InName, const T& InValue, const UPCGExConstantsSettings* Settings) const
 	{
 		UPCGParamData* OutputData = InContext->ManagedObjects->New<UPCGParamData>();
 		check(OutputData && OutputData->Metadata);
-
-		FPCGMetadataAttribute<T>* Attrib = OutputData->Metadata->CreateAttribute<T>(InName, InValue, true, false);\
+		
+		FPCGMetadataAttribute<T>* Attrib = OutputData->Metadata->CreateAttribute<T>(InName, InValue, true, false);
 		Attrib->SetValue(OutputData->Metadata->AddEntry(), InValue);
 
 		InContext->StageOutput(InName, OutputData, true);
