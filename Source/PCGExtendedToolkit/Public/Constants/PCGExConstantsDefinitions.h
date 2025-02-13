@@ -21,14 +21,39 @@ enum class EPCGExConstantListID : uint8
 	Zero        = 6 UMETA(DisplayName="0"),
 	One         = 7 UMETA(DisplayName="1"),
 
-	// Vectors (for now just the axes)
-	Vectors = 8,
+	// Vectors
+	Vectors = 8 UMETA(DisplayName="Axes"),
 
 	// Booleans
 	Booleans = 9 UMETA(DisplayName = "True and False"),
+	TrueBool = 10 UMETA(DisplayName = "True"), 
+	FalseBool = 11 UMETA(DisplayName = "False"),
+	MAX_BOOL = 12 UMETA(Hidden),
+	
+	// Additional vectors
+	ADDITIONAL_VECTORS = 2 << 3 UMETA(Hidden),
+	OneVector = 17 UMETA(DisplayName="Unit Vector"),
+	ZeroVector = 18 UMETA(DisplayName="Zero Vector"),
+	HalfVector = 19 UMETA(DisplayName="Half Vector"),
+	UpVector = 20 UMETA(DisplayName="Up Vector"),
+	RightVector = 21 UMETA(DisplayName="Right Vector"),
+	ForwardVector = 22 UMETA(DisplayName="Forward Vector"),
+
+	// Additional numerics
+	ADDITIONAL_NUMERICS = 2 << 4 UMETA(Hidden),
+	Two = 33 UMETA(DisplayName="2"),
+	Half = 34 UMETA(DisplayName="0.5")
+	
 };
 
 ENUM_CLASS_FLAGS(EPCGExConstantListID)
+
+UENUM(BlueprintType)
+enum class EPCGExConstantType : uint8 {
+	Number,
+	Vector,
+	Bool
+}; 
 
 namespace PCGExConstants
 {
@@ -112,12 +137,18 @@ namespace PCGExConstants
 				"One",
 				{{"1", 1.0}}
 			}
-
-
 		}
 	};
 
-	inline TDescriptorListGroup<FVector> Vectors{
+	inline TDescriptorListGroup<double> AdditionalNumbers {
+		"Additional Numbers",
+		{
+			{"Two", {{"2", 2.0 } } },
+			{"Half", {{"Half", 0.5} } }
+		}
+	};
+
+	inline TDescriptorListGroup<FVector> Vectors {
 		"Vector Constants",
 		{
 			{
@@ -128,6 +159,36 @@ namespace PCGExConstants
 					{"Right", FVector::RightVector},
 					{"Forward", FVector::ForwardVector}
 				}
+			}
+		}
+	};
+
+	inline TDescriptorListGroup<FVector> AdditionalVectors {
+	"Unit Vector Constants",
+		{
+        	{
+        		"Unit Vector",
+        		{ {"Unit Vector", FVector::OneVector } }
+        	},
+        	{
+        		"Zero Vector",
+        		{{"Zero Vector", FVector::ZeroVector } }
+        	},
+        	{
+        		"Half Vector",
+        		{{"Half Vector", FVector(.5, .5, .5) }}
+        	},
+        	{
+                "Up Vector",
+                {{"Up Vector", FVector::UpVector } }
+            },
+			{
+				"Right Vector",
+				{{"Right Vector", FVector::RightVector } }
+			},
+			{
+				"Forward Vector",
+				{{"Forward Vector", FVector::ForwardVector } }
 			}
 		}
 	};
