@@ -9,8 +9,6 @@
 #define LOCTEXT_NAMESPACE "PCGExFindPointOnBoundsElement"
 #define PCGEX_NAMESPACE FindPointOnBounds
 
-PCGExData::EIOInit UPCGExFindPointOnBoundsSettings::GetMainOutputInitMode() const { return PCGExData::EIOInit::New; }
-
 PCGEX_INITIALIZE_ELEMENT(FindPointOnBounds)
 
 bool FPCGExFindPointOnBoundsElement::Boot(FPCGExContext* InContext) const
@@ -97,6 +95,8 @@ namespace PCGExFindPointOnBounds
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExFindPointOnBounds::Process);
 
 		if (!FPointsProcessor::Process(InAsyncManager)) { return false; }
+
+		PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::New)
 
 		const FBox Bounds = PointDataFacade->Source->GetIn()->GetBounds();
 		SearchPosition = Bounds.GetCenter() + Bounds.GetExtent() * Settings->UVW;

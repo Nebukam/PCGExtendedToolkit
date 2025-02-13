@@ -26,8 +26,6 @@ TArray<FPCGPinProperties> UPCGExSampleTensorsSettings::InputPinProperties() cons
 	return PinProperties;
 }
 
-PCGExData::EIOInit UPCGExSampleTensorsSettings::GetMainOutputInitMode() const { return PCGExData::EIOInit::Duplicate; }
-
 void FPCGExSampleTensorsContext::RegisterAssetDependencies()
 {
 	PCGEX_SETTINGS_LOCAL(SampleTensors)
@@ -95,6 +93,8 @@ namespace PCGExSampleTensors
 		PointDataFacade->bSupportsScopedGet = Context->bScopedAttributeGet;
 
 		if (!FPointsProcessor::Process(InAsyncManager)) { return false; }
+
+		PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::Duplicate)
 
 		SampleState.SetNumUninitialized(PointDataFacade->GetNum());
 

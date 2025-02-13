@@ -11,8 +11,6 @@
 #define LOCTEXT_NAMESPACE "PCGExSubdivideElement"
 #define PCGEX_NAMESPACE Subdivide
 
-PCGExData::EIOInit UPCGExSubdivideSettings::GetMainOutputInitMode() const { return PCGExData::EIOInit::New; }
-
 TArray<FPCGPinProperties> UPCGExSubdivideSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
@@ -86,6 +84,7 @@ namespace PCGExSubdivide
 
 		if (!FPointsProcessor::Process(InAsyncManager)) { return false; }
 
+		PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::New)
 
 		bClosedLoop = Context->ClosedLoop.IsClosedLoop(PointDataFacade->Source);
 

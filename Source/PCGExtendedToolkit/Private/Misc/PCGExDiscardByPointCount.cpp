@@ -8,8 +8,6 @@
 #define LOCTEXT_NAMESPACE "PCGExDiscardByPointCountElement"
 #define PCGEX_NAMESPACE DiscardByPointCount
 
-PCGExData::EIOInit UPCGExDiscardByPointCountSettings::GetMainOutputInitMode() const { return PCGExData::EIOInit::Forward; }
-
 TArray<FPCGPinProperties> UPCGExDiscardByPointCountSettings::OutputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::OutputPinProperties();
@@ -29,7 +27,7 @@ bool FPCGExDiscardByPointCountElement::Boot(FPCGExContext* InContext) const
 	Context->MainPoints->OutputPin = Settings->GetMainOutputPin();
 
 	TArray<FPCGTaggedData> Sources = Context->InputData.GetInputsByPin(Settings->GetMainInputPin());
-	Context->MainPoints->Initialize(Sources, Settings->GetMainOutputInitMode());
+	Context->MainPoints->Initialize(Sources, PCGExData::EIOInit::Forward);
 
 	return true;
 }

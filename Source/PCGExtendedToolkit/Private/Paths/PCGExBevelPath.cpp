@@ -17,8 +17,6 @@ TArray<FPCGPinProperties> UPCGExBevelPathSettings::InputPinProperties() const
 	return PinProperties;
 }
 
-PCGExData::EIOInit UPCGExBevelPathSettings::GetMainOutputInitMode() const { return PCGExData::EIOInit::None; }
-
 PCGEX_INITIALIZE_ELEMENT(BevelPath)
 
 void UPCGExBevelPathSettings::InitOutputFlags(const TSharedPtr<PCGExData::FPointIO>& InPointIO) const

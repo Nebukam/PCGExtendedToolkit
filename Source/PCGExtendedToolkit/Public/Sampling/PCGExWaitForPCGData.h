@@ -63,7 +63,6 @@ protected:
 public:
 	void GetTargetGraphPins(TArray<FPCGPinProperties>& OutPins) const;
 	virtual FName GetMainInputPin() const override;
-	virtual PCGExData::EIOInit GetMainOutputInitMode() const override;
 	//~End UPCGExPointsProcessorSettings
 
 	/** Actor reference that we will be waiting for PCG Components with the target graph. */

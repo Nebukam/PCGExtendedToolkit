@@ -22,7 +22,7 @@ bool UPCGExBitmaskFilterFactory::RegisterConsumableAttributes(FPCGExContext* InC
 	return true;
 }
 
-bool PCGExPointFilter::FBitmaskFilter::Init(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade> InPointDataFacade)
+bool PCGExPointFilter::FBitmaskFilter::Init(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade>& InPointDataFacade)
 {
 	if (!FFilter::Init(InContext, InPointDataFacade)) { return false; }
 

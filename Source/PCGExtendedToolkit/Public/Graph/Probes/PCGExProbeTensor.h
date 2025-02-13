@@ -105,7 +105,7 @@ public:
 
 	virtual UPCGExProbeOperation* CreateOperation(FPCGExContext* InContext) const override;
 
-	virtual bool GetRequiresPreparation(FPCGExContext* InContext) override { return true; }
+	virtual bool RequiresPreparation(FPCGExContext* InContext) override { return true; }
 	virtual bool Prepare(FPCGExContext* InContext) override;
 };
 

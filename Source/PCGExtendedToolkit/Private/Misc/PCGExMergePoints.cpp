@@ -7,8 +7,6 @@
 #define LOCTEXT_NAMESPACE "PCGExMergePointsElement"
 #define PCGEX_NAMESPACE MergePoints
 
-PCGExData::EIOInit UPCGExMergePointsSettings::GetMainOutputInitMode() const { return PCGExData::EIOInit::None; }
-
 PCGEX_INITIALIZE_ELEMENT(MergePoints)
 
 TArray<FPCGPinProperties> UPCGExMergePointsSettings::OutputPinProperties() const

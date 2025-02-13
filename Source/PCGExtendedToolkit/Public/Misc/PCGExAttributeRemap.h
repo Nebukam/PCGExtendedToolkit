@@ -192,8 +192,6 @@ protected:
 	//~Begin UPCGExPointsProcessorSettings
 public:
 	virtual void PostLoad() override;
-
-	virtual PCGExData::EIOInit GetMainOutputInitMode() const override;
 	//~End UPCGExPointsProcessorSettings
 
 #if WITH_EDITORONLY_DATA

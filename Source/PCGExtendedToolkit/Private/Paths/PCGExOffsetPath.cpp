@@ -9,8 +9,6 @@
 #define LOCTEXT_NAMESPACE "PCGExOffsetPathElement"
 #define PCGEX_NAMESPACE OffsetPath
 
-PCGExData::EIOInit UPCGExOffsetPathSettings::GetMainOutputInitMode() const { return PCGExData::EIOInit::None; }
-
 PCGEX_INITIALIZE_ELEMENT(OffsetPath)
 
 bool FPCGExOffsetPathElement::Boot(FPCGExContext* InContext) const

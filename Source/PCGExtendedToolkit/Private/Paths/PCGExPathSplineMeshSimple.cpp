@@ -20,9 +20,6 @@ UPCGExPathSplineMeshSimpleSettings::UPCGExPathSplineMeshSimpleSettings(
 	if (SplineMeshUpVectorAttribute.GetName() == FName("@Last")) { SplineMeshUpVectorAttribute.Update(TEXT("$Rotation.Up")); }
 }
 
-
-PCGExData::EIOInit UPCGExPathSplineMeshSimpleSettings::GetMainOutputInitMode() const { return PCGExData::EIOInit::Duplicate; }
-
 bool FPCGExPathSplineMeshSimpleElement::Boot(FPCGExContext* InContext) const
 {
 	if (!FPCGExPathProcessorElement::Boot(InContext)) { return false; }
@@ -114,6 +111,8 @@ namespace PCGExPathSplineMeshSimple
 		PointDataFacade->bSupportsScopedGet = Context->bScopedAttributeGet;
 
 		if (!FPointsProcessor::Process(InAsyncManager)) { return false; }
+
+		PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::Duplicate)
 
 		if (Settings->StartOffsetInput == EPCGExInputValueType::Attribute)
 		{

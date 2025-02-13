@@ -52,8 +52,6 @@ TArray<FPCGPinProperties> UPCGExWaitForPCGDataSettings::OutputPinProperties() co
 	return PinProperties;
 }
 
-PCGExData::EIOInit UPCGExWaitForPCGDataSettings::GetMainOutputInitMode() const { return PCGExData::EIOInit::None; }
-
 #if WITH_EDITOR
 void UPCGExWaitForPCGDataSettings::EDITOR_RefreshPins()
 {

@@ -21,8 +21,6 @@ TArray<FPCGPinProperties> UPCGExUberFilterSettings::OutputPinProperties() const
 	return PinProperties;
 }
 
-PCGExData::EIOInit UPCGExUberFilterSettings::GetMainOutputInitMode() const { return Mode == EPCGExUberFilterMode::Write ? PCGExData::EIOInit::Duplicate : PCGExData::EIOInit::None; }
-
 PCGEX_INITIALIZE_ELEMENT(UberFilter)
 
 FName UPCGExUberFilterSettings::GetMainOutputPin() const
@@ -117,6 +115,7 @@ namespace PCGExUberFilter
 
 		if (!FPointsProcessor::Process(InAsyncManager)) { return false; }
 
+		PCGEX_INIT_IO(PointDataFacade->Source, Settings->Mode == EPCGExUberFilterMode::Write ? PCGExData::EIOInit::Duplicate : PCGExData::EIOInit::None)
 
 		if (Settings->Mode == EPCGExUberFilterMode::Write)
 		{

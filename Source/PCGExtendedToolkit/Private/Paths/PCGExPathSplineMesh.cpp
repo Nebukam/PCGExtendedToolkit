@@ -32,8 +32,6 @@ TArray<FPCGPinProperties> UPCGExPathSplineMeshSettings::InputPinProperties() con
 	return PinProperties;
 }
 
-PCGExData::EIOInit UPCGExPathSplineMeshSettings::GetMainOutputInitMode() const { return PCGExData::EIOInit::Duplicate; }
-
 bool FPCGExPathSplineMeshElement::Boot(FPCGExContext* InContext) const
 {
 	if (!FPCGExPathProcessorElement::Boot(InContext)) { return false; }
@@ -166,6 +164,8 @@ namespace PCGExPathSplineMesh
 		PointDataFacade->bSupportsScopedGet = Context->bScopedAttributeGet;
 
 		if (!FPointsProcessor::Process(InAsyncManager)) { return false; }
+
+		PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::Duplicate)
 
 #if PCGEX_ENGINE_VERSION > 503
 		bIsPreviewMode = ExecutionContext->SourceComponent.Get()->IsInPreviewMode();

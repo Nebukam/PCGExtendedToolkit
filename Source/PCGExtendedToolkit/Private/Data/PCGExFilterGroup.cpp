@@ -8,7 +8,7 @@
 
 namespace PCGExFilterGroup
 {
-	bool FFilterGroup::Init(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade> InPointDataFacade)
+	bool FFilterGroup::Init(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade>& InPointDataFacade)
 	{
 		PointDataFacade = InPointDataFacade;
 		return InitManaged(InContext);

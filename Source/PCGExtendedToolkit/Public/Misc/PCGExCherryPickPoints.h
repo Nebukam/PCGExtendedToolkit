@@ -37,18 +37,12 @@ protected:
 	virtual TArray<FPCGPinProperties> InputPinProperties() const override;
 	virtual FPCGElementPtr CreateElement() const override;
 	//~End UPCGSettings
-
-	//~Begin UPCGExPointsProcessorSettings
-public:
-	virtual PCGExData::EIOInit GetMainOutputInitMode() const override;
-	//~End UPCGExPointsProcessorSettings
 };
 
 struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExCherryPickPointsContext final : FPCGExPointsProcessorContext
 {
 	friend class FPCGExCherryPickPointsElement;
 	TArray<TObjectPtr<const UPCGExPickerFactoryData>> PickerFactories;
-	TArray<UPCGExPickerOperation*> PickerOperations;
 };
 
 class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExCherryPickPointsElement final : public FPCGExPointsProcessorElement

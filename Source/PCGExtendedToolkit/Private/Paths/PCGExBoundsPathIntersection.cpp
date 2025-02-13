@@ -15,8 +15,6 @@ TArray<FPCGPinProperties> UPCGExBoundsPathIntersectionSettings::InputPinProperti
 	return PinProperties;
 }
 
-PCGExData::EIOInit UPCGExBoundsPathIntersectionSettings::GetMainOutputInitMode() const { return PCGExData::EIOInit::None; }
-
 PCGEX_INITIALIZE_ELEMENT(BoundsPathIntersection)
 
 bool FPCGExBoundsPathIntersectionElement::Boot(FPCGExContext* InContext) const

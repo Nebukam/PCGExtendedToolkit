@@ -11,8 +11,6 @@
 #define LOCTEXT_NAMESPACE "PCGExPointsToBoundsElement"
 #define PCGEX_NAMESPACE PointsToBounds
 
-PCGExData::EIOInit UPCGExPointsToBoundsSettings::GetMainOutputInitMode() const { return PCGExData::EIOInit::New; }
-
 PCGEX_INITIALIZE_ELEMENT(PointsToBounds)
 
 bool FPCGExPointsToBoundsElement::Boot(FPCGExContext* InContext) const
@@ -63,6 +61,8 @@ namespace PCGExPointsToBounds
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExPointsToBounds::Process);
 
 		if (!FPointsProcessor::Process(InAsyncManager)) { return false; }
+
+		PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::New)
 
 		Bounds = FBox(ForceInit);
 		const TArray<FPCGPoint>& InPoints = PointDataFacade->GetIn()->GetPoints();

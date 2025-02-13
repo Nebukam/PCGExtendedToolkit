@@ -82,7 +82,7 @@ namespace PCGExPointFilter
 
 		int64 Bitmask;
 
-		virtual bool Init(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade> InPointDataFacade) override;
+		virtual bool Init(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade>& InPointDataFacade) override;
 		virtual bool Test(const int32 PointIndex) const override;
 
 		virtual ~FBitmaskFilter() override

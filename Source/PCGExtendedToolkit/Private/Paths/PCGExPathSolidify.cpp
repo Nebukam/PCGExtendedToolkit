@@ -9,8 +9,6 @@
 #define LOCTEXT_NAMESPACE "PCGExPathSolidifyElement"
 #define PCGEX_NAMESPACE PathSolidify
 
-PCGExData::EIOInit UPCGExPathSolidifySettings::GetMainOutputInitMode() const { return PCGExData::EIOInit::None; }
-
 PCGEX_INITIALIZE_ELEMENT(PathSolidify)
 
 bool FPCGExPathSolidifyElement::Boot(FPCGExContext* InContext) const
@@ -41,7 +39,6 @@ bool FPCGExPathSolidifyElement::ExecuteInternal(FPCGContext* InContext) const
 					return false;
 				}
 
-				Entry->InitializeOutput(PCGExData::EIOInit::Duplicate);
 				return true;
 			},
 			[&](const TSharedPtr<PCGExPointsMT::TBatch<PCGExPathSolidify::FProcessor>>& NewBatch)
@@ -73,6 +70,8 @@ namespace PCGExPathSolidify
 		PointDataFacade->bSupportsScopedGet = Context->bScopedAttributeGet;
 
 		if (!FPointsProcessor::Process(InAsyncManager)) { return false; }
+
+		PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::Duplicate)
 
 		const TSharedRef<PCGExData::FPointIO>& PointIO = PointDataFacade->Source;
 		bClosedLoop = Context->ClosedLoop.IsClosedLoop(PointIO);

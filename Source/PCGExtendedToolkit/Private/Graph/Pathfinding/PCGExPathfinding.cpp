@@ -217,3 +217,10 @@ namespace PCGExPathfinding
 		SubQueries.Empty();
 	}
 }
+
+bool FPCGExPathOutputDetails::Validate(TArray<FPCGPoint>& InPathPoints) const
+{
+	if (bRemoveSmallPaths && InPathPoints.Num() < MinPointCount) { return false; }
+	if (bRemoveLargePaths && InPathPoints.Num() > MaxPointCount) { return false; }
+	return true;
+}

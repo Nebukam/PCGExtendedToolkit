@@ -7,8 +7,6 @@
 #define LOCTEXT_NAMESPACE "PCGExFuseCollinearElement"
 #define PCGEX_NAMESPACE FuseCollinear
 
-PCGExData::EIOInit UPCGExFuseCollinearSettings::GetMainOutputInitMode() const { return PCGExData::EIOInit::None; }
-
 PCGEX_INITIALIZE_ELEMENT(FuseCollinear)
 
 bool FPCGExFuseCollinearElement::Boot(FPCGExContext* InContext) const

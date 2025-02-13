@@ -17,8 +17,6 @@ TArray<FPCGPinProperties> UPCGExTensorsTransformSettings::InputPinProperties() c
 	return PinProperties;
 }
 
-PCGExData::EIOInit UPCGExTensorsTransformSettings::GetMainOutputInitMode() const { return PCGExData::EIOInit::Duplicate; }
-
 PCGEX_INITIALIZE_ELEMENT(TensorsTransform)
 
 bool FPCGExTensorsTransformElement::Boot(FPCGExContext* InContext) const
@@ -79,6 +77,8 @@ namespace PCGExTensorsTransform
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExTensorsTransform::Process);
 
 		if (!FPointsProcessor::Process(InAsyncManager)) { return false; }
+
+		PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::Duplicate)
 
 		if (!Context->StopFilterFactories.IsEmpty())
 		{

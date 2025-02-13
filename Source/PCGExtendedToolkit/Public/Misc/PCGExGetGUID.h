@@ -34,7 +34,6 @@ protected:
 	//~Begin UPCGExPointsProcessorSettings
 public:
 	virtual bool GetIsMainTransactional() const override;
-	virtual PCGExData::EIOInit GetMainOutputInitMode() const override;
 	//~End UPCGExPointsProcessorSettings
 
 	/** Point Index */

@@ -37,8 +37,6 @@ void UPCGExPathfindingPlotNavmeshSettings::PostEditChangeProperty(FPropertyChang
 }
 #endif
 
-PCGExData::EIOInit UPCGExPathfindingPlotNavmeshSettings::GetMainOutputInitMode() const { return PCGExData::EIOInit::None; }
-
 PCGEX_INITIALIZE_ELEMENT(PathfindingPlotNavmesh)
 
 bool FPCGExPathfindingPlotNavmeshElement::Boot(FPCGExContext* InContext) const
