@@ -17,8 +17,6 @@ namespace PCGExGeoTask
 	class FLloydRelax2;
 }
 
-PCGExData::EIOInit UPCGExBuildDelaunayGraph2DSettings::GetMainOutputInitMode() const { return PCGExData::EIOInit::None; }
-
 TArray<FPCGPinProperties> UPCGExBuildDelaunayGraph2DSettings::OutputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::OutputPinProperties();

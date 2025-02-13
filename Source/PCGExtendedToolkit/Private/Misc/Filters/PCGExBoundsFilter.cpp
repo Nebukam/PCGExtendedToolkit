@@ -55,7 +55,7 @@ void UPCGExBoundsFilterFactory::BeginDestroy()
 	Super::BeginDestroy();
 }
 
-bool PCGExPointFilter::FBoundsFilter::Init(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade> InPointDataFacade)
+bool PCGExPointFilter::FBoundsFilter::Init(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade>& InPointDataFacade)
 {
 	if (!FFilter::Init(InContext, InPointDataFacade)) { return false; }
 	if (!Clouds) { return false; }

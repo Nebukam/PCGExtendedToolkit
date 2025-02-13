@@ -10,7 +10,7 @@ namespace PCGExClusterFilter
 {
 	PCGExFilters::EType FFilter::GetFilterType() const { return PCGExFilters::EType::Node; }
 
-	bool FFilter::Init(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade> InPointDataFacade)
+	bool FFilter::Init(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade>& InPointDataFacade)
 	{
 		if (!bInitForCluster)
 		{

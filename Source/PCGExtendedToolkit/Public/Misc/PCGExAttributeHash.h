@@ -30,11 +30,7 @@ protected:
 	virtual FPCGElementPtr CreateElement() const override;
 	//~End UPCGSettings
 
-	//~Begin UPCGExPointsProcessorSettings
 public:
-	virtual PCGExData::EIOInit GetMainOutputInitMode() const override;
-	//~End UPCGExPointsProcessorSettings
-
 	/** */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(ShowOnlyInnerProperties))
 	FPCGExAttributeHashConfig HashConfig;

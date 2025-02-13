@@ -20,7 +20,7 @@ namespace PCGExPointStates
 	{
 	}
 
-	bool FState::Init(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade> InPointDataFacade)
+	bool FState::Init(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade>& InPointDataFacade)
 	{
 		if (!FFilter::Init(InContext, InPointDataFacade)) { return false; }
 

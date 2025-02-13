@@ -28,11 +28,7 @@ protected:
 	virtual FPCGElementPtr CreateElement() const override;
 	//~End UPCGSettings
 
-	//~Begin UPCGExPointsProcessorSettings
 public:
-	virtual PCGExData::EIOInit GetMainOutputInitMode() const override;
-	//~End UPCGExPointsProcessorSettings
-
 	/** Whether this is a new projection or an old one*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	bool bRestorePreviousProjection = false;

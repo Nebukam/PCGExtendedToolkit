@@ -6,8 +6,6 @@
 #define LOCTEXT_NAMESPACE "PCGExMetaCleanupElement"
 #define PCGEX_NAMESPACE MetaCleanup
 
-PCGExData::EIOInit UPCGExMetaCleanupSettings::GetMainOutputInitMode() const { return PCGExData::EIOInit::None; }
-
 PCGEX_INITIALIZE_ELEMENT(MetaCleanup)
 
 bool FPCGExMetaCleanupElement::Boot(FPCGExContext* InContext) const

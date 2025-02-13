@@ -11,8 +11,6 @@
 #define LOCTEXT_NAMESPACE "PCGExGraph"
 #define PCGEX_NAMESPACE BuildConvexHull2D
 
-PCGExData::EIOInit UPCGExBuildConvexHull2DSettings::GetMainOutputInitMode() const { return PCGExData::EIOInit::New; }
-
 TArray<FPCGPinProperties> UPCGExBuildConvexHull2DSettings::OutputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::OutputPinProperties();
@@ -131,6 +129,8 @@ namespace PCGExConvexHull2D
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExConvexHull2D::Process);
 
 		if (!FPointsProcessor::Process(InAsyncManager)) { return false; }
+
+		PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::New)
 
 		ProjectionDetails = Settings->ProjectionDetails;
 		ProjectionDetails.Init(ExecutionContext, PointDataFacade);

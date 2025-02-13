@@ -100,6 +100,8 @@ namespace PCGExWriteTangents
 
 		if (!FPointsProcessor::Process(InAsyncManager)) { return false; }
 
+		PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::Duplicate)
+
 		bClosedLoop = Context->ClosedLoop.IsClosedLoop(PointDataFacade->Source);
 
 		Tangents = Cast<UPCGExTangentsOperation>(PrimaryOperation);

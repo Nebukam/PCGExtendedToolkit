@@ -7,6 +7,8 @@
 #include "UObject/Object.h"
 #include "PCGExFactoryProvider.h"
 #include "Data/PCGExPointFilter.h"
+
+
 #include "Graph/PCGExCluster.h"
 
 
@@ -74,7 +76,7 @@ namespace PCGExClusterFilter
 
 		virtual PCGExFilters::EType GetFilterType() const override;
 
-		virtual bool Init(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade> InPointDataFacade) override;
+		virtual bool Init(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade>& InPointDataFacade) override;
 		virtual bool Init(FPCGExContext* InContext, const TSharedRef<PCGExCluster::FCluster>& InCluster, const TSharedRef<PCGExData::FFacade>& InPointDataFacade, const TSharedRef<PCGExData::FFacade>& InEdgeDataFacade);
 		virtual void PostInit() override;
 	};

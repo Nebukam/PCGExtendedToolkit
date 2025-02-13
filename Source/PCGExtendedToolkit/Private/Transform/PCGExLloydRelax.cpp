@@ -9,8 +9,6 @@
 #define LOCTEXT_NAMESPACE "PCGExLloydRelaxElement"
 #define PCGEX_NAMESPACE LloydRelax
 
-PCGExData::EIOInit UPCGExLloydRelaxSettings::GetMainOutputInitMode() const { return PCGExData::EIOInit::None; }
-
 PCGEX_INITIALIZE_ELEMENT(LloydRelax)
 
 bool FPCGExLloydRelaxElement::Boot(FPCGExContext* InContext) const

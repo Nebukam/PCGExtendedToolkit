@@ -12,7 +12,7 @@ TSharedPtr<PCGExPointFilter::FFilter> UPCGExTagValueFilterFactory::CreateFilter(
 	return MakeShared<PCGExPointFilter::FTagValueFilter>(this);
 }
 
-bool PCGExPointFilter::FTagValueFilter::Test(const TSharedPtr<PCGExData::FPointIO>& IO) const
+bool PCGExPointFilter::FTagValueFilter::Test(const TSharedPtr<PCGExData::FPointIO>& IO, const TSharedPtr<PCGExData::FPointIOCollection>& ParentCollection) const
 {
 	bool bResult = false;
 

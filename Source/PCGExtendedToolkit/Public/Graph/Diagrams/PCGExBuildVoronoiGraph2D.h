@@ -35,7 +35,6 @@ protected:
 	//~Begin UPCGExPointsProcessorSettings
 public:
 	virtual FName GetMainOutputPin() const override { return PCGExGraph::OutputVerticesLabel; }
-	virtual PCGExData::EIOInit GetMainOutputInitMode() const override;
 	//~End UPCGExPointsProcessorSettings
 
 	/** Method used to find Voronoi cell location */

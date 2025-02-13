@@ -14,8 +14,6 @@ UPCGExShrinkPathSettings::UPCGExShrinkPathSettings(
 	bSupportClosedLoops = false;
 }
 
-PCGExData::EIOInit UPCGExShrinkPathSettings::GetMainOutputInitMode() const { return PCGExData::EIOInit::None; }
-
 PCGEX_INITIALIZE_ELEMENT(ShrinkPath)
 
 void FPCGExShrinkPathContext::GetShrinkAmounts(const TSharedRef<PCGExData::FPointIO>& PointIO, double& Start, double& End, EPCGExPathShrinkDistanceCutType& StartCut, EPCGExPathShrinkDistanceCutType& EndCut) const

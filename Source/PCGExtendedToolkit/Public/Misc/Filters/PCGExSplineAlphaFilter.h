@@ -12,6 +12,8 @@
 #include "PCGExPointsProcessor.h"
 #include "PCGExSplineInclusionFilter.h"
 #include "Data/PCGSplineData.h"
+
+
 #include "Sampling/PCGExSampleNearestSpline.h"
 
 
@@ -111,7 +113,7 @@ namespace PCGExPointFilter
 
 		TSharedPtr<PCGExData::TBuffer<double>> OperandB;
 
-		virtual bool Init(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade> InPointDataFacade) override;
+		virtual bool Init(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade>& InPointDataFacade) override;
 		virtual bool Test(const FPCGPoint& Point) const override;
 		virtual bool Test(const int32 PointIndex) const override;
 

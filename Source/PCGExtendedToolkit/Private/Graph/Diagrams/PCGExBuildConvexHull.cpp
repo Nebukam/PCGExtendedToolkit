@@ -11,8 +11,6 @@
 #define LOCTEXT_NAMESPACE "PCGExGraph"
 #define PCGEX_NAMESPACE BuildConvexHull
 
-PCGExData::EIOInit UPCGExBuildConvexHullSettings::GetMainOutputInitMode() const { return PCGExData::EIOInit::None; }
-
 TArray<FPCGPinProperties> UPCGExBuildConvexHullSettings::OutputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::OutputPinProperties();

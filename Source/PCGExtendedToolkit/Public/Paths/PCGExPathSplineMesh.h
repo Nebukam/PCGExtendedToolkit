@@ -55,7 +55,6 @@ protected:
 
 public:
 	PCGEX_NODE_POINT_FILTER(PCGExPointFilter::SourcePointFiltersLabel, "Filters", PCGExFactories::PointFilters, false)
-	virtual PCGExData::EIOInit GetMainOutputInitMode() const override;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	EPCGExCollectionSource CollectionSource = EPCGExCollectionSource::Asset;

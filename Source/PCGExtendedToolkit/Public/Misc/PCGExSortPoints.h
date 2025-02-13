@@ -23,11 +23,7 @@ protected:
 	virtual FPCGElementPtr CreateElement() const override;
 	//~End UPCGSettings
 
-	//~Begin UPCGExPointsProcessorSettings
 public:
-	virtual PCGExData::EIOInit GetMainOutputInitMode() const override;
-	//~End UPCGExPointsProcessorSettings
-
 	/** Controls the order in which points will be ordered. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	EPCGExSortDirection SortDirection = EPCGExSortDirection::Ascending;

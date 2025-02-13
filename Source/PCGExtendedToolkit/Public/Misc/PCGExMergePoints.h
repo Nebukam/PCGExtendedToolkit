@@ -33,8 +33,6 @@ protected:
 	virtual TArray<FPCGPinProperties> OutputPinProperties() const override;
 
 public:
-	virtual PCGExData::EIOInit GetMainOutputInitMode() const override;
-
 	//~End UPCGExPointsProcessorSettings
 
 	/** Meta filter settings. */

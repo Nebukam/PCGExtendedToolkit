@@ -12,7 +12,7 @@ TSharedPtr<PCGExPointFilter::FFilter> UPCGExWithinRangeFilterFactory::CreateFilt
 	return MakeShared<PCGExPointFilter::FWithinRangeFilter>(this);
 }
 
-bool PCGExPointFilter::FWithinRangeFilter::Init(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade> InPointDataFacade)
+bool PCGExPointFilter::FWithinRangeFilter::Init(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade>& InPointDataFacade)
 {
 	if (!FFilter::Init(InContext, InPointDataFacade)) { return false; }
 

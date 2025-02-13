@@ -10,7 +10,6 @@
 #define PCGEX_NAMESPACE PackClusters
 
 PCGExData::EIOInit UPCGExPackClustersSettings::GetMainOutputInitMode() const { return PCGExData::EIOInit::None; }
-
 PCGExData::EIOInit UPCGExPackClustersSettings::GetEdgeOutputInitMode() const { return PCGExData::EIOInit::None; }
 
 TArray<FPCGPinProperties> UPCGExPackClustersSettings::OutputPinProperties() const

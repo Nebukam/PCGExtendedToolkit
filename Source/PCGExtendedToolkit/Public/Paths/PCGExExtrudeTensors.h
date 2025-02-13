@@ -41,7 +41,6 @@ protected:
 public:
 	virtual FName GetMainInputPin() const override;
 	virtual FName GetMainOutputPin() const override;
-	virtual PCGExData::EIOInit GetMainOutputInitMode() const override;
 	//~End UPCGExPointsProcessorSettings
 
 	/**  */

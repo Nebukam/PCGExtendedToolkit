@@ -47,7 +47,6 @@ protected:
 	//~Begin UPCGExPointsProcessorSettings
 public:
 	virtual FName GetMainOutputPin() const override { return FName(TEXT("Splines")); }
-	virtual PCGExData::EIOInit GetMainOutputInitMode() const override;
 	//~End UPCGExPointsProcessorSettings
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))

@@ -16,8 +16,6 @@ UPCGExAttributeRollingSettings::UPCGExAttributeRollingSettings(
 	bSupportClosedLoops = false;
 }
 
-PCGExData::EIOInit UPCGExAttributeRollingSettings::GetMainOutputInitMode() const { return PCGExData::EIOInit::None; }
-
 PCGEX_INITIALIZE_ELEMENT(AttributeRolling)
 
 bool FPCGExAttributeRollingElement::Boot(FPCGExContext* InContext) const
@@ -92,6 +90,8 @@ namespace PCGExAttributeRolling
 		PointDataFacade->bSupportsScopedGet = Context->bScopedAttributeGet;
 
 		if (!FPointsProcessor::Process(InAsyncManager)) { return false; }
+
+		PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::Duplicate)
 
 		MaxIndex = PointDataFacade->GetNum(PCGExData::ESource::In) - 1;
 		LastTriggerIndex = Settings->bReverseRolling ? MaxIndex : 0;

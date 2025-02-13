@@ -32,8 +32,6 @@ TArray<FPCGPinProperties> UPCGExConnectPointsSettings::OutputPinProperties() con
 	return PinProperties;
 }
 
-PCGExData::EIOInit UPCGExConnectPointsSettings::GetMainOutputInitMode() const { return PCGExData::EIOInit::None; }
-
 PCGEX_INITIALIZE_ELEMENT(ConnectPoints)
 
 bool FPCGExConnectPointsElement::Boot(FPCGExContext* InContext) const

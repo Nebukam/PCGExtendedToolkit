@@ -23,7 +23,7 @@ bool UPCGExBooleanCompareFilterFactory::RegisterConsumableAttributesWithData(FPC
 	return true;
 }
 
-bool PCGExPointFilter::FBooleanCompareFilter::Init(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade> InPointDataFacade)
+bool PCGExPointFilter::FBooleanCompareFilter::Init(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade>& InPointDataFacade)
 {
 	if (!FFilter::Init(InContext, InPointDataFacade)) { return false; }
 

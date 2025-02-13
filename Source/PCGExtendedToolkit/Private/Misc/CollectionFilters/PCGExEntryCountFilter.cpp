@@ -12,7 +12,7 @@ TSharedPtr<PCGExPointFilter::FFilter> UPCGExEntryCountFilterFactory::CreateFilte
 	return MakeShared<PCGExPointFilter::FEntryCountFilter>(this);
 }
 
-bool PCGExPointFilter::FEntryCountFilter::Test(const TSharedPtr<PCGExData::FPointIO>& IO) const
+bool PCGExPointFilter::FEntryCountFilter::Test(const TSharedPtr<PCGExData::FPointIO>& IO, const TSharedPtr<PCGExData::FPointIOCollection>& ParentCollection) const
 {
 	return PCGExCompare::Compare(TypedFilterFactory->Config.Comparison, IO->GetNum(), TypedFilterFactory->Config.OperandB);
 }

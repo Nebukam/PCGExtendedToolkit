@@ -3,6 +3,7 @@
 
 #include "Misc/Filters/PCGExSplineInclusionFilter.h"
 
+
 #include "Paths/PCGExPaths.h"
 
 
@@ -50,7 +51,7 @@ void UPCGExSplineInclusionFilterFactory::BeginDestroy()
 
 namespace PCGExPointFilter
 {
-	bool FSplineInclusionFilter::Init(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade> InPointDataFacade)
+	bool FSplineInclusionFilter::Init(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade>& InPointDataFacade)
 	{
 		if (!FFilter::Init(InContext, InPointDataFacade)) { return false; }
 

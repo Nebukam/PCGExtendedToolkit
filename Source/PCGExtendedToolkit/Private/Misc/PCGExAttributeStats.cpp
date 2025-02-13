@@ -40,8 +40,6 @@ TArray<FPCGPinProperties> UPCGExAttributeStatsSettings::OutputPinProperties() co
 	return PinProperties;
 }
 
-PCGExData::EIOInit UPCGExAttributeStatsSettings::GetMainOutputInitMode() const { return OutputToPoints == EPCGExStatsOutputToPoints::None ? PCGExData::EIOInit::Forward : PCGExData::EIOInit::Duplicate; }
-
 PCGEX_INITIALIZE_ELEMENT(AttributeStats)
 
 bool FPCGExAttributeStatsElement::Boot(FPCGExContext* InContext) const
@@ -176,6 +174,8 @@ namespace PCGExAttributeStats
 
 		// Must be set before process for filters
 		if (!FPointsProcessor::Process(InAsyncManager)) { return false; }
+
+		PCGEX_INIT_IO(PointDataFacade->Source, Settings->OutputToPoints == EPCGExStatsOutputToPoints::None ? PCGExData::EIOInit::Forward : PCGExData::EIOInit::Duplicate)
 
 		const int64 Key = Context->Rows[PointDataFacade->Source->IOIndex];
 		const int32 NumAttributes = Context->AttributesInfos->Identities.Num();

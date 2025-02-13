@@ -12,8 +12,6 @@
 #define LOCTEXT_NAMESPACE "PCGExGraph"
 #define PCGEX_NAMESPACE BuildDelaunayGraph
 
-PCGExData::EIOInit UPCGExBuildDelaunayGraphSettings::GetMainOutputInitMode() const { return PCGExData::EIOInit::None; }
-
 TArray<FPCGPinProperties> UPCGExBuildDelaunayGraphSettings::OutputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::OutputPinProperties();

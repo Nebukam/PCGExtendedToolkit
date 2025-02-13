@@ -11,6 +11,8 @@
 #include "Data/PCGExPointFilter.h"
 #include "PCGExPointsProcessor.h"
 #include "Data/PCGExFilterGroup.h"
+
+
 #include "Misc/Filters/PCGExFilterFactoryProvider.h"
 
 
@@ -94,7 +96,7 @@ namespace PCGExPointFilter
 
 		const TObjectPtr<const UPCGExTagValueFilterFactory> TypedFilterFactory;
 
-		virtual bool Test(const TSharedPtr<PCGExData::FPointIO>& IO) const override;
+		virtual bool Test(const TSharedPtr<PCGExData::FPointIO>& IO, const TSharedPtr<PCGExData::FPointIOCollection>& ParentCollection) const override;
 
 		virtual ~FTagValueFilter() override
 		{

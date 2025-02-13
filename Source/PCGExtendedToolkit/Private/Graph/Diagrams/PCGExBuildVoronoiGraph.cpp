@@ -19,8 +19,6 @@ namespace PCGExGeoTask
 	class FLloydRelax3;
 }
 
-PCGExData::EIOInit UPCGExBuildVoronoiGraphSettings::GetMainOutputInitMode() const { return PCGExData::EIOInit::None; }
-
 TArray<FPCGPinProperties> UPCGExBuildVoronoiGraphSettings::OutputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::OutputPinProperties();

@@ -16,8 +16,6 @@ TArray<FPCGPinProperties> UPCGExBlendAttributesSettings::InputPinProperties() co
 	return PinProperties;
 }
 
-PCGExData::EIOInit UPCGExBlendAttributesSettings::GetMainOutputInitMode() const { return PCGExData::EIOInit::Duplicate; }
-
 PCGEX_INITIALIZE_ELEMENT(BlendAttributes)
 
 bool FPCGExBlendAttributesElement::Boot(FPCGExContext* InContext) const
@@ -68,6 +66,8 @@ namespace PCGExBlendAttributes
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExBlendAttributes::Process);
 
 		if (!FPointsProcessor::Process(InAsyncManager)) { return false; }
+
+		PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::Duplicate)
 
 		NumPoints = PointDataFacade->GetNum();
 

@@ -43,11 +43,7 @@ protected:
 	PCGEX_NODE_POINT_FILTER(PCGExPointFilter::SourcePointFiltersLabel, "Filters which points get staged.", PCGExFactories::PointFilters, false)
 	//~End UPCGSettings
 
-	//~Begin UPCGExPointsProcessorSettings
 public:
-	virtual PCGExData::EIOInit GetMainOutputInitMode() const override;
-	//~End UPCGExPointsProcessorSettings
-
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	EPCGExCollectionSource CollectionSource = EPCGExCollectionSource::Asset;
 

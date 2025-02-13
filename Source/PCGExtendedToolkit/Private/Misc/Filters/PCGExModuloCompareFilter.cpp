@@ -24,7 +24,7 @@ bool UPCGExModuloCompareFilterFactory::RegisterConsumableAttributesWithData(FPCG
 	return true;
 }
 
-bool PCGExPointFilter::FModuloComparisonFilter::Init(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade> InPointDataFacade)
+bool PCGExPointFilter::FModuloComparisonFilter::Init(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade>& InPointDataFacade)
 {
 	if (!FFilter::Init(InContext, InPointDataFacade)) { return false; }
 

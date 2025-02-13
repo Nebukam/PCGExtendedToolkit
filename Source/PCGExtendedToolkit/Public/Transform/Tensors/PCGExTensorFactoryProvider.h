@@ -90,7 +90,7 @@ protected:
 	TSharedPtr<PCGExData::TBuffer<float>> PotencyBuffer;
 	TSharedPtr<PCGExData::TBuffer<float>> WeightBuffer;
 
-	virtual bool GetRequiresPreparation(FPCGExContext* InContext) override { return true; }
+	virtual bool RequiresPreparation(FPCGExContext* InContext) override { return true; }
 	virtual bool InitInternalData(FPCGExContext* InContext) override;
 	virtual bool InitInternalFacade(FPCGExContext* InContext);
 	virtual void PrepareSinglePoint(int32 Index, FPCGPoint& InPoint) const;

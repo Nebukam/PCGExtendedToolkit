@@ -50,8 +50,6 @@ void FPCGExOverlapScoresWeighting::Max(const FPCGExOverlapScoresWeighting& Other
 	CustomTagScore = FMath::Max(CustomTagScore, Other.CustomTagScore);
 }
 
-PCGExData::EIOInit UPCGExDiscardByOverlapSettings::GetMainOutputInitMode() const { return PCGExData::EIOInit::None; }
-
 TSharedPtr<PCGExDiscardByOverlap::FOverlap> FPCGExDiscardByOverlapContext::RegisterOverlap(
 	PCGExDiscardByOverlap::FProcessor* InA,
 	PCGExDiscardByOverlap::FProcessor* InB,

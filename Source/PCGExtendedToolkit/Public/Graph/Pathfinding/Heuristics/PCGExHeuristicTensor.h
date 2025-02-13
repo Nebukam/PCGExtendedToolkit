@@ -82,7 +82,7 @@ public:
 	virtual UPCGExHeuristicOperation* CreateOperation(FPCGExContext* InContext) const override;
 	PCGEX_HEURISTIC_FACTORY_BOILERPLATE
 
-	virtual bool GetRequiresPreparation(FPCGExContext* InContext) override { return true; }
+	virtual bool RequiresPreparation(FPCGExContext* InContext) override { return true; }
 	virtual bool Prepare(FPCGExContext* InContext) override;
 };
 

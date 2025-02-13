@@ -131,7 +131,7 @@ bool FPCGExFactoryProviderElement::ExecuteInternal(FPCGContext* Context) const
 
 		InContext->OutFactory->OutputConfigToMetadata();
 
-		if (InContext->OutFactory->GetRequiresPreparation(InContext))
+		if (InContext->OutFactory->RequiresPreparation(InContext))
 		{
 			InContext->PauseContext();
 			InContext->LaunchDeferredCallback(

@@ -163,8 +163,6 @@ TArray<FPCGPinProperties> UPCGExBuildCustomGraphSettings::OutputPinProperties() 
 	return PinProperties;
 }
 
-PCGExData::EIOInit UPCGExBuildCustomGraphSettings::GetMainOutputInitMode() const { return PCGExData::EIOInit::None; }
-
 PCGEX_INITIALIZE_ELEMENT(BuildCustomGraph)
 
 bool FPCGExBuildCustomGraphElement::Boot(FPCGExContext* InContext) const

@@ -34,11 +34,7 @@ protected:
 	virtual FPCGElementPtr CreateElement() const override;
 	//~End UPCGSettings
 
-	//~Begin UPCGExPointsProcessorSettings
 public:
-	virtual PCGExData::EIOInit GetMainOutputInitMode() const override;
-	//~End UPCGExPointsProcessorSettings
-
 	/** Output Object Oriented Bounds. Note that this only accounts for positions and will ignore point bounds. **/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	bool bOutputOrientedBoundingBox = false;

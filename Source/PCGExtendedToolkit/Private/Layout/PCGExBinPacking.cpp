@@ -9,8 +9,6 @@
 #define LOCTEXT_NAMESPACE "PCGExBinPackingElement"
 #define PCGEX_NAMESPACE BinPacking
 
-PCGExData::EIOInit UPCGExBinPackingSettings::GetMainOutputInitMode() const { return PCGExData::EIOInit::None; }
-
 bool UPCGExBinPackingSettings::GetSortingRules(FPCGExContext* InContext, TArray<FPCGExSortRuleConfig>& OutRules) const
 {
 	OutRules.Append(PCGExSorting::GetSortingRules(InContext, PCGExSorting::SourceSortingRules));

@@ -16,8 +16,6 @@ UPCGExBlendPathSettings::UPCGExBlendPathSettings(
 	bSupportClosedLoops = false;
 }
 
-PCGExData::EIOInit UPCGExBlendPathSettings::GetMainOutputInitMode() const { return PCGExData::EIOInit::None; }
-
 PCGEX_INITIALIZE_ELEMENT(BlendPath)
 
 bool FPCGExBlendPathElement::Boot(FPCGExContext* InContext) const
@@ -51,7 +49,6 @@ bool FPCGExBlendPathElement::ExecuteInternal(FPCGContext* InContext) const
 					return false;
 				}
 
-				Entry->InitializeOutput(PCGExData::EIOInit::Duplicate);
 				return true;
 			},
 			[&](const TSharedPtr<PCGExPointsMT::TBatch<PCGExBlendPath::FProcessor>>& NewBatch)
@@ -83,6 +80,7 @@ namespace PCGExBlendPath
 
 		if (!FPointsProcessor::Process(InAsyncManager)) { return false; }
 
+		PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::Duplicate)
 
 		if (Settings->BlendOver == EPCGExBlendOver::Fixed && Settings->LerpInput == EPCGExInputValueType::Attribute)
 		{

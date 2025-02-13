@@ -21,8 +21,6 @@ void UPCGExSortPointsSettings::PostEditChangeProperty(FPropertyChangedEvent& Pro
 
 FPCGElementPtr UPCGExSortPointsBaseSettings::CreateElement() const { return MakeShared<FPCGExSortPointsBaseElement>(); }
 
-PCGExData::EIOInit UPCGExSortPointsBaseSettings::GetMainOutputInitMode() const { return PCGExData::EIOInit::Duplicate; }
-
 bool UPCGExSortPointsBaseSettings::GetSortingRules(FPCGExContext* InContext, TArray<FPCGExSortRuleConfig>& OutRules) const
 {
 	return true;
@@ -87,6 +85,8 @@ namespace PCGExSortPoints
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExSortPoints::Process);
 
 		if (!TPointsProcessor::Process(InAsyncManager)) { return false; }
+
+		PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::Duplicate)
 
 		if (!Sorter->Init())
 		{
