@@ -10,6 +10,8 @@
 #include "Data/PCGExPointFilter.h"
 #include "PCGExPointsProcessor.h"
 #include "Data/PCGSplineData.h"
+
+
 #include "Sampling/PCGExSampleNearestSpline.h"
 
 
@@ -132,7 +134,7 @@ namespace PCGExPointFilter
 		using SplineCheckCallback = std::function<bool(const FPCGPoint&)>;
 		SplineCheckCallback SplineCheck;
 
-		virtual bool Init(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade> InPointDataFacade) override;
+		virtual bool Init(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade>& InPointDataFacade) override;
 		virtual bool Test(const FPCGPoint& Point) const override;
 		virtual bool Test(const int32 PointIndex) const override;
 

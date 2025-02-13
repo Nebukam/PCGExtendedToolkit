@@ -9,8 +9,6 @@
 #define LOCTEXT_NAMESPACE "PCGExRefreshSeedElement"
 #define PCGEX_NAMESPACE RefreshSeed
 
-PCGExData::EIOInit UPCGExRefreshSeedSettings::GetMainOutputInitMode() const { return PCGExData::EIOInit::Duplicate; }
-
 PCGEX_INITIALIZE_ELEMENT(RefreshSeed)
 
 bool FPCGExRefreshSeedElement::Boot(FPCGExContext* InContext) const
@@ -51,6 +49,8 @@ bool FPCGExRefreshSeedElement::ExecuteInternal(FPCGContext* InContext) const
 
 void FPCGExRefreshSeedTask::ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager)
 {
+	PCGEX_INIT_IO_VOID(PointIO, PCGExData::EIOInit::Duplicate)
+
 	TArray<FPCGPoint>& MutablePoints = PointIO->GetOut()->GetMutablePoints();
 
 	const FVector BaseOffset = FVector(TaskIndex) * 0.001;

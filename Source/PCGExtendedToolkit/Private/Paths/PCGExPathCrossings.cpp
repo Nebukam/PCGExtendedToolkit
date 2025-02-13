@@ -20,8 +20,6 @@ TArray<FPCGPinProperties> UPCGExPathCrossingsSettings::InputPinProperties() cons
 	return PinProperties;
 }
 
-PCGExData::EIOInit UPCGExPathCrossingsSettings::GetMainOutputInitMode() const { return PCGExData::EIOInit::None; }
-
 PCGEX_INITIALIZE_ELEMENT(PathCrossings)
 
 bool FPCGExPathCrossingsElement::Boot(FPCGExContext* InContext) const

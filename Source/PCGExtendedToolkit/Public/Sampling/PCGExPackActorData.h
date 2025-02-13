@@ -574,7 +574,6 @@ protected:
 
 public:
 	virtual FName GetMainInputPin() const override;
-	virtual PCGExData::EIOInit GetMainOutputInitMode() const override;
 	//~End UPCGExPointsProcessorSettings
 
 	/** Actor reference */

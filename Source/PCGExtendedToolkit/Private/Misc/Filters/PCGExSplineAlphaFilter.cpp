@@ -3,6 +3,7 @@
 
 #include "Misc/Filters/PCGExSplineAlphaFilter.h"
 
+
 #include "Paths/PCGExPaths.h"
 
 #define LOCTEXT_NAMESPACE "PCGExSplineAlphaFilterDefinition"
@@ -65,7 +66,7 @@ bool UPCGExSplineAlphaFilterFactory::RegisterConsumableAttributesWithData(FPCGEx
 
 namespace PCGExPointFilter
 {
-	bool FSplineAlphaFilter::Init(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade> InPointDataFacade)
+	bool FSplineAlphaFilter::Init(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade>& InPointDataFacade)
 	{
 		if (!FFilter::Init(InContext, InPointDataFacade)) { return false; }
 

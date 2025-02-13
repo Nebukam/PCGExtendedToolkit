@@ -37,8 +37,6 @@ TArray<FPCGPinProperties> UPCGExGetTextureDataSettings::OutputPinProperties() co
 	return PinProperties;
 }
 
-PCGExData::EIOInit UPCGExGetTextureDataSettings::GetMainOutputInitMode() const { return bCleanupConsumableAttributes ? PCGExData::EIOInit::Duplicate : PCGExData::EIOInit::Forward; }
-
 PCGEX_INITIALIZE_ELEMENT(GetTextureData)
 
 bool FPCGExGetTextureDataElement::Boot(FPCGExContext* InContext) const
@@ -284,6 +282,8 @@ namespace PCGExGetTextureData
 		PointDataFacade->bSupportsScopedGet = Context->bScopedAttributeGet;
 
 		if (!FPointsProcessor::Process(InAsyncManager)) { return false; }
+
+		PCGEX_INIT_IO(PointDataFacade->Source, Settings->bCleanupConsumableAttributes ? PCGExData::EIOInit::Duplicate : PCGExData::EIOInit::Forward)
 
 		if (Settings->SourceType == EPCGExGetTexturePathType::MaterialPath)
 		{

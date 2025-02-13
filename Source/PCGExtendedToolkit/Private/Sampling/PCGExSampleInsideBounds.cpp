@@ -65,8 +65,6 @@ TArray<FPCGPinProperties> UPCGExSampleInsideBoundsSettings::InputPinProperties()
 	return PinProperties;
 }
 
-PCGExData::EIOInit UPCGExSampleInsideBoundsSettings::GetMainOutputInitMode() const { return PCGExData::EIOInit::Duplicate; }
-
 void FPCGExSampleInsideBoundsContext::RegisterAssetDependencies()
 {
 	PCGEX_SETTINGS_LOCAL(SampleInsideBounds)
@@ -203,6 +201,8 @@ namespace PCGExSampleInsideBoundss
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExSampleInsideBoundss::Process);
 
 		if (!FPointsProcessor::Process(InAsyncManager)) { return false; }
+
+		PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::Duplicate)
 
 		SampleState.SetNumUninitialized(PointDataFacade->GetNum());
 

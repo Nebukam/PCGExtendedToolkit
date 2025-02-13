@@ -19,8 +19,6 @@ TArray<FPCGPinProperties> UPCGExUberFilterCollectionsSettings::OutputPinProperti
 	return PinProperties;
 }
 
-PCGExData::EIOInit UPCGExUberFilterCollectionsSettings::GetMainOutputInitMode() const { return PCGExData::EIOInit::None; }
-
 PCGEX_INITIALIZE_ELEMENT(UberFilterCollections)
 
 FName UPCGExUberFilterCollectionsSettings::GetMainOutputPin() const
@@ -92,7 +90,7 @@ bool FPCGExUberFilterCollectionsElement::ExecuteInternal(FPCGContext* InContext)
 
 			while (Context->AdvancePointsIO())
 			{
-				if (PrimaryFilters->Test(Context->CurrentIO)) { Context->Inside->Emplace_GetRef(Context->CurrentIO, Context->DataIOInit); }
+				if (PrimaryFilters->Test(Context->CurrentIO, Context->MainPoints)) { Context->Inside->Emplace_GetRef(Context->CurrentIO, Context->DataIOInit); }
 				else { Context->Outside->Emplace_GetRef(Context->CurrentIO, Context->DataIOInit); }
 			}
 

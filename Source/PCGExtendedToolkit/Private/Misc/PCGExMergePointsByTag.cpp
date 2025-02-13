@@ -209,8 +209,6 @@ namespace PCPGExMergePointsByTag
 	}
 }
 
-PCGExData::EIOInit UPCGExMergePointsByTagSettings::GetMainOutputInitMode() const { return PCGExData::EIOInit::None; }
-
 PCGEX_INITIALIZE_ELEMENT(MergePointsByTag)
 
 bool FPCGExMergePointsByTagElement::Boot(FPCGExContext* InContext) const

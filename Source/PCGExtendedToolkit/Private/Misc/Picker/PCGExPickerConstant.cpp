@@ -26,24 +26,18 @@ FString UPCGExPickerConstantSettings::GetDisplayName() const
 }
 #endif
 
-bool UPCGExPickerConstant::Init(FPCGExContext* InContext, const UPCGExPickerFactoryData* InFactory)
-{
-	if (!Super::Init(InContext, InFactory)) { return false; }
-	return true;
-}
-
-void UPCGExPickerConstant::AddPicks(const TSharedRef<PCGExData::FFacade>& InDataFacade, TSet<int32>& OutPicks) const
+void UPCGExPickerConstantFactory::AddPicks(const int32 InNum, TSet<int32>& OutPicks) const
 {
 	int32 TargetIndex = 0;
-	const int32 MaxIndex = InDataFacade->GetNum() - 1;
+	const int32 MaxIndex = InNum - 1;
 
 	if (!Config.bTreatAsNormalized) { TargetIndex = Config.DiscreteIndex; }
 	else { TargetIndex = PCGEx::TruncateDbl(static_cast<double>(MaxIndex) * Config.RelativeIndex, Config.TruncateMode); }
 
-	if (TargetIndex < 0) { TargetIndex = InDataFacade->GetNum() + TargetIndex; }
+	if (TargetIndex < 0) { TargetIndex = InNum + TargetIndex; }
 	TargetIndex = PCGExMath::SanitizeIndex(TargetIndex, MaxIndex, Config.Safety);
 
-	if (!InDataFacade->GetIn()->GetPoints().IsValidIndex(TargetIndex)) { return; }
+	if (!FMath::IsWithin(TargetIndex, 0, InNum)) { return; }
 
 	OutPicks.Add(TargetIndex);
 }

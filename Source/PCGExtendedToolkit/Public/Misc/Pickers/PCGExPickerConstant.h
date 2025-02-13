@@ -7,7 +7,6 @@
 #include "PCGExPointsProcessor.h"
 #include "PCGExPicker.h"
 #include "PCGExPickerFactoryProvider.h"
-#include "PCGExPickerOperation.h"
 
 #include "PCGExPickerConstant.generated.h"
 
@@ -30,22 +29,6 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPickerConstantConfig : public FPCGExPick
 	double RelativeIndex = 0;
 };
 
-/**
- * 
- */
-UCLASS(MinimalAPI)
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExPickerConstant : public UPCGExPickerOperation
-{
-	GENERATED_BODY()
-
-public:
-	FPCGExPickerConstantConfig Config;
-	virtual bool Init(FPCGExContext* InContext, const UPCGExPickerFactoryData* InFactory) override;
-
-	virtual void AddPicks(const TSharedRef<PCGExData::FFacade>& InDataFacade, TSet<int32>& OutPicks) const override;
-};
-
-
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")
 class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExPickerConstantFactory : public UPCGExPickerFactoryData
 {
@@ -55,7 +38,7 @@ public:
 	UPROPERTY()
 	FPCGExPickerConstantConfig Config;
 
-	virtual UPCGExPickerOperation* CreateOperation(FPCGExContext* InContext) const override;
+	virtual void AddPicks(int32 InNum, TSet<int32>& OutPicks) const override;
 
 protected:
 	virtual bool InitInternalData(FPCGExContext* InContext) override;

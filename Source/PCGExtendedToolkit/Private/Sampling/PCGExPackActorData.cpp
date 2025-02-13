@@ -264,8 +264,6 @@ TArray<FPCGPinProperties> UPCGExPackActorDataSettings::OutputPinProperties() con
 	return PinProperties;
 }
 
-PCGExData::EIOInit UPCGExPackActorDataSettings::GetMainOutputInitMode() const { return PCGExData::EIOInit::Duplicate; }
-
 PCGEX_INITIALIZE_ELEMENT(PackActorData)
 
 FName UPCGExPackActorDataSettings::GetMainInputPin() const
@@ -343,6 +341,8 @@ namespace PCGExPackActorDatas
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExPackActorDatas::Process);
 
 		if (!FPointsProcessor::Process(InAsyncManager)) { return false; }
+
+		PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::Duplicate)
 
 		Packer = static_cast<UPCGExCustomActorDataPacker*>(PrimaryOperation);
 		Packer->UniqueNameGenerator = Context->UniqueNameGenerator;

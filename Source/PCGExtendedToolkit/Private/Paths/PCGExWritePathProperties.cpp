@@ -10,8 +10,6 @@
 #define LOCTEXT_NAMESPACE "PCGExWritePathPropertiesElement"
 #define PCGEX_NAMESPACE WritePathProperties
 
-PCGExData::EIOInit UPCGExWritePathPropertiesSettings::GetMainOutputInitMode() const { return PCGExData::EIOInit::Duplicate; }
-
 bool UPCGExWritePathPropertiesSettings::WriteAnyPathData() const
 {
 #define PCGEX_PATH_MARK_TRUE(_NAME, _TYPE, _DEFAULT) if(bWrite##_NAME){return true;}
@@ -109,6 +107,8 @@ namespace PCGExWritePathProperties
 		PointDataFacade->bSupportsScopedGet = Context->bScopedAttributeGet;
 
 		if (!FPointsProcessor::Process(InAsyncManager)) { return false; }
+
+		PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::Duplicate)
 
 		ProjectionDetails = Settings->ProjectionDetails;
 		if (!ProjectionDetails.Init(Context, PointDataFacade)) { return false; }

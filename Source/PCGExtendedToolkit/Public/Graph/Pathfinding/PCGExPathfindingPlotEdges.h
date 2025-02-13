@@ -100,6 +100,10 @@ public:
 	/** ... */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging", meta=(EditCondition="bTagIfOpenPath"))
 	FString IsOpenPathTag = TEXT("OpenPath");
+
+	/** ... */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(DisplayName="Paths Output Settings"))
+	FPCGExPathOutputDetails PathOutputDetails;
 };
 
 

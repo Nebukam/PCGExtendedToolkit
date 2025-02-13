@@ -28,7 +28,7 @@ bool UPCGExMeanFilterFactory::RegisterConsumableAttributesWithData(FPCGExContext
 	return true;
 }
 
-bool PCGExPointFilter::FMeanFilter::Init(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade> InPointDataFacade)
+bool PCGExPointFilter::FMeanFilter::Init(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade>& InPointDataFacade)
 {
 	if (!FFilter::Init(InContext, InPointDataFacade)) { return false; }
 

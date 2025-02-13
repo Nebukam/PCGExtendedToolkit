@@ -598,14 +598,14 @@ namespace PCGExData
 			TSharedPtr<TBuffer<T>> Buffer = GetBuffer<T>(InName);
 			return Buffer->PrepareWrite(Init) ? Buffer : nullptr;
 		}
-		
+
 		TSharedPtr<FBufferBase> GetWritable(EPCGMetadataTypes Type, const FPCGMetadataAttributeBase* InAttribute, EBufferInit Init);
 		TSharedPtr<FBufferBase> GetWritable(EPCGMetadataTypes Type, const FName InName, EBufferInit Init);
-		
+
 #pragma endregion
 
 #pragma region Readable
-		
+
 		template <typename T>
 		TSharedPtr<TBuffer<T>> GetReadable(const FName InName, const ESource InSource = ESource::In)
 		{
@@ -618,7 +618,7 @@ namespace PCGExData
 
 			return Buffer;
 		}
-		
+
 		template <typename T>
 		TSharedPtr<TBuffer<T>> GetScopedReadable(const FName InName)
 		{
@@ -989,31 +989,8 @@ namespace PCGExData
 
 #pragma endregion
 
-	static TSharedPtr<FFacade> TryGetSingleFacade(FPCGExContext* InContext, const FName InputPinLabel, const bool bThrowError)
-	{
-		TSharedPtr<FFacade> SingleFacade;
-		if (const TSharedPtr<FPointIO> SingleIO = TryGetSingleInput(InContext, InputPinLabel, bThrowError))
-		{
-			SingleFacade = MakeShared<FFacade>(SingleIO.ToSharedRef());
-		}
-
-		return SingleFacade;
-	}
-
-	static bool TryGetFacades(FPCGExContext* InContext, const FName InputPinLabel, TArray<TSharedPtr<FFacade>>& OutFacades, const bool bThrowError)
-	{
-		TSharedPtr<FPointIOCollection> TargetsCollection = MakeShared<FPointIOCollection>(InContext, PCGEx::SourceTargetsLabel, EIOInit::None);
-		if (TargetsCollection->IsEmpty())
-		{
-			if (bThrowError) { PCGE_LOG_C(Error, GraphAndLog, InContext, FText::Format(FText::FromString(TEXT("Missing or zero-points '{0}' inputs")), FText::FromName(InputPinLabel))); }
-			return false;
-		}
-
-		OutFacades.Reserve(OutFacades.Num() + TargetsCollection->Num());
-		for (const TSharedPtr<FPointIO>& IO : TargetsCollection->Pairs) { OutFacades.Add(MakeShared<FFacade>(IO.ToSharedRef())); }
-
-		return true;
-	}
+	TSharedPtr<FFacade> TryGetSingleFacade(FPCGExContext* InContext, const FName InputPinLabel, const bool bThrowError);
+	bool TryGetFacades(FPCGExContext* InContext, const FName InputPinLabel, TArray<TSharedPtr<FFacade>>& OutFacades, const bool bThrowError, const bool bIsTransactional = false);
 
 	template <bool bReverse = false>
 	static void GetTransforms(const TArray<FPCGPoint>& InPoints, TArray<FTransform>& OutTransforms)

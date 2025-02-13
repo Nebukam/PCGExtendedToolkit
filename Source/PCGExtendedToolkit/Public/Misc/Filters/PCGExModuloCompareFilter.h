@@ -99,7 +99,7 @@ namespace PCGExPointFilter
 		TSharedPtr<PCGExData::TBuffer<double>> OperandB;
 		TSharedPtr<PCGExData::TBuffer<double>> OperandC;
 
-		virtual bool Init(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade> InPointDataFacade) override;
+		virtual bool Init(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade>& InPointDataFacade) override;
 
 		virtual bool Test(const int32 PointIndex) const override;
 

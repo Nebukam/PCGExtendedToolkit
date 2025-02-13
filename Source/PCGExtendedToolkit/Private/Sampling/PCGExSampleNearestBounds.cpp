@@ -74,8 +74,6 @@ TArray<FPCGPinProperties> UPCGExSampleNearestBoundsSettings::InputPinProperties(
 	return PinProperties;
 }
 
-PCGExData::EIOInit UPCGExSampleNearestBoundsSettings::GetMainOutputInitMode() const { return PCGExData::EIOInit::Duplicate; }
-
 void FPCGExSampleNearestBoundsContext::RegisterAssetDependencies()
 {
 	PCGEX_SETTINGS_LOCAL(SampleNearestBounds)
@@ -205,6 +203,8 @@ namespace PCGExSampleNearestBounds
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExSampleNearestBounds::Process);
 
 		if (!FPointsProcessor::Process(InAsyncManager)) { return false; }
+
+		PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::Duplicate)
 
 		SampleState.SetNumUninitialized(PointDataFacade->GetNum());
 

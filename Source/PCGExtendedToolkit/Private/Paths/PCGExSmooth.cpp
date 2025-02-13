@@ -11,8 +11,6 @@
 #define LOCTEXT_NAMESPACE "PCGExSmoothElement"
 #define PCGEX_NAMESPACE Smooth
 
-PCGExData::EIOInit UPCGExSmoothSettings::GetMainOutputInitMode() const { return PCGExData::EIOInit::Duplicate; }
-
 TArray<FPCGPinProperties> UPCGExSmoothSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
@@ -82,6 +80,7 @@ namespace PCGExSmooth
 
 		if (!FPointsProcessor::Process(InAsyncManager)) { return false; }
 
+		PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::Duplicate)
 
 		bClosedLoop = Context->ClosedLoop.IsClosedLoop(PointDataFacade->Source);
 		NumPoints = PointDataFacade->GetNum();

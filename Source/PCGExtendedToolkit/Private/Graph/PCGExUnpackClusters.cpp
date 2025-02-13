@@ -7,8 +7,6 @@
 #define LOCTEXT_NAMESPACE "PCGExUnpackClusters"
 #define PCGEX_NAMESPACE UnpackClusters
 
-PCGExData::EIOInit UPCGExUnpackClustersSettings::GetMainOutputInitMode() const { return PCGExData::EIOInit::None; }
-
 TArray<FPCGPinProperties> UPCGExUnpackClustersSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties;

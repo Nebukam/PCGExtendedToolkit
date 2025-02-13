@@ -113,9 +113,6 @@ void UPCGExPartitionByValuesSettings::PostEditChangeProperty(FPropertyChangedEve
 
 bool UPCGExPartitionByValuesBaseSettings::GetMainAcceptMultipleData() const { return false; }
 
-
-PCGExData::EIOInit UPCGExPartitionByValuesBaseSettings::GetMainOutputInitMode() const { return bSplitOutput ? PCGExData::EIOInit::None : PCGExData::EIOInit::Duplicate; }
-
 bool UPCGExPartitionByValuesBaseSettings::GetPartitionRules(FPCGExContext* InContext, TArray<FPCGExPartitonRuleConfig>& OutRules) const
 {
 	return true;
@@ -204,6 +201,7 @@ namespace PCGExPartitionByValues
 	{
 		if (!FPointsProcessor::Process(InAsyncManager)) { return false; }
 
+		PCGEX_INIT_IO(PointDataFacade->Source, Settings->bSplitOutput ? PCGExData::EIOInit::None : PCGExData::EIOInit::Duplicate)
 
 		RootPartition = MakeShared<PCGExPartition::FKPartition>(nullptr, 0, nullptr, -1);
 

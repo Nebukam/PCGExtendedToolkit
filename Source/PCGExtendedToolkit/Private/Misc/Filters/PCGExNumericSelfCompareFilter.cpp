@@ -23,7 +23,7 @@ bool UPCGExNumericSelfCompareFilterFactory::RegisterConsumableAttributesWithData
 	return true;
 }
 
-bool PCGExPointFilter::FNumericSelfCompareFilter::Init(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade> InPointDataFacade)
+bool PCGExPointFilter::FNumericSelfCompareFilter::Init(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade>& InPointDataFacade)
 {
 	if (!FFilter::Init(InContext, InPointDataFacade)) { return false; }
 

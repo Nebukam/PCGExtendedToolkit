@@ -91,8 +91,6 @@ void FPCGExGUIDDetails::GetGUID(const int32 Index, const FPCGPoint& InPoint, FGu
 		bUsePosition ? PCGEx::GH3(InPoint.Transform.GetLocation() + PositionHashOffset, AdjustedPositionHashCollision) : 0);
 }
 
-PCGExData::EIOInit UPCGExWriteGUIDSettings::GetMainOutputInitMode() const { return PCGExData::EIOInit::Duplicate; }
-
 PCGEX_INITIALIZE_ELEMENT(WriteGUID)
 
 bool FPCGExWriteGUIDElement::Boot(FPCGExContext* InContext) const
@@ -140,6 +138,8 @@ namespace PCGExWriteGUID
 		PointDataFacade->bSupportsScopedGet = Context->bScopedAttributeGet;
 
 		if (!FPointsProcessor::Process(InAsyncManager)) { return false; }
+
+		PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::Duplicate)
 
 		Config = Settings->Config;
 

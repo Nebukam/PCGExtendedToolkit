@@ -7,8 +7,6 @@
 #define LOCTEXT_NAMESPACE "PCGExAssetStagingElement"
 #define PCGEX_NAMESPACE AssetStaging
 
-PCGExData::EIOInit UPCGExAssetStagingSettings::GetMainOutputInitMode() const { return PCGExData::EIOInit::Duplicate; }
-
 PCGEX_INITIALIZE_ELEMENT(AssetStaging)
 
 TArray<FPCGPinProperties> UPCGExAssetStagingSettings::InputPinProperties() const
@@ -165,6 +163,8 @@ namespace PCGExAssetStaging
 		PointDataFacade->bSupportsScopedGet = Context->bScopedAttributeGet;
 
 		if (!FPointsProcessor::Process(InAsyncManager)) { return false; }
+
+		PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::Duplicate)
 
 		FittingHandler.ScaleToFit = Settings->ScaleToFit;
 		FittingHandler.Justification = Settings->Justification;

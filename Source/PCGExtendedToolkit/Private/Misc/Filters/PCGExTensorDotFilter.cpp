@@ -3,6 +3,7 @@
 
 #include "Misc/Filters/PCGExTensorDotFilter.h"
 
+
 #include "Transform/Tensors/PCGExTensorFactoryProvider.h"
 #include "Transform/Tensors/PCGExTensorHandler.h"
 
@@ -40,7 +41,7 @@ bool UPCGExTensorDotFilterFactory::RegisterConsumableAttributesWithData(FPCGExCo
 	return true;
 }
 
-bool PCGExPointFilter::FTensorDotFilter::Init(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade> InPointDataFacade)
+bool PCGExPointFilter::FTensorDotFilter::Init(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade>& InPointDataFacade)
 {
 	if (!FFilter::Init(InContext, InPointDataFacade)) { return false; }
 
