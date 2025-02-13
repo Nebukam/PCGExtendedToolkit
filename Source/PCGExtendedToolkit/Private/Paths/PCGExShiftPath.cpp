@@ -21,8 +21,6 @@ void UPCGExShiftPathSettings::PostEditChangeProperty(FPropertyChangedEvent& Prop
 }
 #endif
 
-PCGExData::EIOInit UPCGExShiftPathSettings::GetMainOutputInitMode() const { return PCGExData::EIOInit::Duplicate; }
-
 PCGEX_INITIALIZE_ELEMENT(ShiftPath)
 
 bool FPCGExShiftPathElement::Boot(FPCGExContext* InContext) const
@@ -76,6 +74,8 @@ namespace PCGExShiftPath
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExShiftPath::Process);
 
 		if (!FPointsProcessor::Process(InAsyncManager)) { return false; }
+
+		PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::Duplicate)
 
 		MaxIndex = PointDataFacade->GetNum(PCGExData::ESource::In) - 1;
 		PivotIndex = Settings->bReverseShift ? MaxIndex : 0;

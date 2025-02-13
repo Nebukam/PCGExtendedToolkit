@@ -10,7 +10,6 @@
 
 
 PCGExData::EIOInit UPCGExEdgesProcessorSettings::GetMainOutputInitMode() const { return PCGExData::EIOInit::Forward; }
-
 PCGExData::EIOInit UPCGExEdgesProcessorSettings::GetEdgeOutputInitMode() const { return PCGExData::EIOInit::Forward; }
 
 bool UPCGExEdgesProcessorSettings::GetMainAcceptMultipleData() const { return true; }

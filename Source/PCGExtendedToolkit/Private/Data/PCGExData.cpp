@@ -71,8 +71,8 @@ namespace PCGExData
 #define PCGEX_TYPED_WRITABLE(_TYPE, _ID, ...) case EPCGMetadataTypes::_ID: return GetWritable<_TYPE>(InName, Init);
 		switch (Type)
 		{
-			PCGEX_FOREACH_SUPPORTEDTYPES(PCGEX_TYPED_WRITABLE)
-			default: return nullptr;
+		PCGEX_FOREACH_SUPPORTEDTYPES(PCGEX_TYPED_WRITABLE)
+		default: return nullptr;
 		}
 #undef PCGEX_TYPED_WRITABLE
 	}
@@ -443,6 +443,32 @@ namespace PCGExData
 	{
 		const TSet<int32> Overlap = Entries[InIdx]->IOIndices.Intersect(InIndices);
 		return Overlap.Num() > 0;
+	}
+
+	TSharedPtr<FFacade> TryGetSingleFacade(FPCGExContext* InContext, const FName InputPinLabel, const bool bThrowError)
+	{
+		TSharedPtr<FFacade> SingleFacade;
+		if (const TSharedPtr<FPointIO> SingleIO = TryGetSingleInput(InContext, InputPinLabel, bThrowError))
+		{
+			SingleFacade = MakeShared<FFacade>(SingleIO.ToSharedRef());
+		}
+
+		return SingleFacade;
+	}
+
+	bool TryGetFacades(FPCGExContext* InContext, const FName InputPinLabel, TArray<TSharedPtr<FFacade>>& OutFacades, const bool bThrowError, const bool bIsTransactional)
+	{
+		TSharedPtr<FPointIOCollection> TargetsCollection = MakeShared<FPointIOCollection>(InContext, PCGEx::SourceTargetsLabel, EIOInit::None, bIsTransactional);
+		if (TargetsCollection->IsEmpty())
+		{
+			if (bThrowError) { PCGE_LOG_C(Error, GraphAndLog, InContext, FText::Format(FText::FromString(TEXT("Missing or zero-points '{0}' inputs")), FText::FromName(InputPinLabel))); }
+			return false;
+		}
+
+		OutFacades.Reserve(OutFacades.Num() + TargetsCollection->Num());
+		for (const TSharedPtr<FPointIO>& IO : TargetsCollection->Pairs) { OutFacades.Add(MakeShared<FFacade>(IO.ToSharedRef())); }
+
+		return true;
 	}
 
 

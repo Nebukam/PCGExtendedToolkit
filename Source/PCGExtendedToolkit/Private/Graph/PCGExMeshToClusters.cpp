@@ -18,8 +18,6 @@ namespace PCGExGeoTask
 	class FLloydRelax3;
 }
 
-PCGExData::EIOInit UPCGExMeshToClustersSettings::GetMainOutputInitMode() const { return PCGExData::EIOInit::None; }
-
 TArray<FPCGPinProperties> UPCGExMeshToClustersSettings::OutputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::OutputPinProperties();

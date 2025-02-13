@@ -54,7 +54,6 @@ protected:
 
 	//~Begin UPCGExPointsProcessorSettings
 public:
-	virtual PCGExData::EIOInit GetMainOutputInitMode() const override;
 	PCGEX_NODE_POINT_FILTER(PCGExPointFilter::SourceFiltersLabel, "Filters which points will be offset", PCGExFactories::PointFilters, false)
 	//~End UPCGExPointsProcessorSettings
 

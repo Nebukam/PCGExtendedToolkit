@@ -28,7 +28,7 @@ bool UPCGExStringSelfCompareFilterFactory::RegisterConsumableAttributesWithData(
 	return true;
 }
 
-bool PCGExPointFilter::FStringSelfCompareFilter::Init(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade> InPointDataFacade)
+bool PCGExPointFilter::FStringSelfCompareFilter::Init(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade>& InPointDataFacade)
 {
 	if (!FFilter::Init(InContext, InPointDataFacade)) { return false; }
 

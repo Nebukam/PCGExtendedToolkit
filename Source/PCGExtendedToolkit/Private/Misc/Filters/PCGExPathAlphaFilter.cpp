@@ -3,6 +3,7 @@
 
 #include "Misc/Filters/PCGExPathAlphaFilter.h"
 
+
 #include "Paths/PCGExPaths.h"
 
 #define LOCTEXT_NAMESPACE "PCGExPathAlphaFilterDefinition"
@@ -70,7 +71,7 @@ bool UPCGExPathAlphaFilterFactory::RegisterConsumableAttributesWithData(FPCGExCo
 
 namespace PCGExPointFilter
 {
-	bool FPathAlphaFilter::Init(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade> InPointDataFacade)
+	bool FPathAlphaFilter::Init(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade>& InPointDataFacade)
 	{
 		if (!FFilter::Init(InContext, InPointDataFacade)) { return false; }
 

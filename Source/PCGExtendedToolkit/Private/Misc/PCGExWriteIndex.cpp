@@ -7,8 +7,6 @@
 #define LOCTEXT_NAMESPACE "PCGExWriteIndexElement"
 #define PCGEX_NAMESPACE WriteIndex
 
-PCGExData::EIOInit UPCGExWriteIndexSettings::GetMainOutputInitMode() const { return PCGExData::EIOInit::Duplicate; }
-
 PCGEX_INITIALIZE_ELEMENT(WriteIndex)
 
 bool FPCGExWriteIndexElement::Boot(FPCGExContext* InContext) const
@@ -59,6 +57,8 @@ namespace PCGExWriteIndex
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExWriteIndex::Process);
 
 		if (!FPointsProcessor::Process(InAsyncManager)) { return false; }
+
+		PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::Duplicate)
 
 		NumPoints = PointDataFacade->GetNum();
 		MaxIndex = NumPoints - 1;

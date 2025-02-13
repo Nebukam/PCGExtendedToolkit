@@ -16,8 +16,6 @@ TArray<FPCGPinProperties> UPCGExGetGUIDSettings::OutputPinProperties() const
 	return PinProperties;
 }
 
-PCGExData::EIOInit UPCGExGetGUIDSettings::GetMainOutputInitMode() const { return PCGExData::EIOInit::None; }
-
 PCGEX_INITIALIZE_ELEMENT(GetGUID)
 
 bool UPCGExGetGUIDSettings::GetIsMainTransactional() const { return true; }

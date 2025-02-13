@@ -11,8 +11,6 @@ UPCGExPathProcessorSettings::UPCGExPathProcessorSettings(
 {
 }
 
-PCGExData::EIOInit UPCGExPathProcessorSettings::GetMainOutputInitMode() const { return PCGExData::EIOInit::Duplicate; }
-
 PCGEX_INITIALIZE_CONTEXT(PathProcessor)
 
 bool FPCGExPathProcessorElement::Boot(FPCGExContext* InContext) const

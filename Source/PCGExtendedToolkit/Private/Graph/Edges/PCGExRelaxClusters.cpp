@@ -10,7 +10,6 @@
 #define PCGEX_NAMESPACE RelaxClusters
 
 PCGExData::EIOInit UPCGExRelaxClustersSettings::GetMainOutputInitMode() const { return PCGExData::EIOInit::Duplicate; }
-
 PCGExData::EIOInit UPCGExRelaxClustersSettings::GetEdgeOutputInitMode() const { return PCGExData::EIOInit::Duplicate; }
 
 TArray<FPCGPinProperties> UPCGExRelaxClustersSettings::InputPinProperties() const

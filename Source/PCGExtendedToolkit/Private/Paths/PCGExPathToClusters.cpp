@@ -23,11 +23,6 @@ UPCGExPathToClustersSettings::OutputPinProperties() const
 	return PinProperties;
 }
 
-PCGExData::EIOInit UPCGExPathToClustersSettings::GetMainOutputInitMode() const
-{
-	return PCGExData::EIOInit::None;
-}
-
 PCGEX_INITIALIZE_ELEMENT(PathToClusters)
 
 bool FPCGExPathToClustersElement::Boot(FPCGExContext* InContext) const

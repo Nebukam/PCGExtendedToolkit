@@ -19,8 +19,6 @@ void UPCGExSplitPathSettings::PostEditChangeProperty(FPropertyChangedEvent& Prop
 }
 #endif
 
-PCGExData::EIOInit UPCGExSplitPathSettings::GetMainOutputInitMode() const { return PCGExData::EIOInit::None; }
-
 PCGEX_INITIALIZE_ELEMENT(SplitPath)
 
 bool FPCGExSplitPathElement::Boot(FPCGExContext* InContext) const
@@ -87,7 +85,6 @@ namespace PCGExSplitPath
 		PointDataFacade->bSupportsScopedGet = Context->bScopedAttributeGet;
 
 		if (!FPointsProcessor::Process(InAsyncManager)) { return false; }
-
 
 		bClosedLoop = Context->ClosedLoop.IsClosedLoop(PointDataFacade->Source);
 

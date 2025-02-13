@@ -6,64 +6,66 @@
 namespace PCGExDataBlending
 {
 	template <typename T>
-	T TDataBlendingAverage<T>::SingleOperation(T A, T B, double Weight) const  { return PCGExMath::Add(A, B); }
-	template <typename T>
-	void TDataBlendingAverage<T>::SingleComplete(T& A, const int32 Count, const double Weight) const  { A = PCGExMath::Div(A, static_cast<double>(Count)); }
+	T TDataBlendingAverage<T>::SingleOperation(T A, T B, double Weight) const { return PCGExMath::Add(A, B); }
 
 	template <typename T>
-	T TDataBlendingCopy<T>::SingleOperation(T A, T B, double Weight) const  { return B; }
+	void TDataBlendingAverage<T>::SingleComplete(T& A, const int32 Count, const double Weight) const { A = PCGExMath::Div(A, static_cast<double>(Count)); }
 
 	template <typename T>
-	T TDataBlendingCopyOther<T>::SingleOperation(T A, T B, double Weight) const  { return A; }
+	T TDataBlendingCopy<T>::SingleOperation(T A, T B, double Weight) const { return B; }
 
 	template <typename T>
-	void TDataBlendingSum<T>::SinglePrepare(T& A) const  { A = T{}; }
-	template <typename T>
-	T TDataBlendingSum<T>::SingleOperation(T A, T B, double Weight) const  { return PCGExMath::Add(A, B); }
+	T TDataBlendingCopyOther<T>::SingleOperation(T A, T B, double Weight) const { return A; }
 
 	template <typename T>
-	T TDataBlendingSubtract<T>::SingleOperation(T A, T B, double Weight) const  { return PCGExMath::Sub(A, B); }
+	void TDataBlendingSum<T>::SinglePrepare(T& A) const { A = T{}; }
 
 	template <typename T>
-	T TDataBlendingMax<T>::SingleOperation(T A, T B, double Weight) const  { return PCGExMath::Max(A, B); }
+	T TDataBlendingSum<T>::SingleOperation(T A, T B, double Weight) const { return PCGExMath::Add(A, B); }
 
 	template <typename T>
-	T TDataBlendingMin<T>::SingleOperation(T A, T B, double Weight) const  { return PCGExMath::Min(A, B); }
+	T TDataBlendingSubtract<T>::SingleOperation(T A, T B, double Weight) const { return PCGExMath::Sub(A, B); }
 
 	template <typename T>
-	T TDataBlendingWeight<T>::SingleOperation(T A, T B, double Weight) const  { return PCGExMath::WeightedAdd(A, B, Weight); } // PCGExMath::Lerp(A, B, Alpha); }
-	template <typename T>
-	void TDataBlendingWeight<T>::SingleComplete(T& A, const int32 Count, const double Weight) const  { A = PCGExMath::Div(A, Weight); }
+	T TDataBlendingMax<T>::SingleOperation(T A, T B, double Weight) const { return PCGExMath::Max(A, B); }
 
 	template <typename T>
-	T TDataBlendingWeightedSum<T>::SingleOperation(T A, T B, double Weight) const  { return PCGExMath::WeightedAdd(A, B, Weight); }
+	T TDataBlendingMin<T>::SingleOperation(T A, T B, double Weight) const { return PCGExMath::Min(A, B); }
 
 	template <typename T>
-	T TDataBlendingLerp<T>::SingleOperation(T A, T B, double Weight) const  { return PCGExMath::Lerp(A, B, Weight); }
+	T TDataBlendingWeight<T>::SingleOperation(T A, T B, double Weight) const { return PCGExMath::WeightedAdd(A, B, Weight); } // PCGExMath::Lerp(A, B, Alpha); }
+	template <typename T>
+	void TDataBlendingWeight<T>::SingleComplete(T& A, const int32 Count, const double Weight) const { A = PCGExMath::Div(A, Weight); }
 
 	template <typename T>
-	T TDataBlendingNone<T>::SingleOperation(T A, T B, double Weight) const  { return A; }
+	T TDataBlendingWeightedSum<T>::SingleOperation(T A, T B, double Weight) const { return PCGExMath::WeightedAdd(A, B, Weight); }
 
 	template <typename T>
-	T TDataBlendingUnsignedMax<T>::SingleOperation(T A, T B, double Weight) const  { return PCGExMath::UnsignedMax(A, B); }
+	T TDataBlendingLerp<T>::SingleOperation(T A, T B, double Weight) const { return PCGExMath::Lerp(A, B, Weight); }
 
 	template <typename T>
-	T TDataBlendingUnsignedMin<T>::SingleOperation(T A, T B, double Weight) const  { return PCGExMath::UnsignedMin(A, B); }
+	T TDataBlendingNone<T>::SingleOperation(T A, T B, double Weight) const { return A; }
 
 	template <typename T>
-	T TDataBlendingAbsoluteMax<T>::SingleOperation(T A, T B, double Weight) const  { return PCGExMath::AbsoluteMax(A, B); }
+	T TDataBlendingUnsignedMax<T>::SingleOperation(T A, T B, double Weight) const { return PCGExMath::UnsignedMax(A, B); }
 
 	template <typename T>
-	T TDataBlendingAbsoluteMin<T>::SingleOperation(T A, T B, double Weight) const  { return PCGExMath::AbsoluteMin(A, B); }
+	T TDataBlendingUnsignedMin<T>::SingleOperation(T A, T B, double Weight) const { return PCGExMath::UnsignedMin(A, B); }
 
 	template <typename T>
-	T TDataBlendingWeightedSubtract<T>::SingleOperation(T A, T B, double Weight) const  { return PCGExMath::WeightedSub(A, B, Weight); }
+	T TDataBlendingAbsoluteMax<T>::SingleOperation(T A, T B, double Weight) const { return PCGExMath::AbsoluteMax(A, B); }
 
 	template <typename T>
-	T TDataBlendingHash<T>::SingleOperation(T A, T B, double Weight) const  { return PCGExMath::NaiveHash(A, B); }
+	T TDataBlendingAbsoluteMin<T>::SingleOperation(T A, T B, double Weight) const { return PCGExMath::AbsoluteMin(A, B); }
 
 	template <typename T>
-	T TDataBlendingUnsignedHash<T>::SingleOperation(T A, T B, double Weight) const  { return PCGExMath::NaiveUnsignedHash(A, B); }
+	T TDataBlendingWeightedSubtract<T>::SingleOperation(T A, T B, double Weight) const { return PCGExMath::WeightedSub(A, B, Weight); }
+
+	template <typename T>
+	T TDataBlendingHash<T>::SingleOperation(T A, T B, double Weight) const { return PCGExMath::NaiveHash(A, B); }
+
+	template <typename T>
+	T TDataBlendingUnsignedHash<T>::SingleOperation(T A, T B, double Weight) const { return PCGExMath::NaiveUnsignedHash(A, B); }
 
 #define PCGEX_EXTERN_DECL_TYPED(_TYPE, _ID, _BLEND) template class TDataBlending##_BLEND<_TYPE>;
 #define PCGEX_EXTERN_DECL(_BLEND) PCGEX_FOREACH_SUPPORTEDTYPES(PCGEX_EXTERN_DECL_TYPED, _BLEND)

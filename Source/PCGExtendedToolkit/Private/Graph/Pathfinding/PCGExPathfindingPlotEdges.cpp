@@ -118,6 +118,8 @@ void FPCGExPathfindingPlotEdgesContext::BuildPath(const TSharedPtr<PCGExPathfind
 		// TODO : Implement
 	}
 
+	if (!Settings->PathOutputDetails.Validate(MutablePoints)) { return; }
+
 	const TSharedPtr<PCGExData::FPointIO> PathIO = OutputPaths->Emplace_GetRef<UPCGPointData>(ReferenceIO->GetIn(), PCGExData::EIOInit::New);
 	if (!PathIO) { return; }
 

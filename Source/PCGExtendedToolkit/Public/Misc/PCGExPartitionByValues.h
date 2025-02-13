@@ -71,7 +71,6 @@ protected:
 	//~Begin UPCGExPointsProcessorSettings
 public:
 	virtual bool GetMainAcceptMultipleData() const override;
-	virtual PCGExData::EIOInit GetMainOutputInitMode() const override;
 	//~End UPCGExPointsProcessorSettings
 
 	/** If false, will only write partition identifier values instead of splitting partitions into new point datasets. */

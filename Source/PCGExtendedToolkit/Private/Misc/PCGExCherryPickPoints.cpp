@@ -5,12 +5,9 @@
 
 
 #include "Misc/Pickers/PCGExPicker.h"
-#include "Misc/Pickers/PCGExPickerOperation.h"
 
 #define LOCTEXT_NAMESPACE "PCGExCherryPickPointsElement"
 #define PCGEX_NAMESPACE CherryPickPoints
-
-PCGExData::EIOInit UPCGExCherryPickPointsSettings::GetMainOutputInitMode() const { return PCGExData::EIOInit::None; }
 
 PCGEX_INITIALIZE_ELEMENT(CherryPickPoints)
 
@@ -32,15 +29,6 @@ bool FPCGExCherryPickPointsElement::Boot(FPCGExContext* InContext) const
 	{
 		PCGE_LOG(Error, GraphAndLog, FTEXT("Missing pickers."));
 		return false;
-	}
-
-	Context->PickerOperations.Reserve(Context->PickerFactories.Num());
-
-	for (const TObjectPtr<const UPCGExPickerFactoryData>& PickerFactory : Context->PickerFactories)
-	{
-		UPCGExPickerOperation* Op = PickerFactory->CreateOperation(Context);
-		Op->BindContext(Context);
-		Context->PickerOperations.Add(Op);
 	}
 
 	return true;
@@ -82,9 +70,9 @@ namespace PCGExCherryPickPoints
 
 		TSet<int32> UniqueIndices;
 
-		for (const UPCGExPickerOperation* Op : Context->PickerOperations)
+		for (const TObjectPtr<const UPCGExPickerFactoryData>& Op : Context->PickerFactories)
 		{
-			Op->AddPicks(PointDataFacade, UniqueIndices);
+			Op->AddPicks(PointDataFacade->GetNum(), UniqueIndices);
 		}
 
 		if (UniqueIndices.IsEmpty())

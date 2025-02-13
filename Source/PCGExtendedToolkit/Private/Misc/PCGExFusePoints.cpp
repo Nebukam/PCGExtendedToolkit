@@ -27,8 +27,6 @@ namespace PCGExFuse
 	}
 }
 
-PCGExData::EIOInit UPCGExFusePointsSettings::GetMainOutputInitMode() const { return PCGExData::EIOInit::New; }
-
 PCGEX_INITIALIZE_ELEMENT(FusePoints)
 
 bool FPCGExFusePointsElement::Boot(FPCGExContext* InContext) const
@@ -81,8 +79,9 @@ namespace PCGExFusePoints
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExFusePoints::Process);
 
-
 		if (!FPointsProcessor::Process(InAsyncManager)) { return false; }
+
+		PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::New)
 
 		UnionGraph = MakeShared<PCGExGraph::FUnionGraph>(
 			Settings->PointPointIntersectionDetails.FuseDetails,

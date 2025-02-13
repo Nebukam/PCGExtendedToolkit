@@ -9,8 +9,6 @@
 #define LOCTEXT_NAMESPACE "PCGExResamplePathElement"
 #define PCGEX_NAMESPACE ResamplePath
 
-PCGExData::EIOInit UPCGExResamplePathSettings::GetMainOutputInitMode() const { return PCGExData::EIOInit::None; }
-
 PCGEX_INITIALIZE_ELEMENT(ResamplePath)
 
 bool FPCGExResamplePathElement::Boot(FPCGExContext* InContext) const

@@ -8,9 +8,6 @@
 #define LOCTEXT_NAMESPACE "PCGExAttributeRemap"
 #define PCGEX_NAMESPACE AttributeRemap
 
-
-PCGExData::EIOInit UPCGExAttributeRemapSettings::GetMainOutputInitMode() const { return PCGExData::EIOInit::Duplicate; }
-
 #if WITH_EDITOR
 FString UPCGExAttributeRemapSettings::GetDisplayName() const
 {
@@ -114,8 +111,11 @@ namespace PCGExAttributeRemap
 
 	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager)
 	{
+		PointDataFacade->bSupportsScopedGet = Context->bScopedAttributeGet;
+
 		if (!FPointsProcessor::Process(InAsyncManager)) { return false; }
 
+		PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::Duplicate)
 
 		const TSharedPtr<PCGEx::FAttributesInfos> Infos = PCGEx::FAttributesInfos::Get(PointDataFacade->GetIn()->Metadata);
 		const PCGEx::FAttributeIdentity* Identity = Infos->Find(Settings->Attributes.Source);

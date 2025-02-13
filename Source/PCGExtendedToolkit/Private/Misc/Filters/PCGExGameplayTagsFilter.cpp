@@ -21,7 +21,7 @@ bool UPCGExGameplayTagsFilterFactory::RegisterConsumableAttributesWithData(FPCGE
 	return true;
 }
 
-bool PCGExPointFilter::FGameplayTagsFilter::Init(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade> InPointDataFacade)
+bool PCGExPointFilter::FGameplayTagsFilter::Init(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade>& InPointDataFacade)
 {
 	if (!FFilter::Init(InContext, InPointDataFacade)) { return false; }
 

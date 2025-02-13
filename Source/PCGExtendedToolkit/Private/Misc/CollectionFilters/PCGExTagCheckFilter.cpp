@@ -12,7 +12,7 @@ TSharedPtr<PCGExPointFilter::FFilter> UPCGExTagCheckFilterFactory::CreateFilter(
 	return MakeShared<PCGExPointFilter::FTagCheckFilter>(this);
 }
 
-bool PCGExPointFilter::FTagCheckFilter::Test(const TSharedPtr<PCGExData::FPointIO>& IO) const
+bool PCGExPointFilter::FTagCheckFilter::Test(const TSharedPtr<PCGExData::FPointIO>& IO, const TSharedPtr<PCGExData::FPointIOCollection>& ParentCollection) const
 {
 	bool bResult = PCGExCompare::HasMatchingTags(IO->Tags, TypedFilterFactory->Config.Tag, TypedFilterFactory->Config.Match);
 	return TypedFilterFactory->Config.bInvert ? !bResult : bResult;

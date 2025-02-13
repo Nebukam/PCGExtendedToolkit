@@ -7,8 +7,6 @@
 #define LOCTEXT_NAMESPACE "PCGExAttributeHashElement"
 #define PCGEX_NAMESPACE AttributeHash
 
-PCGExData::EIOInit UPCGExAttributeHashSettings::GetMainOutputInitMode() const { return bOutputToAttribute ? PCGExData::EIOInit::Duplicate : PCGExData::EIOInit::Forward; }
-
 PCGEX_INITIALIZE_ELEMENT(AttributeHash)
 
 bool FPCGExAttributeHashElement::Boot(FPCGExContext* InContext) const
@@ -53,6 +51,8 @@ namespace PCGExAttributeHash
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExAttributeHash::Process);
 
 		if (!FPointsProcessor::Process(InAsyncManager)) { return false; }
+
+		PCGEX_INIT_IO(PointDataFacade->Source, Settings->bOutputToAttribute ? PCGExData::EIOInit::Duplicate : PCGExData::EIOInit::Forward)
 
 		Hasher = MakeShared<PCGEx::FAttributeHasher>(Settings->HashConfig);
 		if (!Hasher->Init(Context, PointDataFacade->Source)) { return false; }

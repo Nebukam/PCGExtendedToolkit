@@ -46,8 +46,6 @@ TArray<FPCGPinProperties> UPCGExSampleNearestSplineSettings::InputPinProperties(
 	return PinProperties;
 }
 
-PCGExData::EIOInit UPCGExSampleNearestSplineSettings::GetMainOutputInitMode() const { return PCGExData::EIOInit::Duplicate; }
-
 void FPCGExSampleNearestSplineContext::RegisterAssetDependencies()
 {
 	PCGEX_SETTINGS_LOCAL(SampleNearestSpline)
@@ -176,6 +174,8 @@ namespace PCGExSampleNearestSpline
 		PointDataFacade->bSupportsScopedGet = Context->bScopedAttributeGet;
 
 		if (!FPointsProcessor::Process(InAsyncManager)) { return false; }
+
+		PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::Duplicate)
 
 		DistanceDetails = Context->DistanceDetails;
 		SampleState.SetNumUninitialized(PointDataFacade->GetNum());
