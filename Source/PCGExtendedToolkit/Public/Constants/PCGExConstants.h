@@ -2,6 +2,7 @@
 // Released under the MIT license https://opensource.org/license/MIT/
 
 #pragma once
+#include "PCGEx.h"
 #include "PCGSettings.h"
 #include "PCGExConstantsDefinitions.h"
 #include "PCGExContext.h"
@@ -143,6 +144,12 @@ protected:
 	template <typename T>
 	void StageConstant(FPCGExContext* InContext, const FName InName, const T& InValue, const UPCGExConstantsSettings* Settings) const
 	{
+		if(!PCGEx::IsValidName(InName))
+		{
+			PCGE_LOG_C(Error, GraphAndLog, InContext, FText::Format(FTEXT("\"{0}\" is not a valid attribute name."), FText::FromName(InName)));
+			return;
+		}
+		
 		UPCGParamData* OutputData = InContext->ManagedObjects->New<UPCGParamData>();
 		check(OutputData && OutputData->Metadata);
 		
