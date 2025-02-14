@@ -270,6 +270,7 @@ namespace PCGEx
 
 		void Add(UObject* InObject);
 		bool Remove(UObject* InObject);
+		void Remove(const TArray<FPCGTaggedData>& InTaggedData);
 
 		template <class T, typename... Args>
 		T* New(Args&&... InArgs)
