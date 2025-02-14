@@ -6,6 +6,7 @@
 #include "CoreMinimal.h"
 #include "PCGExMacros.h"
 #include "PCGEx.h"
+#include "PCGExH.h"
 #include "PCGExMath.h"
 #include "PCGExActorSelector.h"
 

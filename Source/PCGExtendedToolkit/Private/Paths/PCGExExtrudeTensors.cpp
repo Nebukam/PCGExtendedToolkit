@@ -14,19 +14,33 @@ TArray<FPCGPinProperties> UPCGExExtrudeTensorsSettings::InputPinProperties() con
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
 	PCGEX_PIN_FACTORIES(PCGExTensor::SourceTensorsLabel, "Tensors", Required, {})
 	PCGEX_PIN_FACTORIES(PCGExPointFilter::SourceStopConditionLabel, "Extruded points will be tested against those filters. If a filter returns true, the extrusion point is considered 'out-of-bounds'.", Normal, {})
+	if (bDoExternalPathIntersections) { PCGEX_PIN_POINTS(PCGExPaths::SourcePathsLabel, "Paths that will be checked for intersections while extruding.", Normal, {}) }
+	if (bDoSelfPathIntersections) { PCGEX_PIN_FACTORIES(PCGExSorting::SourceSortingRules, "Plug sorting rules here. Order is defined by each rule' priority value, in ascending order.", Normal, {}) }
 	return PinProperties;
+}
+
+bool UPCGExExtrudeTensorsSettings::GetSortingRules(FPCGExContext* InContext, TArray<FPCGExSortRuleConfig>& OutRules) const
+{
+	OutRules.Append(PCGExSorting::GetSortingRules(InContext, PCGExSorting::SourceSortingRules));
+	return !OutRules.IsEmpty();
 }
 
 PCGEX_INITIALIZE_ELEMENT(ExtrudeTensors)
 
 FName UPCGExExtrudeTensorsSettings::GetMainInputPin() const { return PCGExGraph::SourceSeedsLabel; }
-FName UPCGExExtrudeTensorsSettings::GetMainOutputPin() const { return PCGExGraph::OutputPathsLabel; }
+FName UPCGExExtrudeTensorsSettings::GetMainOutputPin() const { return PCGExPaths::OutputPathsLabel; }
 
 bool FPCGExExtrudeTensorsElement::Boot(FPCGExContext* InContext) const
 {
 	if (!FPCGExPointsProcessorElement::Boot(InContext)) { return false; }
 
 	PCGEX_CONTEXT_AND_SETTINGS(ExtrudeTensors)
+
+	PCGEX_FWD(ClosedLoop)
+	Context->ClosedLoop.Init();
+	
+	PCGEX_FWD(ExternalPathIntersections)
+	Context->ExternalPathIntersections.Init();
 
 	if (!PCGExFactories::GetInputFactories(InContext, PCGExTensor::SourceTensorsLabel, Context->TensorFactories, {PCGExFactories::EType::Tensor}, true)) { return false; }
 
@@ -181,6 +195,19 @@ namespace PCGExExtrudeTensors
 	{
 	}
 
+	void FProcessor::RegisterBuffersDependencies(PCGExData::FFacadePreloader& FacadePreloader)
+	{
+		TPointsProcessor<FPCGExExtrudeTensorsContext, UPCGExExtrudeTensorsSettings>::RegisterBuffersDependencies(FacadePreloader);
+
+		TArray<FPCGExSortRuleConfig> RuleConfigs;
+		if (Settings->GetSortingRules(ExecutionContext, RuleConfigs) && !RuleConfigs.IsEmpty())
+		{
+			Sorter = MakeShared<PCGExSorting::PointSorter<true>>(Context, PointDataFacade, RuleConfigs);
+			Sorter->SortDirection = Settings->SortDirection;
+			Sorter->RegisterBuffersDependencies(FacadePreloader);
+		}
+	}
+
 	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExExtrudeTensors::Process);
@@ -315,7 +342,6 @@ namespace PCGExExtrudeTensors
 	{
 		RemainingIterations--;
 		// TODO : If detecting collisions is enabled, start detection loop here
-		// Note : Closed loop search is probably very redundant here with collision
 		// Test only with last edge of each extrusion against all others extrusions including itself
 		if (!UpdateExtrusionQueue()) { StartParallelLoopForRange(ExtrusionQueue.Num(), 32); }
 	}
@@ -373,10 +399,18 @@ namespace PCGExExtrudeTensors
 		PCGEX_1_FLAGS_CASE(Bounded)
 		PCGEX_1_FLAGS_CASE(AllowsChildren)
 		PCGEX_1_FLAGS_CASE(ClosedLoop)
+		PCGEX_1_FLAGS_CASE(CollisionCheck)
 		PCGEX_2_FLAGS_CASE(Bounded, AllowsChildren)
 		PCGEX_2_FLAGS_CASE(Bounded, ClosedLoop)
 		PCGEX_2_FLAGS_CASE(AllowsChildren, ClosedLoop)
+		PCGEX_2_FLAGS_CASE(Bounded, CollisionCheck)
+		PCGEX_2_FLAGS_CASE(ClosedLoop, CollisionCheck)
+		PCGEX_2_FLAGS_CASE(AllowsChildren, CollisionCheck)
 		PCGEX_3_FLAGS_CASE(Bounded, AllowsChildren, ClosedLoop)
+		PCGEX_3_FLAGS_CASE(CollisionCheck, AllowsChildren, ClosedLoop)
+		PCGEX_3_FLAGS_CASE(Bounded, CollisionCheck, ClosedLoop)
+		PCGEX_3_FLAGS_CASE(Bounded, AllowsChildren, CollisionCheck)
+		PCGEX_4_FLAGS_CASE(Bounded, AllowsChildren, ClosedLoop, CollisionCheck)
 		default:
 			checkNoEntry(); // You missed flags dummy
 			break;
@@ -404,6 +438,26 @@ namespace PCGExExtrudeTensors
 		NewExtrusion->StopFilters = StopFilters;
 
 		return NewExtrusion;
+	}
+
+	FBatch::FBatch(FPCGExContext* InContext, const TArray<TWeakPtr<PCGExData::FPointIO>>& InPointsCollection)
+		: PCGExPointsMT::TBatch<FProcessor>(InContext, InPointsCollection)
+	{
+	}
+
+	void FBatch::Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager)
+	{
+		PCGEX_TYPED_CONTEXT_AND_SETTINGS(ExtrudeTensors)
+
+		// TODO : Build external paths octrees
+
+		TBatch<FProcessor>::Process(InAsyncManager);
+	}
+
+	void FBatch::Cleanup()
+	{
+		TBatch<FProcessor>::Cleanup();
+		Paths.Empty();
 	}
 }
 

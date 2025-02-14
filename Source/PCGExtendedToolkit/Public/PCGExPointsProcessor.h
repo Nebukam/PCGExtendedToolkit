@@ -14,6 +14,9 @@
 #include "PCGExOperation.h"
 #include "PCGExPointsMT.h"
 
+#include "PCGComponent.h"
+#include "PCGContext.h"
+
 #include "PCGExPointsProcessor.generated.h"
 
 #define PCGEX_EXECUTION_CHECK_C(_CONTEXT) if(!_CONTEXT->CanExecute()){ return true; } if (!_CONTEXT->IsAsyncWorkComplete()) { return false; }
@@ -189,7 +192,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPointsProcessorContext : FPCGExContext
 		if (MainBatch->PrepareProcessing())
 		{
 			SetAsyncState(PCGExPointsMT::MTState_PointsProcessing);
-			MainBatch->Process(GetAsyncManager());
+			ScheduleBatch(GetAsyncManager(), MainBatch);
 		}
 		else
 		{

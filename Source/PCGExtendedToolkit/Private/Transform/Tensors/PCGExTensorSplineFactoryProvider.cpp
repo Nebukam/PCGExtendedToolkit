@@ -26,7 +26,7 @@ bool UPCGExTensorSplineFactoryData::InitInternalData(FPCGExContext* InContext)
 	{
 		if (!InitInternalFacade(InContext)) { return false; }
 
-		TArray<FPCGTaggedData> Targets = InContext->InputData.GetInputsByPin(PCGExGraph::SourcePathsLabel);
+		TArray<FPCGTaggedData> Targets = InContext->InputData.GetInputsByPin(PCGExPaths::SourcePathsLabel);
 		ClosedLoop.Init();
 
 		if (!Targets.IsEmpty())
