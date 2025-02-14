@@ -50,9 +50,9 @@ namespace PCGExPointsMT
 #define PCGEX_ASYNC_CLUSTER_PROCESSOR_LOOP(_NAME, _NUM, _PREPARE, _PROCESS, _COMPLETE, _INLINE) PCGEX_ASYNC_PROCESSOR_LOOP(_NAME, _NUM, _PREPARE, _PROCESS, _COMPLETE, _INLINE, GetClusterBatchChunkSize)
 
 #pragma region Tasks
-	
-template <typename T>
-class FStartBatchProcessing final : public PCGExMT::FTask
+
+	template <typename T>
+	class FStartBatchProcessing final : public PCGExMT::FTask
 	{
 	public:
 		PCGEX_ASYNC_TASK_NAME(FStartClusterBatchProcessing)
@@ -72,7 +72,7 @@ class FStartBatchProcessing final : public PCGExMT::FTask
 	};
 
 #pragma endregion
-	
+
 	class FPointsProcessorBatchBase;
 
 	class FPointsProcessor : public TSharedFromThis<FPointsProcessor>

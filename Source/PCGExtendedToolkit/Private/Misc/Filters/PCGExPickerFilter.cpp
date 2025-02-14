@@ -51,7 +51,7 @@ bool PCGExPointFilter::FPickerFilter::Test(const int32 PointIndex) const
 bool PCGExPointFilter::FPickerFilter::Test(const TSharedPtr<PCGExData::FPointIO>& IO, const TSharedPtr<PCGExData::FPointIOCollection>& ParentCollection) const
 {
 	if (!ParentCollection) { return false; }
-	
+
 	const int32 NumEntries = ParentCollection->Num();
 	for (const TObjectPtr<const UPCGExPickerFactoryData>& FactoryData : TypedFilterFactory->PickerFactories)
 	{
