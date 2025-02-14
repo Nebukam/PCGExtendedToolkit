@@ -38,7 +38,7 @@ bool FPCGExExtrudeTensorsElement::Boot(FPCGExContext* InContext) const
 
 	PCGEX_FWD(ClosedLoop)
 	Context->ClosedLoop.Init();
-	
+
 	PCGEX_FWD(ExternalPathIntersections)
 	Context->ExternalPathIntersections.Init();
 
@@ -441,7 +441,7 @@ namespace PCGExExtrudeTensors
 	}
 
 	FBatch::FBatch(FPCGExContext* InContext, const TArray<TWeakPtr<PCGExData::FPointIO>>& InPointsCollection)
-		: PCGExPointsMT::TBatch<FProcessor>(InContext, InPointsCollection)
+		: TBatch<FProcessor>(InContext, InPointsCollection)
 	{
 	}
 

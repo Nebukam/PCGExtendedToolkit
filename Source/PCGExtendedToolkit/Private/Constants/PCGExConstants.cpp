@@ -26,7 +26,7 @@ TArray<FPCGPreConfiguredSettingsInfo> UPCGExConstantsSettings::GetPreconfiguredI
 		EPCGExConstantListID::ADDITIONAL_VECTORS,
 		EPCGExConstantListID::ADDITIONAL_NUMERICS
 	};
-	
+
 	return PCGMetadataElementCommon::FillPreconfiguredSettingsInfoFromEnum<EPCGExConstantListID>(ValuesToSkip);
 }
 #endif
@@ -38,41 +38,48 @@ void UPCGExConstantsSettings::ApplyPreconfiguredSettings(const FPCGPreConfigured
 		if (EnumPtr->IsValidEnumValue(PreconfigureInfo.PreconfiguredIndex))
 		{
 			ConstantList = static_cast<EPCGExConstantListID>(PreconfigureInfo.PreconfiguredIndex);
-			
+
 			AttributeNameMap.Empty();
 
-			switch (GetOutputType(ConstantList)) 
+			switch (GetOutputType(ConstantList))
 			{
-				case EPCGExConstantType::Number:
-					for (const auto Constant: GetNumericConstantList(ConstantList).Constants) {
-						AttributeNameMap.Add(Constant.Name, Constant.Name);
-					}
-					break;
+			case EPCGExConstantType::Number:
+				for (const auto Constant : GetNumericConstantList(ConstantList).Constants)
+				{
+					AttributeNameMap.Add(Constant.Name, Constant.Name);
+				}
+				break;
 			case EPCGExConstantType::Vector:
-					for (const auto Constant: GetVectorConstantList(ConstantList).Constants) {
-						AttributeNameMap.Add(Constant.Name, Constant.Name);
-					}
-					break;
+				for (const auto Constant : GetVectorConstantList(ConstantList).Constants)
+				{
+					AttributeNameMap.Add(Constant.Name, Constant.Name);
+				}
+				break;
 			case EPCGExConstantType::Bool:
-					for (const auto Constant : GetBooleanConstantList(ConstantList)) {
-						AttributeNameMap.Add(Constant.Name, Constant.Name);
-					};
-					break;
+				for (const auto Constant : GetBooleanConstantList(ConstantList))
+				{
+					AttributeNameMap.Add(Constant.Name, Constant.Name);
+				}
+				break;
 			}
 		}
 	}
 }
 
-EPCGExConstantType UPCGExConstantsSettings::GetOutputType(const EPCGExConstantListID ListID) {
-	if (ListID <= EPCGExConstantListID::One || ListID > EPCGExConstantListID::ADDITIONAL_NUMERICS) {
+EPCGExConstantType UPCGExConstantsSettings::GetOutputType(const EPCGExConstantListID ListID)
+{
+	if (ListID <= EPCGExConstantListID::One || ListID > EPCGExConstantListID::ADDITIONAL_NUMERICS)
+	{
 		return EPCGExConstantType::Number;
 	}
-	if (ListID >= EPCGExConstantListID::Booleans && ListID < EPCGExConstantListID::MAX_BOOL) {
+	if (ListID >= EPCGExConstantListID::Booleans && ListID < EPCGExConstantListID::MAX_BOOL)
+	{
 		return EPCGExConstantType::Bool;
 	}
 	return EPCGExConstantType::Vector;
 }
 
+#if WITH_EDITOR
 bool UPCGExConstantsSettings::CanEditChange(const FProperty* InProperty) const
 {
 	const bool ParentVal = Super::CanEditChange(InProperty);
@@ -82,7 +89,7 @@ bool UPCGExConstantsSettings::CanEditChange(const FProperty* InProperty) const
 
 	if (Prop == GET_MEMBER_NAME_CHECKED(UPCGExConstantsSettings, NegateOutput))
 	{
-		return ParentVal && (OutputType != EPCGExConstantType::Bool); 
+		return ParentVal && (OutputType != EPCGExConstantType::Bool);
 	}
 
 	if (Prop == GET_MEMBER_NAME_CHECKED(UPCGExConstantsSettings, OutputReciprocal))
@@ -99,9 +106,10 @@ bool UPCGExConstantsSettings::CanEditChange(const FProperty* InProperty) const
 	{
 		return ParentVal && (OutputType == EPCGExConstantType::Number);
 	}
-	
+
 	return ParentVal;
 }
+#endif
 
 TArray<FPCGPinProperties> UPCGExConstantsSettings::OutputPinProperties() const
 {
@@ -117,7 +125,7 @@ TArray<FPCGPinProperties> UPCGExConstantsSettings::OutputPinProperties() const
 			PCGEX_PIN_PARAM(Constant.Name, "...", Normal, {})
 		}
 	}
-	
+
 	// Vector pins
 	else if (OutputType == EPCGExConstantType::Vector)
 	{
@@ -128,7 +136,7 @@ TArray<FPCGPinProperties> UPCGExConstantsSettings::OutputPinProperties() const
 		}
 	}
 	// Numerics
-	else 
+	else
 	{
 		for (auto List = GetNumericConstantList(ConstantList).Constants;
 		     const auto Constant : List)
@@ -136,7 +144,7 @@ TArray<FPCGPinProperties> UPCGExConstantsSettings::OutputPinProperties() const
 			PCGEX_PIN_PARAM(Constant.Name, "...", Normal, {})
 		}
 	}
-	
+
 
 	return PinProperties;
 }
@@ -150,7 +158,7 @@ bool FPCGExConstantsElement::ExecuteInternal(FPCGContext* InContext) const
 {
 	PCGEX_CONTEXT()
 	PCGEX_SETTINGS(Constants)
-	
+
 	EPCGExConstantType OutputType = Settings->GetOutputType(Settings->ConstantList);
 
 	// Boolean constant outputs
@@ -161,15 +169,15 @@ bool FPCGExConstantsElement::ExecuteInternal(FPCGContext* InContext) const
 		// NoClear and EditFixedSize should prevent the names being missing on newly placed nodes, but if there's an old
 		// graph with constants (or something else goes wrong) this will stop it trying to dereference a null pointer
 		bool HasValidOutputNames = Settings->AttributeNameMap.Num() == ToOutput.Num();
-		
+
 		for (const auto Constant : ToOutput)
 		{
 			StageConstant(
-				Context,
-				HasValidOutputNames ? *Settings->AttributeNameMap.Find(Constant.Name) : Constant.Name,
-				Constant.Value,
-				Settings
-			);
+					Context,
+					HasValidOutputNames ? *Settings->AttributeNameMap.Find(Constant.Name) : Constant.Name,
+					Constant.Value,
+					Settings
+				);
 		}
 	}
 	// Vector constant output
@@ -177,15 +185,15 @@ bool FPCGExConstantsElement::ExecuteInternal(FPCGContext* InContext) const
 	{
 		auto ToOutput = UPCGExConstantsSettings::GetVectorConstantList(Settings->ConstantList);
 		bool HasValidOutputNames = Settings->AttributeNameMap.Num() == ToOutput.Constants.Num();
-		
+
 		for (const auto Constant : ToOutput.Constants)
 		{
 			StageConstant(
-				Context,
-				HasValidOutputNames ? *Settings->AttributeNameMap.Find(Constant.Name) : Constant.Name,
-				Constant.Value * Settings->CustomMultiplier * (Settings->NegateOutput ? -1.0 : 1.0),
-				Settings
-			);
+					Context,
+					HasValidOutputNames ? *Settings->AttributeNameMap.Find(Constant.Name) : Constant.Name,
+					Constant.Value * Settings->CustomMultiplier * (Settings->NegateOutput ? -1.0 : 1.0),
+					Settings
+				);
 		}
 	}
 	// Numeric constant output
@@ -195,11 +203,11 @@ bool FPCGExConstantsElement::ExecuteInternal(FPCGContext* InContext) const
 
 		bool HasValidOutputNames = Settings->AttributeNameMap.Num() == ToOutput.Constants.Num();
 
-		for (const auto Constant : ToOutput.Constants) {
-
+		for (const auto Constant : ToOutput.Constants)
+		{
 			const FName Name = HasValidOutputNames ? *Settings->AttributeNameMap.Find(Constant.Name) : Constant.Name;
 			const double Value = Settings->ApplyNumericValueSettings(Constant.Value);
-			
+
 			switch (Settings->NumericOutputType)
 			{
 			case EPCGExNumericOutput::Double: StageConstant<double>(Context, Name, Value, Settings);
