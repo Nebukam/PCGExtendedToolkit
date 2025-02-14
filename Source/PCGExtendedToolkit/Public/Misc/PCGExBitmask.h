@@ -7,6 +7,7 @@
 
 #include "PCGEx.h"
 #include "PCGExCompare.h"
+#include "PCGSettings.h"
 
 #include "PCGExBitmask.generated.h"
 
