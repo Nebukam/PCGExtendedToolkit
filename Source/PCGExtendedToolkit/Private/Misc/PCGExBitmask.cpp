@@ -3,6 +3,7 @@
 
 #include "Misc/PCGExBitmask.h"
 
+#include "PCGComponent.h"
 #include "PCGGraph.h"
 #include "PCGPin.h"
 
