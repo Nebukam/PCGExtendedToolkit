@@ -90,12 +90,10 @@ void FPCGExContext::CommitStagedOutputs()
 {
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExContext::WriteFutureOutputs);
 
+	ManagedObjects->Remove(StagedOutputs);
+	
 	OutputData.TaggedData.Reserve(OutputData.TaggedData.Num() + StagedOutputs.Num());
-	for (const FPCGTaggedData& FData : StagedOutputs)
-	{
-		ManagedObjects->Remove(const_cast<UPCGData*>(FData.Data.Get()));
-		OutputData.TaggedData.Add(FData);
-	}
+	OutputData.TaggedData.Append(StagedOutputs);
 
 	StagedOutputs.Empty();
 }
@@ -324,10 +322,7 @@ UPCGManagedComponent* FPCGExContext::AttachManagedComponent(AActor* InParent, UA
 	ManagedComponent->GeneratedComponent = InComponent;
 	SrcComp->AddToManagedResources(ManagedComponent);
 
-	if (InComponent->Implements<UPCGExManagedComponentInterface>())
-	{
-		if (IPCGExManagedComponentInterface* Managed = Cast<IPCGExManagedComponentInterface>(InComponent)) { Managed->SetManagedComponent(ManagedComponent); }
-	}
+	if (IPCGExManagedComponentInterface* Managed = Cast<IPCGExManagedComponentInterface>(InComponent)) { Managed->SetManagedComponent(ManagedComponent); }
 
 	InParent->Modify(!bIsPreviewMode);
 
