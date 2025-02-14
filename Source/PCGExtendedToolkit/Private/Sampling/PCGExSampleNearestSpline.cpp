@@ -450,8 +450,8 @@ namespace PCGExSampleNearestSpline
 		{
 			const FQuat Quat = Sample.Transform.GetRotation();
 
-			WeightedTransform = PCGExMath::WeightedAdd(WeightedTransform, Sample.Transform, Weight);
-			if (Settings->LookAtUpSelection == EPCGExSampleSource::Target) { PCGExMath::WeightedAdd(WeightedUp, PCGExMath::GetDirection(Quat, Settings->LookAtUpAxis), Weight); }
+			WeightedTransform = PCGExBlend::WeightedAdd(WeightedTransform, Sample.Transform, Weight);
+			if (Settings->LookAtUpSelection == EPCGExSampleSource::Target) { PCGExBlend::WeightedAdd(WeightedUp, PCGExMath::GetDirection(Quat, Settings->LookAtUpAxis), Weight); }
 
 			WeightedSignAxis += PCGExMath::GetDirection(Quat, Settings->SignAxis) * Weight;
 			WeightedAngleAxis += PCGExMath::GetDirection(Quat, Settings->AngleAxis) * Weight;
@@ -482,7 +482,7 @@ namespace PCGExSampleNearestSpline
 		if (TotalWeight != 0) // Dodge NaN
 		{
 			WeightedUp /= TotalWeight;
-			WeightedTransform = PCGExMath::Div(WeightedTransform, TotalWeight);
+			WeightedTransform = PCGExBlend::Div(WeightedTransform, TotalWeight);
 		}
 		else
 		{

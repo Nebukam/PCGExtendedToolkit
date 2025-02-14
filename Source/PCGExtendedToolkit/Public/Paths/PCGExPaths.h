@@ -179,6 +179,44 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPathFilterSettings
 	bool Init(FPCGExContext* InContext);
 };
 
+USTRUCT(BlueprintType)
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPathIntersectionDetails
+{
+	GENERATED_BODY()
+
+	/** Distance at which two edges are considered intersecting. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ClampMin=0))
+	double Tolerance = DBL_INTERSECTION_TOLERANCE;
+	double ToleranceSquared = DBL_INTERSECTION_TOLERANCE * DBL_INTERSECTION_TOLERANCE;
+
+	/** . */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, InlineEditConditionToggle))
+	bool bUseMinAngle = true;
+
+	/** Min angle. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bUseMinAngle", Units="Degrees", ClampMin=0, ClampMax=90))
+	double MinAngle = 0;
+	double MinDot = -1;
+
+	/** . */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, InlineEditConditionToggle))
+	bool bUseMaxAngle = true;
+
+	/** Maximum angle. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bUseMaxAngle", Units="Degrees", ClampMin=0, ClampMax=90))
+	double MaxAngle = 90;
+	double MaxDot = 1;
+
+	void Init()
+	{
+		MaxDot = bUseMinAngle ? PCGExMath::DegreesToDot(MinAngle) : 1;
+		MinDot = bUseMaxAngle ? PCGExMath::DegreesToDot(MaxAngle) : -1;
+		ToleranceSquared = Tolerance * Tolerance;
+	}
+
+	FORCEINLINE bool CheckDot(const double InDot) const { return InDot <= MaxDot && InDot >= MinDot; }
+};
+
 namespace PCGExPaths
 {
 	PCGEX_CTX_STATE(State_BuildingPaths)
@@ -362,6 +400,9 @@ namespace PCGExPaths
 		virtual bool IsEdgeValid(const FPathEdge& Edge) const { return FVector::DistSquared(GetPos_Unsafe(Edge.Start), GetPos_Unsafe(Edge.End)) > 0; }
 		virtual bool IsEdgeValid(const int32 Index) const { return IsEdgeValid(Edges[Index]); }
 
+		bool FindClosestIntersection(const FPCGExPathIntersectionDetails& InDetails,
+		                             const FVector& A1, const FVector& B1, int32& OutSegmentIndex, FVector& OutIntersection) const;
+
 		void BuildEdgeOctree();
 		void BuildPartialEdgeOctree(const TArray<int8>& Filter);
 
@@ -417,10 +458,10 @@ namespace PCGExPaths
 	};
 
 	template <bool ClosedLoop = false>
-	class TPath : public FPath
+	class TPath final : public FPath
 	{
 	public:
-		explicit TPath(const TArray<FPCGPoint>& InPoints, const double Expansion = 0)
+		explicit TPath(const TArrayView<const FPCGPoint>& InPoints, const double Expansion = 0)
 		{
 			bClosedLoop = ClosedLoop;
 
@@ -579,11 +620,14 @@ namespace PCGExPaths
 		virtual void ProcessLastEdge(const FPath* Path, const FPathEdge& Edge) override;
 	};
 
-	TSharedPtr<FPath> MakePath(const TArray<FPCGPoint>& InPoints, const double Expansion, const bool bClosedLoop);
+	TSharedPtr<FPath> MakePath(const TArrayView<const FPCGPoint> InPoints, const double Expansion, const bool bClosedLoop);
 	TSharedPtr<FPath> MakePath(const TArrayView<const FVector> InPositions, const double Expansion, const bool bClosedLoop);
 
 	FTransform GetClosestTransform(const FPCGSplineStruct& InSpline, const FVector& InLocation, const bool bUseScale = true);
 	FTransform GetClosestTransform(const TSharedPtr<const FPCGSplineStruct>& InSpline, const FVector& InLocation, const bool bUseScale = true);
 
 	TSharedPtr<FPCGSplineStruct> MakeSplineFromPoints(const UPCGPointData* InData, const EPCGExSplinePointTypeRedux InPointType, const bool bClosedLoop);
+
+	bool FindClosestIntersection(const TArray<TSharedPtr<FPath>>& Paths, const FPCGExPathIntersectionDetails& InDetails,
+	                             const FVector& A1, const FVector& B1, int32& OutPathIndex, int32& OutSegmentIndex, FVector& OutIntersection);
 }

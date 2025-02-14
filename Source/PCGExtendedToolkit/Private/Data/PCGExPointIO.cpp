@@ -307,6 +307,8 @@ namespace PCGExData
 
 	void FPointIOCollection::StageOutputs()
 	{
+		TRACE_CPUPROFILER_EVENT_SCOPE(FPointIOCollection::StageOutputs);
+		
 		Sort();
 		Context->IncreaseStagedOutputReserve(Pairs.Num());
 		for (int i = 0; i < Pairs.Num(); i++) { Pairs[i]->StageOutput(); }
