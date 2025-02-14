@@ -75,7 +75,7 @@ namespace PCGEx
 
 		PCGEX_ASYNC_GROUP_CHKD_VOID(AsyncManager, CompileHash)
 		CompileHash->OnCompleteCallback =
-			[PCGEX_ASYNC_THIS_CAPTURE, AsyncManager]()
+			[PCGEX_ASYNC_THIS_CAPTURE]()
 			{
 				PCGEX_ASYNC_THIS
 				This->OnCompilationComplete();

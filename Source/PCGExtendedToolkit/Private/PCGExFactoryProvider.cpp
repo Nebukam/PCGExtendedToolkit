@@ -2,6 +2,8 @@
 // Released under the MIT license https://opensource.org/license/MIT/
 
 #include "PCGExFactoryProvider.h"
+
+#include "PCGComponent.h"
 #include "PCGExContext.h"
 #include "PCGPin.h"
 #include "Tasks/Task.h"
