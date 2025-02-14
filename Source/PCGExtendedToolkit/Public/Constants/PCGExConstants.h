@@ -49,22 +49,22 @@ public:
 	EPCGExConstantListID ConstantList;
 
 	// Export the negative of the constant instead of the constant itself
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Settings)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Settings, meta=(PCG_Overridable))
 	bool NegateOutput = false;
 
 	// Output 1/x instead of x (e.g. 2 becomes 1/2)
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Settings)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Settings, meta=(PCG_Overridable))
 	bool OutputReciprocal = false;
 
 	// Apply a custom (constant, numeric) multiplier to the output
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Settings)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Settings, meta=(PCG_Overridable))
 	double CustomMultiplier = 1.0;
 
 	// Cast to a specific type (double will be used by default, ignored for vectors)
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Settings)
 	EPCGExNumericOutput NumericOutputType;
 	
-	UFUNCTION(BlueprintCallable)
+	UFUNCTION(BlueprintCallable, Category=Settings)
 	static EPCGExConstantType GetOutputType(EPCGExConstantListID ListID);
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Settings, NoClear, EditFixedSize, meta=(ReadOnlyKeys, ForceInlineRow))
@@ -73,7 +73,6 @@ public:
 #if WITH_EDITOR
 	virtual bool CanEditChange(const FProperty* InProperty) const override;
 #endif
-
 
 protected:
 	virtual TArray<FPCGPinProperties> InputPinProperties() const override { return {}; }
