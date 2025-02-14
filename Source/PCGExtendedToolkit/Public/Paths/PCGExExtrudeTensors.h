@@ -20,6 +20,51 @@
 
 #include "PCGExExtrudeTensors.generated.h"
 
+UENUM()
+enum class EPCGExSelfIntersectionMode : uint8
+{
+	StopLongest  = 0 UMETA(DisplayName = "Stop Longest", Tooltip="Stop the longest path first"),
+	StopShortest = 1 UMETA(DisplayName = "Stop Shortest", Tooltip="Stop the shortest path first"),
+};
+
+USTRUCT(BlueprintType)
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPathIntersectionDetails
+{
+	GENERATED_BODY()
+
+	/** Distance at which two edges are considered intersecting. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ClampMin=0))
+	double Tolerance = DBL_INTERSECTION_TOLERANCE;
+	double ToleranceSquared = DBL_INTERSECTION_TOLERANCE * DBL_INTERSECTION_TOLERANCE;
+
+	/** . */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, InlineEditConditionToggle))
+	bool bUseMinAngle = true;
+
+	/** Min angle. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bUseMinAngle", Units="Degrees", ClampMin=0, ClampMax=90))
+	double MinAngle = 0;
+	double MinDot = -1;
+
+	/** . */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, InlineEditConditionToggle))
+	bool bUseMaxAngle = true;
+
+	/** Maximum angle. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bUseMaxAngle", Units="Degrees", ClampMin=0, ClampMax=90))
+	double MaxAngle = 90;
+	double MaxDot = 1;
+
+	void Init()
+	{
+		MaxDot = bUseMinAngle ? PCGExMath::DegreesToDot(MinAngle) : 1;
+		MinDot = bUseMaxAngle ? PCGExMath::DegreesToDot(MaxAngle) : -1;
+		ToleranceSquared = Tolerance * Tolerance;
+	}
+
+	FORCEINLINE bool CheckDot(const double InDot) const { return InDot <= MaxDot && InDot >= MinDot; }
+};
+
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc")
 class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExExtrudeTensorsSettings : public UPCGExPointsProcessorSettings
 {
@@ -137,6 +182,35 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Limits", meta=(PCG_NotOverridable))
 	bool bIgnoreStoppedSeeds = false;
 
+	/**  */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Intersections", meta=(PCG_Overridable))
+	bool bDoExternalPathIntersections = false;
+
+	/** Closed loop handling for external paths.*/
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Intersections", meta=(PCG_Overridable, EditCondition="bDoExternalPathIntersections"))
+	FPCGExPathClosedLoopDetails ClosedLoop;
+
+	/** Intersection settings  */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Intersections", meta=(PCG_Overridable, EditCondition="bDoExternalPathIntersections"))
+	FPCGExPathIntersectionDetails ExternalPathIntersections;
+
+	/** [NOT IMPLEMENTED] */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Intersections", meta=(PCG_Overridable))
+	bool bDoSelfPathIntersections = false;
+
+	/** [NOT IMPLEMENTED] */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Intersections", meta=(PCG_Overridable, EditCondition="bDoSelfPathIntersections"))
+	EPCGExSelfIntersectionMode SelfIntersectionMode = EPCGExSelfIntersectionMode::StopShortest;
+
+	/** [NOT IMPLEMENTED] Controls the order in which paths extrusion will be stopped when intersecting, if shortest/longest path fails. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Intersections", meta = (PCG_Overridable, EditCondition="bDoSelfPathIntersections"))
+	EPCGExSortDirection SortDirection = EPCGExSortDirection::Ascending;
+
+	/** [NOT IMPLEMENTED] Intersection settings for extruding path intersections */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Intersections", meta=(PCG_Overridable, EditCondition="bDoSelfPathIntersections"))
+	FPCGExPathIntersectionDetails SelfPathIntersections;
+
+
 	/** TBD */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging & Forwarding")
 	FPCGExAttributeToTagDetails AttributesToPathTags;
@@ -189,6 +263,9 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Warning and Errors", meta=(PCG_NotOverridable, AdvancedDisplay))
 	bool bQuietMissingTensorError = false;
 
+
+	virtual bool GetSortingRules(FPCGExContext* InContext, TArray<FPCGExSortRuleConfig>& OutRules) const;
+
 private:
 	friend class FPCGExExtrudeTensorsElement;
 };
@@ -199,6 +276,9 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExExtrudeTensorsContext final : FPCGExPoin
 
 	TArray<TObjectPtr<const UPCGExTensorFactoryData>> TensorFactories;
 	TArray<TObjectPtr<const UPCGExFilterFactoryData>> StopFilterFactories;
+
+	FPCGExPathClosedLoopDetails ClosedLoop;
+	FPCGExPathIntersectionDetails ExternalPathIntersections;
 
 	double ClosedLoopSquaredDistance = 0;
 	double ClosedLoopSearchDot = 0;
@@ -386,6 +466,9 @@ namespace PCGExExtrudeTensors
 
 	class FProcessor final : public PCGExPointsMT::TPointsProcessor<FPCGExExtrudeTensorsContext, UPCGExExtrudeTensorsSettings>
 	{
+	protected:
+		TSharedPtr<PCGExSorting::PointSorter<true>> Sorter;
+
 		FRWLock NewExtrusionLock;
 		int32 RemainingIterations = 0;
 
@@ -409,6 +492,8 @@ namespace PCGExExtrudeTensors
 		virtual ~FProcessor() override;
 
 		virtual bool IsTrivial() const override { return false; }
+
+		virtual void RegisterBuffersDependencies(PCGExData::FFacadePreloader& FacadePreloader) override;
 
 		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager) override;
 
@@ -439,5 +524,16 @@ namespace PCGExExtrudeTensors
 		}
 
 		TSharedPtr<FExtrusion> CreateExtrusionTemplate(const int32 InSeedIndex, const int32 InMaxIterations);
+	};
+
+	class FBatch final : public PCGExPointsMT::TBatch<FProcessor>
+	{
+		TArray<TSharedPtr<PCGExPaths::FPath>> Paths;
+
+	public:
+		explicit FBatch(FPCGExContext* InContext, const TArray<TWeakPtr<PCGExData::FPointIO>>& InPointsCollection);
+		virtual void Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager) override;
+
+		virtual void Cleanup() override;
 	};
 }

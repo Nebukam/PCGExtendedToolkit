@@ -6,6 +6,7 @@
 
 #include "CoreMinimal.h"
 #include "PCGEx.h"
+#include "PCGExH.h"
 
 #include "PCGExMath.generated.h"
 

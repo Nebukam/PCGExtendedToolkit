@@ -15,7 +15,7 @@ TArray<FPCGPinProperties> UPCGExCutEdgesSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
 
-	PCGEX_PIN_POINTS(PCGExGraph::SourcePathsLabel, "Cutting paths.", Required, {})
+	PCGEX_PIN_POINTS(PCGExPaths::SourcePathsLabel, "Cutting paths.", Required, {})
 	if (Mode != EPCGExCutEdgesMode::Edges) { PCGEX_PIN_FACTORIES(PCGExCutEdges::SourceNodeFilters, "Node preservation filters.", Normal, {}) }
 	if (Mode != EPCGExCutEdgesMode::Nodes) { PCGEX_PIN_FACTORIES(PCGExCutEdges::SourceEdgeFilters, "Edge preservation filters.", Normal, {}) }
 
@@ -49,7 +49,7 @@ bool FPCGExCutEdgesElement::Boot(FPCGExContext* InContext) const
 		GetInputFactories(Context, PCGExCutEdges::SourceNodeFilters, Context->NodeFilterFactories, PCGExFactories::ClusterNodeFilters, false);
 	}
 
-	PCGEX_MAKE_SHARED(PathCollection, PCGExData::FPointIOCollection, Context, PCGExGraph::SourcePathsLabel)
+	PCGEX_MAKE_SHARED(PathCollection, PCGExData::FPointIOCollection, Context, PCGExPaths::SourcePathsLabel)
 	if (PathCollection->IsEmpty())
 	{
 		PCGE_LOG(Error, GraphAndLog, FTEXT("Empty paths."));

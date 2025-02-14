@@ -19,7 +19,7 @@ TArray<FPCGPinProperties> UPCGExFindContoursSettings::InputPinProperties() const
 TArray<FPCGPinProperties> UPCGExFindContoursSettings::OutputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties;
-	PCGEX_PIN_POINTS(PCGExGraph::OutputPathsLabel, "Contours", Required, {})
+	PCGEX_PIN_POINTS(PCGExPaths::OutputPathsLabel, "Contours", Required, {})
 	if (bOutputFilteredSeeds)
 	{
 		PCGEX_PIN_POINT(PCGExFindContours::OutputGoodSeedsLabel, "GoodSeeds", Required, {})
@@ -53,7 +53,7 @@ bool FPCGExFindContoursElement::Boot(FPCGExContext* InContext) const
 	Context->SeedForwardHandler = Settings->SeedForwarding.GetHandler(Context->SeedsDataFacade);
 
 	Context->Paths = MakeShared<PCGExData::FPointIOCollection>(Context);
-	Context->Paths->OutputPin = PCGExGraph::OutputPathsLabel;
+	Context->Paths->OutputPin = PCGExPaths::OutputPathsLabel;
 
 	if (Settings->bOutputFilteredSeeds)
 	{

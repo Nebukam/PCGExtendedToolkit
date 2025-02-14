@@ -18,11 +18,6 @@
 #include "StaticMeshResources.h"
 
 #include "PCGExHelpers.h"
-#include "PCGComponent.h"
-#include "PCGContext.h"
-#include "PCGExH.h"
-#include "MatchAndSet/PCGMatchAndSetWeighted.h"
-#include "Metadata/PCGMetadataAttribute.h"
 
 #include "PCGExMacros.h"
 
@@ -212,8 +207,6 @@ namespace PCGEx
 	FName GetCompoundName(const FName A, const FName B, const FName C);
 
 	EPCGMetadataTypes GetPointPropertyTypeId(const EPCGPointProperties Property);
-
-	UWorld* GetWorld(const FPCGContext* Context);
 
 	void ScopeIndices(const TArray<int32>& InIndices, TArray<uint64>& OutScopes);
 

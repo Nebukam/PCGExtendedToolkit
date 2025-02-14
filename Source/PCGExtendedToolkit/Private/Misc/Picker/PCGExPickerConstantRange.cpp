@@ -17,7 +17,7 @@ FString UPCGExPickerConstantRangeSettings::GetDisplayName() const
 	{
 		DisplayName += FString::Printf(TEXT("%.2f"), Config.RelativeStartIndex);
 		DisplayName += TEXT(":");
-		DisplayName += FString::Printf(TEXT("%.2f"), Config.RelativeStartIndex);
+		DisplayName += FString::Printf(TEXT("%.2f"), Config.RelativeEndIndex);
 	}
 	else
 	{
@@ -43,8 +43,8 @@ void UPCGExPickerConstantRangeFactory::AddPicks(const int32 InNum, TSet<int32>& 
 	}
 	else
 	{
-		TargetStartIndex = PCGEx::TruncateDbl(static_cast<double>(MaxIndex) * Config.DiscreteStartIndex, Config.TruncateMode);
-		TargetEndIndex = PCGEx::TruncateDbl(static_cast<double>(MaxIndex) * Config.DiscreteEndIndex, Config.TruncateMode);
+		TargetStartIndex = PCGEx::TruncateDbl(static_cast<double>(MaxIndex) * Config.RelativeStartIndex, Config.TruncateMode);
+		TargetEndIndex = PCGEx::TruncateDbl(static_cast<double>(MaxIndex) * Config.RelativeEndIndex, Config.TruncateMode);
 	}
 
 	if (TargetStartIndex < 0) { TargetStartIndex = InNum + TargetStartIndex; }
@@ -61,7 +61,7 @@ void UPCGExPickerConstantRangeFactory::AddPicks(const int32 InNum, TSet<int32>& 
 	if ((TargetEndIndex - TargetStartIndex) == 0) { return; }
 
 	OutPicks.Reserve(OutPicks.Num() + TargetEndIndex - TargetStartIndex + 1);
-	for (int i = TargetStartIndex; i <= TargetEndIndex; i++) { OutPicks.Add(TargetStartIndex); }
+	for (int i = TargetStartIndex; i <= TargetEndIndex; i++) { OutPicks.Add(i); }
 }
 
 bool UPCGExPickerConstantRangeFactory::InitInternalData(FPCGExContext* InContext)
