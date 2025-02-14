@@ -63,7 +63,7 @@ public:
 	// Cast to a specific type (double will be used by default, ignored for vectors)
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Settings)
 	EPCGExNumericOutput NumericOutputType;
-	
+
 	UFUNCTION(BlueprintCallable, Category=Settings)
 	static EPCGExConstantType GetOutputType(EPCGExConstantListID ListID);
 
@@ -82,8 +82,8 @@ protected:
 public:
 	static PCGExConstants::TDescriptorList<double> GetNumericConstantList(EPCGExConstantListID ConstantList)
 	{
-		
-		if (ConstantList < EPCGExConstantListID::ADDITIONAL_NUMERICS) {	
+		if (ConstantList < EPCGExConstantListID::ADDITIONAL_NUMERICS)
+		{
 			return PCGExConstants::Numbers.ExportedConstants[static_cast<uint8>(ConstantList)];
 		}
 		constexpr uint8 AdditionalValuesStart = static_cast<uint8>(EPCGExConstantListID::ADDITIONAL_NUMERICS) + 1;
@@ -92,7 +92,8 @@ public:
 
 	static PCGExConstants::TDescriptorList<FVector> GetVectorConstantList(EPCGExConstantListID ConstantList)
 	{
-		if (ConstantList == EPCGExConstantListID::Vectors) {
+		if (ConstantList == EPCGExConstantListID::Vectors)
+		{
 			return PCGExConstants::Vectors.ExportedConstants[0];
 		}
 
@@ -103,12 +104,14 @@ public:
 
 	static TArray<PCGExConstants::TDescriptor<bool>> GetBooleanConstantList(EPCGExConstantListID ConstantList)
 	{
-		if (ConstantList == EPCGExConstantListID::TrueBool) {
-			return { PCGExConstants::Booleans[0] };
+		if (ConstantList == EPCGExConstantListID::TrueBool)
+		{
+			return {PCGExConstants::Booleans[0]};
 		}
 
-		if (ConstantList == EPCGExConstantListID::FalseBool) {
-			return { PCGExConstants::Booleans[1] };
+		if (ConstantList == EPCGExConstantListID::FalseBool)
+		{
+			return {PCGExConstants::Booleans[1]};
 		}
 
 		return PCGExConstants::Booleans;
@@ -143,15 +146,15 @@ protected:
 	template <typename T>
 	void StageConstant(FPCGExContext* InContext, const FName InName, const T& InValue, const UPCGExConstantsSettings* Settings) const
 	{
-		if(!PCGEx::IsValidName(InName))
+		if (!PCGEx::IsValidName(InName))
 		{
 			PCGE_LOG_C(Error, GraphAndLog, InContext, FText::Format(FTEXT("\"{0}\" is not a valid attribute name."), FText::FromName(InName)));
 			return;
 		}
-		
+
 		UPCGParamData* OutputData = InContext->ManagedObjects->New<UPCGParamData>();
 		check(OutputData && OutputData->Metadata);
-		
+
 		FPCGMetadataAttribute<T>* Attrib = OutputData->Metadata->CreateAttribute<T>(InName, InValue, true, false);
 		Attrib->SetValue(OutputData->Metadata->AddEntry(), InValue);
 

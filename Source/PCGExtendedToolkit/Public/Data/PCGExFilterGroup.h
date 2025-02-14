@@ -11,18 +11,6 @@
 #include "PCGExPointFilter.h"
 
 
-
-
-
-
-
-
-
-
-
-
-
-
 #include "Graph/Filters/PCGExClusterFilter.h"
 #include "PCGExFilterGroup.generated.h"
 

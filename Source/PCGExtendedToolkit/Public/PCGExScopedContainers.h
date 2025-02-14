@@ -25,7 +25,7 @@ namespace PCGExMT
 			for (int i = 0; i < InScopes.Num(); i++) { Values.Add(MakeShared<TArray<T>>()); }
 		};
 
-		 ~TScopedArray() = default;
+		~TScopedArray() = default;
 
 		FORCEINLINE TSharedPtr<TArray<T>> Get(const FScope& InScope) { return Values[InScope.LoopIndex]; }
 		FORCEINLINE TArray<T>& Get_Ref(const FScope& InScope) { return *Values[InScope.LoopIndex].Get(); }
