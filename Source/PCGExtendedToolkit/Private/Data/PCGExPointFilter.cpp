@@ -4,18 +4,6 @@
 #include "Data/PCGExPointFilter.h"
 
 
-
-
-
-
-
-
-
-
-
-
-
-
 #include "Graph/PCGExCluster.h"
 
 TSharedPtr<PCGExPointFilter::FFilter> UPCGExFilterFactoryData::CreateFilter() const
