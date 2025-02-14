@@ -11,7 +11,7 @@ PCGEX_PICKER_BOILERPLATE(ConstantSet, {}, {})
 #if WITH_EDITOR
 FString UPCGExPickerConstantSetSettings::GetDisplayName() const
 {
-	FString DisplayName = TEXT("Pick @");
+	FString DisplayName = TEXT("Pick Set(s)");
 
 	if (Config.bTreatAsNormalized)
 	{
@@ -54,7 +54,7 @@ void UPCGExPickerConstantSetFactory::AddPicks(const int32 InNum, TSet<int32>& Ou
 			if (TargetIndex < 0) { TargetIndex = InNum + TargetIndex; }
 			TargetIndex = PCGExMath::SanitizeIndex(TargetIndex, MaxIndex, Config.Safety);
 
-			if (!FMath::IsWithin(TargetIndex, 0, InNum)) { OutPicks.Add(TargetIndex); }
+			if (FMath::IsWithin(TargetIndex, 0, InNum)) { OutPicks.Add(TargetIndex); }
 		}
 	}
 }
@@ -75,11 +75,27 @@ bool UPCGExPickerConstantSetFactory::InitInternalData(FPCGExContext* InContext)
 		TSet<double> UniqueIndices;
 		for (const TSharedPtr<PCGExData::FFacade>& Facade : Facades)
 		{
-			for (const FPCGAttributePropertyInputSelector& Selector : Config.Attributes)
+			if (Config.Attributes.IsEmpty())
 			{
-				const TSharedPtr<PCGExData::TBuffer<double>> Buffer = Facade->GetBroadcaster<double>(Selector);
-				if (!Buffer) { continue; }
-				UniqueIndices.Append(*Buffer->GetOutValues().Get());
+				const TSharedPtr<PCGEx::FAttributesInfos> Infos = PCGEx::FAttributesInfos::Get(Facade->Source->GetIn()->Metadata);
+				if (Infos->Attributes.IsEmpty())
+				{
+					PCGE_LOG_C(Error, GraphAndLog, InContext, FTEXT("Some input have no attributes."));
+					continue;
+				}
+
+				const TSharedPtr<PCGEx::TAttributeBroadcaster<double>> Values = PCGEx::TAttributeBroadcaster<double>::Make(Infos->Attributes[0]->Name, Facade->Source);
+				if (!Values) { continue; }
+				Values->GrabUniqueValues(UniqueIndices);
+			}
+			else
+			{
+				for (const FPCGAttributePropertyInputSelector& Selector : Config.Attributes)
+				{
+					const TSharedPtr<PCGEx::TAttributeBroadcaster<double>> Values = PCGEx::TAttributeBroadcaster<double>::Make(Selector, Facade->Source);
+					if (!Values) { continue; }
+					Values->GrabUniqueValues(UniqueIndices);
+				}
 			}
 		}
 
@@ -90,11 +106,27 @@ bool UPCGExPickerConstantSetFactory::InitInternalData(FPCGExContext* InContext)
 		TSet<int32> UniqueIndices;
 		for (const TSharedPtr<PCGExData::FFacade>& Facade : Facades)
 		{
-			for (const FPCGAttributePropertyInputSelector& Selector : Config.Attributes)
+			if (Config.Attributes.IsEmpty())
 			{
-				const TSharedPtr<PCGExData::TBuffer<int32>> Buffer = Facade->GetBroadcaster<int32>(Selector);
-				if (!Buffer) { continue; }
-				UniqueIndices.Append(*Buffer->GetOutValues().Get());
+				const TSharedPtr<PCGEx::FAttributesInfos> Infos = PCGEx::FAttributesInfos::Get(Facade->Source->GetIn()->Metadata);
+				if (Infos->Attributes.IsEmpty())
+				{
+					PCGE_LOG_C(Error, GraphAndLog, InContext, FTEXT("Some input have no attributes."));
+					continue;
+				}
+
+				const TSharedPtr<PCGEx::TAttributeBroadcaster<int32>> Values = PCGEx::TAttributeBroadcaster<int32>::Make(Infos->Attributes[0]->Name, Facade->Source);
+				if (!Values) { continue; }
+				Values->GrabUniqueValues(UniqueIndices);
+			}
+			else
+			{
+				for (const FPCGAttributePropertyInputSelector& Selector : Config.Attributes)
+				{
+					const TSharedPtr<PCGEx::TAttributeBroadcaster<int32>> Values = PCGEx::TAttributeBroadcaster<int32>::Make(Selector, Facade->Source);
+					if (!Values) { continue; }
+					Values->GrabUniqueValues(UniqueIndices);
+				}
 			}
 		}
 

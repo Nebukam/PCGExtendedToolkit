@@ -3,6 +3,8 @@
 
 #include "PCGEx.h"
 
+#include "PCGExH.h"
+
 namespace PCGEx
 {
 	bool IsValidName(const FName Name) { return FPCGMetadataAttributeBase::IsValidName(Name) && !Name.IsNone(); }
@@ -86,12 +88,6 @@ namespace PCGEx
 		default:
 			return EPCGMetadataTypes::Unknown;
 		}
-	}
-
-	UWorld* GetWorld(const FPCGContext* Context)
-	{
-		check(Context->SourceComponent.IsValid());
-		return Context->SourceComponent->GetWorld();
 	}
 
 	void ScopeIndices(const TArray<int32>& InIndices, TArray<uint64>& OutScopes)

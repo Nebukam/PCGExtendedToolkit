@@ -165,9 +165,6 @@ namespace PCGExGraph
 	const FName SourceVerticesLabel = TEXT("Vtx");
 	const FName OutputVerticesLabel = TEXT("Vtx");
 
-	const FName SourcePathsLabel = TEXT("Paths");
-	const FName OutputPathsLabel = TEXT("Paths");
-
 	const FName Tag_PackedClusterPointCount = FName(PCGEx::PCGExPrefix + TEXT("PackedClusterPointCount"));
 	const FName Tag_PackedClusterEdgeCount = FName(PCGEx::PCGExPrefix + TEXT("PackedClusterEdgeCount"));
 

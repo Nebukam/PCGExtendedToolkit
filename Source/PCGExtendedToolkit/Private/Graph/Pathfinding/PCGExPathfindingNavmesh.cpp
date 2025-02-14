@@ -27,7 +27,7 @@ TArray<FPCGPinProperties> UPCGExPathfindingNavmeshSettings::InputPinProperties()
 TArray<FPCGPinProperties> UPCGExPathfindingNavmeshSettings::OutputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties;
-	PCGEX_PIN_POINTS(PCGExGraph::OutputPathsLabel, "Paths output.", Required, {})
+	PCGEX_PIN_POINTS(PCGExPaths::OutputPathsLabel, "Paths output.", Required, {})
 	return PinProperties;
 }
 
@@ -71,7 +71,7 @@ bool FPCGExPathfindingNavmeshElement::Boot(FPCGExContext* InContext) const
 	Context->FuseDistance = Settings->FuseDistance;
 
 	Context->OutputPaths = MakeShared<PCGExData::FPointIOCollection>(Context);
-	Context->OutputPaths->OutputPin = PCGExGraph::OutputPathsLabel;
+	Context->OutputPaths->OutputPin = PCGExPaths::OutputPathsLabel;
 
 	// Prepare path queries
 

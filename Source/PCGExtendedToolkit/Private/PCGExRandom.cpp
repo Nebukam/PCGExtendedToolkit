@@ -2,7 +2,10 @@
 // Released under the MIT license https://opensource.org/license/MIT/
 
 #include "PCGExRandom.h"
+
+#include "PCGComponent.h"
 #include "PCGExMath.h"
+#include "PCGSettings.h"
 
 namespace PCGExRandom
 {

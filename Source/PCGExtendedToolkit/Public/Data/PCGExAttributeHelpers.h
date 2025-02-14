@@ -323,6 +323,8 @@ namespace PCGEx
 			InternalSelector = InSelector.CopyAndFixLast(InData);
 			bValid = InternalSelector.IsValid();
 
+			if (!bValid) { return false; }
+
 			const TArray<FString>& ExtraNames = InternalSelector.GetExtraNames();
 			if (GetAxisSelection(ExtraNames, Axis))
 			{
@@ -347,7 +349,7 @@ namespace PCGEx
 
 				if (const UPCGSpatialData* AsSpatial = Cast<UPCGSpatialData>(InData))
 				{
-					Attribute = AsSpatial->Metadata->GetConstAttribute(InternalSelector.GetName());
+					Attribute = AsSpatial->Metadata->GetConstAttribute(InternalSelector.GetAttributeName());
 					if (Attribute)
 					{
 						Attribute->GetTypeId(),
