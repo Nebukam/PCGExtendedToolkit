@@ -25,7 +25,7 @@ namespace PCGExMT
 			for (int i = 0; i < InScopes.Num(); i++) { Values.Add(MakeShared<TArray<T>>()); }
 		};
 
-		virtual ~TScopedArray() = default;
+		 ~TScopedArray() = default;
 
 		FORCEINLINE TSharedPtr<TArray<T>> Get(const FScope& InScope) { return Values[InScope.LoopIndex]; }
 		FORCEINLINE TArray<T>& Get_Ref(const FScope& InScope) { return *Values[InScope.LoopIndex].Get(); }
@@ -46,7 +46,7 @@ namespace PCGExMT
 			for (int i = 0; i < InScopes.Num(); i++) { Sets.Add_GetRef(MakeShared<TSet<T>>())->Reserve(InReserve); }
 		};
 
-		virtual ~TScopedSet() = default;
+		~TScopedSet() = default;
 
 		FORCEINLINE TSharedPtr<TSet<T>> Get(const FScope& InScope) { return Sets[InScope.LoopIndex]; }
 		FORCEINLINE TSet<T>& Get_Ref(const FScope& InScope) { return *Sets[InScope.LoopIndex].Get(); }
@@ -68,7 +68,7 @@ namespace PCGExMT
 			Values.Init(InDefaultValue, InScopes.Num());
 		};
 
-		virtual ~TScopedValue() = default;
+		~TScopedValue() = default;
 
 		FORCEINLINE T Get(const FScope& InScope) { return Values[InScope.LoopIndex]; }
 		FORCEINLINE T& GetMutable(const FScope& InScope) { return Values[InScope.LoopIndex]; }
