@@ -16,10 +16,10 @@ bool UPCGExPickerFilterFactory::Init(FPCGExContext* InContext)
 {
 	if (!Super::Init(InContext)) { return false; }
 
-	if (!PCGExFactories::GetInputFactories(InContext, PCGExPicker::SourcePickersLabel, PickerFactories, {PCGExFactories::EType::Tensor}, true)) { return false; }
+	if (!PCGExFactories::GetInputFactories(InContext, PCGExPicker::SourcePickersLabel, PickerFactories, {PCGExFactories::EType::IndexPicker}, true)) { return false; }
 	if (PickerFactories.IsEmpty())
 	{
-		if (!bQuietMissingInputError) { PCGE_LOG_C(Error, GraphAndLog, InContext, FTEXT("Missing tensors.")); }
+		if (!bQuietMissingInputError) { PCGE_LOG_C(Error, GraphAndLog, InContext, FTEXT("Missing pickers.")); }
 		return false;
 	}
 
@@ -37,7 +37,7 @@ bool PCGExPointFilter::FPickerFilter::Init(FPCGExContext* InContext, const TShar
 
 	for (const TObjectPtr<const UPCGExPickerFactoryData>& FactoryData : TypedFilterFactory->PickerFactories)
 	{
-		FactoryData->AddPicks(0, Picks);
+		FactoryData->AddPicks(InPointDataFacade->GetNum(), Picks);
 	}
 
 	return true;

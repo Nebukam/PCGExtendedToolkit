@@ -7,6 +7,7 @@
 #include "Elements/Metadata/PCGMetadataElementCommon.h"
 #include "Geometry/PCGExGeoDelaunay.h"
 #include "Graph/PCGExCluster.h"
+#include "Paths/PCGExPaths.h"
 
 #define LOCTEXT_NAMESPACE "PCGExGraph"
 #define PCGEX_NAMESPACE BuildConvexHull2D
@@ -15,7 +16,7 @@ TArray<FPCGPinProperties> UPCGExBuildConvexHull2DSettings::OutputPinProperties()
 {
 	TArray<FPCGPinProperties> PinProperties = Super::OutputPinProperties();
 	PCGEX_PIN_POINTS(PCGExGraph::OutputEdgesLabel, "Point data representing edges.", Required, {})
-	PCGEX_PIN_POINTS(PCGExGraph::OutputPathsLabel, "Point data representing closed convex hull paths.", Required, {})
+	PCGEX_PIN_POINTS(PCGExPaths::OutputPathsLabel, "Point data representing closed convex hull paths.", Required, {})
 	return PinProperties;
 }
 
@@ -28,7 +29,7 @@ bool FPCGExBuildConvexHull2DElement::Boot(FPCGExContext* InContext) const
 	PCGEX_CONTEXT_AND_SETTINGS(BuildConvexHull2D)
 
 	Context->PathsIO = MakeShared<PCGExData::FPointIOCollection>(Context);
-	Context->PathsIO->OutputPin = PCGExGraph::OutputPathsLabel;
+	Context->PathsIO->OutputPin = PCGExPaths::OutputPathsLabel;
 
 	return true;
 }

@@ -19,7 +19,7 @@ TArray<FPCGPinProperties> UPCGExFindAllCellsSettings::InputPinProperties() const
 TArray<FPCGPinProperties> UPCGExFindAllCellsSettings::OutputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties;
-	PCGEX_PIN_POINTS(PCGExGraph::OutputPathsLabel, "Contours", Required, {})
+	PCGEX_PIN_POINTS(PCGExPaths::OutputPathsLabel, "Contours", Required, {})
 	//if (bOutputSeeds) { PCGEX_PIN_POINT(PCGExFindAllCells::OutputGoodSeedsLabel, "GoodSeeds", Required, {}) }
 	return PinProperties;
 }
@@ -47,7 +47,7 @@ bool FPCGExFindAllCellsElement::Boot(FPCGExContext* InContext) const
 	//if (!SeedsPoints) { return false; }
 
 	Context->Paths = MakeShared<PCGExData::FPointIOCollection>(Context);
-	Context->Paths->OutputPin = PCGExGraph::OutputPathsLabel;
+	Context->Paths->OutputPin = PCGExPaths::OutputPathsLabel;
 
 	/*
 	if (Settings->bOutputFilteredSeeds)

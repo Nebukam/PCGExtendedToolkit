@@ -11,7 +11,7 @@ bool UPCGExPathInclusionFilterFactory::Init(FPCGExContext* InContext)
 {
 	if (!Super::Init(InContext)) { return false; }
 
-	TArray<FPCGTaggedData> Targets = InContext->InputData.GetInputsByPin(PCGExGraph::SourcePathsLabel);
+	TArray<FPCGTaggedData> Targets = InContext->InputData.GetInputsByPin(PCGExPaths::SourcePathsLabel);
 	Config.ClosedLoop.Init();
 
 	if (!Targets.IsEmpty())
@@ -207,7 +207,7 @@ namespace PCGExPointFilter
 TArray<FPCGPinProperties> UPCGExPathInclusionFilterProviderSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
-	PCGEX_PIN_POINTS(PCGExGraph::SourcePathsLabel, TEXT("Paths will be used for testing"), Required, {})
+	PCGEX_PIN_POINTS(PCGExPaths::SourcePathsLabel, TEXT("Paths will be used for testing"), Required, {})
 	return PinProperties;
 }
 

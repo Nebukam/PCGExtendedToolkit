@@ -47,6 +47,32 @@ namespace PCGExPointsMT
 
 #define PCGEX_ASYNC_MT_LOOP_VALID_PROCESSORS(_ID, _INLINE_CONDITION, _BODY) PCGEX_ASYNC_MT_LOOP_TPL(_ID, _INLINE_CONDITION, if(Processor->bIsProcessorValid){ _BODY })
 
+#define PCGEX_ASYNC_CLUSTER_PROCESSOR_LOOP(_NAME, _NUM, _PREPARE, _PROCESS, _COMPLETE, _INLINE) PCGEX_ASYNC_PROCESSOR_LOOP(_NAME, _NUM, _PREPARE, _PROCESS, _COMPLETE, _INLINE, GetClusterBatchChunkSize)
+
+#pragma region Tasks
+	
+template <typename T>
+class FStartBatchProcessing final : public PCGExMT::FTask
+	{
+	public:
+		PCGEX_ASYNC_TASK_NAME(FStartClusterBatchProcessing)
+
+		FStartBatchProcessing(TSharedPtr<T> InTarget)
+			: FTask(),
+			  Target(InTarget)
+		{
+		}
+
+		TSharedPtr<T> Target;
+
+		virtual void ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager) override
+		{
+			Target->Process(AsyncManager);
+		}
+	};
+
+#pragma endregion
+	
 	class FPointsProcessorBatchBase;
 
 	class FPointsProcessor : public TSharedFromThis<FPointsProcessor>
@@ -349,4 +375,9 @@ namespace PCGExPointsMT
 			Processors.Empty();
 		}
 	};
+
+	static void ScheduleBatch(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager, const TSharedPtr<FPointsProcessorBatchBase>& Batch)
+	{
+		PCGEX_LAUNCH(FStartBatchProcessing<FPointsProcessorBatchBase>, Batch)
+	}
 }

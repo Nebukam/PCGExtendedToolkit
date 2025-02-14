@@ -7,7 +7,6 @@
 #include "Collections/PCGExMeshCollection.h"
 #include "Components/SplineMeshComponent.h"
 #include "Data/PCGSplineStruct.h"
-#include "Graph/PCGExCluster.h"
 #include "Graph/PCGExEdge.h"
 
 #include "PCGExPaths.generated.h"
@@ -184,6 +183,9 @@ namespace PCGExPaths
 {
 	PCGEX_CTX_STATE(State_BuildingPaths)
 
+	const FName SourcePathsLabel = TEXT("Paths");
+	const FName OutputPathsLabel = TEXT("Paths");
+	
 	const FName SourceCanCutFilters = TEXT("Can Cut Conditions");
 	const FName SourceCanBeCutFilters = TEXT("Can Be Cut Conditions");
 	const FName SourceTriggerFilters = TEXT("Trigger Conditions");

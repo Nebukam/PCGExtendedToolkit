@@ -3,6 +3,8 @@
 
 #include "PCGExDetails.h"
 
+#include "PCGComponent.h"
+
 namespace PCGExDetails
 {
 	TSharedPtr<FDistances> MakeDistances(const EPCGExDistance Source, const EPCGExDistance Target, const bool bOverlapIsZero)
