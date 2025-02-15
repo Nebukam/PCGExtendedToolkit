@@ -84,6 +84,6 @@ namespace PCGExTensor
 		bool Init(FPCGExContext* InContext, const TArray<TObjectPtr<const UPCGExTensorFactoryData>>& InFactories, const TSharedPtr<PCGExData::FFacade>& InDataFacade);
 		bool Init(FPCGExContext* InContext, const FName InPin, const TSharedPtr<PCGExData::FFacade>& InDataFacade);
 
-		FTensorSample Sample(const FTransform& InProbe, bool& OutSuccess) const;
+		FTensorSample Sample(int32 InSeedIndex, const FTransform& InProbe, bool& OutSuccess) const;
 	};
 }

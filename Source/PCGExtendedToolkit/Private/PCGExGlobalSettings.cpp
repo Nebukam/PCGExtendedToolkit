@@ -150,7 +150,7 @@ void UPCGExGlobalSettings::GeneratePinInfos()
 	PCGEX_MAP_PIN_IN("Split Conditions")
 	PCGEX_MAP_PIN_IN("Stop Conditions")
 	PCGEX_MAP_PIN_IN("Conditions")
-	PCGEX_MAP_PIN_IN("Flip Orientation Conditions")
+	PCGEX_MAP_PIN_IN("Flip Conditions")
 
 	PCGEX_EMPLACE_PIN_IN(OUT_FilterEdges, "Expects PCGEx Filers or Edge Filters, supports multiple inputs.");
 	PCGEX_MAP_PIN_IN("Edge Filters")

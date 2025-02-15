@@ -17,7 +17,7 @@ bool UPCGExTensorSamplerSixPoints::PrepareForData(FPCGExContext* InContext)
 	return true;
 }
 
-PCGExTensor::FTensorSample UPCGExTensorSamplerSixPoints::Sample(const TArray<UPCGExTensorOperation*>& InTensors, const FTransform& InProbe, bool& OutSuccess) const
+PCGExTensor::FTensorSample UPCGExTensorSamplerSixPoints::Sample(const TArray<UPCGExTensorOperation*>& InTensors, const int32 InSeedIndex, const FTransform& InProbe, bool& OutSuccess) const
 {
 	TRACE_CPUPROFILER_EVENT_SCOPE(UPCGExTensorSamplerSixPoints::Sample);
 
@@ -26,7 +26,7 @@ PCGExTensor::FTensorSample UPCGExTensorSamplerSixPoints::Sample(const TArray<UPC
 	{
 		FTransform PointProbe = InProbe;
 		PointProbe.AddToTranslation(Points[i] * Radius);
-		Result += Super::RawSample(InTensors, PointProbe);
+		Result += Super::RawSample(InTensors, InSeedIndex, PointProbe);
 	}
 
 	Result /= 6;

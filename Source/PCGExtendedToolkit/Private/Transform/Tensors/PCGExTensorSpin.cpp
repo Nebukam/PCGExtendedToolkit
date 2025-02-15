@@ -12,7 +12,7 @@ bool UPCGExTensorSpin::Init(FPCGExContext* InContext, const UPCGExTensorFactoryD
 	return true;
 }
 
-PCGExTensor::FTensorSample UPCGExTensorSpin::Sample(const FTransform& InProbe) const
+PCGExTensor::FTensorSample UPCGExTensorSpin::Sample(const int32 InSeedIndex, const FTransform& InProbe) const
 {
 	const FVector& InPosition = InProbe.GetLocation();
 	const FBoxCenterAndExtent BCAE = FBoxCenterAndExtent(InPosition, FVector::One());

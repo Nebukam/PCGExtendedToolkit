@@ -50,13 +50,13 @@ namespace PCGExTensor
 		return Init(InContext, InFactories, InDataFacade);
 	}
 
-	FTensorSample FTensorsHandler::Sample(const FTransform& InProbe, bool& OutSuccess) const
+	FTensorSample FTensorsHandler::Sample(const int32 InSeedIndex, const FTransform& InProbe, bool& OutSuccess) const
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(FTensorsHandler::Sample);
 
 		check(SamplerInstance)
 
-		FTensorSample Result = SamplerInstance->Sample(Tensors, InProbe, OutSuccess);
+		FTensorSample Result = SamplerInstance->Sample(Tensors, InSeedIndex, InProbe, OutSuccess);
 
 		if (Config.bNormalize)
 		{

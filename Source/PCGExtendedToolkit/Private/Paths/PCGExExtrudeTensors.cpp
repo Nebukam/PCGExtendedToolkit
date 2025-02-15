@@ -124,6 +124,11 @@ namespace PCGExExtrudeTensors
 		else { if (Settings->bTagIfClosedLoop) { PointDataFacade->Source->Tags->AddRaw(Settings->IsClosedLoopTag); } }
 
 		if (Settings->bTagIfIsStoppedByFilters && bHitStopFilters) { PointDataFacade->Source->Tags->AddRaw(Settings->IsStoppedByFiltersTag); }
+		if (bHitIntersection)
+		{
+			// TODO : Grab data from intersection
+			if (Settings->bTagIfIsStoppedByIntersection) { PointDataFacade->Source->Tags->AddRaw(Settings->IsStoppedByIntersectionTag); }
+		}
 		if (Settings->bTagIfChildExtrusion && bIsChildExtrusion) { PointDataFacade->Source->Tags->AddRaw(Settings->IsChildExtrusionTag); }
 		if (Settings->bTagIfIsFollowUp && bIsFollowUp) { PointDataFacade->Source->Tags->AddRaw(Settings->IsFollowUpTag); }
 
@@ -161,7 +166,6 @@ namespace PCGExExtrudeTensors
 		FPCGPoint& NewPoint = ExtrudedPoints.Add_GetRef(InPoint);
 		if (Settings->bRefreshSeed) { NewPoint.Seed = PCGExRandom::ComputeSeed(NewPoint, FVector(Origin.Seed)); }
 	}
-
 
 	FProcessor::~FProcessor()
 	{
@@ -425,11 +429,10 @@ namespace PCGExExtrudeTensors
 
 		if (Settings->bDoExternalPathIntersections)
 		{
-			TArray<TSharedPtr<PCGExData::FFacade>> PathsFacades;
-			if (TryGetFacades(Context, PCGExPaths::SourcePathsLabel, PathsFacades, false, true))
+			if (TryGetFacades(Context, PCGExPaths::SourcePathsLabel, Context->PathsFacades, false, true))
 			{
-				Context->ExternalPaths.Reserve(PathsFacades.Num());
-				for (const TSharedPtr<PCGExData::FFacade>& Facade : PathsFacades)
+				Context->ExternalPaths.Reserve(Context->PathsFacades.Num());
+				for (const TSharedPtr<PCGExData::FFacade>& Facade : Context->PathsFacades)
 				{
 					TSharedPtr<PCGExPaths::FPath> Path = PCGExPaths::MakePath(
 						Facade->GetIn()->GetPoints(),

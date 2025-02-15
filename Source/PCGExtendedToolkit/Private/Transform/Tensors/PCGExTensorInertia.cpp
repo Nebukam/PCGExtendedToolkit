@@ -12,7 +12,7 @@ bool UPCGExTensorInertia::Init(FPCGExContext* InContext, const UPCGExTensorFacto
 	return true;
 }
 
-PCGExTensor::FTensorSample UPCGExTensorInertia::Sample(const FTransform& InProbe) const
+PCGExTensor::FTensorSample UPCGExTensorInertia::Sample(const int32 InSeedIndex, const FTransform& InProbe) const
 {
 	const FVector& InPosition = InProbe.GetLocation();
 	const FBoxCenterAndExtent BCAE = FBoxCenterAndExtent(InPosition, FVector::One());
