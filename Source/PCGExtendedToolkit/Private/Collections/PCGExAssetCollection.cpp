@@ -5,6 +5,7 @@
 
 #include "PCGEx.h"
 #include "PCGExMacros.h"
+#include "AssetRegistry/AssetData.h"
 #include "AssetRegistry/AssetRegistryModule.h"
 
 namespace PCGExAssetCollection

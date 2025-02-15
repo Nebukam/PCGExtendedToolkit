@@ -3,10 +3,10 @@
 
 #include "Graph/Edges/Properties/PCGExVtxPropertyFactoryProvider.h"
 
+#include "PCGPin.h"
 
 #define LOCTEXT_NAMESPACE "PCGExWriteVtxProperties"
 #define PCGEX_NAMESPACE PCGExWriteVtxProperties
-
 
 void UPCGExVtxPropertyOperation::CopySettingsFrom(const UPCGExOperation* Other)
 {
