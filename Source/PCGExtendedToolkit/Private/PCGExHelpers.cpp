@@ -168,7 +168,7 @@ namespace PCGEx
 		if (IsFlushing()) { return; } // Will be removed anyway
 
 		TRACE_CPUPROFILER_EVENT_SCOPE(FManagedObjects::Remove);
-		
+
 		{
 			FWriteScopeLock WriteScopeLock(ManagedObjectLock);
 
@@ -204,7 +204,7 @@ namespace PCGEx
 	void FManagedObjects::RecursivelyClearAsyncFlag_Unsafe(UObject* InObject) const
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(FManagedObjects::RecursivelyClearAsyncFlag_Unsafe);
-		
+
 #if PCGEX_ENGINE_VERSION >= 505
 		{
 			FReadScopeLock ReadScopeLock(DuplicatedObjectLock);

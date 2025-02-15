@@ -208,7 +208,7 @@ namespace PCGExPaths
 		EdgeBox += B1;
 
 		GetEdgeOctree()->FindElementsWithBoundsTest(
-			EdgeBox.ExpandBy(InDetails.Tolerance), [&](const PCGExPaths::FPathEdge* PathEdge)
+			EdgeBox.ExpandBy(InDetails.Tolerance), [&](const FPathEdge* PathEdge)
 			{
 				if (InDetails.bUseMinAngle || InDetails.bUseMaxAngle)
 				{

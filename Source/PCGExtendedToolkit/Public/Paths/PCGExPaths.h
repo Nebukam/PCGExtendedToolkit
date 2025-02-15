@@ -368,6 +368,7 @@ namespace PCGExPaths
 		int32 NumEdges = 0;
 		int32 LastIndex = 0;
 		int32 LastEdge = 0;
+		int32 Id = -1;
 
 		int32 ConvexitySign = 0;
 		bool bIsConvex = true;

@@ -455,7 +455,7 @@ namespace PCGExExtrudeTensors
 				int32 SegmentIndex = -1;
 				FVector Intersection = FVector::ZeroVector;
 
-				if (PCGExPaths::FindClosestIntersection(
+				if (FindClosestIntersection(
 					Context->ExternalPaths, Context->ExternalPathIntersections,
 					ExtrudedPoints.Last().Transform.GetLocation(), InPoint.Transform.GetLocation(),
 					PathIndex, SegmentIndex, Intersection))

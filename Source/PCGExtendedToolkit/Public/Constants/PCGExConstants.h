@@ -2,6 +2,8 @@
 // Released under the MIT license https://opensource.org/license/MIT/
 
 #pragma once
+
+#include "CoreMinimal.h"
 #include "PCGEx.h"
 #include "PCGSettings.h"
 #include "PCGExConstantsDefinitions.h"

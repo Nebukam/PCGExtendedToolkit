@@ -420,13 +420,13 @@ namespace PCGExExtrudeTensors
 	void FBatch::Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager)
 	{
 		AsyncManager = InAsyncManager;
-		
+
 		PCGEX_TYPED_CONTEXT_AND_SETTINGS(ExtrudeTensors)
 
 		if (Settings->bDoExternalPathIntersections)
 		{
 			TArray<TSharedPtr<PCGExData::FFacade>> PathsFacades;
-			if (PCGExData::TryGetFacades(Context, PCGExPaths::SourcePathsLabel, PathsFacades, false, true))
+			if (TryGetFacades(Context, PCGExPaths::SourcePathsLabel, PathsFacades, false, true))
 			{
 				Context->ExternalPaths.Reserve(PathsFacades.Num());
 				for (const TSharedPtr<PCGExData::FFacade>& Facade : PathsFacades)
