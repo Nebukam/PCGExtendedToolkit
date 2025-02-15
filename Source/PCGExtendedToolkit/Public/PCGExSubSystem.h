@@ -86,6 +86,8 @@ public:
 
 	void PollEvent(UPCGComponent* InSource, EPCGExSubsystemEventType InEventType, uint32 InEventId);
 
+	
+	
 protected:
 	bool bWantsTick = false;
 
@@ -93,6 +95,9 @@ protected:
 
 	TArray<FTickAction> BeginTickActions;
 	TSet<PCGEx::FPolledEvent> PolledEvents;
+
+	UPROPERTY()
+	TArray<TObjectPtr<UPCGComponent>> PCGComponentPool;
 
 	void ExecuteBeginTickActions();
 };

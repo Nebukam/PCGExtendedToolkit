@@ -25,44 +25,7 @@ enum class EPCGExSelfIntersectionMode : uint8
 {
 	StopLongest  = 0 UMETA(DisplayName = "Stop Longest", Tooltip="Stop the longest path first"),
 	StopShortest = 1 UMETA(DisplayName = "Stop Shortest", Tooltip="Stop the shortest path first"),
-};
-
-USTRUCT(BlueprintType)
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPathIntersectionDetails
-{
-	GENERATED_BODY()
-
-	/** Distance at which two edges are considered intersecting. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ClampMin=0))
-	double Tolerance = DBL_INTERSECTION_TOLERANCE;
-	double ToleranceSquared = DBL_INTERSECTION_TOLERANCE * DBL_INTERSECTION_TOLERANCE;
-
-	/** . */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, InlineEditConditionToggle))
-	bool bUseMinAngle = true;
-
-	/** Min angle. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bUseMinAngle", Units="Degrees", ClampMin=0, ClampMax=90))
-	double MinAngle = 0;
-	double MinDot = -1;
-
-	/** . */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, InlineEditConditionToggle))
-	bool bUseMaxAngle = true;
-
-	/** Maximum angle. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bUseMaxAngle", Units="Degrees", ClampMin=0, ClampMax=90))
-	double MaxAngle = 90;
-	double MaxDot = 1;
-
-	void Init()
-	{
-		MaxDot = bUseMinAngle ? PCGExMath::DegreesToDot(MinAngle) : 1;
-		MinDot = bUseMaxAngle ? PCGExMath::DegreesToDot(MaxAngle) : -1;
-		ToleranceSquared = Tolerance * Tolerance;
-	}
-
-	FORCEINLINE bool CheckDot(const double InDot) const { return InDot <= MaxDot && InDot >= MinDot; }
+	SortingOnly  = 2 UMETA(DisplayName = "Sorting only", Tooltip="Stop the path based on sorting rules."),
 };
 
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc")
@@ -282,6 +245,8 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExExtrudeTensorsContext final : FPCGExPoin
 
 	double ClosedLoopSquaredDistance = 0;
 	double ClosedLoopSearchDot = 0;
+
+	TArray<TSharedPtr<PCGExPaths::FPath>> ExternalPaths;
 };
 
 class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExExtrudeTensorsElement final : public FPCGExPointsProcessorElement
@@ -360,7 +325,7 @@ namespace PCGExExtrudeTensors
 
 	protected:
 		bool OnAdvanced(const bool bStop);
-		bool Extrude(const PCGExTensor::FTensorSample& Sample, FPCGPoint& InPoint);
+		virtual bool Extrude(const PCGExTensor::FTensorSample& Sample, FPCGPoint& InPoint) = 0;
 		void StartNewExtrusion();
 		void Insert(const FPCGPoint& InPoint) const;
 	};
@@ -427,7 +392,7 @@ namespace PCGExExtrudeTensors
 					{
 						bHitStopFilters = true;
 						if (Settings->StopConditionHandling == EPCGExTensorStopConditionHandling::Include) { Insert(HeadPoint); }
-						//else if (Settings->OutOfBoundHandling == EPCGExOutOfBoundPathPointHandling::Exclude){}
+
 						Complete();
 
 						if constexpr (!Supports(InternalFlags, EExtrusionFlags::AllowsChildren))
@@ -461,6 +426,51 @@ namespace PCGExExtrudeTensors
 			}
 
 			return OnAdvanced(!Extrude(Sample, HeadPoint));
+		}
+
+	protected:
+		virtual bool Extrude(const PCGExTensor::FTensorSample& Sample, FPCGPoint& InPoint) override
+		{
+			// return whether we can keep extruding or not
+
+			bIsExtruding = true;
+
+			double DistToLast = 0;
+			const double Length = Metrics.Add(Metrics.Last + Sample.DirectionAndSize, DistToLast);
+			DistToLastSum += DistToLast;
+
+			if (DistToLastSum < Settings->FuseDistance) { return true; }
+			DistToLastSum = 0;
+
+			if (Length > MaxLength)
+			{
+				// Adjust position to match max length
+				const FVector LastValidPos = ExtrudedPoints.Last().Transform.GetLocation();
+				InPoint.Transform.SetLocation(LastValidPos + ((Metrics.Last - LastValidPos).GetSafeNormal() * (Length - MaxLength)));
+			}
+
+			if constexpr (Supports(InternalFlags, EExtrusionFlags::CollisionCheck))
+			{
+				int32 PathIndex = -1;
+				int32 SegmentIndex = -1;
+				FVector Intersection = FVector::ZeroVector;
+
+				if (FindClosestIntersection(
+					Context->ExternalPaths, Context->ExternalPathIntersections,
+					ExtrudedPoints.Last().Transform.GetLocation(), InPoint.Transform.GetLocation(),
+					PathIndex, SegmentIndex, Intersection))
+				{
+					// TODO : Check here to grab some extra metadata from the path & segment that cut this extrusion short.
+					InPoint.Transform.SetLocation(Intersection);
+
+					Insert(InPoint);
+					return false;
+				}
+			}
+
+			Insert(InPoint);
+
+			return !(Length >= MaxLength || ExtrudedPoints.Num() >= MaxPointCount);
 		}
 	};
 
@@ -519,6 +529,7 @@ namespace PCGExExtrudeTensors
 			if (Settings->bAllowChildExtrusions) { Flags |= static_cast<uint32>(EExtrusionFlags::AllowsChildren); }
 			if (Settings->bDetectClosedLoops) { Flags |= static_cast<uint32>(EExtrusionFlags::ClosedLoop); }
 			if (StopFilters) { Flags |= static_cast<uint32>(EExtrusionFlags::Bounded); }
+			if (!Context->ExternalPaths.IsEmpty()) { Flags |= static_cast<uint32>(EExtrusionFlags::CollisionCheck); }
 
 			return static_cast<EExtrusionFlags>(Flags);
 		}
@@ -528,12 +539,9 @@ namespace PCGExExtrudeTensors
 
 	class FBatch final : public PCGExPointsMT::TBatch<FProcessor>
 	{
-		TArray<TSharedPtr<PCGExPaths::FPath>> Paths;
-
 	public:
 		explicit FBatch(FPCGExContext* InContext, const TArray<TWeakPtr<PCGExData::FPointIO>>& InPointsCollection);
 		virtual void Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager) override;
-
-		virtual void Cleanup() override;
+		void OnPathsPrepared();
 	};
 }

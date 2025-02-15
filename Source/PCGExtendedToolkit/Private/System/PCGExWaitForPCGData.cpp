@@ -1,7 +1,7 @@
 ﻿// Copyright 2025 Timothé Lapetite and contributors
 // Released under the MIT license https://opensource.org/license/MIT/
 
-#include "Sampling/PCGExWaitForPCGData.h"
+#include "System/PCGExWaitForPCGData.h"
 
 #include "PCGExPointsProcessor.h"
 #include "PCGGraph.h"

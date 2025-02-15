@@ -379,8 +379,8 @@ namespace PCGExSampleNearestPoints
 			const FTransform TargetTransform = Target.Transform;
 			const FQuat TargetRotation = TargetTransform.GetRotation();
 
-			WeightedTransform = PCGExMath::WeightedAdd(WeightedTransform, TargetTransform, Weight);
-			if (Settings->LookAtUpSelection == EPCGExSampleSource::Target) { PCGExMath::WeightedAdd(WeightedUp, (LookAtUpGetter ? LookAtUpGetter->Read(TargetInfos.Index) : SafeUpVector), Weight); }
+			WeightedTransform = PCGExBlend::WeightedAdd(WeightedTransform, TargetTransform, Weight);
+			if (Settings->LookAtUpSelection == EPCGExSampleSource::Target) { PCGExBlend::WeightedAdd(WeightedUp, (LookAtUpGetter ? LookAtUpGetter->Read(TargetInfos.Index) : SafeUpVector), Weight); }
 
 			WeightedSignAxis += PCGExMath::GetDirection(TargetRotation, Settings->SignAxis) * Weight;
 			WeightedAngleAxis += PCGExMath::GetDirection(TargetRotation, Settings->AngleAxis) * Weight;
@@ -415,7 +415,7 @@ namespace PCGExSampleNearestPoints
 		if (TotalWeight != 0) // Dodge NaN
 		{
 			WeightedUp /= TotalWeight;
-			WeightedTransform = PCGExMath::Div(WeightedTransform, TotalWeight);
+			WeightedTransform = PCGExBlend::Div(WeightedTransform, TotalWeight);
 			WeightedDistance /= TotalSamples; // Weighted distance is an average, not a weight T_T
 		}
 

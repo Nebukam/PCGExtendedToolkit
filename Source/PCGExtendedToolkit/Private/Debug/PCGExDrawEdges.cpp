@@ -73,7 +73,7 @@ bool FPCGExDrawEdgesElement::ExecuteInternal(
 
 			double L = Context->CurrentLerp / Context->MaxLerp;
 			FColor Col = Settings->bLerpColor ?
-				             PCGExMath::Lerp(Settings->Color, Settings->SecondaryColor, L) :
+				             PCGExBlend::Lerp(Settings->Color, Settings->SecondaryColor, L) :
 				             Settings->Color;
 
 			const TMap<int32, int32>& NodeIndexLookupRef = *Context->CurrentCluster->NodeIndexLookup;

@@ -25,23 +25,23 @@ if(ResetBlend[static_cast<uint8>(_NAME##Blending)]){ bReset##_NAME=true; bRequir
 #define PCGEX_BLEND_ASSIGNFUNC(_TYPE, _NAME, ...) switch (_NAME##Blending) {\
 default:\
 case EPCGExDataBlendingType::None:				_NAME##Func = [](const _TYPE& O, const _TYPE& A, const _TYPE& B, const double W) -> _TYPE{ return O; }; break;\
-case EPCGExDataBlendingType::Average:			_NAME##Func = [](const _TYPE& O, const _TYPE& A, const _TYPE& B, const double W) -> _TYPE{ return PCGExMath::Add(A, B); }; break;\
-case EPCGExDataBlendingType::Min:				_NAME##Func = [](const _TYPE& O, const _TYPE& A, const _TYPE& B, const double W) -> _TYPE{ return PCGExMath::Min(A, B); }; break;\
-case EPCGExDataBlendingType::Max:				_NAME##Func = [](const _TYPE& O, const _TYPE& A, const _TYPE& B, const double W) -> _TYPE{ return PCGExMath::Max(A, B); }; break;\
-case EPCGExDataBlendingType::Copy:				_NAME##Func = [](const _TYPE& O, const _TYPE& A, const _TYPE& B, const double W) -> _TYPE{ return PCGExMath::Copy(A, B); }; break;\
-case EPCGExDataBlendingType::Sum:				_NAME##Func = [](const _TYPE& O, const _TYPE& A, const _TYPE& B, const double W) -> _TYPE{ return PCGExMath::Add(A, B); }; break;\
-case EPCGExDataBlendingType::Weight:			_NAME##Func = [](const _TYPE& O, const _TYPE& A, const _TYPE& B, const double W) -> _TYPE{ return PCGExMath::WeightedAdd(A, B, W); }; break;\
-case EPCGExDataBlendingType::WeightedSum:		_NAME##Func = [](const _TYPE& O, const _TYPE& A, const _TYPE& B, const double W) -> _TYPE{ return PCGExMath::WeightedAdd(A, B, W); }; break;\
-case EPCGExDataBlendingType::Lerp:				_NAME##Func = [](const _TYPE& O, const _TYPE& A, const _TYPE& B, const double W) -> _TYPE{ return PCGExMath::Lerp(A, B, W); }; break; \
-case EPCGExDataBlendingType::Subtract:			_NAME##Func = [](const _TYPE& O, const _TYPE& A, const _TYPE& B, const double W) -> _TYPE{ return PCGExMath::Sub(A, B); }; break; \
-case EPCGExDataBlendingType::WeightedSubtract:	_NAME##Func = [](const _TYPE& O, const _TYPE& A, const _TYPE& B, const double W) -> _TYPE{ return PCGExMath::WeightedSub(A, B, W); }; break;\
-case EPCGExDataBlendingType::UnsignedMin:		_NAME##Func = [](const _TYPE& O, const _TYPE& A, const _TYPE& B, const double W) -> _TYPE{ return PCGExMath::UnsignedMin(A, B); }; break; \
-case EPCGExDataBlendingType::UnsignedMax:		_NAME##Func = [](const _TYPE& O, const _TYPE& A, const _TYPE& B, const double W) -> _TYPE{ return PCGExMath::UnsignedMax(A, B); }; break; \
-case EPCGExDataBlendingType::AbsoluteMin:		_NAME##Func = [](const _TYPE& O, const _TYPE& A, const _TYPE& B, const double W) -> _TYPE{ return PCGExMath::AbsoluteMin(A, B); }; break; \
-case EPCGExDataBlendingType::AbsoluteMax:		_NAME##Func = [](const _TYPE& O, const _TYPE& A, const _TYPE& B, const double W) -> _TYPE{ return PCGExMath::AbsoluteMax(A, B); }; break; \
-case EPCGExDataBlendingType::CopyOther:			_NAME##Func = [](const _TYPE& O, const _TYPE& A, const _TYPE& B, const double W) -> _TYPE{ return PCGExMath::Copy(B, A); }; break; \
-case EPCGExDataBlendingType::Hash:				_NAME##Func = [](const _TYPE& O, const _TYPE& A, const _TYPE& B, const double W) -> _TYPE{ return PCGExMath::NaiveHash(A, B); }; break; \
-case EPCGExDataBlendingType::UnsignedHash:		_NAME##Func = [](const _TYPE& O, const _TYPE& A, const _TYPE& B, const double W) -> _TYPE{ return PCGExMath::NaiveUnsignedHash(A, B); }; break;}
+case EPCGExDataBlendingType::Average:			_NAME##Func = [](const _TYPE& O, const _TYPE& A, const _TYPE& B, const double W) -> _TYPE{ return PCGExBlend::Add(A, B); }; break;\
+case EPCGExDataBlendingType::Min:				_NAME##Func = [](const _TYPE& O, const _TYPE& A, const _TYPE& B, const double W) -> _TYPE{ return PCGExBlend::Min(A, B); }; break;\
+case EPCGExDataBlendingType::Max:				_NAME##Func = [](const _TYPE& O, const _TYPE& A, const _TYPE& B, const double W) -> _TYPE{ return PCGExBlend::Max(A, B); }; break;\
+case EPCGExDataBlendingType::Copy:				_NAME##Func = [](const _TYPE& O, const _TYPE& A, const _TYPE& B, const double W) -> _TYPE{ return PCGExBlend::Copy(A, B); }; break;\
+case EPCGExDataBlendingType::Sum:				_NAME##Func = [](const _TYPE& O, const _TYPE& A, const _TYPE& B, const double W) -> _TYPE{ return PCGExBlend::Add(A, B); }; break;\
+case EPCGExDataBlendingType::Weight:			_NAME##Func = [](const _TYPE& O, const _TYPE& A, const _TYPE& B, const double W) -> _TYPE{ return PCGExBlend::WeightedAdd(A, B, W); }; break;\
+case EPCGExDataBlendingType::WeightedSum:		_NAME##Func = [](const _TYPE& O, const _TYPE& A, const _TYPE& B, const double W) -> _TYPE{ return PCGExBlend::WeightedAdd(A, B, W); }; break;\
+case EPCGExDataBlendingType::Lerp:				_NAME##Func = [](const _TYPE& O, const _TYPE& A, const _TYPE& B, const double W) -> _TYPE{ return PCGExBlend::Lerp(A, B, W); }; break; \
+case EPCGExDataBlendingType::Subtract:			_NAME##Func = [](const _TYPE& O, const _TYPE& A, const _TYPE& B, const double W) -> _TYPE{ return PCGExBlend::Sub(A, B); }; break; \
+case EPCGExDataBlendingType::WeightedSubtract:	_NAME##Func = [](const _TYPE& O, const _TYPE& A, const _TYPE& B, const double W) -> _TYPE{ return PCGExBlend::WeightedSub(A, B, W); }; break;\
+case EPCGExDataBlendingType::UnsignedMin:		_NAME##Func = [](const _TYPE& O, const _TYPE& A, const _TYPE& B, const double W) -> _TYPE{ return PCGExBlend::UnsignedMin(A, B); }; break; \
+case EPCGExDataBlendingType::UnsignedMax:		_NAME##Func = [](const _TYPE& O, const _TYPE& A, const _TYPE& B, const double W) -> _TYPE{ return PCGExBlend::UnsignedMax(A, B); }; break; \
+case EPCGExDataBlendingType::AbsoluteMin:		_NAME##Func = [](const _TYPE& O, const _TYPE& A, const _TYPE& B, const double W) -> _TYPE{ return PCGExBlend::AbsoluteMin(A, B); }; break; \
+case EPCGExDataBlendingType::AbsoluteMax:		_NAME##Func = [](const _TYPE& O, const _TYPE& A, const _TYPE& B, const double W) -> _TYPE{ return PCGExBlend::AbsoluteMax(A, B); }; break; \
+case EPCGExDataBlendingType::CopyOther:			_NAME##Func = [](const _TYPE& O, const _TYPE& A, const _TYPE& B, const double W) -> _TYPE{ return PCGExBlend::Copy(B, A); }; break; \
+case EPCGExDataBlendingType::Hash:				_NAME##Func = [](const _TYPE& O, const _TYPE& A, const _TYPE& B, const double W) -> _TYPE{ return PCGExBlend::NaiveHash(A, B); }; break; \
+case EPCGExDataBlendingType::UnsignedHash:		_NAME##Func = [](const _TYPE& O, const _TYPE& A, const _TYPE& B, const double W) -> _TYPE{ return PCGExBlend::NaiveUnsignedHash(A, B); }; break;}
 
 		PCGEX_FOREACH_BLEND_POINTPROPERTY(PCGEX_BLEND_ASSIGNFUNC)
 #undef PCGEX_BLEND_ASSIGNFUNC
@@ -85,8 +85,8 @@ case EPCGExDataBlendingType::UnsignedHash:		_NAME##Func = [](const _TYPE& O, con
 	void FPropertiesBlender::CompleteBlending(FPCGPoint& Target, const int32 Count, const double TotalWeight) const
 	{
 #define PCGEX_BLEND_PROPDECL(_TYPE, _NAME, _FUNC, _ACCESSOR) _TYPE Target##_NAME = Target._ACCESSOR;\
-		if (_NAME##Blending == EPCGExDataBlendingType::Average) { Target##_NAME = PCGExMath::Div(Target._ACCESSOR, Count); }\
-		else if (_NAME##Blending == EPCGExDataBlendingType::Weight) { Target##_NAME = PCGExMath::Div(Target._ACCESSOR, TotalWeight); }
+		if (_NAME##Blending == EPCGExDataBlendingType::Average) { Target##_NAME = PCGExBlend::Div(Target._ACCESSOR, Count); }\
+		else if (_NAME##Blending == EPCGExDataBlendingType::Weight) { Target##_NAME = PCGExBlend::Div(Target._ACCESSOR, TotalWeight); }
 		PCGEX_FOREACH_BLENDINIT_POINTPROPERTY(PCGEX_BLEND_PROPDECL)
 #undef PCGEX_BLEND_PROPDECL
 
