@@ -14,7 +14,6 @@
 
 #include "PCGExComponentDescriptors.generated.h"
 
-
 USTRUCT(BlueprintType, DisplayName="[PCGEx] Primitive Component Descriptor")
 struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPrimitiveComponentDescriptor
 {

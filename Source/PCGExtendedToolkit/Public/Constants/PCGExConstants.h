@@ -11,6 +11,7 @@
 #include "PCGExGlobalSettings.h"
 #include "PCGExMacros.h"
 #include "PCGParamData.h"
+#include "PCGPin.h"
 #include "PCGExConstants.generated.h"
 
 UENUM(BlueprintType)

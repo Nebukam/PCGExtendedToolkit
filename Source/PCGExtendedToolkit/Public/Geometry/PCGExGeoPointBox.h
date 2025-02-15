@@ -7,6 +7,7 @@
 #include "PCGEx.h"
 #include "Data/Blending/PCGExBlendModes.h"
 #include "PCGExHelpers.h"
+#include "PCGExMath.h"
 #include "Data/PCGPointData.h"
 
 #include "PCGExGeoPointBox.generated.h"
