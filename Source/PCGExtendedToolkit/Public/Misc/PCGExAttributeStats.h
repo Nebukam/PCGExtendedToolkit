@@ -338,9 +338,9 @@ namespace PCGExAttributeStats
 				/*
 				auto ProcessBasics = [&](const T& InValue)
 				{
-					MinValue = PCGExMath::Min(MinValue, InValue);
-					MaxValue = PCGExMath::Max(MaxValue, InValue);
-					AverageValue = PCGExMath::Add(AverageValue, InValue);
+					MinValue = PCGExBlend::Min(MinValue, InValue);
+					MaxValue = PCGExBlend::Max(MaxValue, InValue);
+					AverageValue = PCGExBlend::Add(AverageValue, InValue);
 				};
 				*/
 
@@ -351,9 +351,9 @@ namespace PCGExAttributeStats
 
 					const T& Value = Buffer->Read(i);
 
-					MinValue = PCGExMath::Min(MinValue, Value);
-					MaxValue = PCGExMath::Max(MaxValue, Value);
-					AverageValue = PCGExMath::Add(AverageValue, Value);
+					MinValue = PCGExBlend::Min(MinValue, Value);
+					MaxValue = PCGExBlend::Max(MaxValue, Value);
+					AverageValue = PCGExBlend::Add(AverageValue, Value);
 
 					const int32 Count = ValuesCount.FindOrAdd(Value, 0);
 					ValuesCount.Add(Value, Count + 1);
@@ -367,8 +367,8 @@ namespace PCGExAttributeStats
 						const int32 SetCount = SetValuesCount.FindOrAdd(Value, 0);
 						SetValuesCount.Add(Value, SetCount + 1);
 
-						SetMinValue = PCGExMath::Min(SetMinValue, Value);
-						SetMaxValue = PCGExMath::Max(SetMaxValue, Value);
+						SetMinValue = PCGExBlend::Min(SetMinValue, Value);
+						SetMaxValue = PCGExBlend::Max(SetMaxValue, Value);
 					}
 				}
 
@@ -421,7 +421,7 @@ namespace PCGExAttributeStats
 				PCGEX_OUTPUT_STAT(MaxValue, T, MaxValue)
 				PCGEX_OUTPUT_STAT(SetMinValue, T, SetMinValue)
 				PCGEX_OUTPUT_STAT(SetMaxValue, T, SetMaxValue)
-				PCGEX_OUTPUT_STAT(AverageValue, T, PCGExMath::Div(AverageValue, static_cast<double>(NumValues)))
+				PCGEX_OUTPUT_STAT(AverageValue, T, PCGExBlend::Div(AverageValue, static_cast<double>(NumValues)))
 				PCGEX_OUTPUT_STAT(UniqueValuesNum, int32, UniqueValuesNum)
 				PCGEX_OUTPUT_STAT(UniqueSetValuesNum, int32, UniqueSetValuesNum)
 				PCGEX_OUTPUT_STAT(DefaultValuesNum, int32, DefaultValuesNum)

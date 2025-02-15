@@ -18,6 +18,7 @@
 #include "PCGExMath.h"
 #include "PCGExMT.h"
 #include "PCGExPointIO.h"
+#include "Blending/PCGExBlendModes.h"
 
 #include "Metadata/Accessors/PCGAttributeAccessor.h"
 
@@ -494,8 +495,8 @@ namespace PCGEx
 							for (int i = 0; i < NumPoints; i++)
 							{
 								T V = Convert(RawValues[i]);
-								OutMin = PCGExMath::Min(V, OutMin);
-								OutMax = PCGExMath::Max(V, OutMax);
+								OutMin = PCGExBlend::Min(V, OutMin);
+								OutMax = PCGExBlend::Max(V, OutMax);
 								Dump[i] = V;
 							}
 						}
@@ -513,7 +514,7 @@ namespace PCGEx
 
 #define PCGEX_GET_BY_ACCESSOR(_ENUM, _ACCESSOR) case _ENUM:\
 				if (bCaptureMinMax) { for (int i = 0; i < NumPoints; i++) {\
-						T V = Convert(InPoints[i]._ACCESSOR); OutMin = PCGExMath::Min(V, OutMin); OutMax = PCGExMath::Max(V, OutMax); Dump[i] = V;\
+						T V = Convert(InPoints[i]._ACCESSOR); OutMin = PCGExBlend::Min(V, OutMin); OutMax = PCGExBlend::Max(V, OutMax); Dump[i] = V;\
 					} } else { for (int i = 0; i < NumPoints; i++) { Dump[i] = Convert(InPoints[i]._ACCESSOR); } } break;
 
 				switch (InternalSelector.GetPointProperty()) { PCGEX_FOREACH_POINTPROPERTY(PCGEX_GET_BY_ACCESSOR) }
@@ -593,8 +594,8 @@ namespace PCGEx
 			for (int i = 0; i < Values.Num(); i++)
 			{
 				T V = Values[i];
-				Min = PCGExMath::Min(V, Min);
-				Max = PCGExMath::Max(V, Max);
+				Min = PCGExBlend::Min(V, Min);
+				Max = PCGExBlend::Max(V, Max);
 			}
 		}
 
@@ -603,8 +604,8 @@ namespace PCGEx
 			if (bNormalized) { return; }
 			bNormalized = true;
 			UpdateMinMax();
-			T Range = PCGExMath::Sub(Max, Min);
-			for (int i = 0; i < Values.Num(); i++) { Values[i] = PCGExMath::Div(Values[i], Range); }
+			T Range = PCGExBlend::Sub(Max, Min);
+			for (int i = 0; i < Values.Num(); i++) { Values[i] = PCGExBlend::Div(Values[i], Range); }
 		}
 
 		T SoftGet(const int32 Index, const FPCGPoint& Point, const T& Fallback) const

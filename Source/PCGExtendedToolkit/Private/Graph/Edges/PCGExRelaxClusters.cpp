@@ -160,7 +160,7 @@ namespace PCGExRelaxClusters
 		const TArray<FTransform>& RBufferRef = (*RelaxOperation->ReadBuffer);
 		TArray<FTransform>& WBufferRef = (*RelaxOperation->WriteBuffer);
 
-#define PCGEX_RELAX_PROGRESS WBufferRef[i] = PCGExMath::Lerp( RBufferRef[i], WBufferRef[i], InfluenceDetails.GetInfluence(Node.PointIndex));
+#define PCGEX_RELAX_PROGRESS WBufferRef[i] = PCGExBlend::Lerp( RBufferRef[i], WBufferRef[i], InfluenceDetails.GetInfluence(Node.PointIndex));
 #define PCGEX_RELAX_STEP_NODE(_STEP) if (CurrentStep == _STEP-1){if(bLastStep){ \
 		for (int i = Scope.Start; i < Scope.End; i++){ PCGExCluster::FNode& Node = *Cluster->GetNode(i); RelaxOperation->Step##_STEP(Node); PCGEX_RELAX_PROGRESS } \
 		}else{ for (int i = Scope.Start; i < Scope.End; i++){ RelaxOperation->Step##_STEP(*Cluster->GetNode(i)); }} return; }
@@ -202,7 +202,7 @@ namespace PCGExRelaxClusters
 		TArray<FPCGPoint>& MutablePoints = VtxDataFacade->GetOut()->GetMutablePoints();
 		if (InfluenceDetails.bProgressiveInfluence)
 		{
-			Point.Transform = PCGExMath::Lerp(
+			Point.Transform = PCGExBlend::Lerp(
 				Point.Transform,
 				*(RelaxOperation->WriteBuffer->GetData() + Node.Index),
 				InfluenceDetails.GetInfluence(Node.PointIndex));

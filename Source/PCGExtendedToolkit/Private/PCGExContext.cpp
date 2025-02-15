@@ -15,6 +15,7 @@
 
 void FPCGExContext::StageOutput(const FName Pin, UPCGData* InData, const TSet<FString>& InTags, const bool bManaged, const bool bIsMutable)
 {
+	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExContext::StageOutput);
 	if (!IsInGameThread())
 	{
 		FWriteScopeLock WriteScopeLock(StagedOutputLock);
@@ -88,7 +89,7 @@ void FPCGExContext::UnpauseContext()
 
 void FPCGExContext::CommitStagedOutputs()
 {
-	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExContext::WriteFutureOutputs);
+	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExContext::CommitStagedOutputs);
 
 	ManagedObjects->Remove(StagedOutputs);
 
