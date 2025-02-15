@@ -69,9 +69,9 @@ bool FPCGExExtrudeTensorsElement::ExecuteInternal(FPCGContext* InContext) const
 	{
 		Context->AddConsumableAttributeName(Settings->IterationsAttribute);
 
-		if (!Context->StartBatchProcessingPoints<PCGExPointsMT::TBatch<PCGExExtrudeTensors::FProcessor>>(
+		if (!Context->StartBatchProcessingPoints<PCGExExtrudeTensors::FBatch>(
 			[&](const TSharedPtr<PCGExData::FPointIO>& Entry) { return true; },
-			[&](const TSharedPtr<PCGExPointsMT::TBatch<PCGExExtrudeTensors::FProcessor>>& NewBatch)
+			[&](const TSharedPtr<PCGExExtrudeTensors::FBatch>& NewBatch)
 			{
 				//NewBatch->bRequiresWriteStep = true;
 			}))
@@ -130,32 +130,6 @@ namespace PCGExExtrudeTensors
 		PointDataFacade->Source->GetOutKeys(true);
 	}
 
-	bool FExtrusion::Extrude(const PCGExTensor::FTensorSample& Sample, FPCGPoint& InPoint)
-	{
-		// return whether we can keep extruding or not
-
-		bIsExtruding = true;
-
-		double DistToLast = 0;
-		const double Length = Metrics.Add(Metrics.Last + Sample.DirectionAndSize, DistToLast);
-		DistToLastSum += DistToLast;
-
-		if (DistToLastSum < Settings->FuseDistance) { return true; }
-		DistToLastSum = 0;
-
-
-		if (Length > MaxLength)
-		{
-			// Adjust position to match max length
-			const FVector LastValidPos = ExtrudedPoints.Last().Transform.GetLocation();
-			InPoint.Transform.SetLocation(LastValidPos + ((Metrics.Last - LastValidPos).GetSafeNormal() * (Length - MaxLength)));
-		}
-
-		Insert(InPoint);
-
-		return !(Length >= MaxLength || ExtrudedPoints.Num() >= MaxPointCount);
-	}
-
 	void FExtrusion::StartNewExtrusion()
 	{
 		if (RemainingIterations > 1)
@@ -169,7 +143,6 @@ namespace PCGExExtrudeTensors
 		}
 	}
 
-
 	bool FExtrusion::OnAdvanced(const bool bStop)
 	{
 		RemainingIterations--;
@@ -182,7 +155,6 @@ namespace PCGExExtrudeTensors
 
 		return !bIsStopped;
 	}
-
 
 	void FExtrusion::Insert(const FPCGPoint& InPoint) const
 	{
@@ -447,17 +419,35 @@ namespace PCGExExtrudeTensors
 
 	void FBatch::Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager)
 	{
+		AsyncManager = InAsyncManager;
+
 		PCGEX_TYPED_CONTEXT_AND_SETTINGS(ExtrudeTensors)
 
-		// TODO : Build external paths octrees
+		if (Settings->bDoExternalPathIntersections)
+		{
+			TArray<TSharedPtr<PCGExData::FFacade>> PathsFacades;
+			if (TryGetFacades(Context, PCGExPaths::SourcePathsLabel, PathsFacades, false, true))
+			{
+				Context->ExternalPaths.Reserve(PathsFacades.Num());
+				for (const TSharedPtr<PCGExData::FFacade>& Facade : PathsFacades)
+				{
+					TSharedPtr<PCGExPaths::FPath> Path = PCGExPaths::MakePath(
+						Facade->GetIn()->GetPoints(),
+						Settings->ExternalPathIntersections.ToleranceSquared,
+						Context->ClosedLoop.IsClosedLoop(Facade->Source));
 
-		TBatch<FProcessor>::Process(InAsyncManager);
+					Context->ExternalPaths.Add(Path);
+					Path->BuildEdgeOctree();
+				}
+			}
+		}
+
+		OnPathsPrepared();
 	}
 
-	void FBatch::Cleanup()
+	void FBatch::OnPathsPrepared()
 	{
-		TBatch<FProcessor>::Cleanup();
-		Paths.Empty();
+		TBatch<FProcessor>::Process(AsyncManager);
 	}
 }
 

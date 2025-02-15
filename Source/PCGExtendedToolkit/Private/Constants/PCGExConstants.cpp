@@ -2,6 +2,7 @@
 // Released under the MIT license https://opensource.org/license/MIT/
 
 #include "Constants/PCGExConstants.h"
+#include "CoreMinimal.h"
 #include "PCGComponent.h"
 #include "PCGContext.h"
 #include "PCGExContext.h"
