@@ -42,5 +42,12 @@ bool PCGExPointFilter::FConstantFilter::Test(const TSharedPtr<PCGExData::FPointI
 
 PCGEX_CREATE_FILTER_FACTORY(Constant)
 
+#if WITH_EDITOR
+FString UPCGExConstantFilterProviderSettings::GetDisplayName() const
+{
+	return IsPropertyOverriddenByPin(FName("Value")) ? TEXT("Constant") : Config.Value ? TEXT("Pass") : TEXT("Fail");
+}
+#endif
+
 #undef LOCTEXT_NAMESPACE
 #undef PCGEX_NAMESPACE

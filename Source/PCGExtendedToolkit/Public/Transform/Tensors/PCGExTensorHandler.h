@@ -42,6 +42,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExTensorHandlerDetails
 
 	FPCGExTensorHandlerDetails()
 	{
+		SizeAttribute.Update("ExtrusionSize");
 	}
 
 	virtual ~FPCGExTensorHandlerDetails()
@@ -56,8 +57,16 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExTensorHandlerDetails
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	bool bNormalize = false;
 
+	/** Type of Size */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable, DisplayName=" └─ Size Input"))
+	EPCGExInputValueType SizeInput = EPCGExInputValueType::Constant;
+
+	/** Start Offset Attribute (Vector 2 expected)*/
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName=" └─ Size (Attr)", EditCondition="bNormalize && SizeInput!=EPCGExInputValueType::Constant", EditConditionHides))
+	FPCGAttributePropertyInputSelector SizeAttribute;
+	
 	/** Constant size applied after normalization. This will be scaled */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName = " └─ Size", EditCondition="bNormalize", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName = " └─ Size", EditCondition="bNormalize && SizeInput==EPCGExInputValueType::Constant", EditConditionHides))
 	double SizeConstant = 1;
 
 	/** Uniform scale factor applied to sampling after all other mutations are accounted for. */
@@ -75,6 +84,7 @@ namespace PCGExTensor
 	{
 		TArray<UPCGExTensorOperation*> Tensors;
 		FPCGExTensorHandlerDetails Config;
+		TSharedPtr<PCGExData::TBuffer<double>> Size;
 
 		UPCGExTensorSampler* SamplerInstance = nullptr;
 
