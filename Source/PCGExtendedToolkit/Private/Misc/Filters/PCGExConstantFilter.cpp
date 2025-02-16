@@ -26,7 +26,7 @@ TSharedPtr<PCGExPointFilter::FFilter> UPCGExConstantFilterFactory::CreateFilter(
 bool PCGExPointFilter::FConstantFilter::Init(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade>& InPointDataFacade)
 {
 	if (!FFilter::Init(InContext, InPointDataFacade)) { return false; }
-	ConstantValue = TypedFilterFactory->Config.bInvert ? !TypedFilterFactory->Config.Value : TypedFilterFactory->Config.Value;	
+	ConstantValue = TypedFilterFactory->Config.bInvert ? !TypedFilterFactory->Config.Value : TypedFilterFactory->Config.Value;
 	return true;
 }
 

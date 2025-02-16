@@ -86,8 +86,6 @@ public:
 
 	void PollEvent(UPCGComponent* InSource, EPCGExSubsystemEventType InEventType, uint32 InEventId);
 
-	
-	
 protected:
 	bool bWantsTick = false;
 
