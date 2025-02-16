@@ -3,7 +3,6 @@
 
 #include "Graph/PCGExBreakClustersToPaths.h"
 
-
 #include "Curve/CurveUtil.h"
 #include "Graph/PCGExChain.h"
 #include "Graph/Filters/PCGExClusterFilter.h"
