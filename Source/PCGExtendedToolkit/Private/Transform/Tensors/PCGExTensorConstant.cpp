@@ -12,7 +12,7 @@ bool UPCGExTensorConstant::Init(FPCGExContext* InContext, const UPCGExTensorFact
 	return true;
 }
 
-PCGExTensor::FTensorSample UPCGExTensorConstant::Sample(const FTransform& InProbe) const
+PCGExTensor::FTensorSample UPCGExTensorConstant::Sample(const int32 InSeedIndex, const FTransform& InProbe) const
 {
 	PCGExTensor::FEffectorSamples Samples = PCGExTensor::FEffectorSamples();
 

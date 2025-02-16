@@ -12,7 +12,7 @@ bool UPCGExTensorSplineFlow::Init(FPCGExContext* InContext, const UPCGExTensorFa
 	return true;
 }
 
-PCGExTensor::FTensorSample UPCGExTensorSplineFlow::Sample(const FTransform& InProbe) const
+PCGExTensor::FTensorSample UPCGExTensorSplineFlow::Sample(const int32 InSeedIndex, const FTransform& InProbe) const
 {
 	const FVector& InPosition = InProbe.GetLocation();
 	PCGExTensor::FEffectorSamples Samples = PCGExTensor::FEffectorSamples();

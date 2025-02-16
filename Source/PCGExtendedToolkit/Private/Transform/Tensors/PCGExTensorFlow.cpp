@@ -12,7 +12,7 @@ bool UPCGExTensorFlow::Init(FPCGExContext* InContext, const UPCGExTensorFactoryD
 	return true;
 }
 
-PCGExTensor::FTensorSample UPCGExTensorFlow::Sample(const FTransform& InProbe) const
+PCGExTensor::FTensorSample UPCGExTensorFlow::Sample(const int32 InSeedIndex, const FTransform& InProbe) const
 {
 	const FVector& InPosition = InProbe.GetLocation();
 	const FBoxCenterAndExtent BCAE = FBoxCenterAndExtent(InPosition, FVector::One());

@@ -65,7 +65,7 @@ bool PCGExPointFilter::FTensorDotFilter::Test(const int32 PointIndex) const
 	const FPCGPoint& Point = PointDataFacade->Source->GetInPoint(PointIndex);
 
 	bool bSuccess = false;
-	const PCGExTensor::FTensorSample Sample = TensorsHandler->Sample(Point.Transform, bSuccess);
+	const PCGExTensor::FTensorSample Sample = TensorsHandler->Sample(PointIndex, Point.Transform, bSuccess);
 
 	if (!bSuccess) { return false; }
 

@@ -17,9 +17,15 @@ bool UPCGExTensorOperation::Init(FPCGExContext* InContext, const UPCGExTensorFac
 	return true;
 }
 
-PCGExTensor::FTensorSample UPCGExTensorOperation::Sample(const FTransform& InProbe) const
+PCGExTensor::FTensorSample UPCGExTensorOperation::Sample(const int32 InSeedIndex, const FTransform& InProbe) const
 {
 	return PCGExTensor::FTensorSample{};
+}
+
+bool UPCGExTensorOperation::PrepareForData(const TSharedPtr<PCGExData::FFacade>& InDataFacade)
+{
+	PrimaryDataFacade = InDataFacade;
+	return true;
 }
 
 void UPCGExTensorPointOperation::CopySettingsFrom(const UPCGExOperation* Other)

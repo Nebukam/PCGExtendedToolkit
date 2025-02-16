@@ -5,6 +5,7 @@
 
 #include "CoreMinimal.h"
 #include "PCGEx.h"
+#include "PCGPin.h"
 #include "PCGSettings.h"
 #include "PCGExConstantsDefinitions.h"
 #include "PCGExContext.h"

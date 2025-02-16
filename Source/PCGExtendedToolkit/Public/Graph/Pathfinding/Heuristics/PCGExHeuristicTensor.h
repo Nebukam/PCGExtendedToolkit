@@ -64,7 +64,7 @@ protected:
 	const TArray<TObjectPtr<const UPCGExTensorFactoryData>>* TensorFactories = nullptr;
 	bool bAbsoluteTensor = true;
 
-	double GetDot(const FVector& From, const FVector& To) const;
+	double GetDot(int32 InSeedIndex, const FVector& From, const FVector& To) const;
 };
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")

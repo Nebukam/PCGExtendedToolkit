@@ -28,6 +28,10 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExTensorInertiaConstantConfig : public FPC
 	/**  */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	FRotator Offset = FRotator::ZeroRotator;
+
+	/** If enabled, will set a constant per-point inertia based on the original point transform */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	bool bSetInertiaOnce = false;
 };
 
 /**
@@ -43,7 +47,7 @@ public:
 	FQuat Offset = FQuat::Identity;
 	virtual bool Init(FPCGExContext* InContext, const UPCGExTensorFactoryData* InFactory) override;
 
-	virtual PCGExTensor::FTensorSample Sample(const FTransform& InProbe) const override;
+	virtual PCGExTensor::FTensorSample Sample(int32 InSeedIndex, const FTransform& InProbe) const override;
 };
 
 
@@ -91,6 +95,10 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	double Potency = 1;
 
+	/** If enabled, will set a constant per-point inertia based on the original point transform */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	bool bSetInertiaOnce = false;
+	
 	/** Tensor properties */
 	UPROPERTY(meta=(PCG_NotOverridable, HideInDetailPanel))
 	FPCGExTensorInertiaConstantConfig Config;
