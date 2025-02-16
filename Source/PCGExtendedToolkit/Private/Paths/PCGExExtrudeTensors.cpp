@@ -432,19 +432,63 @@ namespace PCGExExtrudeTensors
 
 			FVector C = FVector::ZeroVector;
 
-			if (Sorter)
+			switch (Settings->SelfIntersectionMode)
 			{
-				ExtrusionQueue.Sort(
-					[S = Sorter](const TSharedPtr<FExtrusion>& EA, const TSharedPtr<FExtrusion>& EB)
-					{
-						return S->Sort(EA->SeedIndex, EB->SeedIndex);
-					});
+			case EPCGExSelfIntersectionMode::StopLongest:
+				if (Sorter)
+				{
+					ExtrusionQueue.Sort(
+						[S = Sorter](const TSharedPtr<FExtrusion>& EA, const TSharedPtr<FExtrusion>& EB)
+						{
+							if (EA->Metrics.Length == EB->Metrics.Length) { return S->Sort(EA->SeedIndex, EB->SeedIndex); }
+							return EA->Metrics.Length > EB->Metrics.Length;
+						});
+				}
+				else
+				{
+					ExtrusionQueue.Sort(
+						[S = Sorter](const TSharedPtr<FExtrusion>& EA, const TSharedPtr<FExtrusion>& EB)
+						{
+							return EA->Metrics.Length > EB->Metrics.Length;
+						});
+				}
+				break;
+			case EPCGExSelfIntersectionMode::StopShortest:
+				if (Sorter)
+				{
+					ExtrusionQueue.Sort(
+						[S = Sorter](const TSharedPtr<FExtrusion>& EA, const TSharedPtr<FExtrusion>& EB)
+						{
+							if (EA->Metrics.Length == EB->Metrics.Length) { return S->Sort(EA->SeedIndex, EB->SeedIndex); }
+							return EA->Metrics.Length < EB->Metrics.Length;
+						});
+				}
+				else
+				{
+					ExtrusionQueue.Sort(
+						[S = Sorter](const TSharedPtr<FExtrusion>& EA, const TSharedPtr<FExtrusion>& EB)
+						{
+							return EA->Metrics.Length < EB->Metrics.Length;
+						});
+				}
+				break;
+			case EPCGExSelfIntersectionMode::SortingOnly:
+				if (Sorter)
+				{
+					ExtrusionQueue.Sort(
+						[S = Sorter](const TSharedPtr<FExtrusion>& EA, const TSharedPtr<FExtrusion>& EB)
+						{
+							return S->Sort(EA->SeedIndex, EB->SeedIndex);
+						});
+				}
+				break;
 			}
+
 
 			for (int i = 0; i < NumQueuedExtrusions; i++)
 			{
 				TSharedPtr<FExtrusion> E = ExtrusionQueue[i];
-				
+
 				if (E->bAdvancedOnly || !E->bIsExtruding) { continue; }
 
 				const FBox& EdgeBox = E->GetHeadEdge(A1, B1);

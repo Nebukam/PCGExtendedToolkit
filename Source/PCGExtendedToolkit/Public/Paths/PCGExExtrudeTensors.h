@@ -167,7 +167,7 @@ public:
 
 	/** [NOT IMPLEMENTED] */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Intersections (Self)", meta=(PCG_Overridable, EditCondition="bDoSelfPathIntersections"))
-	EPCGExSelfIntersectionMode SelfIntersectionMode = EPCGExSelfIntersectionMode::StopShortest;
+	EPCGExSelfIntersectionMode SelfIntersectionMode = EPCGExSelfIntersectionMode::StopLongest;
 
 	/** [NOT IMPLEMENTED] Controls the order in which paths extrusion will be stopped when intersecting, if shortest/longest path fails. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Intersections (Self)", meta = (PCG_Overridable, EditCondition="bDoSelfPathIntersections"))
