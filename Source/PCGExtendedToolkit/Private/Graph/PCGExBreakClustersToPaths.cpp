@@ -124,38 +124,41 @@ namespace PCGExBreakClustersToPaths
 		const TSharedPtr<PCGExData::FPointIO> PathIO = Context->Paths->Emplace_GetRef<UPCGPointData>(VtxDataFacade->Source, PCGExData::EIOInit::New);
 		if (!PathIO) { return; }
 
+		bool bDoReverse = bReverse;
+
 		TArray<FPCGPoint>& MutablePoints = PathIO->GetOut()->GetMutablePoints();
 		MutablePoints.SetNumUninitialized(ChainSize);
+		MutablePoints[0] = PathIO->GetInPoint(Cluster->GetNode(Chain->Seed)->PointIndex);
 
-		int32 PtIndex = 0;
+		if (ProjectedPositions && (!Settings->bWindOnlyClosedLoops || Chain->bIsClosedLoop))
+		{
+			const TArray<FVector2D>& PP = *ProjectedPositions;
+			TArray<FVector2D> ProjectedPoints;
+			ProjectedPoints.SetNumUninitialized(ChainSize);
 
-		MutablePoints[PtIndex++] = PathIO->GetInPoint(Cluster->GetNode(Chain->Seed)->PointIndex);
-		for (const PCGExGraph::FLink& Lk : Chain->Links) { MutablePoints[PtIndex++] = PathIO->GetInPoint(Cluster->GetNode(Lk)->PointIndex); }
+			ProjectedPoints[0] = PP[Cluster->GetNode(Chain->Seed)->PointIndex];
+
+			for (int i = 1; i < ChainSize; i++)
+			{
+				const int32 PtIndex = Cluster->GetNode(Chain->Links[i - 1])->PointIndex;
+				MutablePoints[i] = PathIO->GetInPoint(PtIndex);
+				ProjectedPoints[i] = PP[PtIndex];
+			}
+
+			if (!PCGExGeo::IsWinded(Settings->Winding, UE::Geometry::CurveUtil::SignedArea2<double, FVector2D>(ProjectedPoints) < 0))
+			{
+				bDoReverse = true;
+			}
+		}
+		else
+		{
+			for (int i = 1; i < ChainSize; i++) { MutablePoints[i] = PathIO->GetInPoint(Cluster->GetNode(Chain->Links[i - 1])->PointIndex); }
+		}
+
+		if (bDoReverse) { Algo::Reverse(MutablePoints); }
 
 		if (!Chain->bIsClosedLoop) { if (Settings->bTagIfOpenPath) { PathIO->Tags->AddRaw(Settings->IsOpenPathTag); } }
 		else { if (Settings->bTagIfClosedLoop) { PathIO->Tags->AddRaw(Settings->IsClosedLoopTag); } }
-
-		if (bReverse) { Algo::Reverse(MutablePoints); }
-
-		if (ProjectedPositions)
-		{
-			// TODO : Reverse once only
-
-			if (!Settings->bWindOnlyClosedLoops || Chain->bIsClosedLoop)
-			{
-				const TArray<FVector2D>& PP = *ProjectedPositions;
-				TArray<FVector2D> WindingPoints;
-				PCGEx::InitArray(WindingPoints, PtIndex);
-				WindingPoints[0] = PP[Cluster->GetNode(Chain->Seed)->PointIndex];
-				for (int i = 0; i < PtIndex; i++) { WindingPoints[i + 1] = PP[Cluster->GetNode(Chain->Links[i])->PointIndex]; }
-
-				if (!PCGExGeo::IsWinded(Settings->Winding, UE::Geometry::CurveUtil::SignedArea2<double, FVector2D>(WindingPoints) < 0)
-					&& !bReverse)
-				{
-					Algo::Reverse(MutablePoints);
-				}
-			}
-		}
 	}
 
 	void FProcessor::ProcessSingleEdge(const int32 EdgeIndex, PCGExGraph::FEdge& Edge, const PCGExMT::FScope& Scope)
