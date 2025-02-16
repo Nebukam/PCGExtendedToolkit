@@ -5,6 +5,7 @@
 #include "Styling/SlateStyle.h"
 #include "Styling/SlateStyleRegistry.h"
 #include "Interfaces/IPluginManager.h"
+#include "AssetRegistry/AssetData.h"
 #include "EditorStyleSet.h"
 
 #define LOCTEXT_NAMESPACE "FPCGExtendedToolkitEditorModule"

@@ -22,6 +22,12 @@ PCGExTensor::FTensorSample UPCGExTensorOperation::Sample(const int32 InSeedIndex
 	return PCGExTensor::FTensorSample{};
 }
 
+bool UPCGExTensorOperation::PrepareForData(const TSharedPtr<PCGExData::FFacade>& InDataFacade)
+{
+	PrimaryDataFacade = InDataFacade;
+	return true;
+}
+
 void UPCGExTensorPointOperation::CopySettingsFrom(const UPCGExOperation* Other)
 {
 	Super::CopySettingsFrom(Other);

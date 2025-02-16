@@ -17,10 +17,21 @@ PCGExTensor::FTensorSample UPCGExTensorInertiaConstant::Sample(const int32 InSee
 {
 	PCGExTensor::FEffectorSamples Samples = PCGExTensor::FEffectorSamples();
 
-	Samples.Emplace_GetRef(
-		PCGExMath::GetDirection(InProbe.GetRotation() * Offset, Config.Axis),
-		Config.Potency,
-		Config.Weight);
+	if (Config.bSetInertiaOnce)
+	{
+		Samples.Emplace_GetRef(
+			PCGExMath::GetDirection(PrimaryDataFacade->Source->GetInPoint(InSeedIndex).Transform.GetRotation() * Offset, Config.Axis),
+			Config.Potency,
+			Config.Weight);
+	}
+	else
+	{
+		Samples.Emplace_GetRef(
+			PCGExMath::GetDirection(InProbe.GetRotation() * Offset, Config.Axis),
+			Config.Potency,
+			Config.Weight);
+	}
+
 
 	return Samples.Flatten(Config.TensorWeight);
 }
@@ -34,6 +45,7 @@ PCGEX_TENSOR_BOILERPLATE(
 	NewFactory->Config.Weight = 1;
 	NewFactory->Config.TensorWeight = TensorWeight;
 	NewFactory->Config.WeightInput = EPCGExInputValueType::Constant;
+	NewFactory->Config.bSetInertiaOnce = bSetInertiaOnce;
 	}, {})
 
 bool UPCGExTensorInertiaConstantFactory::InitInternalData(FPCGExContext* InContext)

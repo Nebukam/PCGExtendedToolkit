@@ -21,12 +21,12 @@ namespace PCGExTensor
 		for (const UPCGExTensorFactoryData* Factory : InFactories)
 		{
 			UPCGExTensorOperation* Op = Factory->CreateOperation(InContext);
+			if (!Op->PrepareForData(InDataFacade)) { continue; }
 			Tensors.Add(Op);
 		}
 
 		if (Config.SamplerSettings.Sampler) { SamplerInstance = InContext->ManagedObjects->New<UPCGExTensorSampler>(GetTransientPackage(), Config.SamplerSettings.Sampler); }
 		if (!SamplerInstance) { SamplerInstance = InContext->ManagedObjects->New<UPCGExTensorSampler>(); }
-
 		if (!SamplerInstance) { return false; }
 
 		SamplerInstance->BindContext(InContext);

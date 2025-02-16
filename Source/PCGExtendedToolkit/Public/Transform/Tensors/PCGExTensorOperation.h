@@ -30,6 +30,8 @@ public:
 
 	virtual PCGExTensor::FTensorSample Sample(int32 InSeedIndex, const FTransform& InProbe) const;
 
+	virtual bool PrepareForData(const TSharedPtr<PCGExData::FFacade>& InDataFacade);
+
 	template <bool bFast = false>
 	bool ComputeFactor(const FVector& InPosition, const FPCGPointRef& InEffector, PCGExTensor::FEffectorMetrics& OutMetrics) const
 	{

@@ -25,6 +25,11 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExTensorInertiaConfig : public FPCGExTenso
 	/**  */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	EPCGExAxis Axis = EPCGExAxis::Forward;
+
+	/** If enabled, will set a constant per-point inertia based on the original point transform */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	bool bSetInertiaOnce = false;
+	
 };
 
 /**
