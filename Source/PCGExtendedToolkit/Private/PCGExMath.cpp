@@ -6,6 +6,45 @@
 
 namespace PCGExMath
 {
+	FClosestLocation::FClosestLocation(const FVector& InOrigin)
+		: Origin(InOrigin)
+	{
+	}
+
+	FClosestLocation::FClosestLocation(const FVector& InOrigin, const FVector& InClosest)
+		: bValid(true), Origin(InOrigin), ClosestLocation(InClosest), ClosestDist(FVector::DistSquared(InOrigin, InClosest))
+	{
+	}
+
+	FClosestLocation::FClosestLocation(const FVector& InOrigin, const FVector& InClosest, const int32 InIndex)
+		: bValid(true), Index(Index), Origin(InOrigin), ClosestLocation(InClosest), ClosestDist(FVector::DistSquared(InOrigin, InClosest))
+	{
+	}
+
+	bool FClosestLocation::Push(const FVector& Location)
+	{
+		if (const double Dist = FVector::DistSquared(Origin, Location); Dist < ClosestDist)
+		{
+			bValid = true;
+			ClosestDist = Dist;
+			ClosestLocation = Location;
+			return true;
+		}
+
+		return false;
+	}
+
+	bool FClosestLocation::Push(const FVector& Location, const int32 InIndex)
+	{
+		if (Push(Location))
+		{
+			Index = InIndex;
+			return true;
+		}
+
+		return false;
+	}
+
 	FBox GetLocalBounds(const FPCGPoint& Point, const EPCGExPointBoundsSource Source)
 	{
 		if (Source == EPCGExPointBoundsSource::ScaledBounds) { return GetLocalBounds<EPCGExPointBoundsSource::ScaledBounds>(Point); }

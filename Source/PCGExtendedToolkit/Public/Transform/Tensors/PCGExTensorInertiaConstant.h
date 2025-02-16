@@ -98,7 +98,7 @@ public:
 	/** If enabled, will set a constant per-point inertia based on the original point transform */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	bool bSetInertiaOnce = false;
-	
+
 	/** Tensor properties */
 	UPROPERTY(meta=(PCG_NotOverridable, HideInDetailPanel))
 	FPCGExTensorInertiaConstantConfig Config;

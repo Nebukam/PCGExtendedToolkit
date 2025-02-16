@@ -224,7 +224,6 @@ namespace PCGExPaths
 				FVector B = FVector::ZeroVector;
 
 				FMath::SegmentDistToSegment(A1, B1, A2, B2, A, B);
-				//if (A == A1 || A == B1 || B == A2 || B == B2) { return true; }
 
 				if (FVector::DistSquared(A, B) >= InDetails.ToleranceSquared) { return; }
 
