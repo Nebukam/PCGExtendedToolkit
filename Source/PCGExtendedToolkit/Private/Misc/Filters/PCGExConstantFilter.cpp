@@ -45,7 +45,7 @@ PCGEX_CREATE_FILTER_FACTORY(Constant)
 #if WITH_EDITOR
 FString UPCGExConstantFilterProviderSettings::GetDisplayName() const
 {
-	return IsPropertyOverriddenByPin(FName("Value")) ? TEXT("Constant") : Config.Value ? TEXT("Pass") : TEXT("Fail");
+	return Config.Value ? TEXT("Pass") : TEXT("Fail");
 }
 #endif
 
