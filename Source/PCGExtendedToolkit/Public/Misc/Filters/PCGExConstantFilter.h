@@ -20,13 +20,12 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExConstantFilterConfig
 
 	FPCGExConstantFilterConfig()
 	{
-		
 	}
 
 	/** TBD */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	bool Value = true;
-	
+
 	/** TBD */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	bool bInvert = false;
@@ -95,7 +94,10 @@ public:
 
 	virtual UPCGExFactoryData* CreateFactory(FPCGExContext* InContext, UPCGExFactoryData* InFactory) const override;
 
-
 protected:
 	virtual bool IsCacheable() const override { return true; }
+
+#if WITH_EDITOR
+	virtual FString GetDisplayName() const override;
+#endif
 };
