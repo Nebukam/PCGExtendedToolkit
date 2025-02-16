@@ -145,6 +145,19 @@ namespace PCGExData
 		}
 	}
 
+	void FPointIO::PrintInKeysMap(TMap<PCGMetadataEntryKey, int32>& InMap) const
+	{
+		const TArray<FPCGPoint>& PointList = In->GetPoints();
+		InMap.Empty(PointList.Num());
+		for (int i = 0; i < PointList.Num(); i++) { InMap.Add(PointList[i].MetadataEntry, i); }
+	}
+
+	void FPointIO::PrintOutInKeysMap(TMap<PCGMetadataEntryKey, int32>& InMap) const
+	{
+		if (Out) { PrintOutKeysMap(InMap); }
+		else { PrintInKeysMap(InMap); }
+	}
+
 	void FPointIO::CleanupKeys()
 	{
 		InKeys.Reset();

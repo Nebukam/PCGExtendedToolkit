@@ -197,6 +197,8 @@ namespace PCGExData
 		TSharedPtr<FPCGAttributeAccessorKeysPoints> GetInKeys();
 		TSharedPtr<FPCGAttributeAccessorKeysPoints> GetOutKeys(const bool bEnsureValidKeys = false);
 		void PrintOutKeysMap(TMap<PCGMetadataEntryKey, int32>& InMap) const;
+		void PrintInKeysMap(TMap<PCGMetadataEntryKey, int32>& InMap) const;
+		void PrintOutInKeysMap(TMap<PCGMetadataEntryKey, int32>& InMap) const;
 
 		FName OutputPin = PCGEx::OutputPointsLabel;
 

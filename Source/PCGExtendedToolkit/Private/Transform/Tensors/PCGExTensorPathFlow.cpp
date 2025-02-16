@@ -18,7 +18,7 @@ bool UPCGExTensorPathFlow::Init(FPCGExContext* InContext, const UPCGExTensorFact
 	return true;
 }
 
-PCGExTensor::FTensorSample UPCGExTensorPathFlow::Sample(const FTransform& InProbe) const
+PCGExTensor::FTensorSample UPCGExTensorPathFlow::Sample(const int32 InSeedIndex, const FTransform& InProbe) const
 {
 	const FVector& InPosition = InProbe.GetLocation();
 	PCGExTensor::FEffectorSamples Samples = PCGExTensor::FEffectorSamples();

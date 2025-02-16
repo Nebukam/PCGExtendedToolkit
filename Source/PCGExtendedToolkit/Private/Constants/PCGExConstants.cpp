@@ -86,7 +86,7 @@ bool UPCGExConstantsSettings::CanEditChange(const FProperty* InProperty) const
 	const bool ParentVal = Super::CanEditChange(InProperty);
 
 	const FName Prop = InProperty->GetFName();
-	auto OutputType = GetOutputType(ConstantList);
+	const EPCGExConstantType OutputType = GetOutputType(ConstantList);
 
 	if (Prop == GET_MEMBER_NAME_CHECKED(UPCGExConstantsSettings, NegateOutput))
 	{

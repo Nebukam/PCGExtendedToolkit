@@ -4,6 +4,8 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "Modules/ModuleInterface.h"
+#include "Styling/SlateStyle.h"
 
 class FPCGExtendedToolkitEditorModule : public IModuleInterface
 {

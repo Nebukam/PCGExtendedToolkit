@@ -140,7 +140,7 @@ namespace PCGExSorting
 		{
 			if constexpr (bUsePointIndices)
 			{
-				InDataFacade->Source->PrintOutKeysMap(PointIndices);
+				InDataFacade->Source->PrintOutInKeysMap(PointIndices);
 			}
 
 			const UPCGData* InData = InDataFacade->Source->GetIn();
