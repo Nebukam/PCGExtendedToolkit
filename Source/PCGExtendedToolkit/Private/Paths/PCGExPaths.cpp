@@ -206,9 +206,12 @@ namespace PCGExPaths
 		FBox EdgeBox = FBox(ForceInit);
 		EdgeBox += A1;
 		EdgeBox += B1;
+		EdgeBox = EdgeBox.ExpandBy(InDetails.Tolerance);
+
+		if (!Bounds.Intersect(EdgeBox)) { return false; }
 
 		GetEdgeOctree()->FindElementsWithBoundsTest(
-			EdgeBox.ExpandBy(InDetails.Tolerance), [&](const FPathEdge* PathEdge)
+			EdgeBox, [&](const FPathEdge* PathEdge)
 			{
 				if (InDetails.bUseMinAngle || InDetails.bUseMaxAngle)
 				{

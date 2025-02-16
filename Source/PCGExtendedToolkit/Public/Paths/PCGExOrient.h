@@ -51,7 +51,7 @@ protected:
 
 	//~Begin UPCGExPointProcessorSettings
 public:
-	PCGEX_NODE_POINT_FILTER(FName("Flip Orientation Conditions"), "Filters used to know whether an orientation should be flipped or not", PCGExFactories::PointFilters, false)
+	PCGEX_NODE_POINT_FILTER(FName("Flip Conditions"), "Filters used to know whether an orientation should be flipped or not", PCGExFactories::PointFilters, false)
 	//~End UPCGExPointProcessorSettings
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))

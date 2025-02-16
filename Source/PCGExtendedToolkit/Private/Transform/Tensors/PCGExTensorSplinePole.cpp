@@ -12,7 +12,7 @@ bool UPCGExTensorSplinePole::Init(FPCGExContext* InContext, const UPCGExTensorFa
 	return true;
 }
 
-PCGExTensor::FTensorSample UPCGExTensorSplinePole::Sample(const FTransform& InProbe) const
+PCGExTensor::FTensorSample UPCGExTensorSplinePole::Sample(const int32 InSeedIndex, const FTransform& InProbe) const
 {
 	const FVector& InPosition = InProbe.GetLocation();
 	PCGExTensor::FEffectorSamples Samples = PCGExTensor::FEffectorSamples();

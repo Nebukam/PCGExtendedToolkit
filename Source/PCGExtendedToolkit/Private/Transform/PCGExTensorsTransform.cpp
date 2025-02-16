@@ -116,9 +116,9 @@ namespace PCGExTensorsTransform
 
 		const FTransform Probe = Point.Transform;
 		const FVector SamplePosition = Probe.GetLocation();
-
+		
 		bool bSuccess = false;
-		const PCGExTensor::FTensorSample Sample = TensorsHandler->Sample(Probe, bSuccess);
+		const PCGExTensor::FTensorSample Sample = TensorsHandler->Sample(Index, Probe, bSuccess);
 		PointFilterCache[Index] = bSuccess;
 
 		if (!bSuccess)

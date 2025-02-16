@@ -21,7 +21,7 @@ double UPCGExHeuristicTensor::GetGlobalScore(
 	const PCGExCluster::FNode& Seed,
 	const PCGExCluster::FNode& Goal) const
 {
-	return GetScoreInternal(GetDot(Cluster->GetPos(From), Cluster->GetPos(Goal)));
+	return GetScoreInternal(GetDot(From.PointIndex, Cluster->GetPos(From), Cluster->GetPos(Goal)));
 }
 
 double UPCGExHeuristicTensor::GetEdgeScore(
@@ -32,13 +32,13 @@ double UPCGExHeuristicTensor::GetEdgeScore(
 	const PCGExCluster::FNode& Goal,
 	const TSharedPtr<PCGEx::FHashLookup> TravelStack) const
 {
-	return GetScoreInternal(GetDot(Cluster->GetPos(From), Cluster->GetPos(To)));
+	return GetScoreInternal(GetDot(From.PointIndex, Cluster->GetPos(From), Cluster->GetPos(To)));
 }
 
-double UPCGExHeuristicTensor::GetDot(const FVector& From, const FVector& To) const
+double UPCGExHeuristicTensor::GetDot(const int32 InSeedIndex, const FVector& From, const FVector& To) const
 {
 	bool bSuccess = false;
-	const PCGExTensor::FTensorSample Sample = TensorsHandler->Sample(FTransform(FRotationMatrix::MakeFromX((To - From).GetSafeNormal()).ToQuat(), From), bSuccess);
+	const PCGExTensor::FTensorSample Sample = TensorsHandler->Sample(InSeedIndex, FTransform(FRotationMatrix::MakeFromX((To - From).GetSafeNormal()).ToQuat(), From), bSuccess);
 	if (!bSuccess) { return 0; }
 	const double Dot = FVector::DotProduct((To - From).GetSafeNormal(), Sample.DirectionAndSize.GetSafeNormal());
 	return bAbsoluteTensor ? 1 - FMath::Abs(Dot) : 1 - PCGExMath::Remap(Dot, -1, 1);
