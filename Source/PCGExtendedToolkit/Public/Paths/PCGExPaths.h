@@ -401,8 +401,9 @@ namespace PCGExPaths
 		virtual bool IsEdgeValid(const FPathEdge& Edge) const { return FVector::DistSquared(GetPos_Unsafe(Edge.Start), GetPos_Unsafe(Edge.End)) > 0; }
 		virtual bool IsEdgeValid(const int32 Index) const { return IsEdgeValid(Edges[Index]); }
 
-		bool FindClosestIntersection(const FPCGExPathIntersectionDetails& InDetails,
-		                             const FVector& A1, const FVector& B1, int32& OutSegmentIndex, FVector& OutIntersection) const;
+		bool FindClosestIntersection(
+			const FPCGExPathIntersectionDetails& InDetails,
+			const FVector& A1, const FVector& B1, int32& OutSegmentIndex, FVector& OutIntersection) const;
 
 		void BuildEdgeOctree();
 		void BuildPartialEdgeOctree(const TArray<int8>& Filter);
@@ -629,6 +630,7 @@ namespace PCGExPaths
 
 	TSharedPtr<FPCGSplineStruct> MakeSplineFromPoints(const UPCGPointData* InData, const EPCGExSplinePointTypeRedux InPointType, const bool bClosedLoop);
 
-	bool FindClosestIntersection(const TArray<TSharedPtr<FPath>>& Paths, const FPCGExPathIntersectionDetails& InDetails,
-	                             const FVector& A1, const FVector& B1, int32& OutPathIndex, int32& OutSegmentIndex, FVector& OutIntersection);
+	bool FindClosestIntersection(
+		const TArray<TSharedPtr<FPath>>& Paths, const FPCGExPathIntersectionDetails& InDetails,
+		const FVector& A1, const FVector& B1, int32& OutPathIndex, int32& OutSegmentIndex, FVector& OutIntersection);
 }

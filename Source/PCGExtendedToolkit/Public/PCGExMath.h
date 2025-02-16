@@ -40,6 +40,27 @@ enum class EPCGExPointBoundsSource : uint8
 
 namespace PCGExMath
 {
+	struct /*PCGEXTENDEDTOOLKIT_API*/ FClosestLocation
+	{
+		bool bValid = false;
+		int32 Index = -1;
+		FVector Origin = FVector::ZeroVector;
+		FVector ClosestLocation = FVector::ZeroVector;
+		double ClosestDist = MAX_dbl;
+
+		explicit FClosestLocation(const FVector& InOrigin);
+		FClosestLocation(const FVector& InOrigin, const FVector& InClosest);
+		FClosestLocation(const FVector& InOrigin, const FVector& InClosest, const int32 InIndex);
+
+		bool Push(const FVector& Location);
+		bool Push(const FVector& Location, const int32 InIndex);
+
+		friend bool operator<(const FClosestLocation& A, const FClosestLocation& B) { return A.ClosestDist < B.ClosestDist; }
+		friend bool operator>(const FClosestLocation& A, const FClosestLocation& B) { return A.ClosestDist > B.ClosestDist; }
+
+		operator FVector() const { return ClosestLocation; }
+	};
+
 	template <EPCGExPointBoundsSource S = EPCGExPointBoundsSource::ScaledBounds>
 	static FBox GetLocalBounds(const FPCGPoint& Point)
 	{

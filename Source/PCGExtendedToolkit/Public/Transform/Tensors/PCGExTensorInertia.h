@@ -29,7 +29,6 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExTensorInertiaConfig : public FPCGExTenso
 	/** If enabled, will set a constant per-point inertia based on the original point transform */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	bool bSetInertiaOnce = false;
-	
 };
 
 /**
