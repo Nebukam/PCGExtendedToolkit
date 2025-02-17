@@ -17,7 +17,7 @@ namespace PCGExMath
 	}
 
 	FClosestLocation::FClosestLocation(const FVector& InOrigin, const FVector& InClosest, const int32 InIndex)
-		: bValid(true), Index(Index), Origin(InOrigin), ClosestLocation(InClosest), ClosestDist(FVector::DistSquared(InOrigin, InClosest))
+		: bValid(true), Index(InIndex), Origin(InOrigin), ClosestLocation(InClosest), ClosestDist(FVector::DistSquared(InOrigin, InClosest))
 	{
 	}
 
