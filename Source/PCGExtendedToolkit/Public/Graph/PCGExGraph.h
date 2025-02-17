@@ -247,7 +247,7 @@ namespace PCGExGraph
 
 	struct /*PCGEXTENDEDTOOLKIT_API*/ FGraphNodeMetadata
 	{
-		EPCGExIntersectionType Type = EPCGExIntersectionType::PointEdge;
+		EPCGExIntersectionType Type = EPCGExIntersectionType::Unknown;
 		int32 NodeIndex;
 		int32 UnionSize = 0; // Fuse size
 		bool IsUnion() const;
