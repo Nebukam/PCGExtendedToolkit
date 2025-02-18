@@ -18,9 +18,9 @@
 UENUM()
 enum class EPCGExStatsOutputToPoints : uint8
 {
-	None   = 0 UMETA(DisplayName = "No output", ToolTip="Writes nothing to input points"),
-	Prefix = 1 UMETA(DisplayName = "Prefix", ToolTip="Write stats values to points, using selected name as a prefix to the attribute' name"),
-	Suffix = 2 UMETA(DisplayName = "Suffix", ToolTip="Write stats values to points, using selected name as a suffix to the attribute' name"),
+	None   = 0 UMETA(DisplayName = "No output", ToolTip="None"),
+	Prefix = 1 UMETA(DisplayName = "Prefix", ToolTip="Uses specified name as a prefix to the attribute' name"),
+	Suffix = 2 UMETA(DisplayName = "Suffix", ToolTip="Uss specified name as a suffix to the attribute' name"),
 };
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc")
@@ -65,7 +65,7 @@ public:
 	
 	/** Output to tags */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
-	bool bOutputToTags = false;
+	EPCGExStatsOutputToPoints OutputToTags = EPCGExStatsOutputToPoints::None;
 
 	/** */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta = (PCG_Overridable, InlineEditConditionToggle))
@@ -316,7 +316,7 @@ namespace PCGExAttributeStats
 
 #define PCGEX_OUTPUT_STAT(_NAME, _TYPE, _VALUE) \
 	if(Settings->bOutput##_NAME){ ParamData->Metadata->GetMutableTypedAttribute<_TYPE>(Settings->_NAME##AttributeName)->SetValue(Key, _VALUE); \
-	if(Settings->bOutputToTags){ InDataFacade->Source->Tags->Set<_TYPE>(Settings->_NAME##AttributeName.ToString(), _VALUE); } \
+	if(Settings->OutputToTags != EPCGExStatsOutputToPoints::None){ InDataFacade->Source->Tags->Set<_TYPE>(Settings->OutputToPoints == EPCGExStatsOutputToPoints::Prefix ? (Settings->_NAME##AttributeName.ToString() + StrName) : (StrName + Settings->_NAME##AttributeName.ToString()), _VALUE); } \
 	if (PointsMetadata){\
 		FName PrintName = Settings->OutputToPoints == EPCGExStatsOutputToPoints::Prefix ? FName(Settings->_NAME##AttributeName.ToString() + StrName) : FName(StrName + Settings->_NAME##AttributeName.ToString());\
 		if (PointsMetadata->GetConstTypedAttribute<_TYPE>(PrintName)) { PointsMetadata->DeleteAttribute(PrintName); }\
