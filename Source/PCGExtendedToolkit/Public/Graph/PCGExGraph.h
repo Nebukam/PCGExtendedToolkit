@@ -33,7 +33,6 @@ namespace PCGExCluster
 	class FCluster;
 }
 
-
 UENUM()
 enum class EPCGExAdjacencyDirectionOrigin : uint8
 {

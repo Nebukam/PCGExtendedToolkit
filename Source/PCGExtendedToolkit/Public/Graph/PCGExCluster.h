@@ -21,7 +21,7 @@ namespace PCGExCluster
 UENUM()
 enum class EPCGExClusterClosestSearchMode : uint8
 {
-	Node = 0 UMETA(DisplayName = "Closest node", ToolTip="Proximity to node position"),
+	Vtx = 0 UMETA(DisplayName = "Closest vtx", ToolTip="Proximity to node position"),
 	Edge = 1 UMETA(DisplayName = "Closest edge", ToolTip="Proximity to edge, then endpoint"),
 };
 
@@ -222,7 +222,7 @@ namespace PCGExCluster
 			switch (Mode)
 			{
 			default: ;
-			case EPCGExClusterClosestSearchMode::Node:
+			case EPCGExClusterClosestSearchMode::Vtx:
 				return FindClosestNode<MinNeighbors>(Position);
 			case EPCGExClusterClosestSearchMode::Edge:
 				return FindClosestNodeFromEdge<MinNeighbors>(Position);

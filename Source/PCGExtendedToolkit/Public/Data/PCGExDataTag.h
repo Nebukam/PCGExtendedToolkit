@@ -114,6 +114,11 @@ namespace PCGExTags
 		{
 			if constexpr (std::is_same_v<T, bool>) { return Value ? TEXT("true") : TEXT("false"); }
 			else if constexpr (std::is_same_v<T, FName>) { return Value.ToString(); }
+			else if constexpr (std::is_same_v<T, FString>) { return Value; }
+			else if constexpr (std::is_same_v<T, float> || std::is_same_v<T, double>) { return FString::Printf(TEXT("%.2f"), Value); }
+			else if constexpr (std::is_same_v<T, int32> || std::is_same_v<T, int64>) { return FString::Printf(TEXT("%d"), Value); }
+			else if constexpr (std::is_same_v<T, FVector2D> || std::is_same_v<T, FVector> || std::is_same_v<T, FVector4>) { return FString::Printf(TEXT("%s"), *Value.ToString()); }
+			else if constexpr (std::is_same_v<T, FString>) { return FString::Printf(TEXT("%s"), *Value); }
 			else { return TEXT(""); }
 		}
 	};

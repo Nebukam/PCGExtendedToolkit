@@ -44,7 +44,7 @@ public:
 
 	/** What type of proximity to look for */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
-	EPCGExClusterClosestSearchMode SearchMode = EPCGExClusterClosestSearchMode::Node;
+	EPCGExClusterClosestSearchMode SearchMode = EPCGExClusterClosestSearchMode::Vtx;
 
 	/** Whether to allow the same pick for multiple targets or not. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
