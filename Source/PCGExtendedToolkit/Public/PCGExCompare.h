@@ -560,7 +560,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExAttributeToTagComparisonDetails
 	EPCGExComparison NumericComparison = EPCGExComparison::NearlyEqual;
 
 	/** Rounding mode for relative measures */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable, EditCondition="bDoValueMatch && ValueType==EPCGExComparisonDataType::Numeric && (Comparison==EPCGExComparison::NearlyEqual || Comparison==EPCGExComparison::NearlyNotEqual)", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable, EditCondition="bDoValueMatch && ValueType==EPCGExComparisonDataType::Numeric && (NumericComparison==EPCGExComparison::NearlyEqual || NumericComparison==EPCGExComparison::NearlyNotEqual)", EditConditionHides))
 	double Tolerance = DBL_COMPARE_TOLERANCE;
 
 	/** Comparison */
@@ -573,8 +573,8 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExAttributeToTagComparisonDetails
 
 	bool Init(const FPCGContext* InContext, const TSharedRef<PCGExData::FFacade>& InSourceDataFacade);
 
-	bool Test(const TSharedPtr<PCGExData::FTags>& InTags, const int32 SourceIndex, const FPCGPoint& SourcePoint) const;
-	bool Test(const TSharedPtr<PCGExData::FTags>& InTags, const PCGExData::FPointRef& SourcePointRef) const;
+	bool Matches(const TSharedPtr<PCGExData::FTags>& InTags, const int32 SourceIndex, const FPCGPoint& SourcePoint) const;
+	bool Matches(const TSharedPtr<PCGExData::FTags>& InTags, const PCGExData::FPointRef& SourcePointRef) const;
 };
 
 UENUM()
