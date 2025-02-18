@@ -18,6 +18,8 @@ MACRO(SetMaxValue, _TYPE, _TYPE{})\
 MACRO(AverageValue, _TYPE, _TYPE{})\
 MACRO(UniqueValuesNum, int32, 0)\
 MACRO(UniqueSetValuesNum, int32, 0)\
+MACRO(DifferentValuesNum, int32, 0)\
+MACRO(DifferentSetValuesNum, int32, 0)\
 MACRO(DefaultValuesNum, int32, 0)\
 MACRO(HasOnlyDefaultValues, bool, false)\
 MACRO(HasOnlySetValues, bool, false)\

@@ -18,9 +18,9 @@
 UENUM()
 enum class EPCGExStatsOutputToPoints : uint8
 {
-	None   = 0 UMETA(DisplayName = "No output", ToolTip="Writes nothing to input points"),
-	Prefix = 1 UMETA(DisplayName = "Prefix", ToolTip="Write stats values to points, using selected name as a prefix to the attribute' name"),
-	Suffix = 2 UMETA(DisplayName = "Suffix", ToolTip="Write stats values to points, using selected name as a suffix to the attribute' name"),
+	None   = 0 UMETA(DisplayName = "No output", ToolTip="None"),
+	Prefix = 1 UMETA(DisplayName = "Prefix", ToolTip="Uses specified name as a prefix to the attribute' name"),
+	Suffix = 2 UMETA(DisplayName = "Suffix", ToolTip="Uss specified name as a suffix to the attribute' name"),
 };
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc")
@@ -62,6 +62,10 @@ public:
 	/** */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	EPCGExStatsOutputToPoints OutputToPoints = EPCGExStatsOutputToPoints::None;
+	
+	/** Output to tags */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
+	EPCGExStatsOutputToPoints OutputToTags = EPCGExStatsOutputToPoints::None;
 
 	/** */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta = (PCG_Overridable, InlineEditConditionToggle))
@@ -135,6 +139,22 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta = (PCG_Overridable, DisplayName = "Unique Set Values Num", EditCondition="bOutputUniqueSetValuesNum"))
 	FName UniqueSetValuesNumAttributeName = FName(TEXT("UniqueSetValues"));
 
+	/** */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta = (PCG_Overridable, InlineEditConditionToggle))
+	bool bOutputDifferentValuesNum = true;
+
+	/** */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta = (PCG_Overridable, DisplayName = "Different Values Num", EditCondition="bOutputDifferentValuesNum"))
+	FName DifferentValuesNumAttributeName = FName(TEXT("DifferentValues"));
+
+	/** */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta = (PCG_Overridable, InlineEditConditionToggle))
+	bool bOutputDifferentSetValuesNum = true;
+
+	/** */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta = (PCG_Overridable, DisplayName = "Different Set Values Num", EditCondition="bOutputDifferentSetValuesNum"))
+	FName DifferentSetValuesNumAttributeName = FName(TEXT("DifferentSetValues"));
+	
 	/** */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta = (PCG_Overridable, InlineEditConditionToggle))
 	bool bOutputDefaultValuesNum = true;
@@ -272,6 +292,8 @@ namespace PCGExAttributeStats
 		T MinUniqueValue = T{};
 		int32 UniqueValuesNum = 0;
 		int32 UniqueSetValuesNum = 0;
+		int32 DifferentValuesNum = 0;
+		int32 DifferentSetValuesNum = 0;
 		int32 DefaultValuesNum = 0;
 
 		explicit TAttributeStats(const PCGEx::FAttributeIdentity& InIdentity, const int64 InKey)
@@ -289,10 +311,12 @@ namespace PCGExAttributeStats
 
 			FString StrName = Identity.Name.ToString();
 			UPCGMetadata* PointsMetadata = nullptr;
+			
 			if (Settings->OutputToPoints != EPCGExStatsOutputToPoints::None) { PointsMetadata = InDataFacade->GetOut()->Metadata; }
 
 #define PCGEX_OUTPUT_STAT(_NAME, _TYPE, _VALUE) \
 	if(Settings->bOutput##_NAME){ ParamData->Metadata->GetMutableTypedAttribute<_TYPE>(Settings->_NAME##AttributeName)->SetValue(Key, _VALUE); \
+	if(Settings->OutputToTags != EPCGExStatsOutputToPoints::None){ InDataFacade->Source->Tags->Set<_TYPE>(Settings->OutputToTags == EPCGExStatsOutputToPoints::Prefix ? (Settings->_NAME##AttributeName.ToString() + StrName) : (StrName + Settings->_NAME##AttributeName.ToString()), _VALUE); } \
 	if (PointsMetadata){\
 		FName PrintName = Settings->OutputToPoints == EPCGExStatsOutputToPoints::Prefix ? FName(Settings->_NAME##AttributeName.ToString() + StrName) : FName(StrName + Settings->_NAME##AttributeName.ToString());\
 		if (PointsMetadata->GetConstTypedAttribute<_TYPE>(PrintName)) { PointsMetadata->DeleteAttribute(PrintName); }\
@@ -410,6 +434,8 @@ namespace PCGExAttributeStats
 					for (const TPair<T, int32>& Pair : SetValuesCount) { if (Pair.Value == 1) { UniqueSetValuesNum++; } }
 				}
 
+				DifferentValuesNum = ValuesCount.Num();
+				DifferentSetValuesNum = SetValuesCount.Num();
 
 				ValuesCount.Empty();
 				SetValuesCount.Empty();
@@ -424,6 +450,8 @@ namespace PCGExAttributeStats
 				PCGEX_OUTPUT_STAT(AverageValue, T, PCGExBlend::Div(AverageValue, static_cast<double>(NumValues)))
 				PCGEX_OUTPUT_STAT(UniqueValuesNum, int32, UniqueValuesNum)
 				PCGEX_OUTPUT_STAT(UniqueSetValuesNum, int32, UniqueSetValuesNum)
+				PCGEX_OUTPUT_STAT(DifferentValuesNum, int32, DifferentValuesNum)
+				PCGEX_OUTPUT_STAT(DifferentSetValuesNum, int32, DifferentSetValuesNum)
 				PCGEX_OUTPUT_STAT(DefaultValuesNum, int32, DefaultValuesNum)
 				PCGEX_OUTPUT_STAT(HasOnlyDefaultValues, bool, NumValues == DefaultValuesNum)
 				PCGEX_OUTPUT_STAT(HasOnlySetValues, bool, DefaultValuesNum == 0)
