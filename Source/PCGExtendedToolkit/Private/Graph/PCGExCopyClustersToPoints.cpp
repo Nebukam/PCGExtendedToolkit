@@ -245,7 +245,7 @@ namespace PCGExCopyClusters
 			if (!VtxDupes[i]) { continue; }
 
 			bool bValidVtxDupe = false;
-			for (const TSharedRef<FProcessor> Processor : Processors)
+			for (const TSharedRef<FProcessor>& Processor : Processors)
 			{
 				if (Processor->EdgesDupes[i])
 				{
