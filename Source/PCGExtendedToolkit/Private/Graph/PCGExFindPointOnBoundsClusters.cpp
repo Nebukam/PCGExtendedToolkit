@@ -36,7 +36,7 @@ bool FPCGExFindPointOnBoundsClustersElement::Boot(FPCGExContext* InContext) cons
 
 	if (Settings->OutputMode == EPCGExPointOnBoundsOutputMode::Merged)
 	{
-		TSharedPtr<PCGExData::FPointIOCollection> Collection = Settings->SearchMode == EPCGExClusterClosestSearchMode::Node ? Context->MainPoints : Context->MainEdges;
+		TSharedPtr<PCGExData::FPointIOCollection> Collection = Settings->SearchMode == EPCGExClusterClosestSearchMode::Vtx ? Context->MainPoints : Context->MainEdges;
 		TSet<FName> AttributeMismatches;
 
 		Context->BestIndices.Init(-1, Context->MainEdges->Num());
@@ -84,7 +84,7 @@ bool FPCGExFindPointOnBoundsClustersElement::ExecuteInternal(
 
 	if (Settings->OutputMode == EPCGExPointOnBoundsOutputMode::Merged)
 	{
-		TSharedPtr<PCGExData::FPointIOCollection> Collection = Settings->SearchMode == EPCGExClusterClosestSearchMode::Node ? Context->MainPoints : Context->MainEdges;
+		TSharedPtr<PCGExData::FPointIOCollection> Collection = Settings->SearchMode == EPCGExClusterClosestSearchMode::Vtx ? Context->MainPoints : Context->MainEdges;
 		PCGExFindPointOnBounds::MergeBestCandidatesAttributes(
 			Context->MergedOut,
 			Context->IOMergeSources,
@@ -95,7 +95,7 @@ bool FPCGExFindPointOnBoundsClustersElement::ExecuteInternal(
 	}
 	else
 	{
-		if (Settings->SearchMode == EPCGExClusterClosestSearchMode::Node) { Context->MainPoints->StageOutputs(); }
+		if (Settings->SearchMode == EPCGExClusterClosestSearchMode::Vtx) { Context->MainPoints->StageOutputs(); }
 		else { Context->MainEdges->StageOutputs(); }
 	}
 
@@ -116,7 +116,7 @@ namespace PCGExFindPointOnBoundsClusters
 		SearchPosition = Cluster->Bounds.GetCenter() + Cluster->Bounds.GetExtent() * Settings->UVW;
 		Cluster->RebuildOctree(Settings->SearchMode);
 
-		if (Settings->SearchMode == EPCGExClusterClosestSearchMode::Node) { StartParallelLoopForNodes(); }
+		if (Settings->SearchMode == EPCGExClusterClosestSearchMode::Vtx) { StartParallelLoopForNodes(); }
 		else { StartParallelLoopForEdges(); }
 
 		return true;
@@ -154,7 +154,7 @@ namespace PCGExFindPointOnBoundsClusters
 
 	void FProcessor::CompleteWork()
 	{
-		const TSharedPtr<PCGExData::FPointIO> IORef = Settings->SearchMode == EPCGExClusterClosestSearchMode::Node ? VtxDataFacade->Source : EdgeDataFacade->Source;
+		const TSharedPtr<PCGExData::FPointIO> IORef = Settings->SearchMode == EPCGExClusterClosestSearchMode::Vtx ? VtxDataFacade->Source : EdgeDataFacade->Source;
 
 		const FVector Offset = (BestPosition - Cluster->Bounds.GetCenter()).GetSafeNormal() * Settings->Offset;
 

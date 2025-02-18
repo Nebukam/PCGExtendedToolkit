@@ -348,36 +348,42 @@ bool FPCGExAttributeToTagComparisonDetails::Init(const FPCGContext* InContext, c
 	return true;
 }
 
-bool FPCGExAttributeToTagComparisonDetails::Test(const TSharedPtr<PCGExData::FTags>& InTags, const int32 SourceIndex, const FPCGPoint& SourcePoint) const
+bool FPCGExAttributeToTagComparisonDetails::Matches(const TSharedPtr<PCGExData::FTags>& InTags, const int32 SourceIndex, const FPCGPoint& SourcePoint) const
 {
 	const FString TestTagName = TagNameGetter ? TagNameGetter->SoftGet(SourceIndex, SourcePoint, TEXT("")) : TagName;
+
+	if (!bDoValueMatch)
+	{
+		return PCGExCompare::HasMatchingTags(InTags, TagNameGetter ? TagNameGetter->SoftGet(SourceIndex, SourcePoint, TEXT("")) : TagName, NameMatch);
+	}
+
 
 	TArray<TSharedPtr<PCGExData::FTagValue>> TagValues;
 	if (!PCGExCompare::GetMatchingValueTags(InTags, TestTagName, NameMatch, TagValues)) { return false; }
 
 	if (ValueType == EPCGExComparisonDataType::Numeric)
 	{
-		double B = NumericValueGetter->SoftGet(SourceIndex, SourcePoint, 0);
+		const double OperandBNumeric = NumericValueGetter->SoftGet(SourceIndex, SourcePoint, 0);
 		for (const TSharedPtr<PCGExData::FTagValue>& TagValue : TagValues)
 		{
-			if (!PCGExCompare::Compare(NumericComparison, TagValue, B, Tolerance)) { return false; }
+			if (!PCGExCompare::Compare(NumericComparison, TagValue, OperandBNumeric, Tolerance)) { return false; }
 		}
 	}
 	else
 	{
-		FString B = StringValueGetter->SoftGet(SourceIndex, SourcePoint, TEXT(""));
+		const FString OperandBString = StringValueGetter->SoftGet(SourceIndex, SourcePoint, TEXT(""));
 		for (const TSharedPtr<PCGExData::FTagValue>& TagValue : TagValues)
 		{
-			if (!PCGExCompare::Compare(StringComparison, TagValue, B)) { return false; }
+			if (!PCGExCompare::Compare(StringComparison, TagValue, OperandBString)) { return false; }
 		}
 	}
 
 	return true;
 }
 
-bool FPCGExAttributeToTagComparisonDetails::Test(const TSharedPtr<PCGExData::FTags>& InTags, const PCGExData::FPointRef& SourcePointRef) const
+bool FPCGExAttributeToTagComparisonDetails::Matches(const TSharedPtr<PCGExData::FTags>& InTags, const PCGExData::FPointRef& SourcePointRef) const
 {
-	return Test(InTags, SourcePointRef.Index, *SourcePointRef.Point);
+	return Matches(InTags, SourcePointRef.Index, *SourcePointRef.Point);
 }
 
 int64 FPCGExBitmask::Get() const

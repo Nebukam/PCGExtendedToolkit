@@ -161,19 +161,19 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Intersections (Ext)", meta=(PCG_Overridable, EditCondition="bDoExternalPathIntersections"))
 	FPCGExPathIntersectionDetails ExternalPathIntersections;
 
-	/** [NOT IMPLEMENTED] */
+	/** Whether to test for intersection between actively extruding paths */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Intersections (Self)", meta=(PCG_Overridable))
 	bool bDoSelfPathIntersections = false;
 
-	/** [NOT IMPLEMENTED] */
+	/** How to order intersection checks. Sorting is using seeds input attributes. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Intersections (Self)", meta=(PCG_Overridable, EditCondition="bDoSelfPathIntersections"))
-	EPCGExSelfIntersectionMode SelfIntersectionMode = EPCGExSelfIntersectionMode::StopLongest;
+	EPCGExSelfIntersectionMode SelfIntersectionMode = EPCGExSelfIntersectionMode::SortingOnly;
 
-	/** [NOT IMPLEMENTED] Controls the order in which paths extrusion will be stopped when intersecting, if shortest/longest path fails. */
+	/** Controls the order in which paths extrusion will be stopped when intersecting, if shortest/longest path fails. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Intersections (Self)", meta = (PCG_Overridable, EditCondition="bDoSelfPathIntersections"))
 	EPCGExSortDirection SortDirection = EPCGExSortDirection::Ascending;
 
-	/** [NOT IMPLEMENTED] Intersection settings for extruding path intersections */
+	/** Intersection settings for extruding path intersections */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Intersections (Self)", meta=(PCG_Overridable, EditCondition="bDoSelfPathIntersections"))
 	FPCGExPathIntersectionDetails SelfPathIntersections;
 
@@ -205,6 +205,14 @@ public:
 	/** ... */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging & Forwarding", meta=(EditCondition="bTagIfIsStoppedByIntersection"))
 	FString IsStoppedByIntersectionTag = TEXT("StoppedByIntersection");
+
+	/** */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging & Forwarding", meta=(InlineEditConditionToggle))
+	bool bTagIfIsStoppedBySelfIntersection = false;
+
+	/** ... */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging & Forwarding", meta=(EditCondition="bTagIfIsStoppedBySelfIntersection"))
+	FString IsStoppedBySelfIntersectionTag = TEXT("StoppedBySelfIntersection");
 
 	/** */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging & Forwarding", meta=(InlineEditConditionToggle))

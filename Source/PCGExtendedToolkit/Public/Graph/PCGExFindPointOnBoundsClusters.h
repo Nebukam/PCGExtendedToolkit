@@ -36,7 +36,7 @@ public:
 
 	/** What type of proximity to look for */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
-	EPCGExClusterClosestSearchMode SearchMode = EPCGExClusterClosestSearchMode::Node;
+	EPCGExClusterClosestSearchMode SearchMode = EPCGExClusterClosestSearchMode::Vtx;
 
 	/** Data output mode */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))

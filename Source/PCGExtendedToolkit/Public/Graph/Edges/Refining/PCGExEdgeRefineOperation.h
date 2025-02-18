@@ -43,7 +43,7 @@ public:
 		Cluster = InCluster;
 		Heuristics = InHeuristics;
 
-		if (RequiresNodeOctree()) { Cluster->RebuildOctree(EPCGExClusterClosestSearchMode::Node); }
+		if (RequiresNodeOctree()) { Cluster->RebuildOctree(EPCGExClusterClosestSearchMode::Vtx); }
 		if (RequiresEdgeOctree()) { Cluster->RebuildOctree(EPCGExClusterClosestSearchMode::Edge); }
 
 		if (RequiresHeuristics() && Heuristics)

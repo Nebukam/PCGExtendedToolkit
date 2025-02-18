@@ -425,7 +425,7 @@ namespace PCGExCluster
 	{
 		switch (Mode)
 		{
-		case EPCGExClusterClosestSearchMode::Node:
+		case EPCGExClusterClosestSearchMode::Vtx:
 			if (NodeOctree && !bForceRebuild) { return; }
 			RebuildNodeOctree();
 			break;
