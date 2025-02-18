@@ -151,6 +151,7 @@ namespace PCGExExtrudeTensors
 		{
 			// TODO : Grab data from intersection
 			if (Settings->bTagIfIsStoppedByIntersection) { PointDataFacade->Source->Tags->AddRaw(Settings->IsStoppedByIntersectionTag); }
+			if (Settings->bTagIfIsStoppedBySelfIntersection && bHitSelfIntersection) { PointDataFacade->Source->Tags->AddRaw(Settings->IsStoppedBySelfIntersectionTag); }
 		}
 		if (Settings->bTagIfChildExtrusion && bIsChildExtrusion) { PointDataFacade->Source->Tags->AddRaw(Settings->IsChildExtrusionTag); }
 		if (Settings->bTagIfIsFollowUp && bIsFollowUp) { PointDataFacade->Source->Tags->AddRaw(Settings->IsFollowUpTag); }
@@ -161,9 +162,9 @@ namespace PCGExExtrudeTensors
 	void FExtrusion::CutOff(const FVector& InCutOff)
 	{
 		ExtrudedPoints.Last().Transform.SetLocation(InCutOff);
-		Complete();
 		bHitIntersection = true;
 		bHitSelfIntersection = true;
+		Complete();
 		bIsStopped = true;
 	}
 

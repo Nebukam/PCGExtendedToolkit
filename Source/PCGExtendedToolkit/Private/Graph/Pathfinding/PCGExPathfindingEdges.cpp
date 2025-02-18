@@ -196,10 +196,10 @@ namespace PCGExPathfindingEdge
 
 		if (Settings->bUseOctreeSearch)
 		{
-			if (Settings->SeedPicking.PickingMethod == EPCGExClusterClosestSearchMode::Node ||
-				Settings->GoalPicking.PickingMethod == EPCGExClusterClosestSearchMode::Node)
+			if (Settings->SeedPicking.PickingMethod == EPCGExClusterClosestSearchMode::Vtx ||
+				Settings->GoalPicking.PickingMethod == EPCGExClusterClosestSearchMode::Vtx)
 			{
-				Cluster->RebuildOctree(EPCGExClusterClosestSearchMode::Node);
+				Cluster->RebuildOctree(EPCGExClusterClosestSearchMode::Vtx);
 			}
 
 			if (Settings->SeedPicking.PickingMethod == EPCGExClusterClosestSearchMode::Edge ||
