@@ -326,7 +326,7 @@ namespace PCGExDiscardByOverlap
 		void RemoveOverlap(const TSharedPtr<FOverlap>& InOverlap, TArray<FProcessor*>& Stack);
 		void Prune(TArray<FProcessor*>& Stack);
 
-		FORCEINLINE void RegisterPointBounds(const int32 Index, const TSharedPtr<FPointBounds>& InPointBounds)
+		void RegisterPointBounds(const int32 Index, const TSharedPtr<FPointBounds>& InPointBounds)
 		{
 			const int8 bValidPoint = PointFilterCache[Index];
 			if (!bValidPoint && !Settings->bIncludeFilteredInMetrics) { return; }
@@ -340,6 +340,7 @@ namespace PCGExDiscardByOverlap
 
 		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager) override;
 		virtual void ProcessSingleRangeIteration(const int32 Iteration, const PCGExMT::FScope& Scope) override;
+		virtual void OnRangeProcessingComplete() override;
 		virtual void CompleteWork() override;
 		virtual void Write() override;
 

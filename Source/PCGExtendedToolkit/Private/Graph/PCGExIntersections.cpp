@@ -95,19 +95,19 @@ namespace PCGExGraph
 		}
 
 		{
-			// Read lock starts
-			int32 NodeIndex = -1;
+			// Write lock starts
+			FWriteScopeLock WriteScopeLock(UnionLock);
 
-			FReadScopeLock ReadScopeLock(UnionLock);
-
+			PCGExMath::FClosestLocation ClosestNode(Origin);
+			
 			if (FuseDetails.bComponentWiseTolerance)
 			{
-				Octree->FindFirstElementWithBoundsTest(
+				Octree->FindElementsWithBoundsTest(
 					FuseDetails.GetOctreeBox(Origin), [&](const FUnionNode* ExistingNode)
 					{
 						if (FuseDetails.IsWithinToleranceComponentWise(Point, ExistingNode->Point))
 						{
-							NodeIndex = ExistingNode->Index;
+							ClosestNode.Push(Point.Transform.GetLocation(), ExistingNode->Index);
 							return false;
 						}
 						return true;
@@ -115,25 +115,25 @@ namespace PCGExGraph
 			}
 			else
 			{
-				Octree->FindFirstElementWithBoundsTest(
+				Octree->FindElementsWithBoundsTest(
 					FuseDetails.GetOctreeBox(Origin), [&](const FUnionNode* ExistingNode)
 					{
 						if (FuseDetails.IsWithinTolerance(Point, ExistingNode->Point))
 						{
-							NodeIndex = ExistingNode->Index;
+							ClosestNode.Push(Point.Transform.GetLocation(), ExistingNode->Index);
 							return false;
 						}
 						return true;
 					});
 			}
 
-			if (NodeIndex != -1)
+			if (ClosestNode.bValid)
 			{
-				NodesUnion->Append(NodeIndex, IOIndex, PointIndex);
-				return Nodes[NodeIndex];
+				NodesUnion->Append(ClosestNode.Index, IOIndex, PointIndex);
+				return Nodes[ClosestNode.Index];
 			}
 
-			// Read lock ends
+			// Write lock ends
 		}
 
 		{
@@ -175,16 +175,16 @@ namespace PCGExGraph
 			return Node;
 		}
 
-		int32 NodeIndex = -1;
+		PCGExMath::FClosestLocation ClosestNode(Origin);
 
 		if (FuseDetails.bComponentWiseTolerance)
 		{
-			Octree->FindFirstElementWithBoundsTest(
+			Octree->FindElementsWithBoundsTest(
 				FuseDetails.GetOctreeBox(Origin), [&](const FUnionNode* ExistingNode)
 				{
 					if (FuseDetails.IsWithinToleranceComponentWise(Point, ExistingNode->Point))
 					{
-						NodeIndex = ExistingNode->Index;
+						ClosestNode.Push(Point.Transform.GetLocation(), ExistingNode->Index);
 						return false;
 					}
 					return true;
@@ -192,22 +192,22 @@ namespace PCGExGraph
 		}
 		else
 		{
-			Octree->FindFirstElementWithBoundsTest(
+			Octree->FindElementsWithBoundsTest(
 				FuseDetails.GetOctreeBox(Origin), [&](const FUnionNode* ExistingNode)
 				{
 					if (FuseDetails.IsWithinTolerance(Point, ExistingNode->Point))
 					{
-						NodeIndex = ExistingNode->Index;
+						ClosestNode.Push(Point.Transform.GetLocation(), ExistingNode->Index);
 						return false;
 					}
 					return true;
 				});
 		}
 
-		if (NodeIndex != -1)
+		if (ClosestNode.bValid)
 		{
-			NodesUnion->Append(NodeIndex, IOIndex, PointIndex);
-			return Nodes[NodeIndex];
+			NodesUnion->Append(ClosestNode.Index, IOIndex, PointIndex);
+			return Nodes[ClosestNode.Index];
 		}
 
 		Node = MakeShared<FUnionNode>(Point, Origin, Nodes.Num());
