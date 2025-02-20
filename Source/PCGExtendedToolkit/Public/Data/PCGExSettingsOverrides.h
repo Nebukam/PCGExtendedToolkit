@@ -26,6 +26,8 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPerInputOverrideDetails
 
 	FPCGExPerInputOverrideDetails()
 	{
+		// We want to support :
+		// - Index mapping
 	}
 
 	/** Is forwarding enabled. */
