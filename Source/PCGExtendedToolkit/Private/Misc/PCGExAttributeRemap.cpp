@@ -3,6 +3,7 @@
 
 
 #include "Misc/PCGExAttributeRemap.h"
+#include "PCGExHelpers.h"
 
 
 #define LOCTEXT_NAMESPACE "PCGExAttributeRemap"
@@ -127,35 +128,7 @@ namespace PCGExAttributeRemap
 		}
 
 		UnderlyingType = Identity->UnderlyingType;
-
-		switch (UnderlyingType)
-		{
-		case EPCGMetadataTypes::Float:
-		case EPCGMetadataTypes::Double:
-		case EPCGMetadataTypes::Integer32:
-		case EPCGMetadataTypes::Integer64:
-			Dimensions = 1;
-			break;
-		case EPCGMetadataTypes::Vector2:
-			Dimensions = 2;
-			break;
-		case EPCGMetadataTypes::Vector:
-		case EPCGMetadataTypes::Rotator:
-			Dimensions = 3;
-			break;
-		case EPCGMetadataTypes::Vector4:
-		case EPCGMetadataTypes::Quaternion:
-			Dimensions = 4;
-			break;
-		default:
-		case EPCGMetadataTypes::Transform:
-		case EPCGMetadataTypes::String:
-		case EPCGMetadataTypes::Boolean:
-		case EPCGMetadataTypes::Name:
-		case EPCGMetadataTypes::Unknown:
-			Dimensions = -1;
-			break;
-		}
+		Dimensions = PCGEx::GetMetadataSize(UnderlyingType);
 
 		if (Dimensions == -1)
 		{
@@ -181,8 +154,8 @@ namespace PCGExAttributeRemap
 		for (int i = 0; i < Dimensions; i++)
 		{
 			FPCGExComponentRemapRule& Rule = Rules.Add_GetRef(FPCGExComponentRemapRule(Context->RemapSettings[Context->RemapIndices[i]]));
-			Rule.RemapDetails.InMin = MAX_dbl;
-			Rule.RemapDetails.InMax = MIN_dbl_neg;
+			if (!Rule.RemapDetails.bUseInMin) { Rule.RemapDetails.InMin = MAX_dbl; }
+			if (!Rule.RemapDetails.bUseInMax) { Rule.RemapDetails.InMax = MIN_dbl_neg; }
 		}
 
 		PCGEX_ASYNC_GROUP_CHKD(AsyncManager, FetchTask)
@@ -205,7 +178,7 @@ namespace PCGExAttributeRemap
 						Rule.RemapDetails.InMax = Rule.MaxCache->Flatten([&](const double& In, const double& Out) { return FMath::Max(In, Out); });
 					}
 
-					if (Rule.RemapDetails.RangeMethod == EPCGExRangeType::FullRange) { Rule.RemapDetails.InMin = 0; }
+					if (Rule.RemapDetails.RangeMethod == EPCGExRangeType::FullRange && Rule.RemapDetails.InMin > 0) { Rule.RemapDetails.InMin = 0; }
 				}
 
 				This->OnPreparationComplete();

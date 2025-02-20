@@ -88,7 +88,7 @@ public:
 	bool bDetectClosedLoops = false;
 
 	/** Range at which the first point must be located to check angle */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Closing Loops", meta=(PCG_Overridable, DisplayName=" └─ Search Distance", EditCondition="bCloseLoops"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Closing Loops", meta=(PCG_Overridable, DisplayName=" ├─ Search Distance", EditCondition="bCloseLoops"))
 	double ClosedLoopSearchDistance = 100;
 
 	/** Angle at which the loop will be closed, if within range */

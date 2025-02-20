@@ -207,29 +207,32 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, ShowOnlyInnerProperties))
 	FPCGExAttributeSourceToTargetDetails Attributes;
 
-	/** The default remap rule, used for single component values, or first component. */
+	/** The default remap rule, used for single component values, or first component (X), or all components if no individual override is specified. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName="Remap (Default)"))
 	FPCGExComponentRemapRule BaseRemap;
 
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_NoteOverridable, InlineEditConditionToggle))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Individual Components", meta = (PCG_NoteOverridable, InlineEditConditionToggle))
 	bool bOverrideComponent2;
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_NoteOverridable, EditCondition="bOverrideComponent2", DisplayName="Remap (2nd Component)"))
+	/** Remap rule used for second (Y) value component. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Individual Components", meta = (PCG_NoteOverridable, EditCondition="bOverrideComponent2", DisplayName="Remap (2nd Component)"))
 	FPCGExComponentRemapRule Component2RemapOverride;
 
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_NoteOverridable, InlineEditConditionToggle))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Individual Components", meta = (PCG_NoteOverridable, InlineEditConditionToggle))
 	bool bOverrideComponent3;
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_NoteOverridable, EditCondition="bOverrideComponent3", DisplayName="Remap (3rd Component)"))
+	/** Remap rule used for third (Z) value component. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Individual Components", meta = (PCG_NoteOverridable, EditCondition="bOverrideComponent3", DisplayName="Remap (3rd Component)"))
 	FPCGExComponentRemapRule Component3RemapOverride;
 
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_NoteOverridable, InlineEditConditionToggle))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Individual Components", meta = (PCG_NoteOverridable, InlineEditConditionToggle))
 	bool bOverrideComponent4;
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_NoteOverridable, EditCondition="bOverrideComponent4", DisplayName="Remap (4th Component)"))
+	/** Remap rule used for fourth (W) value component. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Individual Components", meta = (PCG_NoteOverridable, EditCondition="bOverrideComponent4", DisplayName="Remap (4th Component)"))
 	FPCGExComponentRemapRule Component4RemapOverride;
 
 #if WITH_EDITOR
