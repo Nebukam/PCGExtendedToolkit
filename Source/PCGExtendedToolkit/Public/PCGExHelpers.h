@@ -393,6 +393,33 @@ namespace PCGEx
 
 #pragma region Metadata Type
 
+	constexpr static int32 GetMetadataSize(const EPCGMetadataTypes InType)
+	{
+		switch (InType)
+		{
+		case EPCGMetadataTypes::Float:
+		case EPCGMetadataTypes::Double:
+		case EPCGMetadataTypes::Integer32:
+		case EPCGMetadataTypes::Integer64:
+			return 1;
+		case EPCGMetadataTypes::Vector2:
+			return 2;
+		case EPCGMetadataTypes::Vector:
+		case EPCGMetadataTypes::Rotator:
+			return 3;
+		case EPCGMetadataTypes::Vector4:
+		case EPCGMetadataTypes::Quaternion:
+			return 4;
+		default:
+		case EPCGMetadataTypes::Transform:
+		case EPCGMetadataTypes::String:
+		case EPCGMetadataTypes::Boolean:
+		case EPCGMetadataTypes::Name:
+		case EPCGMetadataTypes::Unknown:
+			return -1;
+		}
+	}
+	
 	template <typename T>
 	constexpr static EPCGMetadataTypes GetMetadataType()
 	{

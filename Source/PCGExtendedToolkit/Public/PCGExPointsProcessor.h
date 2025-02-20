@@ -45,7 +45,14 @@ class PCGEXTENDEDTOOLKIT_API UPCGExPointsProcessorSettings : public UPCGSettings
 public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
-	virtual EPCGSettingsType GetType() const override { return EPCGSettingsType::Spatial; }
+	virtual EPCGSettingsType GetType() const override
+	{
+#if PCGEX_ENGINE_VERSION > 503
+		return EPCGSettingsType::PointOps;
+#else
+		return EPCGSettingsType::Spatial;
+#endif		
+	}
 	virtual bool GetPinExtraIcon(const UPCGPin* InPin, FName& OutExtraIcon, FText& OutTooltip) const override;
 #endif
 
