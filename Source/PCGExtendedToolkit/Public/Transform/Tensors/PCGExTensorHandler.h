@@ -58,7 +58,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExTensorHandlerDetails
 	bool bNormalize = false;
 
 	/** Type of Size */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable, DisplayName=" └─ Size Input"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable, DisplayName=" ├─ Size Input"))
 	EPCGExInputValueType SizeInput = EPCGExInputValueType::Constant;
 
 	/** Start Offset Attribute (Vector 2 expected)*/

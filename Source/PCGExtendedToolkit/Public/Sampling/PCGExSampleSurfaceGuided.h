@@ -212,7 +212,7 @@ public:
 	FName RenderMatAttributeName = FName("RenderMat");
 
 	/** The index of the render material when it is queried from the hit. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output (Actor Data)", meta = (PCG_Overridable, DisplayName=" └─ Material Index", EditCondition = "bWriteRenderMat", EditConditionHides, HideEditConditionToggle))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output (Actor Data)", meta = (PCG_Overridable, DisplayName=" ├─ Material Index", EditCondition = "bWriteRenderMat", EditConditionHides, HideEditConditionToggle))
 	int32 RenderMaterialIndex = 0;
 
 	/** Whether to extract texture parameters */

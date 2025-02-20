@@ -111,7 +111,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExMeshCollectionEntry : public FPCGExAsset
 	EPCGExMaterialVariantsMode MaterialVariants = EPCGExMaterialVariantsMode::None;
 
 	/** Material slot index. -1 uses the index inside the container. */
-	UPROPERTY(EditAnywhere, Category = Settings, meta=(DisplayName=" └─ Slot Index", EditCondition="!bIsSubCollection  && MaterialVariants==EPCGExMaterialVariantsMode::Single", EditConditionHides))
+	UPROPERTY(EditAnywhere, Category = Settings, meta=(DisplayName=" ├─ Slot Index", EditCondition="!bIsSubCollection  && MaterialVariants==EPCGExMaterialVariantsMode::Single", EditConditionHides))
 	int32 SlotIndex = 0;
 
 	/** A list of single material variants */
