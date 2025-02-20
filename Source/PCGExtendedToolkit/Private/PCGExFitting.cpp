@@ -267,8 +267,8 @@ bool FPCGExJustificationDetails::Init(FPCGExContext* InContext, const TSharedRef
 void FPCGExFittingVariationsDetails::Init(const int InSeed)
 {
 	Seed = InSeed;
-	bEnabledBefore = (Offset == EPCGExVariationMode::Before || Rotation != EPCGExVariationMode::Before || Scale != EPCGExVariationMode::Before);
-	bEnabledAfter = (Offset == EPCGExVariationMode::After || Rotation != EPCGExVariationMode::After || Scale != EPCGExVariationMode::After);
+	bEnabledBefore = (Offset == EPCGExVariationMode::Before || Rotation == EPCGExVariationMode::Before || Scale == EPCGExVariationMode::Before);
+	bEnabledAfter = (Offset == EPCGExVariationMode::After || Rotation == EPCGExVariationMode::After || Scale == EPCGExVariationMode::After);
 }
 
 void FPCGExFittingVariationsDetails::Apply(FPCGPoint& InPoint, const FPCGExFittingVariations& Variations, const EPCGExVariationMode& Step) const
