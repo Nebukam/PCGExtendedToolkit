@@ -241,13 +241,13 @@ namespace PCGExPathfindingPlotEdge
 				PCGEX_ASYNC_THIS
 				TSharedPtr<PCGExPathfinding::FPlotQuery> Query = This->Queries[Index];
 				Query->BuildPlotQuery(This->Context->Plots[Index], This->Settings->SeedPicking, This->Settings->GoalPicking);
-				Query->FindPaths(This->AsyncManager, This->SearchOperation, This->HeuristicsHandler);
 				Query->OnCompleteCallback = [AsyncThis](const TSharedPtr<PCGExPathfinding::FPlotQuery>& Plot)
 				{
 					PCGEX_ASYNC_NESTED_THIS
 					NestedThis->Context->BuildPath(Plot);
 					Plot->Cleanup();
 				};
+				Query->FindPaths(This->AsyncManager, This->SearchOperation, This->HeuristicsHandler);
 			};
 
 		ResolveQueriesTask->StartIterations(Queries.Num(), 1, HeuristicsHandler->HasGlobalFeedback());
