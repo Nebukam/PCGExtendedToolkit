@@ -552,6 +552,9 @@ namespace PCGExExtrudeTensors
 					{
 						return OnAdvanced(true);
 					}
+
+					bHitIntersection = false;
+					bHitSelfIntersection = false;
 				}
 				else
 				{
@@ -606,6 +609,8 @@ namespace PCGExExtrudeTensors
 		void InitExtrusionFromSeed(const int32 InSeedIndex);
 		TSharedPtr<FExtrusion> InitExtrusionFromExtrusion(const TSharedRef<FExtrusion>& InExtrusion);
 
+		void SortQueue();
+		
 		virtual void PrepareLoopScopesForRanges(const TArray<PCGExMT::FScope>& Loops) override;
 		virtual void PrepareSingleLoopScopeForPoints(const PCGExMT::FScope& Scope) override;
 		virtual void ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const PCGExMT::FScope& Scope) override;

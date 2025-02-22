@@ -161,10 +161,31 @@ namespace PCGExExtrudeTensors
 
 	void FExtrusion::CutOff(const FVector& InCutOff)
 	{
+
+		FVector PrevPos =ExtrudedPoints.Last(1).Transform.GetLocation(); 
+
+		/*
+		if(PrevPos == InCutOff)
+		{
+			// Dedupe last point, perfect in-place cut
+			ExtrudedPoints.Pop();
+			SegmentBounds.Pop();
+			return;
+		}
+		*/
+		
 		ExtrudedPoints.Last().Transform.SetLocation(InCutOff);
 		bHitIntersection = true;
 		bHitSelfIntersection = true;
+
 		Complete();
+
+		FBox OEBox = FBox(ForceInit);
+		OEBox += PrevPos;
+		OEBox += ExtrudedPoints.Last().Transform.GetLocation();
+		OEBox = OEBox.ExpandBy(Context->SelfPathIntersections.ToleranceSquared + 1);
+		SegmentBounds.Last() = OEBox;
+
 		bIsStopped = true;
 	}
 
@@ -179,7 +200,7 @@ namespace PCGExExtrudeTensors
 
 	bool FExtrusion::FindClosestSolidIntersection(const FBox& InBox, const FVector& AB, const FVector& A1, const FVector& B1, FVector& OutIntersection, bool& OutIsLastSegment) const
 	{
-		PCGExMath::FClosestLocation ClosestLocation = PCGExMath::FClosestLocation(A1);
+		PCGExMath::FClosestLocation ClosestLocation(A1);
 
 		const int32 LastSegment = SegmentBounds.Num() - 1;
 		for (int i = 0; i < SegmentBounds.Num(); i++)
@@ -189,9 +210,9 @@ namespace PCGExExtrudeTensors
 			FVector A2 = ExtrudedPoints[i].Transform.GetLocation();
 			FVector B2 = ExtrudedPoints[i + 1].Transform.GetLocation();
 
-			if (Settings->SelfPathIntersections.bUseMinAngle || Settings->SelfPathIntersections.bUseMaxAngle)
+			if (Context->SelfPathIntersections.bUseMinAngle || Context->SelfPathIntersections.bUseMaxAngle)
 			{
-				if (!Settings->SelfPathIntersections.CheckDot(FMath::Abs(FVector::DotProduct((B2 - A2).GetSafeNormal(), AB)))) { continue; }
+				if (!Context->SelfPathIntersections.CheckDot(FMath::Abs(FVector::DotProduct((B2 - A2).GetSafeNormal(), AB)))) { continue; }
 			}
 
 			FVector A = FVector::ZeroVector;
@@ -199,7 +220,7 @@ namespace PCGExExtrudeTensors
 
 			FMath::SegmentDistToSegment(A1, B1, A2, B2, A, B);
 
-			if (FVector::DistSquared(A, B) >= Settings->SelfPathIntersections.ToleranceSquared) { continue; }
+			if (FVector::DistSquared(A, B) >= Context->SelfPathIntersections.ToleranceSquared) { continue; }
 
 			if (ClosestLocation.Push(B) && i == LastSegment) { OutIsLastSegment = true; }
 		}
@@ -252,7 +273,7 @@ namespace PCGExExtrudeTensors
 			FBox OEBox = FBox(ForceInit);
 			OEBox += ExtrudedPoints.Last(1).Transform.GetLocation();
 			OEBox += ExtrudedPoints.Last().Transform.GetLocation();
-			OEBox = OEBox.ExpandBy(Settings->SelfPathIntersections.ToleranceSquared + 1);
+			OEBox = OEBox.ExpandBy(Context->SelfPathIntersections.ToleranceSquared + 1);
 			SegmentBounds.Add(OEBox);
 		}
 	}
@@ -384,6 +405,61 @@ namespace PCGExExtrudeTensors
 		return NewExtrusion;
 	}
 
+	void FProcessor::SortQueue()
+	{
+		switch (Settings->SelfIntersectionMode)
+		{
+		case EPCGExSelfIntersectionMode::StopLongest:
+			if (Sorter)
+			{
+				ExtrusionQueue.Sort(
+					[S = Sorter](const TSharedPtr<FExtrusion>& EA, const TSharedPtr<FExtrusion>& EB)
+					{
+						if (EA->Metrics.Length == EB->Metrics.Length) { return S->Sort(EA->SeedIndex, EB->SeedIndex); }
+						return EA->Metrics.Length > EB->Metrics.Length;
+					});
+			}
+			else
+			{
+				ExtrusionQueue.Sort(
+					[S = Sorter](const TSharedPtr<FExtrusion>& EA, const TSharedPtr<FExtrusion>& EB)
+					{
+						return EA->Metrics.Length > EB->Metrics.Length;
+					});
+			}
+			break;
+		case EPCGExSelfIntersectionMode::StopShortest:
+			if (Sorter)
+			{
+				ExtrusionQueue.Sort(
+					[S = Sorter](const TSharedPtr<FExtrusion>& EA, const TSharedPtr<FExtrusion>& EB)
+					{
+						if (EA->Metrics.Length == EB->Metrics.Length) { return S->Sort(EA->SeedIndex, EB->SeedIndex); }
+						return EA->Metrics.Length < EB->Metrics.Length;
+					});
+			}
+			else
+			{
+				ExtrusionQueue.Sort(
+					[S = Sorter](const TSharedPtr<FExtrusion>& EA, const TSharedPtr<FExtrusion>& EB)
+					{
+						return EA->Metrics.Length < EB->Metrics.Length;
+					});
+			}
+			break;
+		case EPCGExSelfIntersectionMode::SortingOnly:
+			if (Sorter)
+			{
+				ExtrusionQueue.Sort(
+					[S = Sorter](const TSharedPtr<FExtrusion>& EA, const TSharedPtr<FExtrusion>& EB)
+					{
+						return S->Sort(EA->SeedIndex, EB->SeedIndex);
+					});
+			}
+			break;
+		}
+	}
+
 	void FProcessor::PrepareLoopScopesForRanges(const TArray<PCGExMT::FScope>& Loops)
 	{
 		CompletedExtrusions = MakeShared<PCGExMT::TScopedArray<TSharedPtr<FExtrusion>>>(Loops);
@@ -433,58 +509,7 @@ namespace PCGExExtrudeTensors
 
 			FVector C = FVector::ZeroVector;
 
-			switch (Settings->SelfIntersectionMode)
-			{
-			case EPCGExSelfIntersectionMode::StopLongest:
-				if (Sorter)
-				{
-					ExtrusionQueue.Sort(
-						[S = Sorter](const TSharedPtr<FExtrusion>& EA, const TSharedPtr<FExtrusion>& EB)
-						{
-							if (EA->Metrics.Length == EB->Metrics.Length) { return S->Sort(EA->SeedIndex, EB->SeedIndex); }
-							return EA->Metrics.Length > EB->Metrics.Length;
-						});
-				}
-				else
-				{
-					ExtrusionQueue.Sort(
-						[S = Sorter](const TSharedPtr<FExtrusion>& EA, const TSharedPtr<FExtrusion>& EB)
-						{
-							return EA->Metrics.Length > EB->Metrics.Length;
-						});
-				}
-				break;
-			case EPCGExSelfIntersectionMode::StopShortest:
-				if (Sorter)
-				{
-					ExtrusionQueue.Sort(
-						[S = Sorter](const TSharedPtr<FExtrusion>& EA, const TSharedPtr<FExtrusion>& EB)
-						{
-							if (EA->Metrics.Length == EB->Metrics.Length) { return S->Sort(EA->SeedIndex, EB->SeedIndex); }
-							return EA->Metrics.Length < EB->Metrics.Length;
-						});
-				}
-				else
-				{
-					ExtrusionQueue.Sort(
-						[S = Sorter](const TSharedPtr<FExtrusion>& EA, const TSharedPtr<FExtrusion>& EB)
-						{
-							return EA->Metrics.Length < EB->Metrics.Length;
-						});
-				}
-				break;
-			case EPCGExSelfIntersectionMode::SortingOnly:
-				if (Sorter)
-				{
-					ExtrusionQueue.Sort(
-						[S = Sorter](const TSharedPtr<FExtrusion>& EA, const TSharedPtr<FExtrusion>& EB)
-						{
-							return S->Sort(EA->SeedIndex, EB->SeedIndex);
-						});
-				}
-				break;
-			}
-
+			SortQueue();
 
 			for (int i = 0; i < NumQueuedExtrusions; i++)
 			{
@@ -492,7 +517,7 @@ namespace PCGExExtrudeTensors
 
 				if (E->bAdvancedOnly || !E->bIsExtruding) { continue; }
 
-				const FBox& EdgeBox = E->GetHeadEdge(A1, B1);
+				const FBox& EdgeBox = E->GetHeadEdge(A1, B1).ExpandBy(Context->ExternalPathIntersections.Tolerance);
 				PCGExMath::FClosestLocation SolidCut(A1);
 
 				for (int j = 0; j < ExtrusionQueue.Num(); j++)
@@ -505,10 +530,20 @@ namespace PCGExExtrudeTensors
 					bool bIsLastSegment = false;
 					if (OE->FindClosestSolidIntersection(EdgeBox, OE->ExtrusionDirection, A1, B1, C, bIsLastSegment))
 					{
-						if (bIsLastSegment && j > i)
+						SolidCut.Push(C, j);
+						
+						if (bIsLastSegment)
 						{
-							// TODO : Need to test for collision with latest separately to handle spiral-y cases
-							// Will eventually be cut by this later on.
+							if (j > i)
+							{
+								// TODO : Need to test for collision with latest separately to handle spiral-y cases
+								// Will eventually be cut by this later on.	
+							}
+							else if(C != B1 && !Terminated[j])
+							{
+								// Make sure we're not intersecting with a fresh cutoff
+								SolidCut.Push(C, j);
+							}
 						}
 						else
 						{
@@ -560,7 +595,7 @@ namespace PCGExExtrudeTensors
 					for (const TSharedPtr<FExtrusion>& E : Completed)
 					{
 						E->Cleanup();
-						TSharedPtr<PCGExPaths::FPath> StaticPath = PCGExPaths::MakePath(E->GetExtrudedPoints(), Settings->ExternalPathIntersections.ToleranceSquared, false);
+						TSharedPtr<PCGExPaths::FPath> StaticPath = PCGExPaths::MakePath(E->GetExtrudedPoints(), Settings->ExternalPathIntersections.Tolerance, false);
 						StaticPath->BuildEdgeOctree();
 						StaticPaths.Get()->Add(StaticPath);
 					}
@@ -667,7 +702,7 @@ namespace PCGExExtrudeTensors
 				{
 					TSharedPtr<PCGExPaths::FPath> Path = PCGExPaths::MakePath(
 						Facade->GetIn()->GetPoints(),
-						Settings->ExternalPathIntersections.ToleranceSquared,
+						Settings->ExternalPathIntersections.Tolerance,
 						Context->ClosedLoop.IsClosedLoop(Facade->Source));
 
 					Context->ExternalPaths.Add(Path);
