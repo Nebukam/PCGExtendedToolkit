@@ -177,6 +177,7 @@ class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExVtxPropertyAmplitudeFactory : public UPCG
 public:
 	FPCGExAmplitudeConfig Config;
 	virtual UPCGExVtxPropertyOperation* CreateOperation(FPCGExContext* InContext) const override;
+	virtual void RegisterBuffersDependencies(FPCGExContext* InContext, PCGExData::FFacadePreloader& FacadePreloader) const override;
 };
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|VtxProperty")

@@ -42,6 +42,17 @@ bool UPCGExVtxPropertyAmplitude::PrepareForCluster(const FPCGExContext* InContex
 		return false;
 	}
 
+	if (Config.bWriteAmplitudeSign && Config.UpMode == EPCGExVtxAmplitudeUpMode::UpVector && Config.UpSelection == EPCGExInputValueType::Attribute)
+	{
+		DirCache = InVtxDataFacade->GetBroadcaster<FVector>(Config.UpSource);
+		if (!DirCache)
+		{
+			PCGE_LOG_C(Error, GraphAndLog, InContext, FText::Format(FTEXT("Missing required '{0}' attribute on vtx."), FText::FromName(Config.UpSource.GetName())));
+			bIsValidOperation = false;
+			return false;
+		}
+	}
+
 	if (Config.bWriteMinAmplitude)
 	{
 		if (Config.MinMode == EPCGExVtxAmplitudeMode::Length)
@@ -193,6 +204,15 @@ UPCGExVtxPropertyOperation* UPCGExVtxPropertyAmplitudeFactory::CreateOperation(F
 	UPCGExVtxPropertyAmplitude* NewOperation = InContext->ManagedObjects->New<UPCGExVtxPropertyAmplitude>();
 	PCGEX_VTX_EXTRA_CREATE
 	return NewOperation;
+}
+
+void UPCGExVtxPropertyAmplitudeFactory::RegisterBuffersDependencies(FPCGExContext* InContext, PCGExData::FFacadePreloader& FacadePreloader) const
+{
+	Super::RegisterBuffersDependencies(InContext, FacadePreloader);
+	if (Config.bWriteAmplitudeSign && Config.UpMode == EPCGExVtxAmplitudeUpMode::UpVector && Config.UpSelection == EPCGExInputValueType::Attribute)
+	{
+		FacadePreloader.Register<FVector>(InContext, Config.UpSource);
+	}
 }
 
 TArray<FPCGPinProperties> UPCGExVtxPropertyAmplitudeSettings::InputPinProperties() const
