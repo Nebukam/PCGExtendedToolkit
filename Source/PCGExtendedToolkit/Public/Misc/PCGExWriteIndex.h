@@ -33,21 +33,20 @@ public:
 	/** Whether to write the index of the point on the point. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, InlineEditConditionToggle))
 	bool bOutputPointIndex = true;
-	
+
 	/** The name of the attribute to write its index to.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bOutputPointIndex"))
 	FName OutputAttributeName = "CurrentIndex";
-	
+
 	/** Whether to write the index as a normalized output value */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName=" └─ Normalized", EditCondition="bOutputPointIndex", HideEditConditionToggle))
 	bool bOutputNormalizedIndex = false;
 
 
-	
 	/** Whether to output the collection index. .*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, InlineEditConditionToggle))
 	bool bOutputCollectionIndex = false;
-	
+
 	/** The name of the attribute/tag to write the collection index to.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Collection Index", EditCondition="bOutputCollectionIndex"))
 	FName CollectionIndexAttributeName = "CollectionIndex";
@@ -60,12 +59,11 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName=" └─ Output to tags", EditCondition="bOutputCollectionIndex", HideEditConditionToggle))
 	bool bOutputCollectionIndexToTags = true;
 
-	
 
 	/** Whether to output the collection number of entries .*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, InlineEditConditionToggle))
 	bool bOutputCollectionNumEntries = false;
-	
+
 	/** The name of the attribute/tag to write the collection num entries to.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Num Entries", EditCondition="bOutputCollectionNumEntries"))
 	FName NumEntriesAttributeName = "NumEntries";
@@ -77,16 +75,16 @@ public:
 	/** If enabled, output the collection num entries to the points */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName=" │ └─ Normalized", EditCondition="bOutputCollectionNumEntries && bOutputNumEntriesToPoints", HideEditConditionToggle))
 	bool bOutputNormalizedNumEntriesToPoints = false;
-	
+
 	/** If enabled, output the collection num entries as a tag */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName=" └─ Output to tags", EditCondition="bOutputCollectionNumEntries", HideEditConditionToggle))
 	bool bOutputNumEntriesToTags = true;
-	
+
 	/** If enabled, output the normalized collection num entries to the points */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="   └─ Normalized", EditCondition="bOutputCollectionNumEntries && bOutputNumEntriesToTags", HideEditConditionToggle))
 	bool bOutputNormalizedNumEntriesToTags = false;
-	
-	
+
+
 	/** Whether the created attributes allows interpolation or not.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	bool bAllowInterpolation = true;

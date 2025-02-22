@@ -62,7 +62,7 @@ public:
 	/** */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	EPCGExStatsOutputToPoints OutputToPoints = EPCGExStatsOutputToPoints::None;
-	
+
 	/** Output to tags */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	EPCGExStatsOutputToPoints OutputToTags = EPCGExStatsOutputToPoints::None;
@@ -154,7 +154,7 @@ public:
 	/** */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta = (PCG_Overridable, DisplayName = "Different Set Values Num", EditCondition="bOutputDifferentSetValuesNum"))
 	FName DifferentSetValuesNumAttributeName = FName(TEXT("DifferentSetValues"));
-	
+
 	/** */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta = (PCG_Overridable, InlineEditConditionToggle))
 	bool bOutputDefaultValuesNum = true;
@@ -311,7 +311,7 @@ namespace PCGExAttributeStats
 
 			FString StrName = Identity.Name.ToString();
 			UPCGMetadata* PointsMetadata = nullptr;
-			
+
 			if (Settings->OutputToPoints != EPCGExStatsOutputToPoints::None) { PointsMetadata = InDataFacade->GetOut()->Metadata; }
 
 #define PCGEX_OUTPUT_STAT(_NAME, _TYPE, _VALUE) \

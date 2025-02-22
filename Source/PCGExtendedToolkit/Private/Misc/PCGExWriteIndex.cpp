@@ -136,7 +136,7 @@ namespace PCGExWriteIndex
 			}
 		}
 
-		if(Settings->bOutputPointIndex)
+		if (Settings->bOutputPointIndex)
 		{
 			if (Settings->bOutputNormalizedIndex)
 			{

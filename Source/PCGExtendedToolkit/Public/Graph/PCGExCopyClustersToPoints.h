@@ -51,11 +51,11 @@ public:
 	/** */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, InlineEditConditionToggle))
 	bool bDoMatchByTags = false;
-	
+
 	/** Which cluster component must match the tags */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bDoMatchByTags"))
 	EPCGExClusterComponentTagMatchMode MatchMode = EPCGExClusterComponentTagMatchMode::Vtx;
-	
+
 	/** Use tag to filter which cluster gets copied to which target point. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bDoMatchByTags", HideEditConditionToggle))
 	FPCGExAttributeToTagComparisonDetails MatchByTagValue;
@@ -100,12 +100,11 @@ namespace PCGExCopyClusters
 {
 	class FProcessor final : public PCGExClusterMT::TProcessor<FPCGExCopyClustersToPointsContext, UPCGExCopyClustersToPointsSettings>
 	{
-
 		friend class FBatch;
-		
+
 	protected:
 		int32 NumCopies = 0;
-		
+
 	public:
 		TArray<TSharedPtr<PCGExData::FPointIO>>* VtxDupes = nullptr;
 		TArray<PCGExTags::IDType>* VtxTag = nullptr;
@@ -129,7 +128,7 @@ namespace PCGExCopyClusters
 
 	protected:
 		int32 NumCopies = 0;
-		
+
 	public:
 		TArray<TSharedPtr<PCGExData::FPointIO>> VtxDupes;
 		TArray<PCGExTags::IDType> VtxTag;

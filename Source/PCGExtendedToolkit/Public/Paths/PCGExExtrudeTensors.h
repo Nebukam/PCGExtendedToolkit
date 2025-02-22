@@ -539,9 +539,9 @@ namespace PCGExExtrudeTensors
 			}
 
 			if (FindClosestIntersection(
-					*StaticPaths.Get(), Context->SelfPathIntersections,
-					StartPt, InPoint.Transform.GetLocation(),
-					PathIndex, SegmentIndex, Intersection))
+				*StaticPaths.Get(), Context->SelfPathIntersections,
+				StartPt, InPoint.Transform.GetLocation(),
+				PathIndex, SegmentIndex, Intersection))
 			{
 				bHitIntersection = true;
 				bHitSelfIntersection = true;

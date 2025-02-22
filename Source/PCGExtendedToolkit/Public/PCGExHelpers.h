@@ -419,7 +419,7 @@ namespace PCGEx
 			return -1;
 		}
 	}
-	
+
 	template <typename T>
 	constexpr static EPCGMetadataTypes GetMetadataType()
 	{

@@ -193,7 +193,6 @@ namespace PCGExSplineToPath
 
 			int32 PtType = -1;
 
-
 			PCGEX_OUTPUT_VALUE(LengthAtPoint, i, LengthAtPoint);
 			PCGEX_OUTPUT_VALUE(Alpha, i, LengthAtPoint / TotalLength);
 			PCGEX_OUTPUT_VALUE(ArriveTangent, i, SplineTransform.TransformVector(Spline.SplineCurves.Position.Points[i].ArriveTangent));

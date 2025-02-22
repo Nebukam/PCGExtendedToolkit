@@ -99,7 +99,7 @@ namespace PCGExGraph
 			FWriteScopeLock WriteScopeLock(UnionLock);
 
 			PCGExMath::FClosestLocation ClosestNode(Origin);
-			
+
 			if (FuseDetails.bComponentWiseTolerance)
 			{
 				Octree->FindElementsWithBoundsTest(
