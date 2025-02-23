@@ -95,7 +95,7 @@ namespace PCGExWriteEdgeProperties
 #define PCGEX_CREATE_LOCAL_AXIS_GETTER(_AXIS)\
 			if (Settings->bWriteRadius##_AXIS && Settings->Radius##_AXIS##Input == EPCGExInputValueType::Attribute){\
 				SolidificationRad##_AXIS = Settings->Radius##_AXIS##Source == EPCGExClusterComponentSource::Edge ? EdgeDataFacade->GetBroadcaster<double>(Settings->Radius##_AXIS##SourceAttribute) : VtxDataFacade->GetBroadcaster<double>(Settings->Radius##_AXIS##SourceAttribute);\
-				if (!SolidificationRad##_AXIS){ PCGE_LOG_C(Warning, GraphAndLog, Context, FText::Format(FTEXT("Some edges don't have the specified Radius Attribute \"{0}\"."), FText::FromName(Settings->Radius##_AXIS##SourceAttribute.GetName()))); return false; }}
+				if (!SolidificationRad##_AXIS){ PCGEX_LOG_INVALID_SELECTOR_C(Context, ""#_AXIS"", Settings->Radius##_AXIS##SourceAttribute) return false; }}
 			PCGEX_FOREACH_XYZ(PCGEX_CREATE_LOCAL_AXIS_GETTER)
 #undef PCGEX_CREATE_LOCAL_AXIS_GETTER
 
@@ -104,7 +104,7 @@ namespace PCGExWriteEdgeProperties
 				SolidificationLerpGetter = EdgeDataFacade->GetBroadcaster<double>(Settings->SolidificationLerpAttribute);
 				if (!SolidificationLerpGetter)
 				{
-					PCGE_LOG_C(Warning, GraphAndLog, ExecutionContext, FText::Format(FTEXT("Some edges don't have the specified SolidificationEdgeLerp Attribute \"{0}\"."), FText::FromName(Settings->SolidificationLerpAttribute.GetName())));
+					PCGEX_LOG_INVALID_SELECTOR_C(ExecutionContext, "SolidificationEdgeLerp", Settings->SolidificationLerpAttribute)
 					return false;
 				}
 			}

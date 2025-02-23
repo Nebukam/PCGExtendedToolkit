@@ -44,7 +44,7 @@ bool PCGExPointFilter::FGameplayTagsFilter::Init(FPCGExContext* InContext, const
 
 	if (!ActorReferences)
 	{
-		PCGE_LOG_C(Error, GraphAndLog, InContext, FText::Format(FTEXT("Invalid ActorReferences attribute: \"{0}\"."), FText::FromName(TypedFilterFactory->Config.ActorReference)));
+		PCGEX_LOG_INVALID_ATTR_C(InContext, "Actor Reference", TypedFilterFactory->Config.ActorReference)
 		return false;
 	}
 

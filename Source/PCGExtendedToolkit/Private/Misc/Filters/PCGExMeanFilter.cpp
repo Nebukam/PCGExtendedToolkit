@@ -36,7 +36,7 @@ bool PCGExPointFilter::FMeanFilter::Init(FPCGExContext* InContext, const TShared
 
 	if (!Target)
 	{
-		PCGE_LOG_C(Error, GraphAndLog, InContext, FText::Format(FTEXT("Invalid Target attribute: \"{0}\"."), FText::FromName(TypedFilterFactory->Config.Target.GetName())));
+		PCGEX_LOG_INVALID_SELECTOR_C(InContext, "Target", TypedFilterFactory->Config.Target)
 		return false;
 	}
 

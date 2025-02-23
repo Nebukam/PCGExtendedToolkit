@@ -37,7 +37,7 @@ bool UPCGExGoalPickerAttribute::PrepareForData(FPCGExContext* InContext, const T
 
 		if (!SingleGetter)
 		{
-			PCGE_LOG_C(Error, GraphAndLog, Context, FText::Format(FTEXT("Invalid Index selector on Seeds: \"{0}\"."), FText::FromString(PCGEx::GetSelectorDisplayName(SingleSelector))));
+			PCGEX_LOG_INVALID_SELECTOR_C(InContext, "Index (Seeds)", SingleSelector)
 			return false;
 		}
 	}
@@ -60,7 +60,7 @@ bool UPCGExGoalPickerAttribute::PrepareForData(FPCGExContext* InContext, const T
 			TSharedPtr<PCGExData::TBuffer<int32>> Getter = InSeedsDataFacade->GetBroadcaster<int32>(Selector);
 			if (!Getter)
 			{
-				PCGE_LOG_C(Error, GraphAndLog, Context, FText::Format(FTEXT("Invalid Index selector on Seeds: \"{0}\"."), FText::FromString(PCGEx::GetSelectorDisplayName(Selector))));
+				PCGEX_LOG_INVALID_SELECTOR_C(InContext, "Index (Seeds)", SingleSelector)
 				return false;
 			}
 

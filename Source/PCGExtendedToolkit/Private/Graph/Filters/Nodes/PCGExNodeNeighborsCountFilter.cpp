@@ -32,7 +32,7 @@ namespace PCGExNodeNeighborsCount
 
 			if (!LocalCount)
 			{
-				PCGE_LOG_C(Error, GraphAndLog, InContext, FText::Format(FTEXT("Invalid LocalCount attribute: \"{0}\"."), FText::FromName(TypedFilterFactory->Config.LocalCount.GetName())));
+				PCGEX_LOG_INVALID_SELECTOR_C(InContext, "Local Count", TypedFilterFactory->Config.LocalCount)
 				return false;
 			}
 		}

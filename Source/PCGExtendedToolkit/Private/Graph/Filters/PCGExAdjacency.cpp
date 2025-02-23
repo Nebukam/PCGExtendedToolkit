@@ -16,7 +16,7 @@ bool FPCGExAdjacencySettings::Init(const FPCGContext* InContext, const TSharedRe
 		LocalThreshold = InPrimaryDataFacade->GetBroadcaster<double>(ThresholdAttribute);
 		if (!LocalThreshold)
 		{
-			PCGE_LOG_C(Error, GraphAndLog, InContext, FText::Format(FTEXT("Invalid Threshold attribute: \"{0}\"."), FText::FromName(ThresholdAttribute.GetName())));
+			PCGEX_LOG_INVALID_SELECTOR_C(InContext, "Local Threshold", ThresholdAttribute)
 			return false;
 		}
 	}

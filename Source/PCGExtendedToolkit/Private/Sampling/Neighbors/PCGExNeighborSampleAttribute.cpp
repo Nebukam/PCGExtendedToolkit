@@ -147,7 +147,7 @@ void UPCGExNeighborSamplerFactoryAttribute::RegisterVtxBuffersDependencies(FPCGE
 			const PCGEx::FAttributeIdentity* Identity = Infos->Find(AttrName);
 			if (!Identity)
 			{
-				PCGE_LOG_C(Error, GraphAndLog, InContext, FText::Format(FTEXT("Missing attribute: \"{0}\"."), FText::FromName(AttrName)));
+				PCGEX_LOG_INVALID_ATTR_C(InContext, "", AttrName)
 				return;
 			}
 			FacadePreloader.Register(InContext, *Identity);

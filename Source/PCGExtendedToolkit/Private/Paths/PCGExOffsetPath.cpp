@@ -98,7 +98,7 @@ namespace PCGExOffsetPath
 			OffsetGetter = PointDataFacade->GetScopedBroadcaster<double>(Settings->OffsetAttribute);
 			if (!OffsetGetter)
 			{
-				PCGE_LOG_C(Error, GraphAndLog, ExecutionContext, FText::Format(FTEXT("Input missing offset size attribute: \"{0}\"."), FText::FromName(Settings->OffsetAttribute.GetName())));
+				PCGEX_LOG_INVALID_SELECTOR_C(ExecutionContext, "Offset", Settings->OffsetAttribute)
 				return false;
 			}
 		}
@@ -108,7 +108,7 @@ namespace PCGExOffsetPath
 			DirectionGetter = PointDataFacade->GetScopedBroadcaster<FVector>(Settings->DirectionAttribute);
 			if (!DirectionGetter)
 			{
-				PCGE_LOG_C(Error, GraphAndLog, ExecutionContext, FText::Format(FTEXT("Input missing UpVector attribute: \"{0}\"."), FText::FromName(Settings->DirectionAttribute.GetName())));
+				PCGEX_LOG_INVALID_SELECTOR_C(ExecutionContext, "Direction", Settings->DirectionAttribute)
 				return false;
 			}
 		}

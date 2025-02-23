@@ -43,7 +43,7 @@ bool FPCGExSampleTextureElement::Boot(FPCGExContext* InContext) const
 		bool bAlreadySet = false;
 		if (Factory->Config.OutputType == EPCGExTexSampleAttributeType::Invalid)
 		{
-			PCGE_LOG_C(Warning, GraphAndLog, Context, FText::Format(FTEXT("A Texture Config with sample name \"{0}\" has invalid sample settings and will be ignored."), FText::FromName(Factory->Config.SampleAttributeName)));
+			PCGEX_LOG_INVALID_ATTR_C(InContext, "Sample Name (Texture Params)", Factory->Config.SampleAttributeName)
 			continue;
 		}
 
@@ -109,7 +109,7 @@ namespace PCGExSampleTexture
 
 		if (!UVGetter)
 		{
-			PCGE_LOG_C(Error, GraphAndLog, Context, FText::Format(FTEXT("UV attribute : \"{0}\" does not exists."), FText::FromName(Settings->UVSource.GetName())));
+			PCGEX_LOG_INVALID_SELECTOR_C(Context, "UV Attribute", Settings->UVSource)
 			return false;
 		}
 
@@ -125,7 +125,7 @@ namespace PCGExSampleTexture
 					TSharedPtr<TSampler<T>> Sampler = MakeShared<TSampler<T>>(Factory->Config, Context->TextureMap, PointDataFacade);
 					if (!Sampler->IsValid())
 					{
-						PCGE_LOG_C(Warning, GraphAndLog, Context, FText::Format(FTEXT("Some inputs are missing the ID attribute : \"{0}\"."), FText::FromName(Factory->Config.TextureIDAttributeName)));
+						PCGEX_LOG_INVALID_ATTR_C(Context, "ID", Factory->Config.TextureIDAttributeName)
 						return;
 					}
 
