@@ -150,11 +150,11 @@ public:
 
 	/** How to order intersection checks. Sorting is using seeds input attributes. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Intersections (Self)", meta=(PCG_Overridable, EditCondition="bDoSelfPathIntersections"))
-	EPCGExSelfIntersectionMode SelfIntersectionMode = EPCGExSelfIntersectionMode::SortingOnly;
+	EPCGExSelfIntersectionMode SelfIntersectionMode = EPCGExSelfIntersectionMode::PathLength;
 
 	/** Controls the order in which paths extrusion will be stopped when intersecting, if shortest/longest path fails. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Intersections (Self)", meta = (PCG_Overridable, EditCondition="bDoSelfPathIntersections"))
-	EPCGExSortDirection SortDirection = EPCGExSortDirection::Ascending;
+	EPCGExSortDirection SortDirection = EPCGExSortDirection::Descending;
 
 	/** Intersection settings for extruding path intersections */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Intersections (Self)", meta=(PCG_Overridable, EditCondition="bDoSelfPathIntersections"))
@@ -165,8 +165,12 @@ public:
 	bool bMergeOnProximity = false;
 
 	/** Whether to test for intersection between actively extruding paths */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Intersections (Self)", meta=(PCG_Overridable, DisplayName=" └─ Threshold", EditCondition="bDoSelfPathIntersections && bMergeOnProximity"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Intersections (Self)", meta=(PCG_Overridable, DisplayName=" ├─ Threshold", EditCondition="bDoSelfPathIntersections && bMergeOnProximity"))
 	double ProximityMergeThreshold = 10;
+
+	/** Which end of the extruded segment should be favored. 0 = start, 1 = end. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Intersections (Self)", meta=(PCG_Overridable, DisplayName=" └─ Balance", EditCondition="bDoSelfPathIntersections && bMergeOnProximity", ClampMin = 0, ClampMax =1))
+	double ProximitySegmentBalance = 1;
 
 	/** Whether the node should attempt to close loops based on angle and proximity */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Intersections (Self)|Closing Loops", meta=(PCG_NotOverridable))
@@ -215,6 +219,14 @@ public:
 	/** ... */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging & Forwarding", meta=(EditCondition="bTagIfIsStoppedBySelfIntersection"))
 	FString IsStoppedBySelfIntersectionTag = TEXT("SelfCrossed");
+
+	/** */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging & Forwarding", meta=(InlineEditConditionToggle))
+	bool bTagIfSelfMerged = false;
+
+	/** ... */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging & Forwarding", meta=(EditCondition="bTagIfSelfMerged"))
+	FString IsSelfMergedTag = TEXT("SelfMerged");
 
 	/** */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging & Forwarding", meta=(InlineEditConditionToggle))
@@ -330,6 +342,7 @@ namespace PCGExExtrudeTensors
 		bool bHitStopFilters = false;
 		bool bHitIntersection = false;
 		bool bHitSelfIntersection = false;
+		bool bIsSelfMerged = false;
 
 		bool bIsProbe = false;
 		bool bIsChildExtrusion = false;
@@ -372,7 +385,7 @@ namespace PCGExExtrudeTensors
 		void CutOff(const FVector& InCutOff);
 		void Shorten(const FVector& InCutOff);
 
-		PCGExMath::FClosestPosition FindCrossing(const PCGExMath::FSegment& InSegment, bool& OutIsLastSegment, PCGExMath::FClosestPosition& OutClosestPosition) const;
+		PCGExMath::FClosestPosition FindCrossing(const PCGExMath::FSegment& InSegment, bool& OutIsLastSegment, PCGExMath::FClosestPosition& OutClosestPosition, const int32 TruncateSearch = 0) const;
 
 		void Cleanup();
 
@@ -543,7 +556,7 @@ namespace PCGExExtrudeTensors
 				}
 			}
 
-			PCGExMath::FClosestPosition Merge(Segment.B);
+			PCGExMath::FClosestPosition Merge(Segment.Lerp(Settings->ProximitySegmentBalance));
 
 			Intersection = FindClosestIntersection<PCGExMath::EIntersectionTestMode::Strict>(
 				*SolidPaths.Get(), Context->ExternalPathIntersections,
@@ -565,6 +578,7 @@ namespace PCGExExtrudeTensors
 			{
 				bHitIntersection = true;
 				bHitSelfIntersection = true;
+				bIsSelfMerged = true;
 
 				InPoint.Transform.SetLocation(Merge);
 				Insert(InPoint);

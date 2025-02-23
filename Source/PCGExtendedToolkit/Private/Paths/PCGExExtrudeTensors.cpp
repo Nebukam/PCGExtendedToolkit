@@ -154,9 +154,11 @@ namespace PCGExExtrudeTensors
 			// TODO : Grab data from intersection
 			if (Settings->bTagIfIsStoppedByIntersection) { PointDataFacade->Source->Tags->AddRaw(Settings->IsStoppedByIntersectionTag); }
 			if (Settings->bTagIfIsStoppedBySelfIntersection && bHitSelfIntersection) { PointDataFacade->Source->Tags->AddRaw(Settings->IsStoppedBySelfIntersectionTag); }
+			if (Settings->bTagIfSelfMerged && bIsSelfMerged) { PointDataFacade->Source->Tags->AddRaw(Settings->IsSelfMergedTag); }
 		}
 		if (Settings->bTagIfChildExtrusion && bIsChildExtrusion) { PointDataFacade->Source->Tags->AddRaw(Settings->IsChildExtrusionTag); }
 		if (Settings->bTagIfIsFollowUp && bIsFollowUp) { PointDataFacade->Source->Tags->AddRaw(Settings->IsFollowUpTag); }
+
 
 		PointDataFacade->Source->GetOutKeys(true);
 	}
@@ -199,14 +201,19 @@ namespace PCGExExtrudeTensors
 		}
 	}
 
-	PCGExMath::FClosestPosition FExtrusion::FindCrossing(const PCGExMath::FSegment& InSegment, bool& OutIsLastSegment, PCGExMath::FClosestPosition& OutClosestPosition) const
+	PCGExMath::FClosestPosition FExtrusion::FindCrossing(const PCGExMath::FSegment& InSegment, bool& OutIsLastSegment, PCGExMath::FClosestPosition& OutClosestPosition, const int32 TruncateSearch) const
 	{
 		if (!Bounds.Intersect(InSegment.Bounds)) { return PCGExMath::FClosestPosition(); }
+
+		const int32 MaxSearches = SegmentBounds.Num() - TruncateSearch;
+
+		if (MaxSearches <= 0) { return PCGExMath::FClosestPosition(); }
 
 		PCGExMath::FClosestPosition Crossing(InSegment.A);
 
 		const int32 LastSegment = SegmentBounds.Num() - 1;
-		for (int i = 0; i < SegmentBounds.Num(); i++)
+
+		for (int i = 0; i < MaxSearches; i++)
 		{
 			if (!SegmentBounds[i].Intersect(InSegment.Bounds)) { continue; }
 
@@ -499,8 +506,8 @@ namespace PCGExExtrudeTensors
 		if (Settings->bDoSelfPathIntersections)
 		{
 			const int32 NumQueuedExtrusions = ExtrusionQueue.Num();
-			TBitArray<> Terminated;
-			Terminated.Init(false, NumQueuedExtrusions);
+			TBitArray<> Merged;
+			Merged.Init(false, NumQueuedExtrusions);
 
 			SortQueue();
 
@@ -512,21 +519,20 @@ namespace PCGExExtrudeTensors
 
 				const PCGExMath::FSegment HeadSegment = E->GetHeadSegment();
 				PCGExMath::FClosestPosition Crossing(HeadSegment.A);
-				PCGExMath::FClosestPosition Merge(HeadSegment.B);
-				PCGExMath::FClosestPosition Dummy(HeadSegment.B);
+				PCGExMath::FClosestPosition Merge(HeadSegment.Lerp(Settings->ProximitySegmentBalance));
+				PCGExMath::FClosestPosition PreMerge(Merge.Origin);
 
 				for (int j = 0; j < ExtrusionQueue.Num(); j++)
 				{
-					if (i == j) { continue; }
-
 					const TSharedPtr<FExtrusion> OE = ExtrusionQueue[j];
 					if (!OE->bIsExtruding) { continue; }
 					if (!OE->Bounds.Intersect(HeadSegment.Bounds)) { continue; }
 
+					const int32 TruncateSearch = i == j ? 2 : 0;
 					bool bIsLastSegment = false;
 					if (j > i)
 					{
-						if (PCGExMath::FClosestPosition LocalCrossing = OE->FindCrossing(HeadSegment, bIsLastSegment, Dummy))
+						if (PCGExMath::FClosestPosition LocalCrossing = OE->FindCrossing(HeadSegment, bIsLastSegment, PreMerge, TruncateSearch))
 						{
 							if (bIsLastSegment)
 							{
@@ -535,15 +541,31 @@ namespace PCGExExtrudeTensors
 								continue;
 							}
 
-							Merge.Update(Dummy);
+							Merge.Update(PreMerge);
 							Crossing.Update(LocalCrossing, j);
 						}
 					}
 					else
 					{
-						if (PCGExMath::FClosestPosition LocalCrossing = OE->FindCrossing(HeadSegment, bIsLastSegment, Merge))
+						if (PCGExMath::FClosestPosition LocalCrossing = OE->FindCrossing(HeadSegment, bIsLastSegment, PreMerge, TruncateSearch))
 						{
+							if (bIsLastSegment && Merged[j])
+							{
+								// Dodge last merged segment from higher priorities?
+								continue;
+							}
+							
 							Crossing.Update(LocalCrossing, j);
+						}
+						else
+						{
+							if (bIsLastSegment && Merged[j])
+							{
+								// Dodge last merged segment from higher priorities?
+								continue;
+							}
+							
+							Merge.Update(PreMerge);
 						}
 					}
 				}
@@ -552,13 +574,13 @@ namespace PCGExExtrudeTensors
 				{
 					E->CutOff(Crossing);
 					CompletedExtrusions->Values[0]->Add(E);
-					Terminated[i] = true;
 				}
 				else if (Merge.DistSquared < Context->ProximityMergeThreshold)
 				{
+					E->bIsSelfMerged = true;
 					E->CutOff(Merge);
 					CompletedExtrusions->Values[0]->Add(E);
-					Terminated[i] = true;
+					Merged[i] = true;
 				}
 			}
 		}

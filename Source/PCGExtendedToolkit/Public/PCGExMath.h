@@ -90,6 +90,7 @@ namespace PCGExMath
 		FSegment(const FVector& InA, const FVector& InB, const double Expansion = 0);
 
 		double Dot(const FVector& InDirection) const { return FVector::DotProduct(Direction, InDirection); }
+		FVector Lerp(const double InLerp) const { return FMath::Lerp(A, B, InLerp); }
 
 		template <EIntersectionTestMode Mode = EIntersectionTestMode::Strict>
 		bool FindIntersection(const FVector& A2, const FVector& B2, double SquaredTolerance, FVector& OutSelf, FVector& OutOther) const
