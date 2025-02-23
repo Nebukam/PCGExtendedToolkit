@@ -51,17 +51,17 @@ public:
 				const double Score = Heuristics->GetEdgeScore(Current, AdjacentNode, Edge, *RoamingSeedNode, *RoamingGoalNode, nullptr, TravelStack);
 				if (!ScoredQueue->Enqueue(NeighborIndex, Score)) { continue; }
 
-				TravelStack->Set(NeighborIndex, PCGEx::H64(CurrentNodeIndex, EdgeIndex));
+				TravelStack->Set(NeighborIndex, PCGEx::NH64(CurrentNodeIndex, EdgeIndex));
 			}
 		}
 
 		for (int32 i = 0; i < NumNodes; i++)
 		{
-			uint32 Node;
-			uint32 EdgeIndex;
+			int32 Node;
+			int32 EdgeIndex;
 
-			PCGEx::H64(TravelStack->Get(i), Node, EdgeIndex);
-			if (Node == i) { continue; }
+			PCGEx::NH64(TravelStack->Get(i), Node, EdgeIndex);
+			if (Node == -1 || EdgeIndex == -1) { continue; }
 
 			Cluster->GetEdge(EdgeIndex)->bValid = true;
 		}
