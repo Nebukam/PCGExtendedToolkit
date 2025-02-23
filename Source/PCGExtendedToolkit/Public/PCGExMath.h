@@ -40,25 +40,110 @@ enum class EPCGExPointBoundsSource : uint8
 
 namespace PCGExMath
 {
-	struct /*PCGEXTENDEDTOOLKIT_API*/ FClosestLocation
+	enum class EIntersectionTestMode : uint8
+	{
+		Loose = 0,
+		Strict,
+		StrictOnSelfA,
+		StrictOnSelfB,
+		StrictOnOtherA,
+		StrictOnOtherB,
+		LooseOnSelf,
+		LooseOnSelfA,
+		LooseOnSelfB,
+		LooseOnOther,
+		LooseOnOtherA,
+		LooseOnOtherB,
+	};
+
+	struct /*PCGEXTENDEDTOOLKIT_API*/ FClosestPosition
 	{
 		bool bValid = false;
 		int32 Index = -1;
 		FVector Origin = FVector::ZeroVector;
-		FVector ClosestLocation = FVector::ZeroVector;
-		double ClosestDist = MAX_dbl;
+		FVector Location = FVector::ZeroVector;
+		double DistSquared = MAX_dbl;
 
-		explicit FClosestLocation(const FVector& InOrigin);
-		FClosestLocation(const FVector& InOrigin, const FVector& InClosest);
-		FClosestLocation(const FVector& InOrigin, const FVector& InClosest, const int32 InIndex);
+		FClosestPosition() = default;
+		explicit FClosestPosition(const FVector& InOrigin);
+		FClosestPosition(const FVector& InOrigin, const FVector& InLocation);
+		FClosestPosition(const FVector& InOrigin, const FVector& InLocation, const int32 InIndex);
 
-		bool Push(const FVector& Location);
-		bool Push(const FVector& Location, const int32 InIndex);
+		bool Update(const FVector& InLocation);
+		bool Update(const FVector& InLocation, const int32 InIndex);
 
-		friend bool operator<(const FClosestLocation& A, const FClosestLocation& B) { return A.ClosestDist < B.ClosestDist; }
-		friend bool operator>(const FClosestLocation& A, const FClosestLocation& B) { return A.ClosestDist > B.ClosestDist; }
+		friend bool operator<(const FClosestPosition& A, const FClosestPosition& B) { return A.DistSquared < B.DistSquared; }
+		friend bool operator>(const FClosestPosition& A, const FClosestPosition& B) { return A.DistSquared > B.DistSquared; }
 
-		operator FVector() const { return ClosestLocation; }
+		operator FVector() const { return Location; }
+		operator double() const { return DistSquared; }
+		operator bool() const { return bValid; }
+	};
+
+	struct /*PCGEXTENDEDTOOLKIT_API*/ FSegment
+	{
+		FVector A = FVector::ZeroVector;
+		FVector B = FVector::ZeroVector;
+		FVector Direction = FVector::ZeroVector;
+		FBox Bounds = FBox(ForceInit);
+
+		FSegment(const FVector& InA, const FVector& InB, const double Expansion = 0);
+
+		double Dot(const FVector& InDirection) const { return FVector::DotProduct(Direction, InDirection); }
+
+		template <EIntersectionTestMode Mode = EIntersectionTestMode::Strict>
+		bool FindIntersection(const FVector& A2, const FVector& B2, double SquaredTolerance, FVector& OutSelf, FVector& OutOther) const
+		{
+			FMath::SegmentDistToSegment(A, B, A2, B2, OutSelf, OutOther);
+
+			if constexpr (Mode == EIntersectionTestMode::Strict)
+			{
+				if (A == OutSelf || B == OutSelf || A2 == OutOther || B2 == OutOther) { return false; }
+			}
+			else if constexpr (Mode == EIntersectionTestMode::StrictOnSelfA)
+			{
+				if (A == OutSelf) { return false; }
+			}
+			else if constexpr (Mode == EIntersectionTestMode::StrictOnSelfB)
+			{
+				if (B == OutSelf) { return false; }
+			}
+			else if constexpr (Mode == EIntersectionTestMode::StrictOnOtherA)
+			{
+				if (A2 == OutOther) { return false; }
+			}
+			else if constexpr (Mode == EIntersectionTestMode::StrictOnOtherB)
+			{
+				if (B2 == OutOther) { return false; }
+			}
+			else if constexpr (Mode == EIntersectionTestMode::LooseOnSelf)
+			{
+				if (A2 == OutOther || B2 == OutOther) { return false; }
+			}
+			else if constexpr (Mode == EIntersectionTestMode::LooseOnOther)
+			{
+				if (A == OutSelf || B == OutSelf) { return false; }
+			}
+			else if constexpr (Mode == EIntersectionTestMode::LooseOnSelfA)
+			{
+				if (B == OutSelf || A2 == OutOther || B2 == OutOther) { return false; }
+			}
+			else if constexpr (Mode == EIntersectionTestMode::LooseOnSelfB)
+			{
+				if (A == OutSelf || A2 == OutOther || B2 == OutOther) { return false; }
+			}
+			else if constexpr (Mode == EIntersectionTestMode::LooseOnOtherA)
+			{
+				if (A == OutSelf || B == OutSelf || B2 == OutOther) { return false; }
+			}
+			else if constexpr (Mode == EIntersectionTestMode::LooseOnOtherB)
+			{
+				if (A == OutSelf || B == OutSelf || A2 == OutOther) { return false; }
+			}
+
+			if (FVector::DistSquared(OutSelf, OutOther) >= SquaredTolerance) { return false; }
+			return true;
+		}
 	};
 
 	template <EPCGExPointBoundsSource S = EPCGExPointBoundsSource::ScaledBounds>

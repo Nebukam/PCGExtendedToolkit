@@ -38,6 +38,10 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bOutputPointIndex"))
 	FName OutputAttributeName = "CurrentIndex";
 
+	/**  */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName=" ├─ One Minus", EditCondition="bOutputPointIndex", HideEditConditionToggle))
+	bool bOneMinus = false;
+	
 	/** Whether to write the index as a normalized output value */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName=" └─ Normalized", EditCondition="bOutputPointIndex", HideEditConditionToggle))
 	bool bOutputNormalizedIndex = false;
@@ -53,11 +57,11 @@ public:
 
 	/** If enabled, output the collection index to the points */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName=" ├─ Output to points", EditCondition="bOutputCollectionIndex", HideEditConditionToggle))
-	bool bOutputCollectionIndexToPoints = false;
+	bool bOutputCollectionIndexToPoints = true;
 
 	/** If enabled, output the collection index as a tag */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName=" └─ Output to tags", EditCondition="bOutputCollectionIndex", HideEditConditionToggle))
-	bool bOutputCollectionIndexToTags = true;
+	bool bOutputCollectionIndexToTags = false;
 
 
 	/** Whether to output the collection number of entries .*/

@@ -8,6 +8,14 @@
 #define LOCTEXT_NAMESPACE "PCGExPaths"
 #define PCGEX_NAMESPACE PCGExPaths
 
+bool FPCGExPathOutputDetails::Validate(TArray<FPCGPoint>& InPathPoints) const
+{
+	if (InPathPoints.Num() < 2) { return false; }
+	if (bRemoveSmallPaths && InPathPoints.Num() < MinPointCount) { return false; }
+	if (bRemoveLargePaths && InPathPoints.Num() > MaxPointCount) { return false; }
+	return true;
+}
+
 void FPCGExPathClosedLoopDetails::Init()
 {
 	Tags = PCGExHelpers::GetStringArrayFromCommaSeparatedList(CommaSeparatedTags);
@@ -190,57 +198,6 @@ namespace PCGExPaths
 
 	void FPathEdgeExtraBase::ProcessingDone(const FPath* Path)
 	{
-	}
-
-	bool FPath::FindClosestIntersection(
-		const FPCGExPathIntersectionDetails& InDetails,
-		const FVector& A1, const FVector& B1,
-		int32& OutSegmentIndex, FVector& OutIntersection) const
-	{
-		OutSegmentIndex = -1;
-		OutIntersection = FVector::ZeroVector;
-		double BestDistance = MAX_dbl;
-
-		const FVector Dir = (B1 - A1).GetSafeNormal();
-
-		FBox EdgeBox = FBox(ForceInit);
-		EdgeBox += A1;
-		EdgeBox += B1;
-		EdgeBox = EdgeBox.ExpandBy(InDetails.Tolerance);
-
-		if (!Bounds.Intersect(EdgeBox)) { return false; }
-
-		GetEdgeOctree()->FindElementsWithBoundsTest(
-			EdgeBox, [&](const FPathEdge* PathEdge)
-			{
-				if (InDetails.bUseMinAngle || InDetails.bUseMaxAngle)
-				{
-					if (!InDetails.CheckDot(FMath::Abs(FVector::DotProduct(PathEdge->Dir, Dir)))) { return; }
-				}
-
-				const FVector A2 = GetPos_Unsafe(PathEdge->Start);
-				const FVector B2 = GetPos_Unsafe(PathEdge->End);
-				FVector A = FVector::ZeroVector;
-				FVector B = FVector::ZeroVector;
-
-				FMath::SegmentDistToSegment(A1, B1, A2, B2, A, B);
-
-				if (FVector::DistSquared(A, B) >= InDetails.ToleranceSquared) { return; }
-
-				if (OutSegmentIndex == -1)
-				{
-					OutIntersection = B;
-					OutSegmentIndex = PathEdge->Start;
-				}
-				else if (const double Dist = FVector::DistSquared(A1, B); Dist < BestDistance)
-				{
-					OutIntersection = B;
-					OutSegmentIndex = PathEdge->Start;
-					BestDistance = Dist;
-				}
-			});
-
-		return OutSegmentIndex != -1;
 	}
 
 	void FPath::BuildEdgeOctree()
@@ -649,41 +606,6 @@ namespace PCGExPaths
 		PCGEX_MAKE_SHARED(SplineStruct, FPCGSplineStruct)
 		SplineStruct->Initialize(SplinePoints, bClosedLoop, FTransform::Identity);
 		return SplineStruct;
-	}
-
-	bool FindClosestIntersection(
-		const TArray<TSharedPtr<FPath>>& Paths, const FPCGExPathIntersectionDetails& InDetails,
-		const FVector& A1, const FVector& B1,
-		int32& OutPathIndex, int32& OutSegmentIndex, FVector& OutIntersection)
-	{
-		OutPathIndex = -1;
-		OutSegmentIndex = -1;
-		double BestDistance = MAX_dbl;
-
-		for (int i = 0; i < Paths.Num(); i++)
-		{
-			const TSharedPtr<FPath>& Path = Paths[i];
-			FVector Intersection = FVector::ZeroVector;
-			int32 LocalSegmentIndex = -1;
-
-			if (!Path->FindClosestIntersection(InDetails, A1, B1, LocalSegmentIndex, Intersection)) { continue; }
-
-			if (OutSegmentIndex == -1)
-			{
-				OutPathIndex = i;
-				OutIntersection = Intersection;
-				OutSegmentIndex = LocalSegmentIndex;
-			}
-			else if (const double Dist = FVector::DistSquared(A1, Intersection); Dist < BestDistance)
-			{
-				OutPathIndex = i;
-				OutIntersection = Intersection;
-				OutSegmentIndex = LocalSegmentIndex;
-				BestDistance = Dist;
-			}
-		}
-
-		return OutPathIndex != -1;
 	}
 
 #pragma endregion

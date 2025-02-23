@@ -23,9 +23,8 @@
 UENUM()
 enum class EPCGExSelfIntersectionMode : uint8
 {
-	StopLongest  = 0 UMETA(DisplayName = "Stop Longest", Tooltip="Stop the longest path first"),
-	StopShortest = 1 UMETA(DisplayName = "Stop Shortest", Tooltip="Stop the shortest path first"),
-	SortingOnly  = 2 UMETA(DisplayName = "Sorting only", Tooltip="Stop the path based on sorting rules."),
+	PathLength  = 0 UMETA(DisplayName = "Path Length", Tooltip="Sort extrusion by length, and resort to sorting rules in case of equality."),
+	SortingOnly = 1 UMETA(DisplayName = "Sorting only", Tooltip="Only use sorting rules to sort paths."),
 };
 
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc")
@@ -52,15 +51,15 @@ public:
 	//~End UPCGExPointsProcessorSettings
 
 	/**  */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Transforms", meta=(PCG_Overridable))
 	bool bTransformRotation = true;
 
 	/**  */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bTransformRotation"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Transforms", meta=(PCG_Overridable, EditCondition="bTransformRotation"))
 	EPCGExTensorTransformMode Rotation = EPCGExTensorTransformMode::Align;
 
 	/**  */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bTransformRotation && Rotation == EPCGExTensorTransformMode::Align"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Transforms", meta=(PCG_Overridable, EditCondition="bTransformRotation && Rotation == EPCGExTensorTransformMode::Align"))
 	EPCGExAxis AlignAxis = EPCGExAxis::Forward;
 
 	/** */
@@ -78,22 +77,6 @@ public:
 	/** Whether to adjust max iteration based on max value found on points. Use at your own risks! */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Use Max from Points", ClampMin=1, EditCondition="bUsePerPointMaxIterations", HideEditConditionToggle))
 	bool bUseMaxFromPoints = false;
-
-	/** Whether to give a new seed to the points. If disabled, they will inherit the original one. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable))
-	bool bRefreshSeed = true;
-
-	/** Whether the node should attempt to close loops based on angle and proximity */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Closing Loops", meta=(PCG_NotOverridable))
-	bool bDetectClosedLoops = false;
-
-	/** Range at which the first point must be located to check angle */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Closing Loops", meta=(PCG_Overridable, DisplayName=" ├─ Search Distance", EditCondition="bCloseLoops"))
-	double ClosedLoopSearchDistance = 100;
-
-	/** Angle at which the loop will be closed, if within range */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Closing Loops", meta=(PCG_Overridable, DisplayName=" └─ Search Angle", EditCondition="bCloseLoops", Units="Degrees", ClampMin=0, ClampMax=90))
-	double ClosedLoopSearchAngle = 11.25;
 
 	/** Whether to limit the length of the generated path */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Limits", meta=(PCG_NotOverridable))
@@ -177,6 +160,25 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Intersections (Self)", meta=(PCG_Overridable, EditCondition="bDoSelfPathIntersections"))
 	FPCGExPathIntersectionDetails SelfPathIntersections;
 
+	/** Whether to test for intersection between actively extruding paths */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Intersections (Self)", meta=(PCG_Overridable, EditCondition="bDoSelfPathIntersections"))
+	bool bMergeOnProximity = false;
+
+	/** Whether to test for intersection between actively extruding paths */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Intersections (Self)", meta=(PCG_Overridable, DisplayName=" └─ Threshold", EditCondition="bDoSelfPathIntersections && bMergeOnProximity"))
+	double ProximityMergeThreshold = 10;
+
+	/** Whether the node should attempt to close loops based on angle and proximity */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Intersections (Self)|Closing Loops", meta=(PCG_NotOverridable))
+	bool bDetectClosedLoops = false;
+
+	/** Range at which the first point must be located to check angle */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Intersections (Self)|Closing Loops", meta=(PCG_Overridable, DisplayName=" ├─ Search Distance", EditCondition="bCloseLoops"))
+	double ClosedLoopSearchDistance = 100;
+
+	/** Angle at which the loop will be closed, if within range */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Intersections (Self)|Closing Loops", meta=(PCG_Overridable, DisplayName=" └─ Search Angle", EditCondition="bCloseLoops", Units="Degrees", ClampMin=0, ClampMax=90))
+	double ClosedLoopSearchAngle = 11.25;
 
 	/** TBD */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging & Forwarding")
@@ -188,7 +190,7 @@ public:
 
 	/** ... */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging & Forwarding", meta=(EditCondition="bTagIfChildExtrusion"))
-	FString IsChildExtrusionTag = TEXT("ChildExtrusion");
+	FString IsChildExtrusionTag = TEXT("Child");
 
 	/** */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging & Forwarding", meta=(InlineEditConditionToggle))
@@ -204,7 +206,7 @@ public:
 
 	/** ... */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging & Forwarding", meta=(EditCondition="bTagIfIsStoppedByIntersection"))
-	FString IsStoppedByIntersectionTag = TEXT("StoppedByIntersection");
+	FString IsStoppedByIntersectionTag = TEXT("StoppedByPath");
 
 	/** */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging & Forwarding", meta=(InlineEditConditionToggle))
@@ -212,7 +214,7 @@ public:
 
 	/** ... */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging & Forwarding", meta=(EditCondition="bTagIfIsStoppedBySelfIntersection"))
-	FString IsStoppedBySelfIntersectionTag = TEXT("StoppedBySelfIntersection");
+	FString IsStoppedBySelfIntersectionTag = TEXT("SelfCrossed");
 
 	/** */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging & Forwarding", meta=(InlineEditConditionToggle))
@@ -243,6 +245,14 @@ public:
 	FPCGExTensorHandlerDetails TensorHandlerDetails;
 
 
+	/** Whether to give a new seed to the points. If disabled, they will inherit the original one. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_NotOverridable))
+	bool bRefreshSeed = true;
+
+	/** ... */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(DisplayName="Paths Output Settings"))
+	FPCGExPathOutputDetails PathOutputDetails;
+
 	/** */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Warning and Errors", meta=(PCG_NotOverridable, AdvancedDisplay))
 	bool bQuietMissingTensorError = false;
@@ -267,6 +277,8 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExExtrudeTensorsContext final : FPCGExPoin
 
 	double ClosedLoopSquaredDistance = 0;
 	double ClosedLoopSearchDot = 0;
+
+	double ProximityMergeThreshold = 0;
 
 	TArray<TSharedPtr<PCGExData::FFacade>> PathsFacades;
 	TArray<TSharedPtr<PCGExPaths::FPath>> ExternalPaths;
@@ -312,6 +324,7 @@ namespace PCGExExtrudeTensors
 
 		bool bIsExtruding = false;
 		bool bIsComplete = false;
+		bool bIsValidPath = false;
 		bool bIsStopped = false;
 		bool bIsClosedLoop = false;
 		bool bHitStopFilters = false;
@@ -327,14 +340,13 @@ namespace PCGExExtrudeTensors
 		FProcessor* Processor = nullptr;
 		const FPCGExExtrudeTensorsContext* Context = nullptr;
 		const UPCGExExtrudeTensorsSettings* Settings = nullptr;
-		TSharedPtr<TArray<TSharedPtr<PCGExPaths::FPath>>> StaticPaths;
+		TSharedPtr<TArray<TSharedPtr<PCGExPaths::FPath>>> SolidPaths;
 		TSharedPtr<PCGExTensor::FTensorsHandler> TensorsHandler;
 		TSharedPtr<PCGExPointFilter::FManager> StopFilters;
 
 		FVector LastInsertion = FVector::ZeroVector;
 		FVector ExtrusionDirection = FVector::ZeroVector;
 		FTransform Head = FTransform::Identity;
-		FBox ActiveExtrusionBounds = FBox(ForceInit);
 
 		int32 SeedIndex = -1;
 		int32 RemainingIterations = 0;
@@ -352,7 +364,7 @@ namespace PCGExExtrudeTensors
 
 		const TArray<FPCGPoint>& GetExtrudedPoints() const { return ExtrudedPoints; }
 
-		const FBox& GetHeadEdge(FVector& OutA, FVector& OutB) const;
+		PCGExMath::FSegment GetHeadSegment() const;
 		void SetHead(const FTransform& InHead);
 
 		virtual bool Advance() = 0;
@@ -360,10 +372,7 @@ namespace PCGExExtrudeTensors
 		void CutOff(const FVector& InCutOff);
 		void Shorten(const FVector& InCutOff);
 
-		bool FindClosestSolidIntersection(
-			const FBox& InBox, const FVector& AB,
-			const FVector& A1, const FVector& B1, FVector& OutIntersection,
-			bool& OutIsLastSegment) const;
+		PCGExMath::FClosestPosition FindCrossing(const PCGExMath::FSegment& InSegment, bool& OutIsLastSegment, PCGExMath::FClosestPosition& OutClosestPosition) const;
 
 		void Cleanup();
 
@@ -386,8 +395,6 @@ namespace PCGExExtrudeTensors
 		virtual bool Advance() override
 		{
 			if (bIsStopped) { return false; }
-
-			if (!bAdvancedOnly) { ActiveExtrusionBounds = FBox(ForceInit); }
 
 			bAdvancedOnly = true;
 
@@ -419,9 +426,6 @@ namespace PCGExExtrudeTensors
 
 			const FVector HeadLocation = PreviousHeadLocation + Sample.DirectionAndSize;
 			Head.SetLocation(HeadLocation);
-			Bounds += HeadLocation;
-			ActiveExtrusionBounds += (HeadLocation + FVector::OneVector * 1);
-			ActiveExtrusionBounds += (HeadLocation + FVector::OneVector * -1);
 
 			if constexpr (Supports(InternalFlags, EExtrusionFlags::ClosedLoop))
 			{
@@ -508,27 +512,28 @@ namespace PCGExExtrudeTensors
 		if constexpr (Supports(InternalFlags, EExtrusionFlags::CollisionCheck))
 		{
 			int32 PathIndex = -1;
-			int32 SegmentIndex = -1;
-			FVector Intersection = FVector::ZeroVector;
 
 			bIsExtruding = true;
 
-			const FVector StartPt = ExtrudedPoints.Last().Transform.GetLocation();
+			const PCGExMath::FSegment Segment(ExtrudedPoints.Last().Transform.GetLocation(), InPoint.Transform.GetLocation());
 
-			if (FindClosestIntersection(
+			PCGExMath::FClosestPosition Intersection = FindClosestIntersection<PCGExMath::EIntersectionTestMode::Strict>(
 				Context->ExternalPaths, Context->ExternalPathIntersections,
-				StartPt, InPoint.Transform.GetLocation(),
-				PathIndex, SegmentIndex, Intersection))
+				Segment, PathIndex);
+
+			// Path intersection
+			if (Intersection)
 			{
 				bHitIntersection = true;
 
-
-				if (FMath::IsNearlyZero(FVector::DistSquared(Intersection, StartPt)))
+				if (FMath::IsNearlyZero(Intersection))
 				{
 					if (!Settings->bIgnoreIntersectionOnOrigin || (Settings->bIgnoreIntersectionOnOrigin && ExtrudedPoints.Num() > 1))
 					{
 						return OnAdvanced(true);
 					}
+
+					bHitIntersection = false;
 				}
 				else
 				{
@@ -538,30 +543,32 @@ namespace PCGExExtrudeTensors
 				}
 			}
 
-			if (FindClosestIntersection(
-				*StaticPaths.Get(), Context->SelfPathIntersections,
-				StartPt, InPoint.Transform.GetLocation(),
-				PathIndex, SegmentIndex, Intersection))
+			PCGExMath::FClosestPosition Merge(Segment.B);
+
+			Intersection = FindClosestIntersection<PCGExMath::EIntersectionTestMode::Strict>(
+				*SolidPaths.Get(), Context->ExternalPathIntersections,
+				Segment, PathIndex, Merge);
+
+			// Self-intersect
+			if (Intersection)
 			{
 				bHitIntersection = true;
 				bHitSelfIntersection = true;
 
-				if (FMath::IsNearlyZero(FVector::DistSquared(Intersection, StartPt)))
-				{
-					if (!Settings->bIgnoreIntersectionOnOrigin || (Settings->bIgnoreIntersectionOnOrigin && ExtrudedPoints.Num() > 1))
-					{
-						return OnAdvanced(true);
-					}
+				InPoint.Transform.SetLocation(Intersection);
+				Insert(InPoint);
+				return OnAdvanced(true);
+			}
 
-					bHitIntersection = false;
-					bHitSelfIntersection = false;
-				}
-				else
-				{
-					InPoint.Transform.SetLocation(Intersection);
-					Insert(InPoint);
-					return OnAdvanced(true);
-				}
+			// Merge
+			if (Merge.DistSquared < Context->ProximityMergeThreshold)
+			{
+				bHitIntersection = true;
+				bHitSelfIntersection = true;
+
+				InPoint.Transform.SetLocation(Merge);
+				Insert(InPoint);
+				return OnAdvanced(true);
 			}
 		}
 
@@ -610,7 +617,7 @@ namespace PCGExExtrudeTensors
 		TSharedPtr<FExtrusion> InitExtrusionFromExtrusion(const TSharedRef<FExtrusion>& InExtrusion);
 
 		void SortQueue();
-		
+
 		virtual void PrepareLoopScopesForRanges(const TArray<PCGExMT::FScope>& Loops) override;
 		virtual void PrepareSingleLoopScopeForPoints(const PCGExMT::FScope& Scope) override;
 		virtual void ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const PCGExMT::FScope& Scope) override;
