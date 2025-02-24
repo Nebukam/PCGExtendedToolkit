@@ -46,14 +46,14 @@ namespace PCGExDataBlending
 	};
 
 	template <typename T>
-	class TDataBlendingMax final : public FDataBlendingProcessorWithFirstInit<T, EPCGExDataBlendingType::Max>
+	class TDataBlendingMax final : public TDataBlendingProcessorWithFirstInit<T, EPCGExDataBlendingType::Max>
 	{
 	public:
 		virtual T SingleOperation(T A, T B, double Weight) const override;
 	};
 
 	template <typename T>
-	class TDataBlendingMin final : public FDataBlendingProcessorWithFirstInit<T, EPCGExDataBlendingType::Min>
+	class TDataBlendingMin final : public TDataBlendingProcessorWithFirstInit<T, EPCGExDataBlendingType::Min>
 	{
 	public:
 		virtual T SingleOperation(T A, T B, double Weight) const override;
@@ -82,35 +82,35 @@ namespace PCGExDataBlending
 	};
 
 	template <typename T>
-	class TDataBlendingNone final : public FDataBlendingProcessorWithFirstInit<T, EPCGExDataBlendingType::None>
+	class TDataBlendingNone final : public TDataBlendingProcessorWithFirstInit<T, EPCGExDataBlendingType::None>
 	{
 	public:
 		virtual T SingleOperation(T A, T B, double Weight) const override;
 	};
 
 	template <typename T>
-	class TDataBlendingUnsignedMax final : public FDataBlendingProcessorWithFirstInit<T, EPCGExDataBlendingType::UnsignedMax>
+	class TDataBlendingUnsignedMax final : public TDataBlendingProcessorWithFirstInit<T, EPCGExDataBlendingType::UnsignedMax>
 	{
 	public:
 		virtual T SingleOperation(T A, T B, double Weight) const override;
 	};
 
 	template <typename T>
-	class TDataBlendingUnsignedMin final : public FDataBlendingProcessorWithFirstInit<T, EPCGExDataBlendingType::UnsignedMin>
+	class TDataBlendingUnsignedMin final : public TDataBlendingProcessorWithFirstInit<T, EPCGExDataBlendingType::UnsignedMin>
 	{
 	public:
 		virtual T SingleOperation(T A, T B, double Weight) const override;
 	};
 
 	template <typename T>
-	class TDataBlendingAbsoluteMax final : public FDataBlendingProcessorWithFirstInit<T, EPCGExDataBlendingType::AbsoluteMax>
+	class TDataBlendingAbsoluteMax final : public TDataBlendingProcessorWithFirstInit<T, EPCGExDataBlendingType::AbsoluteMax>
 	{
 	public:
 		virtual T SingleOperation(T A, T B, double Weight) const override;
 	};
 
 	template <typename T>
-	class TDataBlendingAbsoluteMin final : public FDataBlendingProcessorWithFirstInit<T, EPCGExDataBlendingType::AbsoluteMin>
+	class TDataBlendingAbsoluteMin final : public TDataBlendingProcessorWithFirstInit<T, EPCGExDataBlendingType::AbsoluteMin>
 	{
 	public:
 		virtual T SingleOperation(T A, T B, double Weight) const override;
@@ -124,14 +124,14 @@ namespace PCGExDataBlending
 	};
 
 	template <typename T>
-	class TDataBlendingHash final : public FDataBlendingProcessorWithFirstInit<T, EPCGExDataBlendingType::Hash>
+	class TDataBlendingHash final : public TDataBlendingProcessorWithFirstInit<T, EPCGExDataBlendingType::Hash>
 	{
 	public:
 		virtual T SingleOperation(T A, T B, double Weight) const override;
 	};
 
 	template <typename T>
-	class TDataBlendingUnsignedHash final : public FDataBlendingProcessorWithFirstInit<T, EPCGExDataBlendingType::UnsignedHash>
+	class TDataBlendingUnsignedHash final : public TDataBlendingProcessorWithFirstInit<T, EPCGExDataBlendingType::UnsignedHash>
 	{
 	public:
 		virtual T SingleOperation(T A, T B, double Weight) const override;

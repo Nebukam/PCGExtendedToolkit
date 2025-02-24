@@ -81,10 +81,10 @@ namespace PCGExClusterFilter
 		virtual void PostInit() override;
 	};
 
-	class PCGEXTENDEDTOOLKIT_API TVtxFilter : public FFilter
+	class PCGEXTENDEDTOOLKIT_API FVtxFilter : public FFilter
 	{
 	public:
-		explicit TVtxFilter(const TObjectPtr<const UPCGExClusterFilterFactoryData>& InFactory):
+		explicit FVtxFilter(const TObjectPtr<const UPCGExClusterFilterFactoryData>& InFactory):
 			FFilter(InFactory)
 		{
 		}
@@ -95,10 +95,10 @@ namespace PCGExClusterFilter
 		virtual bool Test(const PCGExGraph::FEdge& Edge) const override final;
 	};
 
-	class /*PCGEXTENDEDTOOLKIT_API*/ TEdgeFilter : public FFilter
+	class PCGEXTENDEDTOOLKIT_API FEdgeFilter : public FFilter
 	{
 	public:
-		explicit TEdgeFilter(const TObjectPtr<const UPCGExClusterFilterFactoryData>& InFactory):
+		explicit FEdgeFilter(const TObjectPtr<const UPCGExClusterFilterFactoryData>& InFactory):
 			FFilter(InFactory)
 		{
 		}
@@ -109,7 +109,7 @@ namespace PCGExClusterFilter
 		virtual bool Test(const PCGExGraph::FEdge& Edge) const override;
 	};
 
-	class /*PCGEXTENDEDTOOLKIT_API*/ FManager : public PCGExPointFilter::FManager
+	class PCGEXTENDEDTOOLKIT_API FManager : public PCGExPointFilter::FManager
 	{
 	public:
 		FManager(const TSharedRef<PCGExCluster::FCluster>& InCluster, const TSharedRef<PCGExData::FFacade>& InPointDataFacade, const TSharedRef<PCGExData::FFacade>& InEdgeDataFacade);

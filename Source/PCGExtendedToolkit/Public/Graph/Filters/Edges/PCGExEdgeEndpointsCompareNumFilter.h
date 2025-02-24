@@ -68,11 +68,11 @@ public:
 
 namespace PCGExEdgeEndpointsCompareNum
 {
-	class FNeighborsCountFilter final : public PCGExClusterFilter::TEdgeFilter
+	class FNeighborsCountFilter final : public PCGExClusterFilter::FEdgeFilter
 	{
 	public:
 		explicit FNeighborsCountFilter(const UPCGExEdgeEndpointsCompareNumFilterFactory* InFactory)
-			: TEdgeFilter(InFactory), TypedFilterFactory(InFactory)
+			: FEdgeFilter(InFactory), TypedFilterFactory(InFactory)
 		{
 		}
 

@@ -151,7 +151,7 @@ namespace PCGExClusterMT
 	};
 
 	template <typename TContext, typename TSettings>
-	class PCGEXTENDEDTOOLKIT_API TProcessor : public FClusterProcessor
+	class TProcessor : public FClusterProcessor
 	{
 	protected:
 		TContext* Context = nullptr;
@@ -251,7 +251,7 @@ namespace PCGExClusterMT
 	};
 
 	template <typename T>
-	class PCGEXTENDEDTOOLKIT_API TBatch : public FClusterProcessorBatchBase
+	class TBatch : public FClusterProcessorBatchBase
 	{
 	public:
 		TArray<TSharedRef<T>> Processors;
@@ -363,7 +363,7 @@ namespace PCGExClusterMT
 	};
 
 	template <typename T>
-	class PCGEXTENDEDTOOLKIT_API TBatchWithGraphBuilder : public TBatch<T>
+	class TBatchWithGraphBuilder : public TBatch<T>
 	{
 	public:
 		TBatchWithGraphBuilder(FPCGExContext* InContext, const TSharedRef<PCGExData::FPointIO>& InVtx, TArrayView<TSharedRef<PCGExData::FPointIO>> InEdges):
@@ -374,7 +374,7 @@ namespace PCGExClusterMT
 	};
 
 	template <typename T>
-	class PCGEXTENDEDTOOLKIT_API TBatchWithHeuristics : public TBatch<T>
+	class TBatchWithHeuristics : public TBatch<T>
 	{
 	public:
 		TBatchWithHeuristics(FPCGExContext* InContext, const TSharedRef<PCGExData::FPointIO>& InVtx, TArrayView<TSharedRef<PCGExData::FPointIO>> InEdges):
