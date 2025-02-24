@@ -12,7 +12,7 @@
 #include "PCGExAttributeHash.generated.h"
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExAttributeHashSettings : public UPCGExPointsProcessorSettings
+class UPCGExAttributeHashSettings : public UPCGExPointsProcessorSettings
 {
 	GENERATED_BODY()
 
@@ -48,12 +48,12 @@ public:
 	bool bOutputToAttribute = false;
 };
 
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExAttributeHashContext final : FPCGExPointsProcessorContext
+struct FPCGExAttributeHashContext final : FPCGExPointsProcessorContext
 {
 	friend class FPCGExAttributeHashElement;
 };
 
-class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExAttributeHashElement final : public FPCGExPointsProcessorElement
+class FPCGExAttributeHashElement final : public FPCGExPointsProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(

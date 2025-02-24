@@ -17,7 +17,7 @@
 
 
 USTRUCT(BlueprintType)
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExNumericCompareNearestFilterConfig
+struct FPCGExNumericCompareNearestFilterConfig
 {
 	GENERATED_BODY()
 
@@ -59,7 +59,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExNumericCompareNearestFilterConfig
  * 
  */
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Filter")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExNumericCompareNearestFilterFactory : public UPCGExFilterFactoryData
+class UPCGExNumericCompareNearestFilterFactory : public UPCGExFilterFactoryData
 {
 	GENERATED_BODY()
 
@@ -78,7 +78,7 @@ public:
 
 namespace PCGExPointFilter
 {
-	class /*PCGEXTENDEDTOOLKIT_API*/ FNumericCompareNearestFilter final : public FSimpleFilter
+	class FNumericCompareNearestFilter final : public FSimpleFilter
 	{
 	public:
 		explicit FNumericCompareNearestFilter(const TObjectPtr<const UPCGExNumericCompareNearestFilterFactory>& InDefinition)
@@ -111,7 +111,7 @@ namespace PCGExPointFilter
 ///
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Filter")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExNumericCompareNearestFilterProviderSettings : public UPCGExFilterProviderSettings
+class UPCGExNumericCompareNearestFilterProviderSettings : public UPCGExFilterProviderSettings
 {
 	GENERATED_BODY()
 

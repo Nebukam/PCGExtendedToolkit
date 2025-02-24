@@ -12,7 +12,7 @@
  * 
  */
 UCLASS(MinimalAPI, BlueprintType, meta=(DisplayName="Remove Highest Score"))
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExEdgeRemoveHighestScore : public UPCGExEdgeRefineOperation
+class UPCGExEdgeRemoveHighestScore : public UPCGExEdgeRefineOperation
 {
 	GENERATED_BODY()
 

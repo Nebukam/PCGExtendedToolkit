@@ -14,7 +14,7 @@
 #include "PCGExMeanFilter.generated.h"
 
 USTRUCT(BlueprintType)
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExMeanFilterConfig
+struct FPCGExMeanFilterConfig
 {
 	GENERATED_BODY()
 
@@ -63,7 +63,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExMeanFilterConfig
  * 
  */
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Filter")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExMeanFilterFactory : public UPCGExFilterFactoryData
+class UPCGExMeanFilterFactory : public UPCGExFilterFactoryData
 {
 	GENERATED_BODY()
 
@@ -78,7 +78,7 @@ public:
 
 namespace PCGExPointFilter
 {
-	class /*PCGEXTENDEDTOOLKIT_API*/ FMeanFilter final : public FSimpleFilter
+	class FMeanFilter final : public FSimpleFilter
 	{
 	public:
 		explicit FMeanFilter(const TObjectPtr<const UPCGExMeanFilterFactory>& InFactory)
@@ -111,7 +111,7 @@ namespace PCGExPointFilter
 ///
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Filter")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExMeanFilterProviderSettings : public UPCGExFilterProviderSettings
+class UPCGExMeanFilterProviderSettings : public UPCGExFilterProviderSettings
 {
 	GENERATED_BODY()
 

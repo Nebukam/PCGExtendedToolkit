@@ -10,7 +10,7 @@
 
 namespace PCGExGeo
 {
-	struct FDelaunaySite2
+	struct PCGEXTENDEDTOOLKIT_API FDelaunaySite2
 	{
 		int32 Vtx[3];
 		int32 Neighbors[3];
@@ -43,7 +43,7 @@ namespace PCGExGeo
 		}
 	};
 
-	class /*PCGEXTENDEDTOOLKIT_API*/ TDelaunay2
+	class PCGEXTENDEDTOOLKIT_API TDelaunay2
 	{
 	public:
 		TArray<FDelaunaySite2> Sites;
@@ -207,7 +207,7 @@ namespace PCGExGeo
 		{1, 2, 3}
 	};
 
-	struct FDelaunaySite3
+	struct PCGEXTENDEDTOOLKIT_API FDelaunaySite3
 	{
 		uint32 Faces[4];
 		int32 Vtx[4];
@@ -231,7 +231,7 @@ namespace PCGExGeo
 		}
 	};
 
-	class /*PCGEXTENDEDTOOLKIT_API*/ TDelaunay3
+	class PCGEXTENDEDTOOLKIT_API TDelaunay3
 	{
 	public:
 		TArray<FDelaunaySite3> Sites;

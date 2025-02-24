@@ -85,7 +85,7 @@ ENUM_CLASS_FLAGS(EPCGExApplySampledComponentFlags)
 using EPCGExApplySampledComponentFlagsBitmask = TEnumAsByte<EPCGExApplySampledComponentFlags>;
 
 USTRUCT(BlueprintType)
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExApplySamplingDetails
+struct PCGEXTENDEDTOOLKIT_API FPCGExApplySamplingDetails
 {
 	GENERATED_BODY()
 

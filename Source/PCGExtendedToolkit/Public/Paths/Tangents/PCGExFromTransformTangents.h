@@ -12,7 +12,7 @@
  * 
  */
 UCLASS(MinimalAPI, DisplayName="From Transform")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExFromTransformTangents : public UPCGExTangentsOperation
+class UPCGExFromTransformTangents : public UPCGExTangentsOperation
 {
 	GENERATED_BODY()
 

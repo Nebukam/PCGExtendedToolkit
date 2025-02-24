@@ -15,8 +15,8 @@
 /**
  * 
  */
-UCLASS(MinimalAPI, DisplayName = "Default", meta=(DisplayName = "Default", ToolTip ="Samples a single location in the tensor field."))
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExTensorSampler : public UPCGExOperation
+UCLASS(DisplayName = "Default", meta=(DisplayName = "Default", ToolTip ="Samples a single location in the tensor field."))
+class PCGEXTENDEDTOOLKIT_API UPCGExTensorSampler : public UPCGExOperation
 {
 	GENERATED_BODY()
 

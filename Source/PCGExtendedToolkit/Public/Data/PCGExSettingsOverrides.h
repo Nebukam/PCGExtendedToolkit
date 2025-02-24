@@ -20,7 +20,7 @@
 #pragma endregion
 
 USTRUCT(BlueprintType)
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPerInputOverrideDetails
+struct PCGEXTENDEDTOOLKIT_API FPCGExPerInputOverrideDetails
 {
 	GENERATED_BODY()
 

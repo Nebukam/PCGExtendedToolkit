@@ -19,7 +19,7 @@ enum class EPCGExSortDirection : uint8
 };
 
 USTRUCT(BlueprintType)
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExSortRuleConfig : public FPCGExInputConfig
+struct PCGEXTENDEDTOOLKIT_API FPCGExSortRuleConfig : public FPCGExInputConfig
 {
 	GENERATED_BODY()
 
@@ -47,7 +47,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExSortRuleConfig : public FPCGExInputConfi
 	//bool bAbsolute = false;
 };
 
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExSortRule
+struct PCGEXTENDEDTOOLKIT_API FPCGExSortRule
 {
 	FPCGExSortRule()
 	{
@@ -72,8 +72,8 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExSortRule
 /**
  * 
  */
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExSortingRule : public UPCGExFactoryData
+UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")
+class PCGEXTENDEDTOOLKIT_API UPCGExSortingRule : public UPCGExFactoryData
 {
 	GENERATED_BODY()
 
@@ -86,8 +86,8 @@ public:
 	virtual bool RegisterConsumableAttributesWithData(FPCGExContext* InContext, const UPCGData* InData) const override;
 };
 
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Filter")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExSortingRuleProviderSettings : public UPCGExFactoryProviderSettings
+UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Filter")
+class PCGEXTENDEDTOOLKIT_API UPCGExSortingRuleProviderSettings : public UPCGExFactoryProviderSettings
 {
 	GENERATED_BODY()
 

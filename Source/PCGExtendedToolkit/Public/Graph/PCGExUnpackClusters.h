@@ -12,7 +12,7 @@
 #include "PCGExUnpackClusters.generated.h"
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Clusters")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExUnpackClustersSettings : public UPCGExPointsProcessorSettings
+class UPCGExUnpackClustersSettings : public UPCGExPointsProcessorSettings
 {
 	GENERATED_BODY()
 
@@ -43,7 +43,7 @@ private:
 	friend class FPCGExUnpackClustersElement;
 };
 
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExUnpackClustersContext final : FPCGExPointsProcessorContext
+struct PCGEXTENDEDTOOLKIT_API FPCGExUnpackClustersContext final : FPCGExPointsProcessorContext
 {
 	friend class FPCGExUnpackClustersElement;
 
@@ -51,7 +51,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExUnpackClustersContext final : FPCGExPoin
 	TSharedPtr<PCGExData::FPointIOCollection> OutEdges;
 };
 
-class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExUnpackClustersElement final : public FPCGExPointsProcessorElement
+class FPCGExUnpackClustersElement final : public FPCGExPointsProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(
@@ -64,7 +64,7 @@ protected:
 	virtual bool ExecuteInternal(FPCGContext* InContext) const override;
 };
 
-class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExUnpackClusterTask final : public PCGExMT::FTask
+class FPCGExUnpackClusterTask final : public PCGExMT::FTask
 {
 public:
 	PCGEX_ASYNC_TASK_NAME(FPCGExUnpackClusterTask)

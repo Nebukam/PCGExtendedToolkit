@@ -22,7 +22,7 @@ enum class EPCGExStagingOutputMode : uint8
 };
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExAssetStagingSettings : public UPCGExPointsProcessorSettings
+class UPCGExAssetStagingSettings : public UPCGExPointsProcessorSettings
 {
 	GENERATED_BODY()
 
@@ -90,7 +90,7 @@ public:
 	FName WeightAttributeName = "AssetWeight";
 };
 
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExAssetStagingContext final : FPCGExPointsProcessorContext
+struct FPCGExAssetStagingContext final : FPCGExPointsProcessorContext
 {
 	friend class FPCGExAssetStagingElement;
 
@@ -101,7 +101,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExAssetStagingContext final : FPCGExPoints
 	TSharedPtr<PCGExStaging::FPickPacker> CollectionPickDatasetPacker;
 };
 
-class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExAssetStagingElement final : public FPCGExPointsProcessorElement
+class FPCGExAssetStagingElement final : public FPCGExPointsProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(

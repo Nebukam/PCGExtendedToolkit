@@ -63,6 +63,13 @@ bool PCGExPointFilter::FPickerFilter::Test(const TSharedPtr<PCGExData::FPointIO>
 	return TypedFilterFactory->Config.bInvert;
 }
 
+TArray<FPCGPinProperties> UPCGExPickerFilterProviderSettings::InputPinProperties() const
+{
+	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
+	PCGEX_PIN_FACTORIES(PCGExPicker::SourcePickersLabel, "Pickers", Required, {})
+	return PinProperties;
+}
+
 PCGEX_CREATE_FILTER_FACTORY(Picker)
 
 #undef LOCTEXT_NAMESPACE

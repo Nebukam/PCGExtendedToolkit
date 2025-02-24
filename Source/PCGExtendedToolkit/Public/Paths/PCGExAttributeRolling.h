@@ -25,7 +25,7 @@ enum class EPCGExRollingTriggerMode : uint8
  * 
  */
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Clusters")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExAttributeRollingSettings : public UPCGExPathProcessorSettings
+class UPCGExAttributeRollingSettings : public UPCGExPathProcessorSettings
 {
 	GENERATED_BODY()
 
@@ -59,13 +59,13 @@ public:
 	bool bReverseRolling = false;
 };
 
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExAttributeRollingContext final : FPCGExPathProcessorContext
+struct FPCGExAttributeRollingContext final : FPCGExPathProcessorContext
 {
 	friend class FPCGExAttributeRollingElement;
 	FPCGExBlendingDetails BlendingSettings;
 };
 
-class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExAttributeRollingElement final : public FPCGExPathProcessorElement
+class FPCGExAttributeRollingElement final : public FPCGExPathProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(

@@ -12,7 +12,7 @@
  * 
  */
 UCLASS(MinimalAPI, DisplayName = "Radius Fitting")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExRadiusFittingRelax : public UPCGExFittingRelaxBase
+class UPCGExRadiusFittingRelax : public UPCGExFittingRelaxBase
 {
 	GENERATED_BODY()
 

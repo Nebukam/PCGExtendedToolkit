@@ -20,7 +20,7 @@
 #include "PCGExPickerFilter.generated.h"
 
 USTRUCT(BlueprintType)
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPickerFilterConfig
+struct PCGEXTENDEDTOOLKIT_API FPCGExPickerFilterConfig
 {
 	GENERATED_BODY()
 
@@ -41,7 +41,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPickerFilterConfig
  * 
  */
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Filter")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExPickerFilterFactory : public UPCGExFilterFactoryData
+class UPCGExPickerFilterFactory : public UPCGExFilterFactoryData
 {
 	GENERATED_BODY()
 
@@ -59,7 +59,7 @@ public:
 
 namespace PCGExPointFilter
 {
-	class /*PCGEXTENDEDTOOLKIT_API*/ FPickerFilter final : public FSimpleFilter
+	class FPickerFilter final : public FSimpleFilter
 	{
 	public:
 		explicit FPickerFilter(const TObjectPtr<const UPCGExPickerFilterFactory>& InFactory)
@@ -85,7 +85,7 @@ namespace PCGExPointFilter
 ///
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Filter")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExPickerFilterProviderSettings : public UPCGExFilterProviderSettings
+class UPCGExPickerFilterProviderSettings : public UPCGExFilterProviderSettings
 {
 	GENERATED_BODY()
 
@@ -108,10 +108,3 @@ public:
 
 	virtual UPCGExFactoryData* CreateFactory(FPCGExContext* InContext, UPCGExFactoryData* InFactory) const override;
 };
-
-inline TArray<FPCGPinProperties> UPCGExPickerFilterProviderSettings::InputPinProperties() const
-{
-	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
-	PCGEX_PIN_FACTORIES(PCGExPicker::SourcePickersLabel, "Pickers", Required, {})
-	return PinProperties;
-}

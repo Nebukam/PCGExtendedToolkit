@@ -23,7 +23,7 @@ MACRO(Alpha, double, 0)
  * 
  */
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Path")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExSplineToPathSettings : public UPCGExPointsProcessorSettings
+class UPCGExSplineToPathSettings : public UPCGExPointsProcessorSettings
 {
 	GENERATED_BODY()
 
@@ -115,7 +115,7 @@ public:
 	FPCGExNameFiltersDetails TagForwarding;
 };
 
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExSplineToPathContext final : FPCGExPointsProcessorContext
+struct FPCGExSplineToPathContext final : FPCGExPointsProcessorContext
 {
 	friend class FPCGExSplineToPathElement;
 
@@ -130,7 +130,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExSplineToPathContext final : FPCGExPoints
 	int64 NumTargets = 0;
 };
 
-class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExSplineToPathElement final : public FPCGExPointsProcessorElement
+class FPCGExSplineToPathElement final : public FPCGExPointsProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(

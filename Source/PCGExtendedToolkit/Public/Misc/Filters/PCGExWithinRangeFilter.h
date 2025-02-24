@@ -15,7 +15,7 @@
 
 
 USTRUCT(BlueprintType)
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExWithinRangeFilterConfig
+struct FPCGExWithinRangeFilterConfig
 {
 	GENERATED_BODY()
 
@@ -49,7 +49,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExWithinRangeFilterConfig
  * 
  */
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Filter")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExWithinRangeFilterFactory : public UPCGExFilterFactoryData
+class UPCGExWithinRangeFilterFactory : public UPCGExFilterFactoryData
 {
 	GENERATED_BODY()
 
@@ -62,7 +62,7 @@ public:
 
 namespace PCGExPointFilter
 {
-	class /*PCGEXTENDEDTOOLKIT_API*/ FWithinRangeFilter final : public FSimpleFilter
+	class FWithinRangeFilter final : public FSimpleFilter
 	{
 	public:
 		explicit FWithinRangeFilter(const UPCGExWithinRangeFilterFactory* InDefinition)
@@ -92,7 +92,7 @@ namespace PCGExPointFilter
 ///
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Filter")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExWithinRangeFilterProviderSettings : public UPCGExFilterProviderSettings
+class UPCGExWithinRangeFilterProviderSettings : public UPCGExFilterProviderSettings
 {
 	GENERATED_BODY()
 

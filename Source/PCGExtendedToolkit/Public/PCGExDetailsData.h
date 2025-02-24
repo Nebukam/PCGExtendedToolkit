@@ -13,7 +13,7 @@
 #include "PCGExDetailsData.generated.h"
 
 USTRUCT(BlueprintType)
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExInfluenceDetails
+struct PCGEXTENDEDTOOLKIT_API FPCGExInfluenceDetails
 {
 	GENERATED_BODY()
 
@@ -44,7 +44,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExInfluenceDetails
 };
 
 USTRUCT(BlueprintType)
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExComponentTaggingDetails
+struct PCGEXTENDEDTOOLKIT_API FPCGExComponentTaggingDetails
 {
 	GENERATED_BODY()
 

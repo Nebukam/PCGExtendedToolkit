@@ -24,7 +24,7 @@ enum class EPCGExStatsOutputToPoints : uint8
 };
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExAttributeStatsSettings : public UPCGExPointsProcessorSettings
+class UPCGExAttributeStatsSettings : public UPCGExPointsProcessorSettings
 {
 	GENERATED_BODY()
 
@@ -228,7 +228,7 @@ private:
 	friend class FPCGExAttributeStatsElement;
 };
 
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExAttributeStatsContext final : FPCGExPointsProcessorContext
+struct FPCGExAttributeStatsContext final : FPCGExPointsProcessorContext
 {
 	friend class FPCGExAttributeStatsElement;
 	TSharedPtr<PCGEx::FAttributesInfos> AttributesInfos;
@@ -238,7 +238,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExAttributeStatsContext final : FPCGExPoin
 	TArray<int64> Rows;
 };
 
-class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExAttributeStatsElement final : public FPCGExPointsProcessorElement
+class FPCGExAttributeStatsElement final : public FPCGExPointsProcessorElement
 {
 	virtual FPCGContext* Initialize(
 		const FPCGDataCollection& InputData,

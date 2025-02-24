@@ -17,7 +17,7 @@
 
 
 USTRUCT(BlueprintType)
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExDistanceFilterConfig
+struct FPCGExDistanceFilterConfig
 {
 	GENERATED_BODY()
 
@@ -59,7 +59,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExDistanceFilterConfig
  * 
  */
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Filter")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExDistanceFilterFactory : public UPCGExFilterFactoryData
+class UPCGExDistanceFilterFactory : public UPCGExFilterFactoryData
 {
 	GENERATED_BODY()
 
@@ -85,7 +85,7 @@ public:
 
 namespace PCGExPointFilter
 {
-	class /*PCGEXTENDEDTOOLKIT_API*/ FDistanceFilter final : public FSimpleFilter
+	class FDistanceFilter final : public FSimpleFilter
 	{
 	public:
 		explicit FDistanceFilter(const TObjectPtr<const UPCGExDistanceFilterFactory>& InDefinition)
@@ -125,7 +125,7 @@ namespace PCGExPointFilter
 ///
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Filter")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExDistanceFilterProviderSettings : public UPCGExFilterProviderSettings
+class UPCGExDistanceFilterProviderSettings : public UPCGExFilterProviderSettings
 {
 	GENERATED_BODY()
 

@@ -16,7 +16,7 @@
  * 
  */
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Clusters")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExBuildVoronoiGraph2DSettings : public UPCGExPointsProcessorSettings
+class UPCGExBuildVoronoiGraph2DSettings : public UPCGExPointsProcessorSettings
 {
 	GENERATED_BODY()
 
@@ -85,15 +85,14 @@ private:
 	friend class FPCGExBuildVoronoiGraph2DElement;
 };
 
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExBuildVoronoiGraph2DContext final : FPCGExPointsProcessorContext
+struct FPCGExBuildVoronoiGraph2DContext final : FPCGExPointsProcessorContext
 {
 	friend class FPCGExBuildVoronoiGraph2DElement;
 
 	TSharedPtr<PCGExData::FPointIOCollection> SitesOutput;
 };
 
-
-class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExBuildVoronoiGraph2DElement final : public FPCGExPointsProcessorElement
+class FPCGExBuildVoronoiGraph2DElement final : public FPCGExPointsProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(

@@ -13,8 +13,8 @@
 
 ///
 
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|FilterGroup")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExFilterGroupProviderSettings : public UPCGExFactoryProviderSettings
+UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|FilterGroup")
+class PCGEXTENDEDTOOLKIT_API UPCGExFilterGroupProviderSettings : public UPCGExFactoryProviderSettings
 {
 	GENERATED_BODY()
 

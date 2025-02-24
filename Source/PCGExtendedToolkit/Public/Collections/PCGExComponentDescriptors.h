@@ -16,7 +16,7 @@
 
 
 USTRUCT(BlueprintType, DisplayName="[PCGEx] Primitive Component Descriptor")
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPrimitiveComponentDescriptor
+struct PCGEXTENDEDTOOLKIT_API FPCGExPrimitiveComponentDescriptor
 {
 	GENERATED_BODY()
 
@@ -415,7 +415,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPrimitiveComponentDescriptor
 };
 
 USTRUCT(BlueprintType, DisplayName="[PCGEx] Mesh Component Descriptor")
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExMeshComponentDescriptor : public FPCGExPrimitiveComponentDescriptor
+struct PCGEXTENDEDTOOLKIT_API FPCGExMeshComponentDescriptor : public FPCGExPrimitiveComponentDescriptor
 {
 	GENERATED_BODY()
 
@@ -446,7 +446,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExMeshComponentDescriptor : public FPCGExP
 };
 
 USTRUCT(BlueprintType, DisplayName="[PCGEx] Static Mesh Component Descriptor")
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExStaticMeshComponentDescriptor : public FPCGExMeshComponentDescriptor
+struct PCGEXTENDEDTOOLKIT_API FPCGExStaticMeshComponentDescriptor : public FPCGExMeshComponentDescriptor
 {
 	GENERATED_BODY()
 
@@ -604,7 +604,7 @@ enum class EPCGExDynamicMeshComponentDistanceFieldMode : uint8
 
 
 USTRUCT(BlueprintType, DisplayName="[PCGEx] Dynamic Mesh Component Descriptor")
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExDynamicMeshDescriptor : public FPCGExMeshComponentDescriptor
+struct PCGEXTENDEDTOOLKIT_API FPCGExDynamicMeshDescriptor : public FPCGExMeshComponentDescriptor
 {
 	GENERATED_BODY()
 

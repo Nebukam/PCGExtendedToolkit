@@ -96,7 +96,7 @@ enum class EPCGExDataBlendingType : uint8
 };
 
 USTRUCT(BlueprintType)
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExAttributeBlendToTargetDetails : public FPCGExAttributeSourceToTargetDetails
+struct PCGEXTENDEDTOOLKIT_API FPCGExAttributeBlendToTargetDetails : public FPCGExAttributeSourceToTargetDetails
 {
 	GENERATED_BODY()
 
@@ -108,7 +108,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExAttributeBlendToTargetDetails : public F
 };
 
 USTRUCT(BlueprintType)
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPointPropertyBlendingOverrides
+struct PCGEXTENDEDTOOLKIT_API FPCGExPointPropertyBlendingOverrides
 {
 	GENERATED_BODY()
 
@@ -172,7 +172,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPointPropertyBlendingOverrides
 };
 
 USTRUCT(BlueprintType)
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPropertiesBlendingDetails
+struct PCGEXTENDEDTOOLKIT_API FPCGExPropertiesBlendingDetails
 {
 	GENERATED_BODY()
 
@@ -220,7 +220,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPropertiesBlendingDetails
 
 
 USTRUCT(BlueprintType)
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExBlendingDetails
+struct PCGEXTENDEDTOOLKIT_API FPCGExBlendingDetails
 {
 	GENERATED_BODY()
 
@@ -269,7 +269,7 @@ namespace PCGExDataBlending
 	/**
 	 * 
 	 */
-	class /*PCGEXTENDEDTOOLKIT_API*/ FDataBlendingProcessorBase
+	class PCGEXTENDEDTOOLKIT_API FDataBlendingProcessorBase
 	{
 	public:
 		virtual ~FDataBlendingProcessorBase()
@@ -321,7 +321,7 @@ namespace PCGExDataBlending
 	};
 
 	template <typename T, EPCGExDataBlendingType BlendingType, bool bRequirePreparation = false, bool bRequireCompletion = false>
-	class /*PCGEXTENDEDTOOLKIT_API*/ TDataBlendingProcessor : public FDataBlendingProcessorBase
+	class PCGEXTENDEDTOOLKIT_API TDataBlendingProcessor : public FDataBlendingProcessorBase
 	{
 	protected:
 		void Cleanup()
@@ -503,7 +503,7 @@ namespace PCGExDataBlending
 	};
 
 	template <typename T, EPCGExDataBlendingType BlendingType, bool bRequirePreparation = false, bool bRequireCompletion = false>
-	class /*PCGEXTENDEDTOOLKIT_API*/ FDataBlendingProcessorWithFirstInit : public TDataBlendingProcessor<T, BlendingType, bRequirePreparation, bRequireCompletion>
+	class PCGEXTENDEDTOOLKIT_API FDataBlendingProcessorWithFirstInit : public TDataBlendingProcessor<T, BlendingType, bRequirePreparation, bRequireCompletion>
 	{
 		virtual void DoValuesRangeOperation(const int32 PrimaryReadIndex, const int32 SecondaryReadIndex, TArrayView<T>& Values, const TArrayView<double>& Weights, const int8 bFirstOperation) const override
 		{

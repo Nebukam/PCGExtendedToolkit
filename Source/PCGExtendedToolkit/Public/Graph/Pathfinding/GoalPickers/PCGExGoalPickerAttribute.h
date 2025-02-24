@@ -25,7 +25,7 @@ enum class EPCGExGoalPickAttributeAmount : uint8
  * 
  */
 UCLASS(MinimalAPI, DisplayName = "Index Attribute")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExGoalPickerAttribute : public UPCGExGoalPicker
+class UPCGExGoalPickerAttribute : public UPCGExGoalPicker
 {
 	GENERATED_BODY()
 

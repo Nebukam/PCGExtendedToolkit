@@ -26,7 +26,7 @@ bool UPCGExPolygonInclusionFilterFactory::Prepare(FPCGExContext* InContext)
 
 	Polygons = MakeShared<TArray<TSharedPtr<TArray<FVector2D>>>>();
 	Bounds = MakeShared<TArray<FBox>>();
-	
+
 	if (TArray<FPCGTaggedData> Targets = InContext->InputData.GetInputsByPin(PCGExPaths::SourcePathsLabel);
 		!Targets.IsEmpty())
 	{

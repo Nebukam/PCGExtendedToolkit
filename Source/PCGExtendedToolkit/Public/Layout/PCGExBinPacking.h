@@ -32,7 +32,7 @@ enum class EPCGExPlacementFavor : uint8
 };
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExBinPackingSettings : public UPCGExPointsProcessorSettings
+class UPCGExBinPackingSettings : public UPCGExPointsProcessorSettings
 {
 	GENERATED_BODY()
 
@@ -116,7 +116,7 @@ public:
 	virtual bool GetSortingRules(FPCGExContext* InContext, TArray<FPCGExSortRuleConfig>& OutRules) const;
 };
 
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExBinPackingContext final : FPCGExPointsProcessorContext
+struct FPCGExBinPackingContext final : FPCGExPointsProcessorContext
 {
 	friend class FPCGExBinPackingElement;
 	TSharedPtr<PCGExData::FPointIOCollection> Bins;
@@ -125,7 +125,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExBinPackingContext final : FPCGExPointsPr
 	TSharedPtr<PCGExData::FPointIOCollection> Discarded;
 };
 
-class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExBinPackingElement final : public FPCGExPointsProcessorElement
+class FPCGExBinPackingElement final : public FPCGExPointsProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(

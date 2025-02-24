@@ -23,7 +23,7 @@ class UPCGExFilterFactoryData;
  * This way we can multi-thread the various calculations instead of mixing everything along with async/game thread collision
  */
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExSampleTextureSettings : public UPCGExPointsProcessorSettings
+class UPCGExSampleTextureSettings : public UPCGExPointsProcessorSettings
 {
 	GENERATED_BODY()
 
@@ -78,14 +78,14 @@ public:
 	bool bQuietDuplicateSampleNamesWarning = false;
 };
 
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExSampleTextureContext final : FPCGExPointsProcessorContext
+struct FPCGExSampleTextureContext final : FPCGExPointsProcessorContext
 {
 	friend class FPCGExSampleTextureElement;
 	TArray<TObjectPtr<const UPCGExTexParamFactoryData>> TexParamsFactories;
 	TSharedPtr<PCGExTexture::FLookup> TextureMap;
 };
 
-class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExSampleTextureElement final : public FPCGExPointsProcessorElement
+class FPCGExSampleTextureElement final : public FPCGExPointsProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(

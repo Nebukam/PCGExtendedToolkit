@@ -16,7 +16,7 @@
 class UPCGExTensorOperation;
 
 UCLASS(Abstract, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExTensorSplineFactoryData : public UPCGExTensorFactoryData
+class PCGEXTENDEDTOOLKIT_API UPCGExTensorSplineFactoryData : public UPCGExTensorFactoryData
 {
 	GENERATED_BODY()
 
@@ -39,7 +39,7 @@ protected:
 };
 
 UCLASS(Abstract, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Graph|Params")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExTensorSplineFactoryProviderSettings : public UPCGExTensorFactoryProviderSettings
+class PCGEXTENDEDTOOLKIT_API UPCGExTensorSplineFactoryProviderSettings : public UPCGExTensorFactoryProviderSettings
 {
 	GENERATED_BODY()
 

@@ -16,7 +16,7 @@
  * 
  */
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Clusters")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExBuildConvexHullSettings : public UPCGExPointsProcessorSettings
+class UPCGExBuildConvexHullSettings : public UPCGExPointsProcessorSettings
 {
 	GENERATED_BODY()
 
@@ -45,13 +45,12 @@ private:
 	friend class FPCGExBuildConvexHullElement;
 };
 
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExBuildConvexHullContext final : FPCGExPointsProcessorContext
+struct FPCGExBuildConvexHullContext final : FPCGExPointsProcessorContext
 {
 	friend class FPCGExBuildConvexHullElement;
 };
 
-
-class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExBuildConvexHullElement final : public FPCGExPointsProcessorElement
+class FPCGExBuildConvexHullElement final : public FPCGExPointsProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(

@@ -13,7 +13,7 @@
 
 
 USTRUCT(BlueprintType)
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExTensorSpinConfig : public FPCGExTensorConfigBase
+struct FPCGExTensorSpinConfig : public FPCGExTensorConfigBase
 {
 	GENERATED_BODY()
 
@@ -43,7 +43,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExTensorSpinConfig : public FPCGExTensorCo
  * 
  */
 UCLASS(MinimalAPI)
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExTensorSpin : public UPCGExTensorPointOperation
+class UPCGExTensorSpin : public UPCGExTensorPointOperation
 {
 	GENERATED_BODY()
 
@@ -58,7 +58,7 @@ public:
 
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExTensorSpinFactory : public UPCGExTensorPointFactoryData
+class UPCGExTensorSpinFactory : public UPCGExTensorPointFactoryData
 {
 	GENERATED_BODY()
 
@@ -75,7 +75,7 @@ protected:
 };
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Tensors|Params")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExCreateTensorSpinSettings : public UPCGExTensorPointFactoryProviderSettings
+class UPCGExCreateTensorSpinSettings : public UPCGExTensorPointFactoryProviderSettings
 {
 	GENERATED_BODY()
 

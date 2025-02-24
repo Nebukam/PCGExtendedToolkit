@@ -63,7 +63,7 @@ namespace PCGEx
 }
 
 UCLASS(DefaultConfig, config = Editor, defaultconfig)
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExGlobalSettings : public UObject
+class PCGEXTENDEDTOOLKIT_API UPCGExGlobalSettings : public UObject
 {
 	GENERATED_BODY()
 

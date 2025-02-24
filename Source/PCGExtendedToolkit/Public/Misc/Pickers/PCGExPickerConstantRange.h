@@ -11,7 +11,7 @@
 #include "PCGExPickerConstantRange.generated.h"
 
 USTRUCT(BlueprintType)
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPickerConstantRangeConfig : public FPCGExPickerConfigBase
+struct FPCGExPickerConstantRangeConfig : public FPCGExPickerConfigBase
 {
 	GENERATED_BODY()
 
@@ -42,7 +42,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPickerConstantRangeConfig : public FPCGE
 };
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExPickerConstantRangeFactory : public UPCGExPickerFactoryData
+class UPCGExPickerConstantRangeFactory : public UPCGExPickerFactoryData
 {
 	GENERATED_BODY()
 
@@ -57,7 +57,7 @@ protected:
 };
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Pickers|Params")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExPickerConstantRangeSettings : public UPCGExPickerFactoryProviderSettings
+class UPCGExPickerConstantRangeSettings : public UPCGExPickerFactoryProviderSettings
 {
 	GENERATED_BODY()
 

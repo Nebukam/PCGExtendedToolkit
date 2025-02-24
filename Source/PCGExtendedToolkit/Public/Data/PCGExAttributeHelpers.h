@@ -34,7 +34,7 @@ namespace PCGExData
 struct FPCGExAttributeGatherDetails;
 
 USTRUCT(BlueprintType)
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExInputConfig
+struct PCGEXTENDEDTOOLKIT_API FPCGExInputConfig
 {
 	GENERATED_BODY()
 
@@ -72,7 +72,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExInputConfig
 };
 
 USTRUCT(BlueprintType)
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExAttributeSourceToTargetDetails
+struct PCGEXTENDEDTOOLKIT_API FPCGExAttributeSourceToTargetDetails
 {
 	GENERATED_BODY()
 
@@ -96,7 +96,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExAttributeSourceToTargetDetails
 };
 
 USTRUCT(BlueprintType)
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExAttributeSourceToTargetList
+struct PCGEXTENDEDTOOLKIT_API FPCGExAttributeSourceToTargetList
 {
 	GENERATED_BODY()
 
@@ -179,7 +179,7 @@ namespace PCGEx
 
 #pragma region Attribute identity
 
-	struct /*PCGEXTENDEDTOOLKIT_API*/ FAttributeIdentity
+	struct PCGEXTENDEDTOOLKIT_API FAttributeIdentity
 	{
 		FName Name = NAME_None;
 		EPCGMetadataTypes UnderlyingType = EPCGMetadataTypes::Unknown;

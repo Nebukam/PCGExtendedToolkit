@@ -12,7 +12,7 @@
  * 
  */
 UCLASS(MinimalAPI, DisplayName="Catmull-Rom")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExCatmullRomTangents : public UPCGExTangentsOperation
+class UPCGExCatmullRomTangents : public UPCGExTangentsOperation
 {
 	GENERATED_BODY()
 

@@ -249,7 +249,7 @@ namespace PCGEx
 		FName Get(const FName& BaseName);
 	};
 
-	struct /*PCGEXTENDEDTOOLKIT_API*/ FManagedObjects
+	struct PCGEXTENDEDTOOLKIT_API FManagedObjects
 	{
 		mutable FRWLock ManagedObjectLock;
 		mutable FRWLock DuplicatedObjectLock;

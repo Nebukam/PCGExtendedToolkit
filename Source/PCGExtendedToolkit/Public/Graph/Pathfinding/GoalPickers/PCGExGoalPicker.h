@@ -17,7 +17,7 @@ class UPCGPointData;
  * 
  */
 UCLASS(DisplayName = "Default")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExGoalPicker : public UPCGExOperation
+class PCGEXTENDEDTOOLKIT_API UPCGExGoalPicker : public UPCGExOperation
 {
 	GENERATED_BODY()
 

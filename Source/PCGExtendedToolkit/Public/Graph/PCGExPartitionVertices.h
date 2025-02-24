@@ -13,7 +13,7 @@
 
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Clusters")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExPartitionVerticesSettings : public UPCGExEdgesProcessorSettings
+class UPCGExPartitionVerticesSettings : public UPCGExEdgesProcessorSettings
 {
 	GENERATED_BODY()
 
@@ -35,7 +35,7 @@ public:
 	//~End UPCGExEdgesProcessorSettings interface
 };
 
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPartitionVerticesContext final : FPCGExEdgesProcessorContext
+struct FPCGExPartitionVerticesContext final : FPCGExEdgesProcessorContext
 {
 	friend class UPCGExPartitionVerticesSettings;
 	friend class FPCGExPartitionVerticesElement;
@@ -44,7 +44,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPartitionVerticesContext final : FPCGExE
 	TArray<PCGExGraph::FEdge> IndexedEdges;
 };
 
-class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPartitionVerticesElement final : public FPCGExEdgesProcessorElement
+class FPCGExPartitionVerticesElement final : public FPCGExEdgesProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(

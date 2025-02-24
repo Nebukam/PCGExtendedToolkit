@@ -13,7 +13,7 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnTrackingStarted, UPCGExTrackerCo
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnTrackingEnded, UPCGExTrackerComponent*, Tracker, UPCGComponent*, Component);
 
 UCLASS(Hidden)
-class UPCGExEventObserver : public UObject
+class PCGEXTENDEDTOOLKIT_API UPCGExEventObserver : public UObject
 {
 	GENERATED_BODY()
 

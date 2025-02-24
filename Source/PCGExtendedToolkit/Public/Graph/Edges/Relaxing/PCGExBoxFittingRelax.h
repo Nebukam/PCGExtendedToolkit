@@ -12,7 +12,7 @@
  * 
  */
 UCLASS(MinimalAPI, DisplayName = "Box Fitting")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExBoxFittingRelax : public UPCGExFittingRelaxBase
+class UPCGExBoxFittingRelax : public UPCGExFittingRelaxBase
 {
 	GENERATED_BODY()
 

@@ -17,7 +17,7 @@ namespace PCGExAssetCollection
 class UPCGExActorCollection;
 
 USTRUCT(BlueprintType, DisplayName="[PCGEx] Actor Collection Entry")
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExActorCollectionEntry : public FPCGExAssetCollectionEntry
+struct PCGEXTENDEDTOOLKIT_API FPCGExActorCollectionEntry : public FPCGExAssetCollectionEntry
 {
 	GENERATED_BODY()
 
@@ -58,7 +58,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExActorCollectionEntry : public FPCGExAsse
 };
 
 UCLASS(BlueprintType, DisplayName="[PCGEx] Actor Collection")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExActorCollection : public UPCGExAssetCollection
+class PCGEXTENDEDTOOLKIT_API UPCGExActorCollection : public UPCGExAssetCollection
 {
 	GENERATED_BODY()
 

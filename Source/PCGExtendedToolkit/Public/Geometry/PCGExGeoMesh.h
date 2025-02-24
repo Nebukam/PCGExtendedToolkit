@@ -22,7 +22,7 @@ enum class EPCGExTriangulationType : uint8
 
 namespace PCGExGeo
 {
-	class FMeshLookup : public TSharedFromThis<FMeshLookup>
+	class PCGEXTENDEDTOOLKIT_API FMeshLookup : public TSharedFromThis<FMeshLookup>
 	{
 	protected:
 		uint32 InternalIdx = 0;
@@ -48,7 +48,7 @@ namespace PCGExGeo
 
 	class FExtractStaticMeshTask;
 
-	class /*PCGEXTENDEDTOOLKIT_API*/ FGeoMesh : public TSharedFromThis<FGeoMesh>
+	class PCGEXTENDEDTOOLKIT_API FGeoMesh : public TSharedFromThis<FGeoMesh>
 	{
 	public:
 		bool bIsValid = false;
@@ -121,7 +121,7 @@ namespace PCGExGeo
 		~FGeoMesh() = default;
 	};
 
-	class /*PCGEXTENDEDTOOLKIT_API*/ FGeoStaticMesh : public FGeoMesh
+	class PCGEXTENDEDTOOLKIT_API FGeoStaticMesh : public FGeoMesh
 	{
 	public:
 		TObjectPtr<UStaticMesh> StaticMesh;
@@ -276,8 +276,7 @@ namespace PCGExGeo
 		}
 	};
 
-
-	class /*PCGEXTENDEDTOOLKIT_API*/ FGeoStaticMeshMap : public FGeoMesh
+	class PCGEXTENDEDTOOLKIT_API FGeoStaticMeshMap : public FGeoMesh
 	{
 	public:
 		TMap<FSoftObjectPath, int32> Map;
@@ -309,7 +308,7 @@ namespace PCGExGeo
 		}
 	};
 
-	class /*PCGEXTENDEDTOOLKIT_API*/ FExtractStaticMeshTask final : public PCGExMT::FTask
+	class PCGEXTENDEDTOOLKIT_API FExtractStaticMeshTask final : public PCGExMT::FTask
 	{
 	public:
 		PCGEX_ASYNC_TASK_NAME(FExtractStaticMeshTask)

@@ -33,7 +33,7 @@ namespace PCGExData
 		Out
 	};
 
-	struct /*PCGEXTENDEDTOOLKIT_API*/ FPointRef
+	struct PCGEXTENDEDTOOLKIT_API FPointRef
 	{
 		friend class FPointIO;
 
@@ -66,7 +66,7 @@ namespace PCGExData
 	/**
 	 * 
 	 */
-	class /*PCGEXTENDEDTOOLKIT_API*/ FPointIO : public TSharedFromThis<FPointIO>
+	class PCGEXTENDEDTOOLKIT_API FPointIO : public TSharedFromThis<FPointIO>
 	{
 		friend class FPointIOCollection;
 
@@ -327,7 +327,7 @@ namespace PCGExData
 	/**
 	 * 
 	 */
-	class /*PCGEXTENDEDTOOLKIT_API*/ FPointIOCollection : public TSharedFromThis<FPointIOCollection>
+	class PCGEXTENDEDTOOLKIT_API FPointIOCollection : public TSharedFromThis<FPointIOCollection>
 	{
 	protected:
 		mutable FRWLock PairsLock;
@@ -412,7 +412,7 @@ namespace PCGExData
 		void Flush();
 	};
 
-	class /*PCGEXTENDEDTOOLKIT_API*/ FPointIOTaggedEntries : public TSharedFromThis<FPointIOTaggedEntries>
+	class PCGEXTENDEDTOOLKIT_API FPointIOTaggedEntries : public TSharedFromThis<FPointIOTaggedEntries>
 	{
 	public:
 		FString TagId;
@@ -429,7 +429,7 @@ namespace PCGExData
 		void Add(const TSharedRef<FPointIO>& Value);
 	};
 
-	class /*PCGEXTENDEDTOOLKIT_API*/ FPointIOTaggedDictionary
+	class PCGEXTENDEDTOOLKIT_API FPointIOTaggedDictionary
 	{
 	public:
 		FString TagId;             // LeftSide

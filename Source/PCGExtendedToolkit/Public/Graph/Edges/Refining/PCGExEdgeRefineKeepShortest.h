@@ -15,7 +15,7 @@ class UPCGExHeuristicDistance;
  * 
  */
 UCLASS(MinimalAPI, BlueprintType, meta=(DisplayName="Keep Shortest"))
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExEdgeKeepShortest : public UPCGExEdgeRefineOperation
+class UPCGExEdgeKeepShortest : public UPCGExEdgeRefineOperation
 {
 	GENERATED_BODY()
 

@@ -43,7 +43,7 @@ enum class EPCGExShrinkConstantMode : uint8
 };
 
 USTRUCT(BlueprintType)
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExShrinkPathEndpointDistanceDetails
+struct FPCGExShrinkPathEndpointDistanceDetails
 {
 	GENERATED_BODY()
 
@@ -71,7 +71,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExShrinkPathEndpointDistanceDetails
 };
 
 USTRUCT(BlueprintType)
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExShrinkPathEndpointCountDetails
+struct FPCGExShrinkPathEndpointCountDetails
 {
 	GENERATED_BODY()
 
@@ -98,7 +98,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExShrinkPathEndpointCountDetails
  * 
  */
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Path")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExShrinkPathSettings : public UPCGExPathProcessorSettings
+class UPCGExShrinkPathSettings : public UPCGExPathProcessorSettings
 {
 	GENERATED_BODY()
 
@@ -158,7 +158,7 @@ public:
 	EPCGExShrinkEndpoint ShrinkFirst = EPCGExShrinkEndpoint::Both;
 };
 
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExShrinkPathContext final : FPCGExPathProcessorContext
+struct FPCGExShrinkPathContext final : FPCGExPathProcessorContext
 {
 	friend class FPCGExShrinkPathElement;
 
@@ -166,7 +166,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExShrinkPathContext final : FPCGExPathProc
 	void GetShrinkAmounts(const TSharedRef<PCGExData::FPointIO>& PointIO, uint32& Start, uint32& End) const;
 };
 
-class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExShrinkPathElement final : public FPCGExPathProcessorElement
+class FPCGExShrinkPathElement final : public FPCGExPathProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(

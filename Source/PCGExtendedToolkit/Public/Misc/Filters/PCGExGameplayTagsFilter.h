@@ -18,7 +18,7 @@
 
 
 USTRUCT(BlueprintType)
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExGameplayTagsFilterConfig
+struct FPCGExGameplayTagsFilterConfig
 {
 	GENERATED_BODY()
 
@@ -56,7 +56,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExGameplayTagsFilterConfig
  * 
  */
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Filter")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExGameplayTagsFilterFactory : public UPCGExFilterFactoryData
+class UPCGExGameplayTagsFilterFactory : public UPCGExFilterFactoryData
 {
 	GENERATED_BODY()
 
@@ -69,7 +69,7 @@ public:
 
 namespace PCGExPointFilter
 {
-	class /*PCGEXTENDEDTOOLKIT_API*/ FGameplayTagsFilter final : public FSimpleFilter
+	class FGameplayTagsFilter final : public FSimpleFilter
 	{
 	public:
 		explicit FGameplayTagsFilter(const TObjectPtr<const UPCGExGameplayTagsFilterFactory>& InDefinition)
@@ -99,7 +99,7 @@ namespace PCGExPointFilter
 ///
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Filter")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExGameplayTagsFilterProviderSettings : public UPCGExFilterProviderSettings
+class UPCGExGameplayTagsFilterProviderSettings : public UPCGExFilterProviderSettings
 {
 	GENERATED_BODY()
 

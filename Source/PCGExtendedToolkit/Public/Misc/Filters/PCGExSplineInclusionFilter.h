@@ -38,7 +38,7 @@ enum class EPCGExSplineFilterPick : uint8
 };
 
 USTRUCT(BlueprintType)
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExSplineInclusionFilterConfig
+struct FPCGExSplineInclusionFilterConfig
 {
 	GENERATED_BODY()
 
@@ -79,7 +79,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExSplineInclusionFilterConfig
  * 
  */
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Filter")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExSplineInclusionFilterFactory : public UPCGExFilterFactoryData
+class UPCGExSplineInclusionFilterFactory : public UPCGExFilterFactoryData
 {
 	GENERATED_BODY()
 
@@ -93,7 +93,7 @@ public:
 	virtual bool Init(FPCGExContext* InContext) override;
 	virtual bool WantsPreparation(FPCGExContext* InContext) override;
 	virtual bool Prepare(FPCGExContext* InContext) override;
-	
+
 	virtual TSharedPtr<PCGExPointFilter::FFilter> CreateFilter() const override;
 
 	virtual void BeginDestroy() override;
@@ -150,7 +150,7 @@ namespace PCGExPointFilter
 ///
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Filter")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExSplineInclusionFilterProviderSettings : public UPCGExFilterProviderSettings
+class UPCGExSplineInclusionFilterProviderSettings : public UPCGExFilterProviderSettings
 {
 	GENERATED_BODY()
 

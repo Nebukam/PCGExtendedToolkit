@@ -14,7 +14,7 @@
 #include "PCGExGeo.generated.h"
 
 USTRUCT(BlueprintType)
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExGeo2DProjectionDetails
+struct PCGEXTENDEDTOOLKIT_API FPCGExGeo2DProjectionDetails
 {
 	GENERATED_BODY()
 
@@ -96,7 +96,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExGeo2DProjectionDetails
 };
 
 USTRUCT(BlueprintType)
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExLloydSettings
+struct PCGEXTENDEDTOOLKIT_API FPCGExLloydSettings
 {
 	GENERATED_BODY()
 
@@ -130,7 +130,7 @@ namespace PCGExGeo
 	bool IsWinded(const EPCGExWinding Winding, const bool bIsInputClockwise);
 	bool IsWinded(const EPCGExWindingMutation Winding, const bool bIsInputClockwise);
 
-	struct /*PCGEXTENDEDTOOLKIT_API*/ FPolygonInfos
+	struct PCGEXTENDEDTOOLKIT_API FPolygonInfos
 	{
 		double Area = 0;
 		bool bIsClockwise = false;
@@ -177,35 +177,6 @@ namespace PCGExGeo
 	bool FindSphereFrom4Points(const TArrayView<FVector>& Positions, const int32 (&Vtx)[4], FSphere& OutSphere);
 	void GetCircumcenter(const TArrayView<FVector>& Positions, const int32 (&Vtx)[3], FVector& OutCircumcenter);
 
-	/*
-	static void GetCircumcenter(const TArrayView<FVector>& Positions, const int32 (&Vtx)[3], FVector& OutCircumcenter)
-	{
-		const FVector& A = Positions[Vtx[0]];
-		const FVector& B = Positions[Vtx[1]];
-		const FVector& C = Positions[Vtx[2]];
-
-		// Step 2: Calculate midpoints
-		const FVector M1 = FMath::Lerp(A, B, 0.5);
-		const FVector M2 = FMath::Lerp(B, C, 0.5);
-
-		// Step 3: Calculate perpendicular bisectors
-		const double S1 = -1 / ((B.Y - A.Y) / (B.X - A.X));
-		const double S2 = -1 / ((C.Y - B.Y) / (C.X - B.X));
-
-		// Calculate y-intercepts of bisectors
-		const double I1 = M1.Y - S1 * M1.X;
-		const double I2 = M2.Y - S2 * M2.X;
-
-		// Step 4: Find intersection point
-		const double CX = (I2 - I1) / (S1 - S2);
-		const double CY = S1 * CX + I1;
-
-		OutCircumcenter.X = CX;
-		OutCircumcenter.Y = CY;
-		OutCircumcenter.Z = (A.Z + B.Z + C.Z) / 3;
-	}
-	*/
-
 	void GetCentroid(const TArrayView<FVector>& Positions, const int32 (&Vtx)[4], FVector& OutCentroid);
 	void GetCentroid(const TArrayView<FVector>& Positions, const int32 (&Vtx)[3], FVector& OutCentroid);
 	void GetLongestEdge(const TArrayView<FVector>& Positions, const int32 (&Vtx)[3], uint64& Edge);
@@ -226,7 +197,7 @@ namespace PCGExGeo
 		 *		   . '   |    '  .  
 		 *		A----Anchor---------B
 		 */
-	struct /*PCGEXTENDEDTOOLKIT_API*/ FApex
+	struct PCGEXTENDEDTOOLKIT_API FApex
 	{
 		FApex()
 		{
@@ -249,7 +220,7 @@ namespace PCGExGeo
 		static FApex FromEndOnly(const FVector& End, const FVector& InApex) { return FApex(InApex, End, InApex); }
 	};
 
-	struct /*PCGEXTENDEDTOOLKIT_API*/ FExCenterArc
+	struct PCGEXTENDEDTOOLKIT_API FExCenterArc
 	{
 		double Radius = 0;
 		double Theta = 0;
@@ -300,7 +271,7 @@ namespace PCGExGeo
 
 namespace PCGExGeoTasks
 {
-	class /*PCGEXTENDEDTOOLKIT_API*/ FTransformPointIO final : public PCGExMT::FPCGExIndexedTask
+	class FTransformPointIO final : public PCGExMT::FPCGExIndexedTask
 	{
 	public:
 		FTransformPointIO(const int32 InTaskIndex,

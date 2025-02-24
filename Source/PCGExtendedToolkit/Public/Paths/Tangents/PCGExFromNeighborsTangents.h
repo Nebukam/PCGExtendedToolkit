@@ -12,7 +12,7 @@
  * 
  */
 UCLASS(MinimalAPI, DisplayName="From Neighbors")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExFromNeighborsTangents : public UPCGExTangentsOperation
+class UPCGExFromNeighborsTangents : public UPCGExTangentsOperation
 {
 	GENERATED_BODY()
 

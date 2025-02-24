@@ -38,7 +38,7 @@ enum class EPCGExOffsetMethod : uint8
  * 
  */
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Path")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExOffsetPathSettings : public UPCGExPathProcessorSettings
+class UPCGExOffsetPathSettings : public UPCGExPathProcessorSettings
 {
 	GENERATED_BODY()
 
@@ -138,12 +138,12 @@ public:
 	FName MutatedAttributeName = FName("IsMutated");
 };
 
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExOffsetPathContext final : FPCGExPathProcessorContext
+struct FPCGExOffsetPathContext final : FPCGExPathProcessorContext
 {
 	friend class FPCGExOffsetPathElement;
 };
 
-class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExOffsetPathElement final : public FPCGExPathProcessorElement
+class FPCGExOffsetPathElement final : public FPCGExPathProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(

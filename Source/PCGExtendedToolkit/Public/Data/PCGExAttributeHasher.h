@@ -21,7 +21,7 @@ enum class EPCGExDataHashScope : uint8
 };
 
 USTRUCT(BlueprintType)
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExAttributeHashConfig
+struct PCGEXTENDEDTOOLKIT_API FPCGExAttributeHashConfig
 {
 	GENERATED_BODY()
 
@@ -47,7 +47,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExAttributeHashConfig
 
 namespace PCGEx
 {
-	class FAttributeHasher : public TSharedFromThis<FAttributeHasher>
+	class PCGEXTENDEDTOOLKIT_API FAttributeHasher : public TSharedFromThis<FAttributeHasher>
 	{
 		FPCGExAttributeHashConfig Config;
 

@@ -16,7 +16,7 @@
 
 
 USTRUCT(BlueprintType)
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExClampDetails
+struct PCGEXTENDEDTOOLKIT_API FPCGExClampDetails
 {
 	GENERATED_BODY()
 
@@ -62,7 +62,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExClampDetails
 
 
 USTRUCT(BlueprintType)
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExRemapDetails
+struct PCGEXTENDEDTOOLKIT_API FPCGExRemapDetails
 {
 	GENERATED_BODY()
 
@@ -144,7 +144,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExRemapDetails
 };
 
 USTRUCT(BlueprintType)
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExComponentRemapRule
+struct PCGEXTENDEDTOOLKIT_API FPCGExComponentRemapRule
 {
 	GENERATED_BODY()
 
@@ -173,7 +173,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExComponentRemapRule
 };
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExAttributeRemapSettings : public UPCGExPointsProcessorSettings
+class UPCGExAttributeRemapSettings : public UPCGExPointsProcessorSettings
 {
 	GENERATED_BODY()
 
@@ -243,7 +243,7 @@ private:
 	friend class FPCGExAttributeRemapElement;
 };
 
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExAttributeRemapContext final : FPCGExPointsProcessorContext
+struct FPCGExAttributeRemapContext final : FPCGExPointsProcessorContext
 {
 	friend class FPCGExAttributeRemapElement;
 
@@ -253,7 +253,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExAttributeRemapContext final : FPCGExPoin
 	virtual void RegisterAssetDependencies() override;
 };
 
-class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExAttributeRemapElement final : public FPCGExPointsProcessorElement
+class FPCGExAttributeRemapElement final : public FPCGExPointsProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(

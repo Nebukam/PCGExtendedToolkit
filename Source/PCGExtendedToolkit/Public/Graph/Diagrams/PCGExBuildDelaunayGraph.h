@@ -15,7 +15,7 @@
  * 
  */
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Clusters")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExBuildDelaunayGraphSettings : public UPCGExPointsProcessorSettings
+class UPCGExBuildDelaunayGraphSettings : public UPCGExPointsProcessorSettings
 {
 	GENERATED_BODY()
 
@@ -76,15 +76,14 @@ private:
 	friend class FPCGExBuildDelaunayGraphElement;
 };
 
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExBuildDelaunayGraphContext final : FPCGExPointsProcessorContext
+struct FPCGExBuildDelaunayGraphContext final : FPCGExPointsProcessorContext
 {
 	friend class FPCGExBuildDelaunayGraphElement;
 
 	TSharedPtr<PCGExData::FPointIOCollection> MainSites;
 };
 
-
-class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExBuildDelaunayGraphElement final : public FPCGExPointsProcessorElement
+class FPCGExBuildDelaunayGraphElement final : public FPCGExPointsProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(

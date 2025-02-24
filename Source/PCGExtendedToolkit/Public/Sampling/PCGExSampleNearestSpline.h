@@ -61,7 +61,7 @@ enum class EPCGExSplineSampleAlphaMode : uint8
 
 namespace PCGExPolyLine
 {
-	struct /*PCGEXTENDEDTOOLKIT_API*/ FSample
+	struct FSample
 	{
 		FSample()
 		{
@@ -78,7 +78,7 @@ namespace PCGExPolyLine
 		double Time = 0;
 	};
 
-	struct /*PCGEXTENDEDTOOLKIT_API*/ FSamplesStats
+	struct FSamplesStats
 	{
 		FSamplesStats()
 		{
@@ -106,7 +106,7 @@ namespace PCGExPolyLine
  * This way we can multi-thread the various calculations instead of mixing everything along with async/game thread collision
  */
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Sampling")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExSampleNearestSplineSettings : public UPCGExPointsProcessorSettings
+class UPCGExSampleNearestSplineSettings : public UPCGExPointsProcessorSettings
 {
 	GENERATED_BODY()
 
@@ -422,7 +422,7 @@ public:
 	bool bPruneFailedSamples = false;
 };
 
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExSampleNearestSplineContext final : FPCGExPointsProcessorContext
+struct FPCGExSampleNearestSplineContext final : FPCGExPointsProcessorContext
 {
 	friend class FPCGExSampleNearestSplineElement;
 
@@ -446,7 +446,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExSampleNearestSplineContext final : FPCGE
 	virtual void RegisterAssetDependencies() override;
 };
 
-class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExSampleNearestSplineElement final : public FPCGExPointsProcessorElement
+class FPCGExSampleNearestSplineElement final : public FPCGExPointsProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(

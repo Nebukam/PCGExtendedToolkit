@@ -21,7 +21,7 @@ MACRO(Success, bool, false)\
 MACRO(Transform, FTransform, FTransform::Identity)
 
 UCLASS(Hidden, MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Sampling")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExSampleTensorsSettings : public UPCGExPointsProcessorSettings
+class UPCGExSampleTensorsSettings : public UPCGExPointsProcessorSettings
 {
 	GENERATED_BODY()
 
@@ -85,7 +85,7 @@ public:
 	bool bPruneFailedSamples = false;
 };
 
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExSampleTensorsContext final : FPCGExPointsProcessorContext
+struct FPCGExSampleTensorsContext final : FPCGExPointsProcessorContext
 {
 	friend class FPCGExSampleTensorsElement;
 
@@ -94,7 +94,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExSampleTensorsContext final : FPCGExPoint
 	virtual void RegisterAssetDependencies() override;
 };
 
-class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExSampleTensorsElement final : public FPCGExPointsProcessorElement
+class FPCGExSampleTensorsElement final : public FPCGExPointsProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(

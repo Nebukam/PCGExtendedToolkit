@@ -15,7 +15,7 @@
  * 
  */
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Clusters")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExFlagNodesSettings : public UPCGExEdgesProcessorSettings
+class UPCGExFlagNodesSettings : public UPCGExEdgesProcessorSettings
 {
 	GENERATED_BODY()
 
@@ -48,14 +48,14 @@ private:
 	friend class FPCGExFlagNodesElement;
 };
 
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExFlagNodesContext final : FPCGExEdgesProcessorContext
+struct FPCGExFlagNodesContext final : FPCGExEdgesProcessorContext
 {
 	friend class FPCGExFlagNodesElement;
 
 	TArray<TObjectPtr<const UPCGExFilterFactoryData>> StateFactories;
 };
 
-class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExFlagNodesElement final : public FPCGExEdgesProcessorElement
+class FPCGExFlagNodesElement final : public FPCGExEdgesProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(

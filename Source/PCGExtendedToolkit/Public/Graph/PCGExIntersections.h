@@ -22,7 +22,7 @@ MACRO(BoundIndex, int32, -1)\
 MACRO(IsInside, bool, false)
 
 USTRUCT(BlueprintType)
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExBoxIntersectionDetails
+struct PCGEXTENDEDTOOLKIT_API FPCGExBoxIntersectionDetails
 {
 	GENERATED_BODY()
 
@@ -167,7 +167,7 @@ namespace PCGExGraph
 
 	PCGEX_OCTREE_SEMANTICS(FUnionNode, { return Element->Bounds;}, { return A->Index == B->Index; })
 
-	struct /*PCGEXTENDEDTOOLKIT_API*/ FUnionGraph
+	struct PCGEXTENDEDTOOLKIT_API FUnionGraph
 	{
 		TMap<uint32, TSharedPtr<FUnionNode>> GridTree;
 
@@ -210,7 +210,7 @@ namespace PCGExGraph
 
 #pragma region Point Edge intersections
 
-	struct /*PCGEXTENDEDTOOLKIT_API*/ FPESplit
+	struct PCGEXTENDEDTOOLKIT_API FPESplit
 	{
 		int32 NodeIndex = -1;
 		double Time = -1;
@@ -219,7 +219,7 @@ namespace PCGExGraph
 		bool operator==(const FPESplit& Other) const { return NodeIndex == Other.NodeIndex; }
 	};
 
-	struct /*PCGEXTENDEDTOOLKIT_API*/ FPointEdgeProxy
+	struct PCGEXTENDEDTOOLKIT_API FPointEdgeProxy
 	{
 		int32 EdgeIndex = -1;
 		TArray<FPESplit> CollinearPoints;
@@ -255,7 +255,7 @@ namespace PCGExGraph
 		bool FindSplit(const FVector& Position, FPESplit& OutSplit) const;
 	};
 
-	struct /*PCGEXTENDEDTOOLKIT_API*/ FPointEdgeIntersections
+	struct PCGEXTENDEDTOOLKIT_API FPointEdgeIntersections
 	{
 		mutable FRWLock InsertionLock;
 		const TSharedPtr<PCGExData::FPointIO> PointIO;
@@ -285,7 +285,7 @@ namespace PCGExGraph
 
 #pragma region Edge Edge intersections
 
-	struct /*PCGEXTENDEDTOOLKIT_API*/ FEESplit
+	struct PCGEXTENDEDTOOLKIT_API FEESplit
 	{
 		int32 A = -1;
 		int32 B = -1;
@@ -294,7 +294,7 @@ namespace PCGExGraph
 		FVector Center = FVector::ZeroVector;
 	};
 
-	struct /*PCGEXTENDEDTOOLKIT_API*/ FEECrossing
+	struct PCGEXTENDEDTOOLKIT_API FEECrossing
 	{
 		int32 NodeIndex = -1;
 		int32 EdgeA = -1;
@@ -308,7 +308,7 @@ namespace PCGExGraph
 		bool operator==(const FEECrossing& Other) const { return NodeIndex == Other.NodeIndex; }
 	};
 
-	struct /*PCGEXTENDEDTOOLKIT_API*/ FEdgeEdgeProxy
+	struct PCGEXTENDEDTOOLKIT_API FEdgeEdgeProxy
 	{
 		int32 EdgeIndex = -1;
 		TArray<int32> Intersections;
@@ -346,7 +346,7 @@ namespace PCGExGraph
 
 	PCGEX_OCTREE_SEMANTICS(FEdgeEdgeProxy, { return Element->Bounds;}, { return A == B; })
 
-	struct /*PCGEXTENDEDTOOLKIT_API*/ FEdgeEdgeIntersections
+	struct PCGEXTENDEDTOOLKIT_API FEdgeEdgeIntersections
 	{
 		mutable FRWLock InsertionLock;
 		const TSharedPtr<PCGExData::FPointIO> PointIO;

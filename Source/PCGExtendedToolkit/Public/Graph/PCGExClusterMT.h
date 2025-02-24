@@ -52,7 +52,7 @@ namespace PCGExClusterMT
 
 	class FClusterProcessorBatchBase;
 
-	class FClusterProcessor : public TSharedFromThis<FClusterProcessor>
+	class PCGEXTENDEDTOOLKIT_API FClusterProcessor : public TSharedFromThis<FClusterProcessor>
 	{
 		friend class FClusterProcessorBatchBase;
 
@@ -151,7 +151,7 @@ namespace PCGExClusterMT
 	};
 
 	template <typename TContext, typename TSettings>
-	class TProcessor : public FClusterProcessor
+	class PCGEXTENDEDTOOLKIT_API TProcessor : public FClusterProcessor
 	{
 	protected:
 		TContext* Context = nullptr;
@@ -174,7 +174,7 @@ namespace PCGExClusterMT
 		const TSettings* GetSettings() { return Settings; }
 	};
 
-	class FClusterProcessorBatchBase : public TSharedFromThis<FClusterProcessorBatchBase>
+	class PCGEXTENDEDTOOLKIT_API FClusterProcessorBatchBase : public TSharedFromThis<FClusterProcessorBatchBase>
 	{
 	protected:
 		mutable FRWLock BatchLock;
@@ -251,7 +251,7 @@ namespace PCGExClusterMT
 	};
 
 	template <typename T>
-	class TBatch : public FClusterProcessorBatchBase
+	class PCGEXTENDEDTOOLKIT_API TBatch : public FClusterProcessorBatchBase
 	{
 	public:
 		TArray<TSharedRef<T>> Processors;
@@ -363,7 +363,7 @@ namespace PCGExClusterMT
 	};
 
 	template <typename T>
-	class TBatchWithGraphBuilder : public TBatch<T>
+	class PCGEXTENDEDTOOLKIT_API TBatchWithGraphBuilder : public TBatch<T>
 	{
 	public:
 		TBatchWithGraphBuilder(FPCGExContext* InContext, const TSharedRef<PCGExData::FPointIO>& InVtx, TArrayView<TSharedRef<PCGExData::FPointIO>> InEdges):
@@ -374,7 +374,7 @@ namespace PCGExClusterMT
 	};
 
 	template <typename T>
-	class TBatchWithHeuristics : public TBatch<T>
+	class PCGEXTENDEDTOOLKIT_API TBatchWithHeuristics : public TBatch<T>
 	{
 	public:
 		TBatchWithHeuristics(FPCGExContext* InContext, const TSharedRef<PCGExData::FPointIO>& InVtx, TArrayView<TSharedRef<PCGExData::FPointIO>> InEdges):

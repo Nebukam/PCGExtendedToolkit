@@ -12,7 +12,7 @@ namespace PCGExPicker
 }
 
 USTRUCT(BlueprintType)
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPickerConfigBase
+struct PCGEXTENDEDTOOLKIT_API FPCGExPickerConfigBase
 {
 	GENERATED_BODY()
 

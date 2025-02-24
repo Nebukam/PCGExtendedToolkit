@@ -18,7 +18,7 @@ enum class EPCGExToggleTopologyAction : uint8
 };
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural))
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExToggleTopologySettings : public UPCGSettings
+class UPCGExToggleTopologySettings : public UPCGSettings
 {
 	GENERATED_BODY()
 
@@ -54,13 +54,13 @@ protected:
 	TSoftObjectPtr<AActor> TargetActor;
 };
 
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExToggleTopologyContext final : FPCGContext
+struct FPCGExToggleTopologyContext final : FPCGContext
 {
 	friend class FPCGExToggleTopologyElement;
 	bool bWait = true;
 };
 
-class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExToggleTopologyElement final : public IPCGElement
+class FPCGExToggleTopologyElement final : public IPCGElement
 {
 public:
 	virtual FPCGContext* Initialize(const FPCGDataCollection& InputData, TWeakObjectPtr<UPCGComponent> SourceComponent, const UPCGNode* Node) override;

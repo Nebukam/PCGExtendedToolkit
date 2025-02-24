@@ -26,7 +26,7 @@ enum class EPCGExClusterClosestSearchMode : uint8
 };
 
 USTRUCT(BlueprintType)
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExNodeSelectionDetails
+struct PCGEXTENDEDTOOLKIT_API FPCGExNodeSelectionDetails
 {
 	GENERATED_BODY()
 
@@ -64,7 +64,7 @@ namespace PCGExCluster
 	const FName OutputNodeFlagLabel = TEXT("Flag");
 	const FName SourceNodeFlagLabel = TEXT("NodeFlags");
 
-	struct /*PCGEXTENDEDTOOLKIT_API*/ FAdjacencyData
+	struct PCGEXTENDEDTOOLKIT_API FAdjacencyData
 	{
 		int32 NodeIndex = -1;
 		int32 NodePointIndex = -1;
@@ -75,7 +75,7 @@ namespace PCGExCluster
 
 	class FCluster;
 
-	struct /*PCGEXTENDEDTOOLKIT_API*/ FNode : PCGExGraph::FNode
+	struct PCGEXTENDEDTOOLKIT_API FNode : PCGExGraph::FNode
 	{
 		FNode() = default;
 
@@ -87,7 +87,7 @@ namespace PCGExCluster
 		bool HasAnyValidEdges(const FCluster* InCluster);
 	};
 
-	struct /*PCGEXTENDEDTOOLKIT_API*/ FBoundedEdge
+	struct PCGEXTENDEDTOOLKIT_API FBoundedEdge
 	{
 		int32 Index;
 		FBoxSphereBounds Bounds;
@@ -100,7 +100,7 @@ namespace PCGExCluster
 		bool operator==(const FBoundedEdge& ExpandedEdge) const { return (Index == ExpandedEdge.Index && Bounds == ExpandedEdge.Bounds); };
 	};
 
-	class /*PCGEXTENDEDTOOLKIT_API*/ FCluster : public TSharedFromThis<FCluster>
+	class PCGEXTENDEDTOOLKIT_API FCluster : public TSharedFromThis<FCluster>
 	{
 	protected:
 		bool bIsMirror = false;
@@ -449,7 +449,7 @@ namespace PCGExCluster
 }
 
 USTRUCT(BlueprintType)
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExEdgeDirectionSettings
+struct PCGEXTENDEDTOOLKIT_API FPCGExEdgeDirectionSettings
 {
 	GENERATED_BODY()
 

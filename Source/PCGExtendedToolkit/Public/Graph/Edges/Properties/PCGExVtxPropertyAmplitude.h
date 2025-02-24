@@ -42,7 +42,7 @@ enum class EPCGExVtxAmplitudeSignOutput : uint8
 };
 
 USTRUCT(BlueprintType)
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExAmplitudeConfig
+struct FPCGExAmplitudeConfig
 {
 	GENERATED_BODY()
 
@@ -133,7 +133,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExAmplitudeConfig
  * 
  */
 UCLASS(MinimalAPI)
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExVtxPropertyAmplitude : public UPCGExVtxPropertyOperation
+class UPCGExVtxPropertyAmplitude : public UPCGExVtxPropertyOperation
 {
 	GENERATED_BODY()
 
@@ -170,7 +170,7 @@ protected:
 };
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExVtxPropertyAmplitudeFactory : public UPCGExVtxPropertyFactoryData
+class UPCGExVtxPropertyAmplitudeFactory : public UPCGExVtxPropertyFactoryData
 {
 	GENERATED_BODY()
 
@@ -181,7 +181,7 @@ public:
 };
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|VtxProperty")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExVtxPropertyAmplitudeSettings : public UPCGExVtxPropertyProviderSettings
+class UPCGExVtxPropertyAmplitudeSettings : public UPCGExVtxPropertyProviderSettings
 {
 	GENERATED_BODY()
 
