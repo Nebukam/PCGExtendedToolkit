@@ -128,7 +128,7 @@ struct FPCGExBoundsAxisToPointsContext final : FPCGExPointsProcessorContext
 	friend class FPCGExBoundsAxisToPointsElement;
 };
 
-class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExBoundsAxisToPointsElement final : public FPCGExPointsProcessorElement
+class FPCGExBoundsAxisToPointsElement final : public FPCGExPointsProcessorElement
 {
 	virtual FPCGContext* Initialize(
 		const FPCGDataCollection& InputData,

@@ -14,7 +14,7 @@ namespace PCGExPartition
 {
 	class FKPartition;
 
-	class /*PCGEXTENDEDTOOLKIT_API*/ FKPartition : public TSharedFromThis<FKPartition>
+	class FKPartition : public TSharedFromThis<FKPartition>
 	{
 	protected:
 		mutable FRWLock LayersLock;
@@ -123,7 +123,7 @@ struct FPCGExPartitionByValuesBaseContext final : FPCGExPointsProcessorContext
 	TArray<FPCGExPartitonRuleConfig> RulesConfigs;
 };
 
-class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPartitionByValuesBaseElement final : public FPCGExPointsProcessorElement
+class FPCGExPartitionByValuesBaseElement final : public FPCGExPointsProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(

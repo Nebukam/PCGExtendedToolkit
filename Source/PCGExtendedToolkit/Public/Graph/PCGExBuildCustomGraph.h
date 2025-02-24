@@ -525,7 +525,7 @@ namespace PCGExBuildCustomGraph
 {
 	const FName SourceOverridesBuilder = TEXT("Overrides : Graph Builder");
 
-	class /*PCGEXTENDEDTOOLKIT_API*/ FBuildGraph final : public PCGExMT::FTask
+	class FBuildGraph final : public PCGExMT::FTask
 	{
 	public:
 		PCGEX_ASYNC_TASK_NAME(FBuildGraph)

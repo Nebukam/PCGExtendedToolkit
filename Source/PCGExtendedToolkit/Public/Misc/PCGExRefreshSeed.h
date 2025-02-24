@@ -55,7 +55,7 @@ protected:
 	virtual bool ExecuteInternal(FPCGContext* Context) const override;
 };
 
-class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExRefreshSeedTask final : public PCGExMT::FPCGExIndexedTask
+class FPCGExRefreshSeedTask final : public PCGExMT::FPCGExIndexedTask
 {
 public:
 	explicit FPCGExRefreshSeedTask(const int32 InPointIndex,

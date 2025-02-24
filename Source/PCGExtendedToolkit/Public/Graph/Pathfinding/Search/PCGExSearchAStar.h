@@ -15,7 +15,7 @@ class UPCGExHeuristicOperation;
  * 
  */
 UCLASS(MinimalAPI, DisplayName = "A*", meta=(ToolTip ="A* Search. Returns early with the least possible amount of traversed nodes."))
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExSearchAStar : public UPCGExSearchOperation
+class UPCGExSearchAStar : public UPCGExSearchOperation
 {
 	GENERATED_BODY()
 

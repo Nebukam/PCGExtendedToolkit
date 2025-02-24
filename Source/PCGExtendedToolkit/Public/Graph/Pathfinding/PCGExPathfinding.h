@@ -223,7 +223,7 @@ namespace PCGExPathfinding
 		TFunction<void(int32, int32)>&& GoalFunc);
 }
 
-class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPathfindingTask : public PCGExMT::FPCGExIndexedTask
+class FPCGExPathfindingTask : public PCGExMT::FPCGExIndexedTask
 {
 public:
 	FPCGExPathfindingTask(const int32 InTaskIndex,
