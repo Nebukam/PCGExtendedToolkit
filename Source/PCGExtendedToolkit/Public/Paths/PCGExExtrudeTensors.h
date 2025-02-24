@@ -27,6 +27,13 @@ enum class EPCGExSelfIntersectionMode : uint8
 	SortingOnly = 1 UMETA(DisplayName = "Sorting only", Tooltip="Only use sorting rules to sort paths."),
 };
 
+UENUM()
+enum class EPCGExSelfIntersectionPriority : uint8
+{
+	Crossing = 0 UMETA(DisplayName = "Favor Crossing", Tooltip="Resolve crossing detection first, then merge."),
+	Merge    = 1 UMETA(DisplayName = "Favor Merge", Tooltip="Resolve merge first, then crossing"),
+};
+
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc")
 class UPCGExExtrudeTensorsSettings : public UPCGExPointsProcessorSettings
 {
@@ -165,9 +172,13 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Intersections (Self)", meta=(PCG_Overridable, EditCondition="bDoSelfPathIntersections"))
 	bool bMergeOnProximity = false;
 
+	/** */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Intersections (Self)", meta=(PCG_Overridable, DisplayName=" ├─ Priority", EditCondition="bDoSelfPathIntersections && bMergeOnProximity", ClampMin = 0, ClampMax =1))
+	EPCGExSelfIntersectionPriority SelfIntersectionPriority = EPCGExSelfIntersectionPriority::Crossing;
+
 	/** Which end of the extruded segment should be favored. 0 = start, 1 = end. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Intersections (Self)", meta=(PCG_Overridable, DisplayName=" ├─ Balance", EditCondition="bDoSelfPathIntersections && bMergeOnProximity", ClampMin = 0, ClampMax =1))
-	double ProximitySegmentBalance = 1;
+	double ProximitySegmentBalance = 0.5;
 
 	/** Whether to test for intersection between actively extruding paths */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Intersections (Self)", meta=(PCG_Overridable, DisplayName=" └─ Settings", EditCondition="bDoSelfPathIntersections && bMergeOnProximity"))
@@ -564,23 +575,47 @@ namespace PCGExExtrudeTensors
 				*SolidPaths.Get(), Context->ExternalPathIntersections,
 				Segment, PathIndex, Merge);
 
-			// Self-intersect
-			if (Intersection)
+			if (Settings->SelfIntersectionPriority == EPCGExSelfIntersectionPriority::Crossing)
 			{
-				bHitIntersection = true;
-				bHitSelfIntersection = true;
+				// Self-intersect
+				if (Intersection)
+				{
+					bHitIntersection = true;
+					bHitSelfIntersection = true;
 
-				InPoint.Transform.SetLocation(Intersection);
-				Insert(InPoint);
-				return OnAdvanced(true);
+					InPoint.Transform.SetLocation(Intersection);
+					Insert(InPoint);
+					return OnAdvanced(true);
+				}
+
+				// Merge
+				if (TryMerge(Segment, Merge))
+				{
+					InPoint.Transform.SetLocation(Merge);
+					Insert(InPoint);
+					return OnAdvanced(true);
+				}
 			}
-
-			// Merge
-			if (TryMerge(Segment, Merge))
+			else
 			{
-				InPoint.Transform.SetLocation(Merge);
-				Insert(InPoint);
-				return OnAdvanced(true);
+				// Merge
+				if (TryMerge(Segment, Merge))
+				{
+					InPoint.Transform.SetLocation(Merge);
+					Insert(InPoint);
+					return OnAdvanced(true);
+				}
+
+				// Self-intersect
+				if (Intersection)
+				{
+					bHitIntersection = true;
+					bHitSelfIntersection = true;
+
+					InPoint.Transform.SetLocation(Intersection);
+					Insert(InPoint);
+					return OnAdvanced(true);
+				}
 			}
 		}
 
