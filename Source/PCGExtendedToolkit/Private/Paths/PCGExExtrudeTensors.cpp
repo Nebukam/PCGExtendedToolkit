@@ -250,7 +250,7 @@ namespace PCGExExtrudeTensors
 
 		if (Context->MergeDetails.bWantsDotCheck)
 		{
-			if (!Context->MergeDetails.CheckDot(FMath::Abs(FVector::DotProduct((InMerge.Location - InSegment.A).GetSafeNormal(), InSegment.Direction)))) { return false; }
+			if (!Context->MergeDetails.CheckDot(FMath::Abs(FVector::DotProduct(InMerge.Direction(), InSegment.Direction)))) { return false; }
 		}
 
 		if (InMerge.DistSquared > Context->MergeDetails.ToleranceSquared) { return false; }
@@ -525,9 +525,8 @@ namespace PCGExExtrudeTensors
 
 		if (Settings->bDoSelfPathIntersections)
 		{
+			const bool bMergeFirst = Settings->SelfIntersectionPriority == EPCGExSelfIntersectionPriority::Merge;
 			const int32 NumQueuedExtrusions = ExtrusionQueue.Num();
-			TBitArray<> Merged;
-			Merged.Init(false, NumQueuedExtrusions);
 
 			SortQueue();
 
@@ -569,37 +568,43 @@ namespace PCGExExtrudeTensors
 					{
 						if (PCGExMath::FClosestPosition LocalCrossing = OE->FindCrossing(HeadSegment, bIsLastSegment, PreMerge, TruncateSearch))
 						{
-							if (bIsLastSegment && Merged[j])
-							{
-								// Dodge last merged segment from higher priorities?
-								continue;
-							}
-
+							// Crossing found
+							if (bMergeFirst) { Merge.Update(PreMerge); }
 							Crossing.Update(LocalCrossing, j);
 						}
 						else
 						{
-							if (bIsLastSegment && Merged[j])
-							{
-								// Dodge last merged segment from higher priorities?
-								continue;
-							}
-
+							// Update merge instead
 							Merge.Update(PreMerge);
 						}
 					}
 				}
 
-				if (Crossing)
+				if (bMergeFirst)
 				{
-					E->CutOff(Crossing);
-					CompletedExtrusions->Values[0]->Add(E);
+					if (E->TryMerge(HeadSegment, Merge))
+					{
+						E->CutOff(Merge);
+						CompletedExtrusions->Values[0]->Add(E);
+					}
+					else if (Crossing)
+					{
+						E->CutOff(Crossing);
+						CompletedExtrusions->Values[0]->Add(E);
+					}
 				}
-				else if (E->TryMerge(HeadSegment, Merge))
+				else
 				{
-					E->CutOff(Merge);
-					CompletedExtrusions->Values[0]->Add(E);
-					Merged[i] = true;
+					if (Crossing)
+					{
+						E->CutOff(Crossing);
+						CompletedExtrusions->Values[0]->Add(E);
+					}
+					else if (E->TryMerge(HeadSegment, Merge))
+					{
+						E->CutOff(Merge);
+						CompletedExtrusions->Values[0]->Add(E);
+					}
 				}
 			}
 		}
