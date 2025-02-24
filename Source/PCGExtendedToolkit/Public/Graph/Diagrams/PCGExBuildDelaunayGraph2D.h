@@ -137,7 +137,7 @@ namespace PCGExBuildDelaunay2D
 		virtual void Write() override;
 	};
 
-	class /*PCGEXTENDEDTOOLKIT_API*/ FOutputDelaunaySites2D final : public PCGExMT::FTask
+	class FOutputDelaunaySites2D final : public PCGExMT::FTask
 	{
 	public:
 		PCGEX_ASYNC_TASK_NAME(FOutputDelaunaySites2D)
@@ -156,7 +156,7 @@ namespace PCGExBuildDelaunay2D
 		virtual void ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager) override;
 	};
 
-	class /*PCGEXTENDEDTOOLKIT_API*/ FOutputDelaunayUrquhartSites2D final : public PCGExMT::FTask
+	class FOutputDelaunayUrquhartSites2D final : public PCGExMT::FTask
 	{
 	public:
 		PCGEX_ASYNC_TASK_NAME(FOutputDelaunayUrquhartSites2D)

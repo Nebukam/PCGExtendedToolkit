@@ -86,7 +86,7 @@ namespace PCGExLloydRelax2D
 		virtual void CompleteWork() override;
 	};
 
-	class /*PCGEXTENDEDTOOLKIT_API*/ FLloydRelaxTask final : public PCGExMT::FPCGExIndexedTask
+	class FLloydRelaxTask final : public PCGExMT::FPCGExIndexedTask
 	{
 	public:
 		FLloydRelaxTask(const int32 InTaskIndex,

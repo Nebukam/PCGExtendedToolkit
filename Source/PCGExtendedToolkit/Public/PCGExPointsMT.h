@@ -75,7 +75,7 @@ namespace PCGExPointsMT
 
 	class FPointsProcessorBatchBase;
 
-	class FPointsProcessor : public TSharedFromThis<FPointsProcessor>
+	class PCGEXTENDEDTOOLKIT_API FPointsProcessor : public TSharedFromThis<FPointsProcessor>
 	{
 		friend class FPointsProcessorBatchBase;
 
@@ -191,7 +191,7 @@ namespace PCGExPointsMT
 		const TSettings* GetSettings() { return Settings; }
 	};
 
-	class FPointsProcessorBatchBase : public TSharedFromThis<FPointsProcessorBatchBase>
+	class PCGEXTENDEDTOOLKIT_API FPointsProcessorBatchBase : public TSharedFromThis<FPointsProcessorBatchBase>
 	{
 	protected:
 		TSharedPtr<PCGExMT::FTaskManager> AsyncManager;

@@ -76,11 +76,11 @@ public:
 	virtual TSharedPtr<PCGExPointFilter::FFilter> CreateFilter() const override;
 };
 
-class FNodeEdgeDirectionFilter final : public PCGExClusterFilter::TVtxFilter
+class FNodeEdgeDirectionFilter final : public PCGExClusterFilter::FVtxFilter
 {
 public:
 	explicit FNodeEdgeDirectionFilter(const UPCGExNodeEdgeDirectionFilterFactory* InFactory)
-		: TVtxFilter(InFactory), TypedFilterFactory(InFactory)
+		: FVtxFilter(InFactory), TypedFilterFactory(InFactory)
 	{
 		Adjacency = InFactory->Config.Adjacency;
 		DotComparison = InFactory->Config.DotComparisonDetails;
