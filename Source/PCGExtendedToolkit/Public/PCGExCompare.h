@@ -388,7 +388,7 @@ namespace PCGExCompare
 	bool Compare(const EPCGExStringComparison Method, const TSharedPtr<PCGExData::FTagValue>& A, const FString B);
 	bool Compare(const EPCGExBitflagComparison Method, const int64& Flags, const int64& Mask);
 
-	bool HasMatchingTags(const TSharedPtr<PCGExData::FTags>& InTags, const FString& Query, const EPCGExStringMatchMode MatchMode);
+	bool HasMatchingTags(const TSharedPtr<PCGExData::FTags>& InTags, const FString& Query, const EPCGExStringMatchMode MatchMode, const bool bStrict = true);
 	bool GetMatchingValueTags(const TSharedPtr<PCGExData::FTags>& InTags, const FString& Query, const EPCGExStringMatchMode MatchMode, TArray<TSharedPtr<PCGExData::FTagValue>>& OutValues);
 }
 
