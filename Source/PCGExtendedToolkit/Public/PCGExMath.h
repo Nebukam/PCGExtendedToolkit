@@ -72,6 +72,8 @@ namespace PCGExMath
 		bool Update(const FVector& InLocation);
 		bool Update(const FVector& InLocation, const int32 InIndex);
 
+		FVector Direction() const { return (Origin - Location).GetSafeNormal(); }
+
 		friend bool operator<(const FClosestPosition& A, const FClosestPosition& B) { return A.DistSquared < B.DistSquared; }
 		friend bool operator>(const FClosestPosition& A, const FClosestPosition& B) { return A.DistSquared > B.DistSquared; }
 
