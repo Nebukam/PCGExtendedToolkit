@@ -65,6 +65,15 @@ bool FPCGExPathFilterSettings::Init(FPCGExContext* InContext)
 	return true;
 }
 
+FPCGExPathIntersectionDetails::FPCGExPathIntersectionDetails(const double InTolerance, const double InMinAngle, const double InMaxAngle)
+{
+	Tolerance = InTolerance;
+	MinAngle = InMinAngle;
+	MaxAngle = InMaxAngle;
+	bUseMinAngle = InMinAngle > 0;
+	bUseMaxAngle = InMaxAngle < 90;
+}
+
 namespace PCGExPaths
 {
 	FPathMetrics::FPathMetrics(const FVector& InStart)

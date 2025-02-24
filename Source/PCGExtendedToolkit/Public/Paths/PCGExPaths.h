@@ -210,6 +210,9 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPathIntersectionDetails
 {
 	GENERATED_BODY()
 
+	FPCGExPathIntersectionDetails() = default;
+	explicit FPCGExPathIntersectionDetails(const double InTolerance, const double InMinAngle, const double InMaxAngle = 90);
+	
 	/** Distance at which two edges are considered intersecting. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ClampMin=0))
 	double Tolerance = DBL_INTERSECTION_TOLERANCE;
@@ -217,7 +220,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPathIntersectionDetails
 
 	/** . */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, InlineEditConditionToggle))
-	bool bUseMinAngle = true;
+	bool bUseMinAngle = false;
 
 	/** Min angle. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bUseMinAngle", Units="Degrees", ClampMin=0, ClampMax=90))
@@ -226,7 +229,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPathIntersectionDetails
 
 	/** . */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, InlineEditConditionToggle))
-	bool bUseMaxAngle = true;
+	bool bUseMaxAngle = false;
 
 	/** Maximum angle. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bUseMaxAngle", Units="Degrees", ClampMin=0, ClampMax=90))

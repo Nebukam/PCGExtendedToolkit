@@ -89,8 +89,11 @@ public:
 
 	virtual bool SupportsDirectEvaluation() const override { return true; } // TODO Change this one we support per-point tolerance from attribute
 
-	TArray<FPCGSplineStruct> Splines;
+	TSharedPtr<TArray<FPCGSplineStruct>> Splines;
 	virtual bool Init(FPCGExContext* InContext) override;
+	virtual bool WantsPreparation(FPCGExContext* InContext) override;
+	virtual bool Prepare(FPCGExContext* InContext) override;
+	
 	virtual TSharedPtr<PCGExPointFilter::FFilter> CreateFilter() const override;
 
 	virtual void BeginDestroy() override;
@@ -119,12 +122,12 @@ namespace PCGExPointFilter
 		explicit FSplineInclusionFilter(const TObjectPtr<const UPCGExSplineInclusionFilterFactory>& InFactory)
 			: FSimpleFilter(InFactory), TypedFilterFactory(InFactory)
 		{
-			Splines = &TypedFilterFactory->Splines;
+			Splines = TypedFilterFactory->Splines;
 		}
 
 		const TObjectPtr<const UPCGExSplineInclusionFilterFactory> TypedFilterFactory;
 
-		const TArray<FPCGSplineStruct>* Splines = nullptr;
+		TSharedPtr<TArray<FPCGSplineStruct>> Splines;
 
 		double ToleranceSquared = MAX_dbl;
 		ESplineCheckFlags GoodFlags = None;

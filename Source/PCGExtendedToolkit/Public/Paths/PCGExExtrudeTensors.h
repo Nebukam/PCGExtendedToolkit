@@ -160,17 +160,19 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Intersections (Self)", meta=(PCG_Overridable, EditCondition="bDoSelfPathIntersections"))
 	FPCGExPathIntersectionDetails SelfPathIntersections;
 
+
 	/** Whether to test for intersection between actively extruding paths */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Intersections (Self)", meta=(PCG_Overridable, EditCondition="bDoSelfPathIntersections"))
 	bool bMergeOnProximity = false;
 
-	/** Whether to test for intersection between actively extruding paths */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Intersections (Self)", meta=(PCG_Overridable, DisplayName=" ├─ Threshold", EditCondition="bDoSelfPathIntersections && bMergeOnProximity"))
-	double ProximityMergeThreshold = 10;
-
 	/** Which end of the extruded segment should be favored. 0 = start, 1 = end. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Intersections (Self)", meta=(PCG_Overridable, DisplayName=" └─ Balance", EditCondition="bDoSelfPathIntersections && bMergeOnProximity", ClampMin = 0, ClampMax =1))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Intersections (Self)", meta=(PCG_Overridable, DisplayName=" ├─ Balance", EditCondition="bDoSelfPathIntersections && bMergeOnProximity", ClampMin = 0, ClampMax =1))
 	double ProximitySegmentBalance = 1;
+
+	/** Whether to test for intersection between actively extruding paths */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Intersections (Self)", meta=(PCG_Overridable, DisplayName=" └─ Settings", EditCondition="bDoSelfPathIntersections && bMergeOnProximity"))
+	FPCGExPathIntersectionDetails MergeDetails = FPCGExPathIntersectionDetails(10, 20);
+
 
 	/** Whether the node should attempt to close loops based on angle and proximity */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Intersections (Self)|Closing Loops", meta=(PCG_NotOverridable))
@@ -286,11 +288,10 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExExtrudeTensorsContext final : FPCGExPoin
 	FPCGExPathClosedLoopDetails ClosedLoop;
 	FPCGExPathIntersectionDetails ExternalPathIntersections;
 	FPCGExPathIntersectionDetails SelfPathIntersections;
+	FPCGExPathIntersectionDetails MergeDetails;
 
 	double ClosedLoopSquaredDistance = 0;
 	double ClosedLoopSearchDot = 0;
-
-	double ProximityMergeThreshold = 0;
 
 	TArray<TSharedPtr<PCGExData::FFacade>> PathsFacades;
 	TArray<TSharedPtr<PCGExPaths::FPath>> ExternalPaths;
@@ -386,6 +387,7 @@ namespace PCGExExtrudeTensors
 		void Shorten(const FVector& InCutOff);
 
 		PCGExMath::FClosestPosition FindCrossing(const PCGExMath::FSegment& InSegment, bool& OutIsLastSegment, PCGExMath::FClosestPosition& OutClosestPosition, const int32 TruncateSearch = 0) const;
+		bool TryMerge(const PCGExMath::FSegment& InSegment, const PCGExMath::FClosestPosition& InMerge);
 
 		void Cleanup();
 
@@ -574,12 +576,8 @@ namespace PCGExExtrudeTensors
 			}
 
 			// Merge
-			if (Merge.DistSquared < Context->ProximityMergeThreshold)
+			if (TryMerge(Segment, Merge))
 			{
-				bHitIntersection = true;
-				bHitSelfIntersection = true;
-				bIsSelfMerged = true;
-
 				InPoint.Transform.SetLocation(Merge);
 				Insert(InPoint);
 				return OnAdvanced(true);

@@ -34,7 +34,7 @@ public:
 	UPROPERTY()
 	FPCGExPickerConstantSetConfig Config;
 
-	virtual bool RequiresPreparation(FPCGExContext* InContext) override { return true; }
+	virtual bool WantsPreparation(FPCGExContext* InContext) override { return true; }
 	virtual void AddPicks(int32 InNum, TSet<int32>& OutPicks) const override;
 
 protected:

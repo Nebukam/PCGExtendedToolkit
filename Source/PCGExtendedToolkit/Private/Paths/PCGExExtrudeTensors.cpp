@@ -41,8 +41,6 @@ bool FPCGExExtrudeTensorsElement::Boot(FPCGExContext* InContext) const
 
 	PCGEX_CONTEXT_AND_SETTINGS(ExtrudeTensors)
 
-	if (Settings->bMergeOnProximity) { Context->ProximityMergeThreshold = FMath::Square(Settings->ProximityMergeThreshold); }
-
 	PCGEX_FWD(ClosedLoop)
 	Context->ClosedLoop.Init();
 
@@ -51,6 +49,9 @@ bool FPCGExExtrudeTensorsElement::Boot(FPCGExContext* InContext) const
 
 	PCGEX_FWD(SelfPathIntersections)
 	Context->SelfPathIntersections.Init();
+
+	PCGEX_FWD(MergeDetails)
+	Context->MergeDetails.Init();
 
 	if (!PCGExFactories::GetInputFactories(InContext, PCGExTensor::SourceTensorsLabel, Context->TensorFactories, {PCGExFactories::EType::Tensor}, true)) { return false; }
 
@@ -240,6 +241,25 @@ namespace PCGExExtrudeTensors
 
 		OutIsLastSegment = Crossing.Index == LastSegment;
 		return Crossing;
+	}
+
+	bool FExtrusion::TryMerge(const PCGExMath::FSegment& InSegment, const PCGExMath::FClosestPosition& InMerge)
+	{
+		// Merge
+		if (!Settings->bMergeOnProximity || !InMerge) { return false; }
+
+		if (Context->MergeDetails.bWantsDotCheck)
+		{
+			if (!Context->MergeDetails.CheckDot(FMath::Abs(FVector::DotProduct((InMerge.Location - InSegment.A).GetSafeNormal(), InSegment.Direction)))) { return false; }
+		}
+
+		if (InMerge.DistSquared > Context->MergeDetails.ToleranceSquared) { return false; }
+
+		bHitIntersection = true;
+		bHitSelfIntersection = true;
+		bIsSelfMerged = true;
+
+		return true;
 	}
 
 	void FExtrusion::Cleanup()
@@ -554,7 +574,7 @@ namespace PCGExExtrudeTensors
 								// Dodge last merged segment from higher priorities?
 								continue;
 							}
-							
+
 							Crossing.Update(LocalCrossing, j);
 						}
 						else
@@ -564,7 +584,7 @@ namespace PCGExExtrudeTensors
 								// Dodge last merged segment from higher priorities?
 								continue;
 							}
-							
+
 							Merge.Update(PreMerge);
 						}
 					}
@@ -575,9 +595,8 @@ namespace PCGExExtrudeTensors
 					E->CutOff(Crossing);
 					CompletedExtrusions->Values[0]->Add(E);
 				}
-				else if (Merge.DistSquared < Context->ProximityMergeThreshold)
+				else if (E->TryMerge(HeadSegment, Merge))
 				{
-					E->bIsSelfMerged = true;
 					E->CutOff(Merge);
 					CompletedExtrusions->Values[0]->Add(E);
 					Merged[i] = true;

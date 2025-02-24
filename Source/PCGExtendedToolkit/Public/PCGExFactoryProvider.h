@@ -102,7 +102,7 @@ public:
 	virtual void RegisterAssetDependencies(FPCGExContext* InContext) const;
 	virtual void RegisterBuffersDependencies(FPCGExContext* InContext, PCGExData::FFacadePreloader& FacadePreloader) const;
 
-	virtual bool RequiresPreparation(FPCGExContext* InContext) { return false; }
+	virtual bool WantsPreparation(FPCGExContext* InContext) { return false; }
 	virtual bool Prepare(FPCGExContext* InContext) { return true; }
 
 protected:
