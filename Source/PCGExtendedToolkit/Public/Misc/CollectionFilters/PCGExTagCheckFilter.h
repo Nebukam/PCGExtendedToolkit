@@ -35,6 +35,10 @@ struct FPCGExTagCheckFilterConfig
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable, DisplayName="Match"))
 	EPCGExStringMatchMode Match = EPCGExStringMatchMode::Equals;
 
+	/** In strict mode, only check tag prefix and ignore values for tags formatted as `Tag:Value`. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable))
+	bool bStrict = false;
+	
 	/** Invert the result of this filter. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable))
 	bool bInvert = false;

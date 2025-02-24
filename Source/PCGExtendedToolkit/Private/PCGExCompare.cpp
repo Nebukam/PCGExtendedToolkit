@@ -168,43 +168,68 @@ namespace PCGExCompare
 		}
 	}
 
-	bool HasMatchingTags(const TSharedPtr<PCGExData::FTags>& InTags, const FString& Query, const EPCGExStringMatchMode MatchMode)
+	bool HasMatchingTags(const TSharedPtr<PCGExData::FTags>& InTags, const FString& Query, const EPCGExStringMatchMode MatchMode, const bool bStrict)
 	{
-		for (const TPair<FString, TSharedPtr<PCGExData::FTagValue>>& Pair : InTags->ValueTags)
+		if (bStrict)
 		{
-			switch (MatchMode)
+			for (const TPair<FString, TSharedPtr<PCGExData::FTagValue>>& Pair : InTags->ValueTags)
 			{
-			case EPCGExStringMatchMode::Equals:
-				if (Pair.Key == Query) { return true; }
-				break;
-			case EPCGExStringMatchMode::Contains:
-				if (Pair.Key.Contains(Query)) { return true; }
-				break;
-			case EPCGExStringMatchMode::StartsWith:
-				if (Pair.Key.StartsWith(Query)) { return true; }
-				break;
-			case EPCGExStringMatchMode::EndsWith:
-				if (Pair.Key.EndsWith(Query)) { return true; }
-				break;
+				switch (MatchMode)
+				{
+				case EPCGExStringMatchMode::Equals:
+					if (Pair.Key == Query) { return true; }
+					break;
+				case EPCGExStringMatchMode::Contains:
+					if (Pair.Key.Contains(Query)) { return true; }
+					break;
+				case EPCGExStringMatchMode::StartsWith:
+					if (Pair.Key.StartsWith(Query)) { return true; }
+					break;
+				case EPCGExStringMatchMode::EndsWith:
+					if (Pair.Key.EndsWith(Query)) { return true; }
+					break;
+				}
+			}
+
+			for (const FString& Tag : InTags->RawTags)
+			{
+				switch (MatchMode)
+				{
+				case EPCGExStringMatchMode::Equals:
+					if (Tag == Query) { return true; }
+					break;
+				case EPCGExStringMatchMode::Contains:
+					if (Tag.Contains(Query)) { return true; }
+					break;
+				case EPCGExStringMatchMode::StartsWith:
+					if (Tag.StartsWith(Query)) { return true; }
+					break;
+				case EPCGExStringMatchMode::EndsWith:
+					if (Tag.EndsWith(Query)) { return true; }
+					break;
+				}
 			}
 		}
-
-		for (const FString& Tag : InTags->RawTags)
+		else
 		{
-			switch (MatchMode)
+			TArray<FString> FlattenedTags = InTags->FlattenToArray();
+			for (const FString& Tag : FlattenedTags)
 			{
-			case EPCGExStringMatchMode::Equals:
-				if (Tag == Query) { return true; }
-				break;
-			case EPCGExStringMatchMode::Contains:
-				if (Tag.Contains(Query)) { return true; }
-				break;
-			case EPCGExStringMatchMode::StartsWith:
-				if (Tag.StartsWith(Query)) { return true; }
-				break;
-			case EPCGExStringMatchMode::EndsWith:
-				if (Tag.EndsWith(Query)) { return true; }
-				break;
+				switch (MatchMode)
+				{
+				case EPCGExStringMatchMode::Equals:
+					if (Tag == Query) { return true; }
+					break;
+				case EPCGExStringMatchMode::Contains:
+					if (Tag.Contains(Query)) { return true; }
+					break;
+				case EPCGExStringMatchMode::StartsWith:
+					if (Tag.StartsWith(Query)) { return true; }
+					break;
+				case EPCGExStringMatchMode::EndsWith:
+					if (Tag.EndsWith(Query)) { return true; }
+					break;
+				}
 			}
 		}
 
