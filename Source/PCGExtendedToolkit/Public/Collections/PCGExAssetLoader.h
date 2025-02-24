@@ -23,16 +23,16 @@ namespace PCGEx
 	template <typename T>
 	class TDiscoverAssetsTask;
 
-	class PCGEXTENDEDTOOLKIT_API TAssetLoaderBase : public TSharedFromThis<TAssetLoaderBase>
+	class PCGEXTENDEDTOOLKIT_API FAssetLoaderBase : public TSharedFromThis<FAssetLoaderBase>
 	{
 	public:
-		TAssetLoaderBase()
+		FAssetLoaderBase()
 		{
 		}
 	};
 
 	template <typename T>
-	class /*PCGEXTENDEDTOOLKIT_API*/ TAssetLoader : public TAssetLoaderBase
+	class TAssetLoader : public FAssetLoaderBase
 	{
 	protected:
 		bool bBypass = false;
@@ -53,7 +53,7 @@ namespace PCGEx
 			FPCGExContext* InContext,
 			const TSharedRef<PCGExData::FPointIOCollection>& InIOCollection,
 			const TArray<FName>& InAttributeNames)
-			: TAssetLoaderBase(),
+			: FAssetLoaderBase(),
 			  AttributeNames(InAttributeNames),
 			  Context(InContext),
 			  IOCollection(InIOCollection)
@@ -191,7 +191,7 @@ namespace PCGEx
 
 #if PCGEX_ENGINE_VERSION <= 503
 	template <typename T>
-	class /*PCGEXTENDEDTOOLKIT_API*/ TDiscoverAssetsTask final : public PCGExMT::FTask
+	class TDiscoverAssetsTask final : public PCGExMT::FTask
 	{
 	public:
 		PCGEX_ASYNC_TASK_NAME(TDiscoverAssetsTask)
@@ -224,7 +224,7 @@ namespace PCGEx
 	};
 #else
 	template <typename T>
-	class /*PCGEXTENDEDTOOLKIT_API*/ TDiscoverAssetsTask final : public PCGExMT::FTask
+	class TDiscoverAssetsTask final : public PCGExMT::FTask
 	{
 	public:
 		PCGEX_ASYNC_TASK_NAME(TDiscoverAssetsTask)

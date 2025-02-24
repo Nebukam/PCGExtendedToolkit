@@ -503,7 +503,7 @@ namespace PCGExDataBlending
 	};
 
 	template <typename T, EPCGExDataBlendingType BlendingType, bool bRequirePreparation = false, bool bRequireCompletion = false>
-	class PCGEXTENDEDTOOLKIT_API FDataBlendingProcessorWithFirstInit : public TDataBlendingProcessor<T, BlendingType, bRequirePreparation, bRequireCompletion>
+	class TDataBlendingProcessorWithFirstInit : public TDataBlendingProcessor<T, BlendingType, bRequirePreparation, bRequireCompletion>
 	{
 		virtual void DoValuesRangeOperation(const int32 PrimaryReadIndex, const int32 SecondaryReadIndex, TArrayView<T>& Values, const TArrayView<double>& Weights, const int8 bFirstOperation) const override
 		{

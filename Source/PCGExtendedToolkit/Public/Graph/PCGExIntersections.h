@@ -144,7 +144,7 @@ namespace PCGExGraph
 {
 #pragma region Compound Graph
 
-	class /*PCGEXTENDEDTOOLKIT_API*/ FUnionNode : public TSharedFromThis<FUnionNode>
+	class PCGEXTENDEDTOOLKIT_API FUnionNode : public TSharedFromThis<FUnionNode>
 	{
 	protected:
 		mutable FRWLock AdjacencyLock;

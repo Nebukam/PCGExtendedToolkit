@@ -154,7 +154,7 @@ namespace PCGExData
 	};
 
 	template <typename T, EBufferLevel BufferLevel = EBufferLevel::Local>
-	class PCGEXTENDEDTOOLKIT_API TBuffer final : public FBufferBase
+	class TBuffer final : public FBufferBase
 	{
 		friend class FFacade;
 

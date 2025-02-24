@@ -147,7 +147,7 @@ namespace PCGExSplineToPath
 {
 	const FName SourceSplineLabel = TEXT("Splines");
 
-	class /*PCGEXTENDEDTOOLKIT_API*/ FWriteTask final : public PCGExMT::FPCGExIndexedTask
+	class FWriteTask final : public PCGExMT::FPCGExIndexedTask
 	{
 	public:
 		FWriteTask(const int32 InTaskIndex,

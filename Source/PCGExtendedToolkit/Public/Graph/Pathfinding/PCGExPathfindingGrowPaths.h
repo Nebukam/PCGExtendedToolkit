@@ -299,7 +299,7 @@ namespace PCGExGrowPaths
 		void Grow();
 	};
 
-	class /*PCGEXTENDEDTOOLKIT_API*/ FGrowTask final : public PCGExMT::FTask
+	class FGrowTask final : public PCGExMT::FTask
 	{
 	public:
 		PCGEX_ASYNC_TASK_NAME(FGrowTask)

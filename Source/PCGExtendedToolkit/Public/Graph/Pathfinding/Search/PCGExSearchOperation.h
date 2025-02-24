@@ -28,7 +28,7 @@ namespace PCGExCluster
  * 
  */
 UCLASS(Abstract)
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExSearchOperation : public UPCGExOperation
+class PCGEXTENDEDTOOLKIT_API UPCGExSearchOperation : public UPCGExOperation
 {
 	GENERATED_BODY()
 

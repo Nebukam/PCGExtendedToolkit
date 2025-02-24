@@ -76,7 +76,7 @@ public:
 	virtual TSharedPtr<PCGExPointFilter::FFilter> CreateFilter() const override;
 };
 
-class FIsoEdgeDirectionFilter final : public PCGExClusterFilter::TEdgeFilter
+class FIsoEdgeDirectionFilter final : public PCGExClusterFilter::FEdgeFilter
 {
 public:
 	explicit FIsoEdgeDirectionFilter(const UPCGExIsoEdgeDirectionFilterFactory* InFactory);

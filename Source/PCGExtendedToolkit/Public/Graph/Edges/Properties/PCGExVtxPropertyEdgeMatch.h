@@ -102,7 +102,7 @@ public:
 };
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|VtxProperty")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExVtxPropertyEdgeMatchSettings : public UPCGExVtxPropertyProviderSettings
+class UPCGExVtxPropertyEdgeMatchSettings : public UPCGExVtxPropertyProviderSettings
 {
 	GENERATED_BODY()
 

@@ -63,11 +63,11 @@ public:
 
 namespace PCGExNodeNeighborsCount
 {
-	class FNeighborsCountFilter final : public PCGExClusterFilter::TVtxFilter
+	class FNeighborsCountFilter final : public PCGExClusterFilter::FVtxFilter
 	{
 	public:
 		explicit FNeighborsCountFilter(const UPCGExNodeNeighborsCountFilterFactory* InFactory)
-			: TVtxFilter(InFactory), TypedFilterFactory(InFactory)
+			: FVtxFilter(InFactory), TypedFilterFactory(InFactory)
 		{
 		}
 

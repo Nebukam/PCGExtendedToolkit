@@ -8,7 +8,7 @@
 namespace PCGExMT
 {
 	template <typename T>
-	class PCGEXTENDEDTOOLKIT_API TScopedArray final : public TSharedFromThis<TScopedArray<T>>
+	class TScopedArray final : public TSharedFromThis<TScopedArray<T>>
 	{
 	public:
 		TArray<TSharedPtr<TArray<T>>> Values;
@@ -35,7 +35,7 @@ namespace PCGExMT
 	};
 
 	template <typename T>
-	class PCGEXTENDEDTOOLKIT_API TScopedSet final : public TSharedFromThis<TScopedSet<T>>
+	class TScopedSet final : public TSharedFromThis<TScopedSet<T>>
 	{
 	public:
 		TArray<TSharedPtr<TSet<T>>> Sets;
@@ -56,7 +56,7 @@ namespace PCGExMT
 	};
 
 	template <typename T>
-	class PCGEXTENDEDTOOLKIT_API TScopedValue final : public TSharedFromThis<TScopedValue<T>>
+	class TScopedValue final : public TSharedFromThis<TScopedValue<T>>
 	{
 	public:
 		TArray<T> Values;

@@ -297,14 +297,14 @@ namespace PCGEx
 		return InSelector.GetName().ToString() + TEXT(".") + FString::Join(InSelector.GetExtraNames(), TEXT("."));
 	}
 
-	class /*PCGEXTENDEDTOOLKIT_API*/ FAttributeBroadcasterBase
+	class PCGEXTENDEDTOOLKIT_API FAttributeBroadcasterBase
 	{
 	public:
 		virtual ~FAttributeBroadcasterBase() = default;
 	};
 
 	template <typename T>
-	class /*PCGEXTENDEDTOOLKIT_API*/ TAttributeBroadcaster : public FAttributeBroadcasterBase
+	class TAttributeBroadcaster : public FAttributeBroadcasterBase
 	{
 	protected:
 		TSharedPtr<PCGExData::FPointIO> PointIO;

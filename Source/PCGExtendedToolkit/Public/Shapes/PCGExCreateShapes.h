@@ -101,7 +101,7 @@ namespace PCGExCreateShapes
 		virtual void CompleteWork() override;
 	};
 
-	class /*PCGEXTENDEDTOOLKIT_API*/ FBuildShape final : public PCGExMT::FTask
+	class FBuildShape final : public PCGExMT::FTask
 	{
 	public:
 		PCGEX_ASYNC_TASK_NAME(FBuildShape)
