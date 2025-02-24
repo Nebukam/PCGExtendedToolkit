@@ -15,7 +15,7 @@
  * 
  */
 UCLASS(Abstract)
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExHeuristicOperation : public UPCGExOperation
+class PCGEXTENDEDTOOLKIT_API UPCGExHeuristicOperation : public UPCGExOperation
 {
 	GENERATED_BODY()
 

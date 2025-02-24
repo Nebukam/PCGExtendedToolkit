@@ -13,7 +13,7 @@
  * 
  */
 UCLASS(MinimalAPI, DisplayName = "No Blending")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExSubPointsBlendNone : public UPCGExSubPointsBlendOperation
+class UPCGExSubPointsBlendNone : public UPCGExSubPointsBlendOperation
 {
 	GENERATED_BODY()
 

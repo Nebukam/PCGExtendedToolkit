@@ -20,7 +20,7 @@
 
 
 USTRUCT(BlueprintType)
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExAttributeCheckFilterConfig
+struct FPCGExAttributeCheckFilterConfig
 {
 	GENERATED_BODY()
 
@@ -53,7 +53,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExAttributeCheckFilterConfig
  * 
  */
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Filter")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExAttributeCheckFilterFactory : public UPCGExFilterFactoryData
+class UPCGExAttributeCheckFilterFactory : public UPCGExFilterFactoryData
 {
 	GENERATED_BODY()
 
@@ -66,7 +66,7 @@ public:
 
 namespace PCGExPointFilter
 {
-	class /*PCGEXTENDEDTOOLKIT_API*/ FAttributeCheckFilter final : public FCollectionFilter
+	class FAttributeCheckFilter final : public FCollectionFilter
 	{
 	public:
 		explicit FAttributeCheckFilter(const TObjectPtr<const UPCGExAttributeCheckFilterFactory>& InDefinition)
@@ -83,7 +83,7 @@ namespace PCGExPointFilter
 ///
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Filter")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExAttributeCheckFilterProviderSettings : public UPCGExFilterProviderSettings
+class UPCGExAttributeCheckFilterProviderSettings : public UPCGExFilterProviderSettings
 {
 	GENERATED_BODY()
 

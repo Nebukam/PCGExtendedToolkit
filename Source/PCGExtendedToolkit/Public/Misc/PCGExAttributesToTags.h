@@ -36,7 +36,7 @@ enum class EPCGExCollectionEntrySelection : uint8
 };
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExAttributesToTagsSettings : public UPCGExPointsProcessorSettings
+class UPCGExAttributesToTagsSettings : public UPCGExPointsProcessorSettings
 {
 	GENERATED_BODY()
 
@@ -80,14 +80,14 @@ public:
 	bool bQuietTooManyCollectionsWarning = false;
 };
 
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExAttributesToTagsContext final : FPCGExPointsProcessorContext
+struct FPCGExAttributesToTagsContext final : FPCGExPointsProcessorContext
 {
 	friend class FPCGExAttributesToTagsElement;
 	TArray<TSharedPtr<PCGExData::FFacade>> SourceDataFacades;
 	TArray<FPCGExAttributeToTagDetails> Details;
 };
 
-class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExAttributesToTagsElement final : public FPCGExPointsProcessorElement
+class FPCGExAttributesToTagsElement final : public FPCGExPointsProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(

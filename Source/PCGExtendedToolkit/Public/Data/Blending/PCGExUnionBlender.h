@@ -18,7 +18,7 @@ namespace PCGExDataBlending
 
 namespace PCGExDataBlending
 {
-	class /*PCGEXTENDEDTOOLKIT_API*/ FMultiSourceAttribute : public TSharedFromThis<FMultiSourceAttribute>
+	class PCGEXTENDEDTOOLKIT_API FMultiSourceAttribute : public TSharedFromThis<FMultiSourceAttribute>
 	{
 	public:
 		PCGEx::FAttributeIdentity Identity;
@@ -45,7 +45,7 @@ namespace PCGExDataBlending
 		}
 	};
 
-	class /*PCGEXTENDEDTOOLKIT_API*/ FUnionBlender final : public TSharedFromThis<FUnionBlender>
+	class PCGEXTENDEDTOOLKIT_API FUnionBlender final : public TSharedFromThis<FUnionBlender>
 	{
 	public:
 		const FPCGExCarryOverDetails* CarryOverDetails;

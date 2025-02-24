@@ -13,7 +13,7 @@
 
 
 USTRUCT(BlueprintType)
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExTensorInertiaConfig : public FPCGExTensorConfigBase
+struct FPCGExTensorInertiaConfig : public FPCGExTensorConfigBase
 {
 	GENERATED_BODY()
 
@@ -35,7 +35,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExTensorInertiaConfig : public FPCGExTenso
  * 
  */
 UCLASS(MinimalAPI)
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExTensorInertia : public UPCGExTensorPointOperation
+class UPCGExTensorInertia : public UPCGExTensorPointOperation
 {
 	GENERATED_BODY()
 
@@ -50,7 +50,7 @@ public:
 
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExTensorInertiaFactory : public UPCGExTensorPointFactoryData
+class UPCGExTensorInertiaFactory : public UPCGExTensorPointFactoryData
 {
 	GENERATED_BODY()
 
@@ -60,7 +60,7 @@ public:
 };
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Tensors|Params")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExCreateTensorInertiaSettings : public UPCGExTensorPointFactoryProviderSettings
+class UPCGExCreateTensorInertiaSettings : public UPCGExTensorPointFactoryProviderSettings
 {
 	GENERATED_BODY()
 

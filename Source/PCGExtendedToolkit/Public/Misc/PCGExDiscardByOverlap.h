@@ -26,7 +26,7 @@ enum class EPCGExOverlapPruningLogic : uint8
 };
 
 USTRUCT(BlueprintType)
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExOverlapScoresWeighting
+struct FPCGExOverlapScoresWeighting
 {
 	GENERATED_BODY()
 
@@ -96,7 +96,7 @@ namespace PCGExDiscardByOverlap
 }
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExDiscardByOverlapSettings : public UPCGExPointsProcessorSettings
+class UPCGExDiscardByOverlapSettings : public UPCGExPointsProcessorSettings
 {
 	GENERATED_BODY()
 
@@ -152,7 +152,7 @@ private:
 	friend class FPCGExDiscardByOverlapElement;
 };
 
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExDiscardByOverlapContext final : FPCGExPointsProcessorContext
+struct FPCGExDiscardByOverlapContext final : FPCGExPointsProcessorContext
 {
 	friend class FPCGExDiscardByOverlapElement;
 
@@ -171,7 +171,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExDiscardByOverlapContext final : FPCGExPo
 	void Prune();
 };
 
-class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExDiscardByOverlapElement final : public FPCGExPointsProcessorElement
+class FPCGExDiscardByOverlapElement final : public FPCGExPointsProcessorElement
 {
 	virtual FPCGContext* Initialize(
 		const FPCGDataCollection& InputData,
@@ -205,7 +205,7 @@ namespace PCGExDiscardByOverlap
 
 	class FProcessor;
 
-	struct /*PCGEXTENDEDTOOLKIT_API*/ FOverlapStats
+	struct PCGEXTENDEDTOOLKIT_API FOverlapStats
 	{
 		int32 OverlapCount = 0;
 		double OverlapVolume = 0;
@@ -245,7 +245,7 @@ namespace PCGExDiscardByOverlap
 		}
 	};
 
-	struct /*PCGEXTENDEDTOOLKIT_API*/ FOverlap
+	struct PCGEXTENDEDTOOLKIT_API FOverlap
 	{
 		uint64 HashID = 0;
 		FBox Intersection = FBox(NoInit);
@@ -260,7 +260,7 @@ namespace PCGExDiscardByOverlap
 		FORCEINLINE FProcessor* GetOther(const FProcessor* InCandidate) const { return Manager == InCandidate ? Managed : Manager; }
 	};
 
-	struct /*PCGEXTENDEDTOOLKIT_API*/ FPointBounds
+	struct PCGEXTENDEDTOOLKIT_API FPointBounds
 	{
 		FPointBounds(const int32 InIndex, const FPCGPoint* InPoint, const FBox& InBounds):
 			Index(InIndex), Point(InPoint), LocalBounds(InBounds), Bounds(InBounds.TransformBy(InPoint->Transform.ToMatrixNoScale()))

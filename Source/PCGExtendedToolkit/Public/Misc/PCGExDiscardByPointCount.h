@@ -19,7 +19,7 @@ namespace PCGExDiscardByPointCount
  * 
  */
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExDiscardByPointCountSettings : public UPCGExPointsProcessorSettings
+class UPCGExDiscardByPointCountSettings : public UPCGExPointsProcessorSettings
 {
 	GENERATED_BODY()
 
@@ -57,7 +57,7 @@ public:
 	bool bAllowEmptyOutputs = false;
 };
 
-class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExDiscardByPointCountElement final : public FPCGExPointsProcessorElement
+class FPCGExDiscardByPointCountElement final : public FPCGExPointsProcessorElement
 {
 	virtual bool Boot(FPCGExContext* InContext) const override;
 

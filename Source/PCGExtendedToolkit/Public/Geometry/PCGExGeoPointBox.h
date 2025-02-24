@@ -23,7 +23,7 @@ enum class EPCGExBoxCheckMode : uint8
 
 namespace PCGExGeo
 {
-	struct /*PCGEXTENDEDTOOLKIT_API*/ FCut
+	struct PCGEXTENDEDTOOLKIT_API FCut
 	{
 		FVector Position = FVector::ZeroVector;
 		FVector Normal = FVector::ZeroVector;
@@ -36,7 +36,7 @@ namespace PCGExGeo
 		}
 	};
 
-	struct /*PCGEXTENDEDTOOLKIT_API*/ FSample
+	struct PCGEXTENDEDTOOLKIT_API FSample
 	{
 		FVector Distances = FVector::ZeroVector;
 		FVector UVW = FVector::ZeroVector;
@@ -54,7 +54,7 @@ namespace PCGExGeo
 		}
 	};
 
-	struct /*PCGEXTENDEDTOOLKIT_API*/ FIntersections
+	struct PCGEXTENDEDTOOLKIT_API FIntersections
 	{
 		TArray<FCut> Cuts;
 		FVector StartPosition = FVector::ZeroVector;
@@ -117,7 +117,7 @@ namespace PCGExGeo
 		}
 	};
 
-	class /*PCGEXTENDEDTOOLKIT_API*/ FSegmentation
+	class PCGEXTENDEDTOOLKIT_API FSegmentation
 	{
 		mutable FRWLock IntersectionsLock;
 
@@ -176,7 +176,7 @@ namespace PCGExGeo
 		}
 	};
 
-	struct /*PCGEXTENDEDTOOLKIT_API*/ FPointBox
+	struct PCGEXTENDEDTOOLKIT_API FPointBox
 	{
 		FMatrix Matrix;
 		FMatrix InvMatrix;
@@ -561,7 +561,7 @@ namespace PCGExGeo
 
 	PCGEX_OCTREE_SEMANTICS(FPointBox, { return Element->SearchableBounds;}, { return A->Index == B->Index; })
 
-	class /*PCGEXTENDEDTOOLKIT_API*/ FPointBoxCloud : public TSharedFromThis<FPointBoxCloud>
+	class PCGEXTENDEDTOOLKIT_API FPointBoxCloud : public TSharedFromThis<FPointBoxCloud>
 	{
 		TUniquePtr<FPointBoxOctree> Octree;
 		TArray<TSharedPtr<FPointBox>> Boxes;

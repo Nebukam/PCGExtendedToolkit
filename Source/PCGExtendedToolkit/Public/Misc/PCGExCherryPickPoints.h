@@ -22,7 +22,7 @@ enum class EPCGExCherryPickSource : uint8
 };
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExCherryPickPointsSettings : public UPCGExPointsProcessorSettings
+class UPCGExCherryPickPointsSettings : public UPCGExPointsProcessorSettings
 {
 	GENERATED_BODY()
 
@@ -52,13 +52,13 @@ protected:
 	//~End UPCGSettings
 };
 
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExCherryPickPointsContext final : FPCGExPointsProcessorContext
+struct FPCGExCherryPickPointsContext final : FPCGExPointsProcessorContext
 {
 	friend class FPCGExCherryPickPointsElement;
 	TArray<TObjectPtr<const UPCGExPickerFactoryData>> PickerFactories;
 };
 
-class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExCherryPickPointsElement final : public FPCGExPointsProcessorElement
+class FPCGExCherryPickPointsElement final : public FPCGExPointsProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(

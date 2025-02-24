@@ -16,7 +16,7 @@
 
 namespace PCGExPathfinding
 {
-	struct /*PCGEXTENDEDTOOLKIT_API*/ FPlotPoint
+	struct PCGEXTENDEDTOOLKIT_API FPlotPoint
 	{
 		int32 PlotIndex;
 		FVector Position;
@@ -34,7 +34,7 @@ namespace PCGExPathfinding
  * This way we can multi-thread the various calculations instead of mixing everything along with async/game thread collision
  */
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExPathfindingPlotNavmeshSettings : public UPCGExPointsProcessorSettings
+class UPCGExPathfindingPlotNavmeshSettings : public UPCGExPointsProcessorSettings
 {
 	GENERATED_BODY()
 
@@ -104,7 +104,7 @@ public:
 	bool bOmitCompletePathOnFailedPlot = false;
 };
 
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPathfindingPlotNavmeshContext final : FPCGExPointsProcessorContext
+struct FPCGExPathfindingPlotNavmeshContext final : FPCGExPointsProcessorContext
 {
 	friend class FPCGExPathfindingPlotNavmeshElement;
 
@@ -122,7 +122,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPathfindingPlotNavmeshContext final : FP
 	double FuseDistance = 10;
 };
 
-class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPathfindingPlotNavmeshElement final : public FPCGExPointsProcessorElement
+class FPCGExPathfindingPlotNavmeshElement final : public FPCGExPointsProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(
@@ -135,8 +135,7 @@ protected:
 	virtual bool ExecuteInternal(FPCGContext* Context) const override;
 };
 
-
-class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPlotNavmeshTask final : public PCGExMT::FTask
+class FPCGExPlotNavmeshTask final : public PCGExMT::FTask
 {
 public:
 	PCGEX_ASYNC_TASK_NAME(FPCGExPlotNavmeshTask)

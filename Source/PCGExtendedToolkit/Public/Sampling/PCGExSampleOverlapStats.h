@@ -27,7 +27,7 @@ namespace PCGExSampleOverlapStats
 }
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Sampling")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExSampleOverlapStatsSettings : public UPCGExPointsProcessorSettings
+class UPCGExSampleOverlapStatsSettings : public UPCGExPointsProcessorSettings
 {
 	GENERATED_BODY()
 
@@ -122,7 +122,7 @@ private:
 	friend class FPCGExSampleOverlapStatsElement;
 };
 
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExSampleOverlapStatsContext final : FPCGExPointsProcessorContext
+struct FPCGExSampleOverlapStatsContext final : FPCGExPointsProcessorContext
 {
 	friend class FPCGExSampleOverlapStatsElement;
 
@@ -142,7 +142,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExSampleOverlapStatsContext final : FPCGEx
 	double SharedOverlapCountMax = 0;
 };
 
-class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExSampleOverlapStatsElement final : public FPCGExPointsProcessorElement
+class FPCGExSampleOverlapStatsElement final : public FPCGExPointsProcessorElement
 {
 	virtual FPCGContext* Initialize(
 		const FPCGDataCollection& InputData,
@@ -158,7 +158,7 @@ namespace PCGExSampleOverlapStats
 {
 	class FProcessor;
 
-	struct /*PCGEXTENDEDTOOLKIT_API*/ FOverlapStats
+	struct PCGEXTENDEDTOOLKIT_API FOverlapStats
 	{
 		int32 OverlapCount = 0;
 		double OverlapVolume = 0;
@@ -198,7 +198,7 @@ namespace PCGExSampleOverlapStats
 		}
 	};
 
-	struct /*PCGEXTENDEDTOOLKIT_API*/ FOverlap
+	struct PCGEXTENDEDTOOLKIT_API FOverlap
 	{
 		uint64 HashID = 0;
 		FBox Intersection = FBox(NoInit);

@@ -34,7 +34,7 @@
 #pragma endregion
 
 USTRUCT(BlueprintType)
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExAttributeGatherDetails : public FPCGExNameFiltersDetails
+struct PCGEXTENDEDTOOLKIT_API FPCGExAttributeGatherDetails : public FPCGExNameFiltersDetails
 {
 	GENERATED_BODY()
 
@@ -78,7 +78,7 @@ namespace PCGExData
 		return PCGEx::H64(GetTypeHash(FullName), static_cast<int32>(Type));
 	};
 
-	class /*PCGEXTENDEDTOOLKIT_API*/ FBufferBase : public TSharedFromThis<FBufferBase>
+	class PCGEXTENDEDTOOLKIT_API FBufferBase : public TSharedFromThis<FBufferBase>
 	{
 		friend class FFacade;
 
@@ -154,7 +154,7 @@ namespace PCGExData
 	};
 
 	template <typename T, EBufferLevel BufferLevel = EBufferLevel::Local>
-	class /*PCGEXTENDEDTOOLKIT_API*/ TBuffer final : public FBufferBase
+	class PCGEXTENDEDTOOLKIT_API TBuffer final : public FBufferBase
 	{
 		friend class FFacade;
 
@@ -504,7 +504,7 @@ namespace PCGExData
 		}
 	};
 
-	class /*PCGEXTENDEDTOOLKIT_API*/ FFacade : public TSharedFromThis<FFacade>
+	class PCGEXTENDEDTOOLKIT_API FFacade : public TSharedFromThis<FFacade>
 	{
 		mutable FRWLock BufferLock;
 		mutable FRWLock CloudLock;
@@ -774,7 +774,7 @@ namespace PCGExData
 
 #pragma region Facade prep
 
-	struct /*PCGEXTENDEDTOOLKIT_API*/ FReadableBufferConfig
+	struct PCGEXTENDEDTOOLKIT_API FReadableBufferConfig
 	{
 		EBufferPreloadType Mode = EBufferPreloadType::RawAttribute;
 		FPCGAttributePropertyInputSelector Selector;
@@ -805,7 +805,7 @@ namespace PCGExData
 		void Read(const TSharedRef<FFacade>& InFacade) const;
 	};
 
-	class /*PCGEXTENDEDTOOLKIT_API*/ FFacadePreloader : public TSharedFromThis<FFacadePreloader>
+	class PCGEXTENDEDTOOLKIT_API FFacadePreloader : public TSharedFromThis<FFacadePreloader>
 	{
 	protected:
 		TWeakPtr<FFacade> InternalDataFacadePtr;
@@ -882,7 +882,7 @@ namespace PCGExData
 
 #pragma region Compound
 
-	class /*PCGEXTENDEDTOOLKIT_API*/ FUnionData : public TSharedFromThis<FUnionData>
+	class PCGEXTENDEDTOOLKIT_API FUnionData : public TSharedFromThis<FUnionData>
 	{
 	protected:
 		mutable FRWLock UnionLock;
@@ -918,7 +918,7 @@ namespace PCGExData
 		}
 	};
 
-	class /*PCGEXTENDEDTOOLKIT_API*/ FUnionMetadata : public TSharedFromThis<FUnionMetadata>
+	class PCGEXTENDEDTOOLKIT_API FUnionMetadata : public TSharedFromThis<FUnionMetadata>
 	{
 	public:
 		TArray<TSharedPtr<FUnionData>> Entries;
@@ -1002,7 +1002,7 @@ namespace PCGExData
 		else { for (int i = 0; i <= MaxIndex; i++) { OutTransforms[MaxIndex - i] = InPoints[i].Transform; } }
 	}
 
-	class /*PCGEXTENDEDTOOLKIT_API*/ FWriteBufferTask final : public PCGExMT::FTask
+	class PCGEXTENDEDTOOLKIT_API FWriteBufferTask final : public PCGExMT::FTask
 	{
 	public:
 		PCGEX_ASYNC_TASK_NAME(FWriteTask)

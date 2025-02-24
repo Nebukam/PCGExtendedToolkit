@@ -18,7 +18,7 @@ class UPCGPointData;
  * 
  */
 UCLASS(MinimalAPI, DisplayName = "All")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExGoalPickerAll : public UPCGExGoalPicker
+class UPCGExGoalPickerAll : public UPCGExGoalPicker
 {
 	GENERATED_BODY()
 

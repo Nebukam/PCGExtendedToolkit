@@ -14,7 +14,7 @@
 
 
 USTRUCT(BlueprintType)
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExTensorSplinePoleConfig : public FPCGExTensorConfigBase
+struct FPCGExTensorSplinePoleConfig : public FPCGExTensorConfigBase
 {
 	GENERATED_BODY()
 
@@ -36,7 +36,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExTensorSplinePoleConfig : public FPCGExTe
  * 
  */
 UCLASS(MinimalAPI)
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExTensorSplinePole : public UPCGExTensorOperation
+class UPCGExTensorSplinePole : public UPCGExTensorOperation
 {
 	GENERATED_BODY()
 
@@ -51,7 +51,7 @@ public:
 
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExTensorSplinePoleFactory : public UPCGExTensorSplineFactoryData
+class UPCGExTensorSplinePoleFactory : public UPCGExTensorSplineFactoryData
 {
 	GENERATED_BODY()
 
@@ -62,7 +62,7 @@ public:
 };
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Tensors|Params")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExCreateTensorSplinePoleSettings : public UPCGExTensorSplineFactoryProviderSettings
+class UPCGExCreateTensorSplinePoleSettings : public UPCGExTensorSplineFactoryProviderSettings
 {
 	GENERATED_BODY()
 

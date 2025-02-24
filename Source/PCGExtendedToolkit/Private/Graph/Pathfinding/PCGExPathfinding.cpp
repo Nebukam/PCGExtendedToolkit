@@ -216,4 +216,29 @@ namespace PCGExPathfinding
 		for (const TSharedPtr<FPathQuery>& Query : SubQueries) { Query->Cleanup(); }
 		SubQueries.Empty();
 	}
+
+	void ProcessGoals(const TSharedPtr<PCGExData::FFacade>& InSeedDataFacade, const UPCGExGoalPicker* GoalPicker, TFunction<void(int32, int32)>&& GoalFunc)
+	{
+		for (int PointIndex = 0; PointIndex < InSeedDataFacade->Source->GetNum(); PointIndex++)
+		{
+			const PCGExData::FPointRef& Seed = InSeedDataFacade->Source->GetInPointRef(PointIndex);
+
+			if (GoalPicker->OutputMultipleGoals())
+			{
+				TArray<int32> GoalIndices;
+				GoalPicker->GetGoalIndices(Seed, GoalIndices);
+				for (const int32 GoalIndex : GoalIndices)
+				{
+					if (GoalIndex < 0) { continue; }
+					GoalFunc(PointIndex, GoalIndex);
+				}
+			}
+			else
+			{
+				const int32 GoalIndex = GoalPicker->GetGoalIndex(Seed);
+				if (GoalIndex < 0) { continue; }
+				GoalFunc(PointIndex, GoalIndex);
+			}
+		}
+	}
 }

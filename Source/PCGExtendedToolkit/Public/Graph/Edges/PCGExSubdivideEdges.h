@@ -10,7 +10,7 @@
 #include "PCGExSubdivideEdges.generated.h"
 
 UCLASS(Abstract, MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Clusters")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExSubdivideEdgesSettings : public UPCGExEdgesProcessorSettings
+class UPCGExSubdivideEdgesSettings : public UPCGExEdgesProcessorSettings
 {
 	GENERATED_BODY()
 
@@ -83,14 +83,14 @@ private:
 	friend class FPCGExSubdivideEdgesElement;
 };
 
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExSubdivideEdgesContext final : FPCGExEdgesProcessorContext
+struct FPCGExSubdivideEdgesContext final : FPCGExEdgesProcessorContext
 {
 	friend class FPCGExSubdivideEdgesElement;
 
 	UPCGExSubPointsBlendOperation* Blending = nullptr;
 };
 
-class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExSubdivideEdgesElement final : public FPCGExEdgesProcessorElement
+class FPCGExSubdivideEdgesElement final : public FPCGExEdgesProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(

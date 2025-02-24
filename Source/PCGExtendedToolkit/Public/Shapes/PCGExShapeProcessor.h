@@ -17,7 +17,7 @@ class UPCGExFilterFactoryData;
  * 
  */
 UCLASS(Abstract, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Path")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExShapeProcessorSettings : public UPCGExPointsProcessorSettings
+class PCGEXTENDEDTOOLKIT_API UPCGExShapeProcessorSettings : public UPCGExPointsProcessorSettings
 {
 	GENERATED_BODY()
 
@@ -42,13 +42,13 @@ public:
 	EPCGExShapeOutputMode OutputMode = EPCGExShapeOutputMode::PerSeed;
 };
 
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExShapeProcessorContext : FPCGExPointsProcessorContext
+struct PCGEXTENDEDTOOLKIT_API FPCGExShapeProcessorContext : FPCGExPointsProcessorContext
 {
 	friend class FPCGExShapeProcessorElement;
 	TArray<TObjectPtr<const UPCGExShapeBuilderFactoryData>> BuilderFactories;
 };
 
-class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExShapeProcessorElement : public FPCGExPointsProcessorElement
+class PCGEXTENDEDTOOLKIT_API FPCGExShapeProcessorElement : public FPCGExPointsProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(

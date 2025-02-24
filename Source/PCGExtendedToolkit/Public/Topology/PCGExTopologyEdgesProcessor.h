@@ -14,8 +14,8 @@
 
 #include "PCGExTopologyEdgesProcessor.generated.h"
 
-UCLASS(Abstract, MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Clusters")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExTopologyEdgesProcessorSettings : public UPCGExEdgesProcessorSettings
+UCLASS(Abstract, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Clusters")
+class PCGEXTENDEDTOOLKIT_API UPCGExTopologyEdgesProcessorSettings : public UPCGExEdgesProcessorSettings
 {
 	GENERATED_BODY()
 
@@ -69,7 +69,7 @@ private:
 	friend class FPCGExTopologyEdgesProcessorElement;
 };
 
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExTopologyEdgesProcessorContext : FPCGExEdgesProcessorContext
+struct PCGEXTENDEDTOOLKIT_API FPCGExTopologyEdgesProcessorContext : FPCGExEdgesProcessorContext
 {
 	friend class FPCGExTopologyEdgesProcessorElement;
 	TArray<TObjectPtr<const UPCGExFilterFactoryData>> EdgeConstraintsFilterFactories;
@@ -82,7 +82,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExTopologyEdgesProcessorContext : FPCGExEd
 	virtual void RegisterAssetDependencies() override;
 };
 
-class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExTopologyEdgesProcessorElement : public FPCGExEdgesProcessorElement
+class PCGEXTENDEDTOOLKIT_API FPCGExTopologyEdgesProcessorElement : public FPCGExEdgesProcessorElement
 {
 public:
 	PCGEX_CAN_ONLY_EXECUTE_ON_MAIN_THREAD(true)
@@ -96,7 +96,7 @@ namespace PCGExTopologyEdges
 	const FName SourceEdgeConstrainsFiltersLabel = FName("ConstrainedEdgeFilters");
 
 	template <typename TContext, typename TSettings>
-	class TProcessor : public PCGExClusterMT::TProcessor<TContext, TSettings>
+	class PCGEXTENDEDTOOLKIT_API TProcessor : public PCGExClusterMT::TProcessor<TContext, TSettings>
 	{
 	protected:
 		using PCGExClusterMT::TProcessor<TContext, TSettings>::ExecutionContext;
@@ -290,7 +290,7 @@ namespace PCGExTopologyEdges
 	};
 
 	template <typename T>
-	class TBatch : public PCGExClusterMT::TBatch<T>
+	class PCGEXTENDEDTOOLKIT_API TBatch : public PCGExClusterMT::TBatch<T>
 	{
 	protected:
 		const FVector2D CWTolerance = FVector2D(1 / 0.001);

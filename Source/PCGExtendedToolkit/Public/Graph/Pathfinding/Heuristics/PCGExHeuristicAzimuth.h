@@ -13,7 +13,7 @@
 #include "PCGExHeuristicAzimuth.generated.h"
 
 USTRUCT(BlueprintType)
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExHeuristicConfigAzimuth : public FPCGExHeuristicConfigBase
+struct FPCGExHeuristicConfigAzimuth : public FPCGExHeuristicConfigBase
 {
 	GENERATED_BODY()
 
@@ -27,7 +27,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExHeuristicConfigAzimuth : public FPCGExHe
  * 
  */
 UCLASS(MinimalAPI, DisplayName = "Azimuth")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExHeuristicAzimuth : public UPCGExHeuristicOperation
+class UPCGExHeuristicAzimuth : public UPCGExHeuristicOperation
 {
 	GENERATED_BODY()
 
@@ -55,7 +55,7 @@ protected:
 ////
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExHeuristicsFactoryAzimuth : public UPCGExHeuristicsFactoryData
+class UPCGExHeuristicsFactoryAzimuth : public UPCGExHeuristicsFactoryData
 {
 	GENERATED_BODY()
 
@@ -68,7 +68,7 @@ public:
 };
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Graph|Params")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExHeuristicsAzimuthProviderSettings : public UPCGExHeuristicsFactoryProviderSettings
+class UPCGExHeuristicsAzimuthProviderSettings : public UPCGExHeuristicsFactoryProviderSettings
 {
 	GENERATED_BODY()
 

@@ -22,7 +22,7 @@ enum class EPCGExDebugExpression : uint8
 };
 
 USTRUCT(BlueprintType)
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExAttributeDebugDrawConfig : public FPCGExInputConfig
+struct FPCGExAttributeDebugDrawConfig : public FPCGExInputConfig
 {
 	GENERATED_BODY()
 
@@ -95,7 +95,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExAttributeDebugDrawConfig : public FPCGEx
 };
 
 USTRUCT(BlueprintType)
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExAttributeDebugDraw
+struct FPCGExAttributeDebugDraw
 {
 	GENERATED_BODY()
 
@@ -137,7 +137,7 @@ protected:
  * Calculates the distance between two points (inherently a n*n operation)
  */
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Clusters")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExDrawAttributesSettings : public UPCGExPointsProcessorSettings
+class UPCGExDrawAttributesSettings : public UPCGExPointsProcessorSettings
 {
 	GENERATED_BODY()
 
@@ -178,14 +178,14 @@ private:
 	friend class FPCGExDrawAttributesElement;
 };
 
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExDrawAttributesContext final : FPCGExPointsProcessorContext
+struct FPCGExDrawAttributesContext final : FPCGExPointsProcessorContext
 {
 	friend class FPCGExWriteIndexElement;
 	TArray<FPCGExAttributeDebugDraw> DebugList;
 };
 
 
-class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExDrawAttributesElement final : public FPCGExPointsProcessorElement
+class FPCGExDrawAttributesElement final : public FPCGExPointsProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(

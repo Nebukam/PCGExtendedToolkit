@@ -17,7 +17,7 @@ class FPCGExComputeIOBounds;
 
 
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExMovePivotSettings : public UPCGExPointsProcessorSettings
+class UPCGExMovePivotSettings : public UPCGExPointsProcessorSettings
 {
 	GENERATED_BODY()
 
@@ -41,12 +41,12 @@ private:
 	friend class FPCGExMovePivotElement;
 };
 
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExMovePivotContext final : FPCGExPointsProcessorContext
+struct FPCGExMovePivotContext final : FPCGExPointsProcessorContext
 {
 	friend class FPCGExMovePivotElement;
 };
 
-class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExMovePivotElement final : public FPCGExPointsProcessorElement
+class FPCGExMovePivotElement final : public FPCGExPointsProcessorElement
 {
 	virtual FPCGContext* Initialize(
 		const FPCGDataCollection& InputData,

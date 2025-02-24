@@ -12,7 +12,7 @@
 #include "PCGExTensorInertiaConstant.generated.h"
 
 USTRUCT(BlueprintType)
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExTensorInertiaConstantConfig : public FPCGExTensorConfigBase
+struct FPCGExTensorInertiaConstantConfig : public FPCGExTensorConfigBase
 {
 	GENERATED_BODY()
 
@@ -38,7 +38,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExTensorInertiaConstantConfig : public FPC
  * 
  */
 UCLASS(MinimalAPI)
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExTensorInertiaConstant : public UPCGExTensorOperation
+class UPCGExTensorInertiaConstant : public UPCGExTensorOperation
 {
 	GENERATED_BODY()
 
@@ -52,7 +52,7 @@ public:
 
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExTensorInertiaConstantFactory : public UPCGExTensorFactoryData
+class UPCGExTensorInertiaConstantFactory : public UPCGExTensorFactoryData
 {
 	GENERATED_BODY()
 
@@ -67,7 +67,7 @@ protected:
 };
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Tensors|Params")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExCreateTensorInertiaConstantSettings : public UPCGExTensorFactoryProviderSettings
+class UPCGExCreateTensorInertiaConstantSettings : public UPCGExTensorFactoryProviderSettings
 {
 	GENERATED_BODY()
 

@@ -16,7 +16,7 @@
 class UPCGExHeuristicOperation;
 
 USTRUCT(BlueprintType)
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExHeuristicAttributeConfig : public FPCGExHeuristicConfigBase
+struct FPCGExHeuristicAttributeConfig : public FPCGExHeuristicConfigBase
 {
 	GENERATED_BODY()
 
@@ -38,7 +38,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExHeuristicAttributeConfig : public FPCGEx
  * 
  */
 UCLASS(MinimalAPI, DisplayName = "Attribute")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExHeuristicAttribute : public UPCGExHeuristicOperation
+class UPCGExHeuristicAttribute : public UPCGExHeuristicOperation
 {
 	GENERATED_BODY()
 
@@ -65,7 +65,7 @@ protected:
 
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExHeuristicsFactoryAttribute : public UPCGExHeuristicsFactoryData
+class UPCGExHeuristicsFactoryAttribute : public UPCGExHeuristicsFactoryData
 {
 	GENERATED_BODY()
 
@@ -78,7 +78,7 @@ public:
 };
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Graph|Params")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExCreateHeuristicAttributeSettings : public UPCGExHeuristicsFactoryProviderSettings
+class UPCGExCreateHeuristicAttributeSettings : public UPCGExHeuristicsFactoryProviderSettings
 {
 	GENERATED_BODY()
 

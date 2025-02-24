@@ -22,7 +22,7 @@ namespace PCGExPathToClusters
  * 
  */
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Path")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExPathToClustersSettings : public UPCGExPathProcessorSettings
+class UPCGExPathToClustersSettings : public UPCGExPathProcessorSettings
 {
 	GENERATED_BODY()
 
@@ -100,7 +100,7 @@ public:
 	FPCGExGraphBuilderDetails GraphBuilderDetails = FPCGExGraphBuilderDetails(EPCGExMinimalAxis::X);
 };
 
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPathToClustersContext final : FPCGExPathProcessorContext
+struct FPCGExPathToClustersContext final : FPCGExPathProcessorContext
 {
 	friend class FPCGExPathToClustersElement;
 	friend class PCGExPathToClusters::FFusingProcessor;
@@ -115,7 +115,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPathToClustersContext final : FPCGExPath
 	TSharedPtr<PCGExGraph::FUnionProcessor> UnionProcessor;
 };
 
-class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPathToClustersElement final : public FPCGExPathProcessorElement
+class FPCGExPathToClustersElement final : public FPCGExPathProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(

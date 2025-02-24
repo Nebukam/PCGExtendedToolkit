@@ -13,7 +13,7 @@
 #include "PCGExBitwiseOperation.generated.h"
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExBitwiseOperationSettings : public UPCGExPointsProcessorSettings
+class UPCGExBitwiseOperationSettings : public UPCGExPointsProcessorSettings
 {
 	GENERATED_BODY()
 
@@ -51,12 +51,12 @@ public:
 	int64 Bitmask;
 };
 
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExBitwiseOperationContext final : FPCGExPointsProcessorContext
+struct FPCGExBitwiseOperationContext final : FPCGExPointsProcessorContext
 {
 	friend class FPCGExBitwiseOperationElement;
 };
 
-class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExBitwiseOperationElement final : public FPCGExPointsProcessorElement
+class FPCGExBitwiseOperationElement final : public FPCGExPointsProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(

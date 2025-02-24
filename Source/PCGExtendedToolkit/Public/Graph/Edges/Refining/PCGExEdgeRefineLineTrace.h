@@ -12,7 +12,7 @@
  * 
  */
 UCLASS(MinimalAPI, BlueprintType, meta=(DisplayName="Refine : Line Trace"))
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExEdgeRefineLineTrace : public UPCGExEdgeRefineOperation
+class UPCGExEdgeRefineLineTrace : public UPCGExEdgeRefineOperation
 {
 	GENERATED_BODY()
 

@@ -28,7 +28,7 @@ enum class EPCGExContourShapeTypeOutput : uint8
 };
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Clusters")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExFindContoursSettings : public UPCGExEdgesProcessorSettings
+class UPCGExFindContoursSettings : public UPCGExEdgesProcessorSettings
 {
 	GENERATED_BODY()
 
@@ -90,7 +90,7 @@ private:
 	friend class FPCGExFindContoursElement;
 };
 
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExFindContoursContext final : FPCGExEdgesProcessorContext
+struct FPCGExFindContoursContext final : FPCGExEdgesProcessorContext
 {
 	friend class FPCGExFindContoursElement;
 	friend class FPCGExCreateBridgeTask;
@@ -111,7 +111,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExFindContoursContext final : FPCGExEdgesP
 	TSharedPtr<PCGExData::FDataForwardHandler> SeedForwardHandler;
 };
 
-class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExFindContoursElement final : public FPCGExEdgesProcessorElement
+class FPCGExFindContoursElement final : public FPCGExEdgesProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(

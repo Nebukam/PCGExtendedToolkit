@@ -11,7 +11,7 @@
 #include "PCGExModularSortPoints.generated.h"
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExModularSortPointsSettings : public UPCGExSortPointsBaseSettings
+class UPCGExModularSortPointsSettings : public UPCGExSortPointsBaseSettings
 {
 	GENERATED_BODY()
 

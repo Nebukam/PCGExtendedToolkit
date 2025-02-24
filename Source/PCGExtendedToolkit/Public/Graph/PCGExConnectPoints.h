@@ -19,7 +19,7 @@ class UPCGExProbeOperation;
  * 
  */
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Clusters")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExConnectPointsSettings : public UPCGExPointsProcessorSettings
+class UPCGExConnectPointsSettings : public UPCGExPointsProcessorSettings
 {
 	GENERATED_BODY()
 
@@ -61,7 +61,7 @@ public:
 	FPCGExGraphBuilderDetails GraphBuilderDetails = FPCGExGraphBuilderDetails(EPCGExMinimalAxis::X);
 };
 
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExConnectPointsContext final : FPCGExPointsProcessorContext
+struct FPCGExConnectPointsContext final : FPCGExPointsProcessorContext
 {
 	friend class FPCGExConnectPointsElement;
 
@@ -72,7 +72,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExConnectPointsContext final : FPCGExPoint
 	FVector CWCoincidenceTolerance = FVector::OneVector;
 };
 
-class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExConnectPointsElement final : public FPCGExPointsProcessorElement
+class FPCGExConnectPointsElement final : public FPCGExPointsProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(

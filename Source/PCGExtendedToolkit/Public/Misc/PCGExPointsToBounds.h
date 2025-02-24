@@ -18,7 +18,7 @@
 #include "PCGExPointsToBounds.generated.h"
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExPointsToBoundsSettings : public UPCGExPointsProcessorSettings
+class UPCGExPointsToBoundsSettings : public UPCGExPointsProcessorSettings
 {
 	GENERATED_BODY()
 
@@ -63,12 +63,12 @@ private:
 	friend class FPCGExPointsToBoundsElement;
 };
 
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPointsToBoundsContext final : FPCGExPointsProcessorContext
+struct FPCGExPointsToBoundsContext final : FPCGExPointsProcessorContext
 {
 	friend class FPCGExPointsToBoundsElement;
 };
 
-class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPointsToBoundsElement final : public FPCGExPointsProcessorElement
+class FPCGExPointsToBoundsElement final : public FPCGExPointsProcessorElement
 {
 	virtual FPCGContext* Initialize(
 		const FPCGDataCollection& InputData,

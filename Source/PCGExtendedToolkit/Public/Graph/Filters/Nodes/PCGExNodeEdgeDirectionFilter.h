@@ -16,7 +16,7 @@
 
 
 USTRUCT(BlueprintType)
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExNodeEdgeDirectionFilterConfig
+struct FPCGExNodeEdgeDirectionFilterConfig
 {
 	GENERATED_BODY()
 
@@ -65,7 +65,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExNodeEdgeDirectionFilterConfig
  * 
  */
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExNodeEdgeDirectionFilterFactory : public UPCGExNodeFilterFactoryData
+class UPCGExNodeEdgeDirectionFilterFactory : public UPCGExNodeFilterFactoryData
 {
 	GENERATED_BODY()
 
@@ -76,11 +76,11 @@ public:
 	virtual TSharedPtr<PCGExPointFilter::FFilter> CreateFilter() const override;
 };
 
-class /*PCGEXTENDEDTOOLKIT_API*/ FNodeEdgeDirectionFilter final : public PCGExClusterFilter::TNodeFilter
+class FNodeEdgeDirectionFilter final : public PCGExClusterFilter::TVtxFilter
 {
 public:
 	explicit FNodeEdgeDirectionFilter(const UPCGExNodeEdgeDirectionFilterFactory* InFactory)
-		: TNodeFilter(InFactory), TypedFilterFactory(InFactory)
+		: TVtxFilter(InFactory), TypedFilterFactory(InFactory)
 	{
 		Adjacency = InFactory->Config.Adjacency;
 		DotComparison = InFactory->Config.DotComparisonDetails;
@@ -111,7 +111,7 @@ public:
 
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Graph|Params")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExNodeEdgeDirectionFilterProviderSettings : public UPCGExFilterProviderSettings
+class UPCGExNodeEdgeDirectionFilterProviderSettings : public UPCGExFilterProviderSettings
 {
 	GENERATED_BODY()
 

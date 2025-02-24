@@ -52,7 +52,7 @@ namespace PCGExPartition
  * 
  */
 UCLASS(Abstract, MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExPartitionByValuesBaseSettings : public UPCGExPointsProcessorSettings
+class UPCGExPartitionByValuesBaseSettings : public UPCGExPointsProcessorSettings
 {
 	GENERATED_BODY()
 
@@ -92,7 +92,7 @@ public:
  * 
  */
 UCLASS(BlueprintType, MinimalAPI, Hidden, ClassGroup = (Procedural), Category="PCGEx|Misc")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExPartitionByValuesSettings : public UPCGExPartitionByValuesBaseSettings
+class UPCGExPartitionByValuesSettings : public UPCGExPartitionByValuesBaseSettings
 {
 	GENERATED_BODY()
 
@@ -116,7 +116,7 @@ public:
 	virtual bool GetPartitionRules(FPCGExContext* InContext, TArray<FPCGExPartitonRuleConfig>& OutRules) const override;
 };
 
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPartitionByValuesBaseContext final : FPCGExPointsProcessorContext
+struct FPCGExPartitionByValuesBaseContext final : FPCGExPointsProcessorContext
 {
 	friend class FPCGExPartitionByValuesBaseElement;
 

@@ -16,7 +16,7 @@
 
 
 USTRUCT(BlueprintType)
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExBooleanCompareFilterConfig
+struct FPCGExBooleanCompareFilterConfig
 {
 	GENERATED_BODY()
 
@@ -50,7 +50,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExBooleanCompareFilterConfig
  * 
  */
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Filter")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExBooleanCompareFilterFactory : public UPCGExFilterFactoryData
+class UPCGExBooleanCompareFilterFactory : public UPCGExFilterFactoryData
 {
 	GENERATED_BODY()
 
@@ -64,7 +64,7 @@ public:
 
 namespace PCGExPointFilter
 {
-	class /*PCGEXTENDEDTOOLKIT_API*/ FBooleanCompareFilter final : public FSimpleFilter
+	class FBooleanCompareFilter final : public FSimpleFilter
 	{
 	public:
 		explicit FBooleanCompareFilter(const TObjectPtr<const UPCGExBooleanCompareFilterFactory>& InDefinition)
@@ -89,7 +89,7 @@ namespace PCGExPointFilter
 ///
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Filter")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExBooleanCompareFilterProviderSettings : public UPCGExFilterProviderSettings
+class UPCGExBooleanCompareFilterProviderSettings : public UPCGExFilterProviderSettings
 {
 	GENERATED_BODY()
 

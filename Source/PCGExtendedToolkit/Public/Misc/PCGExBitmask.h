@@ -65,7 +65,7 @@ namespace PCGExBitmask
 }
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural))
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExBitmaskSettings : public UPCGSettings
+class UPCGExBitmaskSettings : public UPCGSettings
 {
 	GENERATED_BODY()
 
@@ -91,7 +91,7 @@ protected:
 	FPCGExBitmask Bitmask;
 };
 
-class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExBitmaskElement final : public IPCGElement
+class FPCGExBitmaskElement final : public IPCGElement
 {
 public:
 	virtual FPCGContext* Initialize(const FPCGDataCollection& InputData, TWeakObjectPtr<UPCGComponent> SourceComponent, const UPCGNode* Node) override;

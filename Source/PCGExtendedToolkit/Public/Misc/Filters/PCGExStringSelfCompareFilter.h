@@ -15,7 +15,7 @@
 #include "PCGExStringSelfCompareFilter.generated.h"
 
 USTRUCT(BlueprintType)
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExStringSelfCompareFilterConfig
+struct FPCGExStringSelfCompareFilterConfig
 {
 	GENERATED_BODY()
 
@@ -57,7 +57,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExStringSelfCompareFilterConfig
  * 
  */
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Filter")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExStringSelfCompareFilterFactory : public UPCGExFilterFactoryData
+class UPCGExStringSelfCompareFilterFactory : public UPCGExFilterFactoryData
 {
 	GENERATED_BODY()
 
@@ -72,7 +72,7 @@ public:
 
 namespace PCGExPointFilter
 {
-	class /*PCGEXTENDEDTOOLKIT_API*/ FStringSelfCompareFilter final : public FSimpleFilter
+	class FStringSelfCompareFilter final : public FSimpleFilter
 	{
 	public:
 		explicit FStringSelfCompareFilter(const TObjectPtr<const UPCGExStringSelfCompareFilterFactory>& InDefinition)
@@ -99,7 +99,7 @@ namespace PCGExPointFilter
 ///
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Filter")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExStringSelfCompareFilterProviderSettings : public UPCGExFilterProviderSettings
+class UPCGExStringSelfCompareFilterProviderSettings : public UPCGExFilterProviderSettings
 {
 	GENERATED_BODY()
 

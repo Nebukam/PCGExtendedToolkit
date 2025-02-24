@@ -15,7 +15,7 @@
 
 
 USTRUCT(BlueprintType)
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExIsoEdgeDirectionFilterConfig
+struct FPCGExIsoEdgeDirectionFilterConfig
 {
 	GENERATED_BODY()
 
@@ -60,7 +60,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExIsoEdgeDirectionFilterConfig
  * 
  */
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExIsoEdgeDirectionFilterFactory : public UPCGExEdgeFilterFactoryData
+class UPCGExIsoEdgeDirectionFilterFactory : public UPCGExEdgeFilterFactoryData
 {
 	GENERATED_BODY()
 
@@ -76,7 +76,7 @@ public:
 	virtual TSharedPtr<PCGExPointFilter::FFilter> CreateFilter() const override;
 };
 
-class /*PCGEXTENDEDTOOLKIT_API*/ FIsoEdgeDirectionFilter final : public PCGExClusterFilter::TEdgeFilter
+class FIsoEdgeDirectionFilter final : public PCGExClusterFilter::TEdgeFilter
 {
 public:
 	explicit FIsoEdgeDirectionFilter(const UPCGExIsoEdgeDirectionFilterFactory* InFactory);
@@ -101,9 +101,8 @@ public:
 	virtual ~FIsoEdgeDirectionFilter() override;
 };
 
-
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Graph|Params")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExIsoEdgeDirectionFilterProviderSettings : public UPCGExFilterProviderSettings
+class UPCGExIsoEdgeDirectionFilterProviderSettings : public UPCGExFilterProviderSettings
 {
 	GENERATED_BODY()
 

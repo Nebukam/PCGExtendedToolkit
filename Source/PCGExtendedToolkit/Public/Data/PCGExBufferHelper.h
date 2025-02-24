@@ -16,7 +16,7 @@ namespace PCGExData
 	};
 
 	template <EBufferHelperMode Mode = EBufferHelperMode::Write>
-	class TBufferHelper : public TSharedFromThis<TBufferHelper<Mode>>
+	class PCGEXTENDEDTOOLKIT_API TBufferHelper : public TSharedFromThis<TBufferHelper<Mode>>
 	{
 		TSharedPtr<FFacade> DataFacade;
 		TMap<FName, TSharedPtr<FBufferBase>> BufferMap;

@@ -22,7 +22,7 @@ enum class EPCGExPointOnBoundsOutputMode : uint8
 };
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExFindPointOnBoundsSettings : public UPCGExPointsProcessorSettings
+class UPCGExFindPointOnBoundsSettings : public UPCGExPointsProcessorSettings
 {
 	GENERATED_BODY()
 
@@ -63,7 +63,7 @@ private:
 	friend class FPCGExFindPointOnBoundsElement;
 };
 
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExFindPointOnBoundsContext final : FPCGExPointsProcessorContext
+struct FPCGExFindPointOnBoundsContext final : FPCGExPointsProcessorContext
 {
 	friend class FPCGExFindPointOnBoundsElement;
 
@@ -74,7 +74,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExFindPointOnBoundsContext final : FPCGExP
 	TSharedPtr<PCGEx::FAttributesInfos> MergedAttributesInfos;
 };
 
-class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExFindPointOnBoundsElement final : public FPCGExPointsProcessorElement
+class FPCGExFindPointOnBoundsElement final : public FPCGExPointsProcessorElement
 {
 	virtual FPCGContext* Initialize(
 		const FPCGDataCollection& InputData,

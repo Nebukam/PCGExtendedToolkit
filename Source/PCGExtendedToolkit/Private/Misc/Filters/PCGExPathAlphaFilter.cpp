@@ -33,7 +33,7 @@ bool UPCGExPathAlphaFilterFactory::Prepare(FPCGExContext* InContext)
 	if (!Super::Prepare(InContext)) { return false; }
 
 	Splines = MakeShared<TArray<TSharedPtr<FPCGSplineStruct>>>();
-	
+
 	if (TArray<FPCGTaggedData> Targets = InContext->InputData.GetInputsByPin(PCGExPaths::SourcePathsLabel);
 		!Targets.IsEmpty())
 	{

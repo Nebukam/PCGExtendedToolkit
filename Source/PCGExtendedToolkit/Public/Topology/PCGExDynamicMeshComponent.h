@@ -11,8 +11,8 @@
 #include "PCGExDynamicMeshComponent.generated.h"
 
 
-UCLASS(Hidden, meta=(BlueprintSpawnableComponent), ClassGroup = Rendering, MinimalAPI)
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExDynamicMeshComponent : public UDynamicMeshComponent, public IPCGExManagedComponentInterface
+UCLASS(Hidden, meta=(BlueprintSpawnableComponent), ClassGroup = Rendering)
+class PCGEXTENDEDTOOLKIT_API UPCGExDynamicMeshComponent : public UDynamicMeshComponent, public IPCGExManagedComponentInterface
 {
 	GENERATED_BODY()
 

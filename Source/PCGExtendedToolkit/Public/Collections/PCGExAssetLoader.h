@@ -23,7 +23,7 @@ namespace PCGEx
 	template <typename T>
 	class TDiscoverAssetsTask;
 
-	class /*PCGEXTENDEDTOOLKIT_API*/ TAssetLoaderBase : public TSharedFromThis<TAssetLoaderBase>
+	class PCGEXTENDEDTOOLKIT_API TAssetLoaderBase : public TSharedFromThis<TAssetLoaderBase>
 	{
 	public:
 		TAssetLoaderBase()

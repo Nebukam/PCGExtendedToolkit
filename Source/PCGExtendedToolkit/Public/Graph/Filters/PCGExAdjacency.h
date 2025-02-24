@@ -46,7 +46,7 @@ enum class EPCGExRelativeThresholdRoundingMode : uint8
 };
 
 USTRUCT(BlueprintType)
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExAdjacencySettings
+struct PCGEXTENDEDTOOLKIT_API FPCGExAdjacencySettings
 {
 	GENERATED_BODY()
 

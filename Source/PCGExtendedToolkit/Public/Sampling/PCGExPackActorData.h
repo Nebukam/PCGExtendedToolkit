@@ -21,7 +21,7 @@ namespace PCGExPackActorData
  * 
  */
 UCLASS(Blueprintable, BlueprintType, Abstract, MinimalAPI, DisplayName = "[PCGEx] Custom Actor Data Packer")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExCustomActorDataPacker : public UPCGExOperation
+class UPCGExCustomActorDataPacker : public UPCGExOperation
 {
 	GENERATED_BODY()
 
@@ -549,7 +549,7 @@ public:
 
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Sampling")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExPackActorDataSettings : public UPCGExPointsProcessorSettings
+class UPCGExPackActorDataSettings : public UPCGExPointsProcessorSettings
 {
 	GENERATED_BODY()
 
@@ -596,14 +596,14 @@ protected:
 	virtual bool IsCacheable() const override { return false; }
 };
 
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPackActorDataContext final : FPCGExPointsProcessorContext
+struct FPCGExPackActorDataContext final : FPCGExPointsProcessorContext
 {
 	friend class FPCGExPackActorDataElement;
 	UPCGExCustomActorDataPacker* Packer = nullptr;
 	//TArray<UPCGParamData*> OutputParams;
 };
 
-class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPackActorDataElement final : public FPCGExPointsProcessorElement
+class FPCGExPackActorDataElement final : public FPCGExPointsProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(

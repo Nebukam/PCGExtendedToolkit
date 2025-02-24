@@ -24,7 +24,7 @@ enum class EPCGExCustomGraphActorSourceMode : uint8
  * 
  */
 UCLASS(Blueprintable, BlueprintType, Abstract, DisplayName = "[PCGEx] Custom Graph Settings")
-class PCGEXTENDEDTOOLKIT_API UPCGExCustomGraphSettings : public UObject
+class UPCGExCustomGraphSettings : public UObject
 {
 	GENERATED_BODY()
 
@@ -396,8 +396,8 @@ struct FNewGraphSettingsResult
 /**
  * 
  */
-UCLASS(Blueprintable, BlueprintType, Abstract, MinimalAPI, DisplayName = "[PCGEx] Custom Graph Builder")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExCustomGraphBuilder : public UPCGExOperation
+UCLASS(Blueprintable, BlueprintType, Abstract, DisplayName = "[PCGEx] Custom Graph Builder")
+class PCGEXTENDEDTOOLKIT_API UPCGExCustomGraphBuilder : public UPCGExOperation
 {
 	GENERATED_BODY()
 
@@ -452,7 +452,7 @@ public:
  * 
  */
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Clusters")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExBuildCustomGraphSettings : public UPCGExPointsProcessorSettings
+class UPCGExBuildCustomGraphSettings : public UPCGExPointsProcessorSettings
 {
 	GENERATED_BODY()
 
@@ -502,13 +502,13 @@ public:
 	bool bQuietFailedBuildGraphWarning = false;
 };
 
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExBuildCustomGraphContext final : FPCGExPointsProcessorContext
+struct FPCGExBuildCustomGraphContext final : FPCGExPointsProcessorContext
 {
 	friend class FPCGExBuildCustomGraphElement;
 	UPCGExCustomGraphBuilder* Builder = nullptr;
 };
 
-class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExBuildCustomGraphElement final : public FPCGExPointsProcessorElement
+class FPCGExBuildCustomGraphElement final : public FPCGExPointsProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(

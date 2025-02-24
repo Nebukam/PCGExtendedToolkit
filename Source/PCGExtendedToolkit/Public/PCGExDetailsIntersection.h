@@ -12,7 +12,7 @@
 #include "PCGExDetailsIntersection.generated.h"
 
 USTRUCT(BlueprintType)
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExUnionMetadataDetails
+struct PCGEXTENDEDTOOLKIT_API FPCGExUnionMetadataDetails
 {
 	GENERATED_BODY()
 
@@ -36,19 +36,19 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExUnionMetadataDetails
 };
 
 USTRUCT(BlueprintType)
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPointUnionMetadataDetails : public FPCGExUnionMetadataDetails
+struct PCGEXTENDEDTOOLKIT_API FPCGExPointUnionMetadataDetails : public FPCGExUnionMetadataDetails
 {
 	GENERATED_BODY()
 };
 
 USTRUCT(BlueprintType)
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExEdgeUnionMetadataDetails : public FPCGExUnionMetadataDetails
+struct PCGEXTENDEDTOOLKIT_API FPCGExEdgeUnionMetadataDetails : public FPCGExUnionMetadataDetails
 {
 	GENERATED_BODY()
 };
 
 USTRUCT(BlueprintType)
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPointPointIntersectionDetails
+struct PCGEXTENDEDTOOLKIT_API FPCGExPointPointIntersectionDetails
 {
 	GENERATED_BODY()
 
@@ -80,7 +80,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPointPointIntersectionDetails
 };
 
 USTRUCT(BlueprintType)
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPointEdgeIntersectionDetails
+struct PCGEXTENDEDTOOLKIT_API FPCGExPointEdgeIntersectionDetails
 {
 	GENERATED_BODY()
 
@@ -114,7 +114,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPointEdgeIntersectionDetails
 };
 
 USTRUCT(BlueprintType)
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExEdgeEdgeIntersectionDetails
+struct PCGEXTENDEDTOOLKIT_API FPCGExEdgeEdgeIntersectionDetails
 {
 	GENERATED_BODY()
 

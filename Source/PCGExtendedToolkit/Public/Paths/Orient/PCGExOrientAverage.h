@@ -11,7 +11,7 @@
  * 
  */
 UCLASS(MinimalAPI, DisplayName = "Average")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExOrientAverage : public UPCGExOrientOperation
+class UPCGExOrientAverage : public UPCGExOrientOperation
 {
 	GENERATED_BODY()
 

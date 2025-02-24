@@ -57,7 +57,7 @@ enum class EPCGExVariationMode : uint8
 };
 
 USTRUCT(BlueprintType)
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExScaleToFitDetails
+struct PCGEXTENDEDTOOLKIT_API FPCGExScaleToFitDetails
 {
 	GENERATED_BODY()
 
@@ -103,7 +103,7 @@ private:
 };
 
 USTRUCT(BlueprintType)
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExSingleJustifyDetails
+struct PCGEXTENDEDTOOLKIT_API FPCGExSingleJustifyDetails
 {
 	GENERATED_BODY()
 
@@ -164,7 +164,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExSingleJustifyDetails
 };
 
 USTRUCT(BlueprintType)
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExJustificationDetails
+struct PCGEXTENDEDTOOLKIT_API FPCGExJustificationDetails
 {
 	GENERATED_BODY()
 
@@ -219,7 +219,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExJustificationDetails
 };
 
 USTRUCT(BlueprintType)
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExFittingVariations
+struct PCGEXTENDEDTOOLKIT_API FPCGExFittingVariations
 {
 	GENERATED_BODY()
 
@@ -253,7 +253,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExFittingVariations
 
 
 USTRUCT(BlueprintType)
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExFittingVariationsDetails
+struct PCGEXTENDEDTOOLKIT_API FPCGExFittingVariationsDetails
 {
 	GENERATED_BODY()
 
@@ -283,7 +283,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExFittingVariationsDetails
 };
 
 USTRUCT(BlueprintType)
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExFittingDetailsHandler
+struct PCGEXTENDEDTOOLKIT_API FPCGExFittingDetailsHandler
 {
 	GENERATED_BODY()
 
@@ -330,7 +330,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExFittingDetailsHandler
 };
 
 USTRUCT(BlueprintType)
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExTransformDetails : public FPCGExFittingDetailsHandler
+struct PCGEXTENDEDTOOLKIT_API FPCGExTransformDetails : public FPCGExFittingDetailsHandler
 {
 	GENERATED_BODY()
 
@@ -348,7 +348,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExTransformDetails : public FPCGExFittingD
 };
 
 USTRUCT(BlueprintType)
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExLeanTransformDetails
+struct PCGEXTENDEDTOOLKIT_API FPCGExLeanTransformDetails
 {
 	GENERATED_BODY()
 

@@ -10,7 +10,7 @@
 #include "PCGExBitmaskMerge.generated.h"
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural))
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExBitmaskMergeSettings : public UPCGSettings
+class UPCGExBitmaskMergeSettings : public UPCGSettings
 {
 	GENERATED_BODY()
 
@@ -36,7 +36,7 @@ protected:
 	EPCGExBitOp Operation = EPCGExBitOp::OR;
 };
 
-class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExBitmaskMergeElement final : public IPCGElement
+class FPCGExBitmaskMergeElement final : public IPCGElement
 {
 public:
 	virtual FPCGContext* Initialize(const FPCGDataCollection& InputData, TWeakObjectPtr<UPCGComponent> SourceComponent, const UPCGNode* Node) override;

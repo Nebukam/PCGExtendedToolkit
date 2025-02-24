@@ -31,7 +31,7 @@ enum class EPCGExPathComposition : uint8
 };
 
 USTRUCT(BlueprintType)
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPathStatistics
+struct PCGEXTENDEDTOOLKIT_API FPCGExPathStatistics
 {
 	GENERATED_BODY()
 
@@ -80,7 +80,7 @@ namespace PCGExPathfinding
 		Fail
 	};
 
-	struct /*PCGEXTENDEDTOOLKIT_API*/ FNodePick
+	struct PCGEXTENDEDTOOLKIT_API FNodePick
 	{
 		FNodePick(const int32 InSourceIndex, const FVector& InSourcePosition):
 			SourceIndex(InSourceIndex), SourcePosition(InSourcePosition)
@@ -100,7 +100,7 @@ namespace PCGExPathfinding
 		bool ResolveNode(const TSharedRef<PCGExCluster::FCluster>& InCluster, const FPCGExNodeSelectionDetails& SelectionDetails);
 	};
 
-	struct /*PCGEXTENDEDTOOLKIT_API*/ FSeedGoalPair
+	struct PCGEXTENDEDTOOLKIT_API FSeedGoalPair
 	{
 		int32 Seed = -1;
 		FVector SeedPosition = FVector::ZeroVector;
@@ -115,7 +115,7 @@ namespace PCGExPathfinding
 		}
 	};
 
-	class /*PCGEXTENDEDTOOLKIT_API*/ FPathQuery : public TSharedFromThis<FPathQuery>
+	class PCGEXTENDEDTOOLKIT_API FPathQuery : public TSharedFromThis<FPathQuery>
 	{
 	public:
 		FPathQuery(
@@ -184,7 +184,7 @@ namespace PCGExPathfinding
 		void Cleanup();
 	};
 
-	class /*PCGEXTENDEDTOOLKIT_API*/ FPlotQuery : public TSharedFromThis<FPlotQuery>
+	class PCGEXTENDEDTOOLKIT_API FPlotQuery : public TSharedFromThis<FPlotQuery>
 	{
 		TSharedPtr<PCGExHeuristics::FLocalFeedbackHandler> LocalFeedbackHandler;
 
@@ -217,33 +217,10 @@ namespace PCGExPathfinding
 		void Cleanup();
 	};
 
-	static void ProcessGoals(
+	void ProcessGoals(
 		const TSharedPtr<PCGExData::FFacade>& InSeedDataFacade,
 		const UPCGExGoalPicker* GoalPicker,
-		TFunction<void(int32, int32)>&& GoalFunc)
-	{
-		for (int PointIndex = 0; PointIndex < InSeedDataFacade->Source->GetNum(); PointIndex++)
-		{
-			const PCGExData::FPointRef& Seed = InSeedDataFacade->Source->GetInPointRef(PointIndex);
-
-			if (GoalPicker->OutputMultipleGoals())
-			{
-				TArray<int32> GoalIndices;
-				GoalPicker->GetGoalIndices(Seed, GoalIndices);
-				for (const int32 GoalIndex : GoalIndices)
-				{
-					if (GoalIndex < 0) { continue; }
-					GoalFunc(PointIndex, GoalIndex);
-				}
-			}
-			else
-			{
-				const int32 GoalIndex = GoalPicker->GetGoalIndex(Seed);
-				if (GoalIndex < 0) { continue; }
-				GoalFunc(PointIndex, GoalIndex);
-			}
-		}
-	}
+		TFunction<void(int32, int32)>&& GoalFunc);
 }
 
 class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPathfindingTask : public PCGExMT::FPCGExIndexedTask

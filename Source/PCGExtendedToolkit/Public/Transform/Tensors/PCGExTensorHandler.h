@@ -13,7 +13,7 @@ namespace PCGExTensor
 }
 
 USTRUCT(BlueprintType)
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExTensorSamplerDetails
+struct PCGEXTENDEDTOOLKIT_API FPCGExTensorSamplerDetails
 {
 	GENERATED_BODY()
 
@@ -36,7 +36,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExTensorSamplerDetails
 
 
 USTRUCT(BlueprintType)
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExTensorHandlerDetails
+struct PCGEXTENDEDTOOLKIT_API FPCGExTensorHandlerDetails
 {
 	GENERATED_BODY()
 

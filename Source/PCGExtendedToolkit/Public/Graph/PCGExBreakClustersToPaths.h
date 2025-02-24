@@ -27,7 +27,7 @@ enum class EPCGExBreakClusterLeavesHandling : uint8
 };
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Clusters")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExBreakClustersToPathsSettings : public UPCGExEdgesProcessorSettings
+class UPCGExBreakClustersToPathsSettings : public UPCGExEdgesProcessorSettings
 {
 	GENERATED_BODY()
 
@@ -107,7 +107,7 @@ private:
 	friend class FPCGExBreakClustersToPathsElement;
 };
 
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExBreakClustersToPathsContext final : FPCGExEdgesProcessorContext
+struct FPCGExBreakClustersToPathsContext final : FPCGExEdgesProcessorContext
 {
 	friend class FPCGExBreakClustersToPathsElement;
 
@@ -115,7 +115,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExBreakClustersToPathsContext final : FPCG
 	TArray<TSharedPtr<PCGExCluster::FNodeChain>> Chains;
 };
 
-class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExBreakClustersToPathsElement final : public FPCGExEdgesProcessorElement
+class FPCGExBreakClustersToPathsElement final : public FPCGExEdgesProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(

@@ -33,7 +33,7 @@ enum class EPCGExShiftPathMode : uint8
  * 
  */
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Clusters")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExShiftPathSettings : public UPCGExPathProcessorSettings
+class UPCGExShiftPathSettings : public UPCGExPathProcessorSettings
 {
 	GENERATED_BODY()
 
@@ -90,13 +90,13 @@ public:
 	bool bReverseShift = false;
 };
 
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExShiftPathContext final : FPCGExPathProcessorContext
+struct FPCGExShiftPathContext final : FPCGExPathProcessorContext
 {
 	friend class FPCGExShiftPathElement;
 	FPCGExBlendingDetails BlendingSettings;
 };
 
-class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExShiftPathElement final : public FPCGExPathProcessorElement
+class FPCGExShiftPathElement final : public FPCGExPathProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(

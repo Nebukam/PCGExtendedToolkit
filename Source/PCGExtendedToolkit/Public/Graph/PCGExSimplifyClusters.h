@@ -13,7 +13,7 @@
 #include "PCGExSimplifyClusters.generated.h"
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Clusters")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExSimplifyClustersSettings : public UPCGExEdgesProcessorSettings
+class UPCGExSimplifyClustersSettings : public UPCGExEdgesProcessorSettings
 {
 	GENERATED_BODY()
 
@@ -64,13 +64,13 @@ public:
 	FPCGExGraphBuilderDetails GraphBuilderDetails;
 };
 
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExSimplifyClustersContext : FPCGExEdgesProcessorContext
+struct FPCGExSimplifyClustersContext : FPCGExEdgesProcessorContext
 {
 	friend class UPCGExSimplifyClustersSettings;
 	friend class FPCGExSimplifyClustersElement;
 };
 
-class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExSimplifyClustersElement final : public FPCGExEdgesProcessorElement
+class FPCGExSimplifyClustersElement final : public FPCGExEdgesProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(

@@ -13,7 +13,7 @@
 #include "PCGExHeuristicTensor.generated.h"
 
 USTRUCT(BlueprintType)
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExHeuristicConfigTensor : public FPCGExHeuristicConfigBase
+struct FPCGExHeuristicConfigTensor : public FPCGExHeuristicConfigBase
 {
 	GENERATED_BODY()
 
@@ -35,7 +35,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExHeuristicConfigTensor : public FPCGExHeu
  * 
  */
 UCLASS(MinimalAPI, DisplayName = "Tensor")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExHeuristicTensor : public UPCGExHeuristicOperation
+class UPCGExHeuristicTensor : public UPCGExHeuristicOperation
 {
 	GENERATED_BODY()
 
@@ -68,7 +68,7 @@ protected:
 };
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExHeuristicsFactoryTensor : public UPCGExHeuristicsFactoryData
+class UPCGExHeuristicsFactoryTensor : public UPCGExHeuristicsFactoryData
 {
 	GENERATED_BODY()
 
@@ -87,7 +87,7 @@ public:
 };
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Graph|Params")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExHeuristicsTensorProviderSettings : public UPCGExHeuristicsFactoryProviderSettings
+class UPCGExHeuristicsTensorProviderSettings : public UPCGExHeuristicsFactoryProviderSettings
 {
 	GENERATED_BODY()
 

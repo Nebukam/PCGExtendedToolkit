@@ -29,7 +29,7 @@ MACRO(SampledIndex, int32, -1)
 
 namespace PCGExNearestPoint
 {
-	struct /*PCGEXTENDEDTOOLKIT_API*/ FSample
+	struct FSample
 	{
 		FSample()
 		{
@@ -44,7 +44,7 @@ namespace PCGExNearestPoint
 		double Distance = 0;
 	};
 
-	struct /*PCGEXTENDEDTOOLKIT_API*/ FSamplesStats
+	struct FSamplesStats
 	{
 		FSamplesStats()
 		{
@@ -69,7 +69,7 @@ namespace PCGExNearestPoint
 }
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Sampling")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExSampleNearestPointSettings : public UPCGExPointsProcessorSettings
+class UPCGExSampleNearestPointSettings : public UPCGExPointsProcessorSettings
 {
 	GENERATED_BODY()
 
@@ -315,7 +315,7 @@ public:
 	bool bPruneFailedSamples = false;
 };
 
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExSampleNearestPointContext final : FPCGExPointsProcessorContext
+struct FPCGExSampleNearestPointContext final : FPCGExPointsProcessorContext
 {
 	friend class FPCGExSampleNearestPointElement;
 
@@ -341,7 +341,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExSampleNearestPointContext final : FPCGEx
 	virtual void RegisterAssetDependencies() override;
 };
 
-class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExSampleNearestPointElement final : public FPCGExPointsProcessorElement
+class FPCGExSampleNearestPointElement final : public FPCGExPointsProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(

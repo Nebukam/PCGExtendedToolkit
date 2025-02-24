@@ -32,7 +32,7 @@ enum class EPCGExStringMatchMode : uint8
 };
 
 USTRUCT(BlueprintType)
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExNameFiltersDetails
+struct PCGEXTENDEDTOOLKIT_API FPCGExNameFiltersDetails
 {
 	GENERATED_BODY()
 
@@ -178,7 +178,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExNameFiltersDetails
 };
 
 USTRUCT(BlueprintType)
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExCarryOverDetails
+struct PCGEXTENDEDTOOLKIT_API FPCGExCarryOverDetails
 {
 	GENERATED_BODY()
 

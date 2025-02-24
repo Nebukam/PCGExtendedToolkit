@@ -39,7 +39,7 @@ enum class EPCGExBoundsSampleMethod : uint8
 
 namespace PCGExNearestBounds
 {
-	struct /*PCGEXTENDEDTOOLKIT_API*/ FSample
+	struct FSample
 	{
 		FSample()
 		{
@@ -59,7 +59,7 @@ namespace PCGExNearestBounds
 		double Weight = 0;
 	};
 
-	struct /*PCGEXTENDEDTOOLKIT_API*/ FSamplesStats
+	struct FSamplesStats
 	{
 		FSamplesStats()
 		{
@@ -86,7 +86,7 @@ namespace PCGExNearestBounds
 }
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Sampling")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExSampleNearestBoundsSettings : public UPCGExPointsProcessorSettings
+class UPCGExSampleNearestBoundsSettings : public UPCGExPointsProcessorSettings
 {
 	GENERATED_BODY()
 
@@ -292,7 +292,7 @@ public:
 	bool bPruneFailedSamples = false;
 };
 
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExSampleNearestBoundsContext final : FPCGExPointsProcessorContext
+struct FPCGExSampleNearestBoundsContext final : FPCGExPointsProcessorContext
 {
 	friend class FPCGExSampleNearestBoundsElement;
 
@@ -314,7 +314,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExSampleNearestBoundsContext final : FPCGE
 	virtual void RegisterAssetDependencies() override;
 };
 
-class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExSampleNearestBoundsElement final : public FPCGExPointsProcessorElement
+class FPCGExSampleNearestBoundsElement final : public FPCGExPointsProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(

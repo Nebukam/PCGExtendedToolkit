@@ -20,7 +20,7 @@
 
 
 USTRUCT(BlueprintType)
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExTagValueFilterConfig
+struct FPCGExTagValueFilterConfig
 {
 	GENERATED_BODY()
 
@@ -73,7 +73,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExTagValueFilterConfig
  * 
  */
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Filter")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExTagValueFilterFactory : public UPCGExFilterFactoryData
+class UPCGExTagValueFilterFactory : public UPCGExFilterFactoryData
 {
 	GENERATED_BODY()
 
@@ -86,7 +86,7 @@ public:
 
 namespace PCGExPointFilter
 {
-	class /*PCGEXTENDEDTOOLKIT_API*/ FTagValueFilter final : public FCollectionFilter
+	class FTagValueFilter final : public FCollectionFilter
 	{
 	public:
 		explicit FTagValueFilter(const TObjectPtr<const UPCGExTagValueFilterFactory>& InDefinition)
@@ -107,7 +107,7 @@ namespace PCGExPointFilter
 ///
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Filter")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExTagValueFilterProviderSettings : public UPCGExFilterProviderSettings
+class UPCGExTagValueFilterProviderSettings : public UPCGExFilterProviderSettings
 {
 	GENERATED_BODY()
 

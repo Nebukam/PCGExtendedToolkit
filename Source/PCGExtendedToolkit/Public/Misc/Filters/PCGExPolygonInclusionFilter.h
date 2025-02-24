@@ -15,7 +15,7 @@
 #include "PCGExPolygonInclusionFilter.generated.h"
 
 USTRUCT(BlueprintType)
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPolygonInclusionFilterConfig
+struct FPCGExPolygonInclusionFilterConfig
 {
 	GENERATED_BODY()
 
@@ -32,7 +32,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPolygonInclusionFilterConfig
  * 
  */
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Filter")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExPolygonInclusionFilterFactory : public UPCGExFilterFactoryData
+class UPCGExPolygonInclusionFilterFactory : public UPCGExFilterFactoryData
 {
 	GENERATED_BODY()
 
@@ -56,7 +56,7 @@ public:
 
 namespace PCGExPointFilter
 {
-	class /*PCGEXTENDEDTOOLKIT_API*/ FPolygonInclusionFilter final : public FSimpleFilter
+	class FPolygonInclusionFilter final : public FSimpleFilter
 	{
 	public:
 		explicit FPolygonInclusionFilter(const TObjectPtr<const UPCGExPolygonInclusionFilterFactory>& InFactory)
@@ -84,7 +84,7 @@ namespace PCGExPointFilter
 ///
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Filter")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExPolygonInclusionFilterProviderSettings : public UPCGExFilterProviderSettings
+class UPCGExPolygonInclusionFilterProviderSettings : public UPCGExFilterProviderSettings
 {
 	GENERATED_BODY()
 

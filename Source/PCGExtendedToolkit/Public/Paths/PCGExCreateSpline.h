@@ -27,7 +27,7 @@ enum class EPCGExSplinePointType : uint8
 };
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExCreateSplineSettings : public UPCGExPathProcessorSettings
+class UPCGExCreateSplineSettings : public UPCGExPathProcessorSettings
 {
 	GENERATED_BODY()
 
@@ -88,14 +88,14 @@ public:
 	}
 };
 
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExCreateSplineContext final : FPCGExPathProcessorContext
+struct FPCGExCreateSplineContext final : FPCGExPathProcessorContext
 {
 	friend class FPCGExCreateSplineElement;
 
 	TSet<AActor*> NotifyActors;
 };
 
-class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExCreateSplineElement final : public FPCGExPathProcessorElement
+class FPCGExCreateSplineElement final : public FPCGExPathProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(

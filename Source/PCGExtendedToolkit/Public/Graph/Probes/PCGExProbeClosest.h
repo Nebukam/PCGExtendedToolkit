@@ -17,7 +17,7 @@ namespace PCGExProbing
 }
 
 USTRUCT(BlueprintType)
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExProbeConfigClosest : public FPCGExProbeConfigBase
+struct FPCGExProbeConfigClosest : public FPCGExProbeConfigBase
 {
 	GENERATED_BODY()
 
@@ -48,7 +48,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExProbeConfigClosest : public FPCGExProbeC
  * 
  */
 UCLASS(MinimalAPI, DisplayName = "Closest")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExProbeClosest : public UPCGExProbeOperation
+class UPCGExProbeClosest : public UPCGExProbeOperation
 {
 	GENERATED_BODY()
 
@@ -69,7 +69,7 @@ protected:
 ////
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExProbeFactoryClosest : public UPCGExProbeFactoryData
+class UPCGExProbeFactoryClosest : public UPCGExProbeFactoryData
 {
 	GENERATED_BODY()
 
@@ -81,7 +81,7 @@ public:
 };
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Graph|Params")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExProbeClosestProviderSettings : public UPCGExProbeFactoryProviderSettings
+class UPCGExProbeClosestProviderSettings : public UPCGExProbeFactoryProviderSettings
 {
 	GENERATED_BODY()
 

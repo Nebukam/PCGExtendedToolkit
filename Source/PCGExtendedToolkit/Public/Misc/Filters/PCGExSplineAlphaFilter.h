@@ -28,7 +28,7 @@ enum class EPCGExSplineTimeConsolidation : uint8
 };
 
 USTRUCT(BlueprintType)
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExSplineAlphaFilterConfig
+struct FPCGExSplineAlphaFilterConfig
 {
 	GENERATED_BODY()
 
@@ -73,7 +73,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExSplineAlphaFilterConfig
  * 
  */
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Filter")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExSplineAlphaFilterFactory : public UPCGExFilterFactoryData
+class UPCGExSplineAlphaFilterFactory : public UPCGExFilterFactoryData
 {
 	GENERATED_BODY()
 
@@ -89,7 +89,7 @@ public:
 	virtual bool Init(FPCGExContext* InContext) override;
 	virtual bool WantsPreparation(FPCGExContext* InContext) override;
 	virtual bool Prepare(FPCGExContext* InContext) override;
-	
+
 	virtual TSharedPtr<PCGExPointFilter::FFilter> CreateFilter() const override;
 
 	virtual void BeginDestroy() override;
@@ -99,7 +99,7 @@ public:
 
 namespace PCGExPointFilter
 {
-	class /*PCGEXTENDEDTOOLKIT_API*/ FSplineAlphaFilter final : public FSimpleFilter
+	class FSplineAlphaFilter final : public FSimpleFilter
 	{
 	public:
 		explicit FSplineAlphaFilter(const TObjectPtr<const UPCGExSplineAlphaFilterFactory>& InFactory)
@@ -129,7 +129,7 @@ namespace PCGExPointFilter
 ///
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Filter")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExSplineAlphaFilterProviderSettings : public UPCGExFilterProviderSettings
+class UPCGExSplineAlphaFilterProviderSettings : public UPCGExFilterProviderSettings
 {
 	GENERATED_BODY()
 
