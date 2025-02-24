@@ -47,7 +47,7 @@ enum class EPCGExAxisConstraintSorting : uint8
 };
 
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExBoundsAxisToPointsSettings : public UPCGExPointsProcessorSettings
+class UPCGExBoundsAxisToPointsSettings : public UPCGExPointsProcessorSettings
 {
 	GENERATED_BODY()
 
@@ -123,7 +123,7 @@ private:
 	friend class FPCGExBoundsAxisToPointsElement;
 };
 
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExBoundsAxisToPointsContext final : FPCGExPointsProcessorContext
+struct FPCGExBoundsAxisToPointsContext final : FPCGExPointsProcessorContext
 {
 	friend class FPCGExBoundsAxisToPointsElement;
 };

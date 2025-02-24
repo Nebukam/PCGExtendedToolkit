@@ -14,7 +14,7 @@
 #include "PCGExEdgeOrder.generated.h"
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Clusters")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExEdgeOrderSettings : public UPCGExEdgesProcessorSettings
+class UPCGExEdgeOrderSettings : public UPCGExEdgesProcessorSettings
 {
 	GENERATED_BODY()
 
@@ -42,12 +42,12 @@ private:
 	friend class FPCGExEdgeOrderElement;
 };
 
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExEdgeOrderContext final : FPCGExEdgesProcessorContext
+struct FPCGExEdgeOrderContext final : FPCGExEdgesProcessorContext
 {
 	friend class FPCGExEdgeOrderElement;
 };
 
-class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExEdgeOrderElement final : public FPCGExEdgesProcessorElement
+class FPCGExEdgeOrderElement final : public FPCGExEdgesProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(

@@ -14,7 +14,7 @@
 #include "PCGExEdgeEndpointsCompareStrFilter.generated.h"
 
 USTRUCT(BlueprintType)
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExEdgeEndpointsCompareStrFilterConfig
+struct FPCGExEdgeEndpointsCompareStrFilterConfig
 {
 	GENERATED_BODY()
 
@@ -39,7 +39,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExEdgeEndpointsCompareStrFilterConfig
  * 
  */
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExEdgeEndpointsCompareStrFilterFactory : public UPCGExEdgeFilterFactoryData
+class UPCGExEdgeEndpointsCompareStrFilterFactory : public UPCGExEdgeFilterFactoryData
 {
 	GENERATED_BODY()
 
@@ -54,7 +54,7 @@ public:
 
 namespace PCGExEdgeEndpointsCompareStr
 {
-	class /*PCGEXTENDEDTOOLKIT_API*/ FNeighborsCountFilter final : public PCGExClusterFilter::TEdgeFilter
+	class FNeighborsCountFilter final : public PCGExClusterFilter::TEdgeFilter
 	{
 	public:
 		explicit FNeighborsCountFilter(const UPCGExEdgeEndpointsCompareStrFilterFactory* InFactory)
@@ -76,7 +76,7 @@ namespace PCGExEdgeEndpointsCompareStr
 
 /** Outputs a single GraphParam to be consumed by other nodes */
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Graph|Params")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExEdgeEndpointsCompareStrFilterProviderSettings : public UPCGExFilterProviderSettings
+class UPCGExEdgeEndpointsCompareStrFilterProviderSettings : public UPCGExFilterProviderSettings
 {
 	GENERATED_BODY()
 

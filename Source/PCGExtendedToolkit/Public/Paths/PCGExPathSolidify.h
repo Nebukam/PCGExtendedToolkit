@@ -14,7 +14,7 @@
  * 
  */
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Path")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExPathSolidifySettings : public UPCGExPathProcessorSettings
+class UPCGExPathSolidifySettings : public UPCGExPathProcessorSettings
 {
 	GENERATED_BODY()
 
@@ -101,12 +101,12 @@ public:
 	double RadiusZConstant = 1;
 };
 
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPathSolidifyContext final : FPCGExPathProcessorContext
+struct FPCGExPathSolidifyContext final : FPCGExPathProcessorContext
 {
 	friend class FPCGExPathSolidifyElement;
 };
 
-class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPathSolidifyElement final : public FPCGExPathProcessorElement
+class FPCGExPathSolidifyElement final : public FPCGExPathProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(

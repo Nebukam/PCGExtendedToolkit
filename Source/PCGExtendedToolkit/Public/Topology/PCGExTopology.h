@@ -54,7 +54,7 @@ enum class EPCGExCellSeedBounds : uint8
 };
 
 USTRUCT(BlueprintType)
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExCellConstraintsDetails
+struct PCGEXTENDEDTOOLKIT_API FPCGExCellConstraintsDetails
 {
 	GENERATED_BODY()
 
@@ -201,7 +201,7 @@ namespace PCGExTopology
 }
 
 USTRUCT(BlueprintType)
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExCellSeedMutationDetails
+struct PCGEXTENDEDTOOLKIT_API FPCGExCellSeedMutationDetails
 {
 	GENERATED_BODY()
 
@@ -253,7 +253,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExCellSeedMutationDetails
 };
 
 USTRUCT(BlueprintType)
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExTopologyDetails
+struct PCGEXTENDEDTOOLKIT_API FPCGExTopologyDetails
 {
 	GENERATED_BODY()
 
@@ -307,9 +307,9 @@ namespace PCGExTopology
 	}
 
 	bool IsAnyPointInPolygon(const TArray<FVector2D>& Points, const FGeometryScriptSimplePolygon& Polygon);
-	
+
 	bool IsPolygonInPolygon(const FGeometryScriptSimplePolygon& ContainerPolygon, const FGeometryScriptSimplePolygon& Polygon);
-	
+
 	static FORCEINLINE void MarkTriangle(
 		const TSharedPtr<PCGExCluster::FCluster>& InCluster,
 		const PCGExGeo::FTriangle& InTriangle)
@@ -445,7 +445,7 @@ namespace PCGExTopology
 	};
 
 	USTRUCT(BlueprintType)
-	struct /*PCGEXTENDEDTOOLKIT_API*/ FCellData
+	struct PCGEXTENDEDTOOLKIT_API FCellData
 	{
 		int8 bIsValid = 0;
 		uint32 CellHash = 0;
@@ -510,7 +510,7 @@ namespace PCGExTopology
 }
 
 USTRUCT(BlueprintType)
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExCellArtifactsDetails
+struct PCGEXTENDEDTOOLKIT_API FPCGExCellArtifactsDetails
 {
 	GENERATED_BODY()
 

@@ -15,26 +15,11 @@
 
 #include "PCGExPathSplineMesh.generated.h"
 
-
-USTRUCT(BlueprintType)
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExSplineParamsMapping
-{
-	GENERATED_BODY()
-
-	FPCGExSplineParamsMapping()
-	{
-	}
-
-	/** Write whether the sampling was sucessful or not to a boolean attribute. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(PCG_NotOverridable, InlineEditConditionToggle))
-	bool bLocalParam = false;
-};
-
 /**
  * 
  */
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Path")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExPathSplineMeshSettings : public UPCGExPathProcessorSettings
+class UPCGExPathSplineMeshSettings : public UPCGExPathProcessorSettings
 {
 	GENERATED_BODY()
 
@@ -144,7 +129,7 @@ protected:
 	virtual bool IsCacheable() const override { return false; }
 };
 
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPathSplineMeshContext final : FPCGExPathProcessorContext
+struct FPCGExPathSplineMeshContext final : FPCGExPathProcessorContext
 {
 	friend class FPCGExPathSplineMeshElement;
 
@@ -155,7 +140,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPathSplineMeshContext final : FPCGExPath
 	TObjectPtr<UPCGExMeshCollection> MainCollection;
 };
 
-class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPathSplineMeshElement final : public FPCGExPathProcessorElement
+class FPCGExPathSplineMeshElement final : public FPCGExPathProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(

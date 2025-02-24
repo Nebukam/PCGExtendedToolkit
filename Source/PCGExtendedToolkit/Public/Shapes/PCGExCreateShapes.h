@@ -16,7 +16,7 @@ class FPCGExComputeIOBounds;
 
 
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExCreateShapesSettings : public UPCGExShapeProcessorSettings
+class UPCGExCreateShapesSettings : public UPCGExShapeProcessorSettings
 {
 	GENERATED_BODY()
 
@@ -62,12 +62,12 @@ public:
 	int32 MaxPointCount = 500;
 };
 
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExCreateShapesContext final : FPCGExShapeProcessorContext
+struct FPCGExCreateShapesContext final : FPCGExShapeProcessorContext
 {
 	friend class FPCGExCreateShapesElement;
 };
 
-class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExCreateShapesElement final : public FPCGExShapeProcessorElement
+class FPCGExCreateShapesElement final : public FPCGExShapeProcessorElement
 {
 	virtual FPCGContext* Initialize(
 		const FPCGDataCollection& InputData,

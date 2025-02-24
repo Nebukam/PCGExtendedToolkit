@@ -20,7 +20,7 @@
  * 
  */
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Path")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExPathSplineMeshSimpleSettings : public UPCGExPathProcessorSettings
+class UPCGExPathSplineMeshSimpleSettings : public UPCGExPathProcessorSettings
 {
 	GENERATED_BODY()
 
@@ -124,7 +124,7 @@ protected:
 	virtual bool IsCacheable() const override { return false; }
 };
 
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPathSplineMeshSimpleContext final : FPCGExPathProcessorContext
+struct FPCGExPathSplineMeshSimpleContext final : FPCGExPathProcessorContext
 {
 	friend class FPCGExPathSplineMeshSimpleElement;
 
@@ -132,7 +132,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPathSplineMeshSimpleContext final : FPCG
 	TSharedPtr<PCGEx::TAssetLoader<UStaticMesh>> StaticMeshLoader;
 };
 
-class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPathSplineMeshSimpleElement final : public FPCGExPathProcessorElement
+class FPCGExPathSplineMeshSimpleElement final : public FPCGExPathProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(

@@ -44,7 +44,7 @@ enum class EPCGExTensorStopConditionHandling : uint8
 };
 
 USTRUCT(BlueprintType)
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExTensorSamplingMutationsDetails
+struct PCGEXTENDEDTOOLKIT_API FPCGExTensorSamplingMutationsDetails
 {
 	GENERATED_BODY()
 
@@ -72,7 +72,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExTensorSamplingMutationsDetails
 };
 
 USTRUCT(BlueprintType)
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExTensorConfigBase
+struct PCGEXTENDEDTOOLKIT_API FPCGExTensorConfigBase
 {
 	GENERATED_BODY()
 

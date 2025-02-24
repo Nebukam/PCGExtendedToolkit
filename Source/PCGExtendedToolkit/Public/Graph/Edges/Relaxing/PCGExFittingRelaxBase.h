@@ -20,7 +20,7 @@ enum class EPCGExRelaxEdgeFitting : uint8
  * 
  */
 UCLASS(Abstract, MinimalAPI, DisplayName = "Abstract Fitting")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExFittingRelaxBase : public UPCGExRelaxClusterOperation
+class UPCGExFittingRelaxBase : public UPCGExRelaxClusterOperation
 {
 	GENERATED_BODY()
 

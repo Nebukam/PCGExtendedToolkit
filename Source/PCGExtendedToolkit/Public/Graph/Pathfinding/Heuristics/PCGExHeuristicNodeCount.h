@@ -12,7 +12,7 @@
 #include "PCGExHeuristicNodeCount.generated.h"
 
 USTRUCT(BlueprintType)
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExHeuristicConfigLeastNodes : public FPCGExHeuristicConfigBase
+struct FPCGExHeuristicConfigLeastNodes : public FPCGExHeuristicConfigBase
 {
 	GENERATED_BODY()
 
@@ -26,7 +26,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExHeuristicConfigLeastNodes : public FPCGE
  * 
  */
 UCLASS(MinimalAPI, DisplayName = "Least Nodes")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExHeuristicNodeCount : public UPCGExHeuristicDistance
+class UPCGExHeuristicNodeCount : public UPCGExHeuristicDistance
 {
 	GENERATED_BODY()
 
@@ -48,7 +48,7 @@ public:
 ////
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExHeuristicsFactoryLeastNodes : public UPCGExHeuristicsFactoryData
+class UPCGExHeuristicsFactoryLeastNodes : public UPCGExHeuristicsFactoryData
 {
 	GENERATED_BODY()
 
@@ -61,7 +61,7 @@ public:
 };
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Graph|Params")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExHeuristicsLeastNodesProviderSettings : public UPCGExHeuristicsFactoryProviderSettings
+class UPCGExHeuristicsLeastNodesProviderSettings : public UPCGExHeuristicsFactoryProviderSettings
 {
 	GENERATED_BODY()
 

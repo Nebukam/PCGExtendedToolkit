@@ -19,7 +19,7 @@
 
 
 USTRUCT(BlueprintType)
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExEntryCountFilterConfig
+struct FPCGExEntryCountFilterConfig
 {
 	GENERATED_BODY()
 
@@ -45,7 +45,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExEntryCountFilterConfig
  * 
  */
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Filter")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExEntryCountFilterFactory : public UPCGExFilterFactoryData
+class UPCGExEntryCountFilterFactory : public UPCGExFilterFactoryData
 {
 	GENERATED_BODY()
 
@@ -58,7 +58,7 @@ public:
 
 namespace PCGExPointFilter
 {
-	class /*PCGEXTENDEDTOOLKIT_API*/ FEntryCountFilter final : public FCollectionFilter
+	class FEntryCountFilter final : public FCollectionFilter
 	{
 	public:
 		explicit FEntryCountFilter(const TObjectPtr<const UPCGExEntryCountFilterFactory>& InDefinition)
@@ -79,7 +79,7 @@ namespace PCGExPointFilter
 ///
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Filter")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExEntryCountFilterProviderSettings : public UPCGExFilterProviderSettings
+class UPCGExEntryCountFilterProviderSettings : public UPCGExFilterProviderSettings
 {
 	GENERATED_BODY()
 

@@ -18,7 +18,7 @@ namespace PCGExProbing
 }
 
 USTRUCT(BlueprintType)
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExProbeConfigNumericCompare : public FPCGExProbeConfigBase
+struct FPCGExProbeConfigNumericCompare : public FPCGExProbeConfigBase
 {
 	GENERATED_BODY()
 
@@ -52,7 +52,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExProbeConfigNumericCompare : public FPCGE
  * 
  */
 UCLASS(MinimalAPI, DisplayName = "Numeric Compare")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExProbeNumericCompare : public UPCGExProbeOperation
+class UPCGExProbeNumericCompare : public UPCGExProbeOperation
 {
 	GENERATED_BODY()
 
@@ -72,7 +72,7 @@ protected:
 ////
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExProbeFactoryNumericCompare : public UPCGExProbeFactoryData
+class UPCGExProbeFactoryNumericCompare : public UPCGExProbeFactoryData
 {
 	GENERATED_BODY()
 
@@ -84,7 +84,7 @@ public:
 };
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Graph|Params")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExProbeNumericCompareProviderSettings : public UPCGExProbeFactoryProviderSettings
+class UPCGExProbeNumericCompareProviderSettings : public UPCGExProbeFactoryProviderSettings
 {
 	GENERATED_BODY()
 

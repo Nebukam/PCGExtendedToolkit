@@ -25,7 +25,7 @@ class UPCGExActionWriteValuesFactory;
  * 
  */
 UCLASS(MinimalAPI)
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExActionWriteValuesOperation : public UPCGExActionOperation
+class UPCGExActionWriteValuesOperation : public UPCGExActionOperation
 {
 	GENERATED_BODY()
 
@@ -48,7 +48,7 @@ protected:
 };
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExActionWriteValuesFactory : public UPCGExActionFactoryData
+class UPCGExActionWriteValuesFactory : public UPCGExActionFactoryData
 {
 	friend class UPCGExActionWriteValuesProviderSettings;
 
@@ -64,7 +64,7 @@ protected:
 };
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|ActionWriteValues")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExActionWriteValuesProviderSettings : public UPCGExActionProviderSettings
+class UPCGExActionWriteValuesProviderSettings : public UPCGExActionProviderSettings
 {
 	GENERATED_BODY()
 

@@ -11,7 +11,7 @@
 #include "PCGExFlushDebug.generated.h"
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural))
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExDebugSettings : public UPCGSettings
+class UPCGExDebugSettings : public UPCGSettings
 {
 	GENERATED_BODY()
 
@@ -41,13 +41,13 @@ protected:
 	FLinearColor CustomColor = FLinearColor(1.0f, 0.0f, 0.0f, 1.0f);
 };
 
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExDebugContext final : FPCGContext
+struct FPCGExDebugContext final : FPCGContext
 {
 	friend class FPCGExDebugElement;
 	bool bWait = true;
 };
 
-class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExDebugElement final : public IPCGElement
+class FPCGExDebugElement final : public IPCGElement
 {
 public:
 	virtual FPCGContext* Initialize(const FPCGDataCollection& InputData, TWeakObjectPtr<UPCGComponent> SourceComponent, const UPCGNode* Node) override;

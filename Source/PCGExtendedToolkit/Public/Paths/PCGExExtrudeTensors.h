@@ -28,7 +28,7 @@ enum class EPCGExSelfIntersectionMode : uint8
 };
 
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExExtrudeTensorsSettings : public UPCGExPointsProcessorSettings
+class UPCGExExtrudeTensorsSettings : public UPCGExPointsProcessorSettings
 {
 	GENERATED_BODY()
 
@@ -278,7 +278,7 @@ private:
 	friend class FPCGExExtrudeTensorsElement;
 };
 
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExExtrudeTensorsContext final : FPCGExPointsProcessorContext
+struct FPCGExExtrudeTensorsContext final : FPCGExPointsProcessorContext
 {
 	friend class FPCGExExtrudeTensorsElement;
 
@@ -297,7 +297,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExExtrudeTensorsContext final : FPCGExPoin
 	TArray<TSharedPtr<PCGExPaths::FPath>> ExternalPaths;
 };
 
-class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExExtrudeTensorsElement final : public FPCGExPointsProcessorElement
+class FPCGExExtrudeTensorsElement final : public FPCGExPointsProcessorElement
 {
 	virtual FPCGContext* Initialize(
 		const FPCGDataCollection& InputData,
@@ -541,7 +541,7 @@ namespace PCGExExtrudeTensors
 			{
 				bHitIntersection = true;
 
-				if (FMath::IsNearlyZero(Intersection))
+				if (FMath::IsNearlyZero(Intersection.DistSquared))
 				{
 					if (!Settings->bIgnoreIntersectionOnOrigin || (Settings->bIgnoreIntersectionOnOrigin && ExtrudedPoints.Num() > 1))
 					{

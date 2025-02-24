@@ -9,7 +9,7 @@
 namespace PCGExDataBlending
 {
 	template <typename T>
-	class /*PCGEXTENDEDTOOLKIT_API*/ TDataBlendingAverage final : public TDataBlendingProcessor<T, EPCGExDataBlendingType::Average, true, true>
+	class TDataBlendingAverage final : public TDataBlendingProcessor<T, EPCGExDataBlendingType::Average, true, true>
 	{
 	public:
 		virtual T SingleOperation(T A, T B, double Weight) const override;
@@ -17,21 +17,21 @@ namespace PCGExDataBlending
 	};
 
 	template <typename T>
-	class /*PCGEXTENDEDTOOLKIT_API*/ TDataBlendingCopy final : public TDataBlendingProcessor<T, EPCGExDataBlendingType::Copy>
+	class TDataBlendingCopy final : public TDataBlendingProcessor<T, EPCGExDataBlendingType::Copy>
 	{
 	public:
 		virtual T SingleOperation(T A, T B, double Weight) const override;
 	};
 
 	template <typename T>
-	class /*PCGEXTENDEDTOOLKIT_API*/ TDataBlendingCopyOther final : public TDataBlendingProcessor<T, EPCGExDataBlendingType::Copy>
+	class TDataBlendingCopyOther final : public TDataBlendingProcessor<T, EPCGExDataBlendingType::Copy>
 	{
 	public:
 		virtual T SingleOperation(T A, T B, double Weight) const override;
 	};
 
 	template <typename T>
-	class /*PCGEXTENDEDTOOLKIT_API*/ TDataBlendingSum final : public TDataBlendingProcessor<T, EPCGExDataBlendingType::Sum, true, false>
+	class TDataBlendingSum final : public TDataBlendingProcessor<T, EPCGExDataBlendingType::Sum, true, false>
 	{
 	public:
 		virtual void SinglePrepare(T& A) const override;
@@ -39,28 +39,28 @@ namespace PCGExDataBlending
 	};
 
 	template <typename T>
-	class /*PCGEXTENDEDTOOLKIT_API*/ TDataBlendingSubtract final : public TDataBlendingProcessor<T, EPCGExDataBlendingType::Subtract, true, false>
+	class TDataBlendingSubtract final : public TDataBlendingProcessor<T, EPCGExDataBlendingType::Subtract, true, false>
 	{
 	public:
 		virtual T SingleOperation(T A, T B, double Weight) const override;
 	};
 
 	template <typename T>
-	class /*PCGEXTENDEDTOOLKIT_API*/ TDataBlendingMax final : public FDataBlendingProcessorWithFirstInit<T, EPCGExDataBlendingType::Max>
+	class TDataBlendingMax final : public FDataBlendingProcessorWithFirstInit<T, EPCGExDataBlendingType::Max>
 	{
 	public:
 		virtual T SingleOperation(T A, T B, double Weight) const override;
 	};
 
 	template <typename T>
-	class /*PCGEXTENDEDTOOLKIT_API*/ TDataBlendingMin final : public FDataBlendingProcessorWithFirstInit<T, EPCGExDataBlendingType::Min>
+	class TDataBlendingMin final : public FDataBlendingProcessorWithFirstInit<T, EPCGExDataBlendingType::Min>
 	{
 	public:
 		virtual T SingleOperation(T A, T B, double Weight) const override;
 	};
 
 	template <typename T>
-	class /*PCGEXTENDEDTOOLKIT_API*/ TDataBlendingWeight final : public TDataBlendingProcessor<T, EPCGExDataBlendingType::Weight, true, true>
+	class TDataBlendingWeight final : public TDataBlendingProcessor<T, EPCGExDataBlendingType::Weight, true, true>
 	{
 	public:
 		virtual T SingleOperation(T A, T B, double Weight) const override;
@@ -68,70 +68,70 @@ namespace PCGExDataBlending
 	};
 
 	template <typename T>
-	class /*PCGEXTENDEDTOOLKIT_API*/ TDataBlendingWeightedSum final : public TDataBlendingProcessor<T, EPCGExDataBlendingType::WeightedSum, true, false>
+	class TDataBlendingWeightedSum final : public TDataBlendingProcessor<T, EPCGExDataBlendingType::WeightedSum, true, false>
 	{
 	public:
 		virtual T SingleOperation(T A, T B, double Weight) const override;
 	};
 
 	template <typename T>
-	class /*PCGEXTENDEDTOOLKIT_API*/ TDataBlendingLerp final : public TDataBlendingProcessor<T, EPCGExDataBlendingType::Lerp>
+	class TDataBlendingLerp final : public TDataBlendingProcessor<T, EPCGExDataBlendingType::Lerp>
 	{
 	public:
 		virtual T SingleOperation(T A, T B, double Weight) const override;
 	};
 
 	template <typename T>
-	class /*PCGEXTENDEDTOOLKIT_API*/ TDataBlendingNone final : public FDataBlendingProcessorWithFirstInit<T, EPCGExDataBlendingType::None>
+	class TDataBlendingNone final : public FDataBlendingProcessorWithFirstInit<T, EPCGExDataBlendingType::None>
 	{
 	public:
 		virtual T SingleOperation(T A, T B, double Weight) const override;
 	};
 
 	template <typename T>
-	class /*PCGEXTENDEDTOOLKIT_API*/ TDataBlendingUnsignedMax final : public FDataBlendingProcessorWithFirstInit<T, EPCGExDataBlendingType::UnsignedMax>
+	class TDataBlendingUnsignedMax final : public FDataBlendingProcessorWithFirstInit<T, EPCGExDataBlendingType::UnsignedMax>
 	{
 	public:
 		virtual T SingleOperation(T A, T B, double Weight) const override;
 	};
 
 	template <typename T>
-	class /*PCGEXTENDEDTOOLKIT_API*/ TDataBlendingUnsignedMin final : public FDataBlendingProcessorWithFirstInit<T, EPCGExDataBlendingType::UnsignedMin>
+	class TDataBlendingUnsignedMin final : public FDataBlendingProcessorWithFirstInit<T, EPCGExDataBlendingType::UnsignedMin>
 	{
 	public:
 		virtual T SingleOperation(T A, T B, double Weight) const override;
 	};
 
 	template <typename T>
-	class /*PCGEXTENDEDTOOLKIT_API*/ TDataBlendingAbsoluteMax final : public FDataBlendingProcessorWithFirstInit<T, EPCGExDataBlendingType::AbsoluteMax>
+	class TDataBlendingAbsoluteMax final : public FDataBlendingProcessorWithFirstInit<T, EPCGExDataBlendingType::AbsoluteMax>
 	{
 	public:
 		virtual T SingleOperation(T A, T B, double Weight) const override;
 	};
 
 	template <typename T>
-	class /*PCGEXTENDEDTOOLKIT_API*/ TDataBlendingAbsoluteMin final : public FDataBlendingProcessorWithFirstInit<T, EPCGExDataBlendingType::AbsoluteMin>
+	class TDataBlendingAbsoluteMin final : public FDataBlendingProcessorWithFirstInit<T, EPCGExDataBlendingType::AbsoluteMin>
 	{
 	public:
 		virtual T SingleOperation(T A, T B, double Weight) const override;
 	};
 
 	template <typename T>
-	class /*PCGEXTENDEDTOOLKIT_API*/ TDataBlendingWeightedSubtract final : public TDataBlendingProcessor<T, EPCGExDataBlendingType::WeightedSubtract>
+	class TDataBlendingWeightedSubtract final : public TDataBlendingProcessor<T, EPCGExDataBlendingType::WeightedSubtract>
 	{
 	public:
 		virtual T SingleOperation(T A, T B, double Weight) const override;
 	};
 
 	template <typename T>
-	class /*PCGEXTENDEDTOOLKIT_API*/ TDataBlendingHash final : public FDataBlendingProcessorWithFirstInit<T, EPCGExDataBlendingType::Hash>
+	class TDataBlendingHash final : public FDataBlendingProcessorWithFirstInit<T, EPCGExDataBlendingType::Hash>
 	{
 	public:
 		virtual T SingleOperation(T A, T B, double Weight) const override;
 	};
 
 	template <typename T>
-	class /*PCGEXTENDEDTOOLKIT_API*/ TDataBlendingUnsignedHash final : public FDataBlendingProcessorWithFirstInit<T, EPCGExDataBlendingType::UnsignedHash>
+	class TDataBlendingUnsignedHash final : public FDataBlendingProcessorWithFirstInit<T, EPCGExDataBlendingType::UnsignedHash>
 	{
 	public:
 		virtual T SingleOperation(T A, T B, double Weight) const override;

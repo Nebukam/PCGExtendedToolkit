@@ -13,7 +13,7 @@
 #include "PCGExCollocationCount.generated.h"
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExCollocationCountSettings : public UPCGExPointsProcessorSettings
+class UPCGExCollocationCountSettings : public UPCGExPointsProcessorSettings
 {
 	GENERATED_BODY()
 
@@ -49,12 +49,12 @@ public:
 	double Tolerance = DBL_COLLOCATION_TOLERANCE;
 };
 
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExCollocationCountContext final : FPCGExPointsProcessorContext
+struct FPCGExCollocationCountContext final : FPCGExPointsProcessorContext
 {
 	friend class FPCGExCollocationCountElement;
 };
 
-class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExCollocationCountElement final : public FPCGExPointsProcessorElement
+class FPCGExCollocationCountElement final : public FPCGExPointsProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(

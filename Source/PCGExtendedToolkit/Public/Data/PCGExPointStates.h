@@ -17,7 +17,7 @@
 #include "PCGExPointStates.generated.h"
 
 USTRUCT(BlueprintType)
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExStateConfigBase
+struct PCGEXTENDEDTOOLKIT_API FPCGExStateConfigBase
 {
 	GENERATED_BODY()
 
@@ -53,7 +53,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExStateConfigBase
  * 
  */
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExPointStateFactoryData : public UPCGExFilterFactoryData
+class PCGEXTENDEDTOOLKIT_API UPCGExPointStateFactoryData : public UPCGExFilterFactoryData
 {
 	GENERATED_BODY()
 
@@ -68,7 +68,7 @@ public:
 
 namespace PCGExPointStates
 {
-	class /*PCGEXTENDEDTOOLKIT_API*/ FState final : public PCGExPointFilter::FFilter
+	class PCGEXTENDEDTOOLKIT_API FState final : public PCGExPointFilter::FFilter
 	{
 	public:
 		FPCGExStateConfigBase* BaseConfig = nullptr;
@@ -92,7 +92,7 @@ namespace PCGExPointStates
 		TSharedPtr<PCGExPointFilter::FManager> Manager;
 	};
 
-	class /*PCGEXTENDEDTOOLKIT_API*/ FStateManager final : public PCGExPointFilter::FManager
+	class PCGEXTENDEDTOOLKIT_API FStateManager final : public PCGExPointFilter::FManager
 	{
 		TArray<TSharedPtr<FState>> States;
 		TSharedPtr<TArray<int64>> FlagsCache;
@@ -108,7 +108,7 @@ namespace PCGExPointStates
 };
 
 UCLASS(Abstract, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Graph|Params")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExPointStateFactoryProviderSettings : public UPCGExFactoryProviderSettings
+class PCGEXTENDEDTOOLKIT_API UPCGExPointStateFactoryProviderSettings : public UPCGExFactoryProviderSettings
 {
 	GENERATED_BODY()
 

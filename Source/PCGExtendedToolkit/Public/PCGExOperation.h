@@ -22,7 +22,7 @@ class FPCGMetadataAttributeBase;
  * 
  */
 UCLASS(Abstract, DefaultToInstanced, EditInlineNew, BlueprintType)
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExOperation : public UObject, public IPCGExManagedObjectInterface
+class PCGEXTENDEDTOOLKIT_API UPCGExOperation : public UObject, public IPCGExManagedObjectInterface
 {
 	GENERATED_BODY()
 	//~Begin UPCGExOperation interface

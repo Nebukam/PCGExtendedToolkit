@@ -30,7 +30,7 @@ enum class EPCGExBoundsFilterCompareMode : uint8
 };
 
 USTRUCT(BlueprintType)
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExBoundsFilterConfig
+struct FPCGExBoundsFilterConfig
 {
 	GENERATED_BODY()
 
@@ -75,7 +75,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExBoundsFilterConfig
  * 
  */
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Filter")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExBoundsFilterFactory : public UPCGExFilterFactoryData
+class UPCGExBoundsFilterFactory : public UPCGExFilterFactoryData
 {
 	GENERATED_BODY()
 
@@ -99,7 +99,7 @@ public:
 
 namespace PCGExPointFilter
 {
-	class /*PCGEXTENDEDTOOLKIT_API*/ FBoundsFilter final : public FSimpleFilter
+	class FBoundsFilter final : public FSimpleFilter
 	{
 	public:
 		explicit FBoundsFilter(const TObjectPtr<const UPCGExBoundsFilterFactory>& InFactory)
@@ -131,7 +131,7 @@ namespace PCGExPointFilter
 ///
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Filter")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExBoundsFilterProviderSettings : public UPCGExFilterProviderSettings
+class UPCGExBoundsFilterProviderSettings : public UPCGExFilterProviderSettings
 {
 	GENERATED_BODY()
 

@@ -46,7 +46,7 @@ namespace PCGExGrowPaths
 {
 	class FProcessor;
 
-	class /*PCGEXTENDEDTOOLKIT_API*/ FGrowth
+	class FGrowth
 	{
 	public:
 		const TSharedPtr<FProcessor> Processor;
@@ -99,7 +99,7 @@ class UPCGExSearchOperation;
  * This way we can multi-thread the various calculations instead of mixing everything along with async/game thread collision
  */
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExPathfindingGrowPathsSettings : public UPCGExEdgesProcessorSettings
+class UPCGExPathfindingGrowPathsSettings : public UPCGExEdgesProcessorSettings
 {
 	GENERATED_BODY()
 
@@ -240,8 +240,7 @@ public:
 	bool bUseOctreeSearch = false;
 };
 
-
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPathfindingGrowPathsContext final : FPCGExEdgesProcessorContext
+struct FPCGExPathfindingGrowPathsContext final : FPCGExEdgesProcessorContext
 {
 	friend class FPCGExPathfindingGrowPathsElement;
 
@@ -258,7 +257,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPathfindingGrowPathsContext final : FPCG
 	TSharedPtr<PCGExData::FDataForwardHandler> SeedForwardHandler;
 };
 
-class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPathfindingGrowPathsElement final : public FPCGExEdgesProcessorElement
+class FPCGExPathfindingGrowPathsElement final : public FPCGExEdgesProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(

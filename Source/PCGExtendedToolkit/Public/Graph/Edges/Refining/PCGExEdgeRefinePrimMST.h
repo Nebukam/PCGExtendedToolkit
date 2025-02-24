@@ -13,7 +13,7 @@
  * 
  */
 UCLASS(MinimalAPI, BlueprintType, meta=(DisplayName="Refine : MST (Prim)"))
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExEdgeRefinePrimMST : public UPCGExEdgeRefineOperation
+class UPCGExEdgeRefinePrimMST : public UPCGExEdgeRefineOperation
 {
 	GENERATED_BODY()
 

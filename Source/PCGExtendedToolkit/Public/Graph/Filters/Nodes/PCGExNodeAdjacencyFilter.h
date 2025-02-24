@@ -16,7 +16,7 @@
 #include "PCGExNodeAdjacencyFilter.generated.h"
 
 USTRUCT(BlueprintType)
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExNodeAdjacencyFilterConfig
+struct FPCGExNodeAdjacencyFilterConfig
 {
 	GENERATED_BODY()
 
@@ -61,7 +61,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExNodeAdjacencyFilterConfig
  * 
  */
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExNodeAdjacencyFilterFactory : public UPCGExNodeFilterFactoryData
+class UPCGExNodeAdjacencyFilterFactory : public UPCGExNodeFilterFactoryData
 {
 	GENERATED_BODY()
 
@@ -74,11 +74,11 @@ public:
 	virtual TSharedPtr<PCGExPointFilter::FFilter> CreateFilter() const override;
 };
 
-class /*PCGEXTENDEDTOOLKIT_API*/ FNodeAdjacencyFilter final : public PCGExClusterFilter::TNodeFilter
+class FNodeAdjacencyFilter final : public PCGExClusterFilter::TVtxFilter
 {
 public:
 	explicit FNodeAdjacencyFilter(const UPCGExNodeAdjacencyFilterFactory* InFactory)
-		: TNodeFilter(InFactory), TypedFilterFactory(InFactory)
+		: TVtxFilter(InFactory), TypedFilterFactory(InFactory)
 	{
 		Adjacency = InFactory->Config.Adjacency;
 	}
@@ -106,7 +106,7 @@ public:
 
 /** Outputs a single GraphParam to be consumed by other nodes */
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Graph|Params")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExNodeAdjacencyFilterProviderSettings : public UPCGExFilterProviderSettings
+class UPCGExNodeAdjacencyFilterProviderSettings : public UPCGExFilterProviderSettings
 {
 	GENERATED_BODY()
 

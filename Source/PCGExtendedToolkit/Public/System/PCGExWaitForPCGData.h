@@ -30,7 +30,7 @@ enum class EPCGExRuntimeGenerationTriggerAction : uint8
 };
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Sampling")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExWaitForPCGDataSettings : public UPCGExPointsProcessorSettings
+class UPCGExWaitForPCGDataSettings : public UPCGExPointsProcessorSettings
 {
 	GENERATED_BODY()
 
@@ -165,7 +165,7 @@ public:
 	TArray<FPCGPinProperties> CachedPins;
 };
 
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExWaitForPCGDataContext final : FPCGExPointsProcessorContext
+struct FPCGExWaitForPCGDataContext final : FPCGExPointsProcessorContext
 {
 	friend class FPCGExWaitForPCGDataElement;
 	TArray<FPCGPinProperties> RequiredPinProperties;
@@ -173,7 +173,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExWaitForPCGDataContext final : FPCGExPoin
 	TSet<FName> RequiredLabels;
 };
 
-class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExWaitForPCGDataElement final : public FPCGExPointsProcessorElement
+class FPCGExWaitForPCGDataElement final : public FPCGExPointsProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(

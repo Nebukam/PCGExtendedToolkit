@@ -9,7 +9,7 @@
 
 namespace PCGExGeo
 {
-	class /*PCGEXTENDEDTOOLKIT_API*/ TVoronoi2
+	class PCGEXTENDEDTOOLKIT_API TVoronoi2
 	{
 	public:
 		TUniquePtr<TDelaunay2> Delaunay;
@@ -111,7 +111,7 @@ namespace PCGExGeo
 		}
 	};
 
-	class /*PCGEXTENDEDTOOLKIT_API*/ TVoronoi3
+	class PCGEXTENDEDTOOLKIT_API TVoronoi3
 	{
 	public:
 		TUniquePtr<TDelaunay3> Delaunay;

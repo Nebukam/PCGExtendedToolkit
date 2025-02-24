@@ -19,7 +19,7 @@
 #include "PCGExPathInclusionFilter.generated.h"
 
 USTRUCT(BlueprintType)
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPathInclusionFilterConfig
+struct FPCGExPathInclusionFilterConfig
 {
 	GENERATED_BODY()
 
@@ -68,7 +68,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPathInclusionFilterConfig
  * 
  */
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Filter")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExPathInclusionFilterFactory : public UPCGExFilterFactoryData
+class UPCGExPathInclusionFilterFactory : public UPCGExFilterFactoryData
 {
 	GENERATED_BODY()
 
@@ -79,11 +79,11 @@ public:
 	virtual bool SupportsDirectEvaluation() const override { return true; } // TODO Change this one we support per-point tolerance from attribute
 
 	TSharedPtr<TArray<TSharedPtr<FPCGSplineStruct>>> Splines;
-	
+
 	virtual bool Init(FPCGExContext* InContext) override;
 	virtual bool WantsPreparation(FPCGExContext* InContext) override;
 	virtual bool Prepare(FPCGExContext* InContext) override;
-	
+
 	virtual TSharedPtr<PCGExPointFilter::FFilter> CreateFilter() const override;
 
 	virtual void BeginDestroy() override;
@@ -91,7 +91,7 @@ public:
 
 namespace PCGExPointFilter
 {
-	class /*PCGEXTENDEDTOOLKIT_API*/ FPathInclusionFilter final : public FSimpleFilter
+	class FPathInclusionFilter final : public FSimpleFilter
 	{
 	public:
 		explicit FPathInclusionFilter(const TObjectPtr<const UPCGExPathInclusionFilterFactory>& InFactory)
@@ -125,7 +125,7 @@ namespace PCGExPointFilter
 ///
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Filter")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExPathInclusionFilterProviderSettings : public UPCGExFilterProviderSettings
+class UPCGExPathInclusionFilterProviderSettings : public UPCGExFilterProviderSettings
 {
 	GENERATED_BODY()
 

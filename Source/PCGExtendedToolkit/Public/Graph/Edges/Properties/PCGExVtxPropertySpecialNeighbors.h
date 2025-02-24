@@ -16,7 +16,7 @@
 #include "PCGExVtxPropertySpecialNeighbors.generated.h"
 
 USTRUCT(BlueprintType)
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExSpecialNeighborsConfig
+struct FPCGExSpecialNeighborsConfig
 {
 	GENERATED_BODY()
 
@@ -33,7 +33,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExSpecialNeighborsConfig
  * ó
  */
 UCLASS(MinimalAPI)
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExVtxPropertySpecialNeighbors : public UPCGExVtxPropertyOperation
+class UPCGExVtxPropertySpecialNeighbors : public UPCGExVtxPropertyOperation
 {
 	GENERATED_BODY()
 
@@ -56,7 +56,7 @@ public:
 };
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExVtxPropertySpecialNeighborsFactory : public UPCGExVtxPropertyFactoryData
+class UPCGExVtxPropertySpecialNeighborsFactory : public UPCGExVtxPropertyFactoryData
 {
 	GENERATED_BODY()
 
@@ -66,7 +66,7 @@ public:
 };
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|VtxProperty")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExVtxPropertySpecialNeighborsSettings : public UPCGExVtxPropertyProviderSettings
+class UPCGExVtxPropertySpecialNeighborsSettings : public UPCGExVtxPropertyProviderSettings
 {
 	GENERATED_BODY()
 

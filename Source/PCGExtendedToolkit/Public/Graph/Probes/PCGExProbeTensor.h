@@ -15,7 +15,7 @@
 #include "PCGExProbeTensor.generated.h"
 
 USTRUCT(BlueprintType)
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExProbeConfigTensor : public FPCGExProbeConfigBase
+struct FPCGExProbeConfigTensor : public FPCGExProbeConfigBase
 {
 	GENERATED_BODY()
 
@@ -57,7 +57,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExProbeConfigTensor : public FPCGExProbeCo
  * 
  */
 UCLASS(MinimalAPI, DisplayName = "Direction")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExProbeTensor : public UPCGExProbeOperation
+class UPCGExProbeTensor : public UPCGExProbeOperation
 {
 	GENERATED_BODY()
 
@@ -92,7 +92,7 @@ protected:
 ////
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExProbeFactoryTensor : public UPCGExProbeFactoryData
+class UPCGExProbeFactoryTensor : public UPCGExProbeFactoryData
 {
 	GENERATED_BODY()
 
@@ -110,7 +110,7 @@ public:
 };
 
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Graph|Params")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExProbeTensorProviderSettings : public UPCGExProbeFactoryProviderSettings
+class UPCGExProbeTensorProviderSettings : public UPCGExProbeFactoryProviderSettings
 {
 	GENERATED_BODY()
 

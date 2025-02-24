@@ -29,7 +29,7 @@ enum class EPCGExPathfindingNavmeshMode : uint8
  * This way we can multi-thread the various calculations instead of mixing everything along with async/game thread collision
  */
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExPathfindingNavmeshSettings : public UPCGExPointsProcessorSettings
+class UPCGExPathfindingNavmeshSettings : public UPCGExPointsProcessorSettings
 {
 	GENERATED_BODY()
 
@@ -110,8 +110,7 @@ public:
 	FNavAgentProperties NavAgentProperties;
 };
 
-
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPathfindingNavmeshContext final : FPCGExPointsProcessorContext
+struct FPCGExPathfindingNavmeshContext final : FPCGExPointsProcessorContext
 {
 	friend class FPCGExPathfindingNavmeshElement;
 
@@ -138,7 +137,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPathfindingNavmeshContext final : FPCGEx
 	TSharedPtr<PCGExData::FDataForwardHandler> GoalForwardHandler;
 };
 
-class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPathfindingNavmeshElement final : public FPCGExPointsProcessorElement
+class FPCGExPathfindingNavmeshElement final : public FPCGExPointsProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(
@@ -152,7 +151,7 @@ protected:
 };
 
 
-class /*PCGEXTENDEDTOOLKIT_API*/ FSampleNavmeshTask final : public FPCGExPathfindingTask
+class FSampleNavmeshTask final : public FPCGExPathfindingTask
 {
 public:
 	FSampleNavmeshTask(const int32 InTaskIndex,

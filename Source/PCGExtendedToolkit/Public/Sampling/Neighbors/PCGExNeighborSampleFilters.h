@@ -20,7 +20,7 @@
 ///
 
 USTRUCT(BlueprintType)
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExSamplerFilterConfig
+struct FPCGExSamplerFilterConfig
 {
 	GENERATED_BODY()
 
@@ -100,7 +100,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExSamplerFilterConfig
  * 
  */
 UCLASS(MinimalAPI)
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExNeighborSampleFilters : public UPCGExNeighborSampleOperation
+class UPCGExNeighborSampleFilters : public UPCGExNeighborSampleOperation
 {
 	GENERATED_BODY()
 
@@ -142,7 +142,7 @@ protected:
 };
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExNeighborSamplerFactoryFilters : public UPCGExNeighborSamplerFactoryData
+class UPCGExNeighborSamplerFactoryFilters : public UPCGExNeighborSamplerFactoryData
 {
 	GENERATED_BODY()
 
@@ -152,7 +152,7 @@ public:
 };
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|NeighborSample")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExNeighborSampleFiltersSettings : public UPCGExNeighborSampleProviderSettings
+class UPCGExNeighborSampleFiltersSettings : public UPCGExNeighborSampleProviderSettings
 {
 	GENERATED_BODY()
 

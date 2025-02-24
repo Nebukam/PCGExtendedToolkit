@@ -15,7 +15,7 @@
  * 
  */
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExRefreshSeedSettings : public UPCGExPointsProcessorSettings
+class UPCGExRefreshSeedSettings : public UPCGExPointsProcessorSettings
 {
 	GENERATED_BODY()
 
@@ -37,12 +37,12 @@ public:
 	int32 Base = 0;
 };
 
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExRefreshSeedContext final : FPCGExPointsProcessorContext
+struct FPCGExRefreshSeedContext final : FPCGExPointsProcessorContext
 {
 	friend class FPCGExRefreshSeedElement;
 };
 
-class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExRefreshSeedElement final : public FPCGExPointsProcessorElement
+class FPCGExRefreshSeedElement final : public FPCGExPointsProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(

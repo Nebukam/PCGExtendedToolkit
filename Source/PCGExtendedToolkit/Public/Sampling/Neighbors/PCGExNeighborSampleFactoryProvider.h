@@ -32,7 +32,7 @@ namespace PCGExNeighborSample
 }
 
 USTRUCT(BlueprintType)
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExSamplingConfig
+struct PCGEXTENDEDTOOLKIT_API FPCGExSamplingConfig
 {
 	GENERATED_BODY()
 
@@ -87,8 +87,8 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExSamplingConfig
 /**
  * 
  */
-UCLASS()
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExNeighborSampleOperation : public UPCGExOperation
+UCLASS(Abstract)
+class PCGEXTENDEDTOOLKIT_API UPCGExNeighborSampleOperation : public UPCGExOperation
 {
 	GENERATED_BODY()
 
@@ -129,8 +129,8 @@ protected:
 	TSharedPtr<PCGExCluster::FCluster> Cluster;
 };
 
-UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExNeighborSamplerFactoryData : public UPCGExFactoryData
+UCLASS(Abstract, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")
+class PCGEXTENDEDTOOLKIT_API UPCGExNeighborSamplerFactoryData : public UPCGExFactoryData
 {
 	GENERATED_BODY()
 
@@ -168,7 +168,7 @@ public:
 };
 
 UCLASS(Abstract, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|NeighborSample")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExNeighborSampleProviderSettings : public UPCGExFactoryProviderSettings
+class PCGEXTENDEDTOOLKIT_API UPCGExNeighborSampleProviderSettings : public UPCGExFactoryProviderSettings
 {
 	GENERATED_BODY()
 

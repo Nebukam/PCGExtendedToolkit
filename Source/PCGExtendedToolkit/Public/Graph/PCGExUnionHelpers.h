@@ -15,7 +15,7 @@
 
 namespace PCGExGraph
 {
-	class /*PCGEXTENDEDTOOLKIT_API*/ FUnionProcessor : public TSharedFromThis<FUnionProcessor>
+	class PCGEXTENDEDTOOLKIT_API FUnionProcessor : public TSharedFromThis<FUnionProcessor>
 	{
 		bool bCompilingFinalGraph = false;
 

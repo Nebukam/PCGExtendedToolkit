@@ -10,7 +10,7 @@
 #include "PCGExPruneEdgesByLength.generated.h"
 
 UCLASS(MinimalAPI, BlueprintType, Deprecated, ClassGroup = (Procedural), Category="PCGEx|Clusters", meta = (DeprecatedNode, DeprecationMessage = "Prune by Length has been deprecated and should be replaced. See https://nebukam.github.io/PCGExtendedToolkit/doc-clusters/clusters-prune-by-length.html."))
-class /*PCGEXTENDEDTOOLKIT_API*/ UDEPRECATED_PCGExPruneEdgesByLengthSettings : public UPCGExEdgesProcessorSettings
+class UDEPRECATED_PCGExPruneEdgesByLengthSettings : public UPCGExEdgesProcessorSettings
 {
 	GENERATED_BODY()
 
@@ -29,13 +29,13 @@ protected:
 	//~End UPCGExEdgesProcessorSettings interface
 };
 
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPruneEdgesByLengthContext final : FPCGExEdgesProcessorContext
+struct FPCGExPruneEdgesByLengthContext final : FPCGExEdgesProcessorContext
 {
 	friend class UDEPRECATED_PCGExPruneEdgesByLengthSettings;
 	friend class FPCGExPruneEdgesByLengthElement;
 };
 
-class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPruneEdgesByLengthElement final : public FPCGExEdgesProcessorElement
+class FPCGExPruneEdgesByLengthElement final : public FPCGExEdgesProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(

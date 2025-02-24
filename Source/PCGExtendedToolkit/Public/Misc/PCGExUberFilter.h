@@ -19,7 +19,7 @@ enum class EPCGExUberFilterMode : uint8
 };
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExUberFilterSettings : public UPCGExPointsProcessorSettings
+class UPCGExUberFilterSettings : public UPCGExPointsProcessorSettings
 {
 	GENERATED_BODY()
 
@@ -88,7 +88,7 @@ private:
 	friend class FPCGExUberFilterElement;
 };
 
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExUberFilterContext final : FPCGExPointsProcessorContext
+struct FPCGExUberFilterContext final : FPCGExPointsProcessorContext
 {
 	friend class FPCGExUberFilterElement;
 
@@ -98,7 +98,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExUberFilterContext final : FPCGExPointsPr
 	int32 NumPairs = 0;
 };
 
-class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExUberFilterElement final : public FPCGExPointsProcessorElement
+class FPCGExUberFilterElement final : public FPCGExPointsProcessorElement
 {
 	virtual FPCGContext* Initialize(
 		const FPCGDataCollection& InputData,

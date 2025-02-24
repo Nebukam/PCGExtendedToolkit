@@ -94,7 +94,7 @@ namespace PCGExMT
 	class FTask;
 	class FTaskGroup;
 
-	class /*PCGEXTENDEDTOOLKIT_API*/ FAsyncHandle : public TSharedFromThis<FAsyncHandle>
+	class PCGEXTENDEDTOOLKIT_API FAsyncHandle : public TSharedFromThis<FAsyncHandle>
 	{
 	protected:
 		TWeakPtr<FAsyncMultiHandle> Root;
@@ -127,7 +127,7 @@ namespace PCGExMT
 		virtual void End(bool bIsCancellation);
 	};
 
-	class /*PCGEXTENDEDTOOLKIT_API*/ FAsyncMultiHandle : public FAsyncHandle
+	class PCGEXTENDEDTOOLKIT_API FAsyncMultiHandle : public FAsyncHandle
 	{
 	protected:
 		bool bForceSync = false;
@@ -182,7 +182,7 @@ namespace PCGExMT
 		void Release();
 	};
 
-	class /*PCGEXTENDEDTOOLKIT_API*/ FTaskManager : public FAsyncMultiHandle
+	class PCGEXTENDEDTOOLKIT_API FTaskManager : public FAsyncMultiHandle
 	{
 		friend class FTask;
 		friend class FTaskGroup;
@@ -241,7 +241,7 @@ namespace PCGExMT
 		virtual void StartSynchronousTask(const TSharedPtr<FTask>& InTask) override;
 	};
 
-	class /*PCGEXTENDEDTOOLKIT_API*/ FTaskGroup final : public FAsyncMultiHandle
+	class PCGEXTENDEDTOOLKIT_API FTaskGroup final : public FAsyncMultiHandle
 	{
 		friend class FTaskManager;
 
@@ -323,7 +323,7 @@ namespace PCGExMT
 		}
 	};
 
-	class /*PCGEXTENDEDTOOLKIT_API*/ FTask : public FAsyncHandle
+	class PCGEXTENDEDTOOLKIT_API FTask : public FAsyncHandle
 	{
 		friend class FTaskManager;
 		friend class FTaskGroup;
@@ -350,7 +350,7 @@ namespace PCGExMT
 		}
 	};
 
-	class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExIndexedTask : public FTask
+	class PCGEXTENDEDTOOLKIT_API FPCGExIndexedTask : public FTask
 	{
 	protected:
 		int32 TaskIndex;
@@ -404,7 +404,7 @@ namespace PCGExMT
 		virtual void ExecuteTask(const TSharedPtr<FTaskManager>& AsyncManager) override;
 	};
 
-	class /*PCGEXTENDEDTOOLKIT_API*/ FDeferredCallbackTask final : public FTask
+	class PCGEXTENDEDTOOLKIT_API FDeferredCallbackTask final : public FTask
 	{
 	public:
 		PCGEX_ASYNC_TASK_NAME(FDeferredCallbackTask)
@@ -418,7 +418,7 @@ namespace PCGExMT
 		virtual void ExecuteTask(const TSharedPtr<FTaskManager>& AsyncManager) override;
 	};
 
-	class /*PCGEXTENDEDTOOLKIT_API*/ FDeferredCallbackWithManagerTask final : public FTask
+	class PCGEXTENDEDTOOLKIT_API FDeferredCallbackWithManagerTask final : public FTask
 	{
 	public:
 		PCGEX_ASYNC_TASK_NAME(FDeferredCallbackWithManagerTask)

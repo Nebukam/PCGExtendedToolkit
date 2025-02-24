@@ -16,7 +16,7 @@
  * 
  */
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Path")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExWriteTangentsSettings : public UPCGExPathProcessorSettings
+class UPCGExWriteTangentsSettings : public UPCGExPathProcessorSettings
 {
 	GENERATED_BODY()
 
@@ -72,7 +72,7 @@ public:
 	double LeaveScaleConstant = 1;
 };
 
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExWriteTangentsContext final : FPCGExPathProcessorContext
+struct FPCGExWriteTangentsContext final : FPCGExPathProcessorContext
 {
 	friend class FPCGExWriteTangentsElement;
 
@@ -81,7 +81,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExWriteTangentsContext final : FPCGExPathP
 	UPCGExTangentsOperation* EndTangents = nullptr;
 };
 
-class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExWriteTangentsElement final : public FPCGExPathProcessorElement
+class FPCGExWriteTangentsElement final : public FPCGExPathProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(

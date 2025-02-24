@@ -12,7 +12,7 @@
  * 
  */
 UCLASS(MinimalAPI, DisplayName="Auto")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExAutoTangents : public UPCGExTangentsOperation
+class UPCGExAutoTangents : public UPCGExTangentsOperation
 {
 	GENERATED_BODY()
 

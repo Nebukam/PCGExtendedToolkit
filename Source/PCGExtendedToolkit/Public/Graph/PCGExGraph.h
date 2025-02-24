@@ -6,7 +6,6 @@
 #include "CoreMinimal.h"
 
 #include "Data/PCGExAttributeHelpers.h"
-#include "PCGExGlobalSettings.h"
 #include "PCGExMT.h"
 #include "PCGExEdge.h"
 #include "PCGExDetails.h"
@@ -67,7 +66,7 @@ enum class EPCGExBasicEdgeRadius : uint8
 };
 
 USTRUCT(BlueprintType)
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExBasicEdgeSolidificationDetails
+struct PCGEXTENDEDTOOLKIT_API FPCGExBasicEdgeSolidificationDetails
 {
 	GENERATED_BODY()
 
@@ -93,7 +92,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExBasicEdgeSolidificationDetails
 };
 
 USTRUCT(BlueprintType)
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExGraphBuilderDetails
+struct PCGEXTENDEDTOOLKIT_API FPCGExGraphBuilderDetails
 {
 	GENERATED_BODY()
 
@@ -207,7 +206,7 @@ namespace PCGExGraph
 
 #pragma region Graph
 
-	struct /*PCGEXTENDEDTOOLKIT_API*/ FGraphMetadataDetails
+	struct PCGEXTENDEDTOOLKIT_API FGraphMetadataDetails
 	{
 		const FPCGExBlendingDetails* EdgesBlendingDetailsPtr = nullptr;
 		const FPCGExCarryOverDetails* EdgesCarryOverDetails = nullptr;
@@ -244,7 +243,7 @@ namespace PCGExGraph
 #undef PCGEX_FOREACH_EDGEEDGE_METADATA
 	};
 
-	struct /*PCGEXTENDEDTOOLKIT_API*/ FGraphNodeMetadata
+	struct PCGEXTENDEDTOOLKIT_API FGraphNodeMetadata
 	{
 		EPCGExIntersectionType Type = EPCGExIntersectionType::Unknown;
 		int32 NodeIndex;
@@ -257,7 +256,7 @@ namespace PCGExGraph
 		bool IsCrossing() const;
 	};
 
-	struct /*PCGEXTENDEDTOOLKIT_API*/ FGraphEdgeMetadata
+	struct PCGEXTENDEDTOOLKIT_API FGraphEdgeMetadata
 	{
 		int32 EdgeIndex;
 		int32 ParentIndex;
@@ -270,7 +269,7 @@ namespace PCGExGraph
 		explicit FGraphEdgeMetadata(const int32 InEdgeIndex, const FGraphEdgeMetadata* Parent);
 	};
 
-	struct /*PCGEXTENDEDTOOLKIT_API*/ FNode
+	struct PCGEXTENDEDTOOLKIT_API FNode
 	{
 		FNode() = default;
 
@@ -301,7 +300,7 @@ namespace PCGExGraph
 		int32 GetEdgeIndex(const int32 AdjacentNodeIndex) const;
 	};
 
-	class /*PCGEXTENDEDTOOLKIT_API*/ FSubGraph : public TSharedFromThis<FSubGraph>
+	class PCGEXTENDEDTOOLKIT_API FSubGraph : public TSharedFromThis<FSubGraph>
 	{
 	public:
 		TWeakPtr<FGraph> WeakParentGraph;
@@ -353,7 +352,7 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 		void CompilationComplete();
 	};
 
-	class /*PCGEXTENDEDTOOLKIT_API*/ FGraph : public TSharedFromThis<FGraph>
+	class PCGEXTENDEDTOOLKIT_API FGraph : public TSharedFromThis<FGraph>
 	{
 		mutable FRWLock GraphLock;
 		mutable FRWLock EdgeMetadataLock;
@@ -462,7 +461,7 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 		void GetConnectedNodes(int32 FromIndex, TArray<int32>& OutIndices, int32 SearchDepth) const;
 	};
 
-	class /*PCGEXTENDEDTOOLKIT_API*/ FGraphBuilder : public TSharedFromThis<FGraphBuilder>
+	class PCGEXTENDEDTOOLKIT_API FGraphBuilder : public TSharedFromThis<FGraphBuilder>
 	{
 	protected:
 		TSharedPtr<PCGExMT::FTaskManager> AsyncManager;
@@ -522,7 +521,7 @@ namespace PCGExGraphTask
 {
 #pragma region Graph tasks
 
-	class /*PCGEXTENDEDTOOLKIT_API*/ FWriteSubGraphCluster final : public PCGExMT::FTask
+	class FWriteSubGraphCluster final : public PCGExMT::FTask
 	{
 	public:
 		PCGEX_ASYNC_TASK_NAME(FWriteSubGraphCluster)
@@ -537,7 +536,7 @@ namespace PCGExGraphTask
 		virtual void ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager) override;
 	};
 
-	class /*PCGEXTENDEDTOOLKIT_API*/ FCompileGraph final : public PCGExMT::FTask
+	class FCompileGraph final : public PCGExMT::FTask
 	{
 	public:
 		PCGEX_ASYNC_TASK_NAME(FCompileGraph)
@@ -559,7 +558,7 @@ namespace PCGExGraphTask
 		virtual void ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager) override;
 	};
 
-	class /*PCGEXTENDEDTOOLKIT_API*/ FCopyGraphToPoint final : public PCGExMT::FPCGExIndexedTask
+	class FCopyGraphToPoint final : public PCGExMT::FPCGExIndexedTask
 	{
 	public:
 		FCopyGraphToPoint(const int32 InTaskIndex,

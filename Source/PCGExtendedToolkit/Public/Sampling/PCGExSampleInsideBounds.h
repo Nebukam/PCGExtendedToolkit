@@ -31,7 +31,7 @@ class UPCGExNodeStateFactory;
 
 namespace PCGExInsideBounds
 {
-	struct /*PCGEXTENDEDTOOLKIT_API*/ FSample
+	struct FSample
 	{
 		FSample()
 		{
@@ -46,7 +46,7 @@ namespace PCGExInsideBounds
 		double Distance = 0;
 	};
 
-	struct /*PCGEXTENDEDTOOLKIT_API*/ FSamplesStats
+	struct FSamplesStats
 	{
 		FSamplesStats()
 		{
@@ -76,7 +76,7 @@ namespace PCGExInsideBounds
 }
 
 UCLASS(Abstract, MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Sampling")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExSampleInsideBoundsSettings : public UPCGExPointsProcessorSettings
+class UPCGExSampleInsideBoundsSettings : public UPCGExPointsProcessorSettings
 {
 	GENERATED_BODY()
 
@@ -312,7 +312,7 @@ public:
 	bool bPruneFailedSamples = false;
 };
 
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExSampleInsideBoundsContext final : FPCGExPointsProcessorContext
+struct FPCGExSampleInsideBoundsContext final : FPCGExPointsProcessorContext
 {
 	friend class FPCGExSampleInsideBoundsElement;
 
@@ -336,7 +336,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExSampleInsideBoundsContext final : FPCGEx
 	PCGEX_FOREACH_FIELD_INSIDEBOUNDS(PCGEX_OUTPUT_DECL_TOGGLE)
 };
 
-class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExSampleInsideBoundsElement final : public FPCGExPointsProcessorElement
+class FPCGExSampleInsideBoundsElement final : public FPCGExPointsProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(

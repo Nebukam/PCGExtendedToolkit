@@ -23,7 +23,7 @@ namespace PCGExWriteVtxProperties
 }
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Clusters")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExWriteVtxPropertiesSettings : public UPCGExEdgesProcessorSettings
+class UPCGExWriteVtxPropertiesSettings : public UPCGExEdgesProcessorSettings
 {
 	GENERATED_BODY()
 
@@ -63,7 +63,7 @@ private:
 	friend class FPCGExWriteVtxPropertiesElement;
 };
 
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExWriteVtxPropertiesContext final : FPCGExEdgesProcessorContext
+struct FPCGExWriteVtxPropertiesContext final : FPCGExEdgesProcessorContext
 {
 	friend class FPCGExWriteVtxPropertiesElement;
 
@@ -72,7 +72,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExWriteVtxPropertiesContext final : FPCGEx
 	PCGEX_FOREACH_FIELD_VTXEXTRAS(PCGEX_OUTPUT_DECL_TOGGLE)
 };
 
-class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExWriteVtxPropertiesElement final : public FPCGExEdgesProcessorElement
+class FPCGExWriteVtxPropertiesElement final : public FPCGExEdgesProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(

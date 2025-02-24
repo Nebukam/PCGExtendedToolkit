@@ -20,7 +20,7 @@
 #include "PCGExPathAlphaFilter.generated.h"
 
 USTRUCT(BlueprintType)
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPathAlphaFilterConfig
+struct FPCGExPathAlphaFilterConfig
 {
 	GENERATED_BODY()
 
@@ -73,7 +73,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPathAlphaFilterConfig
  * 
  */
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Filter")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExPathAlphaFilterFactory : public UPCGExFilterFactoryData
+class UPCGExPathAlphaFilterFactory : public UPCGExFilterFactoryData
 {
 	GENERATED_BODY()
 
@@ -89,7 +89,7 @@ public:
 	virtual bool Init(FPCGExContext* InContext) override;
 	virtual bool WantsPreparation(FPCGExContext* InContext) override;
 	virtual bool Prepare(FPCGExContext* InContext) override;
-	
+
 	virtual TSharedPtr<PCGExPointFilter::FFilter> CreateFilter() const override;
 
 	virtual void BeginDestroy() override;
@@ -99,7 +99,7 @@ public:
 
 namespace PCGExPointFilter
 {
-	class /*PCGEXTENDEDTOOLKIT_API*/ FPathAlphaFilter final : public FSimpleFilter
+	class FPathAlphaFilter final : public FSimpleFilter
 	{
 	public:
 		explicit FPathAlphaFilter(const TObjectPtr<const UPCGExPathAlphaFilterFactory>& InFactory)
@@ -129,7 +129,7 @@ namespace PCGExPointFilter
 ///
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Filter")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExPathAlphaFilterProviderSettings : public UPCGExFilterProviderSettings
+class UPCGExPathAlphaFilterProviderSettings : public UPCGExFilterProviderSettings
 {
 	GENERATED_BODY()
 

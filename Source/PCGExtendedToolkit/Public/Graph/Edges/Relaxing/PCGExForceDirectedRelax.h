@@ -11,7 +11,7 @@
  * 
  */
 UCLASS(MinimalAPI, meta=(DisplayName="Force Directed"))
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExForceDirectedRelax : public UPCGExRelaxClusterOperation
+class UPCGExForceDirectedRelax : public UPCGExRelaxClusterOperation
 {
 	GENERATED_BODY()
 

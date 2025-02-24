@@ -10,7 +10,7 @@
 #include "PCGExPackClusters.generated.h"
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Clusters")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExPackClustersSettings : public UPCGExEdgesProcessorSettings
+class UPCGExPackClustersSettings : public UPCGExEdgesProcessorSettings
 {
 	GENERATED_BODY()
 
@@ -42,7 +42,7 @@ private:
 	friend class FPCGExPackClustersElement;
 };
 
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPackClustersContext final : FPCGExEdgesProcessorContext
+struct FPCGExPackClustersContext final : FPCGExEdgesProcessorContext
 {
 	friend class FPCGExPackClustersElement;
 	friend class FPCGExCreateBridgeTask;
@@ -51,7 +51,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPackClustersContext final : FPCGExEdgesP
 	FPCGExCarryOverDetails CarryOverDetails;
 };
 
-class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPackClustersElement final : public FPCGExEdgesProcessorElement
+class FPCGExPackClustersElement final : public FPCGExEdgesProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(

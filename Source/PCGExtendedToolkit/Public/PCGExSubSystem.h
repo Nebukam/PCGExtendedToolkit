@@ -27,7 +27,7 @@ class UPCGExSharedDataManager;
 
 namespace PCGEx
 {
-	struct FPolledEvent
+	struct PCGEXTENDEDTOOLKIT_API FPolledEvent
 	{
 		UPCGComponent* Source = nullptr;
 		EPCGExSubsystemEventType Type = EPCGExSubsystemEventType::None;

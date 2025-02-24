@@ -20,7 +20,7 @@
 ///
 
 USTRUCT(BlueprintType)
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExEdgeMatchConfig
+struct FPCGExEdgeMatchConfig
 {
 	GENERATED_BODY()
 
@@ -62,7 +62,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExEdgeMatchConfig
  * 
  */
 UCLASS(MinimalAPI)
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExVtxPropertyEdgeMatch : public UPCGExVtxPropertyOperation
+class UPCGExVtxPropertyEdgeMatch : public UPCGExVtxPropertyOperation
 {
 	GENERATED_BODY()
 
@@ -92,7 +92,7 @@ protected:
 };
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExVtxPropertyEdgeMatchFactory : public UPCGExVtxPropertyFactoryData
+class UPCGExVtxPropertyEdgeMatchFactory : public UPCGExVtxPropertyFactoryData
 {
 	GENERATED_BODY()
 

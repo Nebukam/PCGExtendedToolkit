@@ -12,7 +12,7 @@
  * 
  */
 UCLASS(MinimalAPI, BlueprintType, meta=(DisplayName="Remove Longest"))
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExEdgeRemoveLongest : public UPCGExEdgeRefineOperation
+class UPCGExEdgeRemoveLongest : public UPCGExEdgeRefineOperation
 {
 	GENERATED_BODY()
 

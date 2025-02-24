@@ -19,7 +19,7 @@ namespace PCGExFindAllCells
 
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Clusters")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExFindAllCellsSettings : public UPCGExEdgesProcessorSettings
+class UPCGExFindAllCellsSettings : public UPCGExEdgesProcessorSettings
 {
 	GENERATED_BODY()
 
@@ -74,7 +74,7 @@ private:
 	friend class FPCGExFindAllCellsElement;
 };
 
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExFindAllCellsContext final : FPCGExEdgesProcessorContext
+struct FPCGExFindAllCellsContext final : FPCGExEdgesProcessorContext
 {
 	friend class FPCGExFindAllCellsElement;
 	friend class FPCGExCreateBridgeTask;
@@ -89,7 +89,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExFindAllCellsContext final : FPCGExEdgesP
 	mutable FRWLock SeedOutputLock;
 };
 
-class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExFindAllCellsElement final : public FPCGExEdgesProcessorElement
+class FPCGExFindAllCellsElement final : public FPCGExEdgesProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(

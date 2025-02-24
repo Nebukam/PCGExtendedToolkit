@@ -12,7 +12,7 @@
 #include "PCGExProbeAnisotropic.generated.h"
 
 USTRUCT(BlueprintType)
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExProbeConfigAnisotropic : public FPCGExProbeConfigBase
+struct FPCGExProbeConfigAnisotropic : public FPCGExProbeConfigBase
 {
 	GENERATED_BODY()
 
@@ -34,7 +34,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExProbeConfigAnisotropic : public FPCGExPr
  * 
  */
 UCLASS(MinimalAPI, DisplayName = "Anisotrophic")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExProbeAnisotropic : public UPCGExProbeOperation
+class UPCGExProbeAnisotropic : public UPCGExProbeOperation
 {
 	GENERATED_BODY()
 
@@ -69,7 +69,7 @@ protected:
 ////
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExProbeFactoryAnisotropic : public UPCGExProbeFactoryData
+class UPCGExProbeFactoryAnisotropic : public UPCGExProbeFactoryData
 {
 	GENERATED_BODY()
 
@@ -81,7 +81,7 @@ public:
 };
 
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Graph|Params")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExProbeAnisotropicProviderSettings : public UPCGExProbeFactoryProviderSettings
+class UPCGExProbeAnisotropicProviderSettings : public UPCGExProbeFactoryProviderSettings
 {
 	GENERATED_BODY()
 

@@ -12,7 +12,7 @@
  * 
  */
 UCLASS(MinimalAPI, BlueprintType, meta=(DisplayName="Remove Shortest"))
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExEdgeRemoveShortest : public UPCGExEdgeRefineOperation
+class UPCGExEdgeRemoveShortest : public UPCGExEdgeRefineOperation
 {
 	GENERATED_BODY()
 

@@ -30,7 +30,7 @@ enum class EPCGExPinStatus : uint8 // needed for 5.3
 };
 
 USTRUCT(BlueprintType)
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExSharedDataPin
+struct PCGEXTENDEDTOOLKIT_API FPCGExSharedDataPin
 {
 	GENERATED_BODY()
 
@@ -49,7 +49,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExSharedDataPin
 };
 
 USTRUCT(BlueprintType)
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExSharedDataLookup
+struct PCGEXTENDEDTOOLKIT_API FPCGExSharedDataLookup
 {
 	GENERATED_BODY()
 
@@ -67,7 +67,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExSharedDataLookup
 };
 
 UCLASS(Hidden)
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExDataOwnedItem : public UObject
+class PCGEXTENDEDTOOLKIT_API UPCGExDataOwnedItem : public UObject
 {
 	GENERATED_BODY()
 
@@ -80,7 +80,7 @@ public:
 };
 
 UCLASS(Hidden)
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExDataBucket : public UObject
+class PCGEXTENDEDTOOLKIT_API UPCGExDataBucket : public UObject
 {
 	GENERATED_BODY()
 

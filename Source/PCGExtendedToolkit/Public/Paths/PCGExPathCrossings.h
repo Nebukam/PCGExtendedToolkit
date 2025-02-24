@@ -19,7 +19,7 @@
  * 
  */
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Path")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExPathCrossingsSettings : public UPCGExPathProcessorSettings
+class UPCGExPathCrossingsSettings : public UPCGExPathProcessorSettings
 {
 	GENERATED_BODY()
 
@@ -106,7 +106,7 @@ public:
 	FString HasNoCrossingsTag = TEXT("HasNoCrossings");
 };
 
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPathCrossingsContext final : FPCGExPathProcessorContext
+struct FPCGExPathCrossingsContext final : FPCGExPathProcessorContext
 {
 	friend class FPCGExPathCrossingsElement;
 
@@ -122,7 +122,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPathCrossingsContext final : FPCGExPathP
 	FPCGExBlendingDetails CrossingBlending;
 };
 
-class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPathCrossingsElement final : public FPCGExPathProcessorElement
+class FPCGExPathCrossingsElement final : public FPCGExPathProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(
@@ -137,7 +137,7 @@ protected:
 
 namespace PCGExPathCrossings
 {
-	struct /*PCGEXTENDEDTOOLKIT_API*/ FCrossing
+	struct PCGEXTENDEDTOOLKIT_API FCrossing
 	{
 		int32 Index = -1;
 

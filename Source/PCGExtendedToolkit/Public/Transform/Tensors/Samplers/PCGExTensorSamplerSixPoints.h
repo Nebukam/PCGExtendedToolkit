@@ -17,7 +17,7 @@
  * 
  */
 UCLASS(MinimalAPI, DisplayName = "Six Points", meta=(DisplayName = "Six Points", ToolTip ="Samples the field using six points around the sampling target location, and averaging the results."))
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExTensorSamplerSixPoints : public UPCGExTensorSampler
+class UPCGExTensorSamplerSixPoints : public UPCGExTensorSampler
 {
 	GENERATED_BODY()
 
