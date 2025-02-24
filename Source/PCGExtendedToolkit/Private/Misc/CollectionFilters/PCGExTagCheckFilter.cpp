@@ -14,7 +14,7 @@ TSharedPtr<PCGExPointFilter::FFilter> UPCGExTagCheckFilterFactory::CreateFilter(
 
 bool PCGExPointFilter::FTagCheckFilter::Test(const TSharedPtr<PCGExData::FPointIO>& IO, const TSharedPtr<PCGExData::FPointIOCollection>& ParentCollection) const
 {
-	bool bResult = PCGExCompare::HasMatchingTags(IO->Tags, TypedFilterFactory->Config.Tag, TypedFilterFactory->Config.Match);
+	bool bResult = PCGExCompare::HasMatchingTags(IO->Tags, TypedFilterFactory->Config.Tag, TypedFilterFactory->Config.Match, TypedFilterFactory->Config.bStrict);
 	return TypedFilterFactory->Config.bInvert ? !bResult : bResult;
 }
 
