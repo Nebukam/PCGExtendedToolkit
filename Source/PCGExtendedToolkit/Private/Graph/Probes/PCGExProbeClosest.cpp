@@ -21,7 +21,7 @@ bool UPCGExProbeClosest::PrepareForPoints(const TSharedPtr<PCGExData::FPointIO>&
 
 		if (!MaxConnectionsCache)
 		{
-			PCGE_LOG_C(Error, GraphAndLog, Context, FText::Format(FText::FromString(TEXT("Invalid Max Connections attribute: \"{0}\"")), FText::FromName(Config.MaxConnectionsAttribute.GetName())));
+			PCGEX_LOG_INVALID_SELECTOR_C(Context, "Max Connections", Config.MaxConnectionsAttribute)
 			return false;
 		}
 	}

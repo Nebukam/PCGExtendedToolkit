@@ -159,7 +159,7 @@ namespace PCGExCopyClusters
 			TSharedPtr<PCGExData::FPointIO> EdgeDupe = EdgesDupes[i];
 
 			if (!EdgeDupe) { continue; }
-			
+
 			UPCGExClusterEdgesData* EdgeDupeTypedData = Cast<UPCGExClusterEdgesData>(EdgeDupe->GetOut());
 			if (CachedCluster && EdgeDupeTypedData)
 			{

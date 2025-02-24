@@ -136,7 +136,7 @@ namespace PCGExWriteIndex
 			}
 		}
 
-		if(Settings->bOutputPointIndex)
+		if (Settings->bOutputPointIndex)
 		{
 			if (Settings->bOutputNormalizedIndex)
 			{
@@ -155,8 +155,16 @@ namespace PCGExWriteIndex
 
 	void FProcessor::ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const PCGExMT::FScope& Scope)
 	{
-		if (DoubleWriter) { DoubleWriter->GetMutable(Index) = static_cast<double>(Index) / MaxIndex; }
-		else if (IntWriter) { IntWriter->GetMutable(Index) = Index; }
+		if (Settings->bOneMinus)
+		{
+			if (DoubleWriter) { DoubleWriter->GetMutable(Index) = 1 - (static_cast<double>(Index) / MaxIndex); }
+			else if (IntWriter) { IntWriter->GetMutable(Index) = MaxIndex - Index; }
+		}
+		else
+		{
+			if (DoubleWriter) { DoubleWriter->GetMutable(Index) = static_cast<double>(Index) / MaxIndex; }
+			else if (IntWriter) { IntWriter->GetMutable(Index) = Index; }
+		}
 	}
 
 	void FProcessor::CompleteWork()

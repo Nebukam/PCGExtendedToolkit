@@ -860,7 +860,7 @@ bool FPCGExEdgeDirectionSettings::InitFromParent(
 		EdgeDirReader = InEdgeDataFacade->GetScopedBroadcaster<FVector>(DirSourceAttribute);
 		if (!EdgeDirReader)
 		{
-			PCGE_LOG_C(Warning, GraphAndLog, InContext, FText::Format(FTEXT("Some edges don't have the specified DirSource Attribute \"{0}\"."), FText::FromName(DirSourceAttribute.GetName())));
+			PCGEX_LOG_INVALID_SELECTOR_C(InContext, "Dir Source (Edges)", DirSourceAttribute)
 			return false;
 		}
 	}

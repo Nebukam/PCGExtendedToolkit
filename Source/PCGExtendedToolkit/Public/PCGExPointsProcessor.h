@@ -51,8 +51,9 @@ public:
 		return EPCGSettingsType::PointOps;
 #else
 		return EPCGSettingsType::Spatial;
-#endif		
+#endif
 	}
+
 	virtual bool GetPinExtraIcon(const UPCGPin* InPin, FName& OutExtraIcon, FText& OutTooltip) const override;
 #endif
 

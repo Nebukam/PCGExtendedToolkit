@@ -93,7 +93,7 @@ namespace PCGExSmooth
 			Influence = PointDataFacade->GetScopedBroadcaster<double>(Settings->InfluenceAttribute);
 			if (!Influence)
 			{
-				PCGE_LOG_C(Error, GraphAndLog, ExecutionContext, FText::Format(FTEXT("Input missing influence attribute: \"{0}\"."), FText::FromName(Settings->InfluenceAttribute.GetName())));
+				PCGEX_LOG_INVALID_SELECTOR_C(ExecutionContext, "Influence", Settings->InfluenceAttribute)
 				return false;
 			}
 		}
@@ -103,7 +103,7 @@ namespace PCGExSmooth
 			Smoothing = PointDataFacade->GetScopedBroadcaster<double>(Settings->SmoothingAmountAttribute);
 			if (!Smoothing)
 			{
-				PCGE_LOG_C(Error, GraphAndLog, ExecutionContext, FText::Format(FTEXT("Input missing smoothing amount attribute: \"{0}\"."), FText::FromName(Settings->InfluenceAttribute.GetName())));
+				PCGEX_LOG_INVALID_SELECTOR_C(ExecutionContext, "Smoothing", Settings->SmoothingAmountAttribute)
 				return false;
 			}
 		}

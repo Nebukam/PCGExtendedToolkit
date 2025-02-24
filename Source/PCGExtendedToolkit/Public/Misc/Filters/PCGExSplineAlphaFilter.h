@@ -81,12 +81,15 @@ public:
 	UPROPERTY()
 	FPCGExSplineAlphaFilterConfig Config;
 
-	TArray<const FPCGSplineStruct*> Splines;
-	TArray<double> SegmentsNum;
+	TSharedPtr<TArray<const FPCGSplineStruct*>> Splines;
+	TSharedPtr<TArray<double>> SegmentsNum;
 
 	virtual bool SupportsDirectEvaluation() const override;
 
 	virtual bool Init(FPCGExContext* InContext) override;
+	virtual bool WantsPreparation(FPCGExContext* InContext) override;
+	virtual bool Prepare(FPCGExContext* InContext) override;
+	
 	virtual TSharedPtr<PCGExPointFilter::FFilter> CreateFilter() const override;
 
 	virtual void BeginDestroy() override;
@@ -108,8 +111,8 @@ namespace PCGExPointFilter
 
 		const TObjectPtr<const UPCGExSplineAlphaFilterFactory> TypedFilterFactory;
 
-		TArray<const FPCGSplineStruct*> Splines;
-		TArray<double> SegmentsNum;
+		TSharedPtr<TArray<const FPCGSplineStruct*>> Splines;
+		TSharedPtr<TArray<double>> SegmentsNum;
 
 		TSharedPtr<PCGExData::TBuffer<double>> OperandB;
 

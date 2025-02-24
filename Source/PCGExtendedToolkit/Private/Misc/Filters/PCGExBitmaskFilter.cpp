@@ -30,7 +30,7 @@ bool PCGExPointFilter::FBitmaskFilter::Init(FPCGExContext* InContext, const TSha
 
 	if (!FlagsReader)
 	{
-		PCGE_LOG_C(Error, GraphAndLog, InContext, FText::Format(FTEXT("Invalid Value attribute: \"{0}\"."), FText::FromName(TypedFilterFactory->Config.FlagsAttribute)));
+		PCGEX_LOG_INVALID_ATTR_C(InContext, "Flags", TypedFilterFactory->Config.FlagsAttribute)
 		return false;
 	}
 
@@ -39,7 +39,7 @@ bool PCGExPointFilter::FBitmaskFilter::Init(FPCGExContext* InContext, const TSha
 		MaskReader = PointDataFacade->GetScopedReadable<int64>(TypedFilterFactory->Config.BitmaskAttribute);
 		if (!MaskReader)
 		{
-			PCGE_LOG_C(Error, GraphAndLog, InContext, FText::Format(FTEXT("Invalid Mask attribute: \"{0}\"."), FText::FromName(TypedFilterFactory->Config.BitmaskAttribute)));
+			PCGEX_LOG_INVALID_ATTR_C(InContext, "Mask", TypedFilterFactory->Config.BitmaskAttribute)
 			return false;
 		}
 	}

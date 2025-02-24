@@ -18,10 +18,24 @@ bool UPCGExPathAlphaFilterFactory::Init(FPCGExContext* InContext)
 {
 	if (!Super::Init(InContext)) { return false; }
 
-	TArray<FPCGTaggedData> Targets = InContext->InputData.GetInputsByPin(PCGExPaths::SourcePathsLabel);
 	Config.ClosedLoop.Init();
 
-	if (!Targets.IsEmpty())
+	return true;
+}
+
+bool UPCGExPathAlphaFilterFactory::WantsPreparation(FPCGExContext* InContext)
+{
+	return true;
+}
+
+bool UPCGExPathAlphaFilterFactory::Prepare(FPCGExContext* InContext)
+{
+	if (!Super::Prepare(InContext)) { return false; }
+
+	Splines = MakeShared<TArray<TSharedPtr<FPCGSplineStruct>>>();
+	
+	if (TArray<FPCGTaggedData> Targets = InContext->InputData.GetInputsByPin(PCGExPaths::SourcePathsLabel);
+		!Targets.IsEmpty())
 	{
 		for (const FPCGTaggedData& TaggedData : Targets)
 		{
@@ -34,12 +48,12 @@ bool UPCGExPathAlphaFilterFactory::Init(FPCGExContext* InContext)
 
 			if (TSharedPtr<FPCGSplineStruct> SplineStruct = PCGExPaths::MakeSplineFromPoints(PathData, Config.PointType, bIsClosedLoop))
 			{
-				Splines.Add(SplineStruct);
+				Splines->Add(SplineStruct);
 			}
 		}
 	}
 
-	if (Splines.IsEmpty())
+	if (Splines->IsEmpty())
 	{
 		PCGE_LOG_C(Error, GraphAndLog, InContext, FTEXT("No splines (no input matches criteria or empty dataset)"));
 		return false;
@@ -55,7 +69,8 @@ TSharedPtr<PCGExPointFilter::FFilter> UPCGExPathAlphaFilterFactory::CreateFilter
 
 void UPCGExPathAlphaFilterFactory::BeginDestroy()
 {
-	Splines.Empty();
+	Splines.Reset();
+	SegmentsNum.Reset();
 	Super::BeginDestroy();
 }
 
@@ -81,7 +96,7 @@ namespace PCGExPointFilter
 
 			if (!OperandB)
 			{
-				PCGE_LOG_C(Error, GraphAndLog, InContext, FText::Format(FTEXT("Invalid Operand B attribute: \"{0}\"."), FText::FromName(TypedFilterFactory->Config.OperandB.GetName())));
+				PCGEX_LOG_INVALID_SELECTOR_C(InContext, "Operand B", TypedFilterFactory->Config.OperandB)
 				return false;
 			}
 		}
@@ -91,6 +106,9 @@ namespace PCGExPointFilter
 
 	bool FPathAlphaFilter::Test(const FPCGPoint& Point) const
 	{
+		const TArray<TSharedPtr<FPCGSplineStruct>>& SplinesRef = *Splines.Get();
+		const TArray<double>& SegmentsNumRef = *SegmentsNum.Get();
+
 		const FVector Pos = Point.Transform.GetLocation();
 		double Time = 0;
 
@@ -99,13 +117,13 @@ namespace PCGExPointFilter
 		if (TypedFilterFactory->Config.Pick == EPCGExSplineFilterPick::Closest)
 		{
 			double ClosestDist = MAX_dbl;
-			for (int i = 0; i < Splines.Num(); i++)
+			for (int i = 0; i < Splines->Num(); i++)
 			{
-				const TSharedPtr<const FPCGSplineStruct> Spline = Splines[i];
+				const TSharedPtr<const FPCGSplineStruct> Spline = SplinesRef[i];
 
 				double LocalTime = Spline->FindInputKeyClosestToWorldLocation(Pos);
 				FTransform T = Spline->GetTransformAtSplineInputKey(static_cast<float>(LocalTime), ESplineCoordinateSpace::World, true);
-				LocalTime /= SegmentsNum[i];
+				LocalTime /= SegmentsNumRef[i];
 
 				const double D = FVector::DistSquared(T.GetLocation(), Pos);
 
@@ -116,12 +134,12 @@ namespace PCGExPointFilter
 		}
 		else
 		{
-			for (int i = 0; i < Splines.Num(); i++)
+			for (int i = 0; i < Splines->Num(); i++)
 			{
-				const TSharedPtr<const FPCGSplineStruct> Spline = Splines[i];
+				const TSharedPtr<const FPCGSplineStruct> Spline = SplinesRef[i];
 
 				double LocalTime = Spline->FindInputKeyClosestToWorldLocation(Pos);
-				LocalTime /= SegmentsNum[i];
+				LocalTime /= SegmentsNumRef[i];
 
 				switch (TypedFilterFactory->Config.TimeConsolidation)
 				{
@@ -139,7 +157,7 @@ namespace PCGExPointFilter
 
 			if (TypedFilterFactory->Config.TimeConsolidation == EPCGExSplineTimeConsolidation::Average)
 			{
-				Time /= SegmentsNum.Num();
+				Time /= SegmentsNumRef.Num();
 			}
 		}
 
@@ -148,6 +166,9 @@ namespace PCGExPointFilter
 
 	bool FPathAlphaFilter::Test(const int32 PointIndex) const
 	{
+		const TArray<TSharedPtr<FPCGSplineStruct>>& SplinesRef = *Splines.Get();
+		const TArray<double>& SegmentsNumRef = *SegmentsNum.Get();
+
 		const FVector Pos = PointDataFacade->Source->GetInPoint(PointIndex).Transform.GetLocation();
 		double Time = 0;
 
@@ -156,13 +177,13 @@ namespace PCGExPointFilter
 		if (TypedFilterFactory->Config.Pick == EPCGExSplineFilterPick::Closest)
 		{
 			double ClosestDist = MAX_dbl;
-			for (int i = 0; i < Splines.Num(); i++)
+			for (int i = 0; i < Splines->Num(); i++)
 			{
-				const TSharedPtr<const FPCGSplineStruct> Spline = Splines[i];
+				const TSharedPtr<const FPCGSplineStruct> Spline = SplinesRef[i];
 
 				double LocalTime = Spline->FindInputKeyClosestToWorldLocation(Pos);
 				FTransform T = Spline->GetTransformAtSplineInputKey(static_cast<float>(LocalTime), ESplineCoordinateSpace::World, true);
-				LocalTime /= SegmentsNum[i];
+				LocalTime /= SegmentsNumRef[i];
 
 				const double D = FVector::DistSquared(T.GetLocation(), Pos);
 
@@ -173,12 +194,12 @@ namespace PCGExPointFilter
 		}
 		else
 		{
-			for (int i = 0; i < Splines.Num(); i++)
+			for (int i = 0; i < Splines->Num(); i++)
 			{
-				const TSharedPtr<const FPCGSplineStruct> Spline = Splines[i];
+				const TSharedPtr<const FPCGSplineStruct> Spline = SplinesRef[i];
 
 				double LocalTime = Spline->FindInputKeyClosestToWorldLocation(Pos);
-				LocalTime /= SegmentsNum[i];
+				LocalTime /= SegmentsNumRef[i];
 
 				switch (TypedFilterFactory->Config.TimeConsolidation)
 				{
@@ -196,7 +217,7 @@ namespace PCGExPointFilter
 
 			if (TypedFilterFactory->Config.TimeConsolidation == EPCGExSplineTimeConsolidation::Average)
 			{
-				Time /= SegmentsNum.Num();
+				Time /= SegmentsNumRef.Num();
 			}
 		}
 

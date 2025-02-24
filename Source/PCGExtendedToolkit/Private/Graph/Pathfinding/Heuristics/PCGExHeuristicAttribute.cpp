@@ -27,7 +27,7 @@ void UPCGExHeuristicAttribute::PrepareForCluster(const TSharedPtr<const PCGExClu
 
 	if (!ModifiersCache)
 	{
-		PCGE_LOG_C(Error, GraphAndLog, Context, FText::Format(FTEXT("Invalid Heuristic attribute: \"{0}\"."), FText::FromName(Attribute.GetName())));
+		PCGEX_LOG_INVALID_SELECTOR_C(Context, "Heuristic", Attribute)
 		return;
 	}
 

@@ -49,7 +49,7 @@ bool UPCGExProbeIndex::PrepareForPoints(const TSharedPtr<PCGExData::FPointIO>& I
 		TargetCache = PrimaryDataFacade->GetScopedBroadcaster<int32>(Config.IndexAttribute);
 		if (!TargetCache)
 		{
-			PCGE_LOG_C(Error, GraphAndLog, Context, FText::Format(FText::FromString(TEXT("Invalid Target attribute: \"{0}\"")), FText::FromName(Config.IndexAttribute.GetName())));
+			PCGEX_LOG_INVALID_SELECTOR_C(Context, "Target", Config.IndexAttribute)
 			return false;
 		}
 

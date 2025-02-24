@@ -17,7 +17,7 @@ void UPCGExVtxPropertySpecialEdges::CopySettingsFrom(const UPCGExOperation* Othe
 	}
 }
 
-bool UPCGExVtxPropertySpecialEdges::PrepareForCluster(const FPCGContext* InContext, TSharedPtr<PCGExCluster::FCluster> InCluster, const TSharedPtr<PCGExData::FFacade>& InVtxDataFacade, const TSharedPtr<PCGExData::FFacade>& InEdgeDataFacade)
+bool UPCGExVtxPropertySpecialEdges::PrepareForCluster(const FPCGExContext* InContext, TSharedPtr<PCGExCluster::FCluster> InCluster, const TSharedPtr<PCGExData::FFacade>& InVtxDataFacade, const TSharedPtr<PCGExData::FFacade>& InEdgeDataFacade)
 {
 	Super::PrepareForCluster(InContext, InCluster, InVtxDataFacade, InEdgeDataFacade);
 

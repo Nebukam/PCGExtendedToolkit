@@ -52,7 +52,7 @@ bool UPCGExTensorFlowFactory::InitInternalFacade(FPCGExContext* InContext)
 		DirectionBuffer = InputDataFacade->GetBroadcaster<FVector>(Config.DirectionAttribute);
 		if (!DirectionBuffer)
 		{
-			PCGE_LOG_C(Error, GraphAndLog, InContext, FText::Format(FTEXT("Invalid Direction attribute: \"{0}\"."), FText::FromName(Config.DirectionAttribute.GetName())));
+			PCGEX_LOG_INVALID_SELECTOR_C(InContext, "Direction", Config.DirectionAttribute)
 			return false;
 		}
 	}

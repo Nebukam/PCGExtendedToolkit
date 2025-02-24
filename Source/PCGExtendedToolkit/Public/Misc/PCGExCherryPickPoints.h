@@ -33,8 +33,21 @@ public:
 	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->NodeColorMiscRemove; }
 #endif
 
+	/** Whether to invert the picking (picked indices will be discarded instead or kept) */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	bool bInvert = false;
+
+	/** Whether to output discard points to their own dataset */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	bool bOutputDiscardedPoints = false;
+
+	/** Whether to output discard points collections to be empty */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	bool bAllowEmptyOutputs = false;
+
 protected:
 	virtual TArray<FPCGPinProperties> InputPinProperties() const override;
+	virtual TArray<FPCGPinProperties> OutputPinProperties() const override;
 	virtual FPCGElementPtr CreateElement() const override;
 	//~End UPCGSettings
 };
@@ -62,8 +75,6 @@ namespace PCGExCherryPickPoints
 {
 	class FProcessor final : public PCGExPointsMT::TPointsProcessor<FPCGExCherryPickPointsContext, UPCGExCherryPickPointsSettings>
 	{
-		TArray<int32> PickedIndices;
-
 	public:
 		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade)
 			: TPointsProcessor(InPointDataFacade)

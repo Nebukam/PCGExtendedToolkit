@@ -311,7 +311,7 @@ namespace PCGExGetTextureData
 
 		if (!PathGetter)
 		{
-			PCGE_LOG_C(Error, GraphAndLog, Context, FText::Format(FTEXT("Asset Path attribute : \"{0}\" does not exists."), FText::FromName(Settings->SourceAttributeName)));
+			PCGEX_LOG_INVALID_ATTR_C(Context, "Asset Path", Settings->SourceAttributeName)
 			return false;
 		}
 
