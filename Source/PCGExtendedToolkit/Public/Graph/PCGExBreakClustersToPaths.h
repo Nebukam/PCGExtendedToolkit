@@ -65,7 +65,7 @@ public:
 
 	/** Enforce a winding order for paths. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
-	EPCGExWindingMutation Winding = EPCGExWindingMutation::Unchanged;
+	EPCGExWindingMutation Winding = EPCGExWindingMutation::CounterClockwise;
 
 	/** Whether to apply winding on closed loops only or all paths. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))

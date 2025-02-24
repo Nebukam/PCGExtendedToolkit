@@ -47,7 +47,7 @@ public:
 
 protected:
 	virtual bool RequiresInputs() const;
-	virtual bool RequiresPreparation(FPCGExContext* InContext) override { return false; }
+	virtual bool WantsPreparation(FPCGExContext* InContext) override { return false; }
 	virtual bool InitInternalData(FPCGExContext* InContext);
 };
 

@@ -4,6 +4,7 @@
 #include "Misc/PCGExCherryPickPoints.h"
 
 
+#include "Misc/PCGExDiscardByPointCount.h"
 #include "Misc/Pickers/PCGExPicker.h"
 
 #define LOCTEXT_NAMESPACE "PCGExCherryPickPointsElement"
@@ -15,6 +16,13 @@ TArray<FPCGPinProperties> UPCGExCherryPickPointsSettings::InputPinProperties() c
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
 	PCGEX_PIN_PARAMS(PCGExPicker::SourcePickersLabel, "Pickers config", Required, {})
+	return PinProperties;
+}
+
+TArray<FPCGPinProperties> UPCGExCherryPickPointsSettings::OutputPinProperties() const
+{
+	TArray<FPCGPinProperties> PinProperties = Super::OutputPinProperties();
+	if (bOutputDiscardedPoints) { PCGEX_PIN_POINTS(PCGExDiscardByPointCount::OutputDiscardedLabel, "Discarded points", Normal, {}) }
 	return PinProperties;
 }
 
@@ -83,16 +91,61 @@ namespace PCGExCherryPickPoints
 
 		if (!PointDataFacade->Source->InitializeOutput(PCGExData::EIOInit::New)) { return false; }
 
-		PickedIndices = UniqueIndices.Array();
-		PickedIndices.Sort();
+		PointDataFacade->Source->bAllowEmptyOutput = Settings->bAllowEmptyOutputs;
 
 		const TArray<FPCGPoint>& SourcePoints = PointDataFacade->GetIn()->GetPoints();
-		TArray<FPCGPoint>& MutablePoints = PointDataFacade->GetMutablePoints();
 
-		const int32 NumPicks = PickedIndices.Num();
-		MutablePoints.Reserve(NumPicks);
+		const int32 NumPoints = SourcePoints.Num();
+		const int32 NumPicks = FMath::Min(UniqueIndices.Num(), NumPoints);
 
-		for (int32 i = 0; i < NumPicks; i++) { MutablePoints.Add(SourcePoints[PickedIndices[i]]); }
+		if (Settings->bInvert || Settings->bOutputDiscardedPoints)
+		{
+			// Work from set
+
+			if (Settings->bOutputDiscardedPoints)
+			{
+				const TSharedPtr<PCGExData::FPointIO> Discarded = Context->MainPoints->Emplace_GetRef(PointDataFacade->Source, PCGExData::EIOInit::New);
+
+				if (!Discarded) { return false; }
+
+				Discarded->OutputPin = PCGExDiscardByPointCount::OutputDiscardedLabel;
+				Discarded->IOIndex = PointDataFacade->Source->IOIndex;
+
+				Discarded->bAllowEmptyOutput = Settings->bAllowEmptyOutputs;
+
+				TArray<FPCGPoint>& PickedPoints = Settings->bInvert ? Discarded->GetMutablePoints() : PointDataFacade->GetMutablePoints();
+				TArray<FPCGPoint>& DiscardedPoints = Settings->bInvert ? PointDataFacade->GetMutablePoints() : Discarded->GetMutablePoints();
+
+				PickedPoints.Reserve(NumPicks);
+				DiscardedPoints.Reserve(NumPoints - NumPicks);
+
+				for (int32 i = 0; i < NumPoints; i++)
+				{
+					if (UniqueIndices.Contains(i)) { PickedPoints.Add(SourcePoints[i]); }
+					else { DiscardedPoints.Add(SourcePoints[i]); }
+				}
+			}
+			else
+			{
+				TArray<FPCGPoint>& PickedPoints = PointDataFacade->GetMutablePoints();
+				PickedPoints.Reserve(NumPoints - NumPicks);
+				for (int32 i = 0; i < NumPoints; i++) { if (!UniqueIndices.Contains(i)) { PickedPoints.Add(SourcePoints[i]); } }
+			}
+		}
+		else
+		{
+			// Work from indices
+
+			TArray<FPCGPoint>& PickedPoints = PointDataFacade->GetMutablePoints();
+
+			TArray<int32> PickedIndices = UniqueIndices.Array();
+			PickedIndices.Sort();
+
+
+			PickedPoints.Reserve(NumPicks);
+
+			for (int32 i = 0; i < NumPicks; i++) { PickedPoints.Add(SourcePoints[PickedIndices[i]]); }
+		}
 
 		return true;
 	}

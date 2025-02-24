@@ -17,7 +17,7 @@ void UPCGExVtxPropertySpecialNeighbors::CopySettingsFrom(const UPCGExOperation* 
 }
 
 bool UPCGExVtxPropertySpecialNeighbors::PrepareForCluster(
-	const FPCGContext* InContext,
+	const FPCGExContext* InContext,
 	TSharedPtr<PCGExCluster::FCluster> InCluster,
 	const TSharedPtr<PCGExData::FFacade>& InVtxDataFacade,
 	const TSharedPtr<PCGExData::FFacade>& InEdgeDataFacade)

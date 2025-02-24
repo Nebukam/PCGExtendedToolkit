@@ -44,6 +44,25 @@ void FPCGExCellSeedMutationDetails::ApplyToPoint(const PCGExTopology::FCell* InC
 
 namespace PCGExTopology
 {
+	bool IsAnyPointInPolygon(const TArray<FVector2D>& Points, const FGeometryScriptSimplePolygon& Polygon)
+	{
+		if (Points.IsEmpty()) { return false; }
+		const TArray<FVector2D>& Vertices = *Polygon.Vertices;
+		for (const FVector2D& P : Points) { if (FGeomTools2D::IsPointInPolygon(P, Vertices)) { return true; } }
+		return false;
+	}
+
+	bool IsPolygonInPolygon(const FGeometryScriptSimplePolygon& ContainerPolygon, const FGeometryScriptSimplePolygon& Polygon)
+	{
+		const TArray<FVector2D>& ContainerPoints = *ContainerPolygon.Vertices;
+		const TArray<FVector2D>& PolyPoints = *Polygon.Vertices;
+		for (const FVector2D& Point : PolyPoints)
+		{
+			if (!FGeomTools2D::IsPointInPolygon(Point, ContainerPoints)) { return false; }
+		}
+		return true;
+	}
+
 	bool FHoles::Overlaps(const FGeometryScriptSimplePolygon& Polygon)
 	{
 		{

@@ -306,25 +306,10 @@ namespace PCGExTopology
 		return FGeomTools2D::IsPointInPolygon(FVector2D(Point[0], Point[1]), *Polygon.Vertices);
 	}
 
-	static bool IsAnyPointInPolygon(const TArray<FVector2D>& Points, const FGeometryScriptSimplePolygon& Polygon)
-	{
-		if (Points.IsEmpty()) { return false; }
-		const TArray<FVector2D>& Vertices = *Polygon.Vertices;
-		for (const FVector2D& P : Points) { if (FGeomTools2D::IsPointInPolygon(P, Vertices)) { return true; } }
-		return false;
-	}
-
-	static bool IsPolygonInPolygon(const FGeometryScriptSimplePolygon& ContainerPolygon, const FGeometryScriptSimplePolygon& Polygon)
-	{
-		const TArray<FVector2D>& ContainerPoints = *ContainerPolygon.Vertices;
-		const TArray<FVector2D>& PolyPoints = *Polygon.Vertices;
-		for (const FVector2D& Point : PolyPoints)
-		{
-			if (!FGeomTools2D::IsPointInPolygon(Point, ContainerPoints)) { return false; }
-		}
-		return true;
-	}
-
+	bool IsAnyPointInPolygon(const TArray<FVector2D>& Points, const FGeometryScriptSimplePolygon& Polygon);
+	
+	bool IsPolygonInPolygon(const FGeometryScriptSimplePolygon& ContainerPolygon, const FGeometryScriptSimplePolygon& Polygon);
+	
 	static FORCEINLINE void MarkTriangle(
 		const TSharedPtr<PCGExCluster::FCluster>& InCluster,
 		const PCGExGeo::FTriangle& InTriangle)

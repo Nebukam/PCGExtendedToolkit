@@ -30,7 +30,7 @@ bool UPCGExGoalPickerRandom::PrepareForData(FPCGExContext* InContext, const TSha
 		NumGoalsGetter = InSeedsDataFacade->GetBroadcaster<int32>(NumGoalAttribute);
 		if (!NumGoalsGetter)
 		{
-			PCGE_LOG_C(Error, GraphAndLog, Context, FText::Format(FTEXT("Invalid NumGoals selector on Seeds: \"{0}\"."), FText::FromString(PCGEx::GetSelectorDisplayName(NumGoalAttribute))));
+			PCGEX_LOG_INVALID_SELECTOR_C(InContext, "Num Goals (Seeds)", NumGoalAttribute)
 			return false;
 		}
 	}

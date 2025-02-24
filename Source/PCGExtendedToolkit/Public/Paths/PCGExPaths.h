@@ -53,6 +53,32 @@ enum class EPCGExSplineMeshUpMode : uint8
 };
 
 USTRUCT(BlueprintType)
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPathOutputDetails
+{
+	GENERATED_BODY()
+
+	FPCGExPathOutputDetails() = default;
+
+	/** Don't output paths if they have less points than a specified amount. */
+	UPROPERTY(BlueprintReadWrite, Category = Settings, EditAnywhere, meta = (PCG_Overridable, InlineEditConditionToggle))
+	bool bRemoveSmallPaths = false;
+
+	/** Minimum points threshold */
+	UPROPERTY(BlueprintReadWrite, Category = Settings, EditAnywhere, meta = (PCG_Overridable, EditCondition="bRemoveSmallPaths", ClampMin=2))
+	int32 MinPointCount = 3;
+
+	/** Don't output paths if they have more points than a specified amount. */
+	UPROPERTY(BlueprintReadWrite, Category = Settings, EditAnywhere, meta = (PCG_Overridable, InlineEditConditionToggle))
+	bool bRemoveLargePaths = false;
+
+	/** Maximum points threshold */
+	UPROPERTY(BlueprintReadWrite, Category = Settings, EditAnywhere, meta = (PCG_Overridable, EditCondition="bRemoveLargePaths", ClampMin=2))
+	int32 MaxPointCount = 500;
+
+	bool Validate(TArray<FPCGPoint>& InPathPoints) const;
+};
+
+USTRUCT(BlueprintType)
 struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPathClosedLoopDetails
 {
 	GENERATED_BODY()
@@ -184,6 +210,9 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPathIntersectionDetails
 {
 	GENERATED_BODY()
 
+	FPCGExPathIntersectionDetails() = default;
+	explicit FPCGExPathIntersectionDetails(const double InTolerance, const double InMinAngle, const double InMaxAngle = 90);
+	
 	/** Distance at which two edges are considered intersecting. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ClampMin=0))
 	double Tolerance = DBL_INTERSECTION_TOLERANCE;
@@ -191,7 +220,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPathIntersectionDetails
 
 	/** . */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, InlineEditConditionToggle))
-	bool bUseMinAngle = true;
+	bool bUseMinAngle = false;
 
 	/** Min angle. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bUseMinAngle", Units="Degrees", ClampMin=0, ClampMax=90))
@@ -200,18 +229,21 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPathIntersectionDetails
 
 	/** . */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, InlineEditConditionToggle))
-	bool bUseMaxAngle = true;
+	bool bUseMaxAngle = false;
 
 	/** Maximum angle. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bUseMaxAngle", Units="Degrees", ClampMin=0, ClampMax=90))
 	double MaxAngle = 90;
 	double MaxDot = 1;
 
+	bool bWantsDotCheck = false;
+
 	void Init()
 	{
 		MaxDot = bUseMinAngle ? PCGExMath::DegreesToDot(MinAngle) : 1;
 		MinDot = bUseMaxAngle ? PCGExMath::DegreesToDot(MaxAngle) : -1;
 		ToleranceSquared = Tolerance * Tolerance;
+		bWantsDotCheck = bUseMinAngle || bUseMaxAngle;
 	}
 
 	FORCEINLINE bool CheckDot(const double InDot) const { return InDot <= MaxDot && InDot >= MinDot; }
@@ -401,9 +433,85 @@ namespace PCGExPaths
 		virtual bool IsEdgeValid(const FPathEdge& Edge) const { return FVector::DistSquared(GetPos_Unsafe(Edge.Start), GetPos_Unsafe(Edge.End)) > 0; }
 		virtual bool IsEdgeValid(const int32 Index) const { return IsEdgeValid(Edges[Index]); }
 
-		bool FindClosestIntersection(
-			const FPCGExPathIntersectionDetails& InDetails,
-			const FVector& A1, const FVector& B1, int32& OutSegmentIndex, FVector& OutIntersection) const;
+		template <PCGExMath::EIntersectionTestMode Mode = PCGExMath::EIntersectionTestMode::Strict>
+		PCGExMath::FClosestPosition FindClosestIntersection(
+			const FPCGExPathIntersectionDetails& InDetails, const PCGExMath::FSegment& Segment) const
+		{
+			PCGExMath::FClosestPosition Closest(Segment.A);
+
+			if (!Bounds.Intersect(Segment.Bounds)) { return Closest; }
+
+			GetEdgeOctree()->FindElementsWithBoundsTest(
+				Segment.Bounds, [&](const FPathEdge* PathEdge)
+				{
+					if (InDetails.bWantsDotCheck)
+					{
+						if (!InDetails.CheckDot(FMath::Abs(Segment.Dot(PathEdge->Dir)))) { return; }
+					}
+
+					FVector OnSegment = FVector::ZeroVector;
+					FVector OnPath = FVector::ZeroVector;
+
+					if (!Segment.FindIntersection<Mode>(
+						GetPos_Unsafe(PathEdge->Start),
+						GetPos_Unsafe(PathEdge->End),
+						InDetails.ToleranceSquared,
+						OnSegment,
+						OnPath))
+					{
+						return;
+					}
+
+					Closest.Update(OnPath, PathEdge->Start);
+				});
+
+			return Closest;
+		}
+
+		template <PCGExMath::EIntersectionTestMode Mode = PCGExMath::EIntersectionTestMode::Strict>
+		PCGExMath::FClosestPosition FindClosestIntersection(
+			const FPCGExPathIntersectionDetails& InDetails, const FVector& A1, const FVector& B1) const
+		{
+			return FindClosestIntersection<Mode>(InDetails, A1, B1);
+		}
+		
+		template <PCGExMath::EIntersectionTestMode Mode = PCGExMath::EIntersectionTestMode::Strict>
+		PCGExMath::FClosestPosition FindClosestIntersection(
+			const FPCGExPathIntersectionDetails& InDetails, const PCGExMath::FSegment& Segment,
+			PCGExMath::FClosestPosition& OutClosestPosition) const
+		{
+			PCGExMath::FClosestPosition Closest(Segment.A);
+
+			if (!Bounds.Intersect(Segment.Bounds)) { return Closest; }
+
+			GetEdgeOctree()->FindElementsWithBoundsTest(
+				Segment.Bounds, [&](const FPathEdge* PathEdge)
+				{
+					if (InDetails.bWantsDotCheck)
+					{
+						if (!InDetails.CheckDot(FMath::Abs(Segment.Dot(PathEdge->Dir)))) { return; }
+					}
+
+					FVector OnSegment = FVector::ZeroVector;
+					FVector OnPath = FVector::ZeroVector;
+
+					if (!Segment.FindIntersection<Mode>(
+						GetPos_Unsafe(PathEdge->Start),
+						GetPos_Unsafe(PathEdge->End),
+						InDetails.ToleranceSquared,
+						OnSegment,
+						OnPath))
+					{
+						OutClosestPosition.Update(OnPath, -2);
+						return;
+					}
+
+					OutClosestPosition.Update(OnPath, -2);
+					Closest.Update(OnPath, PathEdge->Start);
+				});
+
+			return Closest;
+		}
 
 		void BuildEdgeOctree();
 		void BuildPartialEdgeOctree(const TArray<int8>& Filter);
@@ -630,7 +738,47 @@ namespace PCGExPaths
 
 	TSharedPtr<FPCGSplineStruct> MakeSplineFromPoints(const UPCGPointData* InData, const EPCGExSplinePointTypeRedux InPointType, const bool bClosedLoop);
 
-	bool FindClosestIntersection(
-		const TArray<TSharedPtr<FPath>>& Paths, const FPCGExPathIntersectionDetails& InDetails,
-		const FVector& A1, const FVector& B1, int32& OutPathIndex, int32& OutSegmentIndex, FVector& OutIntersection);
+	template <PCGExMath::EIntersectionTestMode Mode = PCGExMath::EIntersectionTestMode::Strict>
+	PCGExMath::FClosestPosition FindClosestIntersection(
+		const TArray<TSharedPtr<FPath>>& Paths,
+		const FPCGExPathIntersectionDetails& InDetails,
+		const PCGExMath::FSegment& InSegment, int32& OutPathIndex)
+	{
+		OutPathIndex = -1;
+
+		PCGExMath::FClosestPosition Intersection(InSegment.A);
+
+		for (int i = 0; i < Paths.Num(); i++)
+		{
+			PCGExMath::FClosestPosition LocalIntersection = Paths[i]->FindClosestIntersection<Mode>(InDetails, InSegment);
+			if (!LocalIntersection) { continue; }
+			if (Intersection.Update(LocalIntersection, LocalIntersection.Index)) { OutPathIndex = i; }
+		}
+
+		return Intersection;
+	}
+
+	template <PCGExMath::EIntersectionTestMode Mode = PCGExMath::EIntersectionTestMode::Strict>
+	PCGExMath::FClosestPosition FindClosestIntersection(
+		const TArray<TSharedPtr<FPath>>& Paths,
+		const FPCGExPathIntersectionDetails& InDetails,
+		const PCGExMath::FSegment& InSegment, int32& OutPathIndex,
+		PCGExMath::FClosestPosition& OutClosestPosition)
+	{
+		OutPathIndex = -1;
+
+		PCGExMath::FClosestPosition Intersection(InSegment.A);
+
+		for (int i = 0; i < Paths.Num(); i++)
+		{
+			PCGExMath::FClosestPosition LocalIntersection = Paths[i]->FindClosestIntersection<Mode>(InDetails, InSegment, OutClosestPosition);
+
+			if (OutClosestPosition.Index == -2) { OutClosestPosition.Index = i; }
+			
+			if (!LocalIntersection) { continue; }
+			if (Intersection.Update(LocalIntersection, LocalIntersection.Index)) { OutPathIndex = i; }
+		}
+
+		return Intersection;
+	}
 }

@@ -55,7 +55,7 @@ bool UPCGExTensorSpinFactory::InitInternalFacade(FPCGExContext* InContext)
 		AxisBuffer = InputDataFacade->GetBroadcaster<FVector>(Config.AxisAttribute);
 		if (!AxisBuffer)
 		{
-			PCGE_LOG_C(Error, GraphAndLog, InContext, FText::Format(FTEXT("Invalid Direction attribute: \"{0}\"."), FText::FromName(Config.AxisAttribute.GetName())));
+			PCGEX_LOG_INVALID_SELECTOR_C(InContext, "Axis", Config.AxisAttribute)
 			return false;
 		}
 	}

@@ -21,7 +21,7 @@ void UPCGExHeuristicOperation::PrepareForCluster(const TSharedPtr<const PCGExClu
 
 		if (!LocalWeightCache)
 		{
-			PCGE_LOG_C(Warning, GraphAndLog, Context, FText::Format(FTEXT("Invalid Heuristic attribute: \"{0}\"."), FText::FromName(WeightMultiplierAttribute.GetName())));
+			PCGEX_LOG_INVALID_SELECTOR_C(Context, "Weight Multiplier (Heuristics)", WeightMultiplierAttribute)
 			return;
 		}
 

@@ -73,7 +73,7 @@ public:
 			EdgeLengthBuffer = SecondaryDataFacade->GetBroadcaster<double>(DesiredEdgeLengthAttribute);
 			if (!EdgeLengthBuffer)
 			{
-				PCGE_LOG_C(Error, GraphAndLog, Context, FText::Format(FTEXT("Invalid Edge length attribute: \"{0}\"."), FText::FromName(DesiredEdgeLengthAttribute.GetName())));
+				PCGEX_LOG_INVALID_SELECTOR_C(Context, "Edge Length", DesiredEdgeLengthAttribute)
 				return false;
 			}
 

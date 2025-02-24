@@ -8,6 +8,7 @@
 #include "PCGExPathfinding.h"
 #include "PCGExPointsProcessor.h"
 #include "Graph/PCGExEdgesProcessor.h"
+#include "Paths/PCGExPaths.h"
 
 #include "PCGExPathfindingPlotEdges.generated.h"
 

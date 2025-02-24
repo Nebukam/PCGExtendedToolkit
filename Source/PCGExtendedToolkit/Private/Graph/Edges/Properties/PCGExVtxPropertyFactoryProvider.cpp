@@ -4,6 +4,7 @@
 #include "Graph/Edges/Properties/PCGExVtxPropertyFactoryProvider.h"
 #include "PCGPin.h"
 
+
 #define LOCTEXT_NAMESPACE "PCGExWriteVtxProperties"
 #define PCGEX_NAMESPACE PCGExWriteVtxProperties
 
@@ -14,7 +15,7 @@ void UPCGExVtxPropertyOperation::CopySettingsFrom(const UPCGExOperation* Other)
 	// if (const UPCGExVtxPropertyOperation* TypedOther = Cast<UPCGExVtxPropertyOperation>(Other))	{	}
 }
 
-bool UPCGExVtxPropertyOperation::PrepareForCluster(const FPCGContext* InContext, TSharedPtr<PCGExCluster::FCluster> InCluster, const TSharedPtr<PCGExData::FFacade>& InVtxDataFacade, const TSharedPtr<PCGExData::FFacade>& InEdgeDataFacade)
+bool UPCGExVtxPropertyOperation::PrepareForCluster(const FPCGExContext* InContext, TSharedPtr<PCGExCluster::FCluster> InCluster, const TSharedPtr<PCGExData::FFacade>& InVtxDataFacade, const TSharedPtr<PCGExData::FFacade>& InEdgeDataFacade)
 {
 	PrimaryDataFacade = InVtxDataFacade;
 	SecondaryDataFacade = InEdgeDataFacade;
