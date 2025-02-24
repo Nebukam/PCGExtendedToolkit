@@ -26,7 +26,7 @@ bool FNodeEdgeDirectionFilter::Init(FPCGExContext* InContext, const TSharedRef<P
 		OperandDirection = PointDataFacade->GetBroadcaster<FVector>(TypedFilterFactory->Config.Direction);
 		if (!OperandDirection)
 		{
-			PCGE_LOG_C(Error, GraphAndLog, InContext, FText::Format(FTEXT("Invalid Direction attribute: \"{0}\"."), FText::FromName(TypedFilterFactory->Config.Direction.GetName())));
+			PCGEX_LOG_INVALID_SELECTOR_C(InContext, "Direction", TypedFilterFactory->Config.Direction)
 			return false;
 		}
 	}

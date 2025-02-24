@@ -98,8 +98,8 @@ namespace PCGExGraph
 			// Write lock starts
 			FWriteScopeLock WriteScopeLock(UnionLock);
 
-			PCGExMath::FClosestLocation ClosestNode(Origin);
-			
+			PCGExMath::FClosestPosition ClosestNode(Origin);
+
 			if (FuseDetails.bComponentWiseTolerance)
 			{
 				Octree->FindElementsWithBoundsTest(
@@ -107,7 +107,7 @@ namespace PCGExGraph
 					{
 						if (FuseDetails.IsWithinToleranceComponentWise(Point, ExistingNode->Point))
 						{
-							ClosestNode.Push(Point.Transform.GetLocation(), ExistingNode->Index);
+							ClosestNode.Update(Point.Transform.GetLocation(), ExistingNode->Index);
 							return false;
 						}
 						return true;
@@ -120,7 +120,7 @@ namespace PCGExGraph
 					{
 						if (FuseDetails.IsWithinTolerance(Point, ExistingNode->Point))
 						{
-							ClosestNode.Push(Point.Transform.GetLocation(), ExistingNode->Index);
+							ClosestNode.Update(Point.Transform.GetLocation(), ExistingNode->Index);
 							return false;
 						}
 						return true;
@@ -175,7 +175,7 @@ namespace PCGExGraph
 			return Node;
 		}
 
-		PCGExMath::FClosestLocation ClosestNode(Origin);
+		PCGExMath::FClosestPosition ClosestNode(Origin);
 
 		if (FuseDetails.bComponentWiseTolerance)
 		{
@@ -184,7 +184,7 @@ namespace PCGExGraph
 				{
 					if (FuseDetails.IsWithinToleranceComponentWise(Point, ExistingNode->Point))
 					{
-						ClosestNode.Push(Point.Transform.GetLocation(), ExistingNode->Index);
+						ClosestNode.Update(Point.Transform.GetLocation(), ExistingNode->Index);
 						return false;
 					}
 					return true;
@@ -197,7 +197,7 @@ namespace PCGExGraph
 				{
 					if (FuseDetails.IsWithinTolerance(Point, ExistingNode->Point))
 					{
-						ClosestNode.Push(Point.Transform.GetLocation(), ExistingNode->Index);
+						ClosestNode.Update(Point.Transform.GetLocation(), ExistingNode->Index);
 						return false;
 					}
 					return true;

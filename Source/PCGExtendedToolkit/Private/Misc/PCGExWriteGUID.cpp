@@ -59,7 +59,7 @@ bool FPCGExGUIDDetails::Init(FPCGExContext* InContext, TSharedRef<PCGExData::FFa
 		UniqueKeyReader = InFacade->GetScopedBroadcaster<int32>(UniqueKeyAttribute);
 		if (!UniqueKeyReader)
 		{
-			PCGE_LOG_C(Error, GraphAndLog, InContext, FText::Format(FTEXT("Invalid UniqueKey attribute: \"{0}\"."), FText::FromName(UniqueKeyAttribute.GetName())));
+			PCGEX_LOG_INVALID_SELECTOR_C(InContext, "Unique Key", UniqueKeyAttribute)
 			return false;
 		}
 	}

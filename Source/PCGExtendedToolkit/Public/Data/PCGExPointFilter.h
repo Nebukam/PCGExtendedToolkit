@@ -74,7 +74,7 @@ namespace PCGExPointFilter
 	const FName OutputInsideFiltersLabel = FName("Inside");
 	const FName OutputOutsideFiltersLabel = FName("Outside");
 
-	class /*PCGEXTENDEDTOOLKIT_API*/ FFilter
+	class /*PCGEXTENDEDTOOLKIT_API*/ FFilter : public TSharedFromThis<FFilter>
 	{
 	public:
 		explicit FFilter(const TObjectPtr<const UPCGExFilterFactoryData>& InFactory):

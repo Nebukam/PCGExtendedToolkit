@@ -10,7 +10,7 @@ bool FPCGExInfluenceDetails::Init(const FPCGContext* InContext, const TSharedRef
 		InfluenceBuffer = InPointDataFacade->GetBroadcaster<double>(LocalInfluence);
 		if (!InfluenceBuffer)
 		{
-			PCGE_LOG_C(Error, GraphAndLog, InContext, FText::Format(FTEXT("Invalid Influence attribute: \"{0}\"."), FText::FromName(LocalInfluence.GetName())));
+			PCGEX_LOG_INVALID_SELECTOR_C(InContext, "Influence", LocalInfluence)
 			return false;
 		}
 	}

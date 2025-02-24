@@ -72,7 +72,7 @@ bool PCGExPointFilter::FDistanceFilter::Init(FPCGExContext* InContext, const TSh
 
 		if (!DistanceThresholdGetter)
 		{
-			PCGE_LOG_C(Error, GraphAndLog, InContext, FText::Format(FTEXT("Invalid Distance Threshold attribute: \"{0}\"."), FText::FromName(TypedFilterFactory->Config.DistanceThreshold.GetName())));
+			PCGEX_LOG_INVALID_SELECTOR_C(InContext, "Distance Threshold", TypedFilterFactory->Config.DistanceThreshold)
 			return false;
 		}
 	}

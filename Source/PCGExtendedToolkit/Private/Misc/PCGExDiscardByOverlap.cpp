@@ -338,7 +338,7 @@ namespace PCGExDiscardByOverlap
 					}
 				};
 		}
-		
+
 		BoundsPreparationTask->StartSubLoops(NumPoints, PrimaryFilters ? GetDefault<UPCGExGlobalSettings>()->GetPointsBatchChunkSize() : 1024, true);
 
 		return true;
@@ -347,7 +347,7 @@ namespace PCGExDiscardByOverlap
 	void FProcessor::ProcessSingleRangeIteration(const int32 Iteration, const PCGExMT::FScope& Scope)
 	{
 		// For each managed overlap, find per-point intersections
-		
+
 		const TSharedPtr<FOverlap> ManagedOverlap = ManagedOverlaps[Iteration];
 		const TSharedRef<FProcessor> OtherProcessor = StaticCastSharedRef<FProcessor>(*ParentBatch.Pin()->SubProcessorMap->Find(&ManagedOverlap->GetOther(this)->PointDataFacade->Source.Get()));
 
@@ -420,7 +420,7 @@ namespace PCGExDiscardByOverlap
 	void FProcessor::CompleteWork()
 	{
 		// 2 - Find overlaps between large bounds, we'll be searching only there.
-		
+
 		PCGEX_ASYNC_GROUP_CHKD_VOID(AsyncManager, PreparationTask)
 		PreparationTask->OnCompleteCallback =
 			[PCGEX_ASYNC_THIS_CAPTURE]()
@@ -438,7 +438,7 @@ namespace PCGExDiscardByOverlap
 				else
 				{
 					// Require one more expensive step...
-					if(!This->ManagedOverlaps.IsEmpty())
+					if (!This->ManagedOverlaps.IsEmpty())
 					{
 						This->StartParallelLoopForRange(This->ManagedOverlaps.Num(), 8);
 					}
@@ -466,7 +466,7 @@ namespace PCGExDiscardByOverlap
 	}
 
 	void FProcessor::Write()
-	{		
+	{
 		ManagedOverlaps.Empty();
 
 		// Sanitize stats & overlaps

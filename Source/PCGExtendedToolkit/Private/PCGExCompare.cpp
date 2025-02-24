@@ -245,7 +245,7 @@ bool FPCGExVectorHashComparisonDetails::Init(const FPCGContext* InContext, const
 		LocalOperand = InPrimaryDataFacade->GetBroadcaster<double>(HashToleranceAttribute);
 		if (!LocalOperand)
 		{
-			PCGE_LOG_C(Error, GraphAndLog, InContext, FText::Format(FTEXT("Invalid Hash Tolerance attribute: \"{0}\"."), FText::FromName(HashToleranceAttribute.GetName())));
+			PCGEX_LOG_INVALID_SELECTOR_C(InContext, "Hash Tolerance", HashToleranceAttribute)
 			return false;
 		}
 	}
@@ -268,7 +268,7 @@ bool FPCGExDotComparisonDetails::Init(const FPCGContext* InContext, const TShare
 		ThresholdGetter = InPrimaryDataCache->GetBroadcaster<double>(ThresholdAttribute);
 		if (!ThresholdGetter)
 		{
-			PCGE_LOG_C(Error, GraphAndLog, InContext, FText::Format(FTEXT("Invalid Dot attribute: \"{0}\"."), FText::FromName(ThresholdAttribute.GetName())));
+			PCGEX_LOG_INVALID_SELECTOR_C(InContext, "Dot Threshold", ThresholdAttribute)
 			return false;
 		}
 	}

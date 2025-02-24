@@ -6,43 +6,51 @@
 
 namespace PCGExMath
 {
-	FClosestLocation::FClosestLocation(const FVector& InOrigin)
+	FClosestPosition::FClosestPosition(const FVector& InOrigin)
 		: Origin(InOrigin)
 	{
 	}
 
-	FClosestLocation::FClosestLocation(const FVector& InOrigin, const FVector& InClosest)
-		: bValid(true), Origin(InOrigin), ClosestLocation(InClosest), ClosestDist(FVector::DistSquared(InOrigin, InClosest))
+	FClosestPosition::FClosestPosition(const FVector& InOrigin, const FVector& InLocation)
+		: bValid(true), Origin(InOrigin), Location(InLocation), DistSquared(FVector::DistSquared(InOrigin, InLocation))
 	{
 	}
 
-	FClosestLocation::FClosestLocation(const FVector& InOrigin, const FVector& InClosest, const int32 InIndex)
-		: bValid(true), Index(InIndex), Origin(InOrigin), ClosestLocation(InClosest), ClosestDist(FVector::DistSquared(InOrigin, InClosest))
+	FClosestPosition::FClosestPosition(const FVector& InOrigin, const FVector& InLocation, const int32 InIndex)
+		: bValid(true), Index(InIndex), Origin(InOrigin), Location(InLocation), DistSquared(FVector::DistSquared(InOrigin, InLocation))
 	{
 	}
 
-	bool FClosestLocation::Push(const FVector& Location)
+	bool FClosestPosition::Update(const FVector& InLocation)
 	{
-		if (const double Dist = FVector::DistSquared(Origin, Location); Dist < ClosestDist)
+		if (const double Dist = FVector::DistSquared(Origin, InLocation); Dist < DistSquared)
 		{
 			bValid = true;
-			ClosestDist = Dist;
-			ClosestLocation = Location;
+			DistSquared = Dist;
+			Location = InLocation;
 			return true;
 		}
 
 		return false;
 	}
 
-	bool FClosestLocation::Push(const FVector& Location, const int32 InIndex)
+	bool FClosestPosition::Update(const FVector& InLocation, const int32 InIndex)
 	{
-		if (Push(Location))
+		if (Update(InLocation))
 		{
 			Index = InIndex;
 			return true;
 		}
 
 		return false;
+	}
+
+	FSegment::FSegment(const FVector& InA, const FVector& InB, const double Expansion)
+		: A(InA), B(InB), Direction((B - A).GetSafeNormal())
+	{
+		Bounds += A;
+		Bounds += B;
+		Bounds = Bounds.ExpandBy(Expansion);
 	}
 
 	FBox GetLocalBounds(const FPCGPoint& Point, const EPCGExPointBoundsSource Source)

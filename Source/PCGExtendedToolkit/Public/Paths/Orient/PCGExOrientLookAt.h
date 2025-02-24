@@ -5,7 +5,7 @@
 
 #include "CoreMinimal.h"
 #include "PCGExOrientOperation.h"
-#include "PCGExOrientLookAtMode.generated.h"
+#include "PCGExOrientLookAt.generated.h"
 
 UENUM()
 enum class EPCGExOrientLookAtMode : uint8

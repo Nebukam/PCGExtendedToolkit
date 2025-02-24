@@ -64,7 +64,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExTensorHandlerDetails
 	/** Start Offset Attribute (Vector 2 expected)*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName=" └─ Size (Attr)", EditCondition="bNormalize && SizeInput!=EPCGExInputValueType::Constant", EditConditionHides))
 	FPCGAttributePropertyInputSelector SizeAttribute;
-	
+
 	/** Constant size applied after normalization. This will be scaled */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName = " └─ Size", EditCondition="bNormalize && SizeInput==EPCGExInputValueType::Constant", EditConditionHides))
 	double SizeConstant = 1;
