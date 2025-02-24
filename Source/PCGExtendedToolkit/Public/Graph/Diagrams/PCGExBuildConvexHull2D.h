@@ -15,7 +15,7 @@
  * 
  */
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Clusters")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExBuildConvexHull2DSettings : public UPCGExPointsProcessorSettings
+class UPCGExBuildConvexHull2DSettings : public UPCGExPointsProcessorSettings
 {
 	GENERATED_BODY()
 
@@ -48,7 +48,7 @@ private:
 	friend class FPCGExBuildConvexHull2DElement;
 };
 
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExBuildConvexHull2DContext final : FPCGExPointsProcessorContext
+struct FPCGExBuildConvexHull2DContext final : FPCGExPointsProcessorContext
 {
 	friend class FPCGExBuildConvexHull2DElement;
 
@@ -57,8 +57,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExBuildConvexHull2DContext final : FPCGExP
 	void BuildPath(const PCGExGraph::FGraphBuilder* GraphBuilder) const;
 };
 
-
-class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExBuildConvexHull2DElement final : public FPCGExPointsProcessorElement
+class FPCGExBuildConvexHull2DElement final : public FPCGExPointsProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(

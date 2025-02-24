@@ -15,7 +15,7 @@ MACRO(EdgeLength, double)
 
 
 USTRUCT(BlueprintType)
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExDebugAttributeToProperty
+struct FPCGExDebugAttributeToProperty
 {
 	GENERATED_BODY()
 
@@ -102,7 +102,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExDebugAttributeToProperty
 };
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Debug")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExPackAttributesToPropertiesSettings : public UPCGExPointsProcessorSettings
+class UPCGExPackAttributesToPropertiesSettings : public UPCGExPointsProcessorSettings
 {
 	GENERATED_BODY()
 
@@ -135,12 +135,12 @@ private:
 	friend class FPCGExPackAttributesToPropertiesElement;
 };
 
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPackAttributesToPropertiesContext final : FPCGExPointsProcessorContext
+struct FPCGExPackAttributesToPropertiesContext final : FPCGExPointsProcessorContext
 {
 	friend class FPCGExPackAttributesToPropertiesElement;
 };
 
-class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPackAttributesToPropertiesElement final : public FPCGExPointsProcessorElement
+class FPCGExPackAttributesToPropertiesElement final : public FPCGExPointsProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(

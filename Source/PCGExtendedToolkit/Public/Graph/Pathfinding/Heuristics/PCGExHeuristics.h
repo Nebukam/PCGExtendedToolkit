@@ -21,7 +21,7 @@ enum class EPCGExHeuristicScoreMode : uint8
 
 namespace PCGExHeuristics
 {
-	class /*PCGEXTENDEDTOOLKIT_API*/ FLocalFeedbackHandler : public TSharedFromThis<FLocalFeedbackHandler>
+	class PCGEXTENDEDTOOLKIT_API FLocalFeedbackHandler : public TSharedFromThis<FLocalFeedbackHandler>
 	{
 	public:
 		FPCGExContext* ExecutionContext = nullptr;
@@ -76,7 +76,7 @@ namespace PCGExHeuristics
 		}
 	};
 
-	class /*PCGEXTENDEDTOOLKIT_API*/ FHeuristicsHandler : public TSharedFromThis<FHeuristicsHandler>
+	class PCGEXTENDEDTOOLKIT_API FHeuristicsHandler : public TSharedFromThis<FHeuristicsHandler>
 	{
 		FPCGExContext* ExecutionContext = nullptr;
 		bool bIsValidHandler = false;

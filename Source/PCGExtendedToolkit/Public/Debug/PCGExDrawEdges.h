@@ -18,7 +18,7 @@ namespace PCGExDataBlending
 }
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Clusters", Hidden)
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExDrawEdgesSettings : public UPCGExEdgesProcessorSettings
+class UPCGExDrawEdgesSettings : public UPCGExEdgesProcessorSettings
 {
 	GENERATED_BODY()
 
@@ -67,7 +67,7 @@ private:
 	friend class FPCGExDrawEdgesElement;
 };
 
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExDrawEdgesContext final : FPCGExEdgesProcessorContext
+struct FPCGExDrawEdgesContext final : FPCGExEdgesProcessorContext
 {
 	friend class FPCGExDrawEdgesElement;
 
@@ -75,7 +75,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExDrawEdgesContext final : FPCGExEdgesProc
 	double CurrentLerp = 0;
 };
 
-class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExDrawEdgesElement final : public FPCGExEdgesProcessorElement
+class FPCGExDrawEdgesElement final : public FPCGExEdgesProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(

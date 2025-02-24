@@ -25,7 +25,7 @@ enum class EPCGExMetaFilterMode : uint8
 //
 
 UCLASS(Hidden, MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExMetaFilterSettings : public UPCGExPointsProcessorSettings
+class UPCGExMetaFilterSettings : public UPCGExPointsProcessorSettings
 {
 	GENERATED_BODY()
 
@@ -62,7 +62,7 @@ public:
 	bool bSwap = false;
 };
 
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExMetaFilterContext final : FPCGExPointsProcessorContext
+struct FPCGExMetaFilterContext final : FPCGExPointsProcessorContext
 {
 	friend class FPCGExMetaFilterElement;
 
@@ -72,7 +72,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExMetaFilterContext final : FPCGExPointsPr
 	TSharedPtr<PCGExData::FPointIOCollection> Outside;
 };
 
-class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExMetaFilterElement final : public FPCGExPointsProcessorElement
+class FPCGExMetaFilterElement final : public FPCGExPointsProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(

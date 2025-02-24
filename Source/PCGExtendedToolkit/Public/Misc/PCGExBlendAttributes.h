@@ -14,7 +14,7 @@
 class UPCGExAttributeBlendFactory;
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExBlendAttributesSettings : public UPCGExPointsProcessorSettings
+class UPCGExBlendAttributesSettings : public UPCGExPointsProcessorSettings
 {
 	GENERATED_BODY()
 
@@ -37,14 +37,14 @@ public:
 	bool bOutputNormalizedIndex = false;
 };
 
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExBlendAttributesContext final : FPCGExPointsProcessorContext
+struct FPCGExBlendAttributesContext final : FPCGExPointsProcessorContext
 {
 	friend class FPCGExBlendAttributesElement;
 
 	TArray<TObjectPtr<const UPCGExAttributeBlendFactory>> BlendingFactories;
 };
 
-class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExBlendAttributesElement final : public FPCGExPointsProcessorElement
+class FPCGExBlendAttributesElement final : public FPCGExPointsProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(

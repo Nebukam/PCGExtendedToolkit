@@ -9,7 +9,7 @@
 
 namespace PCGExCluster
 {
-	class /*PCGEXTENDEDTOOLKIT_API*/ FNodeChain : public TSharedFromThis<FNodeChain>
+	class PCGEXTENDEDTOOLKIT_API FNodeChain : public TSharedFromThis<FNodeChain>
 	{
 	public:
 		FLink Seed;
@@ -34,7 +34,7 @@ namespace PCGExCluster
 		void DumpReduced(const TSharedRef<FCluster>& Cluster, const TSharedPtr<PCGExGraph::FGraph>& Graph, const bool bAddMetadata) const;
 	};
 
-	class /*PCGEXTENDEDTOOLKIT_API*/ FNodeChainBuilder : public TSharedFromThis<FNodeChainBuilder>
+	class PCGEXTENDEDTOOLKIT_API FNodeChainBuilder : public TSharedFromThis<FNodeChainBuilder>
 	{
 	public:
 		TSharedRef<FCluster> Cluster;

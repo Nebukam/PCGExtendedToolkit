@@ -38,7 +38,7 @@ enum class EPCGExResolutionMode : uint8
 };
 
 USTRUCT(BlueprintType)
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExShapeConfigBase
+struct PCGEXTENDEDTOOLKIT_API FPCGExShapeConfigBase
 {
 	GENERATED_BODY()
 
@@ -172,7 +172,7 @@ namespace PCGExShapes
 	const FName OutputShapeBuilderLabel = TEXT("Shape Builder");
 	const FName SourceShapeBuildersLabel = TEXT("Shape Builders");
 
-	class FShape : public TSharedFromThis<FShape>
+	class PCGEXTENDEDTOOLKIT_API FShape : public TSharedFromThis<FShape>
 	{
 	public:
 		virtual ~FShape() = default;

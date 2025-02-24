@@ -14,7 +14,7 @@
 #include "PCGExConstantFilter.generated.h"
 
 USTRUCT(BlueprintType)
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExConstantFilterConfig
+struct FPCGExConstantFilterConfig
 {
 	GENERATED_BODY()
 
@@ -36,7 +36,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExConstantFilterConfig
  * 
  */
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Filter")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExConstantFilterFactory : public UPCGExFilterFactoryData
+class UPCGExConstantFilterFactory : public UPCGExFilterFactoryData
 {
 	GENERATED_BODY()
 
@@ -52,7 +52,7 @@ public:
 
 namespace PCGExPointFilter
 {
-	class /*PCGEXTENDEDTOOLKIT_API*/ FConstantFilter final : public FSimpleFilter
+	class FConstantFilter final : public FSimpleFilter
 	{
 	public:
 		explicit FConstantFilter(const TObjectPtr<const UPCGExConstantFilterFactory>& InDefinition)
@@ -77,7 +77,7 @@ namespace PCGExPointFilter
 ///
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Filter")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExConstantFilterProviderSettings : public UPCGExFilterProviderSettings
+class UPCGExConstantFilterProviderSettings : public UPCGExFilterProviderSettings
 {
 	GENERATED_BODY()
 

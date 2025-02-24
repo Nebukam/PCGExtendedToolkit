@@ -15,7 +15,7 @@ namespace PCGExStaging
 	const FName Tag_CollectionIdx = FName(PCGEx::PCGExPrefix + TEXT("Collection/Idx"));
 	const FName Tag_EntryIdx = FName(PCGEx::PCGExPrefix + TEXT("CollectionEntry"));
 
-	class FPickPacker : public TSharedFromThis<FPickPacker>
+	class PCGEXTENDEDTOOLKIT_API FPickPacker : public TSharedFromThis<FPickPacker>
 	{
 		FPCGExContext* Context = nullptr;
 
@@ -76,7 +76,7 @@ namespace PCGExStaging
 	};
 
 	template <typename C = UPCGExAssetCollection, typename A = FPCGExAssetCollectionEntry>
-	class TPickUnpacker : public TSharedFromThis<TPickUnpacker<C, A>>
+	class PCGEXTENDEDTOOLKIT_API TPickUnpacker : public TSharedFromThis<TPickUnpacker<C, A>>
 	{
 		TMap<uint32, C*> CollectionMap;
 

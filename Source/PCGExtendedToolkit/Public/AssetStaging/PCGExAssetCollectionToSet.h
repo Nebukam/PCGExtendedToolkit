@@ -23,7 +23,7 @@ enum class EPCGExSubCollectionToSet : uint8
 };
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural))
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExAssetCollectionToSetSettings : public UPCGSettings
+class UPCGExAssetCollectionToSetSettings : public UPCGSettings
 {
 	GENERATED_BODY()
 
@@ -130,7 +130,7 @@ protected:
 	FName NestingDepthAttributeName = FName("NestingDepth");
 };
 
-class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExAssetCollectionToSetElement final : public IPCGElement
+class FPCGExAssetCollectionToSetElement final : public IPCGElement
 {
 public:
 	virtual FPCGContext* Initialize(const FPCGDataCollection& InputData, TWeakObjectPtr<UPCGComponent> SourceComponent, const UPCGNode* Node) override;

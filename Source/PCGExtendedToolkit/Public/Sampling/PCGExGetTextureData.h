@@ -33,7 +33,7 @@ enum class EPCGExTextureFilter : uint8
 class UPCGExFilterFactoryData;
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Sampling")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExGetTextureDataSettings : public UPCGExPointsProcessorSettings
+class UPCGExGetTextureDataSettings : public UPCGExPointsProcessorSettings
 {
 	GENERATED_BODY()
 
@@ -113,7 +113,7 @@ public:
 	FBox2D TileBounds = FBox2D(FVector2D(-0.5, -0.5), FVector2D(0.5, 0.5));
 };
 
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExGetTextureDataContext final : FPCGExPointsProcessorContext
+struct FPCGExGetTextureDataContext final : FPCGExPointsProcessorContext
 {
 	FRWLock ReferenceLock;
 	friend class FPCGExGetTextureDataElement;
@@ -132,7 +132,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExGetTextureDataContext final : FPCGExPoin
 	void AdvanceProcessing(const int32 Index);
 };
 
-class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExGetTextureDataElement final : public FPCGExPointsProcessorElement
+class FPCGExGetTextureDataElement final : public FPCGExPointsProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(

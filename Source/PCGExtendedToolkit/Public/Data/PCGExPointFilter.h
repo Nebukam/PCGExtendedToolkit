@@ -40,7 +40,7 @@ namespace PCGExFilters
  * 
  */
 UCLASS(Abstract, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExFilterFactoryData : public UPCGExFactoryData
+class PCGEXTENDEDTOOLKIT_API UPCGExFilterFactoryData : public UPCGExFactoryData
 {
 	GENERATED_BODY()
 
@@ -74,7 +74,7 @@ namespace PCGExPointFilter
 	const FName OutputInsideFiltersLabel = FName("Inside");
 	const FName OutputOutsideFiltersLabel = FName("Outside");
 
-	class /*PCGEXTENDEDTOOLKIT_API*/ FFilter : public TSharedFromThis<FFilter>
+	class PCGEXTENDEDTOOLKIT_API FFilter : public TSharedFromThis<FFilter>
 	{
 	public:
 		explicit FFilter(const TObjectPtr<const UPCGExFilterFactoryData>& InFactory):
@@ -111,7 +111,7 @@ namespace PCGExPointFilter
 		virtual ~FFilter() = default;
 	};
 
-	class /*PCGEXTENDEDTOOLKIT_API*/ FSimpleFilter : public FFilter
+	class PCGEXTENDEDTOOLKIT_API FSimpleFilter : public FFilter
 	{
 	public:
 		explicit FSimpleFilter(const TObjectPtr<const UPCGExFilterFactoryData>& InFactory):
@@ -126,7 +126,7 @@ namespace PCGExPointFilter
 		virtual bool Test(const TSharedPtr<PCGExData::FPointIO>& IO, const TSharedPtr<PCGExData::FPointIOCollection>& ParentCollection) const override;
 	};
 
-	class /*PCGEXTENDEDTOOLKIT_API*/ FCollectionFilter : public FFilter
+	class PCGEXTENDEDTOOLKIT_API FCollectionFilter : public FFilter
 	{
 	public:
 		explicit FCollectionFilter(const TObjectPtr<const UPCGExFilterFactoryData>& InFactory):
@@ -145,7 +145,7 @@ namespace PCGExPointFilter
 		virtual bool Test(const TSharedPtr<PCGExData::FPointIO>& IO, const TSharedPtr<PCGExData::FPointIOCollection>& ParentCollection) const override;
 	};
 
-	class /*PCGEXTENDEDTOOLKIT_API*/ FManager : public TSharedFromThis<FManager>
+	class PCGEXTENDEDTOOLKIT_API FManager : public TSharedFromThis<FManager>
 	{
 	public:
 		explicit FManager(const TSharedRef<PCGExData::FFacade>& InPointDataFacade);
@@ -220,8 +220,8 @@ namespace PCGExPointFilter
 /**
  * 
  */
-UCLASS(Abstract, MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExFilterCollectionFactoryData : public UPCGExFilterFactoryData
+UCLASS(Abstract, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")
+class PCGEXTENDEDTOOLKIT_API UPCGExFilterCollectionFactoryData : public UPCGExFilterFactoryData
 {
 	GENERATED_BODY()
 

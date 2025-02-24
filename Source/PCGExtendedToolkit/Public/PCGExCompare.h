@@ -393,7 +393,7 @@ namespace PCGExCompare
 }
 
 USTRUCT(BlueprintType)
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExComparisonDetails
+struct PCGEXTENDEDTOOLKIT_API FPCGExComparisonDetails
 {
 	GENERATED_BODY()
 
@@ -432,7 +432,7 @@ enum class EPCGExDirectionCheckMode : uint8
 };
 
 USTRUCT(BlueprintType)
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExVectorHashComparisonDetails
+struct PCGEXTENDEDTOOLKIT_API FPCGExVectorHashComparisonDetails
 {
 	GENERATED_BODY()
 
@@ -462,7 +462,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExVectorHashComparisonDetails
 };
 
 USTRUCT(BlueprintType)
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExDotComparisonDetails
+struct PCGEXTENDEDTOOLKIT_API FPCGExDotComparisonDetails
 {
 	GENERATED_BODY()
 
@@ -520,7 +520,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExDotComparisonDetails
 };
 
 USTRUCT(BlueprintType)
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExAttributeToTagComparisonDetails
+struct PCGEXTENDEDTOOLKIT_API FPCGExAttributeToTagComparisonDetails
 {
 	GENERATED_BODY()
 
@@ -810,7 +810,7 @@ using EPCGExBitmask8_56_64Bitmask = TEnumAsByte<EPCGExBitmask8_56_64>;
 #pragma endregion
 
 USTRUCT(BlueprintType)
-struct /*PCGEXTENDEDTOOLKIT_API*/ FClampedBit
+struct PCGEXTENDEDTOOLKIT_API FClampedBit
 {
 	GENERATED_BODY()
 
@@ -831,7 +831,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FClampedBit
 };
 
 USTRUCT(BlueprintType)
-struct /*PCGEXTENDEDTOOLKIT_API*/ FClampedBitOp
+struct PCGEXTENDEDTOOLKIT_API FClampedBitOp
 {
 	GENERATED_BODY()
 
@@ -855,7 +855,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FClampedBitOp
 };
 
 USTRUCT(BlueprintType)
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExBitmask
+struct PCGEXTENDEDTOOLKIT_API FPCGExBitmask
 {
 	GENERATED_BODY()
 
@@ -901,7 +901,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExBitmask
 };
 
 USTRUCT(BlueprintType)
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExBitmaskWithOperation
+struct PCGEXTENDEDTOOLKIT_API FPCGExBitmaskWithOperation
 {
 	GENERATED_BODY()
 

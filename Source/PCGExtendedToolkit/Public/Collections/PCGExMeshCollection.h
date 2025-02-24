@@ -23,7 +23,7 @@ enum class EPCGExMaterialVariantsMode : uint8
 };
 
 USTRUCT(BlueprintType, DisplayName="[PCGEx] Material Override Entry")
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExMaterialOverrideEntry
+struct PCGEXTENDEDTOOLKIT_API FPCGExMaterialOverrideEntry
 {
 	GENERATED_BODY()
 
@@ -38,7 +38,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExMaterialOverrideEntry
 };
 
 USTRUCT(BlueprintType, DisplayName="[PCGEx] Material Override Collection")
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExMaterialOverrideCollection
+struct PCGEXTENDEDTOOLKIT_API FPCGExMaterialOverrideCollection
 {
 	GENERATED_BODY()
 
@@ -65,7 +65,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExMaterialOverrideCollection
 };
 
 USTRUCT(BlueprintType, DisplayName="[PCGEx] Material Override Single Entry")
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExMaterialOverrideSingleEntry
+struct PCGEXTENDEDTOOLKIT_API FPCGExMaterialOverrideSingleEntry
 {
 	GENERATED_BODY()
 
@@ -87,7 +87,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExMaterialOverrideSingleEntry
 };
 
 USTRUCT(BlueprintType, DisplayName="[PCGEx] Mesh Collection Entry")
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExMeshCollectionEntry : public FPCGExAssetCollectionEntry
+struct PCGEXTENDEDTOOLKIT_API FPCGExMeshCollectionEntry : public FPCGExAssetCollectionEntry
 {
 	GENERATED_BODY()
 
@@ -166,7 +166,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExMeshCollectionEntry : public FPCGExAsset
 };
 
 UCLASS(BlueprintType, DisplayName="[PCGEx] Mesh Collection")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExMeshCollection : public UPCGExAssetCollection
+class PCGEXTENDEDTOOLKIT_API UPCGExMeshCollection : public UPCGExAssetCollection
 {
 	GENERATED_BODY()
 

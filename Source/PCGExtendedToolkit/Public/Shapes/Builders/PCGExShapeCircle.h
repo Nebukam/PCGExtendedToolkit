@@ -11,7 +11,7 @@
 #include "PCGExShapeCircle.generated.h"
 
 USTRUCT(BlueprintType)
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExShapeCircleConfig : public FPCGExShapeConfigBase
+struct FPCGExShapeCircleConfig : public FPCGExShapeConfigBase
 {
 	GENERATED_BODY()
 
@@ -67,7 +67,7 @@ namespace PCGExShapes
  * 
  */
 UCLASS(MinimalAPI)
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExShapeCircleBuilder : public UPCGExShapeBuilderOperation
+class UPCGExShapeCircleBuilder : public UPCGExShapeBuilderOperation
 {
 	GENERATED_BODY()
 
@@ -92,7 +92,7 @@ protected:
 
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExShapeCircleFactory : public UPCGExShapeBuilderFactoryData
+class UPCGExShapeCircleFactory : public UPCGExShapeBuilderFactoryData
 {
 	GENERATED_BODY()
 
@@ -104,7 +104,7 @@ public:
 };
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Builder|Params")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExCreateShapeCircleSettings : public UPCGExShapeBuilderFactoryProviderSettings
+class UPCGExCreateShapeCircleSettings : public UPCGExShapeBuilderFactoryProviderSettings
 {
 	GENERATED_BODY()
 

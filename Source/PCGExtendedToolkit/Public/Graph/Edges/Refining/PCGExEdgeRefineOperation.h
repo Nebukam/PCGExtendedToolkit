@@ -14,7 +14,7 @@
  * 
  */
 UCLASS(Abstract)
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExEdgeRefineOperation : public UPCGExOperation
+class UPCGExEdgeRefineOperation : public UPCGExOperation
 {
 	GENERATED_BODY()
 

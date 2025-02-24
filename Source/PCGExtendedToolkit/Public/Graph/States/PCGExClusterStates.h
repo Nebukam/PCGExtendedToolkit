@@ -20,7 +20,7 @@ namespace PCGExNodeFlags
 }
 
 USTRUCT(BlueprintType)
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExClusterStateConfigBase : public FPCGExStateConfigBase
+struct PCGEXTENDEDTOOLKIT_API FPCGExClusterStateConfigBase : public FPCGExStateConfigBase
 {
 	GENERATED_BODY()
 
@@ -33,7 +33,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExClusterStateConfigBase : public FPCGExSt
  * 
  */
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExClusterStateFactoryData : public UPCGExClusterFilterFactoryData
+class PCGEXTENDEDTOOLKIT_API UPCGExClusterStateFactoryData : public UPCGExClusterFilterFactoryData
 {
 	GENERATED_BODY()
 
@@ -53,7 +53,7 @@ public:
 
 namespace PCGExClusterStates
 {
-	class /*PCGEXTENDEDTOOLKIT_API*/ FState final : public PCGExClusterFilter::FFilter
+	class PCGEXTENDEDTOOLKIT_API FState final : public PCGExClusterFilter::FFilter
 	{
 	public:
 		FPCGExClusterStateConfigBase Config;
@@ -80,7 +80,7 @@ namespace PCGExClusterStates
 		TSharedPtr<PCGExClusterFilter::FManager> Manager;
 	};
 
-	class /*PCGEXTENDEDTOOLKIT_API*/ FStateManager final : public PCGExClusterFilter::FManager
+	class PCGEXTENDEDTOOLKIT_API FStateManager final : public PCGExClusterFilter::FManager
 	{
 		TArray<TSharedPtr<FState>> States;
 		TSharedPtr<TArray<int64>> FlagsCache;
@@ -119,7 +119,7 @@ namespace PCGExClusterStates
 };
 
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Graph|Params")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExClusterStateFactoryProviderSettings : public UPCGExFactoryProviderSettings
+class PCGEXTENDEDTOOLKIT_API UPCGExClusterStateFactoryProviderSettings : public UPCGExFactoryProviderSettings
 {
 	GENERATED_BODY()
 

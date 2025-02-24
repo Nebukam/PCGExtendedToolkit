@@ -17,7 +17,7 @@
  * 
  */
 UCLASS(MinimalAPI, DisplayName = "RK4", meta=(DisplayName = "RK4", ToolTip ="Samples the field using Runge-Kutta 4 method"))
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExTensorSamplerRK4 : public UPCGExTensorSampler
+class UPCGExTensorSamplerRK4 : public UPCGExTensorSampler
 {
 	GENERATED_BODY()
 

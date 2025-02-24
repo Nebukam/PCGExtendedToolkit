@@ -27,8 +27,8 @@ namespace PCGExPointFilter
 /**
  * 
  */
-UCLASS(Abstract, MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExClusterFilterFactoryData : public UPCGExFilterFactoryData
+UCLASS(Abstract, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")
+class PCGEXTENDEDTOOLKIT_API UPCGExClusterFilterFactoryData : public UPCGExFilterFactoryData
 {
 	GENERATED_BODY()
 
@@ -39,8 +39,8 @@ public:
 /**
  * 
  */
-UCLASS(Abstract, MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExNodeFilterFactoryData : public UPCGExClusterFilterFactoryData
+UCLASS(Abstract, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")
+class PCGEXTENDEDTOOLKIT_API UPCGExNodeFilterFactoryData : public UPCGExClusterFilterFactoryData
 {
 	GENERATED_BODY()
 
@@ -51,8 +51,8 @@ public:
 /**
  * 
  */
-UCLASS(Abstract, MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExEdgeFilterFactoryData : public UPCGExClusterFilterFactoryData
+UCLASS(Abstract, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")
+class PCGEXTENDEDTOOLKIT_API UPCGExEdgeFilterFactoryData : public UPCGExClusterFilterFactoryData
 {
 	GENERATED_BODY()
 
@@ -62,7 +62,7 @@ public:
 
 namespace PCGExClusterFilter
 {
-	class /*PCGEXTENDEDTOOLKIT_API*/ FFilter : public PCGExPointFilter::FFilter
+	class PCGEXTENDEDTOOLKIT_API FFilter : public PCGExPointFilter::FFilter
 	{
 	public:
 		explicit FFilter(const TObjectPtr<const UPCGExClusterFilterFactoryData>& InFactory):
@@ -81,10 +81,10 @@ namespace PCGExClusterFilter
 		virtual void PostInit() override;
 	};
 
-	class /*PCGEXTENDEDTOOLKIT_API*/ TNodeFilter : public FFilter
+	class PCGEXTENDEDTOOLKIT_API TVtxFilter : public FFilter
 	{
 	public:
-		explicit TNodeFilter(const TObjectPtr<const UPCGExClusterFilterFactoryData>& InFactory):
+		explicit TVtxFilter(const TObjectPtr<const UPCGExClusterFilterFactoryData>& InFactory):
 			FFilter(InFactory)
 		{
 		}

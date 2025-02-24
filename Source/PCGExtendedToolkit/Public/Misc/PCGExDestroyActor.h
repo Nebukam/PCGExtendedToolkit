@@ -13,7 +13,7 @@
 #include "PCGExDestroyActor.generated.h"
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Sampling")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExDestroyActorSettings : public UPCGExPointsProcessorSettings
+class UPCGExDestroyActorSettings : public UPCGExPointsProcessorSettings
 {
 	GENERATED_BODY()
 
@@ -43,12 +43,12 @@ public:
 	FName ActorReferenceAttribute = FName(TEXT("ActorReference"));
 };
 
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExDestroyActorContext final : FPCGExPointsProcessorContext
+struct FPCGExDestroyActorContext final : FPCGExPointsProcessorContext
 {
 	friend class FPCGExDestroyActorElement;
 };
 
-class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExDestroyActorElement final : public FPCGExPointsProcessorElement
+class FPCGExDestroyActorElement final : public FPCGExPointsProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(

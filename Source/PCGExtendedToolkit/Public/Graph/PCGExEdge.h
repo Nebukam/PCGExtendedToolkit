@@ -62,7 +62,7 @@ namespace PCGExGraph
 		return HashCombineFast(A == 0 ? B : A, Index);
 	}
 
-	struct FLink
+	struct PCGEXTENDEDTOOLKIT_API FLink
 	{
 		int32 Node = -1;
 		int32 Edge = -1;
@@ -83,7 +83,7 @@ namespace PCGExGraph
 		FORCEINLINE friend uint32 GetTypeHash(const FLink& Key) { return HashCombineFast(Key.Node, Key.Edge); }
 	};
 
-	struct /*PCGEXTENDEDTOOLKIT_API*/ FEdge
+	struct PCGEXTENDEDTOOLKIT_API FEdge
 	{
 		uint32 Start = 0;
 		uint32 End = 0;

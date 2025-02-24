@@ -35,7 +35,7 @@ namespace PCGEx
 }
 
 #if PCGEX_ENGINE_VERSION < 505
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGContextHandle : public TSharedFromThis<FPCGContextHandle>
+struct PCGEXTENDEDTOOLKIT_API FPCGContextHandle : public TSharedFromThis<FPCGContextHandle>
 {
 public:
 	FPCGContextHandle(FPCGContext* InContext)
@@ -50,7 +50,7 @@ private:
 };
 #endif
 
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExContext : FPCGContext
+struct PCGEXTENDEDTOOLKIT_API FPCGExContext : FPCGContext
 {
 protected:
 	TSharedPtr<PCGEx::FWorkPermit> WorkPermit;

@@ -39,7 +39,7 @@ enum class EPCGExPathSplitInitialValue : uint8
  * 
  */
 UCLASS()
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExSplitPathSettings : public UPCGExPathProcessorSettings
+class UPCGExSplitPathSettings : public UPCGExPathProcessorSettings
 {
 	GENERATED_BODY()
 
@@ -106,14 +106,14 @@ public:
 	FString IsOddTag = TEXT("OddSplit");
 };
 
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExSplitPathContext final : FPCGExPathProcessorContext
+struct FPCGExSplitPathContext final : FPCGExPathProcessorContext
 {
 	friend class FPCGExSplitPathElement;
 
 	FPCGExPathClosedLoopUpdateDetails UpdateTags;
 };
 
-class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExSplitPathElement final : public FPCGExPathProcessorElement
+class FPCGExSplitPathElement final : public FPCGExPathProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(
@@ -128,7 +128,7 @@ protected:
 
 namespace PCGExSplitPath
 {
-	struct /*PCGEXTENDEDTOOLKIT_API*/ FPath
+	struct PCGEXTENDEDTOOLKIT_API FPath
 	{
 		bool bEven = false;
 		int32 Start = -1;

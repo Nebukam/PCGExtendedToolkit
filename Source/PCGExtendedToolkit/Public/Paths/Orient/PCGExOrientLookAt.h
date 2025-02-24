@@ -20,7 +20,7 @@ enum class EPCGExOrientLookAtMode : uint8
  * 
  */
 UCLASS(MinimalAPI, DisplayName = "Look At")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExOrientLookAt : public UPCGExOrientOperation
+class UPCGExOrientLookAt : public UPCGExOrientOperation
 {
 	GENERATED_BODY()
 

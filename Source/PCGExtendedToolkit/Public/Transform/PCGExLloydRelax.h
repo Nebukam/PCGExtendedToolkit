@@ -16,7 +16,7 @@
  * 
  */
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExLloydRelaxSettings : public UPCGExPointsProcessorSettings
+class UPCGExLloydRelaxSettings : public UPCGExPointsProcessorSettings
 {
 	GENERATED_BODY()
 
@@ -41,12 +41,12 @@ public:
 	FPCGExInfluenceDetails InfluenceDetails;
 };
 
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExLloydRelaxContext final : FPCGExPointsProcessorContext
+struct FPCGExLloydRelaxContext final : FPCGExPointsProcessorContext
 {
 	friend class FPCGExLloydRelaxElement;
 };
 
-class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExLloydRelaxElement final : public FPCGExPointsProcessorElement
+class FPCGExLloydRelaxElement final : public FPCGExPointsProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(
@@ -79,7 +79,7 @@ namespace PCGExLloydRelax
 		virtual void CompleteWork() override;
 	};
 
-	class /*PCGEXTENDEDTOOLKIT_API*/ FLloydRelaxTask final : public PCGExMT::FPCGExIndexedTask
+	class FLloydRelaxTask final : public PCGExMT::FPCGExIndexedTask
 	{
 	public:
 		FLloydRelaxTask(const int32 InTaskIndex,

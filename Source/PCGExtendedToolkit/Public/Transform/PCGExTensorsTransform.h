@@ -36,7 +36,7 @@ enum class EPCGExTensorTransformMode : uint8
 };
 
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExTensorsTransformSettings : public UPCGExPointsProcessorSettings
+class UPCGExTensorsTransformSettings : public UPCGExPointsProcessorSettings
 {
 	GENERATED_BODY()
 
@@ -129,7 +129,7 @@ private:
 	friend class FPCGExTensorsTransformElement;
 };
 
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExTensorsTransformContext final : FPCGExPointsProcessorContext
+struct FPCGExTensorsTransformContext final : FPCGExPointsProcessorContext
 {
 	friend class FPCGExTensorsTransformElement;
 
@@ -139,7 +139,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExTensorsTransformContext final : FPCGExPo
 	PCGEX_FOREACH_FIELD_TRTENSOR(PCGEX_OUTPUT_DECL_TOGGLE)
 };
 
-class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExTensorsTransformElement final : public FPCGExPointsProcessorElement
+class FPCGExTensorsTransformElement final : public FPCGExPointsProcessorElement
 {
 	virtual FPCGContext* Initialize(
 		const FPCGDataCollection& InputData,

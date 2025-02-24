@@ -19,7 +19,7 @@
 
 namespace PCGExFuse
 {
-	struct /*PCGEXTENDEDTOOLKIT_API*/ FFusedPoint
+	struct FFusedPoint
 	{
 		mutable FRWLock IndicesLock;
 		int32 Index = -1;
@@ -36,7 +36,7 @@ namespace PCGExFuse
 }
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExFusePointsSettings : public UPCGExPointsProcessorSettings
+class UPCGExFusePointsSettings : public UPCGExPointsProcessorSettings
 {
 	GENERATED_BODY()
 
@@ -72,14 +72,14 @@ private:
 	friend class FPCGExFusePointsElement;
 };
 
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExFusePointsContext final : FPCGExPointsProcessorContext
+struct FPCGExFusePointsContext final : FPCGExPointsProcessorContext
 {
 	friend class FPCGExFusePointsElement;
 	TSharedPtr<PCGExDetails::FDistances> Distances;
 	FPCGExCarryOverDetails CarryOverDetails;
 };
 
-class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExFusePointsElement final : public FPCGExPointsProcessorElement
+class FPCGExFusePointsElement final : public FPCGExPointsProcessorElement
 {
 	virtual FPCGContext* Initialize(
 		const FPCGDataCollection& InputData,

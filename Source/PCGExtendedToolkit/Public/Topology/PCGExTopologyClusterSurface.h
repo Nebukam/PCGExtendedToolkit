@@ -11,7 +11,7 @@
 #include "PCGExTopologyClusterSurface.generated.h"
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Clusters")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExTopologyClusterSurfaceSettings : public UPCGExTopologyEdgesProcessorSettings
+class UPCGExTopologyClusterSurfaceSettings : public UPCGExTopologyEdgesProcessorSettings
 {
 	GENERATED_BODY()
 
@@ -29,12 +29,12 @@ private:
 	friend class FPCGExTopologyEdgesProcessorElement;
 };
 
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExTopologyClusterSurfaceContext final : FPCGExTopologyEdgesProcessorContext
+struct FPCGExTopologyClusterSurfaceContext final : FPCGExTopologyEdgesProcessorContext
 {
 	friend class FPCGExTopologyClusterSurfaceElement;
 };
 
-class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExTopologyClusterSurfaceElement final : public FPCGExTopologyEdgesProcessorElement
+class FPCGExTopologyClusterSurfaceElement final : public FPCGExTopologyEdgesProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(

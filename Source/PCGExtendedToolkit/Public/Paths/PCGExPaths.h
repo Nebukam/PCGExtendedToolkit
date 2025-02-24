@@ -53,7 +53,7 @@ enum class EPCGExSplineMeshUpMode : uint8
 };
 
 USTRUCT(BlueprintType)
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPathOutputDetails
+struct PCGEXTENDEDTOOLKIT_API FPCGExPathOutputDetails
 {
 	GENERATED_BODY()
 
@@ -79,7 +79,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPathOutputDetails
 };
 
 USTRUCT(BlueprintType)
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPathClosedLoopDetails
+struct PCGEXTENDEDTOOLKIT_API FPCGExPathClosedLoopDetails
 {
 	GENERATED_BODY()
 
@@ -104,7 +104,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPathClosedLoopDetails
 };
 
 USTRUCT(BlueprintType)
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPathClosedLoopUpdateDetails
+struct PCGEXTENDEDTOOLKIT_API FPCGExPathClosedLoopUpdateDetails
 {
 	GENERATED_BODY()
 
@@ -126,7 +126,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPathClosedLoopUpdateDetails
 };
 
 USTRUCT(BlueprintType)
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPathEdgeIntersectionDetails
+struct PCGEXTENDEDTOOLKIT_API FPCGExPathEdgeIntersectionDetails
 {
 	GENERATED_BODY()
 
@@ -180,7 +180,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPathEdgeIntersectionDetails
 };
 
 USTRUCT(BlueprintType)
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPathFilterSettings
+struct PCGEXTENDEDTOOLKIT_API FPCGExPathFilterSettings
 {
 	GENERATED_BODY()
 
@@ -206,13 +206,13 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPathFilterSettings
 };
 
 USTRUCT(BlueprintType)
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPathIntersectionDetails
+struct PCGEXTENDEDTOOLKIT_API FPCGExPathIntersectionDetails
 {
 	GENERATED_BODY()
 
 	FPCGExPathIntersectionDetails() = default;
 	explicit FPCGExPathIntersectionDetails(const double InTolerance, const double InMinAngle, const double InMaxAngle = 90);
-	
+
 	/** Distance at which two edges are considered intersecting. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ClampMin=0))
 	double Tolerance = DBL_INTERSECTION_TOLERANCE;
@@ -261,7 +261,7 @@ namespace PCGExPaths
 	const FName SourceTriggerFilters = TEXT("Trigger Conditions");
 	const FName SourceShiftFilters = TEXT("Shift Conditions");
 
-	struct /*PCGEXTENDEDTOOLKIT_API*/ FPathMetrics
+	struct PCGEXTENDEDTOOLKIT_API FPathMetrics
 	{
 		FPathMetrics() = default;
 		explicit FPathMetrics(const FVector& InStart);
@@ -283,7 +283,7 @@ namespace PCGExPaths
 		bool IsLastWithinRange(const FVector& Location, const double Range) const { return DistToLast(Location) < Range; }
 	};
 
-	struct /*PCGEXTENDEDTOOLKIT_API*/ FMetadata
+	struct PCGEXTENDEDTOOLKIT_API FMetadata
 	{
 		double Position = 0;
 		double TotalLength = 0;
@@ -294,7 +294,7 @@ namespace PCGExPaths
 
 	constexpr FMetadata InvalidMetadata = FMetadata();
 
-	struct /*PCGEXTENDEDTOOLKIT_API*/ FSplineMeshSegment
+	struct PCGEXTENDEDTOOLKIT_API FSplineMeshSegment
 	{
 		FSplineMeshSegment()
 		{
@@ -474,7 +474,7 @@ namespace PCGExPaths
 		{
 			return FindClosestIntersection<Mode>(InDetails, A1, B1);
 		}
-		
+
 		template <PCGExMath::EIntersectionTestMode Mode = PCGExMath::EIntersectionTestMode::Strict>
 		PCGExMath::FClosestPosition FindClosestIntersection(
 			const FPCGExPathIntersectionDetails& InDetails, const PCGExMath::FSegment& Segment,
@@ -774,7 +774,7 @@ namespace PCGExPaths
 			PCGExMath::FClosestPosition LocalIntersection = Paths[i]->FindClosestIntersection<Mode>(InDetails, InSegment, OutClosestPosition);
 
 			if (OutClosestPosition.Index == -2) { OutClosestPosition.Index = i; }
-			
+
 			if (!LocalIntersection) { continue; }
 			if (Intersection.Update(LocalIntersection, LocalIntersection.Index)) { OutPathIndex = i; }
 		}

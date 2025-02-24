@@ -24,7 +24,7 @@ enum class EPCGExUrquhartSiteMergeMode : uint8
  * 
  */
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Clusters")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExBuildDelaunayGraph2DSettings : public UPCGExPointsProcessorSettings
+class UPCGExBuildDelaunayGraph2DSettings : public UPCGExPointsProcessorSettings
 {
 	GENERATED_BODY()
 
@@ -89,15 +89,14 @@ private:
 	friend class FPCGExBuildDelaunayGraph2DElement;
 };
 
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExBuildDelaunayGraph2DContext final : FPCGExPointsProcessorContext
+struct FPCGExBuildDelaunayGraph2DContext final : FPCGExPointsProcessorContext
 {
 	friend class FPCGExBuildDelaunayGraph2DElement;
 
 	TSharedPtr<PCGExData::FPointIOCollection> MainSites;
 };
 
-
-class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExBuildDelaunayGraph2DElement final : public FPCGExPointsProcessorElement
+class FPCGExBuildDelaunayGraph2DElement final : public FPCGExPointsProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(

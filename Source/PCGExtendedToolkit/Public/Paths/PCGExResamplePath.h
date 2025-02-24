@@ -24,7 +24,7 @@ enum class EPCGExResampleMode : uint8
  * 
  */
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Path")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExResamplePathSettings : public UPCGExPathProcessorSettings
+class UPCGExResamplePathSettings : public UPCGExPathProcessorSettings
 {
 	GENERATED_BODY()
 
@@ -64,12 +64,12 @@ public:
 	FPCGExBlendingDetails BlendingSettings = FPCGExBlendingDetails(EPCGExDataBlendingType::Weight, EPCGExDataBlendingType::None);
 };
 
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExResamplePathContext final : FPCGExPathProcessorContext
+struct FPCGExResamplePathContext final : FPCGExPathProcessorContext
 {
 	friend class FPCGExResamplePathElement;
 };
 
-class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExResamplePathElement final : public FPCGExPathProcessorElement
+class FPCGExResamplePathElement final : public FPCGExPathProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(

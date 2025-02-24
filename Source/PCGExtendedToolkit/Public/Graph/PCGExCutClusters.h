@@ -27,7 +27,7 @@ namespace PCGExCutEdges
 }
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Clusters")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExCutEdgesSettings : public UPCGExEdgesProcessorSettings
+class UPCGExCutEdgesSettings : public UPCGExEdgesProcessorSettings
 {
 	GENERATED_BODY()
 
@@ -97,7 +97,7 @@ private:
 	friend class FPCGExCutEdgesElement;
 };
 
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExCutEdgesContext final : FPCGExEdgesProcessorContext
+struct FPCGExCutEdgesContext final : FPCGExEdgesProcessorContext
 {
 	friend class FPCGExCutEdgesElement;
 
@@ -113,7 +113,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExCutEdgesContext final : FPCGExEdgesProce
 	TArray<TSharedRef<PCGExPaths::FPath>> Paths;
 };
 
-class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExCutEdgesElement final : public FPCGExEdgesProcessorElement
+class FPCGExCutEdgesElement final : public FPCGExEdgesProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(

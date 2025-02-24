@@ -19,7 +19,7 @@
 #include "PCGExTensorDotFilter.generated.h"
 
 USTRUCT(BlueprintType)
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExTensorDotFilterConfig
+struct FPCGExTensorDotFilterConfig
 {
 	GENERATED_BODY()
 
@@ -50,7 +50,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExTensorDotFilterConfig
  * 
  */
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Filter")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExTensorDotFilterFactory : public UPCGExFilterFactoryData
+class UPCGExTensorDotFilterFactory : public UPCGExFilterFactoryData
 {
 	GENERATED_BODY()
 
@@ -70,7 +70,7 @@ public:
 
 namespace PCGExPointFilter
 {
-	class /*PCGEXTENDEDTOOLKIT_API*/ FTensorDotFilter final : public FSimpleFilter
+	class FTensorDotFilter final : public FSimpleFilter
 	{
 	public:
 		explicit FTensorDotFilter(const TObjectPtr<const UPCGExTensorDotFilterFactory>& InFactory)
@@ -99,7 +99,7 @@ namespace PCGExPointFilter
 ///
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Filter")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExTensorDotFilterProviderSettings : public UPCGExFilterProviderSettings
+class UPCGExTensorDotFilterProviderSettings : public UPCGExFilterProviderSettings
 {
 	GENERATED_BODY()
 

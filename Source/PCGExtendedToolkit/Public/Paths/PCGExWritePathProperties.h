@@ -41,7 +41,7 @@ MACRO(DirectionToPrev, FVector, FVector::OneVector)
  * 
  */
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Path")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExWritePathPropertiesSettings : public UPCGExPathProcessorSettings
+class UPCGExWritePathPropertiesSettings : public UPCGExPathProcessorSettings
 {
 	GENERATED_BODY()
 
@@ -286,7 +286,7 @@ public:
 	bool WriteAnyPathData() const;
 };
 
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExWritePathPropertiesContext final : FPCGExPathProcessorContext
+struct FPCGExWritePathPropertiesContext final : FPCGExPathProcessorContext
 {
 	friend class FPCGExWritePathPropertiesElement;
 
@@ -297,7 +297,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExWritePathPropertiesContext final : FPCGE
 	TArray<int64> MergedAttributeSetKeys;
 };
 
-class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExWritePathPropertiesElement final : public FPCGExPathProcessorElement
+class FPCGExWritePathPropertiesElement final : public FPCGExPathProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(
@@ -314,7 +314,7 @@ namespace PCGExWritePathProperties
 {
 	const FName OutputPathProperties = TEXT("PathProperties");
 
-	struct /*PCGEXTENDEDTOOLKIT_API*/ FPointDetails
+	struct PCGEXTENDEDTOOLKIT_API FPointDetails
 	{
 		int32 Index;
 		FVector Normal;

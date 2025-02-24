@@ -13,7 +13,7 @@
 #include "PCGExHeuristicInertia.generated.h"
 
 USTRUCT(BlueprintType)
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExHeuristicConfigInertia : public FPCGExHeuristicConfigBase
+struct FPCGExHeuristicConfigInertia : public FPCGExHeuristicConfigBase
 {
 	GENERATED_BODY()
 
@@ -43,7 +43,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExHeuristicConfigInertia : public FPCGExHe
  * 
  */
 UCLASS(MinimalAPI, DisplayName = "Inertia")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExHeuristicInertia : public UPCGExHeuristicOperation
+class UPCGExHeuristicInertia : public UPCGExHeuristicOperation
 {
 	GENERATED_BODY()
 
@@ -76,7 +76,7 @@ protected:
 ////
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExHeuristicsFactoryInertia : public UPCGExHeuristicsFactoryData
+class UPCGExHeuristicsFactoryInertia : public UPCGExHeuristicsFactoryData
 {
 	GENERATED_BODY()
 
@@ -89,7 +89,7 @@ public:
 };
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Graph|Params")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExHeuristicsInertiaProviderSettings : public UPCGExHeuristicsFactoryProviderSettings
+class UPCGExHeuristicsInertiaProviderSettings : public UPCGExHeuristicsFactoryProviderSettings
 {
 	GENERATED_BODY()
 

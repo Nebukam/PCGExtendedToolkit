@@ -16,7 +16,7 @@
 class FPCGExComputeIOBounds;
 
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExBoundsToPointsSettings : public UPCGExPointsProcessorSettings
+class UPCGExBoundsToPointsSettings : public UPCGExPointsProcessorSettings
 {
 	GENERATED_BODY()
 
@@ -68,12 +68,12 @@ private:
 	friend class FPCGExBoundsToPointsElement;
 };
 
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExBoundsToPointsContext final : FPCGExPointsProcessorContext
+struct FPCGExBoundsToPointsContext final : FPCGExPointsProcessorContext
 {
 	friend class FPCGExBoundsToPointsElement;
 };
 
-class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExBoundsToPointsElement final : public FPCGExPointsProcessorElement
+class FPCGExBoundsToPointsElement final : public FPCGExPointsProcessorElement
 {
 	virtual FPCGContext* Initialize(
 		const FPCGDataCollection& InputData,

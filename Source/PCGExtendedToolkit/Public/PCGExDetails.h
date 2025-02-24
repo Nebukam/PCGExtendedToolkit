@@ -40,7 +40,7 @@ enum class EPCGExSubdivideMode : uint8
 
 namespace PCGExDetails
 {
-	class /*PCGEXTENDEDTOOLKIT_API*/ FDistances : public TSharedFromThis<FDistances>
+	class PCGEXTENDEDTOOLKIT_API FDistances : public TSharedFromThis<FDistances>
 	{
 	public:
 		virtual ~FDistances() = default;
@@ -66,7 +66,7 @@ namespace PCGExDetails
 	};
 
 	template <EPCGExDistance Source, EPCGExDistance Target>
-	class /*PCGEXTENDEDTOOLKIT_API*/ TDistances final : public FDistances
+	class PCGEXTENDEDTOOLKIT_API TDistances final : public FDistances
 	{
 	public:
 		TDistances()
@@ -142,7 +142,7 @@ namespace PCGExDetails
 }
 
 USTRUCT(BlueprintType)
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExDistanceDetails
+struct PCGEXTENDEDTOOLKIT_API FPCGExDistanceDetails
 {
 	GENERATED_BODY()
 
@@ -168,7 +168,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExDistanceDetails
 };
 
 USTRUCT(BlueprintType)
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExFuseDetailsBase
+struct PCGEXTENDEDTOOLKIT_API FPCGExFuseDetailsBase
 {
 	GENERATED_BODY()
 
@@ -220,7 +220,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExFuseDetailsBase
 };
 
 USTRUCT(BlueprintType)
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExSourceFuseDetails : public FPCGExFuseDetailsBase
+struct PCGEXTENDEDTOOLKIT_API FPCGExSourceFuseDetails : public FPCGExFuseDetailsBase
 {
 	GENERATED_BODY()
 
@@ -252,7 +252,7 @@ enum class EPCGExFuseMethod : uint8
 };
 
 USTRUCT(BlueprintType)
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExFuseDetails : public FPCGExSourceFuseDetails
+struct PCGEXTENDEDTOOLKIT_API FPCGExFuseDetails : public FPCGExSourceFuseDetails
 {
 	GENERATED_BODY()
 
@@ -324,7 +324,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExFuseDetails : public FPCGExSourceFuseDet
 };
 
 USTRUCT(BlueprintType)
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExCollisionDetails
+struct PCGEXTENDEDTOOLKIT_API FPCGExCollisionDetails
 {
 	GENERATED_BODY()
 

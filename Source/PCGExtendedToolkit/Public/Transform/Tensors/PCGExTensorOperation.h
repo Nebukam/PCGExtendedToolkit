@@ -16,7 +16,7 @@ class UPCGExTensorFactoryData;
  * 
  */
 UCLASS(Abstract)
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExTensorOperation : public UPCGExOperation
+class PCGEXTENDEDTOOLKIT_API UPCGExTensorOperation : public UPCGExOperation
 {
 	GENERATED_BODY()
 
@@ -87,7 +87,7 @@ public:
  * 
  */
 UCLASS(Abstract)
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExTensorPointOperation : public UPCGExTensorOperation
+class PCGEXTENDEDTOOLKIT_API UPCGExTensorPointOperation : public UPCGExTensorOperation
 {
 	GENERATED_BODY()
 

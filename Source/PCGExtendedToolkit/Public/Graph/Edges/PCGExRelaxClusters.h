@@ -19,7 +19,7 @@ MACRO(Direction, FVector, FVector::ZeroVector)\
 MACRO(Amplitude, double, 0)
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Clusters")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExRelaxClustersSettings : public UPCGExEdgesProcessorSettings
+class UPCGExRelaxClustersSettings : public UPCGExEdgesProcessorSettings
 {
 	GENERATED_BODY()
 
@@ -84,7 +84,7 @@ private:
 	friend class FPCGExRelaxClustersElement;
 };
 
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExRelaxClustersContext final : FPCGExEdgesProcessorContext
+struct FPCGExRelaxClustersContext final : FPCGExEdgesProcessorContext
 {
 	friend class FPCGExRelaxClustersElement;
 
@@ -93,7 +93,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExRelaxClustersContext final : FPCGExEdges
 	UPCGExRelaxClusterOperation* Relaxing = nullptr;
 };
 
-class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExRelaxClustersElement final : public FPCGExEdgesProcessorElement
+class FPCGExRelaxClustersElement final : public FPCGExEdgesProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(

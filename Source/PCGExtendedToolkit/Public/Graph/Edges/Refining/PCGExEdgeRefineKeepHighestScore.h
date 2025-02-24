@@ -13,7 +13,7 @@
  * 
  */
 UCLASS(MinimalAPI, BlueprintType, meta=(DisplayName="Keep Highest Score"))
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExEdgeKeepHighestScore : public UPCGExEdgeRefineOperation
+class UPCGExEdgeKeepHighestScore : public UPCGExEdgeRefineOperation
 {
 	GENERATED_BODY()
 

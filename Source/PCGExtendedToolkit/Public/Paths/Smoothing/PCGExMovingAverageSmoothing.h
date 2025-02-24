@@ -13,7 +13,7 @@
  * 
  */
 UCLASS(MinimalAPI, DisplayName = "Moving Average")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExMovingAverageSmoothing : public UPCGExSmoothingOperation
+class UPCGExMovingAverageSmoothing : public UPCGExSmoothingOperation
 {
 	GENERATED_BODY()
 

@@ -32,7 +32,7 @@ namespace PCGExOrient
  * 
  */
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Path")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExOrientSettings : public UPCGExPathProcessorSettings
+class UPCGExOrientSettings : public UPCGExPathProcessorSettings
 {
 	GENERATED_BODY()
 
@@ -84,14 +84,14 @@ public:
 	FName DotAttribute = "Dot";
 };
 
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExOrientContext final : FPCGExPathProcessorContext
+struct FPCGExOrientContext final : FPCGExPathProcessorContext
 {
 	friend class FPCGExOrientElement;
 
 	UPCGExOrientOperation* Orientation;
 };
 
-class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExOrientElement final : public FPCGExPathProcessorElement
+class FPCGExOrientElement final : public FPCGExPathProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(

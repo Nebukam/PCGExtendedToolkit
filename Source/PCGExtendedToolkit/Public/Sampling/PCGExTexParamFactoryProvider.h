@@ -57,7 +57,7 @@ namespace PCGExTexture
 }
 
 USTRUCT(BlueprintType)
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExTextureParamConfig
+struct PCGEXTENDEDTOOLKIT_API FPCGExTextureParamConfig
 {
 	GENERATED_BODY()
 
@@ -110,7 +110,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExTextureParamConfig
 };
 
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExTexParamFactoryData : public UPCGExFactoryData
+class UPCGExTexParamFactoryData : public UPCGExFactoryData
 {
 	GENERATED_BODY()
 
@@ -122,7 +122,7 @@ public:
 };
 
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Sampling")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExTexParamProviderSettings : public UPCGExFactoryProviderSettings
+class UPCGExTexParamProviderSettings : public UPCGExFactoryProviderSettings
 {
 	GENERATED_BODY()
 
@@ -148,7 +148,7 @@ public:
 
 namespace PCGExTexture
 {
-	struct /*PCGEXTENDEDTOOLKIT_API*/ FReference
+	struct PCGEXTENDEDTOOLKIT_API FReference
 	{
 		FSoftObjectPath TexturePath = FSoftObjectPath();
 		int32 TextureIndex = -1;
@@ -168,7 +168,7 @@ namespace PCGExTexture
 		FORCEINLINE friend uint32 GetTypeHash(const FReference& Key) { return HashCombineFast(GetTypeHash(Key.TexturePath), Key.TextureIndex); }
 	};
 
-	class /*PCGEXTENDEDTOOLKIT_API*/ FLookup : public TSharedFromThis<FLookup>
+	class FLookup : public TSharedFromThis<FLookup>
 	{
 		TMap<FString, const UPCGBaseTextureData*> TextureDataMap;
 

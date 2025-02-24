@@ -166,7 +166,7 @@ namespace PCGExAssetCollection
 }
 
 USTRUCT(BlueprintType)
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExAssetDistributionIndexDetails
+struct PCGEXTENDEDTOOLKIT_API FPCGExAssetDistributionIndexDetails
 {
 	GENERATED_BODY()
 
@@ -197,7 +197,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExAssetDistributionIndexDetails
 };
 
 USTRUCT(BlueprintType)
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExAssetTaggingDetails : public FPCGExComponentTaggingDetails
+struct PCGEXTENDEDTOOLKIT_API FPCGExAssetTaggingDetails : public FPCGExComponentTaggingDetails
 {
 	GENERATED_BODY()
 
@@ -210,7 +210,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExAssetTaggingDetails : public FPCGExCompo
 };
 
 USTRUCT(BlueprintType)
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExAssetDistributionDetails
+struct PCGEXTENDEDTOOLKIT_API FPCGExAssetDistributionDetails
 {
 	GENERATED_BODY()
 
@@ -233,7 +233,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExAssetDistributionDetails
 };
 
 USTRUCT(BlueprintType)
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExAssetAttributeSetDetails
+struct PCGEXTENDEDTOOLKIT_API FPCGExAssetAttributeSetDetails
 {
 	GENERATED_BODY()
 
@@ -253,7 +253,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExAssetAttributeSetDetails
 };
 
 USTRUCT(BlueprintType, DisplayName="[PCGEx] Asset Staging Data")
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExAssetStagingData
+struct PCGEXTENDEDTOOLKIT_API FPCGExAssetStagingData
 {
 	GENERATED_BODY()
 
@@ -277,7 +277,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExAssetStagingData
 };
 
 USTRUCT(BlueprintType, DisplayName="[PCGEx] Asset Collection Entry")
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExAssetCollectionEntry
+struct PCGEXTENDEDTOOLKIT_API FPCGExAssetCollectionEntry
 {
 	GENERATED_BODY()
 	virtual ~FPCGExAssetCollectionEntry() = default;
@@ -329,7 +329,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExAssetCollectionEntry
 
 namespace PCGExAssetCollection
 {
-	class /*PCGEXTENDEDTOOLKIT_API*/ FCategory : public TSharedFromThis<FCategory>
+	class PCGEXTENDEDTOOLKIT_API FCategory : public TSharedFromThis<FCategory>
 	{
 	public:
 		FName Name = NAME_None;
@@ -366,7 +366,7 @@ namespace PCGExAssetCollection
 		void Compile();
 	};
 
-	struct /*PCGEXTENDEDTOOLKIT_API*/ FCache
+	struct PCGEXTENDEDTOOLKIT_API FCache
 	{
 		int32 WeightSum = 0;
 		TSharedPtr<FCategory> Main;
@@ -398,7 +398,7 @@ namespace PCGExAssetCollection
 }
 
 UCLASS(Abstract, BlueprintType, DisplayName="[PCGEx] Asset Collection")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExAssetCollection : public UDataAsset
+class PCGEXTENDEDTOOLKIT_API UPCGExAssetCollection : public UDataAsset
 {
 	mutable FRWLock CacheLock;
 
@@ -939,7 +939,7 @@ protected:
 };
 
 USTRUCT(BlueprintType)
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExRoamingAssetCollectionDetails : public FPCGExAssetAttributeSetDetails
+struct PCGEXTENDEDTOOLKIT_API FPCGExRoamingAssetCollectionDetails : public FPCGExAssetAttributeSetDetails
 {
 	GENERATED_BODY()
 
@@ -964,7 +964,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExRoamingAssetCollectionDetails : public F
 namespace PCGExAssetCollection
 {
 	template <typename C = UPCGExAssetCollection, typename A = FPCGExAssetCollectionEntry>
-	struct /*PCGEXTENDEDTOOLKIT_API*/ TDistributionHelper
+	struct PCGEXTENDEDTOOLKIT_API TDistributionHelper
 	{
 		C* Collection = nullptr;
 		FPCGExAssetDistributionDetails Details;

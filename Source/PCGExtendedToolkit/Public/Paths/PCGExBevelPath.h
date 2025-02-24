@@ -53,7 +53,7 @@ enum class EPCGExBevelCustomProfileScaling : uint8
  * 
  */
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Clusters")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExBevelPathSettings : public UPCGExPathProcessorSettings
+class UPCGExBevelPathSettings : public UPCGExPathProcessorSettings
 {
 	GENERATED_BODY()
 
@@ -179,7 +179,7 @@ public:
 	void InitOutputFlags(const TSharedPtr<PCGExData::FPointIO>& InPointIO) const;
 };
 
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExBevelPathContext final : FPCGExPathProcessorContext
+struct FPCGExBevelPathContext final : FPCGExPathProcessorContext
 {
 	friend class FPCGExBevelPathElement;
 
@@ -189,7 +189,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExBevelPathContext final : FPCGExPathProce
 	double CustomLength;
 };
 
-class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExBevelPathElement final : public FPCGExPathProcessorElement
+class FPCGExBevelPathElement final : public FPCGExPathProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(
@@ -206,7 +206,7 @@ namespace PCGExBevelPath
 {
 	class FProcessor;
 
-	struct /*PCGEXTENDEDTOOLKIT_API*/ FBevel
+	struct PCGEXTENDEDTOOLKIT_API FBevel
 	{
 		int32 Index = -1;
 		int32 ArriveIdx = -1;

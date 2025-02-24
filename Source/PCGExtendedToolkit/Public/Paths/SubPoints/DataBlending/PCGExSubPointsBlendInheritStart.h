@@ -11,7 +11,7 @@
  * 
  */
 UCLASS(MinimalAPI, DisplayName = "Inherit First")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExSubPointsBlendInheritStart : public UPCGExSubPointsBlendOperation
+class UPCGExSubPointsBlendInheritStart : public UPCGExSubPointsBlendOperation
 {
 	GENERATED_BODY()
 

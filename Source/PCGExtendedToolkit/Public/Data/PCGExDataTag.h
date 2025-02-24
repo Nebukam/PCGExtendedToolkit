@@ -33,7 +33,7 @@ enum class EPCGExSupportedTagValue : uint8
 
 namespace PCGExTags
 {
-	class FTagValue : public TSharedFromThis<FTagValue>
+	class PCGEXTENDEDTOOLKIT_API FTagValue : public TSharedFromThis<FTagValue>
 	{
 	public:
 		virtual ~FTagValue() = default;
@@ -55,7 +55,7 @@ namespace PCGExTags
 	};
 
 	template <typename T>
-	class TTagValue : public FTagValue
+	class PCGEXTENDEDTOOLKIT_API TTagValue : public FTagValue
 	{
 	public:
 		T Value;
@@ -133,7 +133,7 @@ namespace PCGExData
 	using namespace PCGExTags;
 	const FString TagSeparator = FSTRING(":");
 
-	class FTags : public TSharedFromThis<FTags>
+	class PCGEXTENDEDTOOLKIT_API FTags : public TSharedFromThis<FTags>
 	{
 		mutable FRWLock TagsLock;
 

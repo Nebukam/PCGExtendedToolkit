@@ -16,7 +16,7 @@ class UPCGExActionFactoryData;
  * 
  */
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Clusters")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExBatchActionsSettings : public UPCGExPointsProcessorSettings
+class UPCGExBatchActionsSettings : public UPCGExPointsProcessorSettings
 {
 	GENERATED_BODY()
 
@@ -50,7 +50,7 @@ private:
 	friend class FPCGExBatchActionsElement;
 };
 
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExBatchActionsContext final : FPCGExPointsProcessorContext
+struct FPCGExBatchActionsContext final : FPCGExPointsProcessorContext
 {
 	friend class FPCGExBatchActionsElement;
 
@@ -58,7 +58,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExBatchActionsContext final : FPCGExPoints
 	TArray<TObjectPtr<const UPCGExActionFactoryData>> ActionsFactories;
 };
 
-class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExBatchActionsElement final : public FPCGExPointsProcessorElement
+class FPCGExBatchActionsElement final : public FPCGExPointsProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(

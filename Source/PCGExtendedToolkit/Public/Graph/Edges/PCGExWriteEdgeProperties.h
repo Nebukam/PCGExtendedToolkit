@@ -27,7 +27,7 @@ enum class EPCGExHeuristicsWriteMode : uint8
 };
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Clusters")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExWriteEdgePropertiesSettings : public UPCGExEdgesProcessorSettings
+class UPCGExWriteEdgePropertiesSettings : public UPCGExEdgesProcessorSettings
 {
 	GENERATED_BODY()
 
@@ -184,14 +184,14 @@ private:
 	friend class FPCGExWriteEdgePropertiesElement;
 };
 
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExWriteEdgePropertiesContext final : FPCGExEdgesProcessorContext
+struct FPCGExWriteEdgePropertiesContext final : FPCGExEdgesProcessorContext
 {
 	friend class FPCGExWriteEdgePropertiesElement;
 
 	PCGEX_FOREACH_FIELD_EDGEEXTRAS(PCGEX_OUTPUT_DECL_TOGGLE)
 };
 
-class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExWriteEdgePropertiesElement final : public FPCGExEdgesProcessorElement
+class FPCGExWriteEdgePropertiesElement final : public FPCGExEdgesProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(

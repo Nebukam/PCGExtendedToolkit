@@ -11,7 +11,7 @@
  * 
  */
 UCLASS(MinimalAPI, DisplayName = "Weighted")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExOrientWeighted : public UPCGExOrientOperation
+class UPCGExOrientWeighted : public UPCGExOrientOperation
 {
 	GENERATED_BODY()
 

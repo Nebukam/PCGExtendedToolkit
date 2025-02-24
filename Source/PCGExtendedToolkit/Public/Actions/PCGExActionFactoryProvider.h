@@ -41,8 +41,8 @@ namespace PCGExActions
 /**
  * 
  */
-UCLASS()
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExActionOperation : public UPCGExOperation
+UCLASS(Abstract)
+class PCGEXTENDEDTOOLKIT_API UPCGExActionOperation : public UPCGExOperation
 {
 	GENERATED_BODY()
 
@@ -63,8 +63,8 @@ protected:
 	TSharedPtr<PCGExPointFilter::FManager> FilterManager;
 };
 
-UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExActionFactoryData : public UPCGExFactoryData
+UCLASS(Abstract, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")
+class PCGEXTENDEDTOOLKIT_API UPCGExActionFactoryData : public UPCGExFactoryData
 {
 	GENERATED_BODY()
 
@@ -85,7 +85,7 @@ public:
 };
 
 UCLASS(Abstract, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Action")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExActionProviderSettings : public UPCGExFactoryProviderSettings
+class PCGEXTENDEDTOOLKIT_API UPCGExActionProviderSettings : public UPCGExFactoryProviderSettings
 {
 	GENERATED_BODY()
 

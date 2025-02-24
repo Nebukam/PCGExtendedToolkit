@@ -11,7 +11,7 @@
  * 
  */
 UCLASS(MinimalAPI, DisplayName="Zero")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExZeroTangents : public UPCGExTangentsOperation
+class UPCGExZeroTangents : public UPCGExTangentsOperation
 {
 	GENERATED_BODY()
 

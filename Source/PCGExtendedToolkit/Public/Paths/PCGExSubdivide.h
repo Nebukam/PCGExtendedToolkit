@@ -18,7 +18,7 @@
  * 
  */
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Path")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExSubdivideSettings : public UPCGExPathProcessorSettings
+class UPCGExSubdivideSettings : public UPCGExPathProcessorSettings
 {
 	GENERATED_BODY()
 
@@ -76,14 +76,14 @@ public:
 	double DefaultAlpha = 1;
 };
 
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExSubdivideContext final : FPCGExPathProcessorContext
+struct FPCGExSubdivideContext final : FPCGExPathProcessorContext
 {
 	friend class FPCGExSubdivideElement;
 
 	UPCGExSubPointsBlendOperation* Blending = nullptr;
 };
 
-class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExSubdivideElement final : public FPCGExPathProcessorElement
+class FPCGExSubdivideElement final : public FPCGExPathProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(

@@ -49,7 +49,7 @@ enum class EPCGExGUIDFormat : uint8
 };
 
 USTRUCT(BlueprintType)
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExGUIDDetails
+struct PCGEXTENDEDTOOLKIT_API FPCGExGUIDDetails
 {
 	GENERATED_BODY()
 
@@ -116,7 +116,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExGUIDDetails
 };
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExWriteGUIDSettings : public UPCGExPointsProcessorSettings
+class UPCGExWriteGUIDSettings : public UPCGExPointsProcessorSettings
 {
 	GENERATED_BODY()
 
@@ -140,12 +140,12 @@ public:
 	FPCGExGUIDDetails Config;
 };
 
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExWriteGUIDContext final : FPCGExPointsProcessorContext
+struct FPCGExWriteGUIDContext final : FPCGExPointsProcessorContext
 {
 	friend class FPCGExWriteGUIDElement;
 };
 
-class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExWriteGUIDElement final : public FPCGExPointsProcessorElement
+class FPCGExWriteGUIDElement final : public FPCGExPointsProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(

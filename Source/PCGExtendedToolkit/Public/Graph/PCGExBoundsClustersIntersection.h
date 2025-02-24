@@ -13,7 +13,7 @@
 
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Clusters", Hidden)
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExBoundsClustersIntersectionSettings : public UPCGExEdgesProcessorSettings
+class UPCGExBoundsClustersIntersectionSettings : public UPCGExEdgesProcessorSettings
 {
 	GENERATED_BODY()
 
@@ -40,7 +40,7 @@ public:
 	FPCGExBoxIntersectionDetails IntersectionDetails;
 };
 
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExBoundsClustersIntersectionContext final : FPCGExEdgesProcessorContext
+struct FPCGExBoundsClustersIntersectionContext final : FPCGExEdgesProcessorContext
 {
 	friend class UPCGExBoundsClustersIntersectionSettings;
 	friend class FPCGExBoundsClustersIntersectionElement;
@@ -48,7 +48,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExBoundsClustersIntersectionContext final 
 	TSharedPtr<PCGExData::FFacade> BoundsDataFacade;
 };
 
-class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExBoundsClustersIntersectionElement final : public FPCGExEdgesProcessorElement
+class FPCGExBoundsClustersIntersectionElement final : public FPCGExEdgesProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(

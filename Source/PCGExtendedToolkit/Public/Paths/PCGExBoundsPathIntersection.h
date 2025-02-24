@@ -16,7 +16,7 @@
  * 
  */
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Path")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExBoundsPathIntersectionSettings : public UPCGExPathProcessorSettings
+class UPCGExBoundsPathIntersectionSettings : public UPCGExPathProcessorSettings
 {
 	GENERATED_BODY()
 
@@ -41,14 +41,14 @@ public:
 	FPCGExBoxIntersectionDetails OutputSettings;
 };
 
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExBoundsPathIntersectionContext final : FPCGExPathProcessorContext
+struct FPCGExBoundsPathIntersectionContext final : FPCGExPathProcessorContext
 {
 	friend class FPCGExBoundsPathIntersectionElement;
 
 	TSharedPtr<PCGExData::FFacade> BoundsDataFacade;
 };
 
-class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExBoundsPathIntersectionElement final : public FPCGExPathProcessorElement
+class FPCGExBoundsPathIntersectionElement final : public FPCGExPathProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(

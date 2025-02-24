@@ -56,7 +56,7 @@ namespace PCGExMath
 		LooseOnOtherB,
 	};
 
-	struct /*PCGEXTENDEDTOOLKIT_API*/ FClosestPosition
+	struct PCGEXTENDEDTOOLKIT_API FClosestPosition
 	{
 		bool bValid = false;
 		int32 Index = -1;
@@ -80,7 +80,7 @@ namespace PCGExMath
 		operator bool() const { return bValid; }
 	};
 
-	struct /*PCGEXTENDEDTOOLKIT_API*/ FSegment
+	struct PCGEXTENDEDTOOLKIT_API FSegment
 	{
 		FVector A = FVector::ZeroVector;
 		FVector B = FVector::ZeroVector;

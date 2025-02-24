@@ -7,7 +7,7 @@
 #include "PCGExTransform.generated.h"
 
 USTRUCT(BlueprintType)
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExAttachmentRules
+struct PCGEXTENDEDTOOLKIT_API FPCGExAttachmentRules
 {
 	GENERATED_BODY()
 
@@ -34,7 +34,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExAttachmentRules
 };
 
 USTRUCT(BlueprintType)
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExUVW
+struct PCGEXTENDEDTOOLKIT_API FPCGExUVW
 {
 	GENERATED_BODY()
 

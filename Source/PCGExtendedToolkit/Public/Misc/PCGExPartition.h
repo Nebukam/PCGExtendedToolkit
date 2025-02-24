@@ -12,7 +12,7 @@
 struct FPCGPoint;
 
 USTRUCT(BlueprintType)
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPartitonRuleConfig : public FPCGExInputConfig
+struct FPCGExPartitonRuleConfig : public FPCGExInputConfig
 {
 	GENERATED_BODY()
 
@@ -86,7 +86,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPartitonRuleConfig : public FPCGExInputC
 
 namespace PCGExPartition
 {
-	struct /*PCGEXTENDEDTOOLKIT_API*/ FRule final : PCGEx::TAttributeBroadcaster<double>
+	struct FRule final : PCGEx::TAttributeBroadcaster<double>
 	{
 		explicit FRule(FPCGExPartitonRuleConfig& InRule)
 			: TAttributeBroadcaster<double>(),

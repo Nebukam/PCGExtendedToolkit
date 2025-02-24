@@ -9,7 +9,7 @@
 #include "PCGExAttributeBlendFactoryProvider.generated.h"
 
 USTRUCT(BlueprintType)
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExAttributeBlendConfig
+struct PCGEXTENDEDTOOLKIT_API FPCGExAttributeBlendConfig
 {
 	GENERATED_BODY()
 
@@ -73,8 +73,8 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExAttributeBlendConfig
 /**
  * 
  */
-UCLASS(MinimalAPI, DisplayName = "Blending")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExAttributeBlendOperation : public UPCGExOperation
+UCLASS(DisplayName = "Blending")
+class PCGEXTENDEDTOOLKIT_API UPCGExAttributeBlendOperation : public UPCGExOperation
 {
 	GENERATED_BODY()
 
@@ -91,7 +91,7 @@ public:
 };
 
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Blending")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExAttributeBlendFactory : public UPCGExFactoryData
+class PCGEXTENDEDTOOLKIT_API UPCGExAttributeBlendFactory : public UPCGExFactoryData
 {
 	GENERATED_BODY()
 
@@ -105,7 +105,7 @@ public:
 };
 
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Blending")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExAttributeBlendFactoryProviderSettings : public UPCGExFactoryProviderSettings
+class PCGEXTENDEDTOOLKIT_API UPCGExAttributeBlendFactoryProviderSettings : public UPCGExFactoryProviderSettings
 {
 	GENERATED_BODY()
 

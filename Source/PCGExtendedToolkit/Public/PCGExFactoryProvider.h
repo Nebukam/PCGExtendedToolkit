@@ -16,7 +16,7 @@
 
 #include "PCGExFactoryProvider.generated.h"
 
-#define PCGEX_FACTORY_NAME_PRIORITY FName(FString::Printf(TEXT("(%02d) "), Priority) +  GetDisplayName())
+#define PCGEX_FACTORY_NAME_PRIORITY FName(FString::Printf(TEXT("(%d) "), Priority) +  GetDisplayName())
 
 
 ///
@@ -112,7 +112,7 @@ protected:
 };
 
 UCLASS(Abstract, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Filter")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExFactoryProviderSettings : public UPCGSettings
+class PCGEXTENDEDTOOLKIT_API UPCGExFactoryProviderSettings : public UPCGSettings
 {
 	GENERATED_BODY()
 
@@ -162,7 +162,7 @@ protected:
 	virtual bool ShouldCache() const;
 };
 
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExFactoryProviderContext : FPCGExContext
+struct PCGEXTENDEDTOOLKIT_API FPCGExFactoryProviderContext : FPCGExContext
 {
 	friend class FPCGExFactoryProviderElement;
 
@@ -176,7 +176,7 @@ protected:
 	TArray<TSharedPtr<PCGExMT::FDeferredCallbackHandle>> DeferredTasks;
 };
 
-class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExFactoryProviderElement final : public IPCGElement
+class PCGEXTENDEDTOOLKIT_API FPCGExFactoryProviderElement final : public IPCGElement
 {
 public:
 #if WITH_EDITOR

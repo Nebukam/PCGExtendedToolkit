@@ -14,7 +14,7 @@
 
 // Hidden for now because buggy, concurrent writing occurs and I don't know why; need to look into it
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExMergePointsSettings : public UPCGExPointsProcessorSettings
+class UPCGExMergePointsSettings : public UPCGExPointsProcessorSettings
 {
 	GENERATED_BODY()
 
@@ -48,7 +48,7 @@ public:
 	FPCGExNameFiltersDetails TagsToAttributes = FPCGExNameFiltersDetails(false);
 };
 
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExMergePointsContext final : FPCGExPointsProcessorContext
+struct FPCGExMergePointsContext final : FPCGExPointsProcessorContext
 {
 	friend class FPCGExMergePointsElement;
 	FPCGExCarryOverDetails CarryOverDetails;
@@ -56,7 +56,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExMergePointsContext final : FPCGExPointsP
 	TSharedPtr<PCGExData::FFacade> CompositeDataFacade;
 };
 
-class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExMergePointsElement final : public FPCGExPointsProcessorElement
+class FPCGExMergePointsElement final : public FPCGExPointsProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(
