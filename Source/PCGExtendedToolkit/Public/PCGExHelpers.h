@@ -32,7 +32,7 @@ enum class EPCGExPointPropertyOutput : uint8
 };
 
 UCLASS(Hidden)
-class UPCGExComponentCallback : public UObject
+class PCGEXTENDEDTOOLKIT_API UPCGExComponentCallback : public UObject
 {
 	GENERATED_BODY()
 
@@ -56,7 +56,7 @@ public:
 };
 
 UCLASS(Hidden)
-class UPCGExPCGComponentCallback : public UObject
+class PCGEXTENDEDTOOLKIT_API UPCGExPCGComponentCallback : public UObject
 {
 	GENERATED_BODY()
 
@@ -79,13 +79,13 @@ public:
 	}
 };
 
-UINTERFACE(MinimalAPI)
-class UPCGExManagedObjectInterface : public UInterface
+UINTERFACE()
+class PCGEXTENDEDTOOLKIT_API UPCGExManagedObjectInterface : public UInterface
 {
 	GENERATED_BODY()
 };
 
-class IPCGExManagedObjectInterface
+class PCGEXTENDEDTOOLKIT_API IPCGExManagedObjectInterface
 {
 	GENERATED_BODY()
 
@@ -93,13 +93,13 @@ public:
 	virtual void Cleanup() = 0;
 };
 
-UINTERFACE(MinimalAPI)
-class UPCGExManagedComponentInterface : public UInterface
+UINTERFACE()
+class PCGEXTENDEDTOOLKIT_API UPCGExManagedComponentInterface : public UInterface
 {
 	GENERATED_BODY()
 };
 
-class IPCGExManagedComponentInterface
+class PCGEXTENDEDTOOLKIT_API IPCGExManagedComponentInterface
 {
 	GENERATED_BODY()
 
@@ -110,6 +110,7 @@ public:
 
 namespace PCGExHelpers
 {
+	PCGEXTENDEDTOOLKIT_API
 	bool TryGetAttributeName(const FPCGAttributePropertyInputSelector& InSelector, const UPCGData* InData, FName& OutName);
 
 	template <typename T>
@@ -156,22 +157,28 @@ namespace PCGExHelpers
 		return TSoftObjectPtr<T>(ToBeLoaded).Get();
 	}
 
+	PCGEXTENDEDTOOLKIT_API
 	void LoadBlocking_AnyThread(const TSharedPtr<TSet<FSoftObjectPath>>& Paths);
 
+	PCGEXTENDEDTOOLKIT_API
 	void CopyStructProperties(const void* SourceStruct, void* TargetStruct, const UStruct* SourceStructType, const UStruct* TargetStructType);
 
+	PCGEXTENDEDTOOLKIT_API
 	bool CopyProperties(UObject* Target, const UObject* Source, const TSet<FString>* Exclusions = nullptr);
 
+	PCGEXTENDEDTOOLKIT_API
 	void SetPointProperty(FPCGPoint& InPoint, const double InValue, const EPCGExPointPropertyOutput InProperty);
 
+	PCGEXTENDEDTOOLKIT_API
 	TArray<FString> GetStringArrayFromCommaSeparatedList(const FString& InCommaSeparatedString);
 
+	PCGEXTENDEDTOOLKIT_API
 	TArray<UFunction*> FindUserFunctions(const TSubclassOf<AActor>& ActorClass, const TArray<FName>& FunctionNames, const TArray<const UFunction*>& FunctionPrototypes, const FPCGContext* InContext);
 }
 
 /** Holds function prototypes used to match against actor function signatures. */
-UCLASS(MinimalAPI)
-class UPCGExFunctionPrototypes : public UBlueprintFunctionLibrary
+UCLASS()
+class PCGEXTENDEDTOOLKIT_API UPCGExFunctionPrototypes : public UBlueprintFunctionLibrary
 {
 	GENERATED_BODY()
 
@@ -193,14 +200,14 @@ private:
 
 namespace PCGEx
 {
-	class FWorkPermit final : public TSharedFromThis<FWorkPermit>
+	class PCGEXTENDEDTOOLKIT_API FWorkPermit final : public TSharedFromThis<FWorkPermit>
 	{
 	public:
 		FWorkPermit() = default;
 		~FWorkPermit() = default;
 	};
 
-	class FIntTracker final : public TSharedFromThis<FIntTracker>
+	class PCGEXTENDEDTOOLKIT_API FIntTracker final : public TSharedFromThis<FIntTracker>
 	{
 		FRWLock Lock;
 		bool bTriggered = false;
@@ -237,7 +244,7 @@ namespace PCGEx
 		void TriggerInternal();
 	};
 
-	class FUniqueNameGenerator final : public TSharedFromThis<FUniqueNameGenerator>
+	class PCGEXTENDEDTOOLKIT_API FUniqueNameGenerator final : public TSharedFromThis<FUniqueNameGenerator>
 	{
 		int32 Idx = 0;
 

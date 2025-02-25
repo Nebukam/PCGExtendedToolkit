@@ -132,12 +132,13 @@ namespace PCGExDetails
 		}
 	};
 
-
+	PCGEXTENDEDTOOLKIT_API
 	TSharedPtr<FDistances> MakeDistances(
 		const EPCGExDistance Source = EPCGExDistance::Center,
 		const EPCGExDistance Target = EPCGExDistance::Center,
 		const bool bOverlapIsZero = false);
 
+	PCGEXTENDEDTOOLKIT_API
 	TSharedPtr<FDistances> MakeNoneDistances();
 }
 

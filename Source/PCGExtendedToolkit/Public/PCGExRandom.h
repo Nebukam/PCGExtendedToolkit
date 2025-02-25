@@ -37,8 +37,12 @@ namespace PCGExRandom
 		return ((A * 196314165U) + 907633515U) ^ ((B * 73148459U) + 453816763U) ^ ((C * 34731343U) + 453816743U);
 	}
 
+	PCGEXTENDEDTOOLKIT_API
 	int32 GetSeedFromPoint(const uint8 Flags, const FPCGPoint& Point, const int32 Local, const UPCGSettings* Settings = nullptr, const UPCGComponent* Component = nullptr);
+	PCGEXTENDEDTOOLKIT_API
 	int32 GetSeedFromPoint(const FPCGPoint& Point, const int32 Local, const UPCGSettings* Settings = nullptr, const UPCGComponent* Component = nullptr);
+	PCGEXTENDEDTOOLKIT_API
 	FRandomStream GetRandomStreamFromPoint(const FPCGPoint& Point, const int32 Offset, const UPCGSettings* Settings = nullptr, const UPCGComponent* Component = nullptr);
+	PCGEXTENDEDTOOLKIT_API
 	int ComputeSeed(const FPCGPoint& Point, const FVector& Offset = FVector::ZeroVector);
 }

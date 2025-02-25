@@ -38,7 +38,7 @@ namespace PCGExGraph
 	const FName OutputRemovedEdgesLabel = TEXT("Removed Edges");
 
 	const FName SourcePackedClustersLabel = TEXT("Packed Clusters");
-	const FName SourceEdgeSortingRules = TEXT("Edge Sorting Rules");
+	const FName SourceEdgeSortingRules = TEXT("Direction Sorting");
 	const FName OutputPackedClustersLabel = TEXT("Packed Clusters");
 
 	const FName Attr_PCGExEdgeIdx = FName(PCGEx::PCGExPrefix + TEXT("EData"));

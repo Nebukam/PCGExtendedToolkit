@@ -251,7 +251,6 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExFittingVariations
 	bool bUniformScale = true;
 };
 
-
 USTRUCT(BlueprintType)
 struct PCGEXTENDEDTOOLKIT_API FPCGExFittingVariationsDetails
 {
