@@ -113,7 +113,7 @@ namespace PCGExClusterMT
 
 		virtual void RegisterConsumableAttributesWithFacade() const;
 
-		bool IsTrivial() const { return bIsTrivial; }
+		virtual bool IsTrivial() const { return bIsTrivial; }
 
 		void SetRequiresHeuristics(const bool bRequired, const TArray<TObjectPtr<const UPCGExHeuristicsFactoryData>>* InHeuristicsFactories);
 

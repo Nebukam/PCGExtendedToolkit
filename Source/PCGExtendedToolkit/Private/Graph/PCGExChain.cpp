@@ -17,14 +17,8 @@ namespace PCGExCluster
 			return;
 		}
 
-		TArray<int32> HashValues;
-		HashValues.Reserve(Links.Num() + 1);
-		for (const FLink& Lk : Links) { HashValues.Add(Lk.Edge); }
-		HashValues.Add(Seed.Edge);
-
-		HashValues.Sort();
-
-		for (const int32 H : HashValues) { UniqueHash = HashCombineFast(UniqueHash, GetTypeHash(H)); }
+		const FLink LastLink = Links.Last();
+		UniqueHash = PCGEx::H64U(HashCombineFast(Seed.Node, Seed.Edge), HashCombineFast(LastLink.Node, LastLink.Edge));
 	}
 
 	void FNodeChain::BuildChain(const TSharedRef<FCluster>& Cluster, const TSharedPtr<TArray<int8>>& Breakpoints)
