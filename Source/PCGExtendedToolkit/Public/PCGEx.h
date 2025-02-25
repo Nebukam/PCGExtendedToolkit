@@ -186,31 +186,42 @@ namespace PCGEx
 	const FSoftObjectPath WeightDistributionExpo = FSoftObjectPath(TEXT("/PCGExtendedToolkit/Curves/FC_PCGExWeightDistribution_Expo.FC_PCGExWeightDistribution_Expo"));
 	const FSoftObjectPath SteepnessWeightCurve = FSoftObjectPath(TEXT("/PCGExtendedToolkit/Curves/FC_PCGExSteepness_Default.FC_PCGExSteepness_Default"));
 
-	static bool IsPCGExAttribute(const FString& InStr) { return InStr.StartsWith(PCGExPrefix); }
-	static bool IsPCGExAttribute(const FName InName) { return IsPCGExAttribute(InName.ToString()); }
-	static bool IsPCGExAttribute(const FText& InText) { return IsPCGExAttribute(InText.ToString()); }
+	PCGEXTENDEDTOOLKIT_API
+	bool IsPCGExAttribute(const FString& InStr);
+	PCGEXTENDEDTOOLKIT_API
+	bool IsPCGExAttribute(const FName InName);
+	PCGEXTENDEDTOOLKIT_API
+	bool IsPCGExAttribute(const FText& InText);
 
 	static FName MakePCGExAttributeName(const FString& Str0) { return FName(FText::Format(FText::FromString(TEXT("{0}{1}")), FText::FromString(PCGExPrefix), FText::FromString(Str0)).ToString()); }
+	
 	static FName MakePCGExAttributeName(const FString& Str0, const FString& Str1) { return FName(FText::Format(FText::FromString(TEXT("{0}{1}/{2}")), FText::FromString(PCGExPrefix), FText::FromString(Str0), FText::FromString(Str1)).ToString()); }
 
+	PCGEXTENDEDTOOLKIT_API
 	bool IsValidName(const FName Name);
-
+	PCGEXTENDEDTOOLKIT_API
 	FString StringTagFromName(const FName Name);
-
+	PCGEXTENDEDTOOLKIT_API
 	bool IsValidStringTag(const FString& Tag);
 
+	PCGEXTENDEDTOOLKIT_API
 	double TruncateDbl(const double Value, const EPCGExTruncateMode Mode);
 
+	PCGEXTENDEDTOOLKIT_API
 	void ArrayOfIndices(TArray<int32>& OutArray, const int32 InNum);
 
+	PCGEXTENDEDTOOLKIT_API
 	FName GetCompoundName(const FName A, const FName B);
+	PCGEXTENDEDTOOLKIT_API
 	FName GetCompoundName(const FName A, const FName B, const FName C);
 
+	PCGEXTENDEDTOOLKIT_API
 	EPCGMetadataTypes GetPointPropertyTypeId(const EPCGPointProperties Property);
 
+	PCGEXTENDEDTOOLKIT_API
 	void ScopeIndices(const TArray<int32>& InIndices, TArray<uint64>& OutScopes);
 
-	struct FIndexedItem
+	struct PCGEXTENDEDTOOLKIT_API FIndexedItem
 	{
 		int32 Index;
 		FBoxSphereBounds Bounds;
