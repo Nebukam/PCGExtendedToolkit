@@ -1,4 +1,5 @@
 ﻿// Copyright 2025 Timothé Lapetite and contributors
+// * 24/02/25 Omer Salomon Fixed - Made the count condition for discarding to be inclusive on MaxPointCount (to fit the comment).
 // Released under the MIT license https://opensource.org/license/MIT/
 
 #include "Misc/PCGExDiscardByPointCount.h"
@@ -46,7 +47,7 @@ bool FPCGExDiscardByPointCountElement::ExecuteInternal(FPCGContext* InContext) c
 		for (const TSharedPtr<PCGExData::FPointIO>& PointIO : Context->MainPoints->Pairs)
 		{
 			PointIO->bAllowEmptyOutput = Settings->bAllowEmptyOutputs;
-			if (!FMath::IsWithin(PointIO->GetNum(), Min, Max))
+			if (!FMath::IsWithinInclusive(PointIO->GetNum(), Min, Max))
 			{
 				PointIO->OutputPin = PCGExDiscardByPointCount::OutputDiscardedLabel;
 			}

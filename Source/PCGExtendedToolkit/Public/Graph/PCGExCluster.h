@@ -208,6 +208,7 @@ namespace PCGExCluster
 		FVector GetDir(const int32 FromNode, const int32 ToNode) const;
 		FVector GetDir(const FNode& From, const FNode& To) const;
 		FVector GetEdgeDir(const FEdge& InEdge) const;
+		FVector GetEdgeDir(const int32 InEdgeIndex) const;
 
 		TSharedPtr<PCGEx::FIndexedItemOctree> GetNodeOctree();
 		TSharedPtr<PCGEx::FIndexedItemOctree> GetEdgeOctree();
@@ -399,7 +400,6 @@ namespace PCGExCluster
 		void GetConnectedEdges(const int32 FromNodeIndex, TArray<int32>& OutNodeIndices, TArray<int32>& OutEdgeIndices, const int32 SearchDepth) const;
 		void GetConnectedEdges(const int32 FromNodeIndex, TArray<int32>& OutNodeIndices, TArray<int32>& OutEdgeIndices, const int32 SearchDepth, const TSet<int32>& SkipNodes, const TSet<int32>& SkipEdges) const;
 
-		FVector GetEdgeDirection(const int32 FromIndex, const int32 ToIndex) const { return (GetPos(FromIndex) - GetPos(ToIndex)).GetSafeNormal(); }
 		FVector GetClosestPointOnEdge(const int32 FromIndex, const int32 ToIndex, const FVector& Position) const;
 		FVector GetClosestPointOnEdge(const FEdge& InEdge, const FVector& Position) const;
 		FVector GetClosestPointOnEdge(const int32 EdgeIndex, const FVector& Position) const;
@@ -490,4 +490,5 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExEdgeDirectionSettings
 	bool RequiresEdgeMetadata() const { return DirectionMethod == EPCGExEdgeDirectionMethod::EdgeDotAttribute; }
 
 	bool SortEndpoints(const PCGExCluster::FCluster* InCluster, PCGExGraph::FEdge& InEdge) const;
+	bool SortExtrapolation(const PCGExCluster::FCluster* InCluster, const int32 InEdgeIndex, const int32 StartNodeIndex, const int32 EndNodeIndex) const;
 };

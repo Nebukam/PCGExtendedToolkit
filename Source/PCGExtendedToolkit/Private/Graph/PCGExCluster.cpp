@@ -365,6 +365,12 @@ namespace PCGExCluster
 		return ((*(NodePositions.GetData() + NodeIndexLookup->Get(InEdge.Start))) - (*(NodePositions.GetData() + NodeIndexLookup->Get(InEdge.End)))).GetSafeNormal();
 	}
 
+	FVector FCluster::GetEdgeDir(const int32 InEdgeIndex) const
+	{
+		const FEdge* Edge = Edges->GetData() + InEdgeIndex;
+		return ((*(NodePositions.GetData() + NodeIndexLookup->Get(Edge->Start))) - (*(NodePositions.GetData() + NodeIndexLookup->Get(Edge->End)))).GetSafeNormal();
+	}
+
 	TSharedPtr<PCGEx::FIndexedItemOctree> FCluster::GetNodeOctree()
 	{
 		if (!NodeOctree) { RebuildNodeOctree(); }
@@ -905,4 +911,10 @@ bool FPCGExEdgeDirectionSettings::SortEndpoints(const PCGExCluster::FCluster* In
 	}
 
 	return false;
+}
+
+bool FPCGExEdgeDirectionSettings::SortExtrapolation(const PCGExCluster::FCluster* InCluster, const int32 InEdgeIndex, const int32 StartNodeIndex, const int32 EndNodeIndex) const
+{
+	PCGExGraph::FEdge ChainDir = PCGExGraph::FEdge(InEdgeIndex, InCluster->GetNode(StartNodeIndex)->PointIndex, InCluster->GetNode(EndNodeIndex)->PointIndex);
+	return SortEndpoints(InCluster, ChainDir);
 }

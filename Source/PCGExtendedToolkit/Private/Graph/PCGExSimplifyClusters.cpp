@@ -158,6 +158,12 @@ namespace PCGExSimplifyClusters
 		}
 	}
 
+	void FProcessor::Cleanup()
+	{
+		TProcessor<FPCGExSimplifyClustersContext, UPCGExSimplifyClustersSettings>::Cleanup();
+		ChainBuilder.Reset();
+	}
+
 	const PCGExGraph::FGraphMetadataDetails* FBatch::GetGraphMetadataDetails()
 	{
 		PCGEX_TYPED_CONTEXT_AND_SETTINGS(SimplifyClusters)

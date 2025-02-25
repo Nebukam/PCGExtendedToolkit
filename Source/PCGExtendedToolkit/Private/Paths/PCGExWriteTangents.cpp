@@ -106,7 +106,8 @@ namespace PCGExWriteTangents
 
 		Tangents = Cast<UPCGExTangentsOperation>(PrimaryOperation);
 		Tangents->bClosedLoop = bClosedLoop;
-		Tangents->PrepareForData();
+
+		if (!Tangents->PrepareForData(Context)) { return false; }
 
 		ConstantArriveScale = FVector(Settings->ArriveScaleConstant);
 		ConstantLeaveScale = FVector(Settings->LeaveScaleConstant);
@@ -136,7 +137,7 @@ namespace PCGExWriteTangents
 			StartTangents = Context->StartTangents->CopyOperation<UPCGExTangentsOperation>();
 			StartTangents->bClosedLoop = bClosedLoop;
 			StartTangents->PrimaryDataFacade = PointDataFacade;
-			StartTangents->PrepareForData();
+			if (!StartTangents->PrepareForData(Context)) { return false; }
 		}
 		else { StartTangents = Tangents; }
 
@@ -145,7 +146,7 @@ namespace PCGExWriteTangents
 			EndTangents = Context->EndTangents->CopyOperation<UPCGExTangentsOperation>();
 			EndTangents->bClosedLoop = bClosedLoop;
 			EndTangents->PrimaryDataFacade = PointDataFacade;
-			EndTangents->PrepareForData();
+			if (!EndTangents->PrepareForData(Context)) { return false; }
 		}
 		else { EndTangents = Tangents; }
 

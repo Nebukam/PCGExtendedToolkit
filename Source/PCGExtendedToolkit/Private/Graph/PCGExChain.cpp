@@ -17,14 +17,8 @@ namespace PCGExCluster
 			return;
 		}
 
-		TArray<int32> HashValues;
-		HashValues.Reserve(Links.Num() + 1);
-		for (const FLink& Lk : Links) { HashValues.Add(Lk.Edge); }
-		HashValues.Add(Seed.Edge);
-
-		HashValues.Sort();
-
-		for (const int32 H : HashValues) { UniqueHash = HashCombineFast(UniqueHash, GetTypeHash(H)); }
+		const FLink LastLink = Links.Last();
+		UniqueHash = PCGEx::H64U(HashCombineFast(Seed.Node, Seed.Edge), HashCombineFast(LastLink.Node, LastLink.Edge));
 	}
 
 	void FNodeChain::BuildChain(const TSharedRef<FCluster>& Cluster, const TSharedPtr<TArray<int8>>& Breakpoints)
@@ -145,6 +139,24 @@ namespace PCGExCluster
 					OutEdge, IOIndex);
 			}
 		}
+	}
+
+	FVector FNodeChain::GetFirstEdgeDir(const TSharedPtr<FCluster>& Cluster) const
+	{
+		return Cluster->GetDir(Seed.Node, Cluster->GetEdge(Seed.Edge)->Other(Seed.Node));
+	}
+
+	FVector FNodeChain::GetLastEdgeDir(const TSharedPtr<FCluster>& Cluster) const
+	{
+		if (SingleEdge != -1) { return Cluster->GetDir(Seed.Node, Cluster->GetEdge(Seed.Edge)->Other(Seed.Node)); }
+		const FLink& Lk = Links.Last();
+		return Cluster->GetDir(Lk.Node, Cluster->GetEdge(Lk.Edge)->Other(Lk.Node));
+	}
+
+	FVector FNodeChain::GetEdgeDir(const TSharedPtr<FCluster>& Cluster, const bool bFirst) const
+	{
+		if (bFirst) { return GetFirstEdgeDir(Cluster); }
+		else { return GetLastEdgeDir(Cluster); }
 	}
 
 	bool FNodeChainBuilder::Compile(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager)

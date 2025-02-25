@@ -1,6 +1,6 @@
 ﻿// Copyright 2025 Timothé Lapetite and contributors
+// * 24/02/25 Omer Salomon Changed - Div(const FQuat& A, const double Divider) now converts FQuat to FRotator and calls Div on that.
 // Released under the MIT license https://opensource.org/license/MIT/
-
 
 #pragma once
 
@@ -480,8 +480,7 @@ namespace PCGExBlend
 	template <typename CompilerSafety = void>
 	FORCEINLINE static FQuat Div(const FQuat& A, const double Divider)
 	{
-		const double R = 1.0 / Divider;
-		return FQuat(A.X * R, A.Y * R, A.Z * R, A.W * R).GetNormalized();
+		return Div(A.Rotator(), Divider).Quaternion();
 	}
 
 	template <typename T>
