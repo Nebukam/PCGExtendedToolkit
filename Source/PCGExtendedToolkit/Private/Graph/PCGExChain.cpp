@@ -147,6 +147,24 @@ namespace PCGExCluster
 		}
 	}
 
+	FVector FNodeChain::GetFirstEdgeDir(const TSharedPtr<FCluster>& Cluster) const
+	{
+		return Cluster->GetDir(Seed.Node, Cluster->GetEdge(Seed.Edge)->Other(Seed.Node));
+	}
+
+	FVector FNodeChain::GetLastEdgeDir(const TSharedPtr<FCluster>& Cluster) const
+	{
+		if (SingleEdge != -1) { return Cluster->GetDir(Seed.Node, Cluster->GetEdge(Seed.Edge)->Other(Seed.Node)); }
+		const FLink& Lk = Links.Last();
+		return Cluster->GetDir(Lk.Node, Cluster->GetEdge(Lk.Edge)->Other(Lk.Node));
+	}
+
+	FVector FNodeChain::GetEdgeDir(const TSharedPtr<FCluster>& Cluster, const bool bFirst) const
+	{
+		if (bFirst) { return GetFirstEdgeDir(Cluster); }
+		else { return GetLastEdgeDir(Cluster); }
+	}
+
 	bool FNodeChainBuilder::Compile(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager)
 	{
 		Chains.Reserve(Cluster->Edges->Num());
