@@ -17,8 +17,8 @@ enum class EPCGExGenerationTriggerAction : uint8
 {
 	Ignore        = 0 UMETA(DisplayName = "Ignore", ToolTip="Ignore component if not actively generating already"),
 	AsIs          = 1 UMETA(DisplayName = "As-is", ToolTip="Grab the data as-is and doesnt'try to generate if it wasn't."),
-	Generate      = 2 UMETA(DisplayName = "Generate", ToolTip="Generate and wait for completion"),
-	ForceGenerate = 3 UMETA(DisplayName = "Generate (force)", ToolTip="Generate (force) and wait for completion"),
+	Generate      = 2 UMETA(DisplayName = "Generate", ToolTip="Generate and wait for completion. If the component was already generated, this should not trigger a regeneration."),
+	ForceGenerate = 3 UMETA(DisplayName = "Generate (force)", ToolTip="Generate (force) and wait for completion. Already generated component will be re-regenerated."),
 };
 
 UENUM()
@@ -114,7 +114,7 @@ public:
 
 	/** How to deal with found components that have the trigger condition 'GenerateOnDemand'*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Gen & Wait Settings", meta = (PCG_Overridable, DisplayName="Grab GenerateOnDemand"))
-	EPCGExGenerationTriggerAction GenerateOnDemandAction = EPCGExGenerationTriggerAction::ForceGenerate;
+	EPCGExGenerationTriggerAction GenerateOnDemandAction = EPCGExGenerationTriggerAction::Generate;
 
 	/** How to deal with found components that have the trigger condition 'GenerateAtRuntime'*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Gen & Wait Settings", meta = (PCG_Overridable, DisplayName="Grab GenerateAtRuntime"))
