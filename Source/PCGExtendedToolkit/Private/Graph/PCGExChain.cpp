@@ -159,6 +159,45 @@ namespace PCGExCluster
 		else { return GetLastEdgeDir(Cluster); }
 	}
 
+	int32 FNodeChain::GetNodes(const TSharedPtr<FCluster>& Cluster, TArray<int32>& OutNodes, const bool bReverse)
+	{
+		if (SingleEdge != -1)
+		{
+			OutNodes.Reset(2);
+			FEdge* Edge = Cluster->GetEdge(SingleEdge);
+
+			if (bReverse)
+			{
+				OutNodes.Add(Cluster->GetNode((*Cluster->NodeIndexLookup)[Edge->End])->Index);
+				OutNodes.Add(Cluster->GetNode((*Cluster->NodeIndexLookup)[Edge->Start])->Index);
+			}
+			else
+			{
+				OutNodes.Add(Cluster->GetNode((*Cluster->NodeIndexLookup)[Edge->Start])->Index);
+				OutNodes.Add(Cluster->GetNode((*Cluster->NodeIndexLookup)[Edge->End])->Index);
+			}
+
+			return 2;
+		}
+
+		const int32 ChainSize = Links.Num();
+
+		OutNodes.Reset(ChainSize + 1);
+
+		if (bReverse)
+		{
+			for (int i = ChainSize - 1; i >= 0; i--) { OutNodes.Add(Links[i].Node); }
+			OutNodes.Add(Seed.Node);
+		}
+		else
+		{
+			OutNodes.Add(Seed.Node);
+			for (int i = 0; i < ChainSize; i++) { OutNodes.Add(Links[i].Node); }
+		}
+
+		return OutNodes.Num();
+	}
+
 	bool FNodeChainBuilder::Compile(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager)
 	{
 		Chains.Reserve(Cluster->Edges->Num());
