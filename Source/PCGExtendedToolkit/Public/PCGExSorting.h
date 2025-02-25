@@ -124,7 +124,7 @@ namespace PCGExSorting
 	const FName SourceSortingRules = TEXT("SortRules");
 
 	template <bool bUsePointIndices = false, bool bSoftMode = false>
-	class PointSorter : public TSharedFromThis<PointSorter<bUsePointIndices, bSoftMode>>
+	class PCGEXTENDEDTOOLKIT_API PointSorter : public TSharedFromThis<PointSorter<bUsePointIndices, bSoftMode>>
 	{
 	protected:
 		FPCGExContext* ExecutionContext = nullptr;
@@ -251,10 +251,13 @@ namespace PCGExSorting
 		}
 	};
 
+	PCGEXTENDEDTOOLKIT_API
 	TArray<FPCGExSortRuleConfig> GetSortingRules(FPCGExContext* InContext, const FName InLabel);
 
+	PCGEXTENDEDTOOLKIT_API
 	void PrepareRulesAttributeBuffers(FPCGExContext* InContext, const FName InLabel, PCGExData::FFacadePreloader& FacadePreloader);
 
+	PCGEXTENDEDTOOLKIT_API
 	void RegisterBuffersDependencies(FPCGExContext* InContext, PCGExData::FFacadePreloader& FacadePreloader, const TArray<FPCGExSortRuleConfig>& InRuleConfigs);
 }
 

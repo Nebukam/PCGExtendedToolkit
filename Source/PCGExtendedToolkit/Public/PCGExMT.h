@@ -169,7 +169,7 @@ namespace PCGExMT
 		virtual void Reset();
 	};
 
-	class FAsyncToken final : public TSharedFromThis<FAsyncToken>
+	class PCGEXTENDEDTOOLKIT_API FAsyncToken final : public TSharedFromThis<FAsyncToken>
 	{
 		std::atomic<bool> bIsReleased{false};
 		TWeakPtr<FAsyncMultiHandle> Handle;
@@ -436,7 +436,7 @@ namespace PCGExMT
 
 	//
 
-	class FDeferredCallbackHandle : public FAsyncHandle
+	class PCGEXTENDEDTOOLKIT_API FDeferredCallbackHandle : public FAsyncHandle
 	{
 	public:
 		FSimpleCallback Callback;
@@ -448,6 +448,8 @@ namespace PCGExMT
 		virtual bool Start() override;
 	};
 
+	PCGEXTENDEDTOOLKIT_API
 	TSharedPtr<FDeferredCallbackHandle> DeferredCallback(FPCGExContext* InContext, FSimpleCallback&& InCallback);
+	PCGEXTENDEDTOOLKIT_API
 	void CancelDeferredCallback(const TSharedPtr<FDeferredCallbackHandle>& InCallback);
 }

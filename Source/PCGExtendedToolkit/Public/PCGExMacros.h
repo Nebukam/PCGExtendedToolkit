@@ -232,7 +232,7 @@ struct _ITEM##Semantics{ \
 	using _ITEM##Octree = TOctree2<_ITEM*, _ITEM##Semantics>;
 
 #define PCGEX_OCTREE_SEMANTICS_REF(_ITEM, _BOUNDS, _EQUALITY)\
-struct _ITEM##Semantics{ \
+struct PCGEXTENDEDTOOLKIT_API _ITEM##Semantics{ \
 enum { MaxElementsPerLeaf = 16 }; \
 enum { MinInclusiveElementsPerNode = 7 }; \
 enum { MaxNodeDepth = 12 }; \

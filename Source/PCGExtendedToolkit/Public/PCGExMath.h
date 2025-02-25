@@ -194,7 +194,9 @@ namespace PCGExMath
 		}
 	}
 
+	PCGEXTENDEDTOOLKIT_API
 	FBox GetLocalBounds(const FPCGPoint& Point, const EPCGExPointBoundsSource Source);
+	PCGEXTENDEDTOOLKIT_API
 	FBox GetLocalBounds(const FPCGPoint* Point, const EPCGExPointBoundsSource Source);
 
 #pragma region basics
@@ -209,6 +211,7 @@ namespace PCGExMath
 		return FMath::Cos((180 - FMath::Clamp(FMath::Abs(Angle), 0, 180.0)) * (PI / 180.0));
 	}
 
+	PCGEXTENDEDTOOLKIT_API
 	double ConvertStringToDouble(const FString& StringToConvert);
 
 	// Remap function
@@ -409,15 +412,18 @@ namespace PCGExMath
 		return Median;
 	}
 
+	PCGEXTENDEDTOOLKIT_API
 	double GetMode(const TArray<double>& Values, const bool bHighest, const uint32 Tolerance = 5);
-
+	PCGEXTENDEDTOOLKIT_API
 	FVector SafeLinePlaneIntersection(
 		const FVector& Pt1, const FVector& Pt2,
 		const FVector& PlaneOrigin, const FVector& PlaneNormal,
 		bool& bIntersect);
 
 
+	PCGEXTENDEDTOOLKIT_API
 	bool SphereOverlap(const FSphere& S1, const FSphere& S2, double& OutOverlap);
+	PCGEXTENDEDTOOLKIT_API
 	bool SphereOverlap(const FBoxSphereBounds& S1, const FBoxSphereBounds& S2, double& OutOverlap);
 
 
@@ -619,25 +625,38 @@ namespace PCGExMath
 		else { return Quat.GetForwardVector(); }
 	}
 
+	PCGEXTENDEDTOOLKIT_API
 	FVector GetDirection(const FQuat& Quat, const EPCGExAxis Dir);
+	PCGEXTENDEDTOOLKIT_API
 	FVector GetDirection(const EPCGExAxis Dir);
 
+	PCGEXTENDEDTOOLKIT_API
 	FQuat MakeDirection(const EPCGExAxis Dir, const FVector& InForward);
+	PCGEXTENDEDTOOLKIT_API
 	FQuat MakeDirection(const EPCGExAxis Dir, const FVector& InForward, const FVector& InUp);
 
+	PCGEXTENDEDTOOLKIT_API
 	FVector GetNormal(const FVector& A, const FVector& B, const FVector& C);
+	PCGEXTENDEDTOOLKIT_API
 	FVector GetNormalUp(const FVector& A, const FVector& B, const FVector& Up);
 
+	PCGEXTENDEDTOOLKIT_API
 	FTransform MakeLookAtTransform(const FVector& LookAt, const FVector& LookUp, const EPCGExAxisAlign AlignAxis);
 
+	PCGEXTENDEDTOOLKIT_API
 	double GetAngle(const FVector& A, const FVector& B);
 
 	// Expects normalized vectors
+	PCGEXTENDEDTOOLKIT_API
 	double GetRadiansBetweenVectors(const FVector& A, const FVector& B, const FVector& UpVector = FVector::UpVector);
+	PCGEXTENDEDTOOLKIT_API
 	double GetDegreesBetweenVectors(const FVector& A, const FVector& B, const FVector& UpVector = FVector::UpVector);
 
+	PCGEXTENDEDTOOLKIT_API
 	void CheckConvex(const FVector& A, const FVector& B, const FVector& C, bool& bIsConvex, int32& OutSign, const FVector& UpVector = FVector::UpVector);
+	PCGEXTENDEDTOOLKIT_API
 	FBox ScaledBox(const FBox& InBox, const FVector& InScale);
+	PCGEXTENDEDTOOLKIT_API
 	bool IsDirectionWithinTolerance(const FVector& A, const FVector& B, const FRotator& Limits);
 
 	template <typename T>
@@ -690,9 +709,11 @@ namespace PCGExMath
 		}
 	}
 
+	PCGEXTENDEDTOOLKIT_API
 	double GetArcLength(const double R, const double StartAngleRadians, const double EndAngleRadians);
 
 	/** Distance from C to AB */
+	PCGEXTENDEDTOOLKIT_API
 	double GetPerpendicularDistance(const FVector& A, const FVector& B, const FVector& C);
 
 

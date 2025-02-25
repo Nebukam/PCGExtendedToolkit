@@ -32,8 +32,9 @@ public:
 		}
 	}
 
-	virtual void PrepareForData()
+	virtual bool PrepareForData(FPCGExContext* InContext)
 	{
+		return true;
 	}
 
 	virtual void ProcessFirstPoint(
