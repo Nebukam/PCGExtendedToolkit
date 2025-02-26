@@ -36,6 +36,8 @@ namespace PCGExCluster
 		FVector GetFirstEdgeDir(const TSharedPtr<FCluster>& Cluster) const;
 		FVector GetLastEdgeDir(const TSharedPtr<FCluster>& Cluster) const;
 		FVector GetEdgeDir(const TSharedPtr<FCluster>& Cluster, const bool bFirst) const;
+
+		int32 GetNodes(const TSharedPtr<FCluster>& Cluster, TArray<int32>& OutNodes, bool bReverse);
 	};
 
 	class PCGEXTENDEDTOOLKIT_API FNodeChainBuilder : public TSharedFromThis<FNodeChainBuilder>
