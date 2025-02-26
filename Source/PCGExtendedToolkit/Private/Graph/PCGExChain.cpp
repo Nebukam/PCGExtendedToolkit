@@ -143,14 +143,13 @@ namespace PCGExCluster
 
 	FVector FNodeChain::GetFirstEdgeDir(const TSharedPtr<FCluster>& Cluster) const
 	{
-		return Cluster->GetDir(Seed.Node, Cluster->GetEdge(Seed.Edge)->Other(Seed.Node));
+		return Cluster->GetDir(Seed.Node, (*Cluster->NodeIndexLookup)[Cluster->GetEdge(Seed.Edge)->Other(Cluster->GetNodePointIndex(Seed.Node))]);
 	}
 
 	FVector FNodeChain::GetLastEdgeDir(const TSharedPtr<FCluster>& Cluster) const
 	{
-		if (SingleEdge != -1) { return Cluster->GetDir(Seed.Node, Cluster->GetEdge(Seed.Edge)->Other(Seed.Node)); }
 		const FLink& Lk = Links.Last();
-		return Cluster->GetDir(Lk.Node, Cluster->GetEdge(Lk.Edge)->Other(Lk.Node));
+		return Cluster->GetDir(Lk.Node, (*Cluster->NodeIndexLookup)[Cluster->GetEdge(Lk.Edge)->Other(Cluster->GetNodePointIndex(Lk.Node))]);
 	}
 
 	FVector FNodeChain::GetEdgeDir(const TSharedPtr<FCluster>& Cluster, const bool bFirst) const
