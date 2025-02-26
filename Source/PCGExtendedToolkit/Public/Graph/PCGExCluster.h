@@ -209,6 +209,9 @@ namespace PCGExCluster
 		FVector GetDir(const FNode& From, const FNode& To) const;
 		FVector GetEdgeDir(const FEdge& InEdge) const;
 		FVector GetEdgeDir(const int32 InEdgeIndex) const;
+		FVector GetEdgeDir(const FLink Lk) const;
+		FVector GetEdgeDir(const int32 InEdgeIndex, const int32 InStartPtIndex) const;
+		FVector GetEdgeDir(const FLink Lk, const int32 InStartPtIndex) const;
 
 		TSharedPtr<PCGEx::FIndexedItemOctree> GetNodeOctree();
 		TSharedPtr<PCGEx::FIndexedItemOctree> GetEdgeOctree();
