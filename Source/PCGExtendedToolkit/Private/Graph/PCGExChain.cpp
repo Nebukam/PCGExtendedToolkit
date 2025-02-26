@@ -143,20 +143,58 @@ namespace PCGExCluster
 
 	FVector FNodeChain::GetFirstEdgeDir(const TSharedPtr<FCluster>& Cluster) const
 	{
-		return Cluster->GetDir(Seed.Node, Cluster->GetEdge(Seed.Edge)->Other(Seed.Node));
+		return Cluster->GetDir(Seed.Node, (*Cluster->NodeIndexLookup)[Cluster->GetEdge(Seed.Edge)->Other(Cluster->GetNodePointIndex(Seed.Node))]);
 	}
 
 	FVector FNodeChain::GetLastEdgeDir(const TSharedPtr<FCluster>& Cluster) const
 	{
-		if (SingleEdge != -1) { return Cluster->GetDir(Seed.Node, Cluster->GetEdge(Seed.Edge)->Other(Seed.Node)); }
 		const FLink& Lk = Links.Last();
-		return Cluster->GetDir(Lk.Node, Cluster->GetEdge(Lk.Edge)->Other(Lk.Node));
+		return Cluster->GetDir(Lk.Node, (*Cluster->NodeIndexLookup)[Cluster->GetEdge(Lk.Edge)->Other(Cluster->GetNodePointIndex(Lk.Node))]);
 	}
 
 	FVector FNodeChain::GetEdgeDir(const TSharedPtr<FCluster>& Cluster, const bool bFirst) const
 	{
 		if (bFirst) { return GetFirstEdgeDir(Cluster); }
 		else { return GetLastEdgeDir(Cluster); }
+	}
+
+	int32 FNodeChain::GetNodes(const TSharedPtr<FCluster>& Cluster, TArray<int32>& OutNodes, const bool bReverse)
+	{
+		if (SingleEdge != -1)
+		{
+			OutNodes.Reset(2);
+			FEdge* Edge = Cluster->GetEdge(SingleEdge);
+
+			if (bReverse)
+			{
+				OutNodes.Add(Cluster->GetNode((*Cluster->NodeIndexLookup)[Edge->End])->Index);
+				OutNodes.Add(Cluster->GetNode((*Cluster->NodeIndexLookup)[Edge->Start])->Index);
+			}
+			else
+			{
+				OutNodes.Add(Cluster->GetNode((*Cluster->NodeIndexLookup)[Edge->Start])->Index);
+				OutNodes.Add(Cluster->GetNode((*Cluster->NodeIndexLookup)[Edge->End])->Index);
+			}
+
+			return 2;
+		}
+
+		const int32 ChainSize = Links.Num();
+
+		OutNodes.Reset(ChainSize + 1);
+
+		if (bReverse)
+		{
+			for (int i = ChainSize - 1; i >= 0; i--) { OutNodes.Add(Links[i].Node); }
+			OutNodes.Add(Seed.Node);
+		}
+		else
+		{
+			OutNodes.Add(Seed.Node);
+			for (int i = 0; i < ChainSize; i++) { OutNodes.Add(Links[i].Node); }
+		}
+
+		return OutNodes.Num();
 	}
 
 	bool FNodeChainBuilder::Compile(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager)

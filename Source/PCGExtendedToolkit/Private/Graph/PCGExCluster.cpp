@@ -371,6 +371,24 @@ namespace PCGExCluster
 		return ((*(NodePositions.GetData() + NodeIndexLookup->Get(Edge->Start))) - (*(NodePositions.GetData() + NodeIndexLookup->Get(Edge->End)))).GetSafeNormal();
 	}
 
+	FVector FCluster::GetEdgeDir(const FLink Lk) const
+	{
+		const FEdge* Edge = Edges->GetData() + Lk.Edge;
+		return ((*(NodePositions.GetData() + NodeIndexLookup->Get(Edge->Start))) - (*(NodePositions.GetData() + NodeIndexLookup->Get(Edge->End)))).GetSafeNormal();
+	}
+
+	FVector FCluster::GetEdgeDir(const int32 InEdgeIndex, const int32 InStartPtIndex) const
+	{
+		const FEdge* Edge = Edges->GetData() + InEdgeIndex;
+		return ((*(NodePositions.GetData() + NodeIndexLookup->Get(InStartPtIndex))) - (*(NodePositions.GetData() + NodeIndexLookup->Get(Edge->Other(InStartPtIndex))))).GetSafeNormal();
+	}
+
+	FVector FCluster::GetEdgeDir(const FLink Lk, const int32 InStartPtIndex) const
+	{
+		const FEdge* Edge = Edges->GetData() + Lk.Edge;
+		return ((*(NodePositions.GetData() + NodeIndexLookup->Get(InStartPtIndex))) - (*(NodePositions.GetData() + NodeIndexLookup->Get(Edge->Other(InStartPtIndex))))).GetSafeNormal();
+	}
+
 	TSharedPtr<PCGEx::FIndexedItemOctree> FCluster::GetNodeOctree()
 	{
 		if (!NodeOctree) { RebuildNodeOctree(); }
@@ -892,7 +910,7 @@ bool FPCGExEdgeDirectionSettings::SortEndpoints(const PCGExCluster::FCluster* In
 	{
 		bAscending = Sorter->Sort(Start, End);
 	}
-	else if (DirectionMethod == EPCGExEdgeDirectionMethod::EdgeDotAttribute)
+	else if (DirectionMethod == EPCGExEdgeDirectionMethod::EdgeDotAttribute && InEdge.Index != -1)
 	{
 		// TODO : Might be faster to use the EndpointLookup with GetPos ?
 		const FVector A = (InCluster->VtxPoints->GetData() + Start)->Transform.GetLocation();
