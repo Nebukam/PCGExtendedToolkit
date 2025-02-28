@@ -293,16 +293,22 @@ namespace PCGExAssetStaging
 			HashWriter->GetMutable(Index) = Context->CollectionPickDatasetPacker->GetPickIdx(EntryHost, Entry->Staging.InternalIndex);
 		}
 
-		if (Variations.bEnabledBefore) { Variations.Apply(Point, Entry->Variations, EPCGExVariationMode::Before); }
-
-		FTransform OutTransform = Point.Transform;
 		FBox OutBounds = Entry->Staging.Bounds;
 
-		FittingHandler.ComputeTransform(Index, OutTransform, OutBounds);
+		if (Variations.bEnabledBefore)
+		{
+			FPCGPoint ProxyPoint = Point;
+			Variations.Apply(ProxyPoint, Entry->Variations, EPCGExVariationMode::Before);
+			FittingHandler.ComputeTransform(Index, ProxyPoint, Point.Transform, OutBounds);
+		}
+		else
+		{
+			FittingHandler.ComputeTransform(Index, Point.Transform, OutBounds);
+		}
+
 
 		Point.BoundsMin = OutBounds.Min;
 		Point.BoundsMax = OutBounds.Max;
-		Point.Transform = OutTransform;
 
 		if (Variations.bEnabledAfter) { Variations.Apply(Point, Entry->Variations, EPCGExVariationMode::After); }
 	}
