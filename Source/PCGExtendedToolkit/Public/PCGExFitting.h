@@ -268,9 +268,10 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExFittingVariationsDetails
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	EPCGExVariationMode Scale = EPCGExVariationMode::Disabled;
-
+	
 	bool bEnabledBefore = true;
 	bool bEnabledAfter = true;
+		
 	int Seed = 0;
 
 	void Init(const int InSeed);
@@ -306,6 +307,32 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExFittingDetailsHandler
 		//
 		check(TargetDataFacade);
 		const FPCGPoint& TargetPoint = TargetDataFacade->Source->GetInPoint(TargetIndex);
+
+		if constexpr (bWorldSpace) { OutTransform = TargetPoint.Transform; }
+
+		FVector OutScale = TargetPoint.Transform.GetScale3D();
+		const FBox RefBounds = PCGExMath::GetLocalBounds<EPCGExPointBoundsSource::ScaledBounds>(TargetPoint);
+		const FBox& OriginalInBounds = InOutBounds;
+
+		ScaleToFit.Process(TargetPoint, OriginalInBounds, OutScale, InOutBounds);
+
+		//
+
+		FVector OutTranslation = FVector::ZeroVector;
+		Justification.Process(
+			TargetIndex, RefBounds,
+			FBox(InOutBounds.Min * OutScale, InOutBounds.Max * OutScale),
+			OutTranslation);
+
+		OutTransform.AddToTranslation(TargetPoint.Transform.GetRotation().RotateVector(OutTranslation));
+		OutTransform.SetScale3D(OutScale);
+	}
+
+	template <bool bWorldSpace = true>
+	void ComputeTransform(const int32 TargetIndex, const FPCGPoint& TargetPoint, FTransform& OutTransform, FBox& InOutBounds) const
+	{
+		//
+		check(TargetDataFacade);
 
 		if constexpr (bWorldSpace) { OutTransform = TargetPoint.Transform; }
 
