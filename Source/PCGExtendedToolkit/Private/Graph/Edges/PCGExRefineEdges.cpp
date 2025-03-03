@@ -385,6 +385,13 @@ namespace PCGExRefineEdges
 		InsertEdges();
 	}
 
+	void FProcessor::Cleanup()
+	{
+		TProcessor<FPCGExRefineEdgesContext, UPCGExRefineEdgesSettings>::Cleanup();
+		EdgeFilterManager.Reset();
+		SanitizationFilterManager.Reset();
+	}
+
 	void FBatch::RegisterBuffersDependencies(PCGExData::FFacadePreloader& FacadePreloader)
 	{
 		TBatch<FProcessor>::RegisterBuffersDependencies(FacadePreloader);

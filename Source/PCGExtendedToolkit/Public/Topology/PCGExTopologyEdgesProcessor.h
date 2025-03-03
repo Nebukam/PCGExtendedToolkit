@@ -226,6 +226,7 @@ namespace PCGExTopologyEdges
 		virtual void Cleanup() override
 		{
 			PCGExClusterMT::TProcessor<TContext, TSettings>::Cleanup();
+			EdgeFilterManager.Reset();
 			CellsConstraints->Cleanup();
 		}
 

@@ -5,6 +5,7 @@
 
 #include "CoreMinimal.h"
 #include "PCGExChain.h"
+#include "Filters/PCGExClusterFilter.h"
 
 
 #include "Graph/PCGExEdgesProcessor.h"
@@ -48,7 +49,7 @@ public:
 	virtual bool SupportsEdgeSorting() const override { return DirectionSettings.RequiresSortingRules(); }
 	virtual PCGExData::EIOInit GetMainOutputInitMode() const override;
 	virtual PCGExData::EIOInit GetEdgeOutputInitMode() const override;
-	PCGEX_NODE_POINT_FILTER(FName("Break Conditions"), "Filters used to know which points are 'break' points.", PCGExFactories::PointFilters, false)
+	PCGEX_NODE_POINT_FILTER(FName("Break Conditions"), "Filters used to know which points are 'break' points.", PCGExFactories::ClusterNodeFilters, false)
 	//~End UPCGExPointsProcessorSettings
 
 	/** How to handle leaves */
@@ -139,6 +140,8 @@ namespace PCGExBreakClustersToPaths
 		TSharedPtr<TArray<FVector2D>> ProjectedPositions;
 		TSharedPtr<PCGExCluster::FNodeChainBuilder> ChainBuilder;
 
+		TSharedPtr<PCGExClusterFilter::FManager> BreakpointFilterManager;
+
 		FPCGExEdgeDirectionSettings DirectionSettings;
 
 	public:
@@ -148,6 +151,7 @@ namespace PCGExBreakClustersToPaths
 		}
 
 		virtual bool Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager) override;
+		bool BuildChains();
 		virtual void CompleteWork() override;
 		virtual void ProcessSingleRangeIteration(const int32 Iteration, const PCGExMT::FScope& Scope) override;
 		virtual void ProcessSingleEdge(const int32 EdgeIndex, PCGExGraph::FEdge& Edge, const PCGExMT::FScope& Scope) override;
@@ -161,7 +165,6 @@ namespace PCGExBreakClustersToPaths
 
 	protected:
 		FPCGExEdgeDirectionSettings DirectionSettings;
-		TSharedPtr<PCGExPointFilter::FManager> BreakpointFilterManager;
 		TSharedPtr<TArray<int8>> Breakpoints;
 
 		FPCGExGeo2DProjectionDetails ProjectionDetails;

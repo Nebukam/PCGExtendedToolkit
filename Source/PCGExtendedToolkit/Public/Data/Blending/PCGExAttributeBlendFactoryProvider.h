@@ -104,7 +104,7 @@ public:
 	virtual void RegisterAssetDependencies(FPCGExContext* InContext) const override;
 };
 
-UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Blending")
+UCLASS(Hidden, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Blending")
 class PCGEXTENDEDTOOLKIT_API UPCGExAttributeBlendFactoryProviderSettings : public UPCGExFactoryProviderSettings
 {
 	GENERATED_BODY()
