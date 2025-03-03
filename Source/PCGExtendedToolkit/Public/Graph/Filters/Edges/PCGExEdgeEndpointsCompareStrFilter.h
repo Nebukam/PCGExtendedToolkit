@@ -84,7 +84,7 @@ public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(
-		EdgeEndpointsCompareStrFilterFactory, "Cluster Filter : Endpoints Compare (String)", "Compare the value of an attribute on each of the edge endpoint.",
+		EdgeEndpointsCompareStrFilterFactory, "Edge Filter : Endpoints Compare (String)", "Compare the value of an attribute on each of the edge endpoint.",
 		PCGEX_FACTORY_NAME_PRIORITY)
 	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->WantsColor(GetDefault<UPCGExGlobalSettings>()->NodeColorClusterFilter); }
 #endif

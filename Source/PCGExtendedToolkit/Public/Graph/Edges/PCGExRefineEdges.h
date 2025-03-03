@@ -143,6 +143,8 @@ namespace PCGExRefineEdges
 		virtual void CompleteWork() override;
 
 		UPCGExEdgeRefineOperation* Refinement = nullptr;
+
+		virtual void Cleanup() override;
 	};
 
 	class FBatch final : public PCGExClusterMT::TBatch<FProcessor>

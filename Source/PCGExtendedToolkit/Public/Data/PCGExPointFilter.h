@@ -13,6 +13,13 @@
 
 #include "PCGExPointFilter.generated.h"
 
+UENUM()
+enum class EPCGExFilterFallback : uint8
+{
+	Pass = 0 UMETA(DisplayName = "Pass", ToolTip="This item will be considered to successfully pass the filter"),
+	Fail = 1 UMETA(DisplayName = "Fail", ToolTip="This item will be considered to failing to pass the filter"),
+};
+
 namespace PCGExGraph
 {
 	struct FEdge;

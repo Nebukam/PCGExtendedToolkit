@@ -402,6 +402,13 @@ namespace PCGExCutEdges
 		GraphBuilder->Graph->InsertEdges(ValidEdges);
 	}
 
+	void FProcessor::Cleanup()
+	{
+		TProcessor<FPCGExCutEdgesContext, UPCGExCutEdgesSettings>::Cleanup();
+		EdgeFilterManager.Reset();
+		NodeFilterManager.Reset();
+	}
+
 	void FBatch::RegisterBuffersDependencies(PCGExData::FFacadePreloader& FacadePreloader)
 	{
 		TBatch<FProcessor>::RegisterBuffersDependencies(FacadePreloader);

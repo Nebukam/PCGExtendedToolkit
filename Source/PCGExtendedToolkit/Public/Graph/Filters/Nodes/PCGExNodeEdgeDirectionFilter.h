@@ -92,7 +92,6 @@ public:
 	bool bFromNode = true;
 	bool bUseDot = true;
 
-	TArray<double> CachedThreshold;
 	FVector DirConstant = FVector::ZeroVector;
 	FPCGExAdjacencySettings Adjacency;
 	FPCGExDotComparisonDetails DotComparison;
@@ -119,7 +118,7 @@ public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(
-		NodeEdgeDirectionFilterFactory, "Cluster Filter : Edge Direction (Node)", "Dot product comparison of connected edges against a direction attribute stored on the vtx.",
+		NodeEdgeDirectionFilterFactory, "Vtx Filter : Edge Direction", "Dot product comparison of connected edges against a direction attribute stored on the vtx.",
 		PCGEX_FACTORY_NAME_PRIORITY)
 	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->WantsColor(GetDefault<UPCGExGlobalSettings>()->NodeColorClusterFilter); }
 #endif
