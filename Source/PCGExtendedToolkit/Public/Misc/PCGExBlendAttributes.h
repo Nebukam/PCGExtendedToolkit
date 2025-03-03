@@ -13,7 +13,7 @@
 
 class UPCGExAttributeBlendFactory;
 
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc")
+UCLASS(Hidden, MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc")
 class UPCGExBlendAttributesSettings : public UPCGExPointsProcessorSettings
 {
 	GENERATED_BODY()
