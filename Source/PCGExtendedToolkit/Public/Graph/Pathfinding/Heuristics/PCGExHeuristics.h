@@ -113,19 +113,8 @@ namespace PCGExHeuristics
 			const PCGExCluster::FNode& From,
 			const PCGExCluster::FNode& Seed,
 			const PCGExCluster::FNode& Goal,
-			const FLocalFeedbackHandler* LocalFeedback = nullptr) const
-		{
-			double GScore = 0;
-			double EWeight = TotalStaticWeight;
-
-			for (const UPCGExHeuristicOperation* Op : Operations) { GScore += Op->GetGlobalScore(From, Seed, Goal); }
-			if (LocalFeedback)
-			{
-				GScore += LocalFeedback->GetGlobalScore(From, Seed, Goal);
-				EWeight += LocalFeedback->TotalStaticWeight;
-			}
-			return GScore / EWeight;
-		}
+			const FLocalFeedbackHandler* LocalFeedback = nullptr) const;
+		
 
 		double GetEdgeScore(
 			const PCGExCluster::FNode& From,
@@ -134,65 +123,14 @@ namespace PCGExHeuristics
 			const PCGExCluster::FNode& Seed,
 			const PCGExCluster::FNode& Goal,
 			const FLocalFeedbackHandler* LocalFeedback = nullptr,
-			const TSharedPtr<PCGEx::FHashLookup> TravelStack = nullptr) const
-		{
-			double EScore = 0;
-			double EWeight = TotalStaticWeight;
-
-			if (!bUseDynamicWeight)
-			{
-				for (const UPCGExHeuristicOperation* Op : Operations) { EScore += Op->GetEdgeScore(From, To, Edge, Seed, Goal, TravelStack); }
-
-				if (LocalFeedback)
-				{
-					EScore += LocalFeedback->GetEdgeScore(From, To, Edge, Seed, Goal, TravelStack);
-					EWeight += LocalFeedback->TotalStaticWeight;
-				}
-
-				return EScore / EWeight;
-			}
-
-			EWeight = 0;
-
-			for (const UPCGExHeuristicOperation* Op : Operations)
-			{
-				EScore += Op->GetEdgeScore(From, To, Edge, Seed, Goal, TravelStack);
-				EWeight += (Op->WeightFactor * Op->GetCustomWeightMultiplier(To.Index, Edge.PointIndex));
-			}
-
-			if (LocalFeedback)
-			{
-				EScore += LocalFeedback->GetEdgeScore(From, To, Edge, Seed, Goal, TravelStack);
-				//EWeight += LocalFeedback->TotalStaticWeight;
-			}
-
-			return EScore / EWeight;
-		}
-
-		void FeedbackPointScore(const PCGExCluster::FNode& Node)
-		{
-			for (UPCGExHeuristicFeedback* Op : Feedbacks) { Op->FeedbackPointScore(Node); }
-		}
-
-		void FeedbackScore(const PCGExCluster::FNode& Node, const PCGExGraph::FEdge& Edge)
-		{
-			for (UPCGExHeuristicFeedback* Op : Feedbacks) { Op->FeedbackScore(Node, Edge); }
-		}
-
-		FVector GetSeedUVW() const
-		{
-			FVector UVW = FVector::ZeroVector;
-			for (const UPCGExHeuristicOperation* Op : Operations) { UVW += Op->GetSeedUVW(); }
-			return UVW;
-		}
-
-		FVector GetGoalUVW() const
-		{
-			FVector UVW = FVector::ZeroVector;
-			for (const UPCGExHeuristicOperation* Op : Operations) { UVW += Op->GetGoalUVW(); }
-			return UVW;
-		}
-
+			const TSharedPtr<PCGEx::FHashLookup>& TravelStack = nullptr) const;
+		
+		void FeedbackPointScore(const PCGExCluster::FNode& Node);		
+		void FeedbackScore(const PCGExCluster::FNode& Node, const PCGExGraph::FEdge& Edge);
+		
+		FVector GetSeedUVW() const;		
+		FVector GetGoalUVW() const;
+		
 		const PCGExCluster::FNode* GetRoamingSeed() const { return Cluster->GetRoamingNode(GetSeedUVW()); }
 		const PCGExCluster::FNode* GetRoamingGoal() const { return Cluster->GetRoamingNode(GetGoalUVW()); }
 

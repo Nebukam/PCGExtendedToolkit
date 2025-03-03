@@ -32,8 +32,6 @@ class UPCGExHeuristicAzimuth : public UPCGExHeuristicOperation
 	GENERATED_BODY()
 
 public:
-	virtual void PrepareForCluster(const TSharedPtr<const PCGExCluster::FCluster>& InCluster) override;
-
 	virtual double GetGlobalScore(
 		const PCGExCluster::FNode& From,
 		const PCGExCluster::FNode& Seed,
@@ -47,9 +45,6 @@ public:
 		const PCGExCluster::FNode& Goal,
 		const TSharedPtr<PCGEx::FHashLookup> TravelStack) const override;
 
-protected:
-	double OutMin = 0;
-	double OutMax = 1;
 };
 
 ////

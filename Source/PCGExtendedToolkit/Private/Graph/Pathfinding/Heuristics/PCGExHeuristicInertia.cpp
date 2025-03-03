@@ -3,23 +3,6 @@
 
 #include "Graph/Pathfinding/Heuristics/PCGExHeuristicInertia.h"
 
-
-void UPCGExHeuristicInertia::PrepareForCluster(const TSharedPtr<const PCGExCluster::FCluster>& InCluster)
-{
-	if (bInvert)
-	{
-		OutMin = 0;
-		OutMax = 1;
-	}
-	else
-	{
-		OutMin = 1;
-		OutMax = 0;
-	}
-
-	Super::PrepareForCluster(InCluster);
-}
-
 double UPCGExHeuristicInertia::GetGlobalScore(
 	const PCGExCluster::FNode& From,
 	const PCGExCluster::FNode& Seed,
@@ -62,7 +45,7 @@ double UPCGExHeuristicInertia::GetEdgeScore(
 					(Avg / Sampled).GetSafeNormal(),
 					Cluster->GetDir(From.Index, To.Index));
 
-				return GetScoreInternal(PCGExMath::Remap(Dot, -1, 1, OutMin, OutMax)) * ReferenceWeight;
+				return GetScoreInternal(PCGExMath::Remap(Dot, -1, 1, 1, 0)) * ReferenceWeight;
 			}
 		}
 	}
