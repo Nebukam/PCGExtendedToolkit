@@ -217,20 +217,20 @@ namespace PCGExCluster
 
 			if (Node->IsBinary())
 			{
-				NumBinaries++;
-				continue;
-			}
-			if (Breakpoints && !(*Breakpoints)[Node->PointIndex])
-
-			{
-				for (const FLink& Lk : Node->Links)
+				if (!Breakpoints || !(*Breakpoints)[Node->PointIndex])
 				{
-					// Skip immediately known leaves or already seeded nodes. Avoid double-sampling simple cases
-					if (Cluster->GetNode(Lk.Node)->IsLeaf()) { continue; }
-
-					PCGEX_MAKE_SHARED(NewChain, FNodeChain, FLink(Node->Index, Lk.Edge))
-					Chains.Add(NewChain);
+					NumBinaries++;
+					continue;
 				}
+			}
+
+			for (const FLink& Lk : Node->Links)
+			{
+				// Skip immediately known leaves or already seeded nodes. Avoid double-sampling simple cases
+				if (Cluster->GetNode(Lk.Node)->IsLeaf()) { continue; }
+
+				PCGEX_MAKE_SHARED(NewChain, FNodeChain, FLink(Node->Index, Lk.Edge))
+				Chains.Add(NewChain);
 			}
 		}
 
