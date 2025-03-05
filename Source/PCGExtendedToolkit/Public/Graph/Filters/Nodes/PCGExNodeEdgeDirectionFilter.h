@@ -74,6 +74,7 @@ public:
 	FPCGExNodeEdgeDirectionFilterConfig Config;
 
 	virtual TSharedPtr<PCGExPointFilter::FFilter> CreateFilter() const override;
+	virtual bool RegisterConsumableAttributesWithData(FPCGExContext* InContext, const UPCGData* InData) const override;
 };
 
 class FNodeEdgeDirectionFilter final : public PCGExClusterFilter::FVtxFilter

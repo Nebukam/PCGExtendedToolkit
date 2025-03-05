@@ -78,7 +78,7 @@ class UPCGExHeuristicsFactoryInertia : public UPCGExHeuristicsFactoryData
 public:
 	UPROPERTY()
 	FPCGExHeuristicConfigInertia Config;
-
+	
 	virtual UPCGExHeuristicOperation* CreateOperation(FPCGExContext* InContext) const override;
 	PCGEX_HEURISTIC_FACTORY_BOILERPLATE
 };

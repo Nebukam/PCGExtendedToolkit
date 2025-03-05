@@ -459,6 +459,8 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExVectorHashComparisonDetails
 
 	bool Init(const FPCGContext* InContext, const TSharedRef<PCGExData::FFacade>& InPrimaryDataFacade);
 	FVector GetCWTolerance(const int32 PointIndex) const;
+
+	void RegisterConsumableAttributesWithData(FPCGExContext* InContext, const UPCGData* InData) const;
 };
 
 USTRUCT(BlueprintType)
@@ -517,6 +519,8 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExDotComparisonDetails
 
 	bool Test(const double A, const double B) const;
 	bool Test(const double A, const int32 Index) const;
+
+	void RegisterConsumableAttributesWithData(FPCGExContext* InContext, const UPCGData* InData) const;
 };
 
 USTRUCT(BlueprintType)
@@ -575,6 +579,8 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExAttributeToTagComparisonDetails
 
 	bool Matches(const TSharedPtr<PCGExData::FTags>& InTags, const int32 SourceIndex, const FPCGPoint& SourcePoint) const;
 	bool Matches(const TSharedPtr<PCGExData::FTags>& InTags, const PCGExData::FPointRef& SourcePointRef) const;
+
+	void RegisterConsumableAttributesWithData(FPCGExContext* InContext, const UPCGData* InData) const;
 };
 
 UENUM()
