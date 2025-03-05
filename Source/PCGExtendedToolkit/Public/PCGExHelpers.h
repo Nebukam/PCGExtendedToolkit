@@ -256,11 +256,13 @@ namespace PCGEx
 		FName Get(const FName& BaseName);
 	};
 
-	struct PCGEXTENDEDTOOLKIT_API FManagedObjects
+	class PCGEXTENDEDTOOLKIT_API FManagedObjects : public TSharedFromThis<FManagedObjects>
 	{
+	protected:
 		mutable FRWLock ManagedObjectLock;
 		mutable FRWLock DuplicatedObjectLock;
 
+	public:
 		FPCGContext* Context = nullptr;
 		TWeakPtr<FWorkPermit> WorkPermit;
 		TSet<UObject*> ManagedObjects;

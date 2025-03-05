@@ -71,6 +71,8 @@ public:
 	UPROPERTY()
 	FPCGExEdgeNeighborsCountFilterConfig Config;
 
+	virtual bool RegisterConsumableAttributesWithData(FPCGExContext* InContext, const UPCGData* InData) const override;
+	
 	virtual TSharedPtr<PCGExPointFilter::FFilter> CreateFilter() const override;
 };
 

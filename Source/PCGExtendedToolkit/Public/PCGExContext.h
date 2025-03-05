@@ -68,7 +68,7 @@ protected:
 
 public:
 	TWeakPtr<PCGEx::FWorkPermit> GetWorkPermit() { return WorkPermit; }
-	TUniquePtr<PCGEx::FManagedObjects> ManagedObjects;
+	TSharedPtr<PCGEx::FManagedObjects> ManagedObjects;
 
 	bool bScopedAttributeGet = false;
 

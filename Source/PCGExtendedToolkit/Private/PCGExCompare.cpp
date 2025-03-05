@@ -284,6 +284,12 @@ FVector FPCGExVectorHashComparisonDetails::GetCWTolerance(const int32 PointIndex
 	return bUseLocalTolerance ? FVector(1 / LocalOperand->Read(PointIndex)) : CWTolerance;
 }
 
+void FPCGExVectorHashComparisonDetails::RegisterConsumableAttributesWithData(FPCGExContext* InContext, const UPCGData* InData) const
+{
+	FName Consumable = NAME_None;
+	PCGEX_CONSUMABLE_CONDITIONAL(HashToleranceInput == EPCGExInputValueType::Attribute, HashToleranceAttribute, Consumable)
+}
+
 bool FPCGExDotComparisonDetails::Init(const FPCGContext* InContext, const TSharedRef<PCGExData::FFacade>& InPrimaryDataCache)
 {
 	bUseAttribute = ThresholdInput == EPCGExInputValueType::Attribute;
@@ -334,6 +340,12 @@ bool FPCGExDotComparisonDetails::Test(const double A, const int32 Index) const
 	return bUnsignedComparison ?
 		       PCGExCompare::Compare(Comparison, FMath::Abs(A), FMath::Abs(GetComparisonThreshold(Index)), ComparisonTolerance) :
 		       PCGExCompare::Compare(Comparison, A, GetComparisonThreshold(Index), ComparisonTolerance);
+}
+
+void FPCGExDotComparisonDetails::RegisterConsumableAttributesWithData(FPCGExContext* InContext, const UPCGData* InData) const
+{
+	FName Consumable = NAME_None;
+	PCGEX_CONSUMABLE_CONDITIONAL(ThresholdInput == EPCGExInputValueType::Attribute, ThresholdAttribute, Consumable)
 }
 
 bool FPCGExAttributeToTagComparisonDetails::Init(const FPCGContext* InContext, const TSharedRef<PCGExData::FFacade>& InSourceDataFacade)
@@ -409,6 +421,14 @@ bool FPCGExAttributeToTagComparisonDetails::Matches(const TSharedPtr<PCGExData::
 bool FPCGExAttributeToTagComparisonDetails::Matches(const TSharedPtr<PCGExData::FTags>& InTags, const PCGExData::FPointRef& SourcePointRef) const
 {
 	return Matches(InTags, SourcePointRef.Index, *SourcePointRef.Point);
+}
+
+void FPCGExAttributeToTagComparisonDetails::RegisterConsumableAttributesWithData(FPCGExContext* InContext, const UPCGData* InData) const
+{
+	InContext->AddConsumableAttributeName(TagNameAttribute);
+	
+	FName Consumable = NAME_None;
+	PCGEX_CONSUMABLE_SELECTOR(ValueAttribute, Consumable)
 }
 
 int64 FPCGExBitmask::Get() const

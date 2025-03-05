@@ -15,6 +15,16 @@ void UPCGExNodeNeighborsCountFilterFactory::RegisterBuffersDependencies(FPCGExCo
 	if (Config.CompareAgainst == EPCGExInputValueType::Attribute) { FacadePreloader.Register<double>(InContext, Config.LocalCount); }
 }
 
+bool UPCGExNodeNeighborsCountFilterFactory::RegisterConsumableAttributesWithData(FPCGExContext* InContext, const UPCGData* InData) const
+{
+	if (!Super::RegisterConsumableAttributesWithData(InContext, InData)) { return false; }
+
+	FName Consumable = NAME_None;
+	PCGEX_CONSUMABLE_CONDITIONAL(Config.CompareAgainst == EPCGExInputValueType::Attribute, Config.LocalCount, Consumable)
+
+	return true;
+}
+
 TSharedPtr<PCGExPointFilter::FFilter> UPCGExNodeNeighborsCountFilterFactory::CreateFilter() const
 {
 	return MakeShared<PCGExNodeNeighborsCount::FNeighborsCountFilter>(this);

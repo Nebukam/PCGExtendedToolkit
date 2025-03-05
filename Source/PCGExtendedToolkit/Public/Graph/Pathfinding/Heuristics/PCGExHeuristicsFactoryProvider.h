@@ -19,7 +19,8 @@ void UPCGExHeuristicsFactory##_TYPE::RegisterAssetDependencies(FPCGExContext* In
 #define PCGEX_FORWARD_HEURISTIC_FACTORY \
 	NewFactory->WeightFactor = Config.WeightFactor; \
 	NewFactory->Config = Config; \
-	NewFactory->Config.Init();
+	NewFactory->Config.Init(); \
+	NewFactory->ConfigBase = NewFactory->Config; 
 
 #define PCGEX_FORWARD_HEURISTIC_CONFIG \
 	NewOperation->WeightFactor = Config.WeightFactor; \
@@ -100,7 +101,12 @@ class PCGEXTENDEDTOOLKIT_API UPCGExHeuristicsFactoryData : public UPCGExFactoryD
 	GENERATED_BODY()
 
 public:
+	FPCGExHeuristicConfigBase ConfigBase;
+	
 	virtual PCGExFactories::EType GetFactoryType() const override { return PCGExFactories::EType::Heuristics; }
+
+	virtual bool RegisterConsumableAttributesWithData(FPCGExContext* InContext, const UPCGData* InData) const override;
+	
 	virtual UPCGExHeuristicOperation* CreateOperation(FPCGExContext* InContext) const;
 	double WeightFactor = 1;
 };
