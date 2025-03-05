@@ -64,11 +64,11 @@ public:
 	{
 		switch (LookAt)
 		{
-		default: ;
+		default:
 		case EPCGExOrientLookAtMode::NextPoint:
-			return LookAtWorldPos(Point.Point->Transform, Path->GetPos(Point.Index + 1), DirectionMultiplier);
+			return LookAtAxis(Point.Point->Transform, Path->DirToNextPoint(Point.Index), DirectionMultiplier);
 		case EPCGExOrientLookAtMode::PreviousPoint:
-			return LookAtWorldPos(Point.Point->Transform, Path->GetPos(Point.Index - 1), DirectionMultiplier);
+			return LookAtAxis(Point.Point->Transform, Path->DirToPrevPoint(Point.Index), DirectionMultiplier);
 		case EPCGExOrientLookAtMode::Direction:
 			return LookAtDirection(Point.Point->Transform, Point.Index, DirectionMultiplier);
 		case EPCGExOrientLookAtMode::Position:
@@ -76,13 +76,13 @@ public:
 		}
 	}
 
-	virtual FTransform LookAtWorldPos(FTransform InT, const FVector& WorldPos, const double DirectionMultiplier) const
+	virtual FTransform LookAtAxis(FTransform InT, const FVector& InAxis, const double DirectionMultiplier) const
 	{
 		FTransform OutT = InT;
 		OutT.SetRotation(
 			PCGExMath::MakeDirection(
 				OrientAxis,
-				(InT.GetLocation() - WorldPos).GetSafeNormal() * DirectionMultiplier,
+				InAxis * DirectionMultiplier,
 				PCGExMath::GetDirection(UpAxis)));
 		return OutT;
 	}

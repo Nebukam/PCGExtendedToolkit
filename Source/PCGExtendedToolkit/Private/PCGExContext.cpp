@@ -102,7 +102,7 @@ void FPCGExContext::CommitStagedOutputs()
 FPCGExContext::FPCGExContext()
 {
 	WorkPermit = MakeShared<PCGEx::FWorkPermit>();
-	ManagedObjects = MakeUnique<PCGEx::FManagedObjects>(this, WorkPermit);
+	ManagedObjects = MakeShared<PCGEx::FManagedObjects>(this, WorkPermit);
 	UniqueNameGenerator = MakeShared<PCGEx::FUniqueNameGenerator>();
 }
 

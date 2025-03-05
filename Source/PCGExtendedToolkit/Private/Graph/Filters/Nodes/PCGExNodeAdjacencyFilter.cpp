@@ -5,6 +5,7 @@
 
 
 #include "Graph/PCGExGraph.h"
+#include "Graph/Data/PCGExClusterData.h"
 
 #define LOCTEXT_NAMESPACE "PCGExNodeAdjacencyFilter"
 #define PCGEX_NAMESPACE NodeAdjacencyFilter
@@ -14,6 +15,17 @@ void UPCGExNodeAdjacencyFilterFactory::RegisterBuffersDependencies(FPCGExContext
 	Super::RegisterBuffersDependencies(InContext, FacadePreloader);
 	if (Config.CompareAgainst == EPCGExInputValueType::Attribute) { FacadePreloader.Register<double>(InContext, Config.OperandA); }
 	if (Config.OperandBSource == EPCGExClusterComponentSource::Vtx) { FacadePreloader.Register<double>(InContext, Config.OperandB); }
+}
+
+bool UPCGExNodeAdjacencyFilterFactory::RegisterConsumableAttributesWithData(FPCGExContext* InContext, const UPCGData* InData) const
+{
+	if (!Super::RegisterConsumableAttributesWithData(InContext, InData)) { return false; }
+
+	FName Consumable = NAME_None;
+	PCGEX_CONSUMABLE_CONDITIONAL(Config.CompareAgainst == EPCGExInputValueType::Attribute, Config.OperandA, Consumable)
+	PCGEX_CONSUMABLE_SELECTOR(Config.OperandB, Consumable)
+
+	return true;
 }
 
 TSharedPtr<PCGExPointFilter::FFilter> UPCGExNodeAdjacencyFilterFactory::CreateFilter() const
