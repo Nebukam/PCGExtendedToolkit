@@ -9,6 +9,15 @@
 #define LOCTEXT_NAMESPACE "PCGExNodeEdgeAngleFilter"
 #define PCGEX_NAMESPACE NodeEdgeAngleFilter
 
+bool UPCGExNodeEdgeAngleFilterFactory::RegisterConsumableAttributesWithData(FPCGExContext* InContext, const UPCGData* InData) const
+{
+	if (!Super::RegisterConsumableAttributesWithData(InContext, InData)) { return false; }
+
+	Config.DotComparisonDetails.RegisterConsumableAttributesWithData(InContext, InData);
+
+	return true;
+}
+
 TSharedPtr<PCGExPointFilter::FFilter> UPCGExNodeEdgeAngleFilterFactory::CreateFilter() const
 {
 	return MakeShared<FNodeEdgeAngleFilter>(this);

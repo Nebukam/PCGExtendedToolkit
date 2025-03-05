@@ -14,6 +14,19 @@ void UPCGExIsoEdgeDirectionFilterFactory::RegisterBuffersDependencies(FPCGExCont
 	Config.DirectionSettings.RegisterBuffersDependencies(InContext, FacadePreloader, &EdgeSortingRules);
 }
 
+bool UPCGExIsoEdgeDirectionFilterFactory::RegisterConsumableAttributesWithData(FPCGExContext* InContext, const UPCGData* InData) const
+{
+	if (!Super::RegisterConsumableAttributesWithData(InContext, InData)) { return false; }
+
+	FName Consumable = NAME_None;
+	PCGEX_CONSUMABLE_CONDITIONAL(Config.CompareAgainst == EPCGExInputValueType::Attribute, Config.Direction, Consumable)
+
+	if (Config.ComparisonQuality == EPCGExDirectionCheckMode::Dot) { Config.DotComparisonDetails.RegisterConsumableAttributesWithData(InContext, InData); }
+	else { Config.HashComparisonDetails.RegisterConsumableAttributesWithData(InContext, InData); }
+
+	return true;
+}
+
 TSharedPtr<PCGExPointFilter::FFilter> UPCGExIsoEdgeDirectionFilterFactory::CreateFilter() const
 {
 	return MakeShared<FIsoEdgeDirectionFilter>(this);

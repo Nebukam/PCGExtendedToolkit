@@ -50,7 +50,10 @@ bool FPCGExPartitionVerticesElement::ExecuteInternal(FPCGContext* InContext) con
 	PCGEX_CLUSTER_BATCH_PROCESSING(PCGEx::State_Done)
 
 	Context->OutputBatches();
+	
+	Context->VtxPartitions->PruneNullEntries(false);
 	Context->VtxPartitions->StageOutputs();
+	
 	Context->MainEdges->StageOutputs();
 
 	return Context->TryComplete();

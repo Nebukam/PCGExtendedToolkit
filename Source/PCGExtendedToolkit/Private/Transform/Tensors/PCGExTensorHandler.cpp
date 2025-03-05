@@ -16,6 +16,13 @@ namespace PCGExTensor
 
 	bool FTensorsHandler::Init(FPCGExContext* InContext, const TArray<TObjectPtr<const UPCGExTensorFactoryData>>& InFactories, const TSharedPtr<PCGExData::FFacade>& InDataFacade)
 	{
+
+		if (!InContext->GetWorkPermit().Pin())
+		{
+			// nuh-uh
+			return false;
+		}
+		
 		Tensors.Reserve(InFactories.Num());
 
 		if (Config.bNormalize && Config.SizeInput == EPCGExInputValueType::Attribute)

@@ -9,6 +9,16 @@
 #define LOCTEXT_NAMESPACE "PCGExEdgeNeighborsCountFilter"
 #define PCGEX_NAMESPACE EdgeNeighborsCountFilter
 
+bool UPCGExEdgeNeighborsCountFilterFactory::RegisterConsumableAttributesWithData(FPCGExContext* InContext, const UPCGData* InData) const
+{
+	if (!Super::RegisterConsumableAttributesWithData(InContext, InData)) { return false; }
+
+	FName Consumable = NAME_None;
+	PCGEX_CONSUMABLE_CONDITIONAL(Config.ThresholdInput == EPCGExInputValueType::Attribute, Config.ThresholdAttribute, Consumable)
+
+	return true;
+}
+
 TSharedPtr<PCGExPointFilter::FFilter> UPCGExEdgeNeighborsCountFilterFactory::CreateFilter() const
 {
 	return MakeShared<PCGExEdgeNeighborsCount::FNeighborsCountFilter>(this);
