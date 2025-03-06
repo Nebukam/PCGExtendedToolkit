@@ -353,7 +353,7 @@ bool FPCGExAttributeToTagComparisonDetails::Init(const FPCGContext* InContext, c
 	if (TagNameInput == EPCGExInputValueType::Attribute)
 	{
 		TagNameGetter = MakeShared<PCGEx::TAttributeBroadcaster<FString>>();
-		if (!TagNameGetter->Prepare(ValueAttribute, InSourceDataFacade->Source))
+		if (!TagNameGetter->Prepare(TagNameAttribute, InSourceDataFacade->Source))
 		{
 			PCGE_LOG_C(Error, GraphAndLog, InContext, FTEXT("Invalid tag name attribute."));
 			return false;
