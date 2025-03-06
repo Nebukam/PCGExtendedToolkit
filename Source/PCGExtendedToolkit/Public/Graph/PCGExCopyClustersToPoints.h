@@ -64,7 +64,7 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging & Forwarding")
 	FPCGExAttributeToTagDetails TargetsAttributesToClusterTags;
 
-	/** Which Seed attributes to forward on paths. */
+	/** Which target attributes to forward on clusters. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging & Forwarding")
 	FPCGExForwardDetails TargetsForwarding;
 };
