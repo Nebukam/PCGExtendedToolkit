@@ -132,7 +132,7 @@ bool bCleanupConsumableAttributes = false;
 // FString A = ShouldCache() ? TEXT("♻️ ") : TEXT("");
 
 #define PCGEX_NODE_INFOS(_SHORTNAME, _NAME, _TOOLTIP)\
-virtual FName GetDefaultNodeName() const override { return FName(TEXT(#_SHORTNAME)); } \
+virtual FName GetDefaultNodeName() const override { return FName(TEXT("PCGEx"#_SHORTNAME)); } \
 virtual FName AdditionalTaskName() const override{ FString A = TEXT(""); return FName(A + GetDefaultNodeTitle().ToString()); }\
 virtual FText GetDefaultNodeTitle() const override { FString A = TEXT(""); A += TEXT("PCGEx | "); A += (bCleanupConsumableAttributes ? TEXT("🗑️ ") : TEXT("")); A += TEXT(_NAME); return FTEXT(A);} \
 virtual FText GetNodeTooltipText() const override{ return FTEXT(_TOOLTIP); }
