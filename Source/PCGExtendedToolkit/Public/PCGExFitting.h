@@ -364,8 +364,8 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExTransformDetails : public FPCGExFittingDetai
 	{
 	}
 	
-	explicit FPCGExTransformDetails(bool InInheritScale, bool InInheritRotation)
-		: bInheritScale(bInheritScale), bInheritRotation(InInheritRotation)
+	explicit FPCGExTransformDetails(const bool InInheritScale, const bool InInheritRotation)
+		: bInheritScale(InInheritScale), bInheritRotation(InInheritRotation)
 	{
 	}
 
