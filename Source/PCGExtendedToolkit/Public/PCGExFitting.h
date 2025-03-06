@@ -363,6 +363,11 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExTransformDetails : public FPCGExFittingDetai
 	explicit FPCGExTransformDetails()
 	{
 	}
+	
+	explicit FPCGExTransformDetails(bool InInheritScale, bool InInheritRotation)
+		: bInheritScale(bInheritScale), bInheritRotation(InInheritRotation)
+	{
+	}
 
 	/** If enabled, copied point will be scaled by the target' scale. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayAfter="Justification"))
