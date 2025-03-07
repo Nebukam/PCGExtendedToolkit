@@ -9,6 +9,7 @@
 #include "PCGExPointsProcessor.h"
 #include "Collections/PCGExMeshCollection.h"
 #include "PCGExFitting.h"
+#include "PCGExScopedContainers.h"
 #include "PCGExStaging.h"
 
 
@@ -88,6 +89,19 @@ public:
 	/** The name of the attribute to write asset weight to.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Additional Outputs", meta=(PCG_Overridable, EditCondition="WeightToAttribute!=EPCGExWeightOutputMode::NoOutput && WeightToAttribute!=EPCGExWeightOutputMode::NormalizedToDensity && WeightToAttribute!=EPCGExWeightOutputMode::NormalizedInvertedToDensity"))
 	FName WeightAttributeName = "AssetWeight";
+
+	//** If enabled, will output mesh material picks. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Additional Outputs", meta=(PCG_Overridable))
+	bool bOutputMaterialPicks = false;
+
+	//** If > 0 will create dummy attributes for missing material indices up to a maximum; in order to create a full, fixed-length list of valid (yet null) attributes for the static mesh spawner material overrides. Otherwise, will only create attribute for valid indices. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Additional Outputs", meta=(PCG_Overridable, DisplayName=" ├─ Fixed Max Index", EditCondition="bOutputMaterialPicks", ClampMin="0"))
+	int32 MaxMaterialPicks = 0;
+		
+	/** Prefix to be used for material slot picks.*/
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Additional Outputs", meta=(PCG_Overridable, DisplayName=" └─ Prefix", EditCondition="bOutputMaterialPicks"))
+	FName MaterialAttributePrefix = "Mat";
+	
 };
 
 struct FPCGExAssetStagingContext final : FPCGExPointsProcessorContext
@@ -97,6 +111,7 @@ struct FPCGExAssetStagingContext final : FPCGExPointsProcessorContext
 	virtual void RegisterAssetDependencies() override;
 
 	TObjectPtr<UPCGExAssetCollection> MainCollection;
+	bool bPickMaterials = false;
 
 	TSharedPtr<PCGExStaging::FPickPacker> CollectionPickDatasetPacker;
 };
@@ -143,6 +158,17 @@ namespace PCGExAssetStaging
 		TSharedPtr<PCGExData::TBuffer<FString>> PathWriter;
 #endif
 
+		// Material handling 
+		TSharedPtr<PCGExMT::TScopedValue<int8>> HighestSlotIndex;
+#if PCGEX_ENGINE_VERSION > 503
+		TArray<TSharedPtr<PCGExData::TBuffer<FSoftObjectPath>>> MaterialWriters; // Per valid slot writers
+#else
+		TArray<TSharedPtr<PCGExData::TBuffer<FString>>> MaterialWriters; // Per valid slot writers
+#endif
+		
+		TArray<const FPCGExAssetCollectionEntry*> CachedPicks;
+		TArray<int8> MaterialPick;
+
 		TSharedPtr<PCGExData::TBuffer<int64>> HashWriter;
 
 	public:
@@ -156,9 +182,14 @@ namespace PCGExAssetStaging
 		}
 
 		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager) override;
+		virtual void PrepareLoopScopesForPoints(const TArray<PCGExMT::FScope>& Loops) override;
 		virtual void PrepareSingleLoopScopeForPoints(const PCGExMT::FScope& Scope) override;
 		virtual void ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const PCGExMT::FScope& Scope) override;
 		virtual void CompleteWork() override;
+		virtual void ProcessSingleRangeIteration(const int32 Iteration, const PCGExMT::FScope& Scope) override;
+		virtual void OnRangeProcessingComplete() override;
+
+		
 		virtual void Write() override;
 	};
 }
