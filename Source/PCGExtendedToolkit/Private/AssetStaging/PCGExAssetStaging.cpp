@@ -37,6 +37,12 @@ bool FPCGExAssetStagingElement::Boot(FPCGExContext* InContext) const
 
 	PCGEX_CONTEXT_AND_SETTINGS(AssetStaging)
 
+	if (Settings->bOutputMaterialPicks)
+	{
+		PCGEX_VALIDATE_NAME(Settings->MaterialAttributePrefix)
+		Context->bPickMaterials = true;
+	}
+
 	if (Settings->CollectionSource == EPCGExCollectionSource::Asset)
 	{
 		Context->MainCollection = PCGExHelpers::LoadBlocking_AnyThread(Settings->AssetCollection);
@@ -60,6 +66,12 @@ bool FPCGExAssetStagingElement::Boot(FPCGExContext* InContext) const
 			PCGE_LOG(Error, GraphAndLog, FTEXT("Failed to build collection from attribute set."));
 			return false;
 		}
+	}
+
+	if (Context->bPickMaterials && Context->MainCollection->GetType() != PCGExAssetCollection::EType::Mesh)
+	{
+		Context->bPickMaterials = false;
+		PCGE_LOG(Warning, GraphAndLog, FTEXT("Pick Material is set to true, but the selected collection doesn't support material picking."));
 	}
 
 	PCGEX_VALIDATE_NAME(Settings->AssetPathAttributeName)
@@ -166,6 +178,14 @@ namespace PCGExAssetStaging
 
 		PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::Duplicate)
 
+		NumPoints = PointDataFacade->GetNum();
+
+		if (Context->bPickMaterials)
+		{
+			CachedPicks.Init(nullptr, NumPoints);
+			MaterialPick.Init(-1, NumPoints);
+		}
+
 		FittingHandler.ScaleToFit = Settings->ScaleToFit;
 		FittingHandler.Justification = Settings->Justification;
 
@@ -174,7 +194,6 @@ namespace PCGExAssetStaging
 		Variations = Settings->Variations;
 		Variations.Init(Settings->Seed);
 
-		NumPoints = PointDataFacade->GetNum();
 
 		Helper = MakeUnique<PCGExAssetCollection::TDistributionHelper<UPCGExAssetCollection, FPCGExAssetCollectionEntry>>(Context->MainCollection, Settings->DistributionSettings);
 		if (!Helper->Init(ExecutionContext, PointDataFacade)) { return false; }
@@ -210,6 +229,11 @@ namespace PCGExAssetStaging
 		StartParallelLoopForPoints();
 
 		return true;
+	}
+
+	void FProcessor::PrepareLoopScopesForPoints(const TArray<PCGExMT::FScope>& Loops)
+	{
+		HighestSlotIndex = MakeShared<PCGExMT::TScopedValue<int8>>(Loops, -1);
 	}
 
 	void FProcessor::PrepareSingleLoopScopeForPoints(const PCGExMT::FScope& Scope)
@@ -248,6 +272,8 @@ namespace PCGExAssetStaging
 				if (WeightWriter) { WeightWriter->GetMutable(Index) = -1; }
 				else if (NormalizedWeightWriter) { NormalizedWeightWriter->GetMutable(Index) = -1; }
 			}
+
+			if (Context->bPickMaterials) { MaterialPick[Index] = -1; }
 		};
 
 		if (!PointFilterCache[Index])
@@ -269,6 +295,21 @@ namespace PCGExAssetStaging
 		{
 			InvalidPoint();
 			return;
+		}
+
+		if (Context->bPickMaterials)
+		{
+			if (Entry->MacroCache && Entry->MacroCache->GetType() == PCGExAssetCollection::EType::Mesh)
+			{
+				TSharedPtr<PCGExMeshCollection::FMacroCache> EntryMacroCache = StaticCastSharedPtr<PCGExMeshCollection::FMacroCache>(Entry->MacroCache);
+				MaterialPick[Index] = EntryMacroCache->GetPickRandomWeighted(Seed);
+				HighestSlotIndex->Set(Scope, FMath::Max(FMath::Max(0, EntryMacroCache->GetHighestIndex()), HighestSlotIndex->Get(Scope)));
+				CachedPicks[Index] = Entry;
+			}
+			else
+			{
+				MaterialPick[Index] = -1;
+			}
 		}
 
 		if (bOutputWeight)
@@ -314,6 +355,78 @@ namespace PCGExAssetStaging
 	}
 
 	void FProcessor::CompleteWork()
+	{
+		if (Context->bPickMaterials)
+		{
+			int8 WriterCount = HighestSlotIndex->Flatten([](const int8 A, const int8 B) { return FMath::Max(A, B); }) + 1;
+			if (Settings->MaxMaterialPicks > 0) { WriterCount = Settings->MaxMaterialPicks; }
+
+			if (WriterCount > 0)
+			{
+				// Create writers
+				// TODO : Optimize this -- right now it can potentially output tons of garbage when only an attribute with no entries would be enough
+
+				MaterialWriters.Init(nullptr, WriterCount);
+
+				for (int i = 0; i < WriterCount; i++)
+				{
+					const FName AttributeName = FName(FString::Printf(TEXT("%s_%d"), *Settings->MaterialAttributePrefix.ToString(), i));
+#if PCGEX_ENGINE_VERSION > 503
+					MaterialWriters[i] = PointDataFacade->GetWritable<FSoftObjectPath>(AttributeName, FSoftObjectPath(), true, PCGExData::EBufferInit::New);
+#else
+					MaterialWriters[i] = PointDataFacade->GetWritable<FString>(AttributeName, TEXT(""), true, PCGExData::EBufferInit::New);
+#endif
+				}
+
+				StartParallelLoopForRange(NumPoints);
+				return;
+			}
+			else
+			{
+				PCGE_LOG_C(Warning, GraphAndLog, Context, FTEXT("No material were picked -- no attribute will be written."));
+			}
+		}
+
+		PointDataFacade->Write(AsyncManager);
+	}
+
+	void FProcessor::ProcessSingleRangeIteration(const int32 Iteration, const PCGExMT::FScope& Scope)
+	{
+		const int32 Pick = MaterialPick[Iteration];
+		if (Pick == -1 || PointDataFacade->GetMutablePoints()[Iteration].MetadataEntry == -2) { return; }
+
+		const FPCGExMeshCollectionEntry* Entry = static_cast<const FPCGExMeshCollectionEntry*>(CachedPicks[Iteration]);
+		if (Entry->MaterialVariants == EPCGExMaterialVariantsMode::None) { return; }
+		else if (Entry->MaterialVariants == EPCGExMaterialVariantsMode::Single)
+		{
+			if (!MaterialWriters.IsValidIndex(Entry->SlotIndex)) { return; }
+
+#if PCGEX_ENGINE_VERSION > 503
+			MaterialWriters[Entry->SlotIndex]->GetMutable(Iteration) = Entry->MaterialOverrideVariants[Pick].Material.ToSoftObjectPath();
+#else
+			MaterialWriters[Entry->SlotIndex]->GetMutable(Iteration) = Entry->MaterialOverrideVariants[Pick].Material.ToSoftObjectPath().ToString();
+#endif
+		}
+		else if (Entry->MaterialVariants == EPCGExMaterialVariantsMode::Multi)
+		{
+			const FPCGExMaterialOverrideCollection& MEntry = Entry->MaterialOverrideVariantsList[Pick];
+			for (int i = 0; i < MEntry.Overrides.Num(); i++)
+			{
+				const FPCGExMaterialOverrideEntry& SlotEntry = MEntry.Overrides[i];
+
+				const int32 SlotIndex = SlotEntry.SlotIndex == -1 ? 0 : SlotEntry.SlotIndex;
+				if (!MaterialWriters.IsValidIndex(SlotIndex)) { continue; }
+
+#if PCGEX_ENGINE_VERSION > 503
+				MaterialWriters[SlotIndex]->GetMutable(Iteration) = SlotEntry.Material.ToSoftObjectPath();
+#else
+				MaterialWriters[SlotIndex]->GetMutable(Iteration) = SlotEntry.Material.ToSoftObjectPath().ToString();
+#endif
+			}
+		}
+	}
+
+	void FProcessor::OnRangeProcessingComplete()
 	{
 		PointDataFacade->Write(AsyncManager);
 	}
