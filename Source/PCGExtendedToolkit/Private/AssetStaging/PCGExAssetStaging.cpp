@@ -303,7 +303,7 @@ namespace PCGExAssetStaging
 			{
 				TSharedPtr<PCGExMeshCollection::FMacroCache> EntryMacroCache = StaticCastSharedPtr<PCGExMeshCollection::FMacroCache>(Entry->MacroCache);
 				MaterialPick[Index] = EntryMacroCache->GetPickRandomWeighted(Seed);
-				HighestSlotIndex->Set(Scope, FMath::Max(EntryMacroCache->GetHighestIndex(), HighestSlotIndex->Get(Scope)));
+				HighestSlotIndex->Set(Scope, FMath::Max(FMath::Max(0, EntryMacroCache->GetHighestIndex()), HighestSlotIndex->Get(Scope)));
 				CachedPicks[Index] = Entry;
 			}
 			else
@@ -414,13 +414,13 @@ namespace PCGExAssetStaging
 			{
 				const FPCGExMaterialOverrideEntry& SlotEntry = MEntry.Overrides[i];
 
-				if (const int32 SlotIndex = SlotEntry.SlotIndex == -1 ? 0 : SlotEntry.SlotIndex;
-					!MaterialWriters.IsValidIndex(SlotIndex)) { continue; }
+				const int32 SlotIndex = SlotEntry.SlotIndex == -1 ? 0 : SlotEntry.SlotIndex;
+				if (!MaterialWriters.IsValidIndex(SlotIndex)) { continue; }
 
 #if PCGEX_ENGINE_VERSION > 503
-				MaterialWriters[0]->GetMutable(Iteration) = SlotEntry.Material.ToSoftObjectPath();
+				MaterialWriters[SlotIndex]->GetMutable(Iteration) = SlotEntry.Material.ToSoftObjectPath();
 #else
-				MaterialWriters[0]->GetMutable(Iteration) = SlotEntry.Material.ToSoftObjectPath().ToString();
+				MaterialWriters[SlotIndex]->GetMutable(Iteration) = SlotEntry.Material.ToSoftObjectPath().ToString();
 #endif
 			}
 		}
