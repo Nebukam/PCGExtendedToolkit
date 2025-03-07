@@ -163,7 +163,30 @@ namespace PCGExAssetCollection
 		EPCGMetadataTypes::String,
 		EPCGMetadataTypes::Name
 	};
+
+	enum class EType : uint8
+	{
+		None = 0,
+		Actor,
+		Mesh,
+		PCGDataAsset,
+	};
+
+	class PCGEXTENDEDTOOLKIT_API FMacroCache : public TSharedFromThis<FMacroCache>
+	{
+		// Per-entry cache data
+		// Store entry type specifics
+
+	public:
+		FMacroCache()
+		{
+		}
+
+		virtual EType GetType() const { return EType::None; }
+		virtual ~FMacroCache() = default;
+	};
 }
+
 
 USTRUCT(BlueprintType)
 struct PCGEXTENDEDTOOLKIT_API FPCGExAssetDistributionIndexDetails
@@ -325,6 +348,9 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExAssetCollectionEntry
 	virtual void SetAssetPath(const FSoftObjectPath& InPath);
 
 	virtual void GetAssetPaths(TSet<FSoftObjectPath>& OutPaths) const;
+
+	TSharedPtr<PCGExAssetCollection::FMacroCache> MacroCache;
+	virtual void BuildMacroCache();
 };
 
 namespace PCGExAssetCollection
@@ -416,6 +442,8 @@ public:
 	virtual void PostEditImport() override;
 
 	virtual void RebuildStagingData(const bool bRecursive);
+
+	virtual PCGExAssetCollection::EType GetType() const { return PCGExAssetCollection::EType::None; }
 
 #if WITH_EDITOR
 	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
