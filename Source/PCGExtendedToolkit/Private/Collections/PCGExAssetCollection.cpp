@@ -76,8 +76,9 @@ namespace PCGExAssetCollection
 	void FCategory::RegisterEntry(const int32 Index, const FPCGExAssetCollectionEntry* InEntry)
 	{
 		Entries.Add(InEntry);
+		const_cast<FPCGExAssetCollectionEntry*>(InEntry)->BuildMacroCache(); // Dealing with legacy shit implementation
 		Indices.Add(Index);
-		Weights.Add(InEntry->Weight);
+		Weights.Add(InEntry->Weight + 1);
 	}
 
 	void FCategory::Compile()
@@ -142,6 +143,11 @@ void FPCGExAssetCollectionEntry::SetAssetPath(const FSoftObjectPath& InPath)
 void FPCGExAssetCollectionEntry::GetAssetPaths(TSet<FSoftObjectPath>& OutPaths) const
 {
 	OutPaths.Add(Staging.Path);
+}
+
+void FPCGExAssetCollectionEntry::BuildMacroCache()
+{
+	MacroCache = nullptr;
 }
 
 namespace PCGExAssetCollection

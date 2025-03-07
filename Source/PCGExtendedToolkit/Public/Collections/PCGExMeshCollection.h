@@ -53,6 +53,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExMaterialOverrideCollection
 	TArray<FPCGExMaterialOverrideEntry> Overrides;
 
 	virtual void GetAssetPaths(TSet<FSoftObjectPath>& OutPaths) const;
+	int32 GetHighestIndex() const;
 
 #if WITH_EDITORONLY_DATA
 	UPROPERTY(VisibleAnywhere, Category=Settings, meta=(HideInDetailPanel, EditCondition="false", EditConditionHides))
@@ -85,6 +86,39 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExMaterialOverrideSingleEntry
 	void UpdateDisplayName();
 #endif
 };
+
+namespace PCGExMeshCollection
+{
+	class PCGEXTENDEDTOOLKIT_API FMacroCache : public PCGExAssetCollection::FMacroCache
+	{
+		double WeightSum = 0;
+		TArray<int32> Weights;
+		TArray<int32> Order;
+
+		int32 HighestIndex = -1;
+
+	public:
+		FMacroCache()
+		{
+		}
+
+		virtual PCGExAssetCollection::EType GetType() const override { return PCGExAssetCollection::EType::Mesh; }
+
+		int32 GetHighestIndex() const { return HighestIndex; }
+
+		void ProcessMaterialOverrides(const TArray<FPCGExMaterialOverrideSingleEntry>& Overrides, const int32 InSlotIndex = -1);
+		void ProcessMaterialOverrides(const TArray<FPCGExMaterialOverrideCollection>& Overrides);
+
+		int32 GetPick(const int32 Index, const EPCGExIndexPickMode PickMode) const;
+
+		int32 GetPickAscending(const int32 Index) const;
+		int32 GetPickDescending(const int32 Index) const;
+		int32 GetPickWeightAscending(const int32 Index) const;
+		int32 GetPickWeightDescending(const int32 Index) const;
+		int32 GetPickRandom(const int32 Seed) const;
+		int32 GetPickRandomWeighted(const int32 Seed) const;
+	};
+}
 
 USTRUCT(BlueprintType, DisplayName="[PCGEx] Mesh Collection Entry")
 struct PCGEXTENDEDTOOLKIT_API FPCGExMeshCollectionEntry : public FPCGExAssetCollectionEntry
@@ -144,15 +178,18 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExMeshCollectionEntry : public FPCGExAssetColl
 
 	virtual bool Validate(const UPCGExAssetCollection* ParentCollection) override;
 
+#if WITH_EDITORONLY_DATA
+	// DEPRECATED -- Moved to macro cache instead.
 	UPROPERTY()
-	int32 MaterialVariantsCumulativeWeight = -1;
+	int32 MaterialVariantsCumulativeWeight_DEPRECATED = -1;
 
 	UPROPERTY()
-	TArray<int32> MaterialVariantsOrder;
+	TArray<int32> MaterialVariantsOrder_DEPRECATED;
 
 	UPROPERTY()
-	TArray<int32> MaterialVariantsWeights;
-
+	TArray<int32> MaterialVariantsWeights_DEPRECATED;
+#endif
+	
 	virtual void UpdateStaging(const UPCGExAssetCollection* OwningCollection, int32 InInternalIndex, const bool bRecursive) override;
 	virtual void SetAssetPath(const FSoftObjectPath& InPath) override;
 
@@ -163,6 +200,8 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExMeshCollectionEntry : public FPCGExAssetColl
 #if WITH_EDITOR
 	virtual void EDITOR_Sanitize() override;
 #endif
+
+	virtual void BuildMacroCache() override;
 };
 
 UCLASS(BlueprintType, DisplayName="[PCGEx] Mesh Collection")
@@ -174,6 +213,8 @@ class PCGEXTENDEDTOOLKIT_API UPCGExMeshCollection : public UPCGExAssetCollection
 	friend class UPCGExMeshSelectorBase;
 
 public:
+	virtual PCGExAssetCollection::EType GetType() const override { return PCGExAssetCollection::EType::Mesh; }
+
 #if WITH_EDITOR
 	virtual void EDITOR_RefreshDisplayNames() override;
 

@@ -8,6 +8,13 @@ void FPCGExMaterialOverrideCollection::GetAssetPaths(TSet<FSoftObjectPath>& OutP
 	for (const FPCGExMaterialOverrideEntry& Entry : Overrides) { OutPaths.Add(Entry.Material.ToSoftObjectPath()); }
 }
 
+int32 FPCGExMaterialOverrideCollection::GetHighestIndex() const
+{
+	int32 HighestIndex = -1;
+	for (const FPCGExMaterialOverrideEntry& Entry : Overrides) { HighestIndex = FMath::Max(HighestIndex, Entry.SlotIndex); }
+	return HighestIndex;
+}
+
 #if WITH_EDITOR
 void FPCGExMaterialOverrideCollection::UpdateDisplayName()
 {
@@ -18,6 +25,108 @@ void FPCGExMaterialOverrideSingleEntry::UpdateDisplayName()
 	DisplayName = FName(Material.GetAssetName());
 }
 #endif
+
+namespace PCGExMeshCollection
+{
+	void FMacroCache::ProcessMaterialOverrides(const TArray<FPCGExMaterialOverrideSingleEntry>& Overrides, const int32 InSlotIndex)
+	{
+		const int32 NumEntries = Overrides.Num();
+
+		HighestIndex = InSlotIndex;
+
+		Weights.SetNumUninitialized(NumEntries);
+		for (int i = 0; i < NumEntries; i++) { Weights[i] = Overrides[i].Weight + 1; }
+
+		PCGEx::ArrayOfIndices(Order, NumEntries);
+
+		Order.Sort([&](const int32 A, const int32 B) { return Weights[A] < Weights[B]; });
+		Weights.Sort([](const int32 A, const int32 B) { return A < B; });
+
+		WeightSum = 0;
+		for (int32 i = 0; i < NumEntries; i++)
+		{
+			WeightSum += Weights[i];
+			Weights[i] = WeightSum;
+		}
+	}
+
+	void FMacroCache::ProcessMaterialOverrides(const TArray<FPCGExMaterialOverrideCollection>& Overrides)
+	{
+		const int32 NumEntries = Overrides.Num();
+
+		Weights.SetNumUninitialized(NumEntries);
+		HighestIndex = -1;
+
+		for (int i = 0; i < NumEntries; i++)
+		{
+			Weights[i] = Overrides[i].Weight + 1;
+			HighestIndex = FMath::Max(HighestIndex, Overrides[i].GetHighestIndex());
+		}
+
+		PCGEx::ArrayOfIndices(Order, NumEntries);
+
+		Order.Sort([&](const int32 A, const int32 B) { return Weights[A] < Weights[B]; });
+		Weights.Sort([](const int32 A, const int32 B) { return A < B; });
+
+		WeightSum = 0;
+		for (int32 i = 0; i < NumEntries; i++)
+		{
+			WeightSum += Weights[i];
+			Weights[i] = WeightSum;
+		}
+	}
+
+	int32 FMacroCache::GetPick(const int32 Index, const EPCGExIndexPickMode PickMode) const
+	{
+		switch (PickMode)
+		{
+		default:
+		case EPCGExIndexPickMode::Ascending:
+			return GetPickAscending(Index);
+		case EPCGExIndexPickMode::Descending:
+			return GetPickDescending(Index);
+		case EPCGExIndexPickMode::WeightAscending:
+			return GetPickWeightAscending(Index);
+		case EPCGExIndexPickMode::WeightDescending:
+			return GetPickWeightDescending(Index);
+		}
+	}
+
+	int32 FMacroCache::GetPickAscending(const int32 Index) const
+	{
+		return Order.IsValidIndex(Index) ? Index : -1;
+	}
+
+	int32 FMacroCache::GetPickDescending(const int32 Index) const
+	{
+		return Order.IsValidIndex(Index) ? (Order.Num() - 1) - Index : -1;
+	}
+
+	int32 FMacroCache::GetPickWeightAscending(const int32 Index) const
+	{
+		return Order.IsValidIndex(Index) ? Order[Index] : -1;
+	}
+
+	int32 FMacroCache::GetPickWeightDescending(const int32 Index) const
+	{
+		return Order.IsValidIndex(Index) ? Order[(Order.Num() - 1) - Index] : -1;
+	}
+
+	int32 FMacroCache::GetPickRandom(const int32 Seed) const
+	{
+		return Order[FRandomStream(Seed).RandRange(0, Order.Num() - 1)];
+	}
+
+	int32 FMacroCache::GetPickRandomWeighted(const int32 Seed) const
+	{
+		if (Order.IsEmpty()) { return -1; }
+		
+		const int32 Threshold = FRandomStream(Seed).RandRange(0, WeightSum - 1);
+		int32 Pick = 0;
+		while (Pick < Weights.Num() && Weights[Pick] < Threshold) { Pick++; }
+		return Order[Pick];
+	}
+}
 
 void FPCGExMeshCollectionEntry::GetAssetPaths(TSet<FSoftObjectPath>& OutPaths) const
 {
@@ -101,6 +210,26 @@ void FPCGExMeshCollectionEntry::EDITOR_Sanitize()
 		InternalSubCollection = SubCollection;
 	}
 }
+
+void FPCGExMeshCollectionEntry::BuildMacroCache()
+{
+	const TSharedPtr<PCGExMeshCollection::FMacroCache> NewCache = MakeShared<PCGExMeshCollection::FMacroCache>();
+
+	switch (MaterialVariants)
+	{
+	default:
+	case EPCGExMaterialVariantsMode::None:
+		break;
+	case EPCGExMaterialVariantsMode::Single:
+		NewCache->ProcessMaterialOverrides(MaterialOverrideVariants, SlotIndex);
+		break;
+	case EPCGExMaterialVariantsMode::Multi:
+		NewCache->ProcessMaterialOverrides(MaterialOverrideVariantsList);
+		break;
+	}
+
+	MacroCache = NewCache;
+}
 #endif
 
 void FPCGExMeshCollectionEntry::UpdateStaging(const UPCGExAssetCollection* OwningCollection, const int32 InInternalIndex, const bool bRecursive)
@@ -119,53 +248,27 @@ void FPCGExMeshCollectionEntry::UpdateStaging(const UPCGExAssetCollection* Ownin
 
 	Staging.Path = StaticMesh.ToSoftObjectPath();
 
+#if WITH_EDITOR
 	if (MaterialVariants != EPCGExMaterialVariantsMode::None)
 	{
-		MaterialVariantsCumulativeWeight = -1;
-		MaterialVariantsOrder.Reset();
-		MaterialVariantsWeights.Reset();
-
 		if (MaterialVariants == EPCGExMaterialVariantsMode::Single)
 		{
-			MaterialVariantsOrder.Reserve(MaterialOverrideVariants.Num());
-			MaterialVariantsWeights.Reserve(MaterialOverrideVariants.Num());
-
 			for (int i = 0; i < MaterialOverrideVariants.Num(); i++)
 			{
-#if WITH_EDITOR
 				FPCGExMaterialOverrideSingleEntry& MEntry = MaterialOverrideVariants[i];
 				MEntry.UpdateDisplayName();
-#else
-				const FPCGExMaterialOverrideSingleEntry& MEntry = MaterialOverrideVariants[i];
-#endif
-				MaterialVariantsOrder.Add(i);
-				MaterialVariantsWeights.Add(MEntry.Weight);
 			}
-
-			MaterialVariantsOrder.Sort([&](const int32 A, const int32 B) { return MaterialOverrideVariants[A].Weight < MaterialOverrideVariants[B].Weight; });
-			MaterialVariantsWeights.Sort([&](const int32 A, const int32 B) { return A < B; });
 		}
 		else
 		{
-			MaterialVariantsOrder.Reserve(MaterialOverrideVariantsList.Num());
-			MaterialVariantsWeights.Reserve(MaterialOverrideVariantsList.Num());
-
 			for (int i = 0; i < MaterialOverrideVariantsList.Num(); i++)
 			{
-#if WITH_EDITOR
 				FPCGExMaterialOverrideCollection& MEntry = MaterialOverrideVariantsList[i];
 				MEntry.UpdateDisplayName();
-#else
-				const FPCGExMaterialOverrideCollection& MEntry = MaterialOverrideVariantsList[i];
-#endif
-				MaterialVariantsOrder.Add(i);
-				MaterialVariantsWeights.Add(MEntry.Weight);
 			}
-
-			MaterialVariantsOrder.Sort([&](const int32 A, const int32 B) { return MaterialOverrideVariantsList[A].Weight < MaterialOverrideVariantsList[B].Weight; });
-			MaterialVariantsWeights.Sort([&](const int32 A, const int32 B) { return A < B; });
 		}
 	}
+#endif
 
 	const UStaticMesh* M = PCGExHelpers::LoadBlocking_AnyThread(StaticMesh);
 	PCGExAssetCollection::UpdateStagingBounds(Staging, M);

@@ -65,6 +65,8 @@ class PCGEXTENDEDTOOLKIT_API UPCGExActorCollection : public UPCGExAssetCollectio
 	friend struct FPCGExActorCollectionEntry;
 
 public:
+	virtual PCGExAssetCollection::EType GetType() const override { return PCGExAssetCollection::EType::Actor; }
+	
 #if WITH_EDITOR
 	virtual void EDITOR_RefreshDisplayNames() override;
 #endif
