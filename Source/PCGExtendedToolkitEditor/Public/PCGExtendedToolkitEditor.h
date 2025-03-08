@@ -12,7 +12,10 @@ class FPCGExtendedToolkitEditorModule : public IModuleInterface
 public:
 	virtual void StartupModule() override;
 	virtual void ShutdownModule() override;
-
+	
 protected:
 	TSharedPtr<FSlateStyleSet> Style;
+
+	void RegisterMenuExtensions();
+	void UnregisterMenuExtensions();
 };
