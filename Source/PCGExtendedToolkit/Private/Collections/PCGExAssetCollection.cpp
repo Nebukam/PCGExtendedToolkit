@@ -296,7 +296,7 @@ void UPCGExAssetCollection::RebuildStagingData(const bool bRecursive)
 #if WITH_EDITOR
 void UPCGExAssetCollection::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
 {
-	Super::PostEditChangeProperty(PropertyChangedEvent);
+	if (PropertyChangedEvent.Property) { Super::PostEditChangeProperty(PropertyChangedEvent); }
 
 	EDITOR_RefreshDisplayNames();
 	EDITOR_SetDirty();

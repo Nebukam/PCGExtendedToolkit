@@ -18,6 +18,10 @@ Style->Set("ClassThumbnail." # _NAME, new FSlateImageBrush(Style->RootToContentD
 AppStyle.Set("PCGEx.Pin." # _NAME, new FSlateVectorImageBrush(Style->RootToContentDir(TEXT( "PCGExPin_" #_NAME), TEXT(".svg")), SizePin));\
 Style->Set("PCGEx.Pin." # _NAME, new FSlateVectorImageBrush(Style->RootToContentDir(TEXT( "PCGExPin_" #_NAME), TEXT(".svg")), SizePin));
 
+#include "AssetToolsModule.h"
+#include "ContentBrowserMenuContexts.h"
+#include "IAssetTools.h"
+#include "PCGExEditorMenuUtils.h"
 #include "PCGGraph.h"
 #include "AssetRegistry/AssetData.h"
 #include "AssetRegistry/AssetRegistryModule.h"
@@ -121,6 +125,8 @@ void FPCGExtendedToolkitEditorModule::StartupModule()
 	PCGEX_ADD_PIN_EXTRA_ICON(OUT_Picker)
 
 	FSlateStyleRegistry::RegisterSlateStyle(*Style.Get());
+
+	UToolMenus::RegisterStartupCallback(FSimpleMulticastDelegate::FDelegate::CreateRaw(this, &FPCGExtendedToolkitEditorModule::RegisterMenuExtensions));
 }
 
 #undef PCGEX_ADD_ICON
@@ -131,6 +137,33 @@ void FPCGExtendedToolkitEditorModule::ShutdownModule()
 	Style.Reset();
 }
 
+void FPCGExtendedToolkitEditorModule::RegisterMenuExtensions()
+{
+	FToolMenuOwnerScoped OwnerScoped(this);
+
+	if (UToolMenu* WorldAssetMenu = UToolMenus::Get()->ExtendMenu("ContentBrowser.AssetContextMenu.AssetActionsSubMenu"))
+	{
+		// Use a dynamic section here because we might have plugins registering at a later time
+		FToolMenuSection& Section = WorldAssetMenu->AddDynamicSection("PCGEx", FNewToolMenuDelegate::CreateLambda([this](UToolMenu* ToolMenu)
+		{
+			if (!GEditor || GEditor->GetPIEWorldContext() || !ToolMenu)
+			{
+				return;
+			}
+
+			if (UContentBrowserAssetContextMenuContext* AssetMenuContext = ToolMenu->Context.FindContext<UContentBrowserAssetContextMenuContext>())
+			{
+				PCGExEditorMenuUtils::CreateOrUpdatePCGExAssetCollectionsFromMenu(ToolMenu, AssetMenuContext->SelectedAssets);
+			}
+
+		}), FToolMenuInsert(NAME_None, EToolMenuInsertType::Default));
+	}
+}
+
+void FPCGExtendedToolkitEditorModule::UnregisterMenuExtensions()
+{
+	UToolMenus::UnregisterOwner(this);
+}
 #undef LOCTEXT_NAMESPACE
 
 IMPLEMENT_MODULE(FPCGExtendedToolkitEditorModule, PCGExtendedToolkitEditor)

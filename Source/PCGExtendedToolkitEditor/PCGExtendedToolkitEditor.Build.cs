@@ -13,23 +13,65 @@ public class PCGExtendedToolkitEditor : ModuleRules
 			new[]
 			{
 				"Core",
-				"UnrealEd",
-				"Slate",
-				"SlateCore",
-				"EditorStyle",
-				"Projects"
+				"Projects",
+				"Engine",
+				"CoreUObject",
+				"PlacementMode",
+				"PCG",
+				"PCGExtendedToolkit",
 			}
 		);
 
 		PrivateDependencyModuleNames.AddRange(
 			new[]
 			{
-				"CoreUObject",
-				"Engine",
+				"GeometryCore",
+				"GeometryFramework",
+				"GeometryScriptingCore",
+				"GeometryAlgorithms",
+				"RenderCore",
+				"RHI",
+				"PhysicsCore",
+				"NavigationSystem",
 				"Slate",
 				"SlateCore",
+				"GameplayTags",
+				"PropertyPath",
+				
+				"AppFramework",
+				"ApplicationCore",
+				"AssetDefinition",
+				"AssetTools",
+				"AssetRegistry",
+				"BlueprintGraph",
+				"ContentBrowser",
+				"DesktopWidgets",
+				"DetailCustomizations",
+				"DeveloperSettings",
+				"EditorFramework",
+				"EditorScriptingUtilities",
+				"EditorStyle",
+				"EditorSubsystem",
+				"EditorWidgets",
+				"GameProjectGeneration",
+				"GraphEditor",
+				"InputCore",
+				"Kismet",
+				"KismetWidgets",
 				"PCG",
-				"PCGExtendedToolkit",
+				"PropertyEditor",
+				"RenderCore",
+				"Slate",
+				"SlateCore",
+				"SourceControl",
+				"StructUtilsEditor",
+				"ToolMenus",
+				"ToolWidgets",
+				"TypedElementFramework",
+				"TypedElementRuntime",
+				"UnrealEd",
+				"LevelEditor",
+				"SceneOutliner"
 			}
 		);
 		
