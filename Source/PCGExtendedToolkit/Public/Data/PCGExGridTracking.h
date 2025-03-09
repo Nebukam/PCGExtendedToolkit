@@ -8,11 +8,11 @@
 
 #include "PCGExGridTracking.generated.h"
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnGridIDAdded, int32, Hash, int32, Count);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnGridIDCreated, int32, Hash, int32, Count);
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnGridIDRemoved, int32, Hash, int32, Count);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_ThreeParams(FOnGridIDiff, int32, Hash, int32, Count, int32, Diff);
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnGridIDEmpty, int32, Hash);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnGridIDDestroyed, int32, Hash);
 
 USTRUCT(BlueprintType)
 struct PCGEXTENDEDTOOLKIT_API FPCGExGridID
@@ -54,6 +54,13 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExGridID
 	FORCEINLINE friend uint32 GetTypeHash(const FPCGExGridID& GridID) { return GridID; }
 };
 
+namespace PCGExGridTracking
+{
+	using FEventCreatedCallback = std::function<void(const uint32)>; // <EventID, Counter>
+	using FEventDiffCallback = std::function<void(const uint32, const int32)>; // <EventID, Diff>
+	using FEventDestroyedCallback = std::function<void(const uint32)>; // <EventID>
+	//FEventCallback OnIterationCallback;
+}
 
 UCLASS(Hidden)
 class UPCGExGridIDTracker : public UObject
@@ -61,17 +68,27 @@ class UPCGExGridIDTracker : public UObject
 	GENERATED_BODY()
 
 	mutable FRWLock BucketLock;
+	mutable FRWLock PollLock;
 
 public:
 	UPROPERTY(BlueprintAssignable, Category = "Delegates")
-	FOnGridIDAdded OnGridIDAdded;
+	FOnGridIDCreated OnGridIDCreated;
 
 	UPROPERTY(BlueprintAssignable, Category = "Delegates")
-	FOnGridIDRemoved OnGridIDRemoved;
+	FOnGridIDiff OnGridIDDiff;
 
 	UPROPERTY(BlueprintAssignable, Category = "Delegates")
-	FOnGridIDEmpty OnGridIDEmpty;
+	FOnGridIDDestroyed OnGridIDDestroyed;
 
-	UPROPERTY()
-	TMap<uint32, uint32> Buckets;
+	int32 GetCounter(uint32 Hash) const;
+
+	void PollEvent(uint32 Hash, const int32 Diff = 1);
+		
+protected:
+	std::atomic<bool> bIsTickScheduled{false};
+	
+	TMap<uint32, int32> Buckets; // <Event, Counter>
+	TMap<uint32, int32> PolledEvents; // <Event, Diff>
+
+	void ProcessPolledEvents();
 };

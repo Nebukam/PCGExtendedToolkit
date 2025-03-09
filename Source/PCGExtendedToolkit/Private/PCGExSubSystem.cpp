@@ -5,6 +5,7 @@
 
 #include "PCGComponent.h"
 #include "Data/PCGExDataSharing.h"
+#include "Data/PCGExGridTracking.h"
 
 #if WITH_EDITOR
 #include "Editor.h"

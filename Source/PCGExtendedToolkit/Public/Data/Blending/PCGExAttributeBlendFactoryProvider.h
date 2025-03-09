@@ -8,6 +8,13 @@
 
 #include "PCGExAttributeBlendFactoryProvider.generated.h"
 
+UENUM()
+enum class EPCGExOperandAuthority : uint8
+{
+	A = 0 UMETA(DisplayName = "Operand A", ToolTip="Type of operand A will drive the output type, thus converting operand B to the same type for the operation."),
+	B = 1 UMETA(DisplayName = "Operand B", ToolTip="Type of operand B will drive the output type, thus converting operand A to the same type for the operation."),
+};
+
 USTRUCT(BlueprintType)
 struct PCGEXTENDEDTOOLKIT_API FPCGExAttributeBlendConfig
 {
@@ -17,6 +24,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExAttributeBlendConfig
 	{
 		LocalWeightCurve.EditorCurveData.AddKey(0, 0);
 		LocalWeightCurve.EditorCurveData.AddKey(1, 1);
+		OutputTo.Update("Result");
 	}
 
 	~FPCGExAttributeBlendConfig() = default;
@@ -36,9 +44,9 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExAttributeBlendConfig
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	FPCGAttributePropertyInputSelector OperandB;
 
-	/** Output to. */
+	/** Output to (AB blend). */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
-	FName OutputTo = FName("Result");
+	FPCGAttributePropertyInputSelector OutputTo;
 
 	/** Type of Weight */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bRequiresWeight", EditConditionHides, HideEditConditionToggle))
@@ -82,15 +90,15 @@ public:
 	UPROPERTY()
 	FPCGExAttributeBlendConfig Config;
 
-	virtual void PrepareForData(const TSharedRef<PCGExData::FFacade>& InDataFacade);
-
-	virtual void Cleanup() override
-	{
-		Super::Cleanup();
-	}
+	virtual bool PrepareForData(const TSharedRef<PCGExData::FFacade>& InDataFacade);
+	virtual void BlendScope(const PCGExMT::FScope& InScope);	
+	virtual void Cleanup() override;
+	
+protected:
+	TSharedPtr<PCGExDataBlending::FDataBlendingProcessorBase> BlendingProcessor;
 };
 
-UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Blending")
+UCLASS(Hidden, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Blending")
 class PCGEXTENDEDTOOLKIT_API UPCGExAttributeBlendFactory : public UPCGExFactoryData
 {
 	GENERATED_BODY()
@@ -104,7 +112,7 @@ public:
 	virtual void RegisterAssetDependencies(FPCGExContext* InContext) const override;
 };
 
-UCLASS(Hidden, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Blending")
+UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Blending")
 class PCGEXTENDEDTOOLKIT_API UPCGExAttributeBlendFactoryProviderSettings : public UPCGExFactoryProviderSettings
 {
 	GENERATED_BODY()

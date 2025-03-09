@@ -8,11 +8,12 @@
 #include "Engine/Level.h"
 #include "Subsystems/WorldSubsystem.h"
 #include "PCGData.h"
-#include "Data/PCGExGridTracking.h"
 
 #include "PCGExSubSystem.generated.h"
 
 #define PCGEX_SUBSYSTEM UPCGExSubSystem* PCGExSubsystem = UPCGExSubSystem::GetSubsystemForCurrentWorld(); check(PCGExSubsystem)
+
+class UPCGExGridIDTracker;
 
 UENUM()
 enum class EPCGExSubsystemEventType : uint8
@@ -25,6 +26,7 @@ enum class EPCGExSubsystemEventType : uint8
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_ThreeParams(FOnGlobalEvent, UPCGComponent*, Source, EPCGExSubsystemEventType, EventType, uint32, EventId);
 
 class UPCGExSharedDataManager;
+class UPCGExGridTracking;
 
 namespace PCGEx
 {
