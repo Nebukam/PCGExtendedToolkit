@@ -23,6 +23,7 @@ void UPCGExSubSystem::Initialize(FSubsystemCollectionBase& Collection)
 {
 	Super::Initialize(Collection);
 	SharedDataManager = NewObject<UPCGExSharedDataManager>(this);
+	GridIDTracker = NewObject<UPCGExGridIDTracker>(this);
 }
 
 void UPCGExSubSystem::Deinitialize()

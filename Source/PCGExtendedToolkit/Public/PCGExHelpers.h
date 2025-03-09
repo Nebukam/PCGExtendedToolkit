@@ -12,6 +12,8 @@
 #include "PCGContext.h"
 #include "PCGExMacros.h"
 #include "PCGManagedResource.h"
+#include "PCGComponent.h"
+#include "PCGGraph.h"
 #include "Data/PCGSpatialData.h"
 #include "Engine/AssetManager.h"
 #include "Metadata/PCGMetadataAttributeTraits.h"

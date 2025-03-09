@@ -216,6 +216,7 @@ public:
 	virtual PCGExAssetCollection::EType GetType() const override { return PCGExAssetCollection::EType::Mesh; }
 
 #if WITH_EDITOR
+	virtual void EDITOR_AddBrowserSelectionInternal(const TArray<FAssetData>& InAssetData) override;
 	virtual void EDITOR_RefreshDisplayNames() override;
 
 	/** Disable collision on all entries. */

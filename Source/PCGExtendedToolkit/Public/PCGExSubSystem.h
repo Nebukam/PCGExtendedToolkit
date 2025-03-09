@@ -8,6 +8,7 @@
 #include "Engine/Level.h"
 #include "Subsystems/WorldSubsystem.h"
 #include "PCGData.h"
+#include "Data/PCGExGridTracking.h"
 
 #include "PCGExSubSystem.generated.h"
 
@@ -62,6 +63,9 @@ public:
 
 	UPROPERTY(Transient)
 	TObjectPtr<UPCGExSharedDataManager> SharedDataManager;
+	
+	UPROPERTY(Transient)
+	TObjectPtr<UPCGExGridIDTracker> GridIDTracker;
 
 	virtual void Initialize(FSubsystemCollectionBase& Collection) override;
 	virtual void Deinitialize() override;

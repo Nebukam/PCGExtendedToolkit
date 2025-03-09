@@ -120,7 +120,7 @@ namespace PCGExMeshCollection
 	int32 FMacroCache::GetPickRandomWeighted(const int32 Seed) const
 	{
 		if (Order.IsEmpty()) { return -1; }
-		
+
 		const int32 Threshold = FRandomStream(Seed).RandRange(0, WeightSum - 1);
 		int32 Pick = 0;
 		while (Pick < Weights.Num() && Weights[Pick] < Threshold) { Pick++; }
@@ -297,6 +297,35 @@ void FPCGExMeshCollectionEntry::InitPCGSoftISMDescriptor(FPCGSoftISMComponentDes
 #endif
 
 #if WITH_EDITOR
+void UPCGExMeshCollection::EDITOR_AddBrowserSelectionInternal(const TArray<FAssetData>& InAssetData)
+{
+	Super::EDITOR_AddBrowserSelectionInternal(InAssetData);
+	
+	for (const FAssetData& SelectedAsset : InAssetData)
+	{
+		TSoftObjectPtr<UStaticMesh> Mesh = TSoftObjectPtr<UStaticMesh>(SelectedAsset.ToSoftObjectPath());
+		if (!Mesh.LoadSynchronous()) { continue; }
+
+		bool bAlreadyExists = false;
+
+		for (const FPCGExMeshCollectionEntry& ExistingEntry : Entries)
+		{
+			if (ExistingEntry.StaticMesh == Mesh)
+			{
+				bAlreadyExists = true;
+				break;
+			}
+		}
+
+		if (bAlreadyExists) { continue; }
+
+		FPCGExMeshCollectionEntry Entry = FPCGExMeshCollectionEntry();
+		Entry.StaticMesh = Mesh;
+
+		Entries.Add(Entry);
+	}
+}
+
 void UPCGExMeshCollection::EDITOR_RefreshDisplayNames()
 {
 	Super::EDITOR_RefreshDisplayNames();
