@@ -300,7 +300,7 @@ void FPCGExMeshCollectionEntry::InitPCGSoftISMDescriptor(FPCGSoftISMComponentDes
 void UPCGExMeshCollection::EDITOR_AddBrowserSelectionInternal(const TArray<FAssetData>& InAssetData)
 {
 	Super::EDITOR_AddBrowserSelectionInternal(InAssetData);
-	
+
 	for (const FAssetData& SelectedAsset : InAssetData)
 	{
 		TSoftObjectPtr<UStaticMesh> Mesh = TSoftObjectPtr<UStaticMesh>(SelectedAsset.ToSoftObjectPath());

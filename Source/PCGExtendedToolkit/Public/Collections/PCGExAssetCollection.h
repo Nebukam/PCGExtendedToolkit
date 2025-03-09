@@ -452,9 +452,9 @@ public:
 	/** Add Content Browser selection to this collection. */
 	UFUNCTION(CallInEditor, Category = Tools, meta=(DisplayName="Add Selection", ShortToolTip="Add active content browser selection to this collection.", DisplayOrder=-1))
 	void EDITOR_AddBrowserSelection();
-	
+
 	void EDITOR_AddBrowserSelectionTyped(const TArray<FAssetData>& InAssetData);
-	
+
 	/** Rebuild Staging data just for this collection. */
 	UFUNCTION(CallInEditor, Category = Tools, meta=(DisplayName="Rebuild Staging", ShortToolTip="Rebuild Staging data just for this collection.", DisplayOrder=0))
 	virtual void EDITOR_RebuildStagingData();
@@ -468,7 +468,7 @@ public:
 	virtual void EDITOR_RebuildStagingData_Project();
 
 #pragma region Tools
-	
+
 	/** Sort collection by weights in ascending order. */
 	UFUNCTION(CallInEditor, Category = Utils, meta=(DisplayName="Sort (Asc)", ShortToolTip="Sort collection by weights in ascending order.", DisplayOrder=10))
 	void EDITOR_SortByWeightAscending();

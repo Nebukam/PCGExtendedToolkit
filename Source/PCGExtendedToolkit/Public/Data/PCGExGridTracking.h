@@ -56,9 +56,9 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExGridID
 
 namespace PCGExGridTracking
 {
-	using FEventCreatedCallback = std::function<void(const uint32)>; // <EventID, Counter>
+	using FEventCreatedCallback = std::function<void(const uint32)>;           // <EventID, Counter>
 	using FEventDiffCallback = std::function<void(const uint32, const int32)>; // <EventID, Diff>
-	using FEventDestroyedCallback = std::function<void(const uint32)>; // <EventID>
+	using FEventDestroyedCallback = std::function<void(const uint32)>;         // <EventID>
 	//FEventCallback OnIterationCallback;
 }
 
@@ -83,11 +83,11 @@ public:
 	int32 GetCounter(uint32 Hash) const;
 
 	void PollEvent(uint32 Hash, const int32 Diff = 1);
-		
+
 protected:
 	std::atomic<bool> bIsTickScheduled{false};
-	
-	TMap<uint32, int32> Buckets; // <Event, Counter>
+
+	TMap<uint32, int32> Buckets;      // <Event, Counter>
 	TMap<uint32, int32> PolledEvents; // <Event, Diff>
 
 	void ProcessPolledEvents();

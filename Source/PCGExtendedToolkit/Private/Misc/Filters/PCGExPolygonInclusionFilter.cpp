@@ -117,7 +117,7 @@ namespace PCGExPointFilter
 
 				return Inclusions > TypedFilterFactory->Config.MinInclusionCount ? !TypedFilterFactory->Config.bInvert : TypedFilterFactory->Config.bInvert;
 			}
-			else if (TypedFilterFactory->Config.bUseMaxInclusionCount)
+			if (TypedFilterFactory->Config.bUseMaxInclusionCount)
 			{
 				for (int i = 0; i < Polygons->Num(); i++)
 				{
@@ -131,7 +131,7 @@ namespace PCGExPointFilter
 
 				return Inclusions > 0 ? !TypedFilterFactory->Config.bInvert : TypedFilterFactory->Config.bInvert;
 			}
-			else if (TypedFilterFactory->Config.bUseMinInclusionCount)
+			if (TypedFilterFactory->Config.bUseMinInclusionCount)
 			{
 				for (int i = 0; i < Polygons->Num(); i++)
 				{
@@ -182,7 +182,7 @@ namespace PCGExPointFilter
 
 				return Inclusions > TypedFilterFactory->Config.MinInclusionCount ? !TypedFilterFactory->Config.bInvert : TypedFilterFactory->Config.bInvert;
 			}
-			else if (TypedFilterFactory->Config.bUseMaxInclusionCount)
+			if (TypedFilterFactory->Config.bUseMaxInclusionCount)
 			{
 				for (int i = 0; i < Polygons->Num(); i++)
 				{
@@ -196,7 +196,7 @@ namespace PCGExPointFilter
 
 				return Inclusions > 0 ? !TypedFilterFactory->Config.bInvert : TypedFilterFactory->Config.bInvert;
 			}
-			else if (TypedFilterFactory->Config.bUseMinInclusionCount)
+			if (TypedFilterFactory->Config.bUseMinInclusionCount)
 			{
 				for (int i = 0; i < Polygons->Num(); i++)
 				{

@@ -317,7 +317,7 @@ void UPCGExAssetCollection::EDITOR_AddBrowserSelection()
 	ContentBrowserModule.Get().GetSelectedAssets(SelectedAssets);
 
 	if (SelectedAssets.IsEmpty()) { return; }
-	
+
 	EDITOR_AddBrowserSelectionTyped(SelectedAssets);
 }
 

@@ -65,7 +65,7 @@ public:
 
 	UPROPERTY(Transient)
 	TObjectPtr<UPCGExSharedDataManager> SharedDataManager;
-	
+
 	UPROPERTY(Transient)
 	TObjectPtr<UPCGExGridIDTracker> GridIDTracker;
 

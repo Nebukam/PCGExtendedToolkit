@@ -44,7 +44,7 @@ bool FNodeEdgeAngleFilter::Init(FPCGExContext* InContext, const TSharedRef<PCGEx
 bool FNodeEdgeAngleFilter::Test(const PCGExCluster::FNode& Node) const
 {
 	if (Node.IsLeaf()) { return bLeavesFallback; }
-	else if (Node.IsComplex()) { return bNonBinaryFallback; }
+	if (Node.IsComplex()) { return bNonBinaryFallback; }
 
 	const bool bPass = DotComparison.Test(
 		FVector::DotProduct(

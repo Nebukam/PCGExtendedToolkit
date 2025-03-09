@@ -114,7 +114,7 @@ namespace PCGExHeuristics
 			const PCGExCluster::FNode& Seed,
 			const PCGExCluster::FNode& Goal,
 			const FLocalFeedbackHandler* LocalFeedback = nullptr) const;
-		
+
 
 		double GetEdgeScore(
 			const PCGExCluster::FNode& From,
@@ -124,13 +124,13 @@ namespace PCGExHeuristics
 			const PCGExCluster::FNode& Goal,
 			const FLocalFeedbackHandler* LocalFeedback = nullptr,
 			const TSharedPtr<PCGEx::FHashLookup>& TravelStack = nullptr) const;
-		
-		void FeedbackPointScore(const PCGExCluster::FNode& Node);		
+
+		void FeedbackPointScore(const PCGExCluster::FNode& Node);
 		void FeedbackScore(const PCGExCluster::FNode& Node, const PCGExGraph::FEdge& Edge);
-		
-		FVector GetSeedUVW() const;		
+
+		FVector GetSeedUVW() const;
 		FVector GetGoalUVW() const;
-		
+
 		const PCGExCluster::FNode* GetRoamingSeed() const { return Cluster->GetRoamingNode(GetSeedUVW()); }
 		const PCGExCluster::FNode* GetRoamingGoal() const { return Cluster->GetRoamingNode(GetGoalUVW()); }
 

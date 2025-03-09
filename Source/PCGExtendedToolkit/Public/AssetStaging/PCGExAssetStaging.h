@@ -97,11 +97,10 @@ public:
 	//** If > 0 will create dummy attributes for missing material indices up to a maximum; in order to create a full, fixed-length list of valid (yet null) attributes for the static mesh spawner material overrides. Otherwise, will only create attribute for valid indices. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Additional Outputs", meta=(PCG_Overridable, DisplayName=" ├─ Fixed Max Index", EditCondition="bOutputMaterialPicks", ClampMin="0"))
 	int32 MaxMaterialPicks = 0;
-		
+
 	/** Prefix to be used for material slot picks.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Additional Outputs", meta=(PCG_Overridable, DisplayName=" └─ Prefix", EditCondition="bOutputMaterialPicks"))
 	FName MaterialAttributePrefix = "Mat";
-	
 };
 
 struct FPCGExAssetStagingContext final : FPCGExPointsProcessorContext
@@ -165,7 +164,7 @@ namespace PCGExAssetStaging
 #else
 		TArray<TSharedPtr<PCGExData::TBuffer<FString>>> MaterialWriters; // Per valid slot writers
 #endif
-		
+
 		TArray<const FPCGExAssetCollectionEntry*> CachedPicks;
 		TArray<int8> MaterialPick;
 
@@ -189,7 +188,7 @@ namespace PCGExAssetStaging
 		virtual void ProcessSingleRangeIteration(const int32 Iteration, const PCGExMT::FScope& Scope) override;
 		virtual void OnRangeProcessingComplete() override;
 
-		
+
 		virtual void Write() override;
 	};
 }

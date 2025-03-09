@@ -30,7 +30,6 @@ namespace PCGExClusterStates
 {
 	FState::~FState()
 	{
-		
 	}
 
 	bool FState::Init(FPCGExContext* InContext, const TSharedRef<PCGExCluster::FCluster>& InCluster, const TSharedRef<PCGExData::FFacade>& InPointDataFacade, const TSharedRef<PCGExData::FFacade>& InEdgeDataFacade)

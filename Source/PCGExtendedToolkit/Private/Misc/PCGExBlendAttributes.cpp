@@ -89,7 +89,7 @@ namespace PCGExBlendAttributes
 	void FProcessor::BlendScope(const PCGExMT::FScope& InScope)
 	{
 		FilterScope(InScope);
-		for (UPCGExAttributeBlendOperation* Op : Operations) { Op->BlendScope(InScope); }		
+		for (UPCGExAttributeBlendOperation* Op : Operations) { Op->BlendScope(InScope); }
 	}
 
 	void FProcessor::CompleteWork()

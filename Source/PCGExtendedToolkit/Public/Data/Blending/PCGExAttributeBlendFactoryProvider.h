@@ -91,9 +91,9 @@ public:
 	FPCGExAttributeBlendConfig Config;
 
 	virtual bool PrepareForData(const TSharedRef<PCGExData::FFacade>& InDataFacade);
-	virtual void BlendScope(const PCGExMT::FScope& InScope);	
+	virtual void BlendScope(const PCGExMT::FScope& InScope);
 	virtual void Cleanup() override;
-	
+
 protected:
 	TSharedPtr<PCGExDataBlending::FDataBlendingProcessorBase> BlendingProcessor;
 };

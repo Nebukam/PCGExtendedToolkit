@@ -426,7 +426,7 @@ bool FPCGExAttributeToTagComparisonDetails::Matches(const TSharedPtr<PCGExData::
 void FPCGExAttributeToTagComparisonDetails::RegisterConsumableAttributesWithData(FPCGExContext* InContext, const UPCGData* InData) const
 {
 	InContext->AddConsumableAttributeName(TagNameAttribute);
-	
+
 	FName Consumable = NAME_None;
 	PCGEX_CONSUMABLE_SELECTOR(ValueAttribute, Consumable)
 }

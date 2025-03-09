@@ -27,7 +27,7 @@ public:
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
 	FPCGExGridID GridID;
-	
+
 	UPROPERTY(BlueprintAssignable, Category = "Delegates")
 	FOnEventCreated OnEventCreated;
 
@@ -41,7 +41,6 @@ protected:
 	// Called when the game starts
 	virtual void BeginPlay() override;
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
-	
-	bool bObserving = false;
 
+	bool bObserving = false;
 };
