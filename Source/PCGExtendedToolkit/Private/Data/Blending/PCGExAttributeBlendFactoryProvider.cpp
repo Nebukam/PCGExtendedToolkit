@@ -24,6 +24,8 @@ bool UPCGExAttributeBlendOperation::PrepareForData(const TSharedRef<PCGExData::F
 {
 	PrimaryDataFacade = InDataFacade;
 
+	
+	
 	// If output is set, then give
 	BlendingProcessor = PCGExDataBlending::CreateProcessor(Config.BlendMode, PCGEx::FAttributeIdentity());
 	// If attribute does not exist in IN yet, but does in OUT, dowit
@@ -38,12 +40,17 @@ void UPCGExAttributeBlendOperation::BlendScope(const PCGExMT::FScope& InScope)
 	for (int i = InScope.Start; i < InScope.End; i++)
 	{
 		FPCGPoint& Point = Points[i];
+		FRotator Truc = FRotator::ZeroRotator;
+		Truc *= 2;
 	}
 }
 
 void UPCGExAttributeBlendOperation::Cleanup()
 {
 	BlendingProcessor.Reset();
+	Buffer_A.Reset();
+	Buffer_B.Reset();
+	Buffer_Target.Reset();
 	Super::Cleanup();
 }
 

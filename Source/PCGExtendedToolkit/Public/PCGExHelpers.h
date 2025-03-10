@@ -487,6 +487,17 @@ namespace PCGEx
 		}
 	}
 
+	constexpr static EPCGMetadataTypes GetPropertyType(const EPCGExtraProperties Property)
+	{
+		switch (Property)
+		{
+		case EPCGExtraProperties::Index:
+			return EPCGMetadataTypes::Integer32;
+		default:
+			return EPCGMetadataTypes::Unknown;
+		}
+	}
+
 	constexpr bool DummyBoolean = bool{};
 	constexpr int32 DummyInteger32 = int32{};
 	constexpr int64 DummyInteger64 = int64{};

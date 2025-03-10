@@ -13,6 +13,7 @@ enum class EPCGExOperandAuthority : uint8
 {
 	A = 0 UMETA(DisplayName = "Operand A", ToolTip="Type of operand A will drive the output type, thus converting operand B to the same type for the operation."),
 	B = 1 UMETA(DisplayName = "Operand B", ToolTip="Type of operand B will drive the output type, thus converting operand A to the same type for the operation."),
+	Custom = 2 UMETA(DisplayName = "Custom", ToolTip="Select a specific type to output the result to."),
 };
 
 USTRUCT(BlueprintType)
@@ -48,29 +49,37 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExAttributeBlendConfig
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	FPCGAttributePropertyInputSelector OutputTo;
 
+	/** Which type should be used for the output value. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	EPCGExOperandAuthority OutputType = EPCGExOperandAuthority::A;
+
+	/** Which type should be used for the output value. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName=" └─ Type",EditCondition="OutputType==EPCGExOperandAuthority::Custom", EditConditionHides))
+	EPCGMetadataTypes CustomType = EPCGMetadataTypes::Double;
+	
 	/** Type of Weight */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bRequiresWeight", EditConditionHides, HideEditConditionToggle))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Weighting", meta=(PCG_Overridable, EditCondition="bRequiresWeight", EditConditionHides, HideEditConditionToggle))
 	EPCGExInputValueType WeightInput = EPCGExInputValueType::Constant;
 
 	/** Attribute to read weight value from. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Weight (Attr)", EditCondition="bRequiresWeight && WeightInput!=EPCGExInputValueType::Constant", EditConditionHides, HideEditConditionToggle))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Weighting", meta=(PCG_Overridable, DisplayName="Weight (Attr)", EditCondition="bRequiresWeight && WeightInput!=EPCGExInputValueType::Constant", EditConditionHides, HideEditConditionToggle))
 	FPCGAttributePropertyInputSelector WeightAttribute;
 
 	/** Constant weight value. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Weight", EditCondition="bRequiresWeight && WeightInput==EPCGExInputValueType::Constant", EditConditionHides, HideEditConditionToggle))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Weighting", meta=(PCG_Overridable, DisplayName="Weight", EditCondition="bRequiresWeight && WeightInput==EPCGExInputValueType::Constant", EditConditionHides, HideEditConditionToggle))
 	double Weight = 0.5;
 
 	/** Whether to use in-editor curve or an external asset. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable, EditCondition="bRequiresWeight", EditConditionHides, HideEditConditionToggle))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Weighting", meta=(PCG_NotOverridable, EditCondition="bRequiresWeight", EditConditionHides, HideEditConditionToggle))
 	bool bUseLocalCurve = false;
 
 	// TODO: DirtyCache for OnDependencyChanged when this float curve is an external asset
 	/** Curve the weight value will be remapped over. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_NotOverridable, DisplayName="Weight Curve", EditCondition = "bRequiresWeight && bUseLocalCurve", EditConditionHides, HideEditConditionToggle))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Weighting", meta = (PCG_NotOverridable, DisplayName="Weight Curve", EditCondition = "bRequiresWeight && bUseLocalCurve", EditConditionHides, HideEditConditionToggle))
 	FRuntimeFloatCurve LocalWeightCurve;
 
 	/** Curve the weight value will be remapped over. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Weight Curve", EditCondition="bRequiresWeight && !bUseLocalCurve", EditConditionHides, HideEditConditionToggle))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Weighting", meta=(PCG_Overridable, DisplayName="Weight Curve", EditCondition="bRequiresWeight && !bUseLocalCurve", EditConditionHides, HideEditConditionToggle))
 	TSoftObjectPtr<UCurveFloat> WeightCurve = TSoftObjectPtr<UCurveFloat>(PCGEx::WeightDistributionLinear);
 
 	const FRichCurve* ScoreCurveObj = nullptr;
@@ -96,6 +105,9 @@ public:
 
 protected:
 	TSharedPtr<PCGExDataBlending::FDataBlendingProcessorBase> BlendingProcessor;
+	TSharedPtr<PCGExData::FBufferBase> Buffer_A;
+	TSharedPtr<PCGExData::FBufferBase> Buffer_B;
+	TSharedPtr<PCGExData::FBufferBase> Buffer_Target;
 };
 
 UCLASS(Hidden, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Blending")

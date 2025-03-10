@@ -63,39 +63,6 @@ namespace PCGEx
 		return *(TEXT("PCGEx") + Separator + A.ToString() + Separator + B.ToString() + Separator + C.ToString());
 	}
 
-	EPCGMetadataTypes GetPointPropertyTypeId(const EPCGPointProperties Property)
-	{
-		switch (Property)
-		{
-		case EPCGPointProperties::Density:
-			return EPCGMetadataTypes::Float;
-		case EPCGPointProperties::BoundsMin:
-			return EPCGMetadataTypes::Vector;
-		case EPCGPointProperties::BoundsMax:
-			return EPCGMetadataTypes::Vector;
-		case EPCGPointProperties::Extents:
-			return EPCGMetadataTypes::Vector;
-		case EPCGPointProperties::Color:
-			return EPCGMetadataTypes::Vector4;
-		case EPCGPointProperties::Position:
-			return EPCGMetadataTypes::Vector;
-		case EPCGPointProperties::Rotation:
-			return EPCGMetadataTypes::Quaternion;
-		case EPCGPointProperties::Scale:
-			return EPCGMetadataTypes::Vector;
-		case EPCGPointProperties::Transform:
-			return EPCGMetadataTypes::Transform;
-		case EPCGPointProperties::Steepness:
-			return EPCGMetadataTypes::Float;
-		case EPCGPointProperties::LocalCenter:
-			return EPCGMetadataTypes::Vector;
-		case EPCGPointProperties::Seed:
-			return EPCGMetadataTypes::Integer32;
-		default:
-			return EPCGMetadataTypes::Unknown;
-		}
-	}
-
 	void ScopeIndices(const TArray<int32>& InIndices, TArray<uint64>& OutScopes)
 	{
 		TArray<int32> InIndicesCopy = InIndices;

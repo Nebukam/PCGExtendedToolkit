@@ -86,6 +86,25 @@ namespace PCGExData
 		return true;
 	}
 
+	bool FPointIO::GetSource(const UPCGData* InData, ESource& OutSource) const
+	{
+		if (!InData) { return false; }
+
+		if (InData == In)
+		{
+			OutSource = ESource::In;
+			return true;
+		}
+
+		if (InData == Out)
+		{
+			OutSource = ESource::Out;
+			return true;
+		}
+
+		return false;
+	}
+
 	TSharedPtr<FPCGAttributeAccessorKeysPoints> FPointIO::GetInKeys()
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(FPointIO::GetInKeys);

@@ -4,6 +4,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "IndexTypes.h"
 #include "PCGElement.h"
 #include "UObject/Object.h"
 #include "PCGPoint.h"
@@ -189,7 +190,8 @@ namespace PCGExData
 		UPCGPointData* GetOut() const { return Out; }
 		const UPCGPointData* GetOutIn() const { return Out ? Out : In; }
 		const UPCGPointData* GetInOut() const { return In ? In : Out; }
-
+		bool GetSource(const UPCGData* InData, ESource& OutSource) const;
+		
 		int32 GetNum() const { return In ? In->GetPoints().Num() : Out ? Out->GetPoints().Num() : -1; }
 		int32 GetNum(const ESource Source) const { return Source == ESource::In ? In->GetPoints().Num() : Out->GetPoints().Num(); }
 		int32 GetOutInNum() const { return Out && !Out->GetPoints().IsEmpty() ? Out->GetPoints().Num() : In ? In->GetPoints().Num() : -1; }

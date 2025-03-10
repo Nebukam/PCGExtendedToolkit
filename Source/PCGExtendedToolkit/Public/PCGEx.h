@@ -216,9 +216,6 @@ namespace PCGEx
 	FName GetCompoundName(const FName A, const FName B, const FName C);
 
 	PCGEXTENDEDTOOLKIT_API
-	EPCGMetadataTypes GetPointPropertyTypeId(const EPCGPointProperties Property);
-
-	PCGEXTENDEDTOOLKIT_API
 	void ScopeIndices(const TArray<int32>& InIndices, TArray<uint64>& OutScopes);
 
 	struct PCGEXTENDEDTOOLKIT_API FIndexedItem

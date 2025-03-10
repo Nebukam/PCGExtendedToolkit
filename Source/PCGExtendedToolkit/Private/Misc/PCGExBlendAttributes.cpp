@@ -75,8 +75,8 @@ namespace PCGExBlendAttributes
 		for (const TObjectPtr<const UPCGExAttributeBlendFactory>& Factory : Context->BlendingFactories)
 		{
 			UPCGExAttributeBlendOperation* Op = Factory->CreateOperation(Context);
-			if (!Op || !Op->PrepareForData(PointDataFacade)) { continue; }
-			Operations.Add(Op);
+			//if (!Op || !Op->PrepareForData(PointDataFacade)) { continue; }
+			//Operations.Add(Op);
 		}
 
 		NumPoints = PointDataFacade->GetNum();
