@@ -7,9 +7,9 @@
 
 namespace PCGEx
 {
-	bool IsPCGExAttribute(const FString& InStr){ return InStr.StartsWith(PCGExPrefix); }
+	bool IsPCGExAttribute(const FString& InStr) { return InStr.StartsWith(PCGExPrefix); }
 
-	bool IsPCGExAttribute(const FName InName){ return IsPCGExAttribute(InName.ToString()); }
+	bool IsPCGExAttribute(const FName InName) { return IsPCGExAttribute(InName.ToString()); }
 
 	bool IsPCGExAttribute(const FText& InText) { return IsPCGExAttribute(InText.ToString()); }
 
@@ -61,39 +61,6 @@ namespace PCGEx
 		// PCGEx/A/B/C
 		const FString Separator = TEXT("/");
 		return *(TEXT("PCGEx") + Separator + A.ToString() + Separator + B.ToString() + Separator + C.ToString());
-	}
-
-	EPCGMetadataTypes GetPointPropertyTypeId(const EPCGPointProperties Property)
-	{
-		switch (Property)
-		{
-		case EPCGPointProperties::Density:
-			return EPCGMetadataTypes::Float;
-		case EPCGPointProperties::BoundsMin:
-			return EPCGMetadataTypes::Vector;
-		case EPCGPointProperties::BoundsMax:
-			return EPCGMetadataTypes::Vector;
-		case EPCGPointProperties::Extents:
-			return EPCGMetadataTypes::Vector;
-		case EPCGPointProperties::Color:
-			return EPCGMetadataTypes::Vector4;
-		case EPCGPointProperties::Position:
-			return EPCGMetadataTypes::Vector;
-		case EPCGPointProperties::Rotation:
-			return EPCGMetadataTypes::Quaternion;
-		case EPCGPointProperties::Scale:
-			return EPCGMetadataTypes::Vector;
-		case EPCGPointProperties::Transform:
-			return EPCGMetadataTypes::Transform;
-		case EPCGPointProperties::Steepness:
-			return EPCGMetadataTypes::Float;
-		case EPCGPointProperties::LocalCenter:
-			return EPCGMetadataTypes::Vector;
-		case EPCGPointProperties::Seed:
-			return EPCGMetadataTypes::Integer32;
-		default:
-			return EPCGMetadataTypes::Unknown;
-		}
 	}
 
 	void ScopeIndices(const TArray<int32>& InIndices, TArray<uint64>& OutScopes)

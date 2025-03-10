@@ -2,7 +2,6 @@
 // Released under the MIT license https://opensource.org/license/MIT/
 
 #include "Data/PCGExAttributeHelpers.h"
-
 #include "Data/PCGExData.h"
 
 FPCGExInputConfig::FPCGExInputConfig(const FPCGAttributePropertyInputSelector& InSelector)
@@ -40,7 +39,7 @@ bool FPCGExInputConfig::Validate(const UPCGPointData* InData)
 	if (Selector.IsValid() &&
 		Selector.GetSelection() == EPCGAttributePropertySelection::PointProperty)
 	{
-		UnderlyingType = static_cast<int16>(PCGEx::GetPointPropertyTypeId(Selector.GetPointProperty()));
+		UnderlyingType = static_cast<int16>(PCGEx::GetPropertyType(Selector.GetPointProperty()));
 		return true;
 	}
 
@@ -86,52 +85,7 @@ void FPCGExAttributeSourceToTargetList::GetSources(TArray<FName>& OutNames) cons
 
 namespace PCGEx
 {
-	bool GetComponentSelection(const TArray<FString>& Names, EPCGExTransformComponent& OutSelection)
-	{
-		if (Names.IsEmpty()) { return false; }
-		for (const FString& Name : Names)
-		{
-			if (const EPCGExTransformComponent* Selection = STRMAP_TRANSFORM_FIELD.Find(Name.ToUpper()))
-			{
-				OutSelection = *Selection;
-				return true;
-			}
-		}
-		return false;
-	}
-
-	bool GetFieldSelection(const TArray<FString>& Names, EPCGExSingleField& OutSelection)
-	{
-		if (Names.IsEmpty()) { return false; }
-		const FString& STR = Names.Num() > 1 ? Names[1].ToUpper() : Names[0].ToUpper();
-		if (const EPCGExSingleField* Selection = STRMAP_SINGLE_FIELD.Find(STR))
-		{
-			OutSelection = *Selection;
-			return true;
-		}
-		if (STR.Len() <= 0) { return false; }
-		if (const EPCGExSingleField* Selection = STRMAP_SINGLE_FIELD.Find(FString::Printf(TEXT("%c"), STR[0]).ToUpper()))
-		{
-			OutSelection = *Selection;
-			return true;
-		}
-		return false;
-	}
-
-	bool GetAxisSelection(const TArray<FString>& Names, EPCGExAxis& OutSelection)
-	{
-		if (Names.IsEmpty()) { return false; }
-		for (const FString& Name : Names)
-		{
-			if (const EPCGExAxis* Selection = STRMAP_AXIS.Find(Name.ToUpper()))
-			{
-				OutSelection = *Selection;
-				return true;
-			}
-		}
-		return false;
-	}
-
+	
 	FPCGAttributePropertyInputSelector CopyAndFixLast(const FPCGAttributePropertyInputSelector& InSelector, const UPCGData* InData, TArray<FString>& OutExtraNames)
 	{
 		//Copy, fix, and clear ExtraNames to support PCGEx custom selectors
@@ -356,6 +310,69 @@ namespace PCGEx
 		}
 
 		return NewInfos;
+	}
+
+	void GatherAttributes(const TSharedPtr<FAttributesInfos>& OutInfos, const FPCGContext* InContext, const FName InputLabel, const FPCGExAttributeGatherDetails& InDetails, TSet<FName>& Mismatches)
+	{
+		TArray<FPCGTaggedData> InputData = InContext->InputData.GetInputsByPin(InputLabel);
+		for (const FPCGTaggedData& TaggedData : InputData)
+		{
+			if (const UPCGParamData* AsParamData = Cast<UPCGParamData>(TaggedData.Data))
+			{
+				OutInfos->Append(FAttributesInfos::Get(AsParamData->Metadata), InDetails, Mismatches);
+			}
+			else if (const UPCGSpatialData* AsSpatialData = Cast<UPCGSpatialData>(TaggedData.Data))
+			{
+				OutInfos->Append(FAttributesInfos::Get(AsSpatialData->Metadata), InDetails, Mismatches);
+			}
+		}
+	}
+
+	TSharedPtr<FAttributesInfos> GatherAttributes(const FPCGContext* InContext, const FName InputLabel, const FPCGExAttributeGatherDetails& InDetails, TSet<FName>& Mismatches)
+	{
+		PCGEX_MAKE_SHARED(OutInfos, FAttributesInfos)
+		GatherAttributes(OutInfos, InContext, InputLabel, InDetails, Mismatches);
+		return OutInfos;
+	}
+
+	FAttributeProcessingInfos::FAttributeProcessingInfos(const UPCGData* InData, const FPCGAttributePropertyInputSelector& InSelector)
+	{
+		Init(InData, InSelector);
+	}
+
+	FAttributeProcessingInfos::FAttributeProcessingInfos(const UPCGData* InData, const FName InAttributeName)
+	{
+		FPCGAttributePropertyInputSelector ProxySelector = FPCGAttributePropertyInputSelector();
+		ProxySelector.Update(InAttributeName.ToString());
+		Init(InData, ProxySelector);
+	}
+
+	void FAttributeProcessingInfos::Init(const UPCGData* InData, const FPCGAttributePropertyInputSelector& InSelector)
+	{
+		Selector = InSelector.CopyAndFixLast(InData);
+		bIsValid = Selector.IsValid();
+
+		if (!bIsValid) { return; }
+
+		SubSelection = FSubSelection(Selector.GetExtraNames());
+
+		if (Selector.GetSelection() == EPCGAttributePropertySelection::Attribute)
+		{
+			Attribute = nullptr;
+			bIsValid = false;
+
+			if (const UPCGSpatialData* AsSpatial = Cast<UPCGSpatialData>(InData))
+			{
+				Attribute = AsSpatial->Metadata->GetConstAttribute(Selector.GetAttributeName());
+				bIsValid = Attribute ? true : false;
+			}
+		}
+	}
+
+	FString GetSelectorDisplayName(const FPCGAttributePropertyInputSelector& InSelector)
+	{
+		if (InSelector.GetExtraNames().IsEmpty()) { return InSelector.GetName().ToString(); }
+		return InSelector.GetName().ToString() + TEXT(".") + FString::Join(InSelector.GetExtraNames(), TEXT("."));
 	}
 
 	void CopyPoints(const PCGExData::FPointIO* Source, const PCGExData::FPointIO* Target, const TSharedPtr<const TArray<int32>>& SourceIndices, const int32 TargetIndex, const bool bKeepSourceMetadataEntry)

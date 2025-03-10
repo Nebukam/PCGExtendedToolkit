@@ -117,7 +117,7 @@ namespace PCGExMergePoints
 						TagValue->UnderlyingType, [&](auto DummyValue2)
 						{
 							using RawT = decltype(DummyValue2);
-							Value = PCGEx::Broadcast<T>(StaticCastSharedPtr<PCGExTags::TTagValue<RawT>>(TagValue)->Value);
+							Value = PCGEx::FSubSelection().Get<T>(StaticCastSharedPtr<PCGExTags::TTagValue<RawT>>(TagValue)->Value);
 						});
 
 					TSharedPtr<PCGExData::TBuffer<T>> Buffer = Context->CompositeDataFacade->GetWritable(AttributeName, T{}, true, PCGExData::EBufferInit::New);

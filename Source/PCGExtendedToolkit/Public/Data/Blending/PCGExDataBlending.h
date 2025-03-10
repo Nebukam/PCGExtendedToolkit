@@ -326,8 +326,9 @@ namespace PCGExDataBlending
 	protected:
 		void Cleanup()
 		{
-			Reader = nullptr;
-			Writer = nullptr;
+			Buffer_A = nullptr;
+			Buffer_B = nullptr;
+			Buffer_Target = nullptr;
 		}
 
 	public:
@@ -346,10 +347,11 @@ namespace PCGExDataBlending
 
 			FDataBlendingProcessorBase::PrepareForData(InWriter, InSecondaryFacade, SecondarySource);
 
-			Writer = StaticCastSharedPtr<PCGExData::TBuffer<T>>(InWriter);
+			Buffer_A = StaticCastSharedPtr<PCGExData::TBuffer<T>>(InWriter);
+			Buffer_Target = Buffer_A;
 
-			bSupportInterpolation = Writer->GetAllowsInterpolation();
-			SourceAttribute = InSecondaryFacade->FindMutableAttribute<T>(AttributeName, SecondarySource);
+			bSupportInterpolation = Buffer_A->GetAllowsInterpolation();
+			Attribute_B = InSecondaryFacade->FindMutableAttribute<T>(AttributeName, SecondarySource);
 		}
 
 		virtual void PrepareForData(const TSharedPtr<PCGExData::FFacade>& InPrimaryFacade, const TSharedPtr<PCGExData::FFacade>& InSecondaryFacade, const PCGExData::ESource SecondarySource) override
@@ -358,14 +360,15 @@ namespace PCGExDataBlending
 
 			FDataBlendingProcessorBase::PrepareForData(InPrimaryFacade, InSecondaryFacade, SecondarySource);
 
-			SourceAttribute = InSecondaryFacade->FindConstAttribute<T>(AttributeName, SecondarySource);
+			Attribute_B = InSecondaryFacade->FindConstAttribute<T>(AttributeName, SecondarySource);
 
-			if (SourceAttribute) { Writer = InPrimaryFacade->GetWritable<T>(SourceAttribute, PCGExData::EBufferInit::Inherit); }
-			else { Writer = InPrimaryFacade->GetWritable<T>(AttributeName, T{}, true, PCGExData::EBufferInit::Inherit); }
+			if (Attribute_B) { Buffer_A = InPrimaryFacade->GetWritable<T>(Attribute_B, PCGExData::EBufferInit::Inherit); }
+			else { Buffer_A = InPrimaryFacade->GetWritable<T>(AttributeName, T{}, true, PCGExData::EBufferInit::Inherit); }
+			Buffer_Target = Buffer_A;
 
-			Reader = InSecondaryFacade->GetReadable<T>(AttributeName, SecondarySource); // Will return writer if sources ==
+			Buffer_B = InSecondaryFacade->GetReadable<T>(AttributeName, SecondarySource); // Will return writer if sources ==
 
-			bSupportInterpolation = Writer->GetAllowsInterpolation();
+			bSupportInterpolation = Buffer_A->GetAllowsInterpolation();
 		}
 
 		virtual void SoftPrepareForData(const TSharedPtr<PCGExData::FFacade>& InPrimaryFacade, const TSharedPtr<PCGExData::FFacade>& InSecondaryFacade, const PCGExData::ESource SecondarySource) override
@@ -374,28 +377,29 @@ namespace PCGExDataBlending
 
 			FDataBlendingProcessorBase::SoftPrepareForData(InPrimaryFacade, InSecondaryFacade, SecondarySource);
 
-			SourceAttribute = InSecondaryFacade->FindConstAttribute<T>(AttributeName, SecondarySource);
-			TargetAttribute = InPrimaryFacade->FindMutableAttribute<T>(AttributeName, PCGExData::ESource::Out);
+			Attribute_B = InSecondaryFacade->FindConstAttribute<T>(AttributeName, SecondarySource);
+			Attribute_A = InPrimaryFacade->FindMutableAttribute<T>(AttributeName, PCGExData::ESource::Out);
 
-			if (!TargetAttribute) { TargetAttribute = static_cast<FPCGMetadataAttribute<T>*>(InPrimaryFacade->GetOut()->Metadata->CopyAttribute(SourceAttribute, SourceAttribute->Name, false, false, false)); }
+			if (!Attribute_A) { Attribute_A = static_cast<FPCGMetadataAttribute<T>*>(InPrimaryFacade->GetOut()->Metadata->CopyAttribute(Attribute_B, Attribute_B->Name, false, false, false)); }
 
-			check(TargetAttribute) // Something went wrong
+			check(Attribute_A) // Something went wrong
 
-			bSupportInterpolation = SourceAttribute->AllowsInterpolation();
+			Attribute_Target = Attribute_A;
+			bSupportInterpolation = Attribute_B->AllowsInterpolation();
 		}
 
 		virtual void PrepareRangeOperation(const int32 StartIndex, const int32 Range) const override
 		{
 			if constexpr (bRequirePreparation)
 			{
-				TArrayView<T> View = MakeArrayView(Writer->GetOutValues()->GetData() + StartIndex, Range);
+				TArrayView<T> View = MakeArrayView(Buffer_A->GetOutValues()->GetData() + StartIndex, Range);
 				PrepareValuesRangeOperation(View, StartIndex);
 			}
 		}
 
 		virtual void DoRangeOperation(const int32 PrimaryReadIndex, const int32 SecondaryReadIndex, const int32 StartIndex, const TArrayView<double>& Weights, const int8 bFirstOperation) const override
 		{
-			TArrayView<T> View = MakeArrayView(Writer->GetOutValues()->GetData() + StartIndex, Weights.Num());
+			TArrayView<T> View = MakeArrayView(Buffer_A->GetOutValues()->GetData() + StartIndex, Weights.Num());
 			DoValuesRangeOperation(PrimaryReadIndex, SecondaryReadIndex, View, Weights, bFirstOperation);
 		}
 
@@ -403,7 +407,7 @@ namespace PCGExDataBlending
 		{
 			if constexpr (bRequireCompletion)
 			{
-				TArrayView<T> View = MakeArrayView(Writer->GetOutValues()->GetData() + StartIndex, Counts.Num());
+				TArrayView<T> View = MakeArrayView(Buffer_A->GetOutValues()->GetData() + StartIndex, Counts.Num());
 				CompleteValuesRangeOperation(StartIndex, View, Counts, TotalWeights);
 			}
 		}
@@ -420,32 +424,32 @@ namespace PCGExDataBlending
 		{
 			if (!bSupportInterpolation)
 			{
-				const T B = Reader->Read(SecondaryReadIndex);
+				const T B = Buffer_B->Read(SecondaryReadIndex);
 				for (int i = 0; i < Values.Num(); i++) { Values[i] = B; } // Raw copy value
 			}
 			else
 			{
-				const T A = Writer->GetMutable(PrimaryReadIndex);
-				const T B = Reader->Read(SecondaryReadIndex);
+				const T A = Buffer_A->GetConst(PrimaryReadIndex);
+				const T B = Buffer_B->Read(SecondaryReadIndex);
 				for (int i = 0; i < Values.Num(); i++) { Values[i] = SingleOperation(A, B, Weights[i]); }
 			}
 		}
 
 		virtual void Copy(const int32 WriteIndex, const int32 SecondaryReadIndex) const override
 		{
-			Writer->GetMutable(WriteIndex) = Reader->Read(SecondaryReadIndex);
+			Buffer_Target->GetMutable(WriteIndex) = Buffer_B->Read(SecondaryReadIndex);
 		}
 
 		virtual void Copy(const int32 WriteIndex, const FPCGPoint& SrcPoint) const override
 		{
-			Writer->GetMutable(WriteIndex) = SourceAttribute ? SourceAttribute->GetValueFromItemKey(SrcPoint.MetadataEntry) : Writer->GetMutable(WriteIndex);
+			Buffer_Target->GetMutable(WriteIndex) = Attribute_B ? Attribute_B->GetValueFromItemKey(SrcPoint.MetadataEntry) : Buffer_A->GetConst(WriteIndex);
 		}
 
 		virtual void DoOperation(const int32 PrimaryReadIndex, const FPCGPoint& SrcPoint, const int32 WriteIndex, const double Weight, const int8 bFirstOperation) const override
 		{
-			const T A = Writer->GetMutable(PrimaryReadIndex);
-			const T B = SourceAttribute ? SourceAttribute->GetValueFromItemKey(SrcPoint.MetadataEntry) : A;
-			Writer->GetMutable(WriteIndex) = SingleOperation(A, B, Weight);
+			const T A = Buffer_A->GetConst(PrimaryReadIndex);
+			const T B = Attribute_B ? Attribute_B->GetValueFromItemKey(SrcPoint.MetadataEntry) : A;
+			Buffer_Target->GetMutable(WriteIndex) = SingleOperation(A, B, Weight);
 		}
 
 		virtual void CompleteValuesRangeOperation(const int32 StartIndex, TArrayView<T>& Values, const TArrayView<const int32>& Counts, const TArrayView<double>& Weights) const
@@ -461,29 +465,29 @@ namespace PCGExDataBlending
 		{
 			if constexpr (bRequirePreparation)
 			{
-				T Value = TargetAttribute->GetValueFromItemKey(WriteKey);
+				T Value = Attribute_A->GetValueFromItemKey(WriteKey);
 				SinglePrepare(Value);
-				TargetAttribute->SetValue(WriteKey, Value);
+				Attribute_Target->SetValue(WriteKey, Value);
 			}
 		};
 
 		virtual void Copy(const PCGMetadataEntryKey WriteKey, const PCGMetadataEntryKey SecondaryReadKey) const override
 		{
-			TargetAttribute->SetValue(WriteKey, SourceAttribute->GetValueFromItemKey(SecondaryReadKey));
+			Attribute_Target->SetValue(WriteKey, Attribute_B->GetValueFromItemKey(SecondaryReadKey));
 		};
 
 		virtual void DoOperation(const PCGMetadataEntryKey PrimaryReadKey, const PCGMetadataEntryKey SecondaryReadKey, const PCGMetadataEntryKey WriteKey, const double Weight, const int8 bFirstOperation) const override
 		{
-			TargetAttribute->SetValue(WriteKey, SingleOperation(TargetAttribute->GetValueFromItemKey(PrimaryReadKey), SourceAttribute->GetValueFromItemKey(SecondaryReadKey), Weight));
+			Attribute_Target->SetValue(WriteKey, SingleOperation(Attribute_A->GetValueFromItemKey(PrimaryReadKey), Attribute_B->GetValueFromItemKey(SecondaryReadKey), Weight));
 		};
 
 		virtual void CompleteOperation(const PCGMetadataEntryKey WriteKey, const int32 Count, const double TotalWeight) const override
 		{
 			if constexpr (bRequireCompletion)
 			{
-				T Value = TargetAttribute->GetValueFromItemKey(WriteKey);
+				T Value = Attribute_A->GetValueFromItemKey(WriteKey);
 				SingleComplete(Value, Count, TotalWeight);
-				TargetAttribute->SetValue(WriteKey, Value);
+				Attribute_Target->SetValue(WriteKey, Value);
 			}
 		};
 
@@ -496,10 +500,13 @@ namespace PCGExDataBlending
 		};
 
 	protected:
-		const FPCGMetadataAttribute<T>* SourceAttribute = nullptr;
-		FPCGMetadataAttribute<T>* TargetAttribute = nullptr;
-		TSharedPtr<PCGExData::TBuffer<T>> Writer;
-		TSharedPtr<PCGExData::TBuffer<T>> Reader;
+		const FPCGMetadataAttribute<T>* Attribute_B = nullptr;
+		FPCGMetadataAttribute<T>* Attribute_A = nullptr;
+		FPCGMetadataAttribute<T>* Attribute_Target = nullptr;
+
+		TSharedPtr<PCGExData::TBuffer<T>> Buffer_A;
+		TSharedPtr<PCGExData::TBuffer<T>> Buffer_B;
+		TSharedPtr<PCGExData::TBuffer<T>> Buffer_Target;
 	};
 
 	template <typename T, EPCGExDataBlendingType BlendingType, bool bRequirePreparation = false, bool bRequireCompletion = false>
@@ -509,29 +516,29 @@ namespace PCGExDataBlending
 		{
 			if (bFirstOperation || !this->bSupportInterpolation)
 			{
-				const T B = this->Reader->Read(SecondaryReadIndex);
+				const T B = this->Buffer_B->Read(SecondaryReadIndex);
 				for (int i = 0; i < Values.Num(); i++) { Values[i] = B; } // Raw copy value
 			}
 			else
 			{
-				T A = this->Writer->GetMutable(PrimaryReadIndex);
-				const T B = this->Reader->Read(SecondaryReadIndex);
+				T A = this->Buffer_Target->GetConst(PrimaryReadIndex);
+				const T B = this->Buffer_B->Read(SecondaryReadIndex);
 				for (int i = 0; i < Values.Num(); i++) { Values[i] = this->SingleOperation(A, B, Weights[i]); }
 			}
 		}
 
 		virtual void DoOperation(const int32 PrimaryReadIndex, const FPCGPoint& SrcPoint, const int32 WriteIndex, const double Weight, const int8 bFirstOperation) const override
 		{
-			const T A = this->Writer->GetMutable(PrimaryReadIndex);
-			const T B = this->SourceAttribute ? this->SourceAttribute->GetValueFromItemKey(SrcPoint.MetadataEntry) : A;
+			const T A = this->Buffer_A->GetConst(PrimaryReadIndex);
+			const T B = this->Attribute_B ? this->Attribute_B->GetValueFromItemKey(SrcPoint.MetadataEntry) : A;
 
 			if (bFirstOperation)
 			{
-				this->Writer->GetMutable(WriteIndex) = B;
+				this->Buffer_Target->GetMutable(WriteIndex) = B;
 				return;
 			}
 
-			this->Writer->GetMutable(WriteIndex) = this->SingleOperation(A, B, Weight);
+			this->Buffer_Target->GetMutable(WriteIndex) = this->SingleOperation(this->Buffer_A->GetConst(PrimaryReadIndex), B, Weight);
 		}
 	};
 

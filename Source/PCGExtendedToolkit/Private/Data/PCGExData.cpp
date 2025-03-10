@@ -4,7 +4,6 @@
 #include "Data/PCGExData.h"
 
 #include "PCGExPointsMT.h"
-#include "ScreenPass.h"
 
 namespace PCGExData
 {

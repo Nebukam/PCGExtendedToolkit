@@ -5,7 +5,6 @@
 
 #include <vector>
 
-
 namespace PCGEx
 {
 	template <typename, typename = void>

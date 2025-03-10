@@ -7,11 +7,10 @@
 #include "PCGExGlobalSettings.h"
 
 #include "PCGExPointsProcessor.h"
+#include "Data/Blending/PCGExAttributeBlendFactoryProvider.h"
 
 
 #include "PCGExBlendAttributes.generated.h"
-
-class UPCGExAttributeBlendFactory;
 
 UCLASS(Hidden, MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc")
 class UPCGExBlendAttributesSettings : public UPCGExPointsProcessorSettings
@@ -62,8 +61,7 @@ namespace PCGExBlendAttributes
 	class FProcessor final : public PCGExPointsMT::TPointsProcessor<FPCGExBlendAttributesContext, UPCGExBlendAttributesSettings>
 	{
 		double NumPoints = 0;
-		TSharedPtr<PCGExData::TBuffer<int32>> IntWriter;
-		TSharedPtr<PCGExData::TBuffer<double>> DoubleWriter;
+		TArray<UPCGExAttributeBlendOperation*> Operations;
 
 	public:
 		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade):
@@ -76,7 +74,7 @@ namespace PCGExBlendAttributes
 		}
 
 		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager) override;
-		virtual void ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const PCGExMT::FScope& Scope) override;
+		void BlendScope(const PCGExMT::FScope& InScope);
 		virtual void CompleteWork() override;
 	};
 }

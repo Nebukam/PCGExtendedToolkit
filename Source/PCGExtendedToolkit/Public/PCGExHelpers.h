@@ -12,6 +12,8 @@
 #include "PCGContext.h"
 #include "PCGExMacros.h"
 #include "PCGManagedResource.h"
+#include "PCGComponent.h"
+#include "PCGGraph.h"
 #include "Data/PCGSpatialData.h"
 #include "Engine/AssetManager.h"
 #include "Metadata/PCGMetadataAttributeTraits.h"
@@ -479,6 +481,17 @@ namespace PCGEx
 		case EPCGPointProperties::LocalCenter:
 			return EPCGMetadataTypes::Vector;
 		case EPCGPointProperties::Seed:
+			return EPCGMetadataTypes::Integer32;
+		default:
+			return EPCGMetadataTypes::Unknown;
+		}
+	}
+
+	constexpr static EPCGMetadataTypes GetPropertyType(const EPCGExtraProperties Property)
+	{
+		switch (Property)
+		{
+		case EPCGExtraProperties::Index:
 			return EPCGMetadataTypes::Integer32;
 		default:
 			return EPCGMetadataTypes::Unknown;
