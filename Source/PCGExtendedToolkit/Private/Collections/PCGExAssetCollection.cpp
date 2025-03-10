@@ -3,12 +3,15 @@
 
 #include "Collections/PCGExAssetCollection.h"
 
+#if WITH_EDITOR
 #include "ContentBrowserModule.h"
 #include "IContentBrowserSingleton.h"
-#include "PCGEx.h"
-#include "PCGExMacros.h"
 #include "AssetRegistry/AssetData.h"
 #include "AssetRegistry/AssetRegistryModule.h"
+#endif
+
+#include "PCGEx.h"
+#include "PCGExMacros.h"
 
 namespace PCGExAssetCollection
 {
