@@ -268,10 +268,10 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExFittingVariationsDetails
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	EPCGExVariationMode Scale = EPCGExVariationMode::Disabled;
-	
+
 	bool bEnabledBefore = true;
 	bool bEnabledAfter = true;
-		
+
 	int Seed = 0;
 
 	void Init(const int InSeed);
@@ -363,7 +363,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExTransformDetails : public FPCGExFittingDetai
 	explicit FPCGExTransformDetails()
 	{
 	}
-	
+
 	explicit FPCGExTransformDetails(const bool InInheritScale, const bool InInheritRotation)
 		: bInheritScale(InInheritScale), bInheritRotation(InInheritRotation)
 	{

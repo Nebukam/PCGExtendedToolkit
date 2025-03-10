@@ -155,7 +155,7 @@ namespace PCGExCluster
 	FVector FNodeChain::GetEdgeDir(const TSharedPtr<FCluster>& Cluster, const bool bFirst) const
 	{
 		if (bFirst) { return GetFirstEdgeDir(Cluster); }
-		else { return GetLastEdgeDir(Cluster); }
+		return GetLastEdgeDir(Cluster);
 	}
 
 	int32 FNodeChain::GetNodes(const TSharedPtr<FCluster>& Cluster, TArray<int32>& OutNodes, const bool bReverse)

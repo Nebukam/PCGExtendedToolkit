@@ -127,42 +127,8 @@ void PCGExMeshCollectionUtils::UpdateCollectionsFrom(
 {
 	if (SelectedCollections.IsEmpty() || SelectedAssets.IsEmpty()) { return; }
 
-	TArray<FPCGExMeshCollectionEntry> SelectedEntries;
-	SelectedEntries.Reserve(SelectedAssets.Num());
-
-	for (const FAssetData& SelectedAsset : SelectedAssets)
-	{
-		UE_LOG(LogTemp, Log, TEXT("Mesh -> %s"), *SelectedAsset.AssetName.ToString());
-
-		FPCGExMeshCollectionEntry Entry = FPCGExMeshCollectionEntry();
-		Entry.StaticMesh = TSoftObjectPtr<UStaticMesh>(SelectedAsset.ToSoftObjectPath());
-
-		SelectedEntries.Add(Entry);
-	}
-
 	for (const TObjectPtr<UPCGExMeshCollection>& Collection : SelectedCollections)
 	{
-		for (const FPCGExMeshCollectionEntry& Entry : SelectedEntries)
-		{
-			bool bAlreadyExists = false;
-
-			for (const FPCGExMeshCollectionEntry& ExistingEntry : Collection->Entries)
-			{
-				if (Entry.StaticMesh == ExistingEntry.StaticMesh)
-				{
-					bAlreadyExists = true;
-					break;
-				}
-			}
-
-			if (bAlreadyExists) { continue; }
-
-			Collection->Entries.Add(Entry);
-		}
-
-		FPropertyChangedEvent DummyEvent = FPropertyChangedEvent(nullptr);
-		Collection->PostEditChangeProperty(DummyEvent);
-
-		FCoreUObjectDelegates::BroadcastOnObjectModified(Collection);
+		Collection->EDITOR_AddBrowserSelectionTyped(SelectedAssets);
 	}
 }

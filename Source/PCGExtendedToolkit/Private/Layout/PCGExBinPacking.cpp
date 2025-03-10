@@ -210,12 +210,12 @@ namespace PCGExBinPacking
 		TArray<FBox> NewPartitions;
 		NewPartitions.Reserve(6);
 
-		NewPartitions.Emplace(Space.Box.Min, FVector(ItemBox.Min.X, Space.Box.Max.Y, Space.Box.Max.Z)); // Left
-		NewPartitions.Emplace(FVector(ItemBox.Max.X, Space.Box.Min.Y, Space.Box.Min.Z), Space.Box.Max); // Right
+		NewPartitions.Emplace(Space.Box.Min, FVector(ItemBox.Min.X, Space.Box.Max.Y, Space.Box.Max.Z));                                          // Left
+		NewPartitions.Emplace(FVector(ItemBox.Max.X, Space.Box.Min.Y, Space.Box.Min.Z), Space.Box.Max);                                          // Right
 		NewPartitions.Emplace(FVector(ItemBox.Min.X, Space.Box.Min.Y, Space.Box.Min.Z), FVector(ItemBox.Max.X, Space.Box.Max.Y, ItemBox.Min.Z)); // Bottom
-		NewPartitions.Emplace(FVector(ItemBox.Min.X, ItemBox.Min.Y, ItemBox.Max.Z), FVector(ItemBox.Max.X, ItemBox.Max.Y, Space.Box.Max.Z)); // Top
-		NewPartitions.Emplace(FVector(ItemBox.Min.X, ItemBox.Max.Y, ItemBox.Min.Z), FVector(ItemBox.Max.X, Space.Box.Max.Y, Space.Box.Max.Z)); // Front
-		NewPartitions.Emplace(FVector(ItemBox.Min.X, Space.Box.Min.Y, ItemBox.Min.Z), FVector(ItemBox.Max.X, ItemBox.Min.Y, Space.Box.Max.Z)); // Back
+		NewPartitions.Emplace(FVector(ItemBox.Min.X, ItemBox.Min.Y, ItemBox.Max.Z), FVector(ItemBox.Max.X, ItemBox.Max.Y, Space.Box.Max.Z));     // Top
+		NewPartitions.Emplace(FVector(ItemBox.Min.X, ItemBox.Max.Y, ItemBox.Min.Z), FVector(ItemBox.Max.X, Space.Box.Max.Y, Space.Box.Max.Z));   // Front
+		NewPartitions.Emplace(FVector(ItemBox.Min.X, Space.Box.Min.Y, ItemBox.Min.Z), FVector(ItemBox.Max.X, ItemBox.Min.Y, Space.Box.Max.Z));   // Back
 
 		Spaces.RemoveAt(SpaceIndex);
 		Spaces.Reserve(Spaces.Num() + 8);

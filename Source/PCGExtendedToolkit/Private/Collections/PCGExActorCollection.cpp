@@ -61,4 +61,51 @@ void UPCGExActorCollection::EDITOR_RefreshDisplayNames()
 		Entry.DisplayName = Entry.bIsSubCollection ? FName(TEXT("[") + Entry.SubCollection.GetName() + TEXT("]")) : FName(Entry.Actor ? Entry.Actor->GetName() : TEXT("None"));
 	}
 }
+
+void UPCGExActorCollection::EDITOR_AddBrowserSelectionInternal(const TArray<FAssetData>& InAssetData)
+{
+	Super::EDITOR_AddBrowserSelectionInternal(InAssetData);
+
+	static const FName GeneratedClassTag = "GeneratedClass";
+
+	for (const FAssetData& SelectedAsset : InAssetData)
+	{
+		TSoftClassPtr<AActor> Actor = nullptr;
+
+		// Ensure the asset is a Blueprint
+		if (SelectedAsset.AssetClassPath == UBlueprint::StaticClass()->GetClassPathName())
+		{
+			if (FString ClassPath;
+				SelectedAsset.GetTagValue(GeneratedClassTag, ClassPath))
+			{
+				Actor = TSoftClassPtr<AActor>(FSoftObjectPath(ClassPath));
+			}
+			else { continue; }
+		}
+		else if (SelectedAsset.AssetClassPath == UClass::StaticClass()->GetClassPathName())
+		{
+			Actor = TSoftClassPtr<AActor>(SelectedAsset.ToSoftObjectPath());
+		}
+
+		if (!Actor.LoadSynchronous()) { continue; }
+
+		bool bAlreadyExists = false;
+
+		for (const FPCGExActorCollectionEntry& ExistingEntry : Entries)
+		{
+			if (ExistingEntry.Actor == Actor)
+			{
+				bAlreadyExists = true;
+				break;
+			}
+		}
+
+		if (bAlreadyExists) { continue; }
+
+		FPCGExActorCollectionEntry Entry = FPCGExActorCollectionEntry();
+		Entry.Actor = Actor;
+
+		Entries.Add(Entry);
+	}
+}
 #endif

@@ -31,7 +31,7 @@ struct FPCGExNodeEdgeAngleFilterConfig
 	/** What should this filter return when dealing with complex, non-binary nodes? (node that have more that two edges) */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_NotOverridable))
 	EPCGExFilterFallback NonBinaryFallback = EPCGExFilterFallback::Fail;
-		
+
 	/** Dot comparison settings */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	FPCGExDotComparisonDetails DotComparisonDetails;
@@ -39,7 +39,6 @@ struct FPCGExNodeEdgeAngleFilterConfig
 	/** Whether the result of the filter should be inverted or not. Note that this will also invert fallback results! */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_NotOverridable))
 	bool bInvert = false;
-	
 };
 
 /**

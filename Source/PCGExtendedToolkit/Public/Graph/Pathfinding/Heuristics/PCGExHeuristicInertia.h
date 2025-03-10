@@ -65,7 +65,6 @@ public:
 		const PCGExCluster::FNode& Seed,
 		const PCGExCluster::FNode& Goal,
 		const TSharedPtr<PCGEx::FHashLookup> TravelStack) const override;
-
 };
 
 ////
@@ -78,7 +77,7 @@ class UPCGExHeuristicsFactoryInertia : public UPCGExHeuristicsFactoryData
 public:
 	UPROPERTY()
 	FPCGExHeuristicConfigInertia Config;
-	
+
 	virtual UPCGExHeuristicOperation* CreateOperation(FPCGExContext* InContext) const override;
 	PCGEX_HEURISTIC_FACTORY_BOILERPLATE
 };

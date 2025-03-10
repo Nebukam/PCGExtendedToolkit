@@ -5,6 +5,7 @@
 
 #include "PCGComponent.h"
 #include "Data/PCGExDataSharing.h"
+#include "Data/PCGExGridTracking.h"
 
 #if WITH_EDITOR
 #include "Editor.h"
@@ -23,6 +24,7 @@ void UPCGExSubSystem::Initialize(FSubsystemCollectionBase& Collection)
 {
 	Super::Initialize(Collection);
 	SharedDataManager = NewObject<UPCGExSharedDataManager>(this);
+	GridIDTracker = NewObject<UPCGExGridIDTracker>(this);
 }
 
 void UPCGExSubSystem::Deinitialize()

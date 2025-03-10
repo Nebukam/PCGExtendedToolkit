@@ -13,6 +13,8 @@
 
 #define PCGEX_SUBSYSTEM UPCGExSubSystem* PCGExSubsystem = UPCGExSubSystem::GetSubsystemForCurrentWorld(); check(PCGExSubsystem)
 
+class UPCGExGridIDTracker;
+
 UENUM()
 enum class EPCGExSubsystemEventType : uint8
 {
@@ -24,6 +26,7 @@ enum class EPCGExSubsystemEventType : uint8
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_ThreeParams(FOnGlobalEvent, UPCGComponent*, Source, EPCGExSubsystemEventType, EventType, uint32, EventId);
 
 class UPCGExSharedDataManager;
+class UPCGExGridTracking;
 
 namespace PCGEx
 {
@@ -62,6 +65,9 @@ public:
 
 	UPROPERTY(Transient)
 	TObjectPtr<UPCGExSharedDataManager> SharedDataManager;
+
+	UPROPERTY(Transient)
+	TObjectPtr<UPCGExGridIDTracker> GridIDTracker;
 
 	virtual void Initialize(FSubsystemCollectionBase& Collection) override;
 	virtual void Deinitialize() override;

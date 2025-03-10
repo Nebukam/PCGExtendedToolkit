@@ -8,8 +8,8 @@
 #include "PCGExDetailsData.h"
 #include "Data/PCGExAttributeHelpers.h"
 #include "Data/PCGExData.h"
-#include "Engine/DataAsset.h"
 #include "PCGExFitting.h"
+#include "Engine/DataAsset.h"
 
 #include "PCGExAssetCollection.generated.h"
 
@@ -449,6 +449,12 @@ public:
 	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
 	virtual void EDITOR_RefreshDisplayNames();
 
+	/** Add Content Browser selection to this collection. */
+	UFUNCTION(CallInEditor, Category = Tools, meta=(DisplayName="Add Selection", ShortToolTip="Add active content browser selection to this collection.", DisplayOrder=-1))
+	void EDITOR_AddBrowserSelection();
+
+	void EDITOR_AddBrowserSelectionTyped(const TArray<FAssetData>& InAssetData);
+
 	/** Rebuild Staging data just for this collection. */
 	UFUNCTION(CallInEditor, Category = Tools, meta=(DisplayName="Rebuild Staging", ShortToolTip="Rebuild Staging data just for this collection.", DisplayOrder=0))
 	virtual void EDITOR_RebuildStagingData();
@@ -539,6 +545,7 @@ public:
 #pragma endregion
 
 	virtual void EDITOR_SanitizeAndRebuildStagingData(const bool bRecursive);
+	virtual void EDITOR_AddBrowserSelectionInternal(const TArray<FAssetData>& InAssetData);
 
 #endif
 
