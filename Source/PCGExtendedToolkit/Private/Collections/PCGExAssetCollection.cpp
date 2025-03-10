@@ -3,6 +3,8 @@
 
 #include "Collections/PCGExAssetCollection.h"
 
+#include "ContentBrowserModule.h"
+#include "IContentBrowserSingleton.h"
 #include "PCGEx.h"
 #include "PCGExMacros.h"
 #include "AssetRegistry/AssetData.h"
@@ -308,11 +310,33 @@ void UPCGExAssetCollection::EDITOR_RefreshDisplayNames()
 {
 }
 
+void UPCGExAssetCollection::EDITOR_AddBrowserSelection()
+{
+	FContentBrowserModule& ContentBrowserModule = FModuleManager::LoadModuleChecked<FContentBrowserModule>("ContentBrowser");
+	TArray<FAssetData> SelectedAssets;
+	ContentBrowserModule.Get().GetSelectedAssets(SelectedAssets);
+
+	if (SelectedAssets.IsEmpty()) { return; }
+
+	EDITOR_AddBrowserSelectionTyped(SelectedAssets);
+}
+
+void UPCGExAssetCollection::EDITOR_AddBrowserSelectionTyped(const TArray<FAssetData>& InAssetData)
+{
+	Modify(true);
+	EDITOR_AddBrowserSelectionInternal(InAssetData);
+	EDITOR_RefreshDisplayNames();
+	MarkPackageDirty();
+	FCoreUObjectDelegates::BroadcastOnObjectModified(this);
+	//CollectGarbage(GARBAGE_COLLECTION_KEEPFLAGS);
+}
+
 void UPCGExAssetCollection::EDITOR_RebuildStagingData()
 {
 	Modify(true);
 	EDITOR_SanitizeAndRebuildStagingData(false);
 	MarkPackageDirty();
+	FCoreUObjectDelegates::BroadcastOnObjectModified(this);
 	//CollectGarbage(GARBAGE_COLLECTION_KEEPFLAGS);
 }
 
@@ -321,6 +345,7 @@ void UPCGExAssetCollection::EDITOR_RebuildStagingData_Recursive()
 	Modify(true);
 	EDITOR_SanitizeAndRebuildStagingData(true);
 	MarkPackageDirty();
+	FCoreUObjectDelegates::BroadcastOnObjectModified(this);
 	//CollectGarbage(GARBAGE_COLLECTION_KEEPFLAGS);
 }
 
@@ -347,7 +372,8 @@ Modify(true); \
 _BODY \
 FPropertyChangedEvent EmptyEvent(nullptr); \
 PostEditChangeProperty(EmptyEvent); \
-MarkPackageDirty();
+MarkPackageDirty(); \
+FCoreUObjectDelegates::BroadcastOnObjectModified(this);
 
 void UPCGExAssetCollection::EDITOR_SortByWeightAscending() { PCGEX_ASSET_COLLECTION_UTIL_CALL(EDITOR_SortByWeightAscendingTyped();) }
 
@@ -386,6 +412,10 @@ void UPCGExAssetCollection::EDITOR_WeightRandomTyped()
 }
 
 void UPCGExAssetCollection::EDITOR_SanitizeAndRebuildStagingData(const bool bRecursive)
+{
+}
+
+void UPCGExAssetCollection::EDITOR_AddBrowserSelectionInternal(const TArray<FAssetData>& InAssetData)
 {
 }
 #endif

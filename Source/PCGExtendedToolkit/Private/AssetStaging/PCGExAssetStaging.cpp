@@ -381,10 +381,7 @@ namespace PCGExAssetStaging
 				StartParallelLoopForRange(NumPoints);
 				return;
 			}
-			else
-			{
-				PCGE_LOG_C(Warning, GraphAndLog, Context, FTEXT("No material were picked -- no attribute will be written."));
-			}
+			PCGE_LOG_C(Warning, GraphAndLog, Context, FTEXT("No material were picked -- no attribute will be written."));
 		}
 
 		PointDataFacade->Write(AsyncManager);
@@ -397,7 +394,7 @@ namespace PCGExAssetStaging
 
 		const FPCGExMeshCollectionEntry* Entry = static_cast<const FPCGExMeshCollectionEntry*>(CachedPicks[Iteration]);
 		if (Entry->MaterialVariants == EPCGExMaterialVariantsMode::None) { return; }
-		else if (Entry->MaterialVariants == EPCGExMaterialVariantsMode::Single)
+		if (Entry->MaterialVariants == EPCGExMaterialVariantsMode::Single)
 		{
 			if (!MaterialWriters.IsValidIndex(Entry->SlotIndex)) { return; }
 

@@ -39,6 +39,7 @@ namespace PCGExEditorMenuUtils
 			if (Asset.IsInstanceOf<UStaticMesh>())
 			{
 				TempStaticMeshes.Add(Asset);
+				continue;
 			}
 
 			if (Asset.IsInstanceOf<UPCGExMeshCollection>())
@@ -47,11 +48,14 @@ namespace PCGExEditorMenuUtils
 				{
 					TempMeshCollections.Add(Collection);
 				}
+
+				continue;
 			}
 
-			if (Asset.IsInstanceOf<AActor>())
+			if (DoesAssetInheritFromAActor(Asset))
 			{
 				TempActorAssets.Add(Asset);
+				continue;
 			}
 
 			if (Asset.IsInstanceOf<UPCGExActorCollection>())
@@ -60,6 +64,7 @@ namespace PCGExEditorMenuUtils
 				{
 					TempActorCollections.Add(Collection);
 				}
+				continue;
 			}
 		}
 
@@ -96,6 +101,32 @@ namespace PCGExEditorMenuUtils
 				FSlateIcon(FName("PCGExStyleSet"), "ClassIcon.PCGExAssetCollection"),
 				UIAction);
 		}
+	}
+
+	bool DoesAssetInheritFromAActor(const FAssetData& AssetData)
+	{
+		static const FName ParentClassTag = "ParentClass"; // Used to get parent class
+
+		// Check if the asset is a Blueprint
+		if (AssetData.AssetClassPath == UBlueprint::StaticClass()->GetClassPathName())
+		{
+			FString ParentClassPath;
+			if (AssetData.GetTagValue(ParentClassTag, ParentClassPath))
+			{
+				UObject* ParentClassObject = StaticLoadObject(UClass::StaticClass(), nullptr, *ParentClassPath);
+				UClass* ParentClass = Cast<UClass>(ParentClassObject);
+
+				return ParentClass && ParentClass->IsChildOf(AActor::StaticClass());
+			}
+		}
+		// Check if the asset is a native class
+		else if (AssetData.AssetClassPath == UClass::StaticClass()->GetClassPathName())
+		{
+			UClass* AssetClass = Cast<UClass>(AssetData.GetAsset());
+			return AssetClass && AssetClass->IsChildOf(AActor::StaticClass());
+		}
+
+		return false;
 	}
 }
 

@@ -79,7 +79,7 @@ namespace PCGExCopyToPoints
 		const int32 NumTargets = Targets.Num();
 
 		PCGEx::InitArray(Dupes, NumTargets);
-		
+
 		for (int i = 0; i < NumTargets; i++)
 		{
 			Dupes[i] = nullptr;
@@ -111,14 +111,12 @@ namespace PCGExCopyToPoints
 		// Once work is complete, check if there are cached clusters we can forward
 		for (int i = 0; i < NumTargets; i++)
 		{
-			
 			TSharedPtr<PCGExData::FPointIO> EdgeDupe = Dupes[i];
 
 			if (!EdgeDupe) { continue; }
 
 			Context->TargetsAttributesToClusterTags.Tag(i, EdgeDupe);
 			Context->TargetsForwardHandler->Forward(i, EdgeDupe->GetOut()->Metadata);
-			
 		}
 	}
 }

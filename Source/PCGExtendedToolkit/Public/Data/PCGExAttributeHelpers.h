@@ -1,4 +1,4 @@
-﻿// Copyright 2025 Timothé Lapetite and contributors
+// Copyright 2025 Timothé Lapetite and contributors
 // Released under the MIT license https://opensource.org/license/MIT/
 
 #pragma once
@@ -6,6 +6,7 @@
 #include <functional>
 
 #include "CoreMinimal.h"
+#include "AudioMixerBlueprintLibrary.h"
 #include "PCGParamData.h"
 #include "Data/PCGPointData.h"
 #include "Metadata/PCGAttributePropertySelector.h"
@@ -14,6 +15,7 @@
 
 #include "PCGExMacros.h"
 #include "PCGEx.h"
+#include "PCGExBroadcast.h"
 #include "PCGExHelpers.h"
 #include "PCGExMath.h"
 #include "PCGExMT.h"
@@ -120,61 +122,6 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExAttributeSourceToTargetList
 
 namespace PCGEx
 {
-#pragma region Field helpers
-
-	static const TMap<FString, EPCGExTransformComponent> STRMAP_TRANSFORM_FIELD = {
-		{TEXT("POSITION"), EPCGExTransformComponent::Position},
-		{TEXT("POS"), EPCGExTransformComponent::Position},
-		{TEXT("ROTATION"), EPCGExTransformComponent::Rotation},
-		{TEXT("ROT"), EPCGExTransformComponent::Rotation},
-		{TEXT("ORIENT"), EPCGExTransformComponent::Rotation},
-		{TEXT("SCALE"), EPCGExTransformComponent::Scale},
-	};
-
-	static const TMap<FString, EPCGExSingleField> STRMAP_SINGLE_FIELD = {
-		{TEXT("X"), EPCGExSingleField::X},
-		{TEXT("R"), EPCGExSingleField::X},
-		{TEXT("ROLL"), EPCGExSingleField::X},
-		{TEXT("RX"), EPCGExSingleField::X},
-		{TEXT("Y"), EPCGExSingleField::Y},
-		{TEXT("G"), EPCGExSingleField::Y},
-		{TEXT("YAW"), EPCGExSingleField::Y},
-		{TEXT("RY"), EPCGExSingleField::Y},
-		{TEXT("Z"), EPCGExSingleField::Z},
-		{TEXT("B"), EPCGExSingleField::Z},
-		{TEXT("P"), EPCGExSingleField::Z},
-		{TEXT("PITCH"), EPCGExSingleField::Z},
-		{TEXT("RZ"), EPCGExSingleField::Z},
-		{TEXT("W"), EPCGExSingleField::W},
-		{TEXT("A"), EPCGExSingleField::W},
-		{TEXT("L"), EPCGExSingleField::Length},
-		{TEXT("LEN"), EPCGExSingleField::Length},
-		{TEXT("LENGTH"), EPCGExSingleField::Length},
-		{TEXT("SQUAREDLENGTH"), EPCGExSingleField::SquaredLength},
-		{TEXT("LENSQR"), EPCGExSingleField::SquaredLength},
-		{TEXT("VOL"), EPCGExSingleField::Volume},
-		{TEXT("VOLUME"), EPCGExSingleField::Volume}
-	};
-
-	static const TMap<FString, EPCGExAxis> STRMAP_AXIS = {
-		{TEXT("FORWARD"), EPCGExAxis::Forward},
-		{TEXT("FRONT"), EPCGExAxis::Forward},
-		{TEXT("BACKWARD"), EPCGExAxis::Backward},
-		{TEXT("BACK"), EPCGExAxis::Backward},
-		{TEXT("RIGHT"), EPCGExAxis::Right},
-		{TEXT("LEFT"), EPCGExAxis::Left},
-		{TEXT("UP"), EPCGExAxis::Up},
-		{TEXT("TOP"), EPCGExAxis::Up},
-		{TEXT("DOWN"), EPCGExAxis::Down},
-		{TEXT("BOTTOM"), EPCGExAxis::Down},
-	};
-
-	bool GetComponentSelection(const TArray<FString>& Names, EPCGExTransformComponent& OutSelection);
-	bool GetFieldSelection(const TArray<FString>& Names, EPCGExSingleField& OutSelection);
-	bool GetAxisSelection(const TArray<FString>& Names, EPCGExAxis& OutSelection);
-
-#pragma endregion
-
 	FPCGAttributePropertyInputSelector CopyAndFixLast(const FPCGAttributePropertyInputSelector& InSelector, const UPCGData* InData, TArray<FString>& OutExtraNames);
 
 #pragma region Attribute identity
@@ -239,36 +186,52 @@ namespace PCGEx
 		static TSharedPtr<FAttributesInfos> Get(const TSharedPtr<PCGExData::FPointIOCollection>& InCollection, TSet<FName>& OutTypeMismatch, const TSet<FName>* IgnoredAttributes = nullptr);
 	};
 
-	static void GatherAttributes(
+	PCGEXTENDEDTOOLKIT_API
+	void GatherAttributes(
 		const TSharedPtr<FAttributesInfos>& OutInfos, const FPCGContext* InContext, const FName InputLabel,
-		const FPCGExAttributeGatherDetails& InDetails, TSet<FName>& Mismatches)
-	{
-		TArray<FPCGTaggedData> InputData = InContext->InputData.GetInputsByPin(InputLabel);
-		for (const FPCGTaggedData& TaggedData : InputData)
-		{
-			if (const UPCGParamData* AsParamData = Cast<UPCGParamData>(TaggedData.Data))
-			{
-				OutInfos->Append(FAttributesInfos::Get(AsParamData->Metadata), InDetails, Mismatches);
-			}
-			else if (const UPCGSpatialData* AsSpatialData = Cast<UPCGSpatialData>(TaggedData.Data))
-			{
-				OutInfos->Append(FAttributesInfos::Get(AsSpatialData->Metadata), InDetails, Mismatches);
-			}
-		}
-	}
+		const FPCGExAttributeGatherDetails& InDetails, TSet<FName>& Mismatches);
 
-	static TSharedPtr<FAttributesInfos> GatherAttributes(
+	PCGEXTENDEDTOOLKIT_API
+	TSharedPtr<FAttributesInfos> GatherAttributes(
 		const FPCGContext* InContext, const FName InputLabel,
-		const FPCGExAttributeGatherDetails& InDetails, TSet<FName>& Mismatches)
+		const FPCGExAttributeGatherDetails& InDetails, TSet<FName>& Mismatches);
+
+	struct PCGEXTENDEDTOOLKIT_API FAttributeProcessingInfos
 	{
-		PCGEX_MAKE_SHARED(OutInfos, FAttributesInfos)
-		GatherAttributes(OutInfos, InContext, InputLabel, InDetails, Mismatches);
-		return OutInfos;
-	}
+		bool bIsValid = false;
+
+		FAttributeIdentity SourceIdentity = FAttributeIdentity();
+		FAttributeIdentity TargetIdentity = FAttributeIdentity();
+
+		const FPCGMetadataAttributeBase* Attribute = nullptr;
+
+		FPCGAttributePropertyInputSelector Selector;
+		FSubSelection SubSelection = FSubSelection();
+
+		FAttributeProcessingInfos() = default;
+
+		FAttributeProcessingInfos(const UPCGData* InData, const FPCGAttributePropertyInputSelector& InSelector);
+		FAttributeProcessingInfos(const UPCGData* InData, const FName InAttributeName);
+
+		operator const FPCGMetadataAttributeBase*() const { return Attribute; }
+
+		operator EPCGMetadataTypes() const
+		{
+			if (Attribute) { return static_cast<EPCGMetadataTypes>(Attribute->GetTypeId()); }
+			return EPCGMetadataTypes::Unknown;
+		}
+
+		operator EPCGAttributePropertySelection() const { return Selector.GetSelection(); }
+		operator EPCGPointProperties() const { return Selector.GetPointProperty(); }
+		operator EPCGExtraProperties() const { return Selector.GetExtraProperty(); }
+
+	protected:
+		void Init(const UPCGData* InData, const FPCGAttributePropertyInputSelector& InSelector);
+	};
 
 #pragma endregion
 
-#pragma region Local Attribute Inputs
+#pragma region Attribute Broadcaster
 
 	template <bool bInitialized>
 	static FName GetSelectorFullName(const FPCGAttributePropertyInputSelector& InSelector, const UPCGData* InData)
@@ -291,15 +254,13 @@ namespace PCGEx
 		}
 	}
 
-	static FString GetSelectorDisplayName(const FPCGAttributePropertyInputSelector& InSelector)
-	{
-		if (InSelector.GetExtraNames().IsEmpty()) { return InSelector.GetName().ToString(); }
-		return InSelector.GetName().ToString() + TEXT(".") + FString::Join(InSelector.GetExtraNames(), TEXT("."));
-	}
-
+	PCGEXTENDEDTOOLKIT_API
+	FString GetSelectorDisplayName(const FPCGAttributePropertyInputSelector& InSelector);
+	
 	class PCGEXTENDEDTOOLKIT_API FAttributeBroadcasterBase
 	{
 	public:
+		FAttributeProcessingInfos ProcessingInfos = FAttributeProcessingInfos();
 		virtual ~FAttributeBroadcasterBase() = default;
 	};
 
@@ -310,63 +271,31 @@ namespace PCGEx
 		TSharedPtr<PCGExData::FPointIO> PointIO;
 		bool bMinMaxDirty = true;
 		bool bNormalized = false;
-		FPCGAttributePropertyInputSelector InternalSelector;
 		TSharedPtr<IPCGAttributeAccessor> InternalAccessor;
 
-		const FPCGMetadataAttributeBase* Attribute = nullptr;
 		EPCGExTransformComponent Component = EPCGExTransformComponent::Position;
-		bool bUseAxis = false;
 		EPCGExAxis Axis = EPCGExAxis::Forward;
 		EPCGExSingleField Field = EPCGExSingleField::X;
 
 		bool ApplySelector(const FPCGAttributePropertyInputSelector& InSelector, const UPCGData* InData)
 		{
-			InternalSelector = InSelector.CopyAndFixLast(InData);
-			bValid = InternalSelector.IsValid();
+			ProcessingInfos = FAttributeProcessingInfos(InData, InSelector);
 
-			if (!bValid) { return false; }
+			if (!ProcessingInfos.bIsValid) { return false; }
 
-			const TArray<FString>& ExtraNames = InternalSelector.GetExtraNames();
-			if (GetAxisSelection(ExtraNames, Axis))
+			FullName = GetSelectorFullName<true>(ProcessingInfos.Selector, InData);
+
+			if (ProcessingInfos.Attribute)
 			{
-				bUseAxis = true;
-				// An axis is set, treat as vector.
-				// Only axis is set, assume rotation instead of position
-				if (!GetComponentSelection(ExtraNames, Component)) { Component = EPCGExTransformComponent::Rotation; }
-			}
-			else
-			{
-				bUseAxis = false;
-				GetComponentSelection(ExtraNames, Component);
-			}
-
-			GetFieldSelection(ExtraNames, Field);
-			FullName = GetSelectorFullName<true>(InternalSelector, InData);
-
-			if (InternalSelector.GetSelection() == EPCGAttributePropertySelection::Attribute)
-			{
-				Attribute = nullptr;
-				bValid = false;
-
-				if (const UPCGSpatialData* AsSpatial = Cast<UPCGSpatialData>(InData))
-				{
-					Attribute = AsSpatial->Metadata->GetConstAttribute(InternalSelector.GetAttributeName());
-					if (Attribute)
+				PCGEx::ExecuteWithRightType(
+					ProcessingInfos.Attribute->GetTypeId(), [&](auto DummyValue)
 					{
-						Attribute->GetTypeId(),
-							PCGEx::ExecuteWithRightType(
-								Attribute->GetTypeId(), [&](auto DummyValue)
-								{
-									using RawT = decltype(DummyValue);
-									InternalAccessor = MakeShared<FPCGAttributeAccessor<RawT>>(static_cast<const FPCGMetadataAttribute<RawT>*>(Attribute), AsSpatial->Metadata);
-								});
-
-						bValid = true;
-					}
-				}
+						using RawT = decltype(DummyValue);
+						InternalAccessor = MakeShared<FPCGAttributeAccessor<RawT>>(static_cast<const FPCGMetadataAttribute<RawT>*>(ProcessingInfos.Attribute), Cast<UPCGSpatialData>(InData)->Metadata);
+					});
 			}
 
-			return bValid;
+			return ProcessingInfos.bIsValid;
 		}
 
 	public:
@@ -374,10 +303,10 @@ namespace PCGEx
 		{
 		}
 
-		FString GetName() { return InternalSelector.GetName().ToString(); }
+		FString GetName() const { return ProcessingInfos.Selector.GetName().ToString(); }
 
 		virtual EPCGMetadataTypes GetType() const { return GetMetadataType<T>(); }
-		const FPCGMetadataAttributeBase* GetAttribute() const { return Attribute; }
+		const FPCGMetadataAttributeBase* GetAttribute() const { return ProcessingInfos; }
 
 		FName FullName = NAME_None;
 
@@ -386,9 +315,8 @@ namespace PCGEx
 		mutable T Max = T{};
 
 		bool bEnabled = true;
-		bool bValid = false;
 
-		bool IsUsable(int32 NumEntries) { return bValid && Values.Num() >= NumEntries; }
+		bool IsUsable(int32 NumEntries) { return ProcessingInfos.bIsValid && Values.Num() >= NumEntries; }
 
 		bool Prepare(const FPCGAttributePropertyInputSelector& InSelector, const TSharedRef<PCGExData::FPointIO>& InPointIO)
 		{
@@ -414,15 +342,17 @@ namespace PCGEx
 		 */
 		void Fetch(TArray<T>& Dump, const PCGExMT::FScope& Scope)
 		{
-			check(bValid)
+			check(ProcessingInfos.bIsValid)
 			check(Dump.Num() == PointIO->GetNum(PCGExData::ESource::In)) // Dump target should be initialized at full length before using Fetch
 
 			const UPCGPointData* InData = PointIO->GetIn();
 
-			if (InternalSelector.GetSelection() == EPCGAttributePropertySelection::Attribute)
+			// TODO : Use Convert() instead of SubSelection if it's invalid
+			
+			if (ProcessingInfos == EPCGAttributePropertySelection::Attribute)
 			{
 				PCGEx::ExecuteWithRightType(
-					Attribute->GetTypeId(), [&](auto DummyValue)
+					ProcessingInfos.Attribute->GetTypeId(), [&](auto DummyValue)
 					{
 						using RawT = decltype(DummyValue);
 
@@ -432,23 +362,26 @@ namespace PCGEx
 						TArrayView<RawT> RawView(RawValues);
 						InternalAccessor->GetRange(RawView, Scope.Start, *PointIO->GetInKeys().Get(), EPCGAttributeAccessorFlags::AllowBroadcast);
 
-						for (int i = 0; i < Scope.Count; i++) { Dump[Scope.Start + i] = Convert(RawValues[i]); }
+						const FSubSelection& S = ProcessingInfos.SubSelection;
+						for (int i = 0; i < Scope.Count; i++) { Dump[Scope.Start + i] = S.Get<RawT, T>(RawValues[i]); }
 					});
 			}
-			else if (InternalSelector.GetSelection() == EPCGAttributePropertySelection::PointProperty)
+			else if (ProcessingInfos == EPCGAttributePropertySelection::PointProperty)
 			{
+				const FSubSelection& S = ProcessingInfos.SubSelection;
 				const TArray<FPCGPoint>& InPoints = InData->GetPoints();
-#define PCGEX_GET_BY_ACCESSOR(_ENUM, _ACCESSOR) case _ENUM: for (int i = Scope.Start; i < Scope.End; i++) { Dump[i] = Convert(InPoints[i]._ACCESSOR); } break;
+#define PCGEX_GET_BY_ACCESSOR(_ENUM, _ACCESSOR) case _ENUM: for (int i = Scope.Start; i < Scope.End; i++) { Dump[i] = S.Get<T>(InPoints[i]._ACCESSOR); } break;
 
-				switch (InternalSelector.GetPointProperty()) { PCGEX_FOREACH_POINTPROPERTY(PCGEX_GET_BY_ACCESSOR) }
+				switch (static_cast<EPCGPointProperties>(ProcessingInfos)) { PCGEX_FOREACH_POINTPROPERTY(PCGEX_GET_BY_ACCESSOR) }
 #undef PCGEX_GET_BY_ACCESSOR
 			}
-			else if (InternalSelector.GetSelection() == EPCGAttributePropertySelection::ExtraProperty)
+			else if (ProcessingInfos == EPCGAttributePropertySelection::ExtraProperty)
 			{
-				switch (InternalSelector.GetExtraProperty())
+				const FSubSelection& S = ProcessingInfos.SubSelection;
+				switch (static_cast<EPCGExtraProperties>(ProcessingInfos))
 				{
 				case EPCGExtraProperties::Index:
-					for (int i = Scope.Start; i < Scope.End; i++) { Dump[i] = Convert(i); }
+					for (int i = Scope.Start; i < Scope.End; i++) { Dump[i] = S.Get<T>(i); }
 					break;
 				default: ;
 				}
@@ -464,7 +397,7 @@ namespace PCGEx
 		 */
 		void GrabAndDump(TArray<T>& Dump, const bool bCaptureMinMax, T& OutMin, T& OutMax)
 		{
-			if (!bValid)
+			if (!ProcessingInfos.bIsValid)
 			{
 				int32 NumPoints = PointIO->GetNum(PCGExData::ESource::In);
 				PCGEx::InitArray(Dump, NumPoints);
@@ -476,11 +409,13 @@ namespace PCGEx
 
 			int32 NumPoints = PointIO->GetNum(PCGExData::ESource::In);
 			PCGEx::InitArray(Dump, NumPoints);
+			
+			// TODO : Use Convert() instead of SubSelection if it's invalid
 
-			if (InternalSelector.GetSelection() == EPCGAttributePropertySelection::Attribute)
+			if (ProcessingInfos == EPCGAttributePropertySelection::Attribute)
 			{
 				PCGEx::ExecuteWithRightType(
-					Attribute->GetTypeId(), [&](auto DummyValue)
+					ProcessingInfos.Attribute->GetTypeId(), [&](auto DummyValue)
 					{
 						using RawT = decltype(DummyValue);
 						TArray<RawT> RawValues;
@@ -490,11 +425,13 @@ namespace PCGEx
 						TArrayView<RawT> View(RawValues);
 						InternalAccessor->GetRange(View, 0, *PointIO->GetInKeys().Get(), EPCGAttributeAccessorFlags::AllowBroadcast);
 
+						const FSubSelection& S = ProcessingInfos.SubSelection;
+						
 						if (bCaptureMinMax)
 						{
 							for (int i = 0; i < NumPoints; i++)
 							{
-								T V = Convert(RawValues[i]);
+								T V = S.Get<RawT, T>(RawValues[i]);
 								OutMin = PCGExBlend::Min(V, OutMin);
 								OutMax = PCGExBlend::Max(V, OutMax);
 								Dump[i] = V;
@@ -502,30 +439,33 @@ namespace PCGEx
 						}
 						else
 						{
-							for (int i = 0; i < NumPoints; i++) { Dump[i] = Convert(RawValues[i]); }
+							for (int i = 0; i < NumPoints; i++) { Dump[i] = S.Get<RawT, T>(RawValues[i]); }
 						}
 
 						RawValues.Empty();
 					});
 			}
-			else if (InternalSelector.GetSelection() == EPCGAttributePropertySelection::PointProperty)
+			else if (ProcessingInfos == EPCGAttributePropertySelection::PointProperty)
 			{
+				const FSubSelection& S = ProcessingInfos.SubSelection;
 				const TArray<FPCGPoint>& InPoints = InData->GetPoints();
 
 #define PCGEX_GET_BY_ACCESSOR(_ENUM, _ACCESSOR) case _ENUM:\
 				if (bCaptureMinMax) { for (int i = 0; i < NumPoints; i++) {\
-						T V = Convert(InPoints[i]._ACCESSOR); OutMin = PCGExBlend::Min(V, OutMin); OutMax = PCGExBlend::Max(V, OutMax); Dump[i] = V;\
-					} } else { for (int i = 0; i < NumPoints; i++) { Dump[i] = Convert(InPoints[i]._ACCESSOR); } } break;
+						T V = S.Get<T>(InPoints[i]._ACCESSOR); OutMin = PCGExBlend::Min(V, OutMin); OutMax = PCGExBlend::Max(V, OutMax); Dump[i] = V;\
+					} } else { for (int i = 0; i < NumPoints; i++) { Dump[i] = S.Get<T>(InPoints[i]._ACCESSOR); } } break;
 
-				switch (InternalSelector.GetPointProperty()) { PCGEX_FOREACH_POINTPROPERTY(PCGEX_GET_BY_ACCESSOR) }
+				switch (static_cast<EPCGPointProperties>(ProcessingInfos)) { PCGEX_FOREACH_POINTPROPERTY(PCGEX_GET_BY_ACCESSOR) }
 #undef PCGEX_GET_BY_ACCESSOR
 			}
-			else if (InternalSelector.GetSelection() == EPCGAttributePropertySelection::ExtraProperty)
+			else if (ProcessingInfos == EPCGAttributePropertySelection::ExtraProperty)
 			{
-				switch (InternalSelector.GetExtraProperty())
+				const FSubSelection& S = ProcessingInfos.SubSelection;
+
+				switch (static_cast<EPCGExtraProperties>(ProcessingInfos))
 				{
 				case EPCGExtraProperties::Index:
-					for (int i = 0; i < NumPoints; i++) { Dump[i] = Convert(i); }
+					for (int i = 0; i < NumPoints; i++) { Dump[i] = S.Get<T>(i); }
 					break;
 				default: ;
 				}
@@ -534,17 +474,19 @@ namespace PCGEx
 
 		void GrabUniqueValues(TSet<T>& Dump)
 		{
-			if (!bValid) { return; }
+			if (!ProcessingInfos.bIsValid) { return; }
 
 			const UPCGPointData* InData = PointIO->GetIn();
 
 			int32 NumPoints = PointIO->GetNum(PCGExData::ESource::In);
 			Dump.Reserve(Dump.Num() + NumPoints);
 
-			if (InternalSelector.GetSelection() == EPCGAttributePropertySelection::Attribute)
+			// TODO : Use Convert() instead of SubSelection if it's invalid
+			
+			if (ProcessingInfos == EPCGAttributePropertySelection::Attribute)
 			{
 				PCGEx::ExecuteWithRightType(
-					Attribute->GetTypeId(), [&](auto DummyValue)
+					ProcessingInfos.Attribute->GetTypeId(), [&](auto DummyValue)
 					{
 						using RawT = decltype(DummyValue);
 						TArray<RawT> RawValues;
@@ -554,25 +496,28 @@ namespace PCGEx
 						TArrayView<RawT> View(RawValues);
 						InternalAccessor->GetRange(View, 0, *PointIO->GetInKeys().Get(), EPCGAttributeAccessorFlags::AllowBroadcast);
 
-						for (int i = 0; i < NumPoints; i++) { Dump.Add(Convert(RawValues[i])); }
+						const FSubSelection& S = ProcessingInfos.SubSelection;
+						for (int i = 0; i < NumPoints; i++) { Dump.Add(S.Get<RawT, T>(RawValues[i])); }
 
 						RawValues.Empty();
 					});
 			}
-			else if (InternalSelector.GetSelection() == EPCGAttributePropertySelection::PointProperty)
+			else if (ProcessingInfos == EPCGAttributePropertySelection::PointProperty)
 			{
+				const FSubSelection& S = ProcessingInfos.SubSelection;
 				const TArray<FPCGPoint>& InPoints = InData->GetPoints();
 
-#define PCGEX_GET_BY_ACCESSOR(_ENUM, _ACCESSOR) case _ENUM: for (int i = 0; i < NumPoints; i++) { Dump.Add(Convert(InPoints[i]._ACCESSOR)); } break;
-				switch (InternalSelector.GetPointProperty()) { PCGEX_FOREACH_POINTPROPERTY(PCGEX_GET_BY_ACCESSOR) }
+#define PCGEX_GET_BY_ACCESSOR(_ENUM, _ACCESSOR) case _ENUM: for (int i = 0; i < NumPoints; i++) { Dump.Add(S.Get<T>(InPoints[i]._ACCESSOR)); } break;
+				switch (static_cast<EPCGPointProperties>(ProcessingInfos)) { PCGEX_FOREACH_POINTPROPERTY(PCGEX_GET_BY_ACCESSOR) }
 #undef PCGEX_GET_BY_ACCESSOR
 			}
-			else if (InternalSelector.GetSelection() == EPCGAttributePropertySelection::ExtraProperty)
+			else if (ProcessingInfos == EPCGAttributePropertySelection::ExtraProperty)
 			{
-				switch (InternalSelector.GetExtraProperty())
+				const FSubSelection& S = ProcessingInfos.SubSelection;
+				switch (static_cast<EPCGExtraProperties>(ProcessingInfos))
 				{
 				case EPCGExtraProperties::Index:
-					for (int i = 0; i < NumPoints; i++) { Dump.Add(Convert(i)); }
+					for (int i = 0; i < NumPoints; i++) { Dump.Add(S.Get<T>(i)); }
 					break;
 				default: ;
 				}
@@ -610,27 +555,27 @@ namespace PCGEx
 
 		T SoftGet(const int32 Index, const FPCGPoint& Point, const T& Fallback) const
 		{
-			if (!bValid) { return Fallback; }
-			switch (InternalSelector.GetSelection())
+			if (!ProcessingInfos.bIsValid) { return Fallback; }
+			switch (static_cast<EPCGAttributePropertySelection>(ProcessingInfos))
 			{
 			case EPCGAttributePropertySelection::Attribute:
 				return PCGMetadataAttribute::CallbackWithRightType(
-					Attribute->GetTypeId(),
+					ProcessingInfos.Attribute->GetTypeId(),
 					[&](auto DummyValue) -> T
 					{
 						using RawT = decltype(DummyValue);
-						const FPCGMetadataAttribute<RawT>* TypedAttribute = static_cast<const FPCGMetadataAttribute<RawT>*>(Attribute);
-						return Convert(TypedAttribute->GetValueFromItemKey(Point.MetadataEntry));
+						const FPCGMetadataAttribute<RawT>* TypedAttribute = static_cast<const FPCGMetadataAttribute<RawT>*>(ProcessingInfos.Attribute);
+						return ProcessingInfos.SubSelection.Get<RawT, T>(TypedAttribute->GetValueFromItemKey(Point.MetadataEntry));
 					});
 			case EPCGAttributePropertySelection::PointProperty:
-#define PCGEX_GET_BY_ACCESSOR(_ENUM, _ACCESSOR) case _ENUM: return Convert(Point._ACCESSOR); break;
-				switch (InternalSelector.GetPointProperty()) { PCGEX_FOREACH_POINTPROPERTY(PCGEX_GET_BY_ACCESSOR) }
+#define PCGEX_GET_BY_ACCESSOR(_ENUM, _ACCESSOR) case _ENUM: return ProcessingInfos.SubSelection.Get<T>(Point._ACCESSOR); break;
+				switch (static_cast<EPCGPointProperties>(ProcessingInfos)) { PCGEX_FOREACH_POINTPROPERTY(PCGEX_GET_BY_ACCESSOR) }
 #undef PCGEX_GET_BY_ACCESSOR
 			case EPCGAttributePropertySelection::ExtraProperty:
-				switch (InternalSelector.GetExtraProperty())
+				switch (static_cast<EPCGExtraProperties>(ProcessingInfos))
 				{
 				case EPCGExtraProperties::Index:
-					return Convert(Index);
+					return ProcessingInfos.SubSelection.Get<T>(Index);
 				default: ;
 				}
 			default:
@@ -640,8 +585,8 @@ namespace PCGEx
 
 		T SoftGet(const PCGExData::FPointRef& PointRef, const T& Fallback) const { return SoftGet(PointRef.Index, *PointRef.Point, Fallback); }
 
-		T SafeGet(const int32 Index, const T& Fallback) const { return !bValid ? Fallback : Values[Index]; }
-		T operator[](int32 Index) const { return bValid ? Values[Index] : T{}; }
+		T SafeGet(const int32 Index, const T& Fallback) const { return !ProcessingInfos.bIsValid ? Fallback : Values[Index]; }
+		T operator[](int32 Index) const { return ProcessingInfos.bIsValid ? Values[Index] : T{}; }
 
 		static TSharedPtr<TAttributeBroadcaster<T>> Make(const FName& InName, const TSharedRef<PCGExData::FPointIO>& InPointIO)
 		{
@@ -659,525 +604,6 @@ namespace PCGEx
 
 	protected:
 		virtual void ResetMinMax() { PCGExMath::TypeMinMax(Min, Max); }
-
-#pragma region Conversions
-
-#pragma region Convert from bool
-
-		virtual T Convert(const bool Value) const
-		{
-			if constexpr (std::is_same_v<T, decltype(Value)>) { return Value; }
-			else if constexpr (std::is_same_v<T, PCGExTypeHash>) { return GetTypeHash(Value); }
-
-			else if constexpr (std::is_same_v<T, bool>) { return Value; }
-			else if constexpr (std::is_same_v<T, int32> || std::is_same_v<T, int64> || std::is_same_v<T, float> || std::is_same_v<T, double>) { return Value ? 1 : 0; }
-			else if constexpr (std::is_same_v<T, FVector2D>) { return FVector2D(Value ? 1 : 0); }
-			else if constexpr (std::is_same_v<T, FVector>) { return FVector(Value ? 1 : 0); }
-			else if constexpr (std::is_same_v<T, FVector4>)
-			{
-				const double D = Value ? 1 : 0;
-				return FVector4(D, D, D, D);
-			}
-			else if constexpr (std::is_same_v<T, FQuat>)
-			{
-				const double D = Value ? 180 : 0;
-				return FRotator(D, D, D).Quaternion();
-			}
-			else if constexpr (std::is_same_v<T, FRotator>)
-			{
-				const double D = Value ? 180 : 0;
-				return FRotator(D, D, D);
-			}
-			else if constexpr (std::is_same_v<T, FTransform>) { return FTransform::Identity; }
-			else if constexpr (std::is_same_v<T, FString>) { return FString::Printf(TEXT("%s"), Value ? TEXT("true") : TEXT("false")); }
-			else if constexpr (std::is_same_v<T, FName>) { return FName(FString::Printf(TEXT("%s"), Value ? TEXT("true") : TEXT("false"))); }
-			else { return T{}; }
-		}
-
-#pragma endregion
-
-#pragma region Convert from Integer32
-
-		virtual T Convert(const int32 Value) const
-		{
-			if constexpr (std::is_same_v<T, decltype(Value)>) { return Value; }
-			else if constexpr (std::is_same_v<T, PCGExTypeHash>) { return GetTypeHash(Value); }
-
-			else if constexpr (std::is_same_v<T, bool>) { return Value > 0; }
-			else if constexpr (std::is_same_v<T, int32> || std::is_same_v<T, int64> || std::is_same_v<T, float> || std::is_same_v<T, double>) { return static_cast<T>(Value); }
-			else if constexpr (std::is_same_v<T, FVector2D>) { return FVector2D(Value); }
-			else if constexpr (std::is_same_v<T, FVector>) { return FVector(Value); }
-			else if constexpr (std::is_same_v<T, FVector4>) { return FVector4(Value, Value, Value, Value); }
-			else if constexpr (std::is_same_v<T, FQuat>) { return FRotator(Value, Value, Value).Quaternion(); }
-			else if constexpr (std::is_same_v<T, FRotator>) { return FRotator(Value, Value, Value); }
-			else if constexpr (std::is_same_v<T, FTransform>) { return FTransform::Identity; }
-			else if constexpr (std::is_same_v<T, FString>) { return FString::Printf(TEXT("%d"), Value); }
-			else if constexpr (std::is_same_v<T, FName>) { return FName(FString::Printf(TEXT("%d"), Value)); }
-			else { return T{}; }
-		}
-
-#pragma endregion
-
-#pragma region Convert from Integer64
-
-		virtual T Convert(const int64 Value) const
-		{
-			if constexpr (std::is_same_v<T, decltype(Value)>) { return Value; }
-			else if constexpr (std::is_same_v<T, PCGExTypeHash>) { return GetTypeHash(Value); }
-
-			else if constexpr (std::is_same_v<T, bool>) { return Value > 0; }
-			else if constexpr (std::is_same_v<T, int32> || std::is_same_v<T, int64> || std::is_same_v<T, float> || std::is_same_v<T, double>) { return static_cast<T>(Value); }
-			else if constexpr (std::is_same_v<T, FVector2D>) { return FVector2D(Value); }
-			else if constexpr (std::is_same_v<T, FVector>) { return FVector(Value); }
-			else if constexpr (std::is_same_v<T, FVector4>) { return FVector4(Value, Value, Value, Value); }
-			else if constexpr (std::is_same_v<T, FQuat>) { return FRotator(Value, Value, Value).Quaternion(); }
-			else if constexpr (std::is_same_v<T, FRotator>) { return FRotator(Value, Value, Value); }
-			else if constexpr (std::is_same_v<T, FTransform>) { return FTransform::Identity; }
-			else if constexpr (std::is_same_v<T, FString>) { return FString::Printf(TEXT("%lld"), Value); }
-			else if constexpr (std::is_same_v<T, FName>) { return FName(FString::Printf(TEXT("(%lld)"), Value)); }
-			else { return T{}; }
-		}
-
-#pragma endregion
-
-#pragma region Convert from Float
-
-		virtual T Convert(const float Value) const
-		{
-			if constexpr (std::is_same_v<T, decltype(Value)>) { return Value; }
-			else if constexpr (std::is_same_v<T, PCGExTypeHash>) { return GetTypeHash(Value); }
-
-			else if constexpr (std::is_same_v<T, bool>) { return Value > 0; }
-			else if constexpr (std::is_same_v<T, int32> || std::is_same_v<T, int64> || std::is_same_v<T, float> || std::is_same_v<T, double>) { return static_cast<T>(Value); }
-			else if constexpr (std::is_same_v<T, FVector2D>) { return FVector2D(Value); }
-			else if constexpr (std::is_same_v<T, FVector>) { return FVector(Value); }
-			else if constexpr (std::is_same_v<T, FVector4>) { return FVector4(Value, Value, Value, Value); }
-			else if constexpr (std::is_same_v<T, FQuat>) { return FRotator(Value, Value, Value).Quaternion(); }
-			else if constexpr (std::is_same_v<T, FRotator>) { return FRotator(Value, Value, Value); }
-			else if constexpr (std::is_same_v<T, FTransform>) { return FTransform::Identity; }
-			else if constexpr (std::is_same_v<T, FString>) { return FString::Printf(TEXT("%f"), Value); }
-			else if constexpr (std::is_same_v<T, FName>) { return FName(FString::Printf(TEXT("(%f)"), Value)); }
-			else { return T{}; }
-		}
-
-#pragma endregion
-
-#pragma region Convert from Double
-
-		virtual T Convert(const double Value) const
-		{
-			if constexpr (std::is_same_v<T, decltype(Value)>) { return Value; }
-			else if constexpr (std::is_same_v<T, PCGExTypeHash>) { return GetTypeHash(Value); }
-
-			else if constexpr (std::is_same_v<T, bool>) { return Value > 0; }
-			else if constexpr (std::is_same_v<T, int32> || std::is_same_v<T, int64> || std::is_same_v<T, float> || std::is_same_v<T, double>) { return static_cast<T>(Value); }
-			else if constexpr (std::is_same_v<T, FVector2D>) { return FVector2D(Value); }
-			else if constexpr (std::is_same_v<T, FVector>) { return FVector(Value); }
-			else if constexpr (std::is_same_v<T, FVector4>) { return FVector4(Value, Value, Value, Value); }
-			else if constexpr (std::is_same_v<T, FQuat>) { return FRotator(Value, Value, Value).Quaternion(); }
-			else if constexpr (std::is_same_v<T, FRotator>) { return FRotator(Value, Value, Value); }
-			else if constexpr (std::is_same_v<T, FTransform>) { return FTransform::Identity; }
-			else if constexpr (std::is_same_v<T, FString>) { return FString::Printf(TEXT("%f"), Value); }
-			else if constexpr (std::is_same_v<T, FName>) { return FName(FString::Printf(TEXT("(%f)"), Value)); }
-			else { return T{}; }
-		}
-
-#pragma endregion
-
-#pragma region Convert from FVector2D
-
-		virtual T Convert(const FVector2D& Value) const
-		{
-			if constexpr (std::is_same_v<T, decltype(Value)>) { return Value; }
-			else if constexpr (std::is_same_v<T, PCGExTypeHash>) { return GetTypeHash(Value); }
-
-			else if constexpr (std::is_same_v<T, bool>)
-			{
-				switch (Field)
-				{
-				default:
-				case EPCGExSingleField::X:
-					return Value.X > 0;
-				case EPCGExSingleField::Y:
-				case EPCGExSingleField::Z:
-				case EPCGExSingleField::W:
-					return Value.Y > 0;
-				case EPCGExSingleField::Length:
-				case EPCGExSingleField::SquaredLength:
-				case EPCGExSingleField::Volume:
-					return Value.SquaredLength() > 0;
-				}
-			}
-			else if constexpr (std::is_same_v<T, int32> || std::is_same_v<T, int64> || std::is_same_v<T, float> || std::is_same_v<T, double>)
-			{
-				switch (Field)
-				{
-				default:
-				case EPCGExSingleField::X:
-					return Value.X;
-				case EPCGExSingleField::Y:
-				case EPCGExSingleField::Z:
-				case EPCGExSingleField::W:
-					return Value.Y;
-				case EPCGExSingleField::Length:
-					return Value.Length();
-				case EPCGExSingleField::SquaredLength:
-					return Value.SquaredLength();
-				case EPCGExSingleField::Volume:
-					return Value.X * Value.Y;
-				}
-			}
-			else if constexpr (std::is_same_v<T, FVector2D>) { return Value; }
-			else if constexpr (std::is_same_v<T, FVector>) { return FVector(Value.X, Value.Y, 0); }
-			else if constexpr (std::is_same_v<T, FVector4>) { return FVector4(Value.X, Value.Y, 0, 0); }
-			else if constexpr (std::is_same_v<T, FQuat>) { return FRotator(Value.X, Value.Y, 0).Quaternion(); }
-			else if constexpr (std::is_same_v<T, FRotator>) { return FRotator(Value.X, Value.Y, 0); }
-			else if constexpr (std::is_same_v<T, FTransform>) { return FTransform::Identity; }
-			else if constexpr (std::is_same_v<T, FString>) { return *Value.ToString(); }
-			else if constexpr (std::is_same_v<T, FName>) { return FName(*Value.ToString()); }
-			else { return T{}; }
-		}
-
-#pragma endregion
-
-#pragma region Convert from FVector
-
-		virtual T Convert(const FVector& Value) const
-		{
-			if constexpr (std::is_same_v<T, decltype(Value)>) { return Value; }
-			else if constexpr (std::is_same_v<T, PCGExTypeHash>) { return GetTypeHash(Value); }
-
-			else if constexpr (std::is_same_v<T, bool>)
-			{
-				switch (Field)
-				{
-				default:
-				case EPCGExSingleField::X:
-					return Value.X > 0;
-				case EPCGExSingleField::Y:
-					return Value.Y > 0;
-				case EPCGExSingleField::Z:
-				case EPCGExSingleField::W:
-					return Value.Z > 0;
-				case EPCGExSingleField::Length:
-				case EPCGExSingleField::SquaredLength:
-				case EPCGExSingleField::Volume:
-					return Value.SquaredLength() > 0;
-				}
-			}
-			else if constexpr (std::is_same_v<T, int32> || std::is_same_v<T, int64> || std::is_same_v<T, float> || std::is_same_v<T, double>)
-			{
-				switch (Field)
-				{
-				default:
-				case EPCGExSingleField::X:
-					return Value.X;
-				case EPCGExSingleField::Y:
-					return Value.Y;
-				case EPCGExSingleField::Z:
-				case EPCGExSingleField::W:
-					return Value.Z;
-				case EPCGExSingleField::Length:
-					return Value.Length();
-				case EPCGExSingleField::SquaredLength:
-					return Value.SquaredLength();
-				case EPCGExSingleField::Volume:
-					return Value.X * Value.Y * Value.Z;
-				}
-			}
-			else if constexpr (std::is_same_v<T, FVector2D>) { return FVector2D(Value.X, Value.Y); }
-			else if constexpr (std::is_same_v<T, FVector>) { return Value; }
-			else if constexpr (std::is_same_v<T, FVector4>) { return FVector4(Value.X, Value.Y, Value.Z, 0); }
-			else if constexpr (std::is_same_v<T, FQuat>) { return FRotator(Value.X, Value.Y, Value.Z).Quaternion(); /* TODO : Handle axis selection */ }
-			else if constexpr (std::is_same_v<T, FRotator>) { return FRotator(Value.X, Value.Y, Value.Z); }
-			else if constexpr (std::is_same_v<T, FTransform>) { return FTransform::Identity; /* TODO : Handle axis selection */ }
-			else if constexpr (std::is_same_v<T, FString>) { return *Value.ToString(); }
-			else if constexpr (std::is_same_v<T, FName>) { return FName(*Value.ToString()); }
-			else { return T{}; }
-		}
-
-#pragma endregion
-
-#pragma region Convert from FVector4
-
-		virtual T Convert(const FVector4& Value) const
-		{
-			if constexpr (std::is_same_v<T, decltype(Value)>) { return Value; }
-			else if constexpr (std::is_same_v<T, PCGExTypeHash>) { return GetTypeHash(Value); }
-
-			else if constexpr (std::is_same_v<T, bool>)
-			{
-				switch (Field)
-				{
-				default:
-				case EPCGExSingleField::X:
-					return Value.X > 0;
-				case EPCGExSingleField::Y:
-					return Value.Y > 0;
-				case EPCGExSingleField::Z:
-					return Value.Z > 0;
-				case EPCGExSingleField::W:
-					return Value.W > 0;
-				case EPCGExSingleField::Length:
-				case EPCGExSingleField::SquaredLength:
-				case EPCGExSingleField::Volume:
-					return FVector(Value).SquaredLength() > 0;
-				}
-			}
-			else if constexpr (std::is_same_v<T, int32> || std::is_same_v<T, int64> || std::is_same_v<T, float> || std::is_same_v<T, double>)
-			{
-				switch (Field)
-				{
-				default:
-				case EPCGExSingleField::X:
-					return Value.X;
-				case EPCGExSingleField::Y:
-					return Value.Y;
-				case EPCGExSingleField::Z:
-					return Value.Z;
-				case EPCGExSingleField::W:
-					return Value.W;
-				case EPCGExSingleField::Length:
-					return FVector(Value).Length();
-				case EPCGExSingleField::SquaredLength:
-					return FVector(Value).SquaredLength();
-				case EPCGExSingleField::Volume:
-					return Value.X * Value.Y * Value.Z * Value.W;
-				}
-			}
-			else if constexpr (std::is_same_v<T, FVector2D>) { return FVector2D(Value.X, Value.Y); }
-			else if constexpr (std::is_same_v<T, FVector>) { return Value; }
-			else if constexpr (std::is_same_v<T, FVector4>) { return FVector4(Value.X, Value.Y, Value.Z, Value.W); }
-			else if constexpr (std::is_same_v<T, FQuat>) { return FRotator(Value.X, Value.Y, Value.Z).Quaternion(); }
-			else if constexpr (std::is_same_v<T, FRotator>) { return FRotator(Value.X, Value.Y, Value.Z); }
-			else if constexpr (std::is_same_v<T, FTransform>) { return FTransform::Identity; /* TODO : Handle axis */ }
-			else if constexpr (std::is_same_v<T, FString>) { return *Value.ToString(); }
-			else if constexpr (std::is_same_v<T, FName>) { return FName(*Value.ToString()); }
-			else { return T{}; }
-		}
-
-#pragma endregion
-
-#pragma region Convert from FQuat
-
-		virtual T Convert(const FQuat& Value) const
-		{
-			if constexpr (std::is_same_v<T, decltype(Value)>) { return Value; }
-			else if constexpr (std::is_same_v<T, PCGExTypeHash>) { return GetTypeHash(Value); }
-
-			else if constexpr (std::is_same_v<T, bool>)
-			{
-				const FVector Dir = PCGExMath::GetDirection(Value, Axis);
-				switch (Field)
-				{
-				default:
-				case EPCGExSingleField::X:
-					return Dir.X > 0;
-				case EPCGExSingleField::Y:
-					return Dir.Y > 0;
-				case EPCGExSingleField::Z:
-				case EPCGExSingleField::W:
-					return Dir.Z > 0;
-				case EPCGExSingleField::Length:
-				case EPCGExSingleField::SquaredLength:
-				case EPCGExSingleField::Volume:
-					return Dir.SquaredLength() > 0;
-				}
-			}
-			else if constexpr (std::is_same_v<T, int32> || std::is_same_v<T, int64> || std::is_same_v<T, float> || std::is_same_v<T, double>)
-			{
-				const FVector Dir = PCGExMath::GetDirection(Value, Axis);
-				switch (Field)
-				{
-				default:
-				case EPCGExSingleField::X:
-					return Dir.X;
-				case EPCGExSingleField::Y:
-					return Dir.Y;
-				case EPCGExSingleField::Z:
-				case EPCGExSingleField::W:
-					return Dir.Z;
-				case EPCGExSingleField::Length:
-					return Dir.Length();
-				case EPCGExSingleField::SquaredLength:
-				case EPCGExSingleField::Volume:
-					return Dir.SquaredLength();
-				}
-			}
-			else if constexpr (std::is_same_v<T, FVector2D>)
-			{
-				const FVector Dir = PCGExMath::GetDirection(Value, Axis);
-				return FVector2D(Dir.X, Dir.Y);
-			}
-			else if constexpr (std::is_same_v<T, FVector>) { return PCGExMath::GetDirection(Value, Axis); }
-			else if constexpr (std::is_same_v<T, FVector4>) { return FVector4(PCGExMath::GetDirection(Value, Axis), 0); }
-			else if constexpr (std::is_same_v<T, FQuat>) { return Value; }
-			else if constexpr (std::is_same_v<T, FRotator>) { return Value.Rotator(); }
-			else if constexpr (std::is_same_v<T, FTransform>) { return FTransform(Value, FVector::ZeroVector, FVector::OneVector); }
-			else if constexpr (std::is_same_v<T, FString>) { return *Value.ToString(); }
-			else if constexpr (std::is_same_v<T, FName>) { return FName(*Value.ToString()); }
-			else { return T{}; }
-		}
-
-#pragma endregion
-
-#pragma region Convert from FRotator
-
-		virtual T Convert(const FRotator& Value) const
-		{
-			if constexpr (std::is_same_v<T, decltype(Value)>) { return Value; }
-			else if constexpr (std::is_same_v<T, PCGExTypeHash>) { return GetTypeHash(FVector(Value.Pitch, Value.Roll, Value.Yaw)); }
-
-			else if constexpr (std::is_same_v<T, bool>)
-			{
-				switch (Field)
-				{
-				default:
-				case EPCGExSingleField::X:
-					return Value.Pitch > 0;
-				case EPCGExSingleField::Y:
-					return Value.Yaw > 0;
-				case EPCGExSingleField::Z:
-				case EPCGExSingleField::W:
-					return Value.Roll > 0;
-				case EPCGExSingleField::Length:
-				case EPCGExSingleField::SquaredLength:
-				case EPCGExSingleField::Volume:
-					return Value.Euler().SquaredLength() > 0;
-				}
-			}
-			else if constexpr (std::is_same_v<T, int32> || std::is_same_v<T, int64> || std::is_same_v<T, float> || std::is_same_v<T, double>)
-			{
-				switch (Field)
-				{
-				default:
-				case EPCGExSingleField::X:
-					return Value.Pitch > 0;
-				case EPCGExSingleField::Y:
-					return Value.Yaw > 0;
-				case EPCGExSingleField::Z:
-				case EPCGExSingleField::W:
-					return Value.Roll > 0;
-				case EPCGExSingleField::Length:
-					return Value.Euler().Length();
-				case EPCGExSingleField::SquaredLength:
-				case EPCGExSingleField::Volume:
-					return Value.Euler().SquaredLength();
-				}
-			}
-			else if constexpr (std::is_same_v<T, FVector2D>) { return Convert(Value.Quaternion()); }
-			else if constexpr (std::is_same_v<T, FVector>) { return Convert(Value.Quaternion()); }
-			else if constexpr (std::is_same_v<T, FVector4>) { return FVector4(Value.Euler(), 0); /* TODO : Handle axis */ }
-			else if constexpr (std::is_same_v<T, FQuat>) { return Value.Quaternion(); }
-			else if constexpr (std::is_same_v<T, FRotator>) { return Value; }
-			else if constexpr (std::is_same_v<T, FTransform>) { return FTransform(Value.Quaternion(), FVector::ZeroVector, FVector::OneVector); }
-			else if constexpr (std::is_same_v<T, FString>) { return *Value.ToString(); }
-			else if constexpr (std::is_same_v<T, FName>) { return FName(*Value.ToString()); }
-			else { return T{}; }
-		}
-
-#pragma endregion
-
-#pragma region Convert from FTransform
-
-		virtual T Convert(const FTransform& Value) const
-		{
-			if constexpr (std::is_same_v<T, decltype(Value)>) { return Value; }
-			else if constexpr (std::is_same_v<T, PCGExTypeHash>) { return GetTypeHash(Value); }
-
-			else if constexpr (
-				std::is_same_v<T, bool> ||
-				std::is_same_v<T, int32> ||
-				std::is_same_v<T, int64> ||
-				std::is_same_v<T, float> ||
-				std::is_same_v<T, double> ||
-				std::is_same_v<T, FVector2D> ||
-				std::is_same_v<T, FVector> ||
-				std::is_same_v<T, FVector4> ||
-				std::is_same_v<T, FQuat> ||
-				std::is_same_v<T, FRotator>)
-			{
-				switch (Component)
-				{
-				default:
-				case EPCGExTransformComponent::Position: return Convert(Value.GetLocation());
-				case EPCGExTransformComponent::Rotation: return Convert(Value.GetRotation());
-				case EPCGExTransformComponent::Scale: return Convert(Value.GetScale3D());
-				}
-			}
-			else if constexpr (std::is_same_v<T, FTransform>) { return Value; }
-			else if constexpr (std::is_same_v<T, FString>) { return *Value.ToString(); }
-			else if constexpr (std::is_same_v<T, FName>) { return FName(*Value.ToString()); }
-			else { return T{}; }
-		}
-
-#pragma endregion
-
-#pragma region Convert from FString
-
-		virtual T Convert(const FString& Value) const
-		{
-			if constexpr (std::is_same_v<T, decltype(Value)>) { return Value; }
-			else if constexpr (std::is_same_v<T, PCGExTypeHash>) { return GetTypeHash(Value); }
-
-			else if constexpr (std::is_same_v<T, FString>) { return Value; }
-			else if constexpr (std::is_same_v<T, FName>) { return FName(Value); }
-			else if constexpr (std::is_same_v<T, FSoftClassPath>) { return FSoftClassPath(Value); }
-			else if constexpr (std::is_same_v<T, FSoftObjectPath>) { return FSoftObjectPath(Value); }
-			else { return T{}; }
-		}
-
-#pragma endregion
-
-#pragma region Convert from FName
-
-		virtual T Convert(const FName& Value) const
-		{
-			if constexpr (std::is_same_v<T, decltype(Value)>) { return Value; }
-			else if constexpr (std::is_same_v<T, PCGExTypeHash>) { return GetTypeHash(Value); }
-
-			else if constexpr (std::is_same_v<T, FString>) { return Value.ToString(); }
-			else if constexpr (std::is_same_v<T, FName>) { return Value; }
-			else if constexpr (std::is_same_v<T, FSoftClassPath>) { return FSoftClassPath(Value.ToString()); }
-			else if constexpr (std::is_same_v<T, FSoftObjectPath>) { return FSoftObjectPath(Value.ToString()); }
-			else { return T{}; }
-		}
-
-#pragma endregion
-
-#pragma region Convert from FSoftClassPath
-
-		virtual T Convert(const FSoftClassPath& Value) const
-		{
-			if constexpr (std::is_same_v<T, decltype(Value)>) { return Value; }
-			else if constexpr (std::is_same_v<T, PCGExTypeHash>) { return GetTypeHash(Value); }
-
-			else if constexpr (std::is_same_v<T, FString>) { return Value.ToString(); }
-			else if constexpr (std::is_same_v<T, FName>) { return FName(Value.ToString()); }
-			else if constexpr (std::is_same_v<T, FSoftClassPath>) { return Value; }
-			else if constexpr (std::is_same_v<T, FSoftObjectPath>) { return FSoftObjectPath(Value.ToString()); }
-			else { return T{}; }
-		}
-
-#pragma endregion
-
-#pragma region Convert from FSoftObjectPath
-
-		virtual T Convert(const FSoftObjectPath& Value) const
-		{
-			if constexpr (std::is_same_v<T, decltype(Value)>) { return Value; }
-			else if constexpr (std::is_same_v<T, PCGExTypeHash>) { return GetTypeHash(Value); }
-
-			else if constexpr (std::is_same_v<T, FString>) { return *Value.ToString(); }
-			else if constexpr (std::is_same_v<T, FName>) { return FName(*Value.ToString()); }
-			else if constexpr (std::is_same_v<T, FSoftClassPath>) { return FSoftClassPath(Value.ToString()); }
-			else if constexpr (std::is_same_v<T, FSoftObjectPath>) { return Value; }
-			else { return T{}; }
-		}
-
-#pragma endregion
-
-#pragma endregion
 	};
 
 #pragma endregion

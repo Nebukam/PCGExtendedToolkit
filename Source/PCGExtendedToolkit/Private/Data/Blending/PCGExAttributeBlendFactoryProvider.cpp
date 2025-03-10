@@ -3,6 +3,8 @@
 
 #include "Data/Blending/PCGExAttributeBlendFactoryProvider.h"
 
+#include "Data/Blending/PCGExDataBlendingProcessors.h"
+
 #define LOCTEXT_NAMESPACE "PCGExCreateAttributeBlend"
 #define PCGEX_NAMESPACE CreateAttributeBlend
 
@@ -18,10 +20,39 @@ void FPCGExAttributeBlendConfig::Init()
 	ScoreCurveObj = LocalWeightCurve.GetRichCurveConst();
 }
 
-void UPCGExAttributeBlendOperation::PrepareForData(const TSharedRef<PCGExData::FFacade>& InDataFacade)
+bool UPCGExAttributeBlendOperation::PrepareForData(const TSharedRef<PCGExData::FFacade>& InDataFacade)
 {
+	PrimaryDataFacade = InDataFacade;
+
+	
+	
+	// If output is set, then give
+	BlendingProcessor = PCGExDataBlending::CreateProcessor(Config.BlendMode, PCGEx::FAttributeIdentity());
+	// If attribute does not exist in IN yet, but does in OUT, dowit
+	BlendingProcessor->SoftPrepareForData(InDataFacade, InDataFacade, PCGExData::ESource::Out);
+	return true;
 }
 
+void UPCGExAttributeBlendOperation::BlendScope(const PCGExMT::FScope& InScope)
+{
+	TArray<FPCGPoint>& Points = PrimaryDataFacade->GetMutablePoints();
+
+	for (int i = InScope.Start; i < InScope.End; i++)
+	{
+		FPCGPoint& Point = Points[i];
+		FRotator Truc = FRotator::ZeroRotator;
+		Truc *= 2;
+	}
+}
+
+void UPCGExAttributeBlendOperation::Cleanup()
+{
+	BlendingProcessor.Reset();
+	Buffer_A.Reset();
+	Buffer_B.Reset();
+	Buffer_Target.Reset();
+	Super::Cleanup();
+}
 
 UPCGExAttributeBlendOperation* UPCGExAttributeBlendFactory::CreateOperation(FPCGExContext* InContext) const
 {

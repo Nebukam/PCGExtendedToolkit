@@ -65,20 +65,31 @@ namespace PCGExBlendAttributes
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExBlendAttributes::Process);
 
+		PointDataFacade->bSupportsScopedGet = Context->bScopedAttributeGet;
+
 		if (!FPointsProcessor::Process(InAsyncManager)) { return false; }
 
 		PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::Duplicate)
 
+		Operations.Reserve(Context->BlendingFactories.Num());
+		for (const TObjectPtr<const UPCGExAttributeBlendFactory>& Factory : Context->BlendingFactories)
+		{
+			UPCGExAttributeBlendOperation* Op = Factory->CreateOperation(Context);
+			//if (!Op || !Op->PrepareForData(PointDataFacade)) { continue; }
+			//Operations.Add(Op);
+		}
+
 		NumPoints = PointDataFacade->GetNum();
 
-		StartParallelLoopForPoints();
+		PCGEX_ASYNC_GROUP_CHKD(AsyncManager, BlendScopeTask)
 
 		return true;
 	}
 
-	void FProcessor::ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const PCGExMT::FScope& Scope)
+	void FProcessor::BlendScope(const PCGExMT::FScope& InScope)
 	{
-		// Do Blend
+		FilterScope(InScope);
+		for (UPCGExAttributeBlendOperation* Op : Operations) { Op->BlendScope(InScope); }
 	}
 
 	void FProcessor::CompleteWork()
