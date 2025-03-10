@@ -315,9 +315,18 @@ namespace PCGExSplitPath
 		//if (PathInfos.End == -1 && (PathInfos.Start + PathInfos.Count) != PointIO->GetNum()) { return; } // This should never happen
 
 		if (Iteration == 0 && bWrapLastPath) { return; }
+		const bool bLastPath = PathInfos.End == -1;
 
-		const bool bWrapWithStart = PathInfos.End == -1 && bWrapLastPath;
-		const int32 NumPathPoints = bWrapWithStart ? PathInfos.Count + Paths[0].Count : PathInfos.Count;
+		const bool bAppendStartPath = bWrapLastPath && bLastPath;
+		int32 NumPathPoints = bAppendStartPath ? PathInfos.Count + Paths[0].Count : PathInfos.Count;
+		int32 NumIterations = PathInfos.Count;
+
+		if (bLastPath && bClosedLoop)
+		{
+			// First point added last
+			NumPathPoints++;
+			NumIterations++;
+		}
 
 		if (NumPathPoints == 1 && Settings->bOmitSinglePointOutputs) { return; }
 
@@ -330,10 +339,12 @@ namespace PCGExSplitPath
 		TArray<FPCGPoint>& MutablePoints = PathIO->GetOut()->GetMutablePoints();
 		PCGEx::InitArray(MutablePoints, NumPathPoints);
 
-		for (int i = 0; i < PathInfos.Count; i++) { MutablePoints[i] = OriginalPoints[PathInfos.Start + i]; }
+		const int32 IndexWrap = OriginalPoints.Num();
+		for (int i = 0; i < NumIterations; i++) { MutablePoints[i] = OriginalPoints[(PathInfos.Start + i) % IndexWrap]; }
 
-		if (bWrapWithStart) // There was a cut somewhere in the closed path.
+		if (bAppendStartPath)
 		{
+			// There was a cut somewhere in the closed path.
 			const FPath& StartPathInfos = Paths[0];
 			for (int i = 0; i < StartPathInfos.Count; i++) { MutablePoints[PathInfos.Count + i] = OriginalPoints[StartPathInfos.Start + i]; }
 		}
@@ -345,8 +356,15 @@ namespace PCGExSplitPath
 
 		if (bClosedLoop)
 		{
-			if (Paths.Num() >= 2) { bWrapLastPath = Paths[0].Start == 0 && Paths.Last().End == -1; }
-			if (Paths.Num() > 1 || Paths[0].End != -1 || Paths[0].Start != 0) { bAddOpenTag = true; }
+			if (Paths.Num() > 1)
+			{
+				bWrapLastPath = Paths[0].Start == 0 && Paths.Last().End == -1 && !PointFilterCache[0];
+			}
+
+			if (Paths.Num() > 1 || Paths[0].End != -1 || Paths[0].Start != 0)
+			{
+				bAddOpenTag = true;
+			}
 		}
 
 		PathsIOs.Init(nullptr, Paths.Num());
