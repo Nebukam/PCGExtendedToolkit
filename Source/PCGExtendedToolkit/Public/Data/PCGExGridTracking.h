@@ -3,6 +3,7 @@
 
 #pragma once
 
+#include <functional>
 #include "CoreMinimal.h"
 #include "PCGComponent.h"
 
