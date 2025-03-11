@@ -5,14 +5,20 @@
 
 #include "CoreMinimal.h"
 #include "PCGExPointsProcessor.h"
+#include "PCGExProxyDataBlending.h"
 
 #include "PCGExAttributeBlendFactoryProvider.generated.h"
+
+namespace PCGExDataBlending
+{
+	class FProxyDataBlenderBase;
+}
 
 UENUM()
 enum class EPCGExOperandAuthority : uint8
 {
-	A = 0 UMETA(DisplayName = "Operand A", ToolTip="Type of operand A will drive the output type, thus converting operand B to the same type for the operation."),
-	B = 1 UMETA(DisplayName = "Operand B", ToolTip="Type of operand B will drive the output type, thus converting operand A to the same type for the operation."),
+	A      = 0 UMETA(DisplayName = "Operand A", ToolTip="Type of operand A will drive the output type, thus converting operand B to the same type for the operation."),
+	B      = 1 UMETA(DisplayName = "Operand B", ToolTip="Type of operand B will drive the output type, thus converting operand A to the same type for the operation."),
 	Custom = 2 UMETA(DisplayName = "Custom", ToolTip="Select a specific type to output the result to."),
 };
 
@@ -35,7 +41,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExAttributeBlendConfig
 
 	/** Blendmode */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
-	EPCGExDataBlendingType BlendMode = EPCGExDataBlendingType::Lerp;
+	EPCGExABBlendingType BlendMode = EPCGExABBlendingType::Lerp;
 
 	/** Operand A. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
@@ -54,9 +60,9 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExAttributeBlendConfig
 	EPCGExOperandAuthority OutputType = EPCGExOperandAuthority::A;
 
 	/** Which type should be used for the output value. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName=" └─ Type",EditCondition="OutputType==EPCGExOperandAuthority::Custom", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName=" └─ Type", EditCondition="OutputType==EPCGExOperandAuthority::Custom", EditConditionHides))
 	EPCGMetadataTypes CustomType = EPCGMetadataTypes::Double;
-	
+
 	/** Type of Weight */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Weighting", meta=(PCG_Overridable, EditCondition="bRequiresWeight", EditConditionHides, HideEditConditionToggle))
 	EPCGExInputValueType WeightInput = EPCGExInputValueType::Constant;
@@ -90,7 +96,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExAttributeBlendConfig
 /**
  * 
  */
-UCLASS(DisplayName = "Blending")
+UCLASS(DisplayName = "Blend Op")
 class PCGEXTENDEDTOOLKIT_API UPCGExAttributeBlendOperation : public UPCGExOperation
 {
 	GENERATED_BODY()
@@ -99,18 +105,20 @@ public:
 	UPROPERTY()
 	FPCGExAttributeBlendConfig Config;
 
-	virtual bool PrepareForData(const TSharedRef<PCGExData::FFacade>& InDataFacade);
-	virtual void BlendScope(const PCGExMT::FScope& InScope);
+	virtual bool PrepareForData(::FPCGExContext* InContext, const TSharedRef<PCGExData::FFacade>& InDataFacade);
+
+	virtual void Blend(const int32 Index, FPCGPoint& Point)
+	{
+		/* Blender->Blend(Index, Point); */
+	}
+
 	virtual void Cleanup() override;
 
 protected:
-	TSharedPtr<PCGExDataBlending::FDataBlendingProcessorBase> BlendingProcessor;
-	TSharedPtr<PCGExData::FBufferBase> Buffer_A;
-	TSharedPtr<PCGExData::FBufferBase> Buffer_B;
-	TSharedPtr<PCGExData::FBufferBase> Buffer_Target;
+	TSharedPtr<PCGExDataBlending::FProxyDataBlenderBase> Blender;
 };
 
-UCLASS(Hidden, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Blending")
+UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Blending")
 class PCGEXTENDEDTOOLKIT_API UPCGExAttributeBlendFactory : public UPCGExFactoryData
 {
 	GENERATED_BODY()
@@ -122,6 +130,7 @@ public:
 	virtual UPCGExAttributeBlendOperation* CreateOperation(FPCGExContext* InContext) const;
 
 	virtual void RegisterAssetDependencies(FPCGExContext* InContext) const override;
+	virtual bool RegisterConsumableAttributesWithData(FPCGExContext* InContext, const UPCGData* InData) const override;
 };
 
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Blending")
@@ -139,17 +148,38 @@ public:
 
 	//~Begin UPCGSettings
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS(Blending, "Blending", "Creates a single AttributeBlend computational node, to be used with Blendings pins.")
+	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(
+		BlendOp, "BlendOp", "Creates a single Blend Operation node, to be used with the Attribute Blender.",
+		PCGEX_FACTORY_NAME_PRIORITY)
 	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->NodeColorMisc; }
+	//PCGEX_NODE_POINT_FILTER(PCGExPointFilter::SourceFiltersLabel, "Filters", PCGExFactories::PointFilters, true)
+
+	virtual bool OnlyExposePreconfiguredSettings() const override { return true; };
+
+#if PCGEX_ENGINE_VERSION > 503
+	virtual bool CanUserEditTitle() const override { return false; }
+#endif
+	virtual TArray<FPCGPreConfiguredSettingsInfo> GetPreconfiguredInfo() const override;
+
 #endif
 	//~End UPCGSettings
+
+	virtual void ApplyPreconfiguredSettings(const FPCGPreConfiguredSettingsInfo& PreconfigureInfo) override;
 
 	virtual FName GetMainOutputPin() const override { return PCGExDataBlending::OutputBlendingLabel; }
 	virtual UPCGExFactoryData* CreateFactory(FPCGExContext* InContext, UPCGExFactoryData* InFactory) const override;
 
+	/** Filter Priority.*/
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayPriority=-1))
+	int32 Priority;
+
 	/** Config. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ShowOnlyInnerProperties))
 	FPCGExAttributeBlendConfig Config;
+
+#if WITH_EDITOR
+	virtual FString GetDisplayName() const override;
+#endif
 
 protected:
 	virtual bool IsCacheable() const override { return true; }

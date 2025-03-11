@@ -2,8 +2,8 @@
 // Released under the MIT license https://opensource.org/license/MIT/
 
 #include "Data/Blending/PCGExAttributeBlendFactoryProvider.h"
-
-#include "Data/Blending/PCGExDataBlendingProcessors.h"
+#include "Data/Blending/PCGExProxyDataBlending.h"
+#include "Elements/Metadata/PCGMetadataElementCommon.h"
 
 #define LOCTEXT_NAMESPACE "PCGExCreateAttributeBlend"
 #define PCGEX_NAMESPACE CreateAttributeBlend
@@ -11,46 +11,71 @@
 void FPCGExAttributeBlendConfig::Init()
 {
 	bRequiresWeight =
-		BlendMode == EPCGExDataBlendingType::Lerp ||
-		BlendMode == EPCGExDataBlendingType::Weight ||
-		BlendMode == EPCGExDataBlendingType::WeightedSubtract ||
-		BlendMode == EPCGExDataBlendingType::WeightedSum;
+		BlendMode == EPCGExABBlendingType::Lerp ||
+		BlendMode == EPCGExABBlendingType::Weight ||
+		BlendMode == EPCGExABBlendingType::WeightedSubtract ||
+		BlendMode == EPCGExABBlendingType::WeightedAdd;
 
 	if (!bUseLocalCurve) { LocalWeightCurve.ExternalCurve = WeightCurve.Get(); }
 	ScoreCurveObj = LocalWeightCurve.GetRichCurveConst();
 }
 
-bool UPCGExAttributeBlendOperation::PrepareForData(const TSharedRef<PCGExData::FFacade>& InDataFacade)
+bool UPCGExAttributeBlendOperation::PrepareForData(FPCGExContext* InContext, const TSharedRef<PCGExData::FFacade>& InDataFacade)
 {
 	PrimaryDataFacade = InDataFacade;
 
-	
-	
-	// If output is set, then give
-	BlendingProcessor = PCGExDataBlending::CreateProcessor(Config.BlendMode, PCGEx::FAttributeIdentity());
-	// If attribute does not exist in IN yet, but does in OUT, dowit
-	BlendingProcessor->SoftPrepareForData(InDataFacade, InDataFacade, PCGExData::ESource::Out);
-	return true;
-}
+	// TODO : Determine output type
 
-void UPCGExAttributeBlendOperation::BlendScope(const PCGExMT::FScope& InScope)
-{
-	TArray<FPCGPoint>& Points = PrimaryDataFacade->GetMutablePoints();
+	PCGExData::ESource SourceA = PCGExData::ESource::Out;
+	EPCGMetadataTypes TypeA = EPCGMetadataTypes::Unknown;
 
-	for (int i = InScope.Start; i < InScope.End; i++)
+	PCGExData::ESource SourceB = PCGExData::ESource::Out;
+	EPCGMetadataTypes TypeB = EPCGMetadataTypes::Unknown;
+
+	if (PCGEx::TryGetTypeAndSource(Config.OperandA, InDataFacade, TypeA, SourceA))
 	{
-		FPCGPoint& Point = Points[i];
-		FRotator Truc = FRotator::ZeroRotator;
-		Truc *= 2;
 	}
+	else
+	{
+		PCGEX_LOG_INVALID_SELECTOR_C(InContext, OperandA, Config.OperandA)
+		return false;
+	}
+
+	if (PCGEx::TryGetTypeAndSource(Config.OperandB, InDataFacade, TypeB, SourceB))
+	{
+	}
+	else
+	{
+		PCGEX_LOG_INVALID_SELECTOR_C(InContext, OperandB, Config.OperandB)
+		return false;
+	}
+
+	// TODO : Support @Previous attribute and swap it with the previous ops' output path
+
+	Config.OperandA = Config.OperandA.CopyAndFixLast(InDataFacade->Source->GetData(SourceA));
+	Config.OperandB = Config.OperandB.CopyAndFixLast(InDataFacade->Source->GetData(SourceB));
+
+	// TODO : If we target an attribute, make sure to initialize it as writable first first 
+
+	Config.OutputTo = Config.OutputTo.CopyAndFixLast(InDataFacade->Source->GetOut());
+
+	EPCGMetadataTypes OutType = EPCGMetadataTypes::Unknown;
+
+	PCGEx::ExecuteWithRightType(
+		OutType, [&](auto DummyValue)
+		{
+			using T = decltype(DummyValue);
+			Blender = PCGExDataBlending::CreateProxyBlender<T>(
+				InContext, InDataFacade, Config.BlendMode,
+				Config.OperandA, Config.OperandB, Config.OutputTo);
+		});
+	
+	return true;
 }
 
 void UPCGExAttributeBlendOperation::Cleanup()
 {
-	BlendingProcessor.Reset();
-	Buffer_A.Reset();
-	Buffer_B.Reset();
-	Buffer_Target.Reset();
+	Blender.Reset();
 	Super::Cleanup();
 }
 
@@ -66,24 +91,73 @@ void UPCGExAttributeBlendFactory::RegisterAssetDependencies(FPCGExContext* InCon
 	if (Config.bRequiresWeight && !Config.bUseLocalCurve) { InContext->AddAssetDependency(Config.WeightCurve.ToSoftObjectPath()); }
 }
 
+bool UPCGExAttributeBlendFactory::RegisterConsumableAttributesWithData(FPCGExContext* InContext, const UPCGData* InData) const
+{
+	if (!Super::RegisterConsumableAttributesWithData(InContext, InData)) { return false; }
+
+	FName Consumable = NAME_None;
+	PCGEX_CONSUMABLE_SELECTOR(Config.OperandA, Consumable)
+	PCGEX_CONSUMABLE_SELECTOR(Config.OperandB, Consumable)
+
+	return true;
+}
+
 #if WITH_EDITOR
 void UPCGExAttributeBlendFactoryProviderSettings::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
 {
 	Config.bRequiresWeight =
-		Config.BlendMode == EPCGExDataBlendingType::Lerp ||
-		Config.BlendMode == EPCGExDataBlendingType::Weight ||
-		Config.BlendMode == EPCGExDataBlendingType::WeightedSubtract ||
-		Config.BlendMode == EPCGExDataBlendingType::WeightedSum;
+		Config.BlendMode == EPCGExABBlendingType::Lerp ||
+		Config.BlendMode == EPCGExABBlendingType::Weight ||
+		Config.BlendMode == EPCGExABBlendingType::WeightedSubtract ||
+		Config.BlendMode == EPCGExABBlendingType::WeightedAdd;
 
 	Super::PostEditChangeProperty(PropertyChangedEvent);
 }
+
+TArray<FPCGPreConfiguredSettingsInfo> UPCGExAttributeBlendFactoryProviderSettings::GetPreconfiguredInfo() const
+{
+	const TSet ValuesToSkip = {
+		EPCGExABBlendingType::None,
+	};
+
+#if PCGEX_ENGINE_VERSION == 503
+	return PCGMetadataElementCommon::FillPreconfiguredSettingsInfoFromEnum<EPCGExABBlendingType>(ValuesToSkip);
+#else
+	return PCGMetadataElementCommon::FillPreconfiguredSettingsInfoFromEnum<EPCGExABBlendingType>(ValuesToSkip, FTEXT("Blend : "));
 #endif
+}
+#endif
+
+void UPCGExAttributeBlendFactoryProviderSettings::ApplyPreconfiguredSettings(const FPCGPreConfiguredSettingsInfo& PreconfigureInfo)
+{
+	if (const UEnum* EnumPtr = StaticEnum<EPCGExABBlendingType>())
+	{
+		if (EnumPtr->IsValidEnumValue(PreconfigureInfo.PreconfiguredIndex))
+		{
+			Config.BlendMode = static_cast<EPCGExABBlendingType>(PreconfigureInfo.PreconfiguredIndex);
+		}
+	}
+}
 
 UPCGExFactoryData* UPCGExAttributeBlendFactoryProviderSettings::CreateFactory(FPCGExContext* InContext, UPCGExFactoryData* InFactory) const
 {
 	UPCGExAttributeBlendFactory* NewFactory = InContext->ManagedObjects->New<UPCGExAttributeBlendFactory>();
+	NewFactory->Priority = Priority;
+
 	return Super::CreateFactory(InContext, NewFactory);
 }
+
+#if WITH_EDITOR
+FString UPCGExAttributeBlendFactoryProviderSettings::GetDisplayName() const
+{
+	if (const UEnum* EnumPtr = StaticEnum<EPCGExABBlendingType>())
+	{
+		return FString::Printf(TEXT("Blend Op : %s"), *EnumPtr->GetDisplayNameTextByValue(static_cast<int64>(Config.BlendMode)).ToString());
+	}
+
+	return TEXT("PCGEx | Blend Op");
+}
+#endif
 
 #undef LOCTEXT_NAMESPACE
 #undef PCGEX_NAMESPACE

@@ -86,27 +86,6 @@ void FPCGExAttributeSourceToTargetList::GetSources(TArray<FName>& OutNames) cons
 namespace PCGEx
 {
 	
-	FPCGAttributePropertyInputSelector CopyAndFixLast(const FPCGAttributePropertyInputSelector& InSelector, const UPCGData* InData, TArray<FString>& OutExtraNames)
-	{
-		//Copy, fix, and clear ExtraNames to support PCGEx custom selectors
-		FPCGAttributePropertyInputSelector NewSelector = InSelector.CopyAndFixLast(InData);
-		OutExtraNames = NewSelector.GetExtraNames();
-		switch (NewSelector.GetSelection())
-		{
-		default: ;
-		case EPCGAttributePropertySelection::Attribute:
-			NewSelector.SetAttributeName(NewSelector.GetAttributeName(), true);
-			break;
-		case EPCGAttributePropertySelection::PointProperty:
-			NewSelector.SetPointProperty(NewSelector.GetPointProperty(), true);
-			break;
-		case EPCGAttributePropertySelection::ExtraProperty:
-			NewSelector.SetExtraProperty(NewSelector.GetExtraProperty(), true);
-			break;
-		}
-		return NewSelector;
-	}
-
 	void FAttributeIdentity::Get(const UPCGMetadata* InMetadata, TArray<FAttributeIdentity>& OutIdentities)
 	{
 		if (!InMetadata) { return; }
