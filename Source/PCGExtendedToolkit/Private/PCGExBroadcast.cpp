@@ -54,22 +54,66 @@ namespace PCGEx
 
 	FSubSelection::FSubSelection(const TArray<FString>& ExtraNames)
 	{
-		if (ExtraNames.IsEmpty()) { return; }
+		Init(ExtraNames);
+	}
 
-		bIsValid = GetAxisSelection(ExtraNames, Axis);
-		if (bIsValid)
+	FSubSelection::FSubSelection(const FPCGAttributePropertyInputSelector& InSelector)
+	{
+		Init(InSelector.GetExtraNames());
+	}
+
+	FSubSelection::FSubSelection(const FString& Path, const UPCGData* InData)
+	{
+		FPCGAttributePropertyInputSelector ProxySelector = FPCGAttributePropertyInputSelector();
+		ProxySelector.Update(Path);
+		if (InData) { ProxySelector = ProxySelector.CopyAndFixLast(InData); }
+
+		Init(ProxySelector.GetExtraNames());
+	}
+
+	EPCGMetadataTypes FSubSelection::GetSubType() const
+	{
+		if (!bIsValid) { return EPCGMetadataTypes::Unknown; }
+		if (bIsFieldSet) { return EPCGMetadataTypes::Double; }
+		if (bIsAxisSet) { return EPCGMetadataTypes::Vector; }
+
+		switch (Component)
 		{
-			bUseAxis = true;
-			// An axis is set, treat as vector.
-			// Only axis is set, assume rotation instead of position
-			if (!GetComponentSelection(ExtraNames, Component)) { Component = EPCGExTransformComponent::Rotation; }
+		case EPCGExTransformComponent::Position:
+		case EPCGExTransformComponent::Scale:
+			return EPCGMetadataTypes::Vector;
+		case EPCGExTransformComponent::Rotation:
+			return EPCGMetadataTypes::Quaternion;
+		}
+
+		return EPCGMetadataTypes::Unknown;
+	}
+
+	void FSubSelection::Init(const TArray<FString>& ExtraNames)
+	{
+		if (ExtraNames.IsEmpty())
+		{
+			bIsValid = false;
+			return;
+		}
+
+		bIsAxisSet = GetAxisSelection(ExtraNames, Axis);
+		if (bIsAxisSet)
+		{
+			bIsValid = true;
+			if (!GetComponentSelection(ExtraNames, Component))
+			{
+				// Only axis is set, assume it's a transform, so rotation
+				Component = EPCGExTransformComponent::Rotation;
+			}
 		}
 		else
 		{
 			bIsValid = GetComponentSelection(ExtraNames, Component);
 		}
 
-		if (GetFieldSelection(ExtraNames, Field)) { bIsValid = true; }
+		bIsFieldSet = GetFieldSelection(ExtraNames, Field);
+		if (bIsFieldSet) { bIsValid = true; }
 
 		Update();
 	}

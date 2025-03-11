@@ -8,6 +8,8 @@
 
 namespace PCGExDataBlending
 {
+	BOOKMARK_BLENDMODE
+	
 	template <typename T>
 	class TDataBlendingAverage final : public TDataBlendingProcessor<T, EPCGExDataBlendingType::Average, true, true>
 	{
@@ -145,7 +147,7 @@ namespace PCGExDataBlending
 #define PCGEX_EXTERN_DECL_TYPED(_TYPE, _ID, _BLEND) extern template class PCGExDataBlending::TDataBlending##_BLEND<_TYPE>;
 #define PCGEX_EXTERN_DECL(_BLEND) PCGEX_FOREACH_SUPPORTEDTYPES(PCGEX_EXTERN_DECL_TYPED, _BLEND)
 
-PCGEX_FOREACH_BLENDMODE(PCGEX_EXTERN_DECL)
+PCGEX_FOREACH_DATABLENDMODE(PCGEX_EXTERN_DECL)
 
 #undef PCGEX_EXTERN_DECL_TYPED
 #undef PCGEX_EXTERN_DECL
