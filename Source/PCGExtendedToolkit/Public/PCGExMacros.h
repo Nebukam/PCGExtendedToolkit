@@ -150,6 +150,7 @@ else if constexpr(_PROPERTY == EPCGPointProperties::ScaledLocalSize){ MACRO(GetS
 #endif
 
 #if PCGEX_ENGINE_VERSION <= 504
+#define PCGEX_CONSTEXPR_IFELSE_SETPOINTPROPERTY(_PROPERTY, _POINT, MACRO)\
 if constexpr(_PROPERTY == EPCGPointProperties::Density){ _POINT.Density = MACRO(float); } \
 else if constexpr(_PROPERTY == EPCGPointProperties::BoundsMin){ _POINT.BoundsMin = MACRO(FVector); } \
 else if constexpr(_PROPERTY == EPCGPointProperties::BoundsMax){ _POINT.BoundsMax = MACRO(FVector); } \
