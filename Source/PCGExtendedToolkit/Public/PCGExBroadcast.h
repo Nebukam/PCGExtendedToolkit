@@ -69,7 +69,7 @@ namespace PCGEx
 #pragma endregion
 
 	template <typename T_VALUE, typename T>
-	static T Convert(const T_VALUE& Value)
+	inline static T Convert(const T_VALUE& Value)
 	{
 #pragma region Convert from bool
 
@@ -402,26 +402,36 @@ namespace PCGEx
 		else { return T{}; }
 	}
 
+#define PCGEX_CONVERT_CONVERT_DECL(_TYPE, _ID, ...) template <typename T> inline static T Convert(const _TYPE& Value) { return Convert<_TYPE, T>(Value); }
+	PCGEX_FOREACH_SUPPORTEDTYPES(PCGEX_CONVERT_CONVERT_DECL)
+#undef PCGEX_CONVERT_CONVERT_DECL
+	
 	struct PCGEXTENDEDTOOLKIT_API FSubSelection
 	{
 		bool bIsValid = false;
-		bool bUseAxis = false;
+		bool bIsAxisSet = false;
+		bool bIsFieldSet = false;
 		EPCGExTransformComponent Component = EPCGExTransformComponent::Position;
 		EPCGExAxis Axis = EPCGExAxis::Forward;
 		EPCGExSingleField Field = EPCGExSingleField::X;
-		int32 FieldIndex = 0; // TODO Set this a
-
+		int32 FieldIndex = 0;
+		
 		FSubSelection() = default;
 		explicit FSubSelection(const TArray<FString>& ExtraNames);
+		explicit FSubSelection(const FPCGAttributePropertyInputSelector& InSelector);
+		explicit FSubSelection(const FString& Path, const UPCGData* InData = nullptr);
 
+		EPCGMetadataTypes GetSubType() const;
+		
+	protected:
+		void Init(const TArray<FString>& ExtraNames);
+
+	public:		
 		void Update();
 
 		template <typename T_VALUE, typename T>
-		T Get(const T_VALUE& Value) const
+		inline T Get(const T_VALUE& Value) const
 		{
-			// TODO : Remove this once properly implemented where used
-			if (!bIsValid) { return Convert<T_VALUE, T>(Value); }
-
 #pragma region Convert from bool
 
 			if constexpr (std::is_same_v<T_VALUE, bool>)
@@ -894,13 +904,13 @@ namespace PCGEx
 			else { return T{}; }
 		}
 
-#define PCGEX_CONVERT_SELECT_DECL(_TYPE, _ID, ...) template <typename T> T Get(const _TYPE& Value) const { return Get<_TYPE, T>(Value); }
+#define PCGEX_CONVERT_SELECT_DECL(_TYPE, _ID, ...) template <typename T> inline T Get(const _TYPE& Value) const { return Get<_TYPE, T>(Value); }
 		PCGEX_FOREACH_SUPPORTEDTYPES(PCGEX_CONVERT_SELECT_DECL)
 #undef PCGEX_CONVERT_SELECT_DECL
 
 		// Set component subselection inside Target from provided value
 		template <typename T, typename T_VALUE>
-		void Set(T& Target, const T_VALUE& Value) const
+		inline void Set(T& Target, const T_VALUE& Value) const
 		{
 			// Unary target type -- can't account for component/field
 			if constexpr (std::is_same_v<T_VALUE, T>) { Target = Value; }
@@ -1118,7 +1128,7 @@ namespace PCGEx
 			}
 		}
 
-#define PCGEX_CONVERT_SET_DECL(_TYPE, _ID, ...) template <typename T> void Set(_TYPE& Target, const T& Value) const { return Set<_TYPE, T>(Target, Value); }
+#define PCGEX_CONVERT_SET_DECL(_TYPE, _ID, ...) template <typename T> inline void Set(_TYPE& Target, const T& Value) const { return Set<_TYPE, T>(Target, Value); }
 		PCGEX_FOREACH_SUPPORTEDTYPES(PCGEX_CONVERT_SET_DECL)
 #undef PCGEX_CONVERT_SET_DECL
 	};

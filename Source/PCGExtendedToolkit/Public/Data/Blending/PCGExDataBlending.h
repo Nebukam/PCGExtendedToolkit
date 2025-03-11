@@ -31,7 +31,7 @@ MACRO(FVector, Scale, Vector, Transform.GetScale3D()) \
 MACRO(float, Steepness, Float,Steepness) \
 MACRO(int32, Seed, Integer32,Seed)
 
-#define PCGEX_FOREACH_BLENDMODE(MACRO)\
+#define PCGEX_FOREACH_DATABLENDMODE(MACRO)\
 MACRO(None) \
 MACRO(Average) \
 MACRO(Weight) \
@@ -72,6 +72,8 @@ namespace PCGExData
 	class FUnionMetadata;
 }
 
+#define BOOKMARK_BLENDMODE // Bookmark a location in code that need to be updated when adding new blendmodes
+
 UENUM(BlueprintType)
 enum class EPCGExDataBlendingType : uint8
 {
@@ -94,6 +96,8 @@ enum class EPCGExDataBlendingType : uint8
 	Hash             = 16 UMETA(DisplayName = "Hash", ToolTip="Combine the values into a hash"),
 	UnsignedHash     = 17 UMETA(DisplayName = "Hash (Unsigned)", ToolTip="Combine the values into a hash but sort the values first to create an order-independent hash.")
 };
+
+
 
 USTRUCT(BlueprintType)
 struct PCGEXTENDEDTOOLKIT_API FPCGExAttributeBlendToTargetDetails : public FPCGExAttributeSourceToTargetDetails
@@ -263,13 +267,15 @@ namespace PCGExDataBlending
 {
 	const FName SourceOverridesBlendingOps = TEXT("Overrides : Blending");
 
-	const FName SourceBlendingLabel = TEXT("Blendings");
-	const FName OutputBlendingLabel = TEXT("Blending");
+	const FName SourceBlendingLabel = TEXT("Blend Ops");
+	const FName OutputBlendingLabel = TEXT("Blend Op");
 
+	BOOKMARK_BLENDMODE
+		
 	/**
 	 * 
 	 */
-	class PCGEXTENDEDTOOLKIT_API FDataBlendingProcessorBase
+	class PCGEXTENDEDTOOLKIT_API FDataBlendingProcessorBase : public TSharedFromThis<FDataBlendingProcessorBase>
 	{
 	public:
 		virtual ~FDataBlendingProcessorBase()

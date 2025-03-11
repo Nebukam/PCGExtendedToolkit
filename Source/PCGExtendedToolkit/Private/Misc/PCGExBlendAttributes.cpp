@@ -75,21 +75,38 @@ namespace PCGExBlendAttributes
 		for (const TObjectPtr<const UPCGExAttributeBlendFactory>& Factory : Context->BlendingFactories)
 		{
 			UPCGExAttributeBlendOperation* Op = Factory->CreateOperation(Context);
-			//if (!Op || !Op->PrepareForData(PointDataFacade)) { continue; }
-			//Operations.Add(Op);
+			if (!Op || !Op->PrepareForData(Context, PointDataFacade)) { continue; }
+			Operations.Add(Op);
 		}
 
 		NumPoints = PointDataFacade->GetNum();
 
 		PCGEX_ASYNC_GROUP_CHKD(AsyncManager, BlendScopeTask)
 
+		BlendScopeTask->OnSubLoopStartCallback =
+			[PCGEX_ASYNC_THIS_CAPTURE](const PCGExMT::FScope& Scope)
+			{
+				PCGEX_ASYNC_THIS
+				This->BlendScope(Scope);
+			};
+
+		BlendScopeTask->StartSubLoops(NumPoints, GetDefault<UPCGExGlobalSettings>()->GetPointsBatchChunkSize());
+
 		return true;
 	}
 
 	void FProcessor::BlendScope(const PCGExMT::FScope& InScope)
 	{
+		PointDataFacade->Fetch(InScope);
 		FilterScope(InScope);
-		for (UPCGExAttributeBlendOperation* Op : Operations) { Op->BlendScope(InScope); }
+
+		TArray<FPCGPoint>& Points = PointDataFacade->GetMutablePoints();
+
+		for (int i = InScope.Start; i < InScope.End; i++)
+		{
+			if (!PointFilterCache[i]) { continue; }
+			for (UPCGExAttributeBlendOperation* Op : Operations) { Op->Blend(i, Points[i]); }
+		}
 	}
 
 	void FProcessor::CompleteWork()

@@ -112,7 +112,7 @@ void UPCGExGlobalSettings::GeneratePinInfos()
 	PCGEX_MAP_PIN_OUT("Action")
 
 	PCGEX_EMPLACE_PIN_OUT(OUT_Blend, "PCGEx Blending");
-	PCGEX_MAP_PIN_OUT("Blending")
+	PCGEX_MAP_PIN_OUT("Blend Op")
 
 	PCGEX_EMPLACE_PIN_OUT(OUT_Shape, "PCGEx Shape Builder");
 	PCGEX_MAP_PIN_OUT("Shape Builder")
@@ -189,7 +189,7 @@ void UPCGExGlobalSettings::GeneratePinInfos()
 	PCGEX_MAP_PIN_IN("Actions")
 
 	PCGEX_EMPLACE_PIN_IN(OUT_Blend, "Expects PCGEx Blendings, supports multiple inputs.");
-	PCGEX_MAP_PIN_IN("Blendings")
+	PCGEX_MAP_PIN_IN("Blend Ops")
 
 	PCGEX_EMPLACE_PIN_IN(OUT_Shape, "Expects PCGEx Shape Builders, supports multiple inputs.");
 	PCGEX_MAP_PIN_IN("Shape Builders")
