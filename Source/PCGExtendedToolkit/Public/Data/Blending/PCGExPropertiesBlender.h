@@ -11,6 +11,8 @@
 
 namespace PCGExDataBlending
 {
+	BOOKMARK_BLENDMODE
+	
 	inline bool ResetBlend[] = {
 		false, //None            
 		true,  //Average         

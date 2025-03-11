@@ -491,16 +491,30 @@ namespace PCGExBlend
 			return !A || !B ? false : true;
 		}
 		else if constexpr (
-			std::is_same_v<T, FString> ||
-			std::is_same_v<T, FName> ||
-			std::is_same_v<T, FSoftObjectPath> ||
-			std::is_same_v<T, FSoftClassPath>)
+			std::is_same_v<T, float> ||
+			std::is_same_v<T, double> ||
+			std::is_same_v<T, int32> ||
+			std::is_same_v<T, int64> ||
+			std::is_same_v<T, FVector2D> ||
+			std::is_same_v<T, FVector>)
 		{
-			return A;
+			return A * B;
+		}
+		else if constexpr (std::is_same_v<T, FRotator>)
+		{
+			return FRotator(A.Pitch * B.Pitch, A.Yaw * B.Yaw, A.Roll * B.Roll);
+		}
+		else if constexpr (std::is_same_v<T, FQuat>)
+		{
+			return (A * B).GetNormalized();
+		}
+		else if constexpr (std::is_same_v<T, FVector4>)
+		{
+			return FVector4(A.X * B.X, A.Y * B.Y, A.Z * B.Z, A.W * B.W);
 		}
 		else
 		{
-			return A * B;
+			return A; // Unsupported fallback
 		}
 	}
 

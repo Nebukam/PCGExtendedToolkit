@@ -6,8 +6,6 @@
 #include <functional>
 
 #include "CoreMinimal.h"
-#include "AudioMixerBlueprintLibrary.h"
-#include "PCGParamData.h"
 #include "Data/PCGPointData.h"
 #include "Metadata/PCGAttributePropertySelector.h"
 #include "Metadata/Accessors/IPCGAttributeAccessor.h"
@@ -35,10 +33,14 @@ namespace PCGExData
 
 struct FPCGExAttributeGatherDetails;
 
+#pragma region Legacy
+
 USTRUCT(BlueprintType)
 struct PCGEXTENDEDTOOLKIT_API FPCGExInputConfig
 {
 	GENERATED_BODY()
+
+	// Legacy horror
 
 	FPCGExInputConfig() = default;
 	explicit FPCGExInputConfig(const FPCGAttributePropertyInputSelector& InSelector);
@@ -72,6 +74,8 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExInputConfig
 	virtual bool Validate(const UPCGPointData* InData);
 	FString ToString() const { return GetName().ToString(); }
 };
+
+#pragma endregion
 
 USTRUCT(BlueprintType)
 struct PCGEXTENDEDTOOLKIT_API FPCGExAttributeSourceToTargetDetails
@@ -122,8 +126,6 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExAttributeSourceToTargetList
 
 namespace PCGEx
 {
-	FPCGAttributePropertyInputSelector CopyAndFixLast(const FPCGAttributePropertyInputSelector& InSelector, const UPCGData* InData, TArray<FString>& OutExtraNames);
-
 #pragma region Attribute identity
 
 	struct PCGEXTENDEDTOOLKIT_API FAttributeIdentity
@@ -229,6 +231,14 @@ namespace PCGEx
 		void Init(const UPCGData* InData, const FPCGAttributePropertyInputSelector& InSelector);
 	};
 
+	template<EPCGPointProperties PROPERTY, typename T>
+	inline static void SetPointProperty(FPCGPoint& Point, const T& InValue)
+	{
+#define PCGEX_STATIC_POINTPROPERTY_SETTER(_TYPE) PCGEx::Convert<T, _TYPE>(InValue)
+		PCGEX_CONSTEXPR_IFELSE_SETPOINTPROPERTY(PROPERTY, Point, PCGEX_STATIC_POINTPROPERTY_SETTER)
+#undef PCGEX_STATIC_POINTPROPERTY_SETTER
+	}
+
 #pragma endregion
 
 #pragma region Attribute Broadcaster
@@ -256,7 +266,7 @@ namespace PCGEx
 
 	PCGEXTENDEDTOOLKIT_API
 	FString GetSelectorDisplayName(const FPCGAttributePropertyInputSelector& InSelector);
-	
+
 	class PCGEXTENDEDTOOLKIT_API FAttributeBroadcasterBase
 	{
 	public:
@@ -347,8 +357,6 @@ namespace PCGEx
 
 			const UPCGPointData* InData = PointIO->GetIn();
 
-			// TODO : Use Convert() instead of SubSelection if it's invalid
-			
 			if (ProcessingInfos == EPCGAttributePropertySelection::Attribute)
 			{
 				PCGEx::ExecuteWithRightType(
@@ -363,14 +371,19 @@ namespace PCGEx
 						InternalAccessor->GetRange(RawView, Scope.Start, *PointIO->GetInKeys().Get(), EPCGAttributeAccessorFlags::AllowBroadcast);
 
 						const FSubSelection& S = ProcessingInfos.SubSelection;
-						for (int i = 0; i < Scope.Count; i++) { Dump[Scope.Start + i] = S.Get<RawT, T>(RawValues[i]); }
+						if (S.bIsValid) { for (int i = 0; i < Scope.Count; i++) { Dump[Scope.Start + i] = S.Get<RawT, T>(RawValues[i]); } }
+						else { for (int i = 0; i < Scope.Count; i++) { Dump[Scope.Start + i] = PCGEx::Convert<RawT, T>(RawValues[i]); } }
 					});
 			}
 			else if (ProcessingInfos == EPCGAttributePropertySelection::PointProperty)
 			{
+				// TODO : constexpr 
 				const FSubSelection& S = ProcessingInfos.SubSelection;
 				const TArray<FPCGPoint>& InPoints = InData->GetPoints();
-#define PCGEX_GET_BY_ACCESSOR(_ENUM, _ACCESSOR) case _ENUM: for (int i = Scope.Start; i < Scope.End; i++) { Dump[i] = S.Get<T>(InPoints[i]._ACCESSOR); } break;
+#define PCGEX_GET_BY_ACCESSOR(_ENUM, _ACCESSOR, _TYPE) case _ENUM: \
+	if (S.bIsValid) { for (int i = Scope.Start; i < Scope.End; i++) { Dump[i] = S.Get<_TYPE, T>(InPoints[i]._ACCESSOR); } } \
+	else{ for (int i = Scope.Start; i < Scope.End; i++) { Dump[i] = PCGEx::Convert<_TYPE, T>(InPoints[i]._ACCESSOR); } } \
+	break;
 
 				switch (static_cast<EPCGPointProperties>(ProcessingInfos)) { PCGEX_FOREACH_POINTPROPERTY(PCGEX_GET_BY_ACCESSOR) }
 #undef PCGEX_GET_BY_ACCESSOR
@@ -381,7 +394,8 @@ namespace PCGEx
 				switch (static_cast<EPCGExtraProperties>(ProcessingInfos))
 				{
 				case EPCGExtraProperties::Index:
-					for (int i = Scope.Start; i < Scope.End; i++) { Dump[i] = S.Get<T>(i); }
+					if (S.bIsValid) { for (int i = Scope.Start; i < Scope.End; i++) { Dump[i] = S.Get<int32, T>(i); } }
+					else { for (int i = Scope.Start; i < Scope.End; i++) { Dump[i] = PCGEx::Convert<int32, T>(i); } }
 					break;
 				default: ;
 				}
@@ -409,8 +423,6 @@ namespace PCGEx
 
 			int32 NumPoints = PointIO->GetNum(PCGExData::ESource::In);
 			PCGEx::InitArray(Dump, NumPoints);
-			
-			// TODO : Use Convert() instead of SubSelection if it's invalid
 
 			if (ProcessingInfos == EPCGAttributePropertySelection::Attribute)
 			{
@@ -426,20 +438,34 @@ namespace PCGEx
 						InternalAccessor->GetRange(View, 0, *PointIO->GetInKeys().Get(), EPCGAttributeAccessorFlags::AllowBroadcast);
 
 						const FSubSelection& S = ProcessingInfos.SubSelection;
-						
+
 						if (bCaptureMinMax)
 						{
-							for (int i = 0; i < NumPoints; i++)
+							if (S.bIsValid)
 							{
-								T V = S.Get<RawT, T>(RawValues[i]);
-								OutMin = PCGExBlend::Min(V, OutMin);
-								OutMax = PCGExBlend::Max(V, OutMax);
-								Dump[i] = V;
+								for (int i = 0; i < NumPoints; i++)
+								{
+									T V = S.Get<RawT, T>(RawValues[i]);
+									OutMin = PCGExBlend::Min(V, OutMin);
+									OutMax = PCGExBlend::Max(V, OutMax);
+									Dump[i] = V;
+								}
+							}
+							else
+							{
+								for (int i = 0; i < NumPoints; i++)
+								{
+									T V = PCGEx::Convert<RawT, T>(RawValues[i]);
+									OutMin = PCGExBlend::Min(V, OutMin);
+									OutMax = PCGExBlend::Max(V, OutMax);
+									Dump[i] = V;
+								}
 							}
 						}
 						else
 						{
-							for (int i = 0; i < NumPoints; i++) { Dump[i] = S.Get<RawT, T>(RawValues[i]); }
+							if (S.bIsValid) { for (int i = 0; i < NumPoints; i++) { Dump[i] = S.Get<RawT, T>(RawValues[i]); } }
+							else { for (int i = 0; i < NumPoints; i++) { Dump[i] = PCGEx::Convert<RawT, T>(RawValues[i]); } }
 						}
 
 						RawValues.Empty();
@@ -450,10 +476,14 @@ namespace PCGEx
 				const FSubSelection& S = ProcessingInfos.SubSelection;
 				const TArray<FPCGPoint>& InPoints = InData->GetPoints();
 
-#define PCGEX_GET_BY_ACCESSOR(_ENUM, _ACCESSOR) case _ENUM:\
-				if (bCaptureMinMax) { for (int i = 0; i < NumPoints; i++) {\
-						T V = S.Get<T>(InPoints[i]._ACCESSOR); OutMin = PCGExBlend::Min(V, OutMin); OutMax = PCGExBlend::Max(V, OutMax); Dump[i] = V;\
-					} } else { for (int i = 0; i < NumPoints; i++) { Dump[i] = S.Get<T>(InPoints[i]._ACCESSOR); } } break;
+#define PCGEX_GET_BY_ACCESSOR(_ENUM, _ACCESSOR, _TYPE) case _ENUM:\
+				if (bCaptureMinMax) {\
+					if (S.bIsValid){ for (int i = 0; i < NumPoints; i++) { T V = S.Get<_TYPE, T>(InPoints[i]._ACCESSOR); OutMin = PCGExBlend::Min(V, OutMin); OutMax = PCGExBlend::Max(V, OutMax); Dump[i] = V; } } \
+					else { for (int i = 0; i < NumPoints; i++) { T V = PCGEx::Convert<_TYPE, T>(InPoints[i]._ACCESSOR); OutMin = PCGExBlend::Min(V, OutMin); OutMax = PCGExBlend::Max(V, OutMax); Dump[i] = V; } } \
+				}else{ \
+					if (S.bIsValid){ for (int i = 0; i < NumPoints; i++) { Dump[i] = S.Get<_TYPE, T>(InPoints[i]._ACCESSOR); } } \
+					else{ for (int i = 0; i < NumPoints; i++) { Dump[i] = PCGEx::Convert<_TYPE, T>(InPoints[i]._ACCESSOR); } } \
+				} break;
 
 				switch (static_cast<EPCGPointProperties>(ProcessingInfos)) { PCGEX_FOREACH_POINTPROPERTY(PCGEX_GET_BY_ACCESSOR) }
 #undef PCGEX_GET_BY_ACCESSOR
@@ -465,7 +495,8 @@ namespace PCGEx
 				switch (static_cast<EPCGExtraProperties>(ProcessingInfos))
 				{
 				case EPCGExtraProperties::Index:
-					for (int i = 0; i < NumPoints; i++) { Dump[i] = S.Get<T>(i); }
+					if (bCaptureMinMax) { for (int i = 0; i < NumPoints; i++) { Dump[i] = S.Get<int32, T>(i); } }
+					else { for (int i = 0; i < NumPoints; i++) { Dump[i] = PCGEx::Convert<int32, T>(i); } }
 					break;
 				default: ;
 				}
@@ -481,8 +512,6 @@ namespace PCGEx
 			int32 NumPoints = PointIO->GetNum(PCGExData::ESource::In);
 			Dump.Reserve(Dump.Num() + NumPoints);
 
-			// TODO : Use Convert() instead of SubSelection if it's invalid
-			
 			if (ProcessingInfos == EPCGAttributePropertySelection::Attribute)
 			{
 				PCGEx::ExecuteWithRightType(
@@ -497,7 +526,8 @@ namespace PCGEx
 						InternalAccessor->GetRange(View, 0, *PointIO->GetInKeys().Get(), EPCGAttributeAccessorFlags::AllowBroadcast);
 
 						const FSubSelection& S = ProcessingInfos.SubSelection;
-						for (int i = 0; i < NumPoints; i++) { Dump.Add(S.Get<RawT, T>(RawValues[i])); }
+						if (S.bIsValid) { for (int i = 0; i < NumPoints; i++) { Dump.Add(S.Get<RawT, T>(RawValues[i])); } }
+						else { for (int i = 0; i < NumPoints; i++) { Dump.Add(PCGEx::Convert<RawT, T>(RawValues[i])); } }
 
 						RawValues.Empty();
 					});
@@ -507,7 +537,9 @@ namespace PCGEx
 				const FSubSelection& S = ProcessingInfos.SubSelection;
 				const TArray<FPCGPoint>& InPoints = InData->GetPoints();
 
-#define PCGEX_GET_BY_ACCESSOR(_ENUM, _ACCESSOR) case _ENUM: for (int i = 0; i < NumPoints; i++) { Dump.Add(S.Get<T>(InPoints[i]._ACCESSOR)); } break;
+#define PCGEX_GET_BY_ACCESSOR(_ENUM, _ACCESSOR, _TYPE) case _ENUM: \
+				if (S.bIsValid) { for (int i = 0; i < NumPoints; i++) { Dump.Add(S.Get<_TYPE, T>(InPoints[i]._ACCESSOR)); } } \
+				else{ for (int i = 0; i < NumPoints; i++) { Dump.Add(PCGEx::Convert<_TYPE, T>(InPoints[i]._ACCESSOR)); } } break;
 				switch (static_cast<EPCGPointProperties>(ProcessingInfos)) { PCGEX_FOREACH_POINTPROPERTY(PCGEX_GET_BY_ACCESSOR) }
 #undef PCGEX_GET_BY_ACCESSOR
 			}
@@ -517,7 +549,8 @@ namespace PCGEx
 				switch (static_cast<EPCGExtraProperties>(ProcessingInfos))
 				{
 				case EPCGExtraProperties::Index:
-					for (int i = 0; i < NumPoints; i++) { Dump.Add(S.Get<T>(i)); }
+					if (S.bIsValid) { for (int i = 0; i < NumPoints; i++) { Dump.Add(S.Get<int32, T>(i)); } }
+					else { for (int i = 0; i < NumPoints; i++) { Dump.Add(PCGEx::Convert<int32, T>(i)); } }
 					break;
 				default: ;
 				}
@@ -568,7 +601,7 @@ namespace PCGEx
 						return ProcessingInfos.SubSelection.Get<RawT, T>(TypedAttribute->GetValueFromItemKey(Point.MetadataEntry));
 					});
 			case EPCGAttributePropertySelection::PointProperty:
-#define PCGEX_GET_BY_ACCESSOR(_ENUM, _ACCESSOR) case _ENUM: return ProcessingInfos.SubSelection.Get<T>(Point._ACCESSOR); break;
+#define PCGEX_GET_BY_ACCESSOR(_ENUM, _ACCESSOR, _TYPE) case _ENUM: return ProcessingInfos.SubSelection.Get<_TYPE, T>(Point._ACCESSOR); break;
 				switch (static_cast<EPCGPointProperties>(ProcessingInfos)) { PCGEX_FOREACH_POINTPROPERTY(PCGEX_GET_BY_ACCESSOR) }
 #undef PCGEX_GET_BY_ACCESSOR
 			case EPCGAttributePropertySelection::ExtraProperty:

@@ -14,10 +14,10 @@ FString UPCGExFilterProviderSettings::GetDisplayName() const { return TEXT(""); 
 
 UPCGExFactoryData* UPCGExFilterProviderSettings::CreateFactory(FPCGExContext* InContext, UPCGExFactoryData* InFactory) const
 {
-	UPCGExFilterFactoryData* OutFilterFactory = Cast<UPCGExFilterFactoryData>(InFactory);
-	OutFilterFactory->Priority = Priority;
+	UPCGExFilterFactoryData* NewFactory = Cast<UPCGExFilterFactoryData>(InFactory);
+	NewFactory->Priority = Priority;
 
-	return Super::CreateFactory(InContext, InFactory);
+	return Super::CreateFactory(InContext, NewFactory);
 }
 
 #undef LOCTEXT_NAMESPACE
