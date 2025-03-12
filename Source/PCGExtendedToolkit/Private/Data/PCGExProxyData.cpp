@@ -5,5 +5,8 @@
 
 namespace PCGExData
 {
-	
+	void FProxyDescriptor::UpdateSubSelection()
+	{
+		SubSelection = PCGEx::FSubSelection(Selector);
+	}
 }

@@ -8,6 +8,12 @@
 #define LOCTEXT_NAMESPACE "PCGExCreateAttributeBlend"
 #define PCGEX_NAMESPACE CreateAttributeBlend
 
+void FPCGExAttributeBlendWeight::Init()
+{
+	if (!bUseLocalCurve) { LocalWeightCurve.ExternalCurve = WeightCurve.Get(); }
+	ScoreCurveObj = LocalWeightCurve.GetRichCurveConst();
+}
+
 void FPCGExAttributeBlendConfig::Init()
 {
 	bRequiresWeight =
@@ -16,79 +22,216 @@ void FPCGExAttributeBlendConfig::Init()
 		BlendMode == EPCGExABBlendingType::WeightedSubtract ||
 		BlendMode == EPCGExABBlendingType::WeightedAdd;
 
-	if (!bUseLocalCurve) { LocalWeightCurve.ExternalCurve = WeightCurve.Get(); }
-	ScoreCurveObj = LocalWeightCurve.GetRichCurveConst();
+	Weighting.Init();
 }
 
 bool UPCGExAttributeBlendOperation::PrepareForData(FPCGExContext* InContext, const TSharedRef<PCGExData::FFacade>& InDataFacade)
 {
 	PrimaryDataFacade = InDataFacade;
 
-	// TODO : Determine output type
-
-	PCGExData::ESource SourceA = PCGExData::ESource::Out;
-	EPCGMetadataTypes TypeA = EPCGMetadataTypes::Unknown;
-
-	PCGExData::ESource SourceB = PCGExData::ESource::Out;
-	EPCGMetadataTypes TypeB = EPCGMetadataTypes::Unknown;
-
-	if (PCGEx::TryGetTypeAndSource(Config.OperandA, InDataFacade, TypeA, SourceA))
+	if (Config.Weighting.WeightInput == EPCGExInputValueType::Attribute)
 	{
+		Weight = InDataFacade->GetScopedBroadcaster<double>(Config.Weighting.WeightAttribute);
+		if (!Weight)
+		{
+			PCGEX_LOG_INVALID_SELECTOR_C(InContext, Weight Attribute, Config.Weighting.WeightAttribute)
+			return false;
+		}
 	}
-	else
+
+	// Fix @Selectors based on siblings 
+	if (!CopyAndFixSiblingSelector(InContext, Config.OperandA)) { return false; }
+	if (!CopyAndFixSiblingSelector(InContext, Config.OperandB)) { return false; }
+	if (!CopyAndFixSiblingSelector(InContext, Config.OutputTo)) { return false; }
+
+	PCGExData::FProxyDescriptor A = PCGExData::FProxyDescriptor();
+	PCGExData::FProxyDescriptor B = PCGExData::FProxyDescriptor();
+
+	if (!PCGEx::TryGetTypeAndSource(Config.OperandA, InDataFacade, A.RealType, A.Source))
 	{
 		PCGEX_LOG_INVALID_SELECTOR_C(InContext, OperandA, Config.OperandA)
 		return false;
 	}
 
-	if (PCGEx::TryGetTypeAndSource(Config.OperandB, InDataFacade, TypeB, SourceB))
-	{
-	}
-	else
+	if (!PCGEx::TryGetTypeAndSource(Config.OperandB, InDataFacade, B.RealType, B.Source))
 	{
 		PCGEX_LOG_INVALID_SELECTOR_C(InContext, OperandB, Config.OperandB)
 		return false;
 	}
 
-	// TODO : Support @Previous attribute and swap it with the previous ops' output path
+	PCGExData::FProxyDescriptor C = PCGExData::FProxyDescriptor();
+	C.Source = PCGExData::ESource::Out;
 
-	Config.OperandA = Config.OperandA.CopyAndFixLast(InDataFacade->Source->GetData(SourceA));
-	Config.OperandB = Config.OperandB.CopyAndFixLast(InDataFacade->Source->GetData(SourceB));
 
-	// TODO : If we target an attribute, make sure to initialize it as writable first first 
+	Config.OperandA = A.Selector = Config.OperandA.CopyAndFixLast(InDataFacade->Source->GetData(A.Source));
+	Config.OperandB = B.Selector = Config.OperandB.CopyAndFixLast(InDataFacade->Source->GetData(B.Source));
+	Config.OutputTo = C.Selector = Config.OutputTo.CopyAndFixLast(InDataFacade->Source->GetOut());
 
-	Config.OutputTo = Config.OutputTo.CopyAndFixLast(InDataFacade->Source->GetOut());
+	A.UpdateSubSelection();
+	B.UpdateSubSelection();
+	C.UpdateSubSelection();
 
-	EPCGMetadataTypes OutType = EPCGMetadataTypes::Unknown;
+	PCGEx::FSubSelection OutputSubselection(Config.OutputTo);
+	EPCGMetadataTypes RealTypeC = EPCGMetadataTypes::Unknown;
+	EPCGMetadataTypes WorkingTypeC = EPCGMetadataTypes::Unknown;
 
-	PCGEx::ExecuteWithRightType(
-		OutType, [&](auto DummyValue)
+	if (Config.OutputTo.GetSelection() == EPCGAttributePropertySelection::ExtraProperty)
+	{
+		PCGE_LOG_C(Error, GraphAndLog, InContext, FTEXT("Only attributes and point properties are supported as outputs; it's not possible to write to extras."));
+		return false;
+	}
+	else if (Config.OutputTo.GetSelection() == EPCGAttributePropertySelection::Attribute)
+	{
+		if (Config.OutputType == EPCGExOperandAuthority::A) { RealTypeC = A.RealType; }
+		else if (Config.OutputType == EPCGExOperandAuthority::B) { RealTypeC = B.RealType; }
+		else if (Config.OutputType == EPCGExOperandAuthority::Custom) { RealTypeC = Config.CustomType; }
+		else if (Config.OutputType == EPCGExOperandAuthority::Auto)
 		{
-			using T = decltype(DummyValue);
-			Blender = PCGExDataBlending::CreateProxyBlender<T>(
-				InContext, InDataFacade, Config.BlendMode,
-				Config.OperandA, Config.OperandB, Config.OutputTo);
-		});
-	
+			if (const FPCGMetadataAttributeBase* OutAttribute = InDataFacade->GetOut()->Metadata->GetConstAttribute(Config.OutputTo.GetAttributeName()))
+			{
+				// First, check for an existing attribute
+				RealTypeC = static_cast<EPCGMetadataTypes>(OutAttribute->GetTypeId());
+				// TODO : Account for possible desired cast to a different type in the blend stack
+			}
+
+			if (OutputSubselection.bIsValid && RealTypeC == EPCGMetadataTypes::Unknown)
+			{
+				// Take a wild guess based on subselection, if any
+				RealTypeC = OutputSubselection.PossibleSourceType;
+			}
+
+			if (RealTypeC == EPCGMetadataTypes::Unknown)
+			{
+				// Ok we really have little to work with,
+				// take a guess based on other attribute types and pick the broader type
+
+				EPCGMetadataTypes TypeA = A.SubSelection.bIsValid && A.SubSelection.bIsFieldSet ? EPCGMetadataTypes::Double : A.RealType;
+				EPCGMetadataTypes TypeB = B.SubSelection.bIsValid && B.SubSelection.bIsFieldSet ? EPCGMetadataTypes::Double : B.RealType;
+				
+				int32 RatingA = PCGEx::GetMetadataRating(TypeA);
+				int32 RatingB = PCGEx::GetMetadataRating(TypeB);
+
+				RealTypeC = RatingA > RatingB ? TypeA : TypeB;
+			}
+		}
+	}
+	else // Point property
+	{
+		RealTypeC = PCGEx::GetPropertyType(Config.OutputTo.GetPointProperty());
+	}
+
+	if (RealTypeC == EPCGMetadataTypes::Unknown)
+	{
+		PCGE_LOG_C(Error, GraphAndLog, InContext, FTEXT("Could not infer output type."));
+		return false;
+	}
+
+	WorkingTypeC = C.SubSelection.GetSubType(RealTypeC);
+
+	A.WorkingType = WorkingTypeC;
+	B.WorkingType = WorkingTypeC;
+
+	C.RealType = RealTypeC;
+	C.WorkingType = WorkingTypeC;
+
+	Blender = PCGExDataBlending::CreateProxyBlender(InContext, InDataFacade, Config.BlendMode, A, B, C);
+
+	if (!Blender) { return false; }
 	return true;
+}
+
+void UPCGExAttributeBlendOperation::CompleteWork(TSet<TSharedPtr<PCGExData::FBufferBase>>& OutDisabledBuffers)
+{
+	if (Blender)
+	{
+		if (TSharedPtr<PCGExData::FBufferBase> OutputBuffer = Blender->GetOutputBuffer())
+		{
+			if (Config.bTransactional)
+			{
+				OutputBuffer->Disable();
+				OutDisabledBuffers.Add(OutputBuffer);
+			}
+			else
+			{
+				OutputBuffer->Enable();
+				OutDisabledBuffers.Remove(OutputBuffer);
+			}
+		}
+
+		// TODO : Restore point properties to their original values...?
+	}
 }
 
 void UPCGExAttributeBlendOperation::Cleanup()
 {
+	SiblingOperations.Reset();
 	Blender.Reset();
 	Super::Cleanup();
+}
+
+bool UPCGExAttributeBlendOperation::CopyAndFixSiblingSelector(FPCGExContext* InContext, FPCGAttributePropertyInputSelector& Selector) const
+{
+	// TODO : Support index shortcuts like @0 @1 @2 etc
+
+	if (Selector.GetSelection() == EPCGAttributePropertySelection::Attribute)
+	{
+		if (Selector.GetAttributeName() == PCGEx::PreviousAttributeName)
+		{
+			const UPCGExAttributeBlendOperation* PreviousOperation = SiblingOperations && SiblingOperations->IsValidIndex(OpIdx - 1) ? (*SiblingOperations.Get())[OpIdx - 1] : nullptr;
+
+			if (!PreviousOperation)
+			{
+				PCGE_LOG_C(Error, GraphAndLog, InContext, FTEXT("There is no valid #Previous attribute. Check priority order!"));
+				return false;
+			}
+
+			Selector = PreviousOperation->Config.OutputTo;
+			return true;
+		}
+
+		{
+			FString Shortcut = Selector.GetAttributeName().ToString();
+			if (Shortcut.RemoveFromStart(TEXT("#")))
+			{
+				if (Shortcut.IsNumeric())
+				{
+					int32 Idx = FCString::Atoi(*Shortcut);
+					const UPCGExAttributeBlendOperation* TargetOperation = SiblingOperations && SiblingOperations->IsValidIndex(Idx) ? (*SiblingOperations.Get())[Idx] : nullptr;
+
+					if (TargetOperation == this)
+					{
+						PCGE_LOG_C(Error, GraphAndLog, InContext, FTEXT("Attempting to reference self using #INDEX, this is not allowed -- you can only reference previous operations."));
+						return false;
+					}
+
+					if (!TargetOperation)
+					{
+						PCGE_LOG_C(Error, GraphAndLog, InContext, FTEXT("There is no valid operation at the specified #INDEX. Check priority order -- you can only reference previous operations."));
+						return false;
+					}
+
+					Selector = TargetOperation->Config.OutputTo;
+					return true;
+				}
+			}
+		}
+	}
+
+	return true;
 }
 
 UPCGExAttributeBlendOperation* UPCGExAttributeBlendFactory::CreateOperation(FPCGExContext* InContext) const
 {
 	UPCGExAttributeBlendOperation* NewOperation = InContext->ManagedObjects->New<UPCGExAttributeBlendOperation>();
+	NewOperation->Config = Config;
+	NewOperation->Config.Init();
 	return NewOperation;
 }
 
 void UPCGExAttributeBlendFactory::RegisterAssetDependencies(FPCGExContext* InContext) const
 {
 	Super::RegisterAssetDependencies(InContext);
-	if (Config.bRequiresWeight && !Config.bUseLocalCurve) { InContext->AddAssetDependency(Config.WeightCurve.ToSoftObjectPath()); }
+	if (Config.bRequiresWeight && !Config.Weighting.bUseLocalCurve) { InContext->AddAssetDependency(Config.Weighting.WeightCurve.ToSoftObjectPath()); }
 }
 
 bool UPCGExAttributeBlendFactory::RegisterConsumableAttributesWithData(FPCGExContext* InContext, const UPCGData* InData) const
@@ -143,6 +286,7 @@ UPCGExFactoryData* UPCGExAttributeBlendFactoryProviderSettings::CreateFactory(FP
 {
 	UPCGExAttributeBlendFactory* NewFactory = InContext->ManagedObjects->New<UPCGExAttributeBlendFactory>();
 	NewFactory->Priority = Priority;
+	NewFactory->Config = Config;
 
 	return Super::CreateFactory(InContext, NewFactory);
 }
