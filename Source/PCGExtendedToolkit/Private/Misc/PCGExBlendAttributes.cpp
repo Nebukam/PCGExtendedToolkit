@@ -71,12 +71,23 @@ namespace PCGExBlendAttributes
 
 		PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::Duplicate)
 
-		Operations.Reserve(Context->BlendingFactories.Num());
+		Operations = MakeShared<TArray<UPCGExAttributeBlendOperation*>>();
+		Operations->Reserve(Context->BlendingFactories.Num());
+
+		int32 OperationIdx = 0;
 		for (const TObjectPtr<const UPCGExAttributeBlendFactory>& Factory : Context->BlendingFactories)
 		{
 			UPCGExAttributeBlendOperation* Op = Factory->CreateOperation(Context);
-			if (!Op || !Op->PrepareForData(Context, PointDataFacade)) { continue; }
-			Operations.Add(Op);
+			if (!Op)
+			{
+				PCGE_LOG_C(Error, GraphAndLog, Context, FTEXT("An operation could not be created."));
+				return false;
+			}
+
+			Op->OpIdx = Operations->Add(Op);
+			Op->SiblingOperations = Operations;
+
+			if (!Op->PrepareForData(Context, PointDataFacade)) { return false; }
 		}
 
 		NumPoints = PointDataFacade->GetNum();
@@ -101,11 +112,12 @@ namespace PCGExBlendAttributes
 		FilterScope(InScope);
 
 		TArray<FPCGPoint>& Points = PointDataFacade->GetMutablePoints();
-
+		TArray<UPCGExAttributeBlendOperation*>& Ops = *Operations.Get();
+		
 		for (int i = InScope.Start; i < InScope.End; i++)
 		{
 			if (!PointFilterCache[i]) { continue; }
-			for (UPCGExAttributeBlendOperation* Op : Operations) { Op->Blend(i, Points[i]); }
+			for (UPCGExAttributeBlendOperation* Op : Ops) { Op->Blend(i, Points[i]); }
 		}
 	}
 

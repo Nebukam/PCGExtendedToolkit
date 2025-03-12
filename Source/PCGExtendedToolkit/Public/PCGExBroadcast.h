@@ -411,6 +411,8 @@ namespace PCGEx
 		bool bIsValid = false;
 		bool bIsAxisSet = false;
 		bool bIsFieldSet = false;
+		bool bIsComponentSet = false;
+		
 		EPCGExTransformComponent Component = EPCGExTransformComponent::Position;
 		EPCGExAxis Axis = EPCGExAxis::Forward;
 		EPCGExSingleField Field = EPCGExSingleField::X;
@@ -421,7 +423,7 @@ namespace PCGEx
 		explicit FSubSelection(const FPCGAttributePropertyInputSelector& InSelector);
 		explicit FSubSelection(const FString& Path, const UPCGData* InData = nullptr);
 
-		EPCGMetadataTypes GetSubType() const;
+		EPCGMetadataTypes GetSubType(EPCGMetadataTypes Fallback = EPCGMetadataTypes::Unknown) const;
 		
 	protected:
 		void Init(const TArray<FString>& ExtraNames);

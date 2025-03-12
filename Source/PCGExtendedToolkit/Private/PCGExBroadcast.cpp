@@ -71,9 +71,9 @@ namespace PCGEx
 		Init(ProxySelector.GetExtraNames());
 	}
 
-	EPCGMetadataTypes FSubSelection::GetSubType() const
+	EPCGMetadataTypes FSubSelection::GetSubType(const EPCGMetadataTypes Fallback) const
 	{
-		if (!bIsValid) { return EPCGMetadataTypes::Unknown; }
+		if (!bIsValid) { return Fallback; }
 		if (bIsFieldSet) { return EPCGMetadataTypes::Double; }
 		if (bIsAxisSet) { return EPCGMetadataTypes::Vector; }
 
@@ -86,7 +86,7 @@ namespace PCGEx
 			return EPCGMetadataTypes::Quaternion;
 		}
 
-		return EPCGMetadataTypes::Unknown;
+		return Fallback;
 	}
 
 	void FSubSelection::Init(const TArray<FString>& ExtraNames)
@@ -101,15 +101,15 @@ namespace PCGEx
 		if (bIsAxisSet)
 		{
 			bIsValid = true;
-			if (!GetComponentSelection(ExtraNames, Component))
-			{
-				// Only axis is set, assume it's a transform, so rotation
-				Component = EPCGExTransformComponent::Rotation;
-			}
+			bIsComponentSet = GetComponentSelection(ExtraNames, Component);
+
+			// Only axis is set, assume it's a transform, so rotation
+			// Leave component set to false, might create issues?
+			if (!bIsComponentSet) { Component = EPCGExTransformComponent::Rotation; }
 		}
 		else
 		{
-			bIsValid = GetComponentSelection(ExtraNames, Component);
+			bIsComponentSet = bIsValid = GetComponentSelection(ExtraNames, Component);
 		}
 
 		bIsFieldSet = GetFieldSelection(ExtraNames, Field);

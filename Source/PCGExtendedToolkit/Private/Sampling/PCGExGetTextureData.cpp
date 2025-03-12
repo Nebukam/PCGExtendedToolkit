@@ -360,7 +360,7 @@ namespace PCGExGetTextureData
 			if (PotentialIndex.IsNumeric())
 			{
 				int32 N = FCString::Atoi(*PotentialIndex);
-				if (N < 64)
+				if (N >= 0 && N < 64)
 				{
 					// TextureArray2D don't support more entries, so if it's greater it's not that.
 					// This is a very weak check :(

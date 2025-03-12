@@ -33,7 +33,9 @@ enum class EPCGExABBlendingType : uint8
 	AbsoluteMin      = 16 UMETA(DisplayName = "Absolute Min", ToolTip="+Min(A, B)"),
 	AbsoluteMax      = 17 UMETA(DisplayName = "Absolute Max", ToolTip="+Max(A, B)"),
 	Hash             = 18 UMETA(DisplayName = "Hash", ToolTip="Hash(A, B)"),
-	UnsignedHash     = 19 UMETA(DisplayName = "Hash (Unsigned)", ToolTip="Hash(Min(A, B), Max(A, B))")
+	UnsignedHash     = 19 UMETA(DisplayName = "Hash (Unsigned)", ToolTip="Hash(Min(A, B), Max(A, B))"),
+	Mod              = 20 UMETA(DisplayName = "Modulo (Simple)", ToolTip="FMod(A, cast(B))"),
+	ModCW            = 21 UMETA(DisplayName = "Modulo (Component Wise)", ToolTip="FMod(A, B)")
 };
 
 #define PCGEX_FOREACH_PROXYBLENDMODE(MACRO)\
@@ -56,7 +58,9 @@ MACRO(UnsignedMax) \
 MACRO(AbsoluteMin) \
 MACRO(AbsoluteMax) \
 MACRO(Hash) \
-MACRO(UnsignedHash)
+MACRO(UnsignedHash) \
+MACRO(Mod) \
+MACRO(ModCW)
 
 namespace PCGExDataBlending
 {
@@ -187,82 +191,62 @@ namespace PCGExDataBlending
 			{
 				C->Set(Index, Point, PCGExBlend::NaiveUnsignedHash(PCGEX_A,PCGEX_B));
 			}
+			else if constexpr (BLEND_MODE == EPCGExABBlendingType::Mod)
+			{
+				C->Set(Index, Point, PCGExBlend::ModSimple(PCGEX_A, PCGEx::Convert<T, double>(B->Get(Index, Point))));
+			}
+			else if constexpr (BLEND_MODE == EPCGExABBlendingType::ModCW)
+			{
+				C->Set(Index, Point, PCGExBlend::ModComplex(PCGEX_A,PCGEX_B));
+			}
 
 #undef PCGEX_A
 #undef PCGEX_B
 		}
 	};
 
-	template <typename T, EPCGExABBlendingType BLEND_MODE>
-	static TSharedPtr<FProxyDataBlenderBase> CreateProxyBlender(
-		FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade>& InDataFacade,
-		const FString& Path_A, const FString& Path_B, const FString& Path_C)
-	{
-		TSharedPtr<TProxyDataBlender<T, BLEND_MODE>> OutBlender = MakeShared<TProxyDataBlender<T, BLEND_MODE>>();
-		OutBlender->A = PCGExData::GetProxyBuffer<T>(InContext, InDataFacade, Path_A);
-		OutBlender->B = PCGExData::GetProxyBuffer<T>(InContext, InDataFacade, Path_B);
-		OutBlender->C = PCGExData::GetProxyBuffer<T>(InContext, InDataFacade, Path_C);
-		return OutBlender;
-	}
-
-	template <typename T, EPCGExABBlendingType BLEND_MODE>
-	static TSharedPtr<FProxyDataBlenderBase> CreateProxyBlender(
-		FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade>& InDataFacade,
-		const FPCGAttributePropertyInputSelector& Path_A,
-		const FPCGAttributePropertyInputSelector& Path_B,
-		const FPCGAttributePropertyInputSelector& Path_C)
-	{
-		TSharedPtr<TProxyDataBlender<T, BLEND_MODE>> OutBlender = MakeShared<TProxyDataBlender<T, BLEND_MODE>>();
-		OutBlender->A = PCGExData::GetProxyBuffer<T>(InContext, InDataFacade, Path_A);
-		OutBlender->B = PCGExData::GetProxyBuffer<T>(InContext, InDataFacade, Path_B);
-		OutBlender->C = PCGExData::GetProxyBuffer<T>(InContext, InDataFacade, Path_C);
-		return OutBlender;
-	}
-
-	template <typename T>
 	static TSharedPtr<FProxyDataBlenderBase> CreateProxyBlender(
 		FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade>& InDataFacade,
 		const EPCGExABBlendingType BlendMode,
-		const FString& Path_A, const FString& Path_B, const FString& Path_C)
+		const PCGExData::FProxyDescriptor& A,
+		const PCGExData::FProxyDescriptor& B,
+		const PCGExData::FProxyDescriptor& C)
 	{
-		TSharedPtr<TProxyDataBlenderBase<T>> OutBlender;
+		TSharedPtr<FProxyDataBlenderBase> OutBlender;
+
+		if (A.WorkingType != B.WorkingType || A.WorkingType != C.WorkingType)
+		{
+			PCGE_LOG_C(Error, GraphAndLog, InContext, FTEXT("ProxyBlender : T_WORKING mismatch."));
+			return nullptr;
+		}
+
+		PCGEx::ExecuteWithRightType(
+			A.WorkingType, [&](auto DummyValue)
+			{
+				using T = decltype(DummyValue);
+				TSharedPtr<TProxyDataBlenderBase<T>> TypedBlender;
 
 #define PCGEX_CREATE_BLENDER(_BLEND)case EPCGExABBlendingType::_BLEND : \
-		OutBlender = MakeShared<TProxyDataBlender<T, EPCGExABBlendingType::_BLEND>>(); \
-		break;
-		switch (BlendMode) { PCGEX_FOREACH_PROXYBLENDMODE(PCGEX_CREATE_BLENDER) }
-#undef PCGEX_CREATE_BLENDER
-
-		if (!OutBlender) { return nullptr; }
-
-		OutBlender->A = PCGExData::GetProxyBuffer<T>(InContext, InDataFacade, Path_A);
-		OutBlender->B = PCGExData::GetProxyBuffer<T>(InContext, InDataFacade, Path_B);
-		OutBlender->C = PCGExData::GetProxyBuffer<T>(InContext, InDataFacade, Path_C);
-
-		return OutBlender;
-	}
-
-	template <typename T>
-	static TSharedPtr<FProxyDataBlenderBase> CreateProxyBlender(
-		FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade>& InDataFacade,
-		const EPCGExABBlendingType BlendMode,
-		const FPCGAttributePropertyInputSelector& Path_A,
-		const FPCGAttributePropertyInputSelector& Path_B,
-		const FPCGAttributePropertyInputSelector& Path_C)
-	{
-		TSharedPtr<TProxyDataBlenderBase<T>> OutBlender;
-
-#define PCGEX_CREATE_BLENDER(_BLEND)case EPCGExABBlendingType::_BLEND : \
-OutBlender = MakeShared<TProxyDataBlender<T, EPCGExABBlendingType::_BLEND>>(); \
+TypedBlender = MakeShared<TProxyDataBlender<T, EPCGExABBlendingType::_BLEND>>(); \
 break;
-		switch (BlendMode) { PCGEX_FOREACH_PROXYBLENDMODE(PCGEX_CREATE_BLENDER) }
+				switch (BlendMode) { PCGEX_FOREACH_PROXYBLENDMODE(PCGEX_CREATE_BLENDER) }
 #undef PCGEX_CREATE_BLENDER
 
-		if (!OutBlender) { return nullptr; }
+				if (!TypedBlender) { return; }
+ 
+				TypedBlender->A = StaticCastSharedPtr<PCGExData::TBufferProxy<T>>(GetProxyBuffer(InContext, InDataFacade, A));
+				TypedBlender->B = StaticCastSharedPtr<PCGExData::TBufferProxy<T>>(GetProxyBuffer(InContext, InDataFacade, B));
+				TypedBlender->C = StaticCastSharedPtr<PCGExData::TBufferProxy<T>>(GetProxyBuffer(InContext, InDataFacade, C));
 
-		OutBlender->A = PCGExData::GetProxyBuffer<T>(InContext, InDataFacade, Path_A);
-		OutBlender->B = PCGExData::GetProxyBuffer<T>(InContext, InDataFacade, Path_B);
-		OutBlender->C = PCGExData::GetProxyBuffer<T>(InContext, InDataFacade, Path_C);
+				if (!TypedBlender) { return; }
+				if (!TypedBlender->A || !TypedBlender->B || !TypedBlender->C)
+				{
+					PCGE_LOG_C(Error, GraphAndLog, InContext, FTEXT("ProxyBlender : Missing at least one proxy."));
+				}
+
+				OutBlender = TypedBlender;
+			});
+
 
 		return OutBlender;
 	}

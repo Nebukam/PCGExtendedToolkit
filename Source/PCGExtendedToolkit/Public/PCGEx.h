@@ -166,6 +166,9 @@ enum class EPCGExTruncateMode : uint8
 
 namespace PCGEx
 {
+	const FName PreviousAttributeName = TEXT("#Previous");
+	const FName PreviousNameAttributeName = TEXT("#PreviousName");
+	
 	const FString PCGExPrefix = TEXT("PCGEx/");
 	const FName SourcePointsLabel = TEXT("In");
 	const FName SourceTargetsLabel = TEXT("Targets");
