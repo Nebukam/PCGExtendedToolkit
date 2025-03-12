@@ -20,6 +20,50 @@ enum class EPCGExOperandAuthority : uint8
 	A      = 0 UMETA(DisplayName = "Operand A", ToolTip="Type of operand A will drive the output type, thus converting operand B to the same type for the operation."),
 	B      = 1 UMETA(DisplayName = "Operand B", ToolTip="Type of operand B will drive the output type, thus converting operand A to the same type for the operation."),
 	Custom = 2 UMETA(DisplayName = "Custom", ToolTip="Select a specific type to output the result to."),
+	Auto   = 3 UMETA(DisplayName = "Auto", ToolTip="Takes an informed guess based on settings & existing data. Usually works well, but not fool-proof."),
+};
+
+USTRUCT(BlueprintType)
+struct PCGEXTENDEDTOOLKIT_API FPCGExAttributeBlendWeight
+{
+	GENERATED_BODY()
+
+	FPCGExAttributeBlendWeight()
+	{
+		LocalWeightCurve.EditorCurveData.AddKey(0, 0);
+		LocalWeightCurve.EditorCurveData.AddKey(1, 1);
+	}
+
+	~FPCGExAttributeBlendWeight() = default;
+
+	/** Type of Weight */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	EPCGExInputValueType WeightInput = EPCGExInputValueType::Constant;
+
+	/** Attribute to read weight value from. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Weight (Attr)", EditCondition="WeightInput!=EPCGExInputValueType::Constant", EditConditionHides))
+	FPCGAttributePropertyInputSelector WeightAttribute;
+
+	/** Constant weight value. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Weight", EditCondition="WeightInput==EPCGExInputValueType::Constant", EditConditionHides))
+	double Weight = 0.5;
+
+	/** Whether to use in-editor curve or an external asset. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable))
+	bool bUseLocalCurve = false;
+
+	// TODO: DirtyCache for OnDependencyChanged when this float curve is an external asset
+	/** Curve the weight value will be remapped over. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_NotOverridable, DisplayName="Weight Curve", EditCondition = "bUseLocalCurve", EditConditionHides))
+	FRuntimeFloatCurve LocalWeightCurve;
+
+	/** Curve the weight value will be remapped over. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Weight Curve", EditCondition="!bUseLocalCurve", EditConditionHides))
+	TSoftObjectPtr<UCurveFloat> WeightCurve = TSoftObjectPtr<UCurveFloat>(PCGEx::WeightDistributionLinear);
+
+	const FRichCurve* ScoreCurveObj = nullptr;
+
+	void Init();
 };
 
 USTRUCT(BlueprintType)
@@ -29,8 +73,8 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExAttributeBlendConfig
 
 	FPCGExAttributeBlendConfig()
 	{
-		LocalWeightCurve.EditorCurveData.AddKey(0, 0);
-		LocalWeightCurve.EditorCurveData.AddKey(1, 1);
+		OperandA.Update(PCGEx::PreviousAttributeName.ToString());
+		OperandB.Update("@Last");
 		OutputTo.Update("Result");
 	}
 
@@ -51,44 +95,25 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExAttributeBlendConfig
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	FPCGAttributePropertyInputSelector OperandB;
 
+	/** Weight settings */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bRequiresWeight", EditConditionHides, HideEditConditionToggle))
+	FPCGExAttributeBlendWeight Weighting;
+
 	/** Output to (AB blend). */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	FPCGAttributePropertyInputSelector OutputTo;
 
-	/** Which type should be used for the output value. */
+	/** Which type should be used for the output value. Only used if the output is not a point property. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
-	EPCGExOperandAuthority OutputType = EPCGExOperandAuthority::A;
+	EPCGExOperandAuthority OutputType = EPCGExOperandAuthority::Auto;
 
 	/** Which type should be used for the output value. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName=" └─ Type", EditCondition="OutputType==EPCGExOperandAuthority::Custom", EditConditionHides))
 	EPCGMetadataTypes CustomType = EPCGMetadataTypes::Double;
 
-	/** Type of Weight */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Weighting", meta=(PCG_Overridable, EditCondition="bRequiresWeight", EditConditionHides, HideEditConditionToggle))
-	EPCGExInputValueType WeightInput = EPCGExInputValueType::Constant;
-
-	/** Attribute to read weight value from. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Weighting", meta=(PCG_Overridable, DisplayName="Weight (Attr)", EditCondition="bRequiresWeight && WeightInput!=EPCGExInputValueType::Constant", EditConditionHides, HideEditConditionToggle))
-	FPCGAttributePropertyInputSelector WeightAttribute;
-
-	/** Constant weight value. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Weighting", meta=(PCG_Overridable, DisplayName="Weight", EditCondition="bRequiresWeight && WeightInput==EPCGExInputValueType::Constant", EditConditionHides, HideEditConditionToggle))
-	double Weight = 0.5;
-
-	/** Whether to use in-editor curve or an external asset. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Weighting", meta=(PCG_NotOverridable, EditCondition="bRequiresWeight", EditConditionHides, HideEditConditionToggle))
-	bool bUseLocalCurve = false;
-
-	// TODO: DirtyCache for OnDependencyChanged when this float curve is an external asset
-	/** Curve the weight value will be remapped over. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Weighting", meta = (PCG_NotOverridable, DisplayName="Weight Curve", EditCondition = "bRequiresWeight && bUseLocalCurve", EditConditionHides, HideEditConditionToggle))
-	FRuntimeFloatCurve LocalWeightCurve;
-
-	/** Curve the weight value will be remapped over. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Weighting", meta=(PCG_Overridable, DisplayName="Weight Curve", EditCondition="bRequiresWeight && !bUseLocalCurve", EditConditionHides, HideEditConditionToggle))
-	TSoftObjectPtr<UCurveFloat> WeightCurve = TSoftObjectPtr<UCurveFloat>(PCGEx::WeightDistributionLinear);
-
-	const FRichCurve* ScoreCurveObj = nullptr;
+	/** If enabled, new attributes will only be created for the duration of the blend, and properties will be restored to their original values once the blend is complete. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable))
+	bool bTransactional = false;
 
 	void Init();
 };
@@ -105,16 +130,25 @@ public:
 	UPROPERTY()
 	FPCGExAttributeBlendConfig Config;
 
-	virtual bool PrepareForData(::FPCGExContext* InContext, const TSharedRef<PCGExData::FFacade>& InDataFacade);
+	int32 OpIdx = -1;
+	TSharedPtr<TArray<UPCGExAttributeBlendOperation*>> SiblingOperations;
+
+
+	virtual bool PrepareForData(FPCGExContext* InContext, const TSharedRef<PCGExData::FFacade>& InDataFacade);
 
 	virtual void Blend(const int32 Index, FPCGPoint& Point)
 	{
-		/* Blender->Blend(Index, Point); */
+		Blender->Blend(Index, Point, Config.Weighting.ScoreCurveObj->Eval(Weight ? Weight->Read(Index) : Config.Weighting.Weight));
 	}
+
+	virtual void CompleteWork(TSet<TSharedPtr<PCGExData::FBufferBase>>& OutDisabledBuffers);
 
 	virtual void Cleanup() override;
 
 protected:
+	bool CopyAndFixSiblingSelector(FPCGExContext* InContext, FPCGAttributePropertyInputSelector& Selector) const;
+
+	TSharedPtr<PCGExData::TBuffer<double>> Weight;
 	TSharedPtr<PCGExDataBlending::FProxyDataBlenderBase> Blender;
 };
 
@@ -153,8 +187,6 @@ public:
 		PCGEX_FACTORY_NAME_PRIORITY)
 	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->NodeColorMisc; }
 	//PCGEX_NODE_POINT_FILTER(PCGExPointFilter::SourceFiltersLabel, "Filters", PCGExFactories::PointFilters, true)
-
-	virtual bool OnlyExposePreconfiguredSettings() const override { return true; };
 
 #if PCGEX_ENGINE_VERSION > 503
 	virtual bool CanUserEditTitle() const override { return false; }

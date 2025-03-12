@@ -6,12 +6,12 @@
 
 namespace PCGEx
 {
-	bool GetComponentSelection(const TArray<FString>& Names, EPCGExTransformComponent& OutSelection)
+	bool GetComponentSelection(const TArray<FString>& Names, FInputSelectorComponentData& OutSelection)
 	{
 		if (Names.IsEmpty()) { return false; }
 		for (const FString& Name : Names)
 		{
-			if (const EPCGExTransformComponent* Selection = STRMAP_TRANSFORM_FIELD.Find(Name.ToUpper()))
+			if (const FInputSelectorComponentData* Selection = STRMAP_TRANSFORM_FIELD.Find(Name.ToUpper()))
 			{
 				OutSelection = *Selection;
 				return true;
@@ -20,17 +20,11 @@ namespace PCGEx
 		return false;
 	}
 
-	bool GetFieldSelection(const TArray<FString>& Names, EPCGExSingleField& OutSelection)
+	bool GetFieldSelection(const TArray<FString>& Names, FInputSelectorFieldData& OutSelection)
 	{
 		if (Names.IsEmpty()) { return false; }
 		const FString& STR = Names.Num() > 1 ? Names[1].ToUpper() : Names[0].ToUpper();
-		if (const EPCGExSingleField* Selection = STRMAP_SINGLE_FIELD.Find(STR))
-		{
-			OutSelection = *Selection;
-			return true;
-		}
-		if (STR.Len() <= 0) { return false; }
-		if (const EPCGExSingleField* Selection = STRMAP_SINGLE_FIELD.Find(FString::Printf(TEXT("%c"), STR[0]).ToUpper()))
+		if (const FInputSelectorFieldData* Selection = STRMAP_SINGLE_FIELD.Find(STR))
 		{
 			OutSelection = *Selection;
 			return true;
@@ -38,12 +32,12 @@ namespace PCGEx
 		return false;
 	}
 
-	bool GetAxisSelection(const TArray<FString>& Names, EPCGExAxis& OutSelection)
+	bool GetAxisSelection(const TArray<FString>& Names, FInputSelectorAxisData& OutSelection)
 	{
 		if (Names.IsEmpty()) { return false; }
 		for (const FString& Name : Names)
 		{
-			if (const EPCGExAxis* Selection = STRMAP_AXIS.Find(Name.ToUpper()))
+			if (const FInputSelectorAxisData* Selection = STRMAP_AXIS.Find(Name.ToUpper()))
 			{
 				OutSelection = *Selection;
 				return true;
@@ -71,9 +65,9 @@ namespace PCGEx
 		Init(ProxySelector.GetExtraNames());
 	}
 
-	EPCGMetadataTypes FSubSelection::GetSubType() const
+	EPCGMetadataTypes FSubSelection::GetSubType(const EPCGMetadataTypes Fallback) const
 	{
-		if (!bIsValid) { return EPCGMetadataTypes::Unknown; }
+		if (!bIsValid) { return Fallback; }
 		if (bIsFieldSet) { return EPCGMetadataTypes::Double; }
 		if (bIsAxisSet) { return EPCGMetadataTypes::Vector; }
 
@@ -86,7 +80,7 @@ namespace PCGEx
 			return EPCGMetadataTypes::Quaternion;
 		}
 
-		return EPCGMetadataTypes::Unknown;
+		return Fallback;
 	}
 
 	void FSubSelection::Init(const TArray<FString>& ExtraNames)
@@ -97,23 +91,37 @@ namespace PCGEx
 			return;
 		}
 
-		bIsAxisSet = GetAxisSelection(ExtraNames, Axis);
+		FInputSelectorAxisData AxisIDMapping = FInputSelectorAxisData{EPCGExAxis::Forward, EPCGMetadataTypes::Unknown};
+		FInputSelectorComponentData ComponentIDMapping = {EPCGExTransformComponent::Rotation, EPCGMetadataTypes::Quaternion};
+		FInputSelectorFieldData FieldIDMapping = {EPCGExSingleField::X, EPCGMetadataTypes::Unknown, 0};
+
+		bIsAxisSet = GetAxisSelection(ExtraNames, AxisIDMapping);
+		Axis = AxisIDMapping.Get<0>();
+
+		bIsComponentSet = GetComponentSelection(ExtraNames, ComponentIDMapping);
+
 		if (bIsAxisSet)
 		{
 			bIsValid = true;
-			if (!GetComponentSelection(ExtraNames, Component))
-			{
-				// Only axis is set, assume it's a transform, so rotation
-				Component = EPCGExTransformComponent::Rotation;
-			}
+			bIsComponentSet = GetComponentSelection(ExtraNames, ComponentIDMapping);
 		}
 		else
 		{
-			bIsValid = GetComponentSelection(ExtraNames, Component);
+			bIsValid = bIsComponentSet;
 		}
 
-		bIsFieldSet = GetFieldSelection(ExtraNames, Field);
-		if (bIsFieldSet) { bIsValid = true; }
+		Component = ComponentIDMapping.Get<0>();
+		PossibleSourceType = ComponentIDMapping.Get<1>();
+
+		bIsFieldSet = GetFieldSelection(ExtraNames, FieldIDMapping);
+		Field = FieldIDMapping.Get<0>();
+		FieldIndex = FieldIDMapping.Get<2>();
+
+		if (bIsFieldSet)
+		{
+			bIsValid = true;
+			if (!bIsComponentSet) { PossibleSourceType = FieldIDMapping.Get<1>(); }
+		}
 
 		Update();
 	}
@@ -137,6 +145,7 @@ namespace PCGEx
 		case EPCGExSingleField::Length:
 		case EPCGExSingleField::SquaredLength:
 		case EPCGExSingleField::Volume:
+		case EPCGExSingleField::Sum:
 			FieldIndex = 0;
 			break;
 		}

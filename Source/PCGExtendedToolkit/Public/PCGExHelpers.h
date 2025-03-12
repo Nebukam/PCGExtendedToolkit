@@ -431,6 +431,36 @@ namespace PCGEx
 		}
 	}
 
+	constexpr static int32 GetMetadataRating(const EPCGMetadataTypes InType)
+	{
+		switch (InType)
+		{
+		default:
+			return 0;
+		case EPCGMetadataTypes::Boolean:
+		case EPCGMetadataTypes::Float:
+		case EPCGMetadataTypes::Double:
+		case EPCGMetadataTypes::Integer32:
+		case EPCGMetadataTypes::Integer64:
+			return 1;
+		case EPCGMetadataTypes::Vector2:
+			return 2;
+		case EPCGMetadataTypes::Vector:
+		case EPCGMetadataTypes::Rotator:
+			return 3;
+		case EPCGMetadataTypes::Vector4:
+		case EPCGMetadataTypes::Quaternion:
+			return 4;
+		case EPCGMetadataTypes::Transform:
+			return 5;
+		case EPCGMetadataTypes::String:
+		case EPCGMetadataTypes::Name:
+			return 6;
+		case EPCGMetadataTypes::Unknown:
+			return -1;
+		}
+	}
+
 	template <typename T>
 	constexpr static EPCGMetadataTypes GetMetadataType()
 	{
