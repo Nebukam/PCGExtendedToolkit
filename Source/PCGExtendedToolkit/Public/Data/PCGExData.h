@@ -134,6 +134,8 @@ namespace PCGExData
 
 		virtual ~FBufferBase() = default;
 
+		virtual bool EnsureReadable() { return false; }
+
 		virtual void Write(const bool bEnsureValidKeys = true)
 		{
 		}
@@ -182,6 +184,13 @@ namespace PCGExData
 		virtual ~TBuffer() override
 		{
 			Flush();
+		}
+
+		virtual bool EnsureReadable() override
+		{
+			if (InValues) { return true; }
+			InValues = OutValues;
+			return InValues ? true : false;
 		}
 
 		virtual bool IsWritable() override { return OutValues ? true : false; }
@@ -621,12 +630,13 @@ namespace PCGExData
 		}
 
 		template <typename T>
-		TSharedPtr<TBuffer<T>> GetScopedReadable(const FName InName)
+		TSharedPtr<TBuffer<T>> GetScopedReadable(const FName InName, const ESource InSource = ESource::In)
 		{
-			if (!bSupportsScopedGet) { return GetReadable<T>(InName); }
+			if (!bSupportsScopedGet) { return GetReadable<T>(InName, InSource); }
 
+			// Careful when reading from ESource::Out, make sure a writer already exists!!
 			TSharedPtr<TBuffer<T>> Buffer = GetBuffer<T>(InName);
-			if (!Buffer->PrepareRead(ESource::In, true))
+			if (!Buffer->PrepareRead(InSource, true))
 			{
 				Flush(Buffer);
 				return nullptr;
