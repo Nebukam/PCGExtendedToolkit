@@ -128,8 +128,7 @@ bool UPCGExAttributeBlendOperation::PrepareForData(FPCGExContext* InContext, con
 	}
 
 	WorkingTypeC = C.SubSelection.GetSubType(RealTypeC);
-
-
+	
 	A.WorkingType = WorkingTypeC;
 	B.WorkingType = WorkingTypeC;
 
@@ -140,6 +139,20 @@ bool UPCGExAttributeBlendOperation::PrepareForData(FPCGExContext* InContext, con
 
 	if (!Blender) { return false; }
 	return true;
+}
+
+void UPCGExAttributeBlendOperation::CompleteWork()
+{
+	if (Blender)
+	{
+		if (TSharedPtr<PCGExData::FBufferBase> OutputBuffer = Blender->GetOutputBuffer())
+		{
+			if (Config.bTransactional) { OutputBuffer->Disable(); }
+			else { OutputBuffer->Enable(); }
+		}
+
+		// TODO : Restore point properties to their original values...?
+	}
 }
 
 void UPCGExAttributeBlendOperation::Cleanup()

@@ -113,7 +113,7 @@ namespace PCGExBlendAttributes
 
 		TArray<FPCGPoint>& Points = PointDataFacade->GetMutablePoints();
 		TArray<UPCGExAttributeBlendOperation*>& Ops = *Operations.Get();
-		
+
 		for (int i = InScope.Start; i < InScope.End; i++)
 		{
 			if (!PointFilterCache[i]) { continue; }
@@ -123,6 +123,8 @@ namespace PCGExBlendAttributes
 
 	void FProcessor::CompleteWork()
 	{
+		TArray<UPCGExAttributeBlendOperation*>& Ops = *Operations.Get();
+		for (UPCGExAttributeBlendOperation* Op : Ops) { Op->CompleteWork(); }
 		PointDataFacade->Write(AsyncManager);
 	}
 }

@@ -75,6 +75,7 @@ namespace PCGExDataBlending
 		}
 
 		virtual void Blend(const int32 Index, FPCGPoint& Point, const double Weight = 1) = 0;
+		virtual TSharedPtr<PCGExData::FBufferBase> GetOutputBuffer() const = 0;
 	};
 
 	template <typename T>
@@ -91,6 +92,8 @@ namespace PCGExDataBlending
 
 		virtual void Blend(const int32 Index, FPCGPoint& Point, const double Weight = 1) override
 		PCGEX_NOT_IMPLEMENTED(Blend(const int32 Index, FPCGPoint& Point, const double Weight = 1))
+
+		virtual TSharedPtr<PCGExData::FBufferBase> GetOutputBuffer() const override { return C ? C->GetBuffer() : nullptr; }
 	};
 
 	template <typename T, EPCGExABBlendingType BLEND_MODE>
@@ -121,7 +124,7 @@ namespace PCGExDataBlending
 			}
 			else if constexpr (BLEND_MODE == EPCGExABBlendingType::Weight)
 			{
-				C->Set(Index, Point, PCGExBlend::Div(PCGExBlend::WeightedAdd(PCGEX_A,PCGEX_B), Weight));
+				C->Set(Index, Point, PCGExBlend::Div(PCGExBlend::Add(PCGEX_A,PCGEX_B), Weight));
 			}
 			else if constexpr (BLEND_MODE == EPCGExABBlendingType::Min)
 			{
@@ -233,7 +236,7 @@ break;
 #undef PCGEX_CREATE_BLENDER
 
 				if (!TypedBlender) { return; }
- 
+
 				TypedBlender->A = StaticCastSharedPtr<PCGExData::TBufferProxy<T>>(GetProxyBuffer(InContext, InDataFacade, A));
 				TypedBlender->B = StaticCastSharedPtr<PCGExData::TBufferProxy<T>>(GetProxyBuffer(InContext, InDataFacade, B));
 				TypedBlender->C = StaticCastSharedPtr<PCGExData::TBufferProxy<T>>(GetProxyBuffer(InContext, InDataFacade, C));

@@ -149,6 +149,8 @@ else if constexpr(_PROPERTY == EPCGPointProperties::LocalSize){ MACRO(GetLocalSi
 else if constexpr(_PROPERTY == EPCGPointProperties::ScaledLocalSize){ MACRO(GetScaledLocalSize(), FVector) } 
 #endif
 
+#define PCGEX_MACRO_NONE(...)
+
 #if PCGEX_ENGINE_VERSION <= 504
 #define PCGEX_CONSTEXPR_IFELSE_SETPOINTPROPERTY(_PROPERTY, _POINT, BODY, MACRO)\
 if constexpr(_PROPERTY == EPCGPointProperties::Density){ BODY(FVector) _POINT.Density = MACRO(float); } \

@@ -31,6 +31,7 @@ namespace PCGExData
 	class FBufferProxyBase : public TSharedFromThis<FBufferProxyBase>
 	{
 	public:
+		PCGEx::FSubSelection SubSelection;
 		EPCGMetadataTypes RealType = EPCGMetadataTypes::Unknown;
 		EPCGMetadataTypes WorkingType = EPCGMetadataTypes::Unknown;
 
@@ -38,14 +39,13 @@ namespace PCGExData
 		virtual ~FBufferProxyBase() = default;
 
 		bool Validate(const FProxyDescriptor& Descriptor) const { return Descriptor.RealType == RealType && Descriptor.WorkingType == WorkingType; }
+		virtual TSharedPtr<FBufferBase> GetBuffer() const { return nullptr; }
 	};
 
 	template <typename T>
 	class TBufferProxy : public FBufferProxyBase
 	{
-	public:
-		PCGEx::FSubSelection SubSelection;
-
+	public:		
 		TBufferProxy()
 			: FBufferProxyBase()
 		{
@@ -54,6 +54,7 @@ namespace PCGExData
 
 		virtual T Get(const int32 Index, FPCGPoint& Point) const = 0;
 		virtual void Set(const int32 Index, FPCGPoint& Point, const T& Value) const = 0;
+		virtual TSharedPtr<FBufferBase> GetBuffer() const override { return nullptr; }
 	};
 
 	template <typename T_REAL, typename T_WORKING, bool bSubSelection>
@@ -93,6 +94,8 @@ namespace PCGExData
 				Buffer->GetMutable(Index) = V;
 			}
 		}
+
+		virtual TSharedPtr<FBufferBase> GetBuffer() const override { return Buffer; }
 	};
 
 	template <typename T_REAL, typename T_WORKING, bool bSubSelection, EPCGPointProperties PROPERTY>
@@ -122,19 +125,22 @@ namespace PCGExData
 		{
 			if constexpr (!bSubSelection)
 			{
-#define PCGEX_STATIC_POINTPROPERTY_NONE(_TYPE)
-#define PCGEX_STATIC_POINTPROPERTY_SETTER(_TYPE) PCGEx::Convert<T_WORKING, _TYPE>(Value)
-				PCGEX_CONSTEXPR_IFELSE_SETPOINTPROPERTY(PROPERTY, Point, PCGEX_STATIC_POINTPROPERTY_NONE, PCGEX_STATIC_POINTPROPERTY_SETTER)
-#undef PCGEX_STATIC_POINTPROPERTY_SETTER
-#undef PCGEX_STATIC_POINTPROPERTY_NONE
+#define PCGEX_PROPERTY_VALUE(_TYPE) PCGEx::Convert<T_WORKING, _TYPE>(Value)
+				PCGEX_CONSTEXPR_IFELSE_SETPOINTPROPERTY(PROPERTY, Point, PCGEX_MACRO_NONE, PCGEX_PROPERTY_VALUE)
+#undef PCGEX_PROPERTY_VALUE
 			}
 			else
 			{
-#define PCGEX_STATIC_POINTPROPERTY_SET(_TYPE) T_REAL V = Get(Index, Point); SubSelection.template Set<T_REAL, T_WORKING>(V, Value);
-#define PCGEX_STATIC_POINTPROPERTY_SETTER2(_TYPE) V
-				PCGEX_CONSTEXPR_IFELSE_SETPOINTPROPERTY(PROPERTY, Point, PCGEX_STATIC_POINTPROPERTY_SET, PCGEX_STATIC_POINTPROPERTY_SETTER2)
-#undef PCGEX_STATIC_POINTPROPERTY_SETTER2
-#undef PCGEX_STATIC_POINTPROPERTY_SET
+				T_REAL V = T_REAL{};
+#define PCGEX_GET_REAL(_ACCESSOR, _TYPE) V  = Point._ACCESSOR;
+				PCGEX_CONSTEXPR_IFELSE_GETPOINTPROPERTY(PROPERTY, PCGEX_GET_REAL)
+	#undef PCGEX_GET_REAL
+				
+#define PCGEX_PROPERTY_SET(_TYPE) SubSelection.template Set<T_REAL, T_WORKING>(V, Value);
+#define PCGEX_PROPERTY_VALUE(_TYPE) V
+				PCGEX_CONSTEXPR_IFELSE_SETPOINTPROPERTY(PROPERTY, Point, PCGEX_PROPERTY_SET, PCGEX_PROPERTY_VALUE)
+#undef PCGEX_PROPERTY_VALUE
+#undef PCGEX_PROPERTY_SET
 			}
 		}
 	};
@@ -331,6 +337,8 @@ namespace PCGExData
 			return nullptr;
 		}
 
+		OutProxy->SubSelection = InDescriptor.SubSelection;
+		
 		return OutProxy;
 	}
 

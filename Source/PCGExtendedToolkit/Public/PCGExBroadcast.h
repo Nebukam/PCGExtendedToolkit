@@ -923,11 +923,6 @@ namespace PCGEx
 				std::is_same_v<T, float> ||
 				std::is_same_v<T, double>)
 			{
-				if (!bIsValid)
-				{
-					Target = Get<T_VALUE>(Value);
-					return;
-				}
 				if constexpr (std::is_same_v<T_VALUE, PCGExTypeHash>) { Target = GetTypeHash(Value); }
 				else if constexpr (std::is_same_v<T_VALUE, bool>) { Target = Value ? 1 : 0; }
 				else if constexpr (
@@ -1003,7 +998,7 @@ namespace PCGEx
 				//else if constexpr (std::is_same_v<T_VALUE, FName>){ return; // UNSUPPORTED }
 				else
 				{
-					return; // UNSUPPORTED
+					// UNSUPPORTED
 				}
 
 				if constexpr (
