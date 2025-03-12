@@ -147,6 +147,105 @@ namespace PCGExBlend
 	}
 
 	template <typename T>
+	FORCEINLINE static T ModSimple(const T& A, const double& Modulo)
+	{
+		if constexpr (std::is_same_v<T, FVector2D>)
+		{
+			return FVector2D(ModSimple(A.X, Modulo), ModSimple(A.Y, Modulo));
+		}
+		else if constexpr (std::is_same_v<T, FVector>)
+		{
+			return FVector(ModSimple(A.X, Modulo), ModSimple(A.Y, Modulo), ModSimple(A.Z, Modulo));
+		}
+		else if constexpr (std::is_same_v<T, FVector4>)
+		{
+			return FVector4(ModSimple(A.X, Modulo), ModSimple(A.Y, Modulo), ModSimple(A.Z, Modulo), ModSimple(A.W, Modulo));
+		}
+		else if constexpr (std::is_same_v<T, FRotator>)
+		{
+			return FRotator(ModSimple(A.Pitch, Modulo), ModSimple(A.Yaw, Modulo), ModSimple(A.Roll, Modulo));
+		}
+		else if constexpr (std::is_same_v<T, FQuat>)
+		{
+			return ModSimple(A.Rotator(), Modulo).Quaternion();
+		}
+		else if constexpr (std::is_same_v<T, FTransform>)
+		{
+			return FTransform(ModSimple(A.GetRotation(), Modulo), ModSimple(A.GetLocation(), Modulo), ModSimple(A.GetScale3D(), Modulo));
+		}
+		else if constexpr (std::is_same_v<T, FString> ||
+			std::is_same_v<T, FName> ||
+			std::is_same_v<T, bool> ||
+			std::is_same_v<T, FSoftObjectPath> ||
+			std::is_same_v<T, FSoftClassPath>)
+		{
+			return A;
+		}
+		else
+		{
+			if constexpr (std::is_same_v<T, float>) { return FMath::Fmod(A, static_cast<float>(Modulo)); }
+			else if constexpr (std::is_same_v<T, double>) { return FMath::Fmod(A, Modulo); }
+			else if constexpr (std::is_same_v<T, int32>) { return A % static_cast<int32>(Modulo); }
+			else if constexpr (std::is_same_v<T, int64>) { return A % static_cast<int64>(Modulo); }
+			else
+			{
+				return A;
+			}
+		}
+	}
+
+	template <typename T>
+	FORCEINLINE static T ModComplex(const T& A, const T& B)
+	{
+		if constexpr (std::is_same_v<T, FVector2D>)
+		{
+			return FVector2D(ModSimple(A.X, B.X), ModSimple(A.Y, B.Y));
+		}
+		else if constexpr (std::is_same_v<T, FVector>)
+		{
+			return FVector(ModSimple(A.X, B.X), ModSimple(A.Y, B.Y), ModSimple(A.Z, B.Z));
+		}
+		else if constexpr (std::is_same_v<T, FVector4>)
+		{
+			return FVector4(ModSimple(A.X, B.X), ModSimple(A.Y, B.Y), ModSimple(A.Z, B.Z), ModSimple(A.W, B.W));
+		}
+		else if constexpr (std::is_same_v<T, FRotator>)
+		{
+			return FRotator(ModSimple(A.Pitch, B.Pitch), ModSimple(A.Yaw, B.Yaw), ModSimple(A.Roll, B.Roll));
+		}
+		else if constexpr (std::is_same_v<T, FQuat>)
+		{
+			return ModComplex(A.Rotator(), B.Rotator()).Quaternion();
+		}
+		else if constexpr (std::is_same_v<T, FTransform>)
+		{
+			return FTransform(ModComplex(A.GetRotation(), B.GetRotation()), ModComplex(A.GetLocation(), B.GetLocation()), ModComplex(A.GetScale3D(), B.GetScale3D()));
+		}
+
+		else if constexpr (std::is_same_v<T, FQuat>)
+		{
+			return FTransform(ModComplex(A.GetRotation(), B.GetRotation()), ModComplex(A.GetLocation(), B.GetLocation()), ModComplex(A.GetScale3D(), B.GetScale3D()));
+		}
+		else if constexpr (
+			std::is_same_v<T, FString> ||
+			std::is_same_v<T, FName> ||
+			std::is_same_v<T, bool> ||
+			std::is_same_v<T, FSoftObjectPath> ||
+			std::is_same_v<T, FSoftClassPath>)
+		{
+			return A;
+		}
+		else
+		{
+			if constexpr (std::is_floating_point_v<T>) { return FMath::Fmod(A, B); }
+			else
+			{
+				return A % B;
+			}
+		}
+	}
+
+	template <typename T>
 	FORCEINLINE static T WeightedAdd(const T& A, const T& B, const double& W = 0)
 	{
 		if constexpr (std::is_same_v<T, FQuat>)
