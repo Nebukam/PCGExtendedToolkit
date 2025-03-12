@@ -124,7 +124,26 @@ namespace PCGExBlendAttributes
 	void FProcessor::CompleteWork()
 	{
 		TArray<UPCGExAttributeBlendOperation*>& Ops = *Operations.Get();
-		for (UPCGExAttributeBlendOperation* Op : Ops) { Op->CompleteWork(); }
+
+		TSet<TSharedPtr<PCGExData::FBufferBase>> DisabledBuffers;
+		for (UPCGExAttributeBlendOperation* Op : Ops) { Op->CompleteWork(DisabledBuffers); }
+
+		for (const TSharedPtr<PCGExData::FBufferBase>& Buffer : DisabledBuffers)
+		{
+			// If disabled buffer does not exist on input, delete it entierely
+			if (!Buffer->OutAttribute) { continue; }
+			if (!PointDataFacade->GetIn()->Metadata->HasAttribute(Buffer->OutAttribute->Name))
+			{
+				PointDataFacade->GetOut()->Metadata->DeleteAttribute(Buffer->OutAttribute->Name);
+				// TODO : Check types and make sure we're not deleting something
+			}
+
+			if(Buffer->InAttribute)
+			{
+				// Log a warning that can be silenced that we may have removed a valid attribute
+			}
+		}
+
 		PointDataFacade->Write(AsyncManager);
 	}
 }

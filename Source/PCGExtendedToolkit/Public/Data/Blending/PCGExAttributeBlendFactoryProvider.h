@@ -141,7 +141,7 @@ public:
 		Blender->Blend(Index, Point, Config.Weighting.ScoreCurveObj->Eval(Weight ? Weight->Read(Index) : Config.Weighting.Weight));
 	}
 
-	virtual void CompleteWork();
+	virtual void CompleteWork(TSet<TSharedPtr<PCGExData::FBufferBase>>& OutDisabledBuffers);
 
 	virtual void Cleanup() override;
 

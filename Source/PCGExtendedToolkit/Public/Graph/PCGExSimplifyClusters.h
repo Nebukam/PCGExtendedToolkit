@@ -48,7 +48,7 @@ public:
 	double AngularThreshold = 10;
 
 	/** Removes hard angles instead of collinear ones. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bMergeAboveAngularThreshold"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName=" └─ Invert", EditCondition="bMergeAboveAngularThreshold", EditConditionHides, HideEditConditionToggle))
 	bool bInvertAngularThreshold = false;
 
 	/** If enabled, prune dead ends. */

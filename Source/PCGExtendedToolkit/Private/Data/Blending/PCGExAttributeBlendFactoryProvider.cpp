@@ -140,14 +140,22 @@ bool UPCGExAttributeBlendOperation::PrepareForData(FPCGExContext* InContext, con
 	return true;
 }
 
-void UPCGExAttributeBlendOperation::CompleteWork()
+void UPCGExAttributeBlendOperation::CompleteWork(TSet<TSharedPtr<PCGExData::FBufferBase>>& OutDisabledBuffers)
 {
 	if (Blender)
 	{
 		if (TSharedPtr<PCGExData::FBufferBase> OutputBuffer = Blender->GetOutputBuffer())
 		{
-			if (Config.bTransactional) { OutputBuffer->Disable(); }
-			else { OutputBuffer->Enable(); }
+			if (Config.bTransactional)
+			{
+				OutputBuffer->Disable();
+				OutDisabledBuffers.Add(OutputBuffer);
+			}
+			else
+			{
+				OutputBuffer->Enable();
+				OutDisabledBuffers.Remove(OutputBuffer);
+			}
 		}
 
 		// TODO : Restore point properties to their original values...?
