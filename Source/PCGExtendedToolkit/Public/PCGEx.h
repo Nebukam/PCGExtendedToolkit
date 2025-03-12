@@ -98,6 +98,7 @@ enum class EPCGExSingleField : uint8
 	Length        = 4 UMETA(DisplayName = "Length", ToolTip="Length if vector, raw value otherwise."),
 	SquaredLength = 5 UMETA(DisplayName = "SquaredLength", ToolTip="SquaredLength if vector, raw value otherwise."),
 	Volume        = 6 UMETA(DisplayName = "Volume", ToolTip="Volume if vector, raw value otherwise."),
+	Sum           = 7 UMETA(DisplayName = "Sum", ToolTip="Sum of individual components, raw value otherwise."),
 };
 
 UENUM()
@@ -168,7 +169,7 @@ namespace PCGEx
 {
 	const FName PreviousAttributeName = TEXT("#Previous");
 	const FName PreviousNameAttributeName = TEXT("#PreviousName");
-	
+
 	const FString PCGExPrefix = TEXT("PCGEx/");
 	const FName SourcePointsLabel = TEXT("In");
 	const FName SourceTargetsLabel = TEXT("Targets");

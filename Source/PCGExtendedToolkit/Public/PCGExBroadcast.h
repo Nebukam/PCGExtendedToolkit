@@ -14,57 +14,64 @@ namespace PCGExData
 namespace PCGEx
 {
 #pragma region Field helpers
-
-	static const TMap<FString, EPCGExTransformComponent> STRMAP_TRANSFORM_FIELD = {
-		{TEXT("POSITION"), EPCGExTransformComponent::Position},
-		{TEXT("POS"), EPCGExTransformComponent::Position},
-		{TEXT("ROTATION"), EPCGExTransformComponent::Rotation},
-		{TEXT("ROT"), EPCGExTransformComponent::Rotation},
-		{TEXT("ORIENT"), EPCGExTransformComponent::Rotation},
-		{TEXT("SCALE"), EPCGExTransformComponent::Scale},
+	
+	using FInputSelectorComponentData = TTuple<EPCGExTransformComponent, EPCGMetadataTypes>;
+	// Transform component, root type
+	static const TMap<FString, FInputSelectorComponentData> STRMAP_TRANSFORM_FIELD = {
+		{TEXT("POSITION"), FInputSelectorComponentData{EPCGExTransformComponent::Position, EPCGMetadataTypes::Vector}},
+		{TEXT("POS"), FInputSelectorComponentData{EPCGExTransformComponent::Position, EPCGMetadataTypes::Vector}},
+		{TEXT("ROTATION"), FInputSelectorComponentData{EPCGExTransformComponent::Rotation, EPCGMetadataTypes::Quaternion}},
+		{TEXT("ROT"), FInputSelectorComponentData{EPCGExTransformComponent::Rotation, EPCGMetadataTypes::Quaternion}},
+		{TEXT("ORIENT"), FInputSelectorComponentData{EPCGExTransformComponent::Rotation, EPCGMetadataTypes::Quaternion}},
+		{TEXT("SCALE"), FInputSelectorComponentData{EPCGExTransformComponent::Scale, EPCGMetadataTypes::Vector}},
 	};
 
-	static const TMap<FString, EPCGExSingleField> STRMAP_SINGLE_FIELD = {
-		{TEXT("X"), EPCGExSingleField::X},
-		{TEXT("R"), EPCGExSingleField::X},
-		{TEXT("ROLL"), EPCGExSingleField::X},
-		{TEXT("RX"), EPCGExSingleField::X},
-		{TEXT("Y"), EPCGExSingleField::Y},
-		{TEXT("G"), EPCGExSingleField::Y},
-		{TEXT("YAW"), EPCGExSingleField::Y},
-		{TEXT("RY"), EPCGExSingleField::Y},
-		{TEXT("Z"), EPCGExSingleField::Z},
-		{TEXT("B"), EPCGExSingleField::Z},
-		{TEXT("P"), EPCGExSingleField::Z},
-		{TEXT("PITCH"), EPCGExSingleField::Z},
-		{TEXT("RZ"), EPCGExSingleField::Z},
-		{TEXT("W"), EPCGExSingleField::W},
-		{TEXT("A"), EPCGExSingleField::W},
-		{TEXT("L"), EPCGExSingleField::Length},
-		{TEXT("LEN"), EPCGExSingleField::Length},
-		{TEXT("LENGTH"), EPCGExSingleField::Length},
-		{TEXT("SQUAREDLENGTH"), EPCGExSingleField::SquaredLength},
-		{TEXT("LENSQR"), EPCGExSingleField::SquaredLength},
-		{TEXT("VOL"), EPCGExSingleField::Volume},
-		{TEXT("VOLUME"), EPCGExSingleField::Volume}
+	using FInputSelectorFieldData = TTuple<EPCGExSingleField, EPCGMetadataTypes, int32>;
+	// Single component, root type
+	static const TMap<FString, FInputSelectorFieldData> STRMAP_SINGLE_FIELD = {
+		{TEXT("X"), FInputSelectorFieldData{EPCGExSingleField::X, EPCGMetadataTypes::Vector, 0}},
+		{TEXT("R"), FInputSelectorFieldData{EPCGExSingleField::X, EPCGMetadataTypes::Quaternion, 0}},
+		{TEXT("ROLL"), FInputSelectorFieldData{EPCGExSingleField::X, EPCGMetadataTypes::Quaternion, 0}},
+		{TEXT("RX"), FInputSelectorFieldData{EPCGExSingleField::X, EPCGMetadataTypes::Quaternion, 0}},
+		{TEXT("Y"), FInputSelectorFieldData{EPCGExSingleField::Y, EPCGMetadataTypes::Vector, 1}},
+		{TEXT("G"), FInputSelectorFieldData{EPCGExSingleField::Y, EPCGMetadataTypes::Vector4, 1}},
+		{TEXT("YAW"), FInputSelectorFieldData{EPCGExSingleField::Y, EPCGMetadataTypes::Quaternion, 1}},
+		{TEXT("RY"), FInputSelectorFieldData{EPCGExSingleField::Y, EPCGMetadataTypes::Quaternion, 1}},
+		{TEXT("Z"), FInputSelectorFieldData{EPCGExSingleField::Z, EPCGMetadataTypes::Vector, 2}},
+		{TEXT("B"), FInputSelectorFieldData{EPCGExSingleField::Z, EPCGMetadataTypes::Vector4, 2}},
+		{TEXT("P"), FInputSelectorFieldData{EPCGExSingleField::Z, EPCGMetadataTypes::Quaternion, 2}},
+		{TEXT("PITCH"), FInputSelectorFieldData{EPCGExSingleField::Z, EPCGMetadataTypes::Quaternion, 2}},
+		{TEXT("RZ"), FInputSelectorFieldData{EPCGExSingleField::Z, EPCGMetadataTypes::Quaternion, 2}},
+		{TEXT("W"), FInputSelectorFieldData{EPCGExSingleField::W, EPCGMetadataTypes::Vector4, 3}},
+		{TEXT("A"), FInputSelectorFieldData{EPCGExSingleField::W, EPCGMetadataTypes::Vector4, 3}},
+		{TEXT("L"), FInputSelectorFieldData{EPCGExSingleField::Length, EPCGMetadataTypes::Vector, 0}},
+		{TEXT("LEN"), FInputSelectorFieldData{EPCGExSingleField::Length, EPCGMetadataTypes::Vector, 0}},
+		{TEXT("LENGTH"), FInputSelectorFieldData{EPCGExSingleField::Length, EPCGMetadataTypes::Vector, 0}},
+		{TEXT("SQUAREDLENGTH"), FInputSelectorFieldData{EPCGExSingleField::SquaredLength, EPCGMetadataTypes::Vector, 0}},
+		{TEXT("LENSQR"), FInputSelectorFieldData{EPCGExSingleField::SquaredLength, EPCGMetadataTypes::Vector, 0}},
+		{TEXT("VOL"), FInputSelectorFieldData{EPCGExSingleField::Volume, EPCGMetadataTypes::Vector, 0}},
+		{TEXT("VOLUME"), FInputSelectorFieldData{EPCGExSingleField::Volume, EPCGMetadataTypes::Vector, 0}},
+		{TEXT("SUM"), FInputSelectorFieldData{EPCGExSingleField::Sum, EPCGMetadataTypes::Vector, 0}},
 	};
 
-	static const TMap<FString, EPCGExAxis> STRMAP_AXIS = {
-		{TEXT("FORWARD"), EPCGExAxis::Forward},
-		{TEXT("FRONT"), EPCGExAxis::Forward},
-		{TEXT("BACKWARD"), EPCGExAxis::Backward},
-		{TEXT("BACK"), EPCGExAxis::Backward},
-		{TEXT("RIGHT"), EPCGExAxis::Right},
-		{TEXT("LEFT"), EPCGExAxis::Left},
-		{TEXT("UP"), EPCGExAxis::Up},
-		{TEXT("TOP"), EPCGExAxis::Up},
-		{TEXT("DOWN"), EPCGExAxis::Down},
-		{TEXT("BOTTOM"), EPCGExAxis::Down},
+	using FInputSelectorAxisData = TTuple<EPCGExAxis, EPCGMetadataTypes>;
+	// Axis, root type
+	static const TMap<FString, FInputSelectorAxisData> STRMAP_AXIS = {
+		{TEXT("FORWARD"), FInputSelectorAxisData{EPCGExAxis::Forward, EPCGMetadataTypes::Quaternion}},
+		{TEXT("FRONT"), FInputSelectorAxisData{EPCGExAxis::Forward, EPCGMetadataTypes::Quaternion}},
+		{TEXT("BACKWARD"), FInputSelectorAxisData{EPCGExAxis::Backward, EPCGMetadataTypes::Quaternion}},
+		{TEXT("BACK"), FInputSelectorAxisData{EPCGExAxis::Backward, EPCGMetadataTypes::Quaternion}},
+		{TEXT("RIGHT"), FInputSelectorAxisData{EPCGExAxis::Right, EPCGMetadataTypes::Quaternion}},
+		{TEXT("LEFT"), FInputSelectorAxisData{EPCGExAxis::Left, EPCGMetadataTypes::Quaternion}},
+		{TEXT("UP"), FInputSelectorAxisData{EPCGExAxis::Up, EPCGMetadataTypes::Quaternion}},
+		{TEXT("TOP"), FInputSelectorAxisData{EPCGExAxis::Up, EPCGMetadataTypes::Quaternion}},
+		{TEXT("DOWN"), FInputSelectorAxisData{EPCGExAxis::Down, EPCGMetadataTypes::Quaternion}},
+		{TEXT("BOTTOM"), FInputSelectorAxisData{EPCGExAxis::Down, EPCGMetadataTypes::Quaternion}},
 	};
 
-	bool GetComponentSelection(const TArray<FString>& Names, EPCGExTransformComponent& OutSelection);
-	bool GetFieldSelection(const TArray<FString>& Names, EPCGExSingleField& OutSelection);
-	bool GetAxisSelection(const TArray<FString>& Names, EPCGExAxis& OutSelection);
+	bool GetComponentSelection(const TArray<FString>& Names, FInputSelectorComponentData& OutSelection);
+	bool GetFieldSelection(const TArray<FString>& Names, FInputSelectorFieldData& OutSelection);
+	bool GetAxisSelection(const TArray<FString>& Names, FInputSelectorAxisData& OutSelection);
 
 #pragma endregion
 
@@ -405,30 +412,31 @@ namespace PCGEx
 #define PCGEX_CONVERT_CONVERT_DECL(_TYPE, _ID, ...) template <typename T> inline static T Convert(const _TYPE& Value) { return Convert<_TYPE, T>(Value); }
 	PCGEX_FOREACH_SUPPORTEDTYPES(PCGEX_CONVERT_CONVERT_DECL)
 #undef PCGEX_CONVERT_CONVERT_DECL
-	
+
 	struct PCGEXTENDEDTOOLKIT_API FSubSelection
 	{
 		bool bIsValid = false;
 		bool bIsAxisSet = false;
 		bool bIsFieldSet = false;
 		bool bIsComponentSet = false;
-		
+
 		EPCGExTransformComponent Component = EPCGExTransformComponent::Position;
 		EPCGExAxis Axis = EPCGExAxis::Forward;
 		EPCGExSingleField Field = EPCGExSingleField::X;
+		EPCGMetadataTypes PossibleSourceType = EPCGMetadataTypes::Unknown;
 		int32 FieldIndex = 0;
-		
+
 		FSubSelection() = default;
 		explicit FSubSelection(const TArray<FString>& ExtraNames);
 		explicit FSubSelection(const FPCGAttributePropertyInputSelector& InSelector);
 		explicit FSubSelection(const FString& Path, const UPCGData* InData = nullptr);
 
 		EPCGMetadataTypes GetSubType(EPCGMetadataTypes Fallback = EPCGMetadataTypes::Unknown) const;
-		
+
 	protected:
 		void Init(const TArray<FString>& ExtraNames);
 
-	public:		
+	public:
 		void Update();
 
 		template <typename T_VALUE, typename T>
@@ -531,6 +539,8 @@ namespace PCGEx
 						return Value.SquaredLength() > 0;
 					case EPCGExSingleField::Volume:
 						return (Value.X * Value.Y) > 0;
+					case EPCGExSingleField::Sum:
+						return (Value.X * Value.Y) > 0;
 					}
 				}
 				else if constexpr (std::is_same_v<T, int32> || std::is_same_v<T, int64> || std::is_same_v<T, float> || std::is_same_v<T, double>)
@@ -550,6 +560,8 @@ namespace PCGEx
 						return Value.SquaredLength();
 					case EPCGExSingleField::Volume:
 						return Value.X * Value.Y;
+					case EPCGExSingleField::Sum:
+						return Value.X + Value.Y;
 					}
 				}
 				else if constexpr (std::is_same_v<T, FVector2D>) { return Value; }
@@ -589,6 +601,8 @@ namespace PCGEx
 						return Value.SquaredLength() > 0;
 					case EPCGExSingleField::Volume:
 						return (Value.X * Value.Y * Value.Z) > 0;
+					case EPCGExSingleField::Sum:
+						return (Value.X + Value.Y + Value.Z) > 0;
 					}
 				}
 				else if constexpr (std::is_same_v<T, int32> || std::is_same_v<T, int64> || std::is_same_v<T, float> || std::is_same_v<T, double>)
@@ -609,6 +623,8 @@ namespace PCGEx
 						return Value.SquaredLength();
 					case EPCGExSingleField::Volume:
 						return Value.X * Value.Y * Value.Z;
+					case EPCGExSingleField::Sum:
+						return Value.X + Value.Y + Value.Z;
 					}
 				}
 				else if constexpr (std::is_same_v<T, FVector2D>) { return FVector2D(Value.X, Value.Y); }
@@ -649,6 +665,8 @@ namespace PCGEx
 						return FVector(Value).SquaredLength() > 0;
 					case EPCGExSingleField::Volume:
 						return (Value.X * Value.Y * Value.Z * Value.W) > 0;
+					case EPCGExSingleField::Sum:
+						return (Value.X + Value.Y + Value.Z + Value.W) > 0;
 					}
 				}
 				else if constexpr (std::is_same_v<T, int32> || std::is_same_v<T, int64> || std::is_same_v<T, float> || std::is_same_v<T, double>)
@@ -670,6 +688,8 @@ namespace PCGEx
 						return FVector(Value).SquaredLength();
 					case EPCGExSingleField::Volume:
 						return Value.X * Value.Y * Value.Z * Value.W;
+					case EPCGExSingleField::Sum:
+						return Value.X + Value.Y + Value.Z + Value.W;
 					}
 				}
 				else if constexpr (std::is_same_v<T, FVector2D>) { return FVector2D(Value.X, Value.Y); }
@@ -708,6 +728,7 @@ namespace PCGEx
 					case EPCGExSingleField::Length:
 					case EPCGExSingleField::SquaredLength:
 					case EPCGExSingleField::Volume:
+					case EPCGExSingleField::Sum:
 						return Dir.SquaredLength() > 0;
 					}
 				}
@@ -729,6 +750,8 @@ namespace PCGEx
 					case EPCGExSingleField::SquaredLength:
 					case EPCGExSingleField::Volume:
 						return Dir.SquaredLength();
+					case EPCGExSingleField::Sum:
+						return Dir.X + Dir.Y + Dir.Z;
 					}
 				}
 				else if constexpr (std::is_same_v<T, FVector2D>)
@@ -770,6 +793,7 @@ namespace PCGEx
 					case EPCGExSingleField::Length:
 					case EPCGExSingleField::SquaredLength:
 					case EPCGExSingleField::Volume:
+					case EPCGExSingleField::Sum:
 						return Value.Euler().SquaredLength() > 0;
 					}
 				}
@@ -790,6 +814,8 @@ namespace PCGEx
 					case EPCGExSingleField::SquaredLength:
 					case EPCGExSingleField::Volume:
 						return Value.Euler().SquaredLength();
+					case EPCGExSingleField::Sum:
+						return Value.Pitch + Value.Yaw + Value.Roll;
 					}
 				}
 				else if constexpr (std::is_same_v<T, FVector2D>) { return Get<FVector2D>(Value.Quaternion()); }
@@ -1030,6 +1056,7 @@ namespace PCGEx
 						else { Target = Target.GetSafeNormal() * FMath::Sqrt(V); }
 						break;
 					case EPCGExSingleField::Volume:
+					case EPCGExSingleField::Sum:
 						return;
 						break;
 					}
@@ -1057,6 +1084,7 @@ namespace PCGEx
 						Target = Target.GetNormalized() * FMath::Sqrt(V);
 						break;
 					case EPCGExSingleField::Volume:
+					case EPCGExSingleField::Sum:
 						return;
 						break;
 					}

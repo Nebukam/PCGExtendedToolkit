@@ -87,32 +87,31 @@ bool UPCGExAttributeBlendOperation::PrepareForData(FPCGExContext* InContext, con
 		else if (Config.OutputType == EPCGExOperandAuthority::Custom) { RealTypeC = Config.CustomType; }
 		else if (Config.OutputType == EPCGExOperandAuthority::Auto)
 		{
-			// TODO : Check if writable already exists and force-use that type.
-
-			// Otherwise, check if a readable exist with that name
-			// and if config.outputtype is auto, use that.
-
-			if (OutputSubselection.bIsValid)
+			if (const FPCGMetadataAttributeBase* OutAttribute = InDataFacade->GetOut()->Metadata->GetConstAttribute(Config.OutputTo.GetAttributeName()))
 			{
-				if (OutputSubselection.bIsComponentSet) { RealTypeC = EPCGMetadataTypes::Transform; }
-				else if (OutputSubselection.bIsAxisSet) { RealTypeC = EPCGMetadataTypes::Quaternion; }
+				// First, check for an existing attribute
+				RealTypeC = static_cast<EPCGMetadataTypes>(OutAttribute->GetTypeId());
+				// TODO : Account for possible desired cast to a different type in the blend stack
+			}
+
+			if (OutputSubselection.bIsValid && RealTypeC == EPCGMetadataTypes::Unknown)
+			{
+				// Take a wild guess based on subselection, if any
+				RealTypeC = OutputSubselection.PossibleSourceType;
 			}
 
 			if (RealTypeC == EPCGMetadataTypes::Unknown)
 			{
-				switch (Config.OutputType)
-				{
-				default:
-				case EPCGExOperandAuthority::A:
-					RealTypeC = A.RealType;
-					break;
-				case EPCGExOperandAuthority::B:
-					RealTypeC = B.RealType;
-					break;
-				case EPCGExOperandAuthority::Custom:
-					RealTypeC = Config.CustomType;
-					break;
-				}
+				// Ok we really have little to work with,
+				// take a guess based on other attribute types and pick the broader type
+
+				EPCGMetadataTypes TypeA = A.SubSelection.bIsValid && A.SubSelection.bIsFieldSet ? EPCGMetadataTypes::Double : A.RealType;
+				EPCGMetadataTypes TypeB = B.SubSelection.bIsValid && B.SubSelection.bIsFieldSet ? EPCGMetadataTypes::Double : B.RealType;
+				
+				int32 RatingA = PCGEx::GetMetadataRating(TypeA);
+				int32 RatingB = PCGEx::GetMetadataRating(TypeB);
+
+				RealTypeC = RatingA > RatingB ? TypeA : TypeB;
 			}
 		}
 	}
@@ -128,7 +127,7 @@ bool UPCGExAttributeBlendOperation::PrepareForData(FPCGExContext* InContext, con
 	}
 
 	WorkingTypeC = C.SubSelection.GetSubType(RealTypeC);
-	
+
 	A.WorkingType = WorkingTypeC;
 	B.WorkingType = WorkingTypeC;
 

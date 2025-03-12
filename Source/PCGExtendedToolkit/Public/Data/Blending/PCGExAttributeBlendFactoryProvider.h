@@ -20,7 +20,7 @@ enum class EPCGExOperandAuthority : uint8
 	A      = 0 UMETA(DisplayName = "Operand A", ToolTip="Type of operand A will drive the output type, thus converting operand B to the same type for the operation."),
 	B      = 1 UMETA(DisplayName = "Operand B", ToolTip="Type of operand B will drive the output type, thus converting operand A to the same type for the operation."),
 	Custom = 2 UMETA(DisplayName = "Custom", ToolTip="Select a specific type to output the result to."),
-	Auto   = 3 UMETA(DisplayName = "Auto", ToolTip="Automatically detect the output type based on context, and fallbacks to A."),
+	Auto   = 3 UMETA(DisplayName = "Auto", ToolTip="Takes an informed guess based on settings & existing data. Usually works well, but not fool-proof."),
 };
 
 USTRUCT(BlueprintType)
@@ -141,8 +141,8 @@ public:
 		Blender->Blend(Index, Point, Config.Weighting.ScoreCurveObj->Eval(Weight ? Weight->Read(Index) : Config.Weighting.Weight));
 	}
 
-	virtual void CompleteWork(); 
-	
+	virtual void CompleteWork();
+
 	virtual void Cleanup() override;
 
 protected:
