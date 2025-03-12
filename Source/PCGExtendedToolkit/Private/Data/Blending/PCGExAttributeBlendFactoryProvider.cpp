@@ -45,7 +45,10 @@ bool UPCGExAttributeBlendOperation::PrepareForData(FPCGExContext* InContext, con
 	if (!CopyAndFixSiblingSelector(InContext, Config.OutputTo)) { return false; }
 
 	PCGExData::FProxyDescriptor A = PCGExData::FProxyDescriptor();
+	A.Source = PCGExData::ESource::Out;
+	
 	PCGExData::FProxyDescriptor B = PCGExData::FProxyDescriptor();
+	A.Source = PCGExData::ESource::Out;
 
 	if (!PCGEx::TryGetTypeAndSource(Config.OperandA, InDataFacade, A.RealType, A.Source))
 	{
