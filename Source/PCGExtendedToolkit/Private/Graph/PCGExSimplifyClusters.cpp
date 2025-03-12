@@ -120,9 +120,12 @@ namespace PCGExSimplifyClusters
 			UnionCount++;
 
 			const PCGExGraph::FLink Lk = Links[i];
-
 			const FVector A = Cluster->GetDir(Links[i - 1].Node, Lk.Node);
-			const FVector B = Cluster->GetDir(Lk.Node, Links[(i == MaxIndex && Chain->bIsClosedLoop) ? 0 : i + 1].Node);
+			const int32 IndexB = (i == MaxIndex && Chain->bIsClosedLoop) ? 0 : i + 1;
+
+			if (!Links.IsValidIndex(IndexB)) { continue; }
+
+			const FVector B = Cluster->GetDir(Lk.Node, Links[IndexB].Node);
 
 			if (!Settings->bInvertAngularThreshold) { if (FVector::DotProduct(A, B) > DotThreshold) { continue; } }
 			else { if (FVector::DotProduct(A, B) < DotThreshold) { continue; } }
@@ -142,12 +145,12 @@ namespace PCGExSimplifyClusters
 			LastIndex = Lk.Node;
 		}
 
-		if (Chain->bIsClosedLoop && LastIndex != Chain->Seed.Node)
+		auto MakeLastEdge = [&](const int32 Index)
 		{
 			UnionCount++;
 			GraphBuilder->Graph->InsertEdge(
 				Cluster->GetNode(LastIndex)->PointIndex,
-				Cluster->GetNode(Chain->Seed.Node)->PointIndex,
+				Cluster->GetNode(Index)->PointIndex,
 				OutEdge, IOIndex);
 
 			if (bComputeMeta)
@@ -155,6 +158,20 @@ namespace PCGExSimplifyClusters
 				// TODO : Compute UnionData to carry over attributes & properties
 				GraphBuilder->Graph->GetOrCreateEdgeMetadata(OutEdge.Index).UnionSize = UnionCount;
 			}
+		};
+
+		if (LastIndex != Chain->Links.Last().Node)
+		{
+			// Last processed point is not the last; likely skipped by angular threshold.
+			const int32 LastNode = Chain->Links.Last().Node;
+			MakeLastEdge(Chain->Links.Last().Node);
+			LastIndex = LastNode; // Update last index
+		}
+
+		if (Chain->bIsClosedLoop)
+		{
+			// Wrap
+			MakeLastEdge(Chain->Seed.Node);
 		}
 	}
 
