@@ -34,10 +34,18 @@ public:
 		}
 	}
 
+	virtual void PrepareForCluster(const TSharedPtr<PCGExCluster::FCluster>& InCluster, const TSharedPtr<PCGExHeuristics::FHeuristicsHandler>& InHeuristics) override
+	{
+		Super::PrepareForCluster(InCluster, InHeuristics);
+		ExchangeValue = bInvert ? 0 : 1;
+	}
+
 	virtual void ProcessEdge(PCGExGraph::FEdge& Edge) override
 	{
-		FPlatformAtomics::InterlockedExchange(&Edge.bValid, *(EdgesFilters->GetData() + Edge.Index) ? !bInvert : bInvert);
+		if (*(EdgesFilters->GetData() + Edge.Index)) { FPlatformAtomics::InterlockedExchange(&Edge.bValid, ExchangeValue); }
 	}
+
+	int8 ExchangeValue = 0;
 
 	/** If enabled, filtered out edges are kept, while edges that pass the filter are removed. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))

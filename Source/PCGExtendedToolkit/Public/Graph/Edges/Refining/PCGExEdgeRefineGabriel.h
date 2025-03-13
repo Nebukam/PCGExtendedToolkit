@@ -17,17 +17,26 @@ class UPCGExEdgeRefineGabriel : public UPCGExEdgeRefineOperation
 	GENERATED_BODY()
 
 public:
-	virtual bool GetDefaultEdgeValidity() override { return true; }
+	virtual bool GetDefaultEdgeValidity() override { return !bInvert; }
 	virtual bool RequiresNodeOctree() override { return true; }
 
 	virtual void CopySettingsFrom(const UPCGExOperation* Other) override
 	{
 		Super::CopySettingsFrom(Other);
-		// if (const UPCGExEdgeRefineGabriel* TypedOther = Cast<UPCGExEdgeRefineGabriel>(Other))		{		}
+		if (const UPCGExEdgeRefineGabriel* TypedOther = Cast<UPCGExEdgeRefineGabriel>(Other))
+		{
+			bInvert = TypedOther->bInvert;
+		}
 	}
+	
+	virtual bool RequiresIndividualEdgeProcessing() override { return !bInvert; }
 
-	virtual bool RequiresIndividualEdgeProcessing() override { return true; }
-
+	virtual void PrepareForCluster(const TSharedPtr<PCGExCluster::FCluster>& InCluster, const TSharedPtr<PCGExHeuristics::FHeuristicsHandler>& InHeuristics) override
+	{
+		Super::PrepareForCluster(InCluster, InHeuristics);
+		ExchangeValue = bInvert ? 1 : 0;
+	}
+	
 	virtual void ProcessEdge(PCGExGraph::FEdge& Edge) override
 	{
 		Super::ProcessEdge(Edge);
@@ -43,10 +52,16 @@ public:
 			{
 				if (FVector::DistSquared(Center, Cluster->GetPos(Item.Index)) < SqrDist)
 				{
-					FPlatformAtomics::InterlockedExchange(&Edge.bValid, 0);
+					FPlatformAtomics::InterlockedExchange(&Edge.bValid, ExchangeValue);
 					return false;
 				}
 				return true;
 			});
 	}
+
+	int8 ExchangeValue = 0;
+	
+	/** */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	bool bInvert = false;
 };
