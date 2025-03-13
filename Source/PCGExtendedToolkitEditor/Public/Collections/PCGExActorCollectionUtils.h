@@ -11,8 +11,8 @@ class UPackage;
 
 namespace PCGExActorCollectionUtils
 {
-	static void CreateCollectionFrom(const TArray<FAssetData>& SelectedAssets);
-	static void UpdateCollectionsFrom(
+	void CreateCollectionFrom(const TArray<FAssetData>& SelectedAssets);
+	void UpdateCollectionsFrom(
 		const TArray<TObjectPtr<UPCGExActorCollection>>& SelectedCollections,
 		const TArray<FAssetData>& SelectedAssets,
 		bool bIsNewCollection = false);
