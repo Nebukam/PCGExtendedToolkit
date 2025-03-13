@@ -5,6 +5,7 @@
 
 #include "Collections/PCGExMeshCollection.h"
 #include "Engine/World.h"
+#include "AssetRegistry/AssetData.h"
 
 class UPackage;
 
