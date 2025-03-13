@@ -243,7 +243,7 @@ namespace PCGExConnectPoints
 	void FProcessor::PrepareLoopScopesForPoints(const TArray<PCGExMT::FScope>& Loops)
 	{
 		FPointsProcessor::PrepareLoopScopesForPoints(Loops);
-		DistributedEdgesSet = MakeShared<PCGExMT::TScopedSet<uint64>>(Loops, 10);
+		ScopedEdges = MakeShared<PCGExMT::TScopedSet<uint64>>(Loops, 10);
 	}
 
 	void FProcessor::PrepareSingleLoopScopeForPoints(const PCGExMT::FScope& Scope)
@@ -258,7 +258,7 @@ namespace PCGExConnectPoints
 
 		if (!CanGenerate[Index]) { return; } // Not a generator
 
-		TSet<uint64>* UniqueEdges = DistributedEdgesSet->Get(Scope).Get();
+		TSet<uint64>* UniqueEdges = ScopedEdges->Get(Scope).Get();
 		TUniquePtr<TSet<FInt32Vector>> LocalCoincidence;
 		if (bPreventCoincidence) { LocalCoincidence = MakeUnique<TSet<FInt32Vector>>(); }
 
@@ -327,8 +327,8 @@ namespace PCGExConnectPoints
 
 	void FProcessor::CompleteWork()
 	{
-		DistributedEdgesSet->ForEach([this](const TSet<uint64>& Edges) { GraphBuilder->Graph->InsertEdges_Unsafe(Edges, -1); });
-		DistributedEdgesSet.Reset();
+		ScopedEdges->ForEach([this](const TSet<uint64>& Edges) { GraphBuilder->Graph->InsertEdges_Unsafe(Edges, -1); });
+		ScopedEdges.Reset();
 
 		GraphBuilder->CompileAsync(AsyncManager, false);
 	}

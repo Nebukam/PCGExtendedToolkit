@@ -266,4 +266,8 @@ namespace PCGExFactories
 			Factory->RegisterConsumableAttributesWithData(InFacade->Source->GetContext(), Data);
 		}
 	}
+
+#if WITH_EDITOR
+	void EDITOR_SortPins(UPCGSettings* InSettings, FName InPin);
+#endif
 }
