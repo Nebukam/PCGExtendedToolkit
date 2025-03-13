@@ -18,9 +18,18 @@ class UPCGExEdgeRefinePrimMST : public UPCGExEdgeRefineOperation
 	GENERATED_BODY()
 
 public:
-	virtual bool GetDefaultEdgeValidity() override { return false; }
+	virtual bool GetDefaultEdgeValidity() override { return bInvert; }
 	virtual bool RequiresHeuristics() override { return true; }
 
+	virtual void CopySettingsFrom(const UPCGExOperation* Other) override
+	{
+		Super::CopySettingsFrom(Other);
+		if (const UPCGExEdgeRefinePrimMST* TypedOther = Cast<UPCGExEdgeRefinePrimMST>(Other))
+		{
+			bInvert = TypedOther->bInvert;
+		}
+	}
+	
 	virtual void Process() override
 	{
 		const int32 NumNodes = Cluster->Nodes->Num();
@@ -63,7 +72,11 @@ public:
 			PCGEx::NH64(TravelStack->Get(i), Node, EdgeIndex);
 			if (Node == -1 || EdgeIndex == -1) { continue; }
 
-			Cluster->GetEdge(EdgeIndex)->bValid = true;
+			Cluster->GetEdge(EdgeIndex)->bValid = !bInvert;
 		}
 	}
+
+	/** */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	bool bInvert = false;
 };
