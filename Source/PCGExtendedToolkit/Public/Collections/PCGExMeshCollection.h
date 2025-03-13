@@ -4,6 +4,11 @@
 #pragma once
 
 #include "CoreMinimal.h"
+
+#if WITH_EDITOR
+#include "AssetRegistry/AssetData.h"
+#endif
+
 #include "PCGExComponentDescriptors.h"
 #include "PCGExAssetCollection.h"
 #include "Engine/DataAsset.h"

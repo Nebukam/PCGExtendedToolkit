@@ -5,6 +5,10 @@
 
 #include "CoreMinimal.h"
 
+#if WITH_EDITOR
+#include "AssetRegistry/AssetData.h"
+#endif
+
 #include "PCGExDetailsData.h"
 #include "Data/PCGExAttributeHelpers.h"
 #include "Data/PCGExData.h"
