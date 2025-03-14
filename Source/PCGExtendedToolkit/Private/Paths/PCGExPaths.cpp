@@ -619,5 +619,61 @@ namespace PCGExPaths
 
 #pragma endregion
 }
+
+
+bool FPCGExSplineMeshMutationDetails::Init(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade>& InDataFacade)
+{
+	if (!bPushStart && !bPushEnd) { return true; }
+
+	if (bPushStart && StartPushInput == EPCGExInputValueType::Attribute)
+	{
+		StartAmount = InDataFacade->GetScopedBroadcaster<double>(StartPushInputAttribute);
+		if (!StartAmount)
+		{
+			PCGEX_LOG_INVALID_ATTR_C(InContext, Start Amount, StartPushInputAttribute.GetName())
+			return false;
+		}
+	}
+
+	if (bPushEnd && EndPushInput == EPCGExInputValueType::Attribute)
+	{
+		EndAmount = InDataFacade->GetScopedBroadcaster<double>(EndPushInputAttribute);
+		if (!EndAmount)
+		{
+			PCGEX_LOG_INVALID_ATTR_C(InContext, Start Amount, EndPushInputAttribute.GetName())
+			return false;
+		}
+	}
+
+	return true;
+}
+
+void FPCGExSplineMeshMutationDetails::Mutate(const int32 PointIndex, PCGExPaths::FSplineMeshSegment& InSegment)
+{
+	if (!bPushStart && !bPushEnd) { return; }
+
+	const double Size = (bPushStart || bPushEnd) && (bRelativeStart || bRelativeEnd) ? FVector::Dist(InSegment.Params.StartPos, InSegment.Params.EndPos) : 1;
+	const FVector StartDir = InSegment.Params.StartTangent.GetSafeNormal();
+	const FVector EndDir = InSegment.Params.EndTangent.GetSafeNormal();
+
+	if (bPushStart)
+	{
+		const double Factor = StartAmount ? StartAmount->Read(PointIndex) : StartPushConstant;
+		const double Dist = bRelativeStart ? Size * Factor : Factor;
+
+		InSegment.Params.StartPos -= StartDir * Dist;
+		InSegment.Params.StartTangent = StartDir * (InSegment.Params.StartTangent.Size() + Dist * 3);
+	}
+
+	if (bPushEnd)
+	{
+		const double Factor = EndAmount ? EndAmount->Read(PointIndex) : EndPushConstant;
+		const double Dist = bRelativeEnd ? Size * Factor : Factor;
+
+		InSegment.Params.EndPos += EndDir * Dist;
+		InSegment.Params.EndTangent = EndDir * (InSegment.Params.EndTangent.Size() + Dist * 3);
+	}
+}
+
 #undef LOCTEXT_NAMESPACE
 #undef PCGEX_NAMESPACE

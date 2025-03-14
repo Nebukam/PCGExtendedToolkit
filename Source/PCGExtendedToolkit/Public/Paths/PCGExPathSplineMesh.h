@@ -69,7 +69,7 @@ public:
 	/** Leave tangent attribute (expects FVector) */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bApplyCustomTangents"))
 	FName LeaveTangentAttribute = "LeaveTangent";
-
+	
 	/**  */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Spline Axis Align"))
 	EPCGExMinimalAxis SplineMeshAxisConstant = EPCGExMinimalAxis::X;
@@ -85,10 +85,14 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bApplyCustomTangents"))
 	bool bJustifyToOne = false;
 
+	/** Push details */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Mutations", meta=(PCG_Overridable, DisplayName="Expansion"))
+	FPCGExSplineMeshMutationDetails MutationDetails;
+	
 	/** Tagging details */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Additional Outputs", meta=(PCG_Overridable))
 	FPCGExAssetTaggingDetails TaggingDetails;
-
+	
 	/** Update point scale so staged asset fits within its bounds */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Additional Outputs", meta=(PCG_Overridable))
 	EPCGExWeightOutputMode WeightToAttribute = EPCGExWeightOutputMode::NoOutput;
@@ -164,6 +168,8 @@ namespace PCGExPathSplineMesh
 {
 	class FProcessor final : public PCGExPointsMT::TPointsProcessor<FPCGExPathSplineMeshContext, UPCGExPathSplineMeshSettings>
 	{
+	protected:
+		
 		bool bOutputWeight = false;
 		bool bOneMinusWeight = false;
 		bool bNormalizedWeight = false;
@@ -180,6 +186,7 @@ namespace PCGExPathSplineMesh
 
 		TUniquePtr<PCGExAssetCollection::TDistributionHelper<UPCGExMeshCollection, FPCGExMeshCollectionEntry>> Helper;
 		FPCGExJustificationDetails Justification;
+		FPCGExSplineMeshMutationDetails SegmentMutationDetails;
 
 		TSharedPtr<PCGExData::TBuffer<FVector>> UpGetter;
 		TSharedPtr<PCGExData::TBuffer<FVector>> ArriveGetter;
