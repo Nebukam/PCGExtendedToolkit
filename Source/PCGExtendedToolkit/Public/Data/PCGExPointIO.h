@@ -97,6 +97,8 @@ namespace PCGExData
 	public:
 		TSharedPtr<FTags> Tags;
 		int32 IOIndex = 0;
+		int32 InitializationIndex = -1;
+		TObjectPtr<const UPCGData> InitializationData = nullptr;
 
 		bool bAllowEmptyOutput = false;
 
@@ -273,6 +275,7 @@ namespace PCGExData
 
 		bool StageOutput() const;
 		bool StageOutput(const int32 MinPointCount, const int32 MaxPointCount) const;
+		bool StageAnyOutput() const;
 
 		void DeleteAttribute(FName AttributeName) const;
 
@@ -403,6 +406,7 @@ namespace PCGExData
 
 		void StageOutputs();
 		void StageOutputs(const int32 MinPointCount, const int32 MaxPointCount);
+		void StageAnyOutputs();
 
 		void Sort();
 
