@@ -210,6 +210,7 @@ void FPCGExMeshCollectionEntry::EDITOR_Sanitize()
 		InternalSubCollection = SubCollection;
 	}
 }
+#endif
 
 void FPCGExMeshCollectionEntry::BuildMacroCache()
 {
@@ -230,7 +231,6 @@ void FPCGExMeshCollectionEntry::BuildMacroCache()
 
 	MacroCache = NewCache;
 }
-#endif
 
 void FPCGExMeshCollectionEntry::UpdateStaging(const UPCGExAssetCollection* OwningCollection, const int32 InInternalIndex, const bool bRecursive)
 {

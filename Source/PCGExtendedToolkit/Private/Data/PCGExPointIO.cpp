@@ -210,6 +210,28 @@ namespace PCGExData
 		return false;
 	}
 
+	bool FPointIO::StageAnyOutput() const
+	{
+		if (!IsEnabled()) { return false; }
+		if (bTransactional)
+		{
+			if (InitializationData)
+			{
+				UPCGData* MutableData = const_cast<UPCGData*>(InitializationData.Get());
+				if (!MutableData) { return false; }
+
+				Context->StageOutput(OutputPin, MutableData, Tags->Flatten(), false, false);
+				return true;
+			}
+
+			return false;
+		}
+
+		if (!Out || (!bAllowEmptyOutput && Out->GetPoints().IsEmpty())) { return false; }
+
+		return true;
+	}
+
 	void FPointIO::DeleteAttribute(FName AttributeName) const
 	{
 		if (!Out) { return; }
@@ -253,8 +275,9 @@ namespace PCGExData
 		TSet<uint64> UniqueData;
 		UniqueData.Reserve(Sources.Num());
 
-		for (FPCGTaggedData& Source : Sources)
+		for (int i = 0; i < Sources.Num(); i++)
 		{
+			FPCGTaggedData& Source = Sources[i];
 			bool bIsAlreadyInSet;
 			UniqueData.Add(Source.Data->UID, &bIsAlreadyInSet);
 			if (bIsAlreadyInSet) { continue; } // Dedupe
@@ -271,6 +294,8 @@ namespace PCGExData
 			if (!SourcePointData || SourcePointData->GetPoints().Num() == 0) { continue; }
 			const TSharedPtr<FPointIO> NewIO = Emplace_GetRef(SourcePointData, InitOut, &Source.Tags);
 			NewIO->bTransactional = bTransactional;
+			NewIO->InitializationIndex = i;
+			NewIO->InitializationData = Source.Data;
 		}
 		UniqueData.Empty();
 	}
@@ -351,6 +376,13 @@ namespace PCGExData
 		Sort();
 		Context->IncreaseStagedOutputReserve(Pairs.Num());
 		for (int i = 0; i < Pairs.Num(); i++) { Pairs[i]->StageOutput(MinPointCount, MaxPointCount); }
+	}
+
+	void FPointIOCollection::StageAnyOutputs()
+	{
+		Sort();
+		Context->IncreaseStagedOutputReserve(Pairs.Num());
+		for (int i = 0; i < Pairs.Num(); i++) { Pairs[i]->StageAnyOutput(); }
 	}
 
 	void FPointIOCollection::Sort()
