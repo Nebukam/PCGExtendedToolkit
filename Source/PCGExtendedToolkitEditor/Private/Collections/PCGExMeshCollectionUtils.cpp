@@ -11,7 +11,7 @@
 
 namespace PCGExMeshCollectionUtils
 {
-	void PCGExMeshCollectionUtils::CreateCollectionFrom(const TArray<FAssetData>& SelectedAssets)
+	void CreateCollectionFrom(const TArray<FAssetData>& SelectedAssets)
 	{
 		if (SelectedAssets.IsEmpty()) { return; }
 
@@ -122,7 +122,7 @@ namespace PCGExMeshCollectionUtils
 		}
 	}
 
-	void PCGExMeshCollectionUtils::UpdateCollectionsFrom(
+	void UpdateCollectionsFrom(
 		const TArray<TObjectPtr<UPCGExMeshCollection>>& SelectedCollections,
 		const TArray<FAssetData>& SelectedAssets,
 		bool bIsNewCollection)
