@@ -114,6 +114,9 @@ namespace PCGExPathSplineMeshSimple
 
 		PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::Duplicate)
 
+		MutationDetails = Settings->MutationDetails;
+		if (!MutationDetails.Init(Context, PointDataFacade)) { return false; }
+		
 		if (Settings->StartOffsetInput == EPCGExInputValueType::Attribute)
 		{
 			StartOffsetGetter = PointDataFacade->GetScopedBroadcaster<FVector2D>(Settings->StartOffsetAttribute);
@@ -280,6 +283,8 @@ namespace PCGExPathSplineMeshSimple
 		if (UpGetter) { Segment.UpVector = UpGetter->Read(Index); }
 		else if (Settings->SplineMeshUpMode == EPCGExSplineMeshUpMode::Constant) { Segment.UpVector = Settings->SplineMeshUpVector; }
 		else { Segment.ComputeUpVectorFromTangents(); }
+
+		MutationDetails.Mutate(Index, Segment);
 	}
 
 	void FProcessor::CompleteWork()

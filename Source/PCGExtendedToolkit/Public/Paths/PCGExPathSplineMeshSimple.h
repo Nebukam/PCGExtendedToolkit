@@ -69,29 +69,33 @@ public:
 	FName LeaveTangentAttribute = "LeaveTangent";
 
 	/** Type of Start Offset */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Offsets", meta=(PCG_NotOverridable))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Mutations|Offsets", meta=(PCG_NotOverridable))
 	EPCGExInputValueType StartOffsetInput = EPCGExInputValueType::Constant;
 
 	/** Start Offset Attribute (Vector 2 expected)*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Offsets", meta=(PCG_Overridable, DisplayName="Start Offset (Attr)", EditCondition="StartOffsetInput!=EPCGExInputValueType::Constant", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Mutations|Offsets", meta=(PCG_Overridable, DisplayName="Start Offset (Attr)", EditCondition="StartOffsetInput!=EPCGExInputValueType::Constant", EditConditionHides))
 	FName StartOffsetAttribute = FName("StartOffset");
 
 	/** Start Offset Constant */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Offsets", meta=(PCG_Overridable, DisplayName="Start Offset", EditCondition="StartOffsetInput==EPCGExInputValueType::Constant", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Mutations|Offsets", meta=(PCG_Overridable, DisplayName="Start Offset", EditCondition="StartOffsetInput==EPCGExInputValueType::Constant", EditConditionHides))
 	FVector2D StartOffset = FVector2D::ZeroVector;
 
 	/** Type of End Offset */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Offsets", meta=(PCG_NotOverridable))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Mutations|Offsets", meta=(PCG_NotOverridable))
 	EPCGExInputValueType EndOffsetInput = EPCGExInputValueType::Constant;
 
 	/** End Offset Attribute (Vector 2 expected)*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Offsets", meta=(PCG_Overridable, DisplayName="End Offset (Attr)", EditCondition="EndOffsetInput!=EPCGExInputValueType::Constant", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Mutations|Offsets", meta=(PCG_Overridable, DisplayName="End Offset (Attr)", EditCondition="EndOffsetInput!=EPCGExInputValueType::Constant", EditConditionHides))
 	FName EndOffsetAttribute = FName("EndOffset");
-
+	
 	/** End Offset Constant */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Offsets", meta=(PCG_Overridable, DisplayName="End Offset", EditCondition="EndOffsetInput==EPCGExInputValueType::Constant", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Mutations|Offsets", meta=(PCG_Overridable, DisplayName="End Offset", EditCondition="EndOffsetInput==EPCGExInputValueType::Constant", EditConditionHides))
 	FVector2D EndOffset = FVector2D::ZeroVector;
 
+	/** Push details */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Mutations", meta=(PCG_Overridable, DisplayName="Expansion"))
+	FPCGExSplineMeshMutationDetails MutationDetails;
+	
 	/** */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable))
 	EPCGExSplineMeshUpMode SplineMeshUpMode = EPCGExSplineMeshUpMode::Constant;
@@ -107,7 +111,7 @@ public:
 	/**  */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Spline Axis Align"))
 	EPCGExMinimalAxis SplineMeshAxisConstant = EPCGExMinimalAxis::X;
-
+		
 	/** Tagging details */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Additional Outputs", meta=(PCG_Overridable))
 	FPCGExAssetTaggingDetails TaggingDetails;
@@ -153,8 +157,11 @@ namespace PCGExPathSplineMeshSimple
 {
 	class FProcessor final : public PCGExPointsMT::TPointsProcessor<FPCGExPathSplineMeshSimpleContext, UPCGExPathSplineMeshSimpleSettings>
 	{
+	protected:
 		bool bClosedLoop = false;
 		bool bUseTags = false;
+
+		FPCGExSplineMeshMutationDetails MutationDetails;
 
 		int32 LastIndex = 0;
 

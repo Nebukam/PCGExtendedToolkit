@@ -174,6 +174,9 @@ namespace PCGExPathSplineMesh
 		Justification = Settings->Justification;
 		Justification.Init(ExecutionContext, PointDataFacade);
 
+		SegmentMutationDetails = Settings->MutationDetails;
+		if (!SegmentMutationDetails.Init(Context, PointDataFacade)) { return false; }
+
 		bClosedLoop = Context->ClosedLoop.IsClosedLoop(PointDataFacade->Source);
 		bApplyScaleToFit = Settings->ScaleToFit.ScaleToFitMode != EPCGExFitMode::None;
 		bUseTags = Settings->TaggingDetails.IsEnabled();
@@ -378,6 +381,8 @@ namespace PCGExPathSplineMesh
 		if (UpGetter) { Segment.UpVector = UpGetter->Read(Index); }
 		else if (Settings->SplineMeshUpMode == EPCGExSplineMeshUpMode::Constant) { Segment.UpVector = Settings->SplineMeshUpVector; }
 		else { Segment.ComputeUpVectorFromTangents(); }
+
+		SegmentMutationDetails.Mutate(Index, Segment);
 	}
 
 	void FProcessor::CompleteWork()
