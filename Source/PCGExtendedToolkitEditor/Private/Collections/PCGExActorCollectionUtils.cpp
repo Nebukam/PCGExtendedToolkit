@@ -11,7 +11,7 @@
 
 namespace PCGExActorCollectionUtils
 {
-	void PCGExActorCollectionUtils::CreateCollectionFrom(const TArray<FAssetData>& SelectedAssets)
+	void CreateCollectionFrom(const TArray<FAssetData>& SelectedAssets)
 	{
 		if (SelectedAssets.IsEmpty()) { return; }
 
@@ -122,7 +122,7 @@ namespace PCGExActorCollectionUtils
 		}
 	}
 
-	void PCGExActorCollectionUtils::UpdateCollectionsFrom(
+	void UpdateCollectionsFrom(
 		const TArray<TObjectPtr<UPCGExActorCollection>>& SelectedCollections,
 		const TArray<FAssetData>& SelectedAssets,
 		bool bIsNewCollection)
