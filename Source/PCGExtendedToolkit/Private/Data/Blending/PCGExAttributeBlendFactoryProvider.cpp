@@ -48,7 +48,7 @@ bool UPCGExAttributeBlendOperation::PrepareForData(FPCGExContext* InContext, con
 	A.Source = PCGExData::ESource::Out;
 	
 	PCGExData::FProxyDescriptor B = PCGExData::FProxyDescriptor();
-	A.Source = PCGExData::ESource::Out;
+	B.Source = PCGExData::ESource::Out;
 
 	if (!PCGEx::TryGetTypeAndSource(Config.OperandA, InDataFacade, A.RealType, A.Source))
 	{
