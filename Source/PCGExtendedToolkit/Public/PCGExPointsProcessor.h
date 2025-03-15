@@ -114,7 +114,7 @@ public:
 	TArray<FName> ProtectedAttributes;
 
 	/** */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Warning and Errors", meta=(PCG_NotOverridable, AdvancedDisplay))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Warnings and Errors", meta=(PCG_NotOverridable, AdvancedDisplay))
 	bool bQuietMissingInputError = false;
 
 	//~End UPCGExPointsProcessorSettings
