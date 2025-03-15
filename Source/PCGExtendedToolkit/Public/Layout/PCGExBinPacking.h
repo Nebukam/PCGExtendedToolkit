@@ -106,11 +106,11 @@ public:
 	bool bAbsolutePadding = true;
 
 	/** If enabled, won't throw a warning if there are more bins than there are inputs. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Warning and Errors")
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Warnings and Errors")
 	bool bQuietTooManyBinsWarning = false;
 
 	/** If enabled, won't throw a warning if there are fewer bins than there are inputs. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Warning and Errors")
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Warnings and Errors")
 	bool bQuietTooFewBinsWarning = false;
 
 	virtual bool GetSortingRules(FPCGExContext* InContext, TArray<FPCGExSortRuleConfig>& OutRules) const;

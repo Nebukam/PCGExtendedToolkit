@@ -494,11 +494,11 @@ public:
 	FPCGExGraphBuilderDetails GraphBuilderDetails;
 
 	/** */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Warning and Errors")
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Warnings and Errors")
 	bool bQuietUnprocessedSettingsWarning = false;
 
 	/**  */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Warning and Errors")
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Warnings and Errors")
 	bool bQuietFailedBuildGraphWarning = false;
 };
 

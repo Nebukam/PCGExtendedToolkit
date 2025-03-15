@@ -78,7 +78,7 @@ public:
 	TArray<FPCGAttributePropertyInputSelector> Attributes;
 
 	/** */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Warning and Errors")
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Warnings and Errors")
 	bool bQuietTooManyCollectionsWarning = false;
 };
 
