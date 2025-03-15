@@ -251,7 +251,7 @@ public:
 	bool bPruneFailedSamples = false;
 
 	/** */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Warning and Errors")
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Warnings and Errors")
 	bool bQuietUVSettingsWarning = false;
 };
 

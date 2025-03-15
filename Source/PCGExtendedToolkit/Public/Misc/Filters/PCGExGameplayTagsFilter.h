@@ -47,7 +47,7 @@ struct FPCGExGameplayTagsFilterConfig
 	bool bFallbackPropertyPath = false;
 
 	/** */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Warning and Errors")
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Warnings and Errors")
 	bool bQuietMissingPropertyWarning = false;
 };
 

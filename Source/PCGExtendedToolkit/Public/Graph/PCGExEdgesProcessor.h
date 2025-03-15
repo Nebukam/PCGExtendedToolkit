@@ -47,7 +47,7 @@ public:
 	EPCGExOptionState ScopedIndexLookupBuild = EPCGExOptionState::Default;
 
 	/** */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Warning and Errors", meta=(PCG_NotOverridable, AdvancedDisplay))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Warnings and Errors", meta=(PCG_NotOverridable, AdvancedDisplay))
 	bool bQuietMissingClusterPairElement = false;
 
 	bool WantsScopedIndexLookupBuild() const;
