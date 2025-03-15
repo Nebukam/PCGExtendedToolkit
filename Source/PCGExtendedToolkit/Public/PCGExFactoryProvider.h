@@ -154,7 +154,7 @@ public:
 	bool bCleanupConsumableAttributes = false;
 
 	/** If enabled, will turn off missing input errors on factories that have inputs with missing or no data. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Warning and Errors", meta=(PCG_NotOverridable, AdvancedDisplay))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Warnings and Errors", meta=(PCG_NotOverridable, AdvancedDisplay))
 	bool bQuietMissingInputError = false;
 
 protected:
@@ -266,4 +266,8 @@ namespace PCGExFactories
 			Factory->RegisterConsumableAttributesWithData(InFacade->Source->GetContext(), Data);
 		}
 	}
+
+#if WITH_EDITOR
+	void EDITOR_SortPins(UPCGSettings* InSettings, FName InPin);
+#endif
 }

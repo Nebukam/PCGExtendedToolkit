@@ -91,7 +91,7 @@ namespace PCGExPointFilter
 
 		const FVector2D Pos2D = FVector2D(Pos.X, Pos.Y);
 
-		if (!TypedFilterFactory->Config.bUseMinInclusionCount && !TypedFilterFactory->Config.bUseMinInclusionCount)
+		if (!TypedFilterFactory->Config.bUseMinInclusionCount && !TypedFilterFactory->Config.bUseMaxInclusionCount)
 		{
 			for (int i = 0; i < Polygons->Num(); i++)
 			{
@@ -136,12 +136,10 @@ namespace PCGExPointFilter
 				for (int i = 0; i < Polygons->Num(); i++)
 				{
 					if (!(Bounds->GetData() + i)->IsInside(Pos)) { continue; }
-					if (FGeomTools2D::IsPointInPolygon(Pos2D, *(Polygons->GetData() + i)->Get()))
-					{
-						Inclusions++;
-						if (Inclusions >= TypedFilterFactory->Config.MinInclusionCount) { return TypedFilterFactory->Config.bInvert; }
-					}
+					if (FGeomTools2D::IsPointInPolygon(Pos2D, *(Polygons->GetData() + i)->Get())) { Inclusions++; }
 				}
+				
+				return Inclusions > TypedFilterFactory->Config.MinInclusionCount ? !TypedFilterFactory->Config.bInvert : TypedFilterFactory->Config.bInvert;
 			}
 		}
 
@@ -156,7 +154,7 @@ namespace PCGExPointFilter
 
 		const FVector2D Pos2D = FVector2D(Pos.X, Pos.Y);
 
-		if (!TypedFilterFactory->Config.bUseMinInclusionCount && !TypedFilterFactory->Config.bUseMinInclusionCount)
+		if (!TypedFilterFactory->Config.bUseMinInclusionCount && !TypedFilterFactory->Config.bUseMaxInclusionCount)
 		{
 			for (int i = 0; i < Polygons->Num(); i++)
 			{
@@ -180,7 +178,7 @@ namespace PCGExPointFilter
 					}
 				}
 
-				return Inclusions > TypedFilterFactory->Config.MinInclusionCount ? !TypedFilterFactory->Config.bInvert : TypedFilterFactory->Config.bInvert;
+				return Inclusions < TypedFilterFactory->Config.MinInclusionCount ? !TypedFilterFactory->Config.bInvert : TypedFilterFactory->Config.bInvert;
 			}
 			if (TypedFilterFactory->Config.bUseMaxInclusionCount)
 			{
@@ -201,12 +199,10 @@ namespace PCGExPointFilter
 				for (int i = 0; i < Polygons->Num(); i++)
 				{
 					if (!(Bounds->GetData() + i)->IsInside(Pos)) { continue; }
-					if (FGeomTools2D::IsPointInPolygon(Pos2D, *(Polygons->GetData() + i)->Get()))
-					{
-						Inclusions++;
-						if (Inclusions >= TypedFilterFactory->Config.MinInclusionCount) { return TypedFilterFactory->Config.bInvert; }
-					}
+					if (FGeomTools2D::IsPointInPolygon(Pos2D, *(Polygons->GetData() + i)->Get())) { Inclusions++; }
 				}
+				
+				return Inclusions > TypedFilterFactory->Config.MinInclusionCount ? !TypedFilterFactory->Config.bInvert : TypedFilterFactory->Config.bInvert;
 			}
 		}
 

@@ -40,10 +40,22 @@ namespace PCGExMT
 	public:
 		TArray<TSharedPtr<TSet<T>>> Sets;
 
-		explicit TScopedSet(const TArray<FScope>& InScopes, const T InReserve)
+		explicit TScopedSet(const TArray<FScope>& InScopes, const int32 InReserve)
 		{
 			Sets.Reserve(InScopes.Num());
-			for (int i = 0; i < InScopes.Num(); i++) { Sets.Add_GetRef(MakeShared<TSet<T>>())->Reserve(InReserve); }
+			if (InReserve > 0)
+			{
+				for (int i = 0; i < InScopes.Num(); i++) { Sets.Add_GetRef(MakeShared<TSet<T>>())->Reserve(InReserve); }
+			}
+			else if (InReserve == 0)
+			{
+				for (int i = 0; i < InScopes.Num(); i++) { Sets.Add(MakeShared<TSet<T>>()); }
+			}
+			else
+			{
+				const int32 ReserveFactor = FMath::Abs(InReserve);
+				for (int i = 0; i < InScopes.Num(); i++) { Sets.Add_GetRef(MakeShared<TSet<T>>())->Reserve(InScopes[i].Count * ReserveFactor); }
+			}
 		};
 
 		~TScopedSet() = default;

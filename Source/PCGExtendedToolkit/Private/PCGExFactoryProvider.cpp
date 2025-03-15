@@ -184,5 +184,11 @@ FPCGContext* FPCGExFactoryProviderElement::Initialize(const FPCGDataCollection& 
 	return Context;
 }
 
+#if WITH_EDITOR
+void PCGExFactories::EDITOR_SortPins(UPCGSettings* InSettings, FName InPin)
+{
+}
+#endif
+
 #undef LOCTEXT_NAMESPACE
 #undef PCGEX_NAMESPACE

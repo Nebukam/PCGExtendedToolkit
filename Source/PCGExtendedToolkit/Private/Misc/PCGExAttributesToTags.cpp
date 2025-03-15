@@ -9,6 +9,11 @@
 #define LOCTEXT_NAMESPACE "PCGExAttributesToTagsElement"
 #define PCGEX_NAMESPACE AttributesToTags
 
+bool UPCGExAttributesToTagsSettings::GetIsMainTransactional() const
+{
+	return true;
+}
+
 TArray<FPCGPinProperties> UPCGExAttributesToTagsSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
@@ -21,12 +26,18 @@ TArray<FPCGPinProperties> UPCGExAttributesToTagsSettings::InputPinProperties() c
 
 TArray<FPCGPinProperties> UPCGExAttributesToTagsSettings::OutputPinProperties() const
 {
+	TArray<FPCGPinProperties> PinProperties;
+
 	if (Action == EPCGExAttributeToTagsAction::AddTags)
 	{
-		return Super::OutputPinProperties();
+		PCGEX_PIN_ANY(GetMainOutputPin(), "The processed input.", Normal, {})
 	}
-	TArray<FPCGPinProperties> PinProperties;
-	PCGEX_PIN_PARAMS(FName("Tags"), "Tags value in the format `AttributeName = AttributeName:AttributeValue`", Required, {})
+	else
+	{
+		PCGEX_PIN_PARAMS(FName("Tags"), "Tags value in the format `AttributeName = AttributeName:AttributeValue`", Required, {})
+	}
+
+
 	return PinProperties;
 }
 
@@ -114,7 +125,7 @@ bool FPCGExAttributesToTagsElement::ExecuteInternal(FPCGContext* InContext) cons
 
 	if (Settings->Action == EPCGExAttributeToTagsAction::AddTags)
 	{
-		Context->MainPoints->StageOutputs();
+		Context->MainPoints->StageAnyOutputs();
 	}
 	else
 	{

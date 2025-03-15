@@ -782,3 +782,60 @@ namespace PCGExPaths
 		return Intersection;
 	}
 }
+
+
+USTRUCT(BlueprintType)
+struct PCGEXTENDEDTOOLKIT_API FPCGExSplineMeshMutationDetails
+{
+	GENERATED_BODY()
+
+	FPCGExSplineMeshMutationDetails() = default;
+
+	/** */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	bool bPushStart = false;
+
+	/** */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bPushStart", EditConditionHides))
+	EPCGExInputValueType StartPushInput = EPCGExInputValueType::Constant;
+
+	/** */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName=" ├─ Amount (Attr)", EditCondition="bPushStart && StartPushInput!=EPCGExInputValueType::Constant", EditConditionHides))
+	FPCGAttributePropertyInputSelector StartPushInputAttribute;
+
+	/** */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName=" ├─ Amount", EditCondition="bPushStart && StartPushInput==EPCGExInputValueType::Constant", EditConditionHides))
+	double StartPushConstant = 0.1;
+	
+	/** If enabled, value will relative to the size of the segment */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName=" └─ Relative", EditCondition="bPushStart", EditConditionHides))
+	bool bRelativeStart = true;
+
+	/** */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	bool bPushEnd = false;
+
+	/** */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bPushEnd", EditConditionHides))
+	EPCGExInputValueType EndPushInput = EPCGExInputValueType::Constant;
+
+	/** */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName=" ├─ Amount (Attr)", EditCondition="bPushEnd && EndPushInput!=EPCGExInputValueType::Constant", EditConditionHides))
+	FPCGAttributePropertyInputSelector EndPushInputAttribute;
+
+	/** */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName=" ├─ Amount", EditCondition="bPushEnd && EndPushInput==EPCGExInputValueType::Constant", EditConditionHides))
+	double EndPushConstant = 0.1;
+	
+	/** If enabled, value will relative to the size of the segment */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName=" └─ Relative", EditCondition="bPushEnd", EditConditionHides))
+	bool bRelativeEnd = true;
+
+	bool Init(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade>& InDataFacade);
+	void Mutate(const int32 PointIndex, PCGExPaths::FSplineMeshSegment& InSegment);
+
+protected:
+	TSharedPtr<PCGExData::TBuffer<double>> StartAmount;
+	TSharedPtr<PCGExData::TBuffer<double>> EndAmount;
+	 
+};

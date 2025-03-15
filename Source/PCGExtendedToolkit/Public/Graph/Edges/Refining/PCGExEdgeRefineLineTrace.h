@@ -33,6 +33,12 @@ public:
 
 	virtual bool RequiresIndividualEdgeProcessing() override { return true; }
 
+	virtual void PrepareForCluster(const TSharedPtr<PCGExCluster::FCluster>& InCluster, const TSharedPtr<PCGExHeuristics::FHeuristicsHandler>& InHeuristics) override
+	{
+		Super::PrepareForCluster(InCluster, InHeuristics);
+		ExchangeValue = bInvert ? 1 : 0;
+	}
+
 	virtual void ProcessEdge(PCGExGraph::FEdge& Edge) override
 	{
 		Super::ProcessEdge(Edge);
@@ -46,7 +52,7 @@ public:
 			if (!bTwoWayCheck || !InitializedCollisionSettings.Linecast(To, From, HitResult)) { return; }
 		}
 
-		FPlatformAtomics::InterlockedExchange(&Edge.bValid, bInvert ? 1 : 0);
+		FPlatformAtomics::InterlockedExchange(&Edge.bValid, ExchangeValue);
 	}
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
@@ -59,6 +65,8 @@ public:
 	/** */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	bool bInvert = false;
+
+	int8 ExchangeValue = 0;
 
 protected:
 	FPCGExCollisionDetails InitializedCollisionSettings;

@@ -109,7 +109,7 @@ namespace PCGExConnectPoints
 		const TArray<FPCGPoint>* InPoints = nullptr;
 		TArray<FTransform> CachedTransforms;
 
-		TSharedPtr<PCGExMT::TScopedSet<uint64>> DistributedEdgesSet;
+		TSharedPtr<PCGExMT::TScopedSet<uint64>> ScopedEdges;
 
 		FPCGExGeo2DProjectionDetails ProjectionDetails;
 
