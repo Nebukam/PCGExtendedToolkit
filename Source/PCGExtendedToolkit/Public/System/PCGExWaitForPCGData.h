@@ -145,15 +145,15 @@ public:
 	FName RoamingPin = FName("Roaming Data");
 
 	/** */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Warning and Errors")
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Warnings and Errors")
 	bool bQuietActorNotFoundWarning = false;
 
 	/** */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Warning and Errors")
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Warnings and Errors")
 	bool bQuietComponentNotFoundWarning = false;
 
 	/** */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Warning and Errors")
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Warnings and Errors")
 	bool bQuietTimeoutError = false;
 
 #if WITH_EDITOR

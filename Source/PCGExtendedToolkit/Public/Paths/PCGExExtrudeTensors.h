@@ -279,7 +279,7 @@ public:
 	FPCGExPathOutputDetails PathOutputDetails;
 
 	/** */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Warning and Errors", meta=(PCG_NotOverridable, AdvancedDisplay))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Warnings and Errors", meta=(PCG_NotOverridable, AdvancedDisplay))
 	bool bQuietMissingTensorError = false;
 
 
