@@ -4,6 +4,7 @@
 
 #include "Misc/PCGExAttributeRemap.h"
 #include "PCGExHelpers.h"
+#include "Data/PCGExProxyData.h"
 
 
 #define LOCTEXT_NAMESPACE "PCGExAttributeRemap"
@@ -56,6 +57,8 @@ bool FPCGExAttributeRemapElement::Boot(FPCGExContext* InContext) const
 
 	PCGEX_VALIDATE_NAME_CONSUMABLE(Settings->Attributes.Source)
 	if (Settings->Attributes.bOutputToDifferentName) { PCGEX_VALIDATE_NAME(Settings->Attributes.Target) }
+
+	
 
 	Context->RemapSettings[0] = Settings->BaseRemap;
 	Context->RemapSettings[1] = Settings->Component2RemapOverride;
@@ -118,6 +121,34 @@ namespace PCGExAttributeRemap
 
 		PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::Duplicate)
 
+		//
+		/*
+		FPCGAttributePropertyInputSelector InSelector = FPCGAttributePropertyInputSelector();
+		InSelector.Update(Settings->Attributes.Source.ToString());
+		
+		FPCGAttributePropertyInputSelector OutSelector = FPCGAttributePropertyInputSelector();
+		OutSelector.Update(Settings->Attributes.GetOutputName().ToString());
+
+		PCGExData::FProxyDescriptor A = PCGExData::FProxyDescriptor();
+		A.Source = PCGExData::ESource::Out;
+	
+		PCGExData::FProxyDescriptor B = PCGExData::FProxyDescriptor();
+		B.Source = PCGExData::ESource::Out;
+
+		if (!PCGEx::TryGetTypeAndSource(InSelector, PointDataFacade, A.RealType, A.Source))
+		{
+			PCGEX_LOG_INVALID_SELECTOR_C(Context, Input Attribute, InSelector)
+			return false;
+		}
+
+		if (!PCGEx::TryGetTypeAndSource(OutSelector, PointDataFacade, B.RealType, B.Source))
+		{
+			PCGEX_LOG_INVALID_SELECTOR_C(Context, Output Attribute, OutSelector)
+			return false;
+		}
+		*/
+		//
+		
 		const TSharedPtr<PCGEx::FAttributesInfos> Infos = PCGEx::FAttributesInfos::Get(PointDataFacade->GetIn()->Metadata);
 		const PCGEx::FAttributeIdentity* Identity = Infos->Find(Settings->Attributes.Source);
 

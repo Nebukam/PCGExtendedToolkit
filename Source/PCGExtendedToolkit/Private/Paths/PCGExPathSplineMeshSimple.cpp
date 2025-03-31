@@ -32,10 +32,18 @@ bool FPCGExPathSplineMeshSimpleElement::Boot(FPCGExContext* InContext) const
 		PCGEX_VALIDATE_NAME_CONSUMABLE(Settings->LeaveTangentAttribute)
 	}
 
-	PCGEX_VALIDATE_NAME_CONSUMABLE(Settings->AssetPathAttributeName)
+	if (Settings->AssetType == EPCGExInputValueType::Attribute)
+	{
+		PCGEX_VALIDATE_NAME_CONSUMABLE(Settings->AssetPathAttributeName)
 
-	TArray<FName> Names = {Settings->AssetPathAttributeName};
-	Context->StaticMeshLoader = MakeShared<PCGEx::TAssetLoader<UStaticMesh>>(Context, Context->MainPoints.ToSharedRef(), Names);
+		TArray<FName> Names = {Settings->AssetPathAttributeName};
+		Context->StaticMeshLoader = MakeShared<PCGEx::TAssetLoader<UStaticMesh>>(Context, Context->MainPoints.ToSharedRef(), Names);
+	}
+	else
+	{
+		Context->StaticMesh = PCGExHelpers::LoadBlocking_AnyThread(Settings->StaticMesh);
+		if (!Context->StaticMesh) { return false; }
+	}
 	return true;
 }
 
@@ -45,18 +53,29 @@ bool FPCGExPathSplineMeshSimpleElement::ExecuteInternal(FPCGContext* InContext) 
 
 	PCGEX_CONTEXT_AND_SETTINGS(PathSplineMeshSimple)
 	PCGEX_EXECUTION_CHECK
-	PCGEX_ON_INITIAL_EXECUTION
+
+	if (Context->StaticMesh)
 	{
-		if (!Context->StaticMeshLoader->Start(Context->GetAsyncManager(), PCGEx::State_WaitingOnAsyncWork))
+		PCGEX_ON_INITIAL_EXECUTION
 		{
-			PCGE_LOG(Error, GraphAndLog, FTEXT("Failed to find any asset to load."));
-			return true;
+			Context->SetState(PCGEx::State_WaitingOnAsyncWork);
+		}
+	}
+	else
+	{
+		PCGEX_ON_INITIAL_EXECUTION
+		{
+			if (!Context->StaticMeshLoader->Start(Context->GetAsyncManager(), PCGEx::State_WaitingOnAsyncWork))
+			{
+				PCGE_LOG(Error, GraphAndLog, FTEXT("Failed to find any asset to load."));
+				return true;
+			}
+
+			return false;
 		}
 
-		return false;
+		if (!Context->StaticMeshLoader->Execute()) { return false; }
 	}
-
-	if (!Context->StaticMeshLoader->Execute()) { return false; }
 
 	PCGEX_ON_STATE(PCGEx::State_WaitingOnAsyncWork)
 	{
@@ -116,7 +135,7 @@ namespace PCGExPathSplineMeshSimple
 
 		MutationDetails = Settings->MutationDetails;
 		if (!MutationDetails.Init(Context, PointDataFacade)) { return false; }
-		
+
 		if (Settings->StartOffsetInput == EPCGExInputValueType::Attribute)
 		{
 			StartOffsetGetter = PointDataFacade->GetScopedBroadcaster<FVector2D>(Settings->StartOffsetAttribute);
@@ -150,16 +169,19 @@ namespace PCGExPathSplineMeshSimple
 			}
 		}
 
+		if (Settings->AssetType == EPCGExInputValueType::Attribute)
+		{
 #if PCGEX_ENGINE_VERSION <= 503
-		AssetPathReader = PointDataFacade->GetScopedBroadcaster<FString>(Settings->AssetPathAttributeName);
+			AssetPathReader = PointDataFacade->GetScopedBroadcaster<FString>(Settings->AssetPathAttributeName);
 #else
-		AssetPathReader = PointDataFacade->GetScopedBroadcaster<FSoftObjectPath>(Settings->AssetPathAttributeName);
+			AssetPathReader = PointDataFacade->GetScopedBroadcaster<FSoftObjectPath>(Settings->AssetPathAttributeName);
 #endif
 
-		if (!AssetPathReader)
-		{
-			PCGE_LOG_C(Error, GraphAndLog, ExecutionContext, FTEXT("AssetPath attribute is missing on some inputs.."));
-			return false;
+			if (!AssetPathReader)
+			{
+				PCGE_LOG_C(Error, GraphAndLog, ExecutionContext, FTEXT("AssetPath attribute is missing on some inputs.."));
+				return false;
+			}
 		}
 
 		bClosedLoop = Context->ClosedLoop.IsClosedLoop(PointDataFacade->Source);
@@ -238,7 +260,8 @@ namespace PCGExPathSplineMeshSimple
 			return;
 		}
 
-		TObjectPtr<UStaticMesh>* SM = Context->StaticMeshLoader->GetAsset(AssetPathReader->Read(Index));
+		TObjectPtr<UStaticMesh>* SM = AssetPathReader ? Context->StaticMeshLoader->GetAsset(AssetPathReader->Read(Index)) : &Context->StaticMesh;
+
 		if (!SM)
 		{
 			InvalidPoint();
