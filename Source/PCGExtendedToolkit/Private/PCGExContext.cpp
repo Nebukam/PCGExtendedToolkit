@@ -140,24 +140,12 @@ void FPCGExContext::OnComplete()
 
 void FPCGExContext::SetAsyncState(const PCGEx::ContextState WaitState)
 {
-	if (!bAsyncEnabled)
-	{
-		SetState(WaitState);
-		return;
-	}
-
 	bWaitingForAsyncCompletion = true;
 	SetState(WaitState);
 }
 
 bool FPCGExContext::ShouldWaitForAsync()
 {
-	if (!bAsyncEnabled)
-	{
-		if (bWaitingForAsyncCompletion) { ResumeExecution(); }
-		return false;
-	}
-
 	return bWaitingForAsyncCompletion;
 }
 

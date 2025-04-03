@@ -190,7 +190,7 @@ TSharedPtr<PCGExMT::FTaskManager> FPCGExPointsProcessorContext::GetAsyncManager(
 	if (!AsyncManager)
 	{
 		FWriteScopeLock WriteLock(AsyncLock);
-		AsyncManager = MakeShared<PCGExMT::FTaskManager>(this, !bAsyncEnabled);
+		AsyncManager = MakeShared<PCGExMT::FTaskManager>(this);
 
 		PCGEX_SETTINGS_LOCAL(PointsProcessor)
 		PCGExMT::SetWorkPriority(Settings->WorkPriority, AsyncManager->WorkPriority);
@@ -227,7 +227,6 @@ bool FPCGExPointsProcessorContext::IsAsyncWorkComplete()
 {
 	// Context must be unpaused for this to be called
 
-	if (!bAsyncEnabled) { return true; }
 	if (!bWaitingForAsyncCompletion || !AsyncManager) { return true; }
 
 	if (!AsyncManager->IsWaitingForRunningTasks())
@@ -348,8 +347,6 @@ FPCGExContext* FPCGExPointsProcessorElement::InitializeContext(
 	check(Settings);
 
 	InContext->bFlattenOutput = Settings->bFlattenOutput;
-	InContext->bAsyncEnabled = Settings->bDoAsyncProcessing;
-
 	InContext->bScopedAttributeGet = Settings->WantsScopedAttributeGet();
 
 	return InContext;

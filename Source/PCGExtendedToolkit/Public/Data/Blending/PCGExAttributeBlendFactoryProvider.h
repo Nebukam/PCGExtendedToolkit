@@ -133,7 +133,6 @@ public:
 	int32 OpIdx = -1;
 	TSharedPtr<TArray<UPCGExAttributeBlendOperation*>> SiblingOperations;
 
-
 	virtual bool PrepareForData(FPCGExContext* InContext, const TSharedRef<PCGExData::FFacade>& InDataFacade);
 
 	virtual void Blend(const int32 Index, FPCGPoint& Point)

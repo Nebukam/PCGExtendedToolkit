@@ -41,9 +41,17 @@ protected:
 public:
 	PCGEX_NODE_POINT_FILTER(PCGExPointFilter::SourcePointFiltersLabel, "Filters", PCGExFactories::PointFilters, false)
 
-	/** The name of the attribute to write asset path to.*/
+	/** How the asset gets selected */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	EPCGExInputValueType AssetType = EPCGExInputValueType::Attribute;
+
+	/** The name of the attribute to write asset path to.*/
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName=" └─ Asset (Attr)", EditCondition="AssetType != EPCGExInputValueType::Constant", EditConditionHides))
 	FName AssetPathAttributeName = "AssetPath";
+
+	/** Constant static mesh .*/
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName=" └─ Asset", EditCondition="AssetType == EPCGExInputValueType::Constant", EditConditionHides))
+	TSoftObjectPtr<UStaticMesh> StaticMesh;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Target Actor", meta = (PCG_Overridable))
 	TSoftObjectPtr<AActor> TargetActor;
@@ -87,7 +95,7 @@ public:
 	/** End Offset Attribute (Vector 2 expected)*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Mutations|Offsets", meta=(PCG_Overridable, DisplayName="End Offset (Attr)", EditCondition="EndOffsetInput!=EPCGExInputValueType::Constant", EditConditionHides))
 	FName EndOffsetAttribute = FName("EndOffset");
-	
+
 	/** End Offset Constant */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Mutations|Offsets", meta=(PCG_Overridable, DisplayName="End Offset", EditCondition="EndOffsetInput==EPCGExInputValueType::Constant", EditConditionHides))
 	FVector2D EndOffset = FVector2D::ZeroVector;
@@ -95,7 +103,7 @@ public:
 	/** Push details */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Mutations", meta=(PCG_Overridable, DisplayName="Expansion"))
 	FPCGExSplineMeshMutationDetails MutationDetails;
-	
+
 	/** */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable))
 	EPCGExSplineMeshUpMode SplineMeshUpMode = EPCGExSplineMeshUpMode::Constant;
@@ -111,7 +119,7 @@ public:
 	/**  */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Spline Axis Align"))
 	EPCGExMinimalAxis SplineMeshAxisConstant = EPCGExMinimalAxis::X;
-		
+
 	/** Tagging details */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Additional Outputs", meta=(PCG_Overridable))
 	FPCGExAssetTaggingDetails TaggingDetails;
@@ -134,6 +142,9 @@ struct FPCGExPathSplineMeshSimpleContext final : FPCGExPathProcessorContext
 
 	TSet<AActor*> NotifyActors;
 	TSharedPtr<PCGEx::TAssetLoader<UStaticMesh>> StaticMeshLoader;
+	
+	UPROPERTY()
+	TObjectPtr<UStaticMesh> StaticMesh;
 };
 
 class FPCGExPathSplineMeshSimpleElement final : public FPCGExPathProcessorElement
