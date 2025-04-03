@@ -270,7 +270,7 @@ namespace PCGExPathCrossings
 				if (!Details.bEnableSelfIntersection && &OtherProcessor.Get() == this) { continue; }
 
 				const TSharedRef<FProcessor> TypedProcessor = StaticCastSharedRef<FProcessor>(OtherProcessor);
-				if (!TypedProcessor->bCanCut) { return; }
+				if (!TypedProcessor->bCanCut) { continue; }
 
 				CurrentIOIndex = TypedProcessor->PointDataFacade->Source->IOIndex;
 

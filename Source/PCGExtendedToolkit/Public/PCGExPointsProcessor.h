@@ -81,10 +81,11 @@ public:
 
 	bool SupportsPointFilters() const { return !GetPointFilterPin().IsNone(); }
 
-	/** Forces execution on main thread. Work is still chunked. Turning this off ensure linear order of operations, and, in most case, determinism.*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Performance, meta=(PCG_NotOverridable, DisplayName="Do Async Processing (Debug)", AdvancedDisplay))
-	bool bDoAsyncProcessing = true;
-
+#if WITH_EDITORONLY_DATA
+	UPROPERTY()
+	bool bDoAsyncProcessing_DEPRECATED = true;
+#endif
+	
 	/** Async work priority for this node.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Performance, meta=(PCG_NotOverridable, AdvancedDisplay, EditCondition="bDoAsyncProcessing"))
 	EPCGExAsyncPriority WorkPriority = EPCGExAsyncPriority::Default;

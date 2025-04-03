@@ -86,7 +86,6 @@ public:
 	void PauseContext();
 	void UnpauseContext();
 
-	bool bAsyncEnabled = true;
 	void SetState(const PCGEx::ContextState StateId);
 	void SetAsyncState(const PCGEx::ContextState WaitState);
 
