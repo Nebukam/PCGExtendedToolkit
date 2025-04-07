@@ -42,7 +42,11 @@ bool FPCGExPathSplineMeshSimpleElement::Boot(FPCGExContext* InContext) const
 	else
 	{
 		Context->StaticMesh = PCGExHelpers::LoadBlocking_AnyThread(Settings->StaticMesh);
-		if (!Context->StaticMesh) { return false; }
+		if (!Context->StaticMesh)
+		{
+			PCGE_LOG_C(Error, GraphAndLog, Context, FTEXT("Static mesh could not be loaded."));
+			return false;
+		}
 	}
 	return true;
 }
