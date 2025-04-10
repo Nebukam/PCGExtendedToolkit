@@ -9,7 +9,7 @@
 namespace PCGExDataBlending
 {
 	BOOKMARK_BLENDMODE
-	
+
 	template <typename T>
 	class TDataBlendingAverage final : public TDataBlendingProcessor<T, EPCGExDataBlendingType::Average, true, true>
 	{

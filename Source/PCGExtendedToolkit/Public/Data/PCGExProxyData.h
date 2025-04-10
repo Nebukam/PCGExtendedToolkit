@@ -26,6 +26,13 @@ namespace PCGExData
 
 		~FProxyDescriptor() = default;
 		void UpdateSubSelection();
+		bool SetFieldIndex(const int32 InFieldIndex);
+
+		bool Capture(FPCGExContext* InContext, const TSharedPtr<FFacade>& InFacade, const FString& Path, const ESource InSource = ESource::Out, const bool bThrowError = true);
+		bool Capture(FPCGExContext* InContext, const TSharedPtr<FFacade>& InFacade, const FPCGAttributePropertyInputSelector& InSelector, const ESource InSource = ESource::Out, const bool bThrowError = true);
+
+		bool CaptureStrict(FPCGExContext* InContext, const TSharedPtr<FFacade>& InFacade, const FString& Path, const ESource InSource = ESource::Out, const bool bThrowError = true);
+		bool CaptureStrict(FPCGExContext* InContext, const TSharedPtr<FFacade>& InFacade, const FPCGAttributePropertyInputSelector& InSelector, const ESource InSource = ESource::Out, const bool bThrowError = true);
 	};
 
 	class FBufferProxyBase : public TSharedFromThis<FBufferProxyBase>
@@ -45,14 +52,14 @@ namespace PCGExData
 	template <typename T>
 	class TBufferProxy : public FBufferProxyBase
 	{
-	public:		
+	public:
 		TBufferProxy()
 			: FBufferProxyBase()
 		{
 			WorkingType = PCGEx::GetMetadataType<T>();
 		}
 
-		virtual T Get(const int32 Index, FPCGPoint& Point) const = 0;
+		virtual T Get(const int32 Index, const FPCGPoint& Point) const = 0;
 		virtual void Set(const int32 Index, FPCGPoint& Point, const T& Value) const = 0;
 		virtual TSharedPtr<FBufferBase> GetBuffer() const override { return nullptr; }
 	};
@@ -71,7 +78,7 @@ namespace PCGExData
 			this->RealType = PCGEx::GetMetadataType<T_REAL>();
 		}
 
-		virtual T_WORKING Get(const int32 Index, FPCGPoint& Point) const override
+		virtual T_WORKING Get(const int32 Index, const FPCGPoint& Point) const override
 		{
 			// i.e get Rotation<FQuat>.Forward<FVector> as <double>
 			//					^ T_REAL	  ^ Sub		      ^ T_WORKING
@@ -110,7 +117,7 @@ namespace PCGExData
 			this->RealType = PCGEx::GetMetadataType<T_REAL>();
 		}
 
-		virtual T_WORKING Get(const int32 Index, FPCGPoint& Point) const override
+		virtual T_WORKING Get(const int32 Index, const FPCGPoint& Point) const override
 		{
 #define PCGEX_GET_SUBPROPERTY(_ACCESSOR, _TYPE) \
 			if constexpr (!bSubSelection){ return PCGEx::Convert<T_REAL, T_WORKING>(Point._ACCESSOR); } \
@@ -134,8 +141,8 @@ namespace PCGExData
 				T_REAL V = T_REAL{};
 #define PCGEX_GET_REAL(_ACCESSOR, _TYPE) V  = Point._ACCESSOR;
 				PCGEX_CONSTEXPR_IFELSE_GETPOINTPROPERTY(PROPERTY, PCGEX_GET_REAL)
-	#undef PCGEX_GET_REAL
-				
+#undef PCGEX_GET_REAL
+
 #define PCGEX_PROPERTY_SET(_TYPE) SubSelection.template Set<T_REAL, T_WORKING>(V, Value);
 #define PCGEX_PROPERTY_VALUE(_TYPE) V
 				PCGEX_CONSTEXPR_IFELSE_SETPOINTPROPERTY(PROPERTY, Point, PCGEX_PROPERTY_SET, PCGEX_PROPERTY_VALUE)
@@ -159,7 +166,7 @@ namespace PCGExData
 			this->RealType = PCGEx::GetMetadataType<T_REAL>();
 		}
 
-		virtual T_WORKING Get(const int32 Index, FPCGPoint& Point) const override
+		virtual T_WORKING Get(const int32 Index, const FPCGPoint& Point) const override
 		{
 			if constexpr (PROPERTY == EPCGExtraProperties::Index)
 			{
@@ -192,7 +199,7 @@ namespace PCGExData
 			Constant = PCGEx::Convert<T, T_WORKING>(InValue);
 		}
 
-		virtual T_WORKING Get(const int32 Index, FPCGPoint& Point) const override
+		virtual T_WORKING Get(const int32 Index, const FPCGPoint& Point) const override
 		{
 			return Constant;
 		}
@@ -204,143 +211,10 @@ namespace PCGExData
 		}
 	};
 
-	static TSharedPtr<FBufferProxyBase> GetProxyBuffer(
+	TSharedPtr<FBufferProxyBase> GetProxyBuffer(
 		FPCGExContext* InContext,
 		const TSharedPtr<FFacade>& InDataFacade,
-		const FProxyDescriptor& InDescriptor)
-	{
-		TSharedPtr<FBufferProxyBase> OutProxy = nullptr;
-		const bool bSubSelection = InDescriptor.SubSelection.bIsValid;
-
-		PCGEx::ExecuteWithRightType(
-			InDescriptor.WorkingType, [&](auto W)
-			{
-				using T_WORKING = decltype(W);
-				PCGEx::ExecuteWithRightType(
-					InDescriptor.RealType, [&](auto R)
-					{
-						using T_REAL = decltype(R);
-
-						if (InDescriptor.Selector.GetSelection() == EPCGAttributePropertySelection::Attribute)
-						{
-							if (bSubSelection)
-							{
-								TSharedPtr<TAttributeBufferProxy<T_REAL, T_WORKING, true>> TypedProxy =
-									MakeShared<TAttributeBufferProxy<T_REAL, T_WORKING, true>>();
-
-								TSharedPtr<TBuffer<T_REAL>> ExistingBuffer = InDataFacade->FindBuffer<T_REAL>(InDescriptor.Selector.GetAttributeName());
-								TSharedPtr<TBuffer<T_REAL>> Buffer;
-
-								if (InDescriptor.Source == ESource::In && ExistingBuffer && ExistingBuffer->IsWritable())
-								{
-									// Read from writer
-									Buffer = InDataFacade->GetScopedReadable<T_REAL>(InDescriptor.Selector.GetAttributeName(), ESource::Out);
-								}
-
-								if (!Buffer)
-								{
-									// Fallback, make a writer that inherit data instead
-									// This will create issues if the same name is used with different types
-									Buffer = InDataFacade->GetWritable<T_REAL>(InDescriptor.Selector.GetAttributeName(), T_REAL{}, true, EBufferInit::Inherit);
-								}
-
-								if (!Buffer)
-								{
-									// TODO : Identify and log error
-									PCGE_LOG_C(Error, GraphAndLog, InContext, FTEXT("An attribute is using the same name with different types."));
-									return;
-								}
-
-								if (!Buffer->EnsureReadable())
-								{
-									PCGE_LOG_C(Error, GraphAndLog, InContext, FTEXT("Fail to make buffer readable."));
-									return;
-								}
-
-								TypedProxy->Buffer = Buffer;
-								OutProxy = TypedProxy;
-							}
-							else
-							{
-								TSharedPtr<TAttributeBufferProxy<T_REAL, T_WORKING, false>> TypedProxy =
-									MakeShared<TAttributeBufferProxy<T_REAL, T_WORKING, false>>();
-
-								TSharedPtr<TBuffer<T_REAL>> ExistingBuffer = InDataFacade->FindBuffer<T_REAL>(InDescriptor.Selector.GetAttributeName());
-								TSharedPtr<TBuffer<T_REAL>> Buffer;
-
-								if (InDescriptor.Source == ESource::In && ExistingBuffer && ExistingBuffer->IsWritable())
-								{
-									// Read from writer
-									Buffer = InDataFacade->GetScopedReadable<T_REAL>(InDescriptor.Selector.GetAttributeName(), ESource::Out);
-								}
-
-								if (!Buffer)
-								{
-									// Fallback, make a writer that inherit data instead
-									// This will create issues if the same name is used with different types
-									Buffer = InDataFacade->GetWritable<T_REAL>(InDescriptor.Selector.GetAttributeName(), T_REAL{}, true, EBufferInit::Inherit);
-								}
-
-								if (!Buffer)
-								{
-									// TODO : Identify and log error
-									PCGE_LOG_C(Error, GraphAndLog, InContext, FTEXT("An attribute is using the same name with different types."));
-									return;
-								}
-
-								if (!Buffer->EnsureReadable())
-								{
-									PCGE_LOG_C(Error, GraphAndLog, InContext, FTEXT("Fail to make buffer readable."));
-									return;
-								}
-
-								TypedProxy->Buffer = Buffer;
-								OutProxy = TypedProxy;
-							}
-						}
-						else if (InDescriptor.Selector.GetSelection() == EPCGAttributePropertySelection::PointProperty)
-						{
-#define PCGEX_DECL_PROPXY(_PROPERTY, _ACCESSOR, _TYPE) \
-						case _PROPERTY : \
-						if (bSubSelection) { OutProxy = MakeShared<TPointPropertyProxy<_TYPE, T_WORKING, true, _PROPERTY>>(); } \
-						else { OutProxy = MakeShared<TPointPropertyProxy<_TYPE, T_WORKING, false, _PROPERTY>>(); } \
-						break;
-
-							switch (InDescriptor.Selector.GetPointProperty()) { PCGEX_FOREACH_POINTPROPERTY(PCGEX_DECL_PROPXY) }
-#undef PCGEX_DECL_PROPXY
-						}
-						else
-						{
-							if (bSubSelection)
-							{
-								TSharedPtr<TPointExtraPropertyProxy<int32, T_WORKING, true, EPCGExtraProperties::Index>> TypedProxy =
-									MakeShared<TPointExtraPropertyProxy<int32, T_WORKING, true, EPCGExtraProperties::Index>>();
-
-								TypedProxy->Buffer = InDataFacade->GetScopedBroadcaster<int32>(InDescriptor.Selector);
-								OutProxy = TypedProxy;
-							}
-							else
-							{
-								TSharedPtr<TPointExtraPropertyProxy<int32, T_WORKING, false, EPCGExtraProperties::Index>> TypedProxy =
-									MakeShared<TPointExtraPropertyProxy<int32, T_WORKING, false, EPCGExtraProperties::Index>>();
-
-								TypedProxy->Buffer = InDataFacade->GetScopedBroadcaster<int32>(InDescriptor.Selector);
-								OutProxy = TypedProxy;
-							}
-						}
-					});
-			});
-
-		if (OutProxy && !OutProxy->Validate(InDescriptor))
-		{
-			PCGE_LOG_C(Error, GraphAndLog, InContext, FTEXT("Proxy buffer doesn't match desired T_REAL and T_WORKING"));
-			return nullptr;
-		}
-
-		OutProxy->SubSelection = InDescriptor.SubSelection;
-		
-		return OutProxy;
-	}
+		const FProxyDescriptor& InDescriptor);
 
 	template <typename T>
 	TSharedPtr<FBufferProxyBase> GetConstantProxyBuffer(const T& Constant)
@@ -349,4 +223,11 @@ namespace PCGExData
 		TypedProxy->SetConstant(Constant);
 		return TypedProxy;
 	}
+
+	bool GetPerFieldProxyBuffers(
+		FPCGExContext* InContext,
+		const TSharedPtr<FFacade>& InDataFacade,
+		const FProxyDescriptor& InBaseDescriptor,
+		const int32 NumDesiredFields,
+		TArray<TSharedPtr<FBufferProxyBase>>& OutProxies);
 }

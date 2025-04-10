@@ -42,6 +42,7 @@ bool FPCGExTopologyClusterSurfaceElement::ExecuteInternal(
 
 	Context->OutputPointsAndEdges();
 	Context->OutputBatches();
+	Context->ExecuteOnNotifyActors(Settings->PostProcessFunctionNames);
 
 	return Context->TryComplete();
 }

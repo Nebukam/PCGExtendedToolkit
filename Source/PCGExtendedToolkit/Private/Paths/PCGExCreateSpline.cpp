@@ -69,19 +69,7 @@ bool FPCGExCreateSplineElement::ExecuteInternal(FPCGContext* InContext) const
 	PCGEX_POINTS_BATCH_PROCESSING(PCGEx::State_Done)
 
 	Context->MainBatch->Output();
-
-	// Execute PostProcess Functions
-	if (!Context->NotifyActors.IsEmpty())
-	{
-		TArray<AActor*> NotifyActors = Context->NotifyActors.Array();
-		for (AActor* TargetActor : NotifyActors)
-		{
-			for (UFunction* Function : PCGExHelpers::FindUserFunctions(TargetActor->GetClass(), Settings->PostProcessFunctionNames, {UPCGExFunctionPrototypes::GetPrototypeWithNoParams()}, Context))
-			{
-				TargetActor->ProcessEvent(Function, nullptr);
-			}
-		}
-	}
+	Context->ExecuteOnNotifyActors(Settings->PostProcessFunctionNames);
 
 	return Context->TryComplete();
 }
@@ -216,7 +204,7 @@ namespace PCGExCreateSpline
 			SplineData->ApplyTo(SplineComponent);
 
 			Context->AttachManagedComponent(SplineActor, SplineComponent, Settings->AttachmentRules.GetRules());
-			Context->NotifyActors.Add(SplineActor);
+			Context->AddNotifyActor(SplineActor);
 		}
 	}
 

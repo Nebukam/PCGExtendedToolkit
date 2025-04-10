@@ -376,7 +376,7 @@ namespace PCGExPackActorDatas
 			{
 				PCGE_LOG_C(Warning, GraphAndLog, Context, FTEXT("Some data could not be initialized. Make sure to override the packer 'InitializeWithContext' so it returns true. If that's intended, you can mute this warning in the node settings."));
 			}
-			
+
 			return false;
 		}
 

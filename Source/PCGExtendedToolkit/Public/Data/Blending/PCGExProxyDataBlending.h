@@ -108,7 +108,7 @@ namespace PCGExDataBlending
 		{
 		}
 
-		virtual void Blend(const int32 Index, FPCGPoint& Point, const double Weight = 1)
+		virtual void Blend(const int32 Index, FPCGPoint& Point, const double Weight = 1) override
 		{
 			BOOKMARK_BLENDMODE
 

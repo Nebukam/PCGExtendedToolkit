@@ -119,6 +119,34 @@ void FPCGExContext::IncreaseStagedOutputReserve(const int32 InIncreaseNum)
 	StagedOutputs.Reserve(StagedOutputs.Max() + InIncreaseNum);
 }
 
+void FPCGExContext::ExecuteOnNotifyActors(const TArray<FName>& FunctionNames) const
+{
+	FReadScopeLock ReadScopeLock(NotifyActorsLock);
+
+	// Execute PostProcess Functions
+	if (!NotifyActors.IsEmpty())
+	{
+		TArray<AActor*> NotifyActorsArray = NotifyActors.Array();
+		for (AActor* TargetActor : NotifyActorsArray)
+		{
+			if (!IsValid(TargetActor)) { continue; }
+			for (UFunction* Function : PCGExHelpers::FindUserFunctions(TargetActor->GetClass(), FunctionNames, {UPCGExFunctionPrototypes::GetPrototypeWithNoParams()}, this))
+			{
+				TargetActor->ProcessEvent(Function, nullptr);
+			}
+		}
+	}
+}
+
+void FPCGExContext::AddNotifyActor(AActor* InActor)
+{
+	if (IsValid(InActor))
+	{
+		FWriteScopeLock WriteScopeLock(NotifyActorsLock);
+		NotifyActors.Add(InActor);
+	}
+}
+
 void FPCGExContext::OnComplete()
 {
 	CommitStagedOutputs();
@@ -135,6 +163,8 @@ void FPCGExContext::OnComplete()
 		}
 	}
 }
+
+
 #pragma region State
 
 

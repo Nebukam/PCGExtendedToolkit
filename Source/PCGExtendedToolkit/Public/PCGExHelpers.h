@@ -408,6 +408,7 @@ namespace PCGEx
 	{
 		switch (InType)
 		{
+		case EPCGMetadataTypes::Boolean:
 		case EPCGMetadataTypes::Float:
 		case EPCGMetadataTypes::Double:
 		case EPCGMetadataTypes::Integer32:
@@ -424,7 +425,6 @@ namespace PCGEx
 		default:
 		case EPCGMetadataTypes::Transform:
 		case EPCGMetadataTypes::String:
-		case EPCGMetadataTypes::Boolean:
 		case EPCGMetadataTypes::Name:
 		case EPCGMetadataTypes::Unknown:
 			return -1;

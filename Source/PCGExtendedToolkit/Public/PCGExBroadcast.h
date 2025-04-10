@@ -14,7 +14,7 @@ namespace PCGExData
 namespace PCGEx
 {
 #pragma region Field helpers
-	
+
 	using FInputSelectorComponentData = TTuple<EPCGExTransformComponent, EPCGMetadataTypes>;
 	// Transform component, root type
 	static const TMap<FString, FInputSelectorComponentData> STRMAP_TRANSFORM_FIELD = {
@@ -432,6 +432,8 @@ namespace PCGEx
 		explicit FSubSelection(const FString& Path, const UPCGData* InData = nullptr);
 
 		EPCGMetadataTypes GetSubType(EPCGMetadataTypes Fallback = EPCGMetadataTypes::Unknown) const;
+		void SetComponent(const EPCGExTransformComponent InComponent);
+		bool SetFieldIndex(const int32 InFieldIndex);
 
 	protected:
 		void Init(const TArray<FString>& ExtraNames);
@@ -440,7 +442,7 @@ namespace PCGEx
 		void Update();
 
 		template <typename T_VALUE, typename T>
-		inline T Get(const T_VALUE& Value) const
+		T Get(const T_VALUE& Value) const
 		{
 #pragma region Convert from bool
 
@@ -938,7 +940,7 @@ namespace PCGEx
 
 		// Set component subselection inside Target from provided value
 		template <typename T, typename T_VALUE>
-		inline void Set(T& Target, const T_VALUE& Value) const
+		void Set(T& Target, const T_VALUE& Value) const
 		{
 			// Unary target type -- can't account for component/field
 			if constexpr (std::is_same_v<T_VALUE, T>) { Target = Value; }
@@ -979,7 +981,6 @@ namespace PCGEx
 				//else if constexpr (std::is_same_v<T_VALUE, FName>){ return; // UNSUPPORTED }
 				else
 				{
-					return; // UNSUPPORTED
 				}
 			}
 			// NAry target type -- can set components by index
@@ -1045,7 +1046,6 @@ namespace PCGEx
 						break;
 					case EPCGExSingleField::W:
 						if constexpr (std::is_same_v<T, FVector4>) { Target[3] = V; }
-						return;
 						break;
 					case EPCGExSingleField::Length:
 						if constexpr (std::is_same_v<T, FVector4>) { Target = FVector4(FVector(Target.X, Target.Y, Target.Z).GetSafeNormal() * V, Target.W); }

@@ -91,8 +91,6 @@ public:
 struct FPCGExCreateSplineContext final : FPCGExPathProcessorContext
 {
 	friend class FPCGExCreateSplineElement;
-
-	TSet<AActor*> NotifyActors;
 };
 
 class FPCGExCreateSplineElement final : public FPCGExPathProcessorElement
@@ -166,6 +164,8 @@ namespace PCGExCreateSpline
 				PCGE_LOG_C(Error, GraphAndLog, Context, FTEXT("Invalid target actor. Ensure TargetActor member is initialized when creating SpatialData."));
 				return;
 			}
+
+			InContext->AddNotifyActor(TargetActor);
 		}
 
 		virtual bool PrepareSingle(const TSharedPtr<FProcessor>& PointsProcessor) override;

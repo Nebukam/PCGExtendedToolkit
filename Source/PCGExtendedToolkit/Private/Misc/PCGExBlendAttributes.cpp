@@ -138,7 +138,7 @@ namespace PCGExBlendAttributes
 				// TODO : Check types and make sure we're not deleting something
 			}
 
-			if(Buffer->InAttribute)
+			if (Buffer->InAttribute)
 			{
 				// Log a warning that can be silenced that we may have removed a valid attribute
 			}

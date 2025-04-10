@@ -138,20 +138,8 @@ bool FPCGExPathSplineMeshElement::ExecuteInternal(FPCGContext* InContext) const
 
 	Context->MainBatch->Output();
 
-	// Execute PostProcess Functions
-	if (!Context->NotifyActors.IsEmpty())
-	{
-		TArray<AActor*> NotifyActors = Context->NotifyActors.Array();
-		for (AActor* TargetActor : NotifyActors)
-		{
-			for (UFunction* Function : PCGExHelpers::FindUserFunctions(TargetActor->GetClass(), Settings->PostProcessFunctionNames, {UPCGExFunctionPrototypes::GetPrototypeWithNoParams()}, Context))
-			{
-				TargetActor->ProcessEvent(Function, nullptr);
-			}
-		}
-	}
-
 	Context->MainPoints->StageOutputs();
+	Context->ExecuteOnNotifyActors(Settings->PostProcessFunctionNames);
 
 	return Context->TryComplete();
 }
@@ -444,7 +432,7 @@ namespace PCGExPathSplineMesh
 				TargetActor, SplineMeshComponent,
 				FAttachmentTransformRules(EAttachmentRule::KeepWorld, EAttachmentRule::KeepWorld, EAttachmentRule::KeepWorld, false));
 
-			Context->NotifyActors.Add(TargetActor);
+			Context->AddNotifyActor(TargetActor);
 		}
 	}
 }
