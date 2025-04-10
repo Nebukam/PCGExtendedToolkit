@@ -46,7 +46,7 @@ public:
 	PCGEX_NODE_POINT_FILTER(PCGExPaths::SourceTriggerFilters, "Filters used to check if a point triggers the select behavior.", PCGExFactories::PointFilters, false)
 	//~End UPCGExPointsProcessorSettings
 
-	/** NOT IMPLEMENTED YET */
+	/** What to do when the trigger filter is true */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	EPCGExRollingTriggerMode TriggerAction = EPCGExRollingTriggerMode::None;
 

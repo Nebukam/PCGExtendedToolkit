@@ -11,6 +11,7 @@
 
 #include "Helpers/PCGSettingsHelpers.h"
 #include "Misc/PCGExMergePoints.h"
+#include "UObject/FastReferenceCollector.h"
 
 #define LOCTEXT_NAMESPACE "PCGExGraphSettings"
 

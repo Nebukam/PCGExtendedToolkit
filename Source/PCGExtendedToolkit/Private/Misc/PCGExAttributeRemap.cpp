@@ -4,6 +4,7 @@
 
 #include "Misc/PCGExAttributeRemap.h"
 #include "PCGExHelpers.h"
+#include "AssetStaging/PCGExAssetStaging.h"
 #include "Data/PCGExProxyData.h"
 
 
@@ -13,11 +14,12 @@
 #if WITH_EDITOR
 FString UPCGExAttributeRemapSettings::GetDisplayName() const
 {
-	if (Attributes.bOutputToDifferentName)
+	if (Attributes.WantsRemappedOutput())
 	{
-		return Attributes.Source.ToString() + " → " + Attributes.Target.ToString();
+		return TEXT("Remap : ") + Attributes.Source.ToString() + TEXT(" → ") + Attributes.Target.ToString();
 	}
-	return Attributes.Source.ToString();
+
+	return TEXT("Remap : ") + Attributes.Source.ToString();
 }
 #endif
 
@@ -55,10 +57,7 @@ bool FPCGExAttributeRemapElement::Boot(FPCGExContext* InContext) const
 
 	PCGEX_CONTEXT_AND_SETTINGS(AttributeRemap)
 
-	PCGEX_VALIDATE_NAME_CONSUMABLE(Settings->Attributes.Source)
-	if (Settings->Attributes.bOutputToDifferentName) { PCGEX_VALIDATE_NAME(Settings->Attributes.Target) }
-
-	
+	if (!Settings->Attributes.ValidateNamesOrProperties(Context)) { return false; }
 
 	Context->RemapSettings[0] = Settings->BaseRemap;
 	Context->RemapSettings[1] = Settings->Component2RemapOverride;
@@ -121,65 +120,51 @@ namespace PCGExAttributeRemap
 
 		PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::Duplicate)
 
-		//
-		/*
-		FPCGAttributePropertyInputSelector InSelector = FPCGAttributePropertyInputSelector();
-		InSelector.Update(Settings->Attributes.Source.ToString());
-		
-		FPCGAttributePropertyInputSelector OutSelector = FPCGAttributePropertyInputSelector();
-		OutSelector.Update(Settings->Attributes.GetOutputName().ToString());
+		TArray<TSharedPtr<PCGExData::FBufferProxyBase>> UntypedInputProxies;
+		TArray<TSharedPtr<PCGExData::FBufferProxyBase>> UntypedOutputProxies;
 
-		PCGExData::FProxyDescriptor A = PCGExData::FProxyDescriptor();
-		A.Source = PCGExData::ESource::Out;
-	
-		PCGExData::FProxyDescriptor B = PCGExData::FProxyDescriptor();
-		B.Source = PCGExData::ESource::Out;
+		if (!InputDescriptor.Capture(Context, PointDataFacade, Settings->Attributes.GetSourceSelector(), PCGExData::ESource::In)) { return false; }
 
-		if (!PCGEx::TryGetTypeAndSource(InSelector, PointDataFacade, A.RealType, A.Source))
-		{
-			PCGEX_LOG_INVALID_SELECTOR_C(Context, Input Attribute, InSelector)
-			return false;
-		}
-
-		if (!PCGEx::TryGetTypeAndSource(OutSelector, PointDataFacade, B.RealType, B.Source))
-		{
-			PCGEX_LOG_INVALID_SELECTOR_C(Context, Output Attribute, OutSelector)
-			return false;
-		}
-		*/
-		//
-		
-		const TSharedPtr<PCGEx::FAttributesInfos> Infos = PCGEx::FAttributesInfos::Get(PointDataFacade->GetIn()->Metadata);
-		const PCGEx::FAttributeIdentity* Identity = Infos->Find(Settings->Attributes.Source);
-
-		if (!Identity)
-		{
-			PCGE_LOG_C(Error, GraphAndLog, ExecutionContext, FTEXT("Some inputs are missing the specified source attribute."));
-			return false;
-		}
-
-		UnderlyingType = Identity->UnderlyingType;
+		// Number of dimensions to be remapped
+		UnderlyingType = InputDescriptor.WorkingType;
 		Dimensions = PCGEx::GetMetadataSize(UnderlyingType);
 
-		if (Dimensions == -1)
-		{
-			PCGE_LOG_C(Error, GraphAndLog, ExecutionContext, FTEXT("Source attribute type cannot be remapped."));
-			return false;
-		}
+		// Get per-field proxies for input
+		if (!GetPerFieldProxyBuffers(Context, PointDataFacade, InputDescriptor, Dimensions, UntypedInputProxies)) { return false; }
 
-		if (!Identity)
+		if (!OutputDescriptor.CaptureStrict(Context, PointDataFacade, Settings->Attributes.GetTargetSelector(), PCGExData::ESource::Out, false))
 		{
-			PCGE_LOG_C(Error, GraphAndLog, ExecutionContext, FTEXT("Some inputs are missing the specified source attribute."));
-			return false;
-		}
-
-		PCGEx::ExecuteWithRightType(
-			UnderlyingType, [&](auto DummyValue)
+			// This might be expected if the destination does not exist
+			if (InputDescriptor.Selector.GetSelection() != EPCGAttributePropertySelection::Attribute)
 			{
-				using RawT = decltype(DummyValue);
-				CacheWriter = PointDataFacade->GetWritable<RawT>(Settings->Attributes.GetOutputName(), PCGExData::EBufferInit::New);
-				CacheReader = PointDataFacade->GetScopedReadable<RawT>(Identity->Name);
-			});
+				// Which should only happen if the source is a plain attribute that's getting remapped to a new output name
+				// Something went wrong, destination doesn't exist and remapping is not desired.
+				PCGE_LOG_C(Error, GraphAndLog, ExecutionContext, FTEXT("Something went wrong. Please bring this up on the PCGEx Discord with a screenshot of the detail panel!"));
+				return false;
+			}
+		}
+
+		// Get per-field proxies for output
+		if (!GetPerFieldProxyBuffers(Context, PointDataFacade, OutputDescriptor, Dimensions, UntypedOutputProxies)) { return false; }
+
+		for (int i = 0; i < Dimensions; i++)
+		{
+			TSharedPtr<PCGExData::FBufferProxyBase> InProxy = UntypedInputProxies[i];
+			TSharedPtr<PCGExData::FBufferProxyBase> OutProxy = UntypedOutputProxies[i];
+
+			if (InProxy->WorkingType != EPCGMetadataTypes::Double)
+			{
+				// TODO : Some additional validation, just making sure we can safely cast those
+			}
+
+			if (OutProxy->WorkingType != EPCGMetadataTypes::Double)
+			{
+				// TODO : Some additional validation, just making sure we can safely cast those
+			}
+
+			InputProxies.Add(StaticCastSharedPtr<PCGExData::TBufferProxy<double>>(InProxy));
+			OutputProxies.Add(StaticCastSharedPtr<PCGExData::TBufferProxy<double>>(OutProxy));
+		}
 
 		Rules.Reserve(Dimensions);
 		for (int i = 0; i < Dimensions; i++)
@@ -219,7 +204,6 @@ namespace PCGExAttributeRemap
 			[PCGEX_ASYNC_THIS_CAPTURE](const TArray<PCGExMT::FScope>& Loops)
 			{
 				PCGEX_ASYNC_THIS
-
 				for (FPCGExComponentRemapRule& Rule : This->Rules)
 				{
 					Rule.MinCache = MakeShared<PCGExMT::TScopedValue<double>>(Loops, MAX_dbl);
@@ -231,63 +215,117 @@ namespace PCGExAttributeRemap
 			[PCGEX_ASYNC_THIS_CAPTURE](const PCGExMT::FScope& Scope)
 			{
 				TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExAttributeRemap::Fetch);
-
 				PCGEX_ASYNC_THIS
 
 				This->PointDataFacade->Fetch(Scope);
-				PCGEx::ExecuteWithRightType(
-					This->UnderlyingType, [&](auto DummyValue)
+
+				// Find min/max & clamp values
+				const TArray<FPCGPoint>& InPoints = This->PointDataFacade->Source->GetPoints(PCGExData::ESource::In);
+				TArray<FPCGPoint>& OutPoints = This->PointDataFacade->Source->GetMutablePoints();
+
+				for (int d = 0; d < This->Dimensions; d++)
+				{
+					FPCGExComponentRemapRule& Rule = This->Rules[d];
+
+					TSharedPtr<PCGExData::TBufferProxy<double>> InProxy = This->InputProxies[d];
+					TSharedPtr<PCGExData::TBufferProxy<double>> OutProxy = This->OutputProxies[d];
+
+					double Min = MAX_dbl;
+					double Max = MIN_dbl_neg;
+
+					if (Rule.RemapDetails.bUseAbsoluteRange)
 					{
-						using RawT = decltype(DummyValue);
-						TSharedPtr<PCGExData::TBuffer<RawT>> Writer = StaticCastSharedPtr<PCGExData::TBuffer<RawT>>(This->CacheWriter);
-						TSharedPtr<PCGExData::TBuffer<RawT>> Reader = StaticCastSharedPtr<PCGExData::TBuffer<RawT>>(This->CacheReader);
-
-						// TODO : Swap for a scoped accessor since we don't need to keep readable values in memory
-						for (int i = Scope.Start; i < Scope.End; i++) { Writer->GetMutable(i) = Reader->Read(i); } // Copy range to writer
-
-						// Find min/max & clamp values
-
-						for (int d = 0; d < This->Dimensions; d++)
+						for (int i = Scope.Start; i < Scope.End; i++)
 						{
-							FPCGExComponentRemapRule& Rule = This->Rules[d];
-
-							double Min = MAX_dbl;
-							double Max = MIN_dbl_neg;
-
-							if (Rule.RemapDetails.bUseAbsoluteRange)
-							{
-								for (int i = Scope.Start; i < Scope.End; i++)
-								{
-									RawT& V = Writer->GetMutable(i);
-									const double VAL = Rule.InputClampDetails.GetClampedValue(PCGExMath::GetComponent(V, d));
-									PCGExMath::SetComponent(V, d, VAL);
-
-									Min = FMath::Min(Min, FMath::Abs(VAL));
-									Max = FMath::Max(Max, FMath::Abs(VAL));
-								}
-							}
-							else
-							{
-								for (int i = Scope.Start; i < Scope.End; i++)
-								{
-									RawT& V = Writer->GetMutable(i);
-									const double VAL = Rule.InputClampDetails.GetClampedValue(PCGExMath::GetComponent(V, d));
-									PCGExMath::SetComponent(V, d, VAL);
-
-									Min = FMath::Min(Min, VAL);
-									Max = FMath::Max(Max, VAL);
-								}
-							}
-
-							Rule.MinCache->Set(Scope, Min);
-							Rule.MaxCache->Set(Scope, Max);
+							double V = Rule.InputClampDetails.GetClampedValue(InProxy->Get(i, InPoints[i]));
+							Min = FMath::Min(Min, FMath::Abs(V));
+							Max = FMath::Max(Max, FMath::Abs(V));
+							OutProxy->Set(i, OutPoints[i], V);
 						}
-					});
+					}
+					else
+					{
+						for (int i = Scope.Start; i < Scope.End; i++)
+						{
+							double V = Rule.InputClampDetails.GetClampedValue(InProxy->Get(i, InPoints[i]));
+							Min = FMath::Min(Min, V);
+							Max = FMath::Max(Max, V);
+							OutProxy->Set(i, OutPoints[i], V);
+						}
+					}
+
+					Rule.MinCache->Set(Scope, Min);
+					Rule.MaxCache->Set(Scope, Max);
+				}
 			};
 
 		FetchTask->StartSubLoops(PointDataFacade->GetNum(), GetDefault<UPCGExGlobalSettings>()->GetPointsBatchChunkSize());
 
 		return true;
+	}
+
+	void FProcessor::RemapRange(const PCGExMT::FScope& Scope)
+	{
+		TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExAttributeRemap::RemapRange);
+
+		TArray<FPCGPoint>& OutPoints = PointDataFacade->Source->GetMutablePoints();
+
+		for (int d = 0; d < Dimensions; d++)
+		{
+			FPCGExComponentRemapRule& Rule = Rules[d];
+			TSharedPtr<PCGExData::TBufferProxy<double>> OutProxy = OutputProxies[d];
+
+			if (Rule.RemapDetails.bUseAbsoluteRange)
+			{
+				if (Rule.RemapDetails.bPreserveSign)
+				{
+					for (int i = Scope.Start; i < Scope.End; i++)
+					{
+						double V = OutProxy->Get(i, OutPoints[i]);
+						OutProxy->Set(
+							i, OutPoints[i],
+							Rule.OutputClampDetails.GetClampedValue(
+								Rule.RemapDetails.GetRemappedValue(FMath::Abs(V)) * PCGExMath::SignPlus(V)));
+					}
+				}
+				else
+				{
+					for (int i = Scope.Start; i < Scope.End; i++)
+					{
+						OutProxy->Set(
+							i, OutPoints[i],
+							Rule.OutputClampDetails.GetClampedValue(
+								Rule.RemapDetails.GetRemappedValue(
+									FMath::Abs(OutProxy->Get(i, OutPoints[i])))));
+					}
+				}
+			}
+			else
+			{
+				if (Rule.RemapDetails.bPreserveSign)
+				{
+					for (int i = Scope.Start; i < Scope.End; i++)
+					{
+						OutProxy->Set(
+							i, OutPoints[i],
+							Rule.OutputClampDetails.GetClampedValue(
+								Rule.RemapDetails.GetRemappedValue(
+									OutProxy->Get(i, OutPoints[i]))));
+					}
+				}
+				else
+				{
+					for (int i = Scope.Start; i < Scope.End; i++)
+					{
+						OutProxy->Set(
+							i, OutPoints[i],
+							Rule.OutputClampDetails.GetClampedValue(
+								Rule.RemapDetails.GetRemappedValue(
+									FMath::Abs(OutProxy->Get(i, OutPoints[i])))));
+					}
+				}
+			}
+		}
 	}
 
 	void FProcessor::OnPreparationComplete()
@@ -297,12 +335,7 @@ namespace PCGExAttributeRemap
 			[PCGEX_ASYNC_THIS_CAPTURE](const PCGExMT::FScope& Scope)
 			{
 				PCGEX_ASYNC_THIS
-
-				PCGEx::ExecuteWithRightType(
-					This->UnderlyingType, [&](auto DummyValue)
-					{
-						This->RemapRange(Scope, DummyValue);
-					});
+				This->RemapRange(Scope);
 			};
 
 		RemapTask->StartSubLoops(PointDataFacade->GetNum(), GetDefault<UPCGExGlobalSettings>()->GetPointsBatchChunkSize());

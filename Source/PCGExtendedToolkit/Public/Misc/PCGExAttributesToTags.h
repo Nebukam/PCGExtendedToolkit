@@ -49,7 +49,7 @@ public:
 #endif
 
 	virtual bool GetIsMainTransactional() const override;
-	
+
 protected:
 	virtual TArray<FPCGPinProperties> InputPinProperties() const override;
 	virtual TArray<FPCGPinProperties> OutputPinProperties() const override;

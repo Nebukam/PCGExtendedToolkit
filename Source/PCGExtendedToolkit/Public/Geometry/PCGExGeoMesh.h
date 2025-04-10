@@ -170,9 +170,9 @@ namespace PCGExGeo
 				const uint32 B = MeshLookup->Add_GetIdx(PCGEx::GH3(VertexBuffer.VertexPosition(BIdx), CWTolerance), BIdx);
 				const uint32 C = MeshLookup->Add_GetIdx(PCGEx::GH3(VertexBuffer.VertexPosition(CIdx), CWTolerance), CIdx);
 
-				Edges.Add(PCGEx::H64U(A, B));
-				Edges.Add(PCGEx::H64U(B, C));
-				Edges.Add(PCGEx::H64U(C, A));
+				if (A != B) { Edges.Add(PCGEx::H64U(A, B)); }
+				if (B != C) { Edges.Add(PCGEx::H64U(B, C)); }
+				if (C != A) { Edges.Add(PCGEx::H64U(C, A)); }
 			}
 
 			PCGEx::InitArray(Vertices, MeshLookup->Num());

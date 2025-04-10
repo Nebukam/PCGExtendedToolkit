@@ -48,14 +48,49 @@ bool FPCGExInputConfig::Validate(const UPCGPointData* InData)
 
 bool FPCGExAttributeSourceToTargetDetails::ValidateNames(FPCGExContext* InContext) const
 {
-	PCGEX_VALIDATE_NAME_C(InContext, Source)
-	if (bOutputToDifferentName) { PCGEX_VALIDATE_NAME_C(InContext, Target) }
+	PCGEX_VALIDATE_NAME_CONSUMABLE_C(InContext, Source)
+	if (WantsRemappedOutput()) { PCGEX_VALIDATE_NAME_C(InContext, Target) }
+	return true;
+}
+
+bool FPCGExAttributeSourceToTargetDetails::ValidateNamesOrProperties(FPCGExContext* InContext) const
+{
+	FPCGAttributePropertySelector Selector;
+
+	Selector.Update(Source.ToString());
+	if (Selector.GetSelection() == EPCGAttributePropertySelection::Attribute)
+	{
+		PCGEX_VALIDATE_NAME_CONSUMABLE_C(InContext, Source)
+	}
+
+	if (WantsRemappedOutput())
+	{
+		Selector.Update(Target.ToString());
+		if (Selector.GetSelection() == EPCGAttributePropertySelection::Attribute)
+		{
+			PCGEX_VALIDATE_NAME_C(InContext, Target)
+		}
+	}
 	return true;
 }
 
 FName FPCGExAttributeSourceToTargetDetails::GetOutputName() const
 {
 	return bOutputToDifferentName ? Target : Source;
+}
+
+FPCGAttributePropertyInputSelector FPCGExAttributeSourceToTargetDetails::GetSourceSelector() const
+{
+	FPCGAttributePropertyInputSelector Selector;
+	Selector.Update(Source.ToString());
+	return Selector;
+}
+
+FPCGAttributePropertyInputSelector FPCGExAttributeSourceToTargetDetails::GetTargetSelector() const
+{
+	FPCGAttributePropertyInputSelector Selector;
+	Selector.Update(GetOutputName().ToString());
+	return Selector;
 }
 
 bool FPCGExAttributeSourceToTargetList::ValidateNames(FPCGExContext* InContext) const
@@ -68,7 +103,7 @@ void FPCGExAttributeSourceToTargetList::SetOutputTargetNames(const TSharedRef<PC
 {
 	for (const FPCGExAttributeSourceToTargetDetails& Entry : Attributes)
 	{
-		if (!Entry.bOutputToDifferentName) { continue; }
+		if (!Entry.WantsRemappedOutput()) { continue; }
 
 		const TSharedPtr<PCGExData::FBufferBase> Buffer = InFacade->FindWritableAttributeBuffer(Entry.Source);
 		if (!Buffer) { continue; }
@@ -85,7 +120,6 @@ void FPCGExAttributeSourceToTargetList::GetSources(TArray<FName>& OutNames) cons
 
 namespace PCGEx
 {
-	
 	void FAttributeIdentity::Get(const UPCGMetadata* InMetadata, TArray<FAttributeIdentity>& OutIdentities)
 	{
 		if (!InMetadata) { return; }
