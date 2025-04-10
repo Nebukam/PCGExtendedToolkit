@@ -77,7 +77,6 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExTopologyEdgesProcessorContext : FPCGExEdgesP
 	TSharedPtr<PCGExTopology::FHoles> Holes;
 
 	TArray<FString> ComponentTags;
-	TSet<AActor*> NotifyActors;
 
 	virtual void RegisterAssetDependencies() override;
 };
@@ -220,7 +219,7 @@ namespace PCGExTopologyEdges
 
 			Context->AttachManagedComponent(TargetActor, DynamicMeshComponent, Settings->AttachmentRules.GetRules());
 
-			Context->NotifyActors.Add(TargetActor);
+			Context->AddNotifyActor(TargetActor);
 		}
 
 		virtual void Cleanup() override

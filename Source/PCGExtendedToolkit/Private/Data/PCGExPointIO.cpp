@@ -86,6 +86,40 @@ namespace PCGExData
 		return true;
 	}
 
+	const UPCGPointData* FPointIO::GetOutIn(ESource& OutSource) const
+	{
+		if (Out)
+		{
+			OutSource = ESource::Out;
+			return Out;
+		}
+
+		if (In)
+		{
+			OutSource = ESource::In;
+			return In;
+		}
+
+		return nullptr;
+	}
+
+	const UPCGPointData* FPointIO::GetInOut(ESource& OutSource) const
+	{
+		if (In)
+		{
+			OutSource = ESource::In;
+			return In;
+		}
+
+		if (Out)
+		{
+			OutSource = ESource::Out;
+			return Out;
+		}
+
+		return nullptr;
+	}
+
 	bool FPointIO::GetSource(const UPCGData* InData, ESource& OutSource) const
 	{
 		if (!InData) { return false; }

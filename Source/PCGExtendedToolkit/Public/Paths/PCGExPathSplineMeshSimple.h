@@ -140,9 +140,8 @@ struct FPCGExPathSplineMeshSimpleContext final : FPCGExPathProcessorContext
 {
 	friend class FPCGExPathSplineMeshSimpleElement;
 
-	TSet<AActor*> NotifyActors;
 	TSharedPtr<PCGEx::TAssetLoader<UStaticMesh>> StaticMeshLoader;
-	
+
 	UPROPERTY()
 	TObjectPtr<UStaticMesh> StaticMesh;
 };

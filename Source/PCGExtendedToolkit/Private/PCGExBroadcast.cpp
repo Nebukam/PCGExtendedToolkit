@@ -83,6 +83,34 @@ namespace PCGEx
 		return Fallback;
 	}
 
+	void FSubSelection::SetComponent(const EPCGExTransformComponent InComponent)
+	{
+		bIsValid = true;
+		bIsComponentSet = true;
+		Component = InComponent;
+	}
+
+	bool FSubSelection::SetFieldIndex(const int32 InFieldIndex)
+	{
+		FieldIndex = InFieldIndex;
+
+		if (FieldIndex < 0 || FieldIndex > 3)
+		{
+			bIsFieldSet = false;
+			return false;
+		}
+
+		bIsValid = true;
+		bIsFieldSet = true;
+
+		if (InFieldIndex == 0) { Field = EPCGExSingleField::X; }
+		else if (InFieldIndex == 1) { Field = EPCGExSingleField::Y; }
+		else if (InFieldIndex == 2) { Field = EPCGExSingleField::Z; }
+		else if (InFieldIndex == 3) { Field = EPCGExSingleField::W; }
+
+		return true;
+	}
+
 	void FSubSelection::Init(const TArray<FString>& ExtraNames)
 	{
 		if (ExtraNames.IsEmpty())
@@ -157,13 +185,14 @@ namespace PCGEx
 		EPCGMetadataTypes& OutType, PCGExData::ESource& InOutSource)
 	{
 		OutType = EPCGMetadataTypes::Unknown;
-		const UPCGPointData* Data = InOutSource == PCGExData::ESource::In ? InDataFacade->Source->GetInOut() : InDataFacade->Source->GetOutIn();
-		if (!InDataFacade->Source->GetSource(Data, InOutSource)) { return false; }
+		const UPCGPointData* Data = InOutSource == PCGExData::ESource::In ?
+			                            InDataFacade->Source->GetInOut(InOutSource) :
+			                            InDataFacade->Source->GetOutIn(InOutSource);
+
+		if (!Data) { return false; }
 
 		const FPCGAttributePropertyInputSelector FixedSelector = InputSelector.CopyAndFixLast(Data);
 		if (!FixedSelector.IsValid()) { return false; }
-
-		const TArray<FString>& ExtraNames = FixedSelector.GetExtraNames();
 
 		if (FixedSelector.GetSelection() == EPCGAttributePropertySelection::Attribute)
 		{
@@ -183,13 +212,5 @@ namespace PCGEx
 		}
 
 		return OutType != EPCGMetadataTypes::Unknown;
-	}
-
-	bool TryGetTypeAndSource(
-		const FName AttributeName,
-		const TSharedPtr<PCGExData::FFacade>& InDataFacade,
-		EPCGMetadataTypes& OutType, PCGExData::ESource& InOutSource)
-	{
-		return true;
 	}
 }

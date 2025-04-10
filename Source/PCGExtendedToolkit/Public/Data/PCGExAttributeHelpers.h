@@ -97,8 +97,15 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExAttributeSourceToTargetDetails
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bOutputToDifferentName"))
 	FName Target = NAME_None;
 
+	bool WantsRemappedOutput() const { return (bOutputToDifferentName && Source != GetOutputName()); }
+
 	bool ValidateNames(FPCGExContext* InContext) const;
+	bool ValidateNamesOrProperties(FPCGExContext* InContext) const;
+
 	FName GetOutputName() const;
+
+	FPCGAttributePropertyInputSelector GetSourceSelector() const;
+	FPCGAttributePropertyInputSelector GetTargetSelector() const;
 };
 
 USTRUCT(BlueprintType)
@@ -231,7 +238,7 @@ namespace PCGEx
 		void Init(const UPCGData* InData, const FPCGAttributePropertyInputSelector& InSelector);
 	};
 
-	template<EPCGPointProperties PROPERTY, typename T>
+	template <EPCGPointProperties PROPERTY, typename T>
 	inline static void SetPointProperty(FPCGPoint& Point, const T& InValue)
 	{
 #define PCGEX_PROPERTY_VALUE(_TYPE) PCGEx::Convert<T, _TYPE>(InValue)

@@ -146,7 +146,7 @@ else if constexpr(_PROPERTY == EPCGPointProperties::Steepness){ MACRO(Steepness,
 else if constexpr(_PROPERTY == EPCGPointProperties::LocalCenter){ MACRO(GetLocalCenter(), FVector) } \
 else if constexpr(_PROPERTY == EPCGPointProperties::Seed){ MACRO(Seed, int32) } \
 else if constexpr(_PROPERTY == EPCGPointProperties::LocalSize){ MACRO(GetLocalSize(), FVector) } \
-else if constexpr(_PROPERTY == EPCGPointProperties::ScaledLocalSize){ MACRO(GetScaledLocalSize(), FVector) } 
+else if constexpr(_PROPERTY == EPCGPointProperties::ScaledLocalSize){ MACRO(GetScaledLocalSize(), FVector) }
 #endif
 
 #define PCGEX_MACRO_NONE(...)
@@ -180,7 +180,7 @@ else if constexpr(_PROPERTY == EPCGPointProperties::Steepness){ BODY(FVector) _P
 else if constexpr(_PROPERTY == EPCGPointProperties::LocalCenter){ BODY(FVector) _POINT.SetLocalCenter(MACRO(FVector)); } \
 else if constexpr(_PROPERTY == EPCGPointProperties::Seed){ BODY(FVector) _POINT.Seed = MACRO(int32); } \
 else if constexpr(_PROPERTY == EPCGPointProperties::LocalSize){ BODY(FVector) _POINT.SetExtents((MACRO(FVector))*0.5);  } \
-else if constexpr(_PROPERTY == EPCGPointProperties::ScaledLocalSize){ BODY(FVector) _POINT.SetExtents((MACRO(FVector)) * (FVector::OneVector / _POINT.Transform.GetScale3D()) * 0.5); } 
+else if constexpr(_PROPERTY == EPCGPointProperties::ScaledLocalSize){ BODY(FVector) _POINT.SetExtents((MACRO(FVector)) * (FVector::OneVector / _POINT.Transform.GetScale3D()) * 0.5); }
 #endif
 
 #pragma endregion

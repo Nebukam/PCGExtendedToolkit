@@ -126,7 +126,7 @@ bool UPCGExNeighborSamplerFactoryAttribute::RegisterConsumableAttributes(FPCGExC
 	if (!Super::RegisterConsumableAttributes(InContext)) { return false; }
 	for (const FPCGExAttributeSourceToTargetDetails& Entry : Config.SourceAttributes.Attributes)
 	{
-		if (Entry.bOutputToDifferentName) { InContext->AddConsumableAttributeName(Entry.Source); }
+		if (Entry.WantsRemappedOutput()) { InContext->AddConsumableAttributeName(Entry.Source); }
 	}
 	return true;
 }

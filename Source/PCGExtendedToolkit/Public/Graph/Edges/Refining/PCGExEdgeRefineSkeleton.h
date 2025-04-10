@@ -37,7 +37,7 @@ public:
 		Super::PrepareForCluster(InCluster, InHeuristics);
 		ExchangeValue = bInvert ? 1 : 0;
 	}
-	
+
 	virtual void ProcessEdge(PCGExGraph::FEdge& Edge) override
 	{
 		Super::ProcessEdge(Edge);
@@ -88,13 +88,12 @@ public:
 	}
 
 	int8 ExchangeValue = 0;
-	
+
 	/** */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	double Beta = 1;
-	
+
 	/** */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	bool bInvert = false;
 };
-

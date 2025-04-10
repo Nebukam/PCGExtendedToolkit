@@ -42,7 +42,11 @@ bool FPCGExPathSplineMeshSimpleElement::Boot(FPCGExContext* InContext) const
 	else
 	{
 		Context->StaticMesh = PCGExHelpers::LoadBlocking_AnyThread(Settings->StaticMesh);
-		if (!Context->StaticMesh) { return false; }
+		if (!Context->StaticMesh)
+		{
+			PCGE_LOG_C(Error, GraphAndLog, Context, FTEXT("Static mesh could not be loaded."));
+			return false;
+		}
 	}
 	return true;
 }
@@ -104,20 +108,8 @@ bool FPCGExPathSplineMeshSimpleElement::ExecuteInternal(FPCGContext* InContext) 
 
 	Context->MainBatch->Output();
 
-	// Execute PostProcess Functions
-	if (!Context->NotifyActors.IsEmpty())
-	{
-		TArray<AActor*> NotifyActors = Context->NotifyActors.Array();
-		for (AActor* TargetActor : NotifyActors)
-		{
-			for (UFunction* Function : PCGExHelpers::FindUserFunctions(TargetActor->GetClass(), Settings->PostProcessFunctionNames, {UPCGExFunctionPrototypes::GetPrototypeWithNoParams()}, Context))
-			{
-				TargetActor->ProcessEvent(Function, nullptr);
-			}
-		}
-	}
-
 	Context->MainPoints->StageOutputs();
+	Context->ExecuteOnNotifyActors(Settings->PostProcessFunctionNames);
 
 	return Context->TryComplete();
 }
@@ -328,6 +320,8 @@ namespace PCGExPathSplineMeshSimple
 			return;
 		}
 
+		Context->AddNotifyActor(TargetActor);
+
 		bool bIsPreviewMode = false;
 #if PCGEX_ENGINE_VERSION > 503
 		bIsPreviewMode = ExecutionContext->SourceComponent.Get()->IsInPreviewMode();
@@ -373,7 +367,7 @@ namespace PCGExPathSplineMeshSimple
 				TargetActor, SplineMeshComponent,
 				FAttachmentTransformRules(EAttachmentRule::KeepWorld, EAttachmentRule::KeepWorld, EAttachmentRule::KeepWorld, false));
 
-			Context->NotifyActors.Add(TargetActor);
+			Context->AddNotifyActor(TargetActor);
 		}
 	}
 }

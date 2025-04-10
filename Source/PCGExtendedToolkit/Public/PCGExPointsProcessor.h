@@ -85,7 +85,7 @@ public:
 	UPROPERTY()
 	bool bDoAsyncProcessing_DEPRECATED = true;
 #endif
-	
+
 	/** Async work priority for this node.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Performance, meta=(PCG_NotOverridable, AdvancedDisplay, EditCondition="bDoAsyncProcessing"))
 	EPCGExAsyncPriority WorkPriority = EPCGExAsyncPriority::Default;
@@ -230,7 +230,6 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPointsProcessorContext : FPCGExContext
 
 protected:
 	TSharedPtr<PCGExMT::FTaskManager> AsyncManager;
-
 	int32 CurrentPointIOIndex = -1;
 
 	TArray<UPCGExOperation*> ProcessorOperations;

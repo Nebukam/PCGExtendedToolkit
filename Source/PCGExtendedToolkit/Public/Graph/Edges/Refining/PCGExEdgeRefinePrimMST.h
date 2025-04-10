@@ -29,7 +29,7 @@ public:
 			bInvert = TypedOther->bInvert;
 		}
 	}
-	
+
 	virtual void Process() override
 	{
 		const int32 NumNodes = Cluster->Nodes->Num();

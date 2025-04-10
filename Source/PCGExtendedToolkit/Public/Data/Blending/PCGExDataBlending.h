@@ -98,7 +98,6 @@ enum class EPCGExDataBlendingType : uint8
 };
 
 
-
 USTRUCT(BlueprintType)
 struct PCGEXTENDEDTOOLKIT_API FPCGExAttributeBlendToTargetDetails : public FPCGExAttributeSourceToTargetDetails
 {
@@ -271,7 +270,7 @@ namespace PCGExDataBlending
 	const FName OutputBlendingLabel = TEXT("Blend Op");
 
 	BOOKMARK_BLENDMODE
-		
+
 	/**
 	 * 
 	 */
