@@ -28,7 +28,7 @@ public:
 			bInvert = TypedOther->bInvert;
 		}
 	}
-	
+
 	virtual bool RequiresIndividualEdgeProcessing() override { return !bInvert; }
 
 	virtual void PrepareForCluster(const TSharedPtr<PCGExCluster::FCluster>& InCluster, const TSharedPtr<PCGExHeuristics::FHeuristicsHandler>& InHeuristics) override
@@ -36,7 +36,7 @@ public:
 		Super::PrepareForCluster(InCluster, InHeuristics);
 		ExchangeValue = bInvert ? 1 : 0;
 	}
-	
+
 	virtual void ProcessEdge(PCGExGraph::FEdge& Edge) override
 	{
 		Super::ProcessEdge(Edge);
@@ -60,7 +60,7 @@ public:
 	}
 
 	int8 ExchangeValue = 0;
-	
+
 	/** */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	bool bInvert = false;

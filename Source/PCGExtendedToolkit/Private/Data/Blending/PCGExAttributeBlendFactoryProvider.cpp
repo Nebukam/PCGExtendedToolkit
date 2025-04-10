@@ -45,33 +45,18 @@ bool UPCGExAttributeBlendOperation::PrepareForData(FPCGExContext* InContext, con
 	if (!CopyAndFixSiblingSelector(InContext, Config.OutputTo)) { return false; }
 
 	PCGExData::FProxyDescriptor A = PCGExData::FProxyDescriptor();
-	A.Source = PCGExData::ESource::Out;
-	
+	if (!A.Capture(InContext, InDataFacade, Config.OperandA, PCGExData::ESource::Out)) { return false; }
+
 	PCGExData::FProxyDescriptor B = PCGExData::FProxyDescriptor();
-	B.Source = PCGExData::ESource::Out;
-
-	if (!PCGEx::TryGetTypeAndSource(Config.OperandA, InDataFacade, A.RealType, A.Source))
-	{
-		PCGEX_LOG_INVALID_SELECTOR_C(InContext, OperandA, Config.OperandA)
-		return false;
-	}
-
-	if (!PCGEx::TryGetTypeAndSource(Config.OperandB, InDataFacade, B.RealType, B.Source))
-	{
-		PCGEX_LOG_INVALID_SELECTOR_C(InContext, OperandB, Config.OperandB)
-		return false;
-	}
+	if (!B.Capture(InContext, InDataFacade, Config.OperandB, PCGExData::ESource::Out)) { return false; }
 
 	PCGExData::FProxyDescriptor C = PCGExData::FProxyDescriptor();
 	C.Source = PCGExData::ESource::Out;
 
+	Config.OperandA = A.Selector;
+	Config.OperandB = B.Selector;
 
-	Config.OperandA = A.Selector = Config.OperandA.CopyAndFixLast(InDataFacade->Source->GetData(A.Source));
-	Config.OperandB = B.Selector = Config.OperandB.CopyAndFixLast(InDataFacade->Source->GetData(B.Source));
 	Config.OutputTo = C.Selector = Config.OutputTo.CopyAndFixLast(InDataFacade->Source->GetOut());
-
-	A.UpdateSubSelection();
-	B.UpdateSubSelection();
 	C.UpdateSubSelection();
 
 	PCGEx::FSubSelection OutputSubselection(Config.OutputTo);
@@ -83,7 +68,7 @@ bool UPCGExAttributeBlendOperation::PrepareForData(FPCGExContext* InContext, con
 		PCGE_LOG_C(Error, GraphAndLog, InContext, FTEXT("Only attributes and point properties are supported as outputs; it's not possible to write to extras."));
 		return false;
 	}
-	else if (Config.OutputTo.GetSelection() == EPCGAttributePropertySelection::Attribute)
+	if (Config.OutputTo.GetSelection() == EPCGAttributePropertySelection::Attribute)
 	{
 		if (Config.OutputType == EPCGExOperandAuthority::A) { RealTypeC = A.RealType; }
 		else if (Config.OutputType == EPCGExOperandAuthority::B) { RealTypeC = B.RealType; }
@@ -110,7 +95,7 @@ bool UPCGExAttributeBlendOperation::PrepareForData(FPCGExContext* InContext, con
 
 				EPCGMetadataTypes TypeA = A.SubSelection.bIsValid && A.SubSelection.bIsFieldSet ? EPCGMetadataTypes::Double : A.RealType;
 				EPCGMetadataTypes TypeB = B.SubSelection.bIsValid && B.SubSelection.bIsFieldSet ? EPCGMetadataTypes::Double : B.RealType;
-				
+
 				int32 RatingA = PCGEx::GetMetadataRating(TypeA);
 				int32 RatingB = PCGEx::GetMetadataRating(TypeB);
 

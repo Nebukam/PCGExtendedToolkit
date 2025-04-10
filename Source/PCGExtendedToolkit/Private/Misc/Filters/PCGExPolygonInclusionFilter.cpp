@@ -138,7 +138,7 @@ namespace PCGExPointFilter
 					if (!(Bounds->GetData() + i)->IsInside(Pos)) { continue; }
 					if (FGeomTools2D::IsPointInPolygon(Pos2D, *(Polygons->GetData() + i)->Get())) { Inclusions++; }
 				}
-				
+
 				return Inclusions > TypedFilterFactory->Config.MinInclusionCount ? !TypedFilterFactory->Config.bInvert : TypedFilterFactory->Config.bInvert;
 			}
 		}
@@ -201,7 +201,7 @@ namespace PCGExPointFilter
 					if (!(Bounds->GetData() + i)->IsInside(Pos)) { continue; }
 					if (FGeomTools2D::IsPointInPolygon(Pos2D, *(Polygons->GetData() + i)->Get())) { Inclusions++; }
 				}
-				
+
 				return Inclusions > TypedFilterFactory->Config.MinInclusionCount ? !TypedFilterFactory->Config.bInvert : TypedFilterFactory->Config.bInvert;
 			}
 		}

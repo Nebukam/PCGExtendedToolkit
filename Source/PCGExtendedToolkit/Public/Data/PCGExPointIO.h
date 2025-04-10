@@ -186,14 +186,16 @@ namespace PCGExData
 
 		bool IsDataValid(const ESource InSource) const { return InSource == ESource::In ? IsValid(In) : IsValid(Out); }
 
-		const UPCGPointData* GetData(const ESource InSource) const { return InSource == ESource::In ? In : Out; }
-		UPCGPointData* GetMutableData(const ESource InSource) const { return const_cast<UPCGPointData*>(InSource == ESource::In ? In : Out); }
-		const UPCGPointData* GetIn() const { return In; }
-		UPCGPointData* GetOut() const { return Out; }
-		const UPCGPointData* GetOutIn() const { return Out ? Out : In; }
-		const UPCGPointData* GetInOut() const { return In ? In : Out; }
+		FORCEINLINE const UPCGPointData* GetData(const ESource InSource) const { return InSource == ESource::In ? In : Out; }
+		FORCEINLINE UPCGPointData* GetMutableData(const ESource InSource) const { return const_cast<UPCGPointData*>(InSource == ESource::In ? In : Out); }
+		FORCEINLINE const UPCGPointData* GetIn() const { return In; }
+		FORCEINLINE UPCGPointData* GetOut() const { return Out; }
+		FORCEINLINE const UPCGPointData* GetOutIn() const { return Out ? Out : In; }
+		FORCEINLINE const UPCGPointData* GetInOut() const { return In ? In : Out; }
+		const UPCGPointData* GetOutIn(ESource& OutSource) const;
+		const UPCGPointData* GetInOut(ESource& OutSource) const;
 		bool GetSource(const UPCGData* InData, ESource& OutSource) const;
-		
+
 		int32 GetNum() const { return In ? In->GetPoints().Num() : Out ? Out->GetPoints().Num() : -1; }
 		int32 GetNum(const ESource Source) const { return Source == ESource::In ? In->GetPoints().Num() : Out->GetPoints().Num(); }
 		int32 GetOutInNum() const { return Out && !Out->GetPoints().IsEmpty() ? Out->GetPoints().Num() : In ? In->GetPoints().Num() : -1; }

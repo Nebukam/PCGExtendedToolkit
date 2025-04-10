@@ -175,5 +175,15 @@ public:
 	virtual bool CancelExecution(const FString& InReason);
 
 protected:
+	mutable FRWLock NotifyActorsLock;
+
+	// Actors to notify when execution is complete
+	TSet<AActor*> NotifyActors;
+
+	void ExecuteOnNotifyActors(const TArray<FName>& FunctionNames) const;
+
 	bool bExecutionCancelled = false;
+
+public:
+	void AddNotifyActor(AActor* InActor);
 };
