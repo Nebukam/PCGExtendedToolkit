@@ -74,6 +74,8 @@ bool FPCGExBuildConvexHull2DElement::ExecuteInternal(
 
 void FPCGExBuildConvexHull2DContext::BuildPath(const PCGExGraph::FGraphBuilder* GraphBuilder) const
 {
+	PCGEX_SETTINGS_LOCAL(BuildConvexHull2D)
+
 	TSet<uint64> UniqueEdges;
 	const TArray<PCGExGraph::FEdge>& Edges = GraphBuilder->Graph->Edges;
 
@@ -84,6 +86,8 @@ void FPCGExBuildConvexHull2DContext::BuildPath(const PCGExGraph::FGraphBuilder* 
 	TArray<FPCGPoint>& MutablePathPoints = PathIO->GetOut()->GetMutablePoints();
 	TSet<int32> VisitedEdges;
 	VisitedEdges.Reserve(Edges.Num());
+
+	if (Settings->bTagIfClosedLoop) { PathIO->Tags->AddRaw(Settings->IsClosedLoopTag); }
 
 	int32 CurrentIndex = -1;
 	int32 FirstIndex = -1;
