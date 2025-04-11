@@ -39,14 +39,22 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ClampMin=0))
 	bool bSelfIntersectionOnly = false;
 
-	/** Filter entire dataset. */
+	/** Filter entire dataset. If any tag is found on these paths, they are considered cut-able. Empty or None will ignore filtering. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="!bSelfIntersectionOnly"))
 	FName CanBeCutTag = NAME_None;
 
-	/** Filter entire dataset. */
+	/** If enabled, the absence of the specified tag considers paths as cut-able. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(DisplayName=" └─ Invert", PCG_NotOverridable, EditCondition="!bSelfIntersectionOnly", EditConditionHides))
+	bool bInvertCanBeCutTag = false;
+	
+	/** Filter entire dataset. If any tag is found on these paths, they are considered cutters. Empty or None will ignore filtering. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="!bSelfIntersectionOnly"))
 	FName CanCutTag = NAME_None;
 
+	/** If enabled, the absence of the specified tag considers paths as cutters. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(DisplayName=" └─ Invert", PCG_NotOverridable, EditCondition="!bSelfIntersectionOnly", EditConditionHides))
+	bool bInvertCanCutTag = false;
+	
 	/**  */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	FPCGExPathEdgeIntersectionDetails IntersectionDetails;

@@ -219,6 +219,12 @@ namespace PCGExData
 		return ValueTags.Contains(Key) || RawTags.Contains(Key);
 	}
 
+	bool FTags::IsTagged(const FString& Key, const bool bInvert) const
+	{
+		FReadScopeLock ReadScopeLock(TagsLock);
+		return (ValueTags.Contains(Key) || RawTags.Contains(Key)) ? !bInvert : bInvert;
+	}
+
 	void FTags::ParseAndAdd(const FString& InTag)
 	{
 		FString InKey = TEXT("");
