@@ -228,6 +228,7 @@ namespace PCGExData
 
 		TSharedPtr<FTagValue> GetValue(const FString& Key);
 		bool IsTagged(const FString& Key) const;
+		bool IsTagged(const FString& Key, const bool bInvert) const;
 
 	protected:
 		void ParseAndAdd(const FString& InTag);
