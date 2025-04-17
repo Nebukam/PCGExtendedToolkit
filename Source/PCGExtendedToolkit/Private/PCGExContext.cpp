@@ -350,7 +350,9 @@ UPCGManagedComponent* FPCGExContext::AttachManagedComponent(AActor* InParent, UA
 
 	if (USceneComponent* SceneComponent = Cast<USceneComponent>(InComponent))
 	{
-		SceneComponent->AttachToComponent(InParent->GetRootComponent(), AttachmentRules);
+		USceneComponent* Root = InParent->GetRootComponent();
+		SceneComponent->SetMobility(Root->Mobility);
+		SceneComponent->AttachToComponent(Root, AttachmentRules);
 	}
 
 	return ManagedComponent;

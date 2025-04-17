@@ -143,12 +143,70 @@ namespace PCGExBinPacking
 	using PCGExLayout::FItem;
 	using PCGExLayout::FSpace;
 
+	class FBinSplit : public TSharedFromThis<FBinSplit>
+	{
+	public:
+		FBinSplit() = default;
+		virtual ~FBinSplit() = default;
+
+		virtual void SplitSpace(const FSpace& Space, FBox& ItemBox, TArray<FBox>& OutPartitions) const = 0;
+	};
+
+	template <EPCGExAxis Axis = EPCGExAxis::Up>
+	class TBinSplit : public FBinSplit
+	{
+	public:
+		virtual void SplitSpace(const FSpace& Space, FBox& ItemBox, TArray<FBox>& OutPartitions) const override
+		{
+			OutPartitions.Reserve(6);
+
+#define PCGEX_BIN_SPLIT(_MIN, _MAX) \
+			if (const FBox B = FBox(_MIN, _MAX); !FMath::IsNearlyZero(B.GetVolume())) { OutPartitions.Add(B); }
+
+			if constexpr (Axis == EPCGExAxis::Up)
+			{
+				// Left
+				PCGEX_BIN_SPLIT(Space.Box.Min, FVector(ItemBox.Min.X, Space.Box.Max.Y, Space.Box.Max.Z))
+				// Right
+				PCGEX_BIN_SPLIT(FVector(ItemBox.Max.X, Space.Box.Min.Y, Space.Box.Min.Z), Space.Box.Max);
+				// Bottom
+				PCGEX_BIN_SPLIT(FVector(ItemBox.Min.X, Space.Box.Min.Y, Space.Box.Min.Z), FVector(ItemBox.Max.X, Space.Box.Max.Y, ItemBox.Min.Z));
+				// Top
+				PCGEX_BIN_SPLIT(FVector(ItemBox.Min.X, ItemBox.Min.Y, ItemBox.Max.Z), FVector(ItemBox.Max.X, ItemBox.Max.Y, Space.Box.Max.Z));
+				// Front
+				PCGEX_BIN_SPLIT(FVector(ItemBox.Min.X, ItemBox.Max.Y, ItemBox.Min.Z), FVector(ItemBox.Max.X, Space.Box.Max.Y, Space.Box.Max.Z));
+				// Back
+				PCGEX_BIN_SPLIT(FVector(ItemBox.Min.X, Space.Box.Min.Y, ItemBox.Min.Z), FVector(ItemBox.Max.X, ItemBox.Min.Y, Space.Box.Max.Z));
+			}
+			else
+			{
+				// TODO : Implement each axis maths
+				// Left
+				PCGEX_BIN_SPLIT(Space.Box.Min, FVector(ItemBox.Min.X, Space.Box.Max.Y, Space.Box.Max.Z))
+				// Right
+				PCGEX_BIN_SPLIT(FVector(ItemBox.Max.X, Space.Box.Min.Y, Space.Box.Min.Z), Space.Box.Max);
+				// Bottom
+				PCGEX_BIN_SPLIT(FVector(ItemBox.Min.X, Space.Box.Min.Y, Space.Box.Min.Z), FVector(ItemBox.Max.X, Space.Box.Max.Y, ItemBox.Min.Z));
+				// Top
+				PCGEX_BIN_SPLIT(FVector(ItemBox.Min.X, ItemBox.Min.Y, ItemBox.Max.Z), FVector(ItemBox.Max.X, ItemBox.Max.Y, Space.Box.Max.Z));
+				// Front
+				PCGEX_BIN_SPLIT(FVector(ItemBox.Min.X, ItemBox.Max.Y, ItemBox.Min.Z), FVector(ItemBox.Max.X, Space.Box.Max.Y, Space.Box.Max.Z));
+				// Back
+				PCGEX_BIN_SPLIT(FVector(ItemBox.Min.X, Space.Box.Min.Y, ItemBox.Min.Z), FVector(ItemBox.Max.X, ItemBox.Min.Y, Space.Box.Max.Z));
+			}
+
+#undef PCGEX_BIN_SPLIT
+		}
+	};
+
+
 	class FBin : public TSharedFromThis<FBin>
 	{
 	protected:
 		double MaxVolume = 0;
 		double MaxDist = 0;
 		FVector Seed = FVector::ZeroVector;
+		TSharedPtr<FBinSplit> Splitter;
 
 		TArray<FSpace> Spaces;
 		void AddSpace(const FBox& InBox);
@@ -162,7 +220,7 @@ namespace PCGExBinPacking
 		FVector WastedSpaceThresholds = FVector::ZeroVector;
 		TArray<FItem> Items;
 
-		explicit FBin(const FPCGPoint& InBinPoint, const FVector& InSeed);
+		explicit FBin(const FPCGPoint& InBinPoint, const FVector& InSeed, const TSharedPtr<FBinSplit>& InSplitter);
 		~FBin() = default;
 
 		bool IsFull() const { return Items.Num() <= MaxItems; }
@@ -175,6 +233,7 @@ namespace PCGExBinPacking
 	class FProcessor final : public PCGExPointsMT::TPointsProcessor<FPCGExBinPackingContext, UPCGExBinPackingSettings>
 	{
 	protected:
+		TSharedPtr<FBinSplit> Splitter;
 		double MinOccupation = 0;
 		TSharedPtr<PCGExSorting::PointSorter<true>> Sorter;
 		TArray<TSharedPtr<FBin>> Bins;

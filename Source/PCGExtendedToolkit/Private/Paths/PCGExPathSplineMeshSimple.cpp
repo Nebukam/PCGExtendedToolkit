@@ -189,7 +189,7 @@ namespace PCGExPathSplineMeshSimple
 			}
 
 			LeaveReader = PointDataFacade->GetReadable<FVector>(Settings->LeaveTangentAttribute);
-			if (!ArriveReader)
+			if (!LeaveReader)
 			{
 				PCGE_LOG_C(Error, GraphAndLog, ExecutionContext, FTEXT("Could not fetch tangent' Leave attribute on some inputs."));
 				return false;
@@ -293,6 +293,11 @@ namespace PCGExPathSplineMeshSimple
 		{
 			Segment.Params.StartTangent = LeaveReader->Read(Index);
 			Segment.Params.EndTangent = ArriveReader->Read(NextIndex);
+		}
+		else
+		{
+			Segment.Params.StartTangent = Point.Transform.GetRotation().GetForwardVector();
+			Segment.Params.EndTangent = NextPoint.Transform.GetRotation().GetForwardVector();
 		}
 
 		if (UpGetter) { Segment.UpVector = UpGetter->Read(Index); }
