@@ -152,7 +152,14 @@ FString UPCGExIsoEdgeDirectionFilterProviderSettings::GetDisplayName() const
 	UPCGExIsoEdgeDirectionFilterProviderSettings* MutableSelf = const_cast<UPCGExIsoEdgeDirectionFilterProviderSettings*>(this);
 	MutableSelf->Config.DirectionConstant = Config.DirectionConstant.GetSafeNormal();
 
-	DisplayName += PCGEx::GetSelectorDisplayName(Config.Direction);
+	if (Config.CompareAgainst == EPCGExInputValueType::Constant)
+	{
+		DisplayName += TEXT("Constant");
+	}
+	else
+	{
+		DisplayName += PCGEx::GetSelectorDisplayName(Config.Direction);
+	}
 	return DisplayName;
 }
 #endif

@@ -127,7 +127,7 @@ namespace PCGExPaths
 
 		const FVector A = Params.StartTangent.GetSafeNormal(0.001);
 		const FVector B = Params.EndTangent.GetSafeNormal(0.001);
-		if (const float Dot = A | B; Dot > 0.99 || Dot <= -0.99) { UpVector = A; }
+		if (const float Dot = A | B; Dot > 0.99 || Dot <= -0.99) { UpVector = FVector(A.Y, A.Z, A.X); }
 		else { UpVector = A ^ B; }
 	}
 

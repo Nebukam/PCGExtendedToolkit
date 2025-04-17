@@ -70,7 +70,7 @@ namespace PCGEx
 		bool Start(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager, const ContextState InExitState)
 		{
 			ExitState = InExitState;
-			Context->SetAsyncState(InternalState_DiscoveringAssets);
+			if (ExitState != 0) { Context->SetAsyncState(InternalState_DiscoveringAssets); }
 
 			bool bAnyDiscovery = false;
 
@@ -113,7 +113,7 @@ namespace PCGEx
 			AssetsMap.Reserve(UniquePaths.Num());
 
 			Context->SetAsyncState(InternalState_LoadingAssets);
-
+			
 			if (!bForceSynchronous)
 			{
 				Context->PauseContext();
@@ -182,7 +182,7 @@ namespace PCGEx
 					if (SoftPtr.Get()) { AssetsMap.Add(Path, SoftPtr.Get()); }
 				}
 
-				Context->SetState(ExitState);
+				if (ExitState != 0) { Context->SetState(ExitState); }
 			}
 
 			return true;

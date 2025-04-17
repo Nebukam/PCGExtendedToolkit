@@ -134,8 +134,9 @@ namespace PCGExBinPacking
 		NewSpace.DistanceScore /= MaxDist;
 	}
 
-	FBin::FBin(const FPCGPoint& InBinPoint, const FVector& InSeed)
+	FBin::FBin(const FPCGPoint& InBinPoint, const FVector& InSeed, const TSharedPtr<FBinSplit>& InSplitter)
 	{
+		Splitter = InSplitter;
 		Seed = InSeed;
 		Bounds = PCGExMath::GetLocalBounds<EPCGExPointBoundsSource::ScaledBounds>(InBinPoint);
 
@@ -206,21 +207,16 @@ namespace PCGExBinPacking
 		{
 			const FVector Amplitude = Space.Inflate(ItemBox, WastedSpaceThresholds);
 		}
+		
 
 		TArray<FBox> NewPartitions;
-		NewPartitions.Reserve(6);
-
-		NewPartitions.Emplace(Space.Box.Min, FVector(ItemBox.Min.X, Space.Box.Max.Y, Space.Box.Max.Z));                                          // Left
-		NewPartitions.Emplace(FVector(ItemBox.Max.X, Space.Box.Min.Y, Space.Box.Min.Z), Space.Box.Max);                                          // Right
-		NewPartitions.Emplace(FVector(ItemBox.Min.X, Space.Box.Min.Y, Space.Box.Min.Z), FVector(ItemBox.Max.X, Space.Box.Max.Y, ItemBox.Min.Z)); // Bottom
-		NewPartitions.Emplace(FVector(ItemBox.Min.X, ItemBox.Min.Y, ItemBox.Max.Z), FVector(ItemBox.Max.X, ItemBox.Max.Y, Space.Box.Max.Z));     // Top
-		NewPartitions.Emplace(FVector(ItemBox.Min.X, ItemBox.Max.Y, ItemBox.Min.Z), FVector(ItemBox.Max.X, Space.Box.Max.Y, Space.Box.Max.Z));   // Front
-		NewPartitions.Emplace(FVector(ItemBox.Min.X, Space.Box.Min.Y, ItemBox.Min.Z), FVector(ItemBox.Max.X, ItemBox.Min.Y, Space.Box.Max.Z));   // Back
+		Splitter->SplitSpace(Space, ItemBox, NewPartitions);
 
 		Spaces.RemoveAt(SpaceIndex);
-		Spaces.Reserve(Spaces.Num() + 8);
+		Spaces.Reserve(Spaces.Num() + NewPartitions.Num());
+		
+		for (const FBox& Partition : NewPartitions) { AddSpace(Partition); }
 
-		for (const FBox& Partition : NewPartitions) { if (!FMath::IsNearlyZero(Partition.GetVolume())) { AddSpace(Partition); } }
 	}
 
 	bool FBin::Insert(FItem& InItem)
@@ -276,6 +272,31 @@ namespace PCGExBinPacking
 			}
 		}
 
+		// Splitter
+		switch (Settings->StackingSide)
+		{
+		case EPCGExAxis::Forward:
+			Splitter = MakeShared<TBinSplit<EPCGExAxis::Forward>>();
+			break;
+		case EPCGExAxis::Backward:
+			Splitter = MakeShared<TBinSplit<EPCGExAxis::Backward>>();
+			break;
+		case EPCGExAxis::Right:
+			Splitter = MakeShared<TBinSplit<EPCGExAxis::Right>>();
+			break;
+		case EPCGExAxis::Left:
+			Splitter = MakeShared<TBinSplit<EPCGExAxis::Left>>();
+			break;
+		case EPCGExAxis::Up:
+			Splitter = MakeShared<TBinSplit<EPCGExAxis::Up>>();
+			break;
+		case EPCGExAxis::Down:
+			Splitter = MakeShared<TBinSplit<EPCGExAxis::Down>>();
+			break;
+		}
+
+		//
+		
 		Fitted.Init(false, PointDataFacade->GetNum());
 
 		TSharedPtr<PCGExData::FPointIO> TargetBins = Context->Bins->Pairs[BatchIndex];
@@ -337,7 +358,7 @@ namespace PCGExBinPacking
 				Seed = BinPoint.Transform.InverseTransformPositionNoScale(SeedGetter ? SeedGetter->SoftGet(i, BinPoint, FVector::ZeroVector) : Settings->SeedPosition);
 			}
 
-			PCGEX_MAKE_SHARED(NewBin, FBin, BinPoint, Seed)
+			PCGEX_MAKE_SHARED(NewBin, FBin, BinPoint, Seed, Splitter)
 
 			NewBin->Settings = Settings;
 			NewBin->WastedSpaceThresholds = FVector(MinOccupation);
