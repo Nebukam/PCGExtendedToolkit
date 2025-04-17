@@ -182,7 +182,7 @@ namespace PCGExPathSplineMesh
 			}
 
 			LeaveGetter = PointDataFacade->GetReadable<FVector>(Settings->LeaveTangentAttribute);
-			if (!ArriveGetter)
+			if (!LeaveGetter)
 			{
 				PCGE_LOG_C(Error, GraphAndLog, ExecutionContext, FTEXT("Could not fetch tangent' Leave attribute on some inputs."));
 				return false;
