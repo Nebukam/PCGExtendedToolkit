@@ -294,6 +294,11 @@ namespace PCGExPathSplineMeshSimple
 			Segment.Params.StartTangent = LeaveReader->Read(Index);
 			Segment.Params.EndTangent = ArriveReader->Read(NextIndex);
 		}
+		else
+		{
+			Segment.Params.StartTangent = Point.Transform.GetRotation().GetForwardVector();
+			Segment.Params.EndTangent = NextPoint.Transform.GetRotation().GetForwardVector();
+		}
 
 		if (UpGetter) { Segment.UpVector = UpGetter->Read(Index); }
 		else if (Settings->SplineMeshUpMode == EPCGExSplineMeshUpMode::Constant) { Segment.UpVector = Settings->SplineMeshUpVector; }
