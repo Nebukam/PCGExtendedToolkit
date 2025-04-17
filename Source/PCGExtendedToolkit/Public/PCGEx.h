@@ -104,12 +104,12 @@ enum class EPCGExSingleField : uint8
 UENUM()
 enum class EPCGExAxis : uint8
 {
-	Forward  = 0 UMETA(DisplayName = "Default (Forward)", ToolTip="Forward from Transform/FQuat/Rotator, or raw vector."),
-	Backward = 1 UMETA(DisplayName = "Backward", ToolTip="Backward from Transform/FQuat/Rotator, or raw vector."),
-	Right    = 2 UMETA(DisplayName = "Right", ToolTip="Right from Transform/FQuat/Rotator, or raw vector."),
-	Left     = 3 UMETA(DisplayName = "Left", ToolTip="Left from Transform/FQuat/Rotator, or raw vector."),
-	Up       = 4 UMETA(DisplayName = "Up", ToolTip="Up from Transform/FQuat/Rotator, or raw vector."),
-	Down     = 5 UMETA(DisplayName = "Down", ToolTip="Down from Transform/FQuat/Rotator, or raw vector."),
+	Forward  = 0 UMETA(DisplayName = "Forward", ToolTip="Forward (X+)."),
+	Backward = 1 UMETA(DisplayName = "Backward", ToolTip="Backward (X-)."),
+	Right    = 2 UMETA(DisplayName = "Right", ToolTip="Right (Y+)"),
+	Left     = 3 UMETA(DisplayName = "Left", ToolTip="Left (Y-)"),
+	Up       = 4 UMETA(DisplayName = "Up", ToolTip="Up (Z+)"),
+	Down     = 5 UMETA(DisplayName = "Down", ToolTip="Down (Z-)"),
 };
 
 UENUM()
