@@ -509,5 +509,29 @@ namespace PCGExData
 		return nullptr;
 	}
 
+	int32 PCGExPointIO::GetTotalPointsNum(const TArray<TSharedPtr<FPointIO>>& InIOs, const ESource InSource) 
+	{
+		int32 TotalNum = 0;
+
+		if (InSource == ESource::In)
+		{
+			for (const TSharedPtr<FPointIO>& IO : InIOs)
+			{
+				if (!IO || !IO->GetIn()) { continue; }
+				TotalNum += IO->GetIn()->GetPoints().Num();
+			}
+		}
+		else
+		{
+			for (const TSharedPtr<FPointIO>& IO : InIOs)
+			{
+				if (!IO || !IO->GetOut()) { continue; }
+				TotalNum += IO->GetOut()->GetPoints().Num();
+			}
+		}
+
+		return TotalNum;
+	}
+
 #pragma endregion
 }

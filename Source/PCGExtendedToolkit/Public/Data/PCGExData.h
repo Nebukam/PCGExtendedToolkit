@@ -902,10 +902,7 @@ namespace PCGExData
 		TSet<int32> IOIndices;
 		TSet<uint64> ItemHashSet;
 
-		FUnionData()
-		{
-		}
-
+		FUnionData() = default;
 		~FUnionData() = default;
 
 		int32 Num() const { return ItemHashSet.Num(); }
@@ -920,6 +917,7 @@ namespace PCGExData
 			TArray<double>& OutWeights) const;
 
 		uint64 Add(const int32 IOIndex, const int32 PointIndex);
+		void Add(const int32 IOIndex, const TArray<int32>& PointIndices);
 
 		void Reset()
 		{
@@ -934,20 +932,19 @@ namespace PCGExData
 		TArray<TSharedPtr<FUnionData>> Entries;
 		bool bIsAbstract = false;
 
-		FUnionMetadata() { Entries.Empty(); }
-
-		~FUnionMetadata()
-		{
-		}
+		FUnionMetadata() = default;
+		~FUnionMetadata() = default;
 
 		int32 Num() const { return Entries.Num(); }
+		void SetNum(const int32 InNum);
 
-		TSharedPtr<FUnionData> NewEntry(const int32 IOIndex, const int32 ItemIndex);
+		TSharedPtr<FUnionData> NewEntry_Unsafe(const int32 IOIndex, const int32 ItemIndex);
+		TSharedPtr<FUnionData> NewEntryAt_Unsafe(const int32 ItemIndex);
 
 		uint64 Append(const int32 Index, const int32 IOIndex, const int32 ItemIndex);
 		bool IOIndexOverlap(const int32 InIdx, const TSet<int32>& InIndices);
 
-		TSharedPtr<FUnionData> Get(const int32 Index) const { return Entries.IsValidIndex(Index) ? Entries[Index] : nullptr; }
+		FORCEINLINE TSharedPtr<FUnionData> Get(const int32 Index) const { return Entries.IsValidIndex(Index) ? Entries[Index] : nullptr; }
 	};
 
 #pragma endregion

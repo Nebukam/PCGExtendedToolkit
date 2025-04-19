@@ -401,7 +401,7 @@ namespace PCGExData
 
 		bool IsEmpty() const { return Pairs.IsEmpty(); }
 		int32 Num() const { return Pairs.Num(); }
-
+		
 		TSharedPtr<FPointIO> operator[](const int32 Index) const { return Pairs[Index]; }
 
 		void IncreaseReserve(int32 InIncreaseNum);
@@ -414,6 +414,7 @@ namespace PCGExData
 
 		FBox GetInBounds() const;
 		FBox GetOutBounds() const;
+		
 
 		void PruneNullEntries(const bool bUpdateIndices);
 
@@ -458,6 +459,8 @@ namespace PCGExData
 
 	namespace PCGExPointIO
 	{
+		int32 GetTotalPointsNum(const TArray<TSharedPtr<FPointIO>>& InIOs, const ESource InSource = ESource::In);
+				
 		static const UPCGPointData* GetPointData(const FPCGContext* Context, const FPCGTaggedData& Source)
 		{
 			// This is actually creating a transient In that is potentially a new data, this is super bad

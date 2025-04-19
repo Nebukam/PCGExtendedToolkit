@@ -425,10 +425,8 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 			{
 				if (const FGraphEdgeMetadata* EdgeMeta = ParentGraph->FindRootEdgeMetadata_Unsafe(E.IOIndex))
 				{
-					if (UnionBlender)
-					{
-						UnionBlender->MergeSingle(EdgeIndex, ParentGraph->EdgesUnion->Get(EdgeMeta->RootIndex), Distances);
-					}
+					if (TSharedPtr<PCGExData::FUnionData> UnionData = ParentGraph->EdgesUnion->Get(EdgeMeta->RootIndex);
+						UnionBlender && UnionData) { UnionBlender->MergeSingle(EdgeIndex, UnionData, Distances); }
 
 #define PCGEX_EDGE_METADATA_OUTPUT(_NAME, _TYPE, _DEFAULT, _ACCESSOR) if(_NAME##Buffer){_NAME##Buffer->GetMutable(EdgeIndex) = EdgeMeta->_ACCESSOR;}
 					PCGEX_FOREACH_EDGE_METADATA(PCGEX_EDGE_METADATA_OUTPUT)

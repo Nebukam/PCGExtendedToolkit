@@ -111,7 +111,13 @@ namespace PCGExCluster
 		if (SingleEdge != -1)
 		{
 			Graph->InsertEdge(*Cluster->GetEdge(SingleEdge), OutEdge, IOIndex);
-			if (bAddMetadata) { Graph->GetOrCreateEdgeMetadata(OutEdge.Index).UnionSize = 1; }
+			PCGExGraph::FGraphEdgeMetadata& EdgeMetadata = Graph->GetOrCreateEdgeMetadata(OutEdge.Index);
+			EdgeMetadata.UnionSize = 1;
+
+			if (Graph->EdgesUnion)
+			{
+				Graph->EdgesUnion->NewEntryAt_Unsafe(OutEdge.Index)->Add(IOIndex, SingleEdge);
+			}
 		}
 		else
 		{
@@ -122,21 +128,23 @@ namespace PCGExCluster
 				return;
 			}
 
-			if (bAddMetadata)
-			{
-				Graph->InsertEdge(
-					Cluster->GetNode(Seed)->PointIndex,
-					Cluster->GetNode(Links.Last())->PointIndex,
-					OutEdge, IOIndex);
+			Graph->InsertEdge(
+				Cluster->GetNode(Seed)->PointIndex,
+				Cluster->GetNode(Links.Last())->PointIndex,
+				OutEdge, IOIndex);
 
-				Graph->GetOrCreateEdgeMetadata(OutEdge.Index).UnionSize = Links.Num();
-			}
-			else
+			PCGExGraph::FGraphEdgeMetadata& EdgeMetadata = Graph->GetOrCreateEdgeMetadata(OutEdge.Index);
+			EdgeMetadata.UnionSize = Links.Num();
+
+			if (Graph->EdgesUnion)
 			{
-				Graph->InsertEdge(
-					Cluster->GetNode(Seed)->PointIndex,
-					Cluster->GetNode(Links.Last())->PointIndex,
-					OutEdge, IOIndex);
+				TArray<int32> MergedEdges;
+				MergedEdges.Reserve(Links.Num());
+
+				// TODO : Possible missing edge in some edge cases
+				for (const FLink& Link : Links) { MergedEdges.Add(Link.Edge); }
+
+				Graph->EdgesUnion->NewEntryAt_Unsafe(OutEdge.Index)->Add(IOIndex, MergedEdges);
 			}
 		}
 	}
