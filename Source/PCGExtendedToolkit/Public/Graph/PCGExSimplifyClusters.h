@@ -55,8 +55,16 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	bool bPruneLeaves = false;
 
+	/** Defines how fused point properties and attributes are merged together for Edges (When an edge is the result of a simplification). */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Data Blending", meta=(PCG_Overridable))
+	FPCGExBlendingDetails EdgeBlendingDetails;
+
+	/** Meta filter settings for edge data. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Data Blending", meta = (PCG_Overridable, DisplayName="Carry Over Settings"))
+	FPCGExCarryOverDetails EdgeCarryOverDetails;
+	
 	/**  Edge Union Data */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditConditionHides, HideEditConditionToggle))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Data Blending", meta=(PCG_Overridable))
 	FPCGExEdgeUnionMetadataDetails EdgeUnionData;
 
 	/** Graph & Edges output properties */
@@ -68,6 +76,8 @@ struct FPCGExSimplifyClustersContext : FPCGExEdgesProcessorContext
 {
 	friend class UPCGExSimplifyClustersSettings;
 	friend class FPCGExSimplifyClustersElement;
+
+	FPCGExCarryOverDetails EdgeCarryOverDetails;
 };
 
 class FPCGExSimplifyClustersElement final : public FPCGExEdgesProcessorElement
@@ -90,6 +100,7 @@ namespace PCGExSimplifyClusters
 		friend class FBatch;
 
 	protected:
+		TSharedPtr<PCGExData::FUnionMetadata> EdgesUnion;
 		TSharedPtr<TArray<int8>> Breakpoints;
 		TSharedPtr<PCGExCluster::FNodeChainBuilder> ChainBuilder;
 
@@ -101,6 +112,8 @@ namespace PCGExSimplifyClusters
 
 		virtual ~FProcessor() override;
 
+		// TODO : Register edge facade attribute dependencies
+		
 		virtual bool Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager) override;
 		virtual void CompleteWork() override;
 
