@@ -26,6 +26,9 @@ bool FPCGExSimplifyClustersElement::Boot(FPCGExContext* InContext) const
 	PCGEX_CONTEXT_AND_SETTINGS(SimplifyClusters)
 
 	PCGEX_FWD(GraphBuilderDetails)
+	PCGEX_FWD(EdgeCarryOverDetails)
+
+	Context->EdgeCarryOverDetails.Init();
 
 	return true;
 }
@@ -71,6 +74,8 @@ namespace PCGExSimplifyClusters
 		ChainBuilder->Breakpoints = Breakpoints;
 		bIsProcessorValid = ChainBuilder->Compile(AsyncManager);
 
+		EdgesUnion = GraphBuilder->Graph->EdgesUnion;
+
 		return true;
 	}
 
@@ -78,6 +83,7 @@ namespace PCGExSimplifyClusters
 	void FProcessor::CompleteWork()
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExSimplifyClusters::FProcessor::CompleteWork);
+
 		StartParallelLoopForRange(ChainBuilder->Chains.Num());
 	}
 
@@ -98,6 +104,8 @@ namespace PCGExSimplifyClusters
 
 		if (Chain->SingleEdge != -1 || !Settings->bMergeAboveAngularThreshold)
 		{
+			// TODO : When using reduced dump we know in advance the number of edges will be the number of chains (optionally minus leaves)
+			// We can pre-populate the graph union data
 			Chain->DumpReduced(Cluster.ToSharedRef(), GraphBuilder->Graph, bComputeMeta);
 			return;
 		}
@@ -115,6 +123,9 @@ namespace PCGExSimplifyClusters
 		const int32 MaxIndex = Links.Num() - 1;
 		const int32 NumIterations = Links.Num();
 
+		TArray<int32> MergedEdges;
+		MergedEdges.Reserve(NumIterations);
+
 		for (int i = 1; i < NumIterations; ++i)
 		{
 			UnionCount++;
@@ -126,52 +137,63 @@ namespace PCGExSimplifyClusters
 			if (!Links.IsValidIndex(IndexB)) { continue; }
 
 			const FVector B = Cluster->GetDir(Lk.Node, Links[IndexB].Node);
+			bool bSkip = false;
 
-			if (!Settings->bInvertAngularThreshold) { if (FVector::DotProduct(A, B) > DotThreshold) { continue; } }
-			else { if (FVector::DotProduct(A, B) < DotThreshold) { continue; } }
+			if (!Settings->bInvertAngularThreshold) { if (FVector::DotProduct(A, B) > DotThreshold) { bSkip = true; } }
+			else { if (FVector::DotProduct(A, B) < DotThreshold) { bSkip = true; } }
+
+			if (bSkip)
+			{
+				MergedEdges.Add(Lk.Edge);
+				continue;
+			}
 
 			GraphBuilder->Graph->InsertEdge(
 				Cluster->GetNode(LastIndex)->PointIndex,
 				Cluster->GetNode(Lk)->PointIndex,
 				OutEdge, IOIndex);
 
-			if (bComputeMeta)
-			{
-				// TODO : Compute UnionData to carry over attributes & properties
-				GraphBuilder->Graph->GetOrCreateEdgeMetadata(OutEdge.Index).UnionSize = UnionCount;
-				UnionCount = 0;
-			}
+			PCGExGraph::FGraphEdgeMetadata& EdgeMetadata = GraphBuilder->Graph->GetOrCreateEdgeMetadata(OutEdge.Index);
+			EdgeMetadata.UnionSize = UnionCount;
+			EdgesUnion->NewEntryAt_Unsafe(OutEdge.Index)->Add(IOIndex, MergedEdges);
+
+			UnionCount = 0;
+			MergedEdges.Reset();
 
 			LastIndex = Lk.Node;
 		}
 
-		auto MakeLastEdge = [&](const int32 Index)
+		auto MakeLastEdge = [&](const PCGExGraph::FLink Link)
 		{
 			UnionCount++;
+
 			GraphBuilder->Graph->InsertEdge(
 				Cluster->GetNode(LastIndex)->PointIndex,
-				Cluster->GetNode(Index)->PointIndex,
+				Cluster->GetNode(Link.Node)->PointIndex,
 				OutEdge, IOIndex);
 
-			if (bComputeMeta)
-			{
-				// TODO : Compute UnionData to carry over attributes & properties
-				GraphBuilder->Graph->GetOrCreateEdgeMetadata(OutEdge.Index).UnionSize = UnionCount;
-			}
+			MergedEdges.Add(Link.Edge);
+
+			PCGExGraph::FGraphEdgeMetadata& EdgeMetadata = GraphBuilder->Graph->GetOrCreateEdgeMetadata(OutEdge.Index);
+			EdgeMetadata.UnionSize = UnionCount;
+			EdgesUnion->NewEntryAt_Unsafe(OutEdge.Index)->Add(IOIndex, MergedEdges);
+
+			UnionCount = 0;
+			MergedEdges.Reset();
 		};
 
 		if (LastIndex != Chain->Links.Last().Node)
 		{
 			// Last processed point is not the last; likely skipped by angular threshold.
 			const int32 LastNode = Chain->Links.Last().Node;
-			MakeLastEdge(Chain->Links.Last().Node);
+			MakeLastEdge(Chain->Links.Last());
 			LastIndex = LastNode; // Update last index
 		}
 
 		if (Chain->bIsClosedLoop)
 		{
 			// Wrap
-			MakeLastEdge(Chain->Seed.Node);
+			MakeLastEdge(Chain->Seed);
 		}
 	}
 
@@ -184,8 +206,9 @@ namespace PCGExSimplifyClusters
 	const PCGExGraph::FGraphMetadataDetails* FBatch::GetGraphMetadataDetails()
 	{
 		PCGEX_TYPED_CONTEXT_AND_SETTINGS(SimplifyClusters)
-		if (!Settings->EdgeUnionData.WriteAny()) { return nullptr; }
 		GraphMetadataDetails.Grab(Context, Settings->EdgeUnionData);
+		GraphMetadataDetails.EdgesBlendingDetailsPtr = &Settings->EdgeBlendingDetails;
+		GraphMetadataDetails.EdgesCarryOverDetails = &Context->EdgeCarryOverDetails;
 		return &GraphMetadataDetails;
 	}
 
@@ -199,6 +222,10 @@ namespace PCGExSimplifyClusters
 	void FBatch::Process()
 	{
 		PCGEX_TYPED_CONTEXT_AND_SETTINGS(SimplifyClusters)
+
+		GraphBuilder->Graph->EdgesUnion = MakeShared<PCGExData::FUnionMetadata>();
+		GraphBuilder->Graph->EdgesUnion->SetNum(PCGExData::PCGExPointIO::GetTotalPointsNum(Edges));
+		GraphBuilder->Graph->EdgesUnion->bIsAbstract = false; // Because we have valid edge data
 
 		const int32 NumPoints = VtxDataFacade->GetNum();
 		Breakpoints = MakeShared<TArray<int8>>();

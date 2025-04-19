@@ -426,11 +426,31 @@ namespace PCGExData
 		return H;
 	}
 
-	TSharedPtr<FUnionData> FUnionMetadata::NewEntry(const int32 IOIndex, const int32 ItemIndex)
+	void FUnionData::Add(const int32 IOIndex, const TArray<int32>& PointIndices)
+	{
+		FWriteScopeLock WriteScopeLock(UnionLock);
+
+		IOIndices.Add(IOIndex);
+		for (const int32 A : PointIndices) { ItemHashSet.Add(PCGEx::H64(IOIndex, A)); }
+	}
+
+	void FUnionMetadata::SetNum(const int32 InNum)
+	{
+		// To be used only with NewEntryAt / NewEntryAt_Unsafe
+		Entries.Init(nullptr, InNum);
+	}
+
+	TSharedPtr<FUnionData> FUnionMetadata::NewEntry_Unsafe(const int32 IOIndex, const int32 ItemIndex)
 	{
 		TSharedPtr<FUnionData> NewUnionData = Entries.Add_GetRef(MakeShared<FUnionData>());
 		NewUnionData->Add(IOIndex, ItemIndex);
 		return NewUnionData;
+	}
+
+	TSharedPtr<FUnionData> FUnionMetadata::NewEntryAt_Unsafe(const int32 ItemIndex)
+	{
+		Entries[ItemIndex] = MakeShared<FUnionData>();
+		return Entries[ItemIndex];
 	}
 
 	uint64 FUnionMetadata::Append(const int32 Index, const int32 IOIndex, const int32 ItemIndex)
