@@ -87,7 +87,7 @@ namespace PCGExGraph
 
 				Node = MakeShared<FUnionNode>(Point, Origin, Nodes.Num());
 				Nodes.Add(Node);
-				NodesUnion->NewEntry(IOIndex, PointIndex);
+				NodesUnion->NewEntry_Unsafe(IOIndex, PointIndex);
 				GridTree.Add(GridKey, Node);
 			}
 
@@ -143,7 +143,7 @@ namespace PCGExGraph
 			Node = MakeShared<FUnionNode>(Point, Origin, Nodes.Num());
 			Nodes.Add(Node);
 			Octree->AddElement(Node.Get());
-			NodesUnion->NewEntry(IOIndex, PointIndex);
+			NodesUnion->NewEntry_Unsafe(IOIndex, PointIndex);
 		}
 
 		return Node;
@@ -169,7 +169,7 @@ namespace PCGExGraph
 
 			Node = MakeShared<FUnionNode>(Point, Origin, Nodes.Num());
 			Nodes.Add(Node);
-			NodesUnion->NewEntry(IOIndex, PointIndex);
+			NodesUnion->NewEntry_Unsafe(IOIndex, PointIndex);
 			GridTree.Add(GridKey, Node);
 
 			return Node;
@@ -213,7 +213,7 @@ namespace PCGExGraph
 		Node = MakeShared<FUnionNode>(Point, Origin, Nodes.Num());
 		Nodes.Add(Node);
 		Octree->AddElement(Node.Get());
-		NodesUnion->NewEntry(IOIndex, PointIndex);
+		NodesUnion->NewEntry_Unsafe(IOIndex, PointIndex);
 
 		return Node;
 	}
@@ -258,7 +258,7 @@ namespace PCGExGraph
 				return EdgeUnion;
 			}
 
-			EdgeUnion = EdgesUnion->NewEntry(EdgeIOIndex, EdgePointIndex == -1 ? 0 : EdgePointIndex);
+			EdgeUnion = EdgesUnion->NewEntry_Unsafe(EdgeIOIndex, EdgePointIndex == -1 ? 0 : EdgePointIndex);
 			Edges.Add(H, FEdge(Edges.Num(), StartVtx->Index, EndVtx->Index));
 		}
 
@@ -289,7 +289,7 @@ namespace PCGExGraph
 			}
 			else
 			{
-				EdgeUnion = EdgesUnion->NewEntry(EdgeIOIndex, 0);
+				EdgeUnion = EdgesUnion->NewEntry_Unsafe(EdgeIOIndex, 0);
 				Edges.Add(H, FEdge(Edges.Num(), StartVtx->Index, EndVtx->Index));
 			}
 		}
@@ -303,7 +303,7 @@ namespace PCGExGraph
 			}
 			else
 			{
-				EdgeUnion = EdgesUnion->NewEntry(EdgeIOIndex, EdgePointIndex);
+				EdgeUnion = EdgesUnion->NewEntry_Unsafe(EdgeIOIndex, EdgePointIndex);
 				Edges.Add(H, FEdge(Edges.Num(), StartVtx->Index, EndVtx->Index));
 			}
 		}
