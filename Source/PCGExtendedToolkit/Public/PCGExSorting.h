@@ -69,6 +69,49 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSortRule
 	bool bAbsolute = false;
 };
 
+USTRUCT(BlueprintType)
+struct PCGEXTENDEDTOOLKIT_API FPCGExCollectionSortingDetails
+{
+	GENERATED_BODY()
+
+	FPCGExCollectionSortingDetails()
+	{
+	}
+
+	explicit FPCGExCollectionSortingDetails(const bool InEnabled)
+	{
+		bEnabled = InEnabled;
+	}
+
+	/** Whether this collection sorting is enabled or not. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	bool bEnabled = false;
+
+	/** Sorting direction */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	EPCGExSortDirection Direction = EPCGExSortDirection::Ascending;
+
+	/** Tag which value will be used for sorting; i.e MyTag:0, MyTag:1, MyTag:3 etc. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	FName TagName = FName("Tag");
+
+	/** Multiplied applied to original order when tag is missing. Use -1/1 to choose whether these data should be put before or after the valid ones. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Fallback", meta=(PCG_Overridable))
+	double FallbackOrderOffset = 0;
+
+	/** Multiplied applied to original order when tag is missing. Use -1/1 to choose whether these data should be put before or after the valid ones. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Fallback", meta=(PCG_Overridable))
+	double FallbackOrderMultiplier = 1;
+
+	/** */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Fallback")
+	bool bQuietMissingTagWarning = false;
+
+	bool Init(const FPCGContext* InContext);
+	void Sort(const FPCGContext* InContext, const TSharedPtr<PCGExData::FPointIOCollection>& InCollection) const;
+};
+
+
 /**
  * 
  */

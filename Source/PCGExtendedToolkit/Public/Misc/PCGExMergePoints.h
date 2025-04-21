@@ -35,6 +35,10 @@ protected:
 public:
 	//~End UPCGExPointsProcessorSettings
 
+	/** Sorting settings. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName="Collection Sorting"))
+	FPCGExCollectionSortingDetails SortingDetails;
+
 	/** Meta filter settings. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName="Carry Over Settings"))
 	FPCGExCarryOverDetails CarryOverDetails;
@@ -55,6 +59,7 @@ public:
 struct FPCGExMergePointsContext final : FPCGExPointsProcessorContext
 {
 	friend class FPCGExMergePointsElement;
+	FPCGExCollectionSortingDetails SortingDetails;
 	FPCGExCarryOverDetails CarryOverDetails;
 	FPCGExNameFiltersDetails TagsToAttributes;
 	TSharedPtr<PCGExData::FFacade> CompositeDataFacade;
@@ -80,7 +85,7 @@ namespace PCGExMergePoints
 	protected:
 		FRWLock SimpleTagsLock;
 		TSet<FName> SimpleTags;
-		
+
 		double NumPoints = 0;
 
 	public:
