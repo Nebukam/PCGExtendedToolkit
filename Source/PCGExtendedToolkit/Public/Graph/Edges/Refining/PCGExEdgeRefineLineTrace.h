@@ -31,7 +31,7 @@ public:
 		}
 	}
 
-	virtual bool RequiresIndividualEdgeProcessing() override { return true; }
+	virtual bool WantsIndividualEdgeProcessing() override { return true; }
 
 	virtual void PrepareForCluster(const TSharedPtr<PCGExCluster::FCluster>& InCluster, const TSharedPtr<PCGExHeuristics::FHeuristicsHandler>& InHeuristics) override
 	{

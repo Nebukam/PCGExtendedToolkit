@@ -4,6 +4,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "PCGExBroadcast.h"
 #include "UObject/Object.h"
 
 #include "PCGExMacros.h"
@@ -52,6 +53,13 @@ namespace PCGExTags
 		virtual FString AsString() const = 0;
 
 		bool SameValue(const TSharedPtr<FTagValue>& Other) const;
+
+		template <typename T>
+		T GetValue() const
+		{
+			if (IsNumeric()) { return PCGEx::Convert<T>(AsDouble()); }
+			else { return PCGEx::Convert<T>(AsString()); }
+		}
 	};
 
 	template <typename T>
@@ -211,7 +219,7 @@ namespace PCGExData
 		void Remove(const TSet<FName>& InSet);
 
 		template <typename T>
-		TSharedPtr<TTagValue<T>> GetTypedValue(const FString& Key)
+		TSharedPtr<TTagValue<T>> GetTypedValue(const FString& Key) const
 		{
 			FReadScopeLock ReadScopeLock(TagsLock);
 
@@ -226,7 +234,15 @@ namespace PCGExData
 			return nullptr;
 		}
 
-		TSharedPtr<FTagValue> GetValue(const FString& Key);
+		TSharedPtr<FTagValue> GetValue(const FString& Key) const;
+
+		template <typename T>
+		T GetValue(const FString& Key, const T FallbackValue) const
+		{
+			if (const TSharedPtr<FTagValue> Value = GetValue(Key)) { return Value->GetValue<T>(); }
+			return FallbackValue;
+		}
+
 		bool IsTagged(const FString& Key) const;
 		bool IsTagged(const FString& Key, const bool bInvert) const;
 

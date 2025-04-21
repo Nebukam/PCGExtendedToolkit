@@ -132,16 +132,43 @@ namespace PCGExMergePoints
 				});
 
 			if (!bTryBroadcast) { return; }
+
+			return; // This is a value tag, not a simple tag, stop processing here.
 		}
 
-		// Fallback to bool
+		if (PointDataFacade->Source->Tags->IsTagged(Tag))
+		{
+			FWriteScopeLock WriteScopeLock(SimpleTagsLock);
+			SimpleTags.Add(FName(AttributeName));
+		}
+	}
 
-		const bool HasTag = PointDataFacade->Source->Tags->IsTagged(Tag);
-		TSharedPtr<PCGExData::TBuffer<bool>> Buffer = Context->CompositeDataFacade->GetWritable(AttributeName, false, true, PCGExData::EBufferInit::New);
+	void FProcessor::OnRangeProcessingComplete()
+	{
+		TPointsProcessor<FPCGExMergePointsContext, UPCGExMergePointsSettings>::OnRangeProcessingComplete();
 
-		if (!Buffer) { return; }
+		if (SimpleTags.IsEmpty()) { return; }
 
-		for (int i = OutScope.Start; i < OutScope.End; i++) { Buffer->GetMutable(i) = HasTag; }
+		for (TArray<FName> SimpleTagNames = SimpleTags.Array();
+		     const FName TagName : SimpleTagNames)
+		{
+			// First validate that we're not overriding a tag with the same name that's not a bool
+			if (const FPCGMetadataAttributeBase* FlagAttribute = Context->CompositeDataFacade->Source->GetOut()->Metadata->GetConstAttribute(TagName);
+				FlagAttribute && FlagAttribute->GetTypeId() != static_cast<int16>(EPCGMetadataTypes::Boolean))
+			{
+				if (!Settings->bQuietTagOverlapWarning)
+				{
+					PCGE_LOG_C(Warning, GraphAndLog, Context, FText::Format(FTEXT("Overlap between regular tag & value tag '{0}', and the value is not a bool."), FText::FromName(TagName)));
+				}
+				continue;
+			}
+
+			TSharedPtr<PCGExData::TBuffer<bool>> Buffer = Context->CompositeDataFacade->GetWritable(TagName, false, true, PCGExData::EBufferInit::New);
+
+			if (!Buffer) { continue; }
+
+			for (int i = OutScope.Start; i < OutScope.End; i++) { Buffer->GetMutable(i) = true; }
+		}
 	}
 
 	FBatch::FBatch(FPCGExContext* InContext, const TArray<TWeakPtr<PCGExData::FPointIO>>& InPointsCollection)

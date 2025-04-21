@@ -106,8 +106,11 @@ struct FPCGExCutEdgesContext final : FPCGExEdgesProcessorContext
 	FPCGExPathClosedLoopDetails ClosedLoop;
 	FPCGExPathEdgeIntersectionDetails IntersectionDetails;
 
+	bool bWantsVtxProcessing = false;
+	bool bWantsEdgesProcessing = false;
+	
 	TArray<TObjectPtr<const UPCGExFilterFactoryData>> EdgeFilterFactories;
-	TArray<TObjectPtr<const UPCGExFilterFactoryData>> NodeFilterFactories;
+	TArray<TObjectPtr<const UPCGExFilterFactoryData>> VtxFilterFactories;
 
 	TArray<TSharedRef<PCGExData::FFacade>> PathFacades;
 	TArray<TSharedRef<PCGExPaths::FPath>> Paths;
@@ -131,14 +134,8 @@ namespace PCGExCutEdges
 	class FProcessor final : public PCGExClusterMT::TProcessor<FPCGExCutEdgesContext, UPCGExCutEdgesSettings>
 	{
 	protected:
-		TSharedPtr<PCGExClusterFilter::FManager> EdgeFilterManager;
-		TSharedPtr<PCGExClusterFilter::FManager> NodeFilterManager;
-
 		int8 EdgesProcessed = 0;
 		int8 NodesProcessed = 0;
-
-		TArray<int8> EdgeFilterCache;
-		TArray<int8> NodeFilterCache;
 
 		virtual TSharedPtr<PCGExCluster::FCluster> HandleCachedCluster(const TSharedRef<PCGExCluster::FCluster>& InClusterRef) override;
 
@@ -146,6 +143,7 @@ namespace PCGExCutEdges
 		FProcessor(const TSharedRef<PCGExData::FFacade>& InVtxDataFacade, const TSharedRef<PCGExData::FFacade>& InEdgeDataFacade)
 			: TProcessor(InVtxDataFacade, InEdgeDataFacade)
 		{
+			DefaultEdgeFilterValue = false;
 		}
 
 		virtual ~FProcessor() override;
@@ -162,7 +160,6 @@ namespace PCGExCutEdges
 		virtual void ProcessSingleRangeIteration(const int32 Iteration, const PCGExMT::FScope& Scope) override;
 		virtual void CompleteWork() override;
 
-		virtual void Cleanup() override;
 	};
 
 	class FBatch final : public PCGExClusterMT::TBatch<FProcessor>
@@ -174,8 +171,7 @@ namespace PCGExCutEdges
 			PCGEX_TYPED_CONTEXT_AND_SETTINGS(CutEdges)
 			bRequiresGraphBuilder = true;
 			bAllowVtxDataFacadeScopedGet = true;
+			DefaultVtxFilterValue = false;
 		}
-
-		virtual void RegisterBuffersDependencies(PCGExData::FFacadePreloader& FacadePreloader) override;
 	};
 }

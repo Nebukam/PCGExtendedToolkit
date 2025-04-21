@@ -136,11 +136,8 @@ namespace PCGExBreakClustersToPaths
 		friend class FBatch;
 
 	protected:
-		TSharedPtr<TArray<int8>> Breakpoints;
 		TSharedPtr<TArray<FVector2D>> ProjectedPositions;
 		TSharedPtr<PCGExCluster::FNodeChainBuilder> ChainBuilder;
-
-		TSharedPtr<PCGExClusterFilter::FManager> BreakpointFilterManager;
 
 		FPCGExEdgeDirectionSettings DirectionSettings;
 
@@ -165,8 +162,6 @@ namespace PCGExBreakClustersToPaths
 
 	protected:
 		FPCGExEdgeDirectionSettings DirectionSettings;
-		TSharedPtr<TArray<int8>> Breakpoints;
-
 		FPCGExGeo2DProjectionDetails ProjectionDetails;
 		TSharedPtr<TArray<FVector2D>> ProjectedPositions;
 
@@ -175,6 +170,7 @@ namespace PCGExBreakClustersToPaths
 			TBatch(InContext, InVtx, InEdges)
 		{
 			bAllowVtxDataFacadeScopedGet = true;
+			DefaultVtxFilterValue = false;
 		}
 
 		virtual void RegisterBuffersDependencies(PCGExData::FFacadePreloader& FacadePreloader) override;

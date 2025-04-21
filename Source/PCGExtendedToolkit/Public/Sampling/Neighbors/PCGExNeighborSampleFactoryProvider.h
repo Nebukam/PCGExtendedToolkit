@@ -151,19 +151,8 @@ public:
 
 	virtual UPCGExNeighborSampleOperation* CreateOperation(FPCGExContext* InContext) const;
 
-	virtual void RegisterVtxBuffersDependencies(FPCGExContext* InContext, const TSharedRef<PCGExData::FFacade>& InVtxDataFacade, PCGExData::FFacadePreloader& FacadePreloader) const
-	{
-		if (!VtxFilterFactories.IsEmpty())
-		{
-			for (const TObjectPtr<const UPCGExFilterFactoryData>& Filter : VtxFilterFactories) { Filter->RegisterBuffersDependencies(InContext, FacadePreloader); }
-		}
-
-		if (!ValueFilterFactories.IsEmpty())
-		{
-			for (const TObjectPtr<const UPCGExFilterFactoryData>& Filter : ValueFilterFactories) { Filter->RegisterBuffersDependencies(InContext, FacadePreloader); }
-		}
-	}
-
+	virtual void RegisterVtxBuffersDependencies(FPCGExContext* InContext, const TSharedRef<PCGExData::FFacade>& InVtxDataFacade, PCGExData::FFacadePreloader& FacadePreloader) const;
+	
 	virtual void RegisterAssetDependencies(FPCGExContext* InContext) const override;
 };
 

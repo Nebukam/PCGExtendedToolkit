@@ -17,7 +17,7 @@ class UPCGExEdgeRemoveShortest : public UPCGExEdgeRefineOperation
 	GENERATED_BODY()
 
 public:
-	virtual bool RequiresIndividualNodeProcessing() override { return true; }
+	virtual bool WantsIndividualNodeProcessing() override { return true; }
 
 	virtual void ProcessNode(PCGExCluster::FNode& Node) override
 	{

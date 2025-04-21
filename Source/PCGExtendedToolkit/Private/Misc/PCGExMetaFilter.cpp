@@ -26,7 +26,7 @@ bool FPCGExMetaFilterElement::Boot(FPCGExContext* InContext) const
 
 	Context->Filters.Attributes = Settings->Attributes;
 	Context->Filters.Tags = Settings->Tags;
-	Context->Filters.bTestTagValues = Settings->bTestTagValues;
+	Context->Filters.bTestTagsWithValues = Settings->bTestTagValues;
 	Context->Filters.Init();
 
 	Context->Inside = MakeShared<PCGExData::FPointIOCollection>(Context);
