@@ -537,12 +537,24 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 
 	bool FGraph::InsertEdge_Unsafe(const FEdge& Edge, FEdge& OutEdge, const int32 InIOIndex)
 	{
-		return InsertEdge_Unsafe(Edge.Start, Edge.End, OutEdge, InIOIndex);
+		if (!InsertEdge_Unsafe(Edge.Start, Edge.End, OutEdge, InIOIndex))
+		{
+			OutEdge = Edge;
+			return false;
+		}
+
+		return true;
 	}
 
 	bool FGraph::InsertEdge(const FEdge& Edge, FEdge& OutEdge, const int32 InIOIndex)
 	{
-		return InsertEdge(Edge.Start, Edge.End, OutEdge, InIOIndex);
+		if (!InsertEdge(Edge.Start, Edge.End, OutEdge, InIOIndex))
+		{
+			OutEdge = Edge;
+			return false;
+		}
+
+		return true;
 	}
 
 	void FGraph::InsertEdges(const TArray<uint64>& InEdges, const int32 InIOIndex)

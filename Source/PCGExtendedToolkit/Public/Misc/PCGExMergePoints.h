@@ -35,6 +35,10 @@ protected:
 public:
 	//~End UPCGExPointsProcessorSettings
 
+	/** Sorting settings. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName="Collection Sorting"))
+	FPCGExCollectionSortingDetails SortingDetails;
+
 	/** Meta filter settings. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName="Carry Over Settings"))
 	FPCGExCarryOverDetails CarryOverDetails;
@@ -46,11 +50,16 @@ public:
 	/** Tags that will be converted to attributes. Simple tags will be converted to boolean values, other supported formats are int32, double, FString, and FVector 2-3-4. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bTagToAttributes"))
 	FPCGExNameFiltersDetails TagsToAttributes = FPCGExNameFiltersDetails(false);
+
+	/** */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Warnings and Errors")
+	bool bQuietTagOverlapWarning = false;
 };
 
 struct FPCGExMergePointsContext final : FPCGExPointsProcessorContext
 {
 	friend class FPCGExMergePointsElement;
+	FPCGExCollectionSortingDetails SortingDetails;
 	FPCGExCarryOverDetails CarryOverDetails;
 	FPCGExNameFiltersDetails TagsToAttributes;
 	TSharedPtr<PCGExData::FFacade> CompositeDataFacade;
@@ -73,6 +82,10 @@ namespace PCGExMergePoints
 {
 	class FProcessor final : public PCGExPointsMT::TPointsProcessor<FPCGExMergePointsContext, UPCGExMergePointsSettings>
 	{
+	protected:
+		FRWLock SimpleTagsLock;
+		TSet<FName> SimpleTags;
+
 		double NumPoints = 0;
 
 	public:
@@ -92,6 +105,7 @@ namespace PCGExMergePoints
 		virtual bool IsTrivial() const override { return false; }
 		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager) override;
 		virtual void ProcessSingleRangeIteration(const int32 Iteration, const PCGExMT::FScope& Scope) override;
+		virtual void OnRangeProcessingComplete() override;
 	};
 
 	class FBatch final : public PCGExPointsMT::TBatch<FProcessor>

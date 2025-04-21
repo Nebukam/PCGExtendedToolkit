@@ -48,6 +48,10 @@ bool FPCGExBreakClustersToPathsElement::ExecuteInternal(
 			[](const TSharedPtr<PCGExData::FPointIOTaggedEntries>& Entries) { return true; },
 			[&](const TSharedPtr<PCGExBreakClustersToPaths::FBatch>& NewBatch)
 			{
+				if (Settings->OperateOn == EPCGExBreakClusterOperationTarget::Paths)
+				{
+					NewBatch->VtxFilterFactories = &Context->FilterFactories;
+				}
 			}))
 		{
 			return Context->CancelExecution(TEXT("Could not build any clusters."));
@@ -68,23 +72,18 @@ namespace PCGExBreakClustersToPaths
 
 		if (!FClusterProcessor::Process(InAsyncManager)) { return false; }
 
-		if (!DirectionSettings.InitFromParent(ExecutionContext, StaticCastWeakPtr<FBatch>(ParentBatch).Pin()->DirectionSettings, EdgeDataFacade)) { return false; }
+		if (!DirectionSettings.InitFromParent(ExecutionContext, GetParentBatch<FBatch>()->DirectionSettings, EdgeDataFacade)) { return false; }
 
 		if (Settings->OperateOn == EPCGExBreakClusterOperationTarget::Paths)
 		{
-			if (!Context->FilterFactories.IsEmpty())
+			if (VtxFiltersManager)
 			{
-				// Process breakpoint filters
-				BreakpointFilterManager = MakeShared<PCGExClusterFilter::FManager>(Cluster.ToSharedRef(), VtxDataFacade, EdgeDataFacade);
-				if (!BreakpointFilterManager->Init(ExecutionContext, Context->FilterFactories)) { return false; }
-
 				PCGEX_ASYNC_GROUP_CHKD(AsyncManager, FilterBreakpoints)
 
 				FilterBreakpoints->OnCompleteCallback =
 					[PCGEX_ASYNC_THIS_CAPTURE]()
 					{
 						PCGEX_ASYNC_THIS
-						This->BreakpointFilterManager.Reset();
 						This->BuildChains();
 					};
 
@@ -92,12 +91,7 @@ namespace PCGExBreakClustersToPaths
 					[PCGEX_ASYNC_THIS_CAPTURE](const PCGExMT::FScope& Scope)
 					{
 						PCGEX_ASYNC_THIS
-						TArray<int8>& Breaks = *This->Breakpoints;
-						for (int i = Scope.Start; i < Scope.End; i++)
-						{
-							const PCGExCluster::FNode* Node = This->Cluster->GetNode(i);
-							Breaks[Node->PointIndex] = This->BreakpointFilterManager->Test(*Node);
-						}
+						This->FilterVtxScope(Scope);
 					};
 
 				FilterBreakpoints->StartSubLoops(NumNodes, GetDefault<UPCGExGlobalSettings>()->GetClusterBatchChunkSize());
@@ -118,7 +112,7 @@ namespace PCGExBreakClustersToPaths
 	bool FProcessor::BuildChains()
 	{
 		ChainBuilder = MakeShared<PCGExCluster::FNodeChainBuilder>(Cluster.ToSharedRef());
-		ChainBuilder->Breakpoints = Breakpoints;
+		ChainBuilder->Breakpoints = VtxFilterCache;
 		if (Settings->LeavesHandling == EPCGExBreakClusterLeavesHandling::Only)
 		{
 			bIsProcessorValid = ChainBuilder->CompileLeavesOnly(AsyncManager);
@@ -218,14 +212,12 @@ namespace PCGExBreakClustersToPaths
 	{
 		TProcessor<FPCGExBreakClustersToPathsContext, UPCGExBreakClustersToPathsSettings>::Cleanup();
 		ChainBuilder.Reset();
-		BreakpointFilterManager.Reset();
 	}
 
 	void FBatch::RegisterBuffersDependencies(PCGExData::FFacadePreloader& FacadePreloader)
 	{
 		TBatch<FProcessor>::RegisterBuffersDependencies(FacadePreloader);
 		PCGEX_TYPED_CONTEXT_AND_SETTINGS(BreakClustersToPaths)
-		PCGExPointFilter::RegisterBuffersDependencies(ExecutionContext, Context->FilterFactories, FacadePreloader);
 		DirectionSettings.RegisterBuffersDependencies(ExecutionContext, FacadePreloader);
 
 		if (Settings->Winding != EPCGExWindingMutation::Unchanged && Settings->ProjectionDetails.bLocalProjectionNormal)
@@ -257,10 +249,6 @@ namespace PCGExBreakClustersToPaths
 			TBatch<FProcessor>::Process();
 			return;
 		}
-
-		const int32 NumPoints = VtxDataFacade->GetNum();
-		Breakpoints = MakeShared<TArray<int8>>();
-		Breakpoints->Init(false, NumPoints);
 
 		if (Settings->Winding != EPCGExWindingMutation::Unchanged)
 		{
@@ -302,15 +290,10 @@ namespace PCGExBreakClustersToPaths
 
 	bool FBatch::PrepareSingle(const TSharedPtr<FProcessor>& ClusterProcessor)
 	{
-		ClusterProcessor->Breakpoints = Breakpoints;
 		ClusterProcessor->ProjectedPositions = ProjectedPositions;
 		return TBatch<FProcessor>::PrepareSingle(ClusterProcessor);
 	}
 }
-
-
-#undef LOCTEXT_NAMESPACE
-
 
 #undef LOCTEXT_NAMESPACE
 #undef PCGEX_NAMESPACE

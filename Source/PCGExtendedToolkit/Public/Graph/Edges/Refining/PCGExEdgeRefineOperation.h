@@ -21,14 +21,14 @@ class UPCGExEdgeRefineOperation : public UPCGExOperation
 public:
 	virtual bool SupportFilters() { return false; }
 	virtual bool GetDefaultEdgeValidity() { return true; }
-	virtual bool RequiresNodeOctree() { return false; }
-	virtual bool RequiresEdgeOctree() { return false; }
-	virtual bool RequiresHeuristics() { return false; }
-	virtual bool RequiresIndividualNodeProcessing() { return false; }
-	virtual bool RequiresIndividualEdgeProcessing() { return false; }
+	virtual bool WantsNodeOctree() { return false; }
+	virtual bool WantsEdgeOctree() { return false; }
+	virtual bool WantsHeuristics() { return false; }
+	virtual bool WantsIndividualNodeProcessing() { return false; }
+	virtual bool WantsIndividualEdgeProcessing() { return false; }
 
 	TArray<int8>* VtxFilters = nullptr;
-	TArray<int8>* EdgesFilters = nullptr;
+	TArray<int8>* EdgeFilterCache = nullptr;
 
 	virtual void RegisterBuffersDependencies(FPCGExContext* InContext, PCGExData::FFacadePreloader& FacadePreloader)
 	{
@@ -43,10 +43,10 @@ public:
 		Cluster = InCluster;
 		Heuristics = InHeuristics;
 
-		if (RequiresNodeOctree()) { Cluster->RebuildOctree(EPCGExClusterClosestSearchMode::Vtx); }
-		if (RequiresEdgeOctree()) { Cluster->RebuildOctree(EPCGExClusterClosestSearchMode::Edge); }
+		if (WantsNodeOctree()) { Cluster->RebuildOctree(EPCGExClusterClosestSearchMode::Vtx); }
+		if (WantsEdgeOctree()) { Cluster->RebuildOctree(EPCGExClusterClosestSearchMode::Edge); }
 
-		if (RequiresHeuristics() && Heuristics)
+		if (WantsHeuristics() && Heuristics)
 		{
 			RoamingSeedNode = Heuristics->GetRoamingSeed();
 			RoamingGoalNode = Heuristics->GetRoamingGoal();

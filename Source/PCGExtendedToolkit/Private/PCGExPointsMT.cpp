@@ -167,7 +167,7 @@ namespace PCGExPointsMT
 		bIsProcessorValid = false;
 	}
 
-	bool FPointsProcessor::InitPrimaryFilters(TArray<TObjectPtr<const UPCGExFilterFactoryData>>* InFilterFactories)
+	bool FPointsProcessor::InitPrimaryFilters(const TArray<TObjectPtr<const UPCGExFilterFactoryData>>* InFilterFactories)
 	{
 		PointFilterCache.Init(DefaultPointFilterValue, PointDataFacade->GetNum());
 

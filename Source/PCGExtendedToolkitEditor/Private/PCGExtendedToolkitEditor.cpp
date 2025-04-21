@@ -7,6 +7,7 @@
 #include "Interfaces/IPluginManager.h"
 #include "AssetRegistry/AssetData.h"
 #include "EditorStyleSet.h"
+#include "Editor.h"
 
 #define LOCTEXT_NAMESPACE "FPCGExtendedToolkitEditorModule"
 

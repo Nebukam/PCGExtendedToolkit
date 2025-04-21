@@ -98,17 +98,15 @@ namespace PCGExPointsMT
 		TSharedPtr<PCGExMT::FTaskManager> GetAsyncManager() { return AsyncManager; }
 
 		bool bIsProcessorValid = false;
+		int32 BatchIndex = -1;
+		bool bIsTrivial = false;
 
 		TSharedRef<PCGExData::FFacade> PointDataFacade;
 
 		TArray<TObjectPtr<const UPCGExFilterFactoryData>>* FilterFactories = nullptr;
 		bool DefaultPointFilterValue = true;
-		bool bIsTrivial = false;
-
 		TArray<int8> PointFilterCache;
-
-		int32 BatchIndex = -1;
-
+		
 		UPCGExOperation* PrimaryOperation = nullptr;
 
 		explicit FPointsProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade);
@@ -160,7 +158,7 @@ namespace PCGExPointsMT
 		virtual void Cleanup();
 
 	protected:
-		virtual bool InitPrimaryFilters(TArray<TObjectPtr<const UPCGExFilterFactoryData>>* InFilterFactories);
+		virtual bool InitPrimaryFilters(const TArray<TObjectPtr<const UPCGExFilterFactoryData>>* InFilterFactories);
 		virtual void FilterScope(const PCGExMT::FScope& Scope);
 		virtual void FilterAll();
 	};

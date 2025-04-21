@@ -19,8 +19,8 @@ class UPCGExEdgeKeepHighestScore : public UPCGExEdgeRefineOperation
 
 public:
 	virtual bool GetDefaultEdgeValidity() override { return false; }
-	virtual bool RequiresHeuristics() override { return true; }
-	virtual bool RequiresIndividualNodeProcessing() override { return true; }
+	virtual bool WantsHeuristics() override { return true; }
+	virtual bool WantsIndividualNodeProcessing() override { return true; }
 
 	virtual void ProcessNode(PCGExCluster::FNode& Node) override
 	{

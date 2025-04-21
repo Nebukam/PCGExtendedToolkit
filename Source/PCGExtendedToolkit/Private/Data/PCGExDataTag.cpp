@@ -206,7 +206,7 @@ namespace PCGExData
 		}
 	}
 
-	TSharedPtr<FTagValue> FTags::GetValue(const FString& Key)
+	TSharedPtr<FTagValue> FTags::GetValue(const FString& Key) const
 	{
 		FReadScopeLock ReadScopeLock(TagsLock);
 		if (const TSharedPtr<FTagValue>* ValueTagPtr = ValueTags.Find(Key)) { return *ValueTagPtr; }

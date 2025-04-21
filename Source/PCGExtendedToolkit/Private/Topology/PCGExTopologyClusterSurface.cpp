@@ -68,7 +68,7 @@ namespace PCGExTopologyClusterSurface
 
 	void FProcessor::ProcessSingleEdge(const int32 EdgeIndex, PCGExGraph::FEdge& Edge, const PCGExMT::FScope& Scope)
 	{
-		if (ConstrainedEdgeFilterCache[EdgeIndex]) { return; }
+		if (EdgeFilterCache[EdgeIndex]) { return; }
 
 		PCGEX_MAKE_SHARED(Cell, PCGExTopology::FCell, CellsConstraints.ToSharedRef())
 

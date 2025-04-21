@@ -509,7 +509,7 @@ namespace PCGExData
 		return nullptr;
 	}
 
-	int32 PCGExPointIO::GetTotalPointsNum(const TArray<TSharedPtr<FPointIO>>& InIOs, const ESource InSource) 
+	int32 PCGExPointIO::GetTotalPointsNum(const TArray<TSharedPtr<FPointIO>>& InIOs, const ESource InSource)
 	{
 		int32 TotalNum = 0;
 
