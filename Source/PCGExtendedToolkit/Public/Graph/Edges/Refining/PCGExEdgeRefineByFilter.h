@@ -22,7 +22,7 @@ class UPCGExEdgeRefineByFilter : public UPCGExEdgeRefineOperation
 
 public:
 	virtual bool SupportFilters() override { return true; }
-	virtual bool RequiresIndividualEdgeProcessing() override { return true; }
+	virtual bool WantsIndividualEdgeProcessing() override { return true; }
 	virtual bool GetDefaultEdgeValidity() override { return bInvert; }
 
 	virtual void CopySettingsFrom(const UPCGExOperation* Other) override
@@ -42,7 +42,7 @@ public:
 
 	virtual void ProcessEdge(PCGExGraph::FEdge& Edge) override
 	{
-		if (*(EdgesFilters->GetData() + Edge.Index)) { FPlatformAtomics::InterlockedExchange(&Edge.bValid, ExchangeValue); }
+		if (*(EdgeFilterCache->GetData() + Edge.Index)) { FPlatformAtomics::InterlockedExchange(&Edge.bValid, ExchangeValue); }
 	}
 
 	int8 ExchangeValue = 0;

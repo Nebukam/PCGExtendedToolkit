@@ -6,6 +6,7 @@
 #include "CoreMinimal.h"
 #include "UObject/Object.h"
 
+#include "PCGExtendedToolkit.h"
 #include "PCGExHelpers.h"
 #include "PCGExMath.h"
 #include "PCGExPointIO.h"
@@ -444,7 +445,7 @@ namespace PCGExData
 
 			if (!Source->GetOut())
 			{
-				UE_LOG(LogTemp, Error, TEXT("Attempting to write data to an output that's not initialized!"));
+				UE_LOG(LogPCGEx, Error, TEXT("Attempting to write data to an output that's not initialized!"));
 				return;
 			}
 

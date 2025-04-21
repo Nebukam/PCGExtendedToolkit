@@ -33,20 +33,23 @@ bool FPCGExCutEdgesElement::Boot(FPCGExContext* InContext) const
 
 	PCGEX_CONTEXT_AND_SETTINGS(CutEdges)
 
+	Context->bWantsVtxProcessing = Settings->Mode != EPCGExCutEdgesMode::Edges;
+	Context->bWantsEdgesProcessing = Settings->Mode != EPCGExCutEdgesMode::Nodes;
+
 	PCGEX_FWD(IntersectionDetails)
 	Context->IntersectionDetails.Init();
 
 	PCGEX_FWD(GraphBuilderDetails)
 	Context->DistanceDetails = PCGExDetails::MakeDistances(Settings->NodeDistanceSettings, Settings->NodeDistanceSettings);
 
-	if (Settings->Mode != EPCGExCutEdgesMode::Nodes)
+	if (Context->bWantsEdgesProcessing)
 	{
 		GetInputFactories(Context, PCGExCutEdges::SourceEdgeFilters, Context->EdgeFilterFactories, PCGExFactories::ClusterEdgeFilters, false);
 	}
 
-	if (Settings->Mode != EPCGExCutEdgesMode::Edges)
+	if (Context->bWantsVtxProcessing)
 	{
-		GetInputFactories(Context, PCGExCutEdges::SourceNodeFilters, Context->NodeFilterFactories, PCGExFactories::ClusterNodeFilters, false);
+		GetInputFactories(Context, PCGExCutEdges::SourceNodeFilters, Context->VtxFilterFactories, PCGExFactories::ClusterNodeFilters, false);
 	}
 
 	PCGEX_MAKE_SHARED(PathCollection, PCGExData::FPointIOCollection, Context, PCGExPaths::SourcePathsLabel)
@@ -127,6 +130,7 @@ bool FPCGExCutEdgesElement::ExecuteInternal(
 			[](const TSharedPtr<PCGExData::FPointIOTaggedEntries>& Entries) { return true; },
 			[&](const TSharedPtr<PCGExCutEdges::FBatch>& NewBatch)
 			{
+				if (Context->bWantsVtxProcessing) { NewBatch->VtxFilterFactories = &Context->VtxFilterFactories; }
 				NewBatch->GraphBuilderDetails = Context->GraphBuilderDetails;
 			}))
 		{
@@ -150,8 +154,8 @@ namespace PCGExCutEdges
 		// Create a light working copy with edges only, will be deleted.
 		return MakeShared<PCGExCluster::FCluster>(
 			InClusterRef, VtxDataFacade->Source, EdgeDataFacade->Source, NodeIndexLookup,
-			Settings->Mode != EPCGExCutEdgesMode::Edges,
-			Settings->Mode != EPCGExCutEdgesMode::Nodes,
+			Context->bWantsVtxProcessing,
+			Context->bWantsEdgesProcessing,
 			false);
 	}
 
@@ -163,38 +167,29 @@ namespace PCGExCutEdges
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExCutEdges::Process);
 
-		if (!FClusterProcessor::Process(InAsyncManager)) { return false; }
+		if (Context->bWantsEdgesProcessing) { EdgeFilterFactories = &Context->EdgeFilterFactories; }
+		if (Context->bWantsVtxProcessing) { VtxFilterFactories = &Context->VtxFilterFactories; }
 
-		EdgeFilterCache.Init(false, EdgeDataFacade->Source->GetNum());
-		NodeFilterCache.Init(false, Cluster->Nodes->Num());
+		if (!FClusterProcessor::Process(InAsyncManager)) { return false; }
 
 		if (Settings->bInvert)
 		{
-			if (Settings->Mode != EPCGExCutEdgesMode::Nodes) { for (PCGExGraph::FEdge& E : *Cluster->Edges) { E.bValid = false; } }
-			if (Settings->Mode != EPCGExCutEdgesMode::Edges) { for (PCGExCluster::FNode& N : *Cluster->Nodes) { N.bValid = false; } }
-		}
-
-		if (Settings->Mode != EPCGExCutEdgesMode::Nodes)
-		{
-			if (!Context->EdgeFilterFactories.IsEmpty())
+			if (Context->bWantsEdgesProcessing)
 			{
-				EdgeFilterManager = MakeShared<PCGExClusterFilter::FManager>(Cluster.ToSharedRef(), VtxDataFacade, EdgeDataFacade);
-				EdgeFilterManager->bUseEdgeAsPrimary = true;
-				if (!EdgeFilterManager->Init(ExecutionContext, Context->EdgeFilterFactories)) { return false; }
+				for (PCGExGraph::FEdge& E : *Cluster->Edges) { E.bValid = false; }
+				StartParallelLoopForEdges();
 			}
 
-			StartParallelLoopForEdges();
-		}
-
-		if (Settings->Mode != EPCGExCutEdgesMode::Edges)
-		{
-			if (!Context->NodeFilterFactories.IsEmpty())
+			if (Context->bWantsVtxProcessing)
 			{
-				NodeFilterManager = MakeShared<PCGExClusterFilter::FManager>(Cluster.ToSharedRef(), VtxDataFacade, EdgeDataFacade);
-				if (!NodeFilterManager->Init(ExecutionContext, Context->NodeFilterFactories)) { return false; }
+				for (PCGExCluster::FNode& N : *Cluster->Nodes) { N.bValid = false; }
+				StartParallelLoopForNodes();
 			}
-
-			StartParallelLoopForNodes();
+		}
+		else
+		{
+			if (Context->bWantsEdgesProcessing) { StartParallelLoopForEdges(); }
+			if (Context->bWantsVtxProcessing) { StartParallelLoopForNodes(); }
 		}
 
 		return true;
@@ -203,9 +198,7 @@ namespace PCGExCutEdges
 	void FProcessor::PrepareSingleLoopScopeForEdges(const PCGExMT::FScope& Scope)
 	{
 		EdgeDataFacade->Fetch(Scope);
-
-		TArray<PCGExGraph::FEdge>& Edges = *Cluster->Edges;
-		if (EdgeFilterManager) { for (int i = Scope.Start; i < Scope.End; i++) { EdgeFilterCache[i] = EdgeFilterManager->Test(Edges[i]); } }
+		FilterEdgeScope(Scope);
 	}
 
 	void FProcessor::ProcessSingleEdge(const int32 EdgeIndex, PCGExGraph::FEdge& Edge, const PCGExMT::FScope& Scope)
@@ -281,18 +274,16 @@ namespace PCGExCutEdges
 
 	void FProcessor::PrepareSingleLoopScopeForNodes(const PCGExMT::FScope& Scope)
 	{
-		TArray<PCGExCluster::FNode>& Nodes = *Cluster->Nodes;
-		if (NodeFilterManager) { for (int i = Scope.Start; i < Scope.End; i++) { NodeFilterCache[i] = NodeFilterManager->Test(Nodes[i]); } }
+		FilterVtxScope(Scope);
 	}
 
 	void FProcessor::ProcessSingleNode(const int32 Index, PCGExCluster::FNode& Node, const PCGExMT::FScope& Scope)
 	{
-		if (NodeFilterCache[Index])
+		if (IsNodePassingFilters(Node))
 		{
 			if (Settings->bInvert) { Node.bValid = true; }
 			return;
 		}
-
 
 		const FPCGPoint& NodePoint = VtxDataFacade->Source->GetInPoint(Node.PointIndex);
 		const FVector A1 = NodePoint.Transform.GetLocation();
@@ -400,22 +391,6 @@ namespace PCGExCutEdges
 		if (ValidEdges.IsEmpty()) { return; }
 
 		GraphBuilder->Graph->InsertEdges(ValidEdges);
-	}
-
-	void FProcessor::Cleanup()
-	{
-		TProcessor<FPCGExCutEdgesContext, UPCGExCutEdgesSettings>::Cleanup();
-		EdgeFilterManager.Reset();
-		NodeFilterManager.Reset();
-	}
-
-	void FBatch::RegisterBuffersDependencies(PCGExData::FFacadePreloader& FacadePreloader)
-	{
-		TBatch<FProcessor>::RegisterBuffersDependencies(FacadePreloader);
-		PCGEX_TYPED_CONTEXT_AND_SETTINGS(CutEdges)
-
-		PCGExPointFilter::RegisterBuffersDependencies(ExecutionContext, Context->EdgeFilterFactories, FacadePreloader);
-		PCGExPointFilter::RegisterBuffersDependencies(ExecutionContext, Context->NodeFilterFactories, FacadePreloader);
 	}
 }
 

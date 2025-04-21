@@ -3,6 +3,8 @@
 
 #include "Graph/PCGExClusterMT.h"
 
+#include "Graph/Filters/PCGExClusterFilter.h"
+
 namespace PCGExClusterMT
 {
 	TSharedPtr<PCGExCluster::FCluster> FClusterProcessor::HandleCachedCluster(const TSharedRef<PCGExCluster::FCluster>& InClusterRef)
@@ -45,10 +47,10 @@ namespace PCGExClusterMT
 		}
 	}
 
-	void FClusterProcessor::SetRequiresHeuristics(const bool bRequired, const TArray<TObjectPtr<const UPCGExHeuristicsFactoryData>>* InHeuristicsFactories)
+	void FClusterProcessor::SetWantsHeuristics(const bool bRequired, const TArray<TObjectPtr<const UPCGExHeuristicsFactoryData>>* InHeuristicsFactories)
 	{
 		HeuristicsFactories = InHeuristicsFactories;
-		bRequiresHeuristics = bRequired;
+		bWantsHeuristics = bRequired;
 	}
 
 	bool FClusterProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager> InAsyncManager)
@@ -81,7 +83,7 @@ namespace PCGExClusterMT
 		NumNodes = Cluster->Nodes->Num();
 		NumEdges = Cluster->Edges->Num();
 
-		if (bRequiresHeuristics)
+		if (bWantsHeuristics)
 		{
 			TRACE_CPUPROFILER_EVENT_SCOPE(FClusterProcessor::Heuristics);
 			HeuristicsHandler = MakeShared<PCGExHeuristics::FHeuristicsHandler>(ExecutionContext, VtxDataFacade, EdgeDataFacade, *HeuristicsFactories);
@@ -90,6 +92,16 @@ namespace PCGExClusterMT
 
 			HeuristicsHandler->PrepareForCluster(Cluster);
 			HeuristicsHandler->CompleteClusterPreparation();
+		}
+
+		if (VtxFilterFactories)
+		{
+			if (!InitVtxFilters(VtxFilterFactories)) { return false; }
+		}
+
+		if (EdgeFilterFactories)
+		{
+			if (!InitEdgesFilters(EdgeFilterFactories)) { return false; }
 		}
 
 		// Building cluster may have taken a while so let's make sure we're still legit
@@ -205,7 +217,55 @@ namespace PCGExClusterMT
 
 	void FClusterProcessor::Cleanup()
 	{
+		VtxFiltersManager.Reset();
+		EdgesFiltersManager.Reset();
 		bIsProcessorValid = false;
+	}
+
+	bool FClusterProcessor::InitVtxFilters(const TArray<TObjectPtr<const UPCGExFilterFactoryData>>* InFilterFactories)
+	{
+		if (InFilterFactories->IsEmpty()) { return true; }
+
+		VtxFiltersManager = MakeShared<PCGExClusterFilter::FManager>(Cluster.ToSharedRef(), VtxDataFacade, EdgeDataFacade);
+		return VtxFiltersManager->Init(ExecutionContext, *InFilterFactories);
+	}
+
+	void FClusterProcessor::FilterVtxScope(const PCGExMT::FScope& Scope)
+	{
+		// Note : Don't forget to prefetch VtxDataFacade buffers
+
+		if (VtxFiltersManager)
+		{
+			TArray<PCGExCluster::FNode>& NodesRef = *Cluster->Nodes.Get();
+			TArray<int8>& CacheRef = *VtxFilterCache.Get();
+			for (int i = Scope.Start; i < Scope.End; i++)
+			{
+				PCGExCluster::FNode& Node = NodesRef[i];
+				CacheRef[Node.PointIndex] = VtxFiltersManager->Test(Node);
+			}
+		}
+	}
+
+	bool FClusterProcessor::InitEdgesFilters(const TArray<TObjectPtr<const UPCGExFilterFactoryData>>* InFilterFactories)
+	{
+		EdgeFilterCache.Init(DefaultEdgeFilterValue, EdgeDataFacade->GetNum());
+
+		if (InFilterFactories->IsEmpty()) { return true; }
+
+		EdgesFiltersManager = MakeShared<PCGExClusterFilter::FManager>(Cluster.ToSharedRef(), VtxDataFacade, EdgeDataFacade);
+		EdgesFiltersManager->bUseEdgeAsPrimary = true;
+		return EdgesFiltersManager->Init(ExecutionContext, *InFilterFactories);
+	}
+
+	void FClusterProcessor::FilterEdgeScope(const PCGExMT::FScope& Scope)
+	{
+		// Note : Don't forget to EdgeDataFacade->FetchScope first
+
+		if (EdgesFiltersManager)
+		{
+			TArray<PCGExGraph::FEdge>& EdgesRef = *Cluster->Edges.Get();
+			for (int i = Scope.Start; i < Scope.End; i++) { EdgeFilterCache[i] = EdgesFiltersManager->Test(EdgesRef[i]); }
+		}
 	}
 
 	FClusterProcessorBatchBase::FClusterProcessorBatchBase(FPCGExContext* InContext, const TSharedRef<PCGExData::FPointIO>& InVtx, TArrayView<TSharedRef<PCGExData::FPointIO>> InEdges)
@@ -299,6 +359,10 @@ namespace PCGExClusterMT
 
 	void FClusterProcessorBatchBase::RegisterBuffersDependencies(PCGExData::FFacadePreloader& FacadePreloader)
 	{
+		if (VtxFilterFactories)
+		{
+			PCGExPointFilter::RegisterBuffersDependencies(ExecutionContext, *VtxFilterFactories, FacadePreloader);
+		}
 	}
 
 	void FClusterProcessorBatchBase::OnProcessingPreparationComplete()

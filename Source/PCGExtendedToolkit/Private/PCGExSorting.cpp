@@ -10,6 +10,64 @@
 #undef LOCTEXT_NAMESPACE
 #undef PCGEX_NAMESPACE
 
+bool FPCGExCollectionSortingDetails::Init(const FPCGContext* InContext)
+{
+	if (!bEnabled) { return true; }
+	return true;
+}
+
+void FPCGExCollectionSortingDetails::Sort(const FPCGContext* InContext, const TSharedPtr<PCGExData::FPointIOCollection>& InCollection) const
+{
+	TRACE_CPUPROFILER_EVENT_SCOPE(FPointIOCollection::SortByTag);
+
+	if (!bEnabled) { return; }
+
+	const FString TagNameStr = TagName.ToString();
+	TArray<double> Scores;
+
+	TArray<TSharedPtr<PCGExData::FPointIO>>& Pairs = InCollection->Pairs;
+
+	Scores.SetNumUninitialized(Pairs.Num());
+
+#if WITH_EDITOR
+	if (!bQuietMissingTagWarning)
+	{
+		for (int i = 0; i < Pairs.Num(); i++)
+		{
+			Pairs[i]->IOIndex = i;
+			if (const TSharedPtr<PCGExTags::FTagValue> Value = Pairs[i]->Tags->GetValue(TagNameStr))
+			{
+				Scores[i] = Value->GetValue<double>();
+			}
+			else
+			{
+				PCGE_LOG_C(Warning, GraphAndLog, InContext, FText::Format(FTEXT("Some data is missing the '{0}' value tag."), FText::FromString(TagNameStr)));
+				Scores[i] = (static_cast<double>(i) + FallbackOrderOffset) * FallbackOrderMultiplier;
+			}
+		}
+	}
+	else
+#endif
+	{
+		for (int i = 0; i < Pairs.Num(); i++)
+		{
+			Pairs[i]->IOIndex = i;
+			Scores[i] = Pairs[i]->Tags->GetValue(TagNameStr, (static_cast<double>(i) + FallbackOrderOffset) * FallbackOrderMultiplier);
+		}
+	}
+
+	if (Direction == EPCGExSortDirection::Ascending)
+	{
+		Pairs.Sort([&](const TSharedPtr<PCGExData::FPointIO>& A, const TSharedPtr<PCGExData::FPointIO>& B) { return Scores[A->IOIndex] < Scores[B->IOIndex]; });
+	}
+	else
+	{
+		Pairs.Sort([&](const TSharedPtr<PCGExData::FPointIO>& A, const TSharedPtr<PCGExData::FPointIO>& B) { return Scores[A->IOIndex] > Scores[B->IOIndex]; });
+	}
+
+	for (int i = 0; i < Pairs.Num(); i++) { Pairs[i]->IOIndex = i; }
+}
+
 bool UPCGExSortingRule::RegisterConsumableAttributesWithData(FPCGExContext* InContext, const UPCGData* InData) const
 {
 	if (!Super::RegisterConsumableAttributesWithData(InContext, InData)) { return false; }

@@ -111,12 +111,13 @@ namespace PCGExCluster
 		if (SingleEdge != -1)
 		{
 			Graph->InsertEdge(*Cluster->GetEdge(SingleEdge), OutEdge, IOIndex);
+
 			PCGExGraph::FGraphEdgeMetadata& EdgeMetadata = Graph->GetOrCreateEdgeMetadata(OutEdge.Index);
 			EdgeMetadata.UnionSize = 1;
 
 			if (Graph->EdgesUnion)
 			{
-				Graph->EdgesUnion->NewEntryAt_Unsafe(OutEdge.Index)->Add(IOIndex, SingleEdge);
+				Graph->EdgesUnion->NewEntryAt_Unsafe(OutEdge.Index)->Add(IOIndex, OutEdge.Index);
 			}
 		}
 		else

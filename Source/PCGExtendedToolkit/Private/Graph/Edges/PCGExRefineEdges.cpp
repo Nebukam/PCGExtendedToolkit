@@ -14,7 +14,7 @@
 TArray<FPCGPinProperties> UPCGExRefineEdgesSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
-	if (Refinement && Refinement->RequiresHeuristics()) { PCGEX_PIN_FACTORIES(PCGExGraph::SourceHeuristicsLabel, "Heuristics may be required by some refinements.", Required, {}) }
+	if (Refinement && Refinement->WantsHeuristics()) { PCGEX_PIN_FACTORIES(PCGExGraph::SourceHeuristicsLabel, "Heuristics may be required by some refinements.", Required, {}) }
 	if (Refinement && Refinement->SupportFilters())
 	{
 		//PCGEX_PIN_PARAMS(PCGExRefineEdges::SourceVtxFilters, "Filters used to check if a vtx should be processed.", Normal, {})
@@ -61,7 +61,7 @@ bool FPCGExRefineEdgesElement::Boot(FPCGExContext* InContext) const
 	PCGEX_OPERATION_BIND(Refinement, UPCGExEdgeRefineOperation, PCGExRefineEdges::SourceOverridesRefinement)
 	PCGEX_FWD(GraphBuilderDetails)
 
-	if (Context->Refinement->RequiresHeuristics() && !Context->bHasValidHeuristics)
+	if (Context->Refinement->WantsHeuristics() && !Context->bHasValidHeuristics)
 	{
 		PCGE_LOG(Error, GraphAndLog, FTEXT("The selected refinement requires heuristics to be connected, but none can be found."));
 		return false;
@@ -117,7 +117,7 @@ bool FPCGExRefineEdgesElement::ExecuteInternal(
 			[&](const TSharedPtr<PCGExRefineEdges::FBatch>& NewBatch)
 			{
 				NewBatch->GraphBuilderDetails = Context->GraphBuilderDetails;
-				if (Context->Refinement->RequiresHeuristics()) { NewBatch->SetRequiresHeuristics(true); }
+				if (Context->Refinement->WantsHeuristics()) { NewBatch->SetWantsHeuristics(true); }
 			}))
 		{
 			return Context->CancelExecution(TEXT("Could not build any clusters."));
@@ -159,6 +159,8 @@ namespace PCGExRefineEdges
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExRefineEdges::Process);
 
+		EdgeFilterFactories = &Context->EdgeFilterFactories; // So filters can be initialized
+		
 		if (!FClusterProcessor::Process(InAsyncManager)) { return false; }
 
 		Sanitization = Settings->Sanitization;
@@ -169,18 +171,7 @@ namespace PCGExRefineEdges
 
 		Refinement->PrepareForCluster(Cluster, HeuristicsHandler);
 
-		Refinement->EdgesFilters = &EdgeFilterCache;
-		EdgeFilterCache.Init(true, EdgeDataFacade->Source->GetNum());
-
-		if (!Context->EdgeFilterFactories.IsEmpty())
-		{
-			EdgeFilterManager = MakeShared<PCGExClusterFilter::FManager>(Cluster.ToSharedRef(), VtxDataFacade, EdgeDataFacade);
-			EdgeFilterManager->bUseEdgeAsPrimary = true;
-			if (!EdgeFilterManager->Init(ExecutionContext, Context->EdgeFilterFactories)) { return false; }
-		}
-		else
-		{
-		}
+		Refinement->EdgeFilterCache = &EdgeFilterCache;
 
 		const int32 PLI = GetDefault<UPCGExGlobalSettings>()->GetClusterBatchChunkSize();
 
@@ -196,7 +187,7 @@ namespace PCGExRefineEdges
 
 		// Need to go through PrepareSingleLoopScopeForEdges anyway
 
-		if (Refinement->RequiresIndividualEdgeProcessing())
+		if (Refinement->WantsIndividualEdgeProcessing())
 		{
 			StartParallelLoopForEdges();
 		}
@@ -208,7 +199,7 @@ namespace PCGExRefineEdges
 				[PCGEX_ASYNC_THIS_CAPTURE]()
 				{
 					PCGEX_ASYNC_THIS
-					if (This->Refinement->RequiresIndividualNodeProcessing()) { This->StartParallelLoopForNodes(); }
+					if (This->Refinement->WantsIndividualNodeProcessing()) { This->StartParallelLoopForNodes(); }
 					else { This->Refinement->Process(); }
 				};
 
@@ -233,23 +224,12 @@ namespace PCGExRefineEdges
 	void FProcessor::PrepareSingleLoopScopeForEdges(const PCGExMT::FScope& Scope)
 	{
 		EdgeDataFacade->Fetch(Scope);
+		FilterEdgeScope(Scope);
 
 		TArray<PCGExGraph::FEdge>& Edges = *Cluster->Edges;
 
 		const bool bDefaultValidity = Refinement->GetDefaultEdgeValidity();
-
-		if (EdgeFilterManager)
-		{
-			for (int i = Scope.Start; i < Scope.End; i++)
-			{
-				EdgeFilterCache[i] = EdgeFilterManager->Test(Edges[i]);
-				Edges[i].bValid = bDefaultValidity;
-			}
-		}
-		else
-		{
-			for (int i = Scope.Start; i < Scope.End; i++) { Edges[i].bValid = bDefaultValidity; }
-		}
+		for (int i = Scope.Start; i < Scope.End; i++) { Edges[i].bValid = bDefaultValidity; }
 	}
 
 	void FProcessor::ProcessSingleEdge(const int32 EdgeIndex, PCGExGraph::FEdge& Edge, const PCGExMT::FScope& Scope)
@@ -388,7 +368,6 @@ namespace PCGExRefineEdges
 	void FProcessor::Cleanup()
 	{
 		TProcessor<FPCGExRefineEdgesContext, UPCGExRefineEdgesSettings>::Cleanup();
-		EdgeFilterManager.Reset();
 		SanitizationFilterManager.Reset();
 	}
 

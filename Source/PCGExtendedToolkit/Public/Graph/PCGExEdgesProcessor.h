@@ -118,7 +118,7 @@ protected:
 	bool bSkipClusterBatchCompletionStep = false;
 	bool bDoClusterBatchWritingStep = false;
 
-	bool bClusterRequiresHeuristics = false;
+	bool bClusterWantsHeuristics = false;
 	bool bClusterBatchInlined = false;
 	int32 CurrentBatchIndex = -1;
 	TSharedPtr<PCGExClusterMT::FClusterProcessorBatchBase> CurrentBatch;
@@ -134,7 +134,7 @@ protected:
 		CurrentBatchIndex = -1;
 
 		bBatchProcessingEnabled = false;
-		bClusterRequiresHeuristics = true;
+		bClusterWantsHeuristics = true;
 		bSkipClusterBatchCompletionStep = false;
 		bDoClusterBatchWritingStep = false;
 		bBuildEndpointsLookup = false;
@@ -171,9 +171,9 @@ protected:
 				bSkipClusterBatchCompletionStep = true;
 			}
 
-			if (NewBatch->RequiresHeuristics())
+			if (NewBatch->WantsHeuristics())
 			{
-				bClusterRequiresHeuristics = true;
+				bClusterWantsHeuristics = true;
 				if (!bHasValidHeuristics)
 				{
 					PCGE_LOG_C(Error, GraphAndLog, this, FTEXT("Missing Heuristics."));
