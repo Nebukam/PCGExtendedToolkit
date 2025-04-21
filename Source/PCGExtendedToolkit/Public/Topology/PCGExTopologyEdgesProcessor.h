@@ -111,9 +111,7 @@ namespace PCGExTopologyEdges
 		TSharedPtr<PCGEx::FIndexLookup> VerticesLookup;
 
 		TSharedPtr<PCGExTopology::FCellConstraints> CellsConstraints;
-		TArray<int8> ConstrainedEdgeFilterCache;
 
-		TSharedPtr<PCGExClusterFilter::FManager> EdgeFilterManager;
 		int32 ConstrainedEdgesNum = 0;
 
 	public:
@@ -121,6 +119,9 @@ namespace PCGExTopologyEdges
 		using PCGExClusterMT::TProcessor<TContext, TSettings>::Cluster;
 		using PCGExClusterMT::TProcessor<TContext, TSettings>::VtxDataFacade;
 		using PCGExClusterMT::TProcessor<TContext, TSettings>::EdgeDataFacade;
+		using PCGExClusterMT::TProcessor<TContext, TSettings>::EdgeFilterFactories;
+		using PCGExClusterMT::TProcessor<TContext, TSettings>::EdgeFilterCache;
+		using PCGExClusterMT::TProcessor<TContext, TSettings>::DefaultEdgeFilterValue;
 
 		TSharedPtr<TArray<FVector>> ProjectedPositions;
 		TSharedPtr<TMap<uint32, int32>> ProjectedHashMap;
@@ -132,6 +133,7 @@ namespace PCGExTopologyEdges
 		{
 			static_assert(std::is_base_of_v<FPCGExTopologyEdgesProcessorContext, TContext>, "TContext must inherit from FPCGExTopologyProcessorContext");
 			static_assert(std::is_base_of_v<UPCGExTopologyEdgesProcessorSettings, TSettings>, "TSettings must inherit from UPCGExTopologyProcessorSettings");
+			DefaultEdgeFilterValue = false;
 		}
 
 		virtual ~TProcessor() override
@@ -153,14 +155,13 @@ namespace PCGExTopologyEdges
 		virtual bool Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager) override
 		{
 			EdgeDataFacade->bSupportsScopedGet = true;
+			EdgeFilterFactories = &Context->EdgeConstraintsFilterFactories;
 
 			if (!PCGExClusterMT::TProcessor<TContext, TSettings>::Process(InAsyncManager)) { return false; }
 
 #if PCGEX_ENGINE_VERSION > 503
 			bIsPreviewMode = ExecutionContext->SourceComponent.Get()->IsInPreviewMode();
 #endif
-
-			ConstrainedEdgeFilterCache.Init(false, EdgeDataFacade->Source->GetNum());
 
 			CellsConstraints = MakeShared<PCGExTopology::FCellConstraints>(Settings->Constraints);
 			if (Settings->Constraints.bOmitWrappingBounds) { CellsConstraints->BuildWrapperCell(Cluster.ToSharedRef(), *ProjectedPositions); }
@@ -169,13 +170,6 @@ namespace PCGExTopologyEdges
 			InitConstraints();
 
 			for (PCGExCluster::FNode& Node : *Cluster->Nodes) { Node.bValid = false; } // Invalidate all edges, triangulation will mark valid nodes to rebuild an index
-
-			if (!Context->EdgeConstraintsFilterFactories.IsEmpty())
-			{
-				EdgeFilterManager = MakeShared<PCGExClusterFilter::FManager>(Cluster.ToSharedRef(), VtxDataFacade, EdgeDataFacade);
-				EdgeFilterManager->bUseEdgeAsPrimary = true;
-				if (!EdgeFilterManager->Init(Context, Context->EdgeConstraintsFilterFactories)) { return false; }
-			}
 
 			// IMPORTANT : Need to wait for projection to be completed.
 			// Children should start work only in CompleteWork!!
@@ -225,7 +219,6 @@ namespace PCGExTopologyEdges
 		virtual void Cleanup() override
 		{
 			PCGExClusterMT::TProcessor<TContext, TSettings>::Cleanup();
-			EdgeFilterManager.Reset();
 			CellsConstraints->Cleanup();
 		}
 
@@ -233,16 +226,7 @@ namespace PCGExTopologyEdges
 		void FilterConstrainedEdgeScope(const PCGExMT::FScope& Scope)
 		{
 			int32 LocalConstrainedEdgesNum = 0;
-
-			if (EdgeFilterManager)
-			{
-				for (int i = Scope.Start; i < Scope.End; i++)
-				{
-					ConstrainedEdgeFilterCache[i] = EdgeFilterManager->Test(*Cluster->GetEdge(i));
-					if (ConstrainedEdgeFilterCache[i]) { LocalConstrainedEdgesNum++; }
-				}
-			}
-
+			for (int i = Scope.Start; i < Scope.End; i++){ if (EdgeFilterCache[i]) { LocalConstrainedEdgesNum++; } }
 			FPlatformAtomics::InterlockedAdd(&ConstrainedEdgesNum, LocalConstrainedEdgesNum);
 		}
 

@@ -83,7 +83,7 @@ namespace PCGExSubdivideEdges
 
 		if (!FClusterProcessor::Process(InAsyncManager)) { return false; }
 
-		if (!DirectionSettings.InitFromParent(ExecutionContext, StaticCastWeakPtr<FBatch>(ParentBatch).Pin()->DirectionSettings, EdgeDataFacade))
+		if (!DirectionSettings.InitFromParent(ExecutionContext, GetParentBatch<FBatch>()->DirectionSettings, EdgeDataFacade))
 		{
 			return false;
 		}

@@ -198,9 +198,9 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExCarryOverDetails
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	FPCGExNameFiltersDetails Tags = FPCGExNameFiltersDetails(false);
 
-	/** If enabled, will test full tag value on value tags ('Tag:Value'), otherwise only test the left part. */
+	/** If enabled, will test full tag with its value ('Tag:Value'), otherwise only test the left part ignoring the right `:Value` ('Tag'). */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
-	bool bTestTagValues = false;
+	bool bTestTagsWithValues = false;
 
 	void Init()
 	{
@@ -245,7 +245,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExCarryOverDetails
 		TSet<FString> ToBeRemoved;
 		ToBeRemoved.Reserve(InTags->Num());
 
-		if (bTestTagValues)
+		if (bTestTagsWithValues)
 		{
 			// Test flattened tags; this is rather expensive.
 			for (TSet<FString> Flattened = InTags->Flatten(); const FString& Tag : Flattened) { if (!Tags.Test(Tag)) { ToBeRemoved.Add(Tag); } }
@@ -270,7 +270,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExCarryOverDetails
 	{
 		if (Tags.FilterMode == EPCGExAttributeFilter::All) { return true; }
 
-		if (bTestTagValues)
+		if (bTestTagsWithValues)
 		{
 			// Test flattened tags; this is rather expensive.
 			for (TSet<FString> Flattened = InTags->Flatten(); const FString& Tag : Flattened) { if (!Tags.Test(Tag)) { return false; } }

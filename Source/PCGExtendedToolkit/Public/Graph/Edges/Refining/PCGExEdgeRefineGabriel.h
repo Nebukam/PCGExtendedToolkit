@@ -18,7 +18,7 @@ class UPCGExEdgeRefineGabriel : public UPCGExEdgeRefineOperation
 
 public:
 	virtual bool GetDefaultEdgeValidity() override { return !bInvert; }
-	virtual bool RequiresNodeOctree() override { return true; }
+	virtual bool WantsNodeOctree() override { return true; }
 
 	virtual void CopySettingsFrom(const UPCGExOperation* Other) override
 	{
@@ -29,7 +29,7 @@ public:
 		}
 	}
 
-	virtual bool RequiresIndividualEdgeProcessing() override { return !bInvert; }
+	virtual bool WantsIndividualEdgeProcessing() override { return !bInvert; }
 
 	virtual void PrepareForCluster(const TSharedPtr<PCGExCluster::FCluster>& InCluster, const TSharedPtr<PCGExHeuristics::FHeuristicsHandler>& InHeuristics) override
 	{

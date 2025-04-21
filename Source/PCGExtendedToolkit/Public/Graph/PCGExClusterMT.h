@@ -15,6 +15,11 @@
 #include "Pathfinding/Heuristics/PCGExHeuristics.h"
 
 
+namespace PCGExClusterFilter
+{
+	class FManager;
+}
+
 namespace PCGExClusterMT
 {
 	PCGEX_CTX_STATE(MTState_ClusterProcessing)
@@ -65,7 +70,7 @@ namespace PCGExClusterMT
 		FPCGExEdgeDirectionSettings DirectionSettings;
 
 		bool bBuildCluster = true;
-		bool bRequiresHeuristics = false;
+		bool bWantsHeuristics = false;
 
 		bool bInlineProcessNodes = false;
 		bool bInlineProcessEdges = false;
@@ -85,6 +90,10 @@ namespace PCGExClusterMT
 		TSharedPtr<PCGEx::FIndexLookup> NodeIndexLookup;
 
 		TWeakPtr<FClusterProcessorBatchBase> ParentBatch;
+
+		template<typename T>
+		T* GetParentBatch(){ return static_cast<T*>(ParentBatch.Pin().Get()); }
+		
 		TSharedPtr<PCGExMT::FTaskManager> GetAsyncManager() { return AsyncManager; }
 
 		bool bAllowEdgesDataFacadeScopedGet = false;
@@ -104,7 +113,7 @@ namespace PCGExClusterMT
 		TSharedPtr<PCGExCluster::FCluster> Cluster;
 
 		TSharedPtr<PCGExGraph::FGraphBuilder> GraphBuilder;
-
+				
 		FClusterProcessor(const TSharedRef<PCGExData::FFacade>& InVtxDataFacade, const TSharedRef<PCGExData::FFacade>& InEdgeDataFacade);
 
 		virtual void SetExecutionContext(FPCGExContext* InContext);
@@ -115,7 +124,7 @@ namespace PCGExClusterMT
 
 		virtual bool IsTrivial() const { return bIsTrivial; }
 
-		void SetRequiresHeuristics(const bool bRequired, const TArray<TObjectPtr<const UPCGExHeuristicsFactoryData>>* InHeuristicsFactories);
+		void SetWantsHeuristics(const bool bRequired, const TArray<TObjectPtr<const UPCGExHeuristicsFactoryData>>* InHeuristicsFactories);
 
 		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager> InAsyncManager);
 
@@ -148,6 +157,24 @@ namespace PCGExClusterMT
 		virtual void Write();
 		virtual void Output();
 		virtual void Cleanup();
+
+		const TArray<TObjectPtr<const UPCGExFilterFactoryData>>* VtxFilterFactories = nullptr;
+		TSharedPtr<TArray<int8>> VtxFilterCache;
+
+		const TArray<TObjectPtr<const UPCGExFilterFactoryData>>* EdgeFilterFactories = nullptr;
+		TArray<int8> EdgeFilterCache;
+		
+	protected:
+		TSharedPtr<PCGExClusterFilter::FManager> VtxFiltersManager;
+		virtual bool InitVtxFilters(const TArray<TObjectPtr<const UPCGExFilterFactoryData>>* InFilterFactories);
+		virtual void FilterVtxScope(const PCGExMT::FScope& Scope);
+		
+		FORCEINLINE bool IsNodePassingFilters(const PCGExCluster::FNode& Node) const { return static_cast<bool>(*(VtxFilterCache->GetData() + Node.PointIndex)); } 
+		
+		bool DefaultEdgeFilterValue = true;
+		TSharedPtr<PCGExClusterFilter::FManager> EdgesFiltersManager;
+		virtual bool InitEdgesFilters(const TArray<TObjectPtr<const UPCGExFilterFactoryData>>* InFilterFactories);
+		virtual void FilterEdgeScope(const PCGExMT::FScope& Scope);
 	};
 
 	template <typename TContext, typename TSettings>
@@ -190,7 +217,7 @@ namespace PCGExClusterMT
 		TArray<int32> ExpectedAdjacency;
 
 		bool bPreparationSuccessful = false;
-		bool bRequiresHeuristics = false;
+		bool bWantsHeuristics = false;
 		bool bRequiresGraphBuilder = false;
 
 	public:
@@ -214,12 +241,16 @@ namespace PCGExClusterMT
 
 		TArray<TSharedPtr<PCGExCluster::FCluster>> ValidClusters;
 
+		const TArray<TObjectPtr<const UPCGExFilterFactoryData>>* VtxFilterFactories = nullptr;
+		bool DefaultVtxFilterValue = true;
+		TSharedPtr<TArray<int8>> VtxFilterCache;
+				
 		virtual int32 GetNumProcessors() const { return -1; }
 
 		bool PreparationSuccessful() const { return bPreparationSuccessful; }
 		bool RequiresGraphBuilder() const { return bRequiresGraphBuilder; }
-		bool RequiresHeuristics() const { return bRequiresHeuristics; }
-		virtual void SetRequiresHeuristics(const bool bRequired) { bRequiresHeuristics = bRequired; }
+		bool WantsHeuristics() const { return bWantsHeuristics; }
+		virtual void SetWantsHeuristics(const bool bRequired) { bWantsHeuristics = bRequired; }
 
 		bool bDaisyChainProcessing = false;
 		bool bDaisyChainCompletion = false;
@@ -287,6 +318,11 @@ namespace PCGExClusterMT
 			PCGEX_ASYNC_CHKD_VOID(AsyncManager)
 
 			if (VtxDataFacade->GetNum() <= 1) { return; }
+			if(VtxFilterFactories)
+			{
+				VtxFilterCache = MakeShared<TArray<int8>>();
+				VtxFilterCache->Init(DefaultVtxFilterValue, VtxDataFacade->GetNum());
+			}
 
 			CurrentState.store(PCGEx::State_Processing, std::memory_order_release);
 			TSharedPtr<FClusterProcessorBatchBase> SelfPtr = SharedThis(this);
@@ -297,13 +333,16 @@ namespace PCGExClusterMT
 
 				NewProcessor->SetExecutionContext(ExecutionContext);
 				NewProcessor->ParentBatch = SelfPtr;
+				NewProcessor->VtxFilterFactories = VtxFilterFactories;
+				NewProcessor->VtxFilterCache = VtxFilterCache;
+				
 				NewProcessor->NodeIndexLookup = NodeIndexLookup;
 				NewProcessor->EndpointsLookup = &EndpointsLookup;
 				NewProcessor->ExpectedAdjacency = &ExpectedAdjacency;
 				NewProcessor->BatchIndex = Processors.Num();
 
 				if (RequiresGraphBuilder()) { NewProcessor->GraphBuilder = GraphBuilder; }
-				NewProcessor->SetRequiresHeuristics(RequiresHeuristics(), HeuristicsFactories);
+				NewProcessor->SetWantsHeuristics(WantsHeuristics(), HeuristicsFactories);
 
 				NewProcessor->RegisterConsumableAttributesWithFacade();
 
@@ -380,7 +419,7 @@ namespace PCGExClusterMT
 		TBatchWithHeuristics(FPCGExContext* InContext, const TSharedRef<PCGExData::FPointIO>& InVtx, TArrayView<TSharedRef<PCGExData::FPointIO>> InEdges):
 			TBatch<T>(InContext, InVtx, InEdges)
 		{
-			this->SetRequiresHeuristics(true);
+			this->SetWantsHeuristics(true);
 		}
 	};
 

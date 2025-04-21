@@ -9,6 +9,7 @@
 #include "UObject/Interface.h"
 #include "GameFramework/Actor.h"
 
+#include "PCGExtendedToolkit.h"
 #include "PCGContext.h"
 #include "PCGExMacros.h"
 #include "PCGManagedResource.h"
@@ -287,7 +288,7 @@ namespace PCGEx
 		T* New(Args&&... InArgs)
 		{
 			check(WorkPermit.IsValid())
-			if (IsFlushing()) { UE_LOG(LogTemp, Error, TEXT("Attempting to create a managed object while flushing!")) }
+			if (IsFlushing()) { UE_LOG(LogPCGEx, Error, TEXT("Attempting to create a managed object while flushing!")) }
 
 			T* Object = nullptr;
 			if (!IsInGameThread())

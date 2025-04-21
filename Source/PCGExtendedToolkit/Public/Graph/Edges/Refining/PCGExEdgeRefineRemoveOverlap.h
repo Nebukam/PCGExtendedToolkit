@@ -26,8 +26,8 @@ class UPCGExEdgeRemoveOverlap : public UPCGExEdgeRefineOperation
 	GENERATED_BODY()
 
 public:
-	virtual bool RequiresIndividualEdgeProcessing() override { return true; }
-	virtual bool RequiresEdgeOctree() override { return true; }
+	virtual bool WantsIndividualEdgeProcessing() override { return true; }
+	virtual bool WantsEdgeOctree() override { return true; }
 
 	virtual void PrepareForCluster(const TSharedPtr<PCGExCluster::FCluster>& InCluster, const TSharedPtr<PCGExHeuristics::FHeuristicsHandler>& InHeuristics) override
 	{

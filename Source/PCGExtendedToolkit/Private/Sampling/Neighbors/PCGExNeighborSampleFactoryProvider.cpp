@@ -184,6 +184,19 @@ UPCGExNeighborSampleOperation* UPCGExNeighborSamplerFactoryData::CreateOperation
 	return NewOperation;
 }
 
+void UPCGExNeighborSamplerFactoryData::RegisterVtxBuffersDependencies(FPCGExContext* InContext, const TSharedRef<PCGExData::FFacade>& InVtxDataFacade, PCGExData::FFacadePreloader& FacadePreloader) const
+{
+	if (!VtxFilterFactories.IsEmpty())
+	{
+		for (const TObjectPtr<const UPCGExFilterFactoryData>& Filter : VtxFilterFactories) { Filter->RegisterBuffersDependencies(InContext, FacadePreloader); }
+	}
+
+	if (!ValueFilterFactories.IsEmpty())
+	{
+		for (const TObjectPtr<const UPCGExFilterFactoryData>& Filter : ValueFilterFactories) { Filter->RegisterBuffersDependencies(InContext, FacadePreloader); }
+	}
+}
+
 void UPCGExNeighborSamplerFactoryData::RegisterAssetDependencies(FPCGExContext* InContext) const
 {
 	Super::RegisterAssetDependencies(InContext);

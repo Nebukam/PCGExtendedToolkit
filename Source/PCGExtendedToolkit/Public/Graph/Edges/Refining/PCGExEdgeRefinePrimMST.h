@@ -19,7 +19,7 @@ class UPCGExEdgeRefinePrimMST : public UPCGExEdgeRefineOperation
 
 public:
 	virtual bool GetDefaultEdgeValidity() override { return bInvert; }
-	virtual bool RequiresHeuristics() override { return true; }
+	virtual bool WantsHeuristics() override { return true; }
 
 	virtual void CopySettingsFrom(const UPCGExOperation* Other) override
 	{

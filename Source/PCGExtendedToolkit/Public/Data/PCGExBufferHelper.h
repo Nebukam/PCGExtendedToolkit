@@ -6,6 +6,7 @@
 #include "CoreMinimal.h"
 #include "PCGExData.h"
 #include "UObject/Object.h"
+#include "PCGExtendedToolkit.h"
 
 namespace PCGExData
 {
@@ -50,7 +51,7 @@ namespace PCGExData
 				{
 					if (!(*BufferPtr)->IsA<T>())
 					{
-						UE_LOG(LogTemp, Error, TEXT("Attempted to create an attribute that already exist, with a different type (%s)"), *InName.ToString())
+						UE_LOG(LogPCGEx, Error, TEXT("Attempted to create an attribute that already exist, with a different type (%s)"), *InName.ToString())
 						return nullptr;
 					}
 
@@ -61,7 +62,7 @@ namespace PCGExData
 				FWriteScopeLock WriteScopeLock(BufferLock);
 				if (PCGEx::IsPCGExAttribute(InName))
 				{
-					UE_LOG(LogTemp, Error, TEXT("Attempted to create an attribute with a protected prefix (%s)"), *InName.ToString())
+					UE_LOG(LogPCGEx, Error, TEXT("Attempted to create an attribute with a protected prefix (%s)"), *InName.ToString())
 					return nullptr;
 				}
 
@@ -76,7 +77,7 @@ namespace PCGExData
 					NewBuffer = DataFacade->GetReadable<T>(InName);
 					if (!NewBuffer)
 					{
-						UE_LOG(LogTemp, Error, TEXT("Readable attribute (%s) does not exists."), *InName.ToString())
+						UE_LOG(LogPCGEx, Error, TEXT("Readable attribute (%s) does not exists."), *InName.ToString())
 						return nullptr;
 					}
 				}
@@ -95,7 +96,7 @@ namespace PCGExData
 				{
 					if (!(*BufferPtr)->IsA<T>())
 					{
-						UE_LOG(LogTemp, Error, TEXT("Attempted to create an attribute that already exist, with a different type (%s)"), *InName.ToString())
+						UE_LOG(LogPCGEx, Error, TEXT("Attempted to create an attribute that already exist, with a different type (%s)"), *InName.ToString())
 						return nullptr;
 					}
 
@@ -107,7 +108,7 @@ namespace PCGExData
 
 				if (PCGEx::IsPCGExAttribute(InName))
 				{
-					UE_LOG(LogTemp, Error, TEXT("Attempted to create an attribute with a protected prefix (%s)"), *InName.ToString())
+					UE_LOG(LogPCGEx, Error, TEXT("Attempted to create an attribute with a protected prefix (%s)"), *InName.ToString())
 					return nullptr;
 				}
 
@@ -122,7 +123,7 @@ namespace PCGExData
 					NewBuffer = DataFacade->GetReadable<T>(InName);
 					if (!NewBuffer)
 					{
-						UE_LOG(LogTemp, Error, TEXT("Readable attribute (%s) does not exists."), *InName.ToString())
+						UE_LOG(LogPCGEx, Error, TEXT("Readable attribute (%s) does not exists."), *InName.ToString())
 						return nullptr;
 					}
 				}
@@ -150,7 +151,7 @@ namespace PCGExData
 				}
 				else
 				{
-					UE_LOG(LogTemp, Error, TEXT("Attempting to SET on readable (%s), this is not allowed."), *InAttributeName.ToString())
+					UE_LOG(LogPCGEx, Error, TEXT("Attempting to SET on readable (%s), this is not allowed."), *InAttributeName.ToString())
 					return false;
 				}
 			}

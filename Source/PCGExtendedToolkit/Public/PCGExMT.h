@@ -14,6 +14,7 @@
 #include "Async/AsyncWork.h"
 #include "Misc/QueuedThreadPool.h"
 
+#include "PCGExtendedToolkit.h"
 #include "PCGExMacros.h"
 #include "PCGExGlobalSettings.h"
 #include "Data/PCGExPointIO.h"
@@ -272,7 +273,7 @@ namespace PCGExMT
 
 			if (MaxItems <= 0)
 			{
-				UE_LOG(LogTemp, Warning, TEXT("StartRanges: MaxItems = %i"), MaxItems);
+				UE_LOG(LogPCGEx, Warning, TEXT("StartRanges: MaxItems = %i // Please report this!"), MaxItems);
 				return;
 			}
 

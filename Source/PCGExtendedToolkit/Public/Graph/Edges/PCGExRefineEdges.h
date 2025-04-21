@@ -115,14 +115,11 @@ namespace PCGExRefineEdges
 		friend class FFilterRangeTask;
 
 	protected:
-		TSharedPtr<PCGExClusterFilter::FManager> EdgeFilterManager;
 		TSharedPtr<PCGExClusterFilter::FManager> SanitizationFilterManager;
 		EPCGExRefineSanitization Sanitization = EPCGExRefineSanitization::None;
 
 		virtual TSharedPtr<PCGExCluster::FCluster> HandleCachedCluster(const TSharedRef<PCGExCluster::FCluster>& InClusterRef) override;
 		mutable FRWLock NodeLock;
-
-		TArray<int8> EdgeFilterCache;
 
 	public:
 		FProcessor(const TSharedRef<PCGExData::FFacade>& InVtxDataFacade, const TSharedRef<PCGExData::FFacade>& InEdgeDataFacade)

@@ -44,7 +44,7 @@ bool FPCGExWriteEdgePropertiesElement::ExecuteInternal(
 			[](const TSharedPtr<PCGExData::FPointIOTaggedEntries>& Entries) { return true; },
 			[&](const TSharedPtr<PCGExWriteEdgeProperties::FBatch>& NewBatch)
 			{
-				if (Settings->bWriteHeuristics) { NewBatch->SetRequiresHeuristics(true); }
+				if (Settings->bWriteHeuristics) { NewBatch->SetWantsHeuristics(true); }
 			}))
 		{
 			return Context->CancelExecution(TEXT("Could not build any clusters."));
@@ -73,7 +73,7 @@ namespace PCGExWriteEdgeProperties
 
 		if (!FClusterProcessor::Process(InAsyncManager)) { return false; }
 
-		if (!DirectionSettings.InitFromParent(ExecutionContext, StaticCastWeakPtr<FBatch>(ParentBatch).Pin()->DirectionSettings, EdgeDataFacade))
+		if (!DirectionSettings.InitFromParent(ExecutionContext, GetParentBatch<FBatch>()->DirectionSettings, EdgeDataFacade))
 		{
 			return false;
 		}

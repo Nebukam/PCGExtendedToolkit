@@ -21,7 +21,7 @@ class UPCGExEdgeKeepLongest : public UPCGExEdgeRefineOperation
 
 public:
 	virtual bool GetDefaultEdgeValidity() override { return false; }
-	virtual bool RequiresIndividualNodeProcessing() override { return true; }
+	virtual bool WantsIndividualNodeProcessing() override { return true; }
 
 	virtual void ProcessNode(PCGExCluster::FNode& Node) override
 	{
