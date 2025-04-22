@@ -91,9 +91,9 @@ namespace PCGExClusterMT
 
 		TWeakPtr<FClusterProcessorBatchBase> ParentBatch;
 
-		template<typename T>
-		T* GetParentBatch(){ return static_cast<T*>(ParentBatch.Pin().Get()); }
-		
+		template <typename T>
+		T* GetParentBatch() { return static_cast<T*>(ParentBatch.Pin().Get()); }
+
 		TSharedPtr<PCGExMT::FTaskManager> GetAsyncManager() { return AsyncManager; }
 
 		bool bAllowEdgesDataFacadeScopedGet = false;
@@ -113,7 +113,7 @@ namespace PCGExClusterMT
 		TSharedPtr<PCGExCluster::FCluster> Cluster;
 
 		TSharedPtr<PCGExGraph::FGraphBuilder> GraphBuilder;
-				
+
 		FClusterProcessor(const TSharedRef<PCGExData::FFacade>& InVtxDataFacade, const TSharedRef<PCGExData::FFacade>& InEdgeDataFacade);
 
 		virtual void SetExecutionContext(FPCGExContext* InContext);
@@ -163,14 +163,14 @@ namespace PCGExClusterMT
 
 		const TArray<TObjectPtr<const UPCGExFilterFactoryData>>* EdgeFilterFactories = nullptr;
 		TArray<int8> EdgeFilterCache;
-		
+
 	protected:
 		TSharedPtr<PCGExClusterFilter::FManager> VtxFiltersManager;
 		virtual bool InitVtxFilters(const TArray<TObjectPtr<const UPCGExFilterFactoryData>>* InFilterFactories);
 		virtual void FilterVtxScope(const PCGExMT::FScope& Scope);
-		
-		FORCEINLINE bool IsNodePassingFilters(const PCGExCluster::FNode& Node) const { return static_cast<bool>(*(VtxFilterCache->GetData() + Node.PointIndex)); } 
-		
+
+		FORCEINLINE bool IsNodePassingFilters(const PCGExCluster::FNode& Node) const { return static_cast<bool>(*(VtxFilterCache->GetData() + Node.PointIndex)); }
+
 		bool DefaultEdgeFilterValue = true;
 		TSharedPtr<PCGExClusterFilter::FManager> EdgesFiltersManager;
 		virtual bool InitEdgesFilters(const TArray<TObjectPtr<const UPCGExFilterFactoryData>>* InFilterFactories);
@@ -244,7 +244,7 @@ namespace PCGExClusterMT
 		const TArray<TObjectPtr<const UPCGExFilterFactoryData>>* VtxFilterFactories = nullptr;
 		bool DefaultVtxFilterValue = true;
 		TSharedPtr<TArray<int8>> VtxFilterCache;
-				
+
 		virtual int32 GetNumProcessors() const { return -1; }
 
 		bool PreparationSuccessful() const { return bPreparationSuccessful; }
@@ -318,7 +318,7 @@ namespace PCGExClusterMT
 			PCGEX_ASYNC_CHKD_VOID(AsyncManager)
 
 			if (VtxDataFacade->GetNum() <= 1) { return; }
-			if(VtxFilterFactories)
+			if (VtxFilterFactories)
 			{
 				VtxFilterCache = MakeShared<TArray<int8>>();
 				VtxFilterCache->Init(DefaultVtxFilterValue, VtxDataFacade->GetNum());
@@ -335,7 +335,7 @@ namespace PCGExClusterMT
 				NewProcessor->ParentBatch = SelfPtr;
 				NewProcessor->VtxFilterFactories = VtxFilterFactories;
 				NewProcessor->VtxFilterCache = VtxFilterCache;
-				
+
 				NewProcessor->NodeIndexLookup = NodeIndexLookup;
 				NewProcessor->EndpointsLookup = &EndpointsLookup;
 				NewProcessor->ExpectedAdjacency = &ExpectedAdjacency;
