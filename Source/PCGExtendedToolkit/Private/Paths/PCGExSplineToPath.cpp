@@ -129,7 +129,8 @@ namespace PCGExSplineToPath
 		const UPCGSplineData* SplineData = Context->Targets[TaskIndex];
 		check(SplineData)
 		const FPCGSplineStruct& Spline = Context->Splines[TaskIndex];
-
+		const FInterpCurveVector& SplinePositions = Spline.GetSplinePointsPosition();
+		
 		const int32 NumSegments = Spline.GetNumberOfSplineSegments();
 		const double TotalLength = Spline.GetSplineLength();
 
@@ -195,9 +196,9 @@ namespace PCGExSplineToPath
 
 			PCGEX_OUTPUT_VALUE(LengthAtPoint, i, LengthAtPoint);
 			PCGEX_OUTPUT_VALUE(Alpha, i, LengthAtPoint / TotalLength);
-			PCGEX_OUTPUT_VALUE(ArriveTangent, i, SplineTransform.TransformVector(Spline.SplineCurves.Position.Points[i].ArriveTangent));
-			PCGEX_OUTPUT_VALUE(LeaveTangent, i, SplineTransform.TransformVector(Spline.SplineCurves.Position.Points[i].LeaveTangent));
-			PCGEX_OUTPUT_VALUE(PointType, i, GetPointType(Spline.SplineCurves.Position.Points[i].InterpMode));
+			PCGEX_OUTPUT_VALUE(ArriveTangent, i, SplineTransform.TransformVector(SplinePositions.Points[i].ArriveTangent));
+			PCGEX_OUTPUT_VALUE(LeaveTangent, i, SplineTransform.TransformVector(SplinePositions.Points[i].LeaveTangent));
+			PCGEX_OUTPUT_VALUE(PointType, i, GetPointType(SplinePositions.Points[i].InterpMode));
 		}
 
 		if (Spline.bClosedLoop)
@@ -212,9 +213,9 @@ namespace PCGExSplineToPath
 
 			PCGEX_OUTPUT_VALUE(LengthAtPoint, LastIndex, TotalLength);
 			PCGEX_OUTPUT_VALUE(Alpha, LastIndex, 1);
-			PCGEX_OUTPUT_VALUE(ArriveTangent, LastIndex, Spline.SplineCurves.Position.Points[NumSegments].ArriveTangent);
-			PCGEX_OUTPUT_VALUE(LeaveTangent, LastIndex, Spline.SplineCurves.Position.Points[NumSegments].LeaveTangent);
-			PCGEX_OUTPUT_VALUE(PointType, LastIndex, GetPointType(Spline.SplineCurves.Position.Points[NumSegments].InterpMode));
+			PCGEX_OUTPUT_VALUE(ArriveTangent, LastIndex, SplinePositions.Points[NumSegments].ArriveTangent);
+			PCGEX_OUTPUT_VALUE(LeaveTangent, LastIndex, SplinePositions.Points[NumSegments].LeaveTangent);
+			PCGEX_OUTPUT_VALUE(PointType, LastIndex, GetPointType(SplinePositions.Points[NumSegments].InterpMode));
 		}
 
 		PointDataFacade->Write(AsyncManager);
