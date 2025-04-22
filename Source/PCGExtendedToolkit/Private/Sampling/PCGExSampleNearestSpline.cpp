@@ -355,9 +355,10 @@ namespace PCGExSampleNearestSpline
 				const int32 PrevIndex = FMath::FloorToInt(Time);
 				const int32 NextIndex = InSpline.bClosedLoop ? PCGExMath::Tile(PrevIndex + 1, 0, NumSegments - 1) : FMath::Clamp(PrevIndex + 1, 0, NumSegments);
 
+				const FInterpCurveVector& SplinePositions = InSpline.GetSplinePointsPosition();
 				Infos.Tangent = Transform.GetRotation().GetForwardVector() * FMath::Lerp(
-					InSpline.SplineCurves.Position.Points[PrevIndex].ArriveTangent.Length(),
-					InSpline.SplineCurves.Position.Points[NextIndex].LeaveTangent.Length(), Time - PrevIndex);
+					SplinePositions.Points[PrevIndex].ArriveTangent.Length(),
+					SplinePositions.Points[NextIndex].LeaveTangent.Length(), Time - PrevIndex);
 			}
 
 			if (bSingleSample)

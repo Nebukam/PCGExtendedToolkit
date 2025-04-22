@@ -75,6 +75,7 @@ namespace PCGExDataBlending
 		}
 
 		virtual void Blend(const int32 Index, FPCGPoint& Point, const double Weight = 1) = 0;
+		virtual void Blend(const int32 SourceIndex, const FPCGPoint& SourcePoint, const int32 TargetIndex, FPCGPoint& TargetPoint, const double Weight = 1) = 0;
 		virtual TSharedPtr<PCGExData::FBufferBase> GetOutputBuffer() const = 0;
 	};
 
@@ -91,6 +92,9 @@ namespace PCGExDataBlending
 		}
 
 		virtual void Blend(const int32 Index, FPCGPoint& Point, const double Weight = 1) override
+		PCGEX_NOT_IMPLEMENTED(Blend(const int32 Index, FPCGPoint& Point, const double Weight = 1))
+
+		virtual void Blend(const int32 SourceIndex, const FPCGPoint& SourcePoint, const int32 TargetIndex, FPCGPoint& TargetPoint, const double Weight = 1) override
 		PCGEX_NOT_IMPLEMENTED(Blend(const int32 Index, FPCGPoint& Point, const double Weight = 1))
 
 		virtual TSharedPtr<PCGExData::FBufferBase> GetOutputBuffer() const override { return C ? C->GetBuffer() : nullptr; }
@@ -118,90 +122,63 @@ namespace PCGExDataBlending
 			if constexpr (BLEND_MODE == EPCGExABBlendingType::None)
 			{
 			}
-			else if constexpr (BLEND_MODE == EPCGExABBlendingType::Average)
+			else if constexpr (BLEND_MODE == EPCGExABBlendingType::Average) { C->Set(Index, Point, PCGExBlend::Div(PCGExBlend::Add(PCGEX_A,PCGEX_B), 2)); }
+			else if constexpr (BLEND_MODE == EPCGExABBlendingType::Weight) { C->Set(Index, Point, PCGExBlend::Div(PCGExBlend::Add(PCGEX_A,PCGEX_B), Weight)); }
+			else if constexpr (BLEND_MODE == EPCGExABBlendingType::Min) { C->Set(Index, Point, PCGExBlend::Min(PCGEX_A,PCGEX_B)); }
+			else if constexpr (BLEND_MODE == EPCGExABBlendingType::Max) { C->Set(Index, Point, PCGExBlend::Max(PCGEX_A,PCGEX_B)); }
+			else if constexpr (BLEND_MODE == EPCGExABBlendingType::Add) { C->Set(Index, Point, PCGExBlend::Add(PCGEX_A,PCGEX_B)); }
+			else if constexpr (BLEND_MODE == EPCGExABBlendingType::Subtract) { C->Set(Index, Point, PCGExBlend::Sub(PCGEX_A,PCGEX_B)); }
+			else if constexpr (BLEND_MODE == EPCGExABBlendingType::Multiply) { C->Set(Index, Point, PCGExBlend::Mult(PCGEX_A,PCGEX_B)); }
+			else if constexpr (BLEND_MODE == EPCGExABBlendingType::Divide) { C->Set(Index, Point, PCGExBlend::Div(PCGEX_A, PCGEx::Convert<double>(PCGEX_B))); }
+			else if constexpr (BLEND_MODE == EPCGExABBlendingType::WeightedAdd) { C->Set(Index, Point, PCGExBlend::WeightedAdd(PCGEX_A,PCGEX_B, Weight)); }
+			else if constexpr (BLEND_MODE == EPCGExABBlendingType::WeightedSubtract) { C->Set(Index, Point, PCGExBlend::WeightedSub(PCGEX_A,PCGEX_B, Weight)); }
+			else if constexpr (BLEND_MODE == EPCGExABBlendingType::Lerp) { C->Set(Index, Point, PCGExBlend::Lerp(PCGEX_A,PCGEX_B, Weight)); }
+			else if constexpr (BLEND_MODE == EPCGExABBlendingType::UnsignedMin) { C->Set(Index, Point, PCGExBlend::UnsignedMin(PCGEX_A,PCGEX_B)); }
+			else if constexpr (BLEND_MODE == EPCGExABBlendingType::UnsignedMax) { C->Set(Index, Point, PCGExBlend::UnsignedMax(PCGEX_A,PCGEX_B)); }
+			else if constexpr (BLEND_MODE == EPCGExABBlendingType::AbsoluteMin) { C->Set(Index, Point, PCGExBlend::AbsoluteMin(PCGEX_A,PCGEX_B)); }
+			else if constexpr (BLEND_MODE == EPCGExABBlendingType::AbsoluteMax) { C->Set(Index, Point, PCGExBlend::AbsoluteMax(PCGEX_A,PCGEX_B)); }
+			else if constexpr (BLEND_MODE == EPCGExABBlendingType::CopyTarget) { C->Set(Index, Point, PCGEX_A); }
+			else if constexpr (BLEND_MODE == EPCGExABBlendingType::CopySource) { C->Set(Index, Point, PCGEX_B); }
+			else if constexpr (BLEND_MODE == EPCGExABBlendingType::Hash) { C->Set(Index, Point, PCGExBlend::NaiveHash(PCGEX_A,PCGEX_B)); }
+			else if constexpr (BLEND_MODE == EPCGExABBlendingType::UnsignedHash) { C->Set(Index, Point, PCGExBlend::NaiveUnsignedHash(PCGEX_A,PCGEX_B)); }
+			else if constexpr (BLEND_MODE == EPCGExABBlendingType::Mod) { C->Set(Index, Point, PCGExBlend::ModSimple(PCGEX_A, PCGEx::Convert<T, double>(B->Get(Index, Point)))); }
+			else if constexpr (BLEND_MODE == EPCGExABBlendingType::ModCW) { C->Set(Index, Point, PCGExBlend::ModComplex(PCGEX_A,PCGEX_B)); }
+
+#undef PCGEX_A
+#undef PCGEX_B
+		}
+
+		virtual void Blend(const int32 SourceIndex, const FPCGPoint& SourcePoint, const int32 TargetIndex, FPCGPoint& TargetPoint, const double Weight = 1) override
+		{
+			BOOKMARK_BLENDMODE
+
+#define PCGEX_A A->Get(SourceIndex, SourcePoint)
+#define PCGEX_B B->Get(TargetIndex, TargetPoint)
+
+			if constexpr (BLEND_MODE == EPCGExABBlendingType::None)
 			{
-				C->Set(Index, Point, PCGExBlend::Div(PCGExBlend::Add(PCGEX_A,PCGEX_B), 2));
 			}
-			else if constexpr (BLEND_MODE == EPCGExABBlendingType::Weight)
-			{
-				C->Set(Index, Point, PCGExBlend::Div(PCGExBlend::Add(PCGEX_A,PCGEX_B), Weight));
-			}
-			else if constexpr (BLEND_MODE == EPCGExABBlendingType::Min)
-			{
-				C->Set(Index, Point, PCGExBlend::Min(PCGEX_A,PCGEX_B));
-			}
-			else if constexpr (BLEND_MODE == EPCGExABBlendingType::Max)
-			{
-				C->Set(Index, Point, PCGExBlend::Max(PCGEX_A,PCGEX_B));
-			}
-			else if constexpr (BLEND_MODE == EPCGExABBlendingType::Add)
-			{
-				C->Set(Index, Point, PCGExBlend::Add(PCGEX_A,PCGEX_B));
-			}
-			else if constexpr (BLEND_MODE == EPCGExABBlendingType::Subtract)
-			{
-				C->Set(Index, Point, PCGExBlend::Sub(PCGEX_A,PCGEX_B));
-			}
-			else if constexpr (BLEND_MODE == EPCGExABBlendingType::Multiply)
-			{
-				C->Set(Index, Point, PCGExBlend::Mult(PCGEX_A,PCGEX_B));
-			}
-			else if constexpr (BLEND_MODE == EPCGExABBlendingType::Divide)
-			{
-				C->Set(Index, Point, PCGExBlend::Div(PCGEX_A, PCGEx::Convert<double>(PCGEX_B)));
-			}
-			else if constexpr (BLEND_MODE == EPCGExABBlendingType::WeightedAdd)
-			{
-				C->Set(Index, Point, PCGExBlend::WeightedAdd(PCGEX_A,PCGEX_B, Weight));
-			}
-			else if constexpr (BLEND_MODE == EPCGExABBlendingType::WeightedSubtract)
-			{
-				C->Set(Index, Point, PCGExBlend::WeightedSub(PCGEX_A,PCGEX_B, Weight));
-			}
-			else if constexpr (BLEND_MODE == EPCGExABBlendingType::Lerp)
-			{
-				C->Set(Index, Point, PCGExBlend::Lerp(PCGEX_A,PCGEX_B, Weight));
-			}
-			else if constexpr (BLEND_MODE == EPCGExABBlendingType::UnsignedMin)
-			{
-				C->Set(Index, Point, PCGExBlend::UnsignedMin(PCGEX_A,PCGEX_B));
-			}
-			else if constexpr (BLEND_MODE == EPCGExABBlendingType::UnsignedMax)
-			{
-				C->Set(Index, Point, PCGExBlend::UnsignedMax(PCGEX_A,PCGEX_B));
-			}
-			else if constexpr (BLEND_MODE == EPCGExABBlendingType::AbsoluteMin)
-			{
-				C->Set(Index, Point, PCGExBlend::AbsoluteMin(PCGEX_A,PCGEX_B));
-			}
-			else if constexpr (BLEND_MODE == EPCGExABBlendingType::AbsoluteMax)
-			{
-				C->Set(Index, Point, PCGExBlend::AbsoluteMax(PCGEX_A,PCGEX_B));
-			}
-			else if constexpr (BLEND_MODE == EPCGExABBlendingType::CopyTarget)
-			{
-				C->Set(Index, Point, PCGEX_A);
-			}
-			else if constexpr (BLEND_MODE == EPCGExABBlendingType::CopySource)
-			{
-				C->Set(Index, Point, PCGEX_B);
-			}
-			else if constexpr (BLEND_MODE == EPCGExABBlendingType::Hash)
-			{
-				C->Set(Index, Point, PCGExBlend::NaiveHash(PCGEX_A,PCGEX_B));
-			}
-			else if constexpr (BLEND_MODE == EPCGExABBlendingType::UnsignedHash)
-			{
-				C->Set(Index, Point, PCGExBlend::NaiveUnsignedHash(PCGEX_A,PCGEX_B));
-			}
-			else if constexpr (BLEND_MODE == EPCGExABBlendingType::Mod)
-			{
-				C->Set(Index, Point, PCGExBlend::ModSimple(PCGEX_A, PCGEx::Convert<T, double>(B->Get(Index, Point))));
-			}
-			else if constexpr (BLEND_MODE == EPCGExABBlendingType::ModCW)
-			{
-				C->Set(Index, Point, PCGExBlend::ModComplex(PCGEX_A,PCGEX_B));
-			}
+			else if constexpr (BLEND_MODE == EPCGExABBlendingType::Average) { C->Set(TargetIndex, TargetPoint, PCGExBlend::Div(PCGExBlend::Add(PCGEX_A,PCGEX_B), 2)); }
+			else if constexpr (BLEND_MODE == EPCGExABBlendingType::Weight) { C->Set(TargetIndex, TargetPoint, PCGExBlend::Div(PCGExBlend::Add(PCGEX_A,PCGEX_B), Weight)); }
+			else if constexpr (BLEND_MODE == EPCGExABBlendingType::Min) { C->Set(TargetIndex, TargetPoint, PCGExBlend::Min(PCGEX_A,PCGEX_B)); }
+			else if constexpr (BLEND_MODE == EPCGExABBlendingType::Max) { C->Set(TargetIndex, TargetPoint, PCGExBlend::Max(PCGEX_A,PCGEX_B)); }
+			else if constexpr (BLEND_MODE == EPCGExABBlendingType::Add) { C->Set(TargetIndex, TargetPoint, PCGExBlend::Add(PCGEX_A,PCGEX_B)); }
+			else if constexpr (BLEND_MODE == EPCGExABBlendingType::Subtract) { C->Set(TargetIndex, TargetPoint, PCGExBlend::Sub(PCGEX_A,PCGEX_B)); }
+			else if constexpr (BLEND_MODE == EPCGExABBlendingType::Multiply) { C->Set(TargetIndex, TargetPoint, PCGExBlend::Mult(PCGEX_A,PCGEX_B)); }
+			else if constexpr (BLEND_MODE == EPCGExABBlendingType::Divide) { C->Set(TargetIndex, TargetPoint, PCGExBlend::Div(PCGEX_A, PCGEx::Convert<double>(PCGEX_B))); }
+			else if constexpr (BLEND_MODE == EPCGExABBlendingType::WeightedAdd) { C->Set(TargetIndex, TargetPoint, PCGExBlend::WeightedAdd(PCGEX_A,PCGEX_B, Weight)); }
+			else if constexpr (BLEND_MODE == EPCGExABBlendingType::WeightedSubtract) { C->Set(TargetIndex, TargetPoint, PCGExBlend::WeightedSub(PCGEX_A,PCGEX_B, Weight)); }
+			else if constexpr (BLEND_MODE == EPCGExABBlendingType::Lerp) { C->Set(TargetIndex, TargetPoint, PCGExBlend::Lerp(PCGEX_A,PCGEX_B, Weight)); }
+			else if constexpr (BLEND_MODE == EPCGExABBlendingType::UnsignedMin) { C->Set(TargetIndex, TargetPoint, PCGExBlend::UnsignedMin(PCGEX_A,PCGEX_B)); }
+			else if constexpr (BLEND_MODE == EPCGExABBlendingType::UnsignedMax) { C->Set(TargetIndex, TargetPoint, PCGExBlend::UnsignedMax(PCGEX_A,PCGEX_B)); }
+			else if constexpr (BLEND_MODE == EPCGExABBlendingType::AbsoluteMin) { C->Set(TargetIndex, TargetPoint, PCGExBlend::AbsoluteMin(PCGEX_A,PCGEX_B)); }
+			else if constexpr (BLEND_MODE == EPCGExABBlendingType::AbsoluteMax) { C->Set(TargetIndex, TargetPoint, PCGExBlend::AbsoluteMax(PCGEX_A,PCGEX_B)); }
+			else if constexpr (BLEND_MODE == EPCGExABBlendingType::CopyTarget) { C->Set(TargetIndex, TargetPoint, PCGEX_A); }
+			else if constexpr (BLEND_MODE == EPCGExABBlendingType::CopySource) { C->Set(TargetIndex, TargetPoint, PCGEX_B); }
+			else if constexpr (BLEND_MODE == EPCGExABBlendingType::Hash) { C->Set(TargetIndex, TargetPoint, PCGExBlend::NaiveHash(PCGEX_A,PCGEX_B)); }
+			else if constexpr (BLEND_MODE == EPCGExABBlendingType::UnsignedHash) { C->Set(TargetIndex, TargetPoint, PCGExBlend::NaiveUnsignedHash(PCGEX_A,PCGEX_B)); }
+			else if constexpr (BLEND_MODE == EPCGExABBlendingType::Mod) { C->Set(TargetIndex, TargetPoint, PCGExBlend::ModSimple(PCGEX_A, PCGEx::Convert<T, double>(PCGEX_B))); }
+			else if constexpr (BLEND_MODE == EPCGExABBlendingType::ModCW) { C->Set(TargetIndex, TargetPoint, PCGExBlend::ModComplex(PCGEX_A,PCGEX_B)); }
 
 #undef PCGEX_A
 #undef PCGEX_B
