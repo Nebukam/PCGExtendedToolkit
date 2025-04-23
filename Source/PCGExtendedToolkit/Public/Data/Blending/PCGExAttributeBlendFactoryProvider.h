@@ -139,6 +139,16 @@ public:
 	{
 		Blender->Blend(Index, Point, Config.Weighting.ScoreCurveObj->Eval(Weight ? Weight->Read(Index) : Config.Weighting.Weight));
 	}
+	
+	virtual void Blend(const int32 SourceIndex, FPCGPoint& SourcePoint, const int32 TargetIndex, FPCGPoint& TargetPoint)
+	{
+		Blender->Blend(SourceIndex, SourcePoint, TargetIndex, TargetPoint,Config.Weighting.ScoreCurveObj->Eval(Weight ? Weight->Read(SourceIndex) : Config.Weighting.Weight));
+	}
+	
+	virtual void Blend(const int32 SourceIndex, FPCGPoint& SourcePoint, const int32 TargetIndex, FPCGPoint& TargetPoint, const double InWeight)
+	{
+		Blender->Blend(SourceIndex, SourcePoint, TargetIndex, TargetPoint,Config.Weighting.ScoreCurveObj->Eval(InWeight));
+	}
 
 	virtual void CompleteWork(TSet<TSharedPtr<PCGExData::FBufferBase>>& OutDisabledBuffers);
 
