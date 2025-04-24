@@ -136,8 +136,22 @@ public:
 	// Other
 
 	/** Whether to limit candidate to vtxs that are inside the bounds of the seeds */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Limits", meta=(PCG_NotOverridable))
-	bool bLimitToBounds = false;
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Limits|Other", meta=(PCG_NotOverridable))
+	bool bLimitToSeedBounds = false;
+
+	// Max influences
+
+	/**  */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Limits|Other", meta=(PCG_NotOverridable))
+	EPCGExInputValueType MaxInfluencesInput = EPCGExInputValueType::Constant;
+
+	/** Max influences Attribute */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Limits|Other", meta=(PCG_Overridable, DisplayName="Max Influences (Attr)", EditCondition="MaxInfluencesInput!=EPCGExInputValueType::Constant", EditConditionHides))
+	FName MaxInfluencesAttribute = FName("MaxInfluences");
+
+	/** Max influences Constant */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Limits|Other", meta=(PCG_Overridable, DisplayName="Max Influences", EditCondition="MaxInfluencesInput==EPCGExInputValueType::Constant", EditConditionHides, ClampMin=1))
+	int32 MaxInfluences = 1;
 
 #pragma endregion
 
@@ -220,43 +234,61 @@ protected:
 namespace PCGExClusterDiffusion
 {
 	class FBatch;
+	class FProcessor;
 
 	struct FCandidate
 	{
-		int32 Index;
-		int32 Depth;
-		double Score;
-		double Distance;
+		const PCGExCluster::FNode* Node = nullptr;
+		int32 Depth = 0;
+		double Score = 0;
+		double Distance = 0;
+
+		FCandidate() = default;
 	};
 
 	class FDiffusion : public TSharedFromThis<FDiffusion>
 	{
+		friend class FProcessor;
+
+	protected:
 		TArray<FCandidate> Candidates;
+		TArray<FCandidate> Captured;
+		TSet<int32> Visited;
 		TSharedPtr<PCGEx::FMapHashLookup> TravelStack; // Required for heuristics
 		// use map hash lookup to reduce memory overhead of a shared map + thread safety yay
 
+		TSharedPtr<FProcessor> Processor;
+
 	public:
 		bool bStopped = false;
-		PCGExCluster::FNode* SeedNode;
+		TSharedPtr<PCGExCluster::FCluster> Cluster;
+		const PCGExCluster::FNode* SeedNode = nullptr;
 		int32 SeedIndex = -1;
 
-		FDiffusion() = default;
+		FDiffusion(const TSharedPtr<PCGExCluster::FCluster>& InCluster, const PCGExCluster::FNode* InSeedNode);
 		~FDiffusion() = default;
 
-		void Complete(FPCGExClusterDiffusionContext* Context, const TSharedPtr<PCGExCluster::FCluster>& InCluster, const TSharedPtr<PCGExData::FFacade>& InVtxFacade);
+		void Init();
+
+		void Probe(const FCandidate& From);
+		void Capture();
+		void Complete(FPCGExClusterDiffusionContext* Context, const TSharedPtr<PCGExData::FFacade>& InVtxFacade);
 	};
 
 	class FProcessor final : public PCGExClusterMT::TProcessor<FPCGExClusterDiffusionContext, UPCGExClusterDiffusionSettings>
 	{
 		friend FBatch;
+		friend FDiffusion;
 
 	protected:
+		const PCGExCluster::FNode* RoamingSeedNode = nullptr;
+		const PCGExCluster::FNode* RoamingGoalNode = nullptr;
+
+		TSharedPtr<TArray<int32>> InfluencesCount;
 		TSharedPtr<TArray<UPCGExAttributeBlendOperation*>> Operations;
 
 		TArray<TSharedPtr<FDiffusion>> OngoingDiffusions; // Ongoing diffusions
 		TArray<TSharedPtr<FDiffusion>> Diffusions;        // Stopped diffusions, as to not iterate over them needlessly
-
-		TSharedPtr<TArray<int8>> Visited; // Whether that node has been visited and captured already
 
 		TSharedPtr<PCGExMT::TScopedValue<double>> MaxDistanceValue;
 
@@ -271,6 +303,10 @@ namespace PCGExClusterDiffusion
 		virtual ~FProcessor() override;
 
 		virtual bool Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager) override;
+
+		void Grow();
+		virtual void ProcessSingleRangeIteration(const int32 Iteration, const PCGExMT::FScope& Scope) override;
+		virtual void OnRangeProcessingComplete() override;
 	};
 
 	class FBatch final : public PCGExClusterMT::TBatchWithHeuristics<FProcessor>
@@ -278,6 +314,7 @@ namespace PCGExClusterDiffusion
 		PCGEX_FOREACH_FIELD_CLUSTER_DIFF(PCGEX_OUTPUT_DECL)
 
 	protected:
+		TSharedPtr<TArray<int32>> InfluencesCount;
 		TSharedPtr<TArray<UPCGExAttributeBlendOperation*>> Operations;
 
 	public:

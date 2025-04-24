@@ -3,6 +3,8 @@
 
 #include "Graph/PCGExClusterDiffusion.h"
 
+#include "Dataflow/DataflowGraph.h"
+
 #define LOCTEXT_NAMESPACE "PCGExClusterDiffusion"
 #define PCGEX_NAMESPACE ClusterDiffusion
 
@@ -30,7 +32,7 @@ TArray<FPCGPinProperties> UPCGExClusterDiffusionSettings::InputPinProperties() c
 	{
 		PCGEX_PIN_POINT(PCGExGraph::SourceSeedsLabel, "Seed points.", Required, {})
 	}
-	
+
 	return PinProperties;
 }
 
@@ -89,7 +91,70 @@ bool FPCGExClusterDiffusionElement::ExecuteInternal(FPCGContext* InContext) cons
 
 namespace PCGExClusterDiffusion
 {
-	void FDiffusion::Complete(FPCGExClusterDiffusionContext* Context, const TSharedPtr<PCGExCluster::FCluster>& InCluster, const TSharedPtr<PCGExData::FFacade>& InVtxFacade)
+	FDiffusion::FDiffusion(const TSharedPtr<PCGExCluster::FCluster>& InCluster, const PCGExCluster::FNode* InSeedNode)
+		: Cluster(InCluster), SeedNode(InSeedNode)
+	{
+	}
+
+	void FDiffusion::Init()
+	{
+		Visited.Add(SeedNode->Index);
+		FCandidate SeedCandidate = FCandidate();
+		SeedCandidate.Node = SeedNode;
+
+		Probe(SeedCandidate);
+	}
+
+	void FDiffusion::Probe(const FCandidate& From)
+	{
+		// Gather all neighbors and compute heuristics, add to candidate for the first time only
+		bool bIsAlreadyInSet = false;
+
+		const PCGExCluster::FNode& Seed = *From.Node;
+		const PCGExCluster::FNode& RoamingGoal = *Processor->HeuristicsHandler->GetRoamingGoal();
+
+		for (const PCGExGraph::FLink& Lk : Seed.Links)
+		{
+			PCGExCluster::FNode* OtherNode = Cluster->GetNode(Lk);
+			Visited.Add(OtherNode->Index, &bIsAlreadyInSet);
+
+			if (bIsAlreadyInSet) { continue; }
+
+			// TODO : Make sure candidate is within set limits, otherwise continue
+
+			FCandidate& Candidate = Candidates.Emplace_GetRef();
+			Candidate.Node = OtherNode;
+			Candidate.Score = Processor->HeuristicsHandler->GetEdgeScore(
+				Seed, *OtherNode,
+				*Cluster->GetEdge(Lk), *SeedNode, RoamingGoal,
+				nullptr, TravelStack);
+			Candidate.Depth = From.Depth + 1;
+			Candidate.Distance = From.Distance + 10; // TODO : Compute distance
+		}
+	}
+
+	void FDiffusion::Capture()
+	{
+		bool bSearch = true;
+		while (bSearch)
+		{
+			if(Candidates.IsEmpty())
+			{
+				bStopped = true;
+				break;
+			}
+			FCandidate Candidate = Candidates.Pop();
+			
+			if (*(Processor->InfluencesCount->GetData() + Candidate.Node->PointIndex) >= 1) { continue; }
+
+			bSearch = false;
+		}
+		// TODO : Sanity check candidates
+		// Check available candidates
+		// If no candidate available, find next layer of candidates
+	}
+
+	void FDiffusion::Complete(FPCGExClusterDiffusionContext* Context, const TSharedPtr<PCGExData::FFacade>& InVtxFacade)
 	{
 		if (SeedIndex != -1)
 		{
@@ -107,12 +172,30 @@ namespace PCGExClusterDiffusion
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExClusterDiffusion::Process);
 
 		if (!FClusterProcessor::Process(InAsyncManager)) { return false; }
-
 		// First, build a list of diffusions
 		// Either from seeds (find closest) or filters
-		
+
 
 		return true;
+	}
+
+	void FProcessor::Grow()
+	{
+		if (Settings->Processing == EPCGExDiffusionProcessing::Parallel)
+		{
+			StartParallelLoopForRange(OngoingDiffusions.Num());
+			return;
+		}
+	}
+
+	void FProcessor::ProcessSingleRangeIteration(const int32 Iteration, const PCGExMT::FScope& Scope)
+	{
+		// TODO : Local growth : find & sort all candidates
+	}
+
+	void FProcessor::OnRangeProcessingComplete()
+	{
+		// TODO : 
 	}
 
 	FBatch::FBatch(FPCGExContext* InContext, const TSharedRef<PCGExData::FPointIO>& InVtx, TArrayView<TSharedRef<PCGExData::FPointIO>> InEdges)
@@ -176,6 +259,7 @@ namespace PCGExClusterDiffusion
 		if (!TBatch<FProcessor>::PrepareSingle(ClusterProcessor)) { return false; }
 
 		ClusterProcessor->Operations = Operations;
+		ClusterProcessor->InfluencesCount = InfluencesCount;
 
 #define PCGEX_OUTPUT_FWD_TO(_NAME, _TYPE, _DEFAULT_VALUE) if(_NAME##Writer){ ClusterProcessor->_NAME##Writer = _NAME##Writer; }
 		PCGEX_FOREACH_FIELD_CLUSTER_DIFF(PCGEX_OUTPUT_FWD_TO)

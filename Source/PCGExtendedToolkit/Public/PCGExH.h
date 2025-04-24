@@ -264,6 +264,8 @@ namespace PCGEx
 			if (const uint64* Value = Data.Find(At)) { return *Value; }
 			return InternalInitValue;
 		}
+
+		FORCEINLINE bool Contains(const int32 Index) const { return Data.Contains(Index); }
 	};
 
 	template <typename T>
