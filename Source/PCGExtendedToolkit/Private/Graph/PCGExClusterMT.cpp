@@ -363,6 +363,9 @@ namespace PCGExClusterMT
 		{
 			PCGExPointFilter::RegisterBuffersDependencies(ExecutionContext, *VtxFilterFactories, FacadePreloader);
 		}
+
+		// TODO : Preload heuristics that depends on Vtx metadata
+		
 	}
 
 	void FClusterProcessorBatchBase::OnProcessingPreparationComplete()

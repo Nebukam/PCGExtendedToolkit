@@ -12,10 +12,25 @@ PCGExData::EIOInit UPCGExClusterDiffusionSettings::GetEdgeOutputInitMode() const
 TArray<FPCGPinProperties> UPCGExClusterDiffusionSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
-	// + Blends
-	// + Heuristics
-	// + Sorting
-	// + Seed points OR filters, not both
+
+	PCGEX_PIN_FACTORIES(PCGExDataBlending::SourceBlendingLabel, "Blending configurations.", Required, {})
+	PCGEX_PIN_FACTORIES(PCGExGraph::SourceHeuristicsLabel, "Heuristics.", Required, {})
+
+	if (Seeds == EPCGExDiffusionSeeds::Filters)
+	{
+		// Add filter input
+		PCGEX_PIN_FACTORIES(PCGExPointFilter::SourceFiltersLabel, "Filters used to pick and choose which vtx will be used as seeds", Required, {})
+
+		if (Ordering == EPCGExDiffusionOrder::Sorting)
+		{
+			PCGEX_PIN_FACTORIES(PCGExSorting::SourceSortingRules, "Plug sorting rules here. Order is defined by each rule' priority value, in ascending order.", Required, {})
+		}
+	}
+	else
+	{
+		PCGEX_PIN_POINT(PCGExGraph::SourceSeedsLabel, "Seed points.", Required, {})
+	}
+	
 	return PinProperties;
 }
 
@@ -27,6 +42,21 @@ bool FPCGExClusterDiffusionElement::Boot(FPCGExContext* InContext) const
 
 	PCGEX_CONTEXT_AND_SETTINGS(ClusterDiffusion)
 	PCGEX_FOREACH_FIELD_CLUSTER_DIFF(PCGEX_OUTPUT_VALIDATE_NAME)
+
+	if (!PCGExFactories::GetInputFactories<UPCGExAttributeBlendFactory>(
+		Context, PCGExDataBlending::SourceBlendingLabel, Context->BlendingFactories,
+		{PCGExFactories::EType::Blending}, true))
+	{
+		return false;
+	}
+
+	if (Settings->Seeds == EPCGExDiffusionSeeds::Points)
+	{
+		Context->SeedsDataFacade = PCGExData::TryGetSingleFacade(Context, PCGExGraph::SourceSeedsLabel, true);
+		if (!Context->SeedsDataFacade) { return false; }
+
+		Context->SeedForwardHandler = Settings->SeedForwarding.GetHandler(Context->SeedsDataFacade);
+	}
 
 	return true;
 }
@@ -59,6 +89,15 @@ bool FPCGExClusterDiffusionElement::ExecuteInternal(FPCGContext* InContext) cons
 
 namespace PCGExClusterDiffusion
 {
+	void FDiffusion::Complete(FPCGExClusterDiffusionContext* Context, const TSharedPtr<PCGExCluster::FCluster>& InCluster, const TSharedPtr<PCGExData::FFacade>& InVtxFacade)
+	{
+		if (SeedIndex != -1)
+		{
+			TArray<int32> Indices; // TODO : Nodes to pt index
+			Context->SeedForwardHandler->Forward(SeedIndex, InVtxFacade, Indices);
+		}
+	}
+
 	FProcessor::~FProcessor()
 	{
 	}
@@ -69,15 +108,15 @@ namespace PCGExClusterDiffusion
 
 		if (!FClusterProcessor::Process(InAsyncManager)) { return false; }
 
-		// First, filter out diffuser vtxs
-		// Could be either via filters or seeds
-		// Seeds might be harder/heavier to implement but offer the advantage of attribute forwarding to a diffusion group
+		// First, build a list of diffusions
+		// Either from seeds (find closest) or filters
 		
+
 		return true;
 	}
 
 	FBatch::FBatch(FPCGExContext* InContext, const TSharedRef<PCGExData::FPointIO>& InVtx, TArrayView<TSharedRef<PCGExData::FPointIO>> InEdges)
-		: TBatch(InContext, InVtx, InEdges)
+		: TBatchWithHeuristics(InContext, InVtx, InEdges)
 	{
 	}
 
@@ -96,12 +135,47 @@ namespace PCGExClusterDiffusion
 			PCGEX_FOREACH_FIELD_CLUSTER_DIFF(PCGEX_OUTPUT_INIT)
 		}
 
-		// TODO : Register blending & heuristics buffers
+		for (const TObjectPtr<const UPCGExAttributeBlendFactory>& Factory : Context->BlendingFactories)
+		{
+			Factory->RegisterBuffersDependencies(Context, FacadePreloader);
+		}
+	}
+
+	void FBatch::Process()
+	{
+		PCGEX_TYPED_CONTEXT_AND_SETTINGS(ClusterDiffusion)
+
+		Operations = MakeShared<TArray<UPCGExAttributeBlendOperation*>>();
+		Operations->Reserve(Context->BlendingFactories.Num());
+
+		for (const TObjectPtr<const UPCGExAttributeBlendFactory>& Factory : Context->BlendingFactories)
+		{
+			UPCGExAttributeBlendOperation* Op = Factory->CreateOperation(Context);
+			if (!Op)
+			{
+				bIsBatchValid = false;
+				PCGE_LOG_C(Error, GraphAndLog, Context, FTEXT("An operation could not be created."));
+				return; // FAIL
+			}
+
+			Op->OpIdx = Operations->Add(Op);
+			Op->SiblingOperations = Operations;
+
+			if (!Op->PrepareForData(Context, VtxDataFacade))
+			{
+				bIsBatchValid = false;
+				return; // FAIL
+			}
+		}
+
+		TBatchWithHeuristics<FProcessor>::Process();
 	}
 
 	bool FBatch::PrepareSingle(const TSharedPtr<FProcessor>& ClusterProcessor)
 	{
 		if (!TBatch<FProcessor>::PrepareSingle(ClusterProcessor)) { return false; }
+
+		ClusterProcessor->Operations = Operations;
 
 #define PCGEX_OUTPUT_FWD_TO(_NAME, _TYPE, _DEFAULT_VALUE) if(_NAME##Writer){ ClusterProcessor->_NAME##Writer = _NAME##Writer; }
 		PCGEX_FOREACH_FIELD_CLUSTER_DIFF(PCGEX_OUTPUT_FWD_TO)

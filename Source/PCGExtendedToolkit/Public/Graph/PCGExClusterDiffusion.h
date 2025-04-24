@@ -4,8 +4,9 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "PCGExDetailsData.h"
 #include "PCGExScopedContainers.h"
+#include "Data/PCGExDataForward.h"
+#include "Data/Blending/PCGExAttributeBlendFactoryProvider.h"
 
 
 #include "Graph/PCGExEdgesProcessor.h"
@@ -16,7 +17,28 @@
 MACRO(DiffusionDepth, int32, 0)\
 MACRO(DiffusionDistance, double, 0)
 
-UCLASS(Hidden, MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Clusters")
+UENUM()
+enum class EPCGExDiffusionOrder : uint8
+{
+	Index   = 0 UMETA(DisplayName = "Index", ToolTip="Uses point index to drive diffusion order."),
+	Sorting = 1 UMETA(DisplayName = "Sorting", ToolTip="Use sorting rules to drive diffusion order."),
+};
+
+UENUM()
+enum class EPCGExDiffusionSeeds : uint8
+{
+	Filters = 0 UMETA(DisplayName = "Filters", ToolTip="Uses filters to pick which vtx should be used as seeds."),
+	Points  = 1 UMETA(DisplayName = "Points", ToolTip="Uses source seed points as seed, and picks the closest vtx."),
+};
+
+UENUM()
+enum class EPCGExDiffusionProcessing : uint8
+{
+	Parallel = 0 UMETA(DisplayName = "Parallel", ToolTip="Diffuse each vtx once before moving to the next iteration."),
+	Sequence = 1 UMETA(DisplayName = "Sequential", ToolTip="Diffuse each vtx until it stops before moving to the next one, and so on."),
+};
+
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Clusters")
 class UPCGExClusterDiffusionSettings : public UPCGExEdgesProcessorSettings
 {
 	GENERATED_BODY()
@@ -39,13 +61,85 @@ protected:
 	//~End UPCGSettings
 
 public:
-	/** */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, ClampMin=1))
-	int32 Iterations = 10;
+	/** Defines how each vtx is diffused */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_NotOverridable))
+	EPCGExDiffusionProcessing Processing = EPCGExDiffusionProcessing::Parallel;
 
-	/** Influence Settings*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
-	FPCGExInfluenceDetails InfluenceDetails;
+	/** Defines the type of seeds used for diffusion */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_NotOverridable))
+	EPCGExDiffusionSeeds Seeds = EPCGExDiffusionSeeds::Filters;
+
+	/** Defines the sorting used for the vtx */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_NotOverridable, EditCondition="Seeds==EPCGExDiffusionSeeds::Filters", EditConditionHides))
+	EPCGExDiffusionOrder Ordering = EPCGExDiffusionOrder::Index;
+
+	/** Sort direction */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_NotOverridable, EditCondition="Seeds==EPCGExDiffusionSeeds::Filters", EditConditionHides))
+	EPCGExSortDirection SortDirection = EPCGExSortDirection::Ascending;
+
+#pragma region Limits
+
+	// Max count
+
+	/** Whether to limit the number of vtx that will be defused to */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Limits|Count", meta=(PCG_NotOverridable))
+	bool bUseMaxCount = false;
+
+	/**  */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Limits|Count", meta=(PCG_NotOverridable, EditCondition="bUseMaxCount", EditConditionHides))
+	EPCGExInputValueType MaxCountInput = EPCGExInputValueType::Constant;
+
+	/** Max count Attribute */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Limits|Count", meta=(PCG_Overridable, DisplayName="Max Count (Attr)", EditCondition="bUseMaxCount && MaxCountInput!=EPCGExInputValueType::Constant", EditConditionHides))
+	FName MaxCountAttribute = FName("MaxCount");
+
+	/** Max count Constant */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Limits|Count", meta=(PCG_Overridable, DisplayName="Max Count", EditCondition="bUseMaxCount && MaxCountInput==EPCGExInputValueType::Constant", EditConditionHides, ClampMin=1))
+	double MaxCount = 10;
+
+	// Max length
+
+	/** Whether to limit the length of the individual growths */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Limits|Length", meta=(PCG_NotOverridable))
+	bool bUseMaxLength = false;
+
+	/**  */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Limits|Length", meta=(PCG_NotOverridable, EditCondition="bUseMaxLength", EditConditionHides))
+	EPCGExInputValueType MaxLengthInput = EPCGExInputValueType::Constant;
+
+	/** Max length Attribute */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Limits|Length", meta=(PCG_Overridable, DisplayName="Max Length (Attr)", EditCondition="bUseMaxLength && MaxLengthInput!=EPCGExInputValueType::Constant", EditConditionHides))
+	FName MaxLengthAttribute = FName("MaxLength");
+
+	/** Max length Constant */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Limits|Length", meta=(PCG_Overridable, DisplayName="Max Length", EditCondition="bUseMaxLength && MaxLengthInput==EPCGExInputValueType::Constant", EditConditionHides, ClampMin=1))
+	double MaxLength = 100;
+
+	// Max Radius
+
+	/** Whether to limit the expansion within a maximum radius of the vtx */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Limits|Radius", meta=(PCG_NotOverridable))
+	bool bUseMaxRadius = false;
+
+	/**  */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Limits|Radius", meta=(PCG_NotOverridable, EditCondition="bUseMaxRadius", EditConditionHides))
+	EPCGExInputValueType MaxRadiusInput = EPCGExInputValueType::Constant;
+
+	/** Max radius Attribute */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Limits|Radius", meta=(PCG_Overridable, DisplayName="Max Radius (Attr)", EditCondition="bUseMaxRadius && MaxRadiusInput!=EPCGExInputValueType::Constant", EditConditionHides))
+	FName MaxRadiusAttribute = FName("MaxRadius");
+
+	/** Max radius Constant */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Limits|Radius", meta=(PCG_Overridable, DisplayName="Max Radius", EditCondition="bUseMaxRadius && MaxRadiusInput==EPCGExInputValueType::Constant", EditConditionHides, ClampMin=1))
+	double MaxRadius = 100;
+
+	// Other
+
+	/** Whether to limit candidate to vtxs that are inside the bounds of the seeds */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Limits", meta=(PCG_NotOverridable))
+	bool bLimitToBounds = false;
+
+#pragma endregion
 
 	// Notes
 	// - Max Range mode
@@ -70,6 +164,8 @@ public:
 	// - Capture node (must be inlined, can use large batches)
 	// - Once all growths have been stopped, blending can happen
 
+#pragma region  Outputs
+
 	/** Write the diffusion depth the vtx was subjected to. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(PCG_Overridable, InlineEditConditionToggle))
 	bool bWriteDiffusionDepth = false;
@@ -86,6 +182,12 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(DisplayName="Diffusion Distance", PCG_Overridable, EditCondition="bWriteDiffusionDistance"))
 	FName DiffusionDistanceAttributeName = FName("DiffusionDistance");
 
+#pragma endregion
+
+	/** Which Seed attributes to forward on the vtx they diffused to. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="Seeds==EPCGExDiffusionSeeds::Points"))
+	FPCGExForwardDetails SeedForwarding;
+
 private:
 	friend class FPCGExClusterDiffusionElement;
 };
@@ -94,8 +196,12 @@ struct FPCGExClusterDiffusionContext final : FPCGExEdgesProcessorContext
 {
 	friend class FPCGExClusterDiffusionElement;
 
-	PCGEX_FOREACH_FIELD_CLUSTER_DIFF(PCGEX_OUTPUT_DECL_TOGGLE)
+	TArray<TObjectPtr<const UPCGExAttributeBlendFactory>> BlendingFactories;
 
+	TSharedPtr<PCGExData::FFacade> SeedsDataFacade;
+	TSharedPtr<PCGExData::FDataForwardHandler> SeedForwardHandler;
+
+	PCGEX_FOREACH_FIELD_CLUSTER_DIFF(PCGEX_OUTPUT_DECL_TOGGLE)
 };
 
 class FPCGExClusterDiffusionElement final : public FPCGExEdgesProcessorElement
@@ -113,6 +219,7 @@ protected:
 
 namespace PCGExClusterDiffusion
 {
+	class FBatch;
 
 	struct FCandidate
 	{
@@ -121,7 +228,7 @@ namespace PCGExClusterDiffusion
 		double Score;
 		double Distance;
 	};
-	
+
 	class FDiffusion : public TSharedFromThis<FDiffusion>
 	{
 		TArray<FCandidate> Candidates;
@@ -130,17 +237,24 @@ namespace PCGExClusterDiffusion
 
 	public:
 		bool bStopped = false;
-		
+		PCGExCluster::FNode* SeedNode;
+		int32 SeedIndex = -1;
+
 		FDiffusion() = default;
 		~FDiffusion() = default;
 
+		void Complete(FPCGExClusterDiffusionContext* Context, const TSharedPtr<PCGExCluster::FCluster>& InCluster, const TSharedPtr<PCGExData::FFacade>& InVtxFacade);
 	};
-	
+
 	class FProcessor final : public PCGExClusterMT::TProcessor<FPCGExClusterDiffusionContext, UPCGExClusterDiffusionSettings>
 	{
+		friend FBatch;
+
 	protected:
+		TSharedPtr<TArray<UPCGExAttributeBlendOperation*>> Operations;
+
 		TArray<TSharedPtr<FDiffusion>> OngoingDiffusions; // Ongoing diffusions
-		TArray<TSharedPtr<FDiffusion>> Diffusions; // Stopped diffusions, as to not iterate over them needlessly
+		TArray<TSharedPtr<FDiffusion>> Diffusions;        // Stopped diffusions, as to not iterate over them needlessly
 
 		TSharedPtr<TArray<int8>> Visited; // Whether that node has been visited and captured already
 
@@ -159,15 +273,19 @@ namespace PCGExClusterDiffusion
 		virtual bool Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager) override;
 	};
 
-	class FBatch final : public PCGExClusterMT::TBatch<FProcessor>
+	class FBatch final : public PCGExClusterMT::TBatchWithHeuristics<FProcessor>
 	{
 		PCGEX_FOREACH_FIELD_CLUSTER_DIFF(PCGEX_OUTPUT_DECL)
+
+	protected:
+		TSharedPtr<TArray<UPCGExAttributeBlendOperation*>> Operations;
 
 	public:
 		FBatch(FPCGExContext* InContext, const TSharedRef<PCGExData::FPointIO>& InVtx, TArrayView<TSharedRef<PCGExData::FPointIO>> InEdges);
 		virtual ~FBatch() override;
 
 		virtual void RegisterBuffersDependencies(PCGExData::FFacadePreloader& FacadePreloader) override;
+		virtual void Process() override;
 		virtual bool PrepareSingle(const TSharedPtr<FProcessor>& ClusterProcessor) override;
 		virtual void Write() override;
 	};
