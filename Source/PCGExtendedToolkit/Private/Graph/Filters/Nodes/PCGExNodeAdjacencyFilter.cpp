@@ -84,7 +84,7 @@ bool FNodeAdjacencyFilter::Init(FPCGExContext* InContext, const TSharedRef<PCGEx
 					double B = 0;
 					for (const PCGExGraph::FLink Lk : Node.Links)
 					{
-						B = OperandA->Read(NodesRef[Lk.Node].PointIndex);
+						B = OperandB->Read(NodesRef[Lk.Node].PointIndex);
 						if (!PCGExCompare::Compare(TypedFilterFactory->Config.Comparison, A, B, TypedFilterFactory->Config.Tolerance)) { return false; }
 					}
 					return true;
@@ -97,7 +97,7 @@ bool FNodeAdjacencyFilter::Init(FPCGExContext* InContext, const TSharedRef<PCGEx
 					double B = 0;
 					for (const PCGExGraph::FLink Lk : Node.Links)
 					{
-						B = OperandA->Read(Lk.Edge);
+						B = OperandB->Read(Lk.Edge);
 						if (!PCGExCompare::Compare(TypedFilterFactory->Config.Comparison, A, B, TypedFilterFactory->Config.Tolerance)) { return false; }
 					}
 					return true;
@@ -209,7 +209,7 @@ bool FNodeAdjacencyFilter::Init(FPCGExContext* InContext, const TSharedRef<PCGEx
 
 			for (const PCGExGraph::FLink Lk : Node.Links)
 			{
-				B = OperandA->Read(NodesRef[Lk.Node].PointIndex);
+				B = OperandB->Read(NodesRef[Lk.Node].PointIndex);
 				if (PCGExCompare::Compare(TypedFilterFactory->Config.Comparison, A, B, TypedFilterFactory->Config.Tolerance)) { LocalSuccessCount++; }
 			}
 
@@ -228,7 +228,7 @@ bool FNodeAdjacencyFilter::Init(FPCGExContext* InContext, const TSharedRef<PCGEx
 
 			for (const PCGExGraph::FLink Lk : Node.Links)
 			{
-				B = OperandA->Read(Lk.Edge);
+				B = OperandB->Read(Lk.Edge);
 				if (PCGExCompare::Compare(TypedFilterFactory->Config.Comparison, A, B, TypedFilterFactory->Config.Tolerance)) { LocalSuccessCount++; }
 			}
 
@@ -243,7 +243,7 @@ bool FNodeAdjacencyFilter::Init(FPCGExContext* InContext, const TSharedRef<PCGEx
 
 bool FNodeAdjacencyFilter::Test(const PCGExCluster::FNode& Node) const
 {
-	return TestSubFunc(Node, *Cluster->Nodes, OperandA->Read(Node.PointIndex));
+	return TestSubFunc(Node, *Cluster->Nodes, OperandA ? OperandA->Read(Node.PointIndex) : OperandAConstant);
 }
 
 FNodeAdjacencyFilter::~FNodeAdjacencyFilter()

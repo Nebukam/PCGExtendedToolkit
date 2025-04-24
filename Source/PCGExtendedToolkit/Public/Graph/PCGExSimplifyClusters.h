@@ -62,7 +62,7 @@ public:
 	/** Meta filter settings for edge data. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Data Blending", meta = (PCG_Overridable, DisplayName="Carry Over Settings"))
 	FPCGExCarryOverDetails EdgeCarryOverDetails;
-	
+
 	/**  Edge Union Data */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Data Blending", meta=(PCG_Overridable))
 	FPCGExEdgeUnionMetadataDetails EdgeUnionData;
@@ -113,7 +113,7 @@ namespace PCGExSimplifyClusters
 		virtual ~FProcessor() override;
 
 		// TODO : Register edge facade attribute dependencies
-		
+
 		virtual bool Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager) override;
 		virtual void CompleteWork() override;
 

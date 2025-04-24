@@ -226,7 +226,7 @@ namespace PCGExTopologyEdges
 		void FilterConstrainedEdgeScope(const PCGExMT::FScope& Scope)
 		{
 			int32 LocalConstrainedEdgesNum = 0;
-			for (int i = Scope.Start; i < Scope.End; i++){ if (EdgeFilterCache[i]) { LocalConstrainedEdgesNum++; } }
+			for (int i = Scope.Start; i < Scope.End; i++) { if (EdgeFilterCache[i]) { LocalConstrainedEdgesNum++; } }
 			FPlatformAtomics::InterlockedAdd(&ConstrainedEdgesNum, LocalConstrainedEdgesNum);
 		}
 

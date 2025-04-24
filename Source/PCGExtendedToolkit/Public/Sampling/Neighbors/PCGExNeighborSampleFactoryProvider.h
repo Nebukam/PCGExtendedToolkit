@@ -152,7 +152,7 @@ public:
 	virtual UPCGExNeighborSampleOperation* CreateOperation(FPCGExContext* InContext) const;
 
 	virtual void RegisterVtxBuffersDependencies(FPCGExContext* InContext, const TSharedRef<PCGExData::FFacade>& InVtxDataFacade, PCGExData::FFacadePreloader& FacadePreloader) const;
-	
+
 	virtual void RegisterAssetDependencies(FPCGExContext* InContext) const override;
 };
 

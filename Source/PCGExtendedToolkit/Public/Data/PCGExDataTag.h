@@ -58,7 +58,7 @@ namespace PCGExTags
 		T GetValue() const
 		{
 			if (IsNumeric()) { return PCGEx::Convert<T>(AsDouble()); }
-			else { return PCGEx::Convert<T>(AsString()); }
+			return PCGEx::Convert<T>(AsString());
 		}
 	};
 

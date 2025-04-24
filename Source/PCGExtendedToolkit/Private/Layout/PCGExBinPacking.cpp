@@ -207,16 +207,15 @@ namespace PCGExBinPacking
 		{
 			const FVector Amplitude = Space.Inflate(ItemBox, WastedSpaceThresholds);
 		}
-		
+
 
 		TArray<FBox> NewPartitions;
 		Splitter->SplitSpace(Space, ItemBox, NewPartitions);
 
 		Spaces.RemoveAt(SpaceIndex);
 		Spaces.Reserve(Spaces.Num() + NewPartitions.Num());
-		
-		for (const FBox& Partition : NewPartitions) { AddSpace(Partition); }
 
+		for (const FBox& Partition : NewPartitions) { AddSpace(Partition); }
 	}
 
 	bool FBin::Insert(FItem& InItem)
@@ -296,7 +295,7 @@ namespace PCGExBinPacking
 		}
 
 		//
-		
+
 		Fitted.Init(false, PointDataFacade->GetNum());
 
 		TSharedPtr<PCGExData::FPointIO> TargetBins = Context->Bins->Pairs[BatchIndex];
