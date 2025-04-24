@@ -82,6 +82,7 @@ public:
 		: FVtxFilter(InFactory), TypedFilterFactory(InFactory)
 	{
 		Adjacency = InFactory->Config.Adjacency;
+		OperandAConstant = InFactory->Config.OperandAConstant;
 	}
 
 	const UPCGExNodeAdjacencyFilterFactory* TypedFilterFactory;
@@ -92,6 +93,8 @@ public:
 	FPCGExAdjacencySettings Adjacency;
 
 	TSharedPtr<PCGExData::TBuffer<double>> OperandA;
+	double OperandAConstant = 0;
+	
 	TSharedPtr<PCGExData::TBuffer<double>> OperandB;
 
 	using TestCallback = std::function<bool(const PCGExCluster::FNode&, const TArray<PCGExCluster::FNode>&, const double A)>;
