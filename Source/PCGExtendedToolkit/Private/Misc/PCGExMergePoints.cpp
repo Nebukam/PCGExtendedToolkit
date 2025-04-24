@@ -24,7 +24,7 @@ bool FPCGExMergePointsElement::Boot(FPCGExContext* InContext) const
 
 	PCGEX_FWD(SortingDetails)
 	if (!Context->SortingDetails.Init(Context)) { return false; }
-	
+
 	Context->SortingDetails.Sort(Context, Context->MainPoints);
 
 	PCGEX_FWD(CarryOverDetails)

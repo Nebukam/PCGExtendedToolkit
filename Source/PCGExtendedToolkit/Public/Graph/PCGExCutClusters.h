@@ -108,7 +108,7 @@ struct FPCGExCutEdgesContext final : FPCGExEdgesProcessorContext
 
 	bool bWantsVtxProcessing = false;
 	bool bWantsEdgesProcessing = false;
-	
+
 	TArray<TObjectPtr<const UPCGExFilterFactoryData>> EdgeFilterFactories;
 	TArray<TObjectPtr<const UPCGExFilterFactoryData>> VtxFilterFactories;
 
@@ -159,7 +159,6 @@ namespace PCGExCutEdges
 		void TryConsolidate();
 		virtual void ProcessSingleRangeIteration(const int32 Iteration, const PCGExMT::FScope& Scope) override;
 		virtual void CompleteWork() override;
-
 	};
 
 	class FBatch final : public PCGExClusterMT::TBatch<FProcessor>

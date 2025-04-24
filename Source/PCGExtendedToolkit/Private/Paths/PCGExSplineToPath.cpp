@@ -130,7 +130,7 @@ namespace PCGExSplineToPath
 		check(SplineData)
 		const FPCGSplineStruct& Spline = Context->Splines[TaskIndex];
 		const FInterpCurveVector& SplinePositions = Spline.GetSplinePointsPosition();
-		
+
 		const int32 NumSegments = Spline.GetNumberOfSplineSegments();
 		const double TotalLength = Spline.GetSplineLength();
 

@@ -50,6 +50,7 @@ UPCGExHeuristicOperation* UPCGExHeuristicsFactoryTensor::CreateOperation(FPCGExC
 	PCGEX_FORWARD_HEURISTIC_CONFIG
 	NewOperation->bAbsoluteTensor = Config.bAbsolute;
 	NewOperation->TensorHandlerDetails = Config.TensorHandlerDetails;
+	NewOperation->TensorFactories = &TensorFactories;
 	return NewOperation;
 }
 

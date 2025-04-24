@@ -160,7 +160,7 @@ namespace PCGExRefineEdges
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExRefineEdges::Process);
 
 		EdgeFilterFactories = &Context->EdgeFilterFactories; // So filters can be initialized
-		
+
 		if (!FClusterProcessor::Process(InAsyncManager)) { return false; }
 
 		Sanitization = Settings->Sanitization;

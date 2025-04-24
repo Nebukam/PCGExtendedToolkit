@@ -106,7 +106,7 @@ namespace PCGExPointsMT
 		TArray<TObjectPtr<const UPCGExFilterFactoryData>>* FilterFactories = nullptr;
 		bool DefaultPointFilterValue = true;
 		TArray<int8> PointFilterCache;
-		
+
 		UPCGExOperation* PrimaryOperation = nullptr;
 
 		explicit FPointsProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade);

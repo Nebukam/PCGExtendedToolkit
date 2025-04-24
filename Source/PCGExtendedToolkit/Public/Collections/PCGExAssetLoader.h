@@ -113,7 +113,7 @@ namespace PCGEx
 			AssetsMap.Reserve(UniquePaths.Num());
 
 			Context->SetAsyncState(InternalState_LoadingAssets);
-			
+
 			if (!bForceSynchronous)
 			{
 				Context->PauseContext();
