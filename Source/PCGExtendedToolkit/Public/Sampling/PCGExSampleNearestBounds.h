@@ -371,7 +371,7 @@ namespace PCGExSampleNearestBounds
 		virtual void PrepareSingleLoopScopeForPoints(const PCGExMT::FScope& Scope) override;
 		virtual void ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const PCGExMT::FScope& Scope) override;
 		
-		virtual void OnRangeProcessingComplete() override;
+		virtual void OnPointsProcessingComplete() override;
 		virtual void ProcessSingleRangeIteration(const int32 Iteration, const PCGExMT::FScope& Scope) override;
 		
 		virtual void CompleteWork() override;
