@@ -127,7 +127,7 @@ namespace PCGExSampleOverlapStats
 		InPoints = &PointDataFacade->GetIn()->GetPoints();
 		NumPoints = InPoints->Num();
 
-		PCGEx::InitArray(LocalPointBounds, NumPoints);
+		LocalPointBounds.Init(nullptr, NumPoints);
 		OverlapSubCount.Init(0, NumPoints);
 		OverlapCount.Init(0, NumPoints);
 
@@ -329,12 +329,6 @@ namespace PCGExSampleOverlapStats
 						NestedThis->LocalOverlapCountMax = FMath::Max(NestedThis->LocalOverlapCountMax, NestedThis->OverlapCount[i]);
 					}
 				};
-
-				if (This->ManagedOverlaps.IsEmpty())
-				{
-					WrapUp();
-					return;
-				}
 
 				PCGEX_ASYNC_GROUP_CHKD_VOID(This->AsyncManager, SearchTask)
 				SearchTask->OnCompleteCallback = WrapUp;

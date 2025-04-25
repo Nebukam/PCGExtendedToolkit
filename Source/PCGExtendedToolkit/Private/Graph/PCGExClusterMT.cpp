@@ -114,7 +114,7 @@ namespace PCGExClusterMT
 			Nodes, NumNodes,
 			PrepareLoopScopesForNodes, ProcessNodes,
 			OnNodesProcessingComplete,
-			bInlineProcessNodes)
+			bDaisyChainProcessNodes)
 	}
 
 	void FClusterProcessor::PrepareLoopScopesForNodes(const TArray<PCGExMT::FScope>& Loops)
@@ -146,7 +146,7 @@ namespace PCGExClusterMT
 			Edges, NumEdges,
 			PrepareLoopScopesForEdges, ProcessEdges,
 			OnEdgesProcessingComplete,
-			bInlineProcessEdges)
+			bDaisyChainProcessEdges)
 	}
 
 	void FClusterProcessor::PrepareLoopScopesForEdges(const TArray<PCGExMT::FScope>& Loops)

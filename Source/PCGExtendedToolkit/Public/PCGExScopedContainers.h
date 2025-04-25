@@ -29,7 +29,14 @@ namespace PCGExMT
 
 		FORCEINLINE TSharedPtr<TArray<T>> Get(const FScope& InScope) { return Values[InScope.LoopIndex]; }
 		FORCEINLINE TArray<T>& Get_Ref(const FScope& InScope) { return *Values[InScope.LoopIndex].Get(); }
-
+		
+		int32 GetTotalNum()
+		{
+			int32 TotalNum = 0;
+			for (int i = 0; i < Values.Num(); i++) { TotalNum += Values[i]->Num(); }
+			return TotalNum;
+		}
+		
 		using FForEachFunc = std::function<void (TArray<T>&)>;
 		FORCEINLINE void ForEach(FForEachFunc&& Func) { for (int i = 0; i < Values.Num(); i++) { Func(*Values[i].Get()); } }
 	};

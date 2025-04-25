@@ -266,9 +266,10 @@ namespace PCGExSampleNearestBounds
 			BCAE, [&](const PCGExGeo::FPointBox* NearbyBox)
 			{
 				NearbyBox->Sample(Point, CurrentSample);
+				if (!CurrentSample.bIsInside) { return; }
+				
 				CurrentSample.Weight = Context->WeightCurve->Eval(CurrentSample.Weight);
 
-				if (!CurrentSample.bIsInside) { return; }
 
 				if (bSingleSample)
 				{

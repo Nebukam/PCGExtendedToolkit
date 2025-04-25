@@ -21,7 +21,7 @@ TArray<FPCGPinProperties> UPCGExClusterDiffusionSettings::InputPinProperties() c
 	if (Seeds == EPCGExDiffusionSeeds::Filters)
 	{
 		// Add filter input
-		PCGEX_PIN_FACTORIES(PCGExPointFilter::SourceFiltersLabel, "Filters used to pick and choose which vtx will be used as seeds", Required, {})
+		PCGEX_PIN_FACTORIES(PCGExPointFilter::SourceVtxFiltersLabel, "Filters used to pick and choose which vtx will be used as seeds. Supports Regular & Node filters.", Required, {})
 
 		if (Ordering == EPCGExDiffusionOrder::Sorting)
 		{
@@ -47,7 +47,7 @@ bool FPCGExClusterDiffusionElement::Boot(FPCGExContext* InContext) const
 
 	if (!PCGExFactories::GetInputFactories<UPCGExAttributeBlendFactory>(
 		Context, PCGExDataBlending::SourceBlendingLabel, Context->BlendingFactories,
-		{PCGExFactories::EType::Blending}, true))
+		PCGExFactories::ClusterNodeFilters, true))
 	{
 		return false;
 	}
@@ -75,6 +75,7 @@ bool FPCGExClusterDiffusionElement::ExecuteInternal(FPCGContext* InContext) cons
 			[](const TSharedPtr<PCGExData::FPointIOTaggedEntries>& Entries) { return true; },
 			[&](const TSharedPtr<PCGExClusterDiffusion::FBatch>& NewBatch)
 			{
+				if (Settings->Seeds == EPCGExDiffusionSeeds::Filters) { NewBatch->VtxFilterFactories = &Context->FilterFactories; }
 				NewBatch->bRequiresWriteStep = true;
 			}))
 		{
@@ -99,7 +100,7 @@ namespace PCGExClusterDiffusion
 	void FDiffusion::Init()
 	{
 		Visited.Add(SeedNode->Index);
-		FCandidate SeedCandidate = FCandidate();
+		FCandidate& SeedCandidate = Captured.Emplace_GetRef();
 		SeedCandidate.Node = SeedNode;
 
 		Probe(SeedCandidate);
@@ -133,25 +134,47 @@ namespace PCGExClusterDiffusion
 		}
 	}
 
-	void FDiffusion::Capture()
+	void FDiffusion::Grow()
 	{
 		bool bSearch = true;
+		//int32 MaxInfluences = Processor->Settings->MaxInfluences
+
 		while (bSearch)
 		{
-			if(Candidates.IsEmpty())
+			if (Candidates.IsEmpty())
 			{
 				bStopped = true;
 				break;
 			}
-			FCandidate Candidate = Candidates.Pop();
-			
-			if (*(Processor->InfluencesCount->GetData() + Candidate.Node->PointIndex) >= 1) { continue; }
+
+#if PCGEX_ENGINE_VERSION <= 503
+			FCandidate Candidate = Candidates.Pop(false);	
+#else
+			FCandidate Candidate = Candidates.Pop(EAllowShrinking::No);
+#endif
+
+			int32& Influences = *(Processor->InfluencesCount->GetData() + Candidate.Node->PointIndex);
+			if (Influences >= 1) { continue; } // Validate candidate is still valid
+
+			Influences++;
+			Captured.Add(Candidate);
+			Probe(Candidate);
 
 			bSearch = false;
 		}
 		// TODO : Sanity check candidates
 		// Check available candidates
 		// If no candidate available, find next layer of candidates
+	}
+
+	void FDiffusion::SortCandidates()
+	{
+		// TODO : Sort active candidates
+	}
+
+	void FDiffusion::Diffuse()
+	{
+		// TODO : Blend
 	}
 
 	void FDiffusion::Complete(FPCGExClusterDiffusionContext* Context, const TSharedPtr<PCGExData::FFacade>& InVtxFacade)
@@ -172,30 +195,179 @@ namespace PCGExClusterDiffusion
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExClusterDiffusion::Process);
 
 		if (!FClusterProcessor::Process(InAsyncManager)) { return false; }
-		// First, build a list of diffusions
-		// Either from seeds (find closest) or filters
 
+		PCGEX_ASYNC_GROUP_CHKD(AsyncManager, DiffusionInitialization)
+		DiffusionInitialization->OnCompleteCallback =
+			[PCGEX_ASYNC_THIS_CAPTURE]()
+			{
+				PCGEX_ASYNC_THIS
+				This->StartGrowth();
+			};
+
+		DiffusionInitialization->OnPrepareSubLoopsCallback =
+			[PCGEX_ASYNC_THIS_CAPTURE](const TArray<PCGExMT::FScope>& Loops)
+			{
+				PCGEX_ASYNC_THIS
+				This->InitialDiffusions = MakeShared<PCGExMT::TScopedArray<TSharedPtr<FDiffusion>>>(Loops);
+			};
+
+		if (Settings->Seeds == EPCGExDiffusionSeeds::Filters)
+		{
+			DiffusionInitialization->OnSubLoopStartCallback =
+				[PCGEX_ASYNC_THIS_CAPTURE](const PCGExMT::FScope& Scope)
+				{
+					PCGEX_ASYNC_THIS
+					This->FilterVtxScope(Scope);
+					const TArray<PCGExCluster::FNode>& Nodes = *This->Cluster->Nodes.Get();
+					for (int i = Scope.Start; i < Scope.End; i++)
+					{
+						if (!This->IsNodePassingFilters(Nodes[i])) { continue; }
+						TSharedPtr<FDiffusion> NewDiffusion = MakeShared<FDiffusion>(This->Cluster, &Nodes[i]);
+						NewDiffusion->Init();
+						This->InitialDiffusions->Get(Scope)->Add(NewDiffusion);
+					}
+				};
+
+			DiffusionInitialization->StartSubLoops(OngoingDiffusions.Num(), GetDefault<UPCGExGlobalSettings>()->ClusterDefaultBatchChunkSize);
+		}
+		else
+		{
+			if (Settings->bUseOctreeSearch) { Cluster->RebuildOctree(Settings->SeedPicking.PickingMethod); }
+
+			DiffusionInitialization->OnSubLoopStartCallback =
+				[PCGEX_ASYNC_THIS_CAPTURE](const PCGExMT::FScope& Scope)
+				{
+					PCGEX_ASYNC_THIS
+					const TArray<FPCGPoint>& Seeds = This->Context->SeedsDataFacade->Source->GetPoints(PCGExData::ESource::In);
+					const TArray<PCGExCluster::FNode>& Nodes = *This->Cluster->Nodes.Get();
+					for (int i = Scope.Start; i < Scope.End; i++)
+					{
+						FVector SeedLocation = Seeds[i].Transform.GetLocation();
+						const int32 ClosestIndex = This->Cluster->FindClosestNode(SeedLocation, This->Settings->SeedPicking.PickingMethod);
+
+						if (ClosestIndex < 0) { continue; }
+
+						const PCGExCluster::FNode* SeedNode = &Nodes[ClosestIndex];
+
+						if (!This->Settings->SeedPicking.WithinDistance(This->Cluster->GetPos(SeedNode), SeedLocation)) { continue; }
+
+						TSharedPtr<FDiffusion> NewDiffusion = MakeShared<FDiffusion>(This->Cluster, SeedNode);
+						NewDiffusion->SeedIndex = i;
+						NewDiffusion->Init();
+						This->InitialDiffusions->Get(Scope)->Add(NewDiffusion);
+					}
+				};
+
+			DiffusionInitialization->StartSubLoops(OngoingDiffusions.Num(), 32);
+		}
 
 		return true;
 	}
 
+	void FProcessor::StartGrowth()
+	{
+		// TODO : Sort initial diffusion 
+
+		OngoingDiffusions.Reserve(InitialDiffusions->GetTotalNum());
+
+		InitialDiffusions->ForEach([&](const TArray<TSharedPtr<FDiffusion>>& Diffs) { OngoingDiffusions.Append(Diffs); });
+		InitialDiffusions.Reset();
+
+		Diffusions.Reserve(OngoingDiffusions.Num());
+
+		if (Settings->Processing == EPCGExDiffusionProcessing::Parallel)
+		{
+			Grow();
+		}
+		else
+		{
+			PCGEX_ASYNC_GROUP_CHKD_VOID(AsyncManager, GrowDiffusions)
+			GrowDiffusions->OnSubLoopStartCallback =
+				[PCGEX_ASYNC_THIS_CAPTURE](const PCGExMT::FScope& Scope)
+				{
+					PCGEX_ASYNC_THIS
+					for (int i = Scope.Start; i < Scope.End; i++) { This->Grow(); }
+				};
+
+			GrowDiffusions->StartSubLoops(OngoingDiffusions.Num(), 12, true);
+		}
+	}
+
 	void FProcessor::Grow()
 	{
+		if (OngoingDiffusions.IsEmpty()) { return; }
+
 		if (Settings->Processing == EPCGExDiffusionProcessing::Parallel)
 		{
 			StartParallelLoopForRange(OngoingDiffusions.Num());
 			return;
 		}
+
+		TSharedPtr<FDiffusion> Diffusion = OngoingDiffusions.Pop();
 	}
 
 	void FProcessor::ProcessSingleRangeIteration(const int32 Iteration, const PCGExMT::FScope& Scope)
 	{
-		// TODO : Local growth : find & sort all candidates
+		OngoingDiffusions[Iteration]->Grow();
 	}
 
 	void FProcessor::OnRangeProcessingComplete()
 	{
-		// TODO : 
+		// A single growth iteration pass is complete
+
+		const int32 OngoingNum = OngoingDiffusions.Num();
+
+		// Move stopped diffusions in another castle
+
+		int32 WriteIndex = 0;
+		for (int32 i = 0; i < OngoingNum; i++)
+		{
+			const TSharedPtr<FDiffusion> Diff = OngoingDiffusions[i];
+			if (Diff->bStopped) { Diffusions.Add(Diff); }
+			else { OngoingDiffusions[WriteIndex++] = Diff; }
+		}
+
+		if (OngoingDiffusions.IsEmpty())
+		{
+			// TODO : Wrap up
+			return;
+		}
+
+		// Sort current diffusions & move to the next iteration
+
+		PCGEX_ASYNC_GROUP_CHKD_VOID(AsyncManager, SortDiffusions)
+		SortDiffusions->OnCompleteCallback =
+			[PCGEX_ASYNC_THIS_CAPTURE]()
+			{
+				PCGEX_ASYNC_THIS
+				This->Grow();
+			};
+
+		SortDiffusions->OnSubLoopStartCallback =
+			[PCGEX_ASYNC_THIS_CAPTURE](const PCGExMT::FScope& Scope)
+			{
+				PCGEX_ASYNC_THIS
+				for (int i = Scope.Start; i < Scope.End; i++) { This->OngoingDiffusions[i]->SortCandidates(); }
+			};
+
+		SortDiffusions->StartSubLoops(OngoingDiffusions.Num(), 32);
+	}
+
+	void FProcessor::CompleteWork()
+	{
+		// Proceed to blending
+		// Note: There is an important probability of collision for nodes with influences > 1
+
+		PCGEX_ASYNC_GROUP_CHKD_VOID(AsyncManager, DiffuseDiffusions)
+
+		DiffuseDiffusions->OnSubLoopStartCallback =
+			[PCGEX_ASYNC_THIS_CAPTURE](const PCGExMT::FScope& Scope)
+			{
+				PCGEX_ASYNC_THIS
+				for (int i = Scope.Start; i < Scope.End; i++) { This->Diffusions[i]->Diffuse(); }
+			};
+
+		DiffuseDiffusions->StartSubLoops(Diffusions.Num(), 32);
 	}
 
 	FBatch::FBatch(FPCGExContext* InContext, const TSharedRef<PCGExData::FPointIO>& InVtx, TArrayView<TSharedRef<PCGExData::FPointIO>> InEdges)

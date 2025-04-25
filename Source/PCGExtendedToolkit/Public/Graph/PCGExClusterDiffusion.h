@@ -67,8 +67,12 @@ public:
 
 	/** Defines the type of seeds used for diffusion */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_NotOverridable))
-	EPCGExDiffusionSeeds Seeds = EPCGExDiffusionSeeds::Filters;
+	EPCGExDiffusionSeeds Seeds = EPCGExDiffusionSeeds::Points;
 
+	/** Drive how a seed selects a node. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable, EditCondition="Seeds==EPCGExDiffusionSeeds::Points", EditConditionHides))
+	FPCGExNodeSelectionDetails SeedPicking = FPCGExNodeSelectionDetails(200);
+	
 	/** Defines the sorting used for the vtx */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_NotOverridable, EditCondition="Seeds==EPCGExDiffusionSeeds::Filters", EditConditionHides))
 	EPCGExDiffusionOrder Ordering = EPCGExDiffusionOrder::Index;
@@ -202,6 +206,10 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="Seeds==EPCGExDiffusionSeeds::Points"))
 	FPCGExForwardDetails SeedForwarding;
 
+	/** Whether or not to search for closest node using an octree. Depending on your dataset, enabling this may be either much faster, or much slower. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Performance, meta=(PCG_NotOverridable, AdvancedDisplay))
+	bool bUseOctreeSearch = false;
+
 private:
 	friend class FPCGExClusterDiffusionElement;
 };
@@ -271,7 +279,9 @@ namespace PCGExClusterDiffusion
 		void Init();
 
 		void Probe(const FCandidate& From);
-		void Capture();
+		void Grow();
+		void SortCandidates();
+		void Diffuse();
 		void Complete(FPCGExClusterDiffusionContext* Context, const TSharedPtr<PCGExData::FFacade>& InVtxFacade);
 	};
 
@@ -287,6 +297,7 @@ namespace PCGExClusterDiffusion
 		TSharedPtr<TArray<int32>> InfluencesCount;
 		TSharedPtr<TArray<UPCGExAttributeBlendOperation*>> Operations;
 
+		TSharedPtr<PCGExMT::TScopedArray<TSharedPtr<FDiffusion>>> InitialDiffusions;
 		TArray<TSharedPtr<FDiffusion>> OngoingDiffusions; // Ongoing diffusions
 		TArray<TSharedPtr<FDiffusion>> Diffusions;        // Stopped diffusions, as to not iterate over them needlessly
 
@@ -296,6 +307,7 @@ namespace PCGExClusterDiffusion
 		FProcessor(const TSharedRef<PCGExData::FFacade>& InVtxDataFacade, const TSharedRef<PCGExData::FFacade>& InEdgeDataFacade)
 			: TProcessor(InVtxDataFacade, InEdgeDataFacade)
 		{
+			bDaisyChainProcessRange = true;
 		}
 
 		PCGEX_FOREACH_FIELD_CLUSTER_DIFF(PCGEX_OUTPUT_DECL)
@@ -304,9 +316,13 @@ namespace PCGExClusterDiffusion
 
 		virtual bool Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager) override;
 
+		void StartGrowth();
 		void Grow();
+		
 		virtual void ProcessSingleRangeIteration(const int32 Iteration, const PCGExMT::FScope& Scope) override;
 		virtual void OnRangeProcessingComplete() override;
+
+		virtual void CompleteWork() override;
 	};
 
 	class FBatch final : public PCGExClusterMT::TBatchWithHeuristics<FProcessor>
@@ -316,7 +332,7 @@ namespace PCGExClusterDiffusion
 	protected:
 		TSharedPtr<TArray<int32>> InfluencesCount;
 		TSharedPtr<TArray<UPCGExAttributeBlendOperation*>> Operations;
-
+		
 	public:
 		FBatch(FPCGExContext* InContext, const TSharedRef<PCGExData::FPointIO>& InVtx, TArrayView<TSharedRef<PCGExData::FPointIO>> InEdges);
 		virtual ~FBatch() override;
