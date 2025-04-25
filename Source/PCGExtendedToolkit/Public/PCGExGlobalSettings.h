@@ -106,6 +106,9 @@ public:
 	EPCGExAsyncPriority DefaultWorkPriority = EPCGExAsyncPriority::BackgroundNormal;
 	EPCGExAsyncPriority GetDefaultWorkPriority() const { return DefaultWorkPriority == EPCGExAsyncPriority::Default ? EPCGExAsyncPriority::BackgroundNormal : DefaultWorkPriority; }
 
+	UPROPERTY(EditAnywhere, config, Category = "Debug")
+	bool bAssertOnEmptyThread = false;
+	
 	/** Disable collision on new entries */
 	UPROPERTY(EditAnywhere, config, Category = "Collections")
 	bool bDisableCollisionByDefault = true;
@@ -247,6 +250,7 @@ public:
 	UPROPERTY(EditAnywhere, config, Category = "Node Colors")
 	FLinearColor NodeColorTensor = FLinearColor(0.350314, 1.000000, 0.470501, 1.000000);
 
+	
 	FLinearColor NodeColorFallbackToType = FLinearColor::White;
 
 	FLinearColor WantsColor(FLinearColor InColor) const;

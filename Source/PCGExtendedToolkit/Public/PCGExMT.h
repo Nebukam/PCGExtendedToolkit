@@ -273,7 +273,8 @@ namespace PCGExMT
 
 			if (MaxItems <= 0)
 			{
-				UE_LOG(LogPCGEx, Warning, TEXT("StartRanges: MaxItems = %i // Please report this!"), MaxItems);
+				UE_LOG(LogPCGEx, Error, TEXT("StartRanges: MaxItems = %i // Graph will never finish execution! You can temporarily enable bAssertOnEmptyThread in PCGEx debug settings and hook a debugger to get a stack trace."), MaxItems);
+				if (GetDefault<UPCGExGlobalSettings>()->bAssertOnEmptyThread) { ensure(false); }
 				return;
 			}
 

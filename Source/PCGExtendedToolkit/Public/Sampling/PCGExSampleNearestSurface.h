@@ -128,8 +128,16 @@ public:
 	FName DistanceAttributeName = FName("NearestDistance");
 
 	/** Whether to output normalized distance or not*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(PCG_Overridable, DisplayName=" └─ Normalized", EditCondition="bWriteDistance", EditConditionHides, HideEditConditionToggle))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(PCG_Overridable, DisplayName=" ├─ Normalized", EditCondition="bWriteDistance", EditConditionHides, HideEditConditionToggle))
 	bool bOutputNormalizedDistance = false;
+
+	/** Whether to do a OneMinus on the normalized distance value */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(PCG_Overridable, DisplayName=" │ └─ OneMinus", EditCondition="bWriteDistance && bOutputNormalizedDistance", EditConditionHides, HideEditConditionToggle))
+	bool bOutputOneMinusDistance = false;
+	
+	/** Scale factor applied to the distance output; allows to easily invert it using -1 */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(PCG_Overridable, DisplayName=" └─ Scale", EditCondition="bWriteDistance", EditConditionHides, HideEditConditionToggle))
+	double DistanceScale = 1;
 
 	/** Write the inside/outside status of the point. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(PCG_Overridable, InlineEditConditionToggle))
@@ -225,6 +233,7 @@ namespace PCGExSampleNearestSurface
 
 		TSharedPtr<PCGExData::TBuffer<double>> MaxDistanceGetter;
 		TSharedPtr<PCGExMT::TScopedValue<double>> MaxDistanceValue;
+		double MaxSampledDistance = 0;
 
 		PCGEX_FOREACH_FIELD_NEARESTSURFACE(PCGEX_OUTPUT_DECL)
 
@@ -242,6 +251,10 @@ namespace PCGExSampleNearestSurface
 		virtual void PrepareLoopScopesForPoints(const TArray<PCGExMT::FScope>& Loops) override;
 		virtual void PrepareSingleLoopScopeForPoints(const PCGExMT::FScope& Scope) override;
 		virtual void ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const PCGExMT::FScope& Scope) override;
+
+		virtual void OnRangeProcessingComplete() override;
+		virtual void ProcessSingleRangeIteration(const int32 Iteration, const PCGExMT::FScope& Scope) override;
+		
 		virtual void CompleteWork() override;
 		virtual void Write() override;
 	};

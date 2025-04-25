@@ -322,6 +322,20 @@ namespace PCGExSampleNearestSurface
 		}
 	}
 
+	void FProcessor::OnRangeProcessingComplete()
+	{
+		if (!Settings->bOutputNormalizedDistance || !DistanceWriter) { return; }
+		MaxSampledDistance = MaxDistanceValue->Max();
+		StartParallelLoopForRange(PointDataFacade->GetNum());
+	}
+
+	void FProcessor::ProcessSingleRangeIteration(const int32 Iteration, const PCGExMT::FScope& Scope)
+	{ 
+		double D = DistanceWriter->GetConst(Iteration) / MaxSampledDistance;
+		if (Settings->bOutputOneMinusDistance) { D = 1 - D; }
+		DistanceWriter->GetMutable(Iteration) = D * Settings->DistanceScale; 
+	}
+
 	void FProcessor::CompleteWork()
 	{
 		PointDataFacade->Write(AsyncManager);

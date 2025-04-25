@@ -184,6 +184,43 @@ void FPCGExMeshCollectionEntry::GetAssetPaths(TSet<FSoftObjectPath>& OutPaths) c
 	}
 }
 
+void FPCGExMeshCollectionEntry::GetMaterialPaths(const int32 PickIndex, TSet<FSoftObjectPath>& OutPaths) const
+{
+	if (PickIndex == -1 || MaterialVariants == EPCGExMaterialVariantsMode::None) { return; }
+	if (MaterialVariants == EPCGExMaterialVariantsMode::Single)
+	{
+		if (!MaterialOverrideVariants.IsValidIndex(PickIndex)) { return; }
+		OutPaths.Add(MaterialOverrideVariants[PickIndex].Material.ToSoftObjectPath());
+	}
+	else if (MaterialVariants == EPCGExMaterialVariantsMode::Multi)
+	{
+		if (!MaterialOverrideVariantsList.IsValidIndex(PickIndex)) { return; }
+		const FPCGExMaterialOverrideCollection& MEntry = MaterialOverrideVariantsList[PickIndex];
+
+		for (int i = 0; i < MEntry.Overrides.Num(); i++) { OutPaths.Add(MEntry.Overrides[i].Material.ToSoftObjectPath()); }
+	}
+}
+
+void FPCGExMeshCollectionEntry::ApplyMaterials(const int32 PickIndex, UStaticMeshComponent* TargetComponent) const
+{
+	if (PickIndex == -1 || MaterialVariants == EPCGExMaterialVariantsMode::None) { return; }
+	if (MaterialVariants == EPCGExMaterialVariantsMode::Single)
+	{
+		if (!MaterialOverrideVariants.IsValidIndex(PickIndex)) { return; }
+		TargetComponent->SetMaterial(SlotIndex, MaterialOverrideVariants[PickIndex].Material.Get());
+	}
+	else if (MaterialVariants == EPCGExMaterialVariantsMode::Multi)
+	{
+		if (!MaterialOverrideVariantsList.IsValidIndex(PickIndex)) { return; }
+		const FPCGExMaterialOverrideCollection& MEntry = MaterialOverrideVariantsList[PickIndex];
+
+		for (const FPCGExMaterialOverrideEntry& SEntry : MEntry.Overrides)
+		{
+			TargetComponent->SetMaterial(SEntry.SlotIndex, SEntry.Material.Get());
+		}
+	}
+}
+
 bool FPCGExMeshCollectionEntry::Validate(const UPCGExAssetCollection* ParentCollection)
 {
 	if (!bIsSubCollection)

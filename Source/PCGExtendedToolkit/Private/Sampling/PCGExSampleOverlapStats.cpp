@@ -330,6 +330,12 @@ namespace PCGExSampleOverlapStats
 					}
 				};
 
+				if (This->Overlaps.IsEmpty())
+				{
+					WrapUp();
+					return;
+				}
+
 				PCGEX_ASYNC_GROUP_CHKD_VOID(This->AsyncManager, SearchTask)
 				SearchTask->OnCompleteCallback = WrapUp;
 				SearchTask->OnSubLoopStartCallback = [AsyncThis](const PCGExMT::FScope& Scope)

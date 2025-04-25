@@ -540,6 +540,20 @@ namespace PCGExSampleNearestSpline
 		FPlatformAtomics::InterlockedExchange(&bAnySuccess, 1);
 	}
 
+	void FProcessor::OnRangeProcessingComplete()
+	{
+		if (!Settings->bOutputNormalizedDistance || !DistanceWriter) { return; }
+		MaxDistance = MaxDistanceValue->Max();
+		StartParallelLoopForRange(PointDataFacade->GetNum());
+	}
+
+	void FProcessor::ProcessSingleRangeIteration(const int32 Iteration, const PCGExMT::FScope& Scope)
+	{ 
+		double D = DistanceWriter->GetConst(Iteration) / MaxDistance;
+		if (Settings->bOutputOneMinusDistance) { D = 1 - D; }
+		DistanceWriter->GetMutable(Iteration) = D * Settings->DistanceScale; 
+	}
+
 	void FProcessor::CompleteWork()
 	{
 		PointDataFacade->Write(AsyncManager);
