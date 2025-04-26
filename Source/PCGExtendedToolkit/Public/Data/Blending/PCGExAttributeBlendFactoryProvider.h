@@ -73,7 +73,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExAttributeBlendConfig
 
 	FPCGExAttributeBlendConfig()
 	{
-		OperandA.Update(PCGEx::PreviousAttributeName.ToString());
+		OperandA.Update("@Last");
 		OperandB.Update("@Last");
 		OutputTo.Update("Result");
 	}
@@ -140,12 +140,12 @@ public:
 		Blender->Blend(Index, Point, Config.Weighting.ScoreCurveObj->Eval(Weight ? Weight->Read(Index) : Config.Weighting.Weight));
 	}
 	
-	virtual void Blend(const int32 SourceIndex, FPCGPoint& SourcePoint, const int32 TargetIndex, FPCGPoint& TargetPoint)
+	virtual void Blend(const int32 SourceIndex, const FPCGPoint& SourcePoint, const int32 TargetIndex, FPCGPoint& TargetPoint)
 	{
 		Blender->Blend(SourceIndex, SourcePoint, TargetIndex, TargetPoint,Config.Weighting.ScoreCurveObj->Eval(Weight ? Weight->Read(SourceIndex) : Config.Weighting.Weight));
 	}
 	
-	virtual void Blend(const int32 SourceIndex, FPCGPoint& SourcePoint, const int32 TargetIndex, FPCGPoint& TargetPoint, const double InWeight)
+	virtual void Blend(const int32 SourceIndex, const FPCGPoint& SourcePoint, const int32 TargetIndex, FPCGPoint& TargetPoint, const double InWeight)
 	{
 		Blender->Blend(SourceIndex, SourcePoint, TargetIndex, TargetPoint,Config.Weighting.ScoreCurveObj->Eval(InWeight));
 	}

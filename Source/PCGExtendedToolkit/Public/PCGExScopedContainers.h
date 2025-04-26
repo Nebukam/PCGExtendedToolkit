@@ -44,7 +44,7 @@ namespace PCGExMT
 			for (int i = 0; i < Arrays.Num(); i++)
 			{
 				InTarget.Reserve(InTarget.Num() + Arrays[i].Get()->Num());
-				InTarget.Append(Arrays[i].Get());
+				InTarget.Append(*Arrays[i].Get());
 				Arrays[i] = nullptr;
 			}
 
