@@ -98,7 +98,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExDiffusionPrioritizationDetails
 
 	/** Fetch the Diffusion Rate from a local attribute. Must be >= 0, but zero wont grow -- it will however "preserve" the vtx from being diffused on. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName="Diffusion Rate (Attr)", EditCondition="Processing==EPCGExDiffusionProcessing::Parallel && DiffusionRateInput != EPCGExInputValueType::Constant", EditConditionHides))
-	FPCGAttributePropertyInputSelector DiffusionRateAttribute;
+	FName DiffusionRateAttribute = FName("DiffusionRate");
 
 	/** Diffusion rate constant. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Diffusion Rate", EditCondition="Processing==EPCGExDiffusionProcessing::Parallel && DiffusionRateInput == EPCGExInputValueType::Constant", EditConditionHides, ClampMin=0))
@@ -156,6 +156,24 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Limits|Count", meta=(PCG_Overridable, DisplayName="Max Count", EditCondition="bUseMaxCount && MaxCountInput==EPCGExInputValueType::Constant", EditConditionHides, ClampMin=1))
 	double MaxCount = 10;
 
+	// Max depth
+
+	/** Whether to limit the connectivity depth of vtx that will be defused to */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Limits|Depth", meta=(PCG_NotOverridable))
+	bool bUseMaxDepth = false;
+
+	/**  */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Limits|Depth", meta=(PCG_NotOverridable, EditCondition="bUseMaxDepth", EditConditionHides))
+	EPCGExInputValueType MaxDepthInput = EPCGExInputValueType::Constant;
+
+	/** Max depth Attribute */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Limits|Depth", meta=(PCG_Overridable, DisplayName="Max Depth (Attr)", EditCondition="bUseMaxDepth && MaxDepthInput!=EPCGExInputValueType::Constant", EditConditionHides))
+	FName MaxDepthAttribute = FName("MaxDepth");
+
+	/** Max depth Constant */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Limits|Depth", meta=(PCG_Overridable, DisplayName="Max Depth", EditCondition="bUseMaxDepth && MaxDepthInput==EPCGExInputValueType::Constant", EditConditionHides, ClampMin=1))
+	double MaxDepth = 10;
+	
 	// Max length
 
 	/** Whether to limit the length of the individual growths */
@@ -292,6 +310,7 @@ namespace PCGExClusterDiffusion
 
 	protected:
 		TArray<FCandidate> Candidates;
+		TArray<FCandidate> Staged;
 		TArray<FCandidate> Captured;
 
 		TSet<int32> Visited;
@@ -308,6 +327,11 @@ namespace PCGExClusterDiffusion
 		bool bStopped = false;
 		const PCGExCluster::FNode* SeedNode = nullptr;
 		int32 SeedIndex = -1;
+		int32 DiffusionRate = 1;
+
+		int32 CountLimit = MAX_int32;
+		int32 DepthLimit = MAX_int32;
+		double DistanceLimit = MAX_dbl;
 
 		FDiffusion(const TSharedPtr<FProcessor>& InProcessor, const PCGExCluster::FNode* InSeedNode);
 		~FDiffusion() = default;
@@ -335,6 +359,11 @@ namespace PCGExClusterDiffusion
 		TSharedPtr<PCGExMT::TScopedArray<TSharedPtr<FDiffusion>>> InitialDiffusions;
 		TArray<TSharedPtr<FDiffusion>> OngoingDiffusions; // Ongoing diffusions
 		TArray<TSharedPtr<FDiffusion>> Diffusions;        // Stopped diffusions, as to not iterate over them needlessly
+		
+		TSharedPtr<PCGExData::TBuffer<int32>> DiffusionRate;
+		TSharedPtr<PCGExData::TBuffer<int32>> CountLimit;
+		TSharedPtr<PCGExData::TBuffer<int32>> DepthLimit;
+		TSharedPtr<PCGExData::TBuffer<double>> DistanceLimit;
 
 		TSharedPtr<PCGExMT::TScopedValue<double>> MaxDistanceValue;
 
@@ -368,6 +397,11 @@ namespace PCGExClusterDiffusion
 		TSharedPtr<TArray<int32>> InfluencesCount;
 		TSharedPtr<TArray<UPCGExAttributeBlendOperation*>> Operations;
 
+		TSharedPtr<PCGExData::TBuffer<int32>> DiffusionRate;
+		TSharedPtr<PCGExData::TBuffer<int32>> CountLimit;
+		TSharedPtr<PCGExData::TBuffer<int32>> DepthLimit;
+		TSharedPtr<PCGExData::TBuffer<double>> DistanceLimit;
+		
 	public:
 		FBatch(FPCGExContext* InContext, const TSharedRef<PCGExData::FPointIO>& InVtx, TArrayView<TSharedRef<PCGExData::FPointIO>> InEdges);
 		virtual ~FBatch() override;
