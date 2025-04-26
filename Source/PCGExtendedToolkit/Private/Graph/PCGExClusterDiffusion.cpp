@@ -169,10 +169,11 @@ namespace PCGExClusterDiffusion
 
 			FCandidate& Candidate = Candidates.Emplace_GetRef();
 			Candidate.Node = OtherNode;
-			Candidate.Score = From.Score + Processor->HeuristicsHandler->GetEdgeScore(
+			const double Score = Processor->HeuristicsHandler->GetEdgeScore(
 				FromNode, *OtherNode,
 				*Cluster->GetEdge(Lk), *SeedNode, RoamingGoal,
 				nullptr, TravelStack);
+			Candidate.Score = Processor->Settings->Diffusion.bAccumulateHeuristics ? From.Score + Score : Score; 
 			Candidate.Depth = From.Depth + 1;
 			Candidate.Distance = From.Distance + Dist; // TODO : Compute distance
 		}
@@ -197,19 +198,20 @@ namespace PCGExClusterDiffusion
 			FCandidate Candidate = Candidates.Pop(EAllowShrinking::No);
 #endif
 
-			int32& Influences = *(Processor->InfluencesCount->GetData() + Candidate.Node->PointIndex);
+			int32 Influences = FPlatformAtomics::AtomicRead((Processor->InfluencesCount->GetData() + Candidate.Node->PointIndex));
 			if (Influences >= 1) { continue; } // Validate candidate is still valid
-
+			
+			FPlatformAtomics::InterlockedIncrement((Processor->InfluencesCount->GetData() + Candidate.Node->PointIndex));
+			
 			// Update max depth & max distance
-
-			Influences++;
-
 			MaxDepth = FMath::Max(MaxDepth, Candidate.Depth);
 			MaxDistance = FMath::Max(MaxDistance, Candidate.Distance);
 
 			Staged.Add(Candidate);
 
 			Iterations--;
+
+			PostGrow();
 
 			if ((Captured.Num() + Staged.Num()) >= CountLimit)
 			{
@@ -317,6 +319,7 @@ namespace PCGExClusterDiffusion
 
 			if (Processor->DiffusionDepthWriter) { Processor->DiffusionDepthWriter->GetMutable(TargetIndex) = Candidate.Depth; }
 			if (Processor->DiffusionDistanceWriter) { Processor->DiffusionDistanceWriter->GetMutable(TargetIndex) = Candidate.Distance; }
+			if (Processor->DiffusionOrderWriter) { Processor->DiffusionOrderWriter->GetMutable(TargetIndex) = i; }
 		}
 
 		if (SeedIndex != -1)
@@ -443,7 +446,7 @@ namespace PCGExClusterDiffusion
 					for (int i = Scope.Start; i < Scope.End; i++) { This->Grow(); }
 				};
 
-			GrowDiffusions->StartSubLoops(OngoingDiffusions.Num(), 12, true);
+			GrowDiffusions->StartSubLoops(OngoingDiffusions.Num(), 1);
 		}
 	}
 
@@ -463,7 +466,7 @@ namespace PCGExClusterDiffusion
 		while (!Diffusion->bStopped)
 		{
 			Diffusion->Grow();
-			Diffusion->PostGrow();
+			//Diffusion->PostGrow();
 		}
 
 		Diffusions.Add(Diffusion);
@@ -500,6 +503,8 @@ namespace PCGExClusterDiffusion
 			return;
 		}
 
+				Grow();
+		/*
 		// Sort current diffusions & move to the next iteration
 
 		PCGEX_ASYNC_GROUP_CHKD_VOID(AsyncManager, PostGrowTask)
@@ -507,7 +512,6 @@ namespace PCGExClusterDiffusion
 			[PCGEX_ASYNC_THIS_CAPTURE]()
 			{
 				PCGEX_ASYNC_THIS
-				This->Grow();
 			};
 
 		PostGrowTask->OnSubLoopStartCallback =
@@ -518,6 +522,7 @@ namespace PCGExClusterDiffusion
 			};
 
 		PostGrowTask->StartSubLoops(OngoingDiffusions.Num(), 32);
+		*/
 	}
 
 	void FProcessor::CompleteWork()

@@ -15,6 +15,7 @@
 
 #define PCGEX_FOREACH_FIELD_CLUSTER_DIFF(MACRO)\
 MACRO(DiffusionDepth, int32, 0)\
+MACRO(DiffusionOrder, int32, 0)\
 MACRO(DiffusionDistance, double, 0)
 
 UENUM()
@@ -103,6 +104,10 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExDiffusionPrioritizationDetails
 	/** Diffusion rate constant. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Diffusion Rate", EditCondition="Processing==EPCGExDiffusionProcessing::Parallel && DiffusionRateInput == EPCGExInputValueType::Constant", EditConditionHides, ClampMin=0))
 	int32 DiffusionRateConstant = 1;
+
+	/** If enabled, heuristics score will be accumulated similar to pathfinding. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable))
+	bool bAccumulateHeuristics = true;
 };
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Clusters")
@@ -242,6 +247,14 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(DisplayName="Diffusion Depth", PCG_Overridable, EditCondition="bWriteDiffusionDepth"))
 	FName DiffusionDepthAttributeName = FName("DiffusionDepth");
 
+	/** Write the final diffusion order. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(PCG_Overridable, InlineEditConditionToggle))
+	bool bWriteDiffusionOrder = false;
+
+	/** Name of the 'int32' attribute to write order to.*/
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(DisplayName="Diffusion Order", PCG_Overridable, EditCondition="bWriteDiffusionOrder"))
+	FName DiffusionOrderAttributeName = FName("DiffusionOrder");
+
 	/** Write the final diffusion distance. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(PCG_Overridable, InlineEditConditionToggle))
 	bool bWriteDiffusionDistance = false;
@@ -371,7 +384,7 @@ namespace PCGExClusterDiffusion
 		FProcessor(const TSharedRef<PCGExData::FFacade>& InVtxDataFacade, const TSharedRef<PCGExData::FFacade>& InEdgeDataFacade)
 			: TProcessor(InVtxDataFacade, InEdgeDataFacade)
 		{
-			bDaisyChainProcessRange = true; // TODO : Evaluate atomic operations for influence update, it's the only contention at the moment
+			//bDaisyChainProcessRange = true; // TODO : Evaluate atomic operations for influence update, it's the only contention at the moment
 		}
 
 		PCGEX_FOREACH_FIELD_CLUSTER_DIFF(PCGEX_OUTPUT_DECL)
