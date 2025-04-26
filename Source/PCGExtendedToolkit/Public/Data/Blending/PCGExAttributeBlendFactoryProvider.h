@@ -4,6 +4,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "PCGExDetailsData.h"
 #include "PCGExPointsProcessor.h"
 #include "PCGExProxyDataBlending.h"
 
@@ -64,6 +65,9 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExAttributeBlendWeight
 	const FRichCurve* ScoreCurveObj = nullptr;
 
 	void Init();
+
+	TSharedPtr<PCGExDetails::TSettingValue<double>> GetWeightValueSettings() const;
+	
 };
 
 USTRUCT(BlueprintType)
@@ -137,12 +141,12 @@ public:
 
 	virtual void Blend(const int32 Index, FPCGPoint& Point)
 	{
-		Blender->Blend(Index, Point, Config.Weighting.ScoreCurveObj->Eval(Weight ? Weight->Read(Index) : Config.Weighting.Weight));
+		Blender->Blend(Index, Point, Config.Weighting.ScoreCurveObj->Eval(Weight->Get(Index)));
 	}
 	
 	virtual void Blend(const int32 SourceIndex, const FPCGPoint& SourcePoint, const int32 TargetIndex, FPCGPoint& TargetPoint)
 	{
-		Blender->Blend(SourceIndex, SourcePoint, TargetIndex, TargetPoint,Config.Weighting.ScoreCurveObj->Eval(Weight ? Weight->Read(SourceIndex) : Config.Weighting.Weight));
+		Blender->Blend(SourceIndex, SourcePoint, TargetIndex, TargetPoint,Config.Weighting.ScoreCurveObj->Eval(Weight->Get(SourceIndex)));
 	}
 	
 	virtual void Blend(const int32 SourceIndex, const FPCGPoint& SourcePoint, const int32 TargetIndex, FPCGPoint& TargetPoint, const double InWeight)
@@ -157,7 +161,7 @@ public:
 protected:
 	bool CopyAndFixSiblingSelector(FPCGExContext* InContext, FPCGAttributePropertyInputSelector& Selector) const;
 
-	TSharedPtr<PCGExData::TBuffer<double>> Weight;
+	TSharedPtr<PCGExDetails::TSettingValue<double>> Weight;
 	TSharedPtr<PCGExDataBlending::FProxyDataBlenderBase> Blender;
 };
 

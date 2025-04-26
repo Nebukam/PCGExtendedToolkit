@@ -1,7 +1,7 @@
 ﻿// Copyright 2025 Timothé Lapetite and contributors
 // Released under the MIT license https://opensource.org/license/MIT/
 
-#include "Graph/PCGExClusterDiffusion.h"
+#include "Graph/PCGExFloodFillClusters.h"
 
 #include "Dataflow/DataflowGraph.h"
 
@@ -18,12 +18,12 @@ TArray<FPCGPinProperties> UPCGExClusterDiffusionSettings::InputPinProperties() c
 	PCGEX_PIN_FACTORIES(PCGExDataBlending::SourceBlendingLabel, "Blending configurations.", Required, {})
 	PCGEX_PIN_FACTORIES(PCGExGraph::SourceHeuristicsLabel, "Heuristics.", Required, {})
 
-	if (Seeds.Source == EPCGExDiffusionSeedsSource::Filters)
+	if (Seeds.Source == EPCGExFloodFillSource::Filters)
 	{
 		// Add filter input
 		PCGEX_PIN_FACTORIES(PCGExPointFilter::SourceVtxFiltersLabel, "Filters used to pick and choose which vtx will be used as seeds. Supports Regular & Node filters.", Required, {})
 
-		if (Seeds.Ordering == EPCGExDiffusionOrder::Sorting)
+		if (Seeds.Ordering == EPCGExFloodFillOrder::Sorting)
 		{
 			PCGEX_PIN_FACTORIES(PCGExSorting::SourceSortingRules, "Plug sorting rules here. Order is defined by each rule' priority value, in ascending order.", Required, {})
 		}
@@ -52,7 +52,7 @@ bool FPCGExClusterDiffusionElement::Boot(FPCGExContext* InContext) const
 		return false;
 	}
 
-	if (Settings->Seeds.Source == EPCGExDiffusionSeedsSource::Points)
+	if (Settings->Seeds.Source == EPCGExFloodFillSource::Points)
 	{
 		Context->SeedsDataFacade = PCGExData::TryGetSingleFacade(Context, PCGExGraph::SourceSeedsLabel, true);
 		if (!Context->SeedsDataFacade) { return false; }
@@ -84,7 +84,7 @@ bool FPCGExClusterDiffusionElement::ExecuteInternal(FPCGContext* InContext) cons
 			[](const TSharedPtr<PCGExData::FPointIOTaggedEntries>& Entries) { return true; },
 			[&](const TSharedPtr<PCGExClusterDiffusion::FBatch>& NewBatch)
 			{
-				if (Settings->Seeds.Source == EPCGExDiffusionSeedsSource::Filters) { NewBatch->VtxFilterFactories = &Context->FilterFactories; }
+				if (Settings->Seeds.Source == EPCGExFloodFillSource::Filters) { NewBatch->VtxFilterFactories = &Context->FilterFactories; }
 				NewBatch->bRequiresWriteStep = true;
 			}))
 		{
@@ -113,22 +113,13 @@ namespace PCGExClusterDiffusion
 		FCandidate& SeedCandidate = Captured.Emplace_GetRef();
 		SeedCandidate.Node = SeedNode;
 
-		if (SeedIndex != -1)
-		{
-			DiffusionRate = Processor->DiffusionRate ? Processor->DiffusionRate->Read(SeedIndex) : Processor->Settings->Diffusion.DiffusionRateConstant;
+		int32 SettingsIndex = SeedIndex != -1 ? SeedIndex : SeedNode->PointIndex;
 
-			if (Processor->Settings->bUseMaxCount) { CountLimit = Processor->CountLimit ? Processor->CountLimit->Read(SeedIndex) : Processor->Settings->MaxCount; }
-			if (Processor->Settings->bUseMaxDepth) { DepthLimit = Processor->DepthLimit ? Processor->DepthLimit->Read(SeedIndex) : Processor->Settings->MaxDepth; }
-			if (Processor->Settings->bUseMaxLength) { DistanceLimit = Processor->DistanceLimit ? Processor->DistanceLimit->Read(SeedIndex) : Processor->Settings->MaxLength; }
-		}
-		else
-		{
-			DiffusionRate = Processor->DiffusionRate ? Processor->DiffusionRate->Read(SeedNode->PointIndex) : Processor->Settings->Diffusion.DiffusionRateConstant;
+		FillRate = Processor->FillRate->Get(SettingsIndex);
 
-			if (Processor->Settings->bUseMaxCount) { CountLimit = Processor->CountLimit ? Processor->CountLimit->Read(SeedNode->PointIndex) : Processor->Settings->MaxCount; }
-			if (Processor->Settings->bUseMaxDepth) { DepthLimit = Processor->DepthLimit ? Processor->DepthLimit->Read(SeedNode->PointIndex) : Processor->Settings->MaxDepth; }
-			if (Processor->Settings->bUseMaxLength) { DistanceLimit = Processor->DistanceLimit ? Processor->DistanceLimit->Read(SeedNode->PointIndex) : Processor->Settings->MaxLength; }
-		}
+		CountLimit = Processor->CountLimit->Get(SettingsIndex);
+		DepthLimit = Processor->DepthLimit->Get(SettingsIndex);
+		DistanceLimit = Processor->DistanceLimit->Get(SettingsIndex);
 
 		Probe(SeedCandidate);
 	}
@@ -169,11 +160,29 @@ namespace PCGExClusterDiffusion
 
 			FCandidate& Candidate = Candidates.Emplace_GetRef();
 			Candidate.Node = OtherNode;
-			const double Score = Processor->HeuristicsHandler->GetEdgeScore(
-				FromNode, *OtherNode,
-				*Cluster->GetEdge(Lk), *SeedNode, RoamingGoal,
-				nullptr, TravelStack);
-			Candidate.Score = Processor->Settings->Diffusion.bAccumulateHeuristics ? From.Score + Score : Score; 
+
+
+			if (Processor->bUseLocalScore || Processor->bUsePreviousScore)
+			{
+				const double LocalScore = Processor->HeuristicsHandler->GetEdgeScore(
+					FromNode, *OtherNode,
+					*Cluster->GetEdge(Lk), *SeedNode, RoamingGoal,
+					nullptr, TravelStack);
+
+				if (Processor->bUsePreviousScore)
+				{
+					Candidate.PathScore = From.PathScore + LocalScore;
+					Candidate.Score += From.PathScore;
+				}
+
+				if (Processor->bUseLocalScore)
+				{
+					Candidate.Score += LocalScore;
+				}
+			}
+
+			if (Processor->bUseGlobalScore) { Candidate.Score += Processor->HeuristicsHandler->GetGlobalScore(FromNode, *SeedNode, *OtherNode); }
+
 			Candidate.Depth = From.Depth + 1;
 			Candidate.Distance = From.Distance + Dist; // TODO : Compute distance
 		}
@@ -181,14 +190,14 @@ namespace PCGExClusterDiffusion
 
 	void FDiffusion::Grow()
 	{
-		//int32 MaxInfluences = Processor->Settings->MaxInfluences
+		if (bStopped) { return; }
 
-		int32 Iterations = DiffusionRate;
-		while (Iterations > 0)
+		bool bSearch = true;
+		while (bSearch)
 		{
 			if (Candidates.IsEmpty())
 			{
-				bStopped = Staged.IsEmpty(); // Stop if no candidate has been staged
+				bStopped = true;
 				break;
 			}
 
@@ -198,22 +207,21 @@ namespace PCGExClusterDiffusion
 			FCandidate Candidate = Candidates.Pop(EAllowShrinking::No);
 #endif
 
-			int32 Influences = FPlatformAtomics::AtomicRead((Processor->InfluencesCount->GetData() + Candidate.Node->PointIndex));
+			int8 Influences = FPlatformAtomics::AtomicRead((Processor->InfluencesCount->GetData() + Candidate.Node->PointIndex));
 			if (Influences >= 1) { continue; } // Validate candidate is still valid
-			
+
 			FPlatformAtomics::InterlockedIncrement((Processor->InfluencesCount->GetData() + Candidate.Node->PointIndex));
-			
+
 			// Update max depth & max distance
 			MaxDepth = FMath::Max(MaxDepth, Candidate.Depth);
 			MaxDistance = FMath::Max(MaxDistance, Candidate.Distance);
 
-			Staged.Add(Candidate);
-
-			Iterations--;
-
+			Captured.Add(Candidate);
 			PostGrow();
 
-			if ((Captured.Num() + Staged.Num()) >= CountLimit)
+			bSearch = false;
+
+			if (Captured.Num() >= CountLimit)
 			{
 				// Max Count reached
 				bStopped = true;
@@ -226,67 +234,33 @@ namespace PCGExClusterDiffusion
 	{
 		// Probe from last captured candidate
 
-		Captured.Reserve(Captured.Num() + Staged.Num());
-
-		for (const FCandidate& Candidate : Staged)
-		{
-			Captured.Add(Candidate);
-			Probe(Candidate);
-		}
-
-		Staged.Reset();
+		Probe(Captured.Last());
 
 		// Sort candidates
 
 		switch (Processor->Settings->Diffusion.Priority)
 		{
 		case EPCGExDiffusionPrioritization::Heuristics:
-			if (Processor->Settings->Diffusion.SortDirection == EPCGExSortDirection::Ascending)
-			{
-				Candidates.Sort(
-					[&](const FCandidate& A, const FCandidate& B)
-					{
-						if (A.Score == B.Score) { return A.Depth > B.Depth; }
-						return A.Score > B.Score;
-					});
-			}
-			else
-			{
-				Candidates.Sort(
-					[&](const FCandidate& A, const FCandidate& B)
-					{
-						if (A.Score == B.Score) { return A.Depth < B.Depth; }
-						return A.Score < B.Score;
-					});
-			}
+			Candidates.Sort(
+				[&](const FCandidate& A, const FCandidate& B)
+				{
+					if (A.Score == B.Score) { return A.Depth > B.Depth; }
+					return A.Score > B.Score;
+				});
 			break;
 		case EPCGExDiffusionPrioritization::Depth:
-			if (Processor->Settings->Diffusion.SortDirection == EPCGExSortDirection::Ascending)
-			{
-				Candidates.Sort(
-					[&](const FCandidate& A, const FCandidate& B)
-					{
-						if (A.Depth == B.Depth) { return A.Score > B.Score; }
-						return A.Depth > B.Depth;
-					});
-			}
-			else
-			{
-				Candidates.Sort(
-					[&](const FCandidate& A, const FCandidate& B)
-					{
-						if (A.Depth == B.Depth) { return A.Score < B.Score; }
-						return A.Depth < B.Depth;
-					});
-			}
+			Candidates.Sort(
+				[&](const FCandidate& A, const FCandidate& B)
+				{
+					if (A.Depth == B.Depth) { return A.Score > B.Score; }
+					return A.Depth > B.Depth;
+				});
 			break;
 		}
 	}
 
 	void FDiffusion::Diffuse()
 	{
-		// TODO : Blend
-
 		TArray<UPCGExAttributeBlendOperation*>& Operations = *Processor->Operations.Get();
 
 		TArray<int32> Indices;
@@ -338,6 +312,10 @@ namespace PCGExClusterDiffusion
 
 		if (!FClusterProcessor::Process(InAsyncManager)) { return false; }
 
+		bUseLocalScore = (Settings->Diffusion.Scoring & static_cast<uint8>(EPCGExDiffusionHeuristicFlags::LocalScore)) != 0;
+		bUseGlobalScore = (Settings->Diffusion.Scoring & static_cast<uint8>(EPCGExDiffusionHeuristicFlags::GlobalScore)) != 0;
+		bUsePreviousScore = (Settings->Diffusion.Scoring & static_cast<uint8>(EPCGExDiffusionHeuristicFlags::PreviousScore)) != 0;
+
 		PCGEX_ASYNC_GROUP_CHKD(AsyncManager, DiffusionInitialization)
 		DiffusionInitialization->OnCompleteCallback =
 			[PCGEX_ASYNC_THIS_CAPTURE]()
@@ -355,7 +333,7 @@ namespace PCGExClusterDiffusion
 
 		int32 InitIterations = 0;
 
-		if (Settings->Seeds.Source == EPCGExDiffusionSeedsSource::Filters)
+		if (Settings->Seeds.Source == EPCGExFloodFillSource::Filters)
 		{
 			DiffusionInitialization->OnSubLoopStartCallback =
 				[PCGEX_ASYNC_THIS_CAPTURE](const PCGExMT::FScope& Scope)
@@ -431,9 +409,8 @@ namespace PCGExClusterDiffusion
 
 		Diffusions.Reserve(OngoingDiffusions.Num());
 
-		if (Settings->Diffusion.Processing == EPCGExDiffusionProcessing::Parallel)
+		if (Settings->Diffusion.Processing == EPCGExFloodFillProcessing::Parallel)
 		{
-			// TODO : Implement growth rate
 			Grow();
 		}
 		else
@@ -454,7 +431,7 @@ namespace PCGExClusterDiffusion
 	{
 		if (OngoingDiffusions.IsEmpty()) { return; }
 
-		if (Settings->Diffusion.Processing == EPCGExDiffusionProcessing::Parallel)
+		if (Settings->Diffusion.Processing == EPCGExFloodFillProcessing::Parallel)
 		{
 			// Grow all by a single step
 			StartParallelLoopForRange(OngoingDiffusions.Num());
@@ -463,11 +440,7 @@ namespace PCGExClusterDiffusion
 
 		// Grow one entierely
 		TSharedPtr<FDiffusion> Diffusion = OngoingDiffusions.Pop();
-		while (!Diffusion->bStopped)
-		{
-			Diffusion->Grow();
-			//Diffusion->PostGrow();
-		}
+		while (!Diffusion->bStopped) { Diffusion->Grow(); }
 
 		Diffusions.Add(Diffusion);
 
@@ -476,17 +449,16 @@ namespace PCGExClusterDiffusion
 
 	void FProcessor::ProcessSingleRangeIteration(const int32 Iteration, const PCGExMT::FScope& Scope)
 	{
-		OngoingDiffusions[Iteration]->Grow();
+		TSharedPtr<FDiffusion> Diffusion = OngoingDiffusions[Iteration];
+		for (int i = 0; i < Diffusion->FillRate; i++) { Diffusion->Grow(); }
 	}
 
 	void FProcessor::OnRangeProcessingComplete()
 	{
 		// A single growth iteration pass is complete
-
 		const int32 OngoingNum = OngoingDiffusions.Num();
 
 		// Move stopped diffusions in another castle
-
 		int32 WriteIndex = 0;
 		for (int32 i = 0; i < OngoingNum; i++)
 		{
@@ -497,32 +469,9 @@ namespace PCGExClusterDiffusion
 
 		OngoingDiffusions.SetNum(WriteIndex);
 
-		if (OngoingDiffusions.IsEmpty())
-		{
-			// TODO : Wrap up
-			return;
-		}
+		if (OngoingDiffusions.IsEmpty()) { return; }
 
-				Grow();
-		/*
-		// Sort current diffusions & move to the next iteration
-
-		PCGEX_ASYNC_GROUP_CHKD_VOID(AsyncManager, PostGrowTask)
-		PostGrowTask->OnCompleteCallback =
-			[PCGEX_ASYNC_THIS_CAPTURE]()
-			{
-				PCGEX_ASYNC_THIS
-			};
-
-		PostGrowTask->OnSubLoopStartCallback =
-			[PCGEX_ASYNC_THIS_CAPTURE](const PCGExMT::FScope& Scope)
-			{
-				PCGEX_ASYNC_THIS
-				for (int i = Scope.Start; i < Scope.End; i++) { This->OngoingDiffusions[i]->PostGrow(); }
-			};
-
-		PostGrowTask->StartSubLoops(OngoingDiffusions.Num(), 32);
-		*/
+		Grow();
 	}
 
 	void FProcessor::CompleteWork()
@@ -539,7 +488,7 @@ namespace PCGExClusterDiffusion
 				for (int i = Scope.Start; i < Scope.End; i++) { This->Diffusions[i]->Diffuse(); }
 			};
 
-		DiffuseDiffusions->StartSubLoops(Diffusions.Num(), 32);
+		DiffuseDiffusions->StartSubLoops(Diffusions.Num(), GetDefault<UPCGExGlobalSettings>()->GetPointsBatchChunkSize());
 	}
 
 	FBatch::FBatch(FPCGExContext* InContext, const TSharedRef<PCGExData::FPointIO>& InVtx, TArrayView<TSharedRef<PCGExData::FPointIO>> InEdges)
@@ -567,11 +516,11 @@ namespace PCGExClusterDiffusion
 			Factory->RegisterBuffersDependencies(Context, FacadePreloader);
 		}
 
-		if (Settings->Seeds.Source == EPCGExDiffusionSeedsSource::Filters)
+		if (Settings->Seeds.Source == EPCGExFloodFillSource::Filters)
 		{
-			if (Settings->Diffusion.DiffusionRateInput == EPCGExInputValueType::Attribute)
+			if (Settings->Diffusion.FillRateInput == EPCGExInputValueType::Attribute)
 			{
-				FacadePreloader.Register<int32>(Context, Settings->Diffusion.DiffusionRateAttribute);
+				FacadePreloader.Register<int32>(Context, Settings->Diffusion.FillRateAttribute);
 			}
 
 #define PCGEX_DIFFUSION_REGISTER_LIMIT(_NAME) if (Settings->bUse##_NAME && Settings->_NAME##Input == EPCGExInputValueType::Attribute) \
@@ -612,39 +561,47 @@ namespace PCGExClusterDiffusion
 			}
 		}
 
-		InfluencesCount = MakeShared<TArray<int32>>();
+		InfluencesCount = MakeShared<TArray<int8>>();
 		InfluencesCount->Init(0, VtxDataFacade->GetNum());
 
-		if (Settings->Diffusion.DiffusionRateInput == EPCGExInputValueType::Attribute)
+		TSharedPtr<PCGExData::FFacade> SettingsSource = Settings->Seeds.Source == EPCGExFloodFillSource::Filters ? VtxDataFacade : Context->SeedsDataFacade;
+
+		// Diffusion rate
+
+		FillRate = PCGExDetails::MakeSettingValue<int32>(Settings->Diffusion.FillRateInput, Settings->Diffusion.FillRateAttribute, Settings->Diffusion.FillRateConstant);
+		bIsBatchValid = FillRate->Init(Context, SettingsSource);
+
+		if (Settings->bUseMaxCount)
 		{
-			if (Settings->Seeds.Source == EPCGExDiffusionSeedsSource::Filters)
-			{
-				DiffusionRate = VtxDataFacade->GetBroadcaster<int32>(Settings->Diffusion.DiffusionRateAttribute);
-			}
-			else
-			{
-				DiffusionRate = Context->SeedsDataFacade->GetBroadcaster<int32>(Settings->Diffusion.DiffusionRateAttribute);
-			}
-
-			if (Settings->bUseMaxCount && Settings->MaxCountInput == EPCGExInputValueType::Attribute)
-			{
-				if (Settings->Seeds.Source == EPCGExDiffusionSeedsSource::Filters) { CountLimit = VtxDataFacade->GetBroadcaster<int32>(Settings->MaxCountAttribute); }
-				else { CountLimit = Context->SeedsDataFacade->GetBroadcaster<int32>(Settings->MaxCountAttribute); }
-			}
-
-			if (Settings->bUseMaxDepth && Settings->MaxCountInput == EPCGExInputValueType::Attribute)
-			{
-				if (Settings->Seeds.Source == EPCGExDiffusionSeedsSource::Filters) { DepthLimit = VtxDataFacade->GetBroadcaster<int32>(Settings->MaxDepthAttribute); }
-				else { DepthLimit = Context->SeedsDataFacade->GetBroadcaster<int32>(Settings->MaxDepthAttribute); }
-			}
-
-			if (Settings->bUseMaxLength && Settings->MaxCountInput == EPCGExInputValueType::Attribute)
-			{
-				if (Settings->Seeds.Source == EPCGExDiffusionSeedsSource::Filters) { DistanceLimit = VtxDataFacade->GetBroadcaster<double>(Settings->MaxDepthAttribute); }
-				else { DistanceLimit = Context->SeedsDataFacade->GetBroadcaster<double>(Settings->MaxDepthAttribute); }
-			}
+			CountLimit = PCGExDetails::MakeSettingValue<int32>(Settings->MaxCountInput, Settings->MaxCountAttribute, Settings->MaxCount);
+			bIsBatchValid = CountLimit->Init(Context, SettingsSource);
+		}
+		else
+		{
+			CountLimit = PCGExDetails::MakeSettingValue<int32>(MAX_int32);
 		}
 
+		if (Settings->bUseMaxDepth)
+		{
+			DepthLimit = PCGExDetails::MakeSettingValue<int32>(Settings->MaxDepthInput, Settings->MaxDepthAttribute, Settings->MaxDepth);
+			bIsBatchValid = DepthLimit->Init(Context, SettingsSource);
+		}
+		else
+		{
+			DepthLimit = PCGExDetails::MakeSettingValue<int32>(MAX_int32);
+		}
+
+		if (Settings->bUseMaxLength)
+		{
+			DistanceLimit = PCGExDetails::MakeSettingValue<double>(Settings->MaxLengthInput, Settings->MaxLengthAttribute, Settings->MaxLength);
+			bIsBatchValid = DistanceLimit->Init(Context, SettingsSource);
+		}
+		else
+		{
+			DistanceLimit = PCGExDetails::MakeSettingValue<double>(MAX_dbl);
+		}
+
+		if (!bIsBatchValid) { return; } // Fail
 
 		TBatchWithHeuristics<FProcessor>::Process();
 	}
@@ -655,7 +612,12 @@ namespace PCGExClusterDiffusion
 
 		ClusterProcessor->Operations = Operations;
 		ClusterProcessor->InfluencesCount = InfluencesCount;
-		ClusterProcessor->DiffusionRate = DiffusionRate;
+
+		ClusterProcessor->FillRate = FillRate;
+
+		ClusterProcessor->CountLimit = CountLimit;
+		ClusterProcessor->DepthLimit = DepthLimit;
+		ClusterProcessor->DistanceLimit = DistanceLimit;
 
 #define PCGEX_OUTPUT_FWD_TO(_NAME, _TYPE, _DEFAULT_VALUE) if(_NAME##Writer){ ClusterProcessor->_NAME##Writer = _NAME##Writer; }
 		PCGEX_FOREACH_FIELD_CLUSTER_DIFF(PCGEX_OUTPUT_FWD_TO)

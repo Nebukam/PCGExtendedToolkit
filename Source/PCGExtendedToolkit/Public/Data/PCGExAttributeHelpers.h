@@ -274,7 +274,7 @@ namespace PCGEx
 	PCGEXTENDEDTOOLKIT_API
 	FString GetSelectorDisplayName(const FPCGAttributePropertyInputSelector& InSelector);
 
-	class PCGEXTENDEDTOOLKIT_API FAttributeBroadcasterBase
+	class PCGEXTENDEDTOOLKIT_API FAttributeBroadcasterBase : public TSharedFromThis<FAttributeBroadcasterBase>
 	{
 	public:
 		FAttributeProcessingInfos ProcessingInfos = FAttributeProcessingInfos();
@@ -645,9 +645,9 @@ namespace PCGEx
 	protected:
 		virtual void ResetMinMax() { PCGExMath::TypeMinMax(Min, Max); }
 	};
-
+	
 #pragma endregion
-
+	
 #pragma region Attribute copy
 
 	void CopyPoints(

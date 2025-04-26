@@ -4,6 +4,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "PCGExDetailsData.h"
 #include "PCGExScopedContainers.h"
 #include "Data/PCGExDataForward.h"
 #include "Data/Blending/PCGExAttributeBlendFactoryProvider.h"
@@ -11,29 +12,29 @@
 
 #include "Graph/PCGExEdgesProcessor.h"
 #include "Sampling/PCGExSampling.h"
-#include "PCGExClusterDiffusion.generated.h"
+#include "PCGExFloodFillClusters.generated.h"
 
 #define PCGEX_FOREACH_FIELD_CLUSTER_DIFF(MACRO)\
-MACRO(DiffusionDepth, int32, 0)\
-MACRO(DiffusionOrder, int32, 0)\
+MACRO(DiffusionDepth, int32, -1)\
+MACRO(DiffusionOrder, int32, -1)\
 MACRO(DiffusionDistance, double, 0)
 
 UENUM()
-enum class EPCGExDiffusionOrder : uint8
+enum class EPCGExFloodFillOrder : uint8
 {
 	Index   = 0 UMETA(DisplayName = "Index", ToolTip="Uses point index to drive diffusion order."),
 	Sorting = 1 UMETA(DisplayName = "Sorting", ToolTip="Use sorting rules to drive diffusion order."),
 };
 
 UENUM()
-enum class EPCGExDiffusionSeedsSource : uint8
+enum class EPCGExFloodFillSource : uint8
 {
 	Filters = 0 UMETA(DisplayName = "Filters", ToolTip="Uses filters to pick which vtx should be used as seeds."),
 	Points  = 1 UMETA(DisplayName = "Points", ToolTip="Uses source seed points as seed, and picks the closest vtx."),
 };
 
 UENUM()
-enum class EPCGExDiffusionProcessing : uint8
+enum class EPCGExFloodFillProcessing : uint8
 {
 	Parallel = 0 UMETA(DisplayName = "Parallel", ToolTip="Diffuse each vtx once before moving to the next iteration."),
 	Sequence = 1 UMETA(DisplayName = "Sequential", ToolTip="Diffuse each vtx until it stops before moving to the next one, and so on."),
@@ -46,68 +47,76 @@ enum class EPCGExDiffusionPrioritization : uint8
 	Depth      = 1 UMETA(DisplayName = "Depth", ToolTip="Prioritize expansion based on depth, then heuristics."),
 };
 
+UENUM(meta=(Bitflags, UseEnumValuesAsMaskValuesInEditor="true", DisplayName="[PCGEx] Diffusion Heuristic Flags"))
+enum class EPCGExDiffusionHeuristicFlags : uint8
+{
+	None          = 0,
+	LocalScore    = 1 << 0 UMETA(DisplayName = "Local Score", ToolTip="From neighbor to neighbor"),
+	GlobalScore   = 1 << 1 UMETA(DisplayName = "Global Score", ToolTip="From seed to candidate"),
+	PreviousScore = 1 << 2 UMETA(DisplayName = "Previous Score", ToolTip="Previously accumulated local score"),
+};
+
+ENUM_CLASS_FLAGS(EPCGExDiffusionHeuristicFlags)
+using EPCGExDiffusionHeuristicFlagsBitmask = TEnumAsByte<EPCGExDiffusionHeuristicFlags>;
+
 USTRUCT(BlueprintType)
-struct PCGEXTENDEDTOOLKIT_API FPCGExDiffusionSeedPickingDetails
+struct PCGEXTENDEDTOOLKIT_API FPCGExFloodFillSeedPickingDetails
 {
 	GENERATED_BODY()
 
-	FPCGExDiffusionSeedPickingDetails()
+	FPCGExFloodFillSeedPickingDetails()
 	{
 	}
 
 	/** Defines the type of seeds used for diffusion. Points lets you use a single point dataset as spatial input, while filters will use filters on the vtx to determine which vtx should be diffused. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_NotOverridable))
-	EPCGExDiffusionSeedsSource Source = EPCGExDiffusionSeedsSource::Points;
+	EPCGExFloodFillSource Source = EPCGExFloodFillSource::Points;
 
 	/** Drive how a seed point selects a node. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable, EditCondition="Source==EPCGExDiffusionSeedsSource::Points", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable, EditCondition="Source==EPCGExFloodFillSource::Points", EditConditionHides))
 	FPCGExNodeSelectionDetails SeedPicking = FPCGExNodeSelectionDetails(200);
 
 	/** Defines the sorting used for the vtx */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_NotOverridable, EditCondition="Source==EPCGExDiffusionSeedsSource::Filters", EditConditionHides))
-	EPCGExDiffusionOrder Ordering = EPCGExDiffusionOrder::Index;
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_NotOverridable, EditCondition="Source==EPCGExFloodFillSource::Filters", EditConditionHides))
+	EPCGExFloodFillOrder Ordering = EPCGExFloodFillOrder::Index;
 
 	/** Sort direction */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_NotOverridable, EditCondition="Source==EPCGExDiffusionSeedsSource::Filters", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_NotOverridable, EditCondition="Source==EPCGExFloodFillSource::Filters", EditConditionHides))
 	EPCGExSortDirection SortDirection = EPCGExSortDirection::Ascending;
 };
 
 USTRUCT(BlueprintType)
-struct PCGEXTENDEDTOOLKIT_API FPCGExDiffusionPrioritizationDetails
+struct PCGEXTENDEDTOOLKIT_API FPCGExFloodFillFlowDetails
 {
 	GENERATED_BODY()
 
-	FPCGExDiffusionPrioritizationDetails()
+	FPCGExFloodFillFlowDetails()
 	{
 	}
 
 	/** Defines how each vtx is diffused */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_NotOverridable))
-	EPCGExDiffusionProcessing Processing = EPCGExDiffusionProcessing::Parallel;
-	
+	EPCGExFloodFillProcessing Processing = EPCGExFloodFillProcessing::Parallel;
+
 	/** Which data should be prioritized to 'drive' diffusion */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_NotOverridable))
 	EPCGExDiffusionPrioritization Priority = EPCGExDiffusionPrioritization::Heuristics;
 
-	/** Sort direction. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_NotOverridable, EditCondition="Seeds==EPCGExDiffusionSeeds::Filters", EditConditionHides))
-	EPCGExSortDirection SortDirection = EPCGExSortDirection::Ascending;
-
 	/** Diffusion Rate type.*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="Processing==EPCGExDiffusionProcessing::Parallel", EditConditionHides))
-	EPCGExInputValueType DiffusionRateInput = EPCGExInputValueType::Constant;
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="Processing==EPCGExFloodFillProcessing::Parallel", EditConditionHides))
+	EPCGExInputValueType FillRateInput = EPCGExInputValueType::Constant;
 
 	/** Fetch the Diffusion Rate from a local attribute. Must be >= 0, but zero wont grow -- it will however "preserve" the vtx from being diffused on. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName="Diffusion Rate (Attr)", EditCondition="Processing==EPCGExDiffusionProcessing::Parallel && DiffusionRateInput != EPCGExInputValueType::Constant", EditConditionHides))
-	FName DiffusionRateAttribute = FName("DiffusionRate");
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName="Fill Rate (Attr)", EditCondition="Processing==EPCGExFloodFillProcessing::Parallel && FillRateInput != EPCGExInputValueType::Constant", EditConditionHides))
+	FName FillRateAttribute = FName("FillRate");
 
 	/** Diffusion rate constant. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Diffusion Rate", EditCondition="Processing==EPCGExDiffusionProcessing::Parallel && DiffusionRateInput == EPCGExInputValueType::Constant", EditConditionHides, ClampMin=0))
-	int32 DiffusionRateConstant = 1;
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Fill Rate", EditCondition="Processing==EPCGExFloodFillProcessing::Parallel && FillRateInput == EPCGExInputValueType::Constant", EditConditionHides, ClampMin=0))
+	int32 FillRateConstant = 1;
 
-	/** If enabled, heuristics score will be accumulated similar to pathfinding. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable))
-	bool bAccumulateHeuristics = true;
+	/** What components are used for scoring points. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable, Bitmask, BitmaskEnum="/Script/PCGExtendedToolkit.EPCGExDiffusionHeuristicFlags"))
+	uint8 Scoring = static_cast<uint8>(EPCGExDiffusionHeuristicFlags::LocalScore);
 };
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Clusters")
@@ -121,7 +130,7 @@ public:
 
 	//~Begin UPCGSettings
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS(ClusterDiffusion, "Cluster : Diffusion", "Diffuses vtx attributes onto their neighbors.");
+	PCGEX_NODE_INFOS(ClusterFloodFill, "Cluster : Flood Fill", "Diffuses vtx attributes onto their neighbors.");
 #endif
 
 	virtual PCGExData::EIOInit GetMainOutputInitMode() const override;
@@ -135,11 +144,11 @@ protected:
 public:
 	/** Seeds settings */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_NotOverridable))
-	FPCGExDiffusionSeedPickingDetails Seeds;
+	FPCGExFloodFillSeedPickingDetails Seeds;
 
 	/** Diffusion settings */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_NotOverridable))
-	FPCGExDiffusionPrioritizationDetails Diffusion;
+	FPCGExFloodFillFlowDetails Diffusion;
 
 #pragma region Limits
 
@@ -159,7 +168,7 @@ public:
 
 	/** Max count Constant */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Limits|Count", meta=(PCG_Overridable, DisplayName="Max Count", EditCondition="bUseMaxCount && MaxCountInput==EPCGExInputValueType::Constant", EditConditionHides, ClampMin=1))
-	double MaxCount = 10;
+	int32 MaxCount = 10;
 
 	// Max depth
 
@@ -178,7 +187,7 @@ public:
 	/** Max depth Constant */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Limits|Depth", meta=(PCG_Overridable, DisplayName="Max Depth", EditCondition="bUseMaxDepth && MaxDepthInput==EPCGExInputValueType::Constant", EditConditionHides, ClampMin=1))
 	double MaxDepth = 10;
-	
+
 	// Max length
 
 	/** Whether to limit the length of the individual growths */
@@ -221,20 +230,6 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Limits|Other", meta=(PCG_NotOverridable))
 	bool bLimitToSeedBounds = false;
 
-	// Max influences
-
-	/**  */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Limits|Other", meta=(PCG_NotOverridable))
-	EPCGExInputValueType MaxInfluencesInput = EPCGExInputValueType::Constant;
-
-	/** Max influences Attribute */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Limits|Other", meta=(PCG_Overridable, DisplayName="Max Influences (Attr)", EditCondition="MaxInfluencesInput!=EPCGExInputValueType::Constant", EditConditionHides))
-	FName MaxInfluencesAttribute = FName("MaxInfluences");
-
-	/** Max influences Constant */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Limits|Other", meta=(PCG_Overridable, DisplayName="Max Influences", EditCondition="MaxInfluencesInput==EPCGExInputValueType::Constant", EditConditionHides, ClampMin=1))
-	int32 MaxInfluences = 1;
-
 #pragma endregion
 
 #pragma region  Outputs
@@ -266,7 +261,7 @@ public:
 #pragma endregion
 
 	/** Which Seed attributes to forward on the vtx they diffused to. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta = (PCG_Overridable, EditCondition="Seeds==EPCGExDiffusionSeeds::Points"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta = (PCG_Overridable, EditCondition="Seeds==EPCGExFloodFillSource::Points"))
 	FPCGExForwardDetails SeedForwarding;
 
 	/** Whether or not to search for closest node using an octree. Depending on your dataset, enabling this may be either much faster, or much slower. */
@@ -311,6 +306,7 @@ namespace PCGExClusterDiffusion
 	{
 		const PCGExCluster::FNode* Node = nullptr;
 		int32 Depth = 0;
+		double PathScore = 0;
 		double Score = 0;
 		double Distance = 0;
 
@@ -323,7 +319,6 @@ namespace PCGExClusterDiffusion
 
 	protected:
 		TArray<FCandidate> Candidates;
-		TArray<FCandidate> Staged;
 		TArray<FCandidate> Captured;
 
 		TSet<int32> Visited;
@@ -340,7 +335,7 @@ namespace PCGExClusterDiffusion
 		bool bStopped = false;
 		const PCGExCluster::FNode* SeedNode = nullptr;
 		int32 SeedIndex = -1;
-		int32 DiffusionRate = 1;
+		int32 FillRate = 1;
 
 		int32 CountLimit = MAX_int32;
 		int32 DepthLimit = MAX_int32;
@@ -366,25 +361,28 @@ namespace PCGExClusterDiffusion
 		const PCGExCluster::FNode* RoamingSeedNode = nullptr;
 		const PCGExCluster::FNode* RoamingGoalNode = nullptr;
 
-		TSharedPtr<TArray<int32>> InfluencesCount;
+		TSharedPtr<TArray<int8>> InfluencesCount;
 		TSharedPtr<TArray<UPCGExAttributeBlendOperation*>> Operations;
 
 		TSharedPtr<PCGExMT::TScopedArray<TSharedPtr<FDiffusion>>> InitialDiffusions;
 		TArray<TSharedPtr<FDiffusion>> OngoingDiffusions; // Ongoing diffusions
 		TArray<TSharedPtr<FDiffusion>> Diffusions;        // Stopped diffusions, as to not iterate over them needlessly
-		
-		TSharedPtr<PCGExData::TBuffer<int32>> DiffusionRate;
-		TSharedPtr<PCGExData::TBuffer<int32>> CountLimit;
-		TSharedPtr<PCGExData::TBuffer<int32>> DepthLimit;
-		TSharedPtr<PCGExData::TBuffer<double>> DistanceLimit;
+
+		TSharedPtr<PCGExDetails::TSettingValue<int32>> FillRate;
+		TSharedPtr<PCGExDetails::TSettingValue<int32>> CountLimit;
+		TSharedPtr<PCGExDetails::TSettingValue<int32>> DepthLimit;
+		TSharedPtr<PCGExDetails::TSettingValue<double>> DistanceLimit;
 
 		TSharedPtr<PCGExMT::TScopedValue<double>> MaxDistanceValue;
+
+		bool bUseLocalScore = false;
+		bool bUseGlobalScore = false;
+		bool bUsePreviousScore = false;
 
 	public:
 		FProcessor(const TSharedRef<PCGExData::FFacade>& InVtxDataFacade, const TSharedRef<PCGExData::FFacade>& InEdgeDataFacade)
 			: TProcessor(InVtxDataFacade, InEdgeDataFacade)
 		{
-			//bDaisyChainProcessRange = true; // TODO : Evaluate atomic operations for influence update, it's the only contention at the moment
 		}
 
 		PCGEX_FOREACH_FIELD_CLUSTER_DIFF(PCGEX_OUTPUT_DECL)
@@ -407,14 +405,14 @@ namespace PCGExClusterDiffusion
 		PCGEX_FOREACH_FIELD_CLUSTER_DIFF(PCGEX_OUTPUT_DECL)
 
 	protected:
-		TSharedPtr<TArray<int32>> InfluencesCount;
+		TSharedPtr<TArray<int8>> InfluencesCount;
 		TSharedPtr<TArray<UPCGExAttributeBlendOperation*>> Operations;
 
-		TSharedPtr<PCGExData::TBuffer<int32>> DiffusionRate;
-		TSharedPtr<PCGExData::TBuffer<int32>> CountLimit;
-		TSharedPtr<PCGExData::TBuffer<int32>> DepthLimit;
-		TSharedPtr<PCGExData::TBuffer<double>> DistanceLimit;
-		
+		TSharedPtr<PCGExDetails::TSettingValue<int32>> FillRate;
+		TSharedPtr<PCGExDetails::TSettingValue<int32>> CountLimit;
+		TSharedPtr<PCGExDetails::TSettingValue<int32>> DepthLimit;
+		TSharedPtr<PCGExDetails::TSettingValue<double>> DistanceLimit;
+
 	public:
 		FBatch(FPCGExContext* InContext, const TSharedRef<PCGExData::FPointIO>& InVtx, TArrayView<TSharedRef<PCGExData::FPointIO>> InEdges);
 		virtual ~FBatch() override;
