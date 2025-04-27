@@ -120,6 +120,7 @@ namespace PCGExClusterDiffusion
 		CountLimit = Processor->CountLimit->Read(SettingsIndex);
 		DepthLimit = Processor->DepthLimit->Read(SettingsIndex);
 		DistanceLimit = Processor->DistanceLimit->Read(SettingsIndex);
+		RunningAverageLimit = Processor->RunningAverageLimit->Read(SettingsIndex);
 
 		Probe(SeedCandidate);
 	}
@@ -156,19 +157,22 @@ namespace PCGExClusterDiffusion
 				continue;
 			}
 
+			const double LocalScore = Processor->HeuristicsHandler->GetEdgeScore(
+				FromNode, *OtherNode,
+				*Cluster->GetEdge(Lk), *SeedNode, RoamingGoal,
+				nullptr, TravelStack);
+
+			if (Captured.Num() > 1 && !FMath::IsNearlyEqual(LocalScore, (ScoreSum + LocalScore) / (Captured.Num() - 1), RunningAverageLimit)) { continue; }
+
+			ScoreSum += LocalScore;
+
 			// TODO : Implement radius limit
 
 			FCandidate& Candidate = Candidates.Emplace_GetRef();
 			Candidate.Node = OtherNode;
 
-
 			if (Processor->bUseLocalScore || Processor->bUsePreviousScore)
 			{
-				const double LocalScore = Processor->HeuristicsHandler->GetEdgeScore(
-					FromNode, *OtherNode,
-					*Cluster->GetEdge(Lk), *SeedNode, RoamingGoal,
-					nullptr, TravelStack);
-
 				if (Processor->bUsePreviousScore)
 				{
 					Candidate.PathScore = From.PathScore + LocalScore;
@@ -529,6 +533,7 @@ namespace PCGExClusterDiffusion
 			PCGEX_DIFFUSION_REGISTER_LIMIT(MaxCount)
 			PCGEX_DIFFUSION_REGISTER_LIMIT(MaxDepth)
 			PCGEX_DIFFUSION_REGISTER_LIMIT(MaxLength)
+			PCGEX_DIFFUSION_REGISTER_LIMIT(RunningAverage)
 
 #undef PCGEX_DIFFUSION_REGISTER_LIMIT
 		}
@@ -585,7 +590,6 @@ namespace PCGExClusterDiffusion
 		{
 			DepthLimit = PCGExDetails::MakeSettingValue<int32>(Settings->MaxDepthInput, Settings->MaxDepthAttribute, Settings->MaxDepth);
 			bIsBatchValid = DepthLimit->Init(Context, SettingsSource);
-			
 		}
 		else
 		{
@@ -600,6 +604,16 @@ namespace PCGExClusterDiffusion
 		else
 		{
 			DistanceLimit = PCGExDetails::MakeSettingValue<double>(MAX_dbl);
+		}
+
+		if (Settings->bUseRunningAverage)
+		{
+			RunningAverageLimit = PCGExDetails::MakeSettingValue<double>(Settings->RunningAverageInput, Settings->RunningAverageAttribute, Settings->RunningAverage);
+			bIsBatchValid = RunningAverageLimit->Init(Context, SettingsSource);
+		}
+		else
+		{
+			RunningAverageLimit = PCGExDetails::MakeSettingValue<double>(MAX_dbl);
 		}
 
 		if (!bIsBatchValid) { return; } // Fail
@@ -619,6 +633,7 @@ namespace PCGExClusterDiffusion
 		ClusterProcessor->CountLimit = CountLimit;
 		ClusterProcessor->DepthLimit = DepthLimit;
 		ClusterProcessor->DistanceLimit = DistanceLimit;
+		ClusterProcessor->RunningAverageLimit = RunningAverageLimit;
 
 #define PCGEX_OUTPUT_FWD_TO(_NAME, _TYPE, _DEFAULT_VALUE) if(_NAME##Writer){ ClusterProcessor->_NAME##Writer = _NAME##Writer; }
 		PCGEX_FOREACH_FIELD_CLUSTER_DIFF(PCGEX_OUTPUT_FWD_TO)

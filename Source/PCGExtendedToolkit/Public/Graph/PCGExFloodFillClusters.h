@@ -206,6 +206,24 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Limits|Length", meta=(PCG_Overridable, DisplayName="Max Length", EditCondition="bUseMaxLength && MaxLengthInput==EPCGExInputValueType::Constant", EditConditionHides, ClampMin=1))
 	double MaxLength = 100;
 
+	// Keep within running average
+
+	/** Whether to limit the expansion to heuristic values within a tolerance of running average score */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Limits|Running Average", meta=(PCG_NotOverridable))
+	bool bUseRunningAverage = false;
+
+	/**  */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Limits|Running Average", meta=(PCG_NotOverridable, EditCondition="bUseRunningAverage", EditConditionHides))
+	EPCGExInputValueType RunningAverageInput = EPCGExInputValueType::Constant;
+
+	/** Max radius Attribute */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Limits|Running Average", meta=(PCG_Overridable, DisplayName="Running Average (Attr)", EditCondition="bUseRunningAverage && RunningAverageInput!=EPCGExInputValueType::Constant", EditConditionHides))
+	FName RunningAverageAttribute = FName("MaxRadius");
+
+	/** Max radius Constant */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Limits|Running Average", meta=(PCG_Overridable, DisplayName="Running Average", EditCondition="bUseRunningAverage && RunningAverageInput==EPCGExInputValueType::Constant", EditConditionHides, ClampMin=0))
+	double RunningAverage = 100;
+	
 	// Max Radius
 
 	/** Whether to limit the expansion within a maximum radius of the vtx */
@@ -340,7 +358,10 @@ namespace PCGExClusterDiffusion
 		int32 CountLimit = MAX_int32;
 		int32 DepthLimit = MAX_int32;
 		double DistanceLimit = MAX_dbl;
+		double RunningAverageLimit = MAX_dbl;
 
+		double ScoreSum = 0;
+		
 		FDiffusion(const TSharedPtr<FProcessor>& InProcessor, const PCGExCluster::FNode* InSeedNode);
 		~FDiffusion() = default;
 
@@ -372,6 +393,7 @@ namespace PCGExClusterDiffusion
 		TSharedPtr<PCGExDetails::TSettingValue<int32>> CountLimit;
 		TSharedPtr<PCGExDetails::TSettingValue<int32>> DepthLimit;
 		TSharedPtr<PCGExDetails::TSettingValue<double>> DistanceLimit;
+		TSharedPtr<PCGExDetails::TSettingValue<double>> RunningAverageLimit;
 
 		TSharedPtr<PCGExMT::TScopedValue<double>> MaxDistanceValue;
 
@@ -412,6 +434,7 @@ namespace PCGExClusterDiffusion
 		TSharedPtr<PCGExDetails::TSettingValue<int32>> CountLimit;
 		TSharedPtr<PCGExDetails::TSettingValue<int32>> DepthLimit;
 		TSharedPtr<PCGExDetails::TSettingValue<double>> DistanceLimit;
+		TSharedPtr<PCGExDetails::TSettingValue<double>> RunningAverageLimit;
 
 	public:
 		FBatch(FPCGExContext* InContext, const TSharedRef<PCGExData::FPointIO>& InVtx, TArrayView<TSharedRef<PCGExData::FPointIO>> InEdges);
