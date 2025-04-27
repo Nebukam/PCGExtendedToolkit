@@ -217,6 +217,7 @@ namespace PCGExClusterMT
 
 	void FClusterProcessor::Cleanup()
 	{
+		HeuristicsHandler.Reset();
 		VtxFiltersManager.Reset();
 		EdgesFiltersManager.Reset();
 		bIsProcessorValid = false;
@@ -433,5 +434,6 @@ namespace PCGExClusterMT
 
 	void FClusterProcessorBatchBase::Cleanup()
 	{
+		
 	}
 }
