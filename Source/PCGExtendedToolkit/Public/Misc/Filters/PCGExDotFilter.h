@@ -5,6 +5,7 @@
 
 #include "CoreMinimal.h"
 #include "PCGExCompare.h"
+#include "PCGExDetailsData.h"
 #include "PCGExFilterFactoryProvider.h"
 #include "UObject/Object.h"
 
@@ -54,6 +55,8 @@ struct FPCGExDotFilterConfig
 	void Sanitize()
 	{
 	}
+	
+	PCGEX_SETTING_VALUE_GET(OperandB, FVector, CompareAgainst, OperandB, OperandBConstant)
 };
 
 /**
@@ -89,7 +92,7 @@ namespace PCGExPointFilter
 		FPCGExDotComparisonDetails DotComparison;
 
 		TSharedPtr<PCGExData::TBuffer<FVector>> OperandA;
-		TSharedPtr<PCGExData::TBuffer<FVector>> OperandB;
+		TSharedPtr<PCGExDetails::TSettingValue<FVector>> OperandB;
 
 		virtual bool Init(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade>& InPointDataFacade) override;
 

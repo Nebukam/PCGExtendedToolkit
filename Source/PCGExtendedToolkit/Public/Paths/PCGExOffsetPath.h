@@ -73,6 +73,8 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Offset", EditCondition="OffsetInput == EPCGExInputValueType::Constant", EditConditionHides))
 	double OffsetConstant = 1.0;
 
+	PCGEX_SETTING_VALUE_GET(Offset, double, OffsetInput, OffsetAttribute, OffsetConstant)
+	
 	/** Scale offset direction & distance using point scale.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	bool bApplyPointScaleToOffset = false;
@@ -174,7 +176,7 @@ namespace PCGExOffsetPath
 		FVector Up = FVector::UpVector;
 		double ToleranceSquared = 1;
 
-		TSharedPtr<PCGExData::TBuffer<double>> OffsetGetter;
+		TSharedPtr<PCGExDetails::TSettingValue<double>> OffsetGetter;
 		TSharedPtr<PCGExData::TBuffer<FVector>> DirectionGetter;
 
 	public:

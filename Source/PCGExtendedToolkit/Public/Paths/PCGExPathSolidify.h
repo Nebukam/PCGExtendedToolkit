@@ -48,6 +48,8 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Solidification Lerp", EditCondition="SolidificationLerpInput == EPCGExInputValueType::Constant && SolidificationAxis != EPCGExMinimalAxis::None", EditConditionHides))
 	double SolidificationLerpConstant = 0;
 
+	PCGEX_SETTING_VALUE_GET(SolidificationLerp, double, SolidificationLerpInput, SolidificationLerpAttribute, SolidificationLerpConstant)
+	
 	// Edge radiuses
 
 	/** Whether or not to write the point extents over the local X axis.*/
@@ -125,12 +127,12 @@ namespace PCGExPathSolidify
 	{
 		bool bClosedLoop = false;
 
-		TSharedPtr<PCGExData::TBuffer<double>> SolidificationLerpGetter;
+		TSharedPtr<PCGExDetails::TSettingValue<double>> SolidificationLerpGetter;
 
 		TSharedPtr<PCGExPaths::FPath> Path;
 		TSharedPtr<PCGExPaths::FPathEdgeLength> PathLength;
 
-#define PCGEX_LOCAL_EDGE_GETTER_DECL(_AXIS) TSharedPtr<PCGExData::TBuffer<double>> SolidificationRad##_AXIS; bool bOwnSolidificationRad##_AXIS = true; double Rad##_AXIS##Constant = 1;
+#define PCGEX_LOCAL_EDGE_GETTER_DECL(_AXIS) TSharedPtr<PCGExDetails::TSettingValue<double>> SolidificationRad##_AXIS;
 		PCGEX_FOREACH_XYZ(PCGEX_LOCAL_EDGE_GETTER_DECL)
 #undef PCGEX_LOCAL_EDGE_GETTER_DECL
 

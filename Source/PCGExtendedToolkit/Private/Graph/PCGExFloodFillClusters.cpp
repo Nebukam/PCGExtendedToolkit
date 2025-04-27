@@ -115,11 +115,11 @@ namespace PCGExClusterDiffusion
 
 		int32 SettingsIndex = SeedIndex != -1 ? SeedIndex : SeedNode->PointIndex;
 
-		FillRate = Processor->FillRate->Get(SettingsIndex);
+		FillRate = Processor->FillRate->Read(SettingsIndex);
 
-		CountLimit = Processor->CountLimit->Get(SettingsIndex);
-		DepthLimit = Processor->DepthLimit->Get(SettingsIndex);
-		DistanceLimit = Processor->DistanceLimit->Get(SettingsIndex);
+		CountLimit = Processor->CountLimit->Read(SettingsIndex);
+		DepthLimit = Processor->DepthLimit->Read(SettingsIndex);
+		DistanceLimit = Processor->DistanceLimit->Read(SettingsIndex);
 
 		Probe(SeedCandidate);
 	}
@@ -585,6 +585,7 @@ namespace PCGExClusterDiffusion
 		{
 			DepthLimit = PCGExDetails::MakeSettingValue<int32>(Settings->MaxDepthInput, Settings->MaxDepthAttribute, Settings->MaxDepth);
 			bIsBatchValid = DepthLimit->Init(Context, SettingsSource);
+			
 		}
 		else
 		{

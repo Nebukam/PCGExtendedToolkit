@@ -4,7 +4,7 @@
 #pragma once
 
 #define PCGEX_SOFT_VALIDATE_NAME_DETAILS(_BOOL, _NAME, _CTX) if(_BOOL){if (!FPCGMetadataAttributeBase::IsValidName(_NAME) || _NAME.IsNone()){ PCGE_LOG_C(Warning, GraphAndLog, _CTX, FTEXT("Invalid user-defined attribute name for " #_NAME)); _BOOL = false; } }
-
+#define PCGEX_SETTING_VALUE_GET(_NAME, _TYPE, _INPUT, _SOURCE, _CONSTANT) TSharedPtr<PCGExDetails::TSettingValue<_TYPE>> GetValueSetting##_NAME() const{ return PCGExDetails::MakeSettingValue<_TYPE>(_INPUT, _SOURCE, _CONSTANT); }
 #include "CoreMinimal.h"
 #include "PCGExMacros.h"
 #include "Data/PCGExData.h"
@@ -71,8 +71,8 @@ namespace PCGExDetails
 	{
 	public:
 		virtual ~TSettingValue() = default;
-		virtual bool Init(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade>& InDataFacade) = 0;
-		FORCEINLINE virtual T Get(const int32 Index) = 0;
+		virtual bool Init(const FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade>& InDataFacade, const bool bSupportScoped = true) = 0;
+		FORCEINLINE virtual T Read(const int32 Index) = 0;
 	};
 
 	template <typename T>
@@ -88,9 +88,9 @@ namespace PCGExDetails
 		{
 		}
 
-		virtual bool Init(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade>& InDataFacade) override
+		virtual bool Init(const FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade>& InDataFacade, const bool bSupportScoped = true) override
 		{
-			if (InDataFacade->bSupportsScopedGet) { Buffer = InDataFacade->GetScopedReadable<T>(Name); }
+			if (bSupportScoped && InDataFacade->bSupportsScopedGet) { Buffer = InDataFacade->GetScopedReadable<T>(Name); }
 			else { Buffer = InDataFacade->GetReadable<T>(Name); }
 
 			if (!Buffer)
@@ -102,7 +102,7 @@ namespace PCGExDetails
 			return true;
 		}
 
-		FORCEINLINE virtual T Get(const int32 Index) override { return Buffer->Read(Index); }
+		FORCEINLINE virtual T Read(const int32 Index) override { return Buffer->Read(Index); }
 	};
 
 	template <typename T>
@@ -118,9 +118,9 @@ namespace PCGExDetails
 		{
 		}
 
-		virtual bool Init(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade>& InDataFacade)
+		virtual bool Init(const FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade>& InDataFacade, const bool bSupportScoped = true) override
 		{
-			if (InDataFacade->bSupportsScopedGet) { Buffer = InDataFacade->GetScopedBroadcaster<T>(Selector); }
+			if (bSupportScoped && InDataFacade->bSupportsScopedGet) { Buffer = InDataFacade->GetScopedBroadcaster<T>(Selector); }
 			else { Buffer = InDataFacade->GetBroadcaster<T>(Selector); }
 
 			if (!Buffer)
@@ -133,7 +133,7 @@ namespace PCGExDetails
 			return true;
 		}
 
-		FORCEINLINE virtual T Get(const int32 Index) override { return Buffer->Read(Index); }
+		FORCEINLINE virtual T Read(const int32 Index) override { return Buffer->Read(Index); }
 	};
 
 	template <typename T>
@@ -148,9 +148,9 @@ namespace PCGExDetails
 		{
 		}
 
-		virtual bool Init(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade>& InDataFacade) override { return true; }
+		virtual bool Init(const FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade>& InDataFacade, const bool bSupportScoped = true) override { return true; }
 
-		FORCEINLINE virtual T Get(const int32 Index) override { return Constant; }
+		FORCEINLINE virtual T Read(const int32 Index) override { return Constant; }
 	};
 
 	template <typename T>

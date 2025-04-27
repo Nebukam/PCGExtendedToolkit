@@ -5,6 +5,7 @@
 
 #include "CoreMinimal.h"
 #include "PCGExCompare.h"
+#include "PCGExDetailsData.h"
 
 #include "PCGExFilterFactoryProvider.h"
 #include "UObject/Object.h"
@@ -48,6 +49,8 @@ struct FPCGExNumericCompareFilterConfig
 	/** Rounding mode for relative measures */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="Comparison==EPCGExComparison::NearlyEqual || Comparison==EPCGExComparison::NearlyNotEqual", EditConditionHides))
 	double Tolerance = DBL_COMPARE_TOLERANCE;
+
+	PCGEX_SETTING_VALUE_GET(OperandB, double, CompareAgainst, OperandB, OperandBConstant)
 };
 
 
@@ -80,7 +83,7 @@ namespace PCGExPointFilter
 		const TObjectPtr<const UPCGExNumericCompareFilterFactory> TypedFilterFactory;
 
 		TSharedPtr<PCGExData::TBuffer<double>> OperandA;
-		TSharedPtr<PCGExData::TBuffer<double>> OperandB;
+		TSharedPtr<PCGExDetails::TSettingValue<double>> OperandB;
 
 		virtual bool Init(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade>& InPointDataFacade) override;
 

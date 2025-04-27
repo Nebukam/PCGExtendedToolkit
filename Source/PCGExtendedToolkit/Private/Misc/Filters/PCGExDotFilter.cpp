@@ -42,15 +42,8 @@ bool PCGExPointFilter::FDotFilter::Init(FPCGExContext* InContext, const TSharedP
 		return false;
 	}
 
-	if (TypedFilterFactory->Config.CompareAgainst == EPCGExInputValueType::Attribute)
-	{
-		OperandB = PointDataFacade->GetScopedBroadcaster<FVector>(TypedFilterFactory->Config.OperandB);
-		if (!OperandB)
-		{
-			PCGEX_LOG_INVALID_SELECTOR_C(InContext, "Operand B", TypedFilterFactory->Config.OperandB)
-			return false;
-		}
-	}
+	OperandB = TypedFilterFactory->Config.GetValueSettingOperandB();
+	if (!OperandB->Init(InContext, PointDataFacade)) { return false; }
 
 	return true;
 }
@@ -58,7 +51,7 @@ bool PCGExPointFilter::FDotFilter::Init(FPCGExContext* InContext, const TSharedP
 bool PCGExPointFilter::FDotFilter::Test(const int32 PointIndex) const
 {
 	const FPCGPoint& Point = PointDataFacade->Source->GetInPoint(PointIndex);
-	const FVector B = OperandB ? OperandB->Read(PointIndex).GetSafeNormal() : TypedFilterFactory->Config.OperandBConstant;
+	const FVector B = OperandB->Read(PointIndex).GetSafeNormal();
 	return DotComparison.Test(
 		FVector::DotProduct(
 			TypedFilterFactory->Config.bTransformOperandA ? Point.Transform.TransformVectorNoScale(OperandA->Read(PointIndex)) : OperandA->Read(PointIndex),

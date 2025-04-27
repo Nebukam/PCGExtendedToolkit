@@ -5,6 +5,7 @@
 
 #include "CoreMinimal.h"
 #include "PCGExCompare.h"
+#include "PCGExDetailsData.h"
 
 #include "PCGExFilterFactoryProvider.h"
 #include "UObject/Object.h"
@@ -52,6 +53,8 @@ struct FPCGExDistanceFilterConfig
 	/** If enabled, a collection will never be tested against itself */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	bool bIgnoreSelf = false;
+
+	PCGEX_SETTING_VALUE_GET(DistanceThreshold, double, CompareAgainst, DistanceThreshold, DistanceThresholdConstant)
 };
 
 
@@ -108,8 +111,7 @@ namespace PCGExPointFilter
 		const FPCGPoint* InPointsStart = nullptr;
 		int32 NumTargets = -1;
 
-		const double DistanceThreshold = 0;
-		TSharedPtr<PCGExData::TBuffer<double>> DistanceThresholdGetter;
+		TSharedPtr<PCGExDetails::TSettingValue<double>> DistanceThresholdGetter;
 
 		virtual bool Init(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade>& InPointDataFacade) override;
 

@@ -16,11 +16,6 @@ void FPCGExAttributeBlendWeight::Init()
 	ScoreCurveObj = LocalWeightCurve.GetRichCurveConst();
 }
 
-TSharedPtr<PCGExDetails::TSettingValue<double>> FPCGExAttributeBlendWeight::GetWeightValueSettings() const
-{
-	return PCGExDetails::MakeSettingValue(WeightInput, WeightAttribute, Weight);
-}
-
 void FPCGExAttributeBlendConfig::Init()
 {
 	bRequiresWeight =
@@ -36,7 +31,7 @@ bool UPCGExAttributeBlendOperation::PrepareForData(FPCGExContext* InContext, con
 {
 	PrimaryDataFacade = InDataFacade;
 
-	Weight = Config.Weighting.GetWeightValueSettings();
+	Weight = Config.Weighting.GetValueSettingWeight();
 	if(!Weight->Init(InContext, InDataFacade)){return false;}
 
 	// Fix @Selectors based on siblings 

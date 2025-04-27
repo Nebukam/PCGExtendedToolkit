@@ -40,23 +40,15 @@ bool PCGExPointFilter::FNumericSelfCompareFilter::Init(FPCGExContext* InContext,
 		return false;
 	}
 
-	if (TypedFilterFactory->Config.CompareAgainst == EPCGExInputValueType::Attribute)
-	{
-		Index = PointDataFacade->GetScopedBroadcaster<int32>(TypedFilterFactory->Config.IndexAttribute);
-
-		if (!Index)
-		{
-			PCGEX_LOG_INVALID_SELECTOR_C(InContext, "Index", TypedFilterFactory->Config.IndexAttribute)
-			return false;
-		}
-	}
+	Index = TypedFilterFactory->Config.GetValueSettingIndex();
+	if (!Index->Init(InContext, PointDataFacade)) { return false; }
 
 	return true;
 }
 
 bool PCGExPointFilter::FNumericSelfCompareFilter::Test(const int32 PointIndex) const
 {
-	const int32 IndexValue = Index ? Index->Read(PointIndex) : TypedFilterFactory->Config.IndexConstant;
+	const int32 IndexValue = Index->Read(PointIndex);
 	const int32 TargetIndex = PCGExMath::SanitizeIndex(bOffset ? PointIndex + IndexValue : IndexValue, MaxIndex, TypedFilterFactory->Config.IndexSafety);
 
 	if (TargetIndex == -1) { return false; }

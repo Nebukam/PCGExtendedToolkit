@@ -67,6 +67,8 @@ struct FPCGExPathAlphaFilterConfig
 	/** Rounding mode for relative measures */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="Comparison==EPCGExComparison::NearlyEqual || Comparison==EPCGExComparison::NearlyNotEqual", EditConditionHides))
 	double Tolerance = DBL_COMPARE_TOLERANCE;
+
+	PCGEX_SETTING_VALUE_GET(OperandB, double, CompareAgainst, OperandB, OperandBConstant)
 };
 
 /**
@@ -114,7 +116,7 @@ namespace PCGExPointFilter
 		TSharedPtr<TArray<TSharedPtr<FPCGSplineStruct>>> Splines;
 		TSharedPtr<TArray<double>> SegmentsNum;
 
-		TSharedPtr<PCGExData::TBuffer<double>> OperandB;
+		TSharedPtr<PCGExDetails::TSettingValue<double>> OperandB;
 
 		virtual bool Init(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade>& InPointDataFacade) override;
 		virtual bool Test(const FPCGPoint& Point) const override;

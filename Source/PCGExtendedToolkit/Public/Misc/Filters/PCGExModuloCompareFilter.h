@@ -5,6 +5,7 @@
 
 #include "CoreMinimal.h"
 #include "PCGExCompare.h"
+#include "PCGExDetailsData.h"
 
 #include "PCGExFilterFactoryProvider.h"
 #include "UObject/Object.h"
@@ -64,6 +65,9 @@ struct FPCGExModuloCompareFilterConfig
 	/** Which value to return when dealing with zero-values */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	bool ZeroResult = true;
+
+	PCGEX_SETTING_VALUE_GET(OperandB, double, OperandBSource, OperandB, OperandBConstant)
+	PCGEX_SETTING_VALUE_GET(OperandC, double, CompareAgainst, OperandC, OperandCConstant)
 };
 
 
@@ -96,8 +100,8 @@ namespace PCGExPointFilter
 		const TObjectPtr<const UPCGExModuloCompareFilterFactory> TypedFilterFactory;
 
 		TSharedPtr<PCGExData::TBuffer<double>> OperandA;
-		TSharedPtr<PCGExData::TBuffer<double>> OperandB;
-		TSharedPtr<PCGExData::TBuffer<double>> OperandC;
+		TSharedPtr<PCGExDetails::TSettingValue<double>> OperandB;
+		TSharedPtr<PCGExDetails::TSettingValue<double>> OperandC;
 
 		virtual bool Init(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade>& InPointDataFacade) override;
 
