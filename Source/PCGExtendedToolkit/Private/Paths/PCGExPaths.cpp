@@ -159,8 +159,6 @@ namespace PCGExPaths
 		Component->SplineBoundaryMax = 0;
 
 		Component->bSmoothInterpRollScale = bSmoothInterpRollScale;
-
-		MeshEntry->ApplyMaterials(MaterialPick, Component);
 		
 		if (bSetMeshWithSettings) { ApplyMesh(Component); }
 	}
@@ -173,6 +171,7 @@ namespace PCGExPaths
 		if (!StaticMesh) { return false; }
 
 		Component->SetStaticMesh(StaticMesh); // Will trigger a force rebuild, so put this last
+		MeshEntry->ApplyMaterials(MaterialPick, Component);
 
 		return true;
 	}
