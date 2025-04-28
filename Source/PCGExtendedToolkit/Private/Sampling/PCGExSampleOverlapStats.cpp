@@ -127,7 +127,7 @@ namespace PCGExSampleOverlapStats
 		InPoints = &PointDataFacade->GetIn()->GetPoints();
 		NumPoints = InPoints->Num();
 
-		PCGEx::InitArray(LocalPointBounds, NumPoints);
+		LocalPointBounds.Init(nullptr, NumPoints);
 		OverlapSubCount.Init(0, NumPoints);
 		OverlapCount.Init(0, NumPoints);
 
@@ -330,7 +330,7 @@ namespace PCGExSampleOverlapStats
 					}
 				};
 
-				if (This->ManagedOverlaps.IsEmpty())
+				if (This->Overlaps.IsEmpty())
 				{
 					WrapUp();
 					return;

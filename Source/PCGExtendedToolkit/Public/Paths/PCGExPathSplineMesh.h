@@ -7,6 +7,7 @@
 #include "PCGExPathProcessor.h"
 #include "PCGExPaths.h"
 #include "PCGExPointsProcessor.h"
+#include "PCGExScopedContainers.h"
 #include "Collections/PCGExMeshCollection.h"
 
 #include "Tangents/PCGExTangentsOperation.h"
@@ -185,6 +186,7 @@ namespace PCGExPathSplineMesh
 		FPCGExJustificationDetails Justification;
 		FPCGExSplineMeshMutationDetails SegmentMutationDetails;
 
+		TSharedPtr<PCGExMT::TScopedSet<FSoftObjectPath>> ScopedMaterials;
 		TSharedPtr<PCGExData::TBuffer<FVector>> UpGetter;
 		TSharedPtr<PCGExData::TBuffer<FVector>> ArriveGetter;
 		TSharedPtr<PCGExData::TBuffer<FVector>> LeaveGetter;
@@ -211,8 +213,13 @@ namespace PCGExPathSplineMesh
 		}
 
 		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager) override;
+
+		virtual void PrepareLoopScopesForPoints(const TArray<PCGExMT::FScope>& Loops) override;
 		virtual void PrepareSingleLoopScopeForPoints(const PCGExMT::FScope& Scope) override;
 		virtual void ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const PCGExMT::FScope& Scope) override;
+
+		virtual void OnPointsProcessingComplete() override;
+		
 		virtual void CompleteWork() override;
 
 		virtual void Output() override;

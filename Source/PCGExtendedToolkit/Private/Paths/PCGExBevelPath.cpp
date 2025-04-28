@@ -134,7 +134,7 @@ namespace PCGExBevelPath
 		ArriveDir = (PrevLocation - Corner).GetSafeNormal();
 		LeaveDir = (NextLocation - Corner).GetSafeNormal();
 
-		Width = InProcessor->WidthGetter ? InProcessor->WidthGetter->Read(Index) : InProcessor->Settings->WidthConstant;
+		Width = InProcessor->WidthGetter->Read(Index);
 
 		const double ArriveLen = InProcessor->Len(ArriveIdx);
 		const double LeaveLen = InProcessor->Len(Index);
@@ -196,7 +196,7 @@ namespace PCGExBevelPath
 
 		if (!InProcessor->bSubdivide) { return; }
 
-		const double Amount = InProcessor->SubdivAmountGetter ? InProcessor->SubdivAmountGetter->Read(Index) : InProcessor->ConstantSubdivAmount;
+		const double Amount = InProcessor->SubdivAmountGetter->Read(Index);
 
 		if (!InProcessor->bArc) { SubdivideLine(Amount, InProcessor->bSubdivideCount); }
 		else { SubdivideArc(Amount, InProcessor->bSubdivideCount); }
@@ -333,15 +333,8 @@ namespace PCGExBevelPath
 
 		Bevels.Init(nullptr, PointDataFacade->GetNum());
 
-		if (Settings->WidthInput == EPCGExInputValueType::Attribute)
-		{
-			WidthGetter = PointDataFacade->GetScopedBroadcaster<double>(Settings->WidthAttribute);
-			if (!WidthGetter)
-			{
-				PCGE_LOG_C(Error, GraphAndLog, ExecutionContext, FTEXT("Width attribute data is invalid or missing."));
-				return false;
-			}
-		}
+		WidthGetter = Settings->GetValueSettingWidth();
+		if (!WidthGetter->Init(Context, PointDataFacade)) { return false; }
 
 		if (Settings->bSubdivide)
 		{
@@ -350,19 +343,8 @@ namespace PCGExBevelPath
 			{
 				bSubdivideCount = Settings->SubdivideMethod == EPCGExSubdivideMode::Count;
 
-				if (Settings->SubdivisionAmountInput == EPCGExInputValueType::Attribute)
-				{
-					SubdivAmountGetter = PointDataFacade->GetScopedBroadcaster<double>(Settings->SubdivisionAmount);
-					if (!SubdivAmountGetter)
-					{
-						PCGE_LOG_C(Error, GraphAndLog, ExecutionContext, FTEXT("Subdivision Amount attribute is invalid or missing."));
-						return false;
-					}
-				}
-				else
-				{
-					ConstantSubdivAmount = bSubdivideCount ? Settings->SubdivisionCount : Settings->SubdivisionDistance;
-				}
+				SubdivAmountGetter = Settings->GetValueSettingSubdivisions();
+				if (!SubdivAmountGetter->Init(Context, PointDataFacade)) { return false; }
 			}
 		}
 

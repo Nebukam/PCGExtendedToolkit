@@ -31,18 +31,10 @@ bool FNodeEdgeDirectionFilter::Init(FPCGExContext* InContext, const TSharedRef<P
 {
 	if (!FFilter::Init(InContext, InCluster, InPointDataFacade, InEdgeDataFacade)) { return false; }
 
-	DirConstant = TypedFilterFactory->Config.DirectionConstant.GetSafeNormal();
 	bFromNode = TypedFilterFactory->Config.DirectionOrder == EPCGExAdjacencyDirectionOrigin::FromNode;
 
-	if (TypedFilterFactory->Config.CompareAgainst == EPCGExInputValueType::Attribute)
-	{
-		OperandDirection = PointDataFacade->GetBroadcaster<FVector>(TypedFilterFactory->Config.Direction);
-		if (!OperandDirection)
-		{
-			PCGEX_LOG_INVALID_SELECTOR_C(InContext, "Direction", TypedFilterFactory->Config.Direction)
-			return false;
-		}
-	}
+	OperandDirection = TypedFilterFactory->Config.GetValueSettingDirection();
+	if (!OperandDirection->Init(InContext, PointDataFacade, false)) { return false; }
 
 	if (!Adjacency.Init(InContext, PointDataFacade.ToSharedRef())) { return false; }
 
@@ -69,8 +61,8 @@ bool FNodeEdgeDirectionFilter::TestDot(const PCGExCluster::FNode& Node) const
 	const int32 PointIndex = Node.PointIndex;
 	const FPCGPoint& Point = PointDataFacade->Source->GetInPoint(PointIndex);
 
-	FVector RefDir = OperandDirection ? OperandDirection->Read(PointIndex) : DirConstant;
-	if (TypedFilterFactory->Config.bTransformDirection) { RefDir = Point.Transform.TransformVectorNoScale(RefDir).GetSafeNormal(); }
+	FVector RefDir = OperandDirection->Read(PointIndex).GetSafeNormal();
+	if (TypedFilterFactory->Config.bTransformDirection) { RefDir = Point.Transform.TransformVectorNoScale(RefDir); }
 
 	const double DotThreshold = DotComparison.GetComparisonThreshold(PointIndex);
 
@@ -144,10 +136,8 @@ bool FNodeEdgeDirectionFilter::TestHash(const PCGExCluster::FNode& Node) const
 	const int32 PointIndex = Node.PointIndex;
 	const FPCGPoint& Point = PointDataFacade->Source->GetInPoint(PointIndex);
 
-	FVector RefDir = OperandDirection ? OperandDirection->Read(PointIndex) : DirConstant;
+	FVector RefDir = OperandDirection->Read(PointIndex).GetSafeNormal();
 	if (TypedFilterFactory->Config.bTransformDirection) { RefDir = Point.Transform.TransformVectorNoScale(RefDir); }
-
-	RefDir.Normalize();
 
 	const FVector CWTolerance = HashComparison.GetCWTolerance(PointIndex);
 	const FInt32Vector A = PCGEx::I323(RefDir, CWTolerance);

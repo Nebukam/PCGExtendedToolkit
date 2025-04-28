@@ -90,16 +90,8 @@ namespace PCGExPointFilter
 	{
 		if (!FFilter::Init(InContext, InPointDataFacade)) { return false; }
 
-		if (TypedFilterFactory->Config.CompareAgainst == EPCGExInputValueType::Attribute)
-		{
-			OperandB = PointDataFacade->GetScopedBroadcaster<double>(TypedFilterFactory->Config.OperandB);
-
-			if (!OperandB)
-			{
-				PCGEX_LOG_INVALID_SELECTOR_C(InContext, "Operand B", TypedFilterFactory->Config.OperandB)
-				return false;
-			}
-		}
+		OperandB = TypedFilterFactory->Config.GetValueSettingOperandB();
+		if (!OperandB->Init(InContext, PointDataFacade)) { return false; }
 
 		return true;
 	}

@@ -160,6 +160,8 @@ namespace PCGExPaths
 
 		Component->bSmoothInterpRollScale = bSmoothInterpRollScale;
 
+		MeshEntry->ApplyMaterials(MaterialPick, Component);
+		
 		if (bSetMeshWithSettings) { ApplyMesh(Component); }
 	}
 

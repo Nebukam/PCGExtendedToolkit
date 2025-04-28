@@ -42,12 +42,11 @@ bool UPCGExVtxPropertyAmplitude::PrepareForCluster(const FPCGExContext* InContex
 		return false;
 	}
 
-	if (Config.bWriteAmplitudeSign && Config.UpMode == EPCGExVtxAmplitudeUpMode::UpVector && Config.UpSelection == EPCGExInputValueType::Attribute)
+	if (Config.bWriteAmplitudeSign && Config.UpMode == EPCGExVtxAmplitudeUpMode::UpVector)
 	{
-		DirCache = InVtxDataFacade->GetBroadcaster<FVector>(Config.UpSource);
-		if (!DirCache)
+		DirCache = PCGExDetails::MakeSettingValue(Config.UpSelection, Config.UpSource, Config.UpConstant);
+		if (!DirCache->Init(InContext, InVtxDataFacade, false))
 		{
-			PCGE_LOG_C(Error, GraphAndLog, InContext, FText::Format(FTEXT("Missing required '{0}' attribute on vtx."), FText::FromName(Config.UpSource.GetName())));
 			bIsValidOperation = false;
 			return false;
 		}
@@ -132,9 +131,7 @@ void UPCGExVtxPropertyAmplitude::ProcessNode(PCGExCluster::FNode& Node, const TA
 
 		if (Config.UpMode == EPCGExVtxAmplitudeUpMode::UpVector)
 		{
-			FVector UpVector = DirCache ? DirCache->Read(Node.PointIndex) : Config.UpConstant;
-
-			for (int i = 0; i < NumAdjacency; i++) { Sign += FVector::DotProduct(UpVector, Adjacency[i].Direction) * (Sizes[i] / MaxSize); }
+			for (int i = 0; i < NumAdjacency; i++) { Sign += FVector::DotProduct(DirCache->Read(Node.PointIndex), Adjacency[i].Direction) * (Sizes[i] / MaxSize); }
 
 			if (Config.SignOutputMode == EPCGExVtxAmplitudeSignOutput::NormalizedSize) { Sign /= NumAdjacency; }
 			else { Sign /= NumAdjacency; }

@@ -186,12 +186,12 @@ namespace PCGExAttributeRemap
 				{
 					if (!Rule.RemapDetails.bUseInMin)
 					{
-						Rule.RemapDetails.InMin = Rule.MinCache->Flatten([&](const double& In, const double& Out) { return FMath::Min(In, Out); });
+						Rule.RemapDetails.InMin = Rule.MinCache->Min();
 					}
 
 					if (!Rule.RemapDetails.bUseInMax)
 					{
-						Rule.RemapDetails.InMax = Rule.MaxCache->Flatten([&](const double& In, const double& Out) { return FMath::Max(In, Out); });
+						Rule.RemapDetails.InMax = Rule.MaxCache->Max();
 					}
 
 					if (Rule.RemapDetails.RangeMethod == EPCGExRangeType::FullRange && Rule.RemapDetails.InMin > 0) { Rule.RemapDetails.InMin = 0; }

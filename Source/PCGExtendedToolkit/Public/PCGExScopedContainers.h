@@ -11,27 +11,45 @@ namespace PCGExMT
 	class TScopedArray final : public TSharedFromThis<TScopedArray<T>>
 	{
 	public:
-		TArray<TSharedPtr<TArray<T>>> Values;
+		TArray<TSharedPtr<TArray<T>>> Arrays;
 
 		explicit TScopedArray(const TArray<FScope>& InScopes, const T InDefaultValue)
 		{
-			Values.Reserve(InScopes.Num());
-			for (const FScope& Scope : InScopes) { Values[Values.Add(MakeShared<TArray<T>>())]->Init(InDefaultValue, Scope.Count); }
+			Arrays.Reserve(InScopes.Num());
+			for (const FScope& Scope : InScopes) { Arrays[Arrays.Add(MakeShared<TArray<T>>())]->Init(InDefaultValue, Scope.Count); }
 		};
 
 		explicit TScopedArray(const TArray<FScope>& InScopes)
 		{
-			Values.Reserve(InScopes.Num());
-			for (int i = 0; i < InScopes.Num(); i++) { Values.Add(MakeShared<TArray<T>>()); }
+			Arrays.Reserve(InScopes.Num());
+			for (int i = 0; i < InScopes.Num(); i++) { Arrays.Add(MakeShared<TArray<T>>()); }
 		};
 
 		~TScopedArray() = default;
 
-		FORCEINLINE TSharedPtr<TArray<T>> Get(const FScope& InScope) { return Values[InScope.LoopIndex]; }
-		FORCEINLINE TArray<T>& Get_Ref(const FScope& InScope) { return *Values[InScope.LoopIndex].Get(); }
-
+		FORCEINLINE TSharedPtr<TArray<T>> Get(const FScope& InScope) { return Arrays[InScope.LoopIndex]; }
+		FORCEINLINE TArray<T>& Get_Ref(const FScope& InScope) { return *Arrays[InScope.LoopIndex].Get(); }
+		
+		int32 GetTotalNum()
+		{
+			int32 TotalNum = 0;
+			for (int i = 0; i < Arrays.Num(); i++) { TotalNum += Arrays[i]->Num(); }
+			return TotalNum;
+		}
+		
 		using FForEachFunc = std::function<void (TArray<T>&)>;
-		FORCEINLINE void ForEach(FForEachFunc&& Func) { for (int i = 0; i < Values.Num(); i++) { Func(*Values[i].Get()); } }
+		FORCEINLINE void ForEach(FForEachFunc&& Func) { for (int i = 0; i < Arrays.Num(); i++) { Func(*Arrays[i].Get()); } }
+		void Collapse(TArray<T>& InTarget)
+		{
+			for (int i = 0; i < Arrays.Num(); i++)
+			{
+				InTarget.Reserve(InTarget.Num() + Arrays[i].Get()->Num());
+				InTarget.Append(*Arrays[i].Get());
+				Arrays[i] = nullptr;
+			}
+
+			Arrays.Empty();
+		}
 	};
 
 	template <typename T>
@@ -65,6 +83,17 @@ namespace PCGExMT
 
 		using FForEachFunc = std::function<void (TSet<T>&)>;
 		FORCEINLINE void ForEach(FForEachFunc&& Func) { for (int i = 0; i < Sets.Num(); i++) { Func(*Sets[i].Get()); } }
+		void Collapse(TSet<T>& InTarget)
+		{
+			for (int i = 0; i < Sets.Num(); i++)
+			{
+				InTarget.Reserve(InTarget.Num() + Sets[i].Get()->Num());
+				InTarget.Append(*Sets[i].Get());
+				Sets[i] = nullptr;
+			}
+
+			Sets.Empty();
+		}
 	};
 
 	template <typename T>
@@ -90,6 +119,20 @@ namespace PCGExMT
 		{
 			T Result = Values[0];
 			if (Values.Num() > 1) { for (int i = 1; i < Values.Num(); i++) { Result = Func(Values[i], Result); } }
+			return Result;
+		}
+
+		FORCEINLINE T Min()
+		{
+			T Result = Values[0];
+			if (Values.Num() > 1) { for (int i = 1; i < Values.Num(); i++) { Result = FMath::Min(Values[i], Result); } }
+			return Result;
+		}
+		
+		FORCEINLINE T Max()
+		{
+			T Result = Values[0];
+			if (Values.Num() > 1) { for (int i = 1; i < Values.Num(); i++) { Result = FMath::Max(Values[i], Result); } }
 			return Result;
 		}
 	};

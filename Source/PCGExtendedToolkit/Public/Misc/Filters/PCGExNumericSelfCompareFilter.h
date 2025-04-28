@@ -5,6 +5,7 @@
 
 #include "CoreMinimal.h"
 #include "PCGExCompare.h"
+#include "PCGExDetailsData.h"
 
 #include "PCGExFilterFactoryProvider.h"
 #include "UObject/Object.h"
@@ -55,6 +56,8 @@ struct FPCGExNumericSelfCompareFilterConfig
 	/** Index safety */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	EPCGExIndexSafety IndexSafety = EPCGExIndexSafety::Clamp;
+
+	PCGEX_SETTING_VALUE_GET(Index, int32, CompareAgainst, IndexAttribute, IndexConstant)
 };
 
 
@@ -87,7 +90,7 @@ namespace PCGExPointFilter
 		const TObjectPtr<const UPCGExNumericSelfCompareFilterFactory> TypedFilterFactory;
 
 		TSharedPtr<PCGEx::TAttributeBroadcaster<double>> OperandA;
-		TSharedPtr<PCGExData::TBuffer<int32>> Index;
+		TSharedPtr<PCGExDetails::TSettingValue<int32>> Index;
 		bool bOffset = false;
 		int32 MaxIndex = 0;
 

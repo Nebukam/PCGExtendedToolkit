@@ -25,9 +25,12 @@ public:
 		int32 BestIndex = -1;
 		double LowestScore = MAX_dbl;
 
+		const PCGExCluster::FNode& RoamingSeedNode = *Heuristics->GetRoamingSeed();
+		const PCGExCluster::FNode& RoamingGoalNode = *Heuristics->GetRoamingGoal();
+		
 		for (const PCGExGraph::FLink Lk : Node.Links)
 		{
-			const double Score = Heuristics->GetEdgeScore(Node, *Cluster->GetNode(Lk), *Cluster->GetEdge(Lk), *RoamingSeedNode, *RoamingGoalNode);
+			const double Score = Heuristics->GetEdgeScore(Node, *Cluster->GetNode(Lk), *Cluster->GetEdge(Lk), RoamingSeedNode, RoamingGoalNode);
 			if (Score < LowestScore)
 			{
 				LowestScore = Score;

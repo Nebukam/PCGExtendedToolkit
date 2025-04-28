@@ -252,7 +252,7 @@ namespace PCGExSampleNearestSpline
 		PCGEX_OUTPUT_VALUE(Success, Index, false)
 		PCGEX_OUTPUT_VALUE(Transform, Index, Point.Transform)
 		PCGEX_OUTPUT_VALUE(LookAtTransform, Index, Point.Transform)
-		PCGEX_OUTPUT_VALUE(Distance, Index, FailSafeDist * Settings->DistanceScale)
+		PCGEX_OUTPUT_VALUE(Distance, Index, Settings->bOutputNormalizedDistance ? FailSafeDist : FailSafeDist * Settings->DistanceScale)
 		PCGEX_OUTPUT_VALUE(Depth, Index, Settings->bInvertDepth ? 1-InDepth : InDepth)
 		PCGEX_OUTPUT_VALUE(SignedDistance, Index, FailSafeDist * Settings->SignedDistanceScale)
 		PCGEX_OUTPUT_VALUE(ComponentWiseDistance, Index, FVector(FailSafeDist))
@@ -525,7 +525,7 @@ namespace PCGExSampleNearestSpline
 		PCGEX_OUTPUT_VALUE(LookAtTransform, Index, LookAtTransform)
 		PCGEX_OUTPUT_VALUE(ArriveTangent, Index, WeightedTangent)
 		PCGEX_OUTPUT_VALUE(LeaveTangent, Index, WeightedTangent)
-		PCGEX_OUTPUT_VALUE(Distance, Index, WeightedDistance * Settings->DistanceScale)
+		PCGEX_OUTPUT_VALUE(Distance, Index, Settings->bOutputNormalizedDistance ? WeightedDistance : WeightedDistance * Settings->DistanceScale)
 		PCGEX_OUTPUT_VALUE(Depth, Index, Settings->bInvertDepth ? 1 - Depth : Depth)
 		PCGEX_OUTPUT_VALUE(SignedDistance, Index, (!bOnlySignIfClosed || NumInClosed > 0) ? FMath::Sign(WeightedSignAxis.Dot(LookAt)) * WeightedDistance : WeightedDistance * Settings->SignedDistanceScale)
 		PCGEX_OUTPUT_VALUE(ComponentWiseDistance, Index, Settings->bAbsoluteComponentWiseDistance ? PCGExMath::Abs(CWDistance) : CWDistance)
@@ -538,6 +538,21 @@ namespace PCGExSampleNearestSpline
 		MaxDistanceValue->Set(Scope, FMath::Max(MaxDistanceValue->Get(Scope), WeightedDistance));
 
 		FPlatformAtomics::InterlockedExchange(&bAnySuccess, 1);
+	}
+
+	void FProcessor::OnPointsProcessingComplete()
+	{
+		if (!Settings->bOutputNormalizedDistance || !DistanceWriter) { return; }
+		MaxDistance = MaxDistanceValue->Max();
+		StartParallelLoopForRange(PointDataFacade->GetNum());
+	}
+
+	void FProcessor::ProcessSingleRangeIteration(const int32 Iteration, const PCGExMT::FScope& Scope)
+	{ 
+		double& D = DistanceWriter->GetMutable(Iteration);
+		D /= MaxDistance;
+		if (Settings->bOutputOneMinusDistance) { D = 1 - D; }
+		D *= Settings->DistanceScale;
 	}
 
 	void FProcessor::CompleteWork()

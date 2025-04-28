@@ -106,6 +106,8 @@ namespace PCGExBoundsToPoints
 	{
 		const TSharedRef<PCGExData::FPointIO>& PointIO = PointDataFacade->Source;
 
+		FVector FinalExtents = Settings->bMultiplyExtents ? Point.GetExtents() * Extents : Extents;
+		
 		if (bGeneratePerPointData)
 		{
 			int32 OutIndex;
@@ -114,8 +116,8 @@ namespace PCGExBoundsToPoints
 			FPCGPoint& A = NewOutput->CopyPoint(Point, OutIndex);
 			if (bSetExtents)
 			{
-				A.BoundsMin = -Extents;
-				A.BoundsMax = Extents;
+				A.BoundsMin = -FinalExtents;
+				A.BoundsMax = FinalExtents;
 			}
 
 			A.Transform.SetLocation(UVW.GetPosition(PointIO->GetInPointRef(Index)));
@@ -126,8 +128,8 @@ namespace PCGExBoundsToPoints
 				FPCGPoint& B = NewOutput->CopyPoint(Point, OutIndex);
 				if (bSetExtents)
 				{
-					B.BoundsMin = -Extents;
-					B.BoundsMax = Extents;
+					B.BoundsMin = -FinalExtents;
+					B.BoundsMax = FinalExtents;
 				}
 
 				B.Transform.SetLocation(UVW.GetPosition(PointIO->GetInPointRef(Index), Axis, true));
@@ -143,8 +145,8 @@ namespace PCGExBoundsToPoints
 			FPCGPoint& A = MutablePoints[Index];
 			if (bSetExtents)
 			{
-				A.BoundsMin = -Extents;
-				A.BoundsMax = Extents;
+				A.BoundsMin = -FinalExtents;
+				A.BoundsMax = FinalExtents;
 			}
 
 			A.Transform.SetLocation(UVW.GetPosition(PointIO->GetInPointRef(Index)));
@@ -156,8 +158,8 @@ namespace PCGExBoundsToPoints
 				FPCGPoint& B = MutablePoints[NumPoints + Index];
 				if (bSetExtents)
 				{
-					B.BoundsMin = -Extents;
-					B.BoundsMax = Extents;
+					B.BoundsMin = -FinalExtents;
+					B.BoundsMax = FinalExtents;
 				}
 
 				B.Transform.SetLocation(UVW.GetPosition(PointIO->GetInPointRef(Index), Axis, true));

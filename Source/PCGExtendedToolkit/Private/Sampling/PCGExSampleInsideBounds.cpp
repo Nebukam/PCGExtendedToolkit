@@ -189,7 +189,7 @@ namespace PCGExSampleInsideBoundss
 		PCGEX_OUTPUT_VALUE(Success, Index, false)
 		PCGEX_OUTPUT_VALUE(Transform, Index, Point.Transform)
 		PCGEX_OUTPUT_VALUE(LookAtTransform, Index, Point.Transform)
-		PCGEX_OUTPUT_VALUE(Distance, Index, FailSafeDist * Settings->DistanceScale)
+		PCGEX_OUTPUT_VALUE(Distance, Index, Settings->bOutputNormalizedDistance ? FailSafeDist : FailSafeDist * Settings->DistanceScale)
 		PCGEX_OUTPUT_VALUE(SignedDistance, Index, FailSafeDist * Settings->SignedDistanceScale)
 		PCGEX_OUTPUT_VALUE(ComponentWiseDistance, Index, FVector(FailSafeDist))
 		PCGEX_OUTPUT_VALUE(NumSamples, Index, 0)
@@ -411,7 +411,7 @@ namespace PCGExSampleInsideBoundss
 		PCGEX_OUTPUT_VALUE(Success, Index, Stats.IsValid())
 		PCGEX_OUTPUT_VALUE(Transform, Index, WeightedTransform)
 		PCGEX_OUTPUT_VALUE(LookAtTransform, Index, LookAtTransform)
-		PCGEX_OUTPUT_VALUE(Distance, Index, WeightedDistance * Settings->DistanceScale)
+		PCGEX_OUTPUT_VALUE(Distance, Index, Settings->bOutputNormalizedDistance ? WeightedDistance : WeightedDistance * Settings->DistanceScale)
 		PCGEX_OUTPUT_VALUE(SignedDistance, Index, FMath::Sign(WeightedSignAxis.Dot(LookAt)) * WeightedDistance * Settings->SignedDistanceScale)
 		PCGEX_OUTPUT_VALUE(ComponentWiseDistance, Index, Settings->bAbsoluteComponentWiseDistance ? PCGExMath::Abs(CWDistance) : CWDistance)
 		PCGEX_OUTPUT_VALUE(Angle, Index, PCGExSampling::GetAngle(Settings->AngleRange, WeightedAngleAxis, LookAt))
@@ -421,6 +421,21 @@ namespace PCGExSampleInsideBoundss
 		MaxDistanceValue->Set(Scope, FMath::Max(MaxDistanceValue->Get(Scope), WeightedDistance));
 
 		FPlatformAtomics::InterlockedExchange(&bAnySuccess, 1);
+	}
+
+	void FProcessor::OnPointsProcessingComplete()
+	{
+		if (!Settings->bOutputNormalizedDistance || !DistanceWriter) { return; }
+		MaxDistance = MaxDistanceValue->Max();
+		StartParallelLoopForRange(PointDataFacade->GetNum());
+	}
+
+	void FProcessor::ProcessSingleRangeIteration(const int32 Iteration, const PCGExMT::FScope& Scope)
+	{ 
+		double& D = DistanceWriter->GetMutable(Iteration);
+		D /= MaxDistance;
+		if (Settings->bOutputOneMinusDistance) { D = 1 - D; }
+		D *= Settings->DistanceScale;
 	}
 
 	void FProcessor::CompleteWork()
