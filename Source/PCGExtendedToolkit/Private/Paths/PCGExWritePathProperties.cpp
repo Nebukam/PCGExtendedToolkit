@@ -197,7 +197,7 @@ namespace PCGExWritePathProperties
 			const FPointDetails& Detail = Details[i];
 			PathDir += Detail.ToNext;
 
-			PCGEX_OUTPUT_VALUE(PointTime, i, TraversedDistance / PathLength->TotalLength);
+			PCGEX_OUTPUT_VALUE(PointTime, i, Settings->bTimeOneMinus ? 1 - (TraversedDistance / PathLength->TotalLength) : TraversedDistance / PathLength->TotalLength);
 
 			PCGEX_OUTPUT_VALUE(DistanceToStart, i, TraversedDistance);
 			PCGEX_OUTPUT_VALUE(DistanceToEnd, i, PathLength->TotalLength - TraversedDistance);
