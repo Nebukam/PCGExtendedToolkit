@@ -209,7 +209,11 @@ namespace PCGExClusterDiffusion
 
 		// Prepare control handler before initializing diffusion
 		// since the init does a first probing pass
-		FillControlsHandler->PrepareForDiffusions(OngoingDiffusions, Settings->Diffusion);
+		if(!FillControlsHandler->PrepareForDiffusions(OngoingDiffusions, Settings->Diffusion))
+		{
+			bIsProcessorValid = false;
+			return;
+		}
 
 		for (int i = 0; i < OngoingDiffusions.Num(); i++)
 		{
