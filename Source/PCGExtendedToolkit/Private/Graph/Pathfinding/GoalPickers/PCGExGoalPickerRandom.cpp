@@ -25,15 +25,9 @@ bool UPCGExGoalPickerRandom::PrepareForData(FPCGExContext* InContext, const TSha
 {
 	if (!Super::PrepareForData(InContext, InSeedsDataFacade, InGoalsDataFacade)) { return false; }
 
-	if (NumGoalsType == EPCGExInputValueType::Attribute)
-	{
-		NumGoalsGetter = InSeedsDataFacade->GetBroadcaster<int32>(NumGoalAttribute);
-		if (!NumGoalsGetter)
-		{
-			PCGEX_LOG_INVALID_SELECTOR_C(InContext, "Num Goals (Seeds)", NumGoalAttribute)
-			return false;
-		}
-	}
+	NumGoalsBuffer = GetValueSettingNumGoals();
+	if(!NumGoalsBuffer->Init(InContext, InSeedsDataFacade, false)){return false;}
+	
 	return true;
 }
 
@@ -44,7 +38,7 @@ int32 UPCGExGoalPickerRandom::GetGoalIndex(const PCGExData::FPointRef& Seed) con
 
 void UPCGExGoalPickerRandom::GetGoalIndices(const PCGExData::FPointRef& Seed, TArray<int32>& OutIndices) const
 {
-	int32 Picks = NumGoalsGetter ? NumGoalsGetter->Read(Seed.Index) : NumGoals;
+	int32 Picks = NumGoalsBuffer->Read(Seed.Index);
 
 	if (GoalCount == EPCGExGoalPickRandomAmount::Random)
 	{

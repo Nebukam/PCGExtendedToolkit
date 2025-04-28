@@ -54,16 +54,8 @@ bool PCGExPointFilter::FNumericCompareNearestFilter::Init(FPCGExContext* InConte
 		return false;
 	}
 
-	if (TypedFilterFactory->Config.CompareAgainst == EPCGExInputValueType::Attribute)
-	{
-		OperandB = PointDataFacade->GetBroadcaster<double>(TypedFilterFactory->Config.OperandB);
-
-		if (!OperandB)
-		{
-			PCGEX_LOG_INVALID_SELECTOR_C(InContext, "Operand B", TypedFilterFactory->Config.OperandB)
-			return false;
-		}
-	}
+	OperandB = TypedFilterFactory->Config.GetValueSettingOperandB();
+	if (!OperandB->Init(InContext, PointDataFacade, false)) { return false; }
 
 	TargetOctree = &TargetDataFacade->GetIn()->GetOctree();
 	InPointsStart = TargetDataFacade->GetIn()->GetPoints().GetData();
@@ -73,7 +65,7 @@ bool PCGExPointFilter::FNumericCompareNearestFilter::Init(FPCGExContext* InConte
 
 bool PCGExPointFilter::FNumericCompareNearestFilter::Test(const int32 PointIndex) const
 {
-	const double B = OperandB ? OperandB->Read(PointIndex) : TypedFilterFactory->Config.OperandBConstant;
+	const double B = OperandB->Read(PointIndex);
 
 	const FPCGPoint& SourcePt = PointDataFacade->Source->GetInPoint(PointIndex);
 	double BestDist = MAX_dbl;

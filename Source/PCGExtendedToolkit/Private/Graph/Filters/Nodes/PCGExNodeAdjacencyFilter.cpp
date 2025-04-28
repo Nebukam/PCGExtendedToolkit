@@ -39,36 +39,13 @@ bool FNodeAdjacencyFilter::Init(FPCGExContext* InContext, const TSharedRef<PCGEx
 
 	bCaptureFromNodes = TypedFilterFactory->Config.OperandBSource != EPCGExClusterComponentSource::Edge;
 
-	if (TypedFilterFactory->Config.CompareAgainst == EPCGExInputValueType::Attribute)
-	{
-		OperandA = PointDataFacade->GetBroadcaster<double>(TypedFilterFactory->Config.OperandA);
-		if (!OperandA)
-		{
-			PCGEX_LOG_INVALID_SELECTOR_C(InContext, "Operand A", TypedFilterFactory->Config.OperandA)
-			return false;
-		}
-	}
+	OperandA = TypedFilterFactory->Config.GetValueSettingOperandA();
+	if (!OperandA->Init(InContext, PointDataFacade, false)) { return false; }
 
 	if (!Adjacency.Init(InContext, PointDataFacade.ToSharedRef())) { return false; }
 
-	if (bCaptureFromNodes)
-	{
-		OperandB = PointDataFacade->GetBroadcaster<double>(TypedFilterFactory->Config.OperandB);
-		if (!OperandB)
-		{
-			PCGEX_LOG_INVALID_SELECTOR_C(InContext, "Operand B", TypedFilterFactory->Config.OperandB)
-			return false;
-		}
-	}
-	else
-	{
-		OperandB = EdgeDataFacade->GetBroadcaster<double>(TypedFilterFactory->Config.OperandB);
-		if (!OperandB)
-		{
-			PCGEX_LOG_INVALID_SELECTOR_C(InContext, "Operand B", TypedFilterFactory->Config.OperandB)
-			return false;
-		}
-	}
+	OperandB = TypedFilterFactory->Config.GetValueSettingOperandB();
+	if (!OperandB->Init(InContext, bCaptureFromNodes ? PointDataFacade : EdgeDataFacade, false)) { return false; }
 
 #define PCGEX_SUB_TEST_FUNC TestSubFunc = [&](const PCGExCluster::FNode& Node, const TArray<PCGExCluster::FNode>& NodesRef, const double A)
 
@@ -243,7 +220,7 @@ bool FNodeAdjacencyFilter::Init(FPCGExContext* InContext, const TSharedRef<PCGEx
 
 bool FNodeAdjacencyFilter::Test(const PCGExCluster::FNode& Node) const
 {
-	return TestSubFunc(Node, *Cluster->Nodes, OperandA ? OperandA->Read(Node.PointIndex) : OperandAConstant);
+	return TestSubFunc(Node, *Cluster->Nodes, OperandA->Read(Node.PointIndex));
 }
 
 FNodeAdjacencyFilter::~FNodeAdjacencyFilter()

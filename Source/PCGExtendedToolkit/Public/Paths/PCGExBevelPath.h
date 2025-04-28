@@ -175,8 +175,11 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Flags", meta = (PCG_Overridable, EditCondition="bFlagSubdivision"))
 	FName SubdivisionFlagName = "IsSubdivision";
 
+	PCGEX_SETTING_VALUE_GET(Width, double, WidthInput, WidthAttribute, WidthConstant)
+	PCGEX_SETTING_VALUE_GET(Subdivisions, double, SubdivisionAmountInput, SubdivisionAmount, SubdivideMethod == EPCGExSubdivideMode::Count ? SubdivisionCount : SubdivisionDistance)
 
 	void InitOutputFlags(const TSharedPtr<PCGExData::FPointIO>& InPointIO) const;
+	
 };
 
 struct FPCGExBevelPathContext final : FPCGExPathProcessorContext
@@ -260,9 +263,8 @@ namespace PCGExBevelPath
 		bool bSubdivide = false;
 		bool bSubdivideCount = false;
 		bool bArc = false;
-		TSharedPtr<PCGExData::TBuffer<double>> WidthGetter;
-		TSharedPtr<PCGExData::TBuffer<double>> SubdivAmountGetter;
-		double ConstantSubdivAmount = 0;
+		TSharedPtr<PCGExDetails::TSettingValue<double>> WidthGetter;
+		TSharedPtr<PCGExDetails::TSettingValue<double>> SubdivAmountGetter;
 
 		TArray<FVector> Positions;
 		TSharedPtr<PCGExPaths::FPath> Path;

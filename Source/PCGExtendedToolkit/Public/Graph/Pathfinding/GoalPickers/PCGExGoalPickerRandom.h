@@ -4,6 +4,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "PCGExDetailsData.h"
 #include "UObject/Object.h"
 #include "PCGExGoalPicker.h"
 #include "Data/PCGExAttributeHelpers.h"
@@ -57,6 +58,8 @@ public:
 
 	virtual void Cleanup() override;
 
+	PCGEX_SETTING_VALUE_GET(NumGoals, int32, NumGoalsType, NumGoalAttribute, NumGoals)
+
 protected:
-	TSharedPtr<PCGExData::TBuffer<int32>> NumGoalsGetter;
+	TSharedPtr<PCGExDetails::TSettingValue<int32>> NumGoalsBuffer;
 };

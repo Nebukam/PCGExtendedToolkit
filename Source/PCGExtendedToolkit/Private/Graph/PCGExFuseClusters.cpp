@@ -160,11 +160,11 @@ namespace PCGExFuseClusters
 		bInvalidEdges = false;
 		UnionGraph = Context->UnionGraph;
 
-		bInlineProcessEdges = Settings->PointPointIntersectionDetails.FuseDetails.DoInlineInsertion();
+		bDaisyChainProcessEdges = Settings->PointPointIntersectionDetails.FuseDetails.DoInlineInsertion();
 
 		const int32 NumIterations = Cluster ? Cluster->Edges->Num() : IndexedEdges.Num();
 
-		if (bInlineProcessEdges)
+		if (bDaisyChainProcessEdges)
 		{
 			// Blunt insert since processor don't have a "wait"
 			InsertEdges(PCGExMT::FScope(0, NumIterations), true);

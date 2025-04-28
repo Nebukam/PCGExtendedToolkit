@@ -72,8 +72,8 @@ namespace PCGExClusterMT
 		bool bBuildCluster = true;
 		bool bWantsHeuristics = false;
 
-		bool bInlineProcessNodes = false;
-		bool bInlineProcessEdges = false;
+		bool bDaisyChainProcessNodes = false;
+		bool bDaisyChainProcessEdges = false;
 		bool bDaisyChainProcessRange = false;
 
 		int32 NumNodes = 0;

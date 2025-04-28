@@ -66,17 +66,9 @@ bool PCGExPointFilter::FDistanceFilter::Init(FPCGExContext* InContext, const TSh
 	SelfPtr = reinterpret_cast<uintptr_t>(InPointDataFacade->GetIn()->GetPoints().GetData());
 	Distances = TypedFilterFactory->Config.DistanceDetails.MakeDistances();
 
-	if (TypedFilterFactory->Config.CompareAgainst == EPCGExInputValueType::Attribute)
-	{
-		DistanceThresholdGetter = InPointDataFacade->GetScopedBroadcaster<double>(TypedFilterFactory->Config.DistanceThreshold);
-
-		if (!DistanceThresholdGetter)
-		{
-			PCGEX_LOG_INVALID_SELECTOR_C(InContext, "Distance Threshold", TypedFilterFactory->Config.DistanceThreshold)
-			return false;
-		}
-	}
-
+	DistanceThresholdGetter = TypedFilterFactory->Config.GetValueSettingDistanceThreshold();
+	if(!DistanceThresholdGetter->Init(InContext, InPointDataFacade)){return false;}
+	
 	return true;
 }
 
@@ -154,7 +146,7 @@ bool PCGExPointFilter::FDistanceFilter::Test(const FPCGPoint& Point) const
 
 bool PCGExPointFilter::FDistanceFilter::Test(const int32 PointIndex) const
 {
-	const double B = DistanceThresholdGetter ? DistanceThresholdGetter->Read(PointIndex) : TypedFilterFactory->Config.DistanceThresholdConstant;
+	const double B = DistanceThresholdGetter->Read(PointIndex);
 
 	const FPCGPoint& SourcePt = PointDataFacade->Source->GetInPoint(PointIndex);
 	double BestDist = MAX_dbl;

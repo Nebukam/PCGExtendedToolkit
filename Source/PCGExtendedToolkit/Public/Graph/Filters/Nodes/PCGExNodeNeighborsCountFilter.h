@@ -5,6 +5,7 @@
 
 #include "CoreMinimal.h"
 #include "PCGExCompare.h"
+#include "PCGExDetailsData.h"
 
 
 #include "Graph/PCGExCluster.h"
@@ -42,6 +43,8 @@ struct FPCGExNodeNeighborsCountFilterConfig
 	/** Rounding mode for near measures */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="Comparison==EPCGExComparison::NearlyEqual || Comparison==EPCGExComparison::NearlyNotEqual", EditConditionHides))
 	double Tolerance = DBL_COMPARE_TOLERANCE;
+
+	PCGEX_SETTING_VALUE_GET(LocalCount, double, CompareAgainst, LocalCount, Count)
 };
 
 /**
@@ -74,7 +77,7 @@ namespace PCGExNodeNeighborsCount
 
 		const UPCGExNodeNeighborsCountFilterFactory* TypedFilterFactory;
 
-		TSharedPtr<PCGExData::TBuffer<double>> LocalCount;
+		TSharedPtr<PCGExDetails::TSettingValue<double>> LocalCount;
 
 		virtual bool Init(FPCGExContext* InContext, const TSharedRef<PCGExCluster::FCluster>& InCluster, const TSharedRef<PCGExData::FFacade>& InPointDataFacade, const TSharedRef<PCGExData::FFacade>& InEdgeDataFacade) override;
 		virtual bool Test(const PCGExCluster::FNode& Node) const override;

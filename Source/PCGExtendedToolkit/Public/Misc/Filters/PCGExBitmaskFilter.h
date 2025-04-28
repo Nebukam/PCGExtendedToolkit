@@ -5,6 +5,7 @@
 
 #include "CoreMinimal.h"
 #include "PCGExCompare.h"
+#include "PCGExDetailsData.h"
 #include "PCGExFilterFactoryProvider.h"
 #include "UObject/Object.h"
 
@@ -46,6 +47,8 @@ struct FPCGExBitmaskFilterConfig
 	/** TBD */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	bool bInvertResult = false;
+
+	PCGEX_SETTING_VALUE_GET(Bitmask, int64, MaskInput, BitmaskAttribute, Bitmask)
 };
 
 
@@ -78,7 +81,7 @@ namespace PCGExPointFilter
 		TObjectPtr<const UPCGExBitmaskFilterFactory> TypedFilterFactory;
 
 		TSharedPtr<PCGExData::TBuffer<int64>> FlagsReader;
-		TSharedPtr<PCGExData::TBuffer<int64>> MaskReader;
+		TSharedPtr<PCGExDetails::TSettingValue<int64>> MaskReader;
 
 		int64 Bitmask;
 

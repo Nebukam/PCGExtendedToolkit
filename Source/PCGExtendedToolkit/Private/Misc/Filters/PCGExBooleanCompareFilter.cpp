@@ -35,16 +35,8 @@ bool PCGExPointFilter::FBooleanCompareFilter::Init(FPCGExContext* InContext, con
 		return false;
 	}
 
-	if (TypedFilterFactory->Config.CompareAgainst == EPCGExInputValueType::Attribute)
-	{
-		OperandB = PointDataFacade->GetScopedBroadcaster<bool>(TypedFilterFactory->Config.OperandB);
-
-		if (!OperandB)
-		{
-			PCGEX_LOG_INVALID_SELECTOR_C(InContext, "Operand B", TypedFilterFactory->Config.OperandB)
-			return false;
-		}
-	}
+	OperandB = TypedFilterFactory->Config.GetValueSettingOperandB();
+	if (!OperandB->Init(InContext, PointDataFacade)) { return false; }
 
 	return true;
 }
@@ -52,7 +44,7 @@ bool PCGExPointFilter::FBooleanCompareFilter::Init(FPCGExContext* InContext, con
 bool PCGExPointFilter::FBooleanCompareFilter::Test(const int32 PointIndex) const
 {
 	const double A = OperandA->Read(PointIndex);
-	const double B = OperandB ? OperandB->Read(PointIndex) : TypedFilterFactory->Config.OperandBConstant;
+	const double B = OperandB->Read(PointIndex);
 	return TypedFilterFactory->Config.Comparison == EPCGExEquality::Equal ? A == B : A != B;
 }
 

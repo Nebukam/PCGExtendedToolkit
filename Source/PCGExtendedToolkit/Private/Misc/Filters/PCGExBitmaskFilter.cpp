@@ -34,26 +34,15 @@ bool PCGExPointFilter::FBitmaskFilter::Init(FPCGExContext* InContext, const TSha
 		return false;
 	}
 
-	if (TypedFilterFactory->Config.MaskInput == EPCGExInputValueType::Attribute)
-	{
-		MaskReader = PointDataFacade->GetScopedReadable<int64>(TypedFilterFactory->Config.BitmaskAttribute);
-		if (!MaskReader)
-		{
-			PCGEX_LOG_INVALID_ATTR_C(InContext, "Mask", TypedFilterFactory->Config.BitmaskAttribute)
-			return false;
-		}
-	}
+	MaskReader = TypedFilterFactory->Config.GetValueSettingBitmask();
+	if (!MaskReader->Init(InContext, PointDataFacade)) { return false; }
 
 	return true;
 }
 
 bool PCGExPointFilter::FBitmaskFilter::Test(const int32 PointIndex) const
 {
-	const bool Result = PCGExCompare::Compare(
-		TypedFilterFactory->Config.Comparison,
-		FlagsReader->Read(PointIndex),
-		MaskReader ? MaskReader->Read(PointIndex) : Bitmask);
-
+	const bool Result = PCGExCompare::Compare(TypedFilterFactory->Config.Comparison, FlagsReader->Read(PointIndex), MaskReader->Read(PointIndex));
 	return TypedFilterFactory->Config.bInvertResult ? !Result : Result;
 }
 

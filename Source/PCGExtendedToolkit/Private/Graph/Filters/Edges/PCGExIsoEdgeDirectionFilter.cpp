@@ -56,15 +56,8 @@ bool FIsoEdgeDirectionFilter::Init(FPCGExContext* InContext, const TSharedRef<PC
 		// Fetch attributes while processors are searching for chains
 	}
 
-	if (TypedFilterFactory->Config.CompareAgainst == EPCGExInputValueType::Attribute)
-	{
-		OperandDirection = PointDataFacade->GetBroadcaster<FVector>(TypedFilterFactory->Config.Direction);
-		if (!OperandDirection)
-		{
-			PCGEX_LOG_INVALID_SELECTOR_C(InContext, "Direction", TypedFilterFactory->Config.Direction)
-			return false;
-		}
-	}
+	OperandDirection = TypedFilterFactory->Config.GetValueSettingDirection();
+	if (OperandDirection->Init(InContext, PointDataFacade, false)) { return false; }
 
 	if (TypedFilterFactory->Config.ComparisonQuality == EPCGExDirectionCheckMode::Dot)
 	{
@@ -92,7 +85,7 @@ bool FIsoEdgeDirectionFilter::Test(const PCGExGraph::FEdge& Edge) const
 bool FIsoEdgeDirectionFilter::TestDot(const int32 PtIndex, const FVector& EdgeDir) const
 {
 	const FPCGPoint& Point = PointDataFacade->Source->GetInPoint(PtIndex);
-	const FVector RefDir = (OperandDirection ? OperandDirection->Read(PtIndex) : TypedFilterFactory->Config.DirectionConstant).GetSafeNormal();
+	const FVector RefDir = OperandDirection->Read(PtIndex).GetSafeNormal();
 	return DotComparison.Test(
 		FVector::DotProduct(
 			TypedFilterFactory->Config.bTransformDirection ? Point.Transform.TransformVectorNoScale(RefDir) : RefDir,
@@ -104,7 +97,7 @@ bool FIsoEdgeDirectionFilter::TestHash(const int32 PtIndex, const FVector& EdgeD
 {
 	const FPCGPoint& Point = PointDataFacade->Source->GetInPoint(PtIndex);
 
-	FVector RefDir = OperandDirection ? OperandDirection->Read(PtIndex) : TypedFilterFactory->Config.DirectionConstant;
+	FVector RefDir = OperandDirection->Read(PtIndex);
 	if (TypedFilterFactory->Config.bTransformDirection) { RefDir = Point.Transform.TransformVectorNoScale(RefDir); }
 
 	RefDir.Normalize();

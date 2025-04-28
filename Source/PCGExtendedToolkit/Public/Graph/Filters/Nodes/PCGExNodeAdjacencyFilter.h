@@ -7,6 +7,7 @@
 
 #include "Graph/Filters/PCGExAdjacency.h"
 #include "PCGExDetails.h"
+#include "PCGExDetailsData.h"
 
 
 #include "Graph/PCGExCluster.h"
@@ -55,6 +56,9 @@ struct FPCGExNodeAdjacencyFilterConfig
 	/** Rounding mode for near measures */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="Comparison==EPCGExComparison::NearlyEqual || Comparison==EPCGExComparison::NearlyNotEqual", EditConditionHides))
 	double Tolerance = DBL_COMPARE_TOLERANCE;
+
+	PCGEX_SETTING_VALUE_GET(OperandA, double, CompareAgainst, OperandA, OperandAConstant)
+	PCGEX_SETTING_VALUE_GET(OperandB, double, EPCGExInputValueType::Attribute, OperandB, 0)
 };
 
 /**
@@ -82,7 +86,6 @@ public:
 		: FVtxFilter(InFactory), TypedFilterFactory(InFactory)
 	{
 		Adjacency = InFactory->Config.Adjacency;
-		OperandAConstant = InFactory->Config.OperandAConstant;
 	}
 
 	const UPCGExNodeAdjacencyFilterFactory* TypedFilterFactory;
@@ -92,10 +95,8 @@ public:
 	TArray<double> CachedThreshold;
 	FPCGExAdjacencySettings Adjacency;
 
-	TSharedPtr<PCGExData::TBuffer<double>> OperandA;
-	double OperandAConstant = 0;
-	
-	TSharedPtr<PCGExData::TBuffer<double>> OperandB;
+	TSharedPtr<PCGExDetails::TSettingValue<double>> OperandA;
+	TSharedPtr<PCGExDetails::TSettingValue<double>> OperandB;
 
 	using TestCallback = std::function<bool(const PCGExCluster::FNode&, const TArray<PCGExCluster::FNode>&, const double A)>;
 	TestCallback TestSubFunc;

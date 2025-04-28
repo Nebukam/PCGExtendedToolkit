@@ -585,12 +585,12 @@ namespace PCGExExtrudeTensors
 					if (E->TryMerge(HeadSegment, Merge))
 					{
 						E->CutOff(Merge);
-						CompletedExtrusions->Values[0]->Add(E);
+						CompletedExtrusions->Arrays[0]->Add(E);
 					}
 					else if (Crossing)
 					{
 						E->CutOff(Crossing);
-						CompletedExtrusions->Values[0]->Add(E);
+						CompletedExtrusions->Arrays[0]->Add(E);
 					}
 				}
 				else
@@ -598,12 +598,12 @@ namespace PCGExExtrudeTensors
 					if (Crossing)
 					{
 						E->CutOff(Crossing);
-						CompletedExtrusions->Values[0]->Add(E);
+						CompletedExtrusions->Arrays[0]->Add(E);
 					}
 					else if (E->TryMerge(HeadSegment, Merge))
 					{
 						E->CutOff(Merge);
-						CompletedExtrusions->Values[0]->Add(E);
+						CompletedExtrusions->Arrays[0]->Add(E);
 					}
 				}
 			}

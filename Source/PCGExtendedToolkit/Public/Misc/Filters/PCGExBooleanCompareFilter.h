@@ -5,6 +5,7 @@
 
 #include "CoreMinimal.h"
 #include "PCGExCompare.h"
+#include "PCGExDetailsData.h"
 #include "PCGExFilterFactoryProvider.h"
 #include "UObject/Object.h"
 
@@ -43,6 +44,8 @@ struct FPCGExBooleanCompareFilterConfig
 	/** Operand B for testing */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Operand B", EditCondition="CompareAgainst==EPCGExInputValueType::Constant", EditConditionHides))
 	bool OperandBConstant = true;
+
+	PCGEX_SETTING_VALUE_GET(OperandB, bool, CompareAgainst, OperandB, OperandBConstant)
 };
 
 
@@ -75,7 +78,7 @@ namespace PCGExPointFilter
 		const TObjectPtr<const UPCGExBooleanCompareFilterFactory> TypedFilterFactory;
 
 		TSharedPtr<PCGExData::TBuffer<bool>> OperandA;
-		TSharedPtr<PCGExData::TBuffer<bool>> OperandB;
+		TSharedPtr<PCGExDetails::TSettingValue<bool>> OperandB;
 
 		virtual bool Init(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade>& InPointDataFacade) override;
 		virtual bool Test(const int32 PointIndex) const override;
