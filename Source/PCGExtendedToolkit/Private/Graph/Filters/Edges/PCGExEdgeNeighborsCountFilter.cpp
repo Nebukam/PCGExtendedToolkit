@@ -4,6 +4,7 @@
 #include "Graph/Filters/Edges/PCGExEdgeNeighborsCountFilter.h"
 
 
+#include "PCGExDetailsData.h"
 #include "Graph/PCGExGraph.h"
 
 #define LOCTEXT_NAMESPACE "PCGExEdgeNeighborsCountFilter"
@@ -30,14 +31,8 @@ namespace PCGExEdgeNeighborsCount
 	{
 		if (!FFilter::Init(InContext, InCluster, InPointDataFacade, InEdgeDataFacade)) { return false; }
 
-		if (TypedFilterFactory->Config.ThresholdInput == EPCGExInputValueType::Attribute)
-		{
-			ThresholdBuffer = PointDataFacade->GetScopedBroadcaster<int32>(TypedFilterFactory->Config.ThresholdAttribute);
-			if (!ThresholdBuffer)
-			{
-				PCGE_LOG_C(Warning, GraphAndLog, InContext, FText::Format(FTEXT("Threshold Attribute ({0}) is not valid."), FText::FromString(PCGEx::GetSelectorDisplayName(TypedFilterFactory->Config.ThresholdAttribute))));
-			}
-		}
+		ThresholdBuffer = TypedFilterFactory->Config.GetValueSettingThreshold();
+		if (!ThresholdBuffer->Init(InContext, PointDataFacade)) { return false; }
 
 		return true;
 	}
@@ -49,7 +44,7 @@ namespace PCGExEdgeNeighborsCount
 
 		// TODO : Make these lambdas
 
-		const int32 Threshold = ThresholdBuffer ? ThresholdBuffer->Read(Edge.PointIndex) : TypedFilterFactory->Config.ThresholdConstant;
+		const int32 Threshold = ThresholdBuffer->Read(Edge.PointIndex);
 		const EPCGExComparison Comparison = TypedFilterFactory->Config.Comparison;
 		const EPCGExRefineEdgeThresholdMode Mode = TypedFilterFactory->Config.Mode;
 		const double Tolerance = TypedFilterFactory->Config.Tolerance;

@@ -114,7 +114,7 @@ namespace PCGExClusterMT
 			Nodes, NumNodes,
 			PrepareLoopScopesForNodes, ProcessNodes,
 			OnNodesProcessingComplete,
-			bInlineProcessNodes)
+			bDaisyChainProcessNodes)
 	}
 
 	void FClusterProcessor::PrepareLoopScopesForNodes(const TArray<PCGExMT::FScope>& Loops)
@@ -146,7 +146,7 @@ namespace PCGExClusterMT
 			Edges, NumEdges,
 			PrepareLoopScopesForEdges, ProcessEdges,
 			OnEdgesProcessingComplete,
-			bInlineProcessEdges)
+			bDaisyChainProcessEdges)
 	}
 
 	void FClusterProcessor::PrepareLoopScopesForEdges(const TArray<PCGExMT::FScope>& Loops)
@@ -217,6 +217,7 @@ namespace PCGExClusterMT
 
 	void FClusterProcessor::Cleanup()
 	{
+		HeuristicsHandler.Reset();
 		VtxFiltersManager.Reset();
 		EdgesFiltersManager.Reset();
 		bIsProcessorValid = false;
@@ -363,6 +364,9 @@ namespace PCGExClusterMT
 		{
 			PCGExPointFilter::RegisterBuffersDependencies(ExecutionContext, *VtxFilterFactories, FacadePreloader);
 		}
+
+		// TODO : Preload heuristics that depends on Vtx metadata
+		
 	}
 
 	void FClusterProcessorBatchBase::OnProcessingPreparationComplete()
@@ -430,5 +434,6 @@ namespace PCGExClusterMT
 
 	void FClusterProcessorBatchBase::Cleanup()
 	{
+		
 	}
 }

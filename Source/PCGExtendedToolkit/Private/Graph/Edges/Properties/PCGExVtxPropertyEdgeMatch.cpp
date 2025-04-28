@@ -34,15 +34,11 @@ bool UPCGExVtxPropertyEdgeMatch::PrepareForCluster(const FPCGExContext* InContex
 		return false;
 	}
 
-	if (Config.DirectionInput == EPCGExInputValueType::Attribute)
+	DirCache = PCGExDetails::MakeSettingValue(Config.DirectionInput, Config.Direction, Config.DirectionConstant);
+	if (!DirCache->Init(InContext, PrimaryDataFacade, false))
 	{
-		DirCache = PrimaryDataFacade->GetBroadcaster<FVector>(Config.Direction);
-		if (!DirCache)
-		{
-			PCGE_LOG_C(Error, GraphAndLog, InContext, FTEXT("Direction attribute is invalid"));
-			bIsValidOperation = false;
-			return false;
-		}
+		bIsValidOperation = false;
+		return false;
 	}
 
 	Config.MatchingEdge.Init(InVtxDataFacade.ToSharedRef());
@@ -58,7 +54,7 @@ void UPCGExVtxPropertyEdgeMatch::ProcessNode(PCGExCluster::FNode& Node, const TA
 	int32 IBest = -1;
 	const double DotThreshold = Config.DotComparisonDetails.GetComparisonThreshold(Node.PointIndex);
 
-	FVector NodeDirection = DirCache ? DirCache->Read(Node.PointIndex).GetSafeNormal() : Config.DirectionConstant;
+	FVector NodeDirection = DirCache->Read(Node.PointIndex).GetSafeNormal();
 	if (Config.bTransformDirection) { NodeDirection = Point.Transform.TransformVectorNoScale(NodeDirection); }
 
 	for (int i = 0; i < Adjacency.Num(); i++)

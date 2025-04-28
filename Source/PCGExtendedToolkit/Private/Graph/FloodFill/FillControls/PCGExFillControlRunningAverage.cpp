@@ -1,0 +1,104 @@
+﻿// Copyright 2025 Timothé Lapetite and contributors
+// Released under the MIT license https://opensource.org/license/MIT/
+
+
+#include "Graph/FloodFill/FillControls/PCGExFillControlRunningAverage.h"
+
+
+#include "Graph/FloodFill/FillControls/PCGExFillControlsFactoryProvider.h"
+
+bool UPCGExFillControlRunningAverage::PrepareForDiffusions(FPCGExContext* InContext, const TSharedPtr<PCGExFloodFill::FFillControlsHandler>& InHandler)
+{
+	if (!Super::PrepareForDiffusions(InContext, InHandler)) { return false; }
+
+	const UPCGExFillControlsFactoryRunningAverage* TypedFactory = Cast<UPCGExFillControlsFactoryRunningAverage>(Factory);
+
+	WindowSize = PCGExDetails::MakeSettingValue<int32>(TypedFactory->Config.WindowSizeInput, TypedFactory->Config.WindowSizeAttribute, TypedFactory->Config.WindowSize);
+	if (!WindowSize->Init(InContext, GetSourceFacade())) { return false; }
+
+	Tolerance = PCGExDetails::MakeSettingValue<double>(TypedFactory->Config.ToleranceInput, TypedFactory->Config.ToleranceAttribute, TypedFactory->Config.Tolerance);
+	if (!Tolerance->Init(InContext, GetSourceFacade())) { return false; }
+
+	Operand = InHandler->VtxDataFacade->GetBroadcaster<double>(TypedFactory->Config.Operand);
+	if (!Operand)
+	{
+		PCGEX_LOG_INVALID_SELECTOR_C(InContext, Operand, TypedFactory->Config.Operand)
+		return false;
+	}
+
+	return true;
+}
+
+bool UPCGExFillControlRunningAverage::IsValidCandidate(const PCGExFloodFill::FDiffusion* Diffusion, const PCGExFloodFill::FCandidate& From, const PCGExFloodFill::FCandidate& Candidate)
+{
+	const int32 Window = WindowSize->Read(GetSettingsIndex(Diffusion));
+
+	int32 PathNodeIndex = PCGEx::NH64A(Diffusion->TravelStack->Get(From.Node->Index));
+	int32 PathEdgeIndex = -1;
+
+	if (PathNodeIndex != -1)
+	{
+		double Avg = Operand->Read(Cluster->GetNode(PathNodeIndex)->PointIndex);
+		int32 Sampled = 1;
+		while (PathNodeIndex != -1 && Sampled < Window)
+		{
+			const int32 CurrentIndex = PathNodeIndex;
+			PCGEx::NH64(Diffusion->TravelStack->Get(CurrentIndex), PathNodeIndex, PathEdgeIndex);
+			if (PathNodeIndex != -1)
+			{
+				Avg += Operand->Read(Cluster->GetNode(PathNodeIndex)->PointIndex);
+				Sampled++;
+			}
+		}
+
+		return FMath::IsNearlyEqual((Avg / static_cast<double>(Sampled)), Operand->Read(Candidate.Node->PointIndex), Tolerance->Read(GetSettingsIndex(Diffusion)));
+	}
+	else
+	{
+		return true;
+	}
+}
+
+void UPCGExFillControlRunningAverage::Cleanup()
+{
+	WindowSize.Reset();
+	Tolerance.Reset();
+	Operand.Reset();
+	Super::Cleanup();
+}
+
+UPCGExFillControlOperation* UPCGExFillControlsFactoryRunningAverage::CreateOperation(FPCGExContext* InContext) const
+{
+	UPCGExFillControlRunningAverage* NewOperation = InContext->ManagedObjects->New<UPCGExFillControlRunningAverage>();
+	PCGEX_FORWARD_FILLCONTROL_OPERATION
+	return NewOperation;
+}
+
+void UPCGExFillControlsFactoryRunningAverage::RegisterBuffersDependencies(FPCGExContext* InContext, PCGExData::FFacadePreloader& FacadePreloader) const
+{
+	Super::RegisterBuffersDependencies(InContext, FacadePreloader);
+
+	FacadePreloader.Register<double>(InContext, Config.Operand);
+
+	if (Config.Source == EPCGExFloodFillSettingSource::Vtx)
+	{
+		FacadePreloader.Register<int32>(InContext, Config.WindowSizeAttribute);
+		FacadePreloader.Register<double>(InContext, Config.ToleranceAttribute);
+	}
+}
+
+UPCGExFactoryData* UPCGExFillControlsRunningAverageProviderSettings::CreateFactory(FPCGExContext* InContext, UPCGExFactoryData* InFactory) const
+{
+	UPCGExFillControlsFactoryRunningAverage* NewFactory = InContext->ManagedObjects->New<UPCGExFillControlsFactoryRunningAverage>();
+	PCGEX_FORWARD_FILLCONTROL_FACTORY
+	return Super::CreateFactory(InContext, NewFactory);
+}
+
+#if WITH_EDITOR
+FString UPCGExFillControlsRunningAverageProviderSettings::GetDisplayName() const
+{
+	FString DName = GetDefaultNodeTitle().ToString().Replace(TEXT("PCGEx | Fill Control"), TEXT("FC")) + TEXT(" @ ");
+	DName += PCGEx::GetSelectorDisplayName(Config.Operand);
+	return DName;
+}
+#endif

@@ -358,6 +358,21 @@ namespace PCGExSampleSurfaceGuided
 		if (!bSuccess) { SamplingFailed(); }
 	}
 
+	void FProcessor::OnPointsProcessingComplete()
+	{
+		if (!Settings->bOutputNormalizedDistance || !DistanceWriter) { return; }
+		MaxSampledDistance = MaxDistanceValue->Max();
+		StartParallelLoopForRange(PointDataFacade->GetNum());
+	}
+
+	void FProcessor::ProcessSingleRangeIteration(const int32 Iteration, const PCGExMT::FScope& Scope)
+	{
+		double& D = DistanceWriter->GetMutable(Iteration);
+		D /= MaxSampledDistance;
+		if (Settings->bOutputOneMinusDistance) { D = 1 - D; }
+		D *= Settings->DistanceScale;
+	}
+
 	void FProcessor::CompleteWork()
 	{
 		PointDataFacade->Write(AsyncManager);

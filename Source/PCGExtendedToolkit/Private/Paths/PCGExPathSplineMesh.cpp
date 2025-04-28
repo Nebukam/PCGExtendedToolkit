@@ -249,6 +249,11 @@ namespace PCGExPathSplineMesh
 		return true;
 	}
 
+	void FProcessor::PrepareLoopScopesForPoints(const TArray<PCGExMT::FScope>& Loops)
+	{
+		ScopedMaterials = MakeShared<PCGExMT::TScopedSet<FSoftObjectPath>>(Loops, 0);
+	}
+
 	void FProcessor::PrepareSingleLoopScopeForPoints(const PCGExMT::FScope& Scope)
 	{
 		PointDataFacade->Fetch(Scope);
@@ -308,7 +313,11 @@ namespace PCGExPathSplineMesh
 			return;
 		}
 
-		//
+		if (MeshEntry->MacroCache && MeshEntry->MacroCache->GetType() == PCGExAssetCollection::EType::Mesh)
+		{
+			Segment.MaterialPick = StaticCastSharedPtr<PCGExMeshCollection::FMacroCache>(MeshEntry->MacroCache)->GetPickRandomWeighted(Seed);
+			if (Segment.MaterialPick != -1) { MeshEntry->GetMaterialPaths(Segment.MaterialPick, *ScopedMaterials->Get(Scope)); }
+		}
 
 		if (bOutputWeight)
 		{
@@ -378,6 +387,13 @@ namespace PCGExPathSplineMesh
 		SegmentMutationDetails.Mutate(Index, Segment);
 	}
 
+	void FProcessor::OnPointsProcessingComplete()
+	{
+		PCGEX_MAKE_SHARED(MaterialPaths, TSet<FSoftObjectPath>)
+		ScopedMaterials->Collapse(*MaterialPaths.Get());
+		if (!MaterialPaths->IsEmpty()) { PCGExHelpers::LoadBlocking_AnyThread(MaterialPaths); } // TODO : Refactor this atrocity
+	}
+
 	void FProcessor::CompleteWork()
 	{
 		PointDataFacade->Write(AsyncManager);
@@ -406,18 +422,6 @@ namespace PCGExPathSplineMesh
 				TargetActor, MakeUniqueObjectName(
 					TargetActor, USplineMeshComponent::StaticClass(),
 					Context->UniqueNameGenerator->Get(TEXT("PCGSplineMeshComponent_") + Segment.MeshEntry->Staging.Path.GetAssetName())), ObjectFlags);
-
-			/*
-			SplineMeshComponent->SetCollisionEnabled(ECollisionEnabled::Type::NoCollision);
-			SplineMeshComponent->SetMobility(EComponentMobility::Static);
-			SplineMeshComponent->SetSimulatePhysics(false);
-			SplineMeshComponent->SetMassOverrideInKg(NAME_None, 0.0f);
-			SplineMeshComponent->SetUseCCD(false);
-			SplineMeshComponent->CanCharacterStepUpOn = ECB_No;
-			SplineMeshComponent->bUseDefaultCollision = false;
-			SplineMeshComponent->bNavigationRelevant = false;
-			SplineMeshComponent->SetbNeverNeedsCookedCollisionData(true);
-			*/
 
 			Segment.ApplySettings(SplineMeshComponent); // Init Component
 

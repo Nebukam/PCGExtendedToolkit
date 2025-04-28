@@ -131,9 +131,24 @@ namespace PCGExHeuristics
 		FVector GetSeedUVW() const;
 		FVector GetGoalUVW() const;
 
-		const PCGExCluster::FNode* GetRoamingSeed() const { return Cluster->GetRoamingNode(GetSeedUVW()); }
-		const PCGExCluster::FNode* GetRoamingGoal() const { return Cluster->GetRoamingNode(GetGoalUVW()); }
+		FORCEINLINE const PCGExCluster::FNode* GetRoamingSeed()
+		{
+			if (RoamingSeedNode) { return RoamingSeedNode; }
+			RoamingSeedNode = Cluster->GetRoamingNode(GetSeedUVW());
+			return RoamingSeedNode;
+		}
+
+		FORCEINLINE const PCGExCluster::FNode* GetRoamingGoal()
+		{
+			if (RoamingGoalNode) { return RoamingGoalNode; }
+			RoamingGoalNode = Cluster->GetRoamingNode(GetGoalUVW());
+			return RoamingGoalNode;
+		}
 
 		TSharedPtr<FLocalFeedbackHandler> MakeLocalFeedbackHandler(const TSharedPtr<const PCGExCluster::FCluster>& InCluster);
+
+	protected:
+		PCGExCluster::FNode* RoamingSeedNode = nullptr;
+		PCGExCluster::FNode* RoamingGoalNode = nullptr;
 	};
 }

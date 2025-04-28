@@ -27,6 +27,11 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExForwardDetails : public FPCGExNameFiltersDet
 	FPCGExForwardDetails()
 	{
 	}
+	
+	explicit FPCGExForwardDetails(bool InEnabled)
+	{
+		bEnabled = InEnabled;
+	}
 
 	/** Is forwarding enabled. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayPriority=0))
@@ -73,6 +78,7 @@ namespace PCGExData
 		bool IsEmpty() const { return Identities.IsEmpty(); }
 		void Forward(const int32 SourceIndex, const int32 TargetIndex);
 		void Forward(int32 SourceIndex, const TSharedPtr<FFacade>& InTargetDataFacade);
+		void Forward(int32 SourceIndex, const TSharedPtr<FFacade>& InTargetDataFacade, const TArray<int32>& Indices);
 		void Forward(int32 SourceIndex, UPCGMetadata* InTargetMetadata);
 	};
 }

@@ -36,16 +36,8 @@ namespace PCGExNodeNeighborsCount
 	{
 		if (!FFilter::Init(InContext, InCluster, InPointDataFacade, InEdgeDataFacade)) { return false; }
 
-		if (TypedFilterFactory->Config.CompareAgainst == EPCGExInputValueType::Attribute)
-		{
-			LocalCount = PointDataFacade->GetBroadcaster<double>(TypedFilterFactory->Config.LocalCount);
-
-			if (!LocalCount)
-			{
-				PCGEX_LOG_INVALID_SELECTOR_C(InContext, "Local Count", TypedFilterFactory->Config.LocalCount)
-				return false;
-			}
-		}
+		LocalCount = TypedFilterFactory->Config.GetValueSettingLocalCount();
+		if (!LocalCount->Init(InContext, PointDataFacade, false)) { return false; }
 
 		return true;
 	}

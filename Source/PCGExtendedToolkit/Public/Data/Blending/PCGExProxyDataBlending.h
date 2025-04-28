@@ -137,8 +137,8 @@ namespace PCGExDataBlending
 			else if constexpr (BLEND_MODE == EPCGExABBlendingType::UnsignedMax) { C->Set(Index, Point, PCGExBlend::UnsignedMax(PCGEX_A,PCGEX_B)); }
 			else if constexpr (BLEND_MODE == EPCGExABBlendingType::AbsoluteMin) { C->Set(Index, Point, PCGExBlend::AbsoluteMin(PCGEX_A,PCGEX_B)); }
 			else if constexpr (BLEND_MODE == EPCGExABBlendingType::AbsoluteMax) { C->Set(Index, Point, PCGExBlend::AbsoluteMax(PCGEX_A,PCGEX_B)); }
-			else if constexpr (BLEND_MODE == EPCGExABBlendingType::CopyTarget) { C->Set(Index, Point, PCGEX_A); }
-			else if constexpr (BLEND_MODE == EPCGExABBlendingType::CopySource) { C->Set(Index, Point, PCGEX_B); }
+			else if constexpr (BLEND_MODE == EPCGExABBlendingType::CopyTarget) { C->Set(Index, Point, PCGEX_B); }
+			else if constexpr (BLEND_MODE == EPCGExABBlendingType::CopySource) { C->Set(Index, Point, PCGEX_A); }
 			else if constexpr (BLEND_MODE == EPCGExABBlendingType::Hash) { C->Set(Index, Point, PCGExBlend::NaiveHash(PCGEX_A,PCGEX_B)); }
 			else if constexpr (BLEND_MODE == EPCGExABBlendingType::UnsignedHash) { C->Set(Index, Point, PCGExBlend::NaiveUnsignedHash(PCGEX_A,PCGEX_B)); }
 			else if constexpr (BLEND_MODE == EPCGExABBlendingType::Mod) { C->Set(Index, Point, PCGExBlend::ModSimple(PCGEX_A, PCGEx::Convert<T, double>(B->Get(Index, Point)))); }
@@ -173,8 +173,8 @@ namespace PCGExDataBlending
 			else if constexpr (BLEND_MODE == EPCGExABBlendingType::UnsignedMax) { C->Set(TargetIndex, TargetPoint, PCGExBlend::UnsignedMax(PCGEX_A,PCGEX_B)); }
 			else if constexpr (BLEND_MODE == EPCGExABBlendingType::AbsoluteMin) { C->Set(TargetIndex, TargetPoint, PCGExBlend::AbsoluteMin(PCGEX_A,PCGEX_B)); }
 			else if constexpr (BLEND_MODE == EPCGExABBlendingType::AbsoluteMax) { C->Set(TargetIndex, TargetPoint, PCGExBlend::AbsoluteMax(PCGEX_A,PCGEX_B)); }
-			else if constexpr (BLEND_MODE == EPCGExABBlendingType::CopyTarget) { C->Set(TargetIndex, TargetPoint, PCGEX_A); }
-			else if constexpr (BLEND_MODE == EPCGExABBlendingType::CopySource) { C->Set(TargetIndex, TargetPoint, PCGEX_B); }
+			else if constexpr (BLEND_MODE == EPCGExABBlendingType::CopyTarget) { C->Set(TargetIndex, TargetPoint, PCGEX_B); }
+			else if constexpr (BLEND_MODE == EPCGExABBlendingType::CopySource) { C->Set(TargetIndex, TargetPoint, PCGEX_A); }
 			else if constexpr (BLEND_MODE == EPCGExABBlendingType::Hash) { C->Set(TargetIndex, TargetPoint, PCGExBlend::NaiveHash(PCGEX_A,PCGEX_B)); }
 			else if constexpr (BLEND_MODE == EPCGExABBlendingType::UnsignedHash) { C->Set(TargetIndex, TargetPoint, PCGExBlend::NaiveUnsignedHash(PCGEX_A,PCGEX_B)); }
 			else if constexpr (BLEND_MODE == EPCGExABBlendingType::Mod) { C->Set(TargetIndex, TargetPoint, PCGExBlend::ModSimple(PCGEX_A, PCGEx::Convert<T, double>(PCGEX_B))); }

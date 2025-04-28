@@ -93,16 +93,9 @@ namespace PCGExOffsetPath
 			}
 		}
 
-		if (Settings->OffsetInput == EPCGExInputValueType::Attribute)
-		{
-			OffsetGetter = PointDataFacade->GetScopedBroadcaster<double>(Settings->OffsetAttribute);
-			if (!OffsetGetter)
-			{
-				PCGEX_LOG_INVALID_SELECTOR_C(ExecutionContext, "Offset", Settings->OffsetAttribute)
-				return false;
-			}
-		}
-
+		OffsetGetter = Settings->GetValueSettingOffset();
+		if(!OffsetGetter->Init(Context, PointDataFacade)){return false;}
+		
 		if (Settings->DirectionType == EPCGExInputValueType::Attribute)
 		{
 			DirectionGetter = PointDataFacade->GetScopedBroadcaster<FVector>(Settings->DirectionAttribute);
@@ -151,7 +144,7 @@ namespace PCGExOffsetPath
 		Path->ComputeEdgeExtra(EdgeIndex);
 
 		FVector Dir = (OffsetDirection ? OffsetDirection->Get(EdgeIndex) : DirectionGetter->Read(Index)) * DirectionFactor;
-		double Offset = (OffsetGetter ? OffsetGetter->Read(Index) : OffsetConstant);
+		double Offset = OffsetGetter->Read(Index);
 
 		if (Settings->bApplyPointScaleToOffset) { Dir *= Point.Transform.GetScale3D(); }
 
@@ -181,7 +174,7 @@ namespace PCGExOffsetPath
 		{
 			const int32 PrevIndex = Path->SafePointIndex(Index - 1);
 			const FVector PlaneDir = ((OffsetDirection ? OffsetDirection->Get(PrevIndex) : DirectionGetter->Read(PrevIndex)) * DirectionFactor).GetSafeNormal();
-			const FVector PlaneOrigin = Path->GetPos_Unsafe(PrevIndex) + (PlaneDir * (OffsetGetter ? OffsetGetter->Read(PrevIndex) : OffsetConstant));
+			const FVector PlaneOrigin = Path->GetPos_Unsafe(PrevIndex) + (PlaneDir * OffsetGetter->Read(PrevIndex));
 
 			const FVector A = Path->GetPos_Unsafe(Index) + (Dir * Offset);
 			const double Dot = FMath::Clamp(FMath::Abs(FVector::DotProduct(Path->DirToPrevPoint(Index), Path->DirToNextPoint(Index))), 0, 1);

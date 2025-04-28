@@ -4,6 +4,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "PCGExDetailsData.h"
 #include "PCGExGlobalSettings.h"
 #include "PCGExLayout.h"
 
@@ -114,6 +115,9 @@ public:
 	bool bQuietTooFewBinsWarning = false;
 
 	virtual bool GetSortingRules(FPCGExContext* InContext, TArray<FPCGExSortRuleConfig>& OutRules) const;
+
+	PCGEX_SETTING_VALUE_GET(Padding, FVector, OccupationPaddingInput, OccupationPaddingAttribute, OccupationPadding)
+	
 };
 
 struct FPCGExBinPackingContext final : FPCGExPointsProcessorContext
@@ -238,7 +242,7 @@ namespace PCGExBinPacking
 		TSharedPtr<PCGExSorting::PointSorter<true>> Sorter;
 		TArray<TSharedPtr<FBin>> Bins;
 		TBitArray<> Fitted;
-		TSharedPtr<PCGExData::TBuffer<FVector>> PaddingBuffer;
+		TSharedPtr<PCGExDetails::TSettingValue<FVector>> PaddingBuffer;
 		bool bHasUnfitted = false;
 
 	public:

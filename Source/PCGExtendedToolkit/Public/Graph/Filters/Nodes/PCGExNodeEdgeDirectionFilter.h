@@ -6,6 +6,7 @@
 #include "CoreMinimal.h"
 #include "Graph/Filters/PCGExAdjacency.h"
 #include "PCGExDetails.h"
+#include "PCGExDetailsData.h"
 
 
 #include "Graph/PCGExCluster.h"
@@ -59,6 +60,8 @@ struct FPCGExNodeEdgeDirectionFilterConfig
 	/** Hash comparison settings */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="ComparisonQuality==EPCGExDirectionCheckMode::Hash", EditConditionHides))
 	FPCGExVectorHashComparisonDetails HashComparisonDetails;
+
+	PCGEX_SETTING_VALUE_GET(Direction, FVector, CompareAgainst, Direction, DirectionConstant)
 };
 
 /**
@@ -93,12 +96,11 @@ public:
 	bool bFromNode = true;
 	bool bUseDot = true;
 
-	FVector DirConstant = FVector::ZeroVector;
 	FPCGExAdjacencySettings Adjacency;
 	FPCGExDotComparisonDetails DotComparison;
 	FPCGExVectorHashComparisonDetails HashComparison;
 
-	TSharedPtr<PCGExData::TBuffer<FVector>> OperandDirection;
+	TSharedPtr<PCGExDetails::TSettingValue<FVector>> OperandDirection;
 
 	virtual bool Init(FPCGExContext* InContext, const TSharedRef<PCGExCluster::FCluster>& InCluster, const TSharedRef<PCGExData::FFacade>& InPointDataFacade, const TSharedRef<PCGExData::FFacade>& InEdgeDataFacade) override;
 	virtual bool Test(const PCGExCluster::FNode& Node) const override;

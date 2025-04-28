@@ -358,7 +358,7 @@ namespace PCGExAssetStaging
 	{
 		if (Context->bPickMaterials)
 		{
-			int8 WriterCount = HighestSlotIndex->Flatten([](const int8 A, const int8 B) { return FMath::Max(A, B); }) + 1;
+			int8 WriterCount = HighestSlotIndex->Max() + 1;
 			if (Settings->MaxMaterialPicks > 0) { WriterCount = Settings->MaxMaterialPicks; }
 
 			if (WriterCount > 0)

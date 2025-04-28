@@ -2,6 +2,8 @@
 // Released under the MIT license https://opensource.org/license/MIT/
 
 #include "Data/Blending/PCGExAttributeBlendFactoryProvider.h"
+
+#include "PCGExDetailsData.h"
 #include "Data/Blending/PCGExProxyDataBlending.h"
 #include "Elements/Metadata/PCGMetadataElementCommon.h"
 
@@ -29,15 +31,8 @@ bool UPCGExAttributeBlendOperation::PrepareForData(FPCGExContext* InContext, con
 {
 	PrimaryDataFacade = InDataFacade;
 
-	if (Config.Weighting.WeightInput == EPCGExInputValueType::Attribute)
-	{
-		Weight = InDataFacade->GetScopedBroadcaster<double>(Config.Weighting.WeightAttribute);
-		if (!Weight)
-		{
-			PCGEX_LOG_INVALID_SELECTOR_C(InContext, Weight Attribute, Config.Weighting.WeightAttribute)
-			return false;
-		}
-	}
+	Weight = Config.Weighting.GetValueSettingWeight();
+	if(!Weight->Init(InContext, InDataFacade)){return false;}
 
 	// Fix @Selectors based on siblings 
 	if (!CopyAndFixSiblingSelector(InContext, Config.OperandA)) { return false; }

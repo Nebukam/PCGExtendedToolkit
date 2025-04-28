@@ -261,15 +261,8 @@ namespace PCGExBinPacking
 
 		if (!FPointsProcessor::Process(InAsyncManager)) { return false; }
 
-		if (Settings->OccupationPaddingInput == EPCGExInputValueType::Attribute)
-		{
-			PaddingBuffer = PointDataFacade->GetScopedBroadcaster<FVector>(Settings->OccupationPaddingAttribute);
-			if (!PaddingBuffer)
-			{
-				PCGE_LOG_C(Error, GraphAndLog, Context, FText::Format(FTEXT("Could not find occupation attribute : {0}."), FText::FromName(Settings->OccupationPaddingAttribute.GetName())));
-				return false;
-			}
-		}
+		PaddingBuffer = Settings->GetValueSettingPadding();
+		if (!PaddingBuffer->Init(Context, PointDataFacade)) { return false; }
 
 		// Splitter
 		switch (Settings->StackingSide)
@@ -383,7 +376,7 @@ namespace PCGExBinPacking
 
 		Item.Index = Index;
 		Item.Box = FBox(FVector::ZeroVector, PCGExMath::GetLocalBounds<EPCGExPointBoundsSource::ScaledBounds>(Point).GetSize());
-		Item.Padding = PaddingBuffer ? PaddingBuffer->Read(Index) : Settings->OccupationPadding;
+		Item.Padding = PaddingBuffer->Read(Index);
 
 		bool bPlaced = false;
 		for (const TSharedPtr<FBin>& Bin : Bins)
