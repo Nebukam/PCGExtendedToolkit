@@ -127,7 +127,7 @@ namespace PCGExPathSolidify
 	{
 		bool bClosedLoop = false;
 
-		TSharedPtr<PCGExDetails::TSettingValue<double>> SolidificationLerpGetter;
+		TSharedPtr<PCGExDetails::TSettingValue<double>> SolidificationLerp;
 
 		TSharedPtr<PCGExPaths::FPath> Path;
 		TSharedPtr<PCGExPaths::FPathEdgeLength> PathLength;

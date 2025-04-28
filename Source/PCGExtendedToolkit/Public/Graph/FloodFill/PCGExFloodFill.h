@@ -120,6 +120,7 @@ namespace PCGExFloodFill
 		bool bStopped = false;
 		const PCGExCluster::FNode* SeedNode = nullptr;
 		int32 SeedIndex = -1;
+		TSet<int32> Endpoints;
 
 		TSharedPtr<PCGEx::FMapHashLookup> TravelStack; // Required for FillControls & Heuristics
 		TSharedPtr<PCGExCluster::FCluster> Cluster;

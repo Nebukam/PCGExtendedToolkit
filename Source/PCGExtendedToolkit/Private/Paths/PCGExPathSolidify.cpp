@@ -89,8 +89,8 @@ namespace PCGExPathSolidify
 		PCGEX_FOREACH_XYZ(PCGEX_CREATE_LOCAL_AXIS_GETTER)
 #undef PCGEX_CREATE_LOCAL_AXIS_GETTER
 
-		SolidificationLerpGetter = Settings->GetValueSettingSolidificationLerp();
-		if (!SolidificationLerpGetter->Init(Context, PointDataFacade, false)) { return false; }
+		SolidificationLerp = Settings->GetValueSettingSolidificationLerp();
+		if (!SolidificationLerp->Init(Context, PointDataFacade, false)) { return false; }
 
 		if (!bClosedLoop && Settings->bRemoveLastPoint) { PointIO->GetOut()->GetMutablePoints().RemoveAt(Path->LastIndex); }
 
@@ -117,15 +117,17 @@ namespace PCGExPathSolidify
 		FVector TargetBoundsMin = Point.BoundsMin;
 		FVector TargetBoundsMax = Point.BoundsMax;
 
-		const double EdgeLerp = FMath::Clamp(SolidificationLerpGetter->Read(Index), 0, 1);
+		const double EdgeLerp = FMath::Clamp(SolidificationLerp->Read(Index), 0, 1);
 		const double EdgeLerpInv = 1 - EdgeLerp;
 		bool bProcessAxis;
 
 		const FVector PtScale = Point.Transform.GetScale3D();
 		const FVector InvScale = FVector::One() / PtScale;
 
+		//SolidificationRad##_AXIS.IsValid();
+		
 #define PCGEX_SOLIDIFY_DIMENSION(_AXIS)\
-		bProcessAxis = SolidificationRad##_AXIS.IsValid();\
+		bProcessAxis = Settings->bWriteRadius##_AXIS || Settings->SolidificationAxis == EPCGExMinimalAxis::_AXIS; \
 		if (bProcessAxis){\
 			if (Settings->SolidificationAxis == EPCGExMinimalAxis::_AXIS){\
 				TargetBoundsMin._AXIS = (-Length * EdgeLerp)* InvScale._AXIS;\

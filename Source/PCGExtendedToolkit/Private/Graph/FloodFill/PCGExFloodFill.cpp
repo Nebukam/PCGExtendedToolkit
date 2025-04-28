@@ -109,7 +109,7 @@ namespace PCGExFloodFill
 		{
 			if (Candidates.IsEmpty())
 			{
-				bStopped = true;
+				bStopped = true;				
 				break;
 			}
 
@@ -128,6 +128,9 @@ namespace PCGExFloodFill
 			Captured.Add(Candidate);
 			TravelStack->Set(Candidate.Node->Index, PCGEx::NH64(Candidate.Link.Node, Candidate.Link.Edge));
 
+			Endpoints.Add(Candidate.Node->Index);
+			Endpoints.Remove(Candidate.Link.Node);
+			
 			PostGrow();
 
 			bSearch = false;

@@ -76,6 +76,7 @@ public:
 
 protected:
 	virtual TArray<FPCGPinProperties> InputPinProperties() const override;
+	virtual TArray<FPCGPinProperties> OutputPinProperties() const override;
 	virtual FPCGElementPtr CreateElement() const override;
 	//~End UPCGSettings
 
@@ -87,7 +88,7 @@ public:
 	/** Defines how each vtx is diffused */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_NotOverridable))
 	EPCGExFloodFillProcessing Processing = EPCGExFloodFillProcessing::Parallel;
-	
+
 	/** Diffusion settings */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_NotOverridable))
 	FPCGExFloodFillFlowDetails Diffusion;
@@ -132,6 +133,16 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta = (PCG_Overridable, EditCondition="Seeds==EPCGExFloodFillSource::Points"))
 	FPCGExForwardDetails SeedForwarding = FPCGExForwardDetails(true);
 
+
+	/** TBD */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs - Paths")
+	bool bOutputPaths = false;
+
+	/** TBD */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs - Paths", meta=(EditCondition="bOutputPaths"))
+	FPCGExAttributeToTagDetails SeedAttributesToPathTags;
+
+
 	/** Whether or not to search for closest node using an octree. Depending on your dataset, enabling this may be either much faster, or much slower. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Performance, meta=(PCG_NotOverridable, AdvancedDisplay))
 	bool bUseOctreeSearch = false;
@@ -148,9 +159,15 @@ struct FPCGExClusterDiffusionContext final : FPCGExEdgesProcessorContext
 	TArray<TObjectPtr<const UPCGExFillControlsFactoryData>> FillControlFactories;
 
 	TSharedPtr<PCGExData::FFacade> SeedsDataFacade;
+	FPCGExAttributeToTagDetails SeedAttributesToPathTags;
 	TSharedPtr<PCGExData::FDataForwardHandler> SeedForwardHandler;
 
+	TSharedPtr<PCGExData::FPointIOCollection> Paths;
+
 	PCGEX_FOREACH_FIELD_CLUSTER_DIFF(PCGEX_OUTPUT_DECL_TOGGLE)
+
+	int32 ExpectedPathCount = 0;
+	
 };
 
 class FPCGExClusterDiffusionElement final : public FPCGExEdgesProcessorElement
@@ -191,6 +208,8 @@ namespace PCGExClusterDiffusion
 
 		TSharedPtr<PCGExMT::TScopedValue<double>> MaxDistanceValue;
 
+		int32 ExpectedPathCount = 0;
+
 	public:
 		FProcessor(const TSharedRef<PCGExData::FFacade>& InVtxDataFacade, const TSharedRef<PCGExData::FFacade>& InEdgeDataFacade)
 			: TProcessor(InVtxDataFacade, InEdgeDataFacade)
@@ -210,9 +229,13 @@ namespace PCGExClusterDiffusion
 		virtual void OnRangeProcessingComplete() override;
 
 		virtual void CompleteWork() override;
-		void Diffuse(const TSharedPtr<PCGExFloodFill::FDiffusion>& Diffusion) const;
+		void Diffuse(const TSharedPtr<PCGExFloodFill::FDiffusion>& Diffusion);
 
+		virtual void Output() override;
+		void WritePath(const int32 DiffusionIndex, const int32 EndpointNodeIndex);
+		
 		virtual void Cleanup() override;
+		
 	};
 
 	class FBatch final : public PCGExClusterMT::TBatchWithHeuristics<FProcessor>
