@@ -27,6 +27,11 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExForwardDetails : public FPCGExNameFiltersDet
 	FPCGExForwardDetails()
 	{
 	}
+	
+	explicit FPCGExForwardDetails(bool InEnabled)
+	{
+		bEnabled = InEnabled;
+	}
 
 	/** Is forwarding enabled. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayPriority=0))

@@ -130,7 +130,7 @@ public:
 
 	/** Which Seed attributes to forward on the vtx they diffused to. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta = (PCG_Overridable, EditCondition="Seeds==EPCGExFloodFillSource::Points"))
-	FPCGExForwardDetails SeedForwarding;
+	FPCGExForwardDetails SeedForwarding = FPCGExForwardDetails(true);
 
 	/** Whether or not to search for closest node using an octree. Depending on your dataset, enabling this may be either much faster, or much slower. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Performance, meta=(PCG_NotOverridable, AdvancedDisplay))
@@ -221,7 +221,7 @@ namespace PCGExClusterDiffusion
 
 	protected:
 		TSharedPtr<TArray<int8>> InfluencesCount;
-		TSharedPtr<TArray<UPCGExAttributeBlendOperation*>> Operations;
+		TSharedPtr<TArray<UPCGExAttributeBlendOperation*>> BlendOps;
 		TSharedPtr<PCGExDetails::TSettingValue<int32>> FillRate;
 
 	public:

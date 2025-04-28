@@ -17,10 +17,10 @@ TArray<FPCGPinProperties> UPCGExClusterDiffusionSettings::InputPinProperties() c
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
 
-	PCGEX_PIN_FACTORIES(PCGExDataBlending::SourceBlendingLabel, "Blending configurations.", Required, {})
-	PCGEX_PIN_FACTORIES(PCGExGraph::SourceHeuristicsLabel, "Heuristics.", Required, {})
-	PCGEX_PIN_FACTORIES(PCGExFloodFill::SourceFillControlsLabel, "Fill controls, used to constraint & limit flood fill", Normal, {})
+	PCGEX_PIN_FACTORIES(PCGExGraph::SourceHeuristicsLabel, "Heuristics. Used to drive flooding.", Required, {})
 	PCGEX_PIN_POINT(PCGExGraph::SourceSeedsLabel, "Seed points.", Required, {})
+	PCGEX_PIN_FACTORIES(PCGExFloodFill::SourceFillControlsLabel, "Fill controls, used to constraint & limit flood fill", Normal, {})
+	PCGEX_PIN_FACTORIES(PCGExDataBlending::SourceBlendingLabel, "Blending configurations.", Normal, {})
 
 	return PinProperties;
 }
@@ -34,12 +34,9 @@ bool FPCGExClusterDiffusionElement::Boot(FPCGExContext* InContext) const
 	PCGEX_CONTEXT_AND_SETTINGS(ClusterDiffusion)
 	PCGEX_FOREACH_FIELD_CLUSTER_DIFF(PCGEX_OUTPUT_VALIDATE_NAME)
 
-	if (!PCGExFactories::GetInputFactories<UPCGExAttributeBlendFactory>(
+	PCGExFactories::GetInputFactories<UPCGExAttributeBlendFactory>(
 		Context, PCGExDataBlending::SourceBlendingLabel, Context->BlendingFactories,
-		{PCGExFactories::EType::Blending}, true))
-	{
-		return false;
-	}
+		{PCGExFactories::EType::Blending}, false);
 
 	// Fill controls are optional, actually
 	PCGExFactories::GetInputFactories<UPCGExFillControlsFactoryData>(
@@ -331,8 +328,8 @@ namespace PCGExClusterDiffusion
 	{
 		PCGEX_TYPED_CONTEXT_AND_SETTINGS(ClusterDiffusion)
 
-		Operations = MakeShared<TArray<UPCGExAttributeBlendOperation*>>();
-		Operations->Reserve(Context->BlendingFactories.Num());
+		BlendOps = MakeShared<TArray<UPCGExAttributeBlendOperation*>>();
+		BlendOps->Reserve(Context->BlendingFactories.Num());
 
 		for (const TObjectPtr<const UPCGExAttributeBlendFactory>& Factory : Context->BlendingFactories)
 		{
@@ -344,8 +341,8 @@ namespace PCGExClusterDiffusion
 				return; // FAIL
 			}
 
-			Op->OpIdx = Operations->Add(Op);
-			Op->SiblingOperations = Operations;
+			Op->OpIdx = BlendOps->Add(Op);
+			Op->SiblingOperations = BlendOps;
 
 			if (!Op->PrepareForData(Context, VtxDataFacade))
 			{
@@ -361,8 +358,7 @@ namespace PCGExClusterDiffusion
 
 		FillRate = PCGExDetails::MakeSettingValue<int32>(Settings->Diffusion.FillRateInput, Settings->Diffusion.FillRateAttribute, Settings->Diffusion.FillRateConstant);
 		bIsBatchValid = FillRate->Init(Context, Settings->Diffusion.FillRateSource == EPCGExFloodFillSettingSource::Seed ? Context->SeedsDataFacade : VtxDataFacade);
-
-
+		
 		if (!bIsBatchValid) { return; } // Fail
 
 		TBatchWithHeuristics<FProcessor>::Process();
@@ -372,7 +368,7 @@ namespace PCGExClusterDiffusion
 	{
 		if (!TBatch<FProcessor>::PrepareSingle(ClusterProcessor)) { return false; }
 
-		ClusterProcessor->Operations = Operations;
+		ClusterProcessor->Operations = BlendOps;
 		ClusterProcessor->InfluencesCount = InfluencesCount;
 
 		ClusterProcessor->FillRate = FillRate;
