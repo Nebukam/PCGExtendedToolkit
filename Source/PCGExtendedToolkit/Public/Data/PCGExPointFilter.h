@@ -20,6 +20,13 @@ enum class EPCGExFilterFallback : uint8
 	Fail = 1 UMETA(DisplayName = "Fail", ToolTip="This item will be considered to failing to pass the filter"),
 };
 
+UENUM()
+enum class EPCGExFilterResult : uint8
+{
+	Pass = 0 UMETA(DisplayName = "Pass", ToolTip="Passes the filters"),
+	Fail = 1 UMETA(DisplayName = "Fail", ToolTip="Fails the filters"),
+};
+
 namespace PCGExGraph
 {
 	struct FEdge;
