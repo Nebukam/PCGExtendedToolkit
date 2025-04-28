@@ -273,6 +273,10 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(PCG_Overridable, DisplayName=" ├─ Normalized", EditCondition="bWriteDistance", EditConditionHides, HideEditConditionToggle))
 	bool bOutputNormalizedDistance = false;
 
+	/** Whether to do a OneMinus on the normalized distance value */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(PCG_Overridable, DisplayName=" │ └─ OneMinus", EditCondition="bWriteDistance && bOutputNormalizedDistance", EditConditionHides, HideEditConditionToggle))
+	bool bOutputOneMinusDistance = false;
+	
 	/** Scale factor applied to the distance output; allows to easily invert it using -1 */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(PCG_Overridable, DisplayName=" └─ Scale", EditCondition="bWriteDistance", EditConditionHides, HideEditConditionToggle))
 	double DistanceScale = 1;
@@ -477,6 +481,7 @@ namespace PCGExSampleNearestSpline
 		int8 bAnySuccess = 0;
 
 		TSharedPtr<PCGExMT::TScopedValue<double>> MaxDistanceValue;
+		double MaxDistance = 0;
 
 		bool bSingleSample = false;
 		bool bClosestSample = false;
@@ -500,6 +505,10 @@ namespace PCGExSampleNearestSpline
 		void SamplingFailed(const int32 Index, const FPCGPoint& Point, double InDepth = 0);
 
 		virtual void ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const PCGExMT::FScope& Scope) override;
+
+		virtual void OnPointsProcessingComplete() override;
+		virtual void ProcessSingleRangeIteration(const int32 Iteration, const PCGExMT::FScope& Scope) override;
+		
 		virtual void CompleteWork() override;
 		virtual void Write() override;
 	};

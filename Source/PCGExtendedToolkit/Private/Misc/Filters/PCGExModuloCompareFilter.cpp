@@ -36,27 +36,11 @@ bool PCGExPointFilter::FModuloComparisonFilter::Init(FPCGExContext* InContext, c
 		return false;
 	}
 
-	if (TypedFilterFactory->Config.OperandBSource == EPCGExInputValueType::Attribute)
-	{
-		OperandB = PointDataFacade->GetScopedBroadcaster<double>(TypedFilterFactory->Config.OperandB);
+	OperandB = TypedFilterFactory->Config.GetValueSettingOperandB();
+	if (!OperandB->Init(InContext, PointDataFacade)) { return false; }
 
-		if (!OperandB)
-		{
-			PCGEX_LOG_INVALID_SELECTOR_C(InContext, "Operand B", TypedFilterFactory->Config.OperandB)
-			return false;
-		}
-	}
-
-	if (TypedFilterFactory->Config.CompareAgainst == EPCGExInputValueType::Attribute)
-	{
-		OperandC = PointDataFacade->GetScopedBroadcaster<double>(TypedFilterFactory->Config.OperandC);
-
-		if (!OperandC)
-		{
-			PCGEX_LOG_INVALID_SELECTOR_C(InContext, "Operand C", TypedFilterFactory->Config.OperandC)
-			return false;
-		}
-	}
+	OperandC = TypedFilterFactory->Config.GetValueSettingOperandC();
+	if (!OperandC->Init(InContext, PointDataFacade)) { return false; }
 
 	return true;
 }
@@ -64,8 +48,8 @@ bool PCGExPointFilter::FModuloComparisonFilter::Init(FPCGExContext* InContext, c
 bool PCGExPointFilter::FModuloComparisonFilter::Test(const int32 PointIndex) const
 {
 	const double A = OperandA->Read(PointIndex);
-	const double B = OperandB ? OperandB->Read(PointIndex) : TypedFilterFactory->Config.OperandBConstant;
-	const double C = OperandC ? OperandC->Read(PointIndex) : TypedFilterFactory->Config.OperandCConstant;
+	const double B = OperandB->Read(PointIndex);
+	const double C = OperandC->Read(PointIndex);
 	if (A == 0 || B == 0) { return TypedFilterFactory->Config.ZeroResult; }
 	return PCGExCompare::Compare(TypedFilterFactory->Config.Comparison, FMath::Fmod(A, B), C, TypedFilterFactory->Config.Tolerance);
 }

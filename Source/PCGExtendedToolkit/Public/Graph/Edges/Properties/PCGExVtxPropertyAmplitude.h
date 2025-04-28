@@ -4,6 +4,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "PCGExDetailsData.h"
 #include "UObject/Object.h"
 
 #include "PCGExFactoryProvider.h"
@@ -154,7 +155,7 @@ public:
 	virtual void Cleanup() override;
 
 protected:
-	TSharedPtr<PCGExData::TBuffer<FVector>> DirCache;
+	TSharedPtr<PCGExDetails::TSettingValue<FVector>> DirCache;
 
 	TSharedPtr<PCGExData::TBuffer<double>> MinAmpLengthBuffer;
 	TSharedPtr<PCGExData::TBuffer<double>> MaxAmpLengthBuffer;

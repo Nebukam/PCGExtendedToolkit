@@ -5,6 +5,7 @@
 
 #include "CoreMinimal.h"
 #include "PCGExCompare.h"
+#include "PCGExDetailsData.h"
 
 
 #include "Graph/PCGExCluster.h"
@@ -57,6 +58,9 @@ struct FPCGExEdgeNeighborsCountFilterConfig
 	/** */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	bool bInvert = false;
+	
+	PCGEX_SETTING_VALUE_GET(Threshold, int32, ThresholdInput, ThresholdAttribute, ThresholdConstant)
+		
 };
 
 /**
@@ -88,7 +92,7 @@ namespace PCGExEdgeNeighborsCount
 
 		const UPCGExEdgeNeighborsCountFilterFactory* TypedFilterFactory;
 
-		TSharedPtr<PCGExData::TBuffer<int32>> ThresholdBuffer;
+		TSharedPtr<PCGExDetails::TSettingValue<int32>> ThresholdBuffer;
 
 		virtual bool Init(FPCGExContext* InContext, const TSharedRef<PCGExCluster::FCluster>& InCluster, const TSharedRef<PCGExData::FFacade>& InPointDataFacade, const TSharedRef<PCGExData::FFacade>& InEdgeDataFacade) override;
 		virtual bool Test(const PCGExGraph::FEdge& Edge) const override;

@@ -159,6 +159,7 @@ namespace PCGExData
 					Identity.UnderlyingType, [&](auto DummyValue)
 					{
 						using T = decltype(DummyValue);
+
 						// 'template' spec required for clang on mac, and rider keeps removing it without the comment below.
 						// ReSharper disable once CppRedundantTemplateKeyword
 						const FPCGMetadataAttribute<T>* SourceAtt = SourceDataFacade->GetIn()->Metadata->template GetConstTypedAttribute<T>(Identity.Name);
@@ -192,6 +193,31 @@ namespace PCGExData
 						Identity.Name,
 						SourceAtt->GetValueFromItemKey(SourceDataFacade->Source->GetInPoint(SourceIndex).MetadataEntry),
 						SourceAtt->AllowsInterpolation(), true, true);
+				});
+		}
+	}
+
+	void FDataForwardHandler::Forward(int32 SourceIndex, const TSharedPtr<FFacade>& InTargetDataFacade, const TArray<int32>& Indices)
+	{
+		if (Identities.IsEmpty()) { return; }
+
+		for (const PCGEx::FAttributeIdentity& Identity : Identities)
+		{
+			PCGEx::ExecuteWithRightType(
+				Identity.UnderlyingType, [&](auto DummyValue)
+				{
+					using T = decltype(DummyValue);
+
+					// 'template' spec required for clang on mac, and rider keeps removing it without the comment below.
+					// ReSharper disable once CppRedundantTemplateKeyword
+					const FPCGMetadataAttribute<T>* SourceAtt = SourceDataFacade->GetIn()->Metadata->template GetConstTypedAttribute<T>(Identity.Name);
+					if (!SourceAtt) { return; }
+
+					TSharedPtr<TBuffer<T>> Writer = InTargetDataFacade->GetWritable<T>(SourceAtt, EBufferInit::Inherit);
+
+					const T ForwardValue = SourceAtt->GetValueFromItemKey(SourceDataFacade->Source->GetInPoint(SourceIndex).MetadataEntry);
+					TArray<T>& Values = *Writer->GetOutValues();
+					for (int i : Indices) { Values[i] = ForwardValue; }
 				});
 		}
 	}

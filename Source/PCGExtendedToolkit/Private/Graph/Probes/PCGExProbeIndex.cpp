@@ -44,21 +44,10 @@ bool UPCGExProbeIndex::PrepareForPoints(const TSharedPtr<PCGExData::FPointIO>& I
 	case EPCGExProbeTargetMode::OneWayOffset: PCGEX_FOREACH_SANITIZEINDEX(PCGEX_TARGET_CONNECT_ONEWAY, _VALUE) break;\
 	case EPCGExProbeTargetMode::TwoWayOffset: PCGEX_FOREACH_SANITIZEINDEX(PCGEX_TARGET_CONNECT_TWOWAY, _VALUE) break; }
 
-	if (Config.IndexInput == EPCGExInputValueType::Attribute)
-	{
-		TargetCache = PrimaryDataFacade->GetScopedBroadcaster<int32>(Config.IndexAttribute);
-		if (!TargetCache)
-		{
-			PCGEX_LOG_INVALID_SELECTOR_C(Context, "Target", Config.IndexAttribute)
-			return false;
-		}
+	TargetCache = Config.GetValueSettingIndex();
+	if (!TargetCache->Init(Context, PrimaryDataFacade)) { return false; }
 
-		PCGEX_TARGET_CONNECT_SWITCH(TargetCache->Read(Index))
-	}
-	else
-	{
-		PCGEX_TARGET_CONNECT_SWITCH(Config.IndexConstant)
-	}
+	PCGEX_TARGET_CONNECT_SWITCH(TargetCache->Read(Index))
 
 #undef PCGEX_FOREACH_SANITIZEINDEX
 #undef PCGEX_TARGET_CONNECT_TARGET

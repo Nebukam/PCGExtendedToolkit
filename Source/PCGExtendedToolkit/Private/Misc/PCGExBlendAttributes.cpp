@@ -74,7 +74,6 @@ namespace PCGExBlendAttributes
 		Operations = MakeShared<TArray<UPCGExAttributeBlendOperation*>>();
 		Operations->Reserve(Context->BlendingFactories.Num());
 
-		int32 OperationIdx = 0;
 		for (const TObjectPtr<const UPCGExAttributeBlendFactory>& Factory : Context->BlendingFactories)
 		{
 			UPCGExAttributeBlendOperation* Op = Factory->CreateOperation(Context);

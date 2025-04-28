@@ -4,6 +4,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "PCGExDetailsData.h"
 #include "UObject/Object.h"
 
 #include "PCGExProbeFactoryProvider.h"
@@ -51,6 +52,8 @@ struct FPCGExProbeConfigIndex : public FPCGExProbeConfigBase
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Index", ClampMin=0, EditCondition="IndexInput==EPCGExInputValueType::Constant", EditConditionHides))
 	int32 IndexConstant = 1;
+
+	PCGEX_SETTING_VALUE_GET(Index, int32, IndexInput, IndexAttribute, IndexConstant)
 };
 
 /**
@@ -77,7 +80,7 @@ public:
 	}
 
 	FPCGExProbeConfigIndex Config;
-	TSharedPtr<PCGExData::TBuffer<int32>> TargetCache;
+	TSharedPtr<PCGExDetails::TSettingValue<int32>> TargetCache;
 
 	using TryCreateEdgeCallback = std::function<void(const int32, TSet<uint64>*, const TArray<int8>&)>;
 	TryCreateEdgeCallback TryCreateEdge;

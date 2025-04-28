@@ -48,8 +48,8 @@ public:
 
 		if (WantsHeuristics() && Heuristics)
 		{
-			RoamingSeedNode = Heuristics->GetRoamingSeed();
-			RoamingGoalNode = Heuristics->GetRoamingGoal();
+			Heuristics->GetRoamingSeed();
+			Heuristics->GetRoamingGoal();
 		}
 	}
 
@@ -73,8 +73,6 @@ public:
 	}
 
 protected:
-	const PCGExCluster::FNode* RoamingSeedNode = nullptr;
-	const PCGExCluster::FNode* RoamingGoalNode = nullptr;
 	TSharedPtr<PCGExCluster::FCluster> Cluster;
 	TSharedPtr<PCGExHeuristics::FHeuristicsHandler> Heuristics;
 	mutable FRWLock EdgeLock;

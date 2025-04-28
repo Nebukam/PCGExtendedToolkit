@@ -5,6 +5,7 @@
 
 #include "CoreMinimal.h"
 #include "PCGExCompare.h"
+#include "PCGExDetailsData.h"
 #include "UObject/Object.h"
 
 #include "PCGExFactoryProvider.h"
@@ -88,7 +89,7 @@ public:
 	}
 
 protected:
-	TSharedPtr<PCGExData::TBuffer<FVector>> DirCache;
+	TSharedPtr<PCGExDetails::TSettingValue<FVector>> DirCache;
 };
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")
