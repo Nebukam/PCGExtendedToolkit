@@ -243,6 +243,7 @@ namespace PCGExFloodFill
 
 		SeedIndices = MakeShared<TArray<int32>>();
 		SeedNodeIndices = MakeShared<TArray<int32>>();
+		
 		SeedIndices->SetNumUninitialized(NumDiffusions);
 		SeedNodeIndices->SetNumUninitialized(NumDiffusions);
 
@@ -261,8 +262,8 @@ namespace PCGExFloodFill
 		PCGEX_SHARED_THIS_DECL
 		for (UPCGExFillControlOperation* Op : Operations)
 		{
-			if (!Op->PrepareForDiffusions(ExecutionContext, ThisPtr)) { return false; }
 			Op->SettingsIndex = Op->Factory->ConfigBase.Source == EPCGExFloodFillSettingSource::Seed ? SeedIndices : SeedNodeIndices;
+			if (!Op->PrepareForDiffusions(ExecutionContext, ThisPtr)) { return false; }
 		}
 
 		return true;
