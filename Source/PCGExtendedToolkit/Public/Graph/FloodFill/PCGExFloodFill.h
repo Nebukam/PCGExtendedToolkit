@@ -92,13 +92,12 @@ namespace PCGExFloodFill
 	struct FCandidate
 	{
 		const PCGExCluster::FNode* Node = nullptr;
-		int32 PrevCandidate = -1;
+		PCGExGraph::FLink Link;
 		int32 Depth = 0;
 		double PathScore = 0;
 		double Score = 0;
 		double PathDistance = 0;
 		double Distance = 0;
-		bool End = true;
 
 		FCandidate() = default;
 	};
@@ -134,7 +133,7 @@ namespace PCGExFloodFill
 		FORCEINLINE int32 GetSettingsIndex(EPCGExFloodFillSettingSource Source) const { return Source == EPCGExFloodFillSettingSource::Seed ? SeedIndex : SeedNode->PointIndex; }
 
 		void Init(const int32 InSeedIndex);
-		void Probe(const int32 FromIndex, const FCandidate& From);
+		void Probe(const FCandidate& From);
 		void Grow();
 		void PostGrow();
 
@@ -194,7 +193,7 @@ namespace PCGExFloodFill
 
 		bool TryCapture(const FDiffusion* Diffusion, const FCandidate& Candidate);
 		bool IsValidProbe(const FDiffusion* Diffusion, const FCandidate& Candidate);
-		bool IsValidCandidate(FDiffusion* Diffusion, const FCandidate& From, const FCandidate& Candidate);
+		bool IsValidCandidate(const FDiffusion* Diffusion, const FCandidate& From, const FCandidate& Candidate);
 
 	protected:
 	};

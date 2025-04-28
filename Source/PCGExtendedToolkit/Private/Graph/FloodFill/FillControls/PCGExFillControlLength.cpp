@@ -30,9 +30,9 @@ bool UPCGExFillControlLength::IsValidProbe(const PCGExFloodFill::FDiffusion* Dif
 	return (bUsePathLength ? InCandidate.PathDistance : InCandidate.Distance) <= DistanceLimit->Read(GetSettingsIndex(Diffusion));
 }
 
-bool UPCGExFillControlLength::IsValidCandidate(const PCGExFloodFill::FDiffusion* Diffusion, const PCGExFloodFill::FCandidate& InCandidate)
+bool UPCGExFillControlLength::IsValidCandidate(const PCGExFloodFill::FDiffusion* Diffusion, const PCGExFloodFill::FCandidate& From, const PCGExFloodFill::FCandidate& Candidate)
 {
-	return (bUsePathLength ? InCandidate.PathDistance : InCandidate.Distance) <= DistanceLimit->Read(GetSettingsIndex(Diffusion));
+	return (bUsePathLength ? Candidate.PathDistance : Candidate.Distance) <= DistanceLimit->Read(GetSettingsIndex(Diffusion));
 }
 
 void UPCGExFillControlLength::Cleanup()

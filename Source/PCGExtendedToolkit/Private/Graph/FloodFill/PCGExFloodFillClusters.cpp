@@ -276,7 +276,7 @@ namespace PCGExClusterDiffusion
 				PCGEX_OUTPUT_VALUE(DiffusionDepth, TargetIndex, Candidate.Depth);
 				PCGEX_OUTPUT_VALUE(DiffusionDistance, TargetIndex, Candidate.PathDistance);
 				PCGEX_OUTPUT_VALUE(DiffusionOrder, TargetIndex, i);
-				PCGEX_OUTPUT_VALUE(DiffusionEnding, TargetIndex, Candidate.End);
+				//PCGEX_OUTPUT_VALUE(DiffusionEnding, TargetIndex, Diffusion->TravelStack->Get(Candidate.Node));
 			}
 
 			// Forward seed values to diffusion

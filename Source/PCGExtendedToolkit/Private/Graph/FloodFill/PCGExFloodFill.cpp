@@ -19,6 +19,7 @@ namespace PCGExFloodFill
 		const PCGExCluster::FNode* InSeedNode):
 		FillControlsHandler(InFillControlsHandler), SeedNode(InSeedNode), Cluster(InCluster)
 	{
+		TravelStack = MakeShared<PCGEx::FMapHashLookup>(0, 0);
 	}
 
 	void FDiffusion::Init(const int32 InSeedIndex)
@@ -30,10 +31,10 @@ namespace PCGExFloodFill
 		FCandidate& SeedCandidate = Captured.Emplace_GetRef();
 		SeedCandidate.Node = SeedNode;
 
-		Probe(0, SeedCandidate);
+		Probe(SeedCandidate);
 	}
 
-	void FDiffusion::Probe(const int32 FromIndex, const FCandidate& From)
+	void FDiffusion::Probe(const FCandidate& From)
 	{
 		if (!FillControlsHandler->IsValidProbe(this, From))
 		{
@@ -68,8 +69,8 @@ namespace PCGExFloodFill
 				nullptr, TravelStack);
 
 			FCandidate Candidate = FCandidate{};
+			Candidate.Link = PCGExGraph::FLink(FromNode.Index, Lk.Edge);
 			Candidate.Node = OtherNode;
-			Candidate.PrevCandidate = FromIndex;
 
 			if (FillControlsHandler->bUseLocalScore || FillControlsHandler->bUsePreviousScore)
 			{
@@ -124,8 +125,9 @@ namespace PCGExFloodFill
 			MaxDepth = FMath::Max(MaxDepth, Candidate.Depth);
 			MaxDistance = FMath::Max(MaxDistance, Candidate.PathDistance);
 
-			Captured[Candidate.PrevCandidate].End = false;
 			Captured.Add(Candidate);
+			TravelStack->Set(Candidate.Node->Index, PCGEx::NH64(Candidate.Link.Node, Candidate.Link.Edge));
+
 			PostGrow();
 
 			bSearch = false;
@@ -136,7 +138,7 @@ namespace PCGExFloodFill
 	{
 		// Probe from last captured candidate
 
-		Probe(Captured.Num() - 1, Captured.Last());
+		Probe(Captured.Last());
 
 		// Sort candidates
 
@@ -272,21 +274,13 @@ namespace PCGExFloodFill
 
 	bool FFillControlsHandler::IsValidProbe(const FDiffusion* Diffusion, const FCandidate& Candidate)
 	{
-		// Example
-		/*
-		if (From.Depth >= DepthLimit)
-		{
-			// Max depth reached
-			return false;
-		}
-		*/
 		for (UPCGExFillControlOperation* Op : SubOpsProbe) { if (!Op->IsValidProbe(Diffusion, Candidate)) { return false; } }
 		return true;
 	}
 
-	bool FFillControlsHandler::IsValidCandidate(FDiffusion* Diffusion, const FCandidate& From, const FCandidate& Candidate)
+	bool FFillControlsHandler::IsValidCandidate(const FDiffusion* Diffusion, const FCandidate& From, const FCandidate& Candidate)
 	{
-		for (UPCGExFillControlOperation* Op : SubOpsCandidate) { if (!Op->IsValidCandidate(Diffusion, Candidate)) { return false; } }
+		for (UPCGExFillControlOperation* Op : SubOpsCandidate) { if (!Op->IsValidCandidate(Diffusion, From, Candidate)) { return false; } }
 		return true;
 	}
 }

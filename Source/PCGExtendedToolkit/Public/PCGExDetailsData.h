@@ -90,6 +90,8 @@ namespace PCGExDetails
 
 		virtual bool Init(const FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade>& InDataFacade, const bool bSupportScoped = true) override
 		{
+			PCGEX_VALIDATE_NAME_C(InContext, Name)
+			
 			if (bSupportScoped && InDataFacade->bSupportsScopedGet) { Buffer = InDataFacade->GetScopedReadable<T>(Name); }
 			else { Buffer = InDataFacade->GetReadable<T>(Name); }
 

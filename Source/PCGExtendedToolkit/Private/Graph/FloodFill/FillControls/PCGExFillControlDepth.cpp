@@ -29,9 +29,9 @@ bool UPCGExFillControlDepth::IsValidProbe(const PCGExFloodFill::FDiffusion* Diff
 	return InCandidate.Depth <= DepthLimit->Read(GetSettingsIndex(Diffusion));
 }
 
-bool UPCGExFillControlDepth::IsValidCandidate(const PCGExFloodFill::FDiffusion* Diffusion, const PCGExFloodFill::FCandidate& InCandidate)
+bool UPCGExFillControlDepth::IsValidCandidate(const PCGExFloodFill::FDiffusion* Diffusion, const PCGExFloodFill::FCandidate& From, const PCGExFloodFill::FCandidate& Candidate)
 {
-	return InCandidate.Depth <= DepthLimit->Read(GetSettingsIndex(Diffusion));
+	return Candidate.Depth <= DepthLimit->Read(GetSettingsIndex(Diffusion));
 }
 
 void UPCGExFillControlDepth::Cleanup()

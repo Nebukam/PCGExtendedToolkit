@@ -256,6 +256,7 @@ namespace PCGEx
 		explicit FMapHashLookup(const uint64 InitValue, const int32 Size)
 			: FHashLookup(InitValue, Size)
 		{
+			if (Size > 0) { Data.Reserve(Size); }
 		}
 
 		FORCEINLINE virtual void Set(const int32 At, const uint64 Value) override { Data.Add(At, Value); }
