@@ -92,7 +92,7 @@ namespace PCGExWriteEdgeProperties
 			if(!SolidificationRad##_AXIS->Init(Context, Settings->Radius##_AXIS##Source == EPCGExClusterComponentSource::Edge ? EdgeDataFacade : VtxDataFacade, false)){ return false; } }
 			PCGEX_FOREACH_XYZ(PCGEX_CREATE_LOCAL_AXIS_SET_CONST)
 #undef PCGEX_CREATE_LOCAL_AXIS_SET_CONST
-		
+
 			SolidificationLerp = Settings->GetValueSettingSolidificationLerp();
 			if (!SolidificationLerp->Init(Context, EdgeDataFacade, false)) { return false; }
 		}
@@ -213,7 +213,7 @@ namespace PCGExWriteEdgeProperties
 				EdgeRot = FRotationMatrix::MakeFromZ(EdgeDirection).Rotator();
 				break;
 			}
-			
+
 			BlendWeightStart = EdgeLerp;
 			BlendWeightEnd = EdgeLerpInv;
 

@@ -72,7 +72,10 @@ namespace PCGExDetails
 	public:
 		virtual ~TSettingValue() = default;
 		virtual bool Init(const FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade>& InDataFacade, const bool bSupportScoped = true, const bool bCaptureMinMax = false) = 0;
-		FORCEINLINE virtual void SetConstant(T InConstant) { return; }
+		FORCEINLINE virtual void SetConstant(T InConstant)
+		{
+		}
+
 		FORCEINLINE virtual bool IsConstant() { return false; }
 		FORCEINLINE virtual T Read(const int32 Index) = 0;
 		FORCEINLINE virtual T Min() = 0;

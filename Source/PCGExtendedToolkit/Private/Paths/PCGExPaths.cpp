@@ -159,7 +159,7 @@ namespace PCGExPaths
 		Component->SplineBoundaryMax = 0;
 
 		Component->bSmoothInterpRollScale = bSmoothInterpRollScale;
-		
+
 		if (bSetMeshWithSettings) { ApplyMesh(Component); }
 	}
 

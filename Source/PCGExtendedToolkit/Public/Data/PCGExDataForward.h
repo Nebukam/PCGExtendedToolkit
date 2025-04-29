@@ -27,7 +27,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExForwardDetails : public FPCGExNameFiltersDet
 	FPCGExForwardDetails()
 	{
 	}
-	
+
 	explicit FPCGExForwardDetails(bool InEnabled)
 	{
 		bEnabled = InEnabled;

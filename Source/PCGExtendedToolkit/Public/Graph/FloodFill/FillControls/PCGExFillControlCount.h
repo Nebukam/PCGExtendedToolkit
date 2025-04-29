@@ -48,7 +48,7 @@ class UPCGExFillControlCount : public UPCGExFillControlOperation
 
 public:
 	virtual bool PrepareForDiffusions(FPCGExContext* InContext, const TSharedPtr<PCGExFloodFill::FFillControlsHandler>& InHandler) override;
-	
+
 	virtual bool ChecksCapture() const override { return true; }
 	virtual bool IsValidCapture(const PCGExFloodFill::FDiffusion* Diffusion, const PCGExFloodFill::FCandidate& InCandidate) override;
 

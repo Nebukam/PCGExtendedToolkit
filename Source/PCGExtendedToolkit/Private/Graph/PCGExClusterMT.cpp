@@ -366,7 +366,6 @@ namespace PCGExClusterMT
 		}
 
 		// TODO : Preload heuristics that depends on Vtx metadata
-		
 	}
 
 	void FClusterProcessorBatchBase::OnProcessingPreparationComplete()
@@ -434,6 +433,5 @@ namespace PCGExClusterMT
 
 	void FClusterProcessorBatchBase::Cleanup()
 	{
-		
 	}
 }

@@ -81,7 +81,7 @@ namespace PCGExEdgeEndpointsCheck
 
 		const UPCGExEdgeEndpointsCheckFilterFactory* TypedFilterFactory;
 
-		int8 Expected = 0; 
+		int8 Expected = 0;
 		TArray<int8> ResultCache;
 		TSharedPtr<PCGExClusterFilter::FManager> VtxFiltersManager;
 
@@ -111,9 +111,8 @@ public:
 
 protected:
 	virtual TArray<FPCGPinProperties> InputPinProperties() const override;
-	
+
 public:
-	
 	virtual FName GetMainOutputPin() const override { return PCGExPointFilter::OutputFilterLabelEdge; }
 
 	/** Test Config.*/

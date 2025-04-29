@@ -10,10 +10,6 @@
 #include "PCGExFillControlsFactoryProvider.h"
 
 
-
-
-
-
 #include "Graph/PCGExCluster.h"
 #include "PCGExFillControlLength.generated.h"
 
@@ -30,7 +26,7 @@ struct FPCGExFillControlConfigLength : public FPCGExFillControlConfigBase
 	/** Path length is the accumulated length from the seed to the evaluated candidate, while regular length is the length of the edge. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable))
 	bool bUsePathLength = true;
-	
+
 	/**  */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable))
 	EPCGExInputValueType MaxLengthInput = EPCGExInputValueType::Constant;
@@ -56,17 +52,16 @@ class UPCGExFillControlLength : public UPCGExFillControlOperation
 
 public:
 	virtual bool PrepareForDiffusions(FPCGExContext* InContext, const TSharedPtr<PCGExFloodFill::FFillControlsHandler>& InHandler) override;
-	
+
 	virtual bool IsValidCapture(const PCGExFloodFill::FDiffusion* Diffusion, const PCGExFloodFill::FCandidate& InCandidate) override;
 	virtual bool IsValidProbe(const PCGExFloodFill::FDiffusion* Diffusion, const PCGExFloodFill::FCandidate& InCandidate) override;
 	virtual bool IsValidCandidate(const PCGExFloodFill::FDiffusion* Diffusion, const PCGExFloodFill::FCandidate& From, const PCGExFloodFill::FCandidate& Candidate) override;
 
 	virtual void Cleanup() override;
-	
+
 protected:
 	bool bUsePathLength = true;
 	TSharedPtr<PCGExDetails::TSettingValue<double>> DistanceLimit;
-	
 };
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")

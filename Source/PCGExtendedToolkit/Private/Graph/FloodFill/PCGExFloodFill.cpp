@@ -109,7 +109,7 @@ namespace PCGExFloodFill
 		{
 			if (Candidates.IsEmpty())
 			{
-				bStopped = true;				
+				bStopped = true;
 				break;
 			}
 
@@ -130,7 +130,7 @@ namespace PCGExFloodFill
 
 			Endpoints.Add(Candidate.Node->Index);
 			Endpoints.Remove(Candidate.Link.Node);
-			
+
 			PostGrow();
 
 			bSearch = false;
@@ -243,7 +243,7 @@ namespace PCGExFloodFill
 
 		SeedIndices = MakeShared<TArray<int32>>();
 		SeedNodeIndices = MakeShared<TArray<int32>>();
-		
+
 		SeedIndices->SetNumUninitialized(NumDiffusions);
 		SeedNodeIndices->SetNumUninitialized(NumDiffusions);
 
@@ -272,7 +272,7 @@ namespace PCGExFloodFill
 	bool FFillControlsHandler::TryCapture(const FDiffusion* Diffusion, const FCandidate& Candidate)
 	{
 		for (UPCGExFillControlOperation* Op : SubOpsCapture) { if (!Op->IsValidCapture(Diffusion, Candidate)) { return false; } }
-		if (FPlatformAtomics::InterlockedCompareExchange((InfluencesCount->GetData() + Candidate.Node->PointIndex), 1, 0) == 1) { return false; };
+		if (FPlatformAtomics::InterlockedCompareExchange((InfluencesCount->GetData() + Candidate.Node->PointIndex), 1, 0) == 1) { return false; }
 		return true;
 	}
 

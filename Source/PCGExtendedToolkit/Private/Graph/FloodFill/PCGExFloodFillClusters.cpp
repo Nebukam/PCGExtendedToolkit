@@ -209,7 +209,7 @@ namespace PCGExClusterDiffusion
 
 		// Prepare control handler before initializing diffusion
 		// since the init does a first probing pass
-		if(!FillControlsHandler->PrepareForDiffusions(OngoingDiffusions, Settings->Diffusion))
+		if (!FillControlsHandler->PrepareForDiffusions(OngoingDiffusions, Settings->Diffusion))
 		{
 			bIsProcessorValid = false;
 			return;
@@ -393,7 +393,7 @@ namespace PCGExClusterDiffusion
 		for (int i = 0; i < PathIndices.Num(); i++) { MutablePoints[i] = VtxPoints[PathIndices[i]]; }
 
 		Context->SeedAttributesToPathTags.Tag(Diffusion->SeedIndex, PathIO);
-		
+
 		PathIO->IOIndex = Diffusion->SeedIndex * 1000000 + VtxDataFacade->Source->IOIndex * 1000000 + EndpointNodeIndex;
 	}
 

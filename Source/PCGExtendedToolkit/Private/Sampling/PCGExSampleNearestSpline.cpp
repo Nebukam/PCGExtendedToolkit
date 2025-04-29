@@ -548,7 +548,7 @@ namespace PCGExSampleNearestSpline
 	}
 
 	void FProcessor::ProcessSingleRangeIteration(const int32 Iteration, const PCGExMT::FScope& Scope)
-	{ 
+	{
 		double& D = DistanceWriter->GetMutable(Iteration);
 		D /= MaxDistance;
 		if (Settings->bOutputOneMinusDistance) { D = 1 - D; }

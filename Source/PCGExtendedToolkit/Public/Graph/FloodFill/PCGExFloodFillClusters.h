@@ -167,7 +167,6 @@ struct FPCGExClusterDiffusionContext final : FPCGExEdgesProcessorContext
 	PCGEX_FOREACH_FIELD_CLUSTER_DIFF(PCGEX_OUTPUT_DECL_TOGGLE)
 
 	int32 ExpectedPathCount = 0;
-	
 };
 
 class FPCGExClusterDiffusionElement final : public FPCGExEdgesProcessorElement
@@ -233,9 +232,8 @@ namespace PCGExClusterDiffusion
 
 		virtual void Output() override;
 		void WritePath(const int32 DiffusionIndex, const int32 EndpointNodeIndex);
-		
+
 		virtual void Cleanup() override;
-		
 	};
 
 	class FBatch final : public PCGExClusterMT::TBatchWithHeuristics<FProcessor>

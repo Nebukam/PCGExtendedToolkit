@@ -228,7 +228,7 @@ public:
 	/**  */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output - Points", meta=(PCG_Overridable, DisplayName=" └─ One Minus", EditCondition="bWritePointTime", HideEditConditionToggle))
 	bool bTimeOneMinus = false;
-	
+
 	/** Output point normal. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output - Points", meta=(PCG_Overridable, InlineEditConditionToggle))
 	bool bWritePointNormal = false;

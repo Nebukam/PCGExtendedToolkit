@@ -53,10 +53,7 @@ bool UPCGExFillControlRunningAverage::IsValidCandidate(const PCGExFloodFill::FDi
 
 		return FMath::IsNearlyEqual((Avg / static_cast<double>(Sampled)), Operand->Read(Candidate.Node->PointIndex), Tolerance->Read(GetSettingsIndex(Diffusion)));
 	}
-	else
-	{
-		return true;
-	}
+	return true;
 }
 
 void UPCGExFillControlRunningAverage::Cleanup()

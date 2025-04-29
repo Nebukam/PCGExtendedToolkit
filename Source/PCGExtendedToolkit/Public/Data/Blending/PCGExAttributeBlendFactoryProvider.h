@@ -67,7 +67,6 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExAttributeBlendWeight
 	void Init();
 
 	PCGEX_SETTING_VALUE_GET(Weight, double, WeightInput, WeightAttribute, Weight)
-	
 };
 
 USTRUCT(BlueprintType)
@@ -143,15 +142,15 @@ public:
 	{
 		Blender->Blend(Index, Point, Config.Weighting.ScoreCurveObj->Eval(Weight->Read(Index)));
 	}
-	
+
 	virtual void Blend(const int32 SourceIndex, const FPCGPoint& SourcePoint, const int32 TargetIndex, FPCGPoint& TargetPoint)
 	{
-		Blender->Blend(SourceIndex, SourcePoint, TargetIndex, TargetPoint,Config.Weighting.ScoreCurveObj->Eval(Weight->Read(SourceIndex)));
+		Blender->Blend(SourceIndex, SourcePoint, TargetIndex, TargetPoint, Config.Weighting.ScoreCurveObj->Eval(Weight->Read(SourceIndex)));
 	}
-	
+
 	virtual void Blend(const int32 SourceIndex, const FPCGPoint& SourcePoint, const int32 TargetIndex, FPCGPoint& TargetPoint, const double InWeight)
 	{
-		Blender->Blend(SourceIndex, SourcePoint, TargetIndex, TargetPoint,Config.Weighting.ScoreCurveObj->Eval(InWeight));
+		Blender->Blend(SourceIndex, SourcePoint, TargetIndex, TargetPoint, Config.Weighting.ScoreCurveObj->Eval(InWeight));
 	}
 
 	virtual void CompleteWork(TSet<TSharedPtr<PCGExData::FBufferBase>>& OutDisabledBuffers);

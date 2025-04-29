@@ -45,7 +45,7 @@ bool PCGExPointFilter::FStringSelfCompareFilter::Init(FPCGExContext* InContext, 
 	}
 
 	Index = TypedFilterFactory->Config.GetValueSettingIndex();
-	if (!Index->Init(InContext, PointDataFacade)){return false;}
+	if (!Index->Init(InContext, PointDataFacade)) { return false; }
 
 	return true;
 }

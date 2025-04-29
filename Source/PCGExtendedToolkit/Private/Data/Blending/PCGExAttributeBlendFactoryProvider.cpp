@@ -32,7 +32,7 @@ bool UPCGExAttributeBlendOperation::PrepareForData(FPCGExContext* InContext, con
 	PrimaryDataFacade = InDataFacade;
 
 	Weight = Config.Weighting.GetValueSettingWeight();
-	if(!Weight->Init(InContext, InDataFacade)){return false;}
+	if (!Weight->Init(InContext, InDataFacade)) { return false; }
 
 	// Fix @Selectors based on siblings 
 	if (!CopyAndFixSiblingSelector(InContext, Config.OperandA)) { return false; }

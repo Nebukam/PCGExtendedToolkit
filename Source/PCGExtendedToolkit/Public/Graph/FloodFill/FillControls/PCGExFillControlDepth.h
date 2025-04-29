@@ -10,10 +10,6 @@
 #include "PCGExFillControlsFactoryProvider.h"
 
 
-
-
-
-
 #include "Graph/PCGExCluster.h"
 #include "PCGExFillControlDepth.generated.h"
 
@@ -38,7 +34,6 @@ struct FPCGExFillControlConfigDepth : public FPCGExFillControlConfigBase
 	/** Max depth Constant */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Max Depth", EditCondition="MaxDepthInput==EPCGExInputValueType::Constant", EditConditionHides, ClampMin=1))
 	int32 MaxDepth = 10;
-
 };
 
 /**
@@ -53,13 +48,13 @@ class UPCGExFillControlDepth : public UPCGExFillControlOperation
 
 public:
 	virtual bool PrepareForDiffusions(FPCGExContext* InContext, const TSharedPtr<PCGExFloodFill::FFillControlsHandler>& InHandler) override;
-	
+
 	virtual bool IsValidCapture(const PCGExFloodFill::FDiffusion* Diffusion, const PCGExFloodFill::FCandidate& InCandidate) override;
 	virtual bool IsValidProbe(const PCGExFloodFill::FDiffusion* Diffusion, const PCGExFloodFill::FCandidate& InCandidate) override;
 	virtual bool IsValidCandidate(const PCGExFloodFill::FDiffusion* Diffusion, const PCGExFloodFill::FCandidate& From, const PCGExFloodFill::FCandidate& Candidate) override;
 
 	virtual void Cleanup() override;
-	
+
 protected:
 	TSharedPtr<PCGExDetails::TSettingValue<int32>> DepthLimit;
 };

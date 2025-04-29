@@ -47,7 +47,7 @@ struct FPCGExRandomFilterConfig
 	double Threshold = 0.5;
 
 	PCGEX_SETTING_VALUE_GET(Threshold, double, ThresholdInput, ThresholdAttribute, Threshold)
-	
+
 	/**  */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, InlineEditConditionToggle))
 	bool bPerPointWeight = false;
@@ -61,7 +61,7 @@ struct FPCGExRandomFilterConfig
 	bool bRemapWeightInternally = false;
 
 	PCGEX_SETTING_VALUE_GET(Weight, double, bPerPointWeight ? EPCGExInputValueType::Attribute : EPCGExInputValueType::Constant, Weight, 1)
-	
+
 	/** Whether to use in-editor curve or an external asset. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable))
 	bool bUseLocalCurve = false;
@@ -79,7 +79,6 @@ struct FPCGExRandomFilterConfig
 	/** TBD */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	bool bInvertResult = false;
-
 };
 
 

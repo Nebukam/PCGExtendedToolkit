@@ -122,7 +122,7 @@ namespace PCGExPathSolidify
 		const FVector InvScale = FVector::One() / PtScale;
 
 		//SolidificationRad##_AXIS.IsValid();
-		
+
 #define PCGEX_SOLIDIFY_DIMENSION(_AXIS)\
 		bProcessAxis = Settings->bWriteRadius##_AXIS || Settings->SolidificationAxis == EPCGExMinimalAxis::_AXIS; \
 		if (bProcessAxis){\

@@ -118,7 +118,7 @@ public:
 	double SolidificationLerpConstant = 0.5;
 
 	PCGEX_SETTING_VALUE_GET(SolidificationLerp, double, SolidificationLerpInput, SolidificationLerpAttribute, SolidificationLerpConstant)
-	
+
 	// Edge radiuses
 
 	/** Whether or not to write the edge extents over the local X axis.*/
