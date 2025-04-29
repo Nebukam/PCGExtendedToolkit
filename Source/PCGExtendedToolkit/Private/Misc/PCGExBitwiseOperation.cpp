@@ -73,17 +73,10 @@ namespace PCGExBitwiseOperation
 
 		PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::Duplicate)
 
-		Writer = PointDataFacade->GetWritable<int64>(Settings->FlagAttribute, 0, false, PCGExData::EBufferInit::Inherit);
+		Mask = Settings->GetValueSettingMask();
+		if (!Mask->Init(Context, PointDataFacade)) { return false; }
 
-		if (Settings->MaskInput == EPCGExInputValueType::Attribute)
-		{
-			Reader = PointDataFacade->GetScopedReadable<int64>(Settings->MaskAttribute);
-			if (!Reader) { return false; }
-		}
-		else
-		{
-			Mask = Settings->Bitmask;
-		}
+		Writer = PointDataFacade->GetWritable<int64>(Settings->FlagAttribute, 0, false, PCGExData::EBufferInit::Inherit);
 
 		Op = Settings->Operation;
 
@@ -94,7 +87,7 @@ namespace PCGExBitwiseOperation
 
 	void FProcessor::ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const PCGExMT::FScope& Scope)
 	{
-		PCGExBitmask::Do(Op, Writer->GetMutable(Index), Reader ? Reader->Read(Index) : Mask);
+		PCGExBitmask::Do(Op, Writer->GetMutable(Index), Mask->Read(Index));
 	}
 
 	void FProcessor::CompleteWork()

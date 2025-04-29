@@ -60,53 +60,44 @@ bool PCGExPointFilter::FRandomFilter::Init(FPCGExContext* InContext, const TShar
 
 	Threshold = TypedFilterFactory->Config.Threshold;
 
-	if (TypedFilterFactory->Config.bPerPointWeight)
+
+	WeightBuffer = TypedFilterFactory->Config.GetValueSettingWeight();
+	if (!WeightBuffer->IsConstant())
 	{
 		if (TypedFilterFactory->Config.bRemapWeightInternally)
 		{
-			WeightBuffer = PointDataFacade->GetBroadcaster<double>(TypedFilterFactory->Config.Weight, true);
-			WeightRange = WeightBuffer->Max;
+			if (!WeightBuffer->Init(InContext, PointDataFacade, false, true)) { return false; }
+			WeightRange = WeightBuffer->Max();
 
-			if (WeightBuffer->Min < 0)
+			if (WeightBuffer->Min() < 0)
 			{
-				WeightOffset = WeightBuffer->Min;
+				WeightOffset = WeightBuffer->Min();
 				WeightRange += WeightOffset;
 			}
 		}
 		else
 		{
-			WeightBuffer = PointDataFacade->GetScopedBroadcaster<double>(TypedFilterFactory->Config.Weight);
-		}
-
-		if (!WeightBuffer)
-		{
-			PCGEX_LOG_INVALID_SELECTOR_C(InContext, "Weight", TypedFilterFactory->Config.Weight)
-			return false;
+			if (!WeightBuffer->Init(InContext, PointDataFacade)) { return false; }
 		}
 	}
 
-	if (TypedFilterFactory->Config.ThresholdInput == EPCGExInputValueType::Attribute)
+	ThresholdBuffer = TypedFilterFactory->Config.GetValueSettingThreshold();
+	if (!ThresholdBuffer->IsConstant())
 	{
 		if (TypedFilterFactory->Config.bRemapThresholdInternally)
 		{
-			ThresholdBuffer = PointDataFacade->GetBroadcaster<double>(TypedFilterFactory->Config.ThresholdAttribute, true);
-			ThresholdRange = ThresholdBuffer->Max;
+			if (!ThresholdBuffer->Init(InContext, PointDataFacade, false, true)) { return false; }
+			ThresholdRange = ThresholdBuffer->Max();
 
-			if (ThresholdBuffer->Min < 0)
+			if (ThresholdBuffer->Min() < 0)
 			{
-				ThresholdOffset = ThresholdBuffer->Min;
+				ThresholdOffset = ThresholdBuffer->Min();
 				ThresholdRange += ThresholdOffset;
 			}
 		}
 		else
 		{
-			ThresholdBuffer = PointDataFacade->GetScopedBroadcaster<double>(TypedFilterFactory->Config.ThresholdAttribute);
-		}
-
-		if (!ThresholdBuffer)
-		{
-			PCGEX_LOG_INVALID_SELECTOR_C(InContext, "Threshold", TypedFilterFactory->Config.ThresholdAttribute)
-			return false;
+			if (!ThresholdBuffer->Init(InContext, PointDataFacade)) { return false; }
 		}
 	}
 
@@ -115,7 +106,7 @@ bool PCGExPointFilter::FRandomFilter::Init(FPCGExContext* InContext, const TShar
 
 bool PCGExPointFilter::FRandomFilter::Test(const int32 PointIndex) const
 {
-	const double LocalWeightRange = WeightBuffer ? WeightOffset + WeightBuffer->Read(PointIndex) : WeightRange;
+	const double LocalWeightRange = WeightOffset + WeightBuffer->Read(PointIndex);
 	const double LocalThreshold = ThresholdBuffer ? (ThresholdOffset + ThresholdBuffer->Read(PointIndex)) / ThresholdRange : Threshold;
 	const float RandomValue = WeightCurve->Eval((FRandomStream(PCGExRandom::GetRandomStreamFromPoint(PointDataFacade->Source->GetInPoint(PointIndex), RandomSeed)).GetFraction() * LocalWeightRange) / WeightRange);
 	return TypedFilterFactory->Config.bInvertResult ? RandomValue <= LocalThreshold : RandomValue >= LocalThreshold;

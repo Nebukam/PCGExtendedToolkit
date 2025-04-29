@@ -71,8 +71,12 @@ namespace PCGExDetails
 	{
 	public:
 		virtual ~TSettingValue() = default;
-		virtual bool Init(const FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade>& InDataFacade, const bool bSupportScoped = true) = 0;
+		virtual bool Init(const FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade>& InDataFacade, const bool bSupportScoped = true, const bool bCaptureMinMax = false) = 0;
+		FORCEINLINE virtual void SetConstant(T InConstant) { return; }
+		FORCEINLINE virtual bool IsConstant() { return false; }
 		FORCEINLINE virtual T Read(const int32 Index) = 0;
+		FORCEINLINE virtual T Min() = 0;
+		FORCEINLINE virtual T Max() = 0;
 	};
 
 	template <typename T>
@@ -88,10 +92,10 @@ namespace PCGExDetails
 		{
 		}
 
-		virtual bool Init(const FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade>& InDataFacade, const bool bSupportScoped = true) override
+		virtual bool Init(const FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade>& InDataFacade, const bool bSupportScoped = true, const bool bCaptureMinMax = false) override
 		{
 			PCGEX_VALIDATE_NAME_C(InContext, Name)
-			
+
 			if (bSupportScoped && InDataFacade->bSupportsScopedGet) { Buffer = InDataFacade->GetScopedReadable<T>(Name); }
 			else { Buffer = InDataFacade->GetReadable<T>(Name); }
 
@@ -105,6 +109,8 @@ namespace PCGExDetails
 		}
 
 		FORCEINLINE virtual T Read(const int32 Index) override { return Buffer->Read(Index); }
+		FORCEINLINE virtual T Min() override { return Buffer->Min; }
+		FORCEINLINE virtual T Max() override { return Buffer->Max; }
 	};
 
 	template <typename T>
@@ -120,10 +126,10 @@ namespace PCGExDetails
 		{
 		}
 
-		virtual bool Init(const FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade>& InDataFacade, const bool bSupportScoped = true) override
+		virtual bool Init(const FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade>& InDataFacade, const bool bSupportScoped = true, const bool bCaptureMinMax = false) override
 		{
-			if (bSupportScoped && InDataFacade->bSupportsScopedGet) { Buffer = InDataFacade->GetScopedBroadcaster<T>(Selector); }
-			else { Buffer = InDataFacade->GetBroadcaster<T>(Selector); }
+			if (bSupportScoped && InDataFacade->bSupportsScopedGet && !bCaptureMinMax) { Buffer = InDataFacade->GetScopedBroadcaster<T>(Selector); }
+			else { Buffer = InDataFacade->GetBroadcaster<T>(Selector, bCaptureMinMax); }
 
 			if (!Buffer)
 			{
@@ -136,6 +142,8 @@ namespace PCGExDetails
 		}
 
 		FORCEINLINE virtual T Read(const int32 Index) override { return Buffer->Read(Index); }
+		FORCEINLINE virtual T Min() override { return Buffer->Min; }
+		FORCEINLINE virtual T Max() override { return Buffer->Max; }
 	};
 
 	template <typename T>
@@ -150,9 +158,14 @@ namespace PCGExDetails
 		{
 		}
 
-		virtual bool Init(const FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade>& InDataFacade, const bool bSupportScoped = true) override { return true; }
+		virtual bool Init(const FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade>& InDataFacade, const bool bSupportScoped = true, const bool bCaptureMinMax = false) override { return true; }
+
+		FORCEINLINE virtual bool IsConstant() override { return true; }
+		FORCEINLINE virtual void SetConstant(T InConstant) override { Constant = InConstant; };
 
 		FORCEINLINE virtual T Read(const int32 Index) override { return Constant; }
+		FORCEINLINE virtual T Min() override { return Constant; }
+		FORCEINLINE virtual T Max() override { return Constant; }
 	};
 
 	template <typename T>

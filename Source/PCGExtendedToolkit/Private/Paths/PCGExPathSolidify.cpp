@@ -80,14 +80,11 @@ namespace PCGExPathSolidify
 		PathLength = Path->AddExtra<PCGExPaths::FPathEdgeLength>();
 		Path->IOIndex = PointDataFacade->Source->IOIndex;
 
-#define PCGEX_CREATE_LOCAL_AXIS_SET_CONST(_AXIS) if (Settings->bWriteRadius##_AXIS){SolidificationRad##_AXIS = PCGExDetails::MakeSettingValue(Settings->Radius##_AXIS##Input, Settings->Radius##_AXIS##SourceAttribute, Settings->Radius##_AXIS##Constant); }
+#define PCGEX_CREATE_LOCAL_AXIS_SET_CONST(_AXIS) if (Settings->bWriteRadius##_AXIS){\
+		SolidificationRad##_AXIS = PCGExDetails::MakeSettingValue(Settings->Radius##_AXIS##Input, Settings->Radius##_AXIS##SourceAttribute, Settings->Radius##_AXIS##Constant);\
+		if (SolidificationRad##_AXIS && !SolidificationRad##_AXIS->Init(Context, PointDataFacade, false)){ return false; }}
 		PCGEX_FOREACH_XYZ(PCGEX_CREATE_LOCAL_AXIS_SET_CONST)
 #undef PCGEX_CREATE_LOCAL_AXIS_SET_CONST
-
-		// Create edge-scope getters
-#define PCGEX_CREATE_LOCAL_AXIS_GETTER(_AXIS) if (SolidificationRad##_AXIS && !SolidificationRad##_AXIS->Init(Context, PointDataFacade, false)){ return false; }
-		PCGEX_FOREACH_XYZ(PCGEX_CREATE_LOCAL_AXIS_GETTER)
-#undef PCGEX_CREATE_LOCAL_AXIS_GETTER
 
 		SolidificationLerp = Settings->GetValueSettingSolidificationLerp();
 		if (!SolidificationLerp->Init(Context, PointDataFacade, false)) { return false; }

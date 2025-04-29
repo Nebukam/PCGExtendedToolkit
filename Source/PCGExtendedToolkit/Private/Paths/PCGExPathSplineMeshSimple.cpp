@@ -347,18 +347,6 @@ namespace PCGExPathSplineMeshSimple
 					TargetActor, USplineMeshComponent::StaticClass(),
 					Context->UniqueNameGenerator->Get(TEXT("PCGSplineMeshComponent_") + Mesh->GetName())), ObjectFlags);
 
-			/*
-			SplineMeshComponent->SetCollisionEnabled(ECollisionEnabled::Type::NoCollision);
-			SplineMeshComponent->SetMobility(EComponentMobility::Static);
-			SplineMeshComponent->SetSimulatePhysics(false);
-			SplineMeshComponent->SetMassOverrideInKg(NAME_None, 0.0f);
-			SplineMeshComponent->SetUseCCD(false);
-			SplineMeshComponent->CanCharacterStepUpOn = ECB_No;
-			SplineMeshComponent->bUseDefaultCollision = false;
-			SplineMeshComponent->bNavigationRelevant = false;
-			SplineMeshComponent->SetbNeverNeedsCookedCollisionData(true);
-			*/
-
 			Segment.ApplySettings(SplineMeshComponent); // Init Component
 
 			if (Settings->TaggingDetails.bForwardInputDataTags) { SplineMeshComponent->ComponentTags.Append(DataTags); }
