@@ -87,16 +87,16 @@ class PCGEXTENDEDTOOLKIT_API UPCGExTensorPointFactoryData : public UPCGExTensorF
 protected:
 	TSharedPtr<PCGExData::FFacade> InputDataFacade;
 
-	TSharedPtr<PCGExData::TBuffer<float>> PotencyBuffer;
-	TSharedPtr<PCGExData::TBuffer<float>> WeightBuffer;
+	TSharedPtr<PCGExDetails::TSettingValue<double>> PotencyBuffer;
+	TSharedPtr<PCGExDetails::TSettingValue<double>> WeightBuffer;
 
 	virtual bool WantsPreparation(FPCGExContext* InContext) override { return true; }
 	virtual bool InitInternalData(FPCGExContext* InContext) override;
 	virtual bool InitInternalFacade(FPCGExContext* InContext);
 	virtual void PrepareSinglePoint(int32 Index, FPCGPoint& InPoint) const;
 
-	double GetPotency(const int32 Index) const;
-	double GetWeight(const int32 Index) const;
+	FORCEINLINE double GetPotency(const int32 Index) const { return PotencyBuffer->Read(Index) * BaseConfig.PotencyScale; }
+	FORCEINLINE double GetWeight(const int32 Index) const { return WeightBuffer->Read(Index); }
 };
 
 UCLASS(Abstract, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Graph|Params")

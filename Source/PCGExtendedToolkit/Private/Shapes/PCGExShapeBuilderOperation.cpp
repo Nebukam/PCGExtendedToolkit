@@ -16,13 +16,8 @@ bool UPCGExShapeBuilderOperation::PrepareForSeeds(FPCGExContext* InContext, cons
 {
 	SeedFacade = InSeedDataFacade;
 
-	ResolutionConstant = BaseConfig.ResolutionConstant;
-
-	if (BaseConfig.ResolutionInput == EPCGExInputValueType::Attribute)
-	{
-		ResolutionGetter = MakeShared<PCGEx::TAttributeBroadcaster<double>>();
-		if (!ResolutionGetter->Prepare(BaseConfig.ResolutionAttribute, InSeedDataFacade->Source)) { return false; }
-	}
+	Resolution = BaseConfig.GetValueSettingResolution();
+	if(!Resolution->Init(InContext, InSeedDataFacade)){return false;}
 
 	if (!BaseConfig.Fitting.Init(InContext, InSeedDataFacade)) { return false; }
 
@@ -31,11 +26,15 @@ bool UPCGExShapeBuilderOperation::PrepareForSeeds(FPCGExContext* InContext, cons
 	return true;
 }
 
-double UPCGExShapeBuilderOperation::GetResolution(const PCGExData::FPointRef& Seed) const
+void UPCGExShapeBuilderOperation::Cleanup()
 {
-	if (BaseConfig.ResolutionMode == EPCGExResolutionMode::Distance)
-	{
-		return FMath::Abs(ResolutionGetter ? ResolutionGetter->SoftGet(Seed, ResolutionConstant) : ResolutionConstant) * 0.01;
-	}
-	return FMath::Abs(ResolutionGetter ? ResolutionGetter->SoftGet(Seed, ResolutionConstant) : ResolutionConstant);
+	Resolution.Reset();
+	Shapes.Empty();
+	Super::Cleanup();
+}
+
+void UPCGExShapeBuilderOperation::ValidateShape(const TSharedPtr<PCGExShapes::FShape> Shape)
+{
+	if (BaseConfig.bRemoveBelow && Shape->NumPoints < BaseConfig.MinPointCount) { Shape->bValid = 0; }
+	if (BaseConfig.bRemoveAbove && Shape->NumPoints > BaseConfig.MaxPointCount) { Shape->bValid = 0; }
 }

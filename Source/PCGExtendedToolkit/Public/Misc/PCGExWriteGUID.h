@@ -4,6 +4,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "PCGExDetailsData.h"
 #include "PCGExGlobalSettings.h"
 #include "PCGExPointsProcessor.h"
 
@@ -85,12 +86,14 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExGUIDDetails
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName="Unique Key", EditCondition="UniqueKeyInput==EPCGExInputValueType::Constant", EditConditionHides, ClampMin=0))
 	int32 UniqueKeyConstant = 42;
 
+	PCGEX_SETTING_VALUE_GET(UniqueKey, int32, UniqueKeyInput, UniqueKeyAttribute, UniqueKeyConstant)
+	
 	/** Whether the created attribute allows interpolation or not.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable), AdvancedDisplay)
 	bool bAllowInterpolation = true;
 
 	EGuidFormats GUIDFormat = EGuidFormats::Digits;
-	TSharedPtr<PCGExData::TBuffer<int32>> UniqueKeyReader = nullptr;
+	TSharedPtr<PCGExDetails::TSettingValue<int32>> UniqueKeyReader;
 
 	uint32 GridHash = 0;
 

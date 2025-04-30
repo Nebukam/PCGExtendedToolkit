@@ -11,17 +11,11 @@ bool UPCGExShapeCircleBuilder::PrepareForSeeds(FPCGExContext* InContext, const T
 {
 	if (!Super::PrepareForSeeds(InContext, InSeedDataFacade)) { return false; }
 
-	if (Config.StartAngleInput == EPCGExInputValueType::Attribute)
-	{
-		StartAngleGetter = MakeShared<PCGEx::TAttributeBroadcaster<double>>();
-		if (!StartAngleGetter->Prepare(Config.StartAngleAttribute, InSeedDataFacade->Source)) { return false; }
-	}
+	StartAngle = Config.GetValueSettingStartAngle();
+	if (!StartAngle->Init(InContext, InSeedDataFacade)) { return false; }
 
-	if (Config.EndAngleInput == EPCGExInputValueType::Attribute)
-	{
-		EndAngleGetter = MakeShared<PCGEx::TAttributeBroadcaster<double>>();
-		if (!EndAngleGetter->Prepare(Config.EndAngleAttribute, InSeedDataFacade->Source)) { return false; }
-	}
+	EndAngle = Config.GetValueSettingEndAngle();
+	if (!EndAngle->Init(InContext, InSeedDataFacade)) { return false; }
 
 	return true;
 }
@@ -32,16 +26,14 @@ void UPCGExShapeCircleBuilder::PrepareShape(const PCGExData::FPointRef& Seed)
 
 	Circle->ComputeFit(BaseConfig);
 
-	Circle->StartAngle = FMath::DegreesToRadians(StartAngleGetter ? StartAngleGetter->SoftGet(Seed, Config.StartAngleConstant) : Config.StartAngleConstant);
-	Circle->EndAngle = FMath::DegreesToRadians(EndAngleGetter ? EndAngleGetter->SoftGet(Seed, Config.EndAngleConstant) : Config.EndAngleConstant);
+	Circle->StartAngle = FMath::DegreesToRadians(StartAngle->Read(Seed.Index));
+	Circle->EndAngle = FMath::DegreesToRadians(EndAngle->Read(Seed.Index));
 	Circle->AngleRange = FMath::Abs(Circle->EndAngle - Circle->StartAngle);
 
 	Circle->Radius = Circle->Fit.GetExtent().Length();
 
-	const double Resolution = GetResolution(Seed);
-
-	if (Config.ResolutionMode == EPCGExResolutionMode::Distance) { Circle->NumPoints = (Circle->Radius * Circle->AngleRange) * Resolution; }
-	else { Circle->NumPoints = Resolution; }
+	if (Config.ResolutionMode == EPCGExResolutionMode::Distance) { Circle->NumPoints = (Circle->Radius * Circle->AngleRange) * GetResolution(Seed); }
+	else { Circle->NumPoints = GetResolution(Seed); }
 
 	ValidateShape(Circle);
 
@@ -53,7 +45,6 @@ void UPCGExShapeCircleBuilder::BuildShape(const TSharedPtr<PCGExShapes::FShape> 
 	const TSharedPtr<PCGExShapes::FCircle> Circle = StaticCastSharedPtr<PCGExShapes::FCircle>(InShape);
 
 	const double Increment = Circle->AngleRange / Circle->NumPoints;
-	const double StartAngle = Circle->StartAngle + Increment * 0.5;
 	FVector Target = FVector::ZeroVector;
 
 	const FVector Extents = Circle->Fit.GetExtent();
@@ -61,7 +52,7 @@ void UPCGExShapeCircleBuilder::BuildShape(const TSharedPtr<PCGExShapes::FShape> 
 
 	for (int32 i = 0; i < Circle->NumPoints; i++)
 	{
-		const double A = StartAngle + i * Increment;
+		const double A = (Circle->StartAngle + Increment * 0.5) + i * Increment;
 
 		const FVector P = Center + FVector(Extents.X * FMath::Cos(A), Extents.Y * FMath::Sin(A), 0);
 

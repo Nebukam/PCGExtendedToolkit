@@ -11,72 +11,65 @@
 
 
 #include "Graph/PCGExCluster.h"
-#include "PCGExFillControlCount.generated.h"
+#include "PCGExFillControlVtxFilters.generated.h"
 
 USTRUCT(BlueprintType)
-struct FPCGExFillControlConfigCount : public FPCGExFillControlConfigBase
+struct FPCGExFillControlConfigVtxFilters : public FPCGExFillControlConfigBase
 {
 	GENERATED_BODY()
 
-	FPCGExFillControlConfigCount() :
+	FPCGExFillControlConfigVtxFilters() :
 		FPCGExFillControlConfigBase()
 	{
+		bSupportSource = false;
 	}
 
-	/**  */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable))
-	EPCGExInputValueType MaxCountInput = EPCGExInputValueType::Constant;
-
-	/** Max Count Attribute */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Max Count (Attr)", EditCondition="MaxCountInput!=EPCGExInputValueType::Constant", EditConditionHides))
-	FName MaxCountAttribute = FName("MaxCount");
-
-	/** Max Count Constant */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Max Count", EditCondition="MaxCountInput==EPCGExInputValueType::Constant", EditConditionHides, ClampMin=1))
-	int32 MaxCount = 10;
 };
 
 /**
  * 
  */
-UCLASS(MinimalAPI, DisplayName = "Count")
-class UPCGExFillControlCount : public UPCGExFillControlOperation
+UCLASS(MinimalAPI, DisplayName = "VtxFilters")
+class UPCGExFillControlVtxFilters : public UPCGExFillControlOperation
 {
 	GENERATED_BODY()
 
-	friend class UPCGExFillControlsFactoryCount;
+	friend class UPCGExFillControlsFactoryVtxFilters;
 
 public:
 	virtual bool PrepareForDiffusions(FPCGExContext* InContext, const TSharedPtr<PCGExFloodFill::FFillControlsHandler>& InHandler) override;
 
-	virtual bool ChecksCapture() const override { return true; }
 	virtual bool IsValidCapture(const PCGExFloodFill::FDiffusion* Diffusion, const PCGExFloodFill::FCandidate& Candidate) override;
-
-	virtual bool ChecksProbe() const override { return false; }
-	virtual bool ChecksCandidate() const override { return false; }
+	virtual bool IsValidProbe(const PCGExFloodFill::FDiffusion* Diffusion, const PCGExFloodFill::FCandidate& Candidate) override;
+	virtual bool IsValidCandidate(const PCGExFloodFill::FDiffusion* Diffusion, const PCGExFloodFill::FCandidate& From, const PCGExFloodFill::FCandidate& Candidate) override;
 
 	virtual void Cleanup() override;
 
 protected:
-	TSharedPtr<PCGExDetails::TSettingValue<int32>> CountLimit;
+	TSharedPtr<PCGExClusterFilter::FManager> VtxFilterManager;
 };
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")
-class UPCGExFillControlsFactoryCount : public UPCGExFillControlsFactoryData
+class UPCGExFillControlsFactoryVtxFilters : public UPCGExFillControlsFactoryData
 {
 	GENERATED_BODY()
 
 public:
 	UPROPERTY()
-	FPCGExFillControlConfigCount Config;
+	FPCGExFillControlConfigVtxFilters Config;
+
+	UPROPERTY()
+	TArray<TObjectPtr<const UPCGExFilterFactoryData>> FilterFactories;
 
 	virtual UPCGExFillControlOperation* CreateOperation(FPCGExContext* InContext) const override;
 
 	virtual void RegisterBuffersDependencies(FPCGExContext* InContext, PCGExData::FFacadePreloader& FacadePreloader) const override;
+	virtual bool RegisterConsumableAttributes(FPCGExContext* InContext) const override;
+	virtual bool RegisterConsumableAttributesWithData(FPCGExContext* InContext, const UPCGData* InData) const override;
 };
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Graph|Params")
-class UPCGExFillControlsCountProviderSettings : public UPCGExFillControlsFactoryProviderSettings
+class UPCGExFillControlsVtxFiltersProviderSettings : public UPCGExFillControlsFactoryProviderSettings
 {
 	GENERATED_BODY()
 
@@ -84,14 +77,18 @@ public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(
-		FillControlsCount, "Fill Control : Count", "Stop fill after a certain number of vtx have been captured.",
+		FillControlsVtxFilters, "Fill Control : Vtx Filters", "Filter that check Vtxs.",
 		FName(GetDisplayName()))
 #endif
 	//~End UPCGSettings
 
+protected:
+	virtual TArray<FPCGPinProperties> InputPinProperties() const override;
+
+public:
 	/** Control Config.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ShowOnlyInnerProperties))
-	FPCGExFillControlConfigCount Config;
+	FPCGExFillControlConfigVtxFilters Config;
 
 	virtual UPCGExFactoryData* CreateFactory(FPCGExContext* InContext, UPCGExFactoryData* InFactory) const override;
 

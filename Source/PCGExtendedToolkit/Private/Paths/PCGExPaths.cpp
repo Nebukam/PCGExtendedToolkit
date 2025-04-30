@@ -626,24 +626,16 @@ bool FPCGExSplineMeshMutationDetails::Init(FPCGExContext* InContext, const TShar
 {
 	if (!bPushStart && !bPushEnd) { return true; }
 
-	if (bPushStart && StartPushInput == EPCGExInputValueType::Attribute)
+	if (bPushStart)
 	{
-		StartAmount = InDataFacade->GetScopedBroadcaster<double>(StartPushInputAttribute);
-		if (!StartAmount)
-		{
-			PCGEX_LOG_INVALID_ATTR_C(InContext, Start Amount, StartPushInputAttribute.GetName())
-			return false;
-		}
+		StartAmount = GetValueSettingStartPush();
+		if (!StartAmount->Init(InContext, InDataFacade)) { return false; }
 	}
 
-	if (bPushEnd && EndPushInput == EPCGExInputValueType::Attribute)
+	if (bPushEnd)
 	{
-		EndAmount = InDataFacade->GetScopedBroadcaster<double>(EndPushInputAttribute);
-		if (!EndAmount)
-		{
-			PCGEX_LOG_INVALID_ATTR_C(InContext, Start Amount, EndPushInputAttribute.GetName())
-			return false;
-		}
+		EndAmount = GetValueSettingEndPush();
+		if (!EndAmount->Init(InContext, InDataFacade)) { return false; }
 	}
 
 	return true;
@@ -659,7 +651,7 @@ void FPCGExSplineMeshMutationDetails::Mutate(const int32 PointIndex, PCGExPaths:
 
 	if (bPushStart)
 	{
-		const double Factor = StartAmount ? StartAmount->Read(PointIndex) : StartPushConstant;
+		const double Factor = StartAmount->Read(PointIndex);
 		const double Dist = bRelativeStart ? Size * Factor : Factor;
 
 		InSegment.Params.StartPos -= StartDir * Dist;
@@ -668,7 +660,7 @@ void FPCGExSplineMeshMutationDetails::Mutate(const int32 PointIndex, PCGExPaths:
 
 	if (bPushEnd)
 	{
-		const double Factor = EndAmount ? EndAmount->Read(PointIndex) : EndPushConstant;
+		const double Factor = EndAmount->Read(PointIndex);
 		const double Dist = bRelativeEnd ? Size * Factor : Factor;
 
 		InSegment.Params.EndPos += EndDir * Dist;

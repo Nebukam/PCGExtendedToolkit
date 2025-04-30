@@ -213,6 +213,7 @@ namespace PCGExClusterDiffusion
 		FProcessor(const TSharedRef<PCGExData::FFacade>& InVtxDataFacade, const TSharedRef<PCGExData::FFacade>& InEdgeDataFacade)
 			: TProcessor(InVtxDataFacade, InEdgeDataFacade)
 		{
+			bAllowEdgesDataFacadeScopedGet = false;
 		}
 
 		PCGEX_FOREACH_FIELD_CLUSTER_DIFF(PCGEX_OUTPUT_DECL)

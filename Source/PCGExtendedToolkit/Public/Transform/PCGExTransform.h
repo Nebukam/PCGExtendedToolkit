@@ -3,6 +3,7 @@
 
 #pragma once
 #include "PCGExDetails.h"
+#include "PCGExDetailsData.h"
 #include "Data/PCGExData.h"
 #include "PCGExTransform.generated.h"
 
@@ -63,6 +64,8 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExUVW
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="U", EditCondition="UInput==EPCGExInputValueType::Constant", EditConditionHides))
 	double UConstant = 0;
 
+	PCGEX_SETTING_VALUE_GET(U, double, UInput, UAttribute, UConstant)
+
 	/** V Source */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable))
 	EPCGExInputValueType VInput = EPCGExInputValueType::Constant;
@@ -74,6 +77,8 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExUVW
 	/** V Constant */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="V", EditCondition="VInput==EPCGExInputValueType::Constant", EditConditionHides))
 	double VConstant = 0;
+
+	PCGEX_SETTING_VALUE_GET(V, double, VInput, VAttribute, VConstant)
 
 	/** W Source */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable))
@@ -87,15 +92,17 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExUVW
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="W", EditCondition="WInput==EPCGExInputValueType::Constant", EditConditionHides))
 	double WConstant = 0;
 
-	TSharedPtr<PCGExData::TBuffer<double>> UGetter;
-	TSharedPtr<PCGExData::TBuffer<double>> VGetter;
-	TSharedPtr<PCGExData::TBuffer<double>> WGetter;
+	PCGEX_SETTING_VALUE_GET(W, double, WInput, WAttribute, WConstant)
 
-	bool Init(const FPCGContext* InContext, const TSharedRef<PCGExData::FFacade>& InDataFacade);
+	TSharedPtr<PCGExDetails::TSettingValue<double>> UGetter;
+	TSharedPtr<PCGExDetails::TSettingValue<double>> VGetter;
+	TSharedPtr<PCGExDetails::TSettingValue<double>> WGetter;
+
+	bool Init(const FPCGExContext* InContext, const TSharedRef<PCGExData::FFacade>& InDataFacade);
 
 	// Without axis
 
-	FVector GetUVW(const int32 PointIndex) const;
+	FORCEINLINE FVector GetUVW(const int32 PointIndex) const { return FVector(UGetter->Read(PointIndex), VGetter->Read(PointIndex), WGetter->Read(PointIndex)); }
 
 	FVector GetPosition(const PCGExData::FPointRef& PointRef) const;
 

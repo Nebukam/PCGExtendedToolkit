@@ -19,14 +19,14 @@ bool UPCGExFillControlDepth::PrepareForDiffusions(FPCGExContext* InContext, cons
 	return true;
 }
 
-bool UPCGExFillControlDepth::IsValidCapture(const PCGExFloodFill::FDiffusion* Diffusion, const PCGExFloodFill::FCandidate& InCandidate)
+bool UPCGExFillControlDepth::IsValidCapture(const PCGExFloodFill::FDiffusion* Diffusion, const PCGExFloodFill::FCandidate& Candidate)
 {
-	return InCandidate.Depth <= DepthLimit->Read(GetSettingsIndex(Diffusion));
+	return Candidate.Depth <= DepthLimit->Read(GetSettingsIndex(Diffusion));
 }
 
-bool UPCGExFillControlDepth::IsValidProbe(const PCGExFloodFill::FDiffusion* Diffusion, const PCGExFloodFill::FCandidate& InCandidate)
+bool UPCGExFillControlDepth::IsValidProbe(const PCGExFloodFill::FDiffusion* Diffusion, const PCGExFloodFill::FCandidate& Candidate)
 {
-	return InCandidate.Depth <= DepthLimit->Read(GetSettingsIndex(Diffusion));
+	return Candidate.Depth <= DepthLimit->Read(GetSettingsIndex(Diffusion));
 }
 
 bool UPCGExFillControlDepth::IsValidCandidate(const PCGExFloodFill::FDiffusion* Diffusion, const PCGExFloodFill::FCandidate& From, const PCGExFloodFill::FCandidate& Candidate)

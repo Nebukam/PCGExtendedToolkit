@@ -6,6 +6,7 @@
 #include "CoreMinimal.h"
 #include "PCGExFitting.h"
 #include "Data/PCGExData.h"
+#include "PCGExDetailsData.h"
 #include "PCGExShapes.generated.h"
 
 UENUM()
@@ -66,6 +67,8 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExShapeConfigBase
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Resolution", meta=(PCG_Overridable, DisplayName="Resolution", EditCondition="ResolutionInput == EPCGExInputValueType::Constant", EditConditionHides, ClampMin=0))
 	double ResolutionConstant = 10;
 
+	PCGEX_SETTING_VALUE_GET(Resolution, double, ResolutionInput, ResolutionAttribute, ResolutionConstant)
+	
 	/** Fitting details */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	FPCGExFittingDetailsHandler Fitting;

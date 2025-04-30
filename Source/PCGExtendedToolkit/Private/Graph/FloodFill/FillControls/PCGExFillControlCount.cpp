@@ -19,7 +19,7 @@ bool UPCGExFillControlCount::PrepareForDiffusions(FPCGExContext* InContext, cons
 	return true;
 }
 
-bool UPCGExFillControlCount::IsValidCapture(const PCGExFloodFill::FDiffusion* Diffusion, const PCGExFloodFill::FCandidate& InCandidate)
+bool UPCGExFillControlCount::IsValidCapture(const PCGExFloodFill::FDiffusion* Diffusion, const PCGExFloodFill::FCandidate& Candidate)
 {
 	const int32 Limit = CountLimit->Read(GetSettingsIndex(Diffusion));
 	return Diffusion->Captured.Num() < Limit;

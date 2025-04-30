@@ -88,19 +88,8 @@ namespace PCGExSubdivide
 
 		bClosedLoop = Context->ClosedLoop.IsClosedLoop(PointDataFacade->Source);
 
-		if (Settings->AmountInput == EPCGExInputValueType::Attribute)
-		{
-			AmountGetter = PointDataFacade->GetScopedBroadcaster<double>(Settings->SubdivisionAmount);
-			if (!AmountGetter)
-			{
-				PCGE_LOG_C(Error, GraphAndLog, ExecutionContext, FTEXT("Subdivision Amount attribute is invalid."));
-				return false;
-			}
-		}
-		else
-		{
-			ConstantAmount = Settings->SubdivideMethod == EPCGExSubdivideMode::Count ? Settings->Count : Settings->Distance;
-		}
+		AmountGetter = Settings->GetValueSettingSubdivisionAmount();
+		if (!AmountGetter->Init(Context, PointDataFacade)) { return false; }
 
 		bUseCount = Settings->SubdivideMethod == EPCGExSubdivideMode::Count;
 
@@ -135,7 +124,7 @@ namespace PCGExSubdivide
 
 		if (!PointFilterCache[Index]) { return; }
 
-		double Amount = AmountGetter ? AmountGetter->Read(Index) : ConstantAmount;
+		double Amount = AmountGetter->Read(Index);
 		bool bRedistribute = bUseCount;
 
 		if (!bRedistribute)

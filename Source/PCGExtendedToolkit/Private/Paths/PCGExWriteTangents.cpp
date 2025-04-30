@@ -109,28 +109,11 @@ namespace PCGExWriteTangents
 
 		if (!Tangents->PrepareForData(Context)) { return false; }
 
-		ConstantArriveScale = FVector(Settings->ArriveScaleConstant);
-		ConstantLeaveScale = FVector(Settings->LeaveScaleConstant);
+		ArriveScaleReader = Settings->GetValueSettingArriveScale();
+		if (!ArriveScaleReader->Init(Context, PointDataFacade)) { return false; }
 
-		if (Settings->ArriveScaleInput == EPCGExInputValueType::Attribute)
-		{
-			ArriveScaleReader = PointDataFacade->GetScopedBroadcaster<FVector>(Settings->ArriveScaleAttribute);
-			if (!ArriveScaleReader)
-			{
-				PCGE_LOG_C(Error, GraphAndLog, ExecutionContext, FTEXT("Invalid Arrive Scale attribute"));
-				return false;
-			}
-		}
-
-		if (Settings->LeaveScaleInput == EPCGExInputValueType::Attribute)
-		{
-			LeaveScaleReader = PointDataFacade->GetScopedBroadcaster<FVector>(Settings->LeaveScaleAttribute);
-			if (!LeaveScaleReader)
-			{
-				PCGE_LOG_C(Error, GraphAndLog, ExecutionContext, FTEXT("Invalid Arrive Scale attribute"));
-				return false;
-			}
-		}
+		LeaveScaleReader = Settings->GetValueSettingLeaveScale();
+		if (!LeaveScaleReader->Init(Context, PointDataFacade)) { return false; }
 
 		if (Context->StartTangents)
 		{
@@ -178,8 +161,8 @@ namespace PCGExWriteTangents
 		FVector OutArrive = FVector::ZeroVector;
 		FVector OutLeave = FVector::ZeroVector;
 
-		const FVector& ArriveScale = ArriveScaleReader ? ArriveScaleReader->Read(Index) : ConstantArriveScale;
-		const FVector& LeaveScale = LeaveScaleReader ? LeaveScaleReader->Read(Index) : ConstantLeaveScale;
+		const FVector& ArriveScale = ArriveScaleReader->Read(Index);
+		const FVector& LeaveScale = LeaveScaleReader->Read(Index);
 
 		if (bClosedLoop)
 		{

@@ -21,6 +21,7 @@ struct FPCGExFillControlConfigRunningAverage : public FPCGExFillControlConfigBas
 	FPCGExFillControlConfigRunningAverage() :
 		FPCGExFillControlConfigBase()
 	{
+		bSupportSteps = false;
 		WindowSizeAttribute.Update("WindowSize");
 		Operand.Update("$Position.Z");
 	}

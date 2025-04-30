@@ -54,17 +54,10 @@ bool FPCGExGUIDDetails::Init(FPCGExContext* InContext, TSharedRef<PCGExData::FFa
 	bUseSeed = (Uniqueness & static_cast<uint8>(EPCGExGUIDUniquenessFlags::Seed)) != 0;
 	bUsePosition = (Uniqueness & static_cast<uint8>(EPCGExGUIDUniquenessFlags::Position)) != 0;
 
-	if (UniqueKeyInput == EPCGExInputValueType::Attribute)
-	{
-		UniqueKeyReader = InFacade->GetScopedBroadcaster<int32>(UniqueKeyAttribute);
-		if (!UniqueKeyReader)
-		{
-			PCGEX_LOG_INVALID_SELECTOR_C(InContext, "Unique Key", UniqueKeyAttribute)
-			return false;
-		}
-	}
-
-	const uint32 BaseUniqueKey = UniqueKeyReader ? 0 : UniqueKeyConstant;
+	UniqueKeyReader = GetValueSettingUniqueKey();
+	if(!UniqueKeyReader->Init(InContext, InFacade)){return false;}
+	
+	const uint32 BaseUniqueKey = UniqueKeyReader->IsConstant() ? 0 : UniqueKeyConstant;
 	if ((Uniqueness & static_cast<uint8>(EPCGExGUIDUniquenessFlags::Grid)) != 0)
 	{
 		const FBox RefBounds = PCGHelpers::GetGridBounds(InContext->GetTargetActor(InFacade->Source->GetIn()), InContext->SourceComponent.Get());
@@ -87,7 +80,7 @@ void FPCGExGUIDDetails::GetGUID(const int32 Index, const FPCGPoint& InPoint, FGu
 	OutGUID = FGuid(
 		GridHash,
 		bUseIndex ? Index : -1,
-		UniqueKeyReader ? HashCombine(SeededBase, static_cast<uint32>(UniqueKeyReader->Read(Index))) : SeededBase,
+		UniqueKeyReader->IsConstant() ? HashCombine(SeededBase, static_cast<uint32>(UniqueKeyReader->Read(Index))) : SeededBase,
 		bUsePosition ? PCGEx::GH3(InPoint.Transform.GetLocation() + PositionHashOffset, AdjustedPositionHashCollision) : 0);
 }
 

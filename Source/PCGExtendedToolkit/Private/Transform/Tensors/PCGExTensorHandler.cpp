@@ -24,14 +24,10 @@ namespace PCGExTensor
 
 		Tensors.Reserve(InFactories.Num());
 
-		if (Config.bNormalize && Config.SizeInput == EPCGExInputValueType::Attribute)
+		if (Config.bNormalize)
 		{
-			Size = InDataFacade->GetScopedBroadcaster<double>(Config.SizeAttribute);
-			if (!Size)
-			{
-				PCGE_LOG_C(Warning, GraphAndLog, InContext, FText::Format(FTEXT("Missing attribute {0}."), FText::FromName(Config.SizeAttribute.GetName())));
-				return false;
-			}
+			Size = Config.GetValueSettingSize();
+			if (!Size->Init(InContext, InDataFacade)) { return false; }
 		}
 
 		for (const UPCGExTensorFactoryData* Factory : InFactories)
@@ -76,7 +72,7 @@ namespace PCGExTensor
 
 		if (Config.bNormalize)
 		{
-			Result.DirectionAndSize = Result.DirectionAndSize.GetSafeNormal() * (Size ? Size->Read(InSeedIndex) : Config.SizeConstant);
+			Result.DirectionAndSize = Result.DirectionAndSize.GetSafeNormal() * Size->Read(InSeedIndex);
 		}
 
 		if (Config.bInvert)

@@ -378,6 +378,18 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 			UnionBlender->PrepareMerge(AsyncManager->GetContext(), EdgesDataFacade, ParentGraph->EdgesUnion);
 		}
 
+		if (InBuilder->OutputDetails->bOutputEdgeLength)
+		{
+			if (!PCGEx::IsValidName(InBuilder->OutputDetails->EdgeLengthName))
+			{
+				PCGE_LOG_C(Error, GraphAndLog, AsyncManager->GetContext(), FTEXT("Invalid user-defined attribute name for Edge Length."));
+			}
+			else
+			{
+				EdgeLength = EdgesDataFacade->GetWritable<double>(InBuilder->OutputDetails->EdgeLengthName, 0, true, PCGExData::EBufferInit::New);
+			}
+		}
+
 		PCGEX_ASYNC_GROUP_CHKD_VOID(AsyncManager, ProcessSubGraphEdges)
 
 		ProcessSubGraphEdges->SetParent(InParentHandle.Pin());
@@ -419,7 +431,10 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 		{
 			const FEdge& E = FlattenedEdges[i];
 			const int32 EdgeIndex = E.Index;
+
 			FPCGPoint& EdgePt = MutablePoints[EdgeIndex];
+			const FPCGPoint& StartPt = Vertices[E.Start];
+			const FPCGPoint& EndPt = Vertices[E.End];
 
 			if (bHasUnionMetadata)
 			{
@@ -438,8 +453,11 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 
 			if (Builder->OutputDetails->bWriteEdgePosition)
 			{
-				Builder->OutputDetails->BasicEdgeSolidification.Mutate(EdgePt, Vertices[E.Start], Vertices[E.End], Builder->OutputDetails->EdgePosition);
+				Builder->OutputDetails->BasicEdgeSolidification.Mutate(EdgePt, StartPt, EndPt, Builder->OutputDetails->EdgePosition);
 			}
+
+			if (EdgeLength) { EdgeLength->GetMutable(EdgeIndex) = FVector::Dist(StartPt.Transform.GetLocation(), EndPt.Transform.GetLocation()); }
+
 
 			if (EdgePt.Seed == 0 || ParentGraph->bRefreshEdgeSeed) { EdgePt.Seed = PCGExRandom::ComputeSeed(EdgePt, SeedOffset); }
 		}

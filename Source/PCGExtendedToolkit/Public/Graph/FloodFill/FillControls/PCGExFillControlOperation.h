@@ -30,10 +30,10 @@ public:
 	virtual bool PrepareForDiffusions(FPCGExContext* InContext, const TSharedPtr<PCGExFloodFill::FFillControlsHandler>& InHandler);
 
 	virtual bool ChecksCapture() const;
-	virtual bool IsValidCapture(const PCGExFloodFill::FDiffusion* Diffusion, const PCGExFloodFill::FCandidate& InCandidate);
+	virtual bool IsValidCapture(const PCGExFloodFill::FDiffusion* Diffusion, const PCGExFloodFill::FCandidate& Candidate);
 
 	virtual bool ChecksProbe() const;
-	virtual bool IsValidProbe(const PCGExFloodFill::FDiffusion* Diffusion, const PCGExFloodFill::FCandidate& InCandidate);
+	virtual bool IsValidProbe(const PCGExFloodFill::FDiffusion* Diffusion, const PCGExFloodFill::FCandidate& Candidate);
 
 	virtual bool ChecksCandidate() const;
 	virtual bool IsValidCandidate(const PCGExFloodFill::FDiffusion* Diffusion, const PCGExFloodFill::FCandidate& From, const PCGExFloodFill::FCandidate& Candidate);
@@ -45,6 +45,6 @@ public:
 protected:
 	TSharedPtr<PCGExData::FFacade> GetSourceFacade() const;
 
-	TSharedPtr<const PCGExCluster::FCluster> Cluster;
+	TSharedPtr<PCGExCluster::FCluster> Cluster;
 	TSharedPtr<PCGExFloodFill::FFillControlsHandler> Handler;
 };
