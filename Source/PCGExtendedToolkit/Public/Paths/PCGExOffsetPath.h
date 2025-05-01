@@ -74,7 +74,7 @@ public:
 	double OffsetConstant = 1.0;
 
 	PCGEX_SETTING_VALUE_GET(Offset, double, OffsetInput, OffsetAttribute, OffsetConstant)
-	
+
 	/** Scale offset direction & distance using point scale.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	bool bApplyPointScaleToOffset = false;

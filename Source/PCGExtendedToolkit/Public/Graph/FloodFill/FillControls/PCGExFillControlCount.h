@@ -34,6 +34,8 @@ struct FPCGExFillControlConfigCount : public FPCGExFillControlConfigBase
 	/** Max Count Constant */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Max Count", EditCondition="MaxCountInput==EPCGExInputValueType::Constant", EditConditionHides, ClampMin=1))
 	int32 MaxCount = 10;
+
+	PCGEX_SETTING_VALUE_GET(MaxCount, int32, MaxCountInput, MaxCountAttribute, MaxCount)
 };
 
 /**
@@ -48,9 +50,9 @@ class UPCGExFillControlCount : public UPCGExFillControlOperation
 
 public:
 	virtual bool PrepareForDiffusions(FPCGExContext* InContext, const TSharedPtr<PCGExFloodFill::FFillControlsHandler>& InHandler) override;
-	
+
 	virtual bool ChecksCapture() const override { return true; }
-	virtual bool IsValidCapture(const PCGExFloodFill::FDiffusion* Diffusion, const PCGExFloodFill::FCandidate& InCandidate) override;
+	virtual bool IsValidCapture(const PCGExFloodFill::FDiffusion* Diffusion, const PCGExFloodFill::FCandidate& Candidate) override;
 
 	virtual bool ChecksProbe() const override { return false; }
 	virtual bool ChecksCandidate() const override { return false; }

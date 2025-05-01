@@ -7,6 +7,7 @@
 #include "CoreMinimal.h"
 
 #include "PCGExDetails.h"
+#include "PCGExDetailsData.h"
 #include "Data/PCGExData.h"
 
 #include "PCGExCompare.generated.h"
@@ -440,6 +441,11 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExVectorHashComparisonDetails
 	{
 	}
 
+	explicit FPCGExVectorHashComparisonDetails(double InHashToleranceConstant)
+	{
+		HashToleranceConstant = InHashToleranceConstant;
+	}
+
 	/** Type of Tolerance value source */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	EPCGExInputValueType HashToleranceInput = EPCGExInputValueType::Constant;
@@ -452,12 +458,11 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExVectorHashComparisonDetails
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Hash Tolerance", EditCondition="HashToleranceInput==EPCGExInputValueType::Constant", EditConditionHides, ClampMin=0.00001))
 	double HashToleranceConstant = 0.001;
 
-	FVector CWTolerance = FVector::ZeroVector;
+	TSharedPtr<PCGExDetails::TSettingValue<double>> Tolerance;
 
-	bool bUseLocalTolerance = false;
-	TSharedPtr<PCGExData::TBuffer<double>> LocalOperand;
+	PCGEX_SETTING_VALUE_GET(Tolerance, double, HashToleranceInput, HashToleranceAttribute, HashToleranceConstant)
 
-	bool Init(const FPCGContext* InContext, const TSharedRef<PCGExData::FFacade>& InPrimaryDataFacade);
+	bool Init(const FPCGExContext* InContext, const TSharedRef<PCGExData::FFacade>& InPrimaryDataFacade);
 	FVector GetCWTolerance(const int32 PointIndex) const;
 
 	void RegisterConsumableAttributesWithData(FPCGExContext* InContext, const UPCGData* InData) const;
@@ -508,17 +513,33 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExDotComparisonDetails
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName=" └─ Tolerance", EditCondition="(Comparison==EPCGExComparison::NearlyEqual || Comparison==EPCGExComparison::NearlyNotEqual) && Domain==EPCGExAngularDomain::Degrees", EditConditionHides, ClampMin=0, ClampMax=180, Units="Degrees"))
 	double DegreesTolerance = 0.1;
 
-	bool bUseAttribute = false;
+	PCGEX_SETTING_VALUE_GET(Threshold, double, ThresholdInput, ThresholdAttribute, Domain == EPCGExAngularDomain::Degrees ? DegreesConstant : DotConstant)
+
+	TSharedPtr<PCGExDetails::TSettingValue<double>> ThresholdGetter;
+
 	double ComparisonTolerance = 0;
-	double ComparisonThreshold = 0;
-	TSharedPtr<PCGExData::TBuffer<double>> ThresholdGetter;
 
-	bool Init(const FPCGContext* InContext, const TSharedRef<PCGExData::FFacade>& InPrimaryDataCache);
+	bool Init(const FPCGExContext* InContext, const TSharedRef<PCGExData::FFacade>& InPrimaryDataCache);
 
-	double GetComparisonThreshold(const int32 PointIndex) const;
+	FORCEINLINE double GetComparisonThreshold(const int32 PointIndex) const
+	{
+		if (Domain == EPCGExAngularDomain::Amplitude) { return ThresholdGetter->Read(PointIndex); }
+		return PCGExMath::DegreesToDot(ThresholdGetter->Read(PointIndex) * 0.5);
+	}
 
-	bool Test(const double A, const double B) const;
-	bool Test(const double A, const int32 Index) const;
+	FORCEINLINE bool Test(const double A, const double B) const
+	{
+		return bUnsignedComparison ?
+			       PCGExCompare::Compare(Comparison, FMath::Abs(A), FMath::Abs(B), ComparisonTolerance) :
+			       PCGExCompare::Compare(Comparison, A, B, ComparisonTolerance);
+	}
+
+	FORCEINLINE bool Test(const double A, const int32 Index) const
+	{
+		return bUnsignedComparison ?
+			       PCGExCompare::Compare(Comparison, FMath::Abs(A), FMath::Abs(GetComparisonThreshold(Index)), ComparisonTolerance) :
+			       PCGExCompare::Compare(Comparison, A, GetComparisonThreshold(Index), ComparisonTolerance);
+	}
 
 	void RegisterConsumableAttributesWithData(FPCGExContext* InContext, const UPCGData* InData) const;
 };

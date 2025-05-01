@@ -55,7 +55,7 @@ struct FPCGExDotFilterConfig
 	void Sanitize()
 	{
 	}
-	
+
 	PCGEX_SETTING_VALUE_GET(OperandB, FVector, CompareAgainst, OperandB, OperandBConstant)
 };
 

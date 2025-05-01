@@ -354,40 +354,24 @@ namespace PCGExExtrudeTensors
 		AttributesToPathTags = Settings->AttributesToPathTags;
 		if (!AttributesToPathTags.Init(Context, PointDataFacade)) { return false; }
 
-		if (Settings->bUsePerPointMaxIterations)
+		PerPointIterations = Settings->GetValueSettingIterations();
+		if (!PerPointIterations->Init(Context, PointDataFacade, false, true)) { return false; }
+		if (!PerPointIterations->IsConstant())
 		{
-			PerPointIterations = PointDataFacade->GetBroadcaster<int32>(Settings->IterationsAttribute, true);
-			if (!PerPointIterations)
-			{
-				PCGE_LOG_C(Warning, GraphAndLog, Context, FTEXT("Iteration attribute is missing on some inputs, they will be ignored."));
-				return false;
-			}
-
-			if (Settings->bUseMaxFromPoints) { RemainingIterations = FMath::Max(RemainingIterations, PerPointIterations->Max); }
+			if (Settings->bUseMaxFromPoints) { RemainingIterations = FMath::Max(RemainingIterations, PerPointIterations->Max()); }
 		}
-		else
+		else { RemainingIterations = Settings->Iterations; }
+
+		if (Settings->bUseMaxLength)
 		{
-			RemainingIterations = Settings->Iterations;
+			MaxLength = Settings->GetValueSettingMaxLength();
+			if (!MaxLength->Init(Context, PointDataFacade, false)) { return false; }
 		}
 
-		if (Settings->bUseMaxLength && Settings->MaxLengthInput == EPCGExInputValueType::Attribute)
+		if (Settings->bUseMaxPointsCount)
 		{
-			PerPointMaxLength = PointDataFacade->GetBroadcaster<double>(Settings->MaxLengthAttribute);
-			if (!PerPointMaxLength)
-			{
-				PCGE_LOG_C(Warning, GraphAndLog, Context, FTEXT("Max length attribute is missing on some inputs, they will be ignored."));
-				return false;
-			}
-		}
-
-		if (Settings->bUseMaxPointsCount && Settings->MaxPointsCountInput == EPCGExInputValueType::Attribute)
-		{
-			PerPointMaxPoints = PointDataFacade->GetBroadcaster<int32>(Settings->MaxPointsCountAttribute);
-			if (!PerPointMaxPoints)
-			{
-				PCGE_LOG_C(Warning, GraphAndLog, Context, FTEXT("Max point count attribute is missing on some inputs, they will be ignored."));
-				return false;
-			}
+			MaxPointsCount = Settings->GetValueSettingMaxPointsCount();
+			if (!MaxPointsCount->Init(Context, PointDataFacade, false)) { return false; }
 		}
 
 		const int32 NumPoints = PointDataFacade->GetNum();
@@ -403,7 +387,7 @@ namespace PCGExExtrudeTensors
 
 	void FProcessor::InitExtrusionFromSeed(const int32 InSeedIndex)
 	{
-		const int32 Iterations = PerPointIterations ? PerPointIterations->Read(InSeedIndex) : Settings->Iterations;
+		const int32 Iterations = PerPointIterations->Read(InSeedIndex);
 		if (Iterations < 1) { return; }
 
 		bool bIsStopped = false;
@@ -417,8 +401,8 @@ namespace PCGExExtrudeTensors
 		if (!NewExtrusion) { return; }
 
 		NewExtrusion->bIsProbe = bIsStopped;
-		if (Settings->bUseMaxLength) { NewExtrusion->MaxLength = PerPointMaxLength ? PerPointMaxLength->Read(InSeedIndex) : Settings->MaxLength; }
-		if (Settings->bUseMaxPointsCount) { NewExtrusion->MaxPointCount = PerPointMaxPoints ? PerPointMaxPoints->Read(InSeedIndex) : Settings->MaxPointsCount; }
+		if (Settings->bUseMaxLength) { NewExtrusion->MaxLength = MaxLength->Read(InSeedIndex); }
+		if (Settings->bUseMaxPointsCount) { NewExtrusion->MaxPointCount = MaxPointsCount->Read(InSeedIndex); }
 
 		ExtrusionQueue[InSeedIndex] = NewExtrusion;
 	}
@@ -717,8 +701,8 @@ namespace PCGExExtrudeTensors
 #undef PCGEX_4_FLAGS
 #undef PCGEX_4_FLAGS_CASE
 
-		if (Settings->bUseMaxLength) { NewExtrusion->MaxLength = PerPointMaxLength ? PerPointMaxLength->Read(InSeedIndex) : Settings->MaxLength; }
-		if (Settings->bUseMaxPointsCount) { NewExtrusion->MaxPointCount = PerPointMaxPoints ? PerPointMaxPoints->Read(InSeedIndex) : Settings->MaxPointsCount; }
+		if (Settings->bUseMaxLength) { NewExtrusion->MaxLength = MaxLength->Read(InSeedIndex); }
+		if (Settings->bUseMaxPointsCount) { NewExtrusion->MaxPointCount = MaxPointsCount->Read(InSeedIndex); }
 
 		NewExtrusion->PointDataFacade->Source->IOIndex = BatchIndex * 1000000 + InSeedIndex;
 		AttributesToPathTags.Tag(InSeedIndex, Facade->Source);

@@ -81,6 +81,8 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Max Iterations", ClampMin=1))
 	int32 Iterations = 1;
 
+	PCGEX_SETTING_VALUE_GET_BOOL(Iterations, int32, bUsePerPointMaxIterations, IterationsAttribute, Iterations)
+	
 	/** Whether to adjust max iteration based on max value found on points. Use at your own risks! */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Use Max from Points", ClampMin=1, EditCondition="bUsePerPointMaxIterations", HideEditConditionToggle))
 	bool bUseMaxFromPoints = false;
@@ -101,7 +103,8 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Limits", meta=(PCG_Overridable, DisplayName="Max Length", EditCondition="bUseMaxLength && MaxLengthInput==EPCGExInputValueType::Constant", EditConditionHides, ClampMin=1))
 	double MaxLength = 100;
 
-
+	PCGEX_SETTING_VALUE_GET(MaxLength, double, MaxLengthInput, MaxLengthAttribute, MaxLength)
+	
 	/** Whether to limit the number of points in a generated path */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Limits", meta=(PCG_NotOverridable))
 	bool bUseMaxPointsCount = false;
@@ -118,6 +121,7 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Limits", meta=(PCG_Overridable, DisplayName="Max Points Count", EditCondition="bUseMaxPointsCount && MaxPointsCountInput==EPCGExInputValueType::Constant", EditConditionHides, ClampMin=1))
 	int32 MaxPointsCount = 100;
 
+	PCGEX_SETTING_VALUE_GET(MaxPointsCount, int32, MaxPointsCountInput, MaxPointsCountAttribute, MaxPointsCount)
 
 	/** Whether to limit path length or not */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Limits", meta=(PCG_Overridable, ClampMin=0.001))
@@ -632,9 +636,9 @@ namespace PCGExExtrudeTensors
 		FRWLock NewExtrusionLock;
 		int32 RemainingIterations = 0;
 
-		TSharedPtr<PCGExData::TBuffer<int32>> PerPointIterations;
-		TSharedPtr<PCGExData::TBuffer<int32>> PerPointMaxPoints;
-		TSharedPtr<PCGExData::TBuffer<double>> PerPointMaxLength;
+		TSharedPtr<PCGExDetails::TSettingValue<int32>> PerPointIterations;
+		TSharedPtr<PCGExDetails::TSettingValue<int32>> MaxPointsCount;
+		TSharedPtr<PCGExDetails::TSettingValue<double>> MaxLength;
 
 		TSharedPtr<PCGExPointFilter::FManager> StopFilters;
 		TSharedPtr<PCGExTensor::FTensorsHandler> TensorsHandler;

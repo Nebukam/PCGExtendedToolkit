@@ -179,7 +179,6 @@ public:
 	PCGEX_SETTING_VALUE_GET(Subdivisions, double, SubdivisionAmountInput, SubdivisionAmount, SubdivideMethod == EPCGExSubdivideMode::Count ? SubdivisionCount : SubdivisionDistance)
 
 	void InitOutputFlags(const TSharedPtr<PCGExData::FPointIO>& InPointIO) const;
-	
 };
 
 struct FPCGExBevelPathContext final : FPCGExPathProcessorContext

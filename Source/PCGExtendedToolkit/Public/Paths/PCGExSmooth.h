@@ -57,6 +57,8 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Influence", ClampMin=-1, ClampMax=1, EditCondition="InfluenceInput == EPCGExInputValueType::Constant", EditConditionHides))
 	double InfluenceConstant = 1.0;
 
+	PCGEX_SETTING_VALUE_GET(Influence, double, InfluenceInput, InfluenceAttribute, InfluenceConstant)
+	
 	/** Fetch the smoothing from a local attribute.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	EPCGExInputValueType SmoothingAmountType = EPCGExInputValueType::Constant;
@@ -69,8 +71,10 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Smoothing", ClampMin=1, EditCondition="SmoothingAmountType == EPCGExInputValueType::Constant", EditConditionHides))
 	double SmoothingAmountConstant = 5;
 
+	PCGEX_SETTING_VALUE_GET(SmoothingAmount, double, SmoothingAmountType, SmoothingAmountAttribute, SmoothingAmountConstant)
+	
 	/** Static multiplier for the local smoothing amount. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ClampMin=0.001, EditCondition="SmoothingAmountType != EPCGExInputValueType::Constant", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ClampMin=0.001))
 	double ScaleSmoothingAmountAttribute = 1;
 
 	/** Blending settings used to smooth attributes.*/
@@ -106,8 +110,8 @@ namespace PCGExSmooth
 	{
 		int32 NumPoints = 0;
 
-		TSharedPtr<PCGExData::TBuffer<double>> Influence;
-		TSharedPtr<PCGExData::TBuffer<double>> Smoothing;
+		TSharedPtr<PCGExDetails::TSettingValue<double>> Influence;
+		TSharedPtr<PCGExDetails::TSettingValue<double>> Smoothing;
 
 		TSharedPtr<PCGExDataBlending::FMetadataBlender> MetadataBlender;
 		UPCGExSmoothingOperation* TypedOperation = nullptr;

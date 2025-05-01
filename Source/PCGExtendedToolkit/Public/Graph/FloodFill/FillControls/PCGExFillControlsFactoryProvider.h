@@ -32,12 +32,18 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExFillControlConfigBase
 	{
 	}
 
-	/** Where to fetch the attribute from. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_NotOverridable))
+	UPROPERTY()
+	bool bSupportSource = true;
+
+	UPROPERTY()
+	bool bSupportSteps = true;
+	
+	/** Where to fetch the attribute from. Note that this may not be supported by all controls..*/
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_NotOverridable, EditCondition="bSupportSource", EditConditionHides, HideEditConditionToggle))
 	EPCGExFloodFillSettingSource Source = EPCGExFloodFillSettingSource::Seed;
 
 	/** At which diffusion step should this control be applied. Note that this may not be supported by all controls. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable, Bitmask, BitmaskEnum="/Script/PCGExtendedToolkit.EPCGExFloodFillControlStepsFlags"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable, Bitmask, BitmaskEnum="/Script/PCGExtendedToolkit.EPCGExFloodFillControlStepsFlags", EditCondition="bSupportSteps", EditConditionHides, HideEditConditionToggle))
 	uint8 Steps = static_cast<uint8>(EPCGExFloodFillControlStepsFlags::Candidate);
 
 	void Init();

@@ -261,27 +261,17 @@ namespace PCGExCompare
 	}
 }
 
-bool FPCGExVectorHashComparisonDetails::Init(const FPCGContext* InContext, const TSharedRef<PCGExData::FFacade>& InPrimaryDataFacade)
+bool FPCGExVectorHashComparisonDetails::Init(const FPCGExContext* InContext, const TSharedRef<PCGExData::FFacade>& InPrimaryDataFacade)
 {
-	bUseLocalTolerance = HashToleranceInput == EPCGExInputValueType::Attribute;
+	Tolerance = GetValueSettingTolerance();
+	if (!Tolerance->Init(InContext, InPrimaryDataFacade, false)) { return false; }
 
-	if (bUseLocalTolerance)
-	{
-		LocalOperand = InPrimaryDataFacade->GetBroadcaster<double>(HashToleranceAttribute);
-		if (!LocalOperand)
-		{
-			PCGEX_LOG_INVALID_SELECTOR_C(InContext, "Hash Tolerance", HashToleranceAttribute)
-			return false;
-		}
-	}
-
-	CWTolerance = FVector(1 / HashToleranceConstant);
 	return true;
 }
 
 FVector FPCGExVectorHashComparisonDetails::GetCWTolerance(const int32 PointIndex) const
 {
-	return bUseLocalTolerance ? FVector(1 / LocalOperand->Read(PointIndex)) : CWTolerance;
+	return FVector(1 / Tolerance->Read(PointIndex));
 }
 
 void FPCGExVectorHashComparisonDetails::RegisterConsumableAttributesWithData(FPCGExContext* InContext, const UPCGData* InData) const
@@ -290,56 +280,15 @@ void FPCGExVectorHashComparisonDetails::RegisterConsumableAttributesWithData(FPC
 	PCGEX_CONSUMABLE_CONDITIONAL(HashToleranceInput == EPCGExInputValueType::Attribute, HashToleranceAttribute, Consumable)
 }
 
-bool FPCGExDotComparisonDetails::Init(const FPCGContext* InContext, const TSharedRef<PCGExData::FFacade>& InPrimaryDataCache)
+bool FPCGExDotComparisonDetails::Init(const FPCGExContext* InContext, const TSharedRef<PCGExData::FFacade>& InPrimaryDataCache)
 {
-	bUseAttribute = ThresholdInput == EPCGExInputValueType::Attribute;
+	ThresholdGetter = GetValueSettingThreshold();
+	if (!ThresholdGetter->Init(InContext, InPrimaryDataCache, false)) { return false; }
 
-	if (bUseAttribute)
-	{
-		ThresholdGetter = InPrimaryDataCache->GetBroadcaster<double>(ThresholdAttribute);
-		if (!ThresholdGetter)
-		{
-			PCGEX_LOG_INVALID_SELECTOR_C(InContext, "Dot Threshold", ThresholdAttribute)
-			return false;
-		}
-	}
-
-	if (Domain == EPCGExAngularDomain::Degrees)
-	{
-		ComparisonThreshold = PCGExMath::DegreesToDot(DegreesConstant);
-		ComparisonTolerance = PCGExMath::DegreesToDot(DegreesTolerance);
-	}
-	else
-	{
-		ComparisonThreshold = DotConstant;
-		ComparisonTolerance = DotTolerance;
-	}
+	if (Domain == EPCGExAngularDomain::Degrees) { ComparisonTolerance = PCGExMath::DegreesToDot(DegreesTolerance); }
+	else { ComparisonTolerance = DotTolerance; }
 
 	return true;
-}
-
-double FPCGExDotComparisonDetails::GetComparisonThreshold(const int32 PointIndex) const
-{
-	if (ThresholdGetter)
-	{
-		if (Domain == EPCGExAngularDomain::Amplitude) { return ThresholdGetter->Read(PointIndex); }
-		return PCGExMath::DegreesToDot(ThresholdGetter->Read(PointIndex) * 0.5);
-	}
-	return ComparisonThreshold;
-}
-
-bool FPCGExDotComparisonDetails::Test(const double A, const double B) const
-{
-	return bUnsignedComparison ?
-		       PCGExCompare::Compare(Comparison, FMath::Abs(A), FMath::Abs(B), ComparisonTolerance) :
-		       PCGExCompare::Compare(Comparison, A, B, ComparisonTolerance);
-}
-
-bool FPCGExDotComparisonDetails::Test(const double A, const int32 Index) const
-{
-	return bUnsignedComparison ?
-		       PCGExCompare::Compare(Comparison, FMath::Abs(A), FMath::Abs(GetComparisonThreshold(Index)), ComparisonTolerance) :
-		       PCGExCompare::Compare(Comparison, A, GetComparisonThreshold(Index), ComparisonTolerance);
 }
 
 void FPCGExDotComparisonDetails::RegisterConsumableAttributesWithData(FPCGExContext* InContext, const UPCGData* InData) const

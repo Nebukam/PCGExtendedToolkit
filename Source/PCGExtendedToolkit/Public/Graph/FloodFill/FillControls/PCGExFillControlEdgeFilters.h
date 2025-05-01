@@ -11,43 +11,30 @@
 
 
 #include "Graph/PCGExCluster.h"
-#include "PCGExFillControlDepth.generated.h"
+#include "PCGExFillControlEdgeFilters.generated.h"
 
 USTRUCT(BlueprintType)
-struct FPCGExFillControlConfigDepth : public FPCGExFillControlConfigBase
+struct FPCGExFillControlConfigEdgeFilters : public FPCGExFillControlConfigBase
 {
 	GENERATED_BODY()
 
-	FPCGExFillControlConfigDepth() :
+	FPCGExFillControlConfigEdgeFilters() :
 		FPCGExFillControlConfigBase()
 	{
+		bSupportSource = false;
 	}
 
-	/**  */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable))
-	EPCGExInputValueType MaxDepthInput = EPCGExInputValueType::Constant;
-
-	/** Max depth Attribute */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Max Depth (Attr)", EditCondition="MaxDepthInput!=EPCGExInputValueType::Constant", EditConditionHides))
-	FName MaxDepthAttribute = FName("MaxDepth");
-
-	/** Max depth Constant */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Max Depth", EditCondition="MaxDepthInput==EPCGExInputValueType::Constant", EditConditionHides, ClampMin=1))
-	int32 MaxDepth = 10;
-
-	PCGEX_SETTING_VALUE_GET(MaxDepth, int32, MaxDepthInput, MaxDepthAttribute, MaxDepth)
-	
 };
 
 /**
  * 
  */
-UCLASS(MinimalAPI, DisplayName = "Depth")
-class UPCGExFillControlDepth : public UPCGExFillControlOperation
+UCLASS(MinimalAPI, DisplayName = "EdgeFilters")
+class UPCGExFillControlEdgeFilters : public UPCGExFillControlOperation
 {
 	GENERATED_BODY()
 
-	friend class UPCGExFillControlsFactoryDepth;
+	friend class UPCGExFillControlsFactoryEdgeFilters;
 
 public:
 	virtual bool PrepareForDiffusions(FPCGExContext* InContext, const TSharedPtr<PCGExFloodFill::FFillControlsHandler>& InHandler) override;
@@ -59,25 +46,27 @@ public:
 	virtual void Cleanup() override;
 
 protected:
-	TSharedPtr<PCGExDetails::TSettingValue<int32>> DepthLimit;
+	TSharedPtr<PCGExClusterFilter::FManager> EdgeFilterManager;
 };
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")
-class UPCGExFillControlsFactoryDepth : public UPCGExFillControlsFactoryData
+class UPCGExFillControlsFactoryEdgeFilters : public UPCGExFillControlsFactoryData
 {
 	GENERATED_BODY()
 
 public:
 	UPROPERTY()
-	FPCGExFillControlConfigDepth Config;
+	FPCGExFillControlConfigEdgeFilters Config;
+
+	UPROPERTY()
+	TArray<TObjectPtr<const UPCGExFilterFactoryData>> FilterFactories;
 
 	virtual UPCGExFillControlOperation* CreateOperation(FPCGExContext* InContext) const override;
 
-	virtual void RegisterBuffersDependencies(FPCGExContext* InContext, PCGExData::FFacadePreloader& FacadePreloader) const override;
 };
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Graph|Params")
-class UPCGExFillControlsDepthProviderSettings : public UPCGExFillControlsFactoryProviderSettings
+class UPCGExFillControlsEdgeFiltersProviderSettings : public UPCGExFillControlsFactoryProviderSettings
 {
 	GENERATED_BODY()
 
@@ -85,14 +74,18 @@ public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(
-		FillControlsDepth, "Fill Control : Depth", "Control fill based on diffusion depth.",
+		FillControlsEdgeFilters, "Fill Control : Edge Filters", "Filter edges along which the diffusion can occur.",
 		FName(GetDisplayName()))
 #endif
 	//~End UPCGSettings
 
+protected:
+	virtual TArray<FPCGPinProperties> InputPinProperties() const override;
+
+public:
 	/** Control Config.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ShowOnlyInnerProperties))
-	FPCGExFillControlConfigDepth Config;
+	FPCGExFillControlConfigEdgeFilters Config;
 
 	virtual UPCGExFactoryData* CreateFactory(FPCGExContext* InContext, UPCGExFactoryData* InFactory) const override;
 

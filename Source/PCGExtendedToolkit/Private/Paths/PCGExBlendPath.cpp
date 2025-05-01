@@ -82,15 +82,10 @@ namespace PCGExBlendPath
 
 		PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::Duplicate)
 
-		if (Settings->BlendOver == EPCGExBlendOver::Fixed && Settings->LerpInput == EPCGExInputValueType::Attribute)
+		if (Settings->BlendOver == EPCGExBlendOver::Fixed)
 		{
-			LerpCache = PointDataFacade->GetScopedBroadcaster<double>(Settings->LerpAttribute);
-
-			if (!LerpCache)
-			{
-				PCGE_LOG_C(Warning, GraphAndLog, ExecutionContext, FTEXT("Lerp attribute is invalid."));
-				return false;
-			}
+			LerpCache = Settings->GetValueSettingLerp();
+			if (!LerpCache->Init(Context, PointDataFacade)) { return false; }
 		}
 
 		TArray<FPCGPoint>& OutPoints = PointDataFacade->GetOut()->GetMutablePoints();
@@ -142,7 +137,7 @@ namespace PCGExBlendPath
 		}
 		else
 		{
-			Alpha = LerpCache ? LerpCache->Read(Index) : Settings->LerpConstant;
+			Alpha = LerpCache->Read(Index);
 		}
 
 		MetadataBlender->Blend(*Start, *End, Current, Alpha);

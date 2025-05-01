@@ -14,20 +14,20 @@ bool UPCGExFillControlLength::PrepareForDiffusions(FPCGExContext* InContext, con
 	const UPCGExFillControlsFactoryLength* TypedFactory = Cast<UPCGExFillControlsFactoryLength>(Factory);
 	bUsePathLength = TypedFactory->Config.bUsePathLength;
 
-	DistanceLimit = PCGExDetails::MakeSettingValue<double>(TypedFactory->Config.MaxLengthInput, TypedFactory->Config.MaxLengthAttribute, TypedFactory->Config.MaxLength);
+	DistanceLimit = TypedFactory->Config.GetValueSettingMaxLength();
 	if (!DistanceLimit->Init(InContext, GetSourceFacade())) { return false; }
 
 	return true;
 }
 
-bool UPCGExFillControlLength::IsValidCapture(const PCGExFloodFill::FDiffusion* Diffusion, const PCGExFloodFill::FCandidate& InCandidate)
+bool UPCGExFillControlLength::IsValidCapture(const PCGExFloodFill::FDiffusion* Diffusion, const PCGExFloodFill::FCandidate& Candidate)
 {
-	return (bUsePathLength ? InCandidate.PathDistance : InCandidate.Distance) <= DistanceLimit->Read(GetSettingsIndex(Diffusion));
+	return (bUsePathLength ? Candidate.PathDistance : Candidate.Distance) <= DistanceLimit->Read(GetSettingsIndex(Diffusion));
 }
 
-bool UPCGExFillControlLength::IsValidProbe(const PCGExFloodFill::FDiffusion* Diffusion, const PCGExFloodFill::FCandidate& InCandidate)
+bool UPCGExFillControlLength::IsValidProbe(const PCGExFloodFill::FDiffusion* Diffusion, const PCGExFloodFill::FCandidate& Candidate)
 {
-	return (bUsePathLength ? InCandidate.PathDistance : InCandidate.Distance) <= DistanceLimit->Read(GetSettingsIndex(Diffusion));
+	return (bUsePathLength ? Candidate.PathDistance : Candidate.Distance) <= DistanceLimit->Read(GetSettingsIndex(Diffusion));
 }
 
 bool UPCGExFillControlLength::IsValidCandidate(const PCGExFloodFill::FDiffusion* Diffusion, const PCGExFloodFill::FCandidate& From, const PCGExFloodFill::FCandidate& Candidate)

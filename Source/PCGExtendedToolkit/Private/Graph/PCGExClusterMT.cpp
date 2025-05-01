@@ -25,14 +25,14 @@ namespace PCGExClusterMT
 	FClusterProcessor::FClusterProcessor(const TSharedRef<PCGExData::FFacade>& InVtxDataFacade, const TSharedRef<PCGExData::FFacade>& InEdgeDataFacade)
 		: VtxDataFacade(InVtxDataFacade), EdgeDataFacade(InEdgeDataFacade)
 	{
-		PCGEX_LOG_CTR(FClusterProcessor)
-		EdgeDataFacade->bSupportsScopedGet = bAllowEdgesDataFacadeScopedGet;
+		PCGEX_LOG_CTR(FClusterProcessor)		
 	}
 
 	void FClusterProcessor::SetExecutionContext(FPCGExContext* InContext)
 	{
 		ExecutionContext = InContext;
 		WorkPermit = ExecutionContext->GetWorkPermit();
+		EdgeDataFacade->bSupportsScopedGet = InContext->bScopedAttributeGet && bAllowEdgesDataFacadeScopedGet;
 	}
 
 	void FClusterProcessor::RegisterConsumableAttributesWithFacade() const
@@ -366,7 +366,6 @@ namespace PCGExClusterMT
 		}
 
 		// TODO : Preload heuristics that depends on Vtx metadata
-		
 	}
 
 	void FClusterProcessorBatchBase::OnProcessingPreparationComplete()
@@ -434,6 +433,5 @@ namespace PCGExClusterMT
 
 	void FClusterProcessorBatchBase::Cleanup()
 	{
-		
 	}
 }

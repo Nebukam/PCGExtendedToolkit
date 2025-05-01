@@ -4,26 +4,24 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "PCGExCompare.h"
 #include "PCGExDetailsData.h"
 #include "UObject/Object.h"
 #include "PCGExFillControlOperation.h"
 #include "PCGExFillControlsFactoryProvider.h"
 
-
 #include "Graph/PCGExCluster.h"
-#include "PCGExFillControlRunningAverage.generated.h"
+#include "PCGExFillControlKeepDirection.generated.h"
 
 USTRUCT(BlueprintType)
-struct FPCGExFillControlConfigRunningAverage : public FPCGExFillControlConfigBase
+struct FPCGExFillControlConfigKeepDirection : public FPCGExFillControlConfigBase
 {
 	GENERATED_BODY()
 
-	FPCGExFillControlConfigRunningAverage() :
+	FPCGExFillControlConfigKeepDirection() :
 		FPCGExFillControlConfigBase()
 	{
 		bSupportSteps = false;
-		WindowSizeAttribute.Update("WindowSize");
-		Operand.Update("$Position.Z");
 	}
 
 	/**  */
@@ -36,38 +34,25 @@ struct FPCGExFillControlConfigRunningAverage : public FPCGExFillControlConfigBas
 
 	/** Window Size Constant */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Window Size", EditCondition="WindowSizeInput==EPCGExInputValueType::Constant", EditConditionHides, ClampMin=1))
-	int32 WindowSize = 10;
+	int32 WindowSize = 1;
 
 	PCGEX_SETTING_VALUE_GET(WindowSize, int32, WindowSizeInput, WindowSizeAttribute, WindowSize)
 
-	/**  */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable))
-	EPCGExInputValueType ToleranceInput = EPCGExInputValueType::Constant;
-
-	/** Tolerance Attribute */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Tolerance (Attr)", EditCondition="ToleranceInput!=EPCGExInputValueType::Constant", EditConditionHides))
-	FName ToleranceAttribute = FName("Tolerance");
-
-	/** Tolerance Constant */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Tolerance", EditCondition="ToleranceInput==EPCGExInputValueType::Constant", EditConditionHides, ClampMin=0))
-	double Tolerance = 10;
-
-	PCGEX_SETTING_VALUE_GET(Tolerance, double, ToleranceInput, ToleranceAttribute, Tolerance)
-
-	/** The property that will be averaged and checked against candidates -- will be broadcasted to a `double`. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
-	FPCGAttributePropertyInputSelector Operand;
+	/** Hash comparison settings */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, ShowOnlyInnerProperties))
+	FPCGExVectorHashComparisonDetails HashComparisonDetails = FPCGExVectorHashComparisonDetails(0.1);
+	
 };
 
 /**
  * 
  */
-UCLASS(MinimalAPI, DisplayName = "Running Average")
-class UPCGExFillControlRunningAverage : public UPCGExFillControlOperation
+UCLASS(MinimalAPI, DisplayName = "KeepDirection")
+class UPCGExFillControlKeepDirection : public UPCGExFillControlOperation
 {
 	GENERATED_BODY()
 
-	friend class UPCGExFillControlsFactoryRunningAverage;
+	friend class UPCGExFillControlsFactoryKeepDirection;
 
 public:
 	virtual bool PrepareForDiffusions(FPCGExContext* InContext, const TSharedPtr<PCGExFloodFill::FFillControlsHandler>& InHandler) override;
@@ -80,19 +65,19 @@ public:
 	virtual void Cleanup() override;
 
 protected:
+	FPCGExVectorHashComparisonDetails HashComparisonDetails;
 	TSharedPtr<PCGExDetails::TSettingValue<int32>> WindowSize;
-	TSharedPtr<PCGExDetails::TSettingValue<double>> Tolerance;
-	TSharedPtr<PCGExData::TBuffer<double>> Operand;
+	TSharedPtr<PCGExDetails::TSettingValue<double>> DistanceLimit;
 };
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")
-class UPCGExFillControlsFactoryRunningAverage : public UPCGExFillControlsFactoryData
+class UPCGExFillControlsFactoryKeepDirection : public UPCGExFillControlsFactoryData
 {
 	GENERATED_BODY()
 
 public:
 	UPROPERTY()
-	FPCGExFillControlConfigRunningAverage Config;
+	FPCGExFillControlConfigKeepDirection Config;
 
 	virtual UPCGExFillControlOperation* CreateOperation(FPCGExContext* InContext) const override;
 
@@ -100,7 +85,7 @@ public:
 };
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Graph|Params")
-class UPCGExFillControlsRunningAverageProviderSettings : public UPCGExFillControlsFactoryProviderSettings
+class UPCGExFillControlsKeepDirectionProviderSettings : public UPCGExFillControlsFactoryProviderSettings
 {
 	GENERATED_BODY()
 
@@ -108,14 +93,14 @@ public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(
-		FillControlsRunningAverage, "Fill Control : Running Average", "Ignore candidates which attribute value isn't within the given tolerance of a running average.",
+		FillControlsKeepDirection, "Fill Control : Keep Direction", "Stop fill after a certain number of vtx have been captured.",
 		FName(GetDisplayName()))
 #endif
 	//~End UPCGSettings
 
 	/** Control Config.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ShowOnlyInnerProperties))
-	FPCGExFillControlConfigRunningAverage Config;
+	FPCGExFillControlConfigKeepDirection Config;
 
 	virtual UPCGExFactoryData* CreateFactory(FPCGExContext* InContext, UPCGExFactoryData* InFactory) const override;
 
