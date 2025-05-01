@@ -219,7 +219,7 @@ namespace PCGExPathSplineMesh
 		virtual void ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const PCGExMT::FScope& Scope) override;
 
 		virtual void OnPointsProcessingComplete() override;
-		
+
 		virtual void CompleteWork() override;
 
 		virtual void Output() override;

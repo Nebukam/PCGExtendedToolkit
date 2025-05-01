@@ -645,9 +645,9 @@ namespace PCGEx
 	protected:
 		virtual void ResetMinMax() { PCGExMath::TypeMinMax(Min, Max); }
 	};
-	
+
 #pragma endregion
-	
+
 #pragma region Attribute copy
 
 	void CopyPoints(

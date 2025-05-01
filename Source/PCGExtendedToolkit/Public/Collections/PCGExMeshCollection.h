@@ -184,7 +184,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExMeshCollectionEntry : public FPCGExAssetColl
 
 	virtual void GetMaterialPaths(const int32 PickIndex, TSet<FSoftObjectPath>& OutPaths) const;
 	virtual void ApplyMaterials(const int32 PickIndex, UStaticMeshComponent* TargetComponent) const;
-	
+
 	virtual bool Validate(const UPCGExAssetCollection* ParentCollection) override;
 
 #if WITH_EDITORONLY_DATA

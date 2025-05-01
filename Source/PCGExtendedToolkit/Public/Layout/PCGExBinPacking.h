@@ -117,7 +117,6 @@ public:
 	virtual bool GetSortingRules(FPCGExContext* InContext, TArray<FPCGExSortRuleConfig>& OutRules) const;
 
 	PCGEX_SETTING_VALUE_GET(Padding, FVector, OccupationPaddingInput, OccupationPaddingAttribute, OccupationPadding)
-	
 };
 
 struct FPCGExBinPackingContext final : FPCGExPointsProcessorContext

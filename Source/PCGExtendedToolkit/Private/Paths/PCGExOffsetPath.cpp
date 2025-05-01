@@ -94,8 +94,8 @@ namespace PCGExOffsetPath
 		}
 
 		OffsetGetter = Settings->GetValueSettingOffset();
-		if(!OffsetGetter->Init(Context, PointDataFacade)){return false;}
-		
+		if (!OffsetGetter->Init(Context, PointDataFacade)) { return false; }
+
 		if (Settings->DirectionType == EPCGExInputValueType::Attribute)
 		{
 			DirectionGetter = PointDataFacade->GetScopedBroadcaster<FVector>(Settings->DirectionAttribute);

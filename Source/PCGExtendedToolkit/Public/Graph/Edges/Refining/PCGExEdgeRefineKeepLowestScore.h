@@ -32,7 +32,7 @@ public:
 
 		const PCGExCluster::FNode& RoamingSeedNode = *Heuristics->GetRoamingSeed();
 		const PCGExCluster::FNode& RoamingGoalNode = *Heuristics->GetRoamingGoal();
-		
+
 		for (const PCGExGraph::FLink Lk : Node.Links)
 		{
 			const double Score = Heuristics->GetEdgeScore(Node, *Cluster->GetNode(Lk), *Cluster->GetEdge(Lk), RoamingSeedNode, RoamingGoalNode);

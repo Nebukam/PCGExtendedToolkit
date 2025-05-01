@@ -5,6 +5,7 @@
 
 #include "CoreMinimal.h"
 #include "PCGExCompare.h"
+#include "PCGExDetailsData.h"
 #include "PCGExGlobalSettings.h"
 
 #include "PCGExPointsProcessor.h"
@@ -49,6 +50,8 @@ public:
 	/**  */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Bitmask", EditCondition="MaskInput==EPCGExInputValueType::Constant", EditConditionHides))
 	int64 Bitmask;
+
+	PCGEX_SETTING_VALUE_GET(Mask, int64, MaskInput, MaskAttribute, Bitmask)
 };
 
 struct FPCGExBitwiseOperationContext final : FPCGExPointsProcessorContext
@@ -73,10 +76,9 @@ namespace PCGExBitwiseOperation
 {
 	class FProcessor final : public PCGExPointsMT::TPointsProcessor<FPCGExBitwiseOperationContext, UPCGExBitwiseOperationSettings>
 	{
-		TSharedPtr<PCGExData::TBuffer<int64>> Reader;
+		TSharedPtr<PCGExDetails::TSettingValue<int64>> Mask;
 		TSharedPtr<PCGExData::TBuffer<int64>> Writer;
 
-		int64 Mask = 0;
 		EPCGExBitOp Op = EPCGExBitOp::Set;
 
 	public:

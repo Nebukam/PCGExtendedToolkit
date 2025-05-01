@@ -112,41 +112,17 @@ bool UPCGExTensorPointFactoryData::InitInternalFacade(FPCGExContext* InContext)
 	InputDataFacade = PCGExData::TryGetSingleFacade(InContext, PCGExTensor::SourceEffectorsLabel, true);
 	if (!InputDataFacade) { return false; }
 
-	if (BaseConfig.PotencyInput == EPCGExInputValueType::Attribute)
-	{
-		PotencyBuffer = InputDataFacade->GetBroadcaster<float>(BaseConfig.PotencyAttribute, true);
-		if (!PotencyBuffer)
-		{
-			if (!bQuietMissingInputError) { PCGEX_LOG_INVALID_SELECTOR_C(InContext, "Potency", BaseConfig.PotencyAttribute) }
-			return false;
-		}
-	}
+	PotencyBuffer = BaseConfig.GetValueSettingPotency(bQuietMissingInputError);
+	if (!PotencyBuffer->Init(InContext, InputDataFacade, false)) { return false; }
 
-	if (BaseConfig.WeightInput == EPCGExInputValueType::Attribute)
-	{
-		WeightBuffer = InputDataFacade->GetBroadcaster<float>(BaseConfig.WeightAttribute, true);
-		if (!WeightBuffer)
-		{
-			if (!bQuietMissingInputError) { PCGEX_LOG_INVALID_SELECTOR_C(InContext, "Weight", BaseConfig.WeightAttribute) }
-			return false;
-		}
-	}
+	WeightBuffer = BaseConfig.GetValueSettingWeight(bQuietMissingInputError);
+	if (!WeightBuffer->Init(InContext, InputDataFacade, false)) { return false; }
 
 	return true;
 }
 
 void UPCGExTensorPointFactoryData::PrepareSinglePoint(const int32 Index, FPCGPoint& InPoint) const
 {
-}
-
-double UPCGExTensorPointFactoryData::GetPotency(const int32 Index) const
-{
-	return PotencyBuffer ? PotencyBuffer->Read(Index) * BaseConfig.PotencyScale : BaseConfig.Potency;
-}
-
-double UPCGExTensorPointFactoryData::GetWeight(const int32 Index) const
-{
-	return WeightBuffer ? WeightBuffer->Read(Index) : BaseConfig.Weight;
 }
 
 TArray<FPCGPinProperties> UPCGExTensorPointFactoryProviderSettings::InputPinProperties() const

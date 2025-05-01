@@ -8,47 +8,18 @@ FAttachmentTransformRules FPCGExAttachmentRules::GetRules() const
 	return FAttachmentTransformRules(LocationRule, RotationRule, ScaleRule, bWeldSimulatedBodies);
 }
 
-bool FPCGExUVW::Init(const FPCGContext* InContext, const TSharedRef<PCGExData::FFacade>& InDataFacade)
+bool FPCGExUVW::Init(const FPCGExContext* InContext, const TSharedRef<PCGExData::FFacade>& InDataFacade)
 {
-	if (UInput == EPCGExInputValueType::Attribute)
-	{
-		UGetter = InDataFacade->GetScopedBroadcaster<double>(UAttribute);
-		if (!UGetter)
-		{
-			PCGE_LOG_C(Error, GraphAndLog, InContext, FText::FromString(TEXT("Invalid attribute for U.")));
-			return false;
-		}
-	}
+	UGetter = GetValueSettingU();
+	if (!UGetter->Init(InContext, InDataFacade)) { return false; }
 
-	if (VInput == EPCGExInputValueType::Attribute)
-	{
-		VGetter = InDataFacade->GetScopedBroadcaster<double>(VAttribute);
-		if (!VGetter)
-		{
-			PCGE_LOG_C(Error, GraphAndLog, InContext, FText::FromString(TEXT("Invalid attribute for V.")));
-			return false;
-		}
-	}
+	VGetter = GetValueSettingV();
+	if (!UGetter->Init(InContext, InDataFacade)) { return false; }
 
-	if (WInput == EPCGExInputValueType::Attribute)
-	{
-		WGetter = InDataFacade->GetScopedBroadcaster<double>(WAttribute);
-		if (!WGetter)
-		{
-			PCGE_LOG_C(Error, GraphAndLog, InContext, FText::FromString(TEXT("Invalid attribute for W.")));
-			return false;
-		}
-	}
+	WGetter = GetValueSettingW();
+	if (!WGetter->Init(InContext, InDataFacade)) { return false; }
 
 	return true;
-}
-
-FVector FPCGExUVW::GetUVW(const int32 PointIndex) const
-{
-	return FVector(
-		UGetter ? UGetter->Read(PointIndex) : UConstant,
-		VGetter ? VGetter->Read(PointIndex) : VConstant,
-		WGetter ? WGetter->Read(PointIndex) : WConstant);
 }
 
 FVector FPCGExUVW::GetPosition(const PCGExData::FPointRef& PointRef) const

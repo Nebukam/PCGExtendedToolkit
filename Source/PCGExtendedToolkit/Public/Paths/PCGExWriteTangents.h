@@ -61,7 +61,8 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Scaling", meta=(PCG_Overridable, DisplayName="Arrive Scale", EditCondition="ArriveScaleInput==EPCGExInputValueType::Constant", EditConditionHides))
 	double ArriveScaleConstant = 1;
 
-
+	PCGEX_SETTING_VALUE_GET(ArriveScale, FVector, ArriveScaleInput, ArriveScaleAttribute, FVector(ArriveScaleConstant))
+	
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Scaling", meta=(PCG_NotOverridable))
 	EPCGExInputValueType LeaveScaleInput = EPCGExInputValueType::Constant;
 
@@ -70,6 +71,8 @@ public:
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Scaling", meta=(PCG_Overridable, DisplayName="Leave Scale", EditCondition="LeaveScaleInput==EPCGExInputValueType::Constant", EditConditionHides))
 	double LeaveScaleConstant = 1;
+
+	PCGEX_SETTING_VALUE_GET(LeaveScale, FVector, LeaveScaleInput, LeaveScaleAttribute, FVector(LeaveScaleConstant))
 };
 
 struct FPCGExWriteTangentsContext final : FPCGExPathProcessorContext
@@ -106,10 +109,8 @@ namespace PCGExWriteTangents
 		bool bClosedLoop = false;
 		int32 LastIndex = 0;
 
-		TSharedPtr<PCGExData::TBuffer<FVector>> ArriveScaleReader;
-		TSharedPtr<PCGExData::TBuffer<FVector>> LeaveScaleReader;
-		FVector ConstantArriveScale = FVector::OneVector;
-		FVector ConstantLeaveScale = FVector::OneVector;
+		TSharedPtr<PCGExDetails::TSettingValue<FVector>> ArriveScaleReader;
+		TSharedPtr<PCGExDetails::TSettingValue<FVector>> LeaveScaleReader;
 
 		TSharedPtr<PCGExData::TBuffer<FVector>> ArriveWriter;
 		TSharedPtr<PCGExData::TBuffer<FVector>> LeaveWriter;

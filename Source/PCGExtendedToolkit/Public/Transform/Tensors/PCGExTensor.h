@@ -3,6 +3,7 @@
 
 #pragma once
 #include "PCGExDetails.h"
+#include "PCGExDetailsData.h"
 #include "Curves/CurveVector.h"
 #include "Data/PCGExData.h"
 #include "PCGExTensor.generated.h"
@@ -123,6 +124,8 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExTensorConfigBase
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Potency", meta=(PCG_Overridable, DisplayName="Potency", EditCondition = "PotencyInput == EPCGExInputValueType::Constant", EditConditionHides, DisplayPriority=-1))
 	double Potency = 1;
 
+	PCGEX_SETTING_VALUE_GET(Potency, double, PotencyInput, PotencyAttribute, Potency)
+	
 	/** Whether to use in-editor curve or an external asset. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Potency", meta=(PCG_NotOverridable, DisplayPriority=-1))
 	bool bUseLocalPotencyFalloffCurve = true;
@@ -137,7 +140,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExTensorConfigBase
 	TSoftObjectPtr<UCurveFloat> PotencyFalloffCurve;
 
 	/** A multiplier applied to Potency after it's computed. Makes it easy to scale entire tensors up or down, or invert their influence altogether. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Potency", meta=(PCG_Overridable, DisplayName="Potency Scale", EditCondition = "PotencyInput != EPCGExInputValueType::Constant", EditConditionHides, DisplayPriority=-1))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Potency", meta=(PCG_Overridable, DisplayName="Potency Scale", DisplayPriority=-1))
 	double PotencyScale = 1;
 
 	const FRichCurve* PotencyFalloffCurveObj = nullptr;
@@ -156,6 +159,8 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExTensorConfigBase
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Weighting", meta=(PCG_Overridable, DisplayName="Weight", EditCondition="WeightInput == EPCGExInputValueType::Constant", EditConditionHides, DisplayPriority=-1, ClampMin=0))
 	double Weight = 1;
 
+	PCGEX_SETTING_VALUE_GET(Weight, double, WeightInput, WeightAttribute, Weight)
+	
 	/** Whether to use in-editor curve or an external asset. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Weighting", meta=(PCG_NotOverridable, DisplayPriority=-1))
 	bool bUseLocalWeightFalloffCurve = true;

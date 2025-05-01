@@ -8,7 +8,6 @@
 
 void FPCGExFillControlConfigBase::Init()
 {
-	
 }
 
 bool UPCGExFillControlsFactoryData::RegisterConsumableAttributesWithData(FPCGExContext* InContext, const UPCGData* InData) const

@@ -88,25 +88,11 @@ namespace PCGExSmooth
 		MetadataBlender = MakeShared<PCGExDataBlending::FMetadataBlender>(&Settings->BlendingSettings);
 		MetadataBlender->PrepareForData(PointDataFacade);
 
-		if (Settings->InfluenceInput == EPCGExInputValueType::Attribute)
-		{
-			Influence = PointDataFacade->GetScopedBroadcaster<double>(Settings->InfluenceAttribute);
-			if (!Influence)
-			{
-				PCGEX_LOG_INVALID_SELECTOR_C(ExecutionContext, "Influence", Settings->InfluenceAttribute)
-				return false;
-			}
-		}
+		Influence = Settings->GetValueSettingInfluence();
+		if (!Influence->Init(Context, PointDataFacade)) { return false; }
 
-		if (Settings->SmoothingAmountType == EPCGExInputValueType::Attribute)
-		{
-			Smoothing = PointDataFacade->GetScopedBroadcaster<double>(Settings->SmoothingAmountAttribute);
-			if (!Smoothing)
-			{
-				PCGEX_LOG_INVALID_SELECTOR_C(ExecutionContext, "Smoothing", Settings->SmoothingAmountAttribute)
-				return false;
-			}
-		}
+		Smoothing = Settings->GetValueSettingSmoothingAmount();
+		if (!Smoothing->Init(Context, PointDataFacade)) { return false; }
 
 		TypedOperation = Cast<UPCGExSmoothingOperation>(PrimaryOperation);
 
@@ -128,7 +114,7 @@ namespace PCGExSmooth
 		const TSharedRef<PCGExData::FPointIO>& PointIO = PointDataFacade->Source;
 
 		PCGExData::FPointRef PtRef = PointIO->GetOutPointRef(Index);
-		const double LocalSmoothing = Smoothing ? FMath::Clamp(Smoothing->Read(Index), 0, MAX_dbl) * Settings->ScaleSmoothingAmountAttribute : Settings->SmoothingAmountConstant;
+		const double LocalSmoothing = FMath::Clamp(Smoothing->Read(Index), 0, MAX_dbl) * Settings->ScaleSmoothingAmountAttribute;
 
 		if ((Settings->bPreserveEnd && Index == NumPoints - 1) ||
 			(Settings->bPreserveStart && Index == 0))
@@ -137,8 +123,7 @@ namespace PCGExSmooth
 			return;
 		}
 
-		const double LocalInfluence = Influence ? Influence->Read(Index) : Settings->InfluenceConstant;
-		TypedOperation->SmoothSingle(PointIO, PtRef, LocalSmoothing, LocalInfluence, MetadataBlender.Get(), bClosedLoop);
+		TypedOperation->SmoothSingle(PointIO, PtRef, LocalSmoothing, Influence->Read(Index), MetadataBlender.Get(), bClosedLoop);
 	}
 
 	void FProcessor::CompleteWork()

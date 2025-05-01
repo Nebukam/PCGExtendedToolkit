@@ -4,6 +4,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "PCGExDetailsData.h"
 #include "UObject/Object.h"
 #include "PCGExOperation.h"
 #include "PCGExShapes.h"
@@ -21,13 +22,8 @@ public:
 	virtual void CopySettingsFrom(const UPCGExOperation* Other) override;
 	virtual bool PrepareForSeeds(FPCGExContext* InContext, const TSharedRef<PCGExData::FFacade>& InSeedDataFacade);
 
-	virtual void Cleanup() override
-	{
-		ResolutionGetter.Reset();
-		Shapes.Empty();
-		Super::Cleanup();
-	}
-
+	virtual void Cleanup() override;
+	
 	TArray<TSharedPtr<PCGExShapes::FShape>> Shapes;
 	FTransform Transform;
 	FPCGExShapeConfigBase BaseConfig;
@@ -39,15 +35,14 @@ public:
 	}
 
 protected:
-	virtual void ValidateShape(const TSharedPtr<PCGExShapes::FShape> Shape)
+	virtual void ValidateShape(const TSharedPtr<PCGExShapes::FShape> Shape);
+	
+	FORCEINLINE double GetResolution(const PCGExData::FPointRef& Seed) const
 	{
-		if (BaseConfig.bRemoveBelow && Shape->NumPoints < BaseConfig.MinPointCount) { Shape->bValid = 0; }
-		if (BaseConfig.bRemoveAbove && Shape->NumPoints > BaseConfig.MaxPointCount) { Shape->bValid = 0; }
+		if (BaseConfig.ResolutionMode == EPCGExResolutionMode::Distance) { return FMath::Abs(Resolution->Read(Seed.Index)) * 0.01; }
+		return FMath::Abs(Resolution->Read(Seed.Index));
 	}
 
-	double GetResolution(const PCGExData::FPointRef& Seed) const;
-
-	double ResolutionConstant = 1;
-	TSharedPtr<PCGEx::TAttributeBroadcaster<double>> ResolutionGetter;
+	TSharedPtr<PCGExDetails::TSettingValue<double>> Resolution;
 	TSharedPtr<PCGExData::FFacade> SeedFacade;
 };

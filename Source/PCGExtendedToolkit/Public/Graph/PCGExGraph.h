@@ -142,6 +142,14 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExGraphBuilderDetails
 	UPROPERTY(BlueprintReadWrite, Category = Settings, EditAnywhere, meta = (PCG_Overridable))
 	EPCGExOptionState BuildAndCacheClusters = EPCGExOptionState::Default;
 
+	/**  */
+	UPROPERTY(BlueprintReadWrite, Category = "Settings|Extra Data", EditAnywhere, meta = (PCG_Overridable, InlineEditConditionToggle))
+	bool bOutputEdgeLength = false;
+
+	/** Whether to output edge length to a 'double' attribute. */
+	UPROPERTY(BlueprintReadWrite, Category = "Settings|Extra Data", EditAnywhere, meta = (PCG_Overridable, EditCondition="bOutputEdgeLength"))
+	FName EdgeLengthName = FName("EdgeLength");
+	
 	bool WantsClusters() const;
 
 	bool IsValid(const TSharedPtr<PCGExGraph::FSubGraph>& InSubgraph) const;
@@ -338,6 +346,7 @@ namespace PCGExGraph
 		TSharedPtr<PCGExDataBlending::FUnionBlender> UnionBlender;
 		TSharedPtr<PCGExDetails::FDistances> Distances;
 
+		// Edge metadata
 #define PCGEX_FOREACH_EDGE_METADATA(MACRO)\
 MACRO(IsEdgeUnion, bool, false, IsUnion()) \
 MACRO(EdgeUnionSize, int32, 0, UnionSize)
@@ -348,6 +357,9 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 
 #undef PCGEX_FOREACH_EDGE_METADATA
 
+		// Extra edge data
+		TSharedPtr<PCGExData::TBuffer<double>> EdgeLength;
+		
 		void CompileRange(const PCGExMT::FScope& Scope);
 		void CompilationComplete();
 	};
