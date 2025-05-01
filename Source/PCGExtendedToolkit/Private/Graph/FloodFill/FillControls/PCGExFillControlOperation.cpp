@@ -5,9 +5,6 @@
 #include "Graph/FloodFill/FillControls/PCGExFillControlOperation.h"
 
 
-
-
-
 #include "Graph/FloodFill/FillControls/PCGExFillControlsFactoryProvider.h"
 
 bool UPCGExFillControlOperation::PrepareForDiffusions(FPCGExContext* InContext, const TSharedPtr<PCGExFloodFill::FFillControlsHandler>& InHandler)
@@ -22,7 +19,7 @@ bool UPCGExFillControlOperation::ChecksCapture() const
 	return (Factory->ConfigBase.Steps & static_cast<uint8>(EPCGExFloodFillControlStepsFlags::Capture)) != 0;
 }
 
-bool UPCGExFillControlOperation::IsValidCapture(const PCGExFloodFill::FDiffusion* Diffusion, const PCGExFloodFill::FCandidate& InCandidate)
+bool UPCGExFillControlOperation::IsValidCapture(const PCGExFloodFill::FDiffusion* Diffusion, const PCGExFloodFill::FCandidate& Candidate)
 {
 	return true;
 }
@@ -32,7 +29,7 @@ bool UPCGExFillControlOperation::ChecksProbe() const
 	return (Factory->ConfigBase.Steps & static_cast<uint8>(EPCGExFloodFillControlStepsFlags::Probing)) != 0;
 }
 
-bool UPCGExFillControlOperation::IsValidProbe(const PCGExFloodFill::FDiffusion* Diffusion, const PCGExFloodFill::FCandidate& InCandidate)
+bool UPCGExFillControlOperation::IsValidProbe(const PCGExFloodFill::FDiffusion* Diffusion, const PCGExFloodFill::FCandidate& Candidate)
 {
 	return true;
 }

@@ -58,9 +58,8 @@ struct FPCGExEdgeNeighborsCountFilterConfig
 	/** */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	bool bInvert = false;
-	
+
 	PCGEX_SETTING_VALUE_GET(Threshold, int32, ThresholdInput, ThresholdAttribute, ThresholdConstant)
-		
 };
 
 /**

@@ -195,7 +195,5 @@ namespace PCGExFloodFill
 		bool TryCapture(const FDiffusion* Diffusion, const FCandidate& Candidate);
 		bool IsValidProbe(const FDiffusion* Diffusion, const FCandidate& Candidate);
 		bool IsValidCandidate(const FDiffusion* Diffusion, const FCandidate& From, const FCandidate& Candidate);
-
-	protected:
 	};
 }

@@ -167,7 +167,6 @@ struct FPCGExClusterDiffusionContext final : FPCGExEdgesProcessorContext
 	PCGEX_FOREACH_FIELD_CLUSTER_DIFF(PCGEX_OUTPUT_DECL_TOGGLE)
 
 	int32 ExpectedPathCount = 0;
-	
 };
 
 class FPCGExClusterDiffusionElement final : public FPCGExEdgesProcessorElement
@@ -197,6 +196,7 @@ namespace PCGExClusterDiffusion
 		const PCGExCluster::FNode* RoamingGoalNode = nullptr;
 
 		TSharedPtr<TArray<int8>> InfluencesCount;
+		TArray<int8> Seeded;
 		TSharedPtr<TArray<UPCGExAttributeBlendOperation*>> Operations;
 
 		TSharedPtr<PCGExMT::TScopedArray<TSharedPtr<PCGExFloodFill::FDiffusion>>> InitialDiffusions;
@@ -214,6 +214,7 @@ namespace PCGExClusterDiffusion
 		FProcessor(const TSharedRef<PCGExData::FFacade>& InVtxDataFacade, const TSharedRef<PCGExData::FFacade>& InEdgeDataFacade)
 			: TProcessor(InVtxDataFacade, InEdgeDataFacade)
 		{
+			bAllowEdgesDataFacadeScopedGet = false;
 		}
 
 		PCGEX_FOREACH_FIELD_CLUSTER_DIFF(PCGEX_OUTPUT_DECL)
@@ -233,9 +234,8 @@ namespace PCGExClusterDiffusion
 
 		virtual void Output() override;
 		void WritePath(const int32 DiffusionIndex, const int32 EndpointNodeIndex);
-		
+
 		virtual void Cleanup() override;
-		
 	};
 
 	class FBatch final : public PCGExClusterMT::TBatchWithHeuristics<FProcessor>

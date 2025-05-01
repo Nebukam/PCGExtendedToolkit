@@ -29,16 +29,17 @@ namespace PCGExMT
 
 		FORCEINLINE TSharedPtr<TArray<T>> Get(const FScope& InScope) { return Arrays[InScope.LoopIndex]; }
 		FORCEINLINE TArray<T>& Get_Ref(const FScope& InScope) { return *Arrays[InScope.LoopIndex].Get(); }
-		
+
 		int32 GetTotalNum()
 		{
 			int32 TotalNum = 0;
 			for (int i = 0; i < Arrays.Num(); i++) { TotalNum += Arrays[i]->Num(); }
 			return TotalNum;
 		}
-		
+
 		using FForEachFunc = std::function<void (TArray<T>&)>;
 		FORCEINLINE void ForEach(FForEachFunc&& Func) { for (int i = 0; i < Arrays.Num(); i++) { Func(*Arrays[i].Get()); } }
+
 		void Collapse(TArray<T>& InTarget)
 		{
 			for (int i = 0; i < Arrays.Num(); i++)
@@ -83,6 +84,7 @@ namespace PCGExMT
 
 		using FForEachFunc = std::function<void (TSet<T>&)>;
 		FORCEINLINE void ForEach(FForEachFunc&& Func) { for (int i = 0; i < Sets.Num(); i++) { Func(*Sets[i].Get()); } }
+
 		void Collapse(TSet<T>& InTarget)
 		{
 			for (int i = 0; i < Sets.Num(); i++)
@@ -128,7 +130,7 @@ namespace PCGExMT
 			if (Values.Num() > 1) { for (int i = 1; i < Values.Num(); i++) { Result = FMath::Min(Values[i], Result); } }
 			return Result;
 		}
-		
+
 		FORCEINLINE T Max()
 		{
 			T Result = Values[0];

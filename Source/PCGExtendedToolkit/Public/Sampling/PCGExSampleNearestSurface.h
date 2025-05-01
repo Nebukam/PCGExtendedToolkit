@@ -134,7 +134,7 @@ public:
 	/** Whether to do a OneMinus on the normalized distance value */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(PCG_Overridable, DisplayName=" │ └─ OneMinus", EditCondition="bWriteDistance && bOutputNormalizedDistance", EditConditionHides, HideEditConditionToggle))
 	bool bOutputOneMinusDistance = false;
-	
+
 	/** Scale factor applied to the distance output; allows to easily invert it using -1 */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(PCG_Overridable, DisplayName=" └─ Scale", EditCondition="bWriteDistance", EditConditionHides, HideEditConditionToggle))
 	double DistanceScale = 1;
@@ -254,7 +254,7 @@ namespace PCGExSampleNearestSurface
 
 		virtual void OnPointsProcessingComplete() override;
 		virtual void ProcessSingleRangeIteration(const int32 Iteration, const PCGExMT::FScope& Scope) override;
-		
+
 		virtual void CompleteWork() override;
 		virtual void Write() override;
 	};

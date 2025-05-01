@@ -67,8 +67,8 @@ bool PCGExPointFilter::FDistanceFilter::Init(FPCGExContext* InContext, const TSh
 	Distances = TypedFilterFactory->Config.DistanceDetails.MakeDistances();
 
 	DistanceThresholdGetter = TypedFilterFactory->Config.GetValueSettingDistanceThreshold();
-	if(!DistanceThresholdGetter->Init(InContext, InPointDataFacade)){return false;}
-	
+	if (!DistanceThresholdGetter->Init(InContext, InPointDataFacade)) { return false; }
+
 	return true;
 }
 

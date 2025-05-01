@@ -88,6 +88,8 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Mutations|Offsets", meta=(PCG_Overridable, DisplayName="Start Offset", EditCondition="StartOffsetInput==EPCGExInputValueType::Constant", EditConditionHides))
 	FVector2D StartOffset = FVector2D::ZeroVector;
 
+	PCGEX_SETTING_VALUE_GET(StartOffset, FVector2D, StartOffsetInput, StartOffsetAttribute, StartOffset)
+	
 	/** Type of End Offset */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Mutations|Offsets", meta=(PCG_NotOverridable))
 	EPCGExInputValueType EndOffsetInput = EPCGExInputValueType::Constant;
@@ -100,6 +102,8 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Mutations|Offsets", meta=(PCG_Overridable, DisplayName="End Offset", EditCondition="EndOffsetInput==EPCGExInputValueType::Constant", EditConditionHides))
 	FVector2D EndOffset = FVector2D::ZeroVector;
 
+	PCGEX_SETTING_VALUE_GET(EndOffset, FVector2D, EndOffsetInput, EndOffsetAttribute, EndOffset)
+	
 	/** Push details */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Mutations", meta=(PCG_Overridable, DisplayName="Expansion"))
 	FPCGExSplineMeshMutationDetails MutationDetails;
@@ -179,8 +183,8 @@ namespace PCGExPathSplineMeshSimple
 		int32 C2 = 2;
 
 		TSharedPtr<PCGExData::TBuffer<FVector>> UpGetter;
-		TSharedPtr<PCGExData::TBuffer<FVector2D>> StartOffsetGetter;
-		TSharedPtr<PCGExData::TBuffer<FVector2D>> EndOffsetGetter;
+		TSharedPtr<PCGExDetails::TSettingValue<FVector2D>> StartOffset;
+		TSharedPtr<PCGExDetails::TSettingValue<FVector2D>> EndOffset;
 
 #if PCGEX_ENGINE_VERSION <= 503
 		TSharedPtr<PCGExData::TBuffer<FString>> AssetPathReader;

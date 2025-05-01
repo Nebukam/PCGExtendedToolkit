@@ -808,6 +808,8 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSplineMeshMutationDetails
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName=" ├─ Amount", EditCondition="bPushStart && StartPushInput==EPCGExInputValueType::Constant", EditConditionHides))
 	double StartPushConstant = 0.1;
 
+	PCGEX_SETTING_VALUE_GET(StartPush, double, StartPushInput, StartPushInputAttribute, StartPushConstant)
+	
 	/** If enabled, value will relative to the size of the segment */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName=" └─ Relative", EditCondition="bPushStart", EditConditionHides))
 	bool bRelativeStart = true;
@@ -828,6 +830,8 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSplineMeshMutationDetails
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName=" ├─ Amount", EditCondition="bPushEnd && EndPushInput==EPCGExInputValueType::Constant", EditConditionHides))
 	double EndPushConstant = 0.1;
 
+	PCGEX_SETTING_VALUE_GET(EndPush, double, EndPushInput, EndPushInputAttribute, EndPushConstant)
+	
 	/** If enabled, value will relative to the size of the segment */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName=" └─ Relative", EditCondition="bPushEnd", EditConditionHides))
 	bool bRelativeEnd = true;
@@ -836,6 +840,6 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSplineMeshMutationDetails
 	void Mutate(const int32 PointIndex, PCGExPaths::FSplineMeshSegment& InSegment);
 
 protected:
-	TSharedPtr<PCGExData::TBuffer<double>> StartAmount;
-	TSharedPtr<PCGExData::TBuffer<double>> EndAmount;
+	TSharedPtr<PCGExDetails::TSettingValue<double>> StartAmount;
+	TSharedPtr<PCGExDetails::TSettingValue<double>> EndAmount;
 };

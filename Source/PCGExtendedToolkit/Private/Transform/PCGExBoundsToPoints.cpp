@@ -107,7 +107,7 @@ namespace PCGExBoundsToPoints
 		const TSharedRef<PCGExData::FPointIO>& PointIO = PointDataFacade->Source;
 
 		FVector FinalExtents = Settings->bMultiplyExtents ? Point.GetExtents() * Extents : Extents;
-		
+
 		if (bGeneratePerPointData)
 		{
 			int32 OutIndex;

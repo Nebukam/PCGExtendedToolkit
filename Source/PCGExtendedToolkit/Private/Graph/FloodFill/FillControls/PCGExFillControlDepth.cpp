@@ -13,20 +13,20 @@ bool UPCGExFillControlDepth::PrepareForDiffusions(FPCGExContext* InContext, cons
 
 	const UPCGExFillControlsFactoryDepth* TypedFactory = Cast<UPCGExFillControlsFactoryDepth>(Factory);
 
-	DepthLimit = PCGExDetails::MakeSettingValue<int32>(TypedFactory->Config.MaxDepthInput, TypedFactory->Config.MaxDepthAttribute, TypedFactory->Config.MaxDepth);
+	DepthLimit = TypedFactory->Config.GetValueSettingMaxDepth();
 	if (!DepthLimit->Init(InContext, GetSourceFacade())) { return false; }
 
 	return true;
 }
 
-bool UPCGExFillControlDepth::IsValidCapture(const PCGExFloodFill::FDiffusion* Diffusion, const PCGExFloodFill::FCandidate& InCandidate)
+bool UPCGExFillControlDepth::IsValidCapture(const PCGExFloodFill::FDiffusion* Diffusion, const PCGExFloodFill::FCandidate& Candidate)
 {
-	return InCandidate.Depth <= DepthLimit->Read(GetSettingsIndex(Diffusion));
+	return Candidate.Depth <= DepthLimit->Read(GetSettingsIndex(Diffusion));
 }
 
-bool UPCGExFillControlDepth::IsValidProbe(const PCGExFloodFill::FDiffusion* Diffusion, const PCGExFloodFill::FCandidate& InCandidate)
+bool UPCGExFillControlDepth::IsValidProbe(const PCGExFloodFill::FDiffusion* Diffusion, const PCGExFloodFill::FCandidate& Candidate)
 {
-	return InCandidate.Depth <= DepthLimit->Read(GetSettingsIndex(Diffusion));
+	return Candidate.Depth <= DepthLimit->Read(GetSettingsIndex(Diffusion));
 }
 
 bool UPCGExFillControlDepth::IsValidCandidate(const PCGExFloodFill::FDiffusion* Diffusion, const PCGExFloodFill::FCandidate& From, const PCGExFloodFill::FCandidate& Candidate)

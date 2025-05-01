@@ -54,6 +54,8 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Amount (Attr)", EditCondition="AmountInput!=EPCGExInputValueType::Constant", EditConditionHides))
 	FPCGAttributePropertyInputSelector SubdivisionAmount;
 
+	PCGEX_SETTING_VALUE_GET(SubdivisionAmount, double, AmountInput, SubdivisionAmount, SubdivideMethod == EPCGExSubdivideMode::Count ? Count : Distance)
+	
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="SubdivideMethod==EPCGExSubdivideMode::Distance", EditConditionHides))
 	bool bRedistributeEvenly = false;
 
@@ -125,7 +127,7 @@ namespace PCGExSubdivide
 		TSharedPtr<PCGExData::TBuffer<bool>> FlagWriter;
 		TSharedPtr<PCGExData::TBuffer<double>> AlphaWriter;
 
-		TSharedPtr<PCGExData::TBuffer<double>> AmountGetter;
+		TSharedPtr<PCGExDetails::TSettingValue<double>> AmountGetter;
 
 		double ConstantAmount = 0;
 

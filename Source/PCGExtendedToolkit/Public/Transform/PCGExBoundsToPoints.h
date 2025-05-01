@@ -55,7 +55,7 @@ public:
 	/** Multiplies the existing bounds */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName=" └─ As multiplier", EditCondition="bSetExtents", HideEditConditionToggle))
 	bool bMultiplyExtents = false;
-	
+
 	/**  */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, InlineEditConditionToggle))
 	bool bSetScale = true;
