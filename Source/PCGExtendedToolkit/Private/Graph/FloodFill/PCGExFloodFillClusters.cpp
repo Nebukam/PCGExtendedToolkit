@@ -146,6 +146,8 @@ namespace PCGExClusterDiffusion
 		FillControlsHandler->HeuristicsHandler = HeuristicsHandler;
 		FillControlsHandler->InfluencesCount = InfluencesCount;
 
+		Seeded.Init(0, Cluster->Nodes->Num());
+
 		PCGEX_ASYNC_GROUP_CHKD(AsyncManager, DiffusionInitialization)
 		DiffusionInitialization->OnCompleteCallback =
 			[PCGEX_ASYNC_THIS_CAPTURE]()
@@ -174,7 +176,11 @@ namespace PCGExClusterDiffusion
 					FVector SeedLocation = Seeds[i].Transform.GetLocation();
 					const int32 ClosestIndex = This->Cluster->FindClosestNode(SeedLocation, This->Settings->Seeds.SeedPicking.PickingMethod);
 
-					if (ClosestIndex < 0) { continue; }
+					if (ClosestIndex < 0 ||
+						FPlatformAtomics::InterlockedCompareExchange(&This->Seeded[ClosestIndex], 1, 0) == 1)
+					{
+						continue;
+					}
 
 					const PCGExCluster::FNode* SeedNode = &Nodes[ClosestIndex];
 
@@ -197,6 +203,8 @@ namespace PCGExClusterDiffusion
 
 	void FProcessor::StartGrowth()
 	{
+		Seeded.Empty();
+		
 		InitialDiffusions->Collapse(OngoingDiffusions);
 		InitialDiffusions.Reset();
 
@@ -468,7 +476,7 @@ namespace PCGExClusterDiffusion
 		}
 
 		InfluencesCount = MakeShared<TArray<int8>>();
-		InfluencesCount->Init(0, VtxDataFacade->GetNum());
+		InfluencesCount->Init(-1, VtxDataFacade->GetNum());
 
 		// Diffusion rate
 

@@ -196,6 +196,7 @@ namespace PCGExClusterDiffusion
 		const PCGExCluster::FNode* RoamingGoalNode = nullptr;
 
 		TSharedPtr<TArray<int8>> InfluencesCount;
+		TArray<int8> Seeded;
 		TSharedPtr<TArray<UPCGExAttributeBlendOperation*>> Operations;
 
 		TSharedPtr<PCGExMT::TScopedArray<TSharedPtr<PCGExFloodFill::FDiffusion>>> InitialDiffusions;

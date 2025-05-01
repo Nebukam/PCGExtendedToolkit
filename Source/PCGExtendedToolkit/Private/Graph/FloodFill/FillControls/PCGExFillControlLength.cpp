@@ -14,7 +14,7 @@ bool UPCGExFillControlLength::PrepareForDiffusions(FPCGExContext* InContext, con
 	const UPCGExFillControlsFactoryLength* TypedFactory = Cast<UPCGExFillControlsFactoryLength>(Factory);
 	bUsePathLength = TypedFactory->Config.bUsePathLength;
 
-	DistanceLimit = PCGExDetails::MakeSettingValue<double>(TypedFactory->Config.MaxLengthInput, TypedFactory->Config.MaxLengthAttribute, TypedFactory->Config.MaxLength);
+	DistanceLimit = TypedFactory->Config.GetValueSettingMaxLength();
 	if (!DistanceLimit->Init(InContext, GetSourceFacade())) { return false; }
 
 	return true;

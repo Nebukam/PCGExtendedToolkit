@@ -13,10 +13,10 @@ bool UPCGExFillControlRunningAverage::PrepareForDiffusions(FPCGExContext* InCont
 
 	const UPCGExFillControlsFactoryRunningAverage* TypedFactory = Cast<UPCGExFillControlsFactoryRunningAverage>(Factory);
 
-	WindowSize = PCGExDetails::MakeSettingValue<int32>(TypedFactory->Config.WindowSizeInput, TypedFactory->Config.WindowSizeAttribute, TypedFactory->Config.WindowSize);
+	WindowSize = TypedFactory->Config.GetValueSettingWindowSize();
 	if (!WindowSize->Init(InContext, GetSourceFacade())) { return false; }
 
-	Tolerance = PCGExDetails::MakeSettingValue<double>(TypedFactory->Config.ToleranceInput, TypedFactory->Config.ToleranceAttribute, TypedFactory->Config.Tolerance);
+	Tolerance = TypedFactory->Config.GetValueSettingTolerance();
 	if (!Tolerance->Init(InContext, GetSourceFacade())) { return false; }
 
 	Operand = InHandler->VtxDataFacade->GetBroadcaster<double>(TypedFactory->Config.Operand);

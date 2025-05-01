@@ -13,7 +13,7 @@ bool UPCGExFillControlDepth::PrepareForDiffusions(FPCGExContext* InContext, cons
 
 	const UPCGExFillControlsFactoryDepth* TypedFactory = Cast<UPCGExFillControlsFactoryDepth>(Factory);
 
-	DepthLimit = PCGExDetails::MakeSettingValue<int32>(TypedFactory->Config.MaxDepthInput, TypedFactory->Config.MaxDepthAttribute, TypedFactory->Config.MaxDepth);
+	DepthLimit = TypedFactory->Config.GetValueSettingMaxDepth();
 	if (!DepthLimit->Init(InContext, GetSourceFacade())) { return false; }
 
 	return true;

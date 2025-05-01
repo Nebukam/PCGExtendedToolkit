@@ -13,7 +13,7 @@ bool UPCGExFillControlCount::PrepareForDiffusions(FPCGExContext* InContext, cons
 
 	const UPCGExFillControlsFactoryCount* TypedFactory = Cast<UPCGExFillControlsFactoryCount>(Factory);
 
-	CountLimit = PCGExDetails::MakeSettingValue<int32>(TypedFactory->Config.MaxCountInput, TypedFactory->Config.MaxCountAttribute, TypedFactory->Config.MaxCount);
+	CountLimit = TypedFactory->Config.GetValueSettingMaxCount();
 	if (!CountLimit->Init(InContext, GetSourceFacade())) { return false; }
 
 	return true;

@@ -34,6 +34,9 @@ struct FPCGExFillControlConfigDepth : public FPCGExFillControlConfigBase
 	/** Max depth Constant */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Max Depth", EditCondition="MaxDepthInput==EPCGExInputValueType::Constant", EditConditionHides, ClampMin=1))
 	int32 MaxDepth = 10;
+
+	PCGEX_SETTING_VALUE_GET(MaxDepth, int32, MaxDepthInput, MaxDepthAttribute, MaxDepth)
+	
 };
 
 /**

@@ -39,6 +39,9 @@ struct FPCGExFillControlConfigLength : public FPCGExFillControlConfigBase
 	/** Max Length Constant */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Max Length", EditCondition="MaxLengthInput==EPCGExInputValueType::Constant", EditConditionHides, ClampMin=1))
 	double MaxLength = 10;
+
+	PCGEX_SETTING_VALUE_GET(MaxLength, double, MaxLengthInput, MaxLengthAttribute, MaxLength)
+	
 };
 
 /**
