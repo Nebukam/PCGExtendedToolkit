@@ -9,7 +9,8 @@
 
 ## Basics
 
-* [PCG 101](basics/editor.md)
+* [PCG](basics/editor.md)
+* [PCGEx 101](basics/pcgex-101.md)
 * [Filter Ecosystem](basics/filter-ecosystem.md)
 
 ## Node Library

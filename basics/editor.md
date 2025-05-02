@@ -3,7 +3,15 @@ description: A list of resources to get comfortable with PCG.
 icon: question
 ---
 
-# PCG 101
+# PCG
+
+PCG Stands for Procedural Content Generation — but you knew that already!
+
+It's also a very powerful Unreal Engine tool, that can be used for technically anything and everything. It's a hammer, the kind of which turns everything into a nail.&#x20;
+
+{% hint style="info" %}
+If you're already comfortable with PCG as a tool, you can probably skip to [PCGEx 101](pcgex-101.md).
+{% endhint %}
 
 {% stepper %}
 {% step %}
@@ -35,9 +43,4 @@ _There are many good answer, and many wrong ones — some approaches will yield 
 
 <table data-view="cards"><thead><tr><th></th></tr></thead><tbody><tr><td>Procedural Minds</td></tr><tr><td>AzielArt</td></tr><tr><td>DK 3D</td></tr></tbody></table>
 {% endstep %}
-
-{% step %}
-
-{% endstep %}
 {% endstepper %}
-
