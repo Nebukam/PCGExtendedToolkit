@@ -1,6 +1,7 @@
 # Table of contents
 
 * [Welcome](README.md)
+  * [PCG 101](readme/editor.md)
 
 ## Getting Started
 
@@ -9,7 +10,6 @@
 
 ## Basics
 
-* [PCG](basics/editor.md)
 * [PCGEx 101](basics/pcgex-101/README.md)
   * [Filter Ecosystem](basics/pcgex-101/filter-ecosystem.md)
 
