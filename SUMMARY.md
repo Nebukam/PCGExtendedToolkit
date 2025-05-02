@@ -6,6 +6,7 @@
 
 * [Quickstart](getting-started/quickstart.md)
 * [Publish your docs](getting-started/publish-your-docs.md)
+* [Installation](getting-started/installation.md)
 
 ## Basics
 
@@ -44,3 +45,9 @@
 * [Misc](node-library/misc.md)
 * [Sampling](node-library/sampling.md)
 * [Shapes](node-library/shapes.md)
+
+## Node Library
+
+* [Filter Ecosystem](node-library-1/filter-ecosystem/README.md)
+  * [Uber Filter](node-library-1/filter-ecosystem/uber-filter.md)
+  * [Uber Filter (Collection)](node-library-1/filter-ecosystem/uber-filter-collection.md)
