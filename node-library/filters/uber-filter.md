@@ -1,5 +1,5 @@
 ---
-icon: circle-stop
+icon: scrubber
 ---
 
 # Uber Filter

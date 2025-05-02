@@ -1,5 +1,5 @@
 ---
-icon: circle-stop
+icon: scrubber
 ---
 
 # Connect Points
