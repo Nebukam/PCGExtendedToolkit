@@ -1,6 +1,6 @@
 ---
 description: A list of resources to get comfortable with PCG.
-icon: acorn
+icon: question
 ---
 
 # PCG 101

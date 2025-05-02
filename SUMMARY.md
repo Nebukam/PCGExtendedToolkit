@@ -10,10 +10,6 @@
 ## Basics
 
 * [PCG 101](basics/editor.md)
-* [Images & media](basics/images-and-media.md)
-* [Interactive blocks](basics/interactive-blocks.md)
-* [OpenAPI](basics/openapi.md)
-* [Integrations](basics/integrations.md)
 * [Filter Ecosystem](basics/filter-ecosystem.md)
 
 ## Node Library
