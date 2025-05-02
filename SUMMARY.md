@@ -45,9 +45,3 @@
 * [Misc](node-library/misc.md)
 * [Sampling](node-library/sampling.md)
 * [Shapes](node-library/shapes.md)
-
-## Node Library
-
-* [Filter Ecosystem](node-library-1/filter-ecosystem/README.md)
-  * [Uber Filter](node-library-1/filter-ecosystem/uber-filter.md)
-  * [Uber Filter (Collection)](node-library-1/filter-ecosystem/uber-filter-collection.md)
