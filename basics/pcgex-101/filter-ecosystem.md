@@ -1,3 +1,7 @@
+---
+icon: filter-list
+---
+
 # Filter Ecosystem
 
 Key Takeaways\
