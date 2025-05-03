@@ -280,6 +280,12 @@ void FPCGExVectorHashComparisonDetails::RegisterConsumableAttributesWithData(FPC
 	PCGEX_CONSUMABLE_CONDITIONAL(HashToleranceInput == EPCGExInputValueType::Attribute, HashToleranceAttribute, Consumable)
 }
 
+bool FPCGExVectorHashComparisonDetails::Test(const FVector& A, const FVector& B, const int32 PointIndex) const
+{
+	const FVector CWTolerance = GetCWTolerance(PointIndex);
+	return PCGEx::I323(A, CWTolerance) == PCGEx::I323(B, CWTolerance);
+}
+
 bool FPCGExDotComparisonDetails::Init(const FPCGExContext* InContext, const TSharedRef<PCGExData::FFacade>& InPrimaryDataCache)
 {
 	ThresholdGetter = GetValueSettingThreshold();
