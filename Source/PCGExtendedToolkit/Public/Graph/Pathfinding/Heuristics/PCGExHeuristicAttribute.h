@@ -32,6 +32,14 @@ struct FPCGExHeuristicAttributeConfig : public FPCGExHeuristicConfigBase
 	/** Attribute to read modifier value from. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	FPCGAttributePropertyInputSelector Attribute;
+
+	/** */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable, InlineEditConditionToggle))
+	bool bUseCustomFallback = false;
+
+	/** Default weight when no valid internal normalization can be made (e.g, all points have the same values so min == max). If left unset, will use min/max clamped between 0 & 1. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bUseCustomFallback", ClampMin=0, ClampMax=1))
+	double FallbackValue = 1;
 };
 
 /**
@@ -57,9 +65,10 @@ public:
 
 	EPCGExClusterComponentSource Source = EPCGExClusterComponentSource::Vtx;
 	FPCGAttributePropertyInputSelector Attribute;
+	bool bUseCustomFallback = false;
+	double FallbackValue = 1;
 
 protected:
-	TSharedPtr<PCGExData::FPointIO> LastPoints;
 	TArray<double> CachedScores;
 };
 
@@ -75,6 +84,8 @@ public:
 
 	virtual UPCGExHeuristicOperation* CreateOperation(FPCGExContext* InContext) const override;
 	PCGEX_HEURISTIC_FACTORY_BOILERPLATE
+
+	virtual void RegisterBuffersDependencies(FPCGExContext* InContext, PCGExData::FFacadePreloader& FacadePreloader) const override;
 };
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Graph|Params")

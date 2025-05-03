@@ -142,6 +142,10 @@ namespace PCGExAttributeRemap
 				PCGE_LOG_C(Error, GraphAndLog, ExecutionContext, FTEXT("Something went wrong. Please bring this up on the PCGEx Discord with a screenshot of the detail panel!"));
 				return false;
 			}
+		}else
+		{
+			// TODO : Grab default type for attribute if it cannot be inferred
+			// GetPerFieldProxyBuffers expect a valid RealType to work from
 		}
 
 		// Get per-field proxies for output
