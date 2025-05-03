@@ -75,3 +75,57 @@ FVector FPCGExUVW::GetPosition(const PCGExData::FPointRef& PointRef, FVector& Ou
 	OutOffset = PointRef.Point->Transform.TransformVectorNoScale(LocalPosition - Bounds.GetCenter());
 	return PointRef.Point->Transform.TransformPositionNoScale(LocalPosition);
 }
+
+FVector FPCGExConstantUVW::GetPosition(const PCGExData::FPointRef& PointRef) const
+{
+	const FBox Bounds = PCGExMath::GetLocalBounds(*PointRef.Point, BoundsReference);
+	const FVector LocalPosition = Bounds.GetCenter() + (Bounds.GetExtent() * FVector(U, V, W));
+	return PointRef.Point->Transform.TransformPositionNoScale(LocalPosition);
+}
+
+FVector FPCGExConstantUVW::GetPosition(const PCGExData::FPointRef& PointRef, FVector& OutOffset) const
+{
+	const FBox Bounds = PCGExMath::GetLocalBounds(*PointRef.Point, BoundsReference);
+	const FVector LocalPosition = Bounds.GetCenter() + (Bounds.GetExtent() * FVector(U, V, W));
+	OutOffset = PointRef.Point->Transform.TransformVectorNoScale(LocalPosition - Bounds.GetCenter());
+	return PointRef.Point->Transform.TransformPositionNoScale(LocalPosition);
+}
+
+FVector FPCGExConstantUVW::GetUVW(const EPCGExMinimalAxis Axis, const bool bMirrorAxis) const
+{
+	FVector Value = FVector(U, V, W);
+	if (bMirrorAxis)
+	{
+		switch (Axis)
+		{
+		default: ;
+		case EPCGExMinimalAxis::None:
+			break;
+		case EPCGExMinimalAxis::X:
+			Value.X *= -1;
+			break;
+		case EPCGExMinimalAxis::Y:
+			Value.Y *= -1;
+			break;
+		case EPCGExMinimalAxis::Z:
+			Value.Z *= -1;
+			break;
+		}
+	}
+	return Value;
+}
+
+FVector FPCGExConstantUVW::GetPosition(const PCGExData::FPointRef& PointRef, const EPCGExMinimalAxis Axis, const bool bMirrorAxis) const
+{
+	const FBox Bounds = PCGExMath::GetLocalBounds(*PointRef.Point, BoundsReference);
+	const FVector LocalPosition = Bounds.GetCenter() + (Bounds.GetExtent() * GetUVW(Axis, bMirrorAxis));
+	return PointRef.Point->Transform.TransformPositionNoScale(LocalPosition);
+}
+
+FVector FPCGExConstantUVW::GetPosition(const PCGExData::FPointRef& PointRef, FVector& OutOffset, const EPCGExMinimalAxis Axis, const bool bMirrorAxis) const
+{
+	const FBox Bounds = PCGExMath::GetLocalBounds(*PointRef.Point, BoundsReference);
+	const FVector LocalPosition = Bounds.GetCenter() + (Bounds.GetExtent() * GetUVW(Axis, bMirrorAxis));
+	OutOffset = PointRef.Point->Transform.TransformVectorNoScale(LocalPosition - Bounds.GetCenter());
+	return PointRef.Point->Transform.TransformPositionNoScale(LocalPosition);
+}

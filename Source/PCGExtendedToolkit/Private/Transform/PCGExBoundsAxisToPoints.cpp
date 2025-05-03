@@ -89,7 +89,7 @@ namespace PCGExBoundsAxisToPoints
 		const TSharedRef<PCGExData::FPointIO>& PointIO = PointDataFacade->Source;
 
 		const FVector E = PCGExMath::GetLocalBounds(Point, Settings->BoundsReference).GetExtent();
-		FPCGExUVW UVW;
+		FPCGExConstantUVW UVW;
 		UVW.BoundsReference = Settings->BoundsReference;
 
 		EPCGExMinimalAxis Axis = EPCGExMinimalAxis::None;
@@ -170,13 +170,13 @@ namespace PCGExBoundsAxisToPoints
 		{
 		case EPCGExMinimalAxis::None:
 		case EPCGExMinimalAxis::X:
-			UVW.UConstant = Settings->U;
+			UVW.U = Settings->U;
 			break;
 		case EPCGExMinimalAxis::Y:
-			UVW.VConstant = Settings->U;
+			UVW.V = Settings->U;
 			break;
 		case EPCGExMinimalAxis::Z:
-			UVW.WConstant = Settings->U;
+			UVW.W = Settings->U;
 			break;
 		}
 
