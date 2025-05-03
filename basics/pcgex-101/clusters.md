@@ -15,7 +15,7 @@ Key takeaway:\
 What makes PCGEx points _peeceegeeayksey_ are special attributes & tags — all of which are conveniently prefixed with `PCGEx/`.
 
 {% hint style="danger" %}
-PCGEx rely on these to work, serialize internal data, and maintain relationships.\
+**PCGEx rely on these to work, serialize internal data, and maintain vtx/edge relationships.**\
 If you're curious, you can read more about the how's and why's in the dedicated technical note.
 {% endhint %}
 
