@@ -1,5 +1,5 @@
 ---
-icon: angles-right
+icon: rectangles-mixed
 ---
 
 # Instanced Behaviors
