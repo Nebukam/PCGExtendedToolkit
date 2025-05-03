@@ -13,46 +13,53 @@ void UPCGExHeuristicAttribute::PrepareForCluster(const TSharedPtr<const PCGExClu
 {
 	Super::PrepareForCluster(InCluster);
 
-	const TSharedPtr<PCGExData::FPointIO> InPoints = Source == EPCGExClusterComponentSource::Vtx ? InCluster->VtxIO.Pin() : InCluster->EdgesIO.Pin();
 	const TSharedPtr<PCGExData::FFacade> DataFacade = Source == EPCGExClusterComponentSource::Vtx ? PrimaryDataFacade : SecondaryDataFacade;
 
-	if (LastPoints == InPoints) { return; }
-
-	const int32 NumPoints = Source == EPCGExClusterComponentSource::Vtx ? InCluster->Nodes->Num() : InPoints->GetNum();
-
-	LastPoints = InPoints;
+	const int32 NumPoints = Source == EPCGExClusterComponentSource::Vtx ? InCluster->Nodes->Num() : InCluster->Edges->Num();
 	CachedScores.SetNumZeroed(NumPoints);
 
-	const TSharedPtr<PCGExData::TBuffer<double>> ModifiersCache = DataFacade->GetBroadcaster<double>(Attribute, true);
+	// Grab all attribute values
+	const TSharedPtr<PCGExData::TBuffer<double>> Values = DataFacade->GetBroadcaster<double>(Attribute, true);
 
-	if (!ModifiersCache)
+	if (!Values)
 	{
 		PCGEX_LOG_INVALID_SELECTOR_C(Context, "Heuristic", Attribute)
 		return;
 	}
 
-	const double MinValue = ModifiersCache->Min;
-	const double MaxValue = ModifiersCache->Max;
+	// Grab min & max
+	const double MinValue = Values->Min;
+	const double MaxValue = Values->Max;
 
 	const double OutMin = bInvert ? 1 : 0;
 	const double OutMax = bInvert ? 0 : 1;
 
 	const double Factor = ReferenceWeight * WeightFactor;
 
-	if (Source == EPCGExClusterComponentSource::Vtx)
+	if (MinValue == MaxValue)
 	{
-		for (const PCGExCluster::FNode& Node : (*InCluster->Nodes))
-		{
-			const double NormalizedValue = PCGExMath::Remap(ModifiersCache->Read(Node.PointIndex), MinValue, MaxValue, OutMin, OutMax);
-			CachedScores[Node.Index] += FMath::Max(0, ScoreCurve->Eval(NormalizedValue)) * Factor;
-		}
+		// There is no value range, we can't normalize anything
+		// Use desired or "auto" fallback instead.
+		FallbackValue = FMath::Max(0, ScoreCurve->Eval(bUseCustomFallback ? FallbackValue : FMath::Clamp(MinValue, 0, 1))) * Factor;
+		CachedScores.Init(FallbackValue, NumPoints);
 	}
 	else
 	{
-		for (int i = 0; i < NumPoints; i++)
+		if (Source == EPCGExClusterComponentSource::Vtx)
 		{
-			const double NormalizedValue = PCGExMath::Remap(ModifiersCache->Read(i), MinValue, MaxValue, OutMin, OutMax);
-			CachedScores[i] += FMath::Max(0, ScoreCurve->Eval(NormalizedValue)) * Factor;
+			for (const PCGExCluster::FNode& Node : (*InCluster->Nodes))
+			{
+				const double NormalizedValue = PCGExMath::Remap(Values->Read(Node.PointIndex), MinValue, MaxValue, OutMin, OutMax);
+				CachedScores[Node.Index] += FMath::Max(0, ScoreCurve->Eval(NormalizedValue)) * Factor;
+			}
+		}
+		else
+		{
+			for (int i = 0; i < NumPoints; i++)
+			{
+				const double NormalizedValue = PCGExMath::Remap(Values->Read(i), MinValue, MaxValue, OutMin, OutMax);
+				CachedScores[i] += FMath::Max(0, ScoreCurve->Eval(NormalizedValue)) * Factor;
+			}
 		}
 	}
 }
@@ -71,7 +78,6 @@ double UPCGExHeuristicAttribute::GetEdgeScore(
 void UPCGExHeuristicAttribute::Cleanup()
 {
 	CachedScores.Empty();
-	LastPoints.Reset();
 	Super::Cleanup();
 }
 
@@ -79,11 +85,23 @@ UPCGExHeuristicOperation* UPCGExHeuristicsFactoryAttribute::CreateOperation(FPCG
 {
 	UPCGExHeuristicAttribute* NewOperation = InContext->ManagedObjects->New<UPCGExHeuristicAttribute>();
 	PCGEX_FORWARD_HEURISTIC_CONFIG
+	NewOperation->Source = Config.Source;
 	NewOperation->Attribute = Config.Attribute;
+	NewOperation->bUseCustomFallback = Config.bUseCustomFallback;
+	NewOperation->FallbackValue = Config.FallbackValue;
 	return NewOperation;
 }
 
 PCGEX_HEURISTIC_FACTORY_BOILERPLATE_IMPL(Attribute, {})
+
+void UPCGExHeuristicsFactoryAttribute::RegisterBuffersDependencies(FPCGExContext* InContext, PCGExData::FFacadePreloader& FacadePreloader) const
+{
+	Super::RegisterBuffersDependencies(InContext, FacadePreloader);
+	if (Config.Source == EPCGExClusterComponentSource::Vtx)
+	{
+		FacadePreloader.Register<double>(InContext, Config.Attribute);
+	}
+}
 
 UPCGExFactoryData* UPCGExCreateHeuristicAttributeSettings::CreateFactory(FPCGExContext* InContext, UPCGExFactoryData* InFactory) const
 {
