@@ -1,5 +1,6 @@
 ---
 description: Technical design node on Cluster data
+hidden: true
 icon: circle-info
 ---
 
