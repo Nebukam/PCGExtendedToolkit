@@ -87,7 +87,7 @@ public:
 #endif
 
 	/** Async work priority for this node.*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Performance, meta=(PCG_NotOverridable, AdvancedDisplay, EditCondition="bDoAsyncProcessing"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Performance, meta=(PCG_NotOverridable, AdvancedDisplay))
 	EPCGExAsyncPriority WorkPriority = EPCGExAsyncPriority::Default;
 
 	/** Cache the results of this node. */
