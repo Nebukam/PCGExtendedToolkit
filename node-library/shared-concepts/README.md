@@ -1,25 +1,39 @@
 ---
+description: A list of things that are true for every PCGEx node.
 icon: circle-exclamation
 ---
 
 # Shared Concepts
 
-There's a few unspoken things PCGEx node to a bit different than the vanilla ones that may create unexpected behaviors and puzzling situations if you don't know about them; as well as a couple of features that are available on any & every PCGEx point processor.
+## Atypical Behaviors
 
+{% hint style="warning" %}
+**There's a handful of things PCGEx does slightly differently than the canon implementation.** It's usually not an issue, but in some very rare cases these inconsistencies can introduce a lot of confusion.
+{% endhint %}
 
+### Silent discard of empty data
 
-Key takeaway:\
-\- Node settings\
-\- Deduping of inputs\
-\- Ignoring empty inputs (no points) and not forwarding them\
-\- Deduping of Tags and Tags:Value
+All PCGEx nodes automatically discard & don't process empty data (_dataset with zero entries or points_).
 
+### Data De-duping
 
+All PCGEx nodes automatically proceed to an input de-duping based on memory pointer.&#x20;
 
-List shared/recurring settings\
-Add a note that ultimately these should be reusable content
+This means that if a collection has the same data multiple times and only differ in tags, only one entry will be processed.
+
+### Tags De-duping
+
+All PCGEx nodes automatically de-dupe input tags, but also value tags.&#x20;
+
+This means that a data tagged with `[Tag1, Tag2, Tag2, Value:A, Value:B, OtherValue:42]` will be output with a single `Value:` tag which value will be the first in the list, and no other duplicates resulting in `[Tag1, Tag2, Value:A, OtherValue:42]` .
+
+***
 
 ## Common Settings
+
+Most PCGEx nodes share the same base class implementation when it comes to processing points, hence there are a few settings that are exposed by default on each and every node.
+
+These lets you tweak very low-level processing behaviors & patterns.
 
 ### Performance
 
