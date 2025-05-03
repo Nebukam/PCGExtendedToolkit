@@ -1,7 +1,7 @@
 ---
 icon: hand-wave
 cover: .gitbook/assets/splosh.png
-coverY: 0
+coverY: -239.24468922108574
 layout:
   cover:
     visible: true
