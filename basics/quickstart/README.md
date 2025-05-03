@@ -8,7 +8,7 @@ icon: bullseye-arrow
 
 You can get it from these two places:
 
-<table data-card-size="large" data-view="cards"><thead><tr><th></th><th></th><th data-hidden data-card-target data-type="content-ref"></th><th data-hidden data-card-cover data-type="files"></th></tr></thead><tbody><tr><td><strong>Download from FAB</strong></td><td>Go to FAB and add the plugin to your account.</td><td><a href="https://www.fab.com/listings/3f0bea1c-7406-4441-951b-8b2ca155f624">https://www.fab.com/listings/3f0bea1c-7406-4441-951b-8b2ca155f624</a></td><td><a href="../../.gitbook/assets/FAB.jpg">FAB.jpg</a></td></tr><tr><td><strong>Build from Source</strong></td><td>Get the source code from GitHub.</td><td></td><td><a href="../../.gitbook/assets/GIT.jpg">GIT.jpg</a></td></tr></tbody></table>
+<table data-card-size="large" data-view="cards"><thead><tr><th></th><th></th><th data-hidden data-card-target data-type="content-ref"></th><th data-hidden data-card-cover data-type="files"></th></tr></thead><tbody><tr><td><strong>Download from FAB</strong></td><td>Go to FAB and add the plugin to your account.</td><td><a href="https://www.fab.com/listings/3f0bea1c-7406-4441-951b-8b2ca155f624">https://www.fab.com/listings/3f0bea1c-7406-4441-951b-8b2ca155f624</a></td><td><a href="../../.gitbook/assets/FAB.jpg">FAB.jpg</a></td></tr><tr><td><strong>Build from Source</strong></td><td>Get the source code from GitHub.</td><td><a href="https://github.com/Nebukam/PCGExtendedToolkit">https://github.com/Nebukam/PCGExtendedToolkit</a></td><td><a href="../../.gitbook/assets/GIT.jpg">GIT.jpg</a></td></tr></tbody></table>
 
 {% content-ref url="installation.md" %}
 [installation.md](installation.md)

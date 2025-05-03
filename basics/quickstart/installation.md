@@ -13,21 +13,23 @@ The easiest way to install PCGEx is to get it from FAB. (it's free!)
 
 <figure><img src="../../.gitbook/assets/EpicMarketplace-Splash-1080.png" alt=""><figcaption></figcaption></figure>
 
+
+
 {% stepper %}
 {% step %}
-### Go to the FAB website
+#### Go to the FAB website
 
 Add PCGEx to your library — select whichever license matches your usecase.
 {% endstep %}
 
 {% step %}
-### Go to the Epic Games Launcher
+#### Go to the Epic Games Launcher
 
 Navigate to the Library tab, and scroll all the way down. If PCGEx isn't showing there already, make sure to refresh using the <img src="../../.gitbook/assets/image (5).png" alt="" data-size="line"> refresh icon.
 {% endstep %}
 
 {% step %}
-### Install to your preferred engine version
+#### Install to your preferred engine version
 
 You should now see PCGEx and be able to install the plugin for the editor version of your choice!\
 ![](<../../.gitbook/assets/image (6).png>)
@@ -70,25 +72,25 @@ _Note that the .gitmodules file is located at the root of the git repo of your p
 
 {% stepper %}
 {% step %}
-### Download the ZIP
+#### Download the ZIP
 
 <a href="https://github.com/Nebukam/PCGExtendedToolkit/zipball/main" class="button primary">Download from GitHub</a>
 {% endstep %}
 
 {% step %}
-### Go to your Project folder
+#### Go to your Project folder
 
 If there is no `Plugins` folder, go on and create one
 {% endstep %}
 
 {% step %}
-### Paste the content of the ZIP into Plugins/
+#### Paste the content of the ZIP into Plugins/
 
 You should now have a `YourProject/Plugins/PCGExtendedToolkit` folder.
 {% endstep %}
 
 {% step %}
-### Launch project and follow the popups
+#### Launch project and follow the popups
 
 You will be prompted that there is now uncompiled plugins that requires to be built — this is normal! Click "Build" and _wait_.
 
