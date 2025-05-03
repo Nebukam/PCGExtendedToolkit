@@ -44,5 +44,6 @@
   * [Asset Staging](node-library/assets-management/asset-staging.md)
   * [Asset Collection to Set](node-library/assets-management/asset-collection-to-set.md)
 * [Misc](node-library/misc.md)
+* [Tensors](node-library/tensors.md)
 * [Sampling](node-library/sampling.md)
 * [Shapes](node-library/shapes.md)
