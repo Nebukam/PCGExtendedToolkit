@@ -16,7 +16,7 @@ Sub-nodes exist in a variety of types, and PCGEx relies a lot on that modular ap
 
 Sub-nodes makes things more modular overall, even thought they can be a bit counter-intuitive to the pure data-flow oriented approach of the vanilla toolset, but the benefits and the way PCGEx leverages them are worth breaking the rules a bit.
 
-### Advantages
+#### Advantages
 
 The major advantage of sub-nodes is all-over flexibility, inversion of control, and versatility. In a sense, they are like any other PCG nodes, meaning:
 
@@ -34,7 +34,7 @@ In order to pass sub-nodes through a subgraph pin, `Attribute Set` type is prefe
 If you use a recurring configuration of sub-nodes often (_i.e same nodes, same settings_), **consider wrapping them into a re-usable subgraph or use reroute nodes instead of duplicating them**.
 {% endhint %}
 
-### Caveats
+#### Caveats
 
 Caveats are minor, but worth mentioning:
 
@@ -45,14 +45,16 @@ Caveats are minor, but worth mentioning:
 Sub-nodes profiling cannot be relied on, nor is representative of their costs. Instead, look at the timing of the "user" node they are plugged into, as the actual processing cost will be reflected there instead.
 {% endhint %}
 
+***
+
 ## Usages
 
 Different systems & features use different types of sub-nodes. You can identify a sub-node in the documentation because their icon is a _dashed circle instead of a full circle_.
 
 Sub-nodes are identified using a custom extra icon that's the same on both outputs & inputs.
 
-<figure><img src="../../.gitbook/assets/image (3).png" alt=""><figcaption></figcaption></figure>
-
 {% hint style="success" %}
 It's also worth nothing that whenever this pattern is used, **these input pins always support multiple sub-nodes**.
 {% endhint %}
+
+<figure><img src="../../.gitbook/assets/image (3).png" alt=""><figcaption></figcaption></figure>

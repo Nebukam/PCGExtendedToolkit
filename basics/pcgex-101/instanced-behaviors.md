@@ -16,6 +16,8 @@ This is very handy to avoid node bloating _(\*cough\*)_ however it comes with a 
 
 <figure><img src="../../.gitbook/assets/placeholder-wide.jpg" alt=""><figcaption></figcaption></figure>
 
+***
+
 ### Overriding Instance Behavior Parameters
 
 Notice how "cannot be _easily_ overridden" is italicized — it's a bit tedious but it is entirely possible to override any exposed setting.
@@ -27,19 +29,19 @@ That pin accepts any number of attribute set that will be inspected during execu
 
 {% stepper %}
 {% step %}
-### Expand the node to reveal overrides
+#### Expand the node to reveal overrides
 
 If the behavior supports it, a special override pin will be visible. That pin accepts multiple inputs.
 {% endstep %}
 
 {% step %}
-### Find the internal property name
+#### Find the internal property name
 
 Expand the settings and right-click on the property you want to override. Select "Copy Internal Name" — the instanced behavior will look for attributes with that exact name.
 {% endstep %}
 
 {% step %}
-### Name that attribute & plug it in!
+#### Name that attribute & plug it in!
 
 That's it. It's limiting and tedious because it forces you to use a specific name in the attribute set, _I don't like that, but that's a workaround for the time being._
 
