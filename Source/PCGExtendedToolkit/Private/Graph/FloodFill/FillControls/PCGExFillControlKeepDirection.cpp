@@ -31,10 +31,11 @@ bool UPCGExFillControlKeepDirection::IsValidCandidate(const PCGExFloodFill::FDif
 
 	if (PathNodeIndex != -1)
 	{
-		const FVector A = FVector(Cluster->GetPos(From.Node->Index) - Cluster->GetPos(Candidate.Node->Index)).GetSafeNormal();
+		const FVector CurrentDir = Cluster->GetDir(From.Node->Index, Candidate.Node->Index);
 
 		FVector Avg = FVector::ZeroVector;
 		int32 Sampled = 0;
+
 		while (PathNodeIndex != -1 && Sampled < Window)
 		{
 			const int32 CurrentIndex = PathNodeIndex;
@@ -42,14 +43,13 @@ bool UPCGExFillControlKeepDirection::IsValidCandidate(const PCGExFloodFill::FDif
 
 			if (PathEdgeIndex < 0) { continue; }
 
-			Avg += FVector(Cluster->GetPos(CurrentIndex) - Cluster->GetPos(PathNodeIndex));
+			Avg += Cluster->GetDir(PathNodeIndex, CurrentIndex);
 			Sampled++;
 		}
 
 		if (Sampled < 1) { return true; }
 
-		const FVector CWTolerance = HashComparisonDetails.GetCWTolerance(GetSettingsIndex(Diffusion));
-		return PCGEx::I323(A, CWTolerance) == PCGEx::I323((Avg / Sampled).GetSafeNormal(), CWTolerance);
+		return HashComparisonDetails.Test(CurrentDir, (Avg / Sampled).GetSafeNormal(), GetSettingsIndex(Diffusion));
 	}
 	return true;
 }
@@ -89,7 +89,7 @@ FString UPCGExFillControlsKeepDirectionProviderSettings::GetDisplayName() const
 {
 	FString DName = GetDefaultNodeTitle().ToString().Replace(TEXT("PCGEx | Fill Control"), TEXT("FC")) + TEXT(" @ ");
 
-	if (Config.WindowSizeInput == EPCGExInputValueType::Attribute) { DName += Config.WindowSizeAttribute.ToString(); }
+	if (Config.WindowSizeInput == EPCGExInputValueType::Attribute) { DName += PCGEx::GetSelectorDisplayName(Config.WindowSizeAttribute); }
 	else { DName += FString::Printf(TEXT("%d"), Config.WindowSize); }
 
 	return DName;
