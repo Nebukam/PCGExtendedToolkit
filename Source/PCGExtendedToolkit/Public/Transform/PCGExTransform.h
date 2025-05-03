@@ -116,3 +116,43 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExUVW
 
 	FVector GetPosition(const PCGExData::FPointRef& PointRef, FVector& OutOffset, const EPCGExMinimalAxis Axis, const bool bMirrorAxis = false) const;
 };
+
+USTRUCT(BlueprintType)
+struct PCGEXTENDEDTOOLKIT_API FPCGExConstantUVW
+{
+	GENERATED_BODY()
+
+	FPCGExConstantUVW()
+	{
+	}
+
+	/** */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	EPCGExPointBoundsSource BoundsReference = EPCGExPointBoundsSource::ScaledBounds;
+
+	/** U Constant */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="U", EditCondition="UInput==EPCGExInputValueType::Constant", EditConditionHides))
+	double U = 0;
+
+	/** V Constant */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="V", EditCondition="VInput==EPCGExInputValueType::Constant", EditConditionHides))
+	double V = 0;
+
+	/** W Constant */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="W", EditCondition="WInput==EPCGExInputValueType::Constant", EditConditionHides))
+	double W = 0;
+
+	FORCEINLINE FVector GetUVW() const { return FVector(U, V, W); }
+
+	FVector GetPosition(const PCGExData::FPointRef& PointRef) const;
+
+	FVector GetPosition(const PCGExData::FPointRef& PointRef, FVector& OutOffset) const;
+
+	// With axis
+
+	FVector GetUVW(const EPCGExMinimalAxis Axis, const bool bMirrorAxis = false) const;
+
+	FVector GetPosition(const PCGExData::FPointRef& PointRef, const EPCGExMinimalAxis Axis, const bool bMirrorAxis = false) const;
+
+	FVector GetPosition(const PCGExData::FPointRef& PointRef, FVector& OutOffset, const EPCGExMinimalAxis Axis, const bool bMirrorAxis = false) const;
+};
