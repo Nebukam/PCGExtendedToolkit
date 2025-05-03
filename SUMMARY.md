@@ -6,7 +6,7 @@
 
 * [Quickstart](basics/quickstart/README.md)
   * [Installation](basics/quickstart/installation.md)
-  * [PCG Basics](basics/quickstart/editor.md)
+  * [PCG Basics](basics/quickstart/pcg-basics.md)
   * [Example Project](basics/quickstart/example-project.md)
 * [PCGEx 101](basics/pcgex-101/README.md)
   * [Clusters](basics/pcgex-101/clusters.md)
@@ -19,12 +19,14 @@
 
 * [Editor Settings](editor-settings.md)
 
-## Working with...
+## Working with PCGEx
 
-* [... Clusters](working-with.../...-clusters/README.md)
-  * [Cookie-Cutting](working-with.../...-clusters/cookie-cutting.md)
-* [... Paths](working-with.../...-paths/README.md)
-  * [Page 1](working-with.../...-paths/page-1.md)
+* [Clusters](working-with-pcgex/clusters/README.md)
+  * [Cookie-Cutting](working-with-pcgex/clusters/cookie-cutting.md)
+* [Paths](working-with-pcgex/paths/README.md)
+  * [Page 1](working-with-pcgex/paths/page-1.md)
+  * [Page 2](working-with-pcgex/paths/page-2.md)
+* [Tips & Tricks](working-with-pcgex/tips-and-tricks.md)
 
 ## Node Library
 

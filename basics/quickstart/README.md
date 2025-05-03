@@ -18,8 +18,8 @@ You can get it from these two places:
 
 **PCGEx introduces a lot of advanced manipulations and nodes, including concepts & patterns that are entirely foreign to vanilla PCG**. Make sure you get a firm grasp on the basic concepts behind Epic' PCG Framework first.
 
-{% content-ref url="editor.md" %}
-[editor.md](editor.md)
+{% content-ref url="pcg-basics.md" %}
+[pcg-basics.md](pcg-basics.md)
 {% endcontent-ref %}
 
 {% hint style="info" %}
@@ -42,8 +42,8 @@ Note that for the example project to work, **you need either have installed the 
 
 You could try to go raw from there, because depending on how you best learn, the example project might be enough — however it's recommended to check the basics so you don't miss out on important details.
 
-{% content-ref url="../../basics/pcgex-101/" %}
-[pcgex-101](../../basics/pcgex-101/)
+{% content-ref url="../pcgex-101/" %}
+[pcgex-101](../pcgex-101/)
 {% endcontent-ref %}
 
 
