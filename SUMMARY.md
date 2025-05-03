@@ -9,7 +9,7 @@
   * [PCG Basics](basics/quickstart/pcg-basics.md)
   * [Example Project](basics/quickstart/example-project.md)
 * [PCGEx 101](basics/pcgex-101/README.md)
-  * [Clusters](basics/pcgex-101/clusters/README.md)
+  * [Clusters](basics/pcgex-101/clusters.md)
     * [Technical Note on Clusters](basics/pcgex-101/clusters/technical-note-on-clusters.md)
   * [Paths](basics/pcgex-101/paths.md)
   * [Sub Nodes](basics/pcgex-101/sub-nodes.md)

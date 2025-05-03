@@ -19,6 +19,6 @@ PCGEx rely on these to work, serialize internal data, and maintain relationships
 If you're curious, you can read more about the how's and why's in the dedicated technical note.
 {% endhint %}
 
-{% content-ref url="technical-note-on-clusters.md" %}
-[technical-note-on-clusters.md](technical-note-on-clusters.md)
+{% content-ref url="clusters/technical-note-on-clusters.md" %}
+[technical-note-on-clusters.md](clusters/technical-note-on-clusters.md)
 {% endcontent-ref %}
