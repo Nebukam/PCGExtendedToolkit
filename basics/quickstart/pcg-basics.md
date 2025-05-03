@@ -10,7 +10,7 @@ PCG Stands for Procedural Content Generation — but you knew that already!
 It's also a very powerful Unreal Engine tool, that can be used for technically anything and everything. It's a hammer, the kind of which turns everything into a nail.&#x20;
 
 {% hint style="info" %}
-If you're already comfortable with PCG as a tool, you can probably skip to [PCGEx 101](../../basics/pcgex-101/).
+If you're already comfortable with PCG as a tool, you can probably skip to [PCGEx 101](../pcgex-101/).
 {% endhint %}
 
 ### WTF is Procgen?
@@ -27,7 +27,7 @@ There's a few Discord server that have all range of PCG users active. There migh
 
 ### Unreal' PCG Basics
 
-There's tons of resources out there about PCG, but very few of them tackle the basic principles of Unreal' PCG plugin with a more holistic approach on the tool. Here's a list of recommended resources to get acquainted with the tool.
+There's tons of resources out there about PCG, but very few of them tackle the basic principles of Unreal' PCG plugin with a more holistic approach on the tool itself. Here's a list of recommended resources to get acquainted with it.
 
 <table data-card-size="large" data-view="cards"><thead><tr><th></th><th></th><th data-type="content-ref"></th><th data-hidden data-card-cover data-type="files"></th></tr></thead><tbody><tr><td>Adri<strong>en Logut Tutorials</strong></td><td><em>A must watch if you're serious about PCG.</em></td><td><a href="https://www.youtube.com/@adrien_logut/videos">https://www.youtube.com/@adrien_logut/videos</a></td><td><a href="../../.gitbook/assets/logut.png">logut.png</a></td></tr><tr><td><strong>PCG Overview</strong></td><td>Epic doc on PCG</td><td><a href="https://dev.epicgames.com/documentation/en-us/unreal-engine/procedural-content-generation-overview">https://dev.epicgames.com/documentation/en-us/unreal-engine/procedural-content-generation-overview</a></td><td><a href="../../.gitbook/assets/advanced-forest.png">advanced-forest.png</a></td></tr></tbody></table>
 
