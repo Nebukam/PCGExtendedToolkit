@@ -20,3 +20,10 @@ PCGEx may have fancy words like `Vtx`, `Edges`, `Paths`, but **these are just re
 You can read more about what makes Clusters & Paths points special, **and why they're not**.
 
 <table data-card-size="large" data-view="cards"><thead><tr><th></th><th></th><th data-hidden data-card-target data-type="content-ref"></th></tr></thead><tbody><tr><td><strong>Clusters</strong></td><td>How to work with clusters</td><td><a href="clusters.md">clusters.md</a></td></tr><tr><td><strong>Paths</strong></td><td>What's up with "Paths" points</td><td><a href="paths.md">paths.md</a></td></tr></tbody></table>
+
+### Technical Notes
+
+{% content-ref url="technical-note-pcgex-framework.md" %}
+[technical-note-pcgex-framework.md](technical-note-pcgex-framework.md)
+{% endcontent-ref %}
+

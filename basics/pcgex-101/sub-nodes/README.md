@@ -24,7 +24,7 @@ The major advantage of sub-nodes is all-over flexibility, inversion of control, 
 * They can be rerouted
 * They can go be passed around using subgraph pins
 
-<figure><img src="../../.gitbook/assets/image (1).png" alt=""><figcaption></figcaption></figure>
+<figure><img src="../../../.gitbook/assets/image (1).png" alt=""><figcaption></figcaption></figure>
 
 {% hint style="info" %}
 In order to pass sub-nodes through a subgraph pin, `Attribute Set` type is preferred, but `Any` and `Point or Params` should work fine.
@@ -45,8 +45,6 @@ Caveats are minor, but worth mentioning:
 Sub-nodes profiling cannot be relied on, nor is representative of their costs. Instead, look at the timing of the "user" node they are plugged into, as the actual processing cost will be reflected there instead.
 {% endhint %}
 
-***
-
 ## Usages
 
 Different systems & features use different types of sub-nodes. You can identify a sub-node in the documentation because their icon is a _dashed circle instead of a full circle_.
@@ -57,4 +55,10 @@ Sub-nodes are identified using a custom extra icon that's the same on both outpu
 It's also worth nothing that whenever this pattern is used, **these input pins always support multiple sub-nodes**.
 {% endhint %}
 
-<figure><img src="../../.gitbook/assets/image (3).png" alt=""><figcaption></figcaption></figure>
+<figure><img src="../../../.gitbook/assets/image (3).png" alt=""><figcaption></figcaption></figure>
+
+### Technical Notes
+
+{% content-ref url="technical-note-sub-nodes.md" %}
+[technical-note-sub-nodes.md](technical-note-sub-nodes.md)
+{% endcontent-ref %}

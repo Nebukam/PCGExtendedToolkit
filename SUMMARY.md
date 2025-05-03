@@ -9,10 +9,12 @@
   * [PCG Basics](basics/quickstart/pcg-basics.md)
   * [Example Project](basics/quickstart/example-project.md)
 * [PCGEx 101](basics/pcgex-101/README.md)
+  * [Technical Note : PCGEx Framework](basics/pcgex-101/technical-note-pcgex-framework.md)
   * [Clusters](basics/pcgex-101/clusters.md)
-    * [Technical Note on Clusters](basics/pcgex-101/clusters/technical-note-on-clusters.md)
+    * [Technical Note : Clusters](basics/pcgex-101/clusters/technical-note-clusters.md)
   * [Paths](basics/pcgex-101/paths.md)
-  * [Sub Nodes](basics/pcgex-101/sub-nodes.md)
+  * [Sub Nodes](basics/pcgex-101/sub-nodes/README.md)
+    * [Technical Note : Sub Nodes](basics/pcgex-101/sub-nodes/technical-note-sub-nodes.md)
   * [Instanced Behaviors](basics/pcgex-101/instanced-behaviors.md)
   * [Filter Ecosystem](basics/pcgex-101/filter-ecosystem.md)
 
@@ -24,9 +26,9 @@
 
 * [Clusters](working-with-pcgex/clusters/README.md)
   * [Cookie-Cutting](working-with-pcgex/clusters/cookie-cutting.md)
+  * [Looping over Clusters](working-with-pcgex/clusters/looping-over-clusters.md)
 * [Paths](working-with-pcgex/paths/README.md)
-  * [Page 1](working-with-pcgex/paths/page-1.md)
-  * [Page 2](working-with-pcgex/paths/page-2.md)
+  * [TBD](working-with-pcgex/paths/tbd.md)
 * [Tips & Tricks](working-with-pcgex/tips-and-tricks.md)
 
 ## Node Library

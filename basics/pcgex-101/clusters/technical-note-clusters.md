@@ -1,10 +1,10 @@
 ---
 description: Technical design node on Cluster data
 hidden: true
-icon: circle-info
+icon: microchip
 ---
 
-# Technical Note on Clusters
+# Technical Note : Clusters
 
 <details>
 
