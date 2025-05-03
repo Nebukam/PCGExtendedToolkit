@@ -16,8 +16,6 @@ This is very handy to avoid node bloating _(\*cough\*)_ however it comes with a 
 
 <figure><img src="../../.gitbook/assets/placeholder-wide.jpg" alt=""><figcaption></figcaption></figure>
 
-***
-
 ### Overriding Instance Behavior Parameters
 
 Notice how "cannot be _easily_ overridden" is italicized — it's a bit tedious but it is entirely possible to override any exposed setting.
