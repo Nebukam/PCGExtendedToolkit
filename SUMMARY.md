@@ -12,9 +12,11 @@
 ## Basics
 
 * [PCGEx 101](basics/pcgex-101/README.md)
-  * [Filter Ecosystem](basics/pcgex-101/filter-ecosystem.md)
   * [Clusters](basics/pcgex-101/clusters.md)
   * [Paths](basics/pcgex-101/paths.md)
+  * [Sub Nodes](basics/pcgex-101/sub-nodes.md)
+  * [Instanced Behaviors](basics/pcgex-101/instanced-behaviors.md)
+  * [Filter Ecosystem](basics/pcgex-101/filter-ecosystem.md)
 
 ## Node Library
 
@@ -32,7 +34,8 @@
     * [Probe : Direction](node-library/clusters/connect-points/probe-direction.md)
     * [Probe : Index](node-library/clusters/connect-points/probe-index.md)
     * [Probe : Compare](node-library/clusters/connect-points/probe-compare.md)
-* [Pathfinding](node-library/pathfinding.md)
+* [Pathfinding](node-library/pathfinding/README.md)
+  * [Heuristics](node-library/pathfinding/heuristics.md)
 * [Paths](node-library/paths.md)
 * [Assets Management](node-library/assets-management/README.md)
   * [Collections](node-library/assets-management/collections/README.md)
