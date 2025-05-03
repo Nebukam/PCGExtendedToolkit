@@ -466,6 +466,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExVectorHashComparisonDetails
 	FVector GetCWTolerance(const int32 PointIndex) const;
 
 	void RegisterConsumableAttributesWithData(FPCGExContext* InContext, const UPCGData* InData) const;
+	bool Test(const FVector& A, const FVector& B, const int32 PointIndex) const;
 };
 
 USTRUCT(BlueprintType)
