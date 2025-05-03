@@ -1,5 +1,5 @@
 ---
-icon: circle-right
+icon: power-off
 ---
 
 # Installation

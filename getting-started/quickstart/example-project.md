@@ -1,0 +1,6 @@
+---
+icon: sparkles
+---
+
+# Example Project
+

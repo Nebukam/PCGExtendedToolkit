@@ -1,17 +1,20 @@
 # Table of contents
 
 * [Welcome](README.md)
-  * [PCG 101](readme/editor.md)
 
 ## Getting Started
 
-* [Quickstart](getting-started/quickstart.md)
-* [Installation](getting-started/installation.md)
+* [Quickstart](getting-started/quickstart/README.md)
+  * [Installation](getting-started/quickstart/installation.md)
+  * [PCG Basics](getting-started/quickstart/editor.md)
+  * [Example Project](getting-started/quickstart/example-project.md)
 
 ## Basics
 
 * [PCGEx 101](basics/pcgex-101/README.md)
   * [Filter Ecosystem](basics/pcgex-101/filter-ecosystem.md)
+  * [Clusters](basics/pcgex-101/clusters.md)
+  * [Paths](basics/pcgex-101/paths.md)
 
 ## Node Library
 

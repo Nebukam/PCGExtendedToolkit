@@ -1,0 +1,6 @@
+---
+icon: ellipsis
+---
+
+# Paths
+
