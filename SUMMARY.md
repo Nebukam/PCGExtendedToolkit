@@ -2,15 +2,12 @@
 
 * [Welcome](README.md)
 
-## Getting Started
-
-* [Quickstart](getting-started/quickstart/README.md)
-  * [Installation](getting-started/quickstart/installation.md)
-  * [PCG Basics](getting-started/quickstart/editor.md)
-  * [Example Project](getting-started/quickstart/example-project.md)
-
 ## Basics
 
+* [Quickstart](basics/quickstart/README.md)
+  * [Installation](basics/quickstart/installation.md)
+  * [PCG Basics](basics/quickstart/editor.md)
+  * [Example Project](basics/quickstart/example-project.md)
 * [PCGEx 101](basics/pcgex-101/README.md)
   * [Clusters](basics/pcgex-101/clusters.md)
   * [Paths](basics/pcgex-101/paths.md)
@@ -18,8 +15,23 @@
   * [Instanced Behaviors](basics/pcgex-101/instanced-behaviors.md)
   * [Filter Ecosystem](basics/pcgex-101/filter-ecosystem.md)
 
+***
+
+* [Editor Settings](editor-settings.md)
+
+## Working with...
+
+* [... Clusters](working-with.../...-clusters/README.md)
+  * [Cookie-Cutting](working-with.../...-clusters/cookie-cutting.md)
+* [... Paths](working-with.../...-paths/README.md)
+  * [Page 1](working-with.../...-paths/page-1.md)
+
 ## Node Library
 
+* [Shared Concepts](node-library/shared-concepts/README.md)
+  * [Comparisons](node-library/shared-concepts/comparisons.md)
+  * [Fitting](node-library/shared-concepts/fitting.md)
+  * [Blending](node-library/shared-concepts/blending.md)
 * [Filters](node-library/filters/README.md)
   * [Filters : Points](node-library/filters/filters-points.md)
   * [Filters : Collections](node-library/filters/filters-collections.md)

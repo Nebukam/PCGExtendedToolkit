@@ -8,4 +8,4 @@ icon: hexagon
 
 Key takeaways:\
 \- Everything is points, this is super important\
-\-&#x20;
+\- Don't mess with PCGEx attributes & tags.
