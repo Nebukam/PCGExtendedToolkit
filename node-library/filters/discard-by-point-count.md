@@ -1,5 +1,5 @@
 ---
-description: PCGEx | Discard by Point Count
+description: 'In editor → PCGEx | Discard by Point Count'
 icon: circle
 ---
 

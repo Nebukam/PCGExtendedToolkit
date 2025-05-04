@@ -1,5 +1,5 @@
 ---
-description: 'PCGEx | Filter : Polygon 2D Inclusion'
+description: 'In editor → PCGEx | Filter : Polygon 2D Inclusion'
 icon: circle-dashed
 ---
 

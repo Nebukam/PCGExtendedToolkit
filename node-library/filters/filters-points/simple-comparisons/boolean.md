@@ -1,5 +1,5 @@
 ---
-description: 'PCGEx | Filter : Bool Compare'
+description: 'In editor → PCGEx | Filter : Bool Compare'
 icon: circle-dashed
 ---
 

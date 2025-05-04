@@ -1,5 +1,5 @@
 ---
-description: 'PCGEx | Cluster : Convex Hull 3D'
+description: 'In editor → PCGEx | Cluster : Convex Hull 3D'
 icon: circle
 ---
 

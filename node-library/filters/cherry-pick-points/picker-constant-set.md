@@ -1,5 +1,5 @@
 ---
-description: 'PCGEx | Picker : Constant Set'
+description: 'In editor → PCGEx | Picker : Constant Set'
 icon: circle-dashed
 ---
 

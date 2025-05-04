@@ -1,5 +1,5 @@
 ---
-description: 'PCGEx | Pathfinding : Find All Cells'
+description: 'In editor → PCGEx | Pathfinding : Find All Cells'
 icon: circle
 ---
 

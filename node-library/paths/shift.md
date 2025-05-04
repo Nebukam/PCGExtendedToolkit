@@ -1,5 +1,5 @@
 ---
-description: 'PCGEx | Path : Shift'
+description: 'In editor → PCGEx | Path : Shift'
 icon: circle
 ---
 

@@ -1,5 +1,5 @@
 ---
-description: PCGEx | Path × Bounds Intersection
+description: 'In editor → PCGEx | Path × Bounds Intersection'
 icon: circle
 ---
 

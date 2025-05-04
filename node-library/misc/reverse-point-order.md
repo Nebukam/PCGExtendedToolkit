@@ -1,5 +1,5 @@
 ---
-description: PCGEx | Reverse Point Order
+description: 'In editor → PCGEx | Reverse Point Order'
 icon: circle
 ---
 

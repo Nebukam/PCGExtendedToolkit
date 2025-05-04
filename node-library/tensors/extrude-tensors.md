@@ -1,5 +1,5 @@
 ---
-description: 'PCGEx | Path : Extrude Tensors'
+description: 'In editor → PCGEx | Path : Extrude Tensors'
 icon: scrubber
 ---
 

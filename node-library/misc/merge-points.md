@@ -1,5 +1,5 @@
 ---
-description: PCGEx | Merge Points
+description: 'In editor → PCGEx | Merge Points'
 icon: circle
 ---
 

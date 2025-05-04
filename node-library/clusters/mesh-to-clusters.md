@@ -1,5 +1,5 @@
 ---
-description: PCGEx | Mesh to Clusters
+description: 'In editor → PCGEx | Mesh to Clusters'
 icon: circle
 ---
 

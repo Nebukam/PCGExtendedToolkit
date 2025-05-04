@@ -1,5 +1,5 @@
 ---
-description: 'PCGEx | Tensor : Null'
+description: 'In editor → PCGEx | Tensor : Null'
 icon: circle-dashed
 ---
 

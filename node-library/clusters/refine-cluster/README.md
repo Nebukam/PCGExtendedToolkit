@@ -1,5 +1,5 @@
 ---
-description: 'PCGEx | Cluster : Refine'
+description: 'In editor → PCGEx | Cluster : Refine'
 icon: scrubber
 ---
 

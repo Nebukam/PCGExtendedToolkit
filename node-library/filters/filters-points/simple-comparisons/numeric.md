@@ -1,5 +1,5 @@
 ---
-description: 'PCGEx | Filter : Compare (Numeric)'
+description: 'In editor → PCGEx | Filter : Compare (Numeric)'
 icon: circle-dashed
 ---
 

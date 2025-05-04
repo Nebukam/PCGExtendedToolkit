@@ -1,5 +1,5 @@
 ---
-description: 'PCGEx | Vtx : Edge Match'
+description: 'In editor → PCGEx | Vtx : Edge Match'
 icon: circle-dashed
 ---
 

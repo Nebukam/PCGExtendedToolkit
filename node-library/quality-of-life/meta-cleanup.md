@@ -1,5 +1,5 @@
 ---
-description: PCGEx | Meta Cleanup
+description: 'In editor → PCGEx | Meta Cleanup'
 icon: circle
 ---
 

@@ -1,5 +1,5 @@
 ---
-description: 'PCGEx | Edge Filter : Endpoints Check'
+description: 'In editor → PCGEx | Edge Filter : Endpoints Check'
 icon: circle-dashed
 ---
 

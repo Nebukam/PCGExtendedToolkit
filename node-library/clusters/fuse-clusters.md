@@ -1,5 +1,5 @@
 ---
-description: 'PCGEx | Cluster : Fuse'
+description: 'In editor → PCGEx | Cluster : Fuse'
 icon: circle
 ---
 

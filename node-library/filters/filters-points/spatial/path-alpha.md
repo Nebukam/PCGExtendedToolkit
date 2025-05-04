@@ -1,5 +1,5 @@
 ---
-description: 'PCGEx | Filter : Path Alpha'
+description: 'In editor → PCGEx | Filter : Path Alpha'
 icon: circle-dashed
 ---
 

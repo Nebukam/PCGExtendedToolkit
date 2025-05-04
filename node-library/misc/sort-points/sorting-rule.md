@@ -1,5 +1,5 @@
 ---
-description: PCGEx | Sorting Rule
+description: 'In editor → PCGEx | Sorting Rule'
 icon: circle-dashed
 ---
 

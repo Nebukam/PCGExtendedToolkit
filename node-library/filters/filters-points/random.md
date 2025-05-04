@@ -1,5 +1,5 @@
 ---
-description: 'PCGEx | Filter : Random'
+description: 'In editor → PCGEx | Filter : Random'
 icon: circle-dashed
 ---
 

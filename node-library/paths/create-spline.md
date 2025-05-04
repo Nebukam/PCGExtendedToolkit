@@ -1,5 +1,5 @@
 ---
-description: PCGEx | Create Spline
+description: 'In editor → PCGEx | Create Spline'
 icon: circle
 ---
 

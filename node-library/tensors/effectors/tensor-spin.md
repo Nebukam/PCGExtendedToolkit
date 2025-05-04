@@ -1,5 +1,5 @@
 ---
-description: 'PCGEx | Tensor : Spin'
+description: 'In editor → PCGEx | Tensor : Spin'
 icon: circle-dashed
 ---
 

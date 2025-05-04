@@ -1,5 +1,5 @@
 ---
-description: 'PCGEx | Cluster : Make Unique'
+description: 'In editor → PCGEx | Cluster : Make Unique'
 icon: circle
 ---
 

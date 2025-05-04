@@ -1,5 +1,5 @@
 ---
-description: 'PCGEx | Cluster : Connect'
+description: 'In editor → PCGEx | Cluster : Connect'
 icon: circle
 ---
 

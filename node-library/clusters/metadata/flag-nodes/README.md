@@ -1,5 +1,5 @@
 ---
-description: 'PCGEx | Cluster : Flag Nodes'
+description: 'In editor → PCGEx | Cluster : Flag Nodes'
 icon: scrubber
 ---
 

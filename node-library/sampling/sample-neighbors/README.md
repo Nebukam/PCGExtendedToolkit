@@ -1,5 +1,5 @@
 ---
-description: PCGEx | Sample Nearest Surface
+description: 'In editor → PCGEx | Sample Nearest Surface'
 icon: scrubber
 ---
 

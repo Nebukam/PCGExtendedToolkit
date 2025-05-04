@@ -1,5 +1,5 @@
 ---
-description: 'PCGEx | Pathfinding : Grow Paths'
+description: 'In editor → PCGEx | Pathfinding : Grow Paths'
 icon: scrubber
 ---
 

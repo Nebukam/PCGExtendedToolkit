@@ -1,5 +1,5 @@
 ---
-description: 'PCGEx | Cluster : Build Custom Graph'
+description: 'In editor → PCGEx | Cluster : Build Custom Graph'
 icon: scrubber
 ---
 

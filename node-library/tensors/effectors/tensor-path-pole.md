@@ -1,5 +1,5 @@
 ---
-description: 'PCGEx | Tensor : Path Pole'
+description: 'In editor → PCGEx | Tensor : Path Pole'
 icon: circle-dashed
 ---
 

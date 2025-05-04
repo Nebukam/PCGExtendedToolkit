@@ -1,5 +1,5 @@
 ---
-description: 'PCGEx | Path : Blend'
+description: 'In editor → PCGEx | Path : Blend'
 icon: circle
 ---
 

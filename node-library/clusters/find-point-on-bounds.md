@@ -1,5 +1,5 @@
 ---
-description: 'PCGEx | Cluster : Find point on Bounds'
+description: 'In editor → PCGEx | Cluster : Find point on Bounds'
 icon: circle
 ---
 

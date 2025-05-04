@@ -1,5 +1,5 @@
 ---
-description: 'PCGEx | Path : Resample'
+description: 'In editor → PCGEx | Path : Resample'
 icon: circle
 ---
 

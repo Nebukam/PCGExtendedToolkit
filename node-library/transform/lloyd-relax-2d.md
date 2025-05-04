@@ -1,5 +1,5 @@
 ---
-description: PCGEx | Lloyd Relax 2D
+description: 'In editor → PCGEx | Lloyd Relax 2D'
 icon: circle
 ---
 

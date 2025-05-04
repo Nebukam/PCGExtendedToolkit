@@ -1,5 +1,5 @@
 ---
-description: PCGEx | Bitmask Merge
+description: 'In editor → PCGEx | Bitmask Merge'
 icon: circle
 ---
 

@@ -1,5 +1,5 @@
 ---
-description: 'PCGEx | Cluster : Simplify'
+description: 'In editor → PCGEx | Cluster : Simplify'
 icon: circle
 ---
 

@@ -1,5 +1,5 @@
 ---
-description: 'PCGEx | Path : To Clusters'
+description: 'In editor → PCGEx | Path : To Clusters'
 icon: circle
 ---
 

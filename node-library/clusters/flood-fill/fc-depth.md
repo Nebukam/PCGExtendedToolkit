@@ -1,5 +1,5 @@
 ---
-description: 'PCGEx | Fill Control : Depth'
+description: 'In editor → PCGEx | Fill Control : Depth'
 icon: circle-dashed
 ---
 

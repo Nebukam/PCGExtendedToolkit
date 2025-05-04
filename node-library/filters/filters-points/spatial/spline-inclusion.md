@@ -1,5 +1,5 @@
 ---
-description: 'PCGEx | Filter : Spline Inclusion'
+description: 'In editor → PCGEx | Filter : Spline Inclusion'
 icon: circle-dashed
 ---
 

@@ -1,5 +1,5 @@
 ---
-description: PCGEx | Create Shapes
+description: 'In editor → PCGEx | Create Shapes'
 icon: scrubber
 ---
 

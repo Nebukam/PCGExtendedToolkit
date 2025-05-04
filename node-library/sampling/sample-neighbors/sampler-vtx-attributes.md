@@ -1,5 +1,5 @@
 ---
-description: 'PCGEx | Sampler : Vtx Attributes'
+description: 'In editor → PCGEx | Sampler : Vtx Attributes'
 icon: circle-dashed
 ---
 

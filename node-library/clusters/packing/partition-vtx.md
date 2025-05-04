@@ -1,5 +1,5 @@
 ---
-description: 'PCGEx | Cluster : Partition Vtx'
+description: 'In editor → PCGEx | Cluster : Partition Vtx'
 icon: circle
 ---
 

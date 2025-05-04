@@ -1,5 +1,5 @@
 ---
-description: 'PCGEx | Sample : Nearest Bounds'
+description: 'In editor → PCGEx | Sample : Nearest Bounds'
 icon: circle
 ---
 

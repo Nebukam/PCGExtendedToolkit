@@ -1,5 +1,5 @@
 ---
-description: 'PCGEx | Pathfinding : Plot Navmesh'
+description: 'In editor → PCGEx | Pathfinding : Plot Navmesh'
 icon: scrubber
 ---
 

@@ -1,5 +1,5 @@
 ---
-description: 'PCGEx | Tensor : Inertia'
+description: 'In editor → PCGEx | Tensor : Inertia'
 icon: circle-dashed
 ---
 

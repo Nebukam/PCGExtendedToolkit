@@ -1,5 +1,5 @@
 ---
-description: 'PCGEx | Sample : Texture'
+description: 'In editor → PCGEx | Sample : Texture'
 icon: circle
 ---
 

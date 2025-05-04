@@ -1,5 +1,5 @@
 ---
-description: PCGEx | Collocation Count
+description: 'In editor → PCGEx | Collocation Count'
 icon: circle
 ---
 

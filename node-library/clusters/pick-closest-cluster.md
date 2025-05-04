@@ -1,5 +1,5 @@
 ---
-description: 'PCGEx | Cluster : Pick Closest'
+description: 'In editor → PCGEx | Cluster : Pick Closest'
 icon: circle
 ---
 

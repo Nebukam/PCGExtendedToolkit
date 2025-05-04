@@ -1,5 +1,5 @@
 ---
-description: 'PCGEx | Shape : Circle'
+description: 'In editor → PCGEx | Shape : Circle'
 icon: circle-dashed
 ---
 

@@ -1,5 +1,5 @@
 ---
-description: PCGEx | Bin Packing
+description: 'In editor → PCGEx | Bin Packing'
 icon: circle
 ---
 

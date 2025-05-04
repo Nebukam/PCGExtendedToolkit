@@ -1,5 +1,5 @@
 ---
-description: 'PCGEx | Cluster : Relax'
+description: 'In editor → PCGEx | Cluster : Relax'
 icon: scrubber
 ---
 

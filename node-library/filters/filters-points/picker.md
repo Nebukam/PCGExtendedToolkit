@@ -1,5 +1,5 @@
 ---
-description: 'PCGEx | Filter : Picker'
+description: 'In editor → PCGEx | Filter : Picker'
 icon: circle-dashed
 ---
 

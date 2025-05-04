@@ -1,5 +1,5 @@
 ---
-description: PCGEx | Attribute Stats
+description: 'In editor → PCGEx | Attribute Stats'
 icon: circle
 ---
 

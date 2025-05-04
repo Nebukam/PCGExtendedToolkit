@@ -1,5 +1,5 @@
 ---
-description: 'PCGEx | Cluster : Node Flag'
+description: 'In editor → PCGEx | Cluster : Node Flag'
 icon: circle-dashed
 ---
 

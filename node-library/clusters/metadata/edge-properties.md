@@ -1,5 +1,5 @@
 ---
-description: 'PCGEx | Cluster : Edge Properties'
+description: 'In editor → PCGEx | Cluster : Edge Properties'
 icon: circle
 ---
 

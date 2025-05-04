@@ -1,5 +1,5 @@
 ---
-description: 'PCGEx | Path : Crossings'
+description: 'In editor → PCGEx | Path : Crossings'
 icon: circle
 ---
 

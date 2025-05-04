@@ -1,5 +1,5 @@
 ---
-description: 'PCGEx | Cluster : Edge Order'
+description: 'In editor → PCGEx | Cluster : Edge Order'
 icon: circle
 ---
 

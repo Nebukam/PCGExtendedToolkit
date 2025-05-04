@@ -1,5 +1,5 @@
 ---
-description: 'PCGEx | Vtx : Special Neighbors'
+description: 'In editor → PCGEx | Vtx : Special Neighbors'
 icon: circle-dashed
 ---
 

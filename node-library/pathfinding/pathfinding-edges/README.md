@@ -1,5 +1,5 @@
 ---
-description: 'PCGEx | Pathfinding : Edges'
+description: 'In editor → PCGEx | Pathfinding : Edges'
 icon: scrubber
 ---
 

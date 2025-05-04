@@ -1,5 +1,5 @@
 ---
-description: 'PCGEx | Filter : GameplayTags'
+description: 'In editor → PCGEx | Filter : GameplayTags'
 icon: circle-dashed
 ---
 

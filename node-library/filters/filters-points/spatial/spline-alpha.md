@@ -1,5 +1,5 @@
 ---
-description: 'PCGEx | Filter : Spline Alpha'
+description: 'In editor → PCGEx | Filter : Spline Alpha'
 icon: circle-dashed
 ---
 

@@ -1,5 +1,5 @@
 ---
-description: PCGEx | Find Point on Bounds
+description: 'In editor → PCGEx | Find Point on Bounds'
 icon: circle
 ---
 

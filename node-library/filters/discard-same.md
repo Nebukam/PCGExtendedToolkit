@@ -1,5 +1,5 @@
 ---
-description: PCGEx | Discard Same
+description: 'In editor → PCGEx | Discard Same'
 icon: circle
 ---
 

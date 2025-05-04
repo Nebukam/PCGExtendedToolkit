@@ -1,5 +1,5 @@
 ---
-description: PCGEx | Batch Actions
+description: 'In editor → PCGEx | Batch Actions'
 icon: scrubber
 ---
 

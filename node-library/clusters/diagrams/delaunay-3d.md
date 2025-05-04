@@ -1,5 +1,5 @@
 ---
-description: 'PCGEx | Cluster : Delaunay 3D'
+description: 'In editor → PCGEx | Cluster : Delaunay 3D'
 icon: circle
 ---
 

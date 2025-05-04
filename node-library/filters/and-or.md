@@ -1,5 +1,5 @@
 ---
-description: 'PCGEx | Filter : AND // PCGEx | Filter : OR'
+description: 'In editor → PCGEx | Filter : AND // PCGEx | Filter : OR'
 icon: circle-dashed
 ---
 

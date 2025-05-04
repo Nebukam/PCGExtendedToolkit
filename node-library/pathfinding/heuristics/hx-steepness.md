@@ -1,5 +1,5 @@
 ---
-description: 'PCGEx | Heuristics : Steepness'
+description: 'In editor → PCGEx | Heuristics : Steepness'
 icon: circle-dashed
 ---
 

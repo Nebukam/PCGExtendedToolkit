@@ -1,5 +1,5 @@
 ---
-description: PCGEx | Write Index
+description: 'In editor → PCGEx | Write Index'
 icon: circle
 ---
 

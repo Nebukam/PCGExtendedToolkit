@@ -1,5 +1,5 @@
 ---
-description: PCGEx | Iterations
+description: 'In editor → PCGEx | Iterations'
 icon: circle
 ---
 

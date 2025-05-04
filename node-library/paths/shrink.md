@@ -1,5 +1,5 @@
 ---
-description: 'PCGEx | Path : Shrink'
+description: 'In editor → PCGEx | Path : Shrink'
 icon: circle
 ---
 

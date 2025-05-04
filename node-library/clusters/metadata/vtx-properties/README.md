@@ -1,5 +1,5 @@
 ---
-description: 'PCGEx | Cluster : Vtx Properties'
+description: 'In editor → PCGEx | Cluster : Vtx Properties'
 icon: scrubber
 ---
 

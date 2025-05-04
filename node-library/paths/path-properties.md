@@ -1,5 +1,5 @@
 ---
-description: 'PCGEx | Path : Properties'
+description: 'In editor → PCGEx | Path : Properties'
 icon: circle
 ---
 

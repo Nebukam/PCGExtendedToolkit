@@ -1,5 +1,5 @@
 ---
-description: 'PCGEx | Path : Attribute Rolling'
+description: 'In editor → PCGEx | Path : Attribute Rolling'
 icon: circle
 ---
 

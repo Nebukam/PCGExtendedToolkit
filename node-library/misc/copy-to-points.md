@@ -1,5 +1,5 @@
 ---
-description: PCGEx | Copy to Points
+description: 'In editor → PCGEx | Copy to Points'
 icon: circle
 ---
 

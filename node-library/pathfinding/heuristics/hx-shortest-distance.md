@@ -1,5 +1,5 @@
 ---
-description: 'PCGEx | Heuristics : Shortest Distance'
+description: 'In editor → PCGEx | Heuristics : Shortest Distance'
 icon: circle-dashed
 ---
 

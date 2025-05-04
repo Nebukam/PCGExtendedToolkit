@@ -1,5 +1,5 @@
 ---
-description: PCGEx | Refresh Seed
+description: 'In editor → PCGEx | Refresh Seed'
 icon: circle
 ---
 

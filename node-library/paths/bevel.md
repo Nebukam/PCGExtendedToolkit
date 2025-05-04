@@ -1,5 +1,5 @@
 ---
-description: 'PCGEx | Path : Bevel'
+description: 'In editor → PCGEx | Path : Bevel'
 icon: circle
 ---
 

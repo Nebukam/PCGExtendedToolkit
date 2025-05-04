@@ -1,5 +1,5 @@
 ---
-description: 'PCGEx | Sample : Line Trace'
+description: 'In editor → PCGEx | Sample : Line Trace'
 icon: circle
 ---
 

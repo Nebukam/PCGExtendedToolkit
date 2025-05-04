@@ -1,5 +1,5 @@
 ---
-description: PCGEx | Move Pivot
+description: 'In editor → PCGEx | Move Pivot'
 icon: circle
 ---
 

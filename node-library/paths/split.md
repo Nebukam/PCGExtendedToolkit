@@ -1,5 +1,5 @@
 ---
-description: 'PCGEx | Path : Split'
+description: 'In editor → PCGEx | Path : Split'
 icon: circle
 ---
 

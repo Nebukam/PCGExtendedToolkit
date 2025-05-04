@@ -1,5 +1,5 @@
 ---
-description: 'PCGEx | Cluster : Break to Paths'
+description: 'In editor → PCGEx | Cluster : Break to Paths'
 icon: circle
 ---
 
