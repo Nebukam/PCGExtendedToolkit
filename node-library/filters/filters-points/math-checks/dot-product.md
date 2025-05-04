@@ -1,5 +1,5 @@
 ---
-description: 'PCGEx | Filter : Dot Product'
+description: 'PCGEx | Filter : Dot'
 icon: circle-dashed
 ---
 

@@ -1,5 +1,5 @@
 ---
-description: 'PCGEx | Filter : Compare (Boolean)'
+description: 'PCGEx | Filter : Bool Compare'
 icon: circle-dashed
 ---
 

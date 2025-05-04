@@ -1,5 +1,5 @@
 ---
-description: 'PCGEx | Filter : Modulo Comparison'
+description: 'PCGEx | Filter : Modulo Compare'
 icon: circle-dashed
 ---
 

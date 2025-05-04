@@ -1,5 +1,5 @@
 ---
-description: 'PCGEx | Filter : Mean Value'
+description: 'PCGEx | Filter : GameplayTags'
 icon: circle-dashed
 ---
 

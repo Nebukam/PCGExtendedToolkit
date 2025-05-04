@@ -1,4 +1,5 @@
 ---
+description: 'PCGEx | Filter : Tensor Dot'
 icon: circle-dashed
 ---
 

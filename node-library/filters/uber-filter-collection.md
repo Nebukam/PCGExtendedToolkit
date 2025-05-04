@@ -1,4 +1,5 @@
 ---
+description: PCGEx | Uber Filter (Collection)
 icon: scrubber
 ---
 

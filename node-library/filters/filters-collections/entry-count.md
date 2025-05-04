@@ -1,4 +1,5 @@
 ---
+description: 'PCGEx | C-Filter : Entry Count'
 icon: circle-dashed
 ---
 

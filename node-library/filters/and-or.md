@@ -1,5 +1,5 @@
 ---
-description: Conditional branching with filters
+description: 'PCGEx | Filter : AND // PCGEx | Filter : OR'
 icon: circle-dashed
 ---
 

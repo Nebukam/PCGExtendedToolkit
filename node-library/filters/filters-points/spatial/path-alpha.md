@@ -1,5 +1,5 @@
 ---
-description: 'PCGEx | Filter : Mean Value'
+description: 'PCGEx | Filter : Path Alpha'
 icon: circle-dashed
 ---
 
