@@ -43,6 +43,8 @@
     * [Bitmask](node-library/filters/filters-points/bitmask.md)
     * [Random](node-library/filters/filters-points/random.md)
     * [Gameplay Tags](node-library/filters/filters-points/gameplay-tags.md)
+    * [Picker](node-library/filters/filters-points/picker.md)
+    * [Constant](node-library/filters/filters-points/constant.md)
     * [Simple Comparisons](node-library/filters/filters-points/simple-comparisons/README.md)
       * [String](node-library/filters/filters-points/simple-comparisons/string.md)
       * [Numeric](node-library/filters/filters-points/simple-comparisons/numeric.md)
