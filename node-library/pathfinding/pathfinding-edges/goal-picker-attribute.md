@@ -1,6 +1,6 @@
 ---
 description: Index Attribute
-icon: rectangles-mixed
+icon: sliders
 ---
 
 # Goal Picker : Attribute

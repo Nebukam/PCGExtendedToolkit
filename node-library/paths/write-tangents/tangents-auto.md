@@ -1,0 +1,6 @@
+---
+icon: sliders
+---
+
+# Tangents : Auto
+

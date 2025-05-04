@@ -1,0 +1,6 @@
+---
+icon: sliders
+---
+
+# Orient : Weighted
+

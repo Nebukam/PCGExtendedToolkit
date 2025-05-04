@@ -1,6 +1,6 @@
 ---
 description: Default
-icon: rectangles-mixed
+icon: sliders
 ---
 
 # Goal Picker (Default)

@@ -1,0 +1,6 @@
+---
+icon: sliders
+---
+
+# Inherit Start
+

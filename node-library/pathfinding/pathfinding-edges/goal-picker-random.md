@@ -1,6 +1,6 @@
 ---
 description: Random
-icon: rectangles-mixed
+icon: sliders
 ---
 
 # Goal Picker : Random

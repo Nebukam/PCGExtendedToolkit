@@ -26,7 +26,10 @@ The PCG Extended Toolkit (_PCGEx for short_) is an open source plugin that exten
 
 It also comes with a lot of quality of life nodes, with support for a wide range of situations — even some very unique and niche things.
 
-
+{% hint style="danger" %}
+This is a WIP revamp of the original documentation.\
+For per-node infos go here for now : [https://nebukam.github.io/PCGExtendedToolkit/](https://nebukam.github.io/PCGExtendedToolkit/)
+{% endhint %}
 
 ### Jump right in
 
@@ -92,8 +95,8 @@ PCGEx has a lot to offer when it comes to manipulating paths (think splines befo
 
 <figure><img src=".gitbook/assets/placeholder-wide.jpg" alt=""><figcaption></figcaption></figure>
 
-{% content-ref url="node-library/paths.md" %}
-[paths.md](node-library/paths.md)
+{% content-ref url="node-library/paths/" %}
+[paths](node-library/paths/)
 {% endcontent-ref %}
 
 ### Quality of Life
@@ -106,6 +109,6 @@ Last but not least, there is a lot of QoL nodes designed to reduce the need & us
 [assets-management](node-library/assets-management/)
 {% endcontent-ref %}
 
-{% content-ref url="node-library/misc.md" %}
-[misc.md](node-library/misc.md)
+{% content-ref url="node-library/misc/" %}
+[misc](node-library/misc/)
 {% endcontent-ref %}

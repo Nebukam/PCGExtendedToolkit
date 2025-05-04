@@ -1,5 +1,5 @@
 ---
-icon: square-small
+icon: rectangles-mixed
 ---
 
 # Mesh Collection

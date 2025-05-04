@@ -1,6 +1,6 @@
 ---
 description: All
-icon: rectangles-mixed
+icon: sliders
 ---
 
 # Goal Picker : All
