@@ -1,5 +1,5 @@
 ---
-description: 'In editor → PCGEx | Fill Control : Count'
+description: 'In editor :: PCGEx | Fill Control : Count'
 icon: circle-dashed
 ---
 

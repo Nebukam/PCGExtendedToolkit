@@ -1,5 +1,5 @@
 ---
-description: 'In editor → PCGEx | Flat Projection'
+description: 'In editor :: PCGEx | Flat Projection'
 icon: circle
 ---
 

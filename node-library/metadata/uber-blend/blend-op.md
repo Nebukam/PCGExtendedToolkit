@@ -1,5 +1,5 @@
 ---
-description: 'In editor → PCGEx | BlendOp'
+description: 'In editor :: PCGEx | BlendOp'
 icon: circle-dashed
 ---
 

@@ -1,5 +1,5 @@
 ---
-description: 'In editor → PCGEx | Filter : Dot'
+description: 'In editor :: PCGEx | Filter : Dot'
 icon: circle-dashed
 ---
 

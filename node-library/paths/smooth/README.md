@@ -1,5 +1,5 @@
 ---
-description: 'In editor → PCGEx | Path : Smooth'
+description: 'In editor :: PCGEx | Path : Smooth'
 icon: circle
 ---
 

@@ -1,5 +1,5 @@
 ---
-description: 'In editor → PCGEx | Pack Actor Data'
+description: 'In editor :: PCGEx | Pack Actor Data'
 icon: scrubber
 ---
 

@@ -1,5 +1,5 @@
 ---
-description: 'In editor → PCGEx | Heuristics : Inertia'
+description: 'In editor :: PCGEx | Heuristics : Inertia'
 icon: circle-dashed
 ---
 

@@ -1,5 +1,5 @@
 ---
-description: 'In editor → PCGEx | Filter : Within Range'
+description: 'In editor :: PCGEx | Filter : Within Range'
 icon: circle-dashed
 ---
 

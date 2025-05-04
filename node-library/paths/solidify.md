@@ -1,5 +1,5 @@
 ---
-description: 'In editor → PCGEx | Path : Solidify'
+description: 'In editor :: PCGEx | Path : Solidify'
 icon: circle
 ---
 

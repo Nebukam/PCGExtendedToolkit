@@ -1,5 +1,5 @@
 ---
-description: 'In editor → PCGEx | Fill Control : Vtx Filters'
+description: 'In editor :: PCGEx | Fill Control : Vtx Filters'
 icon: circle-dashed
 ---
 

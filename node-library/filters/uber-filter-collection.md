@@ -1,5 +1,5 @@
 ---
-description: 'In editor → PCGEx | Uber Filter (Collection)'
+description: 'In editor :: PCGEx | Uber Filter (Collection)'
 icon: scrubber
 ---
 

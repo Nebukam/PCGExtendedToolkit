@@ -1,5 +1,5 @@
 ---
-description: 'In editor → PCGEx | Path : Orient'
+description: 'In editor :: PCGEx | Path : Orient'
 icon: circle
 ---
 

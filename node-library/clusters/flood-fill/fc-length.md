@@ -1,5 +1,5 @@
 ---
-description: 'In editor → PCGEx | Fill Control : Length'
+description: 'In editor :: PCGEx | Fill Control : Length'
 icon: circle-dashed
 ---
 

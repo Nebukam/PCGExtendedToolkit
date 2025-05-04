@@ -1,5 +1,5 @@
 ---
-description: 'In editor → PCGEx | Tensor : Pole'
+description: 'In editor :: PCGEx | Tensor : Pole'
 icon: circle-dashed
 ---
 

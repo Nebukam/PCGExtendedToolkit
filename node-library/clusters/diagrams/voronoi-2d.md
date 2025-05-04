@@ -1,5 +1,5 @@
 ---
-description: 'In editor → PCGEx | Cluster : Voronoi 2D'
+description: 'In editor :: PCGEx | Cluster : Voronoi 2D'
 icon: circle
 ---
 

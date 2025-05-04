@@ -1,5 +1,5 @@
 ---
-description: 'In editor → PCGEx | Get GUID'
+description: 'In editor :: PCGEx | Get GUID'
 icon: circle
 ---
 

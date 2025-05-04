@@ -1,5 +1,5 @@
 ---
-description: 'In editor → PCGEx | Vtx : Special Edges'
+description: 'In editor :: PCGEx | Vtx : Special Edges'
 icon: circle-dashed
 ---
 

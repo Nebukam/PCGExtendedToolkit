@@ -1,5 +1,5 @@
 ---
-description: 'In editor → PCGEx | Heuristics : Tensor'
+description: 'In editor :: PCGEx | Heuristics : Tensor'
 icon: circle-dashed
 ---
 

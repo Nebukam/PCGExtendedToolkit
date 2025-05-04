@@ -1,5 +1,5 @@
 ---
-description: 'In editor → PCGEx | Attribute Hash'
+description: 'In editor :: PCGEx | Attribute Hash'
 icon: circle
 ---
 

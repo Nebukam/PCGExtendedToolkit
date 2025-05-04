@@ -1,5 +1,5 @@
 ---
-description: 'In editor → PCGEx | Vtx : Amplitude'
+description: 'In editor :: PCGEx | Vtx : Amplitude'
 icon: circle-dashed
 ---
 

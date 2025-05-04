@@ -1,5 +1,5 @@
 ---
-description: 'In editor → PCGEx | Bounds Axis To Points'
+description: 'In editor :: PCGEx | Bounds Axis To Points'
 icon: circle
 ---
 

@@ -1,5 +1,5 @@
 ---
-description: 'In editor → PCGEx | C-Filter : Entry Count'
+description: 'In editor :: PCGEx | C-Filter : Entry Count'
 icon: circle-dashed
 ---
 

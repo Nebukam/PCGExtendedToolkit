@@ -1,5 +1,5 @@
 ---
-description: 'In editor → PCGEx | Tensor : Path Flow'
+description: 'In editor :: PCGEx | Tensor : Path Flow'
 icon: circle-dashed
 ---
 

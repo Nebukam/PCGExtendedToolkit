@@ -1,5 +1,5 @@
 ---
-description: 'In editor → PCGEx | Path : Spline Mesh'
+description: 'In editor :: PCGEx | Path : Spline Mesh'
 icon: circle
 ---
 

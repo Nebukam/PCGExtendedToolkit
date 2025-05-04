@@ -1,5 +1,5 @@
 ---
-description: 'In editor → PCGEx | Uber Blend'
+description: 'In editor :: PCGEx | Uber Blend'
 icon: scrubber
 ---
 

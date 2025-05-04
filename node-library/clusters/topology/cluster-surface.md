@@ -1,5 +1,5 @@
 ---
-description: 'In editor → PCGEx | Topology : Cluster Surface'
+description: 'In editor :: PCGEx | Topology : Cluster Surface'
 icon: circle
 ---
 

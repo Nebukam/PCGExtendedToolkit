@@ -1,5 +1,5 @@
 ---
-description: 'In editor → PCGEx | Heuristics : Attribute'
+description: 'In editor :: PCGEx | Heuristics : Attribute'
 icon: circle-dashed
 ---
 

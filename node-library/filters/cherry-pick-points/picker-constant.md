@@ -1,5 +1,5 @@
 ---
-description: 'In editor → PCGEx | Picker : Constant'
+description: 'In editor :: PCGEx | Picker : Constant'
 icon: circle-dashed
 ---
 

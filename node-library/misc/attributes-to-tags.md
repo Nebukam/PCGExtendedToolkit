@@ -1,5 +1,5 @@
 ---
-description: 'In editor → PCGEx | Attributes to Tags'
+description: 'In editor :: PCGEx | Attributes to Tags'
 icon: circle
 ---
 

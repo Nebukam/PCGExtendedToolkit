@@ -1,5 +1,5 @@
 ---
-description: 'In editor → PCGEx | Vtx Filter : Edge Direction'
+description: 'In editor :: PCGEx | Vtx Filter : Edge Direction'
 icon: circle-dashed
 ---
 

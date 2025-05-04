@@ -1,5 +1,5 @@
 ---
-description: 'In editor → PCGEx | Constants'
+description: 'In editor :: PCGEx | Constants'
 icon: circle
 ---
 

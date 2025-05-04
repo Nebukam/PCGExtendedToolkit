@@ -1,5 +1,5 @@
 ---
-description: 'In editor → PCGEx | Bitmask Operation'
+description: 'In editor :: PCGEx | Bitmask Operation'
 icon: circle
 ---
 

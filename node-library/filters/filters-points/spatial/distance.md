@@ -1,5 +1,5 @@
 ---
-description: 'In editor → PCGEx | Filter : Distance'
+description: 'In editor :: PCGEx | Filter : Distance'
 icon: circle-dashed
 ---
 

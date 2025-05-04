@@ -1,5 +1,5 @@
 ---
-description: 'In editor → PCGEx | Filter : Path Inclusion'
+description: 'In editor :: PCGEx | Filter : Path Inclusion'
 icon: circle-dashed
 ---
 

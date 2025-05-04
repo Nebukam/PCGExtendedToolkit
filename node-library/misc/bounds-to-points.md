@@ -1,5 +1,5 @@
 ---
-description: 'In editor → PCGEx | Bounds to Points'
+description: 'In editor :: PCGEx | Bounds to Points'
 icon: circle
 ---
 

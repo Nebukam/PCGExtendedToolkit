@@ -1,5 +1,5 @@
 ---
-description: 'In editor → PCGEx | Sampler : Test Neighbors'
+description: 'In editor :: PCGEx | Sampler : Test Neighbors'
 icon: circle-dashed
 ---
 

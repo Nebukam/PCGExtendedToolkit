@@ -1,5 +1,5 @@
 ---
-description: 'In editor → PCGEx | Cluster : Cut'
+description: 'In editor :: PCGEx | Cluster : Cut'
 icon: circle
 ---
 

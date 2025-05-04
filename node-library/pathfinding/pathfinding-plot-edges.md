@@ -1,5 +1,5 @@
 ---
-description: 'In editor → PCGEx | Pathfinding : Plot Edges'
+description: 'In editor :: PCGEx | Pathfinding : Plot Edges'
 icon: scrubber
 ---
 

@@ -1,5 +1,5 @@
 ---
-description: 'In editor → PCGEx | Filter : Compare Nearest (Numeric)'
+description: 'In editor :: PCGEx | Filter : Compare Nearest (Numeric)'
 icon: circle-dashed
 ---
 

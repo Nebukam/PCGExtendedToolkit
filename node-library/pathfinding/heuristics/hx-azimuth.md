@@ -1,5 +1,5 @@
 ---
-description: 'In editor → PCGEx | Heuristics : Azimuth'
+description: 'In editor :: PCGEx | Heuristics : Azimuth'
 icon: circle-dashed
 ---
 

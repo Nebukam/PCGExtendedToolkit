@@ -1,5 +1,5 @@
 ---
-description: 'In editor → PCGEx | Fill Control : Running Average'
+description: 'In editor :: PCGEx | Fill Control : Running Average'
 icon: circle-dashed
 ---
 

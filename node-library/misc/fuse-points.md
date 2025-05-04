@@ -1,5 +1,5 @@
 ---
-description: 'In editor → PCGEx | Fuse Points'
+description: 'In editor :: PCGEx | Fuse Points'
 icon: circle
 ---
 

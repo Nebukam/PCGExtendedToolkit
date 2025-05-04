@@ -1,5 +1,5 @@
 ---
-description: 'In editor → PCGEx | Fill Control : Keep Direction'
+description: 'In editor :: PCGEx | Fill Control : Keep Direction'
 icon: circle-dashed
 ---
 

@@ -1,5 +1,5 @@
 ---
-description: 'In editor → PCGEx | Path : Offset'
+description: 'In editor :: PCGEx | Path : Offset'
 icon: circle
 ---
 

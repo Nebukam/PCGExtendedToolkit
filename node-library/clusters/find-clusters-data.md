@@ -1,5 +1,5 @@
 ---
-description: 'In editor → PCGEx | Find Clusters'
+description: 'In editor :: PCGEx | Find Clusters'
 icon: circle
 ---
 

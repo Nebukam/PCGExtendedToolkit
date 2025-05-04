@@ -1,5 +1,5 @@
 ---
-description: 'In editor → PCGEx | Edge Filter : Endpoints Compare (String)'
+description: 'In editor :: PCGEx | Edge Filter : Endpoints Compare (String)'
 icon: circle-dashed
 ---
 

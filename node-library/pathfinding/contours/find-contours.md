@@ -1,5 +1,5 @@
 ---
-description: 'In editor → PCGEx | Pathfinding : Find Contours'
+description: 'In editor :: PCGEx | Pathfinding : Find Contours'
 icon: circle
 ---
 

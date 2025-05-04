@@ -1,5 +1,5 @@
 ---
-description: 'In editor → PCGEx | Cherry Pick Points'
+description: 'In editor :: PCGEx | Cherry Pick Points'
 icon: scrubber
 ---
 

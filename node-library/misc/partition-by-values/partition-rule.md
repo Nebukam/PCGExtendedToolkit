@@ -1,5 +1,5 @@
 ---
-description: 'In editor → PCGEx | Partition Rule'
+description: 'In editor :: PCGEx | Partition Rule'
 icon: circle-dashed
 ---
 

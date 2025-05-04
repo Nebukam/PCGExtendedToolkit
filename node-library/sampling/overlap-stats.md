@@ -1,5 +1,5 @@
 ---
-description: 'In editor → PCGEx | Sample : Overlap Stats'
+description: 'In editor :: PCGEx | Sample : Overlap Stats'
 icon: circle
 ---
 

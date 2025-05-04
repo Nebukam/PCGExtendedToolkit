@@ -1,5 +1,5 @@
 ---
-description: 'In editor → PCGEx | Tensor : Constant'
+description: 'In editor :: PCGEx | Tensor : Constant'
 icon: circle-dashed
 ---
 

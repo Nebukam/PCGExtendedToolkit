@@ -1,5 +1,5 @@
 ---
-description: 'In editor → PCGEx | Path : Fuse Collinear'
+description: 'In editor :: PCGEx | Path : Fuse Collinear'
 icon: circle
 ---
 

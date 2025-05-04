@@ -1,5 +1,5 @@
 ---
-description: 'In editor → PCGEx | Filter : Mean Value'
+description: 'In editor :: PCGEx | Filter : Mean Value'
 icon: circle-dashed
 ---
 

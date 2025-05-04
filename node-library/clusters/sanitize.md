@@ -1,5 +1,5 @@
 ---
-description: 'In editor → PCGEx | Cluster : Sanitize'
+description: 'In editor :: PCGEx | Cluster : Sanitize'
 icon: circle
 ---
 

@@ -1,5 +1,5 @@
 ---
-description: 'In editor → PCGEx | Get Texture Data'
+description: 'In editor :: PCGEx | Get Texture Data'
 icon: scrubber
 ---
 

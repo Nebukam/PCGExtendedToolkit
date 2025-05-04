@@ -1,5 +1,5 @@
 ---
-description: 'In editor → PCGEx | Edge Filter : Neighbors Count'
+description: 'In editor :: PCGEx | Edge Filter : Neighbors Count'
 icon: circle-dashed
 ---
 

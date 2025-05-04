@@ -1,5 +1,5 @@
 ---
-description: 'In editor → PCGEx | Partition by Values'
+description: 'In editor :: PCGEx | Partition by Values'
 icon: scrubber
 ---
 

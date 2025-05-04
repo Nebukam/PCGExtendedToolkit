@@ -1,5 +1,5 @@
 ---
-description: 'In editor → PCGEx | Destroy Actor'
+description: 'In editor :: PCGEx | Destroy Actor'
 icon: circle
 ---
 

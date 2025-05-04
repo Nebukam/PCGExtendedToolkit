@@ -1,5 +1,5 @@
 ---
-description: 'In editor → PCGEx | Tensors Transform'
+description: 'In editor :: PCGEx | Tensors Transform'
 icon: scrubber
 ---
 
