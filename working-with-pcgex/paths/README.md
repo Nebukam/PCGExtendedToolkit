@@ -2,11 +2,12 @@
 icon: ellipsis
 ---
 
-# ... Paths
+# Paths
 
 Key takeaway:\
 \- Paths are just ordered points\
 \- Blah blah blah\
 
 
-Make a problem-solving oriented FAQ-ish, like "Frequent problem to solve"
+Babble about :\
+\- Debug display for paths, because it's useful

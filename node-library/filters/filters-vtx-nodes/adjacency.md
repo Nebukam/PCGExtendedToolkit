@@ -1,0 +1,6 @@
+---
+icon: circle-dashed
+---
+
+# Adjacency
+

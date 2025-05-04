@@ -41,4 +41,4 @@ Once you have a grasp on how things work from afar, you can take things a step f
 _There are many good answer, and many wrong ones — some approaches will yield poor performance or poor maintainability of your content._
 {% endhint %}
 
-<table data-view="cards"><thead><tr><th></th></tr></thead><tbody><tr><td>Procedural Minds</td></tr><tr><td>AzielArt</td></tr><tr><td>DK 3D</td></tr></tbody></table>
+<table data-view="cards"><thead><tr><th>Channel</th></tr></thead><tbody><tr><td>Procedural Minds</td></tr><tr><td>AzielArt</td></tr><tr><td>DK 3D</td></tr></tbody></table>
