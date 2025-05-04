@@ -20,11 +20,15 @@ layout:
 
 # Welcome
 
-## What's PCGEx?
+## What is PCGEx?
 
 The PCG Extended Toolkit (_PCGEx for short_) is an open source plugin that extends Unreal Engine’ Procedural Content Generation pipeline, with a focus on **building spatial relationships between points** and **path manipulation**.
 
 It also comes with a lot of quality of life nodes, with support for a wide range of situations — even some very unique and niche things.
+
+{% hint style="success" %}
+PCGEx is available for Unreal **5.3**, **5.4**, **5.5**, and soon **5.6**.
+{% endhint %}
 
 {% hint style="danger" %}
 This is a WIP revamp of the original documentation.\
@@ -104,11 +108,3 @@ PCGEx has a lot to offer when it comes to manipulating paths (think splines befo
 Last but not least, there is a lot of QoL nodes designed to reduce the need & use of loop subgraphs as much as possible, extract information & statistics in new ways, manage & prepare data for spawning, creating graph dependency chains at runtime, ... At the time of writing, there's more than 200 nodes in the library.
 
 <figure><img src=".gitbook/assets/placeholder-wide.jpg" alt=""><figcaption></figcaption></figure>
-
-{% content-ref url="node-library/assets-management/" %}
-[assets-management](node-library/assets-management/)
-{% endcontent-ref %}
-
-{% content-ref url="node-library/misc/" %}
-[misc](node-library/misc/)
-{% endcontent-ref %}
