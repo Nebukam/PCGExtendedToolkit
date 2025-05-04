@@ -1,4 +1,5 @@
 ---
+description: 'PCGEx | Pathfinding : Plot Edges'
 icon: scrubber
 ---
 

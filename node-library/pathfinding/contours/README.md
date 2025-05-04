@@ -1,5 +1,5 @@
 ---
-icon: grid-round-2
+icon: grid-round-2-plus
 ---
 
 # Contours

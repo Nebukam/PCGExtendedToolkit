@@ -5,4 +5,4 @@ icon: circle
 
 # Toggle Topology
 
-<a href="../clusters/contours.md#constraints-settings" class="button secondary">Constraints Settings</a>
+<a href="../pathfinding/contours/#constraints-settings" class="button secondary">Constraints Settings</a>

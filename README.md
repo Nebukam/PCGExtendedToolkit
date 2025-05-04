@@ -65,8 +65,8 @@ PCGEx comes with a tensor field ecosystem that seamlessly integrate with all oth
 
 <figure><img src=".gitbook/assets/placeholder-wide.jpg" alt=""><figcaption></figcaption></figure>
 
-{% content-ref url="node-library/tensors.md" %}
-[tensors.md](node-library/tensors.md)
+{% content-ref url="node-library/tensors/" %}
+[tensors](node-library/tensors/)
 {% endcontent-ref %}
 
 ### Modular filters
@@ -85,8 +85,8 @@ PCGEx has a variety of data samplers for points, splines, textures that streamli
 
 <figure><img src=".gitbook/assets/placeholder-wide.jpg" alt=""><figcaption></figcaption></figure>
 
-{% content-ref url="node-library/sampling.md" %}
-[sampling.md](node-library/sampling.md)
+{% content-ref url="node-library/sampling/" %}
+[sampling](node-library/sampling/)
 {% endcontent-ref %}
 
 ### Paths Manipulation
