@@ -317,3 +317,8 @@
   * [Lloyd Relax 2D](node-library/transform/lloyd-relax-2d.md)
   * [Lloyd Relax 3D](node-library/transform/lloyd-relax-3d.md)
   * [Move Pivot](node-library/transform/move-pivot.md)
+
+## Infos
+
+* [Roadmap](infos/roadmap.md)
+* [About](infos/about.md)
