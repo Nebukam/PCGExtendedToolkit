@@ -322,5 +322,5 @@
 
 ## Infos
 
-* [Roadmap](infos/roadmap.md)
+* [FAQ](infos/faq.md)
 * [About](infos/about.md)

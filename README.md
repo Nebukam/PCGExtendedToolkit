@@ -30,11 +30,6 @@ It also comes with a lot of quality of life nodes, with support for a wide range
 PCGEx is available for Unreal **5.3**, **5.4**, **5.5**, and soon **5.6**.
 {% endhint %}
 
-{% hint style="danger" %}
-This is a WIP revamp of the original documentation.\
-For per-node infos go here for now : [https://nebukam.github.io/PCGExtendedToolkit/](https://nebukam.github.io/PCGExtendedToolkit/)
-{% endhint %}
-
 ### Jump right in
 
 <table data-view="cards"><thead><tr><th></th><th></th><th data-hidden data-card-cover data-type="files"></th><th data-hidden></th><th data-hidden data-card-target data-type="content-ref"></th></tr></thead><tbody><tr><td><strong>Quickstart</strong></td><td>Requirements &#x26; Installation</td><td></td><td></td><td><a href="basics/quickstart/">quickstart</a></td></tr><tr><td><strong>Basics</strong></td><td>Learn the basics of PCGEx</td><td></td><td></td><td><a href="basics/pcgex-101/">pcgex-101</a></td></tr><tr><td><strong>Join the community!</strong></td><td>Come join the Discord</td><td></td><td></td><td><a href="https://discord.gg/U6FkuwTn">https://discord.gg/U6FkuwTn</a></td></tr></tbody></table>
