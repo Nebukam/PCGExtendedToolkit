@@ -79,7 +79,7 @@ namespace PCGExGeo
 			Cuts.Sort(
 				[&](const FCut& A, const FCut& B)
 				{
-					return FVector::DistSquared(StartPosition, B.Position) < FVector::DistSquared(StartPosition, B.Position);
+					return FVector::DistSquared(StartPosition, A.Position) < FVector::DistSquared(StartPosition, B.Position);
 				});
 		}
 
@@ -210,8 +210,8 @@ namespace PCGExGeo
 		template <EPCGExBoxCheckMode Mode = EPCGExBoxCheckMode::Box>
 		bool IsInside(const FVector& Position) const
 		{
-			if constexpr (Mode == EPCGExBoxCheckMode::Box) { return BoxExpanded.IsInside(Matrix.InverseTransformPosition(Position)); }
-			else if constexpr (Mode == EPCGExBoxCheckMode::ExpandedBox) { return Box.IsInside(Matrix.InverseTransformPosition(Position)); }
+			if constexpr (Mode == EPCGExBoxCheckMode::ExpandedBox) { return BoxExpanded.IsInside(Matrix.InverseTransformPosition(Position)); }
+			else if constexpr (Mode == EPCGExBoxCheckMode::Box) { return Box.IsInside(Matrix.InverseTransformPosition(Position)); }
 			else if constexpr (Mode == EPCGExBoxCheckMode::Sphere) { return (SearchableBounds.Origin - Position).SizeSquared() <= RadiusSquared; }
 			else { return (SearchableBounds.Origin - Position).SizeSquared() <= RadiusSquaredExpanded; }
 		}
