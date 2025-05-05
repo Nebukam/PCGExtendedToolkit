@@ -5,8 +5,8 @@ icon: ellipsis
 # Paths
 
 Key takeaway:\
-\- Paths are just ordered points\
-\- Blah blah blah\
+\- A path requires at least two points\
+\- Closed paths with only two points may create arithmetic anomalies in some cases\
 
 
 Babble about :\

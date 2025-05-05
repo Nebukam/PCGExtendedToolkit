@@ -22,7 +22,7 @@ The major advantage of sub-nodes is all-over flexibility, inversion of control, 
 
 * They can be gathered
 * They can be rerouted
-* They can go be passed around using subgraph pins
+* They can be passed around using subgraph pins
 
 <figure><img src="../../../.gitbook/assets/image (1) (1).png" alt=""><figcaption></figcaption></figure>
 

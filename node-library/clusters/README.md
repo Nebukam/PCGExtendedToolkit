@@ -8,3 +8,8 @@ icon: grid-round-2
 [clusters](../../working-with-pcgex/clusters/)
 {% endcontent-ref %}
 
+
+
+## Edge Direction
+
+TODO : Edge direction settings

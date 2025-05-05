@@ -4,40 +4,53 @@ icon: vector-square
 
 # Clusters
 
-Key takeaway:\
-\- Vtx and Edges are separated but bounds by tags\
-\- A single Vtx dataset covers multiple dataset by default\
-\- A single Edge dataset represent a connectivity "cluster"\
-\- Edges and Vtx are still "just points"\
-\- No triangles, only edges
+Clusters in PCGEx refers to two intertwined piece of data, Vtx and Edges, that once combined form a transient graph structure that represent connectivity between points.
 
-### Removing Vtx or Edges points with vanilla nodes
+<figure><img src="../../.gitbook/assets/placeholder-wide.jpg" alt=""><figcaption></figcaption></figure>
 
-You can work on Vtx and Edges points the same way you would any other point data in your PCG graph. However, there is one important edge case : **if your remove any points from any of these datasets, you will need to sanitize the clusters before they can be use again by PCGEx nodes**.
+Vtx represent the points (or _nodes,_ in [graph theory](https://en.wikipedia.org/wiki/Graph_theory)), and a single edge represent a connection between two unique vertices. There is a few high level rules that are always true:
 
-> Cluster operations rely on the assumption that **a single Edge dataset only contains interconnected data.** If you remove edges or vtx "manually" (_e.g without PCGEx knowing about it first-hand_) this assumption is not guaranteed to be true anymore.
+{% stepper %}
+{% step %}
+#### Each edge is unique
+
+Each edge represent a unique connection between two points, and there can be no duplicate. You don't have to do anything about that, it's just the way it works — _edge data simply cannot contain more than once a connection between the same two points._
+{% endstep %}
+
+{% step %}
+#### Edges are undirected in nature
+
+Edges don't store any "direction" data per-se. AB is the same as BA (_see the rule above_).
+
+If direction matters, nodes will let you choose how that direction should be determined at the time of processing.
+{% endstep %}
+
+{% step %}
+#### Clusters are not geometry
+
+This is an important one in the context of real-time graphics : **PCGEx clusters are not geometry**. There is no concept of triangles, surface or anything like that. Just pure, abstract relationships.
+
+> The goal however is to leverage those relationships and transform them into something that's immediately useful — but having that initial abstract connectivity data is key.
+{% endstep %}
+{% endstepper %}
+
+### Why would you need clusters?
+
+Being able to know and manipulate the idea of connectivity between points _precisely_ opens up a world of possibility when it comes to procedural generation.
+
+> Emphasis on precisely — there's a lot of what PCGEx outputs that you might be able to approximate roughly with the vanilla framework! And there's also a lot that's simply not possible to achieve without PCGEx.&#x20;
 >
-> Sanitizing a Cluster ensures that the interconnectivity is valid, and that edge data is properly partitioned to reflect that.
->
-> As a result, sanitizing clusters may create new, smaller edges datasets.
+> Associating data to the connections themselves as opposed to only endpoints enables a world of possibilities.
+
+### Again, just points.
 
 {% hint style="success" %}
-**Changing points properties and attributes can be done safely,** **and does not require cluster sanitization.**
+**Vtx and Edges points, despite their custom labels, are no different from any other points.** \
+Their key data is stored in regular attributes for everyone to see — no catch!
 {% endhint %}
 
-{% hint style="success" %}
-Unless specified otherwise, PCGEx nodes that deal will clusters will always output working data, so **you should never have to sanitize the output of a PCGEx node**.
-{% endhint %}
+It's worth hammering that PCGEx is leveraging point data to store and represent that connectivity in a way that's spatially meaningful (_i.e., edges default position is exactly between the two vertices it connects_).
 
-## Don't mess with PCGEx/
+Hence, both Vtx and Edges are "just points", exactly like the you get out of a landscape sampler.\
+There's obviously more technicalities when it comes to using them with PCGEx, which you can read about in more depth in the [Working with Clusters](../../working-with-pcgex/clusters/) section.
 
-What makes PCGEx points _peeceegeeayksey_ are special attributes & tags — all of which are conveniently prefixed with `PCGEx/`.
-
-{% hint style="danger" %}
-**PCGEx rely on these to work, serialize internal data, and maintain vtx/edge relationships.**\
-If you're curious, you can read more about the how's and why's in the dedicated technical note.
-{% endhint %}
-
-{% content-ref url="clusters/technical-note-clusters.md" %}
-[technical-note-clusters.md](clusters/technical-note-clusters.md)
-{% endcontent-ref %}

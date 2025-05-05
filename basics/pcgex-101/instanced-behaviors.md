@@ -8,13 +8,13 @@ Much like [sub-nodes](sub-nodes/) and the vanilla plugin, PCG make use of instan
 
 These are logical "pieces" that you will be required to select from a list in order for the a given node to be fully functional. This pattern is used when **only a single behavior can be handled by a node at any given time**; as opposed to the more flexible, additive nature of the sub-nodes.
 
+<figure><img src="../../.gitbook/assets/placeholder-wide.jpg" alt=""><figcaption></figcaption></figure>
+
 This is very handy to avoid node bloating _(\*cough\*)_ however it comes with a few downsides:
 
 * Instanced behavior cannot be dynamically overridden.
 * Instanced behaviors parameters cannot be _easily_ overridden.
 * It requires a few extra clicks to access their exposed settings, if any.
-
-<figure><img src="../../.gitbook/assets/placeholder-wide.jpg" alt=""><figcaption></figcaption></figure>
 
 ### Overriding Instance Behavior Parameters
 

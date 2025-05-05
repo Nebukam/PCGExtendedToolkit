@@ -11,12 +11,12 @@
 * [PCGEx 101](basics/pcgex-101/README.md)
   * [Technical Note : PCGEx Framework](basics/pcgex-101/technical-note-pcgex-framework.md)
   * [Clusters](basics/pcgex-101/clusters.md)
-    * [Technical Note : Clusters](basics/pcgex-101/clusters/technical-note-clusters.md)
   * [Paths](basics/pcgex-101/paths.md)
   * [Sub Nodes](basics/pcgex-101/sub-nodes/README.md)
     * [Technical Note : Sub Nodes](basics/pcgex-101/sub-nodes/technical-note-sub-nodes.md)
   * [Instanced Behaviors](basics/pcgex-101/instanced-behaviors.md)
   * [Filter Ecosystem](basics/pcgex-101/filter-ecosystem.md)
+  * [Workflow](basics/pcgex-101/paths-1.md)
 
 ***
 
@@ -25,8 +25,10 @@
 ## Working with PCGEx
 
 * [Clusters](working-with-pcgex/clusters/README.md)
-  * [Cookie-Cutting](working-with-pcgex/clusters/cookie-cutting.md)
+  * [Technical Note : Clusters](working-with-pcgex/clusters/technical-note-clusters.md)
+  * [Vtx + Edges](working-with-pcgex/clusters/vtx-+-edges.md)
   * [Looping over Clusters](working-with-pcgex/clusters/looping-over-clusters.md)
+  * [Cookie-Cutting](working-with-pcgex/clusters/cookie-cutting.md)
 * [Paths](working-with-pcgex/paths/README.md)
   * [TBD](working-with-pcgex/paths/tbd.md)
 * [Tensors](working-with-pcgex/tensors.md)
@@ -130,7 +132,7 @@
     * [FC : Keep Direction](node-library/clusters/flood-fill/fc-keep-direction.md)
   * [Simplify](node-library/clusters/simplify.md)
   * [Sanitize](node-library/clusters/sanitize.md)
-  * [Find Clusters Data](node-library/clusters/find-clusters-data.md)
+  * [Find Clusters](node-library/clusters/find-clusters-data.md)
   * [Fuse Clusters](node-library/clusters/fuse-clusters.md)
   * [Relax Cluster](node-library/clusters/relax-cluster/README.md)
     * [Box Fitting](node-library/clusters/relax-cluster/box-fitting.md)
