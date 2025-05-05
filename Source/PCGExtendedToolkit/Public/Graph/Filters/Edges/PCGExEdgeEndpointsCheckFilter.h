@@ -36,7 +36,7 @@ struct FPCGExEdgeEndpointsCheckFilterConfig
 
 	/** Mode */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
-	EPCGExEdgeEndpointsCheckMode Mode;
+	EPCGExEdgeEndpointsCheckMode Mode = EPCGExEdgeEndpointsCheckMode::Both;
 
 	/** The expected result of the filter, in regard to the selected mode. i.e, if mode = "Both" and Expects = "Pass", both edge' endpoints must pass the filters for the check to pass, otherwise it fails. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Comparison", EditCondition="Mode!=EPCGExEdgeEndpointsCheckMode::SeeSaw"))
