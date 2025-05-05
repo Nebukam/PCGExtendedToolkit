@@ -70,24 +70,14 @@ namespace PCGExShapes
 /**
  * 
  */
-UCLASS(MinimalAPI)
 class UPCGExShapeCircleBuilder : public UPCGExShapeBuilderOperation
 {
-	GENERATED_BODY()
-
 public:
 	FPCGExShapeCircleConfig Config;
 
 	virtual bool PrepareForSeeds(FPCGExContext* InContext, const TSharedRef<PCGExData::FFacade>& InSeedDataFacade) override;
 	virtual void PrepareShape(const PCGExData::FPointRef& Seed) override;
 	virtual void BuildShape(TSharedPtr<PCGExShapes::FShape> InShape, TSharedPtr<PCGExData::FFacade> InDataFacade, TArrayView<FPCGPoint> PointView) override;
-
-	virtual void Cleanup() override
-	{
-		StartAngle.Reset();
-		EndAngle.Reset();
-		Super::Cleanup();
-	}
 
 protected:
 	TSharedPtr<PCGExDetails::TSettingValue<double>> StartAngle;

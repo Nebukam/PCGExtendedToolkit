@@ -5,6 +5,8 @@
 
 #include "CoreMinimal.h"
 #include "PCGExPointsProcessor.h"
+
+
 #include "Graph/FloodFill/PCGExFloodFill.h"
 
 #include "PCGExFillControlsFactoryProvider.generated.h"
@@ -61,7 +63,7 @@ public:
 
 	virtual bool RegisterConsumableAttributesWithData(FPCGExContext* InContext, const UPCGData* InData) const override;
 
-	virtual UPCGExFillControlOperation* CreateOperation(FPCGExContext* InContext) const;
+	virtual TSharedPtr<UPCGExFillControlOperation> CreateOperation(FPCGExContext* InContext) const;
 };
 
 UCLASS(Abstract, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Graph|Params")

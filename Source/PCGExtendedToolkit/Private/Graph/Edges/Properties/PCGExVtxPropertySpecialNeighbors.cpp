@@ -4,17 +4,11 @@
 #include "Graph/Edges/Properties/PCGExVtxPropertySpecialNeighbors.h"
 
 
+
+
+
 #define LOCTEXT_NAMESPACE "PCGExVtxPropertySpecialNeighbors"
 #define PCGEX_NAMESPACE PCGExVtxPropertySpecialNeighbors
-
-void UPCGExVtxPropertySpecialNeighbors::CopySettingsFrom(const UPCGExOperation* Other)
-{
-	Super::CopySettingsFrom(Other);
-	if (const UPCGExVtxPropertySpecialNeighbors* TypedOther = Cast<UPCGExVtxPropertySpecialNeighbors>(Other))
-	{
-		Config = TypedOther->Config;
-	}
-}
 
 bool UPCGExVtxPropertySpecialNeighbors::PrepareForCluster(
 	const FPCGExContext* InContext,
@@ -22,7 +16,7 @@ bool UPCGExVtxPropertySpecialNeighbors::PrepareForCluster(
 	const TSharedPtr<PCGExData::FFacade>& InVtxDataFacade,
 	const TSharedPtr<PCGExData::FFacade>& InEdgeDataFacade)
 {
-	if (!Super::PrepareForCluster(InContext, InCluster, InVtxDataFacade, InEdgeDataFacade)) { return false; }
+	if (!UPCGExVtxPropertyOperation::PrepareForCluster(InContext, InCluster, InVtxDataFacade, InEdgeDataFacade)) { return false; }
 
 	if (!Config.LargestNeighbor.Validate(InContext) ||
 		!Config.SmallestNeighbor.Validate(InContext))
@@ -77,9 +71,9 @@ FString UPCGExVtxPropertySpecialNeighborsSettings::GetDisplayName() const
 }
 #endif
 
-UPCGExVtxPropertyOperation* UPCGExVtxPropertySpecialNeighborsFactory::CreateOperation(FPCGExContext* InContext) const
+TSharedPtr<UPCGExVtxPropertyOperation> UPCGExVtxPropertySpecialNeighborsFactory::CreateOperation(FPCGExContext* InContext) const
 {
-	UPCGExVtxPropertySpecialNeighbors* NewOperation = InContext->ManagedObjects->New<UPCGExVtxPropertySpecialNeighbors>();
+	PCGEX_FACTORY_NEW_OPERATION(UPCGExVtxPropertySpecialNeighbors)
 	PCGEX_VTX_EXTRA_CREATE
 	return NewOperation;
 }

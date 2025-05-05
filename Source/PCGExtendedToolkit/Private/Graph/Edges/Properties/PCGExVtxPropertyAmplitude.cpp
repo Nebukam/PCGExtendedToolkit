@@ -4,6 +4,8 @@
 #include "Graph/Edges/Properties/PCGExVtxPropertyAmplitude.h"
 
 #include "PCGPin.h"
+
+
 #include "Sampling/PCGExSampling.h"
 
 
@@ -23,18 +25,9 @@ bool FPCGExAmplitudeConfig::Validate(const FPCGExContext* InContext) const
 	return true;
 }
 
-void UPCGExVtxPropertyAmplitude::CopySettingsFrom(const UPCGExOperation* Other)
-{
-	Super::CopySettingsFrom(Other);
-	if (const UPCGExVtxPropertyAmplitude* TypedOther = Cast<UPCGExVtxPropertyAmplitude>(Other))
-	{
-		Config = TypedOther->Config;
-	}
-}
-
 bool UPCGExVtxPropertyAmplitude::PrepareForCluster(const FPCGExContext* InContext, TSharedPtr<PCGExCluster::FCluster> InCluster, const TSharedPtr<PCGExData::FFacade>& InVtxDataFacade, const TSharedPtr<PCGExData::FFacade>& InEdgeDataFacade)
 {
-	if (!Super::PrepareForCluster(InContext, InCluster, InVtxDataFacade, InEdgeDataFacade)) { return false; }
+	if (!UPCGExVtxPropertyOperation::PrepareForCluster(InContext, InCluster, InVtxDataFacade, InEdgeDataFacade)) { return false; }
 
 	if (!Config.Validate(InContext))
 	{
@@ -162,24 +155,6 @@ void UPCGExVtxPropertyAmplitude::ProcessNode(PCGExCluster::FNode& Node, const TA
 	if (MaxAmpBuffer) { MaxAmpBuffer->GetMutable(Node.PointIndex) = MaxAmplitude; }
 }
 
-void UPCGExVtxPropertyAmplitude::Cleanup()
-{
-	Config = FPCGExAmplitudeConfig{};
-	DirCache.Reset();
-
-	MinAmpLengthBuffer.Reset();
-	MaxAmpLengthBuffer.Reset();
-	AmpRangeLengthBuffer.Reset();
-
-	MinAmpBuffer.Reset();
-	MaxAmpBuffer.Reset();
-	AmpRangeBuffer.Reset();
-
-	AmpSignBuffer.Reset();
-
-	Super::Cleanup();
-}
-
 #if WITH_EDITOR
 FString UPCGExVtxPropertyAmplitudeSettings::GetDisplayName() const
 {
@@ -196,9 +171,9 @@ FString UPCGExVtxPropertyAmplitudeSettings::GetDisplayName() const
 }
 #endif
 
-UPCGExVtxPropertyOperation* UPCGExVtxPropertyAmplitudeFactory::CreateOperation(FPCGExContext* InContext) const
+TSharedPtr<UPCGExVtxPropertyOperation> UPCGExVtxPropertyAmplitudeFactory::CreateOperation(FPCGExContext* InContext) const
 {
-	UPCGExVtxPropertyAmplitude* NewOperation = InContext->ManagedObjects->New<UPCGExVtxPropertyAmplitude>();
+	PCGEX_FACTORY_NEW_OPERATION(UPCGExVtxPropertyAmplitude)
 	PCGEX_VTX_EXTRA_CREATE
 	return NewOperation;
 }

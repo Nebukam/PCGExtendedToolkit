@@ -57,13 +57,6 @@ double UPCGExHeuristicOperation::GetCustomWeightMultiplier(const int32 PointInde
 	return FMath::Abs(LocalWeightMultiplier[LocalWeightMultiplierSource == EPCGExClusterComponentSource::Vtx ? PointIndex : EdgeIndex]);
 }
 
-void UPCGExHeuristicOperation::Cleanup()
-{
-	Cluster = nullptr;
-	LocalWeightMultiplier.Empty();
-	Super::Cleanup();
-}
-
 double UPCGExHeuristicOperation::GetScoreInternal(const double InTime) const
 {
 	return FMath::Max(0, ScoreCurve->Eval(bInvert ? 1 - InTime : InTime)) * ReferenceWeight;

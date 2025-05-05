@@ -6,21 +6,14 @@
 #include "Data/Blending/PCGExMetadataBlender.h"
 
 
+
+
 #define LOCTEXT_NAMESPACE "PCGExCreateNeighborSample"
 #define PCGEX_NAMESPACE PCGExCreateNeighborSample
 
-void UPCGExNeighborSampleFilters::CopySettingsFrom(const UPCGExOperation* Other)
-{
-	Super::CopySettingsFrom(Other);
-	if (const UPCGExNeighborSampleFilters* TypedOther = Cast<UPCGExNeighborSampleFilters>(Other))
-	{
-		// TODO
-	}
-}
-
 void UPCGExNeighborSampleFilters::PrepareForCluster(FPCGExContext* InContext, const TSharedRef<PCGExCluster::FCluster> InCluster, const TSharedRef<PCGExData::FFacade> InVtxDataFacade, const TSharedRef<PCGExData::FFacade> InEdgeDataFacade)
 {
-	Super::PrepareForCluster(InContext, InCluster, InVtxDataFacade, InEdgeDataFacade);
+	UPCGExNeighborSampleOperation::PrepareForCluster(InContext, InCluster, InVtxDataFacade, InEdgeDataFacade);
 	PointFilters.Reset();
 
 	bIsValidOperation = false;
@@ -89,7 +82,7 @@ void UPCGExNeighborSampleFilters::PrepareForCluster(FPCGExContext* InContext, co
 
 void UPCGExNeighborSampleFilters::PrepareNode(const PCGExCluster::FNode& TargetNode) const
 {
-	Super::PrepareNode(TargetNode);
+	UPCGExNeighborSampleOperation::PrepareNode(TargetNode);
 }
 
 void UPCGExNeighborSampleFilters::SampleNeighborNode(const PCGExCluster::FNode& TargetNode, const PCGExGraph::FLink Lk, const double Weight)
@@ -144,21 +137,15 @@ void UPCGExNeighborSampleFilters::FinalizeNode(const PCGExCluster::FNode& Target
 
 void UPCGExNeighborSampleFilters::CompleteOperation()
 {
-	Super::CompleteOperation();
+	UPCGExNeighborSampleOperation::CompleteOperation();
 	Inside.Empty();
 	Outside.Empty();
 	FilterManager.Reset();
 }
 
-void UPCGExNeighborSampleFilters::Cleanup()
+TSharedPtr<UPCGExNeighborSampleOperation> UPCGExNeighborSamplerFactoryFilters::CreateOperation(FPCGExContext* InContext) const
 {
-	FilterManager.Reset();
-	Super::Cleanup();
-}
-
-UPCGExNeighborSampleOperation* UPCGExNeighborSamplerFactoryFilters::CreateOperation(FPCGExContext* InContext) const
-{
-	UPCGExNeighborSampleFilters* NewOperation = InContext->ManagedObjects->New<UPCGExNeighborSampleFilters>();
+	PCGEX_FACTORY_NEW_OPERATION(UPCGExNeighborSampleFilters)
 	PCGEX_SAMPLER_CREATE_OPERATION
 	NewOperation->Config = Config;
 	return NewOperation;

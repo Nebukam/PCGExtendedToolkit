@@ -9,6 +9,8 @@
 #include "PCGExHeuristicDistance.h"
 
 
+
+
 #include "PCGExHeuristicNodeCount.generated.h"
 
 USTRUCT(BlueprintType)
@@ -25,11 +27,8 @@ struct FPCGExHeuristicConfigLeastNodes : public FPCGExHeuristicConfigBase
 /**
  * 
  */
-UCLASS(MinimalAPI, DisplayName = "Least Nodes")
 class UPCGExHeuristicNodeCount : public UPCGExHeuristicDistance
 {
-	GENERATED_BODY()
-
 public:
 	virtual double GetGlobalScore(
 		const PCGExCluster::FNode& From,
@@ -56,7 +55,7 @@ public:
 	UPROPERTY()
 	FPCGExHeuristicConfigLeastNodes Config;
 
-	virtual UPCGExHeuristicOperation* CreateOperation(FPCGExContext* InContext) const override;
+	virtual TSharedPtr<UPCGExHeuristicOperation> CreateOperation(FPCGExContext* InContext) const override;
 	PCGEX_HEURISTIC_FACTORY_BOILERPLATE
 };
 

@@ -6,6 +6,8 @@
 #include "CoreMinimal.h"
 #include "PCGExPointsProcessor.h"
 
+
+
 #include "PCGExHeuristicsFactoryProvider.generated.h"
 
 #define PCGEX_HEURISTIC_FACTORY_BOILERPLATE \
@@ -107,7 +109,7 @@ public:
 
 	virtual bool RegisterConsumableAttributesWithData(FPCGExContext* InContext, const UPCGData* InData) const override;
 
-	virtual UPCGExHeuristicOperation* CreateOperation(FPCGExContext* InContext) const;
+	virtual TSharedPtr<UPCGExHeuristicOperation> CreateOperation(FPCGExContext* InContext) const;
 	double WeightFactor = 1;
 };
 

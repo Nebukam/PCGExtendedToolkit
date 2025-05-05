@@ -3,13 +3,15 @@
 
 #include "Graph/Probes/PCGExProbeClosest.h"
 
+
+
 #include "Graph/Probes/PCGExProbing.h"
 
 PCGEX_CREATE_PROBE_FACTORY(Closest, {}, {})
 
 bool UPCGExProbeClosest::PrepareForPoints(const TSharedPtr<PCGExData::FPointIO>& InPointIO)
 {
-	if (!Super::PrepareForPoints(InPointIO)) { return false; }
+	if (!UPCGExProbeOperation::PrepareForPoints(InPointIO)) { return false; }
 
 	if (Config.MaxConnectionsInput == EPCGExInputValueType::Constant)
 	{
@@ -67,7 +69,7 @@ void UPCGExProbeClosest::ProcessCandidates(const int32 Index, const FPCGPoint& P
 
 void UPCGExProbeClosest::ProcessNode(const int32 Index, const FPCGPoint& Point, TSet<FInt32Vector>* Coincidence, const FVector& ST, TSet<uint64>* OutEdges, const TArray<int8>& AcceptConnections)
 {
-	Super::ProcessNode(Index, Point, nullptr, FVector::ZeroVector, OutEdges, AcceptConnections);
+	UPCGExProbeOperation::ProcessNode(Index, Point, nullptr, FVector::ZeroVector, OutEdges, AcceptConnections);
 }
 
 #if WITH_EDITOR

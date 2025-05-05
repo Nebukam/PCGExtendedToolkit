@@ -10,6 +10,8 @@
 #include "PCGExTensorOperation.h"
 #include "PCGExTensorSplineFactoryProvider.h"
 #include "PCGExTensorSplineFlow.h"
+#include "Editor/Experimental/EditorInteractiveToolsFramework/Public/Behaviors/2DViewportBehaviorTargets.h"
+#include "Editor/Experimental/EditorInteractiveToolsFramework/Public/Behaviors/2DViewportBehaviorTargets.h"
 
 #include "PCGExTensorPathFlow.generated.h"
 
@@ -50,11 +52,8 @@ struct FPCGExTensorPathFlowConfig : public FPCGExTensorConfigBase
 /**
  * 
  */
-UCLASS(MinimalAPI)
 class UPCGExTensorPathFlow : public UPCGExTensorOperation
 {
-	GENERATED_BODY()
-
 public:
 	FPCGExTensorPathFlowConfig Config;
 	const TArray<TSharedPtr<const FPCGSplineStruct>>* Splines = nullptr;
@@ -72,7 +71,7 @@ class UPCGExTensorPathFlowFactory : public UPCGExTensorSplineFlowFactory
 
 public:
 	FPCGExTensorPathFlowConfig Config;
-	virtual UPCGExTensorOperation* CreateOperation(FPCGExContext* InContext) const override;
+	virtual TSharedPtr<UPCGExTensorOperation> CreateOperation(FPCGExContext* InContext) const override;
 };
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Tensors|Params")

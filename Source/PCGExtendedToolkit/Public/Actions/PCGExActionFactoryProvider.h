@@ -20,8 +20,8 @@
 	return NewFactory; }
 
 #define PCGEX_BITMASK_TRANSMUTE_CREATE_OPERATION(_NAME, _BODY) \
-	UPCGExActionOperation* UPCGEx##_NAME##Factory::CreateOperation(FPCGExContext* InContext) const{ \
-	UPCGEx##_NAME##Operation* NewOperation = InContext->ManagedObjects->New<UPCGEx##_NAME##Operation>(this->GetOuter()); \
+	TSharedPtr<UPCGExActionOperation> UPCGEx##_NAME##Factory::CreateOperation(FPCGExContext* InContext) const{ \
+	PCGEX_FACTORY_NEW_OPERATION(UPCGEx##_NAME##Operation)\
 	NewOperation->TypedFactory = const_cast<UPCGEx##_NAME##Factory*>(this); \
 	NewOperation->Factory = NewOperation->TypedFactory; \
 	_BODY \
@@ -41,23 +41,16 @@ namespace PCGExActions
 /**
  * 
  */
-UCLASS(Abstract)
 class PCGEXTENDEDTOOLKIT_API UPCGExActionOperation : public UPCGExOperation
 {
-	GENERATED_BODY()
-
 public:
 	UPCGExActionFactoryData* Factory = nullptr;
-
-	virtual void CopySettingsFrom(const UPCGExOperation* Other) override;
 
 	virtual bool PrepareForData(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade>& InPointDataFacade);
 	virtual void ProcessPoint(int32 Index, const FPCGPoint& Point);
 
 	virtual void OnMatchSuccess(int32 Index, const FPCGPoint& Point);
 	virtual void OnMatchFail(int32 Index, const FPCGPoint& Point);
-
-	virtual void Cleanup() override;
 
 protected:
 	TSharedPtr<PCGExPointFilter::FManager> FilterManager;
@@ -76,7 +69,7 @@ public:
 	TArray<TObjectPtr<const UPCGExFilterFactoryData>> FilterFactories;
 
 	virtual PCGExFactories::EType GetFactoryType() const override { return PCGExFactories::EType::Action; }
-	virtual UPCGExActionOperation* CreateOperation(FPCGExContext* InContext) const;
+	virtual TSharedPtr<UPCGExActionOperation> CreateOperation(FPCGExContext* InContext) const;
 
 	virtual bool Boot(FPCGContext* InContext);
 	virtual bool AppendAndValidate(const TSharedPtr<PCGEx::FAttributesInfos>& InInfos, FString& OutMessage) const;

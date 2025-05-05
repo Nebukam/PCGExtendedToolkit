@@ -3,12 +3,15 @@
 
 #include "Transform/Tensors/PCGExTensorNull.h"
 
+#include "Editor/Experimental/EditorInteractiveToolsFramework/Public/Behaviors/2DViewportBehaviorTargets.h"
+#include "Editor/Experimental/EditorInteractiveToolsFramework/Public/Behaviors/2DViewportBehaviorTargets.h"
+
 #define LOCTEXT_NAMESPACE "PCGExCreateTensorNull"
 #define PCGEX_NAMESPACE CreateTensorNull
 
 bool UPCGExTensorNull::Init(FPCGExContext* InContext, const UPCGExTensorFactoryData* InFactory)
 {
-	if (!Super::Init(InContext, InFactory)) { return false; }
+	if (!UPCGExTensorPointOperation::Init(InContext, InFactory)) { return false; }
 	return true;
 }
 

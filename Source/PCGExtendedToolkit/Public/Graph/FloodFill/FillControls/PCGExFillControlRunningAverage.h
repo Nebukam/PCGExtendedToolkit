@@ -10,6 +10,8 @@
 #include "PCGExFillControlsFactoryProvider.h"
 
 
+
+
 #include "Graph/PCGExCluster.h"
 #include "PCGExFillControlRunningAverage.generated.h"
 
@@ -62,11 +64,8 @@ struct FPCGExFillControlConfigRunningAverage : public FPCGExFillControlConfigBas
 /**
  * 
  */
-UCLASS(MinimalAPI, DisplayName = "Running Average")
 class UPCGExFillControlRunningAverage : public UPCGExFillControlOperation
 {
-	GENERATED_BODY()
-
 	friend class UPCGExFillControlsFactoryRunningAverage;
 
 public:
@@ -76,8 +75,6 @@ public:
 	virtual bool ChecksProbe() const override { return false; }
 	virtual bool ChecksCandidate() const override { return true; }
 	virtual bool IsValidCandidate(const PCGExFloodFill::FDiffusion* Diffusion, const PCGExFloodFill::FCandidate& From, const PCGExFloodFill::FCandidate& Candidate) override;
-
-	virtual void Cleanup() override;
 
 protected:
 	TSharedPtr<PCGExDetails::TSettingValue<int32>> WindowSize;
@@ -94,7 +91,7 @@ public:
 	UPROPERTY()
 	FPCGExFillControlConfigRunningAverage Config;
 
-	virtual UPCGExFillControlOperation* CreateOperation(FPCGExContext* InContext) const override;
+	virtual TSharedPtr<UPCGExFillControlOperation> CreateOperation(FPCGExContext* InContext) const override;
 
 	virtual void RegisterBuffersDependencies(FPCGExContext* InContext, PCGExData::FFacadePreloader& FacadePreloader) const override;
 };

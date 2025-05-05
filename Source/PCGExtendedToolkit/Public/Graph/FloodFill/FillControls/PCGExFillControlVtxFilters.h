@@ -10,6 +10,8 @@
 #include "PCGExFillControlsFactoryProvider.h"
 
 
+
+
 #include "Graph/PCGExCluster.h"
 #include "PCGExFillControlVtxFilters.generated.h"
 
@@ -29,11 +31,8 @@ struct FPCGExFillControlConfigVtxFilters : public FPCGExFillControlConfigBase
 /**
  * 
  */
-UCLASS(MinimalAPI, DisplayName = "VtxFilters")
 class UPCGExFillControlVtxFilters : public UPCGExFillControlOperation
 {
-	GENERATED_BODY()
-
 	friend class UPCGExFillControlsFactoryVtxFilters;
 
 public:
@@ -42,8 +41,6 @@ public:
 	virtual bool IsValidCapture(const PCGExFloodFill::FDiffusion* Diffusion, const PCGExFloodFill::FCandidate& Candidate) override;
 	virtual bool IsValidProbe(const PCGExFloodFill::FDiffusion* Diffusion, const PCGExFloodFill::FCandidate& Candidate) override;
 	virtual bool IsValidCandidate(const PCGExFloodFill::FDiffusion* Diffusion, const PCGExFloodFill::FCandidate& From, const PCGExFloodFill::FCandidate& Candidate) override;
-
-	virtual void Cleanup() override;
 
 protected:
 	TSharedPtr<PCGExClusterFilter::FManager> VtxFilterManager;
@@ -61,7 +58,7 @@ public:
 	UPROPERTY()
 	TArray<TObjectPtr<const UPCGExFilterFactoryData>> FilterFactories;
 
-	virtual UPCGExFillControlOperation* CreateOperation(FPCGExContext* InContext) const override;
+	virtual TSharedPtr<UPCGExFillControlOperation> CreateOperation(FPCGExContext* InContext) const override;
 
 	virtual void RegisterBuffersDependencies(FPCGExContext* InContext, PCGExData::FFacadePreloader& FacadePreloader) const override;
 	virtual bool RegisterConsumableAttributes(FPCGExContext* InContext) const override;

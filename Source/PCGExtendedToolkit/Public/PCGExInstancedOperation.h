@@ -4,13 +4,12 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "PCGExBroadcast.h"
 #include "UObject/Object.h"
 
 #include "Data/PCGExAttributeHelpers.h"
 #include "Data/PCGExData.h"
 
-#include "PCGExOperation.generated.h"
+#include "PCGExInstancedOperation.generated.h"
 
 namespace PCGExMT
 {
@@ -21,28 +20,48 @@ class FPCGMetadataAttributeBase;
 /**
  * 
  */
-class PCGEXTENDEDTOOLKIT_API UPCGExOperation : public TSharedFromThis<UPCGExOperation>
+UCLASS(Abstract, DefaultToInstanced, EditInlineNew, BlueprintType)
+class PCGEXTENDEDTOOLKIT_API UPCGExInstancedOperation : public UObject, public IPCGExManagedObjectInterface
 {
-	
+	GENERATED_BODY()
+	//~Begin UPCGExInstancedOperation interface
 public:
-	UPCGExOperation() = default;
-	virtual ~UPCGExOperation() = default;
 	void BindContext(FPCGExContext* InContext);
+	void FindSettingsOverrides(FPCGExContext* InContext, FName InPinLabel);
 
 #if WITH_EDITOR
 	virtual void UpdateUserFacingInfos();
 #endif
+
+	virtual void Cleanup() override;
+	virtual void CopySettingsFrom(const UPCGExInstancedOperation* Other);
 
 	virtual void RegisterAssetDependencies(FPCGExContext* InContext);
 
 	TSharedPtr<PCGExData::FFacade> PrimaryDataFacade;
 	TSharedPtr<PCGExData::FFacade> SecondaryDataFacade;
 
+	template <typename T>
+	T* CopyOperation() const
+	{
+		T* TypedInstance = Context->ManagedObjects->New<T>(GetTransientPackage(), this->GetClass());
+
+		check(TypedInstance)
+
+		TypedInstance->CopySettingsFrom(this);
+		return TypedInstance;
+	}
+
 	virtual void RegisterConsumableAttributesWithFacade(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade>& InFacade) const;
 	virtual void RegisterPrimaryBuffersDependencies(PCGExData::FFacadePreloader& FacadePreloader) const;
 
+	virtual void BeginDestroy() override;
+
 protected:
 	FPCGExContext* Context = nullptr;
+	TMap<FName, FPCGMetadataAttributeBase*> PossibleOverrides;
 
-	//~End UPCGExOperation interface
+	void ApplyOverrides();
+
+	//~End UPCGExInstancedOperation interface
 };

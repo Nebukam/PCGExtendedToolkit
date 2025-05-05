@@ -6,22 +6,14 @@
 #include "Data/Blending/PCGExMetadataBlender.h"
 
 
+
+
 #define LOCTEXT_NAMESPACE "PCGExCreateNeighborSample"
 #define PCGEX_NAMESPACE PCGExCreateNeighborSample
 
-void UPCGExNeighborSampleAttribute::CopySettingsFrom(const UPCGExOperation* Other)
-{
-	Super::CopySettingsFrom(Other);
-	if (const UPCGExNeighborSampleAttribute* TypedOther = Cast<UPCGExNeighborSampleAttribute>(Other))
-	{
-		SourceAttributes = TypedOther->SourceAttributes;
-		Blending = TypedOther->Blending;
-	}
-}
-
 void UPCGExNeighborSampleAttribute::PrepareForCluster(FPCGExContext* InContext, const TSharedRef<PCGExCluster::FCluster> InCluster, const TSharedRef<PCGExData::FFacade> InVtxDataFacade, const TSharedRef<PCGExData::FFacade> InEdgeDataFacade)
 {
-	Super::PrepareForCluster(InContext, InCluster, InVtxDataFacade, InEdgeDataFacade);
+	UPCGExNeighborSampleOperation::PrepareForCluster(InContext, InCluster, InVtxDataFacade, InEdgeDataFacade);
 
 	Blender.Reset();
 	bIsValidOperation = false;
@@ -85,14 +77,8 @@ void UPCGExNeighborSampleAttribute::FinalizeNode(const PCGExCluster::FNode& Targ
 
 void UPCGExNeighborSampleAttribute::CompleteOperation()
 {
-	Super::CompleteOperation();
+	UPCGExNeighborSampleOperation::CompleteOperation();
 	Blender.Reset();
-}
-
-void UPCGExNeighborSampleAttribute::Cleanup()
-{
-	Blender.Reset();
-	Super::Cleanup();
 }
 
 #if WITH_EDITOR
@@ -109,10 +95,9 @@ FString UPCGExNeighborSampleAttributeSettings::GetDisplayName() const
 }
 #endif
 
-UPCGExNeighborSampleOperation* UPCGExNeighborSamplerFactoryAttribute::CreateOperation(FPCGExContext* InContext) const
+TSharedPtr<UPCGExNeighborSampleOperation> UPCGExNeighborSamplerFactoryAttribute::CreateOperation(FPCGExContext* InContext) const
 {
-	UPCGExNeighborSampleAttribute* NewOperation = InContext->ManagedObjects->New<UPCGExNeighborSampleAttribute>();
-
+	PCGEX_FACTORY_NEW_OPERATION(UPCGExNeighborSampleAttribute)
 	PCGEX_SAMPLER_CREATE_OPERATION
 
 	NewOperation->SourceAttributes = Config.SourceAttributes;

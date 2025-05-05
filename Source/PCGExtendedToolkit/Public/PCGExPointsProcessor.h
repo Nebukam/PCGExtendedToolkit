@@ -16,6 +16,7 @@
 
 #include "PCGComponent.h"
 #include "PCGContext.h"
+#include "PCGExInstancedOperation.h"
 
 #include "PCGExPointsProcessor.generated.h"
 
@@ -142,7 +143,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPointsProcessorContext : FPCGExContext
 	TSharedPtr<PCGExMT::FTaskManager> GetAsyncManager();
 
 	template <typename T>
-	T* RegisterOperation(UPCGExOperation* BaseOperation, FName OverridePinLabel = NAME_None)
+	T* RegisterOperation(UPCGExInstancedOperation* BaseOperation, FName OverridePinLabel = NAME_None)
 	{
 		BaseOperation->BindContext(this); // Temp so Copy doesn't crash
 

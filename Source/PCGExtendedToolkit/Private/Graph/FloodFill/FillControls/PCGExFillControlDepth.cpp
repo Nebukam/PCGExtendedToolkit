@@ -5,11 +5,13 @@
 #include "Graph/FloodFill/FillControls/PCGExFillControlDepth.h"
 
 
+
+
 #include "Graph/FloodFill/FillControls/PCGExFillControlsFactoryProvider.h"
 
 bool UPCGExFillControlDepth::PrepareForDiffusions(FPCGExContext* InContext, const TSharedPtr<PCGExFloodFill::FFillControlsHandler>& InHandler)
 {
-	if (!Super::PrepareForDiffusions(InContext, InHandler)) { return false; }
+	if (!UPCGExFillControlOperation::PrepareForDiffusions(InContext, InHandler)) { return false; }
 
 	const UPCGExFillControlsFactoryDepth* TypedFactory = Cast<UPCGExFillControlsFactoryDepth>(Factory);
 
@@ -34,15 +36,9 @@ bool UPCGExFillControlDepth::IsValidCandidate(const PCGExFloodFill::FDiffusion* 
 	return Candidate.Depth <= DepthLimit->Read(GetSettingsIndex(Diffusion));
 }
 
-void UPCGExFillControlDepth::Cleanup()
+TSharedPtr<UPCGExFillControlOperation> UPCGExFillControlsFactoryDepth::CreateOperation(FPCGExContext* InContext) const
 {
-	DepthLimit.Reset();
-	Super::Cleanup();
-}
-
-UPCGExFillControlOperation* UPCGExFillControlsFactoryDepth::CreateOperation(FPCGExContext* InContext) const
-{
-	UPCGExFillControlDepth* NewOperation = InContext->ManagedObjects->New<UPCGExFillControlDepth>();
+	PCGEX_FACTORY_NEW_OPERATION(UPCGExFillControlDepth)
 	PCGEX_FORWARD_FILLCONTROL_OPERATION
 	return NewOperation;
 }

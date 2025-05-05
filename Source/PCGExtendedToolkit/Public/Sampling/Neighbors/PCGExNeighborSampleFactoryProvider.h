@@ -12,6 +12,8 @@
 #include "Graph/PCGExGraph.h"
 #include "PCGExOperation.h"
 
+
+
 #include "Graph/Filters/PCGExClusterFilter.h"
 
 #include "PCGExNeighborSampleFactoryProvider.generated.h"
@@ -87,11 +89,8 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSamplingConfig
 /**
  * 
  */
-UCLASS(Abstract)
 class PCGEXTENDEDTOOLKIT_API UPCGExNeighborSampleOperation : public UPCGExOperation
 {
-	GENERATED_BODY()
-
 public:
 	TSharedPtr<PCGExClusterFilter::FManager> PointFilters;
 	TSharedPtr<PCGExClusterFilter::FManager> ValueFilters;
@@ -102,8 +101,6 @@ public:
 	FPCGExSamplingConfig SamplingConfig;
 
 	const FRichCurve* WeightCurveObj = nullptr;
-
-	virtual void CopySettingsFrom(const UPCGExOperation* Other) override;
 
 	virtual void PrepareForCluster(FPCGExContext* InContext, TSharedRef<PCGExCluster::FCluster> InCluster, TSharedRef<PCGExData::FFacade> InVtxDataFacade, TSharedRef<PCGExData::FFacade> InEdgeDataFacade);
 	virtual bool IsOperationValid();
@@ -117,8 +114,6 @@ public:
 	virtual void SampleNeighborEdge(const PCGExCluster::FNode& TargetNode, const PCGExGraph::FLink Lk, const double Weight);
 	virtual void FinalizeNode(const PCGExCluster::FNode& TargetNode, const int32 Count, const double TotalWeight);
 	virtual void CompleteOperation();
-
-	virtual void Cleanup() override;
 
 	TArray<TObjectPtr<const UPCGExFilterFactoryData>> VtxFilterFactories;
 	TArray<TObjectPtr<const UPCGExFilterFactoryData>> EdgesFilterFactories;
@@ -149,7 +144,7 @@ public:
 
 	virtual PCGExFactories::EType GetFactoryType() const override { return PCGExFactories::EType::Sampler; }
 
-	virtual UPCGExNeighborSampleOperation* CreateOperation(FPCGExContext* InContext) const;
+	virtual TSharedPtr<UPCGExNeighborSampleOperation> CreateOperation(FPCGExContext* InContext) const;
 
 	virtual void RegisterVtxBuffersDependencies(FPCGExContext* InContext, const TSharedRef<PCGExData::FFacade>& InVtxDataFacade, PCGExData::FFacadePreloader& FacadePreloader) const;
 

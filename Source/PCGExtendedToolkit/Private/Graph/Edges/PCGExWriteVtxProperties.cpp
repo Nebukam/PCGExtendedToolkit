@@ -78,7 +78,7 @@ namespace PCGExWriteVtxProperties
 
 		for (const UPCGExVtxPropertyFactoryData* Factory : Context->ExtraFactories)
 		{
-			UPCGExVtxPropertyOperation* NewOperation = Factory->CreateOperation(Context);
+			TSharedPtr<UPCGExVtxPropertyOperation> NewOperation = Factory->CreateOperation(Context);
 
 			if (!NewOperation->PrepareForCluster(Context, Cluster, VtxDataFacade, EdgeDataFacade)) { return false; }
 			ExtraOperations.Add(NewOperation);

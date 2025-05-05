@@ -8,6 +8,8 @@
 #include "PCGExTensor.h"
 #include "PCGExTensorFactoryProvider.h"
 #include "PCGExTensorOperation.h"
+#include "Editor/Experimental/EditorInteractiveToolsFramework/Public/Behaviors/2DViewportBehaviorTargets.h"
+#include "Editor/Experimental/EditorInteractiveToolsFramework/Public/Behaviors/2DViewportBehaviorTargets.h"
 
 #include "PCGExTensorInertia.generated.h"
 
@@ -34,13 +36,9 @@ struct FPCGExTensorInertiaConfig : public FPCGExTensorConfigBase
 /**
  * 
  */
-UCLASS(MinimalAPI)
 class UPCGExTensorInertia : public UPCGExTensorPointOperation
 {
-	GENERATED_BODY()
-
 public:
-	UPROPERTY()
 	FPCGExTensorInertiaConfig Config;
 
 	virtual bool Init(FPCGExContext* InContext, const UPCGExTensorFactoryData* InFactory) override;
@@ -56,7 +54,7 @@ class UPCGExTensorInertiaFactory : public UPCGExTensorPointFactoryData
 
 public:
 	FPCGExTensorInertiaConfig Config;
-	virtual UPCGExTensorOperation* CreateOperation(FPCGExContext* InContext) const override;
+	virtual TSharedPtr<UPCGExTensorOperation> CreateOperation(FPCGExContext* InContext) const override;
 };
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Tensors|Params")

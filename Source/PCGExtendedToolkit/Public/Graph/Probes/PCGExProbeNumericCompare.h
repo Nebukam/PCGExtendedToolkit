@@ -10,6 +10,8 @@
 #include "PCGExProbeFactoryProvider.h"
 #include "PCGExProbeOperation.h"
 
+
+
 #include "PCGExProbeNumericCompare.generated.h"
 
 namespace PCGExProbing
@@ -51,11 +53,8 @@ struct FPCGExProbeConfigNumericCompare : public FPCGExProbeConfigBase
 /**
  * 
  */
-UCLASS(MinimalAPI, DisplayName = "Numeric Compare")
 class UPCGExProbeNumericCompare : public UPCGExProbeOperation
 {
-	GENERATED_BODY()
-
 public:
 	virtual bool PrepareForPoints(const TSharedPtr<PCGExData::FPointIO>& InPointIO) override;
 	virtual void ProcessCandidates(const int32 Index, const FPCGPoint& Point, TArray<PCGExProbing::FCandidate>& Candidates, TSet<FInt32Vector>* Coincidence, const FVector& ST, TSet<uint64>* OutEdges) override;
@@ -80,7 +79,7 @@ public:
 	UPROPERTY()
 	FPCGExProbeConfigNumericCompare Config;
 
-	virtual UPCGExProbeOperation* CreateOperation(FPCGExContext* InContext) const override;
+	virtual TSharedPtr<UPCGExProbeOperation> CreateOperation(FPCGExContext* InContext) const override;
 };
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Graph|Params")

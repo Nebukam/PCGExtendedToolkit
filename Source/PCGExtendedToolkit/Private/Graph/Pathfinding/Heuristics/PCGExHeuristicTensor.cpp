@@ -4,6 +4,8 @@
 
 #include "Graph/Pathfinding/Heuristics/PCGExHeuristicTensor.h"
 
+
+
 #include "Transform/Tensors/PCGExTensor.h"
 #include "Transform/Tensors/PCGExTensorHandler.h"
 #include "Transform/Tensors/PCGExTensorFactoryProvider.h"
@@ -11,7 +13,7 @@
 
 void UPCGExHeuristicTensor::PrepareForCluster(const TSharedPtr<const PCGExCluster::FCluster>& InCluster)
 {
-	Super::PrepareForCluster(InCluster);
+	UPCGExHeuristicOperation::PrepareForCluster(InCluster);
 	TensorsHandler = MakeShared<PCGExTensor::FTensorsHandler>(TensorHandlerDetails);
 	TensorsHandler->Init(Context, *TensorFactories, PrimaryDataFacade);
 }
@@ -44,9 +46,9 @@ double UPCGExHeuristicTensor::GetDot(const int32 InSeedIndex, const FVector& Fro
 	return bAbsoluteTensor ? 1 - FMath::Abs(Dot) : 1 - PCGExMath::Remap(Dot, -1, 1);
 }
 
-UPCGExHeuristicOperation* UPCGExHeuristicsFactoryTensor::CreateOperation(FPCGExContext* InContext) const
+TSharedPtr<UPCGExHeuristicOperation> UPCGExHeuristicsFactoryTensor::CreateOperation(FPCGExContext* InContext) const
 {
-	UPCGExHeuristicTensor* NewOperation = InContext->ManagedObjects->New<UPCGExHeuristicTensor>();
+	PCGEX_FACTORY_NEW_OPERATION(UPCGExHeuristicTensor)
 	PCGEX_FORWARD_HEURISTIC_CONFIG
 	NewOperation->bAbsoluteTensor = Config.bAbsolute;
 	NewOperation->TensorHandlerDetails = Config.TensorHandlerDetails;

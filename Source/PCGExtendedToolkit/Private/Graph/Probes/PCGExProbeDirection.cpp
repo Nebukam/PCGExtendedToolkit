@@ -3,6 +3,8 @@
 
 #include "Graph/Probes/PCGExProbeDirection.h"
 
+
+
 #include "Graph/Probes/PCGExProbing.h"
 
 PCGEX_CREATE_PROBE_FACTORY(Direction, {}, {})
@@ -11,7 +13,7 @@ bool UPCGExProbeDirection::RequiresChainProcessing() { return Config.bDoChainedP
 
 bool UPCGExProbeDirection::PrepareForPoints(const TSharedPtr<PCGExData::FPointIO>& InPointIO)
 {
-	if (!Super::PrepareForPoints(InPointIO)) { return false; }
+	if (!UPCGExProbeOperation::PrepareForPoints(InPointIO)) { return false; }
 
 	bUseBestDot = Config.Favor == EPCGExProbeDirectionPriorization::Dot;
 	MinDot = PCGExMath::DegreesToDot(Config.MaxAngle);

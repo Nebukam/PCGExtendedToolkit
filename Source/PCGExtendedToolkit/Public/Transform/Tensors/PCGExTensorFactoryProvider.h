@@ -11,8 +11,8 @@
 #include "PCGExTensorFactoryProvider.generated.h"
 
 #define PCGEX_TENSOR_BOILERPLATE(_TENSOR, _NEW_FACTORY, _NEW_OPERATION) \
-UPCGExTensorOperation* UPCGExTensor##_TENSOR##Factory::CreateOperation(FPCGExContext* InContext) const{ \
-	UPCGExTensor##_TENSOR* NewOperation = InContext->ManagedObjects->New<UPCGExTensor##_TENSOR>(); \
+TSharedPtr<UPCGExTensorOperation> UPCGExTensor##_TENSOR##Factory::CreateOperation(FPCGExContext* InContext) const{ \
+	PCGEX_FACTORY_NEW_OPERATION(UPCGExTensor##_TENSOR)\
 	NewOperation->Factory = this; \
 	NewOperation->Config = Config; \
 	_NEW_OPERATION \
@@ -43,7 +43,7 @@ class PCGEXTENDEDTOOLKIT_API UPCGExTensorFactoryData : public UPCGExFactoryData
 
 public:
 	virtual PCGExFactories::EType GetFactoryType() const override { return PCGExFactories::EType::Tensor; }
-	virtual UPCGExTensorOperation* CreateOperation(FPCGExContext* InContext) const;
+	virtual TSharedPtr<UPCGExTensorOperation> CreateOperation(FPCGExContext* InContext) const;
 
 	FPCGExTensorConfigBase BaseConfig;
 	virtual bool Prepare(FPCGExContext* InContext) override;

@@ -6,22 +6,15 @@
 #include "Data/Blending/PCGExPropertiesBlender.h"
 
 
+
+
 #define LOCTEXT_NAMESPACE "PCGExCreateNeighborSample"
 #define PCGEX_NAMESPACE PCGExCreateNeighborSample
-
-void UPCGExNeighborSampleProperties::CopySettingsFrom(const UPCGExOperation* Other)
-{
-	Super::CopySettingsFrom(Other);
-	if (const UPCGExNeighborSampleProperties* TypedOther = Cast<UPCGExNeighborSampleProperties>(Other))
-	{
-		BlendingDetails = TypedOther->BlendingDetails;
-	}
-}
 
 void UPCGExNeighborSampleProperties::PrepareForCluster(FPCGExContext* InContext, const TSharedRef<PCGExCluster::FCluster> InCluster, const TSharedRef<PCGExData::FFacade> InVtxDataFacade, const TSharedRef<PCGExData::FFacade> InEdgeDataFacade)
 {
 	PropertiesBlender = MakeUnique<PCGExDataBlending::FPropertiesBlender>(BlendingDetails);
-	return Super::PrepareForCluster(InContext, InCluster, InVtxDataFacade, InEdgeDataFacade);
+	return UPCGExNeighborSampleOperation::PrepareForCluster(InContext, InCluster, InVtxDataFacade, InEdgeDataFacade);
 }
 
 void UPCGExNeighborSampleProperties::PrepareNode(const PCGExCluster::FNode& TargetNode) const
@@ -50,12 +43,6 @@ void UPCGExNeighborSampleProperties::FinalizeNode(const PCGExCluster::FNode& Tar
 	PropertiesBlender->CompleteBlending(A, Count, TotalWeight);
 }
 
-void UPCGExNeighborSampleProperties::Cleanup()
-{
-	PropertiesBlender.Reset();
-	Super::Cleanup();
-}
-
 #if WITH_EDITOR
 FString UPCGExNeighborSamplePropertiesSettings::GetDisplayName() const
 {
@@ -70,9 +57,9 @@ FString UPCGExNeighborSamplePropertiesSettings::GetDisplayName() const
 }
 #endif
 
-UPCGExNeighborSampleOperation* UPCGExNeighborSamplerFactoryProperties::CreateOperation(FPCGExContext* InContext) const
+TSharedPtr<UPCGExNeighborSampleOperation> UPCGExNeighborSamplerFactoryProperties::CreateOperation(FPCGExContext* InContext) const
 {
-	UPCGExNeighborSampleProperties* NewOperation = InContext->ManagedObjects->New<UPCGExNeighborSampleProperties>();
+	PCGEX_FACTORY_NEW_OPERATION(UPCGExNeighborSampleProperties)
 	PCGEX_SAMPLER_CREATE_OPERATION
 
 	NewOperation->BlendingDetails = Config.Blending;

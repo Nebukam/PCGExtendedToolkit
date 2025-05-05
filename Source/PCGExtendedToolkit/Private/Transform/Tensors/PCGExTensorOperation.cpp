@@ -5,12 +5,6 @@
 #include "Transform/Tensors/PCGExTensorOperation.h"
 #include "Transform/Tensors/PCGExTensorFactoryProvider.h"
 
-void UPCGExTensorOperation::CopySettingsFrom(const UPCGExOperation* Other)
-{
-	Super::CopySettingsFrom(Other);
-	//if (const UPCGExTensorOperation* TypedOther = Cast<UPCGExTensorOperation>(Other))	{	}
-}
-
 bool UPCGExTensorOperation::Init(FPCGExContext* InContext, const UPCGExTensorFactoryData* InFactory)
 {
 	Factory = InFactory;
@@ -28,15 +22,11 @@ bool UPCGExTensorOperation::PrepareForData(const TSharedPtr<PCGExData::FFacade>&
 	return true;
 }
 
-void UPCGExTensorPointOperation::CopySettingsFrom(const UPCGExOperation* Other)
-{
-	Super::CopySettingsFrom(Other);
-	//if (const UPCGExTensorPointOperation* TypedOther = Cast<UPCGExTensorPointOperation>(Other))	{	}
-}
-
 bool UPCGExTensorPointOperation::Init(FPCGExContext* InContext, const UPCGExTensorFactoryData* InFactory)
 {
-	if (!Super::Init(InContext, InFactory)) { return false; }
+	if (!UPCGExTensorOperation::Init(InContext, InFactory)) { return false; }
 	Octree = &InFactory->GetOctree();
 	return true;
 }
+
+

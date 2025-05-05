@@ -5,11 +5,13 @@
 #include "Graph/FloodFill/FillControls/PCGExFillControlLength.h"
 
 
+
+
 #include "Graph/FloodFill/FillControls/PCGExFillControlsFactoryProvider.h"
 
 bool UPCGExFillControlLength::PrepareForDiffusions(FPCGExContext* InContext, const TSharedPtr<PCGExFloodFill::FFillControlsHandler>& InHandler)
 {
-	if (!Super::PrepareForDiffusions(InContext, InHandler)) { return false; }
+	if (!UPCGExFillControlOperation::PrepareForDiffusions(InContext, InHandler)) { return false; }
 
 	const UPCGExFillControlsFactoryLength* TypedFactory = Cast<UPCGExFillControlsFactoryLength>(Factory);
 	bUsePathLength = TypedFactory->Config.bUsePathLength;
@@ -35,15 +37,9 @@ bool UPCGExFillControlLength::IsValidCandidate(const PCGExFloodFill::FDiffusion*
 	return (bUsePathLength ? Candidate.PathDistance : Candidate.Distance) <= DistanceLimit->Read(GetSettingsIndex(Diffusion));
 }
 
-void UPCGExFillControlLength::Cleanup()
+TSharedPtr<UPCGExFillControlOperation> UPCGExFillControlsFactoryLength::CreateOperation(FPCGExContext* InContext) const
 {
-	DistanceLimit.Reset();
-	Super::Cleanup();
-}
-
-UPCGExFillControlOperation* UPCGExFillControlsFactoryLength::CreateOperation(FPCGExContext* InContext) const
-{
-	UPCGExFillControlLength* NewOperation = InContext->ManagedObjects->New<UPCGExFillControlLength>();
+	PCGEX_FACTORY_NEW_OPERATION(UPCGExFillControlLength)
 	PCGEX_FORWARD_FILLCONTROL_OPERATION
 	return NewOperation;
 }

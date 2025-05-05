@@ -124,13 +124,9 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExAttributeBlendConfig
 /**
  * 
  */
-UCLASS(DisplayName = "Blend Op")
 class PCGEXTENDEDTOOLKIT_API UPCGExAttributeBlendOperation : public UPCGExOperation
 {
-	GENERATED_BODY()
-
 public:
-	UPROPERTY()
 	FPCGExAttributeBlendConfig Config;
 
 	int32 OpIdx = -1;
@@ -155,8 +151,6 @@ public:
 
 	virtual void CompleteWork(TSet<TSharedPtr<PCGExData::FBufferBase>>& OutDisabledBuffers);
 
-	virtual void Cleanup() override;
-
 protected:
 	bool CopyAndFixSiblingSelector(FPCGExContext* InContext, FPCGAttributePropertyInputSelector& Selector) const;
 
@@ -173,7 +167,7 @@ public:
 	FPCGExAttributeBlendConfig Config;
 
 	virtual PCGExFactories::EType GetFactoryType() const override { return PCGExFactories::EType::Blending; }
-	virtual UPCGExAttributeBlendOperation* CreateOperation(FPCGExContext* InContext) const;
+	virtual TSharedPtr<UPCGExAttributeBlendOperation> CreateOperation(FPCGExContext* InContext) const;
 
 	virtual void RegisterAssetDependencies(FPCGExContext* InContext) const override;
 	virtual bool RegisterConsumableAttributesWithData(FPCGExContext* InContext, const UPCGData* InData) const override;

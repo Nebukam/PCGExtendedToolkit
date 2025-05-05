@@ -21,7 +21,7 @@ namespace PCGExPackActorData
  * 
  */
 UCLASS(Blueprintable, BlueprintType, Abstract, MinimalAPI, DisplayName = "[PCGEx] Custom Actor Data Packer")
-class UPCGExCustomActorDataPacker : public UPCGExOperation
+class UPCGExCustomActorDataPacker : public UPCGExInstancedOperation
 {
 	GENERATED_BODY()
 

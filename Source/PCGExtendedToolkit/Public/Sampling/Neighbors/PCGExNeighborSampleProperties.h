@@ -15,6 +15,8 @@
 #include "Data/Blending/PCGExPropertiesBlender.h"
 
 
+
+
 #include "PCGExNeighborSampleProperties.generated.h"
 
 ///
@@ -38,15 +40,10 @@ struct FPCGExPropertiesSamplerConfigBase
 /**
  * 
  */
-UCLASS(MinimalAPI)
 class UPCGExNeighborSampleProperties : public UPCGExNeighborSampleOperation
 {
-	GENERATED_BODY()
-
 public:
 	FPCGExPropertiesBlendingDetails BlendingDetails;
-
-	virtual void CopySettingsFrom(const UPCGExOperation* Other) override;
 
 	virtual void PrepareForCluster(FPCGExContext* InContext, TSharedRef<PCGExCluster::FCluster> InCluster, TSharedRef<PCGExData::FFacade> InVtxDataFacade, TSharedRef<PCGExData::FFacade> InEdgeDataFacade) override;
 
@@ -56,8 +53,6 @@ public:
 	virtual void SampleNeighborEdge(const PCGExCluster::FNode& TargetNode, const PCGExGraph::FLink Lk, const double Weight) override;
 
 	virtual void FinalizeNode(const PCGExCluster::FNode& TargetNode, const int32 Count, const double TotalWeight) override;
-
-	virtual void Cleanup() override;
 
 protected:
 	TUniquePtr<PCGExDataBlending::FPropertiesBlender> PropertiesBlender;
@@ -71,7 +66,7 @@ class UPCGExNeighborSamplerFactoryProperties : public UPCGExNeighborSamplerFacto
 
 public:
 	FPCGExPropertiesSamplerConfigBase Config;
-	virtual UPCGExNeighborSampleOperation* CreateOperation(FPCGExContext* InContext) const override;
+	virtual TSharedPtr<UPCGExNeighborSampleOperation> CreateOperation(FPCGExContext* InContext) const override;
 };
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|NeighborSample")

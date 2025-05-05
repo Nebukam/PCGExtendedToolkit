@@ -10,6 +10,8 @@
 #include "PCGExProbeFactoryProvider.h"
 #include "PCGExProbeOperation.h"
 
+
+
 #include "PCGExProbeIndex.generated.h"
 
 namespace PCGExProbing
@@ -59,11 +61,8 @@ struct FPCGExProbeConfigIndex : public FPCGExProbeConfigBase
 /**
  * 
  */
-UCLASS(MinimalAPI, DisplayName = "Index")
 class UPCGExProbeIndex : public UPCGExProbeOperation
 {
-	GENERATED_BODY()
-
 public:
 	virtual bool RequiresOctree() override;
 	virtual bool PrepareForPoints(const TSharedPtr<PCGExData::FPointIO>& InPointIO) override;
@@ -71,12 +70,6 @@ public:
 	virtual void ProcessNode(const int32 Index, const FPCGPoint& Point, TSet<FInt32Vector>* Coincidence, const FVector& ST, TSet<uint64>* OutEdges, const TArray<int8>& AcceptConnections) override
 	{
 		TryCreateEdge(Index, OutEdges, AcceptConnections);
-	}
-
-	virtual void Cleanup() override
-	{
-		TargetCache.Reset();
-		Super::Cleanup();
 	}
 
 	FPCGExProbeConfigIndex Config;
@@ -100,7 +93,7 @@ public:
 	UPROPERTY()
 	FPCGExProbeConfigIndex Config;
 
-	virtual UPCGExProbeOperation* CreateOperation(FPCGExContext* InContext) const override;
+	virtual TSharedPtr<UPCGExProbeOperation> CreateOperation(FPCGExContext* InContext) const override;
 };
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Graph|Params")

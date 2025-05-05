@@ -11,7 +11,7 @@
 
 #define PCGEX_SHAPE_BUILDER_BOILERPLATE(_SHAPE) \
 UPCGExShapeBuilderOperation* UPCGExShape##_SHAPE##Factory::CreateOperation(FPCGExContext* InContext) const{ \
-	UPCGExShape##_SHAPE##Builder* NewOperation = InContext->ManagedObjects->New<UPCGExShape##_SHAPE##Builder>(); \
+	PCGEX_FACTORY_NEW_OPERATION(UPCGExShape##_SHAPE##Builder)\
 	NewOperation->Config = Config; \
 	NewOperation->Config.Init(); \
 	NewOperation->BaseConfig = NewOperation->Config; \

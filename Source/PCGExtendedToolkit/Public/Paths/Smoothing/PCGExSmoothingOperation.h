@@ -12,7 +12,7 @@
  * 
  */
 UCLASS(Abstract)
-class PCGEXTENDEDTOOLKIT_API UPCGExSmoothingOperation : public UPCGExOperation
+class PCGEXTENDEDTOOLKIT_API UPCGExSmoothingOperation : public UPCGExInstancedOperation
 {
 	GENERATED_BODY()
 

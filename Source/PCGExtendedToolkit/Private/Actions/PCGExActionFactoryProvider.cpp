@@ -4,18 +4,10 @@
 #include "Actions/PCGExActionFactoryProvider.h"
 #include "PCGPin.h"
 
+
+
 #define LOCTEXT_NAMESPACE "PCGExWriteActions"
 #define PCGEX_NAMESPACE PCGExWriteActions
-
-
-void UPCGExActionOperation::CopySettingsFrom(const UPCGExOperation* Other)
-{
-	Super::CopySettingsFrom(Other);
-	if (const UPCGExActionOperation* TypedOther = Cast<UPCGExActionOperation>(Other))
-	{
-		Factory = TypedOther->Factory;
-	}
-}
 
 bool UPCGExActionOperation::PrepareForData(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade>& InPointDataFacade)
 {
@@ -42,18 +34,13 @@ void UPCGExActionOperation::OnMatchFail(int32 Index, const FPCGPoint& Point)
 {
 }
 
-void UPCGExActionOperation::Cleanup()
-{
-	Super::Cleanup();
-}
-
 #if WITH_EDITOR
 FString UPCGExActionProviderSettings::GetDisplayName() const { return TEXT(""); }
 #endif
 
-UPCGExActionOperation* UPCGExActionFactoryData::CreateOperation(FPCGExContext* InContext) const
+TSharedPtr<UPCGExActionOperation> UPCGExActionFactoryData::CreateOperation(FPCGExContext* InContext) const
 {
-	UPCGExActionOperation* NewOperation = InContext->ManagedObjects->New<UPCGExActionOperation>();
+	PCGEX_FACTORY_NEW_OPERATION(UPCGExActionOperation)
 	NewOperation->Factory = const_cast<UPCGExActionFactoryData*>(this);
 	return NewOperation;
 }

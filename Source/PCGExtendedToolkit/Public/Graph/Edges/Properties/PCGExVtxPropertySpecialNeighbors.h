@@ -32,27 +32,17 @@ struct FPCGExSpecialNeighborsConfig
 /**
  * ó
  */
-UCLASS(MinimalAPI)
 class UPCGExVtxPropertySpecialNeighbors : public UPCGExVtxPropertyOperation
 {
-	GENERATED_BODY()
-
 public:
 	FPCGExSpecialNeighborsConfig Config;
 
-	virtual void CopySettingsFrom(const UPCGExOperation* Other) override;
 	virtual bool PrepareForCluster(
 		const FPCGExContext* InContext,
 		TSharedPtr<PCGExCluster::FCluster> InCluster,
 		const TSharedPtr<PCGExData::FFacade>& InVtxDataFacade,
 		const TSharedPtr<PCGExData::FFacade>& InEdgeDataFacade) override;
 	virtual void ProcessNode(PCGExCluster::FNode& Node, const TArray<PCGExCluster::FAdjacencyData>& Adjacency) override;
-
-	virtual void Cleanup() override
-	{
-		Config = FPCGExSpecialNeighborsConfig{};
-		Super::Cleanup();
-	}
 };
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")
@@ -62,7 +52,7 @@ class UPCGExVtxPropertySpecialNeighborsFactory : public UPCGExVtxPropertyFactory
 
 public:
 	FPCGExSpecialNeighborsConfig Config;
-	virtual UPCGExVtxPropertyOperation* CreateOperation(FPCGExContext* InContext) const override;
+	virtual TSharedPtr<UPCGExVtxPropertyOperation> CreateOperation(FPCGExContext* InContext) const override;
 };
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|VtxProperty")

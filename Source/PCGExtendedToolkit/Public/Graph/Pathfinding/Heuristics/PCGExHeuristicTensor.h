@@ -7,6 +7,8 @@
 #include "PCGExHeuristicDistance.h"
 #include "UObject/Object.h"
 #include "PCGExHeuristicOperation.h"
+
+
 #include "Graph/PCGExCluster.h"
 #include "Transform/Tensors/PCGExTensor.h"
 #include "Transform/Tensors/PCGExTensorHandler.h"
@@ -34,11 +36,8 @@ struct FPCGExHeuristicConfigTensor : public FPCGExHeuristicConfigBase
 /**
  * 
  */
-UCLASS(MinimalAPI, DisplayName = "Tensor")
 class UPCGExHeuristicTensor : public UPCGExHeuristicOperation
 {
-	GENERATED_BODY()
-
 	friend class UPCGExHeuristicsFactoryTensor;
 
 public:
@@ -79,7 +78,7 @@ public:
 	UPROPERTY()
 	TArray<TObjectPtr<const UPCGExTensorFactoryData>> TensorFactories;
 
-	virtual UPCGExHeuristicOperation* CreateOperation(FPCGExContext* InContext) const override;
+	virtual TSharedPtr<UPCGExHeuristicOperation> CreateOperation(FPCGExContext* InContext) const override;
 	PCGEX_HEURISTIC_FACTORY_BOILERPLATE
 
 	virtual bool WantsPreparation(FPCGExContext* InContext) override { return true; }

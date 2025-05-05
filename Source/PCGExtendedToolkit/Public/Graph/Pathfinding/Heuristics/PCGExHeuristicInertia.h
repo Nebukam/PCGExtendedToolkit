@@ -9,6 +9,8 @@
 #include "PCGExHeuristicOperation.h"
 
 
+
+
 #include "Graph/PCGExCluster.h"
 #include "PCGExHeuristicInertia.generated.h"
 
@@ -42,11 +44,8 @@ struct FPCGExHeuristicConfigInertia : public FPCGExHeuristicConfigBase
 /**
  * 
  */
-UCLASS(MinimalAPI, DisplayName = "Inertia")
 class UPCGExHeuristicInertia : public UPCGExHeuristicOperation
 {
-	GENERATED_BODY()
-
 public:
 	double GlobalInertiaScore = 0;
 	double FallbackInertiaScore = 0;
@@ -78,7 +77,7 @@ public:
 	UPROPERTY()
 	FPCGExHeuristicConfigInertia Config;
 
-	virtual UPCGExHeuristicOperation* CreateOperation(FPCGExContext* InContext) const override;
+	virtual TSharedPtr<UPCGExHeuristicOperation> CreateOperation(FPCGExContext* InContext) const override;
 	PCGEX_HEURISTIC_FACTORY_BOILERPLATE
 };
 

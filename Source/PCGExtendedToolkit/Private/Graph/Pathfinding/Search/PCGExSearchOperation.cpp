@@ -5,7 +5,7 @@
 #include "Graph/Pathfinding/Search/PCGExSearchOperation.h"
 
 
-void UPCGExSearchOperation::CopySettingsFrom(const UPCGExOperation* Other)
+void UPCGExSearchOperation::CopySettingsFrom(const UPCGExInstancedOperation* Other)
 {
 	Super::CopySettingsFrom(Other);
 }

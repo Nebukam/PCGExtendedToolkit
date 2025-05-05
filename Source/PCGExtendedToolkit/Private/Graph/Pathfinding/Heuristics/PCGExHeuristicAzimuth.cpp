@@ -3,6 +3,9 @@
 
 #include "Graph/Pathfinding/Heuristics/PCGExHeuristicAzimuth.h"
 
+
+
+
 double UPCGExHeuristicAzimuth::GetGlobalScore(
 	const PCGExCluster::FNode& From,
 	const PCGExCluster::FNode& Seed,
@@ -25,9 +28,9 @@ double UPCGExHeuristicAzimuth::GetEdgeScore(
 	return GetScoreInternal(PCGExMath::Remap(Dot, -1, 1, 1, 0));
 }
 
-UPCGExHeuristicOperation* UPCGExHeuristicsFactoryAzimuth::CreateOperation(FPCGExContext* InContext) const
+TSharedPtr<UPCGExHeuristicOperation> UPCGExHeuristicsFactoryAzimuth::CreateOperation(FPCGExContext* InContext) const
 {
-	UPCGExHeuristicAzimuth* NewOperation = InContext->ManagedObjects->New<UPCGExHeuristicAzimuth>();
+	PCGEX_FACTORY_NEW_OPERATION(UPCGExHeuristicAzimuth)
 	PCGEX_FORWARD_HEURISTIC_CONFIG
 	return NewOperation;
 }

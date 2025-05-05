@@ -3,6 +3,9 @@
 
 #include "Graph/Pathfinding/Heuristics/PCGExHeuristicFeedback.h"
 
+
+
+
 double UPCGExHeuristicFeedback::GetGlobalScore(const PCGExCluster::FNode& From, const PCGExCluster::FNode& Seed, const PCGExCluster::FNode& Goal) const
 {
 	FReadScopeLock ReadScopeLock(FeedbackLock);
@@ -69,16 +72,9 @@ void UPCGExHeuristicFeedback::FeedbackScore(const PCGExCluster::FNode& Node, con
 	}
 }
 
-void UPCGExHeuristicFeedback::Cleanup()
+TSharedPtr<UPCGExHeuristicOperation> UPCGExHeuristicsFactoryFeedback::CreateOperation(FPCGExContext* InContext) const
 {
-	NodeFeedbackNum.Empty();
-	EdgeFeedbackNum.Empty();
-	Super::Cleanup();
-}
-
-UPCGExHeuristicOperation* UPCGExHeuristicsFactoryFeedback::CreateOperation(FPCGExContext* InContext) const
-{
-	UPCGExHeuristicFeedback* NewOperation = InContext->ManagedObjects->New<UPCGExHeuristicFeedback>();
+	PCGEX_FACTORY_NEW_OPERATION(UPCGExHeuristicFeedback)
 	PCGEX_FORWARD_HEURISTIC_CONFIG
 	NewOperation->NodeScale = Config.VisitedPointsWeightFactor;
 	NewOperation->EdgeScale = Config.VisitedEdgesWeightFactor;

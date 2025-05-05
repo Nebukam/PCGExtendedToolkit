@@ -4,6 +4,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "PCGExInstancedOperation.h"
 #include "PCGPoint.h"
 #include "PCGExOperation.h"
 
@@ -15,7 +16,7 @@
  * 
  */
 UCLASS(Abstract)
-class PCGEXTENDEDTOOLKIT_API UPCGExSubPointsOperation : public UPCGExOperation
+class PCGEXTENDEDTOOLKIT_API UPCGExSubPointsOperation : public UPCGExInstancedOperation
 {
 	GENERATED_BODY()
 
@@ -27,7 +28,7 @@ public:
 	bool bPreserveRotation = false;
 	bool bPreserveScale = false;
 
-	virtual void CopySettingsFrom(const UPCGExOperation* Other) override;
+	virtual void CopySettingsFrom(const UPCGExInstancedOperation* Other) override;
 
 	virtual void PrepareForData(const TSharedPtr<PCGExData::FFacade>& InPrimaryFacade, const TSet<FName>* IgnoreAttributeSet);
 

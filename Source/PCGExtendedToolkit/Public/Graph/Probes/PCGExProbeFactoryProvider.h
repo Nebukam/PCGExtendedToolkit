@@ -6,6 +6,8 @@
 #include "CoreMinimal.h"
 #include "PCGExPointsProcessor.h"
 
+
+
 #include "PCGExProbeFactoryProvider.generated.h"
 
 #define PCGEX_CREATE_PROBE_FACTORY(_NAME, _EXTRA_FACTORY, _EXTRA_OPERATION) \
@@ -13,8 +15,8 @@ UPCGExFactoryData* UPCGExProbe##_NAME##ProviderSettings::CreateFactory(FPCGExCon
 	UPCGExProbeFactory##_NAME* NewFactory = InContext->ManagedObjects->New<UPCGExProbeFactory##_NAME>();\
 	NewFactory->Config = Config; _EXTRA_FACTORY \
 	return Super::CreateFactory(InContext, NewFactory); } \
-UPCGExProbeOperation* UPCGExProbeFactory##_NAME::CreateOperation(FPCGExContext* InContext) const{\
-	UPCGExProbe##_NAME* NewOperation = InContext->ManagedObjects->New<UPCGExProbe##_NAME>(this->GetOuter());\
+TSharedPtr<UPCGExProbeOperation> UPCGExProbeFactory##_NAME::CreateOperation(FPCGExContext* InContext) const{\
+	PCGEX_FACTORY_NEW_OPERATION(UPCGExProbe##_NAME)\
 	NewOperation->Config = Config; NewOperation->BaseConfig = &NewOperation->Config; _EXTRA_OPERATION return NewOperation;}
 
 class UPCGExProbeOperation;
@@ -26,7 +28,7 @@ class PCGEXTENDEDTOOLKIT_API UPCGExProbeFactoryData : public UPCGExFactoryData
 
 public:
 	virtual PCGExFactories::EType GetFactoryType() const override { return PCGExFactories::EType::Probe; }
-	virtual UPCGExProbeOperation* CreateOperation(FPCGExContext* InContext) const;
+	virtual TSharedPtr<UPCGExProbeOperation> CreateOperation(FPCGExContext* InContext) const;
 };
 
 UCLASS(Abstract, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Graph|Params")

@@ -4,6 +4,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "PCGExInstancedOperation.h"
 #include "PCGExOperation.h"
 
 
@@ -28,14 +29,14 @@ namespace PCGExCluster
  * 
  */
 UCLASS(Abstract)
-class PCGEXTENDEDTOOLKIT_API UPCGExSearchOperation : public UPCGExOperation
+class PCGEXTENDEDTOOLKIT_API UPCGExSearchOperation : public UPCGExInstancedOperation
 {
 	GENERATED_BODY()
 
 public:
 	PCGExCluster::FCluster* Cluster = nullptr;
 
-	virtual void CopySettingsFrom(const UPCGExOperation* Other) override;
+	virtual void CopySettingsFrom(const UPCGExInstancedOperation* Other) override;
 
 	virtual void PrepareForCluster(PCGExCluster::FCluster* InCluster);
 	virtual bool ResolveQuery(

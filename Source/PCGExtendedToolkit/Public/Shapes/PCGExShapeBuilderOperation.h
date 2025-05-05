@@ -13,17 +13,11 @@
 /**
  * 
  */
-UCLASS(Abstract)
 class PCGEXTENDEDTOOLKIT_API UPCGExShapeBuilderOperation : public UPCGExOperation
 {
-	GENERATED_BODY()
-
 public:
-	virtual void CopySettingsFrom(const UPCGExOperation* Other) override;
 	virtual bool PrepareForSeeds(FPCGExContext* InContext, const TSharedRef<PCGExData::FFacade>& InSeedDataFacade);
 
-	virtual void Cleanup() override;
-	
 	TArray<TSharedPtr<PCGExShapes::FShape>> Shapes;
 	FTransform Transform;
 	FPCGExShapeConfigBase BaseConfig;

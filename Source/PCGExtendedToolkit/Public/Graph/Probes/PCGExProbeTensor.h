@@ -9,6 +9,8 @@
 
 #include "PCGExProbeFactoryProvider.h"
 #include "PCGExProbeOperation.h"
+
+
 #include "Transform/Tensors/PCGExTensor.h"
 #include "Transform/Tensors/PCGExTensorHandler.h"
 
@@ -56,11 +58,8 @@ struct FPCGExProbeConfigTensor : public FPCGExProbeConfigBase
 /**
  * 
  */
-UCLASS(MinimalAPI, DisplayName = "Direction")
 class UPCGExProbeTensor : public UPCGExProbeOperation
 {
-	GENERATED_BODY()
-
 public:
 	virtual bool RequiresChainProcessing() override;
 	virtual bool PrepareForPoints(const TSharedPtr<PCGExData::FPointIO>& InPointIO) override;
@@ -73,12 +72,6 @@ public:
 	FPCGExProbeConfigTensor Config;
 	const TArray<TObjectPtr<const UPCGExTensorFactoryData>>* TensorFactories = nullptr;
 	TSharedPtr<PCGExTensor::FTensorsHandler> TensorsHandler;
-
-	virtual void Cleanup() override
-	{
-		DirectionCache.Reset();
-		Super::Cleanup();
-	}
 
 protected:
 	bool bUseConstantDir = false;
@@ -103,7 +96,7 @@ public:
 	UPROPERTY()
 	TArray<TObjectPtr<const UPCGExTensorFactoryData>> TensorFactories;
 
-	virtual UPCGExProbeOperation* CreateOperation(FPCGExContext* InContext) const override;
+	virtual TSharedPtr<UPCGExProbeOperation> CreateOperation(FPCGExContext* InContext) const override;
 
 	virtual bool WantsPreparation(FPCGExContext* InContext) override { return true; }
 	virtual bool Prepare(FPCGExContext* InContext) override;

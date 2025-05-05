@@ -3,12 +3,15 @@
 
 #include "Transform/Tensors/PCGExTensorPole.h"
 
+#include "Editor/Experimental/EditorInteractiveToolsFramework/Public/Behaviors/2DViewportBehaviorTargets.h"
+#include "Editor/Experimental/EditorInteractiveToolsFramework/Public/Behaviors/2DViewportBehaviorTargets.h"
+
 #define LOCTEXT_NAMESPACE "PCGExCreateTensorPole"
 #define PCGEX_NAMESPACE CreateTensorPole
 
 bool UPCGExTensorPole::Init(FPCGExContext* InContext, const UPCGExTensorFactoryData* InFactory)
 {
-	if (!Super::Init(InContext, InFactory)) { return false; }
+	if (!UPCGExTensorPointOperation::Init(InContext, InFactory)) { return false; }
 	return true;
 }
 

@@ -3,12 +3,15 @@
 
 #include "Transform/Tensors/PCGExTensorFlow.h"
 
+#include "Editor/Experimental/EditorInteractiveToolsFramework/Public/Behaviors/2DViewportBehaviorTargets.h"
+#include "Editor/Experimental/EditorInteractiveToolsFramework/Public/Behaviors/2DViewportBehaviorTargets.h"
+
 #define LOCTEXT_NAMESPACE "PCGExCreateTensorFlow"
 #define PCGEX_NAMESPACE CreateTensorFlow
 
 bool UPCGExTensorFlow::Init(FPCGExContext* InContext, const UPCGExTensorFactoryData* InFactory)
 {
-	if (!Super::Init(InContext, InFactory)) { return false; }
+	if (!UPCGExTensorPointOperation::Init(InContext, InFactory)) { return false; }
 	return true;
 }
 

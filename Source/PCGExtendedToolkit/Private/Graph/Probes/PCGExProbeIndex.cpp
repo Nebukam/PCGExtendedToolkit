@@ -4,13 +4,15 @@
 #include "Graph/Probes/PCGExProbeIndex.h"
 #include "PCGExMath.h"
 
+
+
 PCGEX_CREATE_PROBE_FACTORY(Index, {}, {})
 
 bool UPCGExProbeIndex::RequiresOctree() { return false; }
 
 bool UPCGExProbeIndex::PrepareForPoints(const TSharedPtr<PCGExData::FPointIO>& InPointIO)
 {
-	if (!Super::PrepareForPoints(InPointIO)) { return false; }
+	if (!UPCGExProbeOperation::PrepareForPoints(InPointIO)) { return false; }
 
 	MaxIndex = PointIO->GetNum() - 1;
 

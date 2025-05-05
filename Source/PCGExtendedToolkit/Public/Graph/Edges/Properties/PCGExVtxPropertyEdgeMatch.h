@@ -13,6 +13,8 @@
 #include "Data/PCGExPointFilter.h"
 
 
+
+
 #include "Graph/PCGExCluster.h"
 #include "Graph/PCGExGraph.h"
 
@@ -62,31 +64,19 @@ struct FPCGExEdgeMatchConfig
 /**
  * 
  */
-UCLASS(MinimalAPI)
 class UPCGExVtxPropertyEdgeMatch : public UPCGExVtxPropertyOperation
 {
-	GENERATED_BODY()
-
 public:
-	UPROPERTY()
 	FPCGExEdgeMatchConfig Config;
 
 	TArray<TObjectPtr<const UPCGExFilterFactoryData>>* FilterFactories = nullptr;
 
-	virtual void CopySettingsFrom(const UPCGExOperation* Other) override;
 	virtual bool PrepareForCluster(
 		const FPCGExContext* InContext,
 		TSharedPtr<PCGExCluster::FCluster> InCluster,
 		const TSharedPtr<PCGExData::FFacade>& InVtxDataFacade,
 		const TSharedPtr<PCGExData::FFacade>& InEdgeDataFacade) override;
 	virtual void ProcessNode(PCGExCluster::FNode& Node, const TArray<PCGExCluster::FAdjacencyData>& Adjacency) override;
-
-	virtual void Cleanup() override
-	{
-		Config = FPCGExEdgeMatchConfig{};
-		DirCache.Reset();
-		Super::Cleanup();
-	}
 
 protected:
 	TSharedPtr<PCGExDetails::TSettingValue<FVector>> DirCache;
@@ -99,7 +89,7 @@ class UPCGExVtxPropertyEdgeMatchFactory : public UPCGExVtxPropertyFactoryData
 
 public:
 	FPCGExEdgeMatchConfig Config;
-	virtual UPCGExVtxPropertyOperation* CreateOperation(FPCGExContext* InContext) const override;
+	virtual TSharedPtr<UPCGExVtxPropertyOperation> CreateOperation(FPCGExContext* InContext) const override;
 };
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|VtxProperty")

@@ -4,6 +4,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "PCGExInstancedOperation.h"
 #include "PCGExOperation.h"
 #include "Graph/PCGExCluster.h"
 #include "PCGExRelaxClusterOperation.generated.h"
@@ -22,12 +23,12 @@ namespace PCGExCluster
  * 
  */
 UCLASS(Abstract)
-class PCGEXTENDEDTOOLKIT_API UPCGExRelaxClusterOperation : public UPCGExOperation
+class PCGEXTENDEDTOOLKIT_API UPCGExRelaxClusterOperation : public UPCGExInstancedOperation
 {
 	GENERATED_BODY()
 
 public:
-	virtual void CopySettingsFrom(const UPCGExOperation* Other) override
+	virtual void CopySettingsFrom(const UPCGExInstancedOperation* Other) override
 	{
 		Super::CopySettingsFrom(Other);
 		//if (const UPCGExRelaxClusterOperation* TypedOther = Cast<UPCGExRelaxClusterOperation>(Other))		{		}

@@ -9,7 +9,7 @@
 
 bool UPCGExShapeCircleBuilder::PrepareForSeeds(FPCGExContext* InContext, const TSharedRef<PCGExData::FFacade>& InSeedDataFacade)
 {
-	if (!Super::PrepareForSeeds(InContext, InSeedDataFacade)) { return false; }
+	if (!UPCGExShapeBuilderOperation::PrepareForSeeds(InContext, InSeedDataFacade)) { return false; }
 
 	StartAngle = Config.GetValueSettingStartAngle();
 	if (!StartAngle->Init(InContext, InSeedDataFacade)) { return false; }

@@ -4,6 +4,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "PCGExInstancedOperation.h"
 #include "PCGExOperation.h"
 #include "PCGExTangentsOperation.generated.h"
 
@@ -16,14 +17,14 @@ namespace PCGExData
  * 
  */
 UCLASS(Abstract)
-class PCGEXTENDEDTOOLKIT_API UPCGExTangentsOperation : public UPCGExOperation
+class PCGEXTENDEDTOOLKIT_API UPCGExTangentsOperation : public UPCGExInstancedOperation
 {
 	GENERATED_BODY()
 
 public:
 	bool bClosedLoop = false;
 
-	virtual void CopySettingsFrom(const UPCGExOperation* Other) override
+	virtual void CopySettingsFrom(const UPCGExInstancedOperation* Other) override
 	{
 		Super::CopySettingsFrom(Other);
 		if (const UPCGExTangentsOperation* TypedOther = Cast<UPCGExTangentsOperation>(Other))

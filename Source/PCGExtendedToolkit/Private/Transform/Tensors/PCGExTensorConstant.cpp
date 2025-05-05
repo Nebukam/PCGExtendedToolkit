@@ -3,12 +3,15 @@
 
 #include "Transform/Tensors/PCGExTensorConstant.h"
 
+#include "Editor/Experimental/EditorInteractiveToolsFramework/Public/Behaviors/2DViewportBehaviorTargets.h"
+#include "Editor/Experimental/EditorInteractiveToolsFramework/Public/Behaviors/2DViewportBehaviorTargets.h"
+
 #define LOCTEXT_NAMESPACE "PCGExCreateTensorConstant"
 #define PCGEX_NAMESPACE CreateTensorConstant
 
 bool UPCGExTensorConstant::Init(FPCGExContext* InContext, const UPCGExTensorFactoryData* InFactory)
 {
-	if (!Super::Init(InContext, InFactory)) { return false; }
+	if (!UPCGExTensorOperation::Init(InContext, InFactory)) { return false; }
 	return true;
 }
 

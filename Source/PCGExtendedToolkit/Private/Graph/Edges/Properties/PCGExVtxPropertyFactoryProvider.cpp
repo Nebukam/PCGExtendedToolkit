@@ -8,13 +8,6 @@
 #define LOCTEXT_NAMESPACE "PCGExWriteVtxProperties"
 #define PCGEX_NAMESPACE PCGExWriteVtxProperties
 
-
-void UPCGExVtxPropertyOperation::CopySettingsFrom(const UPCGExOperation* Other)
-{
-	Super::CopySettingsFrom(Other);
-	// if (const UPCGExVtxPropertyOperation* TypedOther = Cast<UPCGExVtxPropertyOperation>(Other))	{	}
-}
-
 bool UPCGExVtxPropertyOperation::PrepareForCluster(const FPCGExContext* InContext, TSharedPtr<PCGExCluster::FCluster> InCluster, const TSharedPtr<PCGExData::FFacade>& InVtxDataFacade, const TSharedPtr<PCGExData::FFacade>& InEdgeDataFacade)
 {
 	PrimaryDataFacade = InVtxDataFacade;
@@ -30,15 +23,13 @@ void UPCGExVtxPropertyOperation::ProcessNode(PCGExCluster::FNode& Node, const TA
 {
 }
 
-void UPCGExVtxPropertyOperation::Cleanup() { Super::Cleanup(); }
-
 #if WITH_EDITOR
 FString UPCGExVtxPropertyProviderSettings::GetDisplayName() const { return TEXT(""); }
 #endif
 
-UPCGExVtxPropertyOperation* UPCGExVtxPropertyFactoryData::CreateOperation(FPCGExContext* InContext) const
+TSharedPtr<UPCGExVtxPropertyOperation> UPCGExVtxPropertyFactoryData::CreateOperation(FPCGExContext* InContext) const
 {
-	UPCGExVtxPropertyOperation* NewOperation = InContext->ManagedObjects->New<UPCGExVtxPropertyOperation>();
+	PCGEX_FACTORY_NEW_OPERATION(UPCGExVtxPropertyOperation)
 	return NewOperation;
 }
 

@@ -3,12 +3,15 @@
 
 #include "Transform/Tensors/PCGExTensorSplinePole.h"
 
+#include "Editor/Experimental/EditorInteractiveToolsFramework/Public/Behaviors/2DViewportBehaviorTargets.h"
+#include "Editor/Experimental/EditorInteractiveToolsFramework/Public/Behaviors/2DViewportBehaviorTargets.h"
+
 #define LOCTEXT_NAMESPACE "PCGExCreateTensorSplinePole"
 #define PCGEX_NAMESPACE CreateTensorSplinePole
 
 bool UPCGExTensorSplinePole::Init(FPCGExContext* InContext, const UPCGExTensorFactoryData* InFactory)
 {
-	if (!Super::Init(InContext, InFactory)) { return false; }
+	if (!UPCGExTensorOperation::Init(InContext, InFactory)) { return false; }
 	return true;
 }
 

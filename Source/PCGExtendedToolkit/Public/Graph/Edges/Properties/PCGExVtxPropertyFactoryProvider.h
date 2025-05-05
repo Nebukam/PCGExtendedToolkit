@@ -12,6 +12,8 @@
 #include "PCGExOperation.h"
 
 
+
+
 #include "PCGExVtxPropertyFactoryProvider.generated.h"
 
 #define PCGEX_VTX_EXTRA_CREATE \
@@ -174,20 +176,13 @@ struct FPCGExEdgeOutputWithIndexSettings : public FPCGExSimpleEdgeOutputSettings
 /**
  * 
  */
-UCLASS()
 class UPCGExVtxPropertyOperation : public UPCGExOperation
 {
-	GENERATED_BODY()
-
 public:
-	virtual void CopySettingsFrom(const UPCGExOperation* Other) override;
-
 	virtual bool PrepareForCluster(const FPCGExContext* InContext, TSharedPtr<PCGExCluster::FCluster> InCluster, const TSharedPtr<PCGExData::FFacade>& InVtxDataFacade, const TSharedPtr<PCGExData::FFacade>& InEdgeDataFacade);
 	virtual bool IsOperationValid();
 
 	virtual void ProcessNode(PCGExCluster::FNode& Node, const TArray<PCGExCluster::FAdjacencyData>& Adjacency);
-
-	virtual void Cleanup() override;
 
 protected:
 	const PCGExCluster::FCluster* Cluster = nullptr;
@@ -201,7 +196,7 @@ class UPCGExVtxPropertyFactoryData : public UPCGExFactoryData
 
 public:
 	virtual PCGExFactories::EType GetFactoryType() const override { return PCGExFactories::EType::VtxProperty; }
-	virtual UPCGExVtxPropertyOperation* CreateOperation(FPCGExContext* InContext) const;
+	virtual TSharedPtr<UPCGExVtxPropertyOperation> CreateOperation(FPCGExContext* InContext) const;
 };
 
 UCLASS(Abstract, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|VtxProperty")

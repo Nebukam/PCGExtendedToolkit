@@ -161,15 +161,6 @@ void UPCGExNeighborSampleOperation::CompleteOperation()
 {
 }
 
-void UPCGExNeighborSampleOperation::Cleanup()
-{
-	PointFilters.Reset();
-	ValueFilters.Reset();
-	VtxDataFacade.Reset();
-	EdgeDataFacade.Reset();
-	Super::Cleanup();
-}
-
 #if WITH_EDITOR
 FString UPCGExNeighborSampleProviderSettings::GetDisplayName() const
 {
@@ -177,9 +168,9 @@ FString UPCGExNeighborSampleProviderSettings::GetDisplayName() const
 }
 #endif
 
-UPCGExNeighborSampleOperation* UPCGExNeighborSamplerFactoryData::CreateOperation(FPCGExContext* InContext) const
+TSharedPtr<UPCGExNeighborSampleOperation> UPCGExNeighborSamplerFactoryData::CreateOperation(FPCGExContext* InContext) const
 {
-	UPCGExNeighborSampleOperation* NewOperation = InContext->ManagedObjects->New<UPCGExNeighborSampleOperation>();
+	PCGEX_FACTORY_NEW_OPERATION(UPCGExNeighborSampleOperation)
 	PCGEX_SAMPLER_CREATE_OPERATION
 	return NewOperation;
 }

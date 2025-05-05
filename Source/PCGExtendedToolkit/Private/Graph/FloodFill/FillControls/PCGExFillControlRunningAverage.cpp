@@ -5,11 +5,13 @@
 #include "Graph/FloodFill/FillControls/PCGExFillControlRunningAverage.h"
 
 
+
+
 #include "Graph/FloodFill/FillControls/PCGExFillControlsFactoryProvider.h"
 
 bool UPCGExFillControlRunningAverage::PrepareForDiffusions(FPCGExContext* InContext, const TSharedPtr<PCGExFloodFill::FFillControlsHandler>& InHandler)
 {
-	if (!Super::PrepareForDiffusions(InContext, InHandler)) { return false; }
+	if (!UPCGExFillControlOperation::PrepareForDiffusions(InContext, InHandler)) { return false; }
 
 	const UPCGExFillControlsFactoryRunningAverage* TypedFactory = Cast<UPCGExFillControlsFactoryRunningAverage>(Factory);
 
@@ -56,17 +58,9 @@ bool UPCGExFillControlRunningAverage::IsValidCandidate(const PCGExFloodFill::FDi
 	return true;
 }
 
-void UPCGExFillControlRunningAverage::Cleanup()
+TSharedPtr<UPCGExFillControlOperation> UPCGExFillControlsFactoryRunningAverage::CreateOperation(FPCGExContext* InContext) const
 {
-	WindowSize.Reset();
-	Tolerance.Reset();
-	Operand.Reset();
-	Super::Cleanup();
-}
-
-UPCGExFillControlOperation* UPCGExFillControlsFactoryRunningAverage::CreateOperation(FPCGExContext* InContext) const
-{
-	UPCGExFillControlRunningAverage* NewOperation = InContext->ManagedObjects->New<UPCGExFillControlRunningAverage>();
+	PCGEX_FACTORY_NEW_OPERATION(UPCGExFillControlRunningAverage)
 	PCGEX_FORWARD_FILLCONTROL_OPERATION
 	return NewOperation;
 }

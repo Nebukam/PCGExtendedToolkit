@@ -10,6 +10,8 @@
 #include "PCGExFillControlsFactoryProvider.h"
 
 
+
+
 #include "Graph/PCGExCluster.h"
 #include "PCGExFillControlCount.generated.h"
 
@@ -41,11 +43,8 @@ struct FPCGExFillControlConfigCount : public FPCGExFillControlConfigBase
 /**
  * 
  */
-UCLASS(MinimalAPI, DisplayName = "Count")
 class UPCGExFillControlCount : public UPCGExFillControlOperation
 {
-	GENERATED_BODY()
-
 	friend class UPCGExFillControlsFactoryCount;
 
 public:
@@ -56,8 +55,6 @@ public:
 
 	virtual bool ChecksProbe() const override { return false; }
 	virtual bool ChecksCandidate() const override { return false; }
-
-	virtual void Cleanup() override;
 
 protected:
 	TSharedPtr<PCGExDetails::TSettingValue<int32>> CountLimit;
@@ -72,7 +69,7 @@ public:
 	UPROPERTY()
 	FPCGExFillControlConfigCount Config;
 
-	virtual UPCGExFillControlOperation* CreateOperation(FPCGExContext* InContext) const override;
+	virtual TSharedPtr<UPCGExFillControlOperation> CreateOperation(FPCGExContext* InContext) const override;
 
 	virtual void RegisterBuffersDependencies(FPCGExContext* InContext, PCGExData::FFacadePreloader& FacadePreloader) const override;
 };

@@ -3,13 +3,15 @@
 
 #include "Graph/Probes/PCGExProbeNumericCompare.h"
 
+
+
 #include "Graph/Probes/PCGExProbing.h"
 
 PCGEX_CREATE_PROBE_FACTORY(NumericCompare, {}, {})
 
 bool UPCGExProbeNumericCompare::PrepareForPoints(const TSharedPtr<PCGExData::FPointIO>& InPointIO)
 {
-	if (!Super::PrepareForPoints(InPointIO)) { return false; }
+	if (!UPCGExProbeOperation::PrepareForPoints(InPointIO)) { return false; }
 
 	ValuesBuffer = PrimaryDataFacade->GetScopedBroadcaster<double>(Config.Attribute);
 
@@ -57,7 +59,7 @@ void UPCGExProbeNumericCompare::ProcessCandidates(const int32 Index, const FPCGP
 
 void UPCGExProbeNumericCompare::ProcessNode(const int32 Index, const FPCGPoint& Point, TSet<FInt32Vector>* Coincidence, const FVector& ST, TSet<uint64>* OutEdges, const TArray<int8>& AcceptConnections)
 {
-	Super::ProcessNode(Index, Point, nullptr, FVector::ZeroVector, OutEdges, AcceptConnections);
+	UPCGExProbeOperation::ProcessNode(Index, Point, nullptr, FVector::ZeroVector, OutEdges, AcceptConnections);
 }
 
 #if WITH_EDITOR

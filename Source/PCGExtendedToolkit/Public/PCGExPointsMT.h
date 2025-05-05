@@ -4,6 +4,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "PCGExInstancedOperation.h"
 
 #include "PCGExMT.h"
 #include "PCGExOperation.h"
@@ -107,7 +108,7 @@ namespace PCGExPointsMT
 		bool DefaultPointFilterValue = true;
 		TArray<int8> PointFilterCache;
 
-		UPCGExOperation* PrimaryOperation = nullptr;
+		UPCGExInstancedOperation* PrimaryOperation = nullptr;
 
 		explicit FPointsProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade);
 
@@ -214,7 +215,7 @@ namespace PCGExPointsMT
 
 		TArray<TWeakPtr<PCGExData::FPointIO>> PointsCollection;
 
-		UPCGExOperation* PrimaryOperation = nullptr;
+		UPCGExInstancedOperation* PrimaryOperation = nullptr;
 
 		virtual int32 GetNumProcessors() const { return -1; }
 

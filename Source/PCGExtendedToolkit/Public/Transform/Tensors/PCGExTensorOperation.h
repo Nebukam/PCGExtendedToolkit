@@ -15,14 +15,9 @@ class UPCGExTensorFactoryData;
 /**
  * 
  */
-UCLASS(Abstract)
 class PCGEXTENDEDTOOLKIT_API UPCGExTensorOperation : public UPCGExOperation
 {
-	GENERATED_BODY()
-
 public:
-	virtual void CopySettingsFrom(const UPCGExOperation* Other) override;
-
 	TObjectPtr<const UPCGExTensorFactoryData> Factory = nullptr;
 	FPCGExTensorConfigBase BaseConfig;
 
@@ -77,22 +72,14 @@ public:
 		return true;
 	}
 
-	virtual void Cleanup() override
-	{
-		Factory = nullptr;
-	}
 };
 
 /**
  * 
  */
-UCLASS(Abstract)
 class PCGEXTENDEDTOOLKIT_API UPCGExTensorPointOperation : public UPCGExTensorOperation
 {
-	GENERATED_BODY()
-
 public:
-	virtual void CopySettingsFrom(const UPCGExOperation* Other) override;
 	virtual bool Init(FPCGExContext* InContext, const UPCGExTensorFactoryData* InFactory) override;
 
 	const UPCGPointData::PointOctree* Octree = nullptr;

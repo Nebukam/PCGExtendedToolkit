@@ -17,7 +17,7 @@
 #include "PCGExFactoryProvider.generated.h"
 
 #define PCGEX_FACTORY_NAME_PRIORITY FName(FString::Printf(TEXT("(%d) "), Priority) +  GetDisplayName())
-
+#define PCGEX_FACTORY_NEW_OPERATION(_TYPE) TSharedPtr<_TYPE> NewOperation = MakeShared<_TYPE>();
 
 ///
 

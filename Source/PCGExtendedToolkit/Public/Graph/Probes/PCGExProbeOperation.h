@@ -50,11 +50,8 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExProbeConfigBase
 /**
  * 
  */
-UCLASS(Abstract)
 class PCGEXTENDEDTOOLKIT_API UPCGExProbeOperation : public UPCGExOperation
 {
-	GENERATED_BODY()
-
 public:
 	virtual bool PrepareForPoints(const TSharedPtr<PCGExData::FPointIO>& InPointIO);
 	virtual bool RequiresOctree();

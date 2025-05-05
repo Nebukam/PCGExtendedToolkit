@@ -4,24 +4,15 @@
 #include "Graph/Edges/Properties/PCGExVtxPropertySpecialEdges.h"
 
 
+
+
+
 #define LOCTEXT_NAMESPACE "PCGExVtxPropertySpecialEdges"
 #define PCGEX_NAMESPACE PCGExVtxPropertySpecialEdges
 
-void UPCGExVtxPropertySpecialEdges::CopySettingsFrom(const UPCGExOperation* Other)
-{
-	Super::CopySettingsFrom(Other);
-	const UPCGExVtxPropertySpecialEdges* TypedOther = Cast<UPCGExVtxPropertySpecialEdges>(Other);
-	if (TypedOther)
-	{
-		Config = TypedOther->Config;
-	}
-}
-
 bool UPCGExVtxPropertySpecialEdges::PrepareForCluster(const FPCGExContext* InContext, TSharedPtr<PCGExCluster::FCluster> InCluster, const TSharedPtr<PCGExData::FFacade>& InVtxDataFacade, const TSharedPtr<PCGExData::FFacade>& InEdgeDataFacade)
 {
-	Super::PrepareForCluster(InContext, InCluster, InVtxDataFacade, InEdgeDataFacade);
-
-	if (!Super::PrepareForCluster(InContext, InCluster, InVtxDataFacade, InEdgeDataFacade)) { return false; }
+	if (!UPCGExVtxPropertyOperation::PrepareForCluster(InContext, InCluster, InVtxDataFacade, InEdgeDataFacade)) { return false; }
 
 	if (!Config.ShortestEdge.Validate(InContext) ||
 		!Config.LongestEdge.Validate(InContext) ||
@@ -88,9 +79,9 @@ FString UPCGExVtxPropertySpecialEdgesSettings::GetDisplayName() const
 }
 #endif
 
-UPCGExVtxPropertyOperation* UPCGExVtxPropertySpecialEdgesFactory::CreateOperation(FPCGExContext* InContext) const
+TSharedPtr<UPCGExVtxPropertyOperation> UPCGExVtxPropertySpecialEdgesFactory::CreateOperation(FPCGExContext* InContext) const
 {
-	UPCGExVtxPropertySpecialEdges* NewOperation = InContext->ManagedObjects->New<UPCGExVtxPropertySpecialEdges>();
+	PCGEX_FACTORY_NEW_OPERATION(UPCGExVtxPropertySpecialEdges)
 	PCGEX_VTX_EXTRA_CREATE
 	return NewOperation;
 }

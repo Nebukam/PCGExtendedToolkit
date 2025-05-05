@@ -5,9 +5,12 @@
 #include "Graph/Pathfinding/Heuristics/PCGExHeuristicDistance.h"
 
 
+
+
+
 void UPCGExHeuristicDistance::PrepareForCluster(const TSharedPtr<const PCGExCluster::FCluster>& InCluster)
 {
-	Super::PrepareForCluster(InCluster);
+	UPCGExHeuristicOperation::PrepareForCluster(InCluster);
 	BoundsSize = InCluster->Bounds.GetSize().Length();
 }
 
@@ -30,9 +33,9 @@ double UPCGExHeuristicDistance::GetEdgeScore(
 	return GetScoreInternal((*Cluster->EdgeLengths)[Edge.Index]);
 }
 
-UPCGExHeuristicOperation* UPCGExHeuristicsFactoryShortestDistance::CreateOperation(FPCGExContext* InContext) const
+TSharedPtr<UPCGExHeuristicOperation> UPCGExHeuristicsFactoryShortestDistance::CreateOperation(FPCGExContext* InContext) const
 {
-	UPCGExHeuristicDistance* NewOperation = InContext->ManagedObjects->New<UPCGExHeuristicDistance>();
+	PCGEX_FACTORY_NEW_OPERATION(UPCGExHeuristicDistance)
 	PCGEX_FORWARD_HEURISTIC_CONFIG
 	return NewOperation;
 }

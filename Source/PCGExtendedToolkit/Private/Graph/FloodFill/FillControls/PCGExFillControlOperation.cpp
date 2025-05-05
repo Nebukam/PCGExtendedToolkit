@@ -44,14 +44,6 @@ bool UPCGExFillControlOperation::IsValidCandidate(const PCGExFloodFill::FDiffusi
 	return false;
 }
 
-void UPCGExFillControlOperation::Cleanup()
-{
-	Factory = nullptr;
-	Cluster.Reset();
-	SettingsIndex.Reset();
-	Super::Cleanup();
-}
-
 int32 UPCGExFillControlOperation::GetSettingsIndex(const PCGExFloodFill::FDiffusion* Diffusion) const
 {
 	return *(SettingsIndex->GetData() + Diffusion->Index);

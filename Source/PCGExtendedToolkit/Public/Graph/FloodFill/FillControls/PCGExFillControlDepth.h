@@ -10,6 +10,8 @@
 #include "PCGExFillControlsFactoryProvider.h"
 
 
+
+
 #include "Graph/PCGExCluster.h"
 #include "PCGExFillControlDepth.generated.h"
 
@@ -42,11 +44,8 @@ struct FPCGExFillControlConfigDepth : public FPCGExFillControlConfigBase
 /**
  * 
  */
-UCLASS(MinimalAPI, DisplayName = "Depth")
 class UPCGExFillControlDepth : public UPCGExFillControlOperation
 {
-	GENERATED_BODY()
-
 	friend class UPCGExFillControlsFactoryDepth;
 
 public:
@@ -55,8 +54,6 @@ public:
 	virtual bool IsValidCapture(const PCGExFloodFill::FDiffusion* Diffusion, const PCGExFloodFill::FCandidate& Candidate) override;
 	virtual bool IsValidProbe(const PCGExFloodFill::FDiffusion* Diffusion, const PCGExFloodFill::FCandidate& Candidate) override;
 	virtual bool IsValidCandidate(const PCGExFloodFill::FDiffusion* Diffusion, const PCGExFloodFill::FCandidate& From, const PCGExFloodFill::FCandidate& Candidate) override;
-
-	virtual void Cleanup() override;
 
 protected:
 	TSharedPtr<PCGExDetails::TSettingValue<int32>> DepthLimit;
@@ -71,7 +68,7 @@ public:
 	UPROPERTY()
 	FPCGExFillControlConfigDepth Config;
 
-	virtual UPCGExFillControlOperation* CreateOperation(FPCGExContext* InContext) const override;
+	virtual TSharedPtr<UPCGExFillControlOperation> CreateOperation(FPCGExContext* InContext) const override;
 
 	virtual void RegisterBuffersDependencies(FPCGExContext* InContext, PCGExData::FFacadePreloader& FacadePreloader) const override;
 };

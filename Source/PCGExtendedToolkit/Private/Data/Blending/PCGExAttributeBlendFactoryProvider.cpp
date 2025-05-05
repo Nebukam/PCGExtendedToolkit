@@ -5,6 +5,8 @@
 
 #include "PCGExDetailsData.h"
 #include "Data/Blending/PCGExProxyDataBlending.h"
+
+
 #include "Elements/Metadata/PCGMetadataElementCommon.h"
 
 #define LOCTEXT_NAMESPACE "PCGExCreateAttributeBlend"
@@ -145,13 +147,6 @@ void UPCGExAttributeBlendOperation::CompleteWork(TSet<TSharedPtr<PCGExData::FBuf
 	}
 }
 
-void UPCGExAttributeBlendOperation::Cleanup()
-{
-	SiblingOperations.Reset();
-	Blender.Reset();
-	Super::Cleanup();
-}
-
 bool UPCGExAttributeBlendOperation::CopyAndFixSiblingSelector(FPCGExContext* InContext, FPCGAttributePropertyInputSelector& Selector) const
 {
 	// TODO : Support index shortcuts like @0 @1 @2 etc
@@ -203,9 +198,9 @@ bool UPCGExAttributeBlendOperation::CopyAndFixSiblingSelector(FPCGExContext* InC
 	return true;
 }
 
-UPCGExAttributeBlendOperation* UPCGExAttributeBlendFactory::CreateOperation(FPCGExContext* InContext) const
+TSharedPtr<UPCGExAttributeBlendOperation> UPCGExAttributeBlendFactory::CreateOperation(FPCGExContext* InContext) const
 {
-	UPCGExAttributeBlendOperation* NewOperation = InContext->ManagedObjects->New<UPCGExAttributeBlendOperation>();
+	PCGEX_FACTORY_NEW_OPERATION(UPCGExAttributeBlendOperation)
 	NewOperation->Config = Config;
 	NewOperation->Config.Init();
 	return NewOperation;

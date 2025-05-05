@@ -4,6 +4,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "PCGExInstancedOperation.h"
 #include "UObject/Object.h"
 
 #include "PCGExOperation.h"
@@ -16,7 +17,7 @@
  * 
  */
 UCLASS(DisplayName = "Default", meta=(DisplayName = "Default", ToolTip ="Samples a single location in the tensor field."))
-class PCGEXTENDEDTOOLKIT_API UPCGExTensorSampler : public UPCGExOperation
+class PCGEXTENDEDTOOLKIT_API UPCGExTensorSampler : public UPCGExInstancedOperation
 {
 	GENERATED_BODY()
 
@@ -24,7 +25,7 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	double Radius = 1;
 
-	virtual void CopySettingsFrom(const UPCGExOperation* Other) override;
+	virtual void CopySettingsFrom(const UPCGExInstancedOperation* Other) override;
 	virtual bool PrepareForData(FPCGExContext* InContext);
 	virtual PCGExTensor::FTensorSample RawSample(const TArray<UPCGExTensorOperation*>& InTensors, int32 InSeedIndex, const FTransform& InProbe) const;
 	virtual PCGExTensor::FTensorSample Sample(const TArray<UPCGExTensorOperation*>& InTensors, int32 InSeedIndex, const FTransform& InProbe, bool& OutSuccess) const;

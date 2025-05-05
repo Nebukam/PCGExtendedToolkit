@@ -5,12 +5,14 @@
 #include "Graph/FloodFill/FillControls/PCGExFillControlVtxFilters.h"
 
 
+
+
 #include "Graph/Filters/PCGExClusterFilter.h"
 #include "Graph/FloodFill/FillControls/PCGExFillControlsFactoryProvider.h"
 
 bool UPCGExFillControlVtxFilters::PrepareForDiffusions(FPCGExContext* InContext, const TSharedPtr<PCGExFloodFill::FFillControlsHandler>& InHandler)
 {
-	if (!Super::PrepareForDiffusions(InContext, InHandler)) { return false; }
+	if (!UPCGExFillControlOperation::PrepareForDiffusions(InContext, InHandler)) { return false; }
 
 	const UPCGExFillControlsFactoryVtxFilters* TypedFactory = Cast<UPCGExFillControlsFactoryVtxFilters>(Factory);
 
@@ -34,15 +36,9 @@ bool UPCGExFillControlVtxFilters::IsValidCandidate(const PCGExFloodFill::FDiffus
 	return VtxFilterManager->Test(*Candidate.Node);
 }
 
-void UPCGExFillControlVtxFilters::Cleanup()
+TSharedPtr<UPCGExFillControlOperation> UPCGExFillControlsFactoryVtxFilters::CreateOperation(FPCGExContext* InContext) const
 {
-	VtxFilterManager.Reset();
-	Super::Cleanup();
-}
-
-UPCGExFillControlOperation* UPCGExFillControlsFactoryVtxFilters::CreateOperation(FPCGExContext* InContext) const
-{
-	UPCGExFillControlVtxFilters* NewOperation = InContext->ManagedObjects->New<UPCGExFillControlVtxFilters>();
+	PCGEX_FACTORY_NEW_OPERATION(UPCGExFillControlVtxFilters)
 	PCGEX_FORWARD_FILLCONTROL_OPERATION
 	return NewOperation;
 }

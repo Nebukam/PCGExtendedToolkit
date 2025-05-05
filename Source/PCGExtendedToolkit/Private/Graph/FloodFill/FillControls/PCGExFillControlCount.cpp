@@ -9,7 +9,7 @@
 
 bool UPCGExFillControlCount::PrepareForDiffusions(FPCGExContext* InContext, const TSharedPtr<PCGExFloodFill::FFillControlsHandler>& InHandler)
 {
-	if (!Super::PrepareForDiffusions(InContext, InHandler)) { return false; }
+	if (!UPCGExFillControlOperation::PrepareForDiffusions(InContext, InHandler)) { return false; }
 
 	const UPCGExFillControlsFactoryCount* TypedFactory = Cast<UPCGExFillControlsFactoryCount>(Factory);
 
@@ -25,15 +25,9 @@ bool UPCGExFillControlCount::IsValidCapture(const PCGExFloodFill::FDiffusion* Di
 	return Diffusion->Captured.Num() < Limit;
 }
 
-void UPCGExFillControlCount::Cleanup()
+TSharedPtr<UPCGExFillControlOperation> UPCGExFillControlsFactoryCount::CreateOperation(FPCGExContext* InContext) const
 {
-	CountLimit.Reset();
-	Super::Cleanup();
-}
-
-UPCGExFillControlOperation* UPCGExFillControlsFactoryCount::CreateOperation(FPCGExContext* InContext) const
-{
-	UPCGExFillControlCount* NewOperation = InContext->ManagedObjects->New<UPCGExFillControlCount>();
+	PCGEX_FACTORY_NEW_OPERATION(UPCGExFillControlCount)
 	PCGEX_FORWARD_FILLCONTROL_OPERATION
 	return NewOperation;
 }

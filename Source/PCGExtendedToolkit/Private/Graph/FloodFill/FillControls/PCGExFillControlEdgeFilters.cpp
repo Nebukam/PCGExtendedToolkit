@@ -5,12 +5,14 @@
 #include "Graph/FloodFill/FillControls/PCGExFillControlEdgeFilters.h"
 
 
+
+
 #include "Graph/Filters/PCGExClusterFilter.h"
 #include "Graph/FloodFill/FillControls/PCGExFillControlsFactoryProvider.h"
 
 bool UPCGExFillControlEdgeFilters::PrepareForDiffusions(FPCGExContext* InContext, const TSharedPtr<PCGExFloodFill::FFillControlsHandler>& InHandler)
 {
-	if (!Super::PrepareForDiffusions(InContext, InHandler)) { return false; }
+	if (!UPCGExFillControlOperation::PrepareForDiffusions(InContext, InHandler)) { return false; }
 
 	const UPCGExFillControlsFactoryEdgeFilters* TypedFactory = Cast<UPCGExFillControlsFactoryEdgeFilters>(Factory);
 
@@ -45,15 +47,9 @@ bool UPCGExFillControlEdgeFilters::IsValidCandidate(const PCGExFloodFill::FDiffu
 	return EdgeFilterManager->Test(Edge);
 }
 
-void UPCGExFillControlEdgeFilters::Cleanup()
+TSharedPtr<UPCGExFillControlOperation> UPCGExFillControlsFactoryEdgeFilters::CreateOperation(FPCGExContext* InContext) const
 {
-	EdgeFilterManager.Reset();
-	Super::Cleanup();
-}
-
-UPCGExFillControlOperation* UPCGExFillControlsFactoryEdgeFilters::CreateOperation(FPCGExContext* InContext) const
-{
-	UPCGExFillControlEdgeFilters* NewOperation = InContext->ManagedObjects->New<UPCGExFillControlEdgeFilters>();
+	PCGEX_FACTORY_NEW_OPERATION(UPCGExFillControlEdgeFilters)
 	PCGEX_FORWARD_FILLCONTROL_OPERATION
 	return NewOperation;
 }

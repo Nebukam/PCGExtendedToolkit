@@ -8,6 +8,8 @@
 #include "PCGExTensor.h"
 #include "PCGExTensorFactoryProvider.h"
 #include "PCGExTensorOperation.h"
+#include "Editor/Experimental/EditorInteractiveToolsFramework/Public/Behaviors/2DViewportBehaviorTargets.h"
+#include "Editor/Experimental/EditorInteractiveToolsFramework/Public/Behaviors/2DViewportBehaviorTargets.h"
 
 #include "PCGExTensorConstant.generated.h"
 
@@ -29,11 +31,8 @@ struct FPCGExTensorConstantConfig : public FPCGExTensorConfigBase
 /**
  * 
  */
-UCLASS(MinimalAPI)
 class UPCGExTensorConstant : public UPCGExTensorOperation
 {
-	GENERATED_BODY()
-
 public:
 	FPCGExTensorConstantConfig Config;
 	virtual bool Init(FPCGExContext* InContext, const UPCGExTensorFactoryData* InFactory) override;
@@ -54,7 +53,7 @@ public:
 	UPROPERTY()
 	FVector Constant = FVector::OneVector;
 
-	virtual UPCGExTensorOperation* CreateOperation(FPCGExContext* InContext) const override;
+	virtual TSharedPtr<UPCGExTensorOperation> CreateOperation(FPCGExContext* InContext) const override;
 
 protected:
 	virtual bool InitInternalData(FPCGExContext* InContext) override;

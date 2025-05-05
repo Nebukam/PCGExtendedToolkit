@@ -3,6 +3,9 @@
 
 #include "Graph/Pathfinding/Heuristics/PCGExHeuristicsFactoryProvider.h"
 
+
+
+
 #define LOCTEXT_NAMESPACE "PCGExCreateHeuristics"
 #define PCGEX_NAMESPACE CreateHeuristics
 
@@ -26,7 +29,7 @@ bool UPCGExHeuristicsFactoryData::RegisterConsumableAttributesWithData(FPCGExCon
 	return true;
 }
 
-UPCGExHeuristicOperation* UPCGExHeuristicsFactoryData::CreateOperation(FPCGExContext* InContext) const
+TSharedPtr<UPCGExHeuristicOperation> UPCGExHeuristicsFactoryData::CreateOperation(FPCGExContext* InContext) const
 {
 	return nullptr; // Create heuristic operation
 }

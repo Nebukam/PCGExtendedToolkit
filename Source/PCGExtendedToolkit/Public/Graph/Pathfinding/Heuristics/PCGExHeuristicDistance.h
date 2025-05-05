@@ -10,6 +10,8 @@
 #include "PCGExHeuristicsFactoryProvider.h"
 
 
+
+
 #include "PCGExHeuristicDistance.generated.h"
 
 USTRUCT(BlueprintType)
@@ -26,11 +28,8 @@ struct FPCGExHeuristicConfigShortestDistance : public FPCGExHeuristicConfigBase
 /**
  * 
  */
-UCLASS(MinimalAPI, DisplayName = "Shortest Distance")
 class UPCGExHeuristicDistance : public UPCGExHeuristicOperation
 {
-	GENERATED_BODY()
-
 public:
 	virtual void PrepareForCluster(const TSharedPtr<const PCGExCluster::FCluster>& InCluster) override;
 
@@ -63,7 +62,7 @@ public:
 	UPROPERTY()
 	FPCGExHeuristicConfigShortestDistance Config;
 
-	virtual UPCGExHeuristicOperation* CreateOperation(FPCGExContext* InContext) const override;
+	virtual TSharedPtr<UPCGExHeuristicOperation> CreateOperation(FPCGExContext* InContext) const override;
 	PCGEX_HEURISTIC_FACTORY_BOILERPLATE
 };
 

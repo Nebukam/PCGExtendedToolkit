@@ -10,6 +10,8 @@
 #include "PCGExFillControlsFactoryProvider.h"
 
 
+
+
 #include "Graph/PCGExCluster.h"
 #include "PCGExFillControlEdgeFilters.generated.h"
 
@@ -29,11 +31,8 @@ struct FPCGExFillControlConfigEdgeFilters : public FPCGExFillControlConfigBase
 /**
  * 
  */
-UCLASS(MinimalAPI, DisplayName = "EdgeFilters")
 class UPCGExFillControlEdgeFilters : public UPCGExFillControlOperation
 {
-	GENERATED_BODY()
-
 	friend class UPCGExFillControlsFactoryEdgeFilters;
 
 public:
@@ -42,8 +41,6 @@ public:
 	virtual bool IsValidCapture(const PCGExFloodFill::FDiffusion* Diffusion, const PCGExFloodFill::FCandidate& Candidate) override;
 	virtual bool IsValidProbe(const PCGExFloodFill::FDiffusion* Diffusion, const PCGExFloodFill::FCandidate& Candidate) override;
 	virtual bool IsValidCandidate(const PCGExFloodFill::FDiffusion* Diffusion, const PCGExFloodFill::FCandidate& From, const PCGExFloodFill::FCandidate& Candidate) override;
-
-	virtual void Cleanup() override;
 
 protected:
 	TSharedPtr<PCGExClusterFilter::FManager> EdgeFilterManager;
@@ -61,7 +58,7 @@ public:
 	UPROPERTY()
 	TArray<TObjectPtr<const UPCGExFilterFactoryData>> FilterFactories;
 
-	virtual UPCGExFillControlOperation* CreateOperation(FPCGExContext* InContext) const override;
+	virtual TSharedPtr<UPCGExFillControlOperation> CreateOperation(FPCGExContext* InContext) const override;
 
 };
 

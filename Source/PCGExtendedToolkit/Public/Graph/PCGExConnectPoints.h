@@ -94,10 +94,10 @@ namespace PCGExConnectPoints
 
 		TSharedPtr<PCGExGraph::FGraphBuilder> GraphBuilder;
 
-		TArray<UPCGExProbeOperation*> SearchProbes;
-		TArray<UPCGExProbeOperation*> DirectProbes;
-		TArray<UPCGExProbeOperation*> ChainProbeOperations;
-		TArray<UPCGExProbeOperation*> SharedProbeOperations;
+		TArray<TSharedPtr<UPCGExProbeOperation>> SearchProbes;
+		TArray<TSharedPtr<UPCGExProbeOperation>> DirectProbes;
+		TArray<TSharedPtr<UPCGExProbeOperation>> ChainProbeOperations;
+		TArray<TSharedPtr<UPCGExProbeOperation>> SharedProbeOperations;
 		bool bUseVariableRadius = false;
 		int32 NumChainedOps = 0;
 		double SharedSearchRadius = 0;
@@ -132,5 +132,7 @@ namespace PCGExConnectPoints
 		virtual void ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const PCGExMT::FScope& Scope) override;
 		virtual void CompleteWork() override;
 		virtual void Write() override;
+		
+		virtual void Cleanup() override;
 	};
 }
