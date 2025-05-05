@@ -28,7 +28,7 @@ struct FPCGExTensorNullConfig : public FPCGExTensorConfigBase
 /**
  * 
  */
-class UPCGExTensorNull : public UPCGExTensorPointOperation
+class PCGExTensorNull : public PCGExTensorPointOperation
 {
 public:
 	FPCGExTensorNullConfig Config;
@@ -46,7 +46,7 @@ class UPCGExTensorNullFactory : public UPCGExTensorPointFactoryData
 
 public:
 	FPCGExTensorNullConfig Config;
-	virtual TSharedPtr<UPCGExTensorOperation> CreateOperation(FPCGExContext* InContext) const override;
+	virtual TSharedPtr<PCGExTensorOperation> CreateOperation(FPCGExContext* InContext) const override;
 };
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Tensors|Params")

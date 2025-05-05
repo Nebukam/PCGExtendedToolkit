@@ -25,7 +25,7 @@ public:
 	virtual bool WantsIndividualEdgeProcessing() override { return true; }
 	virtual bool GetDefaultEdgeValidity() override { return bInvert; }
 
-	virtual void CopySettingsFrom(const UPCGExOperation* Other) override
+	virtual void CopySettingsFrom(const UPCGExInstancedFactory* Other) override
 	{
 		Super::CopySettingsFrom(Other);
 		if (const UPCGExEdgeRefineByFilter* TypedOther = Cast<UPCGExEdgeRefineByFilter>(Other))

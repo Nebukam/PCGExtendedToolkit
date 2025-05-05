@@ -16,7 +16,7 @@ class UPCGExForceDirectedRelax : public UPCGExRelaxClusterOperation
 	GENERATED_BODY()
 
 public:
-	virtual void CopySettingsFrom(const UPCGExInstancedOperation* Other) override
+	virtual void CopySettingsFrom(const UPCGExInstancedFactory* Other) override
 	{
 		Super::CopySettingsFrom(Other);
 		if (const UPCGExForceDirectedRelax* TypedOther = Cast<UPCGExForceDirectedRelax>(Other))

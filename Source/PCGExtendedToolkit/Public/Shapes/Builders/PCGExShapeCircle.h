@@ -70,7 +70,7 @@ namespace PCGExShapes
 /**
  * 
  */
-class UPCGExShapeCircleBuilder : public UPCGExShapeBuilderOperation
+class PCGExShapeCircleBuilder : public PCGExShapeBuilderOperation
 {
 public:
 	FPCGExShapeCircleConfig Config;
@@ -94,7 +94,7 @@ public:
 	UPROPERTY()
 	FPCGExShapeCircleConfig Config;
 
-	virtual UPCGExShapeBuilderOperation* CreateOperation(FPCGExContext* InContext) const override;
+	virtual TSharedPtr<PCGExShapeBuilderOperation> CreateOperation(FPCGExContext* InContext) const override;
 };
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Builder|Params")

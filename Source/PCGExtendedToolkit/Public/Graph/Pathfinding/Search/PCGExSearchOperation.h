@@ -4,7 +4,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "PCGExInstancedOperation.h"
+#include "PCGExInstancedFactory.h"
 #include "PCGExOperation.h"
 
 
@@ -18,7 +18,7 @@ namespace PCGExPathfinding
 	struct FExtraWeights;
 }
 
-class UPCGExHeuristicOperation;
+class PCGExHeuristicOperation;
 
 namespace PCGExCluster
 {
@@ -29,14 +29,14 @@ namespace PCGExCluster
  * 
  */
 UCLASS(Abstract)
-class PCGEXTENDEDTOOLKIT_API UPCGExSearchOperation : public UPCGExInstancedOperation
+class PCGEXTENDEDTOOLKIT_API UPCGExSearchOperation : public UPCGExInstancedFactory
 {
 	GENERATED_BODY()
 
 public:
 	PCGExCluster::FCluster* Cluster = nullptr;
 
-	virtual void CopySettingsFrom(const UPCGExInstancedOperation* Other) override;
+	virtual void CopySettingsFrom(const UPCGExInstancedFactory* Other) override;
 
 	virtual void PrepareForCluster(PCGExCluster::FCluster* InCluster);
 	virtual bool ResolveQuery(

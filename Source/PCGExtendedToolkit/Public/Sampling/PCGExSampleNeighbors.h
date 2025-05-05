@@ -16,7 +16,7 @@ namespace PCGExNeighborSample
 }
 
 class UPCGExNeighborSamplerFactoryData;
-class UPCGExNeighborSampleOperation;
+class PCGExNeighborSampleOperation;
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Clusters")
 class UPCGExSampleNeighborsSettings : public UPCGExEdgesProcessorSettings
@@ -71,8 +71,8 @@ namespace PCGExSampleNeighbors
 {
 	class FProcessor final : public PCGExClusterMT::TProcessor<FPCGExSampleNeighborsContext, UPCGExSampleNeighborsSettings>
 	{
-		TArray<UPCGExNeighborSampleOperation*> SamplingOperations;
-		TArray<UPCGExNeighborSampleOperation*> OpsWithValueTest;
+		TArray<TSharedPtr<PCGExNeighborSampleOperation>> SamplingOperations;
+		TArray<TSharedPtr<PCGExNeighborSampleOperation>> OpsWithValueTest;
 
 	public:
 		FProcessor(const TSharedRef<PCGExData::FFacade>& InVtxDataFacade, const TSharedRef<PCGExData::FFacade>& InEdgeDataFacade):
@@ -87,6 +87,7 @@ namespace PCGExSampleNeighbors
 		virtual void OnRangeProcessingComplete() override;
 		virtual void ProcessSingleNode(const int32 Index, PCGExCluster::FNode& Node, const PCGExMT::FScope& Scope) override;
 		virtual void Write() override;
+		virtual void Cleanup() override;
 	};
 
 	class FBatch final : public PCGExClusterMT::TBatch<FProcessor>

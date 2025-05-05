@@ -407,12 +407,15 @@ namespace PCGExClusterDiffusion
 
 	void FProcessor::Cleanup()
 	{
+		TProcessor<FPCGExClusterDiffusionContext, UPCGExClusterDiffusionSettings>::Cleanup();
+		
 		// Make sure we flush these ASAP
 		InitialDiffusions.Reset();
 		OngoingDiffusions.Reset();
 		Diffusions.Reset();
 		FillControlsHandler.Reset();
-		TProcessor<FPCGExClusterDiffusionContext, UPCGExClusterDiffusionSettings>::Cleanup();
+
+		Operations->Empty();
 	}
 
 
@@ -452,12 +455,12 @@ namespace PCGExClusterDiffusion
 	{
 		PCGEX_TYPED_CONTEXT_AND_SETTINGS(ClusterDiffusion)
 
-		BlendOps = MakeShared<TArray<UPCGExAttributeBlendOperation*>>();
+		BlendOps = MakeShared<TArray<TSharedPtr<PCGExAttributeBlendOperation>>>();
 		BlendOps->Reserve(Context->BlendingFactories.Num());
 
 		for (const TObjectPtr<const UPCGExAttributeBlendFactory>& Factory : Context->BlendingFactories)
 		{
-			UPCGExAttributeBlendOperation* Op = Factory->CreateOperation(Context);
+			TSharedPtr<PCGExAttributeBlendOperation> Op = Factory->CreateOperation(Context);
 			if (!Op)
 			{
 				bIsBatchValid = false;

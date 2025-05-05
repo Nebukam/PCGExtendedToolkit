@@ -10,7 +10,7 @@
 #include "UObject/Object.h"
 #include "PCGExSearchDijkstra.generated.h"
 
-class UPCGExHeuristicOperation;
+class PCGExHeuristicOperation;
 /**
  * 
  */
@@ -20,7 +20,7 @@ class UPCGExSearchDijkstra : public UPCGExSearchOperation
 	GENERATED_BODY()
 
 public:
-	virtual void CopySettingsFrom(const UPCGExInstancedOperation* Other) override;
+	virtual void CopySettingsFrom(const UPCGExInstancedFactory* Other) override;
 
 	virtual bool ResolveQuery(
 		const TSharedPtr<PCGExPathfinding::FPathQuery>& InQuery,

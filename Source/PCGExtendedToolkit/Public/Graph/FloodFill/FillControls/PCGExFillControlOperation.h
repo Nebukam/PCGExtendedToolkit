@@ -11,12 +11,10 @@
 #include "Graph/FloodFill/PCGExFloodFill.h"
 #include "UObject/Object.h"
 
-#include "PCGExFillControlOperation.generated.h"
-
 /**
  * 
  */
-class PCGEXTENDEDTOOLKIT_API UPCGExFillControlOperation : public UPCGExOperation
+class PCGEXTENDEDTOOLKIT_API PCGExFillControlOperation : public PCGExOperation
 {
 public:
 	const UPCGExFillControlsFactoryData* Factory = nullptr;

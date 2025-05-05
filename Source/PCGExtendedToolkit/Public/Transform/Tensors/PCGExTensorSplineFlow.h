@@ -41,7 +41,7 @@ struct FPCGExTensorSplineFlowConfig : public FPCGExTensorConfigBase
 /**
  * 
  */
-class UPCGExTensorSplineFlow : public UPCGExTensorOperation
+class PCGExTensorSplineFlow : public PCGExTensorOperation
 {
 public:
 	FPCGExTensorSplineFlowConfig Config;
@@ -60,7 +60,7 @@ class UPCGExTensorSplineFlowFactory : public UPCGExTensorSplineFactoryData
 
 public:
 	FPCGExTensorSplineFlowConfig Config;
-	virtual TSharedPtr<UPCGExTensorOperation> CreateOperation(FPCGExContext* InContext) const override;
+	virtual TSharedPtr<PCGExTensorOperation> CreateOperation(FPCGExContext* InContext) const override;
 	virtual bool Prepare(FPCGExContext* InContext) override;
 };
 

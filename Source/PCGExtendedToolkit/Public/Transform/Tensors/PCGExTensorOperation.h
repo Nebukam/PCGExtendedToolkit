@@ -14,7 +14,7 @@ class UPCGExTensorFactoryData;
 /**
  * 
  */
-class PCGEXTENDEDTOOLKIT_API UPCGExTensorOperation : public UPCGExOperation
+class PCGEXTENDEDTOOLKIT_API PCGExTensorOperation : public PCGExOperation
 {
 public:
 	TObjectPtr<const UPCGExTensorFactoryData> Factory = nullptr;
@@ -76,7 +76,7 @@ public:
 /**
  * 
  */
-class PCGEXTENDEDTOOLKIT_API UPCGExTensorPointOperation : public UPCGExTensorOperation
+class PCGEXTENDEDTOOLKIT_API PCGExTensorPointOperation : public PCGExTensorOperation
 {
 public:
 	virtual bool Init(FPCGExContext* InContext, const UPCGExTensorFactoryData* InFactory) override;

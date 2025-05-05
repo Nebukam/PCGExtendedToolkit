@@ -10,9 +10,9 @@
 #define LOCTEXT_NAMESPACE "PCGExVtxPropertySpecialEdges"
 #define PCGEX_NAMESPACE PCGExVtxPropertySpecialEdges
 
-bool UPCGExVtxPropertySpecialEdges::PrepareForCluster(const FPCGExContext* InContext, TSharedPtr<PCGExCluster::FCluster> InCluster, const TSharedPtr<PCGExData::FFacade>& InVtxDataFacade, const TSharedPtr<PCGExData::FFacade>& InEdgeDataFacade)
+bool PCGExVtxPropertySpecialEdges::PrepareForCluster(const FPCGExContext* InContext, TSharedPtr<PCGExCluster::FCluster> InCluster, const TSharedPtr<PCGExData::FFacade>& InVtxDataFacade, const TSharedPtr<PCGExData::FFacade>& InEdgeDataFacade)
 {
-	if (!UPCGExVtxPropertyOperation::PrepareForCluster(InContext, InCluster, InVtxDataFacade, InEdgeDataFacade)) { return false; }
+	if (!PCGExVtxPropertyOperation::PrepareForCluster(InContext, InCluster, InVtxDataFacade, InEdgeDataFacade)) { return false; }
 
 	if (!Config.ShortestEdge.Validate(InContext) ||
 		!Config.LongestEdge.Validate(InContext) ||
@@ -29,7 +29,7 @@ bool UPCGExVtxPropertySpecialEdges::PrepareForCluster(const FPCGExContext* InCon
 	return bIsValidOperation;
 }
 
-void UPCGExVtxPropertySpecialEdges::ProcessNode(PCGExCluster::FNode& Node, const TArray<PCGExCluster::FAdjacencyData>& Adjacency)
+void PCGExVtxPropertySpecialEdges::ProcessNode(PCGExCluster::FNode& Node, const TArray<PCGExCluster::FAdjacencyData>& Adjacency)
 {
 	double LLongest = 0;
 	int32 ILongest = -1;
@@ -79,9 +79,9 @@ FString UPCGExVtxPropertySpecialEdgesSettings::GetDisplayName() const
 }
 #endif
 
-TSharedPtr<UPCGExVtxPropertyOperation> UPCGExVtxPropertySpecialEdgesFactory::CreateOperation(FPCGExContext* InContext) const
+TSharedPtr<PCGExVtxPropertyOperation> UPCGExVtxPropertySpecialEdgesFactory::CreateOperation(FPCGExContext* InContext) const
 {
-	PCGEX_FACTORY_NEW_OPERATION(UPCGExVtxPropertySpecialEdges)
+	PCGEX_FACTORY_NEW_OPERATION(PCGExVtxPropertySpecialEdges)
 	PCGEX_VTX_EXTRA_CREATE
 	return NewOperation;
 }

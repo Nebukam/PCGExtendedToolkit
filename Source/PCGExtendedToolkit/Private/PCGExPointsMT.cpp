@@ -3,7 +3,7 @@
 
 #include "PCGExPointsMT.h"
 
-#include "PCGExInstancedOperation.h"
+#include "PCGExInstancedFactory.h"
 
 
 namespace PCGExPointsMT
@@ -74,7 +74,7 @@ namespace PCGExPointsMT
 
 		if (PrimaryOperation)
 		{
-			PrimaryOperation = PrimaryOperation->CopyOperation<UPCGExInstancedOperation>();
+			PrimaryOperation = PrimaryOperation->CopyOperation<UPCGExInstancedFactory>();
 			PrimaryOperation->PrimaryDataFacade = PointDataFacade;
 		}
 

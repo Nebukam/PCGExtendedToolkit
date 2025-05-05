@@ -20,8 +20,8 @@
 	return NewFactory; }
 
 #define PCGEX_BITMASK_TRANSMUTE_CREATE_OPERATION(_NAME, _BODY) \
-	TSharedPtr<UPCGExActionOperation> UPCGEx##_NAME##Factory::CreateOperation(FPCGExContext* InContext) const{ \
-	PCGEX_FACTORY_NEW_OPERATION(UPCGEx##_NAME##Operation)\
+	TSharedPtr<PCGExActionOperation> UPCGEx##_NAME##Factory::CreateOperation(FPCGExContext* InContext) const{ \
+	PCGEX_FACTORY_NEW_OPERATION(PCGEx##_NAME##Operation)\
 	NewOperation->TypedFactory = const_cast<UPCGEx##_NAME##Factory*>(this); \
 	NewOperation->Factory = NewOperation->TypedFactory; \
 	_BODY \
@@ -41,7 +41,7 @@ namespace PCGExActions
 /**
  * 
  */
-class PCGEXTENDEDTOOLKIT_API UPCGExActionOperation : public UPCGExOperation
+class PCGEXTENDEDTOOLKIT_API PCGExActionOperation : public PCGExOperation
 {
 public:
 	UPCGExActionFactoryData* Factory = nullptr;
@@ -69,7 +69,7 @@ public:
 	TArray<TObjectPtr<const UPCGExFilterFactoryData>> FilterFactories;
 
 	virtual PCGExFactories::EType GetFactoryType() const override { return PCGExFactories::EType::Action; }
-	virtual TSharedPtr<UPCGExActionOperation> CreateOperation(FPCGExContext* InContext) const;
+	virtual TSharedPtr<PCGExActionOperation> CreateOperation(FPCGExContext* InContext) const;
 
 	virtual bool Boot(FPCGContext* InContext);
 	virtual bool AppendAndValidate(const TSharedPtr<PCGEx::FAttributesInfos>& InInfos, FString& OutMessage) const;

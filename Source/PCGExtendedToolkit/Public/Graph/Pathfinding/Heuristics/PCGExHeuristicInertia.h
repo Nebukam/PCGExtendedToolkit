@@ -44,7 +44,7 @@ struct FPCGExHeuristicConfigInertia : public FPCGExHeuristicConfigBase
 /**
  * 
  */
-class UPCGExHeuristicInertia : public UPCGExHeuristicOperation
+class PCGExHeuristicInertia : public PCGExHeuristicOperation
 {
 public:
 	double GlobalInertiaScore = 0;
@@ -77,7 +77,7 @@ public:
 	UPROPERTY()
 	FPCGExHeuristicConfigInertia Config;
 
-	virtual TSharedPtr<UPCGExHeuristicOperation> CreateOperation(FPCGExContext* InContext) const override;
+	virtual TSharedPtr<PCGExHeuristicOperation> CreateOperation(FPCGExContext* InContext) const override;
 	PCGEX_HEURISTIC_FACTORY_BOILERPLATE
 };
 

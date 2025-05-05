@@ -46,7 +46,7 @@ struct FPCGExTensorPathPoleConfig : public FPCGExTensorConfigBase
 /**
  * 
  */
-class UPCGExTensorPathPole : public UPCGExTensorOperation
+class PCGExTensorPathPole : public PCGExTensorOperation
 {
 public:
 	FPCGExTensorPathPoleConfig Config;
@@ -63,7 +63,7 @@ class UPCGExTensorPathPoleFactory : public UPCGExTensorSplineFlowFactory
 
 public:
 	FPCGExTensorPathPoleConfig Config;
-	virtual TSharedPtr<UPCGExTensorOperation> CreateOperation(FPCGExContext* InContext) const override;
+	virtual TSharedPtr<PCGExTensorOperation> CreateOperation(FPCGExContext* InContext) const override;
 };
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Tensors|Params")

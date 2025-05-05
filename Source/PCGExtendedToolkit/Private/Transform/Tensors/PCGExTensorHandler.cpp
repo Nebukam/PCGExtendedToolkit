@@ -32,7 +32,7 @@ namespace PCGExTensor
 
 		for (const UPCGExTensorFactoryData* Factory : InFactories)
 		{
-			UPCGExTensorOperation* Op = Factory->CreateOperation(InContext);
+			TSharedPtr<PCGExTensorOperation> Op = Factory->CreateOperation(InContext);
 			if (!Op->PrepareForData(InDataFacade)) { continue; }
 			Tensors.Add(Op);
 		}

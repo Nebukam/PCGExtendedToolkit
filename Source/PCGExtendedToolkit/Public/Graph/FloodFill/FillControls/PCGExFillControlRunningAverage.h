@@ -64,7 +64,7 @@ struct FPCGExFillControlConfigRunningAverage : public FPCGExFillControlConfigBas
 /**
  * 
  */
-class UPCGExFillControlRunningAverage : public UPCGExFillControlOperation
+class PCGExFillControlRunningAverage : public PCGExFillControlOperation
 {
 	friend class UPCGExFillControlsFactoryRunningAverage;
 
@@ -91,7 +91,7 @@ public:
 	UPROPERTY()
 	FPCGExFillControlConfigRunningAverage Config;
 
-	virtual TSharedPtr<UPCGExFillControlOperation> CreateOperation(FPCGExContext* InContext) const override;
+	virtual TSharedPtr<PCGExFillControlOperation> CreateOperation(FPCGExContext* InContext) const override;
 
 	virtual void RegisterBuffersDependencies(FPCGExContext* InContext, PCGExData::FFacadePreloader& FacadePreloader) const override;
 };

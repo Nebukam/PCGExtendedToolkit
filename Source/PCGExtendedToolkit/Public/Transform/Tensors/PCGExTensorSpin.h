@@ -44,7 +44,7 @@ struct FPCGExTensorSpinConfig : public FPCGExTensorConfigBase
 /**
  * 
  */
-class UPCGExTensorSpin : public UPCGExTensorPointOperation
+class PCGExTensorSpin : public PCGExTensorPointOperation
 {
 public:
 	FPCGExTensorSpinConfig Config;
@@ -62,7 +62,7 @@ class UPCGExTensorSpinFactory : public UPCGExTensorPointFactoryData
 
 public:
 	FPCGExTensorSpinConfig Config;
-	virtual TSharedPtr<UPCGExTensorOperation> CreateOperation(FPCGExContext* InContext) const override;
+	virtual TSharedPtr<PCGExTensorOperation> CreateOperation(FPCGExContext* InContext) const override;
 
 protected:
 	TSharedPtr<PCGExData::TBuffer<FVector>> AxisBuffer;

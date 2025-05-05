@@ -27,7 +27,7 @@ struct FPCGExHeuristicConfigLeastNodes : public FPCGExHeuristicConfigBase
 /**
  * 
  */
-class UPCGExHeuristicNodeCount : public UPCGExHeuristicDistance
+class PCGExHeuristicNodeCount : public PCGExHeuristicDistance
 {
 public:
 	virtual double GetGlobalScore(
@@ -55,7 +55,7 @@ public:
 	UPROPERTY()
 	FPCGExHeuristicConfigLeastNodes Config;
 
-	virtual TSharedPtr<UPCGExHeuristicOperation> CreateOperation(FPCGExContext* InContext) const override;
+	virtual TSharedPtr<PCGExHeuristicOperation> CreateOperation(FPCGExContext* InContext) const override;
 	PCGEX_HEURISTIC_FACTORY_BOILERPLATE
 };
 

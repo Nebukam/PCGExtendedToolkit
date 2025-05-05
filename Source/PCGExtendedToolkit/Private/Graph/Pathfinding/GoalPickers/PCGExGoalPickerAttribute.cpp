@@ -5,7 +5,7 @@
 #include "Graph/Pathfinding/GoalPickers/PCGExGoalPickerAttribute.h"
 
 
-void UPCGExGoalPickerAttribute::CopySettingsFrom(const UPCGExOperation* Other)
+void UPCGExGoalPickerAttribute::CopySettingsFrom(const UPCGExInstancedFactory* Other)
 {
 	Super::CopySettingsFrom(Other);
 	if (const UPCGExGoalPickerAttribute* TypedOther = Cast<UPCGExGoalPickerAttribute>(Other))

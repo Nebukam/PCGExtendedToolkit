@@ -9,14 +9,14 @@
 
 PCGEX_CREATE_PROBE_FACTORY(Anisotropic, {}, {})
 
-bool UPCGExProbeAnisotropic::PrepareForPoints(const TSharedPtr<PCGExData::FPointIO>& InPointIO)
+bool PCGExProbeAnisotropic::PrepareForPoints(const TSharedPtr<PCGExData::FPointIO>& InPointIO)
 {
-	if (!UPCGExProbeOperation::PrepareForPoints(InPointIO)) { return false; }
+	if (!PCGExProbeOperation::PrepareForPoints(InPointIO)) { return false; }
 	MinDot = PCGExMath::DegreesToDot(Config.MaxAngle);
 	return true;
 }
 
-void UPCGExProbeAnisotropic::ProcessCandidates(const int32 Index, const FPCGPoint& Point, TArray<PCGExProbing::FCandidate>& Candidates, TSet<FInt32Vector>* Coincidence, const FVector& ST, TSet<uint64>* OutEdges)
+void PCGExProbeAnisotropic::ProcessCandidates(const int32 Index, const FPCGPoint& Point, TArray<PCGExProbing::FCandidate>& Candidates, TSet<FInt32Vector>* Coincidence, const FVector& ST, TSet<uint64>* OutEdges)
 {
 	bool bIsAlreadyConnected;
 	const double R = GetSearchRadius(Index);

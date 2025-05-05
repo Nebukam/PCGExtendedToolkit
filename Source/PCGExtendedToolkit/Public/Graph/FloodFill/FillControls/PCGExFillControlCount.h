@@ -43,7 +43,7 @@ struct FPCGExFillControlConfigCount : public FPCGExFillControlConfigBase
 /**
  * 
  */
-class UPCGExFillControlCount : public UPCGExFillControlOperation
+class PCGExFillControlCount : public PCGExFillControlOperation
 {
 	friend class UPCGExFillControlsFactoryCount;
 
@@ -69,7 +69,7 @@ public:
 	UPROPERTY()
 	FPCGExFillControlConfigCount Config;
 
-	virtual TSharedPtr<UPCGExFillControlOperation> CreateOperation(FPCGExContext* InContext) const override;
+	virtual TSharedPtr<PCGExFillControlOperation> CreateOperation(FPCGExContext* InContext) const override;
 
 	virtual void RegisterBuffersDependencies(FPCGExContext* InContext, PCGExData::FFacadePreloader& FacadePreloader) const override;
 };

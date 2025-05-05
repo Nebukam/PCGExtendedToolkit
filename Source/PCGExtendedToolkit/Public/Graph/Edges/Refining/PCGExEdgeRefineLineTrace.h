@@ -19,7 +19,7 @@ class UPCGExEdgeRefineLineTrace : public UPCGExEdgeRefineOperation
 public:
 	virtual bool GetDefaultEdgeValidity() override { return !bInvert; }
 
-	virtual void CopySettingsFrom(const UPCGExOperation* Other) override
+	virtual void CopySettingsFrom(const UPCGExInstancedFactory* Other) override
 	{
 		Super::CopySettingsFrom(Other);
 		if (const UPCGExEdgeRefineLineTrace* TypedOther = Cast<UPCGExEdgeRefineLineTrace>(Other))

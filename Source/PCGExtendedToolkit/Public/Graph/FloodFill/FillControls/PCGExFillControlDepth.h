@@ -44,7 +44,7 @@ struct FPCGExFillControlConfigDepth : public FPCGExFillControlConfigBase
 /**
  * 
  */
-class UPCGExFillControlDepth : public UPCGExFillControlOperation
+class PCGExFillControlDepth : public PCGExFillControlOperation
 {
 	friend class UPCGExFillControlsFactoryDepth;
 
@@ -68,7 +68,7 @@ public:
 	UPROPERTY()
 	FPCGExFillControlConfigDepth Config;
 
-	virtual TSharedPtr<UPCGExFillControlOperation> CreateOperation(FPCGExContext* InContext) const override;
+	virtual TSharedPtr<PCGExFillControlOperation> CreateOperation(FPCGExContext* InContext) const override;
 
 	virtual void RegisterBuffersDependencies(FPCGExContext* InContext, PCGExData::FFacadePreloader& FacadePreloader) const override;
 };

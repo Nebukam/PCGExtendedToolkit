@@ -9,7 +9,7 @@
 #define LOCTEXT_NAMESPACE "PCGExWriteActions"
 #define PCGEX_NAMESPACE PCGExWriteActions
 
-bool UPCGExActionOperation::PrepareForData(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade>& InPointDataFacade)
+bool PCGExActionOperation::PrepareForData(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade>& InPointDataFacade)
 {
 	PrimaryDataFacade = InPointDataFacade;
 
@@ -20,17 +20,17 @@ bool UPCGExActionOperation::PrepareForData(FPCGExContext* InContext, const TShar
 	return true;
 }
 
-void UPCGExActionOperation::ProcessPoint(const int32 Index, const FPCGPoint& Point)
+void PCGExActionOperation::ProcessPoint(const int32 Index, const FPCGPoint& Point)
 {
 	if (FilterManager->Test(Index)) { OnMatchSuccess(Index, Point); }
 	else { OnMatchFail(Index, Point); }
 }
 
-void UPCGExActionOperation::OnMatchSuccess(int32 Index, const FPCGPoint& Point)
+void PCGExActionOperation::OnMatchSuccess(int32 Index, const FPCGPoint& Point)
 {
 }
 
-void UPCGExActionOperation::OnMatchFail(int32 Index, const FPCGPoint& Point)
+void PCGExActionOperation::OnMatchFail(int32 Index, const FPCGPoint& Point)
 {
 }
 
@@ -38,9 +38,9 @@ void UPCGExActionOperation::OnMatchFail(int32 Index, const FPCGPoint& Point)
 FString UPCGExActionProviderSettings::GetDisplayName() const { return TEXT(""); }
 #endif
 
-TSharedPtr<UPCGExActionOperation> UPCGExActionFactoryData::CreateOperation(FPCGExContext* InContext) const
+TSharedPtr<PCGExActionOperation> UPCGExActionFactoryData::CreateOperation(FPCGExContext* InContext) const
 {
-	PCGEX_FACTORY_NEW_OPERATION(UPCGExActionOperation)
+	PCGEX_FACTORY_NEW_OPERATION(PCGExActionOperation)
 	NewOperation->Factory = const_cast<UPCGExActionFactoryData*>(this);
 	return NewOperation;
 }

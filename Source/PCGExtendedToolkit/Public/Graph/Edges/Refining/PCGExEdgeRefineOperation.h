@@ -4,7 +4,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "PCGExInstancedOperation.h"
+#include "PCGExInstancedFactory.h"
 #include "PCGExOperation.h"
 #include "Graph/PCGExCluster.h"
 #include "Graph/Pathfinding/Heuristics/PCGExHeuristics.h"
@@ -15,7 +15,7 @@
  * 
  */
 UCLASS(Abstract)
-class UPCGExEdgeRefineOperation : public UPCGExInstancedOperation
+class UPCGExEdgeRefineOperation : public UPCGExInstancedFactory
 {
 	GENERATED_BODY()
 

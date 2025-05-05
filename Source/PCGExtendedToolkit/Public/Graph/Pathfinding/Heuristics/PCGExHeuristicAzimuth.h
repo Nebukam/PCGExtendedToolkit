@@ -28,7 +28,7 @@ struct FPCGExHeuristicConfigAzimuth : public FPCGExHeuristicConfigBase
 /**
  * 
  */
-class UPCGExHeuristicAzimuth : public UPCGExHeuristicOperation
+class PCGExHeuristicAzimuth : public PCGExHeuristicOperation
 {
 public:
 	virtual double GetGlobalScore(
@@ -56,7 +56,7 @@ public:
 	UPROPERTY()
 	FPCGExHeuristicConfigAzimuth Config;
 
-	virtual TSharedPtr<UPCGExHeuristicOperation> CreateOperation(FPCGExContext* InContext) const override;
+	virtual TSharedPtr<PCGExHeuristicOperation> CreateOperation(FPCGExContext* InContext) const override;
 	PCGEX_HEURISTIC_FACTORY_BOILERPLATE
 };
 

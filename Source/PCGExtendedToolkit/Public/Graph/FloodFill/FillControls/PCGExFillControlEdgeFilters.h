@@ -31,7 +31,7 @@ struct FPCGExFillControlConfigEdgeFilters : public FPCGExFillControlConfigBase
 /**
  * 
  */
-class UPCGExFillControlEdgeFilters : public UPCGExFillControlOperation
+class PCGExFillControlEdgeFilters : public PCGExFillControlOperation
 {
 	friend class UPCGExFillControlsFactoryEdgeFilters;
 
@@ -58,7 +58,7 @@ public:
 	UPROPERTY()
 	TArray<TObjectPtr<const UPCGExFilterFactoryData>> FilterFactories;
 
-	virtual TSharedPtr<UPCGExFillControlOperation> CreateOperation(FPCGExContext* InContext) const override;
+	virtual TSharedPtr<PCGExFillControlOperation> CreateOperation(FPCGExContext* InContext) const override;
 
 };
 

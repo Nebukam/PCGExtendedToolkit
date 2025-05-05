@@ -176,7 +176,7 @@ struct FPCGExEdgeOutputWithIndexSettings : public FPCGExSimpleEdgeOutputSettings
 /**
  * 
  */
-class UPCGExVtxPropertyOperation : public UPCGExOperation
+class PCGExVtxPropertyOperation : public PCGExOperation
 {
 public:
 	virtual bool PrepareForCluster(const FPCGExContext* InContext, TSharedPtr<PCGExCluster::FCluster> InCluster, const TSharedPtr<PCGExData::FFacade>& InVtxDataFacade, const TSharedPtr<PCGExData::FFacade>& InEdgeDataFacade);
@@ -196,7 +196,7 @@ class UPCGExVtxPropertyFactoryData : public UPCGExFactoryData
 
 public:
 	virtual PCGExFactories::EType GetFactoryType() const override { return PCGExFactories::EType::VtxProperty; }
-	virtual TSharedPtr<UPCGExVtxPropertyOperation> CreateOperation(FPCGExContext* InContext) const;
+	virtual TSharedPtr<PCGExVtxPropertyOperation> CreateOperation(FPCGExContext* InContext) const;
 };
 
 UCLASS(Abstract, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|VtxProperty")

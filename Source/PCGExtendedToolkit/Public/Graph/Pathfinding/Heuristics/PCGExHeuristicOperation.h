@@ -13,7 +13,7 @@
 /**
  * 
  */
-class PCGEXTENDEDTOOLKIT_API UPCGExHeuristicOperation : public UPCGExOperation
+class PCGEXTENDEDTOOLKIT_API PCGExHeuristicOperation : public PCGExOperation
 {
 public:
 	bool bInvert = false;

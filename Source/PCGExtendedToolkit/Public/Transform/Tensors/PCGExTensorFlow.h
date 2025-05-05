@@ -45,7 +45,7 @@ struct FPCGExTensorFlowConfig : public FPCGExTensorConfigBase
 /**
  * 
  */
-class UPCGExTensorFlow : public UPCGExTensorPointOperation
+class PCGExTensorFlow : public PCGExTensorPointOperation
 {
 public:
 	FPCGExTensorFlowConfig Config;
@@ -64,7 +64,7 @@ public:
 	UPROPERTY()
 	FPCGExTensorFlowConfig Config;
 
-	virtual TSharedPtr<UPCGExTensorOperation> CreateOperation(FPCGExContext* InContext) const override;
+	virtual TSharedPtr<PCGExTensorOperation> CreateOperation(FPCGExContext* InContext) const override;
 
 protected:
 	TSharedPtr<PCGExData::TBuffer<FVector>> DirectionBuffer;

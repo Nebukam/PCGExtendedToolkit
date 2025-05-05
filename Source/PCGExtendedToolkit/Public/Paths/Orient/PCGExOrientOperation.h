@@ -11,7 +11,7 @@
  * 
  */
 UCLASS(Abstract)
-class PCGEXTENDEDTOOLKIT_API UPCGExOrientOperation : public UPCGExInstancedOperation
+class PCGEXTENDEDTOOLKIT_API UPCGExOrientOperation : public UPCGExInstancedFactory
 {
 	GENERATED_BODY()
 
@@ -21,7 +21,7 @@ public:
 
 	TSharedPtr<PCGExPaths::FPath> Path;
 
-	virtual void CopySettingsFrom(const UPCGExInstancedOperation* Other) override
+	virtual void CopySettingsFrom(const UPCGExInstancedFactory* Other) override
 	{
 		Super::CopySettingsFrom(Other);
 		if (const UPCGExOrientOperation* TypedOther = Cast<UPCGExOrientOperation>(Other))

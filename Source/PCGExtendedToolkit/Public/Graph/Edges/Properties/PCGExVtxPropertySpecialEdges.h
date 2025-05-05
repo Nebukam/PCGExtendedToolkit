@@ -36,9 +36,9 @@ struct FPCGExSpecialEdgesConfig
 };
 
 /**
- * ó
+ * 
  */
-class UPCGExVtxPropertySpecialEdges : public UPCGExVtxPropertyOperation
+class PCGExVtxPropertySpecialEdges : public PCGExVtxPropertyOperation
 {
 
 public:
@@ -60,7 +60,7 @@ class UPCGExVtxPropertySpecialEdgesFactory : public UPCGExVtxPropertyFactoryData
 
 public:
 	FPCGExSpecialEdgesConfig Config;
-	virtual TSharedPtr<UPCGExVtxPropertyOperation> CreateOperation(FPCGExContext* InContext) const override;
+	virtual TSharedPtr<PCGExVtxPropertyOperation> CreateOperation(FPCGExContext* InContext) const override;
 };
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|VtxProperty")

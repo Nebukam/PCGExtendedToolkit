@@ -23,7 +23,7 @@ bool UPCGExFillControlsFactoryData::RegisterConsumableAttributesWithData(FPCGExC
 	return true;
 }
 
-TSharedPtr<UPCGExFillControlOperation> UPCGExFillControlsFactoryData::CreateOperation(FPCGExContext* InContext) const
+TSharedPtr<PCGExFillControlOperation> UPCGExFillControlsFactoryData::CreateOperation(FPCGExContext* InContext) const
 {
 	return nullptr; // Create FillControl operation
 }

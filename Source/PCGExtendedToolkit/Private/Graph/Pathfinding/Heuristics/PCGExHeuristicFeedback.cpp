@@ -6,7 +6,7 @@
 
 
 
-double UPCGExHeuristicFeedback::GetGlobalScore(const PCGExCluster::FNode& From, const PCGExCluster::FNode& Seed, const PCGExCluster::FNode& Goal) const
+double PCGExHeuristicFeedback::GetGlobalScore(const PCGExCluster::FNode& From, const PCGExCluster::FNode& Seed, const PCGExCluster::FNode& Goal) const
 {
 	FReadScopeLock ReadScopeLock(FeedbackLock);
 
@@ -14,7 +14,7 @@ double UPCGExHeuristicFeedback::GetGlobalScore(const PCGExCluster::FNode& From, 
 	return N ? GetScoreInternal(NodeScale) * *N : GetScoreInternal(0);
 }
 
-double UPCGExHeuristicFeedback::GetEdgeScore(
+double PCGExHeuristicFeedback::GetEdgeScore(
 	const PCGExCluster::FNode& From,
 	const PCGExCluster::FNode& To,
 	const PCGExGraph::FEdge& Edge,
@@ -33,7 +33,7 @@ double UPCGExHeuristicFeedback::GetEdgeScore(
 	return (NW + EW);
 }
 
-void UPCGExHeuristicFeedback::FeedbackPointScore(const PCGExCluster::FNode& Node)
+void PCGExHeuristicFeedback::FeedbackPointScore(const PCGExCluster::FNode& Node)
 {
 	FWriteScopeLock WriteScopeLock(FeedbackLock);
 
@@ -50,7 +50,7 @@ void UPCGExHeuristicFeedback::FeedbackPointScore(const PCGExCluster::FNode& Node
 	}
 }
 
-void UPCGExHeuristicFeedback::FeedbackScore(const PCGExCluster::FNode& Node, const PCGExGraph::FEdge& Edge)
+void PCGExHeuristicFeedback::FeedbackScore(const PCGExCluster::FNode& Node, const PCGExGraph::FEdge& Edge)
 {
 	FWriteScopeLock WriteScopeLock(FeedbackLock);
 
@@ -72,9 +72,9 @@ void UPCGExHeuristicFeedback::FeedbackScore(const PCGExCluster::FNode& Node, con
 	}
 }
 
-TSharedPtr<UPCGExHeuristicOperation> UPCGExHeuristicsFactoryFeedback::CreateOperation(FPCGExContext* InContext) const
+TSharedPtr<PCGExHeuristicOperation> UPCGExHeuristicsFactoryFeedback::CreateOperation(FPCGExContext* InContext) const
 {
-	PCGEX_FACTORY_NEW_OPERATION(UPCGExHeuristicFeedback)
+	PCGEX_FACTORY_NEW_OPERATION(PCGExHeuristicFeedback)
 	PCGEX_FORWARD_HEURISTIC_CONFIG
 	NewOperation->NodeScale = Config.VisitedPointsWeightFactor;
 	NewOperation->EdgeScale = Config.VisitedEdgesWeightFactor;

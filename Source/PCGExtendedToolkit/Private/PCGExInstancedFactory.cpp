@@ -1,15 +1,15 @@
 ﻿// Copyright 2025 Timothé Lapetite and contributors
 // Released under the MIT license https://opensource.org/license/MIT/
 
-#include "PCGExInstancedOperation.h"
+#include "PCGExInstancedFactory.h"
 #include "PCGParamData.h"
 
-void UPCGExInstancedOperation::BindContext(FPCGExContext* InContext)
+void UPCGExInstancedFactory::BindContext(FPCGExContext* InContext)
 {
 	Context = InContext;
 }
 
-void UPCGExInstancedOperation::FindSettingsOverrides(FPCGExContext* InContext, FName InPinLabel)
+void UPCGExInstancedFactory::FindSettingsOverrides(FPCGExContext* InContext, FName InPinLabel)
 {
 	TArray<FPCGTaggedData> OverrideParams = Context->InputData.GetParamsByPin(InPinLabel);
 	for (FPCGTaggedData& InTaggedData : OverrideParams)
@@ -30,33 +30,33 @@ void UPCGExInstancedOperation::FindSettingsOverrides(FPCGExContext* InContext, F
 }
 
 #if WITH_EDITOR
-void UPCGExInstancedOperation::UpdateUserFacingInfos()
+void UPCGExInstancedFactory::UpdateUserFacingInfos()
 {
 }
 #endif
 
-void UPCGExInstancedOperation::Cleanup()
+void UPCGExInstancedFactory::Cleanup()
 {
 	Context = nullptr;
 	PrimaryDataFacade.Reset();
 	SecondaryDataFacade.Reset();
 }
 
-void UPCGExInstancedOperation::RegisterConsumableAttributesWithFacade(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade>& InFacade) const
+void UPCGExInstancedFactory::RegisterConsumableAttributesWithFacade(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade>& InFacade) const
 {
 }
 
-void UPCGExInstancedOperation::RegisterPrimaryBuffersDependencies(PCGExData::FFacadePreloader& FacadePreloader) const
+void UPCGExInstancedFactory::RegisterPrimaryBuffersDependencies(PCGExData::FFacadePreloader& FacadePreloader) const
 {
 }
 
-void UPCGExInstancedOperation::BeginDestroy()
+void UPCGExInstancedFactory::BeginDestroy()
 {
 	Cleanup();
 	UObject::BeginDestroy();
 }
 
-void UPCGExInstancedOperation::ApplyOverrides()
+void UPCGExInstancedFactory::ApplyOverrides()
 {
 	UClass* ObjectClass = GetClass();
 
@@ -76,13 +76,13 @@ void UPCGExInstancedOperation::ApplyOverrides()
 	}
 }
 
-void UPCGExInstancedOperation::CopySettingsFrom(const UPCGExInstancedOperation* Other)
+void UPCGExInstancedFactory::CopySettingsFrom(const UPCGExInstancedFactory* Other)
 {
 	BindContext(Other->Context);
 	PCGExHelpers::CopyProperties(this, Other);
 }
 
-void UPCGExInstancedOperation::RegisterAssetDependencies(FPCGExContext* InContext)
+void UPCGExInstancedFactory::RegisterAssetDependencies(FPCGExContext* InContext)
 {
 	//InContext->AddAssetDependency();
 }

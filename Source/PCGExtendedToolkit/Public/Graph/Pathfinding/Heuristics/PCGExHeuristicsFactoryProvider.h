@@ -34,7 +34,7 @@ void UPCGExHeuristicsFactory##_TYPE::RegisterAssetDependencies(FPCGExContext* In
 	NewOperation->LocalWeightMultiplierSource = Config.LocalWeightMultiplierSource; \
 	NewOperation->WeightMultiplierAttribute = Config.WeightMultiplierAttribute;
 
-class UPCGExHeuristicOperation;
+class PCGExHeuristicOperation;
 
 USTRUCT(BlueprintType)
 struct PCGEXTENDEDTOOLKIT_API FPCGExHeuristicConfigBase
@@ -109,7 +109,7 @@ public:
 
 	virtual bool RegisterConsumableAttributesWithData(FPCGExContext* InContext, const UPCGData* InData) const override;
 
-	virtual TSharedPtr<UPCGExHeuristicOperation> CreateOperation(FPCGExContext* InContext) const;
+	virtual TSharedPtr<PCGExHeuristicOperation> CreateOperation(FPCGExContext* InContext) const;
 	double WeightFactor = 1;
 };
 

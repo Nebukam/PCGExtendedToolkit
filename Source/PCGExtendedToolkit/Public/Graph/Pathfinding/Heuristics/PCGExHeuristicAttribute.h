@@ -15,7 +15,7 @@
 
 #include "PCGExHeuristicAttribute.generated.h"
 
-class UPCGExHeuristicOperation;
+class PCGExHeuristicOperation;
 
 USTRUCT(BlueprintType)
 struct FPCGExHeuristicAttributeConfig : public FPCGExHeuristicConfigBase
@@ -47,7 +47,7 @@ struct FPCGExHeuristicAttributeConfig : public FPCGExHeuristicConfigBase
 /**
  * 
  */
-class UPCGExHeuristicAttribute : public UPCGExHeuristicOperation
+class PCGExHeuristicAttribute : public PCGExHeuristicOperation
 {
 public:
 	virtual void PrepareForCluster(const TSharedPtr<const PCGExCluster::FCluster>& InCluster) override;
@@ -79,7 +79,7 @@ public:
 	UPROPERTY()
 	FPCGExHeuristicAttributeConfig Config;
 
-	virtual TSharedPtr<UPCGExHeuristicOperation> CreateOperation(FPCGExContext* InContext) const override;
+	virtual TSharedPtr<PCGExHeuristicOperation> CreateOperation(FPCGExContext* InContext) const override;
 	PCGEX_HEURISTIC_FACTORY_BOILERPLATE
 
 	virtual void RegisterBuffersDependencies(FPCGExContext* InContext, PCGExData::FFacadePreloader& FacadePreloader) const override;

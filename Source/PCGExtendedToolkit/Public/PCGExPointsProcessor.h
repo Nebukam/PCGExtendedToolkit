@@ -16,7 +16,7 @@
 
 #include "PCGComponent.h"
 #include "PCGContext.h"
-#include "PCGExInstancedOperation.h"
+#include "PCGExInstancedFactory.h"
 
 #include "PCGExPointsProcessor.generated.h"
 
@@ -143,7 +143,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPointsProcessorContext : FPCGExContext
 	TSharedPtr<PCGExMT::FTaskManager> GetAsyncManager();
 
 	template <typename T>
-	T* RegisterOperation(UPCGExInstancedOperation* BaseOperation, FName OverridePinLabel = NAME_None)
+	T* RegisterOperation(UPCGExInstancedFactory* BaseOperation, FName OverridePinLabel = NAME_None)
 	{
 		BaseOperation->BindContext(this); // Temp so Copy doesn't crash
 
@@ -233,8 +233,8 @@ protected:
 	TSharedPtr<PCGExMT::FTaskManager> AsyncManager;
 	int32 CurrentPointIOIndex = -1;
 
-	TArray<UPCGExInstancedOperation*> ProcessorOperations;
-	TSet<UPCGExInstancedOperation*> InternalOperations;
+	TArray<UPCGExInstancedFactory*> ProcessorOperations;
+	TSet<UPCGExInstancedFactory*> InternalOperations;
 
 	virtual void ResumeExecution() override;
 

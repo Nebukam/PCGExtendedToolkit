@@ -7,7 +7,7 @@
 #include "Data/PCGExPointIO.h"
 
 
-void UPCGExGoalPicker::CopySettingsFrom(const UPCGExInstancedOperation* Other)
+void UPCGExGoalPicker::CopySettingsFrom(const UPCGExInstancedFactory* Other)
 {
 	Super::CopySettingsFrom(Other);
 	if (const UPCGExGoalPicker* TypedOther = Cast<UPCGExGoalPicker>(Other))

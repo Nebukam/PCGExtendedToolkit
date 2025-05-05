@@ -9,7 +9,7 @@
 #include "Data/PCGExAttributeHelpers.h"
 #include "Data/PCGExData.h"
 
-#include "PCGExInstancedOperation.generated.h"
+#include "PCGExInstancedFactory.generated.h"
 
 namespace PCGExMT
 {
@@ -21,7 +21,7 @@ class FPCGMetadataAttributeBase;
  * 
  */
 UCLASS(Abstract, DefaultToInstanced, EditInlineNew, BlueprintType)
-class PCGEXTENDEDTOOLKIT_API UPCGExInstancedOperation : public UObject, public IPCGExManagedObjectInterface
+class PCGEXTENDEDTOOLKIT_API UPCGExInstancedFactory : public UObject, public IPCGExManagedObjectInterface
 {
 	GENERATED_BODY()
 	//~Begin UPCGExInstancedOperation interface
@@ -34,7 +34,7 @@ public:
 #endif
 
 	virtual void Cleanup() override;
-	virtual void CopySettingsFrom(const UPCGExInstancedOperation* Other);
+	virtual void CopySettingsFrom(const UPCGExInstancedFactory* Other);
 
 	virtual void RegisterAssetDependencies(FPCGExContext* InContext);
 

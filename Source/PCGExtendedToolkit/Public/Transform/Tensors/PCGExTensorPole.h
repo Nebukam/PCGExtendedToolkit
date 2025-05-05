@@ -28,7 +28,7 @@ struct FPCGExTensorPoleConfig : public FPCGExTensorConfigBase
 /**
  * 
  */
-class UPCGExTensorPole : public UPCGExTensorPointOperation
+class PCGExTensorPole : public PCGExTensorPointOperation
 {
 public:
 	FPCGExTensorPoleConfig Config;
@@ -47,7 +47,7 @@ public:
 	UPROPERTY()
 	FPCGExTensorPoleConfig Config;
 
-	virtual TSharedPtr<UPCGExTensorOperation> CreateOperation(FPCGExContext* InContext) const override;
+	virtual TSharedPtr<PCGExTensorOperation> CreateOperation(FPCGExContext* InContext) const override;
 
 protected:
 	virtual bool InitInternalData(FPCGExContext* InContext) override;

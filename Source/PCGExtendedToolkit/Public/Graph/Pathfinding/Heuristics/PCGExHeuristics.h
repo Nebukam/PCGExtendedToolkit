@@ -29,7 +29,7 @@ namespace PCGExHeuristics
 		TSharedPtr<PCGExData::FFacade> VtxDataFacade;
 		TSharedPtr<PCGExData::FFacade> EdgeDataFacade;
 
-		TArray<TSharedPtr<UPCGExHeuristicFeedback>> Feedbacks;
+		TArray<TSharedPtr<PCGExHeuristicFeedback>> Feedbacks;
 		double TotalStaticWeight = 0;
 
 		explicit FLocalFeedbackHandler(FPCGExContext* InContext):
@@ -45,7 +45,7 @@ namespace PCGExHeuristics
 			const PCGExCluster::FNode& Goal) const
 		{
 			double GScore = 0;
-			for (const TSharedPtr<UPCGExHeuristicFeedback>& Feedback : Feedbacks) { GScore += Feedback->GetGlobalScore(From, Seed, Goal); }
+			for (const TSharedPtr<PCGExHeuristicFeedback>& Feedback : Feedbacks) { GScore += Feedback->GetGlobalScore(From, Seed, Goal); }
 			return GScore;
 		}
 
@@ -58,18 +58,18 @@ namespace PCGExHeuristics
 			const TSharedPtr<PCGEx::FHashLookup>& TravelStack = nullptr) const
 		{
 			double EScore = 0;
-			for (const TSharedPtr<UPCGExHeuristicFeedback>& Feedback : Feedbacks) { EScore += Feedback->GetEdgeScore(From, To, Edge, Seed, Goal, TravelStack); }
+			for (const TSharedPtr<PCGExHeuristicFeedback>& Feedback : Feedbacks) { EScore += Feedback->GetEdgeScore(From, To, Edge, Seed, Goal, TravelStack); }
 			return EScore;
 		}
 
 		void FeedbackPointScore(const PCGExCluster::FNode& Node)
 		{
-			for (const TSharedPtr<UPCGExHeuristicFeedback>& Feedback : Feedbacks) { Feedback->FeedbackPointScore(Node); }
+			for (const TSharedPtr<PCGExHeuristicFeedback>& Feedback : Feedbacks) { Feedback->FeedbackPointScore(Node); }
 		}
 
 		void FeedbackScore(const PCGExCluster::FNode& Node, const PCGExGraph::FEdge& Edge)
 		{
-			for (const TSharedPtr<UPCGExHeuristicFeedback>& Feedback : Feedbacks) { Feedback->FeedbackScore(Node, Edge); }
+			for (const TSharedPtr<PCGExHeuristicFeedback>& Feedback : Feedbacks) { Feedback->FeedbackScore(Node, Edge); }
 		}
 	};
 
@@ -83,8 +83,8 @@ namespace PCGExHeuristics
 		TSharedPtr<PCGExData::FFacade> VtxDataFacade;
 		TSharedPtr<PCGExData::FFacade> EdgeDataFacade;
 
-		TArray<UPCGExHeuristicOperation*> Operations;
-		TArray<UPCGExHeuristicFeedback*> Feedbacks;
+		TArray<TSharedPtr<PCGExHeuristicOperation>> Operations;
+		TArray<TSharedPtr<PCGExHeuristicFeedback>> Feedbacks;
 		TArray<TObjectPtr<const UPCGExHeuristicsFactoryData>> LocalFeedbackFactories;
 
 		TSharedPtr<PCGExCluster::FCluster> Cluster;

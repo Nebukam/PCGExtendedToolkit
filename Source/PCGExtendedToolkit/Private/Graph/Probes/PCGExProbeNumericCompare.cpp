@@ -9,9 +9,9 @@
 
 PCGEX_CREATE_PROBE_FACTORY(NumericCompare, {}, {})
 
-bool UPCGExProbeNumericCompare::PrepareForPoints(const TSharedPtr<PCGExData::FPointIO>& InPointIO)
+bool PCGExProbeNumericCompare::PrepareForPoints(const TSharedPtr<PCGExData::FPointIO>& InPointIO)
 {
-	if (!UPCGExProbeOperation::PrepareForPoints(InPointIO)) { return false; }
+	if (!PCGExProbeOperation::PrepareForPoints(InPointIO)) { return false; }
 
 	ValuesBuffer = PrimaryDataFacade->GetScopedBroadcaster<double>(Config.Attribute);
 
@@ -27,7 +27,7 @@ bool UPCGExProbeNumericCompare::PrepareForPoints(const TSharedPtr<PCGExData::FPo
 	return true;
 }
 
-void UPCGExProbeNumericCompare::ProcessCandidates(const int32 Index, const FPCGPoint& Point, TArray<PCGExProbing::FCandidate>& Candidates, TSet<FInt32Vector>* Coincidence, const FVector& ST, TSet<uint64>* OutEdges)
+void PCGExProbeNumericCompare::ProcessCandidates(const int32 Index, const FPCGPoint& Point, TArray<PCGExProbing::FCandidate>& Candidates, TSet<FInt32Vector>* Coincidence, const FVector& ST, TSet<uint64>* OutEdges)
 {
 	bool bIsAlreadyConnected;
 	const double R = GetSearchRadius(Index);
@@ -57,9 +57,9 @@ void UPCGExProbeNumericCompare::ProcessCandidates(const int32 Index, const FPCGP
 	}
 }
 
-void UPCGExProbeNumericCompare::ProcessNode(const int32 Index, const FPCGPoint& Point, TSet<FInt32Vector>* Coincidence, const FVector& ST, TSet<uint64>* OutEdges, const TArray<int8>& AcceptConnections)
+void PCGExProbeNumericCompare::ProcessNode(const int32 Index, const FPCGPoint& Point, TSet<FInt32Vector>* Coincidence, const FVector& ST, TSet<uint64>* OutEdges, const TArray<int8>& AcceptConnections)
 {
-	UPCGExProbeOperation::ProcessNode(Index, Point, nullptr, FVector::ZeroVector, OutEdges, AcceptConnections);
+	PCGExProbeOperation::ProcessNode(Index, Point, nullptr, FVector::ZeroVector, OutEdges, AcceptConnections);
 }
 
 #if WITH_EDITOR

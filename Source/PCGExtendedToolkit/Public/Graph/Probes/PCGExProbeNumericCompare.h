@@ -53,7 +53,7 @@ struct FPCGExProbeConfigNumericCompare : public FPCGExProbeConfigBase
 /**
  * 
  */
-class UPCGExProbeNumericCompare : public UPCGExProbeOperation
+class PCGExProbeNumericCompare : public PCGExProbeOperation
 {
 public:
 	virtual bool PrepareForPoints(const TSharedPtr<PCGExData::FPointIO>& InPointIO) override;
@@ -79,7 +79,7 @@ public:
 	UPROPERTY()
 	FPCGExProbeConfigNumericCompare Config;
 
-	virtual TSharedPtr<UPCGExProbeOperation> CreateOperation(FPCGExContext* InContext) const override;
+	virtual TSharedPtr<PCGExProbeOperation> CreateOperation(FPCGExContext* InContext) const override;
 };
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Graph|Params")

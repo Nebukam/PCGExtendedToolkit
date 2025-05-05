@@ -8,7 +8,7 @@
 #define LOCTEXT_NAMESPACE "PCGExWriteVtxProperties"
 #define PCGEX_NAMESPACE PCGExWriteVtxProperties
 
-bool UPCGExVtxPropertyOperation::PrepareForCluster(const FPCGExContext* InContext, TSharedPtr<PCGExCluster::FCluster> InCluster, const TSharedPtr<PCGExData::FFacade>& InVtxDataFacade, const TSharedPtr<PCGExData::FFacade>& InEdgeDataFacade)
+bool PCGExVtxPropertyOperation::PrepareForCluster(const FPCGExContext* InContext, TSharedPtr<PCGExCluster::FCluster> InCluster, const TSharedPtr<PCGExData::FFacade>& InVtxDataFacade, const TSharedPtr<PCGExData::FFacade>& InEdgeDataFacade)
 {
 	PrimaryDataFacade = InVtxDataFacade;
 	SecondaryDataFacade = InEdgeDataFacade;
@@ -17,9 +17,9 @@ bool UPCGExVtxPropertyOperation::PrepareForCluster(const FPCGExContext* InContex
 	return bIsValidOperation;
 }
 
-bool UPCGExVtxPropertyOperation::IsOperationValid() { return bIsValidOperation; }
+bool PCGExVtxPropertyOperation::IsOperationValid() { return bIsValidOperation; }
 
-void UPCGExVtxPropertyOperation::ProcessNode(PCGExCluster::FNode& Node, const TArray<PCGExCluster::FAdjacencyData>& Adjacency)
+void PCGExVtxPropertyOperation::ProcessNode(PCGExCluster::FNode& Node, const TArray<PCGExCluster::FAdjacencyData>& Adjacency)
 {
 }
 
@@ -27,9 +27,9 @@ void UPCGExVtxPropertyOperation::ProcessNode(PCGExCluster::FNode& Node, const TA
 FString UPCGExVtxPropertyProviderSettings::GetDisplayName() const { return TEXT(""); }
 #endif
 
-TSharedPtr<UPCGExVtxPropertyOperation> UPCGExVtxPropertyFactoryData::CreateOperation(FPCGExContext* InContext) const
+TSharedPtr<PCGExVtxPropertyOperation> UPCGExVtxPropertyFactoryData::CreateOperation(FPCGExContext* InContext) const
 {
-	PCGEX_FACTORY_NEW_OPERATION(UPCGExVtxPropertyOperation)
+	PCGEX_FACTORY_NEW_OPERATION(PCGExVtxPropertyOperation)
 	return NewOperation;
 }
 

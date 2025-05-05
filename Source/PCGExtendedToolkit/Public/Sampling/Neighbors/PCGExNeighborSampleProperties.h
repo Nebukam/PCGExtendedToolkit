@@ -40,7 +40,7 @@ struct FPCGExPropertiesSamplerConfigBase
 /**
  * 
  */
-class UPCGExNeighborSampleProperties : public UPCGExNeighborSampleOperation
+class PCGExNeighborSampleProperties : public PCGExNeighborSampleOperation
 {
 public:
 	FPCGExPropertiesBlendingDetails BlendingDetails;
@@ -66,7 +66,7 @@ class UPCGExNeighborSamplerFactoryProperties : public UPCGExNeighborSamplerFacto
 
 public:
 	FPCGExPropertiesSamplerConfigBase Config;
-	virtual TSharedPtr<UPCGExNeighborSampleOperation> CreateOperation(FPCGExContext* InContext) const override;
+	virtual TSharedPtr<PCGExNeighborSampleOperation> CreateOperation(FPCGExContext* InContext) const override;
 };
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|NeighborSample")

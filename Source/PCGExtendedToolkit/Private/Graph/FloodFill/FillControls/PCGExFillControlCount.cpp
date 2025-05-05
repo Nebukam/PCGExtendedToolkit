@@ -7,9 +7,9 @@
 
 #include "Graph/FloodFill/FillControls/PCGExFillControlsFactoryProvider.h"
 
-bool UPCGExFillControlCount::PrepareForDiffusions(FPCGExContext* InContext, const TSharedPtr<PCGExFloodFill::FFillControlsHandler>& InHandler)
+bool PCGExFillControlCount::PrepareForDiffusions(FPCGExContext* InContext, const TSharedPtr<PCGExFloodFill::FFillControlsHandler>& InHandler)
 {
-	if (!UPCGExFillControlOperation::PrepareForDiffusions(InContext, InHandler)) { return false; }
+	if (!PCGExFillControlOperation::PrepareForDiffusions(InContext, InHandler)) { return false; }
 
 	const UPCGExFillControlsFactoryCount* TypedFactory = Cast<UPCGExFillControlsFactoryCount>(Factory);
 
@@ -19,15 +19,15 @@ bool UPCGExFillControlCount::PrepareForDiffusions(FPCGExContext* InContext, cons
 	return true;
 }
 
-bool UPCGExFillControlCount::IsValidCapture(const PCGExFloodFill::FDiffusion* Diffusion, const PCGExFloodFill::FCandidate& Candidate)
+bool PCGExFillControlCount::IsValidCapture(const PCGExFloodFill::FDiffusion* Diffusion, const PCGExFloodFill::FCandidate& Candidate)
 {
 	const int32 Limit = CountLimit->Read(GetSettingsIndex(Diffusion));
 	return Diffusion->Captured.Num() < Limit;
 }
 
-TSharedPtr<UPCGExFillControlOperation> UPCGExFillControlsFactoryCount::CreateOperation(FPCGExContext* InContext) const
+TSharedPtr<PCGExFillControlOperation> UPCGExFillControlsFactoryCount::CreateOperation(FPCGExContext* InContext) const
 {
-	PCGEX_FACTORY_NEW_OPERATION(UPCGExFillControlCount)
+	PCGEX_FACTORY_NEW_OPERATION(PCGExFillControlCount)
 	PCGEX_FORWARD_FILLCONTROL_OPERATION
 	return NewOperation;
 }

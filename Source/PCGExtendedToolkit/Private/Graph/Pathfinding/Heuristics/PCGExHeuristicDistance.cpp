@@ -8,13 +8,13 @@
 
 
 
-void UPCGExHeuristicDistance::PrepareForCluster(const TSharedPtr<const PCGExCluster::FCluster>& InCluster)
+void PCGExHeuristicDistance::PrepareForCluster(const TSharedPtr<const PCGExCluster::FCluster>& InCluster)
 {
-	UPCGExHeuristicOperation::PrepareForCluster(InCluster);
+	PCGExHeuristicOperation::PrepareForCluster(InCluster);
 	BoundsSize = InCluster->Bounds.GetSize().Length();
 }
 
-double UPCGExHeuristicDistance::GetGlobalScore(
+double PCGExHeuristicDistance::GetGlobalScore(
 	const PCGExCluster::FNode& From,
 	const PCGExCluster::FNode& Seed,
 	const PCGExCluster::FNode& Goal) const
@@ -22,7 +22,7 @@ double UPCGExHeuristicDistance::GetGlobalScore(
 	return GetScoreInternal(Cluster->GetDist(From, Goal) / BoundsSize);
 }
 
-double UPCGExHeuristicDistance::GetEdgeScore(
+double PCGExHeuristicDistance::GetEdgeScore(
 	const PCGExCluster::FNode& From,
 	const PCGExCluster::FNode& To,
 	const PCGExGraph::FEdge& Edge,
@@ -33,9 +33,9 @@ double UPCGExHeuristicDistance::GetEdgeScore(
 	return GetScoreInternal((*Cluster->EdgeLengths)[Edge.Index]);
 }
 
-TSharedPtr<UPCGExHeuristicOperation> UPCGExHeuristicsFactoryShortestDistance::CreateOperation(FPCGExContext* InContext) const
+TSharedPtr<PCGExHeuristicOperation> UPCGExHeuristicsFactoryShortestDistance::CreateOperation(FPCGExContext* InContext) const
 {
-	PCGEX_FACTORY_NEW_OPERATION(UPCGExHeuristicDistance)
+	PCGEX_FACTORY_NEW_OPERATION(PCGExHeuristicDistance)
 	PCGEX_FORWARD_HEURISTIC_CONFIG
 	return NewOperation;
 }

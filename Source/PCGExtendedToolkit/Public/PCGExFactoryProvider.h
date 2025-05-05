@@ -26,6 +26,7 @@ namespace PCGExFactories
 	enum class EType : uint8
 	{
 		None = 0,
+		Instanced,
 		FilterGroup,
 		FilterPoint,
 		FilterNode,

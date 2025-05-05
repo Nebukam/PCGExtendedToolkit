@@ -12,7 +12,7 @@
 /**
  * 
  */
-class PCGEXTENDEDTOOLKIT_API UPCGExShapeBuilderOperation : public UPCGExOperation
+class PCGEXTENDEDTOOLKIT_API PCGExShapeBuilderOperation : public PCGExOperation
 {
 public:
 	virtual bool PrepareForSeeds(FPCGExContext* InContext, const TSharedRef<PCGExData::FFacade>& InSeedDataFacade);

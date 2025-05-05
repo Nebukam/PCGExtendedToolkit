@@ -11,9 +11,9 @@
 #define LOCTEXT_NAMESPACE "PCGExWriteActionWriteValuess"
 #define PCGEX_NAMESPACE PCGExWriteActionWriteValuess
 
-bool UPCGExActionWriteValuesOperation::PrepareForData(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade>& InPointDataFacade)
+bool PCGExActionWriteValuesOperation::PrepareForData(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade>& InPointDataFacade)
 {
-	if (!UPCGExActionOperation::PrepareForData(InContext, InPointDataFacade)) { return false; }
+	if (!PCGExActionOperation::PrepareForData(InContext, InPointDataFacade)) { return false; }
 
 	for (FPCGMetadataAttributeBase* AttributeBase : TypedFactory->CheckSuccessInfos->Attributes)
 	{
@@ -44,7 +44,7 @@ bool UPCGExActionWriteValuesOperation::PrepareForData(FPCGExContext* InContext, 
 	return true;
 }
 
-void UPCGExActionWriteValuesOperation::OnMatchSuccess(int32 Index, const FPCGPoint& Point)
+void PCGExActionWriteValuesOperation::OnMatchSuccess(int32 Index, const FPCGPoint& Point)
 {
 	for (int i = 0; i < SuccessAttributes.Num(); i++)
 	{
@@ -58,7 +58,7 @@ void UPCGExActionWriteValuesOperation::OnMatchSuccess(int32 Index, const FPCGPoi
 	}
 }
 
-void UPCGExActionWriteValuesOperation::OnMatchFail(int32 Index, const FPCGPoint& Point)
+void PCGExActionWriteValuesOperation::OnMatchFail(int32 Index, const FPCGPoint& Point)
 {
 	for (int i = 0; i < FailAttributes.Num(); i++)
 	{

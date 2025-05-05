@@ -6,7 +6,7 @@
 
 
 
-double UPCGExHeuristicInertia::GetGlobalScore(
+double PCGExHeuristicInertia::GetGlobalScore(
 	const PCGExCluster::FNode& From,
 	const PCGExCluster::FNode& Seed,
 	const PCGExCluster::FNode& Goal) const
@@ -14,7 +14,7 @@ double UPCGExHeuristicInertia::GetGlobalScore(
 	return GetScoreInternal(GlobalInertiaScore);
 }
 
-double UPCGExHeuristicInertia::GetEdgeScore(
+double PCGExHeuristicInertia::GetEdgeScore(
 	const PCGExCluster::FNode& From,
 	const PCGExCluster::FNode& To,
 	const PCGExGraph::FEdge& Edge,
@@ -56,9 +56,9 @@ double UPCGExHeuristicInertia::GetEdgeScore(
 	return GetScoreInternal(FallbackInertiaScore);
 }
 
-TSharedPtr<UPCGExHeuristicOperation> UPCGExHeuristicsFactoryInertia::CreateOperation(FPCGExContext* InContext) const
+TSharedPtr<PCGExHeuristicOperation> UPCGExHeuristicsFactoryInertia::CreateOperation(FPCGExContext* InContext) const
 {
-	PCGEX_FACTORY_NEW_OPERATION(UPCGExHeuristicInertia)
+	PCGEX_FACTORY_NEW_OPERATION(PCGExHeuristicInertia)
 	PCGEX_FORWARD_HEURISTIC_CONFIG
 	NewOperation->GlobalInertiaScore = Config.GlobalInertiaScore;
 	NewOperation->FallbackInertiaScore = Config.FallbackInertiaScore;

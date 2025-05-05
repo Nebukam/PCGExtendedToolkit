@@ -39,7 +39,7 @@ struct FPCGExTensorInertiaConstantConfig : public FPCGExTensorConfigBase
 /**
  * 
  */
-class UPCGExTensorInertiaConstant : public UPCGExTensorOperation
+class PCGExTensorInertiaConstant : public PCGExTensorOperation
 {
 public:
 	FPCGExTensorInertiaConstantConfig Config;
@@ -59,7 +59,7 @@ public:
 	UPROPERTY()
 	FPCGExTensorInertiaConstantConfig Config;
 
-	virtual TSharedPtr<UPCGExTensorOperation> CreateOperation(FPCGExContext* InContext) const override;
+	virtual TSharedPtr<PCGExTensorOperation> CreateOperation(FPCGExContext* InContext) const override;
 
 protected:
 	virtual bool InitInternalData(FPCGExContext* InContext) override;
