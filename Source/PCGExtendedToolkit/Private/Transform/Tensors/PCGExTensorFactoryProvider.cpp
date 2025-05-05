@@ -3,8 +3,8 @@
 
 #include "Transform/Tensors/PCGExTensorFactoryProvider.h"
 
-#include "Editor/Experimental/EditorInteractiveToolsFramework/Public/Behaviors/2DViewportBehaviorTargets.h"
-#include "Editor/Experimental/EditorInteractiveToolsFramework/Public/Behaviors/2DViewportBehaviorTargets.h"
+
+
 #include "Paths/PCGExPaths.h"
 #include "Paths/PCGExSplineToPath.h"
 #include "Transform/Tensors/PCGExTensorOperation.h"

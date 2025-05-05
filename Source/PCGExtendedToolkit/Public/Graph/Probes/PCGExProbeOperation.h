@@ -64,13 +64,6 @@ public:
 
 	virtual void ProcessNode(const int32 Index, const FPCGPoint& Point, TSet<FInt32Vector>* Coincidence, const FVector& ST, TSet<uint64>* OutEdges, const TArray<int8>& AcceptConnections);
 
-	virtual void Cleanup() override
-	{
-		SearchRadiusCache.Reset();
-		PointIO.Reset();
-		Super::Cleanup();
-	}
-
 	double SearchRadius = -1;
 	double SearchRadiusSquared = -1;
 	TSharedPtr<PCGExData::TBuffer<double>> SearchRadiusCache;

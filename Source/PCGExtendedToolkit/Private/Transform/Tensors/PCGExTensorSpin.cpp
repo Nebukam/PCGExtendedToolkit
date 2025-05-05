@@ -3,8 +3,8 @@
 
 #include "Transform/Tensors/PCGExTensorSpin.h"
 
-#include "Editor/Experimental/EditorInteractiveToolsFramework/Public/Behaviors/2DViewportBehaviorTargets.h"
-#include "Editor/Experimental/EditorInteractiveToolsFramework/Public/Behaviors/2DViewportBehaviorTargets.h"
+
+
 
 #define LOCTEXT_NAMESPACE "PCGExCreateTensorSpin"
 #define PCGEX_NAMESPACE CreateTensorSpin

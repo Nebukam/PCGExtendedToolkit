@@ -8,7 +8,7 @@
 #include "PCGExRandom.h"
 
 
-void UPCGExGoalPickerRandom::CopySettingsFrom(const UPCGExOperation* Other)
+void UPCGExGoalPickerRandom::CopySettingsFrom(const UPCGExInstancedOperation* Other)
 {
 	Super::CopySettingsFrom(Other);
 	if (const UPCGExGoalPickerRandom* TypedOther = Cast<UPCGExGoalPickerRandom>(Other))

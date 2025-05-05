@@ -20,7 +20,7 @@ class UPCGExSearchDijkstra : public UPCGExSearchOperation
 	GENERATED_BODY()
 
 public:
-	virtual void CopySettingsFrom(const UPCGExOperation* Other) override;
+	virtual void CopySettingsFrom(const UPCGExInstancedOperation* Other) override;
 
 	virtual bool ResolveQuery(
 		const TSharedPtr<PCGExPathfinding::FPathQuery>& InQuery,

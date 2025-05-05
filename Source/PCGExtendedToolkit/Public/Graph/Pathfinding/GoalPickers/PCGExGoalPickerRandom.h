@@ -48,7 +48,7 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(DisplayName="Num Goals", EditCondition="GoalCount!=EPCGExGoalPickRandomAmount::Single && NumGoalsType==EPCGExInputValueType::Constant", ClampMin=1))
 	int32 NumGoals = 5;
 
-	virtual void CopySettingsFrom(const UPCGExOperation* Other) override;
+	virtual void CopySettingsFrom(const UPCGExInstancedOperation* Other) override;
 
 	virtual bool PrepareForData(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade>& InSeedsDataFacade, const TSharedPtr<PCGExData::FFacade>& InGoalsDataFacade) override;
 

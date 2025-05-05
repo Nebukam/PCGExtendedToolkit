@@ -22,7 +22,7 @@ class UPCGExTensorSamplerSixPoints : public UPCGExTensorSampler
 	GENERATED_BODY()
 
 public:
-	virtual void CopySettingsFrom(const UPCGExOperation* Other) override;
+	virtual void CopySettingsFrom(const UPCGExInstancedOperation* Other) override;
 	virtual bool PrepareForData(FPCGExContext* InContext) override;
 	virtual PCGExTensor::FTensorSample Sample(const TArray<UPCGExTensorOperation*>& InTensors, int32 InSeedIndex, const FTransform& InProbe, bool& OutSuccess) const override;
 

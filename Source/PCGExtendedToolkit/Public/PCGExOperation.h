@@ -10,8 +10,6 @@
 #include "Data/PCGExAttributeHelpers.h"
 #include "Data/PCGExData.h"
 
-#include "PCGExOperation.generated.h"
-
 namespace PCGExMT
 {
 	class FTaskManager;

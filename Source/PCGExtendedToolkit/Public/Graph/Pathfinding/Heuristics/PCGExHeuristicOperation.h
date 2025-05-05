@@ -9,7 +9,6 @@
 
 #include "Graph/PCGExCluster.h"
 #include "UObject/Object.h"
-#include "PCGExHeuristicOperation.generated.h"
 
 /**
  * 

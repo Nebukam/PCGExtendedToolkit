@@ -83,7 +83,7 @@ FPCGExPointsProcessorContext::~FPCGExPointsProcessorContext()
 {
 	PCGEX_TERMINATE_ASYNC
 
-	for (UPCGExOperation* Op : ProcessorOperations)
+	for (UPCGExInstancedOperation* Op : ProcessorOperations)
 	{
 		if (InternalOperations.Contains(Op))
 		{
@@ -261,7 +261,7 @@ bool FPCGExPointsProcessorElement::PrepareDataInternal(FPCGContext* InContext) c
 		}
 
 		// Have operations register their dependencies
-		for (UPCGExOperation* Op : Context->InternalOperations) { Op->RegisterAssetDependencies(Context); }
+		for (UPCGExInstancedOperation* Op : Context->InternalOperations) { Op->RegisterAssetDependencies(Context); }
 
 		Context->RegisterAssetDependencies();
 		if (Context->HasAssetRequirements())

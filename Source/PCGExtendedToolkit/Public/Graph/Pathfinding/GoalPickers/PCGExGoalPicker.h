@@ -5,6 +5,7 @@
 
 #include "CoreMinimal.h"
 #include "PCGEx.h"
+#include "PCGExInstancedOperation.h"
 #include "PCGExOperation.h"
 
 
@@ -25,7 +26,7 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
 	EPCGExIndexSafety IndexSafety = EPCGExIndexSafety::Tile;
 
-	virtual void CopySettingsFrom(const UPCGExOperation* Other) override;
+	virtual void CopySettingsFrom(const UPCGExInstancedOperation* Other) override;
 
 	virtual bool PrepareForData(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade>& InSeedsDataFacade, const TSharedPtr<PCGExData::FFacade>& InGoalsDataFacade);
 	virtual int32 GetGoalIndex(const PCGExData::FPointRef& Seed) const;

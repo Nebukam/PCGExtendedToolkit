@@ -29,7 +29,7 @@ namespace PCGExHeuristics
 		TSharedPtr<PCGExData::FFacade> VtxDataFacade;
 		TSharedPtr<PCGExData::FFacade> EdgeDataFacade;
 
-		TArray<UPCGExHeuristicFeedback*> Feedbacks;
+		TArray<TSharedPtr<UPCGExHeuristicFeedback>> Feedbacks;
 		double TotalStaticWeight = 0;
 
 		explicit FLocalFeedbackHandler(FPCGExContext* InContext):
@@ -37,10 +37,7 @@ namespace PCGExHeuristics
 		{
 		}
 
-		~FLocalFeedbackHandler()
-		{
-			for (UPCGExHeuristicFeedback* Feedback : Feedbacks) { ExecutionContext->ManagedObjects->Destroy(Feedback); }
-		}
+		~FLocalFeedbackHandler() = default;
 
 		double GetGlobalScore(
 			const PCGExCluster::FNode& From,
@@ -48,7 +45,7 @@ namespace PCGExHeuristics
 			const PCGExCluster::FNode& Goal) const
 		{
 			double GScore = 0;
-			for (const UPCGExHeuristicFeedback* Feedback : Feedbacks) { GScore += Feedback->GetGlobalScore(From, Seed, Goal); }
+			for (const TSharedPtr<UPCGExHeuristicFeedback>& Feedback : Feedbacks) { GScore += Feedback->GetGlobalScore(From, Seed, Goal); }
 			return GScore;
 		}
 
@@ -58,21 +55,21 @@ namespace PCGExHeuristics
 			const PCGExGraph::FEdge& Edge,
 			const PCGExCluster::FNode& Seed,
 			const PCGExCluster::FNode& Goal,
-			const TSharedPtr<PCGEx::FHashLookup> TravelStack = nullptr) const
+			const TSharedPtr<PCGEx::FHashLookup>& TravelStack = nullptr) const
 		{
 			double EScore = 0;
-			for (const UPCGExHeuristicFeedback* Feedback : Feedbacks) { EScore += Feedback->GetEdgeScore(From, To, Edge, Seed, Goal, TravelStack); }
+			for (const TSharedPtr<UPCGExHeuristicFeedback>& Feedback : Feedbacks) { EScore += Feedback->GetEdgeScore(From, To, Edge, Seed, Goal, TravelStack); }
 			return EScore;
 		}
 
 		void FeedbackPointScore(const PCGExCluster::FNode& Node)
 		{
-			for (UPCGExHeuristicFeedback* Feedback : Feedbacks) { Feedback->FeedbackPointScore(Node); }
+			for (const TSharedPtr<UPCGExHeuristicFeedback>& Feedback : Feedbacks) { Feedback->FeedbackPointScore(Node); }
 		}
 
 		void FeedbackScore(const PCGExCluster::FNode& Node, const PCGExGraph::FEdge& Edge)
 		{
-			for (UPCGExHeuristicFeedback* Feedback : Feedbacks) { Feedback->FeedbackScore(Node, Edge); }
+			for (const TSharedPtr<UPCGExHeuristicFeedback>& Feedback : Feedbacks) { Feedback->FeedbackScore(Node, Edge); }
 		}
 	};
 

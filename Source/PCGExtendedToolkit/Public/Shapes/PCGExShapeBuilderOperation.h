@@ -8,7 +8,6 @@
 #include "UObject/Object.h"
 #include "PCGExOperation.h"
 #include "PCGExShapes.h"
-#include "PCGExShapeBuilderOperation.generated.h"
 
 /**
  * 

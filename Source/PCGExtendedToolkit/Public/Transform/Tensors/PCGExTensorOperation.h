@@ -9,7 +9,6 @@
 #include "PCGExTensor.h"
 #include "Data/PCGSplineStruct.h"
 #include "Paths/PCGExPaths.h"
-#include "PCGExTensorOperation.generated.h"
 
 class UPCGExTensorFactoryData;
 /**

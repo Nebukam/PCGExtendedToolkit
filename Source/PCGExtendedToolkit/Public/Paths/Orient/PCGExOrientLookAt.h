@@ -33,7 +33,7 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="LookAt==EPCGExOrientLookAtMode::Direction || LookAt==EPCGExOrientLookAtMode::Position", EditConditionHides))
 	FPCGAttributePropertyInputSelector LookAtAttribute;
 
-	virtual void CopySettingsFrom(const UPCGExOperation* Other) override
+	virtual void CopySettingsFrom(const UPCGExInstancedOperation* Other) override
 	{
 		Super::CopySettingsFrom(Other);
 		if (const UPCGExOrientLookAt* TypedOther = Cast<UPCGExOrientLookAt>(Other))

@@ -3,8 +3,8 @@
 
 #include "Transform/Tensors/PCGExTensorConstant.h"
 
-#include "Editor/Experimental/EditorInteractiveToolsFramework/Public/Behaviors/2DViewportBehaviorTargets.h"
-#include "Editor/Experimental/EditorInteractiveToolsFramework/Public/Behaviors/2DViewportBehaviorTargets.h"
+
+
 
 #define LOCTEXT_NAMESPACE "PCGExCreateTensorConstant"
 #define PCGEX_NAMESPACE CreateTensorConstant

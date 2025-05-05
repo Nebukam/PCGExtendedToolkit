@@ -7,7 +7,7 @@
 #include "Transform/Tensors/PCGExTensorOperation.h"
 
 
-void UPCGExTensorSamplerRK4::CopySettingsFrom(const UPCGExOperation* Other)
+void UPCGExTensorSamplerRK4::CopySettingsFrom(const UPCGExInstancedOperation* Other)
 {
 	Super::CopySettingsFrom(Other);
 }

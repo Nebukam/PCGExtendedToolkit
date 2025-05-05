@@ -233,8 +233,8 @@ protected:
 	TSharedPtr<PCGExMT::FTaskManager> AsyncManager;
 	int32 CurrentPointIOIndex = -1;
 
-	TArray<UPCGExOperation*> ProcessorOperations;
-	TSet<UPCGExOperation*> InternalOperations;
+	TArray<UPCGExInstancedOperation*> ProcessorOperations;
+	TSet<UPCGExInstancedOperation*> InternalOperations;
 
 	virtual void ResumeExecution() override;
 
