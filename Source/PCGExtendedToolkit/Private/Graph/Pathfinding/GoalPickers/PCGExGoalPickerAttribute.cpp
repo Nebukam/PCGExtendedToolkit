@@ -14,16 +14,7 @@ void UPCGExGoalPickerAttribute::CopySettingsFrom(const UPCGExInstancedFactory* O
 		SingleSelector = TypedOther->SingleSelector;
 		AttributeSelectors = TypedOther->AttributeSelectors;
 
-		if (!TypedOther->CommaSeparatedNames.IsEmpty())
-		{
-			for (const TArray<FString> Names = PCGExHelpers::GetStringArrayFromCommaSeparatedList(TypedOther->CommaSeparatedNames);
-			     const FString& Name : Names)
-			{
-				FPCGAttributePropertyInputSelector NewSelector = FPCGAttributePropertyInputSelector();
-				NewSelector.Update(Name);
-				AttributeSelectors.AddUnique(NewSelector);
-			}
-		}
+		PCGExHelpers::AppendUniqueSelectorsFromCommaSeparatedList(TypedOther->CommaSeparatedNames, AttributeSelectors);
 	}
 }
 
@@ -43,16 +34,7 @@ bool UPCGExGoalPickerAttribute::PrepareForData(FPCGExContext* InContext, const T
 	}
 	else
 	{
-		if (!CommaSeparatedNames.IsEmpty())
-		{
-			for (const TArray<FString> Names = PCGExHelpers::GetStringArrayFromCommaSeparatedList(CommaSeparatedNames);
-			     const FString& Name : Names)
-			{
-				FPCGAttributePropertyInputSelector NewSelector = FPCGAttributePropertyInputSelector();
-				NewSelector.Update(Name);
-				AttributeSelectors.AddUnique(NewSelector);
-			}
-		}
+		PCGExHelpers::AppendUniqueSelectorsFromCommaSeparatedList(CommaSeparatedNames, AttributeSelectors);
 
 		AttributeGetters.Reset(AttributeSelectors.Num());
 		for (const FPCGAttributePropertyInputSelector& Selector : AttributeSelectors)
