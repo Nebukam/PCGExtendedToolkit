@@ -169,7 +169,7 @@ namespace PCGExFloodFill
 
 	void FDiffusion::Diffuse(
 		const TSharedPtr<PCGExData::FFacade>& InVtxFacade,
-		const TArray<UPCGExAttributeBlendOperation*>& Operations,
+		const TArray<TSharedPtr<FPCGExAttributeBlendOperation>>& Operations,
 		TArray<int32>& OutIndices)
 	{
 		const TArray<FPCGPoint>& InPoints = InVtxFacade->Source->GetPoints(PCGExData::ESource::In);
@@ -193,7 +193,7 @@ namespace PCGExFloodFill
 
 				// TODO : Compute weight based on distance or depth
 
-				for (UPCGExAttributeBlendOperation* Op : Operations) { Op->Blend(SourceIndex, SourcePoint, TargetIndex, TargetPoint); }
+				for (const TSharedPtr<FPCGExAttributeBlendOperation>& Op : Operations) { Op->Blend(SourceIndex, SourcePoint, TargetIndex, TargetPoint); }
 			}
 		}
 	}
@@ -223,7 +223,7 @@ namespace PCGExFloodFill
 
 			for (const TObjectPtr<const UPCGExFillControlsFactoryData>& Factory : InFactories)
 			{
-				UPCGExFillControlOperation* Op = Factory->CreateOperation(InContext);
+				TSharedPtr<FPCGExFillControlOperation> Op = Factory->CreateOperation(InContext);
 				if (!Op) { return false; }
 
 				Operations.Add(Op);
@@ -261,7 +261,7 @@ namespace PCGExFloodFill
 		bUsePreviousScore = (Details.Scoring & static_cast<uint8>(EPCGExFloodFillHeuristicFlags::PreviousScore)) != 0;
 
 		PCGEX_SHARED_THIS_DECL
-		for (UPCGExFillControlOperation* Op : Operations)
+		for (const TSharedPtr<FPCGExFillControlOperation>& Op : Operations)
 		{
 			Op->SettingsIndex = Op->Factory->ConfigBase.Source == EPCGExFloodFillSettingSource::Seed ? SeedIndices : SeedNodeIndices;
 			if (!Op->PrepareForDiffusions(ExecutionContext, ThisPtr)) { return false; }
@@ -272,20 +272,20 @@ namespace PCGExFloodFill
 
 	bool FFillControlsHandler::TryCapture(const FDiffusion* Diffusion, const FCandidate& Candidate)
 	{
-		for (UPCGExFillControlOperation* Op : SubOpsCapture) { if (!Op->IsValidCapture(Diffusion, Candidate)) { return false; } }
+		for (const TSharedPtr<FPCGExFillControlOperation>& Op : SubOpsCapture) { if (!Op->IsValidCapture(Diffusion, Candidate)) { return false; } }
 		if (FPlatformAtomics::InterlockedCompareExchange((InfluencesCount->GetData() + Candidate.Node->PointIndex), 1, 0) == 1) { return false; }
 		return true;
 	}
 
 	bool FFillControlsHandler::IsValidProbe(const FDiffusion* Diffusion, const FCandidate& Candidate)
 	{
-		for (UPCGExFillControlOperation* Op : SubOpsProbe) { if (!Op->IsValidProbe(Diffusion, Candidate)) { return false; } }
+		for (const TSharedPtr<FPCGExFillControlOperation>& Op : SubOpsProbe) { if (!Op->IsValidProbe(Diffusion, Candidate)) { return false; } }
 		return true;
 	}
 
 	bool FFillControlsHandler::IsValidCandidate(const FDiffusion* Diffusion, const FCandidate& From, const FCandidate& Candidate)
 	{
-		for (UPCGExFillControlOperation* Op : SubOpsCandidate) { if (!Op->IsValidCandidate(Diffusion, From, Candidate)) { return false; } }
+		for (const TSharedPtr<FPCGExFillControlOperation>& Op : SubOpsCandidate) { if (!Op->IsValidCandidate(Diffusion, From, Candidate)) { return false; } }
 		return true;
 	}
 }

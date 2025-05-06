@@ -6,19 +6,14 @@
 #include "PCGPin.h"
 
 
+
+
 #define LOCTEXT_NAMESPACE "PCGExWriteActionWriteValuess"
 #define PCGEX_NAMESPACE PCGExWriteActionWriteValuess
 
-
-void UPCGExActionWriteValuesOperation::CopySettingsFrom(const UPCGExOperation* Other)
+bool FPCGExActionWriteValuesOperation::PrepareForData(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade>& InPointDataFacade)
 {
-	Super::CopySettingsFrom(Other);
-	// if (const UPCGExActionWriteValuesOperation* TypedOther = Cast<UPCGExActionWriteValuesOperation>(Other))	{	}
-}
-
-bool UPCGExActionWriteValuesOperation::PrepareForData(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade>& InPointDataFacade)
-{
-	if (!Super::PrepareForData(InContext, InPointDataFacade)) { return false; }
+	if (!FPCGExActionOperation::PrepareForData(InContext, InPointDataFacade)) { return false; }
 
 	for (FPCGMetadataAttributeBase* AttributeBase : TypedFactory->CheckSuccessInfos->Attributes)
 	{
@@ -49,7 +44,7 @@ bool UPCGExActionWriteValuesOperation::PrepareForData(FPCGExContext* InContext, 
 	return true;
 }
 
-void UPCGExActionWriteValuesOperation::OnMatchSuccess(int32 Index, const FPCGPoint& Point)
+void FPCGExActionWriteValuesOperation::OnMatchSuccess(int32 Index, const FPCGPoint& Point)
 {
 	for (int i = 0; i < SuccessAttributes.Num(); i++)
 	{
@@ -63,7 +58,7 @@ void UPCGExActionWriteValuesOperation::OnMatchSuccess(int32 Index, const FPCGPoi
 	}
 }
 
-void UPCGExActionWriteValuesOperation::OnMatchFail(int32 Index, const FPCGPoint& Point)
+void FPCGExActionWriteValuesOperation::OnMatchFail(int32 Index, const FPCGPoint& Point)
 {
 	for (int i = 0; i < FailAttributes.Num(); i++)
 	{
@@ -75,15 +70,6 @@ void UPCGExActionWriteValuesOperation::OnMatchFail(int32 Index, const FPCGPoint&
 				static_cast<PCGExData::TBuffer<T>*>(FailWriters[i].Get())->GetMutable(Index) = static_cast<FPCGMetadataAttribute<T>*>(AttributeBase)->GetValue(PCGDefaultValueKey);
 			});
 	}
-}
-
-void UPCGExActionWriteValuesOperation::Cleanup()
-{
-	SuccessAttributes.Empty();
-	SuccessWriters.Empty();
-	FailAttributes.Empty();
-	FailWriters.Empty();
-	Super::Cleanup();
 }
 
 #if WITH_EDITOR

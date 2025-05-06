@@ -9,6 +9,8 @@
 #include "PCGExProbeFactoryProvider.h"
 #include "PCGExProbeOperation.h"
 
+
+
 #include "PCGExProbeAnisotropic.generated.h"
 
 USTRUCT(BlueprintType)
@@ -33,11 +35,8 @@ struct FPCGExProbeConfigAnisotropic : public FPCGExProbeConfigBase
 /**
  * 
  */
-UCLASS(MinimalAPI, DisplayName = "Anisotrophic")
-class UPCGExProbeAnisotropic : public UPCGExProbeOperation
+class FPCGExProbeAnisotropic : public FPCGExProbeOperation
 {
-	GENERATED_BODY()
-
 public:
 	virtual bool PrepareForPoints(const TSharedPtr<PCGExData::FPointIO>& InPointIO) override;
 	virtual void ProcessCandidates(const int32 Index, const FPCGPoint& Point, TArray<PCGExProbing::FCandidate>& Candidates, TSet<FInt32Vector>* Coincidence, const FVector& ST, TSet<uint64>* OutEdges) override;
@@ -77,7 +76,7 @@ public:
 	UPROPERTY()
 	FPCGExProbeConfigAnisotropic Config;
 
-	virtual UPCGExProbeOperation* CreateOperation(FPCGExContext* InContext) const override;
+	virtual TSharedPtr<FPCGExProbeOperation> CreateOperation(FPCGExContext* InContext) const override;
 };
 
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Graph|Params")

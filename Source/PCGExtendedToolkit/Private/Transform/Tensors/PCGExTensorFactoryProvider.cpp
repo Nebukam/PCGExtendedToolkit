@@ -3,6 +3,8 @@
 
 #include "Transform/Tensors/PCGExTensorFactoryProvider.h"
 
+
+
 #include "Paths/PCGExPaths.h"
 #include "Paths/PCGExSplineToPath.h"
 #include "Transform/Tensors/PCGExTensorOperation.h"
@@ -10,7 +12,7 @@
 #define LOCTEXT_NAMESPACE "PCGExCreateTensor"
 #define PCGEX_NAMESPACE CreateTensor
 
-UPCGExTensorOperation* UPCGExTensorFactoryData::CreateOperation(FPCGExContext* InContext) const
+TSharedPtr<PCGExTensorOperation> UPCGExTensorFactoryData::CreateOperation(FPCGExContext* InContext) const
 {
 	return nullptr; // Create shape builder operation
 }

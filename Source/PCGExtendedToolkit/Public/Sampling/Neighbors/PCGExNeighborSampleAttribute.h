@@ -15,6 +15,8 @@
 #include "Data/Blending/PCGExMetadataBlender.h"
 
 
+
+
 #include "PCGExNeighborSampleAttribute.generated.h"
 
 ///
@@ -22,18 +24,13 @@
 /**
  * 
  */
-UCLASS(MinimalAPI)
-class UPCGExNeighborSampleAttribute : public UPCGExNeighborSampleOperation
+class FPCGExNeighborSampleAttribute : public FPCGExNeighborSampleOperation
 {
-	GENERATED_BODY()
-
 public:
 	TSharedPtr<PCGExDataBlending::FMetadataBlender> Blender;
 
 	FPCGExAttributeSourceToTargetList SourceAttributes;
 	EPCGExDataBlendingType Blending = EPCGExDataBlendingType::Average;
-
-	virtual void CopySettingsFrom(const UPCGExOperation* Other) override;
 
 	virtual void PrepareForCluster(FPCGExContext* InContext, TSharedRef<PCGExCluster::FCluster> InCluster, TSharedRef<PCGExData::FFacade> InVtxDataFacade, TSharedRef<PCGExData::FFacade> InEdgeDataFacade) override;
 
@@ -42,8 +39,6 @@ public:
 	virtual void SampleNeighborEdge(const PCGExCluster::FNode& TargetNode, const PCGExGraph::FLink Lk, const double Weight) override;
 	virtual void FinalizeNode(const PCGExCluster::FNode& TargetNode, const int32 Count, const double TotalWeight) override;
 	virtual void CompleteOperation() override;
-
-	virtual void Cleanup() override;
 
 protected:
 	FPCGExBlendingDetails MetadataBlendingDetails;
@@ -75,7 +70,7 @@ class UPCGExNeighborSamplerFactoryAttribute : public UPCGExNeighborSamplerFactor
 
 public:
 	FPCGExAttributeSamplerConfigBase Config;
-	virtual UPCGExNeighborSampleOperation* CreateOperation(FPCGExContext* InContext) const override;
+	virtual TSharedPtr<FPCGExNeighborSampleOperation> CreateOperation(FPCGExContext* InContext) const override;
 
 	virtual bool RegisterConsumableAttributes(FPCGExContext* InContext) const override;
 	virtual void RegisterVtxBuffersDependencies(FPCGExContext* InContext, const TSharedRef<PCGExData::FFacade>& InVtxDataFacade, PCGExData::FFacadePreloader& FacadePreloader) const override;

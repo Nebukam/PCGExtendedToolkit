@@ -45,7 +45,7 @@ public:
 	TArray<FPCGAttributePropertyInputSelector> AttributeSelectors;
 	TArray<TSharedPtr<PCGExData::TBuffer<int32>>> AttributeGetters;
 
-	virtual void CopySettingsFrom(const UPCGExOperation* Other) override;
+	virtual void CopySettingsFrom(const UPCGExInstancedFactory* Other) override;
 
 	virtual bool PrepareForData(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade>& InSeedsDataFacade, const TSharedPtr<PCGExData::FFacade>& InGoalsDataFacade) override;
 	virtual int32 GetGoalIndex(const PCGExData::FPointRef& Seed) const override;

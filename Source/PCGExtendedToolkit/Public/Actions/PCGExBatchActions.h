@@ -10,7 +10,7 @@
 
 #include "PCGExBatchActions.generated.h"
 
-class UPCGExActionOperation;
+class FPCGExActionOperation;
 class UPCGExActionFactoryData;
 /**
  * 
@@ -75,7 +75,7 @@ namespace PCGExBatchActions
 {
 	class FProcessor final : public PCGExPointsMT::TPointsProcessor<FPCGExBatchActionsContext, UPCGExBatchActionsSettings>
 	{
-		TArray<UPCGExActionOperation*> Operations;
+		TArray<TSharedPtr<FPCGExActionOperation>> Operations;
 
 	public:
 		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade):
@@ -89,5 +89,6 @@ namespace PCGExBatchActions
 		virtual void PrepareSingleLoopScopeForPoints(const PCGExMT::FScope& Scope) override;
 		virtual void ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const PCGExMT::FScope& Scope) override;
 		virtual void CompleteWork() override;
+		virtual void Cleanup() override;
 	};
 }

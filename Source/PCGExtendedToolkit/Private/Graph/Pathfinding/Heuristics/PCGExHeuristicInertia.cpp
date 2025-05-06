@@ -3,7 +3,10 @@
 
 #include "Graph/Pathfinding/Heuristics/PCGExHeuristicInertia.h"
 
-double UPCGExHeuristicInertia::GetGlobalScore(
+
+
+
+double FPCGExHeuristicInertia::GetGlobalScore(
 	const PCGExCluster::FNode& From,
 	const PCGExCluster::FNode& Seed,
 	const PCGExCluster::FNode& Goal) const
@@ -11,7 +14,7 @@ double UPCGExHeuristicInertia::GetGlobalScore(
 	return GetScoreInternal(GlobalInertiaScore);
 }
 
-double UPCGExHeuristicInertia::GetEdgeScore(
+double FPCGExHeuristicInertia::GetEdgeScore(
 	const PCGExCluster::FNode& From,
 	const PCGExCluster::FNode& To,
 	const PCGExGraph::FEdge& Edge,
@@ -53,9 +56,9 @@ double UPCGExHeuristicInertia::GetEdgeScore(
 	return GetScoreInternal(FallbackInertiaScore);
 }
 
-UPCGExHeuristicOperation* UPCGExHeuristicsFactoryInertia::CreateOperation(FPCGExContext* InContext) const
+TSharedPtr<FPCGExHeuristicOperation> UPCGExHeuristicsFactoryInertia::CreateOperation(FPCGExContext* InContext) const
 {
-	UPCGExHeuristicInertia* NewOperation = InContext->ManagedObjects->New<UPCGExHeuristicInertia>();
+	PCGEX_FACTORY_NEW_OPERATION(HeuristicInertia)
 	PCGEX_FORWARD_HEURISTIC_CONFIG
 	NewOperation->GlobalInertiaScore = Config.GlobalInertiaScore;
 	NewOperation->FallbackInertiaScore = Config.FallbackInertiaScore;

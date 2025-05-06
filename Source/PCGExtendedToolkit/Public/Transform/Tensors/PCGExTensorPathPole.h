@@ -11,6 +11,8 @@
 #include "PCGExTensorSplineFactoryProvider.h"
 #include "PCGExTensorSplineFlow.h"
 
+
+
 #include "PCGExTensorPathPole.generated.h"
 
 
@@ -44,11 +46,8 @@ struct FPCGExTensorPathPoleConfig : public FPCGExTensorConfigBase
 /**
  * 
  */
-UCLASS(MinimalAPI)
-class UPCGExTensorPathPole : public UPCGExTensorOperation
+class FPCGExTensorPathPole : public PCGExTensorOperation
 {
-	GENERATED_BODY()
-
 public:
 	FPCGExTensorPathPoleConfig Config;
 	const TArray<TSharedPtr<const FPCGSplineStruct>>* Splines = nullptr;
@@ -64,7 +63,7 @@ class UPCGExTensorPathPoleFactory : public UPCGExTensorSplineFlowFactory
 
 public:
 	FPCGExTensorPathPoleConfig Config;
-	virtual UPCGExTensorOperation* CreateOperation(FPCGExContext* InContext) const override;
+	virtual TSharedPtr<PCGExTensorOperation> CreateOperation(FPCGExContext* InContext) const override;
 };
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Tensors|Params")

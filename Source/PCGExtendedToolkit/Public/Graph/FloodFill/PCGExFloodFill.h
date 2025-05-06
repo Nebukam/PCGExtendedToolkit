@@ -5,12 +5,16 @@
 
 #include "CoreMinimal.h"
 
+
+
+
+
 #include "Graph/PCGExEdgesProcessor.h"
 #include "PCGExFloodFill.generated.h"
 
-class UPCGExAttributeBlendOperation;
+class FPCGExAttributeBlendOperation;
 class UPCGExFillControlsFactoryData;
-class UPCGExFillControlOperation;
+class FPCGExFillControlOperation;
 
 UENUM()
 enum class EPCGExFloodFillSettingSource : uint8
@@ -138,7 +142,7 @@ namespace PCGExFloodFill
 		void Grow();
 		void PostGrow();
 
-		void Diffuse(const TSharedPtr<PCGExData::FFacade>& InVtxFacade, const TArray<UPCGExAttributeBlendOperation*>& Operations, TArray<int32>& OutIndices);
+		void Diffuse(const TSharedPtr<PCGExData::FFacade>& InVtxFacade, const TArray<TSharedPtr<FPCGExAttributeBlendOperation>>& Operations, TArray<int32>& OutIndices);
 	};
 
 	class PCGEXTENDEDTOOLKIT_API FFillControlsHandler : public TSharedFromThis<FFillControlsHandler>
@@ -149,9 +153,9 @@ namespace PCGExFloodFill
 		int32 NumDiffusions = 0;
 
 		// Subselections
-		TArray<UPCGExFillControlOperation*> SubOpsProbe;
-		TArray<UPCGExFillControlOperation*> SubOpsCandidate;
-		TArray<UPCGExFillControlOperation*> SubOpsCapture;
+		TArray<TSharedPtr<FPCGExFillControlOperation>> SubOpsProbe;
+		TArray<TSharedPtr<FPCGExFillControlOperation>> SubOpsCandidate;
+		TArray<TSharedPtr<FPCGExFillControlOperation>> SubOpsCapture;
 
 	public:
 		mutable FRWLock HandlerLock;
@@ -162,7 +166,7 @@ namespace PCGExFloodFill
 		TSharedPtr<PCGExData::FFacade> SeedsDataFacade;
 		TWeakPtr<PCGExHeuristics::FHeuristicsHandler> HeuristicsHandler;
 
-		TArray<UPCGExFillControlOperation*> Operations;
+		TArray<TSharedPtr<FPCGExFillControlOperation>> Operations;
 
 		TSharedPtr<TArray<int8>> InfluencesCount;
 

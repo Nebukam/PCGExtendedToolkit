@@ -9,6 +9,8 @@
 #include "PCGExHeuristicOperation.h"
 
 
+
+
 #include "Graph/PCGExCluster.h"
 
 #include "PCGExHeuristicFeedback.generated.h"
@@ -43,11 +45,8 @@ struct FPCGExHeuristicConfigFeedback : public FPCGExHeuristicConfigBase
 /**
  * 
  */
-UCLASS(MinimalAPI, DisplayName = "Feedback")
-class UPCGExHeuristicFeedback : public UPCGExHeuristicOperation
+class FPCGExHeuristicFeedback : public FPCGExHeuristicOperation
 {
-	GENERATED_BODY()
-
 	mutable FRWLock FeedbackLock;
 	TMap<int32, uint32> NodeFeedbackNum;
 	TMap<int32, uint32> EdgeFeedbackNum;
@@ -74,7 +73,6 @@ public:
 
 	void FeedbackScore(const PCGExCluster::FNode& Node, const PCGExGraph::FEdge& Edge);
 
-	virtual void Cleanup() override;
 };
 
 ////
@@ -90,7 +88,7 @@ public:
 
 	virtual bool IsGlobal() const { return Config.bGlobalFeedback; }
 
-	virtual UPCGExHeuristicOperation* CreateOperation(FPCGExContext* InContext) const override;
+	virtual TSharedPtr<FPCGExHeuristicOperation> CreateOperation(FPCGExContext* InContext) const override;
 	PCGEX_HEURISTIC_FACTORY_BOILERPLATE
 };
 

@@ -3,17 +3,20 @@
 
 #include "Transform/Tensors/PCGExTensorInertiaConstant.h"
 
+
+
+
 #define LOCTEXT_NAMESPACE "PCGExCreateTensorInertiaConstant"
 #define PCGEX_NAMESPACE CreateTensorInertiaConstant
 
-bool UPCGExTensorInertiaConstant::Init(FPCGExContext* InContext, const UPCGExTensorFactoryData* InFactory)
+bool FPCGExTensorInertiaConstant::Init(FPCGExContext* InContext, const UPCGExTensorFactoryData* InFactory)
 {
-	if (!Super::Init(InContext, InFactory)) { return false; }
+	if (!PCGExTensorOperation::Init(InContext, InFactory)) { return false; }
 	Offset = Config.Offset.Quaternion();
 	return true;
 }
 
-PCGExTensor::FTensorSample UPCGExTensorInertiaConstant::Sample(const int32 InSeedIndex, const FTransform& InProbe) const
+PCGExTensor::FTensorSample FPCGExTensorInertiaConstant::Sample(const int32 InSeedIndex, const FTransform& InProbe) const
 {
 	PCGExTensor::FEffectorSamples Samples = PCGExTensor::FEffectorSamples();
 

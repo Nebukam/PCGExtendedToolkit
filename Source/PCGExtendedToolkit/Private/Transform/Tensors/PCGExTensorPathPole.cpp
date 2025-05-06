@@ -3,10 +3,13 @@
 
 #include "Transform/Tensors/PCGExTensorPathPole.h"
 
+
+
+
 #define LOCTEXT_NAMESPACE "PCGExCreateTensorPathPole"
 #define PCGEX_NAMESPACE CreateTensorPathPole
 
-PCGExTensor::FTensorSample UPCGExTensorPathPole::Sample(const int32 InSeedIndex, const FTransform& InProbe) const
+PCGExTensor::FTensorSample FPCGExTensorPathPole::Sample(const int32 InSeedIndex, const FTransform& InProbe) const
 {
 	const FVector& InPosition = InProbe.GetLocation();
 	PCGExTensor::FEffectorSamples Samples = PCGExTensor::FEffectorSamples();

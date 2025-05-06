@@ -5,12 +5,14 @@
 #include "Graph/FloodFill/FillControls/PCGExFillControlVtxFilters.h"
 
 
+
+
 #include "Graph/Filters/PCGExClusterFilter.h"
 #include "Graph/FloodFill/FillControls/PCGExFillControlsFactoryProvider.h"
 
-bool UPCGExFillControlVtxFilters::PrepareForDiffusions(FPCGExContext* InContext, const TSharedPtr<PCGExFloodFill::FFillControlsHandler>& InHandler)
+bool FPCGExFillControlVtxFilters::PrepareForDiffusions(FPCGExContext* InContext, const TSharedPtr<PCGExFloodFill::FFillControlsHandler>& InHandler)
 {
-	if (!Super::PrepareForDiffusions(InContext, InHandler)) { return false; }
+	if (!FPCGExFillControlOperation::PrepareForDiffusions(InContext, InHandler)) { return false; }
 
 	const UPCGExFillControlsFactoryVtxFilters* TypedFactory = Cast<UPCGExFillControlsFactoryVtxFilters>(Factory);
 
@@ -18,31 +20,25 @@ bool UPCGExFillControlVtxFilters::PrepareForDiffusions(FPCGExContext* InContext,
 	return VtxFilterManager->Init(InContext, TypedFactory->FilterFactories);
 }
 
-bool UPCGExFillControlVtxFilters::IsValidCapture(const PCGExFloodFill::FDiffusion* Diffusion, const PCGExFloodFill::FCandidate& Candidate)
+bool FPCGExFillControlVtxFilters::IsValidCapture(const PCGExFloodFill::FDiffusion* Diffusion, const PCGExFloodFill::FCandidate& Candidate)
 {
 	return VtxFilterManager->Test(*Candidate.Node);
 }
 
-bool UPCGExFillControlVtxFilters::IsValidProbe(const PCGExFloodFill::FDiffusion* Diffusion, const PCGExFloodFill::FCandidate& Candidate)
+bool FPCGExFillControlVtxFilters::IsValidProbe(const PCGExFloodFill::FDiffusion* Diffusion, const PCGExFloodFill::FCandidate& Candidate)
 {
 	if (Candidate.Link.Edge == -1) { return true; } // That's the seed
 	return VtxFilterManager->Test(*Candidate.Node);
 }
 
-bool UPCGExFillControlVtxFilters::IsValidCandidate(const PCGExFloodFill::FDiffusion* Diffusion, const PCGExFloodFill::FCandidate& From, const PCGExFloodFill::FCandidate& Candidate)
+bool FPCGExFillControlVtxFilters::IsValidCandidate(const PCGExFloodFill::FDiffusion* Diffusion, const PCGExFloodFill::FCandidate& From, const PCGExFloodFill::FCandidate& Candidate)
 {
 	return VtxFilterManager->Test(*Candidate.Node);
 }
 
-void UPCGExFillControlVtxFilters::Cleanup()
+TSharedPtr<FPCGExFillControlOperation> UPCGExFillControlsFactoryVtxFilters::CreateOperation(FPCGExContext* InContext) const
 {
-	VtxFilterManager.Reset();
-	Super::Cleanup();
-}
-
-UPCGExFillControlOperation* UPCGExFillControlsFactoryVtxFilters::CreateOperation(FPCGExContext* InContext) const
-{
-	UPCGExFillControlVtxFilters* NewOperation = InContext->ManagedObjects->New<UPCGExFillControlVtxFilters>();
+	PCGEX_FACTORY_NEW_OPERATION(FillControlVtxFilters)
 	PCGEX_FORWARD_FILLCONTROL_OPERATION
 	return NewOperation;
 }

@@ -14,7 +14,7 @@
 MACRO(VtxNormal, FVector, FVector::OneVector) \
 MACRO(VtxEdgeCount, int32, 0)
 
-class UPCGExVtxPropertyOperation;
+class FPCGExVtxPropertyOperation;
 class UPCGExVtxPropertyFactoryData;
 
 namespace PCGExWriteVtxProperties
@@ -91,7 +91,7 @@ namespace PCGExWriteVtxProperties
 	{
 		friend class FBatch;
 
-		TArray<UPCGExVtxPropertyOperation*> ExtraOperations;
+		TArray<TSharedPtr<FPCGExVtxPropertyOperation>> Operations;
 
 	public:
 		FProcessor(const TSharedRef<PCGExData::FFacade>& InVtxDataFacade, const TSharedRef<PCGExData::FFacade>& InEdgeDataFacade)
@@ -104,6 +104,7 @@ namespace PCGExWriteVtxProperties
 		virtual bool Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager) override;
 		virtual void ProcessSingleNode(const int32 Index, PCGExCluster::FNode& Node, const PCGExMT::FScope& Scope) override;
 		virtual void CompleteWork() override;
+		virtual void Cleanup() override;
 
 		PCGEX_FOREACH_FIELD_VTXEXTRAS(PCGEX_OUTPUT_DECL)
 	};

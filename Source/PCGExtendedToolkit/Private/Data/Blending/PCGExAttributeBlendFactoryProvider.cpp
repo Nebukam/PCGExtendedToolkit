@@ -5,6 +5,8 @@
 
 #include "PCGExDetailsData.h"
 #include "Data/Blending/PCGExProxyDataBlending.h"
+
+
 #include "Elements/Metadata/PCGMetadataElementCommon.h"
 
 #define LOCTEXT_NAMESPACE "PCGExCreateAttributeBlend"
@@ -27,7 +29,7 @@ void FPCGExAttributeBlendConfig::Init()
 	Weighting.Init();
 }
 
-bool UPCGExAttributeBlendOperation::PrepareForData(FPCGExContext* InContext, const TSharedRef<PCGExData::FFacade>& InDataFacade)
+bool FPCGExAttributeBlendOperation::PrepareForData(FPCGExContext* InContext, const TSharedRef<PCGExData::FFacade>& InDataFacade)
 {
 	PrimaryDataFacade = InDataFacade;
 
@@ -123,7 +125,7 @@ bool UPCGExAttributeBlendOperation::PrepareForData(FPCGExContext* InContext, con
 	return true;
 }
 
-void UPCGExAttributeBlendOperation::CompleteWork(TSet<TSharedPtr<PCGExData::FBufferBase>>& OutDisabledBuffers)
+void FPCGExAttributeBlendOperation::CompleteWork(TSet<TSharedPtr<PCGExData::FBufferBase>>& OutDisabledBuffers)
 {
 	if (Blender)
 	{
@@ -145,14 +147,7 @@ void UPCGExAttributeBlendOperation::CompleteWork(TSet<TSharedPtr<PCGExData::FBuf
 	}
 }
 
-void UPCGExAttributeBlendOperation::Cleanup()
-{
-	SiblingOperations.Reset();
-	Blender.Reset();
-	Super::Cleanup();
-}
-
-bool UPCGExAttributeBlendOperation::CopyAndFixSiblingSelector(FPCGExContext* InContext, FPCGAttributePropertyInputSelector& Selector) const
+bool FPCGExAttributeBlendOperation::CopyAndFixSiblingSelector(FPCGExContext* InContext, FPCGAttributePropertyInputSelector& Selector) const
 {
 	// TODO : Support index shortcuts like @0 @1 @2 etc
 
@@ -160,7 +155,7 @@ bool UPCGExAttributeBlendOperation::CopyAndFixSiblingSelector(FPCGExContext* InC
 	{
 		if (Selector.GetAttributeName() == PCGEx::PreviousAttributeName)
 		{
-			const UPCGExAttributeBlendOperation* PreviousOperation = SiblingOperations && SiblingOperations->IsValidIndex(OpIdx - 1) ? (*SiblingOperations.Get())[OpIdx - 1] : nullptr;
+			const TSharedPtr<FPCGExAttributeBlendOperation> PreviousOperation = SiblingOperations && SiblingOperations->IsValidIndex(OpIdx - 1) ? (*SiblingOperations.Get())[OpIdx - 1] : nullptr;
 
 			if (!PreviousOperation)
 			{
@@ -179,9 +174,9 @@ bool UPCGExAttributeBlendOperation::CopyAndFixSiblingSelector(FPCGExContext* InC
 				if (Shortcut.IsNumeric())
 				{
 					int32 Idx = FCString::Atoi(*Shortcut);
-					const UPCGExAttributeBlendOperation* TargetOperation = SiblingOperations && SiblingOperations->IsValidIndex(Idx) ? (*SiblingOperations.Get())[Idx] : nullptr;
+					const TSharedPtr<FPCGExAttributeBlendOperation> TargetOperation = SiblingOperations && SiblingOperations->IsValidIndex(Idx) ? (*SiblingOperations.Get())[Idx] : nullptr;
 
-					if (TargetOperation == this)
+					if (TargetOperation.Get() == this)
 					{
 						PCGE_LOG_C(Error, GraphAndLog, InContext, FTEXT("Attempting to reference self using #INDEX, this is not allowed -- you can only reference previous operations."));
 						return false;
@@ -203,9 +198,9 @@ bool UPCGExAttributeBlendOperation::CopyAndFixSiblingSelector(FPCGExContext* InC
 	return true;
 }
 
-UPCGExAttributeBlendOperation* UPCGExAttributeBlendFactory::CreateOperation(FPCGExContext* InContext) const
+TSharedPtr<FPCGExAttributeBlendOperation> UPCGExAttributeBlendFactory::CreateOperation(FPCGExContext* InContext) const
 {
-	UPCGExAttributeBlendOperation* NewOperation = InContext->ManagedObjects->New<UPCGExAttributeBlendOperation>();
+	PCGEX_FACTORY_NEW_OPERATION(AttributeBlendOperation)
 	NewOperation->Config = Config;
 	NewOperation->Config.Init();
 	return NewOperation;

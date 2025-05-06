@@ -3,6 +3,9 @@
 
 #include "Graph/FloodFill/FillControls/PCGExFillControlsFactoryProvider.h"
 
+
+
+
 #define LOCTEXT_NAMESPACE "PCGExCreateFillControls"
 #define PCGEX_NAMESPACE CreateFillControls
 
@@ -20,7 +23,7 @@ bool UPCGExFillControlsFactoryData::RegisterConsumableAttributesWithData(FPCGExC
 	return true;
 }
 
-UPCGExFillControlOperation* UPCGExFillControlsFactoryData::CreateOperation(FPCGExContext* InContext) const
+TSharedPtr<FPCGExFillControlOperation> UPCGExFillControlsFactoryData::CreateOperation(FPCGExContext* InContext) const
 {
 	return nullptr; // Create FillControl operation
 }

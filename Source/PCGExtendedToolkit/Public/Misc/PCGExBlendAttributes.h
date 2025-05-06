@@ -62,7 +62,7 @@ namespace PCGExBlendAttributes
 	class FProcessor final : public PCGExPointsMT::TPointsProcessor<FPCGExBlendAttributesContext, UPCGExBlendAttributesSettings>
 	{
 		double NumPoints = 0;
-		TSharedPtr<TArray<UPCGExAttributeBlendOperation*>> Operations;
+		TSharedPtr<TArray<TSharedPtr<FPCGExAttributeBlendOperation>>> Operations;
 
 	public:
 		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade):
@@ -77,5 +77,6 @@ namespace PCGExBlendAttributes
 		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager) override;
 		void BlendScope(const PCGExMT::FScope& InScope);
 		virtual void CompleteWork() override;
+		virtual void Cleanup() override;
 	};
 }

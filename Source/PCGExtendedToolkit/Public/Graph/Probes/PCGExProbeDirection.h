@@ -9,6 +9,8 @@
 #include "PCGExProbeFactoryProvider.h"
 #include "PCGExProbeOperation.h"
 
+
+
 #include "PCGExProbeDirection.generated.h"
 
 UENUM()
@@ -67,11 +69,8 @@ struct FPCGExProbeConfigDirection : public FPCGExProbeConfigBase
 /**
  * 
  */
-UCLASS(MinimalAPI, DisplayName = "Direction")
-class UPCGExProbeDirection : public UPCGExProbeOperation
+class FPCGExProbeDirection : public FPCGExProbeOperation
 {
-	GENERATED_BODY()
-
 public:
 	virtual bool RequiresChainProcessing() override;
 	virtual bool PrepareForPoints(const TSharedPtr<PCGExData::FPointIO>& InPointIO) override;
@@ -82,12 +81,6 @@ public:
 	virtual void ProcessBestCandidate(const int32 Index, const FPCGPoint& Point, PCGExProbing::FBestCandidate& InBestCandidate, TArray<PCGExProbing::FCandidate>& Candidates, TSet<FInt32Vector>* Coincidence, const FVector& ST, TSet<uint64>* OutEdges) override;
 
 	FPCGExProbeConfigDirection Config;
-
-	virtual void Cleanup() override
-	{
-		DirectionCache.Reset();
-		Super::Cleanup();
-	}
 
 protected:
 	bool bUseConstantDir = false;
@@ -108,7 +101,7 @@ public:
 	UPROPERTY()
 	FPCGExProbeConfigDirection Config;
 
-	virtual UPCGExProbeOperation* CreateOperation(FPCGExContext* InContext) const override;
+	virtual TSharedPtr<FPCGExProbeOperation> CreateOperation(FPCGExContext* InContext) const override;
 };
 
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Graph|Params")

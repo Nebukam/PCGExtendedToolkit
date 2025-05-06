@@ -11,18 +11,12 @@
 #include "Graph/FloodFill/PCGExFloodFill.h"
 #include "UObject/Object.h"
 
-#include "PCGExFillControlOperation.generated.h"
-
 /**
  * 
  */
-UCLASS(Abstract)
-class PCGEXTENDEDTOOLKIT_API UPCGExFillControlOperation : public UPCGExOperation
+class PCGEXTENDEDTOOLKIT_API FPCGExFillControlOperation : public FPCGExOperation
 {
-	GENERATED_BODY()
-
 public:
-	UPROPERTY()
 	const UPCGExFillControlsFactoryData* Factory = nullptr;
 
 	TSharedPtr<TArray<int32>> SettingsIndex;
@@ -37,8 +31,6 @@ public:
 
 	virtual bool ChecksCandidate() const;
 	virtual bool IsValidCandidate(const PCGExFloodFill::FDiffusion* Diffusion, const PCGExFloodFill::FCandidate& From, const PCGExFloodFill::FCandidate& Candidate);
-
-	virtual void Cleanup() override;
 
 	int32 GetSettingsIndex(const PCGExFloodFill::FDiffusion* Diffusion) const;
 
