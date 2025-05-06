@@ -83,7 +83,7 @@ namespace PCGExCreateShapes
 {
 	class FProcessor final : public PCGExPointsMT::TPointsProcessor<FPCGExCreateShapesContext, UPCGExCreateShapesSettings>
 	{
-		TArray<TSharedPtr<PCGExShapeBuilderOperation>> Builders;
+		TArray<TSharedPtr<FPCGExShapeBuilderOperation>> Builders;
 		TArray<TSharedPtr<PCGExData::FFacade>> PerSeedFacades;
 
 	public:
@@ -107,7 +107,7 @@ namespace PCGExCreateShapes
 	public:
 		PCGEX_ASYNC_TASK_NAME(FBuildShape)
 
-		FBuildShape(const TSharedPtr<PCGExShapeBuilderOperation>& InOperation,
+		FBuildShape(const TSharedPtr<FPCGExShapeBuilderOperation>& InOperation,
 		            const TSharedRef<PCGExData::FFacade>& InShapeDataFacade,
 		            const TSharedPtr<PCGExShapes::FShape>& InShape) :
 			FTask(),
@@ -118,7 +118,7 @@ namespace PCGExCreateShapes
 		}
 
 		TSharedRef<PCGExData::FFacade> ShapeDataFacade;
-		TSharedPtr<PCGExShapeBuilderOperation> Operation;
+		TSharedPtr<FPCGExShapeBuilderOperation> Operation;
 		TSharedPtr<PCGExShapes::FShape> Shape;
 
 		virtual void ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager) override;

@@ -18,7 +18,7 @@ namespace PCGExPathfinding
 	struct FExtraWeights;
 }
 
-class PCGExHeuristicOperation;
+class FPCGExHeuristicOperation;
 
 namespace PCGExCluster
 {

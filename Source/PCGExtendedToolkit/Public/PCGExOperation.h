@@ -19,12 +19,12 @@ class FPCGMetadataAttributeBase;
 /**
  * 
  */
-class PCGEXTENDEDTOOLKIT_API PCGExOperation : public TSharedFromThis<PCGExOperation>
+class PCGEXTENDEDTOOLKIT_API FPCGExOperation : public TSharedFromThis<FPCGExOperation>
 {
 	
 public:
-	PCGExOperation() = default;
-	virtual ~PCGExOperation() = default;
+	FPCGExOperation() = default;
+	virtual ~FPCGExOperation() = default;
 	void BindContext(FPCGExContext* InContext);
 
 #if WITH_EDITOR

@@ -9,14 +9,14 @@
 #define LOCTEXT_NAMESPACE "PCGExCreateTensorInertiaConstant"
 #define PCGEX_NAMESPACE CreateTensorInertiaConstant
 
-bool PCGExTensorInertiaConstant::Init(FPCGExContext* InContext, const UPCGExTensorFactoryData* InFactory)
+bool FPCGExTensorInertiaConstant::Init(FPCGExContext* InContext, const UPCGExTensorFactoryData* InFactory)
 {
 	if (!PCGExTensorOperation::Init(InContext, InFactory)) { return false; }
 	Offset = Config.Offset.Quaternion();
 	return true;
 }
 
-PCGExTensor::FTensorSample PCGExTensorInertiaConstant::Sample(const int32 InSeedIndex, const FTransform& InProbe) const
+PCGExTensor::FTensorSample FPCGExTensorInertiaConstant::Sample(const int32 InSeedIndex, const FTransform& InProbe) const
 {
 	PCGExTensor::FEffectorSamples Samples = PCGExTensor::FEffectorSamples();
 

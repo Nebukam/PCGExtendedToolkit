@@ -9,9 +9,9 @@
 #define LOCTEXT_NAMESPACE "PCGExCreateHeuristicAttribute"
 #define PCGEX_NAMESPACE CreateHeuristicAttribute
 
-void PCGExHeuristicAttribute::PrepareForCluster(const TSharedPtr<const PCGExCluster::FCluster>& InCluster)
+void FPCGExHeuristicAttribute::PrepareForCluster(const TSharedPtr<const PCGExCluster::FCluster>& InCluster)
 {
-	PCGExHeuristicOperation::PrepareForCluster(InCluster);
+	FPCGExHeuristicOperation::PrepareForCluster(InCluster);
 
 	const TSharedPtr<PCGExData::FFacade> DataFacade = Source == EPCGExClusterComponentSource::Vtx ? PrimaryDataFacade : SecondaryDataFacade;
 
@@ -64,7 +64,7 @@ void PCGExHeuristicAttribute::PrepareForCluster(const TSharedPtr<const PCGExClus
 	}
 }
 
-double PCGExHeuristicAttribute::GetEdgeScore(
+double FPCGExHeuristicAttribute::GetEdgeScore(
 	const PCGExCluster::FNode& From,
 	const PCGExCluster::FNode& To,
 	const PCGExGraph::FEdge& Edge,
@@ -75,9 +75,9 @@ double PCGExHeuristicAttribute::GetEdgeScore(
 	return CachedScores[Source == EPCGExClusterComponentSource::Edge ? Edge.PointIndex : To.Index];
 }
 
-TSharedPtr<PCGExHeuristicOperation> UPCGExHeuristicsFactoryAttribute::CreateOperation(FPCGExContext* InContext) const
+TSharedPtr<FPCGExHeuristicOperation> UPCGExHeuristicsFactoryAttribute::CreateOperation(FPCGExContext* InContext) const
 {
-	PCGEX_FACTORY_NEW_OPERATION(PCGExHeuristicAttribute)
+	PCGEX_FACTORY_NEW_OPERATION(HeuristicAttribute)
 	PCGEX_FORWARD_HEURISTIC_CONFIG
 	NewOperation->Source = Config.Source;
 	NewOperation->Attribute = Config.Attribute;

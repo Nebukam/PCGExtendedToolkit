@@ -8,18 +8,18 @@
 
 
 
-void PCGExHeuristicSteepness::PrepareForCluster(const TSharedPtr<const PCGExCluster::FCluster>& InCluster)
+void FPCGExHeuristicSteepness::PrepareForCluster(const TSharedPtr<const PCGExCluster::FCluster>& InCluster)
 {
 	UpwardVector = UpwardVector.GetSafeNormal();
-	PCGExHeuristicOperation::PrepareForCluster(InCluster);
+	FPCGExHeuristicOperation::PrepareForCluster(InCluster);
 }
 
-double PCGExHeuristicSteepness::GetGlobalScore(const PCGExCluster::FNode& From, const PCGExCluster::FNode& Seed, const PCGExCluster::FNode& Goal) const
+double FPCGExHeuristicSteepness::GetGlobalScore(const PCGExCluster::FNode& From, const PCGExCluster::FNode& Seed, const PCGExCluster::FNode& Goal) const
 {
 	return GetScoreInternal(GetDot(Cluster->GetPos(From), Cluster->GetPos(Goal)));
 }
 
-double PCGExHeuristicSteepness::GetEdgeScore(const PCGExCluster::FNode& From, const PCGExCluster::FNode& To, const PCGExGraph::FEdge& Edge, const PCGExCluster::FNode& Seed, const PCGExCluster::FNode& Goal, const TSharedPtr<PCGEx::FHashLookup> TravelStack) const
+double FPCGExHeuristicSteepness::GetEdgeScore(const PCGExCluster::FNode& From, const PCGExCluster::FNode& To, const PCGExGraph::FEdge& Edge, const PCGExCluster::FNode& Seed, const PCGExCluster::FNode& Goal, const TSharedPtr<PCGEx::FHashLookup> TravelStack) const
 {
 	if (bAccumulate && TravelStack)
 	{
@@ -48,15 +48,15 @@ double PCGExHeuristicSteepness::GetEdgeScore(const PCGExCluster::FNode& From, co
 	return GetScoreInternal(GetDot(Cluster->GetPos(From), Cluster->GetPos(To)));
 }
 
-double PCGExHeuristicSteepness::GetDot(const FVector& From, const FVector& To) const
+double FPCGExHeuristicSteepness::GetDot(const FVector& From, const FVector& To) const
 {
 	const double Dot = FVector::DotProduct((To - From).GetSafeNormal(), UpwardVector);
 	return bAbsoluteSteepness ? FMath::Abs(Dot) : PCGExMath::Remap(Dot, -1, 1);
 }
 
-TSharedPtr<PCGExHeuristicOperation> UPCGExHeuristicsFactorySteepness::CreateOperation(FPCGExContext* InContext) const
+TSharedPtr<FPCGExHeuristicOperation> UPCGExHeuristicsFactorySteepness::CreateOperation(FPCGExContext* InContext) const
 {
-	PCGEX_FACTORY_NEW_OPERATION(PCGExHeuristicSteepness)
+	PCGEX_FACTORY_NEW_OPERATION(HeuristicSteepness)
 	PCGEX_FORWARD_HEURISTIC_CONFIG
 	NewOperation->bAccumulate = Config.bAccumulateScore;
 	NewOperation->MaxSamples = Config.AccumulationSamples;

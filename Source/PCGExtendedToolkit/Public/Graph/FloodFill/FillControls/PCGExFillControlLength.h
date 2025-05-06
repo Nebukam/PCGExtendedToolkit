@@ -49,7 +49,7 @@ struct FPCGExFillControlConfigLength : public FPCGExFillControlConfigBase
 /**
  * 
  */
-class PCGExFillControlLength : public PCGExFillControlOperation
+class FPCGExFillControlLength : public FPCGExFillControlOperation
 {
 	friend class UPCGExFillControlsFactoryLength;
 
@@ -74,7 +74,7 @@ public:
 	UPROPERTY()
 	FPCGExFillControlConfigLength Config;
 
-	virtual TSharedPtr<PCGExFillControlOperation> CreateOperation(FPCGExContext* InContext) const override;
+	virtual TSharedPtr<FPCGExFillControlOperation> CreateOperation(FPCGExContext* InContext) const override;
 
 	virtual void RegisterBuffersDependencies(FPCGExContext* InContext, PCGExData::FFacadePreloader& FacadePreloader) const override;
 };

@@ -32,7 +32,7 @@ struct FPCGExSpecialNeighborsConfig
 /**
  * 
  */
-class PCGExVtxPropertySpecialNeighbors : public PCGExVtxPropertyOperation
+class FPCGExVtxPropertySpecialNeighbors : public FPCGExVtxPropertyOperation
 {
 public:
 	FPCGExSpecialNeighborsConfig Config;
@@ -52,7 +52,7 @@ class UPCGExVtxPropertySpecialNeighborsFactory : public UPCGExVtxPropertyFactory
 
 public:
 	FPCGExSpecialNeighborsConfig Config;
-	virtual TSharedPtr<PCGExVtxPropertyOperation> CreateOperation(FPCGExContext* InContext) const override;
+	virtual TSharedPtr<FPCGExVtxPropertyOperation> CreateOperation(FPCGExContext* InContext) const override;
 };
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|VtxProperty")

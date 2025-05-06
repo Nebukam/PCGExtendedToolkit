@@ -39,7 +39,7 @@ struct FPCGExTensorInertiaConstantConfig : public FPCGExTensorConfigBase
 /**
  * 
  */
-class PCGExTensorInertiaConstant : public PCGExTensorOperation
+class FPCGExTensorInertiaConstant : public PCGExTensorOperation
 {
 public:
 	FPCGExTensorInertiaConstantConfig Config;

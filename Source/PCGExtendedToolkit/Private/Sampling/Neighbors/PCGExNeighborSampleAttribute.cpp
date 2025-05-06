@@ -11,9 +11,9 @@
 #define LOCTEXT_NAMESPACE "PCGExCreateNeighborSample"
 #define PCGEX_NAMESPACE PCGExCreateNeighborSample
 
-void PCGExNeighborSampleAttribute::PrepareForCluster(FPCGExContext* InContext, const TSharedRef<PCGExCluster::FCluster> InCluster, const TSharedRef<PCGExData::FFacade> InVtxDataFacade, const TSharedRef<PCGExData::FFacade> InEdgeDataFacade)
+void FPCGExNeighborSampleAttribute::PrepareForCluster(FPCGExContext* InContext, const TSharedRef<PCGExCluster::FCluster> InCluster, const TSharedRef<PCGExData::FFacade> InVtxDataFacade, const TSharedRef<PCGExData::FFacade> InEdgeDataFacade)
 {
-	PCGExNeighborSampleOperation::PrepareForCluster(InContext, InCluster, InVtxDataFacade, InEdgeDataFacade);
+	FPCGExNeighborSampleOperation::PrepareForCluster(InContext, InCluster, InVtxDataFacade, InEdgeDataFacade);
 
 	Blender.Reset();
 	bIsValidOperation = false;
@@ -53,32 +53,32 @@ void PCGExNeighborSampleAttribute::PrepareForCluster(FPCGExContext* InContext, c
 	bIsValidOperation = true;
 }
 
-void PCGExNeighborSampleAttribute::PrepareNode(const PCGExCluster::FNode& TargetNode) const
+void FPCGExNeighborSampleAttribute::PrepareNode(const PCGExCluster::FNode& TargetNode) const
 {
 	Blender->PrepareForBlending(TargetNode.PointIndex);
 }
 
-void PCGExNeighborSampleAttribute::SampleNeighborNode(const PCGExCluster::FNode& TargetNode, const PCGExGraph::FLink Lk, const double Weight)
+void FPCGExNeighborSampleAttribute::SampleNeighborNode(const PCGExCluster::FNode& TargetNode, const PCGExGraph::FLink Lk, const double Weight)
 {
 	const int32 PrimaryIndex = TargetNode.PointIndex;
 	Blender->Blend(PrimaryIndex, Cluster->GetNode(Lk)->PointIndex, PrimaryIndex, Weight);
 }
 
-void PCGExNeighborSampleAttribute::SampleNeighborEdge(const PCGExCluster::FNode& TargetNode, const PCGExGraph::FLink Lk, const double Weight)
+void FPCGExNeighborSampleAttribute::SampleNeighborEdge(const PCGExCluster::FNode& TargetNode, const PCGExGraph::FLink Lk, const double Weight)
 {
 	const int32 PrimaryIndex = TargetNode.PointIndex;
 	Blender->Blend(PrimaryIndex, Cluster->GetEdge(Lk)->PointIndex, PrimaryIndex, Weight);
 }
 
-void PCGExNeighborSampleAttribute::FinalizeNode(const PCGExCluster::FNode& TargetNode, const int32 Count, const double TotalWeight)
+void FPCGExNeighborSampleAttribute::FinalizeNode(const PCGExCluster::FNode& TargetNode, const int32 Count, const double TotalWeight)
 {
 	const int32 PrimaryIndex = TargetNode.PointIndex;
 	Blender->CompleteBlending(PrimaryIndex, Count, TotalWeight);
 }
 
-void PCGExNeighborSampleAttribute::CompleteOperation()
+void FPCGExNeighborSampleAttribute::CompleteOperation()
 {
-	PCGExNeighborSampleOperation::CompleteOperation();
+	FPCGExNeighborSampleOperation::CompleteOperation();
 	Blender.Reset();
 }
 
@@ -96,9 +96,9 @@ FString UPCGExNeighborSampleAttributeSettings::GetDisplayName() const
 }
 #endif
 
-TSharedPtr<PCGExNeighborSampleOperation> UPCGExNeighborSamplerFactoryAttribute::CreateOperation(FPCGExContext* InContext) const
+TSharedPtr<FPCGExNeighborSampleOperation> UPCGExNeighborSamplerFactoryAttribute::CreateOperation(FPCGExContext* InContext) const
 {
-	PCGEX_FACTORY_NEW_OPERATION(PCGExNeighborSampleAttribute)
+	PCGEX_FACTORY_NEW_OPERATION(NeighborSampleAttribute)
 	PCGEX_SAMPLER_CREATE_OPERATION
 
 	NewOperation->SourceAttributes = Config.SourceAttributes;

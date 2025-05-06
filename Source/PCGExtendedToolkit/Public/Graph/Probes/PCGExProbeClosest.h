@@ -49,7 +49,7 @@ struct FPCGExProbeConfigClosest : public FPCGExProbeConfigBase
 /**
  * 
  */
-class PCGExProbeClosest : public PCGExProbeOperation
+class FPCGExProbeClosest : public FPCGExProbeOperation
 {
 public:
 	virtual bool PrepareForPoints(const TSharedPtr<PCGExData::FPointIO>& InPointIO) override;
@@ -76,7 +76,7 @@ public:
 	UPROPERTY()
 	FPCGExProbeConfigClosest Config;
 
-	virtual TSharedPtr<PCGExProbeOperation> CreateOperation(FPCGExContext* InContext) const override;
+	virtual TSharedPtr<FPCGExProbeOperation> CreateOperation(FPCGExContext* InContext) const override;
 };
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Graph|Params")

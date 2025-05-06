@@ -9,7 +9,7 @@
 #define LOCTEXT_NAMESPACE "PCGExCreateTensorPathPole"
 #define PCGEX_NAMESPACE CreateTensorPathPole
 
-PCGExTensor::FTensorSample PCGExTensorPathPole::Sample(const int32 InSeedIndex, const FTransform& InProbe) const
+PCGExTensor::FTensorSample FPCGExTensorPathPole::Sample(const int32 InSeedIndex, const FTransform& InProbe) const
 {
 	const FVector& InPosition = InProbe.GetLocation();
 	PCGExTensor::FEffectorSamples Samples = PCGExTensor::FEffectorSamples();

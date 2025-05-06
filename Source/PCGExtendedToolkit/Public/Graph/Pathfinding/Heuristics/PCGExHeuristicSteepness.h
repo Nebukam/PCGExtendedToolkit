@@ -44,7 +44,7 @@ struct FPCGExHeuristicConfigSteepness : public FPCGExHeuristicConfigBase
 /**
  * 
  */
-class PCGExHeuristicSteepness : public PCGExHeuristicOperation
+class FPCGExHeuristicSteepness : public FPCGExHeuristicOperation
 {
 	friend class UPCGExHeuristicsFactorySteepness;
 
@@ -83,7 +83,7 @@ public:
 	UPROPERTY()
 	FPCGExHeuristicConfigSteepness Config;
 
-	virtual TSharedPtr<PCGExHeuristicOperation> CreateOperation(FPCGExContext* InContext) const override;
+	virtual TSharedPtr<FPCGExHeuristicOperation> CreateOperation(FPCGExContext* InContext) const override;
 	PCGEX_HEURISTIC_FACTORY_BOILERPLATE
 };
 

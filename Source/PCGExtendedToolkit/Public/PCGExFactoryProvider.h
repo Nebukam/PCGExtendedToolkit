@@ -17,7 +17,7 @@
 #include "PCGExFactoryProvider.generated.h"
 
 #define PCGEX_FACTORY_NAME_PRIORITY FName(FString::Printf(TEXT("(%d) "), Priority) +  GetDisplayName())
-#define PCGEX_FACTORY_NEW_OPERATION(_TYPE) TSharedPtr<_TYPE> NewOperation = MakeShared<_TYPE>();
+#define PCGEX_FACTORY_NEW_OPERATION(_TYPE) TSharedPtr<FPCGEx##_TYPE> NewOperation = MakeShared<FPCGEx##_TYPE>();
 
 ///
 
@@ -267,6 +267,20 @@ namespace PCGExFactories
 		{
 			Factory->RegisterConsumableAttributesWithData(InFacade->Source->GetContext(), Data);
 		}
+	}
+
+	template <typename T_DEF>
+	static void RegisterConsumableAttributesWithFacade(const TObjectPtr<const T_DEF>& InFactory, const TSharedPtr<PCGExData::FFacade>& InFacade)
+	{
+		check(InFacade->Source->GetContext())
+
+		if (!InFacade->GetIn()) { return; }
+
+		const UPCGData* Data = InFacade->GetIn();
+
+		if (!Data) { return; }
+		
+		InFactory->RegisterConsumableAttributesWithData(InFacade->Source->GetContext(), Data);
 	}
 
 #if WITH_EDITOR

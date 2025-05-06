@@ -12,7 +12,7 @@
 
 #include "PCGExPathfindingPlotEdges.generated.h"
 
-class PCGExHeuristicOperation;
+class FPCGExHeuristicOperation;
 class UPCGExSearchOperation;
 /**
  * Use PCGExTransform to manipulate the outgoing attributes instead of handling everything here.

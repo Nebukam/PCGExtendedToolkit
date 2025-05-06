@@ -81,7 +81,7 @@ namespace PCGExSampleNeighbors
 
 		for (const UPCGExNeighborSamplerFactoryData* OperationFactory : Context->SamplerFactories)
 		{
-			TSharedPtr<PCGExNeighborSampleOperation> SamplingOperation = OperationFactory->CreateOperation(Context);
+			TSharedPtr<FPCGExNeighborSampleOperation> SamplingOperation = OperationFactory->CreateOperation(Context);
 			SamplingOperation->BindContext(Context);
 			SamplingOperation->PrepareForCluster(ExecutionContext, Cluster.ToSharedRef(), VtxDataFacade, EdgeDataFacade);
 
@@ -102,7 +102,7 @@ namespace PCGExSampleNeighbors
 
 	void FProcessor::ProcessSingleRangeIteration(const int32 Iteration, const PCGExMT::FScope& Scope)
 	{
-		for (const TSharedPtr<PCGExNeighborSampleOperation>& Op : OpsWithValueTest) { Op->ValueFilters->Results[Iteration] = Op->ValueFilters->Test(*Cluster->GetNode(Iteration)); }
+		for (const TSharedPtr<FPCGExNeighborSampleOperation>& Op : OpsWithValueTest) { Op->ValueFilters->Results[Iteration] = Op->ValueFilters->Test(*Cluster->GetNode(Iteration)); }
 	}
 
 	void FProcessor::OnRangeProcessingComplete()
@@ -112,12 +112,12 @@ namespace PCGExSampleNeighbors
 
 	void FProcessor::ProcessSingleNode(const int32 Index, PCGExCluster::FNode& Node, const PCGExMT::FScope& Scope)
 	{
-		for (const TSharedPtr<PCGExNeighborSampleOperation>& Op : SamplingOperations) { Op->ProcessNode(Index); }
+		for (const TSharedPtr<FPCGExNeighborSampleOperation>& Op : SamplingOperations) { Op->ProcessNode(Index); }
 	}
 
 	void FProcessor::Write()
 	{
-		for (const TSharedPtr<PCGExNeighborSampleOperation>& Op : SamplingOperations) { Op->CompleteOperation(); }
+		for (const TSharedPtr<FPCGExNeighborSampleOperation>& Op : SamplingOperations) { Op->CompleteOperation(); }
 		EdgeDataFacade->Write(AsyncManager);
 	}
 

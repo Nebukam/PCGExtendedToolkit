@@ -28,7 +28,7 @@ struct FPCGExHeuristicConfigShortestDistance : public FPCGExHeuristicConfigBase
 /**
  * 
  */
-class PCGExHeuristicDistance : public PCGExHeuristicOperation
+class FPCGExHeuristicDistance : public FPCGExHeuristicOperation
 {
 public:
 	virtual void PrepareForCluster(const TSharedPtr<const PCGExCluster::FCluster>& InCluster) override;
@@ -62,7 +62,7 @@ public:
 	UPROPERTY()
 	FPCGExHeuristicConfigShortestDistance Config;
 
-	virtual TSharedPtr<PCGExHeuristicOperation> CreateOperation(FPCGExContext* InContext) const override;
+	virtual TSharedPtr<FPCGExHeuristicOperation> CreateOperation(FPCGExContext* InContext) const override;
 	PCGEX_HEURISTIC_FACTORY_BOILERPLATE
 };
 

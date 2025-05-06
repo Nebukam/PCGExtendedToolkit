@@ -25,9 +25,9 @@ bool FPCGExAmplitudeConfig::Validate(const FPCGExContext* InContext) const
 	return true;
 }
 
-bool PCGExVtxPropertyAmplitude::PrepareForCluster(const FPCGExContext* InContext, TSharedPtr<PCGExCluster::FCluster> InCluster, const TSharedPtr<PCGExData::FFacade>& InVtxDataFacade, const TSharedPtr<PCGExData::FFacade>& InEdgeDataFacade)
+bool FPCGExVtxPropertyAmplitude::PrepareForCluster(const FPCGExContext* InContext, TSharedPtr<PCGExCluster::FCluster> InCluster, const TSharedPtr<PCGExData::FFacade>& InVtxDataFacade, const TSharedPtr<PCGExData::FFacade>& InEdgeDataFacade)
 {
-	if (!PCGExVtxPropertyOperation::PrepareForCluster(InContext, InCluster, InVtxDataFacade, InEdgeDataFacade)) { return false; }
+	if (!FPCGExVtxPropertyOperation::PrepareForCluster(InContext, InCluster, InVtxDataFacade, InEdgeDataFacade)) { return false; }
 
 	if (!Config.Validate(InContext))
 	{
@@ -90,7 +90,7 @@ bool PCGExVtxPropertyAmplitude::PrepareForCluster(const FPCGExContext* InContext
 	return bIsValidOperation;
 }
 
-void PCGExVtxPropertyAmplitude::ProcessNode(PCGExCluster::FNode& Node, const TArray<PCGExCluster::FAdjacencyData>& Adjacency)
+void FPCGExVtxPropertyAmplitude::ProcessNode(PCGExCluster::FNode& Node, const TArray<PCGExCluster::FAdjacencyData>& Adjacency)
 {
 	const int32 NumAdjacency = Adjacency.Num();
 
@@ -171,9 +171,9 @@ FString UPCGExVtxPropertyAmplitudeSettings::GetDisplayName() const
 }
 #endif
 
-TSharedPtr<PCGExVtxPropertyOperation> UPCGExVtxPropertyAmplitudeFactory::CreateOperation(FPCGExContext* InContext) const
+TSharedPtr<FPCGExVtxPropertyOperation> UPCGExVtxPropertyAmplitudeFactory::CreateOperation(FPCGExContext* InContext) const
 {
-	PCGEX_FACTORY_NEW_OPERATION(PCGExVtxPropertyAmplitude)
+	PCGEX_FACTORY_NEW_OPERATION(VtxPropertyAmplitude)
 	PCGEX_VTX_EXTRA_CREATE
 	return NewOperation;
 }

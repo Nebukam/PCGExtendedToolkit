@@ -41,7 +41,7 @@ struct FPCGExTensorSplineFlowConfig : public FPCGExTensorConfigBase
 /**
  * 
  */
-class PCGExTensorSplineFlow : public PCGExTensorOperation
+class FPCGExTensorSplineFlow : public PCGExTensorOperation
 {
 public:
 	FPCGExTensorSplineFlowConfig Config;

@@ -147,7 +147,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPointsProcessorContext : FPCGExContext
 	{
 		BaseOperation->BindContext(this); // Temp so Copy doesn't crash
 
-		T* RetValue = BaseOperation->CopyOperation<T>();
+		T* RetValue = BaseOperation->CreateNewInstance<T>();
 		InternalOperations.Add(RetValue);
 		RetValue->FindSettingsOverrides(this, OverridePinLabel);
 		return RetValue;

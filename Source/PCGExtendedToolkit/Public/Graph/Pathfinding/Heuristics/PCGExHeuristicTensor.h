@@ -36,7 +36,7 @@ struct FPCGExHeuristicConfigTensor : public FPCGExHeuristicConfigBase
 /**
  * 
  */
-class PCGExHeuristicTensor : public PCGExHeuristicOperation
+class FPCGExHeuristicTensor : public FPCGExHeuristicOperation
 {
 	friend class UPCGExHeuristicsFactoryTensor;
 
@@ -78,7 +78,7 @@ public:
 	UPROPERTY()
 	TArray<TObjectPtr<const UPCGExTensorFactoryData>> TensorFactories;
 
-	virtual TSharedPtr<PCGExHeuristicOperation> CreateOperation(FPCGExContext* InContext) const override;
+	virtual TSharedPtr<FPCGExHeuristicOperation> CreateOperation(FPCGExContext* InContext) const override;
 	PCGEX_HEURISTIC_FACTORY_BOILERPLATE
 
 	virtual bool WantsPreparation(FPCGExContext* InContext) override { return true; }

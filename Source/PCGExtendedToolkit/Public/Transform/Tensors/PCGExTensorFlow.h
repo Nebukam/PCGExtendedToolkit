@@ -45,7 +45,7 @@ struct FPCGExTensorFlowConfig : public FPCGExTensorConfigBase
 /**
  * 
  */
-class PCGExTensorFlow : public PCGExTensorPointOperation
+class FPCGExTensorFlow : public PCGExTensorPointOperation
 {
 public:
 	FPCGExTensorFlowConfig Config;

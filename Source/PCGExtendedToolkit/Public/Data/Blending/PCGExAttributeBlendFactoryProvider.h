@@ -124,13 +124,13 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExAttributeBlendConfig
 /**
  * 
  */
-class PCGEXTENDEDTOOLKIT_API PCGExAttributeBlendOperation : public PCGExOperation
+class PCGEXTENDEDTOOLKIT_API FPCGExAttributeBlendOperation : public FPCGExOperation
 {
 public:
 	FPCGExAttributeBlendConfig Config;
 
 	int32 OpIdx = -1;
-	TSharedPtr<TArray<TSharedPtr<PCGExAttributeBlendOperation>>> SiblingOperations;
+	TSharedPtr<TArray<TSharedPtr<FPCGExAttributeBlendOperation>>> SiblingOperations;
 
 	virtual bool PrepareForData(FPCGExContext* InContext, const TSharedRef<PCGExData::FFacade>& InDataFacade);
 
@@ -167,7 +167,7 @@ public:
 	FPCGExAttributeBlendConfig Config;
 
 	virtual PCGExFactories::EType GetFactoryType() const override { return PCGExFactories::EType::Blending; }
-	virtual TSharedPtr<PCGExAttributeBlendOperation> CreateOperation(FPCGExContext* InContext) const;
+	virtual TSharedPtr<FPCGExAttributeBlendOperation> CreateOperation(FPCGExContext* InContext) const;
 
 	virtual void RegisterAssetDependencies(FPCGExContext* InContext) const override;
 	virtual bool RegisterConsumableAttributesWithData(FPCGExContext* InContext, const UPCGData* InData) const override;

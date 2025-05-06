@@ -7,49 +7,49 @@
 
 #include "Graph/FloodFill/FillControls/PCGExFillControlsFactoryProvider.h"
 
-bool PCGExFillControlOperation::PrepareForDiffusions(FPCGExContext* InContext, const TSharedPtr<PCGExFloodFill::FFillControlsHandler>& InHandler)
+bool FPCGExFillControlOperation::PrepareForDiffusions(FPCGExContext* InContext, const TSharedPtr<PCGExFloodFill::FFillControlsHandler>& InHandler)
 {
 	Handler = InHandler;
 	Cluster = InHandler->Cluster;
 	return true;
 }
 
-bool PCGExFillControlOperation::ChecksCapture() const
+bool FPCGExFillControlOperation::ChecksCapture() const
 {
 	return (Factory->ConfigBase.Steps & static_cast<uint8>(EPCGExFloodFillControlStepsFlags::Capture)) != 0;
 }
 
-bool PCGExFillControlOperation::IsValidCapture(const PCGExFloodFill::FDiffusion* Diffusion, const PCGExFloodFill::FCandidate& Candidate)
+bool FPCGExFillControlOperation::IsValidCapture(const PCGExFloodFill::FDiffusion* Diffusion, const PCGExFloodFill::FCandidate& Candidate)
 {
 	return true;
 }
 
-bool PCGExFillControlOperation::ChecksProbe() const
+bool FPCGExFillControlOperation::ChecksProbe() const
 {
 	return (Factory->ConfigBase.Steps & static_cast<uint8>(EPCGExFloodFillControlStepsFlags::Probing)) != 0;
 }
 
-bool PCGExFillControlOperation::IsValidProbe(const PCGExFloodFill::FDiffusion* Diffusion, const PCGExFloodFill::FCandidate& Candidate)
+bool FPCGExFillControlOperation::IsValidProbe(const PCGExFloodFill::FDiffusion* Diffusion, const PCGExFloodFill::FCandidate& Candidate)
 {
 	return true;
 }
 
-bool PCGExFillControlOperation::ChecksCandidate() const
+bool FPCGExFillControlOperation::ChecksCandidate() const
 {
 	return (Factory->ConfigBase.Steps & static_cast<uint8>(EPCGExFloodFillControlStepsFlags::Candidate)) != 0;
 }
 
-bool PCGExFillControlOperation::IsValidCandidate(const PCGExFloodFill::FDiffusion* Diffusion, const PCGExFloodFill::FCandidate& From, const PCGExFloodFill::FCandidate& Candidate)
+bool FPCGExFillControlOperation::IsValidCandidate(const PCGExFloodFill::FDiffusion* Diffusion, const PCGExFloodFill::FCandidate& From, const PCGExFloodFill::FCandidate& Candidate)
 {
 	return false;
 }
 
-int32 PCGExFillControlOperation::GetSettingsIndex(const PCGExFloodFill::FDiffusion* Diffusion) const
+int32 FPCGExFillControlOperation::GetSettingsIndex(const PCGExFloodFill::FDiffusion* Diffusion) const
 {
 	return *(SettingsIndex->GetData() + Diffusion->Index);
 }
 
-TSharedPtr<PCGExData::FFacade> PCGExFillControlOperation::GetSourceFacade() const
+TSharedPtr<PCGExData::FFacade> FPCGExFillControlOperation::GetSourceFacade() const
 {
 	return Factory->ConfigBase.Source == EPCGExFloodFillSettingSource::Seed ? Handler->SeedsDataFacade : Handler->VtxDataFacade;
 }

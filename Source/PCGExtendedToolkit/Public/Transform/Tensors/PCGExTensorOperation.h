@@ -14,7 +14,7 @@ class UPCGExTensorFactoryData;
 /**
  * 
  */
-class PCGEXTENDEDTOOLKIT_API PCGExTensorOperation : public PCGExOperation
+class PCGEXTENDEDTOOLKIT_API PCGExTensorOperation : public FPCGExOperation
 {
 public:
 	TObjectPtr<const UPCGExTensorFactoryData> Factory = nullptr;

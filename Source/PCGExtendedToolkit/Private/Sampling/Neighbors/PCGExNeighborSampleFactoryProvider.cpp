@@ -9,7 +9,7 @@
 #define LOCTEXT_NAMESPACE "PCGExCreateNeighborSample"
 #define PCGEX_NAMESPACE PCGExCreateNeighborSample
 
-void PCGExNeighborSampleOperation::PrepareForCluster(FPCGExContext* InContext, TSharedRef<PCGExCluster::FCluster> InCluster, TSharedRef<PCGExData::FFacade> InVtxDataFacade, TSharedRef<PCGExData::FFacade> InEdgeDataFacade)
+void FPCGExNeighborSampleOperation::PrepareForCluster(FPCGExContext* InContext, TSharedRef<PCGExCluster::FCluster> InCluster, TSharedRef<PCGExData::FFacade> InVtxDataFacade, TSharedRef<PCGExData::FFacade> InEdgeDataFacade)
 {
 	Cluster = InCluster;
 
@@ -29,16 +29,16 @@ void PCGExNeighborSampleOperation::PrepareForCluster(FPCGExContext* InContext, T
 	}
 }
 
-bool PCGExNeighborSampleOperation::IsOperationValid() { return bIsValidOperation; }
+bool FPCGExNeighborSampleOperation::IsOperationValid() { return bIsValidOperation; }
 
-TSharedRef<PCGExData::FPointIO> PCGExNeighborSampleOperation::GetSourceIO() const { return GetSourceDataFacade()->Source; }
+TSharedRef<PCGExData::FPointIO> FPCGExNeighborSampleOperation::GetSourceIO() const { return GetSourceDataFacade()->Source; }
 
-TSharedRef<PCGExData::FFacade> PCGExNeighborSampleOperation::GetSourceDataFacade() const
+TSharedRef<PCGExData::FFacade> FPCGExNeighborSampleOperation::GetSourceDataFacade() const
 {
 	return SamplingConfig.NeighborSource == EPCGExClusterComponentSource::Vtx ? VtxDataFacade.ToSharedRef() : EdgeDataFacade.ToSharedRef();
 }
 
-void PCGExNeighborSampleOperation::ProcessNode(const int32 NodeIndex)
+void FPCGExNeighborSampleOperation::ProcessNode(const int32 NodeIndex)
 {
 	const PCGExCluster::FNode& Node = (*Cluster->Nodes)[NodeIndex];
 
@@ -130,23 +130,23 @@ void PCGExNeighborSampleOperation::ProcessNode(const int32 NodeIndex)
 	FinalizeNode(Node, Count, TotalWeight);
 }
 
-void PCGExNeighborSampleOperation::PrepareNode(const PCGExCluster::FNode& TargetNode) const
+void FPCGExNeighborSampleOperation::PrepareNode(const PCGExCluster::FNode& TargetNode) const
 {
 }
 
-void PCGExNeighborSampleOperation::SampleNeighborNode(const PCGExCluster::FNode& TargetNode, const PCGExGraph::FLink Lk, const double Weight)
+void FPCGExNeighborSampleOperation::SampleNeighborNode(const PCGExCluster::FNode& TargetNode, const PCGExGraph::FLink Lk, const double Weight)
 {
 }
 
-void PCGExNeighborSampleOperation::SampleNeighborEdge(const PCGExCluster::FNode& TargetNode, const PCGExGraph::FLink Lk, const double Weight)
+void FPCGExNeighborSampleOperation::SampleNeighborEdge(const PCGExCluster::FNode& TargetNode, const PCGExGraph::FLink Lk, const double Weight)
 {
 }
 
-void PCGExNeighborSampleOperation::FinalizeNode(const PCGExCluster::FNode& TargetNode, const int32 Count, const double TotalWeight)
+void FPCGExNeighborSampleOperation::FinalizeNode(const PCGExCluster::FNode& TargetNode, const int32 Count, const double TotalWeight)
 {
 }
 
-void PCGExNeighborSampleOperation::CompleteOperation()
+void FPCGExNeighborSampleOperation::CompleteOperation()
 {
 }
 
@@ -157,9 +157,9 @@ FString UPCGExNeighborSampleProviderSettings::GetDisplayName() const
 }
 #endif
 
-TSharedPtr<PCGExNeighborSampleOperation> UPCGExNeighborSamplerFactoryData::CreateOperation(FPCGExContext* InContext) const
+TSharedPtr<FPCGExNeighborSampleOperation> UPCGExNeighborSamplerFactoryData::CreateOperation(FPCGExContext* InContext) const
 {
-	PCGEX_FACTORY_NEW_OPERATION(PCGExNeighborSampleOperation)
+	PCGEX_FACTORY_NEW_OPERATION(NeighborSampleOperation)
 	PCGEX_SAMPLER_CREATE_OPERATION
 	return NewOperation;
 }

@@ -45,7 +45,7 @@ struct FPCGExHeuristicConfigFeedback : public FPCGExHeuristicConfigBase
 /**
  * 
  */
-class PCGExHeuristicFeedback : public PCGExHeuristicOperation
+class FPCGExHeuristicFeedback : public FPCGExHeuristicOperation
 {
 	mutable FRWLock FeedbackLock;
 	TMap<int32, uint32> NodeFeedbackNum;
@@ -88,7 +88,7 @@ public:
 
 	virtual bool IsGlobal() const { return Config.bGlobalFeedback; }
 
-	virtual TSharedPtr<PCGExHeuristicOperation> CreateOperation(FPCGExContext* InContext) const override;
+	virtual TSharedPtr<FPCGExHeuristicOperation> CreateOperation(FPCGExContext* InContext) const override;
 	PCGEX_HEURISTIC_FACTORY_BOILERPLATE
 };
 

@@ -4,26 +4,26 @@
 #include "PCGExOperation.h"
 #include "PCGParamData.h"
 
-void PCGExOperation::BindContext(FPCGExContext* InContext)
+void FPCGExOperation::BindContext(FPCGExContext* InContext)
 {
 	Context = InContext;
 }
 
 #if WITH_EDITOR
-void PCGExOperation::UpdateUserFacingInfos()
+void FPCGExOperation::UpdateUserFacingInfos()
 {
 }
 #endif
 
-void PCGExOperation::RegisterConsumableAttributesWithFacade(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade>& InFacade) const
+void FPCGExOperation::RegisterConsumableAttributesWithFacade(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade>& InFacade) const
 {
 }
 
-void PCGExOperation::RegisterPrimaryBuffersDependencies(PCGExData::FFacadePreloader& FacadePreloader) const
+void FPCGExOperation::RegisterPrimaryBuffersDependencies(PCGExData::FFacadePreloader& FacadePreloader) const
 {
 }
 
-void PCGExOperation::RegisterAssetDependencies(FPCGExContext* InContext)
+void FPCGExOperation::RegisterAssetDependencies(FPCGExContext* InContext)
 {
 	
 }

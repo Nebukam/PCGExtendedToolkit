@@ -89,7 +89,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSamplingConfig
 /**
  * 
  */
-class PCGEXTENDEDTOOLKIT_API PCGExNeighborSampleOperation : public PCGExOperation
+class PCGEXTENDEDTOOLKIT_API FPCGExNeighborSampleOperation : public FPCGExOperation
 {
 public:
 	TSharedPtr<PCGExClusterFilter::FManager> PointFilters;
@@ -144,7 +144,7 @@ public:
 
 	virtual PCGExFactories::EType GetFactoryType() const override { return PCGExFactories::EType::Sampler; }
 
-	virtual TSharedPtr<PCGExNeighborSampleOperation> CreateOperation(FPCGExContext* InContext) const;
+	virtual TSharedPtr<FPCGExNeighborSampleOperation> CreateOperation(FPCGExContext* InContext) const;
 
 	virtual void RegisterVtxBuffersDependencies(FPCGExContext* InContext, const TSharedRef<PCGExData::FFacade>& InVtxDataFacade, PCGExData::FFacadePreloader& FacadePreloader) const;
 

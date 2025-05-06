@@ -35,7 +35,7 @@ struct FPCGExProbeConfigAnisotropic : public FPCGExProbeConfigBase
 /**
  * 
  */
-class PCGExProbeAnisotropic : public PCGExProbeOperation
+class FPCGExProbeAnisotropic : public FPCGExProbeOperation
 {
 public:
 	virtual bool PrepareForPoints(const TSharedPtr<PCGExData::FPointIO>& InPointIO) override;
@@ -76,7 +76,7 @@ public:
 	UPROPERTY()
 	FPCGExProbeConfigAnisotropic Config;
 
-	virtual TSharedPtr<PCGExProbeOperation> CreateOperation(FPCGExContext* InContext) const override;
+	virtual TSharedPtr<FPCGExProbeOperation> CreateOperation(FPCGExContext* InContext) const override;
 };
 
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Graph|Params")

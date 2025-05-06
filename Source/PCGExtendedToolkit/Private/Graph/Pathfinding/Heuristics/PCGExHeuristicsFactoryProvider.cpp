@@ -29,7 +29,7 @@ bool UPCGExHeuristicsFactoryData::RegisterConsumableAttributesWithData(FPCGExCon
 	return true;
 }
 
-TSharedPtr<PCGExHeuristicOperation> UPCGExHeuristicsFactoryData::CreateOperation(FPCGExContext* InContext) const
+TSharedPtr<FPCGExHeuristicOperation> UPCGExHeuristicsFactoryData::CreateOperation(FPCGExContext* InContext) const
 {
 	return nullptr; // Create heuristic operation
 }

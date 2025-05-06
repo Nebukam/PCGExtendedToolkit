@@ -28,7 +28,7 @@ struct FPCGExTensorNullConfig : public FPCGExTensorConfigBase
 /**
  * 
  */
-class PCGExTensorNull : public PCGExTensorPointOperation
+class FPCGExTensorNull : public PCGExTensorPointOperation
 {
 public:
 	FPCGExTensorNullConfig Config;

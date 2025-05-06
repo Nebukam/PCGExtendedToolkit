@@ -101,7 +101,7 @@ struct FPCGExSamplerFilterConfig
 /**
  * 
  */
-class PCGExNeighborSampleFilters : public PCGExNeighborSampleOperation
+class FPCGExNeighborSampleFilters : public FPCGExNeighborSampleOperation
 {
 public:
 	FPCGExSamplerFilterConfig Config;
@@ -143,7 +143,7 @@ class UPCGExNeighborSamplerFactoryFilters : public UPCGExNeighborSamplerFactoryD
 
 public:
 	FPCGExSamplerFilterConfig Config;
-	virtual TSharedPtr<PCGExNeighborSampleOperation> CreateOperation(FPCGExContext* InContext) const override;
+	virtual TSharedPtr<FPCGExNeighborSampleOperation> CreateOperation(FPCGExContext* InContext) const override;
 };
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|NeighborSample")

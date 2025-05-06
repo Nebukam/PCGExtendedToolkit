@@ -49,7 +49,7 @@ struct FPCGExFillControlConfigKeepDirection : public FPCGExFillControlConfigBase
 /**
  * 
  */
-class PCGExFillControlKeepDirection : public PCGExFillControlOperation
+class FPCGExFillControlKeepDirection : public FPCGExFillControlOperation
 {
 	friend class UPCGExFillControlsFactoryKeepDirection;
 
@@ -76,7 +76,7 @@ public:
 	UPROPERTY()
 	FPCGExFillControlConfigKeepDirection Config;
 
-	virtual TSharedPtr<PCGExFillControlOperation> CreateOperation(FPCGExContext* InContext) const override;
+	virtual TSharedPtr<FPCGExFillControlOperation> CreateOperation(FPCGExContext* InContext) const override;
 
 	virtual void RegisterBuffersDependencies(FPCGExContext* InContext, PCGExData::FFacadePreloader& FacadePreloader) const override;
 };

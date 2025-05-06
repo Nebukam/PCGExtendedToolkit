@@ -52,7 +52,7 @@ struct FPCGExTensorPathFlowConfig : public FPCGExTensorConfigBase
 /**
  * 
  */
-class PCGExTensorPathFlow : public PCGExTensorOperation
+class FPCGExTensorPathFlow : public PCGExTensorOperation
 {
 public:
 	FPCGExTensorPathFlowConfig Config;

@@ -10,9 +10,9 @@
 #include "Graph/Filters/PCGExClusterFilter.h"
 #include "Graph/FloodFill/FillControls/PCGExFillControlsFactoryProvider.h"
 
-bool PCGExFillControlEdgeFilters::PrepareForDiffusions(FPCGExContext* InContext, const TSharedPtr<PCGExFloodFill::FFillControlsHandler>& InHandler)
+bool FPCGExFillControlEdgeFilters::PrepareForDiffusions(FPCGExContext* InContext, const TSharedPtr<PCGExFloodFill::FFillControlsHandler>& InHandler)
 {
-	if (!PCGExFillControlOperation::PrepareForDiffusions(InContext, InHandler)) { return false; }
+	if (!FPCGExFillControlOperation::PrepareForDiffusions(InContext, InHandler)) { return false; }
 
 	const UPCGExFillControlsFactoryEdgeFilters* TypedFactory = Cast<UPCGExFillControlsFactoryEdgeFilters>(Factory);
 
@@ -22,7 +22,7 @@ bool PCGExFillControlEdgeFilters::PrepareForDiffusions(FPCGExContext* InContext,
 	return EdgeFilterManager->Init(InContext, TypedFactory->FilterFactories);
 }
 
-bool PCGExFillControlEdgeFilters::IsValidCapture(const PCGExFloodFill::FDiffusion* Diffusion, const PCGExFloodFill::FCandidate& Candidate)
+bool FPCGExFillControlEdgeFilters::IsValidCapture(const PCGExFloodFill::FDiffusion* Diffusion, const PCGExFloodFill::FCandidate& Candidate)
 {
 	const PCGExGraph::FEdge* E = Cluster->GetEdge(Candidate.Link);
 	// Orient edge in diffusion direction
@@ -30,7 +30,7 @@ bool PCGExFillControlEdgeFilters::IsValidCapture(const PCGExFloodFill::FDiffusio
 	return EdgeFilterManager->Test(Edge);
 }
 
-bool PCGExFillControlEdgeFilters::IsValidProbe(const PCGExFloodFill::FDiffusion* Diffusion, const PCGExFloodFill::FCandidate& Candidate)
+bool FPCGExFillControlEdgeFilters::IsValidProbe(const PCGExFloodFill::FDiffusion* Diffusion, const PCGExFloodFill::FCandidate& Candidate)
 {
 	if (Candidate.Link.Edge == -1) { return true; }
 	const PCGExGraph::FEdge* E = Cluster->GetEdge(Candidate.Link);
@@ -39,7 +39,7 @@ bool PCGExFillControlEdgeFilters::IsValidProbe(const PCGExFloodFill::FDiffusion*
 	return EdgeFilterManager->Test(Edge);
 }
 
-bool PCGExFillControlEdgeFilters::IsValidCandidate(const PCGExFloodFill::FDiffusion* Diffusion, const PCGExFloodFill::FCandidate& From, const PCGExFloodFill::FCandidate& Candidate)
+bool FPCGExFillControlEdgeFilters::IsValidCandidate(const PCGExFloodFill::FDiffusion* Diffusion, const PCGExFloodFill::FCandidate& From, const PCGExFloodFill::FCandidate& Candidate)
 {
 	const PCGExGraph::FEdge* E = Cluster->GetEdge(Candidate.Link);
 	// Orient edge in diffusion direction
@@ -47,9 +47,9 @@ bool PCGExFillControlEdgeFilters::IsValidCandidate(const PCGExFloodFill::FDiffus
 	return EdgeFilterManager->Test(Edge);
 }
 
-TSharedPtr<PCGExFillControlOperation> UPCGExFillControlsFactoryEdgeFilters::CreateOperation(FPCGExContext* InContext) const
+TSharedPtr<FPCGExFillControlOperation> UPCGExFillControlsFactoryEdgeFilters::CreateOperation(FPCGExContext* InContext) const
 {
-	PCGEX_FACTORY_NEW_OPERATION(PCGExFillControlEdgeFilters)
+	PCGEX_FACTORY_NEW_OPERATION(FillControlEdgeFilters)
 	PCGEX_FORWARD_FILLCONTROL_OPERATION
 	return NewOperation;
 }

@@ -10,13 +10,13 @@
 #define LOCTEXT_NAMESPACE "PCGExVtxPropertySpecialNeighbors"
 #define PCGEX_NAMESPACE PCGExVtxPropertySpecialNeighbors
 
-bool PCGExVtxPropertySpecialNeighbors::PrepareForCluster(
+bool FPCGExVtxPropertySpecialNeighbors::PrepareForCluster(
 	const FPCGExContext* InContext,
 	TSharedPtr<PCGExCluster::FCluster> InCluster,
 	const TSharedPtr<PCGExData::FFacade>& InVtxDataFacade,
 	const TSharedPtr<PCGExData::FFacade>& InEdgeDataFacade)
 {
-	if (!PCGExVtxPropertyOperation::PrepareForCluster(InContext, InCluster, InVtxDataFacade, InEdgeDataFacade)) { return false; }
+	if (!FPCGExVtxPropertyOperation::PrepareForCluster(InContext, InCluster, InVtxDataFacade, InEdgeDataFacade)) { return false; }
 
 	if (!Config.LargestNeighbor.Validate(InContext) ||
 		!Config.SmallestNeighbor.Validate(InContext))
@@ -31,7 +31,7 @@ bool PCGExVtxPropertySpecialNeighbors::PrepareForCluster(
 	return bIsValidOperation;
 }
 
-void PCGExVtxPropertySpecialNeighbors::ProcessNode(PCGExCluster::FNode& Node, const TArray<PCGExCluster::FAdjacencyData>& Adjacency)
+void FPCGExVtxPropertySpecialNeighbors::ProcessNode(PCGExCluster::FNode& Node, const TArray<PCGExCluster::FAdjacencyData>& Adjacency)
 {
 	int32 LLargest = MIN_int32;
 	int32 ILargest = -1;
@@ -71,9 +71,9 @@ FString UPCGExVtxPropertySpecialNeighborsSettings::GetDisplayName() const
 }
 #endif
 
-TSharedPtr<PCGExVtxPropertyOperation> UPCGExVtxPropertySpecialNeighborsFactory::CreateOperation(FPCGExContext* InContext) const
+TSharedPtr<FPCGExVtxPropertyOperation> UPCGExVtxPropertySpecialNeighborsFactory::CreateOperation(FPCGExContext* InContext) const
 {
-	PCGEX_FACTORY_NEW_OPERATION(PCGExVtxPropertySpecialNeighbors)
+	PCGEX_FACTORY_NEW_OPERATION(VtxPropertySpecialNeighbors)
 	PCGEX_VTX_EXTRA_CREATE
 	return NewOperation;
 }

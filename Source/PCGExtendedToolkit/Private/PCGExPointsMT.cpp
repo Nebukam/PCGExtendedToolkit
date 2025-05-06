@@ -74,7 +74,7 @@ namespace PCGExPointsMT
 
 		if (PrimaryOperation)
 		{
-			PrimaryOperation = PrimaryOperation->CopyOperation<UPCGExInstancedFactory>();
+			PrimaryOperation = PrimaryOperation->CreateNewInstance<UPCGExInstancedFactory>();
 			PrimaryOperation->PrimaryDataFacade = PointDataFacade;
 		}
 

@@ -10,7 +10,7 @@
 
 #include "PCGExBatchActions.generated.h"
 
-class PCGExActionOperation;
+class FPCGExActionOperation;
 class UPCGExActionFactoryData;
 /**
  * 
@@ -75,7 +75,7 @@ namespace PCGExBatchActions
 {
 	class FProcessor final : public PCGExPointsMT::TPointsProcessor<FPCGExBatchActionsContext, UPCGExBatchActionsSettings>
 	{
-		TArray<TSharedPtr<PCGExActionOperation>> Operations;
+		TArray<TSharedPtr<FPCGExActionOperation>> Operations;
 
 	public:
 		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade):

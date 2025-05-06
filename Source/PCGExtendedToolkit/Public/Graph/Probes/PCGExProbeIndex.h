@@ -61,7 +61,7 @@ struct FPCGExProbeConfigIndex : public FPCGExProbeConfigBase
 /**
  * 
  */
-class PCGExProbeIndex : public PCGExProbeOperation
+class FPCGExProbeIndex : public FPCGExProbeOperation
 {
 public:
 	virtual bool RequiresOctree() override;
@@ -93,7 +93,7 @@ public:
 	UPROPERTY()
 	FPCGExProbeConfigIndex Config;
 
-	virtual TSharedPtr<PCGExProbeOperation> CreateOperation(FPCGExContext* InContext) const override;
+	virtual TSharedPtr<FPCGExProbeOperation> CreateOperation(FPCGExContext* InContext) const override;
 };
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Graph|Params")

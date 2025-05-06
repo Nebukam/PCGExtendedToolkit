@@ -19,7 +19,7 @@
 #define PCGEX_FORWARD_FILLCONTROL_OPERATION \
 	NewOperation->Factory = this;
 
-class PCGExFillControlOperation;
+class FPCGExFillControlOperation;
 
 USTRUCT(BlueprintType)
 struct PCGEXTENDEDTOOLKIT_API FPCGExFillControlConfigBase
@@ -63,7 +63,7 @@ public:
 
 	virtual bool RegisterConsumableAttributesWithData(FPCGExContext* InContext, const UPCGData* InData) const override;
 
-	virtual TSharedPtr<PCGExFillControlOperation> CreateOperation(FPCGExContext* InContext) const;
+	virtual TSharedPtr<FPCGExFillControlOperation> CreateOperation(FPCGExContext* InContext) const;
 };
 
 UCLASS(Abstract, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Graph|Params")

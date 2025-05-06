@@ -32,7 +32,7 @@ namespace PCGExHeuristics
 	{
 		for (const UPCGExHeuristicsFactoryData* OperationFactory : InFactories)
 		{
-			TSharedPtr<PCGExHeuristicOperation> Operation = nullptr;
+			TSharedPtr<FPCGExHeuristicOperation> Operation = nullptr;
 			bool bIsFeedback = false;
 			if (const UPCGExHeuristicsFactoryFeedback* FeedbackFactory = Cast<UPCGExHeuristicsFactoryFeedback>(OperationFactory))
 			{
@@ -47,7 +47,7 @@ namespace PCGExHeuristics
 
 			Operation = OperationFactory->CreateOperation(InContext);
 
-			if (bIsFeedback) { Feedbacks.Add(StaticCastSharedPtr<PCGExHeuristicFeedback>(Operation)); }
+			if (bIsFeedback) { Feedbacks.Add(StaticCastSharedPtr<FPCGExHeuristicFeedback>(Operation)); }
 			Operations.Add(Operation);
 
 			PCGEX_INIT_HEURISTIC_OPERATION(Operation, OperationFactory)
@@ -78,7 +78,7 @@ namespace PCGExHeuristics
 
 		Cluster = InCluster;
 		bUseDynamicWeight = false;
-		for (const TSharedPtr<PCGExHeuristicOperation>& Operation : Operations)
+		for (const TSharedPtr<FPCGExHeuristicOperation>& Operation : Operations)
 		{
 			Operation->PrepareForCluster(InCluster);
 			if (Operation->bHasCustomLocalWeightMultiplier) { bUseDynamicWeight = true; }
@@ -88,7 +88,7 @@ namespace PCGExHeuristics
 	void FHeuristicsHandler::CompleteClusterPreparation()
 	{
 		TotalStaticWeight = 0;
-		for (const TSharedPtr<PCGExHeuristicOperation>& Op : Operations) { TotalStaticWeight += Op->WeightFactor; }
+		for (const TSharedPtr<FPCGExHeuristicOperation>& Op : Operations) { TotalStaticWeight += Op->WeightFactor; }
 	}
 
 	double FHeuristicsHandler::GetGlobalScore(
@@ -100,7 +100,7 @@ namespace PCGExHeuristics
 		double GScore = 0;
 		double EWeight = TotalStaticWeight;
 
-		for (const TSharedPtr<PCGExHeuristicOperation>& Op : Operations) { GScore += Op->GetGlobalScore(From, Seed, Goal); }
+		for (const TSharedPtr<FPCGExHeuristicOperation>& Op : Operations) { GScore += Op->GetGlobalScore(From, Seed, Goal); }
 		if (LocalFeedback)
 		{
 			GScore += LocalFeedback->GetGlobalScore(From, Seed, Goal);
@@ -123,7 +123,7 @@ namespace PCGExHeuristics
 
 		if (!bUseDynamicWeight)
 		{
-			for (const TSharedPtr<PCGExHeuristicOperation>& Op : Operations) { EScore += Op->GetEdgeScore(From, To, Edge, Seed, Goal, TravelStack); }
+			for (const TSharedPtr<FPCGExHeuristicOperation>& Op : Operations) { EScore += Op->GetEdgeScore(From, To, Edge, Seed, Goal, TravelStack); }
 
 			if (LocalFeedback)
 			{
@@ -136,7 +136,7 @@ namespace PCGExHeuristics
 
 		EWeight = 0;
 
-		for (const TSharedPtr<PCGExHeuristicOperation>& Op : Operations)
+		for (const TSharedPtr<FPCGExHeuristicOperation>& Op : Operations)
 		{
 			EScore += Op->GetEdgeScore(From, To, Edge, Seed, Goal, TravelStack);
 			EWeight += (Op->WeightFactor * Op->GetCustomWeightMultiplier(To.Index, Edge.PointIndex));
@@ -153,25 +153,25 @@ namespace PCGExHeuristics
 
 	void FHeuristicsHandler::FeedbackPointScore(const PCGExCluster::FNode& Node)
 	{
-		for (const TSharedPtr<PCGExHeuristicFeedback>& Op : Feedbacks) { Op->FeedbackPointScore(Node); }
+		for (const TSharedPtr<FPCGExHeuristicFeedback>& Op : Feedbacks) { Op->FeedbackPointScore(Node); }
 	}
 
 	void FHeuristicsHandler::FeedbackScore(const PCGExCluster::FNode& Node, const PCGExGraph::FEdge& Edge)
 	{
-		for (const TSharedPtr<PCGExHeuristicFeedback>& Op : Feedbacks) { Op->FeedbackScore(Node, Edge); }
+		for (const TSharedPtr<FPCGExHeuristicFeedback>& Op : Feedbacks) { Op->FeedbackScore(Node, Edge); }
 	}
 
 	FVector FHeuristicsHandler::GetSeedUVW() const
 	{
 		FVector UVW = FVector::ZeroVector;
-		for (const TSharedPtr<PCGExHeuristicOperation>& Op : Operations) { UVW += Op->GetSeedUVW(); }
+		for (const TSharedPtr<FPCGExHeuristicOperation>& Op : Operations) { UVW += Op->GetSeedUVW(); }
 		return UVW;
 	}
 
 	FVector FHeuristicsHandler::GetGoalUVW() const
 	{
 		FVector UVW = FVector::ZeroVector;
-		for (const TSharedPtr<PCGExHeuristicOperation>& Op : Operations) { UVW += Op->GetGoalUVW(); }
+		for (const TSharedPtr<FPCGExHeuristicOperation>& Op : Operations) { UVW += Op->GetGoalUVW(); }
 		return UVW;
 	}
 
@@ -183,7 +183,7 @@ namespace PCGExHeuristics
 
 		for (const UPCGExHeuristicsFactoryData* Factory : LocalFeedbackFactories)
 		{
-			TSharedPtr<PCGExHeuristicFeedback> Feedback = StaticCastSharedPtr<PCGExHeuristicFeedback>(Factory->CreateOperation(ExecutionContext));
+			TSharedPtr<FPCGExHeuristicFeedback> Feedback = StaticCastSharedPtr<FPCGExHeuristicFeedback>(Factory->CreateOperation(ExecutionContext));
 
 			PCGEX_INIT_HEURISTIC_OPERATION(Feedback, Factory)
 

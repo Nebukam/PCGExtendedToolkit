@@ -31,7 +31,7 @@ struct FPCGExTensorConstantConfig : public FPCGExTensorConfigBase
 /**
  * 
  */
-class PCGExTensorConstant : public PCGExTensorOperation
+class FPCGExTensorConstant : public PCGExTensorOperation
 {
 public:
 	FPCGExTensorConstantConfig Config;

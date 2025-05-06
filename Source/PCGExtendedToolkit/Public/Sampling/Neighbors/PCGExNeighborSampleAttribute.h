@@ -24,7 +24,7 @@
 /**
  * 
  */
-class PCGExNeighborSampleAttribute : public PCGExNeighborSampleOperation
+class FPCGExNeighborSampleAttribute : public FPCGExNeighborSampleOperation
 {
 public:
 	TSharedPtr<PCGExDataBlending::FMetadataBlender> Blender;
@@ -70,7 +70,7 @@ class UPCGExNeighborSamplerFactoryAttribute : public UPCGExNeighborSamplerFactor
 
 public:
 	FPCGExAttributeSamplerConfigBase Config;
-	virtual TSharedPtr<PCGExNeighborSampleOperation> CreateOperation(FPCGExContext* InContext) const override;
+	virtual TSharedPtr<FPCGExNeighborSampleOperation> CreateOperation(FPCGExContext* InContext) const override;
 
 	virtual bool RegisterConsumableAttributes(FPCGExContext* InContext) const override;
 	virtual void RegisterVtxBuffersDependencies(FPCGExContext* InContext, const TSharedRef<PCGExData::FFacade>& InVtxDataFacade, PCGExData::FFacadePreloader& FacadePreloader) const override;

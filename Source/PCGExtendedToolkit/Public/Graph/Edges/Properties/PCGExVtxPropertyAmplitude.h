@@ -135,7 +135,7 @@ struct FPCGExAmplitudeConfig
 /**
  * 
  */
-class PCGExVtxPropertyAmplitude : public PCGExVtxPropertyOperation
+class FPCGExVtxPropertyAmplitude : public FPCGExVtxPropertyOperation
 {
 public:
 	FPCGExAmplitudeConfig Config;
@@ -172,7 +172,7 @@ class UPCGExVtxPropertyAmplitudeFactory : public UPCGExVtxPropertyFactoryData
 
 public:
 	FPCGExAmplitudeConfig Config;
-	virtual TSharedPtr<PCGExVtxPropertyOperation> CreateOperation(FPCGExContext* InContext) const override;
+	virtual TSharedPtr<FPCGExVtxPropertyOperation> CreateOperation(FPCGExContext* InContext) const override;
 	virtual void RegisterBuffersDependencies(FPCGExContext* InContext, PCGExData::FFacadePreloader& FacadePreloader) const override;
 };
 

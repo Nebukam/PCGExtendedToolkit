@@ -4,6 +4,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "PCGExOperation.h"
 #include "UObject/Object.h"
 
 #include "Data/PCGExAttributeHelpers.h"
@@ -42,7 +43,7 @@ public:
 	TSharedPtr<PCGExData::FFacade> SecondaryDataFacade;
 
 	template <typename T>
-	T* CopyOperation() const
+	T* CreateNewInstance() const
 	{
 		T* TypedInstance = Context->ManagedObjects->New<T>(GetTransientPackage(), this->GetClass());
 
@@ -51,6 +52,8 @@ public:
 		TypedInstance->CopySettingsFrom(this);
 		return TypedInstance;
 	}
+
+	virtual TSharedPtr<FPCGExOperation> CreateOperation() const;
 
 	virtual void RegisterConsumableAttributesWithFacade(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade>& InFacade) const;
 	virtual void RegisterPrimaryBuffersDependencies(PCGExData::FFacadePreloader& FacadePreloader) const;

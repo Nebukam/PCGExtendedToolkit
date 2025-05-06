@@ -50,7 +50,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExProbeConfigBase
 /**
  * 
  */
-class PCGEXTENDEDTOOLKIT_API PCGExProbeOperation : public PCGExOperation
+class PCGEXTENDEDTOOLKIT_API FPCGExProbeOperation : public FPCGExOperation
 {
 public:
 	virtual bool PrepareForPoints(const TSharedPtr<PCGExData::FPointIO>& InPointIO);

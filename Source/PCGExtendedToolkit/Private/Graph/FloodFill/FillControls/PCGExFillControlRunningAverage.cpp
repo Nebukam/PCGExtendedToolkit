@@ -9,9 +9,9 @@
 
 #include "Graph/FloodFill/FillControls/PCGExFillControlsFactoryProvider.h"
 
-bool PCGExFillControlRunningAverage::PrepareForDiffusions(FPCGExContext* InContext, const TSharedPtr<PCGExFloodFill::FFillControlsHandler>& InHandler)
+bool FPCGExFillControlRunningAverage::PrepareForDiffusions(FPCGExContext* InContext, const TSharedPtr<PCGExFloodFill::FFillControlsHandler>& InHandler)
 {
-	if (!PCGExFillControlOperation::PrepareForDiffusions(InContext, InHandler)) { return false; }
+	if (!FPCGExFillControlOperation::PrepareForDiffusions(InContext, InHandler)) { return false; }
 
 	const UPCGExFillControlsFactoryRunningAverage* TypedFactory = Cast<UPCGExFillControlsFactoryRunningAverage>(Factory);
 
@@ -31,7 +31,7 @@ bool PCGExFillControlRunningAverage::PrepareForDiffusions(FPCGExContext* InConte
 	return true;
 }
 
-bool PCGExFillControlRunningAverage::IsValidCandidate(const PCGExFloodFill::FDiffusion* Diffusion, const PCGExFloodFill::FCandidate& From, const PCGExFloodFill::FCandidate& Candidate)
+bool FPCGExFillControlRunningAverage::IsValidCandidate(const PCGExFloodFill::FDiffusion* Diffusion, const PCGExFloodFill::FCandidate& From, const PCGExFloodFill::FCandidate& Candidate)
 {
 	const int32 Window = WindowSize->Read(GetSettingsIndex(Diffusion));
 
@@ -58,9 +58,9 @@ bool PCGExFillControlRunningAverage::IsValidCandidate(const PCGExFloodFill::FDif
 	return true;
 }
 
-TSharedPtr<PCGExFillControlOperation> UPCGExFillControlsFactoryRunningAverage::CreateOperation(FPCGExContext* InContext) const
+TSharedPtr<FPCGExFillControlOperation> UPCGExFillControlsFactoryRunningAverage::CreateOperation(FPCGExContext* InContext) const
 {
-	PCGEX_FACTORY_NEW_OPERATION(PCGExFillControlRunningAverage)
+	PCGEX_FACTORY_NEW_OPERATION(FillControlRunningAverage)
 	PCGEX_FORWARD_FILLCONTROL_OPERATION
 	return NewOperation;
 }

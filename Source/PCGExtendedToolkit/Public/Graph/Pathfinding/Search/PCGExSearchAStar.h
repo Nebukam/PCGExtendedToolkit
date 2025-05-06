@@ -10,7 +10,7 @@
 #include "UObject/Object.h"
 #include "PCGExSearchAStar.generated.h"
 
-class PCGExHeuristicOperation;
+class FPCGExHeuristicOperation;
 /**
  * 
  */

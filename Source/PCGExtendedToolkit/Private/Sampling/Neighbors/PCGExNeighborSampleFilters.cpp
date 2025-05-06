@@ -11,9 +11,9 @@
 #define LOCTEXT_NAMESPACE "PCGExCreateNeighborSample"
 #define PCGEX_NAMESPACE PCGExCreateNeighborSample
 
-void PCGExNeighborSampleFilters::PrepareForCluster(FPCGExContext* InContext, const TSharedRef<PCGExCluster::FCluster> InCluster, const TSharedRef<PCGExData::FFacade> InVtxDataFacade, const TSharedRef<PCGExData::FFacade> InEdgeDataFacade)
+void FPCGExNeighborSampleFilters::PrepareForCluster(FPCGExContext* InContext, const TSharedRef<PCGExCluster::FCluster> InCluster, const TSharedRef<PCGExData::FFacade> InVtxDataFacade, const TSharedRef<PCGExData::FFacade> InEdgeDataFacade)
 {
-	PCGExNeighborSampleOperation::PrepareForCluster(InContext, InCluster, InVtxDataFacade, InEdgeDataFacade);
+	FPCGExNeighborSampleOperation::PrepareForCluster(InContext, InCluster, InVtxDataFacade, InEdgeDataFacade);
 	PointFilters.Reset();
 
 	bIsValidOperation = false;
@@ -80,12 +80,12 @@ void PCGExNeighborSampleFilters::PrepareForCluster(FPCGExContext* InContext, con
 	bIsValidOperation = true;
 }
 
-void PCGExNeighborSampleFilters::PrepareNode(const PCGExCluster::FNode& TargetNode) const
+void FPCGExNeighborSampleFilters::PrepareNode(const PCGExCluster::FNode& TargetNode) const
 {
-	PCGExNeighborSampleOperation::PrepareNode(TargetNode);
+	FPCGExNeighborSampleOperation::PrepareNode(TargetNode);
 }
 
-void PCGExNeighborSampleFilters::SampleNeighborNode(const PCGExCluster::FNode& TargetNode, const PCGExGraph::FLink Lk, const double Weight)
+void FPCGExNeighborSampleFilters::SampleNeighborNode(const PCGExCluster::FNode& TargetNode, const PCGExGraph::FLink Lk, const double Weight)
 {
 	if (FilterManager->Test(*Cluster->GetNode(Lk)))
 	{
@@ -99,7 +99,7 @@ void PCGExNeighborSampleFilters::SampleNeighborNode(const PCGExCluster::FNode& T
 	}
 }
 
-void PCGExNeighborSampleFilters::SampleNeighborEdge(const PCGExCluster::FNode& TargetNode, const PCGExGraph::FLink Lk, const double Weight)
+void FPCGExNeighborSampleFilters::SampleNeighborEdge(const PCGExCluster::FNode& TargetNode, const PCGExGraph::FLink Lk, const double Weight)
 {
 	if (FilterManager->Test(*Cluster->GetEdge(Lk)))
 	{
@@ -113,7 +113,7 @@ void PCGExNeighborSampleFilters::SampleNeighborEdge(const PCGExCluster::FNode& T
 	}
 }
 
-void PCGExNeighborSampleFilters::FinalizeNode(const PCGExCluster::FNode& TargetNode, const int32 Count, const double TotalWeight)
+void FPCGExNeighborSampleFilters::FinalizeNode(const PCGExCluster::FNode& TargetNode, const int32 Count, const double TotalWeight)
 {
 	const int32 WriteIndex = TargetNode.PointIndex;
 	const int32 ReadIndex = TargetNode.Index;
@@ -135,17 +135,17 @@ void PCGExNeighborSampleFilters::FinalizeNode(const PCGExCluster::FNode& TargetN
 	if (TotalWeightBuffer) { TotalWeightBuffer->GetMutable(WriteIndex) = TotalWeight; }
 }
 
-void PCGExNeighborSampleFilters::CompleteOperation()
+void FPCGExNeighborSampleFilters::CompleteOperation()
 {
-	PCGExNeighborSampleOperation::CompleteOperation();
+	FPCGExNeighborSampleOperation::CompleteOperation();
 	Inside.Empty();
 	Outside.Empty();
 	FilterManager.Reset();
 }
 
-TSharedPtr<PCGExNeighborSampleOperation> UPCGExNeighborSamplerFactoryFilters::CreateOperation(FPCGExContext* InContext) const
+TSharedPtr<FPCGExNeighborSampleOperation> UPCGExNeighborSamplerFactoryFilters::CreateOperation(FPCGExContext* InContext) const
 {
-	PCGEX_FACTORY_NEW_OPERATION(PCGExNeighborSampleFilters)
+	PCGEX_FACTORY_NEW_OPERATION(NeighborSampleFilters)
 	PCGEX_SAMPLER_CREATE_OPERATION
 	NewOperation->Config = Config;
 	return NewOperation;

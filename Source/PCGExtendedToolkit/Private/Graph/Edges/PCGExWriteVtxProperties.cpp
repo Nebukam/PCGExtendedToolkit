@@ -78,7 +78,7 @@ namespace PCGExWriteVtxProperties
 
 		for (const UPCGExVtxPropertyFactoryData* Factory : Context->ExtraFactories)
 		{
-			TSharedPtr<PCGExVtxPropertyOperation> NewOperation = Factory->CreateOperation(Context);
+			TSharedPtr<FPCGExVtxPropertyOperation> NewOperation = Factory->CreateOperation(Context);
 
 			if (!NewOperation->PrepareForCluster(Context, Cluster, VtxDataFacade, EdgeDataFacade)) { return false; }
 			Operations.Add(NewOperation);
@@ -97,7 +97,7 @@ namespace PCGExWriteVtxProperties
 		GetAdjacencyData(Cluster.Get(), Node, Adjacency);
 		if (VtxNormalWriter) { Node.ComputeNormal(Cluster.Get(), Adjacency, VtxNormalWriter->GetMutable(Node.PointIndex)); }
 
-		for (const TSharedPtr<PCGExVtxPropertyOperation>& Op : Operations) { Op->ProcessNode(Node, Adjacency); }
+		for (const TSharedPtr<FPCGExVtxPropertyOperation>& Op : Operations) { Op->ProcessNode(Node, Adjacency); }
 	}
 
 	void FProcessor::CompleteWork()

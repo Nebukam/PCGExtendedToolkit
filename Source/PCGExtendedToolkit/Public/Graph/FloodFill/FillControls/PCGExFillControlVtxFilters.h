@@ -31,7 +31,7 @@ struct FPCGExFillControlConfigVtxFilters : public FPCGExFillControlConfigBase
 /**
  * 
  */
-class PCGExFillControlVtxFilters : public PCGExFillControlOperation
+class FPCGExFillControlVtxFilters : public FPCGExFillControlOperation
 {
 	friend class UPCGExFillControlsFactoryVtxFilters;
 
@@ -58,7 +58,7 @@ public:
 	UPROPERTY()
 	TArray<TObjectPtr<const UPCGExFilterFactoryData>> FilterFactories;
 
-	virtual TSharedPtr<PCGExFillControlOperation> CreateOperation(FPCGExContext* InContext) const override;
+	virtual TSharedPtr<FPCGExFillControlOperation> CreateOperation(FPCGExContext* InContext) const override;
 
 	virtual void RegisterBuffersDependencies(FPCGExContext* InContext, PCGExData::FFacadePreloader& FacadePreloader) const override;
 	virtual bool RegisterConsumableAttributes(FPCGExContext* InContext) const override;

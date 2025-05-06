@@ -69,7 +69,7 @@ struct FPCGExProbeConfigDirection : public FPCGExProbeConfigBase
 /**
  * 
  */
-class PCGExProbeDirection : public PCGExProbeOperation
+class FPCGExProbeDirection : public FPCGExProbeOperation
 {
 public:
 	virtual bool RequiresChainProcessing() override;
@@ -101,7 +101,7 @@ public:
 	UPROPERTY()
 	FPCGExProbeConfigDirection Config;
 
-	virtual TSharedPtr<PCGExProbeOperation> CreateOperation(FPCGExContext* InContext) const override;
+	virtual TSharedPtr<FPCGExProbeOperation> CreateOperation(FPCGExContext* InContext) const override;
 };
 
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Graph|Params")

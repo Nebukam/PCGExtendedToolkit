@@ -37,7 +37,7 @@ struct FPCGExTensorSplinePoleConfig : public FPCGExTensorConfigBase
 /**
  * 
  */
-class PCGExTensorSplinePole : public PCGExTensorOperation
+class FPCGExTensorSplinePole : public PCGExTensorOperation
 {
 public:
 	FPCGExTensorSplinePoleConfig Config;

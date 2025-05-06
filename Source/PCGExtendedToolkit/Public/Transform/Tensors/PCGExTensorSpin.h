@@ -44,7 +44,7 @@ struct FPCGExTensorSpinConfig : public FPCGExTensorConfigBase
 /**
  * 
  */
-class PCGExTensorSpin : public PCGExTensorPointOperation
+class FPCGExTensorSpin : public PCGExTensorPointOperation
 {
 public:
 	FPCGExTensorSpinConfig Config;

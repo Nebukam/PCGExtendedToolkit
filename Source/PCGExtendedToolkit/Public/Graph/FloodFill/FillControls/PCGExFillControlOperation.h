@@ -14,7 +14,7 @@
 /**
  * 
  */
-class PCGEXTENDEDTOOLKIT_API PCGExFillControlOperation : public PCGExOperation
+class PCGEXTENDEDTOOLKIT_API FPCGExFillControlOperation : public FPCGExOperation
 {
 public:
 	const UPCGExFillControlsFactoryData* Factory = nullptr;

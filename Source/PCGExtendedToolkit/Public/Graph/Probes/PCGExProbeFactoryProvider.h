@@ -15,11 +15,11 @@ UPCGExFactoryData* UPCGExProbe##_NAME##ProviderSettings::CreateFactory(FPCGExCon
 	UPCGExProbeFactory##_NAME* NewFactory = InContext->ManagedObjects->New<UPCGExProbeFactory##_NAME>();\
 	NewFactory->Config = Config; _EXTRA_FACTORY \
 	return Super::CreateFactory(InContext, NewFactory); } \
-TSharedPtr<PCGExProbeOperation> UPCGExProbeFactory##_NAME::CreateOperation(FPCGExContext* InContext) const{\
-	PCGEX_FACTORY_NEW_OPERATION(PCGExProbe##_NAME)\
+TSharedPtr<FPCGExProbeOperation> UPCGExProbeFactory##_NAME::CreateOperation(FPCGExContext* InContext) const{\
+	PCGEX_FACTORY_NEW_OPERATION(Probe##_NAME)\
 	NewOperation->Config = Config; NewOperation->BaseConfig = &NewOperation->Config; _EXTRA_OPERATION return NewOperation;}
 
-class PCGExProbeOperation;
+class FPCGExProbeOperation;
 
 UCLASS(Abstract, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")
 class PCGEXTENDEDTOOLKIT_API UPCGExProbeFactoryData : public UPCGExFactoryData
@@ -28,7 +28,7 @@ class PCGEXTENDEDTOOLKIT_API UPCGExProbeFactoryData : public UPCGExFactoryData
 
 public:
 	virtual PCGExFactories::EType GetFactoryType() const override { return PCGExFactories::EType::Probe; }
-	virtual TSharedPtr<PCGExProbeOperation> CreateOperation(FPCGExContext* InContext) const;
+	virtual TSharedPtr<FPCGExProbeOperation> CreateOperation(FPCGExContext* InContext) const;
 };
 
 UCLASS(Abstract, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Graph|Params")

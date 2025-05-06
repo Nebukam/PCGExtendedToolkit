@@ -26,7 +26,7 @@ class UPCGExActionWriteValuesFactory;
 /**
  * 
  */
-class PCGExActionWriteValuesOperation : public PCGExActionOperation
+class FPCGExActionWriteValuesOperation : public FPCGExActionOperation
 {
 public:
 	UPCGExActionWriteValuesFactory* TypedFactory = nullptr;
@@ -50,7 +50,7 @@ class UPCGExActionWriteValuesFactory : public UPCGExActionFactoryData
 	GENERATED_BODY()
 
 public:
-	virtual TSharedPtr<PCGExActionOperation> CreateOperation(FPCGExContext* InContext) const override;
+	virtual TSharedPtr<FPCGExActionOperation> CreateOperation(FPCGExContext* InContext) const override;
 	virtual bool Boot(FPCGContext* InContext) override;
 
 protected:

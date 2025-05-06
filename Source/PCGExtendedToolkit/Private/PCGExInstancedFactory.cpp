@@ -42,6 +42,11 @@ void UPCGExInstancedFactory::Cleanup()
 	SecondaryDataFacade.Reset();
 }
 
+TSharedPtr<FPCGExOperation> UPCGExInstancedFactory::CreateOperation() const
+{
+	return nullptr;
+}
+
 void UPCGExInstancedFactory::RegisterConsumableAttributesWithFacade(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade>& InFacade) const
 {
 }

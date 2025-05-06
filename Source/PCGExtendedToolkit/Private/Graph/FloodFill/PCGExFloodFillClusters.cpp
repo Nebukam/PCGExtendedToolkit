@@ -455,12 +455,12 @@ namespace PCGExClusterDiffusion
 	{
 		PCGEX_TYPED_CONTEXT_AND_SETTINGS(ClusterDiffusion)
 
-		BlendOps = MakeShared<TArray<TSharedPtr<PCGExAttributeBlendOperation>>>();
+		BlendOps = MakeShared<TArray<TSharedPtr<FPCGExAttributeBlendOperation>>>();
 		BlendOps->Reserve(Context->BlendingFactories.Num());
 
 		for (const TObjectPtr<const UPCGExAttributeBlendFactory>& Factory : Context->BlendingFactories)
 		{
-			TSharedPtr<PCGExAttributeBlendOperation> Op = Factory->CreateOperation(Context);
+			TSharedPtr<FPCGExAttributeBlendOperation> Op = Factory->CreateOperation(Context);
 			if (!Op)
 			{
 				bIsBatchValid = false;

@@ -10,7 +10,7 @@
 #include "PCGExEdgeRefineKeepLowestScore.generated.h"
 
 class UPCGExHeuristicLocalDistance;
-class PCGExHeuristicDistance;
+class FPCGExHeuristicDistance;
 
 /**
  * 

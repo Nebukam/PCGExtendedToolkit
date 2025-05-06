@@ -58,7 +58,7 @@ struct FPCGExProbeConfigTensor : public FPCGExProbeConfigBase
 /**
  * 
  */
-class PCGExProbeTensor : public PCGExProbeOperation
+class FPCGExProbeTensor : public FPCGExProbeOperation
 {
 public:
 	virtual bool RequiresChainProcessing() override;
@@ -96,7 +96,7 @@ public:
 	UPROPERTY()
 	TArray<TObjectPtr<const UPCGExTensorFactoryData>> TensorFactories;
 
-	virtual TSharedPtr<PCGExProbeOperation> CreateOperation(FPCGExContext* InContext) const override;
+	virtual TSharedPtr<FPCGExProbeOperation> CreateOperation(FPCGExContext* InContext) const override;
 
 	virtual bool WantsPreparation(FPCGExContext* InContext) override { return true; }
 	virtual bool Prepare(FPCGExContext* InContext) override;

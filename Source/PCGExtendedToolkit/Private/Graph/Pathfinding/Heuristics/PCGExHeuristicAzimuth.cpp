@@ -6,7 +6,7 @@
 
 
 
-double PCGExHeuristicAzimuth::GetGlobalScore(
+double FPCGExHeuristicAzimuth::GetGlobalScore(
 	const PCGExCluster::FNode& From,
 	const PCGExCluster::FNode& Seed,
 	const PCGExCluster::FNode& Goal) const
@@ -16,7 +16,7 @@ double PCGExHeuristicAzimuth::GetGlobalScore(
 	return GetScoreInternal(PCGExMath::Remap(Dot, -1, 1, 0, 1));
 }
 
-double PCGExHeuristicAzimuth::GetEdgeScore(
+double FPCGExHeuristicAzimuth::GetEdgeScore(
 	const PCGExCluster::FNode& From,
 	const PCGExCluster::FNode& To,
 	const PCGExGraph::FEdge& Edge,
@@ -28,9 +28,9 @@ double PCGExHeuristicAzimuth::GetEdgeScore(
 	return GetScoreInternal(PCGExMath::Remap(Dot, -1, 1, 1, 0));
 }
 
-TSharedPtr<PCGExHeuristicOperation> UPCGExHeuristicsFactoryAzimuth::CreateOperation(FPCGExContext* InContext) const
+TSharedPtr<FPCGExHeuristicOperation> UPCGExHeuristicsFactoryAzimuth::CreateOperation(FPCGExContext* InContext) const
 {
-	PCGEX_FACTORY_NEW_OPERATION(PCGExHeuristicAzimuth)
+	PCGEX_FACTORY_NEW_OPERATION(HeuristicAzimuth)
 	PCGEX_FORWARD_HEURISTIC_CONFIG
 	return NewOperation;
 }

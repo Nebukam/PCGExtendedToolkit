@@ -10,7 +10,7 @@
 #include "UObject/Object.h"
 #include "PCGExSearchDijkstra.generated.h"
 
-class PCGExHeuristicOperation;
+class FPCGExHeuristicOperation;
 /**
  * 
  */

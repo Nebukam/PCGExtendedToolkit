@@ -12,7 +12,7 @@
 
 #define PCGEX_TENSOR_BOILERPLATE(_TENSOR, _NEW_FACTORY, _NEW_OPERATION) \
 TSharedPtr<PCGExTensorOperation> UPCGExTensor##_TENSOR##Factory::CreateOperation(FPCGExContext* InContext) const{ \
-	PCGEX_FACTORY_NEW_OPERATION(PCGExTensor##_TENSOR)\
+	PCGEX_FACTORY_NEW_OPERATION(Tensor##_TENSOR)\
 	NewOperation->Factory = this; \
 	NewOperation->Config = Config; \
 	_NEW_OPERATION \

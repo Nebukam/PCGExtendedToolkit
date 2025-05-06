@@ -8,11 +8,11 @@
 
 PCGEX_CREATE_PROBE_FACTORY(Index, {}, {})
 
-bool PCGExProbeIndex::RequiresOctree() { return false; }
+bool FPCGExProbeIndex::RequiresOctree() { return false; }
 
-bool PCGExProbeIndex::PrepareForPoints(const TSharedPtr<PCGExData::FPointIO>& InPointIO)
+bool FPCGExProbeIndex::PrepareForPoints(const TSharedPtr<PCGExData::FPointIO>& InPointIO)
 {
-	if (!PCGExProbeOperation::PrepareForPoints(InPointIO)) { return false; }
+	if (!FPCGExProbeOperation::PrepareForPoints(InPointIO)) { return false; }
 
 	MaxIndex = PointIO->GetNum() - 1;
 

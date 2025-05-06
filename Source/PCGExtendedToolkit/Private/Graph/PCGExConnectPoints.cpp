@@ -122,7 +122,7 @@ namespace PCGExConnectPoints
 
 		for (const UPCGExProbeFactoryData* Factory : Context->ProbeFactories)
 		{
-			TSharedPtr<PCGExProbeOperation> NewOperation = Factory->CreateOperation(Context);
+			TSharedPtr<FPCGExProbeOperation> NewOperation = Factory->CreateOperation(Context);
 			NewOperation->BindContext(ExecutionContext);
 			NewOperation->PrimaryDataFacade = PointDataFacade;
 
@@ -284,7 +284,7 @@ namespace PCGExConnectPoints
 			if (!bUseVariableRadius) { MaxRadius = SharedSearchRadius; }
 			else
 			{
-				for (const TSharedPtr<PCGExProbeOperation> Op : SearchProbes) { MaxRadius = FMath::Max(MaxRadius, Op->SearchRadiusCache ? Op->SearchRadiusCache->Read(Index) : Op->SearchRadius); }
+				for (const TSharedPtr<FPCGExProbeOperation> Op : SearchProbes) { MaxRadius = FMath::Max(MaxRadius, Op->SearchRadiusCache ? Op->SearchRadiusCache->Read(Index) : Op->SearchRadius); }
 			}
 
 			const FVector Origin = CachedTransforms[Index].GetLocation();
@@ -314,15 +314,15 @@ namespace PCGExConnectPoints
 			if (!Candidates.IsEmpty())
 			{
 				Algo::Sort(Candidates, [&](const PCGExProbing::FCandidate& A, const PCGExProbing::FCandidate& B) { return A.Distance < B.Distance; });
-				for (const TSharedPtr<PCGExProbeOperation> Op : SharedProbeOperations) { Op->ProcessCandidates(Index, PointCopy, Candidates, LocalCoincidence.Get(), CWCoincidenceTolerance, UniqueEdges); }
+				for (const TSharedPtr<FPCGExProbeOperation> Op : SharedProbeOperations) { Op->ProcessCandidates(Index, PointCopy, Candidates, LocalCoincidence.Get(), CWCoincidenceTolerance, UniqueEdges); }
 			}
 			else
 			{
-				for (const TSharedPtr<PCGExProbeOperation> Op : SharedProbeOperations) { Op->ProcessCandidates(Index, PointCopy, Candidates, LocalCoincidence.Get(), CWCoincidenceTolerance, UniqueEdges); }
+				for (const TSharedPtr<FPCGExProbeOperation> Op : SharedProbeOperations) { Op->ProcessCandidates(Index, PointCopy, Candidates, LocalCoincidence.Get(), CWCoincidenceTolerance, UniqueEdges); }
 			}
 		}
 
-		for (const TSharedPtr<PCGExProbeOperation> Op : DirectProbes) { Op->ProcessNode(Index, PointCopy, LocalCoincidence.Get(), CWCoincidenceTolerance, UniqueEdges, AcceptConnections); }
+		for (const TSharedPtr<FPCGExProbeOperation> Op : DirectProbes) { Op->ProcessNode(Index, PointCopy, LocalCoincidence.Get(), CWCoincidenceTolerance, UniqueEdges, AcceptConnections); }
 	}
 
 	void FProcessor::CompleteWork()

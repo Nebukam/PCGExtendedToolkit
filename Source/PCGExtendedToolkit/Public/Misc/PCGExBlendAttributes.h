@@ -62,7 +62,7 @@ namespace PCGExBlendAttributes
 	class FProcessor final : public PCGExPointsMT::TPointsProcessor<FPCGExBlendAttributesContext, UPCGExBlendAttributesSettings>
 	{
 		double NumPoints = 0;
-		TSharedPtr<TArray<TSharedPtr<PCGExAttributeBlendOperation>>> Operations;
+		TSharedPtr<TArray<TSharedPtr<FPCGExAttributeBlendOperation>>> Operations;
 
 	public:
 		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade):

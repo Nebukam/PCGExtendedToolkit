@@ -64,7 +64,7 @@ struct FPCGExEdgeMatchConfig
 /**
  * 
  */
-class PCGExVtxPropertyEdgeMatch : public PCGExVtxPropertyOperation
+class FPCGExVtxPropertyEdgeMatch : public FPCGExVtxPropertyOperation
 {
 public:
 	FPCGExEdgeMatchConfig Config;
@@ -89,7 +89,7 @@ class UPCGExVtxPropertyEdgeMatchFactory : public UPCGExVtxPropertyFactoryData
 
 public:
 	FPCGExEdgeMatchConfig Config;
-	virtual TSharedPtr<PCGExVtxPropertyOperation> CreateOperation(FPCGExContext* InContext) const override;
+	virtual TSharedPtr<FPCGExVtxPropertyOperation> CreateOperation(FPCGExContext* InContext) const override;
 };
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|VtxProperty")

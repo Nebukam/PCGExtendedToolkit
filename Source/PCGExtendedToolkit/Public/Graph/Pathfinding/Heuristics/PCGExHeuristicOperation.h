@@ -13,7 +13,7 @@
 /**
  * 
  */
-class PCGEXTENDEDTOOLKIT_API PCGExHeuristicOperation : public PCGExOperation
+class PCGEXTENDEDTOOLKIT_API FPCGExHeuristicOperation : public FPCGExOperation
 {
 public:
 	bool bInvert = false;
