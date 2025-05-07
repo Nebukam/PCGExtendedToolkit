@@ -7,9 +7,9 @@
 #define LOCTEXT_NAMESPACE "PCGExCreateBuilderCircle"
 #define PCGEX_NAMESPACE CreateBuilderCircle
 
-bool UPCGExShapeCircleBuilder::PrepareForSeeds(FPCGExContext* InContext, const TSharedRef<PCGExData::FFacade>& InSeedDataFacade)
+bool FPCGExShapeCircleBuilder::PrepareForSeeds(FPCGExContext* InContext, const TSharedRef<PCGExData::FFacade>& InSeedDataFacade)
 {
-	if (!Super::PrepareForSeeds(InContext, InSeedDataFacade)) { return false; }
+	if (!FPCGExShapeBuilderOperation::PrepareForSeeds(InContext, InSeedDataFacade)) { return false; }
 
 	StartAngle = Config.GetValueSettingStartAngle();
 	if (!StartAngle->Init(InContext, InSeedDataFacade)) { return false; }
@@ -20,7 +20,7 @@ bool UPCGExShapeCircleBuilder::PrepareForSeeds(FPCGExContext* InContext, const T
 	return true;
 }
 
-void UPCGExShapeCircleBuilder::PrepareShape(const PCGExData::FPointRef& Seed)
+void FPCGExShapeCircleBuilder::PrepareShape(const PCGExData::FPointRef& Seed)
 {
 	PCGEX_MAKE_SHARED(Circle, PCGExShapes::FCircle, Seed)
 
@@ -40,7 +40,7 @@ void UPCGExShapeCircleBuilder::PrepareShape(const PCGExData::FPointRef& Seed)
 	Shapes[Seed.Index] = StaticCastSharedPtr<PCGExShapes::FShape>(Circle);
 }
 
-void UPCGExShapeCircleBuilder::BuildShape(const TSharedPtr<PCGExShapes::FShape> InShape, TSharedPtr<PCGExData::FFacade> InDataFacade, const TArrayView<FPCGPoint> PointView)
+void FPCGExShapeCircleBuilder::BuildShape(const TSharedPtr<PCGExShapes::FShape> InShape, TSharedPtr<PCGExData::FFacade> InDataFacade, const TArrayView<FPCGPoint> PointView)
 {
 	const TSharedPtr<PCGExShapes::FCircle> Circle = StaticCastSharedPtr<PCGExShapes::FCircle>(InShape);
 

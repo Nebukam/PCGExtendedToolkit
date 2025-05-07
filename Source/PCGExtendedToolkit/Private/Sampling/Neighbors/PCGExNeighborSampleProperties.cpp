@@ -6,54 +6,41 @@
 #include "Data/Blending/PCGExPropertiesBlender.h"
 
 
+
+
 #define LOCTEXT_NAMESPACE "PCGExCreateNeighborSample"
 #define PCGEX_NAMESPACE PCGExCreateNeighborSample
 
-void UPCGExNeighborSampleProperties::CopySettingsFrom(const UPCGExOperation* Other)
-{
-	Super::CopySettingsFrom(Other);
-	if (const UPCGExNeighborSampleProperties* TypedOther = Cast<UPCGExNeighborSampleProperties>(Other))
-	{
-		BlendingDetails = TypedOther->BlendingDetails;
-	}
-}
-
-void UPCGExNeighborSampleProperties::PrepareForCluster(FPCGExContext* InContext, const TSharedRef<PCGExCluster::FCluster> InCluster, const TSharedRef<PCGExData::FFacade> InVtxDataFacade, const TSharedRef<PCGExData::FFacade> InEdgeDataFacade)
+void FPCGExNeighborSampleProperties::PrepareForCluster(FPCGExContext* InContext, const TSharedRef<PCGExCluster::FCluster> InCluster, const TSharedRef<PCGExData::FFacade> InVtxDataFacade, const TSharedRef<PCGExData::FFacade> InEdgeDataFacade)
 {
 	PropertiesBlender = MakeUnique<PCGExDataBlending::FPropertiesBlender>(BlendingDetails);
-	return Super::PrepareForCluster(InContext, InCluster, InVtxDataFacade, InEdgeDataFacade);
+	return FPCGExNeighborSampleOperation::PrepareForCluster(InContext, InCluster, InVtxDataFacade, InEdgeDataFacade);
 }
 
-void UPCGExNeighborSampleProperties::PrepareNode(const PCGExCluster::FNode& TargetNode) const
+void FPCGExNeighborSampleProperties::PrepareNode(const PCGExCluster::FNode& TargetNode) const
 {
 	FPCGPoint& A = VtxDataFacade->Source->GetMutablePoint(TargetNode.PointIndex);
 	PropertiesBlender->PrepareBlending(A, VtxDataFacade->Source->GetInPoint(TargetNode.PointIndex));
 }
 
-void UPCGExNeighborSampleProperties::SampleNeighborNode(const PCGExCluster::FNode& TargetNode, const PCGExGraph::FLink Lk, const double Weight)
+void FPCGExNeighborSampleProperties::SampleNeighborNode(const PCGExCluster::FNode& TargetNode, const PCGExGraph::FLink Lk, const double Weight)
 {
 	FPCGPoint& A = VtxDataFacade->Source->GetMutablePoint(TargetNode.PointIndex);
 	const FPCGPoint& B = VtxDataFacade->Source->GetInPoint(Cluster->GetNode(Lk)->PointIndex);
 	PropertiesBlender->Blend(A, B, A, Weight);
 }
 
-void UPCGExNeighborSampleProperties::SampleNeighborEdge(const PCGExCluster::FNode& TargetNode, const PCGExGraph::FLink Lk, const double Weight)
+void FPCGExNeighborSampleProperties::SampleNeighborEdge(const PCGExCluster::FNode& TargetNode, const PCGExGraph::FLink Lk, const double Weight)
 {
 	FPCGPoint& A = VtxDataFacade->Source->GetMutablePoint(TargetNode.PointIndex);
 	const FPCGPoint& B = VtxDataFacade->Source->GetInPoint(Cluster->GetEdge(Lk)->PointIndex);
 	PropertiesBlender->Blend(A, B, A, Weight);
 }
 
-void UPCGExNeighborSampleProperties::FinalizeNode(const PCGExCluster::FNode& TargetNode, const int32 Count, const double TotalWeight)
+void FPCGExNeighborSampleProperties::FinalizeNode(const PCGExCluster::FNode& TargetNode, const int32 Count, const double TotalWeight)
 {
 	FPCGPoint& A = VtxDataFacade->Source->GetMutablePoint(TargetNode.PointIndex);
 	PropertiesBlender->CompleteBlending(A, Count, TotalWeight);
-}
-
-void UPCGExNeighborSampleProperties::Cleanup()
-{
-	PropertiesBlender.Reset();
-	Super::Cleanup();
 }
 
 #if WITH_EDITOR
@@ -70,9 +57,9 @@ FString UPCGExNeighborSamplePropertiesSettings::GetDisplayName() const
 }
 #endif
 
-UPCGExNeighborSampleOperation* UPCGExNeighborSamplerFactoryProperties::CreateOperation(FPCGExContext* InContext) const
+TSharedPtr<FPCGExNeighborSampleOperation> UPCGExNeighborSamplerFactoryProperties::CreateOperation(FPCGExContext* InContext) const
 {
-	UPCGExNeighborSampleProperties* NewOperation = InContext->ManagedObjects->New<UPCGExNeighborSampleProperties>();
+	PCGEX_FACTORY_NEW_OPERATION(NeighborSampleProperties)
 	PCGEX_SAMPLER_CREATE_OPERATION
 
 	NewOperation->BlendingDetails = Config.Blending;

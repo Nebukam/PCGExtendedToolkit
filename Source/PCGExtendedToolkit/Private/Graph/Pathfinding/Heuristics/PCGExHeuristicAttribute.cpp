@@ -9,9 +9,9 @@
 #define LOCTEXT_NAMESPACE "PCGExCreateHeuristicAttribute"
 #define PCGEX_NAMESPACE CreateHeuristicAttribute
 
-void UPCGExHeuristicAttribute::PrepareForCluster(const TSharedPtr<const PCGExCluster::FCluster>& InCluster)
+void FPCGExHeuristicAttribute::PrepareForCluster(const TSharedPtr<const PCGExCluster::FCluster>& InCluster)
 {
-	Super::PrepareForCluster(InCluster);
+	FPCGExHeuristicOperation::PrepareForCluster(InCluster);
 
 	const TSharedPtr<PCGExData::FFacade> DataFacade = Source == EPCGExClusterComponentSource::Vtx ? PrimaryDataFacade : SecondaryDataFacade;
 
@@ -64,7 +64,7 @@ void UPCGExHeuristicAttribute::PrepareForCluster(const TSharedPtr<const PCGExClu
 	}
 }
 
-double UPCGExHeuristicAttribute::GetEdgeScore(
+double FPCGExHeuristicAttribute::GetEdgeScore(
 	const PCGExCluster::FNode& From,
 	const PCGExCluster::FNode& To,
 	const PCGExGraph::FEdge& Edge,
@@ -75,15 +75,9 @@ double UPCGExHeuristicAttribute::GetEdgeScore(
 	return CachedScores[Source == EPCGExClusterComponentSource::Edge ? Edge.PointIndex : To.Index];
 }
 
-void UPCGExHeuristicAttribute::Cleanup()
+TSharedPtr<FPCGExHeuristicOperation> UPCGExHeuristicsFactoryAttribute::CreateOperation(FPCGExContext* InContext) const
 {
-	CachedScores.Empty();
-	Super::Cleanup();
-}
-
-UPCGExHeuristicOperation* UPCGExHeuristicsFactoryAttribute::CreateOperation(FPCGExContext* InContext) const
-{
-	UPCGExHeuristicAttribute* NewOperation = InContext->ManagedObjects->New<UPCGExHeuristicAttribute>();
+	PCGEX_FACTORY_NEW_OPERATION(HeuristicAttribute)
 	PCGEX_FORWARD_HEURISTIC_CONFIG
 	NewOperation->Source = Config.Source;
 	NewOperation->Attribute = Config.Attribute;

@@ -9,6 +9,8 @@
 #include "PCGExTensorFactoryProvider.h"
 #include "PCGExTensorOperation.h"
 
+
+
 #include "PCGExTensorNull.generated.h"
 
 
@@ -26,13 +28,9 @@ struct FPCGExTensorNullConfig : public FPCGExTensorConfigBase
 /**
  * 
  */
-UCLASS(MinimalAPI)
-class UPCGExTensorNull : public UPCGExTensorPointOperation
+class FPCGExTensorNull : public PCGExTensorPointOperation
 {
-	GENERATED_BODY()
-
 public:
-	UPROPERTY()
 	FPCGExTensorNullConfig Config;
 
 	virtual bool Init(FPCGExContext* InContext, const UPCGExTensorFactoryData* InFactory) override;
@@ -48,7 +46,7 @@ class UPCGExTensorNullFactory : public UPCGExTensorPointFactoryData
 
 public:
 	FPCGExTensorNullConfig Config;
-	virtual UPCGExTensorOperation* CreateOperation(FPCGExContext* InContext) const override;
+	virtual TSharedPtr<PCGExTensorOperation> CreateOperation(FPCGExContext* InContext) const override;
 };
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Tensors|Params")

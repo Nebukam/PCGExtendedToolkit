@@ -80,7 +80,7 @@ namespace PCGExRelaxClusters
 		InfluenceDetails = Settings->InfluenceDetails;
 		if (!InfluenceDetails.Init(ExecutionContext, VtxDataFacade)) { return false; }
 
-		RelaxOperation = Context->Relaxing->CopyOperation<UPCGExRelaxClusterOperation>();
+		RelaxOperation = Context->Relaxing->CreateNewInstance<UPCGExRelaxClusterOperation>();
 		RelaxOperation->PrimaryDataFacade = VtxDataFacade;
 		RelaxOperation->SecondaryDataFacade = EdgeDataFacade;
 

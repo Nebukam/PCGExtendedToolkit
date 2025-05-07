@@ -174,6 +174,12 @@ namespace PCGExHelpers
 
 	PCGEXTENDEDTOOLKIT_API
 	TArray<FString> GetStringArrayFromCommaSeparatedList(const FString& InCommaSeparatedString);
+	
+	PCGEXTENDEDTOOLKIT_API
+	void AppendUniqueEntriesFromCommaSeparatedList(const FString& InCommaSeparatedString, TArray<FString>& OutStrings);
+	
+	PCGEXTENDEDTOOLKIT_API
+	void AppendUniqueSelectorsFromCommaSeparatedList(const FString& InCommaSeparatedString, TArray<FPCGAttributePropertyInputSelector>& OutSelectors);
 
 	PCGEXTENDEDTOOLKIT_API
 	TArray<UFunction*> FindUserFunctions(const TSubclassOf<AActor>& ActorClass, const TArray<FName>& FunctionNames, const TArray<const UFunction*>& FunctionPrototypes, const FPCGContext* InContext);

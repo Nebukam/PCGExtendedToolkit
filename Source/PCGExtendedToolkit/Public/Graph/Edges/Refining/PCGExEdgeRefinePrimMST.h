@@ -21,7 +21,7 @@ public:
 	virtual bool GetDefaultEdgeValidity() override { return bInvert; }
 	virtual bool WantsHeuristics() override { return true; }
 
-	virtual void CopySettingsFrom(const UPCGExOperation* Other) override
+	virtual void CopySettingsFrom(const UPCGExInstancedFactory* Other) override
 	{
 		Super::CopySettingsFrom(Other);
 		if (const UPCGExEdgeRefinePrimMST* TypedOther = Cast<UPCGExEdgeRefinePrimMST>(Other))

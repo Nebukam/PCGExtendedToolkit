@@ -20,7 +20,7 @@ public:
 	virtual bool GetDefaultEdgeValidity() override { return !bInvert; }
 	virtual bool WantsNodeOctree() override { return true; }
 
-	virtual void CopySettingsFrom(const UPCGExOperation* Other) override
+	virtual void CopySettingsFrom(const UPCGExInstancedFactory* Other) override
 	{
 		Super::CopySettingsFrom(Other);
 		if (const UPCGExEdgeRefineSkeleton* TypedOther = Cast<UPCGExEdgeRefineSkeleton>(Other))

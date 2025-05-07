@@ -3,7 +3,10 @@
 
 #include "Graph/Pathfinding/Heuristics/PCGExHeuristicFeedback.h"
 
-double UPCGExHeuristicFeedback::GetGlobalScore(const PCGExCluster::FNode& From, const PCGExCluster::FNode& Seed, const PCGExCluster::FNode& Goal) const
+
+
+
+double FPCGExHeuristicFeedback::GetGlobalScore(const PCGExCluster::FNode& From, const PCGExCluster::FNode& Seed, const PCGExCluster::FNode& Goal) const
 {
 	FReadScopeLock ReadScopeLock(FeedbackLock);
 
@@ -11,7 +14,7 @@ double UPCGExHeuristicFeedback::GetGlobalScore(const PCGExCluster::FNode& From, 
 	return N ? GetScoreInternal(NodeScale) * *N : GetScoreInternal(0);
 }
 
-double UPCGExHeuristicFeedback::GetEdgeScore(
+double FPCGExHeuristicFeedback::GetEdgeScore(
 	const PCGExCluster::FNode& From,
 	const PCGExCluster::FNode& To,
 	const PCGExGraph::FEdge& Edge,
@@ -30,7 +33,7 @@ double UPCGExHeuristicFeedback::GetEdgeScore(
 	return (NW + EW);
 }
 
-void UPCGExHeuristicFeedback::FeedbackPointScore(const PCGExCluster::FNode& Node)
+void FPCGExHeuristicFeedback::FeedbackPointScore(const PCGExCluster::FNode& Node)
 {
 	FWriteScopeLock WriteScopeLock(FeedbackLock);
 
@@ -47,7 +50,7 @@ void UPCGExHeuristicFeedback::FeedbackPointScore(const PCGExCluster::FNode& Node
 	}
 }
 
-void UPCGExHeuristicFeedback::FeedbackScore(const PCGExCluster::FNode& Node, const PCGExGraph::FEdge& Edge)
+void FPCGExHeuristicFeedback::FeedbackScore(const PCGExCluster::FNode& Node, const PCGExGraph::FEdge& Edge)
 {
 	FWriteScopeLock WriteScopeLock(FeedbackLock);
 
@@ -69,16 +72,9 @@ void UPCGExHeuristicFeedback::FeedbackScore(const PCGExCluster::FNode& Node, con
 	}
 }
 
-void UPCGExHeuristicFeedback::Cleanup()
+TSharedPtr<FPCGExHeuristicOperation> UPCGExHeuristicsFactoryFeedback::CreateOperation(FPCGExContext* InContext) const
 {
-	NodeFeedbackNum.Empty();
-	EdgeFeedbackNum.Empty();
-	Super::Cleanup();
-}
-
-UPCGExHeuristicOperation* UPCGExHeuristicsFactoryFeedback::CreateOperation(FPCGExContext* InContext) const
-{
-	UPCGExHeuristicFeedback* NewOperation = InContext->ManagedObjects->New<UPCGExHeuristicFeedback>();
+	PCGEX_FACTORY_NEW_OPERATION(HeuristicFeedback)
 	PCGEX_FORWARD_HEURISTIC_CONFIG
 	NewOperation->NodeScale = Config.VisitedPointsWeightFactor;
 	NewOperation->EdgeScale = Config.VisitedEdgesWeightFactor;

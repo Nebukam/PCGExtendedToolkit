@@ -8,6 +8,8 @@
 
 #include "PCGExOperation.h"
 #include "PCGExTensorSampler.h"
+
+
 #include "Transform/Tensors/PCGExTensor.h"
 #include "Transform/Tensors/PCGExTensorOperation.h"
 
@@ -22,7 +24,7 @@ class UPCGExTensorSamplerRK4 : public UPCGExTensorSampler
 	GENERATED_BODY()
 
 public:
-	virtual void CopySettingsFrom(const UPCGExOperation* Other) override;
+	virtual void CopySettingsFrom(const UPCGExInstancedFactory* Other) override;
 	virtual bool PrepareForData(FPCGExContext* InContext) override;
-	virtual PCGExTensor::FTensorSample Sample(const TArray<UPCGExTensorOperation*>& InTensors, int32 InSeedIndex, const FTransform& InProbe, bool& OutSuccess) const override;
+	virtual PCGExTensor::FTensorSample Sample(const TArray<TSharedPtr<PCGExTensorOperation>>& InTensors, int32 InSeedIndex, const FTransform& InProbe, bool& OutSuccess) const override;
 };

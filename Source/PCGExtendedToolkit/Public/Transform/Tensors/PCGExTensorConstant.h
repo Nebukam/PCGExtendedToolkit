@@ -9,6 +9,8 @@
 #include "PCGExTensorFactoryProvider.h"
 #include "PCGExTensorOperation.h"
 
+
+
 #include "PCGExTensorConstant.generated.h"
 
 USTRUCT(BlueprintType)
@@ -29,11 +31,8 @@ struct FPCGExTensorConstantConfig : public FPCGExTensorConfigBase
 /**
  * 
  */
-UCLASS(MinimalAPI)
-class UPCGExTensorConstant : public UPCGExTensorOperation
+class FPCGExTensorConstant : public PCGExTensorOperation
 {
-	GENERATED_BODY()
-
 public:
 	FPCGExTensorConstantConfig Config;
 	virtual bool Init(FPCGExContext* InContext, const UPCGExTensorFactoryData* InFactory) override;
@@ -54,7 +53,7 @@ public:
 	UPROPERTY()
 	FVector Constant = FVector::OneVector;
 
-	virtual UPCGExTensorOperation* CreateOperation(FPCGExContext* InContext) const override;
+	virtual TSharedPtr<PCGExTensorOperation> CreateOperation(FPCGExContext* InContext) const override;
 
 protected:
 	virtual bool InitInternalData(FPCGExContext* InContext) override;

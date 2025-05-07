@@ -4,6 +4,8 @@
 #include "Misc/PCGExAttributesToTags.h"
 
 #include "Data/PCGExDataForward.h"
+#include "Misc/Pickers/PCGExPicker.h"
+#include "Misc/Pickers/PCGExPickerFactoryProvider.h"
 
 
 #define LOCTEXT_NAMESPACE "PCGExAttributesToTagsElement"
@@ -21,6 +23,14 @@ TArray<FPCGPinProperties> UPCGExAttributesToTagsSettings::InputPinProperties() c
 	{
 		PCGEX_PIN_ANY(FName("Tags Source"), "Source collection(s) to read the tags from.", Required, {})
 	}
+
+	if (Selection == EPCGExCollectionEntrySelection::Picker ||
+		Selection == EPCGExCollectionEntrySelection::PickerFirst ||
+		Selection == EPCGExCollectionEntrySelection::PickerLast)
+	{
+		PCGEX_PIN_PARAMS(PCGExPicker::SourcePickersLabel, "Pickers config", Required, {})
+	}
+
 	return PinProperties;
 }
 
@@ -48,6 +58,9 @@ bool FPCGExAttributesToTagsElement::Boot(FPCGExContext* InContext) const
 	if (!FPCGExPointsProcessorElement::Boot(InContext)) { return false; }
 
 	PCGEX_CONTEXT_AND_SETTINGS(AttributesToTags)
+
+	Context->Attributes = Settings->Attributes;
+	PCGExHelpers::AppendUniqueSelectorsFromCommaSeparatedList(Settings->CommaSeparatedAttributeSelectors, Context->Attributes);
 
 	if (Settings->Resolution == EPCGExAttributeToTagsResolution::Self)
 	{
@@ -92,12 +105,24 @@ bool FPCGExAttributesToTagsElement::Boot(FPCGExContext* InContext) const
 		FPCGExAttributeToTagDetails& Details = Context->Details.Emplace_GetRef();
 		Details.bAddIndexTag = false;
 		Details.bPrefixWithAttributeName = Settings->bPrefixWithAttributeName;
-		Details.Attributes = Settings->Attributes;
+		Details.Attributes = Context->Attributes;
 
 		PCGEX_MAKE_SHARED(SourceFacade, PCGExData::FFacade, SourceCollection->Pairs[i].ToSharedRef())
 		Context->SourceDataFacades.Add(SourceFacade);
 
 		if (!Details.Init(Context, SourceFacade)) { return false; }
+	}
+
+	if (Settings->Selection == EPCGExCollectionEntrySelection::Picker ||
+		Settings->Selection == EPCGExCollectionEntrySelection::PickerFirst ||
+		Settings->Selection == EPCGExCollectionEntrySelection::PickerLast)
+	{
+		PCGExFactories::GetInputFactories(Context, PCGExPicker::SourcePickersLabel, Context->PickerFactories, {PCGExFactories::EType::IndexPicker}, false);
+		if (Context->PickerFactories.IsEmpty())
+		{
+			PCGE_LOG(Error, GraphAndLog, FTEXT("Missing pickers."));
+			return false;
+		}
 	}
 
 	return true;
@@ -137,6 +162,12 @@ bool FPCGExAttributesToTagsElement::ExecuteInternal(FPCGContext* InContext) cons
 
 namespace PCGExAttributesToTags
 {
+	void FProcessor::Tag(const FPCGExAttributeToTagDetails& InDetails, const int32 Index) const
+	{
+		if (OutputSet) { InDetails.Tag(Index, OutputSet->Metadata); }
+		else { InDetails.Tag(Index, PointDataFacade->Source); }
+	}
+
 	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExAttributesToTags::Process);
@@ -155,9 +186,9 @@ namespace PCGExAttributesToTags
 
 		FRandomStream RandomSource(BatchIndex);
 
-		for (int i = 0; i < Settings->Attributes.Num(); i++)
+		for (int i = 0; i < Context->Attributes.Num(); i++)
 		{
-			FPCGAttributePropertyInputSelector Selector = Settings->Attributes[i].CopyAndFixLast(PointDataFacade->Source->GetIn());
+			FPCGAttributePropertyInputSelector Selector = Context->Attributes[i].CopyAndFixLast(PointDataFacade->Source->GetIn());
 			Context->AddConsumableAttributeName(Selector.GetName());
 		}
 
@@ -167,18 +198,12 @@ namespace PCGExAttributesToTags
 			OutputSet->Metadata->AddEntry();
 		}
 
-		auto Tag = [&](const FPCGExAttributeToTagDetails& InDetails, const int32 Index)
-		{
-			if (OutputSet) { InDetails.Tag(Index, OutputSet->Metadata); }
-			else { InDetails.Tag(Index, PointDataFacade->Source); }
-		};
-
 		if (Settings->Resolution == EPCGExAttributeToTagsResolution::Self)
 		{
 			FPCGExAttributeToTagDetails Details = FPCGExAttributeToTagDetails();
 			Details.bAddIndexTag = false;
 			Details.bPrefixWithAttributeName = Settings->bPrefixWithAttributeName;
-			Details.Attributes = Settings->Attributes;
+			Details.Attributes = Context->Attributes;
 
 			if (!Details.Init(Context, PointDataFacade)) { return false; }
 
@@ -192,6 +217,11 @@ namespace PCGExAttributesToTags
 				break;
 			case EPCGExCollectionEntrySelection::RandomIndex:
 				Tag(Details, RandomSource.RandRange(0, PointDataFacade->GetNum() - 1));
+				break;
+			case EPCGExCollectionEntrySelection::Picker:
+			case EPCGExCollectionEntrySelection::PickerFirst:
+			case EPCGExCollectionEntrySelection::PickerLast:
+				TagWithPickers(Details);
 				break;
 			}
 		}
@@ -210,10 +240,60 @@ namespace PCGExAttributesToTags
 			case EPCGExCollectionEntrySelection::RandomIndex:
 				Tag(Details, RandomSource.RandRange(0, PointDataFacade->GetNum() - 1));
 				break;
+			case EPCGExCollectionEntrySelection::Picker:
+			case EPCGExCollectionEntrySelection::PickerFirst:
+			case EPCGExCollectionEntrySelection::PickerLast:
+				TagWithPickers(Details);
+				break;
 			}
 		}
 
 		return true;
+	}
+
+	void FProcessor::TagWithPickers(const FPCGExAttributeToTagDetails& InDetails)
+	{
+		TSet<int32> UniqueIndices;
+
+		for (const TObjectPtr<const UPCGExPickerFactoryData>& Op : Context->PickerFactories)
+		{
+			Op->AddPicks(InDetails.SourceDataFacade->GetNum(), UniqueIndices);
+		}
+
+		if (UniqueIndices.IsEmpty()) { return; }
+
+		TArray<int32> UniqueIndicesTemp = UniqueIndices.Array();
+		UniqueIndices.Sort([](const int32 A, const int32 B) { return A < B; });
+
+		if (Settings->Selection == EPCGExCollectionEntrySelection::Picker)
+		{
+			for (const int32 i : UniqueIndicesTemp)
+			{
+				if (i != -1) { Tag(InDetails, i); }
+			}
+		}
+		if (Settings->Selection == EPCGExCollectionEntrySelection::PickerFirst)
+		{
+			for (int i = 0; i < UniqueIndicesTemp.Num(); i++)
+			{
+				if (UniqueIndicesTemp[i] != -1)
+				{
+					Tag(InDetails, UniqueIndicesTemp[i]);
+					return;
+				}
+			}
+		}
+		else if (Settings->Selection == EPCGExCollectionEntrySelection::PickerLast)
+		{
+			for (int i = UniqueIndicesTemp.Num() - 1; i >= 0; i--)
+			{
+				if (UniqueIndicesTemp[i] != -1)
+				{
+					Tag(InDetails, UniqueIndicesTemp[i]);
+					return;
+				}
+			}
+		}
 	}
 
 	void FProcessor::Output()

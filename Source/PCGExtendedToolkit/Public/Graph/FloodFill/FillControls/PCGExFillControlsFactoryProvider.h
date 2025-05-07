@@ -5,6 +5,8 @@
 
 #include "CoreMinimal.h"
 #include "PCGExPointsProcessor.h"
+
+
 #include "Graph/FloodFill/PCGExFloodFill.h"
 
 #include "PCGExFillControlsFactoryProvider.generated.h"
@@ -17,7 +19,7 @@
 #define PCGEX_FORWARD_FILLCONTROL_OPERATION \
 	NewOperation->Factory = this;
 
-class UPCGExFillControlOperation;
+class FPCGExFillControlOperation;
 
 USTRUCT(BlueprintType)
 struct PCGEXTENDEDTOOLKIT_API FPCGExFillControlConfigBase
@@ -61,7 +63,7 @@ public:
 
 	virtual bool RegisterConsumableAttributesWithData(FPCGExContext* InContext, const UPCGData* InData) const override;
 
-	virtual UPCGExFillControlOperation* CreateOperation(FPCGExContext* InContext) const;
+	virtual TSharedPtr<FPCGExFillControlOperation> CreateOperation(FPCGExContext* InContext) const;
 };
 
 UCLASS(Abstract, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Graph|Params")

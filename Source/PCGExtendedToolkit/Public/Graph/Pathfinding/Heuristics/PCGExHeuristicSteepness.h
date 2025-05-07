@@ -9,6 +9,8 @@
 #include "PCGExHeuristicOperation.h"
 
 
+
+
 #include "Graph/PCGExCluster.h"
 #include "PCGExHeuristicSteepness.generated.h"
 
@@ -42,11 +44,8 @@ struct FPCGExHeuristicConfigSteepness : public FPCGExHeuristicConfigBase
 /**
  * 
  */
-UCLASS(MinimalAPI, DisplayName = "Steepness")
-class UPCGExHeuristicSteepness : public UPCGExHeuristicOperation
+class FPCGExHeuristicSteepness : public FPCGExHeuristicOperation
 {
-	GENERATED_BODY()
-
 	friend class UPCGExHeuristicsFactorySteepness;
 
 public:
@@ -84,7 +83,7 @@ public:
 	UPROPERTY()
 	FPCGExHeuristicConfigSteepness Config;
 
-	virtual UPCGExHeuristicOperation* CreateOperation(FPCGExContext* InContext) const override;
+	virtual TSharedPtr<FPCGExHeuristicOperation> CreateOperation(FPCGExContext* InContext) const override;
 	PCGEX_HEURISTIC_FACTORY_BOILERPLATE
 };
 

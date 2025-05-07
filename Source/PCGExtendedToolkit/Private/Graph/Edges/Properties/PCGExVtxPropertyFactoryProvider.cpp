@@ -8,13 +8,7 @@
 #define LOCTEXT_NAMESPACE "PCGExWriteVtxProperties"
 #define PCGEX_NAMESPACE PCGExWriteVtxProperties
 
-void UPCGExVtxPropertyOperation::CopySettingsFrom(const UPCGExOperation* Other)
-{
-	Super::CopySettingsFrom(Other);
-	// if (const UPCGExVtxPropertyOperation* TypedOther = Cast<UPCGExVtxPropertyOperation>(Other))	{	}
-}
-
-bool UPCGExVtxPropertyOperation::PrepareForCluster(const FPCGExContext* InContext, TSharedPtr<PCGExCluster::FCluster> InCluster, const TSharedPtr<PCGExData::FFacade>& InVtxDataFacade, const TSharedPtr<PCGExData::FFacade>& InEdgeDataFacade)
+bool FPCGExVtxPropertyOperation::PrepareForCluster(const FPCGExContext* InContext, TSharedPtr<PCGExCluster::FCluster> InCluster, const TSharedPtr<PCGExData::FFacade>& InVtxDataFacade, const TSharedPtr<PCGExData::FFacade>& InEdgeDataFacade)
 {
 	PrimaryDataFacade = InVtxDataFacade;
 	SecondaryDataFacade = InEdgeDataFacade;
@@ -23,21 +17,19 @@ bool UPCGExVtxPropertyOperation::PrepareForCluster(const FPCGExContext* InContex
 	return bIsValidOperation;
 }
 
-bool UPCGExVtxPropertyOperation::IsOperationValid() { return bIsValidOperation; }
+bool FPCGExVtxPropertyOperation::IsOperationValid() { return bIsValidOperation; }
 
-void UPCGExVtxPropertyOperation::ProcessNode(PCGExCluster::FNode& Node, const TArray<PCGExCluster::FAdjacencyData>& Adjacency)
+void FPCGExVtxPropertyOperation::ProcessNode(PCGExCluster::FNode& Node, const TArray<PCGExCluster::FAdjacencyData>& Adjacency)
 {
 }
-
-void UPCGExVtxPropertyOperation::Cleanup() { Super::Cleanup(); }
 
 #if WITH_EDITOR
 FString UPCGExVtxPropertyProviderSettings::GetDisplayName() const { return TEXT(""); }
 #endif
 
-UPCGExVtxPropertyOperation* UPCGExVtxPropertyFactoryData::CreateOperation(FPCGExContext* InContext) const
+TSharedPtr<FPCGExVtxPropertyOperation> UPCGExVtxPropertyFactoryData::CreateOperation(FPCGExContext* InContext) const
 {
-	UPCGExVtxPropertyOperation* NewOperation = InContext->ManagedObjects->New<UPCGExVtxPropertyOperation>();
+	PCGEX_FACTORY_NEW_OPERATION(VtxPropertyOperation)
 	return NewOperation;
 }
 

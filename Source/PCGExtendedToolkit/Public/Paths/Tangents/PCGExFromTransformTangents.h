@@ -20,7 +20,7 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Tangents)
 	EPCGExAxis Axis = EPCGExAxis::Forward;
 
-	virtual void CopySettingsFrom(const UPCGExOperation* Other) override
+	virtual void CopySettingsFrom(const UPCGExInstancedFactory* Other) override
 	{
 		Super::CopySettingsFrom(Other);
 		if (const UPCGExFromTransformTangents* TypedOther = Cast<UPCGExFromTransformTangents>(Other))

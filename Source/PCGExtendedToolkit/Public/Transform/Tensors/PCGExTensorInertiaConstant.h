@@ -9,6 +9,8 @@
 #include "PCGExTensorFactoryProvider.h"
 #include "PCGExTensorOperation.h"
 
+
+
 #include "PCGExTensorInertiaConstant.generated.h"
 
 USTRUCT(BlueprintType)
@@ -37,11 +39,8 @@ struct FPCGExTensorInertiaConstantConfig : public FPCGExTensorConfigBase
 /**
  * 
  */
-UCLASS(MinimalAPI)
-class UPCGExTensorInertiaConstant : public UPCGExTensorOperation
+class FPCGExTensorInertiaConstant : public PCGExTensorOperation
 {
-	GENERATED_BODY()
-
 public:
 	FPCGExTensorInertiaConstantConfig Config;
 	FQuat Offset = FQuat::Identity;
@@ -60,7 +59,7 @@ public:
 	UPROPERTY()
 	FPCGExTensorInertiaConstantConfig Config;
 
-	virtual UPCGExTensorOperation* CreateOperation(FPCGExContext* InContext) const override;
+	virtual TSharedPtr<PCGExTensorOperation> CreateOperation(FPCGExContext* InContext) const override;
 
 protected:
 	virtual bool InitInternalData(FPCGExContext* InContext) override;

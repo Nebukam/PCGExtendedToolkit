@@ -4,19 +4,22 @@
 
 #include "Graph/Pathfinding/Heuristics/PCGExHeuristicNodeCount.h"
 
-double UPCGExHeuristicNodeCount::GetGlobalScore(const PCGExCluster::FNode& From, const PCGExCluster::FNode& Seed, const PCGExCluster::FNode& Goal) const
+
+
+
+double FPCGExHeuristicNodeCount::GetGlobalScore(const PCGExCluster::FNode& From, const PCGExCluster::FNode& Seed, const PCGExCluster::FNode& Goal) const
 {
 	return GetScoreInternal(0.5);
 }
 
-double UPCGExHeuristicNodeCount::GetEdgeScore(const PCGExCluster::FNode& From, const PCGExCluster::FNode& To, const PCGExGraph::FEdge& Edge, const PCGExCluster::FNode& Seed, const PCGExCluster::FNode& Goal, const TSharedPtr<PCGEx::FHashLookup> TravelStack) const
+double FPCGExHeuristicNodeCount::GetEdgeScore(const PCGExCluster::FNode& From, const PCGExCluster::FNode& To, const PCGExGraph::FEdge& Edge, const PCGExCluster::FNode& Seed, const PCGExCluster::FNode& Goal, const TSharedPtr<PCGEx::FHashLookup> TravelStack) const
 {
 	return GetScoreInternal(0.5);
 }
 
-UPCGExHeuristicOperation* UPCGExHeuristicsFactoryLeastNodes::CreateOperation(FPCGExContext* InContext) const
+TSharedPtr<FPCGExHeuristicOperation> UPCGExHeuristicsFactoryLeastNodes::CreateOperation(FPCGExContext* InContext) const
 {
-	UPCGExHeuristicNodeCount* NewOperation = InContext->ManagedObjects->New<UPCGExHeuristicNodeCount>();
+	PCGEX_FACTORY_NEW_OPERATION(HeuristicNodeCount)
 	PCGEX_FORWARD_HEURISTIC_CONFIG
 	return NewOperation;
 }

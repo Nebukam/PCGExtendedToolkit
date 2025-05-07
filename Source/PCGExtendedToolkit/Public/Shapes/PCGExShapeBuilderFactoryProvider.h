@@ -10,8 +10,8 @@
 #include "PCGExShapeBuilderFactoryProvider.generated.h"
 
 #define PCGEX_SHAPE_BUILDER_BOILERPLATE(_SHAPE) \
-UPCGExShapeBuilderOperation* UPCGExShape##_SHAPE##Factory::CreateOperation(FPCGExContext* InContext) const{ \
-	UPCGExShape##_SHAPE##Builder* NewOperation = InContext->ManagedObjects->New<UPCGExShape##_SHAPE##Builder>(); \
+TSharedPtr<FPCGExShapeBuilderOperation> UPCGExShape##_SHAPE##Factory::CreateOperation(FPCGExContext* InContext) const{ \
+	PCGEX_FACTORY_NEW_OPERATION(Shape##_SHAPE##Builder)\
 	NewOperation->Config = Config; \
 	NewOperation->Config.Init(); \
 	NewOperation->BaseConfig = NewOperation->Config; \
@@ -22,7 +22,7 @@ UPCGExFactoryData* UPCGExCreateShape##_SHAPE##Settings::CreateFactory(FPCGExCont
 	NewFactory->Config = Config; \
 	return Super::CreateFactory(InContext, NewFactory);}
 
-class UPCGExShapeBuilderOperation;
+class FPCGExShapeBuilderOperation;
 
 UCLASS(Abstract, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")
 class PCGEXTENDEDTOOLKIT_API UPCGExShapeBuilderFactoryData : public UPCGExFactoryData
@@ -31,7 +31,7 @@ class PCGEXTENDEDTOOLKIT_API UPCGExShapeBuilderFactoryData : public UPCGExFactor
 
 public:
 	virtual PCGExFactories::EType GetFactoryType() const override { return PCGExFactories::EType::ShapeBuilder; }
-	virtual UPCGExShapeBuilderOperation* CreateOperation(FPCGExContext* InContext) const;
+	virtual TSharedPtr<FPCGExShapeBuilderOperation> CreateOperation(FPCGExContext* InContext) const;
 };
 
 UCLASS(Abstract, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Graph|Params")
