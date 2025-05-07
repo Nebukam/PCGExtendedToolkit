@@ -4,8 +4,6 @@
 #include "Transform/Tensors/PCGExTensorNull.h"
 
 
-
-
 #define LOCTEXT_NAMESPACE "PCGExCreateTensorNull"
 #define PCGEX_NAMESPACE CreateTensorNull
 

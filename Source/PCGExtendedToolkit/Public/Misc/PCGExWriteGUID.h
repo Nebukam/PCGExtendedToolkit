@@ -87,7 +87,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExGUIDDetails
 	int32 UniqueKeyConstant = 42;
 
 	PCGEX_SETTING_VALUE_GET(UniqueKey, int32, UniqueKeyInput, UniqueKeyAttribute, UniqueKeyConstant)
-	
+
 	/** Whether the created attribute allows interpolation or not.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable), AdvancedDisplay)
 	bool bAllowInterpolation = true;

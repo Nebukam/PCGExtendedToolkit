@@ -10,8 +10,6 @@
 #include "PCGExFillControlsFactoryProvider.h"
 
 
-
-
 #include "Graph/PCGExCluster.h"
 #include "PCGExFillControlVtxFilters.generated.h"
 
@@ -25,7 +23,6 @@ struct FPCGExFillControlConfigVtxFilters : public FPCGExFillControlConfigBase
 	{
 		bSupportSource = false;
 	}
-
 };
 
 /**

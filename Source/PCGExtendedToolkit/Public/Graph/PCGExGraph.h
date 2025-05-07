@@ -149,7 +149,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExGraphBuilderDetails
 	/** Whether to output edge length to a 'double' attribute. */
 	UPROPERTY(BlueprintReadWrite, Category = "Settings|Extra Data", EditAnywhere, meta = (PCG_Overridable, EditCondition="bOutputEdgeLength"))
 	FName EdgeLengthName = FName("EdgeLength");
-	
+
 	bool WantsClusters() const;
 
 	bool IsValid(const TSharedPtr<PCGExGraph::FSubGraph>& InSubgraph) const;
@@ -359,7 +359,7 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 
 		// Extra edge data
 		TSharedPtr<PCGExData::TBuffer<double>> EdgeLength;
-		
+
 		void CompileRange(const PCGExMT::FScope& Scope);
 		void CompilationComplete();
 	};

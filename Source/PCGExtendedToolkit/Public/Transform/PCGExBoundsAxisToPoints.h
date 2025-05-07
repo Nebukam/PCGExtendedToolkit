@@ -145,7 +145,7 @@ namespace PCGExBoundsAxisToPoints
 	class FProcessor final : public PCGExPointsMT::TPointsProcessor<FPCGExBoundsAxisToPointsContext, UPCGExBoundsAxisToPointsSettings>
 	{
 		FPCGExUVW BaseUVW;
-		
+
 		int32 NumPoints = 0;
 		bool bGeneratePerPointData = false;
 
