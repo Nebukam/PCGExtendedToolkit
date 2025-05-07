@@ -10,8 +10,6 @@
 #include "PCGExFillControlsFactoryProvider.h"
 
 
-
-
 #include "Graph/PCGExCluster.h"
 #include "PCGExFillControlEdgeFilters.generated.h"
 
@@ -25,7 +23,6 @@ struct FPCGExFillControlConfigEdgeFilters : public FPCGExFillControlConfigBase
 	{
 		bSupportSource = false;
 	}
-
 };
 
 /**
@@ -59,7 +56,6 @@ public:
 	TArray<TObjectPtr<const UPCGExFilterFactoryData>> FilterFactories;
 
 	virtual TSharedPtr<FPCGExFillControlOperation> CreateOperation(FPCGExContext* InContext) const override;
-
 };
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Graph|Params")

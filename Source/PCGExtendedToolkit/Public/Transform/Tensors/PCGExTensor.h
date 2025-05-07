@@ -125,7 +125,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExTensorConfigBase
 	double Potency = 1;
 
 	PCGEX_SETTING_VALUE_GET(Potency, double, PotencyInput, PotencyAttribute, Potency)
-	
+
 	/** Whether to use in-editor curve or an external asset. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Potency", meta=(PCG_NotOverridable, DisplayPriority=-1))
 	bool bUseLocalPotencyFalloffCurve = true;
@@ -160,7 +160,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExTensorConfigBase
 	double Weight = 1;
 
 	PCGEX_SETTING_VALUE_GET(Weight, double, WeightInput, WeightAttribute, Weight)
-	
+
 	/** Whether to use in-editor curve or an external asset. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Weighting", meta=(PCG_NotOverridable, DisplayPriority=-1))
 	bool bUseLocalWeightFalloffCurve = true;

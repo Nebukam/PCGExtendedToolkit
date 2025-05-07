@@ -68,7 +68,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExShapeConfigBase
 	double ResolutionConstant = 10;
 
 	PCGEX_SETTING_VALUE_GET(Resolution, double, ResolutionInput, ResolutionAttribute, ResolutionConstant)
-	
+
 	/** Fitting details */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	FPCGExFittingDetailsHandler Fitting;

@@ -15,8 +15,6 @@
 #include "Data/Blending/PCGExPropertiesBlender.h"
 
 
-
-
 #include "PCGExNeighborSampleProperties.generated.h"
 
 ///

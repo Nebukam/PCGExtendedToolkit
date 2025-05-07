@@ -11,7 +11,6 @@
 #include "PCGExFillControlsFactoryProvider.h"
 
 
-
 #include "Graph/PCGExCluster.h"
 #include "PCGExFillControlKeepDirection.generated.h"
 
@@ -43,7 +42,6 @@ struct FPCGExFillControlConfigKeepDirection : public FPCGExFillControlConfigBase
 	/** Hash comparison settings */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, ShowOnlyInnerProperties))
 	FPCGExVectorHashComparisonDetails HashComparisonDetails = FPCGExVectorHashComparisonDetails(0.1);
-	
 };
 
 /**

@@ -39,7 +39,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExFillControlConfigBase
 
 	UPROPERTY()
 	bool bSupportSteps = true;
-	
+
 	/** Where to fetch the attribute from. Note that this may not be supported by all controls..*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_NotOverridable, EditCondition="bSupportSource", EditConditionHides, HideEditConditionToggle))
 	EPCGExFloodFillSettingSource Source = EPCGExFloodFillSettingSource::Seed;

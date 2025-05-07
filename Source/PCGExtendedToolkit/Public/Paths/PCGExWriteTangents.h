@@ -62,7 +62,7 @@ public:
 	double ArriveScaleConstant = 1;
 
 	PCGEX_SETTING_VALUE_GET(ArriveScale, FVector, ArriveScaleInput, ArriveScaleAttribute, FVector(ArriveScaleConstant))
-	
+
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Scaling", meta=(PCG_NotOverridable))
 	EPCGExInputValueType LeaveScaleInput = EPCGExInputValueType::Constant;
 

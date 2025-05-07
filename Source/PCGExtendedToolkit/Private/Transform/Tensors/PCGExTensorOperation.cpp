@@ -28,5 +28,3 @@ bool PCGExTensorPointOperation::Init(FPCGExContext* InContext, const UPCGExTenso
 	Octree = &InFactory->GetOctree();
 	return true;
 }
-
-

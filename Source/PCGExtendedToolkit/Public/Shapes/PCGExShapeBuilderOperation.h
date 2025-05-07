@@ -29,7 +29,7 @@ public:
 
 protected:
 	virtual void ValidateShape(const TSharedPtr<PCGExShapes::FShape> Shape);
-	
+
 	FORCEINLINE double GetResolution(const PCGExData::FPointRef& Seed) const
 	{
 		if (BaseConfig.ResolutionMode == EPCGExResolutionMode::Distance) { return FMath::Abs(Resolution->Read(Seed.Index)) * 0.01; }

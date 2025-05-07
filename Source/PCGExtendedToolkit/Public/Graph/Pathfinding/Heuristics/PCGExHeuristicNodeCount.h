@@ -9,8 +9,6 @@
 #include "PCGExHeuristicDistance.h"
 
 
-
-
 #include "PCGExHeuristicNodeCount.generated.h"
 
 USTRUCT(BlueprintType)

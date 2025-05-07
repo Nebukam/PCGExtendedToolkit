@@ -4,7 +4,6 @@
 #include "Transform/Tensors/PCGExTensorFactoryProvider.h"
 
 
-
 #include "Paths/PCGExPaths.h"
 #include "Paths/PCGExSplineToPath.h"
 #include "Transform/Tensors/PCGExTensorOperation.h"

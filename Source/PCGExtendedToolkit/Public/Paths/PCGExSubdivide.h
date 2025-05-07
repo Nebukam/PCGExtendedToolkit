@@ -55,7 +55,7 @@ public:
 	FPCGAttributePropertyInputSelector SubdivisionAmount;
 
 	PCGEX_SETTING_VALUE_GET(SubdivisionAmount, double, AmountInput, SubdivisionAmount, SubdivideMethod == EPCGExSubdivideMode::Count ? Count : Distance)
-	
+
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="SubdivideMethod==EPCGExSubdivideMode::Distance", EditConditionHides))
 	bool bRedistributeEvenly = false;
 

@@ -21,7 +21,6 @@ class FPCGMetadataAttributeBase;
  */
 class PCGEXTENDEDTOOLKIT_API FPCGExOperation : public TSharedFromThis<FPCGExOperation>
 {
-	
 public:
 	FPCGExOperation() = default;
 	virtual ~FPCGExOperation() = default;

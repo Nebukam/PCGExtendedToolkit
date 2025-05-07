@@ -60,7 +60,7 @@ public:
 	double LerpConstant = 0.5;
 
 	PCGEX_SETTING_VALUE_GET(Lerp, double, LerpInput, LerpAttribute, LerpConstant)
-	
+
 	/** Blending settings used to smooth attributes.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	FPCGExBlendingDetails BlendingSettings = FPCGExBlendingDetails(EPCGExDataBlendingType::Lerp, EPCGExDataBlendingType::None);

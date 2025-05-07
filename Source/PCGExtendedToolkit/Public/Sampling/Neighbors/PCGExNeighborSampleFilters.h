@@ -15,8 +15,6 @@
 #include "Data/Blending/PCGExMetadataBlender.h"
 
 
-
-
 #include "PCGExNeighborSampleFilters.generated.h"
 
 ///

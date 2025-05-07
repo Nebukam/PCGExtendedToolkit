@@ -132,7 +132,7 @@ namespace PCGExConnectPoints
 		virtual void ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const PCGExMT::FScope& Scope) override;
 		virtual void CompleteWork() override;
 		virtual void Write() override;
-		
+
 		virtual void Cleanup() override;
 	};
 }

@@ -204,7 +204,7 @@ namespace PCGExClusterDiffusion
 	void FProcessor::StartGrowth()
 	{
 		Seeded.Empty();
-		
+
 		InitialDiffusions->Collapse(OngoingDiffusions);
 		InitialDiffusions.Reset();
 
@@ -408,7 +408,7 @@ namespace PCGExClusterDiffusion
 	void FProcessor::Cleanup()
 	{
 		TProcessor<FPCGExClusterDiffusionContext, UPCGExClusterDiffusionSettings>::Cleanup();
-		
+
 		// Make sure we flush these ASAP
 		InitialDiffusions.Reset();
 		OngoingDiffusions.Reset();

@@ -7,7 +7,6 @@
 #include "PCGExPointsProcessor.h"
 
 
-
 #include "PCGExHeuristicsFactoryProvider.generated.h"
 
 #define PCGEX_HEURISTIC_FACTORY_BOILERPLATE \
