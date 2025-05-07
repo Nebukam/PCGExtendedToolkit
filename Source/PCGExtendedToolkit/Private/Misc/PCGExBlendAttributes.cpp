@@ -71,12 +71,12 @@ namespace PCGExBlendAttributes
 
 		PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::Duplicate)
 
-		Operations = MakeShared<TArray<UPCGExAttributeBlendOperation*>>();
+		Operations = MakeShared<TArray<TSharedPtr<FPCGExAttributeBlendOperation>>>();
 		Operations->Reserve(Context->BlendingFactories.Num());
 
 		for (const TObjectPtr<const UPCGExAttributeBlendFactory>& Factory : Context->BlendingFactories)
 		{
-			UPCGExAttributeBlendOperation* Op = Factory->CreateOperation(Context);
+			TSharedPtr<FPCGExAttributeBlendOperation> Op = Factory->CreateOperation(Context);
 			if (!Op)
 			{
 				PCGE_LOG_C(Error, GraphAndLog, Context, FTEXT("An operation could not be created."));
@@ -111,21 +111,21 @@ namespace PCGExBlendAttributes
 		FilterScope(InScope);
 
 		TArray<FPCGPoint>& Points = PointDataFacade->GetMutablePoints();
-		TArray<UPCGExAttributeBlendOperation*>& Ops = *Operations.Get();
+		TArray<TSharedPtr<FPCGExAttributeBlendOperation>>& Ops = *Operations.Get();
 
 		for (int i = InScope.Start; i < InScope.End; i++)
 		{
 			if (!PointFilterCache[i]) { continue; }
-			for (UPCGExAttributeBlendOperation* Op : Ops) { Op->Blend(i, Points[i]); }
+			for (const TSharedPtr<FPCGExAttributeBlendOperation>& Op : Ops) { Op->Blend(i, Points[i]); }
 		}
 	}
 
 	void FProcessor::CompleteWork()
 	{
-		TArray<UPCGExAttributeBlendOperation*>& Ops = *Operations.Get();
+		TArray<TSharedPtr<FPCGExAttributeBlendOperation>>& Ops = *Operations.Get();
 
 		TSet<TSharedPtr<PCGExData::FBufferBase>> DisabledBuffers;
-		for (UPCGExAttributeBlendOperation* Op : Ops) { Op->CompleteWork(DisabledBuffers); }
+		for (const TSharedPtr<FPCGExAttributeBlendOperation>& Op : Ops) { Op->CompleteWork(DisabledBuffers); }
 
 		for (const TSharedPtr<PCGExData::FBufferBase>& Buffer : DisabledBuffers)
 		{
@@ -144,6 +144,13 @@ namespace PCGExBlendAttributes
 		}
 
 		PointDataFacade->Write(AsyncManager);
+	}
+
+	void FProcessor::Cleanup()
+	{
+		TPointsProcessor<FPCGExBlendAttributesContext, UPCGExBlendAttributesSettings>::Cleanup();
+		Operations->Empty();
+		Operations.Reset();
 	}
 }
 

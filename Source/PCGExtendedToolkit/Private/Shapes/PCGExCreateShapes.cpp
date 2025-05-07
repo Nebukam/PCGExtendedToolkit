@@ -75,7 +75,7 @@ namespace PCGExCreateShapes
 		Builders.Reserve(Context->BuilderFactories.Num());
 		for (const TObjectPtr<const UPCGExShapeBuilderFactoryData>& Factory : Context->BuilderFactories)
 		{
-			UPCGExShapeBuilderOperation* Op = Factory->CreateOperation(Context);
+			TSharedPtr<FPCGExShapeBuilderOperation> Op = Factory->CreateOperation(Context);
 			if (!Op->PrepareForSeeds(Context, PointDataFacade)) { return false; }
 			Builders.Add(Op);
 		}
@@ -93,7 +93,7 @@ namespace PCGExCreateShapes
 	void FProcessor::ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const PCGExMT::FScope& Scope)
 	{
 		const PCGExData::FPointRef PointRef = PointDataFacade->Source->GetInPointRef(Index);
-		for (UPCGExShapeBuilderOperation* Op : Builders) { Op->PrepareShape(PointRef); }
+		for (const TSharedPtr<FPCGExShapeBuilderOperation> Op : Builders) { Op->PrepareShape(PointRef); }
 	}
 
 	void FProcessor::OnPointsProcessingComplete()

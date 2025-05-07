@@ -426,6 +426,43 @@ namespace PCGExHelpers
 		return Result;
 	}
 
+	void AppendUniqueEntriesFromCommaSeparatedList(const FString& InCommaSeparatedString, TArray<FString>& OutStrings)
+	{
+		if (InCommaSeparatedString.IsEmpty()) { return; }
+
+		TArray<FString> Result;
+		InCommaSeparatedString.ParseIntoArray(Result, TEXT(","));
+		// Trim leading and trailing spaces
+		for (int i = 0; i < Result.Num(); i++)
+		{
+			FString& String = Result[i];
+			String.TrimStartAndEndInline();
+			if (String.IsEmpty()) { continue; }
+
+			OutStrings.AddUnique(String);
+		}
+	}
+
+	void AppendUniqueSelectorsFromCommaSeparatedList(const FString& InCommaSeparatedString, TArray<FPCGAttributePropertyInputSelector>& OutSelectors)
+	{
+		if (InCommaSeparatedString.IsEmpty()) { return; }
+
+		TArray<FString> Result;
+		InCommaSeparatedString.ParseIntoArray(Result, TEXT(","));
+		// Trim leading and trailing spaces
+		for (int i = 0; i < Result.Num(); i++)
+		{
+			FString& String = Result[i];
+			String.TrimStartAndEndInline();
+			if (String.IsEmpty()) { continue; }
+
+			FPCGAttributePropertyInputSelector Selector;
+			Selector.Update(String);
+
+			OutSelectors.AddUnique(Selector);
+		}
+	}
+
 	TArray<UFunction*> FindUserFunctions(const TSubclassOf<AActor>& ActorClass, const TArray<FName>& FunctionNames, const TArray<const UFunction*>& FunctionPrototypes, const FPCGContext* InContext)
 	{
 		TArray<UFunction*> Functions;

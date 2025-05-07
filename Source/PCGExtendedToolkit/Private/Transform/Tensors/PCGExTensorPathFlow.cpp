@@ -3,6 +3,9 @@
 
 #include "Transform/Tensors/PCGExTensorPathFlow.h"
 
+
+
+
 #define LOCTEXT_NAMESPACE "PCGExCreateTensorPathFlow"
 #define PCGEX_NAMESPACE CreateTensorPathFlow
 
@@ -12,13 +15,13 @@ void FPCGExTensorPathFlowConfig::Init()
 	ClosedLoop.Init();
 }
 
-bool UPCGExTensorPathFlow::Init(FPCGExContext* InContext, const UPCGExTensorFactoryData* InFactory)
+bool FPCGExTensorPathFlow::Init(FPCGExContext* InContext, const UPCGExTensorFactoryData* InFactory)
 {
-	if (!Super::Init(InContext, InFactory)) { return false; }
+	if (!PCGExTensorOperation::Init(InContext, InFactory)) { return false; }
 	return true;
 }
 
-PCGExTensor::FTensorSample UPCGExTensorPathFlow::Sample(const int32 InSeedIndex, const FTransform& InProbe) const
+PCGExTensor::FTensorSample FPCGExTensorPathFlow::Sample(const int32 InSeedIndex, const FTransform& InProbe) const
 {
 	const FVector& InPosition = InProbe.GetLocation();
 	PCGExTensor::FEffectorSamples Samples = PCGExTensor::FEffectorSamples();

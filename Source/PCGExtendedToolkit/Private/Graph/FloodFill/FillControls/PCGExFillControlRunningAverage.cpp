@@ -5,11 +5,13 @@
 #include "Graph/FloodFill/FillControls/PCGExFillControlRunningAverage.h"
 
 
+
+
 #include "Graph/FloodFill/FillControls/PCGExFillControlsFactoryProvider.h"
 
-bool UPCGExFillControlRunningAverage::PrepareForDiffusions(FPCGExContext* InContext, const TSharedPtr<PCGExFloodFill::FFillControlsHandler>& InHandler)
+bool FPCGExFillControlRunningAverage::PrepareForDiffusions(FPCGExContext* InContext, const TSharedPtr<PCGExFloodFill::FFillControlsHandler>& InHandler)
 {
-	if (!Super::PrepareForDiffusions(InContext, InHandler)) { return false; }
+	if (!FPCGExFillControlOperation::PrepareForDiffusions(InContext, InHandler)) { return false; }
 
 	const UPCGExFillControlsFactoryRunningAverage* TypedFactory = Cast<UPCGExFillControlsFactoryRunningAverage>(Factory);
 
@@ -29,7 +31,7 @@ bool UPCGExFillControlRunningAverage::PrepareForDiffusions(FPCGExContext* InCont
 	return true;
 }
 
-bool UPCGExFillControlRunningAverage::IsValidCandidate(const PCGExFloodFill::FDiffusion* Diffusion, const PCGExFloodFill::FCandidate& From, const PCGExFloodFill::FCandidate& Candidate)
+bool FPCGExFillControlRunningAverage::IsValidCandidate(const PCGExFloodFill::FDiffusion* Diffusion, const PCGExFloodFill::FCandidate& From, const PCGExFloodFill::FCandidate& Candidate)
 {
 	const int32 Window = WindowSize->Read(GetSettingsIndex(Diffusion));
 
@@ -56,17 +58,9 @@ bool UPCGExFillControlRunningAverage::IsValidCandidate(const PCGExFloodFill::FDi
 	return true;
 }
 
-void UPCGExFillControlRunningAverage::Cleanup()
+TSharedPtr<FPCGExFillControlOperation> UPCGExFillControlsFactoryRunningAverage::CreateOperation(FPCGExContext* InContext) const
 {
-	WindowSize.Reset();
-	Tolerance.Reset();
-	Operand.Reset();
-	Super::Cleanup();
-}
-
-UPCGExFillControlOperation* UPCGExFillControlsFactoryRunningAverage::CreateOperation(FPCGExContext* InContext) const
-{
-	UPCGExFillControlRunningAverage* NewOperation = InContext->ManagedObjects->New<UPCGExFillControlRunningAverage>();
+	PCGEX_FACTORY_NEW_OPERATION(FillControlRunningAverage)
 	PCGEX_FORWARD_FILLCONTROL_OPERATION
 	return NewOperation;
 }

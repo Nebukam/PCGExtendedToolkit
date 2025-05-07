@@ -88,7 +88,7 @@ namespace PCGExSubdivideEdges
 			return false;
 		}
 
-		Blending = Context->Blending->CopyOperation<UPCGExSubPointsBlendOperation>();
+		Blending = Context->Blending->CreateNewInstance<UPCGExSubPointsBlendOperation>();
 		PCGEx::InitArray(Subdivisions, EdgeDataFacade->GetNum());
 
 		StartParallelLoopForEdges();

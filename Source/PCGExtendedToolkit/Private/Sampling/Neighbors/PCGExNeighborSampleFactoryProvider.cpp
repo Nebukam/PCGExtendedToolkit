@@ -9,18 +9,7 @@
 #define LOCTEXT_NAMESPACE "PCGExCreateNeighborSample"
 #define PCGEX_NAMESPACE PCGExCreateNeighborSample
 
-
-void UPCGExNeighborSampleOperation::CopySettingsFrom(const UPCGExOperation* Other)
-{
-	Super::CopySettingsFrom(Other);
-	if (const UPCGExNeighborSampleOperation* TypedOther = Cast<UPCGExNeighborSampleOperation>(Other))
-	{
-		SamplingConfig = TypedOther->SamplingConfig;
-		WeightCurveObj = TypedOther->WeightCurveObj;
-	}
-}
-
-void UPCGExNeighborSampleOperation::PrepareForCluster(FPCGExContext* InContext, TSharedRef<PCGExCluster::FCluster> InCluster, TSharedRef<PCGExData::FFacade> InVtxDataFacade, TSharedRef<PCGExData::FFacade> InEdgeDataFacade)
+void FPCGExNeighborSampleOperation::PrepareForCluster(FPCGExContext* InContext, TSharedRef<PCGExCluster::FCluster> InCluster, TSharedRef<PCGExData::FFacade> InVtxDataFacade, TSharedRef<PCGExData::FFacade> InEdgeDataFacade)
 {
 	Cluster = InCluster;
 
@@ -40,16 +29,16 @@ void UPCGExNeighborSampleOperation::PrepareForCluster(FPCGExContext* InContext, 
 	}
 }
 
-bool UPCGExNeighborSampleOperation::IsOperationValid() { return bIsValidOperation; }
+bool FPCGExNeighborSampleOperation::IsOperationValid() { return bIsValidOperation; }
 
-TSharedRef<PCGExData::FPointIO> UPCGExNeighborSampleOperation::GetSourceIO() const { return GetSourceDataFacade()->Source; }
+TSharedRef<PCGExData::FPointIO> FPCGExNeighborSampleOperation::GetSourceIO() const { return GetSourceDataFacade()->Source; }
 
-TSharedRef<PCGExData::FFacade> UPCGExNeighborSampleOperation::GetSourceDataFacade() const
+TSharedRef<PCGExData::FFacade> FPCGExNeighborSampleOperation::GetSourceDataFacade() const
 {
 	return SamplingConfig.NeighborSource == EPCGExClusterComponentSource::Vtx ? VtxDataFacade.ToSharedRef() : EdgeDataFacade.ToSharedRef();
 }
 
-void UPCGExNeighborSampleOperation::ProcessNode(const int32 NodeIndex)
+void FPCGExNeighborSampleOperation::ProcessNode(const int32 NodeIndex)
 {
 	const PCGExCluster::FNode& Node = (*Cluster->Nodes)[NodeIndex];
 
@@ -141,33 +130,24 @@ void UPCGExNeighborSampleOperation::ProcessNode(const int32 NodeIndex)
 	FinalizeNode(Node, Count, TotalWeight);
 }
 
-void UPCGExNeighborSampleOperation::PrepareNode(const PCGExCluster::FNode& TargetNode) const
+void FPCGExNeighborSampleOperation::PrepareNode(const PCGExCluster::FNode& TargetNode) const
 {
 }
 
-void UPCGExNeighborSampleOperation::SampleNeighborNode(const PCGExCluster::FNode& TargetNode, const PCGExGraph::FLink Lk, const double Weight)
+void FPCGExNeighborSampleOperation::SampleNeighborNode(const PCGExCluster::FNode& TargetNode, const PCGExGraph::FLink Lk, const double Weight)
 {
 }
 
-void UPCGExNeighborSampleOperation::SampleNeighborEdge(const PCGExCluster::FNode& TargetNode, const PCGExGraph::FLink Lk, const double Weight)
+void FPCGExNeighborSampleOperation::SampleNeighborEdge(const PCGExCluster::FNode& TargetNode, const PCGExGraph::FLink Lk, const double Weight)
 {
 }
 
-void UPCGExNeighborSampleOperation::FinalizeNode(const PCGExCluster::FNode& TargetNode, const int32 Count, const double TotalWeight)
+void FPCGExNeighborSampleOperation::FinalizeNode(const PCGExCluster::FNode& TargetNode, const int32 Count, const double TotalWeight)
 {
 }
 
-void UPCGExNeighborSampleOperation::CompleteOperation()
+void FPCGExNeighborSampleOperation::CompleteOperation()
 {
-}
-
-void UPCGExNeighborSampleOperation::Cleanup()
-{
-	PointFilters.Reset();
-	ValueFilters.Reset();
-	VtxDataFacade.Reset();
-	EdgeDataFacade.Reset();
-	Super::Cleanup();
 }
 
 #if WITH_EDITOR
@@ -177,9 +157,9 @@ FString UPCGExNeighborSampleProviderSettings::GetDisplayName() const
 }
 #endif
 
-UPCGExNeighborSampleOperation* UPCGExNeighborSamplerFactoryData::CreateOperation(FPCGExContext* InContext) const
+TSharedPtr<FPCGExNeighborSampleOperation> UPCGExNeighborSamplerFactoryData::CreateOperation(FPCGExContext* InContext) const
 {
-	UPCGExNeighborSampleOperation* NewOperation = InContext->ManagedObjects->New<UPCGExNeighborSampleOperation>();
+	PCGEX_FACTORY_NEW_OPERATION(NeighborSampleOperation)
 	PCGEX_SAMPLER_CREATE_OPERATION
 	return NewOperation;
 }

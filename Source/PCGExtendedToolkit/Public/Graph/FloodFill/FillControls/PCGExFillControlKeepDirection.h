@@ -10,6 +10,8 @@
 #include "PCGExFillControlOperation.h"
 #include "PCGExFillControlsFactoryProvider.h"
 
+
+
 #include "Graph/PCGExCluster.h"
 #include "PCGExFillControlKeepDirection.generated.h"
 
@@ -47,11 +49,8 @@ struct FPCGExFillControlConfigKeepDirection : public FPCGExFillControlConfigBase
 /**
  * 
  */
-UCLASS(MinimalAPI, DisplayName = "KeepDirection")
-class UPCGExFillControlKeepDirection : public UPCGExFillControlOperation
+class FPCGExFillControlKeepDirection : public FPCGExFillControlOperation
 {
-	GENERATED_BODY()
-
 	friend class UPCGExFillControlsFactoryKeepDirection;
 
 public:
@@ -61,8 +60,6 @@ public:
 	virtual bool ChecksProbe() const override { return false; }
 	virtual bool ChecksCandidate() const override { return true; }
 	virtual bool IsValidCandidate(const PCGExFloodFill::FDiffusion* Diffusion, const PCGExFloodFill::FCandidate& From, const PCGExFloodFill::FCandidate& Candidate) override;
-
-	virtual void Cleanup() override;
 
 protected:
 	FPCGExVectorHashComparisonDetails HashComparisonDetails;
@@ -79,7 +76,7 @@ public:
 	UPROPERTY()
 	FPCGExFillControlConfigKeepDirection Config;
 
-	virtual UPCGExFillControlOperation* CreateOperation(FPCGExContext* InContext) const override;
+	virtual TSharedPtr<FPCGExFillControlOperation> CreateOperation(FPCGExContext* InContext) const override;
 
 	virtual void RegisterBuffersDependencies(FPCGExContext* InContext, PCGExData::FFacadePreloader& FacadePreloader) const override;
 };

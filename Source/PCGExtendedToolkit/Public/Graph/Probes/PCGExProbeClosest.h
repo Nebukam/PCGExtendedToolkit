@@ -9,6 +9,8 @@
 #include "PCGExProbeFactoryProvider.h"
 #include "PCGExProbeOperation.h"
 
+
+
 #include "PCGExProbeClosest.generated.h"
 
 namespace PCGExProbing
@@ -47,11 +49,8 @@ struct FPCGExProbeConfigClosest : public FPCGExProbeConfigBase
 /**
  * 
  */
-UCLASS(MinimalAPI, DisplayName = "Closest")
-class UPCGExProbeClosest : public UPCGExProbeOperation
+class FPCGExProbeClosest : public FPCGExProbeOperation
 {
-	GENERATED_BODY()
-
 public:
 	virtual bool PrepareForPoints(const TSharedPtr<PCGExData::FPointIO>& InPointIO) override;
 	virtual void ProcessCandidates(const int32 Index, const FPCGPoint& Point, TArray<PCGExProbing::FCandidate>& Candidates, TSet<FInt32Vector>* Coincidence, const FVector& ST, TSet<uint64>* OutEdges) override;
@@ -77,7 +76,7 @@ public:
 	UPROPERTY()
 	FPCGExProbeConfigClosest Config;
 
-	virtual UPCGExProbeOperation* CreateOperation(FPCGExContext* InContext) const override;
+	virtual TSharedPtr<FPCGExProbeOperation> CreateOperation(FPCGExContext* InContext) const override;
 };
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Graph|Params")

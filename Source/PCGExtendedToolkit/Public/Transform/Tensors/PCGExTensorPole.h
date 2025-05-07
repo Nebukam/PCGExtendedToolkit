@@ -8,6 +8,8 @@
 #include "PCGExTensor.h"
 #include "PCGExTensorFactoryProvider.h"
 #include "PCGExTensorOperation.h"
+
+
 #include "Paths/PCGExPaths.h"
 
 #include "PCGExTensorPole.generated.h"
@@ -26,11 +28,8 @@ struct FPCGExTensorPoleConfig : public FPCGExTensorConfigBase
 /**
  * 
  */
-UCLASS(MinimalAPI)
-class UPCGExTensorPole : public UPCGExTensorPointOperation
+class FPCGExTensorPole : public PCGExTensorPointOperation
 {
-	GENERATED_BODY()
-
 public:
 	FPCGExTensorPoleConfig Config;
 	virtual bool Init(FPCGExContext* InContext, const UPCGExTensorFactoryData* InFactory) override;
@@ -48,7 +47,7 @@ public:
 	UPROPERTY()
 	FPCGExTensorPoleConfig Config;
 
-	virtual UPCGExTensorOperation* CreateOperation(FPCGExContext* InContext) const override;
+	virtual TSharedPtr<PCGExTensorOperation> CreateOperation(FPCGExContext* InContext) const override;
 
 protected:
 	virtual bool InitInternalData(FPCGExContext* InContext) override;

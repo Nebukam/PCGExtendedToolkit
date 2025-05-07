@@ -9,6 +9,8 @@
 #include "PCGExTensorFactoryProvider.h"
 #include "PCGExTensorOperation.h"
 
+
+
 #include "PCGExTensorSpin.generated.h"
 
 
@@ -42,13 +44,9 @@ struct FPCGExTensorSpinConfig : public FPCGExTensorConfigBase
 /**
  * 
  */
-UCLASS(MinimalAPI)
-class UPCGExTensorSpin : public UPCGExTensorPointOperation
+class FPCGExTensorSpin : public PCGExTensorPointOperation
 {
-	GENERATED_BODY()
-
 public:
-	UPROPERTY()
 	FPCGExTensorSpinConfig Config;
 
 	virtual bool Init(FPCGExContext* InContext, const UPCGExTensorFactoryData* InFactory) override;
@@ -64,7 +62,7 @@ class UPCGExTensorSpinFactory : public UPCGExTensorPointFactoryData
 
 public:
 	FPCGExTensorSpinConfig Config;
-	virtual UPCGExTensorOperation* CreateOperation(FPCGExContext* InContext) const override;
+	virtual TSharedPtr<PCGExTensorOperation> CreateOperation(FPCGExContext* InContext) const override;
 
 protected:
 	TSharedPtr<PCGExData::TBuffer<FVector>> AxisBuffer;

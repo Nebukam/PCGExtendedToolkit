@@ -4,19 +4,21 @@
 
 #include "Graph/Pathfinding/Heuristics/PCGExHeuristicTensor.h"
 
+
+
 #include "Transform/Tensors/PCGExTensor.h"
 #include "Transform/Tensors/PCGExTensorHandler.h"
 #include "Transform/Tensors/PCGExTensorFactoryProvider.h"
 
 
-void UPCGExHeuristicTensor::PrepareForCluster(const TSharedPtr<const PCGExCluster::FCluster>& InCluster)
+void FPCGExHeuristicTensor::PrepareForCluster(const TSharedPtr<const PCGExCluster::FCluster>& InCluster)
 {
-	Super::PrepareForCluster(InCluster);
+	FPCGExHeuristicOperation::PrepareForCluster(InCluster);
 	TensorsHandler = MakeShared<PCGExTensor::FTensorsHandler>(TensorHandlerDetails);
 	TensorsHandler->Init(Context, *TensorFactories, PrimaryDataFacade);
 }
 
-double UPCGExHeuristicTensor::GetGlobalScore(
+double FPCGExHeuristicTensor::GetGlobalScore(
 	const PCGExCluster::FNode& From,
 	const PCGExCluster::FNode& Seed,
 	const PCGExCluster::FNode& Goal) const
@@ -24,7 +26,7 @@ double UPCGExHeuristicTensor::GetGlobalScore(
 	return GetScoreInternal(GetDot(From.PointIndex, Cluster->GetPos(From), Cluster->GetPos(Goal)));
 }
 
-double UPCGExHeuristicTensor::GetEdgeScore(
+double FPCGExHeuristicTensor::GetEdgeScore(
 	const PCGExCluster::FNode& From,
 	const PCGExCluster::FNode& To,
 	const PCGExGraph::FEdge& Edge,
@@ -35,7 +37,7 @@ double UPCGExHeuristicTensor::GetEdgeScore(
 	return GetScoreInternal(GetDot(From.PointIndex, Cluster->GetPos(From), Cluster->GetPos(To)));
 }
 
-double UPCGExHeuristicTensor::GetDot(const int32 InSeedIndex, const FVector& From, const FVector& To) const
+double FPCGExHeuristicTensor::GetDot(const int32 InSeedIndex, const FVector& From, const FVector& To) const
 {
 	bool bSuccess = false;
 	const PCGExTensor::FTensorSample Sample = TensorsHandler->Sample(InSeedIndex, FTransform(FRotationMatrix::MakeFromX((To - From).GetSafeNormal()).ToQuat(), From), bSuccess);
@@ -44,9 +46,9 @@ double UPCGExHeuristicTensor::GetDot(const int32 InSeedIndex, const FVector& Fro
 	return bAbsoluteTensor ? 1 - FMath::Abs(Dot) : 1 - PCGExMath::Remap(Dot, -1, 1);
 }
 
-UPCGExHeuristicOperation* UPCGExHeuristicsFactoryTensor::CreateOperation(FPCGExContext* InContext) const
+TSharedPtr<FPCGExHeuristicOperation> UPCGExHeuristicsFactoryTensor::CreateOperation(FPCGExContext* InContext) const
 {
-	UPCGExHeuristicTensor* NewOperation = InContext->ManagedObjects->New<UPCGExHeuristicTensor>();
+	PCGEX_FACTORY_NEW_OPERATION(HeuristicTensor)
 	PCGEX_FORWARD_HEURISTIC_CONFIG
 	NewOperation->bAbsoluteTensor = Config.bAbsolute;
 	NewOperation->TensorHandlerDetails = Config.TensorHandlerDetails;

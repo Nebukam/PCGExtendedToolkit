@@ -8,6 +8,7 @@
 
 #include "PCGExPointsProcessor.h"
 #include "Data/PCGExDataForward.h"
+#include "Pickers/PCGExPickerFactoryProvider.h"
 
 
 #include "PCGExAttributesToTags.generated.h"
@@ -32,7 +33,10 @@ enum class EPCGExCollectionEntrySelection : uint8
 {
 	FirstIndex  = 0 UMETA(DisplayName = "First Entry", ToolTip="Uses the first entry in the matching collection"),
 	LastIndex   = 1 UMETA(DisplayName = "Last Entry", ToolTip="Uses the last entry in the matching collection"),
-	RandomIndex = 2 UMETA(DisplayName = "Random Entry", ToolTip="Uses a random entry in the matching collection")
+	RandomIndex = 2 UMETA(DisplayName = "Random Entry", ToolTip="Uses a random entry in the matching collection"),
+	Picker      = 3 UMETA(DisplayName = "Picker", ToolTip="Uses pickers to select indices that will be turned into tags"),
+	PickerFirst = 4 UMETA(DisplayName = "Picker (First)", ToolTip="Uses the first valid index using pickers"),
+	PickerLast  = 5 UMETA(DisplayName = "Picker (Last)", ToolTip="Uses the last valid index using pickers")
 };
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc")
@@ -77,6 +81,10 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
 	TArray<FPCGAttributePropertyInputSelector> Attributes;
 
+	/** A list of selectors separated by a comma, for easy overrides. Will be appended to the existing array.*/
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	FString CommaSeparatedAttributeSelectors;
+
 	/** */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Warnings and Errors")
 	bool bQuietTooManyCollectionsWarning = false;
@@ -85,6 +93,8 @@ public:
 struct FPCGExAttributesToTagsContext final : FPCGExPointsProcessorContext
 {
 	friend class FPCGExAttributesToTagsElement;
+	TArray<TObjectPtr<const UPCGExPickerFactoryData>> PickerFactories;
+	TArray<FPCGAttributePropertyInputSelector> Attributes;
 	TArray<TSharedPtr<PCGExData::FFacade>> SourceDataFacades;
 	TArray<FPCGExAttributeToTagDetails> Details;
 };
@@ -107,6 +117,7 @@ namespace PCGExAttributesToTags
 	class FProcessor final : public PCGExPointsMT::TPointsProcessor<FPCGExAttributesToTagsContext, UPCGExAttributesToTagsSettings>
 	{
 		UPCGParamData* OutputSet = nullptr;
+		TArray<int32> PickedIndices;
 
 	public:
 		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade):
@@ -118,7 +129,10 @@ namespace PCGExAttributesToTags
 		{
 		}
 
+		void Tag(const FPCGExAttributeToTagDetails& InDetails, const int32 Index) const;
+		
 		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager) override;
+		void TagWithPickers(const FPCGExAttributeToTagDetails& InDetails);
 		virtual void Output() override;
 	};
 }

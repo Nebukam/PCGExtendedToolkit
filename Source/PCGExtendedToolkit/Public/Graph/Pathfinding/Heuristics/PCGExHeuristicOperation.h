@@ -9,16 +9,12 @@
 
 #include "Graph/PCGExCluster.h"
 #include "UObject/Object.h"
-#include "PCGExHeuristicOperation.generated.h"
 
 /**
  * 
  */
-UCLASS(Abstract)
-class PCGEXTENDEDTOOLKIT_API UPCGExHeuristicOperation : public UPCGExOperation
+class PCGEXTENDEDTOOLKIT_API FPCGExHeuristicOperation : public FPCGExOperation
 {
-	GENERATED_BODY()
-
 public:
 	bool bInvert = false;
 	double ReferenceWeight = 1;
@@ -57,8 +53,6 @@ public:
 
 	FORCEINLINE const PCGExCluster::FNode* GetRoamingSeed() const { return Cluster->GetRoamingNode(UVWSeed); }
 	FORCEINLINE const PCGExCluster::FNode* GetRoamingGoal() const { return Cluster->GetRoamingNode(UVWGoal); }
-
-	virtual void Cleanup() override;
 
 protected:
 	TSharedPtr<const PCGExCluster::FCluster> Cluster;

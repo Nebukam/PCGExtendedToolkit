@@ -130,7 +130,7 @@ namespace PCGExBatchActions
 
 		for (const UPCGExActionFactoryData* Factory : Context->ActionsFactories)
 		{
-			UPCGExActionOperation* Operation = Factory->CreateOperation(Context);
+			TSharedPtr<FPCGExActionOperation> Operation = Factory->CreateOperation(Context);
 			if (!Operation->PrepareForData(ExecutionContext, PointDataFacade)) { return false; }
 			Operations.Add(Operation);
 		}
@@ -147,7 +147,7 @@ namespace PCGExBatchActions
 
 	void FProcessor::ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const PCGExMT::FScope& Scope)
 	{
-		for (UPCGExActionOperation* Op : Operations) { Op->ProcessPoint(Index, Point); }
+		for (const TSharedPtr<FPCGExActionOperation>& Op : Operations) { Op->ProcessPoint(Index, Point); }
 	}
 
 	void FProcessor::CompleteWork()
@@ -165,6 +165,12 @@ namespace PCGExBatchActions
 		}
 
 		PointDataFacade->Write(AsyncManager);
+	}
+
+	void FProcessor::Cleanup()
+	{
+		TPointsProcessor<FPCGExBatchActionsContext, UPCGExBatchActionsSettings>::Cleanup();
+		Operations.Empty();
 	}
 }
 

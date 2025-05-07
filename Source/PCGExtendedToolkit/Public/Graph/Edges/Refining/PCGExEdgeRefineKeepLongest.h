@@ -9,7 +9,7 @@
 #include "PCGExEdgeRefineKeepLongest.generated.h"
 
 class UPCGExHeuristicLocalDistance;
-class UPCGExHeuristicDistance;
+class FPCGExHeuristicDistance;
 
 /**
  * 

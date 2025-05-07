@@ -13,7 +13,7 @@
 
 #include "PCGExTensorSplineFactoryProvider.generated.h"
 
-class UPCGExTensorOperation;
+class PCGExTensorOperation;
 
 UCLASS(Abstract, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")
 class PCGEXTENDEDTOOLKIT_API UPCGExTensorSplineFactoryData : public UPCGExTensorFactoryData
