@@ -84,7 +84,7 @@ namespace PCGExTensor
 {
 	class FTensorsHandler : public TSharedFromThis<FTensorsHandler>
 	{
-		TArray<UPCGExTensorOperation*> Tensors;
+		TArray<TSharedPtr<PCGExTensorOperation>> Tensors;
 		FPCGExTensorHandlerDetails Config;
 		TSharedPtr<PCGExDetails::TSettingValue<double>> Size;
 

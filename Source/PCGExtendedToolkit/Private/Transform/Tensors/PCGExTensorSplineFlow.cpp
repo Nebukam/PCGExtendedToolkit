@@ -3,16 +3,19 @@
 
 #include "Transform/Tensors/PCGExTensorSplineFlow.h"
 
+
+
+
 #define LOCTEXT_NAMESPACE "PCGExCreateTensorSplineFlow"
 #define PCGEX_NAMESPACE CreateTensorSplineFlow
 
-bool UPCGExTensorSplineFlow::Init(FPCGExContext* InContext, const UPCGExTensorFactoryData* InFactory)
+bool FPCGExTensorSplineFlow::Init(FPCGExContext* InContext, const UPCGExTensorFactoryData* InFactory)
 {
-	if (!Super::Init(InContext, InFactory)) { return false; }
+	if (!PCGExTensorOperation::Init(InContext, InFactory)) { return false; }
 	return true;
 }
 
-PCGExTensor::FTensorSample UPCGExTensorSplineFlow::Sample(const int32 InSeedIndex, const FTransform& InProbe) const
+PCGExTensor::FTensorSample FPCGExTensorSplineFlow::Sample(const int32 InSeedIndex, const FTransform& InProbe) const
 {
 	const FVector& InPosition = InProbe.GetLocation();
 	PCGExTensor::FEffectorSamples Samples = PCGExTensor::FEffectorSamples();

@@ -7,7 +7,7 @@
 #include "PCGExMath.h"
 
 
-void UPCGExGoalPickerAll::CopySettingsFrom(const UPCGExOperation* Other)
+void UPCGExGoalPickerAll::CopySettingsFrom(const UPCGExInstancedFactory* Other)
 {
 	Super::CopySettingsFrom(Other);
 	//if (const UPCGExGoalPickerAll* TypedOther = Cast<UPCGExGoalPickerAll>(Other))	{	}

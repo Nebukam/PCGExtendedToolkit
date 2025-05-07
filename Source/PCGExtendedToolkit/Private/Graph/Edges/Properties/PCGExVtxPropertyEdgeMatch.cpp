@@ -6,21 +6,14 @@
 #include "PCGPin.h"
 
 
+
+
 #define LOCTEXT_NAMESPACE "PCGExVtxPropertyEdgeMatch"
 #define PCGEX_NAMESPACE PCGExVtxPropertyEdgeMatch
 
-void UPCGExVtxPropertyEdgeMatch::CopySettingsFrom(const UPCGExOperation* Other)
+bool FPCGExVtxPropertyEdgeMatch::PrepareForCluster(const FPCGExContext* InContext, TSharedPtr<PCGExCluster::FCluster> InCluster, const TSharedPtr<PCGExData::FFacade>& InVtxDataFacade, const TSharedPtr<PCGExData::FFacade>& InEdgeDataFacade)
 {
-	Super::CopySettingsFrom(Other);
-	if (const UPCGExVtxPropertyEdgeMatch* TypedOther = Cast<UPCGExVtxPropertyEdgeMatch>(Other))
-	{
-		Config = TypedOther->Config;
-	}
-}
-
-bool UPCGExVtxPropertyEdgeMatch::PrepareForCluster(const FPCGExContext* InContext, TSharedPtr<PCGExCluster::FCluster> InCluster, const TSharedPtr<PCGExData::FFacade>& InVtxDataFacade, const TSharedPtr<PCGExData::FFacade>& InEdgeDataFacade)
-{
-	if (!Super::PrepareForCluster(InContext, InCluster, InVtxDataFacade, InEdgeDataFacade)) { return false; }
+	if (!FPCGExVtxPropertyOperation::PrepareForCluster(InContext, InCluster, InVtxDataFacade, InEdgeDataFacade)) { return false; }
 
 	if (!Config.MatchingEdge.Validate(InContext))
 	{
@@ -46,7 +39,7 @@ bool UPCGExVtxPropertyEdgeMatch::PrepareForCluster(const FPCGExContext* InContex
 	return bIsValidOperation;
 }
 
-void UPCGExVtxPropertyEdgeMatch::ProcessNode(PCGExCluster::FNode& Node, const TArray<PCGExCluster::FAdjacencyData>& Adjacency)
+void FPCGExVtxPropertyEdgeMatch::ProcessNode(PCGExCluster::FNode& Node, const TArray<PCGExCluster::FAdjacencyData>& Adjacency)
 {
 	const FPCGPoint& Point = PrimaryDataFacade->Source->GetInPoint(Node.PointIndex);
 
@@ -92,9 +85,9 @@ FString UPCGExVtxPropertyEdgeMatchSettings::GetDisplayName() const
 }
 #endif
 
-UPCGExVtxPropertyOperation* UPCGExVtxPropertyEdgeMatchFactory::CreateOperation(FPCGExContext* InContext) const
+TSharedPtr<FPCGExVtxPropertyOperation> UPCGExVtxPropertyEdgeMatchFactory::CreateOperation(FPCGExContext* InContext) const
 {
-	UPCGExVtxPropertyEdgeMatch* NewOperation = InContext->ManagedObjects->New<UPCGExVtxPropertyEdgeMatch>();
+	PCGEX_FACTORY_NEW_OPERATION(VtxPropertyEdgeMatch)
 	PCGEX_VTX_EXTRA_CREATE
 	return NewOperation;
 }

@@ -13,7 +13,7 @@
 #include "PCGExConnectPoints.generated.h"
 
 class UPCGExProbeFactoryData;
-class UPCGExProbeOperation;
+class FPCGExProbeOperation;
 
 /**
  * 
@@ -94,10 +94,10 @@ namespace PCGExConnectPoints
 
 		TSharedPtr<PCGExGraph::FGraphBuilder> GraphBuilder;
 
-		TArray<UPCGExProbeOperation*> SearchProbes;
-		TArray<UPCGExProbeOperation*> DirectProbes;
-		TArray<UPCGExProbeOperation*> ChainProbeOperations;
-		TArray<UPCGExProbeOperation*> SharedProbeOperations;
+		TArray<TSharedPtr<FPCGExProbeOperation>> SearchProbes;
+		TArray<TSharedPtr<FPCGExProbeOperation>> DirectProbes;
+		TArray<TSharedPtr<FPCGExProbeOperation>> ChainProbeOperations;
+		TArray<TSharedPtr<FPCGExProbeOperation>> SharedProbeOperations;
 		bool bUseVariableRadius = false;
 		int32 NumChainedOps = 0;
 		double SharedSearchRadius = 0;
@@ -132,5 +132,7 @@ namespace PCGExConnectPoints
 		virtual void ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const PCGExMT::FScope& Scope) override;
 		virtual void CompleteWork() override;
 		virtual void Write() override;
+		
+		virtual void Cleanup() override;
 	};
 }

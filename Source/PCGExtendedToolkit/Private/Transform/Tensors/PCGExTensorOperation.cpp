@@ -5,38 +5,28 @@
 #include "Transform/Tensors/PCGExTensorOperation.h"
 #include "Transform/Tensors/PCGExTensorFactoryProvider.h"
 
-void UPCGExTensorOperation::CopySettingsFrom(const UPCGExOperation* Other)
-{
-	Super::CopySettingsFrom(Other);
-	//if (const UPCGExTensorOperation* TypedOther = Cast<UPCGExTensorOperation>(Other))	{	}
-}
-
-bool UPCGExTensorOperation::Init(FPCGExContext* InContext, const UPCGExTensorFactoryData* InFactory)
+bool PCGExTensorOperation::Init(FPCGExContext* InContext, const UPCGExTensorFactoryData* InFactory)
 {
 	Factory = InFactory;
 	return true;
 }
 
-PCGExTensor::FTensorSample UPCGExTensorOperation::Sample(const int32 InSeedIndex, const FTransform& InProbe) const
+PCGExTensor::FTensorSample PCGExTensorOperation::Sample(const int32 InSeedIndex, const FTransform& InProbe) const
 {
 	return PCGExTensor::FTensorSample{};
 }
 
-bool UPCGExTensorOperation::PrepareForData(const TSharedPtr<PCGExData::FFacade>& InDataFacade)
+bool PCGExTensorOperation::PrepareForData(const TSharedPtr<PCGExData::FFacade>& InDataFacade)
 {
 	PrimaryDataFacade = InDataFacade;
 	return true;
 }
 
-void UPCGExTensorPointOperation::CopySettingsFrom(const UPCGExOperation* Other)
+bool PCGExTensorPointOperation::Init(FPCGExContext* InContext, const UPCGExTensorFactoryData* InFactory)
 {
-	Super::CopySettingsFrom(Other);
-	//if (const UPCGExTensorPointOperation* TypedOther = Cast<UPCGExTensorPointOperation>(Other))	{	}
-}
-
-bool UPCGExTensorPointOperation::Init(FPCGExContext* InContext, const UPCGExTensorFactoryData* InFactory)
-{
-	if (!Super::Init(InContext, InFactory)) { return false; }
+	if (!PCGExTensorOperation::Init(InContext, InFactory)) { return false; }
 	Octree = &InFactory->GetOctree();
 	return true;
 }
+
+

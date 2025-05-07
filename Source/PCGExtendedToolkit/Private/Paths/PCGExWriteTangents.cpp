@@ -117,7 +117,7 @@ namespace PCGExWriteTangents
 
 		if (Context->StartTangents)
 		{
-			StartTangents = Context->StartTangents->CopyOperation<UPCGExTangentsOperation>();
+			StartTangents = Context->StartTangents->CreateNewInstance<UPCGExTangentsOperation>();
 			StartTangents->bClosedLoop = bClosedLoop;
 			StartTangents->PrimaryDataFacade = PointDataFacade;
 			if (!StartTangents->PrepareForData(Context)) { return false; }
@@ -126,7 +126,7 @@ namespace PCGExWriteTangents
 
 		if (Context->EndTangents)
 		{
-			EndTangents = Context->EndTangents->CopyOperation<UPCGExTangentsOperation>();
+			EndTangents = Context->EndTangents->CreateNewInstance<UPCGExTangentsOperation>();
 			EndTangents->bClosedLoop = bClosedLoop;
 			EndTangents->PrimaryDataFacade = PointDataFacade;
 			if (!EndTangents->PrepareForData(Context)) { return false; }

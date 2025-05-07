@@ -67,7 +67,7 @@ namespace PCGExWriteVtxProperties
 {
 	FProcessor::~FProcessor()
 	{
-		ExtraOperations.Empty();
+		Operations.Empty();
 	}
 
 	bool FProcessor::Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager)
@@ -78,10 +78,10 @@ namespace PCGExWriteVtxProperties
 
 		for (const UPCGExVtxPropertyFactoryData* Factory : Context->ExtraFactories)
 		{
-			UPCGExVtxPropertyOperation* NewOperation = Factory->CreateOperation(Context);
+			TSharedPtr<FPCGExVtxPropertyOperation> NewOperation = Factory->CreateOperation(Context);
 
 			if (!NewOperation->PrepareForCluster(Context, Cluster, VtxDataFacade, EdgeDataFacade)) { return false; }
-			ExtraOperations.Add(NewOperation);
+			Operations.Add(NewOperation);
 		}
 
 		StartParallelLoopForNodes();
@@ -97,11 +97,17 @@ namespace PCGExWriteVtxProperties
 		GetAdjacencyData(Cluster.Get(), Node, Adjacency);
 		if (VtxNormalWriter) { Node.ComputeNormal(Cluster.Get(), Adjacency, VtxNormalWriter->GetMutable(Node.PointIndex)); }
 
-		for (UPCGExVtxPropertyOperation* Op : ExtraOperations) { Op->ProcessNode(Node, Adjacency); }
+		for (const TSharedPtr<FPCGExVtxPropertyOperation>& Op : Operations) { Op->ProcessNode(Node, Adjacency); }
 	}
 
 	void FProcessor::CompleteWork()
 	{
+	}
+
+	void FProcessor::Cleanup()
+	{
+		TProcessor<FPCGExWriteVtxPropertiesContext, UPCGExWriteVtxPropertiesSettings>::Cleanup();
+		Operations.Empty();
 	}
 
 	//////// BATCH

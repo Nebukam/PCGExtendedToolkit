@@ -5,7 +5,7 @@
 #include "Graph/Pathfinding/GoalPickers/PCGExGoalPickerAttribute.h"
 
 
-void UPCGExGoalPickerAttribute::CopySettingsFrom(const UPCGExOperation* Other)
+void UPCGExGoalPickerAttribute::CopySettingsFrom(const UPCGExInstancedFactory* Other)
 {
 	Super::CopySettingsFrom(Other);
 	if (const UPCGExGoalPickerAttribute* TypedOther = Cast<UPCGExGoalPickerAttribute>(Other))
@@ -14,16 +14,7 @@ void UPCGExGoalPickerAttribute::CopySettingsFrom(const UPCGExOperation* Other)
 		SingleSelector = TypedOther->SingleSelector;
 		AttributeSelectors = TypedOther->AttributeSelectors;
 
-		if (!TypedOther->CommaSeparatedNames.IsEmpty())
-		{
-			for (const TArray<FString> Names = PCGExHelpers::GetStringArrayFromCommaSeparatedList(TypedOther->CommaSeparatedNames);
-			     const FString& Name : Names)
-			{
-				FPCGAttributePropertyInputSelector NewSelector = FPCGAttributePropertyInputSelector();
-				NewSelector.Update(Name);
-				AttributeSelectors.AddUnique(NewSelector);
-			}
-		}
+		PCGExHelpers::AppendUniqueSelectorsFromCommaSeparatedList(TypedOther->CommaSeparatedNames, AttributeSelectors);
 	}
 }
 
@@ -43,16 +34,7 @@ bool UPCGExGoalPickerAttribute::PrepareForData(FPCGExContext* InContext, const T
 	}
 	else
 	{
-		if (!CommaSeparatedNames.IsEmpty())
-		{
-			for (const TArray<FString> Names = PCGExHelpers::GetStringArrayFromCommaSeparatedList(CommaSeparatedNames);
-			     const FString& Name : Names)
-			{
-				FPCGAttributePropertyInputSelector NewSelector = FPCGAttributePropertyInputSelector();
-				NewSelector.Update(Name);
-				AttributeSelectors.AddUnique(NewSelector);
-			}
-		}
+		PCGExHelpers::AppendUniqueSelectorsFromCommaSeparatedList(CommaSeparatedNames, AttributeSelectors);
 
 		AttributeGetters.Reset(AttributeSelectors.Num());
 		for (const FPCGAttributePropertyInputSelector& Selector : AttributeSelectors)

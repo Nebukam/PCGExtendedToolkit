@@ -6,7 +6,7 @@
 #define LOCTEXT_NAMESPACE "PCGExCreateProbe"
 #define PCGEX_NAMESPACE CreateProbe
 
-UPCGExProbeOperation* UPCGExProbeFactoryData::CreateOperation(FPCGExContext* InContext) const
+TSharedPtr<FPCGExProbeOperation> UPCGExProbeFactoryData::CreateOperation(FPCGExContext* InContext) const
 {
 	return nullptr; // Create probe operation
 }

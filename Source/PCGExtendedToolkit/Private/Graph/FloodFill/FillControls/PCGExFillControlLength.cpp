@@ -5,11 +5,13 @@
 #include "Graph/FloodFill/FillControls/PCGExFillControlLength.h"
 
 
+
+
 #include "Graph/FloodFill/FillControls/PCGExFillControlsFactoryProvider.h"
 
-bool UPCGExFillControlLength::PrepareForDiffusions(FPCGExContext* InContext, const TSharedPtr<PCGExFloodFill::FFillControlsHandler>& InHandler)
+bool FPCGExFillControlLength::PrepareForDiffusions(FPCGExContext* InContext, const TSharedPtr<PCGExFloodFill::FFillControlsHandler>& InHandler)
 {
-	if (!Super::PrepareForDiffusions(InContext, InHandler)) { return false; }
+	if (!FPCGExFillControlOperation::PrepareForDiffusions(InContext, InHandler)) { return false; }
 
 	const UPCGExFillControlsFactoryLength* TypedFactory = Cast<UPCGExFillControlsFactoryLength>(Factory);
 	bUsePathLength = TypedFactory->Config.bUsePathLength;
@@ -20,30 +22,24 @@ bool UPCGExFillControlLength::PrepareForDiffusions(FPCGExContext* InContext, con
 	return true;
 }
 
-bool UPCGExFillControlLength::IsValidCapture(const PCGExFloodFill::FDiffusion* Diffusion, const PCGExFloodFill::FCandidate& Candidate)
+bool FPCGExFillControlLength::IsValidCapture(const PCGExFloodFill::FDiffusion* Diffusion, const PCGExFloodFill::FCandidate& Candidate)
 {
 	return (bUsePathLength ? Candidate.PathDistance : Candidate.Distance) <= DistanceLimit->Read(GetSettingsIndex(Diffusion));
 }
 
-bool UPCGExFillControlLength::IsValidProbe(const PCGExFloodFill::FDiffusion* Diffusion, const PCGExFloodFill::FCandidate& Candidate)
+bool FPCGExFillControlLength::IsValidProbe(const PCGExFloodFill::FDiffusion* Diffusion, const PCGExFloodFill::FCandidate& Candidate)
 {
 	return (bUsePathLength ? Candidate.PathDistance : Candidate.Distance) <= DistanceLimit->Read(GetSettingsIndex(Diffusion));
 }
 
-bool UPCGExFillControlLength::IsValidCandidate(const PCGExFloodFill::FDiffusion* Diffusion, const PCGExFloodFill::FCandidate& From, const PCGExFloodFill::FCandidate& Candidate)
+bool FPCGExFillControlLength::IsValidCandidate(const PCGExFloodFill::FDiffusion* Diffusion, const PCGExFloodFill::FCandidate& From, const PCGExFloodFill::FCandidate& Candidate)
 {
 	return (bUsePathLength ? Candidate.PathDistance : Candidate.Distance) <= DistanceLimit->Read(GetSettingsIndex(Diffusion));
 }
 
-void UPCGExFillControlLength::Cleanup()
+TSharedPtr<FPCGExFillControlOperation> UPCGExFillControlsFactoryLength::CreateOperation(FPCGExContext* InContext) const
 {
-	DistanceLimit.Reset();
-	Super::Cleanup();
-}
-
-UPCGExFillControlOperation* UPCGExFillControlsFactoryLength::CreateOperation(FPCGExContext* InContext) const
-{
-	UPCGExFillControlLength* NewOperation = InContext->ManagedObjects->New<UPCGExFillControlLength>();
+	PCGEX_FACTORY_NEW_OPERATION(FillControlLength)
 	PCGEX_FORWARD_FILLCONTROL_OPERATION
 	return NewOperation;
 }

@@ -9,11 +9,13 @@
 #include "PCGExPointsProcessor.h"
 
 
+
+
 #include "Graph/PCGExCluster.h"
 
 #include "PCGExHeuristicAttribute.generated.h"
 
-class UPCGExHeuristicOperation;
+class FPCGExHeuristicOperation;
 
 USTRUCT(BlueprintType)
 struct FPCGExHeuristicAttributeConfig : public FPCGExHeuristicConfigBase
@@ -45,11 +47,8 @@ struct FPCGExHeuristicAttributeConfig : public FPCGExHeuristicConfigBase
 /**
  * 
  */
-UCLASS(MinimalAPI, DisplayName = "Attribute")
-class UPCGExHeuristicAttribute : public UPCGExHeuristicOperation
+class FPCGExHeuristicAttribute : public FPCGExHeuristicOperation
 {
-	GENERATED_BODY()
-
 public:
 	virtual void PrepareForCluster(const TSharedPtr<const PCGExCluster::FCluster>& InCluster) override;
 
@@ -60,8 +59,6 @@ public:
 		const PCGExCluster::FNode& Seed,
 		const PCGExCluster::FNode& Goal,
 		const TSharedPtr<PCGEx::FHashLookup> TravelStack) const override;
-
-	virtual void Cleanup() override;
 
 	EPCGExClusterComponentSource Source = EPCGExClusterComponentSource::Vtx;
 	FPCGAttributePropertyInputSelector Attribute;
@@ -82,7 +79,7 @@ public:
 	UPROPERTY()
 	FPCGExHeuristicAttributeConfig Config;
 
-	virtual UPCGExHeuristicOperation* CreateOperation(FPCGExContext* InContext) const override;
+	virtual TSharedPtr<FPCGExHeuristicOperation> CreateOperation(FPCGExContext* InContext) const override;
 	PCGEX_HEURISTIC_FACTORY_BOILERPLATE
 
 	virtual void RegisterBuffersDependencies(FPCGExContext* InContext, PCGExData::FFacadePreloader& FacadePreloader) const override;

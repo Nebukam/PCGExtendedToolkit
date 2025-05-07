@@ -8,22 +8,15 @@
 #include "UObject/Object.h"
 #include "PCGExOperation.h"
 #include "PCGExShapes.h"
-#include "PCGExShapeBuilderOperation.generated.h"
 
 /**
  * 
  */
-UCLASS(Abstract)
-class PCGEXTENDEDTOOLKIT_API UPCGExShapeBuilderOperation : public UPCGExOperation
+class PCGEXTENDEDTOOLKIT_API FPCGExShapeBuilderOperation : public FPCGExOperation
 {
-	GENERATED_BODY()
-
 public:
-	virtual void CopySettingsFrom(const UPCGExOperation* Other) override;
 	virtual bool PrepareForSeeds(FPCGExContext* InContext, const TSharedRef<PCGExData::FFacade>& InSeedDataFacade);
 
-	virtual void Cleanup() override;
-	
 	TArray<TSharedPtr<PCGExShapes::FShape>> Shapes;
 	FTransform Transform;
 	FPCGExShapeConfigBase BaseConfig;

@@ -3,16 +3,19 @@
 
 #include "Transform/Tensors/PCGExTensorInertia.h"
 
+
+
+
 #define LOCTEXT_NAMESPACE "PCGExCreateTensorInertia"
 #define PCGEX_NAMESPACE CreateTensorInertia
 
-bool UPCGExTensorInertia::Init(FPCGExContext* InContext, const UPCGExTensorFactoryData* InFactory)
+bool FPCGExTensorInertia::Init(FPCGExContext* InContext, const UPCGExTensorFactoryData* InFactory)
 {
-	if (!Super::Init(InContext, InFactory)) { return false; }
+	if (!PCGExTensorPointOperation::Init(InContext, InFactory)) { return false; }
 	return true;
 }
 
-PCGExTensor::FTensorSample UPCGExTensorInertia::Sample(const int32 InSeedIndex, const FTransform& InProbe) const
+PCGExTensor::FTensorSample FPCGExTensorInertia::Sample(const int32 InSeedIndex, const FTransform& InProbe) const
 {
 	const FVector& InPosition = InProbe.GetLocation();
 	const FBoxCenterAndExtent BCAE = FBoxCenterAndExtent(InPosition, FVector::One());

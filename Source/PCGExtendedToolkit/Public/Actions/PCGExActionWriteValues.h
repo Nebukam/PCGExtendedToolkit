@@ -11,6 +11,8 @@
 #include "PCGExOperation.h"
 
 
+
+
 #include "PCGExActionWriteValues.generated.h"
 
 namespace PCGExActionWriteValues
@@ -24,21 +26,14 @@ class UPCGExActionWriteValuesFactory;
 /**
  * 
  */
-UCLASS(MinimalAPI)
-class UPCGExActionWriteValuesOperation : public UPCGExActionOperation
+class FPCGExActionWriteValuesOperation : public FPCGExActionOperation
 {
-	GENERATED_BODY()
-
 public:
 	UPCGExActionWriteValuesFactory* TypedFactory = nullptr;
-
-	virtual void CopySettingsFrom(const UPCGExOperation* Other) override;
 
 	virtual bool PrepareForData(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade>& InPointDataFacade) override;
 	virtual void OnMatchSuccess(int32 Index, const FPCGPoint& Point) override;
 	virtual void OnMatchFail(int32 Index, const FPCGPoint& Point) override;
-
-	virtual void Cleanup() override;
 
 protected:
 	TArray<FPCGMetadataAttributeBase*> SuccessAttributes;
@@ -55,7 +50,7 @@ class UPCGExActionWriteValuesFactory : public UPCGExActionFactoryData
 	GENERATED_BODY()
 
 public:
-	virtual UPCGExActionOperation* CreateOperation(FPCGExContext* InContext) const override;
+	virtual TSharedPtr<FPCGExActionOperation> CreateOperation(FPCGExContext* InContext) const override;
 	virtual bool Boot(FPCGContext* InContext) override;
 
 protected:

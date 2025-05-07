@@ -4,7 +4,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "PCGExOperation.h"
+#include "PCGExInstancedFactory.h"
 #include "Data/Blending/PCGExMetadataBlender.h"
 #include "PCGExSmoothingOperation.generated.h"
 
@@ -12,7 +12,7 @@
  * 
  */
 UCLASS(Abstract)
-class PCGEXTENDEDTOOLKIT_API UPCGExSmoothingOperation : public UPCGExOperation
+class PCGEXTENDEDTOOLKIT_API UPCGExSmoothingOperation : public UPCGExInstancedFactory
 {
 	GENERATED_BODY()
 

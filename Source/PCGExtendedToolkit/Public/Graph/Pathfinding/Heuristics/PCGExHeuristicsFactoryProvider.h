@@ -6,6 +6,8 @@
 #include "CoreMinimal.h"
 #include "PCGExPointsProcessor.h"
 
+
+
 #include "PCGExHeuristicsFactoryProvider.generated.h"
 
 #define PCGEX_HEURISTIC_FACTORY_BOILERPLATE \
@@ -32,7 +34,7 @@ void UPCGExHeuristicsFactory##_TYPE::RegisterAssetDependencies(FPCGExContext* In
 	NewOperation->LocalWeightMultiplierSource = Config.LocalWeightMultiplierSource; \
 	NewOperation->WeightMultiplierAttribute = Config.WeightMultiplierAttribute;
 
-class UPCGExHeuristicOperation;
+class FPCGExHeuristicOperation;
 
 USTRUCT(BlueprintType)
 struct PCGEXTENDEDTOOLKIT_API FPCGExHeuristicConfigBase
@@ -107,7 +109,7 @@ public:
 
 	virtual bool RegisterConsumableAttributesWithData(FPCGExContext* InContext, const UPCGData* InData) const override;
 
-	virtual UPCGExHeuristicOperation* CreateOperation(FPCGExContext* InContext) const;
+	virtual TSharedPtr<FPCGExHeuristicOperation> CreateOperation(FPCGExContext* InContext) const;
 	double WeightFactor = 1;
 };
 

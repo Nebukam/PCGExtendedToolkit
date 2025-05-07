@@ -108,6 +108,10 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExAttributeToTagDetails
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
 	TArray<FPCGAttributePropertyInputSelector> Attributes;
 
+	/** A list of selectors separated by a comma, for easy overrides. Will be appended to the existing array. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	FString CommaSeparatedAttributeSelectors;
+
 	TSharedPtr<PCGExData::FFacade> SourceDataFacade;
 	TArray<TSharedPtr<PCGEx::TAttributeBroadcaster<FString>>> Getters;
 

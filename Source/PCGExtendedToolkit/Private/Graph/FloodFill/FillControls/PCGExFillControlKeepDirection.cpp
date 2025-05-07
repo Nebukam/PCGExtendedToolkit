@@ -5,11 +5,13 @@
 #include "Graph/FloodFill/FillControls/PCGExFillControlKeepDirection.h"
 
 
+
+
 #include "Graph/FloodFill/FillControls/PCGExFillControlsFactoryProvider.h"
 
-bool UPCGExFillControlKeepDirection::PrepareForDiffusions(FPCGExContext* InContext, const TSharedPtr<PCGExFloodFill::FFillControlsHandler>& InHandler)
+bool FPCGExFillControlKeepDirection::PrepareForDiffusions(FPCGExContext* InContext, const TSharedPtr<PCGExFloodFill::FFillControlsHandler>& InHandler)
 {
-	if (!Super::PrepareForDiffusions(InContext, InHandler)) { return false; }
+	if (!FPCGExFillControlOperation::PrepareForDiffusions(InContext, InHandler)) { return false; }
 
 	const UPCGExFillControlsFactoryKeepDirection* TypedFactory = Cast<UPCGExFillControlsFactoryKeepDirection>(Factory);
 
@@ -22,7 +24,7 @@ bool UPCGExFillControlKeepDirection::PrepareForDiffusions(FPCGExContext* InConte
 	return true;
 }
 
-bool UPCGExFillControlKeepDirection::IsValidCandidate(const PCGExFloodFill::FDiffusion* Diffusion, const PCGExFloodFill::FCandidate& From, const PCGExFloodFill::FCandidate& Candidate)
+bool FPCGExFillControlKeepDirection::IsValidCandidate(const PCGExFloodFill::FDiffusion* Diffusion, const PCGExFloodFill::FCandidate& From, const PCGExFloodFill::FCandidate& Candidate)
 {
 	const int32 Window = WindowSize->Read(GetSettingsIndex(Diffusion));
 
@@ -54,15 +56,9 @@ bool UPCGExFillControlKeepDirection::IsValidCandidate(const PCGExFloodFill::FDif
 	return true;
 }
 
-void UPCGExFillControlKeepDirection::Cleanup()
+TSharedPtr<FPCGExFillControlOperation> UPCGExFillControlsFactoryKeepDirection::CreateOperation(FPCGExContext* InContext) const
 {
-	DistanceLimit.Reset();
-	Super::Cleanup();
-}
-
-UPCGExFillControlOperation* UPCGExFillControlsFactoryKeepDirection::CreateOperation(FPCGExContext* InContext) const
-{
-	UPCGExFillControlKeepDirection* NewOperation = InContext->ManagedObjects->New<UPCGExFillControlKeepDirection>();
+	PCGEX_FACTORY_NEW_OPERATION(FillControlKeepDirection)
 	PCGEX_FORWARD_FILLCONTROL_OPERATION
 	return NewOperation;
 }

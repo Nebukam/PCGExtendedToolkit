@@ -4,20 +4,12 @@
 #include "Actions/PCGExActionFactoryProvider.h"
 #include "PCGPin.h"
 
+
+
 #define LOCTEXT_NAMESPACE "PCGExWriteActions"
 #define PCGEX_NAMESPACE PCGExWriteActions
 
-
-void UPCGExActionOperation::CopySettingsFrom(const UPCGExOperation* Other)
-{
-	Super::CopySettingsFrom(Other);
-	if (const UPCGExActionOperation* TypedOther = Cast<UPCGExActionOperation>(Other))
-	{
-		Factory = TypedOther->Factory;
-	}
-}
-
-bool UPCGExActionOperation::PrepareForData(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade>& InPointDataFacade)
+bool FPCGExActionOperation::PrepareForData(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade>& InPointDataFacade)
 {
 	PrimaryDataFacade = InPointDataFacade;
 
@@ -28,32 +20,27 @@ bool UPCGExActionOperation::PrepareForData(FPCGExContext* InContext, const TShar
 	return true;
 }
 
-void UPCGExActionOperation::ProcessPoint(const int32 Index, const FPCGPoint& Point)
+void FPCGExActionOperation::ProcessPoint(const int32 Index, const FPCGPoint& Point)
 {
 	if (FilterManager->Test(Index)) { OnMatchSuccess(Index, Point); }
 	else { OnMatchFail(Index, Point); }
 }
 
-void UPCGExActionOperation::OnMatchSuccess(int32 Index, const FPCGPoint& Point)
+void FPCGExActionOperation::OnMatchSuccess(int32 Index, const FPCGPoint& Point)
 {
 }
 
-void UPCGExActionOperation::OnMatchFail(int32 Index, const FPCGPoint& Point)
+void FPCGExActionOperation::OnMatchFail(int32 Index, const FPCGPoint& Point)
 {
-}
-
-void UPCGExActionOperation::Cleanup()
-{
-	Super::Cleanup();
 }
 
 #if WITH_EDITOR
 FString UPCGExActionProviderSettings::GetDisplayName() const { return TEXT(""); }
 #endif
 
-UPCGExActionOperation* UPCGExActionFactoryData::CreateOperation(FPCGExContext* InContext) const
+TSharedPtr<FPCGExActionOperation> UPCGExActionFactoryData::CreateOperation(FPCGExContext* InContext) const
 {
-	UPCGExActionOperation* NewOperation = InContext->ManagedObjects->New<UPCGExActionOperation>();
+	PCGEX_FACTORY_NEW_OPERATION(ActionOperation)
 	NewOperation->Factory = const_cast<UPCGExActionFactoryData*>(this);
 	return NewOperation;
 }

@@ -10,6 +10,8 @@
 #include "PCGExTensorOperation.h"
 #include "PCGExTensorSplineFactoryProvider.h"
 
+
+
 #include "PCGExTensorSplineFlow.generated.h"
 
 
@@ -39,11 +41,8 @@ struct FPCGExTensorSplineFlowConfig : public FPCGExTensorConfigBase
 /**
  * 
  */
-UCLASS(MinimalAPI)
-class UPCGExTensorSplineFlow : public UPCGExTensorOperation
+class FPCGExTensorSplineFlow : public PCGExTensorOperation
 {
-	GENERATED_BODY()
-
 public:
 	FPCGExTensorSplineFlowConfig Config;
 	const TArray<FPCGSplineStruct>* Splines = nullptr;
@@ -61,7 +60,7 @@ class UPCGExTensorSplineFlowFactory : public UPCGExTensorSplineFactoryData
 
 public:
 	FPCGExTensorSplineFlowConfig Config;
-	virtual UPCGExTensorOperation* CreateOperation(FPCGExContext* InContext) const override;
+	virtual TSharedPtr<PCGExTensorOperation> CreateOperation(FPCGExContext* InContext) const override;
 	virtual bool Prepare(FPCGExContext* InContext) override;
 };
 

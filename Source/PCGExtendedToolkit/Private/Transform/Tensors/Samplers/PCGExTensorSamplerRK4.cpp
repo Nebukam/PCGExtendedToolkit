@@ -4,10 +4,12 @@
 
 #include "Transform/Tensors/Samplers/PCGExTensorSamplerRK4.h"
 
+
+
 #include "Transform/Tensors/PCGExTensorOperation.h"
 
 
-void UPCGExTensorSamplerRK4::CopySettingsFrom(const UPCGExOperation* Other)
+void UPCGExTensorSamplerRK4::CopySettingsFrom(const UPCGExInstancedFactory* Other)
 {
 	Super::CopySettingsFrom(Other);
 }
@@ -17,7 +19,7 @@ bool UPCGExTensorSamplerRK4::PrepareForData(FPCGExContext* InContext)
 	return true;
 }
 
-PCGExTensor::FTensorSample UPCGExTensorSamplerRK4::Sample(const TArray<UPCGExTensorOperation*>& InTensors, const int32 InSeedIndex, const FTransform& InProbe, bool& OutSuccess) const
+PCGExTensor::FTensorSample UPCGExTensorSamplerRK4::Sample(const TArray<TSharedPtr<PCGExTensorOperation>>& InTensors, const int32 InSeedIndex, const FTransform& InProbe, bool& OutSuccess) const
 {
 	TRACE_CPUPROFILER_EVENT_SCOPE(UPCGExTensorSamplerRK4::Sample);
 

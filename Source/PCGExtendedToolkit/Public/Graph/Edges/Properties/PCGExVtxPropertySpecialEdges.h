@@ -10,6 +10,8 @@
 #include "PCGExVtxPropertyFactoryProvider.h"
 
 
+
+
 #include "Graph/PCGExCluster.h"
 #include "Graph/PCGExGraph.h"
 
@@ -34,17 +36,14 @@ struct FPCGExSpecialEdgesConfig
 };
 
 /**
- * ó
+ * 
  */
-UCLASS(MinimalAPI)
-class UPCGExVtxPropertySpecialEdges : public UPCGExVtxPropertyOperation
+class FPCGExVtxPropertySpecialEdges : public FPCGExVtxPropertyOperation
 {
-	GENERATED_BODY()
 
 public:
 	FPCGExSpecialEdgesConfig Config;
 
-	virtual void CopySettingsFrom(const UPCGExOperation* Other) override;
 	virtual bool PrepareForCluster(
 		const FPCGExContext* InContext,
 		TSharedPtr<PCGExCluster::FCluster> InCluster,
@@ -52,11 +51,6 @@ public:
 		const TSharedPtr<PCGExData::FFacade>& InEdgeDataFacade) override;
 	virtual void ProcessNode(PCGExCluster::FNode& Node, const TArray<PCGExCluster::FAdjacencyData>& Adjacency) override;
 
-	virtual void Cleanup() override
-	{
-		Config = FPCGExSpecialEdgesConfig{};
-		Super::Cleanup();
-	}
 };
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")
@@ -66,7 +60,7 @@ class UPCGExVtxPropertySpecialEdgesFactory : public UPCGExVtxPropertyFactoryData
 
 public:
 	FPCGExSpecialEdgesConfig Config;
-	virtual UPCGExVtxPropertyOperation* CreateOperation(FPCGExContext* InContext) const override;
+	virtual TSharedPtr<FPCGExVtxPropertyOperation> CreateOperation(FPCGExContext* InContext) const override;
 };
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|VtxProperty")

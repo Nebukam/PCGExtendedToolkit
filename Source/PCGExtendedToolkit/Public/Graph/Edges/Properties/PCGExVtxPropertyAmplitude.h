@@ -12,6 +12,8 @@
 #include "Data/PCGExPointFilter.h"
 
 
+
+
 #include "Graph/PCGExCluster.h"
 #include "Graph/PCGExGraph.h"
 
@@ -133,26 +135,19 @@ struct FPCGExAmplitudeConfig
 /**
  * 
  */
-UCLASS(MinimalAPI)
-class UPCGExVtxPropertyAmplitude : public UPCGExVtxPropertyOperation
+class FPCGExVtxPropertyAmplitude : public FPCGExVtxPropertyOperation
 {
-	GENERATED_BODY()
-
 public:
-	UPROPERTY()
 	FPCGExAmplitudeConfig Config;
 
 	TArray<TObjectPtr<const UPCGExFilterFactoryData>>* FilterFactories = nullptr;
 
-	virtual void CopySettingsFrom(const UPCGExOperation* Other) override;
 	virtual bool PrepareForCluster(
 		const FPCGExContext* InContext,
 		TSharedPtr<PCGExCluster::FCluster> InCluster,
 		const TSharedPtr<PCGExData::FFacade>& InVtxDataFacade,
 		const TSharedPtr<PCGExData::FFacade>& InEdgeDataFacade) override;
 	virtual void ProcessNode(PCGExCluster::FNode& Node, const TArray<PCGExCluster::FAdjacencyData>& Adjacency) override;
-
-	virtual void Cleanup() override;
 
 protected:
 	TSharedPtr<PCGExDetails::TSettingValue<FVector>> DirCache;
@@ -177,7 +172,7 @@ class UPCGExVtxPropertyAmplitudeFactory : public UPCGExVtxPropertyFactoryData
 
 public:
 	FPCGExAmplitudeConfig Config;
-	virtual UPCGExVtxPropertyOperation* CreateOperation(FPCGExContext* InContext) const override;
+	virtual TSharedPtr<FPCGExVtxPropertyOperation> CreateOperation(FPCGExContext* InContext) const override;
 	virtual void RegisterBuffersDependencies(FPCGExContext* InContext, PCGExData::FFacadePreloader& FacadePreloader) const override;
 };
 

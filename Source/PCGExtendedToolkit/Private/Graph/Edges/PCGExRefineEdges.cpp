@@ -165,7 +165,7 @@ namespace PCGExRefineEdges
 
 		Sanitization = Settings->Sanitization;
 
-		Refinement = Context->Refinement->CopyOperation<UPCGExEdgeRefineOperation>();
+		Refinement = Context->Refinement->CreateNewInstance<UPCGExEdgeRefineOperation>();
 		Refinement->PrimaryDataFacade = VtxDataFacade;
 		Refinement->SecondaryDataFacade = EdgeDataFacade;
 

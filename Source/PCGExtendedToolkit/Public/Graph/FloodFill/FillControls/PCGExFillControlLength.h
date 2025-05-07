@@ -10,6 +10,8 @@
 #include "PCGExFillControlsFactoryProvider.h"
 
 
+
+
 #include "Graph/PCGExCluster.h"
 #include "PCGExFillControlLength.generated.h"
 
@@ -47,11 +49,8 @@ struct FPCGExFillControlConfigLength : public FPCGExFillControlConfigBase
 /**
  * 
  */
-UCLASS(MinimalAPI, DisplayName = "Length")
-class UPCGExFillControlLength : public UPCGExFillControlOperation
+class FPCGExFillControlLength : public FPCGExFillControlOperation
 {
-	GENERATED_BODY()
-
 	friend class UPCGExFillControlsFactoryLength;
 
 public:
@@ -60,8 +59,6 @@ public:
 	virtual bool IsValidCapture(const PCGExFloodFill::FDiffusion* Diffusion, const PCGExFloodFill::FCandidate& Candidate) override;
 	virtual bool IsValidProbe(const PCGExFloodFill::FDiffusion* Diffusion, const PCGExFloodFill::FCandidate& Candidate) override;
 	virtual bool IsValidCandidate(const PCGExFloodFill::FDiffusion* Diffusion, const PCGExFloodFill::FCandidate& From, const PCGExFloodFill::FCandidate& Candidate) override;
-
-	virtual void Cleanup() override;
 
 protected:
 	bool bUsePathLength = true;
@@ -77,7 +74,7 @@ public:
 	UPROPERTY()
 	FPCGExFillControlConfigLength Config;
 
-	virtual UPCGExFillControlOperation* CreateOperation(FPCGExContext* InContext) const override;
+	virtual TSharedPtr<FPCGExFillControlOperation> CreateOperation(FPCGExContext* InContext) const override;
 
 	virtual void RegisterBuffersDependencies(FPCGExContext* InContext, PCGExData::FFacadePreloader& FacadePreloader) const override;
 };

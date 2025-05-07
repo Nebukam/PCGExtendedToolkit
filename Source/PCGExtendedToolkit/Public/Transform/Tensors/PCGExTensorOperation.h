@@ -9,20 +9,14 @@
 #include "PCGExTensor.h"
 #include "Data/PCGSplineStruct.h"
 #include "Paths/PCGExPaths.h"
-#include "PCGExTensorOperation.generated.h"
 
 class UPCGExTensorFactoryData;
 /**
  * 
  */
-UCLASS(Abstract)
-class PCGEXTENDEDTOOLKIT_API UPCGExTensorOperation : public UPCGExOperation
+class PCGEXTENDEDTOOLKIT_API PCGExTensorOperation : public FPCGExOperation
 {
-	GENERATED_BODY()
-
 public:
-	virtual void CopySettingsFrom(const UPCGExOperation* Other) override;
-
 	TObjectPtr<const UPCGExTensorFactoryData> Factory = nullptr;
 	FPCGExTensorConfigBase BaseConfig;
 
@@ -77,22 +71,14 @@ public:
 		return true;
 	}
 
-	virtual void Cleanup() override
-	{
-		Factory = nullptr;
-	}
 };
 
 /**
  * 
  */
-UCLASS(Abstract)
-class PCGEXTENDEDTOOLKIT_API UPCGExTensorPointOperation : public UPCGExTensorOperation
+class PCGEXTENDEDTOOLKIT_API PCGExTensorPointOperation : public PCGExTensorOperation
 {
-	GENERATED_BODY()
-
 public:
-	virtual void CopySettingsFrom(const UPCGExOperation* Other) override;
 	virtual bool Init(FPCGExContext* InContext, const UPCGExTensorFactoryData* InFactory) override;
 
 	const UPCGPointData::PointOctree* Octree = nullptr;
