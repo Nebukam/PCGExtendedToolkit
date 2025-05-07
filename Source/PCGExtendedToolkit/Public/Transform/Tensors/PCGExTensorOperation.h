@@ -70,7 +70,6 @@ public:
 
 		return true;
 	}
-
 };
 
 /**

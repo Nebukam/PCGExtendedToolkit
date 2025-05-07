@@ -5,7 +5,6 @@
 #include "Transform/Tensors/Samplers/PCGExTensorSamplerSixPoints.h"
 
 
-
 #include "Transform/Tensors/PCGExTensorOperation.h"
 
 

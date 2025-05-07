@@ -4,8 +4,6 @@
 #include "Transform/Tensors/PCGExTensorInertiaConstant.h"
 
 
-
-
 #define LOCTEXT_NAMESPACE "PCGExCreateTensorInertiaConstant"
 #define PCGEX_NAMESPACE CreateTensorInertiaConstant
 

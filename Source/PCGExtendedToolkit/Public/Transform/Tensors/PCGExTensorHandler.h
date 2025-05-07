@@ -70,7 +70,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExTensorHandlerDetails
 	double SizeConstant = 1;
 
 	PCGEX_SETTING_VALUE_GET(Size, double, SizeInput, SizeAttribute, SizeConstant)
-	
+
 	/** Uniform scale factor applied to sampling after all other mutations are accounted for. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	double UniformScale = 1;

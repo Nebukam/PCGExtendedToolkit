@@ -25,5 +25,4 @@ void FPCGExOperation::RegisterPrimaryBuffersDependencies(PCGExData::FFacadePrelo
 
 void FPCGExOperation::RegisterAssetDependencies(FPCGExContext* InContext)
 {
-	
 }

@@ -82,7 +82,7 @@ public:
 	int32 Iterations = 1;
 
 	PCGEX_SETTING_VALUE_GET_BOOL(Iterations, int32, bUsePerPointMaxIterations, IterationsAttribute, Iterations)
-	
+
 	/** Whether to adjust max iteration based on max value found on points. Use at your own risks! */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Use Max from Points", ClampMin=1, EditCondition="bUsePerPointMaxIterations", HideEditConditionToggle))
 	bool bUseMaxFromPoints = false;
@@ -104,7 +104,7 @@ public:
 	double MaxLength = 100;
 
 	PCGEX_SETTING_VALUE_GET(MaxLength, double, MaxLengthInput, MaxLengthAttribute, MaxLength)
-	
+
 	/** Whether to limit the number of points in a generated path */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Limits", meta=(PCG_NotOverridable))
 	bool bUseMaxPointsCount = false;

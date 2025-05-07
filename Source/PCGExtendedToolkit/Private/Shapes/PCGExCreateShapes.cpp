@@ -69,7 +69,7 @@ namespace PCGExCreateShapes
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExCreateShapes::Process);
 
 		PointDataFacade->bSupportsScopedGet = Context->bScopedAttributeGet;
-		
+
 		if (!FPointsProcessor::Process(InAsyncManager)) { return false; }
 
 		Builders.Reserve(Context->BuilderFactories.Num());
@@ -93,7 +93,7 @@ namespace PCGExCreateShapes
 	void FProcessor::ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const PCGExMT::FScope& Scope)
 	{
 		const PCGExData::FPointRef PointRef = PointDataFacade->Source->GetInPointRef(Index);
-		for (const TSharedPtr<FPCGExShapeBuilderOperation> Op : Builders) { Op->PrepareShape(PointRef); }
+		for (const TSharedPtr<FPCGExShapeBuilderOperation>& Op : Builders) { Op->PrepareShape(PointRef); }
 	}
 
 	void FProcessor::OnPointsProcessingComplete()

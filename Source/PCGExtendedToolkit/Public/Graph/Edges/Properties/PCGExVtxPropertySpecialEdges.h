@@ -10,8 +10,6 @@
 #include "PCGExVtxPropertyFactoryProvider.h"
 
 
-
-
 #include "Graph/PCGExCluster.h"
 #include "Graph/PCGExGraph.h"
 
@@ -40,7 +38,6 @@ struct FPCGExSpecialEdgesConfig
  */
 class FPCGExVtxPropertySpecialEdges : public FPCGExVtxPropertyOperation
 {
-
 public:
 	FPCGExSpecialEdgesConfig Config;
 
@@ -50,7 +47,6 @@ public:
 		const TSharedPtr<PCGExData::FFacade>& InVtxDataFacade,
 		const TSharedPtr<PCGExData::FFacade>& InEdgeDataFacade) override;
 	virtual void ProcessNode(PCGExCluster::FNode& Node, const TArray<PCGExCluster::FAdjacencyData>& Adjacency) override;
-
 };
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")

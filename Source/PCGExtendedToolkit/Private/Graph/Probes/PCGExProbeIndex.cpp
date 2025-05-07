@@ -5,7 +5,6 @@
 #include "PCGExMath.h"
 
 
-
 PCGEX_CREATE_PROBE_FACTORY(Index, {}, {})
 
 bool FPCGExProbeIndex::RequiresOctree() { return false; }

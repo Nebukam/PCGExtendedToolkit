@@ -9,8 +9,6 @@
 #include "PCGExHeuristicOperation.h"
 
 
-
-
 #include "Graph/PCGExCluster.h"
 
 #include "PCGExHeuristicFeedback.generated.h"
@@ -72,7 +70,6 @@ public:
 	void FeedbackPointScore(const PCGExCluster::FNode& Node);
 
 	void FeedbackScore(const PCGExCluster::FNode& Node, const PCGExGraph::FEdge& Edge);
-
 };
 
 ////

@@ -58,7 +58,7 @@ public:
 	double InfluenceConstant = 1.0;
 
 	PCGEX_SETTING_VALUE_GET(Influence, double, InfluenceInput, InfluenceAttribute, InfluenceConstant)
-	
+
 	/** Fetch the smoothing from a local attribute.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	EPCGExInputValueType SmoothingAmountType = EPCGExInputValueType::Constant;
@@ -72,7 +72,7 @@ public:
 	double SmoothingAmountConstant = 5;
 
 	PCGEX_SETTING_VALUE_GET(SmoothingAmount, double, SmoothingAmountType, SmoothingAmountAttribute, SmoothingAmountConstant)
-	
+
 	/** Static multiplier for the local smoothing amount. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ClampMin=0.001))
 	double ScaleSmoothingAmountAttribute = 1;

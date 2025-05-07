@@ -5,8 +5,6 @@
 #include "Graph/FloodFill/FillControls/PCGExFillControlRunningAverage.h"
 
 
-
-
 #include "Graph/FloodFill/FillControls/PCGExFillControlsFactoryProvider.h"
 
 bool FPCGExFillControlRunningAverage::PrepareForDiffusions(FPCGExContext* InContext, const TSharedPtr<PCGExFloodFill::FFillControlsHandler>& InHandler)

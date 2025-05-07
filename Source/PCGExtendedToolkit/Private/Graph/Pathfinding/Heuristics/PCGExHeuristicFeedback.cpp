@@ -4,8 +4,6 @@
 #include "Graph/Pathfinding/Heuristics/PCGExHeuristicFeedback.h"
 
 
-
-
 double FPCGExHeuristicFeedback::GetGlobalScore(const PCGExCluster::FNode& From, const PCGExCluster::FNode& Seed, const PCGExCluster::FNode& Goal) const
 {
 	FReadScopeLock ReadScopeLock(FeedbackLock);

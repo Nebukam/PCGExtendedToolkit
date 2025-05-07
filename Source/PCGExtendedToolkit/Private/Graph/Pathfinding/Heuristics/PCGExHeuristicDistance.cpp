@@ -5,9 +5,6 @@
 #include "Graph/Pathfinding/Heuristics/PCGExHeuristicDistance.h"
 
 
-
-
-
 void FPCGExHeuristicDistance::PrepareForCluster(const TSharedPtr<const PCGExCluster::FCluster>& InCluster)
 {
 	FPCGExHeuristicOperation::PrepareForCluster(InCluster);
