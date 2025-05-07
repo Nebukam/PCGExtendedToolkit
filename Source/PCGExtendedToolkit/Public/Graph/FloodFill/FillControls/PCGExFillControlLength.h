@@ -10,8 +10,6 @@
 #include "PCGExFillControlsFactoryProvider.h"
 
 
-
-
 #include "Graph/PCGExCluster.h"
 #include "PCGExFillControlLength.generated.h"
 
@@ -23,7 +21,6 @@ struct FPCGExFillControlConfigLength : public FPCGExFillControlConfigBase
 	FPCGExFillControlConfigLength() :
 		FPCGExFillControlConfigBase()
 	{
-		
 	}
 
 	/** Path length is the accumulated length from the seed to the evaluated candidate, while regular length is the length of the edge. */
@@ -43,7 +40,6 @@ struct FPCGExFillControlConfigLength : public FPCGExFillControlConfigBase
 	double MaxLength = 10;
 
 	PCGEX_SETTING_VALUE_GET(MaxLength, double, MaxLengthInput, MaxLengthAttribute, MaxLength)
-	
 };
 
 /**

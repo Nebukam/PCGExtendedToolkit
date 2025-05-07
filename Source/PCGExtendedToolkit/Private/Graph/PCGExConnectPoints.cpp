@@ -348,7 +348,7 @@ namespace PCGExConnectPoints
 	void FProcessor::Cleanup()
 	{
 		TPointsProcessor<FPCGExConnectPointsContext, UPCGExConnectPointsSettings>::Cleanup();
-		
+
 		SearchProbes.Empty();
 		DirectProbes.Empty();
 		ChainProbeOperations.Empty();

@@ -89,7 +89,7 @@ public:
 	FVector2D StartOffset = FVector2D::ZeroVector;
 
 	PCGEX_SETTING_VALUE_GET(StartOffset, FVector2D, StartOffsetInput, StartOffsetAttribute, StartOffset)
-	
+
 	/** Type of End Offset */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Mutations|Offsets", meta=(PCG_NotOverridable))
 	EPCGExInputValueType EndOffsetInput = EPCGExInputValueType::Constant;
@@ -103,7 +103,7 @@ public:
 	FVector2D EndOffset = FVector2D::ZeroVector;
 
 	PCGEX_SETTING_VALUE_GET(EndOffset, FVector2D, EndOffsetInput, EndOffsetAttribute, EndOffset)
-	
+
 	/** Push details */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Mutations", meta=(PCG_Overridable, DisplayName="Expansion"))
 	FPCGExSplineMeshMutationDetails MutationDetails;

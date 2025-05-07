@@ -29,7 +29,7 @@ namespace PCGExFloodFill
 		Visited.Add(SeedNode->Index);
 		*(FillControlsHandler->InfluencesCount->GetData() + SeedNode->PointIndex) = 1;
 		FCandidate& SeedCandidate = Captured.Emplace_GetRef();
-		SeedCandidate.Link = PCGExGraph::FLink(-1,-1);
+		SeedCandidate.Link = PCGExGraph::FLink(-1, -1);
 		SeedCandidate.Node = SeedNode;
 
 		Probe(SeedCandidate);

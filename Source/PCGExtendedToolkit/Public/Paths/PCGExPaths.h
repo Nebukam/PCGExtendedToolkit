@@ -809,7 +809,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSplineMeshMutationDetails
 	double StartPushConstant = 0.1;
 
 	PCGEX_SETTING_VALUE_GET(StartPush, double, StartPushInput, StartPushInputAttribute, StartPushConstant)
-	
+
 	/** If enabled, value will relative to the size of the segment */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName=" └─ Relative", EditCondition="bPushStart", EditConditionHides))
 	bool bRelativeStart = true;
@@ -831,7 +831,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSplineMeshMutationDetails
 	double EndPushConstant = 0.1;
 
 	PCGEX_SETTING_VALUE_GET(EndPush, double, EndPushInput, EndPushInputAttribute, EndPushConstant)
-	
+
 	/** If enabled, value will relative to the size of the segment */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName=" └─ Relative", EditCondition="bPushEnd", EditConditionHides))
 	bool bRelativeEnd = true;

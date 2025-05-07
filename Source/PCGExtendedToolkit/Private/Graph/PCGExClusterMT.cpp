@@ -25,7 +25,7 @@ namespace PCGExClusterMT
 	FClusterProcessor::FClusterProcessor(const TSharedRef<PCGExData::FFacade>& InVtxDataFacade, const TSharedRef<PCGExData::FFacade>& InEdgeDataFacade)
 		: VtxDataFacade(InVtxDataFacade), EdgeDataFacade(InEdgeDataFacade)
 	{
-		PCGEX_LOG_CTR(FClusterProcessor)		
+		PCGEX_LOG_CTR(FClusterProcessor)
 	}
 
 	void FClusterProcessor::SetExecutionContext(FPCGExContext* InContext)

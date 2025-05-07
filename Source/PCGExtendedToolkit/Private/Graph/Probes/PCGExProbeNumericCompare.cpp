@@ -4,7 +4,6 @@
 #include "Graph/Probes/PCGExProbeNumericCompare.h"
 
 
-
 #include "Graph/Probes/PCGExProbing.h"
 
 PCGEX_CREATE_PROBE_FACTORY(NumericCompare, {}, {})

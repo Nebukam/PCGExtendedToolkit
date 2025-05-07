@@ -4,8 +4,6 @@
 #include "Graph/Pathfinding/Heuristics/PCGExHeuristicInertia.h"
 
 
-
-
 double FPCGExHeuristicInertia::GetGlobalScore(
 	const PCGExCluster::FNode& From,
 	const PCGExCluster::FNode& Seed,

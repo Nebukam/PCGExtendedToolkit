@@ -279,7 +279,7 @@ namespace PCGExFactories
 		const UPCGData* Data = InFacade->GetIn();
 
 		if (!Data) { return; }
-		
+
 		InFactory->RegisterConsumableAttributesWithData(InFacade->Source->GetContext(), Data);
 	}
 

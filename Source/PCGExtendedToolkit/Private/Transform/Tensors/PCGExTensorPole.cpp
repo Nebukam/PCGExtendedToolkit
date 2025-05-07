@@ -4,8 +4,6 @@
 #include "Transform/Tensors/PCGExTensorPole.h"
 
 
-
-
 #define LOCTEXT_NAMESPACE "PCGExCreateTensorPole"
 #define PCGEX_NAMESPACE CreateTensorPole
 

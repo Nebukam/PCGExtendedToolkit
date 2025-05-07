@@ -12,8 +12,6 @@
 #include "PCGExOperation.h"
 
 
-
-
 #include "PCGExVtxPropertyFactoryProvider.generated.h"
 
 #define PCGEX_VTX_EXTRA_CREATE \

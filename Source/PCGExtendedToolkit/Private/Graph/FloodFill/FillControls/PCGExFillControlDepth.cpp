@@ -5,8 +5,6 @@
 #include "Graph/FloodFill/FillControls/PCGExFillControlDepth.h"
 
 
-
-
 #include "Graph/FloodFill/FillControls/PCGExFillControlsFactoryProvider.h"
 
 bool FPCGExFillControlDepth::PrepareForDiffusions(FPCGExContext* InContext, const TSharedPtr<PCGExFloodFill::FFillControlsHandler>& InHandler)

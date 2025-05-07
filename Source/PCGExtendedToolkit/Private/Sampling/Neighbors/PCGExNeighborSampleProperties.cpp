@@ -6,8 +6,6 @@
 #include "Data/Blending/PCGExPropertiesBlender.h"
 
 
-
-
 #define LOCTEXT_NAMESPACE "PCGExCreateNeighborSample"
 #define PCGEX_NAMESPACE PCGExCreateNeighborSample
 

@@ -6,8 +6,6 @@
 #include "PCGPin.h"
 
 
-
-
 #define LOCTEXT_NAMESPACE "PCGExVtxPropertyEdgeMatch"
 #define PCGEX_NAMESPACE PCGExVtxPropertyEdgeMatch
 

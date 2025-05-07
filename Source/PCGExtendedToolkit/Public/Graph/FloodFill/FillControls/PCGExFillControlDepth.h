@@ -10,8 +10,6 @@
 #include "PCGExFillControlsFactoryProvider.h"
 
 
-
-
 #include "Graph/PCGExCluster.h"
 #include "PCGExFillControlDepth.generated.h"
 
@@ -38,7 +36,6 @@ struct FPCGExFillControlConfigDepth : public FPCGExFillControlConfigBase
 	int32 MaxDepth = 10;
 
 	PCGEX_SETTING_VALUE_GET(MaxDepth, int32, MaxDepthInput, MaxDepthAttribute, MaxDepth)
-	
 };
 
 /**

@@ -69,7 +69,7 @@ namespace PCGExCreateShapes
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExCreateShapes::Process);
 
 		PointDataFacade->bSupportsScopedGet = Context->bScopedAttributeGet;
-		
+
 		if (!FPointsProcessor::Process(InAsyncManager)) { return false; }
 
 		Builders.Reserve(Context->BuilderFactories.Num());

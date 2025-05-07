@@ -5,9 +5,6 @@
 #include "Graph/Pathfinding/Heuristics/PCGExHeuristicSteepness.h"
 
 
-
-
-
 void FPCGExHeuristicSteepness::PrepareForCluster(const TSharedPtr<const PCGExCluster::FCluster>& InCluster)
 {
 	UpwardVector = UpwardVector.GetSafeNormal();
