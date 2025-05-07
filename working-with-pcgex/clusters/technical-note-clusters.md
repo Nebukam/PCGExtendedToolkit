@@ -6,6 +6,16 @@ icon: microchip
 
 # Technical Note : Clusters
 
+Vtx & Edge Data
+
+TODO :\
+\- Why vtx have multiple edges\
+\- Each vtx group are processed in parallel\
+\- Each vtx processes its edges in parallel as well\
+\- Cached clusters stay in memory until flushed, good for execution time, bad for memory\
+\- Can be tweaked per node, or in the project settings.\
+
+
 <details>
 
 <summary>Note about the future of PCG</summary>

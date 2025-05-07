@@ -37,6 +37,10 @@ When closed, the last point is considered to be a segment that wraps toward the 
 {% endstep %}
 {% endstepper %}
 
+{% hint style="info" %}
+The output of a Spline Sampler is actually a valid paths in PCGEx terms!
+{% endhint %}
+
 ### Why would you need paths?
 
 Being able to work making the above assumptions enables new way of interacting with points as _paths_, on top of their existing spatial properties. **Also, they're naturally laid out to make great splines right off the bat.** And you know what eat splines for breakfast? _**PCG Grammar!**_

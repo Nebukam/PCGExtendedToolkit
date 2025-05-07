@@ -6,6 +6,8 @@ icon: vector-square
 
 Clusters in PCGEx refers to two intertwined piece of data, Vtx and Edges, that once combined form a transient graph structure that represent connectivity between points.
 
+That connectivity makes it easy to do things like **pathfinding**, **zoning**, finding **concave hulls**,  **layouts**, and more -- all with a very precise level of control, as opposed to purely distance-based approximations.
+
 <figure><img src="../../.gitbook/assets/placeholder-wide.jpg" alt=""><figcaption></figcaption></figure>
 
 Vtx represent the points (or _nodes,_ in [graph theory](https://en.wikipedia.org/wiki/Graph_theory)), and a single edge represent a connection between two unique vertices. There is a few high level rules that are always true:
@@ -40,7 +42,7 @@ Being able to know and manipulate the idea of connectivity between points _preci
 
 > Emphasis on precisely — there's a lot of what PCGEx outputs that you might be able to approximate roughly with the vanilla framework! And there's also a lot that's simply not possible to achieve without PCGEx.&#x20;
 >
-> Associating data to the connections themselves as opposed to only endpoints enables a world of possibilities.
+> Associating data to the connections themselves as opposed to only endpoints enables a world of possibilities., since connections don't rely on distance or proximity anymore.
 
 ### Again, just points.
 

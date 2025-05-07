@@ -30,3 +30,9 @@ Ramble about the impact of scoped getters
 ### Advantages
 
 ### Caveats
+
+## Data Sharing during processing
+
+Make a note on facade and shared attribute buffers\
+\- Access attribute once, make data available for all sub nodes and instanced behavior that are currently connected\
+\- Higher memory footprint, faster read time, especially when there's a lot of operation involved. Massive gains at scale
