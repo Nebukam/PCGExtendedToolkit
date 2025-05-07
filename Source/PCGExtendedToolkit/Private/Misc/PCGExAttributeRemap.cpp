@@ -133,15 +133,17 @@ namespace PCGExAttributeRemap
 		if (!GetPerFieldProxyBuffers(Context, PointDataFacade, InputDescriptor, Dimensions, UntypedInputProxies)) { return false; }
 
 		if (!OutputDescriptor.CaptureStrict(Context, PointDataFacade, Settings->Attributes.GetTargetSelector(), PCGExData::ESource::Out, false))
-		{
+		{	
 			// This might be expected if the destination does not exist
-			if (InputDescriptor.Selector.GetSelection() != EPCGAttributePropertySelection::Attribute)
+			OutputDescriptor.RealType = InputDescriptor.RealType;
+
+			if (Settings->bAutoCastIntegerToDouble &&
+				(OutputDescriptor.RealType == EPCGMetadataTypes::Integer32 || OutputDescriptor.RealType == EPCGMetadataTypes::Integer64))
 			{
-				// Which should only happen if the source is a plain attribute that's getting remapped to a new output name
-				// Something went wrong, destination doesn't exist and remapping is not desired.
-				PCGE_LOG_C(Error, GraphAndLog, ExecutionContext, FTEXT("Something went wrong. Please bring this up on the PCGEx Discord with a screenshot of the detail panel!"));
-				return false;
+				OutputDescriptor.RealType = EPCGMetadataTypes::Double;
 			}
+
+			OutputDescriptor.WorkingType = InputDescriptor.WorkingType;
 		}
 		else
 		{
