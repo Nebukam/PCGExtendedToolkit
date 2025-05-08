@@ -8,11 +8,19 @@ PCGEx nodes, more often than not, will expose an overwhelming amount of paramete
 
 For example, [Performance](../../node-library/shared-concepts/#performance) and [Cleanup](../../node-library/shared-concepts/#cleanup) settings are for advanced uses. [Warning and Errors](../../node-library/shared-concepts/#warning-and-errors) can come in handy if you get a bunch of expected errors you'd like to silence — better safe than sorry, as they say.
 
-But this section is not about specifics! Instead the goal is provide a more casual introd
+{% content-ref url="../../node-library/shared-concepts/" %}
+[shared-concepts](../../node-library/shared-concepts/)
+{% endcontent-ref %}
+
+> The **Working with PCGEx** section is not about specifics! Instead the goal is provide a more casual introduction to the major concepts that make PCGEx great!
 
 ### Technical notes & Inner workings of PCGEx
 
 If you're into that, there's a dedicated technical note that covers some things in the [Framework technical note](technical-note-pcgex-framework.md).
+
+{% content-ref url="technical-note-pcgex-framework.md" %}
+[technical-note-pcgex-framework.md](technical-note-pcgex-framework.md)
+{% endcontent-ref %}
 
 ### Atypical Behaviors
 
