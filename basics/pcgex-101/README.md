@@ -45,8 +45,8 @@ This is a bit of an odd section, but the goal is to provide some easing into a s
 [tensors.md](../../working-with-pcgex/tensors.md)
 {% endcontent-ref %}
 
-{% content-ref url="../../working-with-pcgex/tips-and-tricks-1.md" %}
-[tips-and-tricks-1.md](../../working-with-pcgex/tips-and-tricks-1.md)
+{% content-ref url="../../working-with-pcgex/tips-and-tricks-1/" %}
+[tips-and-tricks-1](../../working-with-pcgex/tips-and-tricks-1/)
 {% endcontent-ref %}
 
 

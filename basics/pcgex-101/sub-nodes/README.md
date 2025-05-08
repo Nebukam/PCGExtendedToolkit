@@ -12,6 +12,8 @@ The closest parallel that can be drawn is, sub-nodes are like attribute sets **c
 Sub-nodes exist in a variety of types, and PCGEx relies a lot on that modular approach to solve complex problems and offer great flexibility.
 {% endhint %}
 
+<figure><img src="../../../.gitbook/assets/image (12).png" alt=""><figcaption><p>Sub Nodes output &#x26; input pins have an extra icon that you can't miss!</p></figcaption></figure>
+
 ### A modular approach
 
 Sub-nodes makes things more modular overall, even thought they can be a bit counter-intuitive to the pure data-flow oriented approach of the vanilla toolset, but the benefits and the way PCGEx leverages them are worth breaking the rules a bit.

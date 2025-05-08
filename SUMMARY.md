@@ -39,7 +39,9 @@
 * [Paths](working-with-pcgex/paths/README.md)
   * [TBD](working-with-pcgex/paths/tbd.md)
 * [Tensors](working-with-pcgex/tensors.md)
-* [Tips & Tricks](working-with-pcgex/tips-and-tricks-1.md)
+* [Tips & Tricks](working-with-pcgex/tips-and-tricks-1/README.md)
+  * [EditorOnly Subgraphs](working-with-pcgex/tips-and-tricks-1/editoronly-subgraphs.md)
+  * [Merge before Spawn](working-with-pcgex/tips-and-tricks-1/merge-before-spawn.md)
 
 ## Node Library
 
