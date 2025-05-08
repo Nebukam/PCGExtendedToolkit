@@ -233,19 +233,19 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExBlendingDetails
 	explicit FPCGExBlendingDetails(const EPCGExDataBlendingType InDefaultBlending, const EPCGExDataBlendingType InPositionBlending);
 	explicit FPCGExBlendingDetails(const FPCGExPropertiesBlendingDetails& InDetails);
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable))
 	EPCGExAttributeFilter BlendingFilter = EPCGExAttributeFilter::All;
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(EditCondition="BlendingFilter!=EPCGExAttributeFilter::All", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable, EditCondition="BlendingFilter!=EPCGExAttributeFilter::All", EditConditionHides))
 	TArray<FName> FilteredAttributes;
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable))
 	EPCGExDataBlendingType DefaultBlending = EPCGExDataBlendingType::Average;
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable))
 	FPCGExPointPropertyBlendingOverrides PropertiesOverrides;
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable))
 	TMap<FName, EPCGExDataBlendingType> AttributesOverrides;
 
 	FPCGExPropertiesBlendingDetails GetPropertiesBlendingDetails() const;

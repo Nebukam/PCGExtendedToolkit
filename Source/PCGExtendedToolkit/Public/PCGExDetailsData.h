@@ -208,4 +208,200 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExComponentTaggingDetails
 	//bool bAddTagsToData = false;
 };
 
+USTRUCT(BlueprintType)
+struct PCGEXTENDEDTOOLKIT_API FPCGExFuseDetailsBase
+{
+	GENERATED_BODY()
+
+	FPCGExFuseDetailsBase()
+	{
+		ToleranceInput = EPCGExInputValueType::Constant;
+	}
+
+	explicit FPCGExFuseDetailsBase(const bool InSupportLocalTolerance)
+		: bSupportLocalTolerance(InSupportLocalTolerance)
+	{
+		if (!bSupportLocalTolerance) { ToleranceInput = EPCGExInputValueType::Constant; }
+	}
+
+	FPCGExFuseDetailsBase(const bool InSupportLocalTolerance, const double InTolerance)
+		: bSupportLocalTolerance(InSupportLocalTolerance), Tolerance(InTolerance)
+	{
+		if (!bSupportLocalTolerance) { ToleranceInput = EPCGExInputValueType::Constant; }
+	}
+
+	virtual ~FPCGExFuseDetailsBase() = default;
+
+	UPROPERTY(meta = (PCG_NotOverridable))
+	bool bSupportLocalTolerance = false;
+
+	/** Uses a per-axis radius, manathan-style */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
+	bool bComponentWiseTolerance = false;
+
+	/** Tolerance source */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_NotOverridable, EditCondition="bSupportLocalTolerance", EditConditionHides, HideEditConditionToggle))
+	EPCGExInputValueType ToleranceInput = EPCGExInputValueType::Constant;
+
+	/** Fusing distance attribute.*/
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable, DisplayName="Tolerance (Attr)", EditCondition="bSupportLocalTolerance && ToleranceInput != EPCGExInputValueType::Constant", EditConditionHides))
+	FPCGAttributePropertyInputSelector ToleranceAttribute;
+
+	/** Fusing distance */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="ToleranceInput == EPCGExInputValueType::Constant && !bComponentWiseTolerance", EditConditionHides, ClampMin=0.0001))
+	double Tolerance = DBL_COLLOCATION_TOLERANCE;
+
+	/** Component-wise radiuses */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="ToleranceInput == EPCGExInputValueType::Constant && bComponentWiseTolerance", EditConditionHides, ClampMin=0.0001))
+	FVector Tolerances = FVector(DBL_COLLOCATION_TOLERANCE);
+
+	virtual bool Init(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade>& InDataFacade);
+
+
+	// TODO : Some optimization could be welcome by expos
+	
+	FORCEINLINE bool IsWithinTolerance(const double DistSquared, const int32 PointIndex) const
+	{
+		return FMath::IsWithin<double, double>(DistSquared, 0, FMath::Square(ToleranceGetter->Read(PointIndex).X));
+	}
+
+	FORCEINLINE bool IsWithinTolerance(const FVector& Source, const FVector& Target, const int32 PointIndex) const
+	{
+		return FMath::IsWithin<double, double>(FVector::DistSquared(Source, Target), 0, FMath::Square(ToleranceGetter->Read(PointIndex).X));
+	}
+
+	FORCEINLINE bool IsWithinToleranceComponentWise(const FVector& Source, const FVector& Target, const int32 PointIndex) const
+	{
+		const FVector CWTolerance = ToleranceGetter->Read(PointIndex);
+		return
+			FMath::IsWithin<double, double>(abs(Source.X - Target.X), 0, CWTolerance.X) &&
+			FMath::IsWithin<double, double>(abs(Source.Y - Target.Y), 0, CWTolerance.Y) &&
+			FMath::IsWithin<double, double>(abs(Source.Z - Target.Z), 0, CWTolerance.Z);
+	}
+
+protected:
+	TSharedPtr<PCGExDetails::TSettingValue<FVector>> ToleranceGetter;
+};
+
+USTRUCT(BlueprintType)
+struct PCGEXTENDEDTOOLKIT_API FPCGExSourceFuseDetails : public FPCGExFuseDetailsBase
+{
+	GENERATED_BODY()
+
+	FPCGExSourceFuseDetails()
+		: FPCGExFuseDetailsBase(false)
+	{
+	};
+
+	explicit FPCGExSourceFuseDetails(const bool InSupportLocalTolerance) :
+		FPCGExFuseDetailsBase(InSupportLocalTolerance)
+	{
+	}
+
+	FPCGExSourceFuseDetails(const bool InSupportLocalTolerance, const double InTolerance)
+		: FPCGExFuseDetailsBase(InSupportLocalTolerance, InTolerance)
+	{
+	}
+
+	explicit FPCGExSourceFuseDetails(const bool InSupportLocalTolerance, const double InTolerance, const EPCGExDistance SourceMethod)
+		: FPCGExFuseDetailsBase(InSupportLocalTolerance, InTolerance), SourceDistance(SourceMethod)
+	{
+	}
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	EPCGExDistance SourceDistance = EPCGExDistance::Center;
+};
+
+
+UENUM()
+enum class EPCGExFuseMethod : uint8
+{
+	Voxel  = 0 UMETA(DisplayName = "Spatial Hash", Tooltip="Fast but blocky. Creates grid-looking approximation."),
+	Octree = 1 UMETA(DisplayName = "Octree", Tooltip="Slow but precise. Respectful of the original topology. Requires stable insertion with large values."),
+};
+
+USTRUCT(BlueprintType)
+struct PCGEXTENDEDTOOLKIT_API FPCGExFuseDetails : public FPCGExSourceFuseDetails
+{
+	GENERATED_BODY()
+
+	FPCGExFuseDetails()
+		: FPCGExSourceFuseDetails(false)
+	{
+	}
+
+	FPCGExFuseDetails(const bool InSupportLocalTolerance) :
+		FPCGExSourceFuseDetails(InSupportLocalTolerance)
+	{
+	}
+
+	explicit FPCGExFuseDetails(const bool InSupportLocalTolerance, const double InTolerance)
+		: FPCGExSourceFuseDetails(InSupportLocalTolerance, InTolerance)
+	{
+	}
+
+	explicit FPCGExFuseDetails(const bool InSupportLocalTolerance, const double InTolerance, const EPCGExDistance InSourceMethod)
+		: FPCGExSourceFuseDetails(InSupportLocalTolerance, InTolerance, InSourceMethod)
+	{
+	}
+
+	explicit FPCGExFuseDetails(const bool InSupportLocalTolerance, const double InTolerance, const EPCGExDistance InSourceMethod, const EPCGExDistance InTargetMethod)
+		: FPCGExSourceFuseDetails(InSupportLocalTolerance, InTolerance, InSourceMethod), TargetDistance(InTargetMethod)
+	{
+	}
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	EPCGExDistance TargetDistance = EPCGExDistance::Center;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	EPCGExFuseMethod FuseMethod = EPCGExFuseMethod::Voxel;
+
+	/** Offset the voxelized grid by an amount */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="FuseMethod==EPCGExFuseMethod::Voxel", EditConditionHides))
+	FVector VoxelGridOffset = FVector::ZeroVector;
+
+	TSharedPtr<PCGExDetails::FDistances> DistanceDetails;
+
+	/** Check this box if you're fusing over a very large radius and want to ensure insertion order to avoid snapping to different points. NOTE : Will make things considerably slower. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Stabilize Insertion Order"))
+	bool bInlineInsertion = false;
+
+	virtual bool Init(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade>& InDataFacade) override;
+
+	bool DoInlineInsertion() const { return bInlineInsertion; }
+
+	FORCEINLINE uint32 GetGridKey(const FVector& Location, const int32 PointIndex) const
+	{
+		const FVector Raw = ToleranceGetter->Read(PointIndex);
+		return PCGEx::GH3(Location + VoxelGridOffset, FVector(1 / Raw.X, 1 / Raw.Y, 1 / Raw.Z));
+	}
+
+	FORCEINLINE FBoxCenterAndExtent GetOctreeBox(const FVector& Location, const int32 PointIndex) const
+	{
+		return FBoxCenterAndExtent(Location, ToleranceGetter->Read(PointIndex));
+	}
+
+	FORCEINLINE void GetCenters(const FPCGPoint& SourcePoint, const FPCGPoint& TargetPoint, FVector& OutSource, FVector& OutTarget) const
+	{
+		OutSource = DistanceDetails->GetSourceCenter(SourcePoint, SourcePoint.Transform.GetLocation(), TargetPoint.Transform.GetLocation());
+		OutTarget = DistanceDetails->GetTargetCenter(TargetPoint, TargetPoint.Transform.GetLocation(), OutSource);
+	}
+
+	FORCEINLINE bool IsWithinTolerance(const FPCGPoint& SourcePoint, const FPCGPoint& TargetPoint, const int32 PointIndex) const
+	{
+		FVector A;
+		FVector B;
+		GetCenters(SourcePoint, TargetPoint, A, B);
+		return FPCGExFuseDetailsBase::IsWithinTolerance(A, B, PointIndex);
+	}
+
+	FORCEINLINE bool IsWithinToleranceComponentWise(const FPCGPoint& SourcePoint, const FPCGPoint& TargetPoint, const int32 PointIndex) const
+	{
+		FVector A;
+		FVector B;
+		GetCenters(SourcePoint, TargetPoint, A, B);
+		return FPCGExFuseDetailsBase::IsWithinToleranceComponentWise(A, B, PointIndex);
+	}
+};
+
 #undef PCGEX_SOFT_VALIDATE_NAME_DETAILS

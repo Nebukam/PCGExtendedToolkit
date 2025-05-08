@@ -47,6 +47,9 @@ bool FPCGExFuseClustersElement::Boot(FPCGExContext* InContext) const
 		Settings->PointPointIntersectionDetails.FuseDetails,
 		Context->MainPoints->GetInBounds().ExpandBy(10));
 
+	// TODO : Support local fuse distance, requires access to all input facades
+	if (!Context->UnionGraph->Init(Context)) { return false; }
+
 	Context->UnionGraph->EdgesUnion->bIsAbstract = false; // Because we have valid edge data
 
 	Context->UnionProcessor = MakeShared<PCGExGraph::FUnionProcessor>(
@@ -135,7 +138,7 @@ namespace PCGExFuseClusters
 	bool FProcessor::Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExFuseClusters::Process);
-
+		
 		if (!FClusterProcessor::Process(InAsyncManager)) { return false; }
 
 		VtxIOIndex = VtxDataFacade->Source->IOIndex;

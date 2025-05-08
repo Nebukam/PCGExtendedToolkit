@@ -7,7 +7,7 @@
 
 #include "CoreMinimal.h"
 #include "PCGExMacros.h"
-#include "PCGExDetails.h"
+#include "PCGExDetailsData.h"
 
 #include "PCGExDetailsIntersection.generated.h"
 
@@ -57,7 +57,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPointPointIntersectionDetails
 	}
 
 	explicit FPCGExPointPointIntersectionDetails(const bool InSupportEdges):
-		bSupportsEdges(InSupportEdges)
+		bSupportsEdges(InSupportEdges), FuseDetails(FPCGExFuseDetails(!InSupportEdges))
 	{
 	}
 
@@ -104,13 +104,6 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPointEdgeIntersectionDetails
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Metadata", meta=(PCG_Overridable, EditCondition="bWriteIsIntersector"))
 	FName IsIntersectorAttributeName = "bIsIntersector";
 
-	void MakeSafeForTolerance(const double FuseTolerance)
-	{
-		FuseDetails.Tolerance = FMath::Clamp(FuseDetails.Tolerance, 0, FuseTolerance * 0.5);
-		FuseDetails.Tolerances.X = FMath::Clamp(FuseDetails.Tolerances.X, 0, FuseTolerance * 0.5);
-		FuseDetails.Tolerances.Y = FMath::Clamp(FuseDetails.Tolerances.Y, 0, FuseTolerance * 0.5);
-		FuseDetails.Tolerances.Z = FMath::Clamp(FuseDetails.Tolerances.Z, 0, FuseTolerance * 0.5);
-	}
 };
 
 USTRUCT(BlueprintType)
