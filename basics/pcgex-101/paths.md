@@ -45,5 +45,11 @@ The output of a Spline Sampler is actually a valid paths in PCGEx terms!
 
 Being able to work making the above assumptions enables new way of interacting with points as _paths_, on top of their existing spatial properties. **Also, they're naturally laid out to make great splines right off the bat.** And you know what eat splines for breakfast? _**PCG Grammar!**_
 
+### **Dive into paths**
+
 Paths are also a great way to create clusters, as well as being created from them with tools like pathfinding. You can read more about it in the [Working with Paths](../../working-with-pcgex/paths/) section.
+
+{% content-ref url="../../working-with-pcgex/paths/" %}
+[paths](../../working-with-pcgex/paths/)
+{% endcontent-ref %}
 

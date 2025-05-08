@@ -56,3 +56,9 @@ It's worth hammering that PCGEx is leveraging point data to store and represent 
 Hence, both Vtx and Edges are "just points", exactly like the you get out of a landscape sampler.\
 There's obviously more technicalities when it comes to using them with PCGEx, which you can read about in more depth in the [Working with Clusters](../../working-with-pcgex/clusters/) section.
 
+### Dive into clusters
+
+{% content-ref url="../../working-with-pcgex/clusters/" %}
+[clusters](../../working-with-pcgex/clusters/)
+{% endcontent-ref %}
+

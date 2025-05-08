@@ -19,13 +19,35 @@ PCGEx may have fancy words like `Vtx`, `Edges`, `Paths`, but **these are just re
 
 You can read more about what makes Clusters & Paths points special, **and why they're not**.
 
-<table data-card-size="large" data-view="cards"><thead><tr><th></th><th></th><th data-hidden data-card-target data-type="content-ref"></th></tr></thead><tbody><tr><td><strong>Clusters</strong></td><td>Introduction to clusters</td><td><a href="clusters.md">clusters.md</a></td></tr><tr><td><strong>Paths</strong></td><td>Introduction to paths</td><td><a href="paths.md">paths.md</a></td></tr></tbody></table>
+<table data-card-size="large" data-view="cards"><thead><tr><th></th><th></th><th data-hidden data-card-target data-type="content-ref"></th></tr></thead><tbody><tr><td><strong>Clusters</strong></td><td>You're probably here for them.</td><td><a href="clusters.md">clusters.md</a></td></tr><tr><td><strong>Paths</strong></td><td>They're just point, mostly.</td><td><a href="paths.md">paths.md</a></td></tr><tr><td>Sub <strong>Nodes</strong></td><td>A new pattern to wrap your head around.</td><td><a href="sub-nodes/">sub-nodes</a></td></tr><tr><td><strong>Instanced Behaviors</strong></td><td>You can probably skip that bit.</td><td><a href="instanced-behaviors.md">instanced-behaviors.md</a></td></tr><tr><td><strong>Filter Ecosystem</strong></td><td>They're <em>everywhere</em>. Better get to know them.</td><td><a href="filter-ecosystem.md">filter-ecosystem.md</a></td></tr><tr><td><strong>Workflow</strong></td><td>What to expect when working with PCGEx.</td><td><a href="paths-1.md">paths-1.md</a></td></tr></tbody></table>
 
 
 
-### Technical Notes
+### Getting your hands dirty
 
-{% content-ref url="../../working-with-pcgex/tips-and-tricks/technical-note-pcgex-framework.md" %}
-[technical-note-pcgex-framework.md](../../working-with-pcgex/tips-and-tricks/technical-note-pcgex-framework.md)
+Once you're done going through the different section of that 101, you can find some more concrete material in the "**Working with PCGEx**" section.
+
+{% content-ref url="../../working-with-pcgex/tips-and-tricks/" %}
+[tips-and-tricks](../../working-with-pcgex/tips-and-tricks/)
 {% endcontent-ref %}
+
+This is a bit of an odd section, but the goal is to provide some easing into a spectrum of situation, as well as some recipe to tackle some very specific, recurring problems.
+
+{% content-ref url="../../working-with-pcgex/clusters/" %}
+[clusters](../../working-with-pcgex/clusters/)
+{% endcontent-ref %}
+
+{% content-ref url="../../working-with-pcgex/paths/" %}
+[paths](../../working-with-pcgex/paths/)
+{% endcontent-ref %}
+
+{% content-ref url="../../working-with-pcgex/tensors.md" %}
+[tensors.md](../../working-with-pcgex/tensors.md)
+{% endcontent-ref %}
+
+{% content-ref url="../../working-with-pcgex/tips-and-tricks-1.md" %}
+[tips-and-tricks-1.md](../../working-with-pcgex/tips-and-tricks-1.md)
+{% endcontent-ref %}
+
+
 
