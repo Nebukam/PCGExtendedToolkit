@@ -9,7 +9,7 @@ PCGEx is built on top of regular PCG, and in the grand scheme of things, **PCGEx
 
 However, there is a few key things that are important to know, as some behaviors are oh-so-slightly different from the way the vanilla plugin handle things. Some of them are design choices, others are the result of trying to work around the existing limitation of the framework.
 
-## It's just points
+## It's just points!
 
 The most important thing to keep in mind is PCGEx Clusters and Paths are _just points_. **You can manipulate them just like any other points data, everything works seamlessly with the vanilla nodes**, and this is true the other way around as well: PCGEx nodes that work with points will accept any points, not just the ones coming out of PCGEx nodes.
 
@@ -25,7 +25,7 @@ You can read more about what makes Clusters & Paths points special, **and why th
 
 ### Technical Notes
 
-{% content-ref url="technical-note-pcgex-framework.md" %}
-[technical-note-pcgex-framework.md](technical-note-pcgex-framework.md)
+{% content-ref url="../../working-with-pcgex/tips-and-tricks/technical-note-pcgex-framework.md" %}
+[technical-note-pcgex-framework.md](../../working-with-pcgex/tips-and-tricks/technical-note-pcgex-framework.md)
 {% endcontent-ref %}
 

@@ -9,7 +9,6 @@
   * [PCG Basics](basics/quickstart/pcg-basics.md)
   * [Example Project](basics/quickstart/example-project.md)
 * [PCGEx 101](basics/pcgex-101/README.md)
-  * [Technical Note : PCGEx Framework](basics/pcgex-101/technical-note-pcgex-framework.md)
   * [Clusters](basics/pcgex-101/clusters.md)
   * [Paths](basics/pcgex-101/paths.md)
   * [Sub Nodes](basics/pcgex-101/sub-nodes/README.md)
@@ -24,6 +23,8 @@
 
 ## Working with PCGEx
 
+* [README.txt](working-with-pcgex/tips-and-tricks/README.md)
+  * [Technical Note : PCGEx Framework](working-with-pcgex/tips-and-tricks/technical-note-pcgex-framework.md)
 * [Clusters](working-with-pcgex/clusters/README.md)
   * [Technical Note : Clusters](working-with-pcgex/clusters/technical-note-clusters.md)
   * [Hello Cluster](working-with-pcgex/clusters/hello-cluster/README.md)
@@ -38,11 +39,11 @@
 * [Paths](working-with-pcgex/paths/README.md)
   * [TBD](working-with-pcgex/paths/tbd.md)
 * [Tensors](working-with-pcgex/tensors.md)
-* [Tips & Tricks](working-with-pcgex/tips-and-tricks.md)
+* [Tips & Tricks](working-with-pcgex/tips-and-tricks-1.md)
 
 ## Node Library
 
-* [Shared Concepts](node-library/shared-concepts/README.md)
+* [Common Settings](node-library/shared-concepts/README.md)
   * [Comparisons](node-library/shared-concepts/comparisons.md)
   * [Fitting](node-library/shared-concepts/fitting.md)
   * [Blending](node-library/shared-concepts/blending.md)
