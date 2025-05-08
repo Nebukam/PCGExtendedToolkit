@@ -167,8 +167,9 @@ namespace PCGExGraph
 
 	PCGEX_OCTREE_SEMANTICS(FUnionNode, { return Element->Bounds;}, { return A->Index == B->Index; })
 
-	struct PCGEXTENDEDTOOLKIT_API FUnionGraph
+	class PCGEXTENDEDTOOLKIT_API FUnionGraph : public TSharedFromThis<FUnionGraph>
 	{
+	public:
 		TMap<uint32, TSharedPtr<FUnionNode>> GridTree;
 
 		TSharedPtr<PCGExData::FUnionMetadata> NodesUnion;
@@ -188,6 +189,9 @@ namespace PCGExGraph
 		explicit FUnionGraph(const FPCGExFuseDetails& InFuseDetails, const FBox& InBounds);
 
 		~FUnionGraph() = default;
+
+		bool Init(FPCGExContext* InContext);
+		bool Init(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade>& InUniqueSourceFacade, const bool SupportScopedGet);
 
 		int32 NumNodes() const { return NodesUnion->Num(); }
 		int32 NumEdges() const { return EdgesUnion->Num(); }

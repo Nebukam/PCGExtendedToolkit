@@ -46,25 +46,6 @@ TSharedPtr<PCGExDetails::FDistances> FPCGExDistanceDetails::MakeDistances() cons
 	return PCGExDetails::MakeDistances(Source, Target);
 }
 
-void FPCGExFuseDetails::Init()
-{
-	if (FuseMethod == EPCGExFuseMethod::Voxel)
-	{
-		Tolerances *= 2;
-		Tolerance *= 2;
-
-		if (bComponentWiseTolerance) { CWTolerance = FVector(1 / Tolerances.X, 1 / Tolerances.Y, 1 / Tolerances.Z); }
-		else { CWTolerance = FVector(1 / Tolerance); }
-	}
-	else
-	{
-		if (bComponentWiseTolerance) { CWTolerance = Tolerances; }
-		else { CWTolerance = FVector(Tolerance); }
-	}
-
-	DistanceDetails = PCGExDetails::MakeDistances(SourceDistance, TargetDistance);
-}
-
 void FPCGExCollisionDetails::Init(const FPCGExContext* InContext)
 {
 	World = InContext->SourceComponent->GetWorld();

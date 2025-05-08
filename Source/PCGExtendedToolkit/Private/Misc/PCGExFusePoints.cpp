@@ -79,6 +79,8 @@ namespace PCGExFusePoints
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExFusePoints::Process);
 
+		PointDataFacade->bSupportsScopedGet = Context->bScopedAttributeGet;
+		
 		if (!FPointsProcessor::Process(InAsyncManager)) { return false; }
 
 		PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::New)
@@ -87,10 +89,18 @@ namespace PCGExFusePoints
 			Settings->PointPointIntersectionDetails.FuseDetails,
 			PointDataFacade->GetIn()->GetBounds().ExpandBy(10));
 
+		// TODO : See if we can support scoped get
+		if (!UnionGraph->Init(Context, PointDataFacade, false)) { return false; }
+
 		bInlineProcessPoints = Settings->PointPointIntersectionDetails.FuseDetails.DoInlineInsertion();
 		StartParallelLoopForPoints(PCGExData::ESource::In);
 
 		return true;
+	}
+
+	void FProcessor::PrepareSingleLoopScopeForPoints(const PCGExMT::FScope& Scope)
+	{
+		PointDataFacade->Fetch(Scope);
 	}
 
 	void FProcessor::ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const PCGExMT::FScope& Scope)

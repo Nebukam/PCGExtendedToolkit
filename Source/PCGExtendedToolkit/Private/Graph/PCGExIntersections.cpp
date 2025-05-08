@@ -43,12 +43,23 @@ namespace PCGExGraph
 		Nodes.Empty();
 		Edges.Empty();
 
-		FuseDetails.Init();
-
 		NodesUnion = MakeShared<PCGExData::FUnionMetadata>();
 		EdgesUnion = MakeShared<PCGExData::FUnionMetadata>();
 
-		if (InFuseDetails.FuseMethod == EPCGExFuseMethod::Octree) { Octree = MakeUnique<FUnionNodeOctree>(Bounds.GetCenter(), Bounds.GetExtent().Length() + 10); }
+		if (InFuseDetails.FuseMethod == EPCGExFuseMethod::Octree)
+		{
+			Octree = MakeUnique<FUnionNodeOctree>(Bounds.GetCenter(), Bounds.GetExtent().Length() + 10);
+		}
+	}
+
+	bool FUnionGraph::Init(FPCGExContext* InContext)
+	{
+		return FuseDetails.Init(InContext, nullptr);
+	}
+
+	bool FUnionGraph::Init(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade>& InUniqueSourceFacade, const bool SupportScopedGet)
+	{
+		return FuseDetails.Init(InContext, InUniqueSourceFacade);
 	}
 
 	TSharedPtr<FUnionNode> FUnionGraph::InsertPoint(const FPCGPoint& Point, const int32 IOIndex, const int32 PointIndex)
@@ -58,7 +69,7 @@ namespace PCGExGraph
 
 		if (!Octree)
 		{
-			const uint32 GridKey = FuseDetails.GetGridKey(Origin);
+			const uint32 GridKey = FuseDetails.GetGridKey(Origin, PointIndex);
 			TSharedPtr<FUnionNode>* NodePtr;
 
 			{
@@ -103,9 +114,9 @@ namespace PCGExGraph
 			if (FuseDetails.bComponentWiseTolerance)
 			{
 				Octree->FindElementsWithBoundsTest(
-					FuseDetails.GetOctreeBox(Origin), [&](const FUnionNode* ExistingNode)
+					FuseDetails.GetOctreeBox(Origin, PointIndex), [&](const FUnionNode* ExistingNode)
 					{
-						if (FuseDetails.IsWithinToleranceComponentWise(Point, ExistingNode->Point))
+						if (FuseDetails.IsWithinToleranceComponentWise(Point, ExistingNode->Point, PointIndex))
 						{
 							ClosestNode.Update(Point.Transform.GetLocation(), ExistingNode->Index);
 							return false;
@@ -116,9 +127,9 @@ namespace PCGExGraph
 			else
 			{
 				Octree->FindElementsWithBoundsTest(
-					FuseDetails.GetOctreeBox(Origin), [&](const FUnionNode* ExistingNode)
+					FuseDetails.GetOctreeBox(Origin, PointIndex), [&](const FUnionNode* ExistingNode)
 					{
-						if (FuseDetails.IsWithinTolerance(Point, ExistingNode->Point))
+						if (FuseDetails.IsWithinTolerance(Point, ExistingNode->Point, PointIndex))
 						{
 							ClosestNode.Update(Point.Transform.GetLocation(), ExistingNode->Index);
 							return false;
@@ -158,7 +169,7 @@ namespace PCGExGraph
 
 		if (!Octree)
 		{
-			const uint32 GridKey = FuseDetails.GetGridKey(Origin);
+			const uint32 GridKey = FuseDetails.GetGridKey(Origin, PointIndex);
 
 			if (TSharedPtr<FUnionNode>* NodePtr = GridTree.Find(GridKey))
 			{
@@ -180,9 +191,9 @@ namespace PCGExGraph
 		if (FuseDetails.bComponentWiseTolerance)
 		{
 			Octree->FindElementsWithBoundsTest(
-				FuseDetails.GetOctreeBox(Origin), [&](const FUnionNode* ExistingNode)
+				FuseDetails.GetOctreeBox(Origin, PointIndex), [&](const FUnionNode* ExistingNode)
 				{
-					if (FuseDetails.IsWithinToleranceComponentWise(Point, ExistingNode->Point))
+					if (FuseDetails.IsWithinToleranceComponentWise(Point, ExistingNode->Point, PointIndex))
 					{
 						ClosestNode.Update(Point.Transform.GetLocation(), ExistingNode->Index);
 						return false;
@@ -193,9 +204,9 @@ namespace PCGExGraph
 		else
 		{
 			Octree->FindElementsWithBoundsTest(
-				FuseDetails.GetOctreeBox(Origin), [&](const FUnionNode* ExistingNode)
+				FuseDetails.GetOctreeBox(Origin, PointIndex), [&](const FUnionNode* ExistingNode)
 				{
-					if (FuseDetails.IsWithinTolerance(Point, ExistingNode->Point))
+					if (FuseDetails.IsWithinTolerance(Point, ExistingNode->Point, PointIndex))
 					{
 						ClosestNode.Update(Point.Transform.GetLocation(), ExistingNode->Index);
 						return false;
