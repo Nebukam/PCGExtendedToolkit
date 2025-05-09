@@ -12,7 +12,7 @@ The closest parallel that can be drawn is, sub-nodes are like attribute sets **c
 Sub-nodes exist in a variety of types, and PCGEx relies a lot on that modular approach to solve complex problems and offer great flexibility.
 {% endhint %}
 
-<figure><img src="../../../.gitbook/assets/image (12).png" alt=""><figcaption><p>Sub Nodes output &#x26; input pins have an extra icon that you can't miss!</p></figcaption></figure>
+<figure><img src="../../../.gitbook/assets/image (15).png" alt=""><figcaption></figcaption></figure>
 
 ### A modular approach
 
@@ -52,6 +52,8 @@ Sub-nodes profiling cannot be relied on, nor is representative of their costs. I
 Different systems & features use different types of sub-nodes. You can identify a sub-node in the documentation because their icon is a _dashed circle instead of a full circle_.
 
 Sub-nodes are identified using a custom extra icon that's the same on both outputs & inputs.
+
+<figure><img src="../../../.gitbook/assets/image (12).png" alt=""><figcaption><p>Sub Nodes output &#x26; input pins have an extra icon that you can't miss!</p></figcaption></figure>
 
 {% hint style="success" %}
 It's also worth nothing that whenever this pattern is used, **these input pins always support multiple sub-nodes**.
