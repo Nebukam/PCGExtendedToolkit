@@ -10,7 +10,7 @@ PCGEx allows you to create edge-based structures from points dataset, inside of 
 It also comes with a set of lower-level, more generic features to manipulate attributes & points; as well as highly granular parameters & tweaks.
 
 ## Getting Started
-— **[Documentation](https://nebukam.github.io/PCGExtendedToolkit/)**  
+— **[Documentation](https://pcgex.gitbook.io/pcgex)**
 — **[Installation](https://nebukam.github.io/PCGExtendedToolkit/installation.html) in your own project**  
 — Overview of [All the Nodes](https://nebukam.github.io/PCGExtendedToolkit/all-nodes.html)  
 
