@@ -113,6 +113,9 @@ void FPCGExAssetCollectionEntry::EDITOR_Sanitize()
 
 bool FPCGExAssetCollectionEntry::Validate(const UPCGExAssetCollection* ParentCollection)
 {
+	// Skip entries with a weight of 0
+	if (Weight <= 0) { return false; }
+
 	if (bIsSubCollection)
 	{
 		if (!InternalSubCollection) { return false; }
@@ -373,6 +376,7 @@ void UPCGExAssetCollection::EDITOR_RebuildStagingData_Project()
 #define PCGEX_ASSET_COLLECTION_UTIL_CALL(_BODY) \
 Modify(true); \
 _BODY \
+EDITOR_RefreshDisplayNames(); \
 FPropertyChangedEvent EmptyEvent(nullptr); \
 PostEditChangeProperty(EmptyEvent); \
 MarkPackageDirty(); \
@@ -402,6 +406,18 @@ void UPCGExAssetCollection::EDITOR_PadWeightTyped()
 {
 }
 
+void UPCGExAssetCollection::EDITOR_MultWeight2() { PCGEX_ASSET_COLLECTION_UTIL_CALL(EDITOR_MultWeight2Typed();) }
+
+void UPCGExAssetCollection::EDITOR_MultWeight2Typed()
+{
+}
+
+void UPCGExAssetCollection::EDITOR_MultWeight10() { PCGEX_ASSET_COLLECTION_UTIL_CALL(EDITOR_MultWeight10Typed();) }
+
+void UPCGExAssetCollection::EDITOR_MultWeight10Typed()
+{
+}
+
 void UPCGExAssetCollection::EDITOR_WeightOne() { PCGEX_ASSET_COLLECTION_UTIL_CALL(EDITOR_WeightOneTyped();) }
 
 void UPCGExAssetCollection::EDITOR_WeightOneTyped()
@@ -411,6 +427,12 @@ void UPCGExAssetCollection::EDITOR_WeightOneTyped()
 void UPCGExAssetCollection::EDITOR_WeightRandom() { PCGEX_ASSET_COLLECTION_UTIL_CALL(EDITOR_WeightRandomTyped();) }
 
 void UPCGExAssetCollection::EDITOR_WeightRandomTyped()
+{
+}
+
+void UPCGExAssetCollection::EDITOR_NormalizedWeightToSum() { PCGEX_ASSET_COLLECTION_UTIL_CALL(EDITOR_NormalizedWeightToSumTyped();); }
+
+void UPCGExAssetCollection::EDITOR_NormalizedWeightToSumTyped()
 {
 }
 
