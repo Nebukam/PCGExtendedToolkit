@@ -146,69 +146,64 @@ namespace PCGExSampleOverlapStats
 				}
 			};
 
-		if (Settings->BoundsSource == EPCGExPointBoundsSource::ScaledBounds)
-		{
-			BoundsPreparationTask->OnSubLoopStartCallback =
-				[PCGEX_ASYNC_THIS_CAPTURE](const PCGExMT::FScope& Scope)
+
+		BoundsPreparationTask->OnSubLoopStartCallback =
+			[PCGEX_ASYNC_THIS_CAPTURE](const PCGExMT::FScope& Scope)
+			{
+				PCGEX_ASYNC_THIS
+
+				This->PointDataFacade->Fetch(Scope);
+				This->FilterScope(Scope);
+
+#define PCGEX_POINT_CHECK\
+					if (!This->PointFilterCache[i]) { continue; }\
+					const FPCGPoint* Point = This->InPoints->GetData() + i;
+
+				if (This->Settings->BoundsSource == EPCGExPointBoundsSource::ScaledBounds)
 				{
-					PCGEX_ASYNC_THIS
-
-					This->PointDataFacade->Fetch(Scope);
-					This->FilterScope(Scope);
-
 					for (int i = Scope.Start; i < Scope.End; i++)
 					{
-						if (!This->PointFilterCache[i]) { continue; }
-						const FPCGPoint* Point = This->InPoints->GetData() + i;
+						PCGEX_POINT_CHECK
 						This->RegisterPointBounds(
 							i, MakeShared<PCGExDiscardByOverlap::FPointBounds>(
 								i, Point,
 								PCGExMath::GetLocalBounds<EPCGExPointBoundsSource::ScaledBounds>(Point).ExpandBy(This->Settings->Expansion)));
 					}
-				};
-		}
-		else if (Settings->BoundsSource == EPCGExPointBoundsSource::DensityBounds)
-		{
-			BoundsPreparationTask->OnSubLoopStartCallback =
-				[PCGEX_ASYNC_THIS_CAPTURE](const PCGExMT::FScope& Scope)
+				}
+				else if (This->Settings->BoundsSource == EPCGExPointBoundsSource::DensityBounds)
 				{
-					PCGEX_ASYNC_THIS
-
-					This->PointDataFacade->Fetch(Scope);
-					This->FilterScope(Scope);
-
 					for (int i = Scope.Start; i < Scope.End; i++)
 					{
-						if (!This->PointFilterCache[i]) { continue; }
-						const FPCGPoint* Point = This->InPoints->GetData() + i;
+						PCGEX_POINT_CHECK
 						This->RegisterPointBounds(
 							i, MakeShared<PCGExDiscardByOverlap::FPointBounds>(
 								i, Point,
 								PCGExMath::GetLocalBounds<EPCGExPointBoundsSource::DensityBounds>(Point).ExpandBy(This->Settings->Expansion)));
 					}
-				};
-		}
-		else
-		{
-			BoundsPreparationTask->OnSubLoopStartCallback =
-				[PCGEX_ASYNC_THIS_CAPTURE](const PCGExMT::FScope& Scope)
+				}
+				else if (This->Settings->BoundsSource == EPCGExPointBoundsSource::Bounds)
 				{
-					PCGEX_ASYNC_THIS
-
-					This->PointDataFacade->Fetch(Scope);
-					This->FilterScope(Scope);
-
 					for (int i = Scope.Start; i < Scope.End; i++)
 					{
-						if (!This->PointFilterCache[i]) { continue; }
-						const FPCGPoint* Point = This->InPoints->GetData() + i;
+						PCGEX_POINT_CHECK
 						This->RegisterPointBounds(
 							i, MakeShared<PCGExDiscardByOverlap::FPointBounds>(
 								i, Point,
 								PCGExMath::GetLocalBounds<EPCGExPointBoundsSource::Bounds>(Point).ExpandBy(This->Settings->Expansion)));
 					}
-				};
-		}
+				}
+				else if (This->Settings->BoundsSource == EPCGExPointBoundsSource::Center)
+				{
+					for (int i = Scope.Start; i < Scope.End; i++)
+					{
+						PCGEX_POINT_CHECK
+						This->RegisterPointBounds(
+							i, MakeShared<PCGExDiscardByOverlap::FPointBounds>(
+								i, Point,
+								PCGExMath::GetLocalBounds<EPCGExPointBoundsSource::Center>(Point).ExpandBy(This->Settings->Expansion)));
+					}
+				}
+			};
 
 		BoundsPreparationTask->StartSubLoops(NumPoints, PrimaryFilters ? GetDefault<UPCGExGlobalSettings>()->GetPointsBatchChunkSize() : 1024, true);
 

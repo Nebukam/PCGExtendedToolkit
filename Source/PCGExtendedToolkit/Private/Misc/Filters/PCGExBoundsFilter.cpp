@@ -89,12 +89,14 @@ if(TypedFilterFactory->Config.bInvert){\
 	switch (TypedFilterFactory->Config.BoundsSource) { default: \
 	PCGEX_FOREACH_TESTTYPE_INV(_NAME, ScaledBounds)\
 	PCGEX_FOREACH_TESTTYPE_INV(_NAME, DensityBounds)\
-	PCGEX_FOREACH_TESTTYPE_INV(_NAME, Bounds)}\
+	PCGEX_FOREACH_TESTTYPE_INV(_NAME, Bounds)\
+	PCGEX_FOREACH_TESTTYPE_INV(_NAME, Center)}\
 	}else{\
 	switch (TypedFilterFactory->Config.BoundsSource) { default: \
 	PCGEX_FOREACH_TESTTYPE(_NAME, ScaledBounds)\
 	PCGEX_FOREACH_TESTTYPE(_NAME, DensityBounds)\
-	PCGEX_FOREACH_TESTTYPE(_NAME, Bounds)}}
+	PCGEX_FOREACH_TESTTYPE(_NAME, Bounds)\
+	PCGEX_FOREACH_TESTTYPE(_NAME, Center)}}
 
 	if (TypedFilterFactory->Config.Mode == EPCGExBoundsFilterCompareMode::PerPointBounds)
 	{

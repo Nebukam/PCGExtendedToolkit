@@ -36,7 +36,8 @@ enum class EPCGExPointBoundsSource : uint8
 {
 	ScaledBounds  = 0 UMETA(DisplayName = "Scaled Bounds", ToolTip="Scaled Bounds"),
 	DensityBounds = 1 UMETA(DisplayName = "Density Bounds", ToolTip="Density Bounds (scaled + steepness)"),
-	Bounds        = 2 UMETA(DisplayName = "Bounds", ToolTip="Unscaled Bounds (why?)")
+	Bounds        = 2 UMETA(DisplayName = "Bounds", ToolTip="Unscaled Bounds (why?)"),
+	Center        = 3 UMETA(DisplayName = "Center", ToolTip="A tiny size 1 box.")
 };
 
 namespace PCGExMath
@@ -151,7 +152,7 @@ namespace PCGExMath
 	};
 
 	template <EPCGExPointBoundsSource S = EPCGExPointBoundsSource::ScaledBounds>
-	static FBox GetLocalBounds(const FPCGPoint& Point)
+	FORCEINLINE static FBox GetLocalBounds(const FPCGPoint& Point)
 	{
 		if constexpr (S == EPCGExPointBoundsSource::ScaledBounds)
 		{
@@ -166,6 +167,10 @@ namespace PCGExMath
 		{
 			return Point.GetLocalDensityBounds();
 		}
+		else if constexpr (S == EPCGExPointBoundsSource::Center)
+		{
+			return FBox(FVector(-0.5), FVector(0.5));
+		}
 		else
 		{
 			return FBox(FVector::OneVector * -1, FVector::OneVector);
@@ -173,7 +178,7 @@ namespace PCGExMath
 	}
 
 	template <EPCGExPointBoundsSource S = EPCGExPointBoundsSource::ScaledBounds>
-	static FBox GetLocalBounds(const FPCGPoint* Point)
+	FORCEINLINE static FBox GetLocalBounds(const FPCGPoint* Point)
 	{
 		if constexpr (S == EPCGExPointBoundsSource::ScaledBounds)
 		{
@@ -188,6 +193,10 @@ namespace PCGExMath
 		else if constexpr (S == EPCGExPointBoundsSource::DensityBounds)
 		{
 			return Point->GetLocalDensityBounds();
+		}
+		else if constexpr (S == EPCGExPointBoundsSource::Center)
+		{
+			return FBox(FVector(-0.5), FVector(0.5));
 		}
 		else
 		{
