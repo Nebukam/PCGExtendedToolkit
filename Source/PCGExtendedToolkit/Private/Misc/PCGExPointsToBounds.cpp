@@ -99,6 +99,9 @@ namespace PCGExPointsToBounds
 		case EPCGExPointBoundsSource::Bounds:
 			for (const FPCGPoint& Pt : InPoints) { Bounds += FBoxCenterAndExtent(Pt.Transform.GetLocation(), Pt.GetExtents()).GetBox(); }
 			break;
+		case EPCGExPointBoundsSource::Center:
+			for (const FPCGPoint& Pt : InPoints) { Bounds += Pt.Transform.GetLocation(); }
+			break;
 		}
 
 		return true;

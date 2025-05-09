@@ -55,18 +55,26 @@ namespace PCGExMath
 
 	FBox GetLocalBounds(const FPCGPoint& Point, const EPCGExPointBoundsSource Source)
 	{
-		if (Source == EPCGExPointBoundsSource::ScaledBounds) { return GetLocalBounds<EPCGExPointBoundsSource::ScaledBounds>(Point); }
-		if (Source == EPCGExPointBoundsSource::Bounds) { return GetLocalBounds<EPCGExPointBoundsSource::Bounds>(Point); }
-		if (Source == EPCGExPointBoundsSource::DensityBounds) { return GetLocalBounds<EPCGExPointBoundsSource::DensityBounds>(Point); }
-		return FBox(FVector::OneVector * -1, FVector::OneVector);
+		switch (Source)
+		{
+		case EPCGExPointBoundsSource::ScaledBounds: return GetLocalBounds<EPCGExPointBoundsSource::ScaledBounds>(Point);
+		case EPCGExPointBoundsSource::DensityBounds: return GetLocalBounds<EPCGExPointBoundsSource::Bounds>(Point);
+		case EPCGExPointBoundsSource::Bounds: return GetLocalBounds<EPCGExPointBoundsSource::DensityBounds>(Point);
+		case EPCGExPointBoundsSource::Center: return GetLocalBounds<EPCGExPointBoundsSource::Center>(Point);
+		default: return FBox(FVector::OneVector * -1, FVector::OneVector);
+		}
 	}
 
 	FBox GetLocalBounds(const FPCGPoint* Point, const EPCGExPointBoundsSource Source)
 	{
-		if (Source == EPCGExPointBoundsSource::ScaledBounds) { return GetLocalBounds<EPCGExPointBoundsSource::ScaledBounds>(Point); }
-		if (Source == EPCGExPointBoundsSource::Bounds) { return GetLocalBounds<EPCGExPointBoundsSource::Bounds>(Point); }
-		if (Source == EPCGExPointBoundsSource::DensityBounds) { return GetLocalBounds<EPCGExPointBoundsSource::DensityBounds>(Point); }
-		return FBox(FVector::OneVector * -1, FVector::OneVector);
+		switch (Source)
+		{
+		case EPCGExPointBoundsSource::ScaledBounds: return GetLocalBounds<EPCGExPointBoundsSource::ScaledBounds>(Point);
+		case EPCGExPointBoundsSource::DensityBounds: return GetLocalBounds<EPCGExPointBoundsSource::Bounds>(Point);
+		case EPCGExPointBoundsSource::Bounds: return GetLocalBounds<EPCGExPointBoundsSource::DensityBounds>(Point);
+		case EPCGExPointBoundsSource::Center: return GetLocalBounds<EPCGExPointBoundsSource::Center>(Point);
+		default: return FBox(FVector::OneVector * -1, FVector::OneVector);
+		}
 	}
 
 	double ConvertStringToDouble(const FString& StringToConvert)

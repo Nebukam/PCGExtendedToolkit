@@ -71,8 +71,11 @@ virtual void EDITOR_SortByWeightAscendingTyped() override { EDITOR_SortByWeightA
 virtual void EDITOR_SortByWeightDescendingTyped() override { EDITOR_SortByWeightDescendingInternal(Entries); }\
 virtual void EDITOR_SetWeightIndexTyped() override { EDITOR_SetWeightIndexInternal(Entries); }\
 virtual void EDITOR_PadWeightTyped() override { EDITOR_PadWeightInternal(Entries); }\
+virtual void EDITOR_MultWeight2Typed() override { EDITOR_MultWeightInternal(Entries, 2); }\
+virtual void EDITOR_MultWeight10Typed() override { EDITOR_MultWeightInternal(Entries, 10); }\
 virtual void EDITOR_WeightOneTyped() override { EDITOR_WeightOneInternal(Entries); }\
 virtual void EDITOR_WeightRandomTyped() override { EDITOR_WeightRandomInternal(Entries); }\
+virtual void EDITOR_NormalizedWeightToSumTyped() override { EDITOR_NormalizedWeightToSumInternal(Entries); }\
 virtual void EDITOR_SanitizeAndRebuildStagingData(const bool bRecursive) override{ for(int i = 0; i < Entries.Num(); i++){ _ENTRY_TYPE& Entry = Entries[i]; Entry.EDITOR_Sanitize(); Entry.UpdateStaging(this, i, bRecursive);} }
 #else
 #define PCGEX_ASSET_COLLECTION_BOILERPLATE(_TYPE, _ENTRY_TYPE)\
@@ -315,7 +318,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExAssetCollectionEntry
 	UPROPERTY(EditAnywhere, Category = Settings)
 	bool bIsSubCollection = false;
 
-	UPROPERTY(EditAnywhere, Category = Settings, meta=(ClampMin=1))
+	UPROPERTY(EditAnywhere, Category = Settings, meta=(ClampMin=0, UIMin=0))
 	int32 Weight = 1;
 
 	UPROPERTY(EditAnywhere, Category = Settings)
@@ -475,7 +478,7 @@ public:
 #pragma region Tools
 
 	/** Sort collection by weights in ascending order. */
-	UFUNCTION(CallInEditor, Category = Utils, meta=(DisplayName="Sort (Asc)", ShortToolTip="Sort collection by weights in ascending order.", DisplayOrder=10))
+	UFUNCTION(CallInEditor, Category = Utils, meta=(DisplayName="⇅ Ascending", ShortToolTip="Sort collection by weights in ascending order.", DisplayOrder=10))
 	void EDITOR_SortByWeightAscending();
 
 	virtual void EDITOR_SortByWeightAscendingTyped();
@@ -487,7 +490,7 @@ public:
 	}
 
 	/** Sort collection by weights in descending order. */
-	UFUNCTION(CallInEditor, Category = Utils, meta=(DisplayName="Sort (Desc)", ShortToolTip="Sort collection by weights in descending order.", DisplayOrder=11))
+	UFUNCTION(CallInEditor, Category = Utils, meta=(DisplayName="⇅ Descending", ShortToolTip="Sort collection by weights in descending order.", DisplayOrder=11))
 	void EDITOR_SortByWeightDescending();
 
 	virtual void EDITOR_SortByWeightDescendingTyped();
@@ -499,7 +502,7 @@ public:
 	}
 
 	/**Sort collection by weights in descending order. */
-	UFUNCTION(CallInEditor, Category = Utils, meta=(DisplayName="Index to Weight (Asc)", ShortToolTip="Sort collection by weights in descending order.", DisplayOrder=20))
+	UFUNCTION(CallInEditor, Category = Utils, meta=(DisplayName="W = i", ShortToolTip="Set weigth to the entry index.", DisplayOrder=20))
 	void EDITOR_SetWeightIndex();
 
 	virtual void EDITOR_SetWeightIndexTyped();
@@ -511,7 +514,7 @@ public:
 	}
 
 	/** Add 1 to all weights so it's easier to weight down some assets */
-	UFUNCTION(CallInEditor, Category = Utils, meta=(DisplayName="Pad Weights", ShortToolTip="Add 1 to all weights so it's easier to weight down some assets", DisplayOrder=21))
+	UFUNCTION(CallInEditor, Category = Utils, meta=(DisplayName="W += 1", ShortToolTip="Add 1 to all weights so it's easier to weight down some assets", DisplayOrder=21))
 	void EDITOR_PadWeight();
 
 	virtual void EDITOR_PadWeightTyped();
@@ -522,8 +525,26 @@ public:
 		for (int i = 0; i < Entries.Num(); i++) { Entries[i].Weight += 1; }
 	}
 
+	/** Multiplies all weights by 2 */
+	UFUNCTION(CallInEditor, Category = Utils, meta=(DisplayName="W * 2", ShortToolTip="Multiplies weights by 2", DisplayOrder=21))
+	void EDITOR_MultWeight2();
+
+	virtual void EDITOR_MultWeight2Typed();
+
+	/** Multiplies all weights by 10 */
+	UFUNCTION(CallInEditor, Category = Utils, meta=(DisplayName="W * 10", ShortToolTip="Multiplies weights by 10", DisplayOrder=22))
+	void EDITOR_MultWeight10();
+
+	virtual void EDITOR_MultWeight10Typed();
+
+	template <typename T>
+	void EDITOR_MultWeightInternal(TArray<T>& Entries, int32 Mult)
+	{
+		for (int i = 0; i < Entries.Num(); i++) { Entries[i].Weight *= Mult; }
+	}
+
 	/** Reset all weights to 100 */
-	UFUNCTION(CallInEditor, Category = Utils, meta=(DisplayName="Weight = 100", ShortToolTip="Reset all weights to 100", DisplayOrder=21))
+	UFUNCTION(CallInEditor, Category = Utils, meta=(DisplayName="W = 100", ShortToolTip="Reset all weights to 100", DisplayOrder=23))
 	void EDITOR_WeightOne();
 
 	virtual void EDITOR_WeightOneTyped();
@@ -535,7 +556,7 @@ public:
 	}
 
 	/** Assign random weights to items */
-	UFUNCTION(CallInEditor, Category = Utils, meta=(DisplayName="Randomize Weights", ShortToolTip="Assign random weights to items", DisplayOrder=21))
+	UFUNCTION(CallInEditor, Category = Utils, meta=(DisplayName="Randomize Weights", ShortToolTip="Assign random weights to items", DisplayOrder=24))
 	void EDITOR_WeightRandom();
 
 	virtual void EDITOR_WeightRandomTyped();
@@ -545,6 +566,30 @@ public:
 	{
 		FRandomStream RandomSource(FMath::Rand());
 		for (int i = 0; i < Entries.Num(); i++) { Entries[i].Weight = RandomSource.RandRange(1, Entries.Num() * 100); }
+	}
+
+	/** Normalize weight sum to 100 */
+	UFUNCTION(CallInEditor, Category = Utils, meta=(DisplayName="Normalized Weights Sum", ShortToolTip="Normalize weight sum to 100", DisplayOrder=25))
+	void EDITOR_NormalizedWeightToSum();
+
+	virtual void EDITOR_NormalizedWeightToSumTyped();
+
+	template <typename T>
+	void EDITOR_NormalizedWeightToSumInternal(TArray<T>& Entries)
+	{
+		double Sum = 0;
+		for (int i = 0; i < Entries.Num(); i++) { Sum += Entries[i].Weight; }
+		for (int i = 0; i < Entries.Num(); i++)
+		{
+			int32& W = Entries[i].Weight;
+			if (W <= 0)
+			{
+				W = 0;
+				continue;
+			}
+			const double Weight = (static_cast<double>(Entries[i].Weight) / Sum) * 100;
+			W = Weight;
+		}
 	}
 
 #pragma endregion
