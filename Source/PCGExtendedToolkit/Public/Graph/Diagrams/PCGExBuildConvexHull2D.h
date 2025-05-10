@@ -40,6 +40,10 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	FPCGExGeo2DProjectionDetails ProjectionDetails;
 
+	/** Path Winding */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_NotOverridable))
+	EPCGExWinding Winding = EPCGExWinding::CounterClockwise;
+	
 	/** */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging", meta=(InlineEditConditionToggle))
 	bool bTagIfClosedLoop = true;
@@ -84,12 +88,7 @@ namespace PCGExConvexHull2D
 	{
 	protected:
 		FPCGExGeo2DProjectionDetails ProjectionDetails;
-
-		TSharedPtr<TArray<int32>> OutputIndices;
-		TUniquePtr<PCGExGeo::TDelaunay2> Delaunay;
 		TSharedPtr<PCGExGraph::FGraphBuilder> GraphBuilder;
-
-		TArray<uint64> Edges;
 
 	public:
 		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade):
@@ -98,8 +97,6 @@ namespace PCGExConvexHull2D
 		}
 
 		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager) override;
-		virtual void ProcessSingleRangeIteration(const int32 Iteration, const PCGExMT::FScope& Scope) override;
 		virtual void CompleteWork() override;
-		virtual void Write() override;
 	};
 }
