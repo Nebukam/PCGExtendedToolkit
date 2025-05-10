@@ -268,6 +268,9 @@ namespace PCGExBinPacking
 		switch (Settings->SplitMode){\
 		case EPCGExSpaceSplitMode::Minimal: Splitter = MakeShared<TBinSplit<_DIRECTION, EPCGExSpaceSplitMode::Minimal>>(); break;\
 		case EPCGExSpaceSplitMode::MinimalCross: Splitter = MakeShared<TBinSplit<_DIRECTION, EPCGExSpaceSplitMode::MinimalCross>>(); break;\
+		case EPCGExSpaceSplitMode::EqualSplit: Splitter = MakeShared<TBinSplit<_DIRECTION, EPCGExSpaceSplitMode::EqualSplit>>(); break;\
+		case EPCGExSpaceSplitMode::Cone: Splitter = MakeShared<TBinSplit<_DIRECTION, EPCGExSpaceSplitMode::Cone>>(); break;\
+		case EPCGExSpaceSplitMode::ConeCross: Splitter = MakeShared<TBinSplit<_DIRECTION, EPCGExSpaceSplitMode::ConeCross>>(); break;\
 		}
 		
 #define PCGEX_SWITCH_ON_SPLIT_DIRECTION(_MACRO) \
