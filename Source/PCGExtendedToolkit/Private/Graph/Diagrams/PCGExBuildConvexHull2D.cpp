@@ -5,7 +5,7 @@
 
 
 #include "Elements/Metadata/PCGMetadataElementCommon.h"
-#include "Geometry/PCGExGeoDelaunay.h"
+#include "Math/ConvexHull2d.h"
 #include "Graph/PCGExCluster.h"
 #include "Paths/PCGExPaths.h"
 
@@ -57,7 +57,6 @@ bool FPCGExBuildConvexHull2DElement::ExecuteInternal(
 			},
 			[&](const TSharedPtr<PCGExPointsMT::TBatch<PCGExConvexHull2D::FProcessor>>& NewBatch)
 			{
-				NewBatch->bRequiresWriteStep = true;
 			}))
 		{
 			return Context->CancelExecution(TEXT("Could not find any valid inputs to build from."));
@@ -70,61 +69,6 @@ bool FPCGExBuildConvexHull2DElement::ExecuteInternal(
 	Context->PathsIO->StageOutputs();
 
 	return Context->TryComplete();
-}
-
-void FPCGExBuildConvexHull2DContext::BuildPath(const PCGExGraph::FGraphBuilder* GraphBuilder) const
-{
-	PCGEX_SETTINGS_LOCAL(BuildConvexHull2D)
-
-	TSet<uint64> UniqueEdges;
-	const TArray<PCGExGraph::FEdge>& Edges = GraphBuilder->Graph->Edges;
-
-	const TArray<FPCGPoint>& InPoints = GraphBuilder->NodeDataFacade->GetIn()->GetPoints();
-	const TSharedPtr<PCGExData::FPointIO> PathIO = PathsIO->Emplace_GetRef(GraphBuilder->NodeDataFacade->GetIn(), PCGExData::EIOInit::New);
-	if (!PathIO) { return; }
-
-	TArray<FPCGPoint>& MutablePathPoints = PathIO->GetOut()->GetMutablePoints();
-	TSet<int32> VisitedEdges;
-	VisitedEdges.Reserve(Edges.Num());
-
-	if (Settings->bTagIfClosedLoop) { PathIO->Tags->AddRaw(Settings->IsClosedLoopTag); }
-
-	int32 CurrentIndex = -1;
-	int32 FirstIndex = -1;
-
-	while (MutablePathPoints.Num() != Edges.Num())
-	{
-		int32 EdgeIndex = -1;
-
-		if (CurrentIndex == -1)
-		{
-			EdgeIndex = 0;
-			FirstIndex = Edges[EdgeIndex].Start;
-			MutablePathPoints.Add(InPoints[FirstIndex]);
-			CurrentIndex = Edges[EdgeIndex].End;
-		}
-		else
-		{
-			for (int i = 0; i < Edges.Num(); i++)
-			{
-				EdgeIndex = i;
-				if (VisitedEdges.Contains(EdgeIndex)) { continue; }
-
-				const PCGExGraph::FEdge& Edge = Edges[EdgeIndex];
-				if (!Edge.Contains(CurrentIndex)) { continue; }
-
-				CurrentIndex = Edge.Other(CurrentIndex);
-				break;
-			}
-		}
-
-		if (CurrentIndex == FirstIndex) { break; }
-
-		VisitedEdges.Add(EdgeIndex);
-		MutablePathPoints.Add(InPoints[CurrentIndex]);
-	}
-
-	VisitedEdges.Empty();
 }
 
 namespace PCGExConvexHull2D
@@ -140,61 +84,65 @@ namespace PCGExConvexHull2D
 		ProjectionDetails = Settings->ProjectionDetails;
 		ProjectionDetails.Init(ExecutionContext, PointDataFacade);
 
-		// Build delaunay
+		// Build convex hull
 
 		TArray<FVector> ActivePositions;
+		TArray<int32> ConvexHullIndices;
 		PCGExGeo::PointsToPositions(PointDataFacade->Source->GetIn()->GetPoints(), ActivePositions);
+		ConvexHull2D::ComputeConvexHull(ActivePositions, ConvexHullIndices);
 
-		Delaunay = MakeUnique<PCGExGeo::TDelaunay2>();
-
-		if (!Delaunay->Process(ActivePositions, ProjectionDetails))
+		const int32 LastIndex = ConvexHullIndices.Num() - 1;
+		if (LastIndex < 0)
 		{
-			PCGE_LOG_C(Warning, GraphAndLog, ExecutionContext, FTEXT("Some inputs generates no results. Are points coplanar? If so, use Convex Hull 2D instead."));
+			// Not enough points to build a convex hull
 			return false;
+		}
+
+		const TArray<FPCGPoint>& InPoints = PointDataFacade->GetIn()->GetPoints();
+		const TSharedPtr<PCGExData::FPointIO> PathIO = Context->PathsIO->Emplace_GetRef(PointDataFacade->GetIn(), PCGExData::EIOInit::New);
+
+		if (!PathIO) { return false; }
+
+		PathIO->IOIndex = PointDataFacade->Source->IOIndex;
+		TArray<FPCGPoint>& MutablePathPoints = PathIO->GetOut()->GetMutablePoints();
+		TArray<FVector2D> ProjectedPoints;
+
+		MutablePathPoints.Reserve(LastIndex + 1);
+		ProjectedPoints.Reserve(LastIndex + 1);
+
+
+		if (Settings->bTagIfClosedLoop) { PathIO->Tags->AddRaw(Settings->IsClosedLoopTag); }
+
+		GraphBuilder = MakeShared<PCGExGraph::FGraphBuilder>(PointDataFacade, &Settings->GraphBuilderDetails);
+
+		// TODO : Compute winding already
+
+		PCGExGraph::FEdge E;
+		for (int i = 0; i <= LastIndex; i++)
+		{
+			const int32 CurrentIndex = ConvexHullIndices[i];
+			const int32 NextIndex = ConvexHullIndices[i == LastIndex ? 0 : i + 1];
+
+			const FPCGPoint& InPoint = InPoints[CurrentIndex];
+
+			MutablePathPoints.Add(InPoint);
+			ProjectedPoints.Emplace(ActivePositions[CurrentIndex]);
+			GraphBuilder->Graph->InsertEdge(CurrentIndex, NextIndex, E);
+		}
+
+		if (!PCGExGeo::IsWinded(Settings->Winding, UE::Geometry::CurveUtil::SignedArea2<double, FVector2D>(ProjectedPoints) < 0))
+		{
+			Algo::Reverse(MutablePathPoints);
 		}
 
 		ActivePositions.Empty();
 
-		PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::Duplicate)
-
-		Edges = Delaunay->DelaunayEdges.Array();
-
-		GraphBuilder = MakeShared<PCGExGraph::FGraphBuilder>(PointDataFacade, &Settings->GraphBuilderDetails);
-		StartParallelLoopForRange(Edges.Num());
+		GraphBuilder->CompileAsync(AsyncManager, true);
 
 		return true;
 	}
 
-	void FProcessor::ProcessSingleRangeIteration(const int32 Iteration, const PCGExMT::FScope& Scope)
-	{
-		PCGExGraph::FEdge E;
-		const uint64 Edge = Edges[Iteration];
-
-		uint32 A;
-		uint32 B;
-		PCGEx::H64(Edge, A, B);
-		const bool bAIsOnHull = Delaunay->DelaunayHull.Contains(A);
-		const bool bBIsOnHull = Delaunay->DelaunayHull.Contains(B);
-
-		if (!bAIsOnHull || !bBIsOnHull)
-		{
-			if (!bAIsOnHull) { GraphBuilder->Graph->Nodes[A].bValid = false; }
-			if (!bBIsOnHull) { GraphBuilder->Graph->Nodes[B].bValid = false; }
-			return;
-		}
-
-		GraphBuilder->Graph->InsertEdge(A, B, E);
-	}
-
 	void FProcessor::CompleteWork()
-	{
-		if (!GraphBuilder) { return; }
-
-		GraphBuilder->CompileAsync(AsyncManager, false);
-		Context->BuildPath(GraphBuilder.Get());
-	}
-
-	void FProcessor::Write()
 	{
 		if (!GraphBuilder) { return; }
 
@@ -205,7 +153,6 @@ namespace PCGExConvexHull2D
 			return;
 		}
 
-		PointDataFacade->Write(AsyncManager);
 		GraphBuilder->StageEdgesOutputs();
 	}
 }
