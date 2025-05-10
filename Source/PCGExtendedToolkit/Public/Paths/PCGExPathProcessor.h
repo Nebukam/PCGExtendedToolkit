@@ -10,6 +10,11 @@
 
 #include "PCGExPathProcessor.generated.h"
 
+#define PCGEX_SKIP_INVALID_PATH_ENTRY \
+if (Entry->GetNum() < 2){ \
+if (!Settings->bOmitInvalidPathsOutputs) { Entry->InitializeOutput(PCGExData::EIOInit::Forward); } \
+bHasInvalidInputs = true; return false; }
+
 class UPCGExFilterFactoryData;
 
 class UPCGExNodeStateFactory;

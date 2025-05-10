@@ -7,9 +7,9 @@
 #include "PCGExPathProcessor.h"
 #include "PCGExPaths.h"
 #include "PCGExPointsProcessor.h"
+#include "Data/Blending/PCGExAttributeBlendFactoryProvider.h"
 #include "Data/Blending/PCGExDataBlending.h"
 #include "Data/Blending/PCGExMetadataBlender.h"
-
 
 #include "PCGExAttributeRolling.generated.h"
 
@@ -38,6 +38,7 @@ public:
 #endif
 
 protected:
+	virtual TArray<FPCGPinProperties> InputPinProperties() const override;
 	virtual FPCGElementPtr CreateElement() const override;
 	//~End UPCGSettings
 
@@ -62,6 +63,9 @@ public:
 struct FPCGExAttributeRollingContext final : FPCGExPathProcessorContext
 {
 	friend class FPCGExAttributeRollingElement;
+
+	TArray<TObjectPtr<const UPCGExAttributeBlendFactory>> BlendingFactories;
+
 	FPCGExBlendingDetails BlendingSettings;
 };
 
@@ -84,6 +88,8 @@ namespace PCGExAttributeRolling
 	{
 		int32 MaxIndex = 0;
 		int32 LastTriggerIndex = -1;
+
+		TSharedPtr<TArray<TSharedPtr<FPCGExAttributeBlendOperation>>> BlendOps;
 
 		PCGExPaths::FPathMetrics CurrentMetric;
 		TSharedPtr<PCGExDataBlending::FMetadataBlender> MetadataBlender;

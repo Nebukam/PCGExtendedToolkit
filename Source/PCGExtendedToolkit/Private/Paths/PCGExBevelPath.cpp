@@ -83,12 +83,7 @@ bool FPCGExBevelPathElement::ExecuteInternal(FPCGContext* InContext) const
 		if (!Context->StartBatchProcessingPoints<PCGExPointsMT::TBatch<PCGExBevelPath::FProcessor>>(
 			[&](const TSharedPtr<PCGExData::FPointIO>& Entry)
 			{
-				if (Entry->GetNum() < 2)
-				{
-					if (!Settings->bOmitInvalidPathsOutputs) { Entry->InitializeOutput(PCGExData::EIOInit::Forward); }
-					bHasInvalidInputs = true;
-					return false;
-				}
+				PCGEX_SKIP_INVALID_PATH_ENTRY
 
 				if (Entry->GetNum() < 3)
 				{

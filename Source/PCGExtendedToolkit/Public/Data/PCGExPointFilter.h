@@ -79,6 +79,8 @@ namespace PCGExPointFilter
 
 	const FName SourceFiltersConditionLabel = FName("Conditions Filters");
 	const FName SourceKeepConditionLabel = FName("Keep Conditions");
+	const FName SourceToggleConditionLabel = FName("Toggle Conditions");
+	const FName SourceStartConditionLabel = FName("Start Conditions");
 	const FName SourceStopConditionLabel = FName("Stop Conditions");
 
 	const FName SourcePointFiltersLabel = FName("Point Filters");

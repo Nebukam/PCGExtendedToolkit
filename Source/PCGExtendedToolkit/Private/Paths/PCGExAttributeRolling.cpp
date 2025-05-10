@@ -3,6 +3,7 @@
 
 #include "Paths/PCGExAttributeRolling.h"
 
+#include "Data/Blending/PCGExAttributeBlendFactoryProvider.h"
 #include "Data/Blending/PCGExMetadataBlender.h"
 
 
@@ -16,6 +17,15 @@ UPCGExAttributeRollingSettings::UPCGExAttributeRollingSettings(
 	bSupportClosedLoops = false;
 }
 
+TArray<FPCGPinProperties> UPCGExAttributeRollingSettings::InputPinProperties() const
+{
+	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
+
+	PCGEX_PIN_FACTORIES(PCGExDataBlending::SourceBlendingLabel, "Blending configurations.", Normal, {})
+
+	return PinProperties;
+}
+
 PCGEX_INITIALIZE_ELEMENT(AttributeRolling)
 
 bool FPCGExAttributeRollingElement::Boot(FPCGExContext* InContext) const
@@ -25,6 +35,34 @@ bool FPCGExAttributeRollingElement::Boot(FPCGExContext* InContext) const
 	PCGEX_CONTEXT_AND_SETTINGS(AttributeRolling)
 	PCGEX_FWD(BlendingSettings)
 
+	PCGExFactories::GetInputFactories<UPCGExAttributeBlendFactory>(
+		Context, PCGExDataBlending::SourceBlendingLabel, Context->BlendingFactories,
+		{PCGExFactories::EType::Blending}, false);
+
+
+	// Rework : condition & action management.
+	// Trigger Conditions capture the reference index to use for blending
+	// - Trigger : Capture Index
+	
+	// Roll Mode :
+	// - Start & Stop
+	//		Separate start filters for start & stop trigger.
+	//		Start enable rolling until a stop condition is met.
+	//		- Start AND Stop handling : Start | Stop
+	// - Toggle
+	//		Toggle Conditions enable or disable rolling (blending) from that point on.
+
+	// Reference Element Mode :
+	// (define which index will be used for rolling the current point)
+	// - Current-1 (Previous)
+	// - Start (Start don't get rolled, but is rolled instead)
+	// - Start-1 (Start will get rolled with previous value)
+	// - Start-1 then Start (Start will get rolled with previous value, then becomes the new reference index)
+
+	// [x] Roll on End
+	//		If enabled, the point that stops rolling (toggle or stop) will have its values rolled over
+	//		Otherwise, stopping points are not rolled on.
+	
 	return true;
 }
 
@@ -44,13 +82,7 @@ bool FPCGExAttributeRollingElement::ExecuteInternal(FPCGContext* InContext) cons
 		if (!Context->StartBatchProcessingPoints<PCGExPointsMT::TBatch<PCGExAttributeRolling::FProcessor>>(
 			[&](const TSharedPtr<PCGExData::FPointIO>& Entry)
 			{
-				if (Entry->GetNum() < 2)
-				{
-					if (!Settings->bOmitInvalidPathsOutputs) { Entry->InitializeOutput(PCGExData::EIOInit::Forward); }
-					bHasInvalidInputs = true;
-					return false;
-				}
-
+				PCGEX_SKIP_INVALID_PATH_ENTRY
 				Entry->InitializeOutput(PCGExData::EIOInit::Duplicate);
 				return true;
 			},
@@ -80,6 +112,12 @@ namespace PCGExAttributeRolling
 	void FProcessor::RegisterBuffersDependencies(PCGExData::FFacadePreloader& FacadePreloader)
 	{
 		TPointsProcessor<FPCGExAttributeRollingContext, UPCGExAttributeRollingSettings>::RegisterBuffersDependencies(FacadePreloader);
+
+		for (const TObjectPtr<const UPCGExAttributeBlendFactory>& Factory : Context->BlendingFactories)
+		{
+			Factory->RegisterBuffersDependencies(Context, FacadePreloader);
+		}
+
 		Settings->BlendingSettings.RegisterBuffersDependencies(Context, PointDataFacade, FacadePreloader);
 	}
 
@@ -92,6 +130,14 @@ namespace PCGExAttributeRolling
 		if (!FPointsProcessor::Process(InAsyncManager)) { return false; }
 
 		PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::Duplicate)
+
+		BlendOps = MakeShared<TArray<TSharedPtr<FPCGExAttributeBlendOperation>>>();
+		BlendOps->Reserve(Context->BlendingFactories.Num());
+
+		if (!PCGExDataBlending::PrepareBlendOps(Context, PointDataFacade, Context->BlendingFactories, BlendOps))
+		{
+			return false;
+		}
 
 		MaxIndex = PointDataFacade->GetNum(PCGExData::ESource::In) - 1;
 		LastTriggerIndex = Settings->bReverseRolling ? MaxIndex : 0;
@@ -135,8 +181,7 @@ namespace PCGExAttributeRolling
 				FilterTask->StartSubLoops(PointDataFacade->GetNum(), GetDefault<UPCGExGlobalSettings>()->GetPointsBatchChunkSize());
 			}
 		}
-
-
+		
 		return true;
 	}
 
