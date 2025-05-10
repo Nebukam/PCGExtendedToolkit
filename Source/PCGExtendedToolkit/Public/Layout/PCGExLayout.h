@@ -4,6 +4,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "PCGEx.h"
 
 #include "PCGExLayout.generated.h"
 
@@ -14,6 +15,15 @@ enum class EPCGExBinSeedMode : uint8
 	UVWAttribute      = 1 UMETA(DisplayName = "UVW", ToolTip="A per-bin bound-relative position"),
 	PositionConstant  = 2 UMETA(DisplayName = "Position (Constant)", ToolTip="A constant world position"),
 	PositionAttribute = 3 UMETA(DisplayName = "Position (Attribute)", ToolTip="A per-bin world position"),
+};
+
+UENUM()
+enum class EPCGExSpaceSplitMode : uint8
+{
+	Minimal      = 0 UMETA(DisplayName = "Minimal", ToolTip="..."),
+	MinimalCross = 1 UMETA(DisplayName = "Minimal Cross", ToolTip="..."),
+	//EqualSplit   = 2 UMETA(DisplayName = "Equal Split", ToolTip="Least optimal mode"),
+	//Cone         = 3 UMETA(DisplayName = "Cone", ToolTip="..."),
 };
 
 namespace PCGExLayout
@@ -52,4 +62,96 @@ namespace PCGExLayout
 		void Expand(FBox& InBox, const FVector& Expansion) const;
 		FVector Inflate(FBox& InBox, const FVector& Thresholds) const;
 	};
+
+	template <EPCGExAxis MainAxis = EPCGExAxis::Up, EPCGExSpaceSplitMode SplitMode = EPCGExSpaceSplitMode::Minimal>
+	void SplitSpace(const FSpace& Space, FBox& ItemBox, TArray<FBox>& OutPartitions)
+	{
+		OutPartitions.Reserve(6);
+
+#define PCGEX_BIN_SPLIT(_MIN, _MAX) \
+			if (const FBox B = FBox(_MIN, _MAX); !FMath::IsNearlyZero(B.GetVolume())) { OutPartitions.Add(B); }
+
+		const FVector S_Min = Space.Box.Min;
+		const FVector S_Max = Space.Box.Max;
+		const FVector I_Min = ItemBox.Min;
+		const FVector I_Max = ItemBox.Max;
+
+		if constexpr (
+			SplitMode == EPCGExSpaceSplitMode::Minimal ||
+			SplitMode == EPCGExSpaceSplitMode::MinimalCross)
+		{
+			if constexpr (
+				MainAxis == EPCGExAxis::Up ||
+				MainAxis == EPCGExAxis::Down)
+			{
+				PCGEX_BIN_SPLIT(FVector(I_Min.X, I_Min.Y, I_Max.Z), FVector(I_Max.X, I_Max.Y, S_Max.Z));
+				PCGEX_BIN_SPLIT(FVector(I_Min.X, I_Min.Y, S_Min.Z), FVector(I_Max.X, I_Max.Y, I_Min.Z));
+
+				if constexpr (SplitMode == EPCGExSpaceSplitMode::Minimal)
+				{
+					PCGEX_BIN_SPLIT(FVector(I_Max.X, S_Min.Y, S_Min.Z), S_Max);
+					PCGEX_BIN_SPLIT(S_Min, FVector(I_Min.X, S_Max.Y, S_Max.Z));
+					PCGEX_BIN_SPLIT(FVector(I_Min.X, I_Max.Y, S_Min.Z), FVector(I_Max.X, S_Max.Y, S_Max.Z));
+					PCGEX_BIN_SPLIT(FVector(I_Min.X, S_Min.Y, S_Min.Z), FVector(I_Max.X, I_Min.Y, S_Max.Z));
+				}
+				else
+				{
+					PCGEX_BIN_SPLIT(FVector(I_Max.X, I_Min.Y, S_Min.Z), FVector(S_Max.X, I_Max.Y, S_Max.Z));
+					PCGEX_BIN_SPLIT(FVector(S_Min.X, I_Min.Y, S_Min.Z), FVector(I_Min.X, I_Max.Y, S_Max.Z));
+					PCGEX_BIN_SPLIT(S_Min, FVector(S_Max.X, I_Min.Y, S_Max.Z))
+					PCGEX_BIN_SPLIT(FVector(S_Min.X, I_Max.Y, S_Min.Z), S_Max);
+				}
+			}
+			else if constexpr (
+				MainAxis == EPCGExAxis::Left ||
+				MainAxis == EPCGExAxis::Right)
+			{
+				PCGEX_BIN_SPLIT(FVector(I_Min.X, I_Max.Y, I_Min.Z), FVector(I_Max.X, S_Max.Y, I_Max.Z));
+				PCGEX_BIN_SPLIT(FVector(I_Min.X, S_Min.Y, I_Min.Z), FVector(I_Max.X, I_Min.Y, I_Max.Z));
+
+				if constexpr (SplitMode == EPCGExSpaceSplitMode::Minimal)
+				{
+					PCGEX_BIN_SPLIT(FVector(S_Min.X, S_Min.Y, I_Max.Z), S_Max);
+					PCGEX_BIN_SPLIT(S_Min, FVector(S_Max.X, S_Max.Y, I_Min.Z));
+
+					PCGEX_BIN_SPLIT(FVector(I_Max.X, S_Min.Y, I_Min.Z), FVector(S_Max.X, S_Max.Y, I_Max.Z));
+					PCGEX_BIN_SPLIT(FVector(S_Min.X, S_Min.Y, I_Min.Z), FVector(I_Min.X, S_Max.Y, I_Max.Z));
+				}
+				else
+				{
+					PCGEX_BIN_SPLIT(FVector(I_Min.X, S_Min.Y, I_Max.Z), FVector(I_Max.X, S_Max.Y, S_Max.Z));
+					PCGEX_BIN_SPLIT(FVector(I_Min.X, S_Min.Y, S_Min.Z), FVector(I_Max.X, S_Max.Y, I_Min.Z));
+
+					PCGEX_BIN_SPLIT(FVector(I_Max.X, S_Min.Y, S_Min.Z), S_Max);
+					PCGEX_BIN_SPLIT(S_Min, FVector(I_Min.X, S_Max.Y, S_Max.Z));
+				}
+			}
+			else if constexpr (
+				MainAxis == EPCGExAxis::Forward ||
+				MainAxis == EPCGExAxis::Backward)
+			{
+				PCGEX_BIN_SPLIT(FVector(I_Max.X, I_Min.Y, I_Min.Z), FVector(S_Max.X, I_Max.Y, I_Max.Z));
+				PCGEX_BIN_SPLIT(FVector(S_Min.X, I_Min.Y, I_Min.Z), FVector(I_Min.X, I_Max.Y, I_Max.Z));
+
+				if constexpr (SplitMode == EPCGExSpaceSplitMode::Minimal)
+				{
+					PCGEX_BIN_SPLIT(FVector(S_Min.X, S_Min.Y, I_Max.Z), S_Max);
+					PCGEX_BIN_SPLIT(S_Min, FVector(S_Max.X, S_Max.Y, I_Min.Z));
+
+					PCGEX_BIN_SPLIT(FVector(S_Min.X, I_Max.Y, I_Min.Z), FVector(S_Max.X, S_Max.Y, I_Max.Z));
+					PCGEX_BIN_SPLIT(FVector(S_Min.X, S_Min.Y, I_Min.Z), FVector(S_Max.X, I_Min.Y, I_Max.Z));
+				}
+				else
+				{
+					PCGEX_BIN_SPLIT(FVector(S_Min.X, I_Min.Y, I_Max.Z), FVector(S_Max.X, I_Max.Y, S_Max.Z));
+					PCGEX_BIN_SPLIT(FVector(S_Min.X, I_Min.Y, S_Min.Z), FVector(S_Max.X, I_Max.Y, I_Min.Z));
+
+					PCGEX_BIN_SPLIT(FVector(S_Min.X, I_Max.Y, S_Min.Z), S_Max);
+					PCGEX_BIN_SPLIT(S_Min, FVector(S_Max.X, I_Min.Y, S_Max.Z));
+				}
+			}
+		}
+
+#undef PCGEX_BIN_SPLIT
+	}
 }
