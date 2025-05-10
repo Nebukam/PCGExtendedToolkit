@@ -23,18 +23,22 @@ struct FPCGExHeuristicConfigFeedback : public FPCGExHeuristicConfigBase
 	{
 	}
 
-	/** Weight to add to points that are already part of the plotted path. This is used to sample the weight curve.*/
+	/** If enabled, weight doesn't scale with overlap; the base score is either 0 or 1. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ClampMin=0, ClampMax=1))
+	bool bBinary = false;
+
+	/** Weight to add to points that are already part of the plotted path. This is used to sample the weight curve.*/
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="!bBinary", ClampMin=0, ClampMax=1))
 	double VisitedPointsWeightFactor = 1;
 
 	/** Weight to add to edges that are already part of the plotted path. This is used to sample the weight curve.*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ClampMin=0, ClampMax=1))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="!bBinary", ClampMin=0, ClampMax=1))
 	double VisitedEdgesWeightFactor = 1;
 
 	/** Global feedback weight persist between path query in a single pathfinding node.  IMPORTANT NOTE: This break parallelism, and may be slower.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	bool bGlobalFeedback = false;
-
+	
 	/** */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	bool bAffectAllConnectedEdges = true;
@@ -53,6 +57,7 @@ public:
 	double NodeScale = 1;
 	double EdgeScale = 1;
 	bool bBleed = true;
+	bool bBinary = false;
 
 	virtual double GetGlobalScore(
 		const PCGExCluster::FNode& From,
