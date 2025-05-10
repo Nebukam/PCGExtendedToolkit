@@ -181,21 +181,80 @@ namespace PCGExBinPacking
 				// Back
 				PCGEX_BIN_SPLIT(FVector(ItemBox.Min.X, Space.Box.Min.Y, ItemBox.Min.Z), FVector(ItemBox.Max.X, ItemBox.Min.Y, Space.Box.Max.Z));
 			}
-			else
+			else if constexpr (Axis == EPCGExAxis::Down)
 			{
-				// TODO : Implement each axis maths
-				// Left
-				PCGEX_BIN_SPLIT(Space.Box.Min, FVector(ItemBox.Min.X, Space.Box.Max.Y, Space.Box.Max.Z))
-				// Right
+				// Left (-X)
+				PCGEX_BIN_SPLIT(Space.Box.Min, FVector(ItemBox.Min.X, Space.Box.Max.Y, Space.Box.Max.Z));
+				// Right (+X)
 				PCGEX_BIN_SPLIT(FVector(ItemBox.Max.X, Space.Box.Min.Y, Space.Box.Min.Z), Space.Box.Max);
-				// Bottom
-				PCGEX_BIN_SPLIT(FVector(ItemBox.Min.X, Space.Box.Min.Y, Space.Box.Min.Z), FVector(ItemBox.Max.X, Space.Box.Max.Y, ItemBox.Min.Z));
-				// Top
+				// Top (toward –Z, so below)
+				PCGEX_BIN_SPLIT(FVector(ItemBox.Min.X, ItemBox.Min.Y, Space.Box.Min.Z), FVector(ItemBox.Max.X, ItemBox.Max.Y, ItemBox.Min.Z));
+				// Bottom (toward +Z, so above)
 				PCGEX_BIN_SPLIT(FVector(ItemBox.Min.X, ItemBox.Min.Y, ItemBox.Max.Z), FVector(ItemBox.Max.X, ItemBox.Max.Y, Space.Box.Max.Z));
-				// Front
-				PCGEX_BIN_SPLIT(FVector(ItemBox.Min.X, ItemBox.Max.Y, ItemBox.Min.Z), FVector(ItemBox.Max.X, Space.Box.Max.Y, Space.Box.Max.Z));
-				// Back
+				// Front (–Z direction)
 				PCGEX_BIN_SPLIT(FVector(ItemBox.Min.X, Space.Box.Min.Y, ItemBox.Min.Z), FVector(ItemBox.Max.X, ItemBox.Min.Y, Space.Box.Max.Z));
+				// Back (+Z direction)
+				PCGEX_BIN_SPLIT(FVector(ItemBox.Min.X, ItemBox.Max.Y, ItemBox.Min.Z), FVector(ItemBox.Max.X, Space.Box.Max.Y, Space.Box.Max.Z));
+			}
+			else if constexpr (Axis == EPCGExAxis::Left)
+			{
+				// Up (+Z)
+				PCGEX_BIN_SPLIT(FVector(ItemBox.Min.X, ItemBox.Min.Y, ItemBox.Max.Z), FVector(ItemBox.Max.X, ItemBox.Max.Y, Space.Box.Max.Z));
+				// Down (–Z)
+				PCGEX_BIN_SPLIT(FVector(ItemBox.Min.X, ItemBox.Min.Y, Space.Box.Min.Z), FVector(ItemBox.Max.X, ItemBox.Max.Y, ItemBox.Min.Z));
+				// Front (–X direction)
+				PCGEX_BIN_SPLIT(FVector(Space.Box.Min.X, ItemBox.Min.Y, ItemBox.Min.Z), FVector(ItemBox.Min.X, ItemBox.Max.Y, ItemBox.Max.Z));
+				// Back (+X direction)
+				PCGEX_BIN_SPLIT(FVector(ItemBox.Max.X, ItemBox.Min.Y, ItemBox.Min.Z), FVector(Space.Box.Max.X, ItemBox.Max.Y, ItemBox.Max.Z));
+				// Left (+Y)
+				PCGEX_BIN_SPLIT(Space.Box.Min, FVector(Space.Box.Max.X, ItemBox.Min.Y, Space.Box.Max.Z));
+				// Right (–Y)
+				PCGEX_BIN_SPLIT(FVector(Space.Box.Min.X, ItemBox.Max.Y, Space.Box.Min.Z), Space.Box.Max);
+			}
+			else if constexpr (Axis == EPCGExAxis::Right)
+			{
+				// Up (+Z)
+				PCGEX_BIN_SPLIT(FVector(ItemBox.Min.X, ItemBox.Min.Y, ItemBox.Max.Z), FVector(ItemBox.Max.X, ItemBox.Max.Y, Space.Box.Max.Z));
+				// Down (–Z)
+				PCGEX_BIN_SPLIT(FVector(ItemBox.Min.X, ItemBox.Min.Y, Space.Box.Min.Z), FVector(ItemBox.Max.X, ItemBox.Max.Y, ItemBox.Min.Z));
+				// Front (+X direction)
+				PCGEX_BIN_SPLIT(FVector(ItemBox.Max.X, ItemBox.Min.Y, ItemBox.Min.Z), FVector(Space.Box.Max.X, ItemBox.Max.Y, ItemBox.Max.Z));
+				// Back (–X direction)
+				PCGEX_BIN_SPLIT(FVector(Space.Box.Min.X, ItemBox.Min.Y, ItemBox.Min.Z), FVector(ItemBox.Min.X, ItemBox.Max.Y, ItemBox.Max.Z));
+				// Left (–Y)
+				PCGEX_BIN_SPLIT(FVector(Space.Box.Min.X, ItemBox.Max.Y, Space.Box.Min.Z), Space.Box.Max);
+				// Right (+Y)
+				PCGEX_BIN_SPLIT(Space.Box.Min, FVector(Space.Box.Max.X, ItemBox.Min.Y, Space.Box.Max.Z));
+			}
+			else if constexpr (Axis == EPCGExAxis::Forward)
+			{
+				// Left (–X)
+				PCGEX_BIN_SPLIT(Space.Box.Min, FVector(ItemBox.Min.X, Space.Box.Max.Y, Space.Box.Max.Z));
+				// Right (+X)
+				PCGEX_BIN_SPLIT(FVector(ItemBox.Max.X, Space.Box.Min.Y, Space.Box.Min.Z), Space.Box.Max);
+				// Up (+Z)
+				PCGEX_BIN_SPLIT(FVector(ItemBox.Min.X, ItemBox.Min.Y, ItemBox.Max.Z), FVector(ItemBox.Max.X, ItemBox.Max.Y, Space.Box.Max.Z));
+				// Down (–Z)
+				PCGEX_BIN_SPLIT(FVector(ItemBox.Min.X, ItemBox.Min.Y, Space.Box.Min.Z), FVector(ItemBox.Max.X, ItemBox.Max.Y, ItemBox.Min.Z));
+				// Front (+Y)
+				PCGEX_BIN_SPLIT(FVector(ItemBox.Min.X, ItemBox.Max.Y, ItemBox.Min.Z), FVector(ItemBox.Max.X, Space.Box.Max.Y, ItemBox.Max.Z));
+				// Back (–Y)
+				PCGEX_BIN_SPLIT(FVector(ItemBox.Min.X, Space.Box.Min.Y, ItemBox.Min.Z), FVector(ItemBox.Max.X, ItemBox.Min.Y, ItemBox.Max.Z));
+			}
+			else if constexpr (Axis == EPCGExAxis::Backward)
+			{
+				// Left (+X)
+				PCGEX_BIN_SPLIT(FVector(ItemBox.Max.X, Space.Box.Min.Y, Space.Box.Min.Z), Space.Box.Max);
+				// Right (–X)
+				PCGEX_BIN_SPLIT(Space.Box.Min, FVector(ItemBox.Min.X, Space.Box.Max.Y, Space.Box.Max.Z));
+				// Up (+Z)
+				PCGEX_BIN_SPLIT(FVector(ItemBox.Min.X, ItemBox.Min.Y, ItemBox.Max.Z), FVector(ItemBox.Max.X, ItemBox.Max.Y, Space.Box.Max.Z));
+				// Down (–Z)
+				PCGEX_BIN_SPLIT(FVector(ItemBox.Min.X, ItemBox.Min.Y, Space.Box.Min.Z), FVector(ItemBox.Max.X, ItemBox.Max.Y, ItemBox.Min.Z));
+				// Front (–Y)
+				PCGEX_BIN_SPLIT(FVector(ItemBox.Min.X, Space.Box.Min.Y, ItemBox.Min.Z), FVector(ItemBox.Max.X, ItemBox.Min.Y, ItemBox.Max.Z));
+				// Back (+Y)
+				PCGEX_BIN_SPLIT(FVector(ItemBox.Min.X, ItemBox.Max.Y, ItemBox.Min.Z), FVector(ItemBox.Max.X, Space.Box.Max.Y, ItemBox.Max.Z));
 			}
 
 #undef PCGEX_BIN_SPLIT
