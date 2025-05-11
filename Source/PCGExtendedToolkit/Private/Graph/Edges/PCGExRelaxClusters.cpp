@@ -191,7 +191,7 @@ namespace PCGExRelaxClusters
 	void FProcessor::PrepareLoopScopesForNodes(const TArray<PCGExMT::FScope>& Loops)
 	{
 		TProcessor<FPCGExRelaxClustersContext, UPCGExRelaxClustersSettings>::PrepareLoopScopesForNodes(Loops);
-		MaxDistanceValue = MakeShared<PCGExMT::TScopedValue<double>>(Loops, 0);
+		MaxDistanceValue = MakeShared<PCGExMT::TScopedNumericValue<double>>(Loops, 0);
 	}
 
 	void FProcessor::ProcessSingleNode(const int32 Index, PCGExCluster::FNode& Node, const PCGExMT::FScope& Scope)

@@ -251,9 +251,9 @@ namespace PCGExPathToClusters
 
 		UnionGraph = Context->UnionGraph;
 		bClosedLoop = Context->ClosedLoop.IsClosedLoop(PointDataFacade->Source);
-		bInlineProcessPoints = Settings->PointPointIntersectionDetails.FuseDetails.DoInlineInsertion();
+		bDaisyChainProcessPoints = Settings->PointPointIntersectionDetails.FuseDetails.DoInlineInsertion();
 
-		if (bInlineProcessPoints)
+		if (bDaisyChainProcessPoints)
 		{
 			// Blunt insert since processor don't have a "wait"
 			InsertEdges(PCGExMT::FScope(0, NumPoints), true);

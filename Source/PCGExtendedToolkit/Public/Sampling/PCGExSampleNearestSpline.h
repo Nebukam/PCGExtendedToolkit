@@ -480,7 +480,7 @@ namespace PCGExSampleNearestSpline
 		FVector SafeUpVector = FVector::UpVector;
 		int8 bAnySuccess = 0;
 
-		TSharedPtr<PCGExMT::TScopedValue<double>> MaxDistanceValue;
+		TSharedPtr<PCGExMT::TScopedNumericValue<double>> MaxDistanceValue;
 		double MaxDistance = 0;
 
 		bool bSingleSample = false;

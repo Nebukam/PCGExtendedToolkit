@@ -72,13 +72,17 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="SeedMode==EPCGExBinSeedMode::PositionAttribute", EditConditionHides))
 	FPCGAttributePropertyInputSelector SeedPositionAttribute;
 
-	/** The stacking side is the axis that will generate the smallest free space for further insertion. */
+	/** Will attempt to infer the split axis from relative seed positioning, and fall back to selected axis if it can't find one. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Fitting", meta = (PCG_Overridable))
-	EPCGExAxis StackingSide = EPCGExAxis::Up;
+	bool bInferSplitAxisFromSeed = false;
+	
+	/** The main stacking axis is the axis that will generate the smallest free space for further insertion. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Fitting", meta = (PCG_Overridable))
+	EPCGExAxis SplitAxis = EPCGExAxis::Up;
 
-	/** Open side are the two free spaces that "sandwich" the selected stacking side. o.e when stacking over Up or Down, open sides are left & right, enabling switch will use front & back instead. */
+	/** The cross stacking axis is the axis that will generate the largest free space on the "sides" of the main axis. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Fitting", meta = (PCG_Overridable))
-	bool bSwitchOpenSides = false;
+	EPCGExSpaceSplitMode SplitMode = EPCGExSpaceSplitMode::Minimal;
 
 	/** If enabled, fitting will try to avoid wasted space by not creating free spaces that are below a certain threshold. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Fitting", meta = (PCG_Overridable))
@@ -155,50 +159,13 @@ namespace PCGExBinPacking
 		virtual void SplitSpace(const FSpace& Space, FBox& ItemBox, TArray<FBox>& OutPartitions) const = 0;
 	};
 
-	template <EPCGExAxis Axis = EPCGExAxis::Up>
+	template <EPCGExAxis SplitAxis = EPCGExAxis::Up, EPCGExSpaceSplitMode Mode = EPCGExSpaceSplitMode::Minimal>
 	class TBinSplit : public FBinSplit
 	{
 	public:
 		virtual void SplitSpace(const FSpace& Space, FBox& ItemBox, TArray<FBox>& OutPartitions) const override
 		{
-			OutPartitions.Reserve(6);
-
-#define PCGEX_BIN_SPLIT(_MIN, _MAX) \
-			if (const FBox B = FBox(_MIN, _MAX); !FMath::IsNearlyZero(B.GetVolume())) { OutPartitions.Add(B); }
-
-			if constexpr (Axis == EPCGExAxis::Up)
-			{
-				// Left
-				PCGEX_BIN_SPLIT(Space.Box.Min, FVector(ItemBox.Min.X, Space.Box.Max.Y, Space.Box.Max.Z))
-				// Right
-				PCGEX_BIN_SPLIT(FVector(ItemBox.Max.X, Space.Box.Min.Y, Space.Box.Min.Z), Space.Box.Max);
-				// Bottom
-				PCGEX_BIN_SPLIT(FVector(ItemBox.Min.X, Space.Box.Min.Y, Space.Box.Min.Z), FVector(ItemBox.Max.X, Space.Box.Max.Y, ItemBox.Min.Z));
-				// Top
-				PCGEX_BIN_SPLIT(FVector(ItemBox.Min.X, ItemBox.Min.Y, ItemBox.Max.Z), FVector(ItemBox.Max.X, ItemBox.Max.Y, Space.Box.Max.Z));
-				// Front
-				PCGEX_BIN_SPLIT(FVector(ItemBox.Min.X, ItemBox.Max.Y, ItemBox.Min.Z), FVector(ItemBox.Max.X, Space.Box.Max.Y, Space.Box.Max.Z));
-				// Back
-				PCGEX_BIN_SPLIT(FVector(ItemBox.Min.X, Space.Box.Min.Y, ItemBox.Min.Z), FVector(ItemBox.Max.X, ItemBox.Min.Y, Space.Box.Max.Z));
-			}
-			else
-			{
-				// TODO : Implement each axis maths
-				// Left
-				PCGEX_BIN_SPLIT(Space.Box.Min, FVector(ItemBox.Min.X, Space.Box.Max.Y, Space.Box.Max.Z))
-				// Right
-				PCGEX_BIN_SPLIT(FVector(ItemBox.Max.X, Space.Box.Min.Y, Space.Box.Min.Z), Space.Box.Max);
-				// Bottom
-				PCGEX_BIN_SPLIT(FVector(ItemBox.Min.X, Space.Box.Min.Y, Space.Box.Min.Z), FVector(ItemBox.Max.X, Space.Box.Max.Y, ItemBox.Min.Z));
-				// Top
-				PCGEX_BIN_SPLIT(FVector(ItemBox.Min.X, ItemBox.Min.Y, ItemBox.Max.Z), FVector(ItemBox.Max.X, ItemBox.Max.Y, Space.Box.Max.Z));
-				// Front
-				PCGEX_BIN_SPLIT(FVector(ItemBox.Min.X, ItemBox.Max.Y, ItemBox.Min.Z), FVector(ItemBox.Max.X, Space.Box.Max.Y, Space.Box.Max.Z));
-				// Back
-				PCGEX_BIN_SPLIT(FVector(ItemBox.Min.X, Space.Box.Min.Y, ItemBox.Min.Z), FVector(ItemBox.Max.X, ItemBox.Min.Y, Space.Box.Max.Z));
-			}
-
-#undef PCGEX_BIN_SPLIT
+			PCGExLayout::SplitSpace<SplitAxis, Mode>(Space, ItemBox, OutPartitions);
 		}
 	};
 
@@ -248,7 +215,7 @@ namespace PCGExBinPacking
 		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade):
 			TPointsProcessor(InPointDataFacade)
 		{
-			bInlineProcessPoints = true;
+			bDaisyChainProcessPoints = true;
 		}
 
 		virtual ~FProcessor() override
