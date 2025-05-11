@@ -11,7 +11,6 @@ bool FPCGExInfluenceDetails::Init(const FPCGExContext* InContext, const TSharedR
 
 bool FPCGExFuseDetailsBase::Init(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade>& InDataFacade)
 {
-
 	if (!bComponentWiseTolerance) { Tolerances = FVector(Tolerance); }
 
 	if (!InDataFacade)
@@ -30,7 +29,6 @@ bool FPCGExFuseDetailsBase::Init(FPCGExContext* InContext, const TSharedPtr<PCGE
 
 bool FPCGExFuseDetails::Init(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade>& InDataFacade)
 {
-	
 	if (!FPCGExFuseDetailsBase::Init(InContext, InDataFacade)) { return false; }
 
 	DistanceDetails = PCGExDetails::MakeDistances(SourceDistance, TargetDistance);

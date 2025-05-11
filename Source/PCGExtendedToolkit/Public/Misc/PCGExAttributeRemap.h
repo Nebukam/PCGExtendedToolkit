@@ -220,7 +220,7 @@ public:
 	/* If enabled, will auto-cast integer to double. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_NotOverridable))
 	bool bAutoCastIntegerToDouble = false;
-	
+
 	/** The default remap rule, used for single component values, or first component (X), or all components if no individual override is specified. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName="Remap (Default)"))
 	FPCGExComponentRemapRule BaseRemap;

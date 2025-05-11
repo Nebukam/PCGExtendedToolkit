@@ -80,7 +80,7 @@ namespace PCGExFusePoints
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExFusePoints::Process);
 
 		PointDataFacade->bSupportsScopedGet = Context->bScopedAttributeGet;
-		
+
 		if (!FPointsProcessor::Process(InAsyncManager)) { return false; }
 
 		PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::New)

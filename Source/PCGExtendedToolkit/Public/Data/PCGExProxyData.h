@@ -28,10 +28,10 @@ namespace PCGExData
 		}
 
 		explicit FProxyDescriptor(const TSharedPtr<FFacade>& InDataFacade)
-			:DataFacade(InDataFacade)
+			: DataFacade(InDataFacade)
 		{
 		}
-		
+
 		~FProxyDescriptor() = default;
 		void UpdateSubSelection();
 		bool SetFieldIndex(const int32 InFieldIndex);

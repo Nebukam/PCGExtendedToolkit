@@ -78,7 +78,7 @@ namespace PCGExBlendAttributes
 		{
 			return false;
 		}
-		
+
 		NumPoints = PointDataFacade->GetNum();
 
 		PCGEX_ASYNC_GROUP_CHKD(AsyncManager, BlendScopeTask)
