@@ -344,7 +344,7 @@ namespace PCGExSampleNearestBounds
 		bool bSingleSample = false;
 
 		TSharedPtr<PCGExData::TBuffer<FVector>> LookAtUpGetter;
-		TSharedPtr<PCGExMT::TScopedValue<double>> MaxDistanceValue;
+		TSharedPtr<PCGExMT::TScopedNumericValue<double>> MaxDistanceValue;
 		double MaxDistance = 0;
 
 		FVector SafeUpVector = FVector::UpVector;

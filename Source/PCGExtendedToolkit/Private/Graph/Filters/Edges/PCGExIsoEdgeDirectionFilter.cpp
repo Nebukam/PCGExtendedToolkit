@@ -37,13 +37,12 @@ FIsoEdgeDirectionFilter::FIsoEdgeDirectionFilter(const UPCGExIsoEdgeDirectionFil
 {
 	DotComparison = InFactory->Config.DotComparisonDetails;
 	HashComparison = InFactory->Config.HashComparisonDetails;
+	DirectionSettings = TypedFilterFactory->Config.DirectionSettings;
 }
 
 bool FIsoEdgeDirectionFilter::Init(FPCGExContext* InContext, const TSharedRef<PCGExCluster::FCluster>& InCluster, const TSharedRef<PCGExData::FFacade>& InPointDataFacade, const TSharedRef<PCGExData::FFacade>& InEdgeDataFacade)
 {
 	if (!FFilter::Init(InContext, InCluster, InPointDataFacade, InEdgeDataFacade)) { return false; }
-
-	DirectionSettings = TypedFilterFactory->Config.DirectionSettings;
 
 	if (!DirectionSettings.Init(InContext, InPointDataFacade, &TypedFilterFactory->EdgeSortingRules))
 	{
@@ -51,22 +50,17 @@ bool FIsoEdgeDirectionFilter::Init(FPCGExContext* InContext, const TSharedRef<PC
 		return false;
 	}
 
-	if (DirectionSettings.RequiresEndpointsMetadata())
-	{
-		// Fetch attributes while processors are searching for chains
-	}
-
 	OperandDirection = TypedFilterFactory->Config.GetValueSettingDirection();
-	if (OperandDirection->Init(InContext, PointDataFacade, false)) { return false; }
+	if (!OperandDirection->Init(InContext, InEdgeDataFacade)) { return false; }
 
 	if (TypedFilterFactory->Config.ComparisonQuality == EPCGExDirectionCheckMode::Dot)
 	{
-		if (!DotComparison.Init(InContext, PointDataFacade.ToSharedRef())) { return false; }
+		if (!DotComparison.Init(InContext, InEdgeDataFacade)) { return false; }
 	}
 	else
 	{
 		bUseDot = false;
-		if (!HashComparison.Init(InContext, PointDataFacade.ToSharedRef())) { return false; }
+		if (!HashComparison.Init(InContext, InEdgeDataFacade)) { return false; }
 	}
 
 	return true;

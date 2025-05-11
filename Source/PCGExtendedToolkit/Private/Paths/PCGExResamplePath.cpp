@@ -101,7 +101,7 @@ namespace PCGExResamplePath
 		SampleLength = PathLength->TotalLength / static_cast<double>(NumSamples - 1);
 
 		Samples.SetNumUninitialized(NumSamples);
-		bInlineProcessPoints = true;
+		bDaisyChainProcessPoints = true;
 
 		int32 StartIndex = 0;
 		int32 EndIndex = 1;

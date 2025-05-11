@@ -54,8 +54,7 @@ namespace PCGExClusterFilter
 		if (PCGExFactories::SupportsClusterFilters.Contains(Filter->Factory->GetFactoryType()))
 		{
 			const TSharedPtr<FFilter> ClusterFilter = StaticCastSharedPtr<FFilter>(Filter);
-			if (!ClusterFilter->Init(InContext, Cluster, PointDataFacade, EdgeDataFacade)) { return false; }
-			return true;
+			return ClusterFilter->Init(InContext, Cluster, PointDataFacade, EdgeDataFacade);
 		}
 
 		return Filter->Init(InContext, bUseEdgeAsPrimary ? EdgeDataFacade : PointDataFacade);

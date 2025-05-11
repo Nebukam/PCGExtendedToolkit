@@ -99,14 +99,14 @@ namespace PCGExMT
 	};
 
 	template <typename T>
-	class TScopedValue final : public TSharedFromThis<TScopedValue<T>>
+	class TScopedValue : public TSharedFromThis<TScopedValue<T>>
 	{
 	public:
 		TArray<T> Values;
 
 		using FFlattenFunc = std::function<T(const T&, const T&)>;
 
-		explicit TScopedValue(const TArray<FScope>& InScopes, const T InDefaultValue)
+		TScopedValue(const TArray<FScope>& InScopes, const T InDefaultValue)
 		{
 			Values.Init(InDefaultValue, InScopes.Num());
 		};
@@ -123,7 +123,20 @@ namespace PCGExMT
 			if (Values.Num() > 1) { for (int i = 1; i < Values.Num(); i++) { Result = Func(Values[i], Result); } }
 			return Result;
 		}
+	};
 
+	template <typename T>
+	class TScopedNumericValue final : public TScopedValue<T>
+	{
+		using TScopedValue<T>::Values;
+	public:
+
+		TScopedNumericValue(const TArray<FScope>& InScopes, const T InDefaultValue)
+			:TScopedValue<T>(InScopes, InDefaultValue)
+		{
+			
+		};
+		
 		FORCEINLINE T Min()
 		{
 			T Result = Values[0];
@@ -135,6 +148,13 @@ namespace PCGExMT
 		{
 			T Result = Values[0];
 			if (Values.Num() > 1) { for (int i = 1; i < Values.Num(); i++) { Result = FMath::Max(Values[i], Result); } }
+			return Result;
+		}
+
+		FORCEINLINE T Sum()
+		{
+			T Result = Values[0];
+			if (Values.Num() > 1) { for (int i = 1; i < Values.Num(); i++) { Result += Values[i]; } }
 			return Result;
 		}
 	};
