@@ -213,8 +213,8 @@ namespace PCGExAttributeRemap
 				PCGEX_ASYNC_THIS
 				for (FPCGExComponentRemapRule& Rule : This->Rules)
 				{
-					Rule.MinCache = MakeShared<PCGExMT::TScopedValue<double>>(Loops, MAX_dbl);
-					Rule.MaxCache = MakeShared<PCGExMT::TScopedValue<double>>(Loops, MIN_dbl_neg);
+					Rule.MinCache = MakeShared<PCGExMT::TScopedNumericValue<double>>(Loops, MAX_dbl);
+					Rule.MaxCache = MakeShared<PCGExMT::TScopedNumericValue<double>>(Loops, MIN_dbl_neg);
 				}
 			};
 

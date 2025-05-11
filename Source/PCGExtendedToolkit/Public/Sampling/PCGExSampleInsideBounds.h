@@ -367,7 +367,7 @@ namespace PCGExSampleInsideBoundss
 		TSharedPtr<PCGExData::TBuffer<double>> RangeMaxGetter;
 		TSharedPtr<PCGExData::TBuffer<FVector>> LookAtUpGetter;
 
-		TSharedPtr<PCGExMT::TScopedValue<double>> MaxDistanceValue;
+		TSharedPtr<PCGExMT::TScopedNumericValue<double>> MaxDistanceValue;
 		double MaxDistance = 0;
 
 		FVector SafeUpVector = FVector::UpVector;

@@ -93,7 +93,7 @@ namespace PCGExPointsMT
 			Points, NumPoints,
 			PrepareLoopScopesForPoints, ProcessPoints,
 			OnPointsProcessingComplete,
-			bInlineProcessPoints)
+			bDaisyChainProcessPoints)
 	}
 
 	void FPointsProcessor::PrepareLoopScopesForPoints(const TArray<PCGExMT::FScope>& Loops)

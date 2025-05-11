@@ -360,6 +360,16 @@ namespace PCGExCluster
 		return GetDir(From.Index, To.Index);
 	}
 
+	double FCluster::GetEdgeLength(const FEdge& InEdge) const
+	{
+		return FVector::Dist((*(NodePositions.GetData() + NodeIndexLookup->Get(InEdge.Start))), (*(NodePositions.GetData() + NodeIndexLookup->Get(InEdge.End))));
+	}
+	
+	double FCluster::GetEdgeLengthSquared(const FEdge& InEdge) const
+	{
+		return FVector::DistSquared((*(NodePositions.GetData() + NodeIndexLookup->Get(InEdge.Start))), (*(NodePositions.GetData() + NodeIndexLookup->Get(InEdge.End))));
+	}
+
 	FVector FCluster::GetEdgeDir(const FEdge& InEdge) const
 	{
 		return ((*(NodePositions.GetData() + NodeIndexLookup->Get(InEdge.Start))) - (*(NodePositions.GetData() + NodeIndexLookup->Get(InEdge.End)))).GetSafeNormal();

@@ -232,7 +232,7 @@ namespace PCGExSampleNearestSurface
 		TSharedPtr<PCGExData::FDataForwardHandler> SurfacesForward;
 
 		TSharedPtr<PCGExData::TBuffer<double>> MaxDistanceGetter;
-		TSharedPtr<PCGExMT::TScopedValue<double>> MaxDistanceValue;
+		TSharedPtr<PCGExMT::TScopedNumericValue<double>> MaxDistanceValue;
 		double MaxSampledDistance = 0;
 
 		PCGEX_FOREACH_FIELD_NEARESTSURFACE(PCGEX_OUTPUT_DECL)

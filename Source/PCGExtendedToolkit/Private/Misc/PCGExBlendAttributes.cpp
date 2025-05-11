@@ -71,24 +71,14 @@ namespace PCGExBlendAttributes
 
 		PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::Duplicate)
 
-		Operations = MakeShared<TArray<TSharedPtr<FPCGExAttributeBlendOperation>>>();
-		Operations->Reserve(Context->BlendingFactories.Num());
+		BlendOps = MakeShared<TArray<TSharedPtr<FPCGExAttributeBlendOperation>>>();
+		BlendOps->Reserve(Context->BlendingFactories.Num());
 
-		for (const TObjectPtr<const UPCGExAttributeBlendFactory>& Factory : Context->BlendingFactories)
+		if (!PCGExDataBlending::PrepareBlendOps(Context, PointDataFacade, Context->BlendingFactories, BlendOps))
 		{
-			TSharedPtr<FPCGExAttributeBlendOperation> Op = Factory->CreateOperation(Context);
-			if (!Op)
-			{
-				PCGE_LOG_C(Error, GraphAndLog, Context, FTEXT("An operation could not be created."));
-				return false;
-			}
-
-			Op->OpIdx = Operations->Add(Op);
-			Op->SiblingOperations = Operations;
-
-			if (!Op->PrepareForData(Context, PointDataFacade)) { return false; }
+			return false;
 		}
-
+		
 		NumPoints = PointDataFacade->GetNum();
 
 		PCGEX_ASYNC_GROUP_CHKD(AsyncManager, BlendScopeTask)
@@ -111,7 +101,7 @@ namespace PCGExBlendAttributes
 		FilterScope(InScope);
 
 		TArray<FPCGPoint>& Points = PointDataFacade->GetMutablePoints();
-		TArray<TSharedPtr<FPCGExAttributeBlendOperation>>& Ops = *Operations.Get();
+		TArray<TSharedPtr<FPCGExAttributeBlendOperation>>& Ops = *BlendOps.Get();
 
 		for (int i = InScope.Start; i < InScope.End; i++)
 		{
@@ -122,7 +112,7 @@ namespace PCGExBlendAttributes
 
 	void FProcessor::CompleteWork()
 	{
-		TArray<TSharedPtr<FPCGExAttributeBlendOperation>>& Ops = *Operations.Get();
+		TArray<TSharedPtr<FPCGExAttributeBlendOperation>>& Ops = *BlendOps.Get();
 
 		TSet<TSharedPtr<PCGExData::FBufferBase>> DisabledBuffers;
 		for (const TSharedPtr<FPCGExAttributeBlendOperation>& Op : Ops) { Op->CompleteWork(DisabledBuffers); }
@@ -149,8 +139,8 @@ namespace PCGExBlendAttributes
 	void FProcessor::Cleanup()
 	{
 		TPointsProcessor<FPCGExBlendAttributesContext, UPCGExBlendAttributesSettings>::Cleanup();
-		Operations->Empty();
-		Operations.Reset();
+		BlendOps->Empty();
+		BlendOps.Reset();
 	}
 }
 

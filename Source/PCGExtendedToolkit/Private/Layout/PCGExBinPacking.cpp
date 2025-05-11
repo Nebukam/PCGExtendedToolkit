@@ -264,30 +264,26 @@ namespace PCGExBinPacking
 		PaddingBuffer = Settings->GetValueSettingPadding();
 		if (!PaddingBuffer->Init(Context, PointDataFacade)) { return false; }
 
-		// Splitter
-		switch (Settings->StackingSide)
-		{
-		case EPCGExAxis::Forward:
-			Splitter = MakeShared<TBinSplit<EPCGExAxis::Forward>>();
-			break;
-		case EPCGExAxis::Backward:
-			Splitter = MakeShared<TBinSplit<EPCGExAxis::Backward>>();
-			break;
-		case EPCGExAxis::Right:
-			Splitter = MakeShared<TBinSplit<EPCGExAxis::Right>>();
-			break;
-		case EPCGExAxis::Left:
-			Splitter = MakeShared<TBinSplit<EPCGExAxis::Left>>();
-			break;
-		case EPCGExAxis::Up:
-			Splitter = MakeShared<TBinSplit<EPCGExAxis::Up>>();
-			break;
-		case EPCGExAxis::Down:
-			Splitter = MakeShared<TBinSplit<EPCGExAxis::Down>>();
-			break;
+#define PCGEX_SWITCH_ON_SPLIT_MODE(_DIRECTION)\
+		switch (Settings->SplitMode){\
+		case EPCGExSpaceSplitMode::Minimal: Splitter = MakeShared<TBinSplit<_DIRECTION, EPCGExSpaceSplitMode::Minimal>>(); break;\
+		case EPCGExSpaceSplitMode::MinimalCross: Splitter = MakeShared<TBinSplit<_DIRECTION, EPCGExSpaceSplitMode::MinimalCross>>(); break;\
+		case EPCGExSpaceSplitMode::EqualSplit: Splitter = MakeShared<TBinSplit<_DIRECTION, EPCGExSpaceSplitMode::EqualSplit>>(); break;\
+		case EPCGExSpaceSplitMode::Cone: Splitter = MakeShared<TBinSplit<_DIRECTION, EPCGExSpaceSplitMode::Cone>>(); break;\
+		case EPCGExSpaceSplitMode::ConeCross: Splitter = MakeShared<TBinSplit<_DIRECTION, EPCGExSpaceSplitMode::ConeCross>>(); break;\
+		}
+		
+#define PCGEX_SWITCH_ON_SPLIT_DIRECTION(_MACRO) \
+		switch (Settings->SplitAxis){ \
+		case EPCGExAxis::Forward: _MACRO(EPCGExAxis::Forward) break; \
+		case EPCGExAxis::Backward: _MACRO(EPCGExAxis::Backward) break; \
+		case EPCGExAxis::Right: _MACRO(EPCGExAxis::Right) break; \
+		case EPCGExAxis::Left: _MACRO(EPCGExAxis::Left) break; \
+		case EPCGExAxis::Up: _MACRO(EPCGExAxis::Up) break; \
+		case EPCGExAxis::Down: _MACRO(EPCGExAxis::Down) break; \
 		}
 
-		//
+		PCGEX_SWITCH_ON_SPLIT_DIRECTION(PCGEX_SWITCH_ON_SPLIT_MODE)
 
 		Fitted.Init(false, PointDataFacade->GetNum());
 
