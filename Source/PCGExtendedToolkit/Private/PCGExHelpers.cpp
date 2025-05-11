@@ -278,6 +278,12 @@ void UPCGExPCGComponentCallback::BeginDestroy()
 
 namespace PCGExHelpers
 {
+	bool HasDataOnPin(FPCGContext* InContext, const FName Pin)
+	{
+		for (const FPCGTaggedData& TaggedData : InContext->InputData.TaggedData) { if (TaggedData.Pin == Pin) { return true; } }
+		return false;
+	}
+
 	bool TryGetAttributeName(const FPCGAttributePropertyInputSelector& InSelector, const UPCGData* InData, FName& OutName)
 	{
 		FPCGAttributePropertyInputSelector FixedSelector = InSelector.CopyAndFixLast(InData);

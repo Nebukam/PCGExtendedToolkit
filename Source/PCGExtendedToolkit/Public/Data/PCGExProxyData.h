@@ -20,19 +20,27 @@ namespace PCGExData
 		EPCGMetadataTypes RealType = EPCGMetadataTypes::Unknown;
 		EPCGMetadataTypes WorkingType = EPCGMetadataTypes::Unknown;
 
+		TWeakPtr<FFacade> DataFacade;
+		bool bIsConstant = false;
+
 		FProxyDescriptor()
 		{
 		}
 
+		explicit FProxyDescriptor(const TSharedPtr<FFacade>& InDataFacade)
+			:DataFacade(InDataFacade)
+		{
+		}
+		
 		~FProxyDescriptor() = default;
 		void UpdateSubSelection();
 		bool SetFieldIndex(const int32 InFieldIndex);
 
-		bool Capture(FPCGExContext* InContext, const TSharedPtr<FFacade>& InFacade, const FString& Path, const ESource InSource = ESource::Out, const bool bThrowError = true);
-		bool Capture(FPCGExContext* InContext, const TSharedPtr<FFacade>& InFacade, const FPCGAttributePropertyInputSelector& InSelector, const ESource InSource = ESource::Out, const bool bThrowError = true);
+		bool Capture(FPCGExContext* InContext, const FString& Path, const ESource InSource = ESource::Out, const bool bThrowError = true);
+		bool Capture(FPCGExContext* InContext, const FPCGAttributePropertyInputSelector& InSelector, const ESource InSource = ESource::Out, const bool bThrowError = true);
 
-		bool CaptureStrict(FPCGExContext* InContext, const TSharedPtr<FFacade>& InFacade, const FString& Path, const ESource InSource = ESource::Out, const bool bThrowError = true);
-		bool CaptureStrict(FPCGExContext* InContext, const TSharedPtr<FFacade>& InFacade, const FPCGAttributePropertyInputSelector& InSelector, const ESource InSource = ESource::Out, const bool bThrowError = true);
+		bool CaptureStrict(FPCGExContext* InContext, const FString& Path, const ESource InSource = ESource::Out, const bool bThrowError = true);
+		bool CaptureStrict(FPCGExContext* InContext, const FPCGAttributePropertyInputSelector& InSelector, const ESource InSource = ESource::Out, const bool bThrowError = true);
 	};
 
 	class FBufferProxyBase : public TSharedFromThis<FBufferProxyBase>
@@ -213,7 +221,6 @@ namespace PCGExData
 
 	TSharedPtr<FBufferProxyBase> GetProxyBuffer(
 		FPCGExContext* InContext,
-		const TSharedPtr<FFacade>& InDataFacade,
 		const FProxyDescriptor& InDescriptor);
 
 	template <typename T>
@@ -226,7 +233,6 @@ namespace PCGExData
 
 	bool GetPerFieldProxyBuffers(
 		FPCGExContext* InContext,
-		const TSharedPtr<FFacade>& InDataFacade,
 		const FProxyDescriptor& InBaseDescriptor,
 		const int32 NumDesiredFields,
 		TArray<TSharedPtr<FBufferProxyBase>>& OutProxies);

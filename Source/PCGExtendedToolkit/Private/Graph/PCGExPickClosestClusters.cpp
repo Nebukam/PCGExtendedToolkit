@@ -81,7 +81,7 @@ bool FPCGExPickClosestClustersElement::Boot(FPCGExContext* InContext) const
 
 	PCGEX_CONTEXT_AND_SETTINGS(PickClosestClusters)
 
-	Context->TargetDataFacade = PCGExData::TryGetSingleFacade(Context, PCGExGraph::SourcePickersLabel, true);
+	Context->TargetDataFacade = PCGExData::TryGetSingleFacade(Context, PCGExGraph::SourcePickersLabel, false, true);
 	if (!Context->TargetDataFacade) { return false; }
 
 	PCGEX_FWD(TargetAttributesToTags)

@@ -123,16 +123,19 @@ namespace PCGExAttributeRemap
 		TArray<TSharedPtr<PCGExData::FBufferProxyBase>> UntypedInputProxies;
 		TArray<TSharedPtr<PCGExData::FBufferProxyBase>> UntypedOutputProxies;
 
-		if (!InputDescriptor.Capture(Context, PointDataFacade, Settings->Attributes.GetSourceSelector(), PCGExData::ESource::In)) { return false; }
+		InputDescriptor.DataFacade = PointDataFacade;
+		OutputDescriptor.DataFacade = PointDataFacade;
+		
+		if (!InputDescriptor.Capture(Context, Settings->Attributes.GetSourceSelector(), PCGExData::ESource::In)) { return false; }
 
 		// Number of dimensions to be remapped
 		UnderlyingType = InputDescriptor.WorkingType;
 		Dimensions = PCGEx::GetMetadataSize(UnderlyingType);
 
 		// Get per-field proxies for input
-		if (!GetPerFieldProxyBuffers(Context, PointDataFacade, InputDescriptor, Dimensions, UntypedInputProxies)) { return false; }
+		if (!GetPerFieldProxyBuffers(Context, InputDescriptor, Dimensions, UntypedInputProxies)) { return false; }
 
-		if (!OutputDescriptor.CaptureStrict(Context, PointDataFacade, Settings->Attributes.GetTargetSelector(), PCGExData::ESource::Out, false))
+		if (!OutputDescriptor.CaptureStrict(Context, Settings->Attributes.GetTargetSelector(), PCGExData::ESource::Out, false))
 		{	
 			// This might be expected if the destination does not exist
 			OutputDescriptor.RealType = InputDescriptor.RealType;
@@ -152,7 +155,7 @@ namespace PCGExAttributeRemap
 		}
 
 		// Get per-field proxies for output
-		if (!GetPerFieldProxyBuffers(Context, PointDataFacade, OutputDescriptor, Dimensions, UntypedOutputProxies)) { return false; }
+		if (!GetPerFieldProxyBuffers(Context, OutputDescriptor, Dimensions, UntypedOutputProxies)) { return false; }
 
 		for (int i = 0; i < Dimensions; i++)
 		{

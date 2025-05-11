@@ -110,7 +110,7 @@ bool UPCGExTensorPointFactoryData::InitInternalData(FPCGExContext* InContext)
 
 bool UPCGExTensorPointFactoryData::InitInternalFacade(FPCGExContext* InContext)
 {
-	InputDataFacade = PCGExData::TryGetSingleFacade(InContext, PCGExTensor::SourceEffectorsLabel, true);
+	InputDataFacade = PCGExData::TryGetSingleFacade(InContext, PCGExTensor::SourceEffectorsLabel, false, true);
 	if (!InputDataFacade) { return false; }
 
 	PotencyBuffer = BaseConfig.GetValueSettingPotency(bQuietMissingInputError);

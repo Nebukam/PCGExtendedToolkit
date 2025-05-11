@@ -41,7 +41,7 @@ bool FPCGExFindClustersDataElement::Boot(FPCGExContext* InContext) const
 
 	if (Settings->SearchMode != EPCGExClusterDataSearchMode::All)
 	{
-		Context->SearchKeyIO = PCGExData::TryGetSingleInput(Context, Settings->GetSearchOutputPin(), true);
+		Context->SearchKeyIO = PCGExData::TryGetSingleInput(Context, Settings->GetSearchOutputPin(), false, true);
 		if (!Context->SearchKeyIO)
 		{
 			PCGE_LOG_C(Error, GraphAndLog, InContext, FTEXT("Invalid reference input."));

@@ -43,7 +43,7 @@ bool FPCGExFindContoursElement::Boot(FPCGExContext* InContext) const
 	PCGEX_FWD(Artifacts)
 	if (!Context->Artifacts.Init(Context)) { return false; }
 
-	Context->SeedsDataFacade = PCGExData::TryGetSingleFacade(Context, PCGExGraph::SourceSeedsLabel, true);
+	Context->SeedsDataFacade = PCGExData::TryGetSingleFacade(Context, PCGExGraph::SourceSeedsLabel, false, true);
 	if (!Context->SeedsDataFacade) { return false; }
 
 	if (!Context->ProjectionDetails.Init(Context, Context->SeedsDataFacade)) { return false; }

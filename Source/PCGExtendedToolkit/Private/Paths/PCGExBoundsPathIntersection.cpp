@@ -25,7 +25,7 @@ bool FPCGExBoundsPathIntersectionElement::Boot(FPCGExContext* InContext) const
 
 	if (!Settings->OutputSettings.Validate(Context)) { return false; }
 
-	Context->BoundsDataFacade = PCGExData::TryGetSingleFacade(InContext, PCGEx::SourceBoundsLabel, true);
+	Context->BoundsDataFacade = PCGExData::TryGetSingleFacade(InContext, PCGEx::SourceBoundsLabel, false, true);
 	if (!Context->BoundsDataFacade) { return false; }
 
 	return true;

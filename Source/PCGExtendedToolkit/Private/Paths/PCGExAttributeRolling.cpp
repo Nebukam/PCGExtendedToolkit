@@ -4,9 +4,6 @@
 #include "Paths/PCGExAttributeRolling.h"
 
 #include "Data/Blending/PCGExAttributeBlendFactoryProvider.h"
-#include "Data/Blending/PCGExMetadataBlender.h"
-#include "GeometryCollection/Facades/CollectionConstraintOverrideFacade.h"
-
 
 #define LOCTEXT_NAMESPACE "PCGExAttributeRollingElement"
 #define PCGEX_NAMESPACE AttributeRolling
@@ -238,15 +235,27 @@ namespace PCGExAttributeRolling
 
 		const bool bPreviousRoll = bRoll;
 		const bool bStart = StartFilterManager->Test(TargetIndex);
+		bool bStop = false;
 
 		if (Settings->RangeControl == EPCGExRollingRangeControl::Toggle)
 		{
-			if (bStart) { bRoll = !bRoll; }
+			if (bStart)
+			{
+				bRoll = !bRoll;
+				bStop = !bRoll;
+			}
 		}
 		else
 		{
-			if (StopFilterManager->Test(TargetIndex)) { bRoll = false; }
-			else if (bStart) { bRoll = true; }
+			if (StopFilterManager->Test(TargetIndex))
+			{
+				bRoll = false;
+				bStop = true;
+			}
+			else if (bStart)
+			{
+				bRoll = true;
+			}
 		}
 
 		if (bPreviousRoll != bRoll || TargetIndex == FirstIndex)
@@ -280,7 +289,14 @@ namespace PCGExAttributeRolling
 		PCGEX_OUTPUT_VALUE(IndexInsideRange, TargetIndex, InternalRangeIndex)
 		PCGEX_OUTPUT_VALUE(IsInsideRange, TargetIndex, bRoll)
 
-		if (!bRoll && !Settings->bEnableBlendOutsideRange) { return; }
+		if (!bRoll && !Settings->bBlendOutsideRange)
+		{
+			if (bStop && Settings->bBlendStopElement)
+			{
+				// Skip that one roll
+			}
+			else { return; }
+		}
 
 		if (SourceIndex != -1)
 		{

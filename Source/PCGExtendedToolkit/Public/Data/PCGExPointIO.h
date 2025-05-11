@@ -531,10 +531,10 @@ namespace PCGExData
 		}
 	}
 
-	static TSharedPtr<FPointIO> TryGetSingleInput(FPCGExContext* InContext, const FName InputPinLabel, const bool bThrowError)
+	static TSharedPtr<FPointIO> TryGetSingleInput(FPCGExContext* InContext, const FName InputPinLabel, const bool bTransactional, const bool bThrowError)
 	{
 		TSharedPtr<FPointIO> SingleIO;
-		const TSharedPtr<FPointIOCollection> Collection = MakeShared<FPointIOCollection>(InContext, InputPinLabel);
+		const TSharedPtr<FPointIOCollection> Collection = MakeShared<FPointIOCollection>(InContext, InputPinLabel, EIOInit::None, bTransactional);
 
 		if (!Collection->Pairs.IsEmpty() && Collection->Pairs[0]->GetNum() > 0)
 		{

@@ -40,7 +40,7 @@ bool FPCGExBevelPathElement::Boot(FPCGExContext* InContext) const
 
 	if (Settings->Type == EPCGExBevelProfileType::Custom)
 	{
-		const TSharedPtr<PCGExData::FPointIO> CustomProfileIO = PCGExData::TryGetSingleInput(Context, PCGExBevelPath::SourceCustomProfile, true);
+		const TSharedPtr<PCGExData::FPointIO> CustomProfileIO = PCGExData::TryGetSingleInput(Context, PCGExBevelPath::SourceCustomProfile, false, true);
 		if (!CustomProfileIO) { return false; }
 
 		if (CustomProfileIO->GetNum() < 2)

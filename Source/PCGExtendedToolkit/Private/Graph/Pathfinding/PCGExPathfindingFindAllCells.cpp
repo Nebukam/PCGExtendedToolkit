@@ -38,7 +38,7 @@ bool FPCGExFindAllCellsElement::Boot(FPCGExContext* InContext) const
 	PCGEX_FWD(Artifacts)
 	if (!Context->Artifacts.Init(Context)) { return false; }
 
-	if (TSharedPtr<PCGExData::FFacade> HoleDataFacade = PCGExData::TryGetSingleFacade(Context, PCGExTopology::SourceHolesLabel, false))
+	if (TSharedPtr<PCGExData::FFacade> HoleDataFacade = PCGExData::TryGetSingleFacade(Context, PCGExTopology::SourceHolesLabel, false, false))
 	{
 		Context->Holes = MakeShared<PCGExTopology::FHoles>(Context, HoleDataFacade.ToSharedRef(), Settings->ProjectionDetails);
 	}
