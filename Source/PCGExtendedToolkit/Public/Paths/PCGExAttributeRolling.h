@@ -14,6 +14,21 @@
 #include "PCGExAttributeRolling.generated.h"
 
 UENUM()
+enum class EPCGExRollingMode : uint8
+{
+	StartStop  = 0 UMETA(DisplayName = "Start/Stop", ToolTip="Uses two separate set of filters to start & stop rolling"),
+	Toggle = 1 UMETA(DisplayName = "Toggle", ToolTip="Uses a single set of filter that switches roll on/off whenever a point passes"),
+};
+
+UENUM()
+enum class EPCGExRollingToggleInitialValue : uint8
+{
+	Constant          = 0 UMETA(DisplayName = "Constant", ToolTip="Use a constant value."),
+	ConstantPreserve  = 1 UMETA(DisplayName = "Constant (Preserve)", ToolTip="Use a constant value, but does not switch if the first value is the same."),
+	FromPoint         = 2 UMETA(DisplayName = "From Point", ToolTip="Use the first point starting value.")
+};
+
+UENUM()
 enum class EPCGExRollingTriggerMode : uint8
 {
 	None  = 0 UMETA(DisplayName = "None", ToolTip="Ignore triggers"),
@@ -44,16 +59,20 @@ protected:
 
 	//~Begin UPCGExPointsProcessorSettings
 public:
-	PCGEX_NODE_POINT_FILTER(PCGExPaths::SourceTriggerFilters, "Filters used to check if a point triggers the select behavior.", PCGExFactories::PointFilters, false)
+	PCGEX_NODE_POINT_FILTER(PCGExPointFilter::SourcePinConditionLabel, "Filters used to determine whether a point should be pinned. Pinned points have their values rolled out to the next point.", PCGExFactories::PointFilters, true)
 	//~End UPCGExPointsProcessorSettings
 
-	/** What to do when the trigger filter is true */
+	/** Rolling range control */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
-	EPCGExRollingTriggerMode TriggerAction = EPCGExRollingTriggerMode::None;
+	EPCGExRollingMode Mode = EPCGExRollingMode::StartStop;
 
-	/** Blending settings used to smooth attributes.*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, ShowOnlyInnerProperties))
-	FPCGExBlendingDetails BlendingSettings = FPCGExBlendingDetails(EPCGExDataBlendingType::Sum, EPCGExDataBlendingType::None);
+	/**  */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
+	EPCGExRollingToggleInitialValue ToggleInitialValueMode = EPCGExRollingToggleInitialValue::Constant;
+
+	/** Starting toggle value. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="ToggleInitialValueMode != EPCGExRollingToggleInitialValue::FromPoint"))
+	bool bInitialToggle = false;
 
 	/** Reverse rolling order */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
@@ -64,6 +83,9 @@ struct FPCGExAttributeRollingContext final : FPCGExPathProcessorContext
 {
 	friend class FPCGExAttributeRollingElement;
 
+	TArray<TObjectPtr<const UPCGExFilterFactoryData>> StartFilterFactories;
+	TArray<TObjectPtr<const UPCGExFilterFactoryData>> StopFilterFactories;
+	
 	TArray<TObjectPtr<const UPCGExAttributeBlendFactory>> BlendingFactories;
 
 	FPCGExBlendingDetails BlendingSettings;
@@ -87,14 +109,16 @@ namespace PCGExAttributeRolling
 	class FProcessor final : public PCGExPointsMT::TPointsProcessor<FPCGExAttributeRollingContext, UPCGExAttributeRollingSettings>
 	{
 		int32 MaxIndex = 0;
-		int32 LastTriggerIndex = -1;
+		int32 SourceIndex = -1;
+		bool bRoll = false;
+
+		TSharedPtr<PCGExPointFilter::FManager> StartFilterManager;
+		TSharedPtr<PCGExPointFilter::FManager> StopFilterManager;
 
 		TSharedPtr<TArray<TSharedPtr<FPCGExAttributeBlendOperation>>> BlendOps;
 
 		PCGExPaths::FPathMetrics CurrentMetric;
-		TSharedPtr<PCGExDataBlending::FMetadataBlender> MetadataBlender;
 
-		UPCGMetadata* OutMetadata = nullptr;
 		TArray<FPCGPoint>* OutPoints = nullptr;
 
 	public:
@@ -106,7 +130,6 @@ namespace PCGExAttributeRolling
 		virtual ~FProcessor() override;
 		virtual void RegisterBuffersDependencies(PCGExData::FFacadePreloader& FacadePreloader) override;
 		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager) override;
-		virtual void PrepareSingleLoopScopeForPoints(const PCGExMT::FScope& Scope) override;
 		virtual void ProcessSingleRangeIteration(const int32 Iteration, const PCGExMT::FScope& Scope) override;
 		virtual void CompleteWork() override;
 	};

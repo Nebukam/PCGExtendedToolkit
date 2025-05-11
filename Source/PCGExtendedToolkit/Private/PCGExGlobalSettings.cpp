@@ -153,6 +153,7 @@ void UPCGExGlobalSettings::GeneratePinInfos()
 	PCGEX_MAP_PIN_IN("Toggle Conditions")
 	PCGEX_MAP_PIN_IN("Start Conditions")
 	PCGEX_MAP_PIN_IN("Stop Conditions")
+	PCGEX_MAP_PIN_IN("Pin Conditions")
 	PCGEX_MAP_PIN_IN("Conditions")
 	PCGEX_MAP_PIN_IN("Flip Conditions")
 

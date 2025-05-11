@@ -14,14 +14,24 @@ UPCGExAttributeRollingSettings::UPCGExAttributeRollingSettings(
 	const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
-	bSupportClosedLoops = false;
+	bSupportClosedLoops = true;
 }
 
 TArray<FPCGPinProperties> UPCGExAttributeRollingSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
 
-	PCGEX_PIN_FACTORIES(PCGExDataBlending::SourceBlendingLabel, "Blending configurations.", Normal, {})
+	if (Mode == EPCGExRollingMode::StartStop)
+	{
+		PCGEX_PIN_FACTORIES(PCGExPointFilter::SourceStartConditionLabel, "...", Required, {})
+		PCGEX_PIN_FACTORIES(PCGExPointFilter::SourceStopConditionLabel, "...", Required, {})
+	}
+	else
+	{
+		PCGEX_PIN_FACTORIES(PCGExPointFilter::SourceToggleConditionLabel, "...", Required, {})
+	}
+
+	PCGEX_PIN_FACTORIES(PCGExDataBlending::SourceBlendingLabel, "Blending configurations.", Required, {})
 
 	return PinProperties;
 }
@@ -33,17 +43,45 @@ bool FPCGExAttributeRollingElement::Boot(FPCGExContext* InContext) const
 	if (!FPCGExPathProcessorElement::Boot(InContext)) { return false; }
 
 	PCGEX_CONTEXT_AND_SETTINGS(AttributeRolling)
-	PCGEX_FWD(BlendingSettings)
 
-	PCGExFactories::GetInputFactories<UPCGExAttributeBlendFactory>(
+	if (Settings->Mode == EPCGExRollingMode::StartStop)
+	{
+		if (!PCGExFactories::GetInputFactories<UPCGExFilterFactoryData>(
+			Context, PCGExPointFilter::SourceStartConditionLabel, Context->StartFilterFactories,
+			PCGExFactories::PointFilters, true))
+		{
+			return false;
+		}
+
+		if (!PCGExFactories::GetInputFactories<UPCGExFilterFactoryData>(
+			Context, PCGExPointFilter::SourceStopConditionLabel, Context->StopFilterFactories,
+			PCGExFactories::PointFilters, true))
+		{
+			return false;
+		}
+	}
+	else
+	{
+		if (!PCGExFactories::GetInputFactories<UPCGExFilterFactoryData>(
+			Context, PCGExPointFilter::SourceToggleConditionLabel, Context->StartFilterFactories,
+			PCGExFactories::PointFilters, true))
+		{
+			return false;
+		}
+	}
+
+	if (!PCGExFactories::GetInputFactories<UPCGExAttributeBlendFactory>(
 		Context, PCGExDataBlending::SourceBlendingLabel, Context->BlendingFactories,
-		{PCGExFactories::EType::Blending}, false);
+		{PCGExFactories::EType::Blending}, true))
+	{
+		return false;
+	};
 
 
 	// Rework : condition & action management.
 	// Trigger Conditions capture the reference index to use for blending
 	// - Trigger : Capture Index
-	
+
 	// Roll Mode :
 	// - Start & Stop
 	//		Separate start filters for start & stop trigger.
@@ -62,7 +100,7 @@ bool FPCGExAttributeRollingElement::Boot(FPCGExContext* InContext) const
 	// [x] Roll on End
 	//		If enabled, the point that stops rolling (toggle or stop) will have its values rolled over
 	//		Otherwise, stopping points are not rolled on.
-	
+
 	return true;
 }
 
@@ -113,23 +151,36 @@ namespace PCGExAttributeRolling
 	{
 		TPointsProcessor<FPCGExAttributeRollingContext, UPCGExAttributeRollingSettings>::RegisterBuffersDependencies(FacadePreloader);
 
+		PCGExPointFilter::RegisterBuffersDependencies(ExecutionContext, Context->StartFilterFactories, FacadePreloader);
+		PCGExPointFilter::RegisterBuffersDependencies(ExecutionContext, Context->StopFilterFactories, FacadePreloader);
+
 		for (const TObjectPtr<const UPCGExAttributeBlendFactory>& Factory : Context->BlendingFactories)
 		{
 			Factory->RegisterBuffersDependencies(Context, FacadePreloader);
 		}
-
-		Settings->BlendingSettings.RegisterBuffersDependencies(Context, PointDataFacade, FacadePreloader);
 	}
 
 	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExAttributeRolling::Process);
 
-		PointDataFacade->bSupportsScopedGet = Context->bScopedAttributeGet;
+		//PointDataFacade->bSupportsScopedGet = Context->bScopedAttributeGet;
 
 		if (!FPointsProcessor::Process(InAsyncManager)) { return false; }
 
 		PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::Duplicate)
+
+		if (!Context->StartFilterFactories.IsEmpty())
+		{
+			StartFilterManager = MakeShared<PCGExPointFilter::FManager>(PointDataFacade);
+			if (!StartFilterManager->Init(Context, Context->StartFilterFactories)) { return false; }
+		}
+
+		if (!Context->StopFilterFactories.IsEmpty())
+		{
+			StopFilterManager = MakeShared<PCGExPointFilter::FManager>(PointDataFacade);
+			if (!StopFilterManager->Init(Context, Context->StopFilterFactories)) { return false; }
+		}
 
 		BlendOps = MakeShared<TArray<TSharedPtr<FPCGExAttributeBlendOperation>>>();
 		BlendOps->Reserve(Context->BlendingFactories.Num());
@@ -140,92 +191,59 @@ namespace PCGExAttributeRolling
 		}
 
 		MaxIndex = PointDataFacade->GetNum(PCGExData::ESource::In) - 1;
-		LastTriggerIndex = Settings->bReverseRolling ? MaxIndex : 0;
-
-		MetadataBlender = MakeShared<PCGExDataBlending::FMetadataBlender>(&Context->BlendingSettings);
-		MetadataBlender->PrepareForData(PointDataFacade, PCGExData::ESource::In, true, nullptr);
-
-		OutMetadata = PointDataFacade->GetOut()->Metadata;
 		OutPoints = &PointDataFacade->GetOut()->GetMutablePoints();
 
-		bDaisyChainProcessRange = true;
-
-		if (Settings->TriggerAction == EPCGExRollingTriggerMode::None)
+		if (Settings->ToggleInitialValueMode == EPCGExRollingToggleInitialValue::FromPoint)
 		{
-			StartParallelLoopForRange(PointDataFacade->GetNum());
+			bRoll = StartFilterManager->Test(SourceIndex);
 		}
 		else
 		{
-			if (Context->FilterFactories.IsEmpty())
-			{
-				StartParallelLoopForRange(PointDataFacade->GetNum());
-			}
-			else
-			{
-				PCGEX_ASYNC_GROUP_CHKD(AsyncManager, FilterTask)
-
-				FilterTask->OnCompleteCallback =
-					[PCGEX_ASYNC_THIS_CAPTURE]()
-					{
-						PCGEX_ASYNC_THIS
-						This->StartParallelLoopForRange(This->PointDataFacade->GetNum());
-					};
-
-				FilterTask->OnSubLoopStartCallback =
-					[PCGEX_ASYNC_THIS_CAPTURE](const PCGExMT::FScope& Scope)
-					{
-						PCGEX_ASYNC_THIS
-						This->PrepareSingleLoopScopeForPoints(Scope);
-					};
-
-				FilterTask->StartSubLoops(PointDataFacade->GetNum(), GetDefault<UPCGExGlobalSettings>()->GetPointsBatchChunkSize());
-			}
+			bRoll = Settings->bInitialToggle;
 		}
-		
-		return true;
-	}
 
-	void FProcessor::PrepareSingleLoopScopeForPoints(const PCGExMT::FScope& Scope)
-	{
-		PointDataFacade->Fetch(Scope);
-		FilterScope(Scope);
+		bDaisyChainProcessRange = true;
+		StartParallelLoopForRange(PointDataFacade->GetNum());
+
+		return true;
 	}
 
 	void FProcessor::ProcessSingleRangeIteration(const int32 Iteration, const PCGExMT::FScope& Scope)
 	{
-		int32 TargetIndex = -1;
-		int32 PrevIndex = -1;
+		if (PrimaryFilters->Test(Iteration)) { SourceIndex = Iteration; }
 
-		if (Settings->bReverseRolling)
+		const int32 TargetIndex = Settings->bReverseRolling ? MaxIndex - Iteration : Iteration;
+
+		const bool bStart = StartFilterManager->Test(TargetIndex);
+
+		if (Settings->Mode == EPCGExRollingMode::Toggle)
 		{
-			TargetIndex = MaxIndex - Iteration;
-			PrevIndex = TargetIndex + 1;
-			if (TargetIndex == MaxIndex) { return; }
+			// Don't flip the switch if mode == Preserve
+			// if(Settings->ToggleInitialValueMode == EPCGExRollingToggleInitialValue::ConstantPreserve)
+			if (bStart) { bRoll = !bRoll; }
 		}
 		else
 		{
-			TargetIndex = Iteration;
-			PrevIndex = TargetIndex - 1;
-			if (TargetIndex == 0) { return; }
+			if (StopFilterManager->Test(TargetIndex)) { bRoll = false; }
+			else if (bStart) { bRoll = true; }
 		}
 
-		switch (Settings->TriggerAction)
+		if (!bRoll) { return; }
+
+		if (SourceIndex == TargetIndex) { return; } // First or last point
+
+		if (SourceIndex >= 0)
 		{
-		default:
-		case EPCGExRollingTriggerMode::None:
-			break;
-		case EPCGExRollingTriggerMode::Reset:
-			if (PointFilterCache[TargetIndex]) { return; }
-			break;
-		case EPCGExRollingTriggerMode::Pin:
-			if (PointFilterCache[TargetIndex]) { LastTriggerIndex = TargetIndex; }
-			PrevIndex = LastTriggerIndex;
-			break;
+			TArray<FPCGPoint>& PathPoints = PointDataFacade->GetMutablePoints();
+			const TArray<TSharedPtr<FPCGExAttributeBlendOperation>>& BlendOpsRef = *BlendOps.Get();
+			for (const TSharedPtr<FPCGExAttributeBlendOperation>& Op : BlendOpsRef)
+			{
+				// TODO : Compute alpha based on distance
+				Op->Blend(SourceIndex, PathPoints[SourceIndex], TargetIndex, PathPoints[TargetIndex]);
+			}
 		}
 
-		MetadataBlender->PrepareForBlending(TargetIndex);
-		MetadataBlender->Blend(PrevIndex, TargetIndex, TargetIndex, 1);
-		MetadataBlender->CompleteBlending(TargetIndex, 2, 1);
+		if (bStart) { SourceIndex = TargetIndex; }
 	}
 
 	void FProcessor::CompleteWork()

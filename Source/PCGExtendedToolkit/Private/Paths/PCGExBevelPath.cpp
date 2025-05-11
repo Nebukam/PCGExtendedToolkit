@@ -324,7 +324,7 @@ namespace PCGExBevelPath
 
 		Path->ComputeAllEdgeExtra();
 
-		bInlineProcessPoints = true;
+		bDaisyChainProcessPoints = true;
 
 		Bevels.Init(nullptr, PointDataFacade->GetNum());
 

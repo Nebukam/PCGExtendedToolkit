@@ -215,7 +215,7 @@ namespace PCGExBinPacking
 		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade):
 			TPointsProcessor(InPointDataFacade)
 		{
-			bInlineProcessPoints = true;
+			bDaisyChainProcessPoints = true;
 		}
 
 		virtual ~FProcessor() override
