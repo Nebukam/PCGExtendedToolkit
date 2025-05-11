@@ -88,9 +88,12 @@ public:
 	bool bReverseRolling = false;
 
 	/** Enable blend operations to be processed outside the rolling range. This can be useful in some cases. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
-	bool bEnableBlendOutsideRange = false;
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_NotOverridable))
+	bool bBlendOutsideRange = false;
 
+	/**  */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_NotOverridable, EditCondition="!bBlendOutsideRange"))
+	bool bBlendStopElement = false;
 
 	/**  */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable, InlineEditConditionToggle))

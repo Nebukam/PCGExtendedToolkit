@@ -41,13 +41,15 @@ bool FPCGExAttributeBlendOperation::PrepareForData(FPCGExContext* InContext, con
 	if (!CopyAndFixSiblingSelector(InContext, Config.OperandB)) { return false; }
 	if (!CopyAndFixSiblingSelector(InContext, Config.OutputTo)) { return false; }
 
-	PCGExData::FProxyDescriptor A = PCGExData::FProxyDescriptor();
-	if (!A.Capture(InContext, InDataFacade, Config.OperandA, PCGExData::ESource::Out)) { return false; }
+	PCGExData::FProxyDescriptor A = PCGExData::FProxyDescriptor(ConstantA ? ConstantA : InDataFacade);
+	A.bIsConstant = A.DataFacade.Pin() != InDataFacade;	
+	if (!A.Capture(InContext, Config.OperandA, PCGExData::ESource::Out)) { return false; }
 
-	PCGExData::FProxyDescriptor B = PCGExData::FProxyDescriptor();
-	if (!B.Capture(InContext, InDataFacade, Config.OperandB, PCGExData::ESource::Out)) { return false; }
-
-	PCGExData::FProxyDescriptor C = PCGExData::FProxyDescriptor();
+	PCGExData::FProxyDescriptor B = PCGExData::FProxyDescriptor(ConstantB ? ConstantB : InDataFacade);
+	B.bIsConstant = B.DataFacade.Pin() != InDataFacade;
+	if (!B.Capture(InContext, Config.OperandB, PCGExData::ESource::Out)) { return false; }
+	
+	PCGExData::FProxyDescriptor C = PCGExData::FProxyDescriptor(InDataFacade);
 	C.Source = PCGExData::ESource::Out;
 
 	Config.OperandA = A.Selector;
@@ -119,7 +121,7 @@ bool FPCGExAttributeBlendOperation::PrepareForData(FPCGExContext* InContext, con
 	C.RealType = RealTypeC;
 	C.WorkingType = WorkingTypeC;
 
-	Blender = PCGExDataBlending::CreateProxyBlender(InContext, InDataFacade, Config.BlendMode, A, B, C);
+	Blender = PCGExDataBlending::CreateProxyBlender(InContext, Config.BlendMode, A, B, C);
 
 	if (!Blender) { return false; }
 	return true;
@@ -203,7 +205,19 @@ TSharedPtr<FPCGExAttributeBlendOperation> UPCGExAttributeBlendFactory::CreateOpe
 	PCGEX_FACTORY_NEW_OPERATION(AttributeBlendOperation)
 	NewOperation->Config = Config;
 	NewOperation->Config.Init();
+	NewOperation->ConstantA = ConstantA;
+	NewOperation->ConstantB = ConstantB;
 	return NewOperation;
+}
+
+bool UPCGExAttributeBlendFactory::Prepare(FPCGExContext* InContext)
+{
+	if (!Super::Prepare(InContext)) { return false; }
+
+	ConstantA = PCGExData::TryGetSingleFacade(InContext, PCGExDataBlending::SourceConstantA, true, false);
+	ConstantB = PCGExData::TryGetSingleFacade(InContext, PCGExDataBlending::SourceConstantB, true, false);
+	
+	return true;
 }
 
 void UPCGExAttributeBlendFactory::RegisterAssetDependencies(FPCGExContext* InContext) const
@@ -258,6 +272,14 @@ void UPCGExAttributeBlendFactoryProviderSettings::ApplyPreconfiguredSettings(con
 			Config.BlendMode = static_cast<EPCGExABBlendingType>(PreconfigureInfo.PreconfiguredIndex);
 		}
 	}
+}
+
+TArray<FPCGPinProperties> UPCGExAttributeBlendFactoryProviderSettings::InputPinProperties() const
+{
+	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
+	PCGEX_PIN_ANY_SINGLE(PCGExDataBlending::SourceConstantA, "Data used to read a constant from. Will read from the first element of the first data.", Advanced, {})
+	PCGEX_PIN_ANY_SINGLE(PCGExDataBlending::SourceConstantB, "Data used to read a constant from. Will read from the first element of the first data.", Advanced, {})
+	return PinProperties;
 }
 
 UPCGExFactoryData* UPCGExAttributeBlendFactoryProviderSettings::CreateFactory(FPCGExContext* InContext, UPCGExFactoryData* InFactory) const

@@ -113,6 +113,10 @@ public:
 
 namespace PCGExHelpers
 {
+
+	PCGEXTENDEDTOOLKIT_API
+	bool HasDataOnPin(FPCGContext* InContext, FName Pin);
+	
 	PCGEXTENDEDTOOLKIT_API
 	bool TryGetAttributeName(const FPCGAttributePropertyInputSelector& InSelector, const UPCGData* InData, FName& OutName);
 

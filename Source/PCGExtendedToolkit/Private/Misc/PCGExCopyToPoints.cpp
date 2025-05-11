@@ -21,7 +21,7 @@ bool FPCGExCopyToPointsElement::Boot(FPCGExContext* InContext) const
 
 	PCGEX_CONTEXT_AND_SETTINGS(CopyToPoints)
 
-	Context->TargetsDataFacade = PCGExData::TryGetSingleFacade(Context, PCGEx::SourceTargetsLabel, true);
+	Context->TargetsDataFacade = PCGExData::TryGetSingleFacade(Context, PCGEx::SourceTargetsLabel, false, true);
 	if (!Context->TargetsDataFacade) { return false; }
 
 	PCGEX_FWD(TransformDetails)

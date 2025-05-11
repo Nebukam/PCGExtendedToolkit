@@ -21,8 +21,8 @@ enum class EPCGExABBlendingType : uint8
 	Divide           = 4 UMETA(DisplayName = "Divide", ToolTip="A / B"),
 	Min              = 5 UMETA(DisplayName = "Min", ToolTip="Min(A, B)"),
 	Max              = 6 UMETA(DisplayName = "Max", ToolTip="Max(A, B)"),
-	CopyTarget       = 7 UMETA(DisplayName = "Copy (Target)", ToolTip = "= A"),
-	CopySource       = 8 UMETA(DisplayName = "Copy (Source)", ToolTip="= B"),
+	CopyTarget       = 7 UMETA(DisplayName = "Copy (Target)", ToolTip = "= B"),
+	CopySource       = 8 UMETA(DisplayName = "Copy (Source)", ToolTip="= A"),
 	Add              = 9 UMETA(DisplayName = "Add", ToolTip = "A + B"),
 	Subtract         = 10 UMETA(DisplayName = "Subtract", ToolTip="A - B"),
 	WeightedAdd      = 11 UMETA(DisplayName = "Weighted Add", ToolTip = "A + (B * Weight)"),
@@ -186,7 +186,7 @@ namespace PCGExDataBlending
 	};
 
 	static TSharedPtr<FProxyDataBlenderBase> CreateProxyBlender(
-		FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade>& InDataFacade,
+		FPCGExContext* InContext,
 		const EPCGExABBlendingType BlendMode,
 		const PCGExData::FProxyDescriptor& A,
 		const PCGExData::FProxyDescriptor& B,
@@ -214,14 +214,15 @@ break;
 
 				if (!TypedBlender) { return; }
 
-				TypedBlender->A = StaticCastSharedPtr<PCGExData::TBufferProxy<T>>(GetProxyBuffer(InContext, InDataFacade, A));
-				TypedBlender->B = StaticCastSharedPtr<PCGExData::TBufferProxy<T>>(GetProxyBuffer(InContext, InDataFacade, B));
-				TypedBlender->C = StaticCastSharedPtr<PCGExData::TBufferProxy<T>>(GetProxyBuffer(InContext, InDataFacade, C));
+				TypedBlender->A = StaticCastSharedPtr<PCGExData::TBufferProxy<T>>(GetProxyBuffer(InContext, A));
+				TypedBlender->B = StaticCastSharedPtr<PCGExData::TBufferProxy<T>>(GetProxyBuffer(InContext, B));
+				TypedBlender->C = StaticCastSharedPtr<PCGExData::TBufferProxy<T>>(GetProxyBuffer(InContext, C));
 
 				if (!TypedBlender) { return; }
 				if (!TypedBlender->A || !TypedBlender->B || !TypedBlender->C)
 				{
 					PCGE_LOG_C(Error, GraphAndLog, InContext, FTEXT("ProxyBlender : Missing at least one proxy."));
+					return;
 				}
 
 				OutBlender = TypedBlender;

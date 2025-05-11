@@ -464,10 +464,10 @@ namespace PCGExData
 		return Overlap.Num() > 0;
 	}
 
-	TSharedPtr<FFacade> TryGetSingleFacade(FPCGExContext* InContext, const FName InputPinLabel, const bool bThrowError)
+	TSharedPtr<FFacade> TryGetSingleFacade(FPCGExContext* InContext, const FName InputPinLabel, const bool bTransactional, const bool bThrowError)
 	{
 		TSharedPtr<FFacade> SingleFacade;
-		if (const TSharedPtr<FPointIO> SingleIO = TryGetSingleInput(InContext, InputPinLabel, bThrowError))
+		if (const TSharedPtr<FPointIO> SingleIO = TryGetSingleInput(InContext, InputPinLabel, bTransactional, bThrowError))
 		{
 			SingleFacade = MakeShared<FFacade>(SingleIO.ToSharedRef());
 		}

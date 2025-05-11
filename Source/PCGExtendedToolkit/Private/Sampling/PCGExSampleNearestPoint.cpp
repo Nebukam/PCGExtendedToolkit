@@ -87,7 +87,7 @@ bool FPCGExSampleNearestPointElement::Boot(FPCGExContext* InContext) const
 	PCGEX_FWD(ApplySampling)
 	Context->ApplySampling.Init();
 
-	Context->TargetsFacade = PCGExData::TryGetSingleFacade(Context, PCGEx::SourceTargetsLabel, true);
+	Context->TargetsFacade = PCGExData::TryGetSingleFacade(Context, PCGEx::SourceTargetsLabel, false, true);
 	if (!Context->TargetsFacade) { return false; }
 
 	Context->TargetsPreloader = MakeShared<PCGExData::FFacadePreloader>();

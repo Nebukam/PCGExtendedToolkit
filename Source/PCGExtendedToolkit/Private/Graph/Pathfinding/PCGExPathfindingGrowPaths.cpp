@@ -213,7 +213,7 @@ bool FPCGExPathfindingGrowPathsElement::Boot(FPCGExContext* InContext) const
 
 	PCGEX_CONTEXT_AND_SETTINGS(PathfindingGrowPaths)
 
-	Context->SeedsDataFacade = PCGExData::TryGetSingleFacade(Context, PCGExGraph::SourceSeedsLabel, true);
+	Context->SeedsDataFacade = PCGExData::TryGetSingleFacade(Context, PCGExGraph::SourceSeedsLabel, false, true);
 	if (!Context->SeedsDataFacade) { return false; }
 
 	Context->OutputPaths = MakeShared<PCGExData::FPointIOCollection>(Context);

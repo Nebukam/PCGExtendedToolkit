@@ -93,7 +93,7 @@ bool FPCGExSampleNearestBoundsElement::Boot(FPCGExContext* InContext) const
 	PCGEX_FWD(ApplySampling)
 	Context->ApplySampling.Init();
 
-	Context->BoundsFacade = PCGExData::TryGetSingleFacade(Context, PCGEx::SourceBoundsLabel, true);
+	Context->BoundsFacade = PCGExData::TryGetSingleFacade(Context, PCGEx::SourceBoundsLabel, false, true);
 	if (!Context->BoundsFacade) { return false; }
 
 	TSet<FName> MissingTargetAttributes;
