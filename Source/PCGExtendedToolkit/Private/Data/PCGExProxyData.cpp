@@ -21,8 +21,11 @@ namespace PCGExData
 		return false;
 	}
 
-	bool FProxyDescriptor::Capture(FPCGExContext* InContext, const TSharedPtr<FFacade>& InFacade, const FString& Path, const ESource InSource, const bool bThrowError)
+	bool FProxyDescriptor::Capture(FPCGExContext* InContext, const FString& Path, const ESource InSource, const bool bThrowError)
 	{
+		const TSharedPtr<FFacade> InFacade = DataFacade.Pin();
+		check(InFacade);
+
 		bool bValid = true;
 
 		Selector = FPCGAttributePropertyInputSelector();
@@ -44,8 +47,11 @@ namespace PCGExData
 		return bValid;
 	}
 
-	bool FProxyDescriptor::Capture(FPCGExContext* InContext, const TSharedPtr<FFacade>& InFacade, const FPCGAttributePropertyInputSelector& InSelector, const ESource InSource, const bool bThrowError)
+	bool FProxyDescriptor::Capture(FPCGExContext* InContext, const FPCGAttributePropertyInputSelector& InSelector, const ESource InSource, const bool bThrowError)
 	{
+		const TSharedPtr<FFacade> InFacade = DataFacade.Pin();
+		check(InFacade);
+
 		bool bValid = true;
 		Source = InSource;
 
@@ -63,9 +69,9 @@ namespace PCGExData
 		return bValid;
 	}
 
-	bool FProxyDescriptor::CaptureStrict(FPCGExContext* InContext, const TSharedPtr<FFacade>& InFacade, const FString& Path, const ESource InSource, const bool bThrowError)
+	bool FProxyDescriptor::CaptureStrict(FPCGExContext* InContext, const FString& Path, const ESource InSource, const bool bThrowError)
 	{
-		if (!Capture(InContext, InFacade, Path, InSource, bThrowError)) { return false; }
+		if (!Capture(InContext, Path, InSource, bThrowError)) { return false; }
 
 		if (Source != InSource)
 		{
@@ -87,9 +93,9 @@ namespace PCGExData
 		return true;
 	}
 
-	bool FProxyDescriptor::CaptureStrict(FPCGExContext* InContext, const TSharedPtr<FFacade>& InFacade, const FPCGAttributePropertyInputSelector& InSelector, const ESource InSource, const bool bThrowError)
+	bool FProxyDescriptor::CaptureStrict(FPCGExContext* InContext, const FPCGAttributePropertyInputSelector& InSelector, const ESource InSource, const bool bThrowError)
 	{
-		if (!Capture(InContext, InFacade, InSelector, InSource, bThrowError)) { return false; }
+		if (!Capture(InContext, InSelector, InSource, bThrowError)) { return false; }
 
 		if (Source != InSource)
 		{
@@ -113,10 +119,16 @@ namespace PCGExData
 
 	TSharedPtr<FBufferProxyBase> GetProxyBuffer(
 		FPCGExContext* InContext,
-		const TSharedPtr<FFacade>& InDataFacade,
 		const FProxyDescriptor& InDescriptor)
-
 	{
+		const TSharedPtr<FFacade> InDataFacade = InDescriptor.DataFacade.Pin();
+
+		if (!InDataFacade)
+		{
+			PCGE_LOG_C(Error, GraphAndLog, InContext, FTEXT("Proxy descriptor has no valid source."));
+			return nullptr;
+		}
+
 		TSharedPtr<FBufferProxyBase> OutProxy = nullptr;
 		const bool bSubSelection = InDescriptor.SubSelection.bIsValid;
 
@@ -128,6 +140,63 @@ namespace PCGExData
 					InDescriptor.RealType, [&](auto R)
 					{
 						using T_REAL = decltype(R);
+
+						if (InDescriptor.bIsConstant)
+						{
+
+							// TODO : Support subselector
+							
+							TSharedPtr<TConstantProxy<T_WORKING>> TypedProxy = MakeShared<TConstantProxy<T_WORKING>>();
+							OutProxy = TypedProxy;
+
+							if (InDescriptor.Selector.GetSelection() == EPCGAttributePropertySelection::Attribute)
+							{
+								const FPCGMetadataAttribute<T_REAL>* Attribute = InDataFacade->GetIn()->Metadata->GetConstTypedAttribute<T_REAL>(InDescriptor.Selector.GetAttributeName());
+								if (!Attribute)
+								{
+									TypedProxy->SetConstant(0);
+									return;
+								}
+
+								const TArray<FPCGPoint>& Points = InDataFacade->GetIn()->GetPoints();
+								if (Points.IsEmpty())
+								{
+									// No points, get default attribute value
+									TypedProxy->SetConstant(Attribute->GetValueFromItemKey(PCGInvalidEntryKey));
+								}
+								else
+								{
+									TypedProxy->SetConstant(Attribute->GetValueFromItemKey(Points[0].MetadataEntry));
+								}
+							}
+							else if (InDescriptor.Selector.GetSelection() == EPCGAttributePropertySelection::PointProperty)
+							{
+								const TArray<FPCGPoint>& Points = InDataFacade->GetIn()->GetPoints();
+								if (Points.IsEmpty())
+								{
+									TypedProxy->SetConstant(0);
+								}
+								else
+								{
+									const FPCGPoint& Pt = Points[0];
+
+#define PCGEX_SET_CONST(_PROPERTY, _ACCESSOR, _TYPE) \
+									case _PROPERTY : \
+									if (bSubSelection) { TypedProxy->SetConstant(Pt._ACCESSOR); } \
+									else { TypedProxy->SetConstant(Pt._ACCESSOR); } \
+									break;
+
+									switch (InDescriptor.Selector.GetPointProperty()) { PCGEX_FOREACH_POINTPROPERTY(PCGEX_SET_CONST) }
+#undef PCGEX_SET_CONST
+								}
+							}
+							else
+							{
+								TypedProxy->SetConstant(0);
+							}
+
+							return;
+						}
 
 						if (InDescriptor.Selector.GetSelection() == EPCGAttributePropertySelection::Attribute)
 						{
@@ -208,14 +277,14 @@ namespace PCGExData
 						}
 						else if (InDescriptor.Selector.GetSelection() == EPCGAttributePropertySelection::PointProperty)
 						{
-#define PCGEX_DECL_PROPXY(_PROPERTY, _ACCESSOR, _TYPE) \
+#define PCGEX_DECL_PROXY(_PROPERTY, _ACCESSOR, _TYPE) \
 						case _PROPERTY : \
 						if (bSubSelection) { OutProxy = MakeShared<TPointPropertyProxy<_TYPE, T_WORKING, true, _PROPERTY>>(); } \
 						else { OutProxy = MakeShared<TPointPropertyProxy<_TYPE, T_WORKING, false, _PROPERTY>>(); } \
 						break;
 
-							switch (InDescriptor.Selector.GetPointProperty()) { PCGEX_FOREACH_POINTPROPERTY(PCGEX_DECL_PROPXY) }
-#undef PCGEX_DECL_PROPXY
+							switch (InDescriptor.Selector.GetPointProperty()) { PCGEX_FOREACH_POINTPROPERTY(PCGEX_DECL_PROXY) }
+#undef PCGEX_DECL_PROXY
 						}
 						else
 						{
@@ -252,7 +321,6 @@ namespace PCGExData
 
 	bool GetPerFieldProxyBuffers(
 		FPCGExContext* InContext,
-		const TSharedPtr<FFacade>& InDataFacade,
 		const FProxyDescriptor& InBaseDescriptor,
 		const int32 NumDesiredFields,
 		TArray<TSharedPtr<FBufferProxyBase>>& OutProxies)
@@ -277,7 +345,7 @@ namespace PCGExData
 			// We have a single specific field set within that selection
 			if (InBaseDescriptor.SubSelection.bIsFieldSet)
 			{
-				const TSharedPtr<FBufferProxyBase> Proxy = GetProxyBuffer(InContext, InDataFacade, InBaseDescriptor);
+				const TSharedPtr<FBufferProxyBase> Proxy = GetProxyBuffer(InContext, InBaseDescriptor);
 				if (!Proxy) { return false; }
 
 				// Just use the same pointer on each desired field
@@ -291,7 +359,7 @@ namespace PCGExData
 				FProxyDescriptor SingleFieldCopy = InBaseDescriptor;
 				SingleFieldCopy.SetFieldIndex(FMath::Clamp(i, 0, MaxIndex)); // Clamp field index to a safe max
 
-				const TSharedPtr<FBufferProxyBase> Proxy = GetProxyBuffer(InContext, InDataFacade, SingleFieldCopy);
+				const TSharedPtr<FBufferProxyBase> Proxy = GetProxyBuffer(InContext, SingleFieldCopy);
 				if (!Proxy) { return false; }
 				OutProxies.Add(Proxy);
 			}
@@ -304,7 +372,7 @@ namespace PCGExData
 				FProxyDescriptor SingleFieldCopy = InBaseDescriptor;
 				SingleFieldCopy.SetFieldIndex(FMath::Clamp(i, 0, MaxIndex)); // Clamp field index to a safe max
 
-				const TSharedPtr<FBufferProxyBase> Proxy = GetProxyBuffer(InContext, InDataFacade, SingleFieldCopy);
+				const TSharedPtr<FBufferProxyBase> Proxy = GetProxyBuffer(InContext, SingleFieldCopy);
 				if (!Proxy) { return false; }
 				OutProxies.Add(Proxy);
 			}
