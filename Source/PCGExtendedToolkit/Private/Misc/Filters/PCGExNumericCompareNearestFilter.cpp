@@ -11,7 +11,7 @@ bool UPCGExNumericCompareNearestFilterFactory::Init(FPCGExContext* InContext)
 {
 	if (!Super::Init(InContext)) { return false; }
 
-	TargetDataFacade = PCGExData::TryGetSingleFacade(InContext, PCGEx::SourceTargetsLabel, true);
+	TargetDataFacade = PCGExData::TryGetSingleFacade(InContext, PCGEx::SourceTargetsLabel, false, true);
 	if (!TargetDataFacade) { return false; }
 
 	return true;

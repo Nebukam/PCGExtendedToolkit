@@ -40,7 +40,7 @@ bool FPCGExTopologyEdgesProcessorElement::Boot(FPCGExContext* InContext) const
 
 	PCGEX_CONTEXT_AND_SETTINGS(TopologyEdgesProcessor)
 
-	if (TSharedPtr<PCGExData::FFacade> HoleDataFacade = PCGExData::TryGetSingleFacade(Context, PCGExTopology::SourceHolesLabel, false))
+	if (TSharedPtr<PCGExData::FFacade> HoleDataFacade = PCGExData::TryGetSingleFacade(Context, PCGExTopology::SourceHolesLabel, false, false))
 	{
 		Context->Holes = MakeShared<PCGExTopology::FHoles>(Context, HoleDataFacade.ToSharedRef(), Settings->ProjectionDetails);
 	}

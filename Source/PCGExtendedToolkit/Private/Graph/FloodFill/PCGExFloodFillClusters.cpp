@@ -56,7 +56,7 @@ bool FPCGExClusterDiffusionElement::Boot(FPCGExContext* InContext) const
 		Context, PCGExFloodFill::SourceFillControlsLabel, Context->FillControlFactories,
 		{PCGExFactories::EType::FillControls}, false);
 
-	Context->SeedsDataFacade = PCGExData::TryGetSingleFacade(Context, PCGExGraph::SourceSeedsLabel, true);
+	Context->SeedsDataFacade = PCGExData::TryGetSingleFacade(Context, PCGExGraph::SourceSeedsLabel, false, true);
 	if (!Context->SeedsDataFacade) { return false; }
 
 	if (Settings->bOutputPaths)

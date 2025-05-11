@@ -13,6 +13,9 @@
 namespace PCGExDataBlending
 {
 	class FProxyDataBlenderBase;
+
+	const FName SourceConstantA = FName("Constant A");
+	const FName SourceConstantB = FName("Constant B");
 }
 
 UENUM()
@@ -87,7 +90,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExAttributeBlendConfig
 	bool bRequiresWeight = true;
 
 	/** Blendmode */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable))
 	EPCGExABBlendingType BlendMode = EPCGExABBlendingType::Lerp;
 
 	/** Operand A. */
@@ -129,6 +132,9 @@ class PCGEXTENDEDTOOLKIT_API FPCGExAttributeBlendOperation : public FPCGExOperat
 public:
 	FPCGExAttributeBlendConfig Config;
 
+	TSharedPtr<PCGExData::FFacade> ConstantA;
+	TSharedPtr<PCGExData::FFacade> ConstantB;
+	
 	int32 OpIdx = -1;
 	TSharedPtr<TArray<TSharedPtr<FPCGExAttributeBlendOperation>>> SiblingOperations;
 
@@ -165,9 +171,20 @@ class PCGEXTENDEDTOOLKIT_API UPCGExAttributeBlendFactory : public UPCGExFactoryD
 
 public:
 	FPCGExAttributeBlendConfig Config;
+	TSharedPtr<PCGExData::FFacade> ConstantA;
+	TSharedPtr<PCGExData::FFacade> ConstantB;
 
 	virtual PCGExFactories::EType GetFactoryType() const override { return PCGExFactories::EType::Blending; }
 	virtual TSharedPtr<FPCGExAttributeBlendOperation> CreateOperation(FPCGExContext* InContext) const;
+
+	virtual bool WantsPreparation(FPCGExContext* InContext) override
+	{
+		return
+			PCGExHelpers::HasDataOnPin(InContext, PCGExDataBlending::SourceConstantA) ||
+			PCGExHelpers::HasDataOnPin(InContext, PCGExDataBlending::SourceConstantB);
+	}
+
+	virtual bool Prepare(FPCGExContext* InContext) override;
 
 	virtual void RegisterAssetDependencies(FPCGExContext* InContext) const override;
 	virtual bool RegisterConsumableAttributesWithData(FPCGExContext* InContext, const UPCGData* InData) const override;
@@ -200,8 +217,12 @@ public:
 	virtual TArray<FPCGPreConfiguredSettingsInfo> GetPreconfiguredInfo() const override;
 
 #endif
+
+protected:
+	virtual TArray<FPCGPinProperties> InputPinProperties() const override;
 	//~End UPCGSettings
 
+public:
 	virtual void ApplyPreconfiguredSettings(const FPCGPreConfiguredSettingsInfo& PreconfigureInfo) override;
 
 	virtual FName GetMainOutputPin() const override { return PCGExDataBlending::OutputBlendingLabel; }

@@ -118,10 +118,10 @@ bool FPCGExPathfindingEdgesElement::Boot(FPCGExContext* InContext) const
 	PCGEX_OPERATION_BIND(GoalPicker, UPCGExGoalPicker, PCGExPathfinding::SourceOverridesGoalPicker)
 	PCGEX_OPERATION_BIND(SearchAlgorithm, UPCGExSearchOperation, PCGExPathfinding::SourceOverridesSearch)
 
-	Context->SeedsDataFacade = PCGExData::TryGetSingleFacade(Context, PCGExGraph::SourceSeedsLabel, true);
+	Context->SeedsDataFacade = PCGExData::TryGetSingleFacade(Context, PCGExGraph::SourceSeedsLabel, false, true);
 	if (!Context->SeedsDataFacade) { return false; }
 
-	Context->GoalsDataFacade = PCGExData::TryGetSingleFacade(Context, PCGExGraph::SourceGoalsLabel, true);
+	Context->GoalsDataFacade = PCGExData::TryGetSingleFacade(Context, PCGExGraph::SourceGoalsLabel, false, true);
 	if (!Context->GoalsDataFacade) { return false; }
 
 	PCGEX_FWD(SeedAttributesToPathTags)

@@ -385,7 +385,7 @@ bool FPCGExPointsProcessorElement::Boot(FPCGExContext* InContext) const
 	}
 	else
 	{
-		const TSharedPtr<PCGExData::FPointIO> SingleInput = PCGExData::TryGetSingleInput(Context, Settings->GetMainInputPin(), false);
+		const TSharedPtr<PCGExData::FPointIO> SingleInput = PCGExData::TryGetSingleInput(Context, Settings->GetMainInputPin(), false, false);
 		if (SingleInput) { Context->MainPoints->Add_Unsafe(SingleInput); }
 	}
 
