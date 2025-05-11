@@ -281,5 +281,32 @@ FString UPCGExAttributeBlendFactoryProviderSettings::GetDisplayName() const
 }
 #endif
 
+bool PCGExDataBlending::PrepareBlendOps(
+	FPCGExContext* InContext,
+	const TSharedRef<PCGExData::FFacade>& InDataFacade,
+	const TArray<TObjectPtr<const UPCGExAttributeBlendFactory>>& InFactories,
+	const TSharedPtr<TArray<TSharedPtr<FPCGExAttributeBlendOperation>>>& OutOperations)
+{
+	for (const TObjectPtr<const UPCGExAttributeBlendFactory>& Factory : InFactories)
+	{
+		TSharedPtr<FPCGExAttributeBlendOperation> Op = Factory->CreateOperation(InContext);
+		if (!Op)
+		{
+			PCGE_LOG_C(Error, GraphAndLog, InContext, FTEXT("An operation could not be created."));
+			return false; // FAIL
+		}
+
+		Op->OpIdx = OutOperations->Add(Op);
+		Op->SiblingOperations = OutOperations;
+
+		if (!Op->PrepareForData(InContext, InDataFacade))
+		{
+			return false; // FAIL
+		}
+	}
+
+	return true;
+}
+
 #undef LOCTEXT_NAMESPACE
 #undef PCGEX_NAMESPACE

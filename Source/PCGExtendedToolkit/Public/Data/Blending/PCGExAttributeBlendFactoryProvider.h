@@ -222,3 +222,12 @@ public:
 protected:
 	virtual bool IsCacheable() const override { return true; }
 };
+
+namespace PCGExDataBlending
+{
+	bool PrepareBlendOps(
+		FPCGExContext* InContext,
+		const TSharedRef<PCGExData::FFacade>& InDataFacade,
+		const TArray<TObjectPtr<const UPCGExAttributeBlendFactory>>& InFactories,
+		const TSharedPtr<TArray<TSharedPtr<FPCGExAttributeBlendOperation>>>& OutOperations);
+}

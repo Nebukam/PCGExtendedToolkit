@@ -375,7 +375,7 @@ namespace PCGExSampleNearestPoints
 		FVector SafeUpVector = FVector::UpVector;
 
 		TSharedPtr<PCGExDataBlending::FMetadataBlender> Blender;
-		TSharedPtr<PCGExMT::TScopedValue<double>> MaxDistanceValue;
+		TSharedPtr<PCGExMT::TScopedNumericValue<double>> MaxDistanceValue;
 		double MaxDistance = 0;
 
 		int8 bAnySuccess = 0;

@@ -86,7 +86,7 @@ namespace PCGExFuseCollinear
 
 		LastPosition = Path->GetPos(0);
 
-		bInlineProcessPoints = true;
+		bDaisyChainProcessPoints = true;
 		StartParallelLoopForPoints(PCGExData::ESource::In);
 
 		return true;

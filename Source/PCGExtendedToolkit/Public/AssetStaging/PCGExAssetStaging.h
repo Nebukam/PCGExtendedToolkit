@@ -158,7 +158,7 @@ namespace PCGExAssetStaging
 #endif
 
 		// Material handling 
-		TSharedPtr<PCGExMT::TScopedValue<int8>> HighestSlotIndex;
+		TSharedPtr<PCGExMT::TScopedNumericValue<int8>> HighestSlotIndex;
 #if PCGEX_ENGINE_VERSION > 503
 		TArray<TSharedPtr<PCGExData::TBuffer<FSoftObjectPath>>> MaterialWriters; // Per valid slot writers
 #else

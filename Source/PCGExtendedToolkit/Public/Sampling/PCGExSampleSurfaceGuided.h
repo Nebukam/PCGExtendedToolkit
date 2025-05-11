@@ -311,7 +311,7 @@ namespace PCGExSampleSurfaceGuided
 		TSharedPtr<PCGExData::TBuffer<FVector>> DirectionGetter;
 		TSharedPtr<PCGExData::TBuffer<FVector>> OriginGetter;
 
-		TSharedPtr<PCGExMT::TScopedValue<double>> MaxDistanceValue;
+		TSharedPtr<PCGExMT::TScopedNumericValue<double>> MaxDistanceValue;
 		double MaxSampledDistance = 0;
 
 		TSharedPtr<PCGExTexture::FLookup> TexParamLookup;

@@ -458,24 +458,10 @@ namespace PCGExClusterDiffusion
 		BlendOps = MakeShared<TArray<TSharedPtr<FPCGExAttributeBlendOperation>>>();
 		BlendOps->Reserve(Context->BlendingFactories.Num());
 
-		for (const TObjectPtr<const UPCGExAttributeBlendFactory>& Factory : Context->BlendingFactories)
+		if (!PCGExDataBlending::PrepareBlendOps(Context, VtxDataFacade, Context->BlendingFactories, BlendOps))
 		{
-			TSharedPtr<FPCGExAttributeBlendOperation> Op = Factory->CreateOperation(Context);
-			if (!Op)
-			{
-				bIsBatchValid = false;
-				PCGE_LOG_C(Error, GraphAndLog, Context, FTEXT("An operation could not be created."));
-				return; // FAIL
-			}
-
-			Op->OpIdx = BlendOps->Add(Op);
-			Op->SiblingOperations = BlendOps;
-
-			if (!Op->PrepareForData(Context, VtxDataFacade))
-			{
-				bIsBatchValid = false;
-				return; // FAIL
-			}
+			bIsBatchValid = false;
+			return;
 		}
 
 		InfluencesCount = MakeShared<TArray<int8>>();

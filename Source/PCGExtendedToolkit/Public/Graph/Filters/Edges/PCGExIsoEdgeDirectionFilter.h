@@ -89,7 +89,6 @@ public:
 
 	bool bUseDot = true;
 
-	TArray<double> CachedThreshold;
 	FPCGExEdgeDirectionSettings DirectionSettings;
 	FPCGExDotComparisonDetails DotComparison;
 	FPCGExVectorHashComparisonDetails HashComparison;

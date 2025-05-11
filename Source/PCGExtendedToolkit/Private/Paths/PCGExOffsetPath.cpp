@@ -35,12 +35,7 @@ bool FPCGExOffsetPathElement::ExecuteInternal(FPCGContext* InContext) const
 		if (!Context->StartBatchProcessingPoints<PCGExPointsMT::TBatch<PCGExOffsetPath::FProcessor>>(
 			[&](const TSharedPtr<PCGExData::FPointIO>& Entry)
 			{
-				if (Entry->GetNum() < 2)
-				{
-					if (!Settings->bOmitInvalidPathsOutputs) { Entry->InitializeOutput(PCGExData::EIOInit::Forward); }
-					bHasInvalidInputs = true;
-					return false;
-				}
+				PCGEX_SKIP_INVALID_PATH_ENTRY
 				return true;
 			},
 			[&](const TSharedPtr<PCGExPointsMT::TBatch<PCGExOffsetPath::FProcessor>>& NewBatch)

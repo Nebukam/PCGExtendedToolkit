@@ -88,7 +88,7 @@ namespace PCGExPointsMT
 		TSharedPtr<PCGExData::FFacadePreloader> InternalFacadePreloader;
 
 		TSharedPtr<PCGExPointFilter::FManager> PrimaryFilters;
-		bool bInlineProcessPoints = false;
+		bool bDaisyChainProcessPoints = false;
 		bool bDaisyChainProcessRange = false;
 
 		PCGExData::ESource CurrentProcessingSource = PCGExData::ESource::Out;
