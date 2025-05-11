@@ -162,6 +162,7 @@ void UPCGExGlobalSettings::GeneratePinInfos()
 
 	PCGEX_EMPLACE_PIN_IN(OUT_FilterNode, "Expects PCGEx Filters or Vtx Filter, supports multiple inputs.");
 	PCGEX_MAP_PIN_IN("Vtx Filters")
+	PCGEX_MAP_PIN_IN("VtxFilters")
 	PCGEX_MAP_PIN_IN("NodeFilters")
 	PCGEX_MAP_PIN_IN("Break Conditions")
 

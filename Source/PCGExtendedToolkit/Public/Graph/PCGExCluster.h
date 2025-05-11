@@ -207,6 +207,8 @@ namespace PCGExCluster
 		double EdgeDistToEdgeSquared(const int32 EdgeA, const int32 EdgeB, FVector& OutP1, FVector& OutP2) const;
 		FVector GetDir(const int32 FromNode, const int32 ToNode) const;
 		FVector GetDir(const FNode& From, const FNode& To) const;
+		double GetEdgeLength(const FEdge& InEdge) const;
+		double GetEdgeLengthSquared(const FEdge& InEdge) const;
 		FVector GetEdgeDir(const FEdge& InEdge) const;
 		FVector GetEdgeDir(const int32 InEdgeIndex) const;
 		FVector GetEdgeDir(const FLink Lk) const;

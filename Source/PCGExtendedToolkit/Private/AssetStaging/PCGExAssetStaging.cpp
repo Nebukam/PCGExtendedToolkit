@@ -233,7 +233,7 @@ namespace PCGExAssetStaging
 
 	void FProcessor::PrepareLoopScopesForPoints(const TArray<PCGExMT::FScope>& Loops)
 	{
-		HighestSlotIndex = MakeShared<PCGExMT::TScopedValue<int8>>(Loops, -1);
+		HighestSlotIndex = MakeShared<PCGExMT::TScopedNumericValue<int8>>(Loops, -1);
 	}
 
 	void FProcessor::PrepareSingleLoopScopeForPoints(const PCGExMT::FScope& Scope)

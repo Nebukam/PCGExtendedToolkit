@@ -178,8 +178,8 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExComponentRemapRule
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	FPCGExClampDetails OutputClampDetails;
 
-	TSharedPtr<PCGExMT::TScopedValue<double>> MinCache;
-	TSharedPtr<PCGExMT::TScopedValue<double>> MaxCache;
+	TSharedPtr<PCGExMT::TScopedNumericValue<double>> MinCache;
+	TSharedPtr<PCGExMT::TScopedNumericValue<double>> MaxCache;
 };
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc")

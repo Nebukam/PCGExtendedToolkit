@@ -206,7 +206,7 @@ namespace PCGExClusterDiffusion
 		TSharedPtr<PCGExFloodFill::FFillControlsHandler> FillControlsHandler;
 		TSharedPtr<PCGExDetails::TSettingValue<int32>> FillRate;
 
-		TSharedPtr<PCGExMT::TScopedValue<double>> MaxDistanceValue;
+		TSharedPtr<PCGExMT::TScopedNumericValue<double>> MaxDistanceValue;
 
 		int32 ExpectedPathCount = 0;
 

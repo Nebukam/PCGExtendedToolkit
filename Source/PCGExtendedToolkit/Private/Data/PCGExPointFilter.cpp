@@ -75,7 +75,11 @@ namespace PCGExPointFilter
 			TSharedPtr<FFilter> NewFilter = Factory->CreateFilter();
 			NewFilter->bCacheResults = bCacheResultsPerFilter;
 			NewFilter->bUseEdgeAsPrimary = bUseEdgeAsPrimary;
-			if (!InitFilter(InContext, NewFilter)) { continue; }
+			if (!InitFilter(InContext, NewFilter))
+			{
+				PCGE_LOG_C(Warning, GraphAndLog, InContext, FText::Format(FTEXT("A filter failed to initialize properly : {0}."), FText::FromString(Factory->GetName())));
+				continue;
+			}
 			ManagedFilters.Add(NewFilter);
 		}
 
