@@ -5,6 +5,7 @@
 
 #include "Data/Blending/PCGExAttributeBlendFactoryProvider.h"
 #include "Data/Blending/PCGExMetadataBlender.h"
+#include "GeometryCollection/Facades/CollectionConstraintOverrideFacade.h"
 
 
 #define LOCTEXT_NAMESPACE "PCGExAttributeRollingElement"
@@ -14,14 +15,14 @@ UPCGExAttributeRollingSettings::UPCGExAttributeRollingSettings(
 	const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
-	bSupportClosedLoops = true;
+	bSupportClosedLoops = false;
 }
 
 TArray<FPCGPinProperties> UPCGExAttributeRollingSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
 
-	if (Mode == EPCGExRollingMode::StartStop)
+	if (RangeControl == EPCGExRollingRangeControl::StartStop)
 	{
 		PCGEX_PIN_FACTORIES(PCGExPointFilter::SourceStartConditionLabel, "...", Required, {})
 		PCGEX_PIN_FACTORIES(PCGExPointFilter::SourceStopConditionLabel, "...", Required, {})
@@ -31,7 +32,12 @@ TArray<FPCGPinProperties> UPCGExAttributeRollingSettings::InputPinProperties() c
 		PCGEX_PIN_FACTORIES(PCGExPointFilter::SourceToggleConditionLabel, "...", Required, {})
 	}
 
-	PCGEX_PIN_FACTORIES(PCGExDataBlending::SourceBlendingLabel, "Blending configurations.", Required, {})
+	if (ValueControl == EPCGExRollingValueControl::Pin)
+	{
+		PCGEX_PIN_FACTORIES(PCGExPointFilter::SourcePinConditionLabel, "...", Required, {})
+	}
+
+	PCGEX_PIN_FACTORIES(PCGExDataBlending::SourceBlendingLabel, "Blending configurations.", Normal, {})
 
 	return PinProperties;
 }
@@ -44,7 +50,9 @@ bool FPCGExAttributeRollingElement::Boot(FPCGExContext* InContext) const
 
 	PCGEX_CONTEXT_AND_SETTINGS(AttributeRolling)
 
-	if (Settings->Mode == EPCGExRollingMode::StartStop)
+	PCGEX_FOREACH_FIELD_ATTRIBUTE_ROLL(PCGEX_OUTPUT_VALIDATE_NAME)
+
+	if (Settings->RangeControl == EPCGExRollingRangeControl::StartStop)
 	{
 		if (!PCGExFactories::GetInputFactories<UPCGExFilterFactoryData>(
 			Context, PCGExPointFilter::SourceStartConditionLabel, Context->StartFilterFactories,
@@ -70,36 +78,19 @@ bool FPCGExAttributeRollingElement::Boot(FPCGExContext* InContext) const
 		}
 	}
 
-	if (!PCGExFactories::GetInputFactories<UPCGExAttributeBlendFactory>(
-		Context, PCGExDataBlending::SourceBlendingLabel, Context->BlendingFactories,
-		{PCGExFactories::EType::Blending}, true))
+	if (Settings->ValueControl == EPCGExRollingValueControl::Pin)
 	{
-		return false;
-	};
+		if (!PCGExFactories::GetInputFactories<UPCGExFilterFactoryData>(
+			Context, PCGExPointFilter::SourcePinConditionLabel, Context->PinFilterFactories,
+			PCGExFactories::PointFilters, true))
+		{
+			return false;
+		}
+	}
 
-
-	// Rework : condition & action management.
-	// Trigger Conditions capture the reference index to use for blending
-	// - Trigger : Capture Index
-
-	// Roll Mode :
-	// - Start & Stop
-	//		Separate start filters for start & stop trigger.
-	//		Start enable rolling until a stop condition is met.
-	//		- Start AND Stop handling : Start | Stop
-	// - Toggle
-	//		Toggle Conditions enable or disable rolling (blending) from that point on.
-
-	// Reference Element Mode :
-	// (define which index will be used for rolling the current point)
-	// - Current-1 (Previous)
-	// - Start (Start don't get rolled, but is rolled instead)
-	// - Start-1 (Start will get rolled with previous value)
-	// - Start-1 then Start (Start will get rolled with previous value, then becomes the new reference index)
-
-	// [x] Roll on End
-	//		If enabled, the point that stops rolling (toggle or stop) will have its values rolled over
-	//		Otherwise, stopping points are not rolled on.
+	PCGExFactories::GetInputFactories<UPCGExAttributeBlendFactory>(
+		Context, PCGExDataBlending::SourceBlendingLabel, Context->BlendingFactories,
+		{PCGExFactories::EType::Blending}, false);
 
 	return true;
 }
@@ -170,6 +161,20 @@ namespace PCGExAttributeRolling
 
 		PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::Duplicate)
 
+		{
+			// Initialize attributes before blend ops so they can be used during the rolling
+			const TSharedRef<PCGExData::FFacade>& OutputFacade = PointDataFacade;
+			PCGEX_FOREACH_FIELD_ATTRIBUTE_ROLL(PCGEX_OUTPUT_INIT)
+		}
+
+		if (Settings->bReverseRolling) { SourceOffset = 1; }
+
+		if (!Context->PinFilterFactories.IsEmpty())
+		{
+			PinFilterManager = MakeShared<PCGExPointFilter::FManager>(PointDataFacade);
+			if (!PinFilterManager->Init(Context, Context->PinFilterFactories)) { return false; }
+		}
+
 		if (!Context->StartFilterFactories.IsEmpty())
 		{
 			StartFilterManager = MakeShared<PCGExPointFilter::FManager>(PointDataFacade);
@@ -193,14 +198,19 @@ namespace PCGExAttributeRolling
 		MaxIndex = PointDataFacade->GetNum(PCGExData::ESource::In) - 1;
 		OutPoints = &PointDataFacade->GetOut()->GetMutablePoints();
 
-		if (Settings->ToggleInitialValueMode == EPCGExRollingToggleInitialValue::FromPoint)
+		FirstIndex = Settings->bReverseRolling ? MaxIndex : 0;
+		RangeIndex += Settings->RangeIndexOffset;
+
+		if (Settings->InitialValueMode == EPCGExRollingToggleInitialValue::FromPoint)
 		{
-			bRoll = StartFilterManager->Test(SourceIndex);
+			bRoll = StartFilterManager->Test(FirstIndex);
 		}
 		else
 		{
-			bRoll = Settings->bInitialToggle;
+			bRoll = Settings->bInitialValue;
 		}
+
+		SourceIndex = bRoll ? FirstIndex : -1;
 
 		bDaisyChainProcessRange = true;
 		StartParallelLoopForRange(PointDataFacade->GetNum());
@@ -210,16 +220,27 @@ namespace PCGExAttributeRolling
 
 	void FProcessor::ProcessSingleRangeIteration(const int32 Iteration, const PCGExMT::FScope& Scope)
 	{
-		if (PrimaryFilters->Test(Iteration)) { SourceIndex = Iteration; }
-
 		const int32 TargetIndex = Settings->bReverseRolling ? MaxIndex - Iteration : Iteration;
 
+		if (Settings->ValueControl == EPCGExRollingValueControl::Pin)
+		{
+			if (PinFilterManager->Test(Iteration)) { SourceIndex = Iteration; }
+		}
+		else if (Settings->ValueControl == EPCGExRollingValueControl::Previous)
+		{
+			SourceIndex = Iteration + SourceOffset;
+			if (SourceIndex < 0 || SourceIndex > MaxIndex)
+			{
+				// TODO : Handle closed paths?
+				SourceIndex = -1;
+			}
+		}
+
+		const bool bPreviousRoll = bRoll;
 		const bool bStart = StartFilterManager->Test(TargetIndex);
 
-		if (Settings->Mode == EPCGExRollingMode::Toggle)
+		if (Settings->RangeControl == EPCGExRollingRangeControl::Toggle)
 		{
-			// Don't flip the switch if mode == Preserve
-			// if(Settings->ToggleInitialValueMode == EPCGExRollingToggleInitialValue::ConstantPreserve)
 			if (bStart) { bRoll = !bRoll; }
 		}
 		else
@@ -228,11 +249,40 @@ namespace PCGExAttributeRolling
 			else if (bStart) { bRoll = true; }
 		}
 
-		if (!bRoll) { return; }
+		if (bPreviousRoll != bRoll || TargetIndex == FirstIndex)
+		{
+			PCGEX_OUTPUT_VALUE(RangePole, TargetIndex, true)
 
-		if (SourceIndex == TargetIndex) { return; } // First or last point
+			if (bRoll)
+			{
+				// New range started
+				RangeIndex++;
+				InternalRangeIndex = -1;
 
-		if (SourceIndex >= 0)
+				PCGEX_OUTPUT_VALUE(RangeStart, TargetIndex, true)
+
+				if (Settings->ValueControl == EPCGExRollingValueControl::RangeStart)
+				{
+					SourceIndex = TargetIndex;
+				}
+			}
+			else
+			{
+				// Current range stopped
+
+				PCGEX_OUTPUT_VALUE(RangeStop, TargetIndex, true)
+			}
+		}
+
+		InternalRangeIndex++;
+
+		PCGEX_OUTPUT_VALUE(RangeIndex, TargetIndex, RangeIndex)
+		PCGEX_OUTPUT_VALUE(IndexInsideRange, TargetIndex, InternalRangeIndex)
+		PCGEX_OUTPUT_VALUE(IsInsideRange, TargetIndex, bRoll)
+
+		if (!bRoll && !Settings->bEnableBlendOutsideRange) { return; }
+
+		if (SourceIndex != -1)
 		{
 			TArray<FPCGPoint>& PathPoints = PointDataFacade->GetMutablePoints();
 			const TArray<TSharedPtr<FPCGExAttributeBlendOperation>>& BlendOpsRef = *BlendOps.Get();
@@ -242,8 +292,6 @@ namespace PCGExAttributeRolling
 				Op->Blend(SourceIndex, PathPoints[SourceIndex], TargetIndex, PathPoints[TargetIndex]);
 			}
 		}
-
-		if (bStart) { SourceIndex = TargetIndex; }
 	}
 
 	void FProcessor::CompleteWork()
