@@ -15,8 +15,11 @@
 
 namespace PCGExAssetCollection
 {
+	bool FCategory::IsEmpty() const { return Order.IsEmpty(); }
+
 	int32 FCategory::GetPick(const int32 Index, const EPCGExIndexPickMode PickMode) const
 	{
+		
 		switch (PickMode)
 		{
 		default:
@@ -53,11 +56,13 @@ namespace PCGExAssetCollection
 
 	int32 FCategory::GetPickRandom(const int32 Seed) const
 	{
+		if (Order.IsEmpty()) { return -1; }
 		return Indices[Order[FRandomStream(Seed).RandRange(0, Order.Num() - 1)]];
 	}
 
 	int32 FCategory::GetPickRandomWeighted(const int32 Seed) const
 	{
+		if (Order.IsEmpty()) { return -1; }
 		const int32 Threshold = FRandomStream(Seed).RandRange(0, WeightSum - 1);
 		int32 Pick = 0;
 		while (Pick < Weights.Num() && Weights[Pick] < Threshold) { Pick++; }

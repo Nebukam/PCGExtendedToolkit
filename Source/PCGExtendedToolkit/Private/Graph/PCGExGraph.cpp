@@ -515,8 +515,11 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 		check(A != B)
 
 		const uint64 Hash = PCGEx::H64U(A, B);
-
-		if (UniqueEdges.Contains(Hash)) { return false; }
+		if (const int32* EdgeIndex = UniqueEdges.Find(Hash))
+		{
+			OutEdge.Index = *EdgeIndex;
+			return false;
+		}
 
 		OutEdge = Edges.Emplace_GetRef(Edges.Num(), A, B, -1, IOIndex);
 		UniqueEdges.Add(Hash, (OutEdge.Index = Edges.Num() - 1));
@@ -555,24 +558,12 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 
 	bool FGraph::InsertEdge_Unsafe(const FEdge& Edge, FEdge& OutEdge, const int32 InIOIndex)
 	{
-		if (!InsertEdge_Unsafe(Edge.Start, Edge.End, OutEdge, InIOIndex))
-		{
-			OutEdge = Edge;
-			return false;
-		}
-
-		return true;
+		return InsertEdge_Unsafe(Edge.Start, Edge.End, OutEdge, InIOIndex);
 	}
 
 	bool FGraph::InsertEdge(const FEdge& Edge, FEdge& OutEdge, const int32 InIOIndex)
 	{
-		if (!InsertEdge(Edge.Start, Edge.End, OutEdge, InIOIndex))
-		{
-			OutEdge = Edge;
-			return false;
-		}
-
-		return true;
+		return InsertEdge(Edge.Start, Edge.End, OutEdge, InIOIndex);
 	}
 
 	void FGraph::InsertEdges(const TArray<uint64>& InEdges, const int32 InIOIndex)

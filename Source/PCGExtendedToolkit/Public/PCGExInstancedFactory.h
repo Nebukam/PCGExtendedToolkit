@@ -28,6 +28,7 @@ class PCGEXTENDEDTOOLKIT_API UPCGExInstancedFactory : public UObject, public IPC
 	//~Begin UPCGExInstancedOperation interface
 public:
 	void BindContext(FPCGExContext* InContext);
+	virtual void InitializeInContext(FPCGExContext* InContext, FName InOverridesPinLabel);
 	void FindSettingsOverrides(FPCGExContext* InContext, FName InPinLabel);
 
 #if WITH_EDITOR
@@ -59,6 +60,7 @@ public:
 	virtual void RegisterPrimaryBuffersDependencies(PCGExData::FFacadePreloader& FacadePreloader) const;
 
 	virtual void BeginDestroy() override;
+	virtual bool CanOnlyExecuteOnMainThread() const{ return false; }
 
 protected:
 	FPCGExContext* Context = nullptr;

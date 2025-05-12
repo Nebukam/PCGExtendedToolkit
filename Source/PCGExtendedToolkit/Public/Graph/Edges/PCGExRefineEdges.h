@@ -27,7 +27,7 @@ enum class EPCGExRefineSanitization : uint8
 	Filters  = 3 UMETA(DisplayName = "Filters", ToolTip="Use filters to find edges that must be preserved."),
 };
 
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Clusters")
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Clusters", meta=(Keywords = "filter edge mst minimum spanning tree skeleton gabriel"))
 class UPCGExRefineEdgesSettings : public UPCGExEdgesProcessorSettings
 {
 	GENERATED_BODY()
@@ -100,6 +100,12 @@ public:
 		TWeakObjectPtr<UPCGComponent> SourceComponent,
 		const UPCGNode* Node) override;
 
+	virtual bool CanExecuteOnlyOnMainThread(FPCGContext* InContext) const override
+	{
+		PCGEX_CONTEXT(RefineEdges)
+		return Context->Refinement ? Context->Refinement->CanOnlyExecuteOnMainThread() : false;
+	}
+	
 protected:
 	virtual bool Boot(FPCGExContext* InContext) const override;
 	virtual bool ExecuteInternal(FPCGContext* InContext) const override;

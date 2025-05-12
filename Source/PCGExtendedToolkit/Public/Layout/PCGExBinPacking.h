@@ -75,7 +75,7 @@ public:
 	/** Will attempt to infer the split axis from relative seed positioning, and fall back to selected axis if it can't find one. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Fitting", meta = (PCG_Overridable))
 	bool bInferSplitAxisFromSeed = false;
-	
+
 	/** The main stacking axis is the axis that will generate the smallest free space for further insertion. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Fitting", meta = (PCG_Overridable))
 	EPCGExAxis SplitAxis = EPCGExAxis::Up;

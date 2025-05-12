@@ -143,9 +143,8 @@ namespace PCGExData
 
 						if (InDescriptor.bIsConstant)
 						{
-
 							// TODO : Support subselector
-							
+
 							TSharedPtr<TConstantProxy<T_WORKING>> TypedProxy = MakeShared<TConstantProxy<T_WORKING>>();
 							OutProxy = TypedProxy;
 

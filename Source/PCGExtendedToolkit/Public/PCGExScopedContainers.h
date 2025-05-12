@@ -129,14 +129,13 @@ namespace PCGExMT
 	class TScopedNumericValue final : public TScopedValue<T>
 	{
 		using TScopedValue<T>::Values;
-	public:
 
+	public:
 		TScopedNumericValue(const TArray<FScope>& InScopes, const T InDefaultValue)
-			:TScopedValue<T>(InScopes, InDefaultValue)
+			: TScopedValue<T>(InScopes, InDefaultValue)
 		{
-			
 		};
-		
+
 		FORCEINLINE T Min()
 		{
 			T Result = Values[0];

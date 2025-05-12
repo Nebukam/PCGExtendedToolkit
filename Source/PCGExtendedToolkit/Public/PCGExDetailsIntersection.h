@@ -103,7 +103,6 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPointEdgeIntersectionDetails
 	/** Name of the attribute to flag point as intersector (result of an Point/Edge intersection) */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Metadata", meta=(PCG_Overridable, EditCondition="bWriteIsIntersector"))
 	FName IsIntersectorAttributeName = "bIsIntersector";
-
 };
 
 USTRUCT(BlueprintType)
