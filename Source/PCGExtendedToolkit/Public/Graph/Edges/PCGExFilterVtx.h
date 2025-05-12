@@ -64,7 +64,7 @@ public:
 	/** Name of the attribute to write the filter result to. */
 	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = Settings, meta = (PCG_NotOverridable, EditCondition="Mode==EPCGExVtxFilterOutput::Attribute", EditConditionHides))
 	FName ResultAttributeName = FName("PassFilters");
-	
+
 	/** If enabled, inside/outside groups will be partitioned by initial edge connectivity. */
 	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = Settings, meta = (PCG_NotOverridable, EditCondition="Mode==EPCGExVtxFilterOutput::Points", EditConditionHides))
 	bool bSplitOutputsByConnectivity = true;
@@ -138,7 +138,7 @@ namespace PCGExFilterVtx
 	class FProcessor final : public PCGExClusterMT::TProcessor<FPCGExFilterVtxContext, UPCGExFilterVtxSettings>
 	{
 		friend class FBatch;
-		
+
 	protected:
 		TSharedPtr<PCGExData::TBuffer<bool>> TestResults;
 		TSharedPtr<PCGExMT::TScopedNumericValue<int32>> ScopedPassNum;
@@ -175,7 +175,7 @@ namespace PCGExFilterVtx
 			: TBatch(InContext, InVtx, InEdges)
 		{
 			PCGEX_TYPED_CONTEXT_AND_SETTINGS(FilterVtx)
-			
+
 			bRequiresGraphBuilder = Settings->Mode == EPCGExVtxFilterOutput::Clusters;
 			bRequiresWriteStep = Settings->Mode == EPCGExVtxFilterOutput::Attribute;
 			bAllowVtxDataFacadeScopedGet = true;

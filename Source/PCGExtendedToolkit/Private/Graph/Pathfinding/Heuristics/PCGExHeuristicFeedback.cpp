@@ -25,14 +25,14 @@ double FPCGExHeuristicFeedback::GetEdgeScore(
 	const uint32* N = NodeFeedbackNum.Find(To.Index);
 	const uint32* E = EdgeFeedbackNum.Find(Edge.Index);
 
-	if(bBinary)
+	if (bBinary)
 	{
 		return N || E ? GetScoreInternal(1) : GetScoreInternal(0);
 	}
-	
+
 	const double NW = N ? GetScoreInternal(NodeScale) * *N : GetScoreInternal(0);
 	const double EW = E ? GetScoreInternal(EdgeScale) * *E : GetScoreInternal(0);
-	
+
 	return (NW + EW);
 }
 

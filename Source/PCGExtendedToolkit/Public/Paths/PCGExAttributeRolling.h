@@ -48,7 +48,7 @@ enum class EPCGExRollingValueControl : uint8
 /**
  * 
  */
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Clusters")
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Clusters", meta=(Keywords = "range"))
 class UPCGExAttributeRollingSettings : public UPCGExPathProcessorSettings
 {
 	GENERATED_BODY()
@@ -118,7 +118,7 @@ public:
 	/** Name of the 'bool' attribute to write range pole to. A pole is either start or stop. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(DisplayName="Range Pole", PCG_Overridable, EditCondition="bWriteRangePole"))
 	FName RangePoleAttributeName = FName("RangePole");
-	
+
 	/**  */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable, InlineEditConditionToggle))
 	bool bWriteRangeIndex = false;
@@ -139,7 +139,7 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(DisplayName="Is Inside Range", PCG_Overridable, EditCondition="bWriteIsInsideRange"))
 	FName IsInsideRangeAttributeName = FName("IsInsideRange");
 
-	
+
 	/**  */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable, InlineEditConditionToggle))
 	bool bWriteIndexInsideRange = false;

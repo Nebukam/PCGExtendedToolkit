@@ -124,7 +124,15 @@ bool FPCGExAssetStagingElement::PostBoot(FPCGExContext* InContext) const
 {
 	PCGEX_CONTEXT_AND_SETTINGS(AssetStaging)
 
-	Context->MainCollection->LoadCache();
+	if(Context->MainCollection->LoadCache()->IsEmpty())
+	{
+		if(!Settings->bQuietEmptyCollectionError)
+		{
+			PCGE_LOG_C(Error, GraphAndLog, Context, FTEXT("Selected asset collection is empty."));
+		}
+		
+		return false;
+	}
 
 	return FPCGExPointsProcessorElement::PostBoot(InContext);
 }

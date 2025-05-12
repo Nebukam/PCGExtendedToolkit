@@ -138,7 +138,7 @@ namespace PCGExFuseClusters
 	bool FProcessor::Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExFuseClusters::Process);
-		
+
 		if (!FClusterProcessor::Process(InAsyncManager)) { return false; }
 
 		VtxIOIndex = VtxDataFacade->Source->IOIndex;

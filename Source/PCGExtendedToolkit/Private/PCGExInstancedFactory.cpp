@@ -9,9 +9,14 @@ void UPCGExInstancedFactory::BindContext(FPCGExContext* InContext)
 	Context = InContext;
 }
 
+void UPCGExInstancedFactory::InitializeInContext(FPCGExContext* InContext, FName InOverridesPinLabel)
+{
+	FindSettingsOverrides(InContext, InOverridesPinLabel);
+}
+
 void UPCGExInstancedFactory::FindSettingsOverrides(FPCGExContext* InContext, FName InPinLabel)
 {
-	TArray<FPCGTaggedData> OverrideParams = Context->InputData.GetParamsByPin(InPinLabel);
+	TArray<FPCGTaggedData> OverrideParams = InContext->InputData.GetParamsByPin(InPinLabel);
 	for (FPCGTaggedData& InTaggedData : OverrideParams)
 	{
 		const UPCGParamData* ParamData = Cast<UPCGParamData>(InTaggedData.Data);
