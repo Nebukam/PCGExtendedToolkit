@@ -169,7 +169,7 @@ namespace PCGExFloodFill
 
 	void FDiffusion::Diffuse(
 		const TSharedPtr<PCGExData::FFacade>& InVtxFacade,
-		const TArray<TSharedPtr<FPCGExAttributeBlendOperation>>& Operations,
+		const TSharedPtr<PCGExDataBlending::FBlendOpsManager>& InBlendOps,
 		TArray<int32>& OutIndices)
 	{
 		const TArray<FPCGPoint>& InPoints = InVtxFacade->Source->GetPoints(PCGExData::ESource::In);
@@ -193,7 +193,7 @@ namespace PCGExFloodFill
 
 				// TODO : Compute weight based on distance or depth
 
-				for (const TSharedPtr<FPCGExAttributeBlendOperation>& Op : Operations) { Op->Blend(SourceIndex, SourcePoint, TargetIndex, TargetPoint); }
+				InBlendOps->Blend(SourceIndex, SourcePoint, TargetIndex, TargetPoint);
 			}
 		}
 	}

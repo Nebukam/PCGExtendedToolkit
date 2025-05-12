@@ -197,7 +197,7 @@ namespace PCGExClusterDiffusion
 
 		TSharedPtr<TArray<int8>> InfluencesCount;
 		TArray<int8> Seeded;
-		TSharedPtr<TArray<TSharedPtr<FPCGExAttributeBlendOperation>>> Operations;
+		TSharedPtr<PCGExDataBlending::FBlendOpsManager> BlendOpsManager;
 
 		TSharedPtr<PCGExMT::TScopedArray<TSharedPtr<PCGExFloodFill::FDiffusion>>> InitialDiffusions;
 		TArray<TSharedPtr<PCGExFloodFill::FDiffusion>> OngoingDiffusions; // Ongoing diffusions
@@ -244,7 +244,7 @@ namespace PCGExClusterDiffusion
 
 	protected:
 		TSharedPtr<TArray<int8>> InfluencesCount;
-		TSharedPtr<TArray<TSharedPtr<FPCGExAttributeBlendOperation>>> BlendOps;
+		TSharedPtr<PCGExDataBlending::FBlendOpsManager> BlendOpsManager;
 		TSharedPtr<PCGExDetails::TSettingValue<int32>> FillRate;
 
 	public:
