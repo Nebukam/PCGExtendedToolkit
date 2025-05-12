@@ -22,7 +22,7 @@ enum class EPCGExStagingOutputMode : uint8
 	CollectionMap = 1 UMETA(DisplayName = "Collection Map", ToolTip="Write collection reference & pick for later use"),
 };
 
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc")
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc", meta=(Keywords = "stage prepare spawn proxy"))
 class UPCGExAssetStagingSettings : public UPCGExPointsProcessorSettings
 {
 	GENERATED_BODY()
@@ -101,6 +101,10 @@ public:
 	/** Prefix to be used for material slot picks.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Additional Outputs", meta=(PCG_Overridable, DisplayName=" └─ Prefix", EditCondition="bOutputMaterialPicks"))
 	FName MaterialAttributePrefix = "Mat";
+
+	/** */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Warnings and Errors")
+	bool bQuietEmptyCollectionError = false;
 };
 
 struct FPCGExAssetStagingContext final : FPCGExPointsProcessorContext

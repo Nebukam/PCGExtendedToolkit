@@ -19,6 +19,16 @@ class UPCGExEdgeRefineLineTrace : public UPCGExEdgeRefineOperation
 public:
 	virtual bool GetDefaultEdgeValidity() override { return !bInvert; }
 
+	// Required for initializing collision settings
+	virtual bool CanOnlyExecuteOnMainThread() const override { return true; }
+
+	virtual void InitializeInContext(FPCGExContext* InContext, FName InOverridesPinLabel) override
+	{
+		Super::InitializeInContext(InContext, InOverridesPinLabel);
+		InitializedCollisionSettings = CollisionSettings;
+		InitializedCollisionSettings.Init(InContext); // Needs to happen on main thread
+	}
+
 	virtual void CopySettingsFrom(const UPCGExInstancedFactory* Other) override
 	{
 		Super::CopySettingsFrom(Other);
@@ -26,8 +36,7 @@ public:
 		{
 			bTwoWayCheck = TypedOther->bTwoWayCheck;
 			bInvert = TypedOther->bInvert;
-			InitializedCollisionSettings = TypedOther->CollisionSettings;
-			InitializedCollisionSettings.Init(TypedOther->Context);
+			InitializedCollisionSettings = TypedOther->InitializedCollisionSettings;
 		}
 	}
 

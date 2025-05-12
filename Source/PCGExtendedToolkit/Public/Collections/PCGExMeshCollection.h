@@ -14,7 +14,6 @@
 #include "Engine/DataAsset.h"
 #include "ISMPartition/ISMComponentDescriptor.h"
 #include "MeshSelectors/PCGMeshSelectorBase.h"
-#include "Components/SplineMeshComponent.h"
 
 #include "PCGExMeshCollection.generated.h"
 

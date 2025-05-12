@@ -23,7 +23,7 @@ enum class EPCGExUrquhartSiteMergeMode : uint8
 /**
  * 
  */
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Clusters")
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Clusters", meta=(Keywords = "triangulation"))
 class UPCGExBuildDelaunayGraph2DSettings : public UPCGExPointsProcessorSettings
 {
 	GENERATED_BODY()
