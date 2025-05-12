@@ -42,13 +42,13 @@ bool FPCGExAttributeBlendOperation::PrepareForData(FPCGExContext* InContext, con
 	if (!CopyAndFixSiblingSelector(InContext, Config.OutputTo)) { return false; }
 
 	PCGExData::FProxyDescriptor A = PCGExData::FProxyDescriptor(ConstantA ? ConstantA : InDataFacade);
-	A.bIsConstant = A.DataFacade.Pin() != InDataFacade;	
+	A.bIsConstant = A.DataFacade.Pin() != InDataFacade;
 	if (!A.Capture(InContext, Config.OperandA, PCGExData::ESource::Out)) { return false; }
 
 	PCGExData::FProxyDescriptor B = PCGExData::FProxyDescriptor(ConstantB ? ConstantB : InDataFacade);
 	B.bIsConstant = B.DataFacade.Pin() != InDataFacade;
 	if (!B.Capture(InContext, Config.OperandB, PCGExData::ESource::Out)) { return false; }
-	
+
 	PCGExData::FProxyDescriptor C = PCGExData::FProxyDescriptor(InDataFacade);
 	C.Source = PCGExData::ESource::Out;
 
@@ -216,7 +216,7 @@ bool UPCGExAttributeBlendFactory::Prepare(FPCGExContext* InContext)
 
 	ConstantA = PCGExData::TryGetSingleFacade(InContext, PCGExDataBlending::SourceConstantA, true, false);
 	ConstantB = PCGExData::TryGetSingleFacade(InContext, PCGExDataBlending::SourceConstantB, true, false);
-	
+
 	return true;
 }
 

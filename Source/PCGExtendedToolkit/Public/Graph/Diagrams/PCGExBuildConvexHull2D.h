@@ -43,7 +43,7 @@ public:
 	/** Path Winding */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_NotOverridable))
 	EPCGExWinding Winding = EPCGExWinding::CounterClockwise;
-	
+
 	/** */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging", meta=(InlineEditConditionToggle))
 	bool bTagIfClosedLoop = true;

@@ -272,7 +272,7 @@ namespace PCGExBinPacking
 		case EPCGExSpaceSplitMode::Cone: Splitter = MakeShared<TBinSplit<_DIRECTION, EPCGExSpaceSplitMode::Cone>>(); break;\
 		case EPCGExSpaceSplitMode::ConeCross: Splitter = MakeShared<TBinSplit<_DIRECTION, EPCGExSpaceSplitMode::ConeCross>>(); break;\
 		}
-		
+
 #define PCGEX_SWITCH_ON_SPLIT_DIRECTION(_MACRO) \
 		switch (Settings->SplitAxis){ \
 		case EPCGExAxis::Forward: _MACRO(EPCGExAxis::Forward) break; \

@@ -38,10 +38,11 @@ namespace PCGExEdgeLength
 	}
 
 	bool FLengthFilter::Test(const PCGExGraph::FEdge& Edge) const
-	{		
-		return PCGExCompare::Compare(TypedFilterFactory->Config.Comparison, Cluster->GetEdgeLength(Edge),
-			ThresholdBuffer->Read(Edge.PointIndex), TypedFilterFactory->Config.Tolerance) ?
-				!TypedFilterFactory->Config.bInvert : TypedFilterFactory->Config.bInvert;
+	{
+		return PCGExCompare::Compare(
+			       TypedFilterFactory->Config.Comparison, Cluster->GetEdgeLength(Edge),
+			       ThresholdBuffer->Read(Edge.PointIndex), TypedFilterFactory->Config.Tolerance) ?
+			       !TypedFilterFactory->Config.bInvert : TypedFilterFactory->Config.bInvert;
 	}
 
 	FLengthFilter::~FLengthFilter()

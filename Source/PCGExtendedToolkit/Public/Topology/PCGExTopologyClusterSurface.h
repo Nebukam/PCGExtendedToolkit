@@ -10,7 +10,7 @@
 #include "PCGExTopologyEdgesProcessor.h"
 #include "PCGExTopologyClusterSurface.generated.h"
 
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Clusters")
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Clusters", meta=(Keywords = "collision"))
 class UPCGExTopologyClusterSurfaceSettings : public UPCGExTopologyEdgesProcessorSettings
 {
 	GENERATED_BODY()

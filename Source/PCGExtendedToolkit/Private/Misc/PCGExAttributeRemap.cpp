@@ -125,7 +125,7 @@ namespace PCGExAttributeRemap
 
 		InputDescriptor.DataFacade = PointDataFacade;
 		OutputDescriptor.DataFacade = PointDataFacade;
-		
+
 		if (!InputDescriptor.Capture(Context, Settings->Attributes.GetSourceSelector(), PCGExData::ESource::In)) { return false; }
 
 		// Number of dimensions to be remapped
@@ -136,7 +136,7 @@ namespace PCGExAttributeRemap
 		if (!GetPerFieldProxyBuffers(Context, InputDescriptor, Dimensions, UntypedInputProxies)) { return false; }
 
 		if (!OutputDescriptor.CaptureStrict(Context, Settings->Attributes.GetTargetSelector(), PCGExData::ESource::Out, false))
-		{	
+		{
 			// This might be expected if the destination does not exist
 			OutputDescriptor.RealType = InputDescriptor.RealType;
 

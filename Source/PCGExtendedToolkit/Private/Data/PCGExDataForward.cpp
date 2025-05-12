@@ -111,8 +111,8 @@ namespace PCGExData
 		Details.Filter(Identities);
 
 		const int32 NumAttributes = Identities.Num();
-		PCGEx::InitArray(Readers, NumAttributes);
-		PCGEx::InitArray(Writers, NumAttributes);
+		Readers.Reserve(NumAttributes);
+		Writers.Reserve(NumAttributes);
 
 		// Init forwarded attributes on target		
 		for (int i = 0; i < NumAttributes; i++)
@@ -124,8 +124,12 @@ namespace PCGExData
 				{
 					using T = decltype(DummyValue);
 					TSharedPtr<TBuffer<T>> Reader = SourceDataFacade->GetReadable<T>(Identity.Name);
-					Readers[i] = Reader;
-					Writers[i] = TargetDataFacade->GetWritable<T>(Reader->GetTypedInAttribute(), EBufferInit::Inherit);
+					TSharedPtr<TBuffer<T>> Writer = TargetDataFacade->GetWritable<T>(Reader->GetTypedInAttribute(), EBufferInit::Inherit);
+
+					if (!Reader || !Writer) { return; }
+
+					Readers.Add(Reader);
+					Writers.Add(Writer);
 				});
 		}
 	}

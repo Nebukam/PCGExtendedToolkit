@@ -149,7 +149,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPointsProcessorContext : FPCGExContext
 
 		T* RetValue = BaseOperation->CreateNewInstance<T>();
 		InternalOperations.Add(RetValue);
-		RetValue->FindSettingsOverrides(this, OverridePinLabel);
+		RetValue->InitializeInContext(this, OverridePinLabel);
 		return RetValue;
 	}
 

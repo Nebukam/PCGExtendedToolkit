@@ -259,7 +259,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExFuseDetailsBase
 
 
 	// TODO : Some optimization could be welcome by expos
-	
+
 	FORCEINLINE bool IsWithinTolerance(const double DistSquared, const int32 PointIndex) const
 	{
 		return FMath::IsWithin<double, double>(DistSquared, 0, FMath::Square(ToleranceGetter->Read(PointIndex).X));
