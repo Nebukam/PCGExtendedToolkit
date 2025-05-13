@@ -124,13 +124,13 @@ bool FPCGExAssetStagingElement::PostBoot(FPCGExContext* InContext) const
 {
 	PCGEX_CONTEXT_AND_SETTINGS(AssetStaging)
 
-	if(Context->MainCollection->LoadCache()->IsEmpty())
+	if (Context->MainCollection->LoadCache()->IsEmpty())
 	{
-		if(!Settings->bQuietEmptyCollectionError)
+		if (!Settings->bQuietEmptyCollectionError)
 		{
 			PCGE_LOG_C(Error, GraphAndLog, Context, FTEXT("Selected asset collection is empty."));
 		}
-		
+
 		return false;
 	}
 
@@ -347,7 +347,16 @@ namespace PCGExAssetStaging
 		if (Variations.bEnabledBefore)
 		{
 			FPCGPoint ProxyPoint = Point;
-			Variations.Apply(ProxyPoint, Entry->Variations, EPCGExVariationMode::Before);
+			if (EntryHost->GlobalVariationMode == EPCGExGlobalVariationRule::Overrule ||
+				Entry->VariationMode == EPCGExEntryVariationMode::Global)
+			{
+				Variations.Apply(ProxyPoint, EntryHost->GlobalVariations, EPCGExVariationMode::Before);
+			}
+			else
+			{
+				Variations.Apply(ProxyPoint, Entry->Variations, EPCGExVariationMode::Before);
+			}
+
 			FittingHandler.ComputeTransform(Index, ProxyPoint, Point.Transform, OutBounds);
 		}
 		else
@@ -359,7 +368,18 @@ namespace PCGExAssetStaging
 		Point.BoundsMin = OutBounds.Min;
 		Point.BoundsMax = OutBounds.Max;
 
-		if (Variations.bEnabledAfter) { Variations.Apply(Point, Entry->Variations, EPCGExVariationMode::After); }
+		if (Variations.bEnabledAfter)
+		{
+			if (EntryHost->GlobalVariationMode == EPCGExGlobalVariationRule::Overrule ||
+				Entry->VariationMode == EPCGExEntryVariationMode::Global)
+			{
+				Variations.Apply(Point, EntryHost->GlobalVariations, EPCGExVariationMode::After);
+			}
+			else
+			{
+				Variations.Apply(Point, Entry->Variations, EPCGExVariationMode::After);
+			}
+		}
 	}
 
 	void FProcessor::CompleteWork()
