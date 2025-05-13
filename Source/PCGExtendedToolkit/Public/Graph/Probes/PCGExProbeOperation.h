@@ -45,6 +45,9 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExProbeConfigBase
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Search Radius", ClampMin=0, EditCondition="bSupportRadius && SearchRadiusInput==EPCGExInputValueType::Constant", EditConditionHides))
 	double SearchRadiusConstant = 100;
+
+	PCGEX_SETTING_VALUE_GET(SearchRadius, double, SearchRadiusInput, SearchRadiusAttribute, SearchRadiusConstant)
+	
 };
 
 /**
@@ -64,12 +67,10 @@ public:
 
 	virtual void ProcessNode(const int32 Index, const FPCGPoint& Point, TSet<FInt32Vector>* Coincidence, const FVector& ST, TSet<uint64>* OutEdges, const TArray<int8>& AcceptConnections);
 
-	double SearchRadius = -1;
-	double SearchRadiusSquared = -1;
-	TSharedPtr<PCGExData::TBuffer<double>> SearchRadiusCache;
 	FPCGExProbeConfigBase* BaseConfig = nullptr;
 
-	FORCEINLINE double GetSearchRadius(const int32 Index) const { return SearchRadiusCache ? FMath::Square(SearchRadiusCache->Read(Index)) : SearchRadiusSquared; }
+	FORCEINLINE double GetSearchRadius(const int32 Index) const { return FMath::Square(SearchRadius->Read(Index)); }
+	TSharedPtr<PCGExDetails::TSettingValue<double>> SearchRadius;
 
 protected:
 	TSharedPtr<PCGExData::FPointIO> PointIO;

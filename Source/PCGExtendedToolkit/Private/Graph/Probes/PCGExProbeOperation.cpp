@@ -14,21 +14,8 @@ bool FPCGExProbeOperation::PrepareForPoints(const TSharedPtr<PCGExData::FPointIO
 {
 	PointIO = InPointIO;
 
-	if (BaseConfig->SearchRadiusInput == EPCGExInputValueType::Constant)
-	{
-		SearchRadius = BaseConfig->SearchRadiusConstant;
-		SearchRadiusSquared = SearchRadius * SearchRadius;
-	}
-	else
-	{
-		SearchRadiusCache = PrimaryDataFacade->GetScopedBroadcaster<double>(BaseConfig->SearchRadiusAttribute);
-
-		if (!SearchRadiusCache)
-		{
-			PCGEX_LOG_INVALID_SELECTOR_C(Context, "Radius", BaseConfig->SearchRadiusAttribute)
-			return false;
-		}
-	}
+	SearchRadius = BaseConfig->GetValueSettingSearchRadius();
+	if (!SearchRadius->Init(Context, PrimaryDataFacade)) { return false; }
 
 	return true;
 }

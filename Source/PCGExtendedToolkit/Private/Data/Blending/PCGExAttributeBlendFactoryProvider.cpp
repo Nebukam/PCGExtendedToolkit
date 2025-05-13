@@ -330,5 +330,67 @@ bool PCGExDataBlending::PrepareBlendOps(
 	return true;
 }
 
+namespace PCGExDataBlending
+{
+	FBlendOpsManager::FBlendOpsManager(const TSharedPtr<PCGExData::FFacade>& InDataFacade)
+		:DataFacade(InDataFacade)
+	{
+		Operations = MakeShared<TArray<TSharedPtr<FPCGExAttributeBlendOperation>>>();
+	}
+
+	bool FBlendOpsManager::Init(FPCGExContext* InContext, const TArray<TObjectPtr<const UPCGExAttributeBlendFactory>>& InFactories)
+	{
+		check(DataFacade)
+
+		const TSharedRef<PCGExData::FFacade> InDataFacade = DataFacade.ToSharedRef();
+		
+		Operations->Reserve(InFactories.Num());
+		
+		for (const TObjectPtr<const UPCGExAttributeBlendFactory>& Factory : InFactories)
+		{
+			TSharedPtr<FPCGExAttributeBlendOperation> Op = Factory->CreateOperation(InContext);
+			if (!Op)
+			{
+				PCGE_LOG_C(Error, GraphAndLog, InContext, FTEXT("An operation could not be created."));
+				return false; // FAIL
+			}
+
+			Op->OpIdx = Operations->Add(Op);
+			Op->SiblingOperations = Operations;
+
+			if (!Op->PrepareForData(InContext, InDataFacade))
+			{
+				return false; // FAIL
+			}
+		}
+
+		return true;
+	}
+
+	void FBlendOpsManager::Cleanup(FPCGExContext* InContext)
+	{
+		TSet<TSharedPtr<PCGExData::FBufferBase>> DisabledBuffers;
+		for (int i = 0; i < Operations->Num(); i++) { (*(Operations->GetData() + i))->CompleteWork(DisabledBuffers); }
+
+		for (const TSharedPtr<PCGExData::FBufferBase>& Buffer : DisabledBuffers)
+		{
+			// If disabled buffer does not exist on input, delete it entierely
+			if (!Buffer->OutAttribute) { continue; }
+			if (!DataFacade->GetIn()->Metadata->HasAttribute(Buffer->OutAttribute->Name))
+			{
+				DataFacade->GetOut()->Metadata->DeleteAttribute(Buffer->OutAttribute->Name);
+				// TODO : Check types and make sure we're not deleting something
+			}
+
+			if (Buffer->InAttribute)
+			{
+				// Log a warning that can be silenced that we may have removed a valid attribute
+			}
+		}
+
+		Operations->Empty();
+		Operations.Reset();
+	}
+}
 #undef LOCTEXT_NAMESPACE
 #undef PCGEX_NAMESPACE

@@ -321,7 +321,7 @@ namespace PCGExClusterDiffusion
 		TArray<int32> Indices;
 
 		// Diffuse & blend
-		Diffusion->Diffuse(VtxDataFacade, *Operations.Get(), Indices);
+		Diffusion->Diffuse(VtxDataFacade, BlendOpsManager, Indices);
 		FPlatformAtomics::InterlockedAdd(&ExpectedPathCount, Diffusion->Endpoints.Num());
 		FPlatformAtomics::InterlockedAdd(&Context->ExpectedPathCount, ExpectedPathCount);
 
@@ -414,8 +414,7 @@ namespace PCGExClusterDiffusion
 		OngoingDiffusions.Reset();
 		Diffusions.Reset();
 		FillControlsHandler.Reset();
-
-		Operations->Empty();
+		BlendOpsManager.Reset();
 	}
 
 
@@ -455,11 +454,8 @@ namespace PCGExClusterDiffusion
 	{
 		PCGEX_TYPED_CONTEXT_AND_SETTINGS(ClusterDiffusion)
 
-		BlendOps = MakeShared<TArray<TSharedPtr<FPCGExAttributeBlendOperation>>>();
-		BlendOps->Reserve(Context->BlendingFactories.Num());
-
-		if (!PCGExDataBlending::PrepareBlendOps(Context, VtxDataFacade, Context->BlendingFactories, BlendOps))
-		{
+		BlendOpsManager = MakeShared<PCGExDataBlending::FBlendOpsManager>(VtxDataFacade);
+		if(!BlendOpsManager->Init(Context, Context->BlendingFactories)){
 			bIsBatchValid = false;
 			return;
 		}
@@ -481,7 +477,7 @@ namespace PCGExClusterDiffusion
 	{
 		if (!TBatch<FProcessor>::PrepareSingle(ClusterProcessor)) { return false; }
 
-		ClusterProcessor->Operations = BlendOps;
+		ClusterProcessor->BlendOpsManager = BlendOpsManager;
 		ClusterProcessor->InfluencesCount = InfluencesCount;
 
 		ClusterProcessor->FillRate = FillRate;
@@ -495,7 +491,10 @@ namespace PCGExClusterDiffusion
 
 	void FBatch::Write()
 	{
+		PCGEX_TYPED_CONTEXT_AND_SETTINGS(ClusterDiffusion)
+		
 		TBatch<FProcessor>::Write();
+		BlendOpsManager->Cleanup(Context);
 		VtxDataFacade->Write(AsyncManager);
 	}
 }

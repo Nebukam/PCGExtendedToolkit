@@ -4,6 +4,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "Data/Blending/PCGExAttributeBlendFactoryProvider.h"
 
 
 #include "Graph/PCGExEdgesProcessor.h"
@@ -139,7 +140,10 @@ namespace PCGExFloodFill
 		void Grow();
 		void PostGrow();
 
-		void Diffuse(const TSharedPtr<PCGExData::FFacade>& InVtxFacade, const TArray<TSharedPtr<FPCGExAttributeBlendOperation>>& Operations, TArray<int32>& OutIndices);
+		void Diffuse(
+			const TSharedPtr<PCGExData::FFacade>& InVtxFacade,
+			const TSharedPtr<PCGExDataBlending::FBlendOpsManager>& InBlendOps,
+			TArray<int32>& OutIndices);
 	};
 
 	class PCGEXTENDEDTOOLKIT_API FFillControlsHandler : public TSharedFromThis<FFillControlsHandler>
