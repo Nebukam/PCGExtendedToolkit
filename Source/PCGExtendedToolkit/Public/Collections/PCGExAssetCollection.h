@@ -132,6 +132,26 @@ enum class EPCGExAssetTagInheritance : uint8
 	RootAsset      = 1 << 5 UMETA(DisplayName = "Root Asset"),
 };
 
+UENUM()
+enum class EPCGExEntryVariationMode : uint8
+{
+	Local                = 0 UMETA(DisplayName = "Local", ToolTip="This entry defines its own variation settings. This can be overruled at the collection level."),
+	Global               = 1 UMETA(DisplayName = "Global", ToolTip="Uses global variation settings"),
+	//LocalGlobalFactor    = 2 UMETA(DisplayName = "Local x Global", ToolTip="Uses local variation settings multiplied by global random values (within global min/max range)"),
+	//LocalGlobalFactorMin = 3 UMETA(DisplayName = "Local x Global (Min)", ToolTip="Uses local variation settings multiplied by global min values"),
+	//LocalGlobalFactorMax = 4 UMETA(DisplayName = "Local x Global (Max)", ToolTip="Uses local variation settings multiplied by global max values"),
+};
+
+UENUM()
+enum class EPCGExGlobalVariationRule : uint8
+{
+	PerEntry = 0 UMETA(DisplayName = "Per Entry", ToolTip="Let the entry choose whether it's using global variations or its own settings"),
+	Overrule = 1 UMETA(DisplayName = "Overrule", ToolTip="Disregard of the entry settings and enforce global settings"),
+	//OverruleFactor = 2 UMETA(DisplayName = "Overrule - Multiply Entry", ToolTip="Multiply the entry setting by global random values (within min/max range)"),
+	//OverruleFactorMin = 3 UMETA(DisplayName = "Overrule - Multiply Entry (Min)", ToolTip="Disregard of the entry settings and enforce global settings"),
+	//OverruleFactorMax = 4 UMETA(DisplayName = "Overrule - Multiply Entry (Max)", ToolTip="Disregard of the entry settings and enforce global settings"),
+};
+
 ENUM_CLASS_FLAGS(EPCGExAssetTagInheritance)
 using EPCGExAssetTagInheritanceBitmask = TEnumAsByte<EPCGExAssetTagInheritance>;
 
@@ -317,26 +337,26 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExAssetCollectionEntry
 
 	FPCGExAssetCollectionEntry() = default;
 
-	UPROPERTY(EditAnywhere, Category = Settings)
-	bool bIsSubCollection = false;
-
 	UPROPERTY(EditAnywhere, Category = Settings, meta=(ClampMin=0, UIMin=0))
 	int32 Weight = 1;
 
+	UPROPERTY(EditAnywhere, Category = Settings, meta=(DisplayPriority=-1))
+	bool bIsSubCollection = false;
+	
 	UPROPERTY(EditAnywhere, Category = Settings)
 	FName Category = NAME_None;
 
 	UPROPERTY(EditAnywhere, Category = Settings)
 	TSet<FName> Tags;
+	
+	UPROPERTY(EditAnywhere, Category = Settings, meta=(EditCondition="!bIsSubCollection"))
+	EPCGExEntryVariationMode VariationMode = EPCGExEntryVariationMode::Local;
 
 	UPROPERTY(EditAnywhere, Category = Settings, meta=(EditCondition="!bIsSubCollection"))
 	FPCGExFittingVariations Variations;
 
 	UPROPERTY(EditAnywhere, Category = Settings, meta=(EditCondition="!bIsSubCollection"))
 	FPCGExAssetStagingData Staging;
-
-	//UPROPERTY(EditAnywhere, Category = Settings, meta=(EditCondition="bSubCollection", EditConditionHides))
-	//TSoftObjectPtr<UPCGExDataCollection> SubCollection;
 
 	UPROPERTY()
 	TObjectPtr<UPCGExAssetCollection> InternalSubCollection;
@@ -616,6 +636,14 @@ public:
 	UPROPERTY(EditAnywhere, Category = Settings, AdvancedDisplay)
 	bool bAutoRebuildStaging = true;
 #endif
+
+	/** Global variations rule. */
+	UPROPERTY(EditAnywhere, Category = Settings)
+	EPCGExGlobalVariationRule GlobalVariationMode = EPCGExGlobalVariationRule::PerEntry;
+
+	/** Global variation settings. */
+	UPROPERTY(EditAnywhere, Category = Settings)
+	FPCGExFittingVariations GlobalVariations;
 
 	/** If enabled, empty mesh will still be weighted and picked as valid entries, instead of being ignored. */
 	UPROPERTY(EditAnywhere, Category = Settings)
