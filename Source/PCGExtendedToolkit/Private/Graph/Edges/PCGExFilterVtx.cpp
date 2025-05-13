@@ -328,7 +328,7 @@ namespace PCGExFilterVtx
 		// Distribute points to partitions
 
 		const TSharedPtr<PCGExData::FPointIO> Inside = Context->Inside->Emplace_GetRef(VtxDataFacade->Source, PCGExData::EIOInit::New);
-		const TSharedPtr<PCGExData::FPointIO> Outside = Context->Inside->Emplace_GetRef(VtxDataFacade->Source, PCGExData::EIOInit::New);
+		const TSharedPtr<PCGExData::FPointIO> Outside = Context->Outside->Emplace_GetRef(VtxDataFacade->Source, PCGExData::EIOInit::New);
 
 		if (!Inside || !Outside) { return; }
 
