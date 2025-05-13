@@ -87,11 +87,11 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExAttributeBlendConfig
 	~FPCGExAttributeBlendConfig() = default;
 
 	UPROPERTY(meta=(PCG_NotOverridable, HideInDetailPanel))
-	bool bRequiresWeight = true;
+	bool bRequiresWeight = false;
 
 	/** Blendmode */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable))
-	EPCGExABBlendingType BlendMode = EPCGExABBlendingType::Lerp;
+	EPCGExABBlendingType BlendMode = EPCGExABBlendingType::CopySource;
 
 	/** Operand A. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
@@ -123,6 +123,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExAttributeBlendConfig
 
 	void Init();
 };
+
 
 /**
  * 
@@ -251,4 +252,32 @@ namespace PCGExDataBlending
 		const TSharedRef<PCGExData::FFacade>& InDataFacade,
 		const TArray<TObjectPtr<const UPCGExAttributeBlendFactory>>& InFactories,
 		const TSharedPtr<TArray<TSharedPtr<FPCGExAttributeBlendOperation>>>& OutOperations);
+
+	class FBlendOpsManager : public TSharedFromThis<FBlendOpsManager>
+	{
+	protected:
+		TSharedPtr<PCGExData::FFacade> DataFacade;
+		TSharedPtr<TArray<TSharedPtr<FPCGExAttributeBlendOperation>>> Operations;
+
+	public:
+		explicit FBlendOpsManager(const TSharedPtr<PCGExData::FFacade>& InDataFacade);
+		bool Init(FPCGExContext* InContext, const TArray<TObjectPtr<const UPCGExAttributeBlendFactory>>& InFactories);
+
+		FORCEINLINE void Blend(const int32 Index, FPCGPoint& Point) const
+		{
+			for (int i = 0; i < Operations->Num(); i++) { (*(Operations->GetData() + i))->Blend(Index, Point); }
+		}
+
+		FORCEINLINE void Blend(const int32 SourceIndex, const FPCGPoint& SourcePoint, const int32 TargetIndex, FPCGPoint& TargetPoint) const
+		{
+			for (int i = 0; i < Operations->Num(); i++) { (*(Operations->GetData() + i))->Blend(SourceIndex, SourcePoint, TargetIndex, TargetPoint); }
+		}
+
+		FORCEINLINE void Blend(const int32 SourceIndex, const FPCGPoint& SourcePoint, const int32 TargetIndex, FPCGPoint& TargetPoint, const double InWeight) const
+		{
+			for (int i = 0; i < Operations->Num(); i++) { (*(Operations->GetData() + i))->Blend(SourceIndex, SourcePoint, TargetIndex, TargetPoint, InWeight); }
+		}
+
+		void Cleanup(FPCGExContext* InContext);
+	};
 }

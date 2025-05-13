@@ -49,11 +49,11 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExFloodFillSeedPickingDetails
 	FPCGExNodeSelectionDetails SeedPicking = FPCGExNodeSelectionDetails(200);
 
 	/** Defines the sorting used for the vtx */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_NotOverridable, EditCondition="Source==EPCGExFloodFillSource::Filters", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_NotOverridable))
 	EPCGExFloodFillOrder Ordering = EPCGExFloodFillOrder::Index;
 
 	/** Sort direction */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_NotOverridable, EditCondition="Source==EPCGExFloodFillSource::Filters", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_NotOverridable))
 	EPCGExSortDirection SortDirection = EPCGExSortDirection::Ascending;
 };
 
@@ -197,7 +197,7 @@ namespace PCGExClusterDiffusion
 
 		TSharedPtr<TArray<int8>> InfluencesCount;
 		TArray<int8> Seeded;
-		TSharedPtr<TArray<TSharedPtr<FPCGExAttributeBlendOperation>>> Operations;
+		TSharedPtr<PCGExDataBlending::FBlendOpsManager> BlendOpsManager;
 
 		TSharedPtr<PCGExMT::TScopedArray<TSharedPtr<PCGExFloodFill::FDiffusion>>> InitialDiffusions;
 		TArray<TSharedPtr<PCGExFloodFill::FDiffusion>> OngoingDiffusions; // Ongoing diffusions
@@ -244,7 +244,7 @@ namespace PCGExClusterDiffusion
 
 	protected:
 		TSharedPtr<TArray<int8>> InfluencesCount;
-		TSharedPtr<TArray<TSharedPtr<FPCGExAttributeBlendOperation>>> BlendOps;
+		TSharedPtr<PCGExDataBlending::FBlendOpsManager> BlendOpsManager;
 		TSharedPtr<PCGExDetails::TSettingValue<int32>> FillRate;
 
 	public:

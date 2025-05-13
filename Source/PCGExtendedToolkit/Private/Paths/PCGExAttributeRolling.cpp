@@ -184,16 +184,13 @@ namespace PCGExAttributeRolling
 			if (!StopFilterManager->Init(Context, Context->StopFilterFactories)) { return false; }
 		}
 
-		BlendOps = MakeShared<TArray<TSharedPtr<FPCGExAttributeBlendOperation>>>();
-		BlendOps->Reserve(Context->BlendingFactories.Num());
-
-		if (!PCGExDataBlending::PrepareBlendOps(Context, PointDataFacade, Context->BlendingFactories, BlendOps))
+		if (!Context->BlendingFactories.IsEmpty())
 		{
-			return false;
+			BlendOpsManager = MakeShared<PCGExDataBlending::FBlendOpsManager>(PointDataFacade);
+			if (!BlendOpsManager->Init(Context, Context->BlendingFactories)) { return false; }
 		}
 
 		MaxIndex = PointDataFacade->GetNum(PCGExData::ESource::In) - 1;
-		OutPoints = &PointDataFacade->GetOut()->GetMutablePoints();
 
 		FirstIndex = Settings->bReverseRolling ? MaxIndex : 0;
 		RangeIndex += Settings->RangeIndexOffset;
@@ -298,20 +295,16 @@ namespace PCGExAttributeRolling
 			else { return; }
 		}
 
-		if (SourceIndex != -1)
+		if (SourceIndex != -1 && BlendOpsManager)
 		{
 			TArray<FPCGPoint>& PathPoints = PointDataFacade->GetMutablePoints();
-			const TArray<TSharedPtr<FPCGExAttributeBlendOperation>>& BlendOpsRef = *BlendOps.Get();
-			for (const TSharedPtr<FPCGExAttributeBlendOperation>& Op : BlendOpsRef)
-			{
-				// TODO : Compute alpha based on distance
-				Op->Blend(SourceIndex, PathPoints[SourceIndex], TargetIndex, PathPoints[TargetIndex]);
-			}
+			BlendOpsManager->Blend(SourceIndex, PathPoints[SourceIndex], TargetIndex, PathPoints[TargetIndex]);
 		}
 	}
 
 	void FProcessor::CompleteWork()
 	{
+		if(BlendOpsManager){ BlendOpsManager->Cleanup(Context); }
 		PointDataFacade->Write(AsyncManager);
 	}
 }
