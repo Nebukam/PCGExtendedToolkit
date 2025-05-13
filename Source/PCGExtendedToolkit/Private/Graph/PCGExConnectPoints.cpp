@@ -134,8 +134,8 @@ namespace PCGExConnectPoints
 				continue;
 			}
 
-			if (NewOperation->SearchRadius == -1) { bUseVariableRadius = true; }
-			SharedSearchRadius = FMath::Max(SharedSearchRadius, NewOperation->SearchRadius);
+			if (!NewOperation->SearchRadius->IsConstant()) { bUseVariableRadius = true; }
+			SharedSearchRadius = FMath::Max(SharedSearchRadius, NewOperation->BaseConfig->SearchRadiusConstant);
 
 			if (NewOperation->RequiresChainProcessing()) { ChainProbeOperations.Add(NewOperation); }
 			else { SharedProbeOperations.Add(NewOperation); }
@@ -284,7 +284,7 @@ namespace PCGExConnectPoints
 			if (!bUseVariableRadius) { MaxRadius = SharedSearchRadius; }
 			else
 			{
-				for (const TSharedPtr<FPCGExProbeOperation>& Op : SearchProbes) { MaxRadius = FMath::Max(MaxRadius, Op->SearchRadiusCache ? Op->SearchRadiusCache->Read(Index) : Op->SearchRadius); }
+				for (const TSharedPtr<FPCGExProbeOperation>& Op : SearchProbes) { MaxRadius = FMath::Max(MaxRadius, Op->GetSearchRadius(Index)); }
 			}
 
 			const FVector Origin = CachedTransforms[Index].GetLocation();

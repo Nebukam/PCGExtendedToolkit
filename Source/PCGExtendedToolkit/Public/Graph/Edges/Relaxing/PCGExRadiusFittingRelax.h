@@ -23,6 +23,8 @@ public:
 		RadiusAttribute.Update(TEXT("$Extents.Length"));
 	}
 
+	
+	
 	/** Vtx radii */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName="Radius"))
 	FPCGAttributePropertyInputSelector RadiusAttribute;

@@ -218,6 +218,8 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExAssetDistributionIndexDetails
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	FPCGAttributePropertyInputSelector IndexSource;
 
+	PCGEX_SETTING_VALUE_GET(Index, int32, EPCGExInputValueType::Attribute, IndexSource, -1)
+
 	/** Whether to remap index input value to collection size */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	bool bRemapIndexToCollectionSize = false;
@@ -695,7 +697,7 @@ protected:
 	{
 		const int32 PickedIndex = LoadCache()->Main->GetPick(Index, PickMode);
 		if (!InEntries.IsValidIndex(PickedIndex)) { return false; }
-		
+
 		if (const T& Entry = InEntries[PickedIndex]; Entry.bIsSubCollection && Entry.SubCollection)
 		{
 			return Entry.SubCollection->GetEntryWeightedRandom(OutEntry, Seed, OutHost);
@@ -717,7 +719,7 @@ protected:
 	{
 		const int32 PickedIndex = LoadCache()->Main->GetPickRandom(Seed);
 		if (!InEntries.IsValidIndex(PickedIndex)) { return false; }
-		
+
 		const T& Entry = InEntries[PickedIndex];
 		if (Entry.bIsSubCollection && Entry.SubCollection)
 		{
@@ -763,7 +765,7 @@ protected:
 	{
 		const int32 PickedIndex = LoadCache()->Main->GetPick(Index, EPCGExIndexPickMode::Ascending);
 		if (!InEntries.IsValidIndex(PickedIndex)) { return false; }
-		
+
 		const T& Entry = InEntries[PickedIndex];
 
 		if (Entry.bIsSubCollection && Entry.SubCollection && (TagInheritance & static_cast<uint8>(EPCGExAssetTagInheritance::Collection))) { OutTags.Append(Entry.SubCollection->CollectionTags); }
@@ -787,7 +789,7 @@ protected:
 	{
 		const int32 PickedIndex = LoadCache()->Main->GetPick(Index, PickMode);
 		if (!InEntries.IsValidIndex(PickedIndex)) { return false; }
-		
+
 		const T& Entry = InEntries[PickedIndex];
 		if (Entry.bIsSubCollection && Entry.SubCollection)
 		{
@@ -812,7 +814,7 @@ protected:
 	{
 		const int32 PickedIndex = LoadCache()->Main->GetPickRandom(Seed);
 		if (!InEntries.IsValidIndex(PickedIndex)) { return false; }
-		
+
 		const T& Entry = InEntries[PickedIndex];
 		if (Entry.bIsSubCollection && Entry.SubCollection)
 		{
@@ -837,7 +839,7 @@ protected:
 	{
 		const int32 PickedIndex = LoadCache()->Main->GetPickRandomWeighted(Seed);
 		if (!InEntries.IsValidIndex(PickedIndex)) { return false; }
-		
+
 		const T& Entry = InEntries[PickedIndex];
 		if (Entry.bIsSubCollection && Entry.SubCollection)
 		{
@@ -1073,7 +1075,7 @@ namespace PCGExAssetCollection
 		C* Collection = nullptr;
 		FPCGExAssetDistributionDetails Details;
 
-		TSharedPtr<PCGExData::TBuffer<int32>> IndexGetter;
+		TSharedPtr<PCGExDetails::TSettingValue<int32>> IndexGetter;
 
 		int32 MaxIndex = 0;
 		double MaxInputIndex = 0;
@@ -1089,28 +1091,24 @@ namespace PCGExAssetCollection
 		{
 		}
 
-		bool Init(const FPCGContext* InContext, const TSharedRef<PCGExData::FFacade>& InDataFacade)
+		bool Init(const FPCGExContext* InContext, const TSharedRef<PCGExData::FFacade>& InDataFacade)
 		{
+			if (Collection->LoadCache()->IsEmpty())
+			{
+				PCGE_LOG_C(Error, GraphAndLog, InContext, FTEXT("TDistributionHelper got an empty Collection."));
+				return false;
+			}
+
 			MaxIndex = Collection->LoadCache()->Main->Order.Num() - 1;
 
 			if (Details.Distribution == EPCGExDistribution::Index)
 			{
-				if (Details.IndexSettings.bRemapIndexToCollectionSize)
-				{
-					// Non-dynamic since we want min-max to start with :(
-					IndexGetter = InDataFacade->GetBroadcaster<int32>(Details.IndexSettings.IndexSource, true);
-					MaxInputIndex = IndexGetter ? static_cast<double>(IndexGetter->Max) : 0;
-				}
-				else
-				{
-					IndexGetter = InDataFacade->GetScopedBroadcaster<int32>(Details.IndexSettings.IndexSource);
-				}
+				const bool bWantsMinMax = Details.IndexSettings.bRemapIndexToCollectionSize;
 
-				if (!IndexGetter)
-				{
-					PCGE_LOG_C(Warning, GraphAndLog, InContext, FTEXT("Invalid Index attribute used"));
-					return false;
-				}
+				IndexGetter = Details.IndexSettings.GetValueSettingIndex();
+				if (!IndexGetter->Init(InContext, InDataFacade, !bWantsMinMax, bWantsMinMax)) { return false; }
+
+				MaxInputIndex = IndexGetter->Max();
 			}
 
 			return true;

@@ -176,27 +176,25 @@ namespace PCGExWriteEdgeProperties
 			FVector TargetBoundsMin = MutableTarget.BoundsMin;
 			FVector TargetBoundsMax = MutableTarget.BoundsMax;
 
-			const FVector PtScale = MutableTarget.Transform.GetScale3D();
-			const FVector InvScale = FVector::One() / PtScale;
+			FVector TargetScale = MutableTarget.Transform.GetScale3D();
+			
+			const FVector InvScale = FVector::One() / TargetScale;
 
-			const double EdgeLerp = FMath::Clamp(SolidificationLerp->Read(Edge.PointIndex), 0, 1);
-			const double EdgeLerpInv = 1 - EdgeLerp;
-			bool bProcessAxis;
-
+			BlendWeightStart = FMath::Clamp(SolidificationLerp->Read(Edge.PointIndex), 0, 1);
+			BlendWeightEnd = 1 - BlendWeightStart;
+			
 #define PCGEX_SOLIDIFY_DIMENSION(_AXIS)\
-				bProcessAxis = SolidificationRad##_AXIS || Settings->SolidificationAxis == EPCGExMinimalAxis::_AXIS;\
-				if (bProcessAxis){\
-					if (Settings->SolidificationAxis == EPCGExMinimalAxis::_AXIS){\
-						TargetBoundsMin._AXIS = (-EdgeLength * EdgeLerpInv) * InvScale._AXIS;\
-						TargetBoundsMax._AXIS = (EdgeLength * EdgeLerp) * InvScale._AXIS;\
-					}else{\
-						double Rad = 0;\
-						if (Settings->Radius##_AXIS##Source == EPCGExClusterComponentSource::Vtx) { Rad = FMath::Lerp(SolidificationRad##_AXIS->Read(Edge.Start), SolidificationRad##_AXIS->Read(Edge.End), EdgeLerp); }\
-						else { Rad = SolidificationRad##_AXIS->Read(Edge.PointIndex); }\
-						TargetBoundsMin._AXIS = (-Rad) * InvScale._AXIS;\
-						TargetBoundsMax._AXIS = (Rad) * InvScale._AXIS;\
-					}}
-
+			if (Settings->SolidificationAxis == EPCGExMinimalAxis::_AXIS){\
+				TargetBoundsMin._AXIS = (-EdgeLength * BlendWeightEnd) * InvScale._AXIS;\
+				TargetBoundsMax._AXIS = (EdgeLength * BlendWeightStart) * InvScale._AXIS;\
+			}else if(SolidificationRad##_AXIS){\
+				double Rad = 0;\
+				if (Settings->Radius##_AXIS##Source == EPCGExClusterComponentSource::Vtx) { Rad = FMath::Lerp(SolidificationRad##_AXIS->Read(Edge.Start), SolidificationRad##_AXIS->Read(Edge.End), BlendWeightStart); }\
+				else { Rad = SolidificationRad##_AXIS->Read(Edge.PointIndex); }\
+				TargetBoundsMin._AXIS = -Rad * InvScale._AXIS;\
+				TargetBoundsMax._AXIS = Rad * InvScale._AXIS;\
+			}
+			
 			PCGEX_FOREACH_XYZ(PCGEX_SOLIDIFY_DIMENSION)
 #undef PCGEX_SOLIDIFY_DIMENSION
 
@@ -214,12 +212,9 @@ namespace PCGExWriteEdgeProperties
 				break;
 			}
 
-			BlendWeightStart = EdgeLerp;
-			BlendWeightEnd = EdgeLerpInv;
-
 			if (MetadataBlender) { MetadataBlend(); } // Blend first THEN apply bounds otherwise it gets overwritten
 
-			MutableTarget.Transform = FTransform(EdgeRot, FMath::Lerp(B, A, EdgeLerpInv), MutableTarget.Transform.GetScale3D());
+			MutableTarget.Transform = FTransform(EdgeRot, FMath::Lerp(B, A, BlendWeightEnd), TargetScale);
 
 			MutableTarget.BoundsMin = TargetBoundsMin;
 			MutableTarget.BoundsMax = TargetBoundsMax;
