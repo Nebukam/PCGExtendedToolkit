@@ -17,6 +17,11 @@ TArray<FPCGPinProperties> UPCGExFilterVtxSettings::InputPinProperties() const
 
 	PCGEX_PIN_FACTORIES(PCGExGraph::SourceVtxFiltersLabel, "Vtx filters.", Required, {})
 
+	if (Mode == EPCGExVtxFilterOutput::Clusters)
+	{
+		PCGEX_PIN_FACTORIES(PCGExGraph::SourceEdgeFiltersLabel, "Optional Edge filters. Selected edges will be invalidated, possibly pruning more vtx along the way.", Normal, {})
+	}
+
 	return PinProperties;
 }
 
@@ -68,12 +73,17 @@ bool FPCGExFilterVtxElement::Boot(FPCGExContext* InContext) const
 	PCGEX_FWD(GraphBuilderDetails)
 
 	if (!GetInputFactories(
-		Context,
-		PCGExGraph::SourceVtxFiltersLabel,
-		Context->VtxFilterFactories,
-		PCGExFactories::ClusterNodeFilters, true))
+		Context, PCGExGraph::SourceVtxFiltersLabel,
+		Context->VtxFilterFactories, PCGExFactories::ClusterNodeFilters, true))
 	{
 		return false;
+	}
+
+	if (Settings->Mode == EPCGExVtxFilterOutput::Clusters)
+	{
+		GetInputFactories(
+			Context, PCGExGraph::SourceEdgeFiltersLabel,
+			Context->EdgeFilterFactories, PCGExFactories::ClusterEdgeFilters, false);
 	}
 
 	if (!Context->bWantsClusters)
@@ -127,9 +137,6 @@ bool FPCGExFilterVtxElement::ExecuteInternal(
 	}
 	else
 	{
-		Context->Inside->PruneNullEntries(true);
-		Context->Outside->PruneNullEntries(true);
-
 		Context->Inside->StageOutputs();
 		Context->Outside->StageOutputs();
 	}
@@ -155,8 +162,11 @@ namespace PCGExFilterVtx
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExFilterVtx::Process);
 
-		VtxFilterFactories = &Context->VtxFilterFactories; // So filters can be initialized
+		VtxFilterFactories = &Context->VtxFilterFactories;   // So filters can be initialized
+		EdgeFilterFactories = &Context->EdgeFilterFactories; // So filters can be initialized
 
+		bAllowEdgesDataFacadeScopedGet = Context->bScopedAttributeGet;
+		
 		if (!FClusterProcessor::Process(InAsyncManager)) { return false; }
 
 		if (!VtxFiltersManager)
@@ -169,13 +179,11 @@ namespace PCGExFilterVtx
 		if (Settings->Mode == EPCGExVtxFilterOutput::Attribute)
 		{
 			TestResults = VtxDataFacade->GetWritable<bool>(Settings->ResultAttributeName, !Settings->bInvert, true, PCGExData::EBufferInit::New);
-			if (!TestResults)
-			{
-				return false;
-			}
+			if (!TestResults) { return false; }
 		}
 
 		StartParallelLoopForNodes();
+		if (!Context->EdgeFilterFactories.IsEmpty()) { StartParallelLoopForEdges(); }
 
 		return true;
 	}
@@ -189,19 +197,24 @@ namespace PCGExFilterVtx
 
 	void FProcessor::ProcessSingleNode(const int32 Index, PCGExCluster::FNode& Node, const PCGExMT::FScope& Scope)
 	{
-		const bool bTestResult = VtxFiltersManager->Test(Node);
+		const bool bTestResult = VtxFiltersManager->Test(Node) ? !Settings->bInvert : Settings->bInvert;
 
 		if (bTestResult) { ScopedPassNum->GetMutable(Scope)++; }
 		else { ScopedFailNum->GetMutable(Scope)++; }
 
-		if (TestResults)
-		{
-			TestResults->GetMutable(Node.PointIndex) = bTestResult ? !Settings->bInvert : Settings->bInvert;
-		}
-		else
-		{
-			Node.bValid = bTestResult ? !Settings->bInvert : Settings->bInvert;
-		}
+		if (TestResults) { TestResults->GetMutable(Node.PointIndex) = bTestResult; }
+		else { Node.bValid = bTestResult; }
+	}
+
+	void FProcessor::PrepareSingleLoopScopeForEdges(const PCGExMT::FScope& Scope)
+	{
+		EdgeDataFacade->Fetch(Scope);
+		FilterEdgeScope(Scope);
+	}
+
+	void FProcessor::ProcessSingleEdge(const int32 EdgeIndex, PCGExGraph::FEdge& Edge, const PCGExMT::FScope& Scope)
+	{
+		Edge.bValid = EdgeFilterCache[EdgeIndex] ? !Settings->bInvertEdgeFilters : Settings->bInvertEdgeFilters;
 	}
 
 	void FProcessor::CompleteWork()
@@ -248,7 +261,7 @@ namespace PCGExFilterVtx
 			}
 
 			const TSharedPtr<PCGExData::FPointIO> Inside = Context->Inside->Emplace_GetRef(VtxDataFacade->Source, PCGExData::EIOInit::New);
-			const TSharedPtr<PCGExData::FPointIO> Outside = Context->Inside->Emplace_GetRef(VtxDataFacade->Source, PCGExData::EIOInit::New);
+			const TSharedPtr<PCGExData::FPointIO> Outside = Context->Outside->Emplace_GetRef(VtxDataFacade->Source, PCGExData::EIOInit::New);
 
 			if (!Inside || !Outside) { return; }
 

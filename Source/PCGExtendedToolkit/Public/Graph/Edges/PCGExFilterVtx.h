@@ -10,7 +10,6 @@
 #include "Graph/PCGExClusterMT.h"
 #include "Graph/PCGExEdgesProcessor.h"
 #include "Graph/Filters/PCGExClusterFilter.h"
-#include "Refining/PCGExEdgeRefineOperation.h"
 
 #include "PCGExFilterVtx.generated.h"
 
@@ -53,14 +52,18 @@ public:
 	virtual PCGExData::EIOInit GetEdgeOutputInitMode() const override;
 	//~End UPCGExPointsProcessorSettings
 
-	/** Invert the filter result */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
-	bool bInvert = false;
-
 	/** Type of output */
 	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = Settings, meta = (PCG_NotOverridable))
 	EPCGExVtxFilterOutput Mode = EPCGExVtxFilterOutput::Clusters;
 
+	/** Invert the filter result */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	bool bInvert = false;
+	
+	/** Invert the edge filters result */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="Mode==EPCGExVtxFilterOutput::Clusters", EditConditionHides))
+	bool bInvertEdgeFilters = false;
+	
 	/** Name of the attribute to write the filter result to. */
 	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = Settings, meta = (PCG_NotOverridable, EditCondition="Mode==EPCGExVtxFilterOutput::Attribute", EditConditionHides))
 	FName ResultAttributeName = FName("PassFilters");
@@ -113,6 +116,7 @@ struct FPCGExFilterVtxContext final : FPCGExEdgesProcessorContext
 	bool bWantsClusters = true;
 
 	TArray<TObjectPtr<const UPCGExFilterFactoryData>> VtxFilterFactories;
+	TArray<TObjectPtr<const UPCGExFilterFactoryData>> EdgeFilterFactories;
 
 	TSharedPtr<PCGExData::FPointIOCollection> Inside;
 	TSharedPtr<PCGExData::FPointIOCollection> Outside;
@@ -153,15 +157,19 @@ namespace PCGExFilterVtx
 		FProcessor(const TSharedRef<PCGExData::FFacade>& InVtxDataFacade, const TSharedRef<PCGExData::FFacade>& InEdgeDataFacade)
 			: TProcessor(InVtxDataFacade, InEdgeDataFacade)
 		{
+			
 		}
 
 		virtual ~FProcessor() override;
 
 		virtual bool Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager) override;
-
+		
 		virtual void PrepareLoopScopesForNodes(const TArray<PCGExMT::FScope>& Loops) override;
 		virtual void ProcessSingleNode(const int32 Index, PCGExCluster::FNode& Node, const PCGExMT::FScope& Scope) override;
 
+		virtual void PrepareSingleLoopScopeForEdges(const PCGExMT::FScope& Scope) override;
+		virtual void ProcessSingleEdge(const int32 EdgeIndex, PCGExGraph::FEdge& Edge, const PCGExMT::FScope& Scope) override;
+		
 		virtual void CompleteWork() override;
 	};
 
