@@ -156,7 +156,7 @@ namespace PCGExPathSplineMesh
 		PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::Duplicate)
 
 #if PCGEX_ENGINE_VERSION > 503
-		bIsPreviewMode = ExecutionContext->SourceComponent.Get()->IsInPreviewMode();
+		bIsPreviewMode = ExecutionContext->GetComponent()->IsInPreviewMode();
 #endif
 
 		Justification = Settings->Justification;
@@ -296,7 +296,7 @@ namespace PCGExPathSplineMesh
 
 		const int32 Seed = PCGExRandom::GetSeedFromPoint(
 			Helper->Details.SeedComponents, Point,
-			Helper->Details.LocalSeed, Settings, Context->SourceComponent.Get());
+			Helper->Details.LocalSeed, Settings, Context->GetComponent());
 
 
 		Segments[Index] = PCGExPaths::FSplineMeshSegment();

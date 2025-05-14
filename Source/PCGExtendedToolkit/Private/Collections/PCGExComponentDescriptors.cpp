@@ -15,162 +15,162 @@ FPCGExPrimitiveComponentDescriptor::FPCGExPrimitiveComponentDescriptor()
 
 void FPCGExPrimitiveComponentDescriptor::InitFrom(const UPrimitiveComponent* Component, bool bInitBodyInstance)
 {
-	const UPrimitiveComponent* SourceComponent = Component;
+	const UPrimitiveComponent* PrimitiveComponent = Component;
 
-	MinDrawDistance = SourceComponent->MinDrawDistance;
-	LDMaxDrawDistance = SourceComponent->LDMaxDrawDistance;
-	IndirectLightingCacheQuality = SourceComponent->IndirectLightingCacheQuality;
+	MinDrawDistance = PrimitiveComponent->MinDrawDistance;
+	LDMaxDrawDistance = PrimitiveComponent->LDMaxDrawDistance;
+	IndirectLightingCacheQuality = PrimitiveComponent->IndirectLightingCacheQuality;
 #if PCGEX_ENGINE_VERSION < 505
-	LightmapType = SourceComponent->LightmapType;
+	LightmapType = PrimitiveComponent->LightmapType;
 #else
-	LightmapType = SourceComponent->GetLightmapType();
+	LightmapType = PrimitiveComponent->GetLightmapType();
 #endif
-	HLODBatchingPolicy = SourceComponent->HLODBatchingPolicy;
-	bEnableAutoLODGeneration = SourceComponent->bEnableAutoLODGeneration;
-	bNeverDistanceCull = SourceComponent->bNeverDistanceCull;
+	HLODBatchingPolicy = PrimitiveComponent->HLODBatchingPolicy;
+	bEnableAutoLODGeneration = PrimitiveComponent->bEnableAutoLODGeneration;
+	bNeverDistanceCull = PrimitiveComponent->bNeverDistanceCull;
 
-	if (bInitBodyInstance) { BodyInstance.CopyBodyInstancePropertiesFrom(SourceComponent->GetBodyInstance()); }
+	if (bInitBodyInstance) { BodyInstance.CopyBodyInstancePropertiesFrom(PrimitiveComponent->GetBodyInstance()); }
 	else { BodyInstance.SetCollisionEnabled(ECollisionEnabled::Type::NoCollision); }
 
-	bAlwaysCreatePhysicsState = SourceComponent->bAlwaysCreatePhysicsState;
-	bMultiBodyOverlap = SourceComponent->bMultiBodyOverlap;
-	bTraceComplexOnMove = SourceComponent->bTraceComplexOnMove;
-	bReturnMaterialOnMove = SourceComponent->bReturnMaterialOnMove;
-	bAllowCullDistanceVolume = SourceComponent->bAllowCullDistanceVolume;
-	bVisibleInReflectionCaptures = SourceComponent->bVisibleInReflectionCaptures;
-	bVisibleInRealTimeSkyCaptures = SourceComponent->bVisibleInRealTimeSkyCaptures;
-	bVisibleInRayTracing = SourceComponent->bVisibleInRayTracing;
-	bRenderInMainPass = SourceComponent->bRenderInMainPass;
-	bRenderInDepthPass = SourceComponent->bRenderInDepthPass;
-	bReceivesDecals = SourceComponent->bReceivesDecals;
-	bHoldout = SourceComponent->bHoldout;
-	bOwnerNoSee = SourceComponent->bOwnerNoSee;
-	bOnlyOwnerSee = SourceComponent->bOnlyOwnerSee;
-	bTreatAsBackgroundForOcclusion = SourceComponent->bTreatAsBackgroundForOcclusion;
-	bUseAsOccluder = SourceComponent->bUseAsOccluder;
-	bForceMipStreaming = SourceComponent->bForceMipStreaming;
-	CastShadow = SourceComponent->CastShadow;
-	bEmissiveLightSource = SourceComponent->bEmissiveLightSource;
-	bAffectDynamicIndirectLighting = SourceComponent->bAffectDynamicIndirectLighting;
-	bAffectIndirectLightingWhileHidden = SourceComponent->bAffectIndirectLightingWhileHidden;
-	bAffectDistanceFieldLighting = SourceComponent->bAffectDistanceFieldLighting;
-	bCastDynamicShadow = SourceComponent->bCastDynamicShadow;
-	bCastStaticShadow = SourceComponent->bCastStaticShadow;
-	ShadowCacheInvalidationBehavior = SourceComponent->ShadowCacheInvalidationBehavior;
-	bCastVolumetricTranslucentShadow = SourceComponent->bCastVolumetricTranslucentShadow;
-	bCastContactShadow = SourceComponent->bCastContactShadow;
-	bSelfShadowOnly = SourceComponent->bSelfShadowOnly;
-	bCastFarShadow = SourceComponent->bCastFarShadow;
-	bCastInsetShadow = SourceComponent->bCastInsetShadow;
-	bCastCinematicShadow = SourceComponent->bCastCinematicShadow;
-	bCastHiddenShadow = SourceComponent->bCastHiddenShadow;
-	bCastShadowAsTwoSided = SourceComponent->bCastShadowAsTwoSided;
-	bLightAttachmentsAsGroup = SourceComponent->bLightAttachmentsAsGroup;
-	bExcludeFromLightAttachmentGroup = SourceComponent->bExcludeFromLightAttachmentGroup;
-	bReceiveMobileCSMShadows = SourceComponent->bReceiveMobileCSMShadows;
-	bSingleSampleShadowFromStationaryLights = SourceComponent->bSingleSampleShadowFromStationaryLights;
-	bIgnoreRadialImpulse = SourceComponent->bIgnoreRadialImpulse;
-	bIgnoreRadialForce = SourceComponent->bIgnoreRadialForce;
-	bApplyImpulseOnDamage = SourceComponent->bApplyImpulseOnDamage;
-	bReplicatePhysicsToAutonomousProxy = SourceComponent->bReplicatePhysicsToAutonomousProxy;
-	bFillCollisionUnderneathForNavmesh = SourceComponent->bFillCollisionUnderneathForNavmesh;
-	bRenderCustomDepth = SourceComponent->bRenderCustomDepth;
-	bVisibleInSceneCaptureOnly = SourceComponent->bVisibleInSceneCaptureOnly;
-	bHiddenInSceneCapture = SourceComponent->bHiddenInSceneCapture;
-	CanCharacterStepUpOn = SourceComponent->CanCharacterStepUpOn;
-	LightingChannels = SourceComponent->LightingChannels;
-	RayTracingGroupId = SourceComponent->RayTracingGroupId;
-	CustomDepthStencilValue = SourceComponent->CustomDepthStencilValue;
-	TranslucencySortPriority = SourceComponent->TranslucencySortPriority;
-	TranslucencySortDistanceOffset = SourceComponent->TranslucencySortDistanceOffset;
-	//RuntimeVirtualTextures = SourceComponent->RuntimeVirtualTextures; // TODO : Load and forward
-	VirtualTextureLodBias = SourceComponent->VirtualTextureLodBias;
-	VirtualTextureCullMips = SourceComponent->VirtualTextureCullMips;
-	VirtualTextureMinCoverage = SourceComponent->VirtualTextureMinCoverage;
-	VirtualTextureRenderPassType = SourceComponent->VirtualTextureRenderPassType;
-	BoundsScale = SourceComponent->BoundsScale;
-	RayTracingGroupCullingPriority = SourceComponent->RayTracingGroupCullingPriority;
-	CustomDepthStencilWriteMask = SourceComponent->CustomDepthStencilWriteMask;
+	bAlwaysCreatePhysicsState = PrimitiveComponent->bAlwaysCreatePhysicsState;
+	bMultiBodyOverlap = PrimitiveComponent->bMultiBodyOverlap;
+	bTraceComplexOnMove = PrimitiveComponent->bTraceComplexOnMove;
+	bReturnMaterialOnMove = PrimitiveComponent->bReturnMaterialOnMove;
+	bAllowCullDistanceVolume = PrimitiveComponent->bAllowCullDistanceVolume;
+	bVisibleInReflectionCaptures = PrimitiveComponent->bVisibleInReflectionCaptures;
+	bVisibleInRealTimeSkyCaptures = PrimitiveComponent->bVisibleInRealTimeSkyCaptures;
+	bVisibleInRayTracing = PrimitiveComponent->bVisibleInRayTracing;
+	bRenderInMainPass = PrimitiveComponent->bRenderInMainPass;
+	bRenderInDepthPass = PrimitiveComponent->bRenderInDepthPass;
+	bReceivesDecals = PrimitiveComponent->bReceivesDecals;
+	bHoldout = PrimitiveComponent->bHoldout;
+	bOwnerNoSee = PrimitiveComponent->bOwnerNoSee;
+	bOnlyOwnerSee = PrimitiveComponent->bOnlyOwnerSee;
+	bTreatAsBackgroundForOcclusion = PrimitiveComponent->bTreatAsBackgroundForOcclusion;
+	bUseAsOccluder = PrimitiveComponent->bUseAsOccluder;
+	bForceMipStreaming = PrimitiveComponent->bForceMipStreaming;
+	CastShadow = PrimitiveComponent->CastShadow;
+	bEmissiveLightSource = PrimitiveComponent->bEmissiveLightSource;
+	bAffectDynamicIndirectLighting = PrimitiveComponent->bAffectDynamicIndirectLighting;
+	bAffectIndirectLightingWhileHidden = PrimitiveComponent->bAffectIndirectLightingWhileHidden;
+	bAffectDistanceFieldLighting = PrimitiveComponent->bAffectDistanceFieldLighting;
+	bCastDynamicShadow = PrimitiveComponent->bCastDynamicShadow;
+	bCastStaticShadow = PrimitiveComponent->bCastStaticShadow;
+	ShadowCacheInvalidationBehavior = PrimitiveComponent->ShadowCacheInvalidationBehavior;
+	bCastVolumetricTranslucentShadow = PrimitiveComponent->bCastVolumetricTranslucentShadow;
+	bCastContactShadow = PrimitiveComponent->bCastContactShadow;
+	bSelfShadowOnly = PrimitiveComponent->bSelfShadowOnly;
+	bCastFarShadow = PrimitiveComponent->bCastFarShadow;
+	bCastInsetShadow = PrimitiveComponent->bCastInsetShadow;
+	bCastCinematicShadow = PrimitiveComponent->bCastCinematicShadow;
+	bCastHiddenShadow = PrimitiveComponent->bCastHiddenShadow;
+	bCastShadowAsTwoSided = PrimitiveComponent->bCastShadowAsTwoSided;
+	bLightAttachmentsAsGroup = PrimitiveComponent->bLightAttachmentsAsGroup;
+	bExcludeFromLightAttachmentGroup = PrimitiveComponent->bExcludeFromLightAttachmentGroup;
+	bReceiveMobileCSMShadows = PrimitiveComponent->bReceiveMobileCSMShadows;
+	bSingleSampleShadowFromStationaryLights = PrimitiveComponent->bSingleSampleShadowFromStationaryLights;
+	bIgnoreRadialImpulse = PrimitiveComponent->bIgnoreRadialImpulse;
+	bIgnoreRadialForce = PrimitiveComponent->bIgnoreRadialForce;
+	bApplyImpulseOnDamage = PrimitiveComponent->bApplyImpulseOnDamage;
+	bReplicatePhysicsToAutonomousProxy = PrimitiveComponent->bReplicatePhysicsToAutonomousProxy;
+	bFillCollisionUnderneathForNavmesh = PrimitiveComponent->bFillCollisionUnderneathForNavmesh;
+	bRenderCustomDepth = PrimitiveComponent->bRenderCustomDepth;
+	bVisibleInSceneCaptureOnly = PrimitiveComponent->bVisibleInSceneCaptureOnly;
+	bHiddenInSceneCapture = PrimitiveComponent->bHiddenInSceneCapture;
+	CanCharacterStepUpOn = PrimitiveComponent->CanCharacterStepUpOn;
+	LightingChannels = PrimitiveComponent->LightingChannels;
+	RayTracingGroupId = PrimitiveComponent->RayTracingGroupId;
+	CustomDepthStencilValue = PrimitiveComponent->CustomDepthStencilValue;
+	TranslucencySortPriority = PrimitiveComponent->TranslucencySortPriority;
+	TranslucencySortDistanceOffset = PrimitiveComponent->TranslucencySortDistanceOffset;
+	//RuntimeVirtualTextures = PrimitiveComponent->RuntimeVirtualTextures; // TODO : Load and forward
+	VirtualTextureLodBias = PrimitiveComponent->VirtualTextureLodBias;
+	VirtualTextureCullMips = PrimitiveComponent->VirtualTextureCullMips;
+	VirtualTextureMinCoverage = PrimitiveComponent->VirtualTextureMinCoverage;
+	VirtualTextureRenderPassType = PrimitiveComponent->VirtualTextureRenderPassType;
+	BoundsScale = PrimitiveComponent->BoundsScale;
+	RayTracingGroupCullingPriority = PrimitiveComponent->RayTracingGroupCullingPriority;
+	CustomDepthStencilWriteMask = PrimitiveComponent->CustomDepthStencilWriteMask;
 }
 
 void FPCGExPrimitiveComponentDescriptor::InitComponent(UPrimitiveComponent* InComponent) const
 {
-	UPrimitiveComponent* TargetComponent = InComponent;
+	UPrimitiveComponent* PrimitiveComponent = InComponent;
 
 	// Only update visibility if it's set to false to avoid massive overhead.
-	if (!bVisible) { TargetComponent->SetVisibility(false, false); }
+	if (!bVisible) { PrimitiveComponent->SetVisibility(false, false); }
 
-	TargetComponent->MinDrawDistance = MinDrawDistance;
-	TargetComponent->LDMaxDrawDistance = LDMaxDrawDistance;
-	TargetComponent->IndirectLightingCacheQuality = IndirectLightingCacheQuality;
+	PrimitiveComponent->MinDrawDistance = MinDrawDistance;
+	PrimitiveComponent->LDMaxDrawDistance = LDMaxDrawDistance;
+	PrimitiveComponent->IndirectLightingCacheQuality = IndirectLightingCacheQuality;
 #if PCGEX_ENGINE_VERSION < 505
 	TargetComponent->LightmapType = LightmapType;
 #else
-	TargetComponent->SetLightmapType(LightmapType);
+	PrimitiveComponent->SetLightmapType(LightmapType);
 #endif
-	TargetComponent->HLODBatchingPolicy = HLODBatchingPolicy;
-	TargetComponent->bEnableAutoLODGeneration = bEnableAutoLODGeneration;
-	TargetComponent->bNeverDistanceCull = bNeverDistanceCull;
-	TargetComponent->BodyInstance.CopyBodyInstancePropertiesFrom(&BodyInstance);
-	TargetComponent->bAlwaysCreatePhysicsState = bAlwaysCreatePhysicsState;
-	TargetComponent->bMultiBodyOverlap = bMultiBodyOverlap;
-	TargetComponent->bTraceComplexOnMove = bTraceComplexOnMove;
-	TargetComponent->bReturnMaterialOnMove = bReturnMaterialOnMove;
-	TargetComponent->bAllowCullDistanceVolume = bAllowCullDistanceVolume;
-	TargetComponent->bVisibleInReflectionCaptures = bVisibleInReflectionCaptures;
-	TargetComponent->bVisibleInRealTimeSkyCaptures = bVisibleInRealTimeSkyCaptures;
-	TargetComponent->bVisibleInRayTracing = bVisibleInRayTracing;
-	TargetComponent->bRenderInMainPass = bRenderInMainPass;
-	TargetComponent->bRenderInDepthPass = bRenderInDepthPass;
-	TargetComponent->bReceivesDecals = bReceivesDecals;
-	TargetComponent->bHoldout = bHoldout;
-	TargetComponent->bOwnerNoSee = bOwnerNoSee;
-	TargetComponent->bOnlyOwnerSee = bOnlyOwnerSee;
-	TargetComponent->bTreatAsBackgroundForOcclusion = bTreatAsBackgroundForOcclusion;
-	TargetComponent->bUseAsOccluder = bUseAsOccluder;
-	TargetComponent->bForceMipStreaming = bForceMipStreaming;
-	TargetComponent->CastShadow = CastShadow;
-	TargetComponent->bEmissiveLightSource = bEmissiveLightSource;
-	TargetComponent->bAffectDynamicIndirectLighting = bAffectDynamicIndirectLighting;
-	TargetComponent->bAffectIndirectLightingWhileHidden = bAffectIndirectLightingWhileHidden;
-	TargetComponent->bAffectDistanceFieldLighting = bAffectDistanceFieldLighting;
-	TargetComponent->bCastDynamicShadow = bCastDynamicShadow;
-	TargetComponent->bCastStaticShadow = bCastStaticShadow;
-	TargetComponent->ShadowCacheInvalidationBehavior = ShadowCacheInvalidationBehavior;
-	TargetComponent->bCastVolumetricTranslucentShadow = bCastVolumetricTranslucentShadow;
-	TargetComponent->bCastContactShadow = bCastContactShadow;
-	TargetComponent->bSelfShadowOnly = bSelfShadowOnly;
-	TargetComponent->bCastFarShadow = bCastFarShadow;
-	TargetComponent->bCastInsetShadow = bCastInsetShadow;
-	TargetComponent->bCastCinematicShadow = bCastCinematicShadow;
-	TargetComponent->bCastHiddenShadow = bCastHiddenShadow;
-	TargetComponent->bCastShadowAsTwoSided = bCastShadowAsTwoSided;
-	TargetComponent->bLightAttachmentsAsGroup = bLightAttachmentsAsGroup;
-	TargetComponent->bExcludeFromLightAttachmentGroup = bExcludeFromLightAttachmentGroup;
-	TargetComponent->bReceiveMobileCSMShadows = bReceiveMobileCSMShadows;
-	TargetComponent->bSingleSampleShadowFromStationaryLights = bSingleSampleShadowFromStationaryLights;
-	TargetComponent->bIgnoreRadialImpulse = bIgnoreRadialImpulse;
-	TargetComponent->bIgnoreRadialForce = bIgnoreRadialForce;
-	TargetComponent->bApplyImpulseOnDamage = bApplyImpulseOnDamage;
-	TargetComponent->bReplicatePhysicsToAutonomousProxy = bReplicatePhysicsToAutonomousProxy;
-	TargetComponent->bFillCollisionUnderneathForNavmesh = bFillCollisionUnderneathForNavmesh;
-	TargetComponent->bRenderCustomDepth = bRenderCustomDepth;
-	TargetComponent->bVisibleInSceneCaptureOnly = bVisibleInSceneCaptureOnly;
-	TargetComponent->bHiddenInSceneCapture = bHiddenInSceneCapture;
-	TargetComponent->CanCharacterStepUpOn = CanCharacterStepUpOn;
-	TargetComponent->LightingChannels = LightingChannels;
-	TargetComponent->RayTracingGroupId = RayTracingGroupId;
-	TargetComponent->CustomDepthStencilValue = CustomDepthStencilValue;
-	TargetComponent->TranslucencySortPriority = TranslucencySortPriority;
-	TargetComponent->TranslucencySortDistanceOffset = TranslucencySortDistanceOffset;
+	PrimitiveComponent->HLODBatchingPolicy = HLODBatchingPolicy;
+	PrimitiveComponent->bEnableAutoLODGeneration = bEnableAutoLODGeneration;
+	PrimitiveComponent->bNeverDistanceCull = bNeverDistanceCull;
+	PrimitiveComponent->BodyInstance.CopyBodyInstancePropertiesFrom(&BodyInstance);
+	PrimitiveComponent->bAlwaysCreatePhysicsState = bAlwaysCreatePhysicsState;
+	PrimitiveComponent->bMultiBodyOverlap = bMultiBodyOverlap;
+	PrimitiveComponent->bTraceComplexOnMove = bTraceComplexOnMove;
+	PrimitiveComponent->bReturnMaterialOnMove = bReturnMaterialOnMove;
+	PrimitiveComponent->bAllowCullDistanceVolume = bAllowCullDistanceVolume;
+	PrimitiveComponent->bVisibleInReflectionCaptures = bVisibleInReflectionCaptures;
+	PrimitiveComponent->bVisibleInRealTimeSkyCaptures = bVisibleInRealTimeSkyCaptures;
+	PrimitiveComponent->bVisibleInRayTracing = bVisibleInRayTracing;
+	PrimitiveComponent->bRenderInMainPass = bRenderInMainPass;
+	PrimitiveComponent->bRenderInDepthPass = bRenderInDepthPass;
+	PrimitiveComponent->bReceivesDecals = bReceivesDecals;
+	PrimitiveComponent->bHoldout = bHoldout;
+	PrimitiveComponent->bOwnerNoSee = bOwnerNoSee;
+	PrimitiveComponent->bOnlyOwnerSee = bOnlyOwnerSee;
+	PrimitiveComponent->bTreatAsBackgroundForOcclusion = bTreatAsBackgroundForOcclusion;
+	PrimitiveComponent->bUseAsOccluder = bUseAsOccluder;
+	PrimitiveComponent->bForceMipStreaming = bForceMipStreaming;
+	PrimitiveComponent->CastShadow = CastShadow;
+	PrimitiveComponent->bEmissiveLightSource = bEmissiveLightSource;
+	PrimitiveComponent->bAffectDynamicIndirectLighting = bAffectDynamicIndirectLighting;
+	PrimitiveComponent->bAffectIndirectLightingWhileHidden = bAffectIndirectLightingWhileHidden;
+	PrimitiveComponent->bAffectDistanceFieldLighting = bAffectDistanceFieldLighting;
+	PrimitiveComponent->bCastDynamicShadow = bCastDynamicShadow;
+	PrimitiveComponent->bCastStaticShadow = bCastStaticShadow;
+	PrimitiveComponent->ShadowCacheInvalidationBehavior = ShadowCacheInvalidationBehavior;
+	PrimitiveComponent->bCastVolumetricTranslucentShadow = bCastVolumetricTranslucentShadow;
+	PrimitiveComponent->bCastContactShadow = bCastContactShadow;
+	PrimitiveComponent->bSelfShadowOnly = bSelfShadowOnly;
+	PrimitiveComponent->bCastFarShadow = bCastFarShadow;
+	PrimitiveComponent->bCastInsetShadow = bCastInsetShadow;
+	PrimitiveComponent->bCastCinematicShadow = bCastCinematicShadow;
+	PrimitiveComponent->bCastHiddenShadow = bCastHiddenShadow;
+	PrimitiveComponent->bCastShadowAsTwoSided = bCastShadowAsTwoSided;
+	PrimitiveComponent->bLightAttachmentsAsGroup = bLightAttachmentsAsGroup;
+	PrimitiveComponent->bExcludeFromLightAttachmentGroup = bExcludeFromLightAttachmentGroup;
+	PrimitiveComponent->bReceiveMobileCSMShadows = bReceiveMobileCSMShadows;
+	PrimitiveComponent->bSingleSampleShadowFromStationaryLights = bSingleSampleShadowFromStationaryLights;
+	PrimitiveComponent->bIgnoreRadialImpulse = bIgnoreRadialImpulse;
+	PrimitiveComponent->bIgnoreRadialForce = bIgnoreRadialForce;
+	PrimitiveComponent->bApplyImpulseOnDamage = bApplyImpulseOnDamage;
+	PrimitiveComponent->bReplicatePhysicsToAutonomousProxy = bReplicatePhysicsToAutonomousProxy;
+	PrimitiveComponent->bFillCollisionUnderneathForNavmesh = bFillCollisionUnderneathForNavmesh;
+	PrimitiveComponent->bRenderCustomDepth = bRenderCustomDepth;
+	PrimitiveComponent->bVisibleInSceneCaptureOnly = bVisibleInSceneCaptureOnly;
+	PrimitiveComponent->bHiddenInSceneCapture = bHiddenInSceneCapture;
+	PrimitiveComponent->CanCharacterStepUpOn = CanCharacterStepUpOn;
+	PrimitiveComponent->LightingChannels = LightingChannels;
+	PrimitiveComponent->RayTracingGroupId = RayTracingGroupId;
+	PrimitiveComponent->CustomDepthStencilValue = CustomDepthStencilValue;
+	PrimitiveComponent->TranslucencySortPriority = TranslucencySortPriority;
+	PrimitiveComponent->TranslucencySortDistanceOffset = TranslucencySortDistanceOffset;
 	//TargetComponent->RuntimeVirtualTextures = RuntimeVirtualTextures; // TODO : Load & Forward
-	TargetComponent->VirtualTextureLodBias = VirtualTextureLodBias;
-	TargetComponent->VirtualTextureCullMips = VirtualTextureCullMips;
-	TargetComponent->VirtualTextureMinCoverage = VirtualTextureMinCoverage;
-	TargetComponent->VirtualTextureRenderPassType = VirtualTextureRenderPassType;
-	TargetComponent->BoundsScale = BoundsScale;
-	TargetComponent->RayTracingGroupCullingPriority = RayTracingGroupCullingPriority;
-	TargetComponent->CustomDepthStencilWriteMask = CustomDepthStencilWriteMask;
+	PrimitiveComponent->VirtualTextureLodBias = VirtualTextureLodBias;
+	PrimitiveComponent->VirtualTextureCullMips = VirtualTextureCullMips;
+	PrimitiveComponent->VirtualTextureMinCoverage = VirtualTextureMinCoverage;
+	PrimitiveComponent->VirtualTextureRenderPassType = VirtualTextureRenderPassType;
+	PrimitiveComponent->BoundsScale = BoundsScale;
+	PrimitiveComponent->RayTracingGroupCullingPriority = RayTracingGroupCullingPriority;
+	PrimitiveComponent->CustomDepthStencilWriteMask = CustomDepthStencilWriteMask;
 }
 
 FPCGExMeshComponentDescriptor::FPCGExMeshComponentDescriptor()
@@ -184,12 +184,12 @@ void FPCGExMeshComponentDescriptor::InitFrom(const UPrimitiveComponent* Componen
 {
 	FPCGExPrimitiveComponentDescriptor::InitFrom(Component, bInitBodyInstance);
 
-	const UMeshComponent* SourceComponent = Cast<UMeshComponent>(Component);
-	if (!SourceComponent) { return; }
+	const UMeshComponent* MeshComponent = Cast<UMeshComponent>(Component);
+	if (!MeshComponent) { return; }
 
 	// OverrideMaterials = SourceComponent->OverrideMaterials; // TODO!!
-	OverlayMaterial = SourceComponent->OverlayMaterial;
-	OverlayMaterialMaxDrawDistance = SourceComponent->OverlayMaterialMaxDrawDistance;
+	OverlayMaterial = MeshComponent->OverlayMaterial;
+	OverlayMaterialMaxDrawDistance = MeshComponent->OverlayMaterialMaxDrawDistance;
 }
 
 void FPCGExMeshComponentDescriptor::InitComponent(UPrimitiveComponent* InComponent) const
@@ -215,74 +215,74 @@ void FPCGExStaticMeshComponentDescriptor::InitFrom(const UPrimitiveComponent* Co
 {
 	FPCGExMeshComponentDescriptor::InitFrom(Component, bInitBodyInstance);
 
-	const UStaticMeshComponent* SourceComponent = Cast<UStaticMeshComponent>(Component);
-	if (!SourceComponent) { return; }
+	const UStaticMeshComponent* StaticMeshComponent = Cast<UStaticMeshComponent>(Component);
+	if (!StaticMeshComponent) { return; }
 
-	ForcedLodModel = SourceComponent->ForcedLodModel;
-	MinLOD = SourceComponent->MinLOD;
-	WireframeColorOverride = SourceComponent->WireframeColorOverride;
-	bForceNaniteForMasked = SourceComponent->bForceNaniteForMasked;
-	bDisallowNanite = SourceComponent->bDisallowNanite;
-	bEvaluateWorldPositionOffset = SourceComponent->bEvaluateWorldPositionOffset;
-	bWorldPositionOffsetWritesVelocity = SourceComponent->bWorldPositionOffsetWritesVelocity;
-	bEvaluateWorldPositionOffsetInRayTracing = SourceComponent->bEvaluateWorldPositionOffsetInRayTracing;
-	WorldPositionOffsetDisableDistance = SourceComponent->WorldPositionOffsetDisableDistance;
-	bOverrideWireframeColor = SourceComponent->bOverrideWireframeColor;
-	bOverrideMinLOD = SourceComponent->bOverrideMinLOD;
+	ForcedLodModel = StaticMeshComponent->ForcedLodModel;
+	MinLOD = StaticMeshComponent->MinLOD;
+	WireframeColorOverride = StaticMeshComponent->WireframeColorOverride;
+	bForceNaniteForMasked = StaticMeshComponent->bForceNaniteForMasked;
+	bDisallowNanite = StaticMeshComponent->bDisallowNanite;
+	bEvaluateWorldPositionOffset = StaticMeshComponent->bEvaluateWorldPositionOffset;
+	bWorldPositionOffsetWritesVelocity = StaticMeshComponent->bWorldPositionOffsetWritesVelocity;
+	bEvaluateWorldPositionOffsetInRayTracing = StaticMeshComponent->bEvaluateWorldPositionOffsetInRayTracing;
+	WorldPositionOffsetDisableDistance = StaticMeshComponent->WorldPositionOffsetDisableDistance;
+	bOverrideWireframeColor = StaticMeshComponent->bOverrideWireframeColor;
+	bOverrideMinLOD = StaticMeshComponent->bOverrideMinLOD;
 #if PCGEX_ENGINE_VERSION < 505
-	bDisallowMeshPaintPerInstance = SourceComponent->bDisallowMeshPaintPerInstance;
+	bDisallowMeshPaintPerInstance = StaticMeshComponent->bDisallowMeshPaintPerInstance;
 #else
 	bDisallowMeshPaintPerInstance = 0;
 #endif
-	bIgnoreInstanceForTextureStreaming = SourceComponent->bIgnoreInstanceForTextureStreaming;
-	bOverrideLightMapRes = SourceComponent->bOverrideLightMapRes;
-	bCastDistanceFieldIndirectShadow = SourceComponent->bCastDistanceFieldIndirectShadow;
-	bOverrideDistanceFieldSelfShadowBias = SourceComponent->bOverrideDistanceFieldSelfShadowBias;
-	bUseDefaultCollision = SourceComponent->bUseDefaultCollision;
-	bGenerateOverlapEvents = SourceComponent->GetGenerateOverlapEvents();
-	bSortTriangles = SourceComponent->bSortTriangles;
-	bReverseCulling = SourceComponent->bReverseCulling;
-	OverriddenLightMapRes = SourceComponent->OverriddenLightMapRes;
-	DistanceFieldIndirectShadowMinVisibility = SourceComponent->DistanceFieldIndirectShadowMinVisibility;
-	DistanceFieldSelfShadowBias = SourceComponent->DistanceFieldSelfShadowBias;
-	StreamingDistanceMultiplier = SourceComponent->StreamingDistanceMultiplier;
-	LightmassSettings = SourceComponent->LightmassSettings;
+	bIgnoreInstanceForTextureStreaming = StaticMeshComponent->bIgnoreInstanceForTextureStreaming;
+	bOverrideLightMapRes = StaticMeshComponent->bOverrideLightMapRes;
+	bCastDistanceFieldIndirectShadow = StaticMeshComponent->bCastDistanceFieldIndirectShadow;
+	bOverrideDistanceFieldSelfShadowBias = StaticMeshComponent->bOverrideDistanceFieldSelfShadowBias;
+	bUseDefaultCollision = StaticMeshComponent->bUseDefaultCollision;
+	bGenerateOverlapEvents = StaticMeshComponent->GetGenerateOverlapEvents();
+	bSortTriangles = StaticMeshComponent->bSortTriangles;
+	bReverseCulling = StaticMeshComponent->bReverseCulling;
+	OverriddenLightMapRes = StaticMeshComponent->OverriddenLightMapRes;
+	DistanceFieldIndirectShadowMinVisibility = StaticMeshComponent->DistanceFieldIndirectShadowMinVisibility;
+	DistanceFieldSelfShadowBias = StaticMeshComponent->DistanceFieldSelfShadowBias;
+	StreamingDistanceMultiplier = StaticMeshComponent->StreamingDistanceMultiplier;
+	LightmassSettings = StaticMeshComponent->LightmassSettings;
 }
 
 void FPCGExStaticMeshComponentDescriptor::InitComponent(UPrimitiveComponent* InComponent) const
 {
 	FPCGExMeshComponentDescriptor::InitComponent(InComponent);
 
-	UStaticMeshComponent* TargetComponent = Cast<UStaticMeshComponent>(InComponent);
-	if (!TargetComponent) { return; }
+	UStaticMeshComponent* StaticMeshComponent = Cast<UStaticMeshComponent>(InComponent);
+	if (!StaticMeshComponent) { return; }
 
-	TargetComponent->ForcedLodModel = ForcedLodModel;
-	TargetComponent->MinLOD = MinLOD;
-	TargetComponent->WireframeColorOverride = WireframeColorOverride;
-	TargetComponent->bForceNaniteForMasked = bForceNaniteForMasked;
-	TargetComponent->bDisallowNanite = bDisallowNanite;
-	TargetComponent->bEvaluateWorldPositionOffset = bEvaluateWorldPositionOffset;
-	TargetComponent->bWorldPositionOffsetWritesVelocity = bWorldPositionOffsetWritesVelocity;
-	TargetComponent->bEvaluateWorldPositionOffsetInRayTracing = bEvaluateWorldPositionOffsetInRayTracing;
-	TargetComponent->WorldPositionOffsetDisableDistance = WorldPositionOffsetDisableDistance;
-	TargetComponent->bOverrideWireframeColor = bOverrideWireframeColor;
-	TargetComponent->bOverrideMinLOD = bOverrideMinLOD;
+	StaticMeshComponent->ForcedLodModel = ForcedLodModel;
+	StaticMeshComponent->MinLOD = MinLOD;
+	StaticMeshComponent->WireframeColorOverride = WireframeColorOverride;
+	StaticMeshComponent->bForceNaniteForMasked = bForceNaniteForMasked;
+	StaticMeshComponent->bDisallowNanite = bDisallowNanite;
+	StaticMeshComponent->bEvaluateWorldPositionOffset = bEvaluateWorldPositionOffset;
+	StaticMeshComponent->bWorldPositionOffsetWritesVelocity = bWorldPositionOffsetWritesVelocity;
+	StaticMeshComponent->bEvaluateWorldPositionOffsetInRayTracing = bEvaluateWorldPositionOffsetInRayTracing;
+	StaticMeshComponent->WorldPositionOffsetDisableDistance = WorldPositionOffsetDisableDistance;
+	StaticMeshComponent->bOverrideWireframeColor = bOverrideWireframeColor;
+	StaticMeshComponent->bOverrideMinLOD = bOverrideMinLOD;
 #if PCGEX_ENGINE_VERSION < 505
 	TargetComponent->bDisallowMeshPaintPerInstance = bDisallowMeshPaintPerInstance;
 #endif
-	TargetComponent->bIgnoreInstanceForTextureStreaming = bIgnoreInstanceForTextureStreaming;
-	TargetComponent->bOverrideLightMapRes = bOverrideLightMapRes;
-	TargetComponent->bCastDistanceFieldIndirectShadow = bCastDistanceFieldIndirectShadow;
-	TargetComponent->bOverrideDistanceFieldSelfShadowBias = bOverrideDistanceFieldSelfShadowBias;
-	TargetComponent->bUseDefaultCollision = bUseDefaultCollision;
-	TargetComponent->SetGenerateOverlapEvents(bGenerateOverlapEvents);
-	TargetComponent->bSortTriangles = bSortTriangles;
-	TargetComponent->bReverseCulling = bReverseCulling;
-	TargetComponent->OverriddenLightMapRes = OverriddenLightMapRes;
-	TargetComponent->DistanceFieldIndirectShadowMinVisibility = DistanceFieldIndirectShadowMinVisibility;
-	TargetComponent->DistanceFieldSelfShadowBias = DistanceFieldSelfShadowBias;
-	TargetComponent->StreamingDistanceMultiplier = StreamingDistanceMultiplier;
-	TargetComponent->LightmassSettings = LightmassSettings;
+	StaticMeshComponent->bIgnoreInstanceForTextureStreaming = bIgnoreInstanceForTextureStreaming;
+	StaticMeshComponent->bOverrideLightMapRes = bOverrideLightMapRes;
+	StaticMeshComponent->bCastDistanceFieldIndirectShadow = bCastDistanceFieldIndirectShadow;
+	StaticMeshComponent->bOverrideDistanceFieldSelfShadowBias = bOverrideDistanceFieldSelfShadowBias;
+	StaticMeshComponent->bUseDefaultCollision = bUseDefaultCollision;
+	StaticMeshComponent->SetGenerateOverlapEvents(bGenerateOverlapEvents);
+	StaticMeshComponent->bSortTriangles = bSortTriangles;
+	StaticMeshComponent->bReverseCulling = bReverseCulling;
+	StaticMeshComponent->OverriddenLightMapRes = OverriddenLightMapRes;
+	StaticMeshComponent->DistanceFieldIndirectShadowMinVisibility = DistanceFieldIndirectShadowMinVisibility;
+	StaticMeshComponent->DistanceFieldSelfShadowBias = DistanceFieldSelfShadowBias;
+	StaticMeshComponent->StreamingDistanceMultiplier = StreamingDistanceMultiplier;
+	StaticMeshComponent->LightmassSettings = LightmassSettings;
 }
 
 FPCGExDynamicMeshDescriptor::FPCGExDynamicMeshDescriptor()
@@ -296,44 +296,44 @@ void FPCGExDynamicMeshDescriptor::InitFrom(const UPrimitiveComponent* Component,
 {
 	FPCGExMeshComponentDescriptor::InitFrom(Component, bInitBodyInstance);
 
-	const UDynamicMeshComponent* SourceComponent = Cast<UDynamicMeshComponent>(Component);
-	if (!SourceComponent) { return; }
+	const UDynamicMeshComponent* DynamicMeshComponent = Cast<UDynamicMeshComponent>(Component);
+	if (!DynamicMeshComponent) { return; }
 
-#if PCGEX_ENGINE_VERSION > 504
-	DistanceFieldMode = static_cast<EPCGExDynamicMeshComponentDistanceFieldMode>(static_cast<uint8>(SourceComponent->GetDistanceFieldMode()));
+#if PCGEX_ENGINE_VERSION > 504 && PCGEX_ENGINE_VERSION < 506 
+	DistanceFieldMode = static_cast<EPCGExDynamicMeshComponentDistanceFieldMode>(static_cast<uint8>(DynamicMeshComponent->GetDistanceFieldMode()));
 #endif
 
-	bExplicitShowWireframe = SourceComponent->bExplicitShowWireframe;
-	WireframeColor = SourceComponent->WireframeColor;
-	ColorMode = SourceComponent->ColorMode;
-	ConstantColor = SourceComponent->ConstantColor;
-	ColorSpaceMode = SourceComponent->ColorSpaceMode;
-	bEnableFlatShading = SourceComponent->bEnableFlatShading;
-	bEnableViewModeOverrides = SourceComponent->bEnableViewModeOverrides;
-	bEnableRaytracing = SourceComponent->bEnableRaytracing;
+	bExplicitShowWireframe = DynamicMeshComponent->bExplicitShowWireframe;
+	WireframeColor = DynamicMeshComponent->WireframeColor;
+	ColorMode = DynamicMeshComponent->ColorMode;
+	ConstantColor = DynamicMeshComponent->ConstantColor;
+	ColorSpaceMode = DynamicMeshComponent->ColorSpaceMode;
+	bEnableFlatShading = DynamicMeshComponent->bEnableFlatShading;
+	bEnableViewModeOverrides = DynamicMeshComponent->bEnableViewModeOverrides;
+	bEnableRaytracing = DynamicMeshComponent->bEnableRaytracing;
 }
 
 void FPCGExDynamicMeshDescriptor::InitComponent(UPrimitiveComponent* InComponent) const
 {
 	FPCGExMeshComponentDescriptor::InitComponent(InComponent);
 
-	UDynamicMeshComponent* TargetComponent = Cast<UDynamicMeshComponent>(InComponent);
-	if (!TargetComponent) { return; }
+	UDynamicMeshComponent* DynamicMeshComponent = Cast<UDynamicMeshComponent>(InComponent);
+	if (!DynamicMeshComponent) { return; }
 
-#if PCGEX_ENGINE_VERSION > 504
-	TargetComponent->SetDistanceFieldMode(static_cast<EDynamicMeshComponentDistanceFieldMode>(static_cast<uint8>(DistanceFieldMode)));
+#if PCGEX_ENGINE_VERSION > 504 && PCGEX_ENGINE_VERSION < 506
+	DynamicMeshComponent->SetDistanceFieldMode(static_cast<EDynamicMeshComponentDistanceFieldMode>(static_cast<uint8>(DistanceFieldMode)));
 #endif
 
-	TargetComponent->bUseAsyncCooking = bUseAsyncCooking;
-	TargetComponent->bDeferCollisionUpdates = bDeferCollisionUpdates;
-	TargetComponent->SetComplexAsSimpleCollisionEnabled(bEnableComplexCollision, false);
+	DynamicMeshComponent->bUseAsyncCooking = bUseAsyncCooking;
+	DynamicMeshComponent->bDeferCollisionUpdates = bDeferCollisionUpdates;
+	DynamicMeshComponent->SetComplexAsSimpleCollisionEnabled(bEnableComplexCollision, false);
 
-	TargetComponent->bExplicitShowWireframe = bExplicitShowWireframe;
-	TargetComponent->WireframeColor = WireframeColor;
-	TargetComponent->ColorMode = ColorMode;
-	TargetComponent->ConstantColor = ConstantColor;
-	TargetComponent->ColorSpaceMode = ColorSpaceMode;
-	TargetComponent->bEnableFlatShading = bEnableFlatShading;
-	TargetComponent->bEnableViewModeOverrides = bEnableViewModeOverrides;
-	TargetComponent->bEnableRaytracing = bEnableRaytracing;
+	DynamicMeshComponent->bExplicitShowWireframe = bExplicitShowWireframe;
+	DynamicMeshComponent->WireframeColor = WireframeColor;
+	DynamicMeshComponent->ColorMode = ColorMode;
+	DynamicMeshComponent->ConstantColor = ConstantColor;
+	DynamicMeshComponent->ColorSpaceMode = ColorSpaceMode;
+	DynamicMeshComponent->bEnableFlatShading = bEnableFlatShading;
+	DynamicMeshComponent->bEnableViewModeOverrides = bEnableViewModeOverrides;
+	DynamicMeshComponent->bEnableRaytracing = bEnableRaytracing;
 }

@@ -4,15 +4,16 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "PCGEx.h"
-#include "PCGExContext.h"
-#include "PCGExMacros.h"
-#include "PCGExGlobalSettings.h"
-#include "PCGParamData.h"
+
 #include "PCGSettings.h"
 #include "Data/PCGExData.h"
 #include "Data/PCGPointData.h"
 #include "UObject/Object.h"
+
+#include "PCGEx.h"
+#include "PCGExContext.h"
+#include "PCGExMacros.h"
+#include "PCGExGlobalSettings.h"
 
 #include "PCGExFactoryProvider.generated.h"
 
@@ -189,8 +190,14 @@ protected:
 	virtual bool ExecuteInternal(FPCGContext* Context) const override;
 
 public:
+	virtual FPCGContext* CreateContext() override
+	{
+		FPCGExFactoryProviderContext* NewContext = new FPCGExFactoryProviderContext();
+		NewContext->SetState(PCGEx::State_InitialExecution);
+		return NewContext;
+	}
+	
 	virtual bool IsCacheable(const UPCGSettings* InSettings) const override;
-	virtual FPCGContext* Initialize(const FPCGDataCollection& InputData, TWeakObjectPtr<UPCGComponent> SourceComponent, const UPCGNode* Node) override;
 };
 
 namespace PCGExFactories

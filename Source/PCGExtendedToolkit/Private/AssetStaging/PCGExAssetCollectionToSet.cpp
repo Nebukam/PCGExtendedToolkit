@@ -61,20 +61,6 @@ MACRO(BoundsMax, FVector, FVector::OneVector, E->Staging.Bounds.Max)\
 MACRO(NestingDepth, int32, -1, -1)
 #endif
 
-FPCGContext* FPCGExAssetCollectionToSetElement::Initialize(
-	const FPCGDataCollection& InputData,
-	const TWeakObjectPtr<UPCGComponent> SourceComponent,
-	const UPCGNode* Node)
-{
-	FPCGContext* Context = new FPCGContext();
-
-	Context->InputData = InputData;
-	Context->SourceComponent = SourceComponent;
-	Context->Node = Node;
-
-	return Context;
-}
-
 bool FPCGExAssetCollectionToSetElement::ExecuteInternal(FPCGContext* Context) const
 {
 	PCGEX_SETTINGS(AssetCollectionToSet)

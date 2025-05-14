@@ -48,16 +48,16 @@ TSharedPtr<PCGExDetails::FDistances> FPCGExDistanceDetails::MakeDistances() cons
 
 void FPCGExCollisionDetails::Init(const FPCGExContext* InContext)
 {
-	World = InContext->SourceComponent->GetWorld();
+	World = InContext->GetWorld();
 
 	if (bIgnoreActors)
 	{
 		const TFunction<bool(const AActor*)> BoundsCheck = [](const AActor*) -> bool { return true; };
 		const TFunction<bool(const AActor*)> SelfIgnoreCheck = [](const AActor*) -> bool { return true; };
-		IgnoredActors = PCGExActorSelector::FindActors(IgnoredActorSelector, InContext->SourceComponent.Get(), BoundsCheck, SelfIgnoreCheck);
+		IgnoredActors = PCGExActorSelector::FindActors(IgnoredActorSelector, InContext->GetComponent(), BoundsCheck, SelfIgnoreCheck);
 	}
 
-	if (bIgnoreSelf) { IgnoredActors.Add(InContext->SourceComponent->GetOwner()); }
+	if (bIgnoreSelf) { IgnoredActors.Add(InContext->GetComponent()->GetOwner()); }
 }
 
 void FPCGExCollisionDetails::Update(FCollisionQueryParams& InCollisionParams) const

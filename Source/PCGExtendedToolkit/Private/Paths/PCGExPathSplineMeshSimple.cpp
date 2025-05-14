@@ -313,7 +313,7 @@ namespace PCGExPathSplineMeshSimple
 
 		bool bIsPreviewMode = false;
 #if PCGEX_ENGINE_VERSION > 503
-		bIsPreviewMode = ExecutionContext->SourceComponent.Get()->IsInPreviewMode();
+		bIsPreviewMode = ExecutionContext->GetComponent()->IsInPreviewMode();
 #endif
 
 		TArray<FName> DataTags = PointDataFacade->Source->Tags->FlattenToArrayOfNames();

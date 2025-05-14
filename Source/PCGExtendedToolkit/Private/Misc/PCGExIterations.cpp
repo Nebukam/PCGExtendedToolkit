@@ -52,20 +52,6 @@ FPCGElementPtr UPCGExIterationsSettings::CreateElement() const { return MakeShar
 
 #pragma endregion
 
-FPCGContext* FPCGExIterationsElement::Initialize(
-	const FPCGDataCollection& InputData,
-	const TWeakObjectPtr<UPCGComponent> SourceComponent,
-	const UPCGNode* Node)
-{
-	FPCGExContext* Context = new FPCGExContext();
-
-	Context->InputData = InputData;
-	Context->SourceComponent = SourceComponent;
-	Context->Node = Node;
-
-	return Context;
-}
-
 bool FPCGExIterationsElement::ExecuteInternal(FPCGContext* InContext) const
 {
 	PCGEX_CONTEXT()

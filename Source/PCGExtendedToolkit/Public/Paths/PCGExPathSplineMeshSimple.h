@@ -153,15 +153,12 @@ struct FPCGExPathSplineMeshSimpleContext final : FPCGExPathProcessorContext
 class FPCGExPathSplineMeshSimpleElement final : public FPCGExPathProcessorElement
 {
 public:
-	virtual FPCGContext* Initialize(
-		const FPCGDataCollection& InputData,
-		TWeakObjectPtr<UPCGComponent> SourceComponent,
-		const UPCGNode* Node) override;
-
 	// Generates artifacts
 	virtual bool IsCacheable(const UPCGSettings* InSettings) const override { return false; }
 
 protected:
+	PCGEX_ELEMENT_CREATE_CONTEXT(PathSplineMeshSimple)
+	
 	virtual bool Boot(FPCGExContext* InContext) const override;
 	virtual bool ExecuteInternal(FPCGContext* Context) const override;
 	virtual bool CanExecuteOnlyOnMainThread(FPCGContext* Context) const override { return true; }

@@ -37,12 +37,8 @@ struct FPCGExPruneEdgesByLengthContext final : FPCGExEdgesProcessorContext
 
 class FPCGExPruneEdgesByLengthElement final : public FPCGExEdgesProcessorElement
 {
-public:
-	virtual FPCGContext* Initialize(
-		const FPCGDataCollection& InputData,
-		TWeakObjectPtr<UPCGComponent> SourceComponent,
-		const UPCGNode* Node) override;
-
 protected:
+	PCGEX_ELEMENT_CREATE_CONTEXT(PruneEdgesByLength)
+	
 	virtual bool ExecuteInternal(FPCGContext* InContext) const override;
 };

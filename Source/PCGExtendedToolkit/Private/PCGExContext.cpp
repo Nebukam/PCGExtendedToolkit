@@ -77,6 +77,26 @@ void FPCGExContext::StageOutput(const FName Pin, UPCGData* InData, const bool bM
 	if (bManaged) { ManagedObjects->Add(InData); }
 }
 
+UWorld* FPCGExContext::GetWorld() const { return GetComponent()->GetWorld(); }
+
+const UPCGComponent* FPCGExContext::GetComponent() const
+{
+#if PCGEX_ENGINE_VERSION <= 505
+	return SourceComponent.Get();
+#else
+	return Cast<UPCGComponent>(ExecutionSource.Get());
+#endif
+}
+
+UPCGComponent* FPCGExContext::GetMutableComponent() const
+{
+#if PCGEX_ENGINE_VERSION <= 505
+	return const_cast<UPCGComponent*>(SourceComponent.Get());
+#else
+	return const_cast<UPCGComponent*>(Cast<UPCGComponent>(ExecutionSource.Get()));
+#endif
+}
+
 void FPCGExContext::PauseContext()
 {
 	bIsPaused = true;
@@ -262,7 +282,8 @@ void FPCGExContext::LoadAssets()
 			LoadHandle = UAssetManager::GetStreamableManager().RequestAsyncLoad(
 				RequiredAssets->Array(), [CtxHandle]()
 				{
-					if (FPCGExContext* NestedThis = GetContextFromHandle<FPCGExContext>(CtxHandle)) { NestedThis->UnpauseContext(); }
+					const FPCGExContext::FPCGExSharedContext<FPCGExContext> SharedContext(CtxHandle);
+					if (FPCGExContext* NestedThis = SharedContext.Get()) { NestedThis->UnpauseContext(); }
 				});
 
 			if (!LoadHandle || !LoadHandle->IsActive())
@@ -285,13 +306,15 @@ void FPCGExContext::LoadAssets()
 			AsyncTask(
 				ENamedThreads::GameThread, [CtxHandle]()
 				{
-					FPCGExContext* This = GetContextFromHandle<FPCGExContext>(CtxHandle);
+					const FPCGExContext::FPCGExSharedContext<FPCGExContext> SharedContext(CtxHandle);
+					FPCGExContext* This = SharedContext.Get();
 					if (!This) { return; }
 
 					This->LoadHandle = UAssetManager::GetStreamableManager().RequestAsyncLoad(
 						This->RequiredAssets->Array(), [CtxHandle]()
 						{
-							if (FPCGExContext* NestedThis = GetContextFromHandle<FPCGExContext>(CtxHandle)) { NestedThis->UnpauseContext(); }
+							const FPCGExContext::FPCGExSharedContext<FPCGExContext> SharedContext(CtxHandle);
+							if (FPCGExContext* NestedThis = SharedContext.Get()) { NestedThis->UnpauseContext(); }
 						});
 
 					if (!This->LoadHandle || !This->LoadHandle->IsActive())
@@ -385,7 +408,7 @@ void FPCGExContext::AddProtectedAttributeName(const FName InName)
 void FPCGExContext::EDITOR_TrackPath(const FSoftObjectPath& Path, const bool bIsCulled) const
 {
 #if WITH_EDITOR && PCGEX_ENGINE_VERSION > 503
-	if (UPCGComponent* PCGComponent = SourceComponent.Get())
+	if (UPCGComponent* PCGComponent = GetMutableComponent())
 	{
 		TPair<FPCGSelectionKey, bool> NewPair(FPCGSelectionKey::CreateFromPath(Path), bIsCulled);
 		PCGComponent->RegisterDynamicTracking(GetOriginalSettings<UPCGSettings>(), MakeArrayView(&NewPair, 1));
@@ -396,7 +419,7 @@ void FPCGExContext::EDITOR_TrackPath(const FSoftObjectPath& Path, const bool bIs
 void FPCGExContext::EDITOR_TrackClass(const TSubclassOf<UObject>& InSelectionClass, bool bIsCulled) const
 {
 #if WITH_EDITOR && PCGEX_ENGINE_VERSION > 503
-	if (UPCGComponent* PCGComponent = SourceComponent.Get())
+	if (UPCGComponent* PCGComponent = GetMutableComponent())
 	{
 		TPair<FPCGSelectionKey, bool> NewPair(FPCGSelectionKey(InSelectionClass), bIsCulled);
 		PCGComponent->RegisterDynamicTracking(GetOriginalSettings<UPCGSettings>(), MakeArrayView(&NewPair, 1));

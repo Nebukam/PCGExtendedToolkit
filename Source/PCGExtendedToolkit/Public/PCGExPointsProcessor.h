@@ -32,6 +32,9 @@
 #define PCGEX_ON_INITIAL_EXECUTION if(Context->IsInitialExecution())
 #define PCGEX_POINTS_BATCH_PROCESSING(_STATE) if (!Context->ProcessPointsBatch(_STATE)) { return false; }
 
+#define PCGEX_ELEMENT_CREATE_CONTEXT(_CLASS) virtual FPCGContext* CreateContext() override { return new FPCGEx##_CLASS##Context(); }
+#define PCGEX_ELEMENT_CREATE_DEFAULT_CONTEXT virtual FPCGContext* CreateContext() override { return new FPCGExContext(); }
+
 struct FPCGExPointsProcessorContext;
 class FPCGExPointsProcessorElement;
 
@@ -246,7 +249,12 @@ class PCGEXTENDEDTOOLKIT_API FPCGExPointsProcessorElement : public IPCGElement
 {
 public:
 	virtual bool PrepareDataInternal(FPCGContext* Context) const override;
+	
+#if PCGEX_ENGINE_VERSION <= 505
 	virtual FPCGContext* Initialize(const FPCGDataCollection& InputData, TWeakObjectPtr<UPCGComponent> SourceComponent, const UPCGNode* Node) override;
+#else
+	virtual FPCGContext* Initialize(const FPCGInitializeElementParams& InParams) override;
+#endif
 
 #if WITH_EDITOR
 	virtual bool ShouldLog() const override { return false; }
@@ -256,7 +264,15 @@ public:
 	virtual void DisabledPassThroughData(FPCGContext* Context) const override;
 
 protected:
-	virtual FPCGExContext* InitializeContext(FPCGExPointsProcessorContext* InContext, const FPCGDataCollection& InputData, TWeakObjectPtr<UPCGComponent> SourceComponent, const UPCGNode* Node) const;
+
+#if PCGEX_ENGINE_VERSION <= 503
+	virtual FPCGContext* CreateContext();
+#else
+	virtual FPCGContext* CreateContext() override;
+#endif
+	
+	virtual void OnContextInitialized(FPCGExPointsProcessorContext* InContext) const;
+
 	virtual bool Boot(FPCGExContext* InContext) const;
 	virtual void PostLoadAssetsDependencies(FPCGExContext* InContext) const;
 	virtual bool PostBoot(FPCGExContext* InContext) const;

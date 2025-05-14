@@ -295,7 +295,7 @@ namespace PCGExAssetStaging
 
 		const int32 Seed = PCGExRandom::GetSeedFromPoint(
 			Helper->Details.SeedComponents, Point,
-			Helper->Details.LocalSeed, Settings, Context->SourceComponent.Get());
+			Helper->Details.LocalSeed, Settings, Context->GetComponent());
 
 		Helper->GetEntry(Entry, Index, Seed, EntryHost);
 

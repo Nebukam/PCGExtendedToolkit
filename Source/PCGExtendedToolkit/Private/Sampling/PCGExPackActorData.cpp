@@ -350,7 +350,7 @@ namespace PCGExPackActorDatas
 		Packer->ReadBuffers = MakeShared<PCGExData::TBufferHelper<PCGExData::EBufferHelperMode::Read>>(PointDataFacade);
 
 #if PCGEX_ENGINE_VERSION > 503
-		Packer->bIsPreviewMode = ExecutionContext->SourceComponent.Get()->IsInPreviewMode();
+		Packer->bIsPreviewMode = ExecutionContext->GetComponent()->IsInPreviewMode();
 #endif
 
 		PointDataFacade->Source->bAllowEmptyOutput = !Settings->bOmitEmptyOutputs;

@@ -291,7 +291,7 @@ namespace PCGExSampleNearestSurface
 		}
 		else
 		{
-			const UWorld* World = Context->SourceComponent->GetWorld();
+			const UWorld* World = Context->GetWorld();
 
 			switch (Context->CollisionSettings.CollisionType)
 			{

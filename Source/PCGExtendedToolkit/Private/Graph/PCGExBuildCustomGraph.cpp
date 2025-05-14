@@ -199,7 +199,7 @@ bool FPCGExBuildCustomGraphElement::ExecuteInternal(FPCGContext* InContext) cons
 	{
 		if (Settings->Mode == EPCGExCustomGraphActorSourceMode::Owner)
 		{
-			Context->Builder->InputActors.Add(Context->SourceComponent->GetOwner());
+			Context->Builder->InputActors.Add(Context->GetComponent()->GetOwner());
 		}
 		else
 		{

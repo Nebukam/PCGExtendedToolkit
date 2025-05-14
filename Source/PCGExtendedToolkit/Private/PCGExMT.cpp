@@ -400,7 +400,8 @@ namespace PCGExMT
 				TEXT("ResetThen"),
 				[CtxHandle = Context->GetOrCreateHandle(), Callback]()
 				{
-					if (FPCGExContext* Ctx = FPCGExContext::GetContextFromHandle<FPCGExContext>(CtxHandle))
+					const FPCGExContext::FPCGExSharedContext<FPCGExContext> SharedContext(CtxHandle);
+					if (FPCGExContext* Ctx = SharedContext.Get())
 					{
 						Ctx->ResumeExecution();
 						Callback();

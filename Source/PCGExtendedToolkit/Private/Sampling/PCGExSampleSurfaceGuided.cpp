@@ -158,7 +158,7 @@ namespace PCGExSampleSurfaceGuided
 			}
 		}
 
-		World = Context->SourceComponent->GetWorld();
+		World = Context->GetWorld();
 		StartParallelLoopForPoints();
 
 		return true;

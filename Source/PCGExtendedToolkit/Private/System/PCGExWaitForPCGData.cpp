@@ -208,7 +208,7 @@ namespace PCGExWaitForPCGData
 
 		if (Settings->bWaitForMissingActors)
 		{
-			StartTime = Context->SourceComponent->GetWorld()->GetTimeSeconds();
+			StartTime = Context->GetWorld()->GetTimeSeconds();
 			SearchActorsToken = AsyncManager->TryCreateToken(FName("SearchActors"));
 			if (!SearchActorsToken.IsValid()) { return false; }
 			GatherActors();
@@ -261,7 +261,7 @@ namespace PCGExWaitForPCGData
 
 		if (bHasUnresolvedReferences)
 		{
-			if (Context->SourceComponent->GetWorld()->GetTimeSeconds() - StartTime < Settings->WaitForComponentTimeout)
+			if (Context->GetWorld()->GetTimeSeconds() - StartTime < Settings->WaitForComponentTimeout)
 			{
 				PCGEX_SUBSYSTEM
 				PCGExSubsystem->RegisterBeginTickAction(
@@ -318,7 +318,7 @@ namespace PCGExWaitForPCGData
 		SearchComponentsToken = AsyncManager->TryCreateToken(FName("SearchComponents"));
 		if (!SearchComponentsToken.IsValid()) { return; }
 
-		StartTime = Context->SourceComponent->GetWorld()->GetTimeSeconds();
+		StartTime = Context->GetWorld()->GetTimeSeconds();
 
 		PCGEX_SUBSYSTEM
 		PCGExSubsystem->RegisterBeginTickAction(
@@ -379,7 +379,7 @@ namespace PCGExWaitForPCGData
 
 		ON_SCOPE_EXIT { InspectionTracker->IncrementCompleted(); };
 
-		UPCGComponent* Self = Context->SourceComponent.Get();
+		UPCGComponent* Self = Context->GetMutableComponent();
 
 		// Trim queued components
 		TArray<UPCGComponent*> FoundComponents = PerActorGatheredComponents[Index];
@@ -466,7 +466,7 @@ namespace PCGExWaitForPCGData
 		// If some actors are still enqueued, we failed to find a valid component.
 		if (!QueuedActors.IsEmpty())
 		{
-			if (Context->SourceComponent->GetWorld()->GetTimeSeconds() - StartTime < Settings->WaitForComponentTimeout)
+			if (Context->GetWorld()->GetTimeSeconds() - StartTime < Settings->WaitForComponentTimeout)
 			{
 				PCGEX_SUBSYSTEM
 				PCGExSubsystem->RegisterBeginTickAction(

@@ -121,15 +121,11 @@ struct FPCGExAssetStagingContext final : FPCGExPointsProcessorContext
 
 class FPCGExAssetStagingElement final : public FPCGExPointsProcessorElement
 {
-public:
-	virtual FPCGContext* Initialize(
-		const FPCGDataCollection& InputData,
-		TWeakObjectPtr<UPCGComponent> SourceComponent,
-		const UPCGNode* Node) override;
-
-	PCGEX_CAN_ONLY_EXECUTE_ON_MAIN_THREAD(true)
-
 protected:
+	PCGEX_CAN_ONLY_EXECUTE_ON_MAIN_THREAD(true)
+	
+	PCGEX_ELEMENT_CREATE_CONTEXT(AssetStaging)
+	
 	virtual bool Boot(FPCGExContext* InContext) const override;
 	virtual void PostLoadAssetsDependencies(FPCGExContext* InContext) const override;
 	virtual bool PostBoot(FPCGExContext* InContext) const override;
