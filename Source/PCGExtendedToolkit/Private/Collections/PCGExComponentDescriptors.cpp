@@ -104,7 +104,7 @@ void FPCGExPrimitiveComponentDescriptor::InitComponent(UPrimitiveComponent* InCo
 	PrimitiveComponent->LDMaxDrawDistance = LDMaxDrawDistance;
 	PrimitiveComponent->IndirectLightingCacheQuality = IndirectLightingCacheQuality;
 #if PCGEX_ENGINE_VERSION < 505
-	TargetComponent->LightmapType = LightmapType;
+	PrimitiveComponent->LightmapType = LightmapType;
 #else
 	PrimitiveComponent->SetLightmapType(LightmapType);
 #endif
@@ -268,7 +268,7 @@ void FPCGExStaticMeshComponentDescriptor::InitComponent(UPrimitiveComponent* InC
 	StaticMeshComponent->bOverrideWireframeColor = bOverrideWireframeColor;
 	StaticMeshComponent->bOverrideMinLOD = bOverrideMinLOD;
 #if PCGEX_ENGINE_VERSION < 505
-	TargetComponent->bDisallowMeshPaintPerInstance = bDisallowMeshPaintPerInstance;
+	StaticMeshComponent->bDisallowMeshPaintPerInstance = bDisallowMeshPaintPerInstance;
 #endif
 	StaticMeshComponent->bIgnoreInstanceForTextureStreaming = bIgnoreInstanceForTextureStreaming;
 	StaticMeshComponent->bOverrideLightMapRes = bOverrideLightMapRes;

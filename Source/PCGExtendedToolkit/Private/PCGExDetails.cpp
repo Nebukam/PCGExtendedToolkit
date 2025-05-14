@@ -54,7 +54,7 @@ void FPCGExCollisionDetails::Init(const FPCGExContext* InContext)
 	{
 		const TFunction<bool(const AActor*)> BoundsCheck = [](const AActor*) -> bool { return true; };
 		const TFunction<bool(const AActor*)> SelfIgnoreCheck = [](const AActor*) -> bool { return true; };
-		IgnoredActors = PCGExActorSelector::FindActors(IgnoredActorSelector, InContext->GetComponent(), BoundsCheck, SelfIgnoreCheck);
+		IgnoredActors = PCGActorSelector::FindActors(IgnoredActorSelector, InContext->GetComponent(), BoundsCheck, SelfIgnoreCheck);
 	}
 
 	if (bIgnoreSelf) { IgnoredActors.Add(InContext->GetComponent()->GetOwner()); }
