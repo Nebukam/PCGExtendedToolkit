@@ -76,9 +76,7 @@ void UPCGExWaitForPCGDataSettings::GetTargetGraphPins(TArray<FPCGPinProperties>&
 		OutPins.Reserve(FoundPins.Num());
 		for (FPCGPinProperties Pin : FoundPins)
 		{
-#if PCGEX_ENGINE_VERSION > 503
 			Pin.bInvisiblePin = false;
-#endif
 			OutPins.Add(Pin);
 		}
 	}
@@ -105,9 +103,7 @@ bool FPCGExWaitForPCGDataElement::Boot(FPCGExContext* InContext) const
 	{
 		Context->AllLabels.Add(Pin.Label);
 
-#if PCGEX_ENGINE_VERSION > 503
 		if (Pin.IsRequiredPin())
-#endif
 		{
 			Context->RequiredPinProperties.Add(Pin);
 			Context->RequiredLabels.Add(Pin.Label);
@@ -505,7 +501,6 @@ namespace PCGExWaitForPCGData
 
 	void FProcessor::WatchComponent(UPCGComponent* TargetComponent, int32 Index)
 	{
-#if PCGEX_ENGINE_VERSION > 503
 		WatcherTracker->IncrementPending();
 
 		if (!TargetComponent->IsGenerating())
@@ -545,7 +540,6 @@ namespace PCGExWaitForPCGData
 						NestedThis->ScheduleComponentDataStaging(Idx);
 					}, true);
 			});
-#endif
 	}
 
 	void FProcessor::ProcessComponent(int32 Index)
@@ -562,11 +556,9 @@ namespace PCGExWaitForPCGData
 		case EPCGComponentGenerationTrigger::GenerateOnDemand:
 			if (Settings->GenerateOnDemandAction == EPCGExGenerationTriggerAction::Ignore) { return; }
 			break;
-#if PCGEX_ENGINE_VERSION > 503
 		case EPCGComponentGenerationTrigger::GenerateAtRuntime:
 			if (Settings->GenerateAtRuntime == EPCGExRuntimeGenerationTriggerAction::Ignore) { return; }
 			break;
-#endif
 		}
 
 		// Ignore component getting cleaned up
@@ -581,8 +573,6 @@ namespace PCGExWaitForPCGData
 
 		bool bWatchComponent = false;
 		bool bForce = false;
-
-#if PCGEX_ENGINE_VERSION > 503
 
 		switch (InComponent->GenerationTrigger)
 		{
@@ -636,8 +626,6 @@ namespace PCGExWaitForPCGData
 			WatchComponent(InComponent, Index);
 			return;
 		}
-
-#endif
 
 		StageComponentData(Index);
 	}

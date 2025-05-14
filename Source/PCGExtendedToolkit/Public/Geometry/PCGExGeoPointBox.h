@@ -265,13 +265,9 @@ namespace PCGExGeo
 		bool IsInsideOrOn(const FPCGPoint& Point, const EPCGExPointBoundsSource BoundsSource) const
 		{
 			PCGEX_TRANSFORM_LOCALBOUNDS
-#if PCGEX_ENGINE_VERSION <= 503
-			if constexpr (Mode == EPCGExBoxCheckMode::Box) { return Box.IsInside(LocalBox); }
-			else if constexpr (Mode == EPCGExBoxCheckMode::ExpandedBox) { return BoxExpanded.IsInside(LocalBox); }
-#else
+
 			if constexpr (Mode == EPCGExBoxCheckMode::Box) { return Box.IsInsideOrOn(LocalBox); }
 			else if constexpr (Mode == EPCGExBoxCheckMode::ExpandedBox) { return BoxExpanded.IsInsideOrOn(LocalBox); }
-#endif
 			else if constexpr (Mode == EPCGExBoxCheckMode::Sphere)
 			{
 				if (FMath::SphereAABBIntersection(FVector::ZeroVector, RadiusSquared, LocalBox) ||
@@ -298,13 +294,8 @@ namespace PCGExGeo
 		bool IsInsideOrIntersects(const FPCGPoint& Point, const EPCGExPointBoundsSource BoundsSource) const
 		{
 			PCGEX_TRANSFORM_LOCALBOUNDS
-#if PCGEX_ENGINE_VERSION <= 503
-			if constexpr (Mode == EPCGExBoxCheckMode::Box) { return Box.IsInside(LocalBox) || Box.Intersect(LocalBox);; }
-			else if constexpr (Mode == EPCGExBoxCheckMode::ExpandedBox) { return BoxExpanded.IsInside(LocalBox) || BoxExpanded.Intersect(LocalBox); }
-#else
 			if constexpr (Mode == EPCGExBoxCheckMode::Box) { return Box.IsInsideOrOn(LocalBox) || Box.Intersect(LocalBox); }
 			else if constexpr (Mode == EPCGExBoxCheckMode::ExpandedBox) { return BoxExpanded.IsInsideOrOn(LocalBox) || BoxExpanded.Intersect(LocalBox); }
-#endif
 			else if constexpr (Mode == EPCGExBoxCheckMode::Sphere)
 			{
 				if (FMath::SphereAABBIntersection(FVector::ZeroVector, RadiusSquared, LocalBox) ||
@@ -367,13 +358,8 @@ namespace PCGExGeo
 		bool IsInsideOrOn(const FPCGPoint& Point) const
 		{
 			PCGEX_TRANSFORM_LOCALBOUNDS_T
-#if PCGEX_ENGINE_VERSION <= 503
-			if constexpr (Mode == EPCGExBoxCheckMode::Box) { return Box.IsInside(LocalBox); }
-			else if constexpr (Mode == EPCGExBoxCheckMode::ExpandedBox) { return BoxExpanded.IsInside(LocalBox); }
-#else
 			if constexpr (Mode == EPCGExBoxCheckMode::Box) { return Box.IsInsideOrOn(LocalBox); }
 			else if constexpr (Mode == EPCGExBoxCheckMode::ExpandedBox) { return BoxExpanded.IsInsideOrOn(LocalBox); }
-#endif
 			else if constexpr (Mode == EPCGExBoxCheckMode::Sphere)
 			{
 				if (FMath::SphereAABBIntersection(FVector::ZeroVector, RadiusSquared, LocalBox) ||
@@ -400,13 +386,8 @@ namespace PCGExGeo
 		bool IsInsideOrIntersects(const FPCGPoint& Point) const
 		{
 			PCGEX_TRANSFORM_LOCALBOUNDS_T
-#if PCGEX_ENGINE_VERSION <= 503
-			if constexpr (Mode == EPCGExBoxCheckMode::Box) { return Box.IsInside(LocalBox) || Box.Intersect(LocalBox);; }
-			else if constexpr (Mode == EPCGExBoxCheckMode::ExpandedBox) { return BoxExpanded.IsInside(LocalBox) || BoxExpanded.Intersect(LocalBox); }
-#else
 			if constexpr (Mode == EPCGExBoxCheckMode::Box) { return Box.IsInsideOrOn(LocalBox) || Box.Intersect(LocalBox); }
 			else if constexpr (Mode == EPCGExBoxCheckMode::ExpandedBox) { return BoxExpanded.IsInsideOrOn(LocalBox) || BoxExpanded.Intersect(LocalBox); }
-#endif
 			else if constexpr (Mode == EPCGExBoxCheckMode::Sphere)
 			{
 				if (FMath::SphereAABBIntersection(FVector::ZeroVector, RadiusSquared, LocalBox) ||
@@ -712,22 +693,14 @@ namespace PCGExGeo
 		bool IsInsideOrOnCloud(const FPCGPoint& Point) const
 		{
 			const FBox PtBox = PCGExMath::GetLocalBounds<S>(Point).TransformBy(Point.Transform.ToMatrixNoScale());
-#if PCGEX_ENGINE_VERSION <= 503
-			return PtBox.IsInside(CloudBounds);
-#else
 			return PtBox.IsInsideOrOn(CloudBounds);
-#endif
 		}
 
 		template <EPCGExPointBoundsSource S = EPCGExPointBoundsSource::ScaledBounds, EPCGExBoxCheckMode Mode = EPCGExBoxCheckMode::Box>
 		bool IsInsideOrIntersectsCloud(const FPCGPoint& Point) const
 		{
 			const FBox PtBox = PCGExMath::GetLocalBounds<S>(Point).TransformBy(Point.Transform.ToMatrixNoScale());
-#if PCGEX_ENGINE_VERSION <= 503
-			return PtBox.IsInside(CloudBounds) || PtBox.Intersect(CloudBounds);
-#else
 			return PtBox.IsInsideOrOn(CloudBounds) || PtBox.Intersect(CloudBounds);
-#endif
 		}
 
 #undef PCGEX_POINT_BOUNDS_CHECK

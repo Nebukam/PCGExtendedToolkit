@@ -79,11 +79,7 @@ namespace PCGEx
 				TSharedRef<PCGExData::FPointIO> PointIORef = PointIO.ToSharedRef();
 				for (const FName& AssetAttributeName : AttributeNames)
 				{
-#if PCGEX_ENGINE_VERSION <= 503
-					PCGEX_MAKE_SHARED(Broadcaster, TAttributeBroadcaster<FString>)
-#else
 					PCGEX_MAKE_SHARED(Broadcaster, TAttributeBroadcaster<FSoftObjectPath>)
-#endif
 
 					if (!Broadcaster->Prepare(AssetAttributeName, PointIORef))
 					{
@@ -189,40 +185,6 @@ namespace PCGEx
 		}
 	};
 
-#if PCGEX_ENGINE_VERSION <= 503
-	template <typename T>
-	class TDiscoverAssetsTask final : public PCGExMT::FTask
-	{
-	public:
-		PCGEX_ASYNC_TASK_NAME(TDiscoverAssetsTask)
-		
-		TDiscoverAssetsTask(const TSharedPtr<TAssetLoader<T>>& InLoader,
-		                    const TSharedPtr<TAttributeBroadcaster<FString>>& InBroadcaster) :
-			FTask(),
-			Loader(InLoader),
-			Broadcaster(InBroadcaster)
-		{
-		}
-
-		TSharedPtr<TAssetLoader<T>> Loader;
-		TSharedPtr<TAttributeBroadcaster<FString>> Broadcaster;
-
-		virtual void ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager) override
-		{
-			Broadcaster->Grab(false);
-
-			TSet<FSoftObjectPath> UniquePaths;
-			for (const FString& Path : Broadcaster->Values)
-			{
-				FSoftObjectPath PathTemp = FSoftObjectPath(Path);
-				if (!PathTemp.IsAsset()) { continue; }
-				UniquePaths.Add(PathTemp);
-			}
-
-			Loader->AddUniquePaths(UniquePaths);
-		}
-	};
-#else
 	template <typename T>
 	class TDiscoverAssetsTask final : public PCGExMT::FTask
 	{
@@ -254,5 +216,4 @@ namespace PCGEx
 			Loader->AddUniquePaths(UniquePaths);
 		}
 	};
-#endif
 }

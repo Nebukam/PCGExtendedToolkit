@@ -15,17 +15,6 @@
 
 #include "PCGExSampleNearestSurface.generated.h"
 
-#if PCGEX_ENGINE_VERSION <= 503
-#define PCGEX_FOREACH_FIELD_NEARESTSURFACE(MACRO)\
-MACRO(Success, bool, false)\
-MACRO(Location, FVector, FVector::ZeroVector)\
-MACRO(LookAt, FVector, FVector::OneVector)\
-MACRO(Normal, FVector, FVector::OneVector)\
-MACRO(IsInside, bool, false)\
-MACRO(Distance, double, 0)\
-MACRO(ActorReference, FString, TEXT(""))\
-MACRO(PhysMat, FString, TEXT(""))
-#else
 #define PCGEX_FOREACH_FIELD_NEARESTSURFACE(MACRO)\
 MACRO(Success, bool, false)\
 MACRO(Location, FVector, FVector::ZeroVector)\
@@ -35,7 +24,6 @@ MACRO(IsInside, bool, false)\
 MACRO(Distance, double, 0)\
 MACRO(ActorReference, FSoftObjectPath, FSoftObjectPath())\
 MACRO(PhysMat, FSoftObjectPath, FSoftObjectPath())
-#endif
 
 class UPCGExFilterFactoryData;
 

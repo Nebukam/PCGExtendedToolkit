@@ -110,21 +110,13 @@ PCGEX_FOREACH_PACKER(PCGEX_SET_ATT_IMPL)
 
 bool UPCGExCustomActorDataPacker::InitSoftObjectPath(const FName& InAttributeName, const FSoftObjectPath& InValue)
 {
-#if PCGEX_ENGINE_VERSION <= 503
-	TSharedPtr<PCGExData::TBuffer<FString>> Buffer = WriteBuffers->GetBuffer<FString>(InAttributeName, InValue.ToString());
-#else
 	TSharedPtr<PCGExData::TBuffer<FSoftObjectPath>> Buffer = WriteBuffers->GetBuffer<FSoftObjectPath>(InAttributeName, InValue);
-#endif
 	return Buffer ? true : false;
 }
 
 bool UPCGExCustomActorDataPacker::InitSoftClassPath(const FName& InAttributeName, const FSoftClassPath& InValue)
 {
-#if PCGEX_ENGINE_VERSION <= 503
-	TSharedPtr<PCGExData::TBuffer<FString>> Buffer = WriteBuffers->GetBuffer<FString>(InAttributeName, InValue.ToString());
-#else
 	TSharedPtr<PCGExData::TBuffer<FSoftClassPath>> Buffer = WriteBuffers->GetBuffer<FSoftClassPath>(InAttributeName, InValue);
-#endif
 	return Buffer ? true : false;
 }
 
@@ -153,7 +145,7 @@ void UPCGExCustomActorDataPacker::PreloadObjectPaths(const FName& InAttributeNam
 			for (const FString& V : Values) { RequiredAssetsPaths.Add(FSoftObjectPath(V)); }
 		}
 	}
-#if PCGEX_ENGINE_VERSION > 503
+
 	if (Identity->UnderlyingType == EPCGMetadataTypes::SoftObjectPath)
 	{
 		if (TSharedPtr<PCGExData::TBuffer<FSoftObjectPath>> Buffer = ReadBuffers->GetBuffer<FSoftObjectPath>(InAttributeName))
@@ -162,7 +154,6 @@ void UPCGExCustomActorDataPacker::PreloadObjectPaths(const FName& InAttributeNam
 			for (const FSoftObjectPath& V : Values) { RequiredAssetsPaths.Add(V); }
 		}
 	}
-#endif
 }
 
 #define PCGEX_SET_ATT_IMPL(_NAME, _TYPE)\
@@ -173,20 +164,12 @@ PCGEX_FOREACH_PACKER(PCGEX_SET_ATT_IMPL)
 
 bool UPCGExCustomActorDataPacker::WriteSoftObjectPath(const FName& InAttributeName, const int32 InPointIndex, const FSoftObjectPath& InValue)
 {
-#if PCGEX_ENGINE_VERSION <= 503
-	return WriteBuffers->SetValue<FString>(InAttributeName, InPointIndex, InValue.ToString());
-#else
 	return WriteBuffers->SetValue<FSoftObjectPath>(InAttributeName, InPointIndex, InValue);
-#endif
 }
 
 bool UPCGExCustomActorDataPacker::WriteSoftClassPath(const FName& InAttributeName, const int32 InPointIndex, const FSoftClassPath& InValue)
 {
-#if PCGEX_ENGINE_VERSION <= 503
-	return WriteBuffers->SetValue<FString>(InAttributeName, InPointIndex, InValue.ToString());
-#else
 	return WriteBuffers->SetValue<FSoftClassPath>(InAttributeName, InPointIndex, InValue);
-#endif
 }
 
 #define PCGEX_SET_ATT_IMPL(_NAME, _TYPE)\
@@ -197,32 +180,12 @@ PCGEX_FOREACH_PACKER(PCGEX_SET_ATT_IMPL)
 
 bool UPCGExCustomActorDataPacker::ReadSoftObjectPath(const FName& InAttributeName, const int32 InPointIndex, FSoftObjectPath& OutValue)
 {
-#if PCGEX_ENGINE_VERSION <= 503
-	FString TempStr = TEXT("");
-	if (ReadBuffers->GetValue<FString>(InAttributeName, InPointIndex, TempStr))
-	{
-		OutValue = FSoftObjectPath(TempStr);
-		return OutValue.IsValid();
-	}
-	return false;
-#else
 	return ReadBuffers->GetValue<FSoftObjectPath>(InAttributeName, InPointIndex, OutValue);
-#endif
 }
 
 bool UPCGExCustomActorDataPacker::ReadSoftClassPath(const FName& InAttributeName, const int32 InPointIndex, FSoftClassPath& OutValue)
 {
-#if PCGEX_ENGINE_VERSION <= 503
-	FString TempStr = TEXT("");
-	if (ReadBuffers->GetValue<FString>(InAttributeName, InPointIndex, TempStr))
-	{
-		OutValue = FSoftClassPath(TempStr);
-		return OutValue.IsValid();
-	}
-	return false;
-#else
 	return ReadBuffers->GetValue<FSoftClassPath>(InAttributeName, InPointIndex, OutValue);
-#endif
 }
 
 void UPCGExCustomActorDataPacker::ResolveObjectPath(const FName& InAttributeName, const int32 InPointIndex, TSubclassOf<UObject> OutObjectClass, UObject*& OutObject, bool& OutIsValid)
@@ -349,9 +312,7 @@ namespace PCGExPackActorDatas
 		Packer->WriteBuffers = MakeShared<PCGExData::TBufferHelper<PCGExData::EBufferHelperMode::Write>>(PointDataFacade);
 		Packer->ReadBuffers = MakeShared<PCGExData::TBufferHelper<PCGExData::EBufferHelperMode::Read>>(PointDataFacade);
 
-#if PCGEX_ENGINE_VERSION > 503
 		Packer->bIsPreviewMode = ExecutionContext->GetComponent()->IsInPreviewMode();
-#endif
 
 		PointDataFacade->Source->bAllowEmptyOutput = !Settings->bOmitEmptyOutputs;
 

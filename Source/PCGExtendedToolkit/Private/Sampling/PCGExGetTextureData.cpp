@@ -205,22 +205,10 @@ void FPCGExGetTextureDataContext::AdvanceProcessing(const int32 Index)
 
 #pragma region Regular Texture
 
-#if PCGEX_ENGINE_VERSION <= 503
-		TSoftObjectPtr<UTexture2D> Texture2D = TSoftObjectPtr<UTexture2D>(Ref.TexturePath);
-		if(!Texture2D.Get() || !UPCGTextureData::IsSupported(Texture2D.Get()))
-		{
-			MoveToNextTask();
-			return;
-		}
-#endif
-
 		TexData = ManagedObjects->New<UPCGTextureData>();
 		TextureDataList[Index] = TexData;
 
-#if PCGEX_ENGINE_VERSION <= 503
-		TexData->Initialize(TSoftObjectPtr<UTexture2D>(Ref.TexturePath).Get(), Transform);
-		TextureReady[Index] = true;
-#elif PCGEX_ENGINE_VERSION == 504
+#if PCGEX_ENGINE_VERSION == 504
 		auto PostInitializeCallback = [&]() { TextureReady[Index] = true; };
 		TexData->Initialize(Texture.Get(), Ref.TextureIndex, Transform, PostInitializeCallback);
 #elif PCGEX_ENGINE_VERSION >= 505
@@ -305,11 +293,7 @@ namespace PCGExGetTextureData
 			}
 		}
 
-#if PCGEX_ENGINE_VERSION == 503
-		PathGetter = PointDataFacade->GetScopedBroadcaster<FString>(Settings->SourceAttributeName);
-#else
 		PathGetter = PointDataFacade->GetScopedBroadcaster<FSoftObjectPath>(Settings->SourceAttributeName);
-#endif
 
 		if (!PathGetter)
 		{

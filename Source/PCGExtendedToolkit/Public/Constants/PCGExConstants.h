@@ -39,10 +39,7 @@ public:
 	FName GetEnumName() const;
 
 	virtual bool OnlyExposePreconfiguredSettings() const override { return true; };
-
-#if PCGEX_ENGINE_VERSION > 503
 	virtual bool CanUserEditTitle() const override { return false; }
-#endif
 	virtual TArray<FPCGPreConfiguredSettingsInfo> GetPreconfiguredInfo() const override;
 #endif
 

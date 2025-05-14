@@ -157,9 +157,7 @@ namespace PCGExTopologyEdges
 
 			if (!PCGExClusterMT::TProcessor<TContext, TSettings>::Process(InAsyncManager)) { return false; }
 
-#if PCGEX_ENGINE_VERSION > 503
 			bIsPreviewMode = ExecutionContext->GetComponent()->IsInPreviewMode();
-#endif
 
 			CellsConstraints = MakeShared<PCGExTopology::FCellConstraints>(Settings->Constraints);
 			if (Settings->Constraints.bOmitWrappingBounds) { CellsConstraints->BuildWrapperCell(Cluster.ToSharedRef(), *ProjectedPositions); }

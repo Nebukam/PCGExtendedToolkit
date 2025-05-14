@@ -155,9 +155,7 @@ namespace PCGExPathSplineMesh
 
 		PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::Duplicate)
 
-#if PCGEX_ENGINE_VERSION > 503
 		bIsPreviewMode = ExecutionContext->GetComponent()->IsInPreviewMode();
-#endif
 
 		Justification = Settings->Justification;
 		Justification.Init(ExecutionContext, PointDataFacade);
@@ -236,12 +234,7 @@ namespace PCGExPathSplineMesh
 			NormalizedWeightWriter = PointDataFacade->GetWritable<double>(Settings->WeightAttributeName, PCGExData::EBufferInit::New);
 		}
 
-#if PCGEX_ENGINE_VERSION > 503
 		PathWriter = PointDataFacade->GetWritable<FSoftObjectPath>(Settings->AssetPathAttributeName, PCGExData::EBufferInit::New);
-#else
-		PathWriter = PointDataFacade->GetWritable<FString>(Settings->AssetPathAttributeName, PCGExData::EBufferInit::New);
-#endif
-
 		DataTags = PointDataFacade->Source->Tags->FlattenToArrayOfNames();
 
 		StartParallelLoopForPoints();
@@ -264,11 +257,7 @@ namespace PCGExPathSplineMesh
 	{
 		auto InvalidPoint = [&]()
 		{
-#if PCGEX_ENGINE_VERSION > 503
 			PathWriter->GetMutable(Index) = FSoftObjectPath{};
-#else
-			PathWriter->GetMutable(Index) = TEXT("");
-#endif
 
 			if (bOutputWeight)
 			{
@@ -328,11 +317,7 @@ namespace PCGExPathSplineMesh
 			else { Point.Density = Weight; }
 		}
 
-#if PCGEX_ENGINE_VERSION > 503
 		PathWriter->GetMutable(Index) = MeshEntry->Staging.Path;
-#else
-		PathWriter->GetMutable(Index) = MeshEntry->Staging.Path.ToString();
-#endif
 
 		//
 

@@ -38,31 +38,6 @@ MACRO(Z)
 #define PCGEX_CONSUMABLE_SELECTOR_C(_CONTEXT, _SELECTOR, _NAME) if (PCGExHelpers::TryGetAttributeName(_SELECTOR, InData, _NAME)) { _CONTEXT->AddConsumableAttributeName(_NAME); }
 #define PCGEX_CONSUMABLE_CONDITIONAL(_CONDITION, _SELECTOR, _NAME) if (_CONDITION && PCGExHelpers::TryGetAttributeName(_SELECTOR, InData, _NAME)) { InContext->AddConsumableAttributeName(_NAME); }
 
-#if PCGEX_ENGINE_VERSION <= 503
-enum class EPCGPinStatus : uint8
-{
-	Normal = 0,
-	Required,
-	Advanced
-};
-#endif
-
-#if PCGEX_ENGINE_VERSION <= 503
-#define PCGEX_FOREACH_SUPPORTEDTYPES(MACRO, ...) \
-MACRO(bool, Boolean, __VA_ARGS__)       \
-MACRO(int32, Integer32, __VA_ARGS__)      \
-MACRO(int64, Integer64, __VA_ARGS__)      \
-MACRO(float, Float, __VA_ARGS__)      \
-MACRO(double, Double, __VA_ARGS__)     \
-MACRO(FVector2D, Vector2, __VA_ARGS__)  \
-MACRO(FVector, Vector, __VA_ARGS__)    \
-MACRO(FVector4, Vector4, __VA_ARGS__)   \
-MACRO(FQuat, Quaternion, __VA_ARGS__)      \
-MACRO(FRotator, Rotator, __VA_ARGS__)   \
-MACRO(FTransform, Transform, __VA_ARGS__) \
-MACRO(FString, String, __VA_ARGS__)    \
-MACRO(FName, Name, __VA_ARGS__)
-#else
 #define PCGEX_FOREACH_SUPPORTEDTYPES(MACRO, ...) \
 MACRO(bool, Boolean, __VA_ARGS__)       \
 MACRO(int32, Integer32, __VA_ARGS__)      \
@@ -79,7 +54,6 @@ MACRO(FString, String, __VA_ARGS__)    \
 MACRO(FName, Name, __VA_ARGS__)\
 MACRO(FSoftObjectPath, SoftObjectPath, __VA_ARGS__)\
 MACRO(FSoftClassPath, SoftClassPath, __VA_ARGS__)
-#endif
 
 /**
  * Enum, Point.[Getter]
@@ -197,13 +171,7 @@ virtual FName GetDefaultNodeName() const override { return FName(TEXT("PCGEx"#_S
 virtual FName AdditionalTaskName() const override{ FString A = TEXT(""); return FName(A + GetDefaultNodeTitle().ToString()); }\
 virtual FText GetDefaultNodeTitle() const override { FString A = TEXT(""); A += TEXT("PCGEx | "); A += (bCleanupConsumableAttributes ? TEXT("🗑️ ") : TEXT("")); A += TEXT(_NAME); return FTEXT(A);} \
 virtual FText GetNodeTooltipText() const override{ return FTEXT(_TOOLTIP); }
-#if PCGEX_ENGINE_VERSION <= 503
-#define PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(_SHORTNAME, _NAME, _TOOLTIP, _TASK_NAME)\
-virtual FName GetDefaultNodeName() const override { return FName(TEXT(#_SHORTNAME)); } \
-virtual FName AdditionalTaskName() const override{ FString A = TEXT(""); return _TASK_NAME.IsNone() ? FName(A + GetDefaultNodeTitle().ToString()) : FName(A + FString(GetDefaultNodeTitle().ToString() + "\r" + _TASK_NAME.ToString())); }\
-virtual FText GetDefaultNodeTitle() const override { FString A = TEXT(""); A += TEXT("PCGEx | ");  A += (bCleanupConsumableAttributes ? TEXT("🗑️ ") : TEXT("")); A += TEXT(_NAME); return FTEXT(A);} \
-virtual FText GetNodeTooltipText() const override{ return FTEXT(_TOOLTIP); } 
-#else
+
 #define PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(_SHORTNAME, _NAME, _TOOLTIP, _TASK_NAME)\
 virtual FName GetDefaultNodeName() const override { return FName(TEXT(#_SHORTNAME)); } \
 virtual FName AdditionalTaskName() const override{ FString A = TEXT(""); return FName(A + GetDefaultNodeTitle().ToString()); }\
@@ -211,7 +179,6 @@ virtual FString GetAdditionalTitleInformation() const override{ FName N = _TASK_
 virtual bool HasFlippedTitleLines() const { FName N = _TASK_NAME; return !N.IsNone(); }\
 virtual FText GetDefaultNodeTitle() const override { FString A = TEXT(""); A += TEXT("PCGEx | ");  A += (bCleanupConsumableAttributes ? TEXT("🗑️ ") : TEXT("")); A += TEXT(_NAME); return FTEXT(A);} \
 virtual FText GetNodeTooltipText() const override{ return FTEXT(_TOOLTIP); }
-#endif
 
 #define PCGEX_NODE_POINT_FILTER(_LABEL, _TOOLTIP, _TYPE, _REQUIRED) \
 virtual FName GetPointFilterPin() const override { return _LABEL; } \
@@ -255,11 +222,7 @@ case EPCGExOptionState::Disabled: return false; }
 #define PCGEX_PIN_TOOLTIP(_TOOLTIP) {}
 #endif
 
-#if PCGEX_ENGINE_VERSION > 503
 #define PCGEX_PIN_STATUS(_STATUS) Pin.PinStatus = EPCGPinStatus::_STATUS;
-#else
-#define PCGEX_PIN_STATUS(_STATUS) Pin.bAdvancedPin = EPCGPinStatus::_STATUS == EPCGPinStatus::Advanced;
-#endif
 
 #define PCGEX_PIN_ANY(_LABEL, _TOOLTIP, _STATUS, _EXTRA) { FPCGPinProperties& Pin = PinProperties.Emplace_GetRef(_LABEL, EPCGDataType::Any); PCGEX_PIN_TOOLTIP(_TOOLTIP) PCGEX_PIN_STATUS(_STATUS) _EXTRA }
 #define PCGEX_PIN_POINTS(_LABEL, _TOOLTIP, _STATUS, _EXTRA) { FPCGPinProperties& Pin = PinProperties.Emplace_GetRef(_LABEL, EPCGDataType::Point); PCGEX_PIN_TOOLTIP(_TOOLTIP) PCGEX_PIN_STATUS(_STATUS) _EXTRA }

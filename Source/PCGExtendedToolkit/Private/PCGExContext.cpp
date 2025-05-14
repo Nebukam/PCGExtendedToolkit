@@ -36,7 +36,6 @@ void FPCGExContext::StageOutput(const FName Pin, UPCGData* InData, const TSet<FS
 	if (bManaged) { ManagedObjects->Add(InData); }
 	if (bIsMutable && bCleanupConsumableAttributes)
 	{
-#if PCGEX_ENGINE_VERSION > 503
 		if (UPCGMetadata* Metadata = InData->MutableMetadata())
 		{
 			for (const FName ConsumableName : ConsumableAttributesSet)
@@ -45,16 +44,6 @@ void FPCGExContext::StageOutput(const FName Pin, UPCGData* InData, const TSet<FS
 				Metadata->DeleteAttribute(ConsumableName);
 			}
 		}
-#else
-		if(const UPCGSpatialData* SpatialData = Cast<UPCGSpatialData>(InData); SpatialData->Metadata)
-		{
-			for (const FName ConsumableName : ConsumableAttributesSet)
-			{
-				if (!SpatialData->Metadata->HasAttribute(ConsumableName) || !ProtectedAttributesSet.Contains(ConsumableName)) { continue; }
-				SpatialData->Metadata->DeleteAttribute(ConsumableName);
-			}
-		}
-#endif
 	}
 }
 
@@ -344,10 +333,7 @@ UPCGManagedComponent* FPCGExContext::AttachManagedComponent(AActor* InParent, UA
 {
 	UPCGComponent* SrcComp = SourceComponent.Get();
 
-	bool bIsPreviewMode = false;
-#if PCGEX_ENGINE_VERSION > 503
-	bIsPreviewMode = SrcComp->IsInPreviewMode();
-#endif
+	const bool bIsPreviewMode = SrcComp->IsInPreviewMode();
 
 	if (!ManagedObjects->Remove(InComponent))
 	{
@@ -407,7 +393,7 @@ void FPCGExContext::AddProtectedAttributeName(const FName InName)
 
 void FPCGExContext::EDITOR_TrackPath(const FSoftObjectPath& Path, const bool bIsCulled) const
 {
-#if WITH_EDITOR && PCGEX_ENGINE_VERSION > 503
+#if WITH_EDITOR
 	if (UPCGComponent* PCGComponent = GetMutableComponent())
 	{
 		TPair<FPCGSelectionKey, bool> NewPair(FPCGSelectionKey::CreateFromPath(Path), bIsCulled);
@@ -418,7 +404,7 @@ void FPCGExContext::EDITOR_TrackPath(const FSoftObjectPath& Path, const bool bIs
 
 void FPCGExContext::EDITOR_TrackClass(const TSubclassOf<UObject>& InSelectionClass, bool bIsCulled) const
 {
-#if WITH_EDITOR && PCGEX_ENGINE_VERSION > 503
+#if WITH_EDITOR
 	if (UPCGComponent* PCGComponent = GetMutableComponent())
 	{
 		TPair<FPCGSelectionKey, bool> NewPair(FPCGSelectionKey(InSelectionClass), bIsCulled);

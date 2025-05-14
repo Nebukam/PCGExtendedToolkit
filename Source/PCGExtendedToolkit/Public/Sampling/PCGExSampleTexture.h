@@ -89,7 +89,7 @@ class FPCGExSampleTextureElement final : public FPCGExPointsProcessorElement
 {
 protected:
 	PCGEX_ELEMENT_CREATE_CONTEXT(SampleTexture)
-	
+
 	virtual bool Boot(FPCGExContext* InContext) const override;
 	virtual bool ExecuteInternal(FPCGContext* Context) const override;
 };
@@ -135,10 +135,6 @@ namespace PCGExSampleTexture
 
 		virtual bool Sample(const int32 Index, FPCGPoint& Point, const FVector2D& UV) const override
 		{
-#if PCGEX_ENGINE_VERSION == 503
-			// No supported :(
-			return false;
-#else
 			FVector4 SampledValue = FVector4::Zero();
 			float SampledDensity = 1;
 
@@ -172,7 +168,6 @@ namespace PCGExSampleTexture
 			{
 				return false;
 			}
-#endif
 		}
 	};
 

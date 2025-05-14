@@ -54,23 +54,13 @@ namespace PCGExStaging
 		void PackToDataset(const UPCGParamData* InAttributeSet)
 		{
 			FPCGMetadataAttribute<int32>* CollectionIdx = InAttributeSet->Metadata->FindOrCreateAttribute<int32>(Tag_CollectionIdx, 0, false, true, true);
-
-#if PCGEX_ENGINE_VERSION > 503
 			FPCGMetadataAttribute<FSoftObjectPath>* CollectionPath = InAttributeSet->Metadata->FindOrCreateAttribute<FSoftObjectPath>(Tag_CollectionPath, FSoftObjectPath(), false, true, true);
-#else
-			FPCGMetadataAttribute<FString>* CollectionPath = InAttributeSet->Metadata->FindOrCreateAttribute<FString>(Tag_CollectionPath, TEXT(""), false, true, true);
-#endif
 
 			for (const TPair<const UPCGExAssetCollection*, uint32>& Pair : CollectionMap)
 			{
 				const int64 Key = InAttributeSet->Metadata->AddEntry();
 				CollectionIdx->SetValue(Key, Pair.Value);
-
-#if PCGEX_ENGINE_VERSION > 503
 				CollectionPath->SetValue(Key, FSoftObjectPath(Pair.Key));
-#else
-				CollectionPath->SetValue(Key, FSoftObjectPath(Pair.Key).ToString());
-#endif
 			}
 		}
 	};
@@ -90,18 +80,7 @@ namespace PCGExStaging
 		bool UnpackDataset(FPCGContext* InContext, const UPCGParamData* InAttributeSet)
 		{
 			const UPCGMetadata* Metadata = InAttributeSet->Metadata;
-
-#if PCGEX_ENGINE_VERSION > 503
 			TUniquePtr<FPCGAttributeAccessorKeysEntries> Keys = MakeUnique<FPCGAttributeAccessorKeysEntries>(Metadata);
-#else
-			const TSharedPtr<PCGEx::FAttributesInfos> Infos = PCGEx::FAttributesInfos::Get(Metadata);
-			if (Infos->Attributes.IsEmpty())
-			{
-				PCGE_LOG_C(Error, GraphAndLog, InContext, FTEXT("Missing required attributes."));
-				return false;
-			}
-			TUniquePtr<FPCGAttributeAccessorKeysEntries> Keys = MakeUnique<FPCGAttributeAccessorKeysEntries>(Infos->Attributes[0]); // Probably not reliable, but make 5.3 compile -_-
-#endif
 
 			const int32 NumEntries = Keys->GetNum();
 			if (NumEntries == 0)
@@ -113,12 +92,7 @@ namespace PCGExStaging
 			CollectionMap.Reserve(CollectionMap.Num() + NumEntries);
 
 			const FPCGMetadataAttribute<int32>* CollectionIdx = InAttributeSet->Metadata->GetConstTypedAttribute<int32>(Tag_CollectionIdx);
-
-#if PCGEX_ENGINE_VERSION > 503
 			const FPCGMetadataAttribute<FSoftObjectPath>* CollectionPath = InAttributeSet->Metadata->GetConstTypedAttribute<FSoftObjectPath>(Tag_CollectionPath);
-#else
-			const FPCGMetadataAttribute<FString>* CollectionPath = InAttributeSet->Metadata->GetConstTypedAttribute<FString>(Tag_CollectionPath);
-#endif
 
 			if (!CollectionIdx || !CollectionPath)
 			{
@@ -130,11 +104,7 @@ namespace PCGExStaging
 			{
 				int32 Idx = CollectionIdx->GetValueFromItemKey(i);
 
-#if PCGEX_ENGINE_VERSION > 503
 				C* Collection = PCGExHelpers::LoadBlocking_AnyThread<C>(TSoftObjectPtr<C>(CollectionPath->GetValueFromItemKey(i)));
-#else
-				C* Collection = PCGExHelpers::LoadBlocking_AnyThread<C>(nullptr, FSoftObjectPath(CollectionPath->GetValueFromItemKey(i)));
-#endif
 
 				if (!Collection)
 				{

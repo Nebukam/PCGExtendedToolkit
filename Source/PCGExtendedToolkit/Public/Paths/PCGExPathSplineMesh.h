@@ -151,9 +151,9 @@ public:
 
 protected:
 	PCGEX_CAN_ONLY_EXECUTE_ON_MAIN_THREAD(true)
-	
+
 	PCGEX_ELEMENT_CREATE_CONTEXT(PathSplineMesh)
-	
+
 	virtual bool Boot(FPCGExContext* InContext) const override;
 	virtual void PostLoadAssetsDependencies(FPCGExContext* InContext) const override;
 	virtual bool PostBoot(FPCGExContext* InContext) const override;
@@ -193,11 +193,7 @@ namespace PCGExPathSplineMesh
 
 		TArray<FName> DataTags;
 
-#if PCGEX_ENGINE_VERSION > 503
 		TSharedPtr<PCGExData::TBuffer<FSoftObjectPath>> PathWriter;
-#else
-		TSharedPtr<PCGExData::TBuffer<FString>> PathWriter;
-#endif
 
 		TArray<PCGExPaths::FSplineMeshSegment> Segments;
 

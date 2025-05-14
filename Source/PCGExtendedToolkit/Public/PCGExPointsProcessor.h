@@ -49,14 +49,7 @@ class PCGEXTENDEDTOOLKIT_API UPCGExPointsProcessorSettings : public UPCGSettings
 public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
-	virtual EPCGSettingsType GetType() const override
-	{
-#if PCGEX_ENGINE_VERSION > 503
-		return EPCGSettingsType::PointOps;
-#else
-		return EPCGSettingsType::Spatial;
-#endif
-	}
+	virtual EPCGSettingsType GetType() const override { return EPCGSettingsType::PointOps; }
 
 	virtual bool GetPinExtraIcon(const UPCGPin* InPin, FName& OutExtraIcon, FText& OutTooltip) const override;
 #endif
@@ -249,7 +242,7 @@ class PCGEXTENDEDTOOLKIT_API FPCGExPointsProcessorElement : public IPCGElement
 {
 public:
 	virtual bool PrepareDataInternal(FPCGContext* Context) const override;
-	
+
 #if PCGEX_ENGINE_VERSION <= 505
 	virtual FPCGContext* Initialize(const FPCGDataCollection& InputData, TWeakObjectPtr<UPCGComponent> SourceComponent, const UPCGNode* Node) override;
 #else
@@ -264,20 +257,14 @@ public:
 	virtual void DisabledPassThroughData(FPCGContext* Context) const override;
 
 protected:
-
-#if PCGEX_ENGINE_VERSION <= 503
-	virtual FPCGContext* CreateContext();
-#else
 	virtual FPCGContext* CreateContext() override;
-#endif
-	
+
 	virtual void OnContextInitialized(FPCGExPointsProcessorContext* InContext) const;
 
 	virtual bool Boot(FPCGExContext* InContext) const;
 	virtual void PostLoadAssetsDependencies(FPCGExContext* InContext) const;
 	virtual bool PostBoot(FPCGExContext* InContext) const;
-#if PCGEX_ENGINE_VERSION > 503
 	virtual void AbortInternal(FPCGContext* Context) const override;
-#endif
+
 	PCGEX_CAN_ONLY_EXECUTE_ON_MAIN_THREAD(true) // TODO : Proper refactor to support native multithreading
 };
