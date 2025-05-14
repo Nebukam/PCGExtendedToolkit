@@ -185,7 +185,11 @@ namespace PCGExData
 									else { TypedProxy->SetConstant(Pt._ACCESSOR); } \
 									break;
 
-									switch (InDescriptor.Selector.GetPointProperty()) { PCGEX_FOREACH_POINTPROPERTY(PCGEX_SET_CONST) }
+									switch (InDescriptor.Selector.GetPointProperty())
+									{
+									PCGEX_FOREACH_POINTPROPERTY(PCGEX_SET_CONST)
+									default: break;
+									}
 #undef PCGEX_SET_CONST
 								}
 							}
@@ -282,7 +286,11 @@ namespace PCGExData
 						else { OutProxy = MakeShared<TPointPropertyProxy<_TYPE, T_WORKING, false, _PROPERTY>>(); } \
 						break;
 
-							switch (InDescriptor.Selector.GetPointProperty()) { PCGEX_FOREACH_POINTPROPERTY(PCGEX_DECL_PROXY) }
+							switch (InDescriptor.Selector.GetPointProperty())
+							{
+							PCGEX_FOREACH_POINTPROPERTY(PCGEX_DECL_PROXY)
+							default: break;
+							}
 #undef PCGEX_DECL_PROXY
 						}
 						else

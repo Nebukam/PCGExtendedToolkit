@@ -392,7 +392,11 @@ namespace PCGEx
 	else{ for (int i = Scope.Start; i < Scope.End; i++) { Dump[i] = PCGEx::Convert<_TYPE, T>(InPoints[i]._ACCESSOR); } } \
 	break;
 
-				switch (static_cast<EPCGPointProperties>(ProcessingInfos)) { PCGEX_FOREACH_POINTPROPERTY(PCGEX_GET_BY_ACCESSOR) }
+				switch (static_cast<EPCGPointProperties>(ProcessingInfos))
+				{
+				PCGEX_FOREACH_POINTPROPERTY(PCGEX_GET_BY_ACCESSOR)
+				default: break;
+				}
 #undef PCGEX_GET_BY_ACCESSOR
 			}
 			else if (ProcessingInfos == EPCGAttributePropertySelection::ExtraProperty)
@@ -492,7 +496,11 @@ namespace PCGEx
 					else{ for (int i = 0; i < NumPoints; i++) { Dump[i] = PCGEx::Convert<_TYPE, T>(InPoints[i]._ACCESSOR); } } \
 				} break;
 
-				switch (static_cast<EPCGPointProperties>(ProcessingInfos)) { PCGEX_FOREACH_POINTPROPERTY(PCGEX_GET_BY_ACCESSOR) }
+				switch (static_cast<EPCGPointProperties>(ProcessingInfos))
+				{
+				PCGEX_FOREACH_POINTPROPERTY(PCGEX_GET_BY_ACCESSOR)
+				default: break;
+				}
 #undef PCGEX_GET_BY_ACCESSOR
 			}
 			else if (ProcessingInfos == EPCGAttributePropertySelection::ExtraProperty)
@@ -547,7 +555,11 @@ namespace PCGEx
 #define PCGEX_GET_BY_ACCESSOR(_ENUM, _ACCESSOR, _TYPE) case _ENUM: \
 				if (S.bIsValid) { for (int i = 0; i < NumPoints; i++) { Dump.Add(S.Get<_TYPE, T>(InPoints[i]._ACCESSOR)); } } \
 				else{ for (int i = 0; i < NumPoints; i++) { Dump.Add(PCGEx::Convert<_TYPE, T>(InPoints[i]._ACCESSOR)); } } break;
-				switch (static_cast<EPCGPointProperties>(ProcessingInfos)) { PCGEX_FOREACH_POINTPROPERTY(PCGEX_GET_BY_ACCESSOR) }
+				switch (static_cast<EPCGPointProperties>(ProcessingInfos))
+				{
+				PCGEX_FOREACH_POINTPROPERTY(PCGEX_GET_BY_ACCESSOR)
+				default: break;
+				}
 #undef PCGEX_GET_BY_ACCESSOR
 			}
 			else if (ProcessingInfos == EPCGAttributePropertySelection::ExtraProperty)
@@ -609,7 +621,11 @@ namespace PCGEx
 					});
 			case EPCGAttributePropertySelection::PointProperty:
 #define PCGEX_GET_BY_ACCESSOR(_ENUM, _ACCESSOR, _TYPE) case _ENUM: return ProcessingInfos.SubSelection.Get<_TYPE, T>(Point._ACCESSOR); break;
-				switch (static_cast<EPCGPointProperties>(ProcessingInfos)) { PCGEX_FOREACH_POINTPROPERTY(PCGEX_GET_BY_ACCESSOR) }
+				switch (static_cast<EPCGPointProperties>(ProcessingInfos))
+				{
+				PCGEX_FOREACH_POINTPROPERTY(PCGEX_GET_BY_ACCESSOR)
+				default: break;
+				}
 #undef PCGEX_GET_BY_ACCESSOR
 			case EPCGAttributePropertySelection::ExtraProperty:
 				switch (static_cast<EPCGExtraProperties>(ProcessingInfos))
