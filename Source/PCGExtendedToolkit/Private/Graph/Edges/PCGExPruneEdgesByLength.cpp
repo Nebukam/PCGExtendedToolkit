@@ -8,6 +8,7 @@
 
 #define LOCTEXT_NAMESPACE "PCGExGraphSettings"
 
+PCGEX_INITIALIZE_CONTEXT(PruneEdgesByLength)
 FPCGElementPtr UDEPRECATED_PCGExPruneEdgesByLengthSettings::CreateElement() const { return MakeShared<FPCGExPruneEdgesByLengthElement>(); }
 
 bool FPCGExPruneEdgesByLengthElement::ExecuteInternal(FPCGContext* InContext) const

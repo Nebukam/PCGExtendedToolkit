@@ -2,8 +2,6 @@
 // Released under the MIT license https://opensource.org/license/MIT/
 
 #include "Transform/Tensors/PCGExTensor.h"
-
-#include "Transform/Tensors/PCGExTensorFactoryProvider.h"
 #include "Transform/Tensors/PCGExTensorOperation.h"
 
 PCGExTensor::FTensorSample FPCGExTensorSamplingMutationsDetails::Mutate(const FTransform& InProbe, PCGExTensor::FTensorSample InSample) const
@@ -72,47 +70,6 @@ void FPCGExTensorConfigBase::Init()
 
 namespace PCGExTensor
 {
-	bool FEffectorsArray::Init(FPCGExContext* InContext, const UPCGExTensorPointFactoryData* InFactory)
-	{
-		TSharedPtr<PCGExDetails::TSettingValue<double>> PotencyValue = InFactory->BaseConfig.GetValueSettingPotency(InFactory->bQuietMissingInputError);
-		if (!PotencyValue->Init(InContext, InFactory->InputDataFacade, false)) { return false; }
-
-		TSharedPtr<PCGExDetails::TSettingValue<double>> WeightValue = InFactory->BaseConfig.GetValueSettingWeight(InFactory->bQuietMissingInputError);
-		if (!WeightValue->Init(InContext, InFactory->InputDataFacade, false)) { return false; }
-
-		const TArray<FPCGPoint>& InPoints = InFactory->InputDataFacade->GetIn()->GetPoints();
-
-		const FBox InBounds = InFactory->InputDataFacade->GetIn()->GetBounds();
-		Octree = MakeShared<PCGEx::FIndexedItemOctree>(InBounds.GetCenter(), (InBounds.GetExtent() + FVector(10)).Length());
-
-		PCGEx::InitArray(Transforms, InPoints.Num());
-		PCGEx::InitArray(Radiuses, InPoints.Num());
-		PCGEx::InitArray(Potencies, InPoints.Num());
-		PCGEx::InitArray(Weights, InPoints.Num());
-		
-		// Pack per-point data
-		for (int i = 0; i < InPoints.Num(); i++)
-		{
-			const FPCGPoint& Effector = InPoints[i];
-
-			const FTransform& Transform = Effector.Transform;
-			Transforms[i] = Transform;
-			Potencies[i] = PotencyValue->Read(i);
-			Weights[i] = WeightValue->Read(i);
-			
-			PrepareSinglePoint(i);
-
-			Radiuses[i] = PCGExMath::GetLocalBounds<EPCGExPointBoundsSource::ScaledBounds>(Effector).GetExtent().SquaredLength();
-			Octree->AddElement(PCGEx::FIndexedItem(i, FBoxSphereBounds(PCGExMath::GetLocalBounds<EPCGExPointBoundsSource::DensityBounds>(Effector).TransformBy(Transform)))); // Fetch to max
-		}
-
-		return true;
-	}
-
-	void FEffectorsArray::PrepareSinglePoint(const int32 Index)
-	{
-	}
-
 	FTensorSample::FTensorSample(const FVector& InDirectionAndSize, const FQuat& InRotation, const int32 InEffectors, const double InWeight)
 		: DirectionAndSize(InDirectionAndSize), Rotation(InRotation), Effectors(InEffectors), Weight(InWeight)
 	{

@@ -8,9 +8,6 @@
 #include "Data/PCGExData.h"
 #include "PCGExTensor.generated.h"
 
-class UPCGExTensorPointFactoryData;
-class UPCGExTensorFactoryData;
-
 namespace PCGExTensor
 {
 	struct FTensorSample;
@@ -89,7 +86,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExTensorConfigBase
 
 	UPROPERTY(VisibleAnywhere, Category=Settings, meta=(PCG_NotOverridable, HideInDetailPanel, EditCondition="false", EditConditionHides))
 	bool bSupportMutations = false;
-	
+
 	/**  */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayPriority=-1))
 	double TensorWeight = 1;
@@ -196,34 +193,6 @@ namespace PCGExTensor
 	const FName SourceTensorsLabel = TEXT("Tensors");
 	const FName SourceEffectorsLabel = TEXT("Effectors");
 	const FName SourceTensorConfigSourceLabel = TEXT("Parent Tensor");
-
-	class FEffectorsArray : public TSharedFromThis<FEffectorsArray>
-	{
-	protected:
-		TArray<FTransform> Transforms;
-		TArray<double> Radiuses;
-		TArray<double> Potencies;
-		TArray<double> Weights;
-
-		TSharedPtr<PCGEx::FIndexedItemOctree> Octree;
-
-	public:
-		FEffectorsArray() = default;
-		virtual ~FEffectorsArray() = default;
-
-		virtual bool Init(FPCGExContext* InContext, const UPCGExTensorPointFactoryData* InFactory);
-
-	protected:
-		virtual void PrepareSinglePoint(const int32 Index);
-
-	public:
-		FORCEINLINE const PCGEx::FIndexedItemOctree* GetOctree() const { return Octree.Get(); }
-
-		const FTransform& ReadTransform(const int32 Index) const { return Transforms[Index]; }
-		double ReadRadius(const int32 Index) const { return Radiuses[Index]; }
-		double ReadPotency(const int32 Index) const { return Potencies[Index]; }
-		double ReadWeight(const int32 Index) const { return Weights[Index]; }
-	};
 
 	struct FTensorSample
 	{

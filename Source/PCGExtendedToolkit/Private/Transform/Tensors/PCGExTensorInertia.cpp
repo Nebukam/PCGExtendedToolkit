@@ -22,31 +22,31 @@ PCGExTensor::FTensorSample FPCGExTensorInertia::Sample(const int32 InSeedIndex, 
 
 	if (Config.bSetInertiaOnce)
 	{
-		auto ProcessNeighbor = [&](const PCGEx::FIndexedItem& InEffector)
+		auto ProcessNeighbor = [&](const FPCGPointRef& InEffector)
 		{
 			PCGExTensor::FEffectorMetrics Metrics;
-			if (!ComputeFactor(InPosition, InEffector.Index, Metrics)) { return; }
+			if (!ComputeFactor(InPosition, InEffector, Metrics)) { return; }
 
 			Samples.Emplace_GetRef(
 				PCGExMath::GetDirection(PrimaryDataFacade->Source->GetInPoint(InSeedIndex).Transform.GetRotation() * FRotationMatrix::MakeFromX(Metrics.Guide).ToQuat(), Config.Axis),
 				Metrics.Potency, Metrics.Weight);
 		};
 
-		Effectors->GetOctree()->FindElementsWithBoundsTest(BCAE, ProcessNeighbor);
+		Octree->FindElementsWithBoundsTest(BCAE, ProcessNeighbor);
 	}
 	else
 	{
-		auto ProcessNeighbor = [&](const PCGEx::FIndexedItem& InEffector)
+		auto ProcessNeighbor = [&](const FPCGPointRef& InEffector)
 		{
 			PCGExTensor::FEffectorMetrics Metrics;
-			if (!ComputeFactor(InPosition, InEffector.Index, Metrics)) { return; }
+			if (!ComputeFactor(InPosition, InEffector, Metrics)) { return; }
 
 			Samples.Emplace_GetRef(
 				PCGExMath::GetDirection(InProbe.GetRotation() * FRotationMatrix::MakeFromX(Metrics.Guide).ToQuat(), Config.Axis),
 				Metrics.Potency, Metrics.Weight);
 		};
 
-		Effectors->GetOctree()->FindElementsWithBoundsTest(BCAE, ProcessNeighbor);
+		Octree->FindElementsWithBoundsTest(BCAE, ProcessNeighbor);
 	}
 
 

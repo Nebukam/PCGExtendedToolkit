@@ -135,8 +135,8 @@ enum class EPCGExAssetTagInheritance : uint8
 UENUM()
 enum class EPCGExEntryVariationMode : uint8
 {
-	Local  = 0 UMETA(DisplayName = "Local", ToolTip="This entry defines its own variation settings. This can be overruled at the collection level."),
-	Global = 1 UMETA(DisplayName = "Global", ToolTip="Uses global variation settings"),
+	Local                = 0 UMETA(DisplayName = "Local", ToolTip="This entry defines its own variation settings. This can be overruled at the collection level."),
+	Global               = 1 UMETA(DisplayName = "Global", ToolTip="Uses global variation settings"),
 	//LocalGlobalFactor    = 2 UMETA(DisplayName = "Local x Global", ToolTip="Uses local variation settings multiplied by global random values (within global min/max range)"),
 	//LocalGlobalFactorMin = 3 UMETA(DisplayName = "Local x Global (Min)", ToolTip="Uses local variation settings multiplied by global min values"),
 	//LocalGlobalFactorMax = 4 UMETA(DisplayName = "Local x Global (Max)", ToolTip="Uses local variation settings multiplied by global max values"),
@@ -166,11 +166,18 @@ namespace PCGExAssetCollection
 
 	const FName SourceAssetCollection = TEXT("AttributeSet");
 
+#if PCGEX_ENGINE_VERSION > 503
 	const TSet<EPCGMetadataTypes> SupportedPathTypes = {
 		EPCGMetadataTypes::SoftObjectPath,
 		EPCGMetadataTypes::String,
 		EPCGMetadataTypes::Name
 	};
+#else
+	const TSet<EPCGMetadataTypes> SupportedPathTypes = {
+		EPCGMetadataTypes::String,
+		EPCGMetadataTypes::Name
+	};
+#endif
 
 
 	const TSet<EPCGMetadataTypes> SupportedWeightTypes = {
@@ -335,13 +342,13 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExAssetCollectionEntry
 
 	UPROPERTY(EditAnywhere, Category = Settings, meta=(DisplayPriority=-1))
 	bool bIsSubCollection = false;
-
+	
 	UPROPERTY(EditAnywhere, Category = Settings)
 	FName Category = NAME_None;
 
 	UPROPERTY(EditAnywhere, Category = Settings)
 	TSet<FName> Tags;
-
+	
 	UPROPERTY(EditAnywhere, Category = Settings, meta=(EditCondition="!bIsSubCollection"))
 	EPCGExEntryVariationMode VariationMode = EPCGExEntryVariationMode::Local;
 
@@ -925,6 +932,8 @@ protected:
 		const FPCGExAssetAttributeSetDetails& Details,
 		const bool bBuildStaging = false) const
 	{
+		TUniquePtr<FPCGAttributeAccessorKeysEntries> Keys;
+
 		const UPCGMetadata* Metadata = InAttributeSet->Metadata;
 
 		const TSharedPtr<PCGEx::FAttributesInfos> Infos = PCGEx::FAttributesInfos::Get(Metadata);
@@ -966,7 +975,11 @@ protected:
 			}
 		}
 
-		TUniquePtr<FPCGAttributeAccessorKeysEntries> Keys = MakeUnique<FPCGAttributeAccessorKeysEntries>(Metadata);
+#if PCGEX_ENGINE_VERSION > 503
+		Keys = MakeUnique<FPCGAttributeAccessorKeysEntries>(Metadata);
+#else
+		Keys = MakeUnique<FPCGAttributeAccessorKeysEntries>(Infos->Attributes[0]); // Probably not reliable, but make 5.3 compile -_-
+#endif
 
 		const int32 NumEntries = Keys->GetNum();
 		if (NumEntries == 0)
@@ -985,18 +998,22 @@ protected:
 		const FPCGMetadataAttribute<_TYPE>* A = Metadata->GetConstTypedAttribute<_TYPE>(_NAME);\
 		for (int i = 0; i < NumEntries; i++) { _TYPE V = A->GetValueFromItemKey(i); _BODY }
 
+
+#if PCGEX_ENGINE_VERSION > 503
 		if (PathIdentity->UnderlyingType == EPCGMetadataTypes::SoftObjectPath)
 		{
 			PCGEX_FOREACH_COLLECTION_ENTRY(FSoftObjectPath, PathIdentity->Name, { SetEntryPath(i, V); })
 		}
-		else if (PathIdentity->UnderlyingType == EPCGMetadataTypes::String)
-		{
-			PCGEX_FOREACH_COLLECTION_ENTRY(FString, PathIdentity->Name, { SetEntryPath(i, FSoftObjectPath(V)); })
-		}
 		else
-		{
-			PCGEX_FOREACH_COLLECTION_ENTRY(FName, PathIdentity->Name, { SetEntryPath(i, FSoftObjectPath(V.ToString())); })
-		}
+#endif
+			if (PathIdentity->UnderlyingType == EPCGMetadataTypes::String)
+			{
+				PCGEX_FOREACH_COLLECTION_ENTRY(FString, PathIdentity->Name, { SetEntryPath(i, FSoftObjectPath(V)); })
+			}
+			else
+			{
+				PCGEX_FOREACH_COLLECTION_ENTRY(FName, PathIdentity->Name, { SetEntryPath(i, FSoftObjectPath(V.ToString())); })
+			}
 
 
 		// Weight value

@@ -35,7 +35,7 @@ struct FPCGExTensorFlowConfig : public FPCGExTensorConfigBase
 	/** Direction axis, read from the input points' transform.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable, DisplayName="Direction", EditCondition="DirectionInput == EPCGExInputValueType::Constant", EditConditionHides))
 	EPCGExAxis DirectionConstant = EPCGExAxis::Forward;
-	
+
 	/** Whether the direction is absolute or should be transformed by the owner' transform .*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="DirectionInput != EPCGExInputValueType::Constant", EditConditionHides))
 	EPCGExTransformMode DirectionTransform = EPCGExTransformMode::Relative;
@@ -53,20 +53,6 @@ public:
 	virtual PCGExTensor::FTensorSample Sample(int32 InSeedIndex, const FTransform& InProbe) const override;
 };
 
-namespace PCGExTensor
-{
-	class FFlowEffectorsArray : public FEffectorsArray
-	{
-		FPCGExTensorFlowConfig Config;
-		TSharedPtr<PCGExData::TBuffer<FVector>> DirectionBuffer;
-		
-	public:
-		virtual bool Init(FPCGExContext* InContext, const UPCGExTensorPointFactoryData* InFactory) override;
-		
-	protected:
-		virtual void PrepareSinglePoint(const int32 Index) override;
-	};
-}
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")
 class UPCGExTensorFlowFactory : public UPCGExTensorPointFactoryData
@@ -80,7 +66,11 @@ public:
 	virtual TSharedPtr<PCGExTensorOperation> CreateOperation(FPCGExContext* InContext) const override;
 
 protected:
-	virtual TSharedPtr<PCGExTensor::FEffectorsArray> GetEffectorsArray() const override;
+	TSharedPtr<PCGExData::TBuffer<FVector>> DirectionBuffer;
+
+	virtual bool InitInternalData(FPCGExContext* InContext) override;
+	virtual bool InitInternalFacade(FPCGExContext* InContext) override;
+	virtual void PrepareSinglePoint(int32 Index, FPCGPoint& InPoint) const override;
 };
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Tensors|Params")

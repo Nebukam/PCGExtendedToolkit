@@ -4,15 +4,11 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "UObject/Object.h"
-
-
 #include "PCGExCompare.h"
 #include "PCGExDetailsData.h"
 
-#include PCGEX_POINT_OCTREE_H
-
 #include "PCGExFilterFactoryProvider.h"
+#include "UObject/Object.h"
 
 #include "Data/PCGExPointFilter.h"
 #include "PCGExPointsProcessor.h"
@@ -74,8 +70,8 @@ public:
 	UPROPERTY()
 	FPCGExDistanceFilterConfig Config;
 
-	TArray<const PCGEX_POINT_OCTREE_TYPE*> OctreesPtr;
-	TArray<const TArray<FPCGPoint>*> TargetsPtr;
+	TArray<const PointOctree*> Octrees;
+	TArray<uintptr_t> TargetsPtr;
 
 	virtual bool SupportsDirectEvaluation() const override;
 
@@ -98,8 +94,8 @@ namespace PCGExPointFilter
 		explicit FDistanceFilter(const TObjectPtr<const UPCGExDistanceFilterFactory>& InDefinition)
 			: FSimpleFilter(InDefinition), TypedFilterFactory(InDefinition)
 		{
-			OctreesPtr = TypedFilterFactory->OctreesPtr;
-			TargetsPtr = TypedFilterFactory->TargetsPtr;
+			Octrees = &TypedFilterFactory->Octrees;
+			TargetsPtr = &TypedFilterFactory->TargetsPtr;
 			bIgnoreSelf = TypedFilterFactory->Config.bIgnoreSelf;
 		}
 
@@ -107,10 +103,12 @@ namespace PCGExPointFilter
 
 		TSharedPtr<PCGExDetails::FDistances> Distances;
 
-		TArray<const PCGEX_POINT_OCTREE_TYPE*> OctreesPtr;
-		TArray<const TArray<FPCGPoint>*> TargetsPtr;
+		const TArray<const UPCGPointData::PointOctree*>* Octrees = nullptr;
+		const TArray<uintptr_t>* TargetsPtr = nullptr;
 		uintptr_t SelfPtr = 0;
 		bool bIgnoreSelf = false;
+
+		const FPCGPoint* InPointsStart = nullptr;
 		int32 NumTargets = -1;
 
 		TSharedPtr<PCGExDetails::TSettingValue<double>> DistanceThresholdGetter;

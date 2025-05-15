@@ -795,7 +795,11 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 
 			while (Stack.Num() > 0)
 			{
+#if PCGEX_ENGINE_VERSION <= 503
+				const int32 NextIndex = Stack.Pop(false);
+#else
 				const int32 NextIndex = Stack.Pop(EAllowShrinking::No);
+#endif
 				FNode& Node = Nodes[NextIndex];
 				Node.NumExportedEdges = 0;
 

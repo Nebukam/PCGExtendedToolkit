@@ -132,13 +132,14 @@ protected:
 
 class FPCGExAssetCollectionToSetElement final : public IPCGElement
 {
-protected:
-	PCGEX_ELEMENT_CREATE_DEFAULT_CONTEXT
-
+public:
+	virtual FPCGContext* Initialize(const FPCGDataCollection& InputData, TWeakObjectPtr<UPCGComponent> SourceComponent, const UPCGNode* Node) override;
 	virtual bool IsCacheable(const UPCGSettings* InSettings) const override { return false; }
-	
 	PCGEX_CAN_ONLY_EXECUTE_ON_MAIN_THREAD(true)
-	
+
+	//virtual void DisabledPassThroughData(FPCGContext* Context) const override;
+
+protected:
 	virtual bool ExecuteInternal(FPCGContext* Context) const override;
 	static void ProcessEntry(
 		const FPCGExAssetCollectionEntry* InEntry,

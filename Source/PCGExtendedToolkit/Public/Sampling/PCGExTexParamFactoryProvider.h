@@ -178,7 +178,12 @@ namespace PCGExTexture
 		}
 
 		TArray<TObjectPtr<const UPCGExTexParamFactoryData>> Factories;
+
+#if PCGEX_ENGINE_VERSION <= 503
+		TArray<TSharedPtr<PCGExData::TBuffer<FString>>> Buffers;
+#else
 		TArray<TSharedPtr<PCGExData::TBuffer<FSoftObjectPath>>> Buffers;
+#endif
 
 		bool BuildFrom(FPCGExContext* InContext, const FName InPin);
 		bool BuildFrom(const TArray<TObjectPtr<const UPCGExTexParamFactoryData>>& InFactories);

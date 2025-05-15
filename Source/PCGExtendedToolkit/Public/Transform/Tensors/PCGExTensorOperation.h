@@ -17,7 +17,6 @@ class UPCGExTensorFactoryData;
 class PCGEXTENDEDTOOLKIT_API PCGExTensorOperation : public FPCGExOperation
 {
 public:
-	TSharedPtr<PCGExTensor::FEffectorsArray> Effectors;
 	TObjectPtr<const UPCGExTensorFactoryData> Factory = nullptr;
 	FPCGExTensorConfigBase BaseConfig;
 
@@ -28,10 +27,10 @@ public:
 	virtual bool PrepareForData(const TSharedPtr<PCGExData::FFacade>& InDataFacade);
 
 	template <bool bFast = false>
-	bool ComputeFactor(const FVector& InPosition, const int32 InEffectorIndex, PCGExTensor::FEffectorMetrics& OutMetrics) const
+	bool ComputeFactor(const FVector& InPosition, const FPCGPointRef& InEffector, PCGExTensor::FEffectorMetrics& OutMetrics) const
 	{
-		const FVector Center = Effectors->ReadTransform(InEffectorIndex).GetLocation();
-		const double RadiusSquared = Effectors->ReadRadius(InEffectorIndex);
+		const FVector Center = InEffector.Point->Transform.GetLocation();
+		const double RadiusSquared = InEffector.Point->Color.W;
 		const double DistSquared = FVector::DistSquared(InPosition, Center);
 
 		if (FVector::DistSquared(InPosition, Center) > RadiusSquared) { return false; }
@@ -42,8 +41,8 @@ public:
 		if constexpr (bFast) { OutMetrics.Guide = FVector::ForwardVector; }
 		else { OutMetrics.Guide = BaseConfig.LocalGuideCurve.GetValue(OutFactor); }
 
-		OutMetrics.Potency = Effectors->ReadPotency(InEffectorIndex) * BaseConfig.PotencyFalloffCurveObj->Eval(OutFactor);
-		OutMetrics.Weight = Effectors->ReadWeight(InEffectorIndex) * BaseConfig.WeightFalloffCurveObj->Eval(OutFactor);
+		OutMetrics.Potency = InEffector.Point->Steepness * BaseConfig.PotencyFalloffCurveObj->Eval(OutFactor);
+		OutMetrics.Weight = InEffector.Point->Density * BaseConfig.WeightFalloffCurveObj->Eval(OutFactor);
 
 		return true;
 	}
@@ -71,7 +70,6 @@ public:
 
 		return true;
 	}
-	
 };
 
 /**
@@ -81,5 +79,7 @@ class PCGEXTENDEDTOOLKIT_API PCGExTensorPointOperation : public PCGExTensorOpera
 {
 public:
 	virtual bool Init(FPCGExContext* InContext, const UPCGExTensorFactoryData* InFactory) override;
+
+	const UPCGPointData::PointOctree* Octree = nullptr;
 	TSharedPtr<PCGExDetails::FDistances> DistanceDetails;
 };

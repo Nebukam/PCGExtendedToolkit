@@ -37,7 +37,7 @@ bool FPCGExInputConfig::Validate(const UPCGPointData* InData)
 	}
 
 	if (Selector.IsValid() &&
-		Selector.GetSelection() == PCGEX_PCG_SELECTION_PROPERTY)
+		Selector.GetSelection() == EPCGAttributePropertySelection::PointProperty)
 	{
 		UnderlyingType = static_cast<int16>(PCGEx::GetPropertyType(Selector.GetPointProperty()));
 		return true;

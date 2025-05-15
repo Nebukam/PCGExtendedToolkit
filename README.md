@@ -1,4 +1,4 @@
-![UE 5.3](https://img.shields.io/badge/UE-5.3-darkgreen) ![5.4](https://img.shields.io/badge/5.4-darkgreen) ![5.5](https://img.shields.io/badge/5.5-darkgreen) ![5.6](https://img.shields.io/badge/5.6-orange)
+![UE 5.3](https://img.shields.io/badge/UE-5.3-darkgreen) ![5.4](https://img.shields.io/badge/5.4-darkgreen) ![5.5](https://img.shields.io/badge/5.5-darkgreen) ![5.6](https://img.shields.io/badge/5.6-darkred)
 # PCG Extended Toolkit 
 
 ![PCGEx](/Resources/Icon128.png)

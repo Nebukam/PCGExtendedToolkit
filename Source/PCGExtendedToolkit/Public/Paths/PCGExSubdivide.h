@@ -87,9 +87,13 @@ struct FPCGExSubdivideContext final : FPCGExPathProcessorContext
 
 class FPCGExSubdivideElement final : public FPCGExPathProcessorElement
 {
+public:
+	virtual FPCGContext* Initialize(
+		const FPCGDataCollection& InputData,
+		TWeakObjectPtr<UPCGComponent> SourceComponent,
+		const UPCGNode* Node) override;
+
 protected:
-	PCGEX_ELEMENT_CREATE_CONTEXT(Subdivide)
-	
 	virtual bool Boot(FPCGExContext* InContext) const override;
 	virtual bool ExecuteInternal(FPCGContext* Context) const override;
 };

@@ -251,8 +251,15 @@ void UPCGExAttributeBlendFactoryProviderSettings::PostEditChangeProperty(FProper
 
 TArray<FPCGPreConfiguredSettingsInfo> UPCGExAttributeBlendFactoryProviderSettings::GetPreconfiguredInfo() const
 {
-	const TSet ValuesToSkip = {EPCGExABBlendingType::None};
+	const TSet ValuesToSkip = {
+		EPCGExABBlendingType::None,
+	};
+
+#if PCGEX_ENGINE_VERSION == 503
+	return PCGMetadataElementCommon::FillPreconfiguredSettingsInfoFromEnum<EPCGExABBlendingType>(ValuesToSkip);
+#else
 	return PCGMetadataElementCommon::FillPreconfiguredSettingsInfoFromEnum<EPCGExABBlendingType>(ValuesToSkip, FTEXT("Blend : "));
+#endif
 }
 #endif
 
@@ -326,7 +333,7 @@ bool PCGExDataBlending::PrepareBlendOps(
 namespace PCGExDataBlending
 {
 	FBlendOpsManager::FBlendOpsManager(const TSharedPtr<PCGExData::FFacade>& InDataFacade)
-		: DataFacade(InDataFacade)
+		:DataFacade(InDataFacade)
 	{
 		Operations = MakeShared<TArray<TSharedPtr<FPCGExAttributeBlendOperation>>>();
 	}
@@ -336,9 +343,9 @@ namespace PCGExDataBlending
 		check(DataFacade)
 
 		const TSharedRef<PCGExData::FFacade> InDataFacade = DataFacade.ToSharedRef();
-
+		
 		Operations->Reserve(InFactories.Num());
-
+		
 		for (const TObjectPtr<const UPCGExAttributeBlendFactory>& Factory : InFactories)
 		{
 			TSharedPtr<FPCGExAttributeBlendOperation> Op = Factory->CreateOperation(InContext);

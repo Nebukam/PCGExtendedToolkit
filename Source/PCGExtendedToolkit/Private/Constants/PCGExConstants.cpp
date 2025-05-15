@@ -226,3 +226,14 @@ bool FPCGExConstantsElement::ExecuteInternal(FPCGContext* InContext) const
 	Context->Done();
 	return Context->TryComplete();
 }
+
+FPCGContext* FPCGExConstantsElement::Initialize(const FPCGDataCollection& InputData, TWeakObjectPtr<UPCGComponent> SourceComponent, const UPCGNode* Node)
+{
+	FPCGExContext* Context = new FPCGExContext();
+
+	Context->InputData = InputData;
+	Context->SourceComponent = SourceComponent;
+	Context->Node = Node;
+
+	return Context;
+}

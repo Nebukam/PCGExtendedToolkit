@@ -32,6 +32,8 @@ TArray<FPCGPinProperties> UPCGExShapeProcessorSettings::InputPinProperties() con
 	return PinProperties;
 }
 
+PCGEX_INITIALIZE_CONTEXT(ShapeProcessor)
+
 bool FPCGExShapeProcessorElement::Boot(FPCGExContext* InContext) const
 {
 	if (!FPCGExPointsProcessorElement::Boot(InContext)) { return false; }

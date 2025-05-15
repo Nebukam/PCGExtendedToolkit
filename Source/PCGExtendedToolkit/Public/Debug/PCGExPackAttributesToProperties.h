@@ -142,9 +142,13 @@ struct FPCGExPackAttributesToPropertiesContext final : FPCGExPointsProcessorCont
 
 class FPCGExPackAttributesToPropertiesElement final : public FPCGExPointsProcessorElement
 {
+public:
+	virtual FPCGContext* Initialize(
+		const FPCGDataCollection& InputData,
+		TWeakObjectPtr<UPCGComponent> SourceComponent,
+		const UPCGNode* Node) override;
+
 protected:
-	PCGEX_ELEMENT_CREATE_CONTEXT(PackAttributesToProperties)
-	
 	virtual bool Boot(FPCGExContext* InContext) const override;
 	virtual bool ExecuteInternal(FPCGContext* InContext) const override;
 };

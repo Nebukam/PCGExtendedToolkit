@@ -2,7 +2,11 @@
 // Released under the MIT license https://opensource.org/license/MIT/
 
 #include "Sampling/PCGExSampleNearestSurface.h"
+
+
+#if PCGEX_ENGINE_VERSION > 503
 #include "Engine/OverlapResult.h"
+#endif
 
 #define LOCTEXT_NAMESPACE "PCGExSampleNearestSurfaceElement"
 #define PCGEX_NAMESPACE SampleNearestSurface
@@ -104,9 +108,9 @@ namespace PCGExSampleNearestSurface
 		PointDataFacade->bSupportsScopedGet = Context->bScopedAttributeGet;
 
 		if (!FPointsProcessor::Process(InAsyncManager)) { return false; }
-
+		
 		PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::Duplicate)
-
+		
 		SurfacesForward = Context->ActorReferenceDataFacade ? Settings->AttributesForwarding.TryGetHandler(Context->ActorReferenceDataFacade, PointDataFacade) : nullptr;
 
 		SampleState.SetNumUninitialized(PointDataFacade->GetNum());
@@ -230,16 +234,26 @@ namespace PCGExSampleNearestSurface
 							HitLocation = HitResult.Location;
 							bIsInside = IsInsideWriter ? FVector::DotProduct(Direction, HitResult.ImpactNormal) > 0 : false;
 
+#if PCGEX_ENGINE_VERSION <= 503
+							if (const AActor* HitActor = HitResult.GetActor()) { PCGEX_OUTPUT_VALUE(ActorReference, Index, HitActor->GetPathName()) }
+							if (const UPhysicalMaterial* PhysMat = HitResult.PhysMaterial.Get()) { PCGEX_OUTPUT_VALUE(PhysMat, Index, PhysMat->GetPathName()) }
+#else
 							if (const AActor* HitActor = HitResult.GetActor()) { PCGEX_OUTPUT_VALUE(ActorReference, Index, FSoftObjectPath(HitActor->GetPathName())) }
 							if (const UPhysicalMaterial* PhysMat = HitResult.PhysMaterial.Get()) { PCGEX_OUTPUT_VALUE(PhysMat, Index, FSoftObjectPath(PhysMat->GetPathName())) }
+#endif
 						}
 					}
 					else
 					{
 						UPhysicalMaterial* PhysMat = HitComp->GetBodyInstance()->GetSimplePhysicalMaterial();
 
+#if PCGEX_ENGINE_VERSION <= 503
+						PCGEX_OUTPUT_VALUE(ActorReference, Index, HitComp->GetOwner()->GetPathName())
+						if (PhysMat) { PCGEX_OUTPUT_VALUE(PhysMat, Index, PhysMat->GetPathName()) }
+#else
 						PCGEX_OUTPUT_VALUE(ActorReference, Index, FSoftObjectPath(HitComp->GetOwner()->GetPathName()))
 						if (PhysMat) { PCGEX_OUTPUT_VALUE(PhysMat, Index, FSoftObjectPath(PhysMat->GetPathName())) }
+#endif
 					}
 				}
 
@@ -277,7 +291,7 @@ namespace PCGExSampleNearestSurface
 		}
 		else
 		{
-			const UWorld* World = Context->GetWorld();
+			const UWorld* World = Context->SourceComponent->GetWorld();
 
 			switch (Context->CollisionSettings.CollisionType)
 			{

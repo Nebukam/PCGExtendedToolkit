@@ -150,7 +150,7 @@ namespace PCGExMath
 			return true;
 		}
 	};
-	
+
 	template <EPCGExPointBoundsSource S = EPCGExPointBoundsSource::ScaledBounds>
 	FORCEINLINE static FBox GetLocalBounds(const FPCGPoint& Point)
 	{

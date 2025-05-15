@@ -147,7 +147,12 @@ namespace PCGExPathSplineMeshSimple
 
 		if (Settings->AssetType == EPCGExInputValueType::Attribute)
 		{
+#if PCGEX_ENGINE_VERSION <= 503
+			AssetPathReader = PointDataFacade->GetScopedBroadcaster<FString>(Settings->AssetPathAttributeName);
+#else
 			AssetPathReader = PointDataFacade->GetScopedBroadcaster<FSoftObjectPath>(Settings->AssetPathAttributeName);
+#endif
+
 			if (!AssetPathReader)
 			{
 				PCGE_LOG_C(Error, GraphAndLog, ExecutionContext, FTEXT("AssetPath attribute is missing on some inputs.."));
@@ -306,8 +311,12 @@ namespace PCGExPathSplineMeshSimple
 
 		Context->AddNotifyActor(TargetActor);
 
-		const bool bIsPreviewMode = ExecutionContext->GetComponent()->IsInPreviewMode();
-		const TArray<FName> DataTags = PointDataFacade->Source->Tags->FlattenToArrayOfNames();
+		bool bIsPreviewMode = false;
+#if PCGEX_ENGINE_VERSION > 503
+		bIsPreviewMode = ExecutionContext->SourceComponent.Get()->IsInPreviewMode();
+#endif
+
+		TArray<FName> DataTags = PointDataFacade->Source->Tags->FlattenToArrayOfNames();
 
 		for (int i = 0; i < Segments.Num(); i++)
 		{

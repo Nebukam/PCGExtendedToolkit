@@ -94,7 +94,7 @@ void FPCGExPlotNavmeshTask::ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>&
 	FPCGExPathfindingPlotNavmeshContext* Context = AsyncManager->GetContext<FPCGExPathfindingPlotNavmeshContext>();
 	PCGEX_SETTINGS(PathfindingPlotNavmesh)
 
-	UWorld* World = Context->GetWorld();
+	UWorld* World = Context->SourceComponent->GetWorld();
 	UNavigationSystemV1* NavSys = UNavigationSystemV1::GetCurrent(World);
 
 	if (!NavSys || !NavSys->GetDefaultNavDataInstance()) { return; }
@@ -103,7 +103,7 @@ void FPCGExPlotNavmeshTask::ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>&
 
 	TArray<PCGExPathfinding::FPlotPoint> PathLocations;
 	const FPCGPoint& FirstPoint = PointIO->GetInPoint(0);
-	PathLocations.Emplace(0, FirstPoint.Transform.GetLocation(), FirstPoint.MetadataEntry);
+	PathLocations.Emplace_GetRef(0, FirstPoint.Transform.GetLocation(), FirstPoint.MetadataEntry);
 	FVector LastPosition = FVector::ZeroVector;
 
 	//int32 MaxIterations = Settings->bClosedLoop ? NumPlots : NumPlots - 1;
@@ -146,12 +146,12 @@ void FPCGExPlotNavmeshTask::ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>&
 			for (const FNavPathPoint& PathPoint : Result.Path->GetPathPoints())
 			{
 				if (PathPoint.Location == LastPosition) { continue; } // When plotting, end from prev path == start from new path
-				PathLocations.Emplace(i, PathPoint.Location, PCGInvalidEntryKey);
+				PathLocations.Emplace_GetRef(i, PathPoint.Location, PCGInvalidEntryKey);
 			}
 
 			LastPosition = PathLocations.Last().Position;
 
-			if (bAddGoal) { PathLocations.Emplace(i, GoalPosition, PCGInvalidEntryKey); }
+			if (bAddGoal) { PathLocations.Emplace_GetRef(i, GoalPosition, PCGInvalidEntryKey); }
 
 			PathLocations.Last().MetadataEntryKey = GoalPoint.MetadataEntry;
 		}
@@ -161,7 +161,7 @@ void FPCGExPlotNavmeshTask::ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>&
 		}
 		else if (bAddGoal)
 		{
-			PathLocations.Emplace(i, GoalPosition, GoalPoint.MetadataEntry);
+			PathLocations.Emplace_GetRef(i, GoalPosition, GoalPoint.MetadataEntry);
 		}
 
 		PathLocations.Last().PlotIndex = i + 1;
@@ -170,12 +170,12 @@ void FPCGExPlotNavmeshTask::ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>&
 	if (Settings->bClosedLoop)
 	{
 		const FPCGPoint& LastPoint = PointIO->GetInPoint(0);
-		PathLocations.Emplace(0, LastPoint.Transform.GetLocation(), LastPoint.MetadataEntry);
+		PathLocations.Emplace_GetRef(0, LastPoint.Transform.GetLocation(), LastPoint.MetadataEntry);
 	}
 	else
 	{
 		const FPCGPoint& LastPoint = PointIO->GetInPoint(NumPlots - 1);
-		PathLocations.Emplace(NumPlots - 1, LastPoint.Transform.GetLocation(), LastPoint.MetadataEntry);
+		PathLocations.Emplace_GetRef(NumPlots - 1, LastPoint.Transform.GetLocation(), LastPoint.MetadataEntry);
 	}
 
 

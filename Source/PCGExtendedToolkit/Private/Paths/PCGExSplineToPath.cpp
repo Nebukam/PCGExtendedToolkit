@@ -24,11 +24,7 @@ bool FPCGExSplineToPathElement::Boot(FPCGExContext* InContext) const
 
 	PCGEX_CONTEXT_AND_SETTINGS(SplineToPath)
 
-#if PCGEX_ENGINE_VERSION < 506
 	if (Context->InputData.GetInputs().IsEmpty()) { return false; } //Get rid of errors and warning when there is no input
-#else
-	if (Context->InputData.GetAllInputs().IsEmpty()) { return false; } //Get rid of errors and warning when there is no input
-#endif
 
 	TArray<FPCGTaggedData> Targets = Context->InputData.GetInputsByPin(PCGExSplineToPath::SourceSplineLabel);
 	PCGEX_FWD(TagForwarding)

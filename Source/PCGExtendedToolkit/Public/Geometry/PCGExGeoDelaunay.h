@@ -170,7 +170,11 @@ namespace PCGExGeo
 
 			while (!Stack.IsEmpty())
 			{
+#if PCGEX_ENGINE_VERSION <= 503
+				const int32 NextIndex = Stack.Pop(false);
+#else
 				const int32 NextIndex = Stack.Pop(EAllowShrinking::No);
+#endif
 
 				if (VisitedSites[NextIndex]) { continue; }
 

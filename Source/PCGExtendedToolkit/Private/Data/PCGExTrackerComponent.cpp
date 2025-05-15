@@ -115,6 +115,7 @@ void UPCGExTrackerComponent::OnGlobalEvent(UPCGComponent* Source, EPCGExSubsyste
 					return;
 				}
 
+#if PCGEX_ENGINE_VERSION > 503
 				if (C->GenerationTrigger == EPCGComponentGenerationTrigger::GenerateAtRuntime)
 				{
 					if (UPCGSubsystem* PCGSubsystem = UPCGSubsystem::GetSubsystemForCurrentWorld())
@@ -122,6 +123,7 @@ void UPCGExTrackerComponent::OnGlobalEvent(UPCGComponent* Source, EPCGExSubsyste
 						PCGSubsystem->RefreshRuntimeGenComponent(C, EPCGChangeType::GenerationGrid);
 					}
 				}
+#endif
 			});
 	}
 	else

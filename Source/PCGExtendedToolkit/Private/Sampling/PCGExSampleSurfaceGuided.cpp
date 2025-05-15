@@ -158,7 +158,7 @@ namespace PCGExSampleSurfaceGuided
 			}
 		}
 
-		World = Context->GetWorld();
+		World = Context->SourceComponent->GetWorld();
 		StartParallelLoopForPoints();
 
 		return true;
@@ -244,6 +244,22 @@ namespace PCGExSampleSurfaceGuided
 
 			SampleState[Index] = bSuccess;
 
+#if PCGEX_ENGINE_VERSION <= 503
+			if (const AActor* HitActor = HitResult.GetActor())
+			{
+				HitIndex = Context->IncludedActors.Find(HitActor);
+				PCGEX_OUTPUT_VALUE(ActorReference, Index, HitActor->GetPathName())
+			}
+
+			if (const UPhysicalMaterial* PhysMat = HitResult.PhysMaterial.Get()) { PCGEX_OUTPUT_VALUE(PhysMat, Index, PhysMat->GetPathName()) }
+			if (const UPrimitiveComponent* HitComponent = HitResult.GetComponent())
+			{
+				PCGEX_OUTPUT_VALUE(HitComponentReference, Index, HitComponent->GetPathName())
+				UMaterialInterface* RenderMat = HitComponent->GetMaterial(Settings->RenderMaterialIndex);
+				PCGEX_OUTPUT_VALUE(RenderMat, Index, RenderMat ? RenderMat->GetPathName() : TEXT(""))
+				if(TexParamLookup){TexParamLookup->ExtractParams(Index, RenderMat);}
+			}
+#else
 			if (const AActor* HitActor = HitResult.GetActor())
 			{
 				HitIndex = Context->IncludedActors.Find(HitActor);
@@ -258,6 +274,8 @@ namespace PCGExSampleSurfaceGuided
 				PCGEX_OUTPUT_VALUE(RenderMat, Index, FSoftObjectPath(RenderMat ? RenderMat->GetPathName() : TEXT("")))
 				if (TexParamLookup) { TexParamLookup->ExtractParams(Index, RenderMat); }
 			}
+
+#endif
 
 			if (SurfacesForward && HitIndex) { SurfacesForward->Forward(*HitIndex, Index); }
 

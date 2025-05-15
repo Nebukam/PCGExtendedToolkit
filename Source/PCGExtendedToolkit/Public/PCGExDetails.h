@@ -8,6 +8,7 @@
 #include "PCGEx.h"
 #include "PCGExH.h"
 #include "PCGExMath.h"
+#include "PCGExActorSelector.h"
 
 #include "PCGExContext.h"
 
@@ -205,7 +206,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExCollisionDetails
 	bool bIgnoreActors = false;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bIgnoreActors"))
-	FPCGActorSelectorSettings IgnoredActorSelector;
+	FPCGExActorSelectorSettings IgnoredActorSelector;
 
 	TArray<AActor*> IgnoredActors;
 

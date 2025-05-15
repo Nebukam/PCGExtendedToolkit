@@ -105,7 +105,7 @@ bool FPCGExSampleNearestPointElement::Boot(FPCGExContext* InContext) const
 	Context->TargetPoints = &Context->TargetsFacade->Source->GetIn()->GetPoints();
 	Context->NumTargets = Context->TargetPoints->Num();
 
-	Context->TargetOctree = &Context->TargetsFacade->Source->GetIn()->PCGEX_POINT_OCTREE_GET();
+	Context->TargetOctree = &Context->TargetsFacade->Source->GetIn()->GetOctree();
 
 	if (Settings->WeightMode != EPCGExSampleWeightMode::Distance)
 	{
@@ -276,8 +276,6 @@ namespace PCGExSampleNearestPoints
 			return;
 		}
 
-		const TArray<FPCGPoint>& TargetPoints = *Context->TargetPoints;
-
 		const FVector Origin = Point.Transform.GetLocation();
 
 		double RangeMin = FMath::Square(RangeMinGetter ? RangeMinGetter->Read(Index) : Settings->RangeMin);
@@ -288,12 +286,10 @@ namespace PCGExSampleNearestPoints
 		TArray<PCGExNearestPoint::FSample> Samples;
 		PCGExNearestPoint::FSamplesStats Stats;
 
-		auto SampleTarget = [&](const int32 TargetIndex)
+		auto SampleTarget = [&](const int32 TargetPtIndex, const FPCGPoint& Target)
 		{
 			//if (Context->ValueFilterManager && !Context->ValueFilterManager->Results[PointIndex]) { return; } // TODO : Implement
 
-			const FPCGPoint& Target = TargetPoints[TargetIndex];
-			
 			double Dist = 0;
 
 			if (Settings->DistanceDetails.bOverlapIsZero)
@@ -309,24 +305,24 @@ namespace PCGExSampleNearestPoints
 
 			if (RangeMax > 0 && (Dist < RangeMin || Dist > RangeMax)) { return; }
 
-			if (Settings->WeightMode == EPCGExSampleWeightMode::Attribute) { Dist = Context->TargetWeights->Read(TargetIndex); }
-			else if (Settings->WeightMode == EPCGExSampleWeightMode::AttributeMult) { Dist *= Context->TargetWeights->Read(TargetIndex); }
+			if (Settings->WeightMode == EPCGExSampleWeightMode::Attribute) { Dist = Context->TargetWeights->Read(TargetPtIndex); }
+			else if (Settings->WeightMode == EPCGExSampleWeightMode::AttributeMult) { Dist *= Context->TargetWeights->Read(TargetPtIndex); }
 
 			if (bSingleSample)
 			{
 				if (Settings->SampleMethod == EPCGExSampleMethod::BestCandidate && Stats.IsValid())
 				{
-					if (!Context->Sorter->Sort(TargetIndex, Stats.Closest.Index)) { return; }
-					Stats.Replace(PCGExNearestPoint::FSample(TargetIndex, Dist));
+					if (!Context->Sorter->Sort(TargetPtIndex, Stats.Closest.Index)) { return; }
+					Stats.Replace(PCGExNearestPoint::FSample(TargetPtIndex, Dist));
 				}
 				else
 				{
-					Stats.Update(PCGExNearestPoint::FSample(TargetIndex, Dist));
+					Stats.Update(PCGExNearestPoint::FSample(TargetPtIndex, Dist));
 				}
 			}
 			else
 			{
-				const PCGExNearestPoint::FSample& Infos = Samples.Emplace_GetRef(TargetIndex, Dist);
+				const PCGExNearestPoint::FSample& Infos = Samples.Emplace_GetRef(TargetPtIndex, Dist);
 				Stats.Update(Infos);
 			}
 		};
@@ -334,14 +330,10 @@ namespace PCGExSampleNearestPoints
 		if (RangeMax > 0)
 		{
 			const FBox Box = FBoxCenterAndExtent(Origin, FVector(FMath::Sqrt(RangeMax))).GetBox();
-			auto ProcessNeighbor = [&](const PCGEX_POINT_OCTREE_REF& PointRef)
+			auto ProcessNeighbor = [&](const FPCGPointRef& InPointRef)
 			{
-#if PCGEX_ENGINE_VERSION < 506
-				const int32 OtherIndex = static_cast<int32>(PointRef.Point - TargetPoints.GetData());
-#else
-				const int32 OtherIndex = PointRef.Index;
-#endif
-				SampleTarget(OtherIndex);
+				const ptrdiff_t TargetPtIndex = InPointRef.Point - Context->TargetPoints->GetData();
+				SampleTarget(TargetPtIndex, *(Context->TargetPoints->GetData() + TargetPtIndex));
 			};
 
 			Context->TargetOctree->FindElementsWithBoundsTest(Box, ProcessNeighbor);
@@ -349,7 +341,7 @@ namespace PCGExSampleNearestPoints
 		else
 		{
 			Samples.Reserve(Context->NumTargets);
-			for (int i = 0; i < Context->NumTargets; i++) { SampleTarget(i); }
+			for (int i = 0; i < Context->NumTargets; i++) { SampleTarget(i, *(Context->TargetPoints->GetData() + i)); }
 		}
 
 		// Compound never got updated, meaning we couldn't find target in range

@@ -35,7 +35,12 @@ bool PCGExPointFilter::FGameplayTagsFilter::Init(FPCGExContext* InContext, const
 	PathSegments.Reserve(PropertyPath.GetNumSegments());
 	for (int i = 0; i < PropertyPath.GetNumSegments(); i++) { PathSegments.Add(PropertyPath.GetSegment(i).Name.ToString()); }
 
+#if PCGEX_ENGINE_VERSION == 503
+	ActorReferences = PointDataFacade->GetScopedBroadcaster<FString>(TypedFilterFactory->Config.ActorReference);
+#else
 	ActorReferences = PointDataFacade->GetScopedBroadcaster<FSoftObjectPath>(TypedFilterFactory->Config.ActorReference);
+#endif
+
 
 	if (!ActorReferences)
 	{

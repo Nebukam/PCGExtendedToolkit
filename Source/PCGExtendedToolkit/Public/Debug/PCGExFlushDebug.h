@@ -41,7 +41,7 @@ protected:
 	FLinearColor CustomColor = FLinearColor(1.0f, 0.0f, 0.0f, 1.0f);
 };
 
-struct FPCGExDebugContext final : FPCGExContext
+struct FPCGExDebugContext final : FPCGContext
 {
 	friend class FPCGExDebugElement;
 	bool bWait = true;
@@ -50,12 +50,12 @@ struct FPCGExDebugContext final : FPCGExContext
 class FPCGExDebugElement final : public IPCGElement
 {
 public:
+	virtual FPCGContext* Initialize(const FPCGDataCollection& InputData, TWeakObjectPtr<UPCGComponent> SourceComponent, const UPCGNode* Node) override;
 	virtual bool IsCacheable(const UPCGSettings* InSettings) const override { return false; }
+	PCGEX_CAN_ONLY_EXECUTE_ON_MAIN_THREAD(true)
+
+	//virtual void DisabledPassThroughData(FPCGContext* Context) const override;
 
 protected:
-	PCGEX_CAN_ONLY_EXECUTE_ON_MAIN_THREAD(true)
-	
-	PCGEX_ELEMENT_CREATE_CONTEXT(Debug)
-	
 	virtual bool ExecuteInternal(FPCGContext* Context) const override;
 };

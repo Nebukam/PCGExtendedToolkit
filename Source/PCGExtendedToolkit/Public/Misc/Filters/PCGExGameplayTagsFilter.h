@@ -81,7 +81,11 @@ namespace PCGExPointFilter
 		FCachedPropertyPath PropertyPath;
 		TArray<FString> PathSegments;
 
+#if PCGEX_ENGINE_VERSION == 503
+		TSharedPtr<PCGExData::TBuffer<FString>> ActorReferences;
+#else
 		TSharedPtr<PCGExData::TBuffer<FSoftObjectPath>> ActorReferences;
+#endif
 
 		virtual bool Init(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade>& InPointDataFacade) override;
 		virtual bool Test(const int32 PointIndex) const override;

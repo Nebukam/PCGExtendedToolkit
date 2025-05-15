@@ -83,14 +83,22 @@ PCGEX_FOREACH_ATTR_TYPE(PCGEX_SET_ATT_IMPL)
 
 bool UPCGExCustomGraphSettings::InitNodeSoftObjectPath(const FName& InAttributeName, const FSoftObjectPath& InValue)
 {
+#if PCGEX_ENGINE_VERSION <= 503
+	return InitNodeString(InAttributeName, InValue.ToString());
+#else
 	TSharedPtr<PCGExData::TBuffer<FSoftObjectPath>> Buffer = VtxBuffers->GetBuffer<FSoftObjectPath>(InAttributeName, InValue);
 	return Buffer ? true : false;
+#endif
 }
 
 bool UPCGExCustomGraphSettings::InitNodeSoftClassPath(const FName& InAttributeName, const FSoftClassPath& InValue)
 {
+#if PCGEX_ENGINE_VERSION <= 503
+	return InitNodeString(InAttributeName, InValue.ToString());
+#else
 	TSharedPtr<PCGExData::TBuffer<FSoftClassPath>> Buffer = VtxBuffers->GetBuffer<FSoftClassPath>(InAttributeName, InValue);
 	return Buffer ? true : false;
+#endif
 }
 
 #define PCGEX_SET_ATT_IMPL(_NAME, _TYPE)\
@@ -101,12 +109,20 @@ PCGEX_FOREACH_ATTR_TYPE(PCGEX_SET_ATT_IMPL)
 
 bool UPCGExCustomGraphSettings::SetNodeSoftObjectPath(const FName& InAttributeName, const int64 InNodeID, const FSoftObjectPath& InValue)
 {
+#if PCGEX_ENGINE_VERSION <= 503
+	return VtxBuffers->SetValue<FString>(InAttributeName, IdxMap[InNodeID], InValue.ToString());
+#else
 	return VtxBuffers->SetValue<FSoftObjectPath>(InAttributeName, IdxMap[InNodeID], InValue);
+#endif
 }
 
 bool UPCGExCustomGraphSettings::SetNodeSoftClassPath(const FName& InAttributeName, const int64 InNodeID, const FSoftClassPath& InValue)
 {
+#if PCGEX_ENGINE_VERSION <= 503
+	return VtxBuffers->SetValue<FString>(InAttributeName, IdxMap[InNodeID], InValue.ToString());
+#else
 	return VtxBuffers->SetValue<FSoftClassPath>(InAttributeName, IdxMap[InNodeID], InValue);
+#endif
 }
 
 #pragma endregion
@@ -183,7 +199,7 @@ bool FPCGExBuildCustomGraphElement::ExecuteInternal(FPCGContext* InContext) cons
 	{
 		if (Settings->Mode == EPCGExCustomGraphActorSourceMode::Owner)
 		{
-			Context->Builder->InputActors.Add(Context->GetComponent()->GetOwner());
+			Context->Builder->InputActors.Add(Context->SourceComponent->GetOwner());
 		}
 		else
 		{
@@ -211,17 +227,7 @@ bool FPCGExBuildCustomGraphElement::ExecuteInternal(FPCGContext* InContext) cons
 		// Init builder now that we have resolved actor references.
 
 		bool bSuccessfulInit = false;
-
-		if (!IsInGameThread())
-		{
-			FGCScopeGuard Scope;
-			Context->Builder->InitializeWithContext(*Context, bSuccessfulInit);
-		}
-		else
-		{
-			Context->Builder->InitializeWithContext(*Context, bSuccessfulInit);
-		}
-
+		Context->Builder->InitializeWithContext(*Context, bSuccessfulInit);
 		if (!bSuccessfulInit)
 		{
 			PCGE_LOG(Error, GraphAndLog, FTEXT("Builder returned failed initialization."));
@@ -292,17 +298,7 @@ namespace PCGExBuildCustomGraph
 		bool bInitSuccess = false;
 		int32 NodeReserveNum = 0;
 		int32 EdgeReserveNum = 0;
-
-		//TSharedPtr<FPCGContextHandle> Handle = Context->Handle;
-		if (!IsInGameThread())
-		{
-			FGCScopeGuard Scope;
-			GraphSettings->InitializeSettings(*Context, bInitSuccess, NodeReserveNum, EdgeReserveNum);
-		}
-		else
-		{
-			GraphSettings->InitializeSettings(*Context, bInitSuccess, NodeReserveNum, EdgeReserveNum);
-		}
+		GraphSettings->InitializeSettings(*Context, bInitSuccess, NodeReserveNum, EdgeReserveNum);
 
 		if (!bInitSuccess)
 		{
@@ -354,16 +350,7 @@ namespace PCGExBuildCustomGraph
 		GraphBuilder->Graph->InsertEdges(GraphSettings->UniqueEdges, -1);
 
 		bool bSuccessfulAttrInit = false;
-
-		if (!IsInGameThread())
-		{
-			FGCScopeGuard Scope;
-			GraphSettings->InitPointAttributes(*Context, bSuccessfulAttrInit);
-		}
-		else
-		{
-			GraphSettings->InitPointAttributes(*Context, bSuccessfulAttrInit);
-		}
+		GraphSettings->InitPointAttributes(*Context, bSuccessfulAttrInit);
 
 		if (!bSuccessfulAttrInit)
 		{

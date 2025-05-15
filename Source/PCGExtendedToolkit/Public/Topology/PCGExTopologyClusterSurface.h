@@ -37,14 +37,17 @@ struct FPCGExTopologyClusterSurfaceContext final : FPCGExTopologyEdgesProcessorC
 class FPCGExTopologyClusterSurfaceElement final : public FPCGExTopologyEdgesProcessorElement
 {
 public:
+	virtual FPCGContext* Initialize(
+		const FPCGDataCollection& InputData,
+		TWeakObjectPtr<UPCGComponent> SourceComponent,
+		const UPCGNode* Node) override;
+
 	// Generates artifacts
 	virtual bool IsCacheable(const UPCGSettings* InSettings) const override { return false; }
 
-protected:
 	PCGEX_CAN_ONLY_EXECUTE_ON_MAIN_THREAD(true)
 
-	PCGEX_ELEMENT_CREATE_CONTEXT(TopologyClusterSurface)
-	
+protected:
 	virtual bool Boot(FPCGExContext* InContext) const override;
 	virtual bool ExecuteInternal(FPCGContext* InContext) const override;
 };

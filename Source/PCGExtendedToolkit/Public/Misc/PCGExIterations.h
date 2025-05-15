@@ -7,7 +7,6 @@
 
 #include "PCGEx.h"
 #include "PCGExCompare.h"
-#include "PCGExPointsProcessor.h"
 #include "PCGSettings.h"
 
 #include "PCGExIterations.generated.h"
@@ -60,7 +59,7 @@ protected:
 class FPCGExIterationsElement final : public IPCGElement
 {
 public:
-	PCGEX_ELEMENT_CREATE_DEFAULT_CONTEXT
+	virtual FPCGContext* Initialize(const FPCGDataCollection& InputData, TWeakObjectPtr<UPCGComponent> SourceComponent, const UPCGNode* Node) override;
 	virtual bool IsCacheable(const UPCGSettings* InSettings) const override { return true; }
 
 protected:

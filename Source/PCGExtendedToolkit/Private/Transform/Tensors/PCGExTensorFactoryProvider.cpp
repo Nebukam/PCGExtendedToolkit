@@ -3,10 +3,10 @@
 
 #include "Transform/Tensors/PCGExTensorFactoryProvider.h"
 
+
 #include "Paths/PCGExPaths.h"
 #include "Paths/PCGExSplineToPath.h"
 #include "Transform/Tensors/PCGExTensorOperation.h"
-
 
 #define LOCTEXT_NAMESPACE "PCGExCreateTensor"
 #define PCGEX_NAMESPACE CreateTensor
@@ -62,10 +62,45 @@ bool UPCGExTensorPointFactoryData::InitInternalData(FPCGExContext* InContext)
 	if (!Super::InitInternalData(InContext)) { return false; }
 	if (!InitInternalFacade(InContext)) { return false; }
 
-	EffectorsArray = GetEffectorsArray();
+	GetMutablePoints() = InputDataFacade->GetIn()->GetPoints();
 
-	// Bulk of the work happens here
-	EffectorsArray->Init(InContext, this);
+	FBox InBounds = InputDataFacade->GetIn()->GetBounds();
+	TOctree2<FPCGPointRef, FPCGPointRefSemantics> NewOctree(InBounds.GetCenter(), InBounds.GetExtent().Length());
+
+	// Pack per-point data
+	for (int i = 0; i < Points.Num(); i++)
+	{
+		FPCGPoint& Effector = Points[i];
+		PrepareSinglePoint(i, Effector);
+
+		Effector.MetadataEntry = PCGInvalidEntryKey;
+
+		// Flatten bounds
+
+		FBox ScaledBounds = PCGExMath::GetLocalBounds<EPCGExPointBoundsSource::ScaledBounds>(Effector);
+		FBox WorldBounds = ScaledBounds.TransformBy(Effector.Transform);
+		FVector Extents = ScaledBounds.GetExtent();
+
+		Effector.BoundsMin = Extents * -1;
+		Effector.BoundsMax = Extents;
+
+		// Insert to octree with desired large bounds
+		NewOctree.AddElement(FPCGPointRef(Effector));
+
+		// Flatten original bounds
+		Effector.Transform.SetLocation(WorldBounds.GetCenter());
+		Effector.Transform.SetScale3D(FVector::OneVector);
+
+		Effector.BoundsMin = ScaledBounds.Min;
+		Effector.BoundsMax = ScaledBounds.Max;
+
+		Effector.Color = FVector4(Extents.X, Extents.Y, Extents.Z, Extents.SquaredLength()); // Cache Scaled Extents + Squared radius into $Color
+		Effector.Density = GetWeight(i);                                                     // Pack Weight to $Density
+		Effector.Steepness = GetPotency(i);                                                  // Pack Potency to $Steepness
+	}
+
+	bOctreeIsDirty = false;
+	Octree = MoveTemp(NewOctree);
 
 	InputDataFacade->Flush(); // Flush cached buffers
 	InputDataFacade.Reset();
@@ -73,15 +108,17 @@ bool UPCGExTensorPointFactoryData::InitInternalData(FPCGExContext* InContext)
 	return true;
 }
 
-TSharedPtr<PCGExTensor::FEffectorsArray> UPCGExTensorPointFactoryData::GetEffectorsArray() const
-{
-	return MakeShared<PCGExTensor::FEffectorsArray>();
-}
-
 bool UPCGExTensorPointFactoryData::InitInternalFacade(FPCGExContext* InContext)
 {
 	InputDataFacade = PCGExData::TryGetSingleFacade(InContext, PCGExTensor::SourceEffectorsLabel, false, true);
 	if (!InputDataFacade) { return false; }
+
+	PotencyBuffer = BaseConfig.GetValueSettingPotency(bQuietMissingInputError);
+	if (!PotencyBuffer->Init(InContext, InputDataFacade, false)) { return false; }
+
+	WeightBuffer = BaseConfig.GetValueSettingWeight(bQuietMissingInputError);
+	if (!WeightBuffer->Init(InContext, InputDataFacade, false)) { return false; }
+
 	return true;
 }
 

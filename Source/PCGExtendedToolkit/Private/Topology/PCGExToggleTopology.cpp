@@ -30,6 +30,20 @@ FPCGElementPtr UPCGExToggleTopologySettings::CreateElement() const { return Make
 
 #pragma endregion
 
+FPCGContext* FPCGExToggleTopologyElement::Initialize(
+	const FPCGDataCollection& InputData,
+	const TWeakObjectPtr<UPCGComponent> SourceComponent,
+	const UPCGNode* Node)
+{
+	FPCGExToggleTopologyContext* Context = new FPCGExToggleTopologyContext();
+
+	Context->InputData = InputData;
+	Context->SourceComponent = SourceComponent;
+	Context->Node = Node;
+
+	return Context;
+}
+
 bool FPCGExToggleTopologyElement::ExecuteInternal(FPCGContext* InContext) const
 {
 	PCGEX_CONTEXT_AND_SETTINGS(ToggleTopology)

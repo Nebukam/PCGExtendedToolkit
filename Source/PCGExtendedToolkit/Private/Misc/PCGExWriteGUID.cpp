@@ -60,7 +60,7 @@ bool FPCGExGUIDDetails::Init(FPCGExContext* InContext, TSharedRef<PCGExData::FFa
 	const uint32 BaseUniqueKey = UniqueKeyReader->IsConstant() ? 0 : UniqueKeyConstant;
 	if ((Uniqueness & static_cast<uint8>(EPCGExGUIDUniquenessFlags::Grid)) != 0)
 	{
-		const FBox RefBounds = PCGHelpers::GetGridBounds(InContext->GetTargetActor(InFacade->Source->GetIn()), InContext->GetComponent());
+		const FBox RefBounds = PCGHelpers::GetGridBounds(InContext->GetTargetActor(InFacade->Source->GetIn()), InContext->SourceComponent.Get());
 		GridHash = HashCombine(BaseUniqueKey, PCGEx::GH3(RefBounds.Min, AdjustedGridHashCollision));
 		GridHash = HashCombine(GridHash, PCGEx::GH3(RefBounds.Max, AdjustedGridHashCollision));
 	}

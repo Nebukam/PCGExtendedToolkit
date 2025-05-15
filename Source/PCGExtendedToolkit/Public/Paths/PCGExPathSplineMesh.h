@@ -146,14 +146,17 @@ struct FPCGExPathSplineMeshContext final : FPCGExPathProcessorContext
 class FPCGExPathSplineMeshElement final : public FPCGExPathProcessorElement
 {
 public:
+	virtual FPCGContext* Initialize(
+		const FPCGDataCollection& InputData,
+		TWeakObjectPtr<UPCGComponent> SourceComponent,
+		const UPCGNode* Node) override;
+
 	// Generates artifacts
 	virtual bool IsCacheable(const UPCGSettings* InSettings) const override { return false; }
 
-protected:
 	PCGEX_CAN_ONLY_EXECUTE_ON_MAIN_THREAD(true)
 
-	PCGEX_ELEMENT_CREATE_CONTEXT(PathSplineMesh)
-
+protected:
 	virtual bool Boot(FPCGExContext* InContext) const override;
 	virtual void PostLoadAssetsDependencies(FPCGExContext* InContext) const override;
 	virtual bool PostBoot(FPCGExContext* InContext) const override;
@@ -193,7 +196,11 @@ namespace PCGExPathSplineMesh
 
 		TArray<FName> DataTags;
 
+#if PCGEX_ENGINE_VERSION > 503
 		TSharedPtr<PCGExData::TBuffer<FSoftObjectPath>> PathWriter;
+#else
+		TSharedPtr<PCGExData::TBuffer<FString>> PathWriter;
+#endif
 
 		TArray<PCGExPaths::FSplineMeshSegment> Segments;
 

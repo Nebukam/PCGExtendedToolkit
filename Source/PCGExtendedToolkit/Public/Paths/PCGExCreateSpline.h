@@ -95,11 +95,15 @@ struct FPCGExCreateSplineContext final : FPCGExPathProcessorContext
 
 class FPCGExCreateSplineElement final : public FPCGExPathProcessorElement
 {
+public:
+	virtual FPCGContext* Initialize(
+		const FPCGDataCollection& InputData,
+		TWeakObjectPtr<UPCGComponent> SourceComponent,
+		const UPCGNode* Node) override;
+
 	virtual void DisabledPassThroughData(FPCGContext* Context) const override;
 
 protected:
-	PCGEX_ELEMENT_CREATE_CONTEXT(CreateSpline)
-	
 	virtual bool Boot(FPCGExContext* InContext) const override;
 	virtual bool ExecuteInternal(FPCGContext* Context) const override;
 	virtual bool IsCacheable(const UPCGSettings* InSettings) const override;

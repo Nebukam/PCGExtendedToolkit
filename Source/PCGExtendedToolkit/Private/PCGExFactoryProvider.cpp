@@ -105,7 +105,7 @@ FPCGExFactoryProviderContext::~FPCGExFactoryProviderContext()
 
 void FPCGExFactoryProviderContext::LaunchDeferredCallback(PCGExMT::FSimpleCallback&& InCallback)
 {
-	DeferredTasks.Add(PCGExMT::DeferredCallback(this, MoveTemp(InCallback)));
+	DeferredTasks.Add_GetRef(PCGExMT::DeferredCallback(this, MoveTemp(InCallback)));
 }
 
 UPCGExFactoryData* UPCGExFactoryProviderSettings::CreateFactory(FPCGExContext* InContext, UPCGExFactoryData* InFactory) const
@@ -139,8 +139,7 @@ bool FPCGExFactoryProviderElement::ExecuteInternal(FPCGContext* Context) const
 			InContext->LaunchDeferredCallback(
 				[CtxHandle = InContext->GetOrCreateHandle()]()
 				{
-					const FPCGExContext::FPCGExSharedContext<FPCGExFactoryProviderContext> SharedContext(CtxHandle);
-					FPCGExFactoryProviderContext* Ctx = SharedContext.Get();
+					FPCGExFactoryProviderContext* Ctx = FPCGExContext::GetContextFromHandle<FPCGExFactoryProviderContext>(CtxHandle);
 					if (!Ctx) { return; }
 
 					if (!Ctx->OutFactory->Prepare(Ctx))
@@ -173,6 +172,16 @@ bool FPCGExFactoryProviderElement::IsCacheable(const UPCGSettings* InSettings) c
 {
 	const UPCGExFactoryProviderSettings* Settings = static_cast<const UPCGExFactoryProviderSettings*>(InSettings);
 	return Settings->ShouldCache();
+}
+
+FPCGContext* FPCGExFactoryProviderElement::Initialize(const FPCGDataCollection& InputData, const TWeakObjectPtr<UPCGComponent> SourceComponent, const UPCGNode* Node)
+{
+	FPCGExFactoryProviderContext* Context = new FPCGExFactoryProviderContext();
+	Context->InputData = InputData;
+	Context->SourceComponent = SourceComponent;
+	Context->Node = Node;
+	Context->SetState(PCGEx::State_InitialExecution);
+	return Context;
 }
 
 #if WITH_EDITOR

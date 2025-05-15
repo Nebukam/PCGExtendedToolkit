@@ -276,6 +276,8 @@ int32 FPCGExEdgesProcessorContext::GetClusterProcessorsNum() const
 	return Num;
 }
 
+PCGEX_INITIALIZE_CONTEXT(EdgesProcessor)
+
 void FPCGExEdgesProcessorElement::DisabledPassThroughData(FPCGContext* Context) const
 {
 	FPCGExPointsProcessorElement::DisabledPassThroughData(Context);
@@ -425,13 +427,19 @@ bool FPCGExEdgesProcessorElement::Boot(FPCGExContext* InContext) const
 	return true;
 }
 
-void FPCGExEdgesProcessorElement::OnContextInitialized(FPCGExPointsProcessorContext* InContext) const
+FPCGExContext* FPCGExEdgesProcessorElement::InitializeContext(
+	FPCGExPointsProcessorContext* InContext,
+	const FPCGDataCollection& InputData,
+	TWeakObjectPtr<UPCGComponent> SourceComponent,
+	const UPCGNode* Node) const
 {
-	FPCGExPointsProcessorElement::OnContextInitialized(InContext);
+	FPCGExPointsProcessorElement::InitializeContext(InContext, InputData, SourceComponent, Node);
 
 	PCGEX_CONTEXT_AND_SETTINGS(EdgesProcessor)
-	
+
 	Context->bScopedIndexLookupBuild = Settings->WantsScopedIndexLookupBuild();
+
+	return Context;
 }
 
 #undef LOCTEXT_NAMESPACE
