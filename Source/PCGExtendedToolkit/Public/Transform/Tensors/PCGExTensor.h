@@ -89,7 +89,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExTensorConfigBase
 
 	UPROPERTY(VisibleAnywhere, Category=Settings, meta=(PCG_NotOverridable, HideInDetailPanel, EditCondition="false", EditConditionHides))
 	bool bSupportMutations = false;
-
+	
 	/**  */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayPriority=-1))
 	double TensorWeight = 1;
@@ -214,7 +214,7 @@ namespace PCGExTensor
 		virtual bool Init(FPCGExContext* InContext, const UPCGExTensorPointFactoryData* InFactory);
 
 	protected:
-		virtual void PrepareSinglePoint(int32 Index);
+		virtual void PrepareSinglePoint(const int32 Index);
 
 	public:
 		FORCEINLINE const PCGEx::FIndexedItemOctree* GetOctree() const { return Octree.Get(); }

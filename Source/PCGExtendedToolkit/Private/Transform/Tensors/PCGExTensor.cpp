@@ -89,43 +89,21 @@ namespace PCGExTensor
 		PCGEx::InitArray(Radiuses, InPoints.Num());
 		PCGEx::InitArray(Potencies, InPoints.Num());
 		PCGEx::InitArray(Weights, InPoints.Num());
-
+		
 		// Pack per-point data
 		for (int i = 0; i < InPoints.Num(); i++)
 		{
 			const FPCGPoint& Effector = InPoints[i];
 
-
-			PrepareSinglePoint(i);
-
-			// Flatten bounds
-
 			const FTransform& Transform = Effector.Transform;
 			Transforms[i] = Transform;
 			Potencies[i] = PotencyValue->Read(i);
 			Weights[i] = WeightValue->Read(i);
+			
+			PrepareSinglePoint(i);
 
-			FBox ScaledBounds = PCGExMath::GetLocalBounds<EPCGExPointBoundsSource::ScaledBounds>(Effector);
-			FBox WorldBounds = ScaledBounds.TransformBy(Transform);
-			FVector Extents = ScaledBounds.GetExtent();
-
-			Radiuses[i] = Extents.SquaredLength();
-
-			Octree->AddElement(PCGEx::FIndexedItem(i, FBoxSphereBounds(PCGExMath::GetLocalBounds<EPCGExPointBoundsSource::Bounds>(Effector).TransformBy(Transform))));
-
-			//Effector.BoundsMin = Extents * -1;
-			//Effector.BoundsMax = Extents;
-
-			// Flatten original bounds
-			//Effector.Transform.SetLocation(WorldBounds.GetCenter());
-			//Effector.Transform.SetScale3D(FVector::OneVector);
-
-			//Effector.BoundsMin = ScaledBounds.Min;
-			//Effector.BoundsMax = ScaledBounds.Max;
-
-			//Effector.Color = FVector4(Extents.X, Extents.Y, Extents.Z, Extents.SquaredLength()); // Cache Scaled Extents + Squared radius into $Color
-			//Effector.Density = PotencyValue->Read(i);                                                     // Pack Weight to $Density
-			//Effector.Steepness = WeightValue->Read(i);                                                  // Pack Potency to $Steepness
+			Radiuses[i] = PCGExMath::GetLocalBounds<EPCGExPointBoundsSource::ScaledBounds>(Effector).GetExtent().SquaredLength();
+			Octree->AddElement(PCGEx::FIndexedItem(i, FBoxSphereBounds(PCGExMath::GetLocalBounds<EPCGExPointBoundsSource::DensityBounds>(Effector).TransformBy(Transform)))); // Fetch to max
 		}
 
 		return true;
