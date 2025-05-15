@@ -64,7 +64,7 @@ namespace PCGExTensor
 		virtual bool Init(FPCGExContext* InContext, const UPCGExTensorPointFactoryData* InFactory) override;
 		
 	protected:
-		virtual void PrepareSinglePoint(int32 Index) override;
+		virtual void PrepareSinglePoint(const int32 Index) override;
 	};
 }
 

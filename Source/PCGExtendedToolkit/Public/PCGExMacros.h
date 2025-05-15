@@ -283,4 +283,6 @@ static void ApplyOffset(_ITEM& Element){ ensureMsgf(false, TEXT("Not implemented
 static void SetElementId(const _ITEM& Element, FOctreeElementId2 OctreeElementID){ }}; \
 using _ITEM##Octree = TOctree2<_ITEM, _ITEM##Semantics>;
 
+
+
 #endif
