@@ -293,6 +293,7 @@ namespace PCGExBuildCustomGraph
 		int32 NodeReserveNum = 0;
 		int32 EdgeReserveNum = 0;
 
+		//TSharedPtr<FPCGContextHandle> Handle = Context->Handle;
 		if (!IsInGameThread())
 		{
 			FGCScopeGuard Scope;
