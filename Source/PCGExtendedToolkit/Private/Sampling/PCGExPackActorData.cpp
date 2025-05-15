@@ -329,7 +329,15 @@ namespace PCGExPackActorDatas
 		for (int i = 0; i < ActorReferences->Values.Num(); i++) { Packer->InputActors[i] = Cast<AActor>(ActorReferences->Values[i].ResolveObject()); }
 
 		bool bSuccess = false;
-		Packer->InitializeWithContext(*Context, bSuccess);
+		if (!IsInGameThread())
+		{
+			FGCScopeGuard Scope;
+			Packer->InitializeWithContext(*Context, bSuccess);
+		}
+		else
+		{
+			Packer->InitializeWithContext(*Context, bSuccess);
+		}
 
 		if (!bSuccess)
 		{
