@@ -121,15 +121,11 @@ struct FPCGExAssetStagingContext final : FPCGExPointsProcessorContext
 
 class FPCGExAssetStagingElement final : public FPCGExPointsProcessorElement
 {
-public:
-	virtual FPCGContext* Initialize(
-		const FPCGDataCollection& InputData,
-		TWeakObjectPtr<UPCGComponent> SourceComponent,
-		const UPCGNode* Node) override;
-
-	PCGEX_CAN_ONLY_EXECUTE_ON_MAIN_THREAD(true)
-
 protected:
+	PCGEX_CAN_ONLY_EXECUTE_ON_MAIN_THREAD(true)
+	
+	PCGEX_ELEMENT_CREATE_CONTEXT(AssetStaging)
+	
 	virtual bool Boot(FPCGExContext* InContext) const override;
 	virtual void PostLoadAssetsDependencies(FPCGExContext* InContext) const override;
 	virtual bool PostBoot(FPCGExContext* InContext) const override;
@@ -155,19 +151,11 @@ namespace PCGExAssetStaging
 		TSharedPtr<PCGExData::TBuffer<int32>> WeightWriter;
 		TSharedPtr<PCGExData::TBuffer<double>> NormalizedWeightWriter;
 
-#if PCGEX_ENGINE_VERSION > 503
 		TSharedPtr<PCGExData::TBuffer<FSoftObjectPath>> PathWriter;
-#else
-		TSharedPtr<PCGExData::TBuffer<FString>> PathWriter;
-#endif
 
 		// Material handling 
 		TSharedPtr<PCGExMT::TScopedNumericValue<int8>> HighestSlotIndex;
-#if PCGEX_ENGINE_VERSION > 503
 		TArray<TSharedPtr<PCGExData::TBuffer<FSoftObjectPath>>> MaterialWriters; // Per valid slot writers
-#else
-		TArray<TSharedPtr<PCGExData::TBuffer<FString>>> MaterialWriters; // Per valid slot writers
-#endif
 
 		TArray<const FPCGExAssetCollectionEntry*> CachedPicks;
 		TArray<int8> MaterialPick;

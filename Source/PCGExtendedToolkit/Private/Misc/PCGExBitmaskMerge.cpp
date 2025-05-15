@@ -29,20 +29,6 @@ FPCGElementPtr UPCGExBitmaskMergeSettings::CreateElement() const { return MakeSh
 
 #pragma endregion
 
-FPCGContext* FPCGExBitmaskMergeElement::Initialize(
-	const FPCGDataCollection& InputData,
-	const TWeakObjectPtr<UPCGComponent> SourceComponent,
-	const UPCGNode* Node)
-{
-	FPCGContext* Context = new FPCGContext();
-
-	Context->InputData = InputData;
-	Context->SourceComponent = SourceComponent;
-	Context->Node = Node;
-
-	return Context;
-}
-
 bool FPCGExBitmaskMergeElement::ExecuteInternal(FPCGContext* Context) const
 {
 	PCGEX_SETTINGS(BitmaskMerge)

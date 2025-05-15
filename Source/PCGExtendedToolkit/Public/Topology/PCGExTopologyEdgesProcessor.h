@@ -83,10 +83,8 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExTopologyEdgesProcessorContext : FPCGExEdgesP
 
 class PCGEXTENDEDTOOLKIT_API FPCGExTopologyEdgesProcessorElement : public FPCGExEdgesProcessorElement
 {
-public:
-	PCGEX_CAN_ONLY_EXECUTE_ON_MAIN_THREAD(true)
-
 protected:
+	PCGEX_CAN_ONLY_EXECUTE_ON_MAIN_THREAD(true)
 	virtual bool Boot(FPCGExContext* InContext) const override;
 };
 
@@ -159,9 +157,7 @@ namespace PCGExTopologyEdges
 
 			if (!PCGExClusterMT::TProcessor<TContext, TSettings>::Process(InAsyncManager)) { return false; }
 
-#if PCGEX_ENGINE_VERSION > 503
-			bIsPreviewMode = ExecutionContext->SourceComponent.Get()->IsInPreviewMode();
-#endif
+			bIsPreviewMode = ExecutionContext->GetComponent()->IsInPreviewMode();
 
 			CellsConstraints = MakeShared<PCGExTopology::FCellConstraints>(Settings->Constraints);
 			if (Settings->Constraints.bOmitWrappingBounds) { CellsConstraints->BuildWrapperCell(Cluster.ToSharedRef(), *ProjectedPositions); }

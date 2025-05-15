@@ -15,21 +15,7 @@
 
 #include "PCGExSampleSurfaceGuided.generated.h"
 
-#if PCGEX_ENGINE_VERSION <= 503
-#define PCGEX_FOREACH_FIELD_SURFACEGUIDED(MACRO)\
-MACRO(Success, bool, false)\
-MACRO(Location, FVector, FVector::ZeroVector)\
-MACRO(LookAt, FVector, FVector::OneVector)\
-MACRO(Normal, FVector, FVector::OneVector)\
-MACRO(Distance, double, 0)\
-MACRO(IsInside, bool, false)\
-MACRO(UVCoords, FVector2D, FVector2D::ZeroVector)\
-MACRO(FaceIndex, int32, -1)\
-MACRO(ActorReference, FString, TEXT(""))\
-MACRO(HitComponentReference, FString, TEXT(""))\
-MACRO(PhysMat, FString, TEXT(""))\
-MACRO(RenderMat, FString, TEXT(""))
-#else
+
 #define PCGEX_FOREACH_FIELD_SURFACEGUIDED(MACRO)\
 MACRO(Success, bool, false)\
 MACRO(Location, FVector, FVector::ZeroVector)\
@@ -43,7 +29,6 @@ MACRO(ActorReference, FSoftObjectPath, FSoftObjectPath())\
 MACRO(HitComponentReference, FSoftObjectPath, FSoftObjectPath())\
 MACRO(PhysMat, FSoftObjectPath, FSoftObjectPath())\
 MACRO(RenderMat, FSoftObjectPath, FSoftObjectPath())
-#endif
 
 UENUM()
 enum class EPCGExTraceSampleDistanceInput : uint8
@@ -288,13 +273,9 @@ struct FPCGExSampleSurfaceGuidedContext final : FPCGExPointsProcessorContext
 
 class FPCGExSampleSurfaceGuidedElement final : public FPCGExPointsProcessorElement
 {
-public:
-	virtual FPCGContext* Initialize(
-		const FPCGDataCollection& InputData,
-		TWeakObjectPtr<UPCGComponent> SourceComponent,
-		const UPCGNode* Node) override;
-
 protected:
+	PCGEX_ELEMENT_CREATE_CONTEXT(SampleSurfaceGuided)
+	
 	virtual bool Boot(FPCGExContext* InContext) const override;
 	virtual bool ExecuteInternal(FPCGContext* Context) const override;
 };

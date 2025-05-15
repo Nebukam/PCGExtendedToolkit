@@ -11,8 +11,6 @@ UPCGExPathProcessorSettings::UPCGExPathProcessorSettings(
 {
 }
 
-PCGEX_INITIALIZE_CONTEXT(PathProcessor)
-
 bool FPCGExPathProcessorElement::Boot(FPCGExContext* InContext) const
 {
 	if (!FPCGExPointsProcessorElement::Boot(InContext)) { return false; }

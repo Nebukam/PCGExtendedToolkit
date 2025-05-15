@@ -67,6 +67,21 @@ protected:
 	void CommitStagedOutputs();
 
 public:
+	template <typename T>
+	class FPCGExSharedContext
+	{
+	public:
+		FPCGExSharedContext(const TWeakPtr<FPCGContextHandle>& WeakHandle)
+		{
+			SharedHandle = WeakHandle.Pin();
+		}
+
+		T* Get() const { return SharedHandle.IsValid() ? static_cast<T*>(SharedHandle->GetContext()) : nullptr; }
+
+	private:
+		TSharedPtr<FPCGContextHandle> SharedHandle;
+	};
+
 	TWeakPtr<PCGEx::FWorkPermit> GetWorkPermit() { return WorkPermit; }
 	TSharedPtr<PCGEx::FManagedObjects> ManagedObjects;
 
@@ -80,6 +95,10 @@ public:
 
 	void StageOutput(const FName Pin, UPCGData* InData, const TSet<FString>& InTags, bool bManaged, bool bIsMutable);
 	void StageOutput(const FName Pin, UPCGData* InData, bool bManaged);
+
+	UWorld* GetWorld() const;
+	const UPCGComponent* GetComponent() const;
+	UPCGComponent* GetMutableComponent() const;
 
 #pragma region State
 
@@ -119,14 +138,6 @@ public:
 		if (!Handle) { Handle = MakeShared<FPCGContextHandle>(this); }
 		return Handle.ToWeakPtr();
 	}
-
-	template <typename T>
-	static T* GetContextFromHandle(const TWeakPtr<FPCGContextHandle> WeakHandle)
-	{
-		if (const TSharedPtr<FPCGContextHandle> SharedHandle = WeakHandle.Pin()) { return static_cast<T*>(SharedHandle->GetContext()); }
-		return nullptr;
-	}
-
 #endif
 
 #pragma region Async resource management

@@ -94,7 +94,7 @@ namespace PCGExDestroyActors
 		MainThreadToken = AsyncManager->TryCreateToken(FName("DestroyActors"));
 		if (!MainThreadToken.IsValid()) { return false; }
 
-		Context->SourceComponent->ForEachManagedResource(
+		Context->GetMutableComponent()->ForEachManagedResource(
 			[&](UPCGManagedResource* InResource)
 			{
 				UPCGManagedActors* ManagedActors = Cast<UPCGManagedActors>(InResource);

@@ -190,10 +190,7 @@ namespace PCGExCreateSpline
 		// Output spline component
 		if (Settings->Mode != EPCGCreateSplineMode::CreateDataOnly)
 		{
-			bool bIsPreviewMode = false;
-#if PCGEX_ENGINE_VERSION > 503
-			bIsPreviewMode = ExecutionContext->SourceComponent.Get()->IsInPreviewMode();
-#endif
+			const bool bIsPreviewMode = ExecutionContext->GetComponent()->IsInPreviewMode();
 
 			const FString ComponentName = TEXT("PCGSplineComponent");
 			const EObjectFlags ObjectFlags = (bIsPreviewMode ? RF_Transient : RF_NoFlags);

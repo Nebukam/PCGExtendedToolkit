@@ -40,6 +40,21 @@ struct FPCGExTensorSpinConfig : public FPCGExTensorConfigBase
 	EPCGExTransformMode AxisTransform = EPCGExTransformMode::Relative;
 };
 
+namespace PCGExTensor
+{
+	class FSpinEffectorsArray : public FEffectorsArray
+	{
+		FPCGExTensorSpinConfig Config;
+		TSharedPtr<PCGExData::TBuffer<FVector>> AxisBuffer;
+		
+	public:
+		virtual bool Init(FPCGExContext* InContext, const UPCGExTensorPointFactoryData* InFactory) override;
+		
+	protected:
+		virtual void PrepareSinglePoint(const int32 Index) override;
+	};
+}
+
 /**
  * 
  */
@@ -63,12 +78,6 @@ public:
 	FPCGExTensorSpinConfig Config;
 	virtual TSharedPtr<PCGExTensorOperation> CreateOperation(FPCGExContext* InContext) const override;
 
-protected:
-	TSharedPtr<PCGExData::TBuffer<FVector>> AxisBuffer;
-
-	virtual bool InitInternalData(FPCGExContext* InContext) override;
-	virtual bool InitInternalFacade(FPCGExContext* InContext) override;
-	virtual void PrepareSinglePoint(int32 Index, FPCGPoint& InPoint) const override;
 };
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Tensors|Params")
