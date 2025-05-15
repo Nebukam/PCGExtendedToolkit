@@ -331,7 +331,7 @@ void FPCGExContext::LoadAssets()
 
 UPCGManagedComponent* FPCGExContext::AttachManagedComponent(AActor* InParent, UActorComponent* InComponent, const FAttachmentTransformRules& AttachmentRules) const
 {
-	UPCGComponent* SrcComp = SourceComponent.Get();
+	UPCGComponent* SrcComp = GetMutableComponent();
 
 	const bool bIsPreviewMode = SrcComp->IsInPreviewMode();
 
