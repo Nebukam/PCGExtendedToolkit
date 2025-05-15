@@ -6,6 +6,7 @@
 #include "Collections/PCGExActorCollectionUtils.h"
 #include "Collections/PCGExMeshCollectionUtils.h"
 
+#include "Engine/Blueprint.h"
 #include "Engine/World.h"
 #include "Misc/ScopedSlowTask.h"
 
