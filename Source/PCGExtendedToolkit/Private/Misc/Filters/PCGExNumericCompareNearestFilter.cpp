@@ -77,7 +77,7 @@ bool PCGExPointFilter::FNumericCompareNearestFilter::Test(const int32 PointIndex
 		{
 			
 #if PCGEX_ENGINE_VERSION < 506
-			const int32 OtherIndex = static_cast<int32>(PointRef.Point - TargetPoints.GetData());
+			const int32 OtherIndex = static_cast<int32>(PointRef.Point - TargetPoints->GetData());
 #else
 			const int32 OtherIndex = PointRef.Index;
 #endif
