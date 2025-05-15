@@ -211,7 +211,17 @@ bool FPCGExBuildCustomGraphElement::ExecuteInternal(FPCGContext* InContext) cons
 		// Init builder now that we have resolved actor references.
 
 		bool bSuccessfulInit = false;
-		Context->Builder->InitializeWithContext(*Context, bSuccessfulInit);
+
+		if (!IsInGameThread())
+		{
+			FGCScopeGuard Scope;
+			Context->Builder->InitializeWithContext(*Context, bSuccessfulInit);
+		}
+		else
+		{
+			Context->Builder->InitializeWithContext(*Context, bSuccessfulInit);
+		}
+
 		if (!bSuccessfulInit)
 		{
 			PCGE_LOG(Error, GraphAndLog, FTEXT("Builder returned failed initialization."));
@@ -282,7 +292,16 @@ namespace PCGExBuildCustomGraph
 		bool bInitSuccess = false;
 		int32 NodeReserveNum = 0;
 		int32 EdgeReserveNum = 0;
-		GraphSettings->InitializeSettings(*Context, bInitSuccess, NodeReserveNum, EdgeReserveNum);
+
+		if (!IsInGameThread())
+		{
+			FGCScopeGuard Scope;
+			GraphSettings->InitializeSettings(*Context, bInitSuccess, NodeReserveNum, EdgeReserveNum);
+		}
+		else
+		{
+			GraphSettings->InitializeSettings(*Context, bInitSuccess, NodeReserveNum, EdgeReserveNum);
+		}
 
 		if (!bInitSuccess)
 		{
@@ -334,7 +353,16 @@ namespace PCGExBuildCustomGraph
 		GraphBuilder->Graph->InsertEdges(GraphSettings->UniqueEdges, -1);
 
 		bool bSuccessfulAttrInit = false;
-		GraphSettings->InitPointAttributes(*Context, bSuccessfulAttrInit);
+
+		if (!IsInGameThread())
+		{
+			FGCScopeGuard Scope;
+			GraphSettings->InitPointAttributes(*Context, bSuccessfulAttrInit);
+		}
+		else
+		{
+			GraphSettings->InitPointAttributes(*Context, bSuccessfulAttrInit);
+		}
 
 		if (!bSuccessfulAttrInit)
 		{
