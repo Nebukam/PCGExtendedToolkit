@@ -243,11 +243,7 @@ class PCGEXTENDEDTOOLKIT_API FPCGExPointsProcessorElement : public IPCGElement
 public:
 	virtual bool PrepareDataInternal(FPCGContext* Context) const override;
 
-#if PCGEX_ENGINE_VERSION <= 505
-	virtual FPCGContext* Initialize(const FPCGDataCollection& InputData, TWeakObjectPtr<UPCGComponent> SourceComponent, const UPCGNode* Node) override;
-#else
 	virtual FPCGContext* Initialize(const FPCGInitializeElementParams& InParams) override;
-#endif
 
 #if WITH_EDITOR
 	virtual bool ShouldLog() const override { return false; }

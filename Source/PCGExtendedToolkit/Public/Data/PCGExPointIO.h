@@ -493,11 +493,7 @@ namespace PCGExData
 			if (const UPCGSpatialData* SpatialData = Cast<UPCGSpatialData>(Source.Data))
 			{
 				// Currently we support collapsing to point data only, but at some point in the future that might be different
-#if PCGEX_ENGINE_VERSION < 505
-				const UPCGPointData* PointData = Cast<const UPCGSpatialData>(SpatialData)->ToPointData();
-#else
 				const UPCGPointData* PointData = Cast<const UPCGSpatialData>(SpatialData)->ToPointData(Context);
-#endif
 
 				//Keep track of newly created data internally
 				if (PointData != SpatialData) { Context->ManagedObjects->Add(const_cast<UPCGPointData*>(PointData)); }

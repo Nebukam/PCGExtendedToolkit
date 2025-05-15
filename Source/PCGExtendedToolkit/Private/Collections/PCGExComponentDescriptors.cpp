@@ -20,11 +20,7 @@ void FPCGExPrimitiveComponentDescriptor::InitFrom(const UPrimitiveComponent* Com
 	MinDrawDistance = PrimitiveComponent->MinDrawDistance;
 	LDMaxDrawDistance = PrimitiveComponent->LDMaxDrawDistance;
 	IndirectLightingCacheQuality = PrimitiveComponent->IndirectLightingCacheQuality;
-#if PCGEX_ENGINE_VERSION < 505
-	LightmapType = PrimitiveComponent->LightmapType;
-#else
 	LightmapType = PrimitiveComponent->GetLightmapType();
-#endif
 	HLODBatchingPolicy = PrimitiveComponent->HLODBatchingPolicy;
 	bEnableAutoLODGeneration = PrimitiveComponent->bEnableAutoLODGeneration;
 	bNeverDistanceCull = PrimitiveComponent->bNeverDistanceCull;
@@ -103,11 +99,7 @@ void FPCGExPrimitiveComponentDescriptor::InitComponent(UPrimitiveComponent* InCo
 	PrimitiveComponent->MinDrawDistance = MinDrawDistance;
 	PrimitiveComponent->LDMaxDrawDistance = LDMaxDrawDistance;
 	PrimitiveComponent->IndirectLightingCacheQuality = IndirectLightingCacheQuality;
-#if PCGEX_ENGINE_VERSION < 505
-	PrimitiveComponent->LightmapType = LightmapType;
-#else
 	PrimitiveComponent->SetLightmapType(LightmapType);
-#endif
 	PrimitiveComponent->HLODBatchingPolicy = HLODBatchingPolicy;
 	PrimitiveComponent->bEnableAutoLODGeneration = bEnableAutoLODGeneration;
 	PrimitiveComponent->bNeverDistanceCull = bNeverDistanceCull;
@@ -229,11 +221,7 @@ void FPCGExStaticMeshComponentDescriptor::InitFrom(const UPrimitiveComponent* Co
 	WorldPositionOffsetDisableDistance = StaticMeshComponent->WorldPositionOffsetDisableDistance;
 	bOverrideWireframeColor = StaticMeshComponent->bOverrideWireframeColor;
 	bOverrideMinLOD = StaticMeshComponent->bOverrideMinLOD;
-#if PCGEX_ENGINE_VERSION < 505
-	bDisallowMeshPaintPerInstance = StaticMeshComponent->bDisallowMeshPaintPerInstance;
-#else
 	bDisallowMeshPaintPerInstance = 0;
-#endif
 	bIgnoreInstanceForTextureStreaming = StaticMeshComponent->bIgnoreInstanceForTextureStreaming;
 	bOverrideLightMapRes = StaticMeshComponent->bOverrideLightMapRes;
 	bCastDistanceFieldIndirectShadow = StaticMeshComponent->bCastDistanceFieldIndirectShadow;
@@ -267,9 +255,6 @@ void FPCGExStaticMeshComponentDescriptor::InitComponent(UPrimitiveComponent* InC
 	StaticMeshComponent->WorldPositionOffsetDisableDistance = WorldPositionOffsetDisableDistance;
 	StaticMeshComponent->bOverrideWireframeColor = bOverrideWireframeColor;
 	StaticMeshComponent->bOverrideMinLOD = bOverrideMinLOD;
-#if PCGEX_ENGINE_VERSION < 505
-	StaticMeshComponent->bDisallowMeshPaintPerInstance = bDisallowMeshPaintPerInstance;
-#endif
 	StaticMeshComponent->bIgnoreInstanceForTextureStreaming = bIgnoreInstanceForTextureStreaming;
 	StaticMeshComponent->bOverrideLightMapRes = bOverrideLightMapRes;
 	StaticMeshComponent->bCastDistanceFieldIndirectShadow = bCastDistanceFieldIndirectShadow;
@@ -299,10 +284,6 @@ void FPCGExDynamicMeshDescriptor::InitFrom(const UPrimitiveComponent* Component,
 	const UDynamicMeshComponent* DynamicMeshComponent = Cast<UDynamicMeshComponent>(Component);
 	if (!DynamicMeshComponent) { return; }
 
-#if PCGEX_ENGINE_VERSION > 504 && PCGEX_ENGINE_VERSION < 506 
-	DistanceFieldMode = static_cast<EPCGExDynamicMeshComponentDistanceFieldMode>(static_cast<uint8>(DynamicMeshComponent->GetDistanceFieldMode()));
-#endif
-
 	bExplicitShowWireframe = DynamicMeshComponent->bExplicitShowWireframe;
 	WireframeColor = DynamicMeshComponent->WireframeColor;
 	ColorMode = DynamicMeshComponent->ColorMode;
@@ -319,10 +300,6 @@ void FPCGExDynamicMeshDescriptor::InitComponent(UPrimitiveComponent* InComponent
 
 	UDynamicMeshComponent* DynamicMeshComponent = Cast<UDynamicMeshComponent>(InComponent);
 	if (!DynamicMeshComponent) { return; }
-
-#if PCGEX_ENGINE_VERSION > 504 && PCGEX_ENGINE_VERSION < 506
-	DynamicMeshComponent->SetDistanceFieldMode(static_cast<EDynamicMeshComponentDistanceFieldMode>(static_cast<uint8>(DistanceFieldMode)));
-#endif
 
 	DynamicMeshComponent->bUseAsyncCooking = bUseAsyncCooking;
 	DynamicMeshComponent->bDeferCollisionUpdates = bDeferCollisionUpdates;

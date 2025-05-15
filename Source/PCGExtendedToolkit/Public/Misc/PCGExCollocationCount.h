@@ -8,7 +8,7 @@
 #include "PCGExGlobalSettings.h"
 
 #include "PCGExPointsProcessor.h"
-#include PCGEX_POINT_OCTREE_H
+#include "Utils/PCGPointOctree.h" 
 
 
 #include "PCGExCollocationCount.generated.h"
@@ -73,7 +73,7 @@ namespace PCGExCollocationCount
 		TSharedPtr<PCGExData::TBuffer<int32>> CollocationWriter;
 		TSharedPtr<PCGExData::TBuffer<int32>> LinearOccurencesWriter;
 
-		const PCGEX_POINT_OCTREE_TYPE* Octree = nullptr;
+		const PCGPointOctree::FPointOctree* Octree = nullptr;
 
 	public:
 		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade):

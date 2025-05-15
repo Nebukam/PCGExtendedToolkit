@@ -104,7 +104,7 @@ bool FPCGExSampleInsideBoundsElement::Boot(FPCGExContext* InContext) const
 	Context->TargetPoints = &Context->TargetsFacade->Source->GetIn()->GetPoints();
 
 	Context->NumTargets = Context->TargetPoints->Num();
-	Context->TargetOctree = &Context->TargetsFacade->Source->GetIn()->PCGEX_POINT_OCTREE_GET();
+	Context->TargetOctree = &Context->TargetsFacade->Source->GetIn()->GetPointOctree();
 
 	if (Settings->SampleMethod == EPCGExSampleMethod::BestCandidate)
 	{
@@ -315,16 +315,7 @@ namespace PCGExSampleInsideBoundss
 		if (RangeMax > 0)
 		{
 			const FBox Box = FBoxCenterAndExtent(Origin, FVector(FMath::Sqrt(RangeMax))).GetBox();
-			auto ProcessNeighbor = [&](const PCGEX_POINT_OCTREE_REF& PointRef)
-			{
-#if PCGEX_ENGINE_VERSION < 506
-				const int32 OtherIndex = static_cast<int32>(PointRef.Point - TargetPoints.GetData());
-#else
-				const int32 OtherIndex = PointRef.Index;
-#endif
-
-				SampleTarget(OtherIndex);
-			};
+			auto ProcessNeighbor = [&](const PCGPointOctree::FPointRef& PointRef) { SampleTarget(PointRef.Index); };
 
 			Context->TargetOctree->FindElementsWithBoundsTest(Box, ProcessNeighbor);
 		}

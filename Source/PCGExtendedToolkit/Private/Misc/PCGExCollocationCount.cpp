@@ -66,18 +66,12 @@ namespace PCGExCollocationCount
 			LinearOccurencesWriter = PointDataFacade->GetWritable(Settings->LinearOccurencesAttributeName, 0, true, PCGExData::EBufferInit::New);
 		}
 
-		Octree = &PointDataFacade->Source->GetIn()->PCGEX_POINT_OCTREE_GET();
+		Octree = &PointDataFacade->Source->GetIn()->GetPointOctree();
 
 		StartParallelLoopForPoints();
 
 		return true;
 	}
-
-#if PCGEX_ENGINE_VERSION < 506
-#define PCGEX_POINTREF_INDEX const int32 OtherIndex = static_cast<int32>(PointRef.Point - InPoints.GetData());
-#else
-#define PCGEX_POINTREF_INDEX const int32 OtherIndex = PointRef.Index;
-#endif
 
 	void FProcessor::ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const PCGExMT::FScope& Scope)
 	{
@@ -89,24 +83,22 @@ namespace PCGExCollocationCount
 
 		CollocationWriter->GetMutable(Index) = 0;
 
-		auto ProcessNeighbors = [&](const PCGEX_POINT_OCTREE_REF& PointRef)
+		auto ProcessNeighbors = [&](const PCGPointOctree::FPointRef& PointRef)
 		{
-			PCGEX_POINTREF_INDEX
-			if (OtherIndex == Index) { return; }
-			if (FVector::Dist(Center, InPoints[OtherIndex].Transform.GetLocation()) > Tolerance) { return; }
+			if (PointRef.Index == Index) { return; }
+			if (FVector::Dist(Center, InPoints[PointRef.Index].Transform.GetLocation()) > Tolerance) { return; }
 
 			CollocationWriter->GetMutable(Index) += 1;
 		};
 
-		auto ProcessNeighbors2 = [&](const PCGEX_POINT_OCTREE_REF& PointRef)
+		auto ProcessNeighbors2 = [&](const PCGPointOctree::FPointRef& PointRef)
 		{
-			PCGEX_POINTREF_INDEX
-			if (OtherIndex == Index) { return; }
-			if (FVector::Dist(Center, InPoints[OtherIndex].Transform.GetLocation()) > Tolerance) { return; }
+			if (PointRef.Index == Index) { return; }
+			if (FVector::Dist(Center, InPoints[PointRef.Index].Transform.GetLocation()) > Tolerance) { return; }
 
 			CollocationWriter->GetMutable(Index) += 1;
 
-			if (OtherIndex < Index) { LinearOccurencesWriter->GetMutable(Index) += 1; }
+			if (PointRef.Index < Index) { LinearOccurencesWriter->GetMutable(Index) += 1; }
 		};
 
 		if (LinearOccurencesWriter)
@@ -119,8 +111,6 @@ namespace PCGExCollocationCount
 			Octree->FindElementsWithBoundsTest(BCAE, ProcessNeighbors);
 		}
 	}
-
-#undef PCGEX_POINTREF_INDEX
 
 	void FProcessor::CompleteWork()
 	{

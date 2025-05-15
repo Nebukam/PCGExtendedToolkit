@@ -70,20 +70,12 @@ UWorld* FPCGExContext::GetWorld() const { return GetComponent()->GetWorld(); }
 
 const UPCGComponent* FPCGExContext::GetComponent() const
 {
-#if PCGEX_ENGINE_VERSION <= 505
-	return SourceComponent.Get();
-#else
 	return Cast<UPCGComponent>(ExecutionSource.Get());
-#endif
 }
 
 UPCGComponent* FPCGExContext::GetMutableComponent() const
 {
-#if PCGEX_ENGINE_VERSION <= 505
-	return const_cast<UPCGComponent*>(SourceComponent.Get());
-#else
 	return const_cast<UPCGComponent*>(Cast<UPCGComponent>(ExecutionSource.Get()));
-#endif
 }
 
 void FPCGExContext::PauseContext()

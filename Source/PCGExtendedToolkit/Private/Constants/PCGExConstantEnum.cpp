@@ -79,7 +79,6 @@ void UPCGExConstantEnumSettings::PostEditChangeProperty(struct FPropertyChangedE
 }
 #endif
 
-#if PCGEX_ENGINE_VERSION >= 505
 // This does not exist in 5.4
 void UPCGExConstantEnumSettings::OnOverrideSettingsDuplicatedInternal(bool bSkippedPostLoad)
 {
@@ -93,7 +92,6 @@ void UPCGExConstantEnumSettings::OnOverrideSettingsDuplicatedInternal(bool bSkip
 		}
 	}
 }
-#endif
 
 void UPCGExConstantEnumSettings::FillEnabledExportValues()
 {

@@ -206,12 +206,10 @@ namespace PCGEx
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(FManagedObjects::RecursivelyClearAsyncFlag_Unsafe);
 
-#if PCGEX_ENGINE_VERSION >= 505
 		{
 			FReadScopeLock ReadScopeLock(DuplicatedObjectLock);
 			if (DuplicateObjects.Contains(InObject)) { return; }
 		}
-#endif
 
 		if (InObject->HasAnyInternalFlags(EInternalObjectFlags::Async))
 		{

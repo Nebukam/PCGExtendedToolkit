@@ -158,11 +158,7 @@ void FPCGExGetTextureDataContext::AdvanceProcessing(const int32 Index)
 
 	auto ApplySettings = [&](UPCGBaseTextureData* InTex)
 	{
-#if PCGEX_ENGINE_VERSION >= 505
 		InTex->Filter = Settings->Filter == EPCGExTextureFilter::Bilinear ? EPCGTextureFilter::Bilinear : EPCGTextureFilter::Point;
-#else
-		InTex->DensityFunction = EPCGTextureDensityFunction::Multiply;
-#endif
 
 		InTex->ColorChannel = Settings->ColorChannel;
 		InTex->TexelSize = Settings->TexelSize;
@@ -208,18 +204,11 @@ void FPCGExGetTextureDataContext::AdvanceProcessing(const int32 Index)
 		TexData = ManagedObjects->New<UPCGTextureData>();
 		TextureDataList[Index] = TexData;
 
-#if PCGEX_ENGINE_VERSION == 504
-		auto PostInitializeCallback = [&]() { TextureReady[Index] = true; };
-		TexData->Initialize(Texture.Get(), Ref.TextureIndex, Transform, PostInitializeCallback);
-#elif PCGEX_ENGINE_VERSION >= 505
 		TextureReady[Index] = TexData->Initialize(Texture.Get(), Ref.TextureIndex, Transform);
-#endif
 	}
 	else
 	{
-#if PCGEX_ENGINE_VERSION >= 505
 		TextureReady[Index] = TexData->Initialize(Texture.Get(), Ref.TextureIndex, Transform);
-#endif
 	}
 
 	if (!TextureReady[Index])
@@ -238,13 +227,11 @@ void FPCGExGetTextureDataContext::AdvanceProcessing(const int32 Index)
 		return;
 	}
 
-#if PCGEX_ENGINE_VERSION >= 505
 	if (!TexData->IsSuccessfullyInitialized())
 	{
 		MoveToNextTask();
 		return;
 	}
-#endif
 
 	if (!TexData->IsValid())
 	{

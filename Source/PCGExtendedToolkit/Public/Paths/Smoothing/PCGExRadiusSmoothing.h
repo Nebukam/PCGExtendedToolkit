@@ -41,18 +41,13 @@ public:
 		Weights.Reserve(10);
 
 		double TotalWeight = 0;
-		Path->GetIn()->PCGEX_POINT_OCTREE_GET().FindElementsWithBoundsTest(
-			FBoxCenterAndExtent(Origin, FVector(Smoothing)), [&](const PCGEX_POINT_OCTREE_REF& PointRef)
+		Path->GetIn()->GetPointOctree().FindElementsWithBoundsTest(
+			FBoxCenterAndExtent(Origin, FVector(Smoothing)), [&](const PCGPointOctree::FPointRef& PointRef)
 			{
-#if PCGEX_ENGINE_VERSION < 506
-				const int32 OtherIndex = static_cast<int32>(PointRef.Point - PathPoints.GetData());
-#else
-				const int32 OtherIndex = PointRef.Index;
-#endif
-				const double Dist = FVector::DistSquared(Origin, PathPoints[OtherIndex].Transform.GetLocation());
-				if (Dist >= RadiusSquared || OtherIndex == Target.Index) { return; }
+				const double Dist = FVector::DistSquared(Origin, PathPoints[PointRef.Index].Transform.GetLocation());
+				if (Dist >= RadiusSquared || PointRef.Index == Target.Index) { return; }
 
-				Indices.Add(OtherIndex);
+				Indices.Add(PointRef.Index);
 				Weights.Add((1 - (Dist / RadiusSquared)) * Influence);
 			});
 

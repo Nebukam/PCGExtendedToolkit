@@ -320,7 +320,6 @@ void FPCGExMeshCollectionEntry::SetAssetPath(const FSoftObjectPath& InPath)
 	ISMDescriptor.StaticMesh = StaticMesh;
 }
 
-#if PCGEX_ENGINE_VERSION > 504
 void FPCGExMeshCollectionEntry::InitPCGSoftISMDescriptor(FPCGSoftISMComponentDescriptor& TargetDescriptor) const
 {
 	PCGExHelpers::CopyStructProperties(
@@ -331,7 +330,6 @@ void FPCGExMeshCollectionEntry::InitPCGSoftISMDescriptor(FPCGSoftISMComponentDes
 
 	TargetDescriptor.ComponentTags.Append(Tags.Array());
 }
-#endif
 
 #if WITH_EDITOR
 void UPCGExMeshCollection::EDITOR_AddBrowserSelectionInternal(const TArray<FAssetData>& InAssetData)

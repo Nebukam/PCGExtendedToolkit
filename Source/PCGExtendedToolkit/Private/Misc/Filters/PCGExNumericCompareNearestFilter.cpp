@@ -57,7 +57,7 @@ bool PCGExPointFilter::FNumericCompareNearestFilter::Init(FPCGExContext* InConte
 	OperandB = TypedFilterFactory->Config.GetValueSettingOperandB();
 	if (!OperandB->Init(InContext, PointDataFacade, false)) { return false; }
 
-	TargetOctree = &TargetDataFacade->GetIn()->PCGEX_POINT_OCTREE_GET();
+	TargetOctree = &TargetDataFacade->GetIn()->GetPointOctree();
 
 	return true;
 }
@@ -73,14 +73,9 @@ bool PCGExPointFilter::FNumericCompareNearestFilter::Test(const int32 PointIndex
 	int32 TargetIndex = -1;
 
 	TargetOctree->FindNearbyElements(
-		SourcePt.Transform.GetLocation(), [&](const PCGEX_POINT_OCTREE_REF& PointRef)
+		SourcePt.Transform.GetLocation(), [&](const PCGPointOctree::FPointRef& PointRef)
 		{
-			
-#if PCGEX_ENGINE_VERSION < 506
-			const int32 OtherIndex = static_cast<int32>(PointRef.Point - TargetPoints->GetData());
-#else
 			const int32 OtherIndex = PointRef.Index;
-#endif
 
 			FVector SourcePosition = FVector::ZeroVector;
 			FVector TargetPosition = FVector::ZeroVector;

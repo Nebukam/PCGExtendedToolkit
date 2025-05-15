@@ -34,22 +34,6 @@ namespace PCGEx
 	PCGEX_CTX_STATE(State_UnionWriting)
 }
 
-#if PCGEX_ENGINE_VERSION < 505
-struct PCGEXTENDEDTOOLKIT_API FPCGContextHandle : public TSharedFromThis<FPCGContextHandle>
-{
-public:
-	FPCGContextHandle(FPCGContext* InContext)
-		: Context(InContext)
-	{
-	}
-
-	FPCGContext* GetContext() { return Context; }
-
-private:
-	FPCGContext* Context = nullptr;
-};
-#endif
-
 struct PCGEXTENDEDTOOLKIT_API FPCGExContext : FPCGContext
 {
 protected:
@@ -126,19 +110,6 @@ protected:
 	std::atomic<PCGEx::ContextState> CurrentState;
 
 #pragma endregion
-
-#if PCGEX_ENGINE_VERSION < 505
-
-	// Lazy initialized shared handle pointer that can be used in lambda captures to test if Context is still valid before accessing it
-	TSharedPtr<FPCGContextHandle> Handle;
-
-public:
-	TWeakPtr<FPCGContextHandle> GetOrCreateHandle()
-	{
-		if (!Handle) { Handle = MakeShared<FPCGContextHandle>(this); }
-		return Handle.ToWeakPtr();
-	}
-#endif
 
 #pragma region Async resource management
 

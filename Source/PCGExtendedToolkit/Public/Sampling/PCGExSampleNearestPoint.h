@@ -8,7 +8,7 @@
 
 #include "PCGExPointsProcessor.h"
 
-#include PCGEX_POINT_OCTREE_H
+#include "Utils/PCGPointOctree.h" 
 
 #include "PCGExSampling.h"
 #include "PCGExDetails.h"
@@ -328,7 +328,7 @@ struct FPCGExSampleNearestPointContext final : FPCGExPointsProcessorContext
 
 	TSharedPtr<PCGExData::FFacadePreloader> TargetsPreloader;
 	TSharedPtr<PCGExData::FFacade> TargetsFacade;
-	const PCGEX_POINT_OCTREE_TYPE* TargetOctree = nullptr;
+	const PCGPointOctree::FPointOctree* TargetOctree = nullptr;
 	TSharedPtr<PCGExSorting::PointSorter<false>> Sorter;
 
 	FPCGExApplySamplingDetails ApplySampling;

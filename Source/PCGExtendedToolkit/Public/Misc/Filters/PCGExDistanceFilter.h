@@ -10,7 +10,7 @@
 #include "PCGExCompare.h"
 #include "PCGExDetailsData.h"
 
-#include PCGEX_POINT_OCTREE_H
+#include "Utils/PCGPointOctree.h" 
 
 #include "PCGExFilterFactoryProvider.h"
 
@@ -74,7 +74,7 @@ public:
 	UPROPERTY()
 	FPCGExDistanceFilterConfig Config;
 
-	TArray<const PCGEX_POINT_OCTREE_TYPE*> OctreesPtr;
+	TArray<const PCGPointOctree::FPointOctree*> OctreesPtr;
 	TArray<const TArray<FPCGPoint>*> TargetsPtr;
 
 	virtual bool SupportsDirectEvaluation() const override;
@@ -107,7 +107,7 @@ namespace PCGExPointFilter
 
 		TSharedPtr<PCGExDetails::FDistances> Distances;
 
-		TArray<const PCGEX_POINT_OCTREE_TYPE*> OctreesPtr;
+		TArray<const PCGPointOctree::FPointOctree*> OctreesPtr;
 		TArray<const TArray<FPCGPoint>*> TargetsPtr;
 		uintptr_t SelfPtr = 0;
 		bool bIgnoreSelf = false;
