@@ -99,11 +99,13 @@ namespace PCGExDestroyActors
 			{
 				UPCGManagedActors* ManagedActors = Cast<UPCGManagedActors>(InResource);
 
-				if (!ManagedActors || ManagedActors->GeneratedActors.IsEmpty()) { return; }
+				if (!ManagedActors) { return; }
 
-				TSet<TSoftObjectPtr<AActor>> ItCopy = ManagedActors->GeneratedActors;
+				TArray<TSoftObjectPtr<AActor>> GeneratedActors = ManagedActors->GetConstGeneratedActors();
 
-				for (const TSoftObjectPtr<AActor>& Actor : ItCopy)
+				if (!ManagedActors || GeneratedActors.IsEmpty()) { return; }
+
+				for (const TSoftObjectPtr<AActor>& Actor : GeneratedActors)
 				{
 					if (UniqueActorReferences.Contains(Actor->GetPathName()))
 					{

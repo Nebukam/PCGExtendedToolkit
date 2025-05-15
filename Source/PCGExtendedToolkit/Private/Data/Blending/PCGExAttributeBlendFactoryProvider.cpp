@@ -252,7 +252,7 @@ void UPCGExAttributeBlendFactoryProviderSettings::PostEditChangeProperty(FProper
 TArray<FPCGPreConfiguredSettingsInfo> UPCGExAttributeBlendFactoryProviderSettings::GetPreconfiguredInfo() const
 {
 	const TSet ValuesToSkip = {EPCGExABBlendingType::None};
-	return PCGMetadataElementCommon::FillPreconfiguredSettingsInfoFromEnum<EPCGExABBlendingType>(ValuesToSkip, FTEXT("Blend : "));
+	return FPCGPreConfiguredSettingsInfo::PopulateFromEnum<EPCGExABBlendingType>(ValuesToSkip, FTEXT("Blend : "));
 }
 #endif
 

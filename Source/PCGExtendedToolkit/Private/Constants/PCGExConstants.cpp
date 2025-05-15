@@ -28,7 +28,7 @@ TArray<FPCGPreConfiguredSettingsInfo> UPCGExConstantsSettings::GetPreconfiguredI
 		EPCGExConstantListID::ADDITIONAL_NUMERICS
 	};
 
-	return PCGMetadataElementCommon::FillPreconfiguredSettingsInfoFromEnum<EPCGExConstantListID>(ValuesToSkip);
+	return FPCGPreConfiguredSettingsInfo::PopulateFromEnum<EPCGExConstantListID>(ValuesToSkip);
 }
 #endif
 
