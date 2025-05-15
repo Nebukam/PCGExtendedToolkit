@@ -13,7 +13,6 @@
 #include "Data/Blending/PCGExDataBlending.h"
 #include "Data/Blending/PCGExMetadataBlender.h"
 
-
 #include "PCGExSampleInsideBounds.generated.h"
 
 #define PCGEX_FOREACH_FIELD_INSIDEBOUNDS(MACRO)\
@@ -324,7 +323,7 @@ struct FPCGExSampleInsideBoundsContext final : FPCGExPointsProcessorContext
 
 	TSharedPtr<PCGExData::FFacadePreloader> TargetsPreloader;
 	TSharedPtr<PCGExData::FFacade> TargetsFacade;
-	const UPCGPointData::PointOctree* TargetOctree = nullptr;
+	const PCGEX_POINT_OCTREE_TYPE* TargetOctree = nullptr;
 	TSharedPtr<PCGExSorting::PointSorter<false>> Sorter;
 
 	FPCGExApplySamplingDetails ApplySampling;

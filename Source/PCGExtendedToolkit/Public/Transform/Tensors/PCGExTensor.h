@@ -8,6 +8,9 @@
 #include "Data/PCGExData.h"
 #include "PCGExTensor.generated.h"
 
+class UPCGExTensorPointFactoryData;
+class UPCGExTensorFactoryData;
+
 namespace PCGExTensor
 {
 	struct FTensorSample;
@@ -193,6 +196,34 @@ namespace PCGExTensor
 	const FName SourceTensorsLabel = TEXT("Tensors");
 	const FName SourceEffectorsLabel = TEXT("Effectors");
 	const FName SourceTensorConfigSourceLabel = TEXT("Parent Tensor");
+
+	class FEffectorsArray : public TSharedFromThis<FEffectorsArray>
+	{
+	protected:
+		TArray<FTransform> Transforms;
+		TArray<double> Radiuses;
+		TArray<double> Potencies;
+		TArray<double> Weights;
+
+		TSharedPtr<PCGEx::FIndexedItemOctree> Octree;
+
+	public:
+		FEffectorsArray() = default;
+		virtual ~FEffectorsArray() = default;
+
+		virtual bool Init(FPCGExContext* InContext, const UPCGExTensorPointFactoryData* InFactory);
+
+	protected:
+		virtual void PrepareSinglePoint(int32 Index);
+
+	public:
+		FORCEINLINE const PCGEx::FIndexedItemOctree* GetOctree() const { return Octree.Get(); }
+
+		const FTransform& ReadTransform(const int32 Index) const { return Transforms[Index]; }
+		double ReadRadius(const int32 Index) const { return Radiuses[Index]; }
+		double ReadPotency(const int32 Index) const { return Potencies[Index]; }
+		double ReadWeight(const int32 Index) const { return Weights[Index]; }
+	};
 
 	struct FTensorSample
 	{

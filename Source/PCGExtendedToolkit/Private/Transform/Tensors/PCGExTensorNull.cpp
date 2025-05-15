@@ -20,14 +20,14 @@ PCGExTensor::FTensorSample FPCGExTensorNull::Sample(const int32 InSeedIndex, con
 
 	PCGExTensor::FEffectorSamples Samples = PCGExTensor::FEffectorSamples();
 
-	auto ProcessNeighbor = [&](const FPCGPointRef& InEffector)
+	auto ProcessNeighbor = [&](const PCGEx::FIndexedItem& InEffector)
 	{
 		PCGExTensor::FEffectorMetrics Metrics;
-		if (!ComputeFactor(InPosition, InEffector, Metrics)) { return; }
+		if (!ComputeFactor(InPosition, InEffector.Index, Metrics)) { return; }
 		Samples.Emplace_GetRef(FVector::ZeroVector, 1, 1);
 	};
 
-	Octree->FindElementsWithBoundsTest(BCAE, ProcessNeighbor);
+	Effectors->GetOctree()->FindElementsWithBoundsTest(BCAE, ProcessNeighbor);
 	return Samples.Flatten(Samples.TotalPotency * Config.TensorWeight);
 }
 

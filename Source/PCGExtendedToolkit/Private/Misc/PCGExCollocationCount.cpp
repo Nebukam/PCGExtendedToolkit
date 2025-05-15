@@ -66,35 +66,43 @@ namespace PCGExCollocationCount
 			LinearOccurencesWriter = PointDataFacade->GetWritable(Settings->LinearOccurencesAttributeName, 0, true, PCGExData::EBufferInit::New);
 		}
 
-		Octree = &PointDataFacade->Source->GetIn()->GetOctree();
+		Octree = &PointDataFacade->Source->GetIn()->PCGEX_POINT_OCTREE_GET();
 
 		StartParallelLoopForPoints();
 
 		return true;
 	}
 
+#if PCGEX_ENGINE_VERSION < 506
+#define PCGEX_POINTREF_INDEX const int32 OtherIndex = static_cast<int32>(PointRef.Point - InPoints.GetData());
+#else
+#define PCGEX_POINTREF_INDEX const int32 OtherIndex = PointRef.Index;
+#endif
+
 	void FProcessor::ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const PCGExMT::FScope& Scope)
 	{
+		const TArray<FPCGPoint>& InPoints = PointDataFacade->Source->GetIn()->GetPoints();
+
 		const FVector Center = Point.Transform.GetLocation();
 		const double Tolerance = ToleranceConstant;
 		const FBoxCenterAndExtent BCAE = FBoxCenterAndExtent(Center, FVector(Tolerance));
 
 		CollocationWriter->GetMutable(Index) = 0;
 
-		auto ProcessNeighbors = [&](const FPCGPointRef& Other)
+		auto ProcessNeighbors = [&](const PCGEX_POINT_OCTREE_REF& PointRef)
 		{
-			const ptrdiff_t OtherIndex = Other.Point - PointDataFacade->GetIn()->GetPoints().GetData();
+			PCGEX_POINTREF_INDEX
 			if (OtherIndex == Index) { return; }
-			if (FVector::Dist(Center, Other.Point->Transform.GetLocation()) > Tolerance) { return; }
+			if (FVector::Dist(Center, InPoints[OtherIndex].Transform.GetLocation()) > Tolerance) { return; }
 
 			CollocationWriter->GetMutable(Index) += 1;
 		};
 
-		auto ProcessNeighbors2 = [&](const FPCGPointRef& Other)
+		auto ProcessNeighbors2 = [&](const PCGEX_POINT_OCTREE_REF& PointRef)
 		{
-			const ptrdiff_t OtherIndex = Other.Point - PointDataFacade->GetIn()->GetPoints().GetData();
+			PCGEX_POINTREF_INDEX
 			if (OtherIndex == Index) { return; }
-			if (FVector::Dist(Center, Other.Point->Transform.GetLocation()) > Tolerance) { return; }
+			if (FVector::Dist(Center, InPoints[OtherIndex].Transform.GetLocation()) > Tolerance) { return; }
 
 			CollocationWriter->GetMutable(Index) += 1;
 
@@ -111,6 +119,8 @@ namespace PCGExCollocationCount
 			Octree->FindElementsWithBoundsTest(BCAE, ProcessNeighbors);
 		}
 	}
+
+#undef PCGEX_POINTREF_INDEX
 
 	void FProcessor::CompleteWork()
 	{

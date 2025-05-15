@@ -122,12 +122,6 @@ namespace PCGExData
 
 		uint64 GetUID() const { return UID; }
 
-		void SetType(const EPCGMetadataTypes InType)
-		{
-			Type = InType;
-			UID = BufferUID(FullName, InType);
-		}
-
 		EPCGMetadataTypes GetType() const { return Type; }
 
 		template <typename T>
@@ -154,6 +148,15 @@ namespace PCGExData
 		virtual bool OutputsToDifferentName() const;
 
 		bool GetAllowsInterpolation() const { return OutAttribute ? OutAttribute->AllowsInterpolation() : InAttribute ? InAttribute->AllowsInterpolation() : false; }
+
+	protected:
+		
+		void SetType(const EPCGMetadataTypes InType)
+		{
+			Type = InType;
+			UID = BufferUID(FullName, InType);
+		}
+		
 	};
 
 	template <typename T, EBufferLevel BufferLevel = EBufferLevel::Local>

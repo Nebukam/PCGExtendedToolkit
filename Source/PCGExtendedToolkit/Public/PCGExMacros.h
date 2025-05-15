@@ -242,6 +242,18 @@ case EPCGExOptionState::Disabled: return false; }
 #define PCGEX_PIN_DEPENDENCIES PCGEX_PIN_ANY(PCGPinConstants::DefaultExecutionDependencyLabel, "Data passed to this pin will be used to order execution but will otherwise not contribute to the results of this node.", Normal, {})
 #endif
 
+#if PCGEX_ENGINE_VERSION <= 505
+#define PCGEX_POINT_OCTREE_H "Data/PCGPointData.h"
+#define PCGEX_POINT_OCTREE_TYPE UPCGPointData::PointOctree
+#define PCGEX_POINT_OCTREE_GET GetOctree
+#define PCGEX_POINT_OCTREE_REF FPCGPointRef
+#else
+#define PCGEX_POINT_OCTREE_H "Utils/PCGPointOctree.h" 
+#define PCGEX_POINT_OCTREE_TYPE PCGPointOctree::FPointOctree
+#define PCGEX_POINT_OCTREE_GET GetPointOctree
+#define PCGEX_POINT_OCTREE_REF PCGPointOctree::FPointRef
+#endif
+
 #define PCGEX_OCTREE_SEMANTICS(_ITEM, _BOUNDS, _EQUALITY)\
 struct _ITEM##Semantics{ \
 	enum { MaxElementsPerLeaf = 16 }; \

@@ -2,6 +2,8 @@
 // Released under the MIT license https://opensource.org/license/MIT/
 
 #include "Transform/Tensors/PCGExTensor.h"
+
+#include "Transform/Tensors/PCGExTensorFactoryProvider.h"
 #include "Transform/Tensors/PCGExTensorOperation.h"
 
 PCGExTensor::FTensorSample FPCGExTensorSamplingMutationsDetails::Mutate(const FTransform& InProbe, PCGExTensor::FTensorSample InSample) const
@@ -70,6 +72,69 @@ void FPCGExTensorConfigBase::Init()
 
 namespace PCGExTensor
 {
+	bool FEffectorsArray::Init(FPCGExContext* InContext, const UPCGExTensorPointFactoryData* InFactory)
+	{
+		TSharedPtr<PCGExDetails::TSettingValue<double>> PotencyValue = InFactory->BaseConfig.GetValueSettingPotency(InFactory->bQuietMissingInputError);
+		if (!PotencyValue->Init(InContext, InFactory->InputDataFacade, false)) { return false; }
+
+		TSharedPtr<PCGExDetails::TSettingValue<double>> WeightValue = InFactory->BaseConfig.GetValueSettingWeight(InFactory->bQuietMissingInputError);
+		if (!WeightValue->Init(InContext, InFactory->InputDataFacade, false)) { return false; }
+
+		const TArray<FPCGPoint>& InPoints = InFactory->InputDataFacade->GetIn()->GetPoints();
+
+		const FBox InBounds = InFactory->InputDataFacade->GetIn()->GetBounds();
+		Octree = MakeShared<PCGEx::FIndexedItemOctree>(InBounds.GetCenter(), (InBounds.GetExtent() + FVector(10)).Length());
+
+		PCGEx::InitArray(Transforms, InPoints.Num());
+		PCGEx::InitArray(Radiuses, InPoints.Num());
+		PCGEx::InitArray(Potencies, InPoints.Num());
+		PCGEx::InitArray(Weights, InPoints.Num());
+
+		// Pack per-point data
+		for (int i = 0; i < InPoints.Num(); i++)
+		{
+			const FPCGPoint& Effector = InPoints[i];
+
+
+			PrepareSinglePoint(i);
+
+			// Flatten bounds
+
+			const FTransform& Transform = Effector.Transform;
+			Transforms[i] = Transform;
+			Potencies[i] = PotencyValue->Read(i);
+			Weights[i] = WeightValue->Read(i);
+
+			FBox ScaledBounds = PCGExMath::GetLocalBounds<EPCGExPointBoundsSource::ScaledBounds>(Effector);
+			FBox WorldBounds = ScaledBounds.TransformBy(Transform);
+			FVector Extents = ScaledBounds.GetExtent();
+
+			Radiuses[i] = Extents.SquaredLength();
+
+			Octree->AddElement(PCGEx::FIndexedItem(i, FBoxSphereBounds(PCGExMath::GetLocalBounds<EPCGExPointBoundsSource::Bounds>(Effector).TransformBy(Transform))));
+
+			//Effector.BoundsMin = Extents * -1;
+			//Effector.BoundsMax = Extents;
+
+			// Flatten original bounds
+			//Effector.Transform.SetLocation(WorldBounds.GetCenter());
+			//Effector.Transform.SetScale3D(FVector::OneVector);
+
+			//Effector.BoundsMin = ScaledBounds.Min;
+			//Effector.BoundsMax = ScaledBounds.Max;
+
+			//Effector.Color = FVector4(Extents.X, Extents.Y, Extents.Z, Extents.SquaredLength()); // Cache Scaled Extents + Squared radius into $Color
+			//Effector.Density = PotencyValue->Read(i);                                                     // Pack Weight to $Density
+			//Effector.Steepness = WeightValue->Read(i);                                                  // Pack Potency to $Steepness
+		}
+
+		return true;
+	}
+
+	void FEffectorsArray::PrepareSinglePoint(const int32 Index)
+	{
+	}
+
 	FTensorSample::FTensorSample(const FVector& InDirectionAndSize, const FQuat& InRotation, const int32 InEffectors, const double InWeight)
 		: DirectionAndSize(InDirectionAndSize), Rotation(InRotation), Effectors(InEffectors), Weight(InWeight)
 	{
