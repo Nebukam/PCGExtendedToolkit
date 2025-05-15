@@ -134,15 +134,11 @@ struct FPCGExGetTextureDataContext final : FPCGExPointsProcessorContext
 
 class FPCGExGetTextureDataElement final : public FPCGExPointsProcessorElement
 {
-public:
-	virtual FPCGContext* Initialize(
-		const FPCGDataCollection& InputData,
-		TWeakObjectPtr<UPCGComponent> SourceComponent,
-		const UPCGNode* Node) override;
-
+protected:
 	PCGEX_CAN_ONLY_EXECUTE_ON_MAIN_THREAD(true)
 
-protected:
+	PCGEX_ELEMENT_CREATE_CONTEXT(GetTextureData)
+	
 	virtual bool Boot(FPCGExContext* InContext) const override;
 	virtual bool ExecuteInternal(FPCGContext* Context) const override;
 };
@@ -153,11 +149,7 @@ namespace PCGExGetTextureData
 	{
 		FRWLock ReferenceLock;
 
-#if PCGEX_ENGINE_VERSION == 503
-		TSharedPtr<PCGExData::TBuffer<FString>> PathGetter;
-#else
 		TSharedPtr<PCGExData::TBuffer<FSoftObjectPath>> PathGetter;
-#endif
 
 		TSharedPtr<PCGExTexture::FLookup> TexParamLookup;
 

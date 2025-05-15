@@ -32,7 +32,7 @@ public:
 		if (Influence == 0) { return; }
 
 		const FVector Origin = Target.Point->Transform.GetLocation();
-		const FPCGPoint* StartData = Path->GetIn()->GetPoints().GetData();
+		const TArray<FPCGPoint>& PathPoints = Path->GetIn()->GetPoints();
 
 		TArray<int32> Indices;
 		TArray<double> Weights;
@@ -41,11 +41,15 @@ public:
 		Weights.Reserve(10);
 
 		double TotalWeight = 0;
-		Path->GetIn()->GetOctree().FindElementsWithBoundsTest(
-			FBoxCenterAndExtent(Origin, FVector(Smoothing)), [&](const FPCGPointRef& Ref)
+		Path->GetIn()->PCGEX_POINT_OCTREE_GET().FindElementsWithBoundsTest(
+			FBoxCenterAndExtent(Origin, FVector(Smoothing)), [&](const PCGEX_POINT_OCTREE_REF& PointRef)
 			{
-				const double Dist = FVector::DistSquared(Origin, Ref.Point->Transform.GetLocation());
-				const int32 OtherIndex = Ref.Point - StartData;
+#if PCGEX_ENGINE_VERSION < 506
+				const int32 OtherIndex = static_cast<int32>(PointRef.Point - PathPoints.GetData());
+#else
+				const int32 OtherIndex = PointRef.Index;
+#endif
+				const double Dist = FVector::DistSquared(Origin, PathPoints[OtherIndex].Transform.GetLocation());
 				if (Dist >= RadiusSquared || OtherIndex == Target.Index) { return; }
 
 				Indices.Add(OtherIndex);

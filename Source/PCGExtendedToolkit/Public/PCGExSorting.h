@@ -6,8 +6,8 @@
 
 #include "CoreMinimal.h"
 
-#include "PCGExFactoryProvider.h"
 #include "Data/PCGExData.h"
+#include "PCGExFactoryProvider.h"
 
 #include "PCGExSorting.generated.h"
 

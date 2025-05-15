@@ -212,19 +212,10 @@ protected:
 
 class PCGEXTENDEDTOOLKIT_API FPCGExEdgesProcessorElement : public FPCGExPointsProcessorElement
 {
-public:
-	virtual FPCGContext* Initialize(
-		const FPCGDataCollection& InputData,
-		TWeakObjectPtr<UPCGComponent> SourceComponent,
-		const UPCGNode* Node) override;
-
 	virtual void DisabledPassThroughData(FPCGContext* Context) const override;
 
 protected:
+	PCGEX_ELEMENT_CREATE_CONTEXT(EdgesProcessor)
 	virtual bool Boot(FPCGExContext* InContext) const override;
-	virtual FPCGExContext* InitializeContext(
-		FPCGExPointsProcessorContext* InContext,
-		const FPCGDataCollection& InputData,
-		TWeakObjectPtr<UPCGComponent> SourceComponent,
-		const UPCGNode* Node) const override;
+	virtual void OnContextInitialized(FPCGExPointsProcessorContext* InContext) const override;
 };

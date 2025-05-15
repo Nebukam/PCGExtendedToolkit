@@ -105,7 +105,7 @@ namespace PCGExFuseCollinear
 	void FProcessor::ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const PCGExMT::FScope& Scope)
 	{
 #define PCGEX_INSERT_CURRENT_POINT\
-		OutPoints->Add_GetRef(Point);\
+		OutPoints->Add(Point);\
 		LastPosition = Path->GetPos(Index);
 
 		if (PointFilterCache[Index])

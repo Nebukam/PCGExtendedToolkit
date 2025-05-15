@@ -83,22 +83,14 @@ PCGEX_FOREACH_ATTR_TYPE(PCGEX_SET_ATT_IMPL)
 
 bool UPCGExCustomGraphSettings::InitNodeSoftObjectPath(const FName& InAttributeName, const FSoftObjectPath& InValue)
 {
-#if PCGEX_ENGINE_VERSION <= 503
-	return InitNodeString(InAttributeName, InValue.ToString());
-#else
 	TSharedPtr<PCGExData::TBuffer<FSoftObjectPath>> Buffer = VtxBuffers->GetBuffer<FSoftObjectPath>(InAttributeName, InValue);
 	return Buffer ? true : false;
-#endif
 }
 
 bool UPCGExCustomGraphSettings::InitNodeSoftClassPath(const FName& InAttributeName, const FSoftClassPath& InValue)
 {
-#if PCGEX_ENGINE_VERSION <= 503
-	return InitNodeString(InAttributeName, InValue.ToString());
-#else
 	TSharedPtr<PCGExData::TBuffer<FSoftClassPath>> Buffer = VtxBuffers->GetBuffer<FSoftClassPath>(InAttributeName, InValue);
 	return Buffer ? true : false;
-#endif
 }
 
 #define PCGEX_SET_ATT_IMPL(_NAME, _TYPE)\
@@ -109,20 +101,12 @@ PCGEX_FOREACH_ATTR_TYPE(PCGEX_SET_ATT_IMPL)
 
 bool UPCGExCustomGraphSettings::SetNodeSoftObjectPath(const FName& InAttributeName, const int64 InNodeID, const FSoftObjectPath& InValue)
 {
-#if PCGEX_ENGINE_VERSION <= 503
-	return VtxBuffers->SetValue<FString>(InAttributeName, IdxMap[InNodeID], InValue.ToString());
-#else
 	return VtxBuffers->SetValue<FSoftObjectPath>(InAttributeName, IdxMap[InNodeID], InValue);
-#endif
 }
 
 bool UPCGExCustomGraphSettings::SetNodeSoftClassPath(const FName& InAttributeName, const int64 InNodeID, const FSoftClassPath& InValue)
 {
-#if PCGEX_ENGINE_VERSION <= 503
-	return VtxBuffers->SetValue<FString>(InAttributeName, IdxMap[InNodeID], InValue.ToString());
-#else
 	return VtxBuffers->SetValue<FSoftClassPath>(InAttributeName, IdxMap[InNodeID], InValue);
-#endif
 }
 
 #pragma endregion
@@ -199,7 +183,7 @@ bool FPCGExBuildCustomGraphElement::ExecuteInternal(FPCGContext* InContext) cons
 	{
 		if (Settings->Mode == EPCGExCustomGraphActorSourceMode::Owner)
 		{
-			Context->Builder->InputActors.Add(Context->SourceComponent->GetOwner());
+			Context->Builder->InputActors.Add(Context->GetComponent()->GetOwner());
 		}
 		else
 		{

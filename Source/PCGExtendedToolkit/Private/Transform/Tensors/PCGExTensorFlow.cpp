@@ -20,74 +20,84 @@ PCGExTensor::FTensorSample FPCGExTensorFlow::Sample(const int32 InSeedIndex, con
 
 	PCGExTensor::FEffectorSamples Samples = PCGExTensor::FEffectorSamples();
 
-	auto ProcessNeighbor = [&](const FPCGPointRef& InEffector)
+	auto ProcessNeighbor = [&](const PCGEx::FIndexedItem& InEffector)
 	{
 		PCGExTensor::FEffectorMetrics Metrics;
-		if (!ComputeFactor(InPosition, InEffector, Metrics)) { return; }
+		if (!ComputeFactor(InPosition, InEffector.Index, Metrics)) { return; }
 
 		Samples.Emplace_GetRef(
-			InEffector.Point->Transform.GetRotation().RotateVector(Metrics.Guide),
+			Effectors->ReadTransform(InEffector.Index).GetRotation().RotateVector(Metrics.Guide),
 			Metrics.Potency, Metrics.Weight);
 	};
 
-	Octree->FindElementsWithBoundsTest(BCAE, ProcessNeighbor);
+	Effectors->GetOctree()->FindElementsWithBoundsTest(BCAE, ProcessNeighbor);
 
 	return Config.Mutations.Mutate(InProbe, Samples.Flatten(Config.TensorWeight));
 }
 
+namespace PCGExTensor
+{
+	bool FFlowEffectorsArray::Init(FPCGExContext* InContext, const UPCGExTensorPointFactoryData* InFactory)
+	{
+		const UPCGExTensorFlowFactory* FlowFactory = Cast<UPCGExTensorFlowFactory>(InFactory);
+		Config = FlowFactory->Config;
+
+		if (Config.DirectionInput == EPCGExInputValueType::Attribute)
+		{
+			DirectionBuffer = FlowFactory->InputDataFacade->GetBroadcaster<FVector>(Config.DirectionAttribute);
+			if (!DirectionBuffer)
+			{
+				if (!FlowFactory->bQuietMissingInputError)
+				{
+					PCGEX_LOG_INVALID_SELECTOR_C(InContext, "Direction", Config.DirectionAttribute)
+				}
+				return false;
+			}
+		}
+
+		if (!FEffectorsArray::Init(InContext, InFactory)) { return false; }
+
+		DirectionBuffer.Reset();
+		
+		return true;
+	}
+
+	void FFlowEffectorsArray::PrepareSinglePoint(const int32 Index)
+	{
+		// Force forward-facing transform
+		// As that's the direction we use during tensor sampling
+		// This is so tensor transform is "cached" into the point at the time of tensor creation
+		// instead of recomputing this every time the tensor is used
+
+		// Sampling tensors is already rather expensive as-is
+
+		if (DirectionBuffer)
+		{
+			if (Config.DirectionTransform == EPCGExTransformMode::Absolute)
+			{
+				Transforms[Index].SetRotation(PCGExMath::MakeDirection(EPCGExAxis::Forward, DirectionBuffer->Read(Index)));
+			}
+			else
+			{
+				Transforms[Index].SetRotation(PCGExMath::MakeDirection(EPCGExAxis::Forward, Transforms[Index].TransformVectorNoScale(DirectionBuffer->Read(Index))));
+			}
+		}
+
+		else if (Config.DirectionConstant != EPCGExAxis::Forward)
+		{
+			Transforms[Index].SetRotation(PCGExMath::MakeDirection(EPCGExAxis::Forward, PCGExMath::GetDirection(Transforms[Index].GetRotation(), Config.DirectionConstant)));
+		}
+	}
+}
+
+
 PCGEX_TENSOR_BOILERPLATE(Flow, {}, {})
 
-bool UPCGExTensorFlowFactory::InitInternalData(FPCGExContext* InContext)
+TSharedPtr<PCGExTensor::FEffectorsArray> UPCGExTensorFlowFactory::GetEffectorsArray() const
 {
-	if (!Super::InitInternalData(InContext)) { return false; }
-	DirectionBuffer.Reset();
-	return true;
+	return MakeShared<PCGExTensor::FFlowEffectorsArray>();
 }
 
-bool UPCGExTensorFlowFactory::InitInternalFacade(FPCGExContext* InContext)
-{
-	if (!Super::InitInternalFacade(InContext)) { return false; }
-
-	if (Config.DirectionInput == EPCGExInputValueType::Attribute)
-	{
-		DirectionBuffer = InputDataFacade->GetBroadcaster<FVector>(Config.DirectionAttribute);
-		if (!DirectionBuffer)
-		{
-			PCGEX_LOG_INVALID_SELECTOR_C(InContext, "Direction", Config.DirectionAttribute)
-			return false;
-		}
-	}
-
-	return true;
-}
-
-void UPCGExTensorFlowFactory::PrepareSinglePoint(const int32 Index, FPCGPoint& InPoint) const
-{
-	Super::PrepareSinglePoint(Index, InPoint);
-
-	// Force forward-facing transform
-	// As that's the direction we use during tensor sampling
-	// This is so tensor transform is "cached" into the point at the time of tensor creation
-	// instead of recomputing this every time the tensor is used
-
-	// Sampling tensors is already rather expensive as-is
-
-	if (DirectionBuffer)
-	{
-		if (Config.DirectionTransform == EPCGExTransformMode::Absolute)
-		{
-			InPoint.Transform.SetRotation(PCGExMath::MakeDirection(EPCGExAxis::Forward, DirectionBuffer->Read(Index)));
-		}
-		else
-		{
-			InPoint.Transform.SetRotation(PCGExMath::MakeDirection(EPCGExAxis::Forward, InPoint.Transform.TransformVectorNoScale(DirectionBuffer->Read(Index))));
-		}
-	}
-	else if (Config.DirectionConstant != EPCGExAxis::Forward)
-	{
-		InPoint.Transform.SetRotation(PCGExMath::MakeDirection(EPCGExAxis::Forward, PCGExMath::GetDirection(InPoint.Transform.GetRotation(), Config.DirectionConstant)));
-	}
-}
 
 #undef LOCTEXT_NAMESPACE
 #undef PCGEX_NAMESPACE

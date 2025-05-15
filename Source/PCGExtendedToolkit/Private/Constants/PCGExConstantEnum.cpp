@@ -442,12 +442,3 @@ void FPCGExConstantEnumElement::StageBitFlags(FPCGExContext* InContext, const UP
 	OutputData->Metadata->AddEntry();
 	InContext->StageOutput(PCGExConstantEnumConstants::BitflagOutputPinName, OutputData, true);
 }
-
-FPCGContext* FPCGExConstantEnumElement::Initialize(const FPCGDataCollection& InputData, TWeakObjectPtr<UPCGComponent> SourceComponent, const UPCGNode* Node)
-{
-	FPCGExContext* Context = new FPCGExContext();
-	Context->InputData = InputData;
-	Context->SourceComponent = SourceComponent;
-	Context->Node = Node;
-	return Context;
-}
