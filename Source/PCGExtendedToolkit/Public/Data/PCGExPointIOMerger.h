@@ -57,12 +57,12 @@ namespace PCGExPointIOMerger
 		// 'template' spec required for clang on mac, and rider keeps removing it without the comment below.
 		// ReSharper disable once CppRedundantTemplateKeyword
 		const FPCGMetadataAttribute<T>* TypedInAttribute = InMetadata->template GetConstTypedAttribute<T>(Identity.Name);
-		TUniquePtr<FPCGAttributeAccessor<T>> InAccessor = MakeUnique<FPCGAttributeAccessor<T>>(TypedInAttribute, InMetadata);
+		TUniquePtr<const IPCGAttributeAccessor> InAccessor = PCGAttributeAccessorHelpers::CreateConstAccessor(TypedInAttribute, InMetadata);
 
 		if (!TypedInAttribute || !InAccessor.IsValid()) { return; }
 
 		TArrayView<T> InRange = MakeArrayView(OutValues.GetData() + Scope.Start, Scope.Count);
-		InAccessor->GetRange(InRange, 0, *SourceIO->GetInKeys());
+		InAccessor->GetRange<T>(InRange, 0, *SourceIO->GetInKeys());
 	}
 
 	class PCGEXTENDEDTOOLKIT_API FCopyAttributeTask final : public PCGExMT::FPCGExIndexedTask

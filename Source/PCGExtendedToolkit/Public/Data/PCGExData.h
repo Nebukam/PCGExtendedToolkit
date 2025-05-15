@@ -150,13 +150,11 @@ namespace PCGExData
 		bool GetAllowsInterpolation() const { return OutAttribute ? OutAttribute->AllowsInterpolation() : InAttribute ? InAttribute->AllowsInterpolation() : false; }
 
 	protected:
-		
 		void SetType(const EPCGMetadataTypes InType)
 		{
 			Type = InType;
 			UID = BufferUID(FullName, InType);
 		}
-		
 	};
 
 	template <typename T, EBufferLevel BufferLevel = EBufferLevel::Local>
@@ -307,7 +305,7 @@ namespace PCGExData
 			TypedInAttribute = InMetadata->template GetConstTypedAttribute<T>(FullName);
 			if (!TypedInAttribute) { return false; }
 
-			TUniquePtr<FPCGAttributeAccessor<T>> InAccessor = MakeUnique<FPCGAttributeAccessor<T>>(TypedInAttribute, InMetadata);
+			TUniquePtr<const IPCGAttributeAccessor> InAccessor = PCGAttributeAccessorHelpers::CreateConstAccessor(TypedInAttribute, InMetadata);
 
 			if (!InAccessor.IsValid())
 			{
@@ -321,7 +319,7 @@ namespace PCGExData
 			if (!bScopedBuffer && !bReadComplete)
 			{
 				TArrayView<T> InRange = MakeArrayView(InValues->GetData(), InValues->Num());
-				InAccessor->GetRange(InRange, 0, *Source->GetInKeys());
+				InAccessor->GetRange<T>(InRange, 0, *Source->GetInKeys());
 				bReadComplete = true;
 			}
 
@@ -393,7 +391,7 @@ namespace PCGExData
 				return false;
 			}
 
-			TUniquePtr<FPCGAttributeAccessor<T>> OutAccessor = MakeUnique<FPCGAttributeAccessor<T>>(TypedOutAttribute, Source->GetOut()->Metadata);
+			TUniquePtr<IPCGAttributeAccessor> OutAccessor = PCGAttributeAccessorHelpers::CreateAccessor(TypedOutAttribute, Source->GetOut()->Metadata);
 
 			if (!TypedOutAttribute || !OutAccessor.IsValid())
 			{
@@ -410,7 +408,10 @@ namespace PCGExData
 			{
 				TUniquePtr<FPCGAttributeAccessorKeysPoints> TempOutKeys = MakeUnique<FPCGAttributeAccessorKeysPoints>(MakeArrayView(Source->GetMutablePoints().GetData(), OutValues->Num()));
 				TArrayView<T> OutRange = MakeArrayView(OutValues->GetData(), OutValues->Num());
-				OutAccessor->GetRange(OutRange, 0, *TempOutKeys.Get());
+				if (!OutAccessor->GetRange<T>(OutRange, 0, *TempOutKeys.Get()))
+				{
+					// TODO : Log
+				}
 			};
 
 			if (Init == EBufferInit::Inherit) { GrabExistingValues(); }
@@ -464,7 +465,8 @@ namespace PCGExData
 				// ReSharper disable once CppRedundantTemplateKeyword
 				TypedOutAttribute = Source->GetOut()->Metadata->template FindOrCreateAttribute<T>(TargetOutputName, TypedOutAttribute->GetValueFromItemKey(PCGInvalidEntryKey), TypedOutAttribute->AllowsInterpolation());
 
-				TUniquePtr<FPCGAttributeAccessor<T>> OutAccessor = MakeUnique<FPCGAttributeAccessor<T>>(TypedOutAttribute, Source->GetOut()->Metadata);
+				TUniquePtr<IPCGAttributeAccessor> OutAccessor = PCGAttributeAccessorHelpers::CreateAccessor(TypedOutAttribute, Source->GetOut()->Metadata);
+
 				if (!OutAccessor.IsValid()) { return; }
 
 				// Assume that if we write data, it's not to delete it.
@@ -478,7 +480,7 @@ namespace PCGExData
 			{
 				// if we're not writing to a different name, then go through the usual flow
 
-				TUniquePtr<FPCGAttributeAccessor<T>> OutAccessor = MakeUnique<FPCGAttributeAccessor<T>>(TypedOutAttribute, Source->GetOut()->Metadata);
+				TUniquePtr<IPCGAttributeAccessor> OutAccessor = PCGAttributeAccessorHelpers::CreateAccessor(TypedOutAttribute, Source->GetOut()->Metadata);
 				if (!OutAccessor.IsValid()) { return; }
 
 				// Assume that if we write data, it's not to delete it.
@@ -486,7 +488,7 @@ namespace PCGExData
 
 				// Output value			
 				TArrayView<const T> View = MakeArrayView(OutValues->GetData(), OutValues->Num());
-				OutAccessor->SetRange(View, 0, *Source->GetOutKeys(bEnsureValidKeys).Get());
+				OutAccessor->SetRange<T>(View, 0, *Source->GetOutKeys(bEnsureValidKeys).Get());
 			}
 		}
 
@@ -495,11 +497,11 @@ namespace PCGExData
 			if (!IsScoped() || bReadComplete || !IsEnabled()) { return; }
 			if (InternalBroadcaster) { InternalBroadcaster->Fetch(*InValues, Scope); }
 
-			if (TUniquePtr<FPCGAttributeAccessor<T>> InAccessor = MakeUnique<FPCGAttributeAccessor<T>>(TypedInAttribute, Source->GetIn()->Metadata);
+			if (TUniquePtr<const IPCGAttributeAccessor> InAccessor = PCGAttributeAccessorHelpers::CreateConstAccessor(TypedInAttribute, Source->GetIn()->Metadata);
 				InAccessor.IsValid())
 			{
 				TArrayView<T> ReadRange = MakeArrayView(InValues->GetData() + Scope.Start, Scope.Count);
-				InAccessor->GetRange(ReadRange, Scope.Start, *Source->GetInKeys());
+				InAccessor->GetRange<T>(ReadRange, Scope.Start, *Source->GetInKeys());
 			}
 
 			//if (OutAccessor.IsValid())

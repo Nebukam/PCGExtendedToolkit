@@ -925,8 +925,6 @@ protected:
 		const FPCGExAssetAttributeSetDetails& Details,
 		const bool bBuildStaging = false) const
 	{
-		TUniquePtr<FPCGAttributeAccessorKeysEntries> Keys;
-
 		const UPCGMetadata* Metadata = InAttributeSet->Metadata;
 
 		const TSharedPtr<PCGEx::FAttributesInfos> Infos = PCGEx::FAttributesInfos::Get(Metadata);
@@ -968,7 +966,7 @@ protected:
 			}
 		}
 
-		Keys = MakeUnique<FPCGAttributeAccessorKeysEntries>(Metadata);
+		TUniquePtr<FPCGAttributeAccessorKeysEntries> Keys = MakeUnique<FPCGAttributeAccessorKeysEntries>(Metadata);
 
 		const int32 NumEntries = Keys->GetNum();
 		if (NumEntries == 0)

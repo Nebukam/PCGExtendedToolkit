@@ -278,7 +278,14 @@ namespace PCGEx
 	{
 	public:
 		FAttributeProcessingInfos ProcessingInfos = FAttributeProcessingInfos();
+		FAttributeBroadcasterBase() = default;
 		virtual ~FAttributeBroadcasterBase() = default;
+
+		FAttributeBroadcasterBase(FAttributeBroadcasterBase&&) = default;
+		FAttributeBroadcasterBase& operator=(FAttributeBroadcasterBase&&) = default;
+
+		FAttributeBroadcasterBase(const FAttributeBroadcasterBase&) = delete;
+		FAttributeBroadcasterBase& operator=(const FAttributeBroadcasterBase&) = delete;
 	};
 
 	template <typename T>
@@ -288,7 +295,7 @@ namespace PCGEx
 		TSharedPtr<PCGExData::FPointIO> PointIO;
 		bool bMinMaxDirty = true;
 		bool bNormalized = false;
-		TSharedPtr<IPCGAttributeAccessor> InternalAccessor;
+		TUniquePtr<const IPCGAttributeAccessor> InternalAccessor;
 
 		EPCGExTransformComponent Component = EPCGExTransformComponent::Position;
 		EPCGExAxis Axis = EPCGExAxis::Forward;
@@ -308,7 +315,7 @@ namespace PCGEx
 					ProcessingInfos.Attribute->GetTypeId(), [&](auto DummyValue)
 					{
 						using RawT = decltype(DummyValue);
-						InternalAccessor = MakeShared<FPCGAttributeAccessor<RawT>>(static_cast<const FPCGMetadataAttribute<RawT>*>(ProcessingInfos.Attribute), Cast<UPCGSpatialData>(InData)->Metadata);
+						InternalAccessor = PCGAttributeAccessorHelpers::CreateConstAccessor(static_cast<const FPCGMetadataAttribute<RawT>*>(ProcessingInfos.Attribute), Cast<UPCGSpatialData>(InData)->Metadata);
 					});
 			}
 
@@ -375,7 +382,10 @@ namespace PCGEx
 						PCGEx::InitArray(RawValues, Scope.Count);
 
 						TArrayView<RawT> RawView(RawValues);
-						InternalAccessor->GetRange(RawView, Scope.Start, *PointIO->GetInKeys().Get(), EPCGAttributeAccessorFlags::AllowBroadcast);
+						if (!InternalAccessor->GetRange<RawT>(RawView, Scope.Start, *PointIO->GetInKeys().Get(), EPCGAttributeAccessorFlags::AllowBroadcast))
+						{
+							// TODO : Log error
+						}
 
 						const FSubSelection& S = ProcessingInfos.SubSelection;
 						if (S.bIsValid) { for (int i = 0; i < Scope.Count; i++) { Dump[Scope.Start + i] = S.Get<RawT, T>(RawValues[i]); } }
@@ -446,7 +456,10 @@ namespace PCGEx
 						PCGEx::InitArray(RawValues, NumPoints);
 
 						TArrayView<RawT> View(RawValues);
-						InternalAccessor->GetRange(View, 0, *PointIO->GetInKeys().Get(), EPCGAttributeAccessorFlags::AllowBroadcast);
+						if (!InternalAccessor->GetRange<RawT>(View, 0, *PointIO->GetInKeys().Get(), EPCGAttributeAccessorFlags::AllowBroadcast))
+						{
+							// TODO : Log error
+						}
 
 						const FSubSelection& S = ProcessingInfos.SubSelection;
 
@@ -538,7 +551,10 @@ namespace PCGEx
 						PCGEx::InitArray(RawValues, NumPoints);
 
 						TArrayView<RawT> View(RawValues);
-						InternalAccessor->GetRange(View, 0, *PointIO->GetInKeys().Get(), EPCGAttributeAccessorFlags::AllowBroadcast);
+						if (!InternalAccessor->GetRange<RawT>(View, 0, *PointIO->GetInKeys().Get(), EPCGAttributeAccessorFlags::AllowBroadcast))
+						{
+							// TODO : Log error
+						}
 
 						const FSubSelection& S = ProcessingInfos.SubSelection;
 						if (S.bIsValid) { for (int i = 0; i < NumPoints; i++) { Dump.Add(S.Get<RawT, T>(RawValues[i])); } }

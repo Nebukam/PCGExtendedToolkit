@@ -160,21 +160,25 @@ namespace PCGExStaging
 
 		bool BuildPartitions(const UPCGPointData* InPointData)
 		{
-			const FPCGMetadataAttribute<int64>* HashAttribute = InPointData->Metadata->GetConstTypedAttribute<int64>(Tag_EntryIdx);
 
-			if (!HashAttribute) { return false; }
-
-			const TArray<FPCGPoint>& InPoints = InPointData->GetPoints();
-			const TSharedPtr<FPCGAttributeAccessorKeysPoints> InKeys = MakeShared<FPCGAttributeAccessorKeysPoints>(InPoints);
-			const TUniquePtr<FPCGAttributeAccessor<int64>> InAccessor = MakeUnique<FPCGAttributeAccessor<int64>>(HashAttribute, InPointData->Metadata);
-
-			const int32 NumPoints = InPoints.Num();
+			FPCGAttributePropertyInputSelector HashSelector;
+			HashSelector.Update(Tag_EntryIdx.ToString());
+			
+			TUniquePtr<const IPCGAttributeAccessor> HashAttributeAccessor = PCGAttributeAccessorHelpers::CreateConstAccessor(InPointData, HashSelector);
+			TUniquePtr<const IPCGAttributeAccessorKeys> HashKeys = PCGAttributeAccessorHelpers::CreateConstKeys(InPointData, HashSelector);
+			
+			if (!HashAttributeAccessor || !HashKeys) { return false; }
 
 			TArray<int64> Hashes;
-			Hashes.SetNumUninitialized(NumPoints);
-
-			if (const TArrayView<int64> InRange = MakeArrayView(Hashes.GetData(), NumPoints);
-				!InAccessor->GetRange(InRange, 0, *InKeys)) { return false; }
+			Hashes.SetNumUninitialized(HashKeys->GetNum());
+			
+			if(!HashAttributeAccessor->GetRange<int64>(Hashes, 0, *HashKeys, EPCGAttributeAccessorFlags::AllowBroadcastAndConstructible))
+			{
+				return false;
+			}
+			
+			const TArray<FPCGPoint>& InPoints = InPointData->GetPoints();
+			const int32 NumPoints = InPoints.Num();
 
 			// Build partitions
 			for (int i = 0; i < NumPoints; i++)
