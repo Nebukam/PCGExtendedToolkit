@@ -392,7 +392,7 @@ namespace PCGEx
 						else { for (int i = 0; i < Scope.Count; i++) { Dump[Scope.Start + i] = PCGEx::Convert<RawT, T>(RawValues[i]); } }
 					});
 			}
-			else if (ProcessingInfos == EPCGAttributePropertySelection::PointProperty)
+			else if (ProcessingInfos == PCGEX_PCG_SELECTION_PROPERTY)
 			{
 				// TODO : constexpr 
 				const FSubSelection& S = ProcessingInfos.SubSelection;
@@ -495,7 +495,7 @@ namespace PCGEx
 						RawValues.Empty();
 					});
 			}
-			else if (ProcessingInfos == EPCGAttributePropertySelection::PointProperty)
+			else if (ProcessingInfos == PCGEX_PCG_SELECTION_PROPERTY)
 			{
 				const FSubSelection& S = ProcessingInfos.SubSelection;
 				const TArray<FPCGPoint>& InPoints = InData->GetPoints();
@@ -563,7 +563,7 @@ namespace PCGEx
 						RawValues.Empty();
 					});
 			}
-			else if (ProcessingInfos == EPCGAttributePropertySelection::PointProperty)
+			else if (ProcessingInfos == PCGEX_PCG_SELECTION_PROPERTY)
 			{
 				const FSubSelection& S = ProcessingInfos.SubSelection;
 				const TArray<FPCGPoint>& InPoints = InData->GetPoints();
@@ -635,7 +635,7 @@ namespace PCGEx
 						const FPCGMetadataAttribute<RawT>* TypedAttribute = static_cast<const FPCGMetadataAttribute<RawT>*>(ProcessingInfos.Attribute);
 						return ProcessingInfos.SubSelection.Get<RawT, T>(TypedAttribute->GetValueFromItemKey(Point.MetadataEntry));
 					});
-			case EPCGAttributePropertySelection::PointProperty:
+			case PCGEX_PCG_SELECTION_PROPERTY:
 #define PCGEX_GET_BY_ACCESSOR(_ENUM, _ACCESSOR, _TYPE) case _ENUM: return ProcessingInfos.SubSelection.Get<_TYPE, T>(Point._ACCESSOR); break;
 				switch (static_cast<EPCGPointProperties>(ProcessingInfos))
 				{

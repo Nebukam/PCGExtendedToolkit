@@ -55,6 +55,11 @@ MACRO(FName, Name, __VA_ARGS__)\
 MACRO(FSoftObjectPath, SoftObjectPath, __VA_ARGS__)\
 MACRO(FSoftClassPath, SoftClassPath, __VA_ARGS__)
 
+#if PCGEX_ENGINE_VERSION <= 505
+#define PCGEX_PCG_SELECTION_PROPERTY EPCGAttributePropertySelection::PointProperty
+#else
+#define PCGEX_PCG_SELECTION_PROPERTY EPCGAttributePropertySelection::Property
+#endif
 /**
  * Enum, Point.[Getter]
  * @param MACRO 
