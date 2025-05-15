@@ -66,7 +66,7 @@ bool PCGExPointFilter::FNumericCompareNearestFilter::Test(const int32 PointIndex
 {
 	const double B = OperandB->Read(PointIndex);
 
-	const TArray<FPCGPoint>& TargetPoints = TargetDataFacade->Source->GetIn()->GetPoints();
+	const TArray<FPCGPoint>* TargetPoints = &TargetDataFacade->Source->GetIn()->GetPoints();
 
 	const FPCGPoint& SourcePt = TargetDataFacade->Source->GetInPoint(PointIndex);
 	double BestDist = MAX_dbl;
@@ -85,7 +85,7 @@ bool PCGExPointFilter::FNumericCompareNearestFilter::Test(const int32 PointIndex
 			FVector SourcePosition = FVector::ZeroVector;
 			FVector TargetPosition = FVector::ZeroVector;
 			
-			Distances->GetCenters(SourcePt, TargetPoints[OtherIndex], SourcePosition, TargetPosition);
+			Distances->GetCenters(SourcePt, *(TargetPoints->GetData() + OtherIndex), SourcePosition, TargetPosition);
 			const double Dist = FVector::DistSquared(SourcePosition, TargetPosition);
 			if (Dist > BestDist) { return; }
 			BestDist = Dist;
