@@ -487,10 +487,8 @@ namespace PCGEx
 		else if constexpr (std::is_same_v<T, FTransform>) { return EPCGMetadataTypes::Transform; }
 		else if constexpr (std::is_same_v<T, FString>) { return EPCGMetadataTypes::String; }
 		else if constexpr (std::is_same_v<T, FName>) { return EPCGMetadataTypes::Name; }
-#if PCGEX_ENGINE_VERSION > 503
 		else if constexpr (std::is_same_v<T, FSoftClassPath>) { return EPCGMetadataTypes::SoftClassPath; }
 		else if constexpr (std::is_same_v<T, FSoftObjectPath>) { return EPCGMetadataTypes::SoftObjectPath; }
-#endif
 		else { return EPCGMetadataTypes::Unknown; }
 	}
 
@@ -570,10 +568,8 @@ namespace PCGEx
 		else if constexpr (std::is_same_v<T, FTransform>) { Callback(DummyTransform); }
 		else if constexpr (std::is_same_v<T, FString>) { Callback(DummyString); }
 		else if constexpr (std::is_same_v<T, FName>) { Callback(DummyName); }
-#if PCGEX_ENGINE_VERSION > 503
 		else if constexpr (std::is_same_v<T, FSoftClassPath>) { Callback(DummySoftClassPath); }
 		else if constexpr (std::is_same_v<T, FSoftObjectPath>) { Callback(DummySoftObjectPath); }
-#endif
 		else { static_assert("Unsupported type"); }
 	}
 

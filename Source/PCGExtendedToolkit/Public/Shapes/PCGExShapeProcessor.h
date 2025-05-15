@@ -50,12 +50,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExShapeProcessorContext : FPCGExPointsProcesso
 
 class PCGEXTENDEDTOOLKIT_API FPCGExShapeProcessorElement : public FPCGExPointsProcessorElement
 {
-public:
-	virtual FPCGContext* Initialize(
-		const FPCGDataCollection& InputData,
-		TWeakObjectPtr<UPCGComponent> SourceComponent,
-		const UPCGNode* Node) override;
-
 protected:
+	PCGEX_ELEMENT_CREATE_CONTEXT(ShapeProcessor)
 	virtual bool Boot(FPCGExContext* InContext) const override;
 };

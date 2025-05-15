@@ -76,9 +76,7 @@ void UPCGExWaitForPCGDataSettings::GetTargetGraphPins(TArray<FPCGPinProperties>&
 		OutPins.Reserve(FoundPins.Num());
 		for (FPCGPinProperties Pin : FoundPins)
 		{
-#if PCGEX_ENGINE_VERSION > 503
 			Pin.bInvisiblePin = false;
-#endif
 			OutPins.Add(Pin);
 		}
 	}
@@ -105,9 +103,7 @@ bool FPCGExWaitForPCGDataElement::Boot(FPCGExContext* InContext) const
 	{
 		Context->AllLabels.Add(Pin.Label);
 
-#if PCGEX_ENGINE_VERSION > 503
 		if (Pin.IsRequiredPin())
-#endif
 		{
 			Context->RequiredPinProperties.Add(Pin);
 			Context->RequiredLabels.Add(Pin.Label);
@@ -208,7 +204,7 @@ namespace PCGExWaitForPCGData
 
 		if (Settings->bWaitForMissingActors)
 		{
-			StartTime = Context->SourceComponent->GetWorld()->GetTimeSeconds();
+			StartTime = Context->GetWorld()->GetTimeSeconds();
 			SearchActorsToken = AsyncManager->TryCreateToken(FName("SearchActors"));
 			if (!SearchActorsToken.IsValid()) { return false; }
 			GatherActors();
@@ -261,7 +257,7 @@ namespace PCGExWaitForPCGData
 
 		if (bHasUnresolvedReferences)
 		{
-			if (Context->SourceComponent->GetWorld()->GetTimeSeconds() - StartTime < Settings->WaitForComponentTimeout)
+			if (Context->GetWorld()->GetTimeSeconds() - StartTime < Settings->WaitForComponentTimeout)
 			{
 				PCGEX_SUBSYSTEM
 				PCGExSubsystem->RegisterBeginTickAction(
@@ -318,7 +314,7 @@ namespace PCGExWaitForPCGData
 		SearchComponentsToken = AsyncManager->TryCreateToken(FName("SearchComponents"));
 		if (!SearchComponentsToken.IsValid()) { return; }
 
-		StartTime = Context->SourceComponent->GetWorld()->GetTimeSeconds();
+		StartTime = Context->GetWorld()->GetTimeSeconds();
 
 		PCGEX_SUBSYSTEM
 		PCGExSubsystem->RegisterBeginTickAction(
@@ -379,7 +375,7 @@ namespace PCGExWaitForPCGData
 
 		ON_SCOPE_EXIT { InspectionTracker->IncrementCompleted(); };
 
-		UPCGComponent* Self = Context->SourceComponent.Get();
+		UPCGComponent* Self = Context->GetMutableComponent();
 
 		// Trim queued components
 		TArray<UPCGComponent*> FoundComponents = PerActorGatheredComponents[Index];
@@ -466,7 +462,7 @@ namespace PCGExWaitForPCGData
 		// If some actors are still enqueued, we failed to find a valid component.
 		if (!QueuedActors.IsEmpty())
 		{
-			if (Context->SourceComponent->GetWorld()->GetTimeSeconds() - StartTime < Settings->WaitForComponentTimeout)
+			if (Context->GetWorld()->GetTimeSeconds() - StartTime < Settings->WaitForComponentTimeout)
 			{
 				PCGEX_SUBSYSTEM
 				PCGExSubsystem->RegisterBeginTickAction(
@@ -505,7 +501,6 @@ namespace PCGExWaitForPCGData
 
 	void FProcessor::WatchComponent(UPCGComponent* TargetComponent, int32 Index)
 	{
-#if PCGEX_ENGINE_VERSION > 503
 		WatcherTracker->IncrementPending();
 
 		if (!TargetComponent->IsGenerating())
@@ -545,7 +540,6 @@ namespace PCGExWaitForPCGData
 						NestedThis->ScheduleComponentDataStaging(Idx);
 					}, true);
 			});
-#endif
 	}
 
 	void FProcessor::ProcessComponent(int32 Index)
@@ -562,11 +556,9 @@ namespace PCGExWaitForPCGData
 		case EPCGComponentGenerationTrigger::GenerateOnDemand:
 			if (Settings->GenerateOnDemandAction == EPCGExGenerationTriggerAction::Ignore) { return; }
 			break;
-#if PCGEX_ENGINE_VERSION > 503
 		case EPCGComponentGenerationTrigger::GenerateAtRuntime:
 			if (Settings->GenerateAtRuntime == EPCGExRuntimeGenerationTriggerAction::Ignore) { return; }
 			break;
-#endif
 		}
 
 		// Ignore component getting cleaned up
@@ -581,8 +573,6 @@ namespace PCGExWaitForPCGData
 
 		bool bWatchComponent = false;
 		bool bForce = false;
-
-#if PCGEX_ENGINE_VERSION > 503
 
 		switch (InComponent->GenerationTrigger)
 		{
@@ -636,8 +626,6 @@ namespace PCGExWaitForPCGData
 			WatchComponent(InComponent, Index);
 			return;
 		}
-
-#endif
 
 		StageComponentData(Index);
 	}

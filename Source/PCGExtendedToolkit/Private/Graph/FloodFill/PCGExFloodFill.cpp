@@ -114,11 +114,7 @@ namespace PCGExFloodFill
 				break;
 			}
 
-#if PCGEX_ENGINE_VERSION <= 503
-			FCandidate Candidate = Candidates.Pop(false);	
-#else
 			FCandidate Candidate = Candidates.Pop(EAllowShrinking::No);
-#endif
 
 			if (!FillControlsHandler->TryCapture(this, Candidate)) { continue; }
 

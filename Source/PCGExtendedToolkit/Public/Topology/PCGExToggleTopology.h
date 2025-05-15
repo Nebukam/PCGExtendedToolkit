@@ -63,12 +63,12 @@ struct FPCGExToggleTopologyContext final : FPCGContext
 class FPCGExToggleTopologyElement final : public IPCGElement
 {
 public:
-	virtual FPCGContext* Initialize(const FPCGDataCollection& InputData, TWeakObjectPtr<UPCGComponent> SourceComponent, const UPCGNode* Node) override;
 	virtual bool IsCacheable(const UPCGSettings* InSettings) const override { return false; }
-	PCGEX_CAN_ONLY_EXECUTE_ON_MAIN_THREAD(true)
-
-	//virtual void DisabledPassThroughData(FPCGContext* Context) const override;
 
 protected:
+	PCGEX_ELEMENT_CREATE_CONTEXT(ToggleTopology)
+	
+	PCGEX_CAN_ONLY_EXECUTE_ON_MAIN_THREAD(true)
+	
 	virtual bool ExecuteInternal(FPCGContext* Context) const override;
 };

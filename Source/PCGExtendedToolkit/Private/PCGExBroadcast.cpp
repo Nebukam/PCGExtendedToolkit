@@ -206,7 +206,7 @@ namespace PCGEx
 		{
 			OutType = GetPropertyType(FixedSelector.GetExtraProperty());
 		}
-		else if (FixedSelector.GetSelection() == EPCGAttributePropertySelection::PointProperty)
+		else if (FixedSelector.GetSelection() == PCGEX_PCG_SELECTION_PROPERTY)
 		{
 			OutType = GetPropertyType(FixedSelector.GetPointProperty());
 		}

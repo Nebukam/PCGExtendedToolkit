@@ -11,6 +11,7 @@
 #include "PCGExContext.h"
 #include "PCGExGlobalSettings.h"
 #include "PCGExMacros.h"
+#include "PCGExPointsProcessor.h"
 #include "PCGParamData.h"
 #include "PCGExConstants.generated.h"
 
@@ -38,10 +39,7 @@ public:
 	FName GetEnumName() const;
 
 	virtual bool OnlyExposePreconfiguredSettings() const override { return true; };
-
-#if PCGEX_ENGINE_VERSION > 503
 	virtual bool CanUserEditTitle() const override { return false; }
-#endif
 	virtual TArray<FPCGPreConfiguredSettingsInfo> GetPreconfiguredInfo() const override;
 #endif
 
@@ -165,6 +163,6 @@ protected:
 	}
 
 public:
-	virtual FPCGContext* Initialize(const FPCGDataCollection& InputData, TWeakObjectPtr<UPCGComponent> SourceComponent, const UPCGNode* Node) override;
+	PCGEX_ELEMENT_CREATE_DEFAULT_CONTEXT
 	virtual bool IsCacheable(const UPCGSettings* InSettings) const override { return true; }
 };

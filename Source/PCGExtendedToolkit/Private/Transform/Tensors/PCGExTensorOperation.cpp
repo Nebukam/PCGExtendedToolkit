@@ -25,6 +25,9 @@ bool PCGExTensorOperation::PrepareForData(const TSharedPtr<PCGExData::FFacade>& 
 bool PCGExTensorPointOperation::Init(FPCGExContext* InContext, const UPCGExTensorFactoryData* InFactory)
 {
 	if (!PCGExTensorOperation::Init(InContext, InFactory)) { return false; }
-	Octree = &InFactory->GetOctree();
+
+	const UPCGExTensorPointFactoryData* PointFactoryData = Cast<UPCGExTensorPointFactoryData>(InFactory);
+	Effectors = PointFactoryData->EffectorsArray;
+	
 	return true;
 }

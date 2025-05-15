@@ -503,7 +503,7 @@ namespace PCGExData
 				if (PointData != SpatialData) { Context->ManagedObjects->Add(const_cast<UPCGPointData*>(PointData)); }
 				return PointData;
 			}
-#if PCGEX_ENGINE_VERSION > 503
+
 			if (const UPCGParamData* ParamData = Cast<UPCGParamData>(Source.Data))
 			{
 				const UPCGMetadata* ParamMetadata = ParamData->Metadata;
@@ -525,7 +525,6 @@ namespace PCGExData
 
 				return PointData;
 			}
-#endif
 
 			return nullptr;
 		}

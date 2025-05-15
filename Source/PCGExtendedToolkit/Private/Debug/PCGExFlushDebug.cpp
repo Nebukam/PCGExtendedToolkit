@@ -29,20 +29,6 @@ FPCGElementPtr UPCGExDebugSettings::CreateElement() const { return MakeShared<FP
 
 #pragma endregion
 
-FPCGContext* FPCGExDebugElement::Initialize(
-	const FPCGDataCollection& InputData,
-	const TWeakObjectPtr<UPCGComponent> SourceComponent,
-	const UPCGNode* Node)
-{
-	FPCGExDebugContext* Context = new FPCGExDebugContext();
-
-	Context->InputData = InputData;
-	Context->SourceComponent = SourceComponent;
-	Context->Node = Node;
-
-	return Context;
-}
-
 bool FPCGExDebugElement::ExecuteInternal(FPCGContext* InContext) const
 {
 	PCGEX_CONTEXT_AND_SETTINGS(Debug)
@@ -61,8 +47,8 @@ bool FPCGExDebugElement::ExecuteInternal(FPCGContext* InContext) const
 		return false;
 	}
 
-	FlushPersistentDebugLines(Context->SourceComponent->GetWorld());
-	FlushDebugStrings(Context->SourceComponent->GetWorld());
+	FlushPersistentDebugLines(Context->GetWorld());
+	FlushDebugStrings(Context->GetWorld());
 
 #endif
 
