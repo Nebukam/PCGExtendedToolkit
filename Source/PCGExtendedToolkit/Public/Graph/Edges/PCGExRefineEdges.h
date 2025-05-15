@@ -94,19 +94,16 @@ struct FPCGExRefineEdgesContext final : FPCGExEdgesProcessorContext
 
 class FPCGExRefineEdgesElement final : public FPCGExEdgesProcessorElement
 {
-public:
-	virtual FPCGContext* Initialize(
-		const FPCGDataCollection& InputData,
-		TWeakObjectPtr<UPCGComponent> SourceComponent,
-		const UPCGNode* Node) override;
-
 	virtual bool CanExecuteOnlyOnMainThread(FPCGContext* InContext) const override
 	{
+		if (!InContext) { return true; }
 		PCGEX_CONTEXT(RefineEdges)
 		return Context->Refinement ? Context->Refinement->CanOnlyExecuteOnMainThread() : false;
 	}
-	
+
 protected:
+	PCGEX_ELEMENT_CREATE_CONTEXT(RefineEdges)
+
 	virtual bool Boot(FPCGExContext* InContext) const override;
 	virtual bool ExecuteInternal(FPCGContext* InContext) const override;
 };

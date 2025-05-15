@@ -107,15 +107,11 @@ struct FPCGExMeshToClustersContext final : FPCGExPointsProcessorContext
 
 class FPCGExMeshToClustersElement final : public FPCGExPointsProcessorElement
 {
-public:
-	virtual FPCGContext* Initialize(
-		const FPCGDataCollection& InputData,
-		TWeakObjectPtr<UPCGComponent> SourceComponent,
-		const UPCGNode* Node) override;
-
-	PCGEX_CAN_ONLY_EXECUTE_ON_MAIN_THREAD(true)
-
 protected:
+	PCGEX_CAN_ONLY_EXECUTE_ON_MAIN_THREAD(true)
+	
+	PCGEX_ELEMENT_CREATE_CONTEXT(MeshToClusters)
+	
 	virtual bool Boot(FPCGExContext* InContext) const override;
 	virtual bool ExecuteInternal(FPCGContext* InContext) const override;
 };

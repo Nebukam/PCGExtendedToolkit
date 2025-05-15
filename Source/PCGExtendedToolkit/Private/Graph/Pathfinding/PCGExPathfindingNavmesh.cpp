@@ -131,7 +131,7 @@ void FSampleNavmeshTask::ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& As
 	FPCGExPathfindingNavmeshContext* Context = AsyncManager->GetContext<FPCGExPathfindingNavmeshContext>();
 	PCGEX_SETTINGS(PathfindingNavmesh)
 
-	UWorld* World = Context->SourceComponent->GetWorld();
+	UWorld* World = Context->GetWorld();
 	UNavigationSystemV1* NavSys = UNavigationSystemV1::GetCurrent(World);
 
 	if (!NavSys || !NavSys->GetDefaultNavDataInstance()) { return; }

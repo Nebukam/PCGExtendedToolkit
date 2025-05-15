@@ -168,7 +168,7 @@ namespace PCGExData
 									TypedProxy->SetConstant(Attribute->GetValueFromItemKey(Points[0].MetadataEntry));
 								}
 							}
-							else if (InDescriptor.Selector.GetSelection() == EPCGAttributePropertySelection::PointProperty)
+							else if (InDescriptor.Selector.GetSelection() == PCGEX_PCG_SELECTION_PROPERTY)
 							{
 								const TArray<FPCGPoint>& Points = InDataFacade->GetIn()->GetPoints();
 								if (Points.IsEmpty())
@@ -185,7 +185,11 @@ namespace PCGExData
 									else { TypedProxy->SetConstant(Pt._ACCESSOR); } \
 									break;
 
-									switch (InDescriptor.Selector.GetPointProperty()) { PCGEX_FOREACH_POINTPROPERTY(PCGEX_SET_CONST) }
+									switch (InDescriptor.Selector.GetPointProperty())
+									{
+									PCGEX_FOREACH_POINTPROPERTY(PCGEX_SET_CONST)
+									default: break;
+									}
 #undef PCGEX_SET_CONST
 								}
 							}
@@ -274,7 +278,7 @@ namespace PCGExData
 								OutProxy = TypedProxy;
 							}
 						}
-						else if (InDescriptor.Selector.GetSelection() == EPCGAttributePropertySelection::PointProperty)
+						else if (InDescriptor.Selector.GetSelection() == PCGEX_PCG_SELECTION_PROPERTY)
 						{
 #define PCGEX_DECL_PROXY(_PROPERTY, _ACCESSOR, _TYPE) \
 						case _PROPERTY : \
@@ -282,7 +286,11 @@ namespace PCGExData
 						else { OutProxy = MakeShared<TPointPropertyProxy<_TYPE, T_WORKING, false, _PROPERTY>>(); } \
 						break;
 
-							switch (InDescriptor.Selector.GetPointProperty()) { PCGEX_FOREACH_POINTPROPERTY(PCGEX_DECL_PROXY) }
+							switch (InDescriptor.Selector.GetPointProperty())
+							{
+							PCGEX_FOREACH_POINTPROPERTY(PCGEX_DECL_PROXY)
+							default: break;
+							}
 #undef PCGEX_DECL_PROXY
 						}
 						else

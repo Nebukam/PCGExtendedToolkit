@@ -129,8 +129,8 @@ bool FPCGExPointsProcessorContext::ProcessPointsBatch(const PCGEx::ContextState 
 				PCGExMT::FDeferredCallbackTask,
 				[WeakHandle = GetOrCreateHandle()]()
 				{
-				FPCGExMergePointsContext* Ctx = GetContextFromHandle<FPCGExMergePointsContext>(WeakHandle);
-				if(Ctx){Ctx->MainBatch->CompleteWork();}
+				const FPCGExContext::FPCGExSharedContext<FPCGExMergePointsContext> SharedContext(WeakHandle);
+				if(const FPCGExMergePointsContext* Ctx = SharedContext.Get()){Ctx->MainBatch->CompleteWork();}
 				});
 			return false;
 		}
@@ -148,8 +148,8 @@ bool FPCGExPointsProcessorContext::ProcessPointsBatch(const PCGEx::ContextState 
 				PCGExMT::FDeferredCallbackTask,
 				[WeakHandle = GetOrCreateHandle()]()
 				{
-				FPCGExMergePointsContext* Ctx = GetContextFromHandle<FPCGExMergePointsContext>(WeakHandle);
-				if(Ctx){Ctx->MainBatch->Write();}
+				const FPCGExContext::FPCGExSharedContext<FPCGExMergePointsContext> SharedContext(WeakHandle);
+				if(const FPCGExMergePointsContext* Ctx = SharedContext.Get()){Ctx->MainBatch->Write();}
 				});
 			return false;
 		}
@@ -293,15 +293,33 @@ bool FPCGExPointsProcessorElement::PrepareDataInternal(FPCGContext* InContext) c
 	return IPCGElement::PrepareDataInternal(Context);
 }
 
-FPCGContext* FPCGExPointsProcessorElement::Initialize(
-	const FPCGDataCollection& InputData,
-	TWeakObjectPtr<UPCGComponent> SourceComponent,
-	const UPCGNode* Node)
+#if PCGEX_ENGINE_VERSION <= 505
+FPCGContext* FPCGExPointsProcessorElement::Initialize(const FPCGDataCollection& InputData, TWeakObjectPtr<UPCGComponent> SourceComponent, const UPCGNode* Node)
 {
-	FPCGExPointsProcessorContext* Context = new FPCGExPointsProcessorContext();
-	InitializeContext(Context, InputData, SourceComponent, Node);
+	FPCGExPointsProcessorContext* Context = static_cast<FPCGExPointsProcessorContext*>(CreateContext());
+
+	if (!SourceComponent.IsValid())
+	{
+		// Fail gracefully
+		Context->CancelExecution("SourceComponent is trash, call Adrien!");
+		return Context;
+	}
+
+	Context->SourceComponent = SourceComponent;
+	Context->InputData = InputData;
+	Context->Node = Node;
+
+	OnContextInitialized(Context);
 	return Context;
 }
+#else
+FPCGContext* FPCGExPointsProcessorElement::Initialize(const FPCGInitializeElementParams& InParams)
+{
+	FPCGExPointsProcessorContext* Context = static_cast<FPCGExPointsProcessorContext*>(IPCGElement::Initialize(InParams));
+	OnContextInitialized(Context);
+	return Context;
+}
+#endif
 
 bool FPCGExPointsProcessorElement::IsCacheable(const UPCGSettings* InSettings) const
 {
@@ -325,23 +343,10 @@ void FPCGExPointsProcessorElement::DisabledPassThroughData(FPCGContext* Context)
 	}
 }
 
-FPCGExContext* FPCGExPointsProcessorElement::InitializeContext(
-	FPCGExPointsProcessorContext* InContext,
-	const FPCGDataCollection& InputData,
-	TWeakObjectPtr<UPCGComponent> SourceComponent,
-	const UPCGNode* Node) const
+FPCGContext* FPCGExPointsProcessorElement::CreateContext() { return new FPCGExPointsProcessorContext(); }
+
+void FPCGExPointsProcessorElement::OnContextInitialized(FPCGExPointsProcessorContext* InContext) const
 {
-	if (!SourceComponent.IsValid())
-	{
-		// Fail gracefully
-		InContext->CancelExecution("SourceComponent is trash, call Adrien!");
-		return InContext;
-	}
-
-	InContext->InputData = InputData;
-	InContext->SourceComponent = SourceComponent;
-	InContext->Node = Node;
-
 	InContext->SetState(PCGEx::State_Preparation);
 
 	const UPCGExPointsProcessorSettings* Settings = InContext->GetInputSettings<UPCGExPointsProcessorSettings>();
@@ -349,8 +354,6 @@ FPCGExContext* FPCGExPointsProcessorElement::InitializeContext(
 
 	InContext->bFlattenOutput = Settings->bFlattenOutput;
 	InContext->bScopedAttributeGet = Settings->WantsScopedAttributeGet();
-
-	return InContext;
 }
 
 bool FPCGExPointsProcessorElement::Boot(FPCGExContext* InContext) const
@@ -373,7 +376,11 @@ bool FPCGExPointsProcessorElement::Boot(FPCGExContext* InContext) const
 		}
 	}
 
+#if PCGEX_ENGINE_VERSION < 506
 	if (Context->InputData.GetInputs().IsEmpty() && !Settings->IsInputless()) { return false; } //Get rid of errors and warning when there is no input
+#else
+	if (Context->InputData.GetAllInputs().IsEmpty() && !Settings->IsInputless()) { return false; } //Get rid of errors and warning when there is no input
+#endif
 
 	Context->MainPoints = MakeShared<PCGExData::FPointIOCollection>(Context, Settings->GetIsMainTransactional());
 	Context->MainPoints->OutputPin = Settings->GetMainOutputPin();
@@ -420,7 +427,6 @@ bool FPCGExPointsProcessorElement::PostBoot(FPCGExContext* InContext) const
 	return true;
 }
 
-#if PCGEX_ENGINE_VERSION > 503
 void FPCGExPointsProcessorElement::AbortInternal(FPCGContext* Context) const
 {
 	IPCGElement::AbortInternal(Context);
@@ -430,6 +436,5 @@ void FPCGExPointsProcessorElement::AbortInternal(FPCGContext* Context) const
 	FPCGExContext* PCGExContext = static_cast<FPCGExContext*>(Context);
 	PCGExContext->CancelExecution(TEXT(""));
 }
-#endif
 
 #undef LOCTEXT_NAMESPACE

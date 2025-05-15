@@ -516,11 +516,15 @@ namespace PCGExGraph
 			const int32 RootIndex = InIntersections->Graph->FindEdgeMetadata_Unsafe(Edge.EdgeIndex)->RootIndex;
 			const TSet<int32>& RootIOIndices = Graph->EdgesUnion->Entries[RootIndex]->IOIndices;
 
-			auto ProcessPointRef = [&](const FPCGPointRef& PointRef)
+			auto ProcessPointRef = [&](const PCGEX_POINT_OCTREE_REF& PointRef)
 			{
-				const ptrdiff_t PointIndex = PointRef.Point - Points.GetData();
+#if PCGEX_ENGINE_VERSION < 506
+				const int32 PointIndex = static_cast<int32>(PointRef.Point - Points.GetData());
+#else
+				const int32 PointIndex = PointRef.Index;
+#endif
 
-				if (!Points.IsValidIndex(static_cast<int32>(PointIndex))) { return; }
+				if (!Points.IsValidIndex(PointIndex)) { return; }
 				const FNode& Node = InIntersections->Graph->Nodes[PointIndex];
 
 				if (!Node.bValid) { return; }
@@ -537,15 +541,20 @@ namespace PCGExGraph
 				InIntersections->Add(EdgeIndex, Split);
 			};
 
-			PointsData->GetOctree().FindElementsWithBoundsTest(Edge.Box, ProcessPointRef);
+			PointsData->PCGEX_POINT_OCTREE_GET().FindElementsWithBoundsTest(Edge.Box, ProcessPointRef);
 		}
 		else
 		{
-			auto ProcessPointRef = [&](const FPCGPointRef& PointRef)
+			auto ProcessPointRef = [&](const PCGEX_POINT_OCTREE_REF& PointRef)
 			{
-				const ptrdiff_t PointIndex = PointRef.Point - Points.GetData();
+				
+#if PCGEX_ENGINE_VERSION < 506
+				const int32 PointIndex = static_cast<int32>(PointRef.Point - Points.GetData());
+#else
+				const int32 PointIndex = PointRef.Index;
+#endif
 
-				if (!Points.IsValidIndex(static_cast<int32>(PointIndex))) { return; }
+				if (!Points.IsValidIndex(PointIndex)) { return; }
 				const FNode& Node = InIntersections->Graph->Nodes[PointIndex];
 
 				if (!Node.bValid) { return; }
@@ -561,7 +570,7 @@ namespace PCGExGraph
 				}
 			};
 
-			PointsData->GetOctree().FindElementsWithBoundsTest(Edge.Box, ProcessPointRef);
+			PointsData->PCGEX_POINT_OCTREE_GET().FindElementsWithBoundsTest(Edge.Box, ProcessPointRef);
 		}
 	}
 

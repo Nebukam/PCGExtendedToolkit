@@ -104,7 +104,7 @@ bool FPCGExSampleInsideBoundsElement::Boot(FPCGExContext* InContext) const
 	Context->TargetPoints = &Context->TargetsFacade->Source->GetIn()->GetPoints();
 
 	Context->NumTargets = Context->TargetPoints->Num();
-	Context->TargetOctree = &Context->TargetsFacade->Source->GetIn()->GetOctree();
+	Context->TargetOctree = &Context->TargetsFacade->Source->GetIn()->PCGEX_POINT_OCTREE_GET();
 
 	if (Settings->SampleMethod == EPCGExSampleMethod::BestCandidate)
 	{
@@ -265,6 +265,8 @@ namespace PCGExSampleInsideBoundss
 			return;
 		}
 
+		const TArray<FPCGPoint>& TargetPoints = *Context->TargetPoints;
+
 		const FVector Origin = Point.Transform.GetLocation();
 
 		double RangeMin = FMath::Square(RangeMinGetter ? RangeMinGetter->Read(Index) : Settings->RangeMin);
@@ -275,11 +277,12 @@ namespace PCGExSampleInsideBoundss
 		TArray<PCGExInsideBounds::FSample> TargetsInfos;
 		//TargetsInfos.Reserve(Context->Targets->GetNum());
 
-
 		PCGExInsideBounds::FSamplesStats Stats;
-		auto SampleTarget = [&](const int32 PointIndex, const FPCGPoint& Target)
+		auto SampleTarget = [&](const int32 TargetIndex)
 		{
 			//if (Context->ValueFilterManager && !Context->ValueFilterManager->Results[PointIndex]) { return; } // TODO : Implement
+
+			const FPCGPoint& Target = TargetPoints[TargetIndex];
 
 			FVector A;
 			FVector B;
@@ -294,17 +297,17 @@ namespace PCGExSampleInsideBoundss
 			{
 				if (Settings->SampleMethod == EPCGExSampleMethod::BestCandidate && Stats.IsValid())
 				{
-					if (!Context->Sorter->Sort(PointIndex, Stats.Closest.Index)) { return; }
-					Stats.Replace(PCGExInsideBounds::FSample(PointIndex, Dist));
+					if (!Context->Sorter->Sort(TargetIndex, Stats.Closest.Index)) { return; }
+					Stats.Replace(PCGExInsideBounds::FSample(TargetIndex, Dist));
 				}
 				else
 				{
-					Stats.Update(PCGExInsideBounds::FSample(PointIndex, Dist));
+					Stats.Update(PCGExInsideBounds::FSample(TargetIndex, Dist));
 				}
 			}
 			else
 			{
-				const PCGExInsideBounds::FSample& Infos = TargetsInfos.Emplace_GetRef(PointIndex, Dist);
+				const PCGExInsideBounds::FSample& Infos = TargetsInfos.Emplace_GetRef(TargetIndex, Dist);
 				Stats.Update(Infos);
 			}
 		};
@@ -312,10 +315,15 @@ namespace PCGExSampleInsideBoundss
 		if (RangeMax > 0)
 		{
 			const FBox Box = FBoxCenterAndExtent(Origin, FVector(FMath::Sqrt(RangeMax))).GetBox();
-			auto ProcessNeighbor = [&](const FPCGPointRef& InPointRef)
+			auto ProcessNeighbor = [&](const PCGEX_POINT_OCTREE_REF& PointRef)
 			{
-				const ptrdiff_t PointIndex = InPointRef.Point - Context->TargetPoints->GetData();
-				SampleTarget(PointIndex, *(Context->TargetPoints->GetData() + PointIndex));
+#if PCGEX_ENGINE_VERSION < 506
+				const int32 OtherIndex = static_cast<int32>(PointRef.Point - TargetPoints.GetData());
+#else
+				const int32 OtherIndex = PointRef.Index;
+#endif
+
+				SampleTarget(OtherIndex);
 			};
 
 			Context->TargetOctree->FindElementsWithBoundsTest(Box, ProcessNeighbor);
@@ -323,7 +331,7 @@ namespace PCGExSampleInsideBoundss
 		else
 		{
 			TargetsInfos.Reserve(Context->NumTargets);
-			for (int i = 0; i < Context->NumTargets; i++) { SampleTarget(i, *(Context->TargetPoints->GetData() + i)); }
+			for (int i = 0; i < Context->NumTargets; i++) { SampleTarget(i); }
 		}
 
 		// Compound never got updated, meaning we couldn't find target in range
