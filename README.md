@@ -1,10 +1,10 @@
-![UE 5.3](https://img.shields.io/badge/UE-5.3-darkgreen) ![5.4](https://img.shields.io/badge/5.4-darkgreen) ![5.5](https://img.shields.io/badge/5.5-darkgreen) ![5.6](https://img.shields.io/badge/5.6-orange)
+!![5.6](https://img.shields.io/badge/5.6-orange) | ![5.5](https://img.shields.io/badge/5.5-darkgreen) ![5.4](https://img.shields.io/badge/5.4-darkgreen) ![UE 5.3](https://img.shields.io/badge/UE-5.3-darkgreen)
 # PCG Extended Toolkit 
 
 ![PCGEx](/Resources/Icon128.png)
 
 # What is it?
-### The PCG Extended Toolkit is a plugin for [Unreal engine 5](https://www.unrealengine.com/en-US/) (5.3, 5.4, 5.5) that contains a collection of **low-level PCG Graph elements** offering additional ways to manipulate and control PCG Data in unique ways. Its primary focus is to create spatial relationships between points, and build around them; but it comes with a bunch of other super useful stuffs.
+### The PCG Extended Toolkit is a plugin for [Unreal engine 5](https://www.unrealengine.com/en-US/) (5.6, + LTS on 5.5, 5.4, 5.3) that contains a collection of **low-level PCG Graph elements** offering additional ways to manipulate and control PCG Data in unique ways. Its primary focus is to create spatial relationships between points, and build around them; but it comes with a bunch of other super useful stuffs.
 
 PCGEx allows you to create edge-based structures from points dataset, inside of which you can do pathfinding to generate splines; relax positions, attributes, flag specific types of connections, and much much more. 
 It also comes with a set of lower-level, more generic features to manipulate attributes & points; as well as highly granular parameters & tweaks.
