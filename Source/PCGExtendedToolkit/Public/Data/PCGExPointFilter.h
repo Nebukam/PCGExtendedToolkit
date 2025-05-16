@@ -61,7 +61,7 @@ class PCGEXTENDEDTOOLKIT_API UPCGExFilterFactoryData : public UPCGExFactoryData
 public:
 	virtual PCGExFactories::EType GetFactoryType() const override { return PCGExFactories::EType::FilterPoint; }
 	virtual bool SupportsCollectionEvaluation() const { return false; }
-	virtual bool SupportsDirectEvaluation() const { return false; }
+	virtual bool SupportsPointEvaluation() const { return false; }
 
 	virtual bool Init(FPCGExContext* InContext);
 
@@ -118,7 +118,7 @@ namespace PCGExPointFilter
 		virtual void PostInit();
 
 		virtual bool Test(const int32 Index) const;
-		virtual bool Test(const FPCGPoint& Point) const; // destined for live testing support only
+		virtual bool Test(const FPCGPoint& Point) const; // destined for no-context evaluation only, can't rely on attributes or anything.
 		virtual bool Test(const PCGExCluster::FNode& Node) const;
 		virtual bool Test(const PCGExGraph::FEdge& Edge) const;
 
@@ -180,7 +180,7 @@ namespace PCGExPointFilter
 		bool Init(FPCGExContext* InContext, const TArray<TObjectPtr<const UPCGExFilterFactoryData>>& InFactories);
 
 		virtual bool Test(const int32 Index);
-		virtual bool Test(const FPCGPoint& Point);
+		virtual bool TestRoamingIndex(const FPCGPoint& Point);
 		virtual bool Test(const PCGExCluster::FNode& Node);
 		virtual bool Test(const PCGExGraph::FEdge& Edge);
 		virtual bool Test(const TSharedPtr<PCGExData::FPointIO>& IO, const TSharedPtr<PCGExData::FPointIOCollection>& ParentCollection);
@@ -217,7 +217,7 @@ namespace PCGExPointFilter
 		int32 WriteIndex = 0;
 		for (int32 i = 0; i < InFactories.Num(); i++)
 		{
-			if (InFactories[i]->SupportsDirectEvaluation()) { InFactories[WriteIndex++] = InFactories[i]; }
+			if (InFactories[i]->SupportsPointEvaluation()) { InFactories[WriteIndex++] = InFactories[i]; }
 			else { UnsupportedFilters.AddUnique(InFactories[i]->GetName()); }
 		}
 

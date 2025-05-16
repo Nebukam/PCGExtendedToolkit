@@ -36,7 +36,7 @@ public:
 	UPROPERTY()
 	TArray<TObjectPtr<const UPCGExFilterFactoryData>> FilterFactories;
 
-	virtual bool SupportsDirectEvaluation() const override;
+	virtual bool SupportsPointEvaluation() const override;
 	virtual bool SupportsCollectionEvaluation() const override;
 
 	virtual PCGExFactories::EType GetFactoryType() const override { return PCGExFactories::EType::FilterGroup; }

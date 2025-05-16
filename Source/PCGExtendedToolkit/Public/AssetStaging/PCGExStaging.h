@@ -158,7 +158,7 @@ namespace PCGExStaging
 			return (*Collection)->GetEntryAt(OutEntry, EntryIndex, EntryHost);
 		}
 
-		bool BuildPartitions(const UPCGPointData* InPointData)
+		bool BuildPartitions(const UPCGBasePointData* InPointData)
 		{
 
 			FPCGAttributePropertyInputSelector HashSelector;

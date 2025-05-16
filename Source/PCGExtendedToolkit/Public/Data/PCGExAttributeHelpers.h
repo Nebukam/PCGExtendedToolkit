@@ -71,7 +71,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExInputConfig
 	 * @param InData 
 	 * @return 
 	 */
-	virtual bool Validate(const UPCGPointData* InData);
+	virtual bool Validate(const UPCGData* InData);
 	FString ToString() const { return GetName().ToString(); }
 };
 
@@ -369,7 +369,7 @@ namespace PCGEx
 			check(ProcessingInfos.bIsValid)
 			check(Dump.Num() == PointIO->GetNum(PCGExData::ESource::In)) // Dump target should be initialized at full length before using Fetch
 
-			const UPCGPointData* InData = PointIO->GetIn();
+			const UPCGBasePointData* InData = PointIO->GetIn();
 
 			if (ProcessingInfos == EPCGAttributePropertySelection::Attribute)
 			{
@@ -440,7 +440,7 @@ namespace PCGEx
 				return;
 			}
 
-			const UPCGPointData* InData = PointIO->GetIn();
+			const UPCGBasePointData* InData = PointIO->GetIn();
 
 			int32 NumPoints = PointIO->GetNum(PCGExData::ESource::In);
 			PCGEx::InitArray(Dump, NumPoints);
@@ -535,7 +535,7 @@ namespace PCGEx
 		{
 			if (!ProcessingInfos.bIsValid) { return; }
 
-			const UPCGPointData* InData = PointIO->GetIn();
+			const UPCGBasePointData* InData = PointIO->GetIn();
 
 			int32 NumPoints = PointIO->GetNum(PCGExData::ESource::In);
 			Dump.Reserve(Dump.Num() + NumPoints);

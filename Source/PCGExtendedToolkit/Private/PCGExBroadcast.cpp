@@ -185,7 +185,7 @@ namespace PCGEx
 		EPCGMetadataTypes& OutType, PCGExData::ESource& InOutSource)
 	{
 		OutType = EPCGMetadataTypes::Unknown;
-		const UPCGPointData* Data = InOutSource == PCGExData::ESource::In ?
+		const UPCGBasePointData* Data = InOutSource == PCGExData::ESource::In ?
 			                            InDataFacade->Source->GetInOut(InOutSource) :
 			                            InDataFacade->Source->GetOutIn(InOutSource);
 

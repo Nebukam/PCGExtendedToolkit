@@ -37,8 +37,6 @@ namespace PCGEx
 struct PCGEXTENDEDTOOLKIT_API FPCGExContext : FPCGContext
 {
 protected:
-	TSharedPtr<PCGEx::FWorkPermit> WorkPermit;
-
 	mutable FRWLock StagedOutputLock;
 	mutable FRWLock AssetDependenciesLock;
 

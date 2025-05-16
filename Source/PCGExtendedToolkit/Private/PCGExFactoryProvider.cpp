@@ -33,28 +33,6 @@ void UPCGExFactoryData::RegisterBuffersDependencies(FPCGExContext* InContext, PC
 {
 }
 
-void UPCGExFactoryData::InitializeFromPCGExData(const UPCGExPointData* InPCGExPointData, const PCGExData::EIOInit InitMode)
-{
-	Super::InitializeFromPCGExData(InPCGExPointData, InitMode);
-	if (const UPCGExFactoryData* FactoryData = Cast<UPCGExFactoryData>(InPCGExPointData))
-	{
-		InitializeFromFactory(FactoryData);
-	}
-	else
-	{
-		HandleFailedInitializationFromFactory(InPCGExPointData);
-	}
-}
-
-void UPCGExFactoryData::InitializeFromFactory(const UPCGExFactoryData* InFactoryData)
-{
-}
-
-void UPCGExFactoryData::HandleFailedInitializationFromFactory(const UPCGPointData* InPointData)
-{
-	UE_LOG(LogTemp, Error, TEXT("Attempted to create a copy of a Factory from invalid or unrelated data!"));
-}
-
 TArray<FPCGPinProperties> UPCGExFactoryProviderSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties;

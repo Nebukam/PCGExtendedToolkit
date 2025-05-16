@@ -110,7 +110,7 @@ namespace PCGExPointsToBounds
 	void FProcessor::CompleteWork()
 	{
 		const TArray<FPCGPoint>& InPoints = PointDataFacade->GetIn()->GetPoints();
-		UPCGPointData* OutData = PointDataFacade->GetOut();
+		UPCGBasePointData* OutData = PointDataFacade->GetOut();
 
 		TArray<FPCGPoint>& MutablePoints = OutData->GetMutablePoints();
 		MutablePoints.Emplace();

@@ -87,7 +87,7 @@ public:
 	UPROPERTY()
 	FPCGExSplineInclusionFilterConfig Config;
 
-	virtual bool SupportsDirectEvaluation() const override { return true; } // TODO Change this one we support per-point tolerance from attribute
+	virtual bool SupportsPointEvaluation() const override { return true; } // TODO Change this one we support per-point tolerance from attribute
 
 	TSharedPtr<TArray<FPCGSplineStruct>> Splines;
 	virtual bool Init(FPCGExContext* InContext) override;

@@ -18,7 +18,7 @@ bool UPCGExRandomFilterFactory::SupportsCollectionEvaluation() const
 	return !Config.bPerPointWeight && Config.ThresholdInput == EPCGExInputValueType::Constant;
 }
 
-bool UPCGExRandomFilterFactory::SupportsDirectEvaluation() const
+bool UPCGExRandomFilterFactory::SupportsPointEvaluation() const
 {
 	return SupportsCollectionEvaluation();
 }

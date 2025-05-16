@@ -152,12 +152,12 @@ namespace PCGExGrowPaths
 	void FGrowth::Write()
 	{
 		const TSharedPtr<PCGExData::FPointIO> VtxIO = Processor->Cluster->VtxIO.Pin();
-		const TSharedPtr<PCGExData::FPointIO> PathIO = Processor->GetContext()->OutputPaths->Emplace_GetRef<UPCGPointData>(VtxIO->GetIn(), PCGExData::EIOInit::New);
+		const TSharedPtr<PCGExData::FPointIO> PathIO = Processor->GetContext()->OutputPaths->Emplace_GetRef<PCGEX_NEW_POINT_DATA_TYPE>(VtxIO->GetIn(), PCGExData::EIOInit::New);
 		if (!VtxIO || !PathIO) { return; }
 
 		PCGEX_MAKE_SHARED(PathDataFacade, PCGExData::FFacade, PathIO.ToSharedRef())
 
-		UPCGPointData* OutData = PathIO->GetOut();
+		UPCGBasePointData* OutData = PathIO->GetOut();
 
 		PCGExGraph::CleanupVtxData(PathIO);
 

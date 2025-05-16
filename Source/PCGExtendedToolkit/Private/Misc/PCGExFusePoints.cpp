@@ -105,7 +105,7 @@ namespace PCGExFusePoints
 
 	void FProcessor::ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const PCGExMT::FScope& Scope)
 	{
-		UnionGraph->InsertPoint(Point, PointDataFacade->Source->IOIndex, Index);
+		UnionGraph->InsertPoint(Point);
 	}
 
 	void FProcessor::ProcessSingleRangeIteration(const int32 Iteration, const PCGExMT::FScope& Scope)

@@ -98,7 +98,7 @@ FVector FPCGExAttributeDebugDraw::GetVector(const PCGExData::FPointRef& Point) c
 	return OutVector;
 }
 
-FVector FPCGExAttributeDebugDraw::GetIndexedPosition(const PCGExData::FPointRef& Point, const UPCGPointData* PointData) const
+FVector FPCGExAttributeDebugDraw::GetIndexedPosition(const PCGExData::FPointRef& Point, const UPCGBasePointData* PointData) const
 {
 	const TArray<FPCGPoint> Points = PointData->GetPoints();
 	const int64 OutIndex = IndexGetter->Values[Point.Index];
@@ -106,7 +106,7 @@ FVector FPCGExAttributeDebugDraw::GetIndexedPosition(const PCGExData::FPointRef&
 	return Point.Point->Transform.GetLocation();
 }
 
-void FPCGExAttributeDebugDraw::Draw(const UWorld* World, const FVector& Start, const PCGExData::FPointRef& Point, const UPCGPointData* PointData) const
+void FPCGExAttributeDebugDraw::Draw(const UWorld* World, const FVector& Start, const PCGExData::FPointRef& Point, const UPCGBasePointData* PointData) const
 {
 	switch (Config->ExpressedAs)
 	{

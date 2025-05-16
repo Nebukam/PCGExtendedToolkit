@@ -212,13 +212,6 @@ private:
 
 namespace PCGEx
 {
-	class PCGEXTENDEDTOOLKIT_API FWorkPermit final : public TSharedFromThis<FWorkPermit>
-	{
-	public:
-		FWorkPermit() = default;
-		~FWorkPermit() = default;
-	};
-
 	class PCGEXTENDEDTOOLKIT_API FIntTracker final : public TSharedFromThis<FIntTracker>
 	{
 		FRWLock Lock;
@@ -275,13 +268,12 @@ namespace PCGEx
 		mutable FRWLock DuplicatedObjectLock;
 
 	public:
-		FPCGContext* Context = nullptr;
-		TWeakPtr<FWorkPermit> WorkPermit;
+		TWeakPtr<FPCGContextHandle> WeakHandle;
 		TSet<UObject*> ManagedObjects;
 
 		bool IsFlushing() const { return bIsFlushing.load(std::memory_order_acquire); }
 
-		explicit FManagedObjects(FPCGContext* InContext, const TSharedPtr<FWorkPermit>& InLifeline);
+		explicit FManagedObjects(FPCGContext* InContext);
 
 		~FManagedObjects();
 
@@ -296,7 +288,7 @@ namespace PCGEx
 		template <class T, typename... Args>
 		T* New(Args&&... InArgs)
 		{
-			check(WorkPermit.IsValid())
+			check(WeakHandle.IsValid())
 			if (IsFlushing()) { UE_LOG(LogPCGEx, Error, TEXT("Attempting to create a managed object while flushing!")) }
 
 			T* Object = nullptr;
@@ -318,25 +310,28 @@ namespace PCGEx
 		}
 
 		template <class T>
-		T* Duplicate(const UPCGData* InData)
+		T* DuplicateData(const UPCGData* InData)
 		{
-			check(WorkPermit.IsValid())
+			
+			check(WeakHandle.IsValid())
 			check(!IsFlushing())
 
+			FPCGContext::FSharedContext<FPCGContext> SharedContext(WeakHandle);
+			
 			T* Object = nullptr;
-
+			
 			if (!IsInGameThread())
 			{
 				FWriteScopeLock WriteScopeLock(ManagedObjectLock);
 
 				// Ensure PCG AsyncState is up to date
-				bool bRestoreTo = Context->AsyncState.bIsRunningOnMainThread;
-				Context->AsyncState.bIsRunningOnMainThread = false;
+				bool bRestoreTo = SharedContext.Get()->AsyncState.bIsRunningOnMainThread;
+				SharedContext.Get()->AsyncState.bIsRunningOnMainThread = false;
 
 				// Do the duplicate (uses AnyThread that requires bIsRunningOnMainThread to be up-to-date)
-				Object = Cast<T>(InData->DuplicateData(Context, true));
+				Object = Cast<T>(InData->DuplicateData(SharedContext.Get(), true));
 
-				Context->AsyncState.bIsRunningOnMainThread = bRestoreTo;
+				SharedContext.Get()->AsyncState.bIsRunningOnMainThread = bRestoreTo;
 
 				check(Object);
 				{
@@ -347,7 +342,7 @@ namespace PCGEx
 			else
 			{
 				FWriteScopeLock WriteScopeLock(ManagedObjectLock);
-				Object = Cast<T>(InData->DuplicateData(Context, true));
+				Object = Cast<T>(InData->DuplicateData(SharedContext.Get(), true));
 				check(Object);
 				{
 					FWriteScopeLock DupeLock(DuplicatedObjectLock);

@@ -102,14 +102,12 @@ void FPCGExContext::CommitStagedOutputs()
 
 FPCGExContext::FPCGExContext()
 {
-	WorkPermit = MakeShared<PCGEx::FWorkPermit>();
-	ManagedObjects = MakeShared<PCGEx::FManagedObjects>(this, WorkPermit);
+	ManagedObjects = MakeShared<PCGEx::FManagedObjects>(this);
 	UniqueNameGenerator = MakeShared<PCGEx::FUniqueNameGenerator>();
 }
 
 FPCGExContext::~FPCGExContext()
 {
-	WorkPermit.Reset();
 	CancelAssetLoading();
 	ManagedObjects->Flush(); // So cleanups can be recursively triggered while manager is still alive
 }

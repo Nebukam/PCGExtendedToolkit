@@ -128,7 +128,7 @@ namespace PCGExTensorsTransform
 			return;
 		}
 
-		if (StopFilters && StopFilters->Test(Point))
+		if (StopFilters && StopFilters->TestRoamingIndex(Point))
 		{
 			PointFilterCache[Index] = false;
 			if (Settings->StopConditionHandling == EPCGExTensorStopConditionHandling::Exclude)

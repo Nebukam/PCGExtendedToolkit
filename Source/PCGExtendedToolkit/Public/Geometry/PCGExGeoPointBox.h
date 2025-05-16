@@ -551,7 +551,7 @@ namespace PCGExGeo
 		FVector SearchPadding;
 
 	public:
-		explicit FPointBoxCloud(const UPCGPointData* PointData, const EPCGExPointBoundsSource BoundsSource, const double Expansion = DBL_EPSILON)
+		explicit FPointBoxCloud(const UPCGBasePointData* PointData, const EPCGExPointBoundsSource BoundsSource, const double Expansion = DBL_EPSILON)
 		{
 			CloudBounds = PointData->GetBounds();
 			Octree = MakeUnique<FPointBoxOctree>(CloudBounds.GetCenter(), CloudBounds.GetExtent().Length() * 1.5);
@@ -709,21 +709,21 @@ namespace PCGExGeo
 
 #pragma region Point data checks
 
-		bool LooseOverlaps(const UPCGPointData* InPointData) const
+		bool LooseOverlaps(const UPCGBasePointData* InPointData) const
 		{
 			const FBox PointBounds = InPointData->GetBounds();
 			if (CloudBounds.Intersect(PointBounds)) { return true; }
 			return CloudBounds.IsInside(PointBounds);
 		}
 
-		bool Overlaps(const UPCGPointData* InPointData) const
+		bool Overlaps(const UPCGBasePointData* InPointData) const
 		{
 			const FBox PointBounds = InPointData->GetBounds();
 			if (CloudBounds.Intersect(PointBounds)) { return true; }
 			return CloudBounds.IsInside(PointBounds);
 		}
 
-		bool Encompass(const UPCGPointData* InPointData) const
+		bool Encompass(const UPCGBasePointData* InPointData) const
 		{
 			const FBox PointBounds = InPointData->GetBounds();
 

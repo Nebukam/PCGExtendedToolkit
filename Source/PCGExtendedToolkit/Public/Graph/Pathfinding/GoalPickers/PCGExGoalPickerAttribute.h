@@ -11,9 +11,6 @@
 
 #include "PCGExGoalPickerAttribute.generated.h"
 
-struct FPCGPoint;
-class UPCGPointData;
-
 UENUM()
 enum class EPCGExGoalPickAttributeAmount : uint8
 {

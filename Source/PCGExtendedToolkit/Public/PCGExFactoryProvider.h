@@ -108,10 +108,6 @@ public:
 	virtual bool WantsPreparation(FPCGExContext* InContext) { return false; }
 	virtual bool Prepare(FPCGExContext* InContext) { return true; }
 
-protected:
-	virtual void InitializeFromPCGExData(const UPCGExPointData* InPCGExPointData, const PCGExData::EIOInit InitMode) override;
-	virtual void InitializeFromFactory(const UPCGExFactoryData* InFactoryData);
-	virtual void HandleFailedInitializationFromFactory(const UPCGPointData* InPointData);
 };
 
 UCLASS(Abstract, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Filter")

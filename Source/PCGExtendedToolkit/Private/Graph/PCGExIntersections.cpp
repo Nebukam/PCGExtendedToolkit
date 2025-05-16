@@ -62,7 +62,7 @@ namespace PCGExGraph
 		return FuseDetails.Init(InContext, InUniqueSourceFacade);
 	}
 
-	TSharedPtr<FUnionNode> FUnionGraph::InsertPoint(const FPCGPoint& Point, const int32 IOIndex, const int32 PointIndex)
+	TSharedPtr<FUnionNode> FUnionGraph::InsertPoint(const PCGExData::FPoint& Point)
 	{
 		const FVector Origin = Point.Transform.GetLocation();
 		TSharedPtr<FUnionNode> Node;
@@ -233,8 +233,8 @@ namespace PCGExGraph
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(FUnionData::InsertEdge);
 
-		const TSharedPtr<FUnionNode> StartVtx = InsertPoint(From, FromIOIndex, FromPointIndex);
-		const TSharedPtr<FUnionNode> EndVtx = InsertPoint(To, ToIOIndex, ToPointIndex);
+		const TSharedPtr<FUnionNode> StartVtx = InsertPoint(From);
+		const TSharedPtr<FUnionNode> EndVtx = InsertPoint(To);
 
 		if (StartVtx == EndVtx) { return nullptr; } // Edge got fused entirely
 
@@ -501,9 +501,9 @@ namespace PCGExGraph
 		}
 	}
 
-	void FindCollinearNodes(const TSharedPtr<FPointEdgeIntersections>& InIntersections, const int32 EdgeIndex, const UPCGPointData* PointsData)
+	void FindCollinearNodes(const TSharedPtr<FPointEdgeIntersections>& InIntersections, const int32 EdgeIndex, const UPCGBasePointData* PointsData)
 	{
-		const TArray<FPCGPoint>& Points = PointsData->GetPoints();
+		const TConstPCGValueRange<FTransform> Transforms = PointsData->GetConstTransformValueRange();
 
 		const FPointEdgeProxy& Edge = InIntersections->Edges[EdgeIndex];
 		const TSharedPtr<FGraph> Graph = InIntersections->Graph;
@@ -519,13 +519,13 @@ namespace PCGExGraph
 			auto ProcessPointRef = [&](const PCGPointOctree::FPointRef& PointRef)
 			{
 				const int32 PointIndex = PointRef.Index;
-
-				if (!Points.IsValidIndex(PointIndex)) { return; }
+				
+				if (!Transforms.IsValidIndex(PointIndex)) { return; }
 				const FNode& Node = InIntersections->Graph->Nodes[PointIndex];
 
 				if (!Node.bValid) { return; }
 
-				const FVector Position = Points[Node.PointIndex].Transform.GetLocation();
+				const FVector Position = Transforms[Node.PointIndex].GetLocation();
 
 				if (!Edge.Box.IsInside(Position)) { return; }
 				if (IEdge.Start == Node.PointIndex || IEdge.End == Node.PointIndex) { return; }
@@ -546,12 +546,12 @@ namespace PCGExGraph
 				
 				const int32 PointIndex = PointRef.Index;
 
-				if (!Points.IsValidIndex(PointIndex)) { return; }
+				if (!Transforms.IsValidIndex(PointIndex)) { return; }
 				const FNode& Node = InIntersections->Graph->Nodes[PointIndex];
 
 				if (!Node.bValid) { return; }
 
-				const FVector Position = Points[Node.PointIndex].Transform.GetLocation();
+				const FVector Position = Transforms[Node.PointIndex].GetLocation();
 
 				if (!Edge.Box.IsInside(Position)) { return; }
 				if (IEdge.Start == Node.PointIndex || IEdge.End == Node.PointIndex) { return; }
@@ -630,7 +630,7 @@ namespace PCGExGraph
 		const FPCGExEdgeEdgeIntersectionDetails* InDetails)
 		: PointIO(InPointIO), Graph(InGraph), Details(InDetails)
 	{
-		const TArray<FPCGPoint>& Points = InPointIO->GetOutIn()->GetPoints();
+		const TConstPCGValueRange<FTransform> Transforms = InPointIO->GetOutIn()->GetConstTransformValueRange();
 
 		const int32 NumEdges = InGraph->Edges.Num();
 		Edges.SetNum(NumEdges);
@@ -642,8 +642,8 @@ namespace PCGExGraph
 			if (!Edge.bValid) { continue; }
 			Edges[Edge.Index].Init(
 				Edge.Index,
-				Points[Edge.Start].Transform.GetLocation(),
-				Points[Edge.End].Transform.GetLocation(),
+				Transforms[Edge.Start].GetLocation(),
+				Transforms[Edge.End].GetLocation(),
 				Details->Tolerance);
 
 			Octree->AddElement(&Edges[Edge.Index]);

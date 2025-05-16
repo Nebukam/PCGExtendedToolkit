@@ -40,12 +40,8 @@ class PCGEXTENDEDTOOLKIT_API UPCGExClusterNodesData : public UPCGExClusterData
 
 	mutable FRWLock BoundClustersLock;
 
-public:
-	virtual void InitializeFromPCGExData(const UPCGExPointData* InPCGExPointData, const PCGExData::EIOInit InitMode) override;
-
-	virtual void BeginDestroy() override;
-
-	//PCGEX_DATA_COPY_INTERNAL_DECL
+protected:
+	virtual UPCGSpatialData* CopyInternal(FPCGContext* Context) const override;
 };
 
 /**
@@ -57,7 +53,7 @@ class PCGEXTENDEDTOOLKIT_API UPCGExClusterEdgesData : public UPCGExClusterData
 	GENERATED_BODY()
 
 public:
-	virtual void InitializeFromPCGExData(const UPCGExPointData* InPCGExPointData, const PCGExData::EIOInit InitMode) override;
+	virtual void InitializeSpatialDataInternal(const FPCGInitializeFromDataParams& InParams) override;
 
 	virtual void SetBoundCluster(const TSharedPtr<PCGExCluster::FCluster>& InCluster);
 	const TSharedPtr<PCGExCluster::FCluster>& GetBoundCluster() const;
@@ -67,7 +63,7 @@ public:
 protected:
 	TSharedPtr<PCGExCluster::FCluster> Cluster;
 
-	//PCGEX_DATA_COPY_INTERNAL_DECL
+	virtual UPCGSpatialData* CopyInternal(FPCGContext* Context) const override;
 };
 
 namespace PCGExClusterData

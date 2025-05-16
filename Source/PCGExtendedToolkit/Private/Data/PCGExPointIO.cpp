@@ -19,7 +19,7 @@ namespace PCGExData
 	{
 		IOIndex = InIndex;
 		OutputPin = InOutputPin;
-		NumInPoints = In ? In->GetPoints().Num() : 0;
+		NumInPoints = In ? In->GetNumPoints() : 0;
 
 		if (InTags) { Tags = MakeShared<FTags>(*InTags); }
 		else if (!Tags) { Tags = MakeShared<FTags>(); }
@@ -27,10 +27,12 @@ namespace PCGExData
 
 	bool FPointIO::InitializeOutput(const EIOInit InitOut)
 	{
-		if (!WorkPermit.IsValid()) { return false; }
+		FPCGContext::FSharedContext<FPCGExContext> SharedContext(ContextHandle);
+
+		if (!SharedContext.Get()) { return false; }
 		if (IsValid(Out) && Out != In)
 		{
-			Context->ManagedObjects->Destroy(Out);
+			SharedContext.Get()->ManagedObjects->Destroy(Out);
 			Out = nullptr;
 		}
 
@@ -43,7 +45,7 @@ namespace PCGExData
 		if (InitOut == EIOInit::Forward)
 		{
 			check(In);
-			Out = const_cast<UPCGPointData*>(In);
+			Out = const_cast<UPCGBasePointData*>(In);
 			return true;
 		}
 
@@ -53,25 +55,17 @@ namespace PCGExData
 		{
 			if (In)
 			{
-				UObject* GenericInstance = Context->ManagedObjects->New<UObject>(GetTransientPackage(), In->GetClass());
-				Out = Cast<UPCGPointData>(GenericInstance);
+				UObject* GenericInstance = SharedContext.Get()->ManagedObjects->New<UObject>(GetTransientPackage(), In->GetClass());
+				Out = Cast<UPCGBasePointData>(GenericInstance);
 
 				// Input type was not a PointData child, should not happen.
 				check(Out)
 
 				Out->InitializeFromData(In);
-
-				const UPCGExPointData* TypedInPointData = Cast<UPCGExPointData>(In);
-				UPCGExPointData* TypedOutPointData = Cast<UPCGExPointData>(Out);
-
-				if (TypedInPointData && TypedOutPointData)
-				{
-					TypedOutPointData->InitializeFromPCGExData(TypedInPointData, EIOInit::New);
-				}
 			}
 			else
 			{
-				Out = Context->ManagedObjects->New<UPCGPointData>();
+				Out = SharedContext.Get()->ManagedObjects->New<PCGEX_NEW_POINT_DATA_TYPE>();
 			}
 
 			return true;
@@ -80,13 +74,13 @@ namespace PCGExData
 		if (InitOut == EIOInit::Duplicate)
 		{
 			check(In)
-			Out = Context->ManagedObjects->Duplicate<UPCGPointData>(In);
+			Out = SharedContext.Get()->ManagedObjects->DuplicateData<PCGEX_NEW_POINT_DATA_TYPE>(In);
 		}
 
 		return true;
 	}
 
-	const UPCGPointData* FPointIO::GetOutIn(ESource& OutSource) const
+	const UPCGBasePointData* FPointIO::GetOutIn(ESource& OutSource) const
 	{
 		if (Out)
 		{
@@ -103,7 +97,7 @@ namespace PCGExData
 		return nullptr;
 	}
 
-	const UPCGPointData* FPointIO::GetInOut(ESource& OutSource) const
+	const UPCGBasePointData* FPointIO::GetInOut(ESource& OutSource) const
 	{
 		if (In)
 		{
@@ -139,7 +133,7 @@ namespace PCGExData
 		return false;
 	}
 
-	TSharedPtr<FPCGAttributeAccessorKeysPoints> FPointIO::GetInKeys()
+	TSharedPtr<FPCGAttributeAccessorKeysPointIndices> FPointIO::GetInKeys()
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(FPointIO::GetInKeys);
 
@@ -152,13 +146,13 @@ namespace PCGExData
 			FWriteScopeLock WriteScopeLock(InKeysLock);
 			if (InKeys) { return InKeys; }
 			if (const TSharedPtr<FPointIO> PinnedRoot = RootIO.Pin()) { InKeys = PinnedRoot->GetInKeys(); }
-			else { InKeys = MakeShared<FPCGAttributeAccessorKeysPoints>(In->GetPoints()); }
+			else { InKeys = MakeShared<FPCGAttributeAccessorKeysPointIndices>(In); }
 		}
 
 		return InKeys;
 	}
 
-	TSharedPtr<FPCGAttributeAccessorKeysPoints> FPointIO::GetOutKeys(const bool bEnsureValidKeys)
+	TSharedPtr<FPCGAttributeAccessorKeysPointIndices> FPointIO::GetOutKeys(const bool bEnsureValidKeys)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(FPointIO::GetOutKeys);
 
@@ -172,15 +166,19 @@ namespace PCGExData
 		{
 			FWriteScopeLock WriteScopeLock(OutKeysLock);
 			if (OutKeys) { return OutKeys; }
-			const TArrayView<FPCGPoint> MutablePoints = MakeArrayView(Out->GetMutablePoints());
 
 			if (bEnsureValidKeys)
 			{
 				UPCGMetadata* OutMetadata = Out->Metadata;
-				for (FPCGPoint& Pt : MutablePoints) { OutMetadata->InitializeOnSet(Pt.MetadataEntry); }
-			}
+				TPCGValueRange<int64> MetadataEntries = Out->GetMetadataEntryValueRange();
+				for (int64& Key : MetadataEntries) { OutMetadata->InitializeOnSet(Key); }
 
-			OutKeys = MakeShared<FPCGAttributeAccessorKeysPoints>(MutablePoints);
+				OutKeys = MakeShared<FPCGAttributeAccessorKeysPointIndices>(Out, false);
+			}
+			else
+			{
+				OutKeys = MakeShared<FPCGAttributeAccessorKeysPointIndices>(Out, true);
+			}
 		}
 
 		return OutKeys;
@@ -188,21 +186,21 @@ namespace PCGExData
 
 	void FPointIO::PrintOutKeysMap(TMap<PCGMetadataEntryKey, int32>& InMap) const
 	{
-		TArray<FPCGPoint>& PointList = Out->GetMutablePoints();
-		InMap.Empty(PointList.Num());
-		for (int i = 0; i < PointList.Num(); i++)
+		const TPCGValueRange<int64> MetadataEntries = Out->GetMetadataEntryValueRange();
+		InMap.Empty(MetadataEntries.Num());
+		for (int i = 0; i < MetadataEntries.Num(); i++)
 		{
-			FPCGPoint& Point = PointList[i];
-			if (Point.MetadataEntry == PCGInvalidEntryKey) { Out->Metadata->InitializeOnSet(Point.MetadataEntry); }
-			InMap.Add(Point.MetadataEntry, i);
+			int64& Key = MetadataEntries[i];
+			if (Key == PCGInvalidEntryKey) { Out->Metadata->InitializeOnSet(Key); }
+			InMap.Add(Key, i);
 		}
 	}
 
 	void FPointIO::PrintInKeysMap(TMap<PCGMetadataEntryKey, int32>& InMap) const
 	{
-		const TArray<FPCGPoint>& PointList = In->GetPoints();
-		InMap.Empty(PointList.Num());
-		for (int i = 0; i < PointList.Num(); i++) { InMap.Add(PointList[i].MetadataEntry, i); }
+		const TConstPCGValueRange<int64> MetadataEntries = In->GetConstMetadataEntryValueRange();
+		InMap.Empty(MetadataEntries.Num());
+		for (int i = 0; i < MetadataEntries.Num(); i++) { InMap.Add(MetadataEntries[i], i); }
 	}
 
 	void FPointIO::PrintOutInKeysMap(TMap<PCGMetadataEntryKey, int32>& InMap) const
@@ -219,34 +217,36 @@ namespace PCGExData
 
 	FPointIO::~FPointIO() = default;
 
-	bool FPointIO::StageOutput() const
+	bool FPointIO::StageOutput(FPCGExContext* TargetContext) const
 	{
 		// If this hits, it needs to be reported. It means a node is trying to output data that is meant to be transactional only
 		check(!bTransactional)
 
-		if (!IsEnabled() || !Out || (!bAllowEmptyOutput && Out->GetPoints().IsEmpty())) { return false; }
+		if (!IsEnabled() || !Out || (!bAllowEmptyOutput && Out->IsEmpty())) { return false; }
 
-		Context->StageOutput(OutputPin, Out, Tags->Flatten(), Out != In, bMutable);
+		TargetContext->StageOutput(OutputPin, Out, Tags->Flatten(), Out != In, bMutable);
+
 		return true;
 	}
 
-	bool FPointIO::StageOutput(const int32 MinPointCount, const int32 MaxPointCount) const
+	bool FPointIO::StageOutput(FPCGExContext* TargetContext, const int32 MinPointCount, const int32 MaxPointCount) const
 	{
 		if (Out)
 		{
-			const int64 OutNumPoints = Out->GetPoints().Num();
+			const int64 OutNumPoints = Out->GetNumPoints();
 			if ((MinPointCount >= 0 && OutNumPoints < MinPointCount) ||
 				(MaxPointCount >= 0 && OutNumPoints > MaxPointCount))
 			{
-				return StageOutput();
+				return StageOutput(TargetContext);
 			}
 		}
 		return false;
 	}
 
-	bool FPointIO::StageAnyOutput() const
+	bool FPointIO::StageAnyOutput(FPCGExContext* TargetContext) const
 	{
 		if (!IsEnabled()) { return false; }
+
 		if (bTransactional)
 		{
 			if (InitializationData)
@@ -254,14 +254,14 @@ namespace PCGExData
 				UPCGData* MutableData = const_cast<UPCGData*>(InitializationData.Get());
 				if (!MutableData) { return false; }
 
-				Context->StageOutput(OutputPin, MutableData, Tags->Flatten(), false, false);
+				TargetContext->StageOutput(OutputPin, MutableData, Tags->Flatten(), false, false);
 				return true;
 			}
 
 			return false;
 		}
 
-		if (!Out || (!bAllowEmptyOutput && Out->GetPoints().IsEmpty())) { return false; }
+		if (!Out || (!bAllowEmptyOutput && Out->IsEmpty())) { return false; }
 
 		return true;
 	}
@@ -281,7 +281,7 @@ namespace PCGExData
 #pragma region FPointIOCollection
 
 	FPointIOCollection::FPointIOCollection(FPCGExContext* InContext, const bool bIsTransactional)
-		: Context(InContext), bTransactional(bIsTransactional)
+		: ContextHandle(InContext->GetOrCreateHandle()), bTransactional(bIsTransactional)
 	{
 		PCGEX_LOG_CTR(FPointIOCollection)
 	}
@@ -289,7 +289,7 @@ namespace PCGExData
 	FPointIOCollection::FPointIOCollection(FPCGExContext* InContext, const FName InputLabel, const EIOInit InitOut, const bool bIsTransactional)
 		: FPointIOCollection(InContext, bIsTransactional)
 	{
-		TArray<FPCGTaggedData> Sources = Context->InputData.GetInputsByPin(InputLabel);
+		TArray<FPCGTaggedData> Sources = InContext->InputData.GetInputsByPin(InputLabel);
 		Initialize(Sources, InitOut);
 	}
 
@@ -305,6 +305,9 @@ namespace PCGExData
 		TArray<FPCGTaggedData>& Sources,
 		const EIOInit InitOut)
 	{
+		FPCGContext::FSharedContext<FPCGExContext> SharedContext(ContextHandle);
+		if (!SharedContext.Get()) { return; }
+
 		Pairs.Empty(Sources.Num());
 		TSet<uint64> UniqueData;
 		UniqueData.Reserve(Sources.Num());
@@ -316,16 +319,16 @@ namespace PCGExData
 			UniqueData.Add(Source.Data->UID, &bIsAlreadyInSet);
 			if (bIsAlreadyInSet) { continue; } // Dedupe
 
-			const UPCGPointData* SourcePointData = PCGExPointIO::GetPointData(Context, Source);
+			const UPCGBasePointData* SourcePointData = PCGExPointIO::GetPointData(SharedContext.Get(), Source);
 			if (!SourcePointData && bTransactional)
 			{
 				// Only allowed for execution-time only
 				// Otherwise find a way to ensure conversion is plugged to the outputs, pin-less
 				check(InitOut == EIOInit::None)
-				SourcePointData = PCGExPointIO::ToPointData(Context, Source);
+				SourcePointData = PCGExPointIO::ToPointData(SharedContext.Get(), Source);
 			}
 
-			if (!SourcePointData || SourcePointData->GetPoints().Num() == 0) { continue; }
+			if (!SourcePointData || SourcePointData->IsEmpty()) { continue; }
 			const TSharedPtr<FPointIO> NewIO = Emplace_GetRef(SourcePointData, InitOut, &Source.Tags);
 			NewIO->bTransactional = bTransactional;
 			NewIO->InitializationIndex = i;
@@ -335,12 +338,12 @@ namespace PCGExData
 	}
 
 	TSharedPtr<FPointIO> FPointIOCollection::Emplace_GetRef(
-		const UPCGPointData* In,
+		const UPCGBasePointData* In,
 		const EIOInit InitOut,
 		const TSet<FString>* Tags)
 	{
 		FWriteScopeLock WriteLock(PairsLock);
-		TSharedPtr<FPointIO> NewIO = Pairs.Add_GetRef(MakeShared<FPointIO>(Context, In));
+		TSharedPtr<FPointIO> NewIO = Pairs.Add_GetRef(MakeShared<FPointIO>(ContextHandle, In));
 		NewIO->SetInfos(Pairs.Num() - 1, OutputPin, Tags);
 		if (!NewIO->InitializeOutput(InitOut)) { return nullptr; }
 		return NewIO;
@@ -349,7 +352,7 @@ namespace PCGExData
 	TSharedPtr<FPointIO> FPointIOCollection::Emplace_GetRef(const EIOInit InitOut)
 	{
 		FWriteScopeLock WriteLock(PairsLock);
-		TSharedPtr<FPointIO> NewIO = Pairs.Add_GetRef(MakeShared<FPointIO>(Context));
+		TSharedPtr<FPointIO> NewIO = Pairs.Add_GetRef(MakeShared<FPointIO>(ContextHandle));
 		NewIO->SetInfos(Pairs.Num() - 1, OutputPin);
 		if (!NewIO->InitializeOutput(InitOut)) { return nullptr; }
 		return NewIO;
@@ -400,23 +403,35 @@ namespace PCGExData
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(FPointIOCollection::StageOutputs);
 
+		FPCGContext::FSharedContext<FPCGExContext> SharedContext(ContextHandle);
+		FPCGExContext* Context = SharedContext.Get();
+		if (!Context) { return; }
+
 		Sort();
-		Context->IncreaseStagedOutputReserve(Pairs.Num());
-		for (int i = 0; i < Pairs.Num(); i++) { Pairs[i]->StageOutput(); }
+		SharedContext.Get()->IncreaseStagedOutputReserve(Pairs.Num());
+		for (int i = 0; i < Pairs.Num(); i++) { Pairs[i]->StageOutput(Context); }
 	}
 
 	void FPointIOCollection::StageOutputs(const int32 MinPointCount, const int32 MaxPointCount)
 	{
+		FPCGContext::FSharedContext<FPCGExContext> SharedContext(ContextHandle);
+		FPCGExContext* Context = SharedContext.Get();
+		if (!Context) { return; }
+
 		Sort();
-		Context->IncreaseStagedOutputReserve(Pairs.Num());
-		for (int i = 0; i < Pairs.Num(); i++) { Pairs[i]->StageOutput(MinPointCount, MaxPointCount); }
+		SharedContext.Get()->IncreaseStagedOutputReserve(Pairs.Num());
+		for (int i = 0; i < Pairs.Num(); i++) { Pairs[i]->StageOutput(Context, MinPointCount, MaxPointCount); }
 	}
 
 	void FPointIOCollection::StageAnyOutputs()
 	{
+		FPCGContext::FSharedContext<FPCGExContext> SharedContext(ContextHandle);
+		FPCGExContext* Context = SharedContext.Get();
+		if (!Context) { return; }
+
 		Sort();
-		Context->IncreaseStagedOutputReserve(Pairs.Num());
-		for (int i = 0; i < Pairs.Num(); i++) { Pairs[i]->StageAnyOutput(); }
+		SharedContext.Get()->IncreaseStagedOutputReserve(Pairs.Num());
+		for (int i = 0; i < Pairs.Num(); i++) { Pairs[i]->StageAnyOutput(Context); }
 	}
 
 	void FPointIOCollection::Sort()
@@ -518,7 +533,7 @@ namespace PCGExData
 			for (const TSharedPtr<FPointIO>& IO : InIOs)
 			{
 				if (!IO || !IO->GetIn()) { continue; }
-				TotalNum += IO->GetIn()->GetPoints().Num();
+				TotalNum += IO->GetIn()->GetNumPoints();
 			}
 		}
 		else
@@ -526,7 +541,7 @@ namespace PCGExData
 			for (const TSharedPtr<FPointIO>& IO : InIOs)
 			{
 				if (!IO || !IO->GetOut()) { continue; }
-				TotalNum += IO->GetOut()->GetPoints().Num();
+				TotalNum += IO->GetOut()->GetNumPoints();
 			}
 		}
 

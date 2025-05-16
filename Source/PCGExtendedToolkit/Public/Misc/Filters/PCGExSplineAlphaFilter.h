@@ -87,7 +87,7 @@ public:
 	TSharedPtr<TArray<const FPCGSplineStruct*>> Splines;
 	TSharedPtr<TArray<double>> SegmentsNum;
 
-	virtual bool SupportsDirectEvaluation() const override;
+	virtual bool SupportsPointEvaluation() const override;
 
 	virtual bool Init(FPCGExContext* InContext) override;
 	virtual bool WantsPreparation(FPCGExContext* InContext) override;

@@ -9,7 +9,7 @@
 #define LOCTEXT_NAMESPACE "PCGExPathAlphaFilterDefinition"
 #define PCGEX_NAMESPACE PCGExPathAlphaFilterDefinition
 
-bool UPCGExPathAlphaFilterFactory::SupportsDirectEvaluation() const
+bool UPCGExPathAlphaFilterFactory::SupportsPointEvaluation() const
 {
 	return Config.CompareAgainst == EPCGExInputValueType::Constant;
 }
@@ -39,7 +39,7 @@ bool UPCGExPathAlphaFilterFactory::Prepare(FPCGExContext* InContext)
 	{
 		for (const FPCGTaggedData& TaggedData : Targets)
 		{
-			const UPCGPointData* PathData = Cast<UPCGPointData>(TaggedData.Data);
+			const UPCGBasePointData* PathData = Cast<UPCGBasePointData>(TaggedData.Data);
 			if (!PathData) { continue; }
 
 			const bool bIsClosedLoop = Config.ClosedLoop.IsClosedLoop(TaggedData);

@@ -12,8 +12,6 @@
 #include "UObject/Object.h"
 #include "PCGExGoalPicker.generated.h"
 
-struct FPCGPoint;
-class UPCGPointData;
 /**
  * 
  */

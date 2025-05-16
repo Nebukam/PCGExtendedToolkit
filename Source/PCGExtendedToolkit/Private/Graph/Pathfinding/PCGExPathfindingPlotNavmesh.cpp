@@ -220,7 +220,7 @@ void FPCGExPlotNavmeshTask::ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>&
 	TSharedPtr<PCGExData::FPointIO> PathIO = Context->OutputPaths->Emplace_GetRef(PointIO, PCGExData::EIOInit::New);
 	PCGEX_MAKE_SHARED(PathDataFacade, PCGExData::FFacade, PathIO.ToSharedRef())
 
-	UPCGPointData* OutData = PathIO->GetOut();
+	UPCGBasePointData* OutData = PathIO->GetOut();
 	TArray<FPCGPoint>& MutablePoints = OutData->GetMutablePoints();
 
 	MutablePoints.SetNumUninitialized(NumPositions);

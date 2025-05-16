@@ -77,7 +77,7 @@ public:
 	TArray<const PCGPointOctree::FPointOctree*> OctreesPtr;
 	TArray<const TArray<FPCGPoint>*> TargetsPtr;
 
-	virtual bool SupportsDirectEvaluation() const override;
+	virtual bool SupportsPointEvaluation() const override;
 
 	virtual bool Init(FPCGExContext* InContext) override;
 

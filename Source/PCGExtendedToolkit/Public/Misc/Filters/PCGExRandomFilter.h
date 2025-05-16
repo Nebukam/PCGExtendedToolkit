@@ -96,7 +96,7 @@ public:
 
 	virtual bool Init(FPCGExContext* InContext) override;
 	virtual bool SupportsCollectionEvaluation() const override;
-	virtual bool SupportsDirectEvaluation() const override;
+	virtual bool SupportsPointEvaluation() const override;
 
 	virtual void RegisterBuffersDependencies(FPCGExContext* InContext, PCGExData::FFacadePreloader& FacadePreloader) const override;
 	virtual void RegisterAssetDependencies(FPCGExContext* InContext) const override;

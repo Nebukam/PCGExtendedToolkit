@@ -11,10 +11,6 @@
 
 #include "PCGExGoalPickerRandom.generated.h"
 
-struct FPCGExInputConfig;
-struct FPCGPoint;
-class UPCGPointData;
-
 UENUM()
 enum class EPCGExGoalPickRandomAmount : uint8
 {

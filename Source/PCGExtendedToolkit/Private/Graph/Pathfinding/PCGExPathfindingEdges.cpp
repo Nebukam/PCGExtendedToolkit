@@ -66,7 +66,7 @@ void FPCGExPathfindingEdgesContext::BuildPath(const TSharedPtr<PCGExPathfinding:
 
 	if (!Settings->PathOutputDetails.Validate(MutablePoints)) { return; }
 
-	const TSharedPtr<PCGExData::FPointIO> PathIO = OutputPaths->Emplace_GetRef<UPCGPointData>(ReferenceIO, PCGExData::EIOInit::New);
+	const TSharedPtr<PCGExData::FPointIO> PathIO = OutputPaths->Emplace_GetRef<PCGEX_NEW_POINT_DATA_TYPE>(ReferenceIO, PCGExData::EIOInit::New);
 	if (!PathIO) { return; }
 
 	PathIO->IOIndex = Query->QueryIndex;

@@ -32,7 +32,7 @@ bool UPCGExPathInclusionFilterFactory::Prepare(FPCGExContext* InContext)
 	{
 		for (const FPCGTaggedData& TaggedData : Targets)
 		{
-			const UPCGPointData* PathData = Cast<UPCGPointData>(TaggedData.Data);
+			const UPCGBasePointData* PathData = Cast<UPCGBasePointData>(TaggedData.Data);
 			if (!PathData) { continue; }
 
 			const bool bIsClosedLoop = Config.ClosedLoop.IsClosedLoop(TaggedData);

@@ -107,10 +107,10 @@ namespace PCGExFilterGroup
 
 #define PCGEX_FILTERGROUP_FOREACH(_BODY) for (const TObjectPtr<const UPCGExFilterFactoryData>& SubFilter : FilterFactories) { if (!IsValid(SubFilter)) { continue; } _BODY }
 
-bool UPCGExFilterGroupFactoryData::SupportsDirectEvaluation() const
+bool UPCGExFilterGroupFactoryData::SupportsPointEvaluation() const
 {
 	// Ensure we grab dependencies from plugged-in factories recursively
-	PCGEX_FILTERGROUP_FOREACH(if (!SubFilter->SupportsDirectEvaluation()) { return false; })
+	PCGEX_FILTERGROUP_FOREACH(if (!SubFilter->SupportsPointEvaluation()) { return false; })
 	return true;
 }
 

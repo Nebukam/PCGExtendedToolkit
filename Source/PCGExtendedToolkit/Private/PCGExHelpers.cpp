@@ -91,8 +91,8 @@ namespace PCGEx
 		return Get(BaseName.ToString());
 	}
 
-	FManagedObjects::FManagedObjects(FPCGContext* InContext, const TSharedPtr<FWorkPermit>& InLifeline)
-		: Context(InContext), WorkPermit(InLifeline)
+	FManagedObjects::FManagedObjects(FPCGContext* InContext)
+		: WeakHandle(InContext->GetOrCreateHandle())
 	{
 	}
 
@@ -104,7 +104,7 @@ namespace PCGEx
 	bool FManagedObjects::IsAvailable() const
 	{
 		FReadScopeLock WriteScopeLock(ManagedObjectLock);
-		return WorkPermit.IsValid() && !IsFlushing();
+		return WeakHandle.IsValid() && !IsFlushing();
 	}
 
 	void FManagedObjects::Flush()

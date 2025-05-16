@@ -26,7 +26,7 @@ FString FPCGExInputConfig::GetDisplayName() const { return GetName().ToString();
 void FPCGExInputConfig::UpdateUserFacingInfos() { TitlePropertyName = GetDisplayName(); }
 #endif
 
-bool FPCGExInputConfig::Validate(const UPCGPointData* InData)
+bool FPCGExInputConfig::Validate(const UPCGData* InData)
 {
 	Selector = Selector.CopyAndFixLast(InData);
 	if (GetSelection() == EPCGAttributePropertySelection::Attribute)

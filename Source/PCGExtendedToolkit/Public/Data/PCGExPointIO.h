@@ -4,6 +4,8 @@
 #pragma once
 
 #include "CoreMinimal.h"
+
+#include "Metadata/Accessors//PCGCustomAccessor.h"
 #include "IndexTypes.h"
 #include "PCGElement.h"
 #include "UObject/Object.h"
@@ -32,6 +34,29 @@ namespace PCGExData
 	{
 		In,
 		Out
+	};
+
+	struct PCGEXTENDEDTOOLKIT_API FPoint
+	{
+		int32 Index = -1;
+		int32 IO = -1;
+
+		constexpr FPoint() = default;
+
+		constexpr explicit FPoint(const uint64 Hash)
+			: Index(PCGEx::H64A(Hash)), IO(PCGEx::H64A(Hash))
+		{
+		}
+
+		constexpr FPoint(const uint32 InNode, const uint32 InEdge)
+			: Index(InNode), IO(InEdge)
+		{
+		}
+
+		FORCEINLINE uint64 H64() const { return PCGEx::H64U(Index, IO); }
+
+		bool operator==(const FPoint& Other) const { return Index == Other.Index && IO == Other.IO; }
+		FORCEINLINE friend uint32 GetTypeHash(const FPoint& Key) { return HashCombineFast(Key.Index, Key.IO); }
 	};
 
 	struct PCGEXTENDEDTOOLKIT_API FPointRef
@@ -74,8 +99,7 @@ namespace PCGExData
 	protected:
 		bool bTransactional = false;
 		bool bMutable = false;
-		FPCGExContext* Context = nullptr;
-		TWeakPtr<PCGEx::FWorkPermit> WorkPermit;
+		TWeakPtr<FPCGContextHandle> ContextHandle;
 
 		mutable FRWLock PointsLock;
 		mutable FRWLock InKeysLock;
@@ -85,11 +109,11 @@ namespace PCGExData
 		bool bWritten = false;
 		int32 NumInPoints = -1;
 
-		TSharedPtr<FPCGAttributeAccessorKeysPoints> InKeys; // Shared because reused by duplicates
-		TSharedPtr<FPCGAttributeAccessorKeysPoints> OutKeys;
+		TSharedPtr<FPCGAttributeAccessorKeysPointIndices> InKeys; // Shared because reused by duplicates
+		TSharedPtr<FPCGAttributeAccessorKeysPointIndices> OutKeys;
 
-		const UPCGPointData* In = nullptr; // Input PointData	
-		UPCGPointData* Out = nullptr;      // Output PointData
+		const UPCGBasePointData* In = nullptr; // Input PointData	
+		UPCGBasePointData* Out = nullptr;      // Output PointData
 
 		TWeakPtr<FPointIO> RootIO;
 		std::atomic<bool> bIsEnabled{true};
@@ -102,20 +126,20 @@ namespace PCGExData
 
 		bool bAllowEmptyOutput = false;
 
-		explicit FPointIO(FPCGExContext* InContext):
-			Context(InContext), WorkPermit(Context->GetWorkPermit()), In(nullptr)
+		explicit FPointIO(const TWeakPtr<FPCGContextHandle>& InContextHandle):
+			ContextHandle(InContextHandle), In(nullptr)
 		{
 			PCGEX_LOG_CTR(FPointIO)
 		}
 
-		explicit FPointIO(FPCGExContext* InContext, const UPCGPointData* InData):
-			Context(InContext), WorkPermit(Context->GetWorkPermit()), In(InData)
+		explicit FPointIO(const TWeakPtr<FPCGContextHandle>& InContextHandle, const UPCGBasePointData* InData):
+			ContextHandle(InContextHandle), In(InData)
 		{
 			PCGEX_LOG_CTR(FPointIO)
 		}
 
 		explicit FPointIO(const TSharedRef<FPointIO>& InPointIO):
-			Context(InPointIO->GetContext()), WorkPermit(InPointIO->WorkPermit), In(InPointIO->GetIn())
+			ContextHandle(InPointIO->GetContext()), In(InPointIO->GetIn())
 		{
 			PCGEX_LOG_CTR(FPointIO)
 			RootIO = InPointIO;
@@ -126,7 +150,7 @@ namespace PCGExData
 			Tags = MakeShared<FTags>(TagDump);
 		}
 
-		FPCGExContext* GetContext() const { return Context; }
+		TWeakPtr<FPCGContextHandle> GetContext() const { return ContextHandle; }
 
 		void SetInfos(const int32 InIndex,
 		              const FName InOutputPin,
@@ -137,22 +161,26 @@ namespace PCGExData
 		template <typename T>
 		bool InitializeOutput(const EIOInit InitOut = EIOInit::None)
 		{
-			if (!WorkPermit.IsValid()) { return false; }
-			if (IsValid(Out) && Out != In) { Context->ManagedObjects->Destroy(Out); }
+			FPCGContext::FSharedContext<FPCGExContext> SharedContext(ContextHandle);
+
+			if (!SharedContext.Get()) { return false; }
+			if (IsValid(Out) && Out != In)
+			{
+				SharedContext.Get()->ManagedObjects->Destroy(Out);
+				Out = nullptr;
+			}
 
 			bMutable = true;
 
+
 			if (InitOut == EIOInit::New)
 			{
-				T* TypedOut = Context->ManagedObjects->New<T>();
+				T* TypedOut = SharedContext.Get()->ManagedObjects->New<T>();
+				Out = Cast<UPCGBasePointData>(TypedOut);
 
-				Out = Cast<UPCGPointData>(TypedOut);
 				check(Out)
 
 				if (IsValid(In)) { Out->InitializeFromData(In); }
-				const UPCGExPointData* TypedPointData = Cast<UPCGExPointData>(In);
-				UPCGExPointData* TypedOutPointData = Cast<UPCGExPointData>(TypedOut);
-				if (TypedPointData && TypedOutPointData) { TypedOutPointData->InitializeFromPCGExData(TypedPointData, EIOInit::New); }
 
 				return true;
 			}
@@ -164,16 +192,13 @@ namespace PCGExData
 
 				if (!TypedIn)
 				{
-					T* TypedOut = Context->ManagedObjects->New<T>();
-
-					if (UPCGExPointData* TypedPointData = Cast<UPCGExPointData>(TypedOut)) { TypedPointData->CopyFrom(In); }
-					else { TypedOut->InitializeFromData(In); } // This is a potentially failed duplicate
-
-					Out = Cast<UPCGPointData>(TypedOut);
+					T* TypedOut = SharedContext.Get()->ManagedObjects->DuplicateData<T>(In);
+					Out = Cast<UPCGBasePointData>(TypedOut);
 				}
 				else
 				{
-					Out = Context->ManagedObjects->Duplicate<UPCGPointData>(In);
+					SharedContext.Get()->ManagedObjects->New<T>();
+					Out->InitializeFromData(In);
 				}
 
 				return true;
@@ -186,50 +211,37 @@ namespace PCGExData
 
 		bool IsDataValid(const ESource InSource) const { return InSource == ESource::In ? IsValid(In) : IsValid(Out); }
 
-		FORCEINLINE const UPCGPointData* GetData(const ESource InSource) const { return InSource == ESource::In ? In : Out; }
-		FORCEINLINE UPCGPointData* GetMutableData(const ESource InSource) const { return const_cast<UPCGPointData*>(InSource == ESource::In ? In : Out); }
-		FORCEINLINE const UPCGPointData* GetIn() const { return In; }
-		FORCEINLINE UPCGPointData* GetOut() const { return Out; }
-		FORCEINLINE const UPCGPointData* GetOutIn() const { return Out ? Out : In; }
-		FORCEINLINE const UPCGPointData* GetInOut() const { return In ? In : Out; }
-		const UPCGPointData* GetOutIn(ESource& OutSource) const;
-		const UPCGPointData* GetInOut(ESource& OutSource) const;
+		FORCEINLINE const UPCGBasePointData* GetData(const ESource InSource) const { return InSource == ESource::In ? In : Out; }
+		FORCEINLINE UPCGBasePointData* GetMutableData(const ESource InSource) const { return const_cast<UPCGBasePointData*>(InSource == ESource::In ? In : Out); }
+		FORCEINLINE const UPCGBasePointData* GetIn() const { return In; }
+		FORCEINLINE UPCGBasePointData* GetOut() const { return Out; }
+		FORCEINLINE const UPCGBasePointData* GetOutIn() const { return Out ? Out : In; }
+		FORCEINLINE const UPCGBasePointData* GetInOut() const { return In ? In : Out; }
+		const UPCGBasePointData* GetOutIn(ESource& OutSource) const;
+		const UPCGBasePointData* GetInOut(ESource& OutSource) const;
 		bool GetSource(const UPCGData* InData, ESource& OutSource) const;
 
-		int32 GetNum() const { return In ? In->GetPoints().Num() : Out ? Out->GetPoints().Num() : -1; }
-		int32 GetNum(const ESource Source) const { return Source == ESource::In ? In->GetPoints().Num() : Out->GetPoints().Num(); }
-		int32 GetOutInNum() const { return Out && !Out->GetPoints().IsEmpty() ? Out->GetPoints().Num() : In ? In->GetPoints().Num() : -1; }
+		int32 GetNum() const { return In ? In->GetNumPoints : Out ? Out->GetNumPoints() : -1; }
+		int32 GetNum(const ESource Source) const { return Source == ESource::In ? In->GetNumPoints() : Out->GetNumPoints(); }
+		int32 GetOutInNum() const { return Out && !Out->GetNumPoints() ? Out->GetNumPoints() : In ? In->GetNumPoints() : -1; }
 
-		TSharedPtr<FPCGAttributeAccessorKeysPoints> GetInKeys();
-		TSharedPtr<FPCGAttributeAccessorKeysPoints> GetOutKeys(const bool bEnsureValidKeys = false);
+		TSharedPtr<FPCGAttributeAccessorKeysPointIndices> GetInKeys();
+		TSharedPtr<FPCGAttributeAccessorKeysPointIndices> GetOutKeys(const bool bEnsureValidKeys = false);
 		void PrintOutKeysMap(TMap<PCGMetadataEntryKey, int32>& InMap) const;
 		void PrintInKeysMap(TMap<PCGMetadataEntryKey, int32>& InMap) const;
 		void PrintOutInKeysMap(TMap<PCGMetadataEntryKey, int32>& InMap) const;
 
 		FName OutputPin = PCGEx::OutputPointsLabel;
 
-		const PCGMetadataEntryKey& GetInItemKey(const int32 Index) const { return (In->GetPoints().GetData() + Index)->MetadataEntry; }
-		const PCGMetadataEntryKey& GetOutItemKey(const int32 Index) const { return (Out->GetPoints().GetData() + Index)->MetadataEntry; }
+		void InitPoint(FPCGPoint& Point, const PCGMetadataEntryKey ParentKey) const
+		{
+			Out->Metadata->InitializeOnSet(Point.MetadataEntry, ParentKey, In->Metadata);
+		}
 
-		TArray<FPCGPoint>& GetMutablePoints() const { return Out->GetMutablePoints(); }
-
-		const FPCGPoint& GetInPoint(const int32 Index) const { return *(In->GetPoints().GetData() + Index); }
-		const FPCGPoint& GetOutPoint(const int32 Index) const { return *(Out->GetPoints().GetData() + Index); }
-		FPCGPoint& GetMutablePoint(const int32 Index) const { return *(Out->GetMutablePoints().GetData() + Index); }
-		const TArray<FPCGPoint>& GetPoints(const ESource Source) const { return Source == ESource::In ? In->GetPoints() : Out->GetPoints(); }
-
-		FPointRef GetInPointRef(const int32 Index) const { return FPointRef(In->GetPoints().GetData() + Index, Index); }
-		FPointRef GetOutPointRef(const int32 Index) const { return FPointRef(Out->GetPoints().GetData() + Index, Index); }
-
-		FPointRef* GetInPointRefPtr(const int32 Index) const { return new FPointRef(In->GetPoints().GetData() + Index, Index); }
-		FPointRef* GetOutPointRefPtr(const int32 Index) const { return new FPointRef(Out->GetPoints().GetData() + Index, Index); }
-
-		const FPCGPoint* TryGetInPoint(const int32 Index) const { return In && In->GetPoints().IsValidIndex(Index) ? (In->GetPoints().GetData() + Index) : nullptr; }
-		const FPCGPoint* TryGetOutPoint(const int32 Index) const { return Out && Out->GetPoints().IsValidIndex(Index) ? (Out->GetPoints().GetData() + Index) : nullptr; }
-
-		void InitPoint(FPCGPoint& Point, const PCGMetadataEntryKey FromKey) const { Out->Metadata->InitializeOnSet(Point.MetadataEntry, FromKey, In->Metadata); }
-		void InitPoint(FPCGPoint& Point, const FPCGPoint& FromPoint) const { Out->Metadata->InitializeOnSet(Point.MetadataEntry, FromPoint.MetadataEntry, In->Metadata); }
-		void InitPoint(FPCGPoint& Point) const { Out->Metadata->InitializeOnSet(Point.MetadataEntry); }
+		void InitPoint(FPCGPoint& Point) const
+		{
+			Out->Metadata->InitializeOnSet(Point.MetadataEntry);
+		}
 
 		FPCGPoint& CopyPoint(const FPCGPoint& FromPoint, int32& OutIndex) const
 		{
@@ -237,7 +249,7 @@ namespace PCGExData
 			TArray<FPCGPoint>& MutablePoints = Out->GetMutablePoints();
 			OutIndex = MutablePoints.Num();
 			FPCGPoint& Pt = MutablePoints.Add_GetRef(FromPoint);
-			InitPoint(Pt, FromPoint);
+			InitPoint(Pt, FromPoint.MetadataEntry);
 			return Pt;
 		}
 
@@ -266,7 +278,7 @@ namespace PCGExData
 			TArray<FPCGPoint>& MutablePoints = Out->GetMutablePoints();
 			MutablePoints.Add(Point);
 			OutIndex = MutablePoints.Num() - 1;
-			InitPoint(Point, FromPoint);
+			InitPoint(Point, FromPoint.MetadataEntry);
 		}
 
 		void CleanupKeys();
@@ -275,9 +287,9 @@ namespace PCGExData
 		void Enable() { bIsEnabled.store(true, std::memory_order_release); }
 		bool IsEnabled() const { return bIsEnabled.load(std::memory_order_acquire); }
 
-		bool StageOutput() const;
-		bool StageOutput(const int32 MinPointCount, const int32 MaxPointCount) const;
-		bool StageAnyOutput() const;
+		bool StageOutput(FPCGExContext* TargetContext) const;
+		bool StageOutput(FPCGExContext* TargetContext, const int32 MinPointCount, const int32 MaxPointCount) const;
+		bool StageAnyOutput(FPCGExContext* TargetContext) const;
 
 		void DeleteAttribute(FName AttributeName) const;
 
@@ -317,7 +329,7 @@ namespace PCGExData
 		return NewIO;
 	}
 
-	static TSharedPtr<FPointIO> NewPointIO(FPCGExContext* InContext, const UPCGPointData* InData, FName InOutputPin = NAME_None, int32 Index = -1)
+	static TSharedPtr<FPointIO> NewPointIO(FPCGExContext* InContext, const UPCGBasePointData* InData, FName InOutputPin = NAME_None, int32 Index = -1)
 	{
 		PCGEX_MAKE_SHARED(NewIO, FPointIO, InContext, InData)
 		NewIO->SetInfos(Index, InOutputPin);
@@ -338,7 +350,7 @@ namespace PCGExData
 	{
 	protected:
 		mutable FRWLock PairsLock;
-		FPCGExContext* Context = nullptr;
+		TWeakPtr<FPCGContextHandle> ContextHandle;
 		bool bTransactional = false;
 
 	public:
@@ -360,7 +372,7 @@ namespace PCGExData
 			TArray<FPCGTaggedData>& Sources,
 			EIOInit InitOut = EIOInit::None);
 
-		TSharedPtr<FPointIO> Emplace_GetRef(const UPCGPointData* In, const EIOInit InitOut = EIOInit::None, const TSet<FString>* Tags = nullptr);
+		TSharedPtr<FPointIO> Emplace_GetRef(const UPCGBasePointData* In, const EIOInit InitOut = EIOInit::None, const TSet<FString>* Tags = nullptr);
 		TSharedPtr<FPointIO> Emplace_GetRef(EIOInit InitOut = EIOInit::New);
 		TSharedPtr<FPointIO> Emplace_GetRef(const TSharedPtr<FPointIO>& PointIO, const EIOInit InitOut = EIOInit::None);
 		TSharedPtr<FPointIO> Insert_Unsafe(const int32 Index, const TSharedPtr<FPointIO>& PointIO);
@@ -369,10 +381,10 @@ namespace PCGExData
 
 
 		template <typename T>
-		TSharedPtr<FPointIO> Emplace_GetRef(const UPCGPointData* In, const EIOInit InitOut = EIOInit::None, const TSet<FString>* Tags = nullptr)
+		TSharedPtr<FPointIO> Emplace_GetRef(const UPCGBasePointData* In, const EIOInit InitOut = EIOInit::None, const TSet<FString>* Tags = nullptr)
 		{
 			FWriteScopeLock WriteLock(PairsLock);
-			TSharedPtr<FPointIO> NewIO = Pairs.Add_GetRef(MakeShared<FPointIO>(Context, In));
+			TSharedPtr<FPointIO> NewIO = Pairs.Add_GetRef(MakeShared<FPointIO>(ContextHandle, In));
 			NewIO->SetInfos(Pairs.Num() - 1, OutputPin, Tags);
 			if (!NewIO->InitializeOutput<T>(InitOut)) { return nullptr; }
 			return NewIO;
@@ -382,7 +394,7 @@ namespace PCGExData
 		TSharedPtr<FPointIO> Emplace_GetRef(const EIOInit InitOut = EIOInit::New)
 		{
 			FWriteScopeLock WriteLock(PairsLock);
-			TSharedPtr<FPointIO> NewIO = Pairs.Add_GetRef(MakeShared<FPointIO>(Context));
+			TSharedPtr<FPointIO> NewIO = Pairs.Add_GetRef(MakeShared<FPointIO>(ContextHandle));
 			NewIO->SetInfos(Pairs.Num() - 1, OutputPin);
 			if (!NewIO->InitializeOutput<T>(InitOut)) { return nullptr; }
 			return NewIO;
@@ -460,43 +472,38 @@ namespace PCGExData
 	{
 		int32 GetTotalPointsNum(const TArray<TSharedPtr<FPointIO>>& InIOs, const ESource InSource = ESource::In);
 
-		static const UPCGPointData* GetPointData(const FPCGContext* Context, const FPCGTaggedData& Source)
+		static const UPCGBasePointData* GetPointData(const FPCGContext* Context, const FPCGTaggedData& Source)
 		{
-			// This is actually creating a transient In that is potentially a new data, this is super bad
-			//const UPCGSpatialData* SpatialData = Cast<UPCGSpatialData>(Source.Data);
-			//if (!SpatialData) { return nullptr; }
-
-			//const UPCGPointData* PointData = SpatialData->ToPointData(const_cast<FPCGContext*>(Context));
-			const UPCGPointData* PointData = Cast<const UPCGPointData>(Source.Data);
+			const UPCGBasePointData* PointData = Cast<const UPCGBasePointData>(Source.Data);
 			if (!PointData) { return nullptr; }
 
 			return PointData;
 		}
 
-		static UPCGPointData* GetMutablePointData(const FPCGContext* Context, const FPCGTaggedData& Source)
+		static UPCGBasePointData* GetMutablePointData(const FPCGContext* Context, const FPCGTaggedData& Source)
 		{
-			const UPCGPointData* PointData = GetPointData(Context, Source);
+			const UPCGBasePointData* PointData = GetPointData(Context, Source);
 			if (!PointData) { return nullptr; }
 
-			return const_cast<UPCGPointData*>(PointData);
+			return const_cast<UPCGBasePointData*>(PointData);
 		}
 
-		static const UPCGPointData* ToPointData(FPCGExContext* Context, const FPCGTaggedData& Source)
+		static const UPCGBasePointData* ToPointData(FPCGExContext* Context, const FPCGTaggedData& Source)
 		{
 			// NOTE : This has a high probability of creating new data on the fly
 			// so it should absolutely not be used to be inherited or duplicated
 			// since it would mean point data that inherit potentially destroyed parents
-			if (const UPCGPointData* RealPointData = Cast<const UPCGPointData>(Source.Data))
+			if (const UPCGBasePointData* RealPointData = Cast<const UPCGBasePointData>(Source.Data))
 			{
 				return RealPointData;
 			}
 			if (const UPCGSpatialData* SpatialData = Cast<UPCGSpatialData>(Source.Data))
 			{
 				// Currently we support collapsing to point data only, but at some point in the future that might be different
-				const UPCGPointData* PointData = Cast<const UPCGSpatialData>(SpatialData)->ToPointData(Context);
+				const UPCGBasePointData* PointData = Cast<const UPCGSpatialData>(SpatialData)->ToPointData(Context);
 
 				//Keep track of newly created data internally
-				if (PointData != SpatialData) { Context->ManagedObjects->Add(const_cast<UPCGPointData*>(PointData)); }
+				if (PointData != SpatialData) { Context->ManagedObjects->Add(const_cast<UPCGBasePointData*>(PointData)); }
 				return PointData;
 			}
 
@@ -507,7 +514,7 @@ namespace PCGExData
 				const int64 ParamItemCount = ParamMetadata->GetLocalItemCount();
 				if (ParamItemCount == 0) { return nullptr; }
 
-				UPCGPointData* PointData = Context->ManagedObjects->New<UPCGPointData>();
+				UPCGBasePointData* PointData = Context->ManagedObjects->New<PCGEX_NEW_POINT_DATA_TYPE>();
 				check(PointData->Metadata);
 				PointData->Metadata->Initialize(ParamMetadata);
 

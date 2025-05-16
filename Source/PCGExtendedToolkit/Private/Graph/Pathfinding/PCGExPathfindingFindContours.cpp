@@ -177,7 +177,7 @@ namespace PCGExFindContours
 
 	void FProcessor::ProcessCell(const int32 SeedIndex, const TSharedPtr<PCGExTopology::FCell>& InCell)
 	{
-		TSharedPtr<PCGExData::FPointIO> PathIO = Context->Paths->Emplace_GetRef<UPCGPointData>(VtxDataFacade->Source, PCGExData::EIOInit::New);
+		TSharedPtr<PCGExData::FPointIO> PathIO = Context->Paths->Emplace_GetRef<PCGEX_NEW_POINT_DATA_TYPE>(VtxDataFacade->Source, PCGExData::EIOInit::New);
 		if (!PathIO) { return; }
 
 		PathIO->Tags->Reset();                              // Tag forwarding handled by artifacts

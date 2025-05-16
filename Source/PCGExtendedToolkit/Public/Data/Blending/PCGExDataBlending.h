@@ -321,8 +321,8 @@ namespace PCGExDataBlending
 	protected:
 		bool bSupportInterpolation = true;
 		FName AttributeName = NAME_None;
-		UPCGPointData* PrimaryData = nullptr;
-		const UPCGPointData* SecondaryData = nullptr;
+		UPCGBasePointData* PrimaryData = nullptr;
+		const UPCGBasePointData* SecondaryData = nullptr;
 	};
 
 	template <typename T, EPCGExDataBlendingType BlendingType, bool bRequirePreparation = false, bool bRequireCompletion = false>

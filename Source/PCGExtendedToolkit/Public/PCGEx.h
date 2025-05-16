@@ -221,7 +221,7 @@ namespace PCGEx
 
 	PCGEXTENDEDTOOLKIT_API
 	void ScopeIndices(const TArray<int32>& InIndices, TArray<uint64>& OutScopes);
-
+	
 	struct PCGEXTENDEDTOOLKIT_API FIndexedItem
 	{
 		int32 Index;

@@ -379,7 +379,7 @@ namespace PCGExData
 
 			if (OutValues)
 			{
-				check(OutValues->Num() == Source->GetOut()->GetPoints().Num())
+				check(OutValues->Num() == Source->GetOut()->GetNumPoints())
 				return true;
 			}
 
@@ -703,14 +703,14 @@ namespace PCGExData
 
 		FPCGMetadataAttributeBase* FindMutableAttribute(const FName InName, const ESource InSource = ESource::In) const
 		{
-			const UPCGPointData* Data = Source->GetData(InSource);
+			const UPCGBasePointData* Data = Source->GetData(InSource);
 			if (!Data) { return nullptr; }
 			return Data->Metadata->GetMutableAttribute(InName);
 		}
 
 		const FPCGMetadataAttributeBase* FindConstAttribute(const FName InName, const ESource InSource = ESource::In) const
 		{
-			const UPCGPointData* Data = Source->GetData(InSource);
+			const UPCGBasePointData* Data = Source->GetData(InSource);
 			if (!Data) { return nullptr; }
 			return Data->Metadata->GetConstAttribute(InName);
 		}
@@ -718,7 +718,7 @@ namespace PCGExData
 		template <typename T>
 		FPCGMetadataAttribute<T>* FindMutableAttribute(const FName InName, const ESource InSource = ESource::In) const
 		{
-			const UPCGPointData* Data = Source->GetData(InSource);
+			const UPCGBasePointData* Data = Source->GetData(InSource);
 			if (!Data) { return nullptr; }
 			return Data->Metadata->GetMutableTypedAttribute<T>(InName);
 		}
@@ -726,7 +726,7 @@ namespace PCGExData
 		template <typename T>
 		const FPCGMetadataAttribute<T>* FindConstAttribute(const FName InName, const ESource InSource = ESource::In) const
 		{
-			const UPCGPointData* Data = Source->GetData(InSource);
+			const UPCGBasePointData* Data = Source->GetData(InSource);
 			if (!Data) { return nullptr; }
 
 			// 'template' spec required for clang on mac, and rider keeps removing it without the comment below.
@@ -744,9 +744,9 @@ namespace PCGExData
 			return Cloud;
 		}
 
-		const UPCGPointData* GetData(const ESource InSource) const { return Source->GetData(InSource); }
-		const UPCGPointData* GetIn() const { return Source->GetIn(); }
-		UPCGPointData* GetOut() const { return Source->GetOut(); }
+		const UPCGBasePointData* GetData(const ESource InSource) const { return Source->GetData(InSource); }
+		const UPCGBasePointData* GetIn() const { return Source->GetIn(); }
+		UPCGBasePointData* GetOut() const { return Source->GetOut(); }
 
 		void MarkCurrentBuffersReadAsComplete();
 
@@ -990,15 +990,15 @@ namespace PCGExData
 		if (PointIO->GetOut()) { WriteMark(PointIO, IdName, Id); }
 	}
 
-	static UPCGPointData* GetMutablePointData(FPCGContext* Context, const FPCGTaggedData& Source)
+	static UPCGBasePointData* GetMutablePointData(FPCGContext* Context, const FPCGTaggedData& Source)
 	{
 		const UPCGSpatialData* SpatialData = Cast<UPCGSpatialData>(Source.Data);
 		if (!SpatialData) { return nullptr; }
 
-		const UPCGPointData* PointData = SpatialData->ToPointData(Context);
+		const UPCGBasePointData* PointData = SpatialData->ToPointData(Context);
 		if (!PointData) { return nullptr; }
 
-		return const_cast<UPCGPointData*>(PointData);
+		return const_cast<UPCGBasePointData*>(PointData);
 	}
 
 #pragma endregion

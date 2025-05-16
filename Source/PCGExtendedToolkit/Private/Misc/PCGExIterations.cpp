@@ -91,7 +91,7 @@ bool FPCGExIterationsElement::ExecuteInternal(FPCGContext* InContext) const
 			Data = Context->ManagedObjects->New<UPCGParamData>();
 			break;
 		case EPCGExIterationDataType::Points:
-			Data = Context->ManagedObjects->New<UPCGPointData>();
+			Data = Context->ManagedObjects->New<PCGEX_NEW_POINT_DATA_TYPE>();
 			break;
 		case EPCGExIterationDataType::Spline:
 			Data = Context->ManagedObjects->New<UPCGSplineData>();

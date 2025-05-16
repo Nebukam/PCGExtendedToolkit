@@ -470,7 +470,7 @@ namespace PCGExExtrudeTensors
 
 			if constexpr (Supports(InternalFlags, EExtrusionFlags::Bounded))
 			{
-				if (StopFilters->Test(HeadPoint))
+				if (StopFilters->TestRoamingIndex(HeadPoint))
 				{
 					if (bIsExtruding && !bIsComplete)
 					{

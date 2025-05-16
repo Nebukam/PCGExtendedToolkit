@@ -393,7 +393,7 @@ namespace PCGExExtrudeTensors
 		bool bIsStopped = false;
 		if (StopFilters)
 		{
-			bIsStopped = StopFilters->Test(PointDataFacade->Source->GetInPoint(InSeedIndex));
+			bIsStopped = StopFilters->TestRoamingIndex(PointDataFacade->Source->GetInPoint(InSeedIndex));
 			if (Settings->bIgnoreStoppedSeeds && bIsStopped) { return; }
 		}
 

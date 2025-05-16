@@ -8,33 +8,26 @@
 #include "PCGExGlobalSettings.h"
 #include "Graph/PCGExCluster.h"
 
-void UPCGExClusterNodesData::InitializeFromPCGExData(const UPCGExPointData* InPCGExPointData, const PCGExData::EIOInit InitMode)
+UPCGSpatialData* UPCGExClusterNodesData::CopyInternal(FPCGContext* Context) const
 {
-	Super::InitializeFromPCGExData(InPCGExPointData, InitMode);
-	// if (const UPCGExClusterNodesData* InNodeData = Cast<UPCGExClusterNodesData>(InPCGExPointData))	{	}
+	PCGEX_NEW_CUSTOM_POINT_DATA(UPCGExClusterNodesData)
+	return NewData;
 }
 
-void UPCGExClusterNodesData::BeginDestroy()
+void UPCGExClusterEdgesData::InitializeSpatialDataInternal(const FPCGInitializeFromDataParams& InParams)
 {
-	Super::BeginDestroy();
-}
-
-//PCGEX_DATA_COPY_INTERNAL_IMPL(UPCGExClusterNodesData)
-
-void UPCGExClusterEdgesData::InitializeFromPCGExData(const UPCGExPointData* InPCGExPointData, const PCGExData::EIOInit InitMode)
-{
-	Super::InitializeFromPCGExData(InPCGExPointData, InitMode);
-	if (const UPCGExClusterEdgesData* InEdgeData = Cast<UPCGExClusterEdgesData>(InPCGExPointData))
+	Super::InitializeSpatialDataInternal(InParams);
+	if (const UPCGExClusterEdgesData* InEdgeData = Cast<UPCGExClusterEdgesData>(InParams.Source);
+		InEdgeData && GetDefault<UPCGExGlobalSettings>()->bCacheClusters)
 	{
-		if (GetDefault<UPCGExGlobalSettings>()->bCacheClusters)
-		{
-			if (InitMode != PCGExData::EIOInit::None &&
-				InitMode != PCGExData::EIOInit::New)
-			{
-				SetBoundCluster(InEdgeData->Cluster);
-			}
-		}
+		SetBoundCluster(InEdgeData->Cluster);
 	}
+}
+
+UPCGSpatialData* UPCGExClusterEdgesData::CopyInternal(FPCGContext* Context) const
+{
+	PCGEX_NEW_CUSTOM_POINT_DATA(UPCGExClusterEdgesData)
+	return NewData;
 }
 
 void UPCGExClusterEdgesData::SetBoundCluster(const TSharedPtr<PCGExCluster::FCluster>& InCluster)
@@ -46,8 +39,6 @@ const TSharedPtr<PCGExCluster::FCluster>& UPCGExClusterEdgesData::GetBoundCluste
 {
 	return Cluster;
 }
-
-//PCGEX_DATA_COPY_INTERNAL_IMPL(UPCGExClusterEdgesData)
 
 void UPCGExClusterEdgesData::BeginDestroy()
 {

@@ -356,7 +356,7 @@ namespace PCGExPathCrossings
 
 		Blending->PrepareForData(PointDataFacade, PointDataFacade, PCGExData::ESource::Out, &ProtectedAttributes);
 
-		if (PointIO->GetIn()->GetPoints().Num() != PointIO->GetOut()->GetPoints().Num()) { if (Settings->bTagIfHasCrossing) { PointIO->Tags->AddRaw(Settings->HasCrossingsTag); } }
+		if (PointIO->GetIn()->GetNumPoints() != PointIO->GetOut()->GetNumPoints()) { if (Settings->bTagIfHasCrossing) { PointIO->Tags->AddRaw(Settings->HasCrossingsTag); } }
 		else { if (Settings->bTagIfHasNoCrossings) { PointIO->Tags->AddRaw(Settings->HasNoCrossingsTag); } }
 
 		PCGEX_ASYNC_GROUP_CHKD_VOID(AsyncManager, CollapseTask)

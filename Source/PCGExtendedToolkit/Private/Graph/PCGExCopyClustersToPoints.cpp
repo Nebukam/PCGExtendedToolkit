@@ -238,7 +238,7 @@ namespace PCGExCopyClusters
 	{
 		PCGEX_TYPED_CONTEXT_AND_SETTINGS(CopyClustersToPoints)
 
-		const int32 NumTargets = Context->TargetsDataFacade->GetIn()->GetPoints().Num();
+		const int32 NumTargets = Context->TargetsDataFacade->GetIn()->GetNumPoints();
 
 		for (int i = 0; i < NumTargets; i++)
 		{

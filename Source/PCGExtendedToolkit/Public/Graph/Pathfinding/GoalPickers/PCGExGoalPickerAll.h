@@ -10,10 +10,6 @@
 
 #include "PCGExGoalPickerAll.generated.h"
 
-struct FPCGExInputConfig;
-struct FPCGPoint;
-class UPCGPointData;
-
 /**
  * 
  */

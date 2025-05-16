@@ -121,9 +121,9 @@ struct FPCGExAttributeDebugDraw
 	FColor GetColor(const PCGExData::FPointRef& Point) const;
 	double GetSingle(const PCGExData::FPointRef& Point) const;
 	FVector GetVector(const PCGExData::FPointRef& Point) const;
-	FVector GetIndexedPosition(const PCGExData::FPointRef& Point, const UPCGPointData* PointData) const;
+	FVector GetIndexedPosition(const PCGExData::FPointRef& Point, const UPCGBasePointData* PointData) const;
 
-	void Draw(const UWorld* World, const FVector& Start, const PCGExData::FPointRef& Point, const UPCGPointData* PointData) const;
+	void Draw(const UWorld* World, const FVector& Start, const PCGExData::FPointRef& Point, const UPCGBasePointData* PointData) const;
 
 protected:
 	void DrawDirection(const UWorld* World, const FVector& Start, const PCGExData::FPointRef& Point) const;

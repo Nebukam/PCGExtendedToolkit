@@ -12,6 +12,8 @@
 #include "Data/PCGExData.h"
 #include "Data/PCGExDataForward.h"
 #include "Data/Blending/PCGExMetadataBlender.h"
+#include "Editor/Experimental/EditorInteractiveToolsFramework/Public/Behaviors/2DViewportBehaviorTargets.h"
+#include "Editor/Experimental/EditorInteractiveToolsFramework/Public/Behaviors/2DViewportBehaviorTargets.h"
 
 #include "PCGExIntersections.generated.h"
 
@@ -172,6 +174,9 @@ namespace PCGExGraph
 	public:
 		TMap<uint32, TSharedPtr<FUnionNode>> GridTree;
 
+		TSharedPtr<PCGExData::FPointIOCollection> NodesCollection;
+		TSharedPtr<PCGExData::FPointIOCollection> EdgesCollection;
+		
 		TSharedPtr<PCGExData::FUnionMetadata> NodesUnion;
 		TSharedPtr<PCGExData::FUnionMetadata> EdgesUnion;
 		TArray<TSharedPtr<FUnionNode>> Nodes;
@@ -196,7 +201,7 @@ namespace PCGExGraph
 		int32 NumNodes() const { return NodesUnion->Num(); }
 		int32 NumEdges() const { return EdgesUnion->Num(); }
 
-		TSharedPtr<FUnionNode> InsertPoint(const FPCGPoint& Point, const int32 IOIndex, const int32 PointIndex);
+		TSharedPtr<FUnionNode> InsertPoint(const PCGExData::FPoint& Point);
 		TSharedPtr<FUnionNode> InsertPoint_Unsafe(const FPCGPoint& Point, const int32 IOIndex, const int32 PointIndex);
 		TSharedPtr<PCGExData::FUnionData> InsertEdge(const FPCGPoint& From, const int32 FromIOIndex, const int32 FromPointIndex,
 		                                             const FPCGPoint& To, const int32 ToIOIndex, const int32 ToPointIndex,
@@ -283,7 +288,7 @@ namespace PCGExGraph
 	void FindCollinearNodes(
 		const TSharedPtr<FPointEdgeIntersections>& InIntersections,
 		const int32 EdgeIndex,
-		const UPCGPointData* PointsData);
+		const UPCGBasePointData* PointsData);
 
 #pragma endregion
 
