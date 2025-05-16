@@ -38,14 +38,10 @@ namespace PCGExMT
 	{
 	}
 
-	bool FScope::IsValid() const
+	void FScope::GetIndices(TArray<int32>& OutIndices) const
 	{
-		return Start != -1 && Count > 0;
-	}
-
-	int32 FScope::GetNextScopeIndex() const
-	{
-		return LoopIndex + 1;
+		OutIndices.SetNumUninitialized(Count);
+		for (int i = 0; i < Count; i++) { OutIndices[i] = Start + i; }
 	}
 
 	int32 SubLoopScopes(TArray<FScope>& OutSubRanges, const int32 MaxItems, const int32 RangeSize)
@@ -249,7 +245,7 @@ namespace PCGExMT
 	}
 
 	FTaskManager::FTaskManager(FPCGExContext* InContext, const bool InForceSync)
-		: FAsyncMultiHandle(InForceSync, FName("ROOT")), Context(InContext)
+		: FAsyncMultiHandle(InForceSync, FName("ROOT")), Context(InContext), ContextHandle(InContext->GetOrCreateHandle())
 	{
 		PCGEX_LOG_CTR(FTaskManager)
 		WorkPermit = Context->GetWorkPermit();
@@ -263,7 +259,7 @@ namespace PCGExMT
 
 	bool FTaskManager::IsAvailable() const
 	{
-		return (!IsCancelling() && !IsCancelled() && !IsResetting() && WorkPermit.IsValid());
+		return (ContextHandle.IsValid() && !IsCancelling() && !IsCancelled() && !IsResetting() && WorkPermit.IsValid());
 	}
 
 	bool FTaskManager::IsWaitingForRunningTasks() const
@@ -400,7 +396,7 @@ namespace PCGExMT
 				TEXT("ResetThen"),
 				[CtxHandle = Context->GetOrCreateHandle(), Callback]()
 				{
-					const FPCGExContext::FPCGExSharedContext<FPCGExContext> SharedContext(CtxHandle);
+					const FPCGContext::FSharedContext<FPCGExContext> SharedContext(CtxHandle);
 					if (FPCGExContext* Ctx = SharedContext.Get())
 					{
 						Ctx->ResumeExecution();

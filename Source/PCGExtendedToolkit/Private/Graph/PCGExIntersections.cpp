@@ -4,15 +4,23 @@
 #include "Graph/PCGExIntersections.h"
 
 #include "PCGExPointsProcessor.h"
+
+
+
+
+
+
+
+
 #include "Graph/PCGExCluster.h"
 
 namespace PCGExGraph
 {
-	FUnionNode::FUnionNode(const FPCGPoint& InPoint, const FVector& InCenter, const int32 InIndex)
+	FUnionNode::FUnionNode(const PCGExData::FConstPoint& InPoint, const FVector& InCenter, const int32 InIndex)
 		: Point(InPoint), Center(InCenter), Index(InIndex)
 	{
 		Adjacency.Empty();
-		Bounds = FBoxSphereBounds(InPoint.GetLocalBounds().TransformBy(InPoint.Transform));
+		Bounds = FBoxSphereBounds(InPoint.Data->GetLocalBounds(InPoint.Index).TransformBy(InPoint.Data->GetTransform(InPoint.Index)));
 	}
 
 	FVector FUnionNode::UpdateCenter(const TSharedPtr<PCGExData::FUnionMetadata>& InUnionMetadata, const TSharedPtr<PCGExData::FPointIOCollection>& IOGroup)
@@ -24,7 +32,7 @@ namespace PCGExGraph
 
 		for (const uint64 H : UnionData->ItemHashSet)
 		{
-			Center += IOGroup->Pairs[PCGEx::H64A(H)]->GetInPoint(PCGEx::H64B(H)).Transform.GetLocation();
+			Center += IOGroup->Pairs[PCGEx::H64A(H)]->GetIn()->GetTransform(PCGEx::H64B(H)).GetLocation();
 		}
 
 		Center /= Divider;
@@ -62,14 +70,15 @@ namespace PCGExGraph
 		return FuseDetails.Init(InContext, InUniqueSourceFacade);
 	}
 
-	TSharedPtr<FUnionNode> FUnionGraph::InsertPoint(const PCGExData::FPoint& Point)
+	TSharedPtr<FUnionNode> FUnionGraph::InsertPoint(const PCGExData::FConstPoint& Point)
 	{
-		const FVector Origin = Point.Transform.GetLocation();
+		const FVector Origin = Point.GetLocation();
+
 		TSharedPtr<FUnionNode> Node;
 
 		if (!Octree)
 		{
-			const uint32 GridKey = FuseDetails.GetGridKey(Origin, PointIndex);
+			const uint32 GridKey = FuseDetails.GetGridKey(Origin, Point.Index);
 			TSharedPtr<FUnionNode>* NodePtr;
 
 			{
@@ -80,7 +89,7 @@ namespace PCGExGraph
 				if (NodePtr)
 				{
 					Node = *NodePtr;
-					NodesUnion->Append(Node->Index, IOIndex, PointIndex);
+					NodesUnion->Append(Node->Index, Point);
 					return Node;
 				}
 			}
@@ -92,13 +101,13 @@ namespace PCGExGraph
 				if (NodePtr)
 				{
 					Node = *NodePtr;
-					NodesUnion->Append(Node->Index, IOIndex, PointIndex);
+					NodesUnion->Append(Node->Index, Point);
 					return Node;
 				}
 
 				Node = MakeShared<FUnionNode>(Point, Origin, Nodes.Num());
 				Nodes.Add(Node);
-				NodesUnion->NewEntry_Unsafe(IOIndex, PointIndex);
+				NodesUnion->NewEntry_Unsafe(Point);
 				GridTree.Add(GridKey, Node);
 			}
 
@@ -114,11 +123,11 @@ namespace PCGExGraph
 			if (FuseDetails.bComponentWiseTolerance)
 			{
 				Octree->FindElementsWithBoundsTest(
-					FuseDetails.GetOctreeBox(Origin, PointIndex), [&](const FUnionNode* ExistingNode)
+					FuseDetails.GetOctreeBox(Origin, Point.Index), [&](const FUnionNode* ExistingNode)
 					{
-						if (FuseDetails.IsWithinToleranceComponentWise(Point, ExistingNode->Point, PointIndex))
+						if (FuseDetails.IsWithinToleranceComponentWise(Point, ExistingNode->Point))
 						{
-							ClosestNode.Update(Point.Transform.GetLocation(), ExistingNode->Index);
+							ClosestNode.Update(ExistingNode->Center, ExistingNode->Index);
 							return false;
 						}
 						return true;
@@ -127,11 +136,11 @@ namespace PCGExGraph
 			else
 			{
 				Octree->FindElementsWithBoundsTest(
-					FuseDetails.GetOctreeBox(Origin, PointIndex), [&](const FUnionNode* ExistingNode)
+					FuseDetails.GetOctreeBox(Origin, Point.Index), [&](const FUnionNode* ExistingNode)
 					{
-						if (FuseDetails.IsWithinTolerance(Point, ExistingNode->Point, PointIndex))
+						if (FuseDetails.IsWithinTolerance(Point, ExistingNode->Point))
 						{
-							ClosestNode.Update(Point.Transform.GetLocation(), ExistingNode->Index);
+							ClosestNode.Update(ExistingNode->Center, ExistingNode->Index);
 							return false;
 						}
 						return true;
@@ -140,7 +149,7 @@ namespace PCGExGraph
 
 			if (ClosestNode.bValid)
 			{
-				NodesUnion->Append(ClosestNode.Index, IOIndex, PointIndex);
+				NodesUnion->Append(ClosestNode.Index, Point);
 				return Nodes[ClosestNode.Index];
 			}
 
@@ -154,33 +163,34 @@ namespace PCGExGraph
 			Node = MakeShared<FUnionNode>(Point, Origin, Nodes.Num());
 			Nodes.Add(Node);
 			Octree->AddElement(Node.Get());
-			NodesUnion->NewEntry_Unsafe(IOIndex, PointIndex);
+			NodesUnion->NewEntry_Unsafe(Point);
 		}
 
 		return Node;
 	}
 
-	TSharedPtr<FUnionNode> FUnionGraph::InsertPoint_Unsafe(const FPCGPoint& Point, const int32 IOIndex, const int32 PointIndex)
+	TSharedPtr<FUnionNode> FUnionGraph::InsertPoint_Unsafe(const PCGExData::FConstPoint& Point)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(FUnionGraph::InsertPoint_Unsafe);
 
-		const FVector Origin = Point.Transform.GetLocation();
+		const FVector Origin = Point.GetLocation();
+
 		TSharedPtr<FUnionNode> Node;
 
 		if (!Octree)
 		{
-			const uint32 GridKey = FuseDetails.GetGridKey(Origin, PointIndex);
+			const uint32 GridKey = FuseDetails.GetGridKey(Origin, Point.Index);
 
 			if (TSharedPtr<FUnionNode>* NodePtr = GridTree.Find(GridKey))
 			{
 				Node = *NodePtr;
-				NodesUnion->Append(Node->Index, IOIndex, PointIndex);
+				NodesUnion->Append(Node->Index, Point);
 				return Node;
 			}
 
 			Node = MakeShared<FUnionNode>(Point, Origin, Nodes.Num());
 			Nodes.Add(Node);
-			NodesUnion->NewEntry_Unsafe(IOIndex, PointIndex);
+			NodesUnion->NewEntry_Unsafe(Point);
 			GridTree.Add(GridKey, Node);
 
 			return Node;
@@ -191,11 +201,11 @@ namespace PCGExGraph
 		if (FuseDetails.bComponentWiseTolerance)
 		{
 			Octree->FindElementsWithBoundsTest(
-				FuseDetails.GetOctreeBox(Origin, PointIndex), [&](const FUnionNode* ExistingNode)
+				FuseDetails.GetOctreeBox(Origin, Point.Index), [&](const FUnionNode* ExistingNode)
 				{
-					if (FuseDetails.IsWithinToleranceComponentWise(Point, ExistingNode->Point, PointIndex))
+					if (FuseDetails.IsWithinToleranceComponentWise(Point, ExistingNode->Point))
 					{
-						ClosestNode.Update(Point.Transform.GetLocation(), ExistingNode->Index);
+						ClosestNode.Update(ExistingNode->Center, ExistingNode->Index);
 						return false;
 					}
 					return true;
@@ -204,11 +214,11 @@ namespace PCGExGraph
 		else
 		{
 			Octree->FindElementsWithBoundsTest(
-				FuseDetails.GetOctreeBox(Origin, PointIndex), [&](const FUnionNode* ExistingNode)
+				FuseDetails.GetOctreeBox(Origin, Point.Index), [&](const FUnionNode* ExistingNode)
 				{
-					if (FuseDetails.IsWithinTolerance(Point, ExistingNode->Point, PointIndex))
+					if (FuseDetails.IsWithinTolerance(Point, ExistingNode->Point))
 					{
-						ClosestNode.Update(Point.Transform.GetLocation(), ExistingNode->Index);
+						ClosestNode.Update(ExistingNode->Center, ExistingNode->Index);
 						return false;
 					}
 					return true;
@@ -217,19 +227,19 @@ namespace PCGExGraph
 
 		if (ClosestNode.bValid)
 		{
-			NodesUnion->Append(ClosestNode.Index, IOIndex, PointIndex);
+			NodesUnion->Append(ClosestNode.Index, Point);
 			return Nodes[ClosestNode.Index];
 		}
 
 		Node = MakeShared<FUnionNode>(Point, Origin, Nodes.Num());
 		Nodes.Add(Node);
 		Octree->AddElement(Node.Get());
-		NodesUnion->NewEntry_Unsafe(IOIndex, PointIndex);
+		NodesUnion->NewEntry_Unsafe(Point);
 
 		return Node;
 	}
 
-	TSharedPtr<PCGExData::FUnionData> FUnionGraph::InsertEdge(const FPCGPoint& From, const int32 FromIOIndex, const int32 FromPointIndex, const FPCGPoint& To, const int32 ToIOIndex, const int32 ToPointIndex, const int32 EdgeIOIndex, const int32 EdgePointIndex)
+	TSharedPtr<PCGExData::FUnionData> FUnionGraph::InsertEdge(const PCGExData::FConstPoint& From, const PCGExData::FConstPoint& To, const PCGExData::FConstPoint& Edge)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(FUnionData::InsertEdge);
 
@@ -247,12 +257,23 @@ namespace PCGExGraph
 
 		{
 			FReadScopeLock ReadLockEdges(EdgesLock);
-			if (const FEdge* Edge = Edges.Find(H)) { EdgeUnion = EdgesUnion->Entries[Edge->Index]; }
+			if (const FEdge* ExistingEdge = Edges.Find(H))
+			{
+				EdgeUnion = EdgesUnion->Entries[ExistingEdge->Index];
+			}
 
 			if (EdgeUnion)
 			{
-				if (EdgeIOIndex == -1) { EdgeUnion->Add(EdgeIOIndex, EdgeUnion->Num()); } // Abstract tracking to get valid union data
-				else { EdgeUnion->Add(EdgeIOIndex, EdgePointIndex); }
+				if (Edge.IO == -1)
+				{
+					// Abstract tracking to get valid union data
+					EdgeUnion->Add(PCGExData::FPoint(EdgeUnion->Num(), -1));
+				}
+				else
+				{
+					EdgeUnion->Add(Edge);
+				}
+
 				return EdgeUnion;
 			}
 		}
@@ -260,26 +281,34 @@ namespace PCGExGraph
 		{
 			FWriteScopeLock WriteLockEdges(EdgesLock);
 
-			if (const FEdge* Edge = Edges.Find(H)) { EdgeUnion = EdgesUnion->Entries[Edge->Index]; }
+			if (const FEdge* ExistingEdge = Edges.Find(H)) { EdgeUnion = EdgesUnion->Entries[ExistingEdge->Index]; }
 
 			if (EdgeUnion)
 			{
-				if (EdgeIOIndex == -1) { EdgeUnion->Add(EdgeIOIndex, EdgeUnion->Num()); } // Abstract tracking to get valid union data
-				else { EdgeUnion->Add(EdgeIOIndex, EdgePointIndex); }
+				if (Edge.IO == -1)
+				{
+					// Abstract tracking to get valid union data
+					EdgeUnion->Add(PCGExData::FPoint(EdgeUnion->Num(), -1));
+				}
+				else
+				{
+					EdgeUnion->Add(Edge);
+				}
+
 				return EdgeUnion;
 			}
 
-			EdgeUnion = EdgesUnion->NewEntry_Unsafe(EdgeIOIndex, EdgePointIndex == -1 ? 0 : EdgePointIndex);
+			EdgeUnion = EdgesUnion->NewEntry_Unsafe(Edge);
 			Edges.Add(H, FEdge(Edges.Num(), StartVtx->Index, EndVtx->Index));
 		}
 
 		return EdgeUnion;
 	}
 
-	TSharedPtr<PCGExData::FUnionData> FUnionGraph::InsertEdge_Unsafe(const FPCGPoint& From, const int32 FromIOIndex, const int32 FromPointIndex, const FPCGPoint& To, const int32 ToIOIndex, const int32 ToPointIndex, const int32 EdgeIOIndex, const int32 EdgePointIndex)
+	TSharedPtr<PCGExData::FUnionData> FUnionGraph::InsertEdge_Unsafe(const PCGExData::FConstPoint& From, const PCGExData::FConstPoint& To, const PCGExData::FConstPoint& Edge)
 	{
-		const TSharedPtr<FUnionNode> StartVtx = InsertPoint_Unsafe(From, FromIOIndex, FromPointIndex);
-		const TSharedPtr<FUnionNode> EndVtx = InsertPoint_Unsafe(To, ToIOIndex, ToPointIndex);
+		const TSharedPtr<FUnionNode> StartVtx = InsertPoint_Unsafe(From);
+		const TSharedPtr<FUnionNode> EndVtx = InsertPoint_Unsafe(To);
 
 		if (StartVtx == EndVtx) { return nullptr; } // Edge got fused entirely
 
@@ -289,32 +318,37 @@ namespace PCGExGraph
 		const uint64 H = PCGEx::H64U(StartVtx->Index, EndVtx->Index);
 		TSharedPtr<PCGExData::FUnionData> EdgeUnion;
 
-		if (EdgeIOIndex == -1)
+		if (Edge.IO == -1)
 		{
 			// Abstract edge management, so we have some valid metadata even tho there are no valid input edges
 			// So EdgeIOIndex will be invalid, be we can still track union data
-			if (const FEdge* Edge = Edges.Find(H))
+			if (const FEdge* ExistingEdge = Edges.Find(H))
 			{
-				EdgeUnion = EdgesUnion->Entries[Edge->Index];
-				EdgeUnion->Add(EdgeIOIndex, EdgeUnion->Num());
+				EdgeUnion = EdgesUnion->Entries[ExistingEdge->Index];
+				EdgeUnion->Add(PCGExData::FPoint(EdgeUnion->Num(), -1));
 			}
 			else
 			{
-				EdgeUnion = EdgesUnion->NewEntry_Unsafe(EdgeIOIndex, 0);
+				// TODO : Need to look into this, apprently we want NewEntry to be force-initialized at ItemIndex 0
+				// Which is weird, the Safe version of that same method isn't doing this.
+				PCGExData::FConstPoint NewEdge(Edge);
+				NewEdge.Index = -1; // Force entry index to use index 0
+
+				EdgeUnion = EdgesUnion->NewEntry_Unsafe(NewEdge);
 				Edges.Add(H, FEdge(Edges.Num(), StartVtx->Index, EndVtx->Index));
 			}
 		}
 		else
 		{
 			// Concrete edge management, we have valild input edges			
-			if (const FEdge* Edge = Edges.Find(H))
+			if (const FEdge* ExistingEdge = Edges.Find(H))
 			{
-				EdgeUnion = EdgesUnion->Entries[Edge->Index];
-				EdgeUnion->Add(EdgeIOIndex, EdgePointIndex);
+				EdgeUnion = EdgesUnion->Entries[ExistingEdge->Index];
+				EdgeUnion->Add(Edge);
 			}
 			else
 			{
-				EdgeUnion = EdgesUnion->NewEntry_Unsafe(EdgeIOIndex, EdgePointIndex);
+				EdgeUnion = EdgesUnion->NewEntry_Unsafe(Edge);
 				Edges.Add(H, FEdge(Edges.Num(), StartVtx->Index, EndVtx->Index));
 			}
 		}
@@ -417,7 +451,7 @@ namespace PCGExGraph
 		const FPCGExPointEdgeIntersectionDetails* InDetails)
 		: PointIO(InPointIO), Graph(InGraph), Details(InDetails)
 	{
-		const TArray<FPCGPoint>& Points = InPointIO->GetOutIn()->GetPoints();
+		const TConstPCGValueRange<FTransform> Transforms = InPointIO->GetOutIn()->GetConstTransformValueRange();
 
 		const int32 NumEdges = InGraph->Edges.Num();
 		Edges.SetNum(NumEdges);
@@ -427,8 +461,8 @@ namespace PCGExGraph
 			if (!Edge.bValid) { continue; }
 			Edges[Edge.Index].Init(
 				Edge.Index,
-				Points[Edge.Start].Transform.GetLocation(),
-				Points[Edge.End].Transform.GetLocation(),
+				Transforms[Edge.Start].GetLocation(),
+				Transforms[Edge.End].GetLocation(),
 				Details->FuseDetails.Tolerance);
 		}
 	}
@@ -443,6 +477,8 @@ namespace PCGExGraph
 	{
 		FEdge NewEdge = FEdge{};
 
+		TPCGValueRange<FTransform> Transforms = PointIO->GetOut()->GetTransformValueRange(Details->bSnapOnEdge);
+
 		for (FPointEdgeProxy& PointEdgeProxy : Edges)
 		{
 			if (PointEdgeProxy.CollinearPoints.IsEmpty()) { continue; }
@@ -450,12 +486,10 @@ namespace PCGExGraph
 			const FEdge& SplitEdge = Graph->Edges[PointEdgeProxy.EdgeIndex];
 			const FGraphEdgeMetadata* ParentEdgeMeta = Graph->FindEdgeMetadata_Unsafe(SplitEdge.Index);
 
-			int32 NodeIndex = -1;
-
 			int32 PrevIndex = SplitEdge.Start;
 			for (const FPESplit Split : PointEdgeProxy.CollinearPoints)
 			{
-				NodeIndex = Split.NodeIndex;
+				const int32 NodeIndex = Split.NodeIndex;
 
 				Graph->InsertEdge(PrevIndex, NodeIndex, NewEdge, SplitEdge.IOIndex); //TODO: IOIndex required
 				Graph->AddNodeAndEdgeMetadata_Unsafe(NodeIndex, NewEdge.Index, ParentEdgeMeta, EPCGExIntersectionType::PointEdge);
@@ -464,7 +498,7 @@ namespace PCGExGraph
 
 				if (Details->bSnapOnEdge)
 				{
-					PointIO->GetMutablePoint(Graph->Nodes[Split.NodeIndex].PointIndex).Transform.SetLocation(Split.ClosestPoint);
+					Transforms[Graph->Nodes[Split.NodeIndex].PointIndex].SetLocation(Split.ClosestPoint);
 				}
 			}
 
@@ -483,21 +517,21 @@ namespace PCGExGraph
 
 		const FEdge& SplitEdge = Graph->Edges[PointEdgeProxy.EdgeIndex];
 
-		const PCGExData::FPointRef A = PointIO->GetOutPointRef(SplitEdge.Start);
-		const PCGExData::FPointRef B = PointIO->GetOutPointRef(SplitEdge.End);
+		const PCGExData::FConstPoint A = PointIO->GetOutPoint(SplitEdge.Start);
+		const PCGExData::FConstPoint B = PointIO->GetOutPoint(SplitEdge.End);
+
+		const TPCGValueRange<FTransform> Transforms = PointIO->GetOut()->GetTransformValueRange();
 
 		for (const FPESplit Split : PointEdgeProxy.CollinearPoints)
 		{
-			const PCGExData::FPointRef Target = PointIO->GetOutPointRef(Graph->Nodes[Split.NodeIndex].PointIndex);
-			FPCGPoint& Pt = PointIO->GetMutablePoint(Target.Index);
-
-			FVector PreBlendLocation = Pt.Transform.GetLocation();
+			const PCGExData::FMutablePoint Target = PointIO->GetOutPoint(Graph->Nodes[Split.NodeIndex].PointIndex);
+			const FVector& PreBlendLocation = Transforms[Target.Index].GetLocation();
 
 			Blender->PrepareForBlending(Target);
 			Blender->Blend(A, B, Target, 0.5);
 			Blender->CompleteBlending(Target, 2, 1);
 
-			Pt.Transform.SetLocation(PreBlendLocation);
+			Transforms[Target.Index].SetLocation(PreBlendLocation);
 		}
 	}
 
@@ -519,7 +553,7 @@ namespace PCGExGraph
 			auto ProcessPointRef = [&](const PCGPointOctree::FPointRef& PointRef)
 			{
 				const int32 PointIndex = PointRef.Index;
-				
+
 				if (!Transforms.IsValidIndex(PointIndex)) { return; }
 				const FNode& Node = InIntersections->Graph->Nodes[PointIndex];
 
@@ -543,7 +577,6 @@ namespace PCGExGraph
 		{
 			auto ProcessPointRef = [&](const PCGPointOctree::FPointRef& PointRef)
 			{
-				
 				const int32 PointIndex = PointRef.Index;
 
 				if (!Transforms.IsValidIndex(PointIndex)) { return; }
@@ -753,7 +786,7 @@ namespace PCGExGraph
 
 		Blender->CompleteBlending(Target, 4, 2);
 
-		PointIO->GetMutablePoint(Target).Transform.SetLocation(Crossing.Split.Center);
+		PointIO->GetOutPoint(Target).Transform.SetLocation(Crossing.Split.Center);
 	}
 
 	void FindOverlappingEdges(const TSharedRef<FEdgeEdgeIntersections>& InIntersections, const int32 EdgeIndex)

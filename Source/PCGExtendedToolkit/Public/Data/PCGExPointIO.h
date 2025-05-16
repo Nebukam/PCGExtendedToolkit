@@ -15,10 +15,14 @@
 #include "PCGEx.h"
 #include "PCGExContext.h"
 #include "PCGExDataTag.h"
-#include "PCGExPointData.h"
 #include "PCGParamData.h"
 
 #include "Metadata/Accessors/PCGAttributeAccessorKeys.h"
+
+namespace PCGExData
+{
+	class FPointIO;
+}
 
 namespace PCGExData
 {
@@ -41,53 +45,67 @@ namespace PCGExData
 		int32 Index = -1;
 		int32 IO = -1;
 
-		constexpr FPoint() = default;
+		FPoint() = default;
+		virtual ~FPoint() = default;
 
-		constexpr explicit FPoint(const uint64 Hash)
-			: Index(PCGEx::H64A(Hash)), IO(PCGEx::H64A(Hash))
-		{
-		}
+		explicit FPoint(const uint64 Hash);
+		explicit FPoint(const int32 InIndex, const int32 InIO = -1);
+		FPoint(const TSharedPtr<FPointIO> InIO, const uint32 InIndex);
 
-		constexpr FPoint(const uint32 InNode, const uint32 InEdge)
-			: Index(InNode), IO(InEdge)
-		{
-		}
-
+		FORCEINLINE bool IsValid() const { return Index >= 0; }
 		FORCEINLINE uint64 H64() const { return PCGEx::H64U(Index, IO); }
 
 		bool operator==(const FPoint& Other) const { return Index == Other.Index && IO == Other.IO; }
 		FORCEINLINE friend uint32 GetTypeHash(const FPoint& Key) { return HashCombineFast(Key.Index, Key.IO); }
+
+		virtual const FTransform& GetTransform() const
+		{
+			static_assert("Use FConstPoint or FMutablePoint instead.");
+			return FTransform::Identity;
+		}
+
+		virtual const FVector& GetLocation() const
+		{
+			static_assert("Use FConstPoint or FMutablePoint instead.");
+			return FVector::OneVector;
+		}
 	};
 
-	struct PCGEXTENDEDTOOLKIT_API FPointRef
+	struct PCGEXTENDEDTOOLKIT_API FMutablePoint : FPoint
 	{
-		friend class FPointIO;
+		UPCGBasePointData* Data = nullptr;
+		int32 Index = -1;
 
-		FPointRef(const FPCGPoint& InPoint, const int32 InIndex):
-			Point(&InPoint), Index(InIndex)
-		{
-		}
+		FMutablePoint(UPCGBasePointData* InData, const uint64 Hash);
+		FMutablePoint(UPCGBasePointData* InData, const int32 InIndex, const int32 InIO = -1);
+		FMutablePoint(const TSharedPtr<FPointIO>& InFacade, const int32 InIndex);
 
-		FPointRef(const FPCGPoint* InPoint, const int32 InIndex):
-			Point(InPoint), Index(InIndex)
-		{
-		}
+		FORCEINLINE virtual const FTransform& GetTransform() const override { return Data->GetTransform(Index); }
+		FORCEINLINE virtual const FVector& GetLocation() const override { return Data->GetTransform(Index).GetLocation(); }
 
-		FPointRef(const FPointRef& Other):
-			Point(Other.Point), Index(Other.Index)
-		{
-		}
-
-		FPointRef()
-		{
-		}
-
-		bool IsValid() const { return Point && Index != -1; }
-		const FPCGPoint* Point = nullptr;
-		const int32 Index = -1;
-
-		FPCGPoint& MutablePoint() const { return const_cast<FPCGPoint&>(*Point); }
+		bool operator==(const FMutablePoint& Other) const { return Index == Other.Index && Data == Other.Data; }
 	};
+
+	struct PCGEXTENDEDTOOLKIT_API FConstPoint : FPoint
+	{
+		const UPCGBasePointData* Data = nullptr;
+
+		// Yes, non-explicit.
+		FConstPoint(const FMutablePoint& InPoint);
+
+		FConstPoint(const UPCGBasePointData* InData, const uint64 Hash);
+		FConstPoint(const UPCGBasePointData* InData, const int32 InIndex, const int32 InIO = -1);
+		FConstPoint(const TSharedPtr<FPointIO>& InFacade, const int32 InIndex);
+
+		FORCEINLINE virtual const FTransform& GetTransform() const override { return Data->GetTransform(Index); }
+		FORCEINLINE virtual const FVector& GetLocation() const override { return Data->GetTransform(Index).GetLocation(); }
+
+		bool operator==(const FConstPoint& Other) const { return Index == Other.Index && IO == Other.IO && Data == Other.Data; }
+	};
+
+	static const FPoint NONE_Point = FPoint(1, -1);
+	static const FMutablePoint NONE_MutablePoint = FMutablePoint(nullptr, -1, -1);
+	static const FConstPoint NONE_ConstPoint = FConstPoint(nullptr, -1, -1);
 
 	/**
 	 * 
@@ -221,16 +239,20 @@ namespace PCGExData
 		const UPCGBasePointData* GetInOut(ESource& OutSource) const;
 		bool GetSource(const UPCGData* InData, ESource& OutSource) const;
 
-		int32 GetNum() const { return In ? In->GetNumPoints : Out ? Out->GetNumPoints() : -1; }
+		int32 GetNum() const { return In ? In->GetNumPoints() : Out ? Out->GetNumPoints() : -1; }
 		int32 GetNum(const ESource Source) const { return Source == ESource::In ? In->GetNumPoints() : Out->GetNumPoints(); }
 		int32 GetOutInNum() const { return Out && !Out->GetNumPoints() ? Out->GetNumPoints() : In ? In->GetNumPoints() : -1; }
 
 		TSharedPtr<FPCGAttributeAccessorKeysPointIndices> GetInKeys();
 		TSharedPtr<FPCGAttributeAccessorKeysPointIndices> GetOutKeys(const bool bEnsureValidKeys = false);
+
 		void PrintOutKeysMap(TMap<PCGMetadataEntryKey, int32>& InMap) const;
 		void PrintInKeysMap(TMap<PCGMetadataEntryKey, int32>& InMap) const;
 		void PrintOutInKeysMap(TMap<PCGMetadataEntryKey, int32>& InMap) const;
 
+		FORCEINLINE FConstPoint GetInPoint(const int32 Index) const { return FConstPoint(In, Index, IOIndex); }
+		FORCEINLINE FMutablePoint GetOutPoint(const int32 Index) const { return FMutablePoint(Out, Index, IOIndex); }
+		
 		FName OutputPin = PCGEx::OutputPointsLabel;
 
 		void InitPoint(FPCGPoint& Point, const PCGMetadataEntryKey ParentKey) const
@@ -242,6 +264,13 @@ namespace PCGExData
 		{
 			Out->Metadata->InitializeOnSet(Point.MetadataEntry);
 		}
+
+		// In -> Out
+		void CopyProperties(const int32 ReadStartIndex, const int32 WriteStartIndex, const int32 Count, const EPCGPointNativeProperties Properties) const;
+		void CopyProperties(const TArrayView<const int32>& ReadIndices, const TArrayView<const int32>& WriteIndices, const EPCGPointNativeProperties Properties) const;
+		void CopyProperties(const TArrayView<const int32>& ReadIndices, const EPCGPointNativeProperties Properties) const;
+		void CopyPoints(const int32 ReadStartIndex, const int32 WriteStartIndex, const int32 Count) const;
+		void CopyPoints(const TArrayView<const int32>& ReadIndices, const TArrayView<const int32>& WriteIndices) const;
 
 		FPCGPoint& CopyPoint(const FPCGPoint& FromPoint, int32& OutIndex) const
 		{
@@ -291,6 +320,8 @@ namespace PCGExData
 		bool StageOutput(FPCGExContext* TargetContext, const int32 MinPointCount, const int32 MaxPointCount) const;
 		bool StageAnyOutput(FPCGExContext* TargetContext) const;
 
+		void Gather(const TArrayView<int32> InIndices) const;
+
 		void DeleteAttribute(FName AttributeName) const;
 
 		template <typename T>
@@ -324,14 +355,14 @@ namespace PCGExData
 
 	static TSharedPtr<FPointIO> NewPointIO(FPCGExContext* InContext, FName InOutputPin = NAME_None, int32 Index = -1)
 	{
-		PCGEX_MAKE_SHARED(NewIO, FPointIO, InContext)
+		PCGEX_MAKE_SHARED(NewIO, FPointIO, InContext->GetOrCreateHandle())
 		NewIO->SetInfos(Index, InOutputPin);
 		return NewIO;
 	}
 
 	static TSharedPtr<FPointIO> NewPointIO(FPCGExContext* InContext, const UPCGBasePointData* InData, FName InOutputPin = NAME_None, int32 Index = -1)
 	{
-		PCGEX_MAKE_SHARED(NewIO, FPointIO, InContext, InData)
+		PCGEX_MAKE_SHARED(NewIO, FPointIO, InContext->GetOrCreateHandle(), InData)
 		NewIO->SetInfos(Index, InOutputPin);
 		return NewIO;
 	}
@@ -515,16 +546,15 @@ namespace PCGExData
 				if (ParamItemCount == 0) { return nullptr; }
 
 				UPCGBasePointData* PointData = Context->ManagedObjects->New<PCGEX_NEW_POINT_DATA_TYPE>();
+
 				check(PointData->Metadata);
+
 				PointData->Metadata->Initialize(ParamMetadata);
+				PointData->SetNumPoints(ParamItemCount);
 
-				TArray<FPCGPoint>& Points = PointData->GetMutablePoints();
-				Points.SetNum(ParamItemCount);
+				const TPCGValueRange<int64> MetadataEntries = PointData->GetMetadataEntryValueRange();
 
-				for (int PointIndex = 0; PointIndex < ParamItemCount; ++PointIndex)
-				{
-					Points[PointIndex].MetadataEntry = PointIndex;
-				}
+				for (int i = 0; i < ParamItemCount; ++i) { MetadataEntries[i] = i; }
 
 				return PointData;
 			}

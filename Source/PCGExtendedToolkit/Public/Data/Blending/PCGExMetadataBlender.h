@@ -39,30 +39,30 @@ namespace PCGExDataBlending
 			const bool bSoftMode = false);
 
 
-		void PrepareForBlending(const PCGExData::FPointRef& Target, const FPCGPoint* Defaults = nullptr) const;
-		void PrepareForBlending(const int32 PrimaryIndex, const FPCGPoint* Defaults = nullptr) const;
+		void PrepareForBlending(int32 TargetIndex, const PCGExData::FConstPoint& Defaults = nullptr) const;
+		void PrepareForBlending(const int32 PrimaryIndex, const PCGExData::FConstPoint& Defaults = nullptr) const;
 
-		void Blend(const PCGExData::FPointRef& A, const PCGExData::FPointRef& B, const PCGExData::FPointRef& Target, const double Weight);
+		void Blend(const PCGExData::FConstPoint& A, const PCGExData::FConstPoint& B, const PCGExData::FMutablePoint& Target, const double Weight);
 		void Blend(const int32 PrimaryIndex, const int32 SecondaryIndex, const int32 TargetIndex, const double Weight);
 
 		void Copy(const int32 TargetIndex, const int32 SecondaryIndex);
 
-		void CompleteBlending(const PCGExData::FPointRef& Target, const int32 Count, const double TotalWeight) const;
+		void CompleteBlending(const PCGExData::FMutablePoint& Target, const int32 Count, const double TotalWeight) const;
 		void CompleteBlending(const int32 PrimaryIndex, const int32 Count, const double TotalWeight) const;
 
 		void PrepareRangeForBlending(const int32 StartIndex, const int32 Range) const;
-		void BlendRange(const PCGExData::FPointRef& A, const PCGExData::FPointRef& B, const int32 StartIndex, const int32 Range, const TArrayView<double>& Weights);
+		void BlendRange(const PCGExData::FConstPoint& A, const PCGExData::FConstPoint& B, const int32 StartIndex, const int32 Range, const TArrayView<double>& Weights);
 		void CompleteRangeBlending(const int32 StartIndex, const int32 Range, const TArrayView<const int32>& Counts, const TArrayView<double>& TotalWeights) const;
 
-		void BlendRangeFromTo(const PCGExData::FPointRef& From, const PCGExData::FPointRef& To, const int32 StartIndex, const TArrayView<double>& Weights);
+		void BlendRangeFromTo(const PCGExData::FConstPoint& From, const PCGExData::FConstPoint& To, const int32 StartIndex, const TArrayView<double>& Weights);
 
 		// Soft ops
 
-		void PrepareForBlending(FPCGPoint& Target, const FPCGPoint* Defaults = nullptr) const;
+		void PrepareForBlending(PCGExData::FMutablePoint& Target, const PCGExData::FConstPoint& Defaults = nullptr) const;
 
-		void Copy(const FPCGPoint& Target, const FPCGPoint& Source);
-		void Blend(const FPCGPoint& A, const FPCGPoint& B, FPCGPoint& Target, const double Weight, const bool bIsFirstOperation = false);
-		void CompleteBlending(FPCGPoint& Target, const int32 Count, const double TotalWeight) const;
+		void Copy(const PCGExData::FMutablePoint& Target, const PCGExData::FConstPoint& Source);
+		void Blend(const PCGExData::FConstPoint& A, const PCGExData::FConstPoint& B, const PCGExData::FMutablePoint& Target, const double Weight, const bool bIsFirstOperation = false);
+		void CompleteBlending(const PCGExData::FMutablePoint& Target, const int32 Count, const double TotalWeight) const;
 
 		void Cleanup();
 

@@ -3,8 +3,6 @@
 
 #pragma once
 
-#define PCGEX_SOFT_VALIDATE_NAME_DETAILS(_BOOL, _NAME, _CTX) if(_BOOL){if (!FPCGMetadataAttributeBase::IsValidName(_NAME) || _NAME.IsNone()){ PCGE_LOG_C(Warning, GraphAndLog, _CTX, FTEXT("Invalid user-defined attribute name for " #_NAME)); _BOOL = false; } }
-
 #include "CoreMinimal.h"
 #include "PCGExMacros.h"
 #include "PCGExDetailsData.h"
@@ -168,5 +166,3 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExEdgeEdgeIntersectionDetails
 
 	FORCEINLINE bool CheckDot(const double InDot) const { return InDot <= MaxDot && InDot >= MinDot; }
 };
-
-#undef PCGEX_SOFT_VALIDATE_NAME_DETAILS

@@ -140,14 +140,14 @@ namespace PCGExBatchActions
 		return true;
 	}
 
-	void FProcessor::PrepareSingleLoopScopeForPoints(const PCGExMT::FScope& Scope)
-	{
+	void FProcessor::ProcessPoints(const PCGExMT::FScope& Scope)
+	{		
 		PointDataFacade->Fetch(Scope);
-	}
 
-	void FProcessor::ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const PCGExMT::FScope& Scope)
-	{
-		for (const TSharedPtr<FPCGExActionOperation>& Op : Operations) { Op->ProcessPoint(Index, Point); }
+		PCGEX_SCOPE_LOOP(Index)
+		{
+			for (const TSharedPtr<FPCGExActionOperation>& Op : Operations) { Op->ProcessPoint(Index); }
+		}
 	}
 
 	void FProcessor::CompleteWork()

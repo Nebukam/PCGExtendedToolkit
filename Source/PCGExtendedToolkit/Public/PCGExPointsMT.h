@@ -91,7 +91,7 @@ namespace PCGExPointsMT
 		bool bDaisyChainProcessPoints = false;
 		bool bDaisyChainProcessRange = false;
 
-		PCGExData::ESource CurrentProcessingSource = PCGExData::ESource::Out;
+		UPCGBasePointData* CurrentProcessingSource = nullptr;
 		int32 LocalPointProcessingChunkSize = -1;
 
 	public:
@@ -135,9 +135,7 @@ namespace PCGExPointsMT
 
 		void StartParallelLoopForPoints(const PCGExData::ESource Source = PCGExData::ESource::Out, const int32 PerLoopIterations = -1);
 		virtual void PrepareLoopScopesForPoints(const TArray<PCGExMT::FScope>& Loops);
-		virtual void PrepareSingleLoopScopeForPoints(const PCGExMT::FScope& Scope);
 		virtual void ProcessPoints(const PCGExMT::FScope& Scope);
-		virtual void ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const PCGExMT::FScope& Scope);
 		virtual void OnPointsProcessingComplete();
 
 #pragma endregion

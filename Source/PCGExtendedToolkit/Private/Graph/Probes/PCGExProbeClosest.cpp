@@ -32,7 +32,7 @@ bool FPCGExProbeClosest::PrepareForPoints(const TSharedPtr<PCGExData::FPointIO>&
 	return true;
 }
 
-void FPCGExProbeClosest::ProcessCandidates(const int32 Index, const FPCGPoint& Point, TArray<PCGExProbing::FCandidate>& Candidates, TSet<FInt32Vector>* Coincidence, const FVector& ST, TSet<uint64>* OutEdges)
+void FPCGExProbeClosest::ProcessCandidates(const int32 Index, const FTransform& WorkingTransform, TArray<PCGExProbing::FCandidate>& Candidates, TSet<FInt32Vector>* Coincidence, const FVector& ST, TSet<uint64>* OutEdges)
 {
 	bool bIsAlreadyConnected;
 	const int32 MaxIterations = FMath::Min(MaxConnectionsCache ? MaxConnectionsCache->Read(Index) : MaxConnections, Candidates.Num());
@@ -66,9 +66,9 @@ void FPCGExProbeClosest::ProcessCandidates(const int32 Index, const FPCGPoint& P
 	}
 }
 
-void FPCGExProbeClosest::ProcessNode(const int32 Index, const FPCGPoint& Point, TSet<FInt32Vector>* Coincidence, const FVector& ST, TSet<uint64>* OutEdges, const TArray<int8>& AcceptConnections)
+void FPCGExProbeClosest::ProcessNode(const int32 Index, const FTransform& WorkingTransform, TSet<FInt32Vector>* Coincidence, const FVector& ST, TSet<uint64>* OutEdges, const TArray<int8>& AcceptConnections)
 {
-	FPCGExProbeOperation::ProcessNode(Index, Point, nullptr, FVector::ZeroVector, OutEdges, AcceptConnections);
+	FPCGExProbeOperation::ProcessNode(Index, WorkingTransform, nullptr, FVector::ZeroVector, OutEdges, AcceptConnections);
 }
 
 #if WITH_EDITOR

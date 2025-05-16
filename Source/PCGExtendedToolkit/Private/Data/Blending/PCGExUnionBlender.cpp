@@ -175,7 +175,7 @@ namespace PCGExDataBlending
 		TArray<int32> IdxPt;
 		TArray<double> Weights;
 
-		FPCGPoint& Target = CurrentTargetData->Source->GetMutablePoint(WriteIndex);
+		FPCGPoint& Target = CurrentTargetData->Source->GetOutPoint(WriteIndex);
 
 		InUnionData->ComputeWeights(
 			Sources, IOIndices,
@@ -273,7 +273,7 @@ namespace PCGExDataBlending
 		TArray<double> Weights;
 		TArray<int8> InheritedTags;
 
-		FPCGPoint& Target = CurrentTargetData->Source->GetMutablePoint(UnionIndex);
+		FPCGPoint& Target = CurrentTargetData->Source->GetOutPoint(UnionIndex);
 
 		InUnionData->ComputeWeights(
 			Sources, IOIndices,

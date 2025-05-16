@@ -117,7 +117,7 @@ namespace PCGExCluster
 
 			if (Graph->EdgesUnion)
 			{
-				Graph->EdgesUnion->NewEntryAt_Unsafe(OutEdge.Index)->Add(IOIndex, OutEdge.Index);
+				Graph->EdgesUnion->NewEntryAt_Unsafe(OutEdge.Index)->Add(IOIndex);
 			}
 		}
 		else

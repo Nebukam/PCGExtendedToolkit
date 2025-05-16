@@ -98,35 +98,42 @@ namespace PCGExFusePoints
 		return true;
 	}
 
-	void FProcessor::PrepareSingleLoopScopeForPoints(const PCGExMT::FScope& Scope)
+	void FProcessor::ProcessPoints(const PCGExMT::FScope& Scope)
 	{
 		PointDataFacade->Fetch(Scope);
+		PCGEX_SCOPE_LOOP(Index) { UnionGraph->InsertPoint(PointDataFacade->GetInPoint(Index)); }
 	}
 
-	void FProcessor::ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const PCGExMT::FScope& Scope)
+	void FProcessor::ProcessRange(const PCGExMT::FScope& Scope)
 	{
-		UnionGraph->InsertPoint(Point);
-	}
+		TPCGValueRange<FTransform> Transforms = PointDataFacade->GetOut()->GetTransformValueRange();
 
-	void FProcessor::ProcessSingleRangeIteration(const int32 Iteration, const PCGExMT::FScope& Scope)
-	{
-		TArray<FPCGPoint>& MutablePoints = PointDataFacade->GetOut()->GetMutablePoints();
+		TArray<int32> ReadIndices;
+		TArray<int32> WriteIndices;
 
-		const TSharedPtr<PCGExGraph::FUnionNode> UnionNode = UnionGraph->Nodes[Iteration];
-		const PCGMetadataEntryKey Key = MutablePoints[Iteration].MetadataEntry;
-		MutablePoints[Iteration] = UnionNode->Point; // Copy "original" point properties, in case there's only one
+		ReadIndices.SetNumUninitialized(Scope.Count);
+		WriteIndices.SetNumUninitialized(Scope.Count);
 
-		FPCGPoint& Point = MutablePoints[Iteration];
-		Point.MetadataEntry = Key; // Restore key
+		for (int i = 0; i < Scope.Count; ++i)
+		{
+			const int32 Idx = Scope.Start + i;
+			ReadIndices[i] = UnionGraph->Nodes[Idx]->Point.Index;
+			WriteIndices[i] = Idx;
+		}
 
-		Point.Transform.SetLocation(UnionNode->UpdateCenter(UnionGraph->NodesUnion, Context->MainPoints));
-		UnionBlender->MergeSingle(Iteration, Context->Distances);
+		PointDataFacade->Source->CopyProperties(ReadIndices, WriteIndices, PCGEx::AllPointNativePropertiesButMeta);
+
+		PCGEX_SCOPE_LOOP(Index)
+		{
+			Transforms[Index].SetLocation(UnionGraph->Nodes[Index]->UpdateCenter(UnionGraph->NodesUnion, Context->MainPoints));
+			UnionBlender->MergeSingle(Index, Context->Distances);
+		}
 	}
 
 	void FProcessor::CompleteWork()
 	{
 		const int32 NumUnionNodes = UnionGraph->Nodes.Num();
-		PointDataFacade->Source->GetOut()->GetMutablePoints().SetNum(NumUnionNodes);
+		PointDataFacade->Source->GetOut()->SetNumPoints(NumUnionNodes);
 
 		UnionBlender = MakeShared<PCGExDataBlending::FUnionBlender>(const_cast<FPCGExBlendingDetails*>(&Settings->BlendingDetails), &Context->CarryOverDetails);
 		UnionBlender->AddSource(PointDataFacade, &PCGExGraph::ProtectedClusterAttributes);

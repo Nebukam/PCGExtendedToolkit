@@ -129,7 +129,7 @@ bool FPCGExPointsProcessorContext::ProcessPointsBatch(const PCGEx::ContextState 
 				PCGExMT::FDeferredCallbackTask,
 				[WeakHandle = GetOrCreateHandle()]()
 				{
-				const FPCGExContext::FPCGExSharedContext<FPCGExMergePointsContext> SharedContext(WeakHandle);
+				const FPCGContext::FSharedContext<FPCGExMergePointsContext> SharedContext(WeakHandle);
 				if(const FPCGExMergePointsContext* Ctx = SharedContext.Get()){Ctx->MainBatch->CompleteWork();}
 				});
 			return false;
@@ -148,7 +148,7 @@ bool FPCGExPointsProcessorContext::ProcessPointsBatch(const PCGEx::ContextState 
 				PCGExMT::FDeferredCallbackTask,
 				[WeakHandle = GetOrCreateHandle()]()
 				{
-				const FPCGExContext::FPCGExSharedContext<FPCGExMergePointsContext> SharedContext(WeakHandle);
+				const FPCGContext::FSharedContext<FPCGExMergePointsContext> SharedContext(WeakHandle);
 				if(const FPCGExMergePointsContext* Ctx = SharedContext.Get()){Ctx->MainBatch->Write();}
 				});
 			return false;

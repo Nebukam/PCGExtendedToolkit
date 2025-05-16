@@ -426,8 +426,8 @@ namespace PCGExBevelPath
 			Metadata->InitializeOnSet(MutablePoints[i].MetadataEntry);
 		}
 
-		FPCGPoint& StartPoint = PointIO->GetMutablePoint(Bevel->StartOutputIndex);
-		FPCGPoint& EndPoint = PointIO->GetMutablePoint(Bevel->EndOutputIndex);
+		FPCGPoint& StartPoint = PointIO->GetOutPoint(Bevel->StartOutputIndex);
+		FPCGPoint& EndPoint = PointIO->GetOutPoint(Bevel->EndOutputIndex);
 
 		StartPoint.Transform.SetLocation(Bevel->Arrive);
 		EndPoint.Transform.SetLocation(Bevel->Leave);

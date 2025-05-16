@@ -113,6 +113,7 @@ public:
 
 namespace PCGExHelpers
 {
+	
 	PCGEXTENDEDTOOLKIT_API
 	bool HasDataOnPin(FPCGContext* InContext, FName Pin);
 
@@ -261,6 +262,13 @@ namespace PCGEx
 		FName Get(const FName& BaseName);
 	};
 
+	class PCGEXTENDEDTOOLKIT_API FWorkPermit final : public TSharedFromThis<FWorkPermit>
+	{
+	public:
+		FWorkPermit() = default;
+		~FWorkPermit() = default;
+	};
+
 	class PCGEXTENDEDTOOLKIT_API FManagedObjects : public TSharedFromThis<FManagedObjects>
 	{
 	protected:
@@ -312,14 +320,13 @@ namespace PCGEx
 		template <class T>
 		T* DuplicateData(const UPCGData* InData)
 		{
-			
 			check(WeakHandle.IsValid())
 			check(!IsFlushing())
 
 			FPCGContext::FSharedContext<FPCGContext> SharedContext(WeakHandle);
-			
+
 			T* Object = nullptr;
-			
+
 			if (!IsInGameThread())
 			{
 				FWriteScopeLock WriteScopeLock(ManagedObjectLock);

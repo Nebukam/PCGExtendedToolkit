@@ -27,6 +27,11 @@ namespace PCGExMT
 
 		~TScopedArray() = default;
 
+		void Reserve(const int32 NumReserve)
+		{
+			for (int i = 0; i < Arrays.Num(); i++) { Arrays[i]->Reserve(NumReserve); }
+		}
+
 		FORCEINLINE TSharedPtr<TArray<T>> Get(const FScope& InScope) { return Arrays[InScope.LoopIndex]; }
 		FORCEINLINE TArray<T>& Get_Ref(const FScope& InScope) { return *Arrays[InScope.LoopIndex].Get(); }
 

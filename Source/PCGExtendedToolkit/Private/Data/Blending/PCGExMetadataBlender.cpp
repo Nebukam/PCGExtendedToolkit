@@ -43,21 +43,21 @@ namespace PCGExDataBlending
 		InternalPrepareForData(InPrimaryFacade, InSecondaryFacade, SecondarySource, bInitFirstOperation, IgnoreAttributeSet, bSoftMode);
 	}
 
-	void FMetadataBlender::PrepareForBlending(const PCGExData::FPointRef& Target, const FPCGPoint* Defaults) const
+	void FMetadataBlender::PrepareForBlending(const int32 TargetIndex, const PCGExData::FConstPoint& Defaults) const
 	{
-		for (const TSharedPtr<FDataBlendingProcessorBase>& Op : Operations) { Op->PrepareOperation(Target.Index); }
+		for (const TSharedPtr<FDataBlendingProcessorBase>& Op : Operations) { Op->PrepareOperation(TargetIndex.Index); }
 		if (bSkipProperties || !PropertiesBlender->bRequiresPrepare) { return; }
-		PropertiesBlender->PrepareBlending(Target.MutablePoint(), Defaults ? *Defaults : *Target.Point);
+		PropertiesBlender->PrepareBlending(TargetIndex.MutablePoint(), Defaults ? *Defaults : *TargetIndex.Point);
 	}
 
-	void FMetadataBlender::PrepareForBlending(const int32 PrimaryIndex, const FPCGPoint* Defaults) const
+	void FMetadataBlender::PrepareForBlending(const int32 PrimaryIndex, const PCGExData::FConstPoint& Defaults) const
 	{
 		for (const TSharedPtr<FDataBlendingProcessorBase>& Op : Operations) { Op->PrepareOperation(PrimaryIndex); }
 		if (bSkipProperties || !PropertiesBlender->bRequiresPrepare) { return; }
-		PropertiesBlender->PrepareBlending(*(PrimaryPoints->GetData() + PrimaryIndex), Defaults ? *Defaults : *(PrimaryPoints->GetData() + PrimaryIndex));
+		PropertiesBlender->PrepareBlending(*(PrimaryPoints->GetData() + PrimaryIndex), &Defaults ? Defaults : *(PrimaryPoints->GetData() + PrimaryIndex));
 	}
 
-	void FMetadataBlender::Blend(const PCGExData::FPointRef& A, const PCGExData::FPointRef& B, const PCGExData::FPointRef& Target, const double Weight)
+	void FMetadataBlender::Blend(const PCGExData::FConstPoint& A, const PCGExData::FConstPoint& B, const PCGExData::FMutablePoint& Target, const double Weight)
 	{
 		const int8 IsFirstOperation = FirstPointOperation[Target.Index];
 		for (const TSharedPtr<FDataBlendingProcessorBase>& Op : Operations) { Op->DoOperation(A.Index, B.Index, Target.Index, Weight, IsFirstOperation); }
@@ -80,7 +80,7 @@ namespace PCGExDataBlending
 		for (const TSharedPtr<FDataBlendingProcessorBase>& Op : Operations) { Op->Copy(TargetIndex, SecondaryIndex); }
 	}
 
-	void FMetadataBlender::CompleteBlending(const PCGExData::FPointRef& Target, const int32 Count, const double TotalWeight) const
+	void FMetadataBlender::CompleteBlending(const PCGExData::FMutablePoint& Target, const int32 Count, const double TotalWeight) const
 	{
 		for (const TSharedPtr<FDataBlendingProcessorBase>& Op : Operations) { Op->CompleteOperation(Target.Index, Count, TotalWeight); }
 		if (bSkipProperties || !PropertiesBlender->bRequiresPrepare) { return; }
@@ -108,8 +108,8 @@ namespace PCGExDataBlending
 	}
 
 	void FMetadataBlender::BlendRange(
-		const PCGExData::FPointRef& A,
-		const PCGExData::FPointRef& B,
+		const PCGExData::FConstPoint& A,
+		const PCGExData::FConstPoint& B,
 		const int32 StartIndex,
 		const int32 Range,
 		const TArrayView<double>& Weights)
@@ -142,8 +142,8 @@ namespace PCGExDataBlending
 	}
 
 	void FMetadataBlender::BlendRangeFromTo(
-		const PCGExData::FPointRef& From,
-		const PCGExData::FPointRef& To,
+		const PCGExData::FConstPoint& From,
+		const PCGExData::FConstPoint& To,
 		const int32 StartIndex,
 		const TArrayView<double>& Weights)
 	{
@@ -166,26 +166,26 @@ namespace PCGExDataBlending
 		PropertiesBlender->BlendRangeFromTo(*From.Point, *To.Point, View, Weights);
 	}
 
-	void FMetadataBlender::PrepareForBlending(FPCGPoint& Target, const FPCGPoint* Defaults) const
+	void FMetadataBlender::PrepareForBlending(PCGExData::FMutablePoint& Target, const PCGExData::FConstPoint& Defaults) const
 	{
 		for (const TSharedPtr<FDataBlendingProcessorBase>& Op : Operations) { Op->PrepareOperation(Target.MetadataEntry); }
 		if (bSkipProperties || !PropertiesBlender->bRequiresPrepare) { return; }
 		PropertiesBlender->PrepareBlending(Target, Defaults ? *Defaults : Target);
 	}
 
-	void FMetadataBlender::Copy(const FPCGPoint& Target, const FPCGPoint& Source)
+	void FMetadataBlender::Copy(const PCGExData::FMutablePoint& Target, const PCGExData::FConstPoint& Source)
 	{
 		for (const TSharedPtr<FDataBlendingProcessorBase>& Op : Operations) { Op->Copy(Target.MetadataEntry, Source.MetadataEntry); }
 	}
 
-	void FMetadataBlender::Blend(const FPCGPoint& A, const FPCGPoint& B, FPCGPoint& Target, const double Weight, const bool bIsFirstOperation)
+	void FMetadataBlender::Blend(const PCGExData::FConstPoint& A, const PCGExData::FConstPoint& B, const PCGExData::FMutablePoint& Target, const double Weight, const bool bIsFirstOperation)
 	{
 		for (const TSharedPtr<FDataBlendingProcessorBase>& Op : Operations) { Op->DoOperation(A.MetadataEntry, B.MetadataEntry, Target.MetadataEntry, Weight, bIsFirstOperation); }
 		if (bSkipProperties) { return; }
 		PropertiesBlender->Blend(A, B, Target, Weight);
 	}
 
-	void FMetadataBlender::CompleteBlending(FPCGPoint& Target, const int32 Count, const double TotalWeight) const
+	void FMetadataBlender::CompleteBlending(const PCGExData::FMutablePoint& Target, const int32 Count, const double TotalWeight) const
 	{
 		for (const TSharedPtr<FDataBlendingProcessorBase>& Op : Operations) { Op->CompleteOperation(Target.MetadataEntry, Count, TotalWeight); }
 		if (bSkipProperties || !PropertiesBlender->bRequiresPrepare) { return; }

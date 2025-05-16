@@ -130,7 +130,6 @@ namespace PCGExFuseClusters
 		int32 VtxIOIndex = 0;
 		int32 EdgesIOIndex = 0;
 		TArray<PCGExGraph::FEdge> IndexedEdges;
-		const TArray<FPCGPoint>* InPoints = nullptr;
 
 	public:
 		bool bInvalidEdges = true;

@@ -36,7 +36,7 @@ bool FPCGExProbeDirection::PrepareForPoints(const TSharedPtr<PCGExData::FPointIO
 	return true;
 }
 
-void FPCGExProbeDirection::ProcessCandidates(const int32 Index, const FPCGPoint& Point, TArray<PCGExProbing::FCandidate>& Candidates, TSet<FInt32Vector>* Coincidence, const FVector& ST, TSet<uint64>* OutEdges)
+void FPCGExProbeDirection::ProcessCandidates(const int32 Index, const FTransform& WorkingTransform, TArray<PCGExProbing::FCandidate>& Candidates, TSet<FInt32Vector>* Coincidence, const FVector& ST, TSet<uint64>* OutEdges)
 {
 	bool bIsAlreadyConnected;
 	const double R = GetSearchRadius(Index);
@@ -45,7 +45,7 @@ void FPCGExProbeDirection::ProcessCandidates(const int32 Index, const FPCGPoint&
 	int32 BestCandidateIndex = -1;
 
 	FVector Dir = DirectionCache ? DirectionCache->Read(Index).GetSafeNormal() : Direction;
-	if (Config.bTransformDirection) { Dir = Point.Transform.TransformVectorNoScale(Dir); }
+	if (Config.bTransformDirection) { Dir = WorkingTransform.Transform.TransformVectorNoScale(Dir); }
 
 	const int32 MaxIndex = Candidates.Num() - 1;
 	for (int i = 0; i <= MaxIndex; i++)
@@ -96,18 +96,18 @@ void FPCGExProbeDirection::ProcessCandidates(const int32 Index, const FPCGPoint&
 	}
 }
 
-void FPCGExProbeDirection::PrepareBestCandidate(const int32 Index, const FPCGPoint& Point, PCGExProbing::FBestCandidate& InBestCandidate)
+void FPCGExProbeDirection::PrepareBestCandidate(const int32 Index, const FTransform& WorkingTransform, PCGExProbing::FBestCandidate& InBestCandidate)
 {
 	InBestCandidate.BestIndex = -1;
 	InBestCandidate.BestPrimaryValue = -1;
 	InBestCandidate.BestSecondaryValue = MAX_dbl;
 }
 
-void FPCGExProbeDirection::ProcessCandidateChained(const int32 Index, const FPCGPoint& Point, const int32 CandidateIndex, PCGExProbing::FCandidate& Candidate, PCGExProbing::FBestCandidate& InBestCandidate)
+void FPCGExProbeDirection::ProcessCandidateChained(const int32 Index, const FTransform& WorkingTransform, const int32 CandidateIndex, PCGExProbing::FCandidate& Candidate, PCGExProbing::FBestCandidate& InBestCandidate)
 {
 	const double R = GetSearchRadius(Index);
 	FVector Dir = DirectionCache ? DirectionCache->Read(Index).GetSafeNormal() : Direction;
-	if (Config.bTransformDirection) { Dir = Point.Transform.TransformVectorNoScale(Dir); }
+	if (Config.bTransformDirection) { Dir = WorkingTransform.Transform.TransformVectorNoScale(Dir); }
 
 	if (Candidate.Distance > R) { return; }
 
@@ -143,7 +143,7 @@ void FPCGExProbeDirection::ProcessCandidateChained(const int32 Index, const FPCG
 	}
 }
 
-void FPCGExProbeDirection::ProcessBestCandidate(const int32 Index, const FPCGPoint& Point, PCGExProbing::FBestCandidate& InBestCandidate, TArray<PCGExProbing::FCandidate>& Candidates, TSet<FInt32Vector>* Coincidence, const FVector& ST, TSet<uint64>* OutEdges)
+void FPCGExProbeDirection::ProcessBestCandidate(const int32 Index, const FTransform& WorkingTransform, PCGExProbing::FBestCandidate& InBestCandidate, TArray<PCGExProbing::FCandidate>& Candidates, TSet<FInt32Vector>* Coincidence, const FVector& ST, TSet<uint64>* OutEdges)
 {
 	if (InBestCandidate.BestIndex == -1) { return; }
 

@@ -60,6 +60,22 @@ MACRO(FSoftClassPath, SoftClassPath, __VA_ARGS__)
  * @param MACRO 
  */
 
+#define PCGEX_FOREACH_POINT_NATIVE_PROPERTY(MACRO, ...)\
+MACRO(Transform, FTransform, __VA_ARGS__) \
+MACRO(Density, float, __VA_ARGS__) \
+MACRO(BoundsMin, FVector, __VA_ARGS__) \
+MACRO(BoundsMax, FVector, __VA_ARGS__) \
+MACRO(Color, FVector4, __VA_ARGS__) \
+MACRO(Steepness, float, __VA_ARGS__) \
+MACRO(Seed, int32, __VA_ARGS__) \
+MACRO(MetadataEntry, int64, __VA_ARGS__) 
+
+#define PCGEX_NATIVE_PROPERTY_GET(_NAME, _TYPE, _SOURCE) TPCGValueRange<_TYPE> _NAME##ValueRange = _SOURCE->Get##_NAME##ValueRange();
+#define PCGEX_FOREACH_POINT_NATIVE_PROPERTY_GET(_SOURCE) PCGEX_FOREACH_POINT_NATIVE_PROPERTY(PCGEX_NATIVE_PROPERTY_GET, _SOURCE)
+
+#define PCGEX_NATIVE_PROPERTY_CONSTGET(_NAME, _TYPE, _SOURCE) TConstPCGValueRange<_TYPE> _NAME##ValueRange = _SOURCE->GetConst##_NAME##ValueRange();
+#define PCGEX_FOREACH_POINT_NATIVE_PROPERTY_CONSTGET(_SOURCE) PCGEX_FOREACH_POINT_NATIVE_PROPERTY(PCGEX_NATIVE_PROPERTY_CONSTGET, _SOURCE)
+
 #define PCGEX_FOREACH_POINTPROPERTY(MACRO)\
 MACRO(EPCGPointProperties::Density, Density, float) \
 MACRO(EPCGPointProperties::BoundsMin, BoundsMin, FVector) \
@@ -216,5 +232,14 @@ static void SetElementId(const _ITEM& Element, FOctreeElementId2 OctreeElementID
 using _ITEM##Octree = TOctree2<_ITEM, _ITEM##Semantics>;
 
 #define PCGEX_NEW_POINT_DATA_TYPE UPCGBasePointData
+
+#define PCGEX_REDUCE_INDICES(_OUT, _NUM, _CONDITION)\
+TArray<int32> _OUT; {\
+	int32 ElementIndex = 0;\
+	int32 NumElements = _NUM;\
+	_OUT.SetNumUninitialized(NumElements);\
+	for (int32 i = 0; i < NumElements; i++) { if (_CONDITION) { _OUT[ElementIndex++] = i; } }\
+	_OUT.SetNum(ElementIndex);\
+}
 
 #endif

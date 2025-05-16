@@ -12,6 +12,56 @@ namespace PCGExData
 {
 #pragma region FPointIO
 
+	FPoint::FPoint(const uint64 Hash)
+		: Index(PCGEx::H64A(Hash)), IO(PCGEx::H64A(Hash))
+	{
+	}
+
+	FPoint::FPoint(const int32 InIndex, const int32 InIO)
+		: Index(InIndex), IO(InIO)
+	{
+	}
+
+	FPoint::FPoint(const TSharedPtr<FPointIO> InIO, const uint32 InIndex)
+		: Index(InIndex), IO(InIO->IOIndex)
+	{
+	}
+
+	FMutablePoint::FMutablePoint(UPCGBasePointData* InData, const int32 InIndex, const int32 InIO)
+		: FPoint(InIndex, InIO), Data(InData)
+	{
+	}
+
+	FMutablePoint::FMutablePoint(const TSharedPtr<FPointIO>& InFacade, const int32 InIndex)
+		: FPoint(InFacade, InIndex), Data(InFacade->GetOut())
+	{
+	}
+
+	FConstPoint::FConstPoint(const FMutablePoint& InPoint)
+		: FConstPoint(InPoint.Data, InPoint.Index)
+	{
+	}
+
+	FConstPoint::FConstPoint(const UPCGBasePointData* InData, const uint64 Hash)
+		: FPoint(Hash), Data(InData)
+	{
+	}
+
+	FConstPoint::FConstPoint(const UPCGBasePointData* InData, const int32 InIndex, const int32 InIO)
+		: FPoint(InIndex, InIO), Data(InData)
+	{
+	}
+
+	FConstPoint::FConstPoint(const TSharedPtr<FPointIO>& InFacade, const int32 InIndex)
+		: FPoint(InFacade, InIndex), Data(InFacade->GetIn())
+	{
+	}
+
+	FMutablePoint::FMutablePoint(UPCGBasePointData* InData, const uint64 Hash)
+		: FPoint(Hash), Data(InData)
+	{
+	}
+
 	void FPointIO::SetInfos(
 		const int32 InIndex,
 		const FName InOutputPin,
@@ -209,6 +259,36 @@ namespace PCGExData
 		else { PrintInKeysMap(InMap); }
 	}
 
+	void FPointIO::CopyProperties(const int32 ReadStartIndex, const int32 WriteStartIndex, const int32 Count, const EPCGPointNativeProperties Properties) const
+	{
+		In->CopyPropertiesTo(Out, ReadStartIndex, WriteStartIndex, Count, Properties);
+	}
+
+	void FPointIO::CopyProperties(const TArrayView<const int32>& ReadIndices, const TArrayView<const int32>& WriteIndices, const EPCGPointNativeProperties Properties) const
+	{
+		In->CopyPropertiesTo(Out, ReadIndices, WriteIndices, Properties);
+	}
+
+	void FPointIO::CopyProperties(const TArrayView<const int32>& ReadIndices, const EPCGPointNativeProperties Properties) const
+	{
+		check(Out->GetNumPoints() == ReadIndices.Num())
+
+		TArray<int32> WriteIndices;
+		PCGEx::ArrayOfIndices(WriteIndices, ReadIndices.Num());
+
+		In->CopyPropertiesTo(Out, ReadIndices, WriteIndices, Properties);
+	}
+
+	void FPointIO::CopyPoints(const int32 ReadStartIndex, const int32 WriteStartIndex, const int32 Count) const
+	{
+		In->CopyPointsTo(Out, ReadStartIndex, WriteStartIndex, Count);
+	}
+
+	void FPointIO::CopyPoints(const TArrayView<const int32>& ReadIndices, const TArrayView<const int32>& WriteIndices) const
+	{
+		In->CopyPointsTo(Out, ReadIndices, WriteIndices);
+	}
+
 	void FPointIO::CleanupKeys()
 	{
 		InKeys.Reset();
@@ -264,6 +344,28 @@ namespace PCGExData
 		if (!Out || (!bAllowEmptyOutput && Out->IsEmpty())) { return false; }
 
 		return true;
+	}
+
+	void FPointIO::Gather(const TArrayView<int32> InIndices) const
+	{
+		if (!Out) { return; }
+
+		const int32 ReducedNum = InIndices.Num();
+
+		if (ReducedNum == Out->GetNumPoints()) { return; }
+
+		PCGEX_FOREACH_POINT_NATIVE_PROPERTY_GET(Out)
+
+		Out->AllocateProperties(EPCGPointNativeProperties::All);
+
+		for (int i = 0; i < ReducedNum; i++)
+		{
+#define PCGEX_VALUERANGE_GATHER(_NAME, _TYPE) _NAME##ValueRange[i] = _NAME##ValueRange[InIndices[i]];
+			PCGEX_FOREACH_POINT_NATIVE_PROPERTY(PCGEX_VALUERANGE_GATHER)
+#undef PCGEX_VALUERANGE_GATHER
+		}
+
+		Out->SetNumPoints(ReducedNum);
 	}
 
 	void FPointIO::DeleteAttribute(FName AttributeName) const

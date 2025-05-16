@@ -231,68 +231,64 @@ namespace PCGExPartitionByValues
 		return true;
 	}
 
-	void FProcessor::PrepareSingleLoopScopeForPoints(const PCGExMT::FScope& Scope)
+	void FProcessor::ProcessPoints(const PCGExMT::FScope& Scope)
 	{
 		PointDataFacade->Fetch(Scope);
-	}
 
-	void FProcessor::ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const PCGExMT::FScope& Scope)
-	{
-		TSharedPtr<PCGExPartition::FKPartition> Partition = RootPartition;
-		for (PCGExPartition::FRule& Rule : Rules)
+		PCGEX_SCOPE_LOOP(Index)
 		{
-			const int64 KeyValue = Rule.Filter(Index);
-			Partition = Partition->GetPartition(KeyValue, &Rule);
-			Rule.FilteredValues[Index] = KeyValue;
-		}
-
-		Partition->Add(Index);
-	}
-
-	void FProcessor::ProcessSingleRangeIteration(const int32 Iteration, const PCGExMT::FScope& Scope)
-	{
-		TSharedPtr<PCGExPartition::FKPartition> Partition = Partitions[Iteration];
-
-		//Manually create & insert partition at the sorted IO Index
-		const TSharedRef<PCGExData::FPointIO> PartitionIO = Context->MainPoints->Pairs[Partition->IOIndex].ToSharedRef();
-
-		UPCGMetadata* Metadata = PartitionIO->GetOut()->Metadata;
-
-		const TArray<FPCGPoint>& InPoints = PartitionIO->GetIn()->GetPoints();
-		TArray<FPCGPoint>& OutPoints = PartitionIO->GetOut()->GetMutablePoints();
-		PCGEx::InitArray(OutPoints, Partition->Points.Num());
-
-		for (int i = 0; i < OutPoints.Num(); i++)
-		{
-			OutPoints[i] = InPoints[Partition->Points[i]];
-			Metadata->InitializeOnSet(OutPoints[i].MetadataEntry);
-		}
-
-		int64 Sum = 0;
-		while (Partition->Parent.Pin())
-		{
-			const PCGExPartition::FRule* Rule = Partition->Rule;
-			Sum += Partition->PartitionKey;
-
-			if (Rule->RuleConfig->bWriteKey)
+			TSharedPtr<PCGExPartition::FKPartition> Partition = RootPartition;
+			for (PCGExPartition::FRule& Rule : Rules)
 			{
-				PCGExData::WriteMark<int64>(
-					PartitionIO,
-					Rule->RuleConfig->KeyAttributeName,
-					Rule->RuleConfig->bUsePartitionIndexAsKey ? Partition->PartitionIndex : Partition->PartitionKey);
+				const int64 KeyValue = Rule.Filter(Index);
+				Partition = Partition->GetPartition(KeyValue, &Rule);
+				Rule.FilteredValues[Index] = KeyValue;
 			}
 
-			if (Rule->RuleConfig->bWriteTag)
+			Partition->Add(Index);
+		}
+	}
+
+	void FProcessor::ProcessRange(const PCGExMT::FScope& Scope)
+	{
+		PCGEX_SCOPE_LOOP(Index)
+		{
+			TSharedPtr<PCGExPartition::FKPartition> Partition = Partitions[Index];
+
+			//Manually create & insert partition at the sorted IO Index
+			const TSharedRef<PCGExData::FPointIO> PartitionIO = Context->MainPoints->Pairs[Partition->IOIndex].ToSharedRef();
+
+			PartitionIO->CopyProperties(Partition->Points, EPCGPointNativeProperties::All);
+
+			// Force creation of valid keys once
+			PartitionIO->GetOutKeys(true);
+
+			int64 Sum = 0;
+			while (Partition->Parent.Pin())
 			{
-				PartitionIO->Tags->Set<int64>(
-					Rule->RuleConfig->TagPrefixName.ToString(),
-					Rule->RuleConfig->bTagUsePartitionIndexAsKey ? Partition->PartitionIndex : Partition->PartitionKey);
+				const PCGExPartition::FRule* Rule = Partition->Rule;
+				Sum += Partition->PartitionKey;
+
+				if (Rule->RuleConfig->bWriteKey)
+				{
+					PCGExData::WriteMark<int64>(
+						PartitionIO,
+						Rule->RuleConfig->KeyAttributeName,
+						Rule->RuleConfig->bUsePartitionIndexAsKey ? Partition->PartitionIndex : Partition->PartitionKey);
+				}
+
+				if (Rule->RuleConfig->bWriteTag)
+				{
+					PartitionIO->Tags->Set<int64>(
+						Rule->RuleConfig->TagPrefixName.ToString(),
+						Rule->RuleConfig->bTagUsePartitionIndexAsKey ? Partition->PartitionIndex : Partition->PartitionKey);
+				}
+
+				Partition = Partition->Parent.Pin();
 			}
 
-			Partition = Partition->Parent.Pin();
+			if (Settings->bWriteKeySum) { PCGExData::WriteMark<int64>(PartitionIO, Settings->KeySumAttributeName, Sum); }
 		}
-
-		if (Settings->bWriteKeySum) { PCGExData::WriteMark<int64>(PartitionIO, Settings->KeySumAttributeName, Sum); }
 	}
 
 	void FProcessor::CompleteWork()

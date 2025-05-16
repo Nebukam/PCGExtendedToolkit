@@ -95,7 +95,7 @@ bool UPCGExMeshSelectorStaged::SelectInstances(
 						OutPointData->SetPoints(InPointData->GetPoints());
 					}
 
-					const FPCGExContext::FPCGExSharedContext<FPCGStaticMeshSpawnerContext> SharedContext(CtxHandle);
+					const FPCGContext::FSharedContext<FPCGStaticMeshSpawnerContext> SharedContext(CtxHandle);
 					FPCGStaticMeshSpawnerContext* Ctx = SharedContext.Get();
 					if (!Ctx) { return; }
 

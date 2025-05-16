@@ -47,10 +47,10 @@ public:
 	UPCGExActionFactoryData* Factory = nullptr;
 
 	virtual bool PrepareForData(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade>& InPointDataFacade);
-	virtual void ProcessPoint(int32 Index, const FPCGPoint& Point);
+	virtual void ProcessPoint(int32 Index);
 
-	virtual void OnMatchSuccess(int32 Index, const FPCGPoint& Point);
-	virtual void OnMatchFail(int32 Index, const FPCGPoint& Point);
+	virtual void OnMatchSuccess(int32 Index);
+	virtual void OnMatchFail(int32 Index);
 
 protected:
 	TSharedPtr<PCGExPointFilter::FManager> FilterManager;

@@ -290,14 +290,12 @@ namespace PCGExPathToClusters
 					if (bClosedLoop)
 					{
 						UnionGraph->InsertEdge_Unsafe(
-							InNodePts[LastIndex], IOIndex, LastIndex,
-							InNodePts[0], IOIndex, 0);
+							InNodePts[LastIndex], InNodePts[0]);
 					}
 					return;
 				}
 				UnionGraph->InsertEdge_Unsafe(
-					InNodePts[i], IOIndex, i,
-					InNodePts[NextIndex], IOIndex, NextIndex);
+					InNodePts[i], InNodePts[NextIndex]);
 			}
 		}
 		else
@@ -310,14 +308,12 @@ namespace PCGExPathToClusters
 					if (bClosedLoop)
 					{
 						UnionGraph->InsertEdge(
-							InNodePts[LastIndex], IOIndex, LastIndex,
-							InNodePts[0], IOIndex, 0);
+							InNodePts[LastIndex], InNodePts[0]);
 					}
 					return;
 				}
 				UnionGraph->InsertEdge(
-					InNodePts[i], IOIndex, i,
-					InNodePts[NextIndex], IOIndex, NextIndex);
+					InNodePts[i], InNodePts[NextIndex]);
 			}
 		}
 	}

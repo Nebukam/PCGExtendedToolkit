@@ -83,11 +83,10 @@ namespace PCGExPointsMT
 
 	void FPointsProcessor::StartParallelLoopForPoints(const PCGExData::ESource Source, const int32 PerLoopIterations)
 	{
-		CurrentProcessingSource = Source;
+		CurrentProcessingSource = const_cast<UPCGBasePointData*>(PointDataFacade->GetData(Source));
+		if (!CurrentProcessingSource) { return; }
 
-		if (!PointDataFacade->IsDataValid(CurrentProcessingSource)) { return; }
-
-		const int32 NumPoints = PointDataFacade->Source->GetNum(Source);
+		const int32 NumPoints = CurrentProcessingSource->GetNumPoints();
 
 		PCGEX_ASYNC_POINT_PROCESSOR_LOOP(
 			Points, NumPoints,
@@ -100,21 +99,9 @@ namespace PCGExPointsMT
 	{
 	}
 
-	void FPointsProcessor::PrepareSingleLoopScopeForPoints(const PCGExMT::FScope& Scope)
-	{
-	}
-
 	void FPointsProcessor::ProcessPoints(const PCGExMT::FScope& Scope)
 	{
-		if (!PointDataFacade->IsDataValid(CurrentProcessingSource)) { return; }
-
-		PrepareSingleLoopScopeForPoints(Scope);
-		TArray<FPCGPoint>& Points = PointDataFacade->Source->GetMutableData(CurrentProcessingSource)->GetMutablePoints();
-		for (int i = Scope.Start; i < Scope.End; i++) { ProcessSinglePoint(i, Points[i], Scope); }
-	}
-
-	void FPointsProcessor::ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const PCGExMT::FScope& Scope)
-	{
+		
 	}
 
 	void FPointsProcessor::OnPointsProcessingComplete()

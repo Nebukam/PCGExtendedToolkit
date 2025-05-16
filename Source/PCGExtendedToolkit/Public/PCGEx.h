@@ -167,6 +167,15 @@ enum class EPCGExTruncateMode : uint8
 
 namespace PCGEx
 {
+	constexpr EPCGPointNativeProperties AllPointNativePropertiesButMeta =
+		EPCGPointNativeProperties::Transform |
+		EPCGPointNativeProperties::Density |
+		EPCGPointNativeProperties::BoundsMin |
+		EPCGPointNativeProperties::BoundsMax |
+		EPCGPointNativeProperties::Color |
+		EPCGPointNativeProperties::Steepness |
+		EPCGPointNativeProperties::Seed;
+
 	const FName PreviousAttributeName = TEXT("#Previous");
 	const FName PreviousNameAttributeName = TEXT("#PreviousName");
 
@@ -221,7 +230,7 @@ namespace PCGEx
 
 	PCGEXTENDEDTOOLKIT_API
 	void ScopeIndices(const TArray<int32>& InIndices, TArray<uint64>& OutScopes);
-	
+
 	struct PCGEXTENDEDTOOLKIT_API FIndexedItem
 	{
 		int32 Index;

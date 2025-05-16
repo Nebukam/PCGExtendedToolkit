@@ -51,7 +51,7 @@ case EPCGExDataBlendingType::UnsignedHash:		_NAME##Func = [](const _TYPE& O, con
 		bHasNoBlending = InDetails.HasNoBlending();
 	}
 
-	void FPropertiesBlender::PrepareBlending(FPCGPoint& Target, const FPCGPoint& Default) const
+	void FPropertiesBlender::PrepareBlending(const PCGExData::FMutablePoint& Target, const PCGExData::FConstPoint& Default) const
 	{
 		if (DensityBlending != EPCGExDataBlendingType::None) { Target.Density = bResetDensity ? 0 : Default.Density; }
 		if (BoundsMinBlending != EPCGExDataBlendingType::None) { Target.BoundsMin = bResetBoundsMin ? FVector::ZeroVector : Default.BoundsMin; }
@@ -65,7 +65,7 @@ case EPCGExDataBlendingType::UnsignedHash:		_NAME##Func = [](const _TYPE& O, con
 		// TODO : Support new stuff
 	}
 
-	void FPropertiesBlender::Blend(const FPCGPoint& A, const FPCGPoint& B, FPCGPoint& Target, double Weight) const
+	void FPropertiesBlender::Blend(const PCGExData::FConstPoint& A, const PCGExData::FConstPoint& B, const PCGExData::FMutablePoint& Target, double Weight) const
 	{
 #define PCGEX_BLEND_PROPDECL(_TYPE, _NAME, _FUNC, _ACCESSOR) const _TYPE Target##_NAME = _NAME##Func(Target._ACCESSOR, A._ACCESSOR, B._ACCESSOR, Weight);
 		PCGEX_FOREACH_BLENDINIT_POINTPROPERTY(PCGEX_BLEND_PROPDECL)
@@ -82,7 +82,7 @@ case EPCGExDataBlendingType::UnsignedHash:		_NAME##Func = [](const _TYPE& O, con
 		Target.Seed = TargetSeed;
 	}
 
-	void FPropertiesBlender::CompleteBlending(FPCGPoint& Target, const int32 Count, const double TotalWeight) const
+	void FPropertiesBlender::CompleteBlending(const PCGExData::FMutablePoint& Target, const int32 Count, const double TotalWeight) const
 	{
 #define PCGEX_BLEND_PROPDECL(_TYPE, _NAME, _FUNC, _ACCESSOR) _TYPE Target##_NAME = Target._ACCESSOR;\
 		if (_NAME##Blending == EPCGExDataBlendingType::Average) { Target##_NAME = PCGExBlend::Div(Target._ACCESSOR, Count); }\
@@ -101,7 +101,7 @@ case EPCGExDataBlendingType::UnsignedHash:		_NAME##Func = [](const _TYPE& O, con
 		Target.Seed = TargetSeed;
 	}
 
-	void FPropertiesBlender::BlendOnce(const FPCGPoint& A, const FPCGPoint& B, FPCGPoint& Target, const double Weight) const
+	void FPropertiesBlender::BlendOnce(const PCGExData::FConstPoint& A, const PCGExData::FConstPoint& B, const PCGExData::FMutablePoint& Target, const double Weight) const
 	{
 		if (bRequiresPrepare)
 		{
@@ -115,12 +115,12 @@ case EPCGExDataBlendingType::UnsignedHash:		_NAME##Func = [](const _TYPE& O, con
 		}
 	}
 
-	void FPropertiesBlender::PrepareRangeBlending(const TArrayView<FPCGPoint>& Targets, const FPCGPoint& Default) const
+	void FPropertiesBlender::PrepareRangeBlending(const TArrayView<FPCGPoint>& Targets, const PCGExData::FConstPoint& Default) const
 	{
 		for (FPCGPoint& Target : Targets) { PrepareBlending(Target, Default); }
 	}
 
-	void FPropertiesBlender::BlendRange(const FPCGPoint& From, const FPCGPoint& To, const TArrayView<FPCGPoint>& Targets, const TArrayView<double>& Weights) const
+	void FPropertiesBlender::BlendRange(const PCGExData::FConstPoint& From, const PCGExData::FConstPoint& To, const TArrayView<FPCGPoint>& Targets, const TArrayView<double>& Weights) const
 	{
 		for (int i = 0; i < Targets.Num(); i++) { Blend(From, To, Targets[i], Weights[i]); }
 	}
@@ -130,7 +130,7 @@ case EPCGExDataBlendingType::UnsignedHash:		_NAME##Func = [](const _TYPE& O, con
 		for (int i = 0; i < Targets.Num(); i++) { CompleteBlending(Targets[i], Counts[i], TotalWeights[i]); }
 	}
 
-	void FPropertiesBlender::BlendRangeFromTo(const FPCGPoint& From, const FPCGPoint& To, const TArrayView<FPCGPoint>& Targets, const TArrayView<double>& Weights) const
+	void FPropertiesBlender::BlendRangeFromTo(const PCGExData::FConstPoint& From, const PCGExData::FConstPoint& To, const TArrayView<FPCGPoint>& Targets, const TArrayView<double>& Weights) const
 	{
 		if (bRequiresPrepare)
 		{

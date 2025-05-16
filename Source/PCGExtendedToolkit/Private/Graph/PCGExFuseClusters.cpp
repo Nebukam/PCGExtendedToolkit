@@ -123,7 +123,7 @@ bool FPCGExFuseClustersElement::ExecuteInternal(FPCGContext* InContext) const
 
 	if (!Context->UnionProcessor->Execute()) { return false; }
 
-	Context->UnionDataFacade->Source->StageOutput();
+	Context->UnionDataFacade->Source->StageOutput(Context);
 	Context->Done();
 
 	return Context->TryComplete();
@@ -157,8 +157,6 @@ namespace PCGExFuseClusters
 			NumNodes = Cluster->Nodes->Num();
 			NumEdges = Cluster->Edges->Num();
 		}
-
-		InPoints = &VtxDataFacade->Source->GetIn()->GetPoints();
 
 		bInvalidEdges = false;
 		UnionGraph = Context->UnionGraph;
@@ -200,7 +198,6 @@ namespace PCGExFuseClusters
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExFuseClusters::FProcessor::InsertEdges);
 
-		const TArray<FPCGPoint>& InNodePts = *InPoints;
 		if (Cluster)
 		{
 			if (bUnsafe)
@@ -209,9 +206,8 @@ namespace PCGExFuseClusters
 				{
 					const PCGExGraph::FEdge* Edge = Cluster->GetEdge(i);
 					UnionGraph->InsertEdge_Unsafe(
-						InNodePts[Edge->Start], VtxIOIndex, Edge->Start,
-						InNodePts[Edge->End], VtxIOIndex, Edge->End,
-						EdgesIOIndex, Edge->PointIndex);
+						VtxDataFacade->GetInPoint(Edge->Start), VtxDataFacade->GetInPoint(Edge->End),
+						EdgeDataFacade->GetInPoint(Edge->PointIndex));
 				}
 			}
 			else
@@ -220,9 +216,8 @@ namespace PCGExFuseClusters
 				{
 					const PCGExGraph::FEdge* Edge = Cluster->GetEdge(i);
 					UnionGraph->InsertEdge(
-						InNodePts[Edge->Start], VtxIOIndex, Edge->Start,
-						InNodePts[Edge->End], VtxIOIndex, Edge->End,
-						EdgesIOIndex, Edge->PointIndex);
+						VtxDataFacade->GetInPoint(Edge->Start), VtxDataFacade->GetInPoint(Edge->End),
+						EdgeDataFacade->GetInPoint(Edge->PointIndex));
 				}
 			}
 		}
@@ -234,9 +229,8 @@ namespace PCGExFuseClusters
 				{
 					const PCGExGraph::FEdge& Edge = IndexedEdges[i];
 					UnionGraph->InsertEdge_Unsafe(
-						InNodePts[Edge.Start], VtxIOIndex, Edge.Start,
-						InNodePts[Edge.End], VtxIOIndex, Edge.End,
-						EdgesIOIndex, Edge.PointIndex);
+						VtxDataFacade->GetInPoint(Edge.Start), VtxDataFacade->GetInPoint(Edge.End),
+						EdgeDataFacade->GetInPoint(Edge.PointIndex));
 				}
 			}
 			else
@@ -245,9 +239,8 @@ namespace PCGExFuseClusters
 				{
 					const PCGExGraph::FEdge& Edge = IndexedEdges[i];
 					UnionGraph->InsertEdge(
-						InNodePts[Edge.Start], VtxIOIndex, Edge.Start,
-						InNodePts[Edge.End], VtxIOIndex, Edge.End,
-						EdgesIOIndex, Edge.PointIndex);
+						VtxDataFacade->GetInPoint(Edge.Start), VtxDataFacade->GetInPoint(Edge.End),
+						EdgeDataFacade->GetInPoint(Edge.PointIndex));
 				}
 			}
 		}

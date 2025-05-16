@@ -40,6 +40,8 @@ protected:
 	mutable FRWLock StagedOutputLock;
 	mutable FRWLock AssetDependenciesLock;
 
+	TSharedPtr<PCGEx::FWorkPermit> WorkPermit;
+	
 	TArray<FPCGTaggedData> StagedOutputs;
 	bool bFlattenOutput = false;
 
@@ -49,21 +51,6 @@ protected:
 	void CommitStagedOutputs();
 
 public:
-	template <typename T>
-	class FPCGExSharedContext
-	{
-	public:
-		FPCGExSharedContext(const TWeakPtr<FPCGContextHandle>& WeakHandle)
-		{
-			SharedHandle = WeakHandle.Pin();
-		}
-
-		T* Get() const { return SharedHandle.IsValid() ? static_cast<T*>(SharedHandle->GetContext()) : nullptr; }
-
-	private:
-		TSharedPtr<FPCGContextHandle> SharedHandle;
-	};
-
 	TWeakPtr<PCGEx::FWorkPermit> GetWorkPermit() { return WorkPermit; }
 	TSharedPtr<PCGEx::FManagedObjects> ManagedObjects;
 

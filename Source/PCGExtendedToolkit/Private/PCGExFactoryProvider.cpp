@@ -117,7 +117,7 @@ bool FPCGExFactoryProviderElement::ExecuteInternal(FPCGContext* Context) const
 			InContext->LaunchDeferredCallback(
 				[CtxHandle = InContext->GetOrCreateHandle()]()
 				{
-					const FPCGExContext::FPCGExSharedContext<FPCGExFactoryProviderContext> SharedContext(CtxHandle);
+					const FPCGContext::FSharedContext<FPCGExFactoryProviderContext> SharedContext(CtxHandle);
 					FPCGExFactoryProviderContext* Ctx = SharedContext.Get();
 					if (!Ctx) { return; }
 

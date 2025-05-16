@@ -3,6 +3,8 @@
 
 #include "AssetStaging/PCGExAssetStaging.h"
 
+#include "Debug/PCGExDrawAttributes.h"
+
 
 #define LOCTEXT_NAMESPACE "PCGExAssetStagingElement"
 #define PCGEX_NAMESPACE AssetStaging
@@ -240,21 +242,30 @@ namespace PCGExAssetStaging
 		HighestSlotIndex = MakeShared<PCGExMT::TScopedNumericValue<int8>>(Loops, -1);
 	}
 
-	void FProcessor::PrepareSingleLoopScopeForPoints(const PCGExMT::FScope& Scope)
+	void FProcessor::ProcessPoints(const PCGExMT::FScope& Scope)
 	{
 		PointDataFacade->Fetch(Scope);
 		FilterScope(Scope);
-	}
 
-	void FProcessor::ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const PCGExMT::FScope& Scope)
-	{
-		auto InvalidPoint = [&]()
+		const TPCGValueRange<FTransform> Transforms = CurrentProcessingSource->GetTransformValueRange();
+		const TPCGValueRange<FVector> BoundsMin = CurrentProcessingSource->GetBoundsMinValueRange();
+		const TPCGValueRange<FVector> BoundsMax = CurrentProcessingSource->GetBoundsMaxValueRange();
+
+		TSharedPtr<PCGExData::TBuffer<int32>> WR = WeightWriter ? WeightWriter : NormalizedWeightWriter ? NormalizedWeightWriter : nullptr;
+		const TPCGValueRange<float> Densities = CurrentProcessingSource->GetDensityValueRange(WR ? false : true);
+		
+		const TPCGValueRange<int64> MetadataEntries = CurrentProcessingSource->GetMetadataEntryValueRange();
+
+		int32 LocalNumInvalid = 0;
+		
+		auto InvalidPoint = [&](const int32 Index)
 		{
 			if (bInherit) { return; }
 
 			if (Settings->bPruneEmptyPoints)
 			{
-				Point.MetadataEntry = -2;
+				MetadataEntries[Index] = -2;
+				LocalNumInvalid++;
 				return;
 			}
 
@@ -269,93 +280,96 @@ namespace PCGExAssetStaging
 
 			if (Context->bPickMaterials) { MaterialPick[Index] = -1; }
 		};
-
-		if (!PointFilterCache[Index])
+		
+		PCGEX_SCOPE_LOOP(Index)
 		{
-			InvalidPoint();
-			return;
-		}
-
-		const FPCGExAssetCollectionEntry* Entry = nullptr;
-		const UPCGExAssetCollection* EntryHost = nullptr;
-
-		const int32 Seed = PCGExRandom::GetSeedFromPoint(
-			Helper->Details.SeedComponents, Point,
-			Helper->Details.LocalSeed, Settings, Context->GetComponent());
-
-		Helper->GetEntry(Entry, Index, Seed, EntryHost);
-
-		if (!Entry || !Entry->Staging.Bounds.IsValid)
-		{
-			InvalidPoint();
-			return;
-		}
-
-		if (Context->bPickMaterials)
-		{
-			if (Entry->MacroCache && Entry->MacroCache->GetType() == PCGExAssetCollection::EType::Mesh)
+			if (!PointFilterCache[Index])
 			{
-				TSharedPtr<PCGExMeshCollection::FMacroCache> EntryMacroCache = StaticCastSharedPtr<PCGExMeshCollection::FMacroCache>(Entry->MacroCache);
-				MaterialPick[Index] = EntryMacroCache->GetPickRandomWeighted(Seed);
-				HighestSlotIndex->Set(Scope, FMath::Max(FMath::Max(0, EntryMacroCache->GetHighestIndex()), HighestSlotIndex->Get(Scope)));
-				CachedPicks[Index] = Entry;
+				InvalidPoint(Index);
+				continue;
+			}
+
+			const FPCGExAssetCollectionEntry* Entry = nullptr;
+			const UPCGExAssetCollection* EntryHost = nullptr;
+
+			const int32 Seed = PCGExRandom::GetSeedFromPoint(
+				Helper->Details.SeedComponents, Point,
+				Helper->Details.LocalSeed, Settings, Context->GetComponent());
+
+			Helper->GetEntry(Entry, Index, Seed, EntryHost);
+
+			if (!Entry || !Entry->Staging.Bounds.IsValid)
+			{
+				InvalidPoint(Index);
+				continue;
+			}
+
+			if (Context->bPickMaterials)
+			{
+				if (Entry->MacroCache && Entry->MacroCache->GetType() == PCGExAssetCollection::EType::Mesh)
+				{
+					TSharedPtr<PCGExMeshCollection::FMacroCache> EntryMacroCache = StaticCastSharedPtr<PCGExMeshCollection::FMacroCache>(Entry->MacroCache);
+					MaterialPick[Index] = EntryMacroCache->GetPickRandomWeighted(Seed);
+					HighestSlotIndex->Set(Scope, FMath::Max(FMath::Max(0, EntryMacroCache->GetHighestIndex()), HighestSlotIndex->Get(Scope)));
+					CachedPicks[Index] = Entry;
+				}
+				else
+				{
+					MaterialPick[Index] = -1;
+				}
+			}
+
+			if (bOutputWeight)
+			{
+				double Weight = bNormalizedWeight ? static_cast<double>(Entry->Weight) / static_cast<double>(Context->MainCollection->LoadCache()->WeightSum) : Entry->Weight;
+				if (bOneMinusWeight) { Weight = 1 - Weight; }
+				if (WR) { WR->GetMutable(Index) = Weight; }
+				else { Densities[Index] = Weight; }
+			}
+
+			if (PathWriter) { PathWriter->GetMutable(Index) = Entry->Staging.Path; }
+			else { HashWriter->GetMutable(Index) = Context->CollectionPickDatasetPacker->GetPickIdx(EntryHost, Entry->Staging.InternalIndex); }
+
+			FBox OutBounds = Entry->Staging.Bounds;
+
+			if (Variations.bEnabledBefore)
+			{
+				FPCGPoint ProxyPoint = Point;
+				if (EntryHost->GlobalVariationMode == EPCGExGlobalVariationRule::Overrule ||
+					Entry->VariationMode == EPCGExEntryVariationMode::Global)
+				{
+					Variations.Apply(ProxyPoint, EntryHost->GlobalVariations, EPCGExVariationMode::Before);
+				}
+				else
+				{
+					Variations.Apply(ProxyPoint, Entry->Variations, EPCGExVariationMode::Before);
+				}
+
+				FittingHandler.ComputeTransform(Index, ProxyPoint, Transforms[Index], OutBounds);
 			}
 			else
 			{
-				MaterialPick[Index] = -1;
+				FittingHandler.ComputeTransform(Index, Transforms[Index], OutBounds);
 			}
-		}
 
-		if (bOutputWeight)
-		{
-			double Weight = bNormalizedWeight ? static_cast<double>(Entry->Weight) / static_cast<double>(Context->MainCollection->LoadCache()->WeightSum) : Entry->Weight;
-			if (bOneMinusWeight) { Weight = 1 - Weight; }
-			if (WeightWriter) { WeightWriter->GetMutable(Index) = Weight; }
-			else if (NormalizedWeightWriter) { NormalizedWeightWriter->GetMutable(Index) = Weight; }
-			else { Point.Density = Weight; }
-		}
+			BoundsMin[Index] = OutBounds.Min;
+			BoundsMax[Index] = OutBounds.Max;
 
-		if (PathWriter) { PathWriter->GetMutable(Index) = Entry->Staging.Path; }
-		else { HashWriter->GetMutable(Index) = Context->CollectionPickDatasetPacker->GetPickIdx(EntryHost, Entry->Staging.InternalIndex); }
-
-		FBox OutBounds = Entry->Staging.Bounds;
-
-		if (Variations.bEnabledBefore)
-		{
-			FPCGPoint ProxyPoint = Point;
-			if (EntryHost->GlobalVariationMode == EPCGExGlobalVariationRule::Overrule ||
-				Entry->VariationMode == EPCGExEntryVariationMode::Global)
+			if (Variations.bEnabledAfter)
 			{
-				Variations.Apply(ProxyPoint, EntryHost->GlobalVariations, EPCGExVariationMode::Before);
-			}
-			else
-			{
-				Variations.Apply(ProxyPoint, Entry->Variations, EPCGExVariationMode::Before);
-			}
-
-			FittingHandler.ComputeTransform(Index, ProxyPoint, Point.Transform, OutBounds);
-		}
-		else
-		{
-			FittingHandler.ComputeTransform(Index, Point.Transform, OutBounds);
-		}
-
-
-		Point.BoundsMin = OutBounds.Min;
-		Point.BoundsMax = OutBounds.Max;
-
-		if (Variations.bEnabledAfter)
-		{
-			if (EntryHost->GlobalVariationMode == EPCGExGlobalVariationRule::Overrule ||
-				Entry->VariationMode == EPCGExEntryVariationMode::Global)
-			{
-				Variations.Apply(Point, EntryHost->GlobalVariations, EPCGExVariationMode::After);
-			}
-			else
-			{
-				Variations.Apply(Point, Entry->Variations, EPCGExVariationMode::After);
+				if (EntryHost->GlobalVariationMode == EPCGExGlobalVariationRule::Overrule ||
+					Entry->VariationMode == EPCGExEntryVariationMode::Global)
+				{
+					Variations.Apply(Point, EntryHost->GlobalVariations, EPCGExVariationMode::After);
+				}
+				else
+				{
+					Variations.Apply(Point, Entry->Variations, EPCGExVariationMode::After);
+				}
 			}
 		}
+
+		FPlatformAtomics::InterlockedAdd(&NumInvalid, LocalNumInvalid);
 	}
 
 	void FProcessor::CompleteWork()
@@ -420,13 +434,9 @@ namespace PCGExAssetStaging
 
 	void FProcessor::Write()
 	{
-		// TODO : Find a better solution
-		TArray<FPCGPoint>& MutablePoints = PointDataFacade->GetOut()->GetMutablePoints();
-
-		int32 WriteIndex = 0;
-		for (int32 i = 0; i < NumPoints; i++) { if (MutablePoints[i].MetadataEntry != -2) { MutablePoints[WriteIndex++] = MutablePoints[i]; } }
-
-		MutablePoints.SetNum(WriteIndex);
+		const TPCGValueRange<int64> MetadataEntries = PointDataFacade->GetOut()->GetMetadataEntryValueRange();
+		PCGEX_REDUCE_INDICES(Indices, MetadataEntries.Num(), MetadataEntries[i] != -2)
+		PointDataFacade->Source->Gather(Indices);
 	}
 }
 

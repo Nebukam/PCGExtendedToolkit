@@ -3,7 +3,6 @@
 
 #pragma once
 
-#define PCGEX_SOFT_VALIDATE_NAME_DETAILS(_BOOL, _NAME, _CTX) if(_BOOL){if (!FPCGMetadataAttributeBase::IsValidName(_NAME) || _NAME.IsNone()){ PCGE_LOG_C(Warning, GraphAndLog, _CTX, FTEXT("Invalid user-defined attribute name for " #_NAME)); _BOOL = false; } }
 #define PCGEX_SETTING_VALUE_GET(_NAME, _TYPE, _INPUT, _SOURCE, _CONSTANT)\
 	TSharedPtr<PCGExDetails::TSettingValue<_TYPE>> GetValueSetting##_NAME(const bool bQuietErrors = false) const{\
 	TSharedPtr<PCGExDetails::TSettingValue<_TYPE>> V = PCGExDetails::MakeSettingValue<_TYPE>(_INPUT, _SOURCE, _CONSTANT);\
@@ -18,6 +17,9 @@
 
 namespace PCGExDetails
 {
+
+#pragma region Settings
+	
 	template <typename T>
 	class TSettingValue : public TSharedFromThis<TSettingValue<T>>
 	{
@@ -154,7 +156,141 @@ namespace PCGExDetails
 
 		return MakeSettingValue<T>(InConstant);
 	}
+
+#pragma endregion
+
+#pragma region Distances
+
+	class PCGEXTENDEDTOOLKIT_API FDistances : public TSharedFromThis<FDistances>
+	{
+	public:
+		virtual ~FDistances() = default;
+
+		bool bOverlapIsZero = false;
+
+		FDistances()
+		{
+		}
+
+		explicit FDistances(const bool InOverlapIsZero)
+			: bOverlapIsZero(InOverlapIsZero)
+		{
+		}
+
+		virtual FVector GetSourceCenter(const PCGExData::FConstPoint& OriginPoint, const FVector& OriginLocation, const FVector& ToCenter) const = 0;
+		virtual FVector GetTargetCenter(const PCGExData::FConstPoint& OriginPoint, const FVector& OriginLocation, const FVector& ToCenter) const = 0;
+		virtual void GetCenters(const PCGExData::FConstPoint& SourcePoint, const PCGExData::FConstPoint& TargetPoint, FVector& OutSource, FVector& OutTarget) const = 0;
+		virtual double GetDistSquared(const PCGExData::FConstPoint& SourcePoint, const PCGExData::FConstPoint& TargetPoint) const = 0;
+		virtual double GetDist(const PCGExData::FConstPoint& SourcePoint, const PCGExData::FConstPoint& TargetPoint) const = 0;
+		virtual double GetDistSquared(const PCGExData::FConstPoint& SourcePoint, const PCGExData::FConstPoint& TargetPoint, bool& bOverlap) const = 0;
+		virtual double GetDist(const PCGExData::FConstPoint& SourcePoint, const PCGExData::FConstPoint& TargetPoint, bool& bOverlap) const = 0;
+	};
+
+	template <EPCGExDistance Source, EPCGExDistance Target>
+	class PCGEXTENDEDTOOLKIT_API TDistances final : public FDistances
+	{
+	public:
+		TDistances()
+		{
+		}
+
+		explicit TDistances(const bool InOverlapIsZero)
+			: FDistances(InOverlapIsZero)
+		{
+		}
+
+		FORCEINLINE virtual FVector GetSourceCenter(const PCGExData::FConstPoint& FromPoint, const FVector& FromCenter, const FVector& ToCenter) const override
+		{
+			return PCGExMath::GetSpatializedCenter<Source>(FromPoint, FromCenter, ToCenter);
+		}
+
+		FORCEINLINE virtual FVector GetTargetCenter(const PCGExData::FConstPoint& FromPoint, const FVector& FromCenter, const FVector& ToCenter) const override
+		{
+			return PCGExMath::GetSpatializedCenter<Target>(FromPoint, FromCenter, ToCenter);
+		}
+
+		FORCEINLINE virtual void GetCenters(const PCGExData::FConstPoint& SourcePoint, const PCGExData::FConstPoint& TargetPoint, FVector& OutSource, FVector& OutTarget) const override
+		{
+			const FVector TargetOrigin = TargetPoint.GetLocation();
+			OutSource = PCGExMath::GetSpatializedCenter<Source>(SourcePoint, SourcePoint.GetLocation(), TargetOrigin);
+			OutTarget = PCGExMath::GetSpatializedCenter<Target>(TargetPoint, TargetOrigin, OutSource);
+		}
+
+		FORCEINLINE virtual double GetDistSquared(const PCGExData::FConstPoint& SourcePoint, const PCGExData::FConstPoint& TargetPoint) const override
+		{
+			const FVector TargetOrigin = TargetPoint.GetLocation();
+			const FVector OutSource = PCGExMath::GetSpatializedCenter<Source>(SourcePoint, SourcePoint.GetLocation(), TargetOrigin);
+			return FVector::DistSquared(OutSource, PCGExMath::GetSpatializedCenter<Target>(TargetPoint, TargetOrigin, OutSource));
+		}
+
+		FORCEINLINE virtual double GetDist(const PCGExData::FConstPoint& SourcePoint, const PCGExData::FConstPoint& TargetPoint) const override
+		{
+			const FVector TargetOrigin = TargetPoint.GetLocation();
+			const FVector OutSource = PCGExMath::GetSpatializedCenter<Source>(SourcePoint, SourcePoint.GetLocation(), TargetOrigin);
+			return FVector::Dist(OutSource, PCGExMath::GetSpatializedCenter<Target>(TargetPoint, TargetOrigin, OutSource));
+		}
+
+		FORCEINLINE virtual double GetDistSquared(const PCGExData::FConstPoint& SourcePoint, const PCGExData::FConstPoint& TargetPoint, bool& bOverlap) const override
+		{
+			const FVector TargetOrigin = TargetPoint.GetLocation();
+			const FVector SourceOrigin = SourcePoint.GetLocation();
+			const FVector OutSource = PCGExMath::GetSpatializedCenter<Source>(SourcePoint, SourceOrigin, TargetOrigin);
+			const FVector OutTarget = PCGExMath::GetSpatializedCenter<Target>(TargetPoint, TargetOrigin, OutSource);
+
+			bOverlap = FVector::DotProduct((TargetOrigin - SourceOrigin), (OutTarget - OutSource)) < 0;
+			return FVector::DistSquared(OutSource, OutTarget);
+		}
+
+		FORCEINLINE virtual double GetDist(const PCGExData::FConstPoint& SourcePoint, const PCGExData::FConstPoint& TargetPoint, bool& bOverlap) const override
+		{
+			const FVector TargetOrigin = TargetPoint.GetLocation();
+			const FVector SourceOrigin = SourcePoint.GetLocation();
+			const FVector OutSource = PCGExMath::GetSpatializedCenter<Source>(SourcePoint, SourceOrigin, TargetOrigin);
+			const FVector OutTarget = PCGExMath::GetSpatializedCenter<Target>(TargetPoint, TargetOrigin, OutSource);
+
+			bOverlap = FVector::DotProduct((TargetOrigin - SourceOrigin), (OutTarget - OutSource)) < 0;
+			return FVector::Dist(OutSource, OutTarget);
+		}
+	};
+
+	PCGEXTENDEDTOOLKIT_API
+	TSharedPtr<FDistances> MakeDistances(
+		const EPCGExDistance Source = EPCGExDistance::Center,
+		const EPCGExDistance Target = EPCGExDistance::Center,
+		const bool bOverlapIsZero = false);
+
+	PCGEXTENDEDTOOLKIT_API
+	TSharedPtr<FDistances> MakeNoneDistances();
+
+#pragma endregion 
+	
 }
+
+USTRUCT(BlueprintType)
+struct PCGEXTENDEDTOOLKIT_API FPCGExDistanceDetails
+{
+	GENERATED_BODY()
+
+	FPCGExDistanceDetails()
+	{
+	}
+
+	explicit FPCGExDistanceDetails(const EPCGExDistance SourceMethod, const EPCGExDistance TargetMethod)
+		: Source(SourceMethod), Target(TargetMethod)
+	{
+	}
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	EPCGExDistance Source = EPCGExDistance::Center;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	EPCGExDistance Target = EPCGExDistance::Center;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	bool bOverlapIsZero = true;
+
+	TSharedPtr<PCGExDetails::FDistances> MakeDistances() const;
+};
 
 USTRUCT(BlueprintType)
 struct PCGEXTENDEDTOOLKIT_API FPCGExInfluenceDetails
@@ -381,27 +517,25 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExFuseDetails : public FPCGExSourceFuseDetails
 		return FBoxCenterAndExtent(Location, ToleranceGetter->Read(PointIndex));
 	}
 
-	FORCEINLINE void GetCenters(const FPCGPoint& SourcePoint, const FPCGPoint& TargetPoint, FVector& OutSource, FVector& OutTarget) const
+	FORCEINLINE void GetCenters(const PCGExData::FConstPoint& SourcePoint, const PCGExData::FConstPoint& TargetPoint, FVector& OutSource, FVector& OutTarget) const
 	{
 		OutSource = DistanceDetails->GetSourceCenter(SourcePoint, SourcePoint.Transform.GetLocation(), TargetPoint.Transform.GetLocation());
 		OutTarget = DistanceDetails->GetTargetCenter(TargetPoint, TargetPoint.Transform.GetLocation(), OutSource);
 	}
 
-	FORCEINLINE bool IsWithinTolerance(const FPCGPoint& SourcePoint, const FPCGPoint& TargetPoint, const int32 PointIndex) const
+	FORCEINLINE bool IsWithinTolerance(const PCGExData::FConstPoint& SourcePoint, const PCGExData::FConstPoint& TargetPoint) const
 	{
 		FVector A;
 		FVector B;
 		GetCenters(SourcePoint, TargetPoint, A, B);
-		return FPCGExFuseDetailsBase::IsWithinTolerance(A, B, PointIndex);
+		return FPCGExFuseDetailsBase::IsWithinTolerance(A, B, SourcePoint.Index);
 	}
 
-	FORCEINLINE bool IsWithinToleranceComponentWise(const FPCGPoint& SourcePoint, const FPCGPoint& TargetPoint, const int32 PointIndex) const
+	FORCEINLINE bool IsWithinToleranceComponentWise(const PCGExData::FConstPoint& SourcePoint, const PCGExData::FConstPoint& TargetPoint) const
 	{
 		FVector A;
 		FVector B;
 		GetCenters(SourcePoint, TargetPoint, A, B);
-		return FPCGExFuseDetailsBase::IsWithinToleranceComponentWise(A, B, PointIndex);
+		return FPCGExFuseDetailsBase::IsWithinToleranceComponentWise(A, B, SourcePoint.Index);
 	}
 };
-
-#undef PCGEX_SOFT_VALIDATE_NAME_DETAILS

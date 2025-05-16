@@ -16,6 +16,8 @@
 #include "PCGExMT.h"
 #include "Data/PCGPointData.h"
 
+
+
 #include "Geometry/PCGExGeoPointBox.h"
 
 #include "PCGExData.generated.h"
@@ -763,6 +765,9 @@ namespace PCGExData
 
 		void Fetch(const PCGExMT::FScope& Scope) { for (const TSharedPtr<FBufferBase>& Buffer : Buffers) { Buffer->Fetch(Scope); } }
 
+		FORCEINLINE FConstPoint GetInPoint(const int32 Index) const { return Source->GetInPoint(Index); }
+		FORCEINLINE FMutablePoint GetOutPoint(const int32 Index) const { return Source->GetOutPoint(Index); }
+
 	protected:
 		template <typename Func>
 		void ForEachWritable(Func&& Callback)
@@ -922,7 +927,7 @@ namespace PCGExData
 			TArray<int32>& OutPointsIdx,
 			TArray<double>& OutWeights) const;
 
-		uint64 Add(const int32 IOIndex, const int32 PointIndex);
+		uint64 Add(const PCGExData::FPoint& Point);
 		void Add(const int32 IOIndex, const TArray<int32>& PointIndices);
 
 		void Reset()
@@ -944,10 +949,10 @@ namespace PCGExData
 		int32 Num() const { return Entries.Num(); }
 		void SetNum(const int32 InNum);
 
-		TSharedPtr<FUnionData> NewEntry_Unsafe(const int32 IOIndex, const int32 ItemIndex);
+		TSharedPtr<FUnionData> NewEntry_Unsafe(const PCGExData::FConstPoint& Point);
 		TSharedPtr<FUnionData> NewEntryAt_Unsafe(const int32 ItemIndex);
 
-		uint64 Append(const int32 Index, const int32 IOIndex, const int32 ItemIndex);
+		uint64 Append(const int32 Index, const PCGExData::FPoint& Point);
 		bool IOIndexOverlap(const int32 InIdx, const TSet<int32>& InIndices);
 
 		FORCEINLINE TSharedPtr<FUnionData> Get(const int32 Index) const { return Entries.IsValidIndex(Index) ? Entries[Index] : nullptr; }

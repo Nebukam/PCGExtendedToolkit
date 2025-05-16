@@ -30,8 +30,8 @@ public:
 	UPCGExActionWriteValuesFactory* TypedFactory = nullptr;
 
 	virtual bool PrepareForData(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade>& InPointDataFacade) override;
-	virtual void OnMatchSuccess(int32 Index, const FPCGPoint& Point) override;
-	virtual void OnMatchFail(int32 Index, const FPCGPoint& Point) override;
+	virtual void OnMatchSuccess(int32 Index) override;
+	virtual void OnMatchFail(int32 Index) override;
 
 protected:
 	TArray<FPCGMetadataAttributeBase*> SuccessAttributes;

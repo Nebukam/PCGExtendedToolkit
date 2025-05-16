@@ -12,8 +12,12 @@
 #include "Data/PCGExData.h"
 #include "Data/PCGExDataForward.h"
 #include "Data/Blending/PCGExMetadataBlender.h"
-#include "Editor/Experimental/EditorInteractiveToolsFramework/Public/Behaviors/2DViewportBehaviorTargets.h"
-#include "Editor/Experimental/EditorInteractiveToolsFramework/Public/Behaviors/2DViewportBehaviorTargets.h"
+
+
+
+
+
+
 
 #include "PCGExIntersections.generated.h"
 
@@ -152,14 +156,14 @@ namespace PCGExGraph
 		mutable FRWLock AdjacencyLock;
 
 	public:
-		const FPCGPoint Point;
+		const PCGExData::FConstPoint Point;
 		FVector Center;
 		FBoxSphereBounds Bounds;
 		int32 Index;
 
 		TSet<int32> Adjacency;
 
-		FUnionNode(const FPCGPoint& InPoint, const FVector& InCenter, const int32 InIndex);
+		FUnionNode(const PCGExData::FConstPoint& InPoint, const FVector& InCenter, const int32 InIndex);
 		~FUnionNode() = default;
 
 		FVector UpdateCenter(const TSharedPtr<PCGExData::FUnionMetadata>& InUnionMetadata, const TSharedPtr<PCGExData::FPointIOCollection>& IOGroup);
@@ -176,7 +180,7 @@ namespace PCGExGraph
 
 		TSharedPtr<PCGExData::FPointIOCollection> NodesCollection;
 		TSharedPtr<PCGExData::FPointIOCollection> EdgesCollection;
-		
+
 		TSharedPtr<PCGExData::FUnionMetadata> NodesUnion;
 		TSharedPtr<PCGExData::FUnionMetadata> EdgesUnion;
 		TArray<TSharedPtr<FUnionNode>> Nodes;
@@ -201,14 +205,10 @@ namespace PCGExGraph
 		int32 NumNodes() const { return NodesUnion->Num(); }
 		int32 NumEdges() const { return EdgesUnion->Num(); }
 
-		TSharedPtr<FUnionNode> InsertPoint(const PCGExData::FPoint& Point);
-		TSharedPtr<FUnionNode> InsertPoint_Unsafe(const FPCGPoint& Point, const int32 IOIndex, const int32 PointIndex);
-		TSharedPtr<PCGExData::FUnionData> InsertEdge(const FPCGPoint& From, const int32 FromIOIndex, const int32 FromPointIndex,
-		                                             const FPCGPoint& To, const int32 ToIOIndex, const int32 ToPointIndex,
-		                                             const int32 EdgeIOIndex = -1, const int32 EdgePointIndex = -1);
-		TSharedPtr<PCGExData::FUnionData> InsertEdge_Unsafe(const FPCGPoint& From, const int32 FromIOIndex, const int32 FromPointIndex,
-		                                                    const FPCGPoint& To, const int32 ToIOIndex, const int32 ToPointIndex,
-		                                                    const int32 EdgeIOIndex = -1, const int32 EdgePointIndex = -1);
+		TSharedPtr<FUnionNode> InsertPoint(const PCGExData::FConstPoint& Point);
+		TSharedPtr<FUnionNode> InsertPoint_Unsafe(const PCGExData::FConstPoint& Point);
+		TSharedPtr<PCGExData::FUnionData> InsertEdge(const PCGExData::FConstPoint& From, const PCGExData::FConstPoint& To, const PCGExData::FConstPoint& Edge = PCGExData::NONE_ConstPoint);
+		TSharedPtr<PCGExData::FUnionData> InsertEdge_Unsafe(const PCGExData::FConstPoint& From, const PCGExData::FConstPoint& To, const PCGExData::FConstPoint& Edge = PCGExData::NONE_ConstPoint);
 		void GetUniqueEdges(TSet<uint64>& OutEdges);
 		void GetUniqueEdges(TArray<FEdge>& OutEdges);
 		void WriteNodeMetadata(const TSharedPtr<FGraph>& InGraph) const;

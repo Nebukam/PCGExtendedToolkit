@@ -8,6 +8,7 @@
 
 UPCGSpatialData* UPCGExPointData::CopyInternal(FPCGContext* Context) const
 {
-	PCGEX_NEW_CUSTOM_POINT_DATA(UPCGExPointData)
+	UPCGExPointData* NewData = Cast<UPCGExPointData>(FPCGContext::NewObject_AnyThread<UPCGExPointData>(Context));
+	if (!SupportsSpatialDataInheritance()) { NewData->CopyUnallocatedPropertiesFrom(this); }
 	return NewData;
 }

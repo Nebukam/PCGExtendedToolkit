@@ -42,7 +42,7 @@ bool FPCGExActionWriteValuesOperation::PrepareForData(FPCGExContext* InContext, 
 	return true;
 }
 
-void FPCGExActionWriteValuesOperation::OnMatchSuccess(int32 Index, const FPCGPoint& Point)
+void FPCGExActionWriteValuesOperation::OnMatchSuccess(int32 Index)
 {
 	for (int i = 0; i < SuccessAttributes.Num(); i++)
 	{
@@ -56,7 +56,7 @@ void FPCGExActionWriteValuesOperation::OnMatchSuccess(int32 Index, const FPCGPoi
 	}
 }
 
-void FPCGExActionWriteValuesOperation::OnMatchFail(int32 Index, const FPCGPoint& Point)
+void FPCGExActionWriteValuesOperation::OnMatchFail(int32 Index)
 {
 	for (int i = 0; i < FailAttributes.Num(); i++)
 	{

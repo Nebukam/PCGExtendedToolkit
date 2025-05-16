@@ -361,34 +361,34 @@ namespace PCGExBinPacking
 		return true;
 	}
 
-	void FProcessor::PrepareSingleLoopScopeForPoints(const PCGExMT::FScope& Scope)
+	void FProcessor::ProcessPoints(const PCGExMT::FScope& Scope)
 	{
 		PointDataFacade->Fetch(Scope);
-	}
 
-	void FProcessor::ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const PCGExMT::FScope& Scope)
-	{
-		FItem Item = FItem();
+		PCGEX_SCOPE_LOOP(Index){
+		
+			FItem Item = FItem();
 
-		Item.Index = Index;
-		Item.Box = FBox(FVector::ZeroVector, PCGExMath::GetLocalBounds<EPCGExPointBoundsSource::ScaledBounds>(Point).GetSize());
-		Item.Padding = PaddingBuffer->Read(Index);
+			Item.Index = Index;
+			Item.Box = FBox(FVector::ZeroVector, PCGExMath::GetLocalBounds<EPCGExPointBoundsSource::ScaledBounds>(Point).GetSize());
+			Item.Padding = PaddingBuffer->Read(Index);
 
-		bool bPlaced = false;
-		for (const TSharedPtr<FBin>& Bin : Bins)
-		{
-			if (Bin->Insert(Item))
+			bool bPlaced = false;
+			for (const TSharedPtr<FBin>& Bin : Bins)
 			{
-				bPlaced = true;
-				Bin->UpdatePoint(Point, Item);
-				break;
+				if (Bin->Insert(Item))
+				{
+					bPlaced = true;
+					Bin->UpdatePoint(Point, Item);
+					break;
+				}
 			}
+
+			Fitted[Index] = bPlaced;
+			if (!bPlaced) { bHasUnfitted = true; }
+
+			// TODO : post process pass to move things around based on initial placement
 		}
-
-		Fitted[Index] = bPlaced;
-		if (!bPlaced) { bHasUnfitted = true; }
-
-		// TODO : post process pass to move things around based on initial placement
 	}
 
 	void FProcessor::CompleteWork()

@@ -450,8 +450,8 @@ namespace PCGExPathCrossings
 			const int32 SecondIndex = PtIdx + 1 >= static_cast<uint32>(Context->MainPoints->Pairs[IOIdx]->GetNum(PCGExData::ESource::In)) ? 0 : PtIdx + 1;
 
 			Union->Reset();
-			Union->Add(IOIdx, PtIdx);
-			Union->Add(IOIdx, SecondIndex);
+			Union->Add(IOIdx);
+			Union->Add(IOIdx);
 			UnionBlender->SoftMergeSingle(Edge.AltStart + i + 1, Union, Context->Distances);
 		}
 	}

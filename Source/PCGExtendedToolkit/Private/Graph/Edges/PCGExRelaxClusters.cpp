@@ -197,7 +197,7 @@ namespace PCGExRelaxClusters
 	void FProcessor::ProcessSingleNode(const int32 Index, PCGExCluster::FNode& Node, const PCGExMT::FScope& Scope)
 	{
 		// Commit values
-		FPCGPoint& Point = VtxDataFacade->Source->GetMutablePoint(Node.PointIndex);
+		FPCGPoint& Point = VtxDataFacade->Source->GetOutPoint(Node.PointIndex);
 
 		TArray<FPCGPoint>& MutablePoints = VtxDataFacade->GetOut()->GetMutablePoints();
 		if (InfluenceDetails.bProgressiveInfluence)

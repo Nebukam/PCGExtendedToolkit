@@ -159,7 +159,7 @@ namespace PCGExWriteEdgeProperties
 			}
 		}
 
-		FPCGPoint& MutableTarget = EdgeDataFacade->Source->GetMutablePoint(Edge.PointIndex);
+		FPCGPoint& MutableTarget = EdgeDataFacade->Source->GetOutPoint(Edge.PointIndex);
 
 		auto MetadataBlend = [&]()
 		{

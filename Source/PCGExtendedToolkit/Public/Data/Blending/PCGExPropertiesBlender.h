@@ -64,16 +64,16 @@ namespace PCGExDataBlending
 
 		void Init(const FPCGExPropertiesBlendingDetails& InDetails);
 
-		void PrepareBlending(FPCGPoint& Target, const FPCGPoint& Default) const;
-		void Blend(const FPCGPoint& A, const FPCGPoint& B, FPCGPoint& Target, double Weight) const;
-		void CompleteBlending(FPCGPoint& Target, const int32 Count, const double TotalWeight) const;
+		void PrepareBlending(const PCGExData::FMutablePoint& Target, const PCGExData::FConstPoint& Default) const;
+		void Blend(const PCGExData::FConstPoint& A, const PCGExData::FConstPoint& B, const PCGExData::FMutablePoint& Target, double Weight) const;
+		void CompleteBlending(const PCGExData::FMutablePoint& Target, const int32 Count, const double TotalWeight) const;
 
-		void BlendOnce(const FPCGPoint& A, const FPCGPoint& B, FPCGPoint& Target, double Weight) const;
+		void BlendOnce(const PCGExData::FConstPoint& A, const PCGExData::FConstPoint& B, const PCGExData::FMutablePoint& Target, double Weight) const;
 
-		void PrepareRangeBlending(const TArrayView<FPCGPoint>& Targets, const FPCGPoint& Default) const;
-		void BlendRange(const FPCGPoint& From, const FPCGPoint& To, const TArrayView<FPCGPoint>& Targets, const TArrayView<double>& Weights) const;
+		void PrepareRangeBlending(const TArrayView<FPCGPoint>& Targets, const PCGExData::FConstPoint& Default) const;
+		void BlendRange(const PCGExData::FConstPoint& From, const PCGExData::FConstPoint& To, const TArrayView<FPCGPoint>& Targets, const TArrayView<double>& Weights) const;
 		void CompleteRangeBlending(const TArrayView<FPCGPoint>& Targets, const TArrayView<const int32>& Counts, const TArrayView<double>& TotalWeights) const;
 
-		void BlendRangeFromTo(const FPCGPoint& From, const FPCGPoint& To, const TArrayView<FPCGPoint>& Targets, const TArrayView<double>& Weights) const;
+		void BlendRangeFromTo(const PCGExData::FConstPoint& From, const PCGExData::FConstPoint& To, const TArrayView<FPCGPoint>& Targets, const TArrayView<double>& Weights) const;
 	};
 }

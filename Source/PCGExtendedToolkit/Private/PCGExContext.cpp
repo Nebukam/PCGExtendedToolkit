@@ -102,12 +102,14 @@ void FPCGExContext::CommitStagedOutputs()
 
 FPCGExContext::FPCGExContext()
 {
+	WorkPermit = MakeShared<PCGEx::FWorkPermit>();
 	ManagedObjects = MakeShared<PCGEx::FManagedObjects>(this);
 	UniqueNameGenerator = MakeShared<PCGEx::FUniqueNameGenerator>();
 }
 
 FPCGExContext::~FPCGExContext()
 {
+	WorkPermit.Reset();
 	CancelAssetLoading();
 	ManagedObjects->Flush(); // So cleanups can be recursively triggered while manager is still alive
 }
@@ -261,7 +263,7 @@ void FPCGExContext::LoadAssets()
 			LoadHandle = UAssetManager::GetStreamableManager().RequestAsyncLoad(
 				RequiredAssets->Array(), [CtxHandle]()
 				{
-					const FPCGExContext::FPCGExSharedContext<FPCGExContext> SharedContext(CtxHandle);
+					const FPCGContext::FSharedContext<FPCGExContext> SharedContext(CtxHandle);
 					if (FPCGExContext* NestedThis = SharedContext.Get()) { NestedThis->UnpauseContext(); }
 				});
 
@@ -285,14 +287,14 @@ void FPCGExContext::LoadAssets()
 			AsyncTask(
 				ENamedThreads::GameThread, [CtxHandle]()
 				{
-					const FPCGExContext::FPCGExSharedContext<FPCGExContext> SharedContext(CtxHandle);
+					const FPCGContext::FSharedContext<FPCGExContext> SharedContext(CtxHandle);
 					FPCGExContext* This = SharedContext.Get();
 					if (!This) { return; }
 
 					This->LoadHandle = UAssetManager::GetStreamableManager().RequestAsyncLoad(
 						This->RequiredAssets->Array(), [CtxHandle]()
 						{
-							const FPCGExContext::FPCGExSharedContext<FPCGExContext> SharedContext(CtxHandle);
+							const FPCGContext::FSharedContext<FPCGExContext> SharedContext(CtxHandle);
 							if (FPCGExContext* NestedThis = SharedContext.Get()) { NestedThis->UnpauseContext(); }
 						});
 
