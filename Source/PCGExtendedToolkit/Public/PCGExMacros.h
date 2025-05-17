@@ -8,6 +8,8 @@
 #ifndef PCGEX_MACROS
 #define PCGEX_MACROS
 
+#define PCGEX_MACRO_NONE(...)
+
 #define PCGEX_MAKE_SHARED(_NAME, _CLASS, ...) const TSharedPtr<_CLASS> _NAME = MakeShared<_CLASS>(__VA_ARGS__);
 #define PCGEX_ENGINE_VERSION ENGINE_MAJOR_VERSION * 100 + ENGINE_MINOR_VERSION
 
@@ -68,7 +70,7 @@ MACRO(BoundsMax, FVector, __VA_ARGS__) \
 MACRO(Color, FVector4, __VA_ARGS__) \
 MACRO(Steepness, float, __VA_ARGS__) \
 MACRO(Seed, int32, __VA_ARGS__) \
-MACRO(MetadataEntry, int64, __VA_ARGS__) 
+MACRO(MetadataEntry, int64, __VA_ARGS__)
 
 #define PCGEX_NATIVE_PROPERTY_GET(_NAME, _TYPE, _SOURCE) TPCGValueRange<_TYPE> _NAME##ValueRange = _SOURCE->Get##_NAME##ValueRange();
 #define PCGEX_FOREACH_POINT_NATIVE_PROPERTY_GET(_SOURCE) PCGEX_FOREACH_POINT_NATIVE_PROPERTY(PCGEX_NATIVE_PROPERTY_GET, _SOURCE)
@@ -77,54 +79,58 @@ MACRO(MetadataEntry, int64, __VA_ARGS__)
 #define PCGEX_FOREACH_POINT_NATIVE_PROPERTY_CONSTGET(_SOURCE) PCGEX_FOREACH_POINT_NATIVE_PROPERTY(PCGEX_NATIVE_PROPERTY_CONSTGET, _SOURCE)
 
 #define PCGEX_FOREACH_POINTPROPERTY(MACRO)\
-MACRO(EPCGPointProperties::Density, Density, float) \
-MACRO(EPCGPointProperties::BoundsMin, BoundsMin, FVector) \
-MACRO(EPCGPointProperties::BoundsMax, BoundsMax, FVector) \
-MACRO(EPCGPointProperties::Extents, GetExtents(), FVector) \
-MACRO(EPCGPointProperties::Color, Color, FVector4) \
-MACRO(EPCGPointProperties::Position, Transform.GetLocation(), FVector) \
-MACRO(EPCGPointProperties::Rotation, Transform.GetRotation(), FQuat) \
-MACRO(EPCGPointProperties::Scale, Transform.GetScale3D(), FVector) \
-MACRO(EPCGPointProperties::Transform, Transform, FTransform) \
-MACRO(EPCGPointProperties::Steepness, Steepness, float) \
-MACRO(EPCGPointProperties::LocalCenter, GetLocalCenter(), FVector) \
-MACRO(EPCGPointProperties::Seed, Seed, int32)\
-MACRO(EPCGPointProperties::LocalSize, GetLocalSize(), FVector)\
-MACRO(EPCGPointProperties::ScaledLocalSize, GetScaledLocalSize(), FVector)
+MACRO(EPCGPointProperties::Density, Density, float, float) \
+MACRO(EPCGPointProperties::BoundsMin, BoundsMin, FVector, FVector) \
+MACRO(EPCGPointProperties::BoundsMax, BoundsMax, FVector, FVector) \
+MACRO(EPCGPointProperties::Extents, GetExtents(), FVector, FVector) \
+MACRO(EPCGPointProperties::Color, Color, FVector4, FVector4) \
+MACRO(EPCGPointProperties::Position, Transform.GetLocation(), FVector, FTransform) \
+MACRO(EPCGPointProperties::Rotation, Transform.GetRotation(), FQuat, FTransform) \
+MACRO(EPCGPointProperties::Scale, Transform.GetScale3D(), FVector, FTransform) \
+MACRO(EPCGPointProperties::Transform, Transform, FTransform, FTransform) \
+MACRO(EPCGPointProperties::Steepness, Steepness, float, float) \
+MACRO(EPCGPointProperties::LocalCenter, GetLocalCenter(), FVector, FVector) \
+MACRO(EPCGPointProperties::Seed, Seed, int32, int32)\
+MACRO(EPCGPointProperties::LocalSize, GetLocalSize(), FVector, FVector)\
+MACRO(EPCGPointProperties::ScaledLocalSize, GetScaledLocalSize(), FVector, FVector)
 
-#define PCGEX_CONSTEXPR_IFELSE_GETPOINTPROPERTY(_PROPERTY, MACRO)\
-if constexpr(_PROPERTY == EPCGPointProperties::Density){ MACRO(Density, float) } \
-else if constexpr(_PROPERTY == EPCGPointProperties::BoundsMin){ MACRO(BoundsMin, FVector) } \
-else if constexpr(_PROPERTY == EPCGPointProperties::BoundsMax){ MACRO(BoundsMax, FVector) } \
-else if constexpr(_PROPERTY == EPCGPointProperties::Extents){ MACRO(GetExtents(), FVector) } \
-else if constexpr(_PROPERTY == EPCGPointProperties::Color){ MACRO(Color, FVector4) } \
-else if constexpr(_PROPERTY == EPCGPointProperties::Position){ MACRO(Transform.GetLocation(), FVector) } \
-else if constexpr(_PROPERTY == EPCGPointProperties::Rotation){ MACRO(Transform.GetRotation(), FQuat) } \
-else if constexpr(_PROPERTY == EPCGPointProperties::Scale){ MACRO(Transform.GetScale3D(), FVector) } \
-else if constexpr(_PROPERTY == EPCGPointProperties::Transform){ MACRO(Transform, FTransform) } \
-else if constexpr(_PROPERTY == EPCGPointProperties::Steepness){ MACRO(Steepness, float) } \
-else if constexpr(_PROPERTY == EPCGPointProperties::LocalCenter){ MACRO(GetLocalCenter(), FVector) } \
-else if constexpr(_PROPERTY == EPCGPointProperties::Seed){ MACRO(Seed, int32) } \
-else if constexpr(_PROPERTY == EPCGPointProperties::LocalSize){ MACRO(GetLocalSize(), FVector) } \
-else if constexpr(_PROPERTY == EPCGPointProperties::ScaledLocalSize){ MACRO(GetScaledLocalSize(), FVector) }
+#define PCGEX_PREFIXED_IFELSE_GETPOINTPROPERTY(_PREFIX, _PROPERTY, MACRO)\
+if constexpr(_PROPERTY == EPCGPointProperties::Density){ MACRO(GetDensity(Index), float) } \
+else if _PREFIX (_PROPERTY == EPCGPointProperties::BoundsMin){ MACRO(GetBoundsMin(Index), FVector) } \
+else if _PREFIX (_PROPERTY == EPCGPointProperties::BoundsMax){ MACRO(GetBoundsMax(Index), FVector) } \
+else if _PREFIX (_PROPERTY == EPCGPointProperties::Extents){ MACRO(GetExtents(Index), FVector) } \
+else if _PREFIX (_PROPERTY == EPCGPointProperties::Color){ MACRO(GetColor(Index), FVector4) } \
+else if _PREFIX (_PROPERTY == EPCGPointProperties::Position){ MACRO(GetTransform(Index).GetLocation(), FVector) } \
+else if _PREFIX (_PROPERTY == EPCGPointProperties::Rotation){ MACRO(GetTransform(Index).GetRotation(), FQuat) } \
+else if _PREFIX (_PROPERTY == EPCGPointProperties::Scale){ MACRO(GetTransform(Index).GetScale3D(), FVector) } \
+else if _PREFIX (_PROPERTY == EPCGPointProperties::Transform){ MACRO(GetTransform(Index), FTransform) } \
+else if _PREFIX (_PROPERTY == EPCGPointProperties::Steepness){ MACRO(GetSteepness(Index), float) } \
+else if _PREFIX (_PROPERTY == EPCGPointProperties::LocalCenter){ MACRO(GetLocalCenter(Index), FVector) } \
+else if _PREFIX (_PROPERTY == EPCGPointProperties::Seed){ MACRO(GetSeed(Index), int32) } \
+else if _PREFIX (_PROPERTY == EPCGPointProperties::LocalSize){ MACRO(GetLocalSize(Index), FVector) } \
+else if _PREFIX (_PROPERTY == EPCGPointProperties::ScaledLocalSize){ MACRO(GetScaledLocalSize(Index), FVector) }
 
-#define PCGEX_MACRO_NONE(...)
+#define PCGEX_CONSTEXPR_IFELSE_GETPOINTPROPERTY(_PROPERTY, MACRO) PCGEX_PREFIXED_IFELSE_GETPOINTPROPERTY(constexpr, _PROPERTY, MACRO)
+#define PCGEX_IFELSE_GETPOINTPROPERTY(_PROPERTY, MACRO) PCGEX_PREFIXED_IFELSE_GETPOINTPROPERTY(, _PROPERTY, MACRO)
 
-#define PCGEX_CONSTEXPR_IFELSE_SETPOINTPROPERTY(_PROPERTY, _POINT, BODY, MACRO)\
-if constexpr(_PROPERTY == EPCGPointProperties::Density){ BODY(FVector) _POINT.Density = MACRO(float); } \
-else if constexpr(_PROPERTY == EPCGPointProperties::BoundsMin){ BODY(FVector) _POINT.BoundsMin = MACRO(FVector); } \
-else if constexpr(_PROPERTY == EPCGPointProperties::BoundsMax){ BODY(FVector) _POINT.BoundsMax = MACRO(FVector); } \
-else if constexpr(_PROPERTY == EPCGPointProperties::Extents){ BODY(FVector) _POINT.SetExtents(MACRO(FVector)); } \
-else if constexpr(_PROPERTY == EPCGPointProperties::Color){ BODY(FVector) _POINT.Color = MACRO(FVector4); } \
-else if constexpr(_PROPERTY == EPCGPointProperties::Position){ BODY(FVector) _POINT.Transform.SetLocation(MACRO(FVector)); } \
-else if constexpr(_PROPERTY == EPCGPointProperties::Rotation){ BODY(FVector) _POINT.Transform.SetRotation(MACRO(FQuat)); } \
-else if constexpr(_PROPERTY == EPCGPointProperties::Scale){ BODY(FVector) _POINT.Transform.SetScale3D(MACRO(FVector)); } \
-else if constexpr(_PROPERTY == EPCGPointProperties::Transform){ BODY(FVector) _POINT.Transform = MACRO(FTransform); } \
-else if constexpr(_PROPERTY == EPCGPointProperties::Steepness){ BODY(FVector) _POINT.Steepness = MACRO(float); } \
-else if constexpr(_PROPERTY == EPCGPointProperties::LocalCenter){ BODY(FVector) _POINT.SetLocalCenter(MACRO(FVector)); } \
-else if constexpr(_PROPERTY == EPCGPointProperties::Seed){ BODY(FVector) _POINT.Seed = MACRO(int32); } \
-else if constexpr(_PROPERTY == EPCGPointProperties::LocalSize){ BODY(FVector) _POINT.SetExtents((MACRO(FVector))*0.5);  } \
-else if constexpr(_PROPERTY == EPCGPointProperties::ScaledLocalSize){ BODY(FVector) _POINT.SetExtents((MACRO(FVector)) * (FVector::OneVector / _POINT.Transform.GetScale3D()) * 0.5); }
+#define PCGEX_PREFIXED_IFELSE_SETPOINTPROPERTY(_PREFIX, _PROPERTY, _DATA, BODY, MACRO)\
+if constexpr(_PROPERTY == EPCGPointProperties::Density){ BODY(FVector) _DATA->GetDensityValueRange()[Index] = MACRO(float); } \
+else if _PREFIX (_PROPERTY == EPCGPointProperties::BoundsMin){ BODY(FVector) _DATA->GetBoundsMinRange[Index] = MACRO(FVector); } \
+else if _PREFIX (_PROPERTY == EPCGPointProperties::BoundsMax){ BODY(FVector) _DATA->GetBoundsMaxRange[Index] = MACRO(FVector); } \
+else if _PREFIX (_PROPERTY == EPCGPointProperties::Extents){ /* TODO */ } \
+else if _PREFIX (_PROPERTY == EPCGPointProperties::Color){ BODY(FVector) _DATA->GetColorValueRange[Index] = MACRO(FVector4); } \
+else if _PREFIX (_PROPERTY == EPCGPointProperties::Position){ BODY(FVector) _DATA->GetTransformValueRange()[Index].SetLocation(MACRO(FVector)); } \
+else if _PREFIX (_PROPERTY == EPCGPointProperties::Rotation){ BODY(FVector) _DATA->GetTransformValueRange()[Index].SetRotation(MACRO(FQuat)); } \
+else if _PREFIX (_PROPERTY == EPCGPointProperties::Scale){ BODY(FVector) _DATA->GetTransformValueRange()[Index].SetScale3D(MACRO(FVector)); } \
+else if _PREFIX (_PROPERTY == EPCGPointProperties::Transform){ BODY(FVector) _DATA->GetTransformValueRange()[Index] = MACRO(FTransform); } \
+else if _PREFIX (_PROPERTY == EPCGPointProperties::Steepness){ BODY(FVector) _DATA->GetSteepnessValueRange()[Index] = MACRO(float); } \
+else if _PREFIX (_PROPERTY == EPCGPointProperties::LocalCenter){ /* TODO */ } \
+else if _PREFIX (_PROPERTY == EPCGPointProperties::Seed){ BODY(FVector) _DATA->GetSeedValueRange()[Index] = MACRO(int32); } \
+else if _PREFIX (_PROPERTY == EPCGPointProperties::LocalSize){ /* TODO */  } \
+else if _PREFIX (_PROPERTY == EPCGPointProperties::ScaledLocalSize){ /* TODO */ }
+
+#define PCGEX_CONSTEXPR_IFELSE_SETPOINTPROPERTY(_PROPERTY, _DATA, BODY, MACRO) PCGEX_PREFIXED_IFELSE_SETPOINTPROPERTY(constexpr, _PROPERTY, _DATA, BODY, MACRO)
+#define PCGEX_IFELSE_SETPOINTPROPERTY(_PROPERTY, _DATA, BODY, MACRO) PCGEX_PREFIXED_IFELSE_GETPOINTPROPERTY(, _PROPERTY, _DATA, BODY, MACRO)
 
 #pragma endregion
 

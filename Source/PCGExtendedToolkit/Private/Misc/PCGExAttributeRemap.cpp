@@ -247,20 +247,20 @@ namespace PCGExAttributeRemap
 					{
 						for (int i = Scope.Start; i < Scope.End; i++)
 						{
-							double V = Rule.InputClampDetails.GetClampedValue(InProxy->Get(i, InPoints[i]));
+							double V = Rule.InputClampDetails.GetClampedValue(InProxy->Get(i));
 							Min = FMath::Min(Min, FMath::Abs(V));
 							Max = FMath::Max(Max, FMath::Abs(V));
-							OutProxy->Set(i, OutPoints[i], V);
+							OutProxy->Set(i, V);
 						}
 					}
 					else
 					{
 						for (int i = Scope.Start; i < Scope.End; i++)
 						{
-							double V = Rule.InputClampDetails.GetClampedValue(InProxy->Get(i, InPoints[i]));
+							double V = Rule.InputClampDetails.GetClampedValue(InProxy->Get(i));
 							Min = FMath::Min(Min, V);
 							Max = FMath::Max(Max, V);
-							OutProxy->Set(i, OutPoints[i], V);
+							OutProxy->Set(i, V);
 						}
 					}
 
@@ -291,10 +291,9 @@ namespace PCGExAttributeRemap
 				{
 					for (int i = Scope.Start; i < Scope.End; i++)
 					{
-						double V = OutProxy->Get(i, OutPoints[i]);
+						double V = OutProxy->Get(i);
 						OutProxy->Set(
-							i, OutPoints[i],
-							Rule.OutputClampDetails.GetClampedValue(
+							i, Rule.OutputClampDetails.GetClampedValue(
 								Rule.RemapDetails.GetRemappedValue(FMath::Abs(V)) * PCGExMath::SignPlus(V)));
 					}
 				}
@@ -303,10 +302,9 @@ namespace PCGExAttributeRemap
 					for (int i = Scope.Start; i < Scope.End; i++)
 					{
 						OutProxy->Set(
-							i, OutPoints[i],
-							Rule.OutputClampDetails.GetClampedValue(
+							i, Rule.OutputClampDetails.GetClampedValue(
 								Rule.RemapDetails.GetRemappedValue(
-									FMath::Abs(OutProxy->Get(i, OutPoints[i])))));
+									FMath::Abs(OutProxy->Get(i)))));
 					}
 				}
 			}
@@ -317,10 +315,9 @@ namespace PCGExAttributeRemap
 					for (int i = Scope.Start; i < Scope.End; i++)
 					{
 						OutProxy->Set(
-							i, OutPoints[i],
-							Rule.OutputClampDetails.GetClampedValue(
+							i, Rule.OutputClampDetails.GetClampedValue(
 								Rule.RemapDetails.GetRemappedValue(
-									OutProxy->Get(i, OutPoints[i]))));
+									OutProxy->Get(i))));
 					}
 				}
 				else
@@ -328,10 +325,9 @@ namespace PCGExAttributeRemap
 					for (int i = Scope.Start; i < Scope.End; i++)
 					{
 						OutProxy->Set(
-							i, OutPoints[i],
-							Rule.OutputClampDetails.GetClampedValue(
+							i, Rule.OutputClampDetails.GetClampedValue(
 								Rule.RemapDetails.GetRemappedValue(
-									FMath::Abs(OutProxy->Get(i, OutPoints[i])))));
+									FMath::Abs(OutProxy->Get(i)))));
 					}
 				}
 			}

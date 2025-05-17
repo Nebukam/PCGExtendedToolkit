@@ -53,7 +53,7 @@ namespace PCGExData
 		check(InFacade);
 
 		bool bValid = true;
-		Side = InSide;
+		Side = bIsConstant ? EIOSide::In : InSide;
 
 		if (!PCGEx::TryGetTypeAndSource(InSelector, InFacade, RealType, Side))
 		{
@@ -121,16 +121,38 @@ namespace PCGExData
 		FPCGExContext* InContext,
 		const FProxyDescriptor& InDescriptor)
 	{
+		TSharedPtr<FBufferProxyBase> OutProxy = nullptr;
+		const bool bSubSelection = InDescriptor.SubSelection.bIsValid;
+
 		const TSharedPtr<FFacade> InDataFacade = InDescriptor.DataFacade.Pin();
+		UPCGBasePointData* PointData = nullptr;
 
 		if (!InDataFacade)
 		{
-			PCGE_LOG_C(Error, GraphAndLog, InContext, FTEXT("Proxy descriptor has no valid source."));
-			return nullptr;
-		}
+			PointData = const_cast<UPCGBasePointData*>(InDescriptor.PointData);
 
-		TSharedPtr<FBufferProxyBase> OutProxy = nullptr;
-		const bool bSubSelection = InDescriptor.SubSelection.bIsValid;
+			if (PointData && InDescriptor.Selector.GetSelection() == EPCGAttributePropertySelection::Property)
+			{
+				// We don't have a facade in the descriptor, but we only need the raw data.
+				// This is to support cases where we're only interested in point properties that are not associated to a FFacade
+			}
+			else
+			{
+				PCGE_LOG_C(Error, GraphAndLog, InContext, FTEXT("Proxy descriptor has no valid source."));
+				return nullptr;
+			}
+		}
+		else
+		{
+			if (InDescriptor.bIsConstant || InDescriptor.Side == EIOSide::In) { PointData = const_cast<UPCGBasePointData*>(InDataFacade->GetIn()); }
+			else { PointData = InDataFacade->GetOut(); }
+
+			if (!PointData)
+			{
+				PCGE_LOG_C(Error, GraphAndLog, InContext, FTEXT("Proxy descriptor attempted to work with a null PointData."));
+				return nullptr;
+			}
+		}
 
 		PCGEx::ExecuteWithRightType(
 			InDescriptor.WorkingType, [&](auto W)
@@ -157,39 +179,27 @@ namespace PCGExData
 									return;
 								}
 
-								const TArray<FPCGPoint>& Points = InDataFacade->GetIn()->GetPoints();
-								if (Points.IsEmpty())
-								{
-									// No points, get default attribute value
-									TypedProxy->SetConstant(Attribute->GetValueFromItemKey(PCGInvalidEntryKey));
-								}
-								else
-								{
-									TypedProxy->SetConstant(Attribute->GetValueFromItemKey(Points[0].MetadataEntry));
-								}
+								const PCGMetadataEntryKey Key = InDataFacade->GetIn()->IsEmpty() ?
+									                                PCGInvalidEntryKey :
+									                                InDataFacade->GetIn()->GetMetadataEntry(0);
+
+								TypedProxy->SetConstant(Attribute->GetValueFromItemKey(Key));
 							}
 							else if (InDescriptor.Selector.GetSelection() == EPCGAttributePropertySelection::Property)
 							{
-								const TArray<FPCGPoint>& Points = InDataFacade->GetIn()->GetPoints();
-								if (Points.IsEmpty())
-								{
-									TypedProxy->SetConstant(0);
-								}
-								else
-								{
-									const FPCGPoint& Pt = Points[0];
+								TypedProxy->SetConstant(0);
 
-#define PCGEX_SET_CONST(_PROPERTY, _ACCESSOR, _TYPE) \
-									case _PROPERTY : \
-									if (bSubSelection) { TypedProxy->SetConstant(Pt._ACCESSOR); } \
-									else { TypedProxy->SetConstant(Pt._ACCESSOR); } \
-									break;
+								if (!PointData->IsEmpty())
+								{
+									constexpr int32 Index = 0;
+									const EPCGPointProperties SelectedProperty = InDescriptor.Selector.GetPointProperty();
 
-									switch (InDescriptor.Selector.GetPointProperty())
-									{
-									PCGEX_FOREACH_POINTPROPERTY(PCGEX_SET_CONST)
-									default: break;
-									}
+#define PCGEX_SET_CONST(_ACCESSOR, _TYPE) \
+									if (bSubSelection) { TypedProxy->SetConstant(PointData->_ACCESSOR); } \
+									else { TypedProxy->SetConstant(PointData->_ACCESSOR); }
+
+									PCGEX_IFELSE_GETPOINTPROPERTY(SelectedProperty, PCGEX_SET_CONST)
+									else { TypedProxy->SetConstant(0); }
 #undef PCGEX_SET_CONST
 								}
 							}
@@ -217,11 +227,20 @@ namespace PCGExData
 									Buffer = InDataFacade->GetScopedReadable<T_REAL>(InDescriptor.Selector.GetAttributeName(), EIOSide::Out);
 								}
 
+								// Fallback to writer, if descriptor isn't flagged as read only
 								if (!Buffer)
 								{
-									// Fallback, make a writer that inherit data instead
-									// This will create issues if the same name is used with different types
-									Buffer = InDataFacade->GetWritable<T_REAL>(InDescriptor.Selector.GetAttributeName(), T_REAL{}, true, EBufferInit::Inherit);
+									if (!InDescriptor.bReadOnly)
+									{
+										// Fallback, make a writer that inherit data instead
+										// This will create issues if the same name is used with different types
+										Buffer = InDataFacade->GetWritable<T_REAL>(InDescriptor.Selector.GetAttributeName(), T_REAL{}, true, EBufferInit::Inherit);
+									}
+									else
+									{
+										PCGE_LOG_C(Error, GraphAndLog, InContext, FTEXT("Trying to created readable buffer but source attribute does not exist."));
+										return;
+									}
 								}
 
 								if (!Buffer)
@@ -280,10 +299,10 @@ namespace PCGExData
 						}
 						else if (InDescriptor.Selector.GetSelection() == EPCGAttributePropertySelection::Property)
 						{
-#define PCGEX_DECL_PROXY(_PROPERTY, _ACCESSOR, _TYPE) \
+#define PCGEX_DECL_PROXY(_PROPERTY, _ACCESSOR, _TYPE, _RANGE_TYPE) \
 						case _PROPERTY : \
-						if (bSubSelection) { OutProxy = MakeShared<TPointPropertyProxy<_TYPE, T_WORKING, true, _PROPERTY>>(); } \
-						else { OutProxy = MakeShared<TPointPropertyProxy<_TYPE, T_WORKING, false, _PROPERTY>>(); } \
+						if (bSubSelection) { OutProxy = MakeShared<TPointPropertyProxy<_TYPE, T_WORKING, true, _PROPERTY, _RANGE_TYPE>>(); } \
+						else { OutProxy = MakeShared<TPointPropertyProxy<_TYPE, T_WORKING, false, _PROPERTY, _RANGE_TYPE>>(); } \
 						break;
 
 							switch (InDescriptor.Selector.GetPointProperty())
@@ -295,12 +314,14 @@ namespace PCGExData
 						}
 						else
 						{
+							// TODO : Support new extra properties here!
+
 							if (bSubSelection)
 							{
 								TSharedPtr<TPointExtraPropertyProxy<int32, T_WORKING, true, EPCGExtraProperties::Index>> TypedProxy =
 									MakeShared<TPointExtraPropertyProxy<int32, T_WORKING, true, EPCGExtraProperties::Index>>();
 
-								TypedProxy->Buffer = InDataFacade->GetScopedBroadcaster<int32>(InDescriptor.Selector);
+								//TypedProxy->Buffer = InDataFacade->GetScopedBroadcaster<int32>(InDescriptor.Selector);
 								OutProxy = TypedProxy;
 							}
 							else
@@ -308,7 +329,7 @@ namespace PCGExData
 								TSharedPtr<TPointExtraPropertyProxy<int32, T_WORKING, false, EPCGExtraProperties::Index>> TypedProxy =
 									MakeShared<TPointExtraPropertyProxy<int32, T_WORKING, false, EPCGExtraProperties::Index>>();
 
-								TypedProxy->Buffer = InDataFacade->GetScopedBroadcaster<int32>(InDescriptor.Selector);
+								//TypedProxy->Buffer = InDataFacade->GetScopedBroadcaster<int32>(InDescriptor.Selector);
 								OutProxy = TypedProxy;
 							}
 						}

@@ -556,6 +556,7 @@ namespace PCGEx
 
 #pragma endregion
 
+
 #pragma region Array
 
 	template <typename T>

@@ -21,6 +21,11 @@ namespace PCGExData
 		EPCGMetadataTypes WorkingType = EPCGMetadataTypes::Unknown;
 
 		TWeakPtr<FFacade> DataFacade;
+
+		// For roaming properties only, isn't widely supported.
+		bool bReadOnly = false;
+		const UPCGBasePointData* PointData = nullptr;
+		
 		bool bIsConstant = false;
 
 		FProxyDescriptor()
@@ -41,11 +46,14 @@ namespace PCGExData
 
 		bool CaptureStrict(FPCGExContext* InContext, const FString& Path, const EIOSide InSide = EIOSide::Out, const bool bThrowError = true);
 		bool CaptureStrict(FPCGExContext* InContext, const FPCGAttributePropertyInputSelector& InSelector, const EIOSide InSide = EIOSide::Out, const bool bThrowError = true);
+
+		//static FProxyDescriptor CreateForPointProperty(UPCGBasePointData* PointData);
 	};
 
 	class FBufferProxyBase : public TSharedFromThis<FBufferProxyBase>
 	{
 	public:
+		UPCGBasePointData* Data = nullptr;
 		PCGEx::FSubSelection SubSelection;
 		EPCGMetadataTypes RealType = EPCGMetadataTypes::Unknown;
 		EPCGMetadataTypes WorkingType = EPCGMetadataTypes::Unknown;
@@ -67,8 +75,8 @@ namespace PCGExData
 			WorkingType = PCGEx::GetMetadataType<T>();
 		}
 
-		virtual T Get(const int32 Index, const FPCGPoint& Point) const = 0;
-		virtual void Set(const int32 Index, FPCGPoint& Point, const T& Value) const = 0;
+		virtual T Get(const int32 Index) const = 0;
+		virtual void Set(const int32 Index, const T& Value) const = 0;
 		virtual TSharedPtr<FBufferBase> GetBuffer() const override { return nullptr; }
 	};
 
@@ -86,38 +94,42 @@ namespace PCGExData
 			this->RealType = PCGEx::GetMetadataType<T_REAL>();
 		}
 
-		virtual T_WORKING Get(const int32 Index, const FPCGPoint& Point) const override
+		virtual T_WORKING Get(const int32 Index) const override
 		{
 			// i.e get Rotation<FQuat>.Forward<FVector> as <double>
 			//					^ T_REAL	  ^ Sub		      ^ T_WORKING
-			if constexpr (!bSubSelection) { return PCGEx::Convert<T_REAL, T_WORKING>(Buffer->Read(Index)); }
+			if constexpr (!bSubSelection)
+			{
+				if constexpr (std::is_same_v<T_REAL, T_WORKING>) { return Buffer->Read(Index); }
+				else { return PCGEx::Convert<T_REAL, T_WORKING>(Buffer->Read(Index)); }
+			}
 			else { return SubSelection.template Get<T_REAL, T_WORKING>(Buffer->Read(Index)); }
 		}
 
-		virtual void Set(const int32 Index, FPCGPoint& Point, const T_WORKING& Value) const override
+		virtual void Set(const int32 Index, const T_WORKING& Value) const override
 		{
 			// i.e set Rotation<FQuat>.Forward<FVector> from <FRotator>
 			//					^ T_REAL	  ^ Sub		      ^ T_WORKING
 			if constexpr (!bSubSelection)
 			{
-				Buffer->GetMutable(Index) = PCGEx::Convert<T_WORKING, T_REAL>(Value);
+				if constexpr (std::is_same_v<T_REAL, T_WORKING>) { Buffer->GetMutable(Index) = Value; }
+				else { Buffer->GetMutable(Index) = PCGEx::Convert<T_WORKING, T_REAL>(Value); }
 			}
 			else
 			{
-				T_REAL V = Buffer->GetConst(Index);
-				SubSelection.template Set<T_REAL, T_WORKING>(V, Value);
-				Buffer->GetMutable(Index) = V;
+				SubSelection.template Set<T_REAL, T_WORKING>(Buffer->GetMutable(Index), Value);
 			}
 		}
 
 		virtual TSharedPtr<FBufferBase> GetBuffer() const override { return Buffer; }
 	};
 
-	template <typename T_REAL, typename T_WORKING, bool bSubSelection, EPCGPointProperties PROPERTY>
+	template <typename T_REAL, typename T_WORKING, bool bSubSelection, EPCGPointProperties PROPERTY, typename T_VALUERANGE>
 	class TPointPropertyProxy : public TBufferProxy<T_WORKING>
 	{
 		using TBufferProxy<T_WORKING>::SubSelection;
-
+		using TBufferProxy<T_WORKING>::Data;
+		
 	public:
 		TPointPropertyProxy()
 			: TBufferProxy<T_WORKING>()
@@ -125,35 +137,37 @@ namespace PCGExData
 			this->RealType = PCGEx::GetMetadataType<T_REAL>();
 		}
 
-		virtual T_WORKING Get(const int32 Index, const FPCGPoint& Point) const override
+		virtual T_WORKING Get(const int32 Index) const override
 		{
 #define PCGEX_GET_SUBPROPERTY(_ACCESSOR, _TYPE) \
-			if constexpr (!bSubSelection){ return PCGEx::Convert<T_REAL, T_WORKING>(Point._ACCESSOR); } \
-			else{ return SubSelection.template Get<T_REAL, T_WORKING>(Point._ACCESSOR); }
+			if constexpr (!bSubSelection){ \
+				if constexpr (std::is_same_v<T_REAL, T_WORKING>) { return Data->_ACCESSOR; }\
+				else{ return PCGEx::Convert<T_REAL, T_WORKING>(Data->_ACCESSOR); }\
+			}else{ return SubSelection.template Get<T_REAL, T_WORKING>(Data->_ACCESSOR); }
 
 			PCGEX_CONSTEXPR_IFELSE_GETPOINTPROPERTY(PROPERTY, PCGEX_GET_SUBPROPERTY)
 #undef PCGEX_GET_SUBPROPERTY
 			else { return T_WORKING{}; }
 		}
 
-		virtual void Set(const int32 Index, FPCGPoint& Point, const T_WORKING& Value) const override
+		virtual void Set(const int32 Index, const T_WORKING& Value) const override
 		{
 			if constexpr (!bSubSelection)
 			{
 #define PCGEX_PROPERTY_VALUE(_TYPE) PCGEx::Convert<T_WORKING, _TYPE>(Value)
-				PCGEX_CONSTEXPR_IFELSE_SETPOINTPROPERTY(PROPERTY, Point, PCGEX_MACRO_NONE, PCGEX_PROPERTY_VALUE)
+				PCGEX_CONSTEXPR_IFELSE_SETPOINTPROPERTY(PROPERTY, Data, PCGEX_MACRO_NONE, PCGEX_PROPERTY_VALUE)
 #undef PCGEX_PROPERTY_VALUE
 			}
 			else
 			{
 				T_REAL V = T_REAL{};
-#define PCGEX_GET_REAL(_ACCESSOR, _TYPE) V  = Point._ACCESSOR;
+#define PCGEX_GET_REAL(_ACCESSOR, _TYPE) V = Data->_ACCESSOR;
 				PCGEX_CONSTEXPR_IFELSE_GETPOINTPROPERTY(PROPERTY, PCGEX_GET_REAL)
 #undef PCGEX_GET_REAL
 
 #define PCGEX_PROPERTY_SET(_TYPE) SubSelection.template Set<T_REAL, T_WORKING>(V, Value);
 #define PCGEX_PROPERTY_VALUE(_TYPE) V
-				PCGEX_CONSTEXPR_IFELSE_SETPOINTPROPERTY(PROPERTY, Point, PCGEX_PROPERTY_SET, PCGEX_PROPERTY_VALUE)
+				PCGEX_CONSTEXPR_IFELSE_SETPOINTPROPERTY(PROPERTY, Data, PCGEX_PROPERTY_SET, PCGEX_PROPERTY_VALUE)
 #undef PCGEX_PROPERTY_VALUE
 #undef PCGEX_PROPERTY_SET
 			}
@@ -174,7 +188,7 @@ namespace PCGExData
 			this->RealType = PCGEx::GetMetadataType<T_REAL>();
 		}
 
-		virtual T_WORKING Get(const int32 Index, const FPCGPoint& Point) const override
+		virtual T_WORKING Get(const int32 Index) const override
 		{
 			if constexpr (PROPERTY == EPCGExtraProperties::Index)
 			{
@@ -183,7 +197,7 @@ namespace PCGExData
 			else { return T_WORKING{}; }
 		}
 
-		virtual void Set(const int32 Index, FPCGPoint& Point, const T_WORKING& Value) const override
+		virtual void Set(const int32 Index, const T_WORKING& Value) const override
 		{
 			// Well, no
 		}
@@ -207,12 +221,12 @@ namespace PCGExData
 			Constant = PCGEx::Convert<T, T_WORKING>(InValue);
 		}
 
-		virtual T_WORKING Get(const int32 Index, const FPCGPoint& Point) const override
+		virtual T_WORKING Get(const int32 Index) const override
 		{
 			return Constant;
 		}
 
-		virtual void Set(const int32 Index, FPCGPoint& Point, const T_WORKING& Value) const override
+		virtual void Set(const int32 Index, const T_WORKING& Value) const override
 		{
 			// This should never happen, check the callstack
 			check(false)
