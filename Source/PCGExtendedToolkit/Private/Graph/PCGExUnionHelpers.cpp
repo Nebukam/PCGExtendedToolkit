@@ -295,7 +295,7 @@ namespace PCGExGraph
 		if (bUseCustomPointEdgeBlending) { MetadataBlender = MakeShared<PCGExDataBlending::FMetadataBlender>(&CustomPointEdgeBlendingDetails); }
 		else { MetadataBlender = MakeShared<PCGExDataBlending::FMetadataBlender>(&DefaultPointsBlendingDetails); }
 
-		MetadataBlender->PrepareForData(UnionDataFacade, PCGExData::ESource::Out, true, &ProtectedClusterAttributes);
+		MetadataBlender->PrepareForData(UnionDataFacade, PCGExData::EIOSide::Out, true, &ProtectedClusterAttributes);
 
 		BlendPointEdgeGroup->OnCompleteCallback =
 			[PCGEX_ASYNC_THIS_CAPTURE]()
@@ -432,7 +432,7 @@ namespace PCGExGraph
 		if (bUseCustomEdgeEdgeBlending) { MetadataBlender = MakeShared<PCGExDataBlending::FMetadataBlender>(&CustomEdgeEdgeBlendingDetails); }
 		else { MetadataBlender = MakeShared<PCGExDataBlending::FMetadataBlender>(&DefaultPointsBlendingDetails); }
 
-		MetadataBlender->PrepareForData(UnionDataFacade, PCGExData::ESource::Out, true, &ProtectedClusterAttributes);
+		MetadataBlender->PrepareForData(UnionDataFacade, PCGExData::EIOSide::Out, true, &ProtectedClusterAttributes);
 
 		BlendEdgeEdgeGroup->OnCompleteCallback = [PCGEX_ASYNC_THIS_CAPTURE]()
 		{

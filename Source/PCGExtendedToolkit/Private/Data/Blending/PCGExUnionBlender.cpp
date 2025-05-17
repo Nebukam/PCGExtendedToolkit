@@ -42,7 +42,7 @@ namespace PCGExDataBlending
 			if (const TSharedPtr<FDataBlendingProcessorBase>& SubProc = SubBlendingProcessors[i]) { SubProc->PrepareForData(Buffer, Sources[i]); }
 		}
 
-		MainBlendingProcessor->PrepareForData(Buffer, InTargetData, PCGExData::ESource::Out);
+		MainBlendingProcessor->PrepareForData(Buffer, InTargetData, PCGExData::EIOSide::Out);
 	}
 
 	void FMultiSourceAttribute::PrepareSoftMerge(const TSharedPtr<PCGExData::FFacade>& InTargetData, TArray<TSharedPtr<PCGExData::FFacade>>& Sources)
@@ -59,7 +59,7 @@ namespace PCGExDataBlending
 			}
 		}
 
-		MainBlendingProcessor->SoftPrepareForData(InTargetData, InTargetData, PCGExData::ESource::Out);
+		MainBlendingProcessor->SoftPrepareForData(InTargetData, InTargetData, PCGExData::EIOSide::Out);
 	}
 
 	FUnionBlender::FUnionBlender(const FPCGExBlendingDetails* InBlendingDetails, const FPCGExCarryOverDetails* InCarryOverDetails):

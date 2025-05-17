@@ -15,7 +15,7 @@ namespace PCGExData
 		FPCGAttributePropertyInputSelector Selector;
 		PCGEx::FSubSelection SubSelection;
 
-		ESource Source = ESource::In;
+		EIOSide Side = EIOSide::In;
 
 		EPCGMetadataTypes RealType = EPCGMetadataTypes::Unknown;
 		EPCGMetadataTypes WorkingType = EPCGMetadataTypes::Unknown;
@@ -36,11 +36,11 @@ namespace PCGExData
 		void UpdateSubSelection();
 		bool SetFieldIndex(const int32 InFieldIndex);
 
-		bool Capture(FPCGExContext* InContext, const FString& Path, const ESource InSource = ESource::Out, const bool bThrowError = true);
-		bool Capture(FPCGExContext* InContext, const FPCGAttributePropertyInputSelector& InSelector, const ESource InSource = ESource::Out, const bool bThrowError = true);
+		bool Capture(FPCGExContext* InContext, const FString& Path, const EIOSide InSide = EIOSide::Out, const bool bThrowError = true);
+		bool Capture(FPCGExContext* InContext, const FPCGAttributePropertyInputSelector& InSelector, const EIOSide InSide = EIOSide::Out, const bool bThrowError = true);
 
-		bool CaptureStrict(FPCGExContext* InContext, const FString& Path, const ESource InSource = ESource::Out, const bool bThrowError = true);
-		bool CaptureStrict(FPCGExContext* InContext, const FPCGAttributePropertyInputSelector& InSelector, const ESource InSource = ESource::Out, const bool bThrowError = true);
+		bool CaptureStrict(FPCGExContext* InContext, const FString& Path, const EIOSide InSide = EIOSide::Out, const bool bThrowError = true);
+		bool CaptureStrict(FPCGExContext* InContext, const FPCGAttributePropertyInputSelector& InSelector, const EIOSide InSide = EIOSide::Out, const bool bThrowError = true);
 	};
 
 	class FBufferProxyBase : public TSharedFromThis<FBufferProxyBase>

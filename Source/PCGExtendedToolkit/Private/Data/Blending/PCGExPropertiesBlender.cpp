@@ -1,150 +1,80 @@
 ﻿// Copyright 2025 Timothé Lapetite and contributors
 // Released under the MIT license https://opensource.org/license/MIT/
 
-
 #include "Data/Blending/PCGExPropertiesBlender.h"
 
 namespace PCGExDataBlending
 {
-	FPropertiesBlender::FPropertiesBlender(const FPCGExPropertiesBlendingDetails& InDetails)
-	{
-		Init(InDetails);
-	}
-
 	void FPropertiesBlender::Init(const FPCGExPropertiesBlendingDetails& InDetails)
 	{
-		bRequiresPrepare = false;
-
-		BOOKMARK_BLENDMODE
-
-#define PCGEX_BLEND_FUNCASSIGN(_TYPE, _NAME, _FUNC)\
-bReset##_NAME = false; _NAME##Blending = InDetails._NAME##Blending;\
-if(ResetBlend[static_cast<uint8>(_NAME##Blending)]){ bReset##_NAME=true; bRequiresPrepare = true; }
-
-		PCGEX_FOREACH_BLEND_POINTPROPERTY(PCGEX_BLEND_FUNCASSIGN)
-#undef PCGEX_BLEND_FUNCASSIGN
-
-#define PCGEX_BLEND_ASSIGNFUNC(_TYPE, _NAME, ...) switch (_NAME##Blending) {\
-default:\
-case EPCGExDataBlendingType::None:				_NAME##Func = [](const _TYPE& O, const _TYPE& A, const _TYPE& B, const double W) -> _TYPE{ return O; }; break;\
-case EPCGExDataBlendingType::Average:			_NAME##Func = [](const _TYPE& O, const _TYPE& A, const _TYPE& B, const double W) -> _TYPE{ return PCGExBlend::Add(A, B); }; break;\
-case EPCGExDataBlendingType::Min:				_NAME##Func = [](const _TYPE& O, const _TYPE& A, const _TYPE& B, const double W) -> _TYPE{ return PCGExBlend::Min(A, B); }; break;\
-case EPCGExDataBlendingType::Max:				_NAME##Func = [](const _TYPE& O, const _TYPE& A, const _TYPE& B, const double W) -> _TYPE{ return PCGExBlend::Max(A, B); }; break;\
-case EPCGExDataBlendingType::Copy:				_NAME##Func = [](const _TYPE& O, const _TYPE& A, const _TYPE& B, const double W) -> _TYPE{ return PCGExBlend::Copy(A, B); }; break;\
-case EPCGExDataBlendingType::Sum:				_NAME##Func = [](const _TYPE& O, const _TYPE& A, const _TYPE& B, const double W) -> _TYPE{ return PCGExBlend::Add(A, B); }; break;\
-case EPCGExDataBlendingType::Weight:			_NAME##Func = [](const _TYPE& O, const _TYPE& A, const _TYPE& B, const double W) -> _TYPE{ return PCGExBlend::WeightedAdd(A, B, W); }; break;\
-case EPCGExDataBlendingType::WeightedSum:		_NAME##Func = [](const _TYPE& O, const _TYPE& A, const _TYPE& B, const double W) -> _TYPE{ return PCGExBlend::WeightedAdd(A, B, W); }; break;\
-case EPCGExDataBlendingType::Lerp:				_NAME##Func = [](const _TYPE& O, const _TYPE& A, const _TYPE& B, const double W) -> _TYPE{ return PCGExBlend::Lerp(A, B, W); }; break; \
-case EPCGExDataBlendingType::Subtract:			_NAME##Func = [](const _TYPE& O, const _TYPE& A, const _TYPE& B, const double W) -> _TYPE{ return PCGExBlend::Sub(A, B); }; break; \
-case EPCGExDataBlendingType::WeightedSubtract:	_NAME##Func = [](const _TYPE& O, const _TYPE& A, const _TYPE& B, const double W) -> _TYPE{ return PCGExBlend::WeightedSub(A, B, W); }; break;\
-case EPCGExDataBlendingType::UnsignedMin:		_NAME##Func = [](const _TYPE& O, const _TYPE& A, const _TYPE& B, const double W) -> _TYPE{ return PCGExBlend::UnsignedMin(A, B); }; break; \
-case EPCGExDataBlendingType::UnsignedMax:		_NAME##Func = [](const _TYPE& O, const _TYPE& A, const _TYPE& B, const double W) -> _TYPE{ return PCGExBlend::UnsignedMax(A, B); }; break; \
-case EPCGExDataBlendingType::AbsoluteMin:		_NAME##Func = [](const _TYPE& O, const _TYPE& A, const _TYPE& B, const double W) -> _TYPE{ return PCGExBlend::AbsoluteMin(A, B); }; break; \
-case EPCGExDataBlendingType::AbsoluteMax:		_NAME##Func = [](const _TYPE& O, const _TYPE& A, const _TYPE& B, const double W) -> _TYPE{ return PCGExBlend::AbsoluteMax(A, B); }; break; \
-case EPCGExDataBlendingType::CopyOther:			_NAME##Func = [](const _TYPE& O, const _TYPE& A, const _TYPE& B, const double W) -> _TYPE{ return PCGExBlend::Copy(B, A); }; break; \
-case EPCGExDataBlendingType::Hash:				_NAME##Func = [](const _TYPE& O, const _TYPE& A, const _TYPE& B, const double W) -> _TYPE{ return PCGExBlend::NaiveHash(A, B); }; break; \
-case EPCGExDataBlendingType::UnsignedHash:		_NAME##Func = [](const _TYPE& O, const _TYPE& A, const _TYPE& B, const double W) -> _TYPE{ return PCGExBlend::NaiveUnsignedHash(A, B); }; break;}
-
-		PCGEX_FOREACH_BLEND_POINTPROPERTY(PCGEX_BLEND_ASSIGNFUNC)
-#undef PCGEX_BLEND_ASSIGNFUNC
-
 		bHasNoBlending = InDetails.HasNoBlending();
+		if (bHasNoBlending) { return; }
+
+		// Create per-property typed blenders
+
+		TSharedPtr<FValueRangeBlender> Blender;
+#define PCGEX_BLEND_MAKE(_NAME, _REALTYPE, _WORKINGTYPE)\
+		Blender = CreateBlender<EPCGPointProperties::_NAME, _REALTYPE, _WORKINGTYPE>(InDetails._NAME##Blending);\
+		if(Blender){ Blenders.Add(Blender); if(Blender->WantsPreparation()){ PoleBlenders.Add(Blender); } }
+		PCGEX_FOREACH_BLEND_POINTPROPERTY(PCGEX_BLEND_MAKE)
+#undef PCGEX_BLEND_MAKE
+
+		bRequiresPrepare = !PoleBlenders.IsEmpty();
 	}
 
-	void FPropertiesBlender::PrepareBlending(const PCGExData::FMutablePoint& Target, const PCGExData::FConstPoint& Default) const
+	void FPropertiesBlender::PrepareBlending(const int32 TargetIndex, const int32 Default) const
 	{
-		if (DensityBlending != EPCGExDataBlendingType::None) { Target.Density = bResetDensity ? 0 : Default.Density; }
-		if (BoundsMinBlending != EPCGExDataBlendingType::None) { Target.BoundsMin = bResetBoundsMin ? FVector::ZeroVector : Default.BoundsMin; }
-		if (BoundsMaxBlending != EPCGExDataBlendingType::None) { Target.BoundsMax = bResetBoundsMax ? FVector::ZeroVector : Default.BoundsMax; }
-		if (ColorBlending != EPCGExDataBlendingType::None) { Target.Color = bResetColor ? FVector4::Zero() : Default.Color; }
-		if (PositionBlending != EPCGExDataBlendingType::None) { Target.Transform.SetLocation(bResetPosition ? FVector::ZeroVector : Default.Transform.GetLocation()); }
-		if (RotationBlending != EPCGExDataBlendingType::None) { Target.Transform.SetRotation(bResetRotation ? FQuat{} : Default.Transform.GetRotation()); }
-		if (ScaleBlending != EPCGExDataBlendingType::None) { Target.Transform.SetScale3D(bResetScale ? FVector::ZeroVector : Default.Transform.GetScale3D()); }
-		if (SteepnessBlending != EPCGExDataBlendingType::None) { Target.Steepness = bResetSteepness ? 0 : Default.Steepness; }
-		if (SeedBlending != EPCGExDataBlendingType::None) { Target.Seed = bResetSeed ? 0 : Default.Seed; }
-		// TODO : Support new stuff
-	}
-
-	void FPropertiesBlender::Blend(const PCGExData::FConstPoint& A, const PCGExData::FConstPoint& B, const PCGExData::FMutablePoint& Target, double Weight) const
-	{
-#define PCGEX_BLEND_PROPDECL(_TYPE, _NAME, _FUNC, _ACCESSOR) const _TYPE Target##_NAME = _NAME##Func(Target._ACCESSOR, A._ACCESSOR, B._ACCESSOR, Weight);
-		PCGEX_FOREACH_BLENDINIT_POINTPROPERTY(PCGEX_BLEND_PROPDECL)
-#undef PCGEX_BLEND_PROPDECL
-
-		Target.Density = TargetDensity;
-		Target.BoundsMin = TargetBoundsMin;
-		Target.BoundsMax = TargetBoundsMax;
-		Target.Color = TargetColor;
-		Target.Transform.SetLocation(TargetPosition);
-		Target.Transform.SetRotation(TargetRotation);
-		Target.Transform.SetScale3D(TargetScale);
-		Target.Steepness = TargetSteepness;
-		Target.Seed = TargetSeed;
-	}
-
-	void FPropertiesBlender::CompleteBlending(const PCGExData::FMutablePoint& Target, const int32 Count, const double TotalWeight) const
-	{
-#define PCGEX_BLEND_PROPDECL(_TYPE, _NAME, _FUNC, _ACCESSOR) _TYPE Target##_NAME = Target._ACCESSOR;\
-		if (_NAME##Blending == EPCGExDataBlendingType::Average) { Target##_NAME = PCGExBlend::Div(Target._ACCESSOR, Count); }\
-		else if (_NAME##Blending == EPCGExDataBlendingType::Weight) { Target##_NAME = PCGExBlend::Div(Target._ACCESSOR, TotalWeight); }
-		PCGEX_FOREACH_BLENDINIT_POINTPROPERTY(PCGEX_BLEND_PROPDECL)
-#undef PCGEX_BLEND_PROPDECL
-
-		Target.Density = TargetDensity;
-		Target.BoundsMin = TargetBoundsMin;
-		Target.BoundsMax = TargetBoundsMax;
-		Target.Color = TargetColor;
-		Target.Transform.SetLocation(TargetPosition);
-		Target.Transform.SetRotation(TargetRotation);
-		Target.Transform.SetScale3D(TargetScale);
-		Target.Steepness = TargetSteepness;
-		Target.Seed = TargetSeed;
-	}
-
-	void FPropertiesBlender::BlendOnce(const PCGExData::FConstPoint& A, const PCGExData::FConstPoint& B, const PCGExData::FMutablePoint& Target, const double Weight) const
-	{
-		if (bRequiresPrepare)
+		for (const TSharedPtr<FValueRangeBlender>& Blender : PoleBlenders)
 		{
-			PrepareBlending(Target, A);
-			Blend(A, B, Target, Weight);
-			CompleteBlending(Target, 2, 1);
-		}
-		else
-		{
-			Blend(A, B, Target, Weight);
+			Blender->PrepareBlending(TargetIndex, Default);
 		}
 	}
 
-	void FPropertiesBlender::PrepareRangeBlending(const TArrayView<FPCGPoint>& Targets, const PCGExData::FConstPoint& Default) const
+	void FPropertiesBlender::Blend(const int32 A, const int32 B, const int32 Target, const double Weight) const
 	{
-		for (FPCGPoint& Target : Targets) { PrepareBlending(Target, Default); }
-	}
-
-	void FPropertiesBlender::BlendRange(const PCGExData::FConstPoint& From, const PCGExData::FConstPoint& To, const TArrayView<FPCGPoint>& Targets, const TArrayView<double>& Weights) const
-	{
-		for (int i = 0; i < Targets.Num(); i++) { Blend(From, To, Targets[i], Weights[i]); }
-	}
-
-	void FPropertiesBlender::CompleteRangeBlending(const TArrayView<FPCGPoint>& Targets, const TArrayView<const int32>& Counts, const TArrayView<double>& TotalWeights) const
-	{
-		for (int i = 0; i < Targets.Num(); i++) { CompleteBlending(Targets[i], Counts[i], TotalWeights[i]); }
-	}
-
-	void FPropertiesBlender::BlendRangeFromTo(const PCGExData::FConstPoint& From, const PCGExData::FConstPoint& To, const TArrayView<FPCGPoint>& Targets, const TArrayView<double>& Weights) const
-	{
-		if (bRequiresPrepare)
+		for (const TSharedPtr<FValueRangeBlender>& Blender : Blenders)
 		{
-			for (int i = 0; i < Targets.Num(); i++)
-			{
-				FPCGPoint& Target = Targets[i];
-				PrepareBlending(Target, From);
-				Blend(From, To, Target, Weights[i]);
-				CompleteBlending(Target, 2, 1);
-			}
+			Blender->Blend(A, B, Target, Weight);
 		}
-		else
+	}
+
+	void FPropertiesBlender::CompleteBlending(const int32 TargetIndex, const int32 Count, const double TotalWeight) const
+	{
+		for (const TSharedPtr<FValueRangeBlender>& Blender : PoleBlenders)
 		{
-			BlendRange(From, To, Targets, Weights);
+			Blender->CompleteBlending(TargetIndex, Count, TotalWeight);
+		}
+	}
+
+	void FPropertiesBlender::PrepareRangeBlending(const TArrayView<const int32>& Targets, const int32 Default) const
+	{
+		for (const TSharedPtr<FValueRangeBlender>& Blender : PoleBlenders)
+		{
+			Blender->PrepareRangeBlending(Targets, Default);
+		}
+	}
+
+	void FPropertiesBlender::BlendRange(const int32 From, const int32 To, const TArrayView<int32>& Targets, const TArrayView<double>& Weights) const
+	{
+		for (const TSharedPtr<FValueRangeBlender>& Blender : Blenders)
+		{
+			Blender->BlendRange(From, To, Targets, Weights);
+		}
+	}
+
+	void FPropertiesBlender::CompleteRangeBlending(const TArrayView<const int32>& Targets, const TArrayView<const int32>& Counts, const TArrayView<double>& TotalWeights) const
+	{
+		for (const TSharedPtr<FValueRangeBlender>& Blender : PoleBlenders)
+		{
+			Blender->CompleteRangeBlending(Targets, Counts, TotalWeights);
+		}
+	}
+
+	void FPropertiesBlender::BlendRangeFromTo(const int32 From, const int32 To, const TArrayView<const int32>& Targets, const TArrayView<const double>& Weights) const
+	{
+		for (const TSharedPtr<FValueRangeBlender>& Blender : Blenders)
+		{
+			Blender->BlendRangeFromTo(From, To, Targets, Weights);
 		}
 	}
 }

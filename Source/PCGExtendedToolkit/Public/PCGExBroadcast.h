@@ -7,7 +7,7 @@
 
 namespace PCGExData
 {
-	enum class ESource : uint8;
+	enum class EIOSide : uint8;
 	class FFacade;
 }
 
@@ -1195,13 +1195,13 @@ namespace PCGEx
 	bool TryGetTypeAndSource(
 		const FPCGAttributePropertyInputSelector& InputSelector,
 		const TSharedPtr<PCGExData::FFacade>& InDataFacade,
-		EPCGMetadataTypes& OutType, PCGExData::ESource& InOutSource);
+		EPCGMetadataTypes& OutType, PCGExData::EIOSide& InOutSide);
 
 	PCGEXTENDEDTOOLKIT_API
 	bool TryGetTypeAndSource(
 		const FName AttributeName,
 		const TSharedPtr<PCGExData::FFacade>& InDataFacade,
-		EPCGMetadataTypes& OutType, PCGExData::ESource& InOutSource);
+		EPCGMetadataTypes& OutType, PCGExData::EIOSide& InOutSource);
 
 #define PCGEX_FOREACH_SUPPORTEDFPROPERTY(MACRO)\
 MACRO(FBoolProperty, bool) \

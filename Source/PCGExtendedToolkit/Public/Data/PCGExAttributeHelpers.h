@@ -367,7 +367,7 @@ namespace PCGEx
 		void Fetch(TArray<T>& Dump, const PCGExMT::FScope& Scope)
 		{
 			check(ProcessingInfos.bIsValid)
-			check(Dump.Num() == PointIO->GetNum(PCGExData::ESource::In)) // Dump target should be initialized at full length before using Fetch
+			check(Dump.Num() == PointIO->GetNum(PCGExData::EIOSide::In)) // Dump target should be initialized at full length before using Fetch
 
 			const UPCGBasePointData* InData = PointIO->GetIn();
 
@@ -434,7 +434,7 @@ namespace PCGEx
 		{
 			if (!ProcessingInfos.bIsValid)
 			{
-				int32 NumPoints = PointIO->GetNum(PCGExData::ESource::In);
+				int32 NumPoints = PointIO->GetNum(PCGExData::EIOSide::In);
 				PCGEx::InitArray(Dump, NumPoints);
 				for (int i = 0; i < NumPoints; i++) { Dump[i] = T{}; }
 				return;
@@ -442,7 +442,7 @@ namespace PCGEx
 
 			const UPCGBasePointData* InData = PointIO->GetIn();
 
-			int32 NumPoints = PointIO->GetNum(PCGExData::ESource::In);
+			int32 NumPoints = PointIO->GetNum(PCGExData::EIOSide::In);
 			PCGEx::InitArray(Dump, NumPoints);
 
 			if (ProcessingInfos == EPCGAttributePropertySelection::Attribute)
@@ -537,7 +537,7 @@ namespace PCGEx
 
 			const UPCGBasePointData* InData = PointIO->GetIn();
 
-			int32 NumPoints = PointIO->GetNum(PCGExData::ESource::In);
+			int32 NumPoints = PointIO->GetNum(PCGExData::EIOSide::In);
 			Dump.Reserve(Dump.Num() + NumPoints);
 
 			if (ProcessingInfos == EPCGAttributePropertySelection::Attribute)

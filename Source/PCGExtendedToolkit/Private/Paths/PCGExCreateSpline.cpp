@@ -117,7 +117,7 @@ namespace PCGExCreateSpline
 		SplineData = Context->ManagedObjects->New<UPCGSplineData>();
 		PCGEx::InitArray(SplinePoints, PointDataFacade->GetNum());
 
-		StartParallelLoopForPoints(PCGExData::ESource::In);
+		StartParallelLoopForPoints(PCGExData::EIOSide::In);
 
 		return true;
 	}

@@ -235,7 +235,7 @@ namespace PCGExConnectPoints
 		GeneratorsFilter.Reset();
 		ConnectableFilter.Reset();
 
-		StartParallelLoopForPoints(PCGExData::ESource::In);
+		StartParallelLoopForPoints(PCGExData::EIOSide::In);
 	}
 
 	void FProcessor::PrepareLoopScopesForPoints(const TArray<PCGExMT::FScope>& Loops)

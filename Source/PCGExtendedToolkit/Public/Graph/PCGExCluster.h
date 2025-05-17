@@ -152,7 +152,7 @@ namespace PCGExCluster
 		bool BuildFrom(
 			const TMap<uint32, int32>& InEndpointsLookup,
 			const TArray<int32>* InExpectedAdjacency,
-			const PCGExData::ESource PointsSource = PCGExData::ESource::In);
+			const PCGExData::EIOSide InPointsSide = PCGExData::EIOSide::In);
 
 		void BuildFrom(const TSharedRef<PCGExGraph::FSubGraph>& SubGraph);
 

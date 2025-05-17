@@ -100,7 +100,7 @@ namespace PCGExWriteEdgeProperties
 		if (Settings->bEndpointsBlending)
 		{
 			MetadataBlender = MakeShared<PCGExDataBlending::FMetadataBlender>(const_cast<FPCGExBlendingDetails*>(&Settings->BlendingSettings));
-			MetadataBlender->PrepareForData(EdgeDataFacade, VtxDataFacade, PCGExData::ESource::In, true, &PCGExGraph::ProtectedClusterAttributes);
+			MetadataBlender->PrepareForData(EdgeDataFacade, VtxDataFacade, PCGExData::EIOSide::In, true, &PCGExGraph::ProtectedClusterAttributes);
 		}
 
 		StartWeight = FMath::Clamp(Settings->EndpointsWeights, 0, 1);

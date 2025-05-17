@@ -21,7 +21,7 @@ namespace PCGExData
 		return false;
 	}
 
-	bool FProxyDescriptor::Capture(FPCGExContext* InContext, const FString& Path, const ESource InSource, const bool bThrowError)
+	bool FProxyDescriptor::Capture(FPCGExContext* InContext, const FString& Path, const EIOSide InSide, const bool bThrowError)
 	{
 		const TSharedPtr<FFacade> InFacade = DataFacade.Pin();
 		check(InFacade);
@@ -31,15 +31,15 @@ namespace PCGExData
 		Selector = FPCGAttributePropertyInputSelector();
 		Selector.Update(Path);
 
-		Source = InSource;
+		Side = InSide;
 
-		if (!PCGEx::TryGetTypeAndSource(Selector, InFacade, RealType, Source))
+		if (!PCGEx::TryGetTypeAndSource(Selector, InFacade, RealType, Side))
 		{
 			if (bThrowError) { PCGEX_LOG_INVALID_SELECTOR_C(InContext, Attribute, Selector) }
 			bValid = false;
 		}
 
-		Selector = Selector.CopyAndFixLast(InFacade->Source->GetData(Source));
+		Selector = Selector.CopyAndFixLast(InFacade->Source->GetData(Side));
 
 		UpdateSubSelection();
 		WorkingType = SubSelection.GetSubType(RealType);
@@ -47,21 +47,21 @@ namespace PCGExData
 		return bValid;
 	}
 
-	bool FProxyDescriptor::Capture(FPCGExContext* InContext, const FPCGAttributePropertyInputSelector& InSelector, const ESource InSource, const bool bThrowError)
+	bool FProxyDescriptor::Capture(FPCGExContext* InContext, const FPCGAttributePropertyInputSelector& InSelector, const EIOSide InSide, const bool bThrowError)
 	{
 		const TSharedPtr<FFacade> InFacade = DataFacade.Pin();
 		check(InFacade);
 
 		bool bValid = true;
-		Source = InSource;
+		Side = InSide;
 
-		if (!PCGEx::TryGetTypeAndSource(InSelector, InFacade, RealType, Source))
+		if (!PCGEx::TryGetTypeAndSource(InSelector, InFacade, RealType, Side))
 		{
 			if (bThrowError) { PCGEX_LOG_INVALID_SELECTOR_C(InContext, Attribute, InSelector) }
 			bValid = false;
 		}
 
-		Selector = InSelector.CopyAndFixLast(InFacade->Source->GetData(Source));
+		Selector = InSelector.CopyAndFixLast(InFacade->Source->GetData(Side));
 
 		UpdateSubSelection();
 		WorkingType = SubSelection.GetSubType(RealType);
@@ -69,15 +69,15 @@ namespace PCGExData
 		return bValid;
 	}
 
-	bool FProxyDescriptor::CaptureStrict(FPCGExContext* InContext, const FString& Path, const ESource InSource, const bool bThrowError)
+	bool FProxyDescriptor::CaptureStrict(FPCGExContext* InContext, const FString& Path, const EIOSide InSide, const bool bThrowError)
 	{
-		if (!Capture(InContext, Path, InSource, bThrowError)) { return false; }
+		if (!Capture(InContext, Path, InSide, bThrowError)) { return false; }
 
-		if (Source != InSource)
+		if (Side != InSide)
 		{
 			if (bThrowError)
 			{
-				if (InSource == ESource::In)
+				if (InSide == EIOSide::In)
 				{
 					PCGE_LOG_C(Error, GraphAndLog, InContext, FText::Format(FTEXT("\"{0}\" does not exist on input."), FText::FromString(Path)));
 				}
@@ -93,15 +93,15 @@ namespace PCGExData
 		return true;
 	}
 
-	bool FProxyDescriptor::CaptureStrict(FPCGExContext* InContext, const FPCGAttributePropertyInputSelector& InSelector, const ESource InSource, const bool bThrowError)
+	bool FProxyDescriptor::CaptureStrict(FPCGExContext* InContext, const FPCGAttributePropertyInputSelector& InSelector, const EIOSide InSide, const bool bThrowError)
 	{
-		if (!Capture(InContext, InSelector, InSource, bThrowError)) { return false; }
+		if (!Capture(InContext, InSelector, InSide, bThrowError)) { return false; }
 
-		if (Source != InSource)
+		if (Side != InSide)
 		{
 			if (bThrowError)
 			{
-				if (InSource == ESource::In)
+				if (InSide == EIOSide::In)
 				{
 					PCGE_LOG_C(Error, GraphAndLog, InContext, FText::Format(FTEXT("\"{0}\" does not exist on input."), FText::FromString(PCGEx::GetSelectorDisplayName(InSelector))));
 				}
@@ -211,10 +211,10 @@ namespace PCGExData
 								TSharedPtr<TBuffer<T_REAL>> ExistingBuffer = InDataFacade->FindBuffer<T_REAL>(InDescriptor.Selector.GetAttributeName());
 								TSharedPtr<TBuffer<T_REAL>> Buffer;
 
-								if (InDescriptor.Source == ESource::In && ExistingBuffer && ExistingBuffer->IsWritable())
+								if (InDescriptor.Side == EIOSide::In && ExistingBuffer && ExistingBuffer->IsWritable())
 								{
 									// Read from writer
-									Buffer = InDataFacade->GetScopedReadable<T_REAL>(InDescriptor.Selector.GetAttributeName(), ESource::Out);
+									Buffer = InDataFacade->GetScopedReadable<T_REAL>(InDescriptor.Selector.GetAttributeName(), EIOSide::Out);
 								}
 
 								if (!Buffer)
@@ -248,10 +248,10 @@ namespace PCGExData
 								TSharedPtr<TBuffer<T_REAL>> ExistingBuffer = InDataFacade->FindBuffer<T_REAL>(InDescriptor.Selector.GetAttributeName());
 								TSharedPtr<TBuffer<T_REAL>> Buffer;
 
-								if (InDescriptor.Source == ESource::In && ExistingBuffer && ExistingBuffer->IsWritable())
+								if (InDescriptor.Side == EIOSide::In && ExistingBuffer && ExistingBuffer->IsWritable())
 								{
 									// Read from writer
-									Buffer = InDataFacade->GetScopedReadable<T_REAL>(InDescriptor.Selector.GetAttributeName(), ESource::Out);
+									Buffer = InDataFacade->GetScopedReadable<T_REAL>(InDescriptor.Selector.GetAttributeName(), EIOSide::Out);
 								}
 
 								if (!Buffer)

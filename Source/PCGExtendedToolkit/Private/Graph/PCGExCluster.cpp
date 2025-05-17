@@ -85,7 +85,7 @@ namespace PCGExCluster
 		Edges = MakeShared<TArray<FEdge>>();
 		Bounds = FBox(ForceInit);
 
-		VtxPoints = &InVtxIO->GetPoints(PCGExData::ESource::In);
+		VtxPoints = &InVtxIO->GetPoints(PCGExData::EIOSide::In);
 	}
 
 	FCluster::FCluster(const TSharedRef<FCluster>& OtherCluster,
@@ -96,7 +96,7 @@ namespace PCGExCluster
 		NodeIndexLookup(InNodeIndexLookup), VtxIO(InVtxIO), EdgesIO(InEdgesIO)
 	{
 		NodeIndexLookup = InNodeIndexLookup;
-		VtxPoints = &InVtxIO->GetPoints(PCGExData::ESource::In);
+		VtxPoints = &InVtxIO->GetPoints(PCGExData::EIOSide::In);
 
 		bIsMirror = true;
 		OriginalCluster = OtherCluster;
@@ -187,7 +187,7 @@ namespace PCGExCluster
 	bool FCluster::BuildFrom(
 		const TMap<uint32, int32>& InEndpointsLookup,
 		const TArray<int32>* InExpectedAdjacency,
-		const PCGExData::ESource PointsSource)
+		const PCGExData::EIOSide InPointsSide)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExCluster::BuildCluster);
 
@@ -197,7 +197,7 @@ namespace PCGExCluster
 
 		if (!PinnedVtxIO || !PinnedEdgesIO) { return false; }
 
-		const TArray<FPCGPoint>& InNodePoints = PinnedVtxIO->GetPoints(PointsSource);
+		const TArray<FPCGPoint>& InNodePoints = PinnedVtxIO->GetPoints(InPointsSide);
 
 		Nodes->Empty();
 		Edges->Empty();
@@ -265,8 +265,8 @@ namespace PCGExCluster
 
 		Bounds = FBox(ForceInit);
 
-		NumRawVtx = SubGraph->VtxDataFacade->Source->GetNum(PCGExData::ESource::Out);
-		NumRawEdges = SubGraph->EdgesDataFacade->Source->GetNum(PCGExData::ESource::Out);
+		NumRawVtx = SubGraph->VtxDataFacade->Source->GetNum(PCGExData::EIOSide::Out);
+		NumRawEdges = SubGraph->EdgesDataFacade->Source->GetNum(PCGExData::EIOSide::Out);
 
 		const TArray<FPCGPoint>& SubVtxPoints = SubGraph->VtxDataFacade->Source->GetOutIn()->GetPoints();
 		Nodes->Reserve(SubGraph->Nodes.Num());

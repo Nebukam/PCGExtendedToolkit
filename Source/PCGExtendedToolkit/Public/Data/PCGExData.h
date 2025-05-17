@@ -265,7 +265,7 @@ namespace PCGExData
 		}
 
 	public:
-		bool PrepareRead(const ESource InSource = ESource::In, const bool bScoped = false)
+		bool PrepareRead(const EIOSide InSide = EIOSide::In, const bool bScoped = false)
 		{
 			FWriteScopeLock WriteScopeLock(BufferLock);
 
@@ -279,7 +279,7 @@ namespace PCGExData
 					bScopedBuffer = false;
 				}
 
-				if (InSource == ESource::In && OutValues && InValues == OutValues)
+				if (InSide == EIOSide::In && OutValues && InValues == OutValues)
 				{
 					check(false)
 					// Out-source Reader was created before writer, this is bad?
@@ -291,7 +291,7 @@ namespace PCGExData
 				}
 			}
 
-			if (InSource == ESource::Out)
+			if (InSide == EIOSide::Out)
 			{
 				// Reading from output
 				check(OutValues)
@@ -536,7 +536,7 @@ namespace PCGExData
 
 		bool bSupportsScopedGet = false;
 
-		int32 GetNum(const ESource InSource = ESource::In) const { return Source->GetNum(InSource); }
+		int32 GetNum(const EIOSide InSide = EIOSide::In) const { return Source->GetNum(InSide); }
 		TArray<FPCGPoint>& GetMutablePoints() const { return Source->GetMutablePoints(); }
 
 		TSharedPtr<FBufferBase> FindBuffer_Unsafe(const uint64 UID);
@@ -553,7 +553,7 @@ namespace PCGExData
 
 		~FFacade() = default;
 
-		bool IsDataValid(const ESource InSource) const { return Source->IsDataValid(InSource); }
+		bool IsDataValid(const EIOSide InSide) const { return Source->IsDataValid(InSide); }
 
 		bool ShareSource(const FFacade* OtherManager) const { return this == OtherManager || OtherManager->Source == Source; }
 
@@ -625,10 +625,10 @@ namespace PCGExData
 #pragma region Readable
 
 		template <typename T>
-		TSharedPtr<TBuffer<T>> GetReadable(const FName InName, const ESource InSource = ESource::In)
+		TSharedPtr<TBuffer<T>> GetReadable(const FName InName, const EIOSide InSide = EIOSide::In)
 		{
 			TSharedPtr<TBuffer<T>> Buffer = GetBuffer<T>(InName);
-			if (!Buffer->PrepareRead(InSource, false))
+			if (!Buffer->PrepareRead(InSide, false))
 			{
 				Flush(Buffer);
 				return nullptr;
@@ -638,13 +638,13 @@ namespace PCGExData
 		}
 
 		template <typename T>
-		TSharedPtr<TBuffer<T>> GetScopedReadable(const FName InName, const ESource InSource = ESource::In)
+		TSharedPtr<TBuffer<T>> GetScopedReadable(const FName InName, const EIOSide InSide = EIOSide::In)
 		{
-			if (!bSupportsScopedGet) { return GetReadable<T>(InName, InSource); }
+			if (!bSupportsScopedGet) { return GetReadable<T>(InName, InSide); }
 
 			// Careful when reading from ESource::Out, make sure a writer already exists!!
 			TSharedPtr<TBuffer<T>> Buffer = GetBuffer<T>(InName);
-			if (!Buffer->PrepareRead(InSource, true))
+			if (!Buffer->PrepareRead(InSide, true))
 			{
 				Flush(Buffer);
 				return nullptr;
@@ -703,32 +703,32 @@ namespace PCGExData
 
 #pragma endregion
 
-		FPCGMetadataAttributeBase* FindMutableAttribute(const FName InName, const ESource InSource = ESource::In) const
+		FPCGMetadataAttributeBase* FindMutableAttribute(const FName InName, const EIOSide InSide = EIOSide::In) const
 		{
-			const UPCGBasePointData* Data = Source->GetData(InSource);
+			const UPCGBasePointData* Data = Source->GetData(InSide);
 			if (!Data) { return nullptr; }
 			return Data->Metadata->GetMutableAttribute(InName);
 		}
 
-		const FPCGMetadataAttributeBase* FindConstAttribute(const FName InName, const ESource InSource = ESource::In) const
+		const FPCGMetadataAttributeBase* FindConstAttribute(const FName InName, const EIOSide InSide = EIOSide::In) const
 		{
-			const UPCGBasePointData* Data = Source->GetData(InSource);
+			const UPCGBasePointData* Data = Source->GetData(InSide);
 			if (!Data) { return nullptr; }
 			return Data->Metadata->GetConstAttribute(InName);
 		}
 
 		template <typename T>
-		FPCGMetadataAttribute<T>* FindMutableAttribute(const FName InName, const ESource InSource = ESource::In) const
+		FPCGMetadataAttribute<T>* FindMutableAttribute(const FName InName, const EIOSide InSide = EIOSide::In) const
 		{
-			const UPCGBasePointData* Data = Source->GetData(InSource);
+			const UPCGBasePointData* Data = Source->GetData(InSide);
 			if (!Data) { return nullptr; }
 			return Data->Metadata->GetMutableTypedAttribute<T>(InName);
 		}
 
 		template <typename T>
-		const FPCGMetadataAttribute<T>* FindConstAttribute(const FName InName, const ESource InSource = ESource::In) const
+		const FPCGMetadataAttribute<T>* FindConstAttribute(const FName InName, const EIOSide InSide = EIOSide::In) const
 		{
-			const UPCGBasePointData* Data = Source->GetData(InSource);
+			const UPCGBasePointData* Data = Source->GetData(InSide);
 			if (!Data) { return nullptr; }
 
 			// 'template' spec required for clang on mac, and rider keeps removing it without the comment below.
@@ -746,7 +746,7 @@ namespace PCGExData
 			return Cloud;
 		}
 
-		const UPCGBasePointData* GetData(const ESource InSource) const { return Source->GetData(InSource); }
+		const UPCGBasePointData* GetData(const EIOSide InSide) const { return Source->GetData(InSide); }
 		const UPCGBasePointData* GetIn() const { return Source->GetIn(); }
 		UPCGBasePointData* GetOut() const { return Source->GetOut(); }
 

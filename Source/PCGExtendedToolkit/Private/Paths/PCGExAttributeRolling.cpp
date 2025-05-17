@@ -190,7 +190,7 @@ namespace PCGExAttributeRolling
 			if (!BlendOpsManager->Init(Context, Context->BlendingFactories)) { return false; }
 		}
 
-		MaxIndex = PointDataFacade->GetNum(PCGExData::ESource::In) - 1;
+		MaxIndex = PointDataFacade->GetNum(PCGExData::EIOSide::In) - 1;
 
 		FirstIndex = Settings->bReverseRolling ? MaxIndex : 0;
 		RangeIndex += Settings->RangeIndexOffset;

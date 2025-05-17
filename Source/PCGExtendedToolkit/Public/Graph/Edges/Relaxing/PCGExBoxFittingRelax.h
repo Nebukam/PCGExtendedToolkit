@@ -39,7 +39,7 @@ public:
 		if (InStep == 0)
 		{
 			const int32 NumNodes = Cluster->Nodes->Num();
-			const TArray<FPCGPoint>& InPoints = PrimaryDataFacade->Source->GetPoints(PCGExData::ESource::In);
+			const TArray<FPCGPoint>& InPoints = PrimaryDataFacade->Source->GetPoints(PCGExData::EIOSide::In);
 			for (int i = 0; i < NumNodes; i++)
 			{
 				BoxBuffer[i] = InPoints[Cluster->GetNodePointIndex(i)].GetLocalBounds().ExpandBy(Padding).TransformBy(*(ReadBuffer->GetData() + i));

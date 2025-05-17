@@ -98,7 +98,7 @@ namespace PCGExSubdivide
 
 		PCGEx::InitArray(Subdivisions, PointDataFacade->GetNum());
 
-		StartParallelLoopForPoints(PCGExData::ESource::In);
+		StartParallelLoopForPoints(PCGExData::EIOSide::In);
 
 		return true;
 	}
@@ -249,7 +249,7 @@ namespace PCGExSubdivide
 			ProtectedAttributes.Add(Settings->AlphaAttributeName);
 		}
 
-		Blending->PrepareForData(PointDataFacade, PointDataFacade, PCGExData::ESource::Out, &ProtectedAttributes);
+		Blending->PrepareForData(PointDataFacade, PointDataFacade, PCGExData::EIOSide::Out, &ProtectedAttributes);
 		StartParallelLoopForRange(Subdivisions.Num());
 	}
 

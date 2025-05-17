@@ -101,7 +101,7 @@ namespace PCGExFindPointOnBounds
 		const FBox Bounds = PointDataFacade->Source->GetIn()->GetBounds();
 		SearchPosition = Bounds.GetCenter() + Bounds.GetExtent() * Settings->UVW;
 
-		StartParallelLoopForPoints(PCGExData::ESource::In);
+		StartParallelLoopForPoints(PCGExData::EIOSide::In);
 
 		return true;
 	}

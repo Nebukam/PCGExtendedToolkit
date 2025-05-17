@@ -43,14 +43,14 @@ bool FPCGExAttributeBlendOperation::PrepareForData(FPCGExContext* InContext, con
 
 	PCGExData::FProxyDescriptor A = PCGExData::FProxyDescriptor(ConstantA ? ConstantA : InDataFacade);
 	A.bIsConstant = A.DataFacade.Pin() != InDataFacade;
-	if (!A.Capture(InContext, Config.OperandA, PCGExData::ESource::Out)) { return false; }
+	if (!A.Capture(InContext, Config.OperandA, PCGExData::EIOSide::Out)) { return false; }
 
 	PCGExData::FProxyDescriptor B = PCGExData::FProxyDescriptor(ConstantB ? ConstantB : InDataFacade);
 	B.bIsConstant = B.DataFacade.Pin() != InDataFacade;
-	if (!B.Capture(InContext, Config.OperandB, PCGExData::ESource::Out)) { return false; }
+	if (!B.Capture(InContext, Config.OperandB, PCGExData::EIOSide::Out)) { return false; }
 
 	PCGExData::FProxyDescriptor C = PCGExData::FProxyDescriptor(InDataFacade);
-	C.Source = PCGExData::ESource::Out;
+	C.Side = PCGExData::EIOSide::Out;
 
 	Config.OperandA = A.Selector;
 	Config.OperandB = B.Selector;

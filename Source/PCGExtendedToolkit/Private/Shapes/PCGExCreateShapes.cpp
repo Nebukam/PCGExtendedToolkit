@@ -80,7 +80,7 @@ namespace PCGExCreateShapes
 			Builders.Add(Op);
 		}
 
-		StartParallelLoopForPoints(PCGExData::ESource::In);
+		StartParallelLoopForPoints(PCGExData::EIOSide::In);
 
 		return true;
 	}

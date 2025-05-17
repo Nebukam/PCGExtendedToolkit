@@ -169,7 +169,7 @@ namespace PCGExClusterDiffusion
 			[PCGEX_ASYNC_THIS_CAPTURE](const PCGExMT::FScope& Scope)
 			{
 				PCGEX_ASYNC_THIS
-				const TArray<FPCGPoint>& Seeds = This->Context->SeedsDataFacade->Source->GetPoints(PCGExData::ESource::In);
+				const TArray<FPCGPoint>& Seeds = This->Context->SeedsDataFacade->Source->GetPoints(PCGExData::EIOSide::In);
 				const TArray<PCGExCluster::FNode>& Nodes = *This->Cluster->Nodes.Get();
 				for (int i = Scope.Start; i < Scope.End; i++)
 				{

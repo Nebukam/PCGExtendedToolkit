@@ -168,7 +168,7 @@ namespace PCGExFloodFill
 		const TSharedPtr<PCGExDataBlending::FBlendOpsManager>& InBlendOps,
 		TArray<int32>& OutIndices)
 	{
-		const TArray<FPCGPoint>& InPoints = InVtxFacade->Source->GetPoints(PCGExData::ESource::In);
+		const TArray<FPCGPoint>& InPoints = InVtxFacade->Source->GetPoints(PCGExData::EIOSide::In);
 		TArray<FPCGPoint>& OutPoints = InVtxFacade->Source->GetMutablePoints();
 
 		OutIndices.SetNumUninitialized(Captured.Num());

@@ -44,7 +44,7 @@ void FPCGExNeighborSampleAttribute::PrepareForCluster(FPCGExContext* InContext, 
 
 	Blender = MakeShared<PCGExDataBlending::FMetadataBlender>(&MetadataBlendingDetails);
 	Blender->bBlendProperties = false;
-	Blender->PrepareForData(InVtxDataFacade, GetSourceDataFacade(), PCGExData::ESource::In);
+	Blender->PrepareForData(InVtxDataFacade, GetSourceDataFacade(), PCGExData::EIOSide::In);
 
 	SourceAttributes.SetOutputTargetNames(InVtxDataFacade);
 

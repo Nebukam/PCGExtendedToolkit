@@ -235,7 +235,7 @@ void FPCGExPlotNavmeshTask::ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>&
 	PathLocations.Empty();
 
 	TSharedPtr<PCGExDataBlending::FMetadataBlender> TempBlender =
-		Context->Blending->CreateBlender(PathDataFacade.ToSharedRef(), PathDataFacade.ToSharedRef(), PCGExData::ESource::Out);
+		Context->Blending->CreateBlender(PathDataFacade.ToSharedRef(), PathDataFacade.ToSharedRef(), PCGExData::EIOSide::Out);
 
 	for (int i = 0; i < Milestones.Num() - 1; i++)
 	{

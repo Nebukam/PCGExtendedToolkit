@@ -16,7 +16,7 @@ void UPCGExSubPointsOperation::CopySettingsFrom(const UPCGExInstancedFactory* Ot
 	}
 }
 
-void UPCGExSubPointsOperation::PrepareForData(const TSharedPtr<PCGExData::FFacade>& InPrimaryFacade, const TSet<FName>* IgnoreAttributeSet)
+void UPCGExSubPointsOperation::PrepareForData(const TSharedPtr<PCGExData::FFacade>& InTargetFacade, const TSet<FName>* IgnoreAttributeSet)
 {
 }
 

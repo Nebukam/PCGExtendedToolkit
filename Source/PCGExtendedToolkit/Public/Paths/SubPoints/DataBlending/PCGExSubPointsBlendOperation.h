@@ -28,8 +28,8 @@ public:
 
 	virtual void CopySettingsFrom(const UPCGExInstancedFactory* Other) override;
 
-	virtual void PrepareForData(const TSharedPtr<PCGExData::FFacade>& InPrimaryFacade, const TSet<FName>* IgnoreAttributeSet = nullptr) override;
-	virtual void PrepareForData(const TSharedPtr<PCGExData::FFacade>& InPrimaryFacade, const TSharedPtr<PCGExData::FFacade>& InSecondaryFacade, const PCGExData::ESource SecondarySource, const TSet<FName>* IgnoreAttributeSet = nullptr);
+	virtual void PrepareForData(const TSharedPtr<PCGExData::FFacade>& InTargetFacade, const TSet<FName>* IgnoreAttributeSet = nullptr) override;
+	virtual void PrepareForData(const TSharedPtr<PCGExData::FFacade>& InTargetFacade, const TSharedPtr<PCGExData::FFacade>& InSourceFacade, const PCGExData::EIOSide InSourceSide, const TSet<FName>* IgnoreAttributeSet = nullptr);
 
 	virtual void ProcessSubPoints(
 		const PCGExData::FPointRef& From,
@@ -54,9 +54,9 @@ public:
 	virtual void Cleanup() override;
 
 	virtual TSharedPtr<PCGExDataBlending::FMetadataBlender> CreateBlender(
-		const TSharedRef<PCGExData::FFacade>& InPrimaryFacade,
-		const TSharedRef<PCGExData::FFacade>& InSecondaryFacade,
-		const PCGExData::ESource SecondarySource = PCGExData::ESource::In,
+		const TSharedRef<PCGExData::FFacade>& InTargetFacade,
+		const TSharedRef<PCGExData::FFacade>& InSourceFacade,
+		const PCGExData::EIOSide InSourceSide = PCGExData::EIOSide::In,
 		const TSet<FName>* IgnoreAttributeSet = nullptr);
 
 protected:

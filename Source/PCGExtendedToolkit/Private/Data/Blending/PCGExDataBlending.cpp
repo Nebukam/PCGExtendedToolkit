@@ -6,7 +6,7 @@
 FPCGExPropertiesBlendingDetails::FPCGExPropertiesBlendingDetails(const EPCGExDataBlendingType InDefaultBlending)
 	: DefaultBlending(InDefaultBlending)
 {
-#define PCGEX_SET_DEFAULT_POINTPROPERTY(_TYPE, _NAME, _TYPENAME) _NAME##Blending = InDefaultBlending;
+#define PCGEX_SET_DEFAULT_POINTPROPERTY(_NAME, ...) _NAME##Blending = InDefaultBlending;
 	PCGEX_FOREACH_BLEND_POINTPROPERTY(PCGEX_SET_DEFAULT_POINTPROPERTY)
 #undef PCGEX_SET_DEFAULT_POINTPROPERTY
 }
@@ -26,7 +26,7 @@ bool FPCGExPropertiesBlendingDetails::HasNoBlending() const
 
 void FPCGExPropertiesBlendingDetails::GetNonNoneBlendings(TArray<FName>& OutNames) const
 {
-#define PCGEX_SET_DEFAULT_POINTPROPERTY(_TYPE, _NAME, _TYPENAME) if(_NAME##Blending != EPCGExDataBlendingType::None){ OutNames.Add(#_NAME);}
+#define PCGEX_SET_DEFAULT_POINTPROPERTY(_NAME, ...) if(_NAME##Blending != EPCGExDataBlendingType::None){ OutNames.Add(#_NAME);}
 	PCGEX_FOREACH_BLEND_POINTPROPERTY(PCGEX_SET_DEFAULT_POINTPROPERTY)
 #undef PCGEX_SET_DEFAULT_POINTPROPERTY
 }
@@ -34,7 +34,7 @@ void FPCGExPropertiesBlendingDetails::GetNonNoneBlendings(TArray<FName>& OutName
 FPCGExBlendingDetails::FPCGExBlendingDetails(const EPCGExDataBlendingType InDefaultBlending)
 	: DefaultBlending(InDefaultBlending)
 {
-#define PCGEX_SET_DEFAULT_POINTPROPERTY(_TYPE, _NAME, _TYPENAME) PropertiesOverrides._NAME##Blending = InDefaultBlending;
+#define PCGEX_SET_DEFAULT_POINTPROPERTY(_NAME, ...) PropertiesOverrides._NAME##Blending = InDefaultBlending;
 	PCGEX_FOREACH_BLEND_POINTPROPERTY(PCGEX_SET_DEFAULT_POINTPROPERTY)
 #undef PCGEX_SET_DEFAULT_POINTPROPERTY
 }
@@ -42,7 +42,7 @@ FPCGExBlendingDetails::FPCGExBlendingDetails(const EPCGExDataBlendingType InDefa
 FPCGExBlendingDetails::FPCGExBlendingDetails(const EPCGExDataBlendingType InDefaultBlending, const EPCGExDataBlendingType InPositionBlending)
 	: DefaultBlending(InDefaultBlending)
 {
-#define PCGEX_SET_DEFAULT_POINTPROPERTY(_TYPE, _NAME, _TYPENAME) PropertiesOverrides._NAME##Blending = InDefaultBlending;
+#define PCGEX_SET_DEFAULT_POINTPROPERTY(_NAME, ...) PropertiesOverrides._NAME##Blending = InDefaultBlending;
 	PCGEX_FOREACH_BLEND_POINTPROPERTY(PCGEX_SET_DEFAULT_POINTPROPERTY)
 #undef PCGEX_SET_DEFAULT_POINTPROPERTY
 
@@ -53,7 +53,7 @@ FPCGExBlendingDetails::FPCGExBlendingDetails(const EPCGExDataBlendingType InDefa
 FPCGExBlendingDetails::FPCGExBlendingDetails(const FPCGExPropertiesBlendingDetails& InDetails)
 	: DefaultBlending(InDetails.DefaultBlending)
 {
-#define PCGEX_SET_DEFAULT_POINTPROPERTY(_TYPE, _NAME, _TYPENAME) PropertiesOverrides.bOverride##_NAME = InDetails._NAME##Blending != EPCGExDataBlendingType::None; PropertiesOverrides._NAME##Blending = InDetails._NAME##Blending;
+#define PCGEX_SET_DEFAULT_POINTPROPERTY(_NAME, ...) PropertiesOverrides.bOverride##_NAME = InDetails._NAME##Blending != EPCGExDataBlendingType::None; PropertiesOverrides._NAME##Blending = InDetails._NAME##Blending;
 	PCGEX_FOREACH_BLEND_POINTPROPERTY(PCGEX_SET_DEFAULT_POINTPROPERTY)
 #undef PCGEX_SET_DEFAULT_POINTPROPERTY
 }
@@ -61,7 +61,7 @@ FPCGExBlendingDetails::FPCGExBlendingDetails(const FPCGExPropertiesBlendingDetai
 FPCGExPropertiesBlendingDetails FPCGExBlendingDetails::GetPropertiesBlendingDetails() const
 {
 	FPCGExPropertiesBlendingDetails OutDetails;
-#define PCGEX_SET_POINTPROPERTY(_TYPE, _NAME, _TYPENAME) OutDetails._NAME##Blending = PropertiesOverrides.bOverride##_NAME ? PropertiesOverrides._NAME##Blending : DefaultBlending;
+#define PCGEX_SET_POINTPROPERTY(_NAME, ...) OutDetails._NAME##Blending = PropertiesOverrides.bOverride##_NAME ? PropertiesOverrides._NAME##Blending : DefaultBlending;
 	PCGEX_FOREACH_BLEND_POINTPROPERTY(PCGEX_SET_POINTPROPERTY)
 #undef PCGEX_SET_POINTPROPERTY
 	return OutDetails;
@@ -108,22 +108,22 @@ void FPCGExBlendingDetails::RegisterBuffersDependencies(FPCGExContext* InContext
 
 namespace PCGExDataBlending
 {
-	void FDataBlendingProcessorBase::PrepareForData(const TSharedPtr<PCGExData::FFacade>& InPrimaryFacade, const TSharedPtr<PCGExData::FFacade>& InSecondaryFacade, const PCGExData::ESource SecondarySource)
+	void FDataBlendingProcessorBase::PrepareForData(const TSharedPtr<PCGExData::FFacade>& InTargetFacade, const TSharedPtr<PCGExData::FFacade>& InSourceFacade, const PCGExData::EIOSide InSourceSide)
 	{
-		PrimaryData = InPrimaryFacade->Source->GetOut();
-		SecondaryData = InSecondaryFacade->Source->GetData(SecondarySource);
+		PrimaryData = InTargetFacade->Source->GetOut();
+		SecondaryData = InSourceFacade->Source->GetData(InSourceSide);
 	}
 
-	void FDataBlendingProcessorBase::PrepareForData(const TSharedPtr<PCGExData::FBufferBase>& InWriter, const TSharedPtr<PCGExData::FFacade>& InSecondaryFacade, const PCGExData::ESource SecondarySource)
+	void FDataBlendingProcessorBase::PrepareForData(const TSharedPtr<PCGExData::FBufferBase>& InWriter, const TSharedPtr<PCGExData::FFacade>& InSourceFacade, const PCGExData::EIOSide InSourceSide)
 	{
 		PrimaryData = nullptr;
-		SecondaryData = InSecondaryFacade->Source->GetData(SecondarySource);
+		SecondaryData = InSourceFacade->Source->GetData(InSourceSide);
 	}
 
-	void FDataBlendingProcessorBase::SoftPrepareForData(const TSharedPtr<PCGExData::FFacade>& InPrimaryFacade, const TSharedPtr<PCGExData::FFacade>& InSecondaryFacade, const PCGExData::ESource SecondarySource)
+	void FDataBlendingProcessorBase::SoftPrepareForData(const TSharedPtr<PCGExData::FFacade>& InTargetFacade, const TSharedPtr<PCGExData::FFacade>& InSourceFacade, const PCGExData::EIOSide InSourceSide)
 	{
-		PrimaryData = InPrimaryFacade->Source->GetOut();
-		SecondaryData = InSecondaryFacade->Source->GetData(SecondarySource);
+		PrimaryData = InTargetFacade->Source->GetOut();
+		SecondaryData = InSourceFacade->Source->GetData(InSourceSide);
 	}
 
 	void FDataBlendingProcessorBase::DoOperation(const int32 PrimaryReadIndex, const int32 SecondaryReadIndex, const int32 WriteIndex, const double Weight, const int8 bFirstOperation) const

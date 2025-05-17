@@ -34,7 +34,7 @@ namespace PCGExData
 		Forward UMETA(DisplayName = "Forward Input Object")
 	};
 
-	enum class ESource : uint8
+	enum class EIOSide : uint8
 	{
 		In,
 		Out
@@ -74,8 +74,9 @@ namespace PCGExData
 	struct PCGEXTENDEDTOOLKIT_API FMutablePoint : FPoint
 	{
 		UPCGBasePointData* Data = nullptr;
-		int32 Index = -1;
 
+		FMutablePoint() = default;
+		
 		FMutablePoint(UPCGBasePointData* InData, const uint64 Hash);
 		FMutablePoint(UPCGBasePointData* InData, const int32 InIndex, const int32 InIO = -1);
 		FMutablePoint(const TSharedPtr<FPointIO>& InFacade, const int32 InIndex);
@@ -90,7 +91,8 @@ namespace PCGExData
 	{
 		const UPCGBasePointData* Data = nullptr;
 
-		// Yes, non-explicit.
+		FConstPoint() = default;
+
 		FConstPoint(const FMutablePoint& InPoint);
 
 		FConstPoint(const UPCGBasePointData* InData, const uint64 Hash);
@@ -227,20 +229,20 @@ namespace PCGExData
 
 		~FPointIO();
 
-		bool IsDataValid(const ESource InSource) const { return InSource == ESource::In ? IsValid(In) : IsValid(Out); }
+		bool IsDataValid(const EIOSide InSource) const { return InSource == EIOSide::In ? IsValid(In) : IsValid(Out); }
 
-		FORCEINLINE const UPCGBasePointData* GetData(const ESource InSource) const { return InSource == ESource::In ? In : Out; }
-		FORCEINLINE UPCGBasePointData* GetMutableData(const ESource InSource) const { return const_cast<UPCGBasePointData*>(InSource == ESource::In ? In : Out); }
+		FORCEINLINE const UPCGBasePointData* GetData(const EIOSide InSide) const { return InSide == EIOSide::In ? In : Out; }
+		FORCEINLINE UPCGBasePointData* GetMutableData(const EIOSide InSide) const { return const_cast<UPCGBasePointData*>(InSide == EIOSide::In ? In : Out); }
 		FORCEINLINE const UPCGBasePointData* GetIn() const { return In; }
 		FORCEINLINE UPCGBasePointData* GetOut() const { return Out; }
 		FORCEINLINE const UPCGBasePointData* GetOutIn() const { return Out ? Out : In; }
 		FORCEINLINE const UPCGBasePointData* GetInOut() const { return In ? In : Out; }
-		const UPCGBasePointData* GetOutIn(ESource& OutSource) const;
-		const UPCGBasePointData* GetInOut(ESource& OutSource) const;
-		bool GetSource(const UPCGData* InData, ESource& OutSource) const;
+		const UPCGBasePointData* GetOutIn(EIOSide& OutSide) const;
+		const UPCGBasePointData* GetInOut(EIOSide& OutSide) const;
+		bool GetSource(const UPCGData* InData, EIOSide& OutSide) const;
 
 		int32 GetNum() const { return In ? In->GetNumPoints() : Out ? Out->GetNumPoints() : -1; }
-		int32 GetNum(const ESource Source) const { return Source == ESource::In ? In->GetNumPoints() : Out->GetNumPoints(); }
+		int32 GetNum(const EIOSide Source) const { return Source == EIOSide::In ? In->GetNumPoints() : Out->GetNumPoints(); }
 		int32 GetOutInNum() const { return Out && !Out->GetNumPoints() ? Out->GetNumPoints() : In ? In->GetNumPoints() : -1; }
 
 		TSharedPtr<FPCGAttributeAccessorKeysPointIndices> GetInKeys();
@@ -501,7 +503,7 @@ namespace PCGExData
 
 	namespace PCGExPointIO
 	{
-		int32 GetTotalPointsNum(const TArray<TSharedPtr<FPointIO>>& InIOs, const ESource InSource = ESource::In);
+		int32 GetTotalPointsNum(const TArray<TSharedPtr<FPointIO>>& InIOs, const EIOSide InSide = EIOSide::In);
 
 		static const UPCGBasePointData* GetPointData(const FPCGContext* Context, const FPCGTaggedData& Source)
 		{

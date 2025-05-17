@@ -81,9 +81,9 @@ namespace PCGExPointsMT
 		return true;
 	}
 
-	void FPointsProcessor::StartParallelLoopForPoints(const PCGExData::ESource Source, const int32 PerLoopIterations)
+	void FPointsProcessor::StartParallelLoopForPoints(const PCGExData::EIOSide Side, const int32 PerLoopIterations)
 	{
-		CurrentProcessingSource = const_cast<UPCGBasePointData*>(PointDataFacade->GetData(Source));
+		CurrentProcessingSource = const_cast<UPCGBasePointData*>(PointDataFacade->GetData(Side));
 		if (!CurrentProcessingSource) { return; }
 
 		const int32 NumPoints = CurrentProcessingSource->GetNumPoints();
@@ -121,14 +121,9 @@ namespace PCGExPointsMT
 	{
 	}
 
-	void FPointsProcessor::PrepareSingleLoopScopeForRange(const PCGExMT::FScope& Scope)
-	{
-	}
-
 	void FPointsProcessor::ProcessRange(const PCGExMT::FScope& Scope)
 	{
-		PrepareSingleLoopScopeForRange(Scope);
-		for (int i = Scope.Start; i < Scope.End; i++) { ProcessSingleRangeIteration(i, Scope); }
+		
 	}
 
 	void FPointsProcessor::OnRangeProcessingComplete()

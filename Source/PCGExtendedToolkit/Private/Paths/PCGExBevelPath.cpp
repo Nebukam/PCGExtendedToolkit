@@ -358,7 +358,7 @@ namespace PCGExBevelPath
 					This->PointFilterCache[This->PointFilterCache.Num() - 1] = false;
 				}
 
-				This->StartParallelLoopForPoints(PCGExData::ESource::In);
+				This->StartParallelLoopForPoints(PCGExData::EIOSide::In);
 			};
 
 		Preparation->OnSubLoopStartCallback =

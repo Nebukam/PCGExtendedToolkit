@@ -226,7 +226,7 @@ namespace PCGExPartitionByValues
 		// Prepare each rule so it cache the filter key by index
 		for (PCGExPartition::FRule& Rule : Rules) { Rule.FilteredValues.SetNumZeroed(NumPoints); }
 
-		StartParallelLoopForPoints(PCGExData::ESource::In);
+		StartParallelLoopForPoints(PCGExData::EIOSide::In);
 
 		return true;
 	}

@@ -30,7 +30,7 @@ public:
 
 	virtual void CopySettingsFrom(const UPCGExInstancedFactory* Other) override;
 
-	virtual void PrepareForData(const TSharedPtr<PCGExData::FFacade>& InPrimaryFacade, const TSet<FName>* IgnoreAttributeSet);
+	virtual void PrepareForData(const TSharedPtr<PCGExData::FFacade>& InTargetFacade, const TSet<FName>* IgnoreAttributeSet);
 
 	virtual void ProcessSubPoints(
 		const PCGExData::FPointRef& From,

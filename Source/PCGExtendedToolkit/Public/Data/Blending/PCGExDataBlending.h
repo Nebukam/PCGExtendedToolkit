@@ -10,26 +10,15 @@
 #include "PCGExDataBlending.generated.h"
 
 #define PCGEX_FOREACH_BLEND_POINTPROPERTY(MACRO)\
-MACRO(float, Density, Float) \
-MACRO(FVector, BoundsMin, Vector) \
-MACRO(FVector, BoundsMax, Vector) \
-MACRO(FVector4, Color, Vector4) \
-MACRO(FVector, Position, Vector) \
-MACRO(FQuat, Rotation, Quaternion) \
-MACRO(FVector, Scale, Vector) \
-MACRO(float, Steepness, Float) \
-MACRO(int32, Seed, Integer32)
-
-#define PCGEX_FOREACH_BLENDINIT_POINTPROPERTY(MACRO)\
-MACRO(float, Density, Float, Density) \
-MACRO(FVector, BoundsMin, Vector, BoundsMin) \
-MACRO(FVector, BoundsMax, Vector, BoundsMax) \
-MACRO(FVector4, Color, Vector4, Color) \
-MACRO(FVector, Position, Vector,Transform.GetLocation()) \
-MACRO(FQuat, Rotation, Quaternion,Transform.GetRotation()) \
-MACRO(FVector, Scale, Vector, Transform.GetScale3D()) \
-MACRO(float, Steepness, Float,Steepness) \
-MACRO(int32, Seed, Integer32,Seed)
+MACRO(Density, float, float) \
+MACRO(BoundsMin,FVector, FVector) \
+MACRO(BoundsMax, FVector, FVector) \
+MACRO(Color,FVector4, FVector4) \
+MACRO(Position,FTransform, FVector) \
+MACRO(Rotation, FTransform, FQuat) \
+MACRO(Scale, FTransform, FVector) \
+MACRO(Steepness,float, float) \
+MACRO(Seed,int32, int32)
 
 #define PCGEX_FOREACH_DATABLENDMODE(MACRO)\
 MACRO(None) \
@@ -286,11 +275,11 @@ namespace PCGExDataBlending
 		void SetAttributeName(const FName InName) { AttributeName = InName; }
 		FName GetAttributeName() const { return AttributeName; }
 
-		virtual void PrepareForData(const TSharedPtr<PCGExData::FFacade>& InPrimaryFacade, const TSharedPtr<PCGExData::FFacade>& InSecondaryFacade, const PCGExData::ESource SecondarySource = PCGExData::ESource::In);
+		virtual void PrepareForData(const TSharedPtr<PCGExData::FFacade>& InTargetFacade, const TSharedPtr<PCGExData::FFacade>& InSourceFacade, const PCGExData::EIOSide InSourceSide = PCGExData::EIOSide::In);
 
-		virtual void PrepareForData(const TSharedPtr<PCGExData::FBufferBase>& InWriter, const TSharedPtr<PCGExData::FFacade>& InSecondaryFacade, const PCGExData::ESource SecondarySource = PCGExData::ESource::In);
+		virtual void PrepareForData(const TSharedPtr<PCGExData::FBufferBase>& InWriter, const TSharedPtr<PCGExData::FFacade>& InSourceFacade, const PCGExData::EIOSide InSourceSide = PCGExData::EIOSide::In);
 
-		virtual void SoftPrepareForData(const TSharedPtr<PCGExData::FFacade>& InPrimaryFacade, const TSharedPtr<PCGExData::FFacade>& InSecondaryFacade, const PCGExData::ESource SecondarySource = PCGExData::ESource::In);
+		virtual void SoftPrepareForData(const TSharedPtr<PCGExData::FFacade>& InTargetFacade, const TSharedPtr<PCGExData::FFacade>& InSourceFacade, const PCGExData::EIOSide InSourceSide = PCGExData::EIOSide::In);
 
 		virtual bool GetRequiresPreparation() const { return false; }
 		virtual bool GetRequiresFinalization() const { return false; }
@@ -346,46 +335,46 @@ namespace PCGExDataBlending
 		virtual bool GetRequiresFinalization() const override { return bRequireCompletion; }
 		virtual EPCGExDataBlendingType GetBlendingType() const override { return BlendingType; };
 
-		virtual void PrepareForData(const TSharedPtr<PCGExData::FBufferBase>& InWriter, const TSharedPtr<PCGExData::FFacade>& InSecondaryFacade, const PCGExData::ESource SecondarySource) override
+		virtual void PrepareForData(const TSharedPtr<PCGExData::FBufferBase>& InWriter, const TSharedPtr<PCGExData::FFacade>& InSourceFacade, const PCGExData::EIOSide SecondarySource) override
 		{
 			Cleanup();
 
-			FDataBlendingProcessorBase::PrepareForData(InWriter, InSecondaryFacade, SecondarySource);
+			FDataBlendingProcessorBase::PrepareForData(InWriter, InSourceFacade, SecondarySource);
 
 			Buffer_A = StaticCastSharedPtr<PCGExData::TBuffer<T>>(InWriter);
 			Buffer_Target = Buffer_A;
 
 			bSupportInterpolation = Buffer_A->GetAllowsInterpolation();
-			Attribute_B = InSecondaryFacade->FindMutableAttribute<T>(AttributeName, SecondarySource);
+			Attribute_B = InSourceFacade->FindMutableAttribute<T>(AttributeName, SecondarySource);
 		}
 
-		virtual void PrepareForData(const TSharedPtr<PCGExData::FFacade>& InPrimaryFacade, const TSharedPtr<PCGExData::FFacade>& InSecondaryFacade, const PCGExData::ESource SecondarySource) override
+		virtual void PrepareForData(const TSharedPtr<PCGExData::FFacade>& InTargetFacade, const TSharedPtr<PCGExData::FFacade>& InSourceFacade, const PCGExData::EIOSide SecondarySource) override
 		{
 			Cleanup();
 
-			FDataBlendingProcessorBase::PrepareForData(InPrimaryFacade, InSecondaryFacade, SecondarySource);
+			FDataBlendingProcessorBase::PrepareForData(InTargetFacade, InSourceFacade, SecondarySource);
 
-			Attribute_B = InSecondaryFacade->FindConstAttribute<T>(AttributeName, SecondarySource);
+			Attribute_B = InSourceFacade->FindConstAttribute<T>(AttributeName, SecondarySource);
 
-			if (Attribute_B) { Buffer_A = InPrimaryFacade->GetWritable<T>(Attribute_B, PCGExData::EBufferInit::Inherit); }
-			else { Buffer_A = InPrimaryFacade->GetWritable<T>(AttributeName, T{}, true, PCGExData::EBufferInit::Inherit); }
+			if (Attribute_B) { Buffer_A = InTargetFacade->GetWritable<T>(Attribute_B, PCGExData::EBufferInit::Inherit); }
+			else { Buffer_A = InTargetFacade->GetWritable<T>(AttributeName, T{}, true, PCGExData::EBufferInit::Inherit); }
 			Buffer_Target = Buffer_A;
 
-			Buffer_B = InSecondaryFacade->GetReadable<T>(AttributeName, SecondarySource); // Will return writer if sources ==
+			Buffer_B = InSourceFacade->GetReadable<T>(AttributeName, SecondarySource); // Will return writer if sources ==
 
 			bSupportInterpolation = Buffer_A->GetAllowsInterpolation();
 		}
 
-		virtual void SoftPrepareForData(const TSharedPtr<PCGExData::FFacade>& InPrimaryFacade, const TSharedPtr<PCGExData::FFacade>& InSecondaryFacade, const PCGExData::ESource SecondarySource) override
+		virtual void SoftPrepareForData(const TSharedPtr<PCGExData::FFacade>& InTargetFacade, const TSharedPtr<PCGExData::FFacade>& InSourceFacade, const PCGExData::EIOSide SecondarySource) override
 		{
 			Cleanup();
 
-			FDataBlendingProcessorBase::SoftPrepareForData(InPrimaryFacade, InSecondaryFacade, SecondarySource);
+			FDataBlendingProcessorBase::SoftPrepareForData(InTargetFacade, InSourceFacade, SecondarySource);
 
-			Attribute_B = InSecondaryFacade->FindConstAttribute<T>(AttributeName, SecondarySource);
-			Attribute_A = InPrimaryFacade->FindMutableAttribute<T>(AttributeName, PCGExData::ESource::Out);
+			Attribute_B = InSourceFacade->FindConstAttribute<T>(AttributeName, SecondarySource);
+			Attribute_A = InTargetFacade->FindMutableAttribute<T>(AttributeName, PCGExData::EIOSide::Out);
 
-			if (!Attribute_A) { Attribute_A = static_cast<FPCGMetadataAttribute<T>*>(InPrimaryFacade->GetOut()->Metadata->CopyAttribute(Attribute_B, Attribute_B->Name, false, false, false)); }
+			if (!Attribute_A) { Attribute_A = static_cast<FPCGMetadataAttribute<T>*>(InTargetFacade->GetOut()->Metadata->CopyAttribute(Attribute_B, Attribute_B->Name, false, false, false)); }
 
 			check(Attribute_A) // Something went wrong
 

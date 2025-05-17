@@ -79,7 +79,7 @@ namespace PCGExBoundsAxisToPoints
 			PointDataFacade->GetOut()->GetMutablePoints().SetNumUninitialized(NumPoints * 2);
 		}
 
-		StartParallelLoopForPoints(PCGExData::ESource::In);
+		StartParallelLoopForPoints(PCGExData::EIOSide::In);
 
 		return true;
 	}

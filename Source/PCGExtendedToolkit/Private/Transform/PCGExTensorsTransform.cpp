@@ -98,7 +98,7 @@ namespace PCGExTensorsTransform
 		Metrics.SetNum(PointDataFacade->GetNum());
 		Pings.Init(0, PointDataFacade->GetNum());
 
-		StartParallelLoopForPoints(PCGExData::ESource::Out, 64);
+		StartParallelLoopForPoints(PCGExData::EIOSide::Out, 64);
 
 		return true;
 	}
@@ -168,7 +168,7 @@ namespace PCGExTensorsTransform
 	{
 		bIteratedOnce = true;
 		RemainingIterations--;
-		if (RemainingIterations > 0) { StartParallelLoopForPoints(PCGExData::ESource::Out, 32); }
+		if (RemainingIterations > 0) { StartParallelLoopForPoints(PCGExData::EIOSide::Out, 32); }
 		else { StartParallelLoopForRange(PointDataFacade->GetNum()); }
 	}
 

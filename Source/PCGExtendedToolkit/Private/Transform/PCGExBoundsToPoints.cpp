@@ -97,7 +97,7 @@ namespace PCGExBoundsToPoints
 			}
 		}
 
-		StartParallelLoopForPoints(PCGExData::ESource::In);
+		StartParallelLoopForPoints(PCGExData::EIOSide::In);
 
 		return true;
 	}

@@ -380,7 +380,7 @@ namespace PCGExExtrudeTensors
 
 		Context->MainPoints->IncreaseReserve(NumPoints);
 
-		StartParallelLoopForPoints(PCGExData::ESource::In);
+		StartParallelLoopForPoints(PCGExData::EIOSide::In);
 
 		return true;
 	}

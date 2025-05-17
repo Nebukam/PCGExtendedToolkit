@@ -182,12 +182,12 @@ namespace PCGEx
 	bool TryGetTypeAndSource(
 		const FPCGAttributePropertyInputSelector& InputSelector,
 		const TSharedPtr<PCGExData::FFacade>& InDataFacade,
-		EPCGMetadataTypes& OutType, PCGExData::ESource& InOutSource)
+		EPCGMetadataTypes& OutType, PCGExData::EIOSide& InOutSide)
 	{
 		OutType = EPCGMetadataTypes::Unknown;
-		const UPCGBasePointData* Data = InOutSource == PCGExData::ESource::In ?
-			                            InDataFacade->Source->GetInOut(InOutSource) :
-			                            InDataFacade->Source->GetOutIn(InOutSource);
+		const UPCGBasePointData* Data = InOutSide == PCGExData::EIOSide::In ?
+			                            InDataFacade->Source->GetInOut(InOutSide) :
+			                            InDataFacade->Source->GetOutIn(InOutSide);
 
 		if (!Data) { return false; }
 

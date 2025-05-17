@@ -126,7 +126,7 @@ namespace PCGExAttributeRemap
 		InputDescriptor.DataFacade = PointDataFacade;
 		OutputDescriptor.DataFacade = PointDataFacade;
 
-		if (!InputDescriptor.Capture(Context, Settings->Attributes.GetSourceSelector(), PCGExData::ESource::In)) { return false; }
+		if (!InputDescriptor.Capture(Context, Settings->Attributes.GetSourceSelector(), PCGExData::EIOSide::In)) { return false; }
 
 		// Number of dimensions to be remapped
 		UnderlyingType = InputDescriptor.WorkingType;
@@ -135,7 +135,7 @@ namespace PCGExAttributeRemap
 		// Get per-field proxies for input
 		if (!GetPerFieldProxyBuffers(Context, InputDescriptor, Dimensions, UntypedInputProxies)) { return false; }
 
-		if (!OutputDescriptor.CaptureStrict(Context, Settings->Attributes.GetTargetSelector(), PCGExData::ESource::Out, false))
+		if (!OutputDescriptor.CaptureStrict(Context, Settings->Attributes.GetTargetSelector(), PCGExData::EIOSide::Out, false))
 		{
 			// This might be expected if the destination does not exist
 			OutputDescriptor.RealType = InputDescriptor.RealType;
@@ -230,7 +230,7 @@ namespace PCGExAttributeRemap
 				This->PointDataFacade->Fetch(Scope);
 
 				// Find min/max & clamp values
-				const TArray<FPCGPoint>& InPoints = This->PointDataFacade->Source->GetPoints(PCGExData::ESource::In);
+				const TArray<FPCGPoint>& InPoints = This->PointDataFacade->Source->GetPoints(PCGExData::EIOSide::In);
 				TArray<FPCGPoint>& OutPoints = This->PointDataFacade->Source->GetMutablePoints();
 
 				for (int d = 0; d < This->Dimensions; d++)

@@ -354,7 +354,7 @@ namespace PCGExPathCrossings
 			ProtectedAttributes.Add(Settings->CrossDirectionAttributeName);
 		}
 
-		Blending->PrepareForData(PointDataFacade, PointDataFacade, PCGExData::ESource::Out, &ProtectedAttributes);
+		Blending->PrepareForData(PointDataFacade, PointDataFacade, PCGExData::EIOSide::Out, &ProtectedAttributes);
 
 		if (PointIO->GetIn()->GetNumPoints() != PointIO->GetOut()->GetNumPoints()) { if (Settings->bTagIfHasCrossing) { PointIO->Tags->AddRaw(Settings->HasCrossingsTag); } }
 		else { if (Settings->bTagIfHasNoCrossings) { PointIO->Tags->AddRaw(Settings->HasNoCrossingsTag); } }
@@ -447,7 +447,7 @@ namespace PCGExPathCrossings
 			uint32 IOIdx;
 			PCGEx::H64(Crossing->Crossings[Order[i]], PtIdx, IOIdx);
 
-			const int32 SecondIndex = PtIdx + 1 >= static_cast<uint32>(Context->MainPoints->Pairs[IOIdx]->GetNum(PCGExData::ESource::In)) ? 0 : PtIdx + 1;
+			const int32 SecondIndex = PtIdx + 1 >= static_cast<uint32>(Context->MainPoints->Pairs[IOIdx]->GetNum(PCGExData::EIOSide::In)) ? 0 : PtIdx + 1;
 
 			Union->Reset();
 			Union->Add(IOIdx);

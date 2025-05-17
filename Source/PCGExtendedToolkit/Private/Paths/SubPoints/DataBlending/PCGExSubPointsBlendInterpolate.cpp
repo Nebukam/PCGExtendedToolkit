@@ -67,12 +67,12 @@ void UPCGExSubPointsBlendInterpolate::BlendSubPoints(
 }
 
 TSharedPtr<PCGExDataBlending::FMetadataBlender> UPCGExSubPointsBlendInterpolate::CreateBlender(
-	const TSharedRef<PCGExData::FFacade>& InPrimaryFacade,
-	const TSharedRef<PCGExData::FFacade>& InSecondaryFacade,
-	const PCGExData::ESource SecondarySource,
+	const TSharedRef<PCGExData::FFacade>& InTargetFacade,
+	const TSharedRef<PCGExData::FFacade>& InSourceFacade,
+	const PCGExData::EIOSide InSourceSide,
 	const TSet<FName>* IgnoreAttributeSet)
 {
 	PCGEX_MAKE_SHARED(NewBlender, PCGExDataBlending::FMetadataBlender, &BlendingDetails)
-	NewBlender->PrepareForData(InPrimaryFacade, InSecondaryFacade, SecondarySource, true, IgnoreAttributeSet);
+	NewBlender->PrepareForData(InTargetFacade, InSourceFacade, InSourceSide, true, IgnoreAttributeSet);
 	return NewBlender;
 }

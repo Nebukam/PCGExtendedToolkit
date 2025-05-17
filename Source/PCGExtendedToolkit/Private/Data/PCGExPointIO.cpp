@@ -130,53 +130,53 @@ namespace PCGExData
 		return true;
 	}
 
-	const UPCGBasePointData* FPointIO::GetOutIn(ESource& OutSource) const
+	const UPCGBasePointData* FPointIO::GetOutIn(EIOSide& OutSide) const
 	{
 		if (Out)
 		{
-			OutSource = ESource::Out;
+			OutSide = EIOSide::Out;
 			return Out;
 		}
 
 		if (In)
 		{
-			OutSource = ESource::In;
+			OutSide = EIOSide::In;
 			return In;
 		}
 
 		return nullptr;
 	}
 
-	const UPCGBasePointData* FPointIO::GetInOut(ESource& OutSource) const
+	const UPCGBasePointData* FPointIO::GetInOut(EIOSide& OutSide) const
 	{
 		if (In)
 		{
-			OutSource = ESource::In;
+			OutSide = EIOSide::In;
 			return In;
 		}
 
 		if (Out)
 		{
-			OutSource = ESource::Out;
+			OutSide = EIOSide::Out;
 			return Out;
 		}
 
 		return nullptr;
 	}
 
-	bool FPointIO::GetSource(const UPCGData* InData, ESource& OutSource) const
+	bool FPointIO::GetSource(const UPCGData* InData, EIOSide& OutSide) const
 	{
 		if (!InData) { return false; }
 
 		if (InData == In)
 		{
-			OutSource = ESource::In;
+			OutSide = EIOSide::In;
 			return true;
 		}
 
 		if (InData == Out)
 		{
-			OutSource = ESource::Out;
+			OutSide = EIOSide::Out;
 			return true;
 		}
 
@@ -626,11 +626,11 @@ namespace PCGExData
 		return nullptr;
 	}
 
-	int32 PCGExPointIO::GetTotalPointsNum(const TArray<TSharedPtr<FPointIO>>& InIOs, const ESource InSource)
+	int32 PCGExPointIO::GetTotalPointsNum(const TArray<TSharedPtr<FPointIO>>& InIOs, const EIOSide InSide)
 	{
 		int32 TotalNum = 0;
 
-		if (InSource == ESource::In)
+		if (InSide == EIOSide::In)
 		{
 			for (const TSharedPtr<FPointIO>& IO : InIOs)
 			{

@@ -133,7 +133,7 @@ namespace PCGExPointsMT
 
 #pragma region Parallel loop for points
 
-		void StartParallelLoopForPoints(const PCGExData::ESource Source = PCGExData::ESource::Out, const int32 PerLoopIterations = -1);
+		void StartParallelLoopForPoints(const PCGExData::EIOSide Side = PCGExData::EIOSide::Out, const int32 PerLoopIterations = -1);
 		virtual void PrepareLoopScopesForPoints(const TArray<PCGExMT::FScope>& Loops);
 		virtual void ProcessPoints(const PCGExMT::FScope& Scope);
 		virtual void OnPointsProcessingComplete();
@@ -144,7 +144,7 @@ namespace PCGExPointsMT
 
 		void StartParallelLoopForRange(const int32 NumIterations, const int32 PerLoopIterations = -1);
 		virtual void PrepareLoopScopesForRanges(const TArray<PCGExMT::FScope>& Loops);
-		virtual void PrepareSingleLoopScopeForRange(const PCGExMT::FScope& Scope);
+		//virtual void PrepareSingleLoopScopeForRange(const PCGExMT::FScope& Scope);
 		virtual void ProcessRange(const PCGExMT::FScope& Scope);
 		virtual void OnRangeProcessingComplete();
 		virtual void ProcessSingleRangeIteration(const int32 Iteration, const PCGExMT::FScope& Scope);

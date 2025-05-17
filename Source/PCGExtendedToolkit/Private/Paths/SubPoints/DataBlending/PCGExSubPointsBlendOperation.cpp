@@ -22,16 +22,16 @@ void UPCGExSubPointsBlendOperation::CopySettingsFrom(const UPCGExInstancedFactor
 	}
 }
 
-void UPCGExSubPointsBlendOperation::PrepareForData(const TSharedPtr<PCGExData::FFacade>& InPrimaryFacade, const TSet<FName>* IgnoreAttributeSet)
+void UPCGExSubPointsBlendOperation::PrepareForData(const TSharedPtr<PCGExData::FFacade>& InTargetFacade, const TSet<FName>* IgnoreAttributeSet)
 {
-	Super::PrepareForData(InPrimaryFacade, IgnoreAttributeSet);
-	PrepareForData(InPrimaryFacade, InPrimaryFacade, PCGExData::ESource::In, IgnoreAttributeSet);
+	Super::PrepareForData(InTargetFacade, IgnoreAttributeSet);
+	PrepareForData(InTargetFacade, InTargetFacade, PCGExData::EIOSide::In, IgnoreAttributeSet);
 }
 
 void UPCGExSubPointsBlendOperation::PrepareForData(
-	const TSharedPtr<PCGExData::FFacade>& InPrimaryFacade,
-	const TSharedPtr<PCGExData::FFacade>& InSecondaryFacade,
-	const PCGExData::ESource SecondarySource,
+	const TSharedPtr<PCGExData::FFacade>& InTargetFacade,
+	const TSharedPtr<PCGExData::FFacade>& InSourceFacade,
+	const PCGExData::EIOSide InSourceSide,
 	const TSet<FName>* IgnoreAttributeSet)
 {
 	if (bPreserveTransform) { bPreservePosition = bPreserveRotation = bPreserveScale = true; }
@@ -56,8 +56,8 @@ void UPCGExSubPointsBlendOperation::PrepareForData(
 
 	InternalBlender.Reset();
 	InternalBlender = CreateBlender(
-		InPrimaryFacade.ToSharedRef(), InSecondaryFacade.ToSharedRef(),
-		SecondarySource, IgnoreAttributeSet);
+		InTargetFacade.ToSharedRef(), InSourceFacade.ToSharedRef(),
+		InSourceSide, IgnoreAttributeSet);
 }
 
 void UPCGExSubPointsBlendOperation::ProcessSubPoints(
@@ -98,14 +98,14 @@ void UPCGExSubPointsBlendOperation::Cleanup()
 }
 
 TSharedPtr<PCGExDataBlending::FMetadataBlender> UPCGExSubPointsBlendOperation::CreateBlender(
-	const TSharedRef<PCGExData::FFacade>& InPrimaryFacade,
-	const TSharedRef<PCGExData::FFacade>& InSecondaryFacade,
-	const PCGExData::ESource SecondarySource,
+	const TSharedRef<PCGExData::FFacade>& InTargetFacade,
+	const TSharedRef<PCGExData::FFacade>& InSourceFacade,
+	const PCGExData::EIOSide InSourceSide,
 	const TSet<FName>* IgnoreAttributeSet)
 {
 	BlendingDetails.DefaultBlending = GetDefaultBlending();
 	PCGEX_MAKE_SHARED(NewBlender, PCGExDataBlending::FMetadataBlender, &BlendingDetails)
-	NewBlender->PrepareForData(InPrimaryFacade, InSecondaryFacade, SecondarySource, true, IgnoreAttributeSet);
+	NewBlender->PrepareForData(InTargetFacade, InSourceFacade, InSourceSide, true, IgnoreAttributeSet);
 
 	return NewBlender;
 }

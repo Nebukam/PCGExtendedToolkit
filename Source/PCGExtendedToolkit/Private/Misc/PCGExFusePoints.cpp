@@ -93,7 +93,7 @@ namespace PCGExFusePoints
 		if (!UnionGraph->Init(Context, PointDataFacade, false)) { return false; }
 
 		bDaisyChainProcessPoints = Settings->PointPointIntersectionDetails.FuseDetails.DoInlineInsertion();
-		StartParallelLoopForPoints(PCGExData::ESource::In);
+		StartParallelLoopForPoints(PCGExData::EIOSide::In);
 
 		return true;
 	}

@@ -82,20 +82,21 @@ namespace PCGExBlendPath
 			if (!LerpCache->Init(Context, PointDataFacade)) { return false; }
 		}
 
-		TArray<FPCGPoint>& OutPoints = PointDataFacade->GetOut()->GetMutablePoints();
-		MaxIndex = OutPoints.Num() - 1;
+		MaxIndex = PointDataFacade->GetNum() - 1;
 
-		Start = MakeShared<PCGExData::FPointRef>(PointDataFacade->Source->GetInPoint(0), 0);
-		End = MakeShared<PCGExData::FPointRef>(PointDataFacade->Source->GetInPoint(MaxIndex), MaxIndex);
+		Start = PointDataFacade->Source->GetInPoint(0);
+		End = PointDataFacade->Source->GetInPoint(MaxIndex);
 
 		MetadataBlender = MakeShared<PCGExDataBlending::FMetadataBlender>(&Settings->BlendingSettings);
 		MetadataBlender->PrepareForData(PointDataFacade);
 
 		if (Settings->BlendOver == EPCGExBlendOver::Distance)
 		{
-			Metrics = PCGExPaths::FPathMetrics(OutPoints[0].Transform.GetLocation());
+			Metrics = PCGExPaths::FPathMetrics(Start.GetLocation());
 			PCGEx::InitArray(Length, PointDataFacade->GetNum());
-			for (int i = 0; i < PointDataFacade->GetNum(); i++) { Length[i] = Metrics.Add(OutPoints[i].Transform.GetLocation()); }
+
+			const TConstPCGValueRange<FTransform> Transforms = PointDataFacade->GetIn()->GetConstTransformValueRange();
+			for (int i = 0; i < PointDataFacade->GetNum(); i++) { Length[i] = Metrics.Add(Transforms[i].GetLocation()); }
 		}
 
 		StartParallelLoopForPoints();
@@ -103,39 +104,40 @@ namespace PCGExBlendPath
 		return true;
 	}
 
-	void FProcessor::PrepareSingleLoopScopeForPoints(const PCGExMT::FScope& Scope)
+	void FProcessor::ProcessPoints(const PCGExMT::FScope& Scope)
 	{
+	
 		PointDataFacade->Fetch(Scope);
 		FilterScope(Scope);
-	}
 
-	void FProcessor::ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const PCGExMT::FScope& Scope)
-	{
-		if ((Index == 0 && !Settings->bBlendFirstPoint) ||
-			(Index == MaxIndex && !Settings->bBlendLastPoint))
+		PCGEX_SCOPE_LOOP(Index)
 		{
-			return;
-		}
+			if ((Index == 0 && !Settings->bBlendFirstPoint) ||
+				(Index == MaxIndex && !Settings->bBlendLastPoint))
+			{
+				return;
+			}
 
-		double Alpha = 0.5;
-		const PCGExData::FPointRef Current = PointDataFacade->Source->GetOutPointRef(Index);
-		MetadataBlender->PrepareForBlending(Current);
+			double Alpha = 0.5;
+			const PCGExData::FMutablePoint Current = PointDataFacade->GetOutPoint(Index);
+			MetadataBlender->PrepareForBlending(Current);
 
-		if (Settings->BlendOver == EPCGExBlendOver::Distance)
-		{
-			Alpha = Length[Index] / Metrics.Length;
-		}
-		else if (Settings->BlendOver == EPCGExBlendOver::Index)
-		{
-			Alpha = static_cast<double>(Index) / static_cast<double>(PointDataFacade->GetNum());
-		}
-		else
-		{
-			Alpha = LerpCache->Read(Index);
-		}
+			if (Settings->BlendOver == EPCGExBlendOver::Distance)
+			{
+				Alpha = Length[Index] / Metrics.Length;
+			}
+			else if (Settings->BlendOver == EPCGExBlendOver::Index)
+			{
+				Alpha = static_cast<double>(Index) / static_cast<double>(PointDataFacade->GetNum());
+			}
+			else
+			{
+				Alpha = LerpCache->Read(Index);
+			}
 
-		MetadataBlender->Blend(*Start, *End, Current, Alpha);
-		MetadataBlender->CompleteBlending(Current, 2, 1);
+			MetadataBlender->Blend(Start, End, Current, Alpha);
+			MetadataBlender->CompleteBlending(Current, 2, 1);
+		}
 	}
 
 	void FProcessor::CompleteWork()

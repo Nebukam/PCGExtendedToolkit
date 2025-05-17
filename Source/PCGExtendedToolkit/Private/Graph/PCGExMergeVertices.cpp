@@ -127,7 +127,7 @@ namespace PCGExMergeVertices
 	void FProcessor::Write()
 	{
 		Cluster->VtxIO = Context->CompositeDataFacade->Source;
-		Cluster->NumRawVtx = Context->CompositeDataFacade->Source->GetNum(PCGExData::ESource::Out);
+		Cluster->NumRawVtx = Context->CompositeDataFacade->Source->GetNum(PCGExData::EIOSide::Out);
 
 		PCGEX_INIT_IO_VOID(EdgeDataFacade->Source, PCGExData::EIOInit::Forward)
 

@@ -138,7 +138,7 @@ namespace PCGExBuildVoronoi2D
 			for (int i = 0; i < 3; i++) { IsVtxValid[Site.Vtx[i]] = false; }
 		};
 
-		const int32 DelaunaySitesNum = PointDataFacade->GetNum(PCGExData::ESource::In);
+		const int32 DelaunaySitesNum = PointDataFacade->GetNum(PCGExData::EIOSide::In);
 
 		if (Settings->bOutputSites)
 		{

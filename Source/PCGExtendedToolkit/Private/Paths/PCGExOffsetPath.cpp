@@ -123,7 +123,7 @@ namespace PCGExOffsetPath
 			}
 		}
 
-		StartParallelLoopForPoints(Settings->bCleanupPath ? PCGExData::ESource::In : PCGExData::ESource::Out);
+		StartParallelLoopForPoints(Settings->bCleanupPath ? PCGExData::EIOSide::In : PCGExData::EIOSide::Out);
 		return true;
 	}
 

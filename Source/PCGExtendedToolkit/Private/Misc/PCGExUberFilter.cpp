@@ -126,7 +126,7 @@ namespace PCGExUberFilter
 			PCGEx::InitArray(PointFilterCache, PointDataFacade->GetNum());
 		}
 
-		StartParallelLoopForPoints(PCGExData::ESource::In);
+		StartParallelLoopForPoints(PCGExData::EIOSide::In);
 
 		return true;
 	}
