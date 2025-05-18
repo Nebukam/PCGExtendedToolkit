@@ -338,6 +338,7 @@ struct FPCGExSampleNearestPointContext final : FPCGExPointsProcessorContext
 	TSharedPtr<PCGExData::FFacadePreloader> TargetsPreloader;
 	TSharedPtr<PCGExData::FFacade> TargetsFacade;
 	const PCGPointOctree::FPointOctree* TargetOctree = nullptr;
+	
 	TSharedPtr<PCGExSorting::PointSorter<false>> Sorter;
 
 	FPCGExApplySamplingDetails ApplySampling;
@@ -377,11 +378,13 @@ namespace PCGExSampleNearestPoints
 
 		TSharedPtr<PCGExDetails::TSettingValue<double>> RangeMinGetter;
 		TSharedPtr<PCGExDetails::TSettingValue<double>> RangeMaxGetter;
+		
+		FVector SafeUpVector = FVector::UpVector;
 		TSharedPtr<PCGExDetails::TSettingValue<FVector>> LookAtUpGetter;
 
-		FVector SafeUpVector = FVector::UpVector;
 
 		TSharedPtr<PCGExDataBlending::FBlendOpsManager> BlendOpsManager;
+		
 		TSharedPtr<PCGExMT::TScopedNumericValue<double>> MaxDistanceValue;
 		double MaxDistance = 0;
 
