@@ -309,6 +309,7 @@ namespace PCGExData
 		bool StageAnyOutput(FPCGExContext* TargetContext) const;
 
 		void Gather(const TArrayView<int32> InIndices) const;
+		void Gather(const TArrayView<int8> InMask) const;
 
 		void DeleteAttribute(FName AttributeName) const;
 

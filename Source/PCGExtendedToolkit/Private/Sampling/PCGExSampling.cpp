@@ -32,11 +32,14 @@ if ((_COMPONENT & static_cast<uint8>(EPCGExApplySampledComponentFlags::Z)) != 0)
 #undef PCGEX_REGISTER_FLAG
 }
 
-void FPCGExApplySamplingDetails::Apply(FPCGPoint& InPoint, const FTransform& InTransform, const FTransform& InLookAt)
+void FPCGExApplySamplingDetails::Apply(const PCGExData::FMutablePoint& InPoint, const FTransform& InTransform, const FTransform& InLookAt)
 {
-	FVector OutRotation = InPoint.Transform.GetRotation().Euler();
-	FVector OutPosition = InPoint.Transform.GetLocation();
-	FVector OutScale = InPoint.Transform.GetScale3D();
+	const TPCGValueRange<FTransform> Transforms = InPoint.Data->GetTransformValueRange();
+	FTransform& T = Transforms[InPoint.Index];
+
+	FVector OutRotation = T.GetRotation().Euler();
+	FVector OutPosition = T.GetLocation();
+	FVector OutScale = T.GetScale3D();
 
 	if (bApplyTransform)
 	{
@@ -62,8 +65,7 @@ void FPCGExApplySamplingDetails::Apply(FPCGPoint& InPoint, const FTransform& InT
 		//for (const int32 C : LkScaComponents) { OutScale[C] = InLkSca[C]; }
 	}
 
-
-	InPoint.Transform = FTransform(FQuat::MakeFromEuler(OutRotation), OutPosition, OutScale);
+	T = FTransform(FQuat::MakeFromEuler(OutRotation), OutPosition, OutScale);
 }
 
 namespace PCGExSampling
@@ -152,13 +154,7 @@ namespace PCGExSampling
 
 	void PruneFailedSamples(TArray<FPCGPoint>& InMutablePoints, const TArray<int8>& InSampleState)
 	{
-		const int32 NumSamples = InMutablePoints.Num();
-
-		check(InMutablePoints.Num() == NumSamples);
-
-		int32 WriteIndex = 0;
-		for (int32 i = 0; i < NumSamples; i++) { if (InSampleState[i]) { InMutablePoints[WriteIndex++] = InMutablePoints[i]; } }
-		InMutablePoints.SetNum(WriteIndex);
+		static_assert("Use FPointIO::Gather(Mask) instead");
 	}
 }
 

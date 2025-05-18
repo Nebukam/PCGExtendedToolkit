@@ -270,6 +270,18 @@ protected:
 
 namespace PCGExDataBlending
 {
+	PCGEXTENDEDTOOLKIT_API
+	void RegisterBuffersDependencies(FPCGExContext* InContext, PCGExData::FFacadePreloader& FacadePreloader, const TArray<TObjectPtr<const UPCGExAttributeBlendFactory>>& Factories);
+
+	PCGEXTENDEDTOOLKIT_API
+	void RegisterBuffersDependencies_SourceA(FPCGExContext* InContext, PCGExData::FFacadePreloader& FacadePreloader, const TArray<TObjectPtr<const UPCGExAttributeBlendFactory>>& Factories);
+
+	PCGEXTENDEDTOOLKIT_API
+	void RegisterBuffersDependencies_SourceB(FPCGExContext* InContext, PCGExData::FFacadePreloader& FacadePreloader, const TArray<TObjectPtr<const UPCGExAttributeBlendFactory>>& Factories);
+
+	PCGEXTENDEDTOOLKIT_API
+	void RegisterBuffersDependencies_Sources(FPCGExContext* InContext, PCGExData::FFacadePreloader& FacadePreloader, const TArray<TObjectPtr<const UPCGExAttributeBlendFactory>>& Factories);
+
 	class FBlendOpsManager : public TSharedFromThis<FBlendOpsManager>
 	{
 	protected:

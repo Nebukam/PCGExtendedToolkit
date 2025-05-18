@@ -368,6 +368,14 @@ namespace PCGExData
 		Out->SetNumPoints(ReducedNum);
 	}
 
+	void FPointIO::Gather(const TArrayView<int8> InMask) const
+	{
+		TArray<int32> Indices;
+		Indices.Reserve(InMask.Num());
+		for (int i = 0; i < InMask.Num(); i++) { if (InMask[i]) { Indices.Add(i); } }
+		Gather(Indices);
+	}
+
 	void FPointIO::DeleteAttribute(FName AttributeName) const
 	{
 		if (!Out) { return; }

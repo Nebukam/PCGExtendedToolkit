@@ -69,8 +69,8 @@ namespace PCGExDataBlending
 	
 	struct FBlendTracker
 	{
-		int32 NumOps = 0;
-		double TotalWeight = 0;
+		int32 Count = 0;
+		double Weight = 0;
 	};
 
 	/**
@@ -228,7 +228,7 @@ namespace PCGExDataBlending
 			{
 				// TODO : Might need to add a way to overwrite with "defaults"
 				// on top of copying the first value. Or this might simply be enough.
-				Tracker.NumOps = -1;
+				Tracker.Count = -1;
 			}
 
 			return Tracker;
@@ -238,16 +238,16 @@ namespace PCGExDataBlending
 		{
 			ON_SCOPE_EXIT
 			{
-				Tracker.NumOps++;
-				Tracker.TotalWeight += Weight;
+				Tracker.Count++;
+				Tracker.Weight += Weight;
 			};
 
 #define PCGEX_A A->Get(SourceIndex)
 #define PCGEX_B B->Get(TargetIndex)
 
-			if (Tracker.NumOps < 0)
+			if (Tracker.Count < 0)
 			{
-				Tracker.NumOps = 0;
+				Tracker.Count = 0;
 				C->Set(TargetIndex, PCGEX_A);
 				return;
 			}
@@ -264,11 +264,11 @@ namespace PCGExDataBlending
 		{
 #define PCGEX_C C->Get(TargetIndex)
 
-			if (!Tracker.NumOps) { return; } // Skip division by zero
+			if (!Tracker.Count) { return; } // Skip division by zero
 
 			// Some modes require a "finish" pass, like Average and Weight
-			if constexpr (BLEND_MODE == EPCGExABBlendingType::Average) { C->Set(TargetIndex, PCGExBlend::Div(PCGEX_C, Tracker.NumOps)); }
-			else if constexpr (BLEND_MODE == EPCGExABBlendingType::Weight) { C->Set(TargetIndex, PCGExBlend::Div(PCGEX_C, Tracker.TotalWeight)); }
+			if constexpr (BLEND_MODE == EPCGExABBlendingType::Average) { C->Set(TargetIndex, PCGExBlend::Div(PCGEX_C, Tracker.Count)); }
+			else if constexpr (BLEND_MODE == EPCGExABBlendingType::Weight) { C->Set(TargetIndex, PCGExBlend::Div(PCGEX_C, Tracker.Weight)); }
 
 #undef PCGEX_C
 		}

@@ -256,11 +256,7 @@ TargetBoundsMax._AXIS = Rad * InvScale._AXIS;\
 
 		PCGEX_TYPED_CONTEXT_AND_SETTINGS(WriteEdgeProperties)
 
-		for (const TObjectPtr<const UPCGExAttributeBlendFactory>& Factory : Context->BlendingFactories)
-		{
-			Factory->RegisterBuffersDependencies(Context, FacadePreloader);
-		}
-
+		PCGExDataBlending::RegisterBuffersDependencies(Context, FacadePreloader, Context->BlendingFactories);
 		DirectionSettings.RegisterBuffersDependencies(ExecutionContext, FacadePreloader);
 	}
 

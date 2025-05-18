@@ -39,6 +39,9 @@ bool FPCGExAttributeBlendOperation::PrepareForData(FPCGExContext* InContext)
 	if (!CopyAndFixSiblingSelector(InContext, Config.OperandB)) { return false; }
 	if (!CopyAndFixSiblingSelector(InContext, Config.OutputTo)) { return false; }
 
+	// TODO : Might be worth re-using the same descriptor if use copy
+
+
 	PCGExData::FProxyDescriptor A = PCGExData::FProxyDescriptor(ConstantA ? ConstantA : Source_A_Facade);
 	A.bIsConstant = A.DataFacade.Pin() != Source_A_Facade;
 	if (!A.Capture(InContext, Config.OperandA, PCGExData::EIOSide::Out)) { return false; }
@@ -305,10 +308,44 @@ FString UPCGExAttributeBlendFactoryProviderSettings::GetDisplayName() const
 
 	return TEXT("PCGEx | Blend Op");
 }
+
 #endif
 
 namespace PCGExDataBlending
 {
+	void RegisterBuffersDependencies(FPCGExContext* InContext, PCGExData::FFacadePreloader& FacadePreloader, const TArray<TObjectPtr<const UPCGExAttributeBlendFactory>>& Factories)
+	{
+		for (const TObjectPtr<const UPCGExAttributeBlendFactory>& Factory : Factories)
+		{
+			Factory->RegisterBuffersDependencies(InContext, FacadePreloader);
+		}
+	}
+
+	void RegisterBuffersDependencies_SourceA(FPCGExContext* InContext, PCGExData::FFacadePreloader& FacadePreloader, const TArray<TObjectPtr<const UPCGExAttributeBlendFactory>>& Factories)
+	{
+		for (const TObjectPtr<const UPCGExAttributeBlendFactory>& Factory : Factories)
+		{
+			Factory->RegisterBuffersDependenciesForOperandA(InContext, FacadePreloader);
+		}
+	}
+
+	void RegisterBuffersDependencies_SourceB(FPCGExContext* InContext, PCGExData::FFacadePreloader& FacadePreloader, const TArray<TObjectPtr<const UPCGExAttributeBlendFactory>>& Factories)
+	{
+		for (const TObjectPtr<const UPCGExAttributeBlendFactory>& Factory : Factories)
+		{
+			Factory->RegisterBuffersDependenciesForOperandB(InContext, FacadePreloader);
+		}
+	}
+
+	void RegisterBuffersDependencies_Sources(FPCGExContext* InContext, PCGExData::FFacadePreloader& FacadePreloader, const TArray<TObjectPtr<const UPCGExAttributeBlendFactory>>& Factories)
+	{
+		for (const TObjectPtr<const UPCGExAttributeBlendFactory>& Factory : Factories)
+		{
+			Factory->RegisterBuffersDependenciesForOperandA(InContext, FacadePreloader);
+			Factory->RegisterBuffersDependenciesForOperandB(InContext, FacadePreloader);
+		}
+	}
+
 	FBlendOpsManager::FBlendOpsManager(const TSharedPtr<PCGExData::FFacade>& InDataFacade)
 	{
 		SetWeightFacade(InDataFacade);

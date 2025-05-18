@@ -438,10 +438,7 @@ namespace PCGExClusterDiffusion
 			PCGEX_FOREACH_FIELD_CLUSTER_DIFF(PCGEX_OUTPUT_INIT)
 		}
 
-		for (const TObjectPtr<const UPCGExAttributeBlendFactory>& Factory : Context->BlendingFactories)
-		{
-			Factory->RegisterBuffersDependencies(Context, FacadePreloader);
-		}
+		PCGExDataBlending::RegisterBuffersDependencies(Context, FacadePreloader, Context->BlendingFactories);
 
 		for (const TObjectPtr<const UPCGExFillControlsFactoryData>& Factory : Context->FillControlFactories)
 		{
