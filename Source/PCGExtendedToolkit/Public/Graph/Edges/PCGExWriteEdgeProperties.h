@@ -5,10 +5,8 @@
 
 #include "CoreMinimal.h"
 #include "PCGExDetailsData.h"
+#include "Data/Blending/PCGExAttributeBlendFactoryProvider.h"
 #include "Data/Blending/PCGExDataBlending.h"
-#include "Data/Blending/PCGExMetadataBlender.h"
-
-
 #include "Graph/PCGExClusterMT.h"
 #include "Graph/PCGExEdgesProcessor.h"
 #include "Sampling/PCGExSampling.h"
@@ -192,13 +190,15 @@ struct FPCGExWriteEdgePropertiesContext final : FPCGExEdgesProcessorContext
 	friend class FPCGExWriteEdgePropertiesElement;
 
 	PCGEX_FOREACH_FIELD_EDGEEXTRAS(PCGEX_OUTPUT_DECL_TOGGLE)
+
+	TArray<TObjectPtr<const UPCGExAttributeBlendFactory>> BlendingFactories;
 };
 
 class FPCGExWriteEdgePropertiesElement final : public FPCGExEdgesProcessorElement
 {
 protected:
 	PCGEX_ELEMENT_CREATE_CONTEXT(WriteEdgeProperties)
-	
+
 	virtual bool Boot(FPCGExContext* InContext) const override;
 	virtual bool ExecuteInternal(FPCGContext* InContext) const override;
 };
@@ -212,8 +212,7 @@ namespace PCGExWriteEdgeProperties
 		double StartWeight = 0;
 		double EndWeight = 1;
 
-		TSharedPtr<PCGExDataBlending::FMetadataBlender> MetadataBlender;
-
+		TSharedPtr<PCGExDataBlending::FBlendOpsManager> BlendOpsManager;
 		TSharedPtr<PCGExDetails::TSettingValue<double>> SolidificationLerp;
 
 		PCGEX_FOREACH_FIELD_EDGEEXTRAS(PCGEX_OUTPUT_DECL)
@@ -233,9 +232,9 @@ namespace PCGExWriteEdgeProperties
 		virtual ~FProcessor() override;
 
 		virtual bool Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager) override;
-		virtual void PrepareSingleLoopScopeForEdges(const PCGExMT::FScope& Scope) override;
-		virtual void ProcessSingleEdge(const int32 EdgeIndex, PCGExGraph::FEdge& Edge, const PCGExMT::FScope& Scope) override;
+		virtual void ProcessEdges(const PCGExMT::FScope& Scope) override;
 		virtual void CompleteWork() override;
+		virtual void Cleanup() override;
 	};
 
 	class FBatch final : public PCGExClusterMT::TBatch<FProcessor>

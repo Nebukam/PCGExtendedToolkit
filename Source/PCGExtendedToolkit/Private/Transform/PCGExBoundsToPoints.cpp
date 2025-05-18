@@ -90,7 +90,8 @@ namespace PCGExBoundsToPoints
 		{
 			if (bSymmetry)
 			{
-				PointDataFacade->GetOut()->GetMutablePoints().SetNumUninitialized(NumPoints * 2);
+				PointDataFacade->GetOut()->SetNumPoints(NumPoints * 2);
+				PointDataFacade->Source->CopyProperties(0, NumPoints, NumPoints);
 			}
 			else
 			{
@@ -102,68 +103,86 @@ namespace PCGExBoundsToPoints
 		return true;
 	}
 
-	void FProcessor::ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const PCGExMT::FScope& Scope)
+	void FProcessor::ProcessPoints(const PCGExMT::FScope& Scope)
 	{
 		const TSharedRef<PCGExData::FPointIO>& PointIO = PointDataFacade->Source;
 
-		FVector FinalExtents = Settings->bMultiplyExtents ? Point.GetExtents() * Extents : Extents;
-
-		if (bGeneratePerPointData)
+		PCGEX_SCOPE_LOOP(Index)
 		{
-			int32 OutIndex;
-			const TSharedPtr<PCGExData::FPointIO>& NewOutput = NewOutputs[Index];
+			PCGExData::FConstPoint Point = PointIO->GetInPoint(Index);
+			FVector FinalExtents = Settings->bMultiplyExtents ? Point.GetExtents() * Extents : Extents;
 
-			FPCGPoint& A = NewOutput->CopyPoint(Point, OutIndex);
-			if (bSetExtents)
+			if (bGeneratePerPointData)
 			{
-				A.BoundsMin = -FinalExtents;
-				A.BoundsMax = FinalExtents;
-			}
+				int32 A;
+				int32 B = -1;
 
-			A.Transform.SetLocation(UVW.GetPosition(PointIO->GetInPointRef(Index)));
-			if (bSetScale) { A.Transform.SetScale3D(Scale); }
+				// TODO : Revisit this, it's a terrible way to work with point arrays	
+				const TSharedPtr<PCGExData::FPointIO>& NewOutput = NewOutputs[Index];
 
-			if (bSymmetry)
-			{
-				FPCGPoint& B = NewOutput->CopyPoint(Point, OutIndex);
+				NewOutput->CopyToNewPoint(Index, A);
+				if (bSymmetry) { NewOutput->CopyToNewPoint(Index, B); }
+
+				TPCGValueRange<FTransform> Transforms = NewOutput->GetOut()->GetTransformValueRange();
+				TPCGValueRange<FVector> BoundsMin = NewOutput->GetOut()->GetBoundsMinValueRange();
+				TPCGValueRange<FVector> BoundsMax = NewOutput->GetOut()->GetBoundsMaxValueRange();
+
 				if (bSetExtents)
 				{
-					B.BoundsMin = -FinalExtents;
-					B.BoundsMax = FinalExtents;
+					BoundsMin[A] = -Extents;
+					BoundsMax[A] = Extents;
 				}
 
-				B.Transform.SetLocation(UVW.GetPosition(PointIO->GetInPointRef(Index), Axis, true));
-				if (bSetScale) { B.Transform.SetScale3D(Scale); }
+				Transforms[A].SetLocation(UVW.GetPosition(Index));
+
+				if (bSetScale) { Transforms[A].SetScale3D(Scale); }
+
+				if (bSymmetry)
+				{
+					if (bSetExtents)
+					{
+						BoundsMin[B] = -Extents;
+						BoundsMax[B] = Extents;
+					}
+
+					Transforms[B].SetLocation(UVW.GetPosition(Index, Axis, true));
+
+					if (bSetScale) { Transforms[B].SetScale3D(Scale); }
+				}
+
+				PointAttributesToOutputTags.Tag(Index, NewOutput);
 			}
-
-			PointAttributesToOutputTags.Tag(Index, NewOutput);
-		}
-		else
-		{
-			TArray<FPCGPoint>& MutablePoints = PointIO->GetOut()->GetMutablePoints();
-
-			FPCGPoint& A = MutablePoints[Index];
-			if (bSetExtents)
+			else
 			{
-				A.BoundsMin = -FinalExtents;
-				A.BoundsMax = FinalExtents;
-			}
+				TPCGValueRange<FTransform> Transforms = PointIO->GetOut()->GetTransformValueRange();
+				TPCGValueRange<FVector> BoundsMin = PointIO->GetOut()->GetBoundsMinValueRange();
+				TPCGValueRange<FVector> BoundsMax = PointIO->GetOut()->GetBoundsMaxValueRange();
 
-			A.Transform.SetLocation(UVW.GetPosition(PointIO->GetInPointRef(Index)));
-			if (bSetScale) { A.Transform.SetScale3D(Scale); }
+				int32 A = Index;
+				int32 B = NumPoints + A;
 
-			if (bSymmetry)
-			{
-				MutablePoints[NumPoints + Index] = Point;
-				FPCGPoint& B = MutablePoints[NumPoints + Index];
 				if (bSetExtents)
 				{
-					B.BoundsMin = -FinalExtents;
-					B.BoundsMax = FinalExtents;
+					BoundsMin[A] = -Extents;
+					BoundsMax[A] = Extents;
 				}
 
-				B.Transform.SetLocation(UVW.GetPosition(PointIO->GetInPointRef(Index), Axis, true));
-				if (bSetScale) { B.Transform.SetScale3D(Scale); }
+				Transforms[A].SetLocation(UVW.GetPosition(Index));
+
+				if (bSetScale) { Transforms[A].SetScale3D(Scale); }
+
+				if (bSymmetry)
+				{
+					if (bSetExtents)
+					{
+						BoundsMin[B] = -Extents;
+						BoundsMax[B] = Extents;
+					}
+
+					Transforms[B].SetLocation(UVW.GetPosition(Index, Axis, true));
+
+					if (bSetScale) { Transforms[B].SetScale3D(Scale); }
+				}
 			}
 		}
 	}
@@ -172,9 +191,9 @@ namespace PCGExBoundsToPoints
 	{
 		if (!bGeneratePerPointData && bSymmetry)
 		{
-			TArray<FPCGPoint>& MutablePoints = PointDataFacade->GetOut()->GetMutablePoints();
+			TPCGValueRange<int64> MetadataEntries = PointDataFacade->GetOut()->GetMetadataEntryValueRange();
 			UPCGMetadata* Metadata = PointDataFacade->GetOut()->Metadata;
-			for (int i = NumPoints; i < MutablePoints.Num(); i++) { Metadata->InitializeOnSet(MutablePoints[i].MetadataEntry); }
+			for (int64& Key : MetadataEntries) { Metadata->InitializeOnSet(Key); }
 		}
 	}
 }

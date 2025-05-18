@@ -289,7 +289,7 @@ namespace PCGExData
 		In->CopyPointsTo(Out, ReadIndices, WriteIndices);
 	}
 
-	void FPointIO::CleanupKeys()
+	void FPointIO::ClearCachedKeys()
 	{
 		InKeys.Reset();
 		OutKeys.Reset();

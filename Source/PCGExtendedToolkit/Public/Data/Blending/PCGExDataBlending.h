@@ -210,7 +210,6 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPropertiesBlendingDetails
 #pragma endregion
 };
 
-
 USTRUCT(BlueprintType)
 struct PCGEXTENDEDTOOLKIT_API FPCGExBlendingDetails
 {
@@ -403,14 +402,6 @@ namespace PCGExDataBlending
 			{
 				TArrayView<T> View = MakeArrayView(Buffer_A->GetOutValues()->GetData() + StartIndex, Counts.Num());
 				CompleteValuesRangeOperation(StartIndex, View, Counts, TotalWeights);
-			}
-		}
-
-		virtual void PrepareValuesRangeOperation(TArrayView<T>& Values, const int32 StartIndex) const
-		{
-			if constexpr (bRequirePreparation)
-			{
-				for (int i = 0; i < Values.Num(); i++) { SinglePrepare(Values[i]); }
 			}
 		}
 

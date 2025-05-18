@@ -9,6 +9,7 @@
 	V->bQuietErrors = bQuietErrors;	return V; }
 #define PCGEX_SETTING_VALUE_GET_BOOL(_NAME, _TYPE, _INPUT, _SOURCE, _CONSTANT) PCGEX_SETTING_VALUE_GET(_NAME, _TYPE, _INPUT ? EPCGExInputValueType::Attribute : EPCGExInputValueType::Constant, _SOURCE, _CONSTANT);
 #include "CoreMinimal.h"
+#include "PCGExDataMath.h"
 #include "PCGExMacros.h"
 #include "Data/PCGExData.h"
 #include "Data/PCGExDataTag.h"
@@ -17,9 +18,8 @@
 
 namespace PCGExDetails
 {
-
 #pragma region Settings
-	
+
 	template <typename T>
 	class TSettingValue : public TSharedFromThis<TSettingValue<T>>
 	{
@@ -262,8 +262,7 @@ namespace PCGExDetails
 	PCGEXTENDEDTOOLKIT_API
 	TSharedPtr<FDistances> MakeNoneDistances();
 
-#pragma endregion 
-	
+#pragma endregion
 }
 
 USTRUCT(BlueprintType)
@@ -519,8 +518,9 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExFuseDetails : public FPCGExSourceFuseDetails
 
 	FORCEINLINE void GetCenters(const PCGExData::FConstPoint& SourcePoint, const PCGExData::FConstPoint& TargetPoint, FVector& OutSource, FVector& OutTarget) const
 	{
-		OutSource = DistanceDetails->GetSourceCenter(SourcePoint, SourcePoint.Transform.GetLocation(), TargetPoint.Transform.GetLocation());
-		OutTarget = DistanceDetails->GetTargetCenter(TargetPoint, TargetPoint.Transform.GetLocation(), OutSource);
+		const FVector TargetLocation = TargetPoint.GetTransform().GetLocation();
+		OutSource = DistanceDetails->GetSourceCenter(SourcePoint, SourcePoint.GetTransform().GetLocation(), TargetLocation);
+		OutTarget = DistanceDetails->GetTargetCenter(TargetPoint, TargetLocation, OutSource);
 	}
 
 	FORCEINLINE bool IsWithinTolerance(const PCGExData::FConstPoint& SourcePoint, const PCGExData::FConstPoint& TargetPoint) const

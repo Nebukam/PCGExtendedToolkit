@@ -14,6 +14,7 @@
 #include "PCGExContext.h"
 #include "PCGExMacros.h"
 #include "PCGExGlobalSettings.h"
+#include "Data/PCGExPointData.h"
 
 #include "PCGExFactoryProvider.generated.h"
 
@@ -258,7 +259,7 @@ namespace PCGExFactories
 	template <typename T_DEF>
 	static void RegisterConsumableAttributesWithFacade(const TArray<TObjectPtr<const T_DEF>>& InFactories, const TSharedPtr<PCGExData::FFacade>& InFacade)
 	{
-		check(InFacade->Source->GetContext())
+		check(InFacade->Source->GetContextHandle().IsValid())
 
 		if (!InFacade->GetIn()) { return; }
 
@@ -268,14 +269,14 @@ namespace PCGExFactories
 
 		for (const TObjectPtr<const T_DEF>& Factory : InFactories)
 		{
-			Factory->RegisterConsumableAttributesWithData(InFacade->Source->GetContext(), Data);
+			Factory->RegisterConsumableAttributesWithData(InFacade->Source->GetContextHandle(), Data);
 		}
 	}
 
 	template <typename T_DEF>
 	static void RegisterConsumableAttributesWithFacade(const TObjectPtr<const T_DEF>& InFactory, const TSharedPtr<PCGExData::FFacade>& InFacade)
 	{
-		check(InFacade->Source->GetContext())
+		check(InFacade->Source->GetContextHandle().IsValid())
 
 		if (!InFacade->GetIn()) { return; }
 
@@ -283,7 +284,7 @@ namespace PCGExFactories
 
 		if (!Data) { return; }
 
-		InFactory->RegisterConsumableAttributesWithData(InFacade->Source->GetContext(), Data);
+		InFactory->RegisterConsumableAttributesWithData(InFacade->Source->GetContextHandle(), Data);
 	}
 
 #if WITH_EDITOR

@@ -541,10 +541,8 @@ namespace PCGExPaths
 
 	TSharedPtr<FPCGSplineStruct> MakeSplineFromPoints(const UPCGBasePointData* InData, const EPCGExSplinePointTypeRedux InPointType, const bool bClosedLoop)
 	{
-		const TArray<FPCGPoint>& InPoints = InData->GetPoints();
-		if (InPoints.Num() < 2) { return nullptr; }
-
-		const int32 NumPoints = InPoints.Num();
+		const int32 NumPoints = InData->GetNumPoints();
+		if (NumPoints < 2) { return nullptr; }
 
 		TArray<FSplinePoint> SplinePoints;
 		PCGEx::InitArray(SplinePoints, NumPoints);
@@ -569,8 +567,7 @@ namespace PCGExPaths
 			break;
 		}
 
-		TArray<FTransform> PointTransforms;
-		PCGExData::GetTransforms(InPoints, PointTransforms);
+		TConstPCGValueRange<FTransform> Transforms = InData->GetConstTransformValueRange();
 
 		if (bComputeTangents)
 		{
@@ -578,11 +575,11 @@ namespace PCGExPaths
 
 			for (int i = 0; i < NumPoints; i++)
 			{
-				const FTransform TR = PointTransforms[i];
+				const FTransform TR = Transforms[i];
 				const FVector PtLoc = TR.GetLocation();
 
-				const FVector PrevDir = (PointTransforms[i == 0 ? bClosedLoop ? MaxIndex : 0 : i - 1].GetLocation() - PtLoc) * -1;
-				const FVector NextDir = PointTransforms[i == MaxIndex ? bClosedLoop ? 0 : i : i + 1].GetLocation() - PtLoc;
+				const FVector PrevDir = (Transforms[i == 0 ? bClosedLoop ? MaxIndex : 0 : i - 1].GetLocation() - PtLoc) * -1;
+				const FVector NextDir = Transforms[i == MaxIndex ? bClosedLoop ? 0 : i : i + 1].GetLocation() - PtLoc;
 				const FVector Tangent = FMath::Lerp(PrevDir, NextDir, 0.5).GetSafeNormal() * 0.01;
 
 				SplinePoints[i] = FSplinePoint(
@@ -599,7 +596,7 @@ namespace PCGExPaths
 		{
 			for (int i = 0; i < NumPoints; i++)
 			{
-				const FTransform TR = PointTransforms[i];
+				const FTransform TR = Transforms[i];
 				SplinePoints[i] = FSplinePoint(
 					static_cast<float>(i),
 					TR.GetLocation(),

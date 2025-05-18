@@ -5,6 +5,7 @@
 
 #include "CoreMinimal.h"
 #include "PCGEx.h"
+#include "PCGExDataMath.h"
 #include "PCGExMath.h"
 #include "Data/Blending/PCGExBlendModes.h"
 #include "PCGExHelpers.h"

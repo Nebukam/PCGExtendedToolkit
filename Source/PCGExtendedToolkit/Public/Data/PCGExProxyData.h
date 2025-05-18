@@ -25,7 +25,7 @@ namespace PCGExData
 		// For roaming properties only, isn't widely supported.
 		bool bReadOnly = false;
 		const UPCGBasePointData* PointData = nullptr;
-		
+
 		bool bIsConstant = false;
 
 		FProxyDescriptor()
@@ -65,18 +65,18 @@ namespace PCGExData
 		virtual TSharedPtr<FBufferBase> GetBuffer() const { return nullptr; }
 	};
 
-	template <typename T>
+	template <typename T_WORKING>
 	class TBufferProxy : public FBufferProxyBase
 	{
 	public:
 		TBufferProxy()
 			: FBufferProxyBase()
 		{
-			WorkingType = PCGEx::GetMetadataType<T>();
+			WorkingType = PCGEx::GetMetadataType<T_WORKING>();
 		}
 
-		virtual T Get(const int32 Index) const = 0;
-		virtual void Set(const int32 Index, const T& Value) const = 0;
+		virtual T_WORKING Get(const int32 Index) const = 0;
+		virtual void Set(const int32 Index, const T_WORKING& Value) const = 0;
 		virtual TSharedPtr<FBufferBase> GetBuffer() const override { return nullptr; }
 	};
 
@@ -129,7 +129,7 @@ namespace PCGExData
 	{
 		using TBufferProxy<T_WORKING>::SubSelection;
 		using TBufferProxy<T_WORKING>::Data;
-		
+
 	public:
 		TPointPropertyProxy()
 			: TBufferProxy<T_WORKING>()
@@ -194,7 +194,10 @@ namespace PCGExData
 			{
 				return PCGEx::Convert<T_REAL, T_WORKING>(Index);
 			}
-			else { return T_WORKING{}; }
+			else
+			{
+				return T_WORKING{};
+			}
 		}
 
 		virtual void Set(const int32 Index, const T_WORKING& Value) const override
@@ -230,6 +233,62 @@ namespace PCGExData
 		{
 			// This should never happen, check the callstack
 			check(false)
+		}
+	};
+
+	template <typename T_REAL, typename T_WORKING, bool bSubSelection>
+	class TDirectAttributeProxy : public TBufferProxy<T_WORKING>
+	{
+		// A memory-friendly but super slow proxy version that works with Setter/Getter on the attribute
+		// TODO : Implement support for this to replace old "soft" metadata ops
+		
+		using TBufferProxy<T_WORKING>::SubSelection;
+		using TBufferProxy<T_WORKING>::Data;
+
+	public:
+		FPCGMetadataAttribute<T_REAL>* InAttribute = nullptr;
+		FPCGMetadataAttribute<T_REAL>* OutAttribute = nullptr;
+
+		TDirectAttributeProxy()
+			: TBufferProxy<T_WORKING>()
+		{
+			this->RealType = PCGEx::GetMetadataType<T_REAL>();
+		}
+
+		virtual T_WORKING Get(const int32 Index) const override
+		{
+			const int64 MetadataEntry = Data->GetMetadataEntry(Index);
+
+			// i.e get Rotation<FQuat>.Forward<FVector> as <double>
+			//					^ T_REAL	  ^ Sub		      ^ T_WORKING
+			if constexpr (!bSubSelection)
+			{
+				if constexpr (std::is_same_v<T_REAL, T_WORKING>) { return InAttribute->GetValueFromItemKey(MetadataEntry); }
+				else { return PCGEx::Convert<T_REAL, T_WORKING>(InAttribute->GetValueFromItemKey(MetadataEntry)); }
+			}
+			else
+			{
+				return SubSelection.template Get<T_REAL, T_WORKING>(InAttribute->GetValueFromItemKey(MetadataEntry));
+			}
+		}
+
+		virtual void Set(const int32 Index, const T_WORKING& Value) const override
+		{
+			const int64 MetadataEntry = Data->GetMetadataEntry(Index);
+
+			// i.e set Rotation<FQuat>.Forward<FVector> from <FRotator>
+			//					^ T_REAL	  ^ Sub		      ^ T_WORKING
+			if constexpr (!bSubSelection)
+			{
+				if constexpr (std::is_same_v<T_REAL, T_WORKING>) { OutAttribute->SetValue(MetadataEntry, Value); }
+				else { OutAttribute->SetValue(MetadataEntry, PCGEx::Convert<T_WORKING, T_REAL>(Value)); }
+			}
+			else
+			{
+				T_REAL V = OutAttribute->GetValueFromItemKey(MetadataEntry);
+				SubSelection.template Set<T_REAL, T_WORKING>(V, Value);
+				OutAttribute->SetValue(MetadataEntry, V);
+			}
 		}
 	};
 

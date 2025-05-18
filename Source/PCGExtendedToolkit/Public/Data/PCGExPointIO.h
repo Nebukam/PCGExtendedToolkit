@@ -55,20 +55,20 @@ namespace PCGExData
 		FORCEINLINE bool IsValid() const { return Index >= 0; }
 		FORCEINLINE uint64 H64() const { return PCGEx::H64U(Index, IO); }
 
+		explicit operator int32() const { return Index; }
+
 		bool operator==(const FPoint& Other) const { return Index == Other.Index && IO == Other.IO; }
 		FORCEINLINE friend uint32 GetTypeHash(const FPoint& Key) { return HashCombineFast(Key.Index, Key.IO); }
 
-		virtual const FTransform& GetTransform() const
-		{
-			static_assert("Use FConstPoint or FMutablePoint instead.");
-			return FTransform::Identity;
-		}
-
-		virtual const FVector& GetLocation() const
-		{
-			static_assert("Use FConstPoint or FMutablePoint instead.");
-			return FVector::OneVector;
-		}
+		virtual const FTransform& GetTransform() const PCGEX_NOT_IMPLEMENTED_RET(GetTransform, FTransform::Identity)
+		virtual FVector GetLocation() const PCGEX_NOT_IMPLEMENTED_RET(GetLocation, FVector::OneVector)
+		virtual FVector GetScale3D() const PCGEX_NOT_IMPLEMENTED_RET(GetScale3D, FVector::OneVector)
+		virtual FVector GetBoundsMin() const PCGEX_NOT_IMPLEMENTED_RET(GetBoundsMin, FVector::OneVector)
+		virtual FVector GetBoundsMax() const PCGEX_NOT_IMPLEMENTED_RET(GetBoundsMax, FVector::OneVector)
+		virtual FVector GetExtents() const PCGEX_NOT_IMPLEMENTED_RET(GetExtents, FVector::OneVector)
+		virtual FVector GetScaledExtents() const PCGEX_NOT_IMPLEMENTED_RET(GetScaledExtents, FVector::OneVector)
+		virtual FBox GetLocalBounds() const PCGEX_NOT_IMPLEMENTED_RET(GetLocalBounds, FBox(NoInit))
+		virtual FBox GetLocalDensityBounds() const PCGEX_NOT_IMPLEMENTED_RET(GetLocalDensityBounds, FBox(NoInit))
 	};
 
 	struct PCGEXTENDEDTOOLKIT_API FMutablePoint : FPoint
@@ -76,13 +76,20 @@ namespace PCGExData
 		UPCGBasePointData* Data = nullptr;
 
 		FMutablePoint() = default;
-		
+
 		FMutablePoint(UPCGBasePointData* InData, const uint64 Hash);
 		FMutablePoint(UPCGBasePointData* InData, const int32 InIndex, const int32 InIO = -1);
 		FMutablePoint(const TSharedPtr<FPointIO>& InFacade, const int32 InIndex);
 
 		FORCEINLINE virtual const FTransform& GetTransform() const override { return Data->GetTransform(Index); }
-		FORCEINLINE virtual const FVector& GetLocation() const override { return Data->GetTransform(Index).GetLocation(); }
+		FORCEINLINE virtual FVector GetLocation() const override { return Data->GetTransform(Index).GetLocation(); }
+		FORCEINLINE virtual FVector GetScale3D() const override { return Data->GetTransform(Index).GetScale3D(); }
+		FORCEINLINE virtual FVector GetBoundsMin() const override { return Data->GetBoundsMin(Index); }
+		FORCEINLINE virtual FVector GetBoundsMax() const override { return Data->GetBoundsMax(Index); }
+		FORCEINLINE virtual FVector GetExtents() const override { return Data->GetExtents(Index); }
+		FORCEINLINE virtual FVector GetScaledExtents() const override { return Data->GetScaledExtents(Index); }
+		FORCEINLINE virtual FBox GetLocalBounds() const override { return Data->GetLocalBounds(Index); }
+		FORCEINLINE virtual FBox GetLocalDensityBounds() const override { return Data->GetLocalDensityBounds(Index); }
 
 		bool operator==(const FMutablePoint& Other) const { return Index == Other.Index && Data == Other.Data; }
 	};
@@ -100,7 +107,14 @@ namespace PCGExData
 		FConstPoint(const TSharedPtr<FPointIO>& InFacade, const int32 InIndex);
 
 		FORCEINLINE virtual const FTransform& GetTransform() const override { return Data->GetTransform(Index); }
-		FORCEINLINE virtual const FVector& GetLocation() const override { return Data->GetTransform(Index).GetLocation(); }
+		FORCEINLINE virtual FVector GetLocation() const override { return Data->GetTransform(Index).GetLocation(); }
+		FORCEINLINE virtual FVector GetScale3D() const override { return Data->GetTransform(Index).GetScale3D(); }
+		FORCEINLINE virtual FVector GetBoundsMin() const override { return Data->GetBoundsMin(Index); }
+		FORCEINLINE virtual FVector GetBoundsMax() const override { return Data->GetBoundsMax(Index); }
+		FORCEINLINE virtual FVector GetExtents() const override { return Data->GetExtents(Index); }
+		FORCEINLINE virtual FVector GetScaledExtents() const override { return Data->GetScaledExtents(Index); }
+		FORCEINLINE virtual FBox GetLocalBounds() const override { return Data->GetLocalBounds(Index); }
+		FORCEINLINE virtual FBox GetLocalDensityBounds() const override { return Data->GetLocalDensityBounds(Index); }
 
 		bool operator==(const FConstPoint& Other) const { return Index == Other.Index && IO == Other.IO && Data == Other.Data; }
 	};
@@ -159,7 +173,7 @@ namespace PCGExData
 		}
 
 		explicit FPointIO(const TSharedRef<FPointIO>& InPointIO):
-			ContextHandle(InPointIO->GetContext()), In(InPointIO->GetIn())
+			ContextHandle(InPointIO->GetContextHandle()), In(InPointIO->GetIn())
 		{
 			PCGEX_LOG_CTR(FPointIO)
 			RootIO = InPointIO;
@@ -170,7 +184,7 @@ namespace PCGExData
 			Tags = MakeShared<FTags>(TagDump);
 		}
 
-		TWeakPtr<FPCGContextHandle> GetContext() const { return ContextHandle; }
+		TWeakPtr<FPCGContextHandle> GetContextHandle() const { return ContextHandle; }
 
 		void SetInfos(const int32 InIndex,
 		              const FName InOutputPin,
@@ -191,7 +205,6 @@ namespace PCGExData
 			}
 
 			bMutable = true;
-
 
 			if (InitOut == EIOInit::New)
 			{
@@ -254,65 +267,38 @@ namespace PCGExData
 
 		FORCEINLINE FConstPoint GetInPoint(const int32 Index) const { return FConstPoint(In, Index, IOIndex); }
 		FORCEINLINE FMutablePoint GetOutPoint(const int32 Index) const { return FMutablePoint(Out, Index, IOIndex); }
-		
+
 		FName OutputPin = PCGEx::OutputPointsLabel;
 
-		void InitPoint(FPCGPoint& Point, const PCGMetadataEntryKey ParentKey) const
+		void InitPoint(int32 Index, const PCGMetadataEntryKey ParentKey) const
 		{
-			Out->Metadata->InitializeOnSet(Point.MetadataEntry, ParentKey, In->Metadata);
+			TPCGValueRange<int64> MetadataEntries = Out->GetMetadataEntryValueRange();
+			Out->Metadata->InitializeOnSet(MetadataEntries[Index], ParentKey, In->Metadata);
 		}
 
-		void InitPoint(FPCGPoint& Point) const
+		void InitPoint(int32 Index) const
 		{
-			Out->Metadata->InitializeOnSet(Point.MetadataEntry);
+			TPCGValueRange<int64> MetadataEntries = Out->GetMetadataEntryValueRange();
+			Out->Metadata->InitializeOnSet(MetadataEntries[Index]);
 		}
 
 		// In -> Out
-		void CopyProperties(const int32 ReadStartIndex, const int32 WriteStartIndex, const int32 Count, const EPCGPointNativeProperties Properties) const;
-		void CopyProperties(const TArrayView<const int32>& ReadIndices, const TArrayView<const int32>& WriteIndices, const EPCGPointNativeProperties Properties) const;
-		void CopyProperties(const TArrayView<const int32>& ReadIndices, const EPCGPointNativeProperties Properties) const;
+		void CopyProperties(const int32 ReadStartIndex, const int32 WriteStartIndex, const int32 Count, const EPCGPointNativeProperties Properties = EPCGPointNativeProperties::All) const;
+		void CopyProperties(const TArrayView<const int32>& ReadIndices, const TArrayView<const int32>& WriteIndices, const EPCGPointNativeProperties Properties = EPCGPointNativeProperties::All) const;
+		void CopyProperties(const TArrayView<const int32>& ReadIndices, const EPCGPointNativeProperties Properties = EPCGPointNativeProperties::All) const;
 		void CopyPoints(const int32 ReadStartIndex, const int32 WriteStartIndex, const int32 Count) const;
 		void CopyPoints(const TArrayView<const int32>& ReadIndices, const TArrayView<const int32>& WriteIndices) const;
 
-		FPCGPoint& CopyPoint(const FPCGPoint& FromPoint, int32& OutIndex) const
+		void CopyToNewPoint(const int32 InIndex, int32& OutIndex) const
 		{
 			FWriteScopeLock WriteLock(PointsLock);
-			TArray<FPCGPoint>& MutablePoints = Out->GetMutablePoints();
-			OutIndex = MutablePoints.Num();
-			FPCGPoint& Pt = MutablePoints.Add_GetRef(FromPoint);
-			InitPoint(Pt, FromPoint.MetadataEntry);
-			return Pt;
+			OutIndex = Out->GetNumPoints();
+			Out->SetNumPoints(OutIndex + 1);
+			CopyProperties(InIndex, OutIndex, 1);
+			InitPoint(OutIndex, In->GetMetadataEntry(InIndex));
 		}
 
-		FPCGPoint& NewPoint(int32& OutIndex) const
-		{
-			FWriteScopeLock WriteLock(PointsLock);
-			TArray<FPCGPoint>& MutablePoints = Out->GetMutablePoints();
-			FPCGPoint& Pt = MutablePoints.Emplace_GetRef();
-			OutIndex = MutablePoints.Num() - 1;
-			InitPoint(Pt);
-			return Pt;
-		}
-
-		void AddPoint(FPCGPoint& Point, int32& OutIndex, const bool bInit) const
-		{
-			FWriteScopeLock WriteLock(PointsLock);
-			TArray<FPCGPoint>& MutablePoints = Out->GetMutablePoints();
-			MutablePoints.Add(Point);
-			OutIndex = MutablePoints.Num() - 1;
-			if (bInit) { Out->Metadata->InitializeOnSet(Point.MetadataEntry); }
-		}
-
-		void AddPoint(FPCGPoint& Point, int32& OutIndex, const FPCGPoint& FromPoint) const
-		{
-			FWriteScopeLock WriteLock(PointsLock);
-			TArray<FPCGPoint>& MutablePoints = Out->GetMutablePoints();
-			MutablePoints.Add(Point);
-			OutIndex = MutablePoints.Num() - 1;
-			InitPoint(Point, FromPoint.MetadataEntry);
-		}
-
-		void CleanupKeys();
+		void ClearCachedKeys();
 
 		void Disable() { bIsEnabled.store(false, std::memory_order_release); }
 		void Enable() { bIsEnabled.store(true, std::memory_order_release); }

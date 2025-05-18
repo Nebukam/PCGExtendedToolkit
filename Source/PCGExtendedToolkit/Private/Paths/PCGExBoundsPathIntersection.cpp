@@ -248,7 +248,7 @@ namespace PCGExPathIntersections
 			}
 		}
 
-		PointDataFacade->Source->CleanupKeys();
+		PointDataFacade->Source->ClearCachedKeys();
 		Details.Init(PointDataFacade, Context->BoundsDataFacade);
 
 		Segmentation->ReduceToArray();

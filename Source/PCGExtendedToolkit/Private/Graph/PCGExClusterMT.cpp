@@ -343,12 +343,12 @@ namespace PCGExClusterMT
 					TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExGraph::BuildLookupTable::Range);
 
 					PCGEX_ASYNC_THIS
-					const TArray<FPCGPoint>& InKeys = This->VtxDataFacade->GetIn()->GetPoints();
+					const TConstPCGValueRange<int64> MetadataEntries = This->VtxDataFacade->GetIn()->GetConstMetadataEntryValueRange();
 					for (int i = Scope.Start; i < Scope.End; i++)
 					{
 						uint32 A;
 						uint32 B;
-						PCGEx::H64(This->RawLookupAttribute->GetValueFromItemKey(InKeys[i].MetadataEntry), A, B);
+						PCGEx::H64(This->RawLookupAttribute->GetValueFromItemKey(MetadataEntries[i]), A, B);
 
 						This->ReverseLookup[i] = A;
 						This->ExpectedAdjacency[i] = B;

@@ -100,7 +100,7 @@ namespace PCGExBlendAttributes
 		for (int i = InScope.Start; i < InScope.End; i++)
 		{
 			if (!PointFilterCache[i]) { continue; }			
-			BlendOpsManager->Blend(i, Points[i]); 
+			BlendOpsManager->Blend(i); 
 		}
 	}
 

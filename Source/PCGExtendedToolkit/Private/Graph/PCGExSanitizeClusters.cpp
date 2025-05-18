@@ -69,7 +69,7 @@ namespace PCGExSanitizeClusters
 		BuildIndexedEdges(EdgeDataFacade->Source, *EndpointsLookup, IndexedEdges);
 		if (!IndexedEdges.IsEmpty()) { GraphBuilder->Graph->InsertEdges(IndexedEdges); }
 
-		EdgeDataFacade->Source->CleanupKeys();
+		EdgeDataFacade->Source->ClearCachedKeys();
 
 		return true;
 	}

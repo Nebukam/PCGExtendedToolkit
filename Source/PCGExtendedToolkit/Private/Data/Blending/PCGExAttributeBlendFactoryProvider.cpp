@@ -29,33 +29,31 @@ void FPCGExAttributeBlendConfig::Init()
 	Weighting.Init();
 }
 
-bool FPCGExAttributeBlendOperation::PrepareForData(FPCGExContext* InContext, const TSharedRef<PCGExData::FFacade>& InDataFacade)
+bool FPCGExAttributeBlendOperation::PrepareForData(FPCGExContext* InContext)
 {
-	PrimaryDataFacade = InDataFacade;
-
 	Weight = Config.Weighting.GetValueSettingWeight();
-	if (!Weight->Init(InContext, InDataFacade)) { return false; }
+	if (!Weight->Init(InContext, WeightFacade)) { return false; }
 
 	// Fix @Selectors based on siblings 
 	if (!CopyAndFixSiblingSelector(InContext, Config.OperandA)) { return false; }
 	if (!CopyAndFixSiblingSelector(InContext, Config.OperandB)) { return false; }
 	if (!CopyAndFixSiblingSelector(InContext, Config.OutputTo)) { return false; }
 
-	PCGExData::FProxyDescriptor A = PCGExData::FProxyDescriptor(ConstantA ? ConstantA : InDataFacade);
-	A.bIsConstant = A.DataFacade.Pin() != InDataFacade;
+	PCGExData::FProxyDescriptor A = PCGExData::FProxyDescriptor(ConstantA ? ConstantA : Source_A_Facade);
+	A.bIsConstant = A.DataFacade.Pin() != Source_A_Facade;
 	if (!A.Capture(InContext, Config.OperandA, PCGExData::EIOSide::Out)) { return false; }
 
-	PCGExData::FProxyDescriptor B = PCGExData::FProxyDescriptor(ConstantB ? ConstantB : InDataFacade);
-	B.bIsConstant = B.DataFacade.Pin() != InDataFacade;
+	PCGExData::FProxyDescriptor B = PCGExData::FProxyDescriptor(ConstantB ? ConstantB : Source_B_Facade);
+	B.bIsConstant = B.DataFacade.Pin() != Source_B_Facade;
 	if (!B.Capture(InContext, Config.OperandB, PCGExData::EIOSide::Out)) { return false; }
 
-	PCGExData::FProxyDescriptor C = PCGExData::FProxyDescriptor(InDataFacade);
+	PCGExData::FProxyDescriptor C = PCGExData::FProxyDescriptor(TargetFacade);
 	C.Side = PCGExData::EIOSide::Out;
 
 	Config.OperandA = A.Selector;
 	Config.OperandB = B.Selector;
 
-	Config.OutputTo = C.Selector = Config.OutputTo.CopyAndFixLast(InDataFacade->Source->GetOut());
+	Config.OutputTo = C.Selector = Config.OutputTo.CopyAndFixLast(TargetFacade->Source->GetOut());
 	C.UpdateSubSelection();
 
 	PCGEx::FSubSelection OutputSubselection(Config.OutputTo);
@@ -74,7 +72,7 @@ bool FPCGExAttributeBlendOperation::PrepareForData(FPCGExContext* InContext, con
 		else if (Config.OutputType == EPCGExOperandAuthority::Custom) { RealTypeC = Config.CustomType; }
 		else if (Config.OutputType == EPCGExOperandAuthority::Auto)
 		{
-			if (const FPCGMetadataAttributeBase* OutAttribute = InDataFacade->GetOut()->Metadata->GetConstAttribute(Config.OutputTo.GetAttributeName()))
+			if (const FPCGMetadataAttributeBase* OutAttribute = TargetFacade->GetOut()->Metadata->GetConstAttribute(Config.OutputTo.GetAttributeName()))
 			{
 				// First, check for an existing attribute
 				RealTypeC = static_cast<EPCGMetadataTypes>(OutAttribute->GetTypeId());
@@ -237,6 +235,19 @@ bool UPCGExAttributeBlendFactory::RegisterConsumableAttributesWithData(FPCGExCon
 	return true;
 }
 
+void UPCGExAttributeBlendFactory::RegisterBuffersDependencies(FPCGExContext* InContext, PCGExData::FFacadePreloader& FacadePreloader) const
+{
+	Super::RegisterBuffersDependencies(InContext, FacadePreloader);
+}
+
+void UPCGExAttributeBlendFactory::RegisterBuffersDependenciesForOperandA(FPCGExContext* InContext, PCGExData::FFacadePreloader& FacadePreloader) const
+{
+}
+
+void UPCGExAttributeBlendFactory::RegisterBuffersDependenciesForOperandB(FPCGExContext* InContext, PCGExData::FFacadePreloader& FacadePreloader) const
+{
+}
+
 #if WITH_EDITOR
 void UPCGExAttributeBlendFactoryProviderSettings::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
 {
@@ -296,46 +307,55 @@ FString UPCGExAttributeBlendFactoryProviderSettings::GetDisplayName() const
 }
 #endif
 
-bool PCGExDataBlending::PrepareBlendOps(
-	FPCGExContext* InContext,
-	const TSharedRef<PCGExData::FFacade>& InDataFacade,
-	const TArray<TObjectPtr<const UPCGExAttributeBlendFactory>>& InFactories,
-	const TSharedPtr<TArray<TSharedPtr<FPCGExAttributeBlendOperation>>>& OutOperations)
-{
-	for (const TObjectPtr<const UPCGExAttributeBlendFactory>& Factory : InFactories)
-	{
-		TSharedPtr<FPCGExAttributeBlendOperation> Op = Factory->CreateOperation(InContext);
-		if (!Op)
-		{
-			PCGE_LOG_C(Error, GraphAndLog, InContext, FTEXT("An operation could not be created."));
-			return false; // FAIL
-		}
-
-		Op->OpIdx = OutOperations->Add(Op);
-		Op->SiblingOperations = OutOperations;
-
-		if (!Op->PrepareForData(InContext, InDataFacade))
-		{
-			return false; // FAIL
-		}
-	}
-
-	return true;
-}
-
 namespace PCGExDataBlending
 {
 	FBlendOpsManager::FBlendOpsManager(const TSharedPtr<PCGExData::FFacade>& InDataFacade)
-		: DataFacade(InDataFacade)
+	{
+		SetWeightFacade(InDataFacade);
+		SetSources(InDataFacade);
+		SetTargetFacade(InDataFacade);
+		Operations = MakeShared<TArray<TSharedPtr<FPCGExAttributeBlendOperation>>>();
+	}
+
+	FBlendOpsManager::FBlendOpsManager()
 	{
 		Operations = MakeShared<TArray<TSharedPtr<FPCGExAttributeBlendOperation>>>();
 	}
 
-	bool FBlendOpsManager::Init(FPCGExContext* InContext, const TArray<TObjectPtr<const UPCGExAttributeBlendFactory>>& InFactories)
+	void FBlendOpsManager::SetWeightFacade(const TSharedPtr<PCGExData::FFacade>& InDataFacade)
 	{
-		check(DataFacade)
+		WeightFacade = InDataFacade;
+	}
 
-		const TSharedRef<PCGExData::FFacade> InDataFacade = DataFacade.ToSharedRef();
+	void FBlendOpsManager::SetSources(const TSharedPtr<PCGExData::FFacade>& InDataFacade)
+	{
+		SetSourceA(InDataFacade);
+		SetSourceB(InDataFacade);
+	}
+
+	void FBlendOpsManager::SetSourceA(const TSharedPtr<PCGExData::FFacade>& InDataFacade)
+	{
+		SourceAFacade = InDataFacade;
+	}
+
+	void FBlendOpsManager::SetSourceB(const TSharedPtr<PCGExData::FFacade>& InDataFacade)
+	{
+		SourceBFacade = InDataFacade;
+	}
+
+	void FBlendOpsManager::SetTargetFacade(const TSharedPtr<PCGExData::FFacade>& InDataFacade)
+	{
+		TargetFacade = InDataFacade;
+	}
+
+	bool FBlendOpsManager::Init(FPCGExContext* InContext, const TArray<TObjectPtr<const UPCGExAttributeBlendFactory>>& InFactories) const
+	{
+		check(WeightFacade)
+		check(SourceAFacade)
+		check(SourceBFacade)
+		check(TargetFacade)
+
+		const TSharedRef<PCGExData::FFacade> InDataFacade = SourceAFacade.ToSharedRef();
 
 		Operations->Reserve(InFactories.Num());
 
@@ -348,16 +368,38 @@ namespace PCGExDataBlending
 				return false; // FAIL
 			}
 
+			// Assign blender facades
+			Op->WeightFacade = WeightFacade;
+			Op->Source_A_Facade = SourceAFacade;
+			Op->Source_B_Facade = SourceBFacade;
+			Op->TargetFacade = TargetFacade;
+
 			Op->OpIdx = Operations->Add(Op);
 			Op->SiblingOperations = Operations;
 
-			if (!Op->PrepareForData(InContext, InDataFacade))
+			if (!Op->PrepareForData(InContext))
 			{
 				return false; // FAIL
 			}
 		}
 
 		return true;
+	}
+
+	void FBlendOpsManager::BeginMultiBlend(const int32 TargetIndex, TArray<PCGExDataBlending::FBlendTracker>& OutTrackers) const
+	{
+		OutTrackers.SetNumUninitialized(Operations->Num());
+		for (int i = 0; i < Operations->Num(); i++) { OutTrackers[i] = (*(Operations->GetData() + i))->BeginMultiBlend(TargetIndex); }
+	}
+
+	void FBlendOpsManager::MultiBlend(const int32 SourceIndex, const int32 TargetIndex, const double Weight, TArray<PCGExDataBlending::FBlendTracker>& Trackers) const
+	{
+		for (int i = 0; i < Operations->Num(); i++) { (*(Operations->GetData() + i))->MultiBlend(SourceIndex, TargetIndex, Weight, Trackers[i]); }
+	}
+
+	void FBlendOpsManager::EndMultiBlend(const int32 TargetIndex, TArray<PCGExDataBlending::FBlendTracker>& Trackers) const
+	{
+		for (int i = 0; i < Operations->Num(); i++) { (*(Operations->GetData() + i))->EndMultiBlend(TargetIndex, Trackers[i]); }
 	}
 
 	void FBlendOpsManager::Cleanup(FPCGExContext* InContext)
@@ -369,9 +411,9 @@ namespace PCGExDataBlending
 		{
 			// If disabled buffer does not exist on input, delete it entierely
 			if (!Buffer->OutAttribute) { continue; }
-			if (!DataFacade->GetIn()->Metadata->HasAttribute(Buffer->OutAttribute->Name))
+			if (!SourceAFacade->GetIn()->Metadata->HasAttribute(Buffer->OutAttribute->Name))
 			{
-				DataFacade->GetOut()->Metadata->DeleteAttribute(Buffer->OutAttribute->Name);
+				SourceAFacade->GetOut()->Metadata->DeleteAttribute(Buffer->OutAttribute->Name);
 				// TODO : Check types and make sure we're not deleting something
 			}
 

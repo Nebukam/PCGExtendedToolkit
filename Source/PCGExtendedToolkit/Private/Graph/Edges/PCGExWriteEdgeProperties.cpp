@@ -3,6 +3,7 @@
 
 #include "Graph/Edges/PCGExWriteEdgeProperties.h"
 
+#include "Data/Blending/PCGExAttributeBlendFactoryProvider.h"
 #include "Data/Blending/PCGExMetadataBlender.h"
 
 #define LOCTEXT_NAMESPACE "PCGExEdgesToPaths"
@@ -14,6 +15,7 @@ PCGExData::EIOInit UPCGExWriteEdgePropertiesSettings::GetEdgeOutputInitMode() co
 TArray<FPCGPinProperties> UPCGExWriteEdgePropertiesSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
+	if (bEndpointsBlending) { PCGEX_PIN_FACTORIES(PCGExDataBlending::SourceBlendingLabel, "Blending configurations.", Required, {}) }
 	if (bWriteHeuristics) { PCGEX_PIN_FACTORIES(PCGExGraph::SourceHeuristicsLabel, "Heuristics that will be computed and written.", Required, {}) }
 	return PinProperties;
 }
@@ -27,6 +29,16 @@ bool FPCGExWriteEdgePropertiesElement::Boot(FPCGExContext* InContext) const
 	PCGEX_CONTEXT_AND_SETTINGS(WriteEdgeProperties)
 
 	PCGEX_FOREACH_FIELD_EDGEEXTRAS(PCGEX_OUTPUT_VALIDATE_NAME)
+
+	if (Settings->bEndpointsBlending)
+	{
+		if (!PCGExFactories::GetInputFactories<UPCGExAttributeBlendFactory>(
+			Context, PCGExDataBlending::SourceBlendingLabel, Context->BlendingFactories,
+			{PCGExFactories::EType::Blending}, true))
+		{
+			return false;
+		}
+	}
 
 	return true;
 }
@@ -99,8 +111,10 @@ namespace PCGExWriteEdgeProperties
 
 		if (Settings->bEndpointsBlending)
 		{
-			MetadataBlender = MakeShared<PCGExDataBlending::FMetadataBlender>(const_cast<FPCGExBlendingDetails*>(&Settings->BlendingSettings));
-			MetadataBlender->PrepareForData(EdgeDataFacade, VtxDataFacade, PCGExData::EIOSide::In, true, &PCGExGraph::ProtectedClusterAttributes);
+			BlendOpsManager = MakeShared<PCGExDataBlending::FBlendOpsManager>(EdgeDataFacade);
+			BlendOpsManager->SetSources(VtxDataFacade); // We want operands A & B to be the vtx here
+
+			if (!BlendOpsManager->Init(Context, Context->BlendingFactories)) { return false; }
 		}
 
 		StartWeight = FMath::Clamp(Settings->EndpointsWeights, 0, 1);
@@ -111,132 +125,129 @@ namespace PCGExWriteEdgeProperties
 		return true;
 	}
 
-	void FProcessor::PrepareSingleLoopScopeForEdges(const PCGExMT::FScope& Scope)
+	void FProcessor::ProcessEdges(const PCGExMT::FScope& Scope)
 	{
-		FClusterProcessor::PrepareSingleLoopScopeForEdges(Scope);
+		TArray<PCGExGraph::FEdge>& ClusterEdges = *Cluster->Edges;
 		EdgeDataFacade->Fetch(Scope);
-	}
 
-	void FProcessor::ProcessSingleEdge(const int32 EdgeIndex, PCGExGraph::FEdge& Edge, const PCGExMT::FScope& Scope)
-	{
-		DirectionSettings.SortEndpoints(Cluster.Get(), Edge);
+		TPCGValueRange<FTransform> Transforms = EdgeDataFacade->GetOut()->GetTransformValueRange();
+		TPCGValueRange<FVector> BoundsMin = EdgeDataFacade->GetOut()->GetBoundsMinValueRange();
+		TPCGValueRange<FVector> BoundsMax = EdgeDataFacade->GetOut()->GetBoundsMaxValueRange();
 
-		const PCGExCluster::FNode& StartNode = *Cluster->GetEdgeStart(Edge);
-		const PCGExCluster::FNode& EndNode = *Cluster->GetEdgeEnd(Edge);
-
-		double BlendWeightStart = StartWeight;
-		double BlendWeightEnd = EndWeight;
-
-		const FVector A = Cluster->GetPos(StartNode);
-		const FVector B = Cluster->GetPos(EndNode);
-
-		const FVector EdgeDirection = (A - B).GetSafeNormal();
-		const double EdgeLength = FVector::Distance(A, B);
-
-		PCGEX_OUTPUT_VALUE(EdgeDirection, Edge.PointIndex, EdgeDirection);
-		PCGEX_OUTPUT_VALUE(EdgeLength, Edge.PointIndex, EdgeLength);
-
-		if (Settings->bWriteHeuristics)
+		PCGEX_SCOPE_LOOP(Index)
 		{
-			switch (Settings->HeuristicsMode)
+			PCGExGraph::FEdge& Edge = ClusterEdges[Index];
+			const int32 EdgeIndex = Edge.PointIndex;
+
+			DirectionSettings.SortEndpoints(Cluster.Get(), Edge);
+
+			const PCGExCluster::FNode& StartNode = *Cluster->GetEdgeStart(Edge);
+			const PCGExCluster::FNode& EndNode = *Cluster->GetEdgeEnd(Edge);
+
+			const FVector A = Cluster->GetPos(StartNode);
+			const FVector B = Cluster->GetPos(EndNode);
+
+			const FVector EdgeDirection = (A - B).GetSafeNormal();
+			const double EdgeLength = FVector::Distance(A, B);
+
+			PCGEX_OUTPUT_VALUE(EdgeDirection, EdgeIndex, EdgeDirection);
+			PCGEX_OUTPUT_VALUE(EdgeLength, EdgeIndex, EdgeLength);
+
+			if (Settings->bWriteHeuristics)
 			{
-			case EPCGExHeuristicsWriteMode::EndpointsOrder:
-				PCGEX_OUTPUT_VALUE(Heuristics, Edge.PointIndex, HeuristicsHandler->GetEdgeScore(StartNode, EndNode, Edge, StartNode, EndNode));
-				break;
-			case EPCGExHeuristicsWriteMode::Smallest:
-				PCGEX_OUTPUT_VALUE(
-					Heuristics, Edge.PointIndex, FMath::Min(
-						HeuristicsHandler->GetEdgeScore(StartNode, EndNode, Edge, StartNode, EndNode),
-						HeuristicsHandler->GetEdgeScore(EndNode, StartNode, Edge, EndNode, StartNode)));
-				break;
-			case EPCGExHeuristicsWriteMode::Highest:
-				PCGEX_OUTPUT_VALUE(
-					Heuristics, Edge.PointIndex, FMath::Max(
-						HeuristicsHandler->GetEdgeScore(StartNode, EndNode, Edge, StartNode, EndNode),
-						HeuristicsHandler->GetEdgeScore(EndNode, StartNode, Edge, EndNode, StartNode)));
-				break;
-			default: ;
+				switch (Settings->HeuristicsMode)
+				{
+				case EPCGExHeuristicsWriteMode::EndpointsOrder:
+					PCGEX_OUTPUT_VALUE(Heuristics, EdgeIndex, HeuristicsHandler->GetEdgeScore(StartNode, EndNode, Edge, StartNode, EndNode));
+					break;
+				case EPCGExHeuristicsWriteMode::Smallest:
+					PCGEX_OUTPUT_VALUE(
+						Heuristics, EdgeIndex, FMath::Min(
+							HeuristicsHandler->GetEdgeScore(StartNode, EndNode, Edge, StartNode, EndNode),
+							HeuristicsHandler->GetEdgeScore(EndNode, StartNode, Edge, EndNode, StartNode)));
+					break;
+				case EPCGExHeuristicsWriteMode::Highest:
+					PCGEX_OUTPUT_VALUE(
+						Heuristics, EdgeIndex, FMath::Max(
+							HeuristicsHandler->GetEdgeScore(StartNode, EndNode, Edge, StartNode, EndNode),
+							HeuristicsHandler->GetEdgeScore(EndNode, StartNode, Edge, EndNode, StartNode)));
+					break;
+				default: ;
+				}
 			}
-		}
 
-		FPCGPoint& MutableTarget = EdgeDataFacade->Source->GetOutPoint(Edge.PointIndex);
+			if (bSolidify)
+			{
+				FRotator EdgeRot;
+				FVector TargetBoundsMin = BoundsMin[EdgeIndex];
+				FVector TargetBoundsMax = BoundsMax[EdgeIndex];
 
-		auto MetadataBlend = [&]()
-		{
-			const PCGExData::FPointRef Target = EdgeDataFacade->Source->GetOutPointRef(Edge.PointIndex);
-			MetadataBlender->PrepareForBlending(Target);
-			MetadataBlender->Blend(Target, VtxDataFacade->Source->GetInPointRef(Edge.Start), Target, BlendWeightStart);
-			MetadataBlender->Blend(Target, VtxDataFacade->Source->GetInPointRef(Edge.End), Target, BlendWeightEnd);
-			MetadataBlender->CompleteBlending(Target, 2, BlendWeightStart + BlendWeightEnd);
-		};
+				FVector TargetScale = Transforms[EdgeIndex].GetScale3D();
 
-		if (bSolidify)
-		{
-			FRotator EdgeRot;
-			FVector TargetBoundsMin = MutableTarget.BoundsMin;
-			FVector TargetBoundsMax = MutableTarget.BoundsMax;
+				const FVector InvScale = FVector::One() / TargetScale;
 
-			FVector TargetScale = MutableTarget.Transform.GetScale3D();
-			
-			const FVector InvScale = FVector::One() / TargetScale;
+				double BlendWeightStart = FMath::Clamp(SolidificationLerp->Read(EdgeIndex), 0, 1);
+				double BlendWeightEnd = 1 - BlendWeightStart;
 
-			BlendWeightStart = FMath::Clamp(SolidificationLerp->Read(Edge.PointIndex), 0, 1);
-			BlendWeightEnd = 1 - BlendWeightStart;
-			
 #define PCGEX_SOLIDIFY_DIMENSION(_AXIS)\
-			if (Settings->SolidificationAxis == EPCGExMinimalAxis::_AXIS){\
-				TargetBoundsMin._AXIS = (-EdgeLength * BlendWeightEnd) * InvScale._AXIS;\
-				TargetBoundsMax._AXIS = (EdgeLength * BlendWeightStart) * InvScale._AXIS;\
-			}else if(SolidificationRad##_AXIS){\
-				double Rad = 0;\
-				if (Settings->Radius##_AXIS##Source == EPCGExClusterComponentSource::Vtx) { Rad = FMath::Lerp(SolidificationRad##_AXIS->Read(Edge.Start), SolidificationRad##_AXIS->Read(Edge.End), BlendWeightStart); }\
-				else { Rad = SolidificationRad##_AXIS->Read(Edge.PointIndex); }\
-				TargetBoundsMin._AXIS = -Rad * InvScale._AXIS;\
-				TargetBoundsMax._AXIS = Rad * InvScale._AXIS;\
-			}
-			
-			PCGEX_FOREACH_XYZ(PCGEX_SOLIDIFY_DIMENSION)
+if (Settings->SolidificationAxis == EPCGExMinimalAxis::_AXIS){\
+TargetBoundsMin._AXIS = (-EdgeLength * BlendWeightEnd) * InvScale._AXIS;\
+TargetBoundsMax._AXIS = (EdgeLength * BlendWeightStart) * InvScale._AXIS;\
+}else if(SolidificationRad##_AXIS){\
+double Rad = 0;\
+if (Settings->Radius##_AXIS##Source == EPCGExClusterComponentSource::Vtx) { Rad = FMath::Lerp(SolidificationRad##_AXIS->Read(Edge.Start), SolidificationRad##_AXIS->Read(Edge.End), BlendWeightStart); }\
+else { Rad = SolidificationRad##_AXIS->Read(EdgeIndex); }\
+TargetBoundsMin._AXIS = -Rad * InvScale._AXIS;\
+TargetBoundsMax._AXIS = Rad * InvScale._AXIS;\
+}
+
+				PCGEX_FOREACH_XYZ(PCGEX_SOLIDIFY_DIMENSION)
 #undef PCGEX_SOLIDIFY_DIMENSION
 
-			switch (Settings->SolidificationAxis)
-			{
-			default:
-			case EPCGExMinimalAxis::X:
-				EdgeRot = FRotationMatrix::MakeFromX(EdgeDirection).Rotator();
-				break;
-			case EPCGExMinimalAxis::Y:
-				EdgeRot = FRotationMatrix::MakeFromY(EdgeDirection).Rotator();
-				break;
-			case EPCGExMinimalAxis::Z:
-				EdgeRot = FRotationMatrix::MakeFromZ(EdgeDirection).Rotator();
-				break;
+				switch (Settings->SolidificationAxis)
+				{
+				default:
+				case EPCGExMinimalAxis::X:
+					EdgeRot = FRotationMatrix::MakeFromX(EdgeDirection).Rotator();
+					break;
+				case EPCGExMinimalAxis::Y:
+					EdgeRot = FRotationMatrix::MakeFromY(EdgeDirection).Rotator();
+					break;
+				case EPCGExMinimalAxis::Z:
+					EdgeRot = FRotationMatrix::MakeFromZ(EdgeDirection).Rotator();
+					break;
+				}
+
+				Transforms[EdgeIndex] = FTransform(EdgeRot, FMath::Lerp(B, A, BlendWeightEnd), TargetScale);
+
+				BoundsMin[EdgeIndex] = TargetBoundsMin;
+				BoundsMax[EdgeIndex] = TargetBoundsMax;
+
+				if (BlendOpsManager) { BlendOpsManager->Blend(Edge.Start, Edge.End, EdgeIndex); }
 			}
+			else if (Settings->bWriteEdgePosition)
+			{
+				Transforms[EdgeIndex].SetLocation(FMath::Lerp(B, A, Settings->EdgePositionLerp));
 
-			if (MetadataBlender) { MetadataBlend(); } // Blend first THEN apply bounds otherwise it gets overwritten
-
-			MutableTarget.Transform = FTransform(EdgeRot, FMath::Lerp(B, A, BlendWeightEnd), TargetScale);
-
-			MutableTarget.BoundsMin = TargetBoundsMin;
-			MutableTarget.BoundsMax = TargetBoundsMax;
-		}
-		else if (Settings->bWriteEdgePosition)
-		{
-			BlendWeightStart = Settings->EdgePositionLerp;
-			BlendWeightEnd = 1 - Settings->EdgePositionLerp;
-
-			if (MetadataBlender) { MetadataBlend(); }
-
-			MutableTarget.Transform.SetLocation(FMath::Lerp(B, A, Settings->EdgePositionLerp));
-		}
-		else
-		{
-			if (MetadataBlender) { MetadataBlend(); }
+				if (BlendOpsManager) { BlendOpsManager->Blend(Edge.Start, Edge.End, EdgeIndex); }
+			}
+			else
+			{
+				if (BlendOpsManager) { BlendOpsManager->Blend(Edge.Start, Edge.End, EdgeIndex); }
+			}
 		}
 	}
 
 	void FProcessor::CompleteWork()
 	{
+		if (BlendOpsManager) { BlendOpsManager->Cleanup(Context); }
 		EdgeDataFacade->Write(AsyncManager);
+	}
+
+	void FProcessor::Cleanup()
+	{
+		TProcessor<FPCGExWriteEdgePropertiesContext, UPCGExWriteEdgePropertiesSettings>::Cleanup();
+		BlendOpsManager.Reset();
 	}
 
 	void FBatch::RegisterBuffersDependencies(PCGExData::FFacadePreloader& FacadePreloader)
@@ -245,9 +256,9 @@ namespace PCGExWriteEdgeProperties
 
 		PCGEX_TYPED_CONTEXT_AND_SETTINGS(WriteEdgeProperties)
 
-		if (Settings->bEndpointsBlending)
+		for (const TObjectPtr<const UPCGExAttributeBlendFactory>& Factory : Context->BlendingFactories)
 		{
-			Settings->BlendingSettings.RegisterBuffersDependencies(Context, VtxDataFacade, FacadePreloader, &PCGExGraph::ProtectedClusterAttributes);
+			Factory->RegisterBuffersDependencies(Context, FacadePreloader);
 		}
 
 		DirectionSettings.RegisterBuffersDependencies(ExecutionContext, FacadePreloader);

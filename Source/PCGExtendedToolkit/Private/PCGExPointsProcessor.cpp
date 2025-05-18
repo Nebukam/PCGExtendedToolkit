@@ -97,7 +97,7 @@ FPCGExPointsProcessorContext::~FPCGExPointsProcessorContext()
 
 bool FPCGExPointsProcessorContext::AdvancePointsIO(const bool bCleanupKeys)
 {
-	if (bCleanupKeys && CurrentIO) { CurrentIO->CleanupKeys(); }
+	if (bCleanupKeys && CurrentIO) { CurrentIO->ClearCachedKeys(); }
 
 	if (MainPoints->Pairs.IsValidIndex(++CurrentPointIOIndex))
 	{

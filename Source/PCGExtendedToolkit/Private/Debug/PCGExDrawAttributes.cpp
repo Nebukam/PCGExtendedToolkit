@@ -69,14 +69,14 @@ bool FPCGExAttributeDebugDraw::Bind(const TSharedRef<PCGExData::FPointIO>& Point
 	return bValid;
 }
 
-double FPCGExAttributeDebugDraw::GetSize(const PCGExData::FPointRef& Point) const
+double FPCGExAttributeDebugDraw::GetSize(const PCGExData::FConstPoint& Point) const
 {
 	double Value = Config->Size;
 	if (Config->bSizeFromAttribute && SizeGetter) { Value = SizeGetter->Values[Point.Index] * Config->Size; }
 	return Value;
 }
 
-FColor FPCGExAttributeDebugDraw::GetColor(const PCGExData::FPointRef& Point) const
+FColor FPCGExAttributeDebugDraw::GetColor(const PCGExData::FConstPoint& Point) const
 {
 	if (ColorGetter)
 	{
@@ -86,19 +86,19 @@ FColor FPCGExAttributeDebugDraw::GetColor(const PCGExData::FPointRef& Point) con
 	return Config->Color;
 }
 
-double FPCGExAttributeDebugDraw::GetSingle(const PCGExData::FPointRef& Point) const
+double FPCGExAttributeDebugDraw::GetSingle(const PCGExData::FConstPoint& Point) const
 {
 	return SingleGetter->Values[Point.Index];
 }
 
-FVector FPCGExAttributeDebugDraw::GetVector(const PCGExData::FPointRef& Point) const
+FVector FPCGExAttributeDebugDraw::GetVector(const PCGExData::FConstPoint& Point) const
 {
 	FVector OutVector = VectorGetter->Values[Point.Index];
 	if (Config->ExpressedAs == EPCGExDebugExpression::Direction && Config->bNormalizeBeforeSizing) { OutVector.Normalize(); }
 	return OutVector;
 }
 
-FVector FPCGExAttributeDebugDraw::GetIndexedPosition(const PCGExData::FPointRef& Point, const UPCGBasePointData* PointData) const
+FVector FPCGExAttributeDebugDraw::GetIndexedPosition(const PCGExData::FConstPoint& Point, const UPCGBasePointData* PointData) const
 {
 	const TArray<FPCGPoint> Points = PointData->GetPoints();
 	const int64 OutIndex = IndexGetter->Values[Point.Index];
@@ -106,7 +106,7 @@ FVector FPCGExAttributeDebugDraw::GetIndexedPosition(const PCGExData::FPointRef&
 	return Point.Point->Transform.GetLocation();
 }
 
-void FPCGExAttributeDebugDraw::Draw(const UWorld* World, const FVector& Start, const PCGExData::FPointRef& Point, const UPCGBasePointData* PointData) const
+void FPCGExAttributeDebugDraw::Draw(const UWorld* World, const FVector& Start, const PCGExData::FConstPoint& Point, const UPCGBasePointData* PointData) const
 {
 	switch (Config->ExpressedAs)
 	{
@@ -129,7 +129,7 @@ void FPCGExAttributeDebugDraw::Draw(const UWorld* World, const FVector& Start, c
 	}
 }
 
-void FPCGExAttributeDebugDraw::DrawDirection(const UWorld* World, const FVector& Start, const PCGExData::FPointRef& Point) const
+void FPCGExAttributeDebugDraw::DrawDirection(const UWorld* World, const FVector& Start, const PCGExData::FConstPoint& Point) const
 {
 #if WITH_EDITOR
 	const FVector Dir = GetVector(Point) * GetSize(Point);
@@ -137,14 +137,14 @@ void FPCGExAttributeDebugDraw::DrawDirection(const UWorld* World, const FVector&
 #endif
 }
 
-void FPCGExAttributeDebugDraw::DrawConnection(const UWorld* World, const FVector& Start, const PCGExData::FPointRef& Point, const FVector& End) const
+void FPCGExAttributeDebugDraw::DrawConnection(const UWorld* World, const FVector& Start, const PCGExData::FConstPoint& Point, const FVector& End) const
 {
 #if WITH_EDITOR
 	DrawDebugLine(World, Start, Config->bAsOffset ? Start + End : End, GetColor(Point), true, -1, Config->DepthPriority, Config->Thickness);
 #endif
 }
 
-void FPCGExAttributeDebugDraw::DrawPoint(const UWorld* World, const FVector& Start, const PCGExData::FPointRef& Point) const
+void FPCGExAttributeDebugDraw::DrawPoint(const UWorld* World, const FVector& Start, const PCGExData::FConstPoint& Point) const
 {
 #if WITH_EDITOR
 	const FVector End = GetVector(Point);
@@ -152,7 +152,7 @@ void FPCGExAttributeDebugDraw::DrawPoint(const UWorld* World, const FVector& Sta
 #endif
 }
 
-void FPCGExAttributeDebugDraw::DrawSingle(const UWorld* World, const FVector& Start, const PCGExData::FPointRef& Point) const
+void FPCGExAttributeDebugDraw::DrawSingle(const UWorld* World, const FVector& Start, const PCGExData::FConstPoint& Point) const
 {
 #if WITH_EDITOR
 	const double End = GetSingle(Point);
@@ -265,7 +265,7 @@ bool FPCGExDrawAttributesElement::ExecuteInternal(FPCGContext* InContext) const
 			}
 		}
 
-		Context->CurrentIO->CleanupKeys();
+		Context->CurrentIO->ClearCachedKeys();
 		Context->SetState(PCGEx::State_ReadyForNextPoints);
 	}
 

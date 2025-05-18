@@ -117,19 +117,19 @@ struct FPCGExAttributeDebugDraw
 
 	bool Bind(const TSharedRef<PCGExData::FPointIO>& PointIO);
 
-	double GetSize(const PCGExData::FPointRef& Point) const;
-	FColor GetColor(const PCGExData::FPointRef& Point) const;
-	double GetSingle(const PCGExData::FPointRef& Point) const;
-	FVector GetVector(const PCGExData::FPointRef& Point) const;
-	FVector GetIndexedPosition(const PCGExData::FPointRef& Point, const UPCGBasePointData* PointData) const;
+	double GetSize(const PCGExData::FConstPoint& Point) const;
+	FColor GetColor(const PCGExData::FConstPoint& Point) const;
+	double GetSingle(const PCGExData::FConstPoint& Point) const;
+	FVector GetVector(const PCGExData::FConstPoint& Point) const;
+	FVector GetIndexedPosition(const PCGExData::FConstPoint& Point, const UPCGBasePointData* PointData) const;
 
-	void Draw(const UWorld* World, const FVector& Start, const PCGExData::FPointRef& Point, const UPCGBasePointData* PointData) const;
+	void Draw(const UWorld* World, const FVector& Start, const PCGExData::FConstPoint& Point, const UPCGBasePointData* PointData) const;
 
 protected:
-	void DrawDirection(const UWorld* World, const FVector& Start, const PCGExData::FPointRef& Point) const;
-	void DrawConnection(const UWorld* World, const FVector& Start, const PCGExData::FPointRef& Point, const FVector& End) const;
-	void DrawPoint(const UWorld* World, const FVector& Start, const PCGExData::FPointRef& Point) const;
-	void DrawSingle(const UWorld* World, const FVector& Start, const PCGExData::FPointRef& Point) const;
+	void DrawDirection(const UWorld* World, const FVector& Start, const PCGExData::FConstPoint& Point) const;
+	void DrawConnection(const UWorld* World, const FVector& Start, const PCGExData::FConstPoint& Point, const FVector& End) const;
+	void DrawPoint(const UWorld* World, const FVector& Start, const PCGExData::FConstPoint& Point) const;
+	void DrawSingle(const UWorld* World, const FVector& Start, const PCGExData::FConstPoint& Point) const;
 };
 
 

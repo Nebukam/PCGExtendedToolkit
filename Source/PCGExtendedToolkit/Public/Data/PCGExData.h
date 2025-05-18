@@ -17,7 +17,6 @@
 #include "Data/PCGPointData.h"
 
 
-
 #include "Geometry/PCGExGeoPointBox.h"
 
 #include "PCGExData.generated.h"
@@ -90,9 +89,6 @@ namespace PCGExData
 		mutable FRWLock WriteLock;
 
 		bool bScopedBuffer = false;
-
-		TArrayView<const FPCGPoint> InPoints;
-		TArrayView<FPCGPoint> OutPoints;
 
 		EPCGMetadataTypes Type = EPCGMetadataTypes::Unknown;
 		uint64 UID = 0;
@@ -208,10 +204,8 @@ namespace PCGExData
 		T& GetMutable(const int32 Index) { return *(OutValues->GetData() + Index); }
 		const T& GetConst(const int32 Index) { return *(OutValues->GetData() + Index); }
 		const T& Read(const int32 Index) const { return *(InValues->GetData() + Index); }
-		const T& ReadImmediate(const int32 Index) const { return TypedInAttribute->GetValueFromItemKey(InPoints[Index].MetadataEntry); }
 
 		void Set(const int32 Index, const T& Value) { *(OutValues->GetData() + Index) = Value; }
-		void SetImmediate(const int32 Index, const T& Value) { TypedOutAttribute->SetValue(InPoints[Index], Value); }
 
 		virtual PCGEx::FAttributeIdentity GetTargetOutputIdentity() override
 		{
@@ -235,13 +229,8 @@ namespace PCGExData
 		{
 			if (InValues) { return; }
 
-			const TArray<FPCGPoint>& InPts = Source->GetIn()->GetPoints();
-			const int32 NumPoints = InPts.Num();
-
-			InPoints = MakeArrayView(InPts.GetData(), NumPoints);
-
 			InValues = MakeShared<TArray<T>>();
-			PCGEx::InitArray(InValues, NumPoints);
+			PCGEx::InitArray(InValues, Source->GetIn()->GetNumPoints());
 
 			InAttribute = Attribute;
 			TypedInAttribute = Attribute ? static_cast<const FPCGMetadataAttribute<T>*>(Attribute) : nullptr;
@@ -253,12 +242,8 @@ namespace PCGExData
 		{
 			if (OutValues) { return; }
 
-			TArray<FPCGPoint>& OutPts = Source->GetMutablePoints();
-			const int32 NumPoints = OutPts.Num();
-			OutPoints = MakeArrayView(OutPts.GetData(), NumPoints);
-
 			OutValues = MakeShared<TArray<T>>();
-			OutValues->Init(InDefaultValue, NumPoints);
+			OutValues->Init(InDefaultValue, Source->GetOut()->GetNumPoints());
 
 			OutAttribute = Attribute;
 			TypedOutAttribute = Attribute ? static_cast<FPCGMetadataAttribute<T>*>(Attribute) : nullptr;
@@ -408,7 +393,7 @@ namespace PCGExData
 
 			auto GrabExistingValues = [&]()
 			{
-				TUniquePtr<FPCGAttributeAccessorKeysPoints> TempOutKeys = MakeUnique<FPCGAttributeAccessorKeysPoints>(MakeArrayView(Source->GetMutablePoints().GetData(), OutValues->Num()));
+				TUniquePtr<FPCGAttributeAccessorKeysPointIndices> TempOutKeys = MakeUnique<FPCGAttributeAccessorKeysPointIndices>(Source->GetOut(), false);
 				TArrayView<T> OutRange = MakeArrayView(OutValues->GetData(), OutValues->Num());
 				if (!OutAccessor->GetRange<T>(OutRange, 0, *TempOutKeys.Get()))
 				{
@@ -447,8 +432,11 @@ namespace PCGExData
 
 		virtual void Write(const bool bEnsureValidKeys = true) override
 		{
-			if (!IsWritable() || !OutValues || !IsEnabled()) { return; }
+			FPCGContext::FSharedContext<FPCGExContext> SharedContext(Source->GetContextHandle());
+			
+			if (!SharedContext.Get() || !IsWritable() || !OutValues || !IsEnabled()) { return; }
 
+			
 			if (!Source->GetOut())
 			{
 				UE_LOG(LogPCGEx, Error, TEXT("Attempting to write data to an output that's not initialized!"));
@@ -472,7 +460,7 @@ namespace PCGExData
 				if (!OutAccessor.IsValid()) { return; }
 
 				// Assume that if we write data, it's not to delete it.
-				Source->GetContext()->AddProtectedAttributeName(TargetOutputName);
+				SharedContext.Get()->AddProtectedAttributeName(TargetOutputName);
 
 				// Output value to fresh attribute	
 				TArrayView<const T> View = MakeArrayView(OutValues->GetData(), OutValues->Num());
@@ -486,7 +474,7 @@ namespace PCGExData
 				if (!OutAccessor.IsValid()) { return; }
 
 				// Assume that if we write data, it's not to delete it.
-				Source->GetContext()->AddProtectedAttributeName(TypedOutAttribute->Name);
+				SharedContext.Get()->AddProtectedAttributeName(TypedOutAttribute->Name);
 
 				// Output value			
 				TArrayView<const T> View = MakeArrayView(OutValues->GetData(), OutValues->Num());
@@ -537,7 +525,6 @@ namespace PCGExData
 		bool bSupportsScopedGet = false;
 
 		int32 GetNum(const EIOSide InSide = EIOSide::In) const { return Source->GetNum(InSide); }
-		TArray<FPCGPoint>& GetMutablePoints() const { return Source->GetMutablePoints(); }
 
 		TSharedPtr<FBufferBase> FindBuffer_Unsafe(const uint64 UID);
 		TSharedPtr<FBufferBase> FindBuffer(const uint64 UID);
@@ -901,65 +888,6 @@ namespace PCGExData
 
 #pragma endregion
 
-#pragma region Compound
-
-	class PCGEXTENDEDTOOLKIT_API FUnionData : public TSharedFromThis<FUnionData>
-	{
-	protected:
-		mutable FRWLock UnionLock;
-
-	public:
-		//int32 Index = 0;
-		TSet<int32> IOIndices;
-		TSet<uint64> ItemHashSet;
-
-		FUnionData() = default;
-		~FUnionData() = default;
-
-		int32 Num() const { return ItemHashSet.Num(); }
-
-		void ComputeWeights(
-			const TArray<TSharedPtr<FFacade>>& Sources,
-			const TMap<uint32, int32>& SourcesIdx,
-			const FPCGPoint& Target,
-			const TSharedPtr<PCGExDetails::FDistances>& InDistanceDetails,
-			TArray<int32>& OutIOIdx,
-			TArray<int32>& OutPointsIdx,
-			TArray<double>& OutWeights) const;
-
-		uint64 Add(const PCGExData::FPoint& Point);
-		void Add(const int32 IOIndex, const TArray<int32>& PointIndices);
-
-		void Reset()
-		{
-			IOIndices.Reset();
-			ItemHashSet.Reset();
-		}
-	};
-
-	class PCGEXTENDEDTOOLKIT_API FUnionMetadata : public TSharedFromThis<FUnionMetadata>
-	{
-	public:
-		TArray<TSharedPtr<FUnionData>> Entries;
-		bool bIsAbstract = false;
-
-		FUnionMetadata() = default;
-		~FUnionMetadata() = default;
-
-		int32 Num() const { return Entries.Num(); }
-		void SetNum(const int32 InNum);
-
-		TSharedPtr<FUnionData> NewEntry_Unsafe(const PCGExData::FConstPoint& Point);
-		TSharedPtr<FUnionData> NewEntryAt_Unsafe(const int32 ItemIndex);
-
-		uint64 Append(const int32 Index, const PCGExData::FPoint& Point);
-		bool IOIndexOverlap(const int32 InIdx, const TSet<int32>& InIndices);
-
-		FORCEINLINE TSharedPtr<FUnionData> Get(const int32 Index) const { return Entries.IsValidIndex(Index) ? Entries[Index] : nullptr; }
-	};
-
-#pragma endregion
-
 #pragma region Data Marking
 
 	template <typename T>
@@ -1010,15 +938,6 @@ namespace PCGExData
 
 	TSharedPtr<FFacade> TryGetSingleFacade(FPCGExContext* InContext, const FName InputPinLabel, bool bTransactional, const bool bThrowError);
 	bool TryGetFacades(FPCGExContext* InContext, const FName InputPinLabel, TArray<TSharedPtr<FFacade>>& OutFacades, const bool bThrowError, const bool bIsTransactional = false);
-
-	template <bool bReverse = false>
-	static void GetTransforms(const TArray<FPCGPoint>& InPoints, TArray<FTransform>& OutTransforms)
-	{
-		PCGEx::InitArray(OutTransforms, InPoints.Num());
-		const int32 MaxIndex = InPoints.Num() - 1;
-		if constexpr (bReverse) { for (int i = 0; i <= MaxIndex; i++) { OutTransforms[i] = InPoints[i].Transform; } }
-		else { for (int i = 0; i <= MaxIndex; i++) { OutTransforms[MaxIndex - i] = InPoints[i].Transform; } }
-	}
 
 	class PCGEXTENDEDTOOLKIT_API FWriteBufferTask final : public PCGExMT::FTask
 	{

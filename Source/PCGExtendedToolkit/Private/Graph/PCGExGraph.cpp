@@ -866,7 +866,7 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 		Graph->bBuildClusters = InDetails->WantsClusters();
 		Graph->bRefreshEdgeSeed = OutputDetails->bRefreshEdgeSeed;
 
-		EdgesIO = MakeShared<PCGExData::FPointIOCollection>(NodeDataFacade->Source->GetContext());
+		EdgesIO = MakeShared<PCGExData::FPointIOCollection>(NodeDataFacade->Source->GetContextHandle());
 		EdgesIO->OutputPin = OutputEdgesLabel;
 	}
 
@@ -904,7 +904,7 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 			return;
 		}
 
-		NodeDataFacade->Source->CleanupKeys(); //Ensure fresh keys later on
+		NodeDataFacade->Source->ClearCachedKeys(); //Ensure fresh keys later on
 
 		TArray<FNode>& Nodes = Graph->Nodes;
 

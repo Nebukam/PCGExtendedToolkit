@@ -290,7 +290,7 @@ namespace PCGExGraph
 		NewEdgesNum = 0;
 
 		PointEdgeIntersections->Insert(); // TODO : Async?
-		UnionDataFacade->Source->CleanupKeys();
+		UnionDataFacade->Source->ClearCachedKeys();
 
 		if (bUseCustomPointEdgeBlending) { MetadataBlender = MakeShared<PCGExDataBlending::FMetadataBlender>(&CustomPointEdgeBlendingDetails); }
 		else { MetadataBlender = MakeShared<PCGExDataBlending::FMetadataBlender>(&DefaultPointsBlendingDetails); }
@@ -427,7 +427,7 @@ namespace PCGExGraph
 		// use range prep to cache these and rebuild metadata and everything then.
 
 		EdgeEdgeIntersections->InsertEdges(); // TODO : Async?
-		UnionDataFacade->Source->CleanupKeys();
+		UnionDataFacade->Source->ClearCachedKeys();
 
 		if (bUseCustomEdgeEdgeBlending) { MetadataBlender = MakeShared<PCGExDataBlending::FMetadataBlender>(&CustomEdgeEdgeBlendingDetails); }
 		else { MetadataBlender = MakeShared<PCGExDataBlending::FMetadataBlender>(&DefaultPointsBlendingDetails); }

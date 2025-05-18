@@ -238,14 +238,6 @@ namespace PCGEx
 		void Init(const UPCGData* InData, const FPCGAttributePropertyInputSelector& InSelector);
 	};
 
-	template <EPCGPointProperties PROPERTY, typename T>
-	inline static void SetPointProperty(FPCGPoint& Point, const T& InValue)
-	{
-#define PCGEX_PROPERTY_VALUE(_TYPE) PCGEx::Convert<T, _TYPE>(InValue)
-		PCGEX_CONSTEXPR_IFELSE_SETPOINTPROPERTY(PROPERTY, Point, PCGEX_MACRO_NONE, PCGEX_PROPERTY_VALUE)
-#undef PCGEX_PROPERTY_VALUE
-	}
-
 #pragma endregion
 
 #pragma region Attribute Broadcaster
