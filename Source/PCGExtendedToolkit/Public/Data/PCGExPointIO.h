@@ -40,6 +40,23 @@ namespace PCGExData
 		Out
 	};
 
+	struct FScope
+	{
+		UPCGBasePointData* Data = nullptr;
+		int32 Start = -1;
+		int32 Count = -1;
+		int32 End = -1;
+
+		FScope() = default;
+
+		FScope(UPCGBasePointData* InData, const int32 InStart, const int32 InCount);
+		FScope(const UPCGBasePointData* InData, const int32 InStart, const int32 InCount);
+
+		~FScope() = default;
+		bool IsValid() const { return Start != -1 && Count > 0; }
+		void GetIndices(TArray<int32>& OutIndices) const;
+	};
+
 #pragma region FPoint
 
 	// FPoint is used when we only care about point index
@@ -377,6 +394,11 @@ FORCEINLINE virtual int64 GetMetadataEntry() const override { return Data->GetMe
 		FORCEINLINE FConstPoint GetInPoint(const int32 Index) const { return FConstPoint(In, Index, IOIndex); }
 		FORCEINLINE FMutablePoint GetOutPoint(const int32 Index) const { return FMutablePoint(Out, Index, IOIndex); }
 
+		FScope GetInScope(const int32 Start, const int32 Count, const bool bInclusive = true) const;
+		FScope GetOutScope(const int32 Start, const int32 Count, const bool bInclusive = true) const;
+		FScope GetInRange(const int32 Start, const int32 End, const bool bInclusive = true) const;
+		FScope GetOutRange(const int32 Start, const int32 End, const bool bInclusive = true) const;
+
 		FName OutputPin = PCGEx::OutputPointsLabel;
 
 		void InitPoint(int32 Index, const PCGMetadataEntryKey ParentKey) const
@@ -399,9 +421,17 @@ FORCEINLINE virtual int64 GetMetadataEntry() const override { return Data->GetMe
 		// In -> Out
 		void InheritProperties(const int32 ReadStartIndex, const int32 WriteStartIndex, const int32 Count, const EPCGPointNativeProperties Properties = EPCGPointNativeProperties::All) const;
 		void InheritProperties(const TArrayView<const int32>& ReadIndices, const TArrayView<const int32>& WriteIndices, const EPCGPointNativeProperties Properties = EPCGPointNativeProperties::All) const;
+
+		// ReadIndices is expected to be the size of out point count here
+		// Shorthand to simplify copying properties from original points when all outputs should be initialized as copies
 		void InheritProperties(const TArrayView<const int32>& ReadIndices, const EPCGPointNativeProperties Properties = EPCGPointNativeProperties::All) const;
+
 		void InheritPoints(const int32 ReadStartIndex, const int32 WriteStartIndex, const int32 Count) const;
 		void InheritPoints(const TArrayView<const int32>& ReadIndices, const TArrayView<const int32>& WriteIndices) const;
+
+		// WriteIndices is expected to be the size of in point count here
+		// Shorthand to simplify point insertion in cases where we want to preserve original points
+		void InheritPoints(const TArrayView<const int32>& WriteIndices) const;
 
 		void CopyToNewPoint(const int32 InIndex, int32& OutIndex) const
 		{

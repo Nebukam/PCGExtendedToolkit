@@ -5,11 +5,25 @@
 
 #include "PCGExContext.h"
 #include "PCGExMT.h"
-#include "Data/PCGExPointData.h"
-#include "Metadata/Accessors/PCGAttributeAccessorKeys.h"
 
 namespace PCGExData
 {
+	FScope::FScope(UPCGBasePointData* InData, const int32 InStart, const int32 InCount)
+		: Data(InData), Start(InStart), Count(InCount), End(InStart + InCount)
+	{
+	}
+
+	FScope::FScope(const UPCGBasePointData* InData, const int32 InStart, const int32 InCount)
+		: Data(const_cast<UPCGBasePointData*>(InData)), Start(InStart), Count(InCount), End(InStart + InCount)
+	{
+	}
+
+	void FScope::GetIndices(TArray<int32>& OutIndices) const
+	{
+		OutIndices.SetNumUninitialized(Count);
+		for (int i = 0; i < Count; i++) { OutIndices[i] = Start + i; }
+	}
+
 #pragma region FPoint
 
 	FPoint::FPoint(const uint64 Hash)
@@ -387,6 +401,46 @@ namespace PCGExData
 		else { PrintInKeysMap(InMap); }
 	}
 
+	FScope FPointIO::GetInScope(const int32 Start, const int32 Count, const bool bInclusive) const
+	{
+		FScope Scope = bInclusive ? FScope(In, Start, Count) : FScope(In, Start + 1, Count - 1);
+		return Scope;
+	}
+
+	FScope FPointIO::GetOutScope(const int32 Start, const int32 Count, const bool bInclusive) const
+	{
+		FScope Scope = bInclusive ? FScope(Out, Start, Count) : FScope(Out, Start + 1, Count - 1);
+		return Scope;
+	}
+
+	FScope FPointIO::GetInRange(const int32 Start, const int32 End, const bool bInclusive) const
+	{
+		if (Start < End)
+		{
+			FScope Scope = bInclusive ? FScope(In, Start, End - Start) : FScope(In, Start + 1, (End - Start) - 2);
+			return Scope;
+		}
+		else
+		{
+			FScope Scope = bInclusive ? FScope(In, End, Start - End) : FScope(In, End + 1, (Start - End) - 2);
+			return Scope;
+		}
+	}
+
+	FScope FPointIO::GetOutRange(const int32 Start, const int32 End, const bool bInclusive) const
+	{
+		if (Start < End)
+		{
+			FScope Scope = bInclusive ? FScope(Out, Start, End - Start) : FScope(Out, Start + 1, (End - Start) - 2);
+			return Scope;
+		}
+		else
+		{
+			FScope Scope = bInclusive ? FScope(Out, End, Start - End) : FScope(Out, End + 1, (Start - End) - 2);
+			return Scope;
+		}
+	}
+
 	TArray<int32>& FPointIO::GetIdxMapping(const int32 NumElements)
 	{
 		check(Out)
@@ -439,6 +493,18 @@ namespace PCGExData
 
 	void FPointIO::InheritPoints(const TArrayView<const int32>& ReadIndices, const TArrayView<const int32>& WriteIndices) const
 	{
+		In->CopyPointsTo(Out, ReadIndices, WriteIndices);
+	}
+
+	void FPointIO::InheritPoints(const TArrayView<const int32>& WriteIndices) const
+	{
+		check(In)
+
+		const int32 NumReads = In->GetNumPoints();
+		check(NumReads >= WriteIndices.Num())
+
+		TArray<int32> ReadIndices;
+		PCGEx::ArrayOfIndices(ReadIndices, NumReads);
 		In->CopyPointsTo(Out, ReadIndices, WriteIndices);
 	}
 

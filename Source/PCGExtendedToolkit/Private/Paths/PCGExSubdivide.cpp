@@ -93,8 +93,8 @@ namespace PCGExSubdivide
 
 		bUseCount = Settings->SubdivideMethod == EPCGExSubdivideMode::Count;
 
-		Blending = Cast<UPCGExSubPointsBlendOperation>(PrimaryOperation);
-		Blending->bClosedLoop = bClosedLoop;
+		SubBlending = Cast<UPCGExSubPointsBlendOperation>(PrimaryOperation);
+		SubBlending->bClosedLoop = bClosedLoop;
 
 		PCGEx::InitArray(Subdivisions, PointDataFacade->GetNum());
 
@@ -108,8 +108,8 @@ namespace PCGExSubdivide
 		PointDataFacade->Fetch(Scope);
 		FilterScope(Scope);
 
-		TConstPCGValueRange<FTransform> InTransforms = PointDataFacade->GetIn()->GetConstTransformValueRange(); 
-		
+		TConstPCGValueRange<FTransform> InTransforms = PointDataFacade->GetIn()->GetConstTransformValueRange();
+
 		PCGEX_SCOPE_LOOP(Index)
 		{
 			const TSharedRef<PCGExData::FPointIO>& PointIO = PointDataFacade->Source;
@@ -119,9 +119,8 @@ namespace PCGExSubdivide
 			Sub.NumSubdivisions = 0;
 			Sub.InStart = Index;
 			Sub.InEnd = Index + 1 == PointIO->GetNum() ? 0 : Index + 1;
-			Sub.Start = InTransforms[Index].GetLocation();
-			Sub.End = InTransforms[Index + 1 == PointIO->GetNum() ? 0 : Index + 1].GetLocation();
-			Sub.Dist = FVector::Distance(Sub.Start, Sub.End);
+
+			Sub.Dist = FVector::Distance(InTransforms[Sub.InEnd].GetLocation(), InTransforms[Sub.InStart].GetLocation());
 
 			if (!PointFilterCache[Index]) { continue; }
 
@@ -147,8 +146,6 @@ namespace PCGExSubdivide
 				Sub.StepSize = Sub.Dist / static_cast<double>(Sub.NumSubdivisions + 1);
 				Sub.StartOffset = Sub.StepSize;
 			}
-
-			Sub.Dir = (Sub.End - Sub.Start).GetSafeNormal();
 		}
 	}
 
@@ -181,18 +178,26 @@ namespace PCGExSubdivide
 
 		PCGEX_INIT_IO_VOID(PointIO, PCGExData::EIOInit::New)
 
-		TArray<FPCGPoint>& MutablePoints = PointIO->GetOut()->GetMutablePoints();
-		const TArray<FPCGPoint>& InPoints = PointIO->GetIn()->GetPoints();
+		const UPCGBasePointData* InPoints = PointIO->GetIn();
+		UPCGBasePointData* MutablePoints = PointIO->GetOut();
+
 		UPCGMetadata* Metadata = PointIO->GetOut()->Metadata;
 
-		PCGEx::InitArray(MutablePoints, NumPoints);
+		MutablePoints->SetNumPoints(NumPoints);
+
+		TConstPCGValueRange<int64> InMetadataEntries = InPoints->GetConstMetadataEntryValueRange();
+		TPCGValueRange<int64> OutMetadataEntries = MutablePoints->GetMetadataEntryValueRange();
+
+		TArray<int32> WriteIndices;
+		WriteIndices.SetNum(InMetadataEntries.Num());
 
 		for (int i = 0; i < Subdivisions.Num(); i++)
 		{
 			const FSubdivision& Sub = Subdivisions[i];
-			const FPCGPoint& OriginalPoint = InPoints[i];
-			MutablePoints[Sub.OutStart] = OriginalPoint;
-			Metadata->InitializeOnSet(MutablePoints[Sub.OutStart].MetadataEntry);
+			WriteIndices[i] = Sub.OutStart;
+
+			OutMetadataEntries[Sub.OutStart] = InMetadataEntries[i];
+			Metadata->InitializeOnSet(OutMetadataEntries[Sub.OutStart]);
 
 			if (Sub.NumSubdivisions == 0) { continue; }
 
@@ -200,10 +205,13 @@ namespace PCGExSubdivide
 
 			for (int s = 0; s < Sub.NumSubdivisions; s++)
 			{
-				(MutablePoints[SubStart + s] = OriginalPoint).MetadataEntry = PCGInvalidEntryKey;
-				Metadata->InitializeOnSet(MutablePoints[SubStart + s].MetadataEntry);
+				OutMetadataEntries[SubStart + s] = PCGInvalidEntryKey;
+				Metadata->InitializeOnSet(OutMetadataEntries[SubStart + s]);
 			}
 		}
+
+		if (!bClosedLoop) { WriteIndices.Last() = Subdivisions.Last().OutEnd; }
+		PointDataFacade->Source->InheritPoints(WriteIndices);
 
 		if (Settings->bFlagSubPoints)
 		{
@@ -217,12 +225,16 @@ namespace PCGExSubdivide
 			ProtectedAttributes.Add(Settings->AlphaAttributeName);
 		}
 
-		Blending->PrepareForData(PointDataFacade, PointDataFacade, PCGExData::EIOSide::Out, &ProtectedAttributes);
+		SubBlending->PrepareForData(PointDataFacade, PointDataFacade, PCGExData::EIOSide::Out, &ProtectedAttributes);
 		StartParallelLoopForRange(Subdivisions.Num());
 	}
 
 	void FProcessor::ProcessRange(const PCGExMT::FScope& Scope)
 	{
+		TConstPCGValueRange<FTransform> InTransforms = PointDataFacade->GetIn()->GetConstTransformValueRange();
+		TPCGValueRange<FTransform> OutTransforms = PointDataFacade->GetOut()->GetTransformValueRange();
+		TPCGValueRange<int32> OutSeeds = PointDataFacade->GetOut()->GetSeedValueRange();
+
 		PCGEX_SCOPE_LOOP(Index)
 		{
 			const FSubdivision& Sub = Subdivisions[Index];
@@ -232,32 +244,34 @@ namespace PCGExSubdivide
 
 			if (Sub.NumSubdivisions == 0) { continue; }
 
-			TArray<FPCGPoint>& MutablePoints = PointDataFacade->GetOut()->GetMutablePoints();
+			const FVector Start = InTransforms[Sub.InStart].GetLocation();
+			const FVector End = InTransforms[Sub.InEnd].GetLocation();
+			const FVector Dir = (End - Start).GetSafeNormal();
 
-			PCGExPaths::FPathMetrics Metrics = PCGExPaths::FPathMetrics(Sub.Start);
+			PCGExPaths::FPathMetrics Metrics = PCGExPaths::FPathMetrics(Start);
 
 			const int32 SubStart = Sub.OutStart + 1;
 			for (int s = 0; s < Sub.NumSubdivisions; s++)
 			{
-				const int32 Index = SubStart + s;
+				const int32 SubIndex = SubStart + s;
 
-				if (FlagWriter) { FlagWriter->GetMutable(Index) = true; }
+				if (FlagWriter) { FlagWriter->GetMutable(SubIndex) = true; }
 
-				const FVector Position = Sub.Start + Sub.Dir * (Sub.StartOffset + s * Sub.StepSize);
-				MutablePoints[Index].Transform.SetLocation(Position);
+				const FVector Position = Start + Dir * (Sub.StartOffset + s * Sub.StepSize);
+				OutTransforms[SubIndex].SetLocation(Position);
 				const double Alpha = Metrics.Add(Position) / Sub.Dist;
 				if (AlphaWriter) { AlphaWriter->GetMutable(SubStart + s) = Alpha; }
 			}
 
-			Metrics.Add(Sub.End);
+			Metrics.Add(End);
 
 			const TArrayView<FPCGPoint> View = MakeArrayView(MutablePoints.GetData() + SubStart, Sub.NumSubdivisions);
-			Blending->ProcessSubPoints(PointDataFacade->Source->GetOutPointRef(Sub.OutStart), PointDataFacade->Source->GetOutPointRef(Sub.OutEnd), View, Metrics, SubStart);
+			SubBlending->ProcessSubPoints(PointDataFacade->GetOutPoint(Sub.OutStart), PointDataFacade->GetOutPoint(Sub.OutEnd), View, Metrics, SubStart);
 
-			for (FPCGPoint& Pt : View) { Pt.Seed = PCGExRandom::ComputeSeed(Pt); }
+			for (int i = Sub.OutStart + 1; i < Sub.OutEnd; i++) { OutSeeds[i] = PCGExRandom::ComputeSpatialSeed(OutTransforms[i].GetLocation()); }
 		}
 	}
-	
+
 	void FProcessor::Write()
 	{
 		PointDataFacade->Write(AsyncManager);
