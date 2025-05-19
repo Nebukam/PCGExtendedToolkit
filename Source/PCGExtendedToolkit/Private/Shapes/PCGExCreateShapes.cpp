@@ -92,7 +92,7 @@ namespace PCGExCreateShapes
 
 	void FProcessor::ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const PCGExMT::FScope& Scope)
 	{
-		const PCGExData::FPointRef PointRef = PointDataFacade->Source->GetInPointRef(Index);
+		const PCGExData::FConstPoint PointRef = PointDataFacade->GetInPoint(Index);
 		for (const TSharedPtr<FPCGExShapeBuilderOperation>& Op : Builders) { Op->PrepareShape(PointRef); }
 	}
 
@@ -242,7 +242,7 @@ namespace PCGExCreateShapes
 		TransformPointsTask->OnSubLoopStartCallback =
 			[ShapePoints, TRA, TRB](const PCGExMT::FScope& Scope)
 			{
-				for (int i = Scope.Start; i < Scope.End; i++)
+				PCGEX_SCOPE_LOOP(i)
 				{
 					FPCGPoint& Point = ShapePoints[i];
 					Point.Transform = (Point.Transform * TRB) * TRA;

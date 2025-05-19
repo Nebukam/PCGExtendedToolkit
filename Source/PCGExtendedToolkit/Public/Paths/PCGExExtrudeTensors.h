@@ -388,8 +388,6 @@ namespace PCGExExtrudeTensors
 
 		FExtrusion(const int32 InSeedIndex, const TSharedRef<PCGExData::FFacade>& InFacade, const int32 InMaxIterations);
 
-		const TArray<FPCGPoint>& GetExtrudedPoints() const { return ExtrudedPoints; }
-
 		PCGExMath::FSegment GetHeadSegment() const;
 		void SetHead(const FTransform& InHead);
 
@@ -667,8 +665,7 @@ namespace PCGExExtrudeTensors
 		void SortQueue();
 
 		virtual void PrepareLoopScopesForRanges(const TArray<PCGExMT::FScope>& Loops) override;
-		virtual void PrepareSingleLoopScopeForPoints(const PCGExMT::FScope& Scope) override;
-		virtual void ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const PCGExMT::FScope& Scope) override;
+		virtual void ProcessPoints(const PCGExMT::FScope& Scope) override;
 		virtual void OnPointsProcessingComplete() override;
 
 		virtual void ProcessSingleRangeIteration(const int32 Iteration, const PCGExMT::FScope& Scope) override;

@@ -6,12 +6,6 @@
 #include "PCGExPointsProcessor.h"
 
 
-
-
-
-
-
-
 #include "Graph/PCGExCluster.h"
 
 namespace PCGExGraph
@@ -517,8 +511,8 @@ namespace PCGExGraph
 
 		const FEdge& SplitEdge = Graph->Edges[PointEdgeProxy.EdgeIndex];
 
-		const PCGExData::FConstPoint A = PointIO->GetOutPoint(SplitEdge.Start);
-		const PCGExData::FConstPoint B = PointIO->GetOutPoint(SplitEdge.End);
+		const int32 A = SplitEdge.Start;
+		const int32 B = SplitEdge.End;
 
 		const TPCGValueRange<FTransform> Transforms = PointIO->GetOut()->GetTransformValueRange();
 
@@ -527,10 +521,8 @@ namespace PCGExGraph
 			const PCGExData::FMutablePoint Target = PointIO->GetOutPoint(Graph->Nodes[Split.NodeIndex].PointIndex);
 			const FVector& PreBlendLocation = Transforms[Target.Index].GetLocation();
 
-			Blender->PrepareForBlending(Target);
-			Blender->Blend(A, B, Target, 0.5);
-			Blender->CompleteBlending(Target, 2, 1);
-
+			Blender->Blend(A, B, Target.Index, 0.5); // TODO : Compute proper lerp
+			
 			Transforms[Target.Index].SetLocation(PreBlendLocation);
 		}
 	}

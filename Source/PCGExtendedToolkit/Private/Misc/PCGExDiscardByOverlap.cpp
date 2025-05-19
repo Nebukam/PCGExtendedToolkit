@@ -288,7 +288,7 @@ namespace PCGExDiscardByOverlap
 					This->PointDataFacade->Fetch(Scope);
 					This->FilterScope(Scope);
 
-					for (int i = Scope.Start; i < Scope.End; i++)
+					PCGEX_SCOPE_LOOP(i)
 					{
 						const FPCGPoint* Point = This->InPoints->GetData() + i;
 						This->RegisterPointBounds(
@@ -308,7 +308,7 @@ namespace PCGExDiscardByOverlap
 					This->PointDataFacade->Fetch(Scope);
 					This->FilterScope(Scope);
 
-					for (int i = Scope.Start; i < Scope.End; i++)
+					PCGEX_SCOPE_LOOP(i)
 					{
 						const FPCGPoint* Point = This->InPoints->GetData() + i;
 						This->RegisterPointBounds(
@@ -328,7 +328,7 @@ namespace PCGExDiscardByOverlap
 					This->PointDataFacade->Fetch(Scope);
 					This->FilterScope(Scope);
 
-					for (int i = Scope.Start; i < Scope.End; i++)
+					PCGEX_SCOPE_LOOP(i)
 					{
 						const FPCGPoint* Point = This->InPoints->GetData() + i;
 						This->RegisterPointBounds(

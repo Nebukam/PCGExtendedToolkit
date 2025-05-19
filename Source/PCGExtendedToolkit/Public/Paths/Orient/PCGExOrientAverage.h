@@ -17,12 +17,12 @@ class UPCGExOrientAverage : public UPCGExOrientOperation
 
 public:
 	virtual FTransform ComputeOrientation(
-		const PCGExData::FPointRef& Point,
+		const PCGExData::FConstPoint& Point,
 		const double DirectionMultiplier) const override
 	{
 		const FVector A = Path->DirToNextPoint(Point.Index);
 		const FVector B = Path->DirToPrevPoint(Point.Index) * -1;
-		FTransform OutT = Point.Point->Transform;
+		FTransform OutT = Point.GetTransform();
 		OutT.SetRotation(
 			PCGExMath::MakeDirection(
 				OrientAxis, FMath::Lerp(A, B, 0.5).GetSafeNormal() * DirectionMultiplier,

@@ -20,7 +20,7 @@ bool FPCGExShapeCircleBuilder::PrepareForSeeds(FPCGExContext* InContext, const T
 	return true;
 }
 
-void FPCGExShapeCircleBuilder::PrepareShape(const PCGExData::FPointRef& Seed)
+void FPCGExShapeCircleBuilder::PrepareShape(const PCGExData::FConstPoint& Seed)
 {
 	PCGEX_MAKE_SHARED(Circle, PCGExShapes::FCircle, Seed)
 

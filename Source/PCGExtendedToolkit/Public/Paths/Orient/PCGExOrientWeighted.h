@@ -29,10 +29,10 @@ public:
 	}
 
 	virtual FTransform ComputeOrientation(
-		const PCGExData::FPointRef& Point,
+		const PCGExData::FConstPoint& Point,
 		const double DirectionMultiplier) const override
 	{
-		FTransform OutT = Point.MutablePoint().Transform;
+		FTransform OutT = Point.GetTransform();
 
 		const FVector A = Path->GetPos(Point.Index - 1);
 		const FVector B = Path->GetPos(Point.Index);

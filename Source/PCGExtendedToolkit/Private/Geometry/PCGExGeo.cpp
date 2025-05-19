@@ -160,44 +160,54 @@ void FPCGExGeo2DProjectionDetails::Project(const TArray<FPCGPoint>& InPoints, TA
 
 void PCGExGeoTasks::FTransformPointIO::ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager)
 {
-	TArray<FPCGPoint>& MutableTargets = ToBeTransformedIO->GetMutablePoints();
+	UPCGBasePointData* OutPointData = ToBeTransformedIO->GetOut();
+	TPCGValueRange<FTransform> OutTransforms = OutPointData->GetTransformValueRange();
 
 	FTransform TargetTransform = FTransform::Identity;
 
 	FBox PointBounds = FBox(ForceInit);
-	for (const FPCGPoint& Pt : MutableTargets) { PointBounds += PCGExMath::GetLocalBounds<EPCGExPointBoundsSource::Bounds>(Pt).TransformBy(Pt.Transform); }
-	PointBounds = PointBounds.ExpandBy(1); // Avoid NaN
+
+	if (!TransformDetails->bIgnoreBounds)
+	{
+		for (int i = 0; i < OutTransforms.Num(); i++) { PointBounds += OutPointData->GetLocalBounds(i).TransformBy(OutTransforms[i]); }
+	}
+	else
+	{
+		for (const FTransform& Pt : OutTransforms) { PointBounds += Pt.GetLocation(); }
+	}
+
+	PointBounds = PointBounds.ExpandBy(0.1); // Avoid NaN
 	TransformDetails->ComputeTransform(TaskIndex, TargetTransform, PointBounds);
 
 	if (TransformDetails->bInheritRotation && TransformDetails->bInheritScale)
 	{
-		for (FPCGPoint& InPoint : MutableTargets) { InPoint.Transform *= TargetTransform; }
+		for (FTransform& Transform : OutTransforms) { Transform *= TargetTransform; }
 	}
 	else
 	{
 		if (TransformDetails->bInheritRotation)
 		{
-			for (FPCGPoint& InPoint : MutableTargets)
+			for (FTransform& Transform : OutTransforms)
 			{
-				FVector OriginalScale = InPoint.Transform.GetScale3D();
-				InPoint.Transform *= TargetTransform;
-				InPoint.Transform.SetScale3D(OriginalScale);
+				FVector OriginalScale = Transform.GetScale3D();
+				Transform *= TargetTransform;
+				Transform.SetScale3D(OriginalScale);
 			}
 		}
 		else if (TransformDetails->bInheritScale)
 		{
-			for (FPCGPoint& InPoint : MutableTargets)
+			for (FTransform& Transform : OutTransforms)
 			{
-				FQuat OriginalRot = InPoint.Transform.GetRotation();
-				InPoint.Transform *= TargetTransform;
-				InPoint.Transform.SetRotation(OriginalRot);
+				FQuat OriginalRot = Transform.GetRotation();
+				Transform *= TargetTransform;
+				Transform.SetRotation(OriginalRot);
 			}
 		}
 		else
 		{
-			for (FPCGPoint& InPoint : MutableTargets)
+			for (FTransform& Transform : OutTransforms)
 			{
-				InPoint.Transform.SetLocation(TargetTransform.TransformPosition(InPoint.Transform.GetLocation()));
+				Transform.SetLocation(TargetTransform.TransformPosition(Transform.GetLocation()));
 			}
 		}
 	}

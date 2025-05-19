@@ -376,6 +376,10 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExTransformDetails : public FPCGExFittingDetai
 	/** If enabled, copied points will be rotated by the target' rotation. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayAfter="bInheritScale"))
 	bool bInheritRotation = false;
+	
+	/** If enabled, ignore bounds in calculations and only use position. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayAfter="bInheritRotation"))
+	bool bIgnoreBounds = false;
 };
 
 USTRUCT(BlueprintType)

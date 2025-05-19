@@ -88,7 +88,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExBasicEdgeSolidificationDetails
 	UPROPERTY(BlueprintReadWrite, Category = Settings, EditAnywhere, meta = (PCG_NotOverridable, EditCondition="RadiusType!=EPCGExBasicEdgeRadius::Fixed", EditConditionHides))
 	double RadiusScale = 1;
 
-	void Mutate(FPCGPoint& InEdgePoint, const FPCGPoint& InStart, const FPCGPoint& InEnd, const double InLerp) const;
+	void Mutate(const PCGExData::FMutablePoint& InEdgePoint, const PCGExData::FConstPoint& InStart, const PCGExData::FConstPoint& InEnd, const double InLerp) const;
 };
 
 USTRUCT(BlueprintType)

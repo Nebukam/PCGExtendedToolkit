@@ -7,7 +7,7 @@
 #include "PCGExGlobalSettings.h"
 
 #include "PCGExPointsProcessor.h"
-#include "Data/Blending/PCGExAttributeBlendFactoryProvider.h"
+#include "Data/Blending/PCGExBlendOpFactoryProvider.h"
 
 
 #include "PCGExBlendAttributes.generated.h"
@@ -41,7 +41,7 @@ struct FPCGExBlendAttributesContext final : FPCGExPointsProcessorContext
 {
 	friend class FPCGExBlendAttributesElement;
 
-	TArray<TObjectPtr<const UPCGExAttributeBlendFactory>> BlendingFactories;
+	TArray<TObjectPtr<const UPCGExBlendOpFactory>> BlendingFactories;
 };
 
 class FPCGExBlendAttributesElement final : public FPCGExPointsProcessorElement

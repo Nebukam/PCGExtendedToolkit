@@ -158,7 +158,7 @@ namespace PCGExOffsetPath
 {
 	class FProcessor final : public PCGExPointsMT::TPointsProcessor<FPCGExOffsetPathContext, UPCGExOffsetPathSettings>
 	{
-		TArray<FVector> Positions;
+		TConstPCGValueRange<FTransform> InTransforms;
 
 		TSharedPtr<PCGExPaths::FPath> Path;
 		TSharedPtr<PCGExPaths::FPathEdgeHalfAngle> PathAngles;
@@ -182,16 +182,16 @@ namespace PCGExOffsetPath
 		}
 
 		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager) override;
-		virtual void PrepareSingleLoopScopeForPoints(const PCGExMT::FScope& Scope) override;
-		virtual void ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const PCGExMT::FScope& Scope) override;
+		virtual void ProcessPoints(const PCGExMT::FScope& Scope) override;
+		
 		virtual void OnPointsProcessingComplete() override;
 		virtual void CompleteWork() override;
 
 		template <bool bStrictCheck = false>
 		bool FindNextIntersection(const PCGExPaths::FPathEdge& FromEdge, int32& NextIteration, FVector& OutIntersection) const
 		{
-			const FVector E11 = Positions[FromEdge.Start];
-			const FVector E12 = Positions[FromEdge.End];
+			const FVector E11 = InTransforms[FromEdge.Start];
+			const FVector E12 = InTransforms[FromEdge.End];
 
 			FVector A = FVector::ZeroVector;
 			FVector B = FVector::ZeroVector;
@@ -209,8 +209,8 @@ namespace PCGExOffsetPath
 					}
 
 					const PCGExPaths::FPathEdge& E2 = DirtyPath->Edges[OtherEdge->Start];
-					const FVector E21 = Positions[E2.Start];
-					const FVector E22 = Positions[E2.End];
+					const FVector E21 = InTransforms[E2.Start];
+					const FVector E22 = InTransforms[E2.End];
 
 					FMath::SegmentDistToSegment(E11, E12, E21, E22, A, B);
 

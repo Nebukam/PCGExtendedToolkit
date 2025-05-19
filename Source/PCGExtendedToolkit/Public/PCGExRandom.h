@@ -38,11 +38,14 @@ namespace PCGExRandom
 	}
 
 	PCGEXTENDEDTOOLKIT_API
-	int32 GetSeedFromPoint(const uint8 Flags, const FPCGPoint& Point, const int32 Local, const UPCGSettings* Settings = nullptr, const UPCGComponent* Component = nullptr);
+	int32 GetSeed(const int32 BaseSeed, const uint8 Flags, const int32 Local, const UPCGSettings* Settings = nullptr, const UPCGComponent* Component = nullptr);
+
 	PCGEXTENDEDTOOLKIT_API
-	int32 GetSeedFromPoint(const FPCGPoint& Point, const int32 Local, const UPCGSettings* Settings = nullptr, const UPCGComponent* Component = nullptr);
+	int32 GetSeed(const int32 BaseSeed, const int32 Local, const UPCGSettings* Settings = nullptr, const UPCGComponent* Component = nullptr);
+
 	PCGEXTENDEDTOOLKIT_API
-	FRandomStream GetRandomStreamFromPoint(const FPCGPoint& Point, const int32 Offset, const UPCGSettings* Settings = nullptr, const UPCGComponent* Component = nullptr);
+	FRandomStream GetRandomStreamFromPoint(const int32 BaseSeed, const int32 Offset, const UPCGSettings* Settings = nullptr, const UPCGComponent* Component = nullptr);
+
 	PCGEXTENDEDTOOLKIT_API
-	int ComputeSeed(const FPCGPoint& Point, const FVector& Offset = FVector::ZeroVector);
+	int ComputeSpatialSeed(const FVector& Origin, const FVector& Offset = FVector::ZeroVector);
 }

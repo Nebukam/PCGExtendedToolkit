@@ -1,7 +1,7 @@
 ﻿// Copyright 2025 Timothé Lapetite and contributors
 // Released under the MIT license https://opensource.org/license/MIT/
 
-#include "Data/Blending/PCGExAttributeBlendFactoryProvider.h"
+#include "Data/Blending/PCGExBlendOpFactoryProvider.h"
 
 #include "PCGExDetailsData.h"
 #include "Data/Blending/PCGExProxyDataBlending.h"
@@ -29,7 +29,7 @@ void FPCGExAttributeBlendConfig::Init()
 	Weighting.Init();
 }
 
-bool FPCGExAttributeBlendOperation::PrepareForData(FPCGExContext* InContext)
+bool FPCGExBlendOperation::PrepareForData(FPCGExContext* InContext)
 {
 	Weight = Config.Weighting.GetValueSettingWeight();
 	if (!Weight->Init(InContext, WeightFacade)) { return false; }
@@ -128,7 +128,7 @@ bool FPCGExAttributeBlendOperation::PrepareForData(FPCGExContext* InContext)
 	return true;
 }
 
-void FPCGExAttributeBlendOperation::CompleteWork(TSet<TSharedPtr<PCGExData::FBufferBase>>& OutDisabledBuffers)
+void FPCGExBlendOperation::CompleteWork(TSet<TSharedPtr<PCGExData::FBufferBase>>& OutDisabledBuffers)
 {
 	if (Blender)
 	{
@@ -150,7 +150,7 @@ void FPCGExAttributeBlendOperation::CompleteWork(TSet<TSharedPtr<PCGExData::FBuf
 	}
 }
 
-bool FPCGExAttributeBlendOperation::CopyAndFixSiblingSelector(FPCGExContext* InContext, FPCGAttributePropertyInputSelector& Selector) const
+bool FPCGExBlendOperation::CopyAndFixSiblingSelector(FPCGExContext* InContext, FPCGAttributePropertyInputSelector& Selector) const
 {
 	// TODO : Support index shortcuts like @0 @1 @2 etc
 
@@ -158,7 +158,7 @@ bool FPCGExAttributeBlendOperation::CopyAndFixSiblingSelector(FPCGExContext* InC
 	{
 		if (Selector.GetAttributeName() == PCGEx::PreviousAttributeName)
 		{
-			const TSharedPtr<FPCGExAttributeBlendOperation> PreviousOperation = SiblingOperations && SiblingOperations->IsValidIndex(OpIdx - 1) ? (*SiblingOperations.Get())[OpIdx - 1] : nullptr;
+			const TSharedPtr<FPCGExBlendOperation> PreviousOperation = SiblingOperations && SiblingOperations->IsValidIndex(OpIdx - 1) ? (*SiblingOperations.Get())[OpIdx - 1] : nullptr;
 
 			if (!PreviousOperation)
 			{
@@ -177,7 +177,7 @@ bool FPCGExAttributeBlendOperation::CopyAndFixSiblingSelector(FPCGExContext* InC
 				if (Shortcut.IsNumeric())
 				{
 					int32 Idx = FCString::Atoi(*Shortcut);
-					const TSharedPtr<FPCGExAttributeBlendOperation> TargetOperation = SiblingOperations && SiblingOperations->IsValidIndex(Idx) ? (*SiblingOperations.Get())[Idx] : nullptr;
+					const TSharedPtr<FPCGExBlendOperation> TargetOperation = SiblingOperations && SiblingOperations->IsValidIndex(Idx) ? (*SiblingOperations.Get())[Idx] : nullptr;
 
 					if (TargetOperation.Get() == this)
 					{
@@ -201,9 +201,9 @@ bool FPCGExAttributeBlendOperation::CopyAndFixSiblingSelector(FPCGExContext* InC
 	return true;
 }
 
-TSharedPtr<FPCGExAttributeBlendOperation> UPCGExAttributeBlendFactory::CreateOperation(FPCGExContext* InContext) const
+TSharedPtr<FPCGExBlendOperation> UPCGExBlendOpFactory::CreateOperation(FPCGExContext* InContext) const
 {
-	PCGEX_FACTORY_NEW_OPERATION(AttributeBlendOperation)
+	PCGEX_FACTORY_NEW_OPERATION(BlendOperation)
 	NewOperation->Config = Config;
 	NewOperation->Config.Init();
 	NewOperation->ConstantA = ConstantA;
@@ -211,7 +211,7 @@ TSharedPtr<FPCGExAttributeBlendOperation> UPCGExAttributeBlendFactory::CreateOpe
 	return NewOperation;
 }
 
-bool UPCGExAttributeBlendFactory::Prepare(FPCGExContext* InContext)
+bool UPCGExBlendOpFactory::Prepare(FPCGExContext* InContext)
 {
 	if (!Super::Prepare(InContext)) { return false; }
 
@@ -221,13 +221,13 @@ bool UPCGExAttributeBlendFactory::Prepare(FPCGExContext* InContext)
 	return true;
 }
 
-void UPCGExAttributeBlendFactory::RegisterAssetDependencies(FPCGExContext* InContext) const
+void UPCGExBlendOpFactory::RegisterAssetDependencies(FPCGExContext* InContext) const
 {
 	Super::RegisterAssetDependencies(InContext);
 	if (Config.bRequiresWeight && !Config.Weighting.bUseLocalCurve) { InContext->AddAssetDependency(Config.Weighting.WeightCurve.ToSoftObjectPath()); }
 }
 
-bool UPCGExAttributeBlendFactory::RegisterConsumableAttributesWithData(FPCGExContext* InContext, const UPCGData* InData) const
+bool UPCGExBlendOpFactory::RegisterConsumableAttributesWithData(FPCGExContext* InContext, const UPCGData* InData) const
 {
 	if (!Super::RegisterConsumableAttributesWithData(InContext, InData)) { return false; }
 
@@ -238,21 +238,21 @@ bool UPCGExAttributeBlendFactory::RegisterConsumableAttributesWithData(FPCGExCon
 	return true;
 }
 
-void UPCGExAttributeBlendFactory::RegisterBuffersDependencies(FPCGExContext* InContext, PCGExData::FFacadePreloader& FacadePreloader) const
+void UPCGExBlendOpFactory::RegisterBuffersDependencies(FPCGExContext* InContext, PCGExData::FFacadePreloader& FacadePreloader) const
 {
 	Super::RegisterBuffersDependencies(InContext, FacadePreloader);
 }
 
-void UPCGExAttributeBlendFactory::RegisterBuffersDependenciesForOperandA(FPCGExContext* InContext, PCGExData::FFacadePreloader& FacadePreloader) const
+void UPCGExBlendOpFactory::RegisterBuffersDependenciesForOperandA(FPCGExContext* InContext, PCGExData::FFacadePreloader& FacadePreloader) const
 {
 }
 
-void UPCGExAttributeBlendFactory::RegisterBuffersDependenciesForOperandB(FPCGExContext* InContext, PCGExData::FFacadePreloader& FacadePreloader) const
+void UPCGExBlendOpFactory::RegisterBuffersDependenciesForOperandB(FPCGExContext* InContext, PCGExData::FFacadePreloader& FacadePreloader) const
 {
 }
 
 #if WITH_EDITOR
-void UPCGExAttributeBlendFactoryProviderSettings::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
+void UPCGExBlendOpFactoryProviderSettings::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
 {
 	Config.bRequiresWeight =
 		Config.BlendMode == EPCGExABBlendingType::Lerp ||
@@ -263,14 +263,14 @@ void UPCGExAttributeBlendFactoryProviderSettings::PostEditChangeProperty(FProper
 	Super::PostEditChangeProperty(PropertyChangedEvent);
 }
 
-TArray<FPCGPreConfiguredSettingsInfo> UPCGExAttributeBlendFactoryProviderSettings::GetPreconfiguredInfo() const
+TArray<FPCGPreConfiguredSettingsInfo> UPCGExBlendOpFactoryProviderSettings::GetPreconfiguredInfo() const
 {
 	const TSet ValuesToSkip = {EPCGExABBlendingType::None};
 	return FPCGPreConfiguredSettingsInfo::PopulateFromEnum<EPCGExABBlendingType>(ValuesToSkip, FTEXT("Blend : "));
 }
 #endif
 
-void UPCGExAttributeBlendFactoryProviderSettings::ApplyPreconfiguredSettings(const FPCGPreConfiguredSettingsInfo& PreconfigureInfo)
+void UPCGExBlendOpFactoryProviderSettings::ApplyPreconfiguredSettings(const FPCGPreConfiguredSettingsInfo& PreconfigureInfo)
 {
 	if (const UEnum* EnumPtr = StaticEnum<EPCGExABBlendingType>())
 	{
@@ -281,7 +281,7 @@ void UPCGExAttributeBlendFactoryProviderSettings::ApplyPreconfiguredSettings(con
 	}
 }
 
-TArray<FPCGPinProperties> UPCGExAttributeBlendFactoryProviderSettings::InputPinProperties() const
+TArray<FPCGPinProperties> UPCGExBlendOpFactoryProviderSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
 	PCGEX_PIN_ANY_SINGLE(PCGExDataBlending::SourceConstantA, "Data used to read a constant from. Will read from the first element of the first data.", Advanced, {})
@@ -289,9 +289,9 @@ TArray<FPCGPinProperties> UPCGExAttributeBlendFactoryProviderSettings::InputPinP
 	return PinProperties;
 }
 
-UPCGExFactoryData* UPCGExAttributeBlendFactoryProviderSettings::CreateFactory(FPCGExContext* InContext, UPCGExFactoryData* InFactory) const
+UPCGExFactoryData* UPCGExBlendOpFactoryProviderSettings::CreateFactory(FPCGExContext* InContext, UPCGExFactoryData* InFactory) const
 {
-	UPCGExAttributeBlendFactory* NewFactory = InContext->ManagedObjects->New<UPCGExAttributeBlendFactory>();
+	UPCGExBlendOpFactory* NewFactory = InContext->ManagedObjects->New<UPCGExBlendOpFactory>();
 	NewFactory->Priority = Priority;
 	NewFactory->Config = Config;
 
@@ -299,7 +299,7 @@ UPCGExFactoryData* UPCGExAttributeBlendFactoryProviderSettings::CreateFactory(FP
 }
 
 #if WITH_EDITOR
-FString UPCGExAttributeBlendFactoryProviderSettings::GetDisplayName() const
+FString UPCGExBlendOpFactoryProviderSettings::GetDisplayName() const
 {
 	if (const UEnum* EnumPtr = StaticEnum<EPCGExABBlendingType>())
 	{
@@ -308,161 +308,7 @@ FString UPCGExAttributeBlendFactoryProviderSettings::GetDisplayName() const
 
 	return TEXT("PCGEx | Blend Op");
 }
-
 #endif
 
-namespace PCGExDataBlending
-{
-	void RegisterBuffersDependencies(FPCGExContext* InContext, PCGExData::FFacadePreloader& FacadePreloader, const TArray<TObjectPtr<const UPCGExAttributeBlendFactory>>& Factories)
-	{
-		for (const TObjectPtr<const UPCGExAttributeBlendFactory>& Factory : Factories)
-		{
-			Factory->RegisterBuffersDependencies(InContext, FacadePreloader);
-		}
-	}
-
-	void RegisterBuffersDependencies_SourceA(FPCGExContext* InContext, PCGExData::FFacadePreloader& FacadePreloader, const TArray<TObjectPtr<const UPCGExAttributeBlendFactory>>& Factories)
-	{
-		for (const TObjectPtr<const UPCGExAttributeBlendFactory>& Factory : Factories)
-		{
-			Factory->RegisterBuffersDependenciesForOperandA(InContext, FacadePreloader);
-		}
-	}
-
-	void RegisterBuffersDependencies_SourceB(FPCGExContext* InContext, PCGExData::FFacadePreloader& FacadePreloader, const TArray<TObjectPtr<const UPCGExAttributeBlendFactory>>& Factories)
-	{
-		for (const TObjectPtr<const UPCGExAttributeBlendFactory>& Factory : Factories)
-		{
-			Factory->RegisterBuffersDependenciesForOperandB(InContext, FacadePreloader);
-		}
-	}
-
-	void RegisterBuffersDependencies_Sources(FPCGExContext* InContext, PCGExData::FFacadePreloader& FacadePreloader, const TArray<TObjectPtr<const UPCGExAttributeBlendFactory>>& Factories)
-	{
-		for (const TObjectPtr<const UPCGExAttributeBlendFactory>& Factory : Factories)
-		{
-			Factory->RegisterBuffersDependenciesForOperandA(InContext, FacadePreloader);
-			Factory->RegisterBuffersDependenciesForOperandB(InContext, FacadePreloader);
-		}
-	}
-
-	FBlendOpsManager::FBlendOpsManager(const TSharedPtr<PCGExData::FFacade>& InDataFacade)
-	{
-		SetWeightFacade(InDataFacade);
-		SetSources(InDataFacade);
-		SetTargetFacade(InDataFacade);
-		Operations = MakeShared<TArray<TSharedPtr<FPCGExAttributeBlendOperation>>>();
-	}
-
-	FBlendOpsManager::FBlendOpsManager()
-	{
-		Operations = MakeShared<TArray<TSharedPtr<FPCGExAttributeBlendOperation>>>();
-	}
-
-	void FBlendOpsManager::SetWeightFacade(const TSharedPtr<PCGExData::FFacade>& InDataFacade)
-	{
-		WeightFacade = InDataFacade;
-	}
-
-	void FBlendOpsManager::SetSources(const TSharedPtr<PCGExData::FFacade>& InDataFacade)
-	{
-		SetSourceA(InDataFacade);
-		SetSourceB(InDataFacade);
-	}
-
-	void FBlendOpsManager::SetSourceA(const TSharedPtr<PCGExData::FFacade>& InDataFacade)
-	{
-		SourceAFacade = InDataFacade;
-	}
-
-	void FBlendOpsManager::SetSourceB(const TSharedPtr<PCGExData::FFacade>& InDataFacade)
-	{
-		SourceBFacade = InDataFacade;
-	}
-
-	void FBlendOpsManager::SetTargetFacade(const TSharedPtr<PCGExData::FFacade>& InDataFacade)
-	{
-		TargetFacade = InDataFacade;
-	}
-
-	bool FBlendOpsManager::Init(FPCGExContext* InContext, const TArray<TObjectPtr<const UPCGExAttributeBlendFactory>>& InFactories) const
-	{
-		check(WeightFacade)
-		check(SourceAFacade)
-		check(SourceBFacade)
-		check(TargetFacade)
-
-		const TSharedRef<PCGExData::FFacade> InDataFacade = SourceAFacade.ToSharedRef();
-
-		Operations->Reserve(InFactories.Num());
-
-		for (const TObjectPtr<const UPCGExAttributeBlendFactory>& Factory : InFactories)
-		{
-			TSharedPtr<FPCGExAttributeBlendOperation> Op = Factory->CreateOperation(InContext);
-			if (!Op)
-			{
-				PCGE_LOG_C(Error, GraphAndLog, InContext, FTEXT("An operation could not be created."));
-				return false; // FAIL
-			}
-
-			// Assign blender facades
-			Op->WeightFacade = WeightFacade;
-			Op->Source_A_Facade = SourceAFacade;
-			Op->Source_B_Facade = SourceBFacade;
-			Op->TargetFacade = TargetFacade;
-
-			Op->OpIdx = Operations->Add(Op);
-			Op->SiblingOperations = Operations;
-
-			if (!Op->PrepareForData(InContext))
-			{
-				return false; // FAIL
-			}
-		}
-
-		return true;
-	}
-
-	void FBlendOpsManager::BeginMultiBlend(const int32 TargetIndex, TArray<PCGExDataBlending::FBlendTracker>& OutTrackers) const
-	{
-		OutTrackers.SetNumUninitialized(Operations->Num());
-		for (int i = 0; i < Operations->Num(); i++) { OutTrackers[i] = (*(Operations->GetData() + i))->BeginMultiBlend(TargetIndex); }
-	}
-
-	void FBlendOpsManager::MultiBlend(const int32 SourceIndex, const int32 TargetIndex, const double Weight, TArray<PCGExDataBlending::FBlendTracker>& Trackers) const
-	{
-		for (int i = 0; i < Operations->Num(); i++) { (*(Operations->GetData() + i))->MultiBlend(SourceIndex, TargetIndex, Weight, Trackers[i]); }
-	}
-
-	void FBlendOpsManager::EndMultiBlend(const int32 TargetIndex, TArray<PCGExDataBlending::FBlendTracker>& Trackers) const
-	{
-		for (int i = 0; i < Operations->Num(); i++) { (*(Operations->GetData() + i))->EndMultiBlend(TargetIndex, Trackers[i]); }
-	}
-
-	void FBlendOpsManager::Cleanup(FPCGExContext* InContext)
-	{
-		TSet<TSharedPtr<PCGExData::FBufferBase>> DisabledBuffers;
-		for (int i = 0; i < Operations->Num(); i++) { (*(Operations->GetData() + i))->CompleteWork(DisabledBuffers); }
-
-		for (const TSharedPtr<PCGExData::FBufferBase>& Buffer : DisabledBuffers)
-		{
-			// If disabled buffer does not exist on input, delete it entierely
-			if (!Buffer->OutAttribute) { continue; }
-			if (!SourceAFacade->GetIn()->Metadata->HasAttribute(Buffer->OutAttribute->Name))
-			{
-				SourceAFacade->GetOut()->Metadata->DeleteAttribute(Buffer->OutAttribute->Name);
-				// TODO : Check types and make sure we're not deleting something
-			}
-
-			if (Buffer->InAttribute)
-			{
-				// Log a warning that can be silenced that we may have removed a valid attribute
-			}
-		}
-
-		Operations->Empty();
-		Operations.Reset();
-	}
-}
 #undef LOCTEXT_NAMESPACE
 #undef PCGEX_NAMESPACE

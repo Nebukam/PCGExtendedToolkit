@@ -9,7 +9,8 @@
 #include "PCGExPointsProcessor.h"
 #include "PCGExSampling.h"
 #include "PCGExScopedContainers.h"
-#include "Data/Blending/PCGExAttributeBlendFactoryProvider.h"
+#include "Data/Blending/PCGExBlendOpFactoryProvider.h"
+#include "Data/Blending/PCGExBlendOpsManager.h"
 #include "Data/Blending/PCGExDataBlending.h"
 #include "Data/Blending/PCGExMetadataBlender.h"
 
@@ -193,7 +194,7 @@ public:
 	FVector LookAtUpConstant = FVector::UpVector;
 
 	PCGEX_SETTING_VALUE_GET(LookAtUp, FVector, LookAtUpSelection == EPCGExSampleSource::Constant ? EPCGExInputValueType::Constant : EPCGExInputValueType::Attribute, LookAtUpSource, LookAtUpConstant)
-	
+
 	/** Write the sampled distance. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(PCG_Overridable, InlineEditConditionToggle))
 	bool bWriteDistance = false;
@@ -303,7 +304,7 @@ struct FPCGExSampleNearestBoundsContext final : FPCGExPointsProcessorContext
 {
 	friend class FPCGExSampleNearestBoundsElement;
 
-	TArray<TObjectPtr<const UPCGExAttributeBlendFactory>> BlendingFactories;
+	TArray<TObjectPtr<const UPCGExBlendOpFactory>> BlendingFactories;
 
 	TSharedPtr<PCGExData::FFacadePreloader> BoundsPreloader;
 	TSharedPtr<PCGExData::FFacade> BoundsFacade;
@@ -311,8 +312,6 @@ struct FPCGExSampleNearestBoundsContext final : FPCGExPointsProcessorContext
 	TSharedPtr<PCGExSorting::PointSorter<false>> Sorter;
 
 	FPCGExApplySamplingDetails ApplySampling;
-
-	FPCGExBlendingDetails BlendingDetails;
 
 	FRuntimeFloatCurve RuntimeWeightCurve;
 	const FRichCurve* WeightCurve = nullptr;
@@ -326,7 +325,7 @@ class FPCGExSampleNearestBoundsElement final : public FPCGExPointsProcessorEleme
 {
 protected:
 	PCGEX_ELEMENT_CREATE_CONTEXT(SampleNearestBounds)
-	
+
 	virtual bool Boot(FPCGExContext* InContext) const override;
 	virtual void PostLoadAssetsDependencies(FPCGExContext* InContext) const override;
 	virtual bool ExecuteInternal(FPCGContext* Context) const override;
@@ -343,14 +342,13 @@ namespace PCGExSampleNearestBounds
 
 		bool bSingleSample = false;
 
-		FVector SafeUpVector = FVector::UpVector;		
+		FVector SafeUpVector = FVector::UpVector;
 		TSharedPtr<PCGExDetails::TSettingValue<FVector>> LookAtUpGetter;
 
 		TSharedPtr<PCGExDataBlending::FBlendOpsManager> BlendOpsManager;
-		
+
 		TSharedPtr<PCGExMT::TScopedNumericValue<double>> MaxDistanceValue;
 		double MaxDistance = 0;
-
 
 		int8 bAnySuccess = 0;
 
@@ -372,7 +370,6 @@ namespace PCGExSampleNearestBounds
 		virtual void ProcessPoints(const PCGExMT::FScope& Scope) override;
 
 		virtual void OnPointsProcessingComplete() override;
-		virtual void ProcessSingleRangeIteration(const int32 Iteration, const PCGExMT::FScope& Scope) override;
 
 		virtual void CompleteWork() override;
 		virtual void Write() override;

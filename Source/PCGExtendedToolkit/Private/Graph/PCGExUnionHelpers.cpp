@@ -92,7 +92,7 @@ namespace PCGExGraph
 
 				TArray<FPCGPoint>& Points = This->UnionDataFacade->GetOut()->GetMutablePoints();
 
-				for (int i = Scope.Start; i < Scope.End; i++)
+				PCGEX_SCOPE_LOOP(i)
 				{
 					TSharedPtr<FUnionNode> UnionNode = This->UnionGraph->Nodes[i];
 					const PCGMetadataEntryKey Key = Points[i].MetadataEntry;
@@ -235,7 +235,7 @@ namespace PCGExGraph
 			[PCGEX_ASYNC_THIS_CAPTURE](const PCGExMT::FScope& Scope)
 			{
 				PCGEX_ASYNC_THIS
-				for (int i = Scope.Start; i < Scope.End; i++)
+				PCGEX_SCOPE_LOOP(i)
 				{
 					const FEdge& Edge = This->GraphBuilder->Graph->Edges[i];
 					if (!Edge.bValid) { continue; }
@@ -262,7 +262,7 @@ namespace PCGExGraph
 			[PCGEX_ASYNC_THIS_CAPTURE](const PCGExMT::FScope& Scope)
 			{
 				PCGEX_ASYNC_THIS
-				for (int i = Scope.Start; i < Scope.End; i++)
+				PCGEX_SCOPE_LOOP(i)
 				{
 					FPointEdgeProxy& PointEdgeProxy = This->PointEdgeIntersections->Edges[i];
 					const int32 CollinearNum = PointEdgeProxy.CollinearPoints.Num();
@@ -312,7 +312,7 @@ namespace PCGExGraph
 				if (!This->MetadataBlender) { return; }
 				const TSharedRef<PCGExDataBlending::FMetadataBlender> Blender = This->MetadataBlender.ToSharedRef();
 
-				for (int i = Scope.Start; i < Scope.End; i++)
+				PCGEX_SCOPE_LOOP(i)
 				{
 					// TODO
 				}
@@ -354,7 +354,7 @@ namespace PCGExGraph
 				if (!This->EdgeEdgeIntersections) { return; }
 				const TSharedRef<FEdgeEdgeIntersections> EEI = This->EdgeEdgeIntersections.ToSharedRef();
 
-				for (int i = Scope.Start; i < Scope.End; i++)
+				PCGEX_SCOPE_LOOP(i)
 				{
 					const FEdge& Edge = This->GraphBuilder->Graph->Edges[i];
 					if (!Edge.bValid) { continue; }
@@ -385,7 +385,7 @@ namespace PCGExGraph
 			{
 				PCGEX_ASYNC_THIS
 				if (!This->EdgeEdgeIntersections) { return; }
-				for (int i = Scope.Start; i < Scope.End; i++)
+				PCGEX_SCOPE_LOOP(i)
 				{
 					FEdgeEdgeProxy& EdgeProxy = This->EdgeEdgeIntersections->Edges[i];
 					const int32 IntersectionsNum = EdgeProxy.Intersections.Num();
@@ -448,7 +448,7 @@ namespace PCGExGraph
 				if (!This->MetadataBlender) { return; }
 				const TSharedRef<PCGExDataBlending::FMetadataBlender> Blender = This->MetadataBlender.ToSharedRef();
 
-				for (int i = Scope.Start; i < Scope.End; i++) { This->EdgeEdgeIntersections->BlendIntersection(i, Blender); }
+				PCGEX_SCOPE_LOOP(i) { This->EdgeEdgeIntersections->BlendIntersection(i, Blender); }
 			};
 		BlendEdgeEdgeGroup->StartSubLoops(EdgeEdgeIntersections->Crossings.Num(), GetDefault<UPCGExGlobalSettings>()->ClusterDefaultBatchChunkSize);
 	}

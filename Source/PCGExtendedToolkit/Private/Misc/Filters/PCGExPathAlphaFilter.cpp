@@ -96,7 +96,7 @@ namespace PCGExPointFilter
 		return true;
 	}
 
-	bool FPathAlphaFilter::Test(const FPCGPoint& Point) const
+	bool FPathAlphaFilter::TestRoamingPoint(const FPCGPoint& Point) const
 	{
 		const TArray<TSharedPtr<FPCGSplineStruct>>& SplinesRef = *Splines.Get();
 		const TArray<double>& SegmentsNumRef = *SegmentsNum.Get();

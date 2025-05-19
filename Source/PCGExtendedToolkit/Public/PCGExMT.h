@@ -83,7 +83,8 @@ namespace PCGExMT
 		int32 GetNextScopeIndex() const { return LoopIndex + 1; }
 		void GetIndices(TArray<int32>& OutIndices) const;
 
-		static int32 GetMaxRange(const TArray<FScope>& InScopes){
+		static int32 GetMaxRange(const TArray<FScope>& InScopes)
+		{
 			int32 MaxRange = 0;
 			for (const FScope& S : InScopes) { MaxRange = FMath::Max(MaxRange, S.Count); };
 			return MaxRange;

@@ -112,7 +112,7 @@ bool PCGExPointFilter::FRandomFilter::Test(const int32 PointIndex) const
 	return TypedFilterFactory->Config.bInvertResult ? RandomValue <= LocalThreshold : RandomValue >= LocalThreshold;
 }
 
-bool PCGExPointFilter::FRandomFilter::Test(const FPCGPoint& Point) const
+bool PCGExPointFilter::FRandomFilter::TestRoamingPoint(const FPCGPoint& Point) const
 {
 	const float RandomValue = WeightCurve->Eval((FRandomStream(PCGExRandom::GetRandomStreamFromPoint(Point, RandomSeed)).GetFraction() * WeightRange) / WeightRange);
 	return TypedFilterFactory->Config.bInvertResult ? RandomValue <= Threshold : RandomValue >= Threshold;

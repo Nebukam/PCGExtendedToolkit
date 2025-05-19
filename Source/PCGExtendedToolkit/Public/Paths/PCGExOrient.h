@@ -21,10 +21,10 @@ enum class EPCGExOrientUsage : uint8
 
 namespace PCGExOrient
 {
-	static double DotProduct(const PCGExData::FPointRef& CurrentPt, const PCGExData::FPointRef& PreviousPt, const PCGExData::FPointRef& NextPt)
+	static double DotProduct(const PCGExData::FConstPoint& CurrentPt, const PCGExData::FConstPoint& PreviousPt, const PCGExData::FConstPoint& NextPt)
 	{
-		const FVector Mid = CurrentPt.Point->Transform.GetLocation();
-		return FVector::DotProduct((PreviousPt.Point->Transform.GetLocation() - Mid).GetSafeNormal(), (Mid - NextPt.Point->Transform.GetLocation()).GetSafeNormal());
+		const FVector Mid = CurrentPt.GetTransform().GetLocation();
+		return FVector::DotProduct((PreviousPt.GetTransform().GetLocation() - Mid).GetSafeNormal(), (Mid - NextPt.GetTransform().GetLocation()).GetSafeNormal());
 	}
 }
 
@@ -122,8 +122,7 @@ namespace PCGExOrient
 		virtual ~FProcessor() override;
 
 		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager) override;
-		virtual void PrepareSingleLoopScopeForPoints(const PCGExMT::FScope& Scope) override;
-		virtual void ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const PCGExMT::FScope& Scope) override;
+		virtual void ProcessPoints(const PCGExMT::FScope& Scope) override;
 		virtual void CompleteWork() override;
 	};
 }

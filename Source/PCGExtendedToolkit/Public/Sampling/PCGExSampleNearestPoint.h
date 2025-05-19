@@ -333,7 +333,7 @@ struct FPCGExSampleNearestPointContext final : FPCGExPointsProcessorContext
 {
 	friend class FPCGExSampleNearestPointElement;
 
-	TArray<TObjectPtr<const UPCGExAttributeBlendFactory>> BlendingFactories;
+	TArray<TObjectPtr<const UPCGExBlendOpFactory>> BlendingFactories;
 	
 	TSharedPtr<PCGExData::FFacadePreloader> TargetsPreloader;
 	TSharedPtr<PCGExData::FFacade> TargetsFacade;
@@ -344,7 +344,6 @@ struct FPCGExSampleNearestPointContext final : FPCGExPointsProcessorContext
 	FPCGExApplySamplingDetails ApplySampling;
 
 	TSharedPtr<PCGExDetails::FDistances> DistanceDetails;
-	FPCGExBlendingDetails BlendingDetails;
 	int32 NumTargets = 0;
 
 	FRuntimeFloatCurve RuntimeWeightCurve;
@@ -408,7 +407,6 @@ namespace PCGExSampleNearestPoints
 		virtual void ProcessPoints(const PCGExMT::FScope& Scope) override;
 
 		virtual void OnPointsProcessingComplete() override;
-		virtual void ProcessRange(const PCGExMT::FScope& Scope) override;
 
 		virtual void CompleteWork() override;
 		virtual void Write() override;

@@ -96,7 +96,7 @@ namespace PCGExOrient
 
 		PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::Duplicate)
 
-		Path = PCGExPaths::MakePath(PointDataFacade->GetIn()->GetPoints(), 0, Context->ClosedLoop.IsClosedLoop(PointDataFacade->Source));
+		Path = PCGExPaths::MakePath(PointDataFacade->GetIn(), 0, Context->ClosedLoop.IsClosedLoop(PointDataFacade->Source));
 		//PathBinormal = Path->AddExtra<PCGExPaths::FPathEdgeBinormal>(false);
 
 		LastIndex = PointDataFacade->GetNum() - 1;
@@ -118,21 +118,23 @@ namespace PCGExOrient
 		return true;
 	}
 
-	void FProcessor::PrepareSingleLoopScopeForPoints(const PCGExMT::FScope& Scope)
+	void FProcessor::ProcessPoints(const PCGExMT::FScope& Scope)
 	{
+		
 		PointDataFacade->Fetch(Scope);
 		FilterScope(Scope);
-	}
 
-	void FProcessor::ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const PCGExMT::FScope& Scope)
-	{
-		if (Path->IsValidEdgeIndex(Index)) { Path->ComputeEdgeExtra(Index); }
+		TPCGValueRange<FTransform> OutTransform = PointDataFacade->GetOut()->GetTransformValueRange();
+		PCGEX_SCOPE_LOOP(Index)
+		{
+			if (Path->IsValidEdgeIndex(Index)) { Path->ComputeEdgeExtra(Index); }
 
-		FTransform OutT = Orient->ComputeOrientation(PointDataFacade->Source->GetOutPointRef(Index), PointFilterCache[Index] ? -1 : 1);
-		if (Settings->bOutputDot) { DotWriter->GetMutable(Index) = FVector::DotProduct(Path->DirToPrevPoint(Index) * -1, Path->DirToNextPoint(Index)); }
+			const FTransform OutT = Orient->ComputeOrientation(PointDataFacade->GetOutPoint(Index), PointFilterCache[Index] ? -1 : 1);
+			if (Settings->bOutputDot) { DotWriter->GetMutable(Index) = FVector::DotProduct(Path->DirToPrevPoint(Index) * -1, Path->DirToNextPoint(Index)); }
 
-		if (TransformWriter) { TransformWriter->GetMutable(Index) = OutT; }
-		else { Point.Transform = OutT; }
+			if (TransformWriter) { TransformWriter->GetMutable(Index) = OutT; }
+			else { OutTransform[Index] = OutT; }
+		}
 	}
 
 	void FProcessor::CompleteWork()

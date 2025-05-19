@@ -60,7 +60,7 @@ namespace PCGExShapes
 		double EndAngle = TWO_PI;
 		double AngleRange = TWO_PI;
 
-		explicit FCircle(const PCGExData::FPointRef& InPointRef)
+		explicit FCircle(const PCGExData::FConstPoint& InPointRef)
 			: FShape(InPointRef)
 		{
 		}
@@ -76,7 +76,7 @@ public:
 	FPCGExShapeCircleConfig Config;
 
 	virtual bool PrepareForSeeds(FPCGExContext* InContext, const TSharedRef<PCGExData::FFacade>& InSeedDataFacade) override;
-	virtual void PrepareShape(const PCGExData::FPointRef& Seed) override;
+	virtual void PrepareShape(const PCGExData::FConstPoint& Seed) override;
 	virtual void BuildShape(TSharedPtr<PCGExShapes::FShape> InShape, TSharedPtr<PCGExData::FFacade> InDataFacade, TArrayView<FPCGPoint> PointView) override;
 
 protected:

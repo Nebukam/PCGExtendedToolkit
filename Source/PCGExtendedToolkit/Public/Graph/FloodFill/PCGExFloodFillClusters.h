@@ -7,7 +7,7 @@
 #include "PCGExDetailsData.h"
 #include "PCGExScopedContainers.h"
 #include "Data/PCGExDataForward.h"
-#include "Data/Blending/PCGExAttributeBlendFactoryProvider.h"
+#include "Data/Blending/PCGExBlendOpFactoryProvider.h"
 
 
 #include "Graph/PCGExEdgesProcessor.h"
@@ -155,7 +155,7 @@ struct FPCGExClusterDiffusionContext final : FPCGExEdgesProcessorContext
 {
 	friend class FPCGExClusterDiffusionElement;
 
-	TArray<TObjectPtr<const UPCGExAttributeBlendFactory>> BlendingFactories;
+	TArray<TObjectPtr<const UPCGExBlendOpFactory>> BlendingFactories;
 	TArray<TObjectPtr<const UPCGExFillControlsFactoryData>> FillControlFactories;
 
 	TSharedPtr<PCGExData::FFacade> SeedsDataFacade;

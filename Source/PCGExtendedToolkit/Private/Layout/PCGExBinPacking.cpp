@@ -339,11 +339,11 @@ namespace PCGExBinPacking
 			if (bRelativeSeed)
 			{
 				FBox Box = PCGExMath::GetLocalBounds<EPCGExPointBoundsSource::ScaledBounds>(BinPoint);
-				Seed = Box.GetCenter() + (SeedGetter ? SeedGetter->SoftGet(i, BinPoint, FVector::ZeroVector) : Settings->SeedUVW) * Box.GetExtent();
+				Seed = Box.GetCenter() + (SeedGetter ? SeedGetter->SoftGet(i, FVector::ZeroVector) : Settings->SeedUVW) * Box.GetExtent();
 			}
 			else
 			{
-				Seed = BinPoint.Transform.InverseTransformPositionNoScale(SeedGetter ? SeedGetter->SoftGet(i, BinPoint, FVector::ZeroVector) : Settings->SeedPosition);
+				Seed = BinPoint.Transform.InverseTransformPositionNoScale(SeedGetter ? SeedGetter->SoftGet(i, FVector::ZeroVector) : Settings->SeedPosition);
 			}
 
 			PCGEX_MAKE_SHARED(NewBin, FBin, BinPoint, Seed, Splitter)

@@ -19,8 +19,8 @@ class UPCGExSubPointsBlendNone : public UPCGExSubPointsBlendOperation
 
 public:
 	virtual void BlendSubPoints(
-		const PCGExData::FPointRef& From,
-		const PCGExData::FPointRef& To,
+		const PCGExData::FConstPoint& From,
+		const PCGExData::FConstPoint& To,
 		const TArrayView<FPCGPoint>& SubPoints,
 		const PCGExPaths::FPathMetrics& Metrics,
 		PCGExDataBlending::FMetadataBlender* InBlender, const int32 StartIndex) const override;

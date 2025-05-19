@@ -17,6 +17,18 @@
 
 #pragma region PCGEX MACROS
 
+#define PCGEX_SHARED_CONTEXT_VOID(_HANDLE) \
+FPCGContext::FSharedContext<FPCGExContext> SharedContext(_HANDLE); \
+if(!SharedContext.Get()){ return; }
+
+#define PCGEX_SHARED_CONTEXT(_HANDLE) \
+FPCGContext::FSharedContext<FPCGExContext> SharedContext(_HANDLE); \
+if(!SharedContext.Get()){ return false; }
+
+#define PCGEX_SHARED_CONTEXT_RET(_HANDLE, _RET) \
+FPCGContext::FSharedContext<FPCGExContext> SharedContext(_HANDLE); \
+if(!SharedContext.Get()){ return _RET; }
+
 #define PCGEX_LOG_INVALID_SELECTOR_C(_CTX, _NAME, _SELECTOR) PCGE_LOG_C(Error, GraphAndLog, _CTX, FText::Format(FTEXT("Invalid "#_NAME" attribute: \"{0}\"."), FText::FromString(PCGEx::GetSelectorDisplayName(_SELECTOR))));
 #define PCGEX_LOG_INVALID_ATTR_C(_CTX, _NAME, _SELECTOR) PCGE_LOG_C(Error, GraphAndLog, _CTX, FText::Format(FTEXT("Invalid "#_NAME" attribute: \"{0}\"."), FText::FromName(_SELECTOR)));
 
@@ -95,7 +107,7 @@ MACRO(EPCGPointProperties::LocalSize, GetLocalSize(), FVector, FVector)\
 MACRO(EPCGPointProperties::ScaledLocalSize, GetScaledLocalSize(), FVector, FVector)
 
 #define PCGEX_PREFIXED_IFELSE_GETPOINTPROPERTY(_PREFIX, _PROPERTY, MACRO)\
-if constexpr(_PROPERTY == EPCGPointProperties::Density){ MACRO(GetDensity(Index), float) } \
+if _PREFIX(_PROPERTY == EPCGPointProperties::Density){ MACRO(GetDensity(Index), float) } \
 else if _PREFIX (_PROPERTY == EPCGPointProperties::BoundsMin){ MACRO(GetBoundsMin(Index), FVector) } \
 else if _PREFIX (_PROPERTY == EPCGPointProperties::BoundsMax){ MACRO(GetBoundsMax(Index), FVector) } \
 else if _PREFIX (_PROPERTY == EPCGPointProperties::Extents){ MACRO(GetExtents(Index), FVector) } \
@@ -114,7 +126,7 @@ else if _PREFIX (_PROPERTY == EPCGPointProperties::ScaledLocalSize){ MACRO(GetSc
 #define PCGEX_IFELSE_GETPOINTPROPERTY(_PROPERTY, MACRO) PCGEX_PREFIXED_IFELSE_GETPOINTPROPERTY(, _PROPERTY, MACRO)
 
 #define PCGEX_PREFIXED_IFELSE_SETPOINTPROPERTY(_PREFIX, _PROPERTY, _DATA, BODY, MACRO)\
-if constexpr(_PROPERTY == EPCGPointProperties::Density){ BODY(FVector) _DATA->GetDensityValueRange()[Index] = MACRO(float); } \
+if _PREFIX(_PROPERTY == EPCGPointProperties::Density){ BODY(FVector) _DATA->GetDensityValueRange()[Index] = MACRO(float); } \
 else if _PREFIX (_PROPERTY == EPCGPointProperties::BoundsMin){ BODY(FVector) _DATA->GetBoundsMinRange[Index] = MACRO(FVector); } \
 else if _PREFIX (_PROPERTY == EPCGPointProperties::BoundsMax){ BODY(FVector) _DATA->GetBoundsMaxRange[Index] = MACRO(FVector); } \
 else if _PREFIX (_PROPERTY == EPCGPointProperties::Extents){ /* TODO */ } \

@@ -76,11 +76,8 @@ namespace PCGExFuseCollinear
 
 		PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::New)
 
-		Path = PCGExPaths::MakePath(
-			PointDataFacade->Source->GetIn()->GetPoints(), 0,
-			Context->ClosedLoop.IsClosedLoop(PointDataFacade->Source));
+		Path = PCGExPaths::MakePath(PointDataFacade->GetIn(), 0, Context->ClosedLoop.IsClosedLoop(PointDataFacade->Source));
 
-		const TArray<FPCGPoint>& InPoints = PointDataFacade->GetIn()->GetPoints();
 		OutPoints = &PointDataFacade->GetOut()->GetMutablePoints();
 		OutPoints->Reserve(Path->NumPoints);
 
@@ -92,7 +89,7 @@ namespace PCGExFuseCollinear
 		return true;
 	}
 
-	void FProcessor::PrepareSingleLoopScopeForPoints(const PCGExMT::FScope& Scope)
+	void FProcessor::ProcessPoints(const PCGExMT::FScope& Scope)
 	{
 		PointDataFacade->Fetch(Scope);
 		FilterScope(Scope);
@@ -100,39 +97,39 @@ namespace PCGExFuseCollinear
 		// Preserve start & end
 		PointFilterCache[0] = true;
 		if (!Path->IsClosedLoop()) { PointFilterCache[Path->LastIndex] = true; } // Don't force-preserve last point if closed loop
-	}
 
-	void FProcessor::ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const PCGExMT::FScope& Scope)
-	{
+		PCGEX_SCOPE_LOOP(Index)
+		{
+			
 #define PCGEX_INSERT_CURRENT_POINT\
-		OutPoints->Add(Point);\
-		LastPosition = Path->GetPos(Index);
+OutPoints->Add(Point);\
+LastPosition = Path->GetPos(Index);
 
-		if (PointFilterCache[Index])
-		{
-			// Kept point, as per filters
+			if (PointFilterCache[Index])
+			{
+				// Kept point, as per filters
+				PCGEX_INSERT_CURRENT_POINT
+				return;
+			}
+
+			const FVector CurrentPos = Path->GetPos(Index);
+			if (Settings->bFuseCollocated && FVector::DistSquared(LastPosition, CurrentPos) <= Context->FuseDistSquared)
+			{
+				// Collocated points
+				return;
+			}
+
+			// Use last position to avoid removing smooth arcs
+			const double Dot = FVector::DotProduct((CurrentPos - LastPosition).GetSafeNormal(), Path->DirToNextPoint(Index));
+			if ((!Settings->bInvertThreshold && Dot > Context->DotThreshold) ||
+				(Settings->bInvertThreshold && Dot < Context->DotThreshold))
+			{
+				// Collinear with previous, keep moving
+				return;
+			}
+
 			PCGEX_INSERT_CURRENT_POINT
-			return;
 		}
-
-		const FVector CurrentPos = Path->GetPos(Index);
-		if (Settings->bFuseCollocated && FVector::DistSquared(LastPosition, CurrentPos) <= Context->FuseDistSquared)
-		{
-			// Collocated points
-			return;
-		}
-
-		// Use last position to avoid removing smooth arcs
-		const double Dot = FVector::DotProduct((CurrentPos - LastPosition).GetSafeNormal(), Path->DirToNextPoint(Index));
-		if ((!Settings->bInvertThreshold && Dot > Context->DotThreshold) ||
-			(Settings->bInvertThreshold && Dot < Context->DotThreshold))
-		{
-			// Collinear with previous, keep moving
-			return;
-		}
-
-		PCGEX_INSERT_CURRENT_POINT
-
 #undef PCGEX_INSERT_CURRENT_POINT
 	}
 

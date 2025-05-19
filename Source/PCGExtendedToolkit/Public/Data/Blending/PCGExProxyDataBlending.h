@@ -9,77 +9,16 @@
 #include "PCGExDataBlending.h"
 #include "Data/PCGExProxyData.h"
 
-// This is a different blending list that makes more sense for AxB blending
-// and also includes extra modes that don't make sense in regular multi-source data blending
-UENUM(BlueprintType)
-enum class EPCGExABBlendingType : uint8
-{
-	None             = 0 UMETA(Hidden, DisplayName = "None", ToolTip="No blending is applied, keep the original value."),
-	Average          = 1 UMETA(DisplayName = "Average", ToolTip="(A + B) / 2"),
-	Weight           = 2 UMETA(DisplayName = "Weight", ToolTip="(A + B) / Weight"),
-	Multiply         = 3 UMETA(DisplayName = "Multiply", ToolTip="A * B"),
-	Divide           = 4 UMETA(DisplayName = "Divide", ToolTip="A / B"),
-	Min              = 5 UMETA(DisplayName = "Min", ToolTip="Min(A, B)"),
-	Max              = 6 UMETA(DisplayName = "Max", ToolTip="Max(A, B)"),
-	CopyTarget       = 7 UMETA(DisplayName = "Copy (Target)", ToolTip = "= B"),
-	CopySource       = 8 UMETA(DisplayName = "Copy (Source)", ToolTip="= A"),
-	Add              = 9 UMETA(DisplayName = "Add", ToolTip = "A + B"),
-	Subtract         = 10 UMETA(DisplayName = "Subtract", ToolTip="A - B"),
-	WeightedAdd      = 11 UMETA(DisplayName = "Weighted Add", ToolTip = "A + (B * Weight)"),
-	WeightedSubtract = 12 UMETA(DisplayName = "Weighted Subtract", ToolTip="A - (B * Weight)"),
-	Lerp             = 13 UMETA(DisplayName = "Lerp", ToolTip="Lerp(A, B, Weight)"),
-	UnsignedMin      = 14 UMETA(DisplayName = "Unsigned Min", ToolTip="Min(A, B) * Sign"),
-	UnsignedMax      = 15 UMETA(DisplayName = "Unsigned Max", ToolTip="Max(A, B) * Sign"),
-	AbsoluteMin      = 16 UMETA(DisplayName = "Absolute Min", ToolTip="+Min(A, B)"),
-	AbsoluteMax      = 17 UMETA(DisplayName = "Absolute Max", ToolTip="+Max(A, B)"),
-	Hash             = 18 UMETA(DisplayName = "Hash", ToolTip="Hash(A, B)"),
-	UnsignedHash     = 19 UMETA(DisplayName = "Hash (Unsigned)", ToolTip="Hash(Min(A, B), Max(A, B))"),
-	Mod              = 20 UMETA(DisplayName = "Modulo (Simple)", ToolTip="FMod(A, cast(B))"),
-	ModCW            = 21 UMETA(DisplayName = "Modulo (Component Wise)", ToolTip="FMod(A, B)")
-};
-
-#define PCGEX_FOREACH_PROXYBLENDMODE(MACRO)\
-MACRO(None) \
-MACRO(Average) \
-MACRO(Weight) \
-MACRO(Multiply) \
-MACRO(Divide) \
-MACRO(Min) \
-MACRO(Max) \
-MACRO(CopyTarget) \
-MACRO(CopySource) \
-MACRO(Add) \
-MACRO(Subtract) \
-MACRO(WeightedAdd) \
-MACRO(WeightedSubtract) \
-MACRO(Lerp) \
-MACRO(UnsignedMin) \
-MACRO(UnsignedMax) \
-MACRO(AbsoluteMin) \
-MACRO(AbsoluteMax) \
-MACRO(Hash) \
-MACRO(UnsignedHash) \
-MACRO(Mod) \
-MACRO(ModCW)
-
 namespace PCGExDataBlending
 {
-
-	
-	
-	struct FBlendTracker
-	{
-		int32 Count = 0;
-		double Weight = 0;
-	};
 
 	/**
 	 * Simple C=AxB blend
 	 */
-	class PCGEXTENDEDTOOLKIT_API FProxyDataBlenderBase : public TSharedFromThis<FProxyDataBlenderBase>
+	class PCGEXTENDEDTOOLKIT_API FProxyDataBlender : public TSharedFromThis<FProxyDataBlender>
 	{
 	public:
-		virtual ~FProxyDataBlenderBase()
+		virtual ~FProxyDataBlender()
 		{
 		}
 
@@ -95,9 +34,9 @@ namespace PCGExDataBlending
 		virtual void Blend(TArrayView<const int32> SourceIndices, const int32 TargetIndex, TArrayView<const double> Weights);
 		virtual void Blend(TArrayView<const int32> SourceIndices, const int32 TargetIndex, const double Weight = 1);
 
-		virtual FBlendTracker BeginMultiBlend(const int32 TargetIndex) = 0;
-		virtual void MultiBlend(const int32 SourceIndex, const int32 TargetIndex, const double Weight, FBlendTracker& Tracker) = 0;
-		virtual void EndMultiBlend(const int32 TargetIndex, FBlendTracker& Tracker) = 0;
+		virtual PCGEx::FOpStats BeginMultiBlend(const int32 TargetIndex) = 0;
+		virtual void MultiBlend(const int32 SourceIndex, const int32 TargetIndex, const double Weight, PCGEx::FOpStats& Tracker) = 0;
+		virtual void EndMultiBlend(const int32 TargetIndex, PCGEx::FOpStats& Tracker) = 0;
 
 		virtual void Div(const int32 TargetIndex, const double Divider) = 0;
 
@@ -121,7 +60,7 @@ namespace PCGExDataBlending
 	};
 
 	template <typename T_WORKING>
-	class PCGEXTENDEDTOOLKIT_API TProxyDataBlenderBase : public FProxyDataBlenderBase
+	class PCGEXTENDEDTOOLKIT_API TProxyDataBlenderBase : public FProxyDataBlender
 	{
 	public:
 		TSharedPtr<PCGExData::TBufferProxy<T_WORKING>> A;
@@ -136,13 +75,13 @@ namespace PCGExDataBlending
 		PCGEX_NOT_IMPLEMENTED(Blend(const int32 SourceIndexA, const int32 SourceIndexB, const int32 TargetIndex, const double Weight = 1))
 
 
-		virtual FBlendTracker BeginMultiBlend(const int32 TargetIndex) override
-		PCGEX_NOT_IMPLEMENTED_RET(BeginMultiBlend(const int32 TargetIndex), FBlendTracker{})
+		virtual PCGEx::FOpStats BeginMultiBlend(const int32 TargetIndex) override
+		PCGEX_NOT_IMPLEMENTED_RET(BeginMultiBlend(const int32 TargetIndex), PCGEx::FOpStats{})
 
-		virtual void MultiBlend(const int32 SourceIndex, const int32 TargetIndex, const double Weight, FBlendTracker& Tracker) override
+		virtual void MultiBlend(const int32 SourceIndex, const int32 TargetIndex, const double Weight, PCGEx::FOpStats& Tracker) override
 		PCGEX_NOT_IMPLEMENTED(MultiBlend(const int32 SourceIndex, const int32 TargetIndex, FBlendTracker& Tracker))
 
-		virtual void EndMultiBlend(const int32 TargetIndex, FBlendTracker& Tracker) override
+		virtual void EndMultiBlend(const int32 TargetIndex, PCGEx::FOpStats& Tracker) override
 		PCGEX_NOT_IMPLEMENTED(EndMultiBlend(const int32 TargetIndex, FBlendTracker& Tracker))
 
 
@@ -209,12 +148,12 @@ namespace PCGExDataBlending
 #undef PCGEX_B
 		}
 
-		virtual FBlendTracker BeginMultiBlend(const int32 TargetIndex) override
+		virtual PCGEx::FOpStats BeginMultiBlend(const int32 TargetIndex) override
 		{
 			// Some modes need to "start from scratch", or use a sensible default
 			// This is true for Min/Max
 
-			FBlendTracker Tracker{};
+			PCGEx::FOpStats Tracker{};
 
 			if constexpr (
 				BLEND_MODE == EPCGExABBlendingType::Min ||
@@ -234,7 +173,7 @@ namespace PCGExDataBlending
 			return Tracker;
 		}
 
-		virtual void MultiBlend(const int32 SourceIndex, const int32 TargetIndex, const double Weight, FBlendTracker& Tracker) override
+		virtual void MultiBlend(const int32 SourceIndex, const int32 TargetIndex, const double Weight, PCGEx::FOpStats& Tracker) override
 		{
 			ON_SCOPE_EXIT
 			{
@@ -260,7 +199,7 @@ namespace PCGExDataBlending
 #undef PCGEX_B
 		}
 
-		virtual void EndMultiBlend(const int32 TargetIndex, FBlendTracker& Tracker) override
+		virtual void EndMultiBlend(const int32 TargetIndex, PCGEx::FOpStats& Tracker) override
 		{
 #define PCGEX_C C->Get(TargetIndex)
 
@@ -278,14 +217,14 @@ namespace PCGExDataBlending
 		virtual void Div(const int32 TargetIndex, const double Divider) override { C->Set(TargetIndex, PCGExBlend::Div(C->Get(TargetIndex), Divider)); }
 	};
 
-	static TSharedPtr<FProxyDataBlenderBase> CreateProxyBlender(
+	static TSharedPtr<FProxyDataBlender> CreateProxyBlender(
 		FPCGExContext* InContext,
 		const EPCGExABBlendingType BlendMode,
 		const PCGExData::FProxyDescriptor& A,
 		const PCGExData::FProxyDescriptor& B,
 		const PCGExData::FProxyDescriptor& C)
 	{
-		TSharedPtr<FProxyDataBlenderBase> OutBlender;
+		TSharedPtr<FProxyDataBlender> OutBlender;
 
 		if (A.WorkingType != B.WorkingType || A.WorkingType != C.WorkingType)
 		{
@@ -324,22 +263,5 @@ break;
 
 		return OutBlender;
 	}
-
-#pragma region Metadatablenders
-
-	// Helpers to supersede Metadata & Union blenders
-	// Regular ProxyBlender expected fully fledged descriptor as each source
-	// can be pointing to a variety of this. Here, we're in total control of the inputs/outputs
-	// There's no user-facing selection so we have a little bit more leeway
-	// Also we don't support sub-selectors so that helps.
-
-	// Create a blender for a single attribute
-	// Source A, Source B, Target
-	// Source doesn't have to be the same as target, second Source will the same as target.
-	// And the same source can technically be used in all three but won't be threadsafe
-
-	// We still need the FMetadataBlender to:
-	// Prepare (reset target values)
-	// Trigger actual blend
-	// Finalize blend (divide if multiple blend ops happened)
+	
 }

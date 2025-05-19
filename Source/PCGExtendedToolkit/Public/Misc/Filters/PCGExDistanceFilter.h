@@ -117,7 +117,7 @@ namespace PCGExPointFilter
 
 		virtual bool Init(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade>& InPointDataFacade) override;
 
-		virtual bool Test(const FPCGPoint& Point) const override;
+		virtual bool TestRoamingPoint(const FPCGPoint& Point) const override;
 		virtual bool Test(const int32 PointIndex) const override;
 
 		virtual ~FDistanceFilter() override

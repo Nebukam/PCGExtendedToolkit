@@ -112,7 +112,7 @@ namespace PCGExPathIntersections
 				This->PointDataFacade->Fetch(Scope);
 				This->FilterScope(Scope);
 
-				for (int i = Scope.Start; i < Scope.End; i++) { This->FindIntersections(i); }
+				PCGEX_SCOPE_LOOP(i) { This->FindIntersections(i); }
 			};
 
 		FindIntersectionsTaskGroup->StartSubLoops(PointDataFacade->GetNum(), GetDefault<UPCGExGlobalSettings>()->GetPointsBatchChunkSize());
@@ -266,7 +266,7 @@ namespace PCGExPathIntersections
 			[PCGEX_ASYNC_THIS_CAPTURE](const PCGExMT::FScope& Scope)
 			{
 				PCGEX_ASYNC_THIS
-				for (int i = Scope.Start; i < Scope.End; i++) { This->InsertIntersections(i); }
+				PCGEX_SCOPE_LOOP(i) { This->InsertIntersections(i); }
 			};
 
 		InsertionTaskGroup->StartSubLoops(Segmentation->IntersectionsList.Num(), GetDefault<UPCGExGlobalSettings>()->GetPointsBatchChunkSize());

@@ -31,12 +31,12 @@ bool UPCGExGoalPickerRandom::PrepareForData(FPCGExContext* InContext, const TSha
 	return true;
 }
 
-int32 UPCGExGoalPickerRandom::GetGoalIndex(const PCGExData::FPointRef& Seed) const
+int32 UPCGExGoalPickerRandom::GetGoalIndex(const PCGExData::FConstPoint& Seed) const
 {
 	return PCGExMath::SanitizeIndex(FRandomStream(PCGExRandom::GetRandomStreamFromPoint(*Seed.Point, LocalSeed)).RandRange(0, MaxGoalIndex), MaxGoalIndex, IndexSafety);
 }
 
-void UPCGExGoalPickerRandom::GetGoalIndices(const PCGExData::FPointRef& Seed, TArray<int32>& OutIndices) const
+void UPCGExGoalPickerRandom::GetGoalIndices(const PCGExData::FConstPoint& Seed, TArray<int32>& OutIndices) const
 {
 	int32 Picks = NumGoalsBuffer->Read(Seed.Index);
 

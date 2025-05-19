@@ -3,7 +3,7 @@
 
 #include "Graph/FloodFill/PCGExFloodFill.h"
 
-#include "Data/Blending/PCGExAttributeBlendFactoryProvider.h"
+#include "Data/Blending/PCGExBlendOpFactoryProvider.h"
 
 #include "Graph/FloodFill/FillControls/PCGExFillControlOperation.h"
 #include "Graph/FloodFill/FillControls/PCGExFillControlsFactoryProvider.h"

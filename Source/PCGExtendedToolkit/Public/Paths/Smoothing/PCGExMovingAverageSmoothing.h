@@ -20,7 +20,7 @@ class UPCGExMovingAverageSmoothing : public UPCGExSmoothingOperation
 public:
 	virtual void SmoothSingle(
 		const TSharedRef<PCGExData::FPointIO>& Path,
-		PCGExData::FPointRef& Target,
+		PCGExData::FConstPoint& Target,
 		const double Smoothing,
 		const double Influence,
 		PCGExDataBlending::FMetadataBlender* MetadataBlender,
@@ -42,7 +42,7 @@ public:
 			{
 				const int32 Index = PCGExMath::Tile(Target.Index + i, 0, MaxIndex);
 				const double Weight = (1 - (static_cast<double>(FMath::Abs(i)) / SafeWindowSize)) * Influence;
-				MetadataBlender->Blend(Target, Path->GetInPointRef(Index), Target, Weight);
+				MetadataBlender->Blend(Target, Path->GetInPoint(Index), Target, Weight);
 				Count++;
 				TotalWeight += Weight;
 			}

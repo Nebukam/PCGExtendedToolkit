@@ -163,7 +163,7 @@ namespace PCGExPointsMT
 
 	void FPointsProcessor::FilterScope(const PCGExMT::FScope& Scope)
 	{
-		if (PrimaryFilters) { for (int i = Scope.Start; i < Scope.End; i++) { PointFilterCache[i] = PrimaryFilters->Test(i); } }
+		if (PrimaryFilters) { PCGEX_SCOPE_LOOP(i) { PointFilterCache[i] = PrimaryFilters->Test(i); } }
 	}
 
 	void FPointsProcessor::FilterAll()

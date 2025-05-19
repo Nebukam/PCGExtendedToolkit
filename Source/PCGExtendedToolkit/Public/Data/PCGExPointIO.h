@@ -69,7 +69,20 @@ namespace PCGExData
 		virtual FVector GetScaledExtents() const PCGEX_NOT_IMPLEMENTED_RET(GetScaledExtents, FVector::OneVector)
 		virtual FBox GetLocalBounds() const PCGEX_NOT_IMPLEMENTED_RET(GetLocalBounds, FBox(NoInit))
 		virtual FBox GetLocalDensityBounds() const PCGEX_NOT_IMPLEMENTED_RET(GetLocalDensityBounds, FBox(NoInit))
+		virtual int64 GetMetadataEntry() const PCGEX_NOT_IMPLEMENTED_RET(GetMetadataEntry, 0)
 	};
+
+#define PCGEX_POINT_PROXY_OVERRIDES \
+FORCEINLINE virtual const FTransform& GetTransform() const override { return Data->GetTransform(Index); }\
+FORCEINLINE virtual FVector GetLocation() const override { return Data->GetTransform(Index).GetLocation(); }\
+FORCEINLINE virtual FVector GetScale3D() const override { return Data->GetTransform(Index).GetScale3D(); }\
+FORCEINLINE virtual FVector GetBoundsMin() const override { return Data->GetBoundsMin(Index); }\
+FORCEINLINE virtual FVector GetBoundsMax() const override { return Data->GetBoundsMax(Index); }\
+FORCEINLINE virtual FVector GetExtents() const override { return Data->GetExtents(Index); }\
+FORCEINLINE virtual FVector GetScaledExtents() const override { return Data->GetScaledExtents(Index); }\
+FORCEINLINE virtual FBox GetLocalBounds() const override { return Data->GetLocalBounds(Index); }\
+FORCEINLINE virtual FBox GetLocalDensityBounds() const override { return Data->GetLocalDensityBounds(Index); }\
+FORCEINLINE virtual int64 GetMetadataEntry() const override { return Data->GetMetadataEntry(Index); }
 
 	struct PCGEXTENDEDTOOLKIT_API FMutablePoint : FPoint
 	{
@@ -81,15 +94,7 @@ namespace PCGExData
 		FMutablePoint(UPCGBasePointData* InData, const int32 InIndex, const int32 InIO = -1);
 		FMutablePoint(const TSharedPtr<FPointIO>& InFacade, const int32 InIndex);
 
-		FORCEINLINE virtual const FTransform& GetTransform() const override { return Data->GetTransform(Index); }
-		FORCEINLINE virtual FVector GetLocation() const override { return Data->GetTransform(Index).GetLocation(); }
-		FORCEINLINE virtual FVector GetScale3D() const override { return Data->GetTransform(Index).GetScale3D(); }
-		FORCEINLINE virtual FVector GetBoundsMin() const override { return Data->GetBoundsMin(Index); }
-		FORCEINLINE virtual FVector GetBoundsMax() const override { return Data->GetBoundsMax(Index); }
-		FORCEINLINE virtual FVector GetExtents() const override { return Data->GetExtents(Index); }
-		FORCEINLINE virtual FVector GetScaledExtents() const override { return Data->GetScaledExtents(Index); }
-		FORCEINLINE virtual FBox GetLocalBounds() const override { return Data->GetLocalBounds(Index); }
-		FORCEINLINE virtual FBox GetLocalDensityBounds() const override { return Data->GetLocalDensityBounds(Index); }
+		PCGEX_POINT_PROXY_OVERRIDES
 
 		bool operator==(const FMutablePoint& Other) const { return Index == Other.Index && Data == Other.Data; }
 	};
@@ -106,18 +111,12 @@ namespace PCGExData
 		FConstPoint(const UPCGBasePointData* InData, const int32 InIndex, const int32 InIO = -1);
 		FConstPoint(const TSharedPtr<FPointIO>& InFacade, const int32 InIndex);
 
-		FORCEINLINE virtual const FTransform& GetTransform() const override { return Data->GetTransform(Index); }
-		FORCEINLINE virtual FVector GetLocation() const override { return Data->GetTransform(Index).GetLocation(); }
-		FORCEINLINE virtual FVector GetScale3D() const override { return Data->GetTransform(Index).GetScale3D(); }
-		FORCEINLINE virtual FVector GetBoundsMin() const override { return Data->GetBoundsMin(Index); }
-		FORCEINLINE virtual FVector GetBoundsMax() const override { return Data->GetBoundsMax(Index); }
-		FORCEINLINE virtual FVector GetExtents() const override { return Data->GetExtents(Index); }
-		FORCEINLINE virtual FVector GetScaledExtents() const override { return Data->GetScaledExtents(Index); }
-		FORCEINLINE virtual FBox GetLocalBounds() const override { return Data->GetLocalBounds(Index); }
-		FORCEINLINE virtual FBox GetLocalDensityBounds() const override { return Data->GetLocalDensityBounds(Index); }
+		PCGEX_POINT_PROXY_OVERRIDES
 
 		bool operator==(const FConstPoint& Other) const { return Index == Other.Index && IO == Other.IO && Data == Other.Data; }
 	};
+
+#undef PCGEX_POINT_PROXY_OVERRIDES
 
 	static const FPoint NONE_Point = FPoint(1, -1);
 	static const FMutablePoint NONE_MutablePoint = FMutablePoint(nullptr, -1, -1);
@@ -195,9 +194,8 @@ namespace PCGExData
 		template <typename T>
 		bool InitializeOutput(const EIOInit InitOut = EIOInit::None)
 		{
-			FPCGContext::FSharedContext<FPCGExContext> SharedContext(ContextHandle);
+			PCGEX_SHARED_CONTEXT(ContextHandle)
 
-			if (!SharedContext.Get()) { return false; }
 			if (IsValid(Out) && Out != In)
 			{
 				SharedContext.Get()->ManagedObjects->Destroy(Out);

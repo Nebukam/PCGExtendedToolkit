@@ -33,8 +33,8 @@ public:
 	virtual void PrepareForData(const TSharedPtr<PCGExData::FFacade>& InTargetFacade, const TSet<FName>* IgnoreAttributeSet);
 
 	virtual void ProcessSubPoints(
-		const PCGExData::FPointRef& From,
-		const PCGExData::FPointRef& To,
+		const PCGExData::FConstPoint& From,
+		const PCGExData::FConstPoint& To,
 		const TArrayView<FPCGPoint>& SubPoints,
 		const PCGExPaths::FPathMetrics& Metrics,
 		const int32 StartIndex = -1) const;

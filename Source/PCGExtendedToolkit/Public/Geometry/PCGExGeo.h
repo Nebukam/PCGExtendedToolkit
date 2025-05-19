@@ -72,20 +72,20 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExGeo2DProjectionDetails
 	template <typename T>
 	void ProjectFlat(const TSharedPtr<PCGExData::FFacade>& InFacade, TArray<T>& OutPositions) const
 	{
-		const TArray<FPCGPoint>& InPoints = InFacade->Source->GetInOut()->GetPoints();
-		const int32 NumVectors = InPoints.Num();
+		const TConstPCGValueRange<FTransform> Transforms = InFacade->Source->GetInOut()->GetConstTransformValueRange();
+		const int32 NumVectors = Transforms.Num();
 		PCGEx::InitArray(OutPositions, NumVectors);
-		for (int i = 0; i < NumVectors; i++) { OutPositions[i] = T(ProjectFlat(InPoints[i].Transform.GetLocation(), i)); }
+		for (int i = 0; i < NumVectors; i++) { OutPositions[i] = T(ProjectFlat(Transforms[i].GetLocation(), i)); }
 	}
 
 	template <typename T>
 	void ProjectFlat(const TSharedPtr<PCGExData::FFacade>& InFacade, TArray<T>& OutPositions, const PCGExMT::FScope& Scope) const
 	{
-		const TArray<FPCGPoint>& InPoints = InFacade->Source->GetInOut()->GetPoints();
-		const int32 NumVectors = InPoints.Num();
+		const TConstPCGValueRange<FTransform> Transforms = InFacade->Source->GetInOut()->GetConstTransformValueRange();
+		const int32 NumVectors = Transforms.Num();
 		if (OutPositions.Num() < NumVectors) { PCGEx::InitArray(OutPositions, NumVectors); }
 
-		for (int i = Scope.Start; i < Scope.End; i++) { OutPositions[i] = T(ProjectFlat(InPoints[i].Transform.GetLocation(), i)); }
+		PCGEX_SCOPE_LOOP(i) { OutPositions[i] = T(ProjectFlat(Transforms[i].GetLocation(), i)); }
 	}
 
 	void Project(const TArray<FVector>& InPositions, TArray<FVector>& OutPositions) const;

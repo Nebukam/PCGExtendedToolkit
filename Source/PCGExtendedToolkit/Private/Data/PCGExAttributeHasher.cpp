@@ -94,7 +94,7 @@ namespace PCGEx
 	void FAttributeHasher::CompileScope(const PCGExMT::FScope& Scope)
 	{
 		ValuesGetter->Fetch(Values, Scope);
-		for (int i = Scope.Start; i < Scope.End; i++)
+		PCGEX_SCOPE_LOOP(i)
 		{
 			PCGExTypeHash H = Values[i];
 

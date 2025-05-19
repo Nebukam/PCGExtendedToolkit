@@ -16,9 +16,6 @@
 #include "PCGExMT.h"
 #include "Data/PCGPointData.h"
 
-
-#include "Geometry/PCGExGeoPointBox.h"
-
 #include "PCGExData.generated.h"
 
 #pragma region DATA MACROS
@@ -34,6 +31,11 @@
 
 #endif
 #pragma endregion
+
+namespace PCGExGeo
+{
+	class FPointBoxCloud;
+}
 
 USTRUCT(BlueprintType)
 struct PCGEXTENDEDTOOLKIT_API FPCGExAttributeGatherDetails : public FPCGExNameFiltersDetails
@@ -432,10 +434,9 @@ namespace PCGExData
 
 		virtual void Write(const bool bEnsureValidKeys = true) override
 		{
-			FPCGContext::FSharedContext<FPCGExContext> SharedContext(Source->GetContextHandle());
+			PCGEX_SHARED_CONTEXT_VOID(Source->GetContextHandle())
 			
-			if (!SharedContext.Get() || !IsWritable() || !OutValues || !IsEnabled()) { return; }
-
+			if (!IsWritable() || !OutValues || !IsEnabled()) { return; }
 			
 			if (!Source->GetOut())
 			{
@@ -723,16 +724,8 @@ namespace PCGExData
 			return Data->Metadata->template GetConstTypedAttribute<T>(InName);
 		}
 
-		TSharedPtr<PCGExGeo::FPointBoxCloud> GetCloud(const EPCGExPointBoundsSource BoundsSource, const double Expansion = DBL_EPSILON)
-		{
-			FWriteScopeLock WriteScopeLock(CloudLock);
-
-			if (Cloud) { return Cloud; }
-
-			Cloud = MakeShared<PCGExGeo::FPointBoxCloud>(GetIn(), BoundsSource, Expansion);
-			return Cloud;
-		}
-
+		TSharedPtr<PCGExGeo::FPointBoxCloud> GetCloud(const EPCGExPointBoundsSource BoundsSource, const double Expansion = DBL_EPSILON);
+		
 		const UPCGBasePointData* GetData(const EIOSide InSide) const { return Source->GetData(InSide); }
 		const UPCGBasePointData* GetIn() const { return Source->GetIn(); }
 		UPCGBasePointData* GetOut() const { return Source->GetOut(); }

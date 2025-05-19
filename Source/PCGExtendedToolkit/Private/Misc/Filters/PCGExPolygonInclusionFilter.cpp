@@ -84,7 +84,7 @@ namespace PCGExPointFilter
 		return true;
 	}
 
-	bool FPolygonInclusionFilter::Test(const FPCGPoint& Point) const
+	bool FPolygonInclusionFilter::TestRoamingPoint(const FPCGPoint& Point) const
 	{
 		FVector Pos = Point.Transform.GetLocation();
 		Pos.Z = 0;

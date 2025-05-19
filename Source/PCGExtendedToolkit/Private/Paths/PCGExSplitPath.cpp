@@ -98,7 +98,7 @@ namespace PCGExSplitPath
 					PCGEX_ASYNC_THIS \
 					This->PointDataFacade->Fetch(Scope);\
 					This->FilterScope(Scope);\
-					for (int i = Scope.Start; i < Scope.End; i++) { This->_NAME(i); } };
+					PCGEX_SCOPE_LOOP(i) { This->_NAME(i); } };
 
 		if (Settings->SplitAction == EPCGExPathSplitAction::Partition ||
 			Settings->SplitAction == EPCGExPathSplitAction::Switch)

@@ -121,7 +121,7 @@ namespace PCGExPathCrossings
 		CanBeCutFilterManager = MakeShared<PCGExPointFilter::FManager>(PointDataFacade);
 		if (!CanBeCutFilterManager->Init(ExecutionContext, Context->CanBeCutFilterFactories)) { CanBeCutFilterManager.Reset(); }
 
-		Path = PCGExPaths::MakePath(PointIO->GetIn()->GetPoints(), Details.Tolerance * 2, bClosedLoop);
+		Path = PCGExPaths::MakePath(PointIO->GetIn(), Details.Tolerance * 2, bClosedLoop);
 		PathLength = Path->AddExtra<PCGExPaths::FPathEdgeLength>();
 
 		Path->IOIndex = PointIO->IOIndex;
@@ -162,7 +162,7 @@ namespace PCGExPathCrossings
 
 				if (This->CanCutFilterManager && This->CanBeCutFilterManager)
 				{
-					for (int i = Scope.Start; i < Scope.End; i++)
+					PCGEX_SCOPE_LOOP(i)
 					{
 						This->CanCut[i] = This->CanCutFilterManager->Test(i);
 						This->CanBeCut[i] = This->CanBeCutFilterManager->Test(i);
@@ -171,7 +171,7 @@ namespace PCGExPathCrossings
 				}
 				else if (This->CanCutFilterManager)
 				{
-					for (int i = Scope.Start; i < Scope.End; i++)
+					PCGEX_SCOPE_LOOP(i)
 					{
 						This->CanCut[i] = This->CanCutFilterManager->Test(i);
 						This->CanBeCut[i] = true;
@@ -180,7 +180,7 @@ namespace PCGExPathCrossings
 				}
 				else if (This->CanBeCutFilterManager)
 				{
-					for (int i = Scope.Start; i < Scope.End; i++)
+					PCGEX_SCOPE_LOOP(i)
 					{
 						This->CanCut[i] = true;
 						This->CanBeCut[i] = This->CanBeCutFilterManager->Test(i);
@@ -189,7 +189,7 @@ namespace PCGExPathCrossings
 				}
 				else
 				{
-					for (int i = Scope.Start; i < Scope.End; i++)
+					PCGEX_SCOPE_LOOP(i)
 					{
 						This->CanCut[i] = true;
 						This->CanBeCut[i] = true;
@@ -371,7 +371,7 @@ namespace PCGExPathCrossings
 			[PCGEX_ASYNC_THIS_CAPTURE](const PCGExMT::FScope& Scope)
 			{
 				PCGEX_ASYNC_THIS
-				for (int i = Scope.Start; i < Scope.End; i++) { This->CollapseCrossing(i); }
+				PCGEX_SCOPE_LOOP(i) { This->CollapseCrossing(i); }
 			};
 		CollapseTask->StartSubLoops(Path->NumEdges, GetDefault<UPCGExGlobalSettings>()->GetPointsBatchChunkSize());
 	}
@@ -484,7 +484,7 @@ namespace PCGExPathCrossings
 			[PCGEX_ASYNC_THIS_CAPTURE](const PCGExMT::FScope& Scope)
 			{
 				PCGEX_ASYNC_THIS
-				for (int i = Scope.Start; i < Scope.End; i++)
+				PCGEX_SCOPE_LOOP(i)
 				{
 					if (!This->Crossings[i]) { continue; }
 					This->CrossBlendPoint(i);

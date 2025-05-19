@@ -33,7 +33,7 @@ namespace PCGExPointFilter
 	}
 
 	bool FFilter::Test(const int32 Index) const PCGEX_NOT_IMPLEMENTED_RET(FFilter::Test(const int32 Index), false)
-	bool FFilter::Test(const FPCGPoint& Point) const PCGEX_NOT_IMPLEMENTED_RET(FFilter::Test(const FPCGPoint& Point), false)
+	bool FFilter::TestRoamingPoint(const FPCGPoint& Point) const PCGEX_NOT_IMPLEMENTED_RET(FFilter::Test(const FPCGPoint& Point), false)
 
 	bool FFilter::Test(const PCGExCluster::FNode& Node) const { return Test(Node.PointIndex); }
 	bool FFilter::Test(const PCGExGraph::FEdge& Edge) const { return Test(Edge.PointIndex); }
@@ -41,7 +41,7 @@ namespace PCGExPointFilter
 	bool FFilter::Test(const TSharedPtr<PCGExData::FPointIO>& IO, const TSharedPtr<PCGExData::FPointIOCollection>& ParentCollection) const { return bCollectionTestResult; }
 
 	bool FSimpleFilter::Test(const int32 Index) const PCGEX_NOT_IMPLEMENTED_RET(FSimpleFilter::Test(const PCGExCluster::FNode& Node), false)
-	bool FSimpleFilter::Test(const FPCGPoint& Point) const PCGEX_NOT_IMPLEMENTED_RET(FSimpleFilter::TestRoamingIndex(const PCGExCluster::FPCGPoint& Point), false)
+	bool FSimpleFilter::TestRoamingPoint(const FPCGPoint& Point) const PCGEX_NOT_IMPLEMENTED_RET(FSimpleFilter::TestRoamingIndex(const PCGExCluster::FPCGPoint& Point), false)
 
 	bool FSimpleFilter::Test(const PCGExCluster::FNode& Node) const { return Test(Node.PointIndex); }
 	bool FSimpleFilter::Test(const PCGExGraph::FEdge& Edge) const { return Test(Edge.PointIndex); }
@@ -56,7 +56,7 @@ namespace PCGExPointFilter
 	}
 
 	bool FCollectionFilter::Test(const int32 Index) const { return bCollectionTestResult; }
-	bool FCollectionFilter::Test(const FPCGPoint& Point) const { return bCollectionTestResult; }
+	bool FCollectionFilter::TestRoamingPoint(const FPCGPoint& Point) const { return bCollectionTestResult; }
 
 	bool FCollectionFilter::Test(const PCGExCluster::FNode& Node) const { return bCollectionTestResult; }
 	bool FCollectionFilter::Test(const PCGExGraph::FEdge& Edge) const { return bCollectionTestResult; }
@@ -94,7 +94,7 @@ namespace PCGExPointFilter
 
 	bool FManager::TestRoamingIndex(const FPCGPoint& Point)
 	{
-		for (const TSharedPtr<FFilter>& Handler : ManagedFilters) { if (!Handler->Test(Point)) { return false; } }
+		for (const TSharedPtr<FFilter>& Handler : ManagedFilters) { if (!Handler->TestRoamingPoint(Point)) { return false; } }
 		return true;
 	}
 

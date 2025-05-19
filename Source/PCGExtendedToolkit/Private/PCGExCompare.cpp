@@ -7,6 +7,8 @@
 #include "PCGExDetails.h"
 #include "Data/PCGExData.h"
 #include "Data/PCGExDataTag.h"
+#include "Editor/Experimental/EditorInteractiveToolsFramework/Public/Behaviors/2DViewportBehaviorTargets.h"
+#include "Editor/Experimental/EditorInteractiveToolsFramework/Public/Behaviors/2DViewportBehaviorTargets.h"
 
 namespace PCGExCompare
 {
@@ -340,13 +342,13 @@ bool FPCGExAttributeToTagComparisonDetails::Init(const FPCGContext* InContext, c
 	return true;
 }
 
-bool FPCGExAttributeToTagComparisonDetails::Matches(const TSharedPtr<PCGExData::FTags>& InTags, const int32 SourceIndex, const FPCGPoint& SourcePoint) const
+bool FPCGExAttributeToTagComparisonDetails::Matches(const TSharedPtr<PCGExData::FTags>& InTags, const PCGExData::FConstPoint& SourcePoint) const
 {
-	const FString TestTagName = TagNameGetter ? TagNameGetter->SoftGet(SourceIndex, SourcePoint, TEXT("")) : TagName;
+	const FString TestTagName = TagNameGetter ? TagNameGetter->SoftGet(SourcePoint, TEXT("")) : TagName;
 
 	if (!bDoValueMatch)
 	{
-		return PCGExCompare::HasMatchingTags(InTags, TagNameGetter ? TagNameGetter->SoftGet(SourceIndex, SourcePoint, TEXT("")) : TagName, NameMatch);
+		return PCGExCompare::HasMatchingTags(InTags, TagNameGetter ? TagNameGetter->SoftGet(SourcePoint, TEXT("")) : TagName, NameMatch);
 	}
 
 
@@ -355,7 +357,7 @@ bool FPCGExAttributeToTagComparisonDetails::Matches(const TSharedPtr<PCGExData::
 
 	if (ValueType == EPCGExComparisonDataType::Numeric)
 	{
-		const double OperandBNumeric = NumericValueGetter->SoftGet(SourceIndex, SourcePoint, 0);
+		const double OperandBNumeric = NumericValueGetter->SoftGet(SourcePoint, 0);
 		for (const TSharedPtr<PCGExData::FTagValue>& TagValue : TagValues)
 		{
 			if (!PCGExCompare::Compare(NumericComparison, TagValue, OperandBNumeric, Tolerance)) { return false; }
@@ -363,7 +365,7 @@ bool FPCGExAttributeToTagComparisonDetails::Matches(const TSharedPtr<PCGExData::
 	}
 	else
 	{
-		const FString OperandBString = StringValueGetter->SoftGet(SourceIndex, SourcePoint, TEXT(""));
+		const FString OperandBString = StringValueGetter->SoftGet(SourcePoint, TEXT(""));
 		for (const TSharedPtr<PCGExData::FTagValue>& TagValue : TagValues)
 		{
 			if (!PCGExCompare::Compare(StringComparison, TagValue, OperandBString)) { return false; }
@@ -371,11 +373,6 @@ bool FPCGExAttributeToTagComparisonDetails::Matches(const TSharedPtr<PCGExData::
 	}
 
 	return true;
-}
-
-bool FPCGExAttributeToTagComparisonDetails::Matches(const TSharedPtr<PCGExData::FTags>& InTags, const PCGExData::FPointRef& SourcePointRef) const
-{
-	return Matches(InTags, SourcePointRef.Index, *SourcePointRef.Point);
 }
 
 void FPCGExAttributeToTagComparisonDetails::RegisterConsumableAttributesWithData(FPCGExContext* InContext, const UPCGData* InData) const

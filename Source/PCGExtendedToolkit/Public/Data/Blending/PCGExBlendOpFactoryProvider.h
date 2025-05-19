@@ -8,11 +8,11 @@
 #include "PCGExPointsProcessor.h"
 #include "PCGExProxyDataBlending.h"
 
-#include "PCGExAttributeBlendFactoryProvider.generated.h"
+#include "PCGExBlendOpFactoryProvider.generated.h"
 
 namespace PCGExDataBlending
 {
-	class FProxyDataBlenderBase;
+	class FProxyDataBlender;
 
 	const FName SourceConstantA = FName("Constant A");
 	const FName SourceConstantB = FName("Constant B");
@@ -128,7 +128,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExAttributeBlendConfig
 /**
  * 
  */
-class PCGEXTENDEDTOOLKIT_API FPCGExAttributeBlendOperation : public FPCGExOperation
+class PCGEXTENDEDTOOLKIT_API FPCGExBlendOperation : public FPCGExOperation
 {
 public:
 	FPCGExAttributeBlendConfig Config;
@@ -143,7 +143,7 @@ public:
 	TSharedPtr<PCGExData::FFacade> ConstantB;
 
 	int32 OpIdx = -1;
-	TSharedPtr<TArray<TSharedPtr<FPCGExAttributeBlendOperation>>> SiblingOperations;
+	TSharedPtr<TArray<TSharedPtr<FPCGExBlendOperation>>> SiblingOperations;
 
 	virtual bool PrepareForData(FPCGExContext* InContext);
 
@@ -162,17 +162,17 @@ public:
 		Blender->Blend(SourceIndex, TargetIndex, Config.Weighting.ScoreCurveObj->Eval(InWeight));
 	}
 
-	virtual PCGExDataBlending::FBlendTracker BeginMultiBlend(const int32 TargetIndex)
+	virtual PCGEx::FOpStats BeginMultiBlend(const int32 TargetIndex)
 	{
 		return Blender->BeginMultiBlend(TargetIndex);
 	}
 
-	virtual void MultiBlend(const int32 SourceIndex, const int32 TargetIndex, const double Weight, PCGExDataBlending::FBlendTracker& Tracker)
+	virtual void MultiBlend(const int32 SourceIndex, const int32 TargetIndex, const double Weight, PCGEx::FOpStats& Tracker)
 	{
 		Blender->MultiBlend(SourceIndex, TargetIndex, Weight, Tracker);
 	}
 
-	virtual void EndMultiBlend(const int32 TargetIndex, PCGExDataBlending::FBlendTracker& Tracker)
+	virtual void EndMultiBlend(const int32 TargetIndex, PCGEx::FOpStats& Tracker)
 	{
 		Blender->EndMultiBlend(TargetIndex, Tracker);
 	}
@@ -183,11 +183,11 @@ protected:
 	bool CopyAndFixSiblingSelector(FPCGExContext* InContext, FPCGAttributePropertyInputSelector& Selector) const;
 
 	TSharedPtr<PCGExDetails::TSettingValue<double>> Weight;
-	TSharedPtr<PCGExDataBlending::FProxyDataBlenderBase> Blender;
+	TSharedPtr<PCGExDataBlending::FProxyDataBlender> Blender;
 };
 
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Blending")
-class PCGEXTENDEDTOOLKIT_API UPCGExAttributeBlendFactory : public UPCGExFactoryData
+class PCGEXTENDEDTOOLKIT_API UPCGExBlendOpFactory : public UPCGExFactoryData
 {
 	GENERATED_BODY()
 
@@ -197,7 +197,7 @@ public:
 	TSharedPtr<PCGExData::FFacade> ConstantB;
 
 	virtual PCGExFactories::EType GetFactoryType() const override { return PCGExFactories::EType::Blending; }
-	virtual TSharedPtr<FPCGExAttributeBlendOperation> CreateOperation(FPCGExContext* InContext) const;
+	virtual TSharedPtr<FPCGExBlendOperation> CreateOperation(FPCGExContext* InContext) const;
 
 	virtual bool WantsPreparation(FPCGExContext* InContext) override
 	{
@@ -217,7 +217,7 @@ public:
 };
 
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Blending")
-class PCGEXTENDEDTOOLKIT_API UPCGExAttributeBlendFactoryProviderSettings : public UPCGExFactoryProviderSettings
+class PCGEXTENDEDTOOLKIT_API UPCGExBlendOpFactoryProviderSettings : public UPCGExFactoryProviderSettings
 {
 	GENERATED_BODY()
 
@@ -267,66 +267,3 @@ public:
 protected:
 	virtual bool IsCacheable() const override { return true; }
 };
-
-namespace PCGExDataBlending
-{
-	PCGEXTENDEDTOOLKIT_API
-	void RegisterBuffersDependencies(FPCGExContext* InContext, PCGExData::FFacadePreloader& FacadePreloader, const TArray<TObjectPtr<const UPCGExAttributeBlendFactory>>& Factories);
-
-	PCGEXTENDEDTOOLKIT_API
-	void RegisterBuffersDependencies_SourceA(FPCGExContext* InContext, PCGExData::FFacadePreloader& FacadePreloader, const TArray<TObjectPtr<const UPCGExAttributeBlendFactory>>& Factories);
-
-	PCGEXTENDEDTOOLKIT_API
-	void RegisterBuffersDependencies_SourceB(FPCGExContext* InContext, PCGExData::FFacadePreloader& FacadePreloader, const TArray<TObjectPtr<const UPCGExAttributeBlendFactory>>& Factories);
-
-	PCGEXTENDEDTOOLKIT_API
-	void RegisterBuffersDependencies_Sources(FPCGExContext* InContext, PCGExData::FFacadePreloader& FacadePreloader, const TArray<TObjectPtr<const UPCGExAttributeBlendFactory>>& Factories);
-
-	class FBlendOpsManager : public TSharedFromThis<FBlendOpsManager>
-	{
-	protected:
-		TSharedPtr<PCGExData::FFacade> WeightFacade;
-		TSharedPtr<PCGExData::FFacade> SourceAFacade;
-		TSharedPtr<PCGExData::FFacade> SourceBFacade;
-		TSharedPtr<PCGExData::FFacade> TargetFacade;
-		TSharedPtr<TArray<TSharedPtr<FPCGExAttributeBlendOperation>>> Operations;
-
-	public:
-		explicit FBlendOpsManager(const TSharedPtr<PCGExData::FFacade>& InDataFacade);
-		explicit FBlendOpsManager();
-
-		void SetWeightFacade(const TSharedPtr<PCGExData::FFacade>& InDataFacade);
-		void SetSourceA(const TSharedPtr<PCGExData::FFacade>& InDataFacade);
-		void SetSourceB(const TSharedPtr<PCGExData::FFacade>& InDataFacade);
-		void SetSources(const TSharedPtr<PCGExData::FFacade>& InDataFacade);
-		void SetTargetFacade(const TSharedPtr<PCGExData::FFacade>& InDataFacade);
-
-		bool Init(FPCGExContext* InContext, const TArray<TObjectPtr<const UPCGExAttributeBlendFactory>>& InFactories) const;
-
-		FORCEINLINE void Blend(const int32 Index) const
-		{
-			for (int i = 0; i < Operations->Num(); i++) { (*(Operations->GetData() + i))->Blend(Index); }
-		}
-
-		FORCEINLINE void Blend(const int32 SourceIndex, const int32 TargetIndex) const
-		{
-			for (int i = 0; i < Operations->Num(); i++) { (*(Operations->GetData() + i))->Blend(SourceIndex, TargetIndex); }
-		}
-
-		FORCEINLINE void Blend(const int32 SourceAIndex, const int32 SourceBIndex, const int32 TargetIndex) const
-		{
-			for (int i = 0; i < Operations->Num(); i++) { (*(Operations->GetData() + i))->Blend(SourceAIndex, SourceBIndex, TargetIndex); }
-		}
-
-		FORCEINLINE void Blend(const int32 SourceIndex, const int32 TargetIndex, const double InWeight) const
-		{
-			for (int i = 0; i < Operations->Num(); i++) { (*(Operations->GetData() + i))->Blend(SourceIndex, TargetIndex, InWeight); }
-		}
-
-		void BeginMultiBlend(const int32 TargetIndex, TArray<PCGExDataBlending::FBlendTracker>& OutTrackers) const;
-		void MultiBlend(const int32 SourceIndex, const int32 TargetIndex, const double Weight, TArray<PCGExDataBlending::FBlendTracker>& Trackers) const;
-		void EndMultiBlend(const int32 TargetIndex, TArray<PCGExDataBlending::FBlendTracker>& Trackers) const;
-
-		void Cleanup(FPCGExContext* InContext);
-	};
-}

@@ -3,30 +3,58 @@
 
 #include "Data/Blending/PCGExDataBlending.h"
 
+namespace PCGExDataBlending
+{
+	void FBlendingHeader::Select(const FString& Selection) { Selector.Update(Selection); }
+
+	void FBlendingHeader::SetBlending(const EPCGExDataBlendingType InBlending)
+	{
+		switch (InBlending)
+		{
+		case EPCGExDataBlendingType::None: Blending = EPCGExABBlendingType::None;
+			break;
+		case EPCGExDataBlendingType::Average: Blending = EPCGExABBlendingType::Average;
+			break;
+		case EPCGExDataBlendingType::Weight: Blending = EPCGExABBlendingType::Weight;
+			break;
+		case EPCGExDataBlendingType::Min: Blending = EPCGExABBlendingType::Min;
+			break;
+		case EPCGExDataBlendingType::Max: Blending = EPCGExABBlendingType::Max;
+			break;
+		case EPCGExDataBlendingType::Copy: Blending = EPCGExABBlendingType::CopySource;
+			break;
+		case EPCGExDataBlendingType::Sum: Blending = EPCGExABBlendingType::Add;
+			break;
+		case EPCGExDataBlendingType::WeightedSum: Blending = EPCGExABBlendingType::WeightedAdd;
+			break;
+		case EPCGExDataBlendingType::Lerp: Blending = EPCGExABBlendingType::Lerp;
+			break;
+		case EPCGExDataBlendingType::Subtract: Blending = EPCGExABBlendingType::Subtract;
+			break;
+		case EPCGExDataBlendingType::UnsignedMin: Blending = EPCGExABBlendingType::UnsignedMin;
+			break;
+		case EPCGExDataBlendingType::UnsignedMax: Blending = EPCGExABBlendingType::UnsignedMax;
+			break;
+		case EPCGExDataBlendingType::AbsoluteMin: Blending = EPCGExABBlendingType::AbsoluteMin;
+			break;
+		case EPCGExDataBlendingType::AbsoluteMax: Blending = EPCGExABBlendingType::AbsoluteMax;
+			break;
+		case EPCGExDataBlendingType::WeightedSubtract: Blending = EPCGExABBlendingType::WeightedSubtract;
+			break;
+		case EPCGExDataBlendingType::CopyOther: Blending = EPCGExABBlendingType::CopyTarget;
+			break;
+		case EPCGExDataBlendingType::Hash: Blending = EPCGExABBlendingType::Hash;
+			break;
+		case EPCGExDataBlendingType::UnsignedHash: Blending = EPCGExABBlendingType::UnsignedHash;
+			break;
+		}
+	}
+}
+
 FPCGExPropertiesBlendingDetails::FPCGExPropertiesBlendingDetails(const EPCGExDataBlendingType InDefaultBlending)
 	: DefaultBlending(InDefaultBlending)
 {
 #define PCGEX_SET_DEFAULT_POINTPROPERTY(_NAME, ...) _NAME##Blending = InDefaultBlending;
-	PCGEX_FOREACH_BLEND_POINTPROPERTY(PCGEX_SET_DEFAULT_POINTPROPERTY)
-#undef PCGEX_SET_DEFAULT_POINTPROPERTY
-}
-
-bool FPCGExPropertiesBlendingDetails::HasNoBlending() const
-{
-	return DensityBlending == EPCGExDataBlendingType::None &&
-		BoundsMinBlending == EPCGExDataBlendingType::None &&
-		BoundsMaxBlending == EPCGExDataBlendingType::None &&
-		ColorBlending == EPCGExDataBlendingType::None &&
-		PositionBlending == EPCGExDataBlendingType::None &&
-		RotationBlending == EPCGExDataBlendingType::None &&
-		ScaleBlending == EPCGExDataBlendingType::None &&
-		SteepnessBlending == EPCGExDataBlendingType::None &&
-		SeedBlending == EPCGExDataBlendingType::None;
-}
-
-void FPCGExPropertiesBlendingDetails::GetNonNoneBlendings(TArray<FName>& OutNames) const
-{
-#define PCGEX_SET_DEFAULT_POINTPROPERTY(_NAME, ...) if(_NAME##Blending != EPCGExDataBlendingType::None){ OutNames.Add(#_NAME);}
 	PCGEX_FOREACH_BLEND_POINTPROPERTY(PCGEX_SET_DEFAULT_POINTPROPERTY)
 #undef PCGEX_SET_DEFAULT_POINTPROPERTY
 }
@@ -67,11 +95,6 @@ FPCGExPropertiesBlendingDetails FPCGExBlendingDetails::GetPropertiesBlendingDeta
 	return OutDetails;
 }
 
-bool FPCGExBlendingDetails::HasAnyBlending() const
-{
-	return !FilteredAttributes.IsEmpty() || !GetPropertiesBlendingDetails().HasNoBlending();
-}
-
 bool FPCGExBlendingDetails::CanBlend(const FName AttributeName) const
 {
 	switch (BlendingFilter)
@@ -99,81 +122,98 @@ void FPCGExBlendingDetails::Filter(TArray<PCGEx::FAttributeIdentity>& Identities
 	}
 }
 
-void FPCGExBlendingDetails::RegisterBuffersDependencies(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade>& InDataFacade, PCGExData::FFacadePreloader& FacadePreloader, const TSet<FName>* IgnoredAttributes) const
+void FPCGExBlendingDetails::GetBlendingHeaders(
+	const UPCGMetadata* SourceMetadata, UPCGMetadata* TargetMetadata,
+	TArray<PCGExDataBlending::FBlendingHeader>& OutHeaders,
+	const bool bSkipProperties,
+	const TSet<FName>* IgnoreAttributeSet) const
 {
-	const TSharedPtr<PCGEx::FAttributesInfos> Infos = PCGEx::FAttributesInfos::Get(InDataFacade->GetIn()->Metadata, IgnoredAttributes);
-	Filter(Infos->Identities);
-	for (const PCGEx::FAttributeIdentity& Identity : Infos->Identities) { FacadePreloader.Register(InContext, Identity); }
-}
-
-namespace PCGExDataBlending
-{
-	void FDataBlendingProcessorBase::PrepareForData(const TSharedPtr<PCGExData::FFacade>& InTargetFacade, const TSharedPtr<PCGExData::FFacade>& InSourceFacade, const PCGExData::EIOSide InSourceSide)
+	if (!bSkipProperties)
 	{
-		PrimaryData = InTargetFacade->Source->GetOut();
-		SecondaryData = InSourceFacade->Source->GetData(InSourceSide);
+		// Emplace all individual properties if they aren't blending to None
+#define PCGEX_SET_POINTPROPERTY(_NAME, ...) \
+		if(const EPCGExDataBlendingType _NAME##Blending = PropertiesOverrides.bOverride##_NAME ? PropertiesOverrides._NAME##Blending : DefaultBlending;\
+			_NAME##Blending != EPCGExDataBlendingType::None){ \
+				PCGExDataBlending::FBlendingHeader& _NAME##Header = OutHeaders.Emplace_GetRef();\
+				_NAME##Header.Select(TEXT("$" #_NAME ));\
+				_NAME##Header.SetBlending(PropertiesOverrides.bOverride##_NAME ? PropertiesOverrides._NAME##Blending : DefaultBlending);\
+		}
+		PCGEX_FOREACH_BLEND_POINTPROPERTY(PCGEX_SET_POINTPROPERTY)
+#undef PCGEX_SET_POINTPROPERTY
 	}
 
-	void FDataBlendingProcessorBase::PrepareForData(const TSharedPtr<PCGExData::FBufferBase>& InWriter, const TSharedPtr<PCGExData::FFacade>& InSourceFacade, const PCGExData::EIOSide InSourceSide)
+	TArray<PCGEx::FAttributeIdentity> Identities;
+	PCGEx::FAttributeIdentity::Get(TargetMetadata, Identities);
+
+	Filter(Identities);
+
+	// Track attributes that are missing on the target
+	TSet<int32> MissingAttribute;
+
+	if (SourceMetadata != TargetMetadata)
 	{
-		PrimaryData = nullptr;
-		SecondaryData = InSourceFacade->Source->GetData(InSourceSide);
-	}
+		// If target & source are not the same we :
+		// - Remove identities that only exist on target
+		// - Remove type mismatches (we could let the blender handle broadcasting)
+		// - Add any attribute from source that's missing from the target
 
-	void FDataBlendingProcessorBase::SoftPrepareForData(const TSharedPtr<PCGExData::FFacade>& InTargetFacade, const TSharedPtr<PCGExData::FFacade>& InSourceFacade, const PCGExData::EIOSide InSourceSide)
-	{
-		PrimaryData = InTargetFacade->Source->GetOut();
-		SecondaryData = InSourceFacade->Source->GetData(InSourceSide);
-	}
+		TArray<FName> TargetNames;
+		TArray<FName> SourceNames;
 
-	void FDataBlendingProcessorBase::DoOperation(const int32 PrimaryReadIndex, const int32 SecondaryReadIndex, const int32 WriteIndex, const double Weight, const int8 bFirstOperation) const
-	{
-		TArray<double> Weights = {Weight};
-		DoRangeOperation(PrimaryReadIndex, SecondaryReadIndex, WriteIndex, Weights, bFirstOperation);
-	}
+		TMap<FName, PCGEx::FAttributeIdentity> TargetIdentityMap;
+		TMap<FName, PCGEx::FAttributeIdentity> SourceIdentityMap;
 
-	void FDataBlendingProcessorBase::CompleteOperation(const int32 WriteIndex, const int32 Count, const double TotalWeight) const
-	{
-		TArray<double> Weights = {TotalWeight};
-		TArray<int32> Counts = {Count};
-		CompleteRangeOperation(WriteIndex, Counts, Weights);
-	}
+		PCGEx::FAttributeIdentity::Get(TargetMetadata, TargetNames, TargetIdentityMap);
+		PCGEx::FAttributeIdentity::Get(SourceMetadata, SourceNames, SourceIdentityMap);
 
-	void AssembleBlendingDetails(const FPCGExPropertiesBlendingDetails& PropertiesBlending, const TMap<FName, EPCGExDataBlendingType>& PerAttributeBlending, const TSharedRef<PCGExData::FPointIO>& SourceIO, FPCGExBlendingDetails& OutDetails, TSet<FName>& OutMissingAttributes)
-	{
-		const TSharedPtr<PCGEx::FAttributesInfos> AttributesInfos = PCGEx::FAttributesInfos::Get(SourceIO->GetIn()->Metadata);
-
-		OutDetails = FPCGExBlendingDetails(PropertiesBlending);
-		OutDetails.BlendingFilter = EPCGExAttributeFilter::Include;
-
-		TArray<FName> SourceAttributesList;
-		PerAttributeBlending.GetKeys(SourceAttributesList);
-
-		AttributesInfos->FindMissing(SourceAttributesList, OutMissingAttributes);
-
-		for (const FName& Id : SourceAttributesList)
+		for (FName TargetName : TargetNames)
 		{
-			if (OutMissingAttributes.Contains(Id)) { continue; }
+			const PCGEx::FAttributeIdentity& TargetIdentity = *TargetIdentityMap.Find(TargetName);
+			//An attribute exists on Target but not on Source -- Skip it.
+			if (!SourceIdentityMap.Find(TargetName)) { Identities.Remove(TargetIdentity); }
+		}
 
-			OutDetails.AttributesOverrides.Add(Id, *PerAttributeBlending.Find(Id));
-			OutDetails.FilteredAttributes.Add(Id);
+		for (FName SourceName : SourceNames)
+		{
+			const PCGEx::FAttributeIdentity& SourceIdentity = *SourceIdentityMap.Find(SourceName);
+			if (const PCGEx::FAttributeIdentity* TargetIdentityPtr = TargetIdentityMap.Find(SourceName))
+			{
+				// Type mismatch -- Simply ignore it
+				if (TargetIdentityPtr->UnderlyingType != SourceIdentity.UnderlyingType) { Identities.Remove(*TargetIdentityPtr); }
+			}
+			else if (CanBlend(SourceIdentity.Name))
+			{
+				//Attribute exists on source, but not target.
+				MissingAttribute.Add(Identities.Add(SourceIdentity));
+			}
 		}
 	}
 
-	void AssembleBlendingDetails(const EPCGExDataBlendingType& DefaultBlending, const TArray<FName>& Attributes, const TSharedRef<PCGExData::FPointIO>& SourceIO, FPCGExBlendingDetails& OutDetails, TSet<FName>& OutMissingAttributes)
+	// We now have a list of attribute identities we can process
+
+	for (int i = 0; i < Identities.Num(); i++)
 	{
-		const TSharedPtr<PCGEx::FAttributesInfos> AttributesInfos = PCGEx::FAttributesInfos::Get(SourceIO->GetIn()->Metadata);
-		OutDetails = FPCGExBlendingDetails(FPCGExPropertiesBlendingDetails(EPCGExDataBlendingType::None));
-		OutDetails.BlendingFilter = EPCGExAttributeFilter::Include;
+		const PCGEx::FAttributeIdentity& Identity = Identities[i];
 
-		AttributesInfos->FindMissing(Attributes, OutMissingAttributes);
+		if (IgnoreAttributeSet && IgnoreAttributeSet->Contains(Identity.Name)) { continue; }
 
-		for (const FName& Id : Attributes)
+		PCGExDataBlending::FBlendingHeader BlendInfos{};
+		BlendInfos.bIsNewAttribute = MissingAttribute.Contains(i);
+
+		if (PCGEx::IsPCGExAttribute(Identity.Name))
 		{
-			if (OutMissingAttributes.Contains(Id)) { continue; }
-
-			OutDetails.AttributesOverrides.Add(Id, DefaultBlending);
-			OutDetails.FilteredAttributes.Add(Id);
+			// Don't blend PCGEx stuff
+			BlendInfos.SetBlending(EPCGExDataBlendingType::Copy);
 		}
+		else
+		{
+			const EPCGExDataBlendingType* TypePtr = AttributesOverrides.Find(Identity.Name);
+			// TODO : Support global defaults (or ditch support)
+			BlendInfos.SetBlending(TypePtr ? *TypePtr : DefaultBlending);
+		}
+
+		if (BlendInfos.Blending == EPCGExABBlendingType::None) { continue; }
+
+		OutHeaders.Add(BlendInfos);
 	}
 }

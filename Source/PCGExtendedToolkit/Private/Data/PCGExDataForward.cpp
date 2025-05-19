@@ -53,7 +53,7 @@ void FPCGExAttributeToTagDetails::Tag(const int32 TagIndex, TSet<FString>& InTag
 		const FPCGPoint& Point = SourceDataFacade->GetIn()->GetPoint(TagIndex);
 		for (const TSharedPtr<PCGEx::TAttributeBroadcaster<FString>>& Getter : Getters)
 		{
-			FString Tag = Getter->SoftGet(TagIndex, Point, TEXT(""));
+			FString Tag = Getter->SoftGet(TagIndex, L"",);
 			if (Tag.IsEmpty()) { continue; }
 			if (bPrefixWithAttributeName) { Tag = Getter->GetName() + ":" + Tag; }
 			InTags.Add(Tag);
@@ -83,7 +83,7 @@ void FPCGExAttributeToTagDetails::Tag(const int32 TagIndex, UPCGMetadata* InMeta
 		const FPCGPoint& Point = SourceDataFacade->GetIn()->GetPoint(TagIndex);
 		for (const TSharedPtr<PCGEx::TAttributeBroadcaster<FString>>& Getter : Getters)
 		{
-			FString Tag = Getter->SoftGet(TagIndex, Point, TEXT(""));
+			FString Tag = Getter->SoftGet(TagIndex, L"",);
 			if (Tag.IsEmpty()) { continue; }
 			if (bPrefixWithAttributeName) { Tag = Getter->GetName() + ":" + Tag; }
 			InMetadata->FindOrCreateAttribute<FString>(FName(Getter->GetName()), Tag);

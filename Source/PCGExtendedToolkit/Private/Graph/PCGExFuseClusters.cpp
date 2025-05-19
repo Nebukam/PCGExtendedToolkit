@@ -202,7 +202,7 @@ namespace PCGExFuseClusters
 		{
 			if (bUnsafe)
 			{
-				for (int i = Scope.Start; i < Scope.End; i++)
+				PCGEX_SCOPE_LOOP(i)
 				{
 					const PCGExGraph::FEdge* Edge = Cluster->GetEdge(i);
 					UnionGraph->InsertEdge_Unsafe(
@@ -212,7 +212,7 @@ namespace PCGExFuseClusters
 			}
 			else
 			{
-				for (int i = Scope.Start; i < Scope.End; i++)
+				PCGEX_SCOPE_LOOP(i)
 				{
 					const PCGExGraph::FEdge* Edge = Cluster->GetEdge(i);
 					UnionGraph->InsertEdge(
@@ -225,7 +225,7 @@ namespace PCGExFuseClusters
 		{
 			if (bUnsafe)
 			{
-				for (int i = Scope.Start; i < Scope.End; i++)
+				PCGEX_SCOPE_LOOP(i)
 				{
 					const PCGExGraph::FEdge& Edge = IndexedEdges[i];
 					UnionGraph->InsertEdge_Unsafe(
@@ -235,7 +235,7 @@ namespace PCGExFuseClusters
 			}
 			else
 			{
-				for (int i = Scope.Start; i < Scope.End; i++)
+				PCGEX_SCOPE_LOOP(i)
 				{
 					const PCGExGraph::FEdge& Edge = IndexedEdges[i];
 					UnionGraph->InsertEdge(

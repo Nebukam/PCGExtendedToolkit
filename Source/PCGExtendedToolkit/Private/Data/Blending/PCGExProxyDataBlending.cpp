@@ -5,11 +5,11 @@
 
 namespace PCGExDataBlending
 {
-	void FProxyDataBlenderBase::Blend(TArrayView<const int32> SourceIndices, const int32 TargetIndex, TArrayView<const double> Weights)
+	void FProxyDataBlender::Blend(TArrayView<const int32> SourceIndices, const int32 TargetIndex, TArrayView<const double> Weights)
 	{
 		check(SourceIndices.Num() ==Weights.Num());
 
-		FBlendTracker Tracking = BeginMultiBlend(TargetIndex);
+		PCGEx::FOpStats Tracking = BeginMultiBlend(TargetIndex);
 
 		for (int i = 0; i < SourceIndices.Num(); i++)
 		{
@@ -20,9 +20,9 @@ namespace PCGExDataBlending
 		EndMultiBlend(TargetIndex, Tracking);
 	}
 
-	void FProxyDataBlenderBase::Blend(TArrayView<const int32> SourceIndices, const int32 TargetIndex, const double Weight)
+	void FProxyDataBlender::Blend(TArrayView<const int32> SourceIndices, const int32 TargetIndex, const double Weight)
 	{
-		FBlendTracker Tracking = BeginMultiBlend(TargetIndex);
+		PCGEx::FOpStats Tracking = BeginMultiBlend(TargetIndex);
 
 		for (int i = 0; i < SourceIndices.Num(); i++)
 		{

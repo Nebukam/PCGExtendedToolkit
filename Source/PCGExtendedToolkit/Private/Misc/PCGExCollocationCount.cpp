@@ -73,42 +73,44 @@ namespace PCGExCollocationCount
 		return true;
 	}
 
-	void FProcessor::ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const PCGExMT::FScope& Scope)
+	void FProcessor::ProcessPoints(const PCGExMT::FScope& Scope)
 	{
-		const TArray<FPCGPoint>& InPoints = PointDataFacade->Source->GetIn()->GetPoints();
+		TConstPCGValueRange<FTransform> Transforms = PointDataFacade->GetIn()->GetConstTransformValueRange();
 
-		const FVector Center = Point.Transform.GetLocation();
-		const double Tolerance = ToleranceConstant;
-		const FBoxCenterAndExtent BCAE = FBoxCenterAndExtent(Center, FVector(Tolerance));
-
-		CollocationWriter->GetMutable(Index) = 0;
-
-		auto ProcessNeighbors = [&](const PCGPointOctree::FPointRef& PointRef)
+		PCGEX_SCOPE_LOOP(Index)
 		{
-			if (PointRef.Index == Index) { return; }
-			if (FVector::Dist(Center, InPoints[PointRef.Index].Transform.GetLocation()) > Tolerance) { return; }
+			const FVector Center = Transforms[Index].GetLocation();
+			const double Tolerance = ToleranceConstant;
 
-			CollocationWriter->GetMutable(Index) += 1;
-		};
+			CollocationWriter->GetMutable(Index) = 0;
 
-		auto ProcessNeighbors2 = [&](const PCGPointOctree::FPointRef& PointRef)
-		{
-			if (PointRef.Index == Index) { return; }
-			if (FVector::Dist(Center, InPoints[PointRef.Index].Transform.GetLocation()) > Tolerance) { return; }
+			if (LinearOccurencesWriter)
+			{
+				LinearOccurencesWriter->GetMutable(Index) = 0;
+				Octree->FindElementsWithBoundsTest(
+					FBoxCenterAndExtent(Center, FVector(Tolerance)),
+					[&](const PCGPointOctree::FPointRef& PointRef)
+					{
+						if (PointRef.Index == Index) { return; }
+						if (FVector::Dist(Center, Transforms[PointRef.Index].GetLocation()) > Tolerance) { return; }
 
-			CollocationWriter->GetMutable(Index) += 1;
+						CollocationWriter->GetMutable(Index) += 1;
 
-			if (PointRef.Index < Index) { LinearOccurencesWriter->GetMutable(Index) += 1; }
-		};
+						if (PointRef.Index < Index) { LinearOccurencesWriter->GetMutable(Index) += 1; }
+					});
+			}
+			else
+			{
+				Octree->FindElementsWithBoundsTest(
+					FBoxCenterAndExtent(Center, FVector(Tolerance)),
+					[&](const PCGPointOctree::FPointRef& PointRef)
+					{
+						if (PointRef.Index == Index) { return; }
+						if (FVector::Dist(Center, Transforms[PointRef.Index].GetLocation()) > Tolerance) { return; }
 
-		if (LinearOccurencesWriter)
-		{
-			LinearOccurencesWriter->GetMutable(Index) = 0;
-			Octree->FindElementsWithBoundsTest(BCAE, ProcessNeighbors2);
-		}
-		else
-		{
-			Octree->FindElementsWithBoundsTest(BCAE, ProcessNeighbors);
+						CollocationWriter->GetMutable(Index) += 1;
+					});
+			}
 		}
 	}
 

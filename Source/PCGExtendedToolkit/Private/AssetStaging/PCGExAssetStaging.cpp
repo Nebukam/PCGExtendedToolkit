@@ -292,8 +292,8 @@ namespace PCGExAssetStaging
 			const FPCGExAssetCollectionEntry* Entry = nullptr;
 			const UPCGExAssetCollection* EntryHost = nullptr;
 
-			const int32 Seed = PCGExRandom::GetSeedFromPoint(
-				Helper->Details.SeedComponents, Point,
+			const int32 Seed = PCGExRandom::GetSeed(
+				Point, Helper->Details.SeedComponents,
 				Helper->Details.LocalSeed, Settings, Context->GetComponent());
 
 			Helper->GetEntry(Entry, Index, Seed, EntryHost);

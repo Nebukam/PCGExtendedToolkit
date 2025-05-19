@@ -4,6 +4,7 @@
 #include "Data/PCGExData.h"
 
 #include "PCGExPointsMT.h"
+#include "Geometry/PCGExGeoPointBox.h"
 
 namespace PCGExData
 {
@@ -79,6 +80,16 @@ namespace PCGExData
 #pragma endregion
 
 #pragma region FFacade
+
+	TSharedPtr<PCGExGeo::FPointBoxCloud> FFacade::GetCloud(const EPCGExPointBoundsSource BoundsSource, const double Expansion)
+	{
+		FWriteScopeLock WriteScopeLock(CloudLock);
+
+		if (Cloud) { return Cloud; }
+
+		Cloud = MakeShared<PCGExGeo::FPointBoxCloud>(GetIn(), BoundsSource, Expansion);
+		return Cloud;
+	}
 
 	void FFacade::MarkCurrentBuffersReadAsComplete()
 	{

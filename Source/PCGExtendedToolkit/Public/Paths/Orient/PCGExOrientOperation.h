@@ -38,9 +38,9 @@ public:
 	}
 
 	virtual FTransform ComputeOrientation(
-		const PCGExData::FPointRef& Point,
+		const PCGExData::FConstPoint& Point,
 		const double DirectionMultiplier) const
 	{
-		return Point.Point->Transform;
+		return Point.GetTransform();
 	}
 };

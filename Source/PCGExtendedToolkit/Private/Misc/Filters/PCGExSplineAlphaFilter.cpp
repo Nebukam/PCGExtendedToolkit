@@ -93,7 +93,7 @@ namespace PCGExPointFilter
 		return true;
 	}
 
-	bool FSplineAlphaFilter::Test(const FPCGPoint& Point) const
+	bool FSplineAlphaFilter::TestRoamingPoint(const FPCGPoint& Point) const
 	{
 		const FVector Pos = Point.Transform.GetLocation();
 		double Time = 0;

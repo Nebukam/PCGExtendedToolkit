@@ -386,19 +386,13 @@ namespace PCGEx
 			}
 			else if (ProcessingInfos == EPCGAttributePropertySelection::Property)
 			{
-				// TODO : constexpr 
 				const FSubSelection& S = ProcessingInfos.SubSelection;
-				const TArray<FPCGPoint>& InPoints = InData->GetPoints();
-#define PCGEX_GET_BY_ACCESSOR(_ENUM, _ACCESSOR, _TYPE) case _ENUM: \
-	if (S.bIsValid) { for (int i = Scope.Start; i < Scope.End; i++) { Dump[i] = S.Get<_TYPE, T>(InPoints[i]._ACCESSOR); } } \
-	else{ for (int i = Scope.Start; i < Scope.End; i++) { Dump[i] = PCGEx::Convert<_TYPE, T>(InPoints[i]._ACCESSOR); } } \
-	break;
+				const EPCGPointProperties Property = static_cast<EPCGPointProperties>(ProcessingInfos);
 
-				switch (static_cast<EPCGPointProperties>(ProcessingInfos))
-				{
-				PCGEX_FOREACH_POINTPROPERTY(PCGEX_GET_BY_ACCESSOR)
-				default: break;
-				}
+#define PCGEX_GET_BY_ACCESSOR(_ACCESSOR, _TYPE)\
+if (S.bIsValid) { PCGEX_SCOPE_LOOP(Index) { Dump[Index] =S.Get<_TYPE, T>(InData->_ACCESSOR); } } \
+else{ PCGEX_SCOPE_LOOP(Index){ Dump[Index] =PCGEx::Convert<_TYPE, T>(InData->_ACCESSOR); } }
+				PCGEX_IFELSE_GETPOINTPROPERTY(Property, PCGEX_GET_BY_ACCESSOR)
 #undef PCGEX_GET_BY_ACCESSOR
 			}
 			else if (ProcessingInfos == EPCGAttributePropertySelection::ExtraProperty)
@@ -407,8 +401,8 @@ namespace PCGEx
 				switch (static_cast<EPCGExtraProperties>(ProcessingInfos))
 				{
 				case EPCGExtraProperties::Index:
-					if (S.bIsValid) { for (int i = Scope.Start; i < Scope.End; i++) { Dump[i] = S.Get<int32, T>(i); } }
-					else { for (int i = Scope.Start; i < Scope.End; i++) { Dump[i] = PCGEx::Convert<int32, T>(i); } }
+					if (S.bIsValid) { PCGEX_SCOPE_LOOP(i) { Dump[i] = S.Get<int32, T>(i); } }
+					else { PCGEX_SCOPE_LOOP(i) { Dump[i] = PCGEx::Convert<int32, T>(i); } }
 					break;
 				default: ;
 				}
@@ -490,22 +484,18 @@ namespace PCGEx
 			else if (ProcessingInfos == EPCGAttributePropertySelection::Property)
 			{
 				const FSubSelection& S = ProcessingInfos.SubSelection;
-				const TArray<FPCGPoint>& InPoints = InData->GetPoints();
-
-#define PCGEX_GET_BY_ACCESSOR(_ENUM, _ACCESSOR, _TYPE) case _ENUM:\
+				const EPCGPointProperties Property = static_cast<EPCGPointProperties>(ProcessingInfos);
+				//if (S.bIsValid) { for (int Index = 0; Index < NumPoints; Index++) { Dump.Add(S.Get<_TYPE, T>(InData->_ACCESSOR)); } } \
+				
+#define PCGEX_GET_BY_ACCESSOR(_ACCESSOR, _TYPE)\
 				if (bCaptureMinMax) {\
-					if (S.bIsValid){ for (int i = 0; i < NumPoints; i++) { T V = S.Get<_TYPE, T>(InPoints[i]._ACCESSOR); OutMin = PCGExBlend::Min(V, OutMin); OutMax = PCGExBlend::Max(V, OutMax); Dump[i] = V; } } \
-					else { for (int i = 0; i < NumPoints; i++) { T V = PCGEx::Convert<_TYPE, T>(InPoints[i]._ACCESSOR); OutMin = PCGExBlend::Min(V, OutMin); OutMax = PCGExBlend::Max(V, OutMax); Dump[i] = V; } } \
+				if (S.bIsValid){ for (int Index = 0; Index < NumPoints; Index++) { T V = S.Get<_TYPE, T>(InData->_ACCESSOR); OutMin = PCGExBlend::Min(V, OutMin); OutMax = PCGExBlend::Max(V, OutMax); Dump[Index] = V; } } \
+				else { for (int Index = 0; Index < NumPoints; Index++) { T V = PCGEx::Convert<_TYPE, T>(InData->_ACCESSOR); OutMin = PCGExBlend::Min(V, OutMin); OutMax = PCGExBlend::Max(V, OutMax); Dump[Index] = V; } } \
 				}else{ \
-					if (S.bIsValid){ for (int i = 0; i < NumPoints; i++) { Dump[i] = S.Get<_TYPE, T>(InPoints[i]._ACCESSOR); } } \
-					else{ for (int i = 0; i < NumPoints; i++) { Dump[i] = PCGEx::Convert<_TYPE, T>(InPoints[i]._ACCESSOR); } } \
-				} break;
-
-				switch (static_cast<EPCGPointProperties>(ProcessingInfos))
-				{
-				PCGEX_FOREACH_POINTPROPERTY(PCGEX_GET_BY_ACCESSOR)
-				default: break;
+				if (S.bIsValid){ for (int Index = 0; Index < NumPoints; Index++) { Dump[Index] = S.Get<_TYPE, T>(InData->_ACCESSOR); } } \
+				else{ for (int Index = 0; Index < NumPoints; Index++) { Dump[Index] = PCGEx::Convert<_TYPE, T>(InData->_ACCESSOR); } } \
 				}
+				PCGEX_IFELSE_GETPOINTPROPERTY(Property, PCGEX_GET_BY_ACCESSOR)
 #undef PCGEX_GET_BY_ACCESSOR
 			}
 			else if (ProcessingInfos == EPCGAttributePropertySelection::ExtraProperty)
@@ -558,16 +548,12 @@ namespace PCGEx
 			else if (ProcessingInfos == EPCGAttributePropertySelection::Property)
 			{
 				const FSubSelection& S = ProcessingInfos.SubSelection;
-				const TArray<FPCGPoint>& InPoints = InData->GetPoints();
+				const EPCGPointProperties Property = static_cast<EPCGPointProperties>(ProcessingInfos);
 
-#define PCGEX_GET_BY_ACCESSOR(_ENUM, _ACCESSOR, _TYPE) case _ENUM: \
-				if (S.bIsValid) { for (int i = 0; i < NumPoints; i++) { Dump.Add(S.Get<_TYPE, T>(InPoints[i]._ACCESSOR)); } } \
-				else{ for (int i = 0; i < NumPoints; i++) { Dump.Add(PCGEx::Convert<_TYPE, T>(InPoints[i]._ACCESSOR)); } } break;
-				switch (static_cast<EPCGPointProperties>(ProcessingInfos))
-				{
-				PCGEX_FOREACH_POINTPROPERTY(PCGEX_GET_BY_ACCESSOR)
-				default: break;
-				}
+#define PCGEX_GET_BY_ACCESSOR(_ACCESSOR, _TYPE)\
+				if (S.bIsValid) { for (int Index = 0; Index < NumPoints; Index++) { Dump.Add(S.Get<_TYPE, T>(InData->_ACCESSOR)); } } \
+				else{ for (int Index = 0; Index < NumPoints; Index++) { Dump.Add(PCGEx::Convert<_TYPE, T>(InData->_ACCESSOR)); } }
+				PCGEX_IFELSE_GETPOINTPROPERTY(Property, PCGEX_GET_BY_ACCESSOR)
 #undef PCGEX_GET_BY_ACCESSOR
 			}
 			else if (ProcessingInfos == EPCGAttributePropertySelection::ExtraProperty)
@@ -613,44 +599,48 @@ namespace PCGEx
 			for (int i = 0; i < Values.Num(); i++) { Values[i] = PCGExBlend::Div(Values[i], Range); }
 		}
 
-		T SoftGet(const int32 Index, const FPCGPoint& Point, const T& Fallback) const
+		T SoftGet(const PCGExData::FConstPoint& Point, const T& Fallback) const
 		{
 			if (!ProcessingInfos.bIsValid) { return Fallback; }
+
+			const int32 Index = Point.Index;
+
 			switch (static_cast<EPCGAttributePropertySelection>(ProcessingInfos))
 			{
 			case EPCGAttributePropertySelection::Attribute:
+
 				return PCGMetadataAttribute::CallbackWithRightType(
 					ProcessingInfos.Attribute->GetTypeId(),
 					[&](auto DummyValue) -> T
 					{
 						using RawT = decltype(DummyValue);
 						const FPCGMetadataAttribute<RawT>* TypedAttribute = static_cast<const FPCGMetadataAttribute<RawT>*>(ProcessingInfos.Attribute);
-						return ProcessingInfos.SubSelection.Get<RawT, T>(TypedAttribute->GetValueFromItemKey(Point.MetadataEntry));
+						return ProcessingInfos.SubSelection.Get<RawT, T>(TypedAttribute->GetValueFromItemKey(Point.GetMetadataEntry()));
 					});
+
 			case EPCGAttributePropertySelection::Property:
-#define PCGEX_GET_BY_ACCESSOR(_ENUM, _ACCESSOR, _TYPE) case _ENUM: return ProcessingInfos.SubSelection.Get<_TYPE, T>(Point._ACCESSOR); break;
-				switch (static_cast<EPCGPointProperties>(ProcessingInfos))
-				{
-				PCGEX_FOREACH_POINTPROPERTY(PCGEX_GET_BY_ACCESSOR)
-				default: break;
-				}
+
+				const EPCGPointProperties Property = static_cast<EPCGPointProperties>(ProcessingInfos);
+
+#define PCGEX_GET_BY_ACCESSOR(_ACCESSOR, _TYPE) return ProcessingInfos.SubSelection.Get<_TYPE, T>(Point.Data->_ACCESSOR);
+				PCGEX_IFELSE_GETPOINTPROPERTY(Property, PCGEX_GET_BY_ACCESSOR)
 #undef PCGEX_GET_BY_ACCESSOR
+
+				return T{};
+				break;
 			case EPCGAttributePropertySelection::ExtraProperty:
+
 				switch (static_cast<EPCGExtraProperties>(ProcessingInfos))
 				{
 				case EPCGExtraProperties::Index:
 					return ProcessingInfos.SubSelection.Get<T>(Index);
 				default: ;
 				}
+
 			default:
 				return Fallback;
 			}
 		}
-
-		T SoftGet(const PCGExData::FPointRef& PointRef, const T& Fallback) const { return SoftGet(PointRef.Index, *PointRef.Point, Fallback); }
-
-		T SafeGet(const int32 Index, const T& Fallback) const { return !ProcessingInfos.bIsValid ? Fallback : Values[Index]; }
-		T operator[](int32 Index) const { return ProcessingInfos.bIsValid ? Values[Index] : T{}; }
 
 		static TSharedPtr<TAttributeBroadcaster<T>> Make(const FName& InName, const TSharedRef<PCGExData::FPointIO>& InPointIO)
 		{

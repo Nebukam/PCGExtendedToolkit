@@ -47,7 +47,7 @@ bool FPCGExClusterDiffusionElement::Boot(FPCGExContext* InContext) const
 	PCGEX_CONTEXT_AND_SETTINGS(ClusterDiffusion)
 	PCGEX_FOREACH_FIELD_CLUSTER_DIFF(PCGEX_OUTPUT_VALIDATE_NAME)
 
-	PCGExFactories::GetInputFactories<UPCGExAttributeBlendFactory>(
+	PCGExFactories::GetInputFactories<UPCGExBlendOpFactory>(
 		Context, PCGExDataBlending::SourceBlendingLabel, Context->BlendingFactories,
 		{PCGExFactories::EType::Blending}, false);
 
@@ -171,7 +171,7 @@ namespace PCGExClusterDiffusion
 				PCGEX_ASYNC_THIS
 				const TArray<FPCGPoint>& Seeds = This->Context->SeedsDataFacade->Source->GetPoints(PCGExData::EIOSide::In);
 				const TArray<PCGExCluster::FNode>& Nodes = *This->Cluster->Nodes.Get();
-				for (int i = Scope.Start; i < Scope.End; i++)
+				PCGEX_SCOPE_LOOP(i)
 				{
 					FVector SeedLocation = Seeds[i].Transform.GetLocation();
 					const int32 ClosestIndex = This->Cluster->FindClosestNode(SeedLocation, This->Settings->Seeds.SeedPicking.PickingMethod);
@@ -244,7 +244,7 @@ namespace PCGExClusterDiffusion
 				[PCGEX_ASYNC_THIS_CAPTURE](const PCGExMT::FScope& Scope)
 				{
 					PCGEX_ASYNC_THIS
-					for (int i = Scope.Start; i < Scope.End; i++) { This->Grow(); }
+					PCGEX_SCOPE_LOOP(i) { This->Grow(); }
 				};
 
 			GrowDiffusions->StartSubLoops(OngoingDiffusions.Num(), 1);

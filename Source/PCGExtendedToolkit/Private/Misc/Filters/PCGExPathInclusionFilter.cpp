@@ -115,7 +115,7 @@ namespace PCGExPointFilter
 		return true;
 	}
 
-	bool FPathInclusionFilter::Test(const FPCGPoint& Point) const
+	bool FPathInclusionFilter::TestRoamingPoint(const FPCGPoint& Point) const
 	{
 		uint8 State = None;
 

@@ -129,7 +129,7 @@ namespace PCGExClusterMT
 	{
 		PrepareSingleLoopScopeForNodes(Scope);
 		TArray<PCGExCluster::FNode>& Nodes = *Cluster->Nodes;
-		for (int i = Scope.Start; i < Scope.End; i++) { ProcessSingleNode(i, Nodes[i], Scope); }
+		PCGEX_SCOPE_LOOP(i) { ProcessSingleNode(i, Nodes[i], Scope); }
 	}
 
 	void FClusterProcessor::ProcessSingleNode(const int32 Index, PCGExCluster::FNode& Node, const PCGExMT::FScope& Scope)
@@ -161,7 +161,7 @@ namespace PCGExClusterMT
 	{
 		PrepareSingleLoopScopeForEdges(Scope);
 		TArray<PCGExGraph::FEdge>& ClusterEdges = *Cluster->Edges;
-		for (int i = Scope.Start; i < Scope.End; i++) { ProcessSingleEdge(i, ClusterEdges[i], Scope); }
+		PCGEX_SCOPE_LOOP(i) { ProcessSingleEdge(i, ClusterEdges[i], Scope); }
 	}
 
 	void FClusterProcessor::ProcessSingleEdge(const int32 EdgeIndex, PCGExGraph::FEdge& Edge, const PCGExMT::FScope& Scope)
@@ -192,7 +192,7 @@ namespace PCGExClusterMT
 	void FClusterProcessor::ProcessRange(const PCGExMT::FScope& Scope)
 	{
 		PrepareSingleLoopScopeForRange(Scope);
-		for (int i = Scope.Start; i < Scope.End; i++) { ProcessSingleRangeIteration(i, Scope); }
+		PCGEX_SCOPE_LOOP(i) { ProcessSingleRangeIteration(i, Scope); }
 	}
 
 	void FClusterProcessor::ProcessSingleRangeIteration(const int32 Iteration, const PCGExMT::FScope& Scope)
@@ -239,7 +239,7 @@ namespace PCGExClusterMT
 		{
 			TArray<PCGExCluster::FNode>& NodesRef = *Cluster->Nodes.Get();
 			TArray<int8>& CacheRef = *VtxFilterCache.Get();
-			for (int i = Scope.Start; i < Scope.End; i++)
+			PCGEX_SCOPE_LOOP(i)
 			{
 				PCGExCluster::FNode& Node = NodesRef[i];
 				CacheRef[Node.PointIndex] = VtxFiltersManager->Test(Node);
@@ -265,7 +265,7 @@ namespace PCGExClusterMT
 		if (EdgesFiltersManager)
 		{
 			TArray<PCGExGraph::FEdge>& EdgesRef = *Cluster->Edges.Get();
-			for (int i = Scope.Start; i < Scope.End; i++) { EdgeFilterCache[i] = EdgesFiltersManager->Test(EdgesRef[i]); }
+			PCGEX_SCOPE_LOOP(i) { EdgeFilterCache[i] = EdgesFiltersManager->Test(EdgesRef[i]); }
 		}
 	}
 
@@ -344,7 +344,7 @@ namespace PCGExClusterMT
 
 					PCGEX_ASYNC_THIS
 					const TConstPCGValueRange<int64> MetadataEntries = This->VtxDataFacade->GetIn()->GetConstMetadataEntryValueRange();
-					for (int i = Scope.Start; i < Scope.End; i++)
+					PCGEX_SCOPE_LOOP(i)
 					{
 						uint32 A;
 						uint32 B;

@@ -3,7 +3,7 @@
 
 #include "Misc/PCGExBlendAttributes.h"
 
-#include "Data/Blending/PCGExAttributeBlendFactoryProvider.h"
+#include "Data/Blending/PCGExBlendOpFactoryProvider.h"
 
 
 #define LOCTEXT_NAMESPACE "PCGExBlendAttributesElement"
@@ -24,7 +24,7 @@ bool FPCGExBlendAttributesElement::Boot(FPCGExContext* InContext) const
 
 	PCGEX_CONTEXT_AND_SETTINGS(BlendAttributes)
 
-	if (!PCGExFactories::GetInputFactories<UPCGExAttributeBlendFactory>(
+	if (!PCGExFactories::GetInputFactories<UPCGExBlendOpFactory>(
 		Context, PCGExDataBlending::SourceBlendingLabel, Context->BlendingFactories,
 		{PCGExFactories::EType::Blending}, true))
 	{

@@ -118,7 +118,7 @@ namespace PCGExPointFilter
 		virtual void PostInit();
 
 		virtual bool Test(const int32 Index) const;
-		virtual bool Test(const FPCGPoint& Point) const; // destined for no-context evaluation only, can't rely on attributes or anything.
+		virtual bool TestRoamingPoint(const FPCGPoint& Point) const; // destined for no-context evaluation only, can't rely on attributes or anything.
 		virtual bool Test(const PCGExCluster::FNode& Node) const;
 		virtual bool Test(const PCGExGraph::FEdge& Edge) const;
 
@@ -137,7 +137,7 @@ namespace PCGExPointFilter
 		}
 
 		virtual bool Test(const int32 Index) const override;
-		virtual bool Test(const FPCGPoint& Point) const override;
+		virtual bool TestRoamingPoint(const FPCGPoint& Point) const override;
 		virtual bool Test(const PCGExCluster::FNode& Node) const override final;
 		virtual bool Test(const PCGExGraph::FEdge& Edge) const override final;
 		virtual bool Test(const TSharedPtr<PCGExData::FPointIO>& IO, const TSharedPtr<PCGExData::FPointIOCollection>& ParentCollection) const override;
@@ -156,7 +156,7 @@ namespace PCGExPointFilter
 		virtual bool Init(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade>& InPointDataFacade) override;
 
 		virtual bool Test(const int32 Index) const override;
-		virtual bool Test(const FPCGPoint& Point) const override;
+		virtual bool TestRoamingPoint(const FPCGPoint& Point) const override;
 		virtual bool Test(const PCGExCluster::FNode& Node) const override final;
 		virtual bool Test(const PCGExGraph::FEdge& Edge) const override final;
 		virtual bool Test(const TSharedPtr<PCGExData::FPointIO>& IO, const TSharedPtr<PCGExData::FPointIOCollection>& ParentCollection) const override;

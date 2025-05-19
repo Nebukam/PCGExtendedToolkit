@@ -21,8 +21,8 @@ void UPCGExSubPointsOperation::PrepareForData(const TSharedPtr<PCGExData::FFacad
 }
 
 void UPCGExSubPointsOperation::ProcessSubPoints(
-	const PCGExData::FPointRef& From,
-	const PCGExData::FPointRef& To,
+	const PCGExData::FConstPoint& From,
+	const PCGExData::FConstPoint& To,
 	const TArrayView<FPCGPoint>& SubPoints,
 	const PCGExPaths::FPathMetrics& Metrics,
 	const int32 StartIndex) const

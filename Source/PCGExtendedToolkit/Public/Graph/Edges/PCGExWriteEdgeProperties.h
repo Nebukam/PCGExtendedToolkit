@@ -5,7 +5,7 @@
 
 #include "CoreMinimal.h"
 #include "PCGExDetailsData.h"
-#include "Data/Blending/PCGExAttributeBlendFactoryProvider.h"
+#include "Data/Blending/PCGExBlendOpFactoryProvider.h"
 #include "Data/Blending/PCGExDataBlending.h"
 #include "Graph/PCGExClusterMT.h"
 #include "Graph/PCGExEdgesProcessor.h"
@@ -191,7 +191,7 @@ struct FPCGExWriteEdgePropertiesContext final : FPCGExEdgesProcessorContext
 
 	PCGEX_FOREACH_FIELD_EDGEEXTRAS(PCGEX_OUTPUT_DECL_TOGGLE)
 
-	TArray<TObjectPtr<const UPCGExAttributeBlendFactory>> BlendingFactories;
+	TArray<TObjectPtr<const UPCGExBlendOpFactory>> BlendingFactories;
 };
 
 class FPCGExWriteEdgePropertiesElement final : public FPCGExEdgesProcessorElement

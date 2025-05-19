@@ -158,8 +158,6 @@ namespace PCGExPathToClusters
 		int32 IOIndex = 0;
 		int32 LastIndex = 0;
 
-		const TArray<FPCGPoint>* InPoints = nullptr;
-
 	public:
 		TSharedPtr<PCGExGraph::FUnionGraph> UnionGraph;
 
@@ -172,7 +170,6 @@ namespace PCGExPathToClusters
 
 		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager) override;
 		void InsertEdges(const PCGExMT::FScope& Scope, bool bUnsafe);
-		virtual void ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const PCGExMT::FScope& Scope) override;
 	};
 
 #pragma endregion

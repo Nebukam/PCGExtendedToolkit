@@ -221,7 +221,7 @@ namespace PCGExPathfinding
 	{
 		for (int PointIndex = 0; PointIndex < InSeedDataFacade->Source->GetNum(); PointIndex++)
 		{
-			const PCGExData::FPointRef& Seed = InSeedDataFacade->Source->GetInPointRef(PointIndex);
+			const PCGExData::FConstPoint& Seed = InSeedDataFacade->GetInPoint(PointIndex);
 
 			if (GoalPicker->OutputMultipleGoals())
 			{

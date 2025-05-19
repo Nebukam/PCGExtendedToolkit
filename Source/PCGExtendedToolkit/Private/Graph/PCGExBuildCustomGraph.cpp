@@ -396,7 +396,7 @@ namespace PCGExBuildCustomGraph
 				TArray<FPCGPoint>& MutablePoints = IO->GetOut()->GetMutablePoints();
 				IO->GetOutKeys(true); // Generate out keys
 
-				for (int i = Scope.Start; i < Scope.End; i++)
+				PCGEX_SCOPE_LOOP(i)
 				{
 					FPCGPoint& Point = MutablePoints[i];
 					CustomGraphSettings->UpdateNodePoint(Point, CustomGraphSettings->Idx[i], i, Point);

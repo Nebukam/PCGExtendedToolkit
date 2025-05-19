@@ -116,7 +116,7 @@ namespace PCGExWritePathProperties
 		const TSharedRef<PCGExData::FPointIO>& PointIO = PointDataFacade->Source;
 
 		bClosedLoop = Context->ClosedLoop.IsClosedLoop(PointIO);
-		Path = PCGExPaths::MakePath(PointDataFacade->GetIn()->GetPoints(), 0, bClosedLoop);
+		Path = PCGExPaths::MakePath(PointDataFacade->GetIn(), 0, bClosedLoop);
 		Path->IOIndex = PointDataFacade->Source->IOIndex;
 		PathLength = Path->AddExtra<PCGExPaths::FPathEdgeLength>(true); // Force compute length
 		if (Settings->bWritePointNormal || Settings->bWritePointBinormal) { PathBinormal = Path->AddExtra<PCGExPaths::FPathEdgeBinormal>(false, Settings->UpVector); }
@@ -129,8 +129,7 @@ namespace PCGExWritePathProperties
 
 		///
 
-		const TArray<FPCGPoint>& InPoints = PointIO->GetIn()->GetPoints();
-		const int32 NumPoints = InPoints.Num();
+		const int32 NumPoints = PointIO->GetIn()->GetNumPoints();
 
 		PCGEx::InitArray(Details, NumPoints);
 
@@ -150,33 +149,34 @@ namespace PCGExWritePathProperties
 		return true;
 	}
 
-	void FProcessor::PrepareSingleLoopScopeForPoints(const PCGExMT::FScope& Scope)
+	void FProcessor::ProcessPoints(const PCGExMT::FScope& Scope)
 	{
+	
 		PointDataFacade->Fetch(Scope);
-	}
 
-	void FProcessor::ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const PCGExMT::FScope& Scope)
-	{
-		FPointDetails& Current = Details[Index];
+		PCGEX_SCOPE_LOOP(Index)
+		{
+			FPointDetails& Current = Details[Index];
 
-		Current.ToPrev = Path->DirToPrevPoint(Index);
-		Current.ToNext = Path->DirToNextPoint(Index);
+			Current.ToPrev = Path->DirToPrevPoint(Index);
+			Current.ToNext = Path->DirToNextPoint(Index);
 
-		int32 ExtraIndex = !bClosedLoop && Index == Path->LastIndex ? Path->LastEdge : Index;
-		Path->ComputeEdgeExtra(ExtraIndex);
+			int32 ExtraIndex = !bClosedLoop && Index == Path->LastIndex ? Path->LastEdge : Index;
+			Path->ComputeEdgeExtra(ExtraIndex);
 
-		PCGEX_OUTPUT_VALUE(PointNormal, Index, PathBinormal->Normals[ExtraIndex]);
-		PCGEX_OUTPUT_VALUE(PointBinormal, Index, PathBinormal->Get(ExtraIndex));
-		PCGEX_OUTPUT_VALUE(PointAvgNormal, Index, PathAvgNormal->Get(ExtraIndex));
+			PCGEX_OUTPUT_VALUE(PointNormal, Index, PathBinormal->Normals[ExtraIndex]);
+			PCGEX_OUTPUT_VALUE(PointBinormal, Index, PathBinormal->Get(ExtraIndex));
+			PCGEX_OUTPUT_VALUE(PointAvgNormal, Index, PathAvgNormal->Get(ExtraIndex));
 
-		PCGEX_OUTPUT_VALUE(DirectionToNext, Index, Current.ToNext);
-		PCGEX_OUTPUT_VALUE(DirectionToPrev, Index, Current.ToPrev);
+			PCGEX_OUTPUT_VALUE(DirectionToNext, Index, Current.ToNext);
+			PCGEX_OUTPUT_VALUE(DirectionToPrev, Index, Current.ToPrev);
 
-		PCGEX_OUTPUT_VALUE(DistanceToNext, Index, !Path->IsClosedLoop() && Index == Path->LastIndex ? 0 : PathLength->Get(Index))
-		PCGEX_OUTPUT_VALUE(DistanceToPrev, Index, Index == 0 ? Path->IsClosedLoop() ? PathLength->Get(Path->LastEdge) : 0 : PathLength->Get(Index-1))
+			PCGEX_OUTPUT_VALUE(DistanceToNext, Index, !Path->IsClosedLoop() && Index == Path->LastIndex ? 0 : PathLength->Get(Index))
+			PCGEX_OUTPUT_VALUE(DistanceToPrev, Index, Index == 0 ? Path->IsClosedLoop() ? PathLength->Get(Path->LastEdge) : 0 : PathLength->Get(Index-1))
 
-		PCGEX_OUTPUT_VALUE(Dot, Index, FVector::DotProduct(Current.ToPrev*-1, Current.ToNext));
-		PCGEX_OUTPUT_VALUE(Angle, Index, PCGExSampling::GetAngle(Settings->AngleRange, Current.ToPrev, Current.ToNext));
+			PCGEX_OUTPUT_VALUE(Dot, Index, FVector::DotProduct(Current.ToPrev*-1, Current.ToNext));
+			PCGEX_OUTPUT_VALUE(Angle, Index, PCGExSampling::GetAngle(Settings->AngleRange, Current.ToPrev, Current.ToNext));
+		}
 	}
 
 	void FProcessor::CompleteWork()

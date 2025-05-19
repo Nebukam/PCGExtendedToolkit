@@ -77,9 +77,8 @@ namespace PCGExData
 
 	bool FPointIO::InitializeOutput(const EIOInit InitOut)
 	{
-		FPCGContext::FSharedContext<FPCGExContext> SharedContext(ContextHandle);
+		PCGEX_SHARED_CONTEXT(ContextHandle)
 
-		if (!SharedContext.Get()) { return false; }
 		if (IsValid(Out) && Out != In)
 		{
 			SharedContext.Get()->ManagedObjects->Destroy(Out);
@@ -271,7 +270,7 @@ namespace PCGExData
 
 	void FPointIO::CopyProperties(const TArrayView<const int32>& ReadIndices, const EPCGPointNativeProperties Properties) const
 	{
-		check(Out->GetNumPoints() == ReadIndices.Num())
+		check(Out->GetNumPoints() >= ReadIndices.Num())
 
 		TArray<int32> WriteIndices;
 		PCGEx::ArrayOfIndices(WriteIndices, ReadIndices.Num());
@@ -415,8 +414,7 @@ namespace PCGExData
 		TArray<FPCGTaggedData>& Sources,
 		const EIOInit InitOut)
 	{
-		FPCGContext::FSharedContext<FPCGExContext> SharedContext(ContextHandle);
-		if (!SharedContext.Get()) { return; }
+		PCGEX_SHARED_CONTEXT_VOID(ContextHandle)
 
 		Pairs.Empty(Sources.Num());
 		TSet<uint64> UniqueData;
@@ -513,34 +511,39 @@ namespace PCGExData
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(FPointIOCollection::StageOutputs);
 
-		FPCGContext::FSharedContext<FPCGExContext> SharedContext(ContextHandle);
+		PCGEX_SHARED_CONTEXT_VOID(ContextHandle)
 		FPCGExContext* Context = SharedContext.Get();
-		if (!Context) { return; }
 
 		Sort();
-		SharedContext.Get()->IncreaseStagedOutputReserve(Pairs.Num());
+
+		Context->IncreaseStagedOutputReserve(Pairs.Num());
+
 		for (int i = 0; i < Pairs.Num(); i++) { Pairs[i]->StageOutput(Context); }
 	}
 
 	void FPointIOCollection::StageOutputs(const int32 MinPointCount, const int32 MaxPointCount)
 	{
-		FPCGContext::FSharedContext<FPCGExContext> SharedContext(ContextHandle);
+		PCGEX_SHARED_CONTEXT_VOID(ContextHandle)
+
 		FPCGExContext* Context = SharedContext.Get();
+
 		if (!Context) { return; }
 
 		Sort();
-		SharedContext.Get()->IncreaseStagedOutputReserve(Pairs.Num());
+
+		Context->IncreaseStagedOutputReserve(Pairs.Num());
 		for (int i = 0; i < Pairs.Num(); i++) { Pairs[i]->StageOutput(Context, MinPointCount, MaxPointCount); }
 	}
 
 	void FPointIOCollection::StageAnyOutputs()
 	{
-		FPCGContext::FSharedContext<FPCGExContext> SharedContext(ContextHandle);
+		PCGEX_SHARED_CONTEXT_VOID(ContextHandle)
+
 		FPCGExContext* Context = SharedContext.Get();
-		if (!Context) { return; }
 
 		Sort();
-		SharedContext.Get()->IncreaseStagedOutputReserve(Pairs.Num());
+
+		Context->IncreaseStagedOutputReserve(Pairs.Num());
 		for (int i = 0; i < Pairs.Num(); i++) { Pairs[i]->StageAnyOutput(Context); }
 	}
 

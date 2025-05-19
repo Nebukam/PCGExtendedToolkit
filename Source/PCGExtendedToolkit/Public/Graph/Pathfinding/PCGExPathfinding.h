@@ -87,8 +87,8 @@ namespace PCGExPathfinding
 		{
 		}
 
-		explicit FNodePick(const PCGExData::FPointRef& InSourcePointRef):
-			SourceIndex(InSourcePointRef.Index), SourcePosition(InSourcePointRef.Point->Transform.GetLocation())
+		explicit FNodePick(const PCGExData::FConstPoint& InSourcePointRef):
+			SourceIndex(InSourcePointRef.Index), SourcePosition(InSourcePointRef.GetTransform().GetLocation())
 		{
 		}
 
@@ -120,8 +120,8 @@ namespace PCGExPathfinding
 	public:
 		FPathQuery(
 			const TSharedRef<PCGExCluster::FCluster>& InCluster,
-			const PCGExData::FPointRef& InSeedPointRef,
-			const PCGExData::FPointRef& InGoalPointRef,
+			const PCGExData::FConstPoint& InSeedPointRef,
+			const PCGExData::FConstPoint& InGoalPointRef,
 			const int32 InQueryIndex)
 			: Cluster(InCluster), Seed(InSeedPointRef), Goal(InGoalPointRef), QueryIndex(InQueryIndex)
 		{
@@ -130,7 +130,7 @@ namespace PCGExPathfinding
 		FPathQuery(
 			const TSharedRef<PCGExCluster::FCluster>& InCluster,
 			const TSharedPtr<FPathQuery>& PreviousQuery,
-			const PCGExData::FPointRef& InGoalPointRef,
+			const PCGExData::FConstPoint& InGoalPointRef,
 			const int32 InQueryIndex)
 			: Cluster(InCluster), Seed(PreviousQuery->Goal), Goal(InGoalPointRef), QueryIndex(InQueryIndex)
 		{

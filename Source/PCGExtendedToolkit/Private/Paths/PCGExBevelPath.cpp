@@ -376,7 +376,7 @@ namespace PCGExBevelPath
 					This->PointFilterCache[This->PointFilterCache.Num() - 1] = false;
 				}
 
-				for (int i = Scope.Start; i < Scope.End; i++) { This->PrepareSinglePoint(i); }
+				PCGEX_SCOPE_LOOP(i) { This->PrepareSinglePoint(i); }
 			};
 
 		Preparation->StartSubLoops(PointDataFacade->GetNum(), GetDefault<UPCGExGlobalSettings>()->PointsDefaultBatchChunkSize);
@@ -540,7 +540,7 @@ namespace PCGExBevelPath
 			[PCGEX_ASYNC_THIS_CAPTURE](const PCGExMT::FScope& Scope)
 			{
 				PCGEX_ASYNC_THIS
-				for (int i = Scope.Start; i < Scope.End; i++)
+				PCGEX_SCOPE_LOOP(i)
 				{
 					if (!This->PointFilterCache[i]) { continue; }
 					This->WriteFlags(i);

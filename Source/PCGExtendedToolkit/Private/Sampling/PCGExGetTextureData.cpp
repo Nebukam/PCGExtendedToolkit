@@ -293,63 +293,64 @@ namespace PCGExGetTextureData
 		return true;
 	}
 
-	void FProcessor::PrepareSingleLoopScopeForPoints(const PCGExMT::FScope& Scope)
+	void FProcessor::ProcessPoints(const PCGExMT::FScope& Scope)
 	{
+		
 		PointDataFacade->Fetch(Scope);
 		FilterScope(Scope);
-	}
 
-	void FProcessor::ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const PCGExMT::FScope& Scope)
-	{
-		if (!PointFilterCache[Index]) { return; }
-
-		FSoftObjectPath AssetPath = PathGetter->Read(Index);
-
-		if (Settings->SourceType == EPCGExGetTexturePathType::MaterialPath)
+		PCGEX_SCOPE_LOOP(Index)
 		{
+			if (!PointFilterCache[Index]) { return; }
+
+			FSoftObjectPath AssetPath = PathGetter->Read(Index);
+
+			if (Settings->SourceType == EPCGExGetTexturePathType::MaterialPath)
+			{
+				{
+					FReadScopeLock ReadScopeLock(ReferenceLock);
+					if (MaterialReferences->Contains(AssetPath)) { return; }
+				}
+				{
+					FWriteScopeLock WriteScopeLock(ReferenceLock);
+					bool bAlreadySet = false;
+					MaterialReferences->Add(AssetPath, &bAlreadySet);
+					if (!bAlreadySet) { Context->EDITOR_TrackPath(AssetPath); }
+				}
+				return;
+			}
+
+			PCGExTexture::FReference Ref = PCGExTexture::FReference(AssetPath);
+
+			// See if the path breaks down as a path:index textureArray2D path
+			int32 LastColonIndex;
+			if (const FString Str = AssetPath.ToString(); Str.FindLastChar(TEXT(':'), LastColonIndex))
+			{
+				const FString PotentialIndex = Str.Mid(LastColonIndex + 1);
+				const FString Prefix = Str.Left(LastColonIndex);
+
+				// Check if the part after the last ":" is numeric
+				if (PotentialIndex.IsNumeric())
+				{
+					int32 N = FCString::Atoi(*PotentialIndex);
+					if (N >= 0 && N < 64)
+					{
+						// TextureArray2D don't support more entries, so if it's greater it's not that.
+						// This is a very weak check :(
+						Ref.TexturePath = Prefix;
+						Ref.TextureIndex = FCString::Atoi(*PotentialIndex);
+					}
+				}
+			}
+
 			{
 				FReadScopeLock ReadScopeLock(ReferenceLock);
-				if (MaterialReferences->Contains(AssetPath)) { return; }
+				if (TextureReferences.Contains(Ref)) { return; }
 			}
 			{
 				FWriteScopeLock WriteScopeLock(ReferenceLock);
-				bool bAlreadySet = false;
-				MaterialReferences->Add(AssetPath, &bAlreadySet);
-				if (!bAlreadySet) { Context->EDITOR_TrackPath(AssetPath); }
+				TextureReferences.Add(Ref);
 			}
-			return;
-		}
-
-		PCGExTexture::FReference Ref = PCGExTexture::FReference(AssetPath);
-
-		// See if the path breaks down as a path:index textureArray2D path
-		int32 LastColonIndex;
-		if (const FString Str = AssetPath.ToString(); Str.FindLastChar(TEXT(':'), LastColonIndex))
-		{
-			const FString PotentialIndex = Str.Mid(LastColonIndex + 1);
-			const FString Prefix = Str.Left(LastColonIndex);
-
-			// Check if the part after the last ":" is numeric
-			if (PotentialIndex.IsNumeric())
-			{
-				int32 N = FCString::Atoi(*PotentialIndex);
-				if (N >= 0 && N < 64)
-				{
-					// TextureArray2D don't support more entries, so if it's greater it's not that.
-					// This is a very weak check :(
-					Ref.TexturePath = Prefix;
-					Ref.TextureIndex = FCString::Atoi(*PotentialIndex);
-				}
-			}
-		}
-
-		{
-			FReadScopeLock ReadScopeLock(ReferenceLock);
-			if (TextureReferences.Contains(Ref)) { return; }
-		}
-		{
-			FWriteScopeLock WriteScopeLock(ReferenceLock);
-			TextureReferences.Add(Ref);
 		}
 	}
 

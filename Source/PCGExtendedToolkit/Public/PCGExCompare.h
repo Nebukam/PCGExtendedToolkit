@@ -599,8 +599,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExAttributeToTagComparisonDetails
 
 	bool Init(const FPCGContext* InContext, const TSharedRef<PCGExData::FFacade>& InSourceDataFacade);
 
-	bool Matches(const TSharedPtr<PCGExData::FTags>& InTags, const int32 SourceIndex, const FPCGPoint& SourcePoint) const;
-	bool Matches(const TSharedPtr<PCGExData::FTags>& InTags, const PCGExData::FPointRef& SourcePointRef) const;
+	bool Matches(const TSharedPtr<PCGExData::FTags>& InTags, const PCGExData::FConstPoint& SourcePoint) const;
 
 	void RegisterConsumableAttributesWithData(FPCGExContext* InContext, const UPCGData* InData) const;
 };

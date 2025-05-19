@@ -162,10 +162,10 @@ namespace PCGExRelaxClusters
 
 #define PCGEX_RELAX_PROGRESS WBufferRef[i] = PCGExBlend::Lerp( RBufferRef[i], WBufferRef[i], InfluenceDetails.GetInfluence(Node.PointIndex));
 #define PCGEX_RELAX_STEP_NODE(_STEP) if (CurrentStep == _STEP-1){if(bLastStep){ \
-		for (int i = Scope.Start; i < Scope.End; i++){ PCGExCluster::FNode& Node = *Cluster->GetNode(i); RelaxOperation->Step##_STEP(Node); PCGEX_RELAX_PROGRESS } \
-		}else{ for (int i = Scope.Start; i < Scope.End; i++){ RelaxOperation->Step##_STEP(*Cluster->GetNode(i)); }} return; }
+		PCGEX_SCOPE_LOOP(i){ PCGExCluster::FNode& Node = *Cluster->GetNode(i); RelaxOperation->Step##_STEP(Node); PCGEX_RELAX_PROGRESS } \
+		}else{ PCGEX_SCOPE_LOOP(i){ RelaxOperation->Step##_STEP(*Cluster->GetNode(i)); }} return; }
 
-#define PCGEX_RELAX_STEP_EDGE(_STEP) if (CurrentStep == _STEP-1){ for (int i = Scope.Start; i < Scope.End; i++){ RelaxOperation->Step##_STEP(*Cluster->GetEdge(i)); } return; }
+#define PCGEX_RELAX_STEP_EDGE(_STEP) if (CurrentStep == _STEP-1){ PCGEX_SCOPE_LOOP(i){ RelaxOperation->Step##_STEP(*Cluster->GetEdge(i)); } return; }
 
 		const bool bLastStep = (CurrentStep == Steps) && InfluenceDetails.bProgressiveInfluence;
 

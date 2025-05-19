@@ -100,10 +100,11 @@ FVector FPCGExAttributeDebugDraw::GetVector(const PCGExData::FConstPoint& Point)
 
 FVector FPCGExAttributeDebugDraw::GetIndexedPosition(const PCGExData::FConstPoint& Point, const UPCGBasePointData* PointData) const
 {
-	const TArray<FPCGPoint> Points = PointData->GetPoints();
-	const int64 OutIndex = IndexGetter->Values[Point.Index];
-	if (OutIndex != -1) { return Points[PCGExMath::Tile<int32>(OutIndex, 0, Points.Num() - 1)].Transform.GetLocation(); }
-	return Point.Point->Transform.GetLocation();
+	if (const int64 OutIndex = IndexGetter->Values[Point.Index]; OutIndex != -1)
+	{
+		return PointData->GetTransform(PCGExMath::Tile<int32>(OutIndex, 0, PointData->GetNumPoints() - 1)).GetLocation();
+	}
+	return Point.GetTransform().GetLocation();
 }
 
 void FPCGExAttributeDebugDraw::Draw(const UWorld* World, const FVector& Start, const PCGExData::FConstPoint& Point, const UPCGBasePointData* PointData) const
@@ -255,8 +256,8 @@ bool FPCGExDrawAttributesElement::ExecuteInternal(FPCGContext* InContext) const
 
 		for (int PointIndex = 0; PointIndex < Context->CurrentIO->GetNum(); PointIndex++)
 		{
-			const PCGExData::FPointRef& Point = Context->CurrentIO->GetInPointRef(PointIndex);
-			const FVector Start = Point.Point->Transform.GetLocation();
+			const PCGExData::FConstPoint& Point = Context->CurrentIO->GetInPoint(PointIndex);
+			const FVector Start = Point.GetTransform().GetLocation();
 			DrawDebugPoint(World, Start, 1.0f, FColor::White, true);
 			for (FPCGExAttributeDebugDraw& Drawer : Context->DebugList)
 			{

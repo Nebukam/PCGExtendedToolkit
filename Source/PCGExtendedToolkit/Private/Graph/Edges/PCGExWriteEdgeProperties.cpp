@@ -3,7 +3,7 @@
 
 #include "Graph/Edges/PCGExWriteEdgeProperties.h"
 
-#include "Data/Blending/PCGExAttributeBlendFactoryProvider.h"
+#include "Data/Blending/PCGExBlendOpFactoryProvider.h"
 #include "Data/Blending/PCGExMetadataBlender.h"
 
 #define LOCTEXT_NAMESPACE "PCGExEdgesToPaths"
@@ -32,7 +32,7 @@ bool FPCGExWriteEdgePropertiesElement::Boot(FPCGExContext* InContext) const
 
 	if (Settings->bEndpointsBlending)
 	{
-		if (!PCGExFactories::GetInputFactories<UPCGExAttributeBlendFactory>(
+		if (!PCGExFactories::GetInputFactories<UPCGExBlendOpFactory>(
 			Context, PCGExDataBlending::SourceBlendingLabel, Context->BlendingFactories,
 			{PCGExFactories::EType::Blending}, true))
 		{

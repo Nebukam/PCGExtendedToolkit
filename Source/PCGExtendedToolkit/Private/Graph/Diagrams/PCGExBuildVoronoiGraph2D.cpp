@@ -325,7 +325,7 @@ namespace PCGExBuildVoronoi2D
 				[PCGEX_ASYNC_THIS_CAPTURE](const PCGExMT::FScope& Scope)
 				{
 					PCGEX_ASYNC_THIS
-					for (int i = Scope.Start; i < Scope.End; i++)
+					PCGEX_SCOPE_LOOP(i)
 					{
 						const bool bIsWithinBounds = This->IsVtxValid[i];
 						if (This->OpenSiteWriter) { This->OpenSiteWriter->GetMutable(i) = bIsWithinBounds; }

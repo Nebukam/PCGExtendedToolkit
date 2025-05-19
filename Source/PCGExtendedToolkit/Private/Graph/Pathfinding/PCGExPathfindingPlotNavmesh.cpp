@@ -220,22 +220,26 @@ void FPCGExPlotNavmeshTask::ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>&
 	TSharedPtr<PCGExData::FPointIO> PathIO = Context->OutputPaths->Emplace_GetRef(PointIO, PCGExData::EIOInit::New);
 	PCGEX_MAKE_SHARED(PathDataFacade, PCGExData::FFacade, PathIO.ToSharedRef())
 
-	UPCGBasePointData* OutData = PathIO->GetOut();
-	TArray<FPCGPoint>& MutablePoints = OutData->GetMutablePoints();
+	UPCGBasePointData* OutPathData = PathIO->GetOut();
+	OutPathData->SetNumPoints(NumPositions);
 
-	MutablePoints.SetNumUninitialized(NumPositions);
+	TConstPCGValueRange<FTransform> InTransforms = PointIO->GetIn()->GetConstTransformValueRange();
+	TPCGValueRange<FTransform> OutTransforms = OutPathData->GetTransformValueRange();
+	TPCGValueRange<int64> OutMetadataEntries = OutPathData->GetMetadataEntryValueRange();
 
 	for (int i = 0; i < NumPositions; i++)
 	{
 		PCGExPathfinding::FPlotPoint PPoint = PathLocations[i];
-		FPCGPoint& NewPoint = (MutablePoints[i] = PointIO->GetInPoint(PPoint.PlotIndex));
-		NewPoint.Transform.SetLocation(PPoint.Position);
-		NewPoint.MetadataEntry = PPoint.MetadataEntryKey;
+		OutTransforms[i].SetLocation(InTransforms[PPoint.PlotIndex].GetLocation());
+		OutMetadataEntries[i] = PPoint.MetadataEntryKey;
 	}
+	
 	PathLocations.Empty();
 
 	TSharedPtr<PCGExDataBlending::FMetadataBlender> TempBlender =
 		Context->Blending->CreateBlender(PathDataFacade.ToSharedRef(), PathDataFacade.ToSharedRef(), PCGExData::EIOSide::Out);
+
+	const int32 MaxIndex = OutPathData->GetNumPoints() - 1;
 
 	for (int i = 0; i < Milestones.Num() - 1; i++)
 	{
@@ -243,20 +247,20 @@ void FPCGExPlotNavmeshTask::ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>&
 		int32 EndIndex = Milestones[i + 1] + 1;
 		int32 Range = EndIndex - StartIndex - 1;
 
-		const FPCGPoint* EndPoint = PathIO->TryGetOutPoint(EndIndex);
-		if (!EndPoint) { continue; }
+		if (EndIndex < 0 || EndIndex > MaxIndex) { continue; }
 
-		const FPCGPoint& StartPoint = PathIO->GetOutPoint(StartIndex);
+		PCGExData::FMutablePoint StartPoint(OutPathData, StartIndex);
+		PCGExData::FMutablePoint EndPoint(OutPathData, EndIndex);
 
 		TArrayView<FPCGPoint> View = MakeArrayView(MutablePoints.GetData() + StartIndex, Range);
-		Context->Blending->BlendSubPoints(
-			PCGExData::FPointRef(StartPoint, StartIndex), PCGExData::FPointRef(EndPoint, EndIndex),
-			View, MilestonesMetrics[i], TempBlender.Get(), StartIndex);
+		Context->Blending->BlendSubPoints(StartPoint, EndPoint, View, MilestonesMetrics[i], TempBlender.Get(), StartIndex);
 	}
 
 	PathDataFacade->Write(AsyncManager);
 	MilestonesMetrics.Empty();
 
+	// TODO : 
+	
 	if (!Context->bAddSeedToPath) { MutablePoints.RemoveAt(0); }
 	if (!Context->bAddGoalToPath) { MutablePoints.Pop(); }
 }

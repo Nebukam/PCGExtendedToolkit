@@ -245,7 +245,7 @@ namespace PCGExAttributeRemap
 
 					if (Rule.RemapDetails.bUseAbsoluteRange)
 					{
-						for (int i = Scope.Start; i < Scope.End; i++)
+						PCGEX_SCOPE_LOOP(i)
 						{
 							double V = Rule.InputClampDetails.GetClampedValue(InProxy->Get(i));
 							Min = FMath::Min(Min, FMath::Abs(V));
@@ -255,7 +255,7 @@ namespace PCGExAttributeRemap
 					}
 					else
 					{
-						for (int i = Scope.Start; i < Scope.End; i++)
+						PCGEX_SCOPE_LOOP(i)
 						{
 							double V = Rule.InputClampDetails.GetClampedValue(InProxy->Get(i));
 							Min = FMath::Min(Min, V);
@@ -289,7 +289,7 @@ namespace PCGExAttributeRemap
 			{
 				if (Rule.RemapDetails.bPreserveSign)
 				{
-					for (int i = Scope.Start; i < Scope.End; i++)
+					PCGEX_SCOPE_LOOP(i)
 					{
 						double V = OutProxy->Get(i);
 						OutProxy->Set(
@@ -299,7 +299,7 @@ namespace PCGExAttributeRemap
 				}
 				else
 				{
-					for (int i = Scope.Start; i < Scope.End; i++)
+					PCGEX_SCOPE_LOOP(i)
 					{
 						OutProxy->Set(
 							i, Rule.OutputClampDetails.GetClampedValue(
@@ -312,7 +312,7 @@ namespace PCGExAttributeRemap
 			{
 				if (Rule.RemapDetails.bPreserveSign)
 				{
-					for (int i = Scope.Start; i < Scope.End; i++)
+					PCGEX_SCOPE_LOOP(i)
 					{
 						OutProxy->Set(
 							i, Rule.OutputClampDetails.GetClampedValue(
@@ -322,7 +322,7 @@ namespace PCGExAttributeRemap
 				}
 				else
 				{
-					for (int i = Scope.Start; i < Scope.End; i++)
+					PCGEX_SCOPE_LOOP(i)
 					{
 						OutProxy->Set(
 							i, Rule.OutputClampDetails.GetClampedValue(

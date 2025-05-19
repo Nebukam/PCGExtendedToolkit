@@ -263,8 +263,8 @@ void FPCGExContext::LoadAssets()
 			LoadHandle = UAssetManager::GetStreamableManager().RequestAsyncLoad(
 				RequiredAssets->Array(), [CtxHandle]()
 				{
-					const FPCGContext::FSharedContext<FPCGExContext> SharedContext(CtxHandle);
-					if (FPCGExContext* NestedThis = SharedContext.Get()) { NestedThis->UnpauseContext(); }
+					PCGEX_SHARED_CONTEXT_VOID(CtxHandle)
+					SharedContext.Get()->UnpauseContext();
 				});
 
 			if (!LoadHandle || !LoadHandle->IsActive())
@@ -287,15 +287,15 @@ void FPCGExContext::LoadAssets()
 			AsyncTask(
 				ENamedThreads::GameThread, [CtxHandle]()
 				{
-					const FPCGContext::FSharedContext<FPCGExContext> SharedContext(CtxHandle);
+					PCGEX_SHARED_CONTEXT_VOID(CtxHandle)
+
 					FPCGExContext* This = SharedContext.Get();
-					if (!This) { return; }
 
 					This->LoadHandle = UAssetManager::GetStreamableManager().RequestAsyncLoad(
 						This->RequiredAssets->Array(), [CtxHandle]()
 						{
-							const FPCGContext::FSharedContext<FPCGExContext> SharedContext(CtxHandle);
-							if (FPCGExContext* NestedThis = SharedContext.Get()) { NestedThis->UnpauseContext(); }
+							PCGEX_SHARED_CONTEXT_VOID(CtxHandle)
+							SharedContext.Get()->UnpauseContext();
 						});
 
 					if (!This->LoadHandle || !This->LoadHandle->IsActive())

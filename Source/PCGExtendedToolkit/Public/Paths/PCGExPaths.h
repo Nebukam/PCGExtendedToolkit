@@ -389,12 +389,13 @@ namespace PCGExPaths
 	{
 	protected:
 		bool bClosedLoop = false;
-		TArray<FVector> Positions;
+		TConstPCGValueRange<FTransform> Positions;
 		TUniquePtr<FPathEdgeOctree> EdgeOctree;
 		TArray<TSharedPtr<FPathEdgeExtraBase>> Extras;
 
 	public:
 		virtual ~FPath() = default;
+
 		FBox Bounds = FBox(ForceInit);
 		TArray<FPathEdge> Edges;
 		int32 NumPoints = 0;
@@ -408,13 +409,11 @@ namespace PCGExPaths
 
 		int32 IOIndex = -1;
 
-		FORCEINLINE const TArray<FVector>& GetPositions() const { return Positions; }
-
 		FORCEINLINE int32 LoopPointIndex(const int32 Index) const { return PCGExMath::Tile(Index, 0, LastIndex); };
 		virtual int32 SafePointIndex(const int32 Index) const = 0;
 
-		FORCEINLINE virtual const FVector& GetPos(const int32 Index) const { return Positions[SafePointIndex(Index)]; }
-		FORCEINLINE virtual const FVector& GetPos_Unsafe(const int32 Index) const { return Positions[Index]; }
+		FORCEINLINE virtual const FVector& GetPos(const int32 Index) const { return Positions[SafePointIndex(Index)].GetLocation(); }
+		FORCEINLINE virtual const FVector& GetPos_Unsafe(const int32 Index) const { return Positions[Index].GetLocation(); }
 		FORCEINLINE bool IsValidEdgeIndex(const int32 Index) const { return Index >= 0 && Index < NumEdges; }
 
 		virtual FVector DirToNextPoint(const int32 Index) const = 0;
@@ -423,12 +422,12 @@ namespace PCGExPaths
 		virtual int32 NextPointIndex(const int32 Index) const { return SafePointIndex(Index + 1); }
 		virtual int32 PrevPointIndex(const int32 Index) const { return SafePointIndex(Index - 1); }
 
-		FVector GetEdgePositionAtAlpha(const FPathEdge& Edge, const double Alpha) const { return FMath::Lerp(Positions[Edge.End], Positions[Edge.Start], Alpha); }
+		FVector GetEdgePositionAtAlpha(const FPathEdge& Edge, const double Alpha) const { return FMath::Lerp(Positions[Edge.End].GetLocation(), Positions[Edge.Start].GetLocation(), Alpha); }
 
 		FVector GetEdgePositionAtAlpha(const int32 Index, const double Alpha) const
 		{
 			const FPathEdge& Edge = Edges[Index];
-			return FMath::Lerp(Positions[Edge.Start], Positions[Edge.End], Alpha);
+			return FMath::Lerp(Positions[Edge.Start].GetLocation(), Positions[Edge.End].GetLocation(), Alpha);
 		}
 
 		virtual bool IsEdgeValid(const FPathEdge& Edge) const { return FVector::DistSquared(GetPos_Unsafe(Edge.Start), GetPos_Unsafe(Edge.End)) > 0; }
@@ -561,9 +560,6 @@ namespace PCGExPaths
 		virtual void ExtraComputingDone();
 		virtual void ComputeAllEdgeExtra();
 
-		virtual void UpdateEdges(const TArray<FPCGPoint>& InPoints, const double Expansion);
-		virtual void UpdateEdges(const TArrayView<const FVector> InPositions, const double Expansion);
-
 	protected:
 		void BuildPath(const double Expansion);
 	};
@@ -572,28 +568,14 @@ namespace PCGExPaths
 	class TPath final : public FPath
 	{
 	public:
-		explicit TPath(const TArrayView<const FPCGPoint>& InPoints, const double Expansion = 0)
+		explicit TPath(const TConstPCGValueRange<FTransform>& InTransforms, const double Expansion = 0)
 		{
 			bClosedLoop = ClosedLoop;
+			Positions = InTransforms;
 
-			NumPoints = InPoints.Num();
+			NumPoints = InTransforms.Num();
 			LastIndex = NumPoints - 1;
 
-			Positions.SetNumUninitialized(NumPoints);
-			for (int i = 0; i < NumPoints; i++) { *(Positions.GetData() + i) = InPoints[i].Transform.GetLocation(); }
-
-			BuildPath(Expansion);
-		}
-
-		explicit TPath(const TArrayView<const FVector> InPositions, const double Expansion = 0)
-		{
-			bClosedLoop = ClosedLoop;
-
-			NumPoints = InPositions.Num();
-			LastIndex = NumPoints - 1;
-
-			Positions.Reset(NumPoints);
-			Positions.Append(InPositions);
 
 			BuildPath(Expansion);
 		}
@@ -731,8 +713,8 @@ namespace PCGExPaths
 		virtual void ProcessLastEdge(const FPath* Path, const FPathEdge& Edge) override;
 	};
 
-	TSharedPtr<FPath> MakePath(const TArrayView<const FPCGPoint> InPoints, const double Expansion, const bool bClosedLoop);
-	TSharedPtr<FPath> MakePath(const TArrayView<const FVector> InPositions, const double Expansion, const bool bClosedLoop);
+	TSharedPtr<FPath> MakePath(const UPCGBasePointData* InPointData, const double Expansion, const bool bClosedLoop);
+	TSharedPtr<FPath> MakePath(const TConstPCGValueRange<FTransform>& InTransforms, const double Expansion, const bool bClosedLoop);
 
 	FTransform GetClosestTransform(const FPCGSplineStruct& InSpline, const FVector& InLocation, const bool bUseScale = true);
 	FTransform GetClosestTransform(const TSharedPtr<const FPCGSplineStruct>& InSpline, const FVector& InLocation, const bool bUseScale = true);

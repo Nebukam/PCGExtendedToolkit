@@ -179,7 +179,7 @@ namespace PCGExShapes
 	{
 	public:
 		virtual ~FShape() = default;
-		PCGExData::FPointRef Seed;
+		PCGExData::FConstPoint Seed;
 
 		int32 StartIndex = 0;
 		int32 NumPoints = 0;
@@ -190,7 +190,7 @@ namespace PCGExShapes
 
 		bool IsValid() const { return bValid && Fit.IsValid && NumPoints > 0; }
 
-		explicit FShape(const PCGExData::FPointRef& InPointRef)
+		explicit FShape(const PCGExData::FConstPoint& InPointRef)
 			: Seed(InPointRef)
 		{
 		}

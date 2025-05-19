@@ -6,7 +6,7 @@
 
 #include "FbxImporter.h"
 #include "PCGExPointsProcessor.h"
-#include "Data/Blending/PCGExAttributeBlendFactoryProvider.h"
+#include "Data/Blending/PCGExBlendOpFactoryProvider.h"
 #include "Data/Blending/PCGExMetadataBlender.h"
 
 
@@ -69,9 +69,9 @@ TArray<FPCGPinProperties> UPCGExSampleNearestPointSettings::InputPinProperties()
 	{
 		PCGEX_PIN_FACTORIES(PCGExSorting::SourceSortingRules, "Plug sorting rules here. Order is defined by each rule' priority value, in ascending order.", Required, {})
 	}
-	
+
 	PCGEX_PIN_FACTORIES(PCGEx::SourceUseValueIfFilters, "Filter which points values will be processed.", Advanced, {})
-	
+
 	return PinProperties;
 }
 
@@ -97,18 +97,11 @@ bool FPCGExSampleNearestPointElement::Boot(FPCGExContext* InContext) const
 	Context->TargetsFacade = PCGExData::TryGetSingleFacade(Context, PCGEx::SourceTargetsLabel, false, true);
 	if (!Context->TargetsFacade) { return false; }
 
-	PCGExFactories::GetInputFactories<UPCGExAttributeBlendFactory>(
+	PCGExFactories::GetInputFactories<UPCGExBlendOpFactory>(
 		Context, PCGExDataBlending::SourceBlendingLabel, Context->BlendingFactories,
 		{PCGExFactories::EType::Blending}, false);
 
 	Context->TargetsPreloader = MakeShared<PCGExData::FFacadePreloader>();
-
-	TSet<FName> MissingTargetAttributes;
-	PCGExDataBlending::AssembleBlendingDetails(
-		Settings->bBlendPointProperties ? Settings->PointPropertiesBlendingSettings : FPCGExPropertiesBlendingDetails(EPCGExDataBlendingType::None),
-		Settings->TargetAttributes, Context->TargetsFacade->Source, Context->BlendingDetails, MissingTargetAttributes);
-
-	for (const FName Id : MissingTargetAttributes) { PCGE_LOG_C(Warning, GraphAndLog, InContext, FText::Format(FTEXT("Missing source attribute on targets: {0}."), FText::FromName(Id))); }
 
 	PCGEX_FOREACH_FIELD_NEARESTPOINT(PCGEX_OUTPUT_VALIDATE_NAME)
 
@@ -134,7 +127,6 @@ bool FPCGExSampleNearestPointElement::Boot(FPCGExContext* InContext) const
 	}
 
 	PCGExDataBlending::RegisterBuffersDependencies_SourceA(Context, *Context->TargetsPreloader, Context->BlendingFactories);
-	Context->BlendingDetails.RegisterBuffersDependencies(Context, Context->TargetsFacade, *Context->TargetsPreloader);
 
 	return true;
 }
@@ -178,7 +170,7 @@ bool FPCGExSampleNearestPointElement::ExecuteInternal(FPCGContext* InContext) co
 				[&](const TSharedPtr<PCGExData::FPointIO>& Entry) { return true; },
 				[&](const TSharedPtr<PCGExPointsMT::TBatch<PCGExSampleNearestPoints::FProcessor>>& NewBatch)
 				{
-					if (Settings->bPruneFailedSamples) { NewBatch->bRequiresWriteStep = true; }
+					NewBatch->bRequiresWriteStep = Settings->bPruneFailedSamples;
 				}))
 			{
 				Context->CancelExecution(TEXT("Could not find any points to sample."));
@@ -280,7 +272,7 @@ namespace PCGExSampleNearestPoints
 
 		bool bLocalAnySuccess = false;
 
-		TArray<PCGExDataBlending::FBlendTracker> BlendTrackers;
+		TArray<PCGEx::FOpStats> BlendTrackers;
 
 		TConstPCGValueRange<FTransform> Transforms = PointDataFacade->GetIn()->GetConstTransformValueRange();
 		TConstPCGValueRange<FTransform> TargetTransforms = Context->TargetsFacade->GetIn()->GetConstTransformValueRange();
@@ -383,11 +375,11 @@ namespace PCGExSampleNearestPoints
 
 			FVector WeightedSignAxis = FVector::Zero();
 			FVector WeightedAngleAxis = FVector::Zero();
-			PCGExDataBlending::FBlendTracker SampleTracker{};
+			PCGEx::FOpStats SampleTracker{};
 			double WeightedDistance = 0;
 
 			auto ProcessTargetInfos = [&]
-				(const PCGExNearestPoint::FSample& TargetInfos, const double Weight, const TSharedPtr<PCGExDataBlending::FBlendOpsManager> Blender)
+				(const PCGExNearestPoint::FSample& TargetInfos, const double Weight, const TSharedPtr<PCGExDataBlending::FBlendOpsManager> Blender = nullptr)
 			{
 				const FTransform& TargetTransform = TargetTransforms[TargetInfos.Index];
 				const FQuat TargetRotation = TargetTransform.GetRotation();
@@ -399,8 +391,8 @@ namespace PCGExSampleNearestPoints
 				WeightedAngleAxis += PCGExMath::GetDirection(TargetRotation, Settings->AngleAxis) * Weight;
 				WeightedDistance += FMath::Sqrt(TargetInfos.Distance);
 
-				SampleTracker.Weight += Weight;
 				SampleTracker.Count++;
+				SampleTracker.Weight += Weight;
 
 				if (Blender) { Blender->MultiBlend(TargetInfos.Index, Index, Weight, BlendTrackers); }
 			};
@@ -410,7 +402,7 @@ namespace PCGExSampleNearestPoints
 			{
 				const PCGExNearestPoint::FSample& TargetInfos = bSampleClosest ? Stats.Closest : Stats.Farthest;
 				const double Weight = Context->WeightCurve->Eval(Stats.GetRangeRatio(TargetInfos.Distance));
-				ProcessTargetInfos(TargetInfos, Weight, nullptr);
+				ProcessTargetInfos(TargetInfos, Weight);
 
 				if (BlendOpsManager) { BlendOpsManager->Blend(TargetInfos.Index, Index, Weight); }
 			}
@@ -429,7 +421,7 @@ namespace PCGExSampleNearestPoints
 			}
 
 
-			if (SampleTracker.Count != 0) // Dodge NaN
+			if (SampleTracker.Weight != 0) // Dodge NaN
 			{
 				WeightedUp /= SampleTracker.Weight;
 				WeightedTransform = PCGExBlend::Div(WeightedTransform, SampleTracker.Weight);
@@ -465,18 +457,26 @@ namespace PCGExSampleNearestPoints
 	void FProcessor::OnPointsProcessingComplete()
 	{
 		if (!Settings->bOutputNormalizedDistance || !DistanceWriter) { return; }
-		MaxDistance = MaxDistanceValue->Max();
-		StartParallelLoopForRange(PointDataFacade->GetNum());
-	}
 
-	void FProcessor::ProcessRange(const PCGExMT::FScope& Scope)
-	{
-		PCGEX_SCOPE_LOOP(Index)
+		MaxDistance = MaxDistanceValue->Max();
+
+		const int32 NumPoints = PointDataFacade->GetNum();
+
+		if (Settings->bOutputOneMinusDistance)
 		{
-			double& D = DistanceWriter->GetMutable(Index);
-			D /= MaxDistance;
-			if (Settings->bOutputOneMinusDistance) { D = 1 - D; }
-			D *= Settings->DistanceScale;
+			for (int i = 0; i < NumPoints; i++)
+			{
+				double& D = DistanceWriter->GetMutable(i);
+				D = (1 - (D / MaxDistance)) * Settings->DistanceScale;
+			}
+		}
+		else
+		{
+			for (int i = 0; i < NumPoints; i++)
+			{
+				double& D = DistanceWriter->GetMutable(i);
+				D = (D / MaxDistance) * Settings->DistanceScale;
+			}
 		}
 	}
 
@@ -491,7 +491,7 @@ namespace PCGExSampleNearestPoints
 
 	void FProcessor::Write()
 	{
-		if (Settings->bPruneFailedSamples) { PointDataFacade->Source->Gather(SamplingMask); }
+		PointDataFacade->Source->Gather(SamplingMask);
 	}
 }
 

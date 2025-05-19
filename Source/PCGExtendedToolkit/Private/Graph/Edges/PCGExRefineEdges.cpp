@@ -229,7 +229,7 @@ namespace PCGExRefineEdges
 		TArray<PCGExGraph::FEdge>& Edges = *Cluster->Edges;
 
 		const bool bDefaultValidity = Refinement->GetDefaultEdgeValidity();
-		for (int i = Scope.Start; i < Scope.End; i++) { Edges[i].bValid = bDefaultValidity; }
+		PCGEX_SCOPE_LOOP(i) { Edges[i].bValid = bDefaultValidity; }
 	}
 
 	void FProcessor::ProcessSingleEdge(const int32 EdgeIndex, PCGExGraph::FEdge& Edge, const PCGExMT::FScope& Scope)
@@ -248,7 +248,7 @@ namespace PCGExRefineEdges
 			{
 				PCGEX_ASYNC_THIS
 				const PCGExCluster::FCluster* LocalCluster = This->Cluster.Get();
-				for (int i = Scope.Start; i < Scope.End; i++)
+				PCGEX_SCOPE_LOOP(i)
 				{
 					if (PCGExCluster::FNode* Node = LocalCluster->GetNode(i); !Node->HasAnyValidEdges(LocalCluster)) { Node->bValid = false; }
 				}
@@ -265,7 +265,7 @@ namespace PCGExRefineEdges
 						PCGEX_ASYNC_NESTED_THIS
 						const PCGExCluster::FCluster* LocalCluster = NestedThis->Cluster.Get();
 
-						for (int i = Scope.Start; i < Scope.End; i++)
+						PCGEX_SCOPE_LOOP(i)
 						{
 							PCGExGraph::FEdge* Edge = LocalCluster->GetEdge(i);
 							if (Edge->bValid) { continue; }
@@ -304,7 +304,7 @@ namespace PCGExRefineEdges
 					const TSharedPtr<PCGExCluster::FCluster> LocalCluster = This->Cluster;
 					const TSharedPtr<PCGExClusterFilter::FManager> SanitizationFilters = This->SanitizationFilterManager;
 
-					for (int i = Scope.Start; i < Scope.End; i++)
+					PCGEX_SCOPE_LOOP(i)
 					{
 						PCGExGraph::FEdge& Edge = *LocalCluster->GetEdge(i);
 						if (SanitizationFilters->Test(Edge)) { Edge.bValid = true; }
@@ -403,7 +403,7 @@ namespace PCGExRefineEdges
 
 		if (Processor->Sanitization == EPCGExRefineSanitization::Longest)
 		{
-			for (int i = Scope.Start; i < Scope.End; i++)
+			PCGEX_SCOPE_LOOP(i)
 			{
 				const PCGExCluster::FNode* Node = (Processor->Cluster->GetNode(i));
 
@@ -425,7 +425,7 @@ namespace PCGExRefineEdges
 		}
 		else if (Processor->Sanitization == EPCGExRefineSanitization::Shortest)
 		{
-			for (int i = Scope.Start; i < Scope.End; i++)
+			PCGEX_SCOPE_LOOP(i)
 			{
 				const PCGExCluster::FNode* Node = Processor->Cluster->GetNode(i);
 

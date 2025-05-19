@@ -396,12 +396,9 @@ namespace PCGExMT
 				TEXT("ResetThen"),
 				[CtxHandle = Context->GetOrCreateHandle(), Callback]()
 				{
-					const FPCGContext::FSharedContext<FPCGExContext> SharedContext(CtxHandle);
-					if (FPCGExContext* Ctx = SharedContext.Get())
-					{
-						Ctx->ResumeExecution();
-						Callback();
-					}
+					PCGEX_SHARED_CONTEXT_VOID(CtxHandle)
+					SharedContext.Get()->ResumeExecution();
+					Callback();
 				},
 				UE::Tasks::ETaskPriority::High
 			);
@@ -558,7 +555,7 @@ namespace PCGExMT
 
 		if (bPrepareOnly) { return; }
 
-		for (int i = Scope.Start; i < Scope.End; i++) { OnIterationCallback(i, Scope); }
+		PCGEX_SCOPE_LOOP(i) { OnIterationCallback(i, Scope); }
 	}
 
 	void FSimpleCallbackTask::ExecuteTask(const TSharedPtr<FTaskManager>& AsyncManager)

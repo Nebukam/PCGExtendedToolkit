@@ -66,23 +66,20 @@ bool PCGExPointFilter::FNumericCompareNearestFilter::Test(const int32 PointIndex
 {
 	const double B = OperandB->Read(PointIndex);
 
-	const TArray<FPCGPoint>* TargetPoints = &TargetDataFacade->Source->GetIn()->GetPoints();
+	const UPCGBasePointData* TargetsData = TargetDataFacade->GetIn();
+	const PCGExData::FConstPoint SourcePt = PointDataFacade->GetInPoint(PointIndex);
 
-	const FPCGPoint& SourcePt = TargetDataFacade->Source->GetInPoint(PointIndex);
 	double BestDist = MAX_dbl;
 	int32 TargetIndex = -1;
 
 	TargetOctree->FindNearbyElements(
-		SourcePt.Transform.GetLocation(), [&](const PCGPointOctree::FPointRef& PointRef)
+		SourcePt.GetTransform().GetLocation(), [&](const PCGPointOctree::FPointRef& PointRef)
 		{
 			const int32 OtherIndex = PointRef.Index;
+			const double Dist = Distances->GetDistSquared(SourcePt, PCGExData::FConstPoint(TargetsData, OtherIndex));
 
-			FVector SourcePosition = FVector::ZeroVector;
-			FVector TargetPosition = FVector::ZeroVector;
-			
-			Distances->GetCenters(SourcePt, *(TargetPoints->GetData() + OtherIndex), SourcePosition, TargetPosition);
-			const double Dist = FVector::DistSquared(SourcePosition, TargetPosition);
 			if (Dist > BestDist) { return; }
+
 			BestDist = Dist;
 			TargetIndex = OtherIndex;
 		});

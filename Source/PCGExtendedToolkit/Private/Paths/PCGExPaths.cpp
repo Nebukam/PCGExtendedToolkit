@@ -244,7 +244,7 @@ namespace PCGExPaths
 		}
 
 		PCGExMath::CheckConvex(
-			Positions[A], Positions[Index], Positions[B],
+			Positions[A].GetLocation(), Positions[Index].GetLocation(), Positions[B].GetLocation(),
 			bIsConvex, ConvexitySign);
 	}
 
@@ -282,38 +282,6 @@ namespace PCGExPaths
 		}
 
 		ExtraComputingDone();
-	}
-
-	void FPath::UpdateEdges(const TArray<FPCGPoint>& InPoints, const double Expansion)
-	{
-		Bounds = FBox(ForceInit);
-		EdgeOctree.Reset();
-
-		check(Positions.Num() == InPoints.Num())
-
-		Positions.SetNumUninitialized(NumPoints);
-		for (int i = 0; i < NumPoints; ++i) { Positions[i] = InPoints[i].Transform.GetLocation(); }
-		for (FPathEdge& Edge : Edges)
-		{
-			Edge.Update(Positions, Expansion);
-			Bounds += Edge.Bounds.GetBox();
-		}
-	}
-
-	void FPath::UpdateEdges(const TArrayView<const FVector> InPositions, const double Expansion)
-	{
-		Bounds = FBox(ForceInit);
-		EdgeOctree.Reset();
-
-		check(Positions.Num() == InPositions.Num())
-		Positions.Reset(NumPoints);
-		Positions.Append(InPositions);
-
-		for (FPathEdge& Edge : Edges)
-		{
-			Edge.Update(Positions, Expansion);
-			Bounds += Edge.Bounds.GetBox();
-		}
 	}
 
 	void FPath::BuildPath(const double Expansion)
@@ -505,27 +473,20 @@ namespace PCGExPaths
 		GetMutable(Edge.Start) = PI;
 	}
 
-	TSharedPtr<FPath> MakePath(const TArrayView<const FPCGPoint> InPoints, const double Expansion, const bool bClosedLoop)
+	TSharedPtr<FPath> MakePath(const UPCGBasePointData* InPointData, const double Expansion, const bool bClosedLoop)
 	{
-		if (bClosedLoop)
-		{
-			PCGEX_MAKE_SHARED(P, TPath<true>, InPoints, Expansion)
-			return StaticCastSharedPtr<FPath>(P);
-		}
-
-		PCGEX_MAKE_SHARED(P, TPath<false>, InPoints, Expansion)
-		return StaticCastSharedPtr<FPath>(P);
+		return MakePath(InPointData->GetConstTransformValueRange(), Expansion, bClosedLoop);
 	}
 
-	TSharedPtr<FPath> MakePath(const TArrayView<const FVector> InPositions, const double Expansion, const bool bClosedLoop)
+	TSharedPtr<FPath> MakePath(const TConstPCGValueRange<FTransform>& InTransforms, const double Expansion, const bool bClosedLoop)
 	{
 		if (bClosedLoop)
 		{
-			PCGEX_MAKE_SHARED(P, TPath<true>, InPositions, Expansion)
+			PCGEX_MAKE_SHARED(P, TPath<true>, InTransforms, Expansion)
 			return StaticCastSharedPtr<FPath>(P);
 		}
 
-		PCGEX_MAKE_SHARED(P, TPath<false>, InPositions, Expansion)
+		PCGEX_MAKE_SHARED(P, TPath<false>, InTransforms, Expansion)
 		return StaticCastSharedPtr<FPath>(P);
 	}
 

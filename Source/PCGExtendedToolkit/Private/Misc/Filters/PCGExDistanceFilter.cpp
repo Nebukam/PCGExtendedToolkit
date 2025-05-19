@@ -83,7 +83,7 @@ const PCGPointOctree::FPointOctree* TargetOctree = OctreesPtr[i];
 #define PCGEX_POINTREF_INDEX const int32 OtherIndex = PointRef.Index;
 #endif
 
-bool PCGExPointFilter::FDistanceFilter::Test(const FPCGPoint& Point) const
+bool PCGExPointFilter::FDistanceFilter::TestRoamingPoint(const FPCGPoint& Point) const
 {
 	double BestDist = MAX_dbl;
 	const FVector Origin = Point.Transform.GetLocation();

@@ -60,19 +60,19 @@ public:
 		return true;
 	}
 
-	virtual FTransform ComputeOrientation(const PCGExData::FPointRef& Point, const double DirectionMultiplier) const override
+	virtual FTransform ComputeOrientation(const PCGExData::FConstPoint& Point, const double DirectionMultiplier) const override
 	{
 		switch (LookAt)
 		{
 		default:
 		case EPCGExOrientLookAtMode::NextPoint:
-			return LookAtAxis(Point.Point->Transform, Path->DirToNextPoint(Point.Index), DirectionMultiplier);
+			return LookAtAxis(Point.GetTransform(), Path->DirToNextPoint(Point.Index), DirectionMultiplier);
 		case EPCGExOrientLookAtMode::PreviousPoint:
-			return LookAtAxis(Point.Point->Transform, Path->DirToPrevPoint(Point.Index), DirectionMultiplier);
+			return LookAtAxis(Point.GetTransform(), Path->DirToPrevPoint(Point.Index), DirectionMultiplier);
 		case EPCGExOrientLookAtMode::Direction:
-			return LookAtDirection(Point.Point->Transform, Point.Index, DirectionMultiplier);
+			return LookAtDirection(Point.GetTransform(), Point.Index, DirectionMultiplier);
 		case EPCGExOrientLookAtMode::Position:
-			return LookAtPosition(Point.Point->Transform, Point.Index, DirectionMultiplier);
+			return LookAtPosition(Point.GetTransform(), Point.Index, DirectionMultiplier);
 		}
 	}
 

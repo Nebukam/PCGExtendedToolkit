@@ -166,7 +166,7 @@ bool FPCGExPathToClustersElement::ExecuteInternal(FPCGContext* InContext) const
 
 #pragma endregion
 
-	if (Settings->bFusePaths) { Context->UnionDataFacade->Source->StageOutput(); }
+	if (Settings->bFusePaths) { Context->UnionDataFacade->Source->StageOutput(Context); }
 	else { Context->MainPoints->StageOutputs(); }
 
 	return Context->TryComplete();
@@ -190,8 +190,7 @@ namespace PCGExPathToClusters
 
 		GraphBuilder = MakeShared<PCGExGraph::FGraphBuilder>(PointDataFacade, &Settings->GraphBuilderDetails, 2);
 
-		const TArray<FPCGPoint>& InPoints = PointIO->GetIn()->GetPoints();
-		const int32 NumPoints = InPoints.Num();
+		const int32 NumPoints = PointDataFacade->GetNum();
 
 		PointIO->InitializeOutput<UPCGExClusterNodesData>(PCGExData::EIOInit::New);
 
@@ -242,8 +241,8 @@ namespace PCGExPathToClusters
 	{
 		if (!FPointsProcessor::Process(InAsyncManager)) { return false; }
 
-		InPoints = &PointDataFacade->GetIn()->GetPoints();
-		const int32 NumPoints = InPoints->Num();
+		const int32 NumPoints = PointDataFacade->GetNum();
+
 		IOIndex = PointDataFacade->Source->IOIndex;
 		LastIndex = NumPoints - 1;
 
@@ -279,49 +278,44 @@ namespace PCGExPathToClusters
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExPathToClusters::FFusingProcessor::InsertEdges);
 
-		const TArray<FPCGPoint>& InNodePts = *InPoints;
+		const UPCGBasePointData* InPointData = PointDataFacade->GetIn();
+
 		if (bUnsafe)
 		{
-			for (int i = Scope.Start; i < Scope.End; i++)
+			PCGEX_SCOPE_LOOP(i)
 			{
 				const int32 NextIndex = i + 1;
 				if (NextIndex > LastIndex)
 				{
 					if (bClosedLoop)
 					{
-						UnionGraph->InsertEdge_Unsafe(
-							InNodePts[LastIndex], InNodePts[0]);
+						UnionGraph->InsertEdge_Unsafe(PCGExData::FConstPoint(InPointData, LastIndex), PCGExData::FConstPoint(InPointData, 0));
 					}
 					return;
 				}
-				UnionGraph->InsertEdge_Unsafe(
-					InNodePts[i], InNodePts[NextIndex]);
+
+				UnionGraph->InsertEdge_Unsafe(PCGExData::FConstPoint(InPointData, i), PCGExData::FConstPoint(InPointData, NextIndex));
 			}
 		}
 		else
 		{
-			for (int i = Scope.Start; i < Scope.End; i++)
+			PCGEX_SCOPE_LOOP(i)
 			{
 				const int32 NextIndex = i + 1;
+
 				if (NextIndex > LastIndex)
 				{
 					if (bClosedLoop)
 					{
-						UnionGraph->InsertEdge(
-							InNodePts[LastIndex], InNodePts[0]);
+						UnionGraph->InsertEdge_Unsafe(PCGExData::FConstPoint(InPointData, LastIndex), PCGExData::FConstPoint(InPointData, 0));
 					}
 					return;
 				}
-				UnionGraph->InsertEdge(
-					InNodePts[i], InNodePts[NextIndex]);
+
+				UnionGraph->InsertEdge_Unsafe(PCGExData::FConstPoint(InPointData, i), PCGExData::FConstPoint(InPointData, NextIndex));
 			}
 		}
 	}
-
-	void FFusingProcessor::ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const PCGExMT::FScope& Scope)
-	{
-	}
-
 
 #pragma endregion
 }

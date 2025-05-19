@@ -20,7 +20,7 @@ bool UPCGExGoalPickerAll::PrepareForData(FPCGExContext* InContext, const TShared
 	return GoalsNum > 0;
 }
 
-void UPCGExGoalPickerAll::GetGoalIndices(const PCGExData::FPointRef& Seed, TArray<int32>& OutIndices) const
+void UPCGExGoalPickerAll::GetGoalIndices(const PCGExData::FConstPoint& Seed, TArray<int32>& OutIndices) const
 {
 	OutIndices.Reserve(OutIndices.Num() + GoalsNum);
 	for (int i = 0; i < GoalsNum; i++) { OutIndices.Add(i); }

@@ -3,7 +3,7 @@
 
 #include "Paths/PCGExAttributeRolling.h"
 
-#include "Data/Blending/PCGExAttributeBlendFactoryProvider.h"
+#include "Data/Blending/PCGExBlendOpFactoryProvider.h"
 
 #define LOCTEXT_NAMESPACE "PCGExAttributeRollingElement"
 #define PCGEX_NAMESPACE AttributeRolling
@@ -85,7 +85,7 @@ bool FPCGExAttributeRollingElement::Boot(FPCGExContext* InContext) const
 		}
 	}
 
-	PCGExFactories::GetInputFactories<UPCGExAttributeBlendFactory>(
+	PCGExFactories::GetInputFactories<UPCGExBlendOpFactory>(
 		Context, PCGExDataBlending::SourceBlendingLabel, Context->BlendingFactories,
 		{PCGExFactories::EType::Blending}, false);
 

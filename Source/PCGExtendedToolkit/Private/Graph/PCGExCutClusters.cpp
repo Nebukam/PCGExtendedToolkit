@@ -112,9 +112,7 @@ bool FPCGExCutEdgesElement::ExecuteInternal(
 			[Context](const PCGExMT::FScope& Scope)
 			{
 				const TSharedRef<PCGExData::FFacade> PathFacade = Context->PathFacades[Scope.Start];
-				const TSharedPtr<PCGExPaths::FPath> Path = PCGExPaths::MakePath(
-					PathFacade->Source->GetIn()->GetPoints(), 0,
-					Context->ClosedLoop.IsClosedLoop(PathFacade->Source));
+				const TSharedPtr<PCGExPaths::FPath> Path = PCGExPaths::MakePath(PathFacade->GetIn(), 0, Context->ClosedLoop.IsClosedLoop(PathFacade->Source));
 
 				Path->BuildEdgeOctree();
 

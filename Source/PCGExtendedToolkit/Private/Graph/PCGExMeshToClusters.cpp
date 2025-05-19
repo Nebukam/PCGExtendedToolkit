@@ -112,7 +112,7 @@ bool FPCGExMeshToClustersElement::ExecuteInternal(
 			const TArray<FPCGPoint>& TargetPoints = Context->CurrentIO->GetIn()->GetPoints();
 			for (int i = 0; i < TargetPoints.Num(); i++)
 			{
-				FSoftObjectPath Path = PathGetter->SoftGet(i, TargetPoints[i], FSoftObjectPath());
+				FSoftObjectPath Path = PathGetter->SoftGet(i, FSoftObjectPath());
 
 				if (!Path.IsValid())
 				{

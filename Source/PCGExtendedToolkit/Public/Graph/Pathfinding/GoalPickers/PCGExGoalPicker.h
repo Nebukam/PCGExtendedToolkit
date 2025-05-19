@@ -27,8 +27,8 @@ public:
 	virtual void CopySettingsFrom(const UPCGExInstancedFactory* Other) override;
 
 	virtual bool PrepareForData(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade>& InSeedsDataFacade, const TSharedPtr<PCGExData::FFacade>& InGoalsDataFacade);
-	virtual int32 GetGoalIndex(const PCGExData::FPointRef& Seed) const;
-	virtual void GetGoalIndices(const PCGExData::FPointRef& Seed, TArray<int32>& OutIndices) const;
+	virtual int32 GetGoalIndex(const PCGExData::FConstPoint& Seed) const;
+	virtual void GetGoalIndices(const PCGExData::FConstPoint& Seed, TArray<int32>& OutIndices) const;
 	virtual bool OutputMultipleGoals() const;
 
 protected:

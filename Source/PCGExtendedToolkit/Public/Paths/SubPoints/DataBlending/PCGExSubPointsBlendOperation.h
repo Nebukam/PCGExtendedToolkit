@@ -32,15 +32,15 @@ public:
 	virtual void PrepareForData(const TSharedPtr<PCGExData::FFacade>& InTargetFacade, const TSharedPtr<PCGExData::FFacade>& InSourceFacade, const PCGExData::EIOSide InSourceSide, const TSet<FName>* IgnoreAttributeSet = nullptr);
 
 	virtual void ProcessSubPoints(
-		const PCGExData::FPointRef& From,
-		const PCGExData::FPointRef& To,
+		const PCGExData::FConstPoint& From,
+		const PCGExData::FConstPoint& To,
 		const TArrayView<FPCGPoint>& SubPoints,
 		const PCGExPaths::FPathMetrics& Metrics,
 		const int32 StartIndex = -1) const override;
 
 	virtual void BlendSubPoints(
-		const PCGExData::FPointRef& From,
-		const PCGExData::FPointRef& To,
+		const PCGExData::FConstPoint& From,
+		const PCGExData::FConstPoint& To,
 		const TArrayView<FPCGPoint>& SubPoints,
 		const PCGExPaths::FPathMetrics& Metrics,
 		PCGExDataBlending::FMetadataBlender* InBlender,

@@ -7,7 +7,7 @@
 #include "PCGExPathProcessor.h"
 #include "PCGExPaths.h"
 #include "PCGExPointsProcessor.h"
-#include "Data/Blending/PCGExAttributeBlendFactoryProvider.h"
+#include "Data/Blending/PCGExBlendOpFactoryProvider.h"
 #include "Data/Blending/PCGExDataBlending.h"
 #include "Data/Blending/PCGExMetadataBlender.h"
 #include "Sampling/PCGExSampling.h"
@@ -157,7 +157,7 @@ struct FPCGExAttributeRollingContext final : FPCGExPathProcessorContext
 	TArray<TObjectPtr<const UPCGExFilterFactoryData>> StartFilterFactories;
 	TArray<TObjectPtr<const UPCGExFilterFactoryData>> StopFilterFactories;
 
-	TArray<TObjectPtr<const UPCGExAttributeBlendFactory>> BlendingFactories;
+	TArray<TObjectPtr<const UPCGExBlendOpFactory>> BlendingFactories;
 
 	PCGEX_FOREACH_FIELD_ATTRIBUTE_ROLL(PCGEX_OUTPUT_DECL_TOGGLE)
 };

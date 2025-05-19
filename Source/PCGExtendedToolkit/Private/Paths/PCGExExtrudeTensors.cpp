@@ -299,7 +299,7 @@ namespace PCGExExtrudeTensors
 
 		FPCGPoint& NewPoint = ExtrudedPoints.Add_GetRef(InPoint);
 		LastInsertion = NewPoint.Transform.GetLocation();
-		if (Settings->bRefreshSeed) { NewPoint.Seed = PCGExRandom::ComputeSeed(NewPoint, FVector(Origin.Seed)); }
+		if (Settings->bRefreshSeed) { NewPoint.Seed = PCGExRandom::ComputeSeed(LastInsertion, FVector(Origin.Seed)); }
 
 		if (Settings->bDoSelfPathIntersections)
 		{
@@ -477,16 +477,10 @@ namespace PCGExExtrudeTensors
 		CompletedExtrusions = MakeShared<PCGExMT::TScopedArray<TSharedPtr<FExtrusion>>>(Loops);
 	}
 
-	void FProcessor::PrepareSingleLoopScopeForPoints(const PCGExMT::FScope& Scope)
+	void FProcessor::ProcessPoints(const PCGExMT::FScope& Scope)
 	{
 		PointDataFacade->Fetch(Scope);
-		//FilterScope(Scope);
-	}
-
-	void FProcessor::ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const PCGExMT::FScope& Scope)
-	{
-		//if (!PointFilterCache[Index]) { return; }
-		InitExtrusionFromSeed(Index);
+		PCGEX_SCOPE_LOOP(Index) { InitExtrusionFromSeed(Index); }
 	}
 
 	void FProcessor::OnPointsProcessingComplete()
@@ -630,7 +624,7 @@ namespace PCGExExtrudeTensors
 
 						if (!E->bIsValidPath) { continue; }
 
-						TSharedPtr<PCGExPaths::FPath> StaticPath = PCGExPaths::MakePath(E->GetExtrudedPoints(), Settings->ExternalPathIntersections.Tolerance, false);
+						TSharedPtr<PCGExPaths::FPath> StaticPath = PCGExPaths::MakePath(E->PointDataFacade->GetOut(), Settings->ExternalPathIntersections.Tolerance, false);
 						StaticPath->BuildEdgeOctree();
 						StaticPaths.Get()->Add(StaticPath);
 					}
@@ -736,7 +730,7 @@ namespace PCGExExtrudeTensors
 				for (const TSharedPtr<PCGExData::FFacade>& Facade : Context->PathsFacades)
 				{
 					TSharedPtr<PCGExPaths::FPath> Path = PCGExPaths::MakePath(
-						Facade->GetIn()->GetPoints(),
+						Facade->GetIn(),
 						Settings->ExternalPathIntersections.Tolerance,
 						Context->ClosedLoop.IsClosedLoop(Facade->Source));
 
