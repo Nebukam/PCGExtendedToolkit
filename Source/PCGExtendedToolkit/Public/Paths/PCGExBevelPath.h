@@ -282,8 +282,11 @@ namespace PCGExBevelPath
 
 		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager) override;
 		void PrepareSinglePoint(const int32 Index);
-		virtual void ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const PCGExMT::FScope& Scope) override;
-		virtual void ProcessSingleRangeIteration(const int32 Iteration, const PCGExMT::FScope& Scope) override;
+
+		virtual void ProcessPoints(const PCGExMT::FScope& Scope) override;
+		
+		virtual void ProcessRange(const PCGExMT::FScope& Scope) override;
+		
 		void WriteFlags(const int32 Index);
 		virtual void CompleteWork() override;
 		virtual void Write() override;

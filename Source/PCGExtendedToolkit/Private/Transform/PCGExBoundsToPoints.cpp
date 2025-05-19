@@ -91,7 +91,7 @@ namespace PCGExBoundsToPoints
 			if (bSymmetry)
 			{
 				PointDataFacade->GetOut()->SetNumPoints(NumPoints * 2);
-				PointDataFacade->Source->CopyProperties(0, NumPoints, NumPoints);
+				PointDataFacade->Source->InheritProperties(0, NumPoints, NumPoints);
 			}
 			else
 			{

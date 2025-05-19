@@ -236,7 +236,7 @@ namespace PCGExUberFilter
 		if (!Inside) { return; }
 
 		Inside->GetOut()->SetNumPoints(ReadIndices.Num());
-		Inside->CopyProperties(ReadIndices, EPCGPointNativeProperties::All);
+		Inside->InheritProperties(ReadIndices, EPCGPointNativeProperties::All);
 
 		if (Settings->bTagIfAnyPointPassed) { Inside->Tags->AddRaw(Settings->HasAnyPointPassedTag); }
 
@@ -247,7 +247,7 @@ namespace PCGExUberFilter
 		if (!Outside) { return; }
 
 		Outside->GetOut()->SetNumPoints(ReadIndices.Num());
-		Outside->CopyProperties(ReadIndices, EPCGPointNativeProperties::All);
+		Outside->InheritProperties(ReadIndices, EPCGPointNativeProperties::All);
 	}
 }
 

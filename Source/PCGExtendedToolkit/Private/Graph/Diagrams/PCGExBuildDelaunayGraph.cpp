@@ -93,7 +93,7 @@ namespace PCGExBuildDelaunay
 		// Build delaunay
 
 		TArray<FVector> ActivePositions;
-		PCGExGeo::PointsToPositions(PointDataFacade->Source->GetIn()->GetPoints(), ActivePositions);
+		PCGExGeo::PointsToPositions(PointDataFacade->Source->GetIn(), ActivePositions);
 
 		Delaunay = MakeUnique<PCGExGeo::TDelaunay3>();
 
@@ -133,9 +133,12 @@ namespace PCGExBuildDelaunay
 		return true;
 	}
 
-	void FProcessor::ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const PCGExMT::FScope& Scope)
+	void FProcessor::ProcessPoints(const PCGExMT::FScope& Scope)
 	{
-		HullMarkPointWriter->GetMutable(Index) = Delaunay->DelaunayHull.Contains(Index);
+		PCGEX_SCOPE_LOOP(Index)
+		{
+			HullMarkPointWriter->GetMutable(Index) = Delaunay->DelaunayHull.Contains(Index);
+		}
 	}
 
 	void FProcessor::CompleteWork()
@@ -171,25 +174,34 @@ namespace PCGExBuildDelaunay
 
 		Context->MainSites->Insert_Unsafe(Processor->BatchIndex, SitesIO);
 
-		const TArray<FPCGPoint>& OriginalPoints = SitesIO->GetIn()->GetPoints();
-		TArray<FPCGPoint>& MutablePoints = SitesIO->GetOut()->GetMutablePoints();
 		PCGExGeo::TDelaunay3* Delaunay = Processor->Delaunay.Get();
 		const int32 NumSites = Delaunay->Sites.Num();
 
-		MutablePoints.SetNumUninitialized(NumSites);
+		const UPCGBasePointData* OriginalPoints = SitesIO->GetIn();
+		UPCGBasePointData* MutablePoints = SitesIO->GetOut();
+
+		TArray<int32> ReadIndices;
+		ReadIndices.SetNumUninitialized(NumSites);
+		MutablePoints->SetNumPoints(NumSites);
+
+		TConstPCGValueRange<FTransform> InTransforms = OriginalPoints->GetConstTransformValueRange();
+		TPCGValueRange<FTransform> OutTransforms = MutablePoints->GetTransformValueRange();
+
 		for (int i = 0; i < NumSites; i++)
 		{
 			const PCGExGeo::FDelaunaySite3& Site = Delaunay->Sites[i];
 
-			FVector Centroid = OriginalPoints[Site.Vtx[0]].Transform.GetLocation();
-			Centroid += OriginalPoints[Site.Vtx[1]].Transform.GetLocation();
-			Centroid += OriginalPoints[Site.Vtx[2]].Transform.GetLocation();
-			Centroid += OriginalPoints[Site.Vtx[3]].Transform.GetLocation();
+			FVector Centroid = InTransforms[Site.Vtx[0]].GetLocation();
+			Centroid += InTransforms[Site.Vtx[1]].GetLocation();
+			Centroid += InTransforms[Site.Vtx[2]].GetLocation();
+			Centroid += InTransforms[Site.Vtx[3]].GetLocation();
 			Centroid /= 4;
 
-			MutablePoints[i] = OriginalPoints[Site.Vtx[0]];
-			MutablePoints[i].Transform.SetLocation(Centroid);
+			ReadIndices[i] = Site.Vtx[0];
+			OutTransforms[i].SetLocation(Centroid);
 		}
+
+		SitesIO->InheritProperties(ReadIndices, PCGEx::AllPointNativePropertiesButTransform);
 
 		if (Settings->bMarkSiteHull)
 		{
@@ -213,25 +225,34 @@ namespace PCGExBuildDelaunay
 
 		Context->MainSites->Insert_Unsafe(Processor->BatchIndex, SitesIO);
 
-		const TArray<FPCGPoint>& OriginalPoints = SitesIO->GetIn()->GetPoints();
-		TArray<FPCGPoint>& MutablePoints = SitesIO->GetOut()->GetMutablePoints();
+		const UPCGBasePointData* OriginalPoints = SitesIO->GetIn();
+		UPCGBasePointData* MutablePoints = SitesIO->GetOut();
+
 		PCGExGeo::TDelaunay3* Delaunay = Processor->Delaunay.Get();
 		const int32 NumSites = Delaunay->Sites.Num();
 
-		MutablePoints.SetNumUninitialized(NumSites);
+		TArray<int32> ReadIndices;
+		ReadIndices.SetNumUninitialized(NumSites);
+		MutablePoints->SetNumPoints(NumSites);
+
+		TConstPCGValueRange<FTransform> InTransforms = OriginalPoints->GetConstTransformValueRange();
+		TPCGValueRange<FTransform> OutTransforms = MutablePoints->GetTransformValueRange();
+
 		for (int i = 0; i < NumSites; i++)
 		{
 			const PCGExGeo::FDelaunaySite3& Site = Delaunay->Sites[i];
 
-			FVector Centroid = OriginalPoints[Site.Vtx[0]].Transform.GetLocation();
-			Centroid += OriginalPoints[Site.Vtx[1]].Transform.GetLocation();
-			Centroid += OriginalPoints[Site.Vtx[2]].Transform.GetLocation();
-			Centroid += OriginalPoints[Site.Vtx[3]].Transform.GetLocation();
+			FVector Centroid = InTransforms[Site.Vtx[0]].GetLocation();
+			Centroid += InTransforms[Site.Vtx[1]].GetLocation();
+			Centroid += InTransforms[Site.Vtx[2]].GetLocation();
+			Centroid += InTransforms[Site.Vtx[3]].GetLocation();
 			Centroid /= 4;
 
-			MutablePoints[i] = OriginalPoints[Site.Vtx[0]];
-			MutablePoints[i].Transform.SetLocation(Centroid);
+			ReadIndices[i] = Site.Vtx[0];
+			OutTransforms[i].SetLocation(Centroid);
 		}
+
+		SitesIO->InheritProperties(ReadIndices, PCGEx::AllPointNativePropertiesButTransform);
 
 		if (Settings->bMarkSiteHull)
 		{

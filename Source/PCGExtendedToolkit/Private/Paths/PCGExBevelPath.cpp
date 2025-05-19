@@ -393,55 +393,62 @@ namespace PCGExBevelPath
 		Bevels[Index]->CustomCrossAxisScale = Settings->CrossAxisScale;
 	}
 
-	void FProcessor::ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const PCGExMT::FScope& Scope)
+	void FProcessor::ProcessPoints(const PCGExMT::FScope& Scope)
 	{
-		const TSharedPtr<FBevel>& Bevel = Bevels[Index];
-		if (!Bevel) { return; }
+		PCGEX_SCOPE_LOOP(Index)
+		{
+			const TSharedPtr<FBevel>& Bevel = Bevels[Index];
+			if (!Bevel) { continue; }
 
-		Bevel->Compute(this);
+			Bevel->Compute(this);
+		}
 	}
 
-	void FProcessor::ProcessSingleRangeIteration(const int32 Iteration, const PCGExMT::FScope& Scope)
+	void FProcessor::ProcessRange(const PCGExMT::FScope& Scope)
 	{
-		const int32 StartIndex = StartIndices[Iteration];
-
-		const TSharedRef<PCGExData::FPointIO>& PointIO = PointDataFacade->Source;
-
-		const TSharedPtr<FBevel>& Bevel = Bevels[Iteration];
-		const FPCGPoint& OriginalPoint = PointIO->GetInPoint(Iteration);
-
-		TArray<FPCGPoint>& MutablePoints = PointIO->GetOut()->GetMutablePoints();
-		UPCGMetadata* Metadata = PointIO->GetOut()->Metadata;
-
-		if (!Bevel)
+		
+		PCGEX_SCOPE_LOOP(Index)
 		{
-			MutablePoints[StartIndex] = OriginalPoint;
-			Metadata->InitializeOnSet(MutablePoints[StartIndex].MetadataEntry);
-			return;
-		}
+			const int32 StartIndex = StartIndices[Index];
 
-		for (int i = Bevel->StartOutputIndex; i <= Bevel->EndOutputIndex; i++)
-		{
-			MutablePoints[i] = OriginalPoint;
-			Metadata->InitializeOnSet(MutablePoints[i].MetadataEntry);
-		}
+			const TSharedRef<PCGExData::FPointIO>& PointIO = PointDataFacade->Source;
 
-		FPCGPoint& StartPoint = PointIO->GetOutPoint(Bevel->StartOutputIndex);
-		FPCGPoint& EndPoint = PointIO->GetOutPoint(Bevel->EndOutputIndex);
+			const TSharedPtr<FBevel>& Bevel = Bevels[Index];
+			const FPCGPoint& OriginalPoint = PointIO->GetInPoint(Iteration);
 
-		StartPoint.Transform.SetLocation(Bevel->Arrive);
-		EndPoint.Transform.SetLocation(Bevel->Leave);
+			TArray<FPCGPoint>& MutablePoints = PointIO->GetOut()->GetMutablePoints();
+			UPCGMetadata* Metadata = PointIO->GetOut()->Metadata;
 
-		PCGExRandom::ComputeSeed(StartPoint);
-		PCGExRandom::ComputeSeed(EndPoint);
+			if (!Bevel)
+			{
+				MutablePoints[StartIndex] = OriginalPoint;
+				Metadata->InitializeOnSet(MutablePoints[StartIndex].MetadataEntry);
+				continue;
+			}
 
-		if (Bevel->Subdivisions.IsEmpty()) { return; }
+			for (int i = Bevel->StartOutputIndex; i <= Bevel->EndOutputIndex; i++)
+			{
+				MutablePoints[i] = OriginalPoint;
+				Metadata->InitializeOnSet(MutablePoints[i].MetadataEntry);
+			}
 
-		for (int i = 0; i < Bevel->Subdivisions.Num(); i++)
-		{
-			FPCGPoint& Pt = MutablePoints[Bevel->StartOutputIndex + i + 1];
-			Pt.Transform.SetLocation(Bevel->Subdivisions[i]);
-			PCGExRandom::ComputeSeed(Pt);
+			FPCGPoint& StartPoint = PointIO->GetOutPoint(Bevel->StartOutputIndex);
+			FPCGPoint& EndPoint = PointIO->GetOutPoint(Bevel->EndOutputIndex);
+
+			StartPoint.Transform.SetLocation(Bevel->Arrive);
+			EndPoint.Transform.SetLocation(Bevel->Leave);
+
+			PCGExRandom::ComputeSeed(StartPoint);
+			PCGExRandom::ComputeSeed(EndPoint);
+
+			if (Bevel->Subdivisions.IsEmpty()) { continue; }
+
+			for (int i = 0; i < Bevel->Subdivisions.Num(); i++)
+			{
+				FPCGPoint& Pt = MutablePoints[Bevel->StartOutputIndex + i + 1];
+				Pt.Transform.SetLocation(Bevel->Subdivisions[i]);
+				PCGExRandom::ComputeSeed(Pt);
+			}
 		}
 	}
 

@@ -153,17 +153,20 @@ namespace PCGExWriteIndex
 		return true;
 	}
 
-	void FProcessor::ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const PCGExMT::FScope& Scope)
+	void FProcessor::ProcessPoints(const PCGExMT::FScope& Scope)
 	{
-		if (Settings->bOneMinus)
+		PCGEX_SCOPE_LOOP(Index)
 		{
-			if (DoubleWriter) { DoubleWriter->GetMutable(Index) = 1 - (static_cast<double>(Index) / MaxIndex); }
-			else if (IntWriter) { IntWriter->GetMutable(Index) = MaxIndex - Index; }
-		}
-		else
-		{
-			if (DoubleWriter) { DoubleWriter->GetMutable(Index) = static_cast<double>(Index) / MaxIndex; }
-			else if (IntWriter) { IntWriter->GetMutable(Index) = Index; }
+			if (Settings->bOneMinus)
+			{
+				if (DoubleWriter) { DoubleWriter->GetMutable(Index) = 1 - (static_cast<double>(Index) / MaxIndex); }
+				else if (IntWriter) { IntWriter->GetMutable(Index) = MaxIndex - Index; }
+			}
+			else
+			{
+				if (DoubleWriter) { DoubleWriter->GetMutable(Index) = static_cast<double>(Index) / MaxIndex; }
+				else if (IntWriter) { IntWriter->GetMutable(Index) = Index; }
+			}
 		}
 	}
 

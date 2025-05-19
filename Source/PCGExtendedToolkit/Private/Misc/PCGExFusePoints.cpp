@@ -121,7 +121,7 @@ namespace PCGExFusePoints
 			WriteIndices[i] = Idx;
 		}
 
-		PointDataFacade->Source->CopyProperties(ReadIndices, WriteIndices, PCGEx::AllPointNativePropertiesButMeta);
+		PointDataFacade->Source->InheritProperties(ReadIndices, WriteIndices, PCGEx::AllPointNativePropertiesButMeta);
 
 		PCGEX_SCOPE_LOOP(Index)
 		{

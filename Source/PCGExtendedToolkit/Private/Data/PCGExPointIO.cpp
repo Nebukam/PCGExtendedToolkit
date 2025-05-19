@@ -387,17 +387,17 @@ namespace PCGExData
 		else { PrintInKeysMap(InMap); }
 	}
 
-	void FPointIO::CopyProperties(const int32 ReadStartIndex, const int32 WriteStartIndex, const int32 Count, const EPCGPointNativeProperties Properties) const
+	void FPointIO::InheritProperties(const int32 ReadStartIndex, const int32 WriteStartIndex, const int32 Count, const EPCGPointNativeProperties Properties) const
 	{
 		In->CopyPropertiesTo(Out, ReadStartIndex, WriteStartIndex, Count, Properties);
 	}
 
-	void FPointIO::CopyProperties(const TArrayView<const int32>& ReadIndices, const TArrayView<const int32>& WriteIndices, const EPCGPointNativeProperties Properties) const
+	void FPointIO::InheritProperties(const TArrayView<const int32>& ReadIndices, const TArrayView<const int32>& WriteIndices, const EPCGPointNativeProperties Properties) const
 	{
 		In->CopyPropertiesTo(Out, ReadIndices, WriteIndices, Properties);
 	}
 
-	void FPointIO::CopyProperties(const TArrayView<const int32>& ReadIndices, const EPCGPointNativeProperties Properties) const
+	void FPointIO::InheritProperties(const TArrayView<const int32>& ReadIndices, const EPCGPointNativeProperties Properties) const
 	{
 		check(Out->GetNumPoints() >= ReadIndices.Num())
 
@@ -407,12 +407,12 @@ namespace PCGExData
 		In->CopyPropertiesTo(Out, ReadIndices, WriteIndices, Properties);
 	}
 
-	void FPointIO::CopyPoints(const int32 ReadStartIndex, const int32 WriteStartIndex, const int32 Count) const
+	void FPointIO::InheritPoints(const int32 ReadStartIndex, const int32 WriteStartIndex, const int32 Count) const
 	{
 		In->CopyPointsTo(Out, ReadStartIndex, WriteStartIndex, Count);
 	}
 
-	void FPointIO::CopyPoints(const TArrayView<const int32>& ReadIndices, const TArrayView<const int32>& WriteIndices) const
+	void FPointIO::InheritPoints(const TArrayView<const int32>& ReadIndices, const TArrayView<const int32>& WriteIndices) const
 	{
 		In->CopyPointsTo(Out, ReadIndices, WriteIndices);
 	}

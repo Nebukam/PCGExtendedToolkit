@@ -181,7 +181,7 @@ namespace PCGExGeo
 	void GetCentroid(const TArrayView<FVector>& Positions, const int32 (&Vtx)[3], FVector& OutCentroid);
 	void GetLongestEdge(const TArrayView<FVector>& Positions, const int32 (&Vtx)[3], uint64& Edge);
 	void GetLongestEdge(const TArrayView<FVector>& Positions, const int32 (&Vtx)[4], uint64& Edge);
-	void PointsToPositions(const TArray<FPCGPoint>& Points, TArray<FVector>& OutPositions);
+	void PointsToPositions(const UPCGBasePointData* InPointData, TArray<FVector>& OutPositions);
 	FVector GetBarycentricCoordinates(const FVector& Point, const FVector& A, const FVector& B, const FVector& C);
 	bool IsPointInTriangle(const FVector& P, const FVector& A, const FVector& B, const FVector& C);
 

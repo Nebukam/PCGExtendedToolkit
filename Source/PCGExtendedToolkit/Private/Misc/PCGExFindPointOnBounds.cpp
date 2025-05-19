@@ -106,23 +106,29 @@ namespace PCGExFindPointOnBounds
 		return true;
 	}
 
-	void FProcessor::ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const PCGExMT::FScope& Scope)
+	void FProcessor::ProcessPoints(const PCGExMT::FScope& Scope)
 	{
-		const double Dist = FVector::Dist(Point.Transform.GetLocation(), SearchPosition);
+		
+		TConstPCGValueRange<FTransform> InTransforms = PointDataFacade->GetIn()->GetConstTransformValueRange();
 
+		PCGEX_SCOPE_LOOP(Index)
 		{
-			FWriteScopeLock WriteLock(BestIndexLock);
-			if (Dist > BestDistance) { return; }
-		}
+			const double Dist = FVector::Dist(InTransforms[Index].GetLocation(), SearchPosition);
 
-		{
-			FWriteScopeLock WriteLock(BestIndexLock);
+			{
+				FWriteScopeLock WriteLock(BestIndexLock);
+				if (Dist > BestDistance) { return; }
+			}
 
-			if (Dist > BestDistance) { return; }
+			{
+				FWriteScopeLock WriteLock(BestIndexLock);
 
-			BestPosition = Point.Transform.GetLocation();
-			BestIndex = Index;
-			BestDistance = Dist;
+				if (Dist > BestDistance) { return; }
+
+				BestPosition = InTransforms[Index].GetLocation();
+				BestIndex = Index;
+				BestDistance = Dist;
+			}
 		}
 	}
 

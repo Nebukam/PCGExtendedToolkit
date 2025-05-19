@@ -1003,7 +1003,7 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 				// And we might need a way to preserve the original values
 
 				OutNodeData->SetNumPoints(NumValidNodes);            // Shrink output
-				NodeDataFacade->Source->CopyProperties(ReadIndices); // Copy all the things				
+				NodeDataFacade->Source->InheritProperties(ReadIndices); // Copy all the things				
 			}
 			else
 			{
@@ -1036,7 +1036,7 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 				// So this won't work
 
 				OutNodeData->SetNumPoints(NumValidNodes);
-				NodeDataFacade->Source->CopyProperties(ReadIndices); // Copy all the things		
+				NodeDataFacade->Source->InheritProperties(ReadIndices); // Copy all the things		
 			}
 
 			ValidNodes.Shrink();

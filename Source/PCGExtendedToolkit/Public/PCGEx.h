@@ -168,13 +168,13 @@ enum class EPCGExTruncateMode : uint8
 namespace PCGEx
 {
 	constexpr EPCGPointNativeProperties AllPointNativePropertiesButMeta =
-		EPCGPointNativeProperties::Transform |
-		EPCGPointNativeProperties::Density |
-		EPCGPointNativeProperties::BoundsMin |
-		EPCGPointNativeProperties::BoundsMax |
-		EPCGPointNativeProperties::Color |
-		EPCGPointNativeProperties::Steepness |
-		EPCGPointNativeProperties::Seed;
+		static_cast<EPCGPointNativeProperties>(static_cast<uint8>(EPCGPointNativeProperties::All) & ~static_cast<uint8>(EPCGPointNativeProperties::MetadataEntry));
+
+	constexpr EPCGPointNativeProperties AllPointNativePropertiesButTransform =
+		static_cast<EPCGPointNativeProperties>(static_cast<uint8>(EPCGPointNativeProperties::All) & ~static_cast<uint8>(EPCGPointNativeProperties::Transform));
+	
+	constexpr EPCGPointNativeProperties AllPointNativePropertiesButMetaAndTransform =
+		static_cast<EPCGPointNativeProperties>(static_cast<uint8>(EPCGPointNativeProperties::All) & ~static_cast<uint8>(EPCGPointNativeProperties::MetadataEntry | EPCGPointNativeProperties::Transform));
 
 	const FName PreviousAttributeName = TEXT("#Previous");
 	const FName PreviousNameAttributeName = TEXT("#PreviousName");
@@ -236,7 +236,7 @@ namespace PCGEx
 		int32 Count = 0;
 		double Weight = 0;
 	};
-	
+
 	struct PCGEXTENDEDTOOLKIT_API FIndexedItem
 	{
 		int32 Index;

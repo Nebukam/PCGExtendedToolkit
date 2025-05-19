@@ -258,7 +258,7 @@ namespace PCGExPartitionByValues
 			//Manually create & insert partition at the sorted IO Index
 			const TSharedRef<PCGExData::FPointIO> PartitionIO = Context->MainPoints->Pairs[Partition->IOIndex].ToSharedRef();
 
-			PartitionIO->CopyProperties(Partition->Points, EPCGPointNativeProperties::All);
+			PartitionIO->InheritProperties(Partition->Points, EPCGPointNativeProperties::All);
 
 			// Force creation of valid keys once
 			PartitionIO->GetOutKeys(true);

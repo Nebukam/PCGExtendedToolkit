@@ -79,7 +79,7 @@ namespace PCGExBoundsAxisToPoints
 		else
 		{
 			PointDataFacade->GetOut()->SetNumPoints(NumPoints * 2);
-			PointDataFacade->Source->CopyProperties(0, NumPoints, NumPoints);
+			PointDataFacade->Source->InheritProperties(0, NumPoints, NumPoints);
 		}
 
 		StartParallelLoopForPoints(PCGExData::EIOSide::In);

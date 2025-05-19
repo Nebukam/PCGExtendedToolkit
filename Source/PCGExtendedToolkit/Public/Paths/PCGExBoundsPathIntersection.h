@@ -7,6 +7,7 @@
 #include "PCGExPathProcessor.h"
 
 #include "PCGExPointsProcessor.h"
+#include "Geometry/PCGExGeoPointBox.h"
 
 
 #include "Graph/PCGExIntersections.h"
@@ -81,7 +82,7 @@ namespace PCGExPathIntersections
 		void InsertIntersections(const int32 Index) const;
 		void OnInsertionComplete();
 
-		virtual void ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const PCGExMT::FScope& Scope) override;
+		virtual void ProcessPoints(const PCGExMT::FScope& Scope) override;
 
 		virtual void CompleteWork() override;
 		virtual void Write() override;

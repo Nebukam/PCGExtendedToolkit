@@ -356,11 +356,12 @@ namespace PCGExGeo
 		}
 	}
 
-	void PointsToPositions(const TArray<FPCGPoint>& Points, TArray<FVector>& OutPositions)
+	void PointsToPositions(const UPCGBasePointData* InPointData, TArray<FVector>& OutPositions)
 	{
-		const int32 NumPoints = Points.Num();
+		const int32 NumPoints = InPointData->GetNumPoints();
+		const TConstPCGValueRange<FTransform> Transforms = InPointData->GetConstTransformValueRange();
 		PCGEx::InitArray(OutPositions, NumPoints);
-		for (int i = 0; i < NumPoints; i++) { OutPositions[i] = Points[i].Transform.GetLocation(); }
+		for (int i = 0; i < NumPoints; i++) { OutPositions[i] = Transforms[i].GetLocation(); }
 	}
 
 	FVector GetBarycentricCoordinates(const FVector& Point, const FVector& A, const FVector& B, const FVector& C)

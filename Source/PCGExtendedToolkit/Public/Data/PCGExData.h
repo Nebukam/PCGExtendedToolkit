@@ -170,7 +170,7 @@ namespace PCGExData
 		TSharedPtr<TArray<T>> OutValues;
 
 		T InternalDefaultValue = T{};
-		
+
 	public:
 		T Min = T{};
 		T Max = T{};
@@ -201,6 +201,8 @@ namespace PCGExData
 		virtual bool IsReadable() override { return InValues ? true : false; }
 
 		/*
+		// See PCGValueRangeHelpers
+		
 		FORCEINLINE TPCGValueRange<T> GetValueRange()
 		{
 			return TPCGValueRange<T>(OutValues.IsValid() ? MakeStridedView(*OutValues.Get()) : MakeStridedView(sizeof(InternalDefaultValue), &InternalDefaultValue, 1), NumValues);
@@ -449,9 +451,9 @@ namespace PCGExData
 		virtual void Write(const bool bEnsureValidKeys = true) override
 		{
 			PCGEX_SHARED_CONTEXT_VOID(Source->GetContextHandle())
-			
+
 			if (!IsWritable() || !OutValues || !IsEnabled()) { return; }
-			
+
 			if (!Source->GetOut())
 			{
 				UE_LOG(LogPCGEx, Error, TEXT("Attempting to write data to an output that's not initialized!"));
@@ -739,7 +741,7 @@ namespace PCGExData
 		}
 
 		TSharedPtr<PCGExGeo::FPointBoxCloud> GetCloud(const EPCGExPointBoundsSource BoundsSource, const double Expansion = DBL_EPSILON);
-		
+
 		const UPCGBasePointData* GetData(const EIOSide InSide) const { return Source->GetData(InSide); }
 		const UPCGBasePointData* GetIn() const { return Source->GetIn(); }
 		UPCGBasePointData* GetOut() const { return Source->GetOut(); }

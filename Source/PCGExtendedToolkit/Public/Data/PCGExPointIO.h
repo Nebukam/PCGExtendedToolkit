@@ -390,18 +390,18 @@ FORCEINLINE virtual int64 GetMetadataEntry() const override { return Data->GetMe
 		}
 
 		// In -> Out
-		void CopyProperties(const int32 ReadStartIndex, const int32 WriteStartIndex, const int32 Count, const EPCGPointNativeProperties Properties = EPCGPointNativeProperties::All) const;
-		void CopyProperties(const TArrayView<const int32>& ReadIndices, const TArrayView<const int32>& WriteIndices, const EPCGPointNativeProperties Properties = EPCGPointNativeProperties::All) const;
-		void CopyProperties(const TArrayView<const int32>& ReadIndices, const EPCGPointNativeProperties Properties = EPCGPointNativeProperties::All) const;
-		void CopyPoints(const int32 ReadStartIndex, const int32 WriteStartIndex, const int32 Count) const;
-		void CopyPoints(const TArrayView<const int32>& ReadIndices, const TArrayView<const int32>& WriteIndices) const;
+		void InheritProperties(const int32 ReadStartIndex, const int32 WriteStartIndex, const int32 Count, const EPCGPointNativeProperties Properties = EPCGPointNativeProperties::All) const;
+		void InheritProperties(const TArrayView<const int32>& ReadIndices, const TArrayView<const int32>& WriteIndices, const EPCGPointNativeProperties Properties = EPCGPointNativeProperties::All) const;
+		void InheritProperties(const TArrayView<const int32>& ReadIndices, const EPCGPointNativeProperties Properties = EPCGPointNativeProperties::All) const;
+		void InheritPoints(const int32 ReadStartIndex, const int32 WriteStartIndex, const int32 Count) const;
+		void InheritPoints(const TArrayView<const int32>& ReadIndices, const TArrayView<const int32>& WriteIndices) const;
 
 		void CopyToNewPoint(const int32 InIndex, int32& OutIndex) const
 		{
 			FWriteScopeLock WriteLock(PointsLock);
 			OutIndex = Out->GetNumPoints();
 			Out->SetNumPoints(OutIndex + 1);
-			CopyProperties(InIndex, OutIndex, 1);
+			InheritProperties(InIndex, OutIndex, 1);
 			InitPoint(OutIndex, In->GetMetadataEntry(InIndex));
 		}
 
