@@ -7,6 +7,7 @@
 #include "FbxImporter.h"
 #include "PCGExPointsProcessor.h"
 #include "Data/Blending/PCGExBlendOpFactoryProvider.h"
+#include "Data/Blending/PCGExBlendOpsManager.h"
 #include "Data/Blending/PCGExMetadataBlender.h"
 
 

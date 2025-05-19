@@ -247,15 +247,21 @@ namespace PCGExPathSplineMesh
 		ScopedMaterials = MakeShared<PCGExMT::TScopedSet<FSoftObjectPath>>(Loops, 0);
 	}
 
-	void FProcessor::PrepareSingleLoopScopeForPoints(const PCGExMT::FScope& Scope)
+	void FProcessor::ProcessPoints(const PCGExMT::FScope& Scope)
 	{
 		PointDataFacade->Fetch(Scope);
 		FilterScope(Scope);
-	}
 
-	void FProcessor::ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const PCGExMT::FScope& Scope)
-	{
-		auto InvalidPoint = [&]()
+		const UPCGBasePointData* InPointData = PointDataFacade->GetIn();
+
+		TConstPCGValueRange<int32> Seeds = InPointData->GetConstSeedValueRange();
+		TConstPCGValueRange<FTransform> Transforms = InPointData->GetConstTransformValueRange();
+		TConstPCGValueRange<FVector> BoundsMin = InPointData->GetConstBoundsMinValueRange();
+		TConstPCGValueRange<FVector> BoundsMax = InPointData->GetConstBoundsMaxValueRange();
+
+		TPCGValueRange<float> Density = PointDataFacade->GetOut()->GetDensityValueRange(bOutputWeight && !WeightWriter && !NormalizedWeightWriter);
+
+		auto InvalidPoint = [&](const int32 Index)
 		{
 			PathWriter->GetMutable(Index) = FSoftObjectPath{};
 
@@ -263,113 +269,116 @@ namespace PCGExPathSplineMesh
 			{
 				if (WeightWriter) { WeightWriter->GetMutable(Index) = -1; }
 				else if (NormalizedWeightWriter) { NormalizedWeightWriter->GetMutable(Index) = -1; }
+				else { Density[Index] = 0; }
 			}
 		};
 
-		if (Index == LastIndex && !bClosedLoop)
+		PCGEX_SCOPE_LOOP(Index)
 		{
-			// Ignore last index, only used for maths reasons
-			InvalidPoint();
-			return;
-		}
+			if (Index == LastIndex && !bClosedLoop)
+			{
+				// Ignore last index, only used for maths reasons
+				InvalidPoint(Index);
+				continue;
+			}
 
-		if (!PointFilterCache[Index])
-		{
+			if (!PointFilterCache[Index])
+			{
+				Segments[Index] = PCGExPaths::FSplineMeshSegment();
+				InvalidPoint(Index);
+				continue;
+			}
+
+			const FPCGExMeshCollectionEntry* MeshEntry = nullptr;
+			const UPCGExAssetCollection* EntryHost = nullptr;
+
+			const int32 Seed = PCGExRandom::GetSeed(
+				Seeds[Index], Helper->Details.SeedComponents,
+				Helper->Details.LocalSeed, Settings, Context->GetComponent());
+
+
 			Segments[Index] = PCGExPaths::FSplineMeshSegment();
-			InvalidPoint();
-			return;
+			PCGExPaths::FSplineMeshSegment& Segment = Segments[Index];
+
+			if (bUseTags) { Helper->GetEntry(MeshEntry, Index, Seed, Settings->TaggingDetails.GrabTags, Segment.Tags, EntryHost); }
+			else { Helper->GetEntry(MeshEntry, Index, Seed, EntryHost); }
+
+			Segment.MeshEntry = MeshEntry;
+
+			if (!MeshEntry)
+			{
+				InvalidPoint(Index);
+				continue;
+			}
+
+			if (MeshEntry->MacroCache && MeshEntry->MacroCache->GetType() == PCGExAssetCollection::EType::Mesh)
+			{
+				Segment.MaterialPick = StaticCastSharedPtr<PCGExMeshCollection::FMacroCache>(MeshEntry->MacroCache)->GetPickRandomWeighted(Seed);
+				if (Segment.MaterialPick != -1) { MeshEntry->GetMaterialPaths(Segment.MaterialPick, *ScopedMaterials->Get(Scope)); }
+			}
+
+			if (bOutputWeight)
+			{
+				double Weight = bNormalizedWeight ? static_cast<double>(MeshEntry->Weight) / static_cast<double>(Context->MainCollection->LoadCache()->WeightSum) : MeshEntry->Weight;
+				if (bOneMinusWeight) { Weight = 1 - Weight; }
+				if (WeightWriter) { WeightWriter->GetMutable(Index) = Weight; }
+				else if (NormalizedWeightWriter) { NormalizedWeightWriter->GetMutable(Index) = Weight; }
+				else { Density[Index] = Weight; }
+			}
+
+			PathWriter->GetMutable(Index) = MeshEntry->Staging.Path;
+
+			//
+
+			Segment.SplineMeshAxis = SplineMeshAxisConstant;
+
+			const int32 NextIndex = Index + 1 > LastIndex ? 0 : Index + 1;
+
+			//
+
+			const FBox& StBox = MeshEntry->Staging.Bounds;
+			FVector OutScale = Transforms[Index].GetScale3D();
+			const FBox InBounds = FBox(BoundsMin[Index] * OutScale, BoundsMax[Index] * OutScale);
+			FBox OutBounds = StBox;
+
+			Settings->ScaleToFit.Process(PCGExData::FConstPoint(InPointData, Index), MeshEntry->Staging.Bounds, OutScale, OutBounds);
+
+			FVector OutTranslation = FVector::ZeroVector;
+			OutBounds = FBox(OutBounds.Min * OutScale, OutBounds.Max * OutScale);
+
+			Justification.Process(Index, InBounds, OutBounds, OutTranslation);
+
+			//
+
+			Segment.Params.StartPos = Transforms[Index].GetLocation();
+			Segment.Params.StartScale = FVector2D(OutScale[C1], OutScale[C2]);
+			Segment.Params.StartRoll = Transforms[Index].GetRotation().Rotator().Roll;
+
+			const FVector Scale = bApplyScaleToFit ? OutScale : Transforms[NextIndex].GetScale3D();
+			Segment.Params.EndPos = Transforms[NextIndex].GetLocation();
+			Segment.Params.EndScale = FVector2D(Scale[C1], Scale[C2]);
+			Segment.Params.EndRoll = Transforms[NextIndex].GetRotation().Rotator().Roll;
+
+			Segment.Params.StartOffset = FVector2D(OutTranslation[C1], OutTranslation[C2]);
+			Segment.Params.EndOffset = FVector2D(OutTranslation[C1], OutTranslation[C2]);
+
+			if (Settings->bApplyCustomTangents)
+			{
+				Segment.Params.StartTangent = LeaveGetter->Read(Index);
+				Segment.Params.EndTangent = ArriveGetter->Read(NextIndex);
+			}
+			else
+			{
+				Segment.Params.StartTangent = Transforms[Index].GetRotation().GetForwardVector();
+				Segment.Params.EndTangent = Transforms[NextIndex].GetRotation().GetForwardVector();
+			}
+
+			if (UpGetter) { Segment.UpVector = UpGetter->Read(Index); }
+			else if (Settings->SplineMeshUpMode == EPCGExSplineMeshUpMode::Constant) { Segment.UpVector = Settings->SplineMeshUpVector; }
+			else { Segment.ComputeUpVectorFromTangents(); }
+
+			SegmentMutationDetails.Mutate(Index, Segment);
 		}
-
-		const FPCGExMeshCollectionEntry* MeshEntry = nullptr;
-		const UPCGExAssetCollection* EntryHost = nullptr;
-
-		const int32 Seed = PCGExRandom::GetSeedFromPoint(
-			Helper->Details.SeedComponents, Point,
-			Helper->Details.LocalSeed, Settings, Context->GetComponent());
-
-
-		Segments[Index] = PCGExPaths::FSplineMeshSegment();
-		PCGExPaths::FSplineMeshSegment& Segment = Segments[Index];
-
-		if (bUseTags) { Helper->GetEntry(MeshEntry, Index, Seed, Settings->TaggingDetails.GrabTags, Segment.Tags, EntryHost); }
-		else { Helper->GetEntry(MeshEntry, Index, Seed, EntryHost); }
-
-		Segment.MeshEntry = MeshEntry;
-
-		if (!MeshEntry)
-		{
-			InvalidPoint();
-			return;
-		}
-
-		if (MeshEntry->MacroCache && MeshEntry->MacroCache->GetType() == PCGExAssetCollection::EType::Mesh)
-		{
-			Segment.MaterialPick = StaticCastSharedPtr<PCGExMeshCollection::FMacroCache>(MeshEntry->MacroCache)->GetPickRandomWeighted(Seed);
-			if (Segment.MaterialPick != -1) { MeshEntry->GetMaterialPaths(Segment.MaterialPick, *ScopedMaterials->Get(Scope)); }
-		}
-
-		if (bOutputWeight)
-		{
-			double Weight = bNormalizedWeight ? static_cast<double>(MeshEntry->Weight) / static_cast<double>(Context->MainCollection->LoadCache()->WeightSum) : MeshEntry->Weight;
-			if (bOneMinusWeight) { Weight = 1 - Weight; }
-			if (WeightWriter) { WeightWriter->GetMutable(Index) = Weight; }
-			else if (NormalizedWeightWriter) { NormalizedWeightWriter->GetMutable(Index) = Weight; }
-			else { Point.Density = Weight; }
-		}
-
-		PathWriter->GetMutable(Index) = MeshEntry->Staging.Path;
-
-		//
-
-		Segment.SplineMeshAxis = SplineMeshAxisConstant;
-
-		const int32 NextIndex = Index + 1 > LastIndex ? 0 : Index + 1;
-		const FPCGPoint& NextPoint = PointDataFacade->Source->GetInPoint(NextIndex);
-
-		//
-
-		const FBox& StBox = MeshEntry->Staging.Bounds;
-		FVector OutScale = Point.Transform.GetScale3D();
-		const FBox InBounds = FBox(Point.BoundsMin * OutScale, Point.BoundsMax * OutScale);
-		FBox OutBounds = StBox;
-
-		Settings->ScaleToFit.Process(Point, MeshEntry->Staging.Bounds, OutScale, OutBounds);
-
-		FVector OutTranslation = FVector::ZeroVector;
-		OutBounds = FBox(OutBounds.Min * OutScale, OutBounds.Max * OutScale);
-
-		Justification.Process(Index, InBounds, OutBounds, OutTranslation);
-
-		//
-
-		Segment.Params.StartPos = Point.Transform.GetLocation();
-		Segment.Params.StartScale = FVector2D(OutScale[C1], OutScale[C2]);
-		Segment.Params.StartRoll = Point.Transform.GetRotation().Rotator().Roll;
-
-		const FVector Scale = bApplyScaleToFit ? OutScale : NextPoint.Transform.GetScale3D();
-		Segment.Params.EndPos = NextPoint.Transform.GetLocation();
-		Segment.Params.EndScale = FVector2D(Scale[C1], Scale[C2]);
-		Segment.Params.EndRoll = NextPoint.Transform.GetRotation().Rotator().Roll;
-
-		Segment.Params.StartOffset = FVector2D(OutTranslation[C1], OutTranslation[C2]);
-		Segment.Params.EndOffset = FVector2D(OutTranslation[C1], OutTranslation[C2]);
-
-		if (Settings->bApplyCustomTangents)
-		{
-			Segment.Params.StartTangent = LeaveGetter->Read(Index);
-			Segment.Params.EndTangent = ArriveGetter->Read(NextIndex);
-		}
-		else
-		{
-			Segment.Params.StartTangent = Point.Transform.GetRotation().GetForwardVector();
-			Segment.Params.EndTangent = NextPoint.Transform.GetRotation().GetForwardVector();
-		}
-
-		if (UpGetter) { Segment.UpVector = UpGetter->Read(Index); }
-		else if (Settings->SplineMeshUpMode == EPCGExSplineMeshUpMode::Constant) { Segment.UpVector = Settings->SplineMeshUpVector; }
-		else { Segment.ComputeUpVectorFromTangents(); }
-
-		SegmentMutationDetails.Mutate(Index, Segment);
 	}
 
 	void FProcessor::OnPointsProcessingComplete()

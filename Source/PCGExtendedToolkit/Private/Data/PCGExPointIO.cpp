@@ -10,7 +10,7 @@
 
 namespace PCGExData
 {
-#pragma region FPointIO
+#pragma region FPoint
 
 	FPoint::FPoint(const uint64 Hash)
 		: Index(PCGEx::H64A(Hash)), IO(PCGEx::H64A(Hash))
@@ -37,6 +37,81 @@ namespace PCGExData
 	{
 	}
 
+	FTransform& FMutablePoint::GetMutableTransform()
+	{
+		TPCGValueRange<FTransform> Transforms = Data->GetTransformValueRange();
+		return Transforms[Index];
+	}
+
+	void FMutablePoint::SetTransform(const FTransform& InValue)
+	{
+		const TPCGValueRange<FTransform> Transforms = Data->GetTransformValueRange();
+		Transforms[Index] = InValue;
+	}
+
+	void FMutablePoint::SetLocation(const FVector& InValue)
+	{
+		const TPCGValueRange<FTransform> Transforms = Data->GetTransformValueRange();
+		Transforms[Index].SetLocation(InValue);
+	}
+
+	void FMutablePoint::SetScale3D(const FVector& InValue)
+	{
+		const TPCGValueRange<FTransform> Transforms = Data->GetTransformValueRange();
+		Transforms[Index].SetScale3D(InValue);
+	}
+
+	void FMutablePoint::SetQuat(const FQuat& InValue)
+	{
+		const TPCGValueRange<FTransform> Transforms = Data->GetTransformValueRange();
+		Transforms[Index].SetRotation(InValue);
+	}
+
+	void FMutablePoint::SetBoundsMin(const FVector& InValue)
+	{
+		const TPCGValueRange<FVector> BoundsMin = Data->GetBoundsMinValueRange();
+		BoundsMin[Index] = InValue;
+	}
+
+	void FMutablePoint::SetBoundsMax(const FVector& InValue)
+	{
+		const TPCGValueRange<FVector> BoundsMax = Data->GetBoundsMaxValueRange();
+		BoundsMax[Index] = InValue;
+	}
+
+	void FMutablePoint::SetExtents(const FVector& InValue, const bool bKeepLocalCenter)
+	{
+		const TPCGValueRange<FVector> BoundsMin = Data->GetBoundsMinValueRange();
+		const TPCGValueRange<FVector> BoundsMax = Data->GetBoundsMaxValueRange();
+
+		if (bKeepLocalCenter)
+		{
+			const FVector LocalCenter = Data->GetLocalCenter(Index);
+			BoundsMin[Index] = LocalCenter - InValue;
+			BoundsMax[Index] = LocalCenter + InValue;
+		}
+		else
+		{
+			BoundsMin[Index] = -InValue;
+			BoundsMax[Index] = InValue;
+		}
+	}
+
+	void FMutablePoint::SetLocalBounds(const FBox& InValue)
+	{
+		const TPCGValueRange<FVector> BoundsMin = Data->GetBoundsMinValueRange();
+		BoundsMin[Index] = InValue.Min;
+
+		const TPCGValueRange<FVector> BoundsMax = Data->GetBoundsMaxValueRange();
+		BoundsMax[Index] = InValue.Max;
+	}
+
+	void FMutablePoint::SetMetadataEntry(const int64 InValue)
+	{
+		const TPCGValueRange<int64> MetadataEntries = Data->GetMetadataEntryValueRange();
+		MetadataEntries[Index] = InValue;
+	}
+
 	FConstPoint::FConstPoint(const FMutablePoint& InPoint)
 		: FConstPoint(InPoint.Data, InPoint.Index)
 	{
@@ -61,6 +136,60 @@ namespace PCGExData
 		: FPoint(Hash), Data(InData)
 	{
 	}
+
+	FProxyPoint::FProxyPoint(const FMutablePoint& InPoint):
+		Transform(InPoint.GetTransform()),
+		BoundsMin(InPoint.GetBoundsMin()),
+		BoundsMax(InPoint.GetBoundsMax()),
+		Steepness(InPoint.GetSteepness())
+	{
+	}
+
+	FProxyPoint::FProxyPoint(const FConstPoint& InPoint)
+		: Transform(InPoint.GetTransform()),
+		  BoundsMin(InPoint.GetBoundsMin()),
+		  BoundsMax(InPoint.GetBoundsMax()),
+		  Steepness(InPoint.GetSteepness())
+	{
+	}
+
+	FProxyPoint::FProxyPoint(const UPCGBasePointData* InData, const uint64 Hash)
+		: FProxyPoint(FConstPoint(InData, Hash))
+	{
+	}
+
+	FProxyPoint::FProxyPoint(const UPCGBasePointData* InData, const int32 InIndex, const int32 InIO)
+		: FProxyPoint(FConstPoint(InData, InIndex, InIO))
+	{
+	}
+
+	FProxyPoint::FProxyPoint(const TSharedPtr<FPointIO>& InFacade, const int32 InIndex)
+		: FProxyPoint(FConstPoint(InFacade, InIndex))
+	{
+	}
+
+	void FProxyPoint::CopyTo(UPCGBasePointData* InData) const
+	{
+		TPCGValueRange<FTransform> OutTransform = InData->GetTransformValueRange();
+
+		TPCGValueRange<FVector> OutBoundsMin = InData->GetBoundsMinValueRange();
+		TPCGValueRange<FVector> OutBoundsMax = InData->GetBoundsMinValueRange();
+
+		OutTransform[Index] = Transform;
+		OutBoundsMin[Index] = BoundsMin;
+		OutBoundsMax[Index] = BoundsMax;
+	}
+
+	void FProxyPoint::CopyTo(FMutablePoint& InPoint) const
+	{
+		InPoint.SetTransform(Transform);
+		InPoint.SetBoundsMin(BoundsMin);
+		InPoint.SetBoundsMax(BoundsMax);
+	}
+
+#pragma endregion
+
+#pragma region FPointIO
 
 	void FPointIO::SetInfos(
 		const int32 InIndex,

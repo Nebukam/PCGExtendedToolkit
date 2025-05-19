@@ -136,7 +136,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExApplySamplingDetails
 
 	void Init();
 
-	void Apply(const PCGExData::FMutablePoint& InPoint, const FTransform& InTransform, const FTransform& InLookAt);
+	void Apply(PCGExData::FMutablePoint& InPoint, const FTransform& InTransform, const FTransform& InLookAt);
 };
 
 namespace PCGExSampling

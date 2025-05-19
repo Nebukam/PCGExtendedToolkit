@@ -40,6 +40,11 @@ namespace PCGExData
 		Out
 	};
 
+#pragma region FPoint
+
+	// FPoint is used when we only care about point index
+	// And possibly IOIndex as well, but without the need to track the actual data object.
+	// This makes it a barebone way to track point indices with some additional mapping mechanism with a secondary index
 	struct PCGEXTENDEDTOOLKIT_API FPoint
 	{
 		int32 Index = -1;
@@ -63,12 +68,16 @@ namespace PCGExData
 		virtual const FTransform& GetTransform() const PCGEX_NOT_IMPLEMENTED_RET(GetTransform, FTransform::Identity)
 		virtual FVector GetLocation() const PCGEX_NOT_IMPLEMENTED_RET(GetLocation, FVector::OneVector)
 		virtual FVector GetScale3D() const PCGEX_NOT_IMPLEMENTED_RET(GetScale3D, FVector::OneVector)
+		virtual FQuat GetRotation() const PCGEX_NOT_IMPLEMENTED_RET(GetRotation, FQuat::Identity)
 		virtual FVector GetBoundsMin() const PCGEX_NOT_IMPLEMENTED_RET(GetBoundsMin, FVector::OneVector)
 		virtual FVector GetBoundsMax() const PCGEX_NOT_IMPLEMENTED_RET(GetBoundsMax, FVector::OneVector)
 		virtual FVector GetExtents() const PCGEX_NOT_IMPLEMENTED_RET(GetExtents, FVector::OneVector)
 		virtual FVector GetScaledExtents() const PCGEX_NOT_IMPLEMENTED_RET(GetScaledExtents, FVector::OneVector)
 		virtual FBox GetLocalBounds() const PCGEX_NOT_IMPLEMENTED_RET(GetLocalBounds, FBox(NoInit))
 		virtual FBox GetLocalDensityBounds() const PCGEX_NOT_IMPLEMENTED_RET(GetLocalDensityBounds, FBox(NoInit))
+		virtual FBox GetScaledBounds() const PCGEX_NOT_IMPLEMENTED_RET(GetScaledBounds, FBox(NoInit))
+		virtual float GetSteepness() const PCGEX_NOT_IMPLEMENTED_RET(GetSteepness, 1)
+		virtual float GetDensity() const PCGEX_NOT_IMPLEMENTED_RET(GetDensity, 1)
 		virtual int64 GetMetadataEntry() const PCGEX_NOT_IMPLEMENTED_RET(GetMetadataEntry, 0)
 	};
 
@@ -76,14 +85,23 @@ namespace PCGExData
 FORCEINLINE virtual const FTransform& GetTransform() const override { return Data->GetTransform(Index); }\
 FORCEINLINE virtual FVector GetLocation() const override { return Data->GetTransform(Index).GetLocation(); }\
 FORCEINLINE virtual FVector GetScale3D() const override { return Data->GetTransform(Index).GetScale3D(); }\
+FORCEINLINE virtual FQuat GetRotation() const override { return Data->GetTransform(Index).GetRotation(); }\
 FORCEINLINE virtual FVector GetBoundsMin() const override { return Data->GetBoundsMin(Index); }\
 FORCEINLINE virtual FVector GetBoundsMax() const override { return Data->GetBoundsMax(Index); }\
 FORCEINLINE virtual FVector GetExtents() const override { return Data->GetExtents(Index); }\
 FORCEINLINE virtual FVector GetScaledExtents() const override { return Data->GetScaledExtents(Index); }\
 FORCEINLINE virtual FBox GetLocalBounds() const override { return Data->GetLocalBounds(Index); }\
 FORCEINLINE virtual FBox GetLocalDensityBounds() const override { return Data->GetLocalDensityBounds(Index); }\
+FORCEINLINE virtual FBox GetScaledBounds() const override{\
+	const FVector Scale3D = Data->GetTransform(Index).GetScale3D();\
+	return FBox(Data->GetBoundsMin(Index) * Scale3D, Data->GetBoundsMax(Index) * Scale3D);}\
+FORCEINLINE virtual float GetSteepness() const override { return Data->GetSteepness(Index); }\
+FORCEINLINE virtual float GetDensity() const override { return Data->GetDensity(Index); }\
 FORCEINLINE virtual int64 GetMetadataEntry() const override { return Data->GetMetadataEntry(Index); }
 
+	// A beefed-up version of FPoint that implement FPoint getters
+	// and comes with setters helpers
+	// Should be used when the point it references actually exists, otherwise getter will return bad data
 	struct PCGEXTENDEDTOOLKIT_API FMutablePoint : FPoint
 	{
 		UPCGBasePointData* Data = nullptr;
@@ -96,9 +114,23 @@ FORCEINLINE virtual int64 GetMetadataEntry() const override { return Data->GetMe
 
 		PCGEX_POINT_PROXY_OVERRIDES
 
+		FTransform& GetMutableTransform();
+
+		virtual void SetTransform(const FTransform& InValue);
+		virtual void SetLocation(const FVector& InValue);
+		virtual void SetScale3D(const FVector& InValue);
+		virtual void SetQuat(const FQuat& InValue);
+		virtual void SetBoundsMin(const FVector& InValue);
+		virtual void SetBoundsMax(const FVector& InValue);
+		virtual void SetExtents(const FVector& InValue, const bool bKeepLocalCenter = false);
+		virtual void SetLocalBounds(const FBox& InValue);
+		virtual void SetMetadataEntry(const int64 InValue);
+
 		bool operator==(const FMutablePoint& Other) const { return Index == Other.Index && Data == Other.Data; }
 	};
 
+	// A beefed-up version of FPoint that implement FPoint getters
+	// Only for reading data
 	struct PCGEXTENDEDTOOLKIT_API FConstPoint : FPoint
 	{
 		const UPCGBasePointData* Data = nullptr;
@@ -116,12 +148,89 @@ FORCEINLINE virtual int64 GetMetadataEntry() const override { return Data->GetMe
 		bool operator==(const FConstPoint& Other) const { return Index == Other.Index && IO == Other.IO && Data == Other.Data; }
 	};
 
+	// An oddball struct that store some basic information but exposes the same as API FPoint
+	// Mostly to be used by helpers that will mutate transform & bounds in-place
+	// We need this because in some cases with want to do modification on points that aren't allocated yet
+	// or simply work need a basic, mutable spatial representation of a point in the form of Transform + Local bounds
+
+	struct PCGEXTENDEDTOOLKIT_API FProxyPoint : FPoint
+	{
+		// A point-like object that makes some maths stuff easy to manipulate
+		// Also store indices and stuff in order to ret
+
+		FTransform Transform = FTransform::Identity;
+		FVector BoundsMin = FVector::OneVector * -1;
+		FVector BoundsMax = FVector::OneVector;
+		float Steepness = 1; // Required for local density bounds
+
+		FProxyPoint() = default;
+
+		explicit FProxyPoint(const FMutablePoint& InPoint);
+		explicit FProxyPoint(const FConstPoint& InPoint);
+		FProxyPoint(const UPCGBasePointData* InData, const uint64 Hash);
+		FProxyPoint(const UPCGBasePointData* InData, const int32 InIndex, const int32 InIO = -1);
+		FProxyPoint(const TSharedPtr<FPointIO>& InFacade, const int32 InIndex);
+
+		FORCEINLINE virtual const FTransform& GetTransform() const override { return Transform; }
+		FORCEINLINE virtual FVector GetLocation() const override { return Transform.GetLocation(); }
+		FORCEINLINE virtual FVector GetScale3D() const override { return Transform.GetScale3D(); }
+		FORCEINLINE virtual FQuat GetRotation() const override { return Transform.GetRotation(); }
+		FORCEINLINE virtual FVector GetBoundsMin() const override { return BoundsMin; }
+		FORCEINLINE virtual FVector GetBoundsMax() const override { return BoundsMax; }
+		FORCEINLINE virtual FVector GetExtents() const override { return PCGPointHelpers::GetExtents(BoundsMin, BoundsMax); }
+		FORCEINLINE virtual FVector GetScaledExtents() const override { return PCGPointHelpers::GetScaledExtents(Transform, BoundsMin, BoundsMax); }
+		FORCEINLINE virtual FBox GetLocalBounds() const override { return FBox(BoundsMin, BoundsMax); }
+		FORCEINLINE virtual FBox GetScaledBounds() const override { return FBox(BoundsMin * Transform.GetScale3D(), BoundsMax * Transform.GetScale3D()); }
+		FORCEINLINE virtual FBox GetLocalDensityBounds() const override { return PCGPointHelpers::GetLocalDensityBounds(Steepness, BoundsMin, BoundsMax); }
+
+		// Metadata entry stays unimplemented
+		//FORCEINLINE virtual int64 GetMetadataEntry() const override { return Data->GetMetadataEntry(Index); }
+
+		//
+
+		FORCEINLINE virtual void SetTransform(const FTransform& InValue) { Transform = InValue; }
+		FORCEINLINE virtual void SetLocation(const FVector& InValue) { Transform.SetLocation(InValue); }
+		FORCEINLINE virtual void SetScale3D(const FVector& InValue) { Transform.SetScale3D(InValue); }
+		FORCEINLINE virtual void SetQuat(const FQuat& InValue) { Transform.SetRotation(InValue); }
+		FORCEINLINE virtual void SetBoundsMin(const FVector& InValue) { BoundsMin = InValue; }
+		FORCEINLINE virtual void SetBoundsMax(const FVector& InValue) { BoundsMax = InValue; }
+
+		virtual void SetExtents(const FVector& InValue, const bool bKeepLocalCenter = false)
+		{
+			if (bKeepLocalCenter)
+			{
+				const FVector LocalCenter = PCGPointHelpers::GetLocalCenter(BoundsMin, BoundsMax);
+				BoundsMin = LocalCenter - InValue;
+				BoundsMax = LocalCenter + InValue;
+			}
+			else
+			{
+				BoundsMin = -InValue;
+				BoundsMax = InValue;
+			}
+		}
+
+		FORCEINLINE virtual void SetLocalBounds(const FBox& InValue)
+		{
+			BoundsMin = InValue.Min;
+			BoundsMax = InValue.Max;
+		}
+
+		bool operator==(const FProxyPoint& Other) const { return Index == Other.Index && IO == Other.IO; }
+
+		void CopyTo(UPCGBasePointData* InData) const;
+		void CopyTo(FMutablePoint& InPoint) const;
+	};
+
 #undef PCGEX_POINT_PROXY_OVERRIDES
 
 	static const FPoint NONE_Point = FPoint(1, -1);
 	static const FMutablePoint NONE_MutablePoint = FMutablePoint(nullptr, -1, -1);
 	static const FConstPoint NONE_ConstPoint = FConstPoint(nullptr, -1, -1);
 
+#pragma endregion
+
+#pragma region FPointIO
 	/**
 	 * 
 	 */
@@ -361,6 +470,10 @@ FORCEINLINE virtual int64 GetMetadataEntry() const override { return Data->GetMe
 		return NewIO;
 	}
 
+#pragma endregion
+
+#pragma region FPointIOCollection
+
 	/**
 	 * 
 	 */
@@ -485,6 +598,8 @@ FORCEINLINE virtual int64 GetMetadataEntry() const override { return Data->GetMe
 		bool TryAddEntry(const TSharedRef<FPointIO>& PointIOEntry);
 		TSharedPtr<FPointIOTaggedEntries> GetEntries(int32 Key);
 	};
+
+#pragma endregion
 
 	namespace PCGExPointIO
 	{

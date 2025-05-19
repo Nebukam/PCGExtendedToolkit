@@ -11,13 +11,12 @@
 #include "Graph/PCGExCluster.h"
 #include "Graph/Data/PCGExClusterData.h"
 
-void FPCGExBasicEdgeSolidificationDetails::Mutate(const PCGExData::FMutablePoint& InEdgePoint, const PCGExData::FConstPoint& InStart, const PCGExData::FConstPoint& InEnd, const double InLerp) const
+void FPCGExBasicEdgeSolidificationDetails::Mutate(PCGExData::FMutablePoint& InEdgePoint, const PCGExData::FConstPoint& InStart, const PCGExData::FConstPoint& InEnd, const double InLerp) const
 {
-	const FVector A = InStart.Transform.GetLocation();
-	const FVector B = InEnd.Transform.GetLocation();
-
-
-	InEdgePoint.Transform.SetLocation(FMath::Lerp(A, B, InLerp));
+	const FVector A = InStart.GetLocation();
+	const FVector B = InEnd.GetLocation();
+	
+	InEdgePoint.SetLocation(FMath::Lerp(A, B, InLerp));
 	if (SolidificationAxis == EPCGExMinimalAxis::None) { return; }
 
 	const FVector EdgeDirection = (A - B).GetSafeNormal();
@@ -52,7 +51,7 @@ void FPCGExBasicEdgeSolidificationDetails::Mutate(const PCGExData::FMutablePoint
 	FVector BoundsMin = FVector(-Rad);
 	FVector BoundsMax = FVector(Rad);
 
-	const FVector PtScale = InEdgePoint.Transform.GetScale3D();
+	const FVector PtScale = InEdgePoint.GetScale3D();
 	const FVector InvScale = FVector::One() / PtScale;
 
 	const double LerpInv = 1 - InLerp;
@@ -81,10 +80,10 @@ void FPCGExBasicEdgeSolidificationDetails::Mutate(const PCGExData::FMutablePoint
 		break;
 	}
 
-	InEdgePoint.Transform = FTransform(EdgeRot, FMath::Lerp(B, A, LerpInv), InEdgePoint.Transform.GetScale3D());
+	InEdgePoint.SetTransform(FTransform(EdgeRot, FMath::Lerp(B, A, LerpInv), InEdgePoint.GetScale3D()));
 
-	InEdgePoint.BoundsMin = BoundsMin;
-	InEdgePoint.BoundsMax = BoundsMax;
+	InEdgePoint.SetBoundsMin(BoundsMin);
+	InEdgePoint.SetBoundsMax(BoundsMax);
 }
 
 FPCGExGraphBuilderDetails::FPCGExGraphBuilderDetails(const EPCGExMinimalAxis InDefaultSolidificationAxis)
@@ -453,6 +452,7 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 		UPCGBasePointData* OutEdgeData = EdgesDataFacade->GetOut();
 
 		TPCGValueRange<FTransform> VtxTransforms = OutVtxData->GetTransformValueRange();
+
 		TPCGValueRange<int32> EdgeSeeds = OutEdgeData->GetSeedValueRange();
 
 		const bool bHasUnionMetadata = (MetadataDetails && !ParentGraph->EdgeMetadata.IsEmpty());
@@ -464,9 +464,9 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 			const FEdge& E = FlattenedEdges[i];
 			const int32 EdgeIndex = E.Index; // TODO : This is now i, anyway?
 
-			const PCGExData::FMutablePoint EdgePt = EdgesDataFacade->GetOutPoint(EdgeIndex);
-			const PCGExData::FMutablePoint StartPt = VtxDataFacade->GetOutPoint(E.Start);
-			const PCGExData::FMutablePoint EndPt = VtxDataFacade->GetOutPoint(E.End);
+			PCGExData::FMutablePoint EdgePt = EdgesDataFacade->GetOutPoint(EdgeIndex);
+			const PCGExData::FConstPoint StartPt = VtxDataFacade->GetOutPoint(E.Start);
+			const PCGExData::FConstPoint EndPt = VtxDataFacade->GetOutPoint(E.End);
 
 			if (bHasUnionMetadata)
 			{
@@ -490,7 +490,7 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 
 			if (EdgeLength) { EdgeLength->GetMutable(EdgeIndex) = FVector::Dist(VtxTransforms[StartPt.Index].GetLocation(), VtxTransforms[EndPt.Index].GetLocation()); }
 
-			if (EdgeSeeds[EdgeIndex] == 0 || ParentGraph->bRefreshEdgeSeed) { EdgeSeeds[EdgeIndex] = PCGExRandom::ComputeSpatialSeed(EdgePt, SeedOffset); }
+			if (EdgeSeeds[EdgeIndex] == 0 || ParentGraph->bRefreshEdgeSeed) { EdgeSeeds[EdgeIndex] = PCGExRandom::ComputeSpatialSeed(EdgePt.GetLocation(), SeedOffset); }
 		}
 	}
 
@@ -1042,6 +1042,8 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 			ValidNodes.Shrink();
 		}
 
+		// TODO : NEED TO INITIALIZE METADATA KEYS !!!!
+		
 		// Sort points & update node PointIndex
 
 		{

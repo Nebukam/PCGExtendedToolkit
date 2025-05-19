@@ -4,12 +4,12 @@
 
 #include "PCGExFitting.h"
 
-void FPCGExScaleToFitDetails::Process(const FPCGPoint& InPoint, const FBox& InBounds, FVector& OutScale, FBox& OutBounds) const
+void FPCGExScaleToFitDetails::Process(const PCGExData::FConstPoint& InPoint, const FBox& InBounds, FVector& OutScale, FBox& OutBounds) const
 {
 	if (ScaleToFitMode == EPCGExFitMode::None) { return; }
 
 	const FVector PtSize = InPoint.GetLocalBounds().GetSize();
-	const FVector ScaledPtSize = InPoint.GetLocalBounds().GetSize() * InPoint.Transform.GetScale3D();
+	const FVector ScaledPtSize = InPoint.GetLocalBounds().GetSize() * InPoint.GetTransform().GetScale3D();
 	const FVector StSize = InBounds.GetSize();
 
 	const double XFactor = ScaledPtSize.X / StSize.X;
@@ -24,7 +24,7 @@ void FPCGExScaleToFitDetails::Process(const FPCGPoint& InPoint, const FBox& InBo
 	OutBounds.Min = InBounds.Min;
 	OutBounds.Max = InBounds.Max;
 
-	const FVector InScale = InPoint.Transform.GetScale3D();
+	const FVector InScale = InPoint.GetTransform().GetScale3D();
 
 	if (ScaleToFitMode == EPCGExFitMode::Uniform)
 	{

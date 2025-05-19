@@ -32,10 +32,9 @@ if ((_COMPONENT & static_cast<uint8>(EPCGExApplySampledComponentFlags::Z)) != 0)
 #undef PCGEX_REGISTER_FLAG
 }
 
-void FPCGExApplySamplingDetails::Apply(const PCGExData::FMutablePoint& InPoint, const FTransform& InTransform, const FTransform& InLookAt)
+void FPCGExApplySamplingDetails::Apply(PCGExData::FMutablePoint& InPoint, const FTransform& InTransform, const FTransform& InLookAt)
 {
-	const TPCGValueRange<FTransform> Transforms = InPoint.Data->GetTransformValueRange();
-	FTransform& T = Transforms[InPoint.Index];
+	FTransform& T = InPoint.GetMutableTransform();
 
 	FVector OutRotation = T.GetRotation().Euler();
 	FVector OutPosition = T.GetLocation();

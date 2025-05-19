@@ -518,12 +518,12 @@ namespace PCGExGraph
 
 		for (const FPESplit Split : PointEdgeProxy.CollinearPoints)
 		{
-			const PCGExData::FMutablePoint Target = PointIO->GetOutPoint(Graph->Nodes[Split.NodeIndex].PointIndex);
-			const FVector& PreBlendLocation = Transforms[Target.Index].GetLocation();
+			const int32 TargetIndex = Graph->Nodes[Split.NodeIndex].PointIndex;
+			const FVector& PreBlendLocation = Transforms[TargetIndex].GetLocation();
 
-			Blender->Blend(A, B, Target.Index, 0.5); // TODO : Compute proper lerp
+			Blender->Blend(A, B, TargetIndex, 0.5); // TODO : Compute proper lerp
 			
-			Transforms[Target.Index].SetLocation(PreBlendLocation);
+			Transforms[TargetIndex].SetLocation(PreBlendLocation);
 		}
 	}
 

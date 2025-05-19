@@ -6,6 +6,7 @@
 
 #include "PCGExPointsProcessor.h"
 #include "Data/Blending/PCGExMetadataBlender.h"
+#include "Geometry/PCGExGeoPointBox.h"
 
 
 #define LOCTEXT_NAMESPACE "PCGExSampleNearestBoundsElement"

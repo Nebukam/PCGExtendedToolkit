@@ -169,6 +169,8 @@ namespace PCGExData
 		TSharedPtr<TArray<T>> InValues;
 		TSharedPtr<TArray<T>> OutValues;
 
+		T InternalDefaultValue = T{};
+		
 	public:
 		T Min = T{};
 		T Max = T{};
@@ -197,6 +199,18 @@ namespace PCGExData
 
 		virtual bool IsWritable() override { return OutValues ? true : false; }
 		virtual bool IsReadable() override { return InValues ? true : false; }
+
+		/*
+		FORCEINLINE TPCGValueRange<T> GetValueRange()
+		{
+			return TPCGValueRange<T>(OutValues.IsValid() ? MakeStridedView(*OutValues.Get()) : MakeStridedView(sizeof(InternalDefaultValue), &InternalDefaultValue, 1), NumValues);
+		}
+
+		FORCEINLINE TConstPCGValueRange<T> GetConstValueRange() const
+		{
+			return TConstPCGValueRange<T>(OutValues.IsValid() ? MakeConstStridedView(*OutValues.Get()) : MakeConstStridedView(sizeof(InternalDefaultValue), &InternalDefaultValue, 1), NumValues);
+		}
+		*/
 
 		TSharedPtr<TArray<T>> GetInValues() { return InValues; }
 		TSharedPtr<TArray<T>> GetOutValues() { return OutValues; }

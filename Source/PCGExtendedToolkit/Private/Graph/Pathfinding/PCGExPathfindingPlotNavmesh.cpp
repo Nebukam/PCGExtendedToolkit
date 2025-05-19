@@ -249,8 +249,8 @@ void FPCGExPlotNavmeshTask::ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>&
 
 		if (EndIndex < 0 || EndIndex > MaxIndex) { continue; }
 
-		PCGExData::FMutablePoint StartPoint(OutPathData, StartIndex);
-		PCGExData::FMutablePoint EndPoint(OutPathData, EndIndex);
+		PCGExData::FConstPoint StartPoint(OutPathData, StartIndex);
+		PCGExData::FConstPoint EndPoint(OutPathData, EndIndex);
 
 		TArrayView<FPCGPoint> View = MakeArrayView(MutablePoints.GetData() + StartIndex, Range);
 		Context->Blending->BlendSubPoints(StartPoint, EndPoint, View, MilestonesMetrics[i], TempBlender.Get(), StartIndex);

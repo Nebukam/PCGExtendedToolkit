@@ -86,7 +86,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExScaleToFitDetails
 	EPCGExScaleToFit ScaleToFitZ = EPCGExScaleToFit::None;
 
 	void Process(
-		const FPCGPoint& InPoint,
+		const PCGExData::FConstPoint& InPoint,
 		const FBox& InBounds,
 		FVector& OutScale,
 		FBox& OutBounds) const;
