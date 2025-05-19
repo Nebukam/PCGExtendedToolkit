@@ -181,7 +181,7 @@ namespace PCGExGrowPaths
 		GoalNode = MakeUnique<PCGExCluster::FNode>();
 		GoalNode->Index = Processor->Cluster->NodePositions.Add(Processor->Cluster->GetPos(SeedNode) + GrowthDirection * 10000);
 		Metrics.Reset(Processor->Cluster->GetPos(SeedNode));
-		TravelStack = PCGEx::NewHashLookup<PCGEx::FMapHashLookup>(PCGEx::NH64(-1, -1), 0);
+		TravelStack = PCGEx::NewHashLookup<PCGEx::FHashLookupMap>(PCGEx::NH64(-1, -1), 0);
 	}
 
 	double FGrowth::GetGrowthScore(const PCGExCluster::FNode& From, const PCGExCluster::FNode& To, const PCGExGraph::FEdge& Edge) const

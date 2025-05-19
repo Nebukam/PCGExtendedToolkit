@@ -260,6 +260,8 @@ FORCEINLINE virtual int64 GetMetadataEntry() const override { return Data->GetMe
 		TWeakPtr<FPointIO> RootIO;
 		std::atomic<bool> bIsEnabled{true};
 
+		TSharedPtr<TArray<int32>> IdxMapping;
+
 	public:
 		TSharedPtr<FTags> Tags;
 		int32 IOIndex = 0;
@@ -388,6 +390,11 @@ FORCEINLINE virtual int64 GetMetadataEntry() const override { return Data->GetMe
 			TPCGValueRange<int64> MetadataEntries = Out->GetMetadataEntryValueRange();
 			Out->Metadata->InitializeOnSet(MetadataEntries[Index]);
 		}
+
+		// There's a recurring need for this to deal with ::New
+		TArray<int32>& GetIdxMapping(const int32 NumElements = -1);
+		void ClearIdxMapping();
+		void ConsumeIdxMapping(const EPCGPointNativeProperties Properties, const bool bClear = true);
 
 		// In -> Out
 		void InheritProperties(const int32 ReadStartIndex, const int32 WriteStartIndex, const int32 Count, const EPCGPointNativeProperties Properties = EPCGPointNativeProperties::All) const;

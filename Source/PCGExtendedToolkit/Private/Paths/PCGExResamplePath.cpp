@@ -65,7 +65,7 @@ namespace PCGExResamplePath
 
 		if (!FPointsProcessor::Process(InAsyncManager)) { return false; }
 
-		const TArray<FPCGPoint>& InPoints = PointDataFacade->GetIn()->GetPoints();
+		const UPCGBasePointData* InPoints = PointDataFacade->GetIn();
 
 		Path = PCGExPaths::MakePath(InPoints, 0, Context->ClosedLoop.IsClosedLoop(PointDataFacade->Source));
 		Path->IOIndex = PointDataFacade->Source->IOIndex;
@@ -88,9 +88,8 @@ namespace PCGExResamplePath
 
 			PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::New)
 
-			TArray<FPCGPoint>& OutPoints = PointDataFacade->GetMutablePoints();
-			OutPoints.SetNum(NumSamples);
-			OutPoints[0] = PointDataFacade->Source->GetIn()->GetPoints()[0]; // Copy first point
+			UPCGBasePointData* OutPoints = PointDataFacade->GetOut();
+			OutPoints->SetNumPoints(NumSamples);
 		}
 		else
 		{
@@ -100,12 +99,17 @@ namespace PCGExResamplePath
 
 		SampleLength = PathLength->TotalLength / static_cast<double>(NumSamples - 1);
 
+		UPCGBasePointData* OutPoints = PointDataFacade->GetOut();
+		OutPoints->SetNumPoints(NumSamples);
+
 		Samples.SetNumUninitialized(NumSamples);
 		bDaisyChainProcessPoints = true;
 
+		TConstPCGValueRange<FTransform> InTransforms = PointDataFacade->GetIn()->GetConstTransformValueRange();
+
 		int32 StartIndex = 0;
 		int32 EndIndex = 1;
-		FVector PrevPosition = InPoints[0].Transform.GetLocation();
+		FVector PrevPosition = InTransforms[0].GetLocation();
 		double TraversedDistance = 0;
 
 		FPointSample& FirstSample = Samples[0];
@@ -119,7 +123,7 @@ namespace PCGExResamplePath
 			FPointSample& Sample = Samples[i];
 			Sample.Start = StartIndex;
 
-			FVector NextPosition = InPoints[EndIndex].Transform.GetLocation();
+			FVector NextPosition = InTransforms[EndIndex].GetLocation();
 			double DistToNext = FVector::Dist(PrevPosition, NextPosition);
 			double Remainder = SampleLength - DistToNext;
 
@@ -137,18 +141,18 @@ namespace PCGExResamplePath
 				{
 					StartIndex = EndIndex++;
 
-					if (EndIndex >= InPoints.Num())
+					if (EndIndex >= InTransforms.Num())
 					{
 						if (!Path->IsClosedLoop())
 						{
-							EndIndex = InPoints.Num() - 1;
+							EndIndex = InTransforms.Num() - 1;
 							break;
 						}
 
 						EndIndex = 0;
 					}
 
-					NextPosition = InPoints[EndIndex].Transform.GetLocation();
+					NextPosition = InTransforms[EndIndex].GetLocation();
 					DistToNext = FVector::Dist(PrevPosition, NextPosition);
 
 					if (Remainder <= DistToNext) { PrevPosition = PrevPosition + (Path->DirToPrevPoint(EndIndex) * -Remainder); }
@@ -165,58 +169,72 @@ namespace PCGExResamplePath
 		if (Settings->bPreserveLastPoint && !Path->IsClosedLoop())
 		{
 			FPointSample& LastSample = Samples.Last();
-			LastSample.Start = InPoints.Num() - 2;
-			LastSample.End = InPoints.Num() - 1;
-			LastSample.Location = InPoints.Last().Transform.GetLocation();
+			LastSample.Start = InTransforms.Num() - 2;
+			LastSample.End = InTransforms.Num() - 1;
+			LastSample.Location = InTransforms[LastSample.End].GetLocation();
 			LastSample.Distance = TraversedDistance;
 		}
 
-		MetadataBlender = MakeShared<PCGExDataBlending::FMetadataBlender>(&Settings->BlendingSettings);
-		MetadataBlender->PrepareForData(PointDataFacade);
+		if (Settings->Mode == EPCGExResampleMode::Sweep)
+		{
+			// Blender will take care of setting all the properties and stuff			
+			MetadataBlender = MakeShared<PCGExDataBlending::FMetadataBlender>(&Settings->BlendingSettings);
+			MetadataBlender->PrepareForData(PointDataFacade);
+		}
 
 		StartParallelLoopForPoints();
 
 		return true;
 	}
 
-	void FProcessor::PrepareSingleLoopScopeForPoints(const PCGExMT::FScope& Scope)
+	void FProcessor::ProcessPoints(const PCGExMT::FScope& Scope)
 	{
 		PointDataFacade->Fetch(Scope);
-	}
 
-	void FProcessor::ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const PCGExMT::FScope& Scope)
-	{
-		const FPointSample& Sample = Samples[Index];
-		Point.Transform.SetLocation(Sample.Location);
+		TPCGValueRange<FTransform> OutTransforms = PointDataFacade->GetOut()->GetTransformValueRange();
 
-		//if (SourcesRange == 1)
-		//{
-		// TODO : Implement proper blending. Division by zero here when there are collocated points
-		constexpr double Weight = 0.5; //FVector::DistSquared(Path->GetPos(Sample.Start), Sample.Location) / FVector::DistSquared(Path->GetPos(Sample.Start), Path->GetPos(Sample.End));
-		MetadataBlender->PrepareForBlending(Index);
-		MetadataBlender->Blend(Index, Sample.Start, Index, Weight);
-		MetadataBlender->Blend(Index, Sample.End, Index, 1 - Weight);
-		MetadataBlender->CompleteBlending(Index, 2, 1);
-		//}
+		if (Settings->Mode == EPCGExResampleMode::Redistribute)
+		{
+			PCGEX_SCOPE_LOOP(Index)
+			{
+				const FPointSample& Sample = Samples[Index];
+				OutTransforms[Index].SetLocation(Sample.Location);
+			}
+		}
+		else
+		{
+			PCGEX_SCOPE_LOOP(Index)
+			{
+				const FPointSample& Sample = Samples[Index];
+				OutTransforms[Index].SetLocation(Sample.Location);
 
-		/*
-		// TODO : Complex blending
-		const double MinLength = Sample.Start == 0 ? 0 : PathLength->CumulativeLength[Sample.Start - 1];
-		const double MaxLength = PathLength->CumulativeLength[Path->IsValidEdgeIndex(Sample.End) ? PathLength->TotalLength : Sample.End - 1];
-		const double Range = MaxLength - MinLength;
+				//if (SourcesRange == 1)
+				//{
+				// TODO : Implement proper blending. Division by zero here when there are collocated points
+				constexpr double Weight = 0.5; //FVector::DistSquared(Path->GetPos(Sample.Start), Sample.Location) / FVector::DistSquared(Path->GetPos(Sample.Start), Path->GetPos(Sample.End));
+				MetadataBlender->Blend(Sample.Start, Sample.End, Index, Weight);
+				//}
+
+				/*
+				// TODO : Complex blending
+				const double MinLength = Sample.Start == 0 ? 0 : PathLength->CumulativeLength[Sample.Start - 1];
+				const double MaxLength = PathLength->CumulativeLength[Path->IsValidEdgeIndex(Sample.End) ? PathLength->TotalLength : Sample.End - 1];
+				const double Range = MaxLength - MinLength;
+				
+				for (int i = 0; i < SourcesRange; i++)
+				{
+					const int 
+					PCGExPaths::FPathEdge& Edge = Path->Edges[Sample.Start + i - 1];
+					const double Weight =  
+				}
 		
-		for (int i = 0; i < SourcesRange; i++)
-		{
-			const int 
-			PCGExPaths::FPathEdge& Edge = Path->Edges[Sample.Start + i - 1];
-			const double Weight =  
+				if (Path->IsValidEdgeIndex(Sample.End))
+				{
+					// Blend with end
+				}
+				*/
+			}
 		}
-
-		if (Path->IsValidEdgeIndex(Sample.End))
-		{
-			// Blend with end
-		}
-		*/
 	}
 
 	void FProcessor::CompleteWork()

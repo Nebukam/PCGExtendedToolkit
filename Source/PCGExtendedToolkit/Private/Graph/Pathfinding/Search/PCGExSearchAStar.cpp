@@ -28,7 +28,7 @@ bool UPCGExSearchAStar::ResolveQuery(
 	TBitArray<> Visited;
 	Visited.Init(false, NumNodes);
 
-	const TSharedPtr<PCGEx::FHashLookup> TravelStack = PCGEx::NewHashLookup<PCGEx::FArrayHashLookup>(PCGEx::NH64(-1, -1), NumNodes);
+	const TSharedPtr<PCGEx::FHashLookup> TravelStack = PCGEx::NewHashLookup<PCGEx::FHashLookupArray>(PCGEx::NH64(-1, -1), NumNodes);
 
 	TArray<double> GScore;
 	GScore.Init(-1, NumNodes);

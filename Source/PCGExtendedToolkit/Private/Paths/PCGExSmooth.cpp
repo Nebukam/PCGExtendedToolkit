@@ -101,29 +101,29 @@ namespace PCGExSmooth
 		return true;
 	}
 
-	void FProcessor::PrepareSingleLoopScopeForPoints(const PCGExMT::FScope& Scope)
+	void FProcessor::ProcessPoints(const PCGExMT::FScope& Scope)
 	{
 		PointDataFacade->Fetch(Scope);
 		FilterScope(Scope);
-	}
 
-	void FProcessor::ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const PCGExMT::FScope& Scope)
-	{
-		if (!PointFilterCache[Index]) { return; }
-
-		const TSharedRef<PCGExData::FPointIO>& PointIO = PointDataFacade->Source;
-
-		PCGExData::FConstPoint PtRef = PointIO->GetOutPoint(Index);
-		const double LocalSmoothing = FMath::Clamp(Smoothing->Read(Index), 0, MAX_dbl) * Settings->ScaleSmoothingAmountAttribute;
-
-		if ((Settings->bPreserveEnd && Index == NumPoints - 1) ||
-			(Settings->bPreserveStart && Index == 0))
+		PCGEX_SCOPE_LOOP(Index)
 		{
-			TypedOperation->SmoothSingle(PointIO, PtRef, LocalSmoothing, 0, MetadataBlender.Get(), bClosedLoop);
-			return;
-		}
+			if (!PointFilterCache[Index]) { continue; }
 
-		TypedOperation->SmoothSingle(PointIO, PtRef, LocalSmoothing, Influence->Read(Index), MetadataBlender.Get(), bClosedLoop);
+			const TSharedRef<PCGExData::FPointIO>& PointIO = PointDataFacade->Source;
+
+			PCGExData::FConstPoint PtRef = PointIO->GetOutPoint(Index);
+			const double LocalSmoothing = FMath::Clamp(Smoothing->Read(Index), 0, MAX_dbl) * Settings->ScaleSmoothingAmountAttribute;
+
+			if ((Settings->bPreserveEnd && Index == NumPoints - 1) ||
+				(Settings->bPreserveStart && Index == 0))
+			{
+				TypedOperation->SmoothSingle(PointIO, PtRef, LocalSmoothing, 0, MetadataBlender.Get(), bClosedLoop);
+				continue;
+			}
+
+			TypedOperation->SmoothSingle(PointIO, PtRef, LocalSmoothing, Influence->Read(Index), MetadataBlender.Get(), bClosedLoop);
+		}
 	}
 
 	void FProcessor::CompleteWork()

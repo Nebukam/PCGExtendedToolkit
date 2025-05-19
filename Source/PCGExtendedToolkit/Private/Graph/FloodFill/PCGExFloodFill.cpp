@@ -19,7 +19,7 @@ namespace PCGExFloodFill
 		const PCGExCluster::FNode* InSeedNode):
 		FillControlsHandler(InFillControlsHandler), SeedNode(InSeedNode), Cluster(InCluster)
 	{
-		TravelStack = MakeShared<PCGEx::FMapHashLookup>(0, 0);
+		TravelStack = MakeShared<PCGEx::FHashLookupMap>(0, 0);
 	}
 
 	void FDiffusion::Init(const int32 InSeedIndex)

@@ -387,6 +387,31 @@ namespace PCGExData
 		else { PrintInKeysMap(InMap); }
 	}
 
+	TArray<int32>& FPointIO::GetIdxMapping(const int32 NumElements)
+	{
+		check(Out)
+		if (!IdxMapping)
+		{
+			IdxMapping = MakeShared<TArray<int32>>();
+			IdxMapping->SetNumUninitialized(NumElements < 0 ? Out->GetNumPoints() : NumElements);
+		}
+		return *IdxMapping.Get();
+	}
+
+	void FPointIO::ClearIdxMapping()
+	{
+		IdxMapping.Reset();
+	}
+
+	void FPointIO::ConsumeIdxMapping(const EPCGPointNativeProperties Properties, const bool bClear)
+	{
+		check(IdxMapping.IsValid());
+		check(IdxMapping->Num() == Out->GetNumPoints());
+
+		InheritProperties(*IdxMapping.Get(), Properties);
+		if (bClear) { ClearIdxMapping(); }
+	}
+
 	void FPointIO::InheritProperties(const int32 ReadStartIndex, const int32 WriteStartIndex, const int32 Count, const EPCGPointNativeProperties Properties) const
 	{
 		In->CopyPropertiesTo(Out, ReadStartIndex, WriteStartIndex, Count, Properties);

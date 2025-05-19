@@ -217,9 +217,8 @@ namespace PCGExPathIntersections
 		const UPCGBasePointData* OriginalPoints = PointDataFacade->GetIn();
 		UPCGBasePointData* MutablePoints = PointDataFacade->GetOut();
 
-		TArray<int32> ReadIndices;
 		MutablePoints->SetNumPoints(OriginalPoints->GetNumPoints() + NumCuts);
-		PCGEx::ArrayOfIndices(ReadIndices, MutablePoints->GetNumPoints());
+		TArray<int32>& IdxMapping = PointDataFacade->Source->GetIdxMapping();
 
 		TConstPCGValueRange<int64> InMetadataEntries = OriginalPoints->GetConstMetadataEntryValueRange();
 		TPCGValueRange<int64> OutMetadataEntries = MutablePoints->GetMetadataEntryValueRange();
@@ -231,7 +230,7 @@ namespace PCGExPathIntersections
 		for (int i = 0; i < LastIndex; i++)
 		{
 			OutMetadataEntries[Idx] = InMetadataEntries[i];
-			ReadIndices[Idx++] = i;
+			IdxMapping[Idx++] = i;
 
 			if (const TSharedPtr<PCGExGeo::FIntersections> Intersections = Segmentation->Find(PCGEx::H64U(i, i + 1)))
 			{
@@ -241,13 +240,13 @@ namespace PCGExPathIntersections
 					OutMetadataEntries[Idx] = PCGInvalidEntryKey;
 					Metadata->InitializeOnSet(OutMetadataEntries[Idx]);
 
-					ReadIndices[Idx++] = i;
+					IdxMapping[Idx++] = i;
 				}
 			}
 		}
 
 		OutMetadataEntries[Idx] = InMetadataEntries[LastIndex];
-		ReadIndices[Idx++] = LastIndex;
+		IdxMapping[Idx++] = LastIndex;
 
 
 		// TODO : Inherit properties, but metadata
@@ -262,14 +261,14 @@ namespace PCGExPathIntersections
 					OutMetadataEntries[Idx] = PCGInvalidEntryKey;
 					Metadata->InitializeOnSet(OutMetadataEntries[Idx]);
 
-					ReadIndices[Idx++] = LastIndex;
+					IdxMapping[Idx++] = LastIndex;
 				}
 			}
 		}
 
 		// Copy point properties, we'll do blending & inheriting right after
 		// At this point we want to preserve metadata entries
-		PointDataFacade->Source->InheritProperties(ReadIndices, PCGEx::AllPointNativePropertiesButMeta);
+		PointDataFacade->Source->ConsumeIdxMapping(PCGEx::AllPointNativePropertiesButMeta);
 
 		PointDataFacade->Source->ClearCachedKeys();
 		Details.Init(PointDataFacade, Context->BoundsDataFacade);

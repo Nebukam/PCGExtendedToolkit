@@ -966,7 +966,7 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 
 			const UPCGBasePointData* InNodeData = NodeDataFacade->GetIn();
 			UPCGBasePointData* OutNodeData = NodeDataFacade->GetOut();
-
+			
 			UPCGMetadata* OutPointsMetadata = OutNodeData->Metadata;
 
 			if (!OutNodeData->IsEmpty())

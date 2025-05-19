@@ -180,9 +180,8 @@ namespace PCGExBuildDelaunay
 		const UPCGBasePointData* OriginalPoints = SitesIO->GetIn();
 		UPCGBasePointData* MutablePoints = SitesIO->GetOut();
 
-		TArray<int32> ReadIndices;
-		ReadIndices.SetNumUninitialized(NumSites);
 		MutablePoints->SetNumPoints(NumSites);
+		TArray<int32>& IdxMapping = SitesIO->GetIdxMapping();
 
 		TConstPCGValueRange<FTransform> InTransforms = OriginalPoints->GetConstTransformValueRange();
 		TPCGValueRange<FTransform> OutTransforms = MutablePoints->GetTransformValueRange();
@@ -197,11 +196,11 @@ namespace PCGExBuildDelaunay
 			Centroid += InTransforms[Site.Vtx[3]].GetLocation();
 			Centroid /= 4;
 
-			ReadIndices[i] = Site.Vtx[0];
+			IdxMapping[i] = Site.Vtx[0];
 			OutTransforms[i].SetLocation(Centroid);
 		}
 
-		SitesIO->InheritProperties(ReadIndices, PCGEx::AllPointNativePropertiesButTransform);
+		SitesIO->ConsumeIdxMapping(PCGEx::AllPointNativePropertiesButTransform);
 
 		if (Settings->bMarkSiteHull)
 		{
@@ -231,9 +230,8 @@ namespace PCGExBuildDelaunay
 		PCGExGeo::TDelaunay3* Delaunay = Processor->Delaunay.Get();
 		const int32 NumSites = Delaunay->Sites.Num();
 
-		TArray<int32> ReadIndices;
-		ReadIndices.SetNumUninitialized(NumSites);
 		MutablePoints->SetNumPoints(NumSites);
+		TArray<int32>& IdxMapping = SitesIO->GetIdxMapping();
 
 		TConstPCGValueRange<FTransform> InTransforms = OriginalPoints->GetConstTransformValueRange();
 		TPCGValueRange<FTransform> OutTransforms = MutablePoints->GetTransformValueRange();
@@ -248,11 +246,11 @@ namespace PCGExBuildDelaunay
 			Centroid += InTransforms[Site.Vtx[3]].GetLocation();
 			Centroid /= 4;
 
-			ReadIndices[i] = Site.Vtx[0];
+			IdxMapping[i] = Site.Vtx[0];
 			OutTransforms[i].SetLocation(Centroid);
 		}
 
-		SitesIO->InheritProperties(ReadIndices, PCGEx::AllPointNativePropertiesButTransform);
+		SitesIO->ConsumeIdxMapping(PCGEx::AllPointNativePropertiesButTransform);
 
 		if (Settings->bMarkSiteHull)
 		{

@@ -201,9 +201,8 @@ namespace PCGExBuildDelaunay2D
 		PCGExGeo::TDelaunay2* Delaunay = Processor->Delaunay.Get();
 		const int32 NumSites = Delaunay->Sites.Num();
 
-		TArray<int32> ReadIndices;
-		ReadIndices.SetNumUninitialized(NumSites);
 		MutablePoints->SetNumPoints(NumSites);
+		TArray<int32>& IdxMapping = SitesIO->GetIdxMapping();
 
 		TConstPCGValueRange<FTransform> InTransforms = OriginalPoints->GetConstTransformValueRange();
 		TPCGValueRange<FTransform> OutTransforms = MutablePoints->GetTransformValueRange();
@@ -216,11 +215,11 @@ namespace PCGExBuildDelaunay2D
 			for (int j = 0; j < 3; j++) { Centroid += InTransforms[Site.Vtx[j]].GetLocation(); }
 			Centroid /= 3;
 
-			ReadIndices[i] = Site.Vtx[0];
+			IdxMapping[i] = Site.Vtx[0];
 			OutTransforms[i].SetLocation(Centroid);
 		}
 
-		SitesIO->InheritProperties(ReadIndices, PCGEx::AllPointNativePropertiesButTransform);
+		SitesIO->ConsumeIdxMapping(PCGEx::AllPointNativePropertiesButTransform);
 
 		if (Settings->bMarkSiteHull)
 		{
@@ -253,9 +252,8 @@ namespace PCGExBuildDelaunay2D
 		const int32 NumSites = Delaunay->Sites.Num();
 
 		// TODO : Revisit this to avoid allocating so much memory when we only need a subset
-		TArray<int32> ReadIndices;
-		ReadIndices.SetNumUninitialized(NumSites);
 		MutablePoints->SetNumPoints(NumSites);
+		TArray<int32>& IdxMapping = SitesIO->GetIdxMapping();
 
 		TConstPCGValueRange<FTransform> InTransforms = OriginalPoints->GetConstTransformValueRange();
 		TPCGValueRange<FTransform> OutTransforms = MutablePoints->GetTransformValueRange();
@@ -329,13 +327,13 @@ namespace PCGExBuildDelaunay2D
 			const int32 VIndex = FinalSites.Add(Site.Vtx[0]);
 
 			Hull.Add(bOnHull);
-			ReadIndices[VIndex] = Site.Vtx[0];
+			IdxMapping[VIndex] = Site.Vtx[0];
 			OutTransforms[VIndex].SetLocation(Centroid);
 		}
 
-		ReadIndices.SetNum(FinalSites.Num());
+		IdxMapping.SetNum(FinalSites.Num());
 		MutablePoints->SetNumPoints(FinalSites.Num());
-		SitesIO->InheritProperties(ReadIndices, PCGEx::AllPointNativePropertiesButTransform);
+		SitesIO->ConsumeIdxMapping(PCGEx::AllPointNativePropertiesButTransform);
 
 		if (Settings->bMarkSiteHull)
 		{
