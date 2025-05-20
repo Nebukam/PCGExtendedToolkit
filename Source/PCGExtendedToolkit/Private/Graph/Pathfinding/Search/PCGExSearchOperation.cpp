@@ -17,7 +17,7 @@ bool FPCGExSearchOperation::ResolveQuery(
 }
 
 
-void UPCGExSearchOperation::CopySettingsFrom(const UPCGExInstancedFactory* Other)
+void UPCGExSearchInstancedFactory::CopySettingsFrom(const UPCGExInstancedFactory* Other)
 {
 	Super::CopySettingsFrom(Other);
 }

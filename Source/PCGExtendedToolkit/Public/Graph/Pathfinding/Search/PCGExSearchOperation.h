@@ -43,7 +43,7 @@ public:
  * 
  */
 UCLASS(Abstract)
-class PCGEXTENDEDTOOLKIT_API UPCGExSearchOperation : public UPCGExInstancedFactory
+class PCGEXTENDEDTOOLKIT_API UPCGExSearchInstancedFactory : public UPCGExInstancedFactory
 {
 	GENERATED_BODY()
 

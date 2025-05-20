@@ -93,7 +93,7 @@ namespace PCGExGrowPaths
 }
 
 class FPCGExHeuristicOperation;
-class UPCGExSearchOperation;
+class UPCGExSearchInstancedFactory;
 /**
  * Use PCGExTransform to manipulate the outgoing attributes instead of handling everything here.
  * This way we can multi-thread the various calculations instead of mixing everything along with async/game thread collision

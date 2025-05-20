@@ -26,7 +26,7 @@ public:
  * 
  */
 UCLASS(MinimalAPI, DisplayName = "A*", meta=(ToolTip ="A* Search. Returns early with the least possible amount of traversed nodes."))
-class UPCGExSearchAStar : public UPCGExSearchOperation
+class UPCGExSearchAStar : public UPCGExSearchInstancedFactory
 {
 	GENERATED_BODY()
 

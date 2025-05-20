@@ -26,7 +26,7 @@ public:
  * 
  */
 UCLASS(MinimalAPI, DisplayName = "Dijkstra", meta=(ToolTip ="Dijkstra search. Slower than A* but more respectful of modifiers and weights."))
-class UPCGExSearchDijkstra : public UPCGExSearchOperation
+class UPCGExSearchDijkstra : public UPCGExSearchInstancedFactory
 {
 	GENERATED_BODY()
 

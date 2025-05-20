@@ -13,7 +13,7 @@
 
 #include "PCGExPathfindingEdges.generated.h"
 
-class UPCGExSearchOperation;
+class UPCGExSearchInstancedFactory;
 /**
  * Use PCGExTransform to manipulate the outgoing attributes instead of handling everything here.
  * This way we can multi-thread the various calculations instead of mixing everything along with async/game thread collision
@@ -73,7 +73,7 @@ public:
 
 	/** Search algorithm. */
 	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = Settings, Instanced, meta = (PCG_Overridable, NoResetToDefault, ShowOnlyInnerProperties))
-	TObjectPtr<UPCGExSearchOperation> SearchAlgorithm;
+	TObjectPtr<UPCGExSearchInstancedFactory> SearchAlgorithm;
 
 	/** TBD */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging & Forwarding")
@@ -114,7 +114,7 @@ struct FPCGExPathfindingEdgesContext final : FPCGExEdgesProcessorContext
 	TSharedPtr<PCGExData::FPointIOCollection> OutputPaths;
 
 	UPCGExGoalPicker* GoalPicker = nullptr;
-	UPCGExSearchOperation* SearchAlgorithm = nullptr;
+	UPCGExSearchInstancedFactory* SearchAlgorithm = nullptr;
 
 	FPCGExAttributeToTagDetails SeedAttributesToPathTags;
 	FPCGExAttributeToTagDetails GoalAttributesToPathTags;
