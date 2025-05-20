@@ -7,26 +7,10 @@
 #include "PCGExOrientOperation.h"
 #include "PCGExOrientWeighted.generated.h"
 
-/**
- * 
- */
-UCLASS(MinimalAPI, DisplayName = "Weighted")
-class UPCGExOrientWeighted : public UPCGExOrientOperation
+class FPCGExOrientWeighted : public FPCGExOrientOperation
 {
-	GENERATED_BODY()
-
 public:
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	bool bInverseWeight = false;
-
-	virtual void CopySettingsFrom(const UPCGExInstancedFactory* Other) override
-	{
-		Super::CopySettingsFrom(Other);
-		if (const UPCGExOrientWeighted* TypedOther = Cast<UPCGExOrientWeighted>(Other))
-		{
-			bInverseWeight = TypedOther->bInverseWeight;
-		}
-	}
 
 	virtual FTransform ComputeOrientation(
 		const PCGExData::FConstPoint& Point,
@@ -45,10 +29,40 @@ public:
 
 		OutT.SetRotation(
 			PCGExMath::MakeDirection(
-				OrientAxis,
+				Factory->OrientAxis,
 				FMath::Lerp(Path->DirToPrevPoint(Point.Index), Path->DirToNextPoint(Point.Index), bInverseWeight ? 1 - Weight : Weight).GetSafeNormal() * DirectionMultiplier,
-				PCGExMath::GetDirection(UpAxis)));
+				PCGExMath::GetDirection(Factory->UpAxis)));
 
 		return OutT;
+	}
+};
+
+/**
+ * 
+ */
+UCLASS(MinimalAPI, DisplayName = "Weighted")
+class UPCGExOrientWeighted : public UPCGExOrientInstancedFactory
+{
+	GENERATED_BODY()
+
+public:
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	bool bInverseWeight = false;
+
+	virtual void CopySettingsFrom(const UPCGExInstancedFactory* Other) override
+	{
+		Super::CopySettingsFrom(Other);
+		if (const UPCGExOrientWeighted* TypedOther = Cast<UPCGExOrientWeighted>(Other))
+		{
+			bInverseWeight = TypedOther->bInverseWeight;
+		}
+	}
+
+	virtual TSharedPtr<FPCGExOrientOperation> CreateOperation() const override
+	{
+		PCGEX_FACTORY_NEW_OPERATION(OrientWeighted)
+		NewOperation->Factory = this;
+		NewOperation->bInverseWeight = bInverseWeight;
+		return NewOperation;
 	}
 };

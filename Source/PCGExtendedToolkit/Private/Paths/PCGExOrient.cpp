@@ -100,7 +100,7 @@ namespace PCGExOrient
 		//PathBinormal = Path->AddExtra<PCGExPaths::FPathEdgeBinormal>(false);
 
 		LastIndex = PointDataFacade->GetNum() - 1;
-		Orient = Cast<UPCGExOrientOperation>(PrimaryInstancedFactory);
+		Orient = GetPrimaryInstancedFactory<UPCGExOrientInstancedFactory>()->CreateOperation();
 		if (!Orient->PrepareForData(PointDataFacade, Path.ToSharedRef())) { return false; }
 
 		if (Settings->Output == EPCGExOrientUsage::OutputToAttribute)
@@ -120,7 +120,6 @@ namespace PCGExOrient
 
 	void FProcessor::ProcessPoints(const PCGExMT::FScope& Scope)
 	{
-		
 		PointDataFacade->Fetch(Scope);
 		FilterScope(Scope);
 

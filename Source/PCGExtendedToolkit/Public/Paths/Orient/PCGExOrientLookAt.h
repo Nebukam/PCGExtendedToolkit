@@ -16,36 +16,15 @@ enum class EPCGExOrientLookAtMode : uint8
 	Position      = 3 UMETA(DisplayName = "Position", ToolTip="Use a local vector attribtue as a world position to look at"),
 };
 
-/**
- * 
- */
-UCLASS(MinimalAPI, DisplayName = "Look At")
-class UPCGExOrientLookAt : public UPCGExOrientOperation
+class FPCGExOrientLookAt : public FPCGExOrientOperation
 {
-	GENERATED_BODY()
-
 public:
-	/** Look at method */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	EPCGExOrientLookAtMode LookAt = EPCGExOrientLookAtMode::NextPoint;
-
-	/** Vector attribute representing either a direction or world position, depending on selected mode. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="LookAt==EPCGExOrientLookAtMode::Direction || LookAt==EPCGExOrientLookAtMode::Position", EditConditionHides))
 	FPCGAttributePropertyInputSelector LookAtAttribute;
-
-	virtual void CopySettingsFrom(const UPCGExInstancedFactory* Other) override
-	{
-		Super::CopySettingsFrom(Other);
-		if (const UPCGExOrientLookAt* TypedOther = Cast<UPCGExOrientLookAt>(Other))
-		{
-			LookAt = TypedOther->LookAt;
-			LookAtAttribute = TypedOther->LookAtAttribute;
-		}
-	}
 
 	virtual bool PrepareForData(const TSharedRef<PCGExData::FFacade>& InDataFacade, const TSharedRef<PCGExPaths::FPath>& InPath) override
 	{
-		if (!Super::PrepareForData(InDataFacade, InPath)) { return false; }
+		if (!FPCGExOrientOperation::PrepareForData(InDataFacade, InPath)) { return false; }
 
 		if (LookAt == EPCGExOrientLookAtMode::Direction || LookAt == EPCGExOrientLookAtMode::Position)
 		{
@@ -76,43 +55,74 @@ public:
 		}
 	}
 
-	virtual FTransform LookAtAxis(FTransform InT, const FVector& InAxis, const double DirectionMultiplier) const
+	virtual FTransform LookAtAxis(const FTransform& InT, const FVector& InAxis, const double DirectionMultiplier) const
 	{
 		FTransform OutT = InT;
 		OutT.SetRotation(
 			PCGExMath::MakeDirection(
-				OrientAxis,
+				Factory->OrientAxis,
 				InAxis * DirectionMultiplier,
-				PCGExMath::GetDirection(UpAxis)));
+				PCGExMath::GetDirection(Factory->UpAxis)));
 		return OutT;
 	}
 
-	virtual FTransform LookAtDirection(FTransform InT, const int32 Index, const double DirectionMultiplier) const
+	virtual FTransform LookAtDirection(const FTransform& InT, const int32 Index, const double DirectionMultiplier) const
 	{
 		FTransform OutT = InT;
 		OutT.SetRotation(
 			PCGExMath::MakeDirection(
-				OrientAxis, LookAtGetter->Read(Index).GetSafeNormal() * DirectionMultiplier, PCGExMath::GetDirection(UpAxis)));
+				Factory->OrientAxis, LookAtGetter->Read(Index).GetSafeNormal() * DirectionMultiplier, PCGExMath::GetDirection(Factory->UpAxis)));
 		return OutT;
 	}
 
-	virtual FTransform LookAtPosition(FTransform InT, const int32 Index, const double DirectionMultiplier) const
+	virtual FTransform LookAtPosition(const FTransform& InT, const int32 Index, const double DirectionMultiplier) const
 	{
 		FTransform OutT = InT;
 		const FVector Current = OutT.GetLocation();
 		const FVector Position = LookAtGetter->Read(Index);
 		OutT.SetRotation(
 			PCGExMath::MakeDirection(
-				OrientAxis, (Position - Current).GetSafeNormal() * DirectionMultiplier, PCGExMath::GetDirection(UpAxis)));
+				Factory->OrientAxis, (Position - Current).GetSafeNormal() * DirectionMultiplier, PCGExMath::GetDirection(Factory->UpAxis)));
 		return OutT;
-	}
-
-	virtual void Cleanup() override
-	{
-		LookAtGetter.Reset();
-		Super::Cleanup();
 	}
 
 protected:
 	TSharedPtr<PCGExData::TBuffer<FVector>> LookAtGetter;
+};
+
+/**
+ * 
+ */
+UCLASS(MinimalAPI, DisplayName = "Look At")
+class UPCGExOrientLookAt : public UPCGExOrientInstancedFactory
+{
+	GENERATED_BODY()
+
+public:
+	/** Look at method */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	EPCGExOrientLookAtMode LookAt = EPCGExOrientLookAtMode::NextPoint;
+
+	/** Vector attribute representing either a direction or world position, depending on selected mode. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="LookAt==EPCGExOrientLookAtMode::Direction || LookAt==EPCGExOrientLookAtMode::Position", EditConditionHides))
+	FPCGAttributePropertyInputSelector LookAtAttribute;
+
+	virtual void CopySettingsFrom(const UPCGExInstancedFactory* Other) override
+	{
+		Super::CopySettingsFrom(Other);
+		if (const UPCGExOrientLookAt* TypedOther = Cast<UPCGExOrientLookAt>(Other))
+		{
+			LookAt = TypedOther->LookAt;
+			LookAtAttribute = TypedOther->LookAtAttribute;
+		}
+	}
+
+	virtual TSharedPtr<FPCGExOrientOperation> CreateOperation() const override
+	{
+		PCGEX_FACTORY_NEW_OPERATION(OrientLookAt)
+		NewOperation->Factory = this;
+		NewOperation->LookAt = LookAt;
+		NewOperation->LookAtAttribute = LookAtAttribute;
+		return NewOperation;
+	}
 };

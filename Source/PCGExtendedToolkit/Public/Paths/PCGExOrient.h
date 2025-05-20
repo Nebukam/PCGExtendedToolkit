@@ -61,7 +61,7 @@ public:
 	EPCGExAxis UpAxis = EPCGExAxis::Up;
 
 	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = Settings, Instanced, meta=(PCG_Overridable, ShowOnlyInnerProperties, NoResetToDefault))
-	TObjectPtr<UPCGExOrientOperation> Orientation;
+	TObjectPtr<UPCGExOrientInstancedFactory> Orientation;
 
 	/** Default value, can be overriden per-point through filters. */
 	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
@@ -88,7 +88,7 @@ struct FPCGExOrientContext final : FPCGExPathProcessorContext
 {
 	friend class FPCGExOrientElement;
 
-	UPCGExOrientOperation* Orientation;
+	UPCGExOrientInstancedFactory* Orientation;
 };
 
 class FPCGExOrientElement final : public FPCGExPathProcessorElement
@@ -110,7 +110,7 @@ namespace PCGExOrient
 
 		TSharedPtr<PCGExData::TBuffer<FTransform>> TransformWriter;
 		TSharedPtr<PCGExData::TBuffer<double>> DotWriter;
-		UPCGExOrientOperation* Orient = nullptr;
+		TSharedPtr<FPCGExOrientOperation> Orient;
 		int32 LastIndex = 0;
 
 	public:
