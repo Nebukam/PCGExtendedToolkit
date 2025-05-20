@@ -4,29 +4,23 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "PCGExFactoryProvider.h"
 #include "PCGExSmoothingOperation.h"
 #include "Data/Blending/PCGExDataBlending.h"
 
 
 #include "PCGExRadiusSmoothing.generated.h"
 
-/**
- * 
- */
-UCLASS(MinimalAPI, DisplayName = "Radius")
-class UPCGExRadiusSmoothing : public UPCGExSmoothingOperation
+class FPCGExRadiusSmoothing : public FPCGExSmoothingOperation
 {
-	GENERATED_BODY()
-
 public:
 	virtual void SmoothSingle(
-		const TSharedRef<PCGExData::FPointIO>& Path,
-		PCGExData::FConstPoint& Target,
-		const double Smoothing,
-		const double Influence,
-		PCGExDataBlending::FMetadataBlender* MetadataBlender,
+		const TSharedRef<PCGExData::FPointIO>& Path, PCGExData::FConstPoint& Target,
+		const double Smoothing, const double Influence,
+		const TSharedRef<PCGExDataBlending::FMetadataBlender>& Blender,
 		const bool bClosedLoop) override
 	{
+		
 		const double RadiusSquared = Smoothing * Smoothing;
 
 		if (Influence == 0) { return; }
@@ -53,14 +47,30 @@ public:
 
 		if (Indices.IsEmpty()) { return; }
 
-		MetadataBlender->PrepareForBlending(Target);
+		Blender->PrepareForBlending(Target);
 
 		for (int i = 0; i < Indices.Num(); i++)
 		{
-			MetadataBlender->Blend(Target, Path->GetInPointRef(Indices[i]), Target, Weights[i]);
+			Blender->Blend(Target, Path->GetInPointRef(Indices[i]), Target, Weights[i]);
 			TotalWeight += Weights[i];
 		}
 
-		MetadataBlender->CompleteBlending(Target, Indices.Num(), TotalWeight);
+		Blender->CompleteBlending(Target, Indices.Num(), TotalWeight);
+	}
+};
+
+/**
+ * 
+ */
+UCLASS(MinimalAPI, DisplayName = "Radius")
+class UPCGExRadiusSmoothing : public UPCGExSmoothingInstancedFactory
+{
+	GENERATED_BODY()
+
+public:
+	virtual TSharedPtr<FPCGExSmoothingOperation> CreateOperation() const override
+	{
+		PCGEX_FACTORY_NEW_OPERATION(RadiusSmoothing)
+		return NewOperation;
 	}
 };

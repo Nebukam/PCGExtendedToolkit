@@ -209,7 +209,7 @@ namespace PCGExPathfindingEdge
 			}
 		}
 
-		SearchOperation = Context->SearchAlgorithm->CreateNewInstance<UPCGExSearchOperation>(); // Create a local copy
+		SearchOperation = Context->SearchAlgorithm->CreateOperation(); // Create a local copy
 		SearchOperation->PrepareForCluster(Cluster.Get());
 
 		PCGEx::InitArray(Queries, Context->SeedGoalPairs.Num());

@@ -25,7 +25,7 @@ bool FPCGExSmoothElement::Boot(FPCGExContext* InContext) const
 	if (!FPCGExPathProcessorElement::Boot(InContext)) { return false; }
 
 	PCGEX_CONTEXT_AND_SETTINGS(Smooth)
-	PCGEX_OPERATION_BIND(SmoothingMethod, UPCGExSmoothingOperation, PCGExSmooth::SourceOverridesSmoothing)
+	PCGEX_OPERATION_BIND(SmoothingMethod, UPCGExSmoothingInstancedFactory, PCGExSmooth::SourceOverridesSmoothing)
 
 	return true;
 }
@@ -85,8 +85,11 @@ namespace PCGExSmooth
 		bClosedLoop = Context->ClosedLoop.IsClosedLoop(PointDataFacade->Source);
 		NumPoints = PointDataFacade->GetNum();
 
-		MetadataBlender = MakeShared<PCGExDataBlending::FMetadataBlender>(&Settings->BlendingSettings);
-		MetadataBlender->PrepareForData(PointDataFacade);
+		MetadataBlender = MakeShared<PCGExDataBlending::FMetadataBlender>();
+		MetadataBlender->SetTargetData(PointDataFacade);
+		MetadataBlender->SetSourceData(PointDataFacade);
+
+		if (!MetadataBlender->Init(Context, Settings->BlendingSettings)) { return false; }
 
 		Influence = Settings->GetValueSettingInfluence();
 		if (!Influence->Init(Context, PointDataFacade)) { return false; }
@@ -94,7 +97,7 @@ namespace PCGExSmooth
 		Smoothing = Settings->GetValueSettingSmoothingAmount();
 		if (!Smoothing->Init(Context, PointDataFacade)) { return false; }
 
-		TypedOperation = Cast<UPCGExSmoothingOperation>(PrimaryInstancedFactory);
+		SmoothingOperation = GetPrimaryInstancedFactory<UPCGExSmoothingInstancedFactory>()->CreateOperation();
 
 		StartParallelLoopForPoints();
 
@@ -105,6 +108,8 @@ namespace PCGExSmooth
 	{
 		PointDataFacade->Fetch(Scope);
 		FilterScope(Scope);
+
+		TSharedRef<PCGExDataBlending::FMetadataBlender> BlenderRef = MetadataBlender.ToSharedRef();
 
 		PCGEX_SCOPE_LOOP(Index)
 		{
@@ -118,11 +123,11 @@ namespace PCGExSmooth
 			if ((Settings->bPreserveEnd && Index == NumPoints - 1) ||
 				(Settings->bPreserveStart && Index == 0))
 			{
-				TypedOperation->SmoothSingle(PointIO, PtRef, LocalSmoothing, 0, MetadataBlender.Get(), bClosedLoop);
+				SmoothingOperation->SmoothSingle(PointIO, PtRef, LocalSmoothing, 0, BlenderRef, bClosedLoop);
 				continue;
 			}
 
-			TypedOperation->SmoothSingle(PointIO, PtRef, LocalSmoothing, Influence->Read(Index), MetadataBlender.Get(), bClosedLoop);
+			SmoothingOperation->SmoothSingle(PointIO, PtRef, LocalSmoothing, Influence->Read(Index), BlenderRef, bClosedLoop);
 		}
 	}
 

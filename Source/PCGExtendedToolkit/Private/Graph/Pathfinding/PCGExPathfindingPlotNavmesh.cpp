@@ -233,11 +233,11 @@ void FPCGExPlotNavmeshTask::ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>&
 		OutTransforms[i].SetLocation(InTransforms[PPoint.PlotIndex].GetLocation());
 		OutMetadataEntries[i] = PPoint.MetadataEntryKey;
 	}
-	
+
 	PathLocations.Empty();
 
-	TSharedPtr<PCGExDataBlending::FMetadataBlender> TempBlender =
-		Context->Blending->CreateBlender(PathDataFacade.ToSharedRef(), PathDataFacade.ToSharedRef(), PCGExData::EIOSide::Out);
+	TSharedPtr<FPCGExSubPointsBlendOperation> SubBlending = Context->Blending->CreateOperation();
+	if (!SubBlending->PrepareForData(Context, PathDataFacade)) { return; }
 
 	const int32 MaxIndex = OutPathData->GetNumPoints() - 1;
 
@@ -253,14 +253,14 @@ void FPCGExPlotNavmeshTask::ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>&
 		PCGExData::FConstPoint EndPoint(OutPathData, EndIndex);
 
 		TArrayView<FPCGPoint> View = MakeArrayView(MutablePoints.GetData() + StartIndex, Range);
-		Context->Blending->BlendSubPoints(StartPoint, EndPoint, View, MilestonesMetrics[i], TempBlender.Get(), StartIndex);
+		SubBlending->BlendSubPoints(StartPoint, EndPoint, View, MilestonesMetrics[i], TempBlender.Get(), StartIndex);
 	}
 
 	PathDataFacade->Write(AsyncManager);
 	MilestonesMetrics.Empty();
 
 	// TODO : 
-	
+
 	if (!Context->bAddSeedToPath) { MutablePoints.RemoveAt(0); }
 	if (!Context->bAddGoalToPath) { MutablePoints.Pop(); }
 }

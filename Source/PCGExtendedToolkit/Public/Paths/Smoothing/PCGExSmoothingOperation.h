@@ -6,24 +6,34 @@
 #include "CoreMinimal.h"
 #include "PCGExInstancedFactory.h"
 #include "Data/Blending/PCGExMetadataBlender.h"
+
+
+
+
+
 #include "PCGExSmoothingOperation.generated.h"
+
+class FPCGExSmoothingOperation : public FPCGExOperation
+{
+public:
+	virtual void SmoothSingle(
+		const TSharedRef<PCGExData::FPointIO>& Path, PCGExData::FConstPoint& Target,
+		const double Smoothing, const double Influence,
+		const TSharedRef<PCGExDataBlending::FMetadataBlender>& Blender,
+		const bool bClosedLoop)
+	{
+	}
+};
 
 /**
  * 
  */
 UCLASS(Abstract)
-class PCGEXTENDEDTOOLKIT_API UPCGExSmoothingOperation : public UPCGExInstancedFactory
+class PCGEXTENDEDTOOLKIT_API UPCGExSmoothingInstancedFactory : public UPCGExInstancedFactory
 {
 	GENERATED_BODY()
 
 public:
-	virtual void SmoothSingle(
-		const TSharedRef<PCGExData::FPointIO>& Path,
-		PCGExData::FConstPoint& Target,
-		const double Smoothing,
-		const double Influence,
-		PCGExDataBlending::FMetadataBlender* MetadataBlender,
-		const bool bClosedLoop)
-	{
-	}
+	virtual TSharedPtr<FPCGExSmoothingOperation> CreateOperation() const
+	PCGEX_NOT_IMPLEMENTED_RET(CreateOperation(), nullptr);
 };

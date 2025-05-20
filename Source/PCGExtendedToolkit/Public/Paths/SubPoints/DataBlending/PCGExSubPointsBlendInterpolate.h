@@ -6,8 +6,8 @@
 #include "CoreMinimal.h"
 #include "PCGExSubPointsBlendOperation.h"
 #include "Data/Blending/PCGExMetadataBlender.h"
-#include "Editor/Experimental/EditorInteractiveToolsFramework/Public/Behaviors/2DViewportBehaviorTargets.h"
-#include "Editor/Experimental/EditorInteractiveToolsFramework/Public/Behaviors/2DViewportBehaviorTargets.h"
+
+
 
 
 #include "PCGExSubPointsBlendInterpolate.generated.h"
@@ -18,7 +18,7 @@ class UPCGExSubPointsBlendInterpolate;
 class FPCGExSubPointsBlendInterpolate : public FPCGExSubPointsBlendOperation
 {
 public:
-	const UPCGExSubPointsBlendInterpolate* InterpolateFactory = nullptr;
+	const UPCGExSubPointsBlendInterpolate* TypedFactory = nullptr;
 
 	virtual void BlendSubPoints(
 		const PCGExData::FConstPoint& From, const PCGExData::FConstPoint& To,

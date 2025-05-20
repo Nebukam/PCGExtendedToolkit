@@ -231,6 +231,7 @@ namespace PCGExSubdivide
 			bIsProcessorValid = false;
 			return;
 		}
+		
 		StartParallelLoopForRange(Subdivisions.Num());
 	}
 
@@ -270,6 +271,7 @@ namespace PCGExSubdivide
 
 			Metrics.Add(End);
 
+			//PointDataFacade->GetOutRange()
 			const TArrayView<FPCGPoint> View = MakeArrayView(MutablePoints.GetData() + SubStart, Sub.NumSubdivisions);
 			SubBlending->ProcessSubPoints(PointDataFacade->GetOutPoint(Sub.OutStart), PointDataFacade->GetOutPoint(Sub.OutEnd), View, Metrics, SubStart);
 

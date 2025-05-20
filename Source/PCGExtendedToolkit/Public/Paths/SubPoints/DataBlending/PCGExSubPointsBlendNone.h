@@ -5,8 +5,8 @@
 
 #include "CoreMinimal.h"
 #include "PCGExSubPointsBlendOperation.h"
-#include "Editor/Experimental/EditorInteractiveToolsFramework/Public/Behaviors/2DViewportBehaviorTargets.h"
-#include "Editor/Experimental/EditorInteractiveToolsFramework/Public/Behaviors/2DViewportBehaviorTargets.h"
+
+
 
 
 #include "PCGExSubPointsBlendNone.generated.h"

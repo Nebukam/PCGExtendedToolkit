@@ -5,8 +5,26 @@
 
 #include "CoreMinimal.h"
 #include "PCGExMT.h"
+#include "Editor/Experimental/EditorInteractiveToolsFramework/Public/Behaviors/2DViewportBehaviorTargets.h"
+#include "Editor/Experimental/EditorInteractiveToolsFramework/Public/Behaviors/2DViewportBehaviorTargets.h"
+#include "Editor/Experimental/EditorInteractiveToolsFramework/Public/Behaviors/2DViewportBehaviorTargets.h"
+#include "Editor/Experimental/EditorInteractiveToolsFramework/Public/Behaviors/2DViewportBehaviorTargets.h"
+#include "Editor/Experimental/EditorInteractiveToolsFramework/Public/Behaviors/2DViewportBehaviorTargets.h"
+#include "Editor/Experimental/EditorInteractiveToolsFramework/Public/Behaviors/2DViewportBehaviorTargets.h"
+#include "Editor/Experimental/EditorInteractiveToolsFramework/Public/Behaviors/2DViewportBehaviorTargets.h"
+#include "Editor/Experimental/EditorInteractiveToolsFramework/Public/Behaviors/2DViewportBehaviorTargets.h"
+#include "Editor/Experimental/EditorInteractiveToolsFramework/Public/Behaviors/2DViewportBehaviorTargets.h"
+#include "Editor/Experimental/EditorInteractiveToolsFramework/Public/Behaviors/2DViewportBehaviorTargets.h"
+#include "Editor/Experimental/EditorInteractiveToolsFramework/Public/Behaviors/2DViewportBehaviorTargets.h"
+#include "Editor/Experimental/EditorInteractiveToolsFramework/Public/Behaviors/2DViewportBehaviorTargets.h"
+#include "Editor/Experimental/EditorInteractiveToolsFramework/Public/Behaviors/2DViewportBehaviorTargets.h"
+#include "Editor/Experimental/EditorInteractiveToolsFramework/Public/Behaviors/2DViewportBehaviorTargets.h"
+#include "Editor/Experimental/EditorInteractiveToolsFramework/Public/Behaviors/2DViewportBehaviorTargets.h"
+#include "Editor/Experimental/EditorInteractiveToolsFramework/Public/Behaviors/2DViewportBehaviorTargets.h"
+#include "Editor/Experimental/EditorInteractiveToolsFramework/Public/Behaviors/2DViewportBehaviorTargets.h"
 #include "GoalPickers/PCGExGoalPicker.h"
 #include "Graph/PCGExCluster.h"
+#include "Search/PCGExSearchOperation.h"
 
 #include "PCGExPathfinding.generated.h"
 
@@ -15,7 +33,7 @@ namespace PCGExHeuristics
 	class FLocalFeedbackHandler;
 }
 
-class UPCGExSearchOperation;
+class FPCGExSearchOperation;
 
 namespace PCGExHeuristics
 {
@@ -170,7 +188,7 @@ namespace PCGExPathfinding
 		void SetResolution(const EPathfindingResolution InResolution);
 
 		void FindPath(
-			const UPCGExSearchOperation* SearchOperation,
+			const TSharedPtr<FPCGExSearchOperation>& SearchOperation,
 			const TSharedPtr<PCGExHeuristics::FHeuristicsHandler>& HeuristicsHandler,
 			const TSharedPtr<PCGExHeuristics::FLocalFeedbackHandler>& LocalFeedback);
 
@@ -211,7 +229,7 @@ namespace PCGExPathfinding
 
 		void FindPaths(
 			const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager,
-			const UPCGExSearchOperation* SearchOperation,
+			const TSharedPtr<FPCGExSearchOperation>& SearchOperation,
 			const TSharedPtr<PCGExHeuristics::FHeuristicsHandler>& HeuristicsHandler);
 
 		void Cleanup();

@@ -3,8 +3,8 @@
 
 #include "Paths/SubPoints/DataBlending/PCGExSubPointsBlendNone.h"
 #include "Data/Blending/PCGExMetadataBlender.h"
-#include "Editor/Experimental/EditorInteractiveToolsFramework/Public/Behaviors/2DViewportBehaviorTargets.h"
-#include "Editor/Experimental/EditorInteractiveToolsFramework/Public/Behaviors/2DViewportBehaviorTargets.h"
+
+
 
 bool FPCGExSubPointsBlendNone::PrepareForData(
 	FPCGExContext* InContext,

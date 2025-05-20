@@ -5,8 +5,8 @@
 #include "Paths/SubPoints/DataBlending/PCGExSubPointsBlendInheritStart.h"
 
 #include "Data/Blending/PCGExMetadataBlender.h"
-#include "Editor/Experimental/EditorInteractiveToolsFramework/Public/Behaviors/2DViewportBehaviorTargets.h"
-#include "Editor/Experimental/EditorInteractiveToolsFramework/Public/Behaviors/2DViewportBehaviorTargets.h"
+
+
 
 void FPCGExSubPointsBlendInheritStart::BlendSubPoints(
 	const PCGExData::FConstPoint& From, const PCGExData::FConstPoint& To,

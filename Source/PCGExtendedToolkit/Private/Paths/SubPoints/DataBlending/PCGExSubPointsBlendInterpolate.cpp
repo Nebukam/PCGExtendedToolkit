@@ -4,8 +4,8 @@
 
 #include "Paths/SubPoints/DataBlending/PCGExSubPointsBlendInterpolate.h"
 
-#include "Editor/Experimental/EditorInteractiveToolsFramework/Public/Behaviors/2DViewportBehaviorTargets.h"
-#include "Editor/Experimental/EditorInteractiveToolsFramework/Public/Behaviors/2DViewportBehaviorTargets.h"
+
+
 
 void FPCGExSubPointsBlendInterpolate::BlendSubPoints(
 	const PCGExData::FConstPoint& From, const PCGExData::FConstPoint& To,
@@ -13,8 +13,8 @@ void FPCGExSubPointsBlendInterpolate::BlendSubPoints(
 {
 	const int32 NumPoints = SubPoints.Num();
 
-	EPCGExBlendOver SafeBlendOver = InterpolateFactory->BlendOver;
-	if (InterpolateFactory->BlendOver == EPCGExBlendOver::Distance && !Metrics.IsValid()) { SafeBlendOver = EPCGExBlendOver::Index; }
+	EPCGExBlendOver SafeBlendOver = TypedFactory->BlendOver;
+	if (TypedFactory->BlendOver == EPCGExBlendOver::Distance && !Metrics.IsValid()) { SafeBlendOver = EPCGExBlendOver::Index; }
 
 	TArray<double> Weights;
 	TArray<FVector> Locations;
@@ -68,6 +68,6 @@ void UPCGExSubPointsBlendInterpolate::CopySettingsFrom(const UPCGExInstancedFact
 TSharedPtr<FPCGExSubPointsBlendOperation> UPCGExSubPointsBlendInterpolate::CreateOperation() const
 {
 	PCGEX_CREATE_SUBPOINTBLEND_OPERATION(Interpolate)
-	NewOperation->InterpolateFactory = this;
+	NewOperation->TypedFactory = this;
 	return NewOperation;
 }

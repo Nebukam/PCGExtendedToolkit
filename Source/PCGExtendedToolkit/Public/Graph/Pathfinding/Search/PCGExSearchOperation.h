@@ -25,6 +25,20 @@ namespace PCGExCluster
 	class FCluster;
 }
 
+class FPCGExSearchOperation : public FPCGExOperation
+{
+public:
+	bool bEarlyExit = true;
+	PCGExCluster::FCluster* Cluster = nullptr;
+
+	virtual void PrepareForCluster(PCGExCluster::FCluster* InCluster);
+	virtual bool ResolveQuery(
+		const TSharedPtr<PCGExPathfinding::FPathQuery>& InQuery,
+		const TSharedPtr<PCGExHeuristics::FHeuristicsHandler>& Heuristics,
+		const TSharedPtr<PCGExHeuristics::FLocalFeedbackHandler>& LocalFeedback = nullptr) const;
+
+};
+
 /**
  * 
  */
@@ -34,15 +48,11 @@ class PCGEXTENDEDTOOLKIT_API UPCGExSearchOperation : public UPCGExInstancedFacto
 	GENERATED_BODY()
 
 public:
-	PCGExCluster::FCluster* Cluster = nullptr;
-
 	virtual void CopySettingsFrom(const UPCGExInstancedFactory* Other) override;
 
-	virtual void PrepareForCluster(PCGExCluster::FCluster* InCluster);
-	virtual bool ResolveQuery(
-		const TSharedPtr<PCGExPathfinding::FPathQuery>& InQuery,
-		const TSharedPtr<PCGExHeuristics::FHeuristicsHandler>& Heuristics, const TSharedPtr<PCGExHeuristics::FLocalFeedbackHandler>& LocalFeedback = nullptr) const;
-
+	virtual TSharedPtr<FPCGExSearchOperation> CreateOperation() const
+	PCGEX_NOT_IMPLEMENTED_RET(CreateOperation(), nullptr);
+	
 	/** */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	bool bEarlyExit = true;

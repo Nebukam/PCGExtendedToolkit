@@ -4,20 +4,20 @@
 
 #include "Graph/Pathfinding/Search/PCGExSearchOperation.h"
 
-
-void UPCGExSearchOperation::CopySettingsFrom(const UPCGExInstancedFactory* Other)
-{
-	Super::CopySettingsFrom(Other);
-}
-
-void UPCGExSearchOperation::PrepareForCluster(PCGExCluster::FCluster* InCluster)
+void FPCGExSearchOperation::PrepareForCluster(PCGExCluster::FCluster* InCluster)
 {
 	Cluster = InCluster;
 }
 
-bool UPCGExSearchOperation::ResolveQuery(
+bool FPCGExSearchOperation::ResolveQuery(
 	const TSharedPtr<PCGExPathfinding::FPathQuery>& InQuery,
 	const TSharedPtr<PCGExHeuristics::FHeuristicsHandler>& Heuristics, const TSharedPtr<PCGExHeuristics::FLocalFeedbackHandler>& LocalFeedback) const
 {
 	return false;
+}
+
+
+void UPCGExSearchOperation::CopySettingsFrom(const UPCGExInstancedFactory* Other)
+{
+	Super::CopySettingsFrom(Other);
 }

@@ -143,7 +143,7 @@ namespace PCGExPathfindingPlotEdge
 
 		virtual ~FProcessor() override;
 
-		UPCGExSearchOperation* SearchOperation = nullptr;
+		TSharedPtr<FPCGExSearchOperation> SearchOperation;
 
 		virtual bool Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager) override;
 	};

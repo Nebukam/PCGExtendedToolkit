@@ -7,8 +7,8 @@
 #include "PCGExDetails.h"
 #include "Data/PCGExData.h"
 #include "Data/PCGExDataTag.h"
-#include "Editor/Experimental/EditorInteractiveToolsFramework/Public/Behaviors/2DViewportBehaviorTargets.h"
-#include "Editor/Experimental/EditorInteractiveToolsFramework/Public/Behaviors/2DViewportBehaviorTargets.h"
+
+
 
 namespace PCGExCompare
 {

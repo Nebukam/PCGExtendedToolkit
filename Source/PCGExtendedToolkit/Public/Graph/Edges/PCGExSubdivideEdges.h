@@ -119,7 +119,7 @@ namespace PCGExSubdivideEdges
 		TArray<FSubdivision> Subdivisions;
 
 		TSet<FName> ProtectedAttributes;
-		UPCGExSubPointsBlendInstancedFactory* Blending = nullptr;
+		TSharedPtr<FPCGExSubPointsBlendOperation> SubBlending;
 
 		TSharedPtr<PCGExData::TBuffer<bool>> FlagWriter;
 		TSharedPtr<PCGExData::TBuffer<double>> AlphaWriter;

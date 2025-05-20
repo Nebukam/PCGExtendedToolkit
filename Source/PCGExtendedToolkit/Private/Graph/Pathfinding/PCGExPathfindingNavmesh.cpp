@@ -207,11 +207,11 @@ void FSampleNavmeshTask::ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& As
 	Location = PathLocations[LastPosition];
 	(MutablePoints[LastPosition] = *Goal).Transform.SetLocation(Location);
 
-	TSharedPtr<PCGExDataBlending::FMetadataBlender> TempBlender =
-		Context->Blending->CreateBlender(PathDataFacade.ToSharedRef(), Context->GoalsDataFacade.ToSharedRef());
+	TSharedPtr<FPCGExSubPointsBlendOperation> SubBlending = Context->Blending->CreateOperation();
+	if (!SubBlending->PrepareForData(Context, PathDataFacade, Context->GoalsDataFacade, PCGExData::EIOSide::In)) { return; }
 
-	Context->Blending->BlendSubPoints(MutablePoints, Metrics, TempBlender.Get());
-
+	SubBlending->BlendSubPoints(MutablePoints, Metrics, TempBlender.Get());
+	
 	if (!Settings->bAddSeedToPath) { MutablePoints.RemoveAt(0); }
 	if (!Settings->bAddGoalToPath) { MutablePoints.Pop(); }
 

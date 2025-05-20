@@ -43,7 +43,7 @@ public:
 	bool bPreserveEnd = false;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, Instanced, meta=(PCG_Overridable, NoResetToDefault, ShowOnlyInnerProperties))
-	TObjectPtr<UPCGExSmoothingOperation> SmoothingMethod;
+	TObjectPtr<UPCGExSmoothingInstancedFactory> SmoothingMethod;
 
 	/** Fetch the influence from a local attribute.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
@@ -86,7 +86,7 @@ struct FPCGExSmoothContext final : FPCGExPathProcessorContext
 {
 	friend class FPCGExSmoothElement;
 
-	UPCGExSmoothingOperation* SmoothingMethod = nullptr;
+	UPCGExSmoothingInstancedFactory* SmoothingMethod = nullptr;
 };
 
 class FPCGExSmoothElement final : public FPCGExPathProcessorElement
@@ -110,7 +110,7 @@ namespace PCGExSmooth
 		TSharedPtr<PCGExDetails::TSettingValue<double>> Smoothing;
 
 		TSharedPtr<PCGExDataBlending::FMetadataBlender> MetadataBlender;
-		UPCGExSmoothingOperation* TypedOperation = nullptr;
+		TSharedPtr<FPCGExSmoothingOperation> SmoothingOperation;
 		bool bClosedLoop = false;
 
 	public:

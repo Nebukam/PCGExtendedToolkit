@@ -10,7 +10,7 @@
 #include "PCGExSubPointsBlendOperation.generated.h"
 
 #define PCGEX_CREATE_SUBPOINTBLEND_OPERATION(_TYPE)\
-TSharedPtr<FPCGExSubPointsBlend##_TYPE> NewOperation = MakeShared<FPCGExSubPointsBlend##_TYPE>();\
+PCGEX_FACTORY_NEW_OPERATION(SubPointsBlend##_TYPE)\
 NewOperation->Factory = this;\
 NewOperation->BlendFactory = this;
 
@@ -64,5 +64,7 @@ public:
 
 	virtual void CopySettingsFrom(const UPCGExInstancedFactory* Other) override;
 
-	virtual TSharedPtr<FPCGExSubPointsBlendOperation> CreateOperation() const;
+	virtual TSharedPtr<FPCGExSubPointsBlendOperation> CreateOperation() const
+	PCGEX_NOT_IMPLEMENTED_RET(CreateOperation(), nullptr);
+	
 };
