@@ -1,17 +1,14 @@
 ﻿// Copyright 2025 Timothé Lapetite and contributors
 // Released under the MIT license https://opensource.org/license/MIT/
 
-
 #include "Paths/SubPoints/DataBlending/PCGExSubPointsBlendInheritEnd.h"
 #include "Data/Blending/PCGExMetadataBlender.h"
+#include "Editor/Experimental/EditorInteractiveToolsFramework/Public/Behaviors/2DViewportBehaviorTargets.h"
+#include "Editor/Experimental/EditorInteractiveToolsFramework/Public/Behaviors/2DViewportBehaviorTargets.h"
 
-void UPCGExSubPointsBlendInheritEnd::BlendSubPoints(
-	const PCGExData::FConstPoint& From,
-	const PCGExData::FConstPoint& To,
-	const TArrayView<FPCGPoint>& SubPoints,
-	const PCGExPaths::FPathMetrics& Metrics,
-	PCGExDataBlending::FMetadataBlender* InBlender,
-	const int32 StartIndex) const
+void FPCGExSubPointsBlendInheritEnd::BlendSubPoints(
+	const PCGExData::FConstPoint& From, const PCGExData::FConstPoint& To,
+	const TArrayView<FPCGPoint>& SubPoints, const PCGExPaths::FPathMetrics& Metrics, const int32 StartIndex) const
 {
 	const int32 NumPoints = SubPoints.Num();
 	TArray<double> Weights;
@@ -30,4 +27,10 @@ void UPCGExSubPointsBlendInheritEnd::BlendSubPoints(
 
 	// Restore pre-blend position
 	for (int i = 0; i < NumPoints; i++) { SubPoints[i].Transform.SetLocation(Locations[i]); }
+}
+
+TSharedPtr<FPCGExSubPointsBlendOperation> UPCGExSubPointsBlendInheritEnd::CreateOperation() const
+{
+	PCGEX_CREATE_SUBPOINTBLEND_OPERATION(InheritEnd)
+	return NewOperation;
 }

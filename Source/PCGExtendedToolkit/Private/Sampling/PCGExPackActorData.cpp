@@ -268,7 +268,7 @@ bool FPCGExPackActorDataElement::ExecuteInternal(FPCGContext* InContext) const
 			[&](const TSharedPtr<PCGExData::FPointIO>& Entry) { return true; },
 			[&](const TSharedPtr<PCGExPointsMT::TBatch<PCGExPackActorDatas::FProcessor>>& NewBatch)
 			{
-				NewBatch->PrimaryOperation = Context->Packer;
+				NewBatch->PrimaryInstancedFactory = Context->Packer;
 				NewBatch->bRequiresWriteStep = true;
 			}))
 		{
@@ -307,7 +307,7 @@ namespace PCGExPackActorDatas
 
 		PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::Duplicate)
 
-		Packer = static_cast<UPCGExCustomActorDataPacker*>(PrimaryOperation);
+		Packer = static_cast<UPCGExCustomActorDataPacker*>(PrimaryInstancedFactory);
 		Packer->UniqueNameGenerator = Context->UniqueNameGenerator;
 		Packer->WriteBuffers = MakeShared<PCGExData::TBufferHelper<PCGExData::EBufferHelperMode::Write>>(PointDataFacade);
 		Packer->ReadBuffers = MakeShared<PCGExData::TBufferHelper<PCGExData::EBufferHelperMode::Read>>(PointDataFacade);

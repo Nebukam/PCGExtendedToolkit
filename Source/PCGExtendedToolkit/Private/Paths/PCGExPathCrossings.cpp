@@ -32,7 +32,7 @@ bool FPCGExPathCrossingsElement::Boot(FPCGExContext* InContext) const
 	if (Settings->bWriteAlpha) { PCGEX_VALIDATE_NAME(Settings->CrossingAlphaAttributeName) }
 	if (Settings->bWriteCrossDirection) { PCGEX_VALIDATE_NAME(Settings->CrossDirectionAttributeName) }
 
-	PCGEX_OPERATION_BIND(Blending, UPCGExSubPointsBlendOperation, PCGExDataBlending::SourceOverridesBlendingOps)
+	PCGEX_OPERATION_BIND(Blending, UPCGExSubPointsBlendInstancedFactory, PCGExDataBlending::SourceOverridesBlendingOps)
 
 	GetInputFactories(Context, PCGExPaths::SourceCanCutFilters, Context->CanCutFilterFactories, PCGExFactories::PointFilters, false);
 	GetInputFactories(Context, PCGExPaths::SourceCanBeCutFilters, Context->CanBeCutFilterFactories, PCGExFactories::PointFilters, false);
@@ -81,7 +81,7 @@ bool FPCGExPathCrossingsElement::ExecuteInternal(FPCGContext* InContext) const
 			},
 			[&](const TSharedPtr<PCGExPointsMT::TBatch<PCGExPathCrossings::FProcessor>>& NewBatch)
 			{
-				NewBatch->PrimaryOperation = Context->Blending;
+				NewBatch->PrimaryInstancedFactory = Context->Blending;
 				//NewBatch->SetPointsFilterData(&Context->FilterFactories);
 				NewBatch->bRequiresWriteStep = Settings->bDoCrossBlending;
 			}))
@@ -131,7 +131,7 @@ namespace PCGExPathCrossings
 		CanCut.SetNumUninitialized(Path->NumEdges);
 		CanBeCut.SetNumUninitialized(Path->NumEdges);
 
-		Blending = Cast<UPCGExSubPointsBlendOperation>(PrimaryOperation);
+		Blending = Cast<UPCGExSubPointsBlendInstancedFactory>(PrimaryInstancedFactory);
 		Blending->bClosedLoop = bClosedLoop;
 		if (Settings->bOrientCrossing) { Blending->bPreserveRotation = true; }
 

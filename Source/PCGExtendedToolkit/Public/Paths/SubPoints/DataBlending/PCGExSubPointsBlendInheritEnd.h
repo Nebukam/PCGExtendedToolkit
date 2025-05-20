@@ -5,22 +5,27 @@
 
 #include "CoreMinimal.h"
 #include "PCGExSubPointsBlendOperation.h"
+#include "Editor/Experimental/EditorInteractiveToolsFramework/Public/Behaviors/2DViewportBehaviorTargets.h"
+#include "Editor/Experimental/EditorInteractiveToolsFramework/Public/Behaviors/2DViewportBehaviorTargets.h"
+
 #include "PCGExSubPointsBlendInheritEnd.generated.h"
+
+class FPCGExSubPointsBlendInheritEnd : public FPCGExSubPointsBlendOperation
+{
+public:
+	virtual void BlendSubPoints(
+		const PCGExData::FConstPoint& From, const PCGExData::FConstPoint& To,
+		const TArrayView<FPCGPoint>& SubPoints, const PCGExPaths::FPathMetrics& Metrics, const int32 StartIndex = -1) const override;
+};
 
 /**
  * 
  */
 UCLASS(MinimalAPI, DisplayName = "Inherit Last")
-class UPCGExSubPointsBlendInheritEnd : public UPCGExSubPointsBlendOperation
+class UPCGExSubPointsBlendInheritEnd : public UPCGExSubPointsBlendInstancedFactory
 {
 	GENERATED_BODY()
 
 public:
-	virtual void BlendSubPoints(
-		const PCGExData::FConstPoint& From,
-		const PCGExData::FConstPoint& To,
-		const TArrayView<FPCGPoint>& SubPoints,
-		const PCGExPaths::FPathMetrics& Metrics,
-		PCGExDataBlending::FMetadataBlender* InBlender,
-		const int32 StartIndex) const override;
+	virtual TSharedPtr<FPCGExSubPointsBlendOperation> CreateOperation() const override;
 };

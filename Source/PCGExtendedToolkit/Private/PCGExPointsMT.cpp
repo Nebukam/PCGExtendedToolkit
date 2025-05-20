@@ -32,7 +32,7 @@ namespace PCGExPointsMT
 		// So selectors shortcut can be properly resolved (@Last, etc.)
 
 		if (FilterFactories) { PCGExFactories::RegisterConsumableAttributesWithFacade(*FilterFactories, PointDataFacade); }
-		if (PrimaryOperation) { PrimaryOperation->RegisterConsumableAttributesWithFacade(ExecutionContext, PointDataFacade); }
+		if (PrimaryInstancedFactory) { PrimaryInstancedFactory->RegisterConsumableAttributesWithFacade(ExecutionContext, PointDataFacade); }
 	}
 
 	void FPointsProcessor::RegisterBuffersDependencies(PCGExData::FFacadePreloader& FacadePreloader)
@@ -72,10 +72,13 @@ namespace PCGExPointsMT
 
 #pragma endregion
 
-		if (PrimaryOperation)
+		if (PrimaryInstancedFactory)
 		{
-			PrimaryOperation = PrimaryOperation->CreateNewInstance<UPCGExInstancedFactory>();
-			PrimaryOperation->PrimaryDataFacade = PointDataFacade;
+			if (PrimaryInstancedFactory->WantsPerDataInstance())
+			{
+				PrimaryInstancedFactory = PrimaryInstancedFactory->CreateNewInstance<UPCGExInstancedFactory>();
+				PrimaryInstancedFactory->PrimaryDataFacade = PointDataFacade;
+			}
 		}
 
 		return true;
@@ -101,7 +104,6 @@ namespace PCGExPointsMT
 
 	void FPointsProcessor::ProcessPoints(const PCGExMT::FScope& Scope)
 	{
-		
 	}
 
 	void FPointsProcessor::OnPointsProcessingComplete()
@@ -123,7 +125,6 @@ namespace PCGExPointsMT
 
 	void FPointsProcessor::ProcessRange(const PCGExMT::FScope& Scope)
 	{
-		
 	}
 
 	void FPointsProcessor::OnRangeProcessingComplete()

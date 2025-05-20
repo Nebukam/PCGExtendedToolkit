@@ -4,28 +4,17 @@
 
 #include "Paths/SubPoints/DataBlending/PCGExSubPointsBlendInterpolate.h"
 
-void UPCGExSubPointsBlendInterpolate::CopySettingsFrom(const UPCGExInstancedFactory* Other)
-{
-	Super::CopySettingsFrom(Other);
-	if (const UPCGExSubPointsBlendInterpolate* TypedOther = Cast<UPCGExSubPointsBlendInterpolate>(Other))
-	{
-		BlendOver = TypedOther->BlendOver;
-		Lerp = TypedOther->Lerp;
-	}
-}
+#include "Editor/Experimental/EditorInteractiveToolsFramework/Public/Behaviors/2DViewportBehaviorTargets.h"
+#include "Editor/Experimental/EditorInteractiveToolsFramework/Public/Behaviors/2DViewportBehaviorTargets.h"
 
-void UPCGExSubPointsBlendInterpolate::BlendSubPoints(
-	const PCGExData::FConstPoint& From,
-	const PCGExData::FConstPoint& To,
-	const TArrayView<FPCGPoint>& SubPoints,
-	const PCGExPaths::FPathMetrics& Metrics,
-	PCGExDataBlending::FMetadataBlender* InBlender,
-	const int32 StartIndex) const
+void FPCGExSubPointsBlendInterpolate::BlendSubPoints(
+	const PCGExData::FConstPoint& From, const PCGExData::FConstPoint& To,
+	const TArrayView<FPCGPoint>& SubPoints, const PCGExPaths::FPathMetrics& Metrics, const int32 StartIndex) const
 {
 	const int32 NumPoints = SubPoints.Num();
 
-	EPCGExBlendOver SafeBlendOver = BlendOver;
-	if (BlendOver == EPCGExBlendOver::Distance && !Metrics.IsValid()) { SafeBlendOver = EPCGExBlendOver::Index; }
+	EPCGExBlendOver SafeBlendOver = InterpolateFactory->BlendOver;
+	if (InterpolateFactory->BlendOver == EPCGExBlendOver::Distance && !Metrics.IsValid()) { SafeBlendOver = EPCGExBlendOver::Index; }
 
 	TArray<double> Weights;
 	TArray<FVector> Locations;
@@ -66,13 +55,19 @@ void UPCGExSubPointsBlendInterpolate::BlendSubPoints(
 	for (int i = 0; i < NumPoints; i++) { SubPoints[i].Transform.SetLocation(Locations[i]); }
 }
 
-TSharedPtr<PCGExDataBlending::FMetadataBlender> UPCGExSubPointsBlendInterpolate::CreateBlender(
-	const TSharedRef<PCGExData::FFacade>& InTargetFacade,
-	const TSharedRef<PCGExData::FFacade>& InSourceFacade,
-	const PCGExData::EIOSide InSourceSide,
-	const TSet<FName>* IgnoreAttributeSet)
+void UPCGExSubPointsBlendInterpolate::CopySettingsFrom(const UPCGExInstancedFactory* Other)
 {
-	PCGEX_MAKE_SHARED(NewBlender, PCGExDataBlending::FMetadataBlender, &BlendingDetails)
-	NewBlender->PrepareForData(InTargetFacade, InSourceFacade, InSourceSide, true, IgnoreAttributeSet);
-	return NewBlender;
+	Super::CopySettingsFrom(Other);
+	if (const UPCGExSubPointsBlendInterpolate* TypedOther = Cast<UPCGExSubPointsBlendInterpolate>(Other))
+	{
+		BlendOver = TypedOther->BlendOver;
+		Lerp = TypedOther->Lerp;
+	}
+}
+
+TSharedPtr<FPCGExSubPointsBlendOperation> UPCGExSubPointsBlendInterpolate::CreateOperation() const
+{
+	PCGEX_CREATE_SUBPOINTBLEND_OPERATION(Interpolate)
+	NewOperation->InterpolateFactory = this;
+	return NewOperation;
 }

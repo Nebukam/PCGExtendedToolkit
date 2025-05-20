@@ -6,15 +6,30 @@
 #include "CoreMinimal.h"
 #include "PCGExSubPointsBlendOperation.h"
 #include "Data/Blending/PCGExMetadataBlender.h"
+#include "Editor/Experimental/EditorInteractiveToolsFramework/Public/Behaviors/2DViewportBehaviorTargets.h"
+#include "Editor/Experimental/EditorInteractiveToolsFramework/Public/Behaviors/2DViewportBehaviorTargets.h"
 
 
 #include "PCGExSubPointsBlendInterpolate.generated.h"
+
+
+class UPCGExSubPointsBlendInterpolate;
+
+class FPCGExSubPointsBlendInterpolate : public FPCGExSubPointsBlendOperation
+{
+public:
+	const UPCGExSubPointsBlendInterpolate* InterpolateFactory = nullptr;
+
+	virtual void BlendSubPoints(
+		const PCGExData::FConstPoint& From, const PCGExData::FConstPoint& To,
+		const TArrayView<FPCGPoint>& SubPoints, const PCGExPaths::FPathMetrics& Metrics, const int32 StartIndex = -1) const override;
+};
 
 /**
  * 
  */
 UCLASS(MinimalAPI, DisplayName = "Interpolate")
-class UPCGExSubPointsBlendInterpolate : public UPCGExSubPointsBlendOperation
+class UPCGExSubPointsBlendInterpolate : public UPCGExSubPointsBlendInstancedFactory
 {
 	GENERATED_BODY()
 
@@ -27,16 +42,5 @@ public:
 
 	virtual void CopySettingsFrom(const UPCGExInstancedFactory* Other) override;
 
-	virtual void BlendSubPoints(
-		const PCGExData::FConstPoint& From,
-		const PCGExData::FConstPoint& To,
-		const TArrayView<FPCGPoint>& SubPoints,
-		const PCGExPaths::FPathMetrics& Metrics,
-		PCGExDataBlending::FMetadataBlender* InBlender,
-		const int32 StartIndex) const override;
-
-	virtual TSharedPtr<PCGExDataBlending::FMetadataBlender> CreateBlender(const TSharedRef<PCGExData::FFacade>& InTargetFacade, const TSharedRef<PCGExData::FFacade>& InSourceFacade, const PCGExData::EIOSide InSourceSide, const TSet<FName>* IgnoreAttributeSet) override;
-
-protected:
-	virtual EPCGExDataBlendingType GetDefaultBlending() override { return EPCGExDataBlendingType::Lerp; }
+	virtual TSharedPtr<FPCGExSubPointsBlendOperation> CreateOperation() const override;
 };

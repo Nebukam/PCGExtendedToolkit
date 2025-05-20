@@ -74,7 +74,7 @@ bool FPCGExWriteTangentsElement::ExecuteInternal(FPCGContext* InContext) const
 			},
 			[&](const TSharedPtr<PCGExPointsMT::TBatch<PCGExWriteTangents::FProcessor>>& NewBatch)
 			{
-				NewBatch->PrimaryOperation = Context->Tangents;
+				NewBatch->PrimaryInstancedFactory = Context->Tangents;
 			}))
 		{
 			return Context->CancelExecution(TEXT("Could not find any paths to write tangents to."));
@@ -104,7 +104,7 @@ namespace PCGExWriteTangents
 
 		bClosedLoop = Context->ClosedLoop.IsClosedLoop(PointDataFacade->Source);
 
-		Tangents = Cast<UPCGExTangentsOperation>(PrimaryOperation);
+		Tangents = Cast<UPCGExTangentsOperation>(PrimaryInstancedFactory);
 		Tangents->bClosedLoop = bClosedLoop;
 
 		if (!Tangents->PrepareForData(Context)) { return false; }

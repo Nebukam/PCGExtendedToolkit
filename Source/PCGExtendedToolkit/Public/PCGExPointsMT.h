@@ -108,7 +108,10 @@ namespace PCGExPointsMT
 		bool DefaultPointFilterValue = true;
 		TArray<int8> PointFilterCache;
 
-		UPCGExInstancedFactory* PrimaryOperation = nullptr;
+		UPCGExInstancedFactory* PrimaryInstancedFactory = nullptr;
+
+		template <typename T>
+		T* GetPrimaryInstancedFactory() { return Cast<T>(PrimaryInstancedFactory); }
 
 		explicit FPointsProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade);
 
@@ -213,7 +216,7 @@ namespace PCGExPointsMT
 
 		TArray<TWeakPtr<PCGExData::FPointIO>> PointsCollection;
 
-		UPCGExInstancedFactory* PrimaryOperation = nullptr;
+		UPCGExInstancedFactory* PrimaryInstancedFactory = nullptr;
 
 		virtual int32 GetNumProcessors() const { return -1; }
 
@@ -296,7 +299,7 @@ namespace PCGExPointsMT
 				SubProcessorMap->Add(&NewProcessor->PointDataFacade->Source.Get(), NewProcessor.ToSharedRef());
 
 				if (FilterFactories) { NewProcessor->SetPointsFilterData(FilterFactories); }
-				if (PrimaryOperation) { NewProcessor->PrimaryOperation = PrimaryOperation; }
+				if (PrimaryInstancedFactory) { NewProcessor->PrimaryInstancedFactory = PrimaryInstancedFactory; }
 
 				NewProcessor->RegisterConsumableAttributesWithFacade();
 

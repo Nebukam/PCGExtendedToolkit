@@ -61,7 +61,7 @@ public:
 
 	/** Blending applied on intersecting points along the path prev and next point. This is different from inheriting from external properties. */
 	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = Settings, Instanced, meta=(PCG_Overridable, ShowOnlyInnerProperties, NoResetToDefault))
-	TObjectPtr<UPCGExSubPointsBlendOperation> Blending;
+	TObjectPtr<UPCGExSubPointsBlendInstancedFactory> Blending;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Cross Blending", meta=(PCG_Overridable))
 	bool bDoCrossBlending = false;
@@ -124,7 +124,7 @@ struct FPCGExPathCrossingsContext final : FPCGExPathProcessorContext
 	TArray<TObjectPtr<const UPCGExFilterFactoryData>> CanCutFilterFactories;
 	TArray<TObjectPtr<const UPCGExFilterFactoryData>> CanBeCutFilterFactories;
 
-	UPCGExSubPointsBlendOperation* Blending = nullptr;
+	UPCGExSubPointsBlendInstancedFactory* Blending = nullptr;
 
 	TSharedPtr<PCGExDetails::FDistances> Distances;
 	FPCGExBlendingDetails CrossingBlending;
@@ -175,7 +175,7 @@ namespace PCGExPathCrossings
 		TArray<int8> CanBeCut;
 
 		TSet<FName> ProtectedAttributes;
-		UPCGExSubPointsBlendOperation* Blending = nullptr;
+		UPCGExSubPointsBlendInstancedFactory* Blending = nullptr;
 
 		TSet<int32> CrossIOIndices;
 		TSharedPtr<PCGExData::FUnionMetadata> UnionMetadata;

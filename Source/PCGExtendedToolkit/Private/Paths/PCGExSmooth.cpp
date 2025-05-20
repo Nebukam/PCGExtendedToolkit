@@ -52,7 +52,7 @@ bool FPCGExSmoothElement::ExecuteInternal(FPCGContext* InContext) const
 			},
 			[&](const TSharedPtr<PCGExPointsMT::TBatch<PCGExSmooth::FProcessor>>& NewBatch)
 			{
-				NewBatch->PrimaryOperation = Context->SmoothingMethod;
+				NewBatch->PrimaryInstancedFactory = Context->SmoothingMethod;
 			}))
 		{
 			return Context->CancelExecution(TEXT("Could not find any paths to smooth."));
@@ -94,7 +94,7 @@ namespace PCGExSmooth
 		Smoothing = Settings->GetValueSettingSmoothingAmount();
 		if (!Smoothing->Init(Context, PointDataFacade)) { return false; }
 
-		TypedOperation = Cast<UPCGExSmoothingOperation>(PrimaryOperation);
+		TypedOperation = Cast<UPCGExSmoothingOperation>(PrimaryInstancedFactory);
 
 		StartParallelLoopForPoints();
 

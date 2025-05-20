@@ -90,7 +90,7 @@ public:
 
 	/** Controls how path points blend from seed to goal. */
 	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = Settings, Instanced, meta = (PCG_Overridable, NoResetToDefault, ShowOnlyInnerProperties))
-	TObjectPtr<UPCGExSubPointsBlendOperation> Blending;
+	TObjectPtr<UPCGExSubPointsBlendInstancedFactory> Blending;
 
 	/** Pathfinding mode */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
@@ -109,7 +109,7 @@ struct FPCGExPathfindingPlotNavmeshContext final : FPCGExPointsProcessorContext
 	friend class FPCGExPathfindingPlotNavmeshElement;
 
 	TSharedPtr<PCGExData::FPointIOCollection> OutputPaths;
-	UPCGExSubPointsBlendOperation* Blending = nullptr;
+	UPCGExSubPointsBlendInstancedFactory* Blending = nullptr;
 
 	bool bAddSeedToPath = true;
 	bool bAddGoalToPath = true;

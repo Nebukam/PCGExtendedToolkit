@@ -15,7 +15,7 @@
 
 #include "PCGExBlendPath.generated.h"
 
-class UPCGExSubPointsBlendOperation;
+class UPCGExSubPointsBlendInstancedFactory;
 
 UENUM()
 enum class EPCGExPathBlendMode : uint8

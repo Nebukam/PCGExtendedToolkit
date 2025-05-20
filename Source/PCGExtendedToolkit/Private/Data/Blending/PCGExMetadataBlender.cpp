@@ -10,13 +10,13 @@
 
 namespace PCGExDataBlending
 {
-	void FMetadataBlender::SetSourceData(const TSharedRef<PCGExData::FFacade>& InDataFacade, const PCGExData::EIOSide InSide)
+	void FMetadataBlender::SetSourceData(const TSharedPtr<PCGExData::FFacade>& InDataFacade, const PCGExData::EIOSide InSide)
 	{
 		SourceFacadeHandle = InDataFacade;
 		SourceSide = InSide;
 	}
 
-	void FMetadataBlender::SetTargetData(const TSharedRef<PCGExData::FFacade>& InDataFacade)
+	void FMetadataBlender::SetTargetData(const TSharedPtr<PCGExData::FFacade>& InDataFacade)
 	{
 		TargetFacadeHandle = InDataFacade;
 	}

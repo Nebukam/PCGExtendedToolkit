@@ -4,7 +4,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Paths/SubPoints/PCGExSubPointsOperation.h"
+#include "Paths/SubPoints/PCGExSubPointsInstancedFactory.h"
 #include "PCGExOrientOperation.generated.h"
 
 /**

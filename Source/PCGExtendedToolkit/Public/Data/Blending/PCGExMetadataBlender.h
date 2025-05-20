@@ -8,6 +8,10 @@
 
 #include "PCGExDataBlending.h"
 #include "PCGExProxyDataBlending.h"
+#include "Editor/Experimental/EditorInteractiveToolsFramework/Public/Behaviors/2DViewportBehaviorTargets.h"
+#include "Editor/Experimental/EditorInteractiveToolsFramework/Public/Behaviors/2DViewportBehaviorTargets.h"
+#include "Editor/Experimental/EditorInteractiveToolsFramework/Public/Behaviors/2DViewportBehaviorTargets.h"
+#include "Editor/Experimental/EditorInteractiveToolsFramework/Public/Behaviors/2DViewportBehaviorTargets.h"
 
 namespace PCGExDataBlending
 {
@@ -19,8 +23,8 @@ namespace PCGExDataBlending
 		FMetadataBlender() = default;
 		~FMetadataBlender() = default;
 
-		void SetSourceData(const TSharedRef<PCGExData::FFacade>& InDataFacade, const PCGExData::EIOSide InSourceSide = PCGExData::EIOSide::In);
-		void SetTargetData(const TSharedRef<PCGExData::FFacade>& InDataFacade);
+		void SetSourceData(const TSharedPtr<PCGExData::FFacade>& InDataFacade, const PCGExData::EIOSide InSourceSide = PCGExData::EIOSide::In);
+		void SetTargetData(const TSharedPtr<PCGExData::FFacade>& InDataFacade);
 
 		bool Init(FPCGExContext* InContext, const FPCGExBlendingDetails& InBlendingDetails, const TSet<FName>* IgnoreAttributeSet = nullptr);
 

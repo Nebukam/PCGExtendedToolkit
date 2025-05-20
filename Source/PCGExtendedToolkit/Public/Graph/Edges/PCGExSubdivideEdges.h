@@ -56,7 +56,7 @@ public:
 	FPCGAttributePropertyInputSelector SubdivisionAmount;
 
 	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = Settings, Instanced, meta=(PCG_Overridable, ShowOnlyInnerProperties, NoResetToDefault))
-	TObjectPtr<UPCGExSubPointsBlendOperation> Blending;
+	TObjectPtr<UPCGExSubPointsBlendInstancedFactory> Blending;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Additional Outputs", meta=(PCG_Overridable, InlineEditConditionToggle))
 	bool bFlagSubVtx = false;
@@ -87,7 +87,7 @@ struct FPCGExSubdivideEdgesContext final : FPCGExEdgesProcessorContext
 {
 	friend class FPCGExSubdivideEdgesElement;
 
-	UPCGExSubPointsBlendOperation* Blending = nullptr;
+	UPCGExSubPointsBlendInstancedFactory* Blending = nullptr;
 };
 
 class FPCGExSubdivideEdgesElement final : public FPCGExEdgesProcessorElement
@@ -119,7 +119,7 @@ namespace PCGExSubdivideEdges
 		TArray<FSubdivision> Subdivisions;
 
 		TSet<FName> ProtectedAttributes;
-		UPCGExSubPointsBlendOperation* Blending = nullptr;
+		UPCGExSubPointsBlendInstancedFactory* Blending = nullptr;
 
 		TSharedPtr<PCGExData::TBuffer<bool>> FlagWriter;
 		TSharedPtr<PCGExData::TBuffer<double>> AlphaWriter;

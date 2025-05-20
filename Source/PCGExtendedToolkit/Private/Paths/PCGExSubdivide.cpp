@@ -29,7 +29,7 @@ bool FPCGExSubdivideElement::Boot(FPCGExContext* InContext) const
 	if (Settings->bFlagSubPoints) { PCGEX_VALIDATE_NAME(Settings->SubPointFlagName) }
 	if (Settings->bWriteAlpha) { PCGEX_VALIDATE_NAME(Settings->AlphaAttributeName) }
 
-	PCGEX_OPERATION_BIND(Blending, UPCGExSubPointsBlendOperation, PCGExDataBlending::SourceOverridesBlendingOps)
+	PCGEX_OPERATION_BIND(Blending, UPCGExSubPointsBlendInstancedFactory, PCGExDataBlending::SourceOverridesBlendingOps)
 
 	return true;
 }
@@ -58,7 +58,7 @@ bool FPCGExSubdivideElement::ExecuteInternal(FPCGContext* InContext) const
 			},
 			[&](const TSharedPtr<PCGExPointsMT::TBatch<PCGExSubdivide::FProcessor>>& NewBatch)
 			{
-				NewBatch->PrimaryOperation = Context->Blending;
+				NewBatch->PrimaryInstancedFactory = Context->Blending;
 				NewBatch->bRequiresWriteStep = true;
 			}))
 		{
@@ -93,7 +93,7 @@ namespace PCGExSubdivide
 
 		bUseCount = Settings->SubdivideMethod == EPCGExSubdivideMode::Count;
 
-		SubBlending = Cast<UPCGExSubPointsBlendOperation>(PrimaryOperation);
+		SubBlending = GetPrimaryInstancedFactory<UPCGExSubPointsBlendInstancedFactory>()->CreateOperation();
 		SubBlending->bClosedLoop = bClosedLoop;
 
 		PCGEx::InitArray(Subdivisions, PointDataFacade->GetNum());
@@ -225,7 +225,12 @@ namespace PCGExSubdivide
 			ProtectedAttributes.Add(Settings->AlphaAttributeName);
 		}
 
-		SubBlending->PrepareForData(PointDataFacade, PointDataFacade, PCGExData::EIOSide::Out, &ProtectedAttributes);
+		if(!SubBlending->PrepareForData(Context, PointDataFacade, &ProtectedAttributes))
+		{
+			//
+			bIsProcessorValid = false;
+			return;
+		}
 		StartParallelLoopForRange(Subdivisions.Num());
 	}
 

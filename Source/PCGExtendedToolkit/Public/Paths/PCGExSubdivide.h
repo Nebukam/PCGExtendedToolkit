@@ -10,7 +10,7 @@
 #include "PCGExDetails.h"
 
 
-#include "Paths/SubPoints/PCGExSubPointsOperation.h"
+#include "Paths/SubPoints/PCGExSubPointsInstancedFactory.h"
 #include "SubPoints/DataBlending/PCGExSubPointsBlendOperation.h"
 #include "PCGExSubdivide.generated.h"
 
@@ -60,7 +60,7 @@ public:
 	bool bRedistributeEvenly = false;
 
 	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = Settings, Instanced, meta=(PCG_Overridable, ShowOnlyInnerProperties, NoResetToDefault))
-	TObjectPtr<UPCGExSubPointsBlendOperation> Blending;
+	TObjectPtr<UPCGExSubPointsBlendInstancedFactory> Blending;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Additional Outputs", meta=(PCG_Overridable, InlineEditConditionToggle))
 	bool bFlagSubPoints = false;
@@ -82,7 +82,7 @@ struct FPCGExSubdivideContext final : FPCGExPathProcessorContext
 {
 	friend class FPCGExSubdivideElement;
 
-	UPCGExSubPointsBlendOperation* Blending = nullptr;
+	UPCGExSubPointsBlendInstancedFactory* Blending = nullptr;
 };
 
 class FPCGExSubdivideElement final : public FPCGExPathProcessorElement
@@ -118,7 +118,7 @@ namespace PCGExSubdivide
 		bool bClosedLoop = false;
 
 		TSet<FName> ProtectedAttributes;
-		UPCGExSubPointsBlendOperation* SubBlending = nullptr;
+		TSharedPtr<FPCGExSubPointsBlendOperation> SubBlending;
 
 		TSharedPtr<PCGExData::TBuffer<bool>> FlagWriter;
 		TSharedPtr<PCGExData::TBuffer<double>> AlphaWriter;

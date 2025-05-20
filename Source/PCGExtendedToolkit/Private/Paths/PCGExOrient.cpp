@@ -63,7 +63,7 @@ bool FPCGExOrientElement::ExecuteInternal(FPCGContext* InContext) const
 			},
 			[&](const TSharedPtr<PCGExPointsMT::TBatch<PCGExOrient::FProcessor>>& NewBatch)
 			{
-				NewBatch->PrimaryOperation = Context->Orientation;
+				NewBatch->PrimaryInstancedFactory = Context->Orientation;
 			}))
 		{
 			Context->CancelExecution(TEXT("Could not find any paths to orient."));
@@ -100,7 +100,7 @@ namespace PCGExOrient
 		//PathBinormal = Path->AddExtra<PCGExPaths::FPathEdgeBinormal>(false);
 
 		LastIndex = PointDataFacade->GetNum() - 1;
-		Orient = Cast<UPCGExOrientOperation>(PrimaryOperation);
+		Orient = Cast<UPCGExOrientOperation>(PrimaryInstancedFactory);
 		if (!Orient->PrepareForData(PointDataFacade, Path.ToSharedRef())) { return false; }
 
 		if (Settings->Output == EPCGExOrientUsage::OutputToAttribute)

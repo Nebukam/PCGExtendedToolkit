@@ -5,29 +5,33 @@
 
 #include "CoreMinimal.h"
 #include "PCGExSubPointsBlendOperation.h"
+#include "Editor/Experimental/EditorInteractiveToolsFramework/Public/Behaviors/2DViewportBehaviorTargets.h"
+#include "Editor/Experimental/EditorInteractiveToolsFramework/Public/Behaviors/2DViewportBehaviorTargets.h"
 
 
 #include "PCGExSubPointsBlendNone.generated.h"
+
+class FPCGExSubPointsBlendNone : public FPCGExSubPointsBlendOperation
+{
+public:
+	virtual bool PrepareForData(
+		FPCGExContext* InContext,
+		const TSharedPtr<PCGExData::FFacade>& InTargetFacade, const TSharedPtr<PCGExData::FFacade>& InSourceFacade,
+		const PCGExData::EIOSide InSourceSide, const TSet<FName>* IgnoreAttributeSet = nullptr) override;
+
+	virtual void BlendSubPoints(
+		const PCGExData::FConstPoint& From, const PCGExData::FConstPoint& To,
+		const TArrayView<FPCGPoint>& SubPoints, const PCGExPaths::FPathMetrics& Metrics, const int32 StartIndex = -1) const override;
+};
 
 /**
  * 
  */
 UCLASS(MinimalAPI, DisplayName = "No Blending")
-class UPCGExSubPointsBlendNone : public UPCGExSubPointsBlendOperation
+class UPCGExSubPointsBlendNone : public UPCGExSubPointsBlendInstancedFactory
 {
 	GENERATED_BODY()
 
 public:
-	virtual void BlendSubPoints(
-		const PCGExData::FConstPoint& From,
-		const PCGExData::FConstPoint& To,
-		const TArrayView<FPCGPoint>& SubPoints,
-		const PCGExPaths::FPathMetrics& Metrics,
-		PCGExDataBlending::FMetadataBlender* InBlender, const int32 StartIndex) const override;
-
-	virtual TSharedPtr<PCGExDataBlending::FMetadataBlender> CreateBlender(
-		const TSharedRef<PCGExData::FFacade>& InTargetFacade,
-		const TSharedRef<PCGExData::FFacade>& InSourceFacade,
-		const PCGExData::EIOSide InSourceSide,
-		const TSet<FName>* IgnoreAttributeSet) override;
+	virtual TSharedPtr<FPCGExSubPointsBlendOperation> CreateOperation() const override;
 };

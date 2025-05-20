@@ -13,7 +13,7 @@
 #include "Paths/SubPoints/DataBlending/PCGExSubPointsBlendInterpolate.h"
 #include "PCGExPathfindingNavmesh.generated.h"
 
-class UPCGExSubPointsBlendOperation;
+class UPCGExSubPointsBlendInstancedFactory;
 class UPCGExGoalPicker;
 
 
@@ -82,7 +82,7 @@ public:
 
 	/** Controls how path points blend from seed to goal. */
 	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "Settings|Blending", Instanced, meta = (PCG_Overridable, NoResetToDefault, ShowOnlyInnerProperties))
-	TObjectPtr<UPCGExSubPointsBlendOperation> Blending;
+	TObjectPtr<UPCGExSubPointsBlendInstancedFactory> Blending;
 
 	/** TBD */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging & Forwarding")
@@ -120,7 +120,7 @@ struct FPCGExPathfindingNavmeshContext final : FPCGExPointsProcessorContext
 	TSharedPtr<PCGExData::FPointIOCollection> OutputPaths;
 
 	UPCGExGoalPicker* GoalPicker = nullptr;
-	UPCGExSubPointsBlendOperation* Blending = nullptr;
+	UPCGExSubPointsBlendInstancedFactory* Blending = nullptr;
 
 	TArray<PCGExPathfinding::FSeedGoalPair> PathQueries;
 

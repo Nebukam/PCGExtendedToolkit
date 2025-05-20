@@ -38,6 +38,8 @@ public:
 	virtual void Cleanup() override;
 	virtual void CopySettingsFrom(const UPCGExInstancedFactory* Other);
 
+	virtual bool WantsPerDataInstance() { return false; }
+
 	virtual void RegisterAssetDependencies(FPCGExContext* InContext);
 
 	TSharedPtr<PCGExData::FFacade> PrimaryDataFacade;
@@ -54,13 +56,11 @@ public:
 		return TypedInstance;
 	}
 
-	virtual TSharedPtr<FPCGExOperation> CreateOperation() const;
-
 	virtual void RegisterConsumableAttributesWithFacade(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade>& InFacade) const;
 	virtual void RegisterPrimaryBuffersDependencies(PCGExData::FFacadePreloader& FacadePreloader) const;
 
 	virtual void BeginDestroy() override;
-	virtual bool CanOnlyExecuteOnMainThread() const{ return false; }
+	virtual bool CanOnlyExecuteOnMainThread() const { return false; }
 
 protected:
 	FPCGExContext* Context = nullptr;

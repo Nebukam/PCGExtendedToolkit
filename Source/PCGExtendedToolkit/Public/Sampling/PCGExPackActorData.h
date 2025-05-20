@@ -51,6 +51,8 @@ class UPCGExCustomActorDataPacker : public UPCGExInstancedFactory
 	TMap<AActor*, TSharedPtr<TArray<FComponentInfos>>> ComponentsMap;
 
 public:
+	virtual bool WantsPerDataInstance() override { return true; }
+
 	TSharedPtr<PCGEx::FUniqueNameGenerator> UniqueNameGenerator;
 	bool bIsPreviewMode = false;
 	bool bIsProcessing = false;
@@ -611,7 +613,7 @@ class FPCGExPackActorDataElement final : public FPCGExPointsProcessorElement
 {
 protected:
 	PCGEX_ELEMENT_CREATE_CONTEXT(PackActorData)
-	
+
 	virtual bool Boot(FPCGExContext* InContext) const override;
 	virtual bool ExecuteInternal(FPCGContext* Context) const override;
 };

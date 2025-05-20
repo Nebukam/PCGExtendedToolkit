@@ -33,7 +33,7 @@ bool FPCGExSubdivideEdgesElement::Boot(FPCGExContext* InContext) const
 	if (Settings->bFlagSubEdge) { PCGEX_VALIDATE_NAME(Settings->SubEdgeFlagName) }
 	if (Settings->bWriteVtxAlpha) { PCGEX_VALIDATE_NAME(Settings->VtxAlphaAttributeName) }
 
-	PCGEX_OPERATION_BIND(Blending, UPCGExSubPointsBlendOperation, PCGExDataBlending::SourceOverridesBlendingOps)
+	PCGEX_OPERATION_BIND(Blending, UPCGExSubPointsBlendInstancedFactory, PCGExDataBlending::SourceOverridesBlendingOps)
 
 	return true;
 }
@@ -88,7 +88,7 @@ namespace PCGExSubdivideEdges
 			return false;
 		}
 
-		Blending = Context->Blending->CreateNewInstance<UPCGExSubPointsBlendOperation>();
+		Blending = Context->Blending->CreateNewInstance<UPCGExSubPointsBlendInstancedFactory>();
 		PCGEx::InitArray(Subdivisions, EdgeDataFacade->GetNum());
 
 		StartParallelLoopForEdges();

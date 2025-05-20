@@ -1,28 +1,30 @@
 ﻿// Copyright 2025 Timothé Lapetite and contributors
 // Released under the MIT license https://opensource.org/license/MIT/
 
-
 #include "Paths/SubPoints/DataBlending/PCGExSubPointsBlendNone.h"
-
 #include "Data/Blending/PCGExMetadataBlender.h"
+#include "Editor/Experimental/EditorInteractiveToolsFramework/Public/Behaviors/2DViewportBehaviorTargets.h"
+#include "Editor/Experimental/EditorInteractiveToolsFramework/Public/Behaviors/2DViewportBehaviorTargets.h"
 
-
-void UPCGExSubPointsBlendNone::BlendSubPoints(
-	const PCGExData::FConstPoint& From,
-	const PCGExData::FConstPoint& To,
-	const TArrayView<FPCGPoint>& SubPoints,
-	const PCGExPaths::FPathMetrics& Metrics,
-	PCGExDataBlending::FMetadataBlender* InBlender, const int32 StartIndex) const
-{
-}
-
-TSharedPtr<PCGExDataBlending::FMetadataBlender> UPCGExSubPointsBlendNone::CreateBlender(
-	const TSharedRef<PCGExData::FFacade>& InTargetFacade,
-	const TSharedRef<PCGExData::FFacade>& InSourceFacade,
-	const PCGExData::EIOSide InSourceSide,
+bool FPCGExSubPointsBlendNone::PrepareForData(
+	FPCGExContext* InContext,
+	const TSharedPtr<PCGExData::FFacade>& InTargetFacade,
+	const TSharedPtr<PCGExData::FFacade>& InSourceFacade, const PCGExData::EIOSide InSourceSide,
 	const TSet<FName>* IgnoreAttributeSet)
 {
-	PCGEX_MAKE_SHARED(NewBlender, PCGExDataBlending::FMetadataBlender, &BlendingDetails)
-	NewBlender->PrepareForData(InTargetFacade, InSourceFacade, InSourceSide);
-	return NewBlender;
+	// Skip creating blender and unnecessary stuff
+	return true;
+}
+
+void FPCGExSubPointsBlendNone::BlendSubPoints(
+	const PCGExData::FConstPoint& From, const PCGExData::FConstPoint& To,
+	const TArrayView<FPCGPoint>& SubPoints, const PCGExPaths::FPathMetrics& Metrics, const int32 StartIndex) const
+{
+	// None
+}
+
+TSharedPtr<FPCGExSubPointsBlendOperation> UPCGExSubPointsBlendNone::CreateOperation() const
+{
+	PCGEX_CREATE_SUBPOINTBLEND_OPERATION(None)
+	return NewOperation;
 }
