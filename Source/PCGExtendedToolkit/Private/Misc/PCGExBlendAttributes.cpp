@@ -95,12 +95,10 @@ namespace PCGExBlendAttributes
 		PointDataFacade->Fetch(InScope);
 		FilterScope(InScope);
 
-		TArray<FPCGPoint>& Points = PointDataFacade->GetMutablePoints();
-
 		for (int i = InScope.Start; i < InScope.End; i++)
 		{
-			if (!PointFilterCache[i]) { continue; }			
-			BlendOpsManager->Blend(i); 
+			if (!PointFilterCache[i]) { continue; }
+			BlendOpsManager->Blend(i);
 		}
 	}
 

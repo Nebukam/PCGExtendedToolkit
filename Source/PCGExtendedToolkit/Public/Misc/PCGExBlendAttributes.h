@@ -8,6 +8,7 @@
 
 #include "PCGExPointsProcessor.h"
 #include "Data/Blending/PCGExBlendOpFactoryProvider.h"
+#include "Data/Blending/PCGExBlendOpsManager.h"
 
 
 #include "PCGExBlendAttributes.generated.h"

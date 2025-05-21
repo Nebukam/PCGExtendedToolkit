@@ -8,8 +8,7 @@
 #include "PCGExPaths.h"
 #include "PCGExPointsProcessor.h"
 #include "Data/Blending/PCGExBlendOpFactoryProvider.h"
-#include "Data/Blending/PCGExDataBlending.h"
-#include "Data/Blending/PCGExMetadataBlender.h"
+#include "Data/Blending/PCGExBlendOpsManager.h"
 #include "Sampling/PCGExSampling.h"
 
 #include "PCGExAttributeRolling.generated.h"

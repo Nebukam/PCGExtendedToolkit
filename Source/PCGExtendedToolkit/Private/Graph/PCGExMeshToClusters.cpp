@@ -109,10 +109,11 @@ bool FPCGExMeshToClustersElement::ExecuteInternal(
 				return false;
 			}
 
-			const TArray<FPCGPoint>& TargetPoints = Context->CurrentIO->GetIn()->GetPoints();
-			for (int i = 0; i < TargetPoints.Num(); i++)
+			const UPCGBasePointData* TargetPoints = Context->CurrentIO->GetIn();
+			const int32 NumTargets = TargetPoints->GetNumPoints();
+			for (int i = 0; i < NumTargets; i++)
 			{
-				FSoftObjectPath Path = PathGetter->SoftGet(i, FSoftObjectPath());
+				FSoftObjectPath Path = PathGetter->SoftGet(PCGExData::FConstPoint(TargetPoints, i), FSoftObjectPath());
 
 				if (!Path.IsValid())
 				{
@@ -192,13 +193,12 @@ bool FPCGExMeshToClustersElement::ExecuteInternal(
 		Context->SetAsyncState(PCGExGraph::State_WritingClusters);
 
 		const TSharedPtr<PCGExMT::FTaskManager> AsyncManager = Context->GetAsyncManager();
-		const TArray<FPCGPoint>& Targets = Context->CurrentIO->GetIn()->GetPoints();
-		for (int i = 0; i < Targets.Num(); i++)
+
+		const int32 NumTargets = Context->CurrentIO->GetIn()->GetNumPoints();
+		for (int i = 0; i < NumTargets; i++)
 		{
 			const int32 MeshIdx = Context->MeshIdx[i];
-
 			if (MeshIdx == -1) { continue; }
-
 			PCGEX_LAUNCH(PCGExGraphTask::FCopyGraphToPoint, i, Context->CurrentIO, Context->GraphBuilders[MeshIdx], Context->VtxChildCollection, Context->EdgeChildCollection, &Context->TransformDetails)
 		}
 	}
@@ -241,19 +241,17 @@ namespace PCGExMeshToCluster
 		if (!RootVtx) { return; }
 
 		RootVtx->IOIndex = TaskIndex;
-		TArray<FPCGPoint>& VtxPoints = RootVtx->GetOut()->GetMutablePoints();
-		VtxPoints.SetNum(Mesh->Vertices.Num());
+
+		UPCGBasePointData* VtxPoints = RootVtx->GetOut();
+		VtxPoints->SetNumPoints(Mesh->Vertices.Num());
+
+		TPCGValueRange<FTransform> OutTransforms = VtxPoints->GetTransformValueRange();
+		for (int i = 0; i < OutTransforms.Num(); i++) { OutTransforms[i].SetLocation(Mesh->Vertices[i]); }
 
 		PCGEX_MAKE_SHARED(RootVtxFacade, PCGExData::FFacade, RootVtx.ToSharedRef())
-
 		PCGEX_MAKE_SHARED(GraphBuilder, PCGExGraph::FGraphBuilder, RootVtxFacade.ToSharedRef(), &Context->GraphBuilderDetails)
-		Context->GraphBuilders[TaskIndex] = GraphBuilder;
 
-		for (int i = 0; i < VtxPoints.Num(); i++)
-		{
-			FPCGPoint& NewVtx = VtxPoints[i];
-			NewVtx.Transform.SetLocation(Mesh->Vertices[i]);
-		}
+		Context->GraphBuilders[TaskIndex] = GraphBuilder;
 
 		GraphBuilder->Graph->InsertEdges(Mesh->Edges, -1);
 		GraphBuilder->CompileAsync(Context->GetAsyncManager(), true);
