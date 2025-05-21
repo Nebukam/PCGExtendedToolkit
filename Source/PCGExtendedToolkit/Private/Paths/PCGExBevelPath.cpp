@@ -51,19 +51,19 @@ bool FPCGExBevelPathElement::Boot(FPCGExContext* InContext) const
 
 		Context->CustomProfileFacade = MakeShared<PCGExData::FFacade>(CustomProfileIO.ToSharedRef());
 
-		const TArray<FPCGPoint>& ProfilePoints = CustomProfileIO->GetIn()->GetPoints();
-		PCGEx::InitArray(Context->CustomProfilePositions, ProfilePoints.Num());
+		TConstPCGValueRange<FTransform> ProfileTransforms = CustomProfileIO->GetIn()->GetConstTransformValueRange();
+		PCGEx::InitArray(Context->CustomProfilePositions, ProfileTransforms.Num());
 
-		const FVector Start = ProfilePoints[0].Transform.GetLocation();
-		const FVector End = ProfilePoints.Last().Transform.GetLocation();
+		const FVector Start = ProfileTransforms[0].GetLocation();
+		const FVector End = ProfileTransforms[ProfileTransforms.Num()-1].GetLocation();
 		const double Factor = 1 / FVector::Dist(Start, End);
 
 		const FVector ProjectionNormal = (End - Start).GetSafeNormal(1E-08, FVector::ForwardVector);
 		const FQuat ProjectionQuat = FQuat::FindBetweenNormals(ProjectionNormal, FVector::ForwardVector);
 
-		for (int i = 0; i < ProfilePoints.Num(); i++)
+		for (int i = 0; i < ProfileTransforms.Num(); i++)
 		{
-			Context->CustomProfilePositions[i] = ProjectionQuat.RotateVector((ProfilePoints[i].Transform.GetLocation() - Start) * Factor);
+			Context->CustomProfilePositions[i] = ProjectionQuat.RotateVector((ProfileTransforms[i].GetLocation() - Start) * Factor);
 		}
 	}
 

@@ -5,6 +5,7 @@
 
 #include "CoreMinimal.h"
 #include "Data/Blending/PCGExBlendOpFactoryProvider.h"
+#include "Data/Blending/PCGExBlendOpsManager.h"
 
 
 #include "Graph/PCGExEdgesProcessor.h"

@@ -33,7 +33,7 @@ bool FPCGExOrientElement::Boot(FPCGExContext* InContext) const
 	if (Settings->Output == EPCGExOrientUsage::OutputToAttribute) { PCGEX_VALIDATE_NAME(Settings->OutputAttribute); }
 	if (Settings->bOutputDot) { PCGEX_VALIDATE_NAME(Settings->DotAttribute); }
 
-	PCGEX_OPERATION_BIND(Orientation, UPCGExOrientOperation, PCGExOrient::SourceOverridesOrient)
+	PCGEX_OPERATION_BIND(Orientation, UPCGExOrientInstancedFactory, PCGExOrient::SourceOverridesOrient)
 	Context->Orientation->OrientAxis = Settings->OrientAxis;
 	Context->Orientation->UpAxis = Settings->UpAxis;
 
@@ -99,7 +99,7 @@ namespace PCGExOrient
 		//PathBinormal = Path->AddExtra<PCGExPaths::FPathEdgeBinormal>(false);
 
 		LastIndex = PointDataFacade->GetNum() - 1;
-		
+
 		Orient = Context->Orientation->CreateOperation();
 		if (!Orient->PrepareForData(PointDataFacade, Path.ToSharedRef())) { return false; }
 

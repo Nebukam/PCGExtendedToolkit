@@ -174,19 +174,19 @@ namespace PCGExPaths
 		return true;
 	}
 
-	FPathEdge::FPathEdge(const int32 InStart, const int32 InEnd, const TArrayView<const FVector>& Positions, const double Expansion)
+	FPathEdge::FPathEdge(const int32 InStart, const int32 InEnd, const TConstPCGValueRange<FTransform>& Positions, const double Expansion)
 		: Start(InStart), End(InEnd), AltStart(InStart)
 	{
 		Update(Positions, Expansion);
 	}
 
-	void FPathEdge::Update(const TArrayView<const FVector>& Positions, const double Expansion)
+	void FPathEdge::Update(const TConstPCGValueRange<FTransform>& Positions, const double Expansion)
 	{
 		FBox Box = FBox(ForceInit);
-		Box += Positions[Start];
-		Box += Positions[End];
+		Box += Positions[Start].GetLocation();
+		Box += Positions[End].GetLocation();
 		Bounds = Box.ExpandBy(Expansion);
-		Dir = (Positions[End] - Positions[Start]).GetSafeNormal();
+		Dir = (Positions[End].GetLocation() - Positions[Start].GetLocation()).GetSafeNormal();
 	}
 
 	bool FPathEdge::ShareIndices(const FPathEdge& Other) const

@@ -65,13 +65,13 @@ namespace PCGExPackClusters
 	class FProcessor final : public PCGExClusterMT::TProcessor<FPCGExPackClustersContext, UPCGExPackClustersSettings>
 	{
 	protected:
-		TSharedPtr<TArray<int32>> ReducedVtxIndex;
+		TArray<int32> VtxPointSelection;
 		TSharedPtr<PCGExData::FPointIO> PackedIO;
 		TSharedPtr<PCGExData::FFacade> PackedIOFacade;
 		TSharedPtr<PCGEx::FAttributesInfos> VtxAttributes;
 
 		int32 VtxStartIndex = -1;
-		int32 NumIndices = -1;
+		int32 NumVtx = -1;
 
 	public:
 		FProcessor(const TSharedRef<PCGExData::FFacade>& InVtxDataFacade, const TSharedRef<PCGExData::FFacade>& InEdgeDataFacade):

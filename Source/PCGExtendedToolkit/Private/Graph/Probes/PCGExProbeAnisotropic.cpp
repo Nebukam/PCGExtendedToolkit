@@ -35,7 +35,7 @@ void FPCGExProbeAnisotropic::ProcessCandidates(const int32 Index, const FTransfo
 	{
 		for (int d = 0; d < 16; d++)
 		{
-			D[d] = WorkingTransform.Transform.TransformVectorNoScale(Directions[d]);
+			D[d] = WorkingTransform.TransformVectorNoScale(Directions[d]);
 			BestDot[d] = MinDot;
 		}
 	}

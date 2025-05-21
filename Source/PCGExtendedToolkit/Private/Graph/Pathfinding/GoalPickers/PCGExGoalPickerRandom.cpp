@@ -33,7 +33,7 @@ bool UPCGExGoalPickerRandom::PrepareForData(FPCGExContext* InContext, const TSha
 
 int32 UPCGExGoalPickerRandom::GetGoalIndex(const PCGExData::FConstPoint& Seed) const
 {
-	return PCGExMath::SanitizeIndex(FRandomStream(PCGExRandom::GetRandomStreamFromPoint(*Seed.Point, LocalSeed)).RandRange(0, MaxGoalIndex), MaxGoalIndex, IndexSafety);
+	return PCGExMath::SanitizeIndex(FRandomStream(PCGExRandom::GetRandomStreamFromPoint(Seed.Data->GetSeed(Seed.Index), LocalSeed)).RandRange(0, MaxGoalIndex), MaxGoalIndex, IndexSafety);
 }
 
 void UPCGExGoalPickerRandom::GetGoalIndices(const PCGExData::FConstPoint& Seed, TArray<int32>& OutIndices) const
@@ -43,7 +43,7 @@ void UPCGExGoalPickerRandom::GetGoalIndices(const PCGExData::FConstPoint& Seed, 
 	if (GoalCount == EPCGExGoalPickRandomAmount::Random)
 	{
 		Picks = PCGExMath::Remap(
-			FMath::PerlinNoise3D(PCGExMath::Tile(Seed.Point->Transform.GetLocation() * 0.001 + Picks, FVector(-1), FVector(1))),
+			FMath::PerlinNoise3D(PCGExMath::Tile(Seed.GetLocation() * 0.001 + Picks, FVector(-1), FVector(1))),
 			-1, 1, 0, Picks);
 	}
 
@@ -52,7 +52,7 @@ void UPCGExGoalPickerRandom::GetGoalIndices(const PCGExData::FConstPoint& Seed, 
 	for (int i = 0; i < Picks; i++)
 	{
 		int32 Index = static_cast<int32>(PCGExMath::Remap(
-			FMath::PerlinNoise3D(PCGExMath::Tile(Seed.Point->Transform.GetLocation() * 0.001 + i, FVector(-1), FVector(1))),
+			FMath::PerlinNoise3D(PCGExMath::Tile(Seed.GetLocation() * 0.001 + i, FVector(-1), FVector(1))),
 			-1, 1, 0, MaxGoalIndex));
 		OutIndices.Add(PCGExMath::SanitizeIndex(Index, MaxGoalIndex, IndexSafety));
 	}

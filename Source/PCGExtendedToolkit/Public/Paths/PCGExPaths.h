@@ -328,9 +328,9 @@ namespace PCGExPaths
 
 		int32 AltStart = -1;
 
-		FPathEdge(const int32 InStart, const int32 InEnd, const TArrayView<const FVector>& Positions, const double Expansion = 0);
+		FPathEdge(const int32 InStart, const int32 InEnd, const TConstPCGValueRange<FTransform>& Positions, const double Expansion = 0);
 
-		void Update(const TArrayView<const FVector>& Positions, const double Expansion = 0);
+		void Update(const TConstPCGValueRange<FTransform>& Positions, const double Expansion = 0);
 
 		bool ShareIndices(const FPathEdge& Other) const;
 		bool Connects(const FPathEdge& Other) const;

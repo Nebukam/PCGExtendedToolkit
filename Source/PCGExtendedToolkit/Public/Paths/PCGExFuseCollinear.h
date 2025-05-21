@@ -86,7 +86,7 @@ namespace PCGExFuseCollinear
 	{
 		TSharedPtr<PCGExPaths::FPath> Path;
 
-		TArray<FPCGPoint>* OutPoints = nullptr;
+		TArray<int32> ReadIndices;
 		FVector LastPosition = FVector::ZeroVector;
 
 	public:

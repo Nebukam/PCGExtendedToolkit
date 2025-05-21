@@ -45,7 +45,7 @@ void FPCGExProbeDirection::ProcessCandidates(const int32 Index, const FTransform
 	int32 BestCandidateIndex = -1;
 
 	FVector Dir = DirectionCache ? DirectionCache->Read(Index).GetSafeNormal() : Direction;
-	if (Config.bTransformDirection) { Dir = WorkingTransform.Transform.TransformVectorNoScale(Dir); }
+	if (Config.bTransformDirection) { Dir = WorkingTransform.TransformVectorNoScale(Dir); }
 
 	const int32 MaxIndex = Candidates.Num() - 1;
 	for (int i = 0; i <= MaxIndex; i++)
@@ -107,7 +107,7 @@ void FPCGExProbeDirection::ProcessCandidateChained(const int32 Index, const FTra
 {
 	const double R = GetSearchRadius(Index);
 	FVector Dir = DirectionCache ? DirectionCache->Read(Index).GetSafeNormal() : Direction;
-	if (Config.bTransformDirection) { Dir = WorkingTransform.Transform.TransformVectorNoScale(Dir); }
+	if (Config.bTransformDirection) { Dir = WorkingTransform.TransformVectorNoScale(Dir); }
 
 	if (Candidate.Distance > R) { return; }
 

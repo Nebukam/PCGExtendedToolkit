@@ -99,9 +99,10 @@ namespace PCGExFindPointOnBounds
 
 			if (BestIndices[i] == -1 || !IO) { continue; }
 
-			PCGMetadataEntryKey InKey = IO->GetInPoint(BestIndices[i]).MetadataEntry;
-			PCGMetadataEntryKey OutKey = Target->GetOutPoint(i).MetadataEntry;
+			PCGMetadataEntryKey InKey = IO->GetIn()->GetMetadataEntry(BestIndices[i]);
+			PCGMetadataEntryKey OutKey = Target->GetOut()->GetMetadataEntry(i);
 			UPCGMetadata* InMetadata = IO->GetIn()->Metadata;
+			
 			for (const PCGEx::FAttributeIdentity& Identity : InAttributesInfos.Identities)
 			{
 				PCGEx::ExecuteWithRightType(

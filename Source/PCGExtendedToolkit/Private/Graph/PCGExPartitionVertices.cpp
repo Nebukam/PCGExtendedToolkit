@@ -74,42 +74,41 @@ namespace PCGExPartitionVertices
 		if (!FClusterProcessor::Process(InAsyncManager)) { return false; }
 
 		PointPartitionIO = Context->VtxPartitions->Emplace_GetRef(VtxDataFacade->Source, PCGExData::EIOInit::New);
-		TArray<FPCGPoint>& MutablePoints = PointPartitionIO->GetOut()->GetMutablePoints();
+		UPCGBasePointData* MutablePoints = PointPartitionIO->GetOut();
 
-		MutablePoints.SetNumUninitialized(NumNodes);
-		KeptIndices.SetNumUninitialized(NumNodes);
-		Remapping.Reserve(NumNodes);
+		MutablePoints->SetNumPoints(NumNodes);
+
+		TMap<int32, int32> EndpointsMap;
+		EndpointsMap.Reserve(NumNodes);
+
+		TArray<int32> VtxSelection;
+		VtxSelection.SetNumUninitialized(NumNodes);
+
 
 		Cluster->WillModifyVtxIO();
 
 		Cluster->VtxIO = PointPartitionIO;
 		Cluster->NumRawVtx = NumNodes;
 
-		for (PCGExCluster::FNode& Node : (*Cluster->Nodes))
+		TArray<PCGExCluster::FNode>& Nodes = *Cluster->Nodes;
+		for (PCGExCluster::FNode& Node : Nodes)
 		{
 			int32 i = Node.Index;
 
-			KeptIndices[i] = Node.PointIndex;
-			Remapping.Add(Node.PointIndex, i);
-
+			VtxSelection[i] = Node.PointIndex;
+			EndpointsMap.Add(Node.PointIndex, i);
 			Node.PointIndex = i;
 		}
 
-		StartParallelLoopForNodes();
-		StartParallelLoopForEdges();
+		TArray<PCGExGraph::FEdge>& Edges = *Cluster->Edges;
+		for (PCGExCluster::FEdge& Edge : Edges)
+		{
+			Edge.Start = EndpointsMap[Edge.Start];
+			Edge.End = EndpointsMap[Edge.End];
+		}
 
+		PointPartitionIO->InheritPoints(VtxSelection, 0);
 		return true;
-	}
-
-	void FProcessor::ProcessSingleNode(const int32 Index, PCGExCluster::FNode& Node, const PCGExMT::FScope& Scope)
-	{
-		PointPartitionIO->GetOut()->GetMutablePoints()[Node.Index] = VtxDataFacade->Source->GetInPoint(KeptIndices[Node.Index]);
-	}
-
-	void FProcessor::ProcessSingleEdge(const int32 EdgeIndex, PCGExGraph::FEdge& Edge, const PCGExMT::FScope& Scope)
-	{
-		Edge.Start = Remapping[Edge.Start];
-		Edge.End = Remapping[Edge.End];
 	}
 
 	void FProcessor::CompleteWork()

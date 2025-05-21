@@ -61,7 +61,7 @@ void FPCGExProbeTensor::ProcessCandidates(const int32 Index, const FTransform& W
 	int32 BestCandidateIndex = -1;
 
 	bool bSuccess = false;
-	const PCGExTensor::FTensorSample Sample = TensorsHandler->Sample(Index, WorkingTransform.Transform, bSuccess);
+	const PCGExTensor::FTensorSample Sample = TensorsHandler->Sample(Index, WorkingTransform, bSuccess);
 
 	if (!bSuccess) { return; }
 
@@ -127,7 +127,7 @@ void FPCGExProbeTensor::ProcessCandidateChained(const int32 Index, const FTransf
 {
 	const double R = GetSearchRadius(Index);
 	bool bSuccess = false;
-	const PCGExTensor::FTensorSample Sample = TensorsHandler->Sample(Index, WorkingTransform.Transform, bSuccess);
+	const PCGExTensor::FTensorSample Sample = TensorsHandler->Sample(Index, WorkingTransform, bSuccess);
 
 	if (!bSuccess) { return; }
 

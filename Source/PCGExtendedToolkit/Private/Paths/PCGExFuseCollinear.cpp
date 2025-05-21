@@ -74,13 +74,9 @@ namespace PCGExFuseCollinear
 
 		if (!FPointsProcessor::Process(InAsyncManager)) { return false; }
 
-		PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::New)
-
 		Path = PCGExPaths::MakePath(PointDataFacade->GetIn(), 0, Context->ClosedLoop.IsClosedLoop(PointDataFacade->Source));
 
-		OutPoints = &PointDataFacade->GetOut()->GetMutablePoints();
-		OutPoints->Reserve(Path->NumPoints);
-
+		ReadIndices.Reserve(Path->NumPoints);
 		LastPosition = Path->GetPos(0);
 
 		bDaisyChainProcessPoints = true;
@@ -100,9 +96,8 @@ namespace PCGExFuseCollinear
 
 		PCGEX_SCOPE_LOOP(Index)
 		{
-			
 #define PCGEX_INSERT_CURRENT_POINT\
-OutPoints->Add(Point);\
+ReadIndices.Add(Index);\
 LastPosition = Path->GetPos(Index);
 
 			if (PointFilterCache[Index])
@@ -135,11 +130,12 @@ LastPosition = Path->GetPos(Index);
 
 	void FProcessor::CompleteWork()
 	{
-		OutPoints->Shrink();
-		if (Settings->bOmitInvalidPathsFromOutput && OutPoints->Num() < 2)
-		{
-			PCGEX_CLEAR_IO_VOID(PointDataFacade->Source)
-		}
+		if (ReadIndices.Num() < 2) { return; }
+
+		PCGEX_INIT_IO_VOID(PointDataFacade->Source, PCGExData::EIOInit::New)
+
+		PointDataFacade->GetOut()->SetNumPoints(ReadIndices.Num());
+		PointDataFacade->Source->InheritPoints(ReadIndices, 0);
 	}
 }
 

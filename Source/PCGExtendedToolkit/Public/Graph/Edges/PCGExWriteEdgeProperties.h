@@ -6,6 +6,7 @@
 #include "CoreMinimal.h"
 #include "PCGExDetailsData.h"
 #include "Data/Blending/PCGExBlendOpFactoryProvider.h"
+#include "Data/Blending/PCGExBlendOpsManager.h"
 #include "Data/Blending/PCGExDataBlending.h"
 #include "Graph/PCGExClusterMT.h"
 #include "Graph/PCGExEdgesProcessor.h"

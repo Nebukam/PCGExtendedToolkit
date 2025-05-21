@@ -65,34 +65,37 @@ namespace PCGExPackClusters
 	bool FProcessor::Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager)
 	{
 		if (!TProcessor::Process(InAsyncManager)) { return false; }
+		
+		// TODO : Refactor because we're actually partitioning indices, which is bad as we don't preserve the original data layout
 
-		PCGEx::InitArray(ReducedVtxIndex, NumNodes);
-		for (int i = 0; i < NumNodes; i++) { *(ReducedVtxIndex->GetData() + i) = Cluster->GetNodePointIndex(i); }
+		VtxPointSelection.SetNumUninitialized(NumNodes);
+		for (int i = 0; i < NumNodes; i++) { VtxPointSelection[i] = Cluster->GetNodePointIndex(i); }
 
-		PackedIO = Context->PackedClusters->Emplace_GetRef(EdgeDataFacade->Source, PCGExData::EIOInit::Duplicate);
-		PackedIOFacade = MakeShared<PCGExData::FFacade>(PackedIO.ToSharedRef());
-
-
-		VtxStartIndex = PackedIO->GetNum();
-		NumIndices = ReducedVtxIndex->Num();
+		VtxStartIndex = EdgeDataFacade->GetNum();
+		NumVtx = VtxPointSelection.Num();
 
 		if (VtxStartIndex <= 0) { return false; }
-		if (NumIndices <= 0) { return false; }
+		if (NumVtx <= 0) { return false; }
+		
+		PackedIO = Context->PackedClusters->Emplace_GetRef(EdgeDataFacade->Source, PCGExData::EIOInit::Duplicate);
+		PackedIOFacade = MakeShared<PCGExData::FFacade>(PackedIO.ToSharedRef());
 
 		PackedIO->Tags->Set<int32>(PCGExGraph::TagStr_PCGExCluster, EdgeDataFacade->GetIn()->GetUniqueID());
 		WriteMark(PackedIO.ToSharedRef(), PCGExGraph::Tag_PackedClusterEdgeCount, NumEdges);
 
 		// Copy vtx points after edge points
-		const TArray<FPCGPoint>& VtxPoints = VtxDataFacade->GetIn()->GetPoints();
-		TArray<FPCGPoint>& PackedPoints = PackedIO->GetMutablePoints();
+		const UPCGBasePointData* VtxPoints = VtxDataFacade->GetIn();
+		UPCGBasePointData* PackedPoints = PackedIO->GetOut();
 
-		PackedPoints.SetNumUninitialized(PackedPoints.Num() + NumIndices);
+		PackedPoints->SetNumPoints(VtxStartIndex + NumVtx);
 
-		for (int i = 0; i < NumIndices; i++)
-		{
-			PackedPoints[VtxStartIndex + i] = VtxPoints[*(ReducedVtxIndex->GetData() + i)];
-			PackedPoints[VtxStartIndex + i].MetadataEntry = PCGInvalidEntryKey;
-		}
+		TArray<int32> WriteIndices;
+		PCGEx::ArrayOfIndices(WriteIndices, NumVtx, VtxStartIndex);
+		VtxPoints->CopyPropertiesTo(PackedPoints, VtxPointSelection, WriteIndices, PCGEx::AllPointNativePropertiesButMeta);
+
+		// The following may be redundant
+		TPCGValueRange<int64> MetadataEntries = PackedPoints->GetMetadataEntryValueRange();
+		for(int32 Index : WriteIndices){ MetadataEntries[Index] = PCGInvalidEntryKey;}
 
 		//
 		VtxAttributes = PCGEx::FAttributesInfos::Get(VtxDataFacade->GetIn()->Metadata);
@@ -116,8 +119,8 @@ namespace PCGExPackClusters
 						TSharedPtr<PCGExData::TBuffer<T>> InValues = This->VtxDataFacade->GetReadable<T>(Identity.Name);
 						TSharedPtr<PCGExData::TBuffer<T>> OutValues = This->PackedIOFacade->GetWritable<T>(InValues->GetTypedInAttribute(), PCGExData::EBufferInit::New);
 
-						const TArray<int32>& ReducedVtxIndices = *This->ReducedVtxIndex;
-						for (int i = 0; i < ReducedVtxIndices.Num(); i++) { OutValues->GetMutable(This->VtxStartIndex + i) = InValues->Read(ReducedVtxIndices[i]); }
+						const TArray<int32>& VtxSelection = This->VtxPointSelection;
+						for (int i = 0; i < VtxSelection.Num(); i++) { OutValues->GetMutable(This->VtxStartIndex + i) = InValues->Read(VtxSelection[i]); }
 					});
 			};
 
