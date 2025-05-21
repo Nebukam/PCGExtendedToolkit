@@ -204,7 +204,10 @@ namespace PCGExConnectPoints
 
 	void FProcessor::OnPreparationComplete()
 	{
-		const TConstPCGValueRange<FTransform> OriginalTransforms = CurrentProcessingSource->GetConstTransformValueRange();
+
+		const UPCGBasePointData* InPointData = PointDataFacade->GetIn();		
+		const TConstPCGValueRange<FTransform> OriginalTransforms = InPointData->GetConstTransformValueRange();
+		
 		const int32 NumPoints = OriginalTransforms.Num();
 
 		if (!SearchProbes.IsEmpty())
@@ -246,10 +249,11 @@ namespace PCGExConnectPoints
 
 	void FProcessor::ProcessPoints(const PCGExMT::FScope& Scope)
 	{
-		TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExConnectPointsElement::ProcessSinglePoint);
+		TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExConnectPointsElement::ProcessPoints);
 		PointDataFacade->Fetch(Scope);
 
-		const TConstPCGValueRange<FTransform> OriginalTransforms = CurrentProcessingSource->GetConstTransformValueRange();
+		const UPCGBasePointData* InPointData = PointDataFacade->GetIn();
+		const TConstPCGValueRange<FTransform> OriginalTransforms = InPointData->GetConstTransformValueRange();
 
 		PCGEX_SCOPE_LOOP(Index)
 		{

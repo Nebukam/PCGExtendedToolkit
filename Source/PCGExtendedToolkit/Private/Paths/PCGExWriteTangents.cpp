@@ -4,7 +4,7 @@
 #include "Paths/PCGExWriteTangents.h"
 
 
-#include "Paths/Tangents/PCGExZeroTangents.h"
+#include "Paths/Tangents/PCGExTangentsZero.h"
 
 #define LOCTEXT_NAMESPACE "PCGExWriteTangentsElement"
 #define PCGEX_NAMESPACE BuildCustomGraph
@@ -43,9 +43,9 @@ bool FPCGExWriteTangentsElement::Boot(FPCGExContext* InContext) const
 	PCGEX_VALIDATE_NAME(Settings->ArriveName)
 	PCGEX_VALIDATE_NAME(Settings->LeaveName)
 
-	PCGEX_OPERATION_BIND(Tangents, UPCGExTangentsOperation, PCGExWriteTangents::SourceOverridesTangents)
-	if (Settings->StartTangents) { Context->StartTangents = Context->RegisterOperation<UPCGExTangentsOperation>(Settings->StartTangents, PCGExWriteTangents::SourceOverridesTangentsStart); }
-	if (Settings->EndTangents) { Context->EndTangents = Context->RegisterOperation<UPCGExTangentsOperation>(Settings->EndTangents, PCGExWriteTangents::SourceOverridesTangentsEnd); }
+	PCGEX_OPERATION_BIND(Tangents, UPCGExTangentsInstancedFactory, PCGExWriteTangents::SourceOverridesTangents)
+	if (Settings->StartTangents) { Context->StartTangents = Context->RegisterOperation<UPCGExTangentsInstancedFactory>(Settings->StartTangents, PCGExWriteTangents::SourceOverridesTangentsStart); }
+	if (Settings->EndTangents) { Context->EndTangents = Context->RegisterOperation<UPCGExTangentsInstancedFactory>(Settings->EndTangents, PCGExWriteTangents::SourceOverridesTangentsEnd); }
 
 	return true;
 }
@@ -74,7 +74,6 @@ bool FPCGExWriteTangentsElement::ExecuteInternal(FPCGContext* InContext) const
 			},
 			[&](const TSharedPtr<PCGExPointsMT::TBatch<PCGExWriteTangents::FProcessor>>& NewBatch)
 			{
-				NewBatch->PrimaryInstancedFactory = Context->Tangents;
 			}))
 		{
 			return Context->CancelExecution(TEXT("Could not find any paths to write tangents to."));
@@ -104,7 +103,7 @@ namespace PCGExWriteTangents
 
 		bClosedLoop = Context->ClosedLoop.IsClosedLoop(PointDataFacade->Source);
 
-		Tangents = Cast<UPCGExTangentsOperation>(PrimaryInstancedFactory);
+		Tangents = Context->Tangents->CreateOperation();
 		Tangents->bClosedLoop = bClosedLoop;
 
 		if (!Tangents->PrepareForData(Context)) { return false; }
@@ -117,18 +116,20 @@ namespace PCGExWriteTangents
 
 		if (Context->StartTangents)
 		{
-			StartTangents = Context->StartTangents->CreateNewInstance<UPCGExTangentsOperation>();
+			StartTangents = Context->StartTangents->CreateOperation();
 			StartTangents->bClosedLoop = bClosedLoop;
 			StartTangents->PrimaryDataFacade = PointDataFacade;
+
 			if (!StartTangents->PrepareForData(Context)) { return false; }
 		}
 		else { StartTangents = Tangents; }
 
 		if (Context->EndTangents)
 		{
-			EndTangents = Context->EndTangents->CreateNewInstance<UPCGExTangentsOperation>();
+			EndTangents = Context->EndTangents->CreateOperation();
 			EndTangents->bClosedLoop = bClosedLoop;
 			EndTangents->PrimaryDataFacade = PointDataFacade;
+
 			if (!EndTangents->PrepareForData(Context)) { return false; }
 		}
 		else { EndTangents = Tangents; }
@@ -143,52 +144,52 @@ namespace PCGExWriteTangents
 		return true;
 	}
 
-	void FProcessor::PrepareSingleLoopScopeForPoints(const PCGExMT::FScope& Scope)
+	void FProcessor::ProcessPoints(const PCGExMT::FScope& Scope)
 	{
 		PointDataFacade->Fetch(Scope);
 		FilterScope(Scope);
-	}
 
-	void FProcessor::ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const PCGExMT::FScope& Scope)
-	{
-		if (!PointFilterCache[Index]) { return; }
-
-		const TSharedRef<PCGExData::FPointIO>& PointIO = PointDataFacade->Source;
-
-		int32 PrevIndex = Index - 1;
-		int32 NextIndex = Index + 1;
-
-		FVector OutArrive = FVector::ZeroVector;
-		FVector OutLeave = FVector::ZeroVector;
-
-		const FVector& ArriveScale = ArriveScaleReader->Read(Index);
-		const FVector& LeaveScale = LeaveScaleReader->Read(Index);
-
-		if (bClosedLoop)
+		const UPCGBasePointData* InPoints = PointDataFacade->Source->GetIn();
+		
+		PCGEX_SCOPE_LOOP(Index)
 		{
-			if (PrevIndex < 0) { PrevIndex = LastIndex; }
-			if (NextIndex > LastIndex) { NextIndex = 0; }
+			if (!PointFilterCache[Index]) { continue; }
 
-			Tangents->ProcessPoint(PointIO->GetIn()->GetPoints(), Index, NextIndex, PrevIndex, ArriveScale, OutArrive, LeaveScale, OutLeave);
-		}
-		else
-		{
-			if (Index == 0)
+			int32 PrevIndex = Index - 1;
+			int32 NextIndex = Index + 1;
+
+			FVector OutArrive = FVector::ZeroVector;
+			FVector OutLeave = FVector::ZeroVector;
+
+			const FVector& ArriveScale = ArriveScaleReader->Read(Index);
+			const FVector& LeaveScale = LeaveScaleReader->Read(Index);
+
+			if (bClosedLoop)
 			{
-				StartTangents->ProcessFirstPoint(PointIO->GetIn()->GetPoints(), ArriveScale, OutArrive, LeaveScale, OutLeave);
-			}
-			else if (Index == LastIndex)
-			{
-				EndTangents->ProcessLastPoint(PointIO->GetIn()->GetPoints(), ArriveScale, OutArrive, LeaveScale, OutLeave);
+				if (PrevIndex < 0) { PrevIndex = LastIndex; }
+				if (NextIndex > LastIndex) { NextIndex = 0; }
+
+				Tangents->ProcessPoint(InPoints, Index, NextIndex, PrevIndex, ArriveScale, OutArrive, LeaveScale, OutLeave);
 			}
 			else
 			{
-				Tangents->ProcessPoint(PointIO->GetIn()->GetPoints(), Index, NextIndex, PrevIndex, ArriveScale, OutArrive, LeaveScale, OutLeave);
+				if (Index == 0)
+				{
+					StartTangents->ProcessFirstPoint(InPoints, ArriveScale, OutArrive, LeaveScale, OutLeave);
+				}
+				else if (Index == LastIndex)
+				{
+					EndTangents->ProcessLastPoint(InPoints, ArriveScale, OutArrive, LeaveScale, OutLeave);
+				}
+				else
+				{
+					Tangents->ProcessPoint(InPoints, Index, NextIndex, PrevIndex, ArriveScale, OutArrive, LeaveScale, OutLeave);
+				}
 			}
-		}
 
-		ArriveWriter->GetMutable(Index) = OutArrive;
-		LeaveWriter->GetMutable(Index) = OutLeave;
+			ArriveWriter->GetMutable(Index) = OutArrive;
+			LeaveWriter->GetMutable(Index) = OutLeave;
+		}
 	}
 
 	void FProcessor::CompleteWork()

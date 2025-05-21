@@ -247,17 +247,20 @@ namespace PCGExAssetStaging
 		PointDataFacade->Fetch(Scope);
 		FilterScope(Scope);
 
-		const TPCGValueRange<FTransform> Transforms = CurrentProcessingSource->GetTransformValueRange();
-		const TPCGValueRange<FVector> BoundsMin = CurrentProcessingSource->GetBoundsMinValueRange();
-		const TPCGValueRange<FVector> BoundsMax = CurrentProcessingSource->GetBoundsMaxValueRange();
+		UPCGBasePointData* OutPointData = PointDataFacade->GetOut();
+
+		const TPCGValueRange<FTransform> OutTransforms = OutPointData->GetTransformValueRange();
+		const TPCGValueRange<FVector> OutBoundsMin = OutPointData->GetBoundsMinValueRange();
+		const TPCGValueRange<FVector> OutBoundsMax = OutPointData->GetBoundsMaxValueRange();
+		const TPCGValueRange<int32> Seeds = OutPointData->GetSeedValueRange();
 
 		TSharedPtr<PCGExData::TBuffer<int32>> WR = WeightWriter ? WeightWriter : NormalizedWeightWriter ? NormalizedWeightWriter : nullptr;
-		const TPCGValueRange<float> Densities = CurrentProcessingSource->GetDensityValueRange(WR ? false : true);
-		
-		const TPCGValueRange<int64> MetadataEntries = CurrentProcessingSource->GetMetadataEntryValueRange();
+		const TPCGValueRange<float> Densities = OutPointData->GetDensityValueRange(WR ? false : true);
+
+		const TPCGValueRange<int64> MetadataEntries = OutPointData->GetMetadataEntryValueRange();
 
 		int32 LocalNumInvalid = 0;
-		
+
 		auto InvalidPoint = [&](const int32 Index)
 		{
 			if (bInherit) { return; }
@@ -280,7 +283,7 @@ namespace PCGExAssetStaging
 
 			if (Context->bPickMaterials) { MaterialPick[Index] = -1; }
 		};
-		
+
 		PCGEX_SCOPE_LOOP(Index)
 		{
 			if (!PointFilterCache[Index])
@@ -289,11 +292,13 @@ namespace PCGExAssetStaging
 				continue;
 			}
 
+			PCGExData::FMutablePoint MutablePoint(OutPointData, Index);
+
 			const FPCGExAssetCollectionEntry* Entry = nullptr;
 			const UPCGExAssetCollection* EntryHost = nullptr;
 
 			const int32 Seed = PCGExRandom::GetSeed(
-				Point, Helper->Details.SeedComponents,
+				Seeds[Index], Helper->Details.SeedComponents,
 				Helper->Details.LocalSeed, Settings, Context->GetComponent());
 
 			Helper->GetEntry(Entry, Index, Seed, EntryHost);
@@ -331,40 +336,40 @@ namespace PCGExAssetStaging
 			else { HashWriter->GetMutable(Index) = Context->CollectionPickDatasetPacker->GetPickIdx(EntryHost, Entry->Staging.InternalIndex); }
 
 			FBox OutBounds = Entry->Staging.Bounds;
+			PCGExData::FProxyPoint ProxyPoint(MutablePoint);
 
 			if (Variations.bEnabledBefore)
 			{
-				FPCGPoint ProxyPoint = Point;
 				if (EntryHost->GlobalVariationMode == EPCGExGlobalVariationRule::Overrule ||
 					Entry->VariationMode == EPCGExEntryVariationMode::Global)
 				{
-					Variations.Apply(ProxyPoint, EntryHost->GlobalVariations, EPCGExVariationMode::Before);
+					Variations.Apply(Seed, ProxyPoint, EntryHost->GlobalVariations, EPCGExVariationMode::Before);
 				}
 				else
 				{
-					Variations.Apply(ProxyPoint, Entry->Variations, EPCGExVariationMode::Before);
+					Variations.Apply(Seed, ProxyPoint, Entry->Variations, EPCGExVariationMode::Before);
 				}
 
-				FittingHandler.ComputeTransform(Index, ProxyPoint, Transforms[Index], OutBounds);
+				FittingHandler.ComputeTransform(Index, OutTransforms[Index], OutBounds);
 			}
 			else
 			{
-				FittingHandler.ComputeTransform(Index, Transforms[Index], OutBounds);
+				FittingHandler.ComputeTransform(Index, OutTransforms[Index], OutBounds);
 			}
 
-			BoundsMin[Index] = OutBounds.Min;
-			BoundsMax[Index] = OutBounds.Max;
+			OutBoundsMin[Index] = OutBounds.Min;
+			OutBoundsMax[Index] = OutBounds.Max;
 
 			if (Variations.bEnabledAfter)
 			{
 				if (EntryHost->GlobalVariationMode == EPCGExGlobalVariationRule::Overrule ||
 					Entry->VariationMode == EPCGExEntryVariationMode::Global)
 				{
-					Variations.Apply(Point, EntryHost->GlobalVariations, EPCGExVariationMode::After);
+					Variations.Apply(Seed, ProxyPoint, EntryHost->GlobalVariations, EPCGExVariationMode::After);
 				}
 				else
 				{
-					Variations.Apply(Point, Entry->Variations, EPCGExVariationMode::After);
+					Variations.Apply(Seed, ProxyPoint, Entry->Variations, EPCGExVariationMode::After);
 				}
 			}
 		}
@@ -381,9 +386,6 @@ namespace PCGExAssetStaging
 
 			if (WriterCount > 0)
 			{
-				// Create writers
-				// TODO : Optimize this -- right now it can potentially output tons of garbage when only an attribute with no entries would be enough
-
 				MaterialWriters.Init(nullptr, WriterCount);
 
 				for (int i = 0; i < WriterCount; i++)
@@ -395,34 +397,42 @@ namespace PCGExAssetStaging
 				StartParallelLoopForRange(NumPoints);
 				return;
 			}
+
 			PCGE_LOG_C(Warning, GraphAndLog, Context, FTEXT("No material were picked -- no attribute will be written."));
 		}
 
 		PointDataFacade->Write(AsyncManager);
 	}
 
-	void FProcessor::ProcessSingleRangeIteration(const int32 Iteration, const PCGExMT::FScope& Scope)
+	void FProcessor::ProcessRange(const PCGExMT::FScope& Scope)
 	{
-		const int32 Pick = MaterialPick[Iteration];
-		if (Pick == -1 || PointDataFacade->GetMutablePoints()[Iteration].MetadataEntry == -2) { return; }
+		const TPCGValueRange<int64> MetadataEntries = PointDataFacade->GetOut()->GetMetadataEntryValueRange();
 
-		const FPCGExMeshCollectionEntry* Entry = static_cast<const FPCGExMeshCollectionEntry*>(CachedPicks[Iteration]);
-		if (Entry->MaterialVariants == EPCGExMaterialVariantsMode::None) { return; }
-		if (Entry->MaterialVariants == EPCGExMaterialVariantsMode::Single)
+		PCGEX_SCOPE_LOOP(Index)
 		{
-			if (!MaterialWriters.IsValidIndex(Entry->SlotIndex)) { return; }
-			MaterialWriters[Entry->SlotIndex]->GetMutable(Iteration) = Entry->MaterialOverrideVariants[Pick].Material.ToSoftObjectPath();
-		}
-		else if (Entry->MaterialVariants == EPCGExMaterialVariantsMode::Multi)
-		{
-			const FPCGExMaterialOverrideCollection& MEntry = Entry->MaterialOverrideVariantsList[Pick];
-			for (int i = 0; i < MEntry.Overrides.Num(); i++)
+			const int32 Pick = MaterialPick[Index];
+
+			if (Pick == -1 || MetadataEntries[Index] == -2) { continue; }
+
+			const FPCGExMeshCollectionEntry* Entry = static_cast<const FPCGExMeshCollectionEntry*>(CachedPicks[Index]);
+			if (Entry->MaterialVariants == EPCGExMaterialVariantsMode::None) { continue; }
+			if (Entry->MaterialVariants == EPCGExMaterialVariantsMode::Single)
 			{
-				const FPCGExMaterialOverrideEntry& SlotEntry = MEntry.Overrides[i];
+				if (!MaterialWriters.IsValidIndex(Entry->SlotIndex)) { continue; }
+				MaterialWriters[Entry->SlotIndex]->GetMutable(Index) = Entry->MaterialOverrideVariants[Pick].Material.ToSoftObjectPath();
+			}
+			else if (Entry->MaterialVariants == EPCGExMaterialVariantsMode::Multi)
+			{
+				const FPCGExMaterialOverrideCollection& MEntry = Entry->MaterialOverrideVariantsList[Pick];
 
-				const int32 SlotIndex = SlotEntry.SlotIndex == -1 ? 0 : SlotEntry.SlotIndex;
-				if (!MaterialWriters.IsValidIndex(SlotIndex)) { continue; }
-				MaterialWriters[SlotIndex]->GetMutable(Iteration) = SlotEntry.Material.ToSoftObjectPath();
+				for (int i = 0; i < MEntry.Overrides.Num(); i++)
+				{
+					const FPCGExMaterialOverrideEntry& SlotEntry = MEntry.Overrides[i];
+
+					const int32 SlotIndex = SlotEntry.SlotIndex == -1 ? 0 : SlotEntry.SlotIndex;
+					if (!MaterialWriters.IsValidIndex(SlotIndex)) { continue; }
+					MaterialWriters[SlotIndex]->GetMutable(Index) = SlotEntry.Material.ToSoftObjectPath();
+				}
 			}
 		}
 	}

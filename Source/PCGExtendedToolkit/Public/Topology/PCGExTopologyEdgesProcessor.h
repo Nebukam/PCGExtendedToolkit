@@ -232,9 +232,9 @@ namespace PCGExTopologyEdges
 				[&](FDynamicMesh3& InMesh)
 				{
 					const int32 VtxCount = InMesh.MaxVertexID();
-					const TArray<FPCGPoint>& InPoints = VtxDataFacade->GetIn()->GetPoints();
+					const TConstPCGValueRange<FTransform> InTransforms = VtxDataFacade->GetIn()->GetConstTransformValueRange();
+					const TConstPCGValueRange<FVector4> InColors = VtxDataFacade->GetIn()->GetConstColorValueRange();
 					const TMap<uint32, int32>& HashMapRef = *ProjectedHashMap;
-
 
 					FVector4f DefaultVertexColor = FVector4f(Settings->Topology.DefaultVertexColor);
 
@@ -250,9 +250,9 @@ namespace PCGExTopologyEdges
 						const int32* WP = HashMapRef.Find(PCGEx::GH2(InMesh.GetVertex(i), CWTolerance));
 						if (WP)
 						{
-							const FPCGPoint& Point = InPoints[*WP];
-							InMesh.SetVertex(i, Point.Transform.GetLocation());
-							ElemIDs[i] = Colors->AppendElement(FVector4f(Point.Color));
+							const int32 PointIndex = *WP;
+							InMesh.SetVertex(i, InTransforms[PointIndex].GetLocation());
+							ElemIDs[i] = Colors->AppendElement(FVector4f(InColors[PointIndex]));
 						}
 						else
 						{

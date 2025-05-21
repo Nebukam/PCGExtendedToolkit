@@ -68,12 +68,20 @@ namespace PCGExMovePivot
 		return true;
 	}
 
-	void FProcessor::ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const PCGExMT::FScope& Scope)
+	void FProcessor::ProcessPoints(const PCGExMT::FScope& Scope)
 	{
-		FVector Offset;
-		Point.Transform.SetLocation(UVW.GetPosition(PCGExData::FConstPoint(Point, Index), Offset));
-		Point.BoundsMin += Offset;
-		Point.BoundsMax += Offset;
+		UPCGBasePointData* OutPoints = PointDataFacade->GetOut();
+		TPCGValueRange<FTransform> OutTransforms = OutPoints->GetTransformValueRange();
+		TPCGValueRange<FVector> OutBoundsMin = OutPoints->GetBoundsMinValueRange();
+		TPCGValueRange<FVector> OutBoundsMax = OutPoints->GetBoundsMaxValueRange();
+
+		PCGEX_SCOPE_LOOP(Index)
+		{
+			FVector Offset;
+			OutTransforms[Index].SetLocation(UVW.GetPosition(Index, Offset));
+			OutBoundsMin[Index] += Offset;
+			OutBoundsMax[Index] += Offset;
+		}
 	}
 }
 

@@ -53,7 +53,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExShapeConfigBase
 
 	/** Resolution mode */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Resolution", meta = (PCG_NotOverridable))
-	EPCGExResolutionMode ResolutionMode = EPCGExResolutionMode::Distance;
+	EPCGExResolutionMode ResolutionMode = EPCGExResolutionMode::Fixed;
 
 	/** Resolution input type */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Resolution", meta = (PCG_NotOverridable))

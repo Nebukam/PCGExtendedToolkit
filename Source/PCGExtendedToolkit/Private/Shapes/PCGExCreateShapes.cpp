@@ -85,15 +85,15 @@ namespace PCGExCreateShapes
 		return true;
 	}
 
-	void FProcessor::PrepareSingleLoopScopeForPoints(const PCGExMT::FScope& Scope)
+	void FProcessor::ProcessPoints(const PCGExMT::FScope& Scope)
 	{
 		PointDataFacade->Fetch(Scope);
-	}
 
-	void FProcessor::ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const PCGExMT::FScope& Scope)
-	{
-		const PCGExData::FConstPoint PointRef = PointDataFacade->GetInPoint(Index);
-		for (const TSharedPtr<FPCGExShapeBuilderOperation>& Op : Builders) { Op->PrepareShape(PointRef); }
+		PCGEX_SCOPE_LOOP(Index)
+		{
+			const PCGExData::FConstPoint PointRef = PointDataFacade->GetInPoint(Index);
+			for (const TSharedPtr<FPCGExShapeBuilderOperation>& Op : Builders) { Op->PrepareShape(PointRef); }
+		}
 	}
 
 	void FProcessor::OnPointsProcessingComplete()
@@ -130,8 +130,8 @@ namespace PCGExCreateShapes
 				}
 			}
 
-			TArray<FPCGPoint>& MutablePoints = PointDataFacade->GetMutablePoints();
-			PCGEx::InitArray(MutablePoints, NumPoints);
+			UPCGBasePointData* OutPointData = PointDataFacade->GetOut();
+			OutPointData->SetNumPoints(NumPoints);
 
 			for (int i = 0; i < NumSeeds; i++)
 			{
@@ -223,7 +223,7 @@ namespace PCGExCreateShapes
 			ShapePoints[i].BoundsMax = Shape->Extents;
 		}
 
-		Operation->BuildShape(Shape, ShapeDataFacade, ShapePoints);
+		Operation->BuildShape(Shape, ShapeDataFacade, ShapePoints); // TODO : Use PointIO->GetOutRange so as to get a scope with a reference to the data
 
 		if (Settings->bWriteShapeId)
 		{

@@ -101,6 +101,8 @@ bool FPCGExFilterVtxElement::Boot(FPCGExContext* InContext) const
 		}
 	}
 
+	// TODO : Offer to output discarded vtxs in a third output when using cluster mode
+
 	return true;
 }
 

@@ -109,7 +109,7 @@ namespace PCGExSampleNearestSurface
 
 		SurfacesForward = Context->ActorReferenceDataFacade ? Settings->AttributesForwarding.TryGetHandler(Context->ActorReferenceDataFacade, PointDataFacade) : nullptr;
 
-		SampleState.SetNumUninitialized(PointDataFacade->GetNum());
+		SamplingMask.SetNumUninitialized(PointDataFacade->GetNum());
 
 		{
 			const TSharedRef<PCGExData::FFacade>& OutputFacade = PointDataFacade;
@@ -137,22 +137,19 @@ namespace PCGExSampleNearestSurface
 		MaxDistanceValue = MakeShared<PCGExMT::TScopedNumericValue<double>>(Loops, 0);
 	}
 
-	void FProcessor::PrepareSingleLoopScopeForPoints(const PCGExMT::FScope& Scope)
+	void FProcessor::ProcessPoints(const PCGExMT::FScope& Scope)
 	{
 		PointDataFacade->Fetch(Scope);
 		FilterScope(Scope);
-	}
 
-	void FProcessor::ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const PCGExMT::FScope& Scope)
-	{
-		const double MaxDistance = MaxDistanceGetter ? MaxDistanceGetter->Read(Index) : Settings->MaxDistance;
+		TConstPCGValueRange<FTransform> InTransforms = PointDataFacade->GetIn()->GetConstTransformValueRange();
 
-		auto SamplingFailed = [&]()
+		auto SamplingFailed = [&](const int32 Index, const double MaxDistance)
 		{
-			SampleState[Index] = false;
+			SamplingMask[Index] = false;
 
 			const FVector Direction = FVector::UpVector;
-			PCGEX_OUTPUT_VALUE(Location, Index, Point.Transform.GetLocation())
+			PCGEX_OUTPUT_VALUE(Location, Index, InTransforms[Index].GetLocation())
 			PCGEX_OUTPUT_VALUE(Normal, Index, Direction*-1) // TODO: expose "precise normal" in which case we line trace to location
 			PCGEX_OUTPUT_VALUE(LookAt, Index, Direction)
 			PCGEX_OUTPUT_VALUE(Distance, Index, MaxDistance)
@@ -162,149 +159,155 @@ namespace PCGExSampleNearestSurface
 			//PCGEX_OUTPUT_VALUE(PhysMat, Index, TEXT(""))
 		};
 
-		if (!PointFilterCache[Index])
+
+		PCGEX_SCOPE_LOOP(Index)
 		{
-			if (Settings->bProcessFilteredOutAsFails) { SamplingFailed(); }
-			return;
-		}
+			const double MaxDistance = MaxDistanceGetter ? MaxDistanceGetter->Read(Index) : Settings->MaxDistance;
 
-		const FVector Origin = PointDataFacade->Source->GetInPoint(Index).Transform.GetLocation();
-
-		FCollisionQueryParams CollisionParams;
-		Context->CollisionSettings.Update(CollisionParams);
-
-		const FCollisionShape CollisionShape = FCollisionShape::MakeSphere(MaxDistance);
-
-		FVector HitLocation;
-		const int32* HitIndex = nullptr;
-		bool bSuccess = false;
-		TArray<FOverlapResult> OutOverlaps;
-
-		auto ProcessOverlapResults = [&]()
-		{
-			float MinDist = MAX_FLT;
-			UPrimitiveComponent* HitComp = nullptr;
-			for (const FOverlapResult& Overlap : OutOverlaps)
+			if (!PointFilterCache[Index])
 			{
-				//if (!Overlap.bBlockingHit) { continue; }
-				if (Context->bUseInclude && !Context->IncludedActors.Contains(Overlap.GetActor())) { continue; }
-
-				FVector OutClosestLocation;
-				const float Distance = Overlap.Component->GetClosestPointOnCollision(Origin, OutClosestLocation);
-
-				if (Distance < 0) { continue; }
-
-				if (Distance < MinDist)
-				{
-					HitIndex = Context->IncludedActors.Find(Overlap.GetActor());
-					MinDist = Distance;
-					HitLocation = OutClosestLocation;
-					bSuccess = true;
-					HitComp = Overlap.Component.Get();
-				}
+				if (Settings->bProcessFilteredOutAsFails) { SamplingFailed(Index, MaxDistance); }
+				continue;
 			}
 
-			if (bSuccess)
+			const FVector Origin = InTransforms[Index].GetLocation();
+
+			FCollisionQueryParams CollisionParams;
+			Context->CollisionSettings.Update(CollisionParams);
+
+			const FCollisionShape CollisionShape = FCollisionShape::MakeSphere(MaxDistance);
+
+			FVector HitLocation;
+			const int32* HitIndex = nullptr;
+			bool bSuccess = false;
+			TArray<FOverlapResult> OutOverlaps;
+
+			auto ProcessOverlapResults = [&]()
 			{
-				const FVector Direction = (HitLocation - Origin).GetSafeNormal();
-
-				PCGEX_OUTPUT_VALUE(LookAt, Index, Direction)
-
-				FVector HitNormal = Direction * -1;
-				bool bIsInside = MinDist == 0;
-
-				if (SurfacesForward && HitIndex) { SurfacesForward->Forward(*HitIndex, Index); }
-
-				if (HitComp)
+				float MinDist = MAX_FLT;
+				UPrimitiveComponent* HitComp = nullptr;
+				for (const FOverlapResult& Overlap : OutOverlaps)
 				{
-					if (Context->CollisionSettings.bTraceComplex)
+					//if (!Overlap.bBlockingHit) { continue; }
+					if (Context->bUseInclude && !Context->IncludedActors.Contains(Overlap.GetActor())) { continue; }
+
+					FVector OutClosestLocation;
+					const float Distance = Overlap.Component->GetClosestPointOnCollision(Origin, OutClosestLocation);
+
+					if (Distance < 0) { continue; }
+
+					if (Distance < MinDist)
 					{
-						FCollisionQueryParams PreciseCollisionParams;
-						PreciseCollisionParams.bTraceComplex = true;
-						PreciseCollisionParams.bReturnPhysicalMaterial = PhysMatWriter ? true : false;
-
-						FHitResult HitResult;
-						if (HitComp->LineTraceComponent(HitResult, HitLocation - Direction, HitLocation + Direction, PreciseCollisionParams))
-						{
-							HitNormal = HitResult.ImpactNormal;
-							HitLocation = HitResult.Location;
-							bIsInside = IsInsideWriter ? FVector::DotProduct(Direction, HitResult.ImpactNormal) > 0 : false;
-
-							if (const AActor* HitActor = HitResult.GetActor()) { PCGEX_OUTPUT_VALUE(ActorReference, Index, FSoftObjectPath(HitActor->GetPathName())) }
-							if (const UPhysicalMaterial* PhysMat = HitResult.PhysMaterial.Get()) { PCGEX_OUTPUT_VALUE(PhysMat, Index, FSoftObjectPath(PhysMat->GetPathName())) }
-						}
-					}
-					else
-					{
-						UPhysicalMaterial* PhysMat = HitComp->GetBodyInstance()->GetSimplePhysicalMaterial();
-
-						PCGEX_OUTPUT_VALUE(ActorReference, Index, FSoftObjectPath(HitComp->GetOwner()->GetPathName()))
-						if (PhysMat) { PCGEX_OUTPUT_VALUE(PhysMat, Index, FSoftObjectPath(PhysMat->GetPathName())) }
+						HitIndex = Context->IncludedActors.Find(Overlap.GetActor());
+						MinDist = Distance;
+						HitLocation = OutClosestLocation;
+						bSuccess = true;
+						HitComp = Overlap.Component.Get();
 					}
 				}
 
-				PCGEX_OUTPUT_VALUE(Location, Index, HitLocation)
-				PCGEX_OUTPUT_VALUE(Normal, Index, HitNormal)
-				PCGEX_OUTPUT_VALUE(IsInside, Index, bIsInside)
-				PCGEX_OUTPUT_VALUE(Distance, Index, MinDist)
-				PCGEX_OUTPUT_VALUE(Success, Index, true)
-				SampleState[Index] = true;
+				if (bSuccess)
+				{
+					const FVector Direction = (HitLocation - Origin).GetSafeNormal();
 
-				MaxDistanceValue->Set(Scope, FMath::Max(MaxDistanceValue->Get(Scope), MinDist));
+					PCGEX_OUTPUT_VALUE(LookAt, Index, Direction)
 
-				FPlatformAtomics::InterlockedExchange(&bAnySuccess, 1);
+					FVector HitNormal = Direction * -1;
+					bool bIsInside = MinDist == 0;
+
+					if (SurfacesForward && HitIndex) { SurfacesForward->Forward(*HitIndex, Index); }
+
+					if (HitComp)
+					{
+						if (Context->CollisionSettings.bTraceComplex)
+						{
+							FCollisionQueryParams PreciseCollisionParams;
+							PreciseCollisionParams.bTraceComplex = true;
+							PreciseCollisionParams.bReturnPhysicalMaterial = PhysMatWriter ? true : false;
+
+							FHitResult HitResult;
+							if (HitComp->LineTraceComponent(HitResult, HitLocation - Direction, HitLocation + Direction, PreciseCollisionParams))
+							{
+								HitNormal = HitResult.ImpactNormal;
+								HitLocation = HitResult.Location;
+								bIsInside = IsInsideWriter ? FVector::DotProduct(Direction, HitResult.ImpactNormal) > 0 : false;
+
+								if (const AActor* HitActor = HitResult.GetActor()) { PCGEX_OUTPUT_VALUE(ActorReference, Index, FSoftObjectPath(HitActor->GetPathName())) }
+								if (const UPhysicalMaterial* PhysMat = HitResult.PhysMaterial.Get()) { PCGEX_OUTPUT_VALUE(PhysMat, Index, FSoftObjectPath(PhysMat->GetPathName())) }
+							}
+						}
+						else
+						{
+							UPhysicalMaterial* PhysMat = HitComp->GetBodyInstance()->GetSimplePhysicalMaterial();
+
+							PCGEX_OUTPUT_VALUE(ActorReference, Index, FSoftObjectPath(HitComp->GetOwner()->GetPathName()))
+							if (PhysMat) { PCGEX_OUTPUT_VALUE(PhysMat, Index, FSoftObjectPath(PhysMat->GetPathName())) }
+						}
+					}
+
+					PCGEX_OUTPUT_VALUE(Location, Index, HitLocation)
+					PCGEX_OUTPUT_VALUE(Normal, Index, HitNormal)
+					PCGEX_OUTPUT_VALUE(IsInside, Index, bIsInside)
+					PCGEX_OUTPUT_VALUE(Distance, Index, MinDist)
+					PCGEX_OUTPUT_VALUE(Success, Index, true)
+					SamplingMask[Index] = true;
+
+					MaxDistanceValue->Set(Scope, FMath::Max(MaxDistanceValue->Get(Scope), MinDist));
+
+					FPlatformAtomics::InterlockedExchange(&bAnySuccess, 1);
+				}
+				else
+				{
+					SamplingFailed(Index, MaxDistance);
+				}
+			};
+
+
+			if (Settings->SurfaceSource == EPCGExSurfaceSource::ActorReferences)
+			{
+				for (const UPrimitiveComponent* Primitive : Context->IncludedPrimitives)
+				{
+					if (!IsValid(Primitive)) { continue; }
+					if (TArray<FOverlapResult> TempOverlaps;
+						Primitive->OverlapComponentWithResult(Origin, FQuat::Identity, CollisionShape, TempOverlaps))
+					{
+						OutOverlaps.Append(TempOverlaps);
+					}
+				}
+				if (OutOverlaps.IsEmpty()) { SamplingFailed(Index, MaxDistance); }
+				else { ProcessOverlapResults(); }
 			}
 			else
 			{
-				SamplingFailed();
-			}
-		};
+				const UWorld* World = Context->GetWorld();
 
-
-		if (Settings->SurfaceSource == EPCGExSurfaceSource::ActorReferences)
-		{
-			for (const UPrimitiveComponent* Primitive : Context->IncludedPrimitives)
-			{
-				if (!IsValid(Primitive)) { continue; }
-				if (TArray<FOverlapResult> TempOverlaps;
-					Primitive->OverlapComponentWithResult(Origin, FQuat::Identity, CollisionShape, TempOverlaps))
+				switch (Context->CollisionSettings.CollisionType)
 				{
-					OutOverlaps.Append(TempOverlaps);
+				case EPCGExCollisionFilterType::Channel:
+					if (World->OverlapMultiByChannel(OutOverlaps, Origin, FQuat::Identity, Context->CollisionSettings.CollisionChannel, CollisionShape, CollisionParams))
+					{
+						ProcessOverlapResults();
+					}
+					else { SamplingFailed(Index, MaxDistance); }
+					break;
+				case EPCGExCollisionFilterType::ObjectType:
+					if (World->OverlapMultiByObjectType(OutOverlaps, Origin, FQuat::Identity, FCollisionObjectQueryParams(Context->CollisionSettings.CollisionObjectType), CollisionShape, CollisionParams))
+					{
+						ProcessOverlapResults();
+					}
+					else { SamplingFailed(Index, MaxDistance); }
+					break;
+				case EPCGExCollisionFilterType::Profile:
+					if (World->OverlapMultiByProfile(OutOverlaps, Origin, FQuat::Identity, Context->CollisionSettings.CollisionProfileName, CollisionShape, CollisionParams))
+					{
+						ProcessOverlapResults();
+					}
+					else { SamplingFailed(Index, MaxDistance); }
+					break;
+				default:
+					SamplingFailed(Index, MaxDistance);
+					break;
 				}
-			}
-			if (OutOverlaps.IsEmpty()) { SamplingFailed(); }
-			else { ProcessOverlapResults(); }
-		}
-		else
-		{
-			const UWorld* World = Context->GetWorld();
-
-			switch (Context->CollisionSettings.CollisionType)
-			{
-			case EPCGExCollisionFilterType::Channel:
-				if (World->OverlapMultiByChannel(OutOverlaps, Origin, FQuat::Identity, Context->CollisionSettings.CollisionChannel, CollisionShape, CollisionParams))
-				{
-					ProcessOverlapResults();
-				}
-				else { SamplingFailed(); }
-				break;
-			case EPCGExCollisionFilterType::ObjectType:
-				if (World->OverlapMultiByObjectType(OutOverlaps, Origin, FQuat::Identity, FCollisionObjectQueryParams(Context->CollisionSettings.CollisionObjectType), CollisionShape, CollisionParams))
-				{
-					ProcessOverlapResults();
-				}
-				else { SamplingFailed(); }
-				break;
-			case EPCGExCollisionFilterType::Profile:
-				if (World->OverlapMultiByProfile(OutOverlaps, Origin, FQuat::Identity, Context->CollisionSettings.CollisionProfileName, CollisionShape, CollisionParams))
-				{
-					ProcessOverlapResults();
-				}
-				else { SamplingFailed(); }
-				break;
-			default:
-				SamplingFailed();
-				break;
 			}
 		}
 	}
@@ -312,16 +315,25 @@ namespace PCGExSampleNearestSurface
 	void FProcessor::OnPointsProcessingComplete()
 	{
 		if (!Settings->bOutputNormalizedDistance || !DistanceWriter) { return; }
-		MaxSampledDistance = MaxDistanceValue->Max();
-		StartParallelLoopForRange(PointDataFacade->GetNum());
-	}
 
-	void FProcessor::ProcessSingleRangeIteration(const int32 Iteration, const PCGExMT::FScope& Scope)
-	{
-		double& D = DistanceWriter->GetMutable(Iteration);
-		D /= MaxSampledDistance;
-		if (Settings->bOutputOneMinusDistance) { D = 1 - D; }
-		D *= Settings->DistanceScale;
+		const int32 NumPoints = PointDataFacade->GetNum();
+
+		if (Settings->bOutputOneMinusDistance)
+		{
+			for (int i = 0; i < NumPoints; i++)
+			{
+				double& D = DistanceWriter->GetMutable(i);
+				D = (1 - (D / MaxSampledDistance)) * Settings->DistanceScale;
+			}
+		}
+		else
+		{
+			for (int i = 0; i < NumPoints; i++)
+			{
+				double& D = DistanceWriter->GetMutable(i);
+				D = (D / MaxSampledDistance) * Settings->DistanceScale;
+			}
+		}
 	}
 
 	void FProcessor::CompleteWork()
@@ -334,7 +346,7 @@ namespace PCGExSampleNearestSurface
 
 	void FProcessor::Write()
 	{
-		PCGExSampling::PruneFailedSamples(PointDataFacade->GetMutablePoints(), SampleState);
+		if (Settings->bPruneFailedSamples) { PointDataFacade->Source->Gather(SamplingMask); }
 	}
 }
 

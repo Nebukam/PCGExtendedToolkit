@@ -11,7 +11,7 @@
 
 
 #include "Elements/PCGCreateSpline.h"
-#include "Tangents/PCGExTangentsOperation.h"
+#include "Tangents/PCGExTangentsInstancedFactory.h"
 #include "Transform/PCGExTransform.h"
 
 #include "PCGExCreateSpline.generated.h"

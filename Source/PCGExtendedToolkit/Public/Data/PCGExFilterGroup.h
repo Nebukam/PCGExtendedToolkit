@@ -36,7 +36,7 @@ public:
 	UPROPERTY()
 	TArray<TObjectPtr<const UPCGExFilterFactoryData>> FilterFactories;
 
-	virtual bool SupportsPointEvaluation() const override;
+	virtual bool SupportsProxyEvaluation() const override;
 	virtual bool SupportsCollectionEvaluation() const override;
 
 	virtual PCGExFactories::EType GetFactoryType() const override { return PCGExFactories::EType::FilterGroup; }
@@ -97,7 +97,7 @@ namespace PCGExFilterGroup
 		virtual void PostInit() override;
 
 		virtual bool Test(const int32 Index) const override = 0;
-		virtual bool TestRoamingPoint(const FPCGPoint& Point) const override = 0;
+		virtual bool Test(const PCGExData::FProxyPoint& Point) const override = 0;
 		virtual bool Test(const PCGExCluster::FNode& Node) const override = 0;
 		virtual bool Test(const PCGExGraph::FEdge& Edge) const override = 0;
 		virtual bool Test(const TSharedPtr<PCGExData::FPointIO>& IO, const TSharedPtr<PCGExData::FPointIOCollection>& ParentCollection) const override = 0;
@@ -137,9 +137,9 @@ namespace PCGExFilterGroup
 			return !bInvert;
 		}
 
-		virtual bool TestRoamingPoint(const FPCGPoint& Point) const override
+		virtual bool Test(const PCGExData::FProxyPoint& Point) const override
 		{
-			for (const TSharedPtr<PCGExPointFilter::FFilter>& Filter : ManagedFilters) { if (!Filter->TestRoamingPoint(Point)) { return bInvert; } }
+			for (const TSharedPtr<PCGExPointFilter::FFilter>& Filter : ManagedFilters) { if (!Filter->Test(Point)) { return bInvert; } }
 			return !bInvert;
 		}
 
@@ -176,9 +176,9 @@ namespace PCGExFilterGroup
 			return bInvert;
 		}
 
-		virtual bool TestRoamingPoint(const FPCGPoint& Point) const override
+		virtual bool Test(const PCGExData::FProxyPoint& Point) const override
 		{
-			for (const TSharedPtr<PCGExPointFilter::FFilter>& Filter : ManagedFilters) { if (Filter->TestRoamingPoint(Point)) { return !bInvert; } }
+			for (const TSharedPtr<PCGExPointFilter::FFilter>& Filter : ManagedFilters) { if (Filter->Test(Point)) { return !bInvert; } }
 			return bInvert;
 		}
 

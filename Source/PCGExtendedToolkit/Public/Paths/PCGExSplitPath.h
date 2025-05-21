@@ -51,6 +51,7 @@ public:
 #endif
 	//~End UObject interface
 
+	// TODO : Display split mode in title
 	//~Begin UPCGSettings
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS(PathSplit, "Path : Split", "Split existing paths into multiple new paths.");

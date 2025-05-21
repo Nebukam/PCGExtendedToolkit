@@ -85,7 +85,7 @@ bool UPCGExTensorPointFactoryData::InitInternalFacade(FPCGExContext* InContext)
 	return true;
 }
 
-void UPCGExTensorPointFactoryData::PrepareSinglePoint(const int32 Index, FPCGPoint& InPoint) const
+void UPCGExTensorPointFactoryData::PrepareSinglePoint(const int32 Index) const
 {
 }
 

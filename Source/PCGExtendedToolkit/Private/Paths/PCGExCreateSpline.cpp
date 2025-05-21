@@ -126,7 +126,8 @@ namespace PCGExCreateSpline
 	{
 		PointDataFacade->Fetch(Scope);
 
-		TConstPCGValueRange<FTransform> Transforms = CurrentProcessingSource->GetConstTransformValueRange();
+		const UPCGBasePointData* InPointData = PointDataFacade->GetIn();
+		TConstPCGValueRange<FTransform> InTransforms = InPointData->GetConstTransformValueRange();
 		
 		PCGEX_SCOPE_LOOP(Index)
 		{
@@ -139,7 +140,7 @@ namespace PCGExCreateSpline
 				OutLeave = LeaveTangent->Read(Index);
 			}
 
-			const FTransform& TR = Transforms[Index];
+			const FTransform& TR = InTransforms[Index];
 
 			EPCGExSplinePointType PointTypeProxy = Settings->DefaultPointType;
 			ESplinePointType::Type PointType = ESplinePointType::Curve;

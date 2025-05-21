@@ -144,7 +144,10 @@ namespace PCGExData
 		virtual bool IsReadable() PCGEX_NOT_IMPLEMENTED_RET(FBuffer::IsReadable, false)
 
 		virtual void SetTargetOutputName(const FName InName);
-		virtual PCGEx::FAttributeIdentity GetTargetOutputIdentity() PCGEX_NOT_IMPLEMENTED_RET(FBuffer::GetTargetOutputIdentity, PCGEx::FAttributeIdentity())
+
+		virtual PCGEx::FAttributeIdentity GetTargetOutputIdentity()
+		PCGEX_NOT_IMPLEMENTED_RET(FBuffer::GetTargetOutputIdentity, PCGEx::FAttributeIdentity())
+		
 		virtual bool OutputsToDifferentName() const;
 
 		bool GetAllowsInterpolation() const { return OutAttribute ? OutAttribute->AllowsInterpolation() : InAttribute ? InAttribute->AllowsInterpolation() : false; }
@@ -765,8 +768,11 @@ namespace PCGExData
 		FORCEINLINE FMutablePoint GetOutPoint(const int32 Index) const { return Source->GetOutPoint(Index); }
 
 		FORCEINLINE FScope GetInScope(const int32 Start, const int32 Count, const bool bInclusive = true) const { return Source->GetInScope(Start, Count, bInclusive); }
-		FORCEINLINE FScope GetOutScope(const int32 Start, const int32 Count, const bool bInclusive = true) const { return Source->GetOutScope(Start, Count, bInclusive); }
+		FORCEINLINE FScope GetInScope(const PCGExMT::FScope& Scope) const { return Source->GetInScope(Scope.Start, Scope.Count, true); }
 		FORCEINLINE FScope GetInRange(const int32 Start, const int32 End, const bool bInclusive = true) const { return Source->GetInRange(Start, End, bInclusive); }
+		
+		FORCEINLINE FScope GetOutScope(const int32 Start, const int32 Count, const bool bInclusive = true) const { return Source->GetOutScope(Start, Count, bInclusive); }
+		FORCEINLINE FScope GetOutScope(const PCGExMT::FScope& Scope) const { return Source->GetOutScope(Scope.Start, Scope.Count, true); }
 		FORCEINLINE FScope GetOutRange(const int32 Start, const int32 End, const bool bInclusive = true) const { return Source->GetOutRange(Start, End, bInclusive); }
 
 	protected:

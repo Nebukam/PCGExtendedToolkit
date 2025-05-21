@@ -86,7 +86,7 @@ namespace PCGExPointsMT
 
 	void FPointsProcessor::StartParallelLoopForPoints(const PCGExData::EIOSide Side, const int32 PerLoopIterations)
 	{
-		CurrentProcessingSource = const_cast<UPCGBasePointData*>(PointDataFacade->GetData(Side));
+		const UPCGBasePointData* CurrentProcessingSource = const_cast<UPCGBasePointData*>(PointDataFacade->GetData(Side));
 		if (!CurrentProcessingSource) { return; }
 
 		const int32 NumPoints = CurrentProcessingSource->GetNumPoints();

@@ -103,7 +103,7 @@ namespace PCGExSampleTexture
 
 		PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::Duplicate)
 
-		SampleState.Init(false, PointDataFacade->GetNum());
+		SamplingMask.Init(false, PointDataFacade->GetNum());
 
 		UVGetter = PointDataFacade->GetScopedBroadcaster<FVector2D>(Settings->UVSource);
 
@@ -138,42 +138,46 @@ namespace PCGExSampleTexture
 		return true;
 	}
 
-	void FProcessor::PrepareSingleLoopScopeForPoints(const PCGExMT::FScope& Scope)
+	void FProcessor::ProcessPoints(const PCGExMT::FScope& Scope)
 	{
 		PointDataFacade->Fetch(Scope);
 		FilterScope(Scope);
-	}
 
-	void FProcessor::ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const PCGExMT::FScope& Scope)
-	{
-		auto SamplingFailed = [&]()
-		{
-			SampleState[Index] = false;
-		};
+		bool bAnySuccessLocal = false;
 
-		if (!PointFilterCache[Index])
+		PCGEX_SCOPE_LOOP(Index)
 		{
-			if (Settings->bProcessFilteredOutAsFails) { SamplingFailed(); }
-			return;
+			auto SamplingFailed = [&]()
+			{
+				SamplingMask[Index] = false;
+			};
+
+			if (!PointFilterCache[Index])
+			{
+				if (Settings->bProcessFilteredOutAsFails) { SamplingFailed(); }
+				return;
+			}
+
+			bool bSuccess = false;
+
+			const FVector2D UV = UVGetter->Read(Index);
+
+			for (const TSharedRef<FSampler>& Sampler : Samplers)
+			{
+				if (Sampler->Sample(Index, UV)) { bSuccess = true; }
+			}
+
+			if (!bSuccess)
+			{
+				SamplingFailed();
+				return;
+			}
+
+			SamplingMask[Index] = bSuccess;
+			bAnySuccessLocal = true;
 		}
 
-		bool bSuccess = false;
-
-		const FVector2D UV = UVGetter->Read(Index);
-
-		for (const TSharedRef<FSampler>& Sampler : Samplers)
-		{
-			if (Sampler->Sample(Index, Point, UV)) { bSuccess = true; }
-		}
-
-		if (!bSuccess)
-		{
-			SamplingFailed();
-			return;
-		}
-
-		SampleState[Index] = bSuccess;
-		FPlatformAtomics::InterlockedExchange(&bAnySuccess, 1);
+		if (bAnySuccessLocal) { FPlatformAtomics::InterlockedExchange(&bAnySuccess, 1); }
 	}
 
 	void FProcessor::CompleteWork()
@@ -186,7 +190,7 @@ namespace PCGExSampleTexture
 
 	void FProcessor::Write()
 	{
-		PCGExSampling::PruneFailedSamples(PointDataFacade->GetMutablePoints(), SampleState);
+		if (Settings->bPruneFailedSamples) { PointDataFacade->Source->Gather(SamplingMask); }
 	}
 }
 

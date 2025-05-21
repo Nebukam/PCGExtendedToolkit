@@ -74,6 +74,8 @@ namespace PCGExPointFilter
 
 		ToleranceSquared = FMath::Square(TypedFilterFactory->Config.Tolerance);
 
+		InTransforms = InPointDataFacade->GetIn()->GetConstTransformValueRange();
+		
 		switch (TypedFilterFactory->Config.CheckType)
 		{
 		case EPCGExSplineCheckType::IsInside:
@@ -115,7 +117,7 @@ namespace PCGExPointFilter
 		return true;
 	}
 
-	bool FPathInclusionFilter::TestRoamingPoint(const FPCGPoint& Point) const
+	bool FPathInclusionFilter::Test(const PCGExData::FProxyPoint& Point) const
 	{
 		uint8 State = None;
 
@@ -172,7 +174,7 @@ namespace PCGExPointFilter
 		uint8 State = None;
 		const TArray<TSharedPtr<FPCGSplineStruct>>& SplinesRef = *Splines.Get();
 
-		const FVector Pos = PointDataFacade->Source->GetInPoint(PointIndex).Transform.GetLocation();
+		const FVector Pos = InTransforms[PointIndex].GetLocation();
 
 		if (TypedFilterFactory->Config.Pick == EPCGExSplineFilterPick::Closest)
 		{

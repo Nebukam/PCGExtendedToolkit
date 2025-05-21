@@ -9,7 +9,7 @@
 #include "PCGExPointsProcessor.h"
 
 
-#include "Smoothing/PCGExSmoothingOperation.h"
+#include "Smoothing/PCGExSmoothingInstancedFactory.h"
 #include "PCGExSmooth.generated.h"
 
 /**

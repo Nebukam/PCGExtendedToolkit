@@ -117,7 +117,7 @@ namespace PCGExSampleTexture
 		}
 
 		bool IsValid() const { return bValid; }
-		virtual bool Sample(const int32 Index, FPCGPoint& Point, const FVector2D& UV) const = 0;
+		virtual bool Sample(const int32 Index, const FVector2D& UV) const = 0;
 	};
 
 	template <typename T>
@@ -133,7 +133,7 @@ namespace PCGExSampleTexture
 			Buffer = InDataFacade->GetWritable<T>(InConfig.SampleAttributeName, T{}, true, PCGExData::EBufferInit::Inherit);
 		}
 
-		virtual bool Sample(const int32 Index, FPCGPoint& Point, const FVector2D& UV) const override
+		virtual bool Sample(const int32 Index, const FVector2D& UV) const override
 		{
 			FVector4 SampledValue = FVector4::Zero();
 			float SampledDensity = 1;
@@ -173,7 +173,7 @@ namespace PCGExSampleTexture
 
 	class FProcessor final : public PCGExPointsMT::TPointsProcessor<FPCGExSampleTextureContext, UPCGExSampleTextureSettings>
 	{
-		TArray<int8> SampleState;
+		TArray<int8> SamplingMask;
 
 		TSharedPtr<PCGExTexture::FLookup> TexParamLookup;
 		TSharedPtr<PCGExData::TBuffer<FVector2D>> UVGetter;
@@ -192,8 +192,8 @@ namespace PCGExSampleTexture
 		virtual ~FProcessor() override;
 
 		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager) override;
-		virtual void PrepareSingleLoopScopeForPoints(const PCGExMT::FScope& Scope) override;
-		virtual void ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const PCGExMT::FScope& Scope) override;
+		virtual void ProcessPoints(const PCGExMT::FScope& Scope) override;
+		
 		virtual void CompleteWork() override;
 		virtual void Write() override;
 	};

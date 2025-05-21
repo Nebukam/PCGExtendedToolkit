@@ -9,7 +9,7 @@
 #define LOCTEXT_NAMESPACE "PCGExSplineAlphaFilterDefinition"
 #define PCGEX_NAMESPACE PCGExSplineAlphaFilterDefinition
 
-bool UPCGExSplineAlphaFilterFactory::SupportsPointEvaluation() const
+bool UPCGExSplineAlphaFilterFactory::SupportsProxyEvaluation() const
 {
 	return Config.CompareAgainst == EPCGExInputValueType::Constant;
 }
@@ -90,10 +90,11 @@ namespace PCGExPointFilter
 		OperandB = TypedFilterFactory->Config.GetValueSettingOperandB();
 		if (!OperandB->Init(InContext, PointDataFacade)) { return false; }
 
+		InTransforms = InPointDataFacade->GetIn()->GetConstTransformValueRange();
 		return true;
 	}
 
-	bool FSplineAlphaFilter::TestRoamingPoint(const FPCGPoint& Point) const
+	bool FSplineAlphaFilter::Test(const PCGExData::FProxyPoint& Point) const
 	{
 		const FVector Pos = Point.Transform.GetLocation();
 		double Time = 0;
@@ -152,7 +153,7 @@ namespace PCGExPointFilter
 
 	bool FSplineAlphaFilter::Test(const int32 PointIndex) const
 	{
-		const FVector Pos = PointDataFacade->Source->GetInPoint(PointIndex).Transform.GetLocation();
+		const FVector Pos = InTransforms[PointIndex].GetLocation();
 		double Time = 0;
 
 		if (TypedFilterFactory->Config.TimeConsolidation == EPCGExSplineTimeConsolidation::Min) { Time = MAX_dbl; }

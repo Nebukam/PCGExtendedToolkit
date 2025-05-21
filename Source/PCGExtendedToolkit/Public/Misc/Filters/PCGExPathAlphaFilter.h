@@ -86,7 +86,7 @@ public:
 	TSharedPtr<TArray<TSharedPtr<FPCGSplineStruct>>> Splines;
 	TSharedPtr<TArray<double>> SegmentsNum;
 
-	virtual bool SupportsPointEvaluation() const override;
+	virtual bool SupportsProxyEvaluation() const override;
 
 	virtual bool Init(FPCGExContext* InContext) override;
 	virtual bool WantsPreparation(FPCGExContext* InContext) override;
@@ -118,8 +118,10 @@ namespace PCGExPointFilter
 
 		TSharedPtr<PCGExDetails::TSettingValue<double>> OperandB;
 
+		TConstPCGValueRange<FTransform> InTransforms;
+
 		virtual bool Init(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade>& InPointDataFacade) override;
-		virtual bool TestRoamingPoint(const FPCGPoint& Point) const override;
+		virtual bool Test(const PCGExData::FProxyPoint& Point) const override;
 		virtual bool Test(const int32 PointIndex) const override;
 
 		virtual ~FPathAlphaFilter() override

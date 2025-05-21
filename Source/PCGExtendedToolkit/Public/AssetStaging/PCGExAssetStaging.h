@@ -176,8 +176,11 @@ namespace PCGExAssetStaging
 		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager) override;
 		virtual void PrepareLoopScopesForPoints(const TArray<PCGExMT::FScope>& Loops) override;
 		virtual void ProcessPoints(const PCGExMT::FScope& Scope) override;
+
 		virtual void CompleteWork() override;
-		virtual void ProcessSingleRangeIteration(const int32 Iteration, const PCGExMT::FScope& Scope) override;
+
+		virtual void ProcessRange(const PCGExMT::FScope& Scope) override;
+		
 		virtual void OnRangeProcessingComplete() override;
 
 

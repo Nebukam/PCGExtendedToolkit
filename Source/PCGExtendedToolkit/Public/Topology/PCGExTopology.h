@@ -249,7 +249,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExCellSeedMutationDetails
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	EPCGExPointPropertyOutput CompactnessTo = EPCGExPointPropertyOutput::None;
 
-	void ApplyToPoint(const PCGExTopology::FCell* InCell, FPCGPoint& OutPoint, const TArray<FPCGPoint>& CellPoints) const;
+	void ApplyToPoint(const PCGExTopology::FCell* InCell, PCGExData::FMutablePoint& OutSeedPoint, const UPCGBasePointData* CellPoints) const;
 };
 
 USTRUCT(BlueprintType)
@@ -503,7 +503,7 @@ namespace PCGExTopology
 		ECellResult BuildFromPath(
 			const TArray<FVector>& ProjectedPositions);
 
-		void PostProcessPoints(TArray<FPCGPoint>& InMutablePoints);
+		void PostProcessPoints(UPCGBasePointData* InMutablePoints);
 	};
 
 #pragma endregion

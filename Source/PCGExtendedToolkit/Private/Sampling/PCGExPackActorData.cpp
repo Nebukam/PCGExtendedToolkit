@@ -307,7 +307,7 @@ namespace PCGExPackActorDatas
 
 		PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::Duplicate)
 
-		Packer = static_cast<UPCGExCustomActorDataPacker*>(PrimaryInstancedFactory);
+		Packer = GetPrimaryInstancedFactory<UPCGExCustomActorDataPacker>();
 		Packer->UniqueNameGenerator = Context->UniqueNameGenerator;
 		Packer->WriteBuffers = MakeShared<PCGExData::TBufferHelper<PCGExData::EBufferHelperMode::Write>>(PointDataFacade);
 		Packer->ReadBuffers = MakeShared<PCGExData::TBufferHelper<PCGExData::EBufferHelperMode::Read>>(PointDataFacade);
@@ -393,12 +393,24 @@ namespace PCGExPackActorDatas
 		StartParallelLoopForPoints();
 	}
 
-	void FProcessor::ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const PCGExMT::FScope& Scope)
+	void FProcessor::ProcessPoints(const PCGExMT::FScope& Scope)
 	{
-		AActor* ActorRef = Packer->InputActors[Index];
-		if (!ActorRef) { return; }
+		UPCGBasePointData* OutPointData = PointDataFacade->GetOut();
 
-		Packer->ProcessEntry(ActorRef, Point, Index, Point);
+		TArray<FPCGPoint> PointsForProcessing;
+		PCGExData::GetPoints(PointDataFacade->GetOutScope(Scope), PointsForProcessing);
+
+		int i = 0;
+		PCGEX_SCOPE_LOOP(Index)
+		{
+			AActor* ActorRef = Packer->InputActors[Index];
+			if (!ActorRef) { return; }
+
+			FPCGPoint& Point = PointsForProcessing[i++];
+			Packer->ProcessEntry(ActorRef, Point, Index, Point);
+		}
+
+		PointDataFacade->Source->SetPoints(Scope.Start, PointsForProcessing, EPCGPointNativeProperties::All);
 	}
 
 	void FProcessor::CompleteWork()

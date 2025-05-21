@@ -221,7 +221,7 @@ namespace PCGEx
 	double TruncateDbl(const double Value, const EPCGExTruncateMode Mode);
 
 	PCGEXTENDEDTOOLKIT_API
-	void ArrayOfIndices(TArray<int32>& OutArray, const int32 InNum);
+	void ArrayOfIndices(TArray<int32>& OutArray, const int32 InNum, const int32 Offset = 0);
 
 	PCGEXTENDEDTOOLKIT_API
 	FName GetCompoundName(const FName A, const FName B);

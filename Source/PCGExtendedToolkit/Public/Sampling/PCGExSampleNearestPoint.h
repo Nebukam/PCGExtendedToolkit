@@ -13,7 +13,7 @@
 #include "PCGExSampling.h"
 #include "PCGExDetails.h"
 #include "PCGExScopedContainers.h"
-#include "Data/Blending/PCGExAttributeBlendFactoryProvider.h"
+#include "Data/Blending/PCGExBlendOpFactoryProvider.h"
 #include "Data/Blending/PCGExDataBlending.h"
 #include "Data/Blending/PCGExMetadataBlender.h"
 

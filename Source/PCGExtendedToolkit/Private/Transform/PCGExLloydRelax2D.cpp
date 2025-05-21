@@ -73,7 +73,7 @@ namespace PCGExLloydRelax2D
 		InfluenceDetails = Settings->InfluenceDetails;
 		if (!InfluenceDetails.Init(ExecutionContext, PointDataFacade)) { return false; }
 
-		PCGExGeo::PointsToPositions(PointDataFacade->GetIn()->GetPoints(), ActivePositions);
+		PCGExGeo::PointsToPositions(PointDataFacade->GetIn(), ActivePositions);
 
 		PCGEX_SHARED_THIS_DECL
 		PCGEX_LAUNCH(FLloydRelaxTask, 0, ThisPtr, &InfluenceDetails, Settings->Iterations)
@@ -81,16 +81,23 @@ namespace PCGExLloydRelax2D
 		return true;
 	}
 
-	void FProcessor::ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const PCGExMT::FScope& Scope)
+	void FProcessor::ProcessPoints(const PCGExMT::FScope& Scope)
 	{
-		FVector TargetPosition = Point.Transform.GetLocation();
-		TargetPosition.X = ActivePositions[Index].X;
-		TargetPosition.Y = ActivePositions[Index].Y;
+		TPCGValueRange<FTransform> OutTransforms = PointDataFacade->GetOut()->GetTransformValueRange();
 
-		Point.Transform.SetLocation(
-			InfluenceDetails.bProgressiveInfluence ?
-				TargetPosition :
-				FMath::Lerp(Point.Transform.GetLocation(), TargetPosition, InfluenceDetails.GetInfluence(Index)));
+		PCGEX_SCOPE_LOOP(Index)
+		{
+			FTransform& Transform = OutTransforms[Index];
+
+			FVector TargetPosition = Transform.GetLocation();
+			TargetPosition.X = ActivePositions[Index].X;
+			TargetPosition.Y = ActivePositions[Index].Y;
+
+			Transform.SetLocation(
+				InfluenceDetails.bProgressiveInfluence ?
+					TargetPosition :
+					FMath::Lerp(Transform.GetLocation(), TargetPosition, InfluenceDetails.GetInfluence(Index)));
+		}
 	}
 
 	void FProcessor::CompleteWork()

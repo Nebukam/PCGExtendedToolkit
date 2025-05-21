@@ -63,12 +63,12 @@ bool FPCGExFindContoursElement::Boot(FPCGExContext* InContext) const
 		PCGEx::InitArray(Context->UdpatedSeedPoints, NumSeeds);
 
 		Context->GoodSeeds = NewPointIO(Context->SeedsDataFacade->Source, PCGExFindContours::OutputGoodSeedsLabel);
-		Context->GoodSeeds->InitializeOutput(PCGExData::EIOInit::New);
-		Context->GoodSeeds->GetOut()->GetMutablePoints().Reserve(NumSeeds);
+		Context->GoodSeeds->InitializeOutput(PCGExData::EIOInit::Duplicate);
+		Context->GoodSeeds->GetOut()->SetNumPoints(NumSeeds);
 
 		Context->BadSeeds = NewPointIO(Context->SeedsDataFacade->Source, PCGExFindContours::OutputBadSeedsLabel);
-		Context->BadSeeds->InitializeOutput(PCGExData::EIOInit::New);
-		Context->BadSeeds->GetOut()->GetMutablePoints().Reserve(NumSeeds);
+		Context->BadSeeds->InitializeOutput(PCGExData::EIOInit::Duplicate);
+		Context->BadSeeds->GetOut()->SetNumPoints(NumSeeds);
 	}
 
 	return true;
@@ -98,18 +98,11 @@ bool FPCGExFindContoursElement::ExecuteInternal(
 
 	if (Settings->bOutputFilteredSeeds)
 	{
-		const TArray<FPCGPoint>& InSeeds = Context->SeedsDataFacade->Source->GetIn()->GetPoints();
-		TArray<FPCGPoint>& GoodSeeds = Context->GoodSeeds->GetOut()->GetMutablePoints();
-		TArray<FPCGPoint>& BadSeeds = Context->BadSeeds->GetOut()->GetMutablePoints();
+		Context->GoodSeeds->Gather(Context->SeedQuality);
+		Context->BadSeeds->Gather(Context->SeedQuality, true);
 
-		for (int i = 0; i < Context->SeedQuality.Num(); i++)
-		{
-			if (Context->SeedQuality[i]) { GoodSeeds.Add(Context->UdpatedSeedPoints[i]); }
-			else { BadSeeds.Add(InSeeds[i]); }
-		}
-
-		Context->GoodSeeds->StageOutput();
-		Context->BadSeeds->StageOutput();
+		Context->GoodSeeds->StageOutput(Context);
+		Context->BadSeeds->StageOutput(Context);
 	}
 
 	Context->Paths->StageOutputs();
@@ -142,37 +135,42 @@ namespace PCGExFindContours
 		return true;
 	}
 
-	void FProcessor::ProcessSingleRangeIteration(int32 Iteration, const PCGExMT::FScope& Scope)
+	void FProcessor::ProcessRange(const PCGExMT::FScope& Scope)
 	{
-		const FVector SeedWP = Context->SeedsDataFacade->Source->GetInPoint(Iteration).Transform.GetLocation();
+		TConstPCGValueRange<FTransform> InSeedTransforms = Context->SeedsDataFacade->GetIn()->GetConstTransformValueRange();
 
-		const TSharedPtr<PCGExTopology::FCell> Cell = MakeShared<PCGExTopology::FCell>(CellsConstraints.ToSharedRef());
-		const PCGExTopology::ECellResult Result = Cell->BuildFromCluster(SeedWP, Cluster.ToSharedRef(), *ProjectedPositions, &Settings->SeedPicking);
-
-		if (Result != PCGExTopology::ECellResult::Success)
+		PCGEX_SCOPE_LOOP(Index)
 		{
-			if (Result == PCGExTopology::ECellResult::WrapperCell ||
-				(CellsConstraints->WrapperCell && CellsConstraints->WrapperCell->GetCellHash() == Cell->GetCellHash()))
+			const FVector SeedWP = InSeedTransforms[Index].GetLocation();
+
+			const TSharedPtr<PCGExTopology::FCell> Cell = MakeShared<PCGExTopology::FCell>(CellsConstraints.ToSharedRef());
+			const PCGExTopology::ECellResult Result = Cell->BuildFromCluster(SeedWP, Cluster.ToSharedRef(), *ProjectedPositions, &Settings->SeedPicking);
+
+			if (Result != PCGExTopology::ECellResult::Success)
 			{
-				// Only track the seed closest to bound center as being associated with the wrapper.
-				// There may be edge cases where we don't want that to happen
+				if (Result == PCGExTopology::ECellResult::WrapperCell ||
+					(CellsConstraints->WrapperCell && CellsConstraints->WrapperCell->GetCellHash() == Cell->GetCellHash()))
+				{
+					// Only track the seed closest to bound center as being associated with the wrapper.
+					// There may be edge cases where we don't want that to happen
 
-				const double DistToSeed = FVector::DistSquared(SeedWP, Cluster->Bounds.GetCenter());
-				{
-					FReadScopeLock ReadScopeLock(WrappedSeedLock);
-					if (ClosestSeedDist < DistToSeed) { return; }
+					const double DistToSeed = FVector::DistSquared(SeedWP, Cluster->Bounds.GetCenter());
+					{
+						FReadScopeLock ReadScopeLock(WrappedSeedLock);
+						if (ClosestSeedDist < DistToSeed) { continue; }
+					}
+					{
+						FReadScopeLock WriteScopeLock(WrappedSeedLock);
+						if (ClosestSeedDist < DistToSeed) { continue; }
+						ClosestSeedDist = DistToSeed;
+						WrapperSeed = Index;
+					}
 				}
-				{
-					FReadScopeLock WriteScopeLock(WrappedSeedLock);
-					if (ClosestSeedDist < DistToSeed) { return; }
-					ClosestSeedDist = DistToSeed;
-					WrapperSeed = Iteration;
-				}
+				continue;
 			}
-			return;
-		}
 
-		ProcessCell(Iteration, Cell);
+			ProcessCell(Index, Cell);
+		}
 	}
 
 	void FProcessor::ProcessCell(const int32 SeedIndex, const TSharedPtr<PCGExTopology::FCell>& InCell)
@@ -188,14 +186,12 @@ namespace PCGExFindContours
 
 		PCGEX_MAKE_SHARED(PathDataFacade, PCGExData::FFacade, PathIO.ToSharedRef())
 
-		TArray<FPCGPoint> MutablePoints;
-		MutablePoints.Reserve(InCell->Nodes.Num());
+		TArray<int32> ReadIndices;
+		ReadIndices.SetNumUninitialized(InCell->Nodes.Num());
 
-		const TArray<FPCGPoint>& InPoints = PathIO->GetIn()->GetPoints();
-		for (int i = 0; i < InCell->Nodes.Num(); i++) { MutablePoints.Add(InPoints[Cluster->GetNode(InCell->Nodes[i])->PointIndex]); }
-		InCell->PostProcessPoints(MutablePoints);
-
-		PathIO->GetOut()->SetPoints(MutablePoints);
+		for (int i = 0; i < InCell->Nodes.Num(); i++) { ReadIndices[i] = Cluster->GetNode(InCell->Nodes[i])->PointIndex; }
+		PathIO->InheritPoints(ReadIndices, 0);
+		InCell->PostProcessPoints(PathIO->GetOut());
 
 		Context->SeedAttributesToPathTags.Tag(SeedIndex, PathIO);
 		Context->SeedForwardHandler->Forward(SeedIndex, PathDataFacade);
@@ -206,9 +202,8 @@ namespace PCGExFindContours
 		if (Settings->bOutputFilteredSeeds)
 		{
 			Context->SeedQuality[SeedIndex] = true;
-			FPCGPoint SeedPoint = Context->SeedsDataFacade->Source->GetInPoint(SeedIndex);
-			Settings->SeedMutations.ApplyToPoint(InCell.Get(), SeedPoint, MutablePoints);
-			Context->UdpatedSeedPoints[SeedIndex] = SeedPoint;
+			PCGExData::FMutablePoint SeedPoint = Context->GoodSeeds->GetOutPoint(SeedIndex);
+			Settings->SeedMutations.ApplyToPoint(InCell.Get(), SeedPoint, PathIO->GetOut());
 		}
 
 		FPlatformAtomics::InterlockedIncrement(&OutputPathNum);

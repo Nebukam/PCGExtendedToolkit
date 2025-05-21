@@ -11,7 +11,7 @@
 
 
 
-#include "PCGExSmoothingOperation.generated.h"
+#include "PCGExSmoothingInstancedFactory.generated.h"
 
 class FPCGExSmoothingOperation : public FPCGExOperation
 {

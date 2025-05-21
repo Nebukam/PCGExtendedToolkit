@@ -275,6 +275,8 @@ namespace PCGExSampleNearestPoints
 
 		TArray<PCGEx::FOpStats> BlendTrackers;
 
+		UPCGBasePointData* OutPointData = PointDataFacade->GetOut();
+		
 		TConstPCGValueRange<FTransform> Transforms = PointDataFacade->GetIn()->GetConstTransformValueRange();
 		TConstPCGValueRange<FTransform> TargetTransforms = Context->TargetsFacade->GetIn()->GetConstTransformValueRange();
 
@@ -435,7 +437,11 @@ namespace PCGExSampleNearestPoints
 			FVector LookAt = CWDistance.GetSafeNormal();
 
 			FTransform LookAtTransform = PCGExMath::MakeLookAtTransform(LookAt, WeightedUp, Settings->LookAtAxisAlign);
-			if (Context->ApplySampling.WantsApply()) { Context->ApplySampling.Apply(Point, WeightedTransform, LookAtTransform); }
+			if (Context->ApplySampling.WantsApply())
+			{
+				PCGExData::FMutablePoint MutablePoint(OutPointData, Index);
+				Context->ApplySampling.Apply(MutablePoint, WeightedTransform, LookAtTransform);
+			}
 
 			SamplingMask[Index] = Stats.IsValid();
 			PCGEX_OUTPUT_VALUE(Success, Index, Stats.IsValid())

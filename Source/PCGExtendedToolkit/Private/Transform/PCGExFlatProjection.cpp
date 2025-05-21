@@ -99,28 +99,30 @@ namespace PCGExFlatProjection
 		return true;
 	}
 
-	void FProcessor::PrepareSingleLoopScopeForPoints(const PCGExMT::FScope& Scope)
+	void FProcessor::ProcessPoints(const PCGExMT::FScope& Scope)
 	{
 		PointDataFacade->Fetch(Scope);
-	}
 
-	void FProcessor::ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const PCGExMT::FScope& Scope)
-	{
+		TPCGValueRange<FTransform> OutTransforms = PointDataFacade->GetOut()->GetTransformValueRange();
+
 		if (bInverseExistingProjection)
 		{
-			Point.Transform = TransformReader->Read(Index);
+			PCGEX_SCOPE_LOOP(Index) { OutTransforms[Index] = TransformReader->Read(Index); }
 		}
 		else if (bWriteAttribute)
 		{
-			TransformWriter->GetMutable(Index) = Point.Transform;
+			if (bWriteAttribute)
+			{
+				PCGEX_SCOPE_LOOP(Index) { TransformWriter->GetMutable(Index) = OutTransforms[Index]; }
+			}
 
 			if (bProjectLocalTransform)
 			{
-				Point.Transform = ProjectionDetails.ProjectFlat(Point.Transform);
+				PCGEX_SCOPE_LOOP(Index) { OutTransforms[Index] = ProjectionDetails.ProjectFlat(OutTransforms[Index]); }
 			}
 			else
 			{
-				Point.Transform.SetLocation(ProjectionDetails.ProjectFlat(Point.Transform.GetLocation(), Index));
+				PCGEX_SCOPE_LOOP(Index) { OutTransforms[Index].SetLocation(ProjectionDetails.ProjectFlat(OutTransforms[Index].GetLocation(), Index)); }
 			}
 		}
 	}

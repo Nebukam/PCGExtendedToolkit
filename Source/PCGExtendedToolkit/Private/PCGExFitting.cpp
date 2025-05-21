@@ -271,9 +271,9 @@ void FPCGExFittingVariationsDetails::Init(const int InSeed)
 	bEnabledAfter = (Offset == EPCGExVariationMode::After || Rotation == EPCGExVariationMode::After || Scale == EPCGExVariationMode::After);
 }
 
-void FPCGExFittingVariationsDetails::Apply(FPCGPoint& InPoint, const FPCGExFittingVariations& Variations, const EPCGExVariationMode& Step) const
+void FPCGExFittingVariationsDetails::Apply(const int32 BaseSeed, PCGExData::FProxyPoint& InPoint, const FPCGExFittingVariations& Variations, const EPCGExVariationMode& Step) const
 {
-	FRandomStream RandomSource(PCGExRandom::ComputeSeed(Seed, InPoint.Seed));
+	FRandomStream RandomSource(PCGExRandom::ComputeSeed(Seed, BaseSeed));
 
 	const FTransform SourceTransform = InPoint.Transform;
 	FTransform FinalTransform = SourceTransform;

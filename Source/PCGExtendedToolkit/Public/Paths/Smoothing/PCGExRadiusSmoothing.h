@@ -5,7 +5,7 @@
 
 #include "CoreMinimal.h"
 #include "PCGExFactoryProvider.h"
-#include "PCGExSmoothingOperation.h"
+#include "PCGExSmoothingInstancedFactory.h"
 #include "Data/Blending/PCGExDataBlending.h"
 
 

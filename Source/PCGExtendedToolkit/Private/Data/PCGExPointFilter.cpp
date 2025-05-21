@@ -32,16 +32,22 @@ namespace PCGExPointFilter
 		Results.Init(false, NumResults);
 	}
 
-	bool FFilter::Test(const int32 Index) const PCGEX_NOT_IMPLEMENTED_RET(FFilter::Test(const int32 Index), false)
-	bool FFilter::TestRoamingPoint(const FPCGPoint& Point) const PCGEX_NOT_IMPLEMENTED_RET(FFilter::Test(const FPCGPoint& Point), false)
+	bool FFilter::Test(const int32 Index) const
+	PCGEX_NOT_IMPLEMENTED_RET(FFilter::Test(const int32 Index), false)
+	
+	bool FFilter::Test(const PCGExData::FProxyPoint& Point) const
+	PCGEX_NOT_IMPLEMENTED_RET(FFilter::Test(const PCGExData::FProxyPoint& Point), false)
 
 	bool FFilter::Test(const PCGExCluster::FNode& Node) const { return Test(Node.PointIndex); }
 	bool FFilter::Test(const PCGExGraph::FEdge& Edge) const { return Test(Edge.PointIndex); }
 
 	bool FFilter::Test(const TSharedPtr<PCGExData::FPointIO>& IO, const TSharedPtr<PCGExData::FPointIOCollection>& ParentCollection) const { return bCollectionTestResult; }
 
-	bool FSimpleFilter::Test(const int32 Index) const PCGEX_NOT_IMPLEMENTED_RET(FSimpleFilter::Test(const PCGExCluster::FNode& Node), false)
-	bool FSimpleFilter::TestRoamingPoint(const FPCGPoint& Point) const PCGEX_NOT_IMPLEMENTED_RET(FSimpleFilter::TestRoamingIndex(const PCGExCluster::FPCGPoint& Point), false)
+	bool FSimpleFilter::Test(const int32 Index) const
+	PCGEX_NOT_IMPLEMENTED_RET(FSimpleFilter::Test(const PCGExCluster::FNode& Node), false)
+	
+	bool FSimpleFilter::Test(const PCGExData::FProxyPoint& Point) const
+	PCGEX_NOT_IMPLEMENTED_RET(FSimpleFilter::TestRoamingPoint(const PCGExCluster::PCGExData::FProxyPoint& Point), false)
 
 	bool FSimpleFilter::Test(const PCGExCluster::FNode& Node) const { return Test(Node.PointIndex); }
 	bool FSimpleFilter::Test(const PCGExGraph::FEdge& Edge) const { return Test(Edge.PointIndex); }
@@ -56,12 +62,13 @@ namespace PCGExPointFilter
 	}
 
 	bool FCollectionFilter::Test(const int32 Index) const { return bCollectionTestResult; }
-	bool FCollectionFilter::TestRoamingPoint(const FPCGPoint& Point) const { return bCollectionTestResult; }
+	bool FCollectionFilter::Test(const PCGExData::FProxyPoint& Point) const { return bCollectionTestResult; }
 
 	bool FCollectionFilter::Test(const PCGExCluster::FNode& Node) const { return bCollectionTestResult; }
 	bool FCollectionFilter::Test(const PCGExGraph::FEdge& Edge) const { return bCollectionTestResult; }
 
-	bool FCollectionFilter::Test(const TSharedPtr<PCGExData::FPointIO>& IO, const TSharedPtr<PCGExData::FPointIOCollection>& ParentCollection) const PCGEX_NOT_IMPLEMENTED_RET(FCollectionFilter::Test(const TSharedPtr<PCGExData::FPointIO>& IO), false)
+	bool FCollectionFilter::Test(const TSharedPtr<PCGExData::FPointIO>& IO, const TSharedPtr<PCGExData::FPointIOCollection>& ParentCollection) const
+	PCGEX_NOT_IMPLEMENTED_RET(FCollectionFilter::Test(const TSharedPtr<PCGExData::FPointIO>& IO), false)
 
 	FManager::FManager(const TSharedRef<PCGExData::FFacade>& InPointDataFacade)
 		: PointDataFacade(InPointDataFacade)
@@ -92,9 +99,9 @@ namespace PCGExPointFilter
 		return true;
 	}
 
-	bool FManager::TestRoamingIndex(const FPCGPoint& Point)
+	bool FManager::Test(const PCGExData::FProxyPoint& Point)
 	{
-		for (const TSharedPtr<FFilter>& Handler : ManagedFilters) { if (!Handler->TestRoamingPoint(Point)) { return false; } }
+		for (const TSharedPtr<FFilter>& Handler : ManagedFilters) { if (!Handler->Test(Point)) { return false; } }
 		return true;
 	}
 

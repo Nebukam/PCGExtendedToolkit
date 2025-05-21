@@ -81,7 +81,6 @@ bool FPCGExPathCrossingsElement::ExecuteInternal(FPCGContext* InContext) const
 			},
 			[&](const TSharedPtr<PCGExPointsMT::TBatch<PCGExPathCrossings::FProcessor>>& NewBatch)
 			{
-				NewBatch->PrimaryInstancedFactory = Context->Blending;
 				//NewBatch->SetPointsFilterData(&Context->FilterFactories);
 				NewBatch->bRequiresWriteStep = Settings->bDoCrossBlending;
 			}))
@@ -131,7 +130,7 @@ namespace PCGExPathCrossings
 		CanCut.SetNumUninitialized(Path->NumEdges);
 		CanBeCut.SetNumUninitialized(Path->NumEdges);
 
-		SubBlending = GetPrimaryInstancedFactory<UPCGExSubPointsBlendInstancedFactory>()->CreateOperation();
+		SubBlending = Context->Blending->CreateOperation();
 		SubBlending->bClosedLoop = bClosedLoop;
 		
 		if (Settings->bOrientCrossing) { SubBlending->bPreserveRotation = true; }

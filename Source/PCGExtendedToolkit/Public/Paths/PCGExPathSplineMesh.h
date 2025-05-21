@@ -10,7 +10,7 @@
 #include "PCGExScopedContainers.h"
 #include "Collections/PCGExMeshCollection.h"
 
-#include "Tangents/PCGExTangentsOperation.h"
+#include "Tangents/PCGExTangentsInstancedFactory.h"
 #include "Components/SplineMeshComponent.h"
 
 

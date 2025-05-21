@@ -58,7 +58,6 @@ bool FPCGExSubdivideElement::ExecuteInternal(FPCGContext* InContext) const
 			},
 			[&](const TSharedPtr<PCGExPointsMT::TBatch<PCGExSubdivide::FProcessor>>& NewBatch)
 			{
-				NewBatch->PrimaryInstancedFactory = Context->Blending;
 				NewBatch->bRequiresWriteStep = true;
 			}))
 		{
@@ -93,7 +92,7 @@ namespace PCGExSubdivide
 
 		bUseCount = Settings->SubdivideMethod == EPCGExSubdivideMode::Count;
 
-		SubBlending = GetPrimaryInstancedFactory<UPCGExSubPointsBlendInstancedFactory>()->CreateOperation();
+		SubBlending = Context->Blending->CreateOperation();
 		SubBlending->bClosedLoop = bClosedLoop;
 
 		PCGEx::InitArray(Subdivisions, PointDataFacade->GetNum());

@@ -75,7 +75,7 @@ namespace PCGExData
 		Transforms[Index].SetScale3D(InValue);
 	}
 
-	void FMutablePoint::SetQuat(const FQuat& InValue)
+	void FMutablePoint::SetRotation(const FQuat& InValue)
 	{
 		const TPCGValueRange<FTransform> Transforms = Data->GetTransformValueRange();
 		Transforms[Index].SetRotation(InValue);
@@ -199,6 +199,41 @@ namespace PCGExData
 		InPoint.SetTransform(Transform);
 		InPoint.SetBoundsMin(BoundsMin);
 		InPoint.SetBoundsMax(BoundsMax);
+	}
+
+
+	void SetPointProperty(FMutablePoint& InPoint, const double InValue, const EPCGExPointPropertyOutput InProperty)
+	{
+		if (InProperty == EPCGExPointPropertyOutput::Density)
+		{
+			TPCGValueRange<float> Density = InPoint.Data->GetDensityValueRange();
+			Density[InPoint.Index] = InValue;
+		}
+		else if (InProperty == EPCGExPointPropertyOutput::Steepness)
+		{
+			TPCGValueRange<float> Steepness = InPoint.Data->GetSteepnessValueRange();
+			Steepness[InPoint.Index] = InValue;
+		}
+		else if (InProperty == EPCGExPointPropertyOutput::ColorR)
+		{
+			TPCGValueRange<FVector4> Color = InPoint.Data->GetColorValueRange();
+			Color[InPoint.Index].Component(0) = InValue;
+		}
+		else if (InProperty == EPCGExPointPropertyOutput::ColorG)
+		{
+			TPCGValueRange<FVector4> Color = InPoint.Data->GetColorValueRange();
+			Color[InPoint.Index].Component(1) = InValue;
+		}
+		else if (InProperty == EPCGExPointPropertyOutput::ColorB)
+		{
+			TPCGValueRange<FVector4> Color = InPoint.Data->GetColorValueRange();
+			Color[InPoint.Index].Component(2) = InValue;
+		}
+		else if (InProperty == EPCGExPointPropertyOutput::ColorA)
+		{
+			TPCGValueRange<FVector4> Color = InPoint.Data->GetColorValueRange();
+			Color[InPoint.Index].Component(3) = InValue;
+		}
 	}
 
 #pragma endregion
@@ -441,6 +476,26 @@ namespace PCGExData
 		}
 	}
 
+	void FPointIO::SetPoints(const TArray<FPCGPoint>& InPCGPoints)
+	{
+		check(Out)
+		Out->SetNumPoints(InPCGPoints.Num());
+		SetPoints(0, InPCGPoints);
+	}
+
+	void FPointIO::SetPoints(const int32 StartIndex, const TArray<FPCGPoint>& InPCGPoints, const EPCGPointNativeProperties Properties)
+	{
+		check(Out)
+
+#define PCGEX_COPYRANGEIF(_NAME, _TYPE)\
+		if (EnumHasAllFlags(Properties, EPCGPointNativeProperties::_NAME)){\
+			const TPCGValueRange<_TYPE> Range = Out->Get##_NAME##ValueRange(false);\
+			for(int i = 0; i < InPCGPoints.Num(); i++){ Range[StartIndex + i] = InPCGPoints[i]._NAME;}\
+		}
+
+		PCGEX_FOREACH_POINT_NATIVE_PROPERTY(PCGEX_COPYRANGEIF)
+	}
+
 	TArray<int32>& FPointIO::GetIdxMapping(const int32 NumElements)
 	{
 		check(Out)
@@ -499,6 +554,7 @@ namespace PCGExData
 	void FPointIO::InheritPoints(const TArrayView<const int32>& WriteIndices) const
 	{
 		check(In)
+		check(Out)
 
 		const int32 NumReads = In->GetNumPoints();
 		check(NumReads >= WriteIndices.Num())
@@ -506,6 +562,19 @@ namespace PCGExData
 		TArray<int32> ReadIndices;
 		PCGEx::ArrayOfIndices(ReadIndices, NumReads);
 		In->CopyPointsTo(Out, ReadIndices, WriteIndices);
+	}
+
+	void FPointIO::InheritPoints(const TArrayView<const int32>& SelectedIndices, const int32 StartIndex) const
+	{
+		check(In)
+		check(Out)
+
+		const int32 NewSize = StartIndex + SelectedIndices.Num();
+		if (Out->GetNumPoints() < NewSize) { Out->SetNumPoints(NewSize); }
+
+		TArray<int32> WriteIndices;
+		PCGEx::ArrayOfIndices(WriteIndices, SelectedIndices.Num(), StartIndex);
+		In->CopyPointsTo(Out, SelectedIndices, WriteIndices);
 	}
 
 	void FPointIO::ClearCachedKeys()
@@ -587,11 +656,12 @@ namespace PCGExData
 		Out->SetNumPoints(ReducedNum);
 	}
 
-	void FPointIO::Gather(const TArrayView<int8> InMask) const
+	void FPointIO::Gather(const TArrayView<int8> InMask, const bool bInvert) const
 	{
 		TArray<int32> Indices;
 		Indices.Reserve(InMask.Num());
-		for (int i = 0; i < InMask.Num(); i++) { if (InMask[i]) { Indices.Add(i); } }
+		if (bInvert) { for (int i = 0; i < InMask.Num(); i++) { if (!InMask[i]) { Indices.Add(i); } } }
+		else { for (int i = 0; i < InMask.Num(); i++) { if (InMask[i]) { Indices.Add(i); } } }
 		Gather(Indices);
 	}
 
@@ -855,6 +925,36 @@ namespace PCGExData
 	{
 		if (const int32* Index = TagMap.Find(Key)) { return Entries[*Index]; }
 		return nullptr;
+	}
+
+	void GetPoints(const FScope& Scope, TArray<FPCGPoint>& OutPCGPoints)
+	{
+		check(Scope.IsValid())
+
+		OutPCGPoints.SetNum(Scope.Count);
+
+		const TConstPCGValueRange<FTransform> TransformRange = Scope.Data->GetConstTransformValueRange();
+		const TConstPCGValueRange<float> SteepnessRange = Scope.Data->GetConstSteepnessValueRange();
+		const TConstPCGValueRange<float> DensityRange = Scope.Data->GetConstDensityValueRange();
+		const TConstPCGValueRange<FVector> BoundsMinRange = Scope.Data->GetConstBoundsMinValueRange();
+		const TConstPCGValueRange<FVector> BoundsMaxRange = Scope.Data->GetConstBoundsMaxValueRange();
+		const TConstPCGValueRange<FVector4> ColorRange = Scope.Data->GetConstColorValueRange();
+		const TConstPCGValueRange<int64> MetadataEntryRange = Scope.Data->GetConstMetadataEntryValueRange();
+		const TConstPCGValueRange<int32> SeedRange = Scope.Data->GetConstSeedValueRange();
+
+		for (int i = 0; i < Scope.Count; i++)
+		{
+			const int32 Index = Scope.Start + i;
+			FPCGPoint& Pt = OutPCGPoints[i];
+			Pt.Transform = TransformRange[Index];
+			Pt.Steepness = SteepnessRange[Index];
+			Pt.Density = DensityRange[Index];
+			Pt.BoundsMin = BoundsMinRange[Index];
+			Pt.BoundsMax = BoundsMaxRange[Index];
+			Pt.Color = ColorRange[Index];
+			Pt.MetadataEntry = MetadataEntryRange[Index];
+			Pt.Seed = SeedRange[Index];
+		}
 	}
 
 	int32 PCGExPointIO::GetTotalPointsNum(const TArray<TSharedPtr<FPointIO>>& InIOs, const EIOSide InSide)

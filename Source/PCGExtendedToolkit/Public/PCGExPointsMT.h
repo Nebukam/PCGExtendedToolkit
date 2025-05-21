@@ -91,7 +91,6 @@ namespace PCGExPointsMT
 		bool bDaisyChainProcessPoints = false;
 		bool bDaisyChainProcessRange = false;
 
-		UPCGBasePointData* CurrentProcessingSource = nullptr;
 		int32 LocalPointProcessingChunkSize = -1;
 
 	public:

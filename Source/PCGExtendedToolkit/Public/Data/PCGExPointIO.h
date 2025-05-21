@@ -53,7 +53,7 @@ namespace PCGExData
 		FScope(const UPCGBasePointData* InData, const int32 InStart, const int32 InCount);
 
 		~FScope() = default;
-		bool IsValid() const { return Start != -1 && Count > 0; }
+		bool IsValid() const { return Start >= 0 && Count > 0 && Data->GetNumPoints() <= End; }
 		void GetIndices(TArray<int32>& OutIndices) const;
 	};
 
@@ -136,7 +136,7 @@ FORCEINLINE virtual int64 GetMetadataEntry() const override { return Data->GetMe
 		virtual void SetTransform(const FTransform& InValue);
 		virtual void SetLocation(const FVector& InValue);
 		virtual void SetScale3D(const FVector& InValue);
-		virtual void SetQuat(const FQuat& InValue);
+		virtual void SetRotation(const FQuat& InValue);
 		virtual void SetBoundsMin(const FVector& InValue);
 		virtual void SetBoundsMax(const FVector& InValue);
 		virtual void SetExtents(const FVector& InValue, const bool bKeepLocalCenter = false);
@@ -245,6 +245,9 @@ FORCEINLINE virtual int64 GetMetadataEntry() const override { return Data->GetMe
 	static const FMutablePoint NONE_MutablePoint = FMutablePoint(nullptr, -1, -1);
 	static const FConstPoint NONE_ConstPoint = FConstPoint(nullptr, -1, -1);
 
+	PCGEXTENDEDTOOLKIT_API
+	void SetPointProperty(FMutablePoint& InPoint, const double InValue, const EPCGExPointPropertyOutput InProperty);
+	
 #pragma endregion
 
 #pragma region FPointIO
@@ -399,6 +402,9 @@ FORCEINLINE virtual int64 GetMetadataEntry() const override { return Data->GetMe
 		FScope GetInRange(const int32 Start, const int32 End, const bool bInclusive = true) const;
 		FScope GetOutRange(const int32 Start, const int32 End, const bool bInclusive = true) const;
 
+		void SetPoints(const TArray<FPCGPoint>& InPCGPoints);
+		void SetPoints(const int32 StartIndex, const TArray<FPCGPoint>& InPCGPoints, const EPCGPointNativeProperties Properties = EPCGPointNativeProperties::All);
+
 		FName OutputPin = PCGEx::OutputPointsLabel;
 
 		void InitPoint(int32 Index, const PCGMetadataEntryKey ParentKey) const
@@ -433,6 +439,11 @@ FORCEINLINE virtual int64 GetMetadataEntry() const override { return Data->GetMe
 		// Shorthand to simplify point insertion in cases where we want to preserve original points
 		void InheritPoints(const TArrayView<const int32>& WriteIndices) const;
 
+		// ReadIndices is expected to the size of OUT point counts
+		// Shorthand to simplify point insertion in cases where we want to copy a subset of the original points
+		// !!! Note that this method resizes the data !!!
+		void InheritPoints(const TArrayView<const int32>& SelectedIndices, const int32 StartIndex) const;
+
 		void CopyToNewPoint(const int32 InIndex, int32& OutIndex) const
 		{
 			FWriteScopeLock WriteLock(PointsLock);
@@ -453,7 +464,7 @@ FORCEINLINE virtual int64 GetMetadataEntry() const override { return Data->GetMe
 		bool StageAnyOutput(FPCGExContext* TargetContext) const;
 
 		void Gather(const TArrayView<int32> InIndices) const;
-		void Gather(const TArrayView<int8> InMask) const;
+		void Gather(const TArrayView<int8> InMask, const bool bInvert = false) const;
 
 		void DeleteAttribute(FName AttributeName) const;
 
@@ -701,6 +712,9 @@ FORCEINLINE virtual int64 GetMetadataEntry() const override { return Data->GetMe
 			return nullptr;
 		}
 	}
+
+	PCGEXTENDEDTOOLKIT_API
+	void GetPoints(const FScope& Scope, TArray<FPCGPoint>& OutPCGPoints);
 
 	static TSharedPtr<FPointIO> TryGetSingleInput(FPCGExContext* InContext, const FName InputPinLabel, const bool bTransactional, const bool bThrowError)
 	{

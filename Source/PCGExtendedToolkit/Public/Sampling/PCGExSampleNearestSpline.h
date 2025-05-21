@@ -466,7 +466,7 @@ namespace PCGExSampleNearestSpline
 	{
 		TSharedPtr<PCGExDetails::FDistances> DistanceDetails;
 
-		TArray<int8> SampleState;
+		TArray<int8> SamplingMask;
 
 		TSharedPtr<PCGExData::TBuffer<double>> RangeMinGetter;
 		TSharedPtr<PCGExData::TBuffer<double>> RangeMaxGetter;
@@ -496,14 +496,10 @@ namespace PCGExSampleNearestSpline
 
 		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager) override;
 		virtual void PrepareLoopScopesForPoints(const TArray<PCGExMT::FScope>& Loops) override;
-		virtual void PrepareSingleLoopScopeForPoints(const PCGExMT::FScope& Scope) override;
-
-		void SamplingFailed(const int32 Index, const FPCGPoint& Point, double InDepth = 0);
-
-		virtual void ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const PCGExMT::FScope& Scope) override;
+		void SamplingFailed(const int32 Index, double InDepth = 0);
+		virtual void ProcessPoints(const PCGExMT::FScope& Scope) override;
 
 		virtual void OnPointsProcessingComplete() override;
-		virtual void ProcessSingleRangeIteration(const int32 Iteration, const PCGExMT::FScope& Scope) override;
 
 		virtual void CompleteWork() override;
 		virtual void Write() override;

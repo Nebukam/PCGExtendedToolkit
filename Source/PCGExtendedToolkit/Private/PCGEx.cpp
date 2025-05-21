@@ -39,14 +39,14 @@ namespace PCGEx
 		}
 	}
 
-	void ArrayOfIndices(TArray<int32>& OutArray, const int32 InNum)
+	void ArrayOfIndices(TArray<int32>& OutArray, const int32 InNum, const int32 Offset)
 	{
 		{
 			const int32 _num_ = InNum;
 			OutArray.Reserve(_num_);
 			OutArray.SetNum(_num_);
 		}
-		for (int i = 0; i < InNum; i++) { OutArray[i] = i; }
+		for (int i = 0; i < InNum; i++) { OutArray[i] = Offset + i; }
 	}
 
 	FName GetCompoundName(const FName A, const FName B)

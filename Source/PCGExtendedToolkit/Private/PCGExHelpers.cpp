@@ -383,34 +383,6 @@ namespace PCGExHelpers
 		return true;
 	}
 
-	void SetPointProperty(FPCGPoint& InPoint, const double InValue, const EPCGExPointPropertyOutput InProperty)
-	{
-		switch (InProperty)
-		{
-		default:
-		case EPCGExPointPropertyOutput::None:
-			break;
-		case EPCGExPointPropertyOutput::Density:
-			InPoint.Density = InValue;
-			break;
-		case EPCGExPointPropertyOutput::Steepness:
-			InPoint.Steepness = InValue;
-			break;
-		case EPCGExPointPropertyOutput::ColorR:
-			InPoint.Color.Component(0) = InValue;
-			break;
-		case EPCGExPointPropertyOutput::ColorG:
-			InPoint.Color.Component(1) = InValue;
-			break;
-		case EPCGExPointPropertyOutput::ColorB:
-			InPoint.Color.Component(2) = InValue;
-			break;
-		case EPCGExPointPropertyOutput::ColorA:
-			InPoint.Color.Component(3) = InValue;
-			break;
-		}
-	}
-
 	TArray<FString> GetStringArrayFromCommaSeparatedList(const FString& InCommaSeparatedString)
 	{
 		TArray<FString> Result;

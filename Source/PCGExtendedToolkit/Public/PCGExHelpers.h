@@ -174,9 +174,6 @@ namespace PCGExHelpers
 	bool CopyProperties(UObject* Target, const UObject* Source, const TSet<FString>* Exclusions = nullptr);
 
 	PCGEXTENDEDTOOLKIT_API
-	void SetPointProperty(FPCGPoint& InPoint, const double InValue, const EPCGExPointPropertyOutput InProperty);
-
-	PCGEXTENDEDTOOLKIT_API
 	TArray<FString> GetStringArrayFromCommaSeparatedList(const FString& InCommaSeparatedString);
 
 	PCGEXTENDEDTOOLKIT_API

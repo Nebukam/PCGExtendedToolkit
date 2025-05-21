@@ -7,7 +7,6 @@
 #include "PCGExInstancedFactory.h"
 #include "PCGExOperation.h"
 
-
 #include "Graph/PCGExCluster.h"
 #include "Graph/Pathfinding/Heuristics/PCGExHeuristics.h"
 #include "UObject/Object.h"
@@ -15,6 +14,7 @@
 
 namespace PCGExPathfinding
 {
+	class FPathQuery;
 	struct FExtraWeights;
 }
 
@@ -36,7 +36,6 @@ public:
 		const TSharedPtr<PCGExPathfinding::FPathQuery>& InQuery,
 		const TSharedPtr<PCGExHeuristics::FHeuristicsHandler>& Heuristics,
 		const TSharedPtr<PCGExHeuristics::FLocalFeedbackHandler>& LocalFeedback = nullptr) const;
-
 };
 
 /**
@@ -52,7 +51,7 @@ public:
 
 	virtual TSharedPtr<FPCGExSearchOperation> CreateOperation() const
 	PCGEX_NOT_IMPLEMENTED_RET(CreateOperation(), nullptr);
-	
+
 	/** */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	bool bEarlyExit = true;

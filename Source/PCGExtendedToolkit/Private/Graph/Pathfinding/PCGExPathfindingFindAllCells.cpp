@@ -181,14 +181,12 @@ namespace PCGExFindAllCells
 
 		PCGEX_MAKE_SHARED(PathDataFacade, PCGExData::FFacade, PathIO.ToSharedRef())
 
-		TArray<FPCGPoint> MutablePoints;
-		MutablePoints.Reserve(InCell->Nodes.Num());
+		TArray<int32> ReadIndices;
+		ReadIndices.SetNumUninitialized(InCell->Nodes.Num());
 
-		const TArray<FPCGPoint>& InPoints = PathIO->GetIn()->GetPoints();
-		for (int i = 0; i < InCell->Nodes.Num(); i++) { MutablePoints.Add(InPoints[Cluster->GetNode(InCell->Nodes[i])->PointIndex]); }
-		InCell->PostProcessPoints(MutablePoints);
-
-		PathIO->GetOut()->SetPoints(MutablePoints);
+		for (int i = 0; i < InCell->Nodes.Num(); i++) { ReadIndices[i] = Cluster->GetNode(InCell->Nodes[i])->PointIndex; }
+		PathIO->InheritPoints(ReadIndices, 0);
+		InCell->PostProcessPoints(PathIO->GetOut());
 
 		Context->Artifacts.Process(Cluster, PathDataFacade, InCell);
 		PathDataFacade->Write(AsyncManager);

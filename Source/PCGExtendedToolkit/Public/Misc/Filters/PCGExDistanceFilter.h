@@ -75,9 +75,9 @@ public:
 	FPCGExDistanceFilterConfig Config;
 
 	TArray<const PCGPointOctree::FPointOctree*> OctreesPtr;
-	TArray<const TArray<FPCGPoint>*> TargetsPtr;
+	TArray<const UPCGBasePointData*> TargetsPtr;
 
-	virtual bool SupportsPointEvaluation() const override;
+	virtual bool SupportsProxyEvaluation() const override;
 
 	virtual bool Init(FPCGExContext* InContext) override;
 
@@ -108,16 +108,19 @@ namespace PCGExPointFilter
 		TSharedPtr<PCGExDetails::FDistances> Distances;
 
 		TArray<const PCGPointOctree::FPointOctree*> OctreesPtr;
-		TArray<const TArray<FPCGPoint>*> TargetsPtr;
-		uintptr_t SelfPtr = 0;
+		TArray<const UPCGBasePointData*> TargetsPtr;
+		const UPCGBasePointData* SelfPtr = nullptr;
+		
 		bool bIgnoreSelf = false;
 		int32 NumTargets = -1;
 
 		TSharedPtr<PCGExDetails::TSettingValue<double>> DistanceThresholdGetter;
 
+		TConstPCGValueRange<FTransform> InTransforms;
+		
 		virtual bool Init(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade>& InPointDataFacade) override;
 
-		virtual bool TestRoamingPoint(const FPCGPoint& Point) const override;
+		virtual bool Test(const PCGExData::FProxyPoint& Point) const override;
 		virtual bool Test(const int32 PointIndex) const override;
 
 		virtual ~FDistanceFilter() override

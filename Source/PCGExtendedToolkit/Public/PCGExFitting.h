@@ -277,9 +277,9 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExFittingVariationsDetails
 	void Init(const int InSeed);
 
 	void Apply(
-		FPCGPoint& InPoint,
-		const FPCGExFittingVariations& Variations,
-		const EPCGExVariationMode& Step) const;
+		int32 BaseSeed,
+		PCGExData::FProxyPoint& InPoint,
+		const FPCGExFittingVariations& Variations, const EPCGExVariationMode& Step) const;
 };
 
 USTRUCT(BlueprintType)
